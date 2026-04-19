@@ -1,0 +1,131 @@
+{
+  "sources": [
+    {
+      "name": "file_local_h264_aac",
+      "source_kind": "file",
+      "source": "sample_h264.mp4",
+      "enabled": true,
+      "requires_network": false,
+      "notes": "Local file source for baseline H264/AAC verification.",
+      "verify_profile": {
+        "label": "local-default",
+        "ffprobe_timeout_us": 8000000,
+        "webrtc_http_timeout_s": 15
+      }
+    },
+    {
+      "name": "file_local_h265_aac",
+      "source_kind": "file",
+      "source": "sample_h265.mp4",
+      "enabled": true,
+      "requires_network": false,
+      "notes": "Local file source for H265 ingress verification.",
+      "verify_profile": {
+        "label": "local-default",
+        "ffprobe_timeout_us": 8000000,
+        "webrtc_http_timeout_s": 15
+      }
+    },
+    {
+      "name": "rtsp_local_h265_opus",
+      "source_kind": "rtsp",
+      "source": "rtsp://127.0.0.1:8654/opus",
+      "enabled": true,
+      "requires_network": false,
+      "notes": "Local RTSP source generated from sample_h265.mp4 with Opus audio.",
+      "verify_profile": {
+        "label": "local-rtsp",
+        "rtsp_preflight_timeout_ms": 1500,
+        "ffprobe_timeout_us": 8000000,
+        "webrtc_http_timeout_s": 15
+      },
+      "launcher": {
+        "type": "local_rtsp",
+        "port": 8654,
+        "mount": "/opus",
+        "input": "video/sample_h265.mp4",
+        "video_codec": "h265",
+        "audio_codec": "opus"
+      }
+    },
+    {
+      "name": "rtsp_local_h264_pcmu",
+      "source_kind": "rtsp",
+      "source": "rtsp://127.0.0.1:8655/pcmu",
+      "enabled": true,
+      "requires_network": false,
+      "notes": "Local RTSP source generated from sample_h264.mp4 with PCMU audio.",
+      "verify_profile": {
+        "label": "local-rtsp",
+        "rtsp_preflight_timeout_ms": 1500,
+        "ffprobe_timeout_us": 8000000,
+        "webrtc_http_timeout_s": 15
+      },
+      "launcher": {
+        "type": "local_rtsp",
+        "port": 8655,
+        "mount": "/pcmu",
+        "input": "video/sample_h264.mp4",
+        "video_codec": "h264",
+        "audio_codec": "pcmu"
+      }
+    },
+    {
+      "name": "rtsp_local_h264_pcma",
+      "source_kind": "rtsp",
+      "source": "rtsp://127.0.0.1:8656/pcma",
+      "enabled": true,
+      "requires_network": false,
+      "notes": "Local RTSP source generated from sample_h264.mp4 with PCMA audio.",
+      "verify_profile": {
+        "label": "local-rtsp",
+        "rtsp_preflight_timeout_ms": 1500,
+        "ffprobe_timeout_us": 8000000,
+        "webrtc_http_timeout_s": 15
+      },
+      "launcher": {
+        "type": "local_rtsp",
+        "port": 8656,
+        "mount": "/pcma",
+        "input": "video/sample_h264.mp4",
+        "video_codec": "h264",
+        "audio_codec": "pcma"
+      }
+    },
+    {
+      "name": "webrtc_local_publish_h264_opus",
+      "source_kind": "webrtc",
+      "source": "publisher-verify",
+      "enabled": true,
+      "requires_network": false,
+      "notes": "Local WHIP publisher using videotestsrc/audiotestsrc. Consume through source=webrtc.",
+      "verify_profile": {
+        "label": "local-webrtc-publish",
+        "run_webrtc_first": true,
+        "ffprobe_timeout_us": 10000000,
+        "webrtc_http_timeout_s": 20,
+        "rtsp_route_keys": ["default", "h264", "h265", "opus"]
+      },
+      "launcher": {
+        "type": "whip_publish",
+        "source_id": "publisher-verify",
+        "duration_s": 0
+      }
+    },
+    {
+      "name": "rtsp_external_wowza_h264_aac",
+      "source_kind": "rtsp",
+      "source": "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov",
+      "enabled": false,
+      "requires_network": true,
+      "notes": "Optional external RTSP source. Enable after stabilization when network reachability is available.",
+      "verify_profile": {
+        "label": "external-rtsp-slow",
+        "rtsp_preflight_timeout_ms": 5000,
+        "ffprobe_timeout_us": 15000000,
+        "webrtc_http_timeout_s": 20,
+        "server_env_hint": "MEDIA_SERVER_RTSP_SOURCE_PREFLIGHT_TIMEOUT_MS=5000 MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS=12000 MEDIA_SERVER_RTSP_TRACK_SETTLE_QUIET_PERIOD_MS=2500 MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS=12000"
+      }
+    }
+  ]
+}
