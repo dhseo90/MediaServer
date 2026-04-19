@@ -72,13 +72,15 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - `WebRTC egress`
   - HTTP signaling / WHEP endpoint 존재
   - 브라우저 연결용 코어 파이프라인 존재
-  - 운영 수준 안정화는 추가 검증 필요
+  - simple signaling 기준 browser consume의 실제 audio/video playback 검증 완료
+  - WHEP 경로는 추가 검증 필요
 - `WebRTC source ingest`
   - `WHIP publish` endpoint 1차 구현
   - published source id를 `source=webrtc&url={source_id}`로 소비 가능하도록 구조 연결
   - local WHIP test publisher 기준 `publish -> RTSP` route subset 자동 검증 통과
   - local WHIP test publisher 기준 `publish -> WebRTC(signaling)` 자동 검증 통과
-  - browser publisher / 실제 media playback 기준 `publish -> WebRTC consume` 완전 검증은 추가 작업이 남아 있음
+  - browser publisher 기준 `publish -> WebRTC(simple signaling) consume`의 실제 audio/video playback 검증 완료
+  - browser publisher 기준 `publish -> WHEP consume`은 추가 검증 필요
 
 ### 아직 미구현 또는 placeholder
 - `WebRTC source ingest`
@@ -407,6 +409,10 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
 - `WebRTC publish(publisher-demo2 local WHIP test) -> RTSP`
   - `rtsp://127.0.0.1:8555/dhseo?source=webrtc&url=publisher-demo2`
   - 결과: `h264 + aac`
+- `WebRTC publish(local WHIP test publisher) -> WebRTC(simple signaling)`
+  - browser consumer 기준 `decoded video frame` 확인
+- `WebRTC publish(browser publisher) -> WebRTC(simple signaling)`
+  - browser consumer 기준 `decoded video frame` 확인
 
 ## 외부 RTSP source 관련 주의
 

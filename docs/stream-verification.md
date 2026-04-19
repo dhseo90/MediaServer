@@ -15,7 +15,8 @@
 현재 추가로 확인된 범위:
 - `WebRTC publish(local WHIP test publisher) -> RTSP` route subset 자동 검증 통과
 - `WebRTC publish(local WHIP test publisher) -> WebRTC(signaling)` 자동 검증 통과
-- browser publisher / 실제 media playback 기준 `WebRTC publish -> WebRTC consume`은 아직 미완료
+- browser publisher / 실제 media playback 기준 `WebRTC publish -> WebRTC(simple signaling) consume` 검증 통과
+- `WHEP` 경로의 browser playback 검증은 아직 미완료
 
 `WebRTC source`는 아직 ingest worker가 placeholder 상태라 본 검증 범위에 포함하지 않는다.
 
@@ -217,6 +218,22 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
   - `/dhseo/h265`
   - `/dhseo/opus`
 - `WebRTC publish(local WHIP test publisher: webrtc_local_publish_h264_opus) -> WebRTC(signaling)`
+- `WebRTC publish(local WHIP test publisher: whip-probe4) -> WebRTC(simple signaling)`
+  - browser consumer 기준 `consumerVideoWidth=640`, `consumerVideoHeight=360`
+  - `inboundVideoBytes > 0`, `inboundVideoFramesDecoded > 0`
+- `WebRTC publish(browser publisher) -> WebRTC(simple signaling)`
+  - browser publisher session id: `whip-publish-3`
+  - browser consumer session id: `webrtc-http-4`
+  - `consumerVideoWidth=640`, `consumerVideoHeight=480`
+  - `inboundVideoBytes > 0`, `inboundVideoFramesDecoded > 0`
+
+## 이번 라운드 핵심 확인
+- `WebRTC egress`의 H264 video branch에 대해 pad/RTP trace를 추가한 뒤 재검증했다.
+- local WHIP source와 browser publisher source 모두에서 아래 흐름이 확인됐다.
+  - `video_pay:sink` 버퍼 유입
+  - `video_pay:src` RTP payload 생성
+  - `video_rtp`에서 실제 video RTP 출력
+- browser consumer 기준으로 `decoded video frame`이 확인돼, 이전의 `audio만 재생되고 video는 0 bytes` 상태는 해소됐다.
 
 ## 이번 라운드 수정 사항
 - live source(`RTSP`, 향후 `WebRTC`)는 마지막 subscriber가 빠지면 즉시 cleanup 하도록 변경했다.
