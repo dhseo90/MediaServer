@@ -1,0 +1,23 @@
+.DS_Store
+
+# Build outputs
+/build/
+/build-gst/
+/CMakeCache.txt
+/CMakeFiles/
+/cmake_install.cmake
+/compile_commands.json
+/Makefile
+
+# Runtime artifacts
+/.media_server.log
+/.media_server.launchd.plist
+/scripts/.media_server.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Temporary files
+*.swp
+*.tmp
