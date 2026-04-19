@@ -35,6 +35,35 @@ SharedStream
 Egress Adapter (RTSP now, WebRTC later)
 ```
 
+이 구조를 연결 관점에서 다시 쓰면 아래와 같다.
+
+```text
+Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Original Source
+```
+
+중요한 점:
+- `Client -> MediaServer` 구간과 `MediaServer -> Original Source` 구간은 독립적으로 결정된다.
+- 앞단은 `egress protocol`, 뒷단은 `source protocol`이다.
+- 요청 URL/endpoint와 query/source 파라미터 조합으로 두 구간을 각각 선택한다.
+
+### 2.1 프로토콜 선택 규칙
+
+| 구간 | 의미 | 결정 방식 | 값 |
+| --- | --- | --- | --- |
+| `Client -> MediaServer` | egress protocol | RTSP URL 또는 WebRTC HTTP endpoint | `RTSP`, `WebRTC` |
+| `MediaServer -> Original Source` | source protocol | `file`, `url`, `source` 파라미터 | `file`, `RTSP`, `WebRTC` |
+
+예시:
+- `rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4`
+  - egress: `RTSP`
+  - source: `file`
+- `rtsp://127.0.0.1:8554/dhseo?url=rtsp%3A%2F%2Fcamera-host%3A554%2Flive`
+  - egress: `RTSP`
+  - source: `RTSP`
+- `POST /webrtc/session?source=webrtc&url=publisher-demo`
+  - egress: `WebRTC`
+  - source: `WebRTC`
+
 ## 3. 핵심 개념
 
 ### 3.1 StreamKey
@@ -148,6 +177,17 @@ public:
 6. Session 종료 시 구독 해제 + ref count 감소.
 7. ref count 0이면 `idle-grace-period` 후 SharedStream 종료.
 
+현재 구현에서 이 흐름은 RTSP와 WebRTC를 아래처럼 해석한다.
+- RTSP egress:
+  - `rtsp://{address}:{port}/{route}?file=...`
+  - `rtsp://{address}:{port}/{route}?url=...`
+  - `rtsp://{address}:{port}/{route}?source=webrtc&url=...`
+- WebRTC egress:
+  - `POST /webrtc/session?file=...`
+  - `POST /webrtc/session?url=...`
+  - `POST /webrtc/session?source=webrtc&url=...`
+  - `POST /whep?...`
+
 ## 7. 동시성 모델
 - SharedStream 당 thread:
   - Reader 1개: Source -> PacketBus
@@ -201,6 +241,50 @@ public:
 4. file/rtsp source adapter 구현
 5. ResourceGuard + metrics 적용
 6. WebRTC ingress/egress/source를 동일 인터페이스로 추가
+
+## 12.1 WebRTC 이후 확장: 영상 분석 계층
+
+WebRTC 안정화 이후에는 MediaServer 안에 영상 분석 계층을 추가할 계획이다. 이때 분석 로직은 relay 경로를 직접 대체하는 것이 아니라, `SharedStream`을 구독하는 별도 처리 경로로 붙이는 것이 맞다.
+
+권장 구조:
+
+```text
+Original Source
+    |
+    v
+SourceWorker
+    |
+    v
+SharedStream
+    | \
+    |  \-> Analysis Pipeline
+    |       - object detection
+    |       - tracking
+    |       - event extraction
+    |       - snapshot / crop image
+    |
+    +----> RTSP Egress
+    |
+    +----> WebRTC Egress
+```
+
+분석 계층의 출력 타입:
+- `metadata`
+  - detection box, class, score, timestamp
+- `derived image`
+  - JPEG snapshot, thumbnail, crop image
+- `rendered stream`
+  - overlay가 그려진 별도 video stream
+
+클라이언트 전달 방식 후보:
+- 기존 RTSP/WebRTC 영상 위에 overlay를 그린 2차 스트림 제공
+- 별도 HTTP endpoint로 snapshot 이미지 제공
+- WebRTC data channel 또는 별도 API로 metadata 제공
+
+이 원칙을 두는 이유:
+- source 수집과 분석 로직을 분리해야 기본 relay 경로를 안정적으로 유지할 수 있다.
+- 같은 `SharedStream`에서 `relay subscriber`와 `analysis subscriber`를 동시에 붙일 수 있다.
+- 이후 객체 감지 모델 교체, snapshot 정책 추가, 이벤트 API 추가가 쉬워진다.
 
 ## 13. 라이브러리 선택
 - `live555`: Linux/macOS/Windows 모두 사용 가능. RTSP 서버/클라이언트에 집중된 경량 라이브러리.
