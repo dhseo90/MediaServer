@@ -23,6 +23,37 @@ SharedStream
 SourceWorker (File / RTSP Pull / future WebRTC)
 ```
 
+이 프로젝트가 의도하는 실제 연결 모델은 아래와 같습니다.
+
+```text
+Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Original Source
+```
+
+즉 `Client -> MediaServer` 구간과 `MediaServer -> Original Source` 구간은 서로 독립적으로 선택됩니다.
+
+## 프로토콜 선택 규칙
+
+핵심 원칙:
+- `Client <-> MediaServer` 프로토콜은 클라이언트가 어떤 endpoint로 접속하는지로 결정됩니다.
+- `MediaServer <-> Original Source` 프로토콜은 요청 파라미터(`file`, `url`, `source`)로 결정됩니다.
+- 하나의 요청 안에서 앞단과 뒷단 프로토콜을 서로 다르게 조합할 수 있습니다.
+
+| 구간 | 결정 방식 | 현재 선택 가능 값 |
+| --- | --- | --- |
+| `Client -> MediaServer` | 접속 URL / HTTP endpoint | `RTSP`, `WebRTC` |
+| `MediaServer -> Original Source` | query/source 파라미터 | `file`, `RTSP`, `WebRTC` |
+
+조합 예시:
+
+| Client 구간 | Source 구간 | 예시 |
+| --- | --- | --- |
+| `RTSP` | `file` | `rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4` |
+| `RTSP` | `RTSP` | `rtsp://127.0.0.1:8554/dhseo?url=rtsp%3A%2F%2Fcamera-host%3A554%2Flive` |
+| `RTSP` | `WebRTC` | `rtsp://127.0.0.1:8554/dhseo?source=webrtc&url=publisher-demo` |
+| `WebRTC` | `file` | `POST /webrtc/session?file=sample_h264.mp4` |
+| `WebRTC` | `RTSP` | `POST /webrtc/session?url=rtsp%3A%2F%2Fcamera-host%3A554%2Flive` |
+| `WebRTC` | `WebRTC` | `POST /webrtc/session?source=webrtc&url=publisher-demo` |
+
 ## 현재 구현 상태
 
 ### 구현 완료
@@ -229,6 +260,54 @@ publish 후 WebRTC egress에서 소비:
 ```text
 POST http://127.0.0.1:8080/webrtc/session?source=webrtc&url={source_id}
 POST http://127.0.0.1:8080/whep?source=webrtc&url={source_id}
+```
+
+## 앞으로 붙일 영상 분석 계층
+
+WebRTC까지 안정화한 이후에는, MediaServer가 원본 video/audio를 받아서 `객체 감지`, `추적`, `이벤트 추출`, `스냅샷 생성` 같은 분석을 수행할 수 있도록 확장할 예정입니다.
+
+권장 구조는 아래와 같습니다.
+
+```text
+Original Source
+    |
+    v
+SourceWorker
+    |
+    v
+SharedStream
+    | \
+    |  \-> Analysis Pipeline
+    |       - object detection
+    |       - event extraction
+    |       - snapshot / thumbnail
+    |
+    +----> RTSP Egress
+    |
+    +----> WebRTC Egress
+```
+
+핵심 원칙:
+- 분석 로직은 `SourceWorker` 안에 섞지 않고 `SharedStream`을 구독하는 별도 계층으로 둡니다.
+- 원본 전송 경로와 분석 파이프라인을 분리해서, 분석 기능 추가가 기본 스트리밍 안정성을 깨지 않게 합니다.
+- 분석 결과는 최소 세 가지 타입으로 나눠 다룹니다.
+  - `metadata`: box, label, score, timestamp
+  - `derived image`: JPEG snapshot, thumbnail, crop image
+  - `rendered stream`: bounding box overlay가 들어간 2차 스트림
+
+클라이언트 전달 방식 후보:
+- RTSP/WebRTC 본 스트림 위에 overlay된 영상으로 전달
+- 별도 HTTP API로 snapshot 이미지를 전달
+- WebRTC data channel 또는 별도 API로 detection metadata를 전달
+
+즉 미래 구조는 단순한 `stream relay`를 넘어 아래처럼 확장됩니다.
+
+```text
+Client <-> (RTSP or WebRTC) <-> MediaServer
+                                   |
+                                   +-> Relay Path
+                                   +-> Analysis Path
+                                   +-> Snapshot / Metadata Path
 ```
 
 ## 현재 지원 codec route
