@@ -3,11 +3,12 @@
 ## 1. 목표
 - 지원 OS: macOS, Linux
 - 현재 지원:
-  - Ingress: RTSP
-  - Source: RTSP Pull, File
-  - Egress: RTSP
+  - Client ingress/egress: RTSP, WebRTC HTTP signaling, WHEP
+  - Source: File, RTSP Pull, WebRTC WHIP publish source
+  - Egress: RTSP, WebRTC
 - 미래 확장:
-  - Ingress/Egress/Source에 WebRTC 추가
+  - 운영용 WebRTC auth / STUN / TURN / ICE policy 추가
+  - 영상 분석 pipeline 추가
 - 핵심 요구:
   - 동일 소스에 대한 다중 클라이언트 요청 시 Source Pull 1회 + N-way fan-out
   - 서로 다른 N개의 요청을 동시에 안정적으로 처리
@@ -97,6 +98,7 @@ include/
     gstreamer_rtsp_server.h
     request_parser.h
     rtsp_adapter.h
+    webrtc_gst_utils.h
 src/
   main.cpp
   core/
@@ -109,6 +111,7 @@ src/
     gstreamer_rtsp_server.cpp
     request_parser.cpp
     rtsp_adapter.cpp
+    webrtc_gst_utils.cpp
 CMakeLists.txt
 ```
 
@@ -333,6 +336,8 @@ SharedStream
 - `MEDIA_SERVER_SKIP_ENV_CHECK=1`: pkg-config 의존성 점검을 생략해야 할 때 사용
 - `MEDIA_SERVER_FORCE_RTSP_TCP=1`: GStreamer가 고정 UDP/랜덤 포트 바인딩에서 실패할 때 TCP-only로 강제
 - `MEDIA_SERVER_GST_ATTACH_CONTEXT=default|1`: gstreamer attach 시 기본 GLib context 강제 사용
+- `MEDIA_SERVER_WEBRTC_TRACE=1`: WebRTC 협상/상태/RTCP workaround 로그 출력
+- `MEDIA_SERVER_WEBRTC_TRACE_VERBOSE=1`: sample/pad/caps/SDP detail 로그까지 출력
 - 주요 설정(컴파일 타임):
   - `include/stdafx.h`
   - `kStreamRoute`: RTSP 경로 (`/dhseo`)

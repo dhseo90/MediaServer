@@ -11,14 +11,15 @@
 - `RTSP -> WebRTC(signaling)`
 - `WebRTC publish(local WHIP test publisher) -> RTSP`
 - `WebRTC publish(local WHIP test publisher) -> WebRTC(signaling)`
+- `WebRTC publish(browser publisher) -> WebRTC(WHEP)`
 
 현재 추가로 확인된 범위:
 - `WebRTC publish(local WHIP test publisher) -> RTSP` route subset 자동 검증 통과
 - `WebRTC publish(local WHIP test publisher) -> WebRTC(signaling)` 자동 검증 통과
 - browser publisher / 실제 media playback 기준 `WebRTC publish -> WebRTC(simple signaling) consume` 검증 통과
-- `WHEP` 경로의 browser playback 검증은 아직 미완료
+- browser publisher / 실제 media playback 기준 `WebRTC publish -> WebRTC(WHEP) consume` 검증 통과
 
-`WebRTC source`는 아직 ingest worker가 placeholder 상태라 본 검증 범위에 포함하지 않는다.
+`WebRTC source`는 WHIP publish 기반 1차 ingest를 사용한다. 운영용 auth/STUN/TURN/ICE policy는 아직 별도 정리가 필요하다.
 
 ## 설정 파일
 - `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/config/codec_test_sources.json`
@@ -72,6 +73,8 @@
 - 외부 wowza source는 기본 설정에서 `RTSP preflight failed for wowzaec2demo.streamlock.net:554 within 1500ms (connection timed out)`로 실패했다.
 - 같은 wowza source를 `MEDIA_SERVER_RTSP_SOURCE_PREFLIGHT_TIMEOUT_MS=0`으로 다시 확인하면 `timed out waiting for RTSP source samples`로 실패했다.
 - local `WHIP publish(sourceId=publisher-demo2) -> RTSP`는 `h264 + aac`로 확인됐다.
+- browser `WHIP publish -> WHEP consume`은 audio/video track 연결과 decoded video frame을 확인했다.
+- browser `WHIP publish -> simple signaling consume`은 audio/video track 연결과 decoded video frame을 확인했다.
 
 ## 외부 RTSP source 진단용 환경변수
 - `MEDIA_SERVER_RTSP_SOURCE_PREFLIGHT_TIMEOUT_MS`
