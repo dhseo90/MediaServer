@@ -1204,15 +1204,6 @@ public:
     explicit WebRtcSourceWorker(SourceSpec source_spec) : BasicSourceWorker(std::move(source_spec)) {}
 
     bool Start(const std::shared_ptr<core::SharedStream>& stream, std::string* error_message) override {
-        auto has_track = [](const StreamDescriptor& descriptor, media::MediaKind kind) {
-            for (const auto& track : descriptor.tracks) {
-                if (track.kind == kind) {
-                    return true;
-                }
-            }
-            return false;
-        };
-
         published_source_ = ingress::WebRtcSourceRegistry::Instance().Find(source_spec_.uri);
         if (published_source_ == nullptr) {
             if (error_message != nullptr) {
@@ -1237,25 +1228,14 @@ public:
         }
 
         StreamDescriptor descriptor;
-        const auto start_timeout = std::chrono::milliseconds(app::GetAppConfig().rtsp_source_start_timeout_ms);
-        const auto settle_timeout = std::chrono::milliseconds(app::GetAppConfig().rtsp_track_settle_max_ms);
-        const auto started_at = std::chrono::steady_clock::now();
-        if (!published_source_->WaitForDescriptor(start_timeout, &descriptor)) {
+        const auto ready_timeout = std::chrono::milliseconds(app::GetAppConfig().webrtc_source_ready_timeout_ms);
+        if (!published_source_->WaitForTracks(ready_timeout, true, true, &descriptor)) {
             published_source_->RemoveSubscriber(subscriber_id_);
             published_source_.reset();
             if (error_message != nullptr) {
-                *error_message = "timed out waiting for published WebRTC source descriptor";
+                *error_message = "timed out waiting for published WebRTC source audio/video readiness";
             }
             return false;
-        }
-
-        while (published_source_ != nullptr && published_source_->IsActive() &&
-               !(has_track(descriptor, media::MediaKind::Video) && has_track(descriptor, media::MediaKind::Audio)) &&
-               std::chrono::steady_clock::now() - started_at < settle_timeout) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            if (auto refreshed = published_source_->descriptor(); refreshed.has_value()) {
-                descriptor = *refreshed;
-            }
         }
 
         descriptor.is_live = true;

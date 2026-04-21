@@ -732,6 +732,8 @@ std::string BuildTestPageHtml() {
       await stopSession();
       sessionBase = '/whep/session';
       pc = new RTCPeerConnection();
+      pc.addTransceiver('video', { direction: 'recvonly' });
+      pc.addTransceiver('audio', { direction: 'recvonly' });
       pc.onconnectionstatechange = () => log(`consumer connectionState=${pc.connectionState}`);
       pc.oniceconnectionstatechange = () => log(`consumer iceConnectionState=${pc.iceConnectionState}`);
       pc.ontrack = (event) => {

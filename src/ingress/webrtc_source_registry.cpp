@@ -7,6 +7,19 @@
 
 namespace ingress {
 
+namespace {
+
+bool DescriptorHasKind(const media::StreamDescriptor& descriptor, media::MediaKind kind) {
+    for (const auto& track : descriptor.tracks) {
+        if (track.kind == kind) {
+            return true;
+        }
+    }
+    return false;
+}
+
+}  // namespace
+
 PublishedWebRtcSource::PublishedWebRtcSource(std::string source_id) : source_id_(std::move(source_id)) {}
 
 const std::string& PublishedWebRtcSource::source_id() const {
@@ -76,6 +89,36 @@ bool PublishedWebRtcSource::WaitForDescriptor(std::chrono::milliseconds timeout,
     std::unique_lock lock(descriptor_mu_);
     const bool ready = descriptor_cv_.wait_for(lock, timeout, [this] { return descriptor_.has_value() || !active_; });
     if (!ready || !descriptor_.has_value()) {
+        return false;
+    }
+    if (descriptor != nullptr) {
+        *descriptor = *descriptor_;
+    }
+    return true;
+}
+
+bool PublishedWebRtcSource::WaitForTracks(std::chrono::milliseconds timeout,
+                                          bool require_video,
+                                          bool require_audio,
+                                          media::StreamDescriptor* descriptor) {
+    std::unique_lock lock(descriptor_mu_);
+    const bool ready = descriptor_cv_.wait_for(lock, timeout, [this, require_video, require_audio] {
+        if (!active_) {
+            return true;
+        }
+        if (!descriptor_.has_value()) {
+            return false;
+        }
+        const bool has_video = !require_video || DescriptorHasKind(*descriptor_, media::MediaKind::Video);
+        const bool has_audio = !require_audio || DescriptorHasKind(*descriptor_, media::MediaKind::Audio);
+        return has_video && has_audio;
+    });
+    if (!ready || !descriptor_.has_value()) {
+        return false;
+    }
+    const bool has_video = !require_video || DescriptorHasKind(*descriptor_, media::MediaKind::Video);
+    const bool has_audio = !require_audio || DescriptorHasKind(*descriptor_, media::MediaKind::Audio);
+    if (!(has_video && has_audio)) {
         return false;
     }
     if (descriptor != nullptr) {

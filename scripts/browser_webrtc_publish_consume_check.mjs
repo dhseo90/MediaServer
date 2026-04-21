@@ -16,25 +16,188 @@ const existingSourceId = args.existingSourceId || "";
 const holdMs = Number(args.holdMs || 30000);
 const timeoutMs = Number(args.timeoutMs || 45000);
 const debugPort = Number(args.debugPort || 9223);
-const targetUrl = `${httpBase}/webrtc/test?run=${Date.now()}`;
+const splitPublishConsume = (mode === "simple" || mode === "whep") && !existingSourceId && args.singleBrowser !== "1";
+const publisherPlaybackTimeoutMs = Number(args.publisherPlaybackTimeoutMs || 15000);
+const consumerPlaybackTimeoutMs = Number(args.consumerPlaybackTimeoutMs || 30000);
+const publisherWarmupMs = Number(args.publisherWarmupMs || (splitPublishConsume ? 8000 : 0));
 
 if (!chromePath) {
   console.error("[browser-check] failed: Chrome executable not found");
   process.exit(1);
 }
 
-let chrome = null;
-let ws = null;
-let messageId = 0;
-const pending = new Map();
+const browsers = [];
 
 try {
+  if (splitPublishConsume) {
+    const publisher = await launchBrowser("publisher", debugPort);
+    browsers.push(publisher);
+
+    const publisherState = await publisher.evaluate(
+      `
+        (async () => {
+          const api = window.__mediaServerTestApi;
+          if (!api) {
+            throw new Error('missing window.__mediaServerTestApi');
+          }
+          document.getElementById('publishSourceIdInput').value = ${JSON.stringify(sourceId)};
+          document.getElementById('webrtcSourceInput').value = ${JSON.stringify(sourceId)};
+          await api.stopSession();
+          await api.stopPublisher();
+          await api.startPublish();
+          await api.waitForPlayback('publisher', ${JSON.stringify(publisherPlaybackTimeoutMs)});
+          return api.snapshotState();
+        })()
+      `,
+      timeoutMs,
+    );
+    if (publisherWarmupMs > 0) {
+      await delay(publisherWarmupMs);
+    }
+
+    const consumer = await launchBrowser("consumer", debugPort + 1);
+    browsers.push(consumer);
+
+    const result = await consumer.evaluate(
+      `
+        (async () => {
+          const api = window.__mediaServerTestApi;
+          if (!api) {
+            throw new Error('missing window.__mediaServerTestApi');
+          }
+          document.getElementById('sourceType').value = 'webrtc';
+          document.getElementById('publishSourceIdInput').value = ${JSON.stringify(sourceId)};
+          document.getElementById('webrtcSourceInput').value = ${JSON.stringify(sourceId)};
+          await api.stopSession();
+          await api.stopPublisher();
+          if (${JSON.stringify(mode)} === 'whep') {
+            await api.playPublishedWhep();
+          } else {
+            await api.playPublishedSimple();
+          }
+          return api.waitForPlayback('consumer', ${JSON.stringify(consumerPlaybackTimeoutMs)});
+        })()
+      `,
+      timeoutMs + publisherWarmupMs,
+    );
+
+    validateConsumerVideo(result);
+    console.log(
+      JSON.stringify(
+        {
+          ok: true,
+          mode,
+          sourceId,
+          splitBrowser: true,
+          publisherState,
+          state: result,
+        },
+        null,
+        2,
+      ),
+    );
+  } else {
+    const browser = await launchBrowser("main", debugPort);
+    browsers.push(browser);
+
+    const result = await browser.evaluate(
+      `
+        (async () => {
+          const api = window.__mediaServerTestApi;
+          if (!api) {
+            throw new Error('missing window.__mediaServerTestApi');
+          }
+          document.getElementById('publishSourceIdInput').value = ${JSON.stringify(sourceId)};
+          document.getElementById('webrtcSourceInput').value = ${JSON.stringify(existingSourceId || sourceId)};
+          await api.stopSession();
+          await api.stopPublisher();
+          if (${JSON.stringify(Boolean(existingSourceId))}) {
+            document.getElementById('sourceType').value = 'webrtc';
+          } else {
+            await api.startPublish();
+            await api.waitForPlayback('publisher', ${JSON.stringify(publisherPlaybackTimeoutMs)});
+          }
+          if (${JSON.stringify(mode)} === 'publish-only') {
+            await new Promise((resolve) => setTimeout(resolve, ${JSON.stringify(holdMs)}));
+            return api.snapshotState();
+          } else if (${JSON.stringify(mode)} === 'whep') {
+            await api.playPublishedWhep();
+          } else {
+            await api.playPublishedSimple();
+          }
+          return api.waitForPlayback('consumer', ${JSON.stringify(consumerPlaybackTimeoutMs)});
+        })()
+      `,
+      timeoutMs,
+    );
+
+    validateConsumerVideo(result);
+    console.log(
+      JSON.stringify(
+        {
+          ok: true,
+          mode,
+          sourceId,
+          splitBrowser: false,
+          state: result,
+        },
+        null,
+        2,
+      ),
+    );
+  }
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`[browser-check] failed: ${message}`);
+  for (const browser of browsers) {
+    try {
+      const snapshot = await browser.evaluate(
+        `(async () => { const api = window.__mediaServerTestApi; return api ? api.snapshotState() : { missingApi: true }; })()`,
+        5000,
+      );
+      console.error(`[browser-check] ${browser.label} snapshot:`);
+      console.error(JSON.stringify(snapshot, null, 2));
+    } catch (_) {}
+  }
+  process.exitCode = 1;
+} finally {
+  for (const browser of [...browsers].reverse()) {
+    await browser
+      .evaluate(
+        `(async () => { const api = window.__mediaServerTestApi; if (api) { await api.stopSession(); await api.stopPublisher(); } return true; })()`,
+        10000,
+      )
+      .catch(() => {});
+  }
+  for (const browser of [...browsers].reverse()) {
+    await browser.close();
+  }
+}
+
+process.exit(process.exitCode || 0);
+
+function validateConsumerVideo(result) {
+  if (Array.isArray(result?.consumerTrackKinds) && result.consumerTrackKinds.includes("video")) {
+    const decodedFrames = Number(result?.stats?.inboundVideoFramesDecoded || 0);
+    const renderedWidth = Number(result?.consumerVideoWidth || 0);
+    if (decodedFrames <= 0 && renderedWidth <= 0) {
+      throw new Error(`consumer video did not decode: ${JSON.stringify(result)}`);
+    }
+  }
+}
+
+async function launchBrowser(label, port) {
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-chrome-"));
-  chrome = spawn(
+  const targetUrl = `${httpBase}/webrtc/test?run=${Date.now()}-${label}`;
+  const pending = new Map();
+  let messageId = 0;
+  let ws = null;
+
+  const chrome = spawn(
     chromePath,
     [
       `--user-data-dir=${userDataDir}`,
-      `--remote-debugging-port=${debugPort}`,
+      `--remote-debugging-port=${port}`,
       "--headless=new",
       "--autoplay-policy=no-user-gesture-required",
       "--use-fake-device-for-media-stream",
@@ -51,98 +214,55 @@ try {
 
   chrome.stdout.on("data", (chunk) => {
     if (args.verbose) {
-      process.stdout.write(`[chrome] ${chunk}`);
+      process.stdout.write(`[chrome:${label}] ${chunk}`);
     }
   });
   chrome.stderr.on("data", (chunk) => {
     if (args.verbose) {
-      process.stderr.write(`[chrome] ${chunk}`);
+      process.stderr.write(`[chrome:${label}] ${chunk}`);
     }
   });
 
-  const pageTarget = await waitForTarget(debugPort, targetUrl, timeoutMs);
-  ws = await connectWebSocket(pageTarget.webSocketDebuggerUrl);
-
-  await cdp("Page.enable");
-  await cdp("Runtime.enable");
-
-  await waitForDocumentReady(timeoutMs);
-  await waitForTestApi(timeoutMs);
-
-  const script = `
-    (async () => {
-      const api = window.__mediaServerTestApi;
-      if (!api) {
-        throw new Error('missing window.__mediaServerTestApi');
-      }
-      document.getElementById('publishSourceIdInput').value = ${JSON.stringify(sourceId)};
-      document.getElementById('webrtcSourceInput').value = ${JSON.stringify(existingSourceId || sourceId)};
-      await api.stopSession();
-      await api.stopPublisher();
-      if (${JSON.stringify(Boolean(existingSourceId))}) {
-        document.getElementById('sourceType').value = 'webrtc';
-      } else {
-        await api.startPublish();
-        await api.waitForPlayback('publisher', 15000);
-      }
-      if (${JSON.stringify(mode)} === 'publish-only') {
-        await new Promise((resolve) => setTimeout(resolve, ${JSON.stringify(holdMs)}));
-        return api.snapshotState();
-      } else if (${JSON.stringify(mode)} === 'whep') {
-        await api.playPublishedWhep();
-      } else {
-        await api.playPublishedSimple();
-      }
-      const finalState = await api.waitForPlayback('consumer', 20000);
-      return finalState;
-    })()
-  `;
-
-  const result = await evaluate(script, timeoutMs);
-  if (Array.isArray(result?.consumerTrackKinds) && result.consumerTrackKinds.includes("video")) {
-    const decodedFrames = Number(result?.stats?.inboundVideoFramesDecoded || 0);
-    const renderedWidth = Number(result?.consumerVideoWidth || 0);
-    if (decodedFrames <= 0 && renderedWidth <= 0) {
-      throw new Error(`consumer video did not decode: ${JSON.stringify(result)}`);
-    }
-  }
-  console.log(JSON.stringify({
-    ok: true,
-    mode,
-    sourceId,
-    state: result,
-  }, null, 2));
-
-  await evaluate(
-    `(async () => { const api = window.__mediaServerTestApi; if (api) { await api.stopSession(); await api.stopPublisher(); } return true; })()`,
-    10000,
-  ).catch(() => {});
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(`[browser-check] failed: ${message}`);
-  try {
-    const snapshot = await evaluate(
-      `(async () => { const api = window.__mediaServerTestApi; return api ? api.snapshotState() : { missingApi: true }; })()`,
-      5000,
-    );
-    console.error(JSON.stringify(snapshot, null, 2));
-  } catch (_) {}
-  process.exitCode = 1;
-} finally {
-  for (const [id, entry] of pending.entries()) {
-    entry.reject(new Error(`CDP closed before response for message ${id}`));
-  }
-  pending.clear();
-  if (ws) {
-    try {
-      ws.close();
-    } catch (_) {}
-  }
-  if (chrome && !chrome.killed) {
-    chrome.kill("SIGTERM");
-    await onceExit(chrome, 5000).catch(() => {
-      chrome.kill("SIGKILL");
+  const cdp = (method, params = {}) => {
+    const id = ++messageId;
+    ws.send(JSON.stringify({ id, method, params }));
+    return new Promise((resolve, reject) => {
+      pending.set(id, { resolve, reject });
     });
+  };
+
+  const evaluate = (expression, evalTimeoutMs) => evaluateWithCdp(cdp, expression, evalTimeoutMs);
+
+  const close = async () => {
+    for (const [id, entry] of pending.entries()) {
+      entry.reject(new Error(`CDP closed before response for message ${id}`));
+    }
+    pending.clear();
+    if (ws) {
+      try {
+        ws.close();
+      } catch (_) {}
+    }
+    if (chrome && !chrome.killed) {
+      chrome.kill("SIGTERM");
+      await onceExit(chrome, 5000).catch(() => {
+        chrome.kill("SIGKILL");
+      });
+    }
+    fs.rmSync(userDataDir, { recursive: true, force: true });
+  };
+
+  try {
+    const pageTarget = await waitForTarget(port, targetUrl, timeoutMs);
+    ws = await connectWebSocket(pageTarget.webSocketDebuggerUrl, pending);
+    await cdp("Page.enable");
+    await cdp("Runtime.enable");
+    await waitForDocumentReady(evaluate, timeoutMs);
+    await waitForTestApi(evaluate, timeoutMs);
+    return { label, evaluate, close };
+  } catch (error) {
+    await close();
+    throw error;
   }
 }
 
@@ -175,9 +295,9 @@ function findChrome() {
   return candidates.find((candidate) => fs.existsSync(candidate)) || "";
 }
 
-async function waitForTarget(port, urlPrefix, timeoutMs) {
+async function waitForTarget(port, urlPrefix, waitTimeoutMs) {
   const startedAt = Date.now();
-  while (Date.now() - startedAt < timeoutMs) {
+  while (Date.now() - startedAt < waitTimeoutMs) {
     try {
       const response = await fetch(`http://127.0.0.1:${port}/json/list`);
       if (response.ok) {
@@ -193,7 +313,7 @@ async function waitForTarget(port, urlPrefix, timeoutMs) {
   throw new Error(`timed out waiting for Chrome target: ${urlPrefix}`);
 }
 
-async function connectWebSocket(url) {
+async function connectWebSocket(url, pending) {
   const socket = new WebSocket(url);
   await new Promise((resolve, reject) => {
     socket.addEventListener("open", () => resolve(), { once: true });
@@ -224,17 +344,9 @@ async function connectWebSocket(url) {
   return socket;
 }
 
-function cdp(method, params = {}) {
-  const id = ++messageId;
-  ws.send(JSON.stringify({ id, method, params }));
-  return new Promise((resolve, reject) => {
-    pending.set(id, { resolve, reject });
-  });
-}
-
-async function waitForDocumentReady(timeoutMs) {
+async function waitForDocumentReady(evaluate, waitTimeoutMs) {
   const startedAt = Date.now();
-  while (Date.now() - startedAt < timeoutMs) {
+  while (Date.now() - startedAt < waitTimeoutMs) {
     try {
       const state = await evaluate("document.readyState", 5000);
       if (state === "complete") {
@@ -246,9 +358,9 @@ async function waitForDocumentReady(timeoutMs) {
   throw new Error("timed out waiting for document.readyState=complete");
 }
 
-async function waitForTestApi(timeoutMs) {
+async function waitForTestApi(evaluate, waitTimeoutMs) {
   const startedAt = Date.now();
-  while (Date.now() - startedAt < timeoutMs) {
+  while (Date.now() - startedAt < waitTimeoutMs) {
     try {
       const exists = await evaluate("Boolean(window.__mediaServerTestApi)", 5000);
       if (exists) {
@@ -260,7 +372,11 @@ async function waitForTestApi(timeoutMs) {
   throw new Error("timed out waiting for window.__mediaServerTestApi");
 }
 
-async function evaluate(expression, timeoutMs) {
+async function evaluateWithCdp(cdp, expression, evalTimeoutMs) {
+  let timer = null;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`timed out evaluating expression after ${evalTimeoutMs}ms`)), evalTimeoutMs);
+  });
   const result = await Promise.race([
     cdp("Runtime.evaluate", {
       expression,
@@ -268,10 +384,12 @@ async function evaluate(expression, timeoutMs) {
       returnByValue: true,
       userGesture: true,
     }),
-    delay(timeoutMs).then(() => {
-      throw new Error(`timed out evaluating expression after ${timeoutMs}ms`);
-    }),
-  ]);
+    timeout,
+  ]).finally(() => {
+    if (timer !== null) {
+      clearTimeout(timer);
+    }
+  });
   if (!result || !result.result) {
     return undefined;
   }
@@ -281,9 +399,9 @@ async function evaluate(expression, timeoutMs) {
   return result.result.value;
 }
 
-function onceExit(child, timeoutMs) {
+function onceExit(child, waitTimeoutMs) {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("child exit timeout")), timeoutMs);
+    const timer = setTimeout(() => reject(new Error("child exit timeout")), waitTimeoutMs);
     child.once("exit", (code, signal) => {
       clearTimeout(timer);
       resolve({ code, signal });
