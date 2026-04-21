@@ -7,6 +7,7 @@
   - Source: File, RTSP Pull, WebRTC WHIP publish source
   - Egress: RTSP, WebRTC
 - 미래 확장:
+  - YouTube live/uploaded URL 처리를 위한 HLS/HTTP source adapter 추가
   - 운영용 WebRTC auth / STUN / TURN / ICE policy 추가
   - 영상 분석 pipeline 추가
 - 핵심 요구:
@@ -131,11 +132,13 @@ std::optional<SourceSpec> ParseSourceSpec(const IngressRequest& request);
 ### 5.2 Source
 ```cpp
 struct SourceSpec {
-    enum class Kind { Rtsp, File, WebRtc };
+    enum class Kind { Rtsp, File, WebRtc, Hls, Http, Youtube };
     Kind kind;
     std::string uri;
 };
 ```
+
+`Youtube`는 직접 media source라기보다 resolver 역할로 둔다. 즉 `YouTubeResolver`가 watch/live URL을 권한과 정책을 확인한 뒤 재생 가능한 `Hls` 또는 `Http` source로 변환하고, 실제 packet 수집은 `HlsSourceWorker`/`HttpSourceWorker`가 담당한다.
 
 ### 5.3 SharedStream fan-out
 ```cpp
@@ -244,10 +247,44 @@ public:
 4. file/rtsp source adapter 구현
 5. ResourceGuard + metrics 적용
 6. WebRTC ingress/egress/source를 동일 인터페이스로 추가
+7. YouTube live/uploaded URL 수신을 위한 `Hls/Http SourceWorker`와 `YouTubeResolver` 추가
+8. 영상 분석용 `analysis subscriber/tap` 추가
 
-## 12.1 WebRTC 이후 확장: 영상 분석 계층
+## 12.1 다음 확장 순서: YouTube URL source
 
-WebRTC 안정화 이후에는 MediaServer 안에 영상 분석 계층을 추가할 계획이다. 이때 분석 로직은 relay 경로를 직접 대체하는 것이 아니라, `SharedStream`을 구독하는 별도 처리 경로로 붙이는 것이 맞다.
+다음 구현 순서는 YouTube live/uploaded URL 검토가 먼저다. 단, YouTube watch/live URL은 직접 media URL이 아니므로 서버 내부에서는 아래처럼 분리한다.
+
+```text
+YouTube watch/live URL
+    |
+    v
+YouTubeResolver
+    |
+    v
+HLS/HTTP playable URL
+    |
+    v
+HlsSourceWorker / HttpSourceWorker
+    |
+    v
+SharedStream
+```
+
+구현 원칙:
+- 기본 source protocol은 `source=hls` 또는 `source=http`로 먼저 연다.
+- `source=youtube`는 resolver를 통과하는 별도 옵션으로 둔다.
+- 라이브와 업로드된 영상 모두 고려한다.
+- YouTube 약관/권한 이슈가 있으므로 resolver는 실험/권한 확인 가능한 경로로 격리한다.
+- HLS/HTTP source는 video-only stream도 처리할 수 있어야 한다.
+
+예상 URL:
+- `rtsp://{address}:{port}/{route}?source=hls&url={urlencoded_m3u8_url}`
+- `POST /webrtc/session?source=hls&url={urlencoded_m3u8_url}`
+- `POST /whep?source=hls&url={urlencoded_m3u8_url}`
+
+## 12.2 YouTube 이후 확장: 영상 분석 계층
+
+YouTube URL source 검토 이후에는 MediaServer 안에 영상 분석 계층을 추가할 계획이다. 이때 분석 로직은 relay 경로를 직접 대체하는 것이 아니라, `SharedStream`을 구독하는 별도 처리 경로로 붙이는 것이 맞다.
 
 권장 구조:
 

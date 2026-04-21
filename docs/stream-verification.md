@@ -244,6 +244,10 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
 - 이 변경 후 `RTSP(h265+opus)`와 `RTSP(h264+pcmu)`의 연속 요청/transform route 재검증이 통과했다.
 
 ## 남은 확인 항목
+- 다음 구현 순서
+  - 1차: YouTube live/uploaded URL 검토를 위한 `source=hls|http` source 검증 추가
+  - 2차: `source=youtube` resolver 실험 경로 추가
+  - 3차: 영상분석 branch 검증 추가
 - 외부 wowza source 재검증
 - 외부 RTSP source timeout 원인 분리
   - 실제 remote server 응답 지연인지

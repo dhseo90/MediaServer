@@ -442,7 +442,17 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
 
 ## 다음에 이어서 하기 좋은 작업
 
-- `SessionManager` trace 로그 정리
-- 외부 RTSP source별 timeout/profile 설정 확장
-- WebRTC 운영 설정(auth/STUN/TURN/ICE policy) 정리
-- WebRTC end-to-end 브라우저 검증 자동화 범위 확장
+1. YouTube URL source 검토/구현
+   - 먼저 `source=hls|http` 형태의 `HLS/HTTP SourceWorker`를 추가한다.
+   - YouTube watch/live URL은 직접 media URL이 아니므로 `YouTubeResolver -> HLS/HTTP URL -> SourceWorker` 구조로 격리한다.
+   - 라이브와 업로드된 영상 모두 고려하되, 약관/권한 문제 때문에 기본 source 기능은 `youtube`가 아니라 `hls/http`로 둔다.
+   - 구현 전 `video-only` source 허용 여부를 점검한다.
+2. 영상분석 branch 추가
+   - 송신 경로(RTSP/WebRTC egress)는 직접 막지 않는다.
+   - `SharedStream`에 별도 analysis subscriber/tap을 붙이고, 분석 branch는 drop-oldest 및 frame sampling을 사용한다.
+   - 첫 단계는 metadata/snapshot API로 시작하고, overlay stream은 이후 별도 단계로 분리한다.
+3. 운영 안정화 후속
+   - `SessionManager` trace 로그 정리
+   - 외부 RTSP source별 timeout/profile 설정 확장
+   - WebRTC 운영 설정(auth/STUN/TURN/ICE policy) 정리
+   - WebRTC end-to-end 브라우저 검증 자동화 범위 확장
