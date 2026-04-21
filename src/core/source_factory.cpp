@@ -221,6 +221,7 @@ std::string BuildAudioBranch(const TrackInfo& track) {
         case CodecId::Unknown:
         case CodecId::H264:
         case CodecId::H265:
+        case CodecId::VP8:
             return {};
     }
     return {};

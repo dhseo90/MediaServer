@@ -73,19 +73,26 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
   - HTTP signaling / WHEP endpoint 존재
   - 브라우저 연결용 코어 파이프라인 존재
   - simple signaling 기준 browser consume의 실제 audio/video playback 검증 완료
-  - WHEP 경로는 추가 검증 필요
+  - WHEP 기준 browser consume의 실제 audio/video playback 검증 완료
 - `WebRTC source ingest`
   - `WHIP publish` endpoint 1차 구현
   - published source id를 `source=webrtc&url={source_id}`로 소비 가능하도록 구조 연결
   - local WHIP test publisher 기준 `publish -> RTSP` route subset 자동 검증 통과
   - local WHIP test publisher 기준 `publish -> WebRTC(signaling)` 자동 검증 통과
   - browser publisher 기준 `publish -> WebRTC(simple signaling) consume`의 실제 audio/video playback 검증 완료
-  - browser publisher 기준 `publish -> WHEP consume`은 추가 검증 필요
+  - browser publisher 기준 `publish -> WHEP consume`의 실제 audio/video playback 검증 완료
 
 ### 아직 미구현 또는 placeholder
-- `WebRTC source ingest`
+- 운영용 WebRTC auth / STUN / TURN / ICE policy 설정
 - 운영용 metrics / admin API
 - 외부 RTSP source별 세밀한 reconnect 정책
+
+### 최근 정리
+- WebRTC egress/source 양쪽에 중복되어 있던 GStreamer RTCP workaround, SDP sanitize, pipeline clock/latency 설정을 `ingress/webrtc_gst_utils`로 공통화했습니다.
+- `MEDIA_SERVER_WEBRTC_TRACE`는 협상/상태 중심 로그만 출력하고, sample/pad/caps/SDP detail은 `MEDIA_SERVER_WEBRTC_TRACE_VERBOSE=1`로 분리했습니다.
+- 최근 검증:
+  - `WebRTC browser publish -> WHEP consume`: audio/video track 연결 및 playback 확인
+  - `WebRTC browser publish -> simple signaling consume`: audio/video track 연결 및 playback 확인
 
 ## 디렉터리
 
@@ -128,6 +135,8 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - `MEDIA_SERVER_DEFAULT_FILE`
 - `MEDIA_SERVER_FORCE_RTSP_TCP`
 - `MEDIA_SERVER_SESSION_TRACE`
+- `MEDIA_SERVER_WEBRTC_TRACE`
+- `MEDIA_SERVER_WEBRTC_TRACE_VERBOSE` (sample/pad/SDP detail logs)
 - `MEDIA_SERVER_RTSP_SOURCE_PREFLIGHT_TIMEOUT_MS`
 - `MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS`
 - `MEDIA_SERVER_RTSP_TRACK_SETTLE_QUIET_PERIOD_MS`
@@ -413,6 +422,8 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
   - browser consumer 기준 `decoded video frame` 확인
 - `WebRTC publish(browser publisher) -> WebRTC(simple signaling)`
   - browser consumer 기준 `decoded video frame` 확인
+- `WebRTC publish(browser publisher) -> WebRTC(WHEP)`
+  - browser consumer 기준 audio/video track 및 `decoded video frame` 확인
 
 ## 외부 RTSP source 관련 주의
 
@@ -433,5 +444,5 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
 
 - `SessionManager` trace 로그 정리
 - 외부 RTSP source별 timeout/profile 설정 확장
-- WebRTC source ingest 구현
-- WebRTC end-to-end 브라우저 검증 자동화
+- WebRTC 운영 설정(auth/STUN/TURN/ICE policy) 정리
+- WebRTC end-to-end 브라우저 검증 자동화 범위 확장

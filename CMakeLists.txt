@@ -21,6 +21,7 @@ add_executable(media_server
     src/ingress/request_parser.cpp
     src/ingress/rtsp_egress_session.cpp
     src/ingress/webrtc_egress_session.cpp
+    src/ingress/webrtc_gst_utils.cpp
     src/ingress/webrtc_source_registry.cpp
     src/ingress/webrtc_source_session.cpp
     src/ingress/webrtc_http_server.cpp
