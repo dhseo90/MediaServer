@@ -50,6 +50,7 @@ private:
     void SampleLoop(SinkBranch* branch);
     void BusLoop();
     std::unique_ptr<SinkBranch> CreateBranch(const media::TrackInfo& track);
+    void ConfigureWebRtcSessionWorkarounds();
 #endif
 
     std::string session_id_;
@@ -70,6 +71,7 @@ private:
     std::mutex source_mu_;
     media::StreamDescriptor descriptor_;
     std::size_t ready_sample_count_{0};
+    std::size_t traced_rtcp_workarounds_{0};
     std::vector<std::unique_ptr<SinkBranch>> branches_;
 #endif
 };

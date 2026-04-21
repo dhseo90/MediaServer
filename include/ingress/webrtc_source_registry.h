@@ -25,6 +25,10 @@ public:
     void SetDescriptor(media::StreamDescriptor descriptor);
     std::optional<media::StreamDescriptor> descriptor() const;
     bool WaitForDescriptor(std::chrono::milliseconds timeout, media::StreamDescriptor* descriptor);
+    bool WaitForTracks(std::chrono::milliseconds timeout,
+                       bool require_video,
+                       bool require_audio,
+                       media::StreamDescriptor* descriptor);
 
     void Close();
     bool IsActive() const;
