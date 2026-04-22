@@ -97,6 +97,16 @@ std::optional<media::SourceSpec> ParseSourceSpec(const media::IngressRequest& re
     if (const auto source_it = request.query.find("source"); source_it != request.query.end()) {
         if (source_it->second == "webrtc") {
             kind = media::SourceSpec::Kind::WebRtc;
+        } else if (source_it->second == "rtsp") {
+            kind = media::SourceSpec::Kind::Rtsp;
+        } else if (source_it->second == "hls") {
+            kind = media::SourceSpec::Kind::Hls;
+        } else if (source_it->second == "http") {
+            kind = media::SourceSpec::Kind::Http;
+        } else if (source_it->second == "youtube") {
+            kind = media::SourceSpec::Kind::Youtube;
+        } else {
+            return std::nullopt;
         }
     }
 

@@ -56,6 +56,7 @@ private:
     std::optional<media::StreamDescriptor> descriptor_;
     mutable std::mutex keyframe_mu_;
     mutable std::optional<media::Packet> last_video_keyframe_;
+    mutable std::optional<media::Packet> last_audio_packet_;
     mutable std::shared_mutex mu_;
     std::unordered_map<std::string, std::shared_ptr<SubscriberState>> subscribers_;
 };

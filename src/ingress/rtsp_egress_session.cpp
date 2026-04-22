@@ -1,5 +1,7 @@
 #include "ingress/rtsp_egress_session.h"
 
+#include <algorithm>
+
 #if MEDIA_SERVER_USE_GSTREAMER
 #include <gst/app/gstappsrc.h>
 #include <gst/gst.h>
@@ -8,6 +10,13 @@
 #include "core/shared_stream.h"
 
 namespace ingress {
+
+namespace {
+
+constexpr std::size_t kMaxPendingPackets = 512;
+constexpr std::int64_t kVideoFrameDurationNs = 33333333;
+
+}  // namespace
 
 #if MEDIA_SERVER_USE_GSTREAMER
 namespace {
@@ -137,6 +146,75 @@ RtspEgressSession::~RtspEgressSession() {
     Stop();
 }
 
+void RtspEgressSession::QueuePendingPacket(const media::Packet& packet) {
+    std::lock_guard lock(pending_mu_);
+    if (packet.kind == media::MediaKind::Video && packet.is_key_frame) {
+        // Keep audio priming data, but start the video branch from the freshest keyframe.
+        pending_packets_.erase(
+            std::remove_if(
+                pending_packets_.begin(),
+                pending_packets_.end(),
+                [](const media::Packet& item) { return item.kind == media::MediaKind::Video; }),
+            pending_packets_.end());
+    }
+    pending_packets_.push_back(packet);
+    while (pending_packets_.size() > kMaxPendingPackets) {
+        pending_packets_.pop_front();
+    }
+}
+
+void RtspEgressSession::FlushPendingPackets() {
+    if (!started_) {
+        return;
+    }
+
+    std::deque<media::Packet> pending;
+    {
+        std::lock_guard lock(pending_mu_);
+        pending.swap(pending_packets_);
+    }
+
+    for (const auto& packet : pending) {
+        HandleSample(packet);
+    }
+}
+
+media::Packet RtspEgressSession::NormalizeTimestamps(const media::Packet& packet) {
+    media::Packet normalized = packet;
+    if (packet.kind == media::MediaKind::Data) {
+        return normalized;
+    }
+
+    std::lock_guard lock(pending_mu_);
+    auto& base_pts = packet.kind == media::MediaKind::Video ? video_base_pts_ : audio_base_pts_;
+    const std::int64_t source_reference = packet.pts >= 0 ? packet.pts : packet.dts;
+    if (!base_pts.has_value()) {
+        base_pts = source_reference >= 0 ? source_reference : 0;
+    }
+
+    const auto normalize = [&base_pts](std::int64_t value) {
+        if (value < 0) {
+            return std::int64_t{0};
+        }
+        return std::max<std::int64_t>(0, value - *base_pts);
+    };
+
+    normalized.pts = packet.pts >= 0 ? normalize(packet.pts) : normalize(packet.dts);
+    normalized.dts = packet.dts >= 0 ? normalize(packet.dts) : normalized.pts;
+
+    if (packet.kind == media::MediaKind::Video) {
+        if (last_video_pts_.has_value() && normalized.pts <= *last_video_pts_) {
+            normalized.pts = *last_video_pts_ + kVideoFrameDurationNs;
+            if (normalized.dts < normalized.pts) {
+                normalized.dts = normalized.pts;
+            }
+        }
+        last_video_pts_ = normalized.pts;
+    }
+
+    return normalized;
+}
+
 bool RtspEgressSession::Start(const std::string& session_id,
                               const std::shared_ptr<core::SharedStream>& stream,
                               std::string* error_message) {
@@ -181,11 +259,19 @@ bool RtspEgressSession::Start(const std::string& session_id,
 #endif
 
     started_ = true;
+    FlushPendingPackets();
     return true;
 }
 
 void RtspEgressSession::Stop() {
     started_ = false;
+    {
+        std::lock_guard lock(pending_mu_);
+        pending_packets_.clear();
+        video_base_pts_.reset();
+        audio_base_pts_.reset();
+        last_video_pts_.reset();
+    }
 
 #if MEDIA_SERVER_USE_GSTREAMER
     if (video_appsrc_ != nullptr) {
@@ -207,19 +293,21 @@ void RtspEgressSession::Stop() {
 
 void RtspEgressSession::HandleSample(const media::Packet& packet) {
     if (!started_) {
+        QueuePendingPacket(packet);
         return;
     }
 
 #if MEDIA_SERVER_USE_GSTREAMER
+    const media::Packet normalized = NormalizeTimestamps(packet);
     switch (packet.kind) {
         case media::MediaKind::Video:
-            if (video_track_id_.empty() || packet.track_id == video_track_id_) {
-                (void)PushToAppSrc(video_appsrc_, packet);
+            if (video_track_id_.empty() || normalized.track_id == video_track_id_) {
+                (void)PushToAppSrc(video_appsrc_, normalized);
             }
             break;
         case media::MediaKind::Audio:
-            if (!audio_track_id_.empty() && packet.track_id == audio_track_id_) {
-                (void)PushToAppSrc(audio_appsrc_, packet);
+            if (!audio_track_id_.empty() && normalized.track_id == audio_track_id_) {
+                (void)PushToAppSrc(audio_appsrc_, normalized);
             }
             break;
         case media::MediaKind::Data:
@@ -254,10 +342,8 @@ bool RtspEgressSession::ConfigureAppSrcCaps(const media::StreamDescriptor& descr
     if (audio_appsrc_ != nullptr) {
         const media::TrackInfo* audio_track = FindTrack(descriptor, media::MediaKind::Audio);
         if (audio_track == nullptr) {
-            if (error_message != nullptr) {
-                *error_message = "descriptor does not contain audio track";
-            }
-            return false;
+            audio_track_id_.clear();
+            return true;
         }
         audio_track_id_ = audio_track->track_id;
         GstCaps* audio_caps = BuildCapsFromTrack(*audio_track);

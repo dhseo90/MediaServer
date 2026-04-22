@@ -193,6 +193,44 @@ start_local_launcher() {
   return 1
 }
 
+start_local_http_launcher() {
+  local name="$1"
+  local port="$2"
+  local root_rel="$3"
+
+  if media_server_is_tcp_listening "${port}"; then
+    log_info "HTTP launcher already listening on ${port} (${name})"
+    return 0
+  fi
+
+  local root_path="${ROOT_DIR}/${root_rel}"
+  local log_file="/tmp/${name}.http.log"
+  python3 -m http.server "${port}" --bind 127.0.0.1 --directory "${root_path}" \
+    > "${log_file}" 2>&1 &
+  local launcher_pid=$!
+  LAUNCHER_PIDS+=("${launcher_pid}")
+  LAUNCHER_LOGS+=("${log_file}")
+  LAST_LAUNCHER_PID="${launcher_pid}"
+  LAST_LAUNCHER_LOG="${log_file}"
+
+  for _ in {1..20}; do
+    if ! kill -0 "${launcher_pid}" 2>/dev/null; then
+      log_fail "${name}: local HTTP launcher exited early"
+      tail -n 40 "${log_file}" || true
+      return 1
+    fi
+    if media_server_is_tcp_listening "${port}"; then
+      log_info "HTTP launcher ready: http://127.0.0.1:${port}/"
+      return 0
+    fi
+    sleep 0.5
+  done
+
+  log_fail "${name}: local HTTP launcher did not become ready"
+  tail -n 40 "${log_file}" || true
+  return 1
+}
+
 start_whip_publisher() {
   local name="$1"
   local http_base="$2"
@@ -396,6 +434,8 @@ PY
   local source_profile_label=""
   local source_server_env_hint=""
   local source_webrtc_first="false"
+  local source_skip_rtsp="false"
+  local source_skip_webrtc="false"
   if [[ -n "${verify_profile_json}" ]]; then
     local profile_ffprobe profile_preflight profile_webrtc_timeout
     profile_ffprobe="$(json_field "${verify_profile_json}" "ffprobe_timeout_us")"
@@ -404,6 +444,8 @@ PY
     source_profile_label="$(json_field "${verify_profile_json}" "label")"
     source_server_env_hint="$(json_field "${verify_profile_json}" "server_env_hint")"
     source_webrtc_first="$(json_field "${verify_profile_json}" "run_webrtc_first")"
+    source_skip_rtsp="$(json_field "${verify_profile_json}" "skip_rtsp")"
+    source_skip_webrtc="$(json_field "${verify_profile_json}" "skip_webrtc")"
     [[ -n "${profile_ffprobe}" ]] && source_ffprobe_timeout_us="${profile_ffprobe}"
     [[ -n "${profile_preflight}" ]] && source_rtsp_preflight_timeout_ms="${profile_preflight}"
     [[ -n "${profile_webrtc_timeout}" ]] && source_webrtc_timeout_s="${profile_webrtc_timeout}"
@@ -435,7 +477,7 @@ PY
 )"
 
   if [[ -n "${launcher_json}" ]]; then
-    local launcher_type launcher_port launcher_mount launcher_input launcher_video launcher_audio launcher_source_id launcher_duration
+    local launcher_type launcher_port launcher_mount launcher_input launcher_video launcher_audio launcher_source_id launcher_duration launcher_root
     launcher_type="$(json_field "${launcher_json}" "type")"
     launcher_port="$(json_field "${launcher_json}" "port")"
     launcher_mount="$(json_field "${launcher_json}" "mount")"
@@ -444,8 +486,11 @@ PY
     launcher_audio="$(json_field "${launcher_json}" "audio_codec")"
     launcher_source_id="$(json_field "${launcher_json}" "source_id")"
     launcher_duration="$(json_field "${launcher_json}" "duration_s")"
+    launcher_root="$(json_field "${launcher_json}" "root")"
     if [[ "${launcher_type}" == "local_rtsp" ]]; then
       start_local_launcher "${name}" "${launcher_port}" "${launcher_mount}" "${launcher_input}" "${launcher_video}" "${launcher_audio}" || return
+    elif [[ "${launcher_type}" == "local_http" ]]; then
+      start_local_http_launcher "${name}" "${launcher_port}" "${launcher_root}" || return
     elif [[ "${launcher_type}" == "whip_publish" ]]; then
       start_whip_publisher "${name}" "http://${HTTP_ADDRESS}:${HTTP_PORT}" "${launcher_source_id}" "${launcher_duration:-60}" || return
     fi
@@ -480,6 +525,9 @@ PY
     webrtc)
       query="url=$(urlencode "${source}")&source=webrtc"
       ;;
+    hls|http|youtube)
+      query="url=$(urlencode "${source}")&source=${source_kind}"
+      ;;
     *)
       log_skip "${name}: unsupported source kind '${source_kind}'"
       return
@@ -496,7 +544,7 @@ PY
 
   local rtsp_runner webrtc_runner
   rtsp_runner() {
-    if [[ "${SKIP_RTSP}" != "1" ]]; then
+    if [[ "${SKIP_RTSP}" != "1" && "${source_skip_rtsp}" != "true" ]]; then
       while IFS='|' read -r route_suffix expect_video expect_audio; do
         [[ -z "${route_suffix}${expect_video}${expect_audio}" ]] && continue
         verify_rtsp_case "${name}" "${query}" "${route_suffix}" "${expect_video}" "${expect_audio}" "${source_ffprobe_timeout_us}"
@@ -506,7 +554,7 @@ PY
     fi
   }
   webrtc_runner() {
-    if [[ "${SKIP_WEBRTC}" != "1" ]]; then
+    if [[ "${SKIP_WEBRTC}" != "1" && "${source_skip_webrtc}" != "true" ]]; then
       verify_webrtc_case "${name}" "${query}" "${source_webrtc_timeout_s}"
     else
       log_skip "${name}: WebRTC verification skipped"

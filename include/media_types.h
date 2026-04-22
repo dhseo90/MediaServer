@@ -12,7 +12,7 @@ struct IngressRequest {
 };
 
 struct SourceSpec {
-    enum class Kind { Rtsp, File, WebRtc };
+    enum class Kind { Rtsp, File, WebRtc, Hls, Http, Youtube };
     Kind kind;
     std::string uri;
 };
@@ -69,6 +69,12 @@ inline std::string ToString(SourceSpec::Kind kind) {
             return "file";
         case SourceSpec::Kind::WebRtc:
             return "webrtc";
+        case SourceSpec::Kind::Hls:
+            return "hls";
+        case SourceSpec::Kind::Http:
+            return "http";
+        case SourceSpec::Kind::Youtube:
+            return "youtube";
     }
     return "unknown";
 }

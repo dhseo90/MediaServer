@@ -4,7 +4,7 @@
 - 지원 OS: macOS, Linux
 - 현재 지원:
   - Client ingress/egress: RTSP, WebRTC HTTP signaling, WHEP
-  - Source: File, RTSP Pull, WebRTC WHIP publish source
+  - Source: File, RTSP Pull, WebRTC WHIP publish source, HTTP/HLS URI source 1차 경로
   - Egress: RTSP, WebRTC
 - 미래 확장:
   - YouTube live/uploaded URL 처리를 위한 HLS/HTTP source adapter 추가
@@ -271,11 +271,11 @@ SharedStream
 ```
 
 구현 원칙:
-- 기본 source protocol은 `source=hls` 또는 `source=http`로 먼저 연다.
+- 기본 source protocol은 `source=hls` 또는 `source=http`로 먼저 연다. 현재 1차 `UriSourceWorker`는 GStreamer `uridecodebin`으로 HTTP/HLS media URL을 수신한 뒤 내부 표준 패킷(`H264` video, `AAC` audio)으로 재인코딩한다.
 - `source=youtube`는 resolver를 통과하는 별도 옵션으로 둔다.
 - 라이브와 업로드된 영상 모두 고려한다.
 - YouTube 약관/권한 이슈가 있으므로 resolver는 실험/권한 확인 가능한 경로로 격리한다.
-- HLS/HTTP source는 video-only stream도 처리할 수 있어야 한다.
+- HLS/HTTP source는 video-only stream도 처리할 수 있어야 하며, RTSP/WebRTC egress의 대표적인 audio 필수 가정은 완화했다.
 
 예상 URL:
 - `rtsp://{address}:{port}/{route}?source=hls&url={urlencoded_m3u8_url}`

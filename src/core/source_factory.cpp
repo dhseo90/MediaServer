@@ -1,5 +1,6 @@
 #include "core/source_factory.h"
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -1086,7 +1087,8 @@ private:
             return nullptr;
         }
 
-        g_object_set(branch->sink, "emit-signals", FALSE, "sync", FALSE, "max-buffers", 16, "drop", TRUE, nullptr);
+        // Pace URI/VOD sources like a stream so subscribers do not attach after the file was already consumed.
+        g_object_set(branch->sink, "emit-signals", FALSE, "sync", TRUE, "max-buffers", 16, "drop", TRUE, nullptr);
         return branch;
     }
 
@@ -1200,6 +1202,523 @@ private:
 #endif
 };
 
+class UriSourceWorker final : public BasicSourceWorker {
+public:
+    explicit UriSourceWorker(SourceSpec source_spec) : BasicSourceWorker(std::move(source_spec)) {}
+
+#if MEDIA_SERVER_USE_GSTREAMER
+    ~UriSourceWorker() override {
+        Stop();
+    }
+#endif
+
+    bool Start(const std::shared_ptr<core::SharedStream>& stream, std::string* error_message) override {
+#if MEDIA_SERVER_USE_GSTREAMER
+        gst_init(nullptr, nullptr);
+
+        if (source_spec_.uri.empty()) {
+            if (error_message != nullptr) {
+                *error_message = "empty URI source";
+            }
+            return false;
+        }
+
+        pipeline_ = gst_pipeline_new(nullptr);
+        source_ = gst_element_factory_make("uridecodebin", "uri_source");
+        if (pipeline_ == nullptr || source_ == nullptr) {
+            if (error_message != nullptr) {
+                *error_message = "failed to create URI source pipeline";
+            }
+            Stop();
+            return false;
+        }
+
+        weak_stream_ = stream;
+        descriptor_.tracks.clear();
+        descriptor_.is_live = source_spec_.kind == SourceSpec::Kind::Hls;
+        source_error_.clear();
+
+        gst_bin_add(GST_BIN(pipeline_), source_);
+        g_object_set(source_, "uri", source_spec_.uri.c_str(), nullptr);
+        g_signal_connect(source_, "pad-added", G_CALLBACK(&UriSourceWorker::OnPadAdded), this);
+
+        running_.store(true);
+        bus_thread_ = std::thread([this] { BusLoop(); });
+
+        if (gst_element_set_state(pipeline_, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
+            if (error_message != nullptr) {
+                *error_message = "failed to start URI source pipeline";
+            }
+            Stop();
+            return false;
+        }
+
+        const int configured_timeout_ms = app::GetAppConfig().rtsp_source_start_timeout_ms;
+        const int start_timeout_ms =
+            source_spec_.kind == SourceSpec::Kind::Hls ? std::max(configured_timeout_ms, 8000) : configured_timeout_ms;
+        std::unique_lock lock(mu_);
+        const bool ready = cv_.wait_for(
+            lock,
+            std::chrono::milliseconds(start_timeout_ms),
+            [this] { return !running_.load() || ready_sample_count_ > 0 || !source_error_.empty(); });
+        if (!ready || descriptor_.tracks.empty() || ready_sample_count_ == 0) {
+            if (error_message != nullptr) {
+                *error_message = source_error_.empty() ? "timed out waiting for URI source samples" : source_error_;
+            }
+            lock.unlock();
+            Stop();
+            return false;
+        }
+
+        const auto settle_started_at = std::chrono::steady_clock::now();
+        const auto settle_limit =
+            settle_started_at + std::chrono::milliseconds(app::GetAppConfig().rtsp_track_settle_max_ms);
+        while (running_.load() && source_error_.empty()) {
+            const bool have_video = DescriptorHasKind(descriptor_, MediaKind::Video);
+            const bool have_audio = DescriptorHasKind(descriptor_, MediaKind::Audio);
+            const bool have_av = have_video && have_audio;
+            const auto quiet_deadline =
+                last_discovery_at_ + std::chrono::milliseconds(app::GetAppConfig().rtsp_track_settle_quiet_period_ms);
+            const auto wait_deadline = have_av ? std::min(quiet_deadline, settle_limit) : settle_limit;
+            if (cv_.wait_until(lock, wait_deadline, [this] { return !running_.load() || !source_error_.empty(); })) {
+                break;
+            }
+            const auto now = std::chrono::steady_clock::now();
+            if ((have_av && now >= quiet_deadline) || now >= settle_limit) {
+                break;
+            }
+        }
+
+        std::cerr << "[uri-source] source ready kind=" << media::ToString(source_spec_.kind)
+                  << " uri=" << source_spec_.uri
+                  << " tracks=" << descriptor_.tracks.size() << "\n";
+        stream->SetDescriptor(descriptor_);
+        return true;
+#else
+        StreamDescriptor descriptor;
+        descriptor.is_live = source_spec_.kind == SourceSpec::Kind::Hls;
+        stream->SetDescriptor(std::move(descriptor));
+        running_.store(true);
+        (void)error_message;
+        return true;
+#endif
+    }
+
+    void Stop() override {
+        running_.store(false);
+
+#if MEDIA_SERVER_USE_GSTREAMER
+        {
+            std::lock_guard lock(mu_);
+            cv_.notify_all();
+        }
+
+        if (pipeline_ != nullptr) {
+            gst_element_set_state(pipeline_, GST_STATE_NULL);
+        }
+
+        for (auto& branch : branches_) {
+            if (branch->sample_thread.joinable()) {
+                branch->sample_thread.join();
+            }
+        }
+        if (bus_thread_.joinable()) {
+            bus_thread_.join();
+        }
+
+        branches_.clear();
+        if (pipeline_ != nullptr) {
+            gst_object_unref(pipeline_);
+            pipeline_ = nullptr;
+        }
+        source_ = nullptr;
+#endif
+    }
+
+private:
+#if MEDIA_SERVER_USE_GSTREAMER
+    struct EncodeBranch {
+        TrackInfo track;
+        GstElement* queue{nullptr};
+        GstElement* convert{nullptr};
+        GstElement* rate_or_resample{nullptr};
+        GstElement* capsfilter{nullptr};
+        GstElement* encoder{nullptr};
+        GstElement* parser{nullptr};
+        GstElement* sink{nullptr};
+        bool announced_ready{false};
+        std::thread sample_thread;
+    };
+
+    static void OnPadAdded(GstElement* /*src*/, GstPad* pad, gpointer user_data) {
+        static_cast<UriSourceWorker*>(user_data)->HandlePadAdded(pad);
+    }
+
+    bool HasBranchKind(MediaKind kind) const {
+        for (const auto& branch : branches_) {
+            if (branch->track.kind == kind) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void HandlePadAdded(GstPad* pad) {
+        GstCaps* caps = gst_pad_get_current_caps(pad);
+        if (caps == nullptr) {
+            caps = gst_pad_query_caps(pad, nullptr);
+        }
+        if (caps == nullptr) {
+            return;
+        }
+
+        const GstStructure* structure = gst_caps_get_structure(caps, 0);
+        const char* caps_name = structure != nullptr ? gst_structure_get_name(structure) : nullptr;
+        if (caps_name == nullptr) {
+            gst_caps_unref(caps);
+            return;
+        }
+
+        MediaKind kind = MediaKind::Data;
+        if (g_str_has_prefix(caps_name, "video/")) {
+            kind = MediaKind::Video;
+        } else if (g_str_has_prefix(caps_name, "audio/")) {
+            kind = MediaKind::Audio;
+        } else {
+            gst_caps_unref(caps);
+            return;
+        }
+
+        {
+            std::lock_guard lock(mu_);
+            if (HasBranchKind(kind)) {
+                gst_caps_unref(caps);
+                return;
+            }
+        }
+
+        TrackInfo track;
+        track.kind = kind;
+        track.track_id = kind == MediaKind::Audio ? "audio-0" : "video-0";
+        if (kind == MediaKind::Video) {
+            track.codec = CodecId::H264;
+            track.codec_name = "video/x-h264";
+            track.clock_rate = 90000;
+        } else {
+            track.codec = CodecId::AAC;
+            track.codec_name = "audio/mpeg";
+            track.clock_rate = 48000;
+            track.channels = 2;
+        }
+        track.caps_string = DefaultCapsStringForTrack(track);
+
+        auto branch = CreateBranch(track);
+        if (branch == nullptr) {
+            std::cerr << "[uri-source] failed to create branch kind=" << media::ToString(kind) << "\n";
+            gst_caps_unref(caps);
+            return;
+        }
+
+        gst_bin_add(GST_BIN(pipeline_), branch->queue);
+        gst_bin_add(GST_BIN(pipeline_), branch->convert);
+        gst_bin_add(GST_BIN(pipeline_), branch->rate_or_resample);
+        gst_bin_add(GST_BIN(pipeline_), branch->capsfilter);
+        gst_bin_add(GST_BIN(pipeline_), branch->encoder);
+        if (branch->parser != nullptr) {
+            gst_bin_add(GST_BIN(pipeline_), branch->parser);
+        }
+        gst_bin_add(GST_BIN(pipeline_), branch->sink);
+
+        bool linked = false;
+        if (branch->parser != nullptr) {
+            linked = gst_element_link_many(branch->queue,
+                                           branch->convert,
+                                           branch->rate_or_resample,
+                                           branch->capsfilter,
+                                           branch->encoder,
+                                           branch->parser,
+                                           branch->sink,
+                                           nullptr);
+        } else {
+            linked = gst_element_link_many(branch->queue,
+                                           branch->convert,
+                                           branch->rate_or_resample,
+                                           branch->capsfilter,
+                                           branch->encoder,
+                                           branch->sink,
+                                           nullptr);
+        }
+
+        GstPad* queue_sink_pad = gst_element_get_static_pad(branch->queue, "sink");
+        if (!linked || queue_sink_pad == nullptr || gst_pad_link(pad, queue_sink_pad) != GST_PAD_LINK_OK) {
+            if (queue_sink_pad != nullptr) {
+                gst_object_unref(queue_sink_pad);
+            }
+            RemoveBranchElements(branch.get());
+            std::cerr << "[uri-source] failed to link branch kind=" << media::ToString(kind)
+                      << " input_caps=" << caps_name << "\n";
+            gst_caps_unref(caps);
+            return;
+        }
+        gst_object_unref(queue_sink_pad);
+
+        gst_element_sync_state_with_parent(branch->queue);
+        gst_element_sync_state_with_parent(branch->convert);
+        gst_element_sync_state_with_parent(branch->rate_or_resample);
+        gst_element_sync_state_with_parent(branch->capsfilter);
+        gst_element_sync_state_with_parent(branch->encoder);
+        if (branch->parser != nullptr) {
+            gst_element_sync_state_with_parent(branch->parser);
+        }
+        gst_element_sync_state_with_parent(branch->sink);
+
+        branch->sample_thread = std::thread([this, branch_ptr = branch.get()] { SampleLoop(branch_ptr); });
+
+        {
+            std::lock_guard lock(mu_);
+            descriptor_.tracks.push_back(branch->track);
+            last_discovery_at_ = std::chrono::steady_clock::now();
+            auto stream = weak_stream_.lock();
+            if (stream != nullptr) {
+                stream->SetDescriptor(descriptor_);
+            }
+            ++descriptor_version_;
+            branches_.push_back(std::move(branch));
+            cv_.notify_all();
+        }
+
+        gst_caps_unref(caps);
+    }
+
+    std::unique_ptr<EncodeBranch> CreateBranch(const TrackInfo& track) {
+        auto branch = std::make_unique<EncodeBranch>();
+        branch->track = track;
+        branch->queue = gst_element_factory_make("queue", nullptr);
+        branch->capsfilter = gst_element_factory_make("capsfilter", nullptr);
+        branch->sink = gst_element_factory_make("appsink", nullptr);
+        if (branch->queue == nullptr || branch->capsfilter == nullptr || branch->sink == nullptr) {
+            return nullptr;
+        }
+
+        if (track.kind == MediaKind::Video) {
+            branch->convert = gst_element_factory_make("videoconvert", nullptr);
+            branch->rate_or_resample = gst_element_factory_make("videorate", nullptr);
+            branch->encoder = gst_element_factory_make("x264enc", nullptr);
+            branch->parser = gst_element_factory_make("h264parse", nullptr);
+            if (branch->convert == nullptr || branch->rate_or_resample == nullptr ||
+                branch->encoder == nullptr || branch->parser == nullptr) {
+                return nullptr;
+            }
+            GstCaps* raw_caps = gst_caps_from_string("video/x-raw,format=I420,framerate=30/1");
+            g_object_set(branch->capsfilter, "caps", raw_caps, nullptr);
+            if (raw_caps != nullptr) {
+                gst_caps_unref(raw_caps);
+            }
+            g_object_set(branch->encoder,
+                         "bitrate",
+                         2048,
+                         "key-int-max",
+                         30,
+                         "bframes",
+                         0,
+                         "byte-stream",
+                         FALSE,
+                         nullptr);
+            gst_util_set_object_arg(G_OBJECT(branch->encoder), "tune", "zerolatency");
+            gst_util_set_object_arg(G_OBJECT(branch->encoder), "speed-preset", "ultrafast");
+            g_object_set(branch->parser, "config-interval", -1, nullptr);
+        } else if (track.kind == MediaKind::Audio) {
+            branch->convert = gst_element_factory_make("audioconvert", nullptr);
+            branch->rate_or_resample = gst_element_factory_make("audioresample", nullptr);
+            branch->encoder = gst_element_factory_make("avenc_aac", nullptr);
+            branch->parser = gst_element_factory_make("aacparse", nullptr);
+            if (branch->convert == nullptr || branch->rate_or_resample == nullptr ||
+                branch->encoder == nullptr || branch->parser == nullptr) {
+                return nullptr;
+            }
+            GstCaps* raw_caps = gst_caps_from_string("audio/x-raw,rate=48000,channels=2");
+            g_object_set(branch->capsfilter, "caps", raw_caps, nullptr);
+            if (raw_caps != nullptr) {
+                gst_caps_unref(raw_caps);
+            }
+            g_object_set(branch->encoder, "bitrate", 128000, nullptr);
+        } else {
+            return nullptr;
+        }
+
+        g_object_set(branch->sink, "emit-signals", FALSE, "sync", FALSE, "max-buffers", 16, "drop", TRUE, nullptr);
+        return branch;
+    }
+
+    void RemoveBranchElements(EncodeBranch* branch) {
+        if (branch == nullptr || pipeline_ == nullptr) {
+            return;
+        }
+        if (branch->sink != nullptr) {
+            gst_bin_remove(GST_BIN(pipeline_), branch->sink);
+        }
+        if (branch->parser != nullptr) {
+            gst_bin_remove(GST_BIN(pipeline_), branch->parser);
+        }
+        if (branch->encoder != nullptr) {
+            gst_bin_remove(GST_BIN(pipeline_), branch->encoder);
+        }
+        if (branch->capsfilter != nullptr) {
+            gst_bin_remove(GST_BIN(pipeline_), branch->capsfilter);
+        }
+        if (branch->rate_or_resample != nullptr) {
+            gst_bin_remove(GST_BIN(pipeline_), branch->rate_or_resample);
+        }
+        if (branch->convert != nullptr) {
+            gst_bin_remove(GST_BIN(pipeline_), branch->convert);
+        }
+        if (branch->queue != nullptr) {
+            gst_bin_remove(GST_BIN(pipeline_), branch->queue);
+        }
+    }
+
+    void SampleLoop(EncodeBranch* branch) {
+        if (branch == nullptr || branch->sink == nullptr) {
+            return;
+        }
+
+        auto* appsink = GST_APP_SINK(branch->sink);
+        while (running_.load()) {
+            GstSample* sample = gst_app_sink_try_pull_sample(appsink, 200 * GST_MSECOND);
+            if (sample == nullptr) {
+                continue;
+            }
+
+            if (!branch->announced_ready) {
+                GstCaps* sample_caps = gst_sample_get_caps(sample);
+                if (sample_caps != nullptr) {
+                    gchar* caps_text = gst_caps_to_string(sample_caps);
+                    if (caps_text != nullptr) {
+                        branch->track.caps_string = caps_text;
+                        g_free(caps_text);
+                    }
+                }
+
+                {
+                    std::lock_guard lock(mu_);
+                    for (auto& track : descriptor_.tracks) {
+                        if (track.track_id == branch->track.track_id) {
+                            track.caps_string = branch->track.caps_string;
+                            track.clock_rate = branch->track.clock_rate;
+                            track.channels = branch->track.channels;
+                            break;
+                        }
+                    }
+                    last_discovery_at_ = std::chrono::steady_clock::now();
+                    ++ready_sample_count_;
+                    ++descriptor_version_;
+                    auto stream = weak_stream_.lock();
+                    if (stream != nullptr) {
+                        stream->SetDescriptor(descriptor_);
+                    }
+                    cv_.notify_all();
+                }
+
+                branch->announced_ready = true;
+                std::cerr << "[uri-source] sample ready kind=" << media::ToString(branch->track.kind)
+                          << " codec=" << media::ToString(branch->track.codec)
+                          << " caps=" << branch->track.caps_string << "\n";
+            }
+
+            auto stream = weak_stream_.lock();
+            if (stream != nullptr) {
+                stream->FanOut(BuildSampleFromGst(sample, branch->track));
+            }
+            gst_sample_unref(sample);
+        }
+    }
+
+    void BusLoop() {
+        GstBus* bus = pipeline_ != nullptr ? gst_element_get_bus(pipeline_) : nullptr;
+        if (bus == nullptr) {
+            return;
+        }
+
+        while (running_.load()) {
+            GstMessage* message = gst_bus_timed_pop_filtered(
+                bus,
+                200 * GST_MSECOND,
+                static_cast<GstMessageType>(GST_MESSAGE_ERROR | GST_MESSAGE_EOS));
+            if (message == nullptr) {
+                continue;
+            }
+
+            if (GST_MESSAGE_TYPE(message) == GST_MESSAGE_ERROR) {
+                GError* err = nullptr;
+                gchar* dbg = nullptr;
+                gst_message_parse_error(message, &err, &dbg);
+                {
+                    std::lock_guard lock(mu_);
+                    source_error_ = err != nullptr ? err->message : "URI source pipeline error";
+                    cv_.notify_all();
+                }
+                std::cerr << "[uri-source] pipeline error: " << source_error_ << "\n";
+                if (err != nullptr) {
+                    g_error_free(err);
+                }
+                if (dbg != nullptr) {
+                    g_free(dbg);
+                }
+                running_.store(false);
+            } else if (GST_MESSAGE_TYPE(message) == GST_MESSAGE_EOS) {
+                if (source_spec_.kind == SourceSpec::Kind::Http) {
+                    gst_element_seek_simple(
+                        pipeline_,
+                        GST_FORMAT_TIME,
+                        static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT),
+                        0);
+                    gst_message_unref(message);
+                    continue;
+                }
+                {
+                    std::lock_guard lock(mu_);
+                    if (ready_sample_count_ == 0) {
+                        source_error_ = "URI source reached EOS before samples";
+                    }
+                    cv_.notify_all();
+                }
+                running_.store(false);
+            }
+            gst_message_unref(message);
+        }
+
+        gst_object_unref(bus);
+    }
+
+    std::weak_ptr<core::SharedStream> weak_stream_;
+    StreamDescriptor descriptor_;
+    GstElement* pipeline_{nullptr};
+    GstElement* source_{nullptr};
+    std::thread bus_thread_;
+    std::mutex mu_;
+    std::condition_variable cv_;
+    std::size_t descriptor_version_{0};
+    std::size_t ready_sample_count_{0};
+    std::chrono::steady_clock::time_point last_discovery_at_{};
+    std::string source_error_;
+    std::vector<std::unique_ptr<EncodeBranch>> branches_;
+#endif
+};
+
+class UnsupportedSourceWorker final : public BasicSourceWorker {
+public:
+    explicit UnsupportedSourceWorker(SourceSpec source_spec) : BasicSourceWorker(std::move(source_spec)) {}
+
+    bool Start(const std::shared_ptr<core::SharedStream>& stream, std::string* error_message) override {
+        (void)stream;
+        if (error_message != nullptr) {
+            *error_message = "source kind '" + media::ToString(source_spec_.kind) +
+                             "' is not implemented yet; use source=hls or source=http with a playable media URL";
+        }
+        return false;
+    }
+};
+
 class WebRtcSourceWorker final : public BasicSourceWorker {
 public:
     explicit WebRtcSourceWorker(SourceSpec source_spec) : BasicSourceWorker(std::move(source_spec)) {}
@@ -1275,6 +1794,11 @@ std::unique_ptr<SourceWorker> CreateSourceWorker(const media::SourceSpec& source
             return std::make_unique<RtspSourceWorker>(source_spec);
         case media::SourceSpec::Kind::WebRtc:
             return std::make_unique<WebRtcSourceWorker>(source_spec);
+        case media::SourceSpec::Kind::Hls:
+        case media::SourceSpec::Kind::Http:
+            return std::make_unique<UriSourceWorker>(source_spec);
+        case media::SourceSpec::Kind::Youtube:
+            return std::make_unique<UnsupportedSourceWorker>(source_spec);
     }
     return nullptr;
 }

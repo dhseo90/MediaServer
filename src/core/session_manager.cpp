@@ -51,6 +51,15 @@ SessionManager::CreateResult SessionManager::CreateSession(const media::IngressR
         return {.ok = false, .message = "stream limit exceeded", .stream = nullptr};
     }
 
+    if (!acquired.stream->AddSubscriber(request.client_id, std::move(callback))) {
+        if (acquired.created) {
+            registry_.TryRemoveIfIdle(key);
+            resource_guard_.ReleaseStream();
+        }
+        resource_guard_.ReleaseSession();
+        return {.ok = false, .message = "duplicate session id", .stream = nullptr};
+    }
+
     if (acquired.created || !acquired.stream->IsSourceRunning()) {
         auto worker = CreateSourceWorker(*source_spec);
         std::string source_error;
@@ -58,6 +67,7 @@ SessionManager::CreateResult SessionManager::CreateSession(const media::IngressR
                           " reason=" + (acquired.created ? std::string("new-stream")
                                                          : std::string("source-not-running")));
         if (!acquired.stream->StartSource(std::move(worker), &source_error)) {
+            acquired.stream->RemoveSubscriber(request.client_id);
             if (acquired.created) {
                 registry_.TryRemoveIfIdle(key);
                 resource_guard_.ReleaseStream();
@@ -67,15 +77,6 @@ SessionManager::CreateResult SessionManager::CreateSession(const media::IngressR
                      .message = source_error.empty() ? "failed to start source worker" : source_error,
                      .stream = nullptr};
         }
-    }
-
-    if (!acquired.stream->AddSubscriber(request.client_id, std::move(callback))) {
-        if (acquired.created) {
-            registry_.TryRemoveIfIdle(key);
-            resource_guard_.ReleaseStream();
-        }
-        resource_guard_.ReleaseSession();
-        return {.ok = false, .message = "duplicate session id", .stream = nullptr};
     }
 
     {

@@ -20,7 +20,7 @@ StreamRegistry
 SharedStream
         |
         v
-SourceWorker (File / RTSP Pull / future WebRTC)
+SourceWorker (File / RTSP Pull / WebRTC / HTTP-HLS URI)
 ```
 
 이 프로젝트가 의도하는 실제 연결 모델은 아래와 같습니다.
@@ -41,7 +41,7 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 | 구간 | 결정 방식 | 현재 선택 가능 값 |
 | --- | --- | --- |
 | `Client -> MediaServer` | 접속 URL / HTTP endpoint | `RTSP`, `WebRTC` |
-| `MediaServer -> Original Source` | query/source 파라미터 | `file`, `RTSP`, `WebRTC` |
+| `MediaServer -> Original Source` | query/source 파라미터 | `file`, `RTSP`, `WebRTC`, `HTTP/HLS URI` |
 
 조합 예시:
 
@@ -61,6 +61,9 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - `file -> WebRTC(signaling)`
 - `RTSP pull -> RTSP`
 - `RTSP pull -> WebRTC(signaling)`
+- `HTTP media URL -> RTSP/WebRTC` 1차 경로
+  - 현재 `source=http` RTSP route subset(`default`, `h264`, `opus`) 통과
+  - 현재 `source=http` WebRTC signaling 통과
 - 동일 source 요청에 대한 `StreamRegistry` 기반 dedup 구조
 - `SharedStream` 기반 video/audio fan-out
 - route별 video/audio codec 변환
@@ -443,10 +446,10 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
 ## 다음에 이어서 하기 좋은 작업
 
 1. YouTube URL source 검토/구현
-   - 먼저 `source=hls|http` 형태의 `HLS/HTTP SourceWorker`를 추가한다.
+   - `source=hls|http` 형태의 `HLS/HTTP SourceWorker` 1차 경로를 추가했고, 로컬 HTTP MP4 기준 RTSP/WebRTC 검증이 통과했다.
    - YouTube watch/live URL은 직접 media URL이 아니므로 `YouTubeResolver -> HLS/HTTP URL -> SourceWorker` 구조로 격리한다.
    - 라이브와 업로드된 영상 모두 고려하되, 약관/권한 문제 때문에 기본 source 기능은 `youtube`가 아니라 `hls/http`로 둔다.
-   - 구현 전 `video-only` source 허용 여부를 점검한다.
+   - video-only source를 막던 RTSP/WebRTC egress의 대표 실패 지점을 완화했다.
 2. 영상분석 branch 추가
    - 송신 경로(RTSP/WebRTC egress)는 직접 막지 않는다.
    - `SharedStream`에 별도 analysis subscriber/tap을 붙이고, 분석 branch는 drop-oldest 및 frame sampling을 사용한다.

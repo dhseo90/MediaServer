@@ -136,6 +136,10 @@ std::string CanonicalizeSourceUri(media::SourceSpec::Kind kind, const std::strin
             return NormalizeFilePath(uri);
         case media::SourceSpec::Kind::WebRtc:
             return Trim(uri);
+        case media::SourceSpec::Kind::Hls:
+        case media::SourceSpec::Kind::Http:
+        case media::SourceSpec::Kind::Youtube:
+            return NormalizeRtspLike(uri);
     }
     return Trim(uri);
 }
@@ -145,4 +149,3 @@ StreamKey BuildStreamKey(const media::SourceSpec& spec) {
 }
 
 }  // namespace core
-
