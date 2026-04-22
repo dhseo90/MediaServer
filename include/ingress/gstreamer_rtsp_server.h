@@ -1,3 +1,4 @@
+// 파일 용도: GStreamer RTSP server 어댑터와 SessionManager 연결 지점을 선언한다.
 #pragma once
 
 #include <cstdint>

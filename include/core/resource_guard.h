@@ -1,3 +1,4 @@
+// 파일 용도: 동시 세션/스트림 수 제한을 관리하는 ResourceGuard를 선언한다.
 #pragma once
 
 #include "stdafx.h"

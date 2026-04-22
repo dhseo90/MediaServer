@@ -1,3 +1,4 @@
+// 파일 용도: WebRTC WHIP publish 입력을 SharedStream source로 변환하는 세션을 선언한다.
 #pragma once
 
 #include <chrono>

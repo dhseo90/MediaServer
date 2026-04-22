@@ -112,6 +112,252 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/video`
   - 테스트용 샘플 미디어
 
+## 개발 및 실행 환경
+
+### 지원 목표
+- OS: `macOS`, `Linux`
+- 언어: `C++17`
+- 빌드: `CMake 3.16+`
+- 미디어 프레임워크: `GStreamer 1.0`
+- RTSP server/client, codec 변환, WebRTC, WHIP/WHEP 실험 경로는 모두 GStreamer 기반이다.
+
+### 필수 개발 도구
+- `cmake`
+- `pkg-config`
+- C++17 compiler
+  - macOS: Apple Clang / Xcode Command Line Tools
+  - Linux: `g++` 또는 `clang++`
+- `gst-inspect-1.0`
+- `ffprobe`
+  - 검증 스크립트에서 RTSP output codec 확인에 사용한다.
+- `python3`
+  - 로컬 RTSP/HTTP source launcher와 일부 검증 스크립트에 사용한다.
+- `node`
+  - 브라우저 WebRTC end-to-end 검증 스크립트에 사용한다.
+
+### GStreamer 필수 모듈
+CMake가 `pkg-config`로 아래 모듈을 찾는다.
+
+```text
+gstreamer-1.0
+gstreamer-rtsp-server-1.0
+gstreamer-pbutils-1.0
+gstreamer-app-1.0
+gstreamer-webrtc-1.0
+gstreamer-sdp-1.0
+```
+
+실행 시에는 아래 plugin도 필요하다.
+- `webrtcbin`
+- `nicesrc`
+- `nicesink`
+- H264/H265 parser/payloader/depayloader/encoder
+- AAC/Opus/PCMU/PCMA parser/payloader/depayloader/encoder
+- `uridecodebin`, HTTP/HLS 관련 source plugin
+
+설치 확인:
+
+```bash
+pkg-config --modversion gstreamer-1.0
+pkg-config --modversion gstreamer-rtsp-server-1.0
+gst-inspect-1.0 webrtcbin nicesrc nicesink
+gst-inspect-1.0 x264enc x265enc h264parse h265parse rtph264pay rtph265pay
+gst-inspect-1.0 rtpmp4gpay rtpopuspay rtppcmupay rtppcmapay uridecodebin
+```
+
+### macOS/Homebrew 환경
+기본 Homebrew prefix는 Apple Silicon 기준 `/opt/homebrew`를 우선 사용한다.
+스크립트는 `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/env_common.sh`의 `media_server_apply_homebrew_gst_env`를 통해 아래 환경변수를 자동 보정한다.
+
+```bash
+export HOMEBREW_PREFIX=/opt/homebrew
+export PATH="$HOMEBREW_PREFIX/bin:$PATH"
+export PKG_CONFIG_PATH="$HOMEBREW_PREFIX/lib/pkgconfig:$HOMEBREW_PREFIX/share/pkgconfig"
+export GI_TYPELIB_PATH="$HOMEBREW_PREFIX/lib/girepository-1.0"
+export GST_PLUGIN_SCANNER="$HOMEBREW_PREFIX/libexec/gstreamer-1.0/gst-plugin-scanner"
+export GST_PLUGIN_PATH="$HOMEBREW_PREFIX/lib/gstreamer-1.0:$HOMEBREW_PREFIX/opt/libnice-gstreamer/libexec/gstreamer-1.0"
+export DYLD_FALLBACK_LIBRARY_PATH="$HOMEBREW_PREFIX/lib:/usr/local/lib:/usr/lib"
+```
+
+Homebrew prefix가 다르면 실행 전에 지정한다.
+
+```bash
+HOMEBREW_PREFIX=/usr/local ./scripts/run_server_foreground.sh
+```
+
+### Linux 환경
+Linux에서는 `pkg-config`가 GStreamer 개발 패키지를 찾을 수 있어야 한다.
+
+Debian/Ubuntu 계열:
+
+```bash
+sudo apt update
+sudo apt install -y \
+  build-essential cmake pkg-config ffmpeg python3 nodejs \
+  libgstreamer1.0-dev libgstrtspserver-1.0-dev libnice-dev \
+  gstreamer1.0-tools gstreamer1.0-plugins-base \
+  gstreamer1.0-plugins-good gstreamer1.0-plugins-bad
+```
+
+Fedora 계열:
+
+```bash
+sudo dnf install -y \
+  gcc-c++ cmake pkgconf-pkg-config ffmpeg python3 nodejs \
+  libnice libnice-devel \
+  gstreamer1-devel gstreamer1-rtsp-server-devel \
+  gstreamer1-plugins-base-tools gstreamer1-plugins-base \
+  gstreamer1-plugins-good gstreamer1-plugins-bad-free
+```
+
+Arch 계열:
+
+```bash
+sudo pacman -S --needed \
+  base-devel cmake pkgconf ffmpeg python nodejs \
+  gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad \
+  gst-rtsp-server libnice
+```
+
+프로젝트 스크립트로도 설치를 시도할 수 있다.
+
+```bash
+./scripts/install_deps.sh
+```
+
+### 런타임 포트와 기본 경로
+기본값은 `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/include/stdafx.h`에 있다.
+
+| 항목 | 기본값 | 설명 |
+| --- | --- | --- |
+| RTSP listen address | `127.0.0.1` | RTSP server bind address |
+| RTSP listen port | `8554` | RTSP server port |
+| HTTP listen address | `127.0.0.1` | WebRTC signaling/WHEP/WHIP HTTP bind address |
+| HTTP listen port | `8080` | WebRTC HTTP server port |
+| route | `dhseo` | RTSP path prefix |
+| file root | `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/video` | `?file=` 접근 가능 root |
+| default file | `sample_h264.mp4` | 기본 테스트 파일 |
+
+테스트 중 포트 충돌을 피하려면 env로 덮어쓴다.
+
+```bash
+MEDIA_SERVER_LISTEN_PORT=8555 \
+MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
+./scripts/run_server_foreground.sh
+```
+
+### 런타임 환경변수
+환경변수는 `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/src/app_config.cpp`에서 읽고, 기본값은 `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/include/app_config.h`와 `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/include/stdafx.h`에 있다.
+
+| env | 기본값/의미 |
+| --- | --- |
+| `MEDIA_SERVER_ROUTE` | RTSP route prefix. 기본 `dhseo` |
+| `MEDIA_SERVER_LISTEN_ADDRESS` | RTSP bind address |
+| `MEDIA_SERVER_LISTEN_PORT` | RTSP bind port |
+| `MEDIA_SERVER_HTTP_LISTEN_ADDRESS` | WebRTC HTTP bind address |
+| `MEDIA_SERVER_HTTP_LISTEN_PORT` | WebRTC HTTP bind port |
+| `MEDIA_SERVER_FILE_ROOT` | `?file=` 접근 가능 root |
+| `MEDIA_SERVER_DEFAULT_FILE` | 기본 sample file |
+| `MEDIA_SERVER_FORCE_RTSP_TCP` | `1`이면 RTSP transport를 TCP 위주로 강제 |
+| `MEDIA_SERVER_SESSION_TRACE` | `1`이면 SessionManager acquire/cleanup 로그 출력 |
+| `MEDIA_SERVER_WEBRTC_TRACE` | `1`이면 WebRTC 협상/상태 로그 출력 |
+| `MEDIA_SERVER_WEBRTC_TRACE_VERBOSE` | `1`이면 sample/pad/caps/SDP 상세 로그 추가 |
+| `MEDIA_SERVER_WEBRTC_SOURCE_READY_TIMEOUT_MS` | WHIP publish source track 준비 대기 시간 |
+| `MEDIA_SERVER_RTSP_SOURCE_PREFLIGHT_TIMEOUT_MS` | 외부 RTSP host:port 사전 연결성 검사 timeout |
+| `MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS` | RTSP/URI source 첫 sample 대기 timeout |
+| `MEDIA_SERVER_RTSP_TRACK_SETTLE_QUIET_PERIOD_MS` | 첫 track 이후 추가 track discovery quiet period |
+| `MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS` | track discovery 전체 상한 |
+| `MEDIA_SERVER_GST_ATTACH_CONTEXT` | GStreamer RTSP server main context 강제 설정 |
+
+로컬 실행용 env 파일은 아래 예시를 복사해서 만든다.
+
+```bash
+cp scripts/.media_server.env.example scripts/.media_server.env
+```
+
+`start_server.sh`, `restart_server.sh`, `run_server_foreground.sh`는 이 파일이 있으면 읽어서 적용한다.
+
+### 실행 스크립트 역할
+| 스크립트 | 용도 |
+| --- | --- |
+| `scripts/install_deps.sh` | macOS/Linux 의존성 설치 |
+| `scripts/run_server_foreground.sh` | foreground 실행. 개발/디버깅 권장 |
+| `scripts/start_server.sh` | background 실행 |
+| `scripts/stop_server.sh` | 서버 종료 |
+| `scripts/restart_server.sh` | 서버 재시작 |
+| `scripts/check_server.sh` | 프로세스/포트/로그 상태 확인 |
+| `scripts/diagnose_media_server.sh` | 실행환경, 포트, source 접근성 진단 |
+| `scripts/verify_codec_matrix.sh` | source/route codec matrix 자동 검증 |
+| `scripts/serve_test_rtsp_source.py` | 로컬 샘플 파일을 RTSP source로 제공 |
+| `scripts/whip_publish_test.py` | 로컬 WebRTC WHIP publisher |
+| `scripts/browser_webrtc_publish_consume_check.mjs` | 브라우저 기반 publish/consume 검증 |
+
+### 권장 개발 흐름
+처음 환경 구성:
+
+```bash
+./scripts/install_deps.sh
+pkg-config --modversion gstreamer-1.0
+gst-inspect-1.0 webrtcbin nicesrc nicesink
+```
+
+빌드:
+
+```bash
+cmake -S . -B build-gst -DMEDIA_SERVER_USE_GSTREAMER=ON
+cmake --build build-gst
+```
+
+개발 실행:
+
+```bash
+./scripts/run_server_foreground.sh
+```
+
+상태 확인:
+
+```bash
+./scripts/check_server.sh
+./scripts/diagnose_media_server.sh
+```
+
+자동 검증:
+
+```bash
+./scripts/verify_codec_matrix.sh
+```
+
+변경 전후 최소 확인:
+
+```bash
+cmake --build build-gst
+bash -n scripts/verify_codec_matrix.sh
+python3 -m json.tool config/codec_test_sources.json >/tmp/codec_test_sources.json.check
+git diff --check
+```
+
+### 실행 환경 이슈 체크
+macOS/Homebrew에서 GStreamer plugin scanner 또는 `libglib`, `libgobject` 탐색 문제가 나면 아래를 먼저 확인한다.
+
+```bash
+source ./scripts/env_common.sh
+media_server_apply_homebrew_gst_env
+gst-inspect-1.0 --version
+gst-inspect-1.0 webrtcbin
+gst-inspect-1.0 nicesrc
+gst-inspect-1.0 nicesink
+```
+
+서버가 실행 중인데 접속이 안 되면 아래 순서로 본다.
+
+```bash
+./scripts/check_server.sh
+lsof -nP -iTCP:8554 -iTCP:8080 -sTCP:LISTEN
+./scripts/diagnose_media_server.sh
+```
+
+샌드박스/CI/컨테이너 환경에서는 socket bind 자체가 막힐 수 있다. 이 경우 코드는 정상이어도 local runtime 검증이 실패할 수 있으므로 `diagnose_media_server.sh`에서 bind 가능 여부를 먼저 확인한다.
+
 ## 주요 설정 위치
 
 ### 기본 상수
@@ -149,6 +395,8 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/.media_server.env.example`
 
 ## 의존성 설치
+
+개발 환경 상세는 위의 `개발 및 실행 환경` 섹션을 우선 참고한다.
 
 ```bash
 ./scripts/install_deps.sh

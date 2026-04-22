@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 서버가 떠 있지 않으면 빌드 후 백그라운드로 자동 시작한다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

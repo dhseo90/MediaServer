@@ -1,3 +1,4 @@
+// 파일 용도: WebRTC용 GStreamer SDP/RTCP/clock 보정 유틸리티를 선언한다.
 #pragma once
 
 #if MEDIA_SERVER_USE_GSTREAMER

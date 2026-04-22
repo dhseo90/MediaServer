@@ -1,3 +1,4 @@
+// 파일 용도: WebRTC signaling, WHEP, WHIP HTTP endpoint 서버를 선언한다.
 #pragma once
 
 #include <atomic>

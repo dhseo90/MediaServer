@@ -1,3 +1,4 @@
+// 파일 용도: SharedStream 패킷을 GStreamer RTSP media appsrc로 밀어 넣는 RTSP egress 세션을 선언한다.
 #pragma once
 
 #include <deque>
@@ -33,6 +34,7 @@ public:
     void HandleSample(const media::Packet& packet);
 
 private:
+    // RTSP media prepare 이전에 들어온 초기 샘플을 보관하고 세션 시작 기준 timestamp로 재작성한다.
     void QueuePendingPacket(const media::Packet& packet);
     void FlushPendingPackets();
     media::Packet NormalizeTimestamps(const media::Packet& packet);

@@ -1,3 +1,4 @@
+// 파일 용도: RTSP egress와 source decode용 GStreamer launch 문자열 생성 함수를 선언한다.
 #pragma once
 
 #include <string>

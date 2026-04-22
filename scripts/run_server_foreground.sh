@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 개발 디버깅용으로 media_server를 foreground에서 빌드/실행한다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

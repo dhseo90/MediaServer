@@ -1,3 +1,4 @@
+// 파일 용도: SharedStream을 WebRTC peer connection으로 송출하는 egress 세션을 선언한다.
 #pragma once
 
 #include <deque>
@@ -56,6 +57,7 @@ public:
 #endif
 
 private:
+    // WebRTC negotiation/transport 준비 전 들어온 패킷을 보관하고 RTP timeline에 맞게 재정렬한다.
     void QueuePendingPacket(const media::Packet& packet);
 #if MEDIA_SERVER_USE_GSTREAMER
     bool ConfigureAppSrcCaps(const media::StreamDescriptor& descriptor, std::string* error_message);

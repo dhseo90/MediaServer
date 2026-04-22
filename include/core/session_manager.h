@@ -1,3 +1,4 @@
+// 파일 용도: 요청을 SharedStream과 SourceWorker에 연결하고 세션 생명주기를 관리하는 SessionManager를 선언한다.
 #pragma once
 
 #include "core/resource_guard.h"

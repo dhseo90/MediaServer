@@ -1,3 +1,4 @@
+// 파일 용도: SharedStream 패킷을 RTSP media appsrc로 전달하며 초기 패킷 큐와 timestamp 보정을 처리한다.
 #include "ingress/rtsp_egress_session.h"
 
 #include <algorithm>
@@ -149,7 +150,8 @@ RtspEgressSession::~RtspEgressSession() {
 void RtspEgressSession::QueuePendingPacket(const media::Packet& packet) {
     std::lock_guard lock(pending_mu_);
     if (packet.kind == media::MediaKind::Video && packet.is_key_frame) {
-        // Keep audio priming data, but start the video branch from the freshest keyframe.
+        // RTSP media가 아직 prepare 중일 때 들어온 패킷을 버리지 않는다.
+        // video는 최신 keyframe부터 시작하되 audio priming packet은 보존해야 audio track prepare가 완료된다.
         pending_packets_.erase(
             std::remove_if(
                 pending_packets_.begin(),
@@ -174,6 +176,7 @@ void RtspEgressSession::FlushPendingPackets() {
         pending.swap(pending_packets_);
     }
 
+    // started_ 이후에 다시 HandleSample을 태워 appsrc caps/filter 조건을 동일하게 적용한다.
     for (const auto& packet : pending) {
         HandleSample(packet);
     }
@@ -189,6 +192,7 @@ media::Packet RtspEgressSession::NormalizeTimestamps(const media::Packet& packet
     auto& base_pts = packet.kind == media::MediaKind::Video ? video_base_pts_ : audio_base_pts_;
     const std::int64_t source_reference = packet.pts >= 0 ? packet.pts : packet.dts;
     if (!base_pts.has_value()) {
+        // source별 절대 PTS를 RTSP 세션 시작 기준 0부터 흐르는 시간으로 바꾼다.
         base_pts = source_reference >= 0 ? source_reference : 0;
     }
 
@@ -204,6 +208,7 @@ media::Packet RtspEgressSession::NormalizeTimestamps(const media::Packet& packet
 
     if (packet.kind == media::MediaKind::Video) {
         if (last_video_pts_.has_value() && normalized.pts <= *last_video_pts_) {
+            // seek/loop 또는 replay keyframe 때문에 PTS가 되감기면 payloader가 멈출 수 있어 단조 증가시킨다.
             normalized.pts = *last_video_pts_ + kVideoFrameDurationNs;
             if (normalized.dts < normalized.pts) {
                 normalized.dts = normalized.pts;
@@ -259,6 +264,7 @@ bool RtspEgressSession::Start(const std::string& session_id,
 #endif
 
     started_ = true;
+    // SessionManager가 source보다 subscriber를 먼저 붙이므로, Start 전 들어온 초기 패킷을 여기서 밀어 넣는다.
     FlushPendingPackets();
     return true;
 }
@@ -299,6 +305,7 @@ void RtspEgressSession::HandleSample(const media::Packet& packet) {
 
 #if MEDIA_SERVER_USE_GSTREAMER
     const media::Packet normalized = NormalizeTimestamps(packet);
+    // 요청 route에서 선택된 track만 해당 appsrc로 전달한다. audio track이 없는 source는 video-only로 허용한다.
     switch (packet.kind) {
         case media::MediaKind::Video:
             if (video_track_id_.empty() || normalized.track_id == video_track_id_) {

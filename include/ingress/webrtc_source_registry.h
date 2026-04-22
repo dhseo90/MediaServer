@@ -1,3 +1,4 @@
+// 파일 용도: WHIP publish로 들어온 WebRTC source 세션을 source id 기준으로 보관하는 Registry를 선언한다.
 #pragma once
 
 #include <condition_variable>

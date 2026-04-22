@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# 파일 용도: 로컬 샘플 파일을 RTSP test source로 제공하는 검증용 서버를 실행한다.
 
 import argparse
 import pathlib

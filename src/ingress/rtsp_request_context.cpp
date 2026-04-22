@@ -1,3 +1,4 @@
+// 파일 용도: GStreamer RTSP URI를 서버 내부 IngressRequest 형태로 변환한다.
 #include "ingress/rtsp_request_context.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER

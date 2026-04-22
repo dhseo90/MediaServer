@@ -1,3 +1,4 @@
+// 파일 용도: 라우트, 포트, 파일 경로 같은 빌드 기본 상수를 한곳에 모아 둔다.
 #pragma once
 
 #include <atomic>

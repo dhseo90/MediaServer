@@ -1,3 +1,4 @@
+// 파일 용도: URL query의 file/url/source 값을 해석해 SourceSpec을 만들고 잘못된 요청을 걸러낸다.
 #include "ingress/request_parser.h"
 
 #include <filesystem>
@@ -29,6 +30,7 @@ std::optional<std::string> ResolveFileUri(const std::string& file_token) {
 
     auto base_it = base.begin();
     auto cand_it = candidate.begin();
+    // file query는 설정된 file root 밖으로 나갈 수 없게 경로 prefix를 검증한다.
     for (; base_it != base.end() && cand_it != candidate.end(); ++base_it, ++cand_it) {
         if (*base_it != *cand_it) {
             return std::nullopt;
@@ -78,6 +80,7 @@ std::optional<media::SourceSpec> ParseSourceSpec(const media::IngressRequest& re
 
     const bool has_url = request.query.find("url") != request.query.end();
     const bool has_file = request.query.find("file") != request.query.end();
+    // source는 file 또는 url 중 하나만 가져야 dedup key와 worker 선택이 명확하다.
     if (has_url == has_file) {
         return std::nullopt;
     }
@@ -95,6 +98,7 @@ std::optional<media::SourceSpec> ParseSourceSpec(const media::IngressRequest& re
     media::SourceSpec::Kind kind = media::SourceSpec::Kind::Rtsp;
 
     if (const auto source_it = request.query.find("source"); source_it != request.query.end()) {
+        // source 파라미터는 MediaServer -> Original Source 구간의 프로토콜을 명시한다.
         if (source_it->second == "webrtc") {
             kind = media::SourceSpec::Kind::WebRtc;
         } else if (source_it->second == "rtsp") {

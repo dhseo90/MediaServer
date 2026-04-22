@@ -1,3 +1,4 @@
+// 파일 용도: SharedStream 패킷을 WebRTC RTP 송출 pipeline에 넣고 signaling offer/answer/ICE를 처리한다.
 #include "ingress/webrtc_egress_session.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -699,6 +700,7 @@ WebRtcEgressSession::~WebRtcEgressSession() {
 void WebRtcEgressSession::QueuePendingPacket(const media::Packet& packet) {
     std::lock_guard lock(pending_mu_);
     if (packet.kind == media::MediaKind::Video && packet.is_key_frame) {
+        // WebRTC 협상/transport link가 끝나기 전 들어온 최신 keyframe을 보관해 첫 화면을 빠르게 띄운다.
         last_video_keyframe_ = packet;
         pending_packets_.erase(
             std::remove_if(
@@ -737,6 +739,7 @@ bool WebRtcEgressSession::Start(const std::string& session_id,
         return false;
     }
 
+    // SourceWorker가 descriptor를 갱신하는 타이밍과 signaling 시작 타이밍이 다르므로 지원 가능한 descriptor를 기다린다.
     const auto descriptor = WaitForSupportedDescriptor(stream);
     if (!descriptor.has_value()) {
         if (error_message != nullptr) {
@@ -804,6 +807,7 @@ bool WebRtcEgressSession::Start(const std::string& session_id,
     g_signal_connect(webrtcbin_, "on-new-transceiver", G_CALLBACK(OnNewTransceiver), this);
     ConfigureRtcpFeedbackRetention();
 
+    // appsrc caps는 source descriptor 기반으로 고정하고, 이후 SDP 협상에서 payload type만 맞춘다.
     if (!ConfigureAppSrcCaps(*descriptor, error_message)) {
         Stop();
         return false;
@@ -886,6 +890,7 @@ void WebRtcEgressSession::HandleSample(const media::Packet& packet) {
 
 #if MEDIA_SERVER_USE_GSTREAMER
     if (!media_output_ready_) {
+        // SDP offer/answer와 RTP transport pad link가 끝나기 전에는 appsrc로 바로 밀지 않는다.
         QueuePendingPacket(packet);
         return;
     }
@@ -970,6 +975,7 @@ bool WebRtcEgressSession::EnsureTransportPadsLinked(bool answerer_mode, std::str
         return false;
     }
 
+    // GStreamer webrtcbin의 request pad와 RTP branch를 명시적으로 연결해 sendonly media를 만든다.
     GstElement* video_pay = gst_bin_get_by_name_recurse_up(GST_BIN(pipeline_), "video_pay");
     GstElement* audio_pay = gst_bin_get_by_name_recurse_up(GST_BIN(pipeline_), "audio_pay");
     GstElement* video_rtp = gst_bin_get_by_name_recurse_up(GST_BIN(pipeline_), "video_rtp");
@@ -1015,6 +1021,7 @@ bool WebRtcEgressSession::EnsureTransportPadsLinked(bool answerer_mode, std::str
     }
 
     if (answerer_mode) {
+        // answerer 모드에서는 브라우저 offer의 payload type/m-line 순서에 맞춰 caps를 덮어쓴다.
         const int answer_video_pt = remote_video_payload_type_ >= 0 ? remote_video_payload_type_ : 96;
         const int answer_audio_pt = remote_audio_payload_type_ >= 0 ? remote_audio_payload_type_ : 111;
         ApplyRtpPayloadCaps(
@@ -1378,6 +1385,7 @@ bool WebRtcEgressSession::SetRemoteOffer(const std::string& sdp_offer, std::stri
     remote_audio_mline_index_ = -1;
     remote_video_payload_type_ = -1;
     remote_audio_payload_type_ = -1;
+    // remote SDP에서 실제 media index와 payload type을 먼저 읽어야 webrtcbin request pad 연결이 안정적이다.
     const guint media_count = gst_sdp_message_medias_len(sdp);
     for (guint index = 0; index < media_count; ++index) {
         const GstSDPMedia* media = gst_sdp_message_get_media(sdp, index);
@@ -1752,6 +1760,7 @@ media::Packet WebRtcEgressSession::NormalizeTimestamps(const media::Packet& pack
     auto& base_pts = packet.kind == media::MediaKind::Video ? video_base_pts_ : audio_base_pts_;
     const std::int64_t source_reference = packet.pts >= 0 ? packet.pts : packet.dts;
     if (!base_pts.has_value()) {
+        // source PTS를 WebRTC 세션 시작 기준 0부터 흐르도록 변환한다.
         base_pts = source_reference >= 0 ? source_reference : 0;
     }
 
@@ -1773,6 +1782,7 @@ media::Packet WebRtcEgressSession::NormalizeTimestamps(const media::Packet& pack
 
     if (packet.kind == media::MediaKind::Video) {
         if (last_video_pts_.has_value() && normalized.pts <= *last_video_pts_) {
+            // loop/replay 상황에서도 video RTP timestamp는 단조 증가해야 한다.
             normalized.pts = *last_video_pts_ + kWebRtcVideoFrameDurationNs;
             if (normalized.dts < normalized.pts) {
                 normalized.dts = normalized.pts;
@@ -1790,6 +1800,7 @@ media::Packet WebRtcEgressSession::NormalizeReplayVideoKeyframe(const media::Pac
 
     std::int64_t next_pts = 0;
     if (last_video_pts_.has_value()) {
+        // negotiation 완료 직후 keyframe을 재전송할 때 기존 RTP timeline 뒤에 붙인다.
         next_pts = *last_video_pts_ + kWebRtcVideoFrameDurationNs;
     } else {
         const std::int64_t source_reference = packet.pts >= 0 ? packet.pts : packet.dts;
@@ -1889,6 +1900,7 @@ void WebRtcEgressSession::FlushPendingPackets() {
         pending.swap(pending_packets_);
     }
 
+    // pending packet도 일반 HandleSample 경로를 다시 태워 timestamp/payload filtering을 동일하게 적용한다.
     for (const auto& packet : pending) {
         HandleSample(packet);
     }

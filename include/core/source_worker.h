@@ -1,3 +1,4 @@
+// 파일 용도: 원본 소스를 읽어 SharedStream으로 패킷을 공급하는 SourceWorker 인터페이스를 선언한다.
 #pragma once
 
 #include <memory>

@@ -1,3 +1,4 @@
+// 파일 용도: 요청, 소스, 코덱, 트랙, 패킷처럼 서버 전체가 공유하는 미디어 타입을 정의한다.
 #pragma once
 
 #include "stdafx.h"
@@ -5,6 +6,7 @@
 namespace media {
 
 struct IngressRequest {
+    // 클라이언트가 MediaServer에 요청한 앞단 프로토콜/route/query/client id를 담는다.
     std::string protocol;
     std::string path;
     std::unordered_map<std::string, std::string> query;
@@ -12,6 +14,7 @@ struct IngressRequest {
 };
 
 struct SourceSpec {
+    // MediaServer가 원본 소스를 어떤 방식으로 읽을지 결정하는 뒷단 프로토콜 정보다.
     enum class Kind { Rtsp, File, WebRtc, Hls, Http, Youtube };
     Kind kind;
     std::string uri;
@@ -45,11 +48,13 @@ struct TrackInfo {
 };
 
 struct StreamDescriptor {
+    // SourceWorker가 발견한 트랙 목록이다. egress는 이 정보로 appsrc caps와 변환 경로를 만든다.
     std::vector<TrackInfo> tracks;
     bool is_live{false};
 };
 
 struct MediaSample {
+    // SourceWorker가 fan-out하는 최소 미디어 단위다. payload는 codec elementary stream 형태를 유지한다.
     MediaKind kind{MediaKind::Video};
     CodecId codec{CodecId::Unknown};
     std::string track_id;

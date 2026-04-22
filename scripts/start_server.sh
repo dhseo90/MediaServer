@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: media_server를 빌드하고 백그라운드 서비스처럼 시작한다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

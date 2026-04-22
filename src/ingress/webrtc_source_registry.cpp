@@ -1,3 +1,4 @@
+// 파일 용도: WHIP publish source session을 source id로 등록, 조회, 제거하는 저장소를 구현한다.
 #include "ingress/webrtc_source_registry.h"
 
 #include <iostream>

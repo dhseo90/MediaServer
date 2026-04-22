@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 설정 파일의 source/route matrix를 ffprobe와 WebRTC signaling으로 자동 검증한다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -114,6 +115,7 @@ PY
 }
 
 resolve_runtime_config() {
+  # 실행 중인 서버가 기록한 포트 파일을 우선 사용하고, 없으면 stdafx.h/env 기본값으로 되돌린다.
   if [[ -f "${PORT_FILE}" ]]; then
     RTSP_PORT="$(cat "${PORT_FILE}")"
   else
@@ -198,6 +200,7 @@ start_local_http_launcher() {
   local port="$2"
   local root_rel="$3"
 
+  # HTTP URI source 검증은 로컬 MP4를 간단한 정적 HTTP 서버로 열어 MediaServer가 source=http로 가져가게 한다.
   if media_server_is_tcp_listening "${port}"; then
     log_info "HTTP launcher already listening on ${port} (${name})"
     return 0
@@ -237,6 +240,7 @@ start_whip_publisher() {
   local source_id="$3"
   local duration_s="$4"
 
+  # WebRTC source 검증은 WHIP publisher를 먼저 띄우고 sourceId를 MediaServer consumer 요청에서 사용한다.
   local log_file="/tmp/${name}.publisher.log"
   nohup bash -lc \
     "source \"${SCRIPT_DIR}/env_common.sh\" && media_server_apply_homebrew_gst_env && python3 -u \"${SCRIPT_DIR}/whip_publish_test.py\" --http-base \"${http_base}\" --source-id \"${source_id}\" --duration \"${duration_s}\"" \
@@ -293,6 +297,7 @@ verify_rtsp_case() {
   local expect_audio="$5"
   local timeout_us="$6"
 
+  # ffprobe 결과의 codec_name/codec_type만 비교해 route별 transcoding 결과를 빠르게 확인한다.
   local url="rtsp://${RTSP_ADDRESS}:${RTSP_PORT}/${ROUTE}${route_suffix}?${query}"
   local output
   if ! output="$(probe_rtsp_url "${url}" "${timeout_us}" 2>&1)"; then
@@ -320,6 +325,7 @@ verify_rtsp_case() {
 
 emit_rtsp_route_matrix() {
   local verify_profile_json="$1"
+  # source별 verify_profile.rtsp_route_keys가 있으면 전체 route 대신 지정 subset만 검증한다.
   python3 - "$verify_profile_json" <<'PY'
 import json
 import sys

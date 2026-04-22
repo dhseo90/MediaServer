@@ -1,3 +1,4 @@
+// 파일 용도: 클라이언트 요청을 dedup된 SharedStream에 연결하고 SourceWorker 시작/정리를 조율한다.
 #include "core/session_manager.h"
 
 #include <chrono>
@@ -24,6 +25,7 @@ SessionManager::SessionManager(StreamRegistry& registry, ResourceGuard& resource
 
 SessionManager::CreateResult SessionManager::CreateSession(const media::IngressRequest& request,
                                                            SharedStream::SubscriberCallback callback) {
+    // 세션 수 제한은 source 파싱보다 먼저 적용해서 잘못된 요청도 과도하게 누적되지 않게 한다.
     if (!resource_guard_.AdmitSession()) {
         return {.ok = false, .message = "session limit exceeded", .stream = nullptr};
     }
@@ -34,6 +36,7 @@ SessionManager::CreateResult SessionManager::CreateSession(const media::IngressR
         return {.ok = false, .message = "invalid source spec", .stream = nullptr};
     }
 
+    // 동일한 원본 URI/file/source id는 같은 StreamKey로 묶어 source worker를 하나만 띄운다.
     const StreamKey key = BuildStreamKey(*source_spec);
     const auto acquired = registry_.Acquire(key, *source_spec);
     TraceSessionEvent("acquire key=" + key +
@@ -51,6 +54,8 @@ SessionManager::CreateResult SessionManager::CreateSession(const media::IngressR
         return {.ok = false, .message = "stream limit exceeded", .stream = nullptr};
     }
 
+    // source를 먼저 시작하면 빠른 VOD/HTTP source의 첫 keyframe이 사라질 수 있으므로
+    // subscriber를 먼저 연결해 RTSP/WebRTC egress의 pending queue가 초기 샘플을 받을 수 있게 한다.
     if (!acquired.stream->AddSubscriber(request.client_id, std::move(callback))) {
         if (acquired.created) {
             registry_.TryRemoveIfIdle(key);
@@ -60,6 +65,7 @@ SessionManager::CreateResult SessionManager::CreateSession(const media::IngressR
         return {.ok = false, .message = "duplicate session id", .stream = nullptr};
     }
 
+    // 새 stream이거나 이전 worker가 죽은 stream이면 SourceWorker를 새로 시작한다.
     if (acquired.created || !acquired.stream->IsSourceRunning()) {
         auto worker = CreateSourceWorker(*source_spec);
         std::string source_error;
@@ -104,6 +110,7 @@ bool SessionManager::CloseSession(const std::string& session_id) {
 
     entry.stream->RemoveSubscriber(session_id);
     resource_guard_.ReleaseSession();
+    // live source는 마지막 subscriber가 빠지면 즉시 닫아 upstream 연결을 오래 물고 있지 않게 한다.
     if (entry.stream->RefCount() == 0 && entry.stream->source_spec().kind != media::SourceSpec::Kind::File) {
         if (registry_.TryRemoveIfIdle(entry.stream_key)) {
             TraceSessionEvent("immediate cleanup removed live key=" + entry.stream_key);
@@ -121,6 +128,7 @@ std::size_t SessionManager::ActiveSessionCount() const {
 }
 
 void SessionManager::ScheduleIdleCleanup(StreamKey stream_key) const {
+    // file/VOD stream은 짧은 grace period를 둬 연속 요청 시 재시작 비용을 줄인다.
     std::thread([this, key = std::move(stream_key)] {
         std::this_thread::sleep_for(std::chrono::milliseconds(app::GetAppConfig().idle_grace_period_ms));
         if (registry_.TryRemoveIfIdle(key)) {

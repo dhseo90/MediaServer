@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: media_server를 중지한 뒤 동일 설정으로 다시 시작한다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
