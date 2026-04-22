@@ -188,13 +188,13 @@ std::string BuildAudioInputChain(const media::TrackInfo& track) {
 std::string BuildLaunch(const media::StreamDescriptor& descriptor) {
     const media::TrackInfo* video_track = FindTrack(descriptor, media::MediaKind::Video);
     const media::TrackInfo* audio_track = FindTrack(descriptor, media::MediaKind::Audio);
-    if (video_track == nullptr || audio_track == nullptr) {
+    if (video_track == nullptr) {
         return {};
     }
 
     const std::string video_input = BuildVideoInputChain(*video_track);
-    const std::string audio_input = BuildAudioInputChain(*audio_track);
-    if (video_input.empty() || audio_input.empty()) {
+    const std::string audio_input = audio_track != nullptr ? BuildAudioInputChain(*audio_track) : std::string();
+    if (video_input.empty() || (audio_track != nullptr && audio_input.empty())) {
         return {};
     }
 
@@ -204,19 +204,24 @@ std::string BuildLaunch(const media::StreamDescriptor& descriptor) {
         "! rtph264pay name=video_pay pt=96 config-interval=1 aggregate-mode=zero-latency ";
 
     const std::string audio_output =
-        audio_track->codec == media::CodecId::Opus
-            ? "! rtpopuspay name=audio_pay pt=111 "
-            : "! opusenc bitrate=64000 "
-              "! rtpopuspay name=audio_pay pt=111 ";
+        audio_track == nullptr
+            ? std::string()
+            : (audio_track->codec == media::CodecId::Opus
+                   ? "! rtpopuspay name=audio_pay pt=111 "
+                   : "! opusenc bitrate=64000 "
+                     "! rtpopuspay name=audio_pay pt=111 ");
+    const std::string audio_branch =
+        audio_track == nullptr
+            ? std::string()
+            : audio_input + audio_output +
+                  "! capsfilter name=audio_rtp caps=\"application/x-rtp,media=audio,encoding-name=OPUS,payload=111,clock-rate=48000,encoding-params=(string)2\" ";
 
     return "( "
            "webrtcbin name=webrtc bundle-policy=max-bundle "
            + video_input +
            video_output +
            "! capsfilter name=video_rtp caps=\"application/x-rtp,media=video,encoding-name=H264,payload=96,clock-rate=90000\" "
-           + audio_input +
-           audio_output +
-           "! capsfilter name=audio_rtp caps=\"application/x-rtp,media=audio,encoding-name=OPUS,payload=111,clock-rate=48000,encoding-params=(string)2\" "
+           + audio_branch +
            ")";
 }
 
@@ -783,7 +788,7 @@ bool WebRtcEgressSession::Start(const std::string& session_id,
     video_appsrc_ = gst_bin_get_by_name_recurse_up(GST_BIN(pipeline_), "video_src");
     audio_appsrc_ = gst_bin_get_by_name_recurse_up(GST_BIN(pipeline_), "audio_src");
     webrtcbin_ = gst_bin_get_by_name_recurse_up(GST_BIN(pipeline_), "webrtc");
-    if (video_appsrc_ == nullptr || audio_appsrc_ == nullptr || webrtcbin_ == nullptr) {
+    if (video_appsrc_ == nullptr || webrtcbin_ == nullptr) {
         if (error_message != nullptr) {
             *error_message = "missing WebRTC pipeline elements";
         }
@@ -792,7 +797,9 @@ bool WebRtcEgressSession::Start(const std::string& session_id,
     }
 
     g_object_set(video_appsrc_, "is-live", TRUE, "format", GST_FORMAT_TIME, "block", FALSE, nullptr);
-    g_object_set(audio_appsrc_, "is-live", TRUE, "format", GST_FORMAT_TIME, "block", FALSE, nullptr);
+    if (audio_appsrc_ != nullptr) {
+        g_object_set(audio_appsrc_, "is-live", TRUE, "format", GST_FORMAT_TIME, "block", FALSE, nullptr);
+    }
     g_signal_connect(webrtcbin_, "on-ice-candidate", G_CALLBACK(OnLocalIceCandidate), this);
     g_signal_connect(webrtcbin_, "on-new-transceiver", G_CALLBACK(OnNewTransceiver), this);
     ConfigureRtcpFeedbackRetention();
@@ -807,7 +814,10 @@ bool WebRtcEgressSession::Start(const std::string& session_id,
                   << " video_track=" << video_track_id_
                   << " audio_track=" << audio_track_id_
                   << " video_codec=" << media::ToString(FindTrack(*descriptor, media::MediaKind::Video)->codec)
-                  << " audio_codec=" << media::ToString(FindTrack(*descriptor, media::MediaKind::Audio)->codec)
+                  << " audio_codec="
+                  << (FindTrack(*descriptor, media::MediaKind::Audio) != nullptr
+                          ? media::ToString(FindTrack(*descriptor, media::MediaKind::Audio)->codec)
+                          : "none")
                   << "\n";
     }
     transport_pads_linked_ = false;
@@ -951,9 +961,11 @@ bool WebRtcEgressSession::EnsureTransportPadsLinked(bool answerer_mode, std::str
         return false;
     }
 
-    if (answerer_mode && (remote_video_mline_index_ < 0 || remote_audio_mline_index_ < 0)) {
+    const bool has_audio = !audio_track_id_.empty();
+    if (answerer_mode && (remote_video_mline_index_ < 0 || (has_audio && remote_audio_mline_index_ < 0))) {
         if (error_message != nullptr) {
-            *error_message = "remote SDP did not provide video/audio m-line indices";
+            *error_message = has_audio ? "remote SDP did not provide video/audio m-line indices"
+                                       : "remote SDP did not provide video m-line index";
         }
         return false;
     }
@@ -967,7 +979,8 @@ bool WebRtcEgressSession::EnsureTransportPadsLinked(bool answerer_mode, std::str
     GstElement* video_decoder = gst_bin_get_by_name_recurse_up(GST_BIN(pipeline_), "video_decoder");
     GstElement* video_encoder = gst_bin_get_by_name_recurse_up(GST_BIN(pipeline_), "video_encoder");
     GstElement* video_parse = gst_bin_get_by_name_recurse_up(GST_BIN(pipeline_), "video_parse");
-    if (video_pay == nullptr || audio_pay == nullptr || video_rtp == nullptr || audio_rtp == nullptr) {
+    if (video_pay == nullptr || video_rtp == nullptr ||
+        (has_audio && (audio_pay == nullptr || audio_rtp == nullptr))) {
         if (error_message != nullptr) {
             *error_message = "missing WebRTC payload elements";
         }
@@ -1012,19 +1025,21 @@ bool WebRtcEgressSession::EnsureTransportPadsLinked(bool answerer_mode, std::str
              ",clock-rate=(int)90000,packetization-mode=(string)1,profile-level-id=(string)42e01f,"
              "level-asymmetry-allowed=(string)1")
                 .c_str());
-        ApplyRtpPayloadCaps(
-            audio_pay,
-            audio_rtp,
-            answer_audio_pt,
-            ("application/x-rtp,media=audio,encoding-name=OPUS,payload=(int)" + std::to_string(answer_audio_pt) +
-             ",clock-rate=(int)48000,encoding-params=(string)2")
-                .c_str());
+        if (has_audio) {
+            ApplyRtpPayloadCaps(
+                audio_pay,
+                audio_rtp,
+                answer_audio_pt,
+                ("application/x-rtp,media=audio,encoding-name=OPUS,payload=(int)" + std::to_string(answer_audio_pt) +
+                 ",clock-rate=(int)48000,encoding-params=(string)2")
+                    .c_str());
+        }
     }
 
     GstPad* video_pay_sink_pad = gst_element_get_static_pad(video_pay, "sink");
     GstPad* video_pay_src_pad = gst_element_get_static_pad(video_pay, "src");
-    GstPad* audio_pay_sink_pad = gst_element_get_static_pad(audio_pay, "sink");
-    GstPad* audio_pay_src_pad = gst_element_get_static_pad(audio_pay, "src");
+    GstPad* audio_pay_sink_pad = has_audio && audio_pay != nullptr ? gst_element_get_static_pad(audio_pay, "sink") : nullptr;
+    GstPad* audio_pay_src_pad = has_audio && audio_pay != nullptr ? gst_element_get_static_pad(audio_pay, "src") : nullptr;
     GstPad* video_appsrc_src_pad = video_appsrc_ != nullptr ? gst_element_get_static_pad(video_appsrc_, "src") : nullptr;
     GstPad* video_in_q_src_pad = video_in_q != nullptr ? gst_element_get_static_pad(video_in_q, "src") : nullptr;
     GstPad* video_input_parse_src_pad =
@@ -1036,21 +1051,22 @@ bool WebRtcEgressSession::EnsureTransportPadsLinked(bool answerer_mode, std::str
         video_encoder != nullptr ? gst_element_get_static_pad(video_encoder, "src") : nullptr;
     GstPad* video_parse_src_pad = video_parse != nullptr ? gst_element_get_static_pad(video_parse, "src") : nullptr;
     GstPad* video_src_pad = gst_element_get_static_pad(video_rtp, "src");
-    GstPad* audio_src_pad = gst_element_get_static_pad(audio_rtp, "src");
+    GstPad* audio_src_pad = has_audio && audio_rtp != nullptr ? gst_element_get_static_pad(audio_rtp, "src") : nullptr;
 
     const std::string video_pad_name =
         answerer_mode ? "sink_" + std::to_string(remote_video_mline_index_) : "sink_%u";
     const std::string audio_pad_name =
-        answerer_mode ? "sink_" + std::to_string(remote_audio_mline_index_) : "sink_%u";
+        has_audio ? (answerer_mode ? "sink_" + std::to_string(remote_audio_mline_index_) : "sink_%u") : std::string();
 
     GstPad* video_sink_pad = gst_element_request_pad_simple(webrtcbin_, video_pad_name.c_str());
-    GstPad* audio_sink_pad = gst_element_request_pad_simple(webrtcbin_, audio_pad_name.c_str());
+    GstPad* audio_sink_pad = has_audio ? gst_element_request_pad_simple(webrtcbin_, audio_pad_name.c_str()) : nullptr;
 
     GstCaps* video_rtp_caps = gst_caps_from_string(
         "application/x-rtp,media=video,encoding-name=H264,clock-rate=90000,"
         "packetization-mode=(string)1,profile-level-id=(string)42e01f,level-asymmetry-allowed=(string)1");
-    GstCaps* audio_rtp_caps =
-        gst_caps_from_string("application/x-rtp,media=audio,encoding-name=OPUS,clock-rate=48000");
+    GstCaps* audio_rtp_caps = has_audio
+                                  ? gst_caps_from_string("application/x-rtp,media=audio,encoding-name=OPUS,clock-rate=48000")
+                                  : nullptr;
 
     const bool configured_video_transceiver =
         ConfigureSinkPadTransceiver(video_sink_pad,
@@ -1060,6 +1076,7 @@ bool WebRtcEgressSession::EnsureTransportPadsLinked(bool answerer_mode, std::str
                                     answerer_mode ? "configured-video-answerer-pad-transceiver"
                                                   : "configured-video-offerer-pad-transceiver");
     const bool configured_audio_transceiver =
+        !has_audio ||
         ConfigureSinkPadTransceiver(audio_sink_pad,
                                     GST_WEBRTC_RTP_TRANSCEIVER_DIRECTION_SENDONLY,
                                     audio_rtp_caps,
@@ -1072,17 +1089,20 @@ bool WebRtcEgressSession::EnsureTransportPadsLinked(bool answerer_mode, std::str
     if (video_src_pad != nullptr && video_sink_pad != nullptr) {
         video_link_result = gst_pad_link(video_src_pad, video_sink_pad);
     }
-    if (audio_src_pad != nullptr && audio_sink_pad != nullptr) {
+    if (has_audio && audio_src_pad != nullptr && audio_sink_pad != nullptr) {
         audio_link_result = gst_pad_link(audio_src_pad, audio_sink_pad);
     }
-    const bool linked = video_src_pad != nullptr && audio_src_pad != nullptr &&
-                        video_sink_pad != nullptr && audio_sink_pad != nullptr &&
-                        video_link_result == GST_PAD_LINK_OK && audio_link_result == GST_PAD_LINK_OK;
+    const bool linked = video_src_pad != nullptr && video_sink_pad != nullptr &&
+                        video_link_result == GST_PAD_LINK_OK &&
+                        (!has_audio ||
+                         (audio_src_pad != nullptr && audio_sink_pad != nullptr && audio_link_result == GST_PAD_LINK_OK));
     if (linked) {
         TracePadCaps("video_rtp:src", video_src_pad, session_id_);
-        TracePadCaps("audio_rtp:src", audio_src_pad, session_id_);
         TracePadCaps("video_rtp:src-after-caps", video_src_pad, session_id_);
-        TracePadCaps("audio_rtp:src-after-caps", audio_src_pad, session_id_);
+        if (has_audio) {
+            TracePadCaps("audio_rtp:src", audio_src_pad, session_id_);
+            TracePadCaps("audio_rtp:src-after-caps", audio_src_pad, session_id_);
+        }
         const auto& config = app::GetAppConfig();
         if (config.webrtc_trace && config.webrtc_trace_verbose) {
             if (video_parse_src_pad != nullptr) {
@@ -1108,10 +1128,12 @@ bool WebRtcEgressSession::EnsureTransportPadsLinked(bool answerer_mode, std::str
             }
             gst_pad_add_probe(video_pay_sink_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
             gst_pad_add_probe(video_pay_src_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
-            gst_pad_add_probe(audio_pay_sink_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
-            gst_pad_add_probe(audio_pay_src_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
             gst_pad_add_probe(video_src_pad, GST_PAD_PROBE_TYPE_BUFFER, OnRtpProbe, this, nullptr);
-            gst_pad_add_probe(audio_src_pad, GST_PAD_PROBE_TYPE_BUFFER, OnRtpProbe, this, nullptr);
+            if (has_audio) {
+                gst_pad_add_probe(audio_pay_sink_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
+                gst_pad_add_probe(audio_pay_src_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
+                gst_pad_add_probe(audio_src_pad, GST_PAD_PROBE_TYPE_BUFFER, OnRtpProbe, this, nullptr);
+            }
         }
     }
 
@@ -1161,9 +1183,13 @@ bool WebRtcEgressSession::EnsureTransportPadsLinked(bool answerer_mode, std::str
         gst_object_unref(audio_sink_pad);
     }
     gst_object_unref(video_pay);
-    gst_object_unref(audio_pay);
+    if (audio_pay != nullptr) {
+        gst_object_unref(audio_pay);
+    }
     gst_object_unref(video_rtp);
-    gst_object_unref(audio_rtp);
+    if (audio_rtp != nullptr) {
+        gst_object_unref(audio_rtp);
+    }
     if (video_parse != nullptr) {
         gst_object_unref(video_parse);
     }
@@ -1933,14 +1959,19 @@ bool WebRtcEgressSession::ConfigureAppSrcCaps(const media::StreamDescriptor& des
 
     const media::TrackInfo* audio_track = FindTrack(descriptor, media::MediaKind::Audio);
     if (audio_track == nullptr) {
-        if (error_message != nullptr) {
-            *error_message = "descriptor does not contain audio track";
-        }
-        return false;
+        audio_track_id_.clear();
+        return true;
     }
     audio_track_id_ = audio_track->track_id;
     traced_audio_samples_ = 0;
     traced_audio_rtp_ = 0;
+
+    if (audio_appsrc_ == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "audio appsrc is missing for audio track";
+        }
+        return false;
+    }
 
     GstCaps* audio_caps = BuildCapsFromTrack(*audio_track);
     if (audio_caps == nullptr) {

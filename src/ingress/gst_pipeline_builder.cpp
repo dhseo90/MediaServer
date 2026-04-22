@@ -17,6 +17,7 @@ std::string BuildVideoBranch(VideoCodec video_codec) {
     return "appsrc name=video_src is-live=true format=time do-timestamp=false block=false "
            "! queue ! decodebin ! queue ! videoconvert ! video/x-raw,format=I420 "
            "! x264enc tune=zerolatency speed-preset=ultrafast bitrate=2048 key-int-max=30 byte-stream=false "
+           "! identity ts-offset=-3600000000000000 "
            "! h264parse config-interval=-1 ! rtph264pay name=pay0 pt=96 config-interval=1 ";
 }
 
@@ -39,6 +40,7 @@ std::string BuildAudioBranch(media::CodecId audio_codec) {
                    "! queue ! decodebin ! queue ! audioconvert ! audioresample ! audio/x-raw,rate=8000,channels=1 "
                    "! alawenc ! rtppcmapay name=pay1 pt=8 ";
         case media::CodecId::Unknown:
+        case media::CodecId::VP8:
         case media::CodecId::H264:
         case media::CodecId::H265:
             return {};
@@ -54,7 +56,11 @@ std::string BuildFactoryLaunch(VideoCodec video_codec, media::CodecId audio_code
 }
 
 std::string BuildSourceUriForDecodeBin(const media::SourceSpec& spec) {
-    if (spec.kind == media::SourceSpec::Kind::Rtsp || spec.kind == media::SourceSpec::Kind::WebRtc) {
+    if (spec.kind == media::SourceSpec::Kind::Rtsp ||
+        spec.kind == media::SourceSpec::Kind::WebRtc ||
+        spec.kind == media::SourceSpec::Kind::Hls ||
+        spec.kind == media::SourceSpec::Kind::Http ||
+        spec.kind == media::SourceSpec::Kind::Youtube) {
         return spec.uri;
     }
 

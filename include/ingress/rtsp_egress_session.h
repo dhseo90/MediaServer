@@ -1,6 +1,9 @@
 #pragma once
 
+#include <deque>
 #include <memory>
+#include <mutex>
+#include <optional>
 #include <string>
 
 #include "core/egress_session.h"
@@ -30,6 +33,10 @@ public:
     void HandleSample(const media::Packet& packet);
 
 private:
+    void QueuePendingPacket(const media::Packet& packet);
+    void FlushPendingPackets();
+    media::Packet NormalizeTimestamps(const media::Packet& packet);
+
 #if MEDIA_SERVER_USE_GSTREAMER
     bool ConfigureAppSrcCaps(const media::StreamDescriptor& descriptor, std::string* error_message);
 #endif
@@ -39,6 +46,11 @@ private:
     std::string audio_track_id_;
     VideoCodec video_codec_;
     media::CodecId audio_codec_;
+    mutable std::mutex pending_mu_;
+    std::deque<media::Packet> pending_packets_;
+    std::optional<std::int64_t> video_base_pts_;
+    std::optional<std::int64_t> audio_base_pts_;
+    std::optional<std::int64_t> last_video_pts_;
     bool started_{false};
 
 #if MEDIA_SERVER_USE_GSTREAMER

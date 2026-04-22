@@ -27,6 +27,25 @@
       }
     },
     {
+      "name": "http_local_h264_aac",
+      "source_kind": "http",
+      "source": "http://127.0.0.1:8765/sample_h264.mp4",
+      "enabled": true,
+      "requires_network": false,
+      "notes": "Local HTTP MP4 source used to verify the URI source path before YouTube/HLS resolver work.",
+      "verify_profile": {
+        "label": "local-http",
+        "ffprobe_timeout_us": 10000000,
+        "webrtc_http_timeout_s": 20,
+        "rtsp_route_keys": ["default", "h264", "opus"]
+      },
+      "launcher": {
+        "type": "local_http",
+        "port": 8765,
+        "root": "video"
+      }
+    },
+    {
       "name": "rtsp_local_h265_opus",
       "source_kind": "rtsp",
       "source": "rtsp://127.0.0.1:8654/opus",

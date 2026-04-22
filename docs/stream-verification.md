@@ -34,6 +34,8 @@
   - `h264 + pcma`
 - 로컬 WebRTC publish source
   - `webrtc_local_publish_h264_opus`
+- 로컬 HTTP media source
+  - `http_local_h264_aac`
 - 선택적 외부 RTSP source
   - wowza demo (`h264 + aac` 예상)
 
@@ -50,6 +52,8 @@
   - 외부 source가 느릴 때 권장하는 서버 실행 env 예시
 - `run_webrtc_first`
   - 해당 source는 WebRTC signaling 검증을 RTSP보다 먼저 수행한다.
+- `skip_rtsp` / `skip_webrtc`
+  - source별로 아직 안정화되지 않은 egress 검증을 명시적으로 건너뛴다.
 - `rtsp_route_keys`
   - 해당 source에서 실제로 검증할 RTSP route subset
   - 지원 키: `default`, `h264`, `h265`, `opus`, `h265_opus`, `pcmu`, `h265_pcmu`, `pcma`, `h265_pcma`
@@ -70,6 +74,9 @@
 - local `RTSP(h264+pcmu)` source는 전체 RTSP route와 WebRTC signaling 검증이 통과했다.
 - local `RTSP(h264+pcma)` source는 전체 RTSP route와 WebRTC signaling 검증이 통과했다.
 - local `WebRTC publish(sourceId=publisher-verify)` source는 route subset(`default`, `h264`, `h265`, `opus`)과 WebRTC signaling 검증이 통과했다.
+- local `HTTP MP4(sample_h264.mp4)` source는 `source=http` URI source 경로 검증 대상으로 추가했다.
+  - RTSP route subset(`default`, `h264`, `opus`) 검증이 통과했다.
+  - WebRTC signaling 검증이 통과했다.
 - 외부 wowza source는 기본 설정에서 `RTSP preflight failed for wowzaec2demo.streamlock.net:554 within 1500ms (connection timed out)`로 실패했다.
 - 같은 wowza source를 `MEDIA_SERVER_RTSP_SOURCE_PREFLIGHT_TIMEOUT_MS=0`으로 다시 확인하면 `timed out waiting for RTSP source samples`로 실패했다.
 - local `WHIP publish(sourceId=publisher-demo2) -> RTSP`는 `h264 + aac`로 확인됐다.
@@ -221,6 +228,11 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
   - `/dhseo/h265`
   - `/dhseo/opus`
 - `WebRTC publish(local WHIP test publisher: webrtc_local_publish_h264_opus) -> WebRTC(signaling)`
+- `HTTP MP4(sample_h264.mp4) -> RTSP`
+  - `/dhseo`
+  - `/dhseo/h264`
+  - `/dhseo/opus`
+- `HTTP MP4(sample_h264.mp4) -> WebRTC(signaling)`
 - `WebRTC publish(local WHIP test publisher: whip-probe4) -> WebRTC(simple signaling)`
   - browser consumer 기준 `consumerVideoWidth=640`, `consumerVideoHeight=360`
   - `inboundVideoBytes > 0`, `inboundVideoFramesDecoded > 0`
@@ -242,12 +254,17 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
 - live source(`RTSP`, 향후 `WebRTC`)는 마지막 subscriber가 빠지면 즉시 cleanup 하도록 변경했다.
 - `SourceWorker` liveness를 체크해서 죽은 worker를 재사용하지 않도록 보강했다.
 - 이 변경 후 `RTSP(h265+opus)`와 `RTSP(h264+pcmu)`의 연속 요청/transform route 재검증이 통과했다.
+- `source=http` RTSP `503` 원인을 수정했다.
+  - 세션 생성 시 source보다 subscriber를 먼저 등록해 초기 샘플 손실을 줄였다.
+  - RTSP egress에 start 전 pending packet queue와 timestamp normalization을 추가했다.
+  - H264 transcode route의 `1000h` timestamp offset을 `identity ts-offset=-3600000000000000`으로 보정했다.
+  - pending queue가 video keyframe에서 audio priming packet까지 지우지 않도록 수정했다.
+- 전체 로컬 matrix는 `pass=59 fail=0 skip=1`로 통과했다.
 
 ## 남은 확인 항목
 - 다음 구현 순서
-  - 1차: YouTube live/uploaded URL 검토를 위한 `source=hls|http` source 검증 추가
-  - 2차: `source=youtube` resolver 실험 경로 추가
-  - 3차: 영상분석 branch 검증 추가
+  - 1차: YouTube live/uploaded URL을 `source=youtube` resolver 실험 경로로 연결
+  - 2차: 영상분석 branch 검증 추가
 - 외부 wowza source 재검증
 - 외부 RTSP source timeout 원인 분리
   - 실제 remote server 응답 지연인지
@@ -272,3 +289,7 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
   - `rtsp://127.0.0.1:8555/dhseo?url=rtsp%3A%2F%2Fwowzaec2demo.streamlock.net%2Fvod%2Fmp4%3ABigBuckBunny_115k.mov`
 - RTSP -> WebRTC
   - `POST http://127.0.0.1:8081/webrtc/session?url=rtsp%3A%2F%2Fwowzaec2demo.streamlock.net%2Fvod%2Fmp4%3ABigBuckBunny_115k.mov`
+- HTTP MP4 -> RTSP
+  - `rtsp://127.0.0.1:8555/dhseo?source=http&url=http%3A%2F%2F127.0.0.1%3A8765%2Fsample_h264.mp4`
+- HTTP MP4 -> WebRTC
+  - `POST http://127.0.0.1:8081/webrtc/session?source=http&url=http%3A%2F%2F127.0.0.1%3A8765%2Fsample_h264.mp4`

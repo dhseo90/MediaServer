@@ -33,12 +33,17 @@ bool SharedStream::AddSubscriber(const std::string& session_id, SubscriberCallba
     }
 
     std::optional<media::Packet> cached_keyframe;
+    std::optional<media::Packet> cached_audio;
     {
         std::lock_guard keyframe_lock(keyframe_mu_);
         cached_keyframe = last_video_keyframe_;
+        cached_audio = last_audio_packet_;
     }
     if (cached_keyframe.has_value()) {
         EnqueuePacket(state, *cached_keyframe);
+    }
+    if (cached_audio.has_value()) {
+        EnqueuePacket(state, *cached_audio);
     }
     return true;
 }
@@ -99,6 +104,9 @@ void SharedStream::FanOut(const media::Packet& packet) const {
     if (packet.kind == media::MediaKind::Video && packet.is_key_frame) {
         std::lock_guard keyframe_lock(keyframe_mu_);
         last_video_keyframe_ = packet;
+    } else if (packet.kind == media::MediaKind::Audio) {
+        std::lock_guard keyframe_lock(keyframe_mu_);
+        last_audio_packet_ = packet;
     }
 
     std::vector<std::shared_ptr<SubscriberState>> states;
