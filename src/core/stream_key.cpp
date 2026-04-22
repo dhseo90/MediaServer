@@ -1,3 +1,4 @@
+// 파일 용도: SourceSpec을 canonical key로 정규화해 같은 원본 요청을 하나의 SharedStream으로 묶는다.
 #include "core/stream_key.h"
 
 #include <algorithm>
@@ -45,6 +46,7 @@ std::string NormalizeQuery(const std::string& raw_query) {
         from = pos + 1;
     }
 
+    // query 순서가 달라도 같은 upstream URL이면 같은 stream key로 묶기 위해 정렬한다.
     std::sort(parts.begin(), parts.end());
 
     std::ostringstream oss;
@@ -90,6 +92,7 @@ std::string NormalizeRtspLike(const std::string& raw_uri) {
     const std::string path = q_pos == std::string::npos ? path_and_query : path_and_query.substr(0, q_pos);
     const std::string query = q_pos == std::string::npos ? std::string() : path_and_query.substr(q_pos + 1);
 
+    // scheme/host 대소문자와 query 순서를 정규화해 중복 source worker 생성을 줄인다.
     std::string normalized = scheme + "://" + NormalizeAuthority(authority) + path;
     const std::string normalized_query = NormalizeQuery(query);
     if (!normalized_query.empty()) {

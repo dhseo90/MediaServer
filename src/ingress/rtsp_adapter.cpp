@@ -1,3 +1,4 @@
+// 파일 용도: 빌드 옵션에 따라 실제 GStreamer RTSP server 또는 stub 어댑터를 생성한다.
 #include "ingress/rtsp_adapter.h"
 
 namespace ingress {

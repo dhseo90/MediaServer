@@ -1,3 +1,4 @@
+// 파일 용도: RTSP/WebRTC URL query를 IngressRequest와 SourceSpec으로 변환하는 파서를 선언한다.
 #pragma once
 
 #include "media_types.h"

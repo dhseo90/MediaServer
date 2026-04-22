@@ -1,3 +1,4 @@
+// 파일 용도: RTSP 요청 URI에서 route/query/path 정보를 추출하는 컨텍스트 파서를 선언한다.
 #pragma once
 
 #include <optional>

@@ -1,3 +1,4 @@
+// 파일 용도: 환경변수 값을 읽어 AppConfig를 구성하고 서버 전체 기본 설정을 제공한다.
 #include "app_config.h"
 
 #include <cerrno>
@@ -113,6 +114,7 @@ bool ReadBoolEnv(const char* name, bool fallback) {
 
 app::AppConfig LoadAppConfig() {
     app::AppConfig config;
+    // stdafx.h/app_config.h의 기본값을 먼저 만들고, 배포/테스트 환경별 env 값으로 덮어쓴다.
     config.stream_route = ReadStringEnv(kEnvRoute, config.stream_route);
     config.subscriber_queue_size = ReadSizeEnv(kEnvSubscriberQueueSize, config.subscriber_queue_size);
     config.max_sessions = ReadSizeEnv(kEnvMaxSessions, config.max_sessions);
@@ -139,6 +141,7 @@ app::AppConfig LoadAppConfig() {
     config.rtsp_track_settle_max_ms =
         ReadIntEnv(kEnvRtspTrackSettleMaxMs, config.rtsp_track_settle_max_ms);
     config.gst_attach_context = ReadStringEnv(kEnvGstAttachMode, config.gst_attach_context);
+    // 잘못된 env 입력은 서버 시작 실패 대신 안전한 fallback으로 보정하고 로그를 남긴다.
     if (config.subscriber_queue_size == 0) {
         std::cerr << "[env] subscriber queue size cannot be 0, fallback 1\n";
         config.subscriber_queue_size = 1;

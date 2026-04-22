@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 실행 중인 media_server의 포트, 프로세스, 로그 상태를 점검한다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

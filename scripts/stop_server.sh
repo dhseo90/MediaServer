@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 실행 중인 media_server 프로세스를 PID/포트 기준으로 중지한다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

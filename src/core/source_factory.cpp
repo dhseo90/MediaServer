@@ -1,3 +1,4 @@
+// 파일 용도: File, RTSP pull, WebRTC source, HTTP/HLS URI source worker와 codec/descriptor 변환 로직을 구현한다.
 #include "core/source_factory.h"
 
 #include <algorithm>
@@ -290,6 +291,7 @@ MediaSample BuildSampleFromGst(const GstSample* sample, const TrackInfo& track) 
     if (gst_buffer_map(buffer, &map, GST_MAP_READ) == TRUE) {
         out.payload.assign(map.data, map.data + map.size);
         if (track.kind == MediaKind::Video) {
+            // H264는 avc length-prefix NAL을 직접 훑어 IDR/SPS/PPS가 있으면 keyframe으로 보정한다.
             if (track.codec == CodecId::H264 && map.size >= 5) {
                 std::size_t offset = 0;
                 while (offset + 5 <= map.size) {
@@ -310,6 +312,7 @@ MediaSample BuildSampleFromGst(const GstSample* sample, const TrackInfo& track) 
                     offset += nal_size;
                 }
             } else if (track.codec == CodecId::VP8 && map.size > 0) {
+                // VP8 payload descriptor의 하위 bit로 keyframe 여부를 빠르게 판별한다.
                 out.is_key_frame = (map.data[0] & 0x01) == 0;
             }
         }
@@ -604,6 +607,7 @@ public:
 
 #if MEDIA_SERVER_USE_GSTREAMER
         gst_init(nullptr, nullptr);
+        // file source는 먼저 discoverer로 실제 트랙/코덱을 확인한 뒤 appsink pipeline을 만든다.
         descriptor = DiscoverFileDescriptor(source_spec_.uri, error_message);
         if (descriptor.tracks.empty()) {
             if (error_message != nullptr && error_message->empty()) {
@@ -752,6 +756,7 @@ private:
 
             switch (GST_MESSAGE_TYPE(message)) {
                 case GST_MESSAGE_EOS:
+                    // 파일 source는 VOD loop 재생을 기본 동작으로 삼아 RTSP 클라이언트가 끝에서 끊기지 않게 한다.
                     gst_element_seek_simple(
                         pipeline_,
                         GST_FORMAT_TIME,
@@ -805,6 +810,7 @@ public:
 #if MEDIA_SERVER_USE_GSTREAMER
         gst_init(nullptr, nullptr);
 
+        // 외부 RTSP는 source pipeline 시작 전에 host:port 도달성을 먼저 확인해 원인 분리를 쉽게 한다.
         if (!PreflightRtspSource(source_spec_.uri, error_message)) {
             return false;
         }
@@ -843,6 +849,7 @@ public:
         }
 
         std::unique_lock lock(mu_);
+        // SDP pad 생성만으로는 부족하고, 실제 첫 sample까지 확인해야 downstream descriptor가 신뢰 가능하다.
         const bool ready = cv_.wait_for(
             lock,
             std::chrono::milliseconds(app::GetAppConfig().rtsp_source_start_timeout_ms),
@@ -861,6 +868,7 @@ public:
         const auto settle_started_at = std::chrono::steady_clock::now();
         const auto settle_limit =
             settle_started_at + std::chrono::milliseconds(app::GetAppConfig().rtsp_track_settle_max_ms);
+        // video가 먼저 오고 audio가 늦게 붙는 RTSP source를 위해 짧은 track settle 시간을 둔다.
         while (running_.load() && source_error_.empty()) {
             const bool have_video = DescriptorHasKind(descriptor_, MediaKind::Video);
             const bool have_audio = DescriptorHasKind(descriptor_, MediaKind::Audio);
@@ -939,6 +947,7 @@ private:
     }
 
     void HandlePadAdded(GstPad* pad) {
+        // rtspsrc의 동적 RTP pad마다 depay/parser/appsink branch를 만들어 내부 패킷으로 변환한다.
         GstCaps* caps = gst_pad_get_current_caps(pad);
         if (caps == nullptr) {
             caps = gst_pad_query_caps(pad, nullptr);
@@ -1105,6 +1114,7 @@ private:
             }
 
             if (!branch->announced_ready) {
+                // 첫 sample의 caps가 가장 정확하므로 descriptor를 한 번 더 갱신하고 ready 대기를 깨운다.
                 GstCaps* sample_caps = gst_sample_get_caps(sample);
                 if (sample_caps != nullptr) {
                     gchar* caps_text = gst_caps_to_string(sample_caps);
@@ -1238,6 +1248,7 @@ public:
         descriptor_.is_live = source_spec_.kind == SourceSpec::Kind::Hls;
         source_error_.clear();
 
+        // HTTP/HLS playable URI는 uridecodebin으로 raw pad를 얻고, 내부 표준 H264/AAC 패킷으로 재인코딩한다.
         gst_bin_add(GST_BIN(pipeline_), source_);
         g_object_set(source_, "uri", source_spec_.uri.c_str(), nullptr);
         g_signal_connect(source_, "pad-added", G_CALLBACK(&UriSourceWorker::OnPadAdded), this);
@@ -1257,6 +1268,7 @@ public:
         const int start_timeout_ms =
             source_spec_.kind == SourceSpec::Kind::Hls ? std::max(configured_timeout_ms, 8000) : configured_timeout_ms;
         std::unique_lock lock(mu_);
+        // URI source도 실제 인코딩 sample이 나올 때까지 기다려 egress가 빈 descriptor로 시작하지 않게 한다.
         const bool ready = cv_.wait_for(
             lock,
             std::chrono::milliseconds(start_timeout_ms),
@@ -1273,6 +1285,7 @@ public:
         const auto settle_started_at = std::chrono::steady_clock::now();
         const auto settle_limit =
             settle_started_at + std::chrono::milliseconds(app::GetAppConfig().rtsp_track_settle_max_ms);
+        // HLS/HTTP 입력은 audio/video pad 발견 순서가 일정하지 않으므로 RTSP source와 같은 settle 로직을 쓴다.
         while (running_.load() && source_error_.empty()) {
             const bool have_video = DescriptorHasKind(descriptor_, MediaKind::Video);
             const bool have_audio = DescriptorHasKind(descriptor_, MediaKind::Audio);
@@ -1364,6 +1377,7 @@ private:
     }
 
     void HandlePadAdded(GstPad* pad) {
+        // decodebin이 내는 raw audio/video pad를 종류별로 하나씩만 내부 표준 branch에 연결한다.
         GstCaps* caps = gst_pad_get_current_caps(pad);
         if (caps == nullptr) {
             caps = gst_pad_query_caps(pad, nullptr);
@@ -1524,6 +1538,7 @@ private:
                          "byte-stream",
                          FALSE,
                          nullptr);
+            // URI/VOD source는 첫 프레임 지연이 RTSP DESCRIBE 503으로 이어질 수 있어 저지연 인코딩을 강제한다.
             gst_util_set_object_arg(G_OBJECT(branch->encoder), "tune", "zerolatency");
             gst_util_set_object_arg(G_OBJECT(branch->encoder), "speed-preset", "ultrafast");
             g_object_set(branch->parser, "config-interval", -1, nullptr);
@@ -1667,6 +1682,7 @@ private:
                 running_.store(false);
             } else if (GST_MESSAGE_TYPE(message) == GST_MESSAGE_EOS) {
                 if (source_spec_.kind == SourceSpec::Kind::Http) {
+                    // HTTP MP4 같은 VOD URI는 EOF 이후 처음으로 되감아 지속 스트림처럼 제공한다.
                     gst_element_seek_simple(
                         pipeline_,
                         GST_FORMAT_TIME,
@@ -1710,6 +1726,7 @@ public:
     explicit UnsupportedSourceWorker(SourceSpec source_spec) : BasicSourceWorker(std::move(source_spec)) {}
 
     bool Start(const std::shared_ptr<core::SharedStream>& stream, std::string* error_message) override {
+        // source=youtube는 아직 resolver가 없으므로 명확한 실패 메시지로 source=hls/http 경로를 안내한다.
         (void)stream;
         if (error_message != nullptr) {
             *error_message = "source kind '" + media::ToString(source_spec_.kind) +
@@ -1724,6 +1741,7 @@ public:
     explicit WebRtcSourceWorker(SourceSpec source_spec) : BasicSourceWorker(std::move(source_spec)) {}
 
     bool Start(const std::shared_ptr<core::SharedStream>& stream, std::string* error_message) override {
+        // WHIP publish로 등록된 sourceId를 찾아 SharedStream source worker처럼 구독한다.
         published_source_ = ingress::WebRtcSourceRegistry::Instance().Find(source_spec_.uri);
         if (published_source_ == nullptr) {
             if (error_message != nullptr) {
@@ -1749,6 +1767,7 @@ public:
 
         StreamDescriptor descriptor;
         const auto ready_timeout = std::chrono::milliseconds(app::GetAppConfig().webrtc_source_ready_timeout_ms);
+        // consumer egress가 caps를 만들 수 있도록 publisher의 audio/video track 준비를 기다린다.
         if (!published_source_->WaitForTracks(ready_timeout, true, true, &descriptor)) {
             published_source_->RemoveSubscriber(subscriber_id_);
             published_source_.reset();
@@ -1787,6 +1806,7 @@ private:
 namespace core {
 
 std::unique_ptr<SourceWorker> CreateSourceWorker(const media::SourceSpec& source_spec) {
+    // SourceSpec::Kind는 MediaServer -> Original Source 구간의 실제 수집 방식을 결정한다.
     switch (source_spec.kind) {
         case media::SourceSpec::Kind::File:
             return std::make_unique<FileSourceWorker>(source_spec);

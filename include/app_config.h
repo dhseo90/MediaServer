@@ -1,3 +1,4 @@
+// 파일 용도: 환경변수와 기본값을 합친 런타임 설정 구조체와 접근 함수를 선언한다.
 #pragma once
 
 #include <cstdint>

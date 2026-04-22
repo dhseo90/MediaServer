@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: macOS/Homebrew GStreamer 환경변수와 공통 경로/포트 유틸리티를 제공한다.
 
 media_server_read_const_charp() {
   local file_path="$1"

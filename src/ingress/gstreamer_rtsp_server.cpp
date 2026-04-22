@@ -1,3 +1,4 @@
+// 파일 용도: GStreamer RTSP server를 띄우고 media-configure 시 SessionManager와 RTSP egress bridge를 연결한다.
 #include "ingress/gstreamer_rtsp_server.h"
 
 #include <iostream>
@@ -51,6 +52,7 @@ void DestroyRtspEgressSessionHolder(gpointer data) {
 
 
 bool AttachServerToContext(const GstRTSPServer* server, GMainContext* context, const char* label, guint* source_id) {
+    // RTSP server는 GLib main context에 attach되어야 실제 socket accept와 client 처리가 시작된다.
     GError* source_error = nullptr;
     GSource* source = gst_rtsp_server_create_source(const_cast<GstRTSPServer*>(server), nullptr, &source_error);
     if (source == nullptr) {
@@ -127,11 +129,13 @@ void OnMediaUnprepared(GstRTSPMedia* media, gpointer user_data) {
     const char* sid = static_cast<const char*>(sid_ptr);
     if (sid != nullptr) {
         std::cerr << "[gst] media unprepared; close session " << sid << "\n";
+        // GStreamer media teardown과 내부 SessionManager 세션 생명주기를 맞춘다.
         runtime->session_manager.CloseSession(sid);
     }
 }
 
 void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpointer user_data) {
+    // DESCRIBE/SETUP 시점마다 실제 query를 파싱해 source와 route codec을 동적으로 결정한다.
     auto* runtime = static_cast<RuntimeContext*>(user_data);
     GstRTSPContext* context = gst_rtsp_context_get_current();
     if (context == nullptr || context->uri == nullptr) {
@@ -176,6 +180,7 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
     }
 
     std::string bridge_error;
+    // RTSP factory pipeline의 appsrc caps는 source descriptor가 준비된 뒤 설정해야 한다.
     if (!bridge->Start(request.client_id, create_result.stream, &bridge_error)) {
         std::cerr << "[gst] failed to start RTSP egress bridge: " << bridge_error << "\n";
         runtime->session_manager.CloseSession(request.client_id);
@@ -214,6 +219,7 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
 void ConfigureFactory(GstRTSPMediaFactory* factory, RuntimeContext* runtime, VideoCodec video_codec, media::CodecId audio_codec) {
     gst_rtsp_media_factory_set_shared(factory, FALSE);
     gst_rtsp_media_factory_set_eos_shutdown(factory, FALSE);
+    // mount path별 factory는 같은 handler를 쓰되 launch 문자열만 codec route에 맞게 다르게 둔다.
     const std::string launch = BuildFactoryLaunch(video_codec, audio_codec);
     gst_rtsp_media_factory_set_launch(factory, launch.c_str());
     if (ShouldForceTcpTransport()) {
@@ -278,6 +284,7 @@ bool GStreamerRtspServer::Start(uint16_t port, std::string* error_message) {
         VideoCodec video_codec;
         media::CodecId audio_codec;
     };
+    // 한 route tree 아래에 video/audio codec 변환 조합을 각각 mount한다.
     const std::vector<RouteConfig> routes = {
         {base_route, VideoCodec::H264, media::CodecId::AAC},
         {base_route + "/h264", VideoCodec::H264, media::CodecId::AAC},

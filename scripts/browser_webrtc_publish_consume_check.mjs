@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// 파일 용도: 브라우저에서 WHIP publish와 WebRTC consume을 실제 media playback 기준으로 검증한다.
 
 import fs from "node:fs";
 import os from "node:os";

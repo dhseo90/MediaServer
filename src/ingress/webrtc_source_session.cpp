@@ -1,3 +1,4 @@
+// 파일 용도: 브라우저/테스트 publisher의 WebRTC RTP 입력을 appsink로 받아 SharedStream 패킷으로 변환한다.
 #include "ingress/webrtc_source_session.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -199,6 +200,7 @@ bool WebRtcSourceSession::Start(const std::string& session_id, const std::string
     }
 
     published_source_ = std::make_shared<PublishedWebRtcSource>(source_id_);
+    // WHIP publisher는 sourceId로 registry에 먼저 등록되어야 consumer가 source=webrtc로 찾아올 수 있다.
     if (!WebRtcSourceRegistry::Instance().Register(published_source_)) {
         if (error_message != nullptr) {
             *error_message = "WebRTC sourceId already exists: " + source_id_;
@@ -247,6 +249,7 @@ bool WebRtcSourceSession::Start(const std::string& session_id, const std::string
     g_object_set(webrtcbin_, "bundle-policy", GST_WEBRTC_BUNDLE_POLICY_MAX_BUNDLE, nullptr);
     g_signal_connect(webrtcbin_, "on-ice-candidate", G_CALLBACK(OnLocalIceCandidate), this);
     g_signal_connect(webrtcbin_, "pad-added", G_CALLBACK(OnPadAdded), this);
+    // macOS/Homebrew 환경에서 관찰된 RTCP/clock 이슈를 source pipeline에도 동일하게 적용한다.
     ConfigureWebRtcSessionWorkarounds();
     descriptor_.is_live = true;
     started_ = true;
@@ -458,6 +461,7 @@ void WebRtcSourceSession::ConfigureWebRtcSessionWorkarounds() {
 }
 
 void WebRtcSourceSession::HandlePadAdded(GstPad* pad) {
+    // publisher가 보내는 RTP pad마다 depay/parser/appsink branch를 동적으로 붙인다.
     GstCaps* caps = gst_pad_get_current_caps(pad);
     if (caps == nullptr) {
         caps = gst_pad_query_caps(pad, nullptr);
@@ -545,6 +549,7 @@ void WebRtcSourceSession::HandlePadAdded(GstPad* pad) {
       std::lock_guard lock(source_mu_);
       descriptor_.tracks.push_back(branch->track);
       if (published_source_ != nullptr) {
+          // consumer가 이미 대기 중일 수 있으므로 pad 발견 즉시 descriptor를 공유한다.
           published_source_->SetDescriptor(descriptor_);
       }
       branches_.push_back(std::move(branch));
@@ -613,6 +618,7 @@ void WebRtcSourceSession::SampleLoop(SinkBranch* branch) {
         }
 
         if (!branch->announced_ready) {
+            // 첫 sample caps를 기준으로 descriptor를 보정해 downstream egress caps mismatch를 줄인다.
             GstCaps* sample_caps = gst_sample_get_caps(sample);
             if (sample_caps != nullptr) {
                 gchar* caps_text = gst_caps_to_string(sample_caps);
@@ -654,6 +660,7 @@ void WebRtcSourceSession::SampleLoop(SinkBranch* branch) {
 
         if (published_source_ != nullptr) {
             auto packet = BuildSampleFromGst(sample, branch->track);
+            // PublishedWebRtcSource는 SharedStream SourceWorker처럼 패킷 fan-out의 upstream 역할을 한다.
             published_source_->Publish(packet);
             const auto& config = app::GetAppConfig();
             if (config.webrtc_trace && config.webrtc_trace_verbose && traced_samples < 8) {

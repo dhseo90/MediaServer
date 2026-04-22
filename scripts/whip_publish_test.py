@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# 파일 용도: GStreamer testsrc를 WHIP endpoint로 publish하는 로컬 WebRTC source 검증 도구다.
 import argparse
 import json
 import signal

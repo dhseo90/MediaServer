@@ -1,3 +1,4 @@
+// 파일 용도: StreamKey별 SharedStream 인스턴스 공유와 제거를 관리하는 Registry를 선언한다.
 #pragma once
 
 #include "core/shared_stream.h"

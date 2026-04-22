@@ -1,3 +1,4 @@
+// 파일 용도: GStreamer RTSP 서버 사용 여부와 상관없이 RTSP 서버 어댑터 생성을 감싼다.
 #pragma once
 
 #include "core/session_manager.h"

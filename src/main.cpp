@@ -1,3 +1,4 @@
+// 파일 용도: MediaServer 프로세스 진입점으로 설정, Registry, RTSP 서버, WebRTC HTTP 서버를 초기화한다.
 #include <atomic>
 #include <chrono>
 #include <csignal>
@@ -37,6 +38,7 @@ int main() {
     core::StreamRegistry registry;
     core::ResourceGuard resource_guard(config.max_sessions, config.max_streams);
     core::SessionManager session_manager(registry, resource_guard);
+    // RTSP와 WebRTC HTTP 서버는 같은 SessionManager를 공유해 source dedup/fan-out 구조를 함께 사용한다.
     ingress::GStreamerRtspServer gst_rtsp_server(session_manager);
     ingress::WebRtcHttpServer webrtc_http_server(session_manager);
 
@@ -68,6 +70,7 @@ int main() {
     std::signal(SIGINT, HandleSignal);
     std::signal(SIGTERM, HandleSignal);
 
+    // signal handler에서는 플래그만 바꾸고 실제 Stop은 main thread에서 순서대로 수행한다.
     while (g_running.load()) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }

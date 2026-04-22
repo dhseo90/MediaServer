@@ -1,3 +1,4 @@
+// 파일 용도: WebRTC simple signaling, WHEP consume, WHIP publish HTTP API를 구현한다.
 #include "ingress/webrtc_http_server.h"
 
 #include <arpa/inet.h>
@@ -1043,6 +1044,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
     impl_->port = port;
     running_.store(true);
 
+    // 간단한 내장 HTTP 서버다. 연결마다 짧은 thread를 만들어 signaling 요청을 처리한다.
     impl_->accept_thread = std::thread([this] {
         while (running_.load()) {
             sockaddr_in client_addr{};
@@ -1081,6 +1083,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if (request.method == "POST" && request.path == "/webrtc/session") {
+                            // simple signaling: 서버가 offer를 만들고 브라우저/테스트 클라이언트가 answer를 돌려준다.
                             const std::string session_id = "webrtc-http-" + std::to_string(impl_->next_session_id.fetch_add(1));
                             const std::string ingress_client_id = session_id + "-ingress";
                             media::IngressRequest ingress_request = BuildHttpIngressRequest(route_path, query, ingress_client_id);
@@ -1122,6 +1125,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if (request.method == "POST" && request.path == "/whep") {
+                            // WHEP: 클라이언트 offer를 먼저 받고 서버가 answer SDP를 반환하는 consume endpoint다.
                             const std::string session_id = "whep-" + std::to_string(impl_->next_session_id.fetch_add(1));
                             const std::string ingress_client_id = session_id + "-ingress";
                             media::IngressRequest ingress_request = BuildHttpIngressRequest(route_path, query, ingress_client_id);
@@ -1172,6 +1176,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if (request.method == "POST" && request.path == "/whip/publish") {
+                            // WHIP publish: 브라우저/테스트 publisher를 sourceId로 등록해 source=webrtc 소비가 가능하게 한다.
                             const auto source_id_it = query.find("sourceId");
                             if (source_id_it == query.end() || source_id_it->second.empty()) {
                                 return JsonResponse(400, "Bad Request",

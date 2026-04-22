@@ -1,3 +1,4 @@
+// 파일 용도: SourceWorker에서 받은 패킷을 구독자별 큐로 fan-out하고 캐시 keyframe/audio를 재전달한다.
 #include "core/shared_stream.h"
 
 #include <exception>
@@ -14,6 +15,7 @@ SharedStream::~SharedStream() {
 }
 
 bool SharedStream::AddSubscriber(const std::string& session_id, SubscriberCallback callback) {
+    // subscriber마다 독립 worker thread와 queue를 둬 느린 클라이언트가 다른 클라이언트를 막지 않게 한다.
     auto state = std::make_shared<SubscriberState>(std::move(callback));
     state->worker = std::thread(&SharedStream::WorkerLoop, state);
 
@@ -45,6 +47,7 @@ bool SharedStream::AddSubscriber(const std::string& session_id, SubscriberCallba
     if (cached_audio.has_value()) {
         EnqueuePacket(state, *cached_audio);
     }
+    // 새 subscriber는 마지막 video keyframe/audio priming packet을 먼저 받아 RTSP/WebRTC 준비 시간을 줄인다.
     return true;
 }
 
@@ -80,6 +83,7 @@ void SharedStream::StopAllSubscribers() {
     subscribers_.clear();
     lock.unlock();
 
+    // map lock을 잡은 채 join하지 않는다. callback 내부에서 다시 stream API를 부를 가능성을 막기 위해서다.
     for (const auto& state : states) {
         {
             std::lock_guard state_lock(state->mu);
@@ -101,6 +105,7 @@ std::size_t SharedStream::RefCount() const {
 }
 
 void SharedStream::FanOut(const media::Packet& packet) const {
+    // late subscriber가 빠르게 시작할 수 있도록 최근 keyframe과 audio packet을 캐시한다.
     if (packet.kind == media::MediaKind::Video && packet.is_key_frame) {
         std::lock_guard keyframe_lock(keyframe_mu_);
         last_video_keyframe_ = packet;
@@ -118,6 +123,7 @@ void SharedStream::FanOut(const media::Packet& packet) const {
         }
     }
 
+    // subscriber 목록 스냅샷만 공유 lock 아래에서 만들고, 실제 enqueue는 lock 밖에서 수행한다.
     for (const auto& state : states) {
         EnqueuePacket(state, packet);
     }
@@ -155,6 +161,7 @@ bool SharedStream::StartSource(std::unique_ptr<SourceWorker> worker, std::string
     previous_worker = std::move(source_worker_);
     source_running_ = false;
     source_worker_ = std::move(worker);
+    // 죽었거나 교체되는 worker는 새 worker 시작 전에 완전히 멈춰 중복 upstream 연결을 피한다.
     if (previous_worker != nullptr) {
         previous_worker->Stop();
     }
@@ -243,9 +250,9 @@ void SharedStream::WorkerLoop(const std::shared_ptr<SubscriberState>& state) {
         try {
             state->callback(packet);
         } catch (const std::exception&) {
-            // Subscriber callback failures are isolated by design.
+            // subscriber callback 실패는 해당 구독자 문제로 격리하고 source fan-out은 계속 유지한다.
         } catch (...) {
-            // Keep worker alive for non-standard exceptions.
+            // 비표준 예외도 worker thread를 죽이지 않는다.
         }
     }
 }
@@ -258,6 +265,7 @@ void SharedStream::EnqueuePacket(const std::shared_ptr<SubscriberState>& state, 
         }
 
         if (state->queue.size() >= app::GetAppConfig().subscriber_queue_size) {
+            // live stream 특성상 지연된 오래된 패킷보다 최신 패킷을 유지하는 것이 낫다.
             state->queue.pop_front();
             ++state->dropped_packets;
         }

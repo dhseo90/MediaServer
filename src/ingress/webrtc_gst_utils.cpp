@@ -1,3 +1,4 @@
+// 파일 용도: GStreamer WebRTC의 SDP sanitize, RTCP feedback 제거, pipeline clock 보정 유틸리티를 구현한다.
 #include "ingress/webrtc_gst_utils.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER

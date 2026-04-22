@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: 서버 실행 상태와 로컬/외부 source 접근성을 진단한다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

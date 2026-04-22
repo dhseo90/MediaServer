@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 파일 용도: macOS/Linux 개발 환경에 필요한 GStreamer/pkg-config 의존성을 설치한다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,7 +16,7 @@ install_macos() {
     exit 1
   fi
   brew update
-  brew install pkg-config gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-rtsp-server libnice libnice-gstreamer
+  brew install cmake pkg-config ffmpeg node python gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-rtsp-server libnice libnice-gstreamer
 }
 
 install_debian_like() {
@@ -25,7 +26,7 @@ install_debian_like() {
   fi
   sudo apt update
   sudo apt install -y \
-    build-essential cmake pkg-config \
+    build-essential cmake pkg-config ffmpeg python3 nodejs \
     libgstreamer1.0-dev libgstrtspserver-1.0-dev \
     libnice-dev \
     gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad
@@ -37,7 +38,7 @@ install_fedora_like() {
     exit 1
   fi
   sudo dnf install -y \
-    gcc-c++ cmake pkgconf-pkg-config \
+    gcc-c++ cmake pkgconf-pkg-config ffmpeg python3 nodejs \
     libnice libnice-devel \
     gstreamer1-devel gstreamer1-rtsp-server-devel \
     gstreamer1-plugins-base-tools gstreamer1-plugins-base gstreamer1-plugins-good gstreamer1-plugins-bad-free
@@ -49,7 +50,7 @@ install_arch_like() {
     exit 1
   fi
   sudo pacman -S --needed \
-    base-devel cmake pkgconf \
+    base-devel cmake pkgconf ffmpeg python nodejs \
     gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-rtsp-server libnice
 }
 
