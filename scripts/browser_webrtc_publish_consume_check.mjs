@@ -81,7 +81,7 @@ try {
           } else {
             await api.playPublishedSimple();
           }
-          return api.waitForPlayback('consumer', ${JSON.stringify(consumerPlaybackTimeoutMs)});
+          return api.waitForPlayback('consumer', ${JSON.stringify(consumerPlaybackTimeoutMs)}, { muted: true });
         })()
       `,
       timeoutMs + publisherWarmupMs,
@@ -145,7 +145,7 @@ try {
           } else {
             await api.startSimple();
           }
-          return api.waitForPlayback('consumer', ${JSON.stringify(consumerPlaybackTimeoutMs)});
+          return api.waitForPlayback('consumer', ${JSON.stringify(consumerPlaybackTimeoutMs)}, { muted: true });
         })()
       `,
       timeoutMs,

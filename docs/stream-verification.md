@@ -133,6 +133,7 @@ http://{macbook-lan-ip}:8080/health
 http://{macbook-lan-ip}:8080/webrtc/test
 ```
 
+`/health`는 `{"status":"ok"}`를 반환하는 readiness check다.
 위 두 URL이 열리지 않으면 player 문제가 아니라 macOS 방화벽, bind address, 공유기 WiFi/LAN isolation 문제를 먼저 확인한다.
 
 외부 RTSP URL도 포함하려면:

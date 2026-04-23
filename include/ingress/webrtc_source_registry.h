@@ -2,6 +2,7 @@
 #pragma once
 
 #include <condition_variable>
+#include <deque>
 #include <memory>
 #include <optional>
 #include <shared_mutex>
@@ -42,7 +43,7 @@ private:
     mutable std::mutex descriptor_mu_;
     std::condition_variable descriptor_cv_;
     std::optional<media::StreamDescriptor> descriptor_;
-    std::optional<media::Packet> last_video_keyframe_;
+    std::deque<media::Packet> video_gop_cache_;
     bool active_{true};
 };
 

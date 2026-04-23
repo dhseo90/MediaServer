@@ -28,6 +28,7 @@ namespace {
 std::string BuildLaunch(const media::StreamDescriptor& descriptor);
 
 constexpr std::int64_t kWebRtcVideoFrameDurationNs = 33333333;
+constexpr std::int64_t kWebRtcDefaultAudioFrameDurationNs = 20000000;
 
 std::optional<media::StreamDescriptor> WaitForSupportedDescriptor(const std::shared_ptr<core::SharedStream>& stream) {
     if (stream == nullptr) {
@@ -252,10 +253,38 @@ void TrimPendingPackets(std::deque<media::Packet>* packets) {
     if (packets == nullptr) {
         return;
     }
-    constexpr std::size_t kMaxPendingPackets = 24;
+
+    constexpr std::size_t kMaxPendingPackets = 4096;
+    if (packets->size() <= kMaxPendingPackets) {
+        return;
+    }
+
+    // WebRTC 연결 준비가 늦어질 때 video GOP 중간부터 시작하면 다음 IDR 전까지 회색/깨짐이 발생한다.
+    // trimming은 가능하면 최신 keyframe부터 현재까지의 GOP를 통째로 남기는 방식으로 수행한다.
+    auto latest_keyframe = packets->end();
+    for (auto it = packets->end(); it != packets->begin();) {
+        --it;
+        if (it->kind == media::MediaKind::Video && it->is_key_frame) {
+            latest_keyframe = it;
+            break;
+        }
+    }
+    if (latest_keyframe != packets->end() && latest_keyframe != packets->begin()) {
+        packets->erase(packets->begin(), latest_keyframe);
+    }
+
     while (packets->size() > kMaxPendingPackets) {
         packets->pop_front();
     }
+}
+
+bool IsSamePacketIdentity(const media::Packet& lhs, const media::Packet& rhs) {
+    return lhs.kind == rhs.kind &&
+           lhs.track_id == rhs.track_id &&
+           lhs.pts == rhs.pts &&
+           lhs.dts == rhs.dts &&
+           lhs.payload.size() == rhs.payload.size() &&
+           lhs.payload == rhs.payload;
 }
 
 void ApplyRtpPayloadCaps(GstElement* payloader,
@@ -590,6 +619,26 @@ const char* ToString(GstWebRTCKind kind) {
     return "unknown";
 }
 
+const char* ToString(GstWebRTCICEConnectionState state) {
+    switch (state) {
+        case GST_WEBRTC_ICE_CONNECTION_STATE_NEW:
+            return "new";
+        case GST_WEBRTC_ICE_CONNECTION_STATE_CHECKING:
+            return "checking";
+        case GST_WEBRTC_ICE_CONNECTION_STATE_CONNECTED:
+            return "connected";
+        case GST_WEBRTC_ICE_CONNECTION_STATE_COMPLETED:
+            return "completed";
+        case GST_WEBRTC_ICE_CONNECTION_STATE_FAILED:
+            return "failed";
+        case GST_WEBRTC_ICE_CONNECTION_STATE_DISCONNECTED:
+            return "disconnected";
+        case GST_WEBRTC_ICE_CONNECTION_STATE_CLOSED:
+            return "closed";
+    }
+    return "unknown";
+}
+
 void OnNewTransceiver(GstElement* /*webrtcbin*/, GstWebRTCRTPTransceiver* transceiver, gpointer user_data) {
     auto* session = static_cast<WebRtcEgressSession*>(user_data);
     if (session == nullptr || transceiver == nullptr) {
@@ -607,6 +656,14 @@ void OnLocalIceCandidate(GstElement* /*webrtcbin*/,
         return;
     }
     session->HandleLocalIceCandidate(static_cast<std::uint32_t>(sdp_mline_index), candidate);
+}
+
+void OnIceConnectionStateNotify(GObject* /*object*/, GParamSpec* /*pspec*/, gpointer user_data) {
+    auto* session = static_cast<WebRtcEgressSession*>(user_data);
+    if (session == nullptr) {
+        return;
+    }
+    session->HandleIceConnectionStateChanged();
 }
 
 void OnOfferCreated(GstPromise* promise, gpointer user_data) {
@@ -701,14 +758,10 @@ WebRtcEgressSession::~WebRtcEgressSession() {
 void WebRtcEgressSession::QueuePendingPacket(const media::Packet& packet) {
     std::lock_guard lock(pending_mu_);
     if (packet.kind == media::MediaKind::Video && packet.is_key_frame) {
-        // WebRTC 협상/transport link가 끝나기 전 들어온 최신 keyframe을 보관해 첫 화면을 빠르게 띄운다.
+        // WebRTC 협상/transport link가 끝나기 전에는 최신 keyframe부터 GOP를 다시 모아야 한다.
+        // 이전 GOP의 delta frame/audio가 섞이면 decoder가 잘못된 참조 프레임으로 시작할 수 있다.
         last_video_keyframe_ = packet;
-        pending_packets_.erase(
-            std::remove_if(
-                pending_packets_.begin(),
-                pending_packets_.end(),
-                [](const media::Packet& item) { return item.kind == media::MediaKind::Video; }),
-            pending_packets_.end());
+        pending_packets_.clear();
     }
     pending_packets_.push_back(packet);
     TrimPendingPackets(&pending_packets_);
@@ -718,6 +771,8 @@ bool WebRtcEgressSession::Start(const std::string& session_id,
                                 const std::shared_ptr<core::SharedStream>& stream,
                                 std::string* error_message) {
     session_id_ = session_id;
+    negotiation_ready_ = false;
+    ice_connected_ = false;
     media_output_ready_ = false;
 
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -806,6 +861,7 @@ bool WebRtcEgressSession::Start(const std::string& session_id,
     }
     g_signal_connect(webrtcbin_, "on-ice-candidate", G_CALLBACK(OnLocalIceCandidate), this);
     g_signal_connect(webrtcbin_, "on-new-transceiver", G_CALLBACK(OnNewTransceiver), this);
+    g_signal_connect(webrtcbin_, "notify::ice-connection-state", G_CALLBACK(OnIceConnectionStateNotify), this);
     ConfigureRtcpFeedbackRetention();
 
     // appsrc caps는 source descriptor 기반으로 고정하고, 이후 SDP 협상에서 payload type만 맞춘다.
@@ -854,6 +910,8 @@ bool WebRtcEgressSession::Start(const std::string& session_id,
 
 void WebRtcEgressSession::Stop() {
     started_ = false;
+    negotiation_ready_ = false;
+    ice_connected_ = false;
     media_output_ready_ = false;
 
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -1272,21 +1330,25 @@ bool WebRtcEgressSession::CreateOffer(std::string* sdp_offer, std::string* error
     GstPromise* promise = gst_promise_new_with_change_func(OnOfferCreated, this, nullptr);
     g_signal_emit_by_name(webrtcbin_, "create-offer", nullptr, promise);
 
-    std::unique_lock lock(signal_mu_);
-    const bool ready = signal_cv_.wait_for(lock, std::chrono::seconds(5), [this] {
-        return local_offer_.has_value() || !negotiation_error_.empty();
-    });
-    if (!ready || !local_offer_.has_value()) {
-        if (error_message != nullptr) {
-            *error_message = negotiation_error_.empty() ? "timed out waiting for WebRTC offer" : negotiation_error_;
+    std::string generated_offer;
+    {
+        std::unique_lock lock(signal_mu_);
+        const bool ready = signal_cv_.wait_for(lock, std::chrono::seconds(5), [this] {
+            return local_offer_.has_value() || !negotiation_error_.empty();
+        });
+        if (!ready || !local_offer_.has_value()) {
+            if (error_message != nullptr) {
+                *error_message = negotiation_error_.empty() ? "timed out waiting for WebRTC offer" : negotiation_error_;
+            }
+            return false;
         }
-        return false;
+        generated_offer = *local_offer_;
     }
 
     if (sdp_offer != nullptr) {
-        *sdp_offer = *local_offer_;
+        *sdp_offer = generated_offer;
     }
-    TraceSdpSummary("local-offer", *local_offer_);
+    TraceSdpSummary("local-offer", generated_offer);
     TraceTransceivers("after-create-offer");
     return true;
 #else
@@ -1319,27 +1381,29 @@ bool WebRtcEgressSession::CreateAnswer(std::string* sdp_answer, std::string* err
     GstPromise* promise = gst_promise_new_with_change_func(OnAnswerCreated, this, nullptr);
     g_signal_emit_by_name(webrtcbin_, "create-answer", nullptr, promise);
 
-    std::unique_lock lock(signal_mu_);
-    const bool ready = signal_cv_.wait_for(lock, std::chrono::seconds(5), [this] {
-        return local_offer_.has_value() || !negotiation_error_.empty();
-    });
-    if (!ready || !local_offer_.has_value()) {
-        if (error_message != nullptr) {
-            *error_message = negotiation_error_.empty() ? "timed out waiting for WebRTC answer" : negotiation_error_;
+    std::string generated_answer;
+    {
+        std::unique_lock lock(signal_mu_);
+        const bool ready = signal_cv_.wait_for(lock, std::chrono::seconds(5), [this] {
+            return local_offer_.has_value() || !negotiation_error_.empty();
+        });
+        if (!ready || !local_offer_.has_value()) {
+            if (error_message != nullptr) {
+                *error_message = negotiation_error_.empty() ? "timed out waiting for WebRTC answer" : negotiation_error_;
+            }
+            return false;
         }
-        return false;
+        generated_answer = *local_offer_;
     }
 
     if (sdp_answer != nullptr) {
-        *sdp_answer = *local_offer_;
+        *sdp_answer = generated_answer;
     }
-    ApplyNegotiatedPayloadTypes(*local_offer_);
-    TraceSdpSummary("local-answer", *local_offer_);
+    ApplyNegotiatedPayloadTypes(generated_answer);
+    TraceSdpSummary("local-answer", generated_answer);
     TraceTransceivers("after-create-answer");
     ConfigureRtcpFeedbackRetention();
-    media_output_ready_ = true;
-    FlushPendingPackets();
-    ReplayCachedVideoKeyframe();
+    MarkNegotiationReady("create-answer");
     return true;
 #else
     (void)sdp_answer;
@@ -1485,9 +1549,7 @@ bool WebRtcEgressSession::SetRemoteAnswer(const std::string& sdp_answer, std::st
     TraceSdpSummary("remote-answer", sdp_answer);
     TraceTransceivers("after-set-remote-answer");
     ConfigureRtcpFeedbackRetention();
-    media_output_ready_ = true;
-    FlushPendingPackets();
-    ReplayCachedVideoKeyframe();
+    MarkNegotiationReady("set-remote-answer");
     gst_webrtc_session_description_free(answer);
     return true;
 #else
@@ -1504,6 +1566,7 @@ void WebRtcEgressSession::AddRemoteIceCandidate(std::uint32_t sdp_mline_index, c
     if (webrtcbin_ != nullptr) {
         g_signal_emit_by_name(webrtcbin_, "add-ice-candidate", sdp_mline_index, candidate.c_str());
         ConfigureRtcpFeedbackRetention();
+        HandleIceConnectionStateChanged();
     }
 #else
     (void)sdp_mline_index;
@@ -1541,6 +1604,30 @@ void WebRtcEgressSession::HandleOfferCreated(const std::string& sdp_offer, const
         }
     }
     signal_cv_.notify_all();
+}
+
+void WebRtcEgressSession::HandleIceConnectionStateChanged() {
+    if (webrtcbin_ == nullptr) {
+        return;
+    }
+
+    GstWebRTCICEConnectionState state = GST_WEBRTC_ICE_CONNECTION_STATE_NEW;
+    g_object_get(webrtcbin_, "ice-connection-state", &state, nullptr);
+    const bool connected = state == GST_WEBRTC_ICE_CONNECTION_STATE_CONNECTED ||
+                           state == GST_WEBRTC_ICE_CONNECTION_STATE_COMPLETED;
+    {
+        std::lock_guard lock(signal_mu_);
+        ice_connected_ = connected;
+    }
+
+    if (app::GetAppConfig().webrtc_trace) {
+        std::cerr << "[webrtc-egress] ice-state session=" << session_id_
+                  << " state=" << ToString(state)
+                  << "\n";
+    }
+    if (connected) {
+        StartMediaOutputIfReady("ice-connected");
+    }
 }
 
 void WebRtcEgressSession::TraceRtpOut(const char* kind, std::size_t bytes) {
@@ -1759,7 +1846,10 @@ media::Packet WebRtcEgressSession::NormalizeTimestamps(const media::Packet& pack
 
     std::lock_guard lock(pending_mu_);
     auto& base_pts = packet.kind == media::MediaKind::Video ? video_base_pts_ : audio_base_pts_;
-    const std::int64_t source_reference = packet.pts >= 0 ? packet.pts : packet.dts;
+    const std::int64_t source_reference =
+        packet.kind == media::MediaKind::Video && packet.pts >= 0 && packet.dts >= 0
+            ? std::min(packet.pts, packet.dts)
+            : (packet.pts >= 0 ? packet.pts : packet.dts);
     if (!base_pts.has_value()) {
         // source PTS를 WebRTC 세션 시작 기준 0부터 흐르도록 변환한다.
         base_pts = source_reference >= 0 ? source_reference : 0;
@@ -1782,42 +1872,99 @@ media::Packet WebRtcEgressSession::NormalizeTimestamps(const media::Packet& pack
     normalized.dts = packet.dts >= 0 ? normalize(packet.dts) : normalized.pts;
 
     if (packet.kind == media::MediaKind::Video) {
-        if (last_video_pts_.has_value() && normalized.pts <= *last_video_pts_) {
-            // loop/replay 상황에서도 video RTP timestamp는 단조 증가해야 한다.
-            normalized.pts = *last_video_pts_ + kWebRtcVideoFrameDurationNs;
+        if (last_video_dts_.has_value() && normalized.dts > *last_video_dts_) {
+            last_video_frame_duration_ns_ = normalized.dts - *last_video_dts_;
+        }
+        if (last_video_dts_.has_value() && normalized.dts <= *last_video_dts_) {
+            // B-frame source는 PTS가 뒤로 갈 수 있으므로 PTS를 단조 증가시키지 않는다.
+            // loop/replay 시점만 decode order 기준 DTS로 감지해 PTS/DTS 전체 timeline을 앞으로 민다.
+            const std::int64_t frame_duration = last_video_frame_duration_ns_ > 0
+                                                    ? last_video_frame_duration_ns_
+                                                    : kWebRtcVideoFrameDurationNs;
+            const std::int64_t offset = *last_video_dts_ + frame_duration - normalized.dts;
+            normalized.pts += offset;
+            normalized.dts += offset;
+        }
+        last_video_dts_ = normalized.dts;
+        last_video_pts_ = normalized.pts;
+    } else if (packet.kind == media::MediaKind::Audio) {
+        if (last_audio_pts_.has_value() && normalized.pts > *last_audio_pts_) {
+            last_audio_frame_duration_ns_ = normalized.pts - *last_audio_pts_;
+        }
+        if (last_audio_pts_.has_value() && normalized.pts <= *last_audio_pts_) {
+            // VOD loop에서 audio timestamp가 되감기면 WebRTC receiver가 새 audio frame을 버릴 수 있다.
+            const std::int64_t frame_duration = last_audio_frame_duration_ns_ > 0
+                                                    ? last_audio_frame_duration_ns_
+                                                    : kWebRtcDefaultAudioFrameDurationNs;
+            normalized.pts = *last_audio_pts_ + frame_duration;
             if (normalized.dts < normalized.pts) {
                 normalized.dts = normalized.pts;
             }
         }
-        last_video_pts_ = normalized.pts;
+        last_audio_pts_ = normalized.pts;
     }
 
     return normalized;
 }
 
 media::Packet WebRtcEgressSession::NormalizeReplayVideoKeyframe(const media::Packet& packet) {
-    media::Packet normalized = packet;
-    std::lock_guard lock(pending_mu_);
+    media::Packet normalized = NormalizeTimestamps(packet);
+    normalized.is_key_frame = true;
+    return normalized;
+}
 
-    std::int64_t next_pts = 0;
-    if (last_video_pts_.has_value()) {
-        // negotiation 완료 직후 keyframe을 재전송할 때 기존 RTP timeline 뒤에 붙인다.
-        next_pts = *last_video_pts_ + kWebRtcVideoFrameDurationNs;
-    } else {
-        const std::int64_t source_reference = packet.pts >= 0 ? packet.pts : packet.dts;
-        if (!video_base_pts_.has_value()) {
-            video_base_pts_ = source_reference >= 0 ? source_reference : 0;
+void WebRtcEgressSession::DropPendingVideoThroughKeyframe(const media::Packet& keyframe) {
+    std::lock_guard lock(pending_mu_);
+    bool drop_video_until_keyframe = true;
+    std::deque<media::Packet> kept;
+    for (const auto& packet : pending_packets_) {
+        if (drop_video_until_keyframe && packet.kind == media::MediaKind::Video) {
+            // replay로 이미 넣은 keyframe과 그 이전 video pending은 다시 넣지 않는다.
+            if (IsSamePacketIdentity(packet, keyframe)) {
+                drop_video_until_keyframe = false;
+            }
+            continue;
         }
-        if (source_reference >= 0) {
-            next_pts = std::max<std::int64_t>(0, source_reference - *video_base_pts_);
+        kept.push_back(packet);
+    }
+    pending_packets_.swap(kept);
+}
+
+void WebRtcEgressSession::MarkNegotiationReady(const char* reason) {
+    {
+        std::lock_guard lock(signal_mu_);
+        negotiation_ready_ = true;
+    }
+    if (app::GetAppConfig().webrtc_trace) {
+        std::cerr << "[webrtc-egress] negotiation-ready session=" << session_id_
+                  << " reason=" << (reason != nullptr ? reason : "<null>")
+                  << "\n";
+    }
+    HandleIceConnectionStateChanged();
+    StartMediaOutputIfReady(reason);
+}
+
+void WebRtcEgressSession::StartMediaOutputIfReady(const char* reason) {
+    bool should_start = false;
+    {
+        std::lock_guard lock(signal_mu_);
+        should_start = started_ && negotiation_ready_ && ice_connected_ && !media_output_ready_;
+        if (should_start) {
+            media_output_ready_ = true;
         }
     }
+    if (!should_start) {
+        return;
+    }
 
-    normalized.pts = next_pts;
-    normalized.dts = next_pts;
-    normalized.is_key_frame = true;
-    last_video_pts_ = next_pts;
-    return normalized;
+    if (app::GetAppConfig().webrtc_trace) {
+        std::cerr << "[webrtc-egress] media-output-ready session=" << session_id_
+                  << " reason=" << (reason != nullptr ? reason : "<null>")
+                  << "\n";
+    }
+
+    ReplayCachedVideoKeyframe();
+    FlushPendingPackets();
 }
 
 void WebRtcEgressSession::ApplyNegotiatedPayloadTypes(const std::string& sdp_text) {
@@ -1927,6 +2074,9 @@ void WebRtcEgressSession::ReplayCachedVideoKeyframe() {
 
     const auto packet = NormalizeReplayVideoKeyframe(*cached_keyframe);
     const bool ok = PushToAppSrc(video_appsrc_, packet, static_cast<GstClockTime>(kWebRtcVideoFrameDurationNs));
+    if (ok) {
+        DropPendingVideoThroughKeyframe(*cached_keyframe);
+    }
     if (app::GetAppConfig().webrtc_trace) {
         std::cerr << "[webrtc-egress] replay-keyframe session=" << session_id_
                   << " track=" << packet.track_id
@@ -1951,6 +2101,10 @@ bool WebRtcEgressSession::ConfigureAppSrcCaps(const media::StreamDescriptor& des
     video_base_pts_.reset();
     audio_base_pts_.reset();
     last_video_pts_.reset();
+    last_video_dts_.reset();
+    last_video_frame_duration_ns_ = 0;
+    last_audio_pts_.reset();
+    last_audio_frame_duration_ns_ = 0;
     traced_video_samples_ = 0;
     traced_video_rtp_ = 0;
     traced_pad_buffers_ = 0;

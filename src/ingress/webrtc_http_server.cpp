@@ -406,7 +406,7 @@ std::string BuildTestPageHtml() {
         <div>
           <h1>WebRTC Pull Test</h1>
           <p>Simple signaling, WHEP playback, and WHIP-style publish endpoints run from the same media server.</p>
-          <video id="video" autoplay playsinline controls muted></video>
+          <video id="video" autoplay playsinline controls></video>
         </div>
         <div class="controls">
           <label>Source Type
@@ -494,6 +494,8 @@ std::string BuildTestPageHtml() {
     let consumerRemoteIceCount = 0;
     let publisherLocalIceCount = 0;
     let publisherRemoteIceCount = 0;
+    let consumerEmptyIcePolls = 0;
+    let publisherEmptyIcePolls = 0;
     const consumerTrackKinds = new Set();
     const publisherTrackKinds = new Set();
 
@@ -562,14 +564,15 @@ std::string BuildTestPageHtml() {
       return summary;
     }
 
-    async function waitForPlayback(kind, timeoutMs = 15000) {
+    async function waitForPlayback(kind, timeoutMs = 15000, options = {}) {
       const targetVideo = kind === 'publisher' ? publisherVideoEl : videoEl;
       const targetPeer = kind === 'publisher' ? publisherPc : pc;
       const targetTrackKinds = kind === 'publisher' ? publisherTrackKinds : consumerTrackKinds;
+      const shouldMute = kind === 'publisher' || options.muted === true;
       const startedAt = Date.now();
       while (Date.now() - startedAt < timeoutMs) {
         if (targetVideo.srcObject) {
-          targetVideo.muted = true;
+          targetVideo.muted = shouldMute;
           try {
             const playPromise = targetVideo.play();
             if (playPromise && typeof playPromise.catch === 'function') {
@@ -627,6 +630,7 @@ std::string BuildTestPageHtml() {
       sessionId = null;
       consumerLocalIceCount = 0;
       consumerRemoteIceCount = 0;
+      consumerEmptyIcePolls = 0;
       consumerTrackKinds.clear();
       if (pc) {
         pc.close();
@@ -647,6 +651,7 @@ std::string BuildTestPageHtml() {
       publisherSessionId = null;
       publisherLocalIceCount = 0;
       publisherRemoteIceCount = 0;
+      publisherEmptyIcePolls = 0;
       publisherTrackKinds.clear();
       if (publisherPc) {
         publisherPc.close();
@@ -667,12 +672,21 @@ std::string BuildTestPageHtml() {
       const response = await fetch(`${sessionBase}/${sessionId}/ice`);
       if (!response.ok) return;
       const payload = await response.json();
-      for (const item of payload.candidates || []) {
+      const candidates = payload.candidates || [];
+      for (const item of candidates) {
         await pc.addIceCandidate(item);
         consumerRemoteIceCount += 1;
       }
-      if ((payload.candidates || []).length > 0) {
-        log(`consumer remote ICE +${payload.candidates.length} (total=${consumerRemoteIceCount})`);
+      if (candidates.length > 0) {
+        consumerEmptyIcePolls = 0;
+        log(`consumer remote ICE +${candidates.length} (total=${consumerRemoteIceCount})`);
+      } else if (pc && ['connected', 'completed'].includes(pc.iceConnectionState || '')) {
+        consumerEmptyIcePolls += 1;
+        if (consumerEmptyIcePolls >= 3 && pollTimer) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+          log('consumer ICE polling stopped');
+        }
       }
     }
 
@@ -681,12 +695,21 @@ std::string BuildTestPageHtml() {
       const response = await fetch(`/whip/publish/session/${publisherSessionId}/ice`);
       if (!response.ok) return;
       const payload = await response.json();
-      for (const item of payload.candidates || []) {
+      const candidates = payload.candidates || [];
+      for (const item of candidates) {
         await publisherPc.addIceCandidate(item);
         publisherRemoteIceCount += 1;
       }
-      if ((payload.candidates || []).length > 0) {
-        log(`publisher remote ICE +${payload.candidates.length} (total=${publisherRemoteIceCount})`);
+      if (candidates.length > 0) {
+        publisherEmptyIcePolls = 0;
+        log(`publisher remote ICE +${candidates.length} (total=${publisherRemoteIceCount})`);
+      } else if (publisherPc && ['connected', 'completed'].includes(publisherPc.iceConnectionState || '')) {
+        publisherEmptyIcePolls += 1;
+        if (publisherEmptyIcePolls >= 3 && publisherPollTimer) {
+          clearInterval(publisherPollTimer);
+          publisherPollTimer = null;
+          log('publisher ICE polling stopped');
+        }
       }
     }
 
@@ -698,6 +721,8 @@ std::string BuildTestPageHtml() {
       pc.oniceconnectionstatechange = () => log(`consumer iceConnectionState=${pc.iceConnectionState}`);
       pc.ontrack = (event) => {
         videoEl.srcObject = event.streams[0];
+        videoEl.muted = false;
+        videoEl.volume = 1.0;
         consumerTrackKinds.add(event.track.kind);
         log(`consumer ontrack kind=${event.track.kind}`);
       };
@@ -745,6 +770,8 @@ std::string BuildTestPageHtml() {
       pc.oniceconnectionstatechange = () => log(`consumer iceConnectionState=${pc.iceConnectionState}`);
       pc.ontrack = (event) => {
         videoEl.srcObject = event.streams[0];
+        videoEl.muted = false;
+        videoEl.volume = 1.0;
         consumerTrackKinds.add(event.track.kind);
         log(`consumer ontrack kind=${event.track.kind}`);
       };
@@ -1080,6 +1107,21 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         const auto query = ParseQueryString(request.query);
                         const auto& config = app::GetAppConfig();
                         const std::string route_path = "/" + config.stream_route;
+
+                        if (request.method == "GET" && request.path == "/health") {
+                            HttpResponse ok;
+                            ok.content_type = "application/json; charset=utf-8";
+                            ok.body = "{\"status\":\"ok\"}";
+                            return ok;
+                        }
+
+                        if (request.method == "GET" && request.path == "/favicon.ico") {
+                            HttpResponse no_content;
+                            no_content.status = 204;
+                            no_content.status_text = "No Content";
+                            no_content.content_type = "image/x-icon";
+                            return no_content;
+                        }
 
                         if (request.method == "GET" && request.path == "/webrtc/test") {
                             HttpResponse ok;

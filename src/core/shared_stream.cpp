@@ -7,6 +7,21 @@
 
 namespace core {
 
+namespace {
+
+constexpr std::size_t kMaxCachedGopPackets = 4096;
+
+void TrimCachedGop(std::deque<media::Packet>* packets) {
+    if (packets == nullptr) {
+        return;
+    }
+    while (packets->size() > kMaxCachedGopPackets) {
+        packets->pop_front();
+    }
+}
+
+}  // namespace
+
 SharedStream::SharedStream(media::SourceSpec source_spec) : source_spec_(std::move(source_spec)) {}
 
 SharedStream::~SharedStream() {
@@ -34,20 +49,20 @@ bool SharedStream::AddSubscriber(const std::string& session_id, SubscriberCallba
         return false;
     }
 
-    std::optional<media::Packet> cached_keyframe;
+    std::deque<media::Packet> cached_gop;
     std::optional<media::Packet> cached_audio;
     {
         std::lock_guard keyframe_lock(keyframe_mu_);
-        cached_keyframe = last_video_keyframe_;
+        cached_gop = video_gop_cache_;
         cached_audio = last_audio_packet_;
     }
-    if (cached_keyframe.has_value()) {
-        EnqueuePacket(state, *cached_keyframe);
+    for (const auto& packet : cached_gop) {
+        EnqueuePacket(state, packet);
     }
     if (cached_audio.has_value()) {
         EnqueuePacket(state, *cached_audio);
     }
-    // 새 subscriber는 마지막 video keyframe/audio priming packet을 먼저 받아 RTSP/WebRTC 준비 시간을 줄인다.
+    // 새 subscriber는 마지막 video GOP/audio priming packet을 먼저 받아 RTSP/WebRTC 준비 시간을 줄인다.
     return true;
 }
 
@@ -105,10 +120,16 @@ std::size_t SharedStream::RefCount() const {
 }
 
 void SharedStream::FanOut(const media::Packet& packet) const {
-    // late subscriber가 빠르게 시작할 수 있도록 최근 keyframe과 audio packet을 캐시한다.
-    if (packet.kind == media::MediaKind::Video && packet.is_key_frame) {
+    // late subscriber가 GOP 중간 delta frame부터 시작하지 않도록 최근 IDR/IRAP 이후 video packet들을 캐시한다.
+    if (packet.kind == media::MediaKind::Video) {
         std::lock_guard keyframe_lock(keyframe_mu_);
-        last_video_keyframe_ = packet;
+        if (packet.is_key_frame) {
+            video_gop_cache_.clear();
+        }
+        if (packet.is_key_frame || !video_gop_cache_.empty()) {
+            video_gop_cache_.push_back(packet);
+            TrimCachedGop(&video_gop_cache_);
+        }
     } else if (packet.kind == media::MediaKind::Audio) {
         std::lock_guard keyframe_lock(keyframe_mu_);
         last_audio_packet_ = packet;

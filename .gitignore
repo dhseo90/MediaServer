@@ -11,7 +11,11 @@
 
 # Runtime artifacts
 /.media_server.log
+/.media_server.address
 /.media_server.launchd.plist
+/.media_server.mode
+/.media_server.pid
+/.media_server.port
 /scripts/.media_server.env
 
 # Python cache
