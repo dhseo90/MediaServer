@@ -744,7 +744,8 @@ IP를 직접 지정하려면:
 MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./scripts/print_external_test_urls.sh
 ```
 
-먼저 다른 PC 브라우저에서 `/health`와 `/webrtc/test`가 열리는지 확인한다. 여기서 실패하면 RTSP/WebRTC 문제가 아니라 macOS 방화벽, bind address, 공유기 WiFi/LAN isolation 문제를 먼저 봐야 한다.
+먼저 다른 PC 브라우저에서 `/health`와 `/webrtc/test`가 열리는지 확인한다. `/health`는 `{"status":"ok"}`를 반환하는 가장 단순한 readiness check다.
+여기서 실패하면 RTSP/WebRTC 문제가 아니라 macOS 방화벽, bind address, 공유기 WiFi/LAN isolation 문제를 먼저 봐야 한다.
 이 스크립트 출력에는 현재 LAN IP가 포함될 수 있으므로, 출력 결과를 그대로 문서나 커밋에 붙이지 않는다.
 
 상세 결과 문서:

@@ -64,6 +64,61 @@ std::string DefaultCapsStringForTrack(const media::TrackInfo& track) {
     return {};
 }
 
+bool IsVideoRandomAccessNal(media::CodecId codec, const unsigned char nal_header) {
+    if (codec == media::CodecId::H264) {
+        const unsigned char nal_type = nal_header & 0x1f;
+        return nal_type == 5;
+    }
+    if (codec == media::CodecId::H265) {
+        const unsigned char nal_type = (nal_header >> 1) & 0x3f;
+        return nal_type >= 16 && nal_type <= 21;
+    }
+    return false;
+}
+
+bool HasRandomAccessNalLengthPrefixed(media::CodecId codec, const unsigned char* data, std::size_t size) {
+    std::size_t offset = 0;
+    while (offset + 5 <= size) {
+        const std::uint32_t nal_size =
+            (static_cast<std::uint32_t>(data[offset]) << 24) |
+            (static_cast<std::uint32_t>(data[offset + 1]) << 16) |
+            (static_cast<std::uint32_t>(data[offset + 2]) << 8) |
+            static_cast<std::uint32_t>(data[offset + 3]);
+        offset += 4;
+        if (nal_size == 0 || offset + nal_size > size) {
+            break;
+        }
+        if (IsVideoRandomAccessNal(codec, data[offset])) {
+            return true;
+        }
+        offset += nal_size;
+    }
+    return false;
+}
+
+bool HasRandomAccessNalAnnexB(media::CodecId codec, const unsigned char* data, std::size_t size) {
+    for (std::size_t offset = 0; offset + 4 < size; ++offset) {
+        std::size_t nal_offset = 0;
+        if (data[offset] == 0 && data[offset + 1] == 0 && data[offset + 2] == 1) {
+            nal_offset = offset + 3;
+        } else if (offset + 4 < size && data[offset] == 0 && data[offset + 1] == 0 &&
+                   data[offset + 2] == 0 && data[offset + 3] == 1) {
+            nal_offset = offset + 4;
+        }
+        if (nal_offset > 0 && nal_offset < size && IsVideoRandomAccessNal(codec, data[nal_offset])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool HasVideoRandomAccessNal(media::CodecId codec, const unsigned char* data, std::size_t size) {
+    if (codec != media::CodecId::H264 && codec != media::CodecId::H265) {
+        return false;
+    }
+    return HasRandomAccessNalLengthPrefixed(codec, data, size) || HasRandomAccessNalAnnexB(codec, data, size);
+}
+
 media::MediaSample BuildSampleFromGst(const GstSample* sample, const media::TrackInfo& track) {
     media::MediaSample out;
     out.kind = track.kind;
@@ -83,25 +138,9 @@ media::MediaSample BuildSampleFromGst(const GstSample* sample, const media::Trac
     if (gst_buffer_map(buffer, &map, GST_MAP_READ) == TRUE) {
         out.payload.assign(map.data, map.data + map.size);
         if (track.kind == media::MediaKind::Video) {
-            if (track.codec == media::CodecId::H264 && map.size >= 5) {
-                std::size_t offset = 0;
-                while (offset + 5 <= map.size) {
-                    const std::uint32_t nal_size =
-                        (static_cast<std::uint32_t>(map.data[offset]) << 24) |
-                        (static_cast<std::uint32_t>(map.data[offset + 1]) << 16) |
-                        (static_cast<std::uint32_t>(map.data[offset + 2]) << 8) |
-                        static_cast<std::uint32_t>(map.data[offset + 3]);
-                    offset += 4;
-                    if (nal_size == 0 || offset + nal_size > map.size) {
-                        break;
-                    }
-                    const unsigned char nal_type = map.data[offset] & 0x1f;
-                    if (nal_type == 5 || nal_type == 7 || nal_type == 8) {
-                        out.is_key_frame = true;
-                        break;
-                    }
-                    offset += nal_size;
-                }
+            if (track.codec == media::CodecId::H264 || track.codec == media::CodecId::H265) {
+                // parameter set만 있는 buffer는 늦게 붙은 subscriber의 시작점으로 사용할 수 없다.
+                out.is_key_frame = HasVideoRandomAccessNal(track.codec, map.data, map.size);
             } else if (track.codec == media::CodecId::VP8 && map.size > 0) {
                 out.is_key_frame = (map.data[0] & 0x01) == 0;
             }

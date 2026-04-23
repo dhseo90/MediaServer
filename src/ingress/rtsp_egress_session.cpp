@@ -16,6 +16,7 @@ namespace {
 
 constexpr std::size_t kMaxPendingPackets = 512;
 constexpr std::int64_t kVideoFrameDurationNs = 33333333;
+constexpr std::int64_t kDefaultAudioFrameDurationNs = 20000000;
 constexpr std::int64_t kSilentAudioFrameDurationNs = 20000000;
 constexpr int kSilentAudioRate = 48000;
 constexpr int kSilentAudioChannels = 2;
@@ -214,7 +215,10 @@ media::Packet RtspEgressSession::NormalizeTimestamps(const media::Packet& packet
 
     std::lock_guard lock(pending_mu_);
     auto& base_pts = packet.kind == media::MediaKind::Video ? video_base_pts_ : audio_base_pts_;
-    const std::int64_t source_reference = packet.pts >= 0 ? packet.pts : packet.dts;
+    const std::int64_t source_reference =
+        packet.kind == media::MediaKind::Video && packet.pts >= 0 && packet.dts >= 0
+            ? std::min(packet.pts, packet.dts)
+            : (packet.pts >= 0 ? packet.pts : packet.dts);
     if (!base_pts.has_value()) {
         // source별 절대 PTS를 RTSP 세션 시작 기준 0부터 흐르는 시간으로 바꾼다.
         base_pts = source_reference >= 0 ? source_reference : 0;
@@ -231,14 +235,35 @@ media::Packet RtspEgressSession::NormalizeTimestamps(const media::Packet& packet
     normalized.dts = packet.dts >= 0 ? normalize(packet.dts) : normalized.pts;
 
     if (packet.kind == media::MediaKind::Video) {
-        if (last_video_pts_.has_value() && normalized.pts <= *last_video_pts_) {
-            // seek/loop 또는 replay keyframe 때문에 PTS가 되감기면 payloader가 멈출 수 있어 단조 증가시킨다.
-            normalized.pts = *last_video_pts_ + kVideoFrameDurationNs;
+        if (last_video_dts_.has_value() && normalized.dts > *last_video_dts_) {
+            last_video_frame_duration_ns_ = normalized.dts - *last_video_dts_;
+        }
+        if (last_video_dts_.has_value() && normalized.dts <= *last_video_dts_) {
+            // B-frame source는 PTS가 뒤로 갈 수 있으므로 PTS를 강제로 단조 증가시키면 decoder 입력이 깨진다.
+            // loop/replay는 decode order 기준 DTS만 보고 전체 timestamp를 앞으로 민다.
+            const std::int64_t frame_duration =
+                last_video_frame_duration_ns_ > 0 ? last_video_frame_duration_ns_ : kVideoFrameDurationNs;
+            const std::int64_t offset = *last_video_dts_ + frame_duration - normalized.dts;
+            normalized.pts += offset;
+            normalized.dts += offset;
+        }
+        last_video_dts_ = normalized.dts;
+        last_video_pts_ = normalized.pts;
+    } else if (packet.kind == media::MediaKind::Audio) {
+        if (last_audio_pts_.has_value() && normalized.pts > *last_audio_pts_) {
+            last_audio_frame_duration_ns_ = normalized.pts - *last_audio_pts_;
+        }
+        if (last_audio_pts_.has_value() && normalized.pts <= *last_audio_pts_) {
+            // 파일 loop 후 audio PTS도 0으로 되감긴다. RTP audio timeline이 뒤로 가면 클라이언트가
+            // 이후 audio packet을 버릴 수 있으므로 직전 frame 간격으로 이어 붙인다.
+            const std::int64_t frame_duration =
+                last_audio_frame_duration_ns_ > 0 ? last_audio_frame_duration_ns_ : kDefaultAudioFrameDurationNs;
+            normalized.pts = *last_audio_pts_ + frame_duration;
             if (normalized.dts < normalized.pts) {
                 normalized.dts = normalized.pts;
             }
         }
-        last_video_pts_ = normalized.pts;
+        last_audio_pts_ = normalized.pts;
     }
 
     return normalized;
@@ -302,6 +327,10 @@ void RtspEgressSession::Stop() {
         video_base_pts_.reset();
         audio_base_pts_.reset();
         last_video_pts_.reset();
+        last_video_dts_.reset();
+        last_video_frame_duration_ns_ = 0;
+        last_audio_pts_.reset();
+        last_audio_frame_duration_ns_ = 0;
         synthesize_silent_audio_ = false;
     }
 

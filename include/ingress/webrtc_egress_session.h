@@ -47,6 +47,7 @@ public:
 #if MEDIA_SERVER_USE_GSTREAMER
     void HandleLocalIceCandidate(std::uint32_t sdp_mline_index, const std::string& candidate);
     void HandleOfferCreated(const std::string& sdp_offer, const std::string& error_message);
+    void HandleIceConnectionStateChanged();
     void TraceRtpOut(const char* kind, std::size_t bytes);
     void TracePadBuffer(const std::string& label, std::size_t bytes);
     void TraceSdpSummary(const char* label, const std::string& sdp_text) const;
@@ -65,7 +66,10 @@ private:
     void ConfigureRtcpFeedbackRetention();
     media::Packet NormalizeTimestamps(const media::Packet& packet);
     media::Packet NormalizeReplayVideoKeyframe(const media::Packet& packet);
+    void DropPendingVideoThroughKeyframe(const media::Packet& keyframe);
     void ApplyNegotiatedPayloadTypes(const std::string& sdp_text);
+    void MarkNegotiationReady(const char* reason);
+    void StartMediaOutputIfReady(const char* reason);
     void ReplayCachedVideoKeyframe();
     void FlushPendingPackets();
 #endif
@@ -80,6 +84,10 @@ private:
     std::optional<std::int64_t> video_base_pts_;
     std::optional<std::int64_t> audio_base_pts_;
     std::optional<std::int64_t> last_video_pts_;
+    std::optional<std::int64_t> last_video_dts_;
+    std::int64_t last_video_frame_duration_ns_{0};
+    std::optional<std::int64_t> last_audio_pts_;
+    std::int64_t last_audio_frame_duration_ns_{0};
     mutable std::mutex pending_mu_;
     std::deque<media::Packet> pending_packets_;
     std::optional<media::Packet> last_video_keyframe_;
@@ -90,6 +98,8 @@ private:
     std::vector<WebRtcIceCandidate> pending_local_ice_candidates_;
     std::string negotiation_error_;
     bool started_{false};
+    bool negotiation_ready_{false};
+    bool ice_connected_{false};
     bool media_output_ready_{false};
 
 #if MEDIA_SERVER_USE_GSTREAMER

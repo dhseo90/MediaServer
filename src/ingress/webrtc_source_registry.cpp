@@ -10,6 +10,8 @@ namespace ingress {
 
 namespace {
 
+constexpr std::size_t kMaxCachedGopPackets = 4096;
+
 bool DescriptorHasKind(const media::StreamDescriptor& descriptor, media::MediaKind kind) {
     for (const auto& track : descriptor.tracks) {
         if (track.kind == kind) {
@@ -17,6 +19,15 @@ bool DescriptorHasKind(const media::StreamDescriptor& descriptor, media::MediaKi
         }
     }
     return false;
+}
+
+void TrimCachedGop(std::deque<media::Packet>* packets) {
+    if (packets == nullptr) {
+        return;
+    }
+    while (packets->size() > kMaxCachedGopPackets) {
+        packets->pop_front();
+    }
 }
 
 }  // namespace
@@ -28,7 +39,7 @@ const std::string& PublishedWebRtcSource::source_id() const {
 }
 
 bool PublishedWebRtcSource::AddSubscriber(const std::string& subscriber_id, SubscriberCallback callback) {
-    std::optional<media::Packet> cached_keyframe;
+    std::deque<media::Packet> cached_gop;
     SubscriberCallback installed_callback;
     {
         std::unique_lock lock(subscribers_mu_);
@@ -40,10 +51,10 @@ bool PublishedWebRtcSource::AddSubscriber(const std::string& subscriber_id, Subs
     }
     {
         std::lock_guard lock(descriptor_mu_);
-        cached_keyframe = last_video_keyframe_;
+        cached_gop = video_gop_cache_;
     }
-    if (cached_keyframe.has_value()) {
-        installed_callback(*cached_keyframe);
+    for (const auto& packet : cached_gop) {
+        installed_callback(packet);
     }
     return true;
 }
@@ -54,9 +65,15 @@ void PublishedWebRtcSource::RemoveSubscriber(const std::string& subscriber_id) {
 }
 
 void PublishedWebRtcSource::Publish(const media::Packet& packet) {
-    if (packet.kind == media::MediaKind::Video && packet.is_key_frame) {
+    if (packet.kind == media::MediaKind::Video) {
         std::lock_guard lock(descriptor_mu_);
-        last_video_keyframe_ = packet;
+        if (packet.is_key_frame) {
+            video_gop_cache_.clear();
+        }
+        if (packet.is_key_frame || !video_gop_cache_.empty()) {
+            video_gop_cache_.push_back(packet);
+            TrimCachedGop(&video_gop_cache_);
+        }
     }
 
     std::vector<SubscriberCallback> callbacks;
@@ -132,7 +149,7 @@ void PublishedWebRtcSource::Close() {
     {
         std::lock_guard lock(descriptor_mu_);
         active_ = false;
-        last_video_keyframe_.reset();
+        video_gop_cache_.clear();
     }
     descriptor_cv_.notify_all();
 }

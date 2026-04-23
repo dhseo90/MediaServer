@@ -57,8 +57,8 @@ private:
     mutable std::mutex descriptor_mu_;
     std::optional<media::StreamDescriptor> descriptor_;
     mutable std::mutex keyframe_mu_;
-    // late joiner가 검은 화면 없이 시작할 수 있도록 마지막 video keyframe/audio packet을 보관한다.
-    mutable std::optional<media::Packet> last_video_keyframe_;
+    // late joiner가 GOP 중간 delta frame부터 시작하지 않도록 마지막 IDR/IRAP 이후 video packet들을 보관한다.
+    mutable std::deque<media::Packet> video_gop_cache_;
     mutable std::optional<media::Packet> last_audio_packet_;
     mutable std::shared_mutex mu_;
     std::unordered_map<std::string, std::shared_ptr<SubscriberState>> subscribers_;

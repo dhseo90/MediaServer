@@ -54,6 +54,10 @@ private:
     std::optional<std::int64_t> video_base_pts_;
     std::optional<std::int64_t> audio_base_pts_;
     std::optional<std::int64_t> last_video_pts_;
+    std::optional<std::int64_t> last_video_dts_;
+    std::int64_t last_video_frame_duration_ns_{0};
+    std::optional<std::int64_t> last_audio_pts_;
+    std::int64_t last_audio_frame_duration_ns_{0};
     bool synthesize_silent_audio_{false};
     bool started_{false};
 
