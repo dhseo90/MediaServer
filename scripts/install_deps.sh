@@ -16,7 +16,7 @@ install_macos() {
     exit 1
   fi
   brew update
-  brew install cmake pkg-config ffmpeg node python yt-dlp gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-rtsp-server libnice libnice-gstreamer
+  brew install cmake pkg-config ffmpeg node python yt-dlp deno gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-rtsp-server libnice libnice-gstreamer
 }
 
 install_debian_like() {
@@ -106,3 +106,4 @@ echo "  pkg-config --modversion gstreamer-1.0"
 echo "  pkg-config --modversion gstreamer-rtsp-server-1.0"
 echo "  gst-inspect-1.0 webrtcbin nicesrc nicesink"
 echo "  yt-dlp --version"
+echo "  deno --version   # optional, helps yt-dlp solve some YouTube JS challenges"

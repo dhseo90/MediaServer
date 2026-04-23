@@ -7,6 +7,7 @@
 
 namespace core {
 
+bool ValidateYouTubeWatchUrl(const std::string& raw_uri, std::string* error_message);
 bool ResolveYouTubeSource(const media::SourceSpec& youtube_spec,
                           media::SourceSpec* resolved_source,
                           std::string* error_message);

@@ -93,6 +93,8 @@ Detected host: ${HOST}
 Detected LAN IP candidates: ${DETECTED_IPS[*]:-(none)}
 RTSP base: rtsp://${HOST}:${RTSP_PORT}/${ROUTE}
 WebRTC test page: http://${HOST}:${HTTP_PORT}/webrtc/test
+Lab page: http://${HOST}:${HTTP_PORT}/lab
+Lab import page: http://${HOST}:${HTTP_PORT}/lab/import
 
 ## MacBook server start command
 
@@ -105,6 +107,8 @@ MEDIA_SERVER_FORCE_RTSP_TCP=1 \\
 
 http://${HOST}:${HTTP_PORT}/health
 http://${HOST}:${HTTP_PORT}/webrtc/test
+http://${HOST}:${HTTP_PORT}/lab
+http://${HOST}:${HTTP_PORT}/lab/import
 EOF
 
 print_rtsp_routes "RTSP file sample_h264.mp4" \
@@ -135,6 +139,10 @@ cat <<EOF
 
 Open this page from the desktop:
 http://${HOST}:${HTTP_PORT}/webrtc/test
+
+Development-only lab page:
+http://${HOST}:${HTTP_PORT}/lab
+http://${HOST}:${HTTP_PORT}/lab/import
 
 Run each case with both "simple" and "WHEP" buttons.
 

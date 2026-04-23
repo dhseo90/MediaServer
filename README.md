@@ -86,7 +86,9 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
   - browser publisher 기준 `publish -> WHEP consume`의 실제 audio/video playback 검증 완료
 - 실험실 기능
   - `source=youtube` resolver 경로는 코드에 남아 있지만 기본값으로는 비활성화되어 있다.
-  - 서버를 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`로 시작한 경우에만 test page/helper script에 노출된다.
+  - 기본 검증 UI는 `/webrtc/test`, 개발용 실험 UI는 `/lab`로 분리했다.
+  - 개발용 import UI는 `/lab/import`로 분리했다.
+  - 서버를 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`로 시작한 경우에만 `/lab`과 helper script에 YouTube 옵션이 노출된다.
   - `yt-dlp -> HTTP/HLS URL -> UriSourceWorker` 구조이며 로그인, 지역 제한, bot check가 걸리면 우회하지 않고 실패시킨다.
   - 공개 repo와 기본 운영 흐름에서는 `source=http|hls`를 우선 사용한다.
 
@@ -141,6 +143,9 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
   - 브라우저 WebRTC end-to-end 검증 스크립트에 사용한다.
 - `yt-dlp` (선택)
   - 실험실 기능인 `source=youtube`를 명시적으로 켠 경우에만 필요하다.
+- `deno` (선택)
+  - 일부 YouTube URL은 `yt-dlp`가 `jsc:deno`로 JS challenge를 풀 때만 통과한다.
+  - 실험실 YouTube import/source를 쓸 때만 의미가 있으며, 별도 C++ 링크 라이브러리를 추가한 것은 아니다.
 
 ### GStreamer 필수 모듈
 CMake가 `pkg-config`로 아래 모듈을 찾는다.
@@ -195,10 +200,12 @@ HOMEBREW_PREFIX=/usr/local ./scripts/run_server_foreground.sh
 수동 설치가 필요하면 아래 패키지를 설치한다.
 
 ```bash
-brew install cmake pkg-config ffmpeg node python yt-dlp \
+brew install cmake pkg-config ffmpeg node python yt-dlp deno \
   gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad \
   gst-rtsp-server libnice libnice-gstreamer
 ```
+
+실험실 YouTube import를 쓸 때는 `deno`가 있으면 `yt-dlp`의 일부 JS challenge 해결에 도움이 된다. 현재 `scripts/install_deps.sh`는 macOS/Homebrew 경로에서는 `deno`를 같이 설치하고, Linux 배포판은 패키지 구성이 달라 별도 설치 안내로 본다.
 
 ### Linux 환경
 Linux에서는 `pkg-config`가 GStreamer 개발 패키지를 찾을 수 있어야 한다.
@@ -334,6 +341,7 @@ cp scripts/.media_server.env.example scripts/.media_server.env
 pkg-config --modversion gstreamer-1.0
 gst-inspect-1.0 webrtcbin nicesrc nicesink
 yt-dlp --version
+deno --version   # optional, helps yt-dlp solve some YouTube JS challenges
 ```
 
 빌드:
@@ -476,7 +484,9 @@ cmake --build build-gst
 
 기본값 기준:
 - RTSP: `rtsp://127.0.0.1:8554/dhseo`
-- WebRTC test page: `http://127.0.0.1:8080/webrtc/test`
+- stable test page: `http://127.0.0.1:8080/webrtc/test`
+- lab page: `http://127.0.0.1:8080/lab`
+- lab import page: `http://127.0.0.1:8080/lab/import`
 
 실행 로그에 실제 listen 주소와 포트가 출력됩니다.
 
@@ -775,7 +785,7 @@ IP를 직접 지정하려면:
 MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./scripts/print_external_test_urls.sh
 ```
 
-먼저 다른 PC 브라우저에서 `/health`와 `/webrtc/test`가 열리는지 확인한다. `/health`는 `{"status":"ok"}`를 반환하는 가장 단순한 readiness check다.
+먼저 다른 PC 브라우저에서 `/health`, `/webrtc/test`, `/lab`, `/lab/import`가 열리는지 확인한다. `/health`는 `{"status":"ok"}`를 반환하는 가장 단순한 readiness check다.
 여기서 실패하면 RTSP/WebRTC 문제가 아니라 macOS 방화벽, bind address, 공유기 WiFi/LAN isolation 문제를 먼저 봐야 한다.
 이 스크립트 출력에는 현재 LAN IP가 포함될 수 있으므로, 출력 결과를 그대로 문서나 커밋에 붙이지 않는다.
 
@@ -822,6 +832,31 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./scripts/print_external_test_urls.s
   - 결과: resolver 1회, source worker start 1회, stream created 1회, 나머지 4개 요청은 동일 `SharedStream` 재사용
 - `YouTube fake HLS/EOS -> delegate reconnect`
   - 결과: `delegate stopped -> resolved -> reconnected` 반복 확인
+
+실험실 YouTube 개발이 기본 기능 승격 전에 멈춘 이유:
+- 외부 요인이 커서 회귀 테스트가 안정적이지 않다.
+- `yt-dlp` 결과가 YouTube bot check, 로그인 요구, 지역 제한, 서명 URL 만료 정책에 영향을 받는다.
+- `2026-04-24` 같은 공개 VOD `https://www.youtube.com/watch?v=aqz-KE-bpKQ`도 시점에 따라 결과가 갈렸다.
+  - shell에서 바로 실행한 `/lab/import`와 resolver 단독 실행은 `Sign in to confirm you're not a bot`으로 실패했다.
+  - 같은 날 Chrome `/lab/import` UI에서 재시도한 `import-2`는 `yt-dlp`가 `[jsc:deno]`로 challenge를 푼 뒤 `ready`까지 완료됐다.
+- 그래서 현재는 `/lab`에서만 보이는 개발용 기능으로 유지하고, 기본 relay/analysis 경로는 `file`, `rtsp`, `webrtc`, `http/hls` 중심으로 진행한다.
+
+현재 미확인 사항:
+- YouTube URL 장기 회귀 안정성
+- login/region/private/live archive 전환 실패 패턴의 일관성
+- cookie 없이 접근 가능한 공개 URL이 현재 시점에도 안정적으로 남아 있는지
+- YouTube import 성공/실패가 시점에 따라 왜 갈리는지
+- 실패/성공이 섞일 때 UI와 문서가 현재 상태를 충분히 설명하는지
+
+실험실 import 현재 상태:
+- `/lab/import` 페이지와 `/lab/import/jobs` API를 추가했다.
+- fake downloader를 이용한 local smoke test에서는 job이 `ready`가 되었고 `imports/lab_test.mp4` 파일 token이 생성됐다.
+- `2026-04-24` 직접 재검증에서는 동일 YouTube VOD에 대해 성공/실패가 모두 재현됐다.
+  - shell 기반 `import-1`은 bot check로 실패했다.
+  - Chrome `/lab/import`에서 만든 `import-2`는 `storedFileToken=imports/ui_yt_import_test.mp4`로 `ready`까지 완료됐다.
+- 이후 `/lab/import`는 `yt-dlp` download 뒤 `ffmpeg`로 `h264 + aac stereo + mp4` 정규화를 수행하도록 바꿨다.
+- 새 코드로 다시 만든 `import-1`은 `storedFileToken=imports/normalized_import_test.mp4`로 `ready`까지 완료됐고, `POST /webrtc/session?file=imports/normalized_import_test.mp4`도 `200 OK`로 통과했다.
+- 현재 import 경로는 "다운로드 성공"만 보는 것이 아니라, "기존 `file=` relay/analysis 입력으로 바로 재사용 가능한 포맷"까지 맞추는 단계로 바뀌었다.
 
 ## 외부 RTSP source 관련 주의
 
