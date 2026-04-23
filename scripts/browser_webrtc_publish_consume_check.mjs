@@ -14,10 +14,15 @@ const httpBase = (args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const mode = args.mode || "simple";
 const sourceId = args.sourceId || `publisher-browser-${Date.now()}`;
 const existingSourceId = args.existingSourceId || "";
+const consumeSourceKind = args.sourceKind || "";
+const consumeSourceUrl = args.sourceUrl || "";
+const consumeFile = args.file || "";
 const holdMs = Number(args.holdMs || 30000);
 const timeoutMs = Number(args.timeoutMs || 45000);
 const debugPort = Number(args.debugPort || 9223);
-const splitPublishConsume = (mode === "simple" || mode === "whep") && !existingSourceId && args.singleBrowser !== "1";
+const hasExplicitConsumeSource = Boolean(consumeSourceKind || consumeSourceUrl || consumeFile);
+const splitPublishConsume =
+  (mode === "simple" || mode === "whep") && !existingSourceId && !hasExplicitConsumeSource && args.singleBrowser !== "1";
 const publisherPlaybackTimeoutMs = Number(args.publisherPlaybackTimeoutMs || 15000);
 const consumerPlaybackTimeoutMs = Number(args.consumerPlaybackTimeoutMs || 30000);
 const publisherWarmupMs = Number(args.publisherWarmupMs || (splitPublishConsume ? 8000 : 0));
@@ -112,7 +117,21 @@ try {
           document.getElementById('webrtcSourceInput').value = ${JSON.stringify(existingSourceId || sourceId)};
           await api.stopSession();
           await api.stopPublisher();
-          if (${JSON.stringify(Boolean(existingSourceId))}) {
+          if (${JSON.stringify(hasExplicitConsumeSource)}) {
+            const sourceKind = ${JSON.stringify(consumeSourceKind)};
+            const sourceUrl = ${JSON.stringify(consumeSourceUrl)};
+            const sourceFile = ${JSON.stringify(consumeFile)};
+            if (sourceFile) {
+              document.getElementById('sourceType').value = 'file';
+              document.getElementById('fileInput').value = sourceFile;
+            } else if (sourceKind === 'webrtc') {
+              document.getElementById('sourceType').value = 'webrtc';
+              document.getElementById('webrtcSourceInput').value = sourceUrl;
+            } else {
+              document.getElementById('sourceType').value = sourceKind || 'url';
+              document.getElementById('urlInput').value = sourceUrl;
+            }
+          } else if (${JSON.stringify(Boolean(existingSourceId))}) {
             document.getElementById('sourceType').value = 'webrtc';
           } else {
             await api.startPublish();
@@ -122,9 +141,9 @@ try {
             await new Promise((resolve) => setTimeout(resolve, ${JSON.stringify(holdMs)}));
             return api.snapshotState();
           } else if (${JSON.stringify(mode)} === 'whep') {
-            await api.playPublishedWhep();
+            await api.startWhep();
           } else {
-            await api.playPublishedSimple();
+            await api.startSimple();
           }
           return api.waitForPlayback('consumer', ${JSON.stringify(consumerPlaybackTimeoutMs)});
         })()

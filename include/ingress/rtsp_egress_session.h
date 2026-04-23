@@ -41,6 +41,7 @@ private:
 
 #if MEDIA_SERVER_USE_GSTREAMER
     bool ConfigureAppSrcCaps(const media::StreamDescriptor& descriptor, std::string* error_message);
+    void PushSilentAudioPriming();
 #endif
 
     std::string session_id_;
@@ -53,6 +54,7 @@ private:
     std::optional<std::int64_t> video_base_pts_;
     std::optional<std::int64_t> audio_base_pts_;
     std::optional<std::int64_t> last_video_pts_;
+    bool synthesize_silent_audio_{false};
     bool started_{false};
 
 #if MEDIA_SERVER_USE_GSTREAMER

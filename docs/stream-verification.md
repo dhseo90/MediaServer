@@ -112,6 +112,27 @@ MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS=12000 \
 ./scripts/verify_codec_matrix.sh
 ```
 
+같은 LAN의 다른 PC에서 수동으로 확인할 URL을 출력하려면:
+```bash
+./scripts/print_external_test_urls.sh
+```
+
+외부 수동 검증 전에는 서버를 전체 인터페이스에 bind한다.
+```bash
+MEDIA_SERVER_LISTEN_ADDRESS=0.0.0.0 \
+MEDIA_SERVER_HTTP_LISTEN_ADDRESS=0.0.0.0 \
+MEDIA_SERVER_FORCE_RTSP_TCP=1 \
+./scripts/restart_server.sh
+```
+
+다른 PC에서 먼저 확인할 URL:
+```text
+http://{macbook-lan-ip}:8080/health
+http://{macbook-lan-ip}:8080/webrtc/test
+```
+
+위 두 URL이 열리지 않으면 player 문제가 아니라 macOS 방화벽, bind address, 공유기 WiFi/LAN isolation 문제를 먼저 확인한다.
+
 외부 RTSP URL도 포함하려면:
 ```bash
 MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=1 ./scripts/verify_codec_matrix.sh
@@ -259,12 +280,43 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
   - RTSP egress에 start 전 pending packet queue와 timestamp normalization을 추가했다.
   - H264 transcode route의 `1000h` timestamp offset을 `identity ts-offset=-3600000000000000`으로 보정했다.
   - pending queue가 video keyframe에서 audio priming packet까지 지우지 않도록 수정했다.
-- 전체 로컬 matrix는 `pass=59 fail=0 skip=1`로 통과했다.
+- 전체 로컬 matrix는 `pass=63 fail=0 skip=3`로 통과했다.
+- `source=youtube` 1차 resolver 경로를 추가했다.
+  - `yt-dlp`로 YouTube watch/live URL을 HTTP/HLS playable URL로 해석한다.
+  - 해석 결과는 기존 `UriSourceWorker`에 위임한다.
+  - fake `yt-dlp`가 로컬 HTTP MP4 URL을 반환하는 조건에서 `source=youtube -> RTSP` 경로가 `h264 + aac`로 통과했다.
+  - 실제 YouTube uploaded/VOD URL `https://www.youtube.com/watch?v=aqz-KE-bpKQ` 기준 `RTSP`, `WebRTC(simple signaling)`, `WebRTC(WHEP)`가 통과했다.
+  - 실제 YouTube live URL `https://www.youtube.com/watch?v=iYmvCUonukw` 기준 `RTSP`, `WebRTC(simple signaling)`, `WebRTC(WHEP)`가 통과했다.
+  - 1080p YouTube HLS 입력은 WebRTC H264 협상 호환성을 위해 720p/30fps로 정규화한다.
+- 동일 YouTube URL 동시 요청 dedup을 확인했다.
+  - `POST /webrtc/session?source=youtube&url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Daqz-KE-bpKQ` 5개 동시 요청이 모두 성공했다.
+  - 서버 trace 기준 `youtube resolve=1회`, `source worker start=1회`, `stream created=yes=1회`, `created=no=4회`로 확인했다.
+  - `SessionManager` trace는 실제 `SharedStream::StartSource()` 결과 기준으로 `started/reused`를 기록하도록 정리했다.
+- YouTube delegate 재연결 구조를 추가했다.
+  - initial resolve/start 이후 `UriSourceWorker`가 중단되면 원본 YouTube URL을 다시 resolve해서 새 delegate를 시작한다.
+  - 정상 동시 요청 테스트에서는 `reconnect=0회`로 유지되어 불필요한 재해석은 발생하지 않았다.
+  - fake resolver + 2초짜리 로컬 HLS/EOS source로 강제 재연결을 유발했고, `delegate stopped -> resolved -> reconnected` 반복을 확인했다.
+- YouTube resolver 실패 케이스 1차 분리를 추가했다.
+  - invalid host, missing resolver binary, private video, live archive unavailable, resolver timeout, separate media URL output을 명확한 400 응답 메시지로 구분했다.
+  - 300ms 같은 과도하게 짧은 timeout은 fork/exec 비용까지 timeout으로 잡을 수 있으므로 운영 기본값은 15000ms 이상을 유지한다.
+- video-only URI source edge case를 분리했다.
+  - `sample_h264_video_only.mp4`를 추가하고 `source=http` matrix에 포함했다.
+  - RTSP egress는 route audio branch 계약을 유지하기 위해 source audio가 없으면 silent audio priming을 합성한다.
+  - WebRTC egress는 video-only track으로 simple signaling/playback이 통과했다.
+- 브라우저 playback smoke test를 추가 확인했다.
+  - `file -> WebRTC(simple/WHEP)`: audio/video track 및 decoded video frame 확인
+  - `HTTP video-only -> WebRTC(simple)`: video-only track 및 decoded video frame 확인
+  - `YouTube uploaded/VOD -> WebRTC(simple/WHEP)`: audio/video track 및 decoded video frame 확인
+  - `WebRTC browser publish -> WebRTC(simple/WHEP)`: publisher/consumer 연결 및 decoded video frame 확인
+- 외부 수동 검증 URL 출력 스크립트를 추가했다.
+  - `scripts/print_external_test_urls.sh`
+  - LAN IP, RTSP route URL, WebRTC test page/manual case를 한 번에 출력한다.
 
 ## 남은 확인 항목
 - 다음 구현 순서
-  - 1차: YouTube live/uploaded URL을 `source=youtube` resolver 실험 경로로 연결
-  - 2차: 영상분석 branch 검증 추가
+  - 1차: 영상분석 branch 검증 추가
+  - 2차: 분석 metadata/snapshot API 설계
+- audio-only input은 현재 video relay/analysis 준비 범위 밖이다. RTSP/WebRTC egress는 video track을 기준으로 동작한다.
 - 외부 wowza source 재검증
 - 외부 RTSP source timeout 원인 분리
   - 실제 remote server 응답 지연인지

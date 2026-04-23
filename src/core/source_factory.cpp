@@ -1,4 +1,4 @@
-// 파일 용도: File, RTSP pull, WebRTC source, HTTP/HLS URI source worker와 codec/descriptor 변환 로직을 구현한다.
+// 파일 용도: File, RTSP pull, WebRTC, HTTP/HLS URI, YouTube resolver 위임 source worker와 codec/descriptor 변환 로직을 구현한다.
 #include "core/source_factory.h"
 
 #include <algorithm>
@@ -22,6 +22,7 @@
 
 #include "app_config.h"
 #include "core/shared_stream.h"
+#include "core/youtube_resolver.h"
 #include "ingress/webrtc_source_registry.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -1721,19 +1722,146 @@ private:
 #endif
 };
 
-class UnsupportedSourceWorker final : public BasicSourceWorker {
+class YouTubeSourceWorker final : public BasicSourceWorker {
 public:
-    explicit UnsupportedSourceWorker(SourceSpec source_spec) : BasicSourceWorker(std::move(source_spec)) {}
+    explicit YouTubeSourceWorker(SourceSpec source_spec) : BasicSourceWorker(std::move(source_spec)) {}
+
+    ~YouTubeSourceWorker() override {
+        Stop();
+    }
 
     bool Start(const std::shared_ptr<core::SharedStream>& stream, std::string* error_message) override {
-        // source=youtube는 아직 resolver가 없으므로 명확한 실패 메시지로 source=hls/http 경로를 안내한다.
-        (void)stream;
-        if (error_message != nullptr) {
-            *error_message = "source kind '" + media::ToString(source_spec_.kind) +
-                             "' is not implemented yet; use source=hls or source=http with a playable media URL";
+        weak_stream_ = stream;
+        running_.store(true);
+
+        if (!StartDelegate(stream, error_message)) {
+            running_.store(false);
+            return false;
         }
-        return false;
+
+        monitor_thread_ = std::thread([this] { MonitorLoop(); });
+        return true;
     }
+
+    bool IsRunning() const override {
+        // delegate가 HLS URL 만료 등으로 잠깐 죽어도 monitor가 재해석/재시작을 시도하는 동안은 active로 본다.
+        return running_.load();
+    }
+
+    void Stop() override {
+        running_.store(false);
+        stop_cv_.notify_all();
+
+        std::shared_ptr<UriSourceWorker> delegate;
+        {
+            std::lock_guard lock(delegate_mu_);
+            delegate = delegate_;
+            delegate_.reset();
+        }
+        if (delegate != nullptr) {
+            delegate->Stop();
+        }
+
+        if (monitor_thread_.joinable() && monitor_thread_.get_id() != std::this_thread::get_id()) {
+            monitor_thread_.join();
+        }
+    }
+
+private:
+    bool StartDelegate(const std::shared_ptr<core::SharedStream>& stream, std::string* error_message) {
+        // YouTube watch/live URL은 직접 decode하지 않고 resolver가 돌려준 HLS/HTTP URL을 기존 URI worker에 위임한다.
+        SourceSpec resolved_source;
+        if (!core::ResolveYouTubeSource(source_spec_, &resolved_source, error_message)) {
+            return false;
+        }
+
+        if (!running_.load()) {
+            if (error_message != nullptr) {
+                *error_message = "YouTube source stopped";
+            }
+            return false;
+        }
+
+        auto next_delegate = std::make_shared<UriSourceWorker>(std::move(resolved_source));
+        {
+            std::lock_guard lock(delegate_mu_);
+            delegate_ = next_delegate;
+        }
+
+        const bool started = next_delegate->Start(stream, error_message);
+        if (!started) {
+            std::lock_guard lock(delegate_mu_);
+            if (delegate_ == next_delegate) {
+                delegate_.reset();
+            }
+            return false;
+        }
+
+        if (!running_.load()) {
+            next_delegate->Stop();
+            if (error_message != nullptr) {
+                *error_message = "YouTube source stopped";
+            }
+            return false;
+        }
+        return true;
+    }
+
+    void MonitorLoop() {
+        while (running_.load()) {
+            {
+                std::unique_lock lock(stop_mu_);
+                stop_cv_.wait_for(lock,
+                                  std::chrono::milliseconds(app::GetAppConfig().youtube_reconnect_delay_ms),
+                                  [this] { return !running_.load(); });
+            }
+            if (!running_.load()) {
+                break;
+            }
+
+            std::shared_ptr<UriSourceWorker> current_delegate;
+            {
+                std::lock_guard lock(delegate_mu_);
+                current_delegate = delegate_;
+            }
+            if (current_delegate != nullptr && current_delegate->IsRunning()) {
+                continue;
+            }
+
+            if (current_delegate != nullptr) {
+                current_delegate->Stop();
+                std::lock_guard lock(delegate_mu_);
+                if (delegate_ == current_delegate) {
+                    delegate_.reset();
+                }
+            }
+
+            auto stream = weak_stream_.lock();
+            if (stream == nullptr) {
+                running_.store(false);
+                break;
+            }
+
+            std::cerr << "[youtube-source] delegate stopped; resolving again input=" << source_spec_.uri << "\n";
+            std::string restart_error;
+            if (!StartDelegate(stream, &restart_error)) {
+                if (!running_.load()) {
+                    break;
+                }
+                std::cerr << "[youtube-source] reconnect failed input=" << source_spec_.uri
+                          << " error=" << restart_error << "\n";
+                continue;
+            }
+            std::cerr << "[youtube-source] reconnected input=" << source_spec_.uri << "\n";
+        }
+    }
+
+    std::weak_ptr<core::SharedStream> weak_stream_;
+    mutable std::mutex delegate_mu_;
+    std::shared_ptr<UriSourceWorker> delegate_;
+    std::mutex stop_mu_;
+    std::condition_variable stop_cv_;
+    std::thread monitor_thread_;
 };
 
 class WebRtcSourceWorker final : public BasicSourceWorker {
@@ -1818,7 +1946,7 @@ std::unique_ptr<SourceWorker> CreateSourceWorker(const media::SourceSpec& source
         case media::SourceSpec::Kind::Http:
             return std::make_unique<UriSourceWorker>(source_spec);
         case media::SourceSpec::Kind::Youtube:
-            return std::make_unique<UnsupportedSourceWorker>(source_spec);
+            return std::make_unique<YouTubeSourceWorker>(source_spec);
     }
     return nullptr;
 }

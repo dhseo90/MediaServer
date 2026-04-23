@@ -272,15 +272,23 @@ SharedStream
 
 구현 원칙:
 - 기본 source protocol은 `source=hls` 또는 `source=http`로 먼저 연다. 현재 1차 `UriSourceWorker`는 GStreamer `uridecodebin`으로 HTTP/HLS media URL을 수신한 뒤 내부 표준 패킷(`H264` video, `AAC` audio)으로 재인코딩한다.
-- `source=youtube`는 resolver를 통과하는 별도 옵션으로 둔다.
+- `source=youtube`는 `yt-dlp` 기반 resolver를 통과하는 별도 옵션으로 둔다.
+- resolver는 YouTube watch/live URL을 HLS/HTTP playable URL로 변환하고, 실제 packet 수집은 기존 `UriSourceWorker`가 담당한다.
 - 라이브와 업로드된 영상 모두 고려한다.
 - YouTube 약관/권한 이슈가 있으므로 resolver는 실험/권한 확인 가능한 경로로 격리한다.
+- 동일 YouTube URL을 여러 클라이언트가 요청하면 원본 YouTube URL을 stream key로 사용해 하나의 `SharedStream`으로 fan-out한다.
+- 실행 중 delegate URI source가 중단되면 원본 YouTube URL을 다시 resolve해서 서명 URL 만료나 일시적인 HLS 중단을 복구하려고 시도한다.
 - HLS/HTTP source는 video-only stream도 처리할 수 있어야 하며, RTSP/WebRTC egress의 대표적인 audio 필수 가정은 완화했다.
+- RTSP egress는 route별 audio branch를 유지하므로 source audio가 없는 video-only 입력에는 짧은 silent audio priming을 합성한다.
+- WebRTC egress는 브라우저 H264 협상 호환성을 위해 video를 720p/30fps로 정규화한다. RTSP egress는 route별 codec 변환 정책을 따른다.
 
 예상 URL:
 - `rtsp://{address}:{port}/{route}?source=hls&url={urlencoded_m3u8_url}`
 - `POST /webrtc/session?source=hls&url={urlencoded_m3u8_url}`
 - `POST /whep?source=hls&url={urlencoded_m3u8_url}`
+- `rtsp://{address}:{port}/{route}?source=youtube&url={urlencoded_youtube_watch_or_live_url}`
+- `POST /webrtc/session?source=youtube&url={urlencoded_youtube_watch_or_live_url}`
+- `POST /whep?source=youtube&url={urlencoded_youtube_watch_or_live_url}`
 
 ## 12.2 YouTube 이후 확장: 영상 분석 계층
 

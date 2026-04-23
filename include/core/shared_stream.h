@@ -25,7 +25,7 @@ public:
     void SetDescriptor(media::StreamDescriptor descriptor);
     std::optional<media::StreamDescriptor> descriptor() const;
     bool HasDescriptor() const;
-    bool StartSource(std::unique_ptr<SourceWorker> worker, std::string* error_message);
+    bool StartSource(std::unique_ptr<SourceWorker> worker, std::string* error_message, bool* started = nullptr);
     void StopSource();
     bool IsSourceRunning() const;
     std::size_t DroppedPacketCount(const std::string& session_id) const;

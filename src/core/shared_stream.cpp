@@ -144,7 +144,10 @@ bool SharedStream::HasDescriptor() const {
     return descriptor_.has_value();
 }
 
-bool SharedStream::StartSource(std::unique_ptr<SourceWorker> worker, std::string* error_message) {
+bool SharedStream::StartSource(std::unique_ptr<SourceWorker> worker, std::string* error_message, bool* started) {
+    if (started != nullptr) {
+        *started = false;
+    }
     if (worker == nullptr) {
         if (error_message != nullptr) {
             *error_message = "missing source worker";
@@ -171,6 +174,9 @@ bool SharedStream::StartSource(std::unique_ptr<SourceWorker> worker, std::string
         return false;
     }
     source_running_ = true;
+    if (started != nullptr) {
+        *started = true;
+    }
     return true;
 }
 

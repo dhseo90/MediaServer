@@ -30,6 +30,12 @@ struct AppConfig {
     int rtsp_track_settle_quiet_period_ms{1500};
     int rtsp_track_settle_max_ms{4000};
     std::string gst_attach_context;
+    std::string youtube_resolver_bin{"yt-dlp"};
+    std::string youtube_format{
+        "best[protocol^=m3u8][vcodec!=none]/best[ext=mp4][acodec!=none][vcodec!=none]/"
+        "best[acodec!=none][vcodec!=none]/best"};
+    int youtube_resolve_timeout_ms{15000};
+    int youtube_reconnect_delay_ms{2000};
 };
 
 const AppConfig& GetAppConfig();

@@ -139,20 +139,21 @@ GstCaps* BuildCapsFromTrack(const media::TrackInfo& track) {
 }
 
 std::string BuildVideoInputChain(const media::TrackInfo& track) {
+    // WebRTC H264 offer는 브라우저 호환성이 높은 720p/30fps baseline 계열로 정규화한다.
     switch (track.codec) {
         case media::CodecId::VP8:
             return "appsrc name=video_src is-live=true format=time do-timestamp=false block=false "
                    "! queue name=video_in_q ! vp8dec name=video_decoder ! queue "
-                   "! videoconvert ! videorate ! video/x-raw,format=I420,framerate=30/1 ";
+                   "! videoconvert ! videoscale ! videorate ! video/x-raw,format=I420,width=1280,height=720,framerate=30/1 ";
         case media::CodecId::H264:
             return "appsrc name=video_src is-live=true format=time do-timestamp=false block=false "
                    "! queue name=video_in_q ! h264parse name=video_input_parse ! avdec_h264 name=video_decoder "
-                   "! queue ! videoconvert ! videorate "
-                   "! video/x-raw,format=I420,framerate=30/1 ";
+                   "! queue ! videoconvert ! videoscale ! videorate "
+                   "! video/x-raw,format=I420,width=1280,height=720,framerate=30/1 ";
         case media::CodecId::H265:
             return "appsrc name=video_src is-live=true format=time do-timestamp=false block=false "
                    "! queue name=video_in_q ! h265parse name=video_input_parse ! avdec_h265 name=video_decoder "
-                   "! queue ! videoconvert ! videorate ! video/x-raw,format=I420,framerate=30/1 ";
+                   "! queue ! videoconvert ! videoscale ! videorate ! video/x-raw,format=I420,width=1280,height=720,framerate=30/1 ";
         case media::CodecId::Unknown:
         case media::CodecId::AAC:
         case media::CodecId::Opus:

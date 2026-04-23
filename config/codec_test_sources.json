@@ -46,6 +46,59 @@
       }
     },
     {
+      "name": "http_local_h264_video_only",
+      "source_kind": "http",
+      "source": "http://127.0.0.1:8765/sample_h264_video_only.mp4",
+      "enabled": true,
+      "requires_network": false,
+      "notes": "Local HTTP MP4 source without audio. Verifies that URI sources do not require source audio; RTSP routes synthesize silent route audio while WebRTC can signal video-only.",
+      "verify_profile": {
+        "label": "local-http-video-only",
+        "ffprobe_timeout_us": 10000000,
+        "webrtc_http_timeout_s": 20,
+        "rtsp_routes": [
+          {"route_key": "default", "expect_video": "h264", "expect_audio": "aac"},
+          {"route_key": "h264", "expect_video": "h264", "expect_audio": "aac"},
+          {"route_key": "h265", "expect_video": "hevc", "expect_audio": "aac"}
+        ]
+      },
+      "launcher": {
+        "type": "local_http",
+        "port": 8765,
+        "root": "video"
+      }
+    },
+    {
+      "name": "youtube_upload_h264_aac",
+      "source_kind": "youtube",
+      "source": "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
+      "enabled": false,
+      "requires_network": true,
+      "notes": "Optional YouTube uploaded/VOD source. Requires yt-dlp and external network access.",
+      "verify_profile": {
+        "label": "external-youtube-upload",
+        "ffprobe_timeout_us": 30000000,
+        "webrtc_http_timeout_s": 45,
+        "rtsp_route_keys": ["default", "h264", "opus"],
+        "server_env_hint": "MEDIA_SERVER_YOUTUBE_RESOLVE_TIMEOUT_MS=30000 MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS=20000 MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS=12000"
+      }
+    },
+    {
+      "name": "youtube_live_h264_aac",
+      "source_kind": "youtube",
+      "source": "https://www.youtube.com/watch?v=iYmvCUonukw",
+      "enabled": false,
+      "requires_network": true,
+      "notes": "Optional YouTube live/HLS source. Requires yt-dlp and external network access.",
+      "verify_profile": {
+        "label": "external-youtube-live",
+        "ffprobe_timeout_us": 30000000,
+        "webrtc_http_timeout_s": 45,
+        "rtsp_route_keys": ["default", "h264", "opus"],
+        "server_env_hint": "MEDIA_SERVER_YOUTUBE_RESOLVE_TIMEOUT_MS=30000 MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS=25000 MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS=15000"
+      }
+    },
+    {
       "name": "rtsp_local_h265_opus",
       "source_kind": "rtsp",
       "source": "rtsp://127.0.0.1:8654/opus",
