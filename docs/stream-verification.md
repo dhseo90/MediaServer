@@ -117,6 +117,8 @@ MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS=12000 \
 ./scripts/print_external_test_urls.sh
 ```
 
+출력 결과에는 현재 LAN IP가 포함될 수 있으므로, 결과물을 그대로 커밋하거나 문서에 붙이지 않는다.
+
 외부 수동 검증 전에는 서버를 전체 인터페이스에 bind한다.
 ```bash
 MEDIA_SERVER_LISTEN_ADDRESS=0.0.0.0 \

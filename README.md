@@ -709,6 +709,17 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
 - `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/config/codec_test_sources.json`
 
 각 source에는 선택적으로 `verify_profile`을 줄 수 있습니다.
+- `rtsp_preflight_timeout_ms`
+- `ffprobe_timeout_us`
+- `webrtc_http_timeout_s`
+- `server_env_hint`
+
+이 값들은 `verify_codec_matrix.sh`에서 source별로 다르게 적용됩니다.
+
+로컬 WebRTC publish source도 검증 설정에 포함되어 있습니다.
+- source name: `webrtc_local_publish_h264_opus`
+- launcher: `whip_publish`
+- source id: `publisher-verify`
 
 ### 4. 다른 PC에서 외부 연결 수동 검증
 
@@ -730,21 +741,11 @@ MEDIA_SERVER_FORCE_RTSP_TCP=1 \
 IP를 직접 지정하려면:
 
 ```bash
-MEDIA_SERVER_EXTERNAL_HOST=192.168.0.10 ./scripts/print_external_test_urls.sh
+MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./scripts/print_external_test_urls.sh
 ```
 
 먼저 다른 PC 브라우저에서 `/health`와 `/webrtc/test`가 열리는지 확인한다. 여기서 실패하면 RTSP/WebRTC 문제가 아니라 macOS 방화벽, bind address, 공유기 WiFi/LAN isolation 문제를 먼저 봐야 한다.
-- `rtsp_preflight_timeout_ms`
-- `ffprobe_timeout_us`
-- `webrtc_http_timeout_s`
-- `server_env_hint`
-
-이 값들은 `verify_codec_matrix.sh`에서 source별로 다르게 적용됩니다.
-
-로컬 WebRTC publish source도 검증 설정에 포함되어 있습니다.
-- source name: `webrtc_local_publish_h264_opus`
-- launcher: `whip_publish`
-- source id: `publisher-verify`
+이 스크립트 출력에는 현재 LAN IP가 포함될 수 있으므로, 출력 결과를 그대로 문서나 커밋에 붙이지 않는다.
 
 상세 결과 문서:
 - `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/stream-verification.md`
