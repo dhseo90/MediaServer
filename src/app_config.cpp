@@ -29,6 +29,10 @@ constexpr const char* kEnvRtspSourceStartTimeoutMs = "MEDIA_SERVER_RTSP_SOURCE_S
 constexpr const char* kEnvRtspTrackSettleQuietPeriodMs = "MEDIA_SERVER_RTSP_TRACK_SETTLE_QUIET_PERIOD_MS";
 constexpr const char* kEnvRtspTrackSettleMaxMs = "MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS";
 constexpr const char* kEnvGstAttachMode = "MEDIA_SERVER_GST_ATTACH_CONTEXT";
+constexpr const char* kEnvYoutubeResolverBin = "MEDIA_SERVER_YOUTUBE_RESOLVER_BIN";
+constexpr const char* kEnvYoutubeFormat = "MEDIA_SERVER_YOUTUBE_FORMAT";
+constexpr const char* kEnvYoutubeResolveTimeoutMs = "MEDIA_SERVER_YOUTUBE_RESOLVE_TIMEOUT_MS";
+constexpr const char* kEnvYoutubeReconnectDelayMs = "MEDIA_SERVER_YOUTUBE_RECONNECT_DELAY_MS";
 
 const char* ReadEnv(const char* name) {
     const char* value = std::getenv(name);
@@ -141,6 +145,12 @@ app::AppConfig LoadAppConfig() {
     config.rtsp_track_settle_max_ms =
         ReadIntEnv(kEnvRtspTrackSettleMaxMs, config.rtsp_track_settle_max_ms);
     config.gst_attach_context = ReadStringEnv(kEnvGstAttachMode, config.gst_attach_context);
+    config.youtube_resolver_bin = ReadStringEnv(kEnvYoutubeResolverBin, config.youtube_resolver_bin);
+    config.youtube_format = ReadStringEnv(kEnvYoutubeFormat, config.youtube_format);
+    config.youtube_resolve_timeout_ms =
+        ReadIntEnv(kEnvYoutubeResolveTimeoutMs, config.youtube_resolve_timeout_ms);
+    config.youtube_reconnect_delay_ms =
+        ReadIntEnv(kEnvYoutubeReconnectDelayMs, config.youtube_reconnect_delay_ms);
     // 잘못된 env 입력은 서버 시작 실패 대신 안전한 fallback으로 보정하고 로그를 남긴다.
     if (config.subscriber_queue_size == 0) {
         std::cerr << "[env] subscriber queue size cannot be 0, fallback 1\n";
@@ -169,6 +179,22 @@ app::AppConfig LoadAppConfig() {
     if (config.rtsp_track_settle_max_ms <= 0) {
         std::cerr << "[env] RTSP track settle max must be positive, fallback 4000\n";
         config.rtsp_track_settle_max_ms = 4000;
+    }
+    if (config.youtube_resolver_bin.empty()) {
+        std::cerr << "[env] YouTube resolver binary cannot be empty, fallback yt-dlp\n";
+        config.youtube_resolver_bin = "yt-dlp";
+    }
+    if (config.youtube_format.empty()) {
+        std::cerr << "[env] YouTube format cannot be empty, fallback best\n";
+        config.youtube_format = "best";
+    }
+    if (config.youtube_resolve_timeout_ms <= 0) {
+        std::cerr << "[env] YouTube resolve timeout must be positive, fallback 15000\n";
+        config.youtube_resolve_timeout_ms = 15000;
+    }
+    if (config.youtube_reconnect_delay_ms <= 0) {
+        std::cerr << "[env] YouTube reconnect delay must be positive, fallback 2000\n";
+        config.youtube_reconnect_delay_ms = 2000;
     }
     return config;
 }

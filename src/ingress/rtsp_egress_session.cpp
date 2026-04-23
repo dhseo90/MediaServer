@@ -16,6 +16,11 @@ namespace {
 
 constexpr std::size_t kMaxPendingPackets = 512;
 constexpr std::int64_t kVideoFrameDurationNs = 33333333;
+constexpr std::int64_t kSilentAudioFrameDurationNs = 20000000;
+constexpr int kSilentAudioRate = 48000;
+constexpr int kSilentAudioChannels = 2;
+constexpr int kSilentAudioBytesPerSample = 2;
+constexpr int kSilentAudioPrimingFrames = 25;
 
 }  // namespace
 
@@ -124,6 +129,25 @@ bool PushToAppSrc(GstElement* element, const media::Packet& packet) {
         GST_BUFFER_FLAG_SET(buffer, GST_BUFFER_FLAG_DELTA_UNIT);
     }
 
+    const GstFlowReturn flow = gst_app_src_push_buffer(GST_APP_SRC(element), buffer);
+    return flow == GST_FLOW_OK;
+}
+
+bool PushRawSilenceToAppSrc(GstElement* element, std::int64_t pts) {
+    if (element == nullptr) {
+        return false;
+    }
+
+    const std::size_t sample_count =
+        static_cast<std::size_t>(kSilentAudioRate / 50 * kSilentAudioChannels * kSilentAudioBytesPerSample);
+    GstBuffer* buffer = gst_buffer_new_allocate(nullptr, sample_count, nullptr);
+    if (buffer == nullptr) {
+        return false;
+    }
+    gst_buffer_memset(buffer, 0, 0, sample_count);
+    GST_BUFFER_PTS(buffer) = static_cast<GstClockTime>(pts);
+    GST_BUFFER_DTS(buffer) = static_cast<GstClockTime>(pts);
+    GST_BUFFER_DURATION(buffer) = static_cast<GstClockTime>(kSilentAudioFrameDurationNs);
     const GstFlowReturn flow = gst_app_src_push_buffer(GST_APP_SRC(element), buffer);
     return flow == GST_FLOW_OK;
 }
@@ -264,6 +288,7 @@ bool RtspEgressSession::Start(const std::string& session_id,
 #endif
 
     started_ = true;
+    PushSilentAudioPriming();
     // SessionManager가 source보다 subscriber를 먼저 붙이므로, Start 전 들어온 초기 패킷을 여기서 밀어 넣는다.
     FlushPendingPackets();
     return true;
@@ -277,6 +302,7 @@ void RtspEgressSession::Stop() {
         video_base_pts_.reset();
         audio_base_pts_.reset();
         last_video_pts_.reset();
+        synthesize_silent_audio_ = false;
     }
 
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -350,8 +376,20 @@ bool RtspEgressSession::ConfigureAppSrcCaps(const media::StreamDescriptor& descr
         const media::TrackInfo* audio_track = FindTrack(descriptor, media::MediaKind::Audio);
         if (audio_track == nullptr) {
             audio_track_id_.clear();
+            synthesize_silent_audio_ = true;
+            GstCaps* raw_caps = gst_caps_from_string(
+                "audio/x-raw,format=S16LE,layout=interleaved,rate=48000,channels=2");
+            if (raw_caps == nullptr) {
+                if (error_message != nullptr) {
+                    *error_message = "failed to build synthetic silent audio caps";
+                }
+                return false;
+            }
+            gst_app_src_set_caps(GST_APP_SRC(audio_appsrc_), raw_caps);
+            gst_caps_unref(raw_caps);
             return true;
         }
+        synthesize_silent_audio_ = false;
         audio_track_id_ = audio_track->track_id;
         GstCaps* audio_caps = BuildCapsFromTrack(*audio_track);
         if (audio_caps != nullptr) {
@@ -365,6 +403,18 @@ bool RtspEgressSession::ConfigureAppSrcCaps(const media::StreamDescriptor& descr
         }
     }
     return true;
+}
+
+void RtspEgressSession::PushSilentAudioPriming() {
+    if (!synthesize_silent_audio_ || audio_appsrc_ == nullptr) {
+        return;
+    }
+
+    // RTSP factory launch는 route별 audio payloader를 항상 포함한다. 입력 audio가 없는 video-only source는
+    // 짧은 무음 raw audio를 넣어 media prepare가 audio branch에서 멈추지 않게 한다.
+    for (int i = 0; i < kSilentAudioPrimingFrames; ++i) {
+        (void)PushRawSilenceToAppSrc(audio_appsrc_, static_cast<std::int64_t>(i) * kSilentAudioFrameDurationNs);
+    }
 }
 #endif
 

@@ -241,6 +241,12 @@ collect_file_state() {
     FILE_FAIL=1
     OVERALL=1
   fi
+
+  if command -v yt-dlp >/dev/null 2>&1; then
+    print_line "PASS" "yt-dlp available for source=youtube"
+  else
+    print_line "WARN" "yt-dlp not found; source=youtube will fail until installed"
+  fi
 }
 
 probe_stream() {

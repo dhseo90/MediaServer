@@ -413,13 +413,16 @@ std::string BuildTestPageHtml() {
             <select id="sourceType">
               <option value="file">file</option>
               <option value="url">rtsp url</option>
+              <option value="http">http media url</option>
+              <option value="hls">hls media url</option>
+              <option value="youtube">youtube watch/live url</option>
               <option value="webrtc">published webrtc source id</option>
             </select>
           </label>
           <label>File Name
             <input id="fileInput" value="sample_h264.mp4" />
           </label>
-          <label>RTSP URL
+          <label>Source URL
             <input id="urlInput" value="rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4" />
           </label>
           <label>WebRTC Source ID
@@ -604,7 +607,10 @@ std::string BuildTestPageHtml() {
       } else if (sourceTypeEl.value === 'webrtc') {
         params.set('source', 'webrtc');
         params.set('url', webrtcSourceInputEl.value);
+      } else if (sourceTypeEl.value === 'url') {
+        params.set('url', urlInputEl.value);
       } else {
+        params.set('source', sourceTypeEl.value);
         params.set('url', urlInputEl.value);
       }
       return params.toString();

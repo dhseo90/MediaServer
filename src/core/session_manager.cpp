@@ -2,6 +2,7 @@
 #include "core/session_manager.h"
 
 #include <chrono>
+#include <mutex>
 
 #include "app_config.h"
 #include "core/stream_key.h"
@@ -14,6 +15,8 @@ namespace {
 
 void TraceSessionEvent(const std::string& message) {
     if (app::GetAppConfig().session_trace) {
+        static std::mutex trace_mu;
+        std::lock_guard lock(trace_mu);
         std::cerr << "[session] " << message << "\n";
     }
 }
@@ -69,10 +72,10 @@ SessionManager::CreateResult SessionManager::CreateSession(const media::IngressR
     if (acquired.created || !acquired.stream->IsSourceRunning()) {
         auto worker = CreateSourceWorker(*source_spec);
         std::string source_error;
-        TraceSessionEvent("start source worker key=" + key +
-                          " reason=" + (acquired.created ? std::string("new-stream")
-                                                         : std::string("source-not-running")));
-        if (!acquired.stream->StartSource(std::move(worker), &source_error)) {
+        const std::string start_reason =
+            acquired.created ? std::string("new-stream") : std::string("source-not-running");
+        bool source_started = false;
+        if (!acquired.stream->StartSource(std::move(worker), &source_error, &source_started)) {
             acquired.stream->RemoveSubscriber(request.client_id);
             if (acquired.created) {
                 registry_.TryRemoveIfIdle(key);
@@ -83,6 +86,8 @@ SessionManager::CreateResult SessionManager::CreateSession(const media::IngressR
                      .message = source_error.empty() ? "failed to start source worker" : source_error,
                      .stream = nullptr};
         }
+        TraceSessionEvent(std::string(source_started ? "started" : "reused") + " source worker key=" + key +
+                          " reason=" + start_reason);
     }
 
     {

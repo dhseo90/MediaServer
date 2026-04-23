@@ -16,7 +16,7 @@ install_macos() {
     exit 1
   fi
   brew update
-  brew install cmake pkg-config ffmpeg node python gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-rtsp-server libnice libnice-gstreamer
+  brew install cmake pkg-config ffmpeg node python yt-dlp gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-rtsp-server libnice libnice-gstreamer
 }
 
 install_debian_like() {
@@ -26,7 +26,7 @@ install_debian_like() {
   fi
   sudo apt update
   sudo apt install -y \
-    build-essential cmake pkg-config ffmpeg python3 nodejs \
+    build-essential cmake pkg-config ffmpeg python3 nodejs yt-dlp \
     libgstreamer1.0-dev libgstrtspserver-1.0-dev \
     libnice-dev \
     gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad
@@ -38,7 +38,7 @@ install_fedora_like() {
     exit 1
   fi
   sudo dnf install -y \
-    gcc-c++ cmake pkgconf-pkg-config ffmpeg python3 nodejs \
+    gcc-c++ cmake pkgconf-pkg-config ffmpeg python3 nodejs yt-dlp \
     libnice libnice-devel \
     gstreamer1-devel gstreamer1-rtsp-server-devel \
     gstreamer1-plugins-base-tools gstreamer1-plugins-base gstreamer1-plugins-good gstreamer1-plugins-bad-free
@@ -50,7 +50,7 @@ install_arch_like() {
     exit 1
   fi
   sudo pacman -S --needed \
-    base-devel cmake pkgconf ffmpeg python nodejs \
+    base-devel cmake pkgconf ffmpeg python nodejs yt-dlp \
     gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-rtsp-server libnice
 }
 
@@ -105,3 +105,4 @@ echo "verify:"
 echo "  pkg-config --modversion gstreamer-1.0"
 echo "  pkg-config --modversion gstreamer-rtsp-server-1.0"
 echo "  gst-inspect-1.0 webrtcbin nicesrc nicesink"
+echo "  yt-dlp --version"

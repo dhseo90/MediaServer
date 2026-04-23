@@ -64,6 +64,12 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - `HTTP media URL -> RTSP/WebRTC` 1차 경로
   - 현재 `source=http` RTSP route subset(`default`, `h264`, `opus`) 통과
   - 현재 `source=http` WebRTC signaling 통과
+- `YouTube watch/live URL -> RTSP/WebRTC` 1차 resolver 경로
+  - `source=youtube` 요청을 `yt-dlp -> HTTP/HLS URL -> UriSourceWorker`로 연결
+  - fake resolver가 로컬 HTTP MP4 URL을 반환하는 조건에서 `source=youtube -> RTSP(h264+aac)` 통과
+  - 실제 YouTube 업로드 URL 기준 RTSP, WebRTC simple signaling, WHEP playback 통과
+  - 실제 YouTube 라이브 URL 기준 RTSP, WebRTC simple signaling, WHEP playback 통과
+  - WebRTC egress video는 브라우저 H264 협상 호환성을 위해 720p/30fps로 정규화
 - 동일 source 요청에 대한 `StreamRegistry` 기반 dedup 구조
 - `SharedStream` 기반 video/audio fan-out
 - route별 video/audio codec 변환
@@ -134,6 +140,8 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
   - 로컬 RTSP/HTTP source launcher와 일부 검증 스크립트에 사용한다.
 - `node`
   - 브라우저 WebRTC end-to-end 검증 스크립트에 사용한다.
+- `yt-dlp`
+  - `source=youtube` 요청에서 YouTube watch/live URL을 HTTP/HLS playable URL로 해석할 때 사용한다.
 
 ### GStreamer 필수 모듈
 CMake가 `pkg-config`로 아래 모듈을 찾는다.
@@ -185,6 +193,14 @@ Homebrew prefix가 다르면 실행 전에 지정한다.
 HOMEBREW_PREFIX=/usr/local ./scripts/run_server_foreground.sh
 ```
 
+수동 설치가 필요하면 아래 패키지를 설치한다.
+
+```bash
+brew install cmake pkg-config ffmpeg node python yt-dlp \
+  gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad \
+  gst-rtsp-server libnice libnice-gstreamer
+```
+
 ### Linux 환경
 Linux에서는 `pkg-config`가 GStreamer 개발 패키지를 찾을 수 있어야 한다.
 
@@ -193,7 +209,7 @@ Debian/Ubuntu 계열:
 ```bash
 sudo apt update
 sudo apt install -y \
-  build-essential cmake pkg-config ffmpeg python3 nodejs \
+  build-essential cmake pkg-config ffmpeg python3 nodejs yt-dlp \
   libgstreamer1.0-dev libgstrtspserver-1.0-dev libnice-dev \
   gstreamer1.0-tools gstreamer1.0-plugins-base \
   gstreamer1.0-plugins-good gstreamer1.0-plugins-bad
@@ -203,7 +219,7 @@ Fedora 계열:
 
 ```bash
 sudo dnf install -y \
-  gcc-c++ cmake pkgconf-pkg-config ffmpeg python3 nodejs \
+  gcc-c++ cmake pkgconf-pkg-config ffmpeg python3 nodejs yt-dlp \
   libnice libnice-devel \
   gstreamer1-devel gstreamer1-rtsp-server-devel \
   gstreamer1-plugins-base-tools gstreamer1-plugins-base \
@@ -214,7 +230,7 @@ Arch 계열:
 
 ```bash
 sudo pacman -S --needed \
-  base-devel cmake pkgconf ffmpeg python nodejs \
+  base-devel cmake pkgconf ffmpeg python nodejs yt-dlp \
   gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad \
   gst-rtsp-server libnice
 ```
@@ -268,6 +284,10 @@ MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
 | `MEDIA_SERVER_RTSP_TRACK_SETTLE_QUIET_PERIOD_MS` | 첫 track 이후 추가 track discovery quiet period |
 | `MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS` | track discovery 전체 상한 |
 | `MEDIA_SERVER_GST_ATTACH_CONTEXT` | GStreamer RTSP server main context 강제 설정 |
+| `MEDIA_SERVER_YOUTUBE_RESOLVER_BIN` | YouTube URL 해석에 사용할 resolver binary. 기본 `yt-dlp` |
+| `MEDIA_SERVER_YOUTUBE_FORMAT` | `yt-dlp -f` format selector. 기본은 HLS 우선, 그 다음 audio/video 포함 HTTP 포맷 |
+| `MEDIA_SERVER_YOUTUBE_RESOLVE_TIMEOUT_MS` | YouTube URL 해석 timeout. 기본 `15000` |
+| `MEDIA_SERVER_YOUTUBE_RECONNECT_DELAY_MS` | YouTube delegate가 중단된 뒤 재해석/재연결을 시도하기 전 대기 시간. 기본 `2000` |
 
 로컬 실행용 env 파일은 아래 예시를 복사해서 만든다.
 
@@ -287,6 +307,7 @@ cp scripts/.media_server.env.example scripts/.media_server.env
 | `scripts/restart_server.sh` | 서버 재시작 |
 | `scripts/check_server.sh` | 프로세스/포트/로그 상태 확인 |
 | `scripts/diagnose_media_server.sh` | 실행환경, 포트, source 접근성 진단 |
+| `scripts/print_external_test_urls.sh` | 같은 LAN의 다른 PC에서 복사해 테스트할 URL 출력 |
 | `scripts/verify_codec_matrix.sh` | source/route codec matrix 자동 검증 |
 | `scripts/serve_test_rtsp_source.py` | 로컬 샘플 파일을 RTSP source로 제공 |
 | `scripts/whip_publish_test.py` | 로컬 WebRTC WHIP publisher |
@@ -299,6 +320,7 @@ cp scripts/.media_server.env.example scripts/.media_server.env
 ./scripts/install_deps.sh
 pkg-config --modversion gstreamer-1.0
 gst-inspect-1.0 webrtcbin nicesrc nicesink
+yt-dlp --version
 ```
 
 빌드:
@@ -390,6 +412,10 @@ lsof -nP -iTCP:8554 -iTCP:8080 -sTCP:LISTEN
 - `MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS`
 - `MEDIA_SERVER_RTSP_TRACK_SETTLE_QUIET_PERIOD_MS`
 - `MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS`
+- `MEDIA_SERVER_YOUTUBE_RESOLVER_BIN`
+- `MEDIA_SERVER_YOUTUBE_FORMAT`
+- `MEDIA_SERVER_YOUTUBE_RESOLVE_TIMEOUT_MS`
+- `MEDIA_SERVER_YOUTUBE_RECONNECT_DELAY_MS`
 
 예제 env 파일:
 - `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/.media_server.env.example`
@@ -402,7 +428,7 @@ lsof -nP -iTCP:8554 -iTCP:8080 -sTCP:LISTEN
 ./scripts/install_deps.sh
 ```
 
-macOS/Homebrew 기준으로는 `gstreamer`, `gst-plugins-*`, `gstreamer-rtsp-server`, `libnice-gstreamer` 계열이 필요합니다.
+macOS/Homebrew 기준으로는 `gstreamer`, `gst-plugins-*`, `gstreamer-rtsp-server`, `libnice-gstreamer`, `ffmpeg`, `node`, `yt-dlp` 계열이 필요합니다.
 
 ## 빌드
 
@@ -524,6 +550,50 @@ POST http://127.0.0.1:8080/webrtc/session?source=webrtc&url={source_id}
 POST http://127.0.0.1:8080/whep?source=webrtc&url={source_id}
 ```
 
+### 6. HTTP/HLS/YouTube URL -> RTSP / WebRTC
+
+HTTP/HLS playable URL은 기존 URI source 경로로 바로 소비한다.
+
+```text
+rtsp://127.0.0.1:8554/dhseo?source=http&url={urlencoded_http_media_url}
+rtsp://127.0.0.1:8554/dhseo?source=hls&url={urlencoded_m3u8_url}
+POST http://127.0.0.1:8080/webrtc/session?source=http&url={urlencoded_http_media_url}
+POST http://127.0.0.1:8080/whep?source=hls&url={urlencoded_m3u8_url}
+```
+
+YouTube watch/live URL은 `source=youtube`로 요청한다.
+서버는 `yt-dlp`를 실행해 실제 HTTP/HLS URL로 해석한 뒤, 기존 `source=http|hls` URI source worker에 위임한다.
+
+```text
+rtsp://127.0.0.1:8554/dhseo?source=youtube&url={urlencoded_youtube_watch_or_live_url}
+POST http://127.0.0.1:8080/webrtc/session?source=youtube&url={urlencoded_youtube_watch_or_live_url}
+POST http://127.0.0.1:8080/whep?source=youtube&url={urlencoded_youtube_watch_or_live_url}
+```
+
+주의:
+- `source=youtube`는 `yt-dlp`가 설치되어 있어야 동작한다.
+- YouTube URL은 권한, 지역 제한, 로그인 필요 여부, URL 만료 정책에 영향을 받는다.
+- 비공개, 로그인 필요, 지역 제한, 접근권한이 필요한 URL은 MediaServer에서 우회하지 않고 실패로 처리한다.
+- resolver 결과는 서명된 임시 URL일 수 있으므로 stream key는 원본 YouTube URL 기준으로 묶고, 실제 media URL은 worker 내부에서만 사용한다.
+- 동일 YouTube URL을 여러 클라이언트가 동시에 요청하면 원본 YouTube URL 기준으로 dedup되어 resolver/source worker는 1개만 시작된다.
+- 실행 중 HLS/HTTP delegate가 중단되면 `MEDIA_SERVER_YOUTUBE_RECONNECT_DELAY_MS` 이후 원본 YouTube URL을 다시 resolve해서 재연결을 시도한다.
+
+실패 메시지 기준:
+- `invalid YouTube URL host`
+  - `source=youtube`에 YouTube 계열 host가 아닌 URL이 들어온 경우다.
+- `resolver binary ... was not found`
+  - `yt-dlp`가 설치되어 있지 않거나 `MEDIA_SERVER_YOUTUBE_RESOLVER_BIN` 경로가 틀린 경우다.
+- `private video`, `authentication required`, `region restricted`
+  - 공개 접근이 불가능한 URL이다. 현재 정책은 cookies/login 연동 없이 명확히 실패시키는 것이다.
+- `live archive unavailable`
+  - 종료된 라이브의 archive가 아직 제공되지 않거나 접근 불가능한 상태다.
+- `format unavailable`
+  - 현재 `MEDIA_SERVER_YOUTUBE_FORMAT` selector로 재생 가능한 HLS/HTTP URL을 얻지 못한 경우다.
+- `resolver output appears to contain separate media URLs`
+  - `yt-dlp`가 video/audio 분리 URL을 반환한 경우다. 현재 서버는 단일 HLS 또는 muxed HTTP URL을 URI source에 위임하는 구조이므로 format selector를 HLS 또는 muxed format 우선으로 조정해야 한다.
+- `YouTube resolver timed out`
+  - 네트워크 지연 또는 resolver 응답 지연이다. 필요하면 `MEDIA_SERVER_YOUTUBE_RESOLVE_TIMEOUT_MS`를 늘린다.
+
 ## 앞으로 붙일 영상 분석 계층
 
 WebRTC까지 안정화한 이후에는, MediaServer가 원본 video/audio를 받아서 `객체 감지`, `추적`, `이벤트 추출`, `스냅샷 생성` 같은 분석을 수행할 수 있도록 확장할 예정입니다.
@@ -639,6 +709,31 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
 - `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/config/codec_test_sources.json`
 
 각 source에는 선택적으로 `verify_profile`을 줄 수 있습니다.
+
+### 4. 다른 PC에서 외부 연결 수동 검증
+
+같은 LAN의 데스크탑, 다른 노트북, 휴대폰에서 MediaServer 접근성을 확인하려면 맥북 서버를 loopback이 아닌 전체 인터페이스에 bind한다.
+
+```bash
+MEDIA_SERVER_LISTEN_ADDRESS=0.0.0.0 \
+MEDIA_SERVER_HTTP_LISTEN_ADDRESS=0.0.0.0 \
+MEDIA_SERVER_FORCE_RTSP_TCP=1 \
+./scripts/restart_server.sh
+```
+
+복사 가능한 URL 목록은 아래 스크립트가 현재 LAN IP와 포트 기준으로 출력한다.
+
+```bash
+./scripts/print_external_test_urls.sh
+```
+
+IP를 직접 지정하려면:
+
+```bash
+MEDIA_SERVER_EXTERNAL_HOST=192.168.0.10 ./scripts/print_external_test_urls.sh
+```
+
+먼저 다른 PC 브라우저에서 `/health`와 `/webrtc/test`가 열리는지 확인한다. 여기서 실패하면 RTSP/WebRTC 문제가 아니라 macOS 방화벽, bind address, 공유기 WiFi/LAN isolation 문제를 먼저 봐야 한다.
 - `rtsp_preflight_timeout_ms`
 - `ffprobe_timeout_us`
 - `webrtc_http_timeout_s`
@@ -666,6 +761,11 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
 - `RTSP(h264 + pcmu local source) -> WebRTC(signaling)`
 - `RTSP(h264 + pcma local source) -> RTSP`
 - `RTSP(h264 + pcma local source) -> WebRTC(signaling)`
+- `HTTP video-only MP4 -> RTSP`
+  - 입력 파일: `sample_h264_video_only.mp4`
+  - 결과: `h264/hevc video + route silent audio`
+- `HTTP video-only MP4 -> WebRTC(simple signaling/playback)`
+  - browser consumer 기준 video-only track 및 `decoded video frame` 확인
 - `WebRTC publish(publisher-demo2 local WHIP test) -> RTSP`
   - `rtsp://127.0.0.1:8555/dhseo?source=webrtc&url=publisher-demo2`
   - 결과: `h264 + aac`
@@ -675,6 +775,32 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
   - browser consumer 기준 `decoded video frame` 확인
 - `WebRTC publish(browser publisher) -> WebRTC(WHEP)`
   - browser consumer 기준 audio/video track 및 `decoded video frame` 확인
+- `YouTube resolver(fake yt-dlp -> local HTTP MP4) -> RTSP`
+  - 결과: `h264 + aac`
+- `YouTube uploaded/VOD URL -> RTSP`
+  - test URL: `https://www.youtube.com/watch?v=aqz-KE-bpKQ`
+  - 결과: `h264 + aac`
+- `YouTube uploaded/VOD URL -> WebRTC(simple signaling)`
+  - browser consumer 기준 audio/video track 및 `decoded video frame` 확인
+  - 결과 해상도: `1280x720`
+- `YouTube uploaded/VOD URL -> WebRTC(WHEP)`
+  - browser consumer 기준 audio/video track 및 `decoded video frame` 확인
+  - 결과 해상도: `1280x720`
+- `YouTube live URL -> RTSP`
+  - test URL: `https://www.youtube.com/watch?v=iYmvCUonukw`
+  - 결과: `h264 + aac`
+- `YouTube live URL -> WebRTC(simple signaling)`
+  - browser consumer 기준 audio/video track 및 `decoded video frame` 확인
+  - 결과 해상도: `1280x720`
+- `YouTube live URL -> WebRTC(WHEP)`
+  - browser consumer 기준 audio/video track 및 `decoded video frame` 확인
+  - 결과 해상도: `1280x720`
+- `YouTube 동일 URL 5개 동시 요청 -> WebRTC session`
+  - 결과: resolver 1회, source worker start 1회, stream created 1회, 나머지 4개 요청은 동일 `SharedStream` 재사용
+- `YouTube fake HLS/EOS -> delegate reconnect`
+  - 결과: `delegate stopped -> resolved -> reconnected` 반복 확인
+- 로컬 전체 matrix
+  - 결과: `pass=63 fail=0 skip=3`
 
 ## 외부 RTSP source 관련 주의
 
@@ -693,17 +819,21 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
 
 ## 다음에 이어서 하기 좋은 작업
 
-1. YouTube URL source 검토/구현
-   - `source=hls|http` 형태의 `HLS/HTTP SourceWorker` 1차 경로를 추가했고, 로컬 HTTP MP4 기준 RTSP/WebRTC 검증이 통과했다.
-   - YouTube watch/live URL은 직접 media URL이 아니므로 `YouTubeResolver -> HLS/HTTP URL -> SourceWorker` 구조로 격리한다.
-   - 라이브와 업로드된 영상 모두 고려하되, 약관/권한 문제 때문에 기본 source 기능은 `youtube`가 아니라 `hls/http`로 둔다.
-   - video-only source를 막던 RTSP/WebRTC egress의 대표 실패 지점을 완화했다.
-2. 영상분석 branch 추가
+1. 영상분석 branch 추가
+   - 현재 relay 안정화 기준으로 file, HTTP/HLS, YouTube, RTSP pull, WebRTC publish source의 주요 경로를 검증했다.
    - 송신 경로(RTSP/WebRTC egress)는 직접 막지 않는다.
    - `SharedStream`에 별도 analysis subscriber/tap을 붙이고, 분석 branch는 drop-oldest 및 frame sampling을 사용한다.
    - 첫 단계는 metadata/snapshot API로 시작하고, overlay stream은 이후 별도 단계로 분리한다.
+2. YouTube URL source 유지보수
+   - `source=hls|http` 형태의 `HLS/HTTP SourceWorker` 1차 경로를 추가했고, 로컬 HTTP MP4 기준 RTSP/WebRTC 검증이 통과했다.
+   - `source=youtube` 1차 경로는 `yt-dlp` 기반 `YouTubeResolver -> HLS/HTTP URL -> UriSourceWorker` 구조로 연결했다.
+   - 라이브와 업로드된 영상 모두 고려하되, 약관/권한 문제 때문에 기본 source 기능은 `youtube`가 아니라 `hls/http`로 둔다.
+   - video-only source를 막던 RTSP/WebRTC egress의 대표 실패 지점을 완화했다.
+   - 실제 업로드/라이브 URL 각각 1개씩 RTSP/WebRTC 검증이 통과했다.
+   - 지역 제한/로그인 필요/비공개 URL은 우회하지 않고 실패시키는 정책으로 둔다.
+   - fake HLS/EOS source 기준 재연결 동작까지 확인했다.
 3. 운영 안정화 후속
-   - `SessionManager` trace 로그 정리
    - 외부 RTSP source별 timeout/profile 설정 확장
    - WebRTC 운영 설정(auth/STUN/TURN/ICE policy) 정리
+   - audio-only input은 현재 video relay/analysis 준비 범위 밖이다. RTSP/WebRTC egress는 video track을 기준으로 동작한다.
    - WebRTC end-to-end 브라우저 검증 자동화 범위 확장

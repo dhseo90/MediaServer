@@ -316,10 +316,12 @@ verify_rtsp_case() {
     fi
   done <<< "${output}"
 
-  if [[ "${video_codec}" == "${expect_video}" && "${audio_codec}" == "${expect_audio}" ]]; then
-    log_pass "${name}: RTSP ${route_suffix:-/default} -> ${video_codec}/${audio_codec}"
+  local normalized_video="${video_codec:-none}"
+  local normalized_audio="${audio_codec:-none}"
+  if [[ "${normalized_video}" == "${expect_video}" && "${normalized_audio}" == "${expect_audio}" ]]; then
+    log_pass "${name}: RTSP ${route_suffix:-/default} -> ${normalized_video}/${normalized_audio}"
   else
-    log_fail "${name}: RTSP ${route_suffix:-/default} expected ${expect_video}/${expect_audio}, got ${video_codec:-none}/${audio_codec:-none}"
+    log_fail "${name}: RTSP ${route_suffix:-/default} expected ${expect_video}/${expect_audio}, got ${normalized_video}/${normalized_audio}"
   fi
 }
 
@@ -356,6 +358,19 @@ route_map = {
 profile_arg = sys.argv[1]
 if profile_arg:
     profile = json.loads(profile_arg)
+    route_expectations = profile.get("rtsp_routes")
+    if isinstance(route_expectations, list) and route_expectations:
+        for item in route_expectations:
+            if not isinstance(item, dict):
+                continue
+            route_suffix = item.get("route_suffix")
+            if route_suffix is None:
+                route = route_map.get(item.get("route_key", "default"))
+                route_suffix = route[0] if route is not None else ""
+            expect_video = item.get("expect_video", "h264")
+            expect_audio = item.get("expect_audio", "aac")
+            print("|".join([route_suffix, expect_video, expect_audio]))
+        raise SystemExit(0)
     keys = profile.get("rtsp_route_keys")
     if isinstance(keys, list) and keys:
         for key in keys:

@@ -15,6 +15,7 @@ add_executable(media_server
     src/core/source_factory.cpp
     src/core/stream_registry.cpp
     src/core/stream_key.cpp
+    src/core/youtube_resolver.cpp
     src/core/resource_guard.cpp
     src/core/session_manager.cpp
     src/ingress/gst_pipeline_builder.cpp
