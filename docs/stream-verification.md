@@ -66,6 +66,68 @@
    - `2026-04-24` 공개 VOD `aqz-KE-bpKQ` 기준으로 성공/실패가 모두 재현됐다.
    - 현재는 성공 시 import 결과를 `ffmpeg`로 `h264 + aac stereo + mp4`로 정규화한 뒤 `file=` relay/analysis 경로에 바로 재사용하도록 수정했다.
 
+## 영상분석 브랜치 착수 전 blocker 체크리스트
+- 목적
+  - 스트리밍 기반이 흔들리는 상태에서 분석 계층을 얹지 않도록, 분석 브랜치 분기 전에 최소 기준선을 확인한다.
+- 통과 기준
+  - 로컬 `file -> RTSP`, `file -> WebRTC(signaling)`이 계속 재생 가능해야 한다.
+  - 로컬 `RTSP pull -> RTSP/WebRTC(signaling)`이 codec matrix 기준으로 재현 가능해야 한다.
+  - 로컬 `WebRTC publish -> RTSP/WebRTC(signaling)`이 source 재사용과 함께 동작해야 한다.
+  - 동일 source 다중 세션에서 `SharedStream` 재사용이 유지되어 upstream 연결이 중복 생성되지 않아야 한다.
+  - `start/stop/restart/check/diagnose` 스크립트가 기본 동작을 깨지 않고 수행되어야 한다.
+  - source descriptor/audio-video track discovery가 로컬 검증 범위에서 일관되어야 한다.
+  - 서버 중지 후 listen port와 잔여 foreground process가 남지 않아야 한다.
+- 이번 체크에서 우선 보는 범위
+  - 외부 RTSP, 실험실 YouTube, 운영용 STUN/TURN/auth는 blocker가 아니라 후속 테스트로 남긴다.
+- 권장 실행 순서
+  1. `cmake --build build-gst`
+  2. `./scripts/start_server.sh`
+  3. `./scripts/check_server.sh`
+  4. `./scripts/verify_codec_matrix.sh`
+  5. `./scripts/diagnose_media_server.sh`
+  6. `./scripts/stop_server.sh`
+- 판단 규칙
+  - 위 로컬 core 경로가 통과하면 분석 전용 브랜치로 분기해도 된다.
+  - core 경로가 깨지면 분석 착수보다 스트리밍 안정화 수정을 먼저 한다.
+
+## 분석 브랜치 진행 중 보류할 테스트와 복귀 계획
+- 분석 브랜치(`Perception/RuleEngine/Overlay`) 작업 중에는 아래 항목을 main 기준 후속 테스트로 보류한다.
+  - 외부 RTSP source 재검증
+  - WebRTC 운영 환경 테스트(auth/STUN/TURN/ICE)
+  - audio-only input 정책 확정
+  - 실험실 YouTube 회귀 검증
+  - `/lab/import` 외부 네트워크 재검증
+- 분석 기능 1차 구현과 로컬 회귀가 끝나면, 이 문서의 `남은 테스트 스텝` 순서로 다시 돌아와 보류 항목을 재개한다.
+- 즉 현재 계획은 `로컬 core 경로 안정화 확인 -> 분석 브랜치 개발 -> main으로 복귀 후 미완료 테스트 재개` 순서다.
+
+## 2026-04-24 blocker 체크 결과
+- 실행한 항목
+  - `cmake --build build-gst`
+  - `./scripts/start_server.sh`
+  - `./scripts/check_server.sh`
+  - `./scripts/verify_codec_matrix.sh`
+  - `./scripts/diagnose_media_server.sh`
+  - `./scripts/restart_server.sh`
+  - `./scripts/stop_server.sh`
+- 확인된 통과 범위
+  - 빌드 성공
+  - detached/foreground 여부와 별개로 로컬 `file -> RTSP` probe는 `h264`, `h265` 모두 성공
+  - `verify_codec_matrix.sh` 기준 `file`, 로컬 `RTSP pull`, 로컬 `WebRTC publish` 경로는 통과
+  - `verify_codec_matrix.sh` 요약: `pass=57 fail=6 skip=3`
+- 이번 실행에서 드러난 이슈
+  - 실패 6건은 모두 `source=http` RTSP route probe에서 발생했다.
+    - 증상: `503 Service Unavailable`
+    - 범위: `http_local_h264_aac`, `http_local_h264_video_only`
+    - 참고: 같은 source의 WebRTC signaling session 생성은 성공했다.
+  - `start/check/diagnose/stop` 스크립트는 Codex 실행환경의 socket policy 영향도 함께 받았다.
+    - sandbox에서는 local bind/connect self-test가 `Operation not permitted`로 보일 수 있었다.
+    - escalated detached start/restart는 실제로 `LISTEN`과 RTSP probe success가 나온 경우가 있었다.
+    - 반대로 pid file만 남고 process/lsof 상태가 일치하지 않는 stale 상황도 한 번 관찰됐다.
+- 현재 판단
+  - `file`, `RTSP pull`, `WebRTC publish`를 대상으로 한 분석 1차 브랜치는 진행 가능하다.
+  - 다만 `HTTP/HLS URI source`를 분석 1차 범위에 포함하면, 이번에 재현된 `source=http` RTSP 503을 먼저 정리해야 한다.
+  - detached lifecycle 스크립트의 Codex 환경 특이점은 분석 blocker라기보다 main 후속 안정화 항목으로 둔다.
+
 ## 실험실 YouTube 개발 중단 사유
 - 현재 `source=youtube` 경로는 코드 수준 1차 연결과 일부 재생 검증까지는 끝났지만, 기본 기능으로 승격할 정도의 안정성은 확보하지 못했다.
 - 중단 사유는 서버 내부 codec/route 구조보다 외부 요인 비중이 크다.

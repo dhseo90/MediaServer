@@ -876,10 +876,12 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./scripts/print_external_test_urls.s
 ## 다음에 이어서 하기 좋은 작업
 
 1. 영상분석 branch 추가
+   - 분석 착수 전 blocker 체크리스트는 `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/stream-verification.md`에 문서화한다.
    - 현재 relay 안정화 기준으로 file, HTTP/HLS, RTSP pull, WebRTC publish source의 주요 경로를 검증했다.
    - 송신 경로(RTSP/WebRTC egress)는 직접 막지 않는다.
    - `SharedStream`에 별도 analysis subscriber/tap을 붙이고, 분석 branch는 drop-oldest 및 frame sampling을 사용한다.
    - 첫 단계는 metadata/snapshot API로 시작하고, overlay stream은 이후 별도 단계로 분리한다.
+   - 분석 브랜치 작업이 끝나면 외부 RTSP, WebRTC 운영 설정, 실험실 YouTube, `/lab/import` 외부 네트워크 재검증 같은 보류 항목을 다시 main 기준으로 이어서 확인한다.
 2. 운영 안정화 후속
    - 외부 RTSP source별 timeout/profile 설정 확장
    - WebRTC 운영 설정(auth/STUN/TURN/ICE policy) 정리
