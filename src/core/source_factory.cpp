@@ -168,6 +168,44 @@ bool HasVideoRandomAccessNal(CodecId codec, const unsigned char* data, std::size
     return HasRandomAccessNalLengthPrefixed(codec, data, size) || HasRandomAccessNalAnnexB(codec, data, size);
 }
 
+void SetIntPropertyIfPresent(GstElement* element, const char* property, const int value) {
+    if (element == nullptr || property == nullptr ||
+        g_object_class_find_property(G_OBJECT_GET_CLASS(element), property) == nullptr) {
+        return;
+    }
+    g_object_set(element, property, value, nullptr);
+}
+
+void SetBoolPropertyIfPresent(GstElement* element, const char* property, const gboolean value) {
+    if (element == nullptr || property == nullptr ||
+        g_object_class_find_property(G_OBJECT_GET_CLASS(element), property) == nullptr) {
+        return;
+    }
+    g_object_set(element, property, value, nullptr);
+}
+
+std::string BuildUriRawVideoCaps() {
+    const auto& config = app::GetAppConfig();
+    std::ostringstream caps;
+    caps << "video/x-raw,format=I420,width=" << config.uri_video_width
+         << ",height=" << config.uri_video_height
+         << ",framerate=" << config.uri_video_fps << "/1";
+    return caps.str();
+}
+
+std::string RedactUriForLog(const std::string& uri) {
+    const std::size_t scheme_pos = uri.find("://");
+    if (scheme_pos == std::string::npos) {
+        return uri.size() > 160 ? uri.substr(0, 160) + "..." : uri;
+    }
+    const std::size_t authority_begin = scheme_pos + 3;
+    std::size_t authority_end = uri.find('/', authority_begin);
+    if (authority_end == std::string::npos) {
+        authority_end = uri.size();
+    }
+    return uri.substr(0, authority_end) + "/...";
+}
+
 StreamDescriptor DiscoverFileDescriptor(const std::string& file_path, std::string* error_message) {
     GError* error = nullptr;
     GstDiscoverer* discoverer = gst_discoverer_new(2 * GST_SECOND, &error);
@@ -1273,6 +1311,7 @@ public:
             }
             return false;
         }
+        const auto source_started_at = std::chrono::steady_clock::now();
 
         pipeline_ = gst_pipeline_new(nullptr);
         source_ = gst_element_factory_make("uridecodebin", "uri_source");
@@ -1323,16 +1362,17 @@ public:
             return false;
         }
 
+        const auto& config = app::GetAppConfig();
         const auto settle_started_at = std::chrono::steady_clock::now();
         const auto settle_limit =
-            settle_started_at + std::chrono::milliseconds(app::GetAppConfig().rtsp_track_settle_max_ms);
-        // HLS/HTTP 입력은 audio/video pad 발견 순서가 일정하지 않으므로 RTSP source와 같은 settle 로직을 쓴다.
+            settle_started_at + std::chrono::milliseconds(config.uri_track_settle_max_ms);
+        // HLS/HTTP 입력은 pad 발견 순서가 일정하지 않지만, 시작 지연을 줄이기 위해 RTSP보다 짧은 settle 값을 쓴다.
         while (running_.load() && source_error_.empty()) {
             const bool have_video = DescriptorHasKind(descriptor_, MediaKind::Video);
             const bool have_audio = DescriptorHasKind(descriptor_, MediaKind::Audio);
             const bool have_av = have_video && have_audio;
             const auto quiet_deadline =
-                last_discovery_at_ + std::chrono::milliseconds(app::GetAppConfig().rtsp_track_settle_quiet_period_ms);
+                last_discovery_at_ + std::chrono::milliseconds(config.uri_track_settle_quiet_period_ms);
             const auto wait_deadline = have_av ? std::min(quiet_deadline, settle_limit) : settle_limit;
             if (cv_.wait_until(lock, wait_deadline, [this] { return !running_.load() || !source_error_.empty(); })) {
                 break;
@@ -1343,9 +1383,13 @@ public:
             }
         }
 
+        const auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                    std::chrono::steady_clock::now() - source_started_at)
+                                    .count();
         std::cerr << "[uri-source] source ready kind=" << media::ToString(source_spec_.kind)
-                  << " uri=" << source_spec_.uri
-                  << " tracks=" << descriptor_.tracks.size() << "\n";
+                  << " source=" << RedactUriForLog(source_spec_.uri)
+                  << " tracks=" << descriptor_.tracks.size()
+                  << " elapsed_ms=" << elapsed_ms << "\n";
         stream->SetDescriptor(descriptor_);
         return true;
 #else
@@ -1395,6 +1439,7 @@ private:
         TrackInfo track;
         GstElement* queue{nullptr};
         GstElement* convert{nullptr};
+        GstElement* scale{nullptr};
         GstElement* rate_or_resample{nullptr};
         GstElement* capsfilter{nullptr};
         GstElement* encoder{nullptr};
@@ -1476,6 +1521,9 @@ private:
 
         gst_bin_add(GST_BIN(pipeline_), branch->queue);
         gst_bin_add(GST_BIN(pipeline_), branch->convert);
+        if (branch->scale != nullptr) {
+            gst_bin_add(GST_BIN(pipeline_), branch->scale);
+        }
         gst_bin_add(GST_BIN(pipeline_), branch->rate_or_resample);
         gst_bin_add(GST_BIN(pipeline_), branch->capsfilter);
         gst_bin_add(GST_BIN(pipeline_), branch->encoder);
@@ -1485,7 +1533,17 @@ private:
         gst_bin_add(GST_BIN(pipeline_), branch->sink);
 
         bool linked = false;
-        if (branch->parser != nullptr) {
+        if (branch->track.kind == MediaKind::Video && branch->parser != nullptr) {
+            linked = gst_element_link_many(branch->queue,
+                                           branch->convert,
+                                           branch->scale,
+                                           branch->rate_or_resample,
+                                           branch->capsfilter,
+                                           branch->encoder,
+                                           branch->parser,
+                                           branch->sink,
+                                           nullptr);
+        } else if (branch->parser != nullptr) {
             linked = gst_element_link_many(branch->queue,
                                            branch->convert,
                                            branch->rate_or_resample,
@@ -1519,6 +1577,9 @@ private:
 
         gst_element_sync_state_with_parent(branch->queue);
         gst_element_sync_state_with_parent(branch->convert);
+        if (branch->scale != nullptr) {
+            gst_element_sync_state_with_parent(branch->scale);
+        }
         gst_element_sync_state_with_parent(branch->rate_or_resample);
         gst_element_sync_state_with_parent(branch->capsfilter);
         gst_element_sync_state_with_parent(branch->encoder);
@@ -1554,24 +1615,37 @@ private:
         if (branch->queue == nullptr || branch->capsfilter == nullptr || branch->sink == nullptr) {
             return nullptr;
         }
+        g_object_set(branch->queue,
+                     "max-size-buffers",
+                     static_cast<guint>(8),
+                     "max-size-time",
+                     static_cast<guint64>(200 * GST_MSECOND),
+                     "max-size-bytes",
+                     static_cast<guint>(0),
+                     "leaky",
+                     2,
+                     nullptr);
 
         if (track.kind == MediaKind::Video) {
             branch->convert = gst_element_factory_make("videoconvert", nullptr);
+            branch->scale = gst_element_factory_make("videoscale", nullptr);
             branch->rate_or_resample = gst_element_factory_make("videorate", nullptr);
             branch->encoder = gst_element_factory_make("x264enc", nullptr);
             branch->parser = gst_element_factory_make("h264parse", nullptr);
-            if (branch->convert == nullptr || branch->rate_or_resample == nullptr ||
+            if (branch->convert == nullptr || branch->scale == nullptr || branch->rate_or_resample == nullptr ||
                 branch->encoder == nullptr || branch->parser == nullptr) {
                 return nullptr;
             }
-            GstCaps* raw_caps = gst_caps_from_string("video/x-raw,format=I420,framerate=30/1");
+            const std::string raw_caps_text = BuildUriRawVideoCaps();
+            GstCaps* raw_caps = gst_caps_from_string(raw_caps_text.c_str());
             g_object_set(branch->capsfilter, "caps", raw_caps, nullptr);
             if (raw_caps != nullptr) {
                 gst_caps_unref(raw_caps);
             }
+            const auto& config = app::GetAppConfig();
             g_object_set(branch->encoder,
                          "bitrate",
-                         2048,
+                         config.uri_video_bitrate_kbps,
                          "key-int-max",
                          30,
                          "bframes",
@@ -1579,9 +1653,12 @@ private:
                          "byte-stream",
                          FALSE,
                          nullptr);
-            // URI/VOD source는 첫 프레임 지연이 RTSP DESCRIBE 503으로 이어질 수 있어 저지연 인코딩을 강제한다.
+            // URI/YouTube source는 내부 표준 H264로 1차 재인코딩되므로 품질과 저지연 옵션을 같이 관리한다.
             gst_util_set_object_arg(G_OBJECT(branch->encoder), "tune", "zerolatency");
-            gst_util_set_object_arg(G_OBJECT(branch->encoder), "speed-preset", "ultrafast");
+            gst_util_set_object_arg(G_OBJECT(branch->encoder), "speed-preset", config.uri_x264_speed_preset.c_str());
+            SetIntPropertyIfPresent(branch->encoder, "rc-lookahead", 0);
+            SetIntPropertyIfPresent(branch->encoder, "sync-lookahead", 0);
+            SetBoolPropertyIfPresent(branch->encoder, "sliced-threads", TRUE);
             g_object_set(branch->parser, "config-interval", -1, nullptr);
         } else if (track.kind == MediaKind::Audio) {
             branch->convert = gst_element_factory_make("audioconvert", nullptr);
@@ -1624,6 +1701,9 @@ private:
         }
         if (branch->rate_or_resample != nullptr) {
             gst_bin_remove(GST_BIN(pipeline_), branch->rate_or_resample);
+        }
+        if (branch->scale != nullptr) {
+            gst_bin_remove(GST_BIN(pipeline_), branch->scale);
         }
         if (branch->convert != nullptr) {
             gst_bin_remove(GST_BIN(pipeline_), branch->convert);

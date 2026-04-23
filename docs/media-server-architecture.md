@@ -247,12 +247,12 @@ public:
 4. file/rtsp source adapter 구현
 5. ResourceGuard + metrics 적용
 6. WebRTC ingress/egress/source를 동일 인터페이스로 추가
-7. YouTube live/uploaded URL 수신을 위한 `Hls/Http SourceWorker`와 `YouTubeResolver` 추가
+7. `Hls/Http SourceWorker` 추가 및 실험실 `YouTubeResolver` 경로 분리
 8. 영상 분석용 `analysis subscriber/tap` 추가
 
-## 12.1 다음 확장 순서: YouTube URL source
+## 12.1 HTTP/HLS source와 실험실 YouTube source
 
-다음 구현 순서는 YouTube live/uploaded URL 검토가 먼저다. 단, YouTube watch/live URL은 직접 media URL이 아니므로 서버 내부에서는 아래처럼 분리한다.
+현재 기본 확장 방향은 `source=http|hls`이며, YouTube watch/live URL은 실험실 기능으로만 유지한다. YouTube watch/live URL은 직접 media URL이 아니므로 서버 내부에서는 아래처럼 분리한다.
 
 ```text
 YouTube watch/live URL
@@ -272,10 +272,10 @@ SharedStream
 
 구현 원칙:
 - 기본 source protocol은 `source=hls` 또는 `source=http`로 먼저 연다. 현재 1차 `UriSourceWorker`는 GStreamer `uridecodebin`으로 HTTP/HLS media URL을 수신한 뒤 내부 표준 패킷(`H264` video, `AAC` audio)으로 재인코딩한다.
-- `source=youtube`는 `yt-dlp` 기반 resolver를 통과하는 별도 옵션으로 둔다.
+- `source=youtube`는 `yt-dlp` 기반 resolver를 통과하는 실험실 옵션으로 두고, 기본값으로는 숨긴다.
 - resolver는 YouTube watch/live URL을 HLS/HTTP playable URL로 변환하고, 실제 packet 수집은 기존 `UriSourceWorker`가 담당한다.
 - 라이브와 업로드된 영상 모두 고려한다.
-- YouTube 약관/권한 이슈가 있으므로 resolver는 실험/권한 확인 가능한 경로로 격리한다.
+- YouTube 약관/권한 이슈가 있으므로 resolver는 실험/권한 확인 가능한 경로로 격리하고, `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`일 때만 노출한다.
 - 동일 YouTube URL을 여러 클라이언트가 요청하면 원본 YouTube URL을 stream key로 사용해 하나의 `SharedStream`으로 fan-out한다.
 - 실행 중 delegate URI source가 중단되면 원본 YouTube URL을 다시 resolve해서 서명 URL 만료나 일시적인 HLS 중단을 복구하려고 시도한다.
 - HLS/HTTP source는 video-only stream도 처리할 수 있어야 하며, RTSP/WebRTC egress의 대표적인 audio 필수 가정은 완화했다.
@@ -286,13 +286,14 @@ SharedStream
 - `rtsp://{address}:{port}/{route}?source=hls&url={urlencoded_m3u8_url}`
 - `POST /webrtc/session?source=hls&url={urlencoded_m3u8_url}`
 - `POST /whep?source=hls&url={urlencoded_m3u8_url}`
-- `rtsp://{address}:{port}/{route}?source=youtube&url={urlencoded_youtube_watch_or_live_url}`
-- `POST /webrtc/session?source=youtube&url={urlencoded_youtube_watch_or_live_url}`
-- `POST /whep?source=youtube&url={urlencoded_youtube_watch_or_live_url}`
+- 실험실 opt-in 시에만:
+  - `rtsp://{address}:{port}/{route}?source=youtube&url={urlencoded_youtube_watch_or_live_url}`
+  - `POST /webrtc/session?source=youtube&url={urlencoded_youtube_watch_or_live_url}`
+  - `POST /whep?source=youtube&url={urlencoded_youtube_watch_or_live_url}`
 
-## 12.2 YouTube 이후 확장: 영상 분석 계층
+## 12.2 다음 확장: 영상 분석 계층
 
-YouTube URL source 검토 이후에는 MediaServer 안에 영상 분석 계층을 추가할 계획이다. 이때 분석 로직은 relay 경로를 직접 대체하는 것이 아니라, `SharedStream`을 구독하는 별도 처리 경로로 붙이는 것이 맞다.
+현재 다음 주요 단계는 MediaServer 안에 영상 분석 계층을 추가하는 것이다. 이때 분석 로직은 relay 경로를 직접 대체하는 것이 아니라, `SharedStream`을 구독하는 별도 처리 경로로 붙이는 것이 맞다.
 
 권장 구조:
 

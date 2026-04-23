@@ -155,9 +155,11 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
     const VideoCodec video_codec = CodecFromPath(request.path, config.stream_route);
     const media::CodecId audio_codec = AudioCodecFromPath(request.path, config.stream_route);
 
-    const auto source_spec = ParseSourceSpec(request);
+    std::string parse_error;
+    const auto source_spec = ParseSourceSpec(request, &parse_error);
     if (!source_spec.has_value()) {
-        std::cerr << "[gst] invalid request query. expected ?url=... or ?file=...\n";
+        std::cerr << "[gst] invalid request query: "
+                  << (parse_error.empty() ? "expected ?url=... or ?file=..." : parse_error) << "\n";
         return;
     }
 

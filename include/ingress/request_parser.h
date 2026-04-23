@@ -6,7 +6,8 @@
 
 namespace ingress {
 
-std::optional<media::SourceSpec> ParseSourceSpec(const media::IngressRequest& request);
+std::optional<media::SourceSpec> ParseSourceSpec(const media::IngressRequest& request,
+                                                std::string* error_message = nullptr);
 bool IsSupportedPath(const std::string& path);
 std::optional<media::SourceSpec> ParseSourceSpecFromPath(const std::string& path);
 

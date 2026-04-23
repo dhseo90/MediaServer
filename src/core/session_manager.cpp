@@ -33,10 +33,13 @@ SessionManager::CreateResult SessionManager::CreateSession(const media::IngressR
         return {.ok = false, .message = "session limit exceeded", .stream = nullptr};
     }
 
-    const auto source_spec = ingress::ParseSourceSpec(request);
+    std::string parse_error;
+    const auto source_spec = ingress::ParseSourceSpec(request, &parse_error);
     if (!source_spec.has_value()) {
         resource_guard_.ReleaseSession();
-        return {.ok = false, .message = "invalid source spec", .stream = nullptr};
+        return {.ok = false,
+                .message = parse_error.empty() ? "invalid source spec" : parse_error,
+                .stream = nullptr};
     }
 
     // 동일한 원본 URI/file/source id는 같은 StreamKey로 묶어 source worker를 하나만 띄운다.

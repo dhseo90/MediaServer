@@ -547,6 +547,11 @@ PY
       query="url=$(urlencode "${source}")&source=webrtc"
       ;;
     hls|http|youtube)
+      if [[ "${source_kind}" == "youtube" && "${MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE:-0}" != "1" ]]; then
+        log_skip "${name}: source=youtube is hidden by default; set MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1 to run this experimental case"
+        stop_tracked_launcher "${LAST_LAUNCHER_PID}" "${LAST_LAUNCHER_LOG}"
+        return
+      fi
       query="url=$(urlencode "${source}")&source=${source_kind}"
       ;;
     *)

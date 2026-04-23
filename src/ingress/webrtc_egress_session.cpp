@@ -30,6 +30,51 @@ std::string BuildLaunch(const media::StreamDescriptor& descriptor);
 constexpr std::int64_t kWebRtcVideoFrameDurationNs = 33333333;
 constexpr std::int64_t kWebRtcDefaultAudioFrameDurationNs = 20000000;
 
+std::string BuildWebRtcRawVideoCaps() {
+    const auto& config = app::GetAppConfig();
+    std::ostringstream caps;
+    caps << "video/x-raw,format=I420,width=" << config.webrtc_video_width
+         << ",height=" << config.webrtc_video_height
+         << ",framerate=" << config.webrtc_video_fps << "/1 ";
+    return caps.str();
+}
+
+std::string BuildRawVideoQueue() {
+    // decode 이후 raw frame queue만 작게/leaky로 두면 지연을 제한하면서 compressed delta frame 손상은 피할 수 있다.
+    return "queue name=video_raw_q max-size-buffers=4 max-size-time=200000000 max-size-bytes=0 leaky=downstream ";
+}
+
+void SetIntPropertyIfPresent(GstElement* element, const char* property, const int value) {
+    if (element == nullptr || property == nullptr ||
+        g_object_class_find_property(G_OBJECT_GET_CLASS(element), property) == nullptr) {
+        return;
+    }
+    g_object_set(element, property, value, nullptr);
+}
+
+void SetBoolPropertyIfPresent(GstElement* element, const char* property, const gboolean value) {
+    if (element == nullptr || property == nullptr ||
+        g_object_class_find_property(G_OBJECT_GET_CLASS(element), property) == nullptr) {
+        return;
+    }
+    g_object_set(element, property, value, nullptr);
+}
+
+void ConfigureParsedX264Encoder(GstElement* pipeline) {
+    if (pipeline == nullptr) {
+        return;
+    }
+    GstElement* encoder = gst_bin_get_by_name_recurse_up(GST_BIN(pipeline), "video_encoder");
+    if (encoder == nullptr) {
+        return;
+    }
+    // tune=zerolatency와 함께 lookahead를 꺼서 품질 상향이 추가 지연으로 번지지 않게 한다.
+    SetIntPropertyIfPresent(encoder, "rc-lookahead", 0);
+    SetIntPropertyIfPresent(encoder, "sync-lookahead", 0);
+    SetBoolPropertyIfPresent(encoder, "sliced-threads", TRUE);
+    gst_object_unref(encoder);
+}
+
 std::optional<media::StreamDescriptor> WaitForSupportedDescriptor(const std::shared_ptr<core::SharedStream>& stream) {
     if (stream == nullptr) {
         return std::nullopt;
@@ -141,20 +186,26 @@ GstCaps* BuildCapsFromTrack(const media::TrackInfo& track) {
 
 std::string BuildVideoInputChain(const media::TrackInfo& track) {
     // WebRTC H264 offer는 브라우저 호환성이 높은 720p/30fps baseline 계열로 정규화한다.
+    const std::string raw_caps = BuildWebRtcRawVideoCaps();
+    const std::string raw_queue = BuildRawVideoQueue();
     switch (track.codec) {
         case media::CodecId::VP8:
             return "appsrc name=video_src is-live=true format=time do-timestamp=false block=false "
-                   "! queue name=video_in_q ! vp8dec name=video_decoder ! queue "
-                   "! videoconvert ! videoscale ! videorate ! video/x-raw,format=I420,width=1280,height=720,framerate=30/1 ";
+                   "! queue name=video_in_q ! vp8dec name=video_decoder ! " +
+                   raw_queue +
+                   "! videoconvert ! videoscale ! videorate ! " + raw_caps;
         case media::CodecId::H264:
             return "appsrc name=video_src is-live=true format=time do-timestamp=false block=false "
                    "! queue name=video_in_q ! h264parse name=video_input_parse ! avdec_h264 name=video_decoder "
-                   "! queue ! videoconvert ! videoscale ! videorate "
-                   "! video/x-raw,format=I420,width=1280,height=720,framerate=30/1 ";
+                   "! " +
+                   raw_queue +
+                   "! videoconvert ! videoscale ! videorate ! " + raw_caps;
         case media::CodecId::H265:
             return "appsrc name=video_src is-live=true format=time do-timestamp=false block=false "
                    "! queue name=video_in_q ! h265parse name=video_input_parse ! avdec_h265 name=video_decoder "
-                   "! queue ! videoconvert ! videoscale ! videorate ! video/x-raw,format=I420,width=1280,height=720,framerate=30/1 ";
+                   "! " +
+                   raw_queue +
+                   "! videoconvert ! videoscale ! videorate ! " + raw_caps;
         case media::CodecId::Unknown:
         case media::CodecId::AAC:
         case media::CodecId::Opus:
@@ -201,10 +252,15 @@ std::string BuildLaunch(const media::StreamDescriptor& descriptor) {
         return {};
     }
 
-    const std::string video_output =
-        "! x264enc name=video_encoder tune=zerolatency speed-preset=ultrafast bitrate=2048 key-int-max=30 bframes=0 byte-stream=true aud=true "
-        "! video/x-h264,stream-format=byte-stream,alignment=au "
-        "! rtph264pay name=video_pay pt=96 config-interval=1 aggregate-mode=zero-latency ";
+    const auto& config = app::GetAppConfig();
+    std::ostringstream video_output;
+    video_output
+        << "! x264enc name=video_encoder tune=zerolatency speed-preset=" << config.webrtc_x264_speed_preset
+        << " bitrate=" << config.webrtc_video_bitrate_kbps
+        << " key-int-max=" << config.webrtc_video_keyframe_interval
+        << " bframes=0 byte-stream=true aud=true "
+        << "! video/x-h264,stream-format=byte-stream,alignment=au "
+        << "! rtph264pay name=video_pay pt=96 config-interval=1 aggregate-mode=zero-latency ";
 
     const std::string audio_output =
         audio_track == nullptr
@@ -222,7 +278,7 @@ std::string BuildLaunch(const media::StreamDescriptor& descriptor) {
     return "( "
            "webrtcbin name=webrtc bundle-policy=max-bundle "
            + video_input +
-           video_output +
+           video_output.str() +
            "! capsfilter name=video_rtp caps=\"application/x-rtp,media=video,encoding-name=H264,payload=96,clock-rate=90000\" "
            + audio_branch +
            ")";
@@ -759,9 +815,15 @@ void WebRtcEgressSession::QueuePendingPacket(const media::Packet& packet) {
     std::lock_guard lock(pending_mu_);
     if (packet.kind == media::MediaKind::Video && packet.is_key_frame) {
         // WebRTC 협상/transport link가 끝나기 전에는 최신 keyframe부터 GOP를 다시 모아야 한다.
-        // 이전 GOP의 delta frame/audio가 섞이면 decoder가 잘못된 참조 프레임으로 시작할 수 있다.
+        // 이전 GOP의 video delta frame만 버리고, 같은 timeline의 audio priming은 유지한다.
         last_video_keyframe_ = packet;
-        pending_packets_.clear();
+        std::deque<media::Packet> kept_audio;
+        for (const auto& pending : pending_packets_) {
+            if (pending.kind == media::MediaKind::Audio) {
+                kept_audio.push_back(pending);
+            }
+        }
+        pending_packets_.swap(kept_audio);
     }
     pending_packets_.push_back(packet);
     TrimPendingPackets(&pending_packets_);
@@ -842,6 +904,7 @@ bool WebRtcEgressSession::Start(const std::string& session_id,
         }
     }
     webrtc_gst::ConfigurePipelineClockAndLatency(pipeline_);
+    ConfigureParsedX264Encoder(pipeline_);
 
     g_signal_connect(pipeline_, "deep-element-added", G_CALLBACK(webrtc_gst::OnDeepElementAdded), pipeline_);
     video_appsrc_ = gst_bin_get_by_name_recurse_up(GST_BIN(pipeline_), "video_src");

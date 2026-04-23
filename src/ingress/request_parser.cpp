@@ -7,6 +7,16 @@
 
 namespace ingress {
 
+namespace {
+
+void SetError(std::string* error_message, std::string message) {
+    if (error_message != nullptr) {
+        *error_message = std::move(message);
+    }
+}
+
+}  // namespace
+
 bool IsSupportedPath(const std::string& path) {
     const std::string expected = "/" + app::GetAppConfig().stream_route;
     if (path == expected) {
@@ -68,8 +78,9 @@ std::optional<media::SourceSpec> ParseSourceSpecFromPath(const std::string& path
     return std::nullopt;
 }
 
-std::optional<media::SourceSpec> ParseSourceSpec(const media::IngressRequest& request) {
+std::optional<media::SourceSpec> ParseSourceSpec(const media::IngressRequest& request, std::string* error_message) {
     if (!IsSupportedPath(request.path)) {
+        SetError(error_message, "unsupported request path");
         return std::nullopt;
     }
 
@@ -82,6 +93,7 @@ std::optional<media::SourceSpec> ParseSourceSpec(const media::IngressRequest& re
     const bool has_file = request.query.find("file") != request.query.end();
     // source는 file 또는 url 중 하나만 가져야 dedup key와 worker 선택이 명확하다.
     if (has_url == has_file) {
+        SetError(error_message, "request must contain exactly one of file or url");
         return std::nullopt;
     }
 
@@ -89,12 +101,17 @@ std::optional<media::SourceSpec> ParseSourceSpec(const media::IngressRequest& re
         const auto it = request.query.find("file");
         const auto resolved = ResolveFileUri(it->second);
         if (!resolved.has_value()) {
+            SetError(error_message, "file path is outside configured file root");
             return std::nullopt;
         }
         return media::SourceSpec{.kind = media::SourceSpec::Kind::File, .uri = *resolved};
     }
 
     const auto url_it = request.query.find("url");
+    if (url_it == request.query.end() || url_it->second.empty()) {
+        SetError(error_message, "url query parameter is required");
+        return std::nullopt;
+    }
     media::SourceSpec::Kind kind = media::SourceSpec::Kind::Rtsp;
 
     if (const auto source_it = request.query.find("source"); source_it != request.query.end()) {
@@ -108,8 +125,15 @@ std::optional<media::SourceSpec> ParseSourceSpec(const media::IngressRequest& re
         } else if (source_it->second == "http") {
             kind = media::SourceSpec::Kind::Http;
         } else if (source_it->second == "youtube") {
+            if (!app::GetAppConfig().enable_experimental_youtube_source) {
+                SetError(error_message,
+                         "source=youtube is disabled by default; set "
+                         "MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1 to enable the experimental path");
+                return std::nullopt;
+            }
             kind = media::SourceSpec::Kind::Youtube;
         } else {
+            SetError(error_message, "unsupported source kind: " + source_it->second);
             return std::nullopt;
         }
     }

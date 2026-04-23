@@ -29,6 +29,20 @@ constexpr const char* kEnvRtspSourceStartTimeoutMs = "MEDIA_SERVER_RTSP_SOURCE_S
 constexpr const char* kEnvRtspTrackSettleQuietPeriodMs = "MEDIA_SERVER_RTSP_TRACK_SETTLE_QUIET_PERIOD_MS";
 constexpr const char* kEnvRtspTrackSettleMaxMs = "MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS";
 constexpr const char* kEnvGstAttachMode = "MEDIA_SERVER_GST_ATTACH_CONTEXT";
+constexpr const char* kEnvUriVideoWidth = "MEDIA_SERVER_URI_VIDEO_WIDTH";
+constexpr const char* kEnvUriVideoHeight = "MEDIA_SERVER_URI_VIDEO_HEIGHT";
+constexpr const char* kEnvUriVideoFps = "MEDIA_SERVER_URI_VIDEO_FPS";
+constexpr const char* kEnvUriVideoBitrateKbps = "MEDIA_SERVER_URI_VIDEO_BITRATE_KBPS";
+constexpr const char* kEnvUriX264Preset = "MEDIA_SERVER_URI_X264_PRESET";
+constexpr const char* kEnvUriTrackSettleQuietPeriodMs = "MEDIA_SERVER_URI_TRACK_SETTLE_QUIET_PERIOD_MS";
+constexpr const char* kEnvUriTrackSettleMaxMs = "MEDIA_SERVER_URI_TRACK_SETTLE_MAX_MS";
+constexpr const char* kEnvWebRtcVideoWidth = "MEDIA_SERVER_WEBRTC_VIDEO_WIDTH";
+constexpr const char* kEnvWebRtcVideoHeight = "MEDIA_SERVER_WEBRTC_VIDEO_HEIGHT";
+constexpr const char* kEnvWebRtcVideoFps = "MEDIA_SERVER_WEBRTC_VIDEO_FPS";
+constexpr const char* kEnvWebRtcVideoBitrateKbps = "MEDIA_SERVER_WEBRTC_VIDEO_BITRATE_KBPS";
+constexpr const char* kEnvWebRtcVideoKeyframeInterval = "MEDIA_SERVER_WEBRTC_VIDEO_KEYFRAME_INTERVAL";
+constexpr const char* kEnvWebRtcX264Preset = "MEDIA_SERVER_WEBRTC_X264_PRESET";
+constexpr const char* kEnvEnableExperimentalYoutubeSource = "MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE";
 constexpr const char* kEnvYoutubeResolverBin = "MEDIA_SERVER_YOUTUBE_RESOLVER_BIN";
 constexpr const char* kEnvYoutubeFormat = "MEDIA_SERVER_YOUTUBE_FORMAT";
 constexpr const char* kEnvYoutubeResolveTimeoutMs = "MEDIA_SERVER_YOUTUBE_RESOLVE_TIMEOUT_MS";
@@ -116,6 +130,29 @@ bool ReadBoolEnv(const char* name, bool fallback) {
     return fallback;
 }
 
+bool IsAllowedX264Preset(const std::string& preset) {
+    return preset == "ultrafast" || preset == "superfast" || preset == "veryfast" ||
+           preset == "faster" || preset == "fast" || preset == "medium" ||
+           preset == "slow" || preset == "slower" || preset == "veryslow" ||
+           preset == "placebo";
+}
+
+void ValidatePositiveInt(int* value, int fallback, const char* description) {
+    if (value == nullptr || *value > 0) {
+        return;
+    }
+    std::cerr << "[env] " << description << " must be positive, fallback " << fallback << "\n";
+    *value = fallback;
+}
+
+void ValidateEvenPositiveInt(int* value, int fallback, const char* description) {
+    if (value != nullptr && *value > 0 && (*value % 2) == 0) {
+        return;
+    }
+    std::cerr << "[env] " << description << " must be positive even number, fallback " << fallback << "\n";
+    *value = fallback;
+}
+
 app::AppConfig LoadAppConfig() {
     app::AppConfig config;
     // stdafx.h/app_config.h의 기본값을 먼저 만들고, 배포/테스트 환경별 env 값으로 덮어쓴다.
@@ -145,6 +182,24 @@ app::AppConfig LoadAppConfig() {
     config.rtsp_track_settle_max_ms =
         ReadIntEnv(kEnvRtspTrackSettleMaxMs, config.rtsp_track_settle_max_ms);
     config.gst_attach_context = ReadStringEnv(kEnvGstAttachMode, config.gst_attach_context);
+    config.uri_video_width = ReadIntEnv(kEnvUriVideoWidth, config.uri_video_width);
+    config.uri_video_height = ReadIntEnv(kEnvUriVideoHeight, config.uri_video_height);
+    config.uri_video_fps = ReadIntEnv(kEnvUriVideoFps, config.uri_video_fps);
+    config.uri_video_bitrate_kbps = ReadIntEnv(kEnvUriVideoBitrateKbps, config.uri_video_bitrate_kbps);
+    config.uri_x264_speed_preset = ReadStringEnv(kEnvUriX264Preset, config.uri_x264_speed_preset);
+    config.uri_track_settle_quiet_period_ms =
+        ReadIntEnv(kEnvUriTrackSettleQuietPeriodMs, config.uri_track_settle_quiet_period_ms);
+    config.uri_track_settle_max_ms = ReadIntEnv(kEnvUriTrackSettleMaxMs, config.uri_track_settle_max_ms);
+    config.webrtc_video_width = ReadIntEnv(kEnvWebRtcVideoWidth, config.webrtc_video_width);
+    config.webrtc_video_height = ReadIntEnv(kEnvWebRtcVideoHeight, config.webrtc_video_height);
+    config.webrtc_video_fps = ReadIntEnv(kEnvWebRtcVideoFps, config.webrtc_video_fps);
+    config.webrtc_video_bitrate_kbps =
+        ReadIntEnv(kEnvWebRtcVideoBitrateKbps, config.webrtc_video_bitrate_kbps);
+    config.webrtc_video_keyframe_interval =
+        ReadIntEnv(kEnvWebRtcVideoKeyframeInterval, config.webrtc_video_keyframe_interval);
+    config.webrtc_x264_speed_preset = ReadStringEnv(kEnvWebRtcX264Preset, config.webrtc_x264_speed_preset);
+    config.enable_experimental_youtube_source =
+        ReadBoolEnv(kEnvEnableExperimentalYoutubeSource, config.enable_experimental_youtube_source);
     config.youtube_resolver_bin = ReadStringEnv(kEnvYoutubeResolverBin, config.youtube_resolver_bin);
     config.youtube_format = ReadStringEnv(kEnvYoutubeFormat, config.youtube_format);
     config.youtube_resolve_timeout_ms =
@@ -179,6 +234,34 @@ app::AppConfig LoadAppConfig() {
     if (config.rtsp_track_settle_max_ms <= 0) {
         std::cerr << "[env] RTSP track settle max must be positive, fallback 4000\n";
         config.rtsp_track_settle_max_ms = 4000;
+    }
+    ValidateEvenPositiveInt(&config.uri_video_width, 1280, "URI video width");
+    ValidateEvenPositiveInt(&config.uri_video_height, 720, "URI video height");
+    ValidatePositiveInt(&config.uri_video_fps, 30, "URI video fps");
+    ValidatePositiveInt(&config.uri_video_bitrate_kbps, 6000, "URI video bitrate kbps");
+    if (!IsAllowedX264Preset(config.uri_x264_speed_preset)) {
+        std::cerr << "[env] invalid URI x264 preset '" << config.uri_x264_speed_preset
+                  << "', fallback superfast\n";
+        config.uri_x264_speed_preset = "superfast";
+    }
+    if (config.uri_track_settle_quiet_period_ms < 0) {
+        std::cerr << "[env] URI track settle quiet period cannot be negative, fallback 800\n";
+        config.uri_track_settle_quiet_period_ms = 800;
+    }
+    ValidatePositiveInt(&config.uri_track_settle_max_ms, 2500, "URI track settle max ms");
+    if (config.uri_track_settle_max_ms < config.uri_track_settle_quiet_period_ms) {
+        std::cerr << "[env] URI track settle max ms is smaller than quiet period, using quiet period\n";
+        config.uri_track_settle_max_ms = config.uri_track_settle_quiet_period_ms;
+    }
+    ValidateEvenPositiveInt(&config.webrtc_video_width, 1280, "WebRTC video width");
+    ValidateEvenPositiveInt(&config.webrtc_video_height, 720, "WebRTC video height");
+    ValidatePositiveInt(&config.webrtc_video_fps, 30, "WebRTC video fps");
+    ValidatePositiveInt(&config.webrtc_video_bitrate_kbps, 6000, "WebRTC video bitrate kbps");
+    ValidatePositiveInt(&config.webrtc_video_keyframe_interval, 30, "WebRTC keyframe interval");
+    if (!IsAllowedX264Preset(config.webrtc_x264_speed_preset)) {
+        std::cerr << "[env] invalid WebRTC x264 preset '" << config.webrtc_x264_speed_preset
+                  << "', fallback superfast\n";
+        config.webrtc_x264_speed_preset = "superfast";
     }
     if (config.youtube_resolver_bin.empty()) {
         std::cerr << "[env] YouTube resolver binary cannot be empty, fallback yt-dlp\n";

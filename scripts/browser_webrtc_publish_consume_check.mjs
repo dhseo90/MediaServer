@@ -26,6 +26,7 @@ const splitPublishConsume =
 const publisherPlaybackTimeoutMs = Number(args.publisherPlaybackTimeoutMs || 15000);
 const consumerPlaybackTimeoutMs = Number(args.consumerPlaybackTimeoutMs || 30000);
 const publisherWarmupMs = Number(args.publisherWarmupMs || (splitPublishConsume ? 8000 : 0));
+const postPlaybackHoldMs = Number(args.postPlaybackHoldMs || 0);
 
 if (!chromePath) {
   console.error("[browser-check] failed: Chrome executable not found");
@@ -81,10 +82,15 @@ try {
           } else {
             await api.playPublishedSimple();
           }
-          return api.waitForPlayback('consumer', ${JSON.stringify(consumerPlaybackTimeoutMs)}, { muted: true });
+          const playback = await api.waitForPlayback('consumer', ${JSON.stringify(consumerPlaybackTimeoutMs)}, { muted: true });
+          if (${JSON.stringify(postPlaybackHoldMs)} > 0) {
+            await new Promise((resolve) => setTimeout(resolve, ${JSON.stringify(postPlaybackHoldMs)}));
+            return api.waitForPlayback('consumer', 1000, { muted: true });
+          }
+          return playback;
         })()
       `,
-      timeoutMs + publisherWarmupMs,
+      timeoutMs + publisherWarmupMs + postPlaybackHoldMs,
     );
 
     validateConsumerVideo(result);
@@ -145,10 +151,15 @@ try {
           } else {
             await api.startSimple();
           }
-          return api.waitForPlayback('consumer', ${JSON.stringify(consumerPlaybackTimeoutMs)}, { muted: true });
+          const playback = await api.waitForPlayback('consumer', ${JSON.stringify(consumerPlaybackTimeoutMs)}, { muted: true });
+          if (${JSON.stringify(postPlaybackHoldMs)} > 0) {
+            await new Promise((resolve) => setTimeout(resolve, ${JSON.stringify(postPlaybackHoldMs)}));
+            return api.waitForPlayback('consumer', 1000, { muted: true });
+          }
+          return playback;
         })()
       `,
-      timeoutMs,
+      timeoutMs + postPlaybackHoldMs,
     );
 
     validateConsumerVideo(result);
