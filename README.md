@@ -64,12 +64,6 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - `HTTP media URL -> RTSP/WebRTC` 1차 경로
   - 현재 `source=http` RTSP route subset(`default`, `h264`, `opus`) 통과
   - 현재 `source=http` WebRTC signaling 통과
-- `YouTube watch/live URL -> RTSP/WebRTC` 1차 resolver 경로
-  - `source=youtube` 요청을 `yt-dlp -> HTTP/HLS URL -> UriSourceWorker`로 연결
-  - fake resolver가 로컬 HTTP MP4 URL을 반환하는 조건에서 `source=youtube -> RTSP(h264+aac)` 통과
-  - 실제 YouTube 업로드 URL 기준 RTSP, WebRTC simple signaling, WHEP playback 통과
-  - 실제 YouTube 라이브 URL 기준 RTSP, WebRTC simple signaling, WHEP playback 통과
-  - WebRTC egress video는 브라우저 H264 협상 호환성을 위해 720p/30fps로 정규화
 - 동일 source 요청에 대한 `StreamRegistry` 기반 dedup 구조
 - `SharedStream` 기반 video/audio fan-out
 - route별 video/audio codec 변환
@@ -90,6 +84,11 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
   - local WHIP test publisher 기준 `publish -> WebRTC(signaling)` 자동 검증 통과
   - browser publisher 기준 `publish -> WebRTC(simple signaling) consume`의 실제 audio/video playback 검증 완료
   - browser publisher 기준 `publish -> WHEP consume`의 실제 audio/video playback 검증 완료
+- 실험실 기능
+  - `source=youtube` resolver 경로는 코드에 남아 있지만 기본값으로는 비활성화되어 있다.
+  - 서버를 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`로 시작한 경우에만 test page/helper script에 노출된다.
+  - `yt-dlp -> HTTP/HLS URL -> UriSourceWorker` 구조이며 로그인, 지역 제한, bot check가 걸리면 우회하지 않고 실패시킨다.
+  - 공개 repo와 기본 운영 흐름에서는 `source=http|hls`를 우선 사용한다.
 
 ### 아직 미구현 또는 placeholder
 - 운영용 WebRTC auth / STUN / TURN / ICE policy 설정
@@ -140,8 +139,8 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
   - 로컬 RTSP/HTTP source launcher와 일부 검증 스크립트에 사용한다.
 - `node`
   - 브라우저 WebRTC end-to-end 검증 스크립트에 사용한다.
-- `yt-dlp`
-  - `source=youtube` 요청에서 YouTube watch/live URL을 HTTP/HLS playable URL로 해석할 때 사용한다.
+- `yt-dlp` (선택)
+  - 실험실 기능인 `source=youtube`를 명시적으로 켠 경우에만 필요하다.
 
 ### GStreamer 필수 모듈
 CMake가 `pkg-config`로 아래 모듈을 찾는다.
@@ -279,13 +278,27 @@ MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
 | `MEDIA_SERVER_WEBRTC_TRACE` | `1`이면 WebRTC 협상/상태 로그 출력 |
 | `MEDIA_SERVER_WEBRTC_TRACE_VERBOSE` | `1`이면 sample/pad/caps/SDP 상세 로그 추가 |
 | `MEDIA_SERVER_WEBRTC_SOURCE_READY_TIMEOUT_MS` | WHIP publish source track 준비 대기 시간 |
+| `MEDIA_SERVER_WEBRTC_VIDEO_WIDTH` | WebRTC 송출 video 정규화 width. 기본 `1280` |
+| `MEDIA_SERVER_WEBRTC_VIDEO_HEIGHT` | WebRTC 송출 video 정규화 height. 기본 `720` |
+| `MEDIA_SERVER_WEBRTC_VIDEO_FPS` | WebRTC 송출 video 정규화 fps. 기본 `30` |
+| `MEDIA_SERVER_WEBRTC_VIDEO_BITRATE_KBPS` | WebRTC H264 송출 bitrate. 기본 `6000` |
+| `MEDIA_SERVER_WEBRTC_VIDEO_KEYFRAME_INTERVAL` | WebRTC H264 keyframe interval. 기본 `30` |
+| `MEDIA_SERVER_WEBRTC_X264_PRESET` | WebRTC H264 encoder preset. 기본 `superfast` |
+| `MEDIA_SERVER_URI_VIDEO_WIDTH` | HTTP/HLS/YouTube URI source 내부 H264 width. 기본 `1280` |
+| `MEDIA_SERVER_URI_VIDEO_HEIGHT` | HTTP/HLS/YouTube URI source 내부 H264 height. 기본 `720` |
+| `MEDIA_SERVER_URI_VIDEO_FPS` | HTTP/HLS/YouTube URI source 내부 H264 fps. 기본 `30` |
+| `MEDIA_SERVER_URI_VIDEO_BITRATE_KBPS` | HTTP/HLS/YouTube URI source를 내부 H264로 만들 때 쓰는 bitrate. 기본 `6000` |
+| `MEDIA_SERVER_URI_X264_PRESET` | HTTP/HLS/YouTube URI source 내부 H264 encoder preset. 기본 `superfast` |
+| `MEDIA_SERVER_URI_TRACK_SETTLE_QUIET_PERIOD_MS` | URI source에서 첫 track 이후 audio/video 추가 발견을 기다리는 quiet period. 기본 `800` |
+| `MEDIA_SERVER_URI_TRACK_SETTLE_MAX_MS` | URI source track discovery 전체 상한. 기본 `2500` |
 | `MEDIA_SERVER_RTSP_SOURCE_PREFLIGHT_TIMEOUT_MS` | 외부 RTSP host:port 사전 연결성 검사 timeout |
 | `MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS` | RTSP/URI source 첫 sample 대기 timeout |
 | `MEDIA_SERVER_RTSP_TRACK_SETTLE_QUIET_PERIOD_MS` | 첫 track 이후 추가 track discovery quiet period |
 | `MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS` | track discovery 전체 상한 |
 | `MEDIA_SERVER_GST_ATTACH_CONTEXT` | GStreamer RTSP server main context 강제 설정 |
+| `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE` | `1`이면 숨겨진 실험실 `source=youtube` 경로를 노출. 기본 `0` |
 | `MEDIA_SERVER_YOUTUBE_RESOLVER_BIN` | YouTube URL 해석에 사용할 resolver binary. 기본 `yt-dlp` |
-| `MEDIA_SERVER_YOUTUBE_FORMAT` | `yt-dlp -f` format selector. 기본은 HLS 우선, 그 다음 audio/video 포함 HTTP 포맷 |
+| `MEDIA_SERVER_YOUTUBE_FORMAT` | `yt-dlp -f` format selector. 기본은 720p 이하 progressive HTTP muxed 우선, live/HTTP 불가 시 HLS fallback |
 | `MEDIA_SERVER_YOUTUBE_RESOLVE_TIMEOUT_MS` | YouTube URL 해석 timeout. 기본 `15000` |
 | `MEDIA_SERVER_YOUTUBE_RECONNECT_DELAY_MS` | YouTube delegate가 중단된 뒤 재해석/재연결을 시도하기 전 대기 시간. 기본 `2000` |
 
@@ -550,7 +563,7 @@ POST http://127.0.0.1:8080/webrtc/session?source=webrtc&url={source_id}
 POST http://127.0.0.1:8080/whep?source=webrtc&url={source_id}
 ```
 
-### 6. HTTP/HLS/YouTube URL -> RTSP / WebRTC
+### 6. HTTP/HLS URL -> RTSP / WebRTC
 
 HTTP/HLS playable URL은 기존 URI source 경로로 바로 소비한다.
 
@@ -561,8 +574,20 @@ POST http://127.0.0.1:8080/webrtc/session?source=http&url={urlencoded_http_media
 POST http://127.0.0.1:8080/whep?source=hls&url={urlencoded_m3u8_url}
 ```
 
-YouTube watch/live URL은 `source=youtube`로 요청한다.
-서버는 `yt-dlp`를 실행해 실제 HTTP/HLS URL로 해석한 뒤, 기존 `source=http|hls` URI source worker에 위임한다.
+주의:
+- `source=http|hls`가 기본 지원 경로다.
+- 짧은 VOD 반복, video-only 입력, late joiner 검증도 현재는 이 경로 기준으로 문서화한다.
+
+### 7. Experimental: YouTube watch/live URL -> RTSP / WebRTC
+
+`source=youtube`는 코드에 남아 있는 실험실 기능이며 기본값으로는 숨김/비활성화 상태다.
+서버를 아래처럼 시작한 경우에만 test page와 helper script에 노출된다.
+
+```bash
+MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1 ./scripts/run_server_foreground.sh
+```
+
+활성화되면 서버는 `yt-dlp`를 실행해 실제 HTTP/HLS URL로 해석한 뒤, 기존 `source=http|hls` URI source worker에 위임한다.
 
 ```text
 rtsp://127.0.0.1:8554/dhseo?source=youtube&url={urlencoded_youtube_watch_or_live_url}
@@ -571,16 +596,22 @@ POST http://127.0.0.1:8080/whep?source=youtube&url={urlencoded_youtube_watch_or_
 ```
 
 주의:
+- `source=youtube`는 기본값으로 비활성화되어 있고, 명시적으로 켰을 때만 사용한다.
 - `source=youtube`는 `yt-dlp`가 설치되어 있어야 동작한다.
 - YouTube URL은 권한, 지역 제한, 로그인 필요 여부, URL 만료 정책에 영향을 받는다.
 - 비공개, 로그인 필요, 지역 제한, 접근권한이 필요한 URL은 MediaServer에서 우회하지 않고 실패로 처리한다.
 - resolver 결과는 서명된 임시 URL일 수 있으므로 stream key는 원본 YouTube URL 기준으로 묶고, 실제 media URL은 worker 내부에서만 사용한다.
 - 동일 YouTube URL을 여러 클라이언트가 동시에 요청하면 원본 YouTube URL 기준으로 dedup되어 resolver/source worker는 1개만 시작된다.
 - 실행 중 HLS/HTTP delegate가 중단되면 `MEDIA_SERVER_YOUTUBE_RECONNECT_DELAY_MS` 이후 원본 YouTube URL을 다시 resolve해서 재연결을 시도한다.
+- YouTube/HTTP/HLS는 `URI source 1차 H264 인코딩`과 `WebRTC egress H264 인코딩`을 모두 거칠 수 있다. 기본값은 두 단계 모두 720p/30fps, 6000kbps로 맞춰 불필요한 1080p 중간 인코딩 비용과 블록 artifact를 줄인다. 고화질/복잡한 장면에서 블록 깨짐이 보이면 bitrate를 먼저 올리고, 지연이 커지면 fps/해상도 또는 preset을 조정한다.
+- YouTube 기본 format selector는 업로드/VOD에서 720p 이하 progressive HTTP muxed URL을 먼저 고른다. 이 경로는 `source=http`로 들어가 EOF 시 처음으로 되감아 짧은 영상 반복/late joiner 테스트가 안정적이다.
+- YouTube live이거나 progressive HTTP muxed URL이 없으면 720p 이하 HLS로 fallback한다. 필요하면 `MEDIA_SERVER_YOUTUBE_FORMAT`으로 더 높은 화질이나 HLS 우선을 명시한다.
 
 실패 메시지 기준:
 - `invalid YouTube URL host`
   - `source=youtube`에 YouTube 계열 host가 아닌 URL이 들어온 경우다.
+- `source=youtube is disabled by default`
+  - 실험실 기능을 켜지 않은 상태에서 `source=youtube`를 요청한 경우다.
 - `resolver binary ... was not found`
   - `yt-dlp`가 설치되어 있지 않거나 `MEDIA_SERVER_YOUTUBE_RESOLVER_BIN` 경로가 틀린 경우다.
 - `private video`, `authentication required`, `region restricted`
@@ -777,32 +808,20 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./scripts/print_external_test_urls.s
   - browser consumer 기준 `decoded video frame` 확인
 - `WebRTC publish(browser publisher) -> WebRTC(WHEP)`
   - browser consumer 기준 audio/video track 및 `decoded video frame` 확인
+- 로컬 전체 matrix
+  - 결과: `pass=63 fail=0 skip=3`
+
+실험실 기능 검증 이력:
 - `YouTube resolver(fake yt-dlp -> local HTTP MP4) -> RTSP`
   - 결과: `h264 + aac`
-- `YouTube uploaded/VOD URL -> RTSP`
-  - test URL: `https://www.youtube.com/watch?v=aqz-KE-bpKQ`
-  - 결과: `h264 + aac`
-- `YouTube uploaded/VOD URL -> WebRTC(simple signaling)`
-  - browser consumer 기준 audio/video track 및 `decoded video frame` 확인
-  - 결과 해상도: `1280x720`
-- `YouTube uploaded/VOD URL -> WebRTC(WHEP)`
-  - browser consumer 기준 audio/video track 및 `decoded video frame` 확인
-  - 결과 해상도: `1280x720`
-- `YouTube live URL -> RTSP`
-  - test URL: `https://www.youtube.com/watch?v=iYmvCUonukw`
-  - 결과: `h264 + aac`
-- `YouTube live URL -> WebRTC(simple signaling)`
-  - browser consumer 기준 audio/video track 및 `decoded video frame` 확인
-  - 결과 해상도: `1280x720`
-- `YouTube live URL -> WebRTC(WHEP)`
-  - browser consumer 기준 audio/video track 및 `decoded video frame` 확인
-  - 결과 해상도: `1280x720`
+- `YouTube uploaded/VOD URL -> RTSP / WebRTC(simple) / WebRTC(WHEP)`
+  - 결과: `h264 + aac`, browser consume `1280x720`
+- `YouTube live URL -> RTSP / WebRTC(simple) / WebRTC(WHEP)`
+  - 결과: `h264 + aac`, browser consume `1280x720`
 - `YouTube 동일 URL 5개 동시 요청 -> WebRTC session`
   - 결과: resolver 1회, source worker start 1회, stream created 1회, 나머지 4개 요청은 동일 `SharedStream` 재사용
 - `YouTube fake HLS/EOS -> delegate reconnect`
   - 결과: `delegate stopped -> resolved -> reconnected` 반복 확인
-- 로컬 전체 matrix
-  - 결과: `pass=63 fail=0 skip=3`
 
 ## 외부 RTSP source 관련 주의
 
@@ -822,20 +841,16 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./scripts/print_external_test_urls.s
 ## 다음에 이어서 하기 좋은 작업
 
 1. 영상분석 branch 추가
-   - 현재 relay 안정화 기준으로 file, HTTP/HLS, YouTube, RTSP pull, WebRTC publish source의 주요 경로를 검증했다.
+   - 현재 relay 안정화 기준으로 file, HTTP/HLS, RTSP pull, WebRTC publish source의 주요 경로를 검증했다.
    - 송신 경로(RTSP/WebRTC egress)는 직접 막지 않는다.
    - `SharedStream`에 별도 analysis subscriber/tap을 붙이고, 분석 branch는 drop-oldest 및 frame sampling을 사용한다.
    - 첫 단계는 metadata/snapshot API로 시작하고, overlay stream은 이후 별도 단계로 분리한다.
-2. YouTube URL source 유지보수
-   - `source=hls|http` 형태의 `HLS/HTTP SourceWorker` 1차 경로를 추가했고, 로컬 HTTP MP4 기준 RTSP/WebRTC 검증이 통과했다.
-   - `source=youtube` 1차 경로는 `yt-dlp` 기반 `YouTubeResolver -> HLS/HTTP URL -> UriSourceWorker` 구조로 연결했다.
-   - 라이브와 업로드된 영상 모두 고려하되, 약관/권한 문제 때문에 기본 source 기능은 `youtube`가 아니라 `hls/http`로 둔다.
-   - video-only source를 막던 RTSP/WebRTC egress의 대표 실패 지점을 완화했다.
-   - 실제 업로드/라이브 URL 각각 1개씩 RTSP/WebRTC 검증이 통과했다.
-   - 지역 제한/로그인 필요/비공개 URL은 우회하지 않고 실패시키는 정책으로 둔다.
-   - fake HLS/EOS source 기준 재연결 동작까지 확인했다.
-3. 운영 안정화 후속
+2. 운영 안정화 후속
    - 외부 RTSP source별 timeout/profile 설정 확장
    - WebRTC 운영 설정(auth/STUN/TURN/ICE policy) 정리
    - audio-only input은 현재 video relay/analysis 준비 범위 밖이다. RTSP/WebRTC egress는 video track을 기준으로 동작한다.
    - WebRTC end-to-end 브라우저 검증 자동화 범위 확장
+3. 실험실 기능 유지보수
+   - `source=youtube`는 숨김/비활성화 기본값을 유지한다.
+   - 공개 repo 기본 흐름에서는 `source=http|hls`를 사용하고, 실험실 검증은 명시적인 opt-in에서만 수행한다.
+   - 지역 제한/로그인 필요/비공개 URL은 우회하지 않고 실패시키는 정책을 유지한다.

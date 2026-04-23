@@ -496,12 +496,18 @@ bool ResolveYouTubeSource(const media::SourceSpec& youtube_spec,
         youtube_spec.uri,
     };
 
+    const auto resolve_started_at = std::chrono::steady_clock::now();
     const CommandResult result = RunCommandCapture(args, config.youtube_resolve_timeout_ms);
+    const auto resolve_elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                        std::chrono::steady_clock::now() - resolve_started_at)
+                                        .count();
     if (!result.error_message.empty() || result.timed_out || result.exit_code != 0) {
         if (error_message != nullptr) {
             *error_message =
                 BuildYtDlpFailureMessage(result, config.youtube_resolver_bin, config.youtube_resolve_timeout_ms);
         }
+        std::cerr << "[youtube-source] resolve failed elapsed_ms=" << resolve_elapsed_ms
+                  << " input=" << youtube_spec.uri << "\n";
         return false;
     }
 
@@ -522,6 +528,7 @@ bool ResolveYouTubeSource(const media::SourceSpec& youtube_spec,
         *resolved_source = *picked;
     }
     std::cerr << "[youtube-source] resolved source kind=" << media::ToString(picked->kind)
+              << " elapsed_ms=" << resolve_elapsed_ms
               << " input=" << youtube_spec.uri << "\n";
     return true;
 }

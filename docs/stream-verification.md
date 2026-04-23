@@ -9,6 +9,8 @@
 - `file -> WebRTC(signaling)`
 - `RTSP -> RTSP`
 - `RTSP -> WebRTC(signaling)`
+- `HTTP/HLS URI -> RTSP`
+- `HTTP/HLS URI -> WebRTC(signaling)`
 - `WebRTC publish(local WHIP test publisher) -> RTSP`
 - `WebRTC publish(local WHIP test publisher) -> WebRTC(signaling)`
 - `WebRTC publish(browser publisher) -> WebRTC(WHEP)`
@@ -20,6 +22,44 @@
 - browser publisher / 실제 media playback 기준 `WebRTC publish -> WebRTC(WHEP) consume` 검증 통과
 
 `WebRTC source`는 WHIP publish 기반 1차 ingest를 사용한다. 운영용 auth/STUN/TURN/ICE policy는 아직 별도 정리가 필요하다.
+
+실험실 기능 정책:
+- `source=youtube`는 코드에 남아 있지만 기본 test scope에는 포함하지 않는다.
+- 서버를 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`로 시작한 경우에만 test page/helper script에 노출한다.
+- YouTube 관련 검증 이력은 이 문서 하단의 "실험실 기능 검증 이력"에 분리해 둔다.
+
+## 완료된 기본 테스트 예시
+- file -> RTSP
+  - `rtsp://{media-server-host}:8554/dhseo?file=sample_h264.mp4`
+- file -> WebRTC(simple signaling)
+  - `POST http://{media-server-host}:8080/webrtc/session?file=sample_h264.mp4`
+- file(video-only) -> RTSP
+  - `rtsp://{media-server-host}:8554/dhseo?file=sample_h264_video_only.mp4`
+- HTTP MP4 -> RTSP
+  - `rtsp://{media-server-host}:8554/dhseo?source=http&url={urlencoded_http_media_url}`
+- HTTP MP4 -> WebRTC(simple signaling)
+  - `POST http://{media-server-host}:8080/webrtc/session?source=http&url={urlencoded_http_media_url}`
+- RTSP pull -> RTSP
+  - `rtsp://{media-server-host}:8554/dhseo?url={urlencoded_rtsp_source}`
+- RTSP pull -> WebRTC(simple signaling)
+  - `POST http://{media-server-host}:8080/webrtc/session?url={urlencoded_rtsp_source}`
+- WebRTC publish -> RTSP
+  - publish 후 `rtsp://{media-server-host}:8554/dhseo?source=webrtc&url={source_id}`
+- WebRTC publish -> WebRTC(simple / WHEP)
+  - `POST http://{media-server-host}:8080/webrtc/session?source=webrtc&url={source_id}`
+  - `POST http://{media-server-host}:8080/whep?source=webrtc&url={source_id}`
+
+## 남은 테스트 스텝
+1. 외부 RTSP source 재검증
+   - wowza 같은 외부 upstream이 현재 환경에서 timeout인지, remote 응답 지연인지 분리 확인
+2. WebRTC 운영 환경 테스트
+   - auth, STUN/TURN, ICE policy를 붙인 상태에서 브라우저 간 consume/publish 재검증
+3. audio-only input 정책 확정
+   - 현재는 video relay/analysis 기준으로 설계되어 있어 audio-only는 정식 지원 범위 밖
+4. 영상분석 branch 테스트 추가
+   - relay 경로는 유지하고 `SharedStream` analysis tap을 붙인 뒤 drop/frame-sampling 정책 검증
+5. 실험실 YouTube 회귀 검증
+   - 기본 scope는 아니며, 명시적으로 opt-in 했을 때만 별도 확인
 
 ## 설정 파일
 - `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/config/codec_test_sources.json`
@@ -129,8 +169,8 @@ MEDIA_SERVER_FORCE_RTSP_TCP=1 \
 
 다른 PC에서 먼저 확인할 URL:
 ```text
-http://{macbook-lan-ip}:8080/health
-http://{macbook-lan-ip}:8080/webrtc/test
+http://{media-server-host}:8080/health
+http://{media-server-host}:8080/webrtc/test
 ```
 
 `/health`는 `{"status":"ok"}`를 반환하는 readiness check다.
@@ -284,22 +324,29 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
   - H264 transcode route의 `1000h` timestamp offset을 `identity ts-offset=-3600000000000000`으로 보정했다.
   - pending queue가 video keyframe에서 audio priming packet까지 지우지 않도록 수정했다.
 - 전체 로컬 matrix는 `pass=63 fail=0 skip=3`로 통과했다.
-- `source=youtube` 1차 resolver 경로를 추가했다.
+
+## 실험실 기능 검증 이력
+
+- 실험실 기능인 `source=youtube` 1차 resolver 경로를 추가했다.
   - `yt-dlp`로 YouTube watch/live URL을 HTTP/HLS playable URL로 해석한다.
   - 해석 결과는 기존 `UriSourceWorker`에 위임한다.
   - fake `yt-dlp`가 로컬 HTTP MP4 URL을 반환하는 조건에서 `source=youtube -> RTSP` 경로가 `h264 + aac`로 통과했다.
   - 실제 YouTube uploaded/VOD URL `https://www.youtube.com/watch?v=aqz-KE-bpKQ` 기준 `RTSP`, `WebRTC(simple signaling)`, `WebRTC(WHEP)`가 통과했다.
   - 실제 YouTube live URL `https://www.youtube.com/watch?v=iYmvCUonukw` 기준 `RTSP`, `WebRTC(simple signaling)`, `WebRTC(WHEP)`가 통과했다.
-  - 1080p YouTube HLS 입력은 WebRTC H264 협상 호환성을 위해 720p/30fps로 정규화한다.
-- 동일 YouTube URL 동시 요청 dedup을 확인했다.
+  - YouTube 기본 format selector는 업로드/VOD에서 720p 이하 progressive HTTP muxed URL을 우선 선택하고, live/HTTP 불가 시 HLS로 fallback한다.
+  - progressive HTTP YouTube URL은 `source=http` URI worker에 위임되므로 EOF 시 처음으로 seek해서 짧은 영상 반복/late joiner 테스트가 HLS보다 안정적이다.
+  - 고화질/고디테일 YouTube 영상에서 2Mbps ultrafast H264 재인코딩 artifact가 보여, URI/WebRTC H264 기본 bitrate를 6000kbps로 올리고 encoder preset/해상도/fps를 env로 조정 가능하게 했다.
+  - URI source track settle 기본값은 RTSP와 분리해 `quiet=800ms`, `max=2500ms`로 낮췄다. YouTube/HLS 초기 재생 지연을 줄이기 위한 값이며, audio/video track 누락이 보이면 env로 늘린다.
+  - 브라우저 자동 검증 스크립트는 `--post-playback-hold-ms` 옵션으로 첫 재생 확인 후 추가 대기한 뒤 stats를 다시 수집할 수 있다. audio RTP처럼 첫 video frame보다 늦게 잡히는 지표 확인에 사용한다.
+- 실험실 `source=youtube` 동일 URL 동시 요청 dedup을 확인했다.
   - `POST /webrtc/session?source=youtube&url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Daqz-KE-bpKQ` 5개 동시 요청이 모두 성공했다.
   - 서버 trace 기준 `youtube resolve=1회`, `source worker start=1회`, `stream created=yes=1회`, `created=no=4회`로 확인했다.
   - `SessionManager` trace는 실제 `SharedStream::StartSource()` 결과 기준으로 `started/reused`를 기록하도록 정리했다.
-- YouTube delegate 재연결 구조를 추가했다.
+- 실험실 `source=youtube` delegate 재연결 구조를 추가했다.
   - initial resolve/start 이후 `UriSourceWorker`가 중단되면 원본 YouTube URL을 다시 resolve해서 새 delegate를 시작한다.
   - 정상 동시 요청 테스트에서는 `reconnect=0회`로 유지되어 불필요한 재해석은 발생하지 않았다.
   - fake resolver + 2초짜리 로컬 HLS/EOS source로 강제 재연결을 유발했고, `delegate stopped -> resolved -> reconnected` 반복을 확인했다.
-- YouTube resolver 실패 케이스 1차 분리를 추가했다.
+- 실험실 `source=youtube` resolver 실패 케이스 1차 분리를 추가했다.
   - invalid host, missing resolver binary, private video, live archive unavailable, resolver timeout, separate media URL output을 명확한 400 응답 메시지로 구분했다.
   - 300ms 같은 과도하게 짧은 timeout은 fork/exec 비용까지 timeout으로 잡을 수 있으므로 운영 기본값은 15000ms 이상을 유지한다.
 - video-only URI source edge case를 분리했다.
@@ -337,14 +384,14 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
 
 ## 예시 주소
 - file -> RTSP
-  - `rtsp://127.0.0.1:8555/dhseo?file=sample_h264.mp4`
+  - `rtsp://{media-server-host}:8554/dhseo?file=sample_h264.mp4`
 - file -> WebRTC
-  - `POST http://127.0.0.1:8081/webrtc/session?file=sample_h264.mp4`
+  - `POST http://{media-server-host}:8080/webrtc/session?file=sample_h264.mp4`
 - RTSP -> RTSP
-  - `rtsp://127.0.0.1:8555/dhseo?url=rtsp%3A%2F%2Fwowzaec2demo.streamlock.net%2Fvod%2Fmp4%3ABigBuckBunny_115k.mov`
+  - `rtsp://{media-server-host}:8554/dhseo?url=rtsp%3A%2F%2Fwowzaec2demo.streamlock.net%2Fvod%2Fmp4%3ABigBuckBunny_115k.mov`
 - RTSP -> WebRTC
-  - `POST http://127.0.0.1:8081/webrtc/session?url=rtsp%3A%2F%2Fwowzaec2demo.streamlock.net%2Fvod%2Fmp4%3ABigBuckBunny_115k.mov`
+  - `POST http://{media-server-host}:8080/webrtc/session?url=rtsp%3A%2F%2Fwowzaec2demo.streamlock.net%2Fvod%2Fmp4%3ABigBuckBunny_115k.mov`
 - HTTP MP4 -> RTSP
-  - `rtsp://127.0.0.1:8555/dhseo?source=http&url=http%3A%2F%2F127.0.0.1%3A8765%2Fsample_h264.mp4`
+  - `rtsp://{media-server-host}:8554/dhseo?source=http&url={urlencoded_http_media_url}`
 - HTTP MP4 -> WebRTC
-  - `POST http://127.0.0.1:8081/webrtc/session?source=http&url=http%3A%2F%2F127.0.0.1%3A8765%2Fsample_h264.mp4`
+  - `POST http://{media-server-host}:8080/webrtc/session?source=http&url={urlencoded_http_media_url}`

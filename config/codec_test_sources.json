@@ -74,13 +74,13 @@
       "source": "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
       "enabled": false,
       "requires_network": true,
-      "notes": "Optional YouTube uploaded/VOD source. Requires yt-dlp and external network access.",
+      "notes": "Experimental YouTube uploaded/VOD source. Hidden and disabled by default; requires yt-dlp, external network access, and explicit server opt-in.",
       "verify_profile": {
         "label": "external-youtube-upload",
         "ffprobe_timeout_us": 30000000,
         "webrtc_http_timeout_s": 45,
         "rtsp_route_keys": ["default", "h264", "opus"],
-        "server_env_hint": "MEDIA_SERVER_YOUTUBE_RESOLVE_TIMEOUT_MS=30000 MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS=20000 MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS=12000"
+        "server_env_hint": "MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1 MEDIA_SERVER_YOUTUBE_RESOLVE_TIMEOUT_MS=30000 MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS=20000 MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS=12000"
       }
     },
     {
@@ -89,13 +89,13 @@
       "source": "https://www.youtube.com/watch?v=iYmvCUonukw",
       "enabled": false,
       "requires_network": true,
-      "notes": "Optional YouTube live/HLS source. Requires yt-dlp and external network access.",
+      "notes": "Experimental YouTube live/HLS source. Hidden and disabled by default; requires yt-dlp, external network access, and explicit server opt-in.",
       "verify_profile": {
         "label": "external-youtube-live",
         "ffprobe_timeout_us": 30000000,
         "webrtc_http_timeout_s": 45,
         "rtsp_route_keys": ["default", "h264", "opus"],
-        "server_env_hint": "MEDIA_SERVER_YOUTUBE_RESOLVE_TIMEOUT_MS=30000 MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS=25000 MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS=15000"
+        "server_env_hint": "MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1 MEDIA_SERVER_YOUTUBE_RESOLVE_TIMEOUT_MS=30000 MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS=25000 MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS=15000"
       }
     },
     {

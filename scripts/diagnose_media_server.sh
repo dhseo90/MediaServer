@@ -242,10 +242,14 @@ collect_file_state() {
     OVERALL=1
   fi
 
-  if command -v yt-dlp >/dev/null 2>&1; then
-    print_line "PASS" "yt-dlp available for source=youtube"
+  if [[ "${MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE:-0}" == "1" ]]; then
+    if command -v yt-dlp >/dev/null 2>&1; then
+      print_line "PASS" "yt-dlp available for experimental source=youtube"
+    else
+      print_line "WARN" "yt-dlp not found; experimental source=youtube will fail until installed"
+    fi
   else
-    print_line "WARN" "yt-dlp not found; source=youtube will fail until installed"
+    print_line "INFO" "experimental source=youtube is disabled by default"
   fi
 }
 

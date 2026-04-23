@@ -81,6 +81,7 @@ if [[ -z "${HOST}" && ${#DETECTED_IPS[@]} -gt 0 ]]; then
   HOST="${DETECTED_IPS[0]}"
 fi
 HOST="${HOST:-<MACBOOK_LAN_IP>}"
+EXPERIMENTAL_YOUTUBE_ENABLED="${MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE:-0}"
 
 YOUTUBE_UPLOAD_ENCODED="https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Daqz-KE-bpKQ"
 YOUTUBE_LIVE_ENCODED="https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DiYmvCUonukw"
@@ -118,13 +119,15 @@ print_rtsp_routes "RTSP file sample_h264_video_only.mp4" \
   "file=sample_h264_video_only.mp4" \
   "/" "/h264" "/h265"
 
-print_rtsp_routes "RTSP YouTube uploaded/VOD" \
-  "source=youtube&url=${YOUTUBE_UPLOAD_ENCODED}" \
-  "/" "/h264" "/h265" "/opus"
+if [[ "${EXPERIMENTAL_YOUTUBE_ENABLED}" == "1" ]]; then
+  print_rtsp_routes "RTSP YouTube uploaded/VOD (experimental)" \
+    "source=youtube&url=${YOUTUBE_UPLOAD_ENCODED}" \
+    "/" "/h264" "/h265" "/opus"
 
-print_rtsp_routes "RTSP YouTube live" \
-  "source=youtube&url=${YOUTUBE_LIVE_ENCODED}" \
-  "/" "/h264" "/h265" "/opus"
+  print_rtsp_routes "RTSP YouTube live (experimental)" \
+    "source=youtube&url=${YOUTUBE_LIVE_ENCODED}" \
+    "/" "/h264" "/h265" "/opus"
+fi
 
 cat <<EOF
 
@@ -144,12 +147,6 @@ file=sample_h265.mp4
 sourceType=file
 file=sample_h264_video_only.mp4
 
-sourceType=youtube
-url=https://www.youtube.com/watch?v=aqz-KE-bpKQ
-
-sourceType=youtube
-url=https://www.youtube.com/watch?v=iYmvCUonukw
-
 ## WebRTC publish -> consume manual case
 
 1. On the WebRTC test page, set publishSourceId=desktop-publisher-1.
@@ -163,5 +160,23 @@ url=https://www.youtube.com/watch?v=iYmvCUonukw
 
 - If /health does not open from the desktop, check macOS firewall, bind address, or router WiFi/LAN isolation first.
 - VLC/IINA RTSP tests should prefer RTSP over TCP.
-- YouTube tests require yt-dlp on the MacBook and public/non-login URLs.
 EOF
+
+if [[ "${EXPERIMENTAL_YOUTUBE_ENABLED}" == "1" ]]; then
+  cat <<EOF
+- Experimental YouTube tests are enabled for this server instance.
+
+sourceType=youtube
+url=https://www.youtube.com/watch?v=aqz-KE-bpKQ
+
+sourceType=youtube
+url=https://www.youtube.com/watch?v=iYmvCUonukw
+
+- Experimental YouTube tests require yt-dlp on the MacBook and public/non-login URLs.
+EOF
+else
+  cat <<EOF
+- Experimental YouTube tests are hidden. Start the server with
+  MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1 if you explicitly want to expose them.
+EOF
+fi

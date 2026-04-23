@@ -291,6 +291,17 @@ std::optional<HttpRequest> ReadHttpRequest(int client_fd) {
 }
 
 std::string BuildTestPageHtml() {
+    const bool youtube_enabled = app::GetAppConfig().enable_experimental_youtube_source;
+    const std::string youtube_option =
+        youtube_enabled ? "              <option value=\"youtube\">youtube watch/live url (experimental)</option>\n"
+                        : std::string();
+    const std::string experimental_note =
+        youtube_enabled
+            ? "          <p style=\"margin:0;color:var(--muted);font-size:0.9rem;\">Experimental source path enabled: "
+              "`source=youtube` uses `yt-dlp` and may fail on login, region, or bot checks.</p>\n"
+            : "          <p style=\"margin:0;color:var(--muted);font-size:0.9rem;\">Experimental sources are hidden by "
+              "default. Start the server with `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1` if you explicitly "
+              "want to expose `source=youtube`.</p>\n";
     return R"(<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -347,6 +358,9 @@ std::string BuildTestPageHtml() {
       gap: 6px;
       font-size: 13px;
       color: var(--muted);
+    }
+    .source-field.is-hidden {
+      display: none;
     }
     input, select, button, textarea {
       width: 100%;
@@ -415,17 +429,16 @@ std::string BuildTestPageHtml() {
               <option value="url">rtsp url</option>
               <option value="http">http media url</option>
               <option value="hls">hls media url</option>
-              <option value="youtube">youtube watch/live url</option>
-              <option value="webrtc">published webrtc source id</option>
+)" + youtube_option + R"(              <option value="webrtc">published webrtc source id</option>
             </select>
           </label>
-          <label>File Name
+          <label class="source-field" data-source-field="file">File Name
             <input id="fileInput" value="sample_h264.mp4" />
           </label>
-          <label>Source URL
+          <label class="source-field" data-source-field="url">Source URL
             <input id="urlInput" value="rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4" />
           </label>
-          <label>WebRTC Source ID
+          <label class="source-field" data-source-field="webrtc">WebRTC Source ID
             <input id="webrtcSourceInput" value="publisher-demo" />
           </label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -436,7 +449,7 @@ std::string BuildTestPageHtml() {
             <button id="whepBtn" class="secondary">Test WHEP</button>
             <button id="clearBtn" class="secondary">Clear Log</button>
           </div>
-        </div>
+)" + experimental_note + R"(        </div>
       </div>
       <div class="grid">
         <div>
@@ -482,6 +495,7 @@ std::string BuildTestPageHtml() {
     const urlInputEl = document.getElementById('urlInput');
     const webrtcSourceInputEl = document.getElementById('webrtcSourceInput');
     const publishSourceIdInputEl = document.getElementById('publishSourceIdInput');
+    const sourceFieldEls = Array.from(document.querySelectorAll('[data-source-field]'));
     let pc = null;
     let sessionId = null;
     let pollTimer = null;
@@ -534,6 +548,18 @@ std::string BuildTestPageHtml() {
         publishSourceId: publishSourceIdInputEl.value,
         log: logEl.textContent
       };
+    }
+
+    function updateSourceFields() {
+      const sourceType = sourceTypeEl.value;
+      const activeField = sourceType === 'file'
+        ? 'file'
+        : sourceType === 'webrtc'
+          ? 'webrtc'
+          : 'url';
+      for (const fieldEl of sourceFieldEls) {
+        fieldEl.classList.toggle('is-hidden', fieldEl.dataset.sourceField !== activeField);
+      }
     }
 
     async function collectPeerStats(peer) {
@@ -881,17 +907,20 @@ std::string BuildTestPageHtml() {
       sourceTypeEl.value = 'webrtc';
       webrtcSourceInputEl.value = payload.sourceId;
       publishSourceIdInputEl.value = payload.sourceId;
+      updateSourceFields();
       log(`publisher session created: ${publisherSessionId} sourceId=${payload.sourceId}`);
       publisherPollTimer = setInterval(() => { pollPublisherIce().catch((error) => log(error.message)); }, 1000);
     }
 
     async function playPublishedSimple() {
       sourceTypeEl.value = 'webrtc';
+      updateSourceFields();
       await startSimple();
     }
 
     async function playPublishedWhep() {
       sourceTypeEl.value = 'webrtc';
+      updateSourceFields();
       await startWhep();
     }
 
@@ -903,6 +932,8 @@ std::string BuildTestPageHtml() {
     document.getElementById('consumePublishedBtn').onclick = () => playPublishedSimple().catch((error) => log(error.message));
     document.getElementById('consumePublishedWhepBtn').onclick = () => playPublishedWhep().catch((error) => log(error.message));
     document.getElementById('clearBtn').onclick = () => { logEl.textContent = ''; };
+    sourceTypeEl.addEventListener('change', updateSourceFields);
+    updateSourceFields();
     window.__mediaServerTestApi = {
       startSimple,
       startWhep,
@@ -1126,6 +1157,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         if (request.method == "GET" && request.path == "/webrtc/test") {
                             HttpResponse ok;
                             ok.content_type = "text/html; charset=utf-8";
+                            ok.headers["Cache-Control"] = "no-store";
                             ok.body = BuildTestPageHtml();
                             return ok;
                         }
