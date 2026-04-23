@@ -2,33 +2,20 @@
 #include "core/youtube_resolver.h"
 
 #include <algorithm>
-#include <array>
 #include <cerrno>
 #include <chrono>
 #include <cctype>
-#include <csignal>
 #include <cstring>
-#include <fcntl.h>
 #include <iostream>
 #include <optional>
-#include <poll.h>
 #include <sstream>
-#include <sys/wait.h>
-#include <unistd.h>
 #include <unordered_set>
 #include <vector>
 
 #include "app_config.h"
+#include "core/command_runner.h"
 
 namespace {
-
-struct CommandResult {
-    int exit_code{-1};
-    bool timed_out{false};
-    std::string stdout_text;
-    std::string stderr_text;
-    std::string error_message;
-};
 
 struct ParsedUrl {
     std::string scheme;
@@ -134,23 +121,6 @@ bool IsAllowedYouTubeHost(const std::string& host) {
            host.compare(host.size() - kYoutubeSuffixSize, kYoutubeSuffixSize, kYoutubeSuffix) == 0;
 }
 
-bool ValidateYouTubeWatchUrl(const std::string& raw_uri, std::string* error_message) {
-    const auto parsed = ParseUrlSchemeHost(raw_uri);
-    if (!parsed.has_value() || (parsed->scheme != "http" && parsed->scheme != "https")) {
-        if (error_message != nullptr) {
-            *error_message = "invalid YouTube URL: expected http(s) URL";
-        }
-        return false;
-    }
-    if (!IsAllowedYouTubeHost(parsed->host)) {
-        if (error_message != nullptr) {
-            *error_message = "invalid YouTube URL host: " + parsed->host;
-        }
-        return false;
-    }
-    return true;
-}
-
 bool StartsWithHttpScheme(const std::string& uri) {
     const std::string lower = ToLower(uri);
     return lower.rfind("http://", 0) == 0 || lower.rfind("https://", 0) == 0;
@@ -202,181 +172,6 @@ std::string SummarizeStderr(const std::string& stderr_text) {
     return TruncateForMessage(oss.str());
 }
 
-void AppendPipeOutput(int fd, std::string* output, bool* open) {
-    std::array<char, 4096> buffer{};
-    while (true) {
-        const ssize_t read_size = ::read(fd, buffer.data(), buffer.size());
-        if (read_size > 0) {
-            output->append(buffer.data(), static_cast<std::size_t>(read_size));
-            continue;
-        }
-        if (read_size == 0) {
-            *open = false;
-            return;
-        }
-        if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            return;
-        }
-        *open = false;
-        return;
-    }
-}
-
-bool MakeNonBlocking(int fd, std::string* error_message) {
-    const int flags = ::fcntl(fd, F_GETFL, 0);
-    if (flags < 0 || ::fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) {
-        if (error_message != nullptr) {
-            *error_message = std::string("failed to set pipe nonblocking: ") + std::strerror(errno);
-        }
-        return false;
-    }
-    return true;
-}
-
-CommandResult RunCommandCapture(const std::vector<std::string>& args, int timeout_ms) {
-    CommandResult result;
-    if (args.empty()) {
-        result.error_message = "empty resolver command";
-        return result;
-    }
-
-    int stdout_pipe[2]{-1, -1};
-    int stderr_pipe[2]{-1, -1};
-    if (::pipe(stdout_pipe) != 0 || ::pipe(stderr_pipe) != 0) {
-        result.error_message = std::string("failed to create resolver pipe: ") + std::strerror(errno);
-        if (stdout_pipe[0] >= 0) {
-            ::close(stdout_pipe[0]);
-        }
-        if (stdout_pipe[1] >= 0) {
-            ::close(stdout_pipe[1]);
-        }
-        if (stderr_pipe[0] >= 0) {
-            ::close(stderr_pipe[0]);
-        }
-        if (stderr_pipe[1] >= 0) {
-            ::close(stderr_pipe[1]);
-        }
-        return result;
-    }
-
-    const pid_t pid = ::fork();
-    if (pid < 0) {
-        result.error_message = std::string("failed to fork resolver: ") + std::strerror(errno);
-        ::close(stdout_pipe[0]);
-        ::close(stdout_pipe[1]);
-        ::close(stderr_pipe[0]);
-        ::close(stderr_pipe[1]);
-        return result;
-    }
-
-    if (pid == 0) {
-        ::dup2(stdout_pipe[1], STDOUT_FILENO);
-        ::dup2(stderr_pipe[1], STDERR_FILENO);
-        ::close(stdout_pipe[0]);
-        ::close(stdout_pipe[1]);
-        ::close(stderr_pipe[0]);
-        ::close(stderr_pipe[1]);
-
-        std::vector<char*> argv;
-        argv.reserve(args.size() + 1);
-        for (const std::string& arg : args) {
-            argv.push_back(const_cast<char*>(arg.c_str()));
-        }
-        argv.push_back(nullptr);
-        ::execvp(argv[0], argv.data());
-        ::_exit(127);
-    }
-
-    ::close(stdout_pipe[1]);
-    ::close(stderr_pipe[1]);
-    if (!MakeNonBlocking(stdout_pipe[0], &result.error_message) ||
-        !MakeNonBlocking(stderr_pipe[0], &result.error_message)) {
-        ::kill(pid, SIGKILL);
-        ::close(stdout_pipe[0]);
-        ::close(stderr_pipe[0]);
-        ::waitpid(pid, nullptr, 0);
-        return result;
-    }
-
-    bool stdout_open = true;
-    bool stderr_open = true;
-    bool child_exited = false;
-    int status = 0;
-    const auto started_at = std::chrono::steady_clock::now();
-    const auto deadline = started_at + std::chrono::milliseconds(timeout_ms);
-
-    while (stdout_open || stderr_open || !child_exited) {
-        if (!child_exited) {
-            const pid_t waited = ::waitpid(pid, &status, WNOHANG);
-            if (waited == pid) {
-                child_exited = true;
-            }
-        }
-
-        if (!child_exited && std::chrono::steady_clock::now() >= deadline) {
-            result.timed_out = true;
-            ::kill(pid, SIGKILL);
-            ::waitpid(pid, &status, 0);
-            child_exited = true;
-        }
-
-        std::array<pollfd, 2> fds{};
-        nfds_t nfds = 0;
-        if (stdout_open) {
-            fds[nfds++] = pollfd{stdout_pipe[0], POLLIN | POLLHUP | POLLERR, 0};
-        }
-        if (stderr_open) {
-            fds[nfds++] = pollfd{stderr_pipe[0], POLLIN | POLLHUP | POLLERR, 0};
-        }
-
-        if (nfds > 0) {
-            const int wait_ms = child_exited ? 0 : 100;
-            const int polled = ::poll(fds.data(), nfds, wait_ms);
-            if (polled > 0) {
-                nfds_t index = 0;
-                if (stdout_open) {
-                    if ((fds[index].revents & (POLLIN | POLLHUP | POLLERR)) != 0) {
-                        AppendPipeOutput(stdout_pipe[0], &result.stdout_text, &stdout_open);
-                    }
-                    ++index;
-                }
-                if (stderr_open) {
-                    if ((fds[index].revents & (POLLIN | POLLHUP | POLLERR)) != 0) {
-                        AppendPipeOutput(stderr_pipe[0], &result.stderr_text, &stderr_open);
-                    }
-                }
-            } else if (polled < 0 && errno != EINTR) {
-                result.error_message = std::string("resolver poll failed: ") + std::strerror(errno);
-                break;
-            }
-        }
-
-        if (child_exited && !stdout_open && !stderr_open) {
-            break;
-        }
-    }
-
-    if (!child_exited) {
-        ::kill(pid, SIGKILL);
-        ::waitpid(pid, &status, 0);
-    }
-    if (stdout_open) {
-        AppendPipeOutput(stdout_pipe[0], &result.stdout_text, &stdout_open);
-    }
-    if (stderr_open) {
-        AppendPipeOutput(stderr_pipe[0], &result.stderr_text, &stderr_open);
-    }
-    ::close(stdout_pipe[0]);
-    ::close(stderr_pipe[0]);
-
-    if (WIFEXITED(status)) {
-        result.exit_code = WEXITSTATUS(status);
-    } else if (WIFSIGNALED(status)) {
-        result.exit_code = 128 + WTERMSIG(status);
-    }
-    return result;
-}
-
 std::string ClassifyYtDlpFailure(const std::string& stderr_text) {
     const std::string lower = ToLower(stderr_text);
     if (lower.find("private video") != std::string::npos) {
@@ -414,7 +209,7 @@ std::string ClassifyYtDlpFailure(const std::string& stderr_text) {
     return {};
 }
 
-std::string BuildYtDlpFailureMessage(const CommandResult& result, const std::string& bin, int timeout_ms) {
+std::string BuildYtDlpFailureMessage(const core::CommandResult& result, const std::string& bin, int timeout_ms) {
     if (!result.error_message.empty()) {
         return result.error_message;
     }
@@ -463,6 +258,23 @@ std::optional<media::SourceSpec> PickPlayableSource(const std::vector<std::strin
 }  // namespace
 
 namespace core {
+
+bool ValidateYouTubeWatchUrl(const std::string& raw_uri, std::string* error_message) {
+    const auto parsed = ParseUrlSchemeHost(raw_uri);
+    if (!parsed.has_value() || (parsed->scheme != "http" && parsed->scheme != "https")) {
+        if (error_message != nullptr) {
+            *error_message = "invalid YouTube URL: expected http(s) URL";
+        }
+        return false;
+    }
+    if (!IsAllowedYouTubeHost(parsed->host)) {
+        if (error_message != nullptr) {
+            *error_message = "invalid YouTube URL host: " + parsed->host;
+        }
+        return false;
+    }
+    return true;
+}
 
 bool ResolveYouTubeSource(const media::SourceSpec& youtube_spec,
                           media::SourceSpec* resolved_source,

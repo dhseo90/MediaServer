@@ -273,6 +273,9 @@ SharedStream
 구현 원칙:
 - 기본 source protocol은 `source=hls` 또는 `source=http`로 먼저 연다. 현재 1차 `UriSourceWorker`는 GStreamer `uridecodebin`으로 HTTP/HLS media URL을 수신한 뒤 내부 표준 패킷(`H264` video, `AAC` audio)으로 재인코딩한다.
 - `source=youtube`는 `yt-dlp` 기반 resolver를 통과하는 실험실 옵션으로 두고, 기본값으로는 숨긴다.
+- 검증 UI도 기본 `/webrtc/test`와 개발용 `/lab`로 분리해, 실험 기능은 `/lab`에만 노출한다.
+- 개발용 URL import는 `/lab/import`에서 별도 job 화면으로 분리해, 다운로드/import 상태와 기존 relay 테스트 UI를 섞지 않는다.
+- `/lab/import`는 다운로드가 끝난 뒤 `ffmpeg`로 결과 파일을 `h264 + aac stereo + mp4`로 정규화해, 기존 `file=` relay/analysis 경로에 바로 재사용 가능한 토큰을 남긴다.
 - resolver는 YouTube watch/live URL을 HLS/HTTP playable URL로 변환하고, 실제 packet 수집은 기존 `UriSourceWorker`가 담당한다.
 - 라이브와 업로드된 영상 모두 고려한다.
 - YouTube 약관/권한 이슈가 있으므로 resolver는 실험/권한 확인 가능한 경로로 격리하고, `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`일 때만 노출한다.

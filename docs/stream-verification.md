@@ -25,7 +25,9 @@
 
 실험실 기능 정책:
 - `source=youtube`는 코드에 남아 있지만 기본 test scope에는 포함하지 않는다.
-- 서버를 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`로 시작한 경우에만 test page/helper script에 노출한다.
+- 기본 검증 UI는 `/webrtc/test`, 개발용 실험 UI는 `/lab`로 분리했다.
+- 개발용 import UI는 `/lab/import`에서 별도로 제공한다.
+- 서버를 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`로 시작한 경우에만 `/lab`과 helper script에 YouTube 옵션을 노출한다.
 - YouTube 관련 검증 이력은 이 문서 하단의 "실험실 기능 검증 이력"에 분리해 둔다.
 
 ## 완료된 기본 테스트 예시
@@ -60,6 +62,29 @@
    - relay 경로는 유지하고 `SharedStream` analysis tap을 붙인 뒤 drop/frame-sampling 정책 검증
 5. 실험실 YouTube 회귀 검증
    - 기본 scope는 아니며, 명시적으로 opt-in 했을 때만 별도 확인
+6. `/lab/import` 외부 네트워크 재검증
+   - `2026-04-24` 공개 VOD `aqz-KE-bpKQ` 기준으로 성공/실패가 모두 재현됐다.
+   - 현재는 성공 시 import 결과를 `ffmpeg`로 `h264 + aac stereo + mp4`로 정규화한 뒤 `file=` relay/analysis 경로에 바로 재사용하도록 수정했다.
+
+## 실험실 YouTube 개발 중단 사유
+- 현재 `source=youtube` 경로는 코드 수준 1차 연결과 일부 재생 검증까지는 끝났지만, 기본 기능으로 승격할 정도의 안정성은 확보하지 못했다.
+- 중단 사유는 서버 내부 codec/route 구조보다 외부 요인 비중이 크다.
+  - `yt-dlp` 해석 성공 여부가 YouTube 측 bot check, 로그인 요구, 지역 제한, 일시적인 정책 변화에 영향을 받는다.
+  - resolver가 반환하는 URL이 서명된 임시 URL이라 재현성과 회귀 테스트 안정성이 낮다.
+  - 같은 URL도 시점에 따라 progressive HTTP, HLS fallback, 접근 거부가 섞일 수 있다.
+- `2026-04-24` 실제 재검증에서는 공개 VOD `https://www.youtube.com/watch?v=aqz-KE-bpKQ`에 대해 서로 다른 결과가 나왔다.
+  - shell 기반 `/lab/import` job과 `yt-dlp --skip-download -g` resolver 경로는 bot check 오류로 실패했다.
+  - Chrome `/lab/import` UI에서 다시 만든 job은 `yt-dlp`가 `[jsc:deno]`로 challenge를 푼 뒤 `ready`까지 완료됐다.
+- 따라서 현재는 기본 기능이 아니라 `/lab` 기반 실험실 기능으로만 유지하고, 회귀 검증도 opt-in 상황에서만 수행한다.
+
+## 실험실 YouTube 현재 미확인 사항
+- 동일 URL이 장기간 반복 테스트에서 계속 재생 가능한지
+- YouTube 측 bot check가 발생한 이후 자동 복구가 가능한지
+- 로그인 필요, 연령 제한, 지역 제한, 비공개/멤버십 영상에 대해 어떤 실패 패턴이 안정적으로 나오는지
+- live 종료 직후 archive 전환 시 resolver와 delegate reconnect가 안정적으로 동작하는지
+- cookie 없이 접근 가능한 공개 URL이 현재 시점에도 안정적으로 남아 있는지
+- import 성공/실패가 시점에 따라 왜 갈리는지
+- `/lab/import` UI와 실제 외부 네트워크 download workflow의 성공/실패 표기가 충분히 설명적인지
 
 ## 설정 파일
 - `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/config/codec_test_sources.json`
@@ -171,6 +196,8 @@ MEDIA_SERVER_FORCE_RTSP_TCP=1 \
 ```text
 http://{media-server-host}:8080/health
 http://{media-server-host}:8080/webrtc/test
+http://{media-server-host}:8080/lab
+http://{media-server-host}:8080/lab/import
 ```
 
 `/health`는 `{"status":"ok"}`를 반환하는 readiness check다.
@@ -358,6 +385,18 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
   - `HTTP video-only -> WebRTC(simple)`: video-only track 및 decoded video frame 확인
   - `YouTube uploaded/VOD -> WebRTC(simple/WHEP)`: audio/video track 및 decoded video frame 확인
   - `WebRTC browser publish -> WebRTC(simple/WHEP)`: publisher/consumer 연결 및 decoded video frame 확인
+- `/lab/import` 1차 smoke test를 추가했다.
+  - fake downloader가 `sample_h264.mp4`를 복사하도록 한 상태에서 job이 `ready`로 완료됐다.
+  - 결과 파일 token은 `imports/lab_test.mp4`로 기록됐고, import manager/job API가 기본 동작함을 확인했다.
+- `2026-04-24` 실제 외부 네트워크 재검증을 추가했다.
+  - shell에서 만든 `import-1`은 `failed`로 종료됐고, 로그에는 `Sign in to confirm you're not a bot`가 기록됐다.
+  - 같은 URL에 대해 `yt-dlp --skip-download -g` resolver 경로도 동일한 bot check 오류로 실패했다.
+  - 하지만 Chrome `/lab/import`에서 다시 만든 `import-2`는 `ready`로 완료됐고 `storedFileToken=imports/ui_yt_import_test.mp4`가 생성됐다.
+  - `import-2` 로그에는 `[jsc:deno] Solving JS challenges using deno`가 포함됐다.
+  - 초기 결과 파일은 `av1 + aac(6ch)`로 저장되어, `POST /webrtc/session?file=imports/ui_yt_import_test.mp4`가 `stream descriptor not available or not yet supported`로 실패했다.
+  - 이후 `/lab/import`에 `yt-dlp` format selector 적용과 `ffmpeg` 기반 `h264 + aac stereo + mp4` 정규화 단계를 추가했다.
+  - 새 코드로 다시 만든 `import-1`은 `storedFileToken=imports/normalized_import_test.mp4`로 `ready`까지 완료됐고, `ffprobe` 기준 `h264 1280x720 + aac 48000Hz stereo`로 확인됐다.
+  - 같은 파일에 대해 `POST /webrtc/session?file=imports/normalized_import_test.mp4`가 `200 OK`로 통과해, import 결과를 기존 `file=` relay 경로에 바로 재사용할 수 있음을 확인했다.
 - 외부 수동 검증 URL 출력 스크립트를 추가했다.
   - `scripts/print_external_test_urls.sh`
   - LAN IP, RTSP route URL, WebRTC test page/manual case를 한 번에 출력한다.

@@ -17,6 +17,7 @@
 /.media_server.pid
 /.media_server.port
 /scripts/.media_server.env
+/video/imports/
 
 # Python cache
 __pycache__/

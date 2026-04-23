@@ -23,6 +23,7 @@
 
 #include "app_config.h"
 #include "ingress/request_parser.h"
+#include "ingress/lab_import_manager.h"
 #include "ingress/webrtc_egress_session.h"
 #include "ingress/webrtc_source_session.h"
 
@@ -290,24 +291,46 @@ std::optional<HttpRequest> ReadHttpRequest(int client_fd) {
     return request;
 }
 
-std::string BuildTestPageHtml() {
-    const bool youtube_enabled = app::GetAppConfig().enable_experimental_youtube_source;
+std::string BuildTestPageHtml(bool lab_mode) {
+    const bool youtube_enabled = lab_mode && app::GetAppConfig().enable_experimental_youtube_source;
+    const std::string page_title = lab_mode ? "미디어 서버 실험실" : "미디어 서버 WebRTC 테스트";
+    const std::string hero_title = lab_mode ? "미디어 서버 실험실" : "WebRTC 수신 테스트";
+    const std::string hero_body = lab_mode
+                                      ? "실험용 소스 검증, URL 가져오기 도구, simple signaling/WHEP/WHIP 확인을 한 곳에 모아둔 화면입니다."
+                                      : "simple signaling, WHEP 재생, WHIP 스타일 publish를 같은 미디어 서버에서 확인하는 화면입니다.";
+    const std::string page_link = lab_mode
+                                      ? "          <p style=\"margin:0 0 14px;\"><a href=\"/webrtc/test\">안정 테스트 페이지로 이동</a></p>\n"
+                                      : "          <p style=\"margin:0 0 14px;\"><a href=\"/lab\">실험실 페이지로 이동</a></p>\n";
     const std::string youtube_option =
-        youtube_enabled ? "              <option value=\"youtube\">youtube watch/live url (experimental)</option>\n"
+        youtube_enabled ? "              <option value=\"youtube\">YouTube watch/live URL (실험실)</option>\n"
                         : std::string();
     const std::string experimental_note =
-        youtube_enabled
-            ? "          <p style=\"margin:0;color:var(--muted);font-size:0.9rem;\">Experimental source path enabled: "
-              "`source=youtube` uses `yt-dlp` and may fail on login, region, or bot checks.</p>\n"
-            : "          <p style=\"margin:0;color:var(--muted);font-size:0.9rem;\">Experimental sources are hidden by "
-              "default. Start the server with `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1` if you explicitly "
-              "want to expose `source=youtube`.</p>\n";
+        lab_mode
+            ? (youtube_enabled
+                   ? "          <p style=\"margin:0;color:var(--muted);font-size:0.9rem;\">이 서버에서는 실험실 YouTube 소스가 켜져 있습니다. `yt-dlp`를 사용하며 로그인, 지역 제한, bot check에 따라 실패할 수 있습니다.</p>\n"
+                   : "          <p style=\"margin:0;color:var(--muted);font-size:0.9rem;\">실험실 페이지는 열려 있지만 `source=youtube`는 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`로 서버를 시작해야만 활성화됩니다.</p>\n")
+            : "          <p style=\"margin:0;color:var(--muted);font-size:0.9rem;\">이 화면은 안정 테스트용입니다. 개발 전용 옵션은 `/lab`에서 확인하세요.</p>\n";
+    const std::string lab_panel = lab_mode
+                                      ? R"(    <section class="card" style="margin-top:20px;">
+      <div style="padding:24px;display:grid;gap:12px;">
+        <h2 style="margin:0;font-size:24px;letter-spacing:-0.02em;">실험실 바로가기</h2>
+        <p style="margin:0;">이 페이지는 개발 전용 도구를 위한 화면입니다. URL 가져오기, 분석 디버그, 실험 소스 확인 기능을 같은 `/lab` 아래에 모읍니다.</p>
+        <p style="margin:0;"><a href="/webrtc/test">안정 테스트 페이지로 이동</a> · <a href="/lab/import">실험실 가져오기 페이지 열기</a></p>
+        <pre style="min-height:0;">예정 항목
+- URL 가져오기 -> video/imports
+- 가져오기 작업 상태 / 로그
+- 분석 스냅샷 / 디버그 도구
+- 실험 소스 장애 추적</pre>
+      </div>
+    </section>
+)"
+                                      : std::string();
     return R"(<!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Media Server WebRTC Test</title>
+  <title>)" + page_title + R"(</title>
   <style>
     :root {
       --bg: #0d1b1e;
@@ -383,6 +406,13 @@ std::string BuildTestPageHtml() {
       color: var(--ink);
       border: 1px solid var(--line);
     }
+    a {
+      color: #ffd09b;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
     video {
       width: 100%;
       aspect-ratio: 16 / 9;
@@ -418,65 +448,65 @@ std::string BuildTestPageHtml() {
     <section class="card">
       <div class="hero">
         <div>
-          <h1>WebRTC Pull Test</h1>
-          <p>Simple signaling, WHEP playback, and WHIP-style publish endpoints run from the same media server.</p>
+          <h1>)" + hero_title + R"(</h1>
+)" + page_link + R"(          <p>)" + hero_body + R"(</p>
           <video id="video" autoplay playsinline controls></video>
         </div>
         <div class="controls">
-          <label>Source Type
+          <label>소스 종류
             <select id="sourceType">
               <option value="file">file</option>
-              <option value="url">rtsp url</option>
-              <option value="http">http media url</option>
-              <option value="hls">hls media url</option>
-)" + youtube_option + R"(              <option value="webrtc">published webrtc source id</option>
+              <option value="url">RTSP URL</option>
+              <option value="http">HTTP 미디어 URL</option>
+              <option value="hls">HLS 미디어 URL</option>
+)" + youtube_option + R"(              <option value="webrtc">발행된 WebRTC source id</option>
             </select>
           </label>
-          <label class="source-field" data-source-field="file">File Name
+          <label class="source-field" data-source-field="file">파일 이름
             <input id="fileInput" value="sample_h264.mp4" />
           </label>
-          <label class="source-field" data-source-field="url">Source URL
+          <label class="source-field" data-source-field="url">소스 URL
             <input id="urlInput" value="rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4" />
           </label>
-          <label class="source-field" data-source-field="webrtc">WebRTC Source ID
+          <label class="source-field" data-source-field="webrtc">WebRTC 소스 ID
             <input id="webrtcSourceInput" value="publisher-demo" />
           </label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <button id="startBtn">Start</button>
-            <button id="stopBtn" class="secondary">Stop</button>
+            <button id="startBtn">시작</button>
+            <button id="stopBtn" class="secondary">중지</button>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <button id="whepBtn" class="secondary">Test WHEP</button>
-            <button id="clearBtn" class="secondary">Clear Log</button>
+            <button id="whepBtn" class="secondary">WHEP 테스트</button>
+            <button id="clearBtn" class="secondary">로그 지우기</button>
           </div>
 )" + experimental_note + R"(        </div>
       </div>
       <div class="grid">
         <div>
-          <label>Session Log</label>
+          <label>세션 로그</label>
           <pre id="log"></pre>
         </div>
         <div>
-          <label>Remote SDP</label>
+          <label>원격 SDP</label>
           <textarea id="sdpBox" spellcheck="false"></textarea>
         </div>
       </div>
       <div class="grid">
         <div>
-          <label>Publisher Preview</label>
+          <label>발행 화면 미리보기</label>
           <video id="publisherVideo" autoplay playsinline controls muted></video>
         </div>
         <div class="controls">
-          <label>Publish Source ID
+          <label>발행 소스 ID
             <input id="publishSourceIdInput" value="publisher-demo" />
           </label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <button id="publishBtn" class="secondary">Start Publish</button>
-            <button id="stopPublishBtn" class="secondary">Stop Publish</button>
+            <button id="publishBtn" class="secondary">발행 시작</button>
+            <button id="stopPublishBtn" class="secondary">발행 중지</button>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <button id="consumePublishedBtn" class="secondary">Play Published</button>
-            <button id="consumePublishedWhepBtn" class="secondary">Play Published WHEP</button>
+            <button id="consumePublishedBtn" class="secondary">발행 소스 재생</button>
+            <button id="consumePublishedWhepBtn" class="secondary">발행 소스 WHEP 재생</button>
           </div>
           <p style="margin:0;color:var(--muted);font-size:0.9rem;">
             publish 완료 후 `sourceType=webrtc`와 같은 source id로 RTSP/WebRTC consume을 바로 확인할 수 있습니다.
@@ -484,7 +514,7 @@ std::string BuildTestPageHtml() {
         </div>
       </div>
     </section>
-  </main>
+)" + lab_panel + R"(  </main>
   <script>
     const logEl = document.getElementById('log');
     const videoEl = document.getElementById('video');
@@ -663,7 +693,7 @@ std::string BuildTestPageHtml() {
         pc = null;
       }
       videoEl.srcObject = null;
-      log('session stopped');
+      log('세션 중지');
     }
 
     async function stopPublisher() {
@@ -690,7 +720,7 @@ std::string BuildTestPageHtml() {
         publisherStream = null;
       }
       publisherVideoEl.srcObject = null;
-      log('publisher stopped');
+      log('발행 세션 중지');
     }
 
     async function pollIce() {
@@ -769,7 +799,7 @@ std::string BuildTestPageHtml() {
       const response = await fetch(`/webrtc/session?${buildQuery()}`, { method: 'POST' });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload.error || 'failed to create WebRTC session');
+        throw new Error(payload.error || 'WebRTC 세션 생성 실패');
       }
 
       sessionId = payload.sessionId;
@@ -782,7 +812,7 @@ std::string BuildTestPageHtml() {
         headers: { 'Content-Type': 'application/sdp' },
         body: answer.sdp
       });
-      log(`simple signaling session created: ${sessionId}`);
+      log(`simple signaling 세션 생성: ${sessionId}`);
       pollTimer = setInterval(() => { pollIce().catch((error) => log(error.message)); }, 1000);
     }
 
@@ -826,13 +856,13 @@ std::string BuildTestPageHtml() {
       });
       const answer = await response.text();
       if (!response.ok) {
-        throw new Error(answer || 'failed to create WHEP session');
+        throw new Error(answer || 'WHEP 세션 생성 실패');
       }
       const location = response.headers.get('Location') || '';
       sessionId = location.split('/').pop();
       sdpBox.value = answer;
       await pc.setRemoteDescription({ type: 'answer', sdp: answer });
-      log(`whep session created: ${sessionId}`);
+      log(`WHEP 세션 생성: ${sessionId}`);
       pollTimer = setInterval(() => { pollIce().catch((error) => log(error.message)); }, 1000);
     }
 
@@ -861,7 +891,7 @@ std::string BuildTestPageHtml() {
             });
             if (preferred.length > 0) {
               transceiver.setCodecPreferences(preferred);
-              log('publisher codec preference: H264');
+              log('발행 codec 우선순위: H264');
             }
           } else if (kind === 'audio') {
             const preferred = caps.codecs.filter((codec) => {
@@ -870,7 +900,7 @@ std::string BuildTestPageHtml() {
             });
             if (preferred.length > 0) {
               transceiver.setCodecPreferences(preferred);
-              log('publisher codec preference: Opus');
+              log('발행 codec 우선순위: Opus');
             }
           }
         }
@@ -899,7 +929,7 @@ std::string BuildTestPageHtml() {
       });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload.error || 'failed to create WHIP publish session');
+        throw new Error(payload.error || 'WHIP 발행 세션 생성 실패');
       }
 
       publisherSessionId = payload.sessionId;
@@ -908,7 +938,7 @@ std::string BuildTestPageHtml() {
       webrtcSourceInputEl.value = payload.sourceId;
       publishSourceIdInputEl.value = payload.sourceId;
       updateSourceFields();
-      log(`publisher session created: ${publisherSessionId} sourceId=${payload.sourceId}`);
+      log(`발행 세션 생성: ${publisherSessionId} sourceId=${payload.sourceId}`);
       publisherPollTimer = setInterval(() => { pollPublisherIce().catch((error) => log(error.message)); }, 1000);
     }
 
@@ -952,6 +982,289 @@ std::string BuildTestPageHtml() {
 </html>)";
 }
 
+std::string BuildLabImportPageHtml() {
+    const bool youtube_enabled = app::GetAppConfig().enable_experimental_youtube_source;
+    const std::string import_note =
+        youtube_enabled
+            ? "이 서버에서는 실험실 YouTube 가져오기가 켜져 있습니다. 완료된 작업은 `video/imports` 아래에 파일을 저장하며, 이후 기존 `file=` 경로로 relay/analysis 테스트에 재사용할 수 있습니다."
+            : "현재 실험실 YouTube 가져오기는 꺼져 있습니다. lab 다운로드를 허용하려면 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`로 서버를 시작하세요.";
+    const std::string button_disabled = youtube_enabled ? std::string() : "disabled";
+    return R"(<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>미디어 서버 실험실 가져오기</title>
+  <style>
+    :root {
+      --bg: #12110d;
+      --panel: #252114;
+      --ink: #f5f0df;
+      --muted: #c8bd9f;
+      --accent: #f2b84b;
+      --line: rgba(245,240,223,0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "Pretendard", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top right, rgba(242,184,75,0.22), transparent 26%),
+        linear-gradient(135deg, #0a0907 0%, var(--bg) 45%, #1b160d 100%);
+      min-height: 100vh;
+    }
+    main {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+      display: grid;
+      gap: 20px;
+    }
+    .card {
+      background: rgba(37,33,20,0.86);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.24);
+      overflow: hidden;
+      padding: 24px;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 20px;
+    }
+    h1, h2 {
+      margin: 0 0 10px;
+      letter-spacing: -0.03em;
+    }
+    p, li { color: var(--muted); line-height: 1.5; }
+    a { color: #ffe0a1; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .controls {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    input, button, textarea, select {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(10,9,7,0.92);
+      color: var(--ink);
+      padding: 12px 14px;
+      font: inherit;
+    }
+    button {
+      background: linear-gradient(135deg, var(--accent), #f6d27e);
+      color: #221a08;
+      border: 0;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: rgba(255,255,255,0.08);
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: rgba(10,9,7,0.92);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      min-height: 180px;
+      margin: 0;
+      color: #e9ddbe;
+    }
+    .jobs {
+      display: grid;
+      gap: 12px;
+    }
+    .job {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      background: rgba(10,9,7,0.58);
+    }
+    .job strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 900px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="card">
+      <div class="hero">
+        <div>
+          <h1>실험실 가져오기</h1>
+          <p><a href="/lab">실험실 메인으로 이동</a> · <a href="/webrtc/test">안정 테스트 페이지로 이동</a></p>
+          <p>)" + import_note + R"(</p>
+          <ul>
+            <li>현재 provider: `youtube` experimental</li>
+            <li>출력 경로: `video/imports/*`</li>
+            <li>작업이 `ready`가 되면 반환된 file token을 `file=` 경로에 그대로 사용할 수 있습니다.</li>
+          </ul>
+        </div>
+        <div class="controls">
+          <label>Provider
+            <select id="providerInput">
+              <option value="youtube">YouTube (실험실)</option>
+            </select>
+          </label>
+          <label>소스 URL
+            <input id="urlInput" placeholder="https://www.youtube.com/watch?v=..." />
+          </label>
+          <label>저장 파일 이름
+            <input id="targetFileInput" placeholder="traffic_scene.mp4" />
+          </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <button id="createBtn" )" + button_disabled + R"(>가져오기 작업 생성</button>
+            <button id="refreshBtn" class="secondary">작업 새로고침</button>
+          </div>
+          <pre id="statusBox">아직 요청한 작업이 없습니다.</pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="card grid">
+      <div>
+        <h2>작업 목록</h2>
+        <div id="jobsList" class="jobs"></div>
+      </div>
+      <div>
+        <h2>선택된 작업</h2>
+        <pre id="detailBox">작업을 선택하면 상세 정보를 보여줍니다.</pre>
+      </div>
+    </section>
+  </main>
+  <script>
+    const providerInputEl = document.getElementById('providerInput');
+    const urlInputEl = document.getElementById('urlInput');
+    const targetFileInputEl = document.getElementById('targetFileInput');
+    const statusBoxEl = document.getElementById('statusBox');
+    const detailBoxEl = document.getElementById('detailBox');
+    const jobsListEl = document.getElementById('jobsList');
+    let selectedJobId = '';
+
+    function renderDetail(job) {
+      if (!job) {
+        detailBoxEl.textContent = '작업을 선택하면 상세 정보를 보여줍니다.';
+        return;
+      }
+      const lines = [
+        `jobId=${job.jobId}`,
+        `status=${job.status}`,
+        `provider=${job.provider}`,
+        `sourceUrl=${job.sourceUrl}`,
+        `requestedFileName=${job.requestedFileName || ''}`,
+        `storedFileToken=${job.storedFileToken || ''}`,
+        `exitCode=${job.exitCode}`,
+        `error=${job.error || ''}`,
+        '',
+        'log:',
+        job.log || ''
+      ];
+      detailBoxEl.textContent = lines.join('\n');
+    }
+
+    function renderJobs(jobs) {
+      jobsListEl.innerHTML = '';
+      if (!jobs.length) {
+        jobsListEl.innerHTML = '<p style="margin:0;color:var(--muted);">작업이 없습니다.</p>';
+        renderDetail(null);
+        return;
+      }
+      for (const job of jobs) {
+        const item = document.createElement('div');
+        item.className = 'job';
+        const token = job.storedFileToken ? `\nfile=${job.storedFileToken}` : '';
+        item.innerHTML =
+          `<strong>${job.jobId}</strong>` +
+          `<div>${job.status} · ${job.provider}</div>` +
+          `<div style="margin-top:6px;color:var(--muted);word-break:break-word;">${job.sourceUrl}</div>` +
+          `<div style="margin-top:6px;color:var(--muted);word-break:break-word;">${job.error || job.storedFileToken || ''}</div>`;
+        item.onclick = () => {
+          selectedJobId = job.jobId;
+          renderDetail(job);
+        };
+        jobsListEl.appendChild(item);
+        if (selectedJobId === job.jobId) {
+          renderDetail(job);
+        }
+      }
+      if (!selectedJobId) {
+        selectedJobId = jobs[0].jobId;
+        renderDetail(jobs[0]);
+      }
+    }
+
+    async function refreshJobs() {
+      const response = await fetch('/lab/import/jobs');
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || '작업 목록 조회 실패');
+      }
+      renderJobs(payload.jobs || []);
+    }
+
+    async function createJob() {
+      const response = await fetch('/lab/import/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider: providerInputEl.value,
+          url: urlInputEl.value,
+          targetFileName: targetFileInputEl.value
+        })
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || '가져오기 작업 생성 실패');
+      }
+      statusBoxEl.textContent =
+        `작업 생성: ${payload.job.jobId}\nstatus=${payload.job.status}\nrequestedFileName=${payload.job.requestedFileName || ''}`;
+      selectedJobId = payload.job.jobId;
+      await refreshJobs();
+    }
+
+    document.getElementById('refreshBtn').onclick = () => {
+      refreshJobs().catch((error) => { statusBoxEl.textContent = error.message; });
+    };
+    document.getElementById('createBtn').onclick = () => {
+      createJob().catch((error) => { statusBoxEl.textContent = error.message; });
+    };
+
+    refreshJobs().catch((error) => { statusBoxEl.textContent = error.message; });
+    setInterval(() => {
+      refreshJobs().catch(() => {});
+    }, 3000);
+  </script>
+</body>
+</html>)";
+}
+
 }  // namespace
 
 struct WebRtcHttpServer::Impl {
@@ -971,6 +1284,7 @@ struct WebRtcHttpServer::Impl {
     explicit Impl(core::SessionManager& manager) : session_manager(manager) {}
 
     core::SessionManager& session_manager;
+    LabImportManager lab_import_manager;
     std::string listen_address;
     std::uint16_t port{0};
     int listen_fd{-1};
@@ -1042,6 +1356,39 @@ std::string SourceJson(const std::string& session_id, const std::string& source_
         << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
         << "\"answer\":\"" << JsonEscape(answer) << "\""
         << "}";
+    return out.str();
+}
+
+std::string LabImportJobJson(const LabImportJobSnapshot& job) {
+    std::ostringstream out;
+    out << "{"
+        << "\"jobId\":\"" << JsonEscape(job.job_id) << "\","
+        << "\"provider\":\"" << JsonEscape(job.provider) << "\","
+        << "\"sourceUrl\":\"" << JsonEscape(job.source_url) << "\","
+        << "\"requestedFileName\":\"" << JsonEscape(job.requested_file_name) << "\","
+        << "\"storedFileToken\":\"" << JsonEscape(job.stored_file_token) << "\","
+        << "\"status\":\"" << JsonEscape(job.status) << "\","
+        << "\"error\":\"" << JsonEscape(job.error_message) << "\","
+        << "\"log\":\"" << JsonEscape(job.log_excerpt) << "\","
+        << "\"exitCode\":" << job.exit_code << ","
+        << "\"createdAtMs\":" << job.created_at_ms << ","
+        << "\"updatedAtMs\":" << job.updated_at_ms << ","
+        << "\"startedAtMs\":" << job.started_at_ms << ","
+        << "\"finishedAtMs\":" << job.finished_at_ms
+        << "}";
+    return out.str();
+}
+
+std::string LabImportJobsJson(const std::vector<LabImportJobSnapshot>& jobs) {
+    std::ostringstream out;
+    out << "{\"jobs\":[";
+    for (std::size_t i = 0; i < jobs.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << LabImportJobJson(jobs[i]);
+    }
+    out << "]}";
     return out.str();
 }
 
@@ -1158,8 +1505,59 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             HttpResponse ok;
                             ok.content_type = "text/html; charset=utf-8";
                             ok.headers["Cache-Control"] = "no-store";
-                            ok.body = BuildTestPageHtml();
+                            ok.body = BuildTestPageHtml(false);
                             return ok;
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab") {
+                            HttpResponse ok;
+                            ok.content_type = "text/html; charset=utf-8";
+                            ok.headers["Cache-Control"] = "no-store";
+                            ok.body = BuildTestPageHtml(true);
+                            return ok;
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/import") {
+                            HttpResponse ok;
+                            ok.content_type = "text/html; charset=utf-8";
+                            ok.headers["Cache-Control"] = "no-store";
+                            ok.body = BuildLabImportPageHtml();
+                            return ok;
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/import/jobs") {
+                            return JsonResponse(200, "OK",
+                                                LabImportJobsJson(impl_->lab_import_manager.ListJobs()));
+                        }
+
+                        if (request.method == "POST" && request.path == "/lab/import/jobs") {
+                            LabImportJobRequest import_request;
+                            import_request.provider =
+                                ParseStringField(request.body, "provider").value_or("youtube");
+                            import_request.url = ParseStringField(request.body, "url").value_or("");
+                            import_request.target_file_name =
+                                ParseStringField(request.body, "targetFileName").value_or("");
+                            std::string error_message;
+                            const LabImportJobSnapshot job =
+                                impl_->lab_import_manager.CreateJob(import_request, &error_message);
+                            if (!error_message.empty()) {
+                                return JsonResponse(400, "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            }
+                            return JsonResponse(200, "OK",
+                                                "{\"job\":" + LabImportJobJson(job) + "}");
+                        }
+
+                        if (request.method == "GET" &&
+                            request.path.rfind("/lab/import/jobs/", 0) == 0) {
+                            const std::string job_id = request.path.substr(std::string("/lab/import/jobs/").size());
+                            const auto job = impl_->lab_import_manager.GetJob(job_id);
+                            if (!job.has_value()) {
+                                return JsonResponse(404, "Not Found",
+                                                    "{\"error\":\"import job not found\"}");
+                            }
+                            return JsonResponse(200, "OK",
+                                                "{\"job\":" + LabImportJobJson(*job) + "}");
                         }
 
                         if (request.method == "POST" && request.path == "/webrtc/session") {

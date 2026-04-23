@@ -248,6 +248,11 @@ collect_file_state() {
     else
       print_line "WARN" "yt-dlp not found; experimental source=youtube will fail until installed"
     fi
+    if command -v deno >/dev/null 2>&1; then
+      print_line "INFO" "deno available; yt-dlp can use jsc:deno for some YouTube JS challenges"
+    else
+      print_line "INFO" "deno not found; some YouTube JS challenges may fail even when yt-dlp is installed"
+    fi
   else
     print_line "INFO" "experimental source=youtube is disabled by default"
   fi
