@@ -1,9 +1,44 @@
-// 파일 용도: SharedStream analysis subscriber, raw decode hub, 최신 dummy 분석 결과를 관리한다.
+// 파일 용도: SharedStream analysis subscriber, raw decode hub, detector 실행 결과와 최신 frame을 관리한다.
 #include "analysis/analysis_manager.h"
 
 #include <algorithm>
+#include <limits>
 
 namespace analysis {
+
+namespace {
+
+constexpr std::size_t kMaxResultHistory = 512;
+
+std::int64_t AbsDiff(std::int64_t lhs, std::int64_t rhs) {
+    return lhs >= rhs ? lhs - rhs : rhs - lhs;
+}
+
+std::optional<AnalysisResult> FindResultNearPtsLocked(const std::deque<AnalysisResult>& result_history,
+                                                      std::int64_t pts,
+                                                      std::int64_t tolerance_ns) {
+    if (result_history.empty()) {
+        return std::nullopt;
+    }
+
+    const std::int64_t clamped_tolerance = std::max<std::int64_t>(0, tolerance_ns);
+    std::optional<AnalysisResult> best;
+    std::int64_t best_diff = std::numeric_limits<std::int64_t>::max();
+    for (auto it = result_history.rbegin(); it != result_history.rend(); ++it) {
+        const std::int64_t diff = AbsDiff(it->pts, pts);
+        if (diff > clamped_tolerance || diff >= best_diff) {
+            continue;
+        }
+        best = *it;
+        best_diff = diff;
+        if (diff == 0) {
+            break;
+        }
+    }
+    return best;
+}
+
+}  // namespace
 
 AnalysisManager::~AnalysisManager() {
     DetachAll();
@@ -115,6 +150,82 @@ std::optional<AnalysisResult> AnalysisManager::LatestResult(const std::string& t
     return tap->latest_result;
 }
 
+std::optional<AnalysisResult> AnalysisManager::ResultNearPts(const std::string& tap_id,
+                                                             std::int64_t pts,
+                                                             std::int64_t tolerance_ns) const {
+    std::shared_ptr<AnalysisTap> tap;
+    {
+        std::lock_guard lock(mu_);
+        const auto it = taps_.find(tap_id);
+        if (it == taps_.end()) {
+            return std::nullopt;
+        }
+        tap = it->second;
+    }
+
+    std::lock_guard tap_lock(tap->mu);
+    return FindResultNearPtsLocked(tap->result_history, pts, tolerance_ns);
+}
+
+std::optional<AnalysisResult> AnalysisManager::WaitResultNearPts(const std::string& tap_id,
+                                                                 std::int64_t pts,
+                                                                 std::int64_t tolerance_ns,
+                                                                 std::chrono::milliseconds timeout) const {
+    std::shared_ptr<AnalysisTap> tap;
+    {
+        std::lock_guard lock(mu_);
+        const auto it = taps_.find(tap_id);
+        if (it == taps_.end()) {
+            return std::nullopt;
+        }
+        tap = it->second;
+    }
+
+    const auto deadline = std::chrono::steady_clock::now() + std::max(timeout, std::chrono::milliseconds(0));
+    std::unique_lock tap_lock(tap->mu);
+    auto result = FindResultNearPtsLocked(tap->result_history, pts, tolerance_ns);
+    while (!result.has_value() && timeout.count() > 0 && !tap->frame_worker_stop) {
+        if (tap->result_cv.wait_until(tap_lock, deadline) == std::cv_status::timeout) {
+            break;
+        }
+        result = FindResultNearPtsLocked(tap->result_history, pts, tolerance_ns);
+    }
+    return result;
+}
+
+std::optional<RawVideoFrame> AnalysisManager::LatestFrame(const std::string& tap_id) const {
+    std::shared_ptr<AnalysisTap> tap;
+    {
+        std::lock_guard lock(mu_);
+        const auto it = taps_.find(tap_id);
+        if (it == taps_.end()) {
+            return std::nullopt;
+        }
+        tap = it->second;
+    }
+
+    std::lock_guard tap_lock(tap->mu);
+    return tap->latest_frame;
+}
+
+std::optional<AnalysisManager::LatestFrameResult> AnalysisManager::LatestFrameAndResult(const std::string& tap_id) const {
+    std::shared_ptr<AnalysisTap> tap;
+    {
+        std::lock_guard lock(mu_);
+        const auto it = taps_.find(tap_id);
+        if (it == taps_.end()) {
+            return std::nullopt;
+        }
+        tap = it->second;
+    }
+
+    std::lock_guard tap_lock(tap->mu);
+    if (!tap->latest_frame.has_value()) {
+        return std::nullopt;
+    }
+    return LatestFrameResult{.frame = *tap->latest_frame, .result = tap->latest_result};
+}
+
 std::optional<AnalysisManager::TapSnapshot> AnalysisManager::Snapshot(const std::string& tap_id) const {
     std::shared_ptr<AnalysisTap> tap;
     {
@@ -141,11 +252,19 @@ std::optional<AnalysisManager::TapSnapshot> AnalysisManager::Snapshot(const std:
         .queue_dropped_frames = tap->queue_dropped_frames,
         .decoder_errors = tap->decoder_errors,
         .pending_frames = tap->frame_queue.size(),
+        .last_analysis_ms = tap->last_analysis_ms,
+        .average_analysis_ms =
+            tap->analyzed_packets > 0 ? tap->total_analysis_ms / static_cast<double>(tap->analyzed_packets) : 0.0,
+        .max_analysis_ms = tap->max_analysis_ms,
         .target_fps = tap->profile.target_fps,
         .max_queue_size = tap->profile.max_queue_size,
         .debug_detector_delay_ms = tap->profile.debug_detector_delay_ms,
         .confidence_threshold = tap->profile.confidence_threshold,
         .nms_threshold = tap->profile.nms_threshold,
+        .has_latest_frame = tap->latest_frame.has_value(),
+        .latest_frame_width = tap->latest_frame.has_value() ? tap->latest_frame->width : 0,
+        .latest_frame_height = tap->latest_frame.has_value() ? tap->latest_frame->height : 0,
+        .latest_frame_pts = tap->latest_frame.has_value() ? tap->latest_frame->pts : 0,
         .latest_result = tap->latest_result,
     };
 }
@@ -260,21 +379,39 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
         result.profile_key = tap->profile_key;
         result.pts = frame.pts;
 
+        const auto analysis_started_at = std::chrono::steady_clock::now();
         if (tap->profile.debug_detector_delay_ms > 0) {
             std::this_thread::sleep_for(std::chrono::milliseconds(tap->profile.debug_detector_delay_ms));
         }
 
         std::string error_message;
         if (tap->detector != nullptr && !tap->detector->Analyze(frame, &result, &error_message)) {
+            const auto analysis_finished_at = std::chrono::steady_clock::now();
+            const double elapsed_ms =
+                std::chrono::duration<double, std::milli>(analysis_finished_at - analysis_started_at).count();
             std::lock_guard tap_lock(tap->mu);
+            tap->last_analysis_ms = elapsed_ms;
+            tap->max_analysis_ms = std::max(tap->max_analysis_ms, elapsed_ms);
             ++tap->dropped_packets;
             continue;
         }
+        const auto analysis_finished_at = std::chrono::steady_clock::now();
+        const double elapsed_ms =
+            std::chrono::duration<double, std::milli>(analysis_finished_at - analysis_started_at).count();
         result.profile_key = tap->profile_key;
 
         std::lock_guard tap_lock(tap->mu);
         ++tap->analyzed_packets;
+        tap->last_analysis_ms = elapsed_ms;
+        tap->total_analysis_ms += elapsed_ms;
+        tap->max_analysis_ms = std::max(tap->max_analysis_ms, elapsed_ms);
+        tap->latest_frame = std::move(frame);
         tap->latest_result = std::move(result);
+        tap->result_history.push_back(*tap->latest_result);
+        while (tap->result_history.size() > kMaxResultHistory) {
+            tap->result_history.pop_front();
+        }
+        tap->result_cv.notify_all();
     }
 }
 
@@ -302,6 +439,7 @@ void AnalysisManager::StopTapRuntime(const std::shared_ptr<AnalysisTap>& tap) {
         }
     }
     tap->frame_cv.notify_one();
+    tap->result_cv.notify_all();
     if (tap->frame_worker.joinable()) {
         tap->frame_worker.join();
     }

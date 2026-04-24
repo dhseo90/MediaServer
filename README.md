@@ -85,6 +85,11 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
   - local WHIP test publisher 기준 `publish -> WebRTC(signaling)` 자동 검증 통과
   - browser publisher 기준 `publish -> WebRTC(simple signaling) consume`의 실제 audio/video playback 검증 완료
   - browser publisher 기준 `publish -> WHEP consume`의 실제 audio/video playback 검증 완료
+- 영상분석/VA 1차 경로
+  - `va=1` 요청으로 file/RTSP/WebRTC source에 YOLO/ONNX 객체 감지 tap을 붙일 수 있다.
+  - RTSP/WebRTC egress raw video 구간에 detection box/label overlay를 합성한다.
+  - metadata, snapshot, overlay snapshot 개발용 API를 제공한다.
+  - profile/rule registry, event engine, adaptive tuner는 아직 후속 단계다.
 - 실험실 기능
   - `source=youtube` resolver 경로는 코드에 남아 있지만 기본값으로는 비활성화되어 있다.
   - 기본 검증 UI는 `/webrtc/test`, 개발용 실험 UI는 `/lab`로 분리했다.
@@ -97,6 +102,8 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - 운영용 WebRTC auth / STUN / TURN / ICE policy 설정
 - 운영용 metrics / admin API
 - 외부 RTSP source별 세밀한 reconnect 정책
+- 영상분석 persistent profile/rule registry와 event engine
+- detector 부하 기반 fps/input size adaptive tuner
 
 ### 최근 정리
 - WebRTC egress/source 양쪽에 중복되어 있던 GStreamer RTCP workaround, SDP sanitize, pipeline clock/latency 설정을 `ingress/webrtc_gst_utils`로 공통화했습니다.
@@ -284,6 +291,19 @@ MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
 | `MEDIA_SERVER_HTTP_LISTEN_PORT` | WebRTC HTTP bind port |
 | `MEDIA_SERVER_FILE_ROOT` | `?file=` 접근 가능 root |
 | `MEDIA_SERVER_DEFAULT_FILE` | 기본 sample file |
+| `MEDIA_SERVER_ANALYSIS_DETECTOR` | `va=1` 기본 detector. 기본 `yolo` |
+| `MEDIA_SERVER_ANALYSIS_MODEL` | `va=1` 기본 model 경로. 기본 `models/yolo11n.onnx` |
+| `MEDIA_SERVER_ANALYSIS_LABELS` | `va=1` 기본 label 경로. 기본 `models/coco.names` |
+| `MEDIA_SERVER_ANALYSIS_FPS` | `va=1` 기본 sampling fps. 기본 `8` |
+| `MEDIA_SERVER_ANALYSIS_MAX_QUEUE` | `va=1` 기본 detector queue. 기본 `1` |
+| `MEDIA_SERVER_ANALYSIS_INPUT_WIDTH` | `va=1` 기본 model input width. 기본 `640` |
+| `MEDIA_SERVER_ANALYSIS_INPUT_HEIGHT` | `va=1` 기본 model input height. 기본 `640` |
+| `MEDIA_SERVER_ANALYSIS_CONFIDENCE` | `va=1` 기본 confidence threshold. 기본 `0.25` |
+| `MEDIA_SERVER_ANALYSIS_NMS` | `va=1` 기본 NMS threshold. 기본 `0.45` |
+| `MEDIA_SERVER_ANALYSIS_PREPROCESS` | `va=1` 기본 YOLO 전처리. 기본 `letterbox` |
+| `MEDIA_SERVER_ANALYSIS_OVERLAY_WAIT_MS` | `va=1` 기본 overlay result 대기 시간. 기본 `180` |
+| `MEDIA_SERVER_ANALYSIS_OVERLAY_SYNC_TOLERANCE_MS` | `va=1` 기본 PTS 매칭 허용 범위. 기본 `400` |
+| `MEDIA_SERVER_ANALYSIS_OVERLAY_THICKNESS` | `va=1` 기본 detection box 두께. 기본 `3` |
 | `MEDIA_SERVER_FORCE_RTSP_TCP` | `1`이면 RTSP transport를 TCP 위주로 강제 |
 | `MEDIA_SERVER_SESSION_TRACE` | `1`이면 SessionManager acquire/cleanup 로그 출력 |
 | `MEDIA_SERVER_WEBRTC_TRACE` | `1`이면 WebRTC 협상/상태 로그 출력 |
@@ -358,14 +378,25 @@ cmake --build build-gst
 YOLO/ONNX detector를 켜는 빌드:
 
 ```bash
-cmake -S . -B build-gst \
+cmake -S . -B build-gst-onnx \
   -DMEDIA_SERVER_USE_GSTREAMER=ON \
   -DMEDIA_SERVER_USE_ONNXRUNTIME=ON \
   -DMEDIA_SERVER_ONNXRUNTIME_ROOT=/path/to/onnxruntime
-cmake --build build-gst
+cmake --build build-gst-onnx
 ```
 
-현재 환경처럼 ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성은 실패하며, 기본 빌드는 `MEDIA_SERVER_USE_ONNXRUNTIME=OFF`로 유지한다.
+macOS/Homebrew에서는 아래처럼 설치하고 root를 지정할 수 있다.
+
+```bash
+brew install onnxruntime
+cmake -S . -B build-gst-onnx \
+  -DMEDIA_SERVER_USE_GSTREAMER=ON \
+  -DMEDIA_SERVER_USE_ONNXRUNTIME=ON \
+  -DMEDIA_SERVER_ONNXRUNTIME_ROOT=/opt/homebrew/opt/onnxruntime
+cmake --build build-gst-onnx
+```
+
+ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성은 실패한다. 기본 빌드는 `MEDIA_SERVER_USE_ONNXRUNTIME=OFF`로 유지한다.
 
 개발 실행:
 
@@ -695,15 +726,34 @@ SharedStream
 - `src/analysis/dummy_detector.cpp`: 실제 검출 없이 lifecycle만 확인하는 dummy detector
 - `src/analysis/yolo_onnx_detector.cpp`: ONNX Runtime 기반 YOLO detector. `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 빌드에서만 실제 추론 가능
 - `src/analysis/raw_video_decoder.cpp`: GStreamer `appsrc -> parser/decoder -> videoconvert -> appsink` 기반 raw RGB decode hub
+- `src/analysis/overlay_renderer.cpp`: OpenCV 없이 최신 raw frame 위에 detection box/label을 그리는 overlay renderer
+- `src/analysis/snapshot_encoder.cpp`: 최신 raw frame을 JPEG snapshot으로 인코딩하는 helper
+- `src/ingress/analysis_overlay_probe.cpp`: RTSP/WebRTC egress raw video 구간에서 frame PTS와 가까운 detection result를 overlay로 합성하는 GStreamer probe
 - `/lab/analysis/taps`: 개발용 analysis tap attach/status/detach HTTP endpoint
+- `/lab/analysis/taps/{tapId}/metadata`: 최신 detection metadata JSON endpoint
+- `/lab/analysis/taps/{tapId}/snapshot.jpg`: 최신 분석 frame JPEG snapshot endpoint
+- `/lab/analysis/taps/{tapId}/overlay.jpg`: 최신 분석 frame에 detection box/label을 그린 JPEG endpoint
 - analysis tap은 profile의 `fps`로 wall-clock 기준 frame sampling을 수행하고, `maxQueue`를 넘으면 오래된 raw frame부터 버린다.
-- 아직 overlay stream, metadata/snapshot API는 붙이지 않았다.
+- RTSP/WebRTC consume 요청에 `va=1`을 붙이면 서버 기본 VA profile을 사용해 같은 source에 analysis tap을 자동으로 붙이고, egress raw video 구간에 detection box/label을 합성한다.
+- `detector`, `model`, `labels`, `confidence`, `nms` 같은 세부값은 URL 기본 사용값에서 제외했다. 개발자가 바꿀 값은 `include/stdafx.h` 또는 `MEDIA_SERVER_ANALYSIS_*` 환경변수로 관리한다.
+- 현재 자동 보정 범위는 서버 기본 profile 적용, 짧은 bounded queue, 오래된 frame drop이다. detector 지연을 실시간 측정해 fps/input size를 자동으로 낮추는 adaptive tuner는 아직 구현하지 않았다.
+- 이전 실험용 query인 `overlay=1`, `analysis=1`, `analysisOverlay=1`과 세부 override query는 호환성/디버그 목적으로만 남겨 둔다.
+- overlay stream은 egress가 재작성한 normalized PTS를 원본 source PTS로 되돌려 analysis result history와 매칭한다. 이 덕분에 loop/replay 또는 B-frame reorder가 있어도 단순 최신 결과를 덮어쓰는 것보다 박스 밀림이 줄어든다.
+- PTS 매칭이 실패하면 최신 result로 fallback한다. WHEP처럼 raw buffer PTS가 egress packet PTS mapping과 어긋나는 경로에서도 overlay가 아예 사라지지 않게 하기 위한 안전장치다.
+- `overlaySyncToleranceMs`는 합성에 사용할 detection result의 PTS 허용 범위다. 기본값은 `400`ms다.
+- `overlayWaitMs`는 현재 frame에 가까운 analysis result가 아직 도착하지 않았을 때 overlay probe가 기다리는 최대 시간이다. 기본값은 `180`ms다. 값을 키우면 박스 정합성은 좋아질 수 있지만 송출 지연이 늘 수 있다.
+- YOLO 전처리는 기본 `letterbox`다. 기존 강제 resize 동작이 필요하면 `preprocess=stretch`를 지정한다.
+- `/lab` 페이지의 “VA 분석”에서 WebRTC simple signaling과 WHEP overlay 재생을 브라우저로 직접 확인할 수 있다. 파일 소스는 `MEDIA_SERVER_FILE_ROOT` 아래의 지원 미디어 파일 목록을 dropdown으로 제공한다.
+- RTSP overlay stream은 로컬 frame capture로 1차 검증했다. WebRTC overlay stream은 simple signaling과 WHEP 브라우저 playback까지 육안 검증했다.
 
 개발용 analysis tap 예시:
 
 ```bash
 curl -fsS -X POST 'http://127.0.0.1:8080/lab/analysis/taps?file=sample_h264.mp4&profileId=debug&fps=5'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}'
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/metadata'
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/snapshot.jpg?quality=85' -o snapshot.jpg
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/overlay.jpg?quality=85&thickness=3&drawLabels=1' -o overlay.jpg
 curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}'
 ```
 
@@ -721,11 +771,65 @@ YOLO/ONNX detector 예시:
 curl -fsS -X POST 'http://127.0.0.1:8080/lab/analysis/taps?file=sample_h264.mp4&profileId=yolo-debug&detector=yolo&model=/path/to/yolo.onnx&labels=/path/to/labels.txt&fps=5&maxQueue=2&inputWidth=640&inputHeight=640&confidence=0.35&nms=0.45'
 ```
 
-1차 YOLO parser는 `YOLOv8/YOLO11` 계열의 `[1, 84, N]` 또는 `[1, N, 84]` 출력과 `YOLOv5` 계열의 objectness 포함 `[1, N, 85]` 출력을 대상으로 한다. fp32 출력 tensor만 지원하며, letterbox 보정 없이 raw frame을 model input 크기로 직접 resize한다. 모델이 objectness 포함 layout이면 `objectness=1`을 명시할 수 있다.
+현재 기본 YOLO/ONNX 기준:
+- 기본 detector는 `yolo`이고, 기본 모델 경로는 `models/yolo11n.onnx`다.
+- 현재 검증한 모델 파일은 Ultralytics assets `v8.4.0`의 `yolo11n.onnx`다.
+- 기본 label 경로는 `models/coco.names`이며 COCO 80개 class 기준이다.
+- 모델/label 파일은 repo에 커밋하지 않고 로컬 `models/` 아래에 둔다.
+
+현재 COCO label 기준으로 overlay에 표출 가능한 객체:
+
+```text
+person, bicycle, car, motorcycle, airplane, bus, train, truck, boat, traffic light,
+fire hydrant, stop sign, parking meter, bench, bird, cat, dog, horse, sheep, cow,
+elephant, bear, zebra, giraffe, backpack, umbrella, handbag, tie, suitcase, frisbee,
+skis, snowboard, sports ball, kite, baseball bat, baseball glove, skateboard, surfboard,
+tennis racket, bottle, wine glass, cup, fork, knife, spoon, bowl, banana, apple,
+sandwich, orange, broccoli, carrot, hot dog, pizza, donut, cake, chair, couch,
+potted plant, bed, dining table, toilet, tv, laptop, mouse, remote, keyboard,
+cell phone, microwave, oven, toaster, sink, refrigerator, book, clock, vase,
+scissors, teddy bear, hair drier, toothbrush
+```
+
+RTSP VA overlay stream 예시:
+
+```bash
+rtsp://127.0.0.1:8554/dhseo?file=imports/yolo_bus_test.mp4&va=1
+```
+
+움직임이 큰 영상도 기본값 기준으로는 짧은 queue와 PTS 매칭 fallback을 사용한다.
+필요할 때만 `MEDIA_SERVER_ANALYSIS_FPS`, `MEDIA_SERVER_ANALYSIS_MAX_QUEUE`,
+`MEDIA_SERVER_ANALYSIS_OVERLAY_WAIT_MS`, `MEDIA_SERVER_ANALYSIS_OVERLAY_SYNC_TOLERANCE_MS`를 조정한다.
+
+```text
+rtsp://127.0.0.1:8554/dhseo?file=imports/NewYorkDriving.mp4&va=1
+```
+
+WebRTC VA overlay consume 예시:
+
+```bash
+POST /webrtc/session?file=imports/yolo_bus_test.mp4&va=1
+```
+
+overlay stream은 detector가 첫 결과를 만들기 전까지 원본 frame만 송출할 수 있다. 따라서 stream 시작 직후 몇 프레임은 box 없이 보이는 것이 정상이다.
+
+1차 YOLO parser는 `YOLOv8/YOLO11` 계열의 `[1, 84, N]` 또는 `[1, N, 84]` 출력과 `YOLOv5` 계열의 objectness 포함 `[1, N, 85]` 출력을 대상으로 한다. fp32 출력 tensor만 지원한다. 기본 전처리는 YOLO 계열에 맞춘 letterbox이며, 모델 출력 좌표에서 padding과 scale을 역보정해 원본 frame 기준 normalized box로 변환한다. 모델이 objectness 포함 layout이면 `objectness=1`을 명시할 수 있다.
+
+분석 API 설계/상태 확인 endpoint:
+
+```bash
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/capabilities'
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/profiles'
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/rules'
+```
+
+`/lab/analysis/profiles`와 `/lab/analysis/rules`는 현재 read-only 설계 API다. 실제 persistent profile/rule registry와 per-client rule override는 다음 단계에서 구현한다.
+
+검증용 모델/이미지는 repo에 커밋하지 않고 `models/`, `video/imports/` 아래에 둔다. 이 경로들은 `.gitignore`에 포함되어 있다.
 
 클라이언트 전달 방식 후보:
 - RTSP/WebRTC 본 스트림 위에 overlay된 영상으로 전달
-- 별도 HTTP API로 snapshot 이미지를 전달
+- 별도 HTTP API로 원본 snapshot과 overlay snapshot 이미지를 전달
 - WebRTC data channel 또는 별도 API로 detection metadata를 전달
 
 즉 미래 구조는 단순한 `stream relay`를 넘어 아래처럼 확장됩니다.
@@ -957,14 +1061,13 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./scripts/print_external_test_urls.s
 
 ## 다음에 이어서 하기 좋은 작업
 
-1. 영상분석 branch 추가
-   - 분석 착수 전 blocker 체크리스트는 `docs/stream-verification.md`에 문서화한다.
-   - 현재 relay 안정화 기준으로 file, RTSP pull, WebRTC publish source의 주요 경로를 분석 1차 blocker 통과 범위로 본다.
+1. 영상분석 후속 안정화
+   - 분석 착수 전 blocker 체크리스트와 1차 smoke test는 `docs/stream-verification.md`에 문서화되어 있다.
+   - 현재 relay 안정화 기준으로 file, RTSP pull, WebRTC publish source의 주요 경로를 분석 1차 범위로 검증했다.
    - HTTP/HLS는 코드 경로가 있지만 최신 `source=http -> RTSP` 503 재현 때문에 분석 1차 범위에서 제외하고 후속 안정화에서 다시 확인한다.
    - 송신 경로(RTSP/WebRTC egress)는 직접 막지 않는다.
-   - `SharedStream`에 별도 analysis subscriber/tap을 붙이고, 분석 branch는 drop-oldest 및 frame sampling을 사용한다.
-   - 첫 단계는 metadata/snapshot API로 시작하고, overlay stream은 이후 별도 단계로 분리한다.
-   - 분석 브랜치 작업이 끝나면 외부 RTSP, WebRTC 운영 설정, 실험실 YouTube, `/lab/import` 외부 네트워크 재검증 같은 보류 항목을 다시 main 기준으로 이어서 확인한다.
+   - 다음 개발은 persistent profile/rule registry, rule event engine, metadata event endpoint, adaptive tuner 순서로 진행한다.
+   - 외부 RTSP, WebRTC 운영 설정, 실험실 YouTube, `/lab/import` 외부 네트워크 재검증 같은 보류 항목은 후속 안정화에서 다시 main 기준으로 확인한다.
 2. 운영 안정화 후속
    - 외부 RTSP source별 timeout/profile 설정 확장
    - WebRTC 운영 설정(auth/STUN/TURN/ICE policy) 정리

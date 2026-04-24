@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "core/egress_session.h"
+#include "ingress/analysis_overlay_probe.h"
 #include "media_types.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -34,6 +35,8 @@ public:
     void Stop() override;
 
     void HandleSample(const media::Packet& packet);
+    void SetAnalysisOverlay(AnalysisOverlayConfig config);
+    std::int64_t ResolveOverlaySourcePts(std::int64_t normalized_pts) const;
 
     bool CreateOffer(std::string* sdp_offer, std::string* error_message);
     bool CreateAnswer(std::string* sdp_answer, std::string* error_message);
@@ -58,6 +61,11 @@ public:
 #endif
 
 private:
+    struct TimestampMapping {
+        std::int64_t normalized_pts{0};
+        std::int64_t source_pts{0};
+    };
+
     // WebRTC negotiation/transport 준비 전 들어온 패킷을 보관하고 RTP timeline에 맞게 재정렬한다.
     void QueuePendingPacket(const media::Packet& packet);
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -86,6 +94,7 @@ private:
     std::optional<std::int64_t> last_video_pts_;
     std::optional<std::int64_t> last_video_dts_;
     std::int64_t last_video_frame_duration_ns_{0};
+    std::deque<TimestampMapping> video_timestamp_mappings_;
     std::optional<std::int64_t> last_audio_pts_;
     std::int64_t last_audio_frame_duration_ns_{0};
     mutable std::mutex pending_mu_;
@@ -101,6 +110,7 @@ private:
     bool negotiation_ready_{false};
     bool ice_connected_{false};
     bool media_output_ready_{false};
+    AnalysisOverlayConfig analysis_overlay_;
 
 #if MEDIA_SERVER_USE_GSTREAMER
     GstElement* pipeline_{nullptr};

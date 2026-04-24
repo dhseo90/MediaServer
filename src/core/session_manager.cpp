@@ -231,6 +231,29 @@ std::optional<analysis::AnalysisManager::TapSnapshot> SessionManager::AnalysisTa
     return analysis_manager_.Snapshot(tap_id);
 }
 
+std::optional<analysis::AnalysisResult> SessionManager::AnalysisResultNearPts(const std::string& tap_id,
+                                                                              std::int64_t pts,
+                                                                              std::int64_t tolerance_ns) const {
+    return analysis_manager_.ResultNearPts(tap_id, pts, tolerance_ns);
+}
+
+std::optional<analysis::AnalysisResult> SessionManager::WaitAnalysisResultNearPts(
+    const std::string& tap_id,
+    std::int64_t pts,
+    std::int64_t tolerance_ns,
+    std::chrono::milliseconds timeout) const {
+    return analysis_manager_.WaitResultNearPts(tap_id, pts, tolerance_ns, timeout);
+}
+
+std::optional<analysis::RawVideoFrame> SessionManager::AnalysisLatestFrame(const std::string& tap_id) const {
+    return analysis_manager_.LatestFrame(tap_id);
+}
+
+std::optional<analysis::AnalysisManager::LatestFrameResult> SessionManager::AnalysisLatestFrameAndResult(
+    const std::string& tap_id) const {
+    return analysis_manager_.LatestFrameAndResult(tap_id);
+}
+
 std::size_t SessionManager::ActiveAnalysisTapCount() const {
     return analysis_manager_.ActiveTapCount();
 }

@@ -347,15 +347,32 @@ SharedStream
 - `analysis::RawVideoDecoder`: H264/H265/VP8 compressed packet을 raw RGB frame으로 변환하는 decoder hub
 - `analysis::Detector` factory: profile의 `detector_type`에 따라 dummy detector 또는 YOLO/ONNX detector를 선택한다.
 - `analysis::YoloOnnxDetector`: ONNX Runtime optional build에서 YOLO 계열 model output을 detection metadata로 변환한다.
+- `analysis::RenderDetectionOverlay`: OpenCV 없이 최신 raw frame 위에 detection box/label을 그리는 renderer
+- `analysis::EncodeJpeg`: 최신 분석 raw frame을 JPEG snapshot으로 변환한다.
+- `ingress::AttachAnalysisOverlayProbe`: RTSP/WebRTC egress raw video 구간에 frame PTS와 가까운 detection result를 합성하는 GStreamer probe
 - `SessionManager::AttachAnalysisTap`: 기존 source parsing/dedup/source worker 시작 흐름을 재사용하는 analysis attach 진입점
 - `/lab/analysis/taps`: 개발용 HTTP attach/status/detach endpoint
+- `/lab/analysis/taps/{tapId}/metadata`: 최신 detection metadata JSON endpoint
+- `/lab/analysis/taps/{tapId}/snapshot.jpg`: 최신 분석 frame JPEG snapshot endpoint
+- `/lab/analysis/taps/{tapId}/overlay.jpg`: 최신 분석 frame에 detection box/label을 그린 JPEG endpoint
+- RTSP/WebRTC consume query에 `va=1`을 지정하면 egress가 같은 source에 analysis tap을 자동으로 붙이고, encoder 직전 raw frame에 overlay를 합성한다.
+- `va=1`의 detector/model/labels/fps/queue 기본값은 URL이 아니라 `include/stdafx.h`와 `MEDIA_SERVER_ANALYSIS_*` 환경변수로 관리한다. `overlay=1`, `analysis=1`, `analysisOverlay=1`은 호환성용 alias다.
+- 현재 자동 보정은 기본 profile + bounded queue + drop-oldest 정책이다. detector 성능 지표를 보고 fps/input size를 동적으로 조절하는 adaptive tuner는 profile/rule registry 이후 별도 단계로 구현한다.
+- RTSP/WebRTC egress는 source packet PTS를 세션별 normalized PTS로 바꾸므로, overlay probe는 normalized PTS를 다시 source PTS로 매핑한 뒤 analysis result history에서 가장 가까운 결과를 찾는다.
+- PTS 매칭이 실패하는 WHEP/browser 경로에서는 최신 result fallback을 적용한다. 이 경우 완전한 frame-result sync보다는 overlay 미표시를 피하는 쪽을 우선한다.
+- `overlaySyncToleranceMs`는 result 매칭 허용 범위이고 기본 `400`ms다. `overlayWaitMs`는 result가 아직 도착하지 않은 경우 probe가 기다리는 최대 시간이고 기본 `180`ms다.
 - raw frame은 detector로 바로 들어가지 않고 profile의 `target_fps` 기준 wall-clock sampling을 거쳐 bounded queue에 들어간다.
 - detector가 느려 queue가 `max_queue_size`를 넘으면 오래된 frame부터 버려 relay path와 decoder path 지연을 제한한다.
+- `2026-04-24` 기준 `yolo11n.onnx` + COCO labels smoke test에서 `person`, `bus` detection metadata 생성을 확인했다.
+- 기본 VA profile의 현재 검증 모델은 Ultralytics assets `v8.4.0`의 `yolo11n.onnx`이고, label은 `models/coco.names`의 COCO 80개 class다. 세부 객체 목록은 `README.md`의 YOLO/COCO 기준 섹션에 둔다.
+- YOLO 전처리는 기본 letterbox다. detector output box는 input padding/scale을 역보정한 뒤 원본 frame 기준 normalized 좌표로 저장한다. 호환성 검증용으로 `preprocess=stretch`도 남겨 둔다.
+- `AnalysisManager::TapSnapshot`은 `lastAnalysisMs`, `averageAnalysisMs`, `maxAnalysisMs`를 제공한다.
+- `/lab/analysis/capabilities`, `/lab/analysis/profiles`, `/lab/analysis/rules`는 detector/profile/rule 설계 상태를 노출하는 read-only lab API다.
 
 아직 남은 핵심 작업:
-- 실제 YOLO model 파일/labels를 넣은 end-to-end 검증
+- persistent profile/rule registry와 per-client rule override
 - rule/event engine
-- overlay stream 또는 metadata/snapshot API
+- 모델별 output layout 옵션 정교화
 
 ## 13. 라이브러리 선택
 - `live555`: Linux/macOS/Windows 모두 사용 가능. RTSP 서버/클라이언트에 집중된 경량 라이브러리.
@@ -364,7 +381,7 @@ SharedStream
 - 빌드:
   - 기본: `cmake -S . -B build && cmake --build build`
   - GStreamer ON: `cmake -S . -B build -DMEDIA_SERVER_USE_GSTREAMER=ON && cmake --build build`
-  - YOLO/ONNX ON: `cmake -S . -B build-gst -DMEDIA_SERVER_USE_GSTREAMER=ON -DMEDIA_SERVER_USE_ONNXRUNTIME=ON -DMEDIA_SERVER_ONNXRUNTIME_ROOT=/path/to/onnxruntime && cmake --build build-gst`
+  - YOLO/ONNX ON: `cmake -S . -B build-gst-onnx -DMEDIA_SERVER_USE_GSTREAMER=ON -DMEDIA_SERVER_USE_ONNXRUNTIME=ON -DMEDIA_SERVER_ONNXRUNTIME_ROOT=/path/to/onnxruntime && cmake --build build-gst-onnx`
 
 ## 14. GStreamer RTSP 동적 요청 (현재 구현)
 - 요청 형식:

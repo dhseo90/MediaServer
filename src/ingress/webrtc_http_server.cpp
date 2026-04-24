@@ -12,6 +12,7 @@
 #include <chrono>
 #include <cctype>
 #include <cstring>
+#include <filesystem>
 #include <iostream>
 #include <mutex>
 #include <optional>
@@ -23,6 +24,9 @@
 #include <vector>
 
 #include "app_config.h"
+#include "analysis/overlay_renderer.h"
+#include "analysis/snapshot_encoder.h"
+#include "ingress/analysis_query.h"
 #include "ingress/request_parser.h"
 #include "ingress/lab_import_manager.h"
 #include "ingress/webrtc_egress_session.h"
@@ -136,23 +140,6 @@ int ParseClampedIntQuery(const std::unordered_map<std::string, std::string>& que
     }
     try {
         const int parsed = std::stoi(it->second);
-        return std::max(min_value, std::min(max_value, parsed));
-    } catch (...) {
-        return default_value;
-    }
-}
-
-float ParseClampedFloatQuery(const std::unordered_map<std::string, std::string>& query,
-                             const std::string& key,
-                             float default_value,
-                             float min_value,
-                             float max_value) {
-    const auto it = query.find(key);
-    if (it == query.end()) {
-        return default_value;
-    }
-    try {
-        const float parsed = std::stof(it->second);
         return std::max(min_value, std::min(max_value, parsed));
     } catch (...) {
         return default_value;
@@ -356,6 +343,47 @@ std::string BuildTestPageHtml(bool lab_mode) {
                    ? "          <p style=\"margin:0;color:var(--muted);font-size:0.9rem;\">이 서버에서는 실험실 YouTube 소스가 켜져 있습니다. `yt-dlp`를 사용하며 로그인, 지역 제한, bot check에 따라 실패할 수 있습니다.</p>\n"
                    : "          <p style=\"margin:0;color:var(--muted);font-size:0.9rem;\">실험실 페이지는 열려 있지만 `source=youtube`는 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`로 서버를 시작해야만 활성화됩니다.</p>\n")
             : "          <p style=\"margin:0;color:var(--muted);font-size:0.9rem;\">이 화면은 안정 테스트용입니다. 개발 전용 옵션은 `/lab`에서 확인하세요.</p>\n";
+    const std::string analysis_controls = lab_mode
+                                              ? R"(          <details style="border:1px solid var(--line);border-radius:16px;padding:12px;background:rgba(255,255,255,0.04);">
+            <summary style="cursor:pointer;font-weight:700;color:var(--ink);">VA 분석</summary>
+            <div style="display:grid;gap:10px;margin-top:12px;">
+              <label style="display:flex;align-items:center;gap:8px;">
+                <input id="analysisOverlayInput" type="checkbox" style="width:auto;" />
+                서버 기본 VA profile로 객체 감지 박스 합성
+              </label>
+              <p style="margin:0;color:var(--muted);font-size:0.88rem;">모델, 라벨, 기본 fps/queue는 서버 설정값을 사용합니다. URL에는 기본적으로 `va=1`만 붙습니다.</p>
+              <details>
+                <summary style="cursor:pointer;color:var(--muted);">고급 튜닝(선택)</summary>
+                <div style="display:grid;gap:10px;margin-top:10px;">
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <label>FPS
+                      <input id="analysisFpsInput" placeholder="자동" />
+                    </label>
+                    <label>Queue
+                      <input id="analysisQueueInput" placeholder="자동" />
+                    </label>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <label>Overlay wait(ms)
+                      <input id="analysisOverlayWaitInput" placeholder="자동" />
+                    </label>
+                    <label>PTS tolerance(ms)
+                      <input id="analysisOverlayToleranceInput" placeholder="자동" />
+                    </label>
+                  </div>
+                  <label>전처리
+                    <select id="analysisPreprocessInput">
+                      <option value="" selected>자동</option>
+                      <option value="letterbox">letterbox</option>
+                      <option value="stretch">stretch</option>
+                    </select>
+                  </label>
+                </div>
+              </details>
+            </div>
+          </details>
+)"
+                                              : std::string();
     const std::string lab_panel = lab_mode
                                       ? R"(    <section class="card" style="margin-top:20px;">
       <div style="padding:24px;display:grid;gap:12px;">
@@ -508,8 +536,10 @@ std::string BuildTestPageHtml(bool lab_mode) {
 )" + youtube_option + R"(              <option value="webrtc">발행된 WebRTC source id</option>
             </select>
           </label>
-          <label class="source-field" data-source-field="file">파일 이름
-            <input id="fileInput" value="sample_h264.mp4" />
+          <label class="source-field" data-source-field="file">파일 선택
+            <select id="fileInput">
+              <option value="sample_h264.mp4" selected>sample_h264.mp4</option>
+            </select>
           </label>
           <label class="source-field" data-source-field="url">소스 URL
             <input id="urlInput" value="rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4" />
@@ -525,6 +555,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
             <button id="whepBtn" class="secondary">WHEP 테스트</button>
             <button id="clearBtn" class="secondary">로그 지우기</button>
           </div>
+)" + analysis_controls + R"(
 )" + experimental_note + R"(        </div>
       </div>
       <div class="grid">
@@ -571,6 +602,12 @@ std::string BuildTestPageHtml(bool lab_mode) {
     const urlInputEl = document.getElementById('urlInput');
     const webrtcSourceInputEl = document.getElementById('webrtcSourceInput');
     const publishSourceIdInputEl = document.getElementById('publishSourceIdInput');
+    const analysisOverlayInputEl = document.getElementById('analysisOverlayInput');
+    const analysisFpsInputEl = document.getElementById('analysisFpsInput');
+    const analysisQueueInputEl = document.getElementById('analysisQueueInput');
+    const analysisOverlayWaitInputEl = document.getElementById('analysisOverlayWaitInput');
+    const analysisOverlayToleranceInputEl = document.getElementById('analysisOverlayToleranceInput');
+    const analysisPreprocessInputEl = document.getElementById('analysisPreprocessInput');
     const sourceFieldEls = Array.from(document.querySelectorAll('[data-source-field]'));
     let pc = null;
     let sessionId = null;
@@ -635,6 +672,31 @@ std::string BuildTestPageHtml(bool lab_mode) {
           : 'url';
       for (const fieldEl of sourceFieldEls) {
         fieldEl.classList.toggle('is-hidden', fieldEl.dataset.sourceField !== activeField);
+      }
+    }
+
+    async function loadFileOptions() {
+      if (!fileInputEl || fileInputEl.tagName !== 'SELECT') return;
+      try {
+        const response = await fetch('/lab/files');
+        if (!response.ok) return;
+        const payload = await response.json();
+        const files = Array.isArray(payload.files) ? payload.files : [];
+        if (files.length === 0) return;
+        const previous = fileInputEl.dataset.loaded === '1'
+          ? fileInputEl.value
+          : (payload.defaultFile || fileInputEl.value || 'sample_h264.mp4');
+        fileInputEl.innerHTML = '';
+        for (const file of files) {
+          const option = document.createElement('option');
+          option.value = file;
+          option.textContent = file;
+          fileInputEl.appendChild(option);
+        }
+        fileInputEl.value = files.includes(previous) ? previous : files[0];
+        fileInputEl.dataset.loaded = '1';
+      } catch (error) {
+        log(`파일 목록 로드 실패: ${error.message}`);
       }
     }
 
@@ -717,6 +779,20 @@ std::string BuildTestPageHtml(bool lab_mode) {
       } else {
         params.set('source', sourceTypeEl.value);
         params.set('url', urlInputEl.value);
+      }
+      if (analysisOverlayInputEl && analysisOverlayInputEl.checked) {
+        params.set('va', '1');
+        if (analysisFpsInputEl && analysisFpsInputEl.value) params.set('fps', analysisFpsInputEl.value);
+        if (analysisQueueInputEl && analysisQueueInputEl.value) params.set('maxQueue', analysisQueueInputEl.value);
+        if (analysisOverlayWaitInputEl && analysisOverlayWaitInputEl.value) {
+          params.set('overlayWaitMs', analysisOverlayWaitInputEl.value);
+        }
+        if (analysisOverlayToleranceInputEl && analysisOverlayToleranceInputEl.value) {
+          params.set('overlaySyncToleranceMs', analysisOverlayToleranceInputEl.value);
+        }
+        if (analysisPreprocessInputEl && analysisPreprocessInputEl.value) {
+          params.set('preprocess', analysisPreprocessInputEl.value);
+        }
       }
       return params.toString();
     }
@@ -1010,6 +1086,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
     document.getElementById('clearBtn').onclick = () => { logEl.textContent = ''; };
     sourceTypeEl.addEventListener('change', updateSourceFields);
     updateSourceFields();
+    loadFileOptions();
     window.__mediaServerTestApi = {
       startSimple,
       startWhep,
@@ -1317,6 +1394,7 @@ struct WebRtcHttpServer::Impl {
     struct SessionEntry {
         std::string session_id;
         std::string ingress_client_id;
+        std::string analysis_tap_id;
         media::IngressRequest request;
         std::shared_ptr<WebRtcEgressSession> bridge;
     };
@@ -1405,42 +1483,6 @@ std::string SourceJson(const std::string& session_id, const std::string& source_
     return out.str();
 }
 
-analysis::AnalysisProfile BuildAnalysisProfileFromQuery(
-    const std::unordered_map<std::string, std::string>& query) {
-    analysis::AnalysisProfile profile;
-    if (const auto it = query.find("profileId"); it != query.end() && !it->second.empty()) {
-        profile.profile_id = it->second;
-    } else if (const auto it = query.find("profile"); it != query.end() && !it->second.empty()) {
-        profile.profile_id = it->second;
-    }
-    if (const auto it = query.find("detector"); it != query.end() && !it->second.empty()) {
-        profile.detector_type = it->second;
-    }
-    if (const auto it = query.find("model"); it != query.end() && !it->second.empty()) {
-        profile.model_path = it->second;
-    }
-    if (const auto it = query.find("labels"); it != query.end() && !it->second.empty()) {
-        profile.labels_path = it->second;
-    }
-    profile.target_fps = ParseClampedIntQuery(query, "fps", profile.target_fps, 1, 60);
-    profile.max_queue_size =
-        static_cast<std::size_t>(ParseClampedIntQuery(query, "maxQueue", static_cast<int>(profile.max_queue_size), 1, 128));
-    profile.model_input_width = ParseClampedIntQuery(query, "inputWidth", profile.model_input_width, 32, 4096);
-    profile.model_input_height = ParseClampedIntQuery(query, "inputHeight", profile.model_input_height, 32, 4096);
-    profile.max_detections = ParseClampedIntQuery(query, "maxDetections", profile.max_detections, 1, 1000);
-    profile.confidence_threshold =
-        ParseClampedFloatQuery(query, "confidence", profile.confidence_threshold, 0.0F, 1.0F);
-    profile.nms_threshold = ParseClampedFloatQuery(query, "nms", profile.nms_threshold, 0.0F, 1.0F);
-    profile.yolo_has_objectness = ParseBoolQuery(query, "objectness", profile.yolo_has_objectness);
-    profile.enable_object_detection = ParseBoolQuery(query, "detect", profile.enable_object_detection);
-    profile.enable_tracking = ParseBoolQuery(query, "tracking", profile.enable_tracking);
-    profile.enable_pose = ParseBoolQuery(query, "pose", profile.enable_pose);
-    profile.enable_overlay = ParseBoolQuery(query, "overlay", profile.enable_overlay);
-    profile.debug_detector_delay_ms =
-        ParseClampedIntQuery(query, "detectorDelayMs", profile.debug_detector_delay_ms, 0, 5000);
-    return profile;
-}
-
 std::string DetectionJson(const analysis::Detection& detection) {
     std::ostringstream out;
     out << "{"
@@ -1498,10 +1540,33 @@ std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot
         << "\"queueDroppedFrames\":" << snapshot.queue_dropped_frames << ","
         << "\"decoderErrors\":" << snapshot.decoder_errors << ","
         << "\"pendingFrames\":" << snapshot.pending_frames << ","
+        << "\"lastAnalysisMs\":" << snapshot.last_analysis_ms << ","
+        << "\"averageAnalysisMs\":" << snapshot.average_analysis_ms << ","
+        << "\"maxAnalysisMs\":" << snapshot.max_analysis_ms << ","
+        << "\"hasLatestFrame\":" << (snapshot.has_latest_frame ? "true" : "false") << ","
+        << "\"latestFrameWidth\":" << snapshot.latest_frame_width << ","
+        << "\"latestFrameHeight\":" << snapshot.latest_frame_height << ","
+        << "\"latestFramePts\":" << snapshot.latest_frame_pts << ","
         << "\"hasResult\":" << (snapshot.latest_result.has_value() ? "true" : "false") << ","
         << "\"latestResult\":";
     if (snapshot.latest_result.has_value()) {
         out << AnalysisResultJson(*snapshot.latest_result);
+    } else {
+        out << "null";
+    }
+    out << "}";
+    return out.str();
+}
+
+std::string AnalysisMetadataJson(const std::string& tap_id,
+                                 const std::optional<analysis::AnalysisResult>& result) {
+    std::ostringstream out;
+    out << "{"
+        << "\"tapId\":\"" << JsonEscape(tap_id) << "\","
+        << "\"hasResult\":" << (result.has_value() ? "true" : "false") << ","
+        << "\"result\":";
+    if (result.has_value()) {
+        out << AnalysisResultJson(*result);
     } else {
         out << "null";
     }
@@ -1519,6 +1584,129 @@ std::string AnalysisTapCreatedJson(const core::SessionManager::AnalysisTapResult
         << "\"activeTaps\":" << active_taps
         << "}";
     return out.str();
+}
+
+std::string AnalysisCapabilitiesJson() {
+    return R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"outputs":["metadata","snapshot.jpg","overlay.jpg","rtsp-overlay","webrtc-overlay"],"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs"],"shortQuery":{"va":"1 enables the server default VA overlay profile","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","thickness":"optional box line thickness","drawLabels":"optional label visibility"}})";
+}
+
+std::string AnalysisProfilesJson() {
+    return R"({"status":"read-only-design","defaultUrl":"?file=...&va=1","profiles":[{"id":"server-default-va","detector":"server-config","description":"URL에는 va=1만 두고 detector/model/labels/fps 기본값은 stdafx.h/env 설정을 따른다."},{"id":"debug-dummy","detector":"dummy","fps":5,"maxQueue":2,"description":"raw decode/sampling lifecycle 확인용"},{"id":"yolo-fast","detector":"yolo","fps":8,"maxQueue":1,"preprocess":"letterbox","inputWidth":640,"inputHeight":640,"confidence":0.25,"nms":0.45,"description":"움직임이 큰 장면의 overlay 지연 최소화"},{"id":"yolo-balanced","detector":"yolo","fps":5,"maxQueue":2,"preprocess":"letterbox","inputWidth":640,"inputHeight":640,"confidence":0.35,"nms":0.45,"description":"기본 객체 감지 균형값"},{"id":"yolo-quality","detector":"yolo","fps":3,"maxQueue":2,"preprocess":"letterbox","inputWidth":960,"inputHeight":960,"confidence":0.35,"nms":0.45,"description":"정확도 우선, CPU 비용 증가"}],"queryOverride":"현재 단계에서는 va=1이 서버 기본 VA profile을 사용하고, fps/maxQueue 같은 고급 query가 있을 때만 override한다."})";
+}
+
+std::string AnalysisRulesJson() {
+    return R"({"status":"design-only","scope":"현재 1차 구현은 모든 요청에 query/profile 기반 detector 설정을 적용한다.","plannedRuleShape":{"id":"string","enabled":"bool","match":{"sourceKind":"file|rtsp|webrtc|http|hls|youtube|*","route":"rtsp|webrtc|*","clientId":"optional"},"analysis":{"profileId":"string","detector":"dummy|yolo","fps":"number","maxQueue":"number"},"outputs":{"metadata":"bool","snapshot":"bool","overlay":"bool","events":"bool"}},"plannedEndpoints":["GET /lab/analysis/rules","POST /lab/analysis/rules","PUT /lab/analysis/rules/{ruleId}","DELETE /lab/analysis/rules/{ruleId}"],"notImplementedYet":["persistent rule registry","per-client rule override","event engine"]})";
+}
+
+bool IsSupportedMediaFile(const std::filesystem::path& path) {
+    std::string ext = path.extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    return ext == ".mp4" || ext == ".mov" || ext == ".mkv" || ext == ".webm" || ext == ".m4v";
+}
+
+std::string LabFilesJson() {
+    const auto root = std::filesystem::path(app::GetAppConfig().file_root_path);
+    std::vector<std::string> files;
+    std::error_code ec;
+    if (std::filesystem::exists(root, ec) && std::filesystem::is_directory(root, ec)) {
+        for (std::filesystem::recursive_directory_iterator it(root, std::filesystem::directory_options::skip_permission_denied, ec);
+             !ec && it != std::filesystem::recursive_directory_iterator();
+             it.increment(ec)) {
+            if (!it->is_regular_file(ec) || !IsSupportedMediaFile(it->path())) {
+                continue;
+            }
+            std::error_code relative_ec;
+            const auto relative = std::filesystem::relative(it->path(), root, relative_ec);
+            if (!relative_ec) {
+                files.push_back(relative.generic_string());
+            }
+        }
+    }
+    std::sort(files.begin(), files.end());
+
+    std::string default_file = std::filesystem::path(app::GetAppConfig().default_file_path).filename().string();
+    std::error_code relative_ec;
+    const auto default_relative =
+        std::filesystem::relative(std::filesystem::path(app::GetAppConfig().default_file_path), root, relative_ec);
+    if (!relative_ec && !default_relative.empty() && default_relative.native().find("..") == std::string::npos) {
+        default_file = default_relative.generic_string();
+    }
+
+    std::ostringstream out;
+    out << "{\"root\":\"" << JsonEscape(root.filename().string()) << "\","
+        << "\"defaultFile\":\"" << JsonEscape(default_file) << "\","
+        << "\"files\":[";
+    for (std::size_t i = 0; i < files.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(files[i]) << "\"";
+    }
+    out << "]}";
+    return out.str();
+}
+
+bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
+                                 const media::IngressRequest& ingress_request,
+                                 const std::unordered_map<std::string, std::string>& query,
+                                 const std::shared_ptr<WebRtcEgressSession>& bridge,
+                                 std::string* analysis_tap_id,
+                                 std::string* error_message) {
+    if (!IsAnalysisOverlayRequested(query)) {
+        return true;
+    }
+    if (bridge == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "missing WebRTC egress bridge for analysis overlay";
+        }
+        return false;
+    }
+
+    media::IngressRequest analysis_request = ingress_request;
+    analysis_request.client_id = ingress_request.client_id + "-analysis";
+    auto attach_result = session_manager.AttachAnalysisTap(analysis_request, BuildAnalysisProfileFromQuery(query));
+    if (!attach_result.ok) {
+        if (error_message != nullptr) {
+            *error_message = attach_result.message.empty() ? "failed to attach analysis overlay tap"
+                                                           : attach_result.message;
+        }
+        return false;
+    }
+
+    AnalysisOverlayConfig overlay_config;
+    const auto timing_options = BuildAnalysisOverlayTimingOptionsFromQuery(query);
+    std::weak_ptr<WebRtcEgressSession> weak_bridge = bridge;
+    overlay_config.enabled = true;
+    overlay_config.render_options = BuildOverlayRenderOptionsFromQuery(query);
+    overlay_config.sync_tolerance_ns = static_cast<std::int64_t>(timing_options.sync_tolerance_ms) * 1000000LL;
+    overlay_config.wait_timeout_ms = timing_options.wait_timeout_ms;
+    overlay_config.result_provider =
+        [&session_manager,
+         tap_id = attach_result.tap_id,
+         weak_bridge,
+         tolerance_ns = overlay_config.sync_tolerance_ns,
+         wait_timeout_ms = overlay_config.wait_timeout_ms](std::int64_t frame_pts) {
+            const auto bridge_lock = weak_bridge.lock();
+            const std::int64_t source_pts =
+                bridge_lock != nullptr ? bridge_lock->ResolveOverlaySourcePts(frame_pts) : frame_pts;
+            auto result = session_manager.WaitAnalysisResultNearPts(
+                tap_id, source_pts, tolerance_ns, std::chrono::milliseconds(wait_timeout_ms));
+            if (result.has_value()) {
+                return result;
+            }
+            const auto snapshot = session_manager.AnalysisTapSnapshot(tap_id);
+            return snapshot.has_value() ? snapshot->latest_result : std::optional<analysis::AnalysisResult>{};
+        };
+    bridge->SetAnalysisOverlay(std::move(overlay_config));
+    if (analysis_tap_id != nullptr) {
+        *analysis_tap_id = attach_result.tap_id;
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
 }
 
 std::string LabImportJobJson(const LabImportJobSnapshot& job) {
@@ -1722,6 +1910,22 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                 "{\"job\":" + LabImportJobJson(*job) + "}");
                         }
 
+                        if (request.method == "GET" && request.path == "/lab/files") {
+                            return JsonResponse(200, "OK", LabFilesJson());
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/analysis/capabilities") {
+                            return JsonResponse(200, "OK", AnalysisCapabilitiesJson());
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/analysis/profiles") {
+                            return JsonResponse(200, "OK", AnalysisProfilesJson());
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/analysis/rules") {
+                            return JsonResponse(200, "OK", AnalysisRulesJson());
+                        }
+
                         if (request.path == "/lab/analysis/taps") {
                             if (request.method == "GET") {
                                 return JsonResponse(200, "OK",
@@ -1749,13 +1953,16 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                         const auto analysis_tap_prefix = std::string("/lab/analysis/taps/");
                         if (request.path.rfind(analysis_tap_prefix, 0) == 0) {
-                            const std::string tap_id = request.path.substr(analysis_tap_prefix.size());
+                            const std::string rest = request.path.substr(analysis_tap_prefix.size());
+                            const std::size_t slash = rest.find('/');
+                            const std::string tap_id = slash == std::string::npos ? rest : rest.substr(0, slash);
+                            const std::string suffix = slash == std::string::npos ? std::string() : rest.substr(slash);
                             if (tap_id.empty()) {
                                 return JsonResponse(400, "Bad Request",
                                                     "{\"error\":\"tap id is required\"}");
                             }
 
-                            if (request.method == "GET") {
+                            if (request.method == "GET" && suffix.empty()) {
                                 const auto snapshot = impl_->session_manager.AnalysisTapSnapshot(tap_id);
                                 if (!snapshot.has_value()) {
                                     return JsonResponse(404, "Not Found",
@@ -1765,7 +1972,90 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "{\"tap\":" + AnalysisTapSnapshotJson(*snapshot) + "}");
                             }
 
-                            if (request.method == "DELETE") {
+                            if (request.method == "GET" && suffix == "/metadata") {
+                                const auto result = impl_->session_manager.AnalysisTapSnapshot(tap_id);
+                                if (!result.has_value()) {
+                                    return JsonResponse(404, "Not Found",
+                                                        "{\"error\":\"analysis tap not found\"}");
+                                }
+                                return JsonResponse(200, "OK",
+                                                    AnalysisMetadataJson(tap_id, result->latest_result));
+                            }
+
+                            if (request.method == "GET" && (suffix == "/snapshot" || suffix == "/snapshot.jpg")) {
+                                const auto frame = impl_->session_manager.AnalysisLatestFrame(tap_id);
+                                if (!frame.has_value()) {
+                                    return HttpResponse{404,
+                                                        "Not Found",
+                                                        "text/plain; charset=utf-8",
+                                                        {},
+                                                        "analysis snapshot frame not found"};
+                                }
+                                const int quality = ParseClampedIntQuery(query, "quality", 85, 1, 100);
+                                analysis::EncodedImage image;
+                                std::string error_message;
+                                if (!analysis::EncodeJpeg(*frame, quality, &image, &error_message)) {
+                                    return HttpResponse{500,
+                                                        "Internal Server Error",
+                                                        "text/plain; charset=utf-8",
+                                                        {},
+                                                        error_message.empty() ? "failed to encode snapshot" : error_message};
+                                }
+                                HttpResponse ok;
+                                ok.content_type = image.content_type;
+                                ok.headers["Cache-Control"] = "no-store";
+                                ok.body.assign(reinterpret_cast<const char*>(image.data.data()), image.data.size());
+                                return ok;
+                            }
+
+                            if (request.method == "GET" && (suffix == "/overlay" || suffix == "/overlay.jpg")) {
+                                const auto latest = impl_->session_manager.AnalysisLatestFrameAndResult(tap_id);
+                                if (!latest.has_value()) {
+                                    return HttpResponse{404,
+                                                        "Not Found",
+                                                        "text/plain; charset=utf-8",
+                                                        {},
+                                                        "analysis overlay frame not found"};
+                                }
+                                if (!latest->result.has_value()) {
+                                    return HttpResponse{404,
+                                                        "Not Found",
+                                                        "text/plain; charset=utf-8",
+                                                        {},
+                                                        "analysis overlay result not found"};
+                                }
+
+                                analysis::RawVideoFrame overlay_frame;
+                                analysis::OverlayRenderOptions options;
+                                options.line_thickness = ParseClampedIntQuery(query, "thickness", 3, 1, 16);
+                                options.draw_labels = ParseBoolQuery(query, "drawLabels", true);
+                                std::string error_message;
+                                if (!analysis::RenderDetectionOverlay(
+                                        latest->frame, *latest->result, options, &overlay_frame, &error_message)) {
+                                    return HttpResponse{500,
+                                                        "Internal Server Error",
+                                                        "text/plain; charset=utf-8",
+                                                        {},
+                                                        error_message.empty() ? "failed to render analysis overlay" : error_message};
+                                }
+
+                                const int quality = ParseClampedIntQuery(query, "quality", 85, 1, 100);
+                                analysis::EncodedImage image;
+                                if (!analysis::EncodeJpeg(overlay_frame, quality, &image, &error_message)) {
+                                    return HttpResponse{500,
+                                                        "Internal Server Error",
+                                                        "text/plain; charset=utf-8",
+                                                        {},
+                                                        error_message.empty() ? "failed to encode analysis overlay" : error_message};
+                                }
+                                HttpResponse ok;
+                                ok.content_type = image.content_type;
+                                ok.headers["Cache-Control"] = "no-store";
+                                ok.body.assign(reinterpret_cast<const char*>(image.data.data()), image.data.size());
+                                return ok;
+                            }
+
+                            if (request.method == "DELETE" && suffix.empty()) {
                                 if (!impl_->session_manager.DetachAnalysisTap(tap_id)) {
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis tap not found\"}");
@@ -1782,16 +2072,28 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             const std::string ingress_client_id = session_id + "-ingress";
                             media::IngressRequest ingress_request = BuildHttpIngressRequest(route_path, query, ingress_client_id);
                             auto bridge = std::make_shared<WebRtcEgressSession>();
+                            std::string analysis_tap_id;
+                            std::string error_message;
+                            if (!AttachWebRtcAnalysisOverlay(
+                                    impl_->session_manager, ingress_request, query, bridge, &analysis_tap_id, &error_message)) {
+                                return JsonResponse(400, "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            }
                             auto create_result = impl_->session_manager.CreateSession(
                                 ingress_request,
                                 [bridge](const media::Packet& packet) { bridge->HandleSample(packet); });
                             if (!create_result.ok) {
+                                if (!analysis_tap_id.empty()) {
+                                    impl_->session_manager.DetachAnalysisTap(analysis_tap_id);
+                                }
                                 return JsonResponse(400, "Bad Request",
                                                     "{\"error\":\"" + JsonEscape(create_result.message) + "\"}");
                             }
 
-                            std::string error_message;
                             if (!bridge->Start(session_id, create_result.stream, &error_message)) {
+                                if (!analysis_tap_id.empty()) {
+                                    impl_->session_manager.DetachAnalysisTap(analysis_tap_id);
+                                }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return JsonResponse(500, "Internal Server Error",
                                                     "{\"error\":\"" + JsonEscape(error_message) + "\"}");
@@ -1800,6 +2102,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             std::string offer;
                             if (!bridge->CreateOffer(&offer, &error_message)) {
                                 bridge->Stop();
+                                if (!analysis_tap_id.empty()) {
+                                    impl_->session_manager.DetachAnalysisTap(analysis_tap_id);
+                                }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return JsonResponse(500, "Internal Server Error",
                                                     "{\"error\":\"" + JsonEscape(error_message) + "\"}");
@@ -1811,6 +2116,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                         Impl::SessionEntry{
                                                             .session_id = session_id,
                                                             .ingress_client_id = ingress_client_id,
+                                                            .analysis_tap_id = analysis_tap_id,
                                                             .request = std::move(ingress_request),
                                                             .bridge = bridge,
                                                         });
@@ -1824,20 +2130,34 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             const std::string ingress_client_id = session_id + "-ingress";
                             media::IngressRequest ingress_request = BuildHttpIngressRequest(route_path, query, ingress_client_id);
                             auto bridge = std::make_shared<WebRtcEgressSession>();
+                            std::string analysis_tap_id;
+                            std::string error_message;
+                            if (!AttachWebRtcAnalysisOverlay(
+                                    impl_->session_manager, ingress_request, query, bridge, &analysis_tap_id, &error_message)) {
+                                return HttpResponse{400, "Bad Request", "text/plain; charset=utf-8", {}, error_message};
+                            }
                             auto create_result = impl_->session_manager.CreateSession(
                                 ingress_request,
                                 [bridge](const media::Packet& packet) { bridge->HandleSample(packet); });
                             if (!create_result.ok) {
+                                if (!analysis_tap_id.empty()) {
+                                    impl_->session_manager.DetachAnalysisTap(analysis_tap_id);
+                                }
                                 return HttpResponse{400, "Bad Request", "text/plain; charset=utf-8", {}, create_result.message};
                             }
 
-                            std::string error_message;
                             if (!bridge->Start(session_id, create_result.stream, &error_message)) {
+                                if (!analysis_tap_id.empty()) {
+                                    impl_->session_manager.DetachAnalysisTap(analysis_tap_id);
+                                }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return HttpResponse{500, "Internal Server Error", "text/plain; charset=utf-8", {}, error_message};
                             }
                             if (!bridge->SetRemoteOffer(request.body, &error_message)) {
                                 bridge->Stop();
+                                if (!analysis_tap_id.empty()) {
+                                    impl_->session_manager.DetachAnalysisTap(analysis_tap_id);
+                                }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return HttpResponse{400, "Bad Request", "text/plain; charset=utf-8", {}, error_message};
                             }
@@ -1845,6 +2165,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             std::string answer;
                             if (!bridge->CreateAnswer(&answer, &error_message)) {
                                 bridge->Stop();
+                                if (!analysis_tap_id.empty()) {
+                                    impl_->session_manager.DetachAnalysisTap(analysis_tap_id);
+                                }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return HttpResponse{500, "Internal Server Error", "text/plain; charset=utf-8", {}, error_message};
                             }
@@ -1855,6 +2178,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                         Impl::SessionEntry{
                                                             .session_id = session_id,
                                                             .ingress_client_id = ingress_client_id,
+                                                            .analysis_tap_id = analysis_tap_id,
                                                             .request = std::move(ingress_request),
                                                             .bridge = bridge,
                                                         });
@@ -1937,6 +2261,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                             std::shared_ptr<WebRtcEgressSession> bridge;
                             std::string ingress_client_id;
+                            std::string analysis_tap_id;
                             {
                                 std::lock_guard lock(impl_->mu);
                                 const auto it = impl_->sessions.find(session_id);
@@ -1945,6 +2270,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 }
                                 bridge = it->second.bridge;
                                 ingress_client_id = it->second.ingress_client_id;
+                                analysis_tap_id = it->second.analysis_tap_id;
                             }
 
                             if (request.method == "POST" && suffix == "/answer") {
@@ -1973,6 +2299,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                             if (request.method == "DELETE" && (suffix.empty() || suffix == "/")) {
                                 bridge->Stop();
+                                if (!analysis_tap_id.empty()) {
+                                    impl_->session_manager.DetachAnalysisTap(analysis_tap_id);
+                                }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 {
                                     std::lock_guard lock(impl_->mu);
@@ -2065,6 +2394,9 @@ void WebRtcHttpServer::Stop() {
     }
     for (auto& entry : sessions) {
         entry.bridge->Stop();
+        if (!entry.analysis_tap_id.empty()) {
+            impl_->session_manager.DetachAnalysisTap(entry.analysis_tap_id);
+        }
         impl_->session_manager.CloseSession(entry.ingress_client_id);
     }
     for (auto& entry : source_sessions) {

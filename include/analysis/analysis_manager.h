@@ -34,12 +34,24 @@ public:
         std::size_t queue_dropped_frames{0};
         std::size_t decoder_errors{0};
         std::size_t pending_frames{0};
+        double last_analysis_ms{0.0};
+        double average_analysis_ms{0.0};
+        double max_analysis_ms{0.0};
         int target_fps{0};
         std::size_t max_queue_size{0};
         int debug_detector_delay_ms{0};
         float confidence_threshold{0.0F};
         float nms_threshold{0.0F};
+        bool has_latest_frame{false};
+        int latest_frame_width{0};
+        int latest_frame_height{0};
+        std::int64_t latest_frame_pts{0};
         std::optional<AnalysisResult> latest_result;
+    };
+
+    struct LatestFrameResult {
+        RawVideoFrame frame;
+        std::optional<AnalysisResult> result;
     };
 
     AnalysisManager() = default;
@@ -55,6 +67,15 @@ public:
     void DetachAll();
 
     std::optional<AnalysisResult> LatestResult(const std::string& tap_id) const;
+    std::optional<AnalysisResult> ResultNearPts(const std::string& tap_id,
+                                                std::int64_t pts,
+                                                std::int64_t tolerance_ns) const;
+    std::optional<AnalysisResult> WaitResultNearPts(const std::string& tap_id,
+                                                    std::int64_t pts,
+                                                    std::int64_t tolerance_ns,
+                                                    std::chrono::milliseconds timeout) const;
+    std::optional<RawVideoFrame> LatestFrame(const std::string& tap_id) const;
+    std::optional<LatestFrameResult> LatestFrameAndResult(const std::string& tap_id) const;
     std::optional<TapSnapshot> Snapshot(const std::string& tap_id) const;
     std::size_t ActiveTapCount() const;
 
@@ -72,8 +93,11 @@ private:
 
         mutable std::mutex mu;
         std::condition_variable frame_cv;
+        std::condition_variable result_cv;
         std::deque<RawVideoFrame> frame_queue;
+        std::deque<AnalysisResult> result_history;
         std::optional<AnalysisResult> latest_result;
+        std::optional<RawVideoFrame> latest_frame;
         std::size_t received_video_packets{0};
         std::size_t decoded_frames{0};
         std::size_t sampled_frames{0};
@@ -82,6 +106,9 @@ private:
         std::size_t sample_dropped_frames{0};
         std::size_t queue_dropped_frames{0};
         std::size_t decoder_errors{0};
+        double last_analysis_ms{0.0};
+        double total_analysis_ms{0.0};
+        double max_analysis_ms{0.0};
         std::chrono::steady_clock::time_point last_sampled_at{};
         bool frame_worker_stop{false};
         std::thread frame_worker;

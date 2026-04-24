@@ -65,18 +65,19 @@
    - auth, STUN/TURN, ICE policy를 붙인 상태에서 브라우저 간 consume/publish 재검증
 3. audio-only input 정책 확정
    - 현재는 video relay/analysis 기준으로 설계되어 있어 audio-only는 정식 지원 범위 밖
-4. 영상분석 branch 테스트 추가
-   - relay 경로는 유지하고 `SharedStream` analysis tap을 붙인 뒤 client ref-count와 analysis tap 수명 분리 검증
-   - raw decode hub가 붙으면 drop/frame-sampling 정책 검증
+4. 영상분석 후속 테스트 추가
+   - 1차 analysis tap, raw decode hub, drop/frame-sampling, YOLO/ONNX, RTSP/WebRTC overlay는 로컬 smoke test 완료
+   - 남은 범위는 persistent profile/rule registry, rule event engine, metadata event endpoint, adaptive tuner 검증
 5. 실험실 YouTube 회귀 검증
    - 기본 scope는 아니며, 명시적으로 opt-in 했을 때만 별도 확인
 6. `/lab/import` 외부 네트워크 재검증
    - `2026-04-24` 공개 VOD `aqz-KE-bpKQ` 기준으로 성공/실패가 모두 재현됐다.
    - 현재는 성공 시 import 결과를 `ffmpeg`로 `h264 + aac stereo + mp4`로 정규화한 뒤 `file=` relay/analysis 경로에 바로 재사용하도록 수정했다.
 
-## 영상분석 브랜치 착수 전 blocker 체크리스트
+## 영상분석 착수 전 blocker 체크리스트와 완료 이력
 - 목적
   - 스트리밍 기반이 흔들리는 상태에서 분석 계층을 얹지 않도록, 분석 브랜치 분기 전에 최소 기준선을 확인한다.
+  - `2026-04-24` 기준 아래 로컬 core 경로는 분석 1차 구현에 충분한 기준선으로 판단했다.
 - 통과 기준
   - 로컬 `file -> RTSP`, `file -> WebRTC(signaling)`이 계속 재생 가능해야 한다.
   - 로컬 `RTSP pull -> RTSP/WebRTC(signaling)`이 codec matrix 기준으로 재현 가능해야 한다.
@@ -95,19 +96,19 @@
   5. `./scripts/diagnose_media_server.sh`
   6. `./scripts/stop_server.sh`
 - 판단 규칙
-  - 위 로컬 core 경로가 통과하면 분석 전용 브랜치로 분기해도 된다.
-  - core 경로가 깨지면 분석 착수보다 스트리밍 안정화 수정을 먼저 한다.
+  - 위 로컬 core 경로가 깨지면 분석 후속 개발보다 스트리밍 안정화 수정을 먼저 한다.
+  - profile/rule/event 같은 분석 후속 개발도 동일 기준선을 유지하면서 진행한다.
 
-## 분석 브랜치 진행 중 보류할 테스트와 복귀 계획
-- 분석 브랜치(`Perception/RuleEngine/Overlay`) 작업 중에는 아래 항목을 main 기준 후속 테스트로 보류한다.
+## 분석 1차 구현 이후 보류 테스트와 복귀 계획
+- 분석 1차 구현은 file/RTSP/WebRTC local core 경로 중심으로 진행했다. 아래 항목은 main 기준 후속 테스트로 보류한다.
   - `HTTP/HLS URI -> RTSP` 최신 `503` 재확인 및 수정
   - 외부 RTSP source 재검증
   - WebRTC 운영 환경 테스트(auth/STUN/TURN/ICE)
   - audio-only input 정책 확정
   - 실험실 YouTube 회귀 검증
   - `/lab/import` 외부 네트워크 재검증
-- 분석 기능 1차 구현과 로컬 회귀가 끝나면, 이 문서의 `남은 테스트 스텝` 순서로 다시 돌아와 보류 항목을 재개한다.
-- 즉 현재 계획은 `로컬 core 경로 안정화 확인 -> 분석 브랜치 개발(file/RTSP/WebRTC만) -> main으로 복귀 후 HTTP/HLS와 운영 테스트 재개` 순서다.
+- profile/rule/event 같은 분석 후속 개발 전후에는 이 문서의 `남은 테스트 스텝` 순서로 돌아와 보류 항목을 재개한다.
+- 현재 계획은 `분석 1차 local smoke 완료 -> profile/rule/event 개발 -> HTTP/HLS와 운영 테스트 재개` 순서다.
 
 ## 영상분석 skeleton 검증 계획
 - 1차 skeleton 검증
@@ -518,17 +519,67 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
     - 1초 후 `debugDetectorDelayMs=200`, `sampledFrames=19`, `analyzedPackets=4`, `queueDroppedFrames=12`, `pendingFrames=2`, `decoderErrors=0`을 확인했다.
   - 테스트 종료 후 tap 삭제와 임시 서버 종료를 확인했다.
 - `2026-04-24` YOLO/ONNX detector optional build smoke test를 추가했다.
-  - 현재 로컬 환경에는 ONNX Runtime 개발 헤더/라이브러리가 없음을 확인했다.
+  - 초기 미설치 상태에서는 ONNX Runtime 개발 헤더/라이브러리가 없어 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성이 실패함을 확인했다.
   - 기본 `build-gst`는 `MEDIA_SERVER_USE_ONNXRUNTIME=OFF`로 빌드가 통과했다.
   - `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성은 `ONNX Runtime not found. Set MEDIA_SERVER_ONNXRUNTIME_ROOT...` 메시지로 실패함을 확인했다.
   - `detector=dummy` analysis tap은 기존과 같이 동작했다.
   - ONNX Runtime 미포함 빌드에서 `detector=yolo&model=/tmp/missing.onnx` 요청은 HTTP 400과 `YOLO detector requires MEDIA_SERVER_USE_ONNXRUNTIME=ON...` 오류를 반환했다.
+- `2026-04-24` YOLO/ONNX detector actual inference smoke test를 추가했다.
+  - `brew install onnxruntime`로 ONNX Runtime `1.25.0`을 설치했다.
+  - Homebrew layout 보정을 위해 CMake ONNX include 탐색에 `onnxruntime` suffix를 추가했다.
+  - `build-gst-onnx`를 `MEDIA_SERVER_USE_ONNXRUNTIME=ON`, `MEDIA_SERVER_ONNXRUNTIME_ROOT=/opt/homebrew/opt/onnxruntime`로 구성했고 빌드가 통과했다.
+  - 검증용 모델은 Ultralytics assets `v8.4.0`의 `yolo11n.onnx`를 `models/` 아래에 로컬로만 내려받았다.
+  - 검증용 label은 `models/coco.names`의 COCO 80개 class다. 현재 overlay에 표출 가능한 class 목록은 `README.md`의 YOLO/COCO 기준 섹션에 명시했다.
+  - 검증용 영상은 Ultralytics `bus.jpg`를 `video/imports/yolo_bus_test.mp4`로 변환해 사용했다.
+  - `POST /lab/analysis/taps?file=imports/yolo_bus_test.mp4&profileId=yolo-bus-smoke&detector=yolo&model=models/yolo11n.onnx&labels=models/coco.names&fps=2&maxQueue=2&inputWidth=640&inputHeight=640&confidence=0.25&nms=0.45`가 성공했다.
+  - 2초 후 status에서 `detectorType=yolo`, `analyzedPackets=87`, `decoderErrors=0`, `detections`에 `person`, `bus`가 포함됨을 확인했다.
+  - 테스트 종료 후 tap 삭제와 임시 서버 종료를 확인했다.
+- `2026-04-24` analysis metadata/snapshot API smoke test를 추가했다.
+  - ONNX build 서버에서 `metadata-snapshot-smoke` YOLO analysis tap을 생성했다.
+  - `GET /lab/analysis/taps/analysis-tap-1/metadata`가 `hasResult=true`와 `person`, `bus` detection JSON을 반환했다.
+  - `GET /lab/analysis/taps/analysis-tap-1/snapshot.jpg?quality=80`이 JPEG를 반환했다.
+  - 저장한 snapshot은 `file` 기준 `JPEG image data, baseline, precision 8, 640x480, components 3`, 크기 약 `214KB`로 확인했다.
+  - 테스트 종료 후 tap 삭제와 임시 서버 종료를 확인했다.
+- `2026-04-24` analysis overlay snapshot API smoke test를 추가했다.
+  - ONNX build 서버에서 `overlay-smoke` YOLO analysis tap을 생성했다.
+  - `GET /lab/analysis/taps/analysis-tap-1`에서 `hasLatestFrame=true`, `latestFrameWidth=640`, `latestFrameHeight=480`, `hasResult=true`를 확인했다.
+  - `GET /lab/analysis/taps/analysis-tap-1/overlay.jpg?quality=80&thickness=4&drawLabels=1`이 JPEG를 반환했다.
+  - 저장한 overlay snapshot은 `file` 기준 `JPEG image data, baseline, precision 8, 640x480, components 3`, 크기 약 `222KB`로 확인했다.
+  - 육안 확인 기준 `person`, `bus` detection box와 label이 이미지 위에 그려졌다.
+- `2026-04-24` RTSP/WebRTC overlay stream smoke test를 추가했다.
+  - RTSP consume URL에 `va=1`을 붙이면 서버 기본 VA profile로 analysis tap이 자동 생성되고 media unprepare 시 자동 detach됨을 확인했다.
+  - RTSP stream 시작 직후 첫 frame은 detector 결과가 아직 없어 원본 frame으로 나올 수 있음을 확인했다.
+  - 같은 RTSP 세션에서 5초 뒤 frame을 캡처하면 `person`, `bus` detection box와 label이 포함된 `640x480` JPEG가 저장됨을 확인했다.
+  - WebRTC simple signaling은 `va=1` session 생성과 SDP offer 생성 smoke가 통과했다.
+  - 이후 simple signaling/WHEP 브라우저 playback 육안 검증까지 완료했다.
+- `2026-04-24` RTSP overlay PTS sync smoke test를 추가했다.
+  - 수정 전 overlay는 egress 현재 frame에 최신 detection result를 그대로 합성해, 움직임이 큰 영상에서 box가 뒤따라오는 현상이 있었다.
+  - analysis result history를 PTS 기준으로 보관하고, RTSP/WebRTC egress의 normalized PTS를 source PTS로 역매핑해 가까운 result만 합성하도록 수정했다.
+  - `overlayWaitMs`와 `overlaySyncToleranceMs` query를 추가했고, URL 기본 사용값에서는 제외했다.
+  - `NewYorkDriving.mp4` 기준 서버 기본값 `fps=8`, `maxQueue=1`, `overlayWaitMs=180`, `overlaySyncToleranceMs=400`으로 10초 RTSP frame capture를 수행했고, bus/car/person box가 객체 위치에서 크게 뒤처지지 않음을 확인했다.
+  - 기존 계열인 `fps=2&maxQueue=2`에서도 10초 capture 기준 큰 박스 밀림은 보이지 않았다. 다만 빠른 움직임에서는 현재 서버 기본 VA profile처럼 짧은 queue를 권장한다.
+- `2026-04-24` WebRTC overlay browser playback 검증을 추가했다.
+  - `/lab` 페이지에 “VA 분석” 옵션을 추가하고 `file=imports/yolo_bus_test.mp4`, `va=1`로 확인했다.
+  - simple signaling 경로에서 브라우저 video가 재생되고 `person`, `bus` overlay box가 보였다.
+  - WHEP 경로에서도 ICE/connection connected와 브라우저 video 재생, overlay box 표시를 확인했다.
+  - WHEP는 raw buffer PTS가 packet PTS mapping과 어긋날 수 있어 near-PTS result가 없으면 최신 result로 fallback한다.
+- `2026-04-24` YOLO letterbox 좌표 보정을 추가했다.
+  - 기본 `preprocess=letterbox`에서 114 gray padding, 원본 종횡비 유지 resize, output box의 padding/scale 역보정을 적용한다.
+  - 기존 강제 resize 경로는 `preprocess=stretch`로 남겨 두었다.
+- `2026-04-24` detector metrics와 profile/rule 설계 API smoke test를 추가했다.
+  - analysis tap snapshot에 `lastAnalysisMs`, `averageAnalysisMs`, `maxAnalysisMs`가 포함됨을 확인했다.
+  - `GET /lab/analysis/capabilities`, `GET /lab/analysis/profiles`, `GET /lab/analysis/rules`가 JSON을 반환한다.
+- `2026-04-24` VA URL 단순화와 lab 파일 dropdown을 추가했다.
+  - RTSP/WebRTC consume URL은 기본적으로 `?file=...&va=1`만 사용한다.
+  - detector/model/labels/confidence/nms/fps/queue/overlay sync 기본값은 `include/stdafx.h`와 `MEDIA_SERVER_ANALYSIS_*` 환경변수로 관리한다.
+  - 현재 자동 보정은 서버 기본 profile과 drop-oldest queue까지이며, detector 부하에 따라 fps/input size를 자동으로 낮추는 adaptive tuner는 아직 미구현이다.
+  - `/lab/files`가 `MEDIA_SERVER_FILE_ROOT` 아래 지원 미디어 파일 목록을 JSON으로 반환하고, `/lab` 파일 입력은 dropdown으로 표시한다.
 
 ## 남은 확인 항목
 - 다음 구현 순서
-  - 1차: ONNX Runtime 설치 또는 local runtime root 지정
-  - 2차: 작은 YOLO ONNX model + labels 파일로 실제 detection 결과 검증
-  - 3차: 분석 metadata/snapshot API 또는 overlay stream 설계
+  - 1차: profile/rule persistent registry와 per-client override 구현
+  - 2차: rule event engine과 metadata event endpoint 구현
+  - 3차: 모델별 output layout 옵션 정교화
 - `HTTP/HLS URI -> RTSP` 최신 `503` 재확인 및 수정
 - audio-only input은 현재 video relay/analysis 준비 범위 밖이다. RTSP/WebRTC egress는 video track을 기준으로 동작한다.
 - 외부 wowza source 재검증
