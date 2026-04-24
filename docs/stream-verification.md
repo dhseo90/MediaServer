@@ -66,7 +66,8 @@
 3. audio-only input 정책 확정
    - 현재는 video relay/analysis 기준으로 설계되어 있어 audio-only는 정식 지원 범위 밖
 4. 영상분석 branch 테스트 추가
-   - relay 경로는 유지하고 `SharedStream` analysis tap을 붙인 뒤 drop/frame-sampling 정책 검증
+   - relay 경로는 유지하고 `SharedStream` analysis tap을 붙인 뒤 client ref-count와 analysis tap 수명 분리 검증
+   - raw decode hub가 붙으면 drop/frame-sampling 정책 검증
 5. 실험실 YouTube 회귀 검증
    - 기본 scope는 아니며, 명시적으로 opt-in 했을 때만 별도 확인
 6. `/lab/import` 외부 네트워크 재검증
@@ -107,6 +108,23 @@
   - `/lab/import` 외부 네트워크 재검증
 - 분석 기능 1차 구현과 로컬 회귀가 끝나면, 이 문서의 `남은 테스트 스텝` 순서로 다시 돌아와 보류 항목을 재개한다.
 - 즉 현재 계획은 `로컬 core 경로 안정화 확인 -> 분석 브랜치 개발(file/RTSP/WebRTC만) -> main으로 복귀 후 HTTP/HLS와 운영 테스트 재개` 순서다.
+
+## 영상분석 skeleton 검증 계획
+- 1차 skeleton 검증
+  - `cmake --build build-gst`로 analysis module이 기존 GStreamer build에 포함되는지 확인한다.
+  - 기존 `file -> RTSP`, `file -> WebRTC(signaling)` smoke test가 그대로 동작해야 한다.
+  - analysis tap이 붙어도 `SharedStream::RefCount()`는 relay client 수만 세야 한다.
+  - 개발용 HTTP endpoint:
+    - `POST /lab/analysis/taps?file=sample_h264.mp4&profileId=debug&fps=5`
+    - `GET /lab/analysis/taps/{tapId}`
+    - `DELETE /lab/analysis/taps/{tapId}`
+  - dummy detector 단계에서는 `latestResult.detections=[]`가 정상이다. 이 단계의 목적은 source dedup, tap 수명, packet 관찰 여부 확인이다.
+- 2차 decode hub 검증
+  - H264/H265 compressed packet을 raw frame으로 변환하고, source/profile별 target fps만 detector로 넘긴다.
+  - detector가 느릴 때 오래된 frame을 버리고 relay path 지연을 만들지 않는지 확인한다.
+- 3차 YOLO/ONNX 검증
+  - 작은 모델부터 붙여 CPU/Mac GPU 환경별 처리 지연과 frame drop 비율을 측정한다.
+  - detection metadata, snapshot, overlay 중 어떤 출력이 안정적인지 분리 테스트한다.
 
 ## 2026-04-24 blocker 체크 결과
 - 실행한 항목
@@ -472,12 +490,19 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
 - 외부 수동 검증 URL 출력 스크립트를 추가했다.
   - `scripts/print_external_test_urls.sh`
   - LAN IP, RTSP route URL, WebRTC test page/manual case를 한 번에 출력한다.
+- `2026-04-24` 영상분석 skeleton local smoke test를 추가했다.
+  - 임시 포트 `RTSP 8555`, `HTTP 8081`에서 foreground 서버를 실행했다.
+  - `POST /lab/analysis/taps?file=sample_h264.mp4&profileId=debug&fps=5`가 `analysis-tap-1`을 반환했다.
+  - `GET /lab/analysis/taps/analysis-tap-1`에서 `receivedVideoPackets > 0`, `analyzedPackets > 0`, `droppedPackets=0`, `hasResult=true`를 확인했다.
+  - dummy detector 단계라 `latestResult.detections=[]`는 정상이다.
+  - `DELETE /lab/analysis/taps/analysis-tap-1` 후 `GET /lab/analysis/taps`가 `activeTaps=0`을 반환했다.
 
 ## 남은 확인 항목
 - 다음 구현 순서
-  - 1차: 문서/진단 스크립트 정리
-  - 2차: 영상분석 branch skeleton 및 로컬 core 경로 검증 추가
-  - 3차: 분석 metadata/snapshot API 설계
+  - 1차: raw decode hub 추가
+  - 2차: frame sampling/drop-oldest queue 추가
+  - 3차: YOLO/ONNX Runtime detector 연동
+  - 4차: 분석 metadata/snapshot API 또는 overlay stream 설계
 - `HTTP/HLS URI -> RTSP` 최신 `503` 재확인 및 수정
 - audio-only input은 현재 video relay/analysis 준비 범위 밖이다. RTSP/WebRTC egress는 video track을 기준으로 동작한다.
 - 외부 wowza source 재검증

@@ -30,12 +30,22 @@ SharedStream::~SharedStream() {
 }
 
 bool SharedStream::AddSubscriber(const std::string& session_id, SubscriberCallback callback) {
+    return AddSubscriberWithRole(session_id, std::move(callback), SubscriberRole::Client);
+}
+
+bool SharedStream::AddAnalysisSubscriber(const std::string& subscriber_id, SubscriberCallback callback) {
+    return AddSubscriberWithRole(subscriber_id, std::move(callback), SubscriberRole::Analysis);
+}
+
+bool SharedStream::AddSubscriberWithRole(const std::string& subscriber_id,
+                                         SubscriberCallback callback,
+                                         SubscriberRole role) {
     // subscriber마다 독립 worker thread와 queue를 둬 느린 클라이언트가 다른 클라이언트를 막지 않게 한다.
-    auto state = std::make_shared<SubscriberState>(std::move(callback));
+    auto state = std::make_shared<SubscriberState>(std::move(callback), role);
     state->worker = std::thread(&SharedStream::WorkerLoop, state);
 
     std::unique_lock lock(mu_);
-    auto [it, inserted] = subscribers_.emplace(session_id, state);
+    auto [it, inserted] = subscribers_.emplace(subscriber_id, state);
     if (!inserted) {
         lock.unlock();
         {
@@ -115,6 +125,28 @@ void SharedStream::StopAllSubscribers() {
 }
 
 std::size_t SharedStream::RefCount() const {
+    std::shared_lock lock(mu_);
+    std::size_t count = 0;
+    for (const auto& [_, state] : subscribers_) {
+        if (state->role == SubscriberRole::Client) {
+            ++count;
+        }
+    }
+    return count;
+}
+
+std::size_t SharedStream::AnalysisSubscriberCount() const {
+    std::shared_lock lock(mu_);
+    std::size_t count = 0;
+    for (const auto& [_, state] : subscribers_) {
+        if (state->role == SubscriberRole::Analysis) {
+            ++count;
+        }
+    }
+    return count;
+}
+
+std::size_t SharedStream::TotalSubscriberCount() const {
     std::shared_lock lock(mu_);
     return subscribers_.size();
 }
