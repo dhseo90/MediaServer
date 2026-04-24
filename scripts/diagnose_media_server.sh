@@ -183,6 +183,12 @@ collect_log_state() {
 }
 
 collect_bind_probe() {
+  if media_server_is_tcp_listening "${PORT}"; then
+    print_line "INFO" "TCP probe bind skipped because ${ADDRESS}:${PORT} is already listening"
+    print_line "TIP" "이미 리슨 중인 포트는 재바인딩할 수 없으므로 권한 문제로 판정하지 않습니다." "  "
+    return
+  fi
+
   if media_server_is_tcp_bind_forbidden "${ADDRESS}" "${PORT}"; then
     print_line "FAIL" "current environment cannot bind TCP on ${ADDRESS}:${PORT}"
     print_line "TIP" "runtime environment likely blocks socket creation (Operation not permitted)."
