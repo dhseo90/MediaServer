@@ -345,12 +345,15 @@ SharedStream
 - `analysis::AnalysisManager`: stream key + profile 기준으로 `SharedStream` analysis tap을 등록하고 최신 결과를 보관하는 계층
 - `analysis::DummyDetector`: compressed video packet tap lifecycle만 확인하는 임시 detector
 - `analysis::RawVideoDecoder`: H264/H265/VP8 compressed packet을 raw RGB frame으로 변환하는 decoder hub
+- `analysis::Detector` factory: profile의 `detector_type`에 따라 dummy detector 또는 YOLO/ONNX detector를 선택한다.
+- `analysis::YoloOnnxDetector`: ONNX Runtime optional build에서 YOLO 계열 model output을 detection metadata로 변환한다.
 - `SessionManager::AttachAnalysisTap`: 기존 source parsing/dedup/source worker 시작 흐름을 재사용하는 analysis attach 진입점
 - `/lab/analysis/taps`: 개발용 HTTP attach/status/detach endpoint
+- raw frame은 detector로 바로 들어가지 않고 profile의 `target_fps` 기준 wall-clock sampling을 거쳐 bounded queue에 들어간다.
+- detector가 느려 queue가 `max_queue_size`를 넘으면 오래된 frame부터 버려 relay path와 decoder path 지연을 제한한다.
 
 아직 남은 핵심 작업:
-- source/profile별 frame sampling과 drop-oldest queue
-- YOLO 계열 ONNX Runtime detector
+- 실제 YOLO model 파일/labels를 넣은 end-to-end 검증
 - rule/event engine
 - overlay stream 또는 metadata/snapshot API
 
@@ -361,6 +364,7 @@ SharedStream
 - 빌드:
   - 기본: `cmake -S . -B build && cmake --build build`
   - GStreamer ON: `cmake -S . -B build -DMEDIA_SERVER_USE_GSTREAMER=ON && cmake --build build`
+  - YOLO/ONNX ON: `cmake -S . -B build-gst -DMEDIA_SERVER_USE_GSTREAMER=ON -DMEDIA_SERVER_USE_ONNXRUNTIME=ON -DMEDIA_SERVER_ONNXRUNTIME_ROOT=/path/to/onnxruntime && cmake --build build-gst`
 
 ## 14. GStreamer RTSP 동적 요청 (현재 구현)
 - 요청 형식:

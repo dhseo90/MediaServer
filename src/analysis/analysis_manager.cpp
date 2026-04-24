@@ -1,6 +1,8 @@
 // 파일 용도: SharedStream analysis subscriber, raw decode hub, 최신 dummy 분석 결과를 관리한다.
 #include "analysis/analysis_manager.h"
 
+#include <algorithm>
+
 namespace analysis {
 
 AnalysisManager::~AnalysisManager() {
@@ -18,9 +20,17 @@ AnalysisManager::AttachResult AnalysisManager::AttachStream(const core::StreamKe
     tap->tap_id = "analysis-tap-" + std::to_string(next_tap_id_.fetch_add(1));
     tap->stream_key = stream_key;
     tap->profile = std::move(profile);
-    tap->profile_key = BuildProfileKey(tap->profile);
     tap->stream = stream;
-    tap->detector = CreateDummyDetector();
+    tap->profile.target_fps = std::max(1, std::min(60, tap->profile.target_fps));
+    tap->profile.max_queue_size = std::max<std::size_t>(1, std::min<std::size_t>(128, tap->profile.max_queue_size));
+    tap->profile.model_input_width = std::max(32, std::min(4096, tap->profile.model_input_width));
+    tap->profile.model_input_height = std::max(32, std::min(4096, tap->profile.model_input_height));
+    tap->profile.max_detections = std::max(1, std::min(1000, tap->profile.max_detections));
+    tap->profile.confidence_threshold = std::max(0.0F, std::min(1.0F, tap->profile.confidence_threshold));
+    tap->profile.nms_threshold = std::max(0.0F, std::min(1.0F, tap->profile.nms_threshold));
+    tap->profile.debug_detector_delay_ms = std::max(0, std::min(5000, tap->profile.debug_detector_delay_ms));
+    tap->profile_key = BuildProfileKey(tap->profile);
+    tap->detector = CreateDetector(tap->profile);
 
     std::string error_message;
     if (!tap->detector->Start(&error_message)) {
@@ -28,9 +38,11 @@ AnalysisManager::AttachResult AnalysisManager::AttachStream(const core::StreamKe
     }
 
     std::weak_ptr<AnalysisTap> weak_tap = tap;
+    tap->frame_worker = std::thread([weak_tap] { AnalysisWorkerLoop(weak_tap); });
     if (!stream->AddAnalysisSubscriber(tap->tap_id, [weak_tap](const media::Packet& packet) {
             HandlePacket(weak_tap, packet);
         })) {
+        StopTapRuntime(tap);
         tap->detector->Stop();
         return {false, "duplicate analysis tap id", ""};
     }
@@ -59,16 +71,7 @@ bool AnalysisManager::Detach(const std::string& tap_id) {
     if (auto stream = tap->stream.lock()) {
         stream->RemoveSubscriber(tap_id);
     }
-    {
-        std::unique_ptr<RawVideoDecoder> decoder;
-        {
-            std::lock_guard tap_lock(tap->mu);
-            decoder = std::move(tap->decoder);
-        }
-        if (decoder != nullptr) {
-            decoder->Stop();
-        }
-    }
+    StopTapRuntime(tap);
     if (tap->detector != nullptr) {
         tap->detector->Stop();
     }
@@ -90,16 +93,7 @@ void AnalysisManager::DetachAll() {
         if (auto stream = tap->stream.lock()) {
             stream->RemoveSubscriber(tap->tap_id);
         }
-        {
-            std::unique_ptr<RawVideoDecoder> decoder;
-            {
-                std::lock_guard tap_lock(tap->mu);
-                decoder = std::move(tap->decoder);
-            }
-            if (decoder != nullptr) {
-                decoder->Stop();
-            }
-        }
+        StopTapRuntime(tap);
         if (tap->detector != nullptr) {
             tap->detector->Stop();
         }
@@ -137,11 +131,21 @@ std::optional<AnalysisManager::TapSnapshot> AnalysisManager::Snapshot(const std:
         .tap_id = tap->tap_id,
         .stream_key = tap->stream_key,
         .profile_key = tap->profile_key,
+        .detector_type = tap->profile.detector_type,
         .received_video_packets = tap->received_video_packets,
         .decoded_frames = tap->decoded_frames,
+        .sampled_frames = tap->sampled_frames,
         .analyzed_packets = tap->analyzed_packets,
         .dropped_packets = tap->dropped_packets,
+        .sample_dropped_frames = tap->sample_dropped_frames,
+        .queue_dropped_frames = tap->queue_dropped_frames,
         .decoder_errors = tap->decoder_errors,
+        .pending_frames = tap->frame_queue.size(),
+        .target_fps = tap->profile.target_fps,
+        .max_queue_size = tap->profile.max_queue_size,
+        .debug_detector_delay_ms = tap->profile.debug_detector_delay_ms,
+        .confidence_threshold = tap->profile.confidence_threshold,
+        .nms_threshold = tap->profile.nms_threshold,
         .latest_result = tap->latest_result,
     };
 }
@@ -201,23 +205,106 @@ void AnalysisManager::HandleFrame(const std::weak_ptr<AnalysisTap>& weak_tap, Ra
         return;
     }
 
-    AnalysisResult result;
-    result.source_key = tap->stream_key;
-    result.profile_key = tap->profile_key;
-    result.pts = frame.pts;
-
-    std::string error_message;
-    if (tap->detector != nullptr && !tap->detector->Analyze(frame, &result, &error_message)) {
+    bool should_notify = false;
+    {
         std::lock_guard tap_lock(tap->mu);
-        ++tap->dropped_packets;
+        ++tap->decoded_frames;
+
+        const auto now = std::chrono::steady_clock::now();
+        const auto min_interval =
+            tap->profile.target_fps > 0 ? std::chrono::nanoseconds(1000000000LL / tap->profile.target_fps)
+                                        : std::chrono::nanoseconds(0);
+        const bool too_soon = min_interval.count() > 0 && tap->last_sampled_at.time_since_epoch().count() > 0 &&
+                              now - tap->last_sampled_at < min_interval;
+        if (too_soon) {
+            ++tap->sample_dropped_frames;
+            ++tap->dropped_packets;
+            return;
+        }
+
+        tap->last_sampled_at = now;
+        ++tap->sampled_frames;
+        while (tap->frame_queue.size() >= tap->profile.max_queue_size) {
+            tap->frame_queue.pop_front();
+            ++tap->queue_dropped_frames;
+            ++tap->dropped_packets;
+        }
+        tap->frame_queue.push_back(std::move(frame));
+        should_notify = true;
+    }
+    if (should_notify) {
+        tap->frame_cv.notify_one();
+    }
+}
+
+void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_tap) {
+    while (true) {
+        auto tap = weak_tap.lock();
+        if (tap == nullptr) {
+            return;
+        }
+
+        RawVideoFrame frame;
+        {
+            std::unique_lock lock(tap->mu);
+            tap->frame_cv.wait(lock, [&] { return tap->frame_worker_stop || !tap->frame_queue.empty(); });
+            if (tap->frame_worker_stop) {
+                return;
+            }
+            frame = std::move(tap->frame_queue.front());
+            tap->frame_queue.pop_front();
+        }
+
+        AnalysisResult result;
+        result.source_key = tap->stream_key;
+        result.profile_key = tap->profile_key;
+        result.pts = frame.pts;
+
+        if (tap->profile.debug_detector_delay_ms > 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(tap->profile.debug_detector_delay_ms));
+        }
+
+        std::string error_message;
+        if (tap->detector != nullptr && !tap->detector->Analyze(frame, &result, &error_message)) {
+            std::lock_guard tap_lock(tap->mu);
+            ++tap->dropped_packets;
+            continue;
+        }
+        result.profile_key = tap->profile_key;
+
+        std::lock_guard tap_lock(tap->mu);
+        ++tap->analyzed_packets;
+        tap->latest_result = std::move(result);
+    }
+}
+
+void AnalysisManager::StopTapRuntime(const std::shared_ptr<AnalysisTap>& tap) {
+    if (tap == nullptr) {
         return;
     }
-    result.profile_key = tap->profile_key;
 
-    std::lock_guard tap_lock(tap->mu);
-    ++tap->decoded_frames;
-    ++tap->analyzed_packets;
-    tap->latest_result = std::move(result);
+    std::unique_ptr<RawVideoDecoder> decoder;
+    {
+        std::lock_guard tap_lock(tap->mu);
+        decoder = std::move(tap->decoder);
+    }
+    if (decoder != nullptr) {
+        decoder->Stop();
+    }
+
+    {
+        std::lock_guard tap_lock(tap->mu);
+        tap->frame_worker_stop = true;
+        if (!tap->frame_queue.empty()) {
+            tap->queue_dropped_frames += tap->frame_queue.size();
+            tap->dropped_packets += tap->frame_queue.size();
+            tap->frame_queue.clear();
+        }
+    }
+    tap->frame_cv.notify_one();
+    if (tap->frame_worker.joinable()) {
+        tap->frame_worker.join();
+    }
 }
 
 media::TrackInfo AnalysisManager::ResolveVideoTrack(const std::shared_ptr<AnalysisTap>& tap,

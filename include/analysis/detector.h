@@ -16,5 +16,7 @@ public:
 };
 
 std::unique_ptr<Detector> CreateDummyDetector();
+std::unique_ptr<Detector> CreateYoloOnnxDetector(AnalysisProfile profile);
+std::unique_ptr<Detector> CreateDetector(AnalysisProfile profile);
 
 }  // namespace analysis
