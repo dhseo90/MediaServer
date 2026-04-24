@@ -344,11 +344,11 @@ SharedStream
 - `analysis::Detector`: YOLO/ONNX Runtime detector를 붙일 교체형 인터페이스
 - `analysis::AnalysisManager`: stream key + profile 기준으로 `SharedStream` analysis tap을 등록하고 최신 결과를 보관하는 계층
 - `analysis::DummyDetector`: compressed video packet tap lifecycle만 확인하는 임시 detector
+- `analysis::RawVideoDecoder`: H264/H265/VP8 compressed packet을 raw RGB frame으로 변환하는 decoder hub
 - `SessionManager::AttachAnalysisTap`: 기존 source parsing/dedup/source worker 시작 흐름을 재사용하는 analysis attach 진입점
 - `/lab/analysis/taps`: 개발용 HTTP attach/status/detach endpoint
 
 아직 남은 핵심 작업:
-- compressed packet을 분석 가능한 raw frame으로 바꾸는 decode hub
 - source/profile별 frame sampling과 drop-oldest queue
 - YOLO 계열 ONNX Runtime detector
 - rule/event engine

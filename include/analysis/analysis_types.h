@@ -17,7 +17,7 @@ enum class PixelFormat {
 };
 
 struct RawVideoFrame {
-    // 향후 decode hub가 compressed packet을 raw frame으로 변환하면 detector 입력으로 전달한다.
+    // raw decode hub가 compressed packet을 변환한 뒤 detector 입력으로 전달하는 frame이다.
     std::string source_key;
     std::string track_id;
     int width{0};

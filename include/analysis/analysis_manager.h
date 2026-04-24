@@ -2,6 +2,7 @@
 #pragma once
 
 #include "analysis/detector.h"
+#include "analysis/raw_video_decoder.h"
 #include "core/shared_stream.h"
 #include "core/stream_key.h"
 
@@ -20,8 +21,10 @@ public:
         core::StreamKey stream_key;
         std::string profile_key;
         std::size_t received_video_packets{0};
+        std::size_t decoded_frames{0};
         std::size_t analyzed_packets{0};
         std::size_t dropped_packets{0};
+        std::size_t decoder_errors{0};
         std::optional<AnalysisResult> latest_result;
     };
 
@@ -49,15 +52,22 @@ private:
         std::string profile_key;
         std::weak_ptr<core::SharedStream> stream;
         std::unique_ptr<Detector> detector;
+        std::unique_ptr<RawVideoDecoder> decoder;
+        media::CodecId decoder_codec{media::CodecId::Unknown};
+        std::string decoder_track_id;
 
         mutable std::mutex mu;
         std::optional<AnalysisResult> latest_result;
         std::size_t received_video_packets{0};
+        std::size_t decoded_frames{0};
         std::size_t analyzed_packets{0};
         std::size_t dropped_packets{0};
+        std::size_t decoder_errors{0};
     };
 
     static void HandlePacket(const std::weak_ptr<AnalysisTap>& weak_tap, const media::Packet& packet);
+    static void HandleFrame(const std::weak_ptr<AnalysisTap>& weak_tap, RawVideoFrame frame);
+    static media::TrackInfo ResolveVideoTrack(const std::shared_ptr<AnalysisTap>& tap, const media::Packet& packet);
 
     mutable std::mutex mu_;
     std::unordered_map<std::string, std::shared_ptr<AnalysisTap>> taps_;

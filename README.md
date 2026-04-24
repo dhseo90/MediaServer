@@ -676,9 +676,11 @@ SharedStream
 - `include/analysis/analysis_types.h`: 분석 profile, raw frame, detection/track/pose/result 타입 skeleton
 - `include/analysis/detector.h`: YOLO/ONNX detector를 교체할 수 있는 공통 인터페이스
 - `include/analysis/analysis_manager.h`: `SharedStream`에 analysis tap을 붙이고 최신 결과를 보관하는 manager skeleton
+- `include/analysis/raw_video_decoder.h`: compressed video packet을 raw frame으로 바꾸는 decoder hub 인터페이스
 - `src/analysis/dummy_detector.cpp`: 실제 검출 없이 lifecycle만 확인하는 dummy detector
+- `src/analysis/raw_video_decoder.cpp`: GStreamer `appsrc -> parser/decoder -> videoconvert -> appsink` 기반 raw RGB decode hub
 - `/lab/analysis/taps`: 개발용 analysis tap attach/status/detach HTTP endpoint
-- 아직 raw decode hub, YOLO/ONNX Runtime, overlay stream, metadata/snapshot API는 붙이지 않았다.
+- 아직 frame sampling/drop-oldest queue, YOLO/ONNX Runtime, overlay stream, metadata/snapshot API는 붙이지 않았다.
 
 개발용 analysis tap 예시:
 
@@ -688,7 +690,7 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}'
 curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}'
 ```
 
-이 endpoint는 지금 단계에서 dummy detector lifecycle 확인용입니다. `latestResult.detections`가 비어 있는 것은 정상이며, 실제 객체 검출은 raw decode hub와 YOLO/ONNX detector를 붙인 뒤 채워집니다.
+이 endpoint는 지금 단계에서 raw decode hub와 dummy detector lifecycle 확인용입니다. `decodedFrames`와 `analyzedPackets`가 증가하면 compressed packet이 raw frame으로 변환되어 detector까지 전달된 것입니다. `latestResult.detections`가 비어 있는 것은 정상이며, 실제 객체 검출은 YOLO/ONNX detector를 붙인 뒤 채워집니다.
 
 클라이언트 전달 방식 후보:
 - RTSP/WebRTC 본 스트림 위에 overlay된 영상으로 전달

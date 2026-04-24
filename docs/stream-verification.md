@@ -120,8 +120,9 @@
     - `DELETE /lab/analysis/taps/{tapId}`
   - dummy detector 단계에서는 `latestResult.detections=[]`가 정상이다. 이 단계의 목적은 source dedup, tap 수명, packet 관찰 여부 확인이다.
 - 2차 decode hub 검증
-  - H264/H265 compressed packet을 raw frame으로 변환하고, source/profile별 target fps만 detector로 넘긴다.
-  - detector가 느릴 때 오래된 frame을 버리고 relay path 지연을 만들지 않는지 확인한다.
+  - H264/H265/VP8 compressed packet을 raw RGB frame으로 변환하고 dummy detector로 넘긴다.
+  - `GET /lab/analysis/taps/{tapId}`에서 `decodedFrames`, `analyzedPackets`, `decoderErrors`를 확인한다.
+  - source/profile별 target fps 제한과 detector가 느릴 때 오래된 frame을 버리는 정책은 다음 단계에서 확인한다.
 - 3차 YOLO/ONNX 검증
   - 작은 모델부터 붙여 CPU/Mac GPU 환경별 처리 지연과 frame drop 비율을 측정한다.
   - detection metadata, snapshot, overlay 중 어떤 출력이 안정적인지 분리 테스트한다.
@@ -496,13 +497,17 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
   - `GET /lab/analysis/taps/analysis-tap-1`에서 `receivedVideoPackets > 0`, `analyzedPackets > 0`, `droppedPackets=0`, `hasResult=true`를 확인했다.
   - dummy detector 단계라 `latestResult.detections=[]`는 정상이다.
   - `DELETE /lab/analysis/taps/analysis-tap-1` 후 `GET /lab/analysis/taps`가 `activeTaps=0`을 반환했다.
+- `2026-04-24` 영상분석 raw decode hub local smoke test를 추가했다.
+  - 같은 임시 포트에서 `POST /lab/analysis/taps?file=sample_h264.mp4&profileId=raw-debug&fps=5`를 실행했다.
+  - `GET /lab/analysis/taps/analysis-tap-1`에서 `receivedVideoPackets=645`, `decodedFrames=643`, `analyzedPackets=643`, `droppedPackets=0`, `decoderErrors=0`, `hasResult=true`를 확인했다.
+  - raw decode hub는 `appsrc -> h264parse/h265parse/vp8dec -> decoder -> videoconvert -> RGB appsink` 구조로 동작한다.
+  - 테스트 종료 후 tap 삭제와 임시 서버 종료를 확인했다.
 
 ## 남은 확인 항목
 - 다음 구현 순서
-  - 1차: raw decode hub 추가
-  - 2차: frame sampling/drop-oldest queue 추가
-  - 3차: YOLO/ONNX Runtime detector 연동
-  - 4차: 분석 metadata/snapshot API 또는 overlay stream 설계
+  - 1차: frame sampling/drop-oldest queue 추가
+  - 2차: YOLO/ONNX Runtime detector 연동
+  - 3차: 분석 metadata/snapshot API 또는 overlay stream 설계
 - `HTTP/HLS URI -> RTSP` 최신 `503` 재확인 및 수정
 - audio-only input은 현재 video relay/analysis 준비 범위 밖이다. RTSP/WebRTC egress는 video track을 기준으로 동작한다.
 - 외부 wowza source 재검증

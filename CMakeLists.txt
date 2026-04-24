@@ -11,6 +11,7 @@ option(MEDIA_SERVER_USE_GSTREAMER "Enable GStreamer RTSP server integration" OFF
 add_executable(media_server
     src/analysis/analysis_manager.cpp
     src/analysis/dummy_detector.cpp
+    src/analysis/raw_video_decoder.cpp
     src/app_config.cpp
     src/main.cpp
     src/core/command_runner.cpp
