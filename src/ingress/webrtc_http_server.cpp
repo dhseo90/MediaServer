@@ -1449,8 +1449,10 @@ std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot
         << "\"streamKey\":\"" << JsonEscape(snapshot.stream_key) << "\","
         << "\"profileKey\":\"" << JsonEscape(snapshot.profile_key) << "\","
         << "\"receivedVideoPackets\":" << snapshot.received_video_packets << ","
+        << "\"decodedFrames\":" << snapshot.decoded_frames << ","
         << "\"analyzedPackets\":" << snapshot.analyzed_packets << ","
         << "\"droppedPackets\":" << snapshot.dropped_packets << ","
+        << "\"decoderErrors\":" << snapshot.decoder_errors << ","
         << "\"hasResult\":" << (snapshot.latest_result.has_value() ? "true" : "false") << ","
         << "\"latestResult\":";
     if (snapshot.latest_result.has_value()) {
