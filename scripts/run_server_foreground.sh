@@ -51,8 +51,8 @@ HTTP_PORT="$(sed -nE 's/.*kHttpListenPort = ([0-9]+).*/\1/p' "${STD_AFX}" | head
 RTSP_ADDRESS="$(media_server_read_const_charp "${STD_AFX}" "kRtspListenAddress" || true)"
 HTTP_ADDRESS="$(media_server_read_const_charp "${STD_AFX}" "kHttpListenAddress" || true)"
 ROUTE="$(media_server_read_const_charp "${STD_AFX}" "kStreamRoute" || true)"
-FILE_ROOT="$(media_server_read_const_charp "${STD_AFX}" "kFileRootPath" || true)"
-DEFAULT_FILE="$(media_server_read_const_charp "${STD_AFX}" "kDefaultFilePath" || true)"
+FILE_ROOT="$(media_server_resolve_project_path "${ROOT_DIR}" "$(media_server_read_const_charp "${STD_AFX}" "kFileRootPath" || true)")"
+DEFAULT_FILE="$(media_server_resolve_project_path "${ROOT_DIR}" "$(media_server_read_const_charp "${STD_AFX}" "kDefaultFilePath" || true)")"
 
 RTSP_PORT="${MEDIA_SERVER_LISTEN_PORT:-${RTSP_PORT:-8554}}"
 HTTP_PORT="${MEDIA_SERVER_HTTP_LISTEN_PORT:-${HTTP_PORT:-8080}}"
@@ -74,6 +74,7 @@ if [[ -n "${DEFAULT_FILE}" ]]; then
 fi
 echo "stop: Ctrl-C"
 
+cd "${ROOT_DIR}"
 exec env \
   MEDIA_SERVER_LISTEN_PORT="${RTSP_PORT}" \
   MEDIA_SERVER_LISTEN_ADDRESS="${RTSP_ADDRESS}" \
