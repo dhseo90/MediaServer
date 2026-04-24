@@ -61,9 +61,10 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - `file -> WebRTC(signaling)`
 - `RTSP pull -> RTSP`
 - `RTSP pull -> WebRTC(signaling)`
-- `HTTP media URL -> RTSP/WebRTC` 1차 경로
-  - 현재 `source=http` RTSP route subset(`default`, `h264`, `opus`) 통과
-  - 현재 `source=http` WebRTC signaling 통과
+- `HTTP media URL -> WebRTC(signaling)` 1차 경로
+  - `source=http` WebRTC signaling은 최신 blocker 체크에서도 세션 생성이 성공했다.
+- `HTTP media URL -> RTSP` 1차 경로
+  - `source=http` RTSP route는 과거 통과 이력이 있지만, 최신 blocker 체크에서 `503 Service Unavailable`이 다시 관찰되어 재확인 필요 상태다.
 - 동일 source 요청에 대한 `StreamRegistry` 기반 dedup 구조
 - `SharedStream` 기반 video/audio fan-out
 - route별 video/audio codec 변환
@@ -807,6 +808,7 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./scripts/print_external_test_urls.s
 - `HTTP video-only MP4 -> RTSP`
   - 입력 파일: `sample_h264_video_only.mp4`
   - 결과: `h264/hevc video + route silent audio`
+  - 최신 blocker 체크에서는 `source=http` RTSP route에서 `503`이 재현되어 현재 완료 상태가 아니라 재확인 대상으로 본다.
 - `HTTP video-only MP4 -> WebRTC(simple signaling/playback)`
   - browser consumer 기준 video-only track 및 `decoded video frame` 확인
 - `WebRTC publish(publisher-demo2 local WHIP test) -> RTSP`
@@ -818,8 +820,10 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./scripts/print_external_test_urls.s
   - browser consumer 기준 `decoded video frame` 확인
 - `WebRTC publish(browser publisher) -> WebRTC(WHEP)`
   - browser consumer 기준 audio/video track 및 `decoded video frame` 확인
-- 로컬 전체 matrix
-  - 결과: `pass=63 fail=0 skip=3`
+- 로컬 전체 matrix 과거 결과
+  - 당시 결과: `pass=63 fail=0 skip=3`
+  - 최신 blocker 체크 결과: `pass=57 fail=6 skip=3`
+  - 최신 실패 6건은 `source=http` RTSP route probe에서 발생했으므로, 분석 1차 범위에서는 `HTTP/HLS URI`를 제외한다.
 
 실험실 기능 검증 이력:
 - `YouTube resolver(fake yt-dlp -> local HTTP MP4) -> RTSP`
@@ -877,7 +881,8 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./scripts/print_external_test_urls.s
 
 1. 영상분석 branch 추가
    - 분석 착수 전 blocker 체크리스트는 `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/stream-verification.md`에 문서화한다.
-   - 현재 relay 안정화 기준으로 file, HTTP/HLS, RTSP pull, WebRTC publish source의 주요 경로를 검증했다.
+   - 현재 relay 안정화 기준으로 file, RTSP pull, WebRTC publish source의 주요 경로를 분석 1차 blocker 통과 범위로 본다.
+   - HTTP/HLS는 코드 경로가 있지만 최신 `source=http -> RTSP` 503 재현 때문에 분석 1차 범위에서 제외하고 후속 안정화에서 다시 확인한다.
    - 송신 경로(RTSP/WebRTC egress)는 직접 막지 않는다.
    - `SharedStream`에 별도 analysis subscriber/tap을 붙이고, 분석 branch는 drop-oldest 및 frame sampling을 사용한다.
    - 첫 단계는 metadata/snapshot API로 시작하고, overlay stream은 이후 별도 단계로 분리한다.

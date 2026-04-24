@@ -4,6 +4,12 @@
 - 현재 지원 중인 source/egress 조합을 반복 검증한다.
 - 로컬 샘플 파일과 로컬 RTSP test source, 선택적 외부 RTSP URL을 함께 사용한다.
 
+## 현재 기준 요약
+- 최신 blocker 체크 기준으로 분석 1차 개발의 안정 기준은 `file`, 로컬 `RTSP pull`, 로컬 `WebRTC publish` 경로다.
+- `HTTP/HLS URI -> WebRTC(signaling)`은 같은 체크에서 세션 생성이 성공했지만, `HTTP URI -> RTSP`는 `503 Service Unavailable`이 다시 관찰되어 재확인이 필요하다.
+- 아래 문서에는 과거 통과 이력도 남아 있다. 과거 이력은 회귀 추적용이며, 현재 작업 우선순위는 최신 blocker 체크 결과를 기준으로 판단한다.
+- 따라서 영상분석 1차 범위에는 `HTTP/HLS URI`를 넣지 않고, 분석 skeleton과 로컬 core 경로 검증 이후 main 후속 안정화에서 다시 확인한다.
+
 ## 지원 대상
 - `file -> RTSP`
 - `file -> WebRTC(signaling)`
@@ -30,7 +36,7 @@
 - 서버를 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`로 시작한 경우에만 `/lab`과 helper script에 YouTube 옵션을 노출한다.
 - YouTube 관련 검증 이력은 이 문서 하단의 "실험실 기능 검증 이력"에 분리해 둔다.
 
-## 완료된 기본 테스트 예시
+## 기본 테스트 예시
 - file -> RTSP
   - `rtsp://{media-server-host}:8554/dhseo?file=sample_h264.mp4`
 - file -> WebRTC(simple signaling)
@@ -39,6 +45,7 @@
   - `rtsp://{media-server-host}:8554/dhseo?file=sample_h264_video_only.mp4`
 - HTTP MP4 -> RTSP
   - `rtsp://{media-server-host}:8554/dhseo?source=http&url={urlencoded_http_media_url}`
+  - 최신 blocker 체크에서는 `503 Service Unavailable`이 재현되어 현재 완료 항목이 아니라 재확인 항목으로 본다.
 - HTTP MP4 -> WebRTC(simple signaling)
   - `POST http://{media-server-host}:8080/webrtc/session?source=http&url={urlencoded_http_media_url}`
 - RTSP pull -> RTSP
@@ -92,13 +99,14 @@
 
 ## 분석 브랜치 진행 중 보류할 테스트와 복귀 계획
 - 분석 브랜치(`Perception/RuleEngine/Overlay`) 작업 중에는 아래 항목을 main 기준 후속 테스트로 보류한다.
+  - `HTTP/HLS URI -> RTSP` 최신 `503` 재확인 및 수정
   - 외부 RTSP source 재검증
   - WebRTC 운영 환경 테스트(auth/STUN/TURN/ICE)
   - audio-only input 정책 확정
   - 실험실 YouTube 회귀 검증
   - `/lab/import` 외부 네트워크 재검증
 - 분석 기능 1차 구현과 로컬 회귀가 끝나면, 이 문서의 `남은 테스트 스텝` 순서로 다시 돌아와 보류 항목을 재개한다.
-- 즉 현재 계획은 `로컬 core 경로 안정화 확인 -> 분석 브랜치 개발 -> main으로 복귀 후 미완료 테스트 재개` 순서다.
+- 즉 현재 계획은 `로컬 core 경로 안정화 확인 -> 분석 브랜치 개발(file/RTSP/WebRTC만) -> main으로 복귀 후 HTTP/HLS와 운영 테스트 재개` 순서다.
 
 ## 2026-04-24 blocker 체크 결과
 - 실행한 항목
@@ -204,6 +212,7 @@
 - local `HTTP MP4(sample_h264.mp4)` source는 `source=http` URI source 경로 검증 대상으로 추가했다.
   - RTSP route subset(`default`, `h264`, `opus`) 검증이 통과했다.
   - WebRTC signaling 검증이 통과했다.
+  - 단, 최신 `2026-04-24 blocker 체크 결과`에서는 같은 계열 `HTTP URI -> RTSP`가 `503`으로 재현되었다. 이 항목은 과거 통과 이력으로 남기고 현재 상태는 재확인 필요로 본다.
 - 외부 wowza source는 기본 설정에서 `RTSP preflight failed for wowzaec2demo.streamlock.net:554 within 1500ms (connection timed out)`로 실패했다.
 - 같은 wowza source를 `MEDIA_SERVER_RTSP_SOURCE_PREFLIGHT_TIMEOUT_MS=0`으로 다시 확인하면 `timed out waiting for RTSP source samples`로 실패했다.
 - local `WHIP publish(sourceId=publisher-demo2) -> RTSP`는 `h264 + aac`로 확인됐다.
@@ -403,7 +412,7 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
   - `video_rtp`에서 실제 video RTP 출력
 - browser consumer 기준으로 `decoded video frame`이 확인돼, 이전의 `audio만 재생되고 video는 0 bytes` 상태는 해소됐다.
 
-## 이번 라운드 수정 사항
+## 과거 라운드 수정 사항
 - live source(`RTSP`, 향후 `WebRTC`)는 마지막 subscriber가 빠지면 즉시 cleanup 하도록 변경했다.
 - `SourceWorker` liveness를 체크해서 죽은 worker를 재사용하지 않도록 보강했다.
 - 이 변경 후 `RTSP(h265+opus)`와 `RTSP(h264+pcmu)`의 연속 요청/transform route 재검증이 통과했다.
@@ -412,7 +421,8 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
   - RTSP egress에 start 전 pending packet queue와 timestamp normalization을 추가했다.
   - H264 transcode route의 `1000h` timestamp offset을 `identity ts-offset=-3600000000000000`으로 보정했다.
   - pending queue가 video keyframe에서 audio priming packet까지 지우지 않도록 수정했다.
-- 전체 로컬 matrix는 `pass=63 fail=0 skip=3`로 통과했다.
+- 당시 전체 로컬 matrix는 `pass=63 fail=0 skip=3`로 통과했다.
+- 이후 최신 blocker 체크에서는 `source=http` RTSP route에서 `503`이 다시 관찰되었으므로, 이 과거 결과를 현재 완료 상태로 간주하지 않는다.
 
 ## 실험실 기능 검증 이력
 
@@ -465,8 +475,10 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
 
 ## 남은 확인 항목
 - 다음 구현 순서
-  - 1차: 영상분석 branch 검증 추가
-  - 2차: 분석 metadata/snapshot API 설계
+  - 1차: 문서/진단 스크립트 정리
+  - 2차: 영상분석 branch skeleton 및 로컬 core 경로 검증 추가
+  - 3차: 분석 metadata/snapshot API 설계
+- `HTTP/HLS URI -> RTSP` 최신 `503` 재확인 및 수정
 - audio-only input은 현재 video relay/analysis 준비 범위 밖이다. RTSP/WebRTC egress는 video track을 기준으로 동작한다.
 - 외부 wowza source 재검증
 - 외부 RTSP source timeout 원인 분리
