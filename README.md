@@ -666,10 +666,29 @@ SharedStream
 핵심 원칙:
 - 분석 로직은 `SourceWorker` 안에 섞지 않고 `SharedStream`을 구독하는 별도 계층으로 둡니다.
 - 원본 전송 경로와 분석 파이프라인을 분리해서, 분석 기능 추가가 기본 스트리밍 안정성을 깨지 않게 합니다.
+- `SharedStream`은 client subscriber와 analysis subscriber를 분리해서 센다. 분석 tap이 붙어도 live source cleanup 기준인 client ref-count를 증가시키지 않는다.
 - 분석 결과는 최소 세 가지 타입으로 나눠 다룹니다.
   - `metadata`: box, label, score, timestamp
   - `derived image`: JPEG snapshot, thumbnail, crop image
   - `rendered stream`: bounding box overlay가 들어간 2차 스트림
+
+현재 구현 상태:
+- `include/analysis/analysis_types.h`: 분석 profile, raw frame, detection/track/pose/result 타입 skeleton
+- `include/analysis/detector.h`: YOLO/ONNX detector를 교체할 수 있는 공통 인터페이스
+- `include/analysis/analysis_manager.h`: `SharedStream`에 analysis tap을 붙이고 최신 결과를 보관하는 manager skeleton
+- `src/analysis/dummy_detector.cpp`: 실제 검출 없이 lifecycle만 확인하는 dummy detector
+- `/lab/analysis/taps`: 개발용 analysis tap attach/status/detach HTTP endpoint
+- 아직 raw decode hub, YOLO/ONNX Runtime, overlay stream, metadata/snapshot API는 붙이지 않았다.
+
+개발용 analysis tap 예시:
+
+```bash
+curl -fsS -X POST 'http://127.0.0.1:8080/lab/analysis/taps?file=sample_h264.mp4&profileId=debug&fps=5'
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}'
+curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}'
+```
+
+이 endpoint는 지금 단계에서 dummy detector lifecycle 확인용입니다. `latestResult.detections`가 비어 있는 것은 정상이며, 실제 객체 검출은 raw decode hub와 YOLO/ONNX detector를 붙인 뒤 채워집니다.
 
 클라이언트 전달 방식 후보:
 - RTSP/WebRTC 본 스트림 위에 overlay된 영상으로 전달

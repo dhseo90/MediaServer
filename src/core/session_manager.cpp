@@ -135,6 +135,106 @@ std::size_t SessionManager::ActiveSessionCount() const {
     return sessions_.size();
 }
 
+SessionManager::AnalysisTapResult SessionManager::AttachAnalysisTap(const media::IngressRequest& request,
+                                                                    analysis::AnalysisProfile profile) {
+    std::string parse_error;
+    const auto source_spec = ingress::ParseSourceSpec(request, &parse_error);
+    if (!source_spec.has_value()) {
+        return {.ok = false,
+                .message = parse_error.empty() ? "invalid source spec" : parse_error};
+    }
+
+    const StreamKey key = BuildStreamKey(*source_spec);
+    const auto acquired = registry_.Acquire(key, *source_spec);
+    TraceSessionEvent("analysis acquire key=" + key +
+                      " created=" + (acquired.created ? std::string("yes") : std::string("no")) +
+                      " source_running=" +
+                      (acquired.stream->IsSourceRunning() ? std::string("yes") : std::string("no")) +
+                      " client=" + request.client_id);
+
+    if (acquired.created && !resource_guard_.AdmitStream()) {
+        registry_.TryRemoveIfIdle(key);
+        return {.ok = false, .message = "stream limit exceeded"};
+    }
+
+    auto attach_result = analysis_manager_.AttachStream(key, acquired.stream, std::move(profile));
+    if (!attach_result.ok) {
+        if (acquired.created) {
+            if (registry_.TryRemoveIfIdle(key)) {
+                resource_guard_.ReleaseStream();
+            }
+        }
+        return {.ok = false,
+                .message = attach_result.message.empty() ? "failed to attach analysis tap" : attach_result.message};
+    }
+
+    if (acquired.created || !acquired.stream->IsSourceRunning()) {
+        auto worker = CreateSourceWorker(*source_spec);
+        std::string source_error;
+        bool source_started = false;
+        if (!acquired.stream->StartSource(std::move(worker), &source_error, &source_started)) {
+            analysis_manager_.Detach(attach_result.tap_id);
+            if (acquired.created) {
+                if (registry_.TryRemoveIfIdle(key)) {
+                    resource_guard_.ReleaseStream();
+                }
+            }
+            return {.ok = false,
+                    .message = source_error.empty() ? "failed to start source worker" : source_error};
+        }
+        TraceSessionEvent(std::string(source_started ? "analysis started" : "analysis reused") +
+                          " source worker key=" + key);
+    }
+
+    {
+        std::lock_guard lock(mu_);
+        analysis_taps_[attach_result.tap_id] = AnalysisTapEntry{
+            .stream_key = key,
+            .source_kind = source_spec->kind,
+        };
+    }
+
+    return {.ok = true,
+            .message = "ok",
+            .tap_id = attach_result.tap_id,
+            .stream_key = key,
+            .stream_created = acquired.created};
+}
+
+bool SessionManager::DetachAnalysisTap(const std::string& tap_id) {
+    AnalysisTapEntry entry;
+    {
+        std::lock_guard lock(mu_);
+        const auto it = analysis_taps_.find(tap_id);
+        if (it == analysis_taps_.end()) {
+            return false;
+        }
+        entry = it->second;
+        analysis_taps_.erase(it);
+    }
+
+    analysis_manager_.Detach(tap_id);
+    if (entry.source_kind != media::SourceSpec::Kind::File) {
+        if (registry_.TryRemoveIfIdle(entry.stream_key)) {
+            TraceSessionEvent("analysis cleanup removed live key=" + entry.stream_key);
+            resource_guard_.ReleaseStream();
+        }
+        return true;
+    }
+
+    ScheduleIdleCleanup(entry.stream_key);
+    return true;
+}
+
+std::optional<analysis::AnalysisManager::TapSnapshot> SessionManager::AnalysisTapSnapshot(
+    const std::string& tap_id) const {
+    return analysis_manager_.Snapshot(tap_id);
+}
+
+std::size_t SessionManager::ActiveAnalysisTapCount() const {
+    return analysis_manager_.ActiveTapCount();
+}
+
 void SessionManager::ScheduleIdleCleanup(StreamKey stream_key) const {
     // file/VOD stream은 짧은 grace period를 둬 연속 요청 시 재시작 비용을 줄인다.
     std::thread([this, key = std::move(stream_key)] {

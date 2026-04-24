@@ -336,7 +336,23 @@ SharedStream
 이 원칙을 두는 이유:
 - source 수집과 분석 로직을 분리해야 기본 relay 경로를 안정적으로 유지할 수 있다.
 - 같은 `SharedStream`에서 `relay subscriber`와 `analysis subscriber`를 동시에 붙일 수 있다.
+- `SharedStream::RefCount()`는 relay client만 세며, analysis tap은 `AnalysisSubscriberCount()`로 별도 확인한다. 따라서 분석 기능이 붙어도 live source idle cleanup을 막지 않는다.
 - 이후 객체 감지 모델 교체, snapshot 정책 추가, 이벤트 API 추가가 쉬워진다.
+
+현재 skeleton:
+- `analysis::AnalysisProfile`: fps, queue, detection/tracking/pose/overlay 사용 여부를 담는 profile 단위
+- `analysis::Detector`: YOLO/ONNX Runtime detector를 붙일 교체형 인터페이스
+- `analysis::AnalysisManager`: stream key + profile 기준으로 `SharedStream` analysis tap을 등록하고 최신 결과를 보관하는 계층
+- `analysis::DummyDetector`: compressed video packet tap lifecycle만 확인하는 임시 detector
+- `SessionManager::AttachAnalysisTap`: 기존 source parsing/dedup/source worker 시작 흐름을 재사용하는 analysis attach 진입점
+- `/lab/analysis/taps`: 개발용 HTTP attach/status/detach endpoint
+
+아직 남은 핵심 작업:
+- compressed packet을 분석 가능한 raw frame으로 바꾸는 decode hub
+- source/profile별 frame sampling과 drop-oldest queue
+- YOLO 계열 ONNX Runtime detector
+- rule/event engine
+- overlay stream 또는 metadata/snapshot API
 
 ## 13. 라이브러리 선택
 - `live555`: Linux/macOS/Windows 모두 사용 가능. RTSP 서버/클라이언트에 집중된 경량 라이브러리.

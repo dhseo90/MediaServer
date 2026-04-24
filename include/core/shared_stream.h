@@ -12,14 +12,23 @@ namespace core {
 
 class SharedStream : public std::enable_shared_from_this<SharedStream> {
 public:
+    enum class SubscriberRole {
+        Client,
+        Analysis,
+    };
+
     using SubscriberCallback = std::function<void(const media::Packet&)>;
 
     explicit SharedStream(media::SourceSpec source_spec);
     ~SharedStream();
 
     bool AddSubscriber(const std::string& session_id, SubscriberCallback callback);
+    bool AddAnalysisSubscriber(const std::string& subscriber_id, SubscriberCallback callback);
     void RemoveSubscriber(const std::string& session_id);
+    // RefCount는 relay client 수만 센다. analysis tap은 live source cleanup을 막으면 안 된다.
     std::size_t RefCount() const;
+    std::size_t AnalysisSubscriberCount() const;
+    std::size_t TotalSubscriberCount() const;
 
     void FanOut(const media::Packet& packet) const;
     void SetDescriptor(media::StreamDescriptor descriptor);
@@ -35,9 +44,11 @@ public:
 
 private:
     struct SubscriberState {
-        explicit SubscriberState(SubscriberCallback cb) : callback(std::move(cb)) {}
+        SubscriberState(SubscriberCallback cb, SubscriberRole subscriber_role)
+            : callback(std::move(cb)), role(subscriber_role) {}
 
         SubscriberCallback callback;
+        SubscriberRole role{SubscriberRole::Client};
         mutable std::mutex mu;
         std::condition_variable cv;
         std::deque<media::Packet> queue;
@@ -47,6 +58,9 @@ private:
     };
 
     // 각 subscriber queue를 별도 worker에서 소비해 느린 클라이언트의 backpressure를 격리한다.
+    bool AddSubscriberWithRole(const std::string& subscriber_id,
+                               SubscriberCallback callback,
+                               SubscriberRole role);
     static void WorkerLoop(const std::shared_ptr<SubscriberState>& state);
     void EnqueuePacket(const std::shared_ptr<SubscriberState>& state, const media::Packet& packet) const;
 

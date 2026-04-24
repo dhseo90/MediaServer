@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <atomic>
 #include <cerrno>
 #include <chrono>
@@ -111,6 +112,34 @@ std::string JsonEscape(const std::string& value) {
         }
     }
     return out;
+}
+
+bool ParseBoolQuery(const std::unordered_map<std::string, std::string>& query,
+                    const std::string& key,
+                    bool default_value) {
+    const auto it = query.find(key);
+    if (it == query.end()) {
+        return default_value;
+    }
+    const std::string value = it->second;
+    return value == "1" || value == "true" || value == "yes" || value == "on";
+}
+
+int ParseClampedIntQuery(const std::unordered_map<std::string, std::string>& query,
+                         const std::string& key,
+                         int default_value,
+                         int min_value,
+                         int max_value) {
+    const auto it = query.find(key);
+    if (it == query.end()) {
+        return default_value;
+    }
+    try {
+        const int parsed = std::stoi(it->second);
+        return std::max(min_value, std::min(max_value, parsed));
+    } catch (...) {
+        return default_value;
+    }
 }
 
 std::optional<int> ParseIntField(const std::string& body, const std::string& field) {
@@ -1359,6 +1388,92 @@ std::string SourceJson(const std::string& session_id, const std::string& source_
     return out.str();
 }
 
+analysis::AnalysisProfile BuildAnalysisProfileFromQuery(
+    const std::unordered_map<std::string, std::string>& query) {
+    analysis::AnalysisProfile profile;
+    if (const auto it = query.find("profileId"); it != query.end() && !it->second.empty()) {
+        profile.profile_id = it->second;
+    } else if (const auto it = query.find("profile"); it != query.end() && !it->second.empty()) {
+        profile.profile_id = it->second;
+    }
+    profile.target_fps = ParseClampedIntQuery(query, "fps", profile.target_fps, 1, 60);
+    profile.max_queue_size =
+        static_cast<std::size_t>(ParseClampedIntQuery(query, "maxQueue", static_cast<int>(profile.max_queue_size), 1, 128));
+    profile.enable_object_detection = ParseBoolQuery(query, "detect", profile.enable_object_detection);
+    profile.enable_tracking = ParseBoolQuery(query, "tracking", profile.enable_tracking);
+    profile.enable_pose = ParseBoolQuery(query, "pose", profile.enable_pose);
+    profile.enable_overlay = ParseBoolQuery(query, "overlay", profile.enable_overlay);
+    return profile;
+}
+
+std::string DetectionJson(const analysis::Detection& detection) {
+    std::ostringstream out;
+    out << "{"
+        << "\"classId\":" << detection.class_id << ","
+        << "\"label\":\"" << JsonEscape(detection.label) << "\","
+        << "\"score\":" << detection.score << ","
+        << "\"box\":{"
+        << "\"x\":" << detection.box.x << ","
+        << "\"y\":" << detection.box.y << ","
+        << "\"width\":" << detection.box.width << ","
+        << "\"height\":" << detection.box.height
+        << "}"
+        << "}";
+    return out.str();
+}
+
+std::string AnalysisResultJson(const analysis::AnalysisResult& result) {
+    std::ostringstream out;
+    out << "{"
+        << "\"sourceKey\":\"" << JsonEscape(result.source_key) << "\","
+        << "\"profileKey\":\"" << JsonEscape(result.profile_key) << "\","
+        << "\"pts\":" << result.pts << ","
+        << "\"detections\":[";
+    for (std::size_t i = 0; i < result.detections.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << DetectionJson(result.detections[i]);
+    }
+    out << "],"
+        << "\"tracks\":" << result.tracks.size() << ","
+        << "\"poseKeypoints\":" << result.pose_keypoints.size()
+        << "}";
+    return out.str();
+}
+
+std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot& snapshot) {
+    std::ostringstream out;
+    out << "{"
+        << "\"tapId\":\"" << JsonEscape(snapshot.tap_id) << "\","
+        << "\"streamKey\":\"" << JsonEscape(snapshot.stream_key) << "\","
+        << "\"profileKey\":\"" << JsonEscape(snapshot.profile_key) << "\","
+        << "\"receivedVideoPackets\":" << snapshot.received_video_packets << ","
+        << "\"analyzedPackets\":" << snapshot.analyzed_packets << ","
+        << "\"droppedPackets\":" << snapshot.dropped_packets << ","
+        << "\"hasResult\":" << (snapshot.latest_result.has_value() ? "true" : "false") << ","
+        << "\"latestResult\":";
+    if (snapshot.latest_result.has_value()) {
+        out << AnalysisResultJson(*snapshot.latest_result);
+    } else {
+        out << "null";
+    }
+    out << "}";
+    return out.str();
+}
+
+std::string AnalysisTapCreatedJson(const core::SessionManager::AnalysisTapResult& result,
+                                   std::size_t active_taps) {
+    std::ostringstream out;
+    out << "{"
+        << "\"tapId\":\"" << JsonEscape(result.tap_id) << "\","
+        << "\"streamKey\":\"" << JsonEscape(result.stream_key) << "\","
+        << "\"streamCreated\":" << (result.stream_created ? "true" : "false") << ","
+        << "\"activeTaps\":" << active_taps
+        << "}";
+    return out.str();
+}
+
 std::string LabImportJobJson(const LabImportJobSnapshot& job) {
     std::ostringstream out;
     out << "{"
@@ -1558,6 +1673,60 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             return JsonResponse(200, "OK",
                                                 "{\"job\":" + LabImportJobJson(*job) + "}");
+                        }
+
+                        if (request.path == "/lab/analysis/taps") {
+                            if (request.method == "GET") {
+                                return JsonResponse(200, "OK",
+                                                    "{\"activeTaps\":" +
+                                                        std::to_string(impl_->session_manager.ActiveAnalysisTapCount()) + "}");
+                            }
+
+                            if (request.method == "POST") {
+                                const std::string tap_client_id =
+                                    "analysis-http-" + std::to_string(impl_->next_session_id.fetch_add(1));
+                                media::IngressRequest ingress_request =
+                                    BuildHttpIngressRequest(route_path, query, tap_client_id);
+                                auto result = impl_->session_manager.AttachAnalysisTap(
+                                    ingress_request, BuildAnalysisProfileFromQuery(query));
+                                if (!result.ok) {
+                                    return JsonResponse(400, "Bad Request",
+                                                        "{\"error\":\"" + JsonEscape(result.message) + "\"}");
+                                }
+                                return JsonResponse(
+                                    200,
+                                    "OK",
+                                    AnalysisTapCreatedJson(result, impl_->session_manager.ActiveAnalysisTapCount()));
+                            }
+                        }
+
+                        const auto analysis_tap_prefix = std::string("/lab/analysis/taps/");
+                        if (request.path.rfind(analysis_tap_prefix, 0) == 0) {
+                            const std::string tap_id = request.path.substr(analysis_tap_prefix.size());
+                            if (tap_id.empty()) {
+                                return JsonResponse(400, "Bad Request",
+                                                    "{\"error\":\"tap id is required\"}");
+                            }
+
+                            if (request.method == "GET") {
+                                const auto snapshot = impl_->session_manager.AnalysisTapSnapshot(tap_id);
+                                if (!snapshot.has_value()) {
+                                    return JsonResponse(404, "Not Found",
+                                                        "{\"error\":\"analysis tap not found\"}");
+                                }
+                                return JsonResponse(200, "OK",
+                                                    "{\"tap\":" + AnalysisTapSnapshotJson(*snapshot) + "}");
+                            }
+
+                            if (request.method == "DELETE") {
+                                if (!impl_->session_manager.DetachAnalysisTap(tap_id)) {
+                                    return JsonResponse(404, "Not Found",
+                                                        "{\"error\":\"analysis tap not found\"}");
+                                }
+                                return JsonResponse(200, "OK",
+                                                    "{\"ok\":true,\"activeTaps\":" +
+                                                        std::to_string(impl_->session_manager.ActiveAnalysisTapCount()) + "}");
+                            }
                         }
 
                         if (request.method == "POST" && request.path == "/webrtc/session") {
