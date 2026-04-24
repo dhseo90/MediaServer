@@ -3,6 +3,7 @@
 
 #include <cerrno>
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <limits>
 
@@ -153,6 +154,18 @@ void ValidateEvenPositiveInt(int* value, int fallback, const char* description) 
     *value = fallback;
 }
 
+std::string ResolveRuntimePath(const std::string& path) {
+    if (path.empty()) {
+        return path;
+    }
+    // repo 기본값은 상대 경로로 보관하고, 런타임에는 현재 작업 디렉터리 기준 절대 경로로 정규화한다.
+    const std::filesystem::path value(path);
+    if (value.is_absolute()) {
+        return value.lexically_normal().string();
+    }
+    return std::filesystem::absolute(value).lexically_normal().string();
+}
+
 app::AppConfig LoadAppConfig() {
     app::AppConfig config;
     // stdafx.h/app_config.h의 기본값을 먼저 만들고, 배포/테스트 환경별 env 값으로 덮어쓴다.
@@ -167,6 +180,8 @@ app::AppConfig LoadAppConfig() {
     config.http_listen_port = ReadPortEnv(kEnvHttpListenPort, config.http_listen_port);
     config.file_root_path = ReadStringEnv(kEnvFileRoot, config.file_root_path);
     config.default_file_path = ReadStringEnv(kEnvDefaultFile, config.default_file_path);
+    config.file_root_path = ResolveRuntimePath(config.file_root_path);
+    config.default_file_path = ResolveRuntimePath(config.default_file_path);
     config.force_rtsp_tcp = ReadBoolEnv(kEnvForceTcpOnly, config.force_rtsp_tcp);
     config.session_trace = ReadBoolEnv(kEnvSessionTrace, config.session_trace);
     config.webrtc_trace = ReadBoolEnv(kEnvWebRtcTrace, config.webrtc_trace);

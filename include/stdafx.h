@@ -25,7 +25,6 @@ inline constexpr const char* kRtspListenAddress = "127.0.0.1";
 inline constexpr std::uint16_t kRtspListenPort = 8554;
 inline constexpr const char* kHttpListenAddress = "127.0.0.1";
 inline constexpr std::uint16_t kHttpListenPort = 8080;
-inline constexpr const char* kFileRootPath = "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/video";
-inline constexpr const char* kDefaultFilePath =
-    "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/video/sample_h264.mp4";
+inline constexpr const char* kFileRootPath = "video";
+inline constexpr const char* kDefaultFilePath = "video/sample_h264.mp4";
 }  // namespace app_config

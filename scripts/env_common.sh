@@ -37,6 +37,22 @@ media_server_has_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
+media_server_resolve_project_path() {
+  local root_dir="$1"
+  local value="$2"
+  if [[ -z "${value}" ]]; then
+    return 0
+  fi
+  case "${value}" in
+    /*)
+      printf '%s' "${value}"
+      ;;
+    *)
+      printf '%s/%s' "${root_dir}" "${value}"
+      ;;
+  esac
+}
+
 media_server_apply_homebrew_gst_env() {
   local brew_prefix="${HOMEBREW_PREFIX:-/opt/homebrew}"
 

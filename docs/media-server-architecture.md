@@ -365,7 +365,7 @@ SharedStream
 - 실행:
   - `./scripts/install_deps.sh` (macOS/Linux 의존성 설치)
 - `./scripts/start_server.sh` (configure + build + background start, macOS는 launchctl 우선)
-- `./scripts/stop_server.sh` (pid 파일 기반 stop)
+- `./scripts/stop_server.sh` (pid 파일 기반 stop + stale pid/listener 불일치 정리)
 - `./scripts/restart_server.sh` (stop + start + check)
 - `./scripts/check_server.sh` (mode/pid/listen/probe/log 진단)
 - `./scripts/diagnose_media_server.sh` (실행환경 진단: 설정/포트/로그/ffprobe 확인)
@@ -391,4 +391,5 @@ SharedStream
   - `include/stdafx.h`
   - `kStreamRoute`: RTSP 경로 (`/dhseo`)
   - `kRtspListenPort`: listen 포트
-  - `kDefaultFilePath`: 테스트용 기본 파일 경로
+  - `kFileRootPath`: repo 기준 기본 media root (`video`)
+  - `kDefaultFilePath`: repo 기준 테스트용 기본 파일 경로 (`video/sample_h264.mp4`)

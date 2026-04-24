@@ -107,17 +107,17 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 
 ## 디렉터리
 
-- `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/src`
+- `src`
   - 실제 서버 구현
-- `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/include`
+- `include`
   - 헤더 및 기본 설정
-- `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts`
+- `scripts`
   - 실행, 중지, 진단, 검증 스크립트
-- `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/config`
+- `config`
   - codec/source 검증 설정
-- `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs`
+- `docs`
   - 구조/검증 상세 문서
-- `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/video`
+- `video`
   - 테스트용 샘플 미디어
 
 ## 개발 및 실행 환경
@@ -180,7 +180,7 @@ gst-inspect-1.0 rtpmp4gpay rtpopuspay rtppcmupay rtppcmapay uridecodebin
 
 ### macOS/Homebrew 환경
 기본 Homebrew prefix는 Apple Silicon 기준 `/opt/homebrew`를 우선 사용한다.
-스크립트는 `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/env_common.sh`의 `media_server_apply_homebrew_gst_env`를 통해 아래 환경변수를 자동 보정한다.
+스크립트는 `scripts/env_common.sh`의 `media_server_apply_homebrew_gst_env`를 통해 아래 환경변수를 자동 보정한다.
 
 ```bash
 export HOMEBREW_PREFIX=/opt/homebrew
@@ -249,7 +249,7 @@ sudo pacman -S --needed \
 ```
 
 ### 런타임 포트와 기본 경로
-기본값은 `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/include/stdafx.h`에 있다.
+기본값은 `include/stdafx.h`에 있다.
 
 | 항목 | 기본값 | 설명 |
 | --- | --- | --- |
@@ -258,8 +258,8 @@ sudo pacman -S --needed \
 | HTTP listen address | `127.0.0.1` | WebRTC signaling/WHEP/WHIP HTTP bind address |
 | HTTP listen port | `8080` | WebRTC HTTP server port |
 | route | `dhseo` | RTSP path prefix |
-| file root | `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/video` | `?file=` 접근 가능 root |
-| default file | `sample_h264.mp4` | 기본 테스트 파일 |
+| file root | `video` | `?file=` 접근 가능 root. 실행 시 project root 기준 절대 경로로 정규화 |
+| default file | `video/sample_h264.mp4` | 기본 테스트 파일. 실행 시 project root 기준 절대 경로로 정규화 |
 
 테스트 중 포트 충돌을 피하려면 env로 덮어쓴다.
 
@@ -270,7 +270,7 @@ MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
 ```
 
 ### 런타임 환경변수
-환경변수는 `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/src/app_config.cpp`에서 읽고, 기본값은 `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/include/app_config.h`와 `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/include/stdafx.h`에 있다.
+환경변수는 `src/app_config.cpp`에서 읽고, 기본값은 `include/app_config.h`와 `include/stdafx.h`에 있다.
 
 | env | 기본값/의미 |
 | --- | --- |
@@ -324,7 +324,7 @@ cp scripts/.media_server.env.example scripts/.media_server.env
 | `scripts/install_deps.sh` | macOS/Linux 의존성 설치 |
 | `scripts/run_server_foreground.sh` | foreground 실행. 개발/디버깅 권장 |
 | `scripts/start_server.sh` | background 실행 |
-| `scripts/stop_server.sh` | 서버 종료 |
+| `scripts/stop_server.sh` | 서버 종료. stale pid가 있어도 기록된 포트의 `media_server` listener를 추가 정리 |
 | `scripts/restart_server.sh` | 서버 재시작 |
 | `scripts/check_server.sh` | 프로세스/포트/로그 상태 확인 |
 | `scripts/diagnose_media_server.sh` | 실행환경, 포트, source 접근성 진단 |
@@ -405,7 +405,7 @@ lsof -nP -iTCP:8554 -iTCP:8080 -sTCP:LISTEN
 ## 주요 설정 위치
 
 ### 기본 상수
-- `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/include/stdafx.h`
+- `include/stdafx.h`
   - `kStreamRoute`
   - `kRtspListenAddress`
   - `kRtspListenPort`
@@ -414,9 +414,11 @@ lsof -nP -iTCP:8554 -iTCP:8080 -sTCP:LISTEN
   - `kFileRootPath`
   - `kDefaultFilePath`
 
+`kFileRootPath`, `kDefaultFilePath`의 기본값은 repo 기준 상대 경로이며, 실행 시 `AppConfig`에서 절대 경로로 정규화된다. 배포/테스트 환경이 다르면 `MEDIA_SERVER_FILE_ROOT`, `MEDIA_SERVER_DEFAULT_FILE`로 override한다.
+
 ### 런타임 환경변수
-- `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/include/app_config.h`
-- `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/src/app_config.cpp`
+- `include/app_config.h`
+- `src/app_config.cpp`
 
 주요 env:
 - `MEDIA_SERVER_ROUTE`
@@ -440,7 +442,7 @@ lsof -nP -iTCP:8554 -iTCP:8080 -sTCP:LISTEN
 - `MEDIA_SERVER_YOUTUBE_RECONNECT_DELAY_MS`
 
 예제 env 파일:
-- `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/.media_server.env.example`
+- `scripts/.media_server.env.example`
 
 ## 의존성 설치
 
@@ -699,6 +701,30 @@ RTSP egress 기준:
 
 현재 route mismatch 시 RTSP egress에서 자동 transcoding이 적용됩니다.
 
+## 라이선스/배포 주의사항
+
+이 내용은 개발 단계의 기술 점검이며 법률 자문은 아니다. 공개 배포, 바이너리 배포, 상용 사용 전에는 별도 법률/라이선스 검토가 필요하다.
+
+현재 repo 상태:
+- 현재 저장소에는 `LICENSE` 파일이 없다.
+- 별도 `LICENSE`를 추가하기 전까지는 이 repo가 오픈소스 라이선스로 배포된다고 해석하면 안 된다.
+- 코드 안에 외부 프로젝트 소스 코드를 vendoring 하지는 않는다.
+- 주요 미디어 기능은 로컬에 설치된 GStreamer/FFmpeg/codec plugin/binary를 런타임 또는 링크 의존성으로 사용한다.
+
+주요 의존성 기준:
+- GStreamer core/framework는 LGPL 계열이다. 다만 GStreamer는 plugin 기반이고, codec/plugin 조합에 따라 추가 라이선스 및 특허 이슈가 생길 수 있다.
+- 현재 C++ 서버는 GStreamer 개발 라이브러리에 링크한다.
+- `x264enc`, `x265enc`를 사용하는 route/transcode 경로는 GPL 계열 encoder 또는 상용 라이선스 검토 대상이다.
+- `H264`, `H265/HEVC` codec은 소프트웨어 라이선스와 별개로 특허/로열티 이슈가 있을 수 있다.
+- `/lab/import`는 외부 `ffmpeg` binary를 실행한다. Homebrew 등 배포판의 FFmpeg build 옵션에 따라 LGPL/GPL 적용 범위가 달라질 수 있다.
+- `yt-dlp`, `deno`는 실험실 YouTube 기능에서만 선택적으로 사용한다. `yt-dlp` release 형태에 따라 포함된 제3자 라이선스가 달라질 수 있으므로 binary를 함께 배포하지 않는 방향이 안전하다.
+
+공개/배포 전 권장:
+- 프로젝트 자체 라이선스를 먼저 결정하고 `LICENSE` 파일을 추가한다.
+- GPL encoder/plugin을 기본 필수 경로로 둘지, opt-in feature로 둘지 결정한다.
+- 바이너리 패키지를 배포한다면 GStreamer/FFmpeg/x264/x265/libnice/yt-dlp/Deno에 대한 `NOTICE` 또는 third-party license 문서를 별도로 만든다.
+- 상용 배포 가능성을 열어둘 경우 H265 route와 x264/x265 기반 transcoding은 별도 feature flag 또는 빌드 옵션으로 분리한다.
+
 ## 테스트 방식
 
 ### 1. 서버 상태 진단
@@ -748,7 +774,7 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
 ```
 
 검증 설정:
-- `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/config/codec_test_sources.json`
+- `config/codec_test_sources.json`
 
 각 source에는 선택적으로 `verify_profile`을 줄 수 있습니다.
 - `rtsp_preflight_timeout_ms`
@@ -791,7 +817,7 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./scripts/print_external_test_urls.s
 이 스크립트 출력에는 현재 LAN IP가 포함될 수 있으므로, 출력 결과를 그대로 문서나 커밋에 붙이지 않는다.
 
 상세 결과 문서:
-- `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/stream-verification.md`
+- `docs/stream-verification.md`
 
 ## 현재까지 통과된 검증
 
@@ -874,13 +900,13 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./scripts/print_external_test_urls.s
 
 ## 관련 문서
 
-- 구조 설명: `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/media-server-architecture.md`
-- 검증 결과: `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/stream-verification.md`
+- 구조 설명: `docs/media-server-architecture.md`
+- 검증 결과: `docs/stream-verification.md`
 
 ## 다음에 이어서 하기 좋은 작업
 
 1. 영상분석 branch 추가
-   - 분석 착수 전 blocker 체크리스트는 `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/stream-verification.md`에 문서화한다.
+   - 분석 착수 전 blocker 체크리스트는 `docs/stream-verification.md`에 문서화한다.
    - 현재 relay 안정화 기준으로 file, RTSP pull, WebRTC publish source의 주요 경로를 분석 1차 blocker 통과 범위로 본다.
    - HTTP/HLS는 코드 경로가 있지만 최신 `source=http -> RTSP` 503 재현 때문에 분석 1차 범위에서 제외하고 후속 안정화에서 다시 확인한다.
    - 송신 경로(RTSP/WebRTC egress)는 직접 막지 않는다.

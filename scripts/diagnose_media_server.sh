@@ -76,8 +76,8 @@ read_config() {
     HTTP_ADDRESS="127.0.0.1"
   fi
 
-  FILE_ROOT="$(media_server_read_const_charp "${STD_AFX}" "kFileRootPath")"
-  DEFAULT_FILE="$(media_server_read_const_charp "${STD_AFX}" "kDefaultFilePath")"
+  FILE_ROOT="$(media_server_resolve_project_path "${ROOT_DIR}" "$(media_server_read_const_charp "${STD_AFX}" "kFileRootPath")")"
+  DEFAULT_FILE="$(media_server_resolve_project_path "${ROOT_DIR}" "$(media_server_read_const_charp "${STD_AFX}" "kDefaultFilePath")")"
   DEFAULT_FILE_TOKEN="${DEFAULT_FILE#${FILE_ROOT}/}"
   if [[ "${DEFAULT_FILE}" == "${DEFAULT_FILE_TOKEN}" || -z "${DEFAULT_FILE_TOKEN}" ]]; then
     DEFAULT_FILE_TOKEN="$(basename "${DEFAULT_FILE}")"

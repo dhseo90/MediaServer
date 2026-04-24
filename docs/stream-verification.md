@@ -157,7 +157,7 @@
 - `/lab/import` UI와 실제 외부 네트워크 download workflow의 성공/실패 표기가 충분히 설명적인지
 
 ## 설정 파일
-- `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/config/codec_test_sources.json`
+- `config/codec_test_sources.json`
 
 기본 구성:
 - 로컬 file source
@@ -194,7 +194,7 @@
   - 지원 키: `default`, `h264`, `h265`, `opus`, `h265_opus`, `pcmu`, `h265_pcmu`, `pcma`, `h265_pcma`
 
 ## 검증 스크립트
-- `/Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/verify_codec_matrix.sh`
+- `scripts/verify_codec_matrix.sh`
 
 기본 동작:
 - 현재 실행 중인 media server의 RTSP/HTTP 포트를 읽는다.

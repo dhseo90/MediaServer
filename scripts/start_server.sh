@@ -131,7 +131,10 @@ start_detached() {
   if [[ -n "${MEDIA_SERVER_SKIP_ENV_CHECK:-}" ]]; then
     env_vars+=("MEDIA_SERVER_SKIP_ENV_CHECK=${MEDIA_SERVER_SKIP_ENV_CHECK}")
   fi
-  nohup env "${env_vars[@]}" "${MEDIA_SERVER_BIN}" < /dev/null > "${LOG_FILE}" 2>&1 &
+  (
+    cd "${ROOT_DIR}"
+    exec nohup env "${env_vars[@]}" "${MEDIA_SERVER_BIN}" < /dev/null > "${LOG_FILE}" 2>&1
+  ) &
   NEW_PID=$!
   START_MODE="detached"
 }
@@ -351,12 +354,13 @@ if [[ -n "${NEW_PID}" ]] && ! kill -0 "${NEW_PID}" 2>/dev/null; then
 fi
 
 ROUTE="$(sed -nE 's/.*kStreamRoute = "([^"]+)".*/\1/p' "${STD_AFX}" | head -n1)"
-FILE_ROOT="$(media_server_read_const_charp "${STD_AFX}" "kFileRootPath")"
+FILE_ROOT="$(media_server_resolve_project_path "${ROOT_DIR}" "$(media_server_read_const_charp "${STD_AFX}" "kFileRootPath")")"
 H264_FILE_TOKEN="sample_h264.mp4"
 H265_FILE_TOKEN="sample_h265.mp4"
 if [[ -n "${FILE_ROOT}" ]]; then
-  [[ -f "${FILE_ROOT}/${H264_FILE_TOKEN}" ]] || H264_FILE_TOKEN="$(basename "$(media_server_read_const_charp "${STD_AFX}" "kDefaultFilePath")")"
-  [[ -f "${FILE_ROOT}/${H265_FILE_TOKEN}" ]] || H265_FILE_TOKEN="$(basename "$(media_server_read_const_charp "${STD_AFX}" "kDefaultFilePath")")"
+  DEFAULT_FILE_FOR_TOKEN="$(media_server_resolve_project_path "${ROOT_DIR}" "$(media_server_read_const_charp "${STD_AFX}" "kDefaultFilePath")")"
+  [[ -f "${FILE_ROOT}/${H264_FILE_TOKEN}" ]] || H264_FILE_TOKEN="$(basename "${DEFAULT_FILE_FOR_TOKEN}")"
+  [[ -f "${FILE_ROOT}/${H265_FILE_TOKEN}" ]] || H265_FILE_TOKEN="$(basename "${DEFAULT_FILE_FOR_TOKEN}")"
 fi
 
 echo "started: pid=${NEW_PID}"
