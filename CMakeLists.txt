@@ -7,11 +7,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(MEDIA_SERVER_USE_GSTREAMER "Enable GStreamer RTSP server integration" OFF)
+option(MEDIA_SERVER_USE_ONNXRUNTIME "Enable ONNX Runtime YOLO detector" OFF)
+set(MEDIA_SERVER_ONNXRUNTIME_ROOT "" CACHE PATH "ONNX Runtime installation root")
 
 add_executable(media_server
     src/analysis/analysis_manager.cpp
+    src/analysis/detector_factory.cpp
     src/analysis/dummy_detector.cpp
     src/analysis/raw_video_decoder.cpp
+    src/analysis/yolo_onnx_detector.cpp
     src/app_config.cpp
     src/main.cpp
     src/core/command_runner.cpp
@@ -51,4 +55,28 @@ if(MEDIA_SERVER_USE_GSTREAMER)
     target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_GSTREAMER=1 GST_USE_UNSTABLE_API=1)
 else()
     target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_GSTREAMER=0)
+endif()
+
+if(MEDIA_SERVER_USE_ONNXRUNTIME)
+    find_path(ONNXRUNTIME_INCLUDE_DIR
+        NAMES onnxruntime_cxx_api.h
+        PATHS
+            ${MEDIA_SERVER_ONNXRUNTIME_ROOT}/include
+            ${MEDIA_SERVER_ONNXRUNTIME_ROOT}/include/onnxruntime/core/session
+            /opt/homebrew/include
+            /usr/local/include)
+    find_library(ONNXRUNTIME_LIBRARY
+        NAMES onnxruntime
+        PATHS
+            ${MEDIA_SERVER_ONNXRUNTIME_ROOT}/lib
+            /opt/homebrew/lib
+            /usr/local/lib)
+    if(NOT ONNXRUNTIME_INCLUDE_DIR OR NOT ONNXRUNTIME_LIBRARY)
+        message(FATAL_ERROR "ONNX Runtime not found. Set MEDIA_SERVER_ONNXRUNTIME_ROOT or disable MEDIA_SERVER_USE_ONNXRUNTIME.")
+    endif()
+    target_include_directories(media_server PRIVATE ${ONNXRUNTIME_INCLUDE_DIR})
+    target_link_libraries(media_server PRIVATE ${ONNXRUNTIME_LIBRARY})
+    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_ONNXRUNTIME=1)
+else()
+    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_ONNXRUNTIME=0)
 endif()

@@ -147,6 +147,9 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - `deno` (선택)
   - 일부 YouTube URL은 `yt-dlp`가 `jsc:deno`로 JS challenge를 풀 때만 통과한다.
   - 실험실 YouTube import/source를 쓸 때만 의미가 있으며, 별도 C++ 링크 라이브러리를 추가한 것은 아니다.
+- `ONNX Runtime` 개발 파일 (선택)
+  - `detector=yolo` 분석 경로를 실제 YOLO ONNX 모델로 실행할 때만 필요하다.
+  - 기본 빌드는 ONNX Runtime 없이도 동작하며, 이 경우 `detector=dummy`만 사용 가능하다.
 
 ### GStreamer 필수 모듈
 CMake가 `pkg-config`로 아래 모듈을 찾는다.
@@ -351,6 +354,18 @@ deno --version   # optional, helps yt-dlp solve some YouTube JS challenges
 cmake -S . -B build-gst -DMEDIA_SERVER_USE_GSTREAMER=ON
 cmake --build build-gst
 ```
+
+YOLO/ONNX detector를 켜는 빌드:
+
+```bash
+cmake -S . -B build-gst \
+  -DMEDIA_SERVER_USE_GSTREAMER=ON \
+  -DMEDIA_SERVER_USE_ONNXRUNTIME=ON \
+  -DMEDIA_SERVER_ONNXRUNTIME_ROOT=/path/to/onnxruntime
+cmake --build build-gst
+```
+
+현재 환경처럼 ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성은 실패하며, 기본 빌드는 `MEDIA_SERVER_USE_ONNXRUNTIME=OFF`로 유지한다.
 
 개발 실행:
 
@@ -678,9 +693,11 @@ SharedStream
 - `include/analysis/analysis_manager.h`: `SharedStream`에 analysis tap을 붙이고 최신 결과를 보관하는 manager skeleton
 - `include/analysis/raw_video_decoder.h`: compressed video packet을 raw frame으로 바꾸는 decoder hub 인터페이스
 - `src/analysis/dummy_detector.cpp`: 실제 검출 없이 lifecycle만 확인하는 dummy detector
+- `src/analysis/yolo_onnx_detector.cpp`: ONNX Runtime 기반 YOLO detector. `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 빌드에서만 실제 추론 가능
 - `src/analysis/raw_video_decoder.cpp`: GStreamer `appsrc -> parser/decoder -> videoconvert -> appsink` 기반 raw RGB decode hub
 - `/lab/analysis/taps`: 개발용 analysis tap attach/status/detach HTTP endpoint
-- 아직 frame sampling/drop-oldest queue, YOLO/ONNX Runtime, overlay stream, metadata/snapshot API는 붙이지 않았다.
+- analysis tap은 profile의 `fps`로 wall-clock 기준 frame sampling을 수행하고, `maxQueue`를 넘으면 오래된 raw frame부터 버린다.
+- 아직 overlay stream, metadata/snapshot API는 붙이지 않았다.
 
 개발용 analysis tap 예시:
 
@@ -690,7 +707,21 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}'
 curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}'
 ```
 
-이 endpoint는 지금 단계에서 raw decode hub와 dummy detector lifecycle 확인용입니다. `decodedFrames`와 `analyzedPackets`가 증가하면 compressed packet이 raw frame으로 변환되어 detector까지 전달된 것입니다. `latestResult.detections`가 비어 있는 것은 정상이며, 실제 객체 검출은 YOLO/ONNX detector를 붙인 뒤 채워집니다.
+느린 detector 상황을 흉내내 drop-oldest queue를 확인할 때는 lab 전용 `detectorDelayMs`를 사용할 수 있습니다.
+
+```bash
+curl -fsS -X POST 'http://127.0.0.1:8080/lab/analysis/taps?file=sample_h264.mp4&profileId=slow-debug&fps=30&maxQueue=2&detectorDelayMs=200'
+```
+
+이 endpoint는 지금 단계에서 raw decode hub, sampling queue, dummy detector lifecycle 확인용입니다. `decodedFrames`, `sampledFrames`, `analyzedPackets`가 증가하면 compressed packet이 raw frame으로 변환되고 sampling queue를 거쳐 detector까지 전달된 것입니다. `latestResult.detections`가 비어 있는 것은 정상이며, 실제 객체 검출은 YOLO/ONNX detector를 붙인 뒤 채워집니다.
+
+YOLO/ONNX detector 예시:
+
+```bash
+curl -fsS -X POST 'http://127.0.0.1:8080/lab/analysis/taps?file=sample_h264.mp4&profileId=yolo-debug&detector=yolo&model=/path/to/yolo.onnx&labels=/path/to/labels.txt&fps=5&maxQueue=2&inputWidth=640&inputHeight=640&confidence=0.35&nms=0.45'
+```
+
+1차 YOLO parser는 `YOLOv8/YOLO11` 계열의 `[1, 84, N]` 또는 `[1, N, 84]` 출력과 `YOLOv5` 계열의 objectness 포함 `[1, N, 85]` 출력을 대상으로 한다. fp32 출력 tensor만 지원하며, letterbox 보정 없이 raw frame을 model input 크기로 직접 resize한다. 모델이 objectness 포함 layout이면 `objectness=1`을 명시할 수 있다.
 
 클라이언트 전달 방식 후보:
 - RTSP/WebRTC 본 스트림 위에 overlay된 영상으로 전달

@@ -122,8 +122,15 @@
 - 2차 decode hub 검증
   - H264/H265/VP8 compressed packet을 raw RGB frame으로 변환하고 dummy detector로 넘긴다.
   - `GET /lab/analysis/taps/{tapId}`에서 `decodedFrames`, `analyzedPackets`, `decoderErrors`를 확인한다.
-  - source/profile별 target fps 제한과 detector가 느릴 때 오래된 frame을 버리는 정책은 다음 단계에서 확인한다.
-- 3차 YOLO/ONNX 검증
+- 3차 sampling/drop-oldest queue 검증
+  - `fps`는 wall-clock 기준 detector 입력 frame rate를 제한한다.
+  - `maxQueue`는 detector worker 앞 bounded queue 크기를 제한한다.
+  - `detectorDelayMs`는 lab 전용 slow detector 시뮬레이션 옵션이다.
+  - `GET /lab/analysis/taps/{tapId}`에서 `sampledFrames`, `sampleDroppedFrames`, `queueDroppedFrames`, `pendingFrames`를 확인한다.
+- 4차 YOLO/ONNX 검증
+  - 기본 빌드는 ONNX Runtime 없이도 통과해야 한다.
+  - `MEDIA_SERVER_USE_ONNXRUNTIME=ON`은 ONNX Runtime 개발 파일이 있을 때만 구성한다.
+  - ONNX Runtime 미포함 빌드에서 `detector=yolo`는 명확한 400 오류를 반환해야 한다.
   - 작은 모델부터 붙여 CPU/Mac GPU 환경별 처리 지연과 frame drop 비율을 측정한다.
   - detection metadata, snapshot, overlay 중 어떤 출력이 안정적인지 분리 테스트한다.
 
@@ -502,11 +509,25 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
   - `GET /lab/analysis/taps/analysis-tap-1`에서 `receivedVideoPackets=645`, `decodedFrames=643`, `analyzedPackets=643`, `droppedPackets=0`, `decoderErrors=0`, `hasResult=true`를 확인했다.
   - raw decode hub는 `appsrc -> h264parse/h265parse/vp8dec -> decoder -> videoconvert -> RGB appsink` 구조로 동작한다.
   - 테스트 종료 후 tap 삭제와 임시 서버 종료를 확인했다.
+- `2026-04-24` 영상분석 sampling/drop-oldest queue local smoke test를 추가했다.
+  - wall-clock sampling 확인:
+    - `POST /lab/analysis/taps?file=sample_h264.mp4&profileId=sample-debug&fps=5&maxQueue=2`
+    - 1초 후 `targetFps=5`, `decodedFrames=31`, `sampledFrames=5`, `analyzedPackets=5`, `sampleDroppedFrames=26`, `decoderErrors=0`을 확인했다.
+  - slow detector/drop-oldest 확인:
+    - `POST /lab/analysis/taps?file=sample_h264.mp4&profileId=slow-debug&fps=30&maxQueue=2&detectorDelayMs=200`
+    - 1초 후 `debugDetectorDelayMs=200`, `sampledFrames=19`, `analyzedPackets=4`, `queueDroppedFrames=12`, `pendingFrames=2`, `decoderErrors=0`을 확인했다.
+  - 테스트 종료 후 tap 삭제와 임시 서버 종료를 확인했다.
+- `2026-04-24` YOLO/ONNX detector optional build smoke test를 추가했다.
+  - 현재 로컬 환경에는 ONNX Runtime 개발 헤더/라이브러리가 없음을 확인했다.
+  - 기본 `build-gst`는 `MEDIA_SERVER_USE_ONNXRUNTIME=OFF`로 빌드가 통과했다.
+  - `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성은 `ONNX Runtime not found. Set MEDIA_SERVER_ONNXRUNTIME_ROOT...` 메시지로 실패함을 확인했다.
+  - `detector=dummy` analysis tap은 기존과 같이 동작했다.
+  - ONNX Runtime 미포함 빌드에서 `detector=yolo&model=/tmp/missing.onnx` 요청은 HTTP 400과 `YOLO detector requires MEDIA_SERVER_USE_ONNXRUNTIME=ON...` 오류를 반환했다.
 
 ## 남은 확인 항목
 - 다음 구현 순서
-  - 1차: frame sampling/drop-oldest queue 추가
-  - 2차: YOLO/ONNX Runtime detector 연동
+  - 1차: ONNX Runtime 설치 또는 local runtime root 지정
+  - 2차: 작은 YOLO ONNX model + labels 파일로 실제 detection 결과 검증
   - 3차: 분석 metadata/snapshot API 또는 overlay stream 설계
 - `HTTP/HLS URI -> RTSP` 최신 `503` 재확인 및 수정
 - audio-only input은 현재 video relay/analysis 준비 범위 밖이다. RTSP/WebRTC egress는 video track을 기준으로 동작한다.

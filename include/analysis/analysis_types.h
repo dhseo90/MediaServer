@@ -28,6 +28,7 @@ struct RawVideoFrame {
 };
 
 struct RectF {
+    // 좌표는 원본 frame 기준 normalized [0, 1] 값으로 저장한다.
     float x{0.0F};
     float y{0.0F};
     float width{0.0F};
@@ -57,21 +58,37 @@ struct PoseKeypoint {
 struct AnalysisProfile {
     // 같은 source라도 profile이 다르면 detector/overlay 정책이 달라질 수 있으므로 별도 tap으로 다룬다.
     std::string profile_id{"default"};
+    std::string detector_type{"dummy"};
+    std::string model_path;
+    std::string labels_path;
     int target_fps{5};
     std::size_t max_queue_size{2};
+    int model_input_width{640};
+    int model_input_height{640};
+    int max_detections{50};
+    float confidence_threshold{0.35F};
+    float nms_threshold{0.45F};
+    bool yolo_has_objectness{false};
     bool enable_object_detection{true};
     bool enable_tracking{false};
     bool enable_pose{false};
     bool enable_overlay{false};
+    int debug_detector_delay_ms{0};
 };
 
 inline std::string BuildProfileKey(const AnalysisProfile& profile) {
     std::ostringstream oss;
-    oss << profile.profile_id << ":fps=" << profile.target_fps << ":queue=" << profile.max_queue_size
+    oss << profile.profile_id << ":detector=" << profile.detector_type
+        << ":model=" << (profile.model_path.empty() ? "default" : "custom")
+        << ":fps=" << profile.target_fps << ":queue=" << profile.max_queue_size
+        << ":input=" << profile.model_input_width << "x" << profile.model_input_height
+        << ":conf=" << profile.confidence_threshold
+        << ":nms=" << profile.nms_threshold
         << ":det=" << (profile.enable_object_detection ? 1 : 0)
         << ":track=" << (profile.enable_tracking ? 1 : 0)
         << ":pose=" << (profile.enable_pose ? 1 : 0)
-        << ":overlay=" << (profile.enable_overlay ? 1 : 0);
+        << ":overlay=" << (profile.enable_overlay ? 1 : 0)
+        << ":delay=" << profile.debug_detector_delay_ms;
     return oss.str();
 }
 

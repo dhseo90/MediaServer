@@ -142,6 +142,23 @@ int ParseClampedIntQuery(const std::unordered_map<std::string, std::string>& que
     }
 }
 
+float ParseClampedFloatQuery(const std::unordered_map<std::string, std::string>& query,
+                             const std::string& key,
+                             float default_value,
+                             float min_value,
+                             float max_value) {
+    const auto it = query.find(key);
+    if (it == query.end()) {
+        return default_value;
+    }
+    try {
+        const float parsed = std::stof(it->second);
+        return std::max(min_value, std::min(max_value, parsed));
+    } catch (...) {
+        return default_value;
+    }
+}
+
 std::optional<int> ParseIntField(const std::string& body, const std::string& field) {
     const std::string needle = "\"" + field + "\"";
     std::size_t pos = body.find(needle);
@@ -1396,13 +1413,31 @@ analysis::AnalysisProfile BuildAnalysisProfileFromQuery(
     } else if (const auto it = query.find("profile"); it != query.end() && !it->second.empty()) {
         profile.profile_id = it->second;
     }
+    if (const auto it = query.find("detector"); it != query.end() && !it->second.empty()) {
+        profile.detector_type = it->second;
+    }
+    if (const auto it = query.find("model"); it != query.end() && !it->second.empty()) {
+        profile.model_path = it->second;
+    }
+    if (const auto it = query.find("labels"); it != query.end() && !it->second.empty()) {
+        profile.labels_path = it->second;
+    }
     profile.target_fps = ParseClampedIntQuery(query, "fps", profile.target_fps, 1, 60);
     profile.max_queue_size =
         static_cast<std::size_t>(ParseClampedIntQuery(query, "maxQueue", static_cast<int>(profile.max_queue_size), 1, 128));
+    profile.model_input_width = ParseClampedIntQuery(query, "inputWidth", profile.model_input_width, 32, 4096);
+    profile.model_input_height = ParseClampedIntQuery(query, "inputHeight", profile.model_input_height, 32, 4096);
+    profile.max_detections = ParseClampedIntQuery(query, "maxDetections", profile.max_detections, 1, 1000);
+    profile.confidence_threshold =
+        ParseClampedFloatQuery(query, "confidence", profile.confidence_threshold, 0.0F, 1.0F);
+    profile.nms_threshold = ParseClampedFloatQuery(query, "nms", profile.nms_threshold, 0.0F, 1.0F);
+    profile.yolo_has_objectness = ParseBoolQuery(query, "objectness", profile.yolo_has_objectness);
     profile.enable_object_detection = ParseBoolQuery(query, "detect", profile.enable_object_detection);
     profile.enable_tracking = ParseBoolQuery(query, "tracking", profile.enable_tracking);
     profile.enable_pose = ParseBoolQuery(query, "pose", profile.enable_pose);
     profile.enable_overlay = ParseBoolQuery(query, "overlay", profile.enable_overlay);
+    profile.debug_detector_delay_ms =
+        ParseClampedIntQuery(query, "detectorDelayMs", profile.debug_detector_delay_ms, 0, 5000);
     return profile;
 }
 
@@ -1448,11 +1483,21 @@ std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot
         << "\"tapId\":\"" << JsonEscape(snapshot.tap_id) << "\","
         << "\"streamKey\":\"" << JsonEscape(snapshot.stream_key) << "\","
         << "\"profileKey\":\"" << JsonEscape(snapshot.profile_key) << "\","
+        << "\"detectorType\":\"" << JsonEscape(snapshot.detector_type) << "\","
+        << "\"targetFps\":" << snapshot.target_fps << ","
+        << "\"maxQueueSize\":" << snapshot.max_queue_size << ","
+        << "\"debugDetectorDelayMs\":" << snapshot.debug_detector_delay_ms << ","
+        << "\"confidenceThreshold\":" << snapshot.confidence_threshold << ","
+        << "\"nmsThreshold\":" << snapshot.nms_threshold << ","
         << "\"receivedVideoPackets\":" << snapshot.received_video_packets << ","
         << "\"decodedFrames\":" << snapshot.decoded_frames << ","
+        << "\"sampledFrames\":" << snapshot.sampled_frames << ","
         << "\"analyzedPackets\":" << snapshot.analyzed_packets << ","
         << "\"droppedPackets\":" << snapshot.dropped_packets << ","
+        << "\"sampleDroppedFrames\":" << snapshot.sample_dropped_frames << ","
+        << "\"queueDroppedFrames\":" << snapshot.queue_dropped_frames << ","
         << "\"decoderErrors\":" << snapshot.decoder_errors << ","
+        << "\"pendingFrames\":" << snapshot.pending_frames << ","
         << "\"hasResult\":" << (snapshot.latest_result.has_value() ? "true" : "false") << ","
         << "\"latestResult\":";
     if (snapshot.latest_result.has_value()) {
