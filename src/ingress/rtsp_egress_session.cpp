@@ -2,6 +2,7 @@
 #include "ingress/rtsp_egress_session.h"
 
 #include <algorithm>
+#include <limits>
 
 #if MEDIA_SERVER_USE_GSTREAMER
 #include <gst/app/gstappsrc.h>
@@ -9,6 +10,7 @@
 #endif
 
 #include "core/shared_stream.h"
+#include "ingress/analysis_overlay_probe.h"
 
 namespace ingress {
 
@@ -22,6 +24,12 @@ constexpr int kSilentAudioRate = 48000;
 constexpr int kSilentAudioChannels = 2;
 constexpr int kSilentAudioBytesPerSample = 2;
 constexpr int kSilentAudioPrimingFrames = 25;
+constexpr std::size_t kMaxVideoTimestampMappings = 2048;
+constexpr std::int64_t kMaxTimestampMappingDistanceNs = 2000000000LL;
+
+std::int64_t AbsDiff(std::int64_t lhs, std::int64_t rhs) {
+    return lhs >= rhs ? lhs - rhs : rhs - lhs;
+}
 
 }  // namespace
 
@@ -249,6 +257,13 @@ media::Packet RtspEgressSession::NormalizeTimestamps(const media::Packet& packet
         }
         last_video_dts_ = normalized.dts;
         last_video_pts_ = normalized.pts;
+        video_timestamp_mappings_.push_back(TimestampMapping{
+            .normalized_pts = normalized.pts,
+            .source_pts = packet.pts >= 0 ? packet.pts : (packet.dts >= 0 ? packet.dts : normalized.pts),
+        });
+        while (video_timestamp_mappings_.size() > kMaxVideoTimestampMappings) {
+            video_timestamp_mappings_.pop_front();
+        }
     } else if (packet.kind == media::MediaKind::Audio) {
         if (last_audio_pts_.has_value() && normalized.pts > *last_audio_pts_) {
             last_audio_frame_duration_ns_ = normalized.pts - *last_audio_pts_;
@@ -307,6 +322,10 @@ bool RtspEgressSession::Start(const std::string& session_id,
     if (!ConfigureAppSrcCaps(*descriptor, error_message)) {
         return false;
     }
+    if (analysis_overlay_.enabled &&
+        !AttachAnalysisOverlayProbe(media_element_, std::move(analysis_overlay_), error_message)) {
+        return false;
+    }
 #else
     (void)stream;
     (void)error_message;
@@ -329,6 +348,7 @@ void RtspEgressSession::Stop() {
         last_video_pts_.reset();
         last_video_dts_.reset();
         last_video_frame_duration_ns_ = 0;
+        video_timestamp_mappings_.clear();
         last_audio_pts_.reset();
         last_audio_frame_duration_ns_ = 0;
         synthesize_silent_audio_ = false;
@@ -378,6 +398,32 @@ void RtspEgressSession::HandleSample(const media::Packet& packet) {
 #else
     (void)packet;
 #endif
+}
+
+void RtspEgressSession::SetAnalysisOverlay(AnalysisOverlayConfig config) {
+    analysis_overlay_ = std::move(config);
+}
+
+std::int64_t RtspEgressSession::ResolveOverlaySourcePts(std::int64_t normalized_pts) const {
+    std::lock_guard lock(pending_mu_);
+    if (video_timestamp_mappings_.empty()) {
+        return normalized_pts;
+    }
+
+    std::int64_t best_source_pts = normalized_pts;
+    std::int64_t best_diff = std::numeric_limits<std::int64_t>::max();
+    for (auto it = video_timestamp_mappings_.rbegin(); it != video_timestamp_mappings_.rend(); ++it) {
+        const std::int64_t diff = AbsDiff(it->normalized_pts, normalized_pts);
+        if (diff >= best_diff) {
+            continue;
+        }
+        best_diff = diff;
+        best_source_pts = it->source_pts;
+        if (diff == 0) {
+            break;
+        }
+    }
+    return best_diff <= kMaxTimestampMappingDistanceNs ? best_source_pts : normalized_pts;
 }
 
 #if MEDIA_SERVER_USE_GSTREAMER

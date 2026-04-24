@@ -27,4 +27,17 @@ inline constexpr const char* kHttpListenAddress = "127.0.0.1";
 inline constexpr std::uint16_t kHttpListenPort = 8080;
 inline constexpr const char* kFileRootPath = "video";
 inline constexpr const char* kDefaultFilePath = "video/sample_h264.mp4";
+inline constexpr const char* kDefaultAnalysisDetector = "yolo";
+inline constexpr const char* kDefaultAnalysisModelPath = "models/yolo11n.onnx";
+inline constexpr const char* kDefaultAnalysisLabelsPath = "models/coco.names";
+inline constexpr int kDefaultAnalysisFps = 8;
+inline constexpr std::size_t kDefaultAnalysisMaxQueue = 1;
+inline constexpr int kDefaultAnalysisInputWidth = 640;
+inline constexpr int kDefaultAnalysisInputHeight = 640;
+inline constexpr float kDefaultAnalysisConfidence = 0.25F;
+inline constexpr float kDefaultAnalysisNms = 0.45F;
+inline constexpr const char* kDefaultAnalysisPreprocess = "letterbox";
+inline constexpr int kDefaultAnalysisOverlayWaitMs = 180;
+inline constexpr int kDefaultAnalysisOverlaySyncToleranceMs = 400;
+inline constexpr int kDefaultAnalysisOverlayThickness = 3;
 }  // namespace app_config

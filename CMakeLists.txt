@@ -14,7 +14,9 @@ add_executable(media_server
     src/analysis/analysis_manager.cpp
     src/analysis/detector_factory.cpp
     src/analysis/dummy_detector.cpp
+    src/analysis/overlay_renderer.cpp
     src/analysis/raw_video_decoder.cpp
+    src/analysis/snapshot_encoder.cpp
     src/analysis/yolo_onnx_detector.cpp
     src/app_config.cpp
     src/main.cpp
@@ -27,6 +29,8 @@ add_executable(media_server
     src/core/resource_guard.cpp
     src/core/session_manager.cpp
     src/ingress/gst_pipeline_builder.cpp
+    src/ingress/analysis_overlay_probe.cpp
+    src/ingress/analysis_query.cpp
     src/ingress/rtsp_request_context.cpp
     src/ingress/request_parser.cpp
     src/ingress/rtsp_egress_session.cpp
@@ -64,7 +68,10 @@ if(MEDIA_SERVER_USE_ONNXRUNTIME)
             ${MEDIA_SERVER_ONNXRUNTIME_ROOT}/include
             ${MEDIA_SERVER_ONNXRUNTIME_ROOT}/include/onnxruntime/core/session
             /opt/homebrew/include
-            /usr/local/include)
+            /usr/local/include
+        PATH_SUFFIXES
+            onnxruntime
+            onnxruntime/core/session)
     find_library(ONNXRUNTIME_LIBRARY
         NAMES onnxruntime
         PATHS

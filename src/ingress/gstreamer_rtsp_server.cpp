@@ -1,10 +1,12 @@
 // 파일 용도: GStreamer RTSP server를 띄우고 media-configure 시 SessionManager와 RTSP egress bridge를 연결한다.
 #include "ingress/gstreamer_rtsp_server.h"
 
+#include <chrono>
 #include <iostream>
 #include <sstream>
 
 #include "app_config.h"
+#include "ingress/analysis_query.h"
 #include "ingress/gst_pipeline_builder.h"
 #include "ingress/request_parser.h"
 #include "ingress/rtsp_egress_session.h"
@@ -123,10 +125,13 @@ gboolean OnBusMessage(GstBus* /*bus*/, GstMessage* message, gpointer user_data) 
 void OnMediaUnprepared(GstRTSPMedia* media, gpointer user_data) {
     auto* runtime = static_cast<RuntimeContext*>(user_data);
     gpointer sid_ptr = g_object_get_data(G_OBJECT(media), "session-id");
-    if (sid_ptr == nullptr) {
-        return;
+    gpointer tap_ptr = g_object_get_data(G_OBJECT(media), "analysis-tap-id");
+    const char* sid = sid_ptr != nullptr ? static_cast<const char*>(sid_ptr) : nullptr;
+    const char* tap_id = tap_ptr != nullptr ? static_cast<const char*>(tap_ptr) : nullptr;
+    if (tap_id != nullptr) {
+        std::cerr << "[gst] media unprepared; detach analysis tap " << tap_id << "\n";
+        runtime->session_manager.DetachAnalysisTap(tap_id);
     }
-    const char* sid = static_cast<const char*>(sid_ptr);
     if (sid != nullptr) {
         std::cerr << "[gst] media unprepared; close session " << sid << "\n";
         // GStreamer media teardown과 내부 SessionManager 세션 생명주기를 맞춘다.
@@ -169,7 +174,49 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
         return;
     }
 
+    std::string analysis_tap_id;
+    if (IsAnalysisOverlayRequested(request.query)) {
+        media::IngressRequest analysis_request = request;
+        analysis_request.client_id = request.client_id + "-analysis";
+        auto attach_result = runtime->session_manager.AttachAnalysisTap(
+            analysis_request, BuildAnalysisProfileFromQuery(request.query));
+        if (!attach_result.ok) {
+            std::cerr << "[gst] failed to attach analysis overlay tap: " << attach_result.message << "\n";
+            gst_object_unref(media_element);
+            return;
+        }
+        analysis_tap_id = attach_result.tap_id;
+    }
+
     auto bridge = std::make_shared<RtspEgressSession>(media_element, video_codec, audio_codec);
+    if (!analysis_tap_id.empty()) {
+        const auto timing_options = BuildAnalysisOverlayTimingOptionsFromQuery(request.query);
+        std::weak_ptr<RtspEgressSession> weak_bridge = bridge;
+        AnalysisOverlayConfig overlay_config;
+        overlay_config.enabled = true;
+        overlay_config.render_options = BuildOverlayRenderOptionsFromQuery(request.query);
+        overlay_config.sync_tolerance_ns = static_cast<std::int64_t>(timing_options.sync_tolerance_ms) * 1000000LL;
+        overlay_config.wait_timeout_ms = timing_options.wait_timeout_ms;
+        overlay_config.result_provider =
+            [manager = &runtime->session_manager,
+             analysis_tap_id,
+             weak_bridge,
+             tolerance_ns = overlay_config.sync_tolerance_ns,
+             wait_timeout_ms = overlay_config.wait_timeout_ms](std::int64_t frame_pts) {
+                const auto bridge_lock = weak_bridge.lock();
+                const std::int64_t source_pts =
+                    bridge_lock != nullptr ? bridge_lock->ResolveOverlaySourcePts(frame_pts) : frame_pts;
+                auto result = manager->WaitAnalysisResultNearPts(
+                    analysis_tap_id, source_pts, tolerance_ns, std::chrono::milliseconds(wait_timeout_ms));
+                if (result.has_value()) {
+                    return result;
+                }
+                const auto snapshot = manager->AnalysisTapSnapshot(analysis_tap_id);
+                return snapshot.has_value() ? snapshot->latest_result : std::optional<analysis::AnalysisResult>{};
+            };
+        bridge->SetAnalysisOverlay(std::move(overlay_config));
+    }
+
     auto create_result = runtime->session_manager.CreateSession(
         request,
         [bridge](const media::Packet& packet) {
@@ -177,6 +224,9 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
         });
     if (!create_result.ok) {
         std::cerr << "[gst] session admission failed: " << create_result.message << "\n";
+        if (!analysis_tap_id.empty()) {
+            runtime->session_manager.DetachAnalysisTap(analysis_tap_id);
+        }
         gst_object_unref(media_element);
         return;
     }
@@ -185,6 +235,9 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
     // RTSP factory pipeline의 appsrc caps는 source descriptor가 준비된 뒤 설정해야 한다.
     if (!bridge->Start(request.client_id, create_result.stream, &bridge_error)) {
         std::cerr << "[gst] failed to start RTSP egress bridge: " << bridge_error << "\n";
+        if (!analysis_tap_id.empty()) {
+            runtime->session_manager.DetachAnalysisTap(analysis_tap_id);
+        }
         runtime->session_manager.CloseSession(request.client_id);
         gst_object_unref(media_element);
         return;
@@ -195,6 +248,9 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
               << " source=" << media::ToString(source_spec->kind)
               << " uri=" << source_spec->uri << "\n";
     g_object_set_data_full(G_OBJECT(media), "session-id", g_strdup(request.client_id.c_str()), g_free);
+    if (!analysis_tap_id.empty()) {
+        g_object_set_data_full(G_OBJECT(media), "analysis-tap-id", g_strdup(analysis_tap_id.c_str()), g_free);
+    }
     g_object_set_data_full(
         G_OBJECT(media),
         "rtsp-egress-session",

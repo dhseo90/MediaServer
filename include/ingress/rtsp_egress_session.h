@@ -8,6 +8,7 @@
 #include <string>
 
 #include "core/egress_session.h"
+#include "ingress/analysis_overlay_probe.h"
 #include "ingress/rtsp_request_context.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -32,8 +33,15 @@ public:
     void Stop() override;
 
     void HandleSample(const media::Packet& packet);
+    void SetAnalysisOverlay(AnalysisOverlayConfig config);
+    std::int64_t ResolveOverlaySourcePts(std::int64_t normalized_pts) const;
 
 private:
+    struct TimestampMapping {
+        std::int64_t normalized_pts{0};
+        std::int64_t source_pts{0};
+    };
+
     // RTSP media prepare 이전에 들어온 초기 샘플을 보관하고 세션 시작 기준 timestamp로 재작성한다.
     void QueuePendingPacket(const media::Packet& packet);
     void FlushPendingPackets();
@@ -56,9 +64,11 @@ private:
     std::optional<std::int64_t> last_video_pts_;
     std::optional<std::int64_t> last_video_dts_;
     std::int64_t last_video_frame_duration_ns_{0};
+    std::deque<TimestampMapping> video_timestamp_mappings_;
     std::optional<std::int64_t> last_audio_pts_;
     std::int64_t last_audio_frame_duration_ns_{0};
     bool synthesize_silent_audio_{false};
+    AnalysisOverlayConfig analysis_overlay_;
     bool started_{false};
 
 #if MEDIA_SERVER_USE_GSTREAMER

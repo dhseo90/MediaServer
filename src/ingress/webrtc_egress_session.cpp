@@ -12,12 +12,14 @@
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <optional>
 #include <sstream>
 #include <thread>
 
 #include "app_config.h"
 #include "core/shared_stream.h"
+#include "ingress/analysis_overlay_probe.h"
 #include "ingress/webrtc_gst_utils.h"
 
 namespace ingress {
@@ -29,11 +31,17 @@ std::string BuildLaunch(const media::StreamDescriptor& descriptor);
 
 constexpr std::int64_t kWebRtcVideoFrameDurationNs = 33333333;
 constexpr std::int64_t kWebRtcDefaultAudioFrameDurationNs = 20000000;
+constexpr std::size_t kMaxVideoTimestampMappings = 2048;
+constexpr std::int64_t kMaxTimestampMappingDistanceNs = 2000000000LL;
 
-std::string BuildWebRtcRawVideoCaps() {
+std::int64_t AbsDiff(std::int64_t lhs, std::int64_t rhs) {
+    return lhs >= rhs ? lhs - rhs : rhs - lhs;
+}
+
+std::string BuildWebRtcRawVideoCaps(const char* format = "I420") {
     const auto& config = app::GetAppConfig();
     std::ostringstream caps;
-    caps << "video/x-raw,format=I420,width=" << config.webrtc_video_width
+    caps << "video/x-raw,format=" << format << ",width=" << config.webrtc_video_width
          << ",height=" << config.webrtc_video_height
          << ",framerate=" << config.webrtc_video_fps << "/1 ";
     return caps.str();
@@ -186,26 +194,28 @@ GstCaps* BuildCapsFromTrack(const media::TrackInfo& track) {
 
 std::string BuildVideoInputChain(const media::TrackInfo& track) {
     // WebRTC H264 offer는 브라우저 호환성이 높은 720p/30fps baseline 계열로 정규화한다.
-    const std::string raw_caps = BuildWebRtcRawVideoCaps();
+    const std::string overlay_caps = BuildWebRtcRawVideoCaps("RGB");
+    const std::string encoder_caps = BuildWebRtcRawVideoCaps("I420");
     const std::string raw_queue = BuildRawVideoQueue();
+    const std::string overlay_chain =
+        "! videoconvert ! videoscale ! videorate ! " + overlay_caps +
+        "! identity name=analysis_overlay silent=true "
+        "! videoconvert ! " + encoder_caps;
     switch (track.codec) {
         case media::CodecId::VP8:
             return "appsrc name=video_src is-live=true format=time do-timestamp=false block=false "
                    "! queue name=video_in_q ! vp8dec name=video_decoder ! " +
-                   raw_queue +
-                   "! videoconvert ! videoscale ! videorate ! " + raw_caps;
+                   raw_queue + overlay_chain;
         case media::CodecId::H264:
             return "appsrc name=video_src is-live=true format=time do-timestamp=false block=false "
                    "! queue name=video_in_q ! h264parse name=video_input_parse ! avdec_h264 name=video_decoder "
                    "! " +
-                   raw_queue +
-                   "! videoconvert ! videoscale ! videorate ! " + raw_caps;
+                   raw_queue + overlay_chain;
         case media::CodecId::H265:
             return "appsrc name=video_src is-live=true format=time do-timestamp=false block=false "
                    "! queue name=video_in_q ! h265parse name=video_input_parse ! avdec_h265 name=video_decoder "
                    "! " +
-                   raw_queue +
-                   "! videoconvert ! videoscale ! videorate ! " + raw_caps;
+                   raw_queue + overlay_chain;
         case media::CodecId::Unknown:
         case media::CodecId::AAC:
         case media::CodecId::Opus:
@@ -932,6 +942,11 @@ bool WebRtcEgressSession::Start(const std::string& session_id,
         Stop();
         return false;
     }
+    if (analysis_overlay_.enabled &&
+        !AttachAnalysisOverlayProbe(pipeline_, std::move(analysis_overlay_), error_message)) {
+        Stop();
+        return false;
+    }
 
     if (app::GetAppConfig().webrtc_trace) {
         std::cerr << "[webrtc-egress] start session=" << session_id_
@@ -976,6 +991,19 @@ void WebRtcEgressSession::Stop() {
     negotiation_ready_ = false;
     ice_connected_ = false;
     media_output_ready_ = false;
+    {
+        std::lock_guard lock(pending_mu_);
+        video_base_pts_.reset();
+        audio_base_pts_.reset();
+        last_video_pts_.reset();
+        last_video_dts_.reset();
+        last_video_frame_duration_ns_ = 0;
+        video_timestamp_mappings_.clear();
+        last_audio_pts_.reset();
+        last_audio_frame_duration_ns_ = 0;
+        pending_packets_.clear();
+        last_video_keyframe_.reset();
+    }
 
 #if MEDIA_SERVER_USE_GSTREAMER
     if (bus_watch_id_ != 0) {
@@ -1073,6 +1101,36 @@ void WebRtcEgressSession::HandleSample(const media::Packet& packet) {
     }
 #else
     (void)packet;
+#endif
+}
+
+void WebRtcEgressSession::SetAnalysisOverlay(AnalysisOverlayConfig config) {
+    analysis_overlay_ = std::move(config);
+}
+
+std::int64_t WebRtcEgressSession::ResolveOverlaySourcePts(std::int64_t normalized_pts) const {
+#if MEDIA_SERVER_USE_GSTREAMER
+    std::lock_guard lock(pending_mu_);
+    if (video_timestamp_mappings_.empty()) {
+        return normalized_pts;
+    }
+
+    std::int64_t best_source_pts = normalized_pts;
+    std::int64_t best_diff = std::numeric_limits<std::int64_t>::max();
+    for (auto it = video_timestamp_mappings_.rbegin(); it != video_timestamp_mappings_.rend(); ++it) {
+        const std::int64_t diff = AbsDiff(it->normalized_pts, normalized_pts);
+        if (diff >= best_diff) {
+            continue;
+        }
+        best_diff = diff;
+        best_source_pts = it->source_pts;
+        if (diff == 0) {
+            break;
+        }
+    }
+    return best_diff <= kMaxTimestampMappingDistanceNs ? best_source_pts : normalized_pts;
+#else
+    return normalized_pts;
 #endif
 }
 
@@ -1950,6 +2008,13 @@ media::Packet WebRtcEgressSession::NormalizeTimestamps(const media::Packet& pack
         }
         last_video_dts_ = normalized.dts;
         last_video_pts_ = normalized.pts;
+        video_timestamp_mappings_.push_back(TimestampMapping{
+            .normalized_pts = normalized.pts,
+            .source_pts = packet.pts >= 0 ? packet.pts : (packet.dts >= 0 ? packet.dts : normalized.pts),
+        });
+        while (video_timestamp_mappings_.size() > kMaxVideoTimestampMappings) {
+            video_timestamp_mappings_.pop_front();
+        }
     } else if (packet.kind == media::MediaKind::Audio) {
         if (last_audio_pts_.has_value() && normalized.pts > *last_audio_pts_) {
             last_audio_frame_duration_ns_ = normalized.pts - *last_audio_pts_;
@@ -2166,6 +2231,7 @@ bool WebRtcEgressSession::ConfigureAppSrcCaps(const media::StreamDescriptor& des
     last_video_pts_.reset();
     last_video_dts_.reset();
     last_video_frame_duration_ns_ = 0;
+    video_timestamp_mappings_.clear();
     last_audio_pts_.reset();
     last_audio_frame_duration_ns_ = 0;
     traced_video_samples_ = 0;

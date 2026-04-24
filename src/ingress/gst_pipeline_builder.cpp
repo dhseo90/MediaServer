@@ -8,18 +8,22 @@ namespace ingress {
 namespace {
 
 std::string BuildVideoBranch(VideoCodec video_codec) {
+    const std::string raw_overlay =
+        "! queue ! decodebin ! queue ! videoconvert ! video/x-raw,format=RGB "
+        "! identity name=analysis_overlay silent=true "
+        "! videoconvert ! video/x-raw,format=I420 ";
     if (video_codec == VideoCodec::H265) {
         // H265 route는 어떤 입력이 오더라도 decode 후 x265로 재인코딩해 route contract를 맞춘다.
-        return "appsrc name=video_src is-live=true format=time do-timestamp=false block=false "
-               "! queue ! decodebin ! queue ! videoconvert ! video/x-raw,format=I420 "
+        return std::string("appsrc name=video_src is-live=true format=time do-timestamp=false block=false ")
+               + raw_overlay +
                "! x265enc tune=zerolatency speed-preset=ultrafast bitrate=2048 key-int-max=30 "
                "! h265parse config-interval=-1 ! rtph265pay name=pay0 pt=96 ";
     }
 
     // H264 route도 decode/encode 경로를 유지해 H265/WebRTC/HTTP source를 모두 H264로 변환한다.
     // x264enc가 만들 수 있는 큰 timestamp offset은 identity에서 보정해 RTSP preroll timeout을 막는다.
-    return "appsrc name=video_src is-live=true format=time do-timestamp=false block=false "
-           "! queue ! decodebin ! queue ! videoconvert ! video/x-raw,format=I420 "
+    return std::string("appsrc name=video_src is-live=true format=time do-timestamp=false block=false ")
+           + raw_overlay +
            "! x264enc tune=zerolatency speed-preset=ultrafast bitrate=2048 key-int-max=30 byte-stream=false "
            "! identity ts-offset=-3600000000000000 "
            "! h264parse config-interval=-1 ! rtph264pay name=pay0 pt=96 config-interval=1 ";

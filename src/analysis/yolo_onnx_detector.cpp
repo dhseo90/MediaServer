@@ -85,10 +85,36 @@ std::vector<Detection> ApplyNms(std::vector<Detection> detections, float nms_thr
     return kept;
 }
 
-std::vector<float> ResizeRgbToNchw(const RawVideoFrame& frame, int target_width, int target_height) {
+struct YoloPreprocessInfo {
+    int frame_width{0};
+    int frame_height{0};
+    int input_width{0};
+    int input_height{0};
+    float scale_x{1.0F};
+    float scale_y{1.0F};
+    float pad_x{0.0F};
+    float pad_y{0.0F};
+    bool letterbox{true};
+};
+
+std::vector<float> ResizeRgbToNchwStretch(const RawVideoFrame& frame,
+                                          int target_width,
+                                          int target_height,
+                                          YoloPreprocessInfo* info) {
     std::vector<float> tensor(static_cast<std::size_t>(3 * target_width * target_height), 0.0F);
     if (frame.format != PixelFormat::RGB || frame.width <= 0 || frame.height <= 0 || frame.data.empty()) {
         return tensor;
+    }
+    if (info != nullptr) {
+        info->frame_width = frame.width;
+        info->frame_height = frame.height;
+        info->input_width = target_width;
+        info->input_height = target_height;
+        info->scale_x = static_cast<float>(target_width) / static_cast<float>(frame.width);
+        info->scale_y = static_cast<float>(target_height) / static_cast<float>(frame.height);
+        info->pad_x = 0.0F;
+        info->pad_y = 0.0F;
+        info->letterbox = false;
     }
 
     for (int y = 0; y < target_height; ++y) {
@@ -108,6 +134,119 @@ std::vector<float> ResizeRgbToNchw(const RawVideoFrame& frame, int target_width,
         }
     }
     return tensor;
+}
+
+std::vector<float> ResizeRgbToNchwLetterbox(const RawVideoFrame& frame,
+                                            int target_width,
+                                            int target_height,
+                                            YoloPreprocessInfo* info) {
+    constexpr float kYoloPadValue = 114.0F / 255.0F;
+    std::vector<float> tensor(static_cast<std::size_t>(3 * target_width * target_height), kYoloPadValue);
+    if (frame.format != PixelFormat::RGB || frame.width <= 0 || frame.height <= 0 || frame.data.empty()) {
+        return tensor;
+    }
+
+    const float scale = std::min(static_cast<float>(target_width) / static_cast<float>(frame.width),
+                                 static_cast<float>(target_height) / static_cast<float>(frame.height));
+    const int resized_width = std::max(1, static_cast<int>(std::round(static_cast<float>(frame.width) * scale)));
+    const int resized_height = std::max(1, static_cast<int>(std::round(static_cast<float>(frame.height) * scale)));
+    const int pad_left = std::max(0, (target_width - resized_width) / 2);
+    const int pad_top = std::max(0, (target_height - resized_height) / 2);
+
+    if (info != nullptr) {
+        info->frame_width = frame.width;
+        info->frame_height = frame.height;
+        info->input_width = target_width;
+        info->input_height = target_height;
+        info->scale_x = scale;
+        info->scale_y = scale;
+        info->pad_x = static_cast<float>(pad_left);
+        info->pad_y = static_cast<float>(pad_top);
+        info->letterbox = true;
+    }
+
+    for (int y = 0; y < resized_height; ++y) {
+        const int src_y =
+            std::min(frame.height - 1, static_cast<int>((static_cast<float>(y) + 0.5F) / scale));
+        const int dst_y = pad_top + y;
+        if (dst_y < 0 || dst_y >= target_height) {
+            continue;
+        }
+        for (int x = 0; x < resized_width; ++x) {
+            const int src_x =
+                std::min(frame.width - 1, static_cast<int>((static_cast<float>(x) + 0.5F) / scale));
+            const int dst_x = pad_left + x;
+            if (dst_x < 0 || dst_x >= target_width) {
+                continue;
+            }
+            const std::size_t src_offset = static_cast<std::size_t>((src_y * frame.width + src_x) * 3);
+            const std::size_t dst_offset = static_cast<std::size_t>(dst_y * target_width + dst_x);
+            if (src_offset + 2 >= frame.data.size()) {
+                continue;
+            }
+            tensor[dst_offset] = static_cast<float>(frame.data[src_offset]) / 255.0F;
+            tensor[static_cast<std::size_t>(target_width * target_height) + dst_offset] =
+                static_cast<float>(frame.data[src_offset + 1]) / 255.0F;
+            tensor[static_cast<std::size_t>(2 * target_width * target_height) + dst_offset] =
+                static_cast<float>(frame.data[src_offset + 2]) / 255.0F;
+        }
+    }
+    return tensor;
+}
+
+std::vector<float> PreprocessRgbToNchw(const RawVideoFrame& frame,
+                                       const AnalysisProfile& profile,
+                                       YoloPreprocessInfo* info) {
+    if (profile.yolo_preprocess_mode == "stretch") {
+        return ResizeRgbToNchwStretch(frame, profile.model_input_width, profile.model_input_height, info);
+    }
+    return ResizeRgbToNchwLetterbox(frame, profile.model_input_width, profile.model_input_height, info);
+}
+
+std::optional<RectF> MapYoloBoxToFrame(float cx,
+                                       float cy,
+                                       float width,
+                                       float height,
+                                       bool normalized,
+                                       const YoloPreprocessInfo& info) {
+    if (info.frame_width <= 0 || info.frame_height <= 0 || info.input_width <= 0 || info.input_height <= 0) {
+        return std::nullopt;
+    }
+
+    if (normalized) {
+        cx *= static_cast<float>(info.input_width);
+        width *= static_cast<float>(info.input_width);
+        cy *= static_cast<float>(info.input_height);
+        height *= static_cast<float>(info.input_height);
+    }
+
+    const float input_x1 = cx - width * 0.5F;
+    const float input_y1 = cy - height * 0.5F;
+    const float input_x2 = cx + width * 0.5F;
+    const float input_y2 = cy + height * 0.5F;
+    const float x_scale = std::max(0.0001F, info.scale_x);
+    const float y_scale = std::max(0.0001F, info.scale_y);
+    const float frame_x1 = (input_x1 - info.pad_x) / x_scale;
+    const float frame_y1 = (input_y1 - info.pad_y) / y_scale;
+    const float frame_x2 = (input_x2 - info.pad_x) / x_scale;
+    const float frame_y2 = (input_y2 - info.pad_y) / y_scale;
+
+    const float clamped_x1 = std::max(0.0F, std::min(static_cast<float>(info.frame_width), frame_x1));
+    const float clamped_y1 = std::max(0.0F, std::min(static_cast<float>(info.frame_height), frame_y1));
+    const float clamped_x2 = std::max(0.0F, std::min(static_cast<float>(info.frame_width), frame_x2));
+    const float clamped_y2 = std::max(0.0F, std::min(static_cast<float>(info.frame_height), frame_y2));
+    if (clamped_x2 <= clamped_x1 || clamped_y2 <= clamped_y1) {
+        return std::nullopt;
+    }
+
+    const float inv_frame_w = 1.0F / static_cast<float>(info.frame_width);
+    const float inv_frame_h = 1.0F / static_cast<float>(info.frame_height);
+    return RectF{
+        .x = Clamp01(clamped_x1 * inv_frame_w),
+        .y = Clamp01(clamped_y1 * inv_frame_h),
+        .width = Clamp01((clamped_x2 - clamped_x1) * inv_frame_w),
+        .height = Clamp01((clamped_y2 - clamped_y1) * inv_frame_h),
+    };
 }
 
 #if MEDIA_SERVER_USE_ONNXRUNTIME
@@ -185,7 +324,8 @@ public:
         }
 
         try {
-            std::vector<float> input = ResizeRgbToNchw(frame, profile_.model_input_width, profile_.model_input_height);
+            YoloPreprocessInfo preprocess_info;
+            std::vector<float> input = PreprocessRgbToNchw(frame, profile_, &preprocess_info);
             std::array<std::int64_t, 4> shape = {1, 3, profile_.model_input_height, profile_.model_input_width};
             Ort::MemoryInfo memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
             Ort::Value input_tensor = Ort::Value::CreateTensor<float>(
@@ -202,7 +342,7 @@ public:
 
             result->source_key = frame.source_key;
             result->pts = frame.pts;
-            result->detections = ParseOutput(outputs.front());
+            result->detections = ParseOutput(outputs.front(), preprocess_info);
             if (error_message != nullptr) {
                 error_message->clear();
             }
@@ -216,7 +356,7 @@ public:
     }
 
 private:
-    std::vector<Detection> ParseOutput(Ort::Value& output) const {
+    std::vector<Detection> ParseOutput(Ort::Value& output, const YoloPreprocessInfo& preprocess_info) const {
         auto type_info = output.GetTensorTypeAndShapeInfo();
         if (type_info.GetElementType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {
             return {};
@@ -278,13 +418,8 @@ private:
             const float width = at(i, 2);
             const float height = at(i, 3);
             const bool normalized = std::max({std::fabs(cx), std::fabs(cy), std::fabs(width), std::fabs(height)}) <= 2.0F;
-            const float inv_w = normalized ? 1.0F : 1.0F / static_cast<float>(profile_.model_input_width);
-            const float inv_h = normalized ? 1.0F : 1.0F / static_cast<float>(profile_.model_input_height);
-            const float x1 = Clamp01((cx - width * 0.5F) * inv_w);
-            const float y1 = Clamp01((cy - height * 0.5F) * inv_h);
-            const float x2 = Clamp01((cx + width * 0.5F) * inv_w);
-            const float y2 = Clamp01((cy + height * 0.5F) * inv_h);
-            if (x2 <= x1 || y2 <= y1) {
+            const auto box = MapYoloBoxToFrame(cx, cy, width, height, normalized, preprocess_info);
+            if (!box.has_value()) {
                 continue;
             }
 
@@ -292,7 +427,7 @@ private:
                 .class_id = best_class,
                 .label = LabelForClass(labels_, best_class),
                 .score = score,
-                .box = RectF{.x = x1, .y = y1, .width = x2 - x1, .height = y2 - y1},
+                .box = *box,
             });
         }
         return ApplyNms(std::move(detections), profile_.nms_threshold, profile_.max_detections);

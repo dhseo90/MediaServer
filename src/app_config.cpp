@@ -20,6 +20,20 @@ constexpr const char* kEnvHttpListenAddress = "MEDIA_SERVER_HTTP_LISTEN_ADDRESS"
 constexpr const char* kEnvHttpListenPort = "MEDIA_SERVER_HTTP_LISTEN_PORT";
 constexpr const char* kEnvFileRoot = "MEDIA_SERVER_FILE_ROOT";
 constexpr const char* kEnvDefaultFile = "MEDIA_SERVER_DEFAULT_FILE";
+constexpr const char* kEnvDefaultAnalysisDetector = "MEDIA_SERVER_ANALYSIS_DETECTOR";
+constexpr const char* kEnvDefaultAnalysisModel = "MEDIA_SERVER_ANALYSIS_MODEL";
+constexpr const char* kEnvDefaultAnalysisLabels = "MEDIA_SERVER_ANALYSIS_LABELS";
+constexpr const char* kEnvDefaultAnalysisFps = "MEDIA_SERVER_ANALYSIS_FPS";
+constexpr const char* kEnvDefaultAnalysisMaxQueue = "MEDIA_SERVER_ANALYSIS_MAX_QUEUE";
+constexpr const char* kEnvDefaultAnalysisInputWidth = "MEDIA_SERVER_ANALYSIS_INPUT_WIDTH";
+constexpr const char* kEnvDefaultAnalysisInputHeight = "MEDIA_SERVER_ANALYSIS_INPUT_HEIGHT";
+constexpr const char* kEnvDefaultAnalysisConfidence = "MEDIA_SERVER_ANALYSIS_CONFIDENCE";
+constexpr const char* kEnvDefaultAnalysisNms = "MEDIA_SERVER_ANALYSIS_NMS";
+constexpr const char* kEnvDefaultAnalysisPreprocess = "MEDIA_SERVER_ANALYSIS_PREPROCESS";
+constexpr const char* kEnvDefaultAnalysisOverlayWaitMs = "MEDIA_SERVER_ANALYSIS_OVERLAY_WAIT_MS";
+constexpr const char* kEnvDefaultAnalysisOverlaySyncToleranceMs =
+    "MEDIA_SERVER_ANALYSIS_OVERLAY_SYNC_TOLERANCE_MS";
+constexpr const char* kEnvDefaultAnalysisOverlayThickness = "MEDIA_SERVER_ANALYSIS_OVERLAY_THICKNESS";
 constexpr const char* kEnvForceTcpOnly = "MEDIA_SERVER_FORCE_RTSP_TCP";
 constexpr const char* kEnvSessionTrace = "MEDIA_SERVER_SESSION_TRACE";
 constexpr const char* kEnvWebRtcTrace = "MEDIA_SERVER_WEBRTC_TRACE";
@@ -95,6 +109,22 @@ int ReadIntEnv(const char* name, int fallback) {
         return fallback;
     }
     return static_cast<int>(parsed);
+}
+
+float ReadFloatEnv(const char* name, float fallback) {
+    const char* value = ReadEnv(name);
+    if (value == nullptr) {
+        return fallback;
+    }
+
+    char* end = nullptr;
+    errno = 0;
+    const float parsed = std::strtof(value, &end);
+    if (errno != 0 || end == value || *end != '\0') {
+        std::cerr << "[env] invalid " << name << "='" << value << "', fallback " << fallback << "\n";
+        return fallback;
+    }
+    return parsed;
 }
 
 std::uint16_t ReadPortEnv(const char* name, std::uint16_t fallback) {
@@ -180,8 +210,34 @@ app::AppConfig LoadAppConfig() {
     config.http_listen_port = ReadPortEnv(kEnvHttpListenPort, config.http_listen_port);
     config.file_root_path = ReadStringEnv(kEnvFileRoot, config.file_root_path);
     config.default_file_path = ReadStringEnv(kEnvDefaultFile, config.default_file_path);
+    config.default_analysis_detector =
+        ReadStringEnv(kEnvDefaultAnalysisDetector, config.default_analysis_detector);
+    config.default_analysis_model_path =
+        ReadStringEnv(kEnvDefaultAnalysisModel, config.default_analysis_model_path);
+    config.default_analysis_labels_path =
+        ReadStringEnv(kEnvDefaultAnalysisLabels, config.default_analysis_labels_path);
+    config.default_analysis_fps = ReadIntEnv(kEnvDefaultAnalysisFps, config.default_analysis_fps);
+    config.default_analysis_max_queue =
+        ReadSizeEnv(kEnvDefaultAnalysisMaxQueue, config.default_analysis_max_queue);
+    config.default_analysis_input_width =
+        ReadIntEnv(kEnvDefaultAnalysisInputWidth, config.default_analysis_input_width);
+    config.default_analysis_input_height =
+        ReadIntEnv(kEnvDefaultAnalysisInputHeight, config.default_analysis_input_height);
+    config.default_analysis_confidence =
+        ReadFloatEnv(kEnvDefaultAnalysisConfidence, config.default_analysis_confidence);
+    config.default_analysis_nms = ReadFloatEnv(kEnvDefaultAnalysisNms, config.default_analysis_nms);
+    config.default_analysis_preprocess =
+        ReadStringEnv(kEnvDefaultAnalysisPreprocess, config.default_analysis_preprocess);
+    config.default_analysis_overlay_wait_ms =
+        ReadIntEnv(kEnvDefaultAnalysisOverlayWaitMs, config.default_analysis_overlay_wait_ms);
+    config.default_analysis_overlay_sync_tolerance_ms =
+        ReadIntEnv(kEnvDefaultAnalysisOverlaySyncToleranceMs, config.default_analysis_overlay_sync_tolerance_ms);
+    config.default_analysis_overlay_thickness =
+        ReadIntEnv(kEnvDefaultAnalysisOverlayThickness, config.default_analysis_overlay_thickness);
     config.file_root_path = ResolveRuntimePath(config.file_root_path);
     config.default_file_path = ResolveRuntimePath(config.default_file_path);
+    config.default_analysis_model_path = ResolveRuntimePath(config.default_analysis_model_path);
+    config.default_analysis_labels_path = ResolveRuntimePath(config.default_analysis_labels_path);
     config.force_rtsp_tcp = ReadBoolEnv(kEnvForceTcpOnly, config.force_rtsp_tcp);
     config.session_trace = ReadBoolEnv(kEnvSessionTrace, config.session_trace);
     config.webrtc_trace = ReadBoolEnv(kEnvWebRtcTrace, config.webrtc_trace);
@@ -230,6 +286,45 @@ app::AppConfig LoadAppConfig() {
         std::cerr << "[env] idle grace ms cannot be negative, fallback 0\n";
         config.idle_grace_period_ms = 0;
     }
+    if (config.default_analysis_detector.empty()) {
+        std::cerr << "[env] default analysis detector cannot be empty, fallback yolo\n";
+        config.default_analysis_detector = "yolo";
+    }
+    ValidatePositiveInt(&config.default_analysis_fps, app_config::kDefaultAnalysisFps, "Analysis fps");
+    if (config.default_analysis_max_queue == 0) {
+        std::cerr << "[env] analysis max queue cannot be 0, fallback 1\n";
+        config.default_analysis_max_queue = 1;
+    }
+    ValidatePositiveInt(&config.default_analysis_input_width,
+                        app_config::kDefaultAnalysisInputWidth,
+                        "Analysis input width");
+    ValidatePositiveInt(&config.default_analysis_input_height,
+                        app_config::kDefaultAnalysisInputHeight,
+                        "Analysis input height");
+    if (config.default_analysis_confidence < 0.0F || config.default_analysis_confidence > 1.0F) {
+        std::cerr << "[env] analysis confidence must be between 0 and 1, fallback "
+                  << app_config::kDefaultAnalysisConfidence << "\n";
+        config.default_analysis_confidence = app_config::kDefaultAnalysisConfidence;
+    }
+    if (config.default_analysis_nms < 0.0F || config.default_analysis_nms > 1.0F) {
+        std::cerr << "[env] analysis nms must be between 0 and 1, fallback "
+                  << app_config::kDefaultAnalysisNms << "\n";
+        config.default_analysis_nms = app_config::kDefaultAnalysisNms;
+    }
+    if (config.default_analysis_preprocess != "stretch") {
+        config.default_analysis_preprocess = "letterbox";
+    }
+    if (config.default_analysis_overlay_wait_ms < 0) {
+        std::cerr << "[env] analysis overlay wait cannot be negative, fallback 0\n";
+        config.default_analysis_overlay_wait_ms = 0;
+    }
+    if (config.default_analysis_overlay_sync_tolerance_ms < 0) {
+        std::cerr << "[env] analysis overlay tolerance cannot be negative, fallback 0\n";
+        config.default_analysis_overlay_sync_tolerance_ms = 0;
+    }
+    ValidatePositiveInt(&config.default_analysis_overlay_thickness,
+                        app_config::kDefaultAnalysisOverlayThickness,
+                        "Analysis overlay thickness");
     if (config.webrtc_source_ready_timeout_ms <= 0) {
         std::cerr << "[env] WebRTC source ready timeout must be positive, fallback 12000\n";
         config.webrtc_source_ready_timeout_ms = 12000;
