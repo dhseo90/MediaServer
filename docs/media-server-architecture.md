@@ -357,7 +357,8 @@ SharedStream
 - `/lab/analysis/taps/{tapId}/overlay.jpg`: 최신 분석 frame에 detection box/label을 그린 JPEG endpoint
 - RTSP/WebRTC consume query에 `va=1`을 지정하면 egress가 같은 source에 analysis tap을 자동으로 붙이고, encoder 직전 raw frame에 overlay를 합성한다.
 - `va=1`의 detector/model/labels/fps/queue 기본값은 URL이 아니라 `include/stdafx.h`와 `MEDIA_SERVER_ANALYSIS_*` 환경변수로 관리한다. `overlay=1`, `analysis=1`, `analysisOverlay=1`은 호환성용 alias다.
-- 현재 자동 보정은 기본 profile + bounded queue + drop-oldest 정책이다. detector 성능 지표를 보고 fps/input size를 동적으로 조절하는 adaptive tuner는 profile/rule registry 이후 별도 단계로 구현한다.
+- adaptive tuner는 detector 처리시간, pending queue, queue drop을 보고 런타임 `fps`를 먼저 낮춘다. fps가 하한에 닿은 뒤에도 과부하가 지속되면 dynamic input을 지원하는 모델에서 `inputWidth/inputHeight`를 낮춘다.
+- 고정 input ONNX model에서 input size 변경으로 inference가 실패하면 기본 input size로 되돌리고 input-size adaptive만 비활성화한다. fps adaptive는 계속 유지한다.
 - RTSP/WebRTC egress는 source packet PTS를 세션별 normalized PTS로 바꾸므로, overlay probe는 normalized PTS를 다시 source PTS로 매핑한 뒤 analysis result history에서 가장 가까운 결과를 찾는다.
 - PTS 매칭이 실패하는 WHEP/browser 경로에서는 최신 result fallback을 적용한다. 이 경우 완전한 frame-result sync보다는 overlay 미표시를 피하는 쪽을 우선한다.
 - `overlaySyncToleranceMs`는 result 매칭 허용 범위이고 기본 `400`ms다. `overlayWaitMs`는 result가 아직 도착하지 않은 경우 probe가 기다리는 최대 시간이고 기본 `180`ms다.
@@ -367,12 +368,14 @@ SharedStream
 - 기본 VA profile의 현재 검증 모델은 Ultralytics assets `v8.4.0`의 `yolo11n.onnx`이고, label은 `models/coco.names`의 COCO 80개 class다. 세부 객체 목록은 `README.md`의 YOLO/COCO 기준 섹션에 둔다.
 - YOLO 전처리는 기본 letterbox다. detector output box는 input padding/scale을 역보정한 뒤 원본 frame 기준 normalized 좌표로 저장한다. 호환성 검증용으로 `preprocess=stretch`도 남겨 둔다.
 - `AnalysisManager::TapSnapshot`은 `lastAnalysisMs`, `averageAnalysisMs`, `maxAnalysisMs`를 제공한다.
-- `/lab/analysis/capabilities`, `/lab/analysis/profiles`, `/lab/analysis/rules`는 detector/profile/rule 설계 상태를 노출하는 read-only lab API다.
+- `/lab/analysis/capabilities`는 detector/profile/rule 지원 범위를 노출한다.
+- `/lab/analysis/profiles`, `/lab/analysis/rules`는 1차 persistent registry API다. 기본 저장 파일은 `.media_server.analysis_registry.json`이고, 현재는 저장/조회/수정/삭제까지만 담당한다.
 
 아직 남은 핵심 작업:
-- persistent profile/rule registry와 per-client rule override
+- 저장된 profile/rule을 실제 요청에 자동 적용하는 matching layer와 per-client override
 - rule/event engine
 - 모델별 output layout 옵션 정교화
+- adaptive tuner의 운영 기준값(profile별 bounds/cooldown)과 추가 장시간 회귀 테스트
 
 ## 13. 라이브러리 선택
 - `live555`: Linux/macOS/Windows 모두 사용 가능. RTSP 서버/클라이언트에 집중된 경량 라이브러리.

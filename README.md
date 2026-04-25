@@ -89,7 +89,8 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
   - `va=1` 요청으로 file/RTSP/WebRTC source에 YOLO/ONNX 객체 감지 tap을 붙일 수 있다.
   - RTSP/WebRTC egress raw video 구간에 detection box/label overlay를 합성한다.
   - metadata, snapshot, overlay snapshot 개발용 API를 제공한다.
-  - profile/rule registry, event engine, adaptive tuner는 아직 후속 단계다.
+  - adaptive tuner는 detector 부하에 따라 런타임 `fps`를 먼저 낮추고, 가능한 경우 input size까지 낮춘다.
+  - profile/rule registry는 1차 저장/조회/수정/삭제를 제공하고, 실제 요청 자동 적용과 event engine은 아직 후속 단계다.
 - 실험실 기능
   - `source=youtube` resolver 경로는 코드에 남아 있지만 기본값으로는 비활성화되어 있다.
   - 기본 검증 UI는 `/webrtc/test`, 개발용 실험 UI는 `/lab`로 분리했다.
@@ -102,8 +103,8 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - 운영용 WebRTC auth / STUN / TURN / ICE policy 설정
 - 운영용 metrics / admin API
 - 외부 RTSP source별 세밀한 reconnect 정책
-- 영상분석 persistent profile/rule registry와 event engine
-- detector 부하 기반 fps/input size adaptive tuner
+- 영상분석 rule matching/per-client override와 event engine
+- adaptive tuner 운영 기준값과 장시간 회귀 검증
 
 ### 최근 정리
 - WebRTC egress/source 양쪽에 중복되어 있던 GStreamer RTCP workaround, SDP sanitize, pipeline clock/latency 설정을 `ingress/webrtc_gst_utils`로 공통화했습니다.
@@ -304,6 +305,16 @@ MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
 | `MEDIA_SERVER_ANALYSIS_OVERLAY_WAIT_MS` | `va=1` 기본 overlay result 대기 시간. 기본 `180` |
 | `MEDIA_SERVER_ANALYSIS_OVERLAY_SYNC_TOLERANCE_MS` | `va=1` 기본 PTS 매칭 허용 범위. 기본 `400` |
 | `MEDIA_SERVER_ANALYSIS_OVERLAY_THICKNESS` | `va=1` 기본 detection box 두께. 기본 `3` |
+| `MEDIA_SERVER_ANALYSIS_ADAPTIVE` | `1`이면 VA adaptive tuner 사용. 기본 `1` |
+| `MEDIA_SERVER_ANALYSIS_ADAPTIVE_INPUT_SIZE` | `1`이면 fps 하한 이후 input size도 조절. 기본 `1` |
+| `MEDIA_SERVER_ANALYSIS_ADAPTIVE_MIN_FPS` | adaptive fps 하한. 기본 `2` |
+| `MEDIA_SERVER_ANALYSIS_ADAPTIVE_COOLDOWN_MS` | adaptive 조절 간 최소 대기 시간. 기본 `3000` |
+| `MEDIA_SERVER_ANALYSIS_ADAPTIVE_INPUT_STEP` | input size 조절 단위. 기본 `128` |
+| `MEDIA_SERVER_ANALYSIS_ADAPTIVE_MIN_INPUT_WIDTH` | adaptive input width 하한. 기본 `320` |
+| `MEDIA_SERVER_ANALYSIS_ADAPTIVE_MIN_INPUT_HEIGHT` | adaptive input height 하한. 기본 `320` |
+| `MEDIA_SERVER_ANALYSIS_ADAPTIVE_HIGH_LATENCY_RATIO` | 분석 시간이 frame budget 대비 이 비율을 넘으면 과부하로 본다. 기본 `0.85` |
+| `MEDIA_SERVER_ANALYSIS_ADAPTIVE_LOW_LATENCY_RATIO` | 분석 시간이 frame budget 대비 이 비율보다 낮은 상태가 지속되면 복구 후보로 본다. 기본 `0.35` |
+| `MEDIA_SERVER_ANALYSIS_REGISTRY` | lab profile/rule registry 저장 파일. 기본 `.media_server.analysis_registry.json` |
 | `MEDIA_SERVER_FORCE_RTSP_TCP` | `1`이면 RTSP transport를 TCP 위주로 강제 |
 | `MEDIA_SERVER_SESSION_TRACE` | `1`이면 SessionManager acquire/cleanup 로그 출력 |
 | `MEDIA_SERVER_WEBRTC_TRACE` | `1`이면 WebRTC 협상/상태 로그 출력 |
@@ -353,6 +364,7 @@ cp scripts/.media_server.env.example scripts/.media_server.env
 | `scripts/diagnose_media_server.sh` | 실행환경, 포트, source 접근성 진단 |
 | `scripts/print_external_test_urls.sh` | 같은 LAN의 다른 PC에서 복사해 테스트할 URL 출력 |
 | `scripts/verify_codec_matrix.sh` | source/route codec matrix 자동 검증 |
+| `scripts/verify_va_overlay.sh` | YOLO/VA overlay lab, RTSP, WebRTC 회귀 검증 |
 | `scripts/serve_test_rtsp_source.py` | 로컬 샘플 파일을 RTSP source로 제공 |
 | `scripts/whip_publish_test.py` | 로컬 WebRTC WHIP publisher |
 | `scripts/browser_webrtc_publish_consume_check.mjs` | 브라우저 기반 publish/consume 검증 |
@@ -736,7 +748,9 @@ SharedStream
 - analysis tap은 profile의 `fps`로 wall-clock 기준 frame sampling을 수행하고, `maxQueue`를 넘으면 오래된 raw frame부터 버린다.
 - RTSP/WebRTC consume 요청에 `va=1`을 붙이면 서버 기본 VA profile을 사용해 같은 source에 analysis tap을 자동으로 붙이고, egress raw video 구간에 detection box/label을 합성한다.
 - `detector`, `model`, `labels`, `confidence`, `nms` 같은 세부값은 URL 기본 사용값에서 제외했다. 개발자가 바꿀 값은 `include/stdafx.h` 또는 `MEDIA_SERVER_ANALYSIS_*` 환경변수로 관리한다.
-- 현재 자동 보정 범위는 서버 기본 profile 적용, 짧은 bounded queue, 오래된 frame drop이다. detector 지연을 실시간 측정해 fps/input size를 자동으로 낮추는 adaptive tuner는 아직 구현하지 않았다.
+- adaptive tuner는 detector 처리시간, pending queue, queue drop을 보고 런타임 `fps`를 먼저 낮춘다. fps가 하한에 닿은 뒤에도 과부하가 지속되면 ONNX model이 dynamic input을 받을 수 있는 경우 `inputWidth/inputHeight`를 단계적으로 낮춘다.
+- 고정 input ONNX model에서 input size 변경으로 inference가 실패하면 기본 input size로 되돌리고 input-size adaptive만 비활성화한다. fps adaptive는 계속 유지한다.
+- detection label은 `person 88%`처럼 percentage로 표기한다.
 - 이전 실험용 query인 `overlay=1`, `analysis=1`, `analysisOverlay=1`과 세부 override query는 호환성/디버그 목적으로만 남겨 둔다.
 - overlay stream은 egress가 재작성한 normalized PTS를 원본 source PTS로 되돌려 analysis result history와 매칭한다. 이 덕분에 loop/replay 또는 B-frame reorder가 있어도 단순 최신 결과를 덮어쓰는 것보다 박스 밀림이 줄어든다.
 - PTS 매칭이 실패하면 최신 result로 fallback한다. WHEP처럼 raw buffer PTS가 egress packet PTS mapping과 어긋나는 경로에서도 overlay가 아예 사라지지 않게 하기 위한 안전장치다.
@@ -813,6 +827,29 @@ POST /webrtc/session?file=imports/yolo_bus_test.mp4&va=1
 
 overlay stream은 detector가 첫 결과를 만들기 전까지 원본 frame만 송출할 수 있다. 따라서 stream 시작 직후 몇 프레임은 box 없이 보이는 것이 정상이다.
 
+VA overlay 회귀 검증:
+
+```bash
+# ONNX Runtime 포함 빌드 서버를 먼저 실행한 뒤 수행한다.
+MEDIA_SERVER_LISTEN_PORT=8555 \
+MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
+MEDIA_SERVER_VERIFY_VA_DURATION_S=30 \
+./scripts/verify_va_overlay.sh
+```
+
+`verify_va_overlay.sh`는 다음을 한 번에 확인한다.
+- `/lab/analysis/taps`로 YOLO tap을 만들고 `decodedFrames`, `analyzedPackets`, detection label, adaptive 상태를 확인한다.
+- `/lab/analysis/taps/{tapId}/overlay.jpg`가 JPEG로 생성되는지 확인한다.
+- `rtsp://.../dhseo?file=...&va=1`을 `ffmpeg`로 decode해 RTSP overlay egress가 열리는지 확인한다.
+- `/lab`의 VA 옵션을 켠 상태로 WebRTC simple signaling과 WHEP 브라우저 재생을 확인한다.
+
+자주 쓰는 옵션:
+- `MEDIA_SERVER_VERIFY_VA_FILE=imports/NewYorkDriving.mp4`: 움직임이 큰 영상으로 변경
+- `MEDIA_SERVER_VERIFY_VA_DURATION_S=120`: 회귀 시간을 늘림
+- `MEDIA_SERVER_VERIFY_VA_SKIP_WEBRTC=1`: 브라우저 검증 제외
+- `MEDIA_SERVER_VERIFY_VA_SKIP_RTSP=1`: RTSP 검증 제외
+- `MEDIA_SERVER_VERIFY_VA_EXTRA_QUERY='overlayWaitMs=180&overlaySyncToleranceMs=400'`: 추가 query 적용
+
 1차 YOLO parser는 `YOLOv8/YOLO11` 계열의 `[1, 84, N]` 또는 `[1, N, 84]` 출력과 `YOLOv5` 계열의 objectness 포함 `[1, N, 85]` 출력을 대상으로 한다. fp32 출력 tensor만 지원한다. 기본 전처리는 YOLO 계열에 맞춘 letterbox이며, 모델 출력 좌표에서 padding과 scale을 역보정해 원본 frame 기준 normalized box로 변환한다. 모델이 objectness 포함 layout이면 `objectness=1`을 명시할 수 있다.
 
 분석 API 설계/상태 확인 endpoint:
@@ -823,7 +860,37 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/profiles'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/rules'
 ```
 
-`/lab/analysis/profiles`와 `/lab/analysis/rules`는 현재 read-only 설계 API다. 실제 persistent profile/rule registry와 per-client rule override는 다음 단계에서 구현한다.
+`/lab/analysis/profiles`와 `/lab/analysis/rules`는 1차 persistent registry를 제공한다. 기본 저장 파일은 `.media_server.analysis_registry.json`이며 `.gitignore`에 포함되어 있다. 현재 단계에서는 등록한 profile/rule을 저장하고 조회할 수 있고, 실제 요청 자동 적용과 per-client override는 다음 단계에서 연결한다.
+
+profile/rule registry 예시:
+
+```bash
+curl -fsS -X POST 'http://127.0.0.1:8080/lab/analysis/profiles' \
+  -H 'Content-Type: application/json' \
+  --data '{"id":"fast-local","detector":"yolo","fps":6,"maxQueue":1,"adaptive":true}'
+
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/profiles/fast-local'
+
+curl -fsS -X PUT 'http://127.0.0.1:8080/lab/analysis/profiles/fast-local' \
+  -H 'Content-Type: application/json' \
+  --data '{"id":"fast-local","detector":"yolo","fps":4,"maxQueue":1,"adaptive":true}'
+
+curl -fsS -X POST 'http://127.0.0.1:8080/lab/analysis/rules' \
+  -H 'Content-Type: application/json' \
+  --data '{"id":"file-overlay","enabled":true,"match":{"sourceKind":"file"},"analysis":{"profileId":"fast-local"},"outputs":{"overlay":true}}'
+
+curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/rules/file-overlay'
+curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/profiles/fast-local'
+```
+
+adaptive tuner 상태는 `/lab/analysis/taps/{tapId}`에서 확인한다.
+
+주요 필드:
+- `targetFps`: 현재 런타임 sampling fps
+- `modelInputWidth`, `modelInputHeight`: 현재 detector input size
+- `adaptiveState`: `steady`, `downshift-fps`, `downshift-input`, `upshift-fps`, `upshift-input`, `input-size-disabled` 등
+- `adaptiveDownshiftCount`, `adaptiveUpshiftCount`: 자동 하향/복구 횟수
+- `adaptiveInputSizeDisabled`: 고정 input model 등의 이유로 input size adaptive가 꺼졌는지 여부
 
 검증용 모델/이미지는 repo에 커밋하지 않고 `models/`, `video/imports/` 아래에 둔다. 이 경로들은 `.gitignore`에 포함되어 있다.
 
@@ -1066,7 +1133,7 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./scripts/print_external_test_urls.s
    - 현재 relay 안정화 기준으로 file, RTSP pull, WebRTC publish source의 주요 경로를 분석 1차 범위로 검증했다.
    - HTTP/HLS는 코드 경로가 있지만 최신 `source=http -> RTSP` 503 재현 때문에 분석 1차 범위에서 제외하고 후속 안정화에서 다시 확인한다.
    - 송신 경로(RTSP/WebRTC egress)는 직접 막지 않는다.
-   - 다음 개발은 persistent profile/rule registry, rule event engine, metadata event endpoint, adaptive tuner 순서로 진행한다.
+   - 다음 개발은 저장된 profile/rule을 실제 요청에 자동 적용하는 matching layer와 per-client override, rule event engine, metadata event endpoint 순서로 진행한다.
    - 외부 RTSP, WebRTC 운영 설정, 실험실 YouTube, `/lab/import` 외부 네트워크 재검증 같은 보류 항목은 후속 안정화에서 다시 main 기준으로 확인한다.
 2. 운영 안정화 후속
    - 외부 RTSP source별 timeout/profile 설정 확장

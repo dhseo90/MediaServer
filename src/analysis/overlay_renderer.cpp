@@ -104,6 +104,7 @@ const std::array<const char*, 7>* GlyphFor(char raw_ch) {
     static const std::array<const char*, 7> dash{{"00000", "00000", "00000", "11110", "00000", "00000", "00000"}};
     static const std::array<const char*, 7> dot{{"00000", "00000", "00000", "00000", "00000", "01100", "01100"}};
     static const std::array<const char*, 7> colon{{"00000", "01100", "01100", "00000", "01100", "01100", "00000"}};
+    static const std::array<const char*, 7> percent{{"11001", "11010", "00100", "01000", "10110", "00110", "00000"}};
 
     static const std::array<std::array<const char*, 7>, 10> digits{{
         {"01110", "10001", "10011", "10101", "11001", "10001", "01110"},
@@ -160,6 +161,9 @@ const std::array<const char*, 7>* GlyphFor(char raw_ch) {
     if (ch == ':') {
         return &colon;
     }
+    if (ch == '%') {
+        return &percent;
+    }
     if (ch >= '0' && ch <= '9') {
         return &digits[ch - '0'];
     }
@@ -198,7 +202,8 @@ void DrawText(RawVideoFrame* frame, int x, int y, const std::string& text, Color
 
 std::string BuildLabel(const Detection& detection) {
     char score[16];
-    std::snprintf(score, sizeof(score), "%.2f", detection.score);
+    const int percent = ClampInt(static_cast<int>(std::lround(detection.score * 100.0F)), 0, 100);
+    std::snprintf(score, sizeof(score), "%d%%", percent);
     std::string label = detection.label.empty() ? ("class_" + std::to_string(detection.class_id)) : detection.label;
     std::replace(label.begin(), label.end(), '_', ' ');
     return label + " " + score;

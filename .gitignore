@@ -17,6 +17,7 @@
 /.media_server.mode
 /.media_server.pid
 /.media_server.port
+/.media_server.analysis_registry.json
 /scripts/.media_server.env
 /video/imports/
 /models/

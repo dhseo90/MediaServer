@@ -12,6 +12,8 @@ const args = parseArgs(process.argv.slice(2));
 const chromePath = args.chromePath || findChrome();
 const httpBase = (args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const mode = args.mode || "simple";
+const vaEnabled = isTruthy(args.va || args.analysis || args.overlay);
+const pagePath = normalizePagePath(args.pagePath || args.path || (vaEnabled || isTruthy(args.lab) ? "/lab" : "/webrtc/test"));
 const sourceId = args.sourceId || `publisher-browser-${Date.now()}`;
 const existingSourceId = args.existingSourceId || "";
 const consumeSourceKind = args.sourceKind || "";
@@ -27,6 +29,14 @@ const publisherPlaybackTimeoutMs = Number(args.publisherPlaybackTimeoutMs || 150
 const consumerPlaybackTimeoutMs = Number(args.consumerPlaybackTimeoutMs || 30000);
 const publisherWarmupMs = Number(args.publisherWarmupMs || (splitPublishConsume ? 8000 : 0));
 const postPlaybackHoldMs = Number(args.postPlaybackHoldMs || 0);
+const analysisOptions = {
+  va: vaEnabled,
+  fps: args.analysisFps || args.fps || "",
+  maxQueue: args.analysisQueue || args.maxQueue || "",
+  overlayWaitMs: args.overlayWaitMs || "",
+  overlaySyncToleranceMs: args.overlaySyncToleranceMs || "",
+  preprocess: args.preprocess || "",
+};
 
 if (!chromePath) {
   console.error("[browser-check] failed: Chrome executable not found");
@@ -75,6 +85,7 @@ try {
           document.getElementById('sourceType').value = 'webrtc';
           document.getElementById('publishSourceIdInput').value = ${JSON.stringify(sourceId)};
           document.getElementById('webrtcSourceInput').value = ${JSON.stringify(sourceId)};
+          ${setupAnalysisControlsExpression()}
           await api.stopSession();
           await api.stopPublisher();
           if (${JSON.stringify(mode)} === 'whep') {
@@ -129,7 +140,17 @@ try {
             const sourceFile = ${JSON.stringify(consumeFile)};
             if (sourceFile) {
               document.getElementById('sourceType').value = 'file';
-              document.getElementById('fileInput').value = sourceFile;
+              const fileInput = document.getElementById('fileInput');
+              if (fileInput && fileInput.tagName === 'SELECT' && !Array.from(fileInput.options).some((option) => option.value === sourceFile)) {
+                const option = document.createElement('option');
+                option.value = sourceFile;
+                option.textContent = sourceFile;
+                fileInput.appendChild(option);
+              }
+              if (fileInput) {
+                fileInput.value = sourceFile;
+                fileInput.dataset.loaded = '1';
+              }
             } else if (sourceKind === 'webrtc') {
               document.getElementById('sourceType').value = 'webrtc';
               document.getElementById('webrtcSourceInput').value = sourceUrl;
@@ -143,6 +164,7 @@ try {
             await api.startPublish();
             await api.waitForPlayback('publisher', ${JSON.stringify(publisherPlaybackTimeoutMs)});
           }
+          ${setupAnalysisControlsExpression()}
           if (${JSON.stringify(mode)} === 'publish-only') {
             await new Promise((resolve) => setTimeout(resolve, ${JSON.stringify(holdMs)}));
             return api.snapshotState();
@@ -219,7 +241,7 @@ function validateConsumerVideo(result) {
 
 async function launchBrowser(label, port) {
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-chrome-"));
-  const targetUrl = `${httpBase}/webrtc/test?run=${Date.now()}-${label}`;
+  const targetUrl = `${httpBase}${pagePath}?run=${Date.now()}-${label}`;
   const pending = new Map();
   let messageId = 0;
   let ws = null;
@@ -315,6 +337,43 @@ function parseArgs(argv) {
     i += 1;
   }
   return out;
+}
+
+function isTruthy(value) {
+  if (value === true) {
+    return true;
+  }
+  const text = String(value || "").toLowerCase();
+  return text === "1" || text === "true" || text === "yes" || text === "on";
+}
+
+function normalizePagePath(value) {
+  const pathValue = String(value || "/webrtc/test");
+  return pathValue.startsWith("/") ? pathValue : `/${pathValue}`;
+}
+
+function setupAnalysisControlsExpression() {
+  return `
+          {
+            const analysisOverlayInput = document.getElementById('analysisOverlayInput');
+            if (${JSON.stringify(analysisOptions.va)} && !analysisOverlayInput) {
+              throw new Error('missing VA controls; run against /lab or pass --page-path /lab');
+            }
+            if (analysisOverlayInput) {
+              analysisOverlayInput.checked = ${JSON.stringify(analysisOptions.va)};
+            }
+            const analysisFpsInput = document.getElementById('analysisFpsInput');
+            if (analysisFpsInput) analysisFpsInput.value = ${JSON.stringify(analysisOptions.fps)};
+            const analysisQueueInput = document.getElementById('analysisQueueInput');
+            if (analysisQueueInput) analysisQueueInput.value = ${JSON.stringify(analysisOptions.maxQueue)};
+            const analysisOverlayWaitInput = document.getElementById('analysisOverlayWaitInput');
+            if (analysisOverlayWaitInput) analysisOverlayWaitInput.value = ${JSON.stringify(analysisOptions.overlayWaitMs)};
+            const analysisOverlayToleranceInput = document.getElementById('analysisOverlayToleranceInput');
+            if (analysisOverlayToleranceInput) analysisOverlayToleranceInput.value = ${JSON.stringify(analysisOptions.overlaySyncToleranceMs)};
+            const analysisPreprocessInput = document.getElementById('analysisPreprocessInput');
+            if (analysisPreprocessInput) analysisPreprocessInput.value = ${JSON.stringify(analysisOptions.preprocess)};
+          }
+  `;
 }
 
 function findChrome() {

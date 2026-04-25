@@ -12,6 +12,7 @@ public:
     virtual std::string Name() const = 0;
     virtual bool Start(std::string* error_message);
     virtual void Stop();
+    virtual bool UpdateProfile(const AnalysisProfile& profile, std::string* error_message);
     virtual bool Analyze(const RawVideoFrame& frame, AnalysisResult* result, std::string* error_message) = 0;
 };
 

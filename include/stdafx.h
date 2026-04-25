@@ -40,4 +40,14 @@ inline constexpr const char* kDefaultAnalysisPreprocess = "letterbox";
 inline constexpr int kDefaultAnalysisOverlayWaitMs = 180;
 inline constexpr int kDefaultAnalysisOverlaySyncToleranceMs = 400;
 inline constexpr int kDefaultAnalysisOverlayThickness = 3;
+inline constexpr bool kDefaultAnalysisAdaptiveEnabled = true;
+inline constexpr bool kDefaultAnalysisAdaptiveInputEnabled = true;
+inline constexpr int kDefaultAnalysisAdaptiveMinFps = 2;
+inline constexpr int kDefaultAnalysisAdaptiveCooldownMs = 3000;
+inline constexpr int kDefaultAnalysisAdaptiveInputStep = 128;
+inline constexpr int kDefaultAnalysisAdaptiveMinInputWidth = 320;
+inline constexpr int kDefaultAnalysisAdaptiveMinInputHeight = 320;
+inline constexpr float kDefaultAnalysisAdaptiveHighLatencyRatio = 0.85F;
+inline constexpr float kDefaultAnalysisAdaptiveLowLatencyRatio = 0.35F;
+inline constexpr const char* kDefaultAnalysisRegistryPath = ".media_server.analysis_registry.json";
 }  // namespace app_config
