@@ -7,9 +7,9 @@
   - Source: File, RTSP Pull, WebRTC WHIP publish source, HTTP/HLS URI source 1차 경로
   - Egress: RTSP, WebRTC
 - 미래 확장:
-  - YouTube live/uploaded URL 처리를 위한 HLS/HTTP source adapter 추가
+  - YouTube live/uploaded URL 실험실 기능의 권한/정책 정리
   - 운영용 WebRTC auth / STUN / TURN / ICE policy 추가
-  - 영상 분석 pipeline 추가
+  - 영상 분석 tracker/rule/profile 고도화
 - 핵심 요구:
   - 동일 소스에 대한 다중 클라이언트 요청 시 Source Pull 1회 + N-way fan-out
   - 서로 다른 N개의 요청을 동시에 안정적으로 처리
@@ -19,7 +19,7 @@
 Player (RTSP/WebRTC)
       |
       v
-Ingress Adapter (RTSP now, WebRTC later)
+Ingress/Egress Adapter (RTSP/WebRTC)
       |
       v
 Session Manager ---- Resource Guard ---- Metrics
@@ -34,26 +34,28 @@ SharedStream
   - Subscriber Queues (N)
       |
       v
-Egress Adapter (RTSP now, WebRTC later)
+RTSP/WebRTC Egress
 ```
 
 이 구조를 연결 관점에서 다시 쓰면 아래와 같다.
 
 ```text
-Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Original Source
+Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC or HTTP/HLS URI) <-> Original Source
 ```
 
 중요한 점:
 - `Client -> MediaServer` 구간과 `MediaServer -> Original Source` 구간은 독립적으로 결정된다.
 - 앞단은 `egress protocol`, 뒷단은 `source protocol`이다.
 - 요청 URL/endpoint와 query/source 파라미터 조합으로 두 구간을 각각 선택한다.
+- URL query에 들어가는 `file`, `model`, `labels` 경로는 프로젝트 루트 기준 상대경로를 권장한다. `file`은 기본 `video` root 아래 token으로 해석하므로 `sample_h264.mp4`, `imports/NewYorkDriving.mp4`처럼 쓴다.
+- Homebrew prefix나 ONNX Runtime 설치 root처럼 프로젝트 밖 시스템 위치를 가리키는 설정만 예외적으로 절대경로를 허용한다.
 
 ### 2.1 프로토콜 선택 규칙
 
 | 구간 | 의미 | 결정 방식 | 값 |
 | --- | --- | --- | --- |
 | `Client -> MediaServer` | egress protocol | RTSP URL 또는 WebRTC HTTP endpoint | `RTSP`, `WebRTC` |
-| `MediaServer -> Original Source` | source protocol | `file`, `url`, `source` 파라미터 | `file`, `RTSP`, `WebRTC` |
+| `MediaServer -> Original Source` | source protocol | `file`, `url`, `source` 파라미터 | `file`, `RTSP`, `WebRTC`, `HTTP/HLS URI` |
 
 예시:
 - `rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4`
@@ -65,6 +67,10 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - `POST /webrtc/session?source=webrtc&url=publisher-demo`
   - egress: `WebRTC`
   - source: `WebRTC`
+- `POST /webrtc/session?source=http&url={urlencoded_http_media_url}`
+  - egress: `WebRTC`
+  - source: `HTTP URI`
+  - RTSP egress의 HTTP/HLS URI source는 최신 blocker 체크에서 재확인 필요 상태다.
 
 ## 3. 핵심 개념
 
@@ -84,35 +90,51 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
   - 기본: `drop-oldest` (실시간성 우선)
   - 대안: 제한 초과 시 subscriber disconnect
 
-## 4. 디렉터리 구조 제안 (C++ 기준)
+## 4. 디렉터리 구조 (현재 기준)
 ```text
+server.sh                 # 사용자용 단일 진입점
 include/
-  stdafx.h                 # configurable constants (route path etc.)
+  stdafx.h                 # route, 기본 포트, file root, 분석 기본값
+  app_config.h
   media_types.h
+  analysis/                # VA profile/rule/event/overlay 타입
   core/
-    resource_guard.h
     session_manager.h
     stream_key.h
     shared_stream.h
     stream_registry.h
   ingress/
+    analysis_query.h
+    analysis_rule_registry.h
     gstreamer_rtsp_server.h
     request_parser.h
-    rtsp_adapter.h
     webrtc_gst_utils.h
 src/
   main.cpp
+  app_config.cpp
+  analysis/                # YOLO/ONNX, decoder, overlay, event POST/engine
   core/
-    resource_guard.cpp
     session_manager.cpp
     shared_stream.cpp
     stream_registry.cpp
     stream_key.cpp
   ingress/
+    analysis_query.cpp
+    lab_import_manager.cpp
     gstreamer_rtsp_server.cpp
     request_parser.cpp
-    rtsp_adapter.cpp
+    webrtc_http_server.cpp
     webrtc_gst_utils.cpp
+scripts/
+  .media_server.env.example
+  internal/                # server.sh가 호출하는 내부 스크립트
+docs/
+  media-server-architecture.md
+  stream-verification.md
+video/
+  sample_h264.mp4
+  sample_h265.mp4
+  va_four_scene_sample.mp4
 CMakeLists.txt
 ```
 
@@ -252,7 +274,7 @@ public:
 
 ## 12.1 HTTP/HLS source와 실험실 YouTube source
 
-현재 기본 확장 방향은 `source=http|hls`이며, YouTube watch/live URL은 실험실 기능으로만 유지한다. YouTube watch/live URL은 직접 media URL이 아니므로 서버 내부에서는 아래처럼 분리한다.
+현재 기본 URI source 방향은 `source=http|hls`이며, YouTube watch/live URL은 실험실 기능으로만 유지한다. YouTube watch/live URL은 직접 media URL이 아니므로 서버 내부에서는 아래처럼 분리한다.
 
 ```text
 YouTube watch/live URL
@@ -272,9 +294,11 @@ SharedStream
 
 구현 원칙:
 - 기본 source protocol은 `source=hls` 또는 `source=http`로 먼저 연다. 현재 1차 `UriSourceWorker`는 GStreamer `uridecodebin`으로 HTTP/HLS media URL을 수신한 뒤 내부 표준 패킷(`H264` video, `AAC` audio)으로 재인코딩한다.
+- `source=http|hls -> WebRTC`는 1차 지원 경로로 본다. `source=http|hls -> RTSP`는 구현 경로와 과거 통과 이력이 있지만 최신 blocker 체크에서 `503 Service Unavailable`이 재현되어 재확인 필요 상태다.
 - `source=youtube`는 `yt-dlp` 기반 resolver를 통과하는 실험실 옵션으로 두고, 기본값으로는 숨긴다.
-- 검증 UI도 기본 `/webrtc/test`와 개발용 `/lab`로 분리해, 실험 기능은 `/lab`에만 노출한다.
-- 개발용 URL import는 `/lab/import`에서 별도 job 화면으로 분리해, 다운로드/import 상태와 기존 relay 테스트 UI를 섞지 않는다.
+- `/lab`를 통합 진입점으로 두고 안정 테스트, VA 분석, 룰 편집, 실험실 가져오기를 같은 화면에서 접고 펼친다.
+- `/webrtc/test`, `/lab/rules`, `/lab/import`는 자동화와 기존 bookmark 호환 route로 유지하되, 일반 수동 진입점은 `/lab` 하나로 본다.
+- 개발용 URL import는 `/lab`의 실험실 가져오기 영역에서 job 단위로 관리해, 다운로드/import 상태와 relay 테스트 설정을 분리한다.
 - `/lab/import`는 다운로드가 끝난 뒤 `ffmpeg`로 결과 파일을 `h264 + aac stereo + mp4`로 정규화해, 기존 `file=` relay/analysis 경로에 바로 재사용 가능한 토큰을 남긴다.
 - resolver는 YouTube watch/live URL을 HLS/HTTP playable URL로 변환하고, 실제 packet 수집은 기존 `UriSourceWorker`가 담당한다.
 - 라이브와 업로드된 영상 모두 고려한다.
@@ -294,9 +318,9 @@ SharedStream
   - `POST /webrtc/session?source=youtube&url={urlencoded_youtube_watch_or_live_url}`
   - `POST /whep?source=youtube&url={urlencoded_youtube_watch_or_live_url}`
 
-## 12.2 다음 확장: 영상 분석 계층
+## 12.2 영상 분석 계층
 
-현재 다음 주요 단계는 MediaServer 안에 영상 분석 계층을 추가하는 것이다. 이때 분석 로직은 relay 경로를 직접 대체하는 것이 아니라, `SharedStream`을 구독하는 별도 처리 경로로 붙이는 것이 맞다.
+현재 MediaServer 안에는 1차 영상 분석 계층이 들어가 있다. 분석 로직은 relay 경로를 직접 대체하지 않고, `SharedStream`을 구독하는 별도 처리 경로로 붙는다.
 
 권장 구조:
 
@@ -339,7 +363,7 @@ SharedStream
 - `SharedStream::RefCount()`는 relay client만 세며, analysis tap은 `AnalysisSubscriberCount()`로 별도 확인한다. 따라서 분석 기능이 붙어도 live source idle cleanup을 막지 않는다.
 - 이후 객체 감지 모델 교체, snapshot 정책 추가, 이벤트 API 추가가 쉬워진다.
 
-현재 skeleton:
+현재 구현:
 - `analysis::AnalysisProfile`: fps, queue, detection/tracking/pose/overlay 사용 여부를 담는 profile 단위
 - `analysis::Detector`: YOLO/ONNX Runtime detector를 붙일 교체형 인터페이스
 - `analysis::AnalysisManager`: stream key + profile 기준으로 `SharedStream` analysis tap을 등록하고 최신 결과를 보관하는 계층
@@ -372,8 +396,9 @@ SharedStream
 - `/lab/analysis/profiles`, `/lab/analysis/rules`는 1차 persistent registry API다. 기본 저장 파일은 `.media_server.analysis_registry.json`이고, 현재는 저장/조회/수정/삭제까지만 담당한다.
 
 아직 남은 핵심 작업:
-- 저장된 profile/rule을 실제 요청에 자동 적용하는 matching layer와 per-client override
-- rule/event engine
+- tracker 기반 객체 ID 매칭으로 enter/exit/line-crossing 이벤트 안정화
+- 저장된 profile/rule의 per-client override와 운영용 matching 정책 정교화
+- 이미지 입력을 받아 분석 결과 overlay 이미지를 반환하는 개발용 endpoint
 - 모델별 output layout 옵션 정교화
 - adaptive tuner의 운영 기준값(profile별 bounds/cooldown)과 추가 장시간 회귀 테스트
 
@@ -381,48 +406,62 @@ SharedStream
 - `live555`: Linux/macOS/Windows 모두 사용 가능. RTSP 서버/클라이언트에 집중된 경량 라이브러리.
 - `GStreamer`: Linux/macOS/Windows 모두 사용 가능. RTSP + 트랜스코딩 + WebRTC 확장까지 한 스택으로 가져가기 쉬움.
 - 본 프로젝트는 확장성을 위해 `GStreamer` 기준으로 진행.
-- 빌드:
+- 권장 실행:
+  - 새 환경: `./server.sh install`
+  - AI 포함 기본 실행: `./server.sh start`
+  - 상태/URL 확인: `./server.sh status`, `./server.sh urls`
+- 수동 빌드:
   - 기본: `cmake -S . -B build && cmake --build build`
   - GStreamer ON: `cmake -S . -B build -DMEDIA_SERVER_USE_GSTREAMER=ON && cmake --build build`
-  - YOLO/ONNX ON: `cmake -S . -B build-gst-onnx -DMEDIA_SERVER_USE_GSTREAMER=ON -DMEDIA_SERVER_USE_ONNXRUNTIME=ON -DMEDIA_SERVER_ONNXRUNTIME_ROOT=/path/to/onnxruntime && cmake --build build-gst-onnx`
+  - YOLO/ONNX ON: `cmake -S . -B build-gst-onnx -DMEDIA_SERVER_USE_GSTREAMER=ON -DMEDIA_SERVER_USE_ONNXRUNTIME=ON -DMEDIA_SERVER_ONNXRUNTIME_ROOT=<onnxruntime-install-root> && cmake --build build-gst-onnx`
 
 ## 14. GStreamer RTSP 동적 요청 (현재 구현)
 - 요청 형식:
   - `rtsp://{address}:8554/{route}?url={urlencoded_rtsp_url}`
   - `rtsp://{address}:8554/{route}?file={urlencoded_file_path}`
+  - `rtsp://{address}:8554/{route}?source=webrtc&url={source_id}`
+  - `rtsp://{address}:8554/{route}?source=http&url={urlencoded_http_media_url}`
+  - `rtsp://{address}:8554/{route}?source=hls&url={urlencoded_m3u8_url}`
 - 동작:
   - `gen-key`를 SourceSpec 기반으로 생성해 동일 소스 요청은 같은 RTSP media를 공유
   - `media-configure` 시점에 query를 파싱해 SourceSpec 생성
   - `SessionManager`로 세션 admission 수행
-  - 파이프라인의 `uridecodebin(name=src)`에 동적으로 `uri` 설정
+  - source 종류(file/RTSP/WebRTC/HTTP-HLS)에 맞는 `SharedStream`을 만들고 route별 egress pipeline에 연결
+  - route path에 따라 video/audio codec을 선택하고 필요하면 transcoding
+  - `va=1` 요청이면 raw video 구간에 analysis overlay probe를 붙여 detection box/label을 합성
   - media unprepared 시 세션 teardown
 - 주의:
   - `url`/`file`는 하나만 지정해야 함
   - query value는 URL 인코딩 권장
-  - 현재는 `uridecodebin -> videoconvert -> x264enc -> rtph264pay` 경로로 동작
+  - 현재 RTSP egress는 `H264/H265` video와 `AAC/Opus/PCMU/PCMA` audio route를 제공한다.
+  - HTTP/HLS URI source의 RTSP egress는 최신 blocker 체크에서 재확인 필요 상태다.
 
 ## 15. 실행 스크립트 / 설정 위치
-- 실행:
-  - `./scripts/install_deps.sh` (macOS/Linux 의존성 설치)
-- `./scripts/start_server.sh` (configure + build + background start, macOS는 launchctl 우선)
-- `./scripts/stop_server.sh` (pid 파일 기반 stop + stale pid/listener 불일치 정리)
-- `./scripts/restart_server.sh` (stop + start + check)
-- `./scripts/check_server.sh` (mode/pid/listen/probe/log 진단)
-- `./scripts/diagnose_media_server.sh` (실행환경 진단: 설정/포트/로그/ffprobe 확인)
-- `./scripts/auto_start_server.sh` (포트/주소 후보 + 자동 진단 + 자동 재시도)
-- `scripts/.media_server.env` (환경별 오버라이드 값 저장 파일, start_server가 자동 로드)
+- 사용자 진입점은 루트의 `./server.sh` 하나로 통합한다.
+- 주요 명령:
+  - `./server.sh install` (macOS/Linux 의존성, ONNX Runtime, YOLO asset 준비)
+  - `./server.sh build` (서버 실행 없이 AI 포함 기본 빌드)
+  - `./server.sh start` (AI 포함 기본 빌드 + background start)
+  - `./server.sh stop` (pid/포트 기반 stop + stale listener 정리)
+  - `./server.sh restart` (stop + start + diagnose)
+  - `./server.sh status` (mode/pid/listen/probe/log 진단)
+  - `./server.sh diagnose` (실행환경 진단: 설정/포트/로그/ffprobe 확인)
+  - `./server.sh urls` (LAN 테스트 URL 출력)
+  - `./server.sh test` (안정 기능 기준 통합 테스트 + LAN IP 외부 접근성 hard gate + 제3자 RTSP upstream advisory + 한글 실패 원인 리포트)
+- 내부 구현 스크립트는 `scripts/internal/` 아래에 둔다.
+- `scripts/.media_server.env`는 환경별 오버라이드 값 저장 파일이며 `./server.sh`가 자동 로드한다.
 - 실행 상태 파일:
   - pid: `.media_server.pid`
   - port: `.media_server.port`
   - address: `.media_server.address`
   - log: `.media_server.log`
-- `start_server.sh` 실행환경 보정:
+- `./server.sh start` 실행환경 보정:
   - `MEDIA_SERVER_PORT_CANDIDATES`: 포트 대체 시도 목록 (예: `8554,8555,8556`)
-- `MEDIA_SERVER_LISTEN_ADDRESS`: 단일 바인드 주소 override
-- `MEDIA_SERVER_LISTEN_ADDRESS_CANDIDATES`: 주소 대체 시도 목록 (예: `127.0.0.1,0.0.0.0`)
-- `MEDIA_SERVER_BUILD_DIR`: 빌드 디렉터리 override
-- `MEDIA_SERVER_BIN_PATH`: 실행 바이너리 경로 override
-- `MEDIA_SERVER_SKIP_ENV_CHECK=1`: pkg-config 의존성 점검을 생략해야 할 때 사용
+  - `MEDIA_SERVER_LISTEN_ADDRESS`: 단일 바인드 주소 override. `./server.sh start` 기본값은 `0.0.0.0`
+  - `MEDIA_SERVER_HTTP_LISTEN_ADDRESS`: HTTP 바인드 주소 override. `./server.sh start` 기본값은 `0.0.0.0`
+  - `MEDIA_SERVER_BUILD_DIR`: 빌드 디렉터리 override
+  - `MEDIA_SERVER_BIN_PATH`: 실행 바이너리 경로 override
+  - `MEDIA_SERVER_SKIP_ENV_CHECK=1`: pkg-config 의존성 점검을 생략해야 할 때 사용
 - `MEDIA_SERVER_FORCE_RTSP_TCP=1`: GStreamer가 고정 UDP/랜덤 포트 바인딩에서 실패할 때 TCP-only로 강제
 - `MEDIA_SERVER_GST_ATTACH_CONTEXT=default|1`: gstreamer attach 시 기본 GLib context 강제 사용
 - `MEDIA_SERVER_WEBRTC_TRACE=1`: WebRTC 협상/상태/RTCP workaround 로그 출력

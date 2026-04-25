@@ -3,20 +3,39 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+SCRIPTS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 source "${SCRIPT_DIR}/env_common.sh"
 media_server_apply_homebrew_gst_env
+ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
+if [[ -f "${ENV_FILE}" ]]; then
+  # shellcheck disable=SC1090
+  set -a
+  source "${ENV_FILE}"
+  set +a
+fi
 
 PID_FILE="${ROOT_DIR}/.media_server.pid"
 PORT_FILE="${ROOT_DIR}/.media_server.port"
 ADDRESS_FILE="${ROOT_DIR}/.media_server.address"
 STD_AFX="${ROOT_DIR}/include/stdafx.h"
 LOG_FILE="${ROOT_DIR}/.media_server.log"
-BUILD_BINARY="${ROOT_DIR}/build-gst/media_server"
+BUILD_BINARY="${MEDIA_SERVER_BIN_PATH:-${MEDIA_SERVER_BUILD_DIR:-${ROOT_DIR}/build-gst-onnx}/media_server}"
 VERIFY_CONFIG_FILE="${MEDIA_SERVER_VERIFY_CONFIG:-${ROOT_DIR}/config/codec_test_sources.json}"
 DIAG_INCLUDE_EXTERNAL="${MEDIA_SERVER_DIAG_INCLUDE_EXTERNAL:-0}"
 DIAG_RTSP_PREFLIGHT_TIMEOUT_MS="${MEDIA_SERVER_RTSP_SOURCE_PREFLIGHT_TIMEOUT_MS:-1500}"
 DIAG_EXTERNAL_RTSP_URL="${MEDIA_SERVER_DIAG_RTSP_URL:-}"
+DIAG_FFPROBE_TIMEOUT_US="${MEDIA_SERVER_DIAG_FFPROBE_TIMEOUT_US:-10000000}"
+DIAG_PROBE_WALL_TIMEOUT_S="${MEDIA_SERVER_DIAG_PROBE_WALL_TIMEOUT_S:-15}"
+
+client_host() {
+  local value="$1"
+  if [[ -z "${value}" || "${value}" == "0.0.0.0" || "${value}" == "::" ]]; then
+    printf '127.0.0.1'
+  else
+    printf '%s' "${value}"
+  fi
+}
 
 load_default_external_rtsp_url() {
   if [[ -n "${DIAG_EXTERNAL_RTSP_URL}" || "${DIAG_INCLUDE_EXTERNAL}" != "1" ]]; then
@@ -90,8 +109,10 @@ read_config() {
     [[ -f "${FILE_ROOT}/${H265_FILE_TOKEN}" ]] || H265_FILE_TOKEN="${DEFAULT_FILE_TOKEN}"
   fi
 
-  TEST_URL_H264="rtsp://${ADDRESS}:${PORT}/${ROUTE}?file=${H264_FILE_TOKEN}"
-  TEST_URL_H265="rtsp://${ADDRESS}:${PORT}/${ROUTE}/h265?file=${H265_FILE_TOKEN}"
+  RTSP_CLIENT_HOST="$(client_host "${MEDIA_SERVER_DIAG_RTSP_HOST:-${ADDRESS}}")"
+  HTTP_CLIENT_HOST="$(client_host "${MEDIA_SERVER_DIAG_HTTP_HOST:-${HTTP_ADDRESS}}")"
+  TEST_URL_H264="rtsp://${RTSP_CLIENT_HOST}:${PORT}/${ROUTE}?file=${H264_FILE_TOKEN}"
+  TEST_URL_H265="rtsp://${RTSP_CLIENT_HOST}:${PORT}/${ROUTE}/h265?file=${H265_FILE_TOKEN}"
 }
 
 print_line() {
@@ -138,7 +159,7 @@ collect_net_state() {
 
   if media_server_is_tcp_listening "${HTTP_PORT}"; then
     print_line "PASS" "HTTP ${HTTP_PORT} is listening"
-    if media_server_http_healthcheck "${HTTP_ADDRESS}" "${HTTP_PORT}" "/webrtc/test"; then
+    if media_server_http_healthcheck "${HTTP_CLIENT_HOST}" "${HTTP_PORT}" "/webrtc/test"; then
       print_line "PASS" "HTTP health check passed (/webrtc/test)"
     else
       print_line "FAIL" "HTTP health check failed (/webrtc/test)"
@@ -248,11 +269,11 @@ collect_file_state() {
     OVERALL=1
   fi
 
-  if [[ "${MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE:-0}" == "1" ]]; then
+  if [[ "${MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE:-0}" == "1" || "${MEDIA_SERVER_ENABLE_LAB_YOUTUBE_IMPORT:-1}" == "1" ]]; then
     if command -v yt-dlp >/dev/null 2>&1; then
-      print_line "PASS" "yt-dlp available for experimental source=youtube"
+      print_line "PASS" "yt-dlp available for YouTube source/import features"
     else
-      print_line "WARN" "yt-dlp not found; experimental source=youtube will fail until installed"
+      print_line "WARN" "yt-dlp not found; YouTube source/import features will fail until installed"
     fi
     if command -v deno >/dev/null 2>&1; then
       print_line "INFO" "deno available; yt-dlp can use jsc:deno for some YouTube JS challenges"
@@ -260,7 +281,7 @@ collect_file_state() {
       print_line "INFO" "deno not found; some YouTube JS challenges may fail even when yt-dlp is installed"
     fi
   else
-    print_line "INFO" "experimental source=youtube is disabled by default"
+    print_line "INFO" "experimental source=youtube and lab YouTube import are disabled"
   fi
 }
 
@@ -277,14 +298,14 @@ probe_stream() {
   fi
 
   (
-    ffprobe -v error -rw_timeout 3000000 -rtsp_transport tcp -show_streams "${url}" \
+    ffprobe -v error -rw_timeout "${DIAG_FFPROBE_TIMEOUT_US}" -rtsp_transport tcp -show_streams "${url}" \
       > "${probe_out}" 2>&1
     echo $? > "${probe_rc}"
   ) >/dev/null 2>&1 &
   local probe_pid=$!
   local waited=0
   while kill -0 "${probe_pid}" 2>/dev/null; do
-    if [[ ${waited} -ge 20 ]]; then
+    if [[ ${waited} -ge $((DIAG_PROBE_WALL_TIMEOUT_S * 5)) ]]; then
       kill -9 "${probe_pid}" 2>/dev/null || true
       print_line "FAIL" "${codec} RTSP probe timeout"
       PROBE_FAIL=1

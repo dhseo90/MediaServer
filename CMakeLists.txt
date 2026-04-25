@@ -10,10 +10,14 @@ option(MEDIA_SERVER_USE_GSTREAMER "Enable GStreamer RTSP server integration" OFF
 option(MEDIA_SERVER_USE_ONNXRUNTIME "Enable ONNX Runtime YOLO detector" OFF)
 set(MEDIA_SERVER_ONNXRUNTIME_ROOT "" CACHE PATH "ONNX Runtime installation root")
 
+find_package(PkgConfig QUIET)
+
 add_executable(media_server
     src/analysis/analysis_manager.cpp
     src/analysis/detector_factory.cpp
     src/analysis/dummy_detector.cpp
+    src/analysis/event_post_dispatcher.cpp
+    src/analysis/event_rule_engine.cpp
     src/analysis/overlay_renderer.cpp
     src/analysis/raw_video_decoder.cpp
     src/analysis/snapshot_encoder.cpp
@@ -47,7 +51,9 @@ add_executable(media_server
 target_include_directories(media_server PRIVATE include)
 
 if(MEDIA_SERVER_USE_GSTREAMER)
-    find_package(PkgConfig REQUIRED)
+    if(NOT PkgConfig_FOUND)
+        message(FATAL_ERROR "pkg-config is required when MEDIA_SERVER_USE_GSTREAMER=ON")
+    endif()
     pkg_check_modules(GSTREAMER REQUIRED IMPORTED_TARGET
         gstreamer-1.0
         gstreamer-rtsp-server-1.0
@@ -59,6 +65,16 @@ if(MEDIA_SERVER_USE_GSTREAMER)
     target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_GSTREAMER=1 GST_USE_UNSTABLE_API=1)
 else()
     target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_GSTREAMER=0)
+endif()
+
+if(PkgConfig_FOUND)
+    pkg_check_modules(PANGOCAIRO QUIET IMPORTED_TARGET pangocairo)
+endif()
+if(PANGOCAIRO_FOUND)
+    target_link_libraries(media_server PRIVATE PkgConfig::PANGOCAIRO)
+    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_PANGOCAIRO=1)
+else()
+    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_PANGOCAIRO=0)
 endif()
 
 if(MEDIA_SERVER_USE_ONNXRUNTIME)

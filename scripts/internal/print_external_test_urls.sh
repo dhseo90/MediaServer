@@ -3,10 +3,11 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+SCRIPTS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 source "${SCRIPT_DIR}/env_common.sh"
 
-ENV_FILE="${SCRIPT_DIR}/.media_server.env"
+ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
 if [[ -f "${ENV_FILE}" ]]; then
   # shellcheck disable=SC1090
   set -a
@@ -98,10 +99,7 @@ Lab import page: http://${HOST}:${HTTP_PORT}/lab/import
 
 ## MacBook server start command
 
-MEDIA_SERVER_LISTEN_ADDRESS=0.0.0.0 \\
-MEDIA_SERVER_HTTP_LISTEN_ADDRESS=0.0.0.0 \\
-MEDIA_SERVER_FORCE_RTSP_TCP=1 \\
-./scripts/restart_server.sh
+./server.sh restart
 
 ## Desktop first checks
 
@@ -121,6 +119,10 @@ print_rtsp_routes "RTSP file sample_h265.mp4" \
 
 print_rtsp_routes "RTSP file sample_h264_video_only.mp4" \
   "file=sample_h264_video_only.mp4" \
+  "/" "/h264" "/h265"
+
+print_rtsp_routes "RTSP VA sample va_four_scene_sample.mp4" \
+  "file=va_four_scene_sample.mp4&va=1" \
   "/" "/h264" "/h265"
 
 if [[ "${EXPERIMENTAL_YOUTUBE_ENABLED}" == "1" ]]; then
@@ -155,6 +157,10 @@ file=sample_h265.mp4
 sourceType=file
 file=sample_h264_video_only.mp4
 
+sourceType=file
+file=va_four_scene_sample.mp4
+va=1
+
 ## WebRTC publish -> consume manual case
 
 1. On the WebRTC test page, set publishSourceId=desktop-publisher-1.
@@ -168,6 +174,8 @@ file=sample_h264_video_only.mp4
 
 - If /health does not open from the desktop, check macOS firewall, bind address, or router WiFi/LAN isolation first.
 - VLC/IINA RTSP tests should prefer RTSP over TCP.
+- Lab import is shown by default as a development file-download tool. Set
+  MEDIA_SERVER_ENABLE_LAB_YOUTUBE_IMPORT=0 only if you want to hide/disable it.
 EOF
 
 if [[ "${EXPERIMENTAL_YOUTUBE_ENABLED}" == "1" ]]; then

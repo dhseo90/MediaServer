@@ -171,6 +171,15 @@ analysis::OverlayRenderOptions BuildOverlayRenderOptionsFromQuery(
     options.line_thickness = app::GetAppConfig().default_analysis_overlay_thickness;
     options.line_thickness = ParseClampedIntQuery(query, "thickness", options.line_thickness, 1, 16);
     options.draw_labels = ParseBoolQuery(query, "drawLabels", options.draw_labels);
+    if (const auto it = query.find("labelLang"); it != query.end() && !it->second.empty()) {
+        options.label_language = it->second == "en" || it->second == "english"
+                                     ? analysis::OverlayLabelLanguage::English
+                                     : analysis::OverlayLabelLanguage::Korean;
+    } else if (const auto it = query.find("labelLanguage"); it != query.end() && !it->second.empty()) {
+        options.label_language = it->second == "en" || it->second == "english"
+                                     ? analysis::OverlayLabelLanguage::English
+                                     : analysis::OverlayLabelLanguage::Korean;
+    }
     return options;
 }
 

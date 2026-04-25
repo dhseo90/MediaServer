@@ -3,9 +3,17 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+SCRIPTS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 source "${SCRIPT_DIR}/env_common.sh"
 media_server_apply_homebrew_gst_env
+ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
+if [[ -f "${ENV_FILE}" ]]; then
+  # shellcheck disable=SC1090
+  set -a
+  source "${ENV_FILE}"
+  set +a
+fi
 
 PID_FILE="${ROOT_DIR}/.media_server.pid"
 ADDRESS_FILE="${ROOT_DIR}/.media_server.address"
@@ -13,10 +21,10 @@ PORT_FILE="${ROOT_DIR}/.media_server.port"
 MODE_FILE="${ROOT_DIR}/.media_server.mode"
 LOG_FILE="${ROOT_DIR}/.media_server.log"
 STD_AFX="${ROOT_DIR}/include/stdafx.h"
-PLIST_FILE="${ROOT_DIR}/.media_server.launchd.plist"
-LAUNCH_LABEL="local.media_server"
 
-if [[ -f "${PORT_FILE}" ]]; then
+if [[ -n "${MEDIA_SERVER_LISTEN_PORT:-}" ]]; then
+  PORT="${MEDIA_SERVER_LISTEN_PORT}"
+elif [[ -f "${PORT_FILE}" ]]; then
   PORT="$(cat "${PORT_FILE}")"
 else
   PORT="$(sed -nE 's/.*kRtspListenPort = ([0-9]+).*/\1/p' "${STD_AFX}" | head -n1)"
@@ -30,10 +38,10 @@ if [[ -z "${HTTP_PORT}" ]]; then
 fi
 ROUTE="$(sed -nE 's/.*kStreamRoute = "([^"]+)".*/\1/p' "${STD_AFX}" | head -n1)"
 
-if [[ -f "${ADDRESS_FILE}" ]]; then
-  ADDRESS="$(cat "${ADDRESS_FILE}")"
-elif [[ -n "${MEDIA_SERVER_LISTEN_ADDRESS:-}" ]]; then
+if [[ -n "${MEDIA_SERVER_LISTEN_ADDRESS:-}" ]]; then
   ADDRESS="${MEDIA_SERVER_LISTEN_ADDRESS}"
+elif [[ -f "${ADDRESS_FILE}" ]]; then
+  ADDRESS="$(cat "${ADDRESS_FILE}")"
 else
   ADDRESS="$(media_server_read_const_charp "${STD_AFX}" "kRtspListenAddress" || true)"
 fi
@@ -49,6 +57,18 @@ fi
 if [[ -z "${HTTP_ADDRESS}" ]]; then
   HTTP_ADDRESS="127.0.0.1"
 fi
+
+client_host() {
+  local value="$1"
+  if [[ -z "${value}" || "${value}" == "0.0.0.0" || "${value}" == "::" ]]; then
+    printf '127.0.0.1'
+  else
+    printf '%s' "${value}"
+  fi
+}
+
+RTSP_CLIENT_HOST="$(client_host "${MEDIA_SERVER_CHECK_RTSP_HOST:-${ADDRESS}}")"
+HTTP_CLIENT_HOST="$(client_host "${MEDIA_SERVER_CHECK_HTTP_HOST:-${HTTP_ADDRESS}}")"
 
 FILE_ROOT="$(media_server_resolve_project_path "${ROOT_DIR}" "$(media_server_read_const_charp "${STD_AFX}" "kFileRootPath")")"
 DEFAULT_FILE="$(media_server_resolve_project_path "${ROOT_DIR}" "$(media_server_read_const_charp "${STD_AFX}" "kDefaultFilePath")")"
@@ -66,11 +86,13 @@ if [[ -n "${FILE_ROOT}" ]] && [[ ! -f "${FILE_ROOT}/${H265_FILE_TOKEN}" ]]; then
   H265_FILE_TOKEN="${DEFAULT_FILE_TOKEN}"
 fi
 
-TEST_URL_H264="rtsp://${ADDRESS}:${PORT}/${ROUTE}?file=${H264_FILE_TOKEN}"
-TEST_URL_H265="rtsp://${ADDRESS}:${PORT}/${ROUTE}/h265?file=${H265_FILE_TOKEN}"
+TEST_URL_H264="rtsp://${RTSP_CLIENT_HOST}:${PORT}/${ROUTE}?file=${H264_FILE_TOKEN}"
+TEST_URL_H265="rtsp://${RTSP_CLIENT_HOST}:${PORT}/${ROUTE}/h265?file=${H265_FILE_TOKEN}"
 
 echo "[config] address=${ADDRESS} port=${PORT} route=${ROUTE}"
 echo "[config] http_address=${HTTP_ADDRESS} http_port=${HTTP_PORT}"
+echo "[config] rtsp_client_host=${RTSP_CLIENT_HOST}"
+echo "[config] http_client_host=${HTTP_CLIENT_HOST}"
 echo "[config] file_root=${FILE_ROOT}"
 echo "[config] default_file=${DEFAULT_FILE}"
 echo "[config] file_h264=${H264_FILE_TOKEN}"
@@ -83,17 +105,6 @@ if [[ -f "${MODE_FILE}" ]]; then
   echo "[mode] $(cat "${MODE_FILE}")"
 else
   echo "[mode] unknown"
-fi
-if [[ -f "${MODE_FILE}" ]] && [[ "$(cat "${MODE_FILE}")" == "launchctl" ]] && [[ "${OSTYPE:-}" == "darwin"* ]] && command -v launchctl >/dev/null 2>&1; then
-  if launchctl print "gui/$(id -u)/${LAUNCH_LABEL}" >/tmp/media_server_launchctl.txt 2>&1; then
-    echo "[launchctl] loaded (${LAUNCH_LABEL})"
-    awk '/state =|pid =/{print "[launchctl] " $0}' /tmp/media_server_launchctl.txt | head -n 4
-  else
-    echo "[launchctl] not loaded (${LAUNCH_LABEL})"
-  fi
-fi
-if [[ -f "${PLIST_FILE}" ]]; then
-  echo "[launchctl] plist: ${PLIST_FILE}"
 fi
 echo
 
@@ -114,7 +125,7 @@ if media_server_is_tcp_listening "${PORT}"; then
 else
   echo "[port] not listening on ${PORT}"
   if media_server_has_listener_probe; then
-  echo "[port] listener probe tool available, but no LISTEN state on requested port"
+    echo "[port] listener probe tool available, but no LISTEN state on requested port"
   else
     echo "[port] cannot confirm with local tools (lsof/ss/netstat missing)"
   fi
@@ -122,10 +133,10 @@ fi
 
 if media_server_is_tcp_listening "${HTTP_PORT}"; then
   echo "[http] LISTEN ok on ${HTTP_PORT}"
-  if media_server_http_healthcheck "${HTTP_ADDRESS}" "${HTTP_PORT}" "/webrtc/test"; then
-    echo "[http] health ok: /webrtc/test"
+  if media_server_http_healthcheck "${HTTP_CLIENT_HOST}" "${HTTP_PORT}" "/health"; then
+    echo "[http] health ok: /health"
   else
-    echo "[http] health failed: /webrtc/test"
+    echo "[http] health failed: /health"
   fi
 else
   echo "[http] not listening on ${HTTP_PORT}"

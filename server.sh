@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+# 파일 용도: MediaServer 설치/시작/중지/진단을 하나의 진입점으로 묶는다.
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INTERNAL_DIR="${ROOT_DIR}/scripts/internal"
+
+usage() {
+  cat <<EOF_USAGE
+MediaServer 사용법
+
+Usage:
+  ./server.sh <command> [options]
+
+가장 많이 쓰는 명령:
+  install        새 환경에 필요한 패키지, ONNX Runtime, YOLO 모델/라벨, 로컬 설정을 준비합니다.
+  build          서버를 실행하지 않고 AI 포함 기본 빌드만 수행합니다.
+  start          AI 포함 기본 빌드(build-gst-onnx) 후 서버를 백그라운드로 실행합니다.
+  stop           실행 중인 media_server를 종료하고 stale pid/listener 상태를 정리합니다.
+
+운영/점검 명령:
+  restart        stop 후 start를 실행하고 진단까지 수행합니다.
+  status         현재 프로세스, RTSP/HTTP 포트, 샘플 URL, 최근 로그를 확인합니다.
+  check          status와 동일한 별칭입니다.
+  diagnose       실행환경, 포트 바인딩, 파일/RTSP source 접근성 문제를 자세히 진단합니다.
+  urls           같은 LAN의 다른 PC/VLC/IINA/브라우저에서 복사해 쓸 테스트 URL을 출력합니다.
+
+개발/검증 명령:
+  foreground     서버를 foreground로 실행합니다. 개발 중 로그를 바로 볼 때 사용합니다.
+  test           안정 기능과 LAN IP 외부 접근성 통합 테스트를 한글 리포트로 실행합니다.
+  verify-codecs  file/RTSP/WebRTC source와 codec route matrix를 자동 검증합니다.
+  verify-va      YOLO/VA overlay의 lab, RTSP, WebRTC 회귀 검증을 수행합니다.
+
+install 옵션:
+  --basic        AI/ONNX 없이 미디어 스트리밍 의존성만 설치하고 기본 빌드를 build-gst로 설정합니다.
+  --no-youtube   yt-dlp/deno 같은 YouTube 실험실 보조 도구 설치를 건너뜁니다.
+
+예시:
+  ./server.sh install
+  ./server.sh build
+  ./server.sh start
+  ./server.sh status
+  ./server.sh test
+  ./server.sh urls
+  ./server.sh stop
+
+기본 동작:
+  - AI 빌드가 기본입니다: build-gst-onnx + ONNX Runtime + YOLO 모델.
+  - 외부 PC에서도 접근 가능하도록 RTSP/HTTP를 0.0.0.0에 바인딩합니다.
+  - 로컬 환경 오버라이드는 scripts/.media_server.env에 저장합니다.
+EOF_USAGE
+}
+
+require_internal() {
+  local script="$1"
+  if [[ ! -x "${INTERNAL_DIR}/${script}" ]]; then
+    echo "missing internal script: ${INTERNAL_DIR}/${script}"
+    exit 1
+  fi
+}
+
+cmd="${1:-}"
+if [[ -z "${cmd}" || "${cmd}" == "help" || "${cmd}" == "-h" || "${cmd}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+shift || true
+
+case "${cmd}" in
+  install)
+    require_internal install_deps.sh
+    exec "${INTERNAL_DIR}/install_deps.sh" "$@"
+    ;;
+  build)
+    require_internal build_server.sh
+    exec "${INTERNAL_DIR}/build_server.sh" "$@"
+    ;;
+  start)
+    require_internal start_server.sh
+    exec "${INTERNAL_DIR}/start_server.sh" "$@"
+    ;;
+  stop)
+    require_internal stop_server.sh
+    exec "${INTERNAL_DIR}/stop_server.sh" "$@"
+    ;;
+  restart)
+    require_internal restart_server.sh
+    exec "${INTERNAL_DIR}/restart_server.sh" "$@"
+    ;;
+  status|check)
+    require_internal check_server.sh
+    exec "${INTERNAL_DIR}/check_server.sh" "$@"
+    ;;
+  diagnose)
+    require_internal diagnose_media_server.sh
+    exec "${INTERNAL_DIR}/diagnose_media_server.sh" "$@"
+    ;;
+  urls|external-urls)
+    require_internal print_external_test_urls.sh
+    exec "${INTERNAL_DIR}/print_external_test_urls.sh" "$@"
+    ;;
+  foreground|run)
+    require_internal run_server_foreground.sh
+    exec "${INTERNAL_DIR}/run_server_foreground.sh" "$@"
+    ;;
+  test)
+    require_internal test_all.sh
+    exec "${INTERNAL_DIR}/test_all.sh" "$@"
+    ;;
+  verify-codecs)
+    require_internal verify_codec_matrix.sh
+    exec "${INTERNAL_DIR}/verify_codec_matrix.sh" "$@"
+    ;;
+  verify-va)
+    require_internal verify_va_overlay.sh
+    exec "${INTERNAL_DIR}/verify_va_overlay.sh" "$@"
+    ;;
+  *)
+    echo "알 수 없는 명령입니다: ${cmd}"
+    echo
+    usage
+    exit 1
+    ;;
+esac

@@ -171,7 +171,7 @@ media_server_check_gst_dev_tools() {
 
   if (( missing != 0 )); then
     echo "[env] install/deps check: failed"
-    echo "  run: ./scripts/install_deps.sh"
+    echo "  run: ./server.sh install"
     return 1
   fi
 

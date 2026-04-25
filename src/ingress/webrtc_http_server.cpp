@@ -25,9 +25,12 @@
 #include <vector>
 
 #include "app_config.h"
+#include "analysis/event_post_dispatcher.h"
+#include "analysis/event_rule_engine.h"
 #include "analysis/overlay_renderer.h"
 #include "analysis/snapshot_encoder.h"
 #include "ingress/analysis_query.h"
+#include "ingress/analysis_rule_registry.h"
 #include "ingress/request_parser.h"
 #include "ingress/lab_import_manager.h"
 #include "ingress/webrtc_egress_session.h"
@@ -304,15 +307,20 @@ public:
         EnsureLoadedLocked();
         std::ostringstream out;
         out << "{\"status\":\"registry\",\"storagePath\":\"" << JsonEscape(storage_path_.string()) << "\","
-            << "\"scope\":\"현재 단계에서는 rule을 저장/관리하고, 실제 요청 자동 적용은 다음 단계에서 연결한다.\","
+            << "\"scope\":\"저장된 rule은 va=1 overlay와 /lab/analysis/taps/{id}/events에서 런타임 판정에 사용한다. "
+               "route/client별 자동 매칭은 아직 제한적이다.\","
             << "\"plannedRuleShape\":{\"id\":\"string\",\"enabled\":\"bool\","
             << "\"match\":{\"sourceKind\":\"file|rtsp|webrtc|http|hls|youtube|*\",\"route\":\"rtsp|webrtc|*\","
             << "\"clientId\":\"optional\"},\"analysis\":{\"profileId\":\"string\",\"detector\":\"dummy|yolo\","
             << "\"fps\":\"number\",\"maxQueue\":\"number\"},\"outputs\":{\"metadata\":\"bool\","
-            << "\"snapshot\":\"bool\",\"overlay\":\"bool\",\"events\":\"bool\"}},"
+            << "\"snapshot\":\"bool\",\"overlay\":\"bool\",\"events\":\"bool\"},"
+            << "\"eventActions\":{\"highlight\":{\"enabled\":\"bool\",\"mode\":\"blink\","
+            << "\"durationMs\":\"number\",\"color\":\"#RRGGBB\"},\"post\":{\"enabled\":\"bool\","
+            << "\"method\":\"POST\",\"url\":\"string\",\"payloadFormat\":\"media-server.va.event.v1\"}}},"
             << "\"rules\":";
         AppendDocumentsArray(out, rules_);
-        out << ",\"notImplementedYet\":[\"automatic rule matching\",\"per-client rule override\",\"event engine\"]}";
+        out << ",\"notImplementedYet\":[\"automatic rule matching for non-VA streams\","
+               "\"per-client rule override\",\"track-stable enter/exit/line-crossing\"]}";
         return out.str();
     }
 
@@ -326,6 +334,17 @@ public:
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
         return FindDocumentLocked(rules_, id);
+    }
+
+    std::vector<std::string> RuleDocuments() {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        std::vector<std::string> out;
+        out.reserve(rules_.size());
+        for (const auto& rule : rules_) {
+            out.push_back(rule.body);
+        }
+        return out;
     }
 
     bool CreateProfile(const std::string& body, std::string* response, std::string* error_message) {
@@ -676,7 +695,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
                                       ? "실험용 소스 검증, URL 가져오기 도구, simple signaling/WHEP/WHIP 확인을 한 곳에 모아둔 화면입니다."
                                       : "simple signaling, WHEP 재생, WHIP 스타일 publish를 같은 미디어 서버에서 확인하는 화면입니다.";
     const std::string page_link = lab_mode
-                                      ? "          <p style=\"margin:0 0 14px;\"><a href=\"/webrtc/test\">안정 테스트 페이지로 이동</a></p>\n"
+                                      ? std::string()
                                       : "          <p style=\"margin:0 0 14px;\"><a href=\"/lab\">실험실 페이지로 이동</a></p>\n";
     const std::string youtube_option =
         youtube_enabled ? "              <option value=\"youtube\">YouTube watch/live URL (실험실)</option>\n"
@@ -685,10 +704,10 @@ std::string BuildTestPageHtml(bool lab_mode) {
         lab_mode
             ? (youtube_enabled
                    ? "          <p style=\"margin:0;color:var(--muted);font-size:0.9rem;\">이 서버에서는 실험실 YouTube 소스가 켜져 있습니다. `yt-dlp`를 사용하며 로그인, 지역 제한, bot check에 따라 실패할 수 있습니다.</p>\n"
-                   : "          <p style=\"margin:0;color:var(--muted);font-size:0.9rem;\">실험실 페이지는 열려 있지만 `source=youtube`는 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`로 서버를 시작해야만 활성화됩니다.</p>\n")
+                   : std::string())
             : "          <p style=\"margin:0;color:var(--muted);font-size:0.9rem;\">이 화면은 안정 테스트용입니다. 개발 전용 옵션은 `/lab`에서 확인하세요.</p>\n";
     const std::string analysis_controls = lab_mode
-                                              ? R"(          <details style="border:1px solid var(--line);border-radius:16px;padding:12px;background:rgba(255,255,255,0.04);">
+                                              ? R"(          <details id="va-analysis" open style="border:1px solid var(--line);border-radius:16px;padding:12px;background:rgba(255,255,255,0.04);">
             <summary style="cursor:pointer;font-weight:700;color:var(--ink);">VA 분석</summary>
             <div style="display:grid;gap:10px;margin-top:12px;">
               <label style="display:flex;align-items:center;gap:8px;">
@@ -696,6 +715,12 @@ std::string BuildTestPageHtml(bool lab_mode) {
                 서버 기본 VA profile로 객체 감지 박스 합성
               </label>
               <p style="margin:0;color:var(--muted);font-size:0.88rem;">모델, 라벨, 기본 fps/queue는 서버 설정값을 사용합니다. URL에는 기본적으로 `va=1`만 붙습니다.</p>
+              <label>객체 표기 언어
+                <select id="analysisLabelLangInput">
+                  <option value="ko" selected>한글: 차량(자동차)</option>
+                  <option value="en">English: Vehicle(car)</option>
+                </select>
+              </label>
               <details>
                 <summary style="cursor:pointer;color:var(--muted);">고급 튜닝(선택)</summary>
                 <div style="display:grid;gap:10px;margin-top:10px;">
@@ -729,16 +754,43 @@ std::string BuildTestPageHtml(bool lab_mode) {
 )"
                                               : std::string();
     const std::string lab_panel = lab_mode
-                                      ? R"(    <section class="card" style="margin-top:20px;">
-      <div style="padding:24px;display:grid;gap:12px;">
-        <h2 style="margin:0;font-size:24px;letter-spacing:-0.02em;">실험실 바로가기</h2>
-        <p style="margin:0;">이 페이지는 개발 전용 도구를 위한 화면입니다. URL 가져오기, 분석 디버그, 실험 소스 확인 기능을 같은 `/lab` 아래에 모읍니다.</p>
-        <p style="margin:0;"><a href="/webrtc/test">안정 테스트 페이지로 이동</a> · <a href="/lab/import">실험실 가져오기 페이지 열기</a></p>
-        <pre style="min-height:0;">예정 항목
-- URL 가져오기 -> video/imports
-- 가져오기 작업 상태 / 로그
-- 분석 스냅샷 / 디버그 도구
-- 실험 소스 장애 추적</pre>
+                                      ? R"(    <section class="card lab-stack" style="margin-top:20px;">
+      <div class="section-pad">
+        <div class="section-heading">
+          <p class="eyebrow">Unified Lab</p>
+          <h2>통합 테스트/실험실</h2>
+          <p>`/lab` 하나에서 스트림 재생, VA 분석, 룰 편집, 실험실 도구를 접고 펼치며 확인합니다. 다른 route는 자동화와 기존 링크 호환을 위해서만 유지합니다.</p>
+        </div>
+        <div class="lab-mode-grid">
+          <div class="lab-mode-card"><strong>스트림 테스트</strong><span>file, RTSP, HTTP/HLS, WebRTC source를 같은 플레이어로 확인합니다.</span></div>
+          <div class="lab-mode-card"><strong>VA 분석</strong><span>객체 감지 overlay와 label 언어를 서버 기본 profile로 빠르게 켭니다.</span></div>
+          <div class="lab-mode-card"><strong>룰 편집</strong><span>영역, 객체 타입, 이벤트 전송 설정을 시각적으로 저장합니다.</span></div>
+          <div class="lab-mode-card"><strong>실험 기능</strong><span>YouTube 직접 표출은 opt-in, 파일 다운로드는 개발용 샘플 생성 도구로 분리합니다.</span></div>
+        </div>
+        <details style="border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(255,255,255,0.04);">
+          <summary style="cursor:pointer;font-weight:800;color:var(--ink);">표출 가능한 객체 타입 안내</summary>
+          <p style="margin:10px 0 0;">현재 기본 YOLO 모델은 COCO 80개 객체 타입을 기준으로 합니다. 화면 표기는 한글 카테고리로 묶고, 서버 내부 rule 값은 COCO 영문 label을 그대로 사용합니다.</p>
+          <pre style="min-height:0;margin-top:10px;">사람: 사람 단독
+차량: 자전거, 자동차, 오토바이, 비행기, 버스, 기차, 트럭, 보트
+도로: 신호등, 소화전, 정지 표지판, 주차 미터기
+동물: 새, 고양이, 강아지, 말, 양, 소, 코끼리, 곰, 얼룩말, 기린
+운동: 프리스비, 스키, 스노보드, 공, 연, 야구 배트, 야구 글러브, 스케이트보드, 서프보드, 테니스 라켓
+음식: 바나나, 사과, 샌드위치, 오렌지, 브로콜리, 당근, 핫도그, 피자, 도넛, 케이크
+가구: 벤치, 의자, 소파, 침대, 식탁, 화분, 싱크대, 변기
+기기: TV, 노트북, 마우스, 리모컨, 키보드, 휴대폰, 전자레인지, 오븐, 토스터, 냉장고, 헤어드라이어, 시계
+식기: 병, 와인잔, 컵, 포크, 칼, 숟가락, 그릇
+잡화: 백팩, 우산, 핸드백, 넥타이, 여행가방, 책, 꽃병, 가위, 곰인형, 칫솔</pre>
+        </details>
+        <details id="rule-editor" open class="lab-details">
+          <summary style="cursor:pointer;font-weight:800;color:var(--ink);">시각적 룰 편집</summary>
+          <p class="lab-detail-note">이벤트 판단 영역, 분석 객체, 이벤트 전송 설정을 한 곳에서 편집합니다. 위에서 선택한 스트림 소스를 룰 미리보기에도 그대로 사용합니다.</p>
+          <div id="ruleEditorComponent" class="embedded-component" data-component-url="/lab/rules?embed=1">룰 편집기를 불러오는 중입니다.</div>
+        </details>
+        <details id="lab-import" class="lab-details">
+          <summary style="cursor:pointer;font-weight:800;color:var(--ink);">실험실 가져오기</summary>
+          <p class="lab-detail-note">YouTube 직접 표출과 파일 다운로드를 분리합니다. 다운로드는 개발용 샘플 생성 도구로 기본 표시하고, 직접 표출은 서버 opt-in이 필요합니다.</p>
+          <div id="labImportComponent" class="embedded-component" data-component-url="/lab/import?embed=1">가져오기 도구를 불러오는 중입니다.</div>
+        </details>
       </div>
     </section>
 )"
@@ -749,50 +801,132 @@ std::string BuildTestPageHtml(bool lab_mode) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>)" + page_title + R"(</title>
+  <script>
+    (() => {
+      const saved = localStorage.getItem('mediaServerTheme');
+      document.documentElement.dataset.theme = saved === 'dark' ? 'dark' : 'light';
+      const params = new URLSearchParams(window.location.search);
+      document.documentElement.dataset.embed = params.get('embed') === '1' ? '1' : '0';
+    })();
+  </script>
   <style>
     :root {
-      --bg: #0d1b1e;
-      --panel: #163037;
-      --ink: #ecf3ef;
-      --muted: #9ab6ae;
-      --accent: #ff8c42;
-      --line: rgba(236,243,239,0.12);
+      --bg: #f6f1e8;
+      --panel: #fffaf0;
+      --panel-soft: #fdf6e7;
+      --ink: #172026;
+      --muted: #66737c;
+      --accent: #0b6e69;
+      --accent-2: #f0b35b;
+      --line: rgba(23,32,38,0.12);
+      --shadow: 0 22px 70px rgba(38, 44, 54, 0.14);
+      --card-bg: rgba(255,250,240,0.88);
+      --field-bg: rgba(255,255,255,0.82);
+      --secondary-bg: #fff;
+      --details-bg: rgba(255,255,255,0.58);
+      --code-bg: #172026;
+      --code-ink: #e8f4f1;
+      --compact-code-bg: #24323a;
+      --link: #0a6f68;
+      --focus: rgba(11,110,105,0.18);
+    }
+    :root[data-theme="dark"] {
+      --bg: #252525;
+      --panel: #2b2b2b;
+      --panel-soft: #303030;
+      --ink: #f4f4f4;
+      --muted: #b6b6b6;
+      --accent: #ff4d8d;
+      --accent-2: #ff9f66;
+      --line: rgba(255,255,255,0.10);
+      --shadow: 18px 24px 52px rgba(0,0,0,0.46), -10px -10px 34px rgba(255,255,255,0.035);
+      --card-bg: rgba(42,42,42,0.92);
+      --field-bg: rgba(18,18,18,0.88);
+      --secondary-bg: rgba(255,255,255,0.08);
+      --details-bg: rgba(255,255,255,0.055);
+      --code-bg: rgba(14,14,14,0.94);
+      --code-ink: #efefef;
+      --compact-code-bg: rgba(16,16,16,0.94);
+      --link: #ff9f66;
+      --focus: rgba(255,77,141,0.24);
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: "Avenir Next", "Pretendard", sans-serif;
+      font-family: "Avenir Next", "Pretendard", "Noto Sans KR", sans-serif;
       color: var(--ink);
       background:
-        radial-gradient(circle at top left, rgba(255,140,66,0.22), transparent 28%),
-        linear-gradient(135deg, #081114 0%, var(--bg) 45%, #13282e 100%);
+        radial-gradient(circle at 5% -10%, rgba(240,179,91,0.34), transparent 28%),
+        radial-gradient(circle at 95% 2%, rgba(11,110,105,0.18), transparent 26%),
+        linear-gradient(135deg, #fbf8f0 0%, var(--bg) 48%, #eaf3ef 100%);
       min-height: 100vh;
     }
+    :root[data-theme="dark"] body {
+      background:
+        radial-gradient(circle at 18% 8%, rgba(255,77,141,0.08), transparent 30%),
+        radial-gradient(circle at 82% 2%, rgba(255,159,102,0.06), transparent 32%),
+        linear-gradient(135deg, #202020 0%, var(--bg) 54%, #202020 100%);
+    }
     main {
-      max-width: 1100px;
+      width: min(1240px, calc(100% - 32px));
       margin: 0 auto;
-      padding: 32px 20px 48px;
+      padding: clamp(18px, 3vw, 36px) 0 clamp(36px, 5vw, 64px);
+      display: grid;
+      gap: clamp(18px, 2.4vw, 28px);
     }
     .card {
-      background: rgba(22,48,55,0.82);
+      background: var(--card-bg);
       border: 1px solid var(--line);
-      border-radius: 24px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 24px 60px rgba(0,0,0,0.24);
+      border-radius: 28px;
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
       overflow: hidden;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--details-bg);
+      backdrop-filter: blur(14px);
+    }
+    .topbar strong {
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+    .theme-toggle {
+      width: auto;
+      min-width: 112px;
+      padding: 9px 13px;
+      border-radius: 999px;
+      background: var(--secondary-bg);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      box-shadow: none;
     }
     .hero {
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 20px;
-      padding: 24px;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+      gap: clamp(18px, 3vw, 30px);
+      padding: clamp(18px, 3vw, 30px);
     }
-    h1 { margin: 0 0 8px; font-size: 34px; letter-spacing: -0.03em; }
+    h1 { margin: 0 0 8px; font-size: clamp(30px, 4vw, 48px); letter-spacing: -0.055em; line-height: 0.98; }
+    h2 { margin: 0; font-size: clamp(22px, 2.5vw, 32px); letter-spacing: -0.045em; }
     p { color: var(--muted); line-height: 1.5; }
     .controls {
       display: grid;
       gap: 12px;
       align-content: start;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--details-bg);
     }
     label {
       display: grid;
@@ -807,26 +941,34 @@ std::string BuildTestPageHtml(bool lab_mode) {
       width: 100%;
       border-radius: 14px;
       border: 1px solid var(--line);
-      background: rgba(9,20,23,0.92);
+      background: var(--field-bg);
       color: var(--ink);
       padding: 12px 14px;
       font: inherit;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: 3px solid var(--focus);
+      border-color: rgba(11,110,105,0.45);
     }
     button {
-      background: linear-gradient(135deg, var(--accent), #ffb067);
-      color: #111;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
       border: 0;
       font-weight: 700;
       cursor: pointer;
+      box-shadow: 0 12px 28px rgba(11,110,105,0.22);
     }
     button.secondary {
-      background: rgba(255,255,255,0.08);
+      background: var(--secondary-bg);
       color: var(--ink);
       border: 1px solid var(--line);
+      box-shadow: none;
     }
     a {
-      color: #ffd09b;
+      color: var(--link);
       text-decoration: none;
+      font-weight: 700;
     }
     a:hover {
       text-decoration: underline;
@@ -835,35 +977,233 @@ std::string BuildTestPageHtml(bool lab_mode) {
       width: 100%;
       aspect-ratio: 16 / 9;
       background: #000;
-      border-radius: 18px;
+      border-radius: 22px;
       border: 1px solid var(--line);
     }
     .grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      padding: 0 24px 24px;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+      gap: clamp(16px, 2.4vw, 24px);
+      padding: 0 clamp(18px, 3vw, 30px) clamp(18px, 3vw, 30px);
     }
     textarea { min-height: 220px; }
     pre {
       white-space: pre-wrap;
       word-break: break-word;
-      background: rgba(9,20,23,0.92);
+      background: var(--code-bg);
       border: 1px solid var(--line);
       border-radius: 18px;
       padding: 16px;
       min-height: 220px;
       margin: 0;
-      color: #cfe4db;
+      color: var(--code-ink);
+    }
+    .utility-drawer {
+      margin: 0 clamp(18px, 3vw, 30px) clamp(18px, 3vw, 30px);
+      overflow: hidden;
+    }
+    .utility-drawer > summary {
+      cursor: pointer;
+      padding: 16px 18px;
+      color: var(--ink);
+      font-weight: 800;
+    }
+    .utility-drawer[open] > summary {
+      border-bottom: 1px solid var(--line);
+    }
+    .utility-drawer .grid {
+      padding: 16px;
+    }
+    .utility-drawer .controls {
+      box-shadow: none;
+    }
+    details {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--details-bg);
+    }
+    summary {
+      list-style-position: inside;
+    }
+    summary:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 4px;
+      border-radius: 12px;
+    }
+    .section-pad {
+      padding: clamp(18px, 3vw, 30px);
+      display: grid;
+      gap: 16px;
+    }
+    .section-heading {
+      display: grid;
+      gap: 8px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at top right, rgba(240,179,91,0.16), transparent 36%),
+        var(--details-bg);
+    }
+    .section-heading p {
+      margin: 0;
+    }
+    .eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .subtle-links {
+      margin: 0;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: var(--details-bg);
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .compact-pre {
+      min-height: 0;
+      background: var(--compact-code-bg);
+    }
+    .lab-stack {
+      scroll-margin-top: 18px;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      overflow: visible;
+      margin-top: 0 !important;
+    }
+    .lab-stack .section-pad {
+      padding: 0;
+      gap: 18px;
+    }
+    #stream-test {
+      background:
+        radial-gradient(circle at 12% 0%, rgba(240,179,91,0.22), transparent 32%),
+        radial-gradient(circle at 100% 0%, rgba(11,110,105,0.18), transparent 28%),
+        var(--card-bg);
+    }
+    .lab-mode-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      padding: 8px 18px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--details-bg);
+    }
+    .lab-mode-card {
+      display: grid;
+      grid-template-columns: minmax(110px, 0.28fr) 1fr;
+      gap: 6px;
+      align-items: start;
+      padding: 13px 0;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .lab-mode-card:last-child {
+      border-bottom: 0;
+    }
+    .lab-mode-card strong {
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+    .lab-mode-card span {
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 0.92rem;
+    }
+    .lab-details {
+      padding: 0;
+      background: transparent;
+      border: 0;
+      display: grid;
+      gap: 12px;
+      box-shadow: none;
+    }
+    .lab-details > summary {
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--details-bg);
+      cursor: pointer;
+    }
+    .lab-detail-note {
+      margin: 0 !important;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background:
+        linear-gradient(90deg, rgba(255,77,141,0.08), rgba(255,159,102,0.04)),
+        var(--details-bg);
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.94rem;
+    }
+    .embedded-component {
+      display: block;
+      width: 100%;
+      min-height: 180px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 0;
+      overflow: hidden;
+      --accent2: var(--accent-2);
+      --panel2: var(--panel-soft);
+      --soft-bg: var(--details-bg);
+      --canvas-bg: var(--code-bg);
+      --danger: #ff7777;
+    }
+    #va-analysis {
+      background: var(--details-bg) !important;
+      border-radius: 22px !important;
+      padding: 14px !important;
+    }
+    #va-analysis > summary {
+      font-size: 1rem;
     }
     @media (max-width: 900px) {
-      .hero, .grid { grid-template-columns: 1fr; }
+      .hero, .grid {
+        grid-template-columns: 1fr;
+      }
+      .lab-mode-card {
+        grid-template-columns: 1fr;
+      }
+      main {
+        width: min(100% - 20px, 720px);
+      }
+      h1 {
+        font-size: clamp(28px, 9vw, 40px);
+      }
+      div[style*="grid-template-columns:1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+      }
+    }
+    @media (max-width: 560px) {
+      .card {
+        border-radius: 22px;
+      }
+      .hero, .section-pad, .grid {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
     }
   </style>
 </head>
 <body>
   <main>
-    <section class="card">
+    <div class="topbar">
+      <strong>MediaServer</strong>
+      <button id="themeToggleBtn" class="theme-toggle" type="button">다크 모드</button>
+    </div>
+    <section id="stream-test" class="card">
       <div class="hero">
         <div>
           <h1>)" + hero_title + R"(</h1>
@@ -902,38 +1242,44 @@ std::string BuildTestPageHtml(bool lab_mode) {
 )" + analysis_controls + R"(
 )" + experimental_note + R"(        </div>
       </div>
-      <div class="grid">
-        <div>
-          <label>세션 로그</label>
-          <pre id="log"></pre>
-        </div>
-        <div>
-          <label>원격 SDP</label>
-          <textarea id="sdpBox" spellcheck="false"></textarea>
-        </div>
-      </div>
-      <div class="grid">
-        <div>
-          <label>발행 화면 미리보기</label>
-          <video id="publisherVideo" autoplay playsinline controls muted></video>
-        </div>
-        <div class="controls">
-          <label>발행 소스 ID
-            <input id="publishSourceIdInput" value="publisher-demo" />
-          </label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <button id="publishBtn" class="secondary">발행 시작</button>
-            <button id="stopPublishBtn" class="secondary">발행 중지</button>
+      <details class="utility-drawer">
+        <summary>개발자 정보: 세션 로그 / 원격 SDP</summary>
+        <div class="grid">
+          <div>
+            <label>세션 로그</label>
+            <pre id="log"></pre>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <button id="consumePublishedBtn" class="secondary">발행 소스 재생</button>
-            <button id="consumePublishedWhepBtn" class="secondary">발행 소스 WHEP 재생</button>
+          <div>
+            <label>원격 SDP</label>
+            <textarea id="sdpBox" spellcheck="false"></textarea>
           </div>
-          <p style="margin:0;color:var(--muted);font-size:0.9rem;">
-            publish 완료 후 `sourceType=webrtc`와 같은 source id로 RTSP/WebRTC consume을 바로 확인할 수 있습니다.
-          </p>
         </div>
-      </div>
+      </details>
+      <details class="utility-drawer">
+        <summary>WebRTC 발행 테스트</summary>
+        <div class="grid">
+          <div>
+            <label>발행 화면 미리보기</label>
+            <video id="publisherVideo" autoplay playsinline controls muted></video>
+          </div>
+          <div class="controls">
+            <label>발행 소스 ID
+              <input id="publishSourceIdInput" value="publisher-demo" />
+            </label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <button id="publishBtn" class="secondary">발행 시작</button>
+              <button id="stopPublishBtn" class="secondary">발행 중지</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <button id="consumePublishedBtn" class="secondary">발행 소스 재생</button>
+              <button id="consumePublishedWhepBtn" class="secondary">발행 소스 WHEP 재생</button>
+            </div>
+            <p style="margin:0;color:var(--muted);font-size:0.9rem;">
+              publish 완료 후 `sourceType=webrtc`와 같은 source id로 RTSP/WebRTC consume을 바로 확인할 수 있습니다.
+            </p>
+          </div>
+        </div>
+      </details>
     </section>
 )" + lab_panel + R"(  </main>
   <script>
@@ -952,6 +1298,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
     const analysisOverlayWaitInputEl = document.getElementById('analysisOverlayWaitInput');
     const analysisOverlayToleranceInputEl = document.getElementById('analysisOverlayToleranceInput');
     const analysisPreprocessInputEl = document.getElementById('analysisPreprocessInput');
+    const analysisLabelLangInputEl = document.getElementById('analysisLabelLangInput');
     const sourceFieldEls = Array.from(document.querySelectorAll('[data-source-field]'));
     let pc = null;
     let sessionId = null;
@@ -1126,6 +1473,9 @@ std::string BuildTestPageHtml(bool lab_mode) {
       }
       if (analysisOverlayInputEl && analysisOverlayInputEl.checked) {
         params.set('va', '1');
+        if (analysisLabelLangInputEl && analysisLabelLangInputEl.value) {
+          params.set('labelLang', analysisLabelLangInputEl.value);
+        }
         if (analysisFpsInputEl && analysisFpsInputEl.value) params.set('fps', analysisFpsInputEl.value);
         if (analysisQueueInputEl && analysisQueueInputEl.value) params.set('maxQueue', analysisQueueInputEl.value);
         if (analysisOverlayWaitInputEl && analysisOverlayWaitInputEl.value) {
@@ -1428,7 +1778,137 @@ std::string BuildTestPageHtml(bool lab_mode) {
     document.getElementById('consumePublishedBtn').onclick = () => playPublishedSimple().catch((error) => log(error.message));
     document.getElementById('consumePublishedWhepBtn').onclick = () => playPublishedWhep().catch((error) => log(error.message));
     document.getElementById('clearBtn').onclick = () => { logEl.textContent = ''; };
-    sourceTypeEl.addEventListener('change', updateSourceFields);
+    function applyTheme(theme) {
+      const nextTheme = theme === 'dark' ? 'dark' : 'light';
+      document.documentElement.dataset.theme = nextTheme;
+      localStorage.setItem('mediaServerTheme', nextTheme);
+      const themeButton = document.getElementById('themeToggleBtn');
+      if (themeButton) {
+        themeButton.textContent = nextTheme === 'dark' ? '라이트 모드' : '다크 모드';
+      }
+    }
+    function notifyEmbeddedSourceChanged() {
+      window.postMessage({ type: 'mediaServer.sourceChanged', query: buildQuery() }, window.location.origin);
+    }
+    function transformComponentScript(text) {
+      return text
+        .replaceAll('document.getElementById(', 'root.getElementById(')
+        .replaceAll('document.querySelectorAll(', 'root.querySelectorAll(')
+        .replaceAll("root.getElementById('themeToggleBtn').onclick = () => {", "const __themeToggleBtn = root.getElementById('themeToggleBtn'); if (__themeToggleBtn) __themeToggleBtn.onclick = () => {")
+        .replaceAll("$('themeToggleBtn').onclick = () => {", "if ($('themeToggleBtn')) $('themeToggleBtn').onclick = () => {");
+    }
+    function isComponentBootScript(text) {
+      const compact = text.replace(/\s+/g, ' ');
+      return compact.includes(`const saved = localStorage.getItem('mediaServerTheme')`)
+        && compact.includes(`document.documentElement.dataset.embed = params.get('embed') === '1' ? '1' : '0'`);
+    }
+    async function hydrateLabComponent(host) {
+      const url = host.dataset.componentUrl;
+      if (!url) return;
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`${url} HTTP ${response.status}`);
+      const html = await response.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const shadow = host.shadowRoot || host.attachShadow({ mode: 'open' });
+      shadow.innerHTML = '';
+      const baseStyle = document.createElement('style');
+      baseStyle.textContent = `
+        :host {
+          display: block;
+          color: var(--ink);
+          font-family: "Avenir Next", "Pretendard", "Noto Sans KR", sans-serif;
+          --accent2: var(--accent-2);
+          --panel2: var(--panel-soft);
+          --soft-bg: var(--details-bg);
+          --canvas-bg: var(--code-bg);
+          --danger: #ff7777;
+        }
+        .topbar, .standalone-nav { display: none !important; }
+        .component-main {
+          width: 100% !important;
+          max-width: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          display: grid !important;
+          gap: 22px !important;
+        }
+        .component-main > .hero {
+          box-shadow: none !important;
+          border-radius: 24px !important;
+          background:
+            radial-gradient(circle at 100% 0%, rgba(240,179,91,0.16), transparent 34%),
+            var(--soft-bg) !important;
+        }
+        .component-main > .card,
+        .component-main .card {
+          box-shadow: none !important;
+          border-radius: 22px !important;
+        }
+        .component-main .pad {
+          padding: 22px !important;
+        }
+        .component-main .grid {
+          gap: 22px !important;
+        }
+        .component-main textarea,
+        .component-main pre {
+          border-radius: 18px !important;
+        }
+      `;
+      shadow.appendChild(baseStyle);
+      for (const style of doc.querySelectorAll('style')) {
+        const clonedStyle = document.createElement('style');
+        clonedStyle.textContent = style.textContent || '';
+        shadow.appendChild(clonedStyle);
+      }
+      const main = doc.querySelector('main');
+      if (main) {
+        const componentMain = document.createElement('main');
+        componentMain.className = 'component-main';
+        for (const child of Array.from(main.children)) {
+          if (child.classList && (child.classList.contains('topbar') || child.classList.contains('standalone-nav'))) {
+            continue;
+          }
+          componentMain.appendChild(document.importNode(child, true));
+        }
+        shadow.appendChild(componentMain);
+      }
+      for (const script of doc.querySelectorAll('script')) {
+        const scriptText = script.textContent || '';
+        if (!scriptText.trim()) continue;
+        if (isComponentBootScript(scriptText)) continue;
+        try {
+          new Function('root', transformComponentScript(scriptText))(shadow);
+        } catch (error) {
+          host.textContent = `컴포넌트 초기화 실패: ${error.message}`;
+          throw error;
+        }
+      }
+      host.classList.add('is-loaded');
+    }
+    async function hydrateLabComponents() {
+      const hosts = Array.from(document.querySelectorAll('[data-component-url]'));
+      for (const host of hosts) {
+        try {
+          await hydrateLabComponent(host);
+        } catch (error) {
+          host.textContent = `컴포넌트 로드 실패: ${error.message}`;
+        }
+      }
+    }
+    document.getElementById('themeToggleBtn').onclick = () => {
+      applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+    };
+    applyTheme(document.documentElement.dataset.theme);
+    sourceTypeEl.addEventListener('change', () => {
+      updateSourceFields();
+      notifyEmbeddedSourceChanged();
+    });
+    for (const sourceInput of [fileInputEl, urlInputEl, webrtcSourceInputEl]) {
+      if (sourceInput) {
+        sourceInput.addEventListener('change', notifyEmbeddedSourceChanged);
+      }
+    }
     updateSourceFields();
     loadFileOptions();
     window.__mediaServerTestApi = {
@@ -1439,37 +1919,71 @@ std::string BuildTestPageHtml(bool lab_mode) {
       stopPublisher,
       playPublishedSimple,
       playPublishedWhep,
+      buildQuery,
       waitForPlayback,
       snapshotState,
       collectPeerStats
     };
+    hydrateLabComponents().catch((error) => log(`컴포넌트 로드 실패: ${error.message}`));
     window.addEventListener('beforeunload', () => { stopSession(); stopPublisher(); });
   </script>
 </body>
 </html>)";
 }
 
-std::string BuildLabImportPageHtml() {
-    const bool youtube_enabled = app::GetAppConfig().enable_experimental_youtube_source;
-    const std::string import_note =
-        youtube_enabled
-            ? "이 서버에서는 실험실 YouTube 가져오기가 켜져 있습니다. 완료된 작업은 `video/imports` 아래에 파일을 저장하며, 이후 기존 `file=` 경로로 relay/analysis 테스트에 재사용할 수 있습니다."
-            : "현재 실험실 YouTube 가져오기는 꺼져 있습니다. lab 다운로드를 허용하려면 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`로 서버를 시작하세요.";
-    const std::string button_disabled = youtube_enabled ? std::string() : "disabled";
-    return R"(<!DOCTYPE html>
+std::string BuildLabRuleEditorPageHtml() {
+    return R"RULEPAGE(<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>미디어 서버 실험실 가져오기</title>
+  <title>VA 룰 편집기</title>
+  <script>
+    (() => {
+      const saved = localStorage.getItem('mediaServerTheme');
+      document.documentElement.dataset.theme = saved === 'dark' ? 'dark' : 'light';
+      const params = new URLSearchParams(window.location.search);
+      document.documentElement.dataset.embed = params.get('embed') === '1' ? '1' : '0';
+    })();
+  </script>
   <style>
     :root {
-      --bg: #12110d;
-      --panel: #252114;
-      --ink: #f5f0df;
-      --muted: #c8bd9f;
-      --accent: #f2b84b;
-      --line: rgba(245,240,223,0.12);
+      --bg: #f6f1e8;
+      --panel: #fffaf0;
+      --panel2: #f3ead8;
+      --ink: #172026;
+      --muted: #66737c;
+      --accent: #0b6e69;
+      --accent2: #f0b35b;
+      --danger: #d54b4b;
+      --line: rgba(23,32,38,0.12);
+      --card-bg: rgba(255,250,240,0.9);
+      --field-bg: rgba(255,255,255,0.86);
+      --secondary-bg: #fff;
+      --soft-bg: rgba(11,110,105,0.08);
+      --code-bg: #172026;
+      --code-ink: #e8f4f1;
+      --canvas-bg: #f1e7d5;
+      --shadow: 0 22px 70px rgba(38,44,54,0.14);
+    }
+    :root[data-theme="dark"] {
+      --bg: #252525;
+      --panel: #2b2b2b;
+      --panel2: #303030;
+      --ink: #f4f4f4;
+      --muted: #b6b6b6;
+      --accent: #ff4d8d;
+      --accent2: #ff9f66;
+      --danger: #ff7777;
+      --line: rgba(255,255,255,0.10);
+      --card-bg: rgba(42,42,42,0.92);
+      --field-bg: rgba(18,18,18,0.88);
+      --secondary-bg: rgba(255,255,255,0.08);
+      --soft-bg: rgba(255,255,255,0.055);
+      --code-bg: rgba(14,14,14,0.94);
+      --code-ink: #efefef;
+      --canvas-bg: #191919;
+      --shadow: 18px 24px 52px rgba(0,0,0,0.46), -10px -10px 34px rgba(255,255,255,0.035);
     }
     * { box-sizing: border-box; }
     body {
@@ -1477,9 +1991,1467 @@ std::string BuildLabImportPageHtml() {
       font-family: "Avenir Next", "Pretendard", sans-serif;
       color: var(--ink);
       background:
-        radial-gradient(circle at top right, rgba(242,184,75,0.22), transparent 26%),
-        linear-gradient(135deg, #0a0907 0%, var(--bg) 45%, #1b160d 100%);
+        radial-gradient(circle at 10% -8%, rgba(240,179,91,0.32), transparent 28%),
+        radial-gradient(circle at 92% 8%, rgba(11,110,105,0.16), transparent 26%),
+        linear-gradient(145deg, #fbf8f0 0%, var(--bg) 54%, #eaf3ef 100%);
       min-height: 100vh;
+    }
+    :root[data-theme="dark"] body {
+      background:
+        radial-gradient(circle at 18% 8%, rgba(255,77,141,0.08), transparent 30%),
+        radial-gradient(circle at 82% 2%, rgba(255,159,102,0.06), transparent 32%),
+        linear-gradient(135deg, #202020 0%, var(--bg) 54%, #202020 100%);
+    }
+    :root[data-embed="1"] body {
+      background: transparent;
+      min-height: auto;
+    }
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+      display: grid;
+      gap: 20px;
+    }
+    :root[data-embed="1"] main {
+      max-width: none;
+      padding: 0;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .topbar strong { color: var(--ink); }
+    .standalone-nav { display: none; }
+    .theme-toggle {
+      width: auto;
+      min-width: 112px;
+      padding: 9px 13px;
+      border-radius: 999px;
+      background: var(--secondary-bg);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+    :root[data-embed="1"] .topbar {
+      display: none;
+    }
+    a { color: var(--accent); text-decoration: none; font-weight: 700; }
+    a:hover { text-decoration: underline; }
+    h1 { margin: 0; font-size: 36px; letter-spacing: -0.03em; }
+    h2 { margin: 0; font-size: 22px; letter-spacing: -0.02em; }
+    p { color: var(--muted); line-height: 1.55; }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    :root[data-embed="1"] .card {
+      box-shadow: none;
+      border-radius: 20px;
+    }
+    .pad { padding: 24px; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+    .stack { display: grid; gap: 14px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; }
+    input, select, textarea, button {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--field-bg);
+      color: var(--ink);
+      padding: 11px 13px;
+      font: inherit;
+    }
+    input[type="checkbox"] { width: auto; }
+    input[type="range"] { padding: 0; accent-color: var(--accent); }
+    textarea { min-height: 190px; resize: vertical; }
+    button {
+      border: 0;
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+    }
+    button.secondary {
+      color: var(--ink);
+      border: 1px solid var(--line);
+      background: var(--secondary-bg);
+    }
+    button.danger {
+      color: #180b0b;
+      background: linear-gradient(135deg, var(--danger), #ffb0a8);
+    }
+    .hero {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 0;
+      padding: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    :root[data-embed="1"] .hero {
+      padding: 24px;
+      box-shadow: none;
+      border-radius: 20px;
+    }
+    :root[data-embed="1"] h1 {
+      font-size: 30px;
+    }
+    .check-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      max-height: 280px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+    .check-grid label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--soft-bg);
+      color: var(--ink);
+    }
+    .check-grid label.is-hidden { display: none; }
+    .class-group-title {
+      grid-column: 1 / -1;
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: var(--soft-bg);
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: -0.01em;
+    }
+    .class-group-title.is-hidden { display: none; }
+    .class-tools {
+      display: grid;
+      gap: 8px;
+    }
+    .class-filter-row {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.4fr) minmax(0, 1fr);
+      gap: 10px;
+      align-items: end;
+    }
+    .pill-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+    button.mini-button {
+      padding: 9px 10px;
+      font-size: 12px;
+      border-radius: 999px;
+    }
+    .preview-panel {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--soft-bg);
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+    }
+    .canvas-wrap {
+      background: var(--canvas-bg);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+    canvas {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      display: block;
+      background:
+        linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+        radial-gradient(circle at center, rgba(111,208,165,0.11), transparent 50%),
+        var(--canvas-bg);
+      background-size: 10% 10%, 10% 10%, auto, auto;
+      cursor: crosshair;
+      touch-action: none;
+    }
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-height: 140px;
+      margin: 0;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: var(--code-bg);
+      color: var(--code-ink);
+    }
+    .debug-drawer {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--soft-bg);
+      overflow: hidden;
+    }
+    .debug-drawer > summary {
+      cursor: pointer;
+      padding: 16px 18px;
+      color: var(--ink);
+      font-weight: 800;
+    }
+    .debug-drawer[open] > summary {
+      border-bottom: 1px solid var(--line);
+    }
+    .debug-drawer > .grid {
+      padding: 16px;
+    }
+    .debug-drawer > .card {
+      border: 0;
+      border-top: 1px solid var(--line);
+      border-radius: 0;
+      box-shadow: none;
+      background: transparent;
+    }
+    .hint { margin: 0; font-size: 0.9rem; color: var(--muted); }
+    @media (max-width: 980px) {
+      .grid, .row { grid-template-columns: 1fr; }
+      .check-grid { grid-template-columns: 1fr 1fr; }
+      .class-filter-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="topbar">
+      <strong>MediaServer</strong>
+      <button id="themeToggleBtn" class="theme-toggle" type="button">다크 모드</button>
+    </div>
+    <section class="hero">
+      <p class="standalone-nav" style="margin:0;"><a href="/lab">실험실로 돌아가기</a> · <a href="/webrtc/test">안정 테스트 페이지</a></p>
+      <h1>VA 룰 편집기</h1>
+      <p style="margin:0;">숫자를 JSON으로 직접 적지 않고, profile 성능값과 이벤트 룰을 한글 UI로 구성합니다. 룰은 “어떤 영역에서 어떤 객체를 판단할지”를 저장하는 형태입니다.</p>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <div class="pad stack">
+          <h2>1. 분석 Profile</h2>
+          <p class="hint">detector 처리량과 품질을 정하는 값입니다. 저장된 profile은 rule에서 선택할 수 있습니다.</p>
+          <label>저장된 Profile
+            <select id="profileSelect"></select>
+          </label>
+          <div class="row">
+            <label>Profile ID
+              <input id="profileId" value="fast-local" />
+            </label>
+            <label>Detector
+              <select id="profileDetector">
+                <option value="yolo">YOLO</option>
+                <option value="dummy">Dummy</option>
+              </select>
+            </label>
+          </div>
+          <div class="row">
+            <label>분석 FPS: <span id="profileFpsValue">6</span>
+              <input id="profileFps" type="range" min="1" max="30" value="6" />
+            </label>
+            <label>Queue 크기: <span id="profileQueueValue">1</span>
+              <input id="profileQueue" type="range" min="1" max="8" value="1" />
+            </label>
+          </div>
+          <div class="row">
+            <label>신뢰도 threshold: <span id="profileConfidenceValue">25%</span>
+              <input id="profileConfidence" type="range" min="1" max="100" value="25" />
+            </label>
+            <label>NMS threshold: <span id="profileNmsValue">45%</span>
+              <input id="profileNms" type="range" min="1" max="100" value="45" />
+            </label>
+          </div>
+          <div class="row">
+            <label>입력 Width
+              <select id="profileInputWidth">
+                <option value="320">320</option>
+                <option value="640" selected>640</option>
+                <option value="960">960</option>
+              </select>
+            </label>
+            <label>입력 Height
+              <select id="profileInputHeight">
+                <option value="320">320</option>
+                <option value="640" selected>640</option>
+                <option value="960">960</option>
+              </select>
+            </label>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;">
+            <input id="profileAdaptive" type="checkbox" checked />
+            부하가 높으면 FPS/input size 자동 조절
+          </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+            <button id="newProfileBtn" class="secondary">새 Profile</button>
+            <button id="saveProfileBtn">Profile 저장</button>
+            <button id="deleteProfileBtn" class="danger">Profile 삭제</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="pad stack">
+          <h2>2. 이벤트 Rule</h2>
+          <p class="hint">영역과 객체 타입을 지정합니다. 저장된 룰은 `va=1` overlay와 events API에 바로 적용됩니다. 단 진입/이탈/라인 통과는 tracker 연결 전까지 detection index 기준의 1차 판정입니다.</p>
+          <label>저장된 Rule
+            <select id="ruleSelect"></select>
+          </label>
+          <div class="row">
+            <label>Rule ID
+              <input id="ruleId" value="file-person-car-area" />
+            </label>
+            <label>사용 여부
+              <select id="ruleEnabled">
+                <option value="true" selected>사용</option>
+                <option value="false">사용 안 함</option>
+              </select>
+            </label>
+          </div>
+          <div class="row">
+            <label>대상 소스
+              <select id="ruleSourceKind">
+                <option value="*">전체</option>
+                <option value="file" selected>파일</option>
+                <option value="rtsp">RTSP</option>
+                <option value="webrtc">WebRTC</option>
+                <option value="http">HTTP</option>
+                <option value="hls">HLS</option>
+              </select>
+            </label>
+            <label>송출 경로
+              <select id="ruleRoute">
+                <option value="*" selected>전체</option>
+                <option value="rtsp">RTSP</option>
+                <option value="webrtc">WebRTC</option>
+              </select>
+            </label>
+          </div>
+          <div class="row">
+            <label>사용할 Profile
+              <select id="ruleProfileId"></select>
+            </label>
+            <label>이벤트 타입
+              <select id="ruleEventType">
+                <option value="presence" selected>영역 내 객체 감지(권장)</option>
+                <option value="enter">영역 진입(1차)</option>
+                <option value="exit">영역 이탈(1차)</option>
+                <option value="line-crossing">라인 통과(1차/양방향)</option>
+              </select>
+            </label>
+          </div>
+          <label>분석할 객체 타입</label>
+          <div class="class-tools">
+            <div class="class-filter-row">
+              <label>카테고리 필터
+                <select id="classFilterInput">
+                  <option value="" selected>전체 카테고리 보기</option>
+                  <option value="사람">사람</option>
+                  <option value="차량">차량</option>
+                  <option value="도로">도로</option>
+                  <option value="동물">동물</option>
+                  <option value="운동">운동</option>
+                  <option value="식기">식기</option>
+                  <option value="음식">음식</option>
+                  <option value="가구">가구</option>
+                  <option value="기기">기기</option>
+                  <option value="잡화">잡화</option>
+                </select>
+              </label>
+              <p class="hint">객체 값은 COCO label 기준으로 고정되어 있어 직접 입력하지 않고 카테고리별로 선택합니다.</p>
+            </div>
+            <div class="pill-grid">
+              <button id="selectCoreClassesBtn" class="secondary mini-button">주요 객체</button>
+              <button id="selectVehicleClassesBtn" class="secondary mini-button">사람/차량</button>
+              <button id="selectAnimalClassesBtn" class="secondary mini-button">동물</button>
+              <button id="selectAllClassesBtn" class="secondary mini-button">전체 선택</button>
+              <button id="clearClassesBtn" class="secondary mini-button">전체 해제</button>
+            </div>
+          </div>
+          <div id="classChecks" class="check-grid"></div>
+          <div class="row">
+            <label>최소 신뢰도: <span id="ruleConfidenceValue">25%</span>
+              <input id="ruleConfidence" type="range" min="1" max="100" value="25" />
+            </label>
+            <label>최소 지속 시간(ms)
+              <input id="ruleMinDurationMs" type="number" min="0" value="0" />
+            </label>
+          </div>
+          <div class="preview-panel">
+            <h2 style="font-size:18px;">영역 배경 영상</h2>
+            <p class="hint">메인 `/lab` 상단에서 선택한 소스를 그대로 사용해 캔버스 배경 프레임을 표시합니다. 룰 편집 안에서는 별도 파일을 다시 고르지 않습니다.</p>
+            <label style="display:flex;align-items:center;gap:8px;">
+              <input id="autoPreviewInput" type="checkbox" />
+              룰 설정 중 메인 영상 프레임 보기
+            </label>
+            <button id="stopPreviewBtn" class="secondary">영상 보기 중지</button>
+            <p id="previewStatus" class="hint">꺼져 있습니다. 필요할 때만 켜서 영역을 맞추세요.</p>
+          </div>
+          <label id="geometryLabel">이벤트 판단 영역</label>
+          <div class="canvas-wrap">
+            <canvas id="regionCanvas" width="960" height="540"></canvas>
+          </div>
+          <p id="geometryHint" class="hint">캔버스를 클릭해 다각형 꼭짓점을 추가합니다. 3개 이상이면 영역으로 저장됩니다. 최대 12개까지 지정할 수 있습니다. 기존 점 근처를 드래그하면 새 점을 만들지 않고 점 위치를 이동합니다.</p>
+          <div class="card" style="box-shadow:none;background:rgba(255,255,255,0.04);">
+            <div class="pad stack" style="padding:16px;">
+              <h2 style="font-size:18px;">이벤트 발생 시 동작</h2>
+              <p class="hint">저장된 룰은 va=1 overlay와 events API에서 바로 판정됩니다. 깜빡임 강조와 POST 전송 워커가 적용됩니다.</p>
+              <label style="display:flex;align-items:center;gap:8px;">
+                <input id="eventFlashInput" type="checkbox" checked />
+                이벤트가 발생한 객체를 overlay에서 깜빡임으로 강조
+              </label>
+              <div class="row">
+                <label>깜빡임 시간(ms)
+                  <input id="eventFlashMsInput" type="number" min="100" max="10000" value="1200" />
+                </label>
+                <label>강조 색상
+                  <input id="eventFlashColorInput" type="color" value="#ffcc00" />
+                </label>
+              </div>
+              <label>이벤트 POST URL
+                <input id="eventPostUrlInput" placeholder="https://example.internal/events" />
+              </label>
+              <p class="hint">사용자는 URL만 입력합니다. 이벤트 payload format은 서버에서 고정하며 아래 preview는 수정할 수 없습니다. 실제 POST 전송은 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1`일 때만 수행됩니다.</p>
+              <label>고정 POST payload 예시
+                <textarea id="eventPayloadPreview" readonly spellcheck="false"></textarea>
+              </label>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+            <button id="clearRegionBtn" class="secondary">영역 지우기</button>
+            <button id="saveRuleBtn">Rule 저장</button>
+            <button id="deleteRuleBtn" class="danger">Rule 삭제</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <details class="debug-drawer">
+      <summary>개발자 정보: 생성 JSON / 상태</summary>
+      <section class="grid">
+        <div class="card">
+          <div class="pad stack">
+            <h2>생성되는 Profile JSON</h2>
+            <textarea id="profileJsonPreview" spellcheck="false"></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="pad stack">
+            <h2>생성되는 Rule JSON</h2>
+            <textarea id="ruleJsonPreview" spellcheck="false"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="pad stack">
+          <h2>상태</h2>
+          <pre id="statusBox">준비 중...</pre>
+        </div>
+      </section>
+    </details>
+  </main>
+
+  <script>
+    const classes = [
+      { value: 'person', category: '사람', label: '단독', group: 'person core' },
+      { value: 'bicycle', category: '차량', label: '자전거', group: 'vehicle core' },
+      { value: 'car', category: '차량', label: '자동차', group: 'vehicle core' },
+      { value: 'motorcycle', category: '차량', label: '오토바이', group: 'vehicle core' },
+      { value: 'airplane', category: '차량', label: '비행기', group: 'vehicle' },
+      { value: 'bus', category: '차량', label: '버스', group: 'vehicle core' },
+      { value: 'train', category: '차량', label: '기차', group: 'vehicle' },
+      { value: 'truck', category: '차량', label: '트럭', group: 'vehicle core' },
+      { value: 'boat', category: '차량', label: '보트', group: 'vehicle' },
+      { value: 'traffic light', category: '도로', label: '신호등', group: 'traffic core' },
+      { value: 'fire hydrant', category: '도로', label: '소화전', group: 'traffic' },
+      { value: 'stop sign', category: '도로', label: '정지 표지판', group: 'traffic core' },
+      { value: 'parking meter', category: '도로', label: '주차 미터기', group: 'traffic' },
+      { value: 'bird', category: '동물', label: '새', group: 'animal' },
+      { value: 'cat', category: '동물', label: '고양이', group: 'animal' },
+      { value: 'dog', category: '동물', label: '강아지', group: 'animal core' },
+      { value: 'horse', category: '동물', label: '말', group: 'animal' },
+      { value: 'sheep', category: '동물', label: '양', group: 'animal' },
+      { value: 'cow', category: '동물', label: '소', group: 'animal' },
+      { value: 'elephant', category: '동물', label: '코끼리', group: 'animal' },
+      { value: 'bear', category: '동물', label: '곰', group: 'animal' },
+      { value: 'zebra', category: '동물', label: '얼룩말', group: 'animal' },
+      { value: 'giraffe', category: '동물', label: '기린', group: 'animal' },
+      { value: 'backpack', category: '잡화', label: '백팩', group: 'object' },
+      { value: 'umbrella', category: '잡화', label: '우산', group: 'object' },
+      { value: 'handbag', category: '잡화', label: '핸드백', group: 'object' },
+      { value: 'tie', category: '잡화', label: '넥타이', group: 'object' },
+      { value: 'suitcase', category: '잡화', label: '여행가방', group: 'object' },
+      { value: 'frisbee', category: '운동', label: '프리스비', group: 'sports' },
+      { value: 'skis', category: '운동', label: '스키', group: 'sports' },
+      { value: 'snowboard', category: '운동', label: '스노보드', group: 'sports' },
+      { value: 'sports ball', category: '운동', label: '공', group: 'sports' },
+      { value: 'kite', category: '운동', label: '연', group: 'sports' },
+      { value: 'baseball bat', category: '운동', label: '야구 배트', group: 'sports' },
+      { value: 'baseball glove', category: '운동', label: '야구 글러브', group: 'sports' },
+      { value: 'skateboard', category: '운동', label: '스케이트보드', group: 'sports' },
+      { value: 'surfboard', category: '운동', label: '서프보드', group: 'sports' },
+      { value: 'tennis racket', category: '운동', label: '테니스 라켓', group: 'sports' },
+      { value: 'bottle', category: '식기', label: '병', group: 'tableware' },
+      { value: 'wine glass', category: '식기', label: '와인잔', group: 'tableware' },
+      { value: 'cup', category: '식기', label: '컵', group: 'tableware' },
+      { value: 'fork', category: '식기', label: '포크', group: 'tableware' },
+      { value: 'knife', category: '식기', label: '칼', group: 'tableware' },
+      { value: 'spoon', category: '식기', label: '숟가락', group: 'tableware' },
+      { value: 'bowl', category: '식기', label: '그릇', group: 'tableware' },
+      { value: 'banana', category: '음식', label: '바나나', group: 'food' },
+      { value: 'apple', category: '음식', label: '사과', group: 'food' },
+      { value: 'sandwich', category: '음식', label: '샌드위치', group: 'food' },
+      { value: 'orange', category: '음식', label: '오렌지', group: 'food' },
+      { value: 'broccoli', category: '음식', label: '브로콜리', group: 'food' },
+      { value: 'carrot', category: '음식', label: '당근', group: 'food' },
+      { value: 'hot dog', category: '음식', label: '핫도그', group: 'food' },
+      { value: 'pizza', category: '음식', label: '피자', group: 'food' },
+      { value: 'donut', category: '음식', label: '도넛', group: 'food' },
+      { value: 'cake', category: '음식', label: '케이크', group: 'food' },
+      { value: 'bench', category: '가구', label: '벤치', group: 'furniture' },
+      { value: 'chair', category: '가구', label: '의자', group: 'furniture' },
+      { value: 'couch', category: '가구', label: '소파', group: 'furniture' },
+      { value: 'potted plant', category: '가구', label: '화분', group: 'furniture' },
+      { value: 'bed', category: '가구', label: '침대', group: 'furniture' },
+      { value: 'dining table', category: '가구', label: '식탁', group: 'furniture' },
+      { value: 'toilet', category: '가구', label: '변기', group: 'furniture' },
+      { value: 'tv', category: '기기', label: 'TV', group: 'electronics' },
+      { value: 'laptop', category: '기기', label: '노트북', group: 'electronics' },
+      { value: 'mouse', category: '기기', label: '마우스', group: 'electronics' },
+      { value: 'remote', category: '기기', label: '리모컨', group: 'electronics' },
+      { value: 'keyboard', category: '기기', label: '키보드', group: 'electronics' },
+      { value: 'cell phone', category: '기기', label: '휴대폰', group: 'electronics' },
+      { value: 'microwave', category: '기기', label: '전자레인지', group: 'appliance' },
+      { value: 'oven', category: '기기', label: '오븐', group: 'appliance' },
+      { value: 'toaster', category: '기기', label: '토스터', group: 'appliance' },
+      { value: 'sink', category: '가구', label: '싱크대', group: 'appliance' },
+      { value: 'refrigerator', category: '기기', label: '냉장고', group: 'appliance' },
+      { value: 'book', category: '잡화', label: '책', group: 'object' },
+      { value: 'clock', category: '기기', label: '시계', group: 'object' },
+      { value: 'vase', category: '잡화', label: '꽃병', group: 'object' },
+      { value: 'scissors', category: '잡화', label: '가위', group: 'object' },
+      { value: 'teddy bear', category: '잡화', label: '곰인형', group: 'object' },
+      { value: 'hair drier', category: '기기', label: '헤어드라이어', group: 'object' },
+      { value: 'toothbrush', category: '잡화', label: '칫솔', group: 'object' }
+    ];
+    const classCategoryOrder = ['사람', '차량', '도로', '동물', '운동', '식기', '음식', '가구', '기기', '잡화'];
+    classes.sort((left, right) => {
+      const leftCategoryIndex = classCategoryOrder.indexOf(left.category);
+      const rightCategoryIndex = classCategoryOrder.indexOf(right.category);
+      const leftOrder = leftCategoryIndex >= 0 ? leftCategoryIndex : 999;
+      const rightOrder = rightCategoryIndex >= 0 ? rightCategoryIndex : 999;
+      if (leftOrder !== rightOrder) return leftOrder - rightOrder;
+      return left.label.localeCompare(right.label, 'ko');
+    });
+    let builtInProfiles = [];
+    let profiles = [];
+    let rules = [];
+    let previewTapId = '';
+    let previewTimer = null;
+    let previewImage = null;
+    let previewFailureCount = 0;
+    let previewSourceLabel = '';
+    let regionPoints = [
+      { x: 0.20, y: 0.22 },
+      { x: 0.80, y: 0.22 },
+      { x: 0.80, y: 0.78 },
+      { x: 0.20, y: 0.78 }
+    ];
+    let draggingPointIndex = -1;
+    let didDragPoint = false;
+    const polygonMaxPoints = 12;
+    const lineMaxPoints = 2;
+    const dragHitRadiusPx = 16;
+
+    const $ = (id) => document.getElementById(id);
+    const canvas = $('regionCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function status(message, payload = null) {
+      $('statusBox').textContent = payload ? `${message}\n${JSON.stringify(payload, null, 2)}` : message;
+    }
+
+    function previewStatus(message) {
+      $('previewStatus').textContent = message;
+    }
+    function setRulePreviewUi(active) {
+      const checkbox = $('autoPreviewInput');
+      const button = $('stopPreviewBtn');
+      if (checkbox) checkbox.checked = active;
+      if (button) button.textContent = active ? '영상 보기 중지' : '영상 보기 시작';
+    }
+
+    async function requestJson(url, options = {}) {
+      const response = await fetch(url, options);
+      const text = await response.text();
+      let payload = {};
+      try {
+        payload = text ? JSON.parse(text) : {};
+      } catch (_) {
+        payload = { raw: text };
+      }
+      if (!response.ok) {
+        throw new Error(payload.error || text || `HTTP ${response.status}`);
+      }
+      return payload;
+    }
+
+    function percentValue(id) {
+      return Math.round(Number($(id).value || 0)) / 100;
+    }
+
+    function clampedIntValue(id, fallback, min, max) {
+      const value = Number($(id).value || fallback);
+      if (!Number.isFinite(value)) return fallback;
+      return Math.max(min, Math.min(max, Math.round(value)));
+    }
+
+    function selectedClasses() {
+      return Array.from(document.querySelectorAll('[data-class-check]:checked')).map((el) => el.value);
+    }
+
+    function setCheckedClasses(predicate) {
+      document.querySelectorAll('[data-class-check]').forEach((el) => {
+        const group = el.dataset.classGroup || '';
+        el.checked = predicate(el.value, group, el);
+      });
+      updatePreviews();
+    }
+
+    function filterClassChecks() {
+      const selectedCategory = ($('classFilterInput').value || '').trim();
+      document.querySelectorAll('[data-class-item]').forEach((el) => {
+        const category = el.dataset.category || '';
+        el.classList.toggle('is-hidden', selectedCategory.length > 0 && category !== selectedCategory);
+      });
+      document.querySelectorAll('[data-class-group-title]').forEach((title) => {
+        const category = title.dataset.category || '';
+        const visibleCount = Array.from(document.querySelectorAll(`[data-class-item][data-category="${category}"]`))
+          .filter((el) => !el.classList.contains('is-hidden'))
+          .length;
+        title.classList.toggle('is-hidden', visibleCount === 0);
+      });
+    }
+
+    function isLineRule() {
+      return $('ruleEventType').value === 'line-crossing';
+    }
+
+    function maxGeometryPoints() {
+      return isLineRule() ? lineMaxPoints : polygonMaxPoints;
+    }
+
+    function minimumGeometryPoints() {
+      return isLineRule() ? lineMaxPoints : 3;
+    }
+
+    function defaultLinePoints() {
+      return [
+        { x: 0.25, y: 0.50 },
+        { x: 0.75, y: 0.50 }
+      ];
+    }
+
+    function defaultPolygonPoints() {
+      return [
+        { x: 0.20, y: 0.22 },
+        { x: 0.80, y: 0.22 },
+        { x: 0.80, y: 0.78 },
+        { x: 0.20, y: 0.78 }
+      ];
+    }
+
+    function clampPoint(point) {
+      return {
+        x: Math.max(0, Math.min(1, Number(point.x || 0))),
+        y: Math.max(0, Math.min(1, Number(point.y || 0)))
+      };
+    }
+
+    function normalizeGeometryForMode() {
+      const maxPoints = maxGeometryPoints();
+      regionPoints = regionPoints.map(clampPoint).slice(0, maxPoints);
+      if (isLineRule() && regionPoints.length < lineMaxPoints) {
+        regionPoints = defaultLinePoints();
+      }
+    }
+
+    function profileJson() {
+      return {
+        id: $('profileId').value.trim() || 'fast-local',
+        detector: $('profileDetector').value,
+        fps: Number($('profileFps').value),
+        maxQueue: Number($('profileQueue').value),
+        confidence: percentValue('profileConfidence'),
+        nms: percentValue('profileNms'),
+        inputWidth: Number($('profileInputWidth').value),
+        inputHeight: Number($('profileInputHeight').value),
+        adaptive: $('profileAdaptive').checked
+      };
+    }
+
+    function eventActionsJson() {
+      const postUrl = $('eventPostUrlInput').value.trim();
+      return {
+        highlight: {
+          enabled: $('eventFlashInput').checked,
+          mode: 'blink',
+          target: 'matched-object',
+          durationMs: clampedIntValue('eventFlashMsInput', 1200, 100, 10000),
+          color: $('eventFlashColorInput').value || '#ffcc00'
+        },
+        post: {
+          enabled: postUrl.length > 0,
+          method: 'POST',
+          url: postUrl,
+          contentType: 'application/json',
+          payloadFormat: 'media-server.va.event.v1'
+        }
+      };
+    }
+
+    function eventPayloadExampleJson(region) {
+      const classes = selectedClasses();
+      return {
+        schema: 'media-server.va.event.v1',
+        eventId: 'evt_20260425_000001',
+        timestamp: '2026-04-25T00:00:00.000Z',
+        rule: {
+          id: $('ruleId').value.trim() || 'file-person-car-area',
+          type: $('ruleEventType').value
+        },
+        source: {
+          kind: $('ruleSourceKind').value,
+          route: $('ruleRoute').value
+        },
+        object: {
+          trackId: 'track-001',
+          class: classes[0] || 'person',
+          confidence: 0.92,
+          bbox: {
+            x: 0.32,
+            y: 0.18,
+            width: 0.22,
+            height: 0.46
+          }
+        },
+        region,
+        action: {
+          highlight: eventActionsJson().highlight
+        }
+      };
+    }
+
+    function ruleJson() {
+      normalizeGeometryForMode();
+      const lineMode = isLineRule();
+      const points = regionPoints.map((point) => ({
+        x: Number(point.x.toFixed(4)),
+        y: Number(point.y.toFixed(4))
+      }));
+      const region = {
+        type: lineMode ? 'line' : 'polygon',
+        points
+      };
+      if (lineMode) {
+        region.direction = 'any';
+      }
+      return {
+        id: $('ruleId').value.trim() || 'file-person-car-area',
+        enabled: $('ruleEnabled').value === 'true',
+        match: {
+          sourceKind: $('ruleSourceKind').value,
+          route: $('ruleRoute').value
+        },
+        analysis: {
+          profileId: $('ruleProfileId').value || $('profileId').value.trim() || 'server-default-va',
+          classes: selectedClasses()
+        },
+        event: {
+          type: $('ruleEventType').value,
+          region,
+          minConfidence: percentValue('ruleConfidence'),
+          minDurationMs: Number($('ruleMinDurationMs').value || 0)
+        },
+        outputs: {
+          overlay: true,
+          metadata: true,
+          events: true
+        },
+        eventActions: eventActionsJson()
+      };
+    }
+
+    function updateRangeLabels() {
+      $('profileFpsValue').textContent = $('profileFps').value;
+      $('profileQueueValue').textContent = $('profileQueue').value;
+      $('profileConfidenceValue').textContent = `${$('profileConfidence').value}%`;
+      $('profileNmsValue').textContent = `${$('profileNms').value}%`;
+      $('ruleConfidenceValue').textContent = `${$('ruleConfidence').value}%`;
+    }
+
+    function updateGeometryText() {
+      const lineMode = isLineRule();
+      $('geometryLabel').textContent = lineMode ? '이벤트 판단 선' : '이벤트 판단 영역';
+      $('clearRegionBtn').textContent = lineMode ? '선 지우기' : '영역 지우기';
+      $('geometryHint').textContent = lineMode
+        ? '라인 통과 룰은 선분의 시작/끝 2개 점만 사용합니다. 방향은 현재 any(양방향)로 저장합니다. 기존 점 근처를 드래그하면 점 위치를 이동합니다.'
+        : `캔버스를 클릭해 다각형 꼭짓점을 추가합니다. 3개 이상이면 영역으로 저장됩니다. 최대 ${polygonMaxPoints}개까지 지정할 수 있습니다. 기존 점 근처를 드래그하면 새 점을 만들지 않고 점 위치를 이동합니다.`;
+    }
+
+    function updatePreviews() {
+      normalizeGeometryForMode();
+      updateRangeLabels();
+      updateGeometryText();
+      filterClassChecks();
+      $('profileJsonPreview').value = JSON.stringify(profileJson(), null, 2);
+      const currentRule = ruleJson();
+      $('ruleJsonPreview').value = JSON.stringify(currentRule, null, 2);
+      $('eventPayloadPreview').value = JSON.stringify(eventPayloadExampleJson(currentRule.event.region), null, 2);
+      drawRegion();
+    }
+
+    function renderClassChecks() {
+      const container = $('classChecks');
+      container.innerHTML = '';
+      let lastCategory = '';
+      for (const item of classes) {
+        const { value, category, label, group } = item;
+        if (category !== lastCategory) {
+          const title = document.createElement('div');
+          title.className = 'class-group-title';
+          title.dataset.classGroupTitle = '1';
+          title.dataset.category = category;
+          title.textContent = category;
+          container.appendChild(title);
+          lastCategory = category;
+        }
+        const wrapper = document.createElement('label');
+        wrapper.dataset.classItem = '1';
+        wrapper.dataset.category = category;
+        wrapper.dataset.search = `${value} ${category} ${label} ${group}`;
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.value = value;
+        input.dataset.classCheck = '1';
+        input.dataset.classGroup = group;
+        input.checked = value === 'person' || value === 'car' || value === 'bus' || value === 'truck';
+        input.addEventListener('change', updatePreviews);
+        wrapper.appendChild(input);
+        const displayLabel = category === '사람' ? `${category} ${label}` : `${category}(${label})`;
+        wrapper.appendChild(document.createTextNode(`${displayLabel} · ${value}`));
+        container.appendChild(wrapper);
+      }
+      filterClassChecks();
+    }
+
+    async function loadPreviewFileOptions() {
+      const select = $('previewFileSelect');
+      if (!select) return;
+      try {
+        const payload = await requestJson('/lab/files');
+        const files = Array.isArray(payload.files) ? payload.files : [];
+        if (files.length === 0) return;
+        const previous = select.dataset.loaded === '1'
+          ? select.value
+          : (payload.defaultFile || select.value || 'sample_h264.mp4');
+        select.innerHTML = '';
+        for (const file of files) {
+          addOption(select, file, file);
+        }
+        select.value = files.includes(previous) ? previous : files[0];
+        select.dataset.loaded = '1';
+      } catch (error) {
+        previewStatus(`파일 목록 로드 실패: ${error.message}`);
+      }
+    }
+
+    async function stopRulePreview(options = {}) {
+      if (previewTimer) {
+        clearInterval(previewTimer);
+        previewTimer = null;
+      }
+      const tapId = previewTapId;
+      previewTapId = '';
+      previewImage = null;
+      previewFailureCount = 0;
+      if (tapId) {
+        await fetch(`/lab/analysis/taps/${encodeURIComponent(tapId)}`, { method: 'DELETE' }).catch(() => {});
+      }
+      setRulePreviewUi(false);
+      if (!options.silent) {
+        previewStatus('미리보기를 중지했습니다.');
+      }
+      drawRegion();
+    }
+
+    function buildPreviewParamsFromParent() {
+      let params = new URLSearchParams();
+      try {
+        if (window.parent && window.parent.__mediaServerTestApi && window.parent.__mediaServerTestApi.buildQuery) {
+          params = new URLSearchParams(window.parent.__mediaServerTestApi.buildQuery());
+        }
+      } catch (_) {
+      }
+      if (!Array.from(params.keys()).length) {
+        params.set('file', 'sample_h264.mp4');
+      }
+      params.delete('va');
+      params.delete('labelLang');
+      params.delete('overlayWaitMs');
+      params.delete('overlaySyncToleranceMs');
+      params.set('detector', 'dummy');
+      params.set('fps', '4');
+      params.set('maxQueue', '1');
+      params.set('adaptive', '1');
+      return params;
+    }
+
+    function describePreviewSource(params) {
+      if (params.get('file')) return `file=${params.get('file')}`;
+      const source = params.get('source') || 'rtsp';
+      const url = params.get('url') || '';
+      return `${source}${url ? ` · ${url}` : ''}`;
+    }
+
+    function refreshPreviewFrame() {
+      if (!previewTapId) return;
+      const image = new Image();
+      image.onload = () => {
+        previewImage = image;
+        previewFailureCount = 0;
+        previewStatus(`메인 영상 프레임 보기 실행 중: ${previewSourceLabel}`);
+        drawRegion();
+      };
+      image.onerror = () => {
+        previewFailureCount += 1;
+        if (previewFailureCount >= 4) {
+          previewStatus('아직 프레임을 준비 중입니다. 파일 디코딩 또는 분석 tap 상태를 확인 중입니다.');
+        }
+      };
+      image.src = `/lab/analysis/taps/${encodeURIComponent(previewTapId)}/snapshot.jpg?quality=72&_=${Date.now()}`;
+    }
+
+    async function startRulePreview() {
+      await stopRulePreview({ silent: true });
+      const params = buildPreviewParamsFromParent();
+      previewSourceLabel = describePreviewSource(params);
+      previewStatus('미리보기 tap 생성 중...');
+      const payload = await requestJson(`/lab/analysis/taps?${params.toString()}`, { method: 'POST' });
+      previewTapId = payload.tapId || '';
+      setRulePreviewUi(true);
+      previewStatus(`메인 영상 프레임 보기 시작: ${previewSourceLabel}`);
+      refreshPreviewFrame();
+      previewTimer = setInterval(refreshPreviewFrame, 500);
+    }
+
+    function addOption(select, value, label) {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = label;
+      select.appendChild(option);
+    }
+
+    function renderProfileSelects() {
+      const profileSelect = $('profileSelect');
+      const ruleProfileId = $('ruleProfileId');
+      const previousProfile = profileSelect.value;
+      const previousRuleProfile = ruleProfileId.value;
+      profileSelect.innerHTML = '';
+      ruleProfileId.innerHTML = '';
+      addOption(profileSelect, '', '새 profile 작성');
+      for (const item of builtInProfiles) {
+        addOption(profileSelect, `builtin:${item.id}`, `[기본] ${item.id}`);
+        addOption(ruleProfileId, item.id, `[기본] ${item.id}`);
+      }
+      for (const item of profiles) {
+        addOption(profileSelect, `custom:${item.id}`, `[저장] ${item.id}`);
+        addOption(ruleProfileId, item.id, `[저장] ${item.id}`);
+      }
+      if (previousProfile && Array.from(profileSelect.options).some((option) => option.value === previousProfile)) {
+        profileSelect.value = previousProfile;
+      }
+      if (previousRuleProfile && Array.from(ruleProfileId.options).some((option) => option.value === previousRuleProfile)) {
+        ruleProfileId.value = previousRuleProfile;
+      }
+    }
+
+    function renderRuleSelect() {
+      const select = $('ruleSelect');
+      const previous = select.value;
+      select.innerHTML = '';
+      addOption(select, '', '새 rule 작성');
+      for (const item of rules) {
+        addOption(select, `custom:${item.id}`, `[저장] ${item.id}`);
+      }
+      if (previous && Array.from(select.options).some((option) => option.value === previous)) {
+        select.value = previous;
+      }
+    }
+
+    async function refreshRegistry() {
+      const [profilePayload, rulePayload] = await Promise.all([
+        requestJson('/lab/analysis/profiles'),
+        requestJson('/lab/analysis/rules')
+      ]);
+      builtInProfiles = Array.isArray(profilePayload.builtInProfiles) ? profilePayload.builtInProfiles : [];
+      profiles = Array.isArray(profilePayload.profiles) ? profilePayload.profiles : [];
+      rules = Array.isArray(rulePayload.rules) ? rulePayload.rules : [];
+      renderProfileSelects();
+      renderRuleSelect();
+      updatePreviews();
+      status('목록을 불러왔습니다.', {
+        builtInProfiles: builtInProfiles.length,
+        profiles: profiles.length,
+        rules: rules.length
+      });
+    }
+
+    function loadProfile(item) {
+      $('profileId').value = item.id || 'fast-local';
+      $('profileDetector').value = item.detector === 'dummy' ? 'dummy' : 'yolo';
+      $('profileFps').value = item.fps || item.targetFps || 6;
+      $('profileQueue').value = item.maxQueue || item.maxQueueSize || 1;
+      $('profileConfidence').value = Math.round(Number(item.confidence ?? item.confidenceThreshold ?? 0.25) * 100);
+      $('profileNms').value = Math.round(Number(item.nms ?? item.nmsThreshold ?? 0.45) * 100);
+      $('profileInputWidth').value = String(item.inputWidth || item.modelInputWidth || 640);
+      $('profileInputHeight').value = String(item.inputHeight || item.modelInputHeight || 640);
+      $('profileAdaptive').checked = item.adaptive !== false;
+      updatePreviews();
+    }
+
+    function loadRule(item) {
+      $('ruleId').value = item.id || 'file-person-car-area';
+      $('ruleEnabled').value = item.enabled === false ? 'false' : 'true';
+      $('ruleSourceKind').value = item.match?.sourceKind || '*';
+      $('ruleRoute').value = item.match?.route || '*';
+      $('ruleProfileId').value = item.analysis?.profileId || $('ruleProfileId').value;
+      $('ruleEventType').value = item.event?.type || 'presence';
+      const classSet = new Set(item.analysis?.classes || []);
+      document.querySelectorAll('[data-class-check]').forEach((el) => {
+        el.checked = classSet.size === 0 ? (el.value === 'person' || el.value === 'car') : classSet.has(el.value);
+      });
+      filterClassChecks();
+      $('ruleConfidence').value = Math.round(Number(item.event?.minConfidence ?? 0.25) * 100);
+      $('ruleMinDurationMs').value = Number(item.event?.minDurationMs || 0);
+      const points = item.event?.region?.points;
+      if (Array.isArray(points) && points.length > 0) {
+        regionPoints = points.map((point) => ({
+          x: Math.max(0, Math.min(1, Number(point.x || 0))),
+          y: Math.max(0, Math.min(1, Number(point.y || 0)))
+        }));
+      }
+      const eventActions = item.eventActions || {};
+      const highlight = eventActions.highlight || {};
+      const post = eventActions.post || {};
+      $('eventFlashInput').checked = highlight.enabled !== false;
+      $('eventFlashMsInput').value = Number(highlight.durationMs || 1200);
+      $('eventFlashColorInput').value = typeof highlight.color === 'string' && highlight.color
+        ? highlight.color
+        : '#ffcc00';
+      $('eventPostUrlInput').value = typeof post.url === 'string' ? post.url : '';
+      updatePreviews();
+    }
+
+    async function saveProfile() {
+      const payload = profileJson();
+      const response = await requestJson(`/lab/analysis/profiles/${encodeURIComponent(payload.id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      await refreshRegistry();
+      $('profileSelect').value = `custom:${payload.id}`;
+      status(`Profile 저장 완료: ${payload.id}`, response);
+    }
+
+    async function deleteProfile() {
+      const id = $('profileId').value.trim();
+      if (!id) throw new Error('삭제할 profile id가 없습니다.');
+      const response = await requestJson(`/lab/analysis/profiles/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      await refreshRegistry();
+      status(`Profile 삭제 완료: ${id}`, response);
+    }
+
+    async function saveRule() {
+      const payload = ruleJson();
+      const response = await requestJson(`/lab/analysis/rules/${encodeURIComponent(payload.id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      await refreshRegistry();
+      $('ruleSelect').value = `custom:${payload.id}`;
+      status(`Rule 저장 완료: ${payload.id}`, response);
+    }
+
+    async function deleteRule() {
+      const id = $('ruleId').value.trim();
+      if (!id) throw new Error('삭제할 rule id가 없습니다.');
+      const response = await requestJson(`/lab/analysis/rules/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      await refreshRegistry();
+      status(`Rule 삭제 완료: ${id}`, response);
+    }
+
+    function drawRegion() {
+      const lineMode = isLineRule();
+      const width = canvas.width;
+      const height = canvas.height;
+      ctx.clearRect(0, 0, width, height);
+      if (previewImage) {
+        ctx.drawImage(previewImage, 0, 0, width, height);
+        ctx.fillStyle = 'rgba(0,0,0,0.18)';
+        ctx.fillRect(0, 0, width, height);
+      } else {
+        ctx.fillStyle = '#08110e';
+        ctx.fillRect(0, 0, width, height);
+      }
+      ctx.strokeStyle = 'rgba(242,240,223,0.08)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= width; x += width / 10) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= height; y += height / 10) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+      if (regionPoints.length > 0) {
+        ctx.beginPath();
+        regionPoints.forEach((point, index) => {
+          const x = point.x * width;
+          const y = point.y * height;
+          if (index === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        if (!lineMode && regionPoints.length >= 3) {
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(111,208,165,0.22)';
+          ctx.fill();
+        }
+        ctx.strokeStyle = lineMode ? '#e7b65c' : '#6fd0a5';
+        ctx.lineWidth = lineMode ? 5 : 4;
+        ctx.stroke();
+      }
+      ctx.fillStyle = 'rgba(242,240,223,0.82)';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(
+        `${lineMode ? '선' : '영역'} 점 ${regionPoints.length}/${maxGeometryPoints()} · 최소 ${minimumGeometryPoints()}개`,
+        16,
+        14
+      );
+      if (lineMode) {
+        ctx.fillText('방향: any(양방향)', 16, 36);
+      }
+      regionPoints.forEach((point, index) => {
+        const x = point.x * width;
+        const y = point.y * height;
+        ctx.beginPath();
+        ctx.arc(x, y, 9, 0, Math.PI * 2);
+        ctx.fillStyle = '#e7b65c';
+        ctx.fill();
+        ctx.strokeStyle = '#12120d';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = '#12120d';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(index + 1), x, y);
+      });
+    }
+
+    function canvasPointFromEvent(event) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (event.clientX - rect.left) / rect.width,
+        y: (event.clientY - rect.top) / rect.height
+      };
+    }
+
+    function hitTestPointIndex(point) {
+      const width = canvas.width;
+      const height = canvas.height;
+      let bestIndex = -1;
+      let bestDistance = dragHitRadiusPx;
+      regionPoints.forEach((candidate, index) => {
+        const dx = (candidate.x - point.x) * width;
+        const dy = (candidate.y - point.y) * height;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance <= bestDistance) {
+          bestDistance = distance;
+          bestIndex = index;
+        }
+      });
+      return bestIndex;
+    }
+
+    canvas.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      const point = clampPoint(canvasPointFromEvent(event));
+      const hitIndex = hitTestPointIndex(point);
+      didDragPoint = false;
+      if (hitIndex >= 0) {
+        draggingPointIndex = hitIndex;
+        canvas.setPointerCapture(event.pointerId);
+        return;
+      }
+      if (regionPoints.length >= maxGeometryPoints()) {
+        status(`${isLineRule() ? '선' : '영역'} 점은 최대 ${maxGeometryPoints()}개까지 지정할 수 있습니다. 기존 점을 드래그해서 위치를 바꿔주세요.`);
+        return;
+      }
+      regionPoints.push(point);
+      draggingPointIndex = regionPoints.length - 1;
+      didDragPoint = true;
+      canvas.setPointerCapture(event.pointerId);
+      updatePreviews();
+    });
+
+    canvas.addEventListener('pointermove', (event) => {
+      if (draggingPointIndex < 0) return;
+      event.preventDefault();
+      regionPoints[draggingPointIndex] = clampPoint(canvasPointFromEvent(event));
+      didDragPoint = true;
+      updatePreviews();
+    });
+
+    function finishPointDrag(event) {
+      if (draggingPointIndex >= 0) {
+        event.preventDefault();
+        if (canvas.hasPointerCapture(event.pointerId)) {
+          canvas.releasePointerCapture(event.pointerId);
+        }
+        draggingPointIndex = -1;
+        if (didDragPoint) {
+          updatePreviews();
+        }
+      }
+    }
+
+    canvas.addEventListener('pointerup', finishPointDrag);
+    canvas.addEventListener('pointercancel', finishPointDrag);
+
+    $('clearRegionBtn').onclick = () => {
+      regionPoints = isLineRule() ? defaultLinePoints() : [];
+      updatePreviews();
+    };
+    $('newProfileBtn').onclick = () => {
+      $('profileSelect').value = '';
+      loadProfile({ id: 'fast-local', detector: 'yolo', fps: 6, maxQueue: 1, confidence: 0.25, nms: 0.45, inputWidth: 640, inputHeight: 640, adaptive: true });
+    };
+    $('saveProfileBtn').onclick = () => saveProfile().catch((error) => status(`Profile 저장 실패: ${error.message}`));
+    $('deleteProfileBtn').onclick = () => deleteProfile().catch((error) => status(`Profile 삭제 실패: ${error.message}`));
+    $('saveRuleBtn').onclick = () => saveRule().catch((error) => status(`Rule 저장 실패: ${error.message}`));
+    $('deleteRuleBtn').onclick = () => deleteRule().catch((error) => status(`Rule 삭제 실패: ${error.message}`));
+    $('autoPreviewInput').addEventListener('change', () => {
+      if ($('autoPreviewInput').checked) {
+        startRulePreview().catch((error) => {
+          setRulePreviewUi(false);
+          previewStatus(`메인 영상 프레임 보기 실패: ${error.message}`);
+        });
+      } else {
+        stopRulePreview().catch((error) => previewStatus(`미리보기 중지 실패: ${error.message}`));
+      }
+    });
+    $('stopPreviewBtn').onclick = () => {
+      if (previewTapId || $('autoPreviewInput').checked) {
+        stopRulePreview().catch((error) => previewStatus(`미리보기 중지 실패: ${error.message}`));
+      } else {
+        setRulePreviewUi(true);
+        startRulePreview().catch((error) => {
+          setRulePreviewUi(false);
+          previewStatus(`메인 영상 프레임 보기 실패: ${error.message}`);
+        });
+      }
+    };
+    $('classFilterInput').addEventListener('change', filterClassChecks);
+    $('selectCoreClassesBtn').onclick = () => setCheckedClasses((value, group) => group.includes('core'));
+    $('selectVehicleClassesBtn').onclick = () => setCheckedClasses((value, group) => value === 'person' || group.includes('vehicle'));
+    $('selectAnimalClassesBtn').onclick = () => setCheckedClasses((value, group) => group.includes('animal'));
+    $('selectAllClassesBtn').onclick = () => setCheckedClasses(() => true);
+    $('clearClassesBtn').onclick = () => setCheckedClasses(() => false);
+    $('profileSelect').onchange = () => {
+      const value = $('profileSelect').value;
+      if (!value) {
+        $('newProfileBtn').click();
+        return;
+      }
+      const [kind, id] = value.split(':');
+      const source = kind === 'builtin' ? builtInProfiles : profiles;
+      const item = source.find((entry) => entry.id === id);
+      if (item) loadProfile(item);
+    };
+    $('ruleSelect').onchange = () => {
+      const value = $('ruleSelect').value;
+      if (!value) {
+        loadRule({
+          id: 'file-person-car-area',
+          enabled: true,
+          match: { sourceKind: 'file', route: '*' },
+          analysis: { profileId: $('ruleProfileId').value, classes: ['person', 'car', 'bus', 'truck'] },
+          event: { type: 'presence', minConfidence: 0.25, minDurationMs: 0, region: { type: 'polygon', points: regionPoints } },
+          eventActions: {
+            highlight: { enabled: true, mode: 'blink', target: 'matched-object', durationMs: 1200, color: '#ffcc00' },
+            post: { enabled: false, method: 'POST', url: '', contentType: 'application/json', payloadFormat: 'media-server.va.event.v1' }
+          }
+        });
+        return;
+      }
+      const [, id] = value.split(':');
+      const item = rules.find((entry) => entry.id === id);
+      if (item) loadRule(item);
+    };
+    for (const id of ['profileFps', 'profileQueue', 'profileConfidence', 'profileNms', 'profileInputWidth', 'profileInputHeight', 'profileDetector', 'profileAdaptive', 'profileId', 'ruleId', 'ruleEnabled', 'ruleSourceKind', 'ruleRoute', 'ruleProfileId', 'ruleEventType', 'ruleConfidence', 'ruleMinDurationMs', 'eventFlashInput', 'eventFlashMsInput', 'eventFlashColorInput', 'eventPostUrlInput']) {
+      const el = $(id);
+      if (el) el.addEventListener('input', updatePreviews);
+      if (el) el.addEventListener('change', updatePreviews);
+    }
+
+    function applyTheme(theme) {
+      const nextTheme = theme === 'dark' ? 'dark' : 'light';
+      document.documentElement.dataset.theme = nextTheme;
+      localStorage.setItem('mediaServerTheme', nextTheme);
+      const themeButton = $('themeToggleBtn');
+      if (themeButton) themeButton.textContent = nextTheme === 'dark' ? '라이트 모드' : '다크 모드';
+    }
+    function notifyEmbedHeight() {
+      if (document.documentElement.dataset.embed !== '1') return;
+      const height = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+      window.parent.postMessage({ type: 'mediaServer.embedHeight', height }, window.location.origin);
+    }
+    window.addEventListener('message', (event) => {
+      if (event.origin !== window.location.origin) return;
+      const data = event.data || {};
+      if (data.type === 'mediaServer.theme') {
+        applyTheme(data.theme);
+        notifyEmbedHeight();
+      } else if (data.type === 'mediaServer.sourceChanged' && $('autoPreviewInput') && $('autoPreviewInput').checked) {
+        startRulePreview().catch((error) => previewStatus(`메인 소스 변경 후 미리보기 재시작 실패: ${error.message}`));
+      }
+    });
+    window.addEventListener('load', notifyEmbedHeight);
+    window.addEventListener('resize', notifyEmbedHeight);
+    if (window.ResizeObserver) {
+      new ResizeObserver(notifyEmbedHeight).observe(document.body);
+    }
+    setInterval(notifyEmbedHeight, 1500);
+    $('themeToggleBtn').onclick = () => {
+      applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+    };
+    applyTheme(document.documentElement.dataset.theme);
+
+    renderClassChecks();
+    setRulePreviewUi(false);
+    updatePreviews();
+    loadPreviewFileOptions();
+    refreshRegistry().catch((error) => status(`목록 로드 실패: ${error.message}`));
+    window.addEventListener('beforeunload', () => { stopRulePreview({ silent: true }); });
+  </script>
+</body>
+</html>)RULEPAGE";
+}
+
+std::string BuildLabImportPageHtml() {
+    const bool youtube_source_enabled = app::GetAppConfig().enable_experimental_youtube_source;
+    const bool youtube_import_enabled = app::GetAppConfig().enable_lab_youtube_import;
+    const std::string import_note =
+        youtube_import_enabled
+            ? "YouTube URL을 개발용 샘플 파일로 내려받아 `video/imports` 아래에 저장합니다. 저장된 file token은 기존 `file=` 경로로 relay/analysis 테스트에 재사용합니다."
+            : "현재 YouTube 파일 다운로드가 꺼져 있습니다. 다운로드를 허용하려면 `MEDIA_SERVER_ENABLE_LAB_YOUTUBE_IMPORT=1`로 서버를 시작하세요.";
+    const std::string button_disabled = youtube_import_enabled ? std::string() : "disabled";
+    const std::string import_status = youtube_import_enabled ? "켜짐" : "꺼짐";
+    const std::string source_status = youtube_source_enabled ? "켜짐" : "꺼짐";
+    return R"(<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>미디어 서버 실험실 가져오기</title>
+  <script>
+    (() => {
+      const saved = localStorage.getItem('mediaServerTheme');
+      document.documentElement.dataset.theme = saved === 'dark' ? 'dark' : 'light';
+      const params = new URLSearchParams(window.location.search);
+      document.documentElement.dataset.embed = params.get('embed') === '1' ? '1' : '0';
+    })();
+  </script>
+  <style>
+    :root {
+      --bg: #f6f1e8;
+      --panel: #fffaf0;
+      --ink: #172026;
+      --muted: #66737c;
+      --accent: #0b6e69;
+      --accent2: #f0b35b;
+      --line: rgba(23,32,38,0.12);
+      --card-bg: rgba(255,250,240,0.9);
+      --field-bg: rgba(255,255,255,0.86);
+      --secondary-bg: #fff;
+      --soft-bg: rgba(11,110,105,0.08);
+      --code-bg: #172026;
+      --code-ink: #e8f4f1;
+      --shadow: 0 22px 70px rgba(38,44,54,0.14);
+    }
+    :root[data-theme="dark"] {
+      --bg: #252525;
+      --panel: #2b2b2b;
+      --ink: #f4f4f4;
+      --muted: #b6b6b6;
+      --accent: #ff4d8d;
+      --accent2: #ff9f66;
+      --line: rgba(255,255,255,0.10);
+      --card-bg: rgba(42,42,42,0.92);
+      --field-bg: rgba(18,18,18,0.88);
+      --secondary-bg: rgba(255,255,255,0.08);
+      --soft-bg: rgba(255,255,255,0.055);
+      --code-bg: rgba(14,14,14,0.94);
+      --code-ink: #efefef;
+      --shadow: 18px 24px 52px rgba(0,0,0,0.46), -10px -10px 34px rgba(255,255,255,0.035);
+      --focus: rgba(255,77,141,0.24);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "Pretendard", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top right, rgba(240,179,91,0.28), transparent 26%),
+        radial-gradient(circle at top left, rgba(11,110,105,0.14), transparent 28%),
+        linear-gradient(135deg, #fbf8f0 0%, var(--bg) 45%, #eaf3ef 100%);
+      min-height: 100vh;
+    }
+    :root[data-theme="dark"] body {
+      background:
+        radial-gradient(circle at 18% 8%, rgba(255,77,141,0.08), transparent 30%),
+        radial-gradient(circle at 82% 2%, rgba(255,159,102,0.06), transparent 32%),
+        linear-gradient(135deg, #202020 0%, var(--bg) 54%, #202020 100%);
+    }
+    :root[data-embed="1"] body {
+      background: transparent;
+      min-height: auto;
     }
     main {
       max-width: 1040px;
@@ -1488,26 +3460,60 @@ std::string BuildLabImportPageHtml() {
       display: grid;
       gap: 20px;
     }
+    :root[data-embed="1"] main {
+      max-width: none;
+      padding: 0;
+    }
     .card {
-      background: rgba(37,33,20,0.86);
+      background: var(--card-bg);
       border: 1px solid var(--line);
       border-radius: 24px;
       backdrop-filter: blur(10px);
-      box-shadow: 0 24px 60px rgba(0,0,0,0.24);
+      box-shadow: var(--shadow);
       overflow: hidden;
       padding: 24px;
+    }
+    :root[data-embed="1"] .card {
+      box-shadow: none;
+      border-radius: 20px;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .topbar strong { color: var(--ink); }
+    .standalone-nav { display: none; }
+    .theme-toggle {
+      width: auto;
+      min-width: 112px;
+      padding: 9px 13px;
+      border-radius: 999px;
+      background: var(--secondary-bg);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+    :root[data-embed="1"] .topbar {
+      display: none;
     }
     .hero {
       display: grid;
       grid-template-columns: 1.1fr 0.9fr;
       gap: 20px;
     }
+    :root[data-embed="1"] .hero {
+      grid-template-columns: 1fr;
+    }
     h1, h2 {
       margin: 0 0 10px;
       letter-spacing: -0.03em;
     }
     p, li { color: var(--muted); line-height: 1.5; }
-    a { color: #ffe0a1; text-decoration: none; }
+    a { color: var(--accent); text-decoration: none; font-weight: 700; }
     a:hover { text-decoration: underline; }
     .controls {
       display: grid;
@@ -1524,37 +3530,40 @@ std::string BuildLabImportPageHtml() {
       width: 100%;
       border-radius: 14px;
       border: 1px solid var(--line);
-      background: rgba(10,9,7,0.92);
+      background: var(--field-bg);
       color: var(--ink);
       padding: 12px 14px;
       font: inherit;
     }
     button {
-      background: linear-gradient(135deg, var(--accent), #f6d27e);
-      color: #221a08;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
       border: 0;
       font-weight: 700;
       cursor: pointer;
     }
     button.secondary {
-      background: rgba(255,255,255,0.08);
+      background: var(--secondary-bg);
       color: var(--ink);
       border: 1px solid var(--line);
     }
     button:disabled {
       opacity: 0.45;
       cursor: not-allowed;
+      background: var(--secondary-bg);
+      color: var(--muted);
+      border: 1px solid var(--line);
     }
     pre {
       white-space: pre-wrap;
       word-break: break-word;
-      background: rgba(10,9,7,0.92);
+      background: var(--code-bg);
       border: 1px solid var(--line);
       border-radius: 18px;
       padding: 16px;
       min-height: 180px;
       margin: 0;
-      color: #e9ddbe;
+      color: var(--code-ink);
     }
     .jobs {
       display: grid;
@@ -1564,7 +3573,7 @@ std::string BuildLabImportPageHtml() {
       border: 1px solid var(--line);
       border-radius: 18px;
       padding: 14px;
-      background: rgba(10,9,7,0.58);
+      background: var(--soft-bg);
     }
     .job strong {
       display: block;
@@ -1575,6 +3584,28 @@ std::string BuildLabImportPageHtml() {
       grid-template-columns: 1fr 1fr;
       gap: 20px;
     }
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .mode-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--soft-bg);
+    }
+    .mode-card strong {
+      display: block;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .mode-card span {
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 0.92rem;
+    }
     @media (max-width: 900px) {
       .hero, .grid { grid-template-columns: 1fr; }
     }
@@ -1582,14 +3613,28 @@ std::string BuildLabImportPageHtml() {
 </head>
 <body>
   <main>
+    <div class="topbar">
+      <strong>MediaServer</strong>
+      <button id="themeToggleBtn" class="theme-toggle" type="button">다크 모드</button>
+    </div>
     <section class="card">
       <div class="hero">
         <div>
           <h1>실험실 가져오기</h1>
-          <p><a href="/lab">실험실 메인으로 이동</a> · <a href="/webrtc/test">안정 테스트 페이지로 이동</a></p>
+          <p class="standalone-nav"><a href="/lab">실험실 메인으로 이동</a> · <a href="/webrtc/test">안정 테스트 페이지로 이동</a></p>
           <p>)" + import_note + R"(</p>
+          <div class="mode-grid">
+            <div class="mode-card">
+              <strong>파일 다운로드: )" + import_status + R"(</strong>
+              <span>yt-dlp와 ffmpeg로 샘플 파일을 만들고, 이후 `file=imports/...`로 사용합니다.</span>
+            </div>
+            <div class="mode-card">
+              <strong>직접 표출(source=youtube): )" + source_status + R"(</strong>
+              <span>라이브/VOD를 바로 받아 송출하는 경로입니다. 기본 숨김이며 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`이 필요합니다.</span>
+            </div>
+          </div>
           <ul>
-            <li>현재 provider: `youtube` experimental</li>
+            <li>현재 provider: `youtube` file import</li>
             <li>출력 경로: `video/imports/*`</li>
             <li>작업이 `ready`가 되면 반환된 file token을 `file=` 경로에 그대로 사용할 수 있습니다.</li>
           </ul>
@@ -1723,6 +3768,37 @@ std::string BuildLabImportPageHtml() {
       createJob().catch((error) => { statusBoxEl.textContent = error.message; });
     };
 
+    function applyTheme(theme) {
+      const nextTheme = theme === 'dark' ? 'dark' : 'light';
+      document.documentElement.dataset.theme = nextTheme;
+      localStorage.setItem('mediaServerTheme', nextTheme);
+      const themeButton = document.getElementById('themeToggleBtn');
+      if (themeButton) themeButton.textContent = nextTheme === 'dark' ? '라이트 모드' : '다크 모드';
+    }
+    function notifyEmbedHeight() {
+      if (document.documentElement.dataset.embed !== '1') return;
+      const height = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+      window.parent.postMessage({ type: 'mediaServer.embedHeight', height }, window.location.origin);
+    }
+    window.addEventListener('message', (event) => {
+      if (event.origin !== window.location.origin) return;
+      const data = event.data || {};
+      if (data.type === 'mediaServer.theme') {
+        applyTheme(data.theme);
+        notifyEmbedHeight();
+      }
+    });
+    window.addEventListener('load', notifyEmbedHeight);
+    window.addEventListener('resize', notifyEmbedHeight);
+    if (window.ResizeObserver) {
+      new ResizeObserver(notifyEmbedHeight).observe(document.body);
+    }
+    setInterval(notifyEmbedHeight, 1500);
+    document.getElementById('themeToggleBtn').onclick = () => {
+      applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+    };
+    applyTheme(document.documentElement.dataset.theme);
+
     refreshJobs().catch((error) => { statusBoxEl.textContent = error.message; });
     setInterval(() => {
       refreshJobs().catch(() => {});
@@ -1838,8 +3914,17 @@ std::string DetectionJson(const analysis::Detection& detection) {
         << "\"y\":" << detection.box.y << ","
         << "\"width\":" << detection.box.width << ","
         << "\"height\":" << detection.box.height
-        << "}"
         << "}";
+    if (detection.event_triggered) {
+        out << ",\"event\":{"
+            << "\"triggered\":true,"
+            << "\"ruleId\":\"" << JsonEscape(detection.event_rule_id) << "\","
+            << "\"type\":\"" << JsonEscape(detection.event_type) << "\","
+            << "\"highlightColor\":\"" << JsonEscape(detection.event_highlight_color) << "\","
+            << "\"highlightDurationMs\":" << detection.event_highlight_duration_ms
+            << "}";
+    }
+    out << "}";
     return out.str();
 }
 
@@ -1945,7 +4030,7 @@ std::string AnalysisTapCreatedJson(const core::SessionManager::AnalysisTapResult
 }
 
 std::string AnalysisCapabilitiesJson() {
-    return R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"outputs":["metadata","snapshot.jpg","overlay.jpg","rtsp-overlay","webrtc-overlay"],"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","thickness":"optional box line thickness","drawLabels":"optional label visibility"}})";
+    return R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"outputs":["metadata","events","snapshot.jpg","overlay.jpg","rtsp-overlay","webrtc-overlay"],"eventTypes":["presence","enter","exit","line-crossing"],"eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","thickness":"optional box line thickness","drawLabels":"optional label visibility"}})";
 }
 
 std::string AnalysisProfilesJson() {
@@ -1954,6 +4039,123 @@ std::string AnalysisProfilesJson() {
 
 std::string AnalysisRulesJson() {
     return AnalysisRegistry().RulesJson();
+}
+
+std::mutex& EventRuleRuntimeMapMutex() {
+    static std::mutex mu;
+    return mu;
+}
+
+std::unordered_map<std::string, std::shared_ptr<analysis::EventRuleRuntime>>& EventRuleRuntimeMap() {
+    static std::unordered_map<std::string, std::shared_ptr<analysis::EventRuleRuntime>> runtimes;
+    return runtimes;
+}
+
+std::shared_ptr<analysis::EventRuleRuntime> EventRuleRuntimeForKey(const std::string& key) {
+    std::lock_guard lock(EventRuleRuntimeMapMutex());
+    auto& runtimes = EventRuleRuntimeMap();
+    const auto it = runtimes.find(key);
+    if (it != runtimes.end() && it->second != nullptr) {
+        return it->second;
+    }
+    auto created = analysis::CreateEventRuleRuntime();
+    runtimes[key] = created;
+    return created;
+}
+
+void ReleaseEventRuleRuntimeForKey(const std::string& key) {
+    std::lock_guard lock(EventRuleRuntimeMapMutex());
+    EventRuleRuntimeMap().erase(key);
+}
+
+bool DetachAnalysisTapAndReleaseRuntimes(core::SessionManager& session_manager, const std::string& tap_id) {
+    if (tap_id.empty()) {
+        return false;
+    }
+    const bool detached = session_manager.DetachAnalysisTap(tap_id);
+    ReleaseEventRuleRuntimeForKey("webrtc-overlay:" + tap_id);
+    ReleaseEventRuleRuntimeForKey("tap-events:" + tap_id);
+    ReleaseEventRuleRuntimeForKey("tap-overlay:" + tap_id);
+    return detached;
+}
+
+analysis::EventRuleEvaluation EvaluateStoredEventRules(
+    const analysis::AnalysisResult& result,
+    const std::shared_ptr<analysis::EventRuleRuntime>& runtime) {
+    return analysis::ApplyEventRulesToResult(result, AnalysisRegistry().RuleDocuments(), runtime);
+}
+
+std::string AnalysisEventJson(const analysis::AnalysisEvent& event) {
+    std::ostringstream out;
+    out << "{"
+        << "\"ruleId\":\"" << JsonEscape(event.rule_id) << "\","
+        << "\"type\":\"" << JsonEscape(event.event_type) << "\","
+        << "\"object\":{"
+        << "\"classId\":" << event.class_id << ","
+        << "\"label\":\"" << JsonEscape(event.label) << "\","
+        << "\"score\":" << event.score << ","
+        << "\"box\":{"
+        << "\"x\":" << event.box.x << ","
+        << "\"y\":" << event.box.y << ","
+        << "\"width\":" << event.box.width << ","
+        << "\"height\":" << event.box.height
+        << "}},"
+        << "\"action\":{"
+        << "\"highlight\":{\"enabled\":" << (event.highlight_enabled ? "true" : "false")
+        << ",\"mode\":\"blink\",\"color\":\"" << JsonEscape(event.highlight_color)
+        << "\",\"durationMs\":" << event.highlight_duration_ms << "},"
+        << "\"post\":{\"enabled\":" << (event.post_enabled ? "true" : "false")
+        << ",\"url\":\"" << JsonEscape(event.post_url) << "\"}"
+        << "}"
+        << "}";
+    return out.str();
+}
+
+std::string AnalysisEventsJson(const std::string& tap_id,
+                               const std::optional<analysis::AnalysisResult>& result,
+                               const analysis::EventRuleEvaluation* evaluation) {
+    std::ostringstream out;
+    out << "{"
+        << "\"tapId\":\"" << JsonEscape(tap_id) << "\","
+        << "\"hasResult\":" << (result.has_value() ? "true" : "false") << ","
+        << "\"activeRuleCount\":" << (evaluation != nullptr ? evaluation->active_rule_count : 0) << ","
+        << "\"matchedDetectionCount\":" << (evaluation != nullptr ? evaluation->matched_detection_count : 0)
+        << ",\"events\":[";
+    if (evaluation != nullptr) {
+        for (std::size_t i = 0; i < evaluation->events.size(); ++i) {
+            if (i != 0) {
+                out << ",";
+            }
+            out << AnalysisEventJson(evaluation->events[i]);
+        }
+    }
+    out << "],\"result\":";
+    if (evaluation != nullptr) {
+        out << AnalysisResultJson(evaluation->annotated_result);
+    } else if (result.has_value()) {
+        out << AnalysisResultJson(*result);
+    } else {
+        out << "null";
+    }
+    out << "}";
+    return out.str();
+}
+
+std::string AnalysisEventPostStatusJson() {
+    const auto snapshot = analysis::GetEventPostDispatcherSnapshot();
+    std::ostringstream out;
+    out << "{"
+        << "\"enabled\":" << (snapshot.enabled ? "true" : "false") << ","
+        << "\"queueSize\":" << snapshot.queue_size << ","
+        << "\"maxQueueSize\":" << snapshot.max_queue_size << ","
+        << "\"enqueuedCount\":" << snapshot.enqueued_count << ","
+        << "\"sentCount\":" << snapshot.sent_count << ","
+        << "\"failedCount\":" << snapshot.failed_count << ","
+        << "\"droppedCount\":" << snapshot.dropped_count << ","
+        << "\"suppressedCount\":" << snapshot.suppressed_count << ","
+        << "\"lastError\":\"" << JsonEscape(snapshot.last_error) << "\""
+        << "}";
+    return out.str();
 }
 
 bool IsSupportedMediaFile(const std::filesystem::path& path) {
@@ -2040,22 +4242,32 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
     overlay_config.render_options = BuildOverlayRenderOptionsFromQuery(query);
     overlay_config.sync_tolerance_ns = static_cast<std::int64_t>(timing_options.sync_tolerance_ms) * 1000000LL;
     overlay_config.wait_timeout_ms = timing_options.wait_timeout_ms;
+    auto event_runtime = EventRuleRuntimeForKey("webrtc-overlay:" + attach_result.tap_id);
     overlay_config.result_provider =
         [&session_manager,
          tap_id = attach_result.tap_id,
          weak_bridge,
+         event_runtime,
          tolerance_ns = overlay_config.sync_tolerance_ns,
-         wait_timeout_ms = overlay_config.wait_timeout_ms](std::int64_t frame_pts) {
+         wait_timeout_ms = overlay_config.wait_timeout_ms](std::int64_t frame_pts)
+            -> std::optional<analysis::AnalysisResult> {
             const auto bridge_lock = weak_bridge.lock();
             const std::int64_t source_pts =
                 bridge_lock != nullptr ? bridge_lock->ResolveOverlaySourcePts(frame_pts) : frame_pts;
             auto result = session_manager.WaitAnalysisResultNearPts(
                 tap_id, source_pts, tolerance_ns, std::chrono::milliseconds(wait_timeout_ms));
             if (result.has_value()) {
-                return result;
+                const auto evaluation = EvaluateStoredEventRules(*result, event_runtime);
+                analysis::DispatchEventPosts(evaluation.annotated_result, evaluation.events);
+                return evaluation.annotated_result;
             }
             const auto snapshot = session_manager.AnalysisTapSnapshot(tap_id);
-            return snapshot.has_value() ? snapshot->latest_result : std::optional<analysis::AnalysisResult>{};
+            if (!snapshot.has_value() || !snapshot->latest_result.has_value()) {
+                return std::optional<analysis::AnalysisResult>{};
+            }
+            const auto evaluation = EvaluateStoredEventRules(*snapshot->latest_result, event_runtime);
+            analysis::DispatchEventPosts(evaluation.annotated_result, evaluation.events);
+            return evaluation.annotated_result;
         };
     bridge->SetAnalysisOverlay(std::move(overlay_config));
     if (analysis_tap_id != nullptr) {
@@ -2113,6 +4325,10 @@ bool SendAll(int fd, const std::string& data) {
 }
 
 }  // namespace
+
+std::vector<std::string> AnalysisRuleDocumentsSnapshot() {
+    return AnalysisRegistry().RuleDocuments();
+}
 
 bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t port, std::string* error_message) {
     if (running_.load()) {
@@ -2225,6 +4441,14 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return ok;
                         }
 
+                        if (request.method == "GET" && request.path == "/lab/rules") {
+                            HttpResponse ok;
+                            ok.content_type = "text/html; charset=utf-8";
+                            ok.headers["Cache-Control"] = "no-store";
+                            ok.body = BuildLabRuleEditorPageHtml();
+                            return ok;
+                        }
+
                         if (request.method == "GET" && request.path == "/lab/import") {
                             HttpResponse ok;
                             ok.content_type = "text/html; charset=utf-8";
@@ -2274,6 +4498,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                         if (request.method == "GET" && request.path == "/lab/analysis/capabilities") {
                             return JsonResponse(200, "OK", AnalysisCapabilitiesJson());
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/analysis/event-post/status") {
+                            return JsonResponse(200, "OK", AnalysisEventPostStatusJson());
                         }
 
                         if (request.method == "GET" && request.path == "/lab/analysis/profiles") {
@@ -2430,6 +4658,27 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     AnalysisMetadataJson(tap_id, result->latest_result));
                             }
 
+                            if (request.method == "GET" && suffix == "/events") {
+                                const auto snapshot = impl_->session_manager.AnalysisTapSnapshot(tap_id);
+                                if (!snapshot.has_value()) {
+                                    return JsonResponse(404, "Not Found",
+                                                        "{\"error\":\"analysis tap not found\"}");
+                                }
+                                std::optional<analysis::EventRuleEvaluation> evaluation;
+                                if (snapshot->latest_result.has_value()) {
+                                    evaluation = EvaluateStoredEventRules(
+                                        *snapshot->latest_result, EventRuleRuntimeForKey("tap-events:" + tap_id));
+                                    if (ParseBoolQuery(query, "dispatch", false)) {
+                                        analysis::DispatchEventPosts(evaluation->annotated_result, evaluation->events);
+                                    }
+                                }
+                                return JsonResponse(200,
+                                                    "OK",
+                                                    AnalysisEventsJson(tap_id,
+                                                                       snapshot->latest_result,
+                                                                       evaluation.has_value() ? &*evaluation : nullptr));
+                            }
+
                             if (request.method == "GET" && (suffix == "/snapshot" || suffix == "/snapshot.jpg")) {
                                 const auto frame = impl_->session_manager.AnalysisLatestFrame(tap_id);
                                 if (!frame.has_value()) {
@@ -2474,12 +4723,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 }
 
                                 analysis::RawVideoFrame overlay_frame;
-                                analysis::OverlayRenderOptions options;
-                                options.line_thickness = ParseClampedIntQuery(query, "thickness", 3, 1, 16);
-                                options.draw_labels = ParseBoolQuery(query, "drawLabels", true);
+                                analysis::OverlayRenderOptions options = BuildOverlayRenderOptionsFromQuery(query);
+                                const auto evaluation = EvaluateStoredEventRules(
+                                    *latest->result, EventRuleRuntimeForKey("tap-overlay:" + tap_id));
                                 std::string error_message;
                                 if (!analysis::RenderDetectionOverlay(
-                                        latest->frame, *latest->result, options, &overlay_frame, &error_message)) {
+                                        latest->frame, evaluation.annotated_result, options, &overlay_frame, &error_message)) {
                                     return HttpResponse{500,
                                                         "Internal Server Error",
                                                         "text/plain; charset=utf-8",
@@ -2504,7 +4753,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
 
                             if (request.method == "DELETE" && suffix.empty()) {
-                                if (!impl_->session_manager.DetachAnalysisTap(tap_id)) {
+                                if (!DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, tap_id)) {
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis tap not found\"}");
                                 }
@@ -2532,7 +4781,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 [bridge](const media::Packet& packet) { bridge->HandleSample(packet); });
                             if (!create_result.ok) {
                                 if (!analysis_tap_id.empty()) {
-                                    impl_->session_manager.DetachAnalysisTap(analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
                                 }
                                 return JsonResponse(400, "Bad Request",
                                                     "{\"error\":\"" + JsonEscape(create_result.message) + "\"}");
@@ -2540,7 +4789,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                             if (!bridge->Start(session_id, create_result.stream, &error_message)) {
                                 if (!analysis_tap_id.empty()) {
-                                    impl_->session_manager.DetachAnalysisTap(analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
                                 }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return JsonResponse(500, "Internal Server Error",
@@ -2551,7 +4800,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (!bridge->CreateOffer(&offer, &error_message)) {
                                 bridge->Stop();
                                 if (!analysis_tap_id.empty()) {
-                                    impl_->session_manager.DetachAnalysisTap(analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
                                 }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return JsonResponse(500, "Internal Server Error",
@@ -2589,14 +4838,14 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 [bridge](const media::Packet& packet) { bridge->HandleSample(packet); });
                             if (!create_result.ok) {
                                 if (!analysis_tap_id.empty()) {
-                                    impl_->session_manager.DetachAnalysisTap(analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
                                 }
                                 return HttpResponse{400, "Bad Request", "text/plain; charset=utf-8", {}, create_result.message};
                             }
 
                             if (!bridge->Start(session_id, create_result.stream, &error_message)) {
                                 if (!analysis_tap_id.empty()) {
-                                    impl_->session_manager.DetachAnalysisTap(analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
                                 }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return HttpResponse{500, "Internal Server Error", "text/plain; charset=utf-8", {}, error_message};
@@ -2604,7 +4853,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (!bridge->SetRemoteOffer(request.body, &error_message)) {
                                 bridge->Stop();
                                 if (!analysis_tap_id.empty()) {
-                                    impl_->session_manager.DetachAnalysisTap(analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
                                 }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return HttpResponse{400, "Bad Request", "text/plain; charset=utf-8", {}, error_message};
@@ -2614,7 +4863,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (!bridge->CreateAnswer(&answer, &error_message)) {
                                 bridge->Stop();
                                 if (!analysis_tap_id.empty()) {
-                                    impl_->session_manager.DetachAnalysisTap(analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
                                 }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return HttpResponse{500, "Internal Server Error", "text/plain; charset=utf-8", {}, error_message};
@@ -2748,7 +4997,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "DELETE" && (suffix.empty() || suffix == "/")) {
                                 bridge->Stop();
                                 if (!analysis_tap_id.empty()) {
-                                    impl_->session_manager.DetachAnalysisTap(analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
                                 }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 {
@@ -2843,7 +5092,7 @@ void WebRtcHttpServer::Stop() {
     for (auto& entry : sessions) {
         entry.bridge->Stop();
         if (!entry.analysis_tap_id.empty()) {
-            impl_->session_manager.DetachAnalysisTap(entry.analysis_tap_id);
+            DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, entry.analysis_tap_id);
         }
         impl_->session_manager.CloseSession(entry.ingress_client_id);
     }

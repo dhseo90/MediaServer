@@ -3,11 +3,12 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+SCRIPTS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 source "${SCRIPT_DIR}/env_common.sh"
 media_server_apply_homebrew_gst_env
 
-ENV_FILE="${SCRIPT_DIR}/.media_server.env"
+ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
 if [[ -f "${ENV_FILE}" ]]; then
   # shellcheck disable=SC1090
   set -a
@@ -17,7 +18,12 @@ if [[ -f "${ENV_FILE}" ]]; then
 fi
 
 STD_AFX="${ROOT_DIR}/include/stdafx.h"
-BUILD_DIR="${MEDIA_SERVER_BUILD_DIR:-${ROOT_DIR}/build-gst}"
+MEDIA_SERVER_ENABLE_AI="${MEDIA_SERVER_ENABLE_AI:-1}"
+if [[ "${MEDIA_SERVER_ENABLE_AI}" == "1" ]]; then
+  BUILD_DIR="${MEDIA_SERVER_BUILD_DIR:-${ROOT_DIR}/build-gst-onnx}"
+else
+  BUILD_DIR="${MEDIA_SERVER_BUILD_DIR:-${ROOT_DIR}/build-gst}"
+fi
 MEDIA_SERVER_BIN="${MEDIA_SERVER_BIN_PATH:-${BUILD_DIR}/media_server}"
 
 if [[ "${MEDIA_SERVER_SKIP_ENV_CHECK:-0}" != "1" ]]; then
@@ -25,13 +31,33 @@ if [[ "${MEDIA_SERVER_SKIP_ENV_CHECK:-0}" != "1" ]]; then
 fi
 
 if [[ "${MEDIA_SERVER_SKIP_BUILD:-0}" != "1" ]]; then
-  echo "[1/2] configure (GStreamer ON)"
-  if ! cmake -S "${ROOT_DIR}" -B "${BUILD_DIR}" -DMEDIA_SERVER_USE_GSTREAMER=ON; then
+  CMAKE_ARGS=(-DMEDIA_SERVER_USE_GSTREAMER=ON)
+  if [[ "${MEDIA_SERVER_ENABLE_AI}" == "1" ]]; then
+    ONNXRUNTIME_ROOT="${MEDIA_SERVER_ONNXRUNTIME_ROOT:-}"
+    if [[ -z "${ONNXRUNTIME_ROOT}" ]]; then
+      for candidate in "${ROOT_DIR}/third_party/onnxruntime" /opt/homebrew/opt/onnxruntime /usr/local/opt/onnxruntime /usr/local /usr; do
+        if [[ -d "${candidate}/include" ]] && { [[ -d "${candidate}/lib" ]] || [[ -d "${candidate}/lib64" ]]; }; then
+          ONNXRUNTIME_ROOT="${candidate}"
+          break
+        fi
+      done
+    fi
+    if [[ -z "${ONNXRUNTIME_ROOT}" ]]; then
+      echo "[run] ONNX Runtime root not found. Run: ./server.sh install"
+      exit 1
+    fi
+    CMAKE_ARGS+=(-DMEDIA_SERVER_USE_ONNXRUNTIME=ON -DMEDIA_SERVER_ONNXRUNTIME_ROOT="${ONNXRUNTIME_ROOT}")
+  else
+    CMAKE_ARGS+=(-DMEDIA_SERVER_USE_ONNXRUNTIME=OFF)
+  fi
+
+  echo "[1/2] configure (GStreamer ON, AI ${MEDIA_SERVER_ENABLE_AI})"
+  if ! cmake -S "${ROOT_DIR}" -B "${BUILD_DIR}" "${CMAKE_ARGS[@]}"; then
     if [[ -f "${BUILD_DIR}/CMakeCache.txt" ]]; then
       echo "[configure] stale CMake cache detected. resetting ${BUILD_DIR}"
       rm -f "${BUILD_DIR}/CMakeCache.txt"
       rm -rf "${BUILD_DIR}/CMakeFiles"
-      cmake -S "${ROOT_DIR}" -B "${BUILD_DIR}" -DMEDIA_SERVER_USE_GSTREAMER=ON
+      cmake -S "${ROOT_DIR}" -B "${BUILD_DIR}" "${CMAKE_ARGS[@]}"
     else
       exit 1
     fi
@@ -56,8 +82,8 @@ DEFAULT_FILE="$(media_server_resolve_project_path "${ROOT_DIR}" "$(media_server_
 
 RTSP_PORT="${MEDIA_SERVER_LISTEN_PORT:-${RTSP_PORT:-8554}}"
 HTTP_PORT="${MEDIA_SERVER_HTTP_LISTEN_PORT:-${HTTP_PORT:-8080}}"
-RTSP_ADDRESS="${MEDIA_SERVER_LISTEN_ADDRESS:-${RTSP_ADDRESS:-127.0.0.1}}"
-HTTP_ADDRESS="${MEDIA_SERVER_HTTP_LISTEN_ADDRESS:-${HTTP_ADDRESS:-127.0.0.1}}"
+RTSP_ADDRESS="${MEDIA_SERVER_LISTEN_ADDRESS:-0.0.0.0}"
+HTTP_ADDRESS="${MEDIA_SERVER_HTTP_LISTEN_ADDRESS:-0.0.0.0}"
 ROUTE="${MEDIA_SERVER_ROUTE:-${ROUTE:-dhseo}}"
 DEFAULT_FILE="${MEDIA_SERVER_DEFAULT_FILE:-${DEFAULT_FILE}}"
 FILE_TOKEN="$(basename "${DEFAULT_FILE}")"
@@ -80,4 +106,5 @@ exec env \
   MEDIA_SERVER_LISTEN_ADDRESS="${RTSP_ADDRESS}" \
   MEDIA_SERVER_HTTP_LISTEN_PORT="${HTTP_PORT}" \
   MEDIA_SERVER_HTTP_LISTEN_ADDRESS="${HTTP_ADDRESS}" \
+  MEDIA_SERVER_FORCE_RTSP_TCP="${MEDIA_SERVER_FORCE_RTSP_TCP:-1}" \
   "${MEDIA_SERVER_BIN}"

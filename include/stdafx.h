@@ -50,4 +50,8 @@ inline constexpr int kDefaultAnalysisAdaptiveMinInputHeight = 320;
 inline constexpr float kDefaultAnalysisAdaptiveHighLatencyRatio = 0.85F;
 inline constexpr float kDefaultAnalysisAdaptiveLowLatencyRatio = 0.35F;
 inline constexpr const char* kDefaultAnalysisRegistryPath = ".media_server.analysis_registry.json";
+inline constexpr bool kDefaultAnalysisEventPostEnabled = false;
+inline constexpr int kDefaultAnalysisEventPostTimeoutMs = 3000;
+inline constexpr std::size_t kDefaultAnalysisEventPostMaxQueue = 256;
+inline constexpr int kDefaultAnalysisEventPostCooldownMs = 2000;
 }  // namespace app_config

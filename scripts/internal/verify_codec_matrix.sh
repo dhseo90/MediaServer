@@ -3,7 +3,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+SCRIPTS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 CONFIG_FILE="${MEDIA_SERVER_VERIFY_CONFIG:-${ROOT_DIR}/config/codec_test_sources.json}"
 source "${SCRIPT_DIR}/env_common.sh"
 media_server_apply_homebrew_gst_env
@@ -612,8 +613,10 @@ main() {
     log_info "pid file: ${PID_FILE} ($(cat "${PID_FILE}" 2>/dev/null || true))"
   fi
 
-  if [[ ! -x "${ROOT_DIR}/build-gst/media_server" ]]; then
-    echo "[verify] missing build binary: ${ROOT_DIR}/build-gst/media_server"
+  local verify_binary="${MEDIA_SERVER_BIN_PATH:-${MEDIA_SERVER_BUILD_DIR:-${ROOT_DIR}/build-gst-onnx}/media_server}"
+  if [[ ! -x "${verify_binary}" ]]; then
+    echo "[verify] missing build binary: ${verify_binary}"
+    echo "[verify] build first: ./server.sh start"
     exit 1
   fi
 

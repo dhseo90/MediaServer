@@ -178,11 +178,10 @@ LabImportJobSnapshot LabImportManager::CreateJob(const LabImportJobRequest& requ
         }
         return snapshot;
     }
-    if (!app::GetAppConfig().enable_experimental_youtube_source) {
+    if (!app::GetAppConfig().enable_lab_youtube_import) {
         if (error_message != nullptr) {
             *error_message =
-                "youtube lab import is disabled; start the server with "
-                "MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1";
+                "youtube lab import is disabled; start the server with MEDIA_SERVER_ENABLE_LAB_YOUTUBE_IMPORT=1";
         }
         return snapshot;
     }

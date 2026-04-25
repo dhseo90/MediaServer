@@ -6,7 +6,10 @@
 #include <sstream>
 
 #include "app_config.h"
+#include "analysis/event_post_dispatcher.h"
+#include "analysis/event_rule_engine.h"
 #include "ingress/analysis_query.h"
+#include "ingress/analysis_rule_registry.h"
 #include "ingress/gst_pipeline_builder.h"
 #include "ingress/request_parser.h"
 #include "ingress/rtsp_egress_session.h"
@@ -197,22 +200,34 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
         overlay_config.render_options = BuildOverlayRenderOptionsFromQuery(request.query);
         overlay_config.sync_tolerance_ns = static_cast<std::int64_t>(timing_options.sync_tolerance_ms) * 1000000LL;
         overlay_config.wait_timeout_ms = timing_options.wait_timeout_ms;
+        auto event_runtime = analysis::CreateEventRuleRuntime();
         overlay_config.result_provider =
             [manager = &runtime->session_manager,
              analysis_tap_id,
              weak_bridge,
+             event_runtime,
              tolerance_ns = overlay_config.sync_tolerance_ns,
-             wait_timeout_ms = overlay_config.wait_timeout_ms](std::int64_t frame_pts) {
+             wait_timeout_ms = overlay_config.wait_timeout_ms](std::int64_t frame_pts)
+                -> std::optional<analysis::AnalysisResult> {
                 const auto bridge_lock = weak_bridge.lock();
                 const std::int64_t source_pts =
                     bridge_lock != nullptr ? bridge_lock->ResolveOverlaySourcePts(frame_pts) : frame_pts;
                 auto result = manager->WaitAnalysisResultNearPts(
                     analysis_tap_id, source_pts, tolerance_ns, std::chrono::milliseconds(wait_timeout_ms));
                 if (result.has_value()) {
-                    return result;
+                    const auto evaluation =
+                        analysis::ApplyEventRulesToResult(*result, AnalysisRuleDocumentsSnapshot(), event_runtime);
+                    analysis::DispatchEventPosts(evaluation.annotated_result, evaluation.events);
+                    return evaluation.annotated_result;
                 }
                 const auto snapshot = manager->AnalysisTapSnapshot(analysis_tap_id);
-                return snapshot.has_value() ? snapshot->latest_result : std::optional<analysis::AnalysisResult>{};
+                if (!snapshot.has_value() || !snapshot->latest_result.has_value()) {
+                    return std::optional<analysis::AnalysisResult>{};
+                }
+                const auto evaluation = analysis::ApplyEventRulesToResult(
+                    *snapshot->latest_result, AnalysisRuleDocumentsSnapshot(), event_runtime);
+                analysis::DispatchEventPosts(evaluation.annotated_result, evaluation.events);
+                return evaluation.annotated_result;
             };
         bridge->SetAnalysisOverlay(std::move(overlay_config));
     }

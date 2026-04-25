@@ -3,7 +3,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+SCRIPTS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 source "${SCRIPT_DIR}/env_common.sh"
 media_server_apply_homebrew_gst_env
 
@@ -138,7 +139,7 @@ ROUTE="${MEDIA_SERVER_VERIFY_VA_ROUTE:-${ROUTE:-dhseo}}"
 
 HTTP_BASE="${MEDIA_SERVER_VERIFY_VA_HTTP_BASE:-http://${HTTP_HOST}:${HTTP_PORT}}"
 RTSP_BASE="${MEDIA_SERVER_VERIFY_VA_RTSP_BASE:-rtsp://${RTSP_HOST}:${RTSP_PORT}/${ROUTE}}"
-FILE_TOKEN="${MEDIA_SERVER_VERIFY_VA_FILE:-imports/yolo_bus_test.mp4}"
+FILE_TOKEN="${MEDIA_SERVER_VERIFY_VA_FILE:-va_four_scene_sample.mp4}"
 MODEL_PATH="$(media_server_resolve_project_path "${ROOT_DIR}" "${MEDIA_SERVER_ANALYSIS_MODEL:-models/yolo11n.onnx}")"
 LABELS_PATH="$(media_server_resolve_project_path "${ROOT_DIR}" "${MEDIA_SERVER_ANALYSIS_LABELS:-models/coco.names}")"
 DURATION_S="${MEDIA_SERVER_VERIFY_VA_DURATION_S:-15}"
