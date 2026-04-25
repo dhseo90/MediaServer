@@ -39,9 +39,23 @@ public:
         double max_analysis_ms{0.0};
         int target_fps{0};
         std::size_t max_queue_size{0};
+        int model_input_width{0};
+        int model_input_height{0};
         int debug_detector_delay_ms{0};
         float confidence_threshold{0.0F};
         float nms_threshold{0.0F};
+        bool adaptive_tuning_enabled{false};
+        bool adaptive_input_size_enabled{false};
+        bool adaptive_input_size_disabled{false};
+        int adaptive_min_fps{0};
+        int adaptive_max_fps{0};
+        int adaptive_min_input_width{0};
+        int adaptive_min_input_height{0};
+        int adaptive_max_input_width{0};
+        int adaptive_max_input_height{0};
+        std::size_t adaptive_downshift_count{0};
+        std::size_t adaptive_upshift_count{0};
+        std::string adaptive_state;
         bool has_latest_frame{false};
         int latest_frame_width{0};
         int latest_frame_height{0};
@@ -110,6 +124,13 @@ private:
         double total_analysis_ms{0.0};
         double max_analysis_ms{0.0};
         std::chrono::steady_clock::time_point last_sampled_at{};
+        std::chrono::steady_clock::time_point last_adaptive_tuned_at{};
+        std::size_t adaptive_last_queue_dropped_frames{0};
+        int adaptive_underloaded_streak{0};
+        std::size_t adaptive_downshift_count{0};
+        std::size_t adaptive_upshift_count{0};
+        bool adaptive_input_size_disabled{false};
+        std::string adaptive_state{"steady"};
         bool frame_worker_stop{false};
         std::thread frame_worker;
     };
@@ -117,6 +138,8 @@ private:
     static void HandlePacket(const std::weak_ptr<AnalysisTap>& weak_tap, const media::Packet& packet);
     static void HandleFrame(const std::weak_ptr<AnalysisTap>& weak_tap, RawVideoFrame frame);
     static void AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_tap);
+    static void UpdateAdaptiveTuningLocked(const std::shared_ptr<AnalysisTap>& tap, double elapsed_ms);
+    static void DisableAdaptiveInputSizeLocked(const std::shared_ptr<AnalysisTap>& tap);
     static void StopTapRuntime(const std::shared_ptr<AnalysisTap>& tap);
     static media::TrackInfo ResolveVideoTrack(const std::shared_ptr<AnalysisTap>& tap, const media::Packet& packet);
 

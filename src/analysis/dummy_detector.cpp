@@ -12,6 +12,13 @@ bool Detector::Start(std::string* error_message) {
 
 void Detector::Stop() {}
 
+bool Detector::UpdateProfile(const AnalysisProfile& /*profile*/, std::string* error_message) {
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
 namespace {
 
 class DummyDetector final : public Detector {

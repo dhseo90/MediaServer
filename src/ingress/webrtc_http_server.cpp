@@ -12,6 +12,7 @@
 #include <chrono>
 #include <cctype>
 #include <cstring>
+#include <fstream>
 #include <filesystem>
 #include <iostream>
 #include <mutex>
@@ -219,6 +220,349 @@ std::optional<std::string> ParseStringField(const std::string& body, const std::
     return std::nullopt;
 }
 
+bool LooksLikeJsonObject(const std::string& body) {
+    const std::string trimmed = Trim(body);
+    return trimmed.size() >= 2 && trimmed.front() == '{' && trimmed.back() == '}';
+}
+
+bool IsBuiltInAnalysisProfileId(const std::string& id) {
+    return id == "server-default-va" || id == "debug-dummy" || id == "yolo-fast" ||
+           id == "yolo-balanced" || id == "yolo-quality";
+}
+
+std::vector<std::string> ExtractJsonObjectArray(const std::string& body, const std::string& field) {
+    std::vector<std::string> objects;
+    const std::string needle = "\"" + field + "\"";
+    std::size_t pos = body.find(needle);
+    if (pos == std::string::npos) {
+        return objects;
+    }
+    pos = body.find('[', pos + needle.size());
+    if (pos == std::string::npos) {
+        return objects;
+    }
+
+    bool in_string = false;
+    bool escaped = false;
+    int object_depth = 0;
+    std::size_t object_start = std::string::npos;
+    for (; pos < body.size(); ++pos) {
+        const char ch = body[pos];
+        if (escaped) {
+            escaped = false;
+            continue;
+        }
+        if (ch == '\\' && in_string) {
+            escaped = true;
+            continue;
+        }
+        if (ch == '"') {
+            in_string = !in_string;
+            continue;
+        }
+        if (in_string) {
+            continue;
+        }
+        if (ch == '{') {
+            if (object_depth == 0) {
+                object_start = pos;
+            }
+            ++object_depth;
+        } else if (ch == '}') {
+            if (object_depth > 0) {
+                --object_depth;
+                if (object_depth == 0 && object_start != std::string::npos) {
+                    objects.push_back(body.substr(object_start, pos - object_start + 1));
+                    object_start = std::string::npos;
+                }
+            }
+        } else if (ch == ']' && object_depth == 0) {
+            break;
+        }
+    }
+    return objects;
+}
+
+class AnalysisDocumentRegistry {
+public:
+    std::string ProfilesJson() {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        std::ostringstream out;
+        out << "{\"status\":\"registry\",\"defaultUrl\":\"?file=...&va=1\","
+            << "\"storagePath\":\"" << JsonEscape(storage_path_.string()) << "\","
+            << "\"builtInProfiles\":" << BuiltInProfilesArrayJson() << ","
+            << "\"profiles\":";
+        AppendDocumentsArray(out, profiles_);
+        out << ",\"queryOverride\":\"현재 단계에서는 va=1이 서버 기본 VA profile을 사용하고, "
+               "fps/maxQueue/adaptive bounds 같은 고급 query가 있을 때만 override한다.\"}";
+        return out.str();
+    }
+
+    std::string RulesJson() {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        std::ostringstream out;
+        out << "{\"status\":\"registry\",\"storagePath\":\"" << JsonEscape(storage_path_.string()) << "\","
+            << "\"scope\":\"현재 단계에서는 rule을 저장/관리하고, 실제 요청 자동 적용은 다음 단계에서 연결한다.\","
+            << "\"plannedRuleShape\":{\"id\":\"string\",\"enabled\":\"bool\","
+            << "\"match\":{\"sourceKind\":\"file|rtsp|webrtc|http|hls|youtube|*\",\"route\":\"rtsp|webrtc|*\","
+            << "\"clientId\":\"optional\"},\"analysis\":{\"profileId\":\"string\",\"detector\":\"dummy|yolo\","
+            << "\"fps\":\"number\",\"maxQueue\":\"number\"},\"outputs\":{\"metadata\":\"bool\","
+            << "\"snapshot\":\"bool\",\"overlay\":\"bool\",\"events\":\"bool\"}},"
+            << "\"rules\":";
+        AppendDocumentsArray(out, rules_);
+        out << ",\"notImplementedYet\":[\"automatic rule matching\",\"per-client rule override\",\"event engine\"]}";
+        return out.str();
+    }
+
+    std::optional<std::string> ProfileJson(const std::string& id) {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        return FindDocumentLocked(profiles_, id);
+    }
+
+    std::optional<std::string> RuleJson(const std::string& id) {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        return FindDocumentLocked(rules_, id);
+    }
+
+    bool CreateProfile(const std::string& body, std::string* response, std::string* error_message) {
+        return CreateDocument(true, body, response, error_message);
+    }
+
+    bool CreateRule(const std::string& body, std::string* response, std::string* error_message) {
+        return CreateDocument(false, body, response, error_message);
+    }
+
+    bool UpsertProfile(const std::string& id, const std::string& body, std::string* response, std::string* error_message) {
+        return UpsertDocument(true, id, body, response, error_message);
+    }
+
+    bool UpsertRule(const std::string& id, const std::string& body, std::string* response, std::string* error_message) {
+        return UpsertDocument(false, id, body, response, error_message);
+    }
+
+    bool DeleteProfile(const std::string& id) {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        if (IsBuiltInAnalysisProfileId(id)) {
+            return false;
+        }
+        const bool removed = RemoveDocumentLocked(profiles_, id);
+        if (removed) {
+            SaveLocked();
+        }
+        return removed;
+    }
+
+    bool DeleteRule(const std::string& id) {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        const bool removed = RemoveDocumentLocked(rules_, id);
+        if (removed) {
+            SaveLocked();
+        }
+        return removed;
+    }
+
+private:
+    struct Document {
+        std::string id;
+        std::string body;
+    };
+
+    static std::string BuiltInProfilesArrayJson() {
+        return R"([{"id":"server-default-va","detector":"server-config","adaptive":true,"description":"URL에는 va=1만 두고 detector/model/labels/fps 기본값은 stdafx.h/env 설정을 따른다. detector 부하가 높으면 fps부터 낮추고 필요 시 input size를 낮춘다."},{"id":"debug-dummy","detector":"dummy","fps":5,"maxQueue":2,"description":"raw decode/sampling lifecycle 확인용"},{"id":"yolo-fast","detector":"yolo","fps":8,"maxQueue":1,"preprocess":"letterbox","inputWidth":640,"inputHeight":640,"confidence":0.25,"nms":0.45,"adaptive":true,"description":"움직임이 큰 장면의 overlay 지연 최소화"},{"id":"yolo-balanced","detector":"yolo","fps":5,"maxQueue":2,"preprocess":"letterbox","inputWidth":640,"inputHeight":640,"confidence":0.35,"nms":0.45,"adaptive":true,"description":"기본 객체 감지 균형값"},{"id":"yolo-quality","detector":"yolo","fps":3,"maxQueue":2,"preprocess":"letterbox","inputWidth":960,"inputHeight":960,"confidence":0.35,"nms":0.45,"adaptive":true,"description":"정확도 우선, CPU 비용 증가"}])";
+    }
+
+    static void AppendDocumentsArray(std::ostream& out, const std::vector<Document>& documents) {
+        out << "[";
+        for (std::size_t i = 0; i < documents.size(); ++i) {
+            if (i != 0) {
+                out << ",";
+            }
+            out << documents[i].body;
+        }
+        out << "]";
+    }
+
+    void EnsureLoadedLocked() {
+        if (loaded_) {
+            return;
+        }
+        loaded_ = true;
+        storage_path_ = app::GetAppConfig().analysis_registry_path;
+        std::ifstream in(storage_path_);
+        if (!in) {
+            return;
+        }
+        std::ostringstream buffer;
+        buffer << in.rdbuf();
+        const std::string content = buffer.str();
+        LoadDocumentsLocked("profiles", content, &profiles_);
+        LoadDocumentsLocked("rules", content, &rules_);
+    }
+
+    static void LoadDocumentsLocked(const std::string& field,
+                                    const std::string& content,
+                                    std::vector<Document>* documents) {
+        if (documents == nullptr) {
+            return;
+        }
+        for (const auto& raw : ExtractJsonObjectArray(content, field)) {
+            const auto id = ParseStringField(raw, "id");
+            if (!id.has_value() || id->empty()) {
+                continue;
+            }
+            documents->push_back(Document{*id, Trim(raw)});
+        }
+    }
+
+    bool CreateDocument(bool profile, const std::string& body, std::string* response, std::string* error_message) {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        const auto prepared = PrepareDocumentLocked(profile, "", body, error_message);
+        if (!prepared.has_value()) {
+            return false;
+        }
+        auto& target = profile ? profiles_ : rules_;
+        if (FindDocumentLocked(target, prepared->id).has_value() ||
+            (profile && IsBuiltInAnalysisProfileId(prepared->id))) {
+            SetRegistryError(error_message, "analysis document id already exists");
+            return false;
+        }
+        target.push_back(*prepared);
+        SaveLocked();
+        if (response != nullptr) {
+            *response = DocumentResponseJson(profile ? "profile" : "rule", *prepared);
+        }
+        return true;
+    }
+
+    bool UpsertDocument(bool profile,
+                        const std::string& id,
+                        const std::string& body,
+                        std::string* response,
+                        std::string* error_message) {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        if (profile && IsBuiltInAnalysisProfileId(id)) {
+            SetRegistryError(error_message, "built-in profile cannot be modified");
+            return false;
+        }
+        const auto prepared = PrepareDocumentLocked(profile, id, body, error_message);
+        if (!prepared.has_value()) {
+            return false;
+        }
+        auto& target = profile ? profiles_ : rules_;
+        bool updated = false;
+        for (auto& item : target) {
+            if (item.id == prepared->id) {
+                item = *prepared;
+                updated = true;
+                break;
+            }
+        }
+        if (!updated) {
+            target.push_back(*prepared);
+        }
+        SaveLocked();
+        if (response != nullptr) {
+            *response = DocumentResponseJson(profile ? "profile" : "rule", *prepared, updated ? "updated" : "created");
+        }
+        return true;
+    }
+
+    std::optional<Document> PrepareDocumentLocked(bool profile,
+                                                  const std::string& path_id,
+                                                  const std::string& body,
+                                                  std::string* error_message) const {
+        if (!LooksLikeJsonObject(body)) {
+            SetRegistryError(error_message, "request body must be a JSON object");
+            return std::nullopt;
+        }
+        const auto id = ParseStringField(body, "id");
+        if (!id.has_value() || id->empty()) {
+            SetRegistryError(error_message, "analysis document requires string field 'id'");
+            return std::nullopt;
+        }
+        if (!path_id.empty() && *id != path_id) {
+            SetRegistryError(error_message, "path id and body id must match");
+            return std::nullopt;
+        }
+        if (profile && IsBuiltInAnalysisProfileId(*id)) {
+            SetRegistryError(error_message, "built-in profile id is reserved");
+            return std::nullopt;
+        }
+        return Document{*id, Trim(body)};
+    }
+
+    static std::optional<std::string> FindDocumentLocked(const std::vector<Document>& documents,
+                                                         const std::string& id) {
+        for (const auto& item : documents) {
+            if (item.id == id) {
+                return item.body;
+            }
+        }
+        return std::nullopt;
+    }
+
+    static bool RemoveDocumentLocked(std::vector<Document>& documents, const std::string& id) {
+        const auto old_size = documents.size();
+        documents.erase(std::remove_if(documents.begin(),
+                                       documents.end(),
+                                       [&id](const Document& item) { return item.id == id; }),
+                        documents.end());
+        return documents.size() != old_size;
+    }
+
+    static std::string DocumentResponseJson(const std::string& key,
+                                            const Document& document,
+                                            const std::string& status = "created") {
+        return "{\"ok\":true,\"status\":\"" + JsonEscape(status) + "\",\"" + key + "\":" + document.body + "}";
+    }
+
+    static void SetRegistryError(std::string* error_message, const std::string& message) {
+        if (error_message != nullptr) {
+            *error_message = message;
+        }
+    }
+
+    void SaveLocked() const {
+        if (storage_path_.empty()) {
+            return;
+        }
+        const auto parent = storage_path_.parent_path();
+        std::error_code ec;
+        if (!parent.empty()) {
+            std::filesystem::create_directories(parent, ec);
+        }
+        std::ofstream out(storage_path_, std::ios::trunc);
+        if (!out) {
+            std::cerr << "[analysis-registry] failed to open " << storage_path_ << " for write\n";
+            return;
+        }
+        out << "{\n  \"profiles\": ";
+        AppendDocumentsArray(out, profiles_);
+        out << ",\n  \"rules\": ";
+        AppendDocumentsArray(out, rules_);
+        out << "\n}\n";
+    }
+
+    mutable std::mutex mu_;
+    bool loaded_{false};
+    std::filesystem::path storage_path_;
+    std::vector<Document> profiles_;
+    std::vector<Document> rules_;
+};
+
+AnalysisDocumentRegistry& AnalysisRegistry() {
+    static AnalysisDocumentRegistry registry;
+    return registry;
+}
+
 struct HttpRequest {
     std::string method;
     std::string target;
@@ -244,7 +588,7 @@ std::string BuildHttpResponse(const HttpResponse& response) {
     out << "Connection: close\r\n";
     out << "Access-Control-Allow-Origin: *\r\n";
     out << "Access-Control-Allow-Headers: Content-Type\r\n";
-    out << "Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS\r\n";
+    out << "Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS\r\n";
     for (const auto& [key, value] : response.headers) {
         out << key << ": " << value << "\r\n";
     }
@@ -1528,9 +1872,23 @@ std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot
         << "\"detectorType\":\"" << JsonEscape(snapshot.detector_type) << "\","
         << "\"targetFps\":" << snapshot.target_fps << ","
         << "\"maxQueueSize\":" << snapshot.max_queue_size << ","
+        << "\"modelInputWidth\":" << snapshot.model_input_width << ","
+        << "\"modelInputHeight\":" << snapshot.model_input_height << ","
         << "\"debugDetectorDelayMs\":" << snapshot.debug_detector_delay_ms << ","
         << "\"confidenceThreshold\":" << snapshot.confidence_threshold << ","
         << "\"nmsThreshold\":" << snapshot.nms_threshold << ","
+        << "\"adaptiveTuningEnabled\":" << (snapshot.adaptive_tuning_enabled ? "true" : "false") << ","
+        << "\"adaptiveInputSizeEnabled\":" << (snapshot.adaptive_input_size_enabled ? "true" : "false") << ","
+        << "\"adaptiveInputSizeDisabled\":" << (snapshot.adaptive_input_size_disabled ? "true" : "false") << ","
+        << "\"adaptiveMinFps\":" << snapshot.adaptive_min_fps << ","
+        << "\"adaptiveMaxFps\":" << snapshot.adaptive_max_fps << ","
+        << "\"adaptiveMinInputWidth\":" << snapshot.adaptive_min_input_width << ","
+        << "\"adaptiveMinInputHeight\":" << snapshot.adaptive_min_input_height << ","
+        << "\"adaptiveMaxInputWidth\":" << snapshot.adaptive_max_input_width << ","
+        << "\"adaptiveMaxInputHeight\":" << snapshot.adaptive_max_input_height << ","
+        << "\"adaptiveDownshiftCount\":" << snapshot.adaptive_downshift_count << ","
+        << "\"adaptiveUpshiftCount\":" << snapshot.adaptive_upshift_count << ","
+        << "\"adaptiveState\":\"" << JsonEscape(snapshot.adaptive_state) << "\","
         << "\"receivedVideoPackets\":" << snapshot.received_video_packets << ","
         << "\"decodedFrames\":" << snapshot.decoded_frames << ","
         << "\"sampledFrames\":" << snapshot.sampled_frames << ","
@@ -1587,15 +1945,15 @@ std::string AnalysisTapCreatedJson(const core::SessionManager::AnalysisTapResult
 }
 
 std::string AnalysisCapabilitiesJson() {
-    return R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"outputs":["metadata","snapshot.jpg","overlay.jpg","rtsp-overlay","webrtc-overlay"],"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs"],"shortQuery":{"va":"1 enables the server default VA overlay profile","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","thickness":"optional box line thickness","drawLabels":"optional label visibility"}})";
+    return R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"outputs":["metadata","snapshot.jpg","overlay.jpg","rtsp-overlay","webrtc-overlay"],"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","thickness":"optional box line thickness","drawLabels":"optional label visibility"}})";
 }
 
 std::string AnalysisProfilesJson() {
-    return R"({"status":"read-only-design","defaultUrl":"?file=...&va=1","profiles":[{"id":"server-default-va","detector":"server-config","description":"URL에는 va=1만 두고 detector/model/labels/fps 기본값은 stdafx.h/env 설정을 따른다."},{"id":"debug-dummy","detector":"dummy","fps":5,"maxQueue":2,"description":"raw decode/sampling lifecycle 확인용"},{"id":"yolo-fast","detector":"yolo","fps":8,"maxQueue":1,"preprocess":"letterbox","inputWidth":640,"inputHeight":640,"confidence":0.25,"nms":0.45,"description":"움직임이 큰 장면의 overlay 지연 최소화"},{"id":"yolo-balanced","detector":"yolo","fps":5,"maxQueue":2,"preprocess":"letterbox","inputWidth":640,"inputHeight":640,"confidence":0.35,"nms":0.45,"description":"기본 객체 감지 균형값"},{"id":"yolo-quality","detector":"yolo","fps":3,"maxQueue":2,"preprocess":"letterbox","inputWidth":960,"inputHeight":960,"confidence":0.35,"nms":0.45,"description":"정확도 우선, CPU 비용 증가"}],"queryOverride":"현재 단계에서는 va=1이 서버 기본 VA profile을 사용하고, fps/maxQueue 같은 고급 query가 있을 때만 override한다."})";
+    return AnalysisRegistry().ProfilesJson();
 }
 
 std::string AnalysisRulesJson() {
-    return R"({"status":"design-only","scope":"현재 1차 구현은 모든 요청에 query/profile 기반 detector 설정을 적용한다.","plannedRuleShape":{"id":"string","enabled":"bool","match":{"sourceKind":"file|rtsp|webrtc|http|hls|youtube|*","route":"rtsp|webrtc|*","clientId":"optional"},"analysis":{"profileId":"string","detector":"dummy|yolo","fps":"number","maxQueue":"number"},"outputs":{"metadata":"bool","snapshot":"bool","overlay":"bool","events":"bool"}},"plannedEndpoints":["GET /lab/analysis/rules","POST /lab/analysis/rules","PUT /lab/analysis/rules/{ruleId}","DELETE /lab/analysis/rules/{ruleId}"],"notImplementedYet":["persistent rule registry","per-client rule override","event engine"]})";
+    return AnalysisRegistry().RulesJson();
 }
 
 bool IsSupportedMediaFile(const std::filesystem::path& path) {
@@ -1922,8 +2280,98 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return JsonResponse(200, "OK", AnalysisProfilesJson());
                         }
 
+                        if (request.method == "POST" && request.path == "/lab/analysis/profiles") {
+                            std::string response_body;
+                            std::string error_message;
+                            if (!AnalysisRegistry().CreateProfile(request.body, &response_body, &error_message)) {
+                                return JsonResponse(400, "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            }
+                            return JsonResponse(201, "Created", response_body);
+                        }
+
                         if (request.method == "GET" && request.path == "/lab/analysis/rules") {
                             return JsonResponse(200, "OK", AnalysisRulesJson());
+                        }
+
+                        if (request.method == "POST" && request.path == "/lab/analysis/rules") {
+                            std::string response_body;
+                            std::string error_message;
+                            if (!AnalysisRegistry().CreateRule(request.body, &response_body, &error_message)) {
+                                return JsonResponse(400, "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            }
+                            return JsonResponse(201, "Created", response_body);
+                        }
+
+                        const auto analysis_profile_prefix = std::string("/lab/analysis/profiles/");
+                        if (request.path.rfind(analysis_profile_prefix, 0) == 0) {
+                            const std::string id = UrlDecode(request.path.substr(analysis_profile_prefix.size()));
+                            if (id.empty()) {
+                                return JsonResponse(400, "Bad Request",
+                                                    "{\"error\":\"profile id is required\"}");
+                            }
+                            if (request.method == "GET") {
+                                const auto profile = AnalysisRegistry().ProfileJson(id);
+                                if (!profile.has_value()) {
+                                    return JsonResponse(404, "Not Found",
+                                                        "{\"error\":\"analysis profile not found\"}");
+                                }
+                                return JsonResponse(200, "OK",
+                                                    "{\"profile\":" + *profile + "}");
+                            }
+                            if (request.method == "PUT") {
+                                std::string response_body;
+                                std::string error_message;
+                                if (!AnalysisRegistry().UpsertProfile(id, request.body, &response_body, &error_message)) {
+                                    return JsonResponse(400, "Bad Request",
+                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                }
+                                return JsonResponse(200, "OK", response_body);
+                            }
+                            if (request.method == "DELETE") {
+                                if (!AnalysisRegistry().DeleteProfile(id)) {
+                                    return JsonResponse(404, "Not Found",
+                                                        "{\"error\":\"analysis profile not found or built-in\"}");
+                                }
+                                return JsonResponse(200, "OK",
+                                                    "{\"ok\":true,\"deleted\":\"" + JsonEscape(id) + "\"}");
+                            }
+                        }
+
+                        const auto analysis_rule_prefix = std::string("/lab/analysis/rules/");
+                        if (request.path.rfind(analysis_rule_prefix, 0) == 0) {
+                            const std::string id = UrlDecode(request.path.substr(analysis_rule_prefix.size()));
+                            if (id.empty()) {
+                                return JsonResponse(400, "Bad Request",
+                                                    "{\"error\":\"rule id is required\"}");
+                            }
+                            if (request.method == "GET") {
+                                const auto rule = AnalysisRegistry().RuleJson(id);
+                                if (!rule.has_value()) {
+                                    return JsonResponse(404, "Not Found",
+                                                        "{\"error\":\"analysis rule not found\"}");
+                                }
+                                return JsonResponse(200, "OK",
+                                                    "{\"rule\":" + *rule + "}");
+                            }
+                            if (request.method == "PUT") {
+                                std::string response_body;
+                                std::string error_message;
+                                if (!AnalysisRegistry().UpsertRule(id, request.body, &response_body, &error_message)) {
+                                    return JsonResponse(400, "Bad Request",
+                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                }
+                                return JsonResponse(200, "OK", response_body);
+                            }
+                            if (request.method == "DELETE") {
+                                if (!AnalysisRegistry().DeleteRule(id)) {
+                                    return JsonResponse(404, "Not Found",
+                                                        "{\"error\":\"analysis rule not found\"}");
+                                }
+                                return JsonResponse(200, "OK",
+                                                    "{\"ok\":true,\"deleted\":\"" + JsonEscape(id) + "\"}");
+                            }
                         }
 
                         if (request.path == "/lab/analysis/taps") {

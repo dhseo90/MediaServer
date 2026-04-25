@@ -67,7 +67,7 @@
    - 현재는 video relay/analysis 기준으로 설계되어 있어 audio-only는 정식 지원 범위 밖
 4. 영상분석 후속 테스트 추가
    - 1차 analysis tap, raw decode hub, drop/frame-sampling, YOLO/ONNX, RTSP/WebRTC overlay는 로컬 smoke test 완료
-   - 남은 범위는 persistent profile/rule registry, rule event engine, metadata event endpoint, adaptive tuner 검증
+   - adaptive tuner 1차 smoke test는 완료했으며, 남은 범위는 장시간 회귀와 profile/rule 연동 검증
 5. 실험실 YouTube 회귀 검증
    - 기본 scope는 아니며, 명시적으로 opt-in 했을 때만 별도 확인
 6. `/lab/import` 외부 네트워크 재검증
@@ -572,14 +572,34 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
 - `2026-04-24` VA URL 단순화와 lab 파일 dropdown을 추가했다.
   - RTSP/WebRTC consume URL은 기본적으로 `?file=...&va=1`만 사용한다.
   - detector/model/labels/confidence/nms/fps/queue/overlay sync 기본값은 `include/stdafx.h`와 `MEDIA_SERVER_ANALYSIS_*` 환경변수로 관리한다.
-  - 현재 자동 보정은 서버 기본 profile과 drop-oldest queue까지이며, detector 부하에 따라 fps/input size를 자동으로 낮추는 adaptive tuner는 아직 미구현이다.
   - `/lab/files`가 `MEDIA_SERVER_FILE_ROOT` 아래 지원 미디어 파일 목록을 JSON으로 반환하고, `/lab` 파일 입력은 dropdown으로 표시한다.
+- `2026-04-25` overlay label score percentage 표기와 adaptive tuner smoke test를 추가했다.
+  - overlay label은 `0.xx` 대신 `xx%` 형태로 표기한다.
+  - `adaptive=0&fps=5&adaptiveMinFps=10`으로 adaptive bounds가 들어와도 비활성 상태에서는 `targetFps=5`가 유지되는 것을 확인했다.
+  - `detector=dummy&fps=8&maxQueue=1&adaptive=1&adaptiveMinFps=2&adaptiveCooldownMs=300&detectorDelayMs=400`으로 과부하를 만들었고, `targetFps=2`, `adaptiveDownshiftCount=6`을 확인했다.
+  - `adaptiveInputSize=1&adaptiveMinFps=8&adaptiveInputStep=160&detectorDelayMs=500`으로 input-size 조절을 만들었고, `modelInputWidth=320`, `modelInputHeight=320`, `adaptiveState=downshift-input`을 확인했다.
+  - 임시 서버는 `RTSP 8555`, `HTTP 8081`에서 실행했고 smoke test 후 종료했다.
+- `2026-04-25` YOLO/VA overlay 회귀 스크립트 `scripts/verify_va_overlay.sh`를 추가했다.
+  - ONNX build 서버에서 `imports/yolo_bus_test.mp4` 기준 lab YOLO status, overlay JPEG, RTSP overlay decode, WebRTC simple playback, WHEP playback을 확인한다.
+  - 짧은 smoke 기준 `MEDIA_SERVER_VERIFY_VA_DURATION_S=4`, `MEDIA_SERVER_VERIFY_VA_SKIP_WEBRTC=1`에서 lab+RTSP가 통과했다.
+  - 이어 `MEDIA_SERVER_VERIFY_VA_DURATION_S=2`, `MEDIA_SERVER_VERIFY_VA_WEBRTC_HOLD_MS=1000`, `MEDIA_SERVER_VERIFY_VA_SKIP_LAB=1`, `MEDIA_SERVER_VERIFY_VA_SKIP_RTSP=1`에서 WebRTC simple/WHEP playback이 통과했다.
+  - RTSP decode 중 `non monotonically increasing dts` 경고가 1회 관찰됐지만 decode 자체는 성공했다. 장시간 회귀에서 반복성 여부를 추가 확인한다.
+- `2026-04-25` `imports/NewYorkDriving.mp4` 기준 45초 lab+RTSP VA 회귀를 실행했다.
+  - `decodedFrames`, `analyzedPackets`, detection label이 지속 증가했고 `car`, `person`, `truck`, `bus`, `traffic light` 등이 검출됐다.
+  - `targetFps=8`, `adaptiveState=steady`, 평균 분석 시간 약 `88ms` 수준으로 유지됐다.
+  - RTSP VA overlay decode가 통과했고, 이전 짧은 파일에서 보였던 DTS 경고는 재현되지 않았다.
+- `2026-04-25` profile/rule persistent registry 1차 smoke test를 추가했다.
+  - `MEDIA_SERVER_ANALYSIS_REGISTRY=/tmp/media_server_analysis_registry_smoke.json`로 임시 저장 파일을 지정했다.
+  - `POST/GET/PUT/DELETE /lab/analysis/profiles/{id}`와 `POST/GET/DELETE /lab/analysis/rules/{id}`가 통과했다.
+  - 삭제 후 저장 파일이 `{"profiles":[],"rules":[]}` 형태로 정리됨을 확인했다.
+  - 별도 임시 파일 기준으로 서버 재시작 후 `GET /lab/analysis/profiles/persist-profile`, `GET /lab/analysis/rules/persist-rule`이 저장된 JSON을 다시 반환함을 확인했다.
 
 ## 남은 확인 항목
 - 다음 구현 순서
-  - 1차: profile/rule persistent registry와 per-client override 구현
+  - 1차: 저장된 profile/rule을 실제 요청에 자동 적용하는 matching layer와 per-client override 구현
   - 2차: rule event engine과 metadata event endpoint 구현
   - 3차: 모델별 output layout 옵션 정교화
+  - 4차: `scripts/verify_va_overlay.sh`를 더 긴 duration으로 반복 실행해 adaptive tuner 장시간 회귀 누적
 - `HTTP/HLS URI -> RTSP` 최신 `503` 재확인 및 수정
 - audio-only input은 현재 video relay/analysis 준비 범위 밖이다. RTSP/WebRTC egress는 video track을 기준으로 동작한다.
 - 외부 wowza source 재검증

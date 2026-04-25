@@ -33,6 +33,16 @@ struct AppConfig {
     int default_analysis_overlay_wait_ms{app_config::kDefaultAnalysisOverlayWaitMs};
     int default_analysis_overlay_sync_tolerance_ms{app_config::kDefaultAnalysisOverlaySyncToleranceMs};
     int default_analysis_overlay_thickness{app_config::kDefaultAnalysisOverlayThickness};
+    bool default_analysis_adaptive_enabled{app_config::kDefaultAnalysisAdaptiveEnabled};
+    bool default_analysis_adaptive_input_enabled{app_config::kDefaultAnalysisAdaptiveInputEnabled};
+    int default_analysis_adaptive_min_fps{app_config::kDefaultAnalysisAdaptiveMinFps};
+    int default_analysis_adaptive_cooldown_ms{app_config::kDefaultAnalysisAdaptiveCooldownMs};
+    int default_analysis_adaptive_input_step{app_config::kDefaultAnalysisAdaptiveInputStep};
+    int default_analysis_adaptive_min_input_width{app_config::kDefaultAnalysisAdaptiveMinInputWidth};
+    int default_analysis_adaptive_min_input_height{app_config::kDefaultAnalysisAdaptiveMinInputHeight};
+    float default_analysis_adaptive_high_latency_ratio{app_config::kDefaultAnalysisAdaptiveHighLatencyRatio};
+    float default_analysis_adaptive_low_latency_ratio{app_config::kDefaultAnalysisAdaptiveLowLatencyRatio};
+    std::string analysis_registry_path{app_config::kDefaultAnalysisRegistryPath};
     bool force_rtsp_tcp{false};
     bool session_trace{false};
     bool webrtc_trace{false};

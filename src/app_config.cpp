@@ -34,6 +34,18 @@ constexpr const char* kEnvDefaultAnalysisOverlayWaitMs = "MEDIA_SERVER_ANALYSIS_
 constexpr const char* kEnvDefaultAnalysisOverlaySyncToleranceMs =
     "MEDIA_SERVER_ANALYSIS_OVERLAY_SYNC_TOLERANCE_MS";
 constexpr const char* kEnvDefaultAnalysisOverlayThickness = "MEDIA_SERVER_ANALYSIS_OVERLAY_THICKNESS";
+constexpr const char* kEnvDefaultAnalysisAdaptive = "MEDIA_SERVER_ANALYSIS_ADAPTIVE";
+constexpr const char* kEnvDefaultAnalysisAdaptiveInput = "MEDIA_SERVER_ANALYSIS_ADAPTIVE_INPUT_SIZE";
+constexpr const char* kEnvDefaultAnalysisAdaptiveMinFps = "MEDIA_SERVER_ANALYSIS_ADAPTIVE_MIN_FPS";
+constexpr const char* kEnvDefaultAnalysisAdaptiveCooldownMs = "MEDIA_SERVER_ANALYSIS_ADAPTIVE_COOLDOWN_MS";
+constexpr const char* kEnvDefaultAnalysisAdaptiveInputStep = "MEDIA_SERVER_ANALYSIS_ADAPTIVE_INPUT_STEP";
+constexpr const char* kEnvDefaultAnalysisAdaptiveMinInputWidth = "MEDIA_SERVER_ANALYSIS_ADAPTIVE_MIN_INPUT_WIDTH";
+constexpr const char* kEnvDefaultAnalysisAdaptiveMinInputHeight = "MEDIA_SERVER_ANALYSIS_ADAPTIVE_MIN_INPUT_HEIGHT";
+constexpr const char* kEnvDefaultAnalysisAdaptiveHighLatencyRatio =
+    "MEDIA_SERVER_ANALYSIS_ADAPTIVE_HIGH_LATENCY_RATIO";
+constexpr const char* kEnvDefaultAnalysisAdaptiveLowLatencyRatio =
+    "MEDIA_SERVER_ANALYSIS_ADAPTIVE_LOW_LATENCY_RATIO";
+constexpr const char* kEnvAnalysisRegistryPath = "MEDIA_SERVER_ANALYSIS_REGISTRY";
 constexpr const char* kEnvForceTcpOnly = "MEDIA_SERVER_FORCE_RTSP_TCP";
 constexpr const char* kEnvSessionTrace = "MEDIA_SERVER_SESSION_TRACE";
 constexpr const char* kEnvWebRtcTrace = "MEDIA_SERVER_WEBRTC_TRACE";
@@ -234,10 +246,32 @@ app::AppConfig LoadAppConfig() {
         ReadIntEnv(kEnvDefaultAnalysisOverlaySyncToleranceMs, config.default_analysis_overlay_sync_tolerance_ms);
     config.default_analysis_overlay_thickness =
         ReadIntEnv(kEnvDefaultAnalysisOverlayThickness, config.default_analysis_overlay_thickness);
+    config.default_analysis_adaptive_enabled =
+        ReadBoolEnv(kEnvDefaultAnalysisAdaptive, config.default_analysis_adaptive_enabled);
+    config.default_analysis_adaptive_input_enabled =
+        ReadBoolEnv(kEnvDefaultAnalysisAdaptiveInput, config.default_analysis_adaptive_input_enabled);
+    config.default_analysis_adaptive_min_fps =
+        ReadIntEnv(kEnvDefaultAnalysisAdaptiveMinFps, config.default_analysis_adaptive_min_fps);
+    config.default_analysis_adaptive_cooldown_ms =
+        ReadIntEnv(kEnvDefaultAnalysisAdaptiveCooldownMs, config.default_analysis_adaptive_cooldown_ms);
+    config.default_analysis_adaptive_input_step =
+        ReadIntEnv(kEnvDefaultAnalysisAdaptiveInputStep, config.default_analysis_adaptive_input_step);
+    config.default_analysis_adaptive_min_input_width =
+        ReadIntEnv(kEnvDefaultAnalysisAdaptiveMinInputWidth, config.default_analysis_adaptive_min_input_width);
+    config.default_analysis_adaptive_min_input_height =
+        ReadIntEnv(kEnvDefaultAnalysisAdaptiveMinInputHeight, config.default_analysis_adaptive_min_input_height);
+    config.default_analysis_adaptive_high_latency_ratio =
+        ReadFloatEnv(kEnvDefaultAnalysisAdaptiveHighLatencyRatio,
+                     config.default_analysis_adaptive_high_latency_ratio);
+    config.default_analysis_adaptive_low_latency_ratio =
+        ReadFloatEnv(kEnvDefaultAnalysisAdaptiveLowLatencyRatio,
+                     config.default_analysis_adaptive_low_latency_ratio);
+    config.analysis_registry_path = ReadStringEnv(kEnvAnalysisRegistryPath, config.analysis_registry_path);
     config.file_root_path = ResolveRuntimePath(config.file_root_path);
     config.default_file_path = ResolveRuntimePath(config.default_file_path);
     config.default_analysis_model_path = ResolveRuntimePath(config.default_analysis_model_path);
     config.default_analysis_labels_path = ResolveRuntimePath(config.default_analysis_labels_path);
+    config.analysis_registry_path = ResolveRuntimePath(config.analysis_registry_path);
     config.force_rtsp_tcp = ReadBoolEnv(kEnvForceTcpOnly, config.force_rtsp_tcp);
     config.session_trace = ReadBoolEnv(kEnvSessionTrace, config.session_trace);
     config.webrtc_trace = ReadBoolEnv(kEnvWebRtcTrace, config.webrtc_trace);
@@ -325,6 +359,44 @@ app::AppConfig LoadAppConfig() {
     ValidatePositiveInt(&config.default_analysis_overlay_thickness,
                         app_config::kDefaultAnalysisOverlayThickness,
                         "Analysis overlay thickness");
+    ValidatePositiveInt(&config.default_analysis_adaptive_min_fps,
+                        app_config::kDefaultAnalysisAdaptiveMinFps,
+                        "Analysis adaptive min fps");
+    if (config.default_analysis_adaptive_min_fps > config.default_analysis_fps) {
+        config.default_analysis_adaptive_min_fps = config.default_analysis_fps;
+    }
+    ValidatePositiveInt(&config.default_analysis_adaptive_cooldown_ms,
+                        app_config::kDefaultAnalysisAdaptiveCooldownMs,
+                        "Analysis adaptive cooldown ms");
+    ValidateEvenPositiveInt(&config.default_analysis_adaptive_input_step,
+                            app_config::kDefaultAnalysisAdaptiveInputStep,
+                            "Analysis adaptive input step");
+    ValidateEvenPositiveInt(&config.default_analysis_adaptive_min_input_width,
+                            app_config::kDefaultAnalysisAdaptiveMinInputWidth,
+                            "Analysis adaptive min input width");
+    ValidateEvenPositiveInt(&config.default_analysis_adaptive_min_input_height,
+                            app_config::kDefaultAnalysisAdaptiveMinInputHeight,
+                            "Analysis adaptive min input height");
+    if (config.default_analysis_adaptive_min_input_width > config.default_analysis_input_width) {
+        config.default_analysis_adaptive_min_input_width = config.default_analysis_input_width;
+    }
+    if (config.default_analysis_adaptive_min_input_height > config.default_analysis_input_height) {
+        config.default_analysis_adaptive_min_input_height = config.default_analysis_input_height;
+    }
+    if (config.default_analysis_adaptive_high_latency_ratio <= 0.0F ||
+        config.default_analysis_adaptive_high_latency_ratio > 10.0F) {
+        std::cerr << "[env] analysis adaptive high latency ratio is invalid, fallback "
+                  << app_config::kDefaultAnalysisAdaptiveHighLatencyRatio << "\n";
+        config.default_analysis_adaptive_high_latency_ratio =
+            app_config::kDefaultAnalysisAdaptiveHighLatencyRatio;
+    }
+    if (config.default_analysis_adaptive_low_latency_ratio <= 0.0F ||
+        config.default_analysis_adaptive_low_latency_ratio >= config.default_analysis_adaptive_high_latency_ratio) {
+        std::cerr << "[env] analysis adaptive low latency ratio is invalid, fallback "
+                  << app_config::kDefaultAnalysisAdaptiveLowLatencyRatio << "\n";
+        config.default_analysis_adaptive_low_latency_ratio =
+            app_config::kDefaultAnalysisAdaptiveLowLatencyRatio;
+    }
     if (config.webrtc_source_ready_timeout_ms <= 0) {
         std::cerr << "[env] WebRTC source ready timeout must be positive, fallback 12000\n";
         config.webrtc_source_ready_timeout_ms = 12000;

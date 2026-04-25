@@ -75,6 +75,18 @@ struct AnalysisProfile {
     bool enable_pose{false};
     bool enable_overlay{false};
     int debug_detector_delay_ms{0};
+    bool adaptive_tuning_enabled{false};
+    bool adaptive_input_size_enabled{false};
+    int adaptive_min_fps{2};
+    int adaptive_max_fps{0};
+    int adaptive_min_input_width{320};
+    int adaptive_min_input_height{320};
+    int adaptive_max_input_width{0};
+    int adaptive_max_input_height{0};
+    int adaptive_input_step{128};
+    int adaptive_cooldown_ms{3000};
+    float adaptive_high_latency_ratio{0.85F};
+    float adaptive_low_latency_ratio{0.35F};
 };
 
 inline std::string BuildProfileKey(const AnalysisProfile& profile) {
@@ -90,6 +102,13 @@ inline std::string BuildProfileKey(const AnalysisProfile& profile) {
         << ":track=" << (profile.enable_tracking ? 1 : 0)
         << ":pose=" << (profile.enable_pose ? 1 : 0)
         << ":overlay=" << (profile.enable_overlay ? 1 : 0)
+        << ":adaptive=" << (profile.adaptive_tuning_enabled ? 1 : 0)
+        << ":adaptiveInput=" << (profile.adaptive_input_size_enabled ? 1 : 0)
+        << ":adaptiveFps=" << profile.adaptive_min_fps << "-" << profile.adaptive_max_fps
+        << ":adaptiveInputBounds=" << profile.adaptive_min_input_width << "x" << profile.adaptive_min_input_height
+        << "-" << profile.adaptive_max_input_width << "x" << profile.adaptive_max_input_height
+        << ":adaptiveStep=" << profile.adaptive_input_step
+        << ":adaptiveCooldown=" << profile.adaptive_cooldown_ms
         << ":delay=" << profile.debug_detector_delay_ms;
     return oss.str();
 }

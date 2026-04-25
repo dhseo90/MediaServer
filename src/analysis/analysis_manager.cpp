@@ -14,6 +14,14 @@ std::int64_t AbsDiff(std::int64_t lhs, std::int64_t rhs) {
     return lhs >= rhs ? lhs - rhs : rhs - lhs;
 }
 
+int ClampEvenInt(int value, int min_value, int max_value) {
+    int clamped = std::max(min_value, std::min(max_value, value));
+    if ((clamped % 2) != 0) {
+        --clamped;
+    }
+    return std::max(2, clamped);
+}
+
 std::optional<AnalysisResult> FindResultNearPtsLocked(const std::deque<AnalysisResult>& result_history,
                                                       std::int64_t pts,
                                                       std::int64_t tolerance_ns) {
@@ -64,6 +72,35 @@ AnalysisManager::AttachResult AnalysisManager::AttachStream(const core::StreamKe
     tap->profile.confidence_threshold = std::max(0.0F, std::min(1.0F, tap->profile.confidence_threshold));
     tap->profile.nms_threshold = std::max(0.0F, std::min(1.0F, tap->profile.nms_threshold));
     tap->profile.debug_detector_delay_ms = std::max(0, std::min(5000, tap->profile.debug_detector_delay_ms));
+    const int initial_target_fps = tap->profile.target_fps;
+    tap->profile.adaptive_min_fps = std::max(1, std::min(initial_target_fps, tap->profile.adaptive_min_fps));
+    const int requested_adaptive_max_fps =
+        tap->profile.adaptive_max_fps > 0 ? tap->profile.adaptive_max_fps : initial_target_fps;
+    tap->profile.adaptive_max_fps =
+        std::max(initial_target_fps,
+                 std::max(tap->profile.adaptive_min_fps, std::min(60, requested_adaptive_max_fps)));
+    tap->profile.adaptive_min_input_width =
+        ClampEvenInt(tap->profile.adaptive_min_input_width, 32, tap->profile.model_input_width);
+    tap->profile.adaptive_min_input_height =
+        ClampEvenInt(tap->profile.adaptive_min_input_height, 32, tap->profile.model_input_height);
+    tap->profile.adaptive_max_input_width =
+        ClampEvenInt(tap->profile.adaptive_max_input_width > 0 ? tap->profile.adaptive_max_input_width
+                                                               : tap->profile.model_input_width,
+                     tap->profile.adaptive_min_input_width,
+                     tap->profile.model_input_width);
+    tap->profile.adaptive_max_input_height =
+        ClampEvenInt(tap->profile.adaptive_max_input_height > 0 ? tap->profile.adaptive_max_input_height
+                                                                : tap->profile.model_input_height,
+                     tap->profile.adaptive_min_input_height,
+                     tap->profile.model_input_height);
+    tap->profile.adaptive_input_step = ClampEvenInt(tap->profile.adaptive_input_step, 16, 2048);
+    tap->profile.adaptive_cooldown_ms = std::max(250, std::min(60000, tap->profile.adaptive_cooldown_ms));
+    tap->profile.adaptive_high_latency_ratio =
+        std::max(0.1F, std::min(10.0F, tap->profile.adaptive_high_latency_ratio));
+    if (tap->profile.adaptive_low_latency_ratio <= 0.0F ||
+        tap->profile.adaptive_low_latency_ratio >= tap->profile.adaptive_high_latency_ratio) {
+        tap->profile.adaptive_low_latency_ratio = tap->profile.adaptive_high_latency_ratio * 0.5F;
+    }
     tap->profile_key = BuildProfileKey(tap->profile);
     tap->detector = CreateDetector(tap->profile);
 
@@ -258,9 +295,23 @@ std::optional<AnalysisManager::TapSnapshot> AnalysisManager::Snapshot(const std:
         .max_analysis_ms = tap->max_analysis_ms,
         .target_fps = tap->profile.target_fps,
         .max_queue_size = tap->profile.max_queue_size,
+        .model_input_width = tap->profile.model_input_width,
+        .model_input_height = tap->profile.model_input_height,
         .debug_detector_delay_ms = tap->profile.debug_detector_delay_ms,
         .confidence_threshold = tap->profile.confidence_threshold,
         .nms_threshold = tap->profile.nms_threshold,
+        .adaptive_tuning_enabled = tap->profile.adaptive_tuning_enabled,
+        .adaptive_input_size_enabled = tap->profile.adaptive_input_size_enabled,
+        .adaptive_input_size_disabled = tap->adaptive_input_size_disabled,
+        .adaptive_min_fps = tap->profile.adaptive_min_fps,
+        .adaptive_max_fps = tap->profile.adaptive_max_fps,
+        .adaptive_min_input_width = tap->profile.adaptive_min_input_width,
+        .adaptive_min_input_height = tap->profile.adaptive_min_input_height,
+        .adaptive_max_input_width = tap->profile.adaptive_max_input_width,
+        .adaptive_max_input_height = tap->profile.adaptive_max_input_height,
+        .adaptive_downshift_count = tap->adaptive_downshift_count,
+        .adaptive_upshift_count = tap->adaptive_upshift_count,
+        .adaptive_state = tap->adaptive_state,
         .has_latest_frame = tap->latest_frame.has_value(),
         .latest_frame_width = tap->latest_frame.has_value() ? tap->latest_frame->width : 0,
         .latest_frame_height = tap->latest_frame.has_value() ? tap->latest_frame->height : 0,
@@ -392,6 +443,7 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
             std::lock_guard tap_lock(tap->mu);
             tap->last_analysis_ms = elapsed_ms;
             tap->max_analysis_ms = std::max(tap->max_analysis_ms, elapsed_ms);
+            DisableAdaptiveInputSizeLocked(tap);
             ++tap->dropped_packets;
             continue;
         }
@@ -411,8 +463,124 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
         while (tap->result_history.size() > kMaxResultHistory) {
             tap->result_history.pop_front();
         }
+        UpdateAdaptiveTuningLocked(tap, elapsed_ms);
         tap->result_cv.notify_all();
     }
+}
+
+void AnalysisManager::UpdateAdaptiveTuningLocked(const std::shared_ptr<AnalysisTap>& tap, double elapsed_ms) {
+    if (tap == nullptr || !tap->profile.adaptive_tuning_enabled) {
+        return;
+    }
+
+    const auto now = std::chrono::steady_clock::now();
+    const auto cooldown = std::chrono::milliseconds(tap->profile.adaptive_cooldown_ms);
+    if (tap->last_adaptive_tuned_at.time_since_epoch().count() > 0 &&
+        now - tap->last_adaptive_tuned_at < cooldown) {
+        return;
+    }
+
+    const std::size_t queue_drop_delta =
+        tap->queue_dropped_frames >= tap->adaptive_last_queue_dropped_frames
+            ? tap->queue_dropped_frames - tap->adaptive_last_queue_dropped_frames
+            : 0;
+    tap->adaptive_last_queue_dropped_frames = tap->queue_dropped_frames;
+
+    const int fps = std::max(1, tap->profile.target_fps);
+    const double target_interval_ms = 1000.0 / static_cast<double>(fps);
+    const bool queue_pressure = !tap->frame_queue.empty() || queue_drop_delta > 0;
+    const bool overloaded =
+        queue_pressure || elapsed_ms > target_interval_ms * tap->profile.adaptive_high_latency_ratio;
+    const bool underloaded =
+        !queue_pressure && elapsed_ms < target_interval_ms * tap->profile.adaptive_low_latency_ratio;
+
+    auto apply_input_size = [&](int width, int height, const char* state) {
+        AnalysisProfile next = tap->profile;
+        next.model_input_width = ClampEvenInt(width, next.adaptive_min_input_width, next.adaptive_max_input_width);
+        next.model_input_height = ClampEvenInt(height, next.adaptive_min_input_height, next.adaptive_max_input_height);
+        if (next.model_input_width == tap->profile.model_input_width &&
+            next.model_input_height == tap->profile.model_input_height) {
+            return false;
+        }
+        std::string error_message;
+        if (tap->detector != nullptr && !tap->detector->UpdateProfile(next, &error_message)) {
+            tap->adaptive_input_size_disabled = true;
+            tap->adaptive_state = "input-size-update-failed";
+            return false;
+        }
+        tap->profile = std::move(next);
+        tap->profile_key = BuildProfileKey(tap->profile);
+        tap->adaptive_state = state;
+        return true;
+    };
+
+    bool changed = false;
+    if (overloaded) {
+        tap->adaptive_underloaded_streak = 0;
+        if (tap->profile.target_fps > tap->profile.adaptive_min_fps) {
+            --tap->profile.target_fps;
+            tap->profile_key = BuildProfileKey(tap->profile);
+            tap->adaptive_state = "downshift-fps";
+            changed = true;
+        } else if (tap->profile.adaptive_input_size_enabled && !tap->adaptive_input_size_disabled) {
+            changed = apply_input_size(tap->profile.model_input_width - tap->profile.adaptive_input_step,
+                                       tap->profile.model_input_height - tap->profile.adaptive_input_step,
+                                       "downshift-input");
+        }
+        if (changed) {
+            ++tap->adaptive_downshift_count;
+        }
+    } else if (underloaded) {
+        ++tap->adaptive_underloaded_streak;
+        if (tap->adaptive_underloaded_streak >= 3) {
+            if (tap->profile.adaptive_input_size_enabled && !tap->adaptive_input_size_disabled &&
+                (tap->profile.model_input_width < tap->profile.adaptive_max_input_width ||
+                 tap->profile.model_input_height < tap->profile.adaptive_max_input_height)) {
+                changed = apply_input_size(tap->profile.model_input_width + tap->profile.adaptive_input_step,
+                                           tap->profile.model_input_height + tap->profile.adaptive_input_step,
+                                           "upshift-input");
+            } else if (tap->profile.target_fps < tap->profile.adaptive_max_fps) {
+                ++tap->profile.target_fps;
+                tap->profile_key = BuildProfileKey(tap->profile);
+                tap->adaptive_state = "upshift-fps";
+                changed = true;
+            }
+            if (changed) {
+                ++tap->adaptive_upshift_count;
+                tap->adaptive_underloaded_streak = 0;
+            }
+        }
+    } else {
+        tap->adaptive_underloaded_streak = 0;
+        tap->adaptive_state = "steady";
+    }
+
+    if (changed) {
+        tap->last_adaptive_tuned_at = now;
+    }
+}
+
+void AnalysisManager::DisableAdaptiveInputSizeLocked(const std::shared_ptr<AnalysisTap>& tap) {
+    if (tap == nullptr || !tap->profile.adaptive_tuning_enabled || !tap->profile.adaptive_input_size_enabled ||
+        tap->adaptive_input_size_disabled) {
+        return;
+    }
+    if (tap->profile.model_input_width == tap->profile.adaptive_max_input_width &&
+        tap->profile.model_input_height == tap->profile.adaptive_max_input_height) {
+        return;
+    }
+
+    AnalysisProfile restored = tap->profile;
+    restored.model_input_width = restored.adaptive_max_input_width;
+    restored.model_input_height = restored.adaptive_max_input_height;
+    std::string ignored_error;
+    if (tap->detector != nullptr) {
+        tap->detector->UpdateProfile(restored, &ignored_error);
+    }
+    tap->profile = std::move(restored);
+    tap->profile_key = BuildProfileKey(tap->profile);
+    tap->adaptive_input_size_disabled = true;
+    tap->adaptive_state = "input-size-disabled";
 }
 
 void AnalysisManager::StopTapRuntime(const std::shared_ptr<AnalysisTap>& tap) {

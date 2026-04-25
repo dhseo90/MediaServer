@@ -75,6 +75,18 @@ analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map
         profile.nms_threshold = config.default_analysis_nms;
         profile.yolo_preprocess_mode = config.default_analysis_preprocess;
         profile.enable_overlay = true;
+        profile.adaptive_tuning_enabled = config.default_analysis_adaptive_enabled;
+        profile.adaptive_input_size_enabled = config.default_analysis_adaptive_input_enabled;
+        profile.adaptive_min_fps = config.default_analysis_adaptive_min_fps;
+        profile.adaptive_max_fps = 0;
+        profile.adaptive_min_input_width = config.default_analysis_adaptive_min_input_width;
+        profile.adaptive_min_input_height = config.default_analysis_adaptive_min_input_height;
+        profile.adaptive_max_input_width = 0;
+        profile.adaptive_max_input_height = 0;
+        profile.adaptive_input_step = config.default_analysis_adaptive_input_step;
+        profile.adaptive_cooldown_ms = config.default_analysis_adaptive_cooldown_ms;
+        profile.adaptive_high_latency_ratio = config.default_analysis_adaptive_high_latency_ratio;
+        profile.adaptive_low_latency_ratio = config.default_analysis_adaptive_low_latency_ratio;
     }
     if (const auto it = query.find("profileId"); it != query.end() && !it->second.empty()) {
         profile.profile_id = it->second;
@@ -111,6 +123,45 @@ analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map
     profile.enable_overlay = ParseBoolQuery(query, "overlay", profile.enable_overlay);
     profile.debug_detector_delay_ms =
         ParseClampedIntQuery(query, "detectorDelayMs", profile.debug_detector_delay_ms, 0, 5000);
+    profile.adaptive_tuning_enabled =
+        ParseBoolQuery(query, "adaptive", ParseBoolQuery(query, "adaptiveTuner", profile.adaptive_tuning_enabled));
+    profile.adaptive_input_size_enabled =
+        ParseBoolQuery(query,
+                       "adaptiveInputSize",
+                       ParseBoolQuery(query, "adaptiveInput", profile.adaptive_input_size_enabled));
+    profile.adaptive_min_fps = ParseClampedIntQuery(query, "adaptiveMinFps", profile.adaptive_min_fps, 1, 60);
+    profile.adaptive_max_fps = ParseClampedIntQuery(query,
+                                                    "adaptiveMaxFps",
+                                                    profile.adaptive_max_fps > 0 ? profile.adaptive_max_fps
+                                                                                 : profile.target_fps,
+                                                    1,
+                                                    60);
+    profile.adaptive_min_input_width =
+        ParseClampedIntQuery(query, "adaptiveMinInputWidth", profile.adaptive_min_input_width, 32, 4096);
+    profile.adaptive_min_input_height =
+        ParseClampedIntQuery(query, "adaptiveMinInputHeight", profile.adaptive_min_input_height, 32, 4096);
+    profile.adaptive_max_input_width =
+        ParseClampedIntQuery(query,
+                             "adaptiveMaxInputWidth",
+                             profile.adaptive_max_input_width > 0 ? profile.adaptive_max_input_width
+                                                                  : profile.model_input_width,
+                             32,
+                             4096);
+    profile.adaptive_max_input_height =
+        ParseClampedIntQuery(query,
+                             "adaptiveMaxInputHeight",
+                             profile.adaptive_max_input_height > 0 ? profile.adaptive_max_input_height
+                                                                   : profile.model_input_height,
+                             32,
+                             4096);
+    profile.adaptive_input_step =
+        ParseClampedIntQuery(query, "adaptiveInputStep", profile.adaptive_input_step, 16, 2048);
+    profile.adaptive_cooldown_ms =
+        ParseClampedIntQuery(query, "adaptiveCooldownMs", profile.adaptive_cooldown_ms, 250, 60000);
+    profile.adaptive_high_latency_ratio =
+        ParseClampedFloatQuery(query, "adaptiveHighLatencyRatio", profile.adaptive_high_latency_ratio, 0.1F, 10.0F);
+    profile.adaptive_low_latency_ratio =
+        ParseClampedFloatQuery(query, "adaptiveLowLatencyRatio", profile.adaptive_low_latency_ratio, 0.01F, 10.0F);
     return profile;
 }
 

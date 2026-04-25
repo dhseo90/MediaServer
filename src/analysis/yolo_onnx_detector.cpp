@@ -303,6 +303,14 @@ public:
         session_.reset();
     }
 
+    bool UpdateProfile(const AnalysisProfile& profile, std::string* error_message) override {
+        profile_ = profile;
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
+    }
+
     bool Analyze(const RawVideoFrame& frame, AnalysisResult* result, std::string* error_message) override {
         if (result == nullptr) {
             if (error_message != nullptr) {
@@ -463,6 +471,14 @@ public:
             *error_message = "YOLO detector is unavailable in this build";
         }
         return false;
+    }
+
+    bool UpdateProfile(const AnalysisProfile& profile, std::string* error_message) override {
+        profile_ = profile;
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
     }
 
 private:
