@@ -46,6 +46,10 @@ constexpr const char* kEnvDefaultAnalysisAdaptiveHighLatencyRatio =
 constexpr const char* kEnvDefaultAnalysisAdaptiveLowLatencyRatio =
     "MEDIA_SERVER_ANALYSIS_ADAPTIVE_LOW_LATENCY_RATIO";
 constexpr const char* kEnvAnalysisRegistryPath = "MEDIA_SERVER_ANALYSIS_REGISTRY";
+constexpr const char* kEnvAnalysisEventPostEnabled = "MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED";
+constexpr const char* kEnvAnalysisEventPostTimeoutMs = "MEDIA_SERVER_ANALYSIS_EVENT_POST_TIMEOUT_MS";
+constexpr const char* kEnvAnalysisEventPostMaxQueue = "MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE";
+constexpr const char* kEnvAnalysisEventPostCooldownMs = "MEDIA_SERVER_ANALYSIS_EVENT_POST_COOLDOWN_MS";
 constexpr const char* kEnvForceTcpOnly = "MEDIA_SERVER_FORCE_RTSP_TCP";
 constexpr const char* kEnvSessionTrace = "MEDIA_SERVER_SESSION_TRACE";
 constexpr const char* kEnvWebRtcTrace = "MEDIA_SERVER_WEBRTC_TRACE";
@@ -70,6 +74,7 @@ constexpr const char* kEnvWebRtcVideoBitrateKbps = "MEDIA_SERVER_WEBRTC_VIDEO_BI
 constexpr const char* kEnvWebRtcVideoKeyframeInterval = "MEDIA_SERVER_WEBRTC_VIDEO_KEYFRAME_INTERVAL";
 constexpr const char* kEnvWebRtcX264Preset = "MEDIA_SERVER_WEBRTC_X264_PRESET";
 constexpr const char* kEnvEnableExperimentalYoutubeSource = "MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE";
+constexpr const char* kEnvEnableLabYoutubeImport = "MEDIA_SERVER_ENABLE_LAB_YOUTUBE_IMPORT";
 constexpr const char* kEnvYoutubeResolverBin = "MEDIA_SERVER_YOUTUBE_RESOLVER_BIN";
 constexpr const char* kEnvYoutubeFormat = "MEDIA_SERVER_YOUTUBE_FORMAT";
 constexpr const char* kEnvYoutubeResolveTimeoutMs = "MEDIA_SERVER_YOUTUBE_RESOLVE_TIMEOUT_MS";
@@ -267,6 +272,14 @@ app::AppConfig LoadAppConfig() {
         ReadFloatEnv(kEnvDefaultAnalysisAdaptiveLowLatencyRatio,
                      config.default_analysis_adaptive_low_latency_ratio);
     config.analysis_registry_path = ReadStringEnv(kEnvAnalysisRegistryPath, config.analysis_registry_path);
+    config.analysis_event_post_enabled =
+        ReadBoolEnv(kEnvAnalysisEventPostEnabled, config.analysis_event_post_enabled);
+    config.analysis_event_post_timeout_ms =
+        ReadIntEnv(kEnvAnalysisEventPostTimeoutMs, config.analysis_event_post_timeout_ms);
+    config.analysis_event_post_max_queue =
+        ReadSizeEnv(kEnvAnalysisEventPostMaxQueue, config.analysis_event_post_max_queue);
+    config.analysis_event_post_cooldown_ms =
+        ReadIntEnv(kEnvAnalysisEventPostCooldownMs, config.analysis_event_post_cooldown_ms);
     config.file_root_path = ResolveRuntimePath(config.file_root_path);
     config.default_file_path = ResolveRuntimePath(config.default_file_path);
     config.default_analysis_model_path = ResolveRuntimePath(config.default_analysis_model_path);
@@ -305,6 +318,8 @@ app::AppConfig LoadAppConfig() {
     config.webrtc_x264_speed_preset = ReadStringEnv(kEnvWebRtcX264Preset, config.webrtc_x264_speed_preset);
     config.enable_experimental_youtube_source =
         ReadBoolEnv(kEnvEnableExperimentalYoutubeSource, config.enable_experimental_youtube_source);
+    config.enable_lab_youtube_import =
+        ReadBoolEnv(kEnvEnableLabYoutubeImport, config.enable_lab_youtube_import);
     config.youtube_resolver_bin = ReadStringEnv(kEnvYoutubeResolverBin, config.youtube_resolver_bin);
     config.youtube_format = ReadStringEnv(kEnvYoutubeFormat, config.youtube_format);
     config.youtube_resolve_timeout_ms =
@@ -396,6 +411,19 @@ app::AppConfig LoadAppConfig() {
                   << app_config::kDefaultAnalysisAdaptiveLowLatencyRatio << "\n";
         config.default_analysis_adaptive_low_latency_ratio =
             app_config::kDefaultAnalysisAdaptiveLowLatencyRatio;
+    }
+    ValidatePositiveInt(&config.analysis_event_post_timeout_ms,
+                        app_config::kDefaultAnalysisEventPostTimeoutMs,
+                        "Analysis event post timeout ms");
+    if (config.analysis_event_post_max_queue == 0) {
+        std::cerr << "[env] analysis event post max queue cannot be 0, fallback "
+                  << app_config::kDefaultAnalysisEventPostMaxQueue << "\n";
+        config.analysis_event_post_max_queue = app_config::kDefaultAnalysisEventPostMaxQueue;
+    }
+    if (config.analysis_event_post_cooldown_ms < 0) {
+        std::cerr << "[env] analysis event post cooldown ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisEventPostCooldownMs << "\n";
+        config.analysis_event_post_cooldown_ms = app_config::kDefaultAnalysisEventPostCooldownMs;
     }
     if (config.webrtc_source_ready_timeout_ms <= 0) {
         std::cerr << "[env] WebRTC source ready timeout must be positive, fallback 12000\n";

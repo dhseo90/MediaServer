@@ -2,10 +2,10 @@
 
 ## 목적
 - 현재 지원 중인 source/egress 조합을 반복 검증한다.
-- 로컬 샘플 파일과 로컬 RTSP test source, 선택적 외부 RTSP URL을 함께 사용한다.
+- 로컬 샘플 파일, 로컬 RTSP test source, LAN IP 외부 클라이언트 접근성, 제3자 RTSP upstream advisory를 함께 사용한다.
 
 ## 현재 기준 요약
-- 최신 blocker 체크 기준으로 분석 1차 개발의 안정 기준은 `file`, 로컬 `RTSP pull`, 로컬 `WebRTC publish` 경로다.
+- 최신 blocker 체크 기준으로 기본 안정 기준은 `file`, 로컬 `RTSP pull`, 로컬 `WebRTC publish`, LAN IP 기준 외부 클라이언트 접근성, 제3자 RTSP upstream advisory, 기본 YOLO/VA overlay다.
 - `HTTP/HLS URI -> WebRTC(signaling)`은 같은 체크에서 세션 생성이 성공했지만, `HTTP URI -> RTSP`는 `503 Service Unavailable`이 다시 관찰되어 재확인이 필요하다.
 - 아래 문서에는 과거 통과 이력도 남아 있다. 과거 이력은 회귀 추적용이며, 현재 작업 우선순위는 최신 blocker 체크 결과를 기준으로 판단한다.
 - 따라서 영상분석 1차 범위에는 `HTTP/HLS URI`를 넣지 않고, 분석 skeleton과 로컬 core 경로 검증 이후 main 후속 안정화에서 다시 확인한다.
@@ -15,8 +15,8 @@
 - `file -> WebRTC(signaling)`
 - `RTSP -> RTSP`
 - `RTSP -> WebRTC(signaling)`
-- `HTTP/HLS URI -> RTSP`
-- `HTTP/HLS URI -> WebRTC(signaling)`
+- `HTTP/HLS URI -> RTSP` (부분 구현, 최신 blocker 기준 재확인 필요)
+- `HTTP/HLS URI -> WebRTC(signaling)` (1차 지원 경로)
 - `WebRTC publish(local WHIP test publisher) -> RTSP`
 - `WebRTC publish(local WHIP test publisher) -> WebRTC(signaling)`
 - `WebRTC publish(browser publisher) -> WebRTC(WHEP)`
@@ -31,9 +31,11 @@
 
 실험실 기능 정책:
 - `source=youtube`는 코드에 남아 있지만 기본 test scope에는 포함하지 않는다.
-- 기본 검증 UI는 `/webrtc/test`, 개발용 실험 UI는 `/lab`로 분리했다.
-- 개발용 import UI는 `/lab/import`에서 별도로 제공한다.
-- 서버를 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`로 시작한 경우에만 `/lab`과 helper script에 YouTube 옵션을 노출한다.
+- `/lab`를 통합 진입점으로 두고 안정 테스트, VA 분석, 룰 편집, 실험실 가져오기 기능을 같은 화면으로 접는 구조로 정리했다.
+- `/lab`는 light/dark theme toggle, 반응형 card layout을 제공하며 룰 편집기와 가져오기 도구는 iframe 대신 Shadow DOM 컴포넌트로 로드한다.
+- `/webrtc/test`, `/lab/rules`, `/lab/import`는 자동화와 기존 bookmark 호환 route로 유지하지만, 일반 수동 테스트 진입점은 `/lab` 하나로 둔다.
+- YouTube 직접 표출(`source=youtube`)은 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`일 때만 `/lab`과 helper script에 노출한다.
+- YouTube 파일 다운로드(`/lab/import`)는 개발용 샘플 생성 도구로 기본 표시하며 `MEDIA_SERVER_ENABLE_LAB_YOUTUBE_IMPORT=0`으로 끌 수 있다.
 - YouTube 관련 검증 이력은 이 문서 하단의 "실험실 기능 검증 이력"에 분리해 둔다.
 
 ## 기본 테스트 예시
@@ -43,7 +45,7 @@
   - `POST http://{media-server-host}:8080/webrtc/session?file=sample_h264.mp4`
 - file(video-only) -> RTSP
   - `rtsp://{media-server-host}:8554/dhseo?file=sample_h264_video_only.mp4`
-- HTTP MP4 -> RTSP
+- HTTP MP4 -> RTSP (부분 구현, 최신 blocker 기준 재확인 필요)
   - `rtsp://{media-server-host}:8554/dhseo?source=http&url={urlencoded_http_media_url}`
   - 최신 blocker 체크에서는 `503 Service Unavailable`이 재현되어 현재 완료 항목이 아니라 재확인 항목으로 본다.
 - HTTP MP4 -> WebRTC(simple signaling)
@@ -59,15 +61,17 @@
   - `POST http://{media-server-host}:8080/whep?source=webrtc&url={source_id}`
 
 ## 남은 테스트 스텝
-1. 외부 RTSP source 재검증
-   - wowza 같은 외부 upstream이 현재 환경에서 timeout인지, remote 응답 지연인지 분리 확인
+1. 외부 RTSP source 심화 재검증
+   - `./server.sh test` 기본 기준에는 LAN IP 외부 클라이언트 접근성을 hard gate로 포함한다.
+   - 제3자 RTSP upstream 후보는 remote 응답 지연과 upstream 상태 영향이 커서 기본 stable에서는 advisory로 본다.
+   - 신뢰 가능한 카메라/테스트 RTSP URL을 `MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS`로 지정하면 hard gate로 검증한다.
 2. WebRTC 운영 환경 테스트
    - auth, STUN/TURN, ICE policy를 붙인 상태에서 브라우저 간 consume/publish 재검증
 3. audio-only input 정책 확정
    - 현재는 video relay/analysis 기준으로 설계되어 있어 audio-only는 정식 지원 범위 밖
 4. 영상분석 후속 테스트 추가
    - 1차 analysis tap, raw decode hub, drop/frame-sampling, YOLO/ONNX, RTSP/WebRTC overlay는 로컬 smoke test 완료
-   - adaptive tuner 1차 smoke test는 완료했으며, 남은 범위는 장시간 회귀와 profile/rule 연동 검증
+   - adaptive tuner 1차 smoke test는 완료했으며, rule event engine은 presence/enter/exit/line-crossing 1차 구현 후 build 검증 완료
 5. 실험실 YouTube 회귀 검증
    - 기본 scope는 아니며, 명시적으로 opt-in 했을 때만 별도 확인
 6. `/lab/import` 외부 네트워크 재검증
@@ -87,32 +91,36 @@
   - source descriptor/audio-video track discovery가 로컬 검증 범위에서 일관되어야 한다.
   - 서버 중지 후 listen port와 잔여 foreground process가 남지 않아야 한다.
 - 이번 체크에서 우선 보는 범위
-  - 외부 RTSP, 실험실 YouTube, 운영용 STUN/TURN/auth는 blocker가 아니라 후속 테스트로 남긴다.
+  - LAN IP 기준 외부 클라이언트 접근성은 모든 `./server.sh test` 모드에서 확인한다.
+  - 제3자 RTSP upstream reachability는 stable `./server.sh test`에서 advisory로 확인한다.
+  - 신뢰 가능한 외부 RTSP URL을 명시한 경우에는 hard gate로 검증한다.
+  - HTTP/HLS URI, 실험실 YouTube, 운영용 STUN/TURN/auth는 blocker가 아니라 후속 테스트로 남긴다.
+  - YOLO/VA overlay는 기본 설치/기본 실행 범위이므로 `./server.sh test` 기본 기준에 포함한다.
+  - profile/rule/event, adaptive tuner는 선택 테스트로 유지하고 기본 안정 기준에는 넣지 않는다.
 - 권장 실행 순서
-  1. `cmake --build build-gst`
-  2. `./scripts/start_server.sh`
-  3. `./scripts/check_server.sh`
-  4. `./scripts/verify_codec_matrix.sh`
-  5. `./scripts/diagnose_media_server.sh`
-  6. `./scripts/stop_server.sh`
+  1. `./server.sh install`
+  2. `./server.sh test`
+  3. 필요 시 `./server.sh test --include-rules`
+  4. `./server.sh stop`
 - 판단 규칙
-  - 위 로컬 core 경로가 깨지면 분석 후속 개발보다 스트리밍 안정화 수정을 먼저 한다.
-  - profile/rule/event 같은 분석 후속 개발도 동일 기준선을 유지하면서 진행한다.
+  - 위 stable 기준이 깨지면 분석 후속 개발보다 스트리밍 안정화 수정을 먼저 한다.
+  - profile/rule/event 같은 분석 후속 개발은 선택 테스트로 검증하되, 안정 기능으로 승격 전까지 기본 `./server.sh test`에는 넣지 않는다.
+  - 새 기능을 추가하면 먼저 선택 테스트(`--include-*`)로 묶고, 반복 검증 후 안정 기능으로 판단될 때만 기본 `./server.sh test` 기준에 승격한다.
 
 ## 분석 1차 구현 이후 보류 테스트와 복귀 계획
 - 분석 1차 구현은 file/RTSP/WebRTC local core 경로 중심으로 진행했다. 아래 항목은 main 기준 후속 테스트로 보류한다.
   - `HTTP/HLS URI -> RTSP` 최신 `503` 재확인 및 수정
-  - 외부 RTSP source 재검증
+  - 외부 RTSP source 장시간/codec 심화 재검증
   - WebRTC 운영 환경 테스트(auth/STUN/TURN/ICE)
   - audio-only input 정책 확정
   - 실험실 YouTube 회귀 검증
   - `/lab/import` 외부 네트워크 재검증
 - profile/rule/event 같은 분석 후속 개발 전후에는 이 문서의 `남은 테스트 스텝` 순서로 돌아와 보류 항목을 재개한다.
-- 현재 계획은 `분석 1차 local smoke 완료 -> profile/rule/event 개발 -> HTTP/HLS와 운영 테스트 재개` 순서다.
+- 현재 계획은 `분석 local smoke 유지 -> tracker/event 안정화 -> HTTP/HLS RTSP 재확인 -> WebRTC 운영 환경 테스트` 순서다.
 
 ## 영상분석 skeleton 검증 계획
 - 1차 skeleton 검증
-  - `cmake --build build-gst`로 analysis module이 기존 GStreamer build에 포함되는지 확인한다.
+  - `./server.sh start`로 AI 포함 기본 빌드(`build-gst-onnx`)와 analysis module 포함 여부를 확인한다.
   - 기존 `file -> RTSP`, `file -> WebRTC(signaling)` smoke test가 그대로 동작해야 한다.
   - analysis tap이 붙어도 `SharedStream::RefCount()`는 relay client 수만 세야 한다.
   - 개발용 HTTP endpoint:
@@ -137,13 +145,13 @@
 
 ## 2026-04-24 blocker 체크 결과
 - 실행한 항목
-  - `cmake --build build-gst`
-  - `./scripts/start_server.sh`
-  - `./scripts/check_server.sh`
-  - `./scripts/verify_codec_matrix.sh`
-  - `./scripts/diagnose_media_server.sh`
-  - `./scripts/restart_server.sh`
-  - `./scripts/stop_server.sh`
+  - `./server.sh install`
+  - `./server.sh start`
+  - `./server.sh status`
+  - `./server.sh verify-codecs`
+  - `./server.sh diagnose`
+  - `./server.sh restart`
+  - `./server.sh stop`
 - 확인된 통과 범위
   - 빌드 성공
   - detached/foreground 여부와 별개로 로컬 `file -> RTSP` probe는 `h264`, `h265` 모두 성공
@@ -221,7 +229,7 @@
   - 지원 키: `default`, `h264`, `h265`, `opus`, `h265_opus`, `pcmu`, `h265_pcmu`, `pcma`, `h265_pcma`
 
 ## 검증 스크립트
-- `scripts/verify_codec_matrix.sh`
+- `./server.sh verify-codecs`
 
 기본 동작:
 - 현재 실행 중인 media server의 RTSP/HTTP 포트를 읽는다.
@@ -247,6 +255,12 @@
 - browser `WHIP publish -> simple signaling consume`은 audio/video track 연결과 decoded video frame을 확인했다.
 
 ## 외부 RTSP source 진단용 환경변수
+- `MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS`
+  - 쉼표/세미콜론으로 구분한 외부 RTSP URL 후보 목록이다.
+  - `./server.sh test`에서 이 값을 명시하면 hard gate로 처리한다.
+- `MEDIA_SERVER_TEST_REQUIRE_EXTERNAL_SOURCE`
+  - `1`이면 기본 후보 실패도 hard fail 처리한다.
+  - 기본값은 advisory다. public RTSP endpoint는 upstream 상태와 outbound 554/tcp 정책에 크게 흔들리기 때문이다.
 - `MEDIA_SERVER_RTSP_SOURCE_PREFLIGHT_TIMEOUT_MS`
   - 기본값: `1500`
   - RTSP source 시작 전에 `host:port` TCP reachability를 확인한다.
@@ -267,17 +281,17 @@ MEDIA_SERVER_RTSP_SOURCE_PREFLIGHT_TIMEOUT_MS=5000 \
 MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS=12000 \
 MEDIA_SERVER_RTSP_TRACK_SETTLE_QUIET_PERIOD_MS=2500 \
 MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS=12000 \
-./scripts/run_server_foreground.sh
+./server.sh foreground
 ```
 
 ## 실행 예시
 ```bash
-./scripts/verify_codec_matrix.sh
+./server.sh verify-codecs
 ```
 
 같은 LAN의 다른 PC에서 수동으로 확인할 URL을 출력하려면:
 ```bash
-./scripts/print_external_test_urls.sh
+./server.sh urls
 ```
 
 출력 결과에는 현재 LAN IP가 포함될 수 있으므로, 결과물을 그대로 커밋하거나 문서에 붙이지 않는다.
@@ -287,56 +301,61 @@ MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS=12000 \
 MEDIA_SERVER_LISTEN_ADDRESS=0.0.0.0 \
 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=0.0.0.0 \
 MEDIA_SERVER_FORCE_RTSP_TCP=1 \
-./scripts/restart_server.sh
+./server.sh restart
 ```
 
 다른 PC에서 먼저 확인할 URL:
 ```text
 http://{media-server-host}:8080/health
-http://{media-server-host}:8080/webrtc/test
 http://{media-server-host}:8080/lab
+```
+
+필요시 직접 열 수 있는 호환 route:
+```text
+http://{media-server-host}:8080/webrtc/test
+http://{media-server-host}:8080/lab/rules
 http://{media-server-host}:8080/lab/import
 ```
 
 `/health`는 `{"status":"ok"}`를 반환하는 readiness check다.
 위 두 URL이 열리지 않으면 player 문제가 아니라 macOS 방화벽, bind address, 공유기 WiFi/LAN isolation 문제를 먼저 확인한다.
 
-외부 RTSP URL도 포함하려면:
+외부 RTSP URL을 codec matrix까지 포함하려면:
 ```bash
-MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=1 ./scripts/verify_codec_matrix.sh
+MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=1 ./server.sh verify-codecs
 ```
 
 외부 RTSP reachability만 빠르게 진단하려면:
 ```bash
-MEDIA_SERVER_DIAG_INCLUDE_EXTERNAL=1 ./scripts/diagnose_media_server.sh
+./scripts/internal/test_external_source_reachability.sh
 ```
 
-특정 외부 RTSP URL을 직접 진단하려면:
+특정 외부 RTSP URL을 hard gate로 직접 진단하려면:
 ```bash
-MEDIA_SERVER_DIAG_RTSP_URL='rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov' \
-./scripts/diagnose_media_server.sh
+MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS='rtsp://camera-or-test-host/live' \
+./server.sh test
 ```
 
 로컬 WebRTC publish smoke test:
 ```bash
-source ./scripts/env_common.sh
+source ./scripts/internal/env_common.sh
 media_server_apply_homebrew_gst_env
-python3 -u ./scripts/whip_publish_test.py --http-base http://127.0.0.1:8081 --source-id publisher-demo --duration 0
+python3 -u ./scripts/internal/whip_publish_test.py --http-base http://127.0.0.1:8081 --source-id publisher-demo --duration 0
 ```
 
 RTSP만 확인하려면:
 ```bash
-MEDIA_SERVER_VERIFY_SKIP_WEBRTC=1 ./scripts/verify_codec_matrix.sh
+MEDIA_SERVER_VERIFY_SKIP_WEBRTC=1 ./server.sh verify-codecs
 ```
 
 WebRTC signaling만 확인하려면:
 ```bash
-MEDIA_SERVER_VERIFY_SKIP_RTSP=1 ./scripts/verify_codec_matrix.sh
+MEDIA_SERVER_VERIFY_SKIP_RTSP=1 ./server.sh verify-codecs
 ```
 
 특정 source만 빠르게 보려면:
 ```bash
-MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_matrix.sh
+MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
 ```
 
 ## 현재 RTSP route 기대 출력
@@ -487,17 +506,18 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
 - `/lab/import` 1차 smoke test를 추가했다.
   - fake downloader가 `sample_h264.mp4`를 복사하도록 한 상태에서 job이 `ready`로 완료됐다.
   - 결과 파일 token은 `imports/lab_test.mp4`로 기록됐고, import manager/job API가 기본 동작함을 확인했다.
+  - 이후 `imports/lab_test.mp4`는 `sample_h264.mp4`와 동일한 중복 파일이라 정리했다.
 - `2026-04-24` 실제 외부 네트워크 재검증을 추가했다.
   - shell에서 만든 `import-1`은 `failed`로 종료됐고, 로그에는 `Sign in to confirm you're not a bot`가 기록됐다.
   - 같은 URL에 대해 `yt-dlp --skip-download -g` resolver 경로도 동일한 bot check 오류로 실패했다.
-  - 하지만 Chrome `/lab/import`에서 다시 만든 `import-2`는 `ready`로 완료됐고 `storedFileToken=imports/ui_yt_import_test.mp4`가 생성됐다.
+  - 하지만 Chrome `/lab/import`에서 다시 만든 `import-2`는 `ready`로 완료됐다.
   - `import-2` 로그에는 `[jsc:deno] Solving JS challenges using deno`가 포함됐다.
-  - 초기 결과 파일은 `av1 + aac(6ch)`로 저장되어, `POST /webrtc/session?file=imports/ui_yt_import_test.mp4`가 `stream descriptor not available or not yet supported`로 실패했다.
+  - 초기 결과 파일은 `av1 + aac(6ch)`로 저장되어, 기존 relay 경로에서 `stream descriptor not available or not yet supported`로 실패했다. 이 실패 산출물은 현재 정리했다.
   - 이후 `/lab/import`에 `yt-dlp` format selector 적용과 `ffmpeg` 기반 `h264 + aac stereo + mp4` 정규화 단계를 추가했다.
   - 새 코드로 다시 만든 `import-1`은 `storedFileToken=imports/normalized_import_test.mp4`로 `ready`까지 완료됐고, `ffprobe` 기준 `h264 1280x720 + aac 48000Hz stereo`로 확인됐다.
   - 같은 파일에 대해 `POST /webrtc/session?file=imports/normalized_import_test.mp4`가 `200 OK`로 통과해, import 결과를 기존 `file=` relay 경로에 바로 재사용할 수 있음을 확인했다.
 - 외부 수동 검증 URL 출력 스크립트를 추가했다.
-  - `scripts/print_external_test_urls.sh`
+  - `./server.sh urls`
   - LAN IP, RTSP route URL, WebRTC test page/manual case를 한 번에 출력한다.
 - `2026-04-24` 영상분석 skeleton local smoke test를 추가했다.
   - 임시 포트 `RTSP 8555`, `HTTP 8081`에서 foreground 서버를 실행했다.
@@ -523,14 +543,14 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
   - 기본 `build-gst`는 `MEDIA_SERVER_USE_ONNXRUNTIME=OFF`로 빌드가 통과했다.
   - `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성은 `ONNX Runtime not found. Set MEDIA_SERVER_ONNXRUNTIME_ROOT...` 메시지로 실패함을 확인했다.
   - `detector=dummy` analysis tap은 기존과 같이 동작했다.
-  - ONNX Runtime 미포함 빌드에서 `detector=yolo&model=/tmp/missing.onnx` 요청은 HTTP 400과 `YOLO detector requires MEDIA_SERVER_USE_ONNXRUNTIME=ON...` 오류를 반환했다.
+  - ONNX Runtime 미포함 빌드에서 `detector=yolo&model=models/missing.onnx` 요청은 HTTP 400과 `YOLO detector requires MEDIA_SERVER_USE_ONNXRUNTIME=ON...` 오류를 반환했다.
 - `2026-04-24` YOLO/ONNX detector actual inference smoke test를 추가했다.
   - `brew install onnxruntime`로 ONNX Runtime `1.25.0`을 설치했다.
   - Homebrew layout 보정을 위해 CMake ONNX include 탐색에 `onnxruntime` suffix를 추가했다.
   - `build-gst-onnx`를 `MEDIA_SERVER_USE_ONNXRUNTIME=ON`, `MEDIA_SERVER_ONNXRUNTIME_ROOT=/opt/homebrew/opt/onnxruntime`로 구성했고 빌드가 통과했다.
   - 검증용 모델은 Ultralytics assets `v8.4.0`의 `yolo11n.onnx`를 `models/` 아래에 로컬로만 내려받았다.
   - 검증용 label은 `models/coco.names`의 COCO 80개 class다. 현재 overlay에 표출 가능한 class 목록은 `README.md`의 YOLO/COCO 기준 섹션에 명시했다.
-  - 검증용 영상은 Ultralytics `bus.jpg`를 `video/imports/yolo_bus_test.mp4`로 변환해 사용했다.
+  - 당시 검증용 영상은 Ultralytics `bus.jpg`를 `video/imports/yolo_bus_test.mp4`로 변환해 사용했다.
   - `POST /lab/analysis/taps?file=imports/yolo_bus_test.mp4&profileId=yolo-bus-smoke&detector=yolo&model=models/yolo11n.onnx&labels=models/coco.names&fps=2&maxQueue=2&inputWidth=640&inputHeight=640&confidence=0.25&nms=0.45`가 성공했다.
   - 2초 후 status에서 `detectorType=yolo`, `analyzedPackets=87`, `decoderErrors=0`, `detections`에 `person`, `bus`가 포함됨을 확인했다.
   - 테스트 종료 후 tap 삭제와 임시 서버 종료를 확인했다.
@@ -575,12 +595,16 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
   - `/lab/files`가 `MEDIA_SERVER_FILE_ROOT` 아래 지원 미디어 파일 목록을 JSON으로 반환하고, `/lab` 파일 입력은 dropdown으로 표시한다.
 - `2026-04-25` overlay label score percentage 표기와 adaptive tuner smoke test를 추가했다.
   - overlay label은 `0.xx` 대신 `xx%` 형태로 표기한다.
+  - Pango/Cairo가 빌드에 잡히면 실제 영상 overlay는 기본 `labelLang=ko`로 `차량(자동차)`, `사람`, `동물(강아지)`, `도로(신호등)`, `기기(노트북)` 같은 10개 일반 시각 카테고리 묶음으로 표기한다.
+  - `labelLang=en`을 지정하면 `Vehicle(car)`, `Person`, `Animal(dog)`, `Road(traffic light)`, `Device(laptop)`처럼 첫 글자만 대문자인 짧은 영문 표기로 전환한다.
+  - 일반 분석 색상은 `사람=진한 파랑`, `차량=초록`, `도로=노랑`, `동물=진한 보라`, `운동=청록`, `음식=주황`, `가구=갈색`, `기기=마젠타`, `식기=하늘색`, `잡화=회색`을 사용하고 빨간색은 이벤트/위험 강조용으로 남긴다.
+  - Pango/Cairo가 없는 환경에서는 ASCII renderer 제약 때문에 영문 fallback으로 표기한다.
   - `adaptive=0&fps=5&adaptiveMinFps=10`으로 adaptive bounds가 들어와도 비활성 상태에서는 `targetFps=5`가 유지되는 것을 확인했다.
   - `detector=dummy&fps=8&maxQueue=1&adaptive=1&adaptiveMinFps=2&adaptiveCooldownMs=300&detectorDelayMs=400`으로 과부하를 만들었고, `targetFps=2`, `adaptiveDownshiftCount=6`을 확인했다.
   - `adaptiveInputSize=1&adaptiveMinFps=8&adaptiveInputStep=160&detectorDelayMs=500`으로 input-size 조절을 만들었고, `modelInputWidth=320`, `modelInputHeight=320`, `adaptiveState=downshift-input`을 확인했다.
   - 임시 서버는 `RTSP 8555`, `HTTP 8081`에서 실행했고 smoke test 후 종료했다.
-- `2026-04-25` YOLO/VA overlay 회귀 스크립트 `scripts/verify_va_overlay.sh`를 추가했다.
-  - ONNX build 서버에서 `imports/yolo_bus_test.mp4` 기준 lab YOLO status, overlay JPEG, RTSP overlay decode, WebRTC simple playback, WHEP playback을 확인한다.
+- `2026-04-25` YOLO/VA overlay 회귀 스크립트 `./server.sh verify-va`를 추가했다.
+  - ONNX build 서버에서 기본 `va_four_scene_sample.mp4` 기준 lab YOLO status, overlay JPEG, RTSP overlay decode, WebRTC simple playback, WHEP playback을 확인한다.
   - 짧은 smoke 기준 `MEDIA_SERVER_VERIFY_VA_DURATION_S=4`, `MEDIA_SERVER_VERIFY_VA_SKIP_WEBRTC=1`에서 lab+RTSP가 통과했다.
   - 이어 `MEDIA_SERVER_VERIFY_VA_DURATION_S=2`, `MEDIA_SERVER_VERIFY_VA_WEBRTC_HOLD_MS=1000`, `MEDIA_SERVER_VERIFY_VA_SKIP_LAB=1`, `MEDIA_SERVER_VERIFY_VA_SKIP_RTSP=1`에서 WebRTC simple/WHEP playback이 통과했다.
   - RTSP decode 중 `non monotonically increasing dts` 경고가 1회 관찰됐지만 decode 자체는 성공했다. 장시간 회귀에서 반복성 여부를 추가 확인한다.
@@ -589,17 +613,57 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./scripts/verify_codec_ma
   - `targetFps=8`, `adaptiveState=steady`, 평균 분석 시간 약 `88ms` 수준으로 유지됐다.
   - RTSP VA overlay decode가 통과했고, 이전 짧은 파일에서 보였던 DTS 경고는 재현되지 않았다.
 - `2026-04-25` profile/rule persistent registry 1차 smoke test를 추가했다.
-  - `MEDIA_SERVER_ANALYSIS_REGISTRY=/tmp/media_server_analysis_registry_smoke.json`로 임시 저장 파일을 지정했다.
+  - `MEDIA_SERVER_ANALYSIS_REGISTRY=.media_server_analysis_registry_smoke.json`로 프로젝트 루트 기준 임시 저장 파일을 지정했다.
   - `POST/GET/PUT/DELETE /lab/analysis/profiles/{id}`와 `POST/GET/DELETE /lab/analysis/rules/{id}`가 통과했다.
   - 삭제 후 저장 파일이 `{"profiles":[],"rules":[]}` 형태로 정리됨을 확인했다.
   - 별도 임시 파일 기준으로 서버 재시작 후 `GET /lab/analysis/profiles/persist-profile`, `GET /lab/analysis/rules/persist-rule`이 저장된 JSON을 다시 반환함을 확인했다.
+- `2026-04-25` `/lab/rules` 시각적 profile/rule 편집 UI 1차 smoke test를 추가했다.
+  - `/lab`에는 시각적 룰 편집 페이지 링크만 남기고 JSON 직접 편집 블록은 제거했다.
+  - `/lab/rules` HTML에 `VA 룰 편집기`, `이벤트 판단 영역`, `분석할 객체 타입`, `Profile 저장` 요소가 포함됨을 확인했다.
+  - 인앱 브라우저에서 `http://127.0.0.1:8081/lab/rules`가 렌더링되는 것을 확인했다.
+  - UI는 profile 성능값을 slider/dropdown으로 조정하고, rule은 source/route/profile/event type/class와 16:9 polygon 영역을 저장한다.
+  - polygon 영역은 최대 12점까지 지정하고, 기존 점 근처 drag/drop으로 점 위치를 이동한다.
+  - `line-crossing`은 polygon 대신 2점 선분으로 전환하며, 현재 방향은 `any` 양방향으로 저장한다.
+  - 이벤트 발생 시 matched object 깜빡임 강조와 POST URL 설정을 `eventActions`로 저장한다. POST payload는 `media-server.va.event.v1` 고정 format preview만 보여주고 사용자가 수정할 수 없다.
+  - 저장은 기존 `PUT /lab/analysis/profiles/{id}`와 `PUT /lab/analysis/rules/{id}` API를 사용한다. 저장된 rule은 이후 rule event engine에서 `va=1` overlay와 events API에 적용한다.
+- `2026-04-25` `/lab/rules` 룰 편집 전체 테스트를 임시 registry로 실행했다.
+  - `MEDIA_SERVER_ANALYSIS_REGISTRY=.media_server_rule_ui_full_test.json` 서버에서 profile 저장, polygon rule 저장, line-crossing rule 저장을 확인했다.
+  - polygon rule은 12개 점까지 추가된 뒤 13번째 클릭에서 최대 12개 제한 메시지를 표시했다.
+  - polygon 기존 점 drag/drop 후 점 개수는 12개로 유지되고 좌표만 변경되는 것을 브라우저에서 확인했다.
+  - line-crossing rule은 UI가 `이벤트 판단 선`으로 전환되고, 기존 점 drag/drop 뒤 `region.type=line`, `direction=any`, 2개 point로 저장됐다.
+  - 서버 재시작 후 같은 임시 registry에서 저장된 profile/rule 3건이 다시 조회되어 persistence를 확인했다.
+- `2026-04-25` `/lab/rules` event action UI smoke test를 추가했다.
+  - matched object 깜빡임 강조 설정을 `eventActions.highlight`로 저장했다.
+  - 사용자는 POST URL만 입력하고, payload는 `media-server.va.event.v1` 고정 preview로만 표시한다.
+  - `ui-event-action-test` rule 저장 후 `eventActions.highlight.mode=blink`, `target=matched-object`, `eventActions.post.method=POST`, `payloadFormat=media-server.va.event.v1`이 registry에 저장됨을 확인했다.
+  - 이 시점에는 실제 POST 전송은 수행하지 않았다. 전송 실행은 이후 POST delivery worker 구현에서 연결했다.
+- `2026-04-25` rule event engine 1차 구현을 추가했다.
+  - 저장된 rule JSON을 detection 결과에 적용하는 `src/analysis/event_rule_engine.cpp`를 추가했다.
+  - 지원 이벤트는 `presence`, `enter`, `exit`, `line-crossing(any)`다.
+  - `va=1` RTSP/WebRTC overlay와 `/lab/analysis/taps/{tapId}/overlay.jpg`는 저장된 rule snapshot을 평가해 이벤트 객체를 `이벤트`/`Event` label과 blink highlight로 표시한다.
+  - `/lab/analysis/taps/{tapId}/events`는 최신 result에 rule을 적용한 event JSON을 반환한다.
+  - 이 시점에는 `eventActions.post`가 저장/응답에만 포함됐고 실제 HTTP POST 전송은 아직 수행하지 않았다.
+  - tracker가 아직 없어서 다중 동일 class 객체의 `enter/exit/line-crossing`은 detection index 기준 상태 추적으로만 동작한다.
+  - `./server.sh start` 기준 AI 포함 기본 빌드가 통과했다.
+  - ONNX build 서버에서 `imports/yolo_bus_test.mp4`와 전체 화면 polygon `presence` rule을 사용해 `/lab/analysis/taps/analysis-tap-1/events`가 `person`, `bus` 이벤트 5건과 `event.triggered=true` detection metadata를 반환함을 확인했다.
+  - 같은 tap의 `/overlay.jpg`는 `JPEG 640x480`으로 생성됐고, 이벤트 객체가 `이벤트`/`Event` label과 highlight color로 표시됨을 이미지로 확인했다.
+  - 합성 detection 기반 단위 smoke에서 `presence_events=1`, `enter_events=1`, `exit_events=1`, `line_events=1`을 확인했다.
+- `2026-04-25` event POST delivery worker 1차 구현을 추가했다.
+  - `src/analysis/event_post_dispatcher.cpp`가 이벤트 POST를 bounded queue에 넣고 background worker에서 `curl`로 전송한다.
+  - `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED`, `MEDIA_SERVER_ANALYSIS_EVENT_POST_TIMEOUT_MS`, `MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE`, `MEDIA_SERVER_ANALYSIS_EVENT_POST_COOLDOWN_MS`로 동작을 조절한다.
+  - 안전한 기본값을 위해 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=0`이 기본이며, 외부 POST 전송 검증 또는 운영 전송이 필요할 때만 명시적으로 켠다.
+  - worker가 켜진 운영 stream에서는 RTSP/WebRTC `va=1` overlay 경로에서 event POST가 enqueue된다.
+  - 개발 검증용으로 `/lab/analysis/taps/{tapId}/events?dispatch=1`를 추가했고, worker 상태는 `/lab/analysis/event-post/status`에서 확인한다.
+  - localhost 임시 수신 서버 `http://127.0.0.1:19090/event`를 두고 `imports/yolo_bus_test.mp4` + 전체 화면 polygon `presence` rule을 검증했다.
+  - `/events?dispatch=1` 호출 후 `enqueuedCount=5`, `sentCount=5`, `failedCount=0`, `droppedCount=0`을 확인했고, 수신 payload는 `schema=media-server.va.event.v1`, `rule.id=event-post-smoke`, `object.class=person`, `path=/event`로 도착했다.
+  - 연속 dispatch 호출에서 중복 이벤트가 cooldown으로 억제되어 `suppressedCount=5`가 증가함을 확인했다.
+  - 테스트 tap, ONNX foreground 서버, 임시 POST 수신 서버를 종료해 잔여 listen port가 없음을 확인했다.
 
 ## 남은 확인 항목
 - 다음 구현 순서
-  - 1차: 저장된 profile/rule을 실제 요청에 자동 적용하는 matching layer와 per-client override 구현
-  - 2차: rule event engine과 metadata event endpoint 구현
-  - 3차: 모델별 output layout 옵션 정교화
-  - 4차: `scripts/verify_va_overlay.sh`를 더 긴 duration으로 반복 실행해 adaptive tuner 장시간 회귀 누적
+  - 1차: tracker 기반 객체 상태 안정화와 source/route/client matching layer 구현
+  - 2차: 모델별 output layout 옵션 정교화
+  - 3차: `./server.sh verify-va`를 더 긴 duration으로 반복 실행해 adaptive tuner 장시간 회귀 누적
 - `HTTP/HLS URI -> RTSP` 최신 `503` 재확인 및 수정
 - audio-only input은 현재 video relay/analysis 준비 범위 밖이다. RTSP/WebRTC egress는 video track을 기준으로 동작한다.
 - 외부 wowza source 재검증

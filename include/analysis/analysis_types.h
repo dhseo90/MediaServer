@@ -40,6 +40,12 @@ struct Detection {
     std::string label;
     float score{0.0F};
     RectF box;
+    // 룰 엔진에서 이벤트로 판단한 객체는 overlay renderer가 강조 표시한다.
+    bool event_triggered{false};
+    std::string event_rule_id;
+    std::string event_type;
+    std::string event_highlight_color{"#ffcc00"};
+    int event_highlight_duration_ms{1200};
 };
 
 struct Track {

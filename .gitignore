@@ -18,9 +18,11 @@
 /.media_server.pid
 /.media_server.port
 /.media_server.analysis_registry.json
+/.media_server.test/
 /scripts/.media_server.env
 /video/imports/
 /models/
+/third_party/
 
 # Python cache
 __pycache__/

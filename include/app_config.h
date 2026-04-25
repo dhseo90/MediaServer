@@ -43,6 +43,10 @@ struct AppConfig {
     float default_analysis_adaptive_high_latency_ratio{app_config::kDefaultAnalysisAdaptiveHighLatencyRatio};
     float default_analysis_adaptive_low_latency_ratio{app_config::kDefaultAnalysisAdaptiveLowLatencyRatio};
     std::string analysis_registry_path{app_config::kDefaultAnalysisRegistryPath};
+    bool analysis_event_post_enabled{app_config::kDefaultAnalysisEventPostEnabled};
+    int analysis_event_post_timeout_ms{app_config::kDefaultAnalysisEventPostTimeoutMs};
+    std::size_t analysis_event_post_max_queue{app_config::kDefaultAnalysisEventPostMaxQueue};
+    int analysis_event_post_cooldown_ms{app_config::kDefaultAnalysisEventPostCooldownMs};
     bool force_rtsp_tcp{false};
     bool session_trace{false};
     bool webrtc_trace{false};
@@ -67,6 +71,7 @@ struct AppConfig {
     int webrtc_video_keyframe_interval{30};
     std::string webrtc_x264_speed_preset{"superfast"};
     bool enable_experimental_youtube_source{false};
+    bool enable_lab_youtube_import{true};
     std::string youtube_resolver_bin{"yt-dlp"};
     std::string youtube_format{
         "best[protocol=https][height<=720][fps<=30][acodec!=none][vcodec!=none]/"

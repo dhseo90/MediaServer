@@ -5,9 +5,16 @@
 
 namespace analysis {
 
+enum class OverlayLabelLanguage {
+    Korean,
+    English,
+};
+
 struct OverlayRenderOptions {
     int line_thickness{3};
     bool draw_labels{true};
+    bool draw_event_highlight{true};
+    OverlayLabelLanguage label_language{OverlayLabelLanguage::Korean};
 };
 
 bool RenderDetectionOverlay(const RawVideoFrame& frame,
