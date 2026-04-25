@@ -171,6 +171,43 @@ void DrawRect(RawVideoFrame* frame, int x1, int y1, int x2, int y2, int thicknes
     }
 }
 
+void DrawDisc(RawVideoFrame* frame, int cx, int cy, int radius, Color color, unsigned char alpha) {
+    if (frame == nullptr) {
+        return;
+    }
+    radius = ClampInt(radius, 1, 32);
+    const int radius_sq = radius * radius;
+    for (int y = cy - radius; y <= cy + radius; ++y) {
+        for (int x = cx - radius; x <= cx + radius; ++x) {
+            const int dx = x - cx;
+            const int dy = y - cy;
+            if (dx * dx + dy * dy <= radius_sq) {
+                BlendPixel(frame, x, y, color, alpha);
+            }
+        }
+    }
+}
+
+void DrawLine(RawVideoFrame* frame, int x1, int y1, int x2, int y2, int thickness, Color color, unsigned char alpha) {
+    if (frame == nullptr) {
+        return;
+    }
+    thickness = ClampInt(thickness, 1, 16);
+    const int dx = x2 - x1;
+    const int dy = y2 - y1;
+    const int steps = std::max(std::abs(dx), std::abs(dy));
+    if (steps == 0) {
+        DrawDisc(frame, x1, y1, std::max(1, thickness / 2), color, alpha);
+        return;
+    }
+    for (int i = 0; i <= steps; ++i) {
+        const float t = static_cast<float>(i) / static_cast<float>(steps);
+        const int x = static_cast<int>(std::lround(static_cast<float>(x1) + static_cast<float>(dx) * t));
+        const int y = static_cast<int>(std::lround(static_cast<float>(y1) + static_cast<float>(dy) * t));
+        DrawDisc(frame, x, y, std::max(1, thickness / 2), color, alpha);
+    }
+}
+
 PixelRect MakePixelRect(int x, int y, int width, int height, int frame_width, int frame_height) {
     width = std::max(1, std::min(width, frame_width));
     height = std::max(1, std::min(height, frame_height));
@@ -520,6 +557,30 @@ Color ColorForDetection(const Detection& detection) {
     return ColorForCategory(NamesForDetection(detection).category);
 }
 
+void DrawTrackTrail(RawVideoFrame* output, const Track& track, int frame_width, int frame_height, int thickness) {
+    if (output == nullptr || track.trail.size() < 2) {
+        return;
+    }
+    const Color color = ColorForDetection(track.detection);
+    const int line_thickness = ClampInt(std::max(1, thickness - 1), 1, 12);
+    for (std::size_t i = 1; i < track.trail.size(); ++i) {
+        const auto& previous = track.trail[i - 1];
+        const auto& current = track.trail[i];
+        const int x1 = ClampInt(static_cast<int>(std::lround(previous.x * frame_width)), 0, frame_width - 1);
+        const int y1 = ClampInt(static_cast<int>(std::lround(previous.y * frame_height)), 0, frame_height - 1);
+        const int x2 = ClampInt(static_cast<int>(std::lround(current.x * frame_width)), 0, frame_width - 1);
+        const int y2 = ClampInt(static_cast<int>(std::lround(current.y * frame_height)), 0, frame_height - 1);
+        const unsigned char alpha =
+            static_cast<unsigned char>(80 + (120 * static_cast<int>(i)) / static_cast<int>(track.trail.size()));
+        DrawLine(output, x1, y1, x2, y2, line_thickness, color, alpha);
+    }
+
+    const auto& last = track.trail.back();
+    const int x = ClampInt(static_cast<int>(std::lround(last.x * frame_width)), 0, frame_width - 1);
+    const int y = ClampInt(static_cast<int>(std::lround(last.y * frame_height)), 0, frame_height - 1);
+    DrawDisc(output, x, y, ClampInt(thickness + 1, 2, 16), color, 230);
+}
+
 void DrawText(RawVideoFrame* frame, int x, int y, const std::string& text, Color color, int scale) {
     if (frame == nullptr || scale <= 0) {
         return;
@@ -642,11 +703,14 @@ void DrawOverlayText(RawVideoFrame* frame, int x, int y, const std::string& text
 #endif
 }
 
-std::string BuildLabel(const Detection& detection, OverlayLabelLanguage language) {
+std::string BuildLabel(const Detection& detection, OverlayLabelLanguage language, bool draw_track_ids) {
     char score[16];
     const int percent = ClampInt(static_cast<int>(std::lround(detection.score * 100.0F)), 0, 100);
     std::snprintf(score, sizeof(score), "%d%%", percent);
     std::string label = GroupedOverlayLabel(detection, language);
+    if (draw_track_ids && detection.track_id > 0) {
+        label += " #" + std::to_string(detection.track_id);
+    }
     if (detection.event_triggered) {
         label = EffectiveLabelLanguage(language) == OverlayLabelLanguage::Korean ? ("이벤트 " + label)
                                                                                 : ("Event " + label);
@@ -690,6 +754,12 @@ bool RenderDetectionOverlay(const RawVideoFrame& frame,
     labels.reserve(result.detections.size());
     placed_label_rects.reserve(result.detections.size());
 
+    if (options.draw_track_trails) {
+        for (const auto& track : result.tracks) {
+            DrawTrackTrail(output, track, frame.width, frame.height, thickness);
+        }
+    }
+
     // Box를 먼저 모두 그리고 label은 마지막에 그려야 다른 객체 box가 label을 덮지 않는다.
     for (const auto& detection : result.detections) {
         const int x1 = ClampInt(static_cast<int>(std::lround(detection.box.x * frame.width)), 0, frame.width - 1);
@@ -716,7 +786,7 @@ bool RenderDetectionOverlay(const RawVideoFrame& frame,
         if (!options.draw_labels) {
             continue;
         }
-        const std::string label = BuildLabel(detection, options.label_language);
+        const std::string label = BuildLabel(detection, options.label_language, options.draw_track_ids);
         const TextSize text_size = MeasureOverlayText(frame, label, text_scale);
         const int label_width = std::min(frame.width, text_size.width + label_padding * 2);
         const int label_height = text_size.height + label_padding * 2;

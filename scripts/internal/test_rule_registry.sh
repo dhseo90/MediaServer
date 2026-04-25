@@ -46,10 +46,19 @@ HTTP_HOST="$(client_host "${MEDIA_SERVER_TEST_HTTP_HOST:-${HTTP_ADDRESS}}")"
 HTTP_BASE="${MEDIA_SERVER_TEST_HTTP_BASE:-http://${HTTP_HOST}:${HTTP_PORT}}"
 
 PROFILE_ID="test-profile-$(date +%s)-$$"
+ALT_PROFILE_ID="${PROFILE_ID}-alt"
 RULE_ID="test-rule-$(date +%s)-$$"
+ALT_RULE_ID="${RULE_ID}-alt"
+AUTO_TAP_ID=""
+VA_FILE="${MEDIA_SERVER_VERIFY_VA_FILE:-va_four_scene_sample.mp4}"
 
 cleanup() {
+  if [[ -n "${AUTO_TAP_ID}" ]]; then
+    curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${AUTO_TAP_ID}" >/dev/null 2>&1 || true
+  fi
+  curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/rules/${ALT_RULE_ID}" >/dev/null 2>&1 || true
   curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/rules/${RULE_ID}" >/dev/null 2>&1 || true
+  curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/profiles/${ALT_PROFILE_ID}" >/dev/null 2>&1 || true
   curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/profiles/${PROFILE_ID}" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
@@ -72,13 +81,20 @@ if ! curl -fsS --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
 fi
 echo "[통과] HTTP health ok"
 
-PROFILE_JSON="{\"id\":\"${PROFILE_ID}\",\"detector\":\"dummy\",\"fps\":5,\"maxQueue\":2,\"confidence\":0.25,\"nms\":0.45,\"adaptive\":true}"
-RULE_JSON="{\"id\":\"${RULE_ID}\",\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"*\"},\"analysis\":{\"profileId\":\"${PROFILE_ID}\"},\"event\":{\"type\":\"presence\",\"classes\":[\"person\",\"car\"]},\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.05,\"y\":0.05},{\"x\":0.95,\"y\":0.05},{\"x\":0.95,\"y\":0.95},{\"x\":0.05,\"y\":0.95}]},\"outputs\":{\"overlay\":true},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
+PROFILE_JSON="{\"id\":\"${PROFILE_ID}\",\"detector\":\"dummy\",\"fps\":5,\"maxQueue\":2,\"confidence\":0.25,\"nms\":0.45,\"adaptive\":false}"
+ALT_PROFILE_JSON="{\"id\":\"${ALT_PROFILE_ID}\",\"detector\":\"dummy\",\"fps\":11,\"maxQueue\":1,\"confidence\":0.25,\"nms\":0.45,\"adaptive\":false}"
+RULE_JSON="{\"id\":\"${RULE_ID}\",\"priority\":50,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"*\"},\"analysis\":{\"profileId\":\"${PROFILE_ID}\"},\"event\":{\"type\":\"presence\",\"classes\":[\"person\",\"car\"]},\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.05,\"y\":0.05},{\"x\":0.95,\"y\":0.05},{\"x\":0.95,\"y\":0.95},{\"x\":0.05,\"y\":0.95}]},\"outputs\":{\"overlay\":true},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
+ALT_RULE_JSON="{\"id\":\"${ALT_RULE_ID}\",\"priority\":0,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"profileId\":\"${ALT_PROFILE_ID}\"},\"event\":{\"type\":\"presence\",\"classes\":[\"person\",\"car\"]},\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.05,\"y\":0.05},{\"x\":0.95,\"y\":0.05},{\"x\":0.95,\"y\":0.95},{\"x\":0.05,\"y\":0.95}]},\"outputs\":{\"overlay\":true},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
 
 curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/profiles/${PROFILE_ID}" \
   -H 'Content-Type: application/json' \
   --data "${PROFILE_JSON}" >/tmp/media_server_rule_profile_put.json
 echo "[통과] profile 저장: ${PROFILE_ID}"
+
+curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/profiles/${ALT_PROFILE_ID}" \
+  -H 'Content-Type: application/json' \
+  --data "${ALT_PROFILE_JSON}" >/tmp/media_server_rule_alt_profile_put.json
+echo "[통과] 보조 profile 저장: ${ALT_PROFILE_ID}"
 
 curl -fsS "${HTTP_BASE}/lab/analysis/profiles/${PROFILE_ID}" >/tmp/media_server_rule_profile_get.json
 python3 - "${PROFILE_ID}" /tmp/media_server_rule_profile_get.json <<'PY'
@@ -88,6 +104,7 @@ import sys
 
 expected = sys.argv[1]
 payload = json.loads(pathlib.Path(sys.argv[2]).read_text())
+payload = payload.get("profile", payload)
 if payload.get("id") != expected:
     raise SystemExit(f"profile id mismatch: {payload.get('id')} != {expected}")
 if payload.get("detector") != "dummy":
@@ -100,6 +117,11 @@ curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/rules/${RULE_ID}" \
   --data "${RULE_JSON}" >/tmp/media_server_rule_put.json
 echo "[통과] rule 저장: ${RULE_ID}"
 
+curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/rules/${ALT_RULE_ID}" \
+  -H 'Content-Type: application/json' \
+  --data "${ALT_RULE_JSON}" >/tmp/media_server_rule_alt_put.json
+echo "[통과] 보조 rule 저장: ${ALT_RULE_ID}"
+
 curl -fsS "${HTTP_BASE}/lab/analysis/rules/${RULE_ID}" >/tmp/media_server_rule_get.json
 python3 - "${RULE_ID}" "${PROFILE_ID}" /tmp/media_server_rule_get.json <<'PY'
 import json
@@ -109,6 +131,7 @@ import sys
 expected_rule = sys.argv[1]
 expected_profile = sys.argv[2]
 payload = json.loads(pathlib.Path(sys.argv[3]).read_text())
+payload = payload.get("rule", payload)
 if payload.get("id") != expected_rule:
     raise SystemExit(f"rule id mismatch: {payload.get('id')} != {expected_rule}")
 if not payload.get("enabled", False):
@@ -129,8 +152,75 @@ if post.get("payloadFormat") != "media-server.va.event.v1":
 PY
 echo "[통과] rule 조회 검증"
 
+ENCODED_VA_FILE="$(python3 - "${VA_FILE}" <<'PY'
+import sys
+import urllib.parse
+
+print(urllib.parse.quote(sys.argv[1], safe="/._-"))
+PY
+)"
+curl -fsS -X POST "${HTTP_BASE}/lab/analysis/taps?file=${ENCODED_VA_FILE}&va=1" \
+  >/tmp/media_server_rule_auto_tap.json
+AUTO_TAP_ID="$(python3 - /tmp/media_server_rule_auto_tap.json <<'PY'
+import json
+import pathlib
+import sys
+
+payload = json.loads(pathlib.Path(sys.argv[1]).read_text())
+tap_id = payload.get("tapId")
+if not tap_id:
+    raise SystemExit("tapId missing")
+print(tap_id)
+PY
+)"
+sleep 2
+curl -fsS "${HTTP_BASE}/lab/analysis/taps/${AUTO_TAP_ID}" >/tmp/media_server_rule_auto_snapshot.json
+curl -fsS "${HTTP_BASE}/lab/analysis/taps" >/tmp/media_server_rule_auto_taps.json
+python3 - "${PROFILE_ID}" "${RULE_ID}" "${AUTO_TAP_ID}" /tmp/media_server_rule_auto_snapshot.json /tmp/media_server_rule_auto_taps.json <<'PY'
+import json
+import pathlib
+import sys
+
+expected_profile = sys.argv[1]
+expected_rule = sys.argv[2]
+expected_tap = sys.argv[3]
+payload = json.loads(pathlib.Path(sys.argv[4]).read_text())
+list_payload = json.loads(pathlib.Path(sys.argv[5]).read_text())
+tap = payload.get("tap") or {}
+profile_key = tap.get("profileKey", "")
+if not profile_key.startswith(expected_profile + ":"):
+    raise SystemExit(f"auto profile not applied: {profile_key}")
+if tap.get("detectorType") != "dummy":
+    raise SystemExit(f"auto profile detector mismatch: {tap.get('detectorType')}")
+if tap.get("targetFps") != 5:
+    raise SystemExit(f"auto profile fps mismatch: {tap.get('targetFps')}")
+if tap.get("maxQueueSize") != 2:
+    raise SystemExit(f"auto profile queue mismatch: {tap.get('maxQueueSize')}")
+selection = tap.get("profileSelection") or {}
+if selection.get("source") != "rule":
+    raise SystemExit(f"profile selection source mismatch: {selection}")
+if selection.get("ruleId") != expected_rule:
+    raise SystemExit(f"profile selection rule mismatch: {selection}")
+if selection.get("priority") != 50:
+    raise SystemExit(f"profile selection priority mismatch: {selection}")
+if not any((item.get("tapId") == expected_tap and item.get("profileKey", "").startswith(expected_profile + ":"))
+           for item in list_payload.get("taps", [])):
+    raise SystemExit("active taps list does not include the auto profile tap")
+PY
+echo "[통과] priority 기반 profile 자동 선택 및 active tap 목록 검증"
+
+curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${AUTO_TAP_ID}" >/dev/null
+AUTO_TAP_ID=""
+echo "[통과] analysis tap 삭제"
+
+curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/rules/${ALT_RULE_ID}" >/dev/null
+echo "[통과] 보조 rule 삭제"
+
 curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/rules/${RULE_ID}" >/dev/null
 echo "[통과] rule 삭제"
+
+curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/profiles/${ALT_PROFILE_ID}" >/dev/null
+echo "[통과] 보조 profile 삭제"
 
 curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/profiles/${PROFILE_ID}" >/dev/null
 echo "[통과] profile 삭제"

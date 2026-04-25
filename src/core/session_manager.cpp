@@ -6,6 +6,7 @@
 
 #include "app_config.h"
 #include "core/stream_key.h"
+#include "ingress/analysis_query.h"
 
 #include <iostream>
 
@@ -19,6 +20,15 @@ void TraceSessionEvent(const std::string& message) {
         std::lock_guard lock(trace_mu);
         std::cerr << "[session] " << message << "\n";
     }
+}
+
+analysis::AnalysisContext BuildAnalysisContext(const media::IngressRequest& request,
+                                               const media::SourceSpec& source_spec) {
+    analysis::AnalysisContext context;
+    context.source_kind = media::ToString(source_spec.kind);
+    context.route = request.protocol.empty() ? "*" : request.protocol;
+    context.client_id = request.client_id;
+    return context;
 }
 
 }  // namespace
@@ -157,7 +167,9 @@ SessionManager::AnalysisTapResult SessionManager::AttachAnalysisTap(const media:
         return {.ok = false, .message = "stream limit exceeded"};
     }
 
-    auto attach_result = analysis_manager_.AttachStream(key, acquired.stream, std::move(profile));
+    const auto context = BuildAnalysisContext(request, *source_spec);
+    profile = ingress::ResolveAnalysisProfileForContext(std::move(profile), context);
+    auto attach_result = analysis_manager_.AttachStream(key, acquired.stream, std::move(profile), context);
     if (!attach_result.ok) {
         if (acquired.created) {
             if (registry_.TryRemoveIfIdle(key)) {
@@ -229,6 +241,10 @@ bool SessionManager::DetachAnalysisTap(const std::string& tap_id) {
 std::optional<analysis::AnalysisManager::TapSnapshot> SessionManager::AnalysisTapSnapshot(
     const std::string& tap_id) const {
     return analysis_manager_.Snapshot(tap_id);
+}
+
+std::vector<analysis::AnalysisManager::TapSnapshot> SessionManager::AnalysisTapSnapshots() const {
+    return analysis_manager_.Snapshots();
 }
 
 std::optional<analysis::AnalysisResult> SessionManager::AnalysisResultNearPts(const std::string& tap_id,

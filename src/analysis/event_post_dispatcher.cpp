@@ -95,8 +95,12 @@ std::string QuantizedBoxKey(const RectF& box) {
 std::string DedupeKey(const AnalysisResult& result, const AnalysisEvent& event) {
     std::ostringstream out;
     out << event.post_url << "|" << result.source_key << "|" << event.rule_id << "|"
-        << event.event_type << "|" << event.class_id << "|" << event.label << "|"
-        << QuantizedBoxKey(event.box);
+        << event.event_type << "|" << event.class_id << "|" << event.label << "|";
+    if (event.track_id > 0) {
+        out << "track:" << event.track_id;
+    } else {
+        out << QuantizedBoxKey(event.box);
+    }
     return out.str();
 }
 
@@ -113,6 +117,9 @@ std::string BuildPayload(const AnalysisResult& result,
         << "\"source\":{"
         << "\"key\":\"" << JsonEscape(result.source_key) << "\","
         << "\"profileKey\":\"" << JsonEscape(result.profile_key) << "\","
+        << "\"sourceKind\":\"" << JsonEscape(result.context.source_kind) << "\","
+        << "\"route\":\"" << JsonEscape(result.context.route) << "\","
+        << "\"clientId\":\"" << JsonEscape(result.context.client_id) << "\","
         << "\"pts\":" << result.pts
         << "},"
         << "\"rule\":{"
@@ -120,6 +127,7 @@ std::string BuildPayload(const AnalysisResult& result,
         << "\"type\":\"" << JsonEscape(event.event_type) << "\""
         << "},"
         << "\"object\":{"
+        << "\"trackId\":" << event.track_id << ","
         << "\"classId\":" << event.class_id << ","
         << "\"class\":\"" << JsonEscape(event.label) << "\","
         << "\"confidence\":" << event.score << ","

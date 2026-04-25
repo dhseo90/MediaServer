@@ -2,8 +2,14 @@
 #include "ingress/analysis_query.h"
 
 #include <algorithm>
+#include <cctype>
+#include <cstdlib>
+#include <optional>
+#include <string>
+#include <vector>
 
 #include "app_config.h"
+#include "ingress/analysis_rule_registry.h"
 
 namespace ingress {
 
@@ -54,6 +60,427 @@ float ParseClampedFloatQuery(const std::unordered_map<std::string, std::string>&
     }
 }
 
+std::string ToLower(std::string value) {
+    std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    return value;
+}
+
+bool HasAnyQueryKey(const std::unordered_map<std::string, std::string>& query,
+                    const std::vector<std::string>& keys) {
+    return std::any_of(keys.begin(), keys.end(), [&query](const std::string& key) {
+        return query.find(key) != query.end();
+    });
+}
+
+bool HasProfileTuningQuery(const std::unordered_map<std::string, std::string>& query) {
+    return HasAnyQueryKey(query,
+                          {"detector",
+                           "model",
+                           "labels",
+                           "fps",
+                           "maxQueue",
+                           "inputWidth",
+                           "inputHeight",
+                           "maxDetections",
+                           "confidence",
+                           "nms",
+                           "objectness",
+                           "preprocess",
+                           "yoloPreprocess",
+                           "detect",
+                           "tracking",
+                           "pose",
+                           "detectorDelayMs",
+                           "adaptive",
+                           "adaptiveTuner",
+                           "adaptiveInputSize",
+                           "adaptiveInput",
+                           "adaptiveMinFps",
+                           "adaptiveMaxFps",
+                           "adaptiveMinInputWidth",
+                           "adaptiveMinInputHeight",
+                           "adaptiveMaxInputWidth",
+                           "adaptiveMaxInputHeight",
+                           "adaptiveInputStep",
+                           "adaptiveCooldownMs",
+                           "adaptiveHighLatencyRatio",
+                           "adaptiveLowLatencyRatio"});
+}
+
+std::optional<std::string> ExtractDelimitedField(const std::string& body,
+                                                 const std::string& field,
+                                                 char open_ch,
+                                                 char close_ch) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t pos = body.find(needle);
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    pos = body.find(':', pos + needle.size());
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    pos = body.find(open_ch, pos);
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+
+    bool in_string = false;
+    bool escaped = false;
+    int depth = 0;
+    const std::size_t start = pos;
+    for (; pos < body.size(); ++pos) {
+        const char ch = body[pos];
+        if (escaped) {
+            escaped = false;
+            continue;
+        }
+        if (ch == '\\' && in_string) {
+            escaped = true;
+            continue;
+        }
+        if (ch == '"') {
+            in_string = !in_string;
+            continue;
+        }
+        if (in_string) {
+            continue;
+        }
+        if (ch == open_ch) {
+            ++depth;
+        } else if (ch == close_ch) {
+            --depth;
+            if (depth == 0) {
+                return body.substr(start, pos - start + 1);
+            }
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string> ExtractObjectField(const std::string& body, const std::string& field) {
+    return ExtractDelimitedField(body, field, '{', '}');
+}
+
+std::optional<std::string> ParseStringField(const std::string& body, const std::string& field) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t pos = body.find(needle);
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    pos = body.find(':', pos + needle.size());
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    pos = body.find('"', pos);
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    ++pos;
+
+    std::string out;
+    bool escaped = false;
+    for (; pos < body.size(); ++pos) {
+        const char ch = body[pos];
+        if (escaped) {
+            switch (ch) {
+                case 'n':
+                    out.push_back('\n');
+                    break;
+                case 'r':
+                    out.push_back('\r');
+                    break;
+                case 't':
+                    out.push_back('\t');
+                    break;
+                default:
+                    out.push_back(ch);
+                    break;
+            }
+            escaped = false;
+            continue;
+        }
+        if (ch == '\\') {
+            escaped = true;
+            continue;
+        }
+        if (ch == '"') {
+            return out;
+        }
+        out.push_back(ch);
+    }
+    return std::nullopt;
+}
+
+std::optional<bool> ParseBoolField(const std::string& body, const std::string& field) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t pos = body.find(needle);
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    pos = body.find(':', pos + needle.size());
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    ++pos;
+    while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) {
+        ++pos;
+    }
+    if (body.compare(pos, 4, "true") == 0) {
+        return true;
+    }
+    if (body.compare(pos, 5, "false") == 0) {
+        return false;
+    }
+    return std::nullopt;
+}
+
+std::optional<double> ParseNumberField(const std::string& body, const std::string& field) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t pos = body.find(needle);
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    pos = body.find(':', pos + needle.size());
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    ++pos;
+    while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) {
+        ++pos;
+    }
+    const char* start = body.c_str() + pos;
+    char* end = nullptr;
+    const double parsed = std::strtod(start, &end);
+    if (end == start) {
+        return std::nullopt;
+    }
+    return parsed;
+}
+
+int NumberFieldAsInt(const std::string& body, const std::string& field, int default_value, int min_value, int max_value) {
+    const auto value = ParseNumberField(body, field);
+    if (!value.has_value()) {
+        return default_value;
+    }
+    const int parsed = static_cast<int>(*value);
+    return std::max(min_value, std::min(max_value, parsed));
+}
+
+float NumberFieldAsFloat(const std::string& body,
+                         const std::string& field,
+                         float default_value,
+                         float min_value,
+                         float max_value) {
+    const auto value = ParseNumberField(body, field);
+    if (!value.has_value()) {
+        return default_value;
+    }
+    const float parsed = static_cast<float>(*value);
+    return std::max(min_value, std::min(max_value, parsed));
+}
+
+bool ContextValueMatches(const std::string& expected, const std::string& actual) {
+    const std::string normalized = ToLower(expected);
+    return normalized.empty() || normalized == "*" || normalized == ToLower(actual);
+}
+
+bool ContextClientMatches(const std::string& expected, const std::string& actual) {
+    return expected.empty() || expected == "*" || expected == actual;
+}
+
+bool IsBuiltInAnalysisProfileId(const std::string& id) {
+    return id == "server-default-va" || id == "debug-dummy" || id == "yolo-fast" ||
+           id == "yolo-balanced" || id == "yolo-quality";
+}
+
+void ApplyBuiltInProfile(const std::string& id, analysis::AnalysisProfile* profile) {
+    if (profile == nullptr || !IsBuiltInAnalysisProfileId(id)) {
+        return;
+    }
+    profile->profile_id = id;
+    if (id == "server-default-va") {
+        return;
+    }
+    if (id == "debug-dummy") {
+        profile->detector_type = "dummy";
+        profile->target_fps = 5;
+        profile->max_queue_size = 2;
+        return;
+    }
+    profile->detector_type = "yolo";
+    profile->yolo_preprocess_mode = "letterbox";
+    profile->adaptive_tuning_enabled = true;
+    profile->model_input_width = id == "yolo-quality" ? 960 : 640;
+    profile->model_input_height = id == "yolo-quality" ? 960 : 640;
+    profile->target_fps = id == "yolo-fast" ? 8 : (id == "yolo-quality" ? 3 : 5);
+    profile->max_queue_size = id == "yolo-fast" ? 1U : 2U;
+    profile->confidence_threshold = id == "yolo-fast" ? 0.25F : 0.35F;
+    profile->nms_threshold = 0.45F;
+}
+
+void ApplyProfileDocument(const std::string& document, analysis::AnalysisProfile* profile) {
+    if (profile == nullptr) {
+        return;
+    }
+    if (const auto id = ParseStringField(document, "id"); id.has_value() && !id->empty()) {
+        profile->profile_id = *id;
+    }
+    if (const auto detector = ParseStringField(document, "detector"); detector.has_value() && !detector->empty()) {
+        profile->detector_type = *detector;
+    }
+    if (const auto model = ParseStringField(document, "model"); model.has_value()) {
+        profile->model_path = *model;
+    }
+    if (const auto labels = ParseStringField(document, "labels"); labels.has_value()) {
+        profile->labels_path = *labels;
+    }
+    if (const auto preprocess = ParseStringField(document, "preprocess"); preprocess.has_value()) {
+        profile->yolo_preprocess_mode = *preprocess == "stretch" ? "stretch" : "letterbox";
+    } else if (const auto preprocess = ParseStringField(document, "yoloPreprocess"); preprocess.has_value()) {
+        profile->yolo_preprocess_mode = *preprocess == "stretch" ? "stretch" : "letterbox";
+    }
+    profile->target_fps = NumberFieldAsInt(document, "fps", profile->target_fps, 1, 60);
+    profile->target_fps = NumberFieldAsInt(document, "targetFps", profile->target_fps, 1, 60);
+    profile->max_queue_size =
+        static_cast<std::size_t>(NumberFieldAsInt(document,
+                                                  "maxQueue",
+                                                  static_cast<int>(profile->max_queue_size),
+                                                  1,
+                                                  128));
+    profile->max_queue_size =
+        static_cast<std::size_t>(NumberFieldAsInt(document,
+                                                  "maxQueueSize",
+                                                  static_cast<int>(profile->max_queue_size),
+                                                  1,
+                                                  128));
+    profile->model_input_width = NumberFieldAsInt(document, "inputWidth", profile->model_input_width, 32, 4096);
+    profile->model_input_width = NumberFieldAsInt(document, "modelInputWidth", profile->model_input_width, 32, 4096);
+    profile->model_input_height = NumberFieldAsInt(document, "inputHeight", profile->model_input_height, 32, 4096);
+    profile->model_input_height = NumberFieldAsInt(document, "modelInputHeight", profile->model_input_height, 32, 4096);
+    profile->max_detections = NumberFieldAsInt(document, "maxDetections", profile->max_detections, 1, 1000);
+    profile->confidence_threshold =
+        NumberFieldAsFloat(document, "confidence", profile->confidence_threshold, 0.0F, 1.0F);
+    profile->confidence_threshold =
+        NumberFieldAsFloat(document, "confidenceThreshold", profile->confidence_threshold, 0.0F, 1.0F);
+    profile->nms_threshold = NumberFieldAsFloat(document, "nms", profile->nms_threshold, 0.0F, 1.0F);
+    profile->nms_threshold = NumberFieldAsFloat(document, "nmsThreshold", profile->nms_threshold, 0.0F, 1.0F);
+    profile->yolo_has_objectness = ParseBoolField(document, "objectness").value_or(profile->yolo_has_objectness);
+    profile->enable_object_detection = ParseBoolField(document, "detect").value_or(profile->enable_object_detection);
+    profile->enable_tracking = ParseBoolField(document, "tracking").value_or(profile->enable_tracking);
+    profile->enable_pose = ParseBoolField(document, "pose").value_or(profile->enable_pose);
+    profile->enable_overlay = ParseBoolField(document, "overlay").value_or(profile->enable_overlay);
+    profile->adaptive_tuning_enabled =
+        ParseBoolField(document, "adaptive").value_or(profile->adaptive_tuning_enabled);
+    profile->adaptive_input_size_enabled =
+        ParseBoolField(document, "adaptiveInputSize")
+            .value_or(ParseBoolField(document, "adaptiveInput").value_or(profile->adaptive_input_size_enabled));
+    profile->adaptive_min_fps = NumberFieldAsInt(document, "adaptiveMinFps", profile->adaptive_min_fps, 1, 60);
+    profile->adaptive_max_fps = NumberFieldAsInt(document, "adaptiveMaxFps", profile->adaptive_max_fps, 0, 60);
+    profile->adaptive_min_input_width =
+        NumberFieldAsInt(document, "adaptiveMinInputWidth", profile->adaptive_min_input_width, 32, 4096);
+    profile->adaptive_min_input_height =
+        NumberFieldAsInt(document, "adaptiveMinInputHeight", profile->adaptive_min_input_height, 32, 4096);
+    profile->adaptive_max_input_width =
+        NumberFieldAsInt(document, "adaptiveMaxInputWidth", profile->adaptive_max_input_width, 0, 4096);
+    profile->adaptive_max_input_height =
+        NumberFieldAsInt(document, "adaptiveMaxInputHeight", profile->adaptive_max_input_height, 0, 4096);
+    profile->adaptive_input_step =
+        NumberFieldAsInt(document, "adaptiveInputStep", profile->adaptive_input_step, 16, 2048);
+    profile->adaptive_cooldown_ms =
+        NumberFieldAsInt(document, "adaptiveCooldownMs", profile->adaptive_cooldown_ms, 250, 60000);
+    profile->adaptive_high_latency_ratio =
+        NumberFieldAsFloat(document, "adaptiveHighLatencyRatio", profile->adaptive_high_latency_ratio, 0.1F, 10.0F);
+    profile->adaptive_low_latency_ratio =
+        NumberFieldAsFloat(document, "adaptiveLowLatencyRatio", profile->adaptive_low_latency_ratio, 0.01F, 10.0F);
+}
+
+bool ApplyRegisteredProfileById(const std::string& id, analysis::AnalysisProfile* profile) {
+    if (id.empty() || profile == nullptr) {
+        return false;
+    }
+    if (IsBuiltInAnalysisProfileId(id)) {
+        ApplyBuiltInProfile(id, profile);
+        return true;
+    }
+    for (const auto& document : AnalysisProfileDocumentsSnapshot()) {
+        if (ParseStringField(document, "id").value_or("") != id) {
+            continue;
+        }
+        ApplyProfileDocument(document, profile);
+        return true;
+    }
+    return false;
+}
+
+struct MatchingProfileRule {
+    std::string rule_id;
+    std::string profile_id;
+    int priority{0};
+    int specificity{0};
+};
+
+bool IsBetterProfileRule(const MatchingProfileRule& candidate, const MatchingProfileRule& current) {
+    if (candidate.priority != current.priority) {
+        return candidate.priority > current.priority;
+    }
+    return candidate.specificity > current.specificity;
+}
+
+std::optional<MatchingProfileRule> FindMatchingRuleProfile(const analysis::AnalysisContext& context) {
+    std::optional<MatchingProfileRule> best;
+    for (const auto& document : AnalysisRuleDocumentsSnapshot()) {
+        const std::string rule_id = ParseStringField(document, "id").value_or("");
+        if (!ParseBoolField(document, "enabled").value_or(true)) {
+            continue;
+        }
+        const auto analysis = ExtractObjectField(document, "analysis");
+        if (!analysis.has_value()) {
+            continue;
+        }
+        const std::string profile_id = ParseStringField(*analysis, "profileId").value_or("");
+        if (profile_id.empty()) {
+            continue;
+        }
+
+        std::string source_kind = "*";
+        std::string route = "*";
+        std::string client_id;
+        if (const auto match = ExtractObjectField(document, "match"); match.has_value()) {
+            source_kind = ParseStringField(*match, "sourceKind").value_or(source_kind);
+            route = ParseStringField(*match, "route").value_or(route);
+            client_id = ParseStringField(*match, "clientId").value_or(client_id);
+        }
+        if (!ContextValueMatches(source_kind, context.source_kind) ||
+            !ContextValueMatches(route, context.route) ||
+            !ContextClientMatches(client_id, context.client_id)) {
+            continue;
+        }
+
+        int priority = static_cast<int>(ParseNumberField(document, "priority").value_or(0.0));
+        if (const auto match = ExtractObjectField(document, "match"); match.has_value()) {
+            priority = static_cast<int>(ParseNumberField(*match, "priority").value_or(priority));
+        }
+        int specificity = 0;
+        if (!source_kind.empty() && source_kind != "*") {
+            specificity += 2;
+        }
+        if (!route.empty() && route != "*") {
+            specificity += 2;
+        }
+        if (!client_id.empty() && client_id != "*") {
+            specificity += 4;
+        }
+        const MatchingProfileRule candidate{rule_id, profile_id, priority, specificity};
+        if (!best.has_value() || IsBetterProfileRule(candidate, *best)) {
+            best = candidate;
+        }
+    }
+    return best;
+}
+
 }  // namespace
 
 analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map<std::string, std::string>& query) {
@@ -75,6 +502,7 @@ analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map
         profile.nms_threshold = config.default_analysis_nms;
         profile.yolo_preprocess_mode = config.default_analysis_preprocess;
         profile.enable_overlay = true;
+        profile.enable_tracking = config.default_analysis_tracking_enabled;
         profile.adaptive_tuning_enabled = config.default_analysis_adaptive_enabled;
         profile.adaptive_input_size_enabled = config.default_analysis_adaptive_input_enabled;
         profile.adaptive_min_fps = config.default_analysis_adaptive_min_fps;
@@ -88,10 +516,20 @@ analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map
         profile.adaptive_high_latency_ratio = config.default_analysis_adaptive_high_latency_ratio;
         profile.adaptive_low_latency_ratio = config.default_analysis_adaptive_low_latency_ratio;
     }
+
+    bool explicit_profile_requested = false;
     if (const auto it = query.find("profileId"); it != query.end() && !it->second.empty()) {
         profile.profile_id = it->second;
+        explicit_profile_requested = true;
     } else if (const auto it = query.find("profile"); it != query.end() && !it->second.empty()) {
         profile.profile_id = it->second;
+        explicit_profile_requested = true;
+    }
+    profile.explicit_profile_requested = explicit_profile_requested;
+    profile.allow_rule_profile_override = !explicit_profile_requested && !HasProfileTuningQuery(query);
+    if (explicit_profile_requested) {
+        ApplyRegisteredProfileById(profile.profile_id, &profile);
+        profile.profile_selection_source = "query";
     }
     if (const auto it = query.find("detector"); it != query.end() && !it->second.empty()) {
         profile.detector_type = it->second;
@@ -165,12 +603,37 @@ analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map
     return profile;
 }
 
+analysis::AnalysisProfile ResolveAnalysisProfileForContext(analysis::AnalysisProfile profile,
+                                                           const analysis::AnalysisContext& context) {
+    if (!profile.allow_rule_profile_override || profile.explicit_profile_requested) {
+        return profile;
+    }
+    const auto matched = FindMatchingRuleProfile(context);
+    if (!matched.has_value()) {
+        return profile;
+    }
+    analysis::AnalysisProfile resolved = profile;
+    if (!ApplyRegisteredProfileById(matched->profile_id, &resolved)) {
+        return profile;
+    }
+    resolved.allow_rule_profile_override = false;
+    resolved.profile_selection_source = "rule";
+    resolved.selected_by_rule_id = matched->rule_id;
+    resolved.selected_rule_priority = matched->priority;
+    resolved.selected_rule_specificity = matched->specificity;
+    return resolved;
+}
+
 analysis::OverlayRenderOptions BuildOverlayRenderOptionsFromQuery(
     const std::unordered_map<std::string, std::string>& query) {
     analysis::OverlayRenderOptions options;
     options.line_thickness = app::GetAppConfig().default_analysis_overlay_thickness;
     options.line_thickness = ParseClampedIntQuery(query, "thickness", options.line_thickness, 1, 16);
     options.draw_labels = ParseBoolQuery(query, "drawLabels", options.draw_labels);
+    options.draw_track_ids =
+        ParseBoolQuery(query, "trackIds", ParseBoolQuery(query, "drawTrackIds", options.draw_track_ids));
+    options.draw_track_trails =
+        ParseBoolQuery(query, "trackTrails", ParseBoolQuery(query, "drawTrackTrails", options.draw_track_trails));
     if (const auto it = query.find("labelLang"); it != query.end() && !it->second.empty()) {
         options.label_language = it->second == "en" || it->second == "english"
                                      ? analysis::OverlayLabelLanguage::English

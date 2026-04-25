@@ -6,6 +6,7 @@
 
 namespace ingress {
 
+std::vector<std::string> AnalysisProfileDocumentsSnapshot();
 std::vector<std::string> AnalysisRuleDocumentsSnapshot();
 
 }  // namespace ingress

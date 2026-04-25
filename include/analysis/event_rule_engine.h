@@ -10,6 +10,7 @@ namespace analysis {
 struct AnalysisEvent {
     std::string rule_id;
     std::string event_type;
+    std::uint64_t track_id{0};
     int class_id{-1};
     std::string label;
     float score{0.0F};

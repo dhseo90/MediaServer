@@ -38,6 +38,7 @@ public:
     AnalysisTapResult AttachAnalysisTap(const media::IngressRequest& request, analysis::AnalysisProfile profile);
     bool DetachAnalysisTap(const std::string& tap_id);
     std::optional<analysis::AnalysisManager::TapSnapshot> AnalysisTapSnapshot(const std::string& tap_id) const;
+    std::vector<analysis::AnalysisManager::TapSnapshot> AnalysisTapSnapshots() const;
     std::optional<analysis::AnalysisResult> AnalysisResultNearPts(const std::string& tap_id,
                                                                   std::int64_t pts,
                                                                   std::int64_t tolerance_ns) const;

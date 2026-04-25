@@ -30,6 +30,7 @@ struct AppConfig {
     float default_analysis_confidence{app_config::kDefaultAnalysisConfidence};
     float default_analysis_nms{app_config::kDefaultAnalysisNms};
     std::string default_analysis_preprocess{app_config::kDefaultAnalysisPreprocess};
+    bool default_analysis_tracking_enabled{app_config::kDefaultAnalysisTrackingEnabled};
     int default_analysis_overlay_wait_ms{app_config::kDefaultAnalysisOverlayWaitMs};
     int default_analysis_overlay_sync_tolerance_ms{app_config::kDefaultAnalysisOverlaySyncToleranceMs};
     int default_analysis_overlay_thickness{app_config::kDefaultAnalysisOverlayThickness};

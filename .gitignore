@@ -20,7 +20,8 @@
 /.media_server.analysis_registry.json
 /.media_server.test/
 /scripts/.media_server.env
-/video/imports/
+/video/imports/*
+!/video/imports/va_tracking_event_1280x720_30fps_h264.mp4
 /models/
 /third_party/
 

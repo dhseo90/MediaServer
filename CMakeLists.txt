@@ -18,6 +18,7 @@ add_executable(media_server
     src/analysis/dummy_detector.cpp
     src/analysis/event_post_dispatcher.cpp
     src/analysis/event_rule_engine.cpp
+    src/analysis/object_tracker.cpp
     src/analysis/overlay_renderer.cpp
     src/analysis/raw_video_decoder.cpp
     src/analysis/snapshot_encoder.cpp
