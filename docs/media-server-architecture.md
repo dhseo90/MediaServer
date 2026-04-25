@@ -371,6 +371,7 @@ SharedStream
 - `analysis::RawVideoDecoder`: H264/H265/VP8 compressed packet을 raw RGB frame으로 변환하는 decoder hub
 - `analysis::Detector` factory: profile의 `detector_type`에 따라 dummy detector 또는 YOLO/ONNX detector를 선택한다.
 - `analysis::YoloOnnxDetector`: ONNX Runtime optional build에서 YOLO 계열 model output을 detection metadata로 변환한다.
+- `analysis::ObjectTracker`: detection box를 IoU/중심점 거리로 frame 간 연결해 `trackId`, age/hits/missed/state와 최근 중심점 trail을 만든다.
 - `analysis::RenderDetectionOverlay`: OpenCV 없이 최신 raw frame 위에 detection box/label을 그리는 renderer
 - `analysis::EncodeJpeg`: 최신 분석 raw frame을 JPEG snapshot으로 변환한다.
 - `ingress::AttachAnalysisOverlayProbe`: RTSP/WebRTC egress raw video 구간에 frame PTS와 가까운 detection result를 합성하는 GStreamer probe
@@ -380,7 +381,8 @@ SharedStream
 - `/lab/analysis/taps/{tapId}/snapshot.jpg`: 최신 분석 frame JPEG snapshot endpoint
 - `/lab/analysis/taps/{tapId}/overlay.jpg`: 최신 분석 frame에 detection box/label을 그린 JPEG endpoint
 - RTSP/WebRTC consume query에 `va=1`을 지정하면 egress가 같은 source에 analysis tap을 자동으로 붙이고, encoder 직전 raw frame에 overlay를 합성한다.
-- `va=1`의 detector/model/labels/fps/queue 기본값은 URL이 아니라 `include/stdafx.h`와 `MEDIA_SERVER_ANALYSIS_*` 환경변수로 관리한다. `overlay=1`, `analysis=1`, `analysisOverlay=1`은 호환성용 alias다.
+- `va=1`의 detector/model/labels/fps/queue/tracking 기본값은 URL이 아니라 `include/stdafx.h`와 `MEDIA_SERVER_ANALYSIS_*` 환경변수로 관리한다. `overlay=1`, `analysis=1`, `analysisOverlay=1`은 호환성용 alias다.
+- 기본 VA profile은 tracker를 켜며, event rule engine은 `trackId`가 있으면 `presence`, `enter`, `exit`, `line-crossing(any)` 상태를 객체 ID 기준으로 유지한다. tracker를 끈 profile은 detection index 기반 fallback을 사용한다.
 - adaptive tuner는 detector 처리시간, pending queue, queue drop을 보고 런타임 `fps`를 먼저 낮춘다. fps가 하한에 닿은 뒤에도 과부하가 지속되면 dynamic input을 지원하는 모델에서 `inputWidth/inputHeight`를 낮춘다.
 - 고정 input ONNX model에서 input size 변경으로 inference가 실패하면 기본 input size로 되돌리고 input-size adaptive만 비활성화한다. fps adaptive는 계속 유지한다.
 - RTSP/WebRTC egress는 source packet PTS를 세션별 normalized PTS로 바꾸므로, overlay probe는 normalized PTS를 다시 source PTS로 매핑한 뒤 analysis result history에서 가장 가까운 결과를 찾는다.
@@ -393,11 +395,11 @@ SharedStream
 - YOLO 전처리는 기본 letterbox다. detector output box는 input padding/scale을 역보정한 뒤 원본 frame 기준 normalized 좌표로 저장한다. 호환성 검증용으로 `preprocess=stretch`도 남겨 둔다.
 - `AnalysisManager::TapSnapshot`은 `lastAnalysisMs`, `averageAnalysisMs`, `maxAnalysisMs`를 제공한다.
 - `/lab/analysis/capabilities`는 detector/profile/rule 지원 범위를 노출한다.
-- `/lab/analysis/profiles`, `/lab/analysis/rules`는 1차 persistent registry API다. 기본 저장 파일은 `.media_server.analysis_registry.json`이고, 현재는 저장/조회/수정/삭제까지만 담당한다.
+- `/lab/analysis/profiles`, `/lab/analysis/rules`는 1차 persistent registry API다. 기본 저장 파일은 `.media_server.analysis_registry.json`이고, rule은 저장/조회/수정/삭제와 함께 `sourceKind`/`route`/`clientId` context filter를 통해 `va=1` overlay와 analysis tap event 판정에 적용된다. URL에 명시 profile/tuning query가 없으면 context와 맞는 rule의 `analysis.profileId`를 사용해 저장 profile을 자동 선택한다. profile 자동 선택은 `priority`가 높은 rule을 우선하고, priority가 같으면 더 구체적인 match 조건을 우선한다.
 
 아직 남은 핵심 작업:
-- tracker 기반 객체 ID 매칭으로 enter/exit/line-crossing 이벤트 안정화
-- 저장된 profile/rule의 per-client override와 운영용 matching 정책 정교화
+- 실제 RTSP/WebRTC route별 profile/rule matching 장시간 검증
+- tracker ID switch 통계 수집과 Kalman/ByteTrack류 보강 여부 판단
 - 이미지 입력을 받아 분석 결과 overlay 이미지를 반환하는 개발용 endpoint
 - 모델별 output layout 옵션 정교화
 - adaptive tuner의 운영 기준값(profile별 bounds/cooldown)과 추가 장시간 회귀 테스트

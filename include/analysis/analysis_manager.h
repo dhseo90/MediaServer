@@ -6,6 +6,7 @@
 #include <deque>
 
 #include "analysis/detector.h"
+#include "analysis/object_tracker.h"
 #include "analysis/raw_video_decoder.h"
 #include "core/shared_stream.h"
 #include "core/stream_key.h"
@@ -24,6 +25,11 @@ public:
         std::string tap_id;
         core::StreamKey stream_key;
         std::string profile_key;
+        AnalysisContext context;
+        std::string profile_selection_source;
+        std::string selected_by_rule_id;
+        int selected_rule_priority{0};
+        int selected_rule_specificity{0};
         std::string detector_type;
         std::size_t received_video_packets{0};
         std::size_t decoded_frames{0};
@@ -44,6 +50,7 @@ public:
         int debug_detector_delay_ms{0};
         float confidence_threshold{0.0F};
         float nms_threshold{0.0F};
+        bool tracking_enabled{false};
         bool adaptive_tuning_enabled{false};
         bool adaptive_input_size_enabled{false};
         bool adaptive_input_size_disabled{false};
@@ -76,7 +83,8 @@ public:
 
     AttachResult AttachStream(const core::StreamKey& stream_key,
                               const std::shared_ptr<core::SharedStream>& stream,
-                              AnalysisProfile profile = {});
+                              AnalysisProfile profile = {},
+                              AnalysisContext context = {});
     bool Detach(const std::string& tap_id);
     void DetachAll();
 
@@ -91,16 +99,19 @@ public:
     std::optional<RawVideoFrame> LatestFrame(const std::string& tap_id) const;
     std::optional<LatestFrameResult> LatestFrameAndResult(const std::string& tap_id) const;
     std::optional<TapSnapshot> Snapshot(const std::string& tap_id) const;
+    std::vector<TapSnapshot> Snapshots() const;
     std::size_t ActiveTapCount() const;
 
 private:
     struct AnalysisTap {
         std::string tap_id;
         core::StreamKey stream_key;
+        AnalysisContext context;
         AnalysisProfile profile;
         std::string profile_key;
         std::weak_ptr<core::SharedStream> stream;
         std::unique_ptr<Detector> detector;
+        std::unique_ptr<ObjectTracker> tracker;
         std::unique_ptr<RawVideoDecoder> decoder;
         media::CodecId decoder_codec{media::CodecId::Unknown};
         std::string decoder_track_id;
@@ -139,6 +150,7 @@ private:
     static void HandleFrame(const std::weak_ptr<AnalysisTap>& weak_tap, RawVideoFrame frame);
     static void AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_tap);
     static void UpdateAdaptiveTuningLocked(const std::shared_ptr<AnalysisTap>& tap, double elapsed_ms);
+    static TapSnapshot BuildSnapshotLocked(const std::shared_ptr<AnalysisTap>& tap);
     static void DisableAdaptiveInputSizeLocked(const std::shared_ptr<AnalysisTap>& tap);
     static void StopTapRuntime(const std::shared_ptr<AnalysisTap>& tap);
     static media::TrackInfo ResolveVideoTrack(const std::shared_ptr<AnalysisTap>& tap, const media::Packet& packet);

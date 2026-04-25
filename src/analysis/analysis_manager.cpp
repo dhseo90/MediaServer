@@ -54,7 +54,8 @@ AnalysisManager::~AnalysisManager() {
 
 AnalysisManager::AttachResult AnalysisManager::AttachStream(const core::StreamKey& stream_key,
                                                             const std::shared_ptr<core::SharedStream>& stream,
-                                                            AnalysisProfile profile) {
+                                                            AnalysisProfile profile,
+                                                            AnalysisContext context) {
     if (stream == nullptr) {
         return {false, "missing shared stream", ""};
     }
@@ -62,6 +63,7 @@ AnalysisManager::AttachResult AnalysisManager::AttachStream(const core::StreamKe
     auto tap = std::make_shared<AnalysisTap>();
     tap->tap_id = "analysis-tap-" + std::to_string(next_tap_id_.fetch_add(1));
     tap->stream_key = stream_key;
+    tap->context = std::move(context);
     tap->profile = std::move(profile);
     tap->stream = stream;
     tap->profile.target_fps = std::max(1, std::min(60, tap->profile.target_fps));
@@ -103,6 +105,9 @@ AnalysisManager::AttachResult AnalysisManager::AttachStream(const core::StreamKe
     }
     tap->profile_key = BuildProfileKey(tap->profile);
     tap->detector = CreateDetector(tap->profile);
+    if (tap->profile.enable_tracking) {
+        tap->tracker = std::make_unique<ObjectTracker>();
+    }
 
     std::string error_message;
     if (!tap->detector->Start(&error_message)) {
@@ -275,49 +280,32 @@ std::optional<AnalysisManager::TapSnapshot> AnalysisManager::Snapshot(const std:
     }
 
     std::lock_guard tap_lock(tap->mu);
-    return TapSnapshot{
-        .tap_id = tap->tap_id,
-        .stream_key = tap->stream_key,
-        .profile_key = tap->profile_key,
-        .detector_type = tap->profile.detector_type,
-        .received_video_packets = tap->received_video_packets,
-        .decoded_frames = tap->decoded_frames,
-        .sampled_frames = tap->sampled_frames,
-        .analyzed_packets = tap->analyzed_packets,
-        .dropped_packets = tap->dropped_packets,
-        .sample_dropped_frames = tap->sample_dropped_frames,
-        .queue_dropped_frames = tap->queue_dropped_frames,
-        .decoder_errors = tap->decoder_errors,
-        .pending_frames = tap->frame_queue.size(),
-        .last_analysis_ms = tap->last_analysis_ms,
-        .average_analysis_ms =
-            tap->analyzed_packets > 0 ? tap->total_analysis_ms / static_cast<double>(tap->analyzed_packets) : 0.0,
-        .max_analysis_ms = tap->max_analysis_ms,
-        .target_fps = tap->profile.target_fps,
-        .max_queue_size = tap->profile.max_queue_size,
-        .model_input_width = tap->profile.model_input_width,
-        .model_input_height = tap->profile.model_input_height,
-        .debug_detector_delay_ms = tap->profile.debug_detector_delay_ms,
-        .confidence_threshold = tap->profile.confidence_threshold,
-        .nms_threshold = tap->profile.nms_threshold,
-        .adaptive_tuning_enabled = tap->profile.adaptive_tuning_enabled,
-        .adaptive_input_size_enabled = tap->profile.adaptive_input_size_enabled,
-        .adaptive_input_size_disabled = tap->adaptive_input_size_disabled,
-        .adaptive_min_fps = tap->profile.adaptive_min_fps,
-        .adaptive_max_fps = tap->profile.adaptive_max_fps,
-        .adaptive_min_input_width = tap->profile.adaptive_min_input_width,
-        .adaptive_min_input_height = tap->profile.adaptive_min_input_height,
-        .adaptive_max_input_width = tap->profile.adaptive_max_input_width,
-        .adaptive_max_input_height = tap->profile.adaptive_max_input_height,
-        .adaptive_downshift_count = tap->adaptive_downshift_count,
-        .adaptive_upshift_count = tap->adaptive_upshift_count,
-        .adaptive_state = tap->adaptive_state,
-        .has_latest_frame = tap->latest_frame.has_value(),
-        .latest_frame_width = tap->latest_frame.has_value() ? tap->latest_frame->width : 0,
-        .latest_frame_height = tap->latest_frame.has_value() ? tap->latest_frame->height : 0,
-        .latest_frame_pts = tap->latest_frame.has_value() ? tap->latest_frame->pts : 0,
-        .latest_result = tap->latest_result,
-    };
+    return BuildSnapshotLocked(tap);
+}
+
+std::vector<AnalysisManager::TapSnapshot> AnalysisManager::Snapshots() const {
+    std::vector<std::shared_ptr<AnalysisTap>> taps;
+    {
+        std::lock_guard lock(mu_);
+        taps.reserve(taps_.size());
+        for (const auto& [_, tap] : taps_) {
+            taps.push_back(tap);
+        }
+    }
+
+    std::vector<TapSnapshot> snapshots;
+    snapshots.reserve(taps.size());
+    for (const auto& tap : taps) {
+        if (tap == nullptr) {
+            continue;
+        }
+        std::lock_guard tap_lock(tap->mu);
+        snapshots.push_back(BuildSnapshotLocked(tap));
+    }
+    std::sort(snapshots.begin(), snapshots.end(), [](const TapSnapshot& lhs, const TapSnapshot& rhs) {
+        return lhs.tap_id < rhs.tap_id;
+    });
+    return snapshots;
 }
 
 std::size_t AnalysisManager::ActiveTapCount() const {
@@ -428,6 +416,7 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
         AnalysisResult result;
         result.source_key = tap->stream_key;
         result.profile_key = tap->profile_key;
+        result.context = tap->context;
         result.pts = frame.pts;
 
         const auto analysis_started_at = std::chrono::steady_clock::now();
@@ -447,10 +436,15 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
             ++tap->dropped_packets;
             continue;
         }
+        if (tap->tracker != nullptr) {
+            // detector는 frame 단위 결과만 만들기 때문에, tracker에서 같은 객체에 안정 ID를 붙인다.
+            tap->tracker->Update(&result);
+        }
         const auto analysis_finished_at = std::chrono::steady_clock::now();
         const double elapsed_ms =
             std::chrono::duration<double, std::milli>(analysis_finished_at - analysis_started_at).count();
         result.profile_key = tap->profile_key;
+        result.context = tap->context;
 
         std::lock_guard tap_lock(tap->mu);
         ++tap->analyzed_packets;
@@ -558,6 +552,58 @@ void AnalysisManager::UpdateAdaptiveTuningLocked(const std::shared_ptr<AnalysisT
     if (changed) {
         tap->last_adaptive_tuned_at = now;
     }
+}
+
+AnalysisManager::TapSnapshot AnalysisManager::BuildSnapshotLocked(const std::shared_ptr<AnalysisTap>& tap) {
+    return TapSnapshot{
+        .tap_id = tap->tap_id,
+        .stream_key = tap->stream_key,
+        .profile_key = tap->profile_key,
+        .context = tap->context,
+        .profile_selection_source = tap->profile.profile_selection_source,
+        .selected_by_rule_id = tap->profile.selected_by_rule_id,
+        .selected_rule_priority = tap->profile.selected_rule_priority,
+        .selected_rule_specificity = tap->profile.selected_rule_specificity,
+        .detector_type = tap->profile.detector_type,
+        .received_video_packets = tap->received_video_packets,
+        .decoded_frames = tap->decoded_frames,
+        .sampled_frames = tap->sampled_frames,
+        .analyzed_packets = tap->analyzed_packets,
+        .dropped_packets = tap->dropped_packets,
+        .sample_dropped_frames = tap->sample_dropped_frames,
+        .queue_dropped_frames = tap->queue_dropped_frames,
+        .decoder_errors = tap->decoder_errors,
+        .pending_frames = tap->frame_queue.size(),
+        .last_analysis_ms = tap->last_analysis_ms,
+        .average_analysis_ms =
+            tap->analyzed_packets > 0 ? tap->total_analysis_ms / static_cast<double>(tap->analyzed_packets) : 0.0,
+        .max_analysis_ms = tap->max_analysis_ms,
+        .target_fps = tap->profile.target_fps,
+        .max_queue_size = tap->profile.max_queue_size,
+        .model_input_width = tap->profile.model_input_width,
+        .model_input_height = tap->profile.model_input_height,
+        .debug_detector_delay_ms = tap->profile.debug_detector_delay_ms,
+        .confidence_threshold = tap->profile.confidence_threshold,
+        .nms_threshold = tap->profile.nms_threshold,
+        .tracking_enabled = tap->profile.enable_tracking,
+        .adaptive_tuning_enabled = tap->profile.adaptive_tuning_enabled,
+        .adaptive_input_size_enabled = tap->profile.adaptive_input_size_enabled,
+        .adaptive_input_size_disabled = tap->adaptive_input_size_disabled,
+        .adaptive_min_fps = tap->profile.adaptive_min_fps,
+        .adaptive_max_fps = tap->profile.adaptive_max_fps,
+        .adaptive_min_input_width = tap->profile.adaptive_min_input_width,
+        .adaptive_min_input_height = tap->profile.adaptive_min_input_height,
+        .adaptive_max_input_width = tap->profile.adaptive_max_input_width,
+        .adaptive_max_input_height = tap->profile.adaptive_max_input_height,
+        .adaptive_downshift_count = tap->adaptive_downshift_count,
+        .adaptive_upshift_count = tap->adaptive_upshift_count,
+        .adaptive_state = tap->adaptive_state,
+        .has_latest_frame = tap->latest_frame.has_value(),
+        .latest_frame_width = tap->latest_frame.has_value() ? tap->latest_frame->width : 0,
+        .latest_frame_height = tap->latest_frame.has_value() ? tap->latest_frame->height : 0,
+        .latest_frame_pts = tap->latest_frame.has_value() ? tap->latest_frame->pts : 0,
+        .latest_result = tap->latest_result,
+    };
 }
 
 void AnalysisManager::DisableAdaptiveInputSizeLocked(const std::shared_ptr<AnalysisTap>& tap) {

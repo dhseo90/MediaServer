@@ -8,6 +8,14 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 source "${SCRIPT_DIR}/env_common.sh"
 media_server_apply_homebrew_gst_env
 
+ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
+if [[ -f "${ENV_FILE}" ]]; then
+  # shellcheck disable=SC1090
+  set -a
+  source "${ENV_FILE}"
+  set +a
+fi
+
 STD_AFX="${ROOT_DIR}/include/stdafx.h"
 PORT_FILE="${ROOT_DIR}/.media_server.port"
 ADDRESS_FILE="${ROOT_DIR}/.media_server.address"
@@ -274,7 +282,7 @@ print(
   fi
 
   local overlay_file
-  overlay_file="$(mktemp "${TMPDIR:-/tmp}/media-server-overlay.XXXXXX.jpg")"
+  overlay_file="$(mktemp "${TMPDIR:-/tmp}/media-server-overlay.XXXXXX")"
   if curl -fsS "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}/overlay.jpg?quality=80&thickness=3&drawLabels=1" -o "${overlay_file}" &&
      python3 - "${overlay_file}" <<'PY'
 import pathlib
@@ -288,10 +296,10 @@ print(f"overlay_jpeg_bytes={len(data)}")
 PY
   then
     log_pass "lab overlay snapshot ok"
+    log_info "lab overlay snapshot saved: ${overlay_file}"
   else
     log_fail "lab overlay snapshot failed"
   fi
-  rm -f "${overlay_file}"
 }
 
 run_rtsp_regression() {

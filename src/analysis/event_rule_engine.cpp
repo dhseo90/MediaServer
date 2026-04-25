@@ -29,6 +29,9 @@ struct RulePoint {
 struct EventRule {
     std::string id;
     bool enabled{true};
+    std::string match_source_kind{"*"};
+    std::string match_route{"*"};
+    std::string match_client_id;
     std::vector<std::string> classes;
     std::string event_type{"presence"};
     float min_confidence{0.0F};
@@ -305,6 +308,12 @@ std::optional<EventRule> ParseRule(const std::string& document) {
     }
     rule.enabled = ParseBoolField(document, "enabled").value_or(true);
 
+    if (const auto match = ExtractObjectField(document, "match"); match.has_value()) {
+        rule.match_source_kind = ToLower(ParseStringField(*match, "sourceKind").value_or(rule.match_source_kind));
+        rule.match_route = ToLower(ParseStringField(*match, "route").value_or(rule.match_route));
+        rule.match_client_id = ParseStringField(*match, "clientId").value_or("");
+    }
+
     if (const auto analysis = ExtractObjectField(document, "analysis"); analysis.has_value()) {
         rule.classes = ParseStringArrayField(*analysis, "classes");
     }
@@ -363,6 +372,27 @@ bool MatchesClass(const EventRule& rule, const Detection& detection) {
     return false;
 }
 
+bool MatchesToken(const std::string& wanted, const std::string& actual) {
+    const std::string normalized_wanted = ToLower(Trim(wanted));
+    if (normalized_wanted.empty() || normalized_wanted == "*") {
+        return true;
+    }
+    return normalized_wanted == ToLower(Trim(actual));
+}
+
+bool MatchesRuleContext(const EventRule& rule, const AnalysisContext& context) {
+    if (!MatchesToken(rule.match_source_kind, context.source_kind)) {
+        return false;
+    }
+    if (!MatchesToken(rule.match_route, context.route)) {
+        return false;
+    }
+    if (!rule.match_client_id.empty() && rule.match_client_id != "*" && rule.match_client_id != context.client_id) {
+        return false;
+    }
+    return true;
+}
+
 RulePoint DetectionCenter(const Detection& detection) {
     return RulePoint{
         std::max(0.0F, std::min(1.0F, detection.box.x + detection.box.width * 0.5F)),
@@ -401,8 +431,12 @@ float SignedLineSide(const RulePoint& point, const std::vector<RulePoint>& line)
 
 std::string StateKey(const EventRule& rule, const Detection& detection, std::size_t detection_index) {
     std::ostringstream out;
-    // 현재는 tracker가 없으므로 같은 class 다중 객체는 detection index 기준으로만 상태를 분리한다.
-    out << rule.id << ":" << detection_index << ":" << detection.class_id << ":" << detection.label;
+    if (detection.track_id > 0) {
+        out << rule.id << ":track:" << detection.track_id;
+        return out.str();
+    }
+    // tracker가 꺼진 profile은 기존 호환성을 위해 detection index 기준으로 상태를 분리한다.
+    out << rule.id << ":detection:" << detection_index << ":" << detection.class_id << ":" << detection.label;
     return out.str();
 }
 
@@ -444,6 +478,7 @@ AnalysisEvent BuildAnalysisEvent(const EventRule& rule, const Detection& detecti
     AnalysisEvent event;
     event.rule_id = rule.id;
     event.event_type = rule.event_type;
+    event.track_id = detection.track_id;
     event.class_id = detection.class_id;
     event.label = detection.label;
     event.score = detection.score;
@@ -481,6 +516,9 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
         const bool valid_polygon = rule->region_type == "polygon" && rule->points.size() >= 3;
         const bool valid_line = rule->region_type == "line" && rule->points.size() >= 2;
         if (!valid_polygon && !valid_line) {
+            continue;
+        }
+        if (!MatchesRuleContext(*rule, result.context)) {
             continue;
         }
         rules.push_back(*rule);

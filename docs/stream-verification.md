@@ -101,7 +101,8 @@
   1. `./server.sh install`
   2. `./server.sh test`
   3. 필요 시 `./server.sh test --include-rules`
-  4. `./server.sh stop`
+  4. 필요 시 `./server.sh test --include-va-events`
+  5. `./server.sh stop`
 - 판단 규칙
   - 위 stable 기준이 깨지면 분석 후속 개발보다 스트리밍 안정화 수정을 먼저 한다.
   - profile/rule/event 같은 분석 후속 개발은 선택 테스트로 검증하되, 안정 기능으로 승격 전까지 기본 `./server.sh test`에는 넣지 않는다.
@@ -643,7 +644,7 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - `va=1` RTSP/WebRTC overlay와 `/lab/analysis/taps/{tapId}/overlay.jpg`는 저장된 rule snapshot을 평가해 이벤트 객체를 `이벤트`/`Event` label과 blink highlight로 표시한다.
   - `/lab/analysis/taps/{tapId}/events`는 최신 result에 rule을 적용한 event JSON을 반환한다.
   - 이 시점에는 `eventActions.post`가 저장/응답에만 포함됐고 실제 HTTP POST 전송은 아직 수행하지 않았다.
-  - tracker가 아직 없어서 다중 동일 class 객체의 `enter/exit/line-crossing`은 detection index 기준 상태 추적으로만 동작한다.
+  - 당시에는 tracker가 없어서 다중 동일 class 객체의 `enter/exit/line-crossing`은 detection index 기준 상태 추적으로만 동작했다. 이후 `2026-04-25` lightweight tracker 1차 구현에서 `trackId` 기준 상태 추적으로 변경했다.
   - `./server.sh start` 기준 AI 포함 기본 빌드가 통과했다.
   - ONNX build 서버에서 `imports/yolo_bus_test.mp4`와 전체 화면 polygon `presence` rule을 사용해 `/lab/analysis/taps/analysis-tap-1/events`가 `person`, `bus` 이벤트 5건과 `event.triggered=true` detection metadata를 반환함을 확인했다.
   - 같은 tap의 `/overlay.jpg`는 `JPEG 640x480`으로 생성됐고, 이벤트 객체가 `이벤트`/`Event` label과 highlight color로 표시됨을 이미지로 확인했다.
@@ -658,12 +659,39 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - `/events?dispatch=1` 호출 후 `enqueuedCount=5`, `sentCount=5`, `failedCount=0`, `droppedCount=0`을 확인했고, 수신 payload는 `schema=media-server.va.event.v1`, `rule.id=event-post-smoke`, `object.class=person`, `path=/event`로 도착했다.
   - 연속 dispatch 호출에서 중복 이벤트가 cooldown으로 억제되어 `suppressedCount=5`가 증가함을 확인했다.
   - 테스트 tap, ONNX foreground 서버, 임시 POST 수신 서버를 종료해 잔여 listen port가 없음을 확인했다.
+- `2026-04-25` lightweight tracker 1차 구현 smoke test를 추가했다.
+  - `src/analysis/object_tracker.cpp`에서 IoU와 중심점 거리 기반 track matching을 추가했다.
+  - 기본 `va=1` profile은 `MEDIA_SERVER_ANALYSIS_TRACKING=1` 기본값으로 tracker를 켠다. query `tracking=0`으로 디버그 비활성화할 수 있다.
+  - detection metadata는 `trackId`를 포함하고, `latestResult.tracks[]`는 `trackId`, `age`, `hits`, `missed`, `state`, 최근 box, 중심점 `trail[]`을 반환한다.
+  - overlay snapshot/debug URL에 `trackIds=1`을 붙이면 label에 `#trackId`가 함께 표시되고, `trackTrails=1`을 붙이면 최근 이동 궤적이 표시된다.
+  - `imports/yolo11n_object_detection_slideshow_1280x720_30fps_h264.mp4` 기준 smoke에서 사람 장면 `trackId=1,2`가 여러 poll 동안 유지되고 `trackingEnabled=true`, `state=confirmed`를 확인했다.
+  - 임시 전체 화면 `presence` rule을 등록해 `/lab/analysis/taps/{tapId}/events`가 `trackIds=1,2`를 포함한 이벤트 2건을 반환함을 확인했다.
+  - rule `match.sourceKind=file`, `match.route=http`와 반대 조건 `match.route=rtsp`를 함께 등록해 HTTP 분석 tap에서 route matching을 확인했다. 결과 context는 `sourceKind=file`, `route=http`, `clientId=analysis-http-1`이고, active rule은 HTTP rule 1개만 남았다.
+  - 같은 smoke에서 `trackTrails=1` overlay를 생성했고 `latestResult.tracks[].trail` 길이 30을 확인했다. 정지 슬라이드 영상이라 육안상 궤적은 짧게 보이므로 실제 이동 영상으로 별도 검증이 필요하다.
+- `2026-04-26` rule context 기반 profile 자동 선택 1차 smoke test를 추가했다.
+  - 임시 registry `/tmp/media_server_profile_override_registry.json`에 `profiles[].id=auto-http-profile`, `rules[].match={sourceKind:file,route:http}`, `rules[].analysis.profileId=auto-http-profile`을 저장했다.
+  - `POST /lab/analysis/taps?file=va_four_scene_sample.mp4&va=1`에서 URL에 profile 값을 주지 않아도 snapshot `profileKey=auto-http-profile...`, `detectorType=dummy`, `targetFps=3`, `maxQueueSize=1`, `modelInput=320x320`, `trackingEnabled=false`가 적용됨을 확인했다.
+  - `POST /lab/analysis/taps?file=va_four_scene_sample.mp4&va=1&fps=9`처럼 세부 튜닝 query가 있으면 registry 자동 profile 선택을 건너뛰고 서버 기본 YOLO profile이 유지됨을 확인했다. 테스트 중 adaptive tuner가 9fps에서 8fps로 즉시 downshift했다.
+  - 검증 후 임시 tap을 삭제하고 foreground 서버를 종료해 8081/8555 listen port가 남지 않음을 확인했다.
+- `2026-04-26` profile 자동 선택 우선순위와 active tap 목록 smoke test를 `./server.sh test --include-rules`에 추가했다.
+  - `priority=50`, `match={sourceKind:file,route:*}` rule과 `priority=0`, `match={sourceKind:file,route:http}` rule을 동시에 저장했다.
+  - HTTP analysis tap에서 더 구체적인 route rule보다 높은 priority rule의 profile이 선택됨을 확인했다.
+  - `/lab/analysis/taps/{tapId}`와 `/lab/analysis/taps`가 `profileSelection.source=rule`, `profileSelection.ruleId`, `priority`, `context`를 반환함을 확인했다.
+  - `./server.sh test --quick --include-rules --stop-after` 결과 `pass=8 fail=0 skip=3`을 확인했다.
+- `2026-04-26` 실제 이동 영상 기반 tracker/event 검증을 `./server.sh verify-va-events`와 `./server.sh test --include-va-events`에 추가했다.
+  - 기본 검증 파일은 `imports/va_tracking_event_1280x720_30fps_h264.mp4`다.
+  - 임시 rule로 `presence`, 좌/우 `line-crossing`, 중앙 영역 `enter`, 중앙 영역 `exit`를 등록하고 `/lab/analysis/taps/{tapId}/events`를 polling한다.
+  - 이벤트 payload의 `trackId`, active tap snapshot의 `latestResult.tracks[]`, overlay snapshot 생성을 함께 확인한다.
+  - 수동 검증 기준 30초 이동 영상에서 `presence=672`, `line-crossing=5`, `enter=3`, `exit=2`, snapshot `trackCount=4`, 평균 분석 시간 약 `87ms`를 확인했다.
+  - 자동 검증 기준 `./server.sh verify-va-events`는 `pass=9 fail=0 skip=0`으로 통과했다.
 
 ## 남은 확인 항목
 - 다음 구현 순서
-  - 1차: tracker 기반 객체 상태 안정화와 source/route/client matching layer 구현
-  - 2차: 모델별 output layout 옵션 정교화
-  - 3차: `./server.sh verify-va`를 더 긴 duration으로 반복 실행해 adaptive tuner 장시간 회귀 누적
+  - 1차: 실제 RTSP/WebRTC route별 profile/rule matching 장시간 검증
+  - 2차: tracker ID switch 통계 수집, Kalman/ByteTrack류 보강 여부 판단
+  - 3차: 모델별 output layout 옵션 정교화
+  - 4차: `./server.sh verify-va`와 `./server.sh verify-va-events`를 더 긴 duration으로 반복 실행해 adaptive tuner/tracker 장시간 회귀 누적
+- source/route/client rule matching, context 기반 profile 자동 선택, priority 기반 rule 선택은 VA rule context 기준 1차 구현했다. 남은 작업은 실제 RTSP/WebRTC route별 장시간 검증과 운영 기본값 확정이다.
 - `HTTP/HLS URI -> RTSP` 최신 `503` 재확인 및 수정
 - audio-only input은 현재 video relay/analysis 준비 범위 밖이다. RTSP/WebRTC egress는 video track을 기준으로 동작한다.
 - 외부 wowza source 재검증

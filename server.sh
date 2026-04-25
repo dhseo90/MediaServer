@@ -30,6 +30,8 @@ Usage:
   test           안정 기능과 LAN IP 외부 접근성 통합 테스트를 한글 리포트로 실행합니다.
   verify-codecs  file/RTSP/WebRTC source와 codec route matrix를 자동 검증합니다.
   verify-va      YOLO/VA overlay의 lab, RTSP, WebRTC 회귀 검증을 수행합니다.
+  verify-va-events
+                 이동 테스트 영상으로 tracker 기반 presence/enter/exit/line-crossing을 검증합니다.
 
 install 옵션:
   --basic        AI/ONNX 없이 미디어 스트리밍 의존성만 설치하고 기본 빌드를 build-gst로 설정합니다.
@@ -114,6 +116,10 @@ case "${cmd}" in
   verify-va)
     require_internal verify_va_overlay.sh
     exec "${INTERNAL_DIR}/verify_va_overlay.sh" "$@"
+    ;;
+  verify-va-events)
+    require_internal verify_va_tracking_events.sh
+    exec "${INTERNAL_DIR}/verify_va_tracking_events.sh" "$@"
     ;;
   *)
     echo "알 수 없는 명령입니다: ${cmd}"

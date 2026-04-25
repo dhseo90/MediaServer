@@ -297,8 +297,10 @@ public:
             << "\"builtInProfiles\":" << BuiltInProfilesArrayJson() << ","
             << "\"profiles\":";
         AppendDocumentsArray(out, profiles_);
-        out << ",\"queryOverride\":\"현재 단계에서는 va=1이 서버 기본 VA profile을 사용하고, "
-               "fps/maxQueue/adaptive bounds 같은 고급 query가 있을 때만 override한다.\"}";
+        out << ",\"queryOverride\":\"va=1은 기본적으로 서버 기본 VA profile을 사용한다. "
+               "URL에 profileId/profile을 명시하면 해당 profile을 우선 적용하고, "
+               "명시하지 않으면 현재 sourceKind/route/clientId와 맞는 rule의 analysis.profileId를 1차 자동 적용한다. "
+               "fps/maxQueue/adaptive bounds 같은 고급 query가 있으면 registry 자동 profile 선택은 건너뛴다.\"}";
         return out.str();
     }
 
@@ -308,9 +310,9 @@ public:
         std::ostringstream out;
         out << "{\"status\":\"registry\",\"storagePath\":\"" << JsonEscape(storage_path_.string()) << "\","
             << "\"scope\":\"저장된 rule은 va=1 overlay와 /lab/analysis/taps/{id}/events에서 런타임 판정에 사용한다. "
-               "route/client별 자동 매칭은 아직 제한적이다.\","
-            << "\"plannedRuleShape\":{\"id\":\"string\",\"enabled\":\"bool\","
-            << "\"match\":{\"sourceKind\":\"file|rtsp|webrtc|http|hls|youtube|*\",\"route\":\"rtsp|webrtc|*\","
+               "sourceKind/route/clientId match 조건이 있으면 해당 분석 결과에만 적용한다.\","
+            << "\"plannedRuleShape\":{\"id\":\"string\",\"enabled\":\"bool\",\"priority\":\"number\","
+            << "\"match\":{\"sourceKind\":\"file|rtsp|webrtc|http|hls|youtube|*\",\"route\":\"http|rtsp|webrtc|*\","
             << "\"clientId\":\"optional\"},\"analysis\":{\"profileId\":\"string\",\"detector\":\"dummy|yolo\","
             << "\"fps\":\"number\",\"maxQueue\":\"number\"},\"outputs\":{\"metadata\":\"bool\","
             << "\"snapshot\":\"bool\",\"overlay\":\"bool\",\"events\":\"bool\"},"
@@ -320,7 +322,7 @@ public:
             << "\"rules\":";
         AppendDocumentsArray(out, rules_);
         out << ",\"notImplementedYet\":[\"automatic rule matching for non-VA streams\","
-               "\"per-client rule override\",\"track-stable enter/exit/line-crossing\"]}";
+               "\"long-running RTSP/WebRTC route matching validation\"]}";
         return out.str();
     }
 
@@ -343,6 +345,17 @@ public:
         out.reserve(rules_.size());
         for (const auto& rule : rules_) {
             out.push_back(rule.body);
+        }
+        return out;
+    }
+
+    std::vector<std::string> ProfileDocuments() {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        std::vector<std::string> out;
+        out.reserve(profiles_.size());
+        for (const auto& profile : profiles_) {
+            out.push_back(profile.body);
         }
         return out;
     }
@@ -715,6 +728,14 @@ std::string BuildTestPageHtml(bool lab_mode) {
                 서버 기본 VA profile로 객체 감지 박스 합성
               </label>
               <p style="margin:0;color:var(--muted);font-size:0.88rem;">모델, 라벨, 기본 fps/queue는 서버 설정값을 사용합니다. URL에는 기본적으로 `va=1`만 붙습니다.</p>
+              <label style="display:flex;align-items:center;gap:8px;">
+                <input id="analysisTrackIdsInput" type="checkbox" style="width:auto;" />
+                객체 ID를 라벨에 함께 표시
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;">
+                <input id="analysisTrackTrailsInput" type="checkbox" style="width:auto;" />
+                객체 이동 궤적 표시
+              </label>
               <label>객체 표기 언어
                 <select id="analysisLabelLangInput">
                   <option value="ko" selected>한글: 차량(자동차)</option>
@@ -1299,6 +1320,8 @@ std::string BuildTestPageHtml(bool lab_mode) {
     const analysisOverlayToleranceInputEl = document.getElementById('analysisOverlayToleranceInput');
     const analysisPreprocessInputEl = document.getElementById('analysisPreprocessInput');
     const analysisLabelLangInputEl = document.getElementById('analysisLabelLangInput');
+    const analysisTrackIdsInputEl = document.getElementById('analysisTrackIdsInput');
+    const analysisTrackTrailsInputEl = document.getElementById('analysisTrackTrailsInput');
     const sourceFieldEls = Array.from(document.querySelectorAll('[data-source-field]'));
     let pc = null;
     let sessionId = null;
@@ -1486,6 +1509,12 @@ std::string BuildTestPageHtml(bool lab_mode) {
         }
         if (analysisPreprocessInputEl && analysisPreprocessInputEl.value) {
           params.set('preprocess', analysisPreprocessInputEl.value);
+        }
+        if (analysisTrackIdsInputEl && analysisTrackIdsInputEl.checked) {
+          params.set('trackIds', '1');
+        }
+        if (analysisTrackTrailsInputEl && analysisTrackTrailsInputEl.checked) {
+          params.set('trackTrails', '1');
         }
       }
       return params.toString();
@@ -2309,7 +2338,7 @@ std::string BuildLabRuleEditorPageHtml() {
       <div class="card">
         <div class="pad stack">
           <h2>2. 이벤트 Rule</h2>
-          <p class="hint">영역과 객체 타입을 지정합니다. 저장된 룰은 `va=1` overlay와 events API에 바로 적용됩니다. 단 진입/이탈/라인 통과는 tracker 연결 전까지 detection index 기준의 1차 판정입니다.</p>
+          <p class="hint">영역과 객체 타입을 지정합니다. 저장된 룰은 `va=1` overlay와 events API에 바로 적용됩니다. 진입/이탈/라인 통과는 tracker가 붙인 객체 ID 기준으로 판정합니다.</p>
           <label>저장된 Rule
             <select id="ruleSelect"></select>
           </label>
@@ -2350,9 +2379,9 @@ std::string BuildLabRuleEditorPageHtml() {
             <label>이벤트 타입
               <select id="ruleEventType">
                 <option value="presence" selected>영역 내 객체 감지(권장)</option>
-                <option value="enter">영역 진입(1차)</option>
-                <option value="exit">영역 이탈(1차)</option>
-                <option value="line-crossing">라인 통과(1차/양방향)</option>
+                <option value="enter">영역 진입</option>
+                <option value="exit">영역 이탈</option>
+                <option value="line-crossing">라인 통과(양방향)</option>
               </select>
             </label>
           </div>
@@ -3909,6 +3938,7 @@ std::string DetectionJson(const analysis::Detection& detection) {
         << "\"classId\":" << detection.class_id << ","
         << "\"label\":\"" << JsonEscape(detection.label) << "\","
         << "\"score\":" << detection.score << ","
+        << "\"trackId\":" << detection.track_id << ","
         << "\"box\":{"
         << "\"x\":" << detection.box.x << ","
         << "\"y\":" << detection.box.y << ","
@@ -3928,11 +3958,50 @@ std::string DetectionJson(const analysis::Detection& detection) {
     return out.str();
 }
 
+std::string TrackJson(const analysis::Track& track) {
+    std::ostringstream out;
+    out << "{"
+        << "\"trackId\":" << track.track_id << ","
+        << "\"classId\":" << track.detection.class_id << ","
+        << "\"label\":\"" << JsonEscape(track.detection.label) << "\","
+        << "\"score\":" << track.detection.score << ","
+        << "\"age\":" << track.age << ","
+        << "\"hits\":" << track.hits << ","
+        << "\"missed\":" << track.missed << ","
+        << "\"state\":\"" << JsonEscape(track.state) << "\","
+        << "\"firstSeenPts\":" << track.first_seen_pts << ","
+        << "\"lastSeenPts\":" << track.last_seen_pts << ","
+        << "\"trail\":[";
+    for (std::size_t i = 0; i < track.trail.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"x\":" << track.trail[i].x << ","
+            << "\"y\":" << track.trail[i].y << ","
+            << "\"pts\":" << track.trail[i].pts
+            << "}";
+    }
+    out << "],"
+        << "\"box\":{"
+        << "\"x\":" << track.detection.box.x << ","
+        << "\"y\":" << track.detection.box.y << ","
+        << "\"width\":" << track.detection.box.width << ","
+        << "\"height\":" << track.detection.box.height
+        << "}}";
+    return out.str();
+}
+
 std::string AnalysisResultJson(const analysis::AnalysisResult& result) {
     std::ostringstream out;
     out << "{"
         << "\"sourceKey\":\"" << JsonEscape(result.source_key) << "\","
         << "\"profileKey\":\"" << JsonEscape(result.profile_key) << "\","
+        << "\"context\":{"
+        << "\"sourceKind\":\"" << JsonEscape(result.context.source_kind) << "\","
+        << "\"route\":\"" << JsonEscape(result.context.route) << "\","
+        << "\"clientId\":\"" << JsonEscape(result.context.client_id) << "\""
+        << "},"
         << "\"pts\":" << result.pts << ","
         << "\"detections\":[";
     for (std::size_t i = 0; i < result.detections.size(); ++i) {
@@ -3942,7 +4011,15 @@ std::string AnalysisResultJson(const analysis::AnalysisResult& result) {
         out << DetectionJson(result.detections[i]);
     }
     out << "],"
-        << "\"tracks\":" << result.tracks.size() << ","
+        << "\"trackCount\":" << result.tracks.size() << ","
+        << "\"tracks\":[";
+    for (std::size_t i = 0; i < result.tracks.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << TrackJson(result.tracks[i]);
+    }
+    out << "],"
         << "\"poseKeypoints\":" << result.pose_keypoints.size()
         << "}";
     return out.str();
@@ -3954,6 +4031,17 @@ std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot
         << "\"tapId\":\"" << JsonEscape(snapshot.tap_id) << "\","
         << "\"streamKey\":\"" << JsonEscape(snapshot.stream_key) << "\","
         << "\"profileKey\":\"" << JsonEscape(snapshot.profile_key) << "\","
+        << "\"context\":{"
+        << "\"sourceKind\":\"" << JsonEscape(snapshot.context.source_kind) << "\","
+        << "\"route\":\"" << JsonEscape(snapshot.context.route) << "\","
+        << "\"clientId\":\"" << JsonEscape(snapshot.context.client_id) << "\""
+        << "},"
+        << "\"profileSelection\":{"
+        << "\"source\":\"" << JsonEscape(snapshot.profile_selection_source) << "\","
+        << "\"ruleId\":\"" << JsonEscape(snapshot.selected_by_rule_id) << "\","
+        << "\"priority\":" << snapshot.selected_rule_priority << ","
+        << "\"specificity\":" << snapshot.selected_rule_specificity
+        << "},"
         << "\"detectorType\":\"" << JsonEscape(snapshot.detector_type) << "\","
         << "\"targetFps\":" << snapshot.target_fps << ","
         << "\"maxQueueSize\":" << snapshot.max_queue_size << ","
@@ -3962,6 +4050,7 @@ std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot
         << "\"debugDetectorDelayMs\":" << snapshot.debug_detector_delay_ms << ","
         << "\"confidenceThreshold\":" << snapshot.confidence_threshold << ","
         << "\"nmsThreshold\":" << snapshot.nms_threshold << ","
+        << "\"trackingEnabled\":" << (snapshot.tracking_enabled ? "true" : "false") << ","
         << "\"adaptiveTuningEnabled\":" << (snapshot.adaptive_tuning_enabled ? "true" : "false") << ","
         << "\"adaptiveInputSizeEnabled\":" << (snapshot.adaptive_input_size_enabled ? "true" : "false") << ","
         << "\"adaptiveInputSizeDisabled\":" << (snapshot.adaptive_input_size_disabled ? "true" : "false") << ","
@@ -4029,8 +4118,21 @@ std::string AnalysisTapCreatedJson(const core::SessionManager::AnalysisTapResult
     return out.str();
 }
 
+std::string AnalysisTapListJson(const std::vector<analysis::AnalysisManager::TapSnapshot>& snapshots) {
+    std::ostringstream out;
+    out << "{\"activeTaps\":" << snapshots.size() << ",\"taps\":[";
+    for (std::size_t i = 0; i < snapshots.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << AnalysisTapSnapshotJson(snapshots[i]);
+    }
+    out << "]}";
+    return out.str();
+}
+
 std::string AnalysisCapabilitiesJson() {
-    return R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"outputs":["metadata","events","snapshot.jpg","overlay.jpg","rtsp-overlay","webrtc-overlay"],"eventTypes":["presence","enter","exit","line-crossing"],"eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","thickness":"optional box line thickness","drawLabels":"optional label visibility"}})";
+    return R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"outputs":["metadata","events","snapshot.jpg","overlay.jpg","rtsp-overlay","webrtc-overlay"],"eventTypes":["presence","enter","exit","line-crossing"],"eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile with lightweight tracking","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"tracking":"optional object tracking on/off","fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","thickness":"optional box line thickness","drawLabels":"optional label visibility","trackIds":"optional track id labels on overlay","trackTrails":"optional track trail overlay"}})";
 }
 
 std::string AnalysisProfilesJson() {
@@ -4091,6 +4193,7 @@ std::string AnalysisEventJson(const analysis::AnalysisEvent& event) {
         << "\"ruleId\":\"" << JsonEscape(event.rule_id) << "\","
         << "\"type\":\"" << JsonEscape(event.event_type) << "\","
         << "\"object\":{"
+        << "\"trackId\":" << event.track_id << ","
         << "\"classId\":" << event.class_id << ","
         << "\"label\":\"" << JsonEscape(event.label) << "\","
         << "\"score\":" << event.score << ","
@@ -4225,6 +4328,7 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
     }
 
     media::IngressRequest analysis_request = ingress_request;
+    analysis_request.protocol = "webrtc";
     analysis_request.client_id = ingress_request.client_id + "-analysis";
     auto attach_result = session_manager.AttachAnalysisTap(analysis_request, BuildAnalysisProfileFromQuery(query));
     if (!attach_result.ok) {
@@ -4328,6 +4432,10 @@ bool SendAll(int fd, const std::string& data) {
 
 std::vector<std::string> AnalysisRuleDocumentsSnapshot() {
     return AnalysisRegistry().RuleDocuments();
+}
+
+std::vector<std::string> AnalysisProfileDocumentsSnapshot() {
+    return AnalysisRegistry().ProfileDocuments();
 }
 
 bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t port, std::string* error_message) {
@@ -4605,8 +4713,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         if (request.path == "/lab/analysis/taps") {
                             if (request.method == "GET") {
                                 return JsonResponse(200, "OK",
-                                                    "{\"activeTaps\":" +
-                                                        std::to_string(impl_->session_manager.ActiveAnalysisTapCount()) + "}");
+                                                    AnalysisTapListJson(impl_->session_manager.AnalysisTapSnapshots()));
                             }
 
                             if (request.method == "POST") {

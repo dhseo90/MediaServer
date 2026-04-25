@@ -93,6 +93,7 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
   - RTSP/WebRTC egress raw video 구간에 detection box/label overlay를 합성한다.
   - metadata, snapshot, overlay snapshot 개발용 API를 제공한다.
   - adaptive tuner는 detector 부하에 따라 런타임 `fps`를 먼저 낮추고, 가능한 경우 input size까지 낮춘다.
+  - lightweight tracker가 detection box를 frame 간 연결해 `trackId`를 붙이고, 이벤트 룰은 기본적으로 이 객체 ID 기준으로 상태를 추적한다.
   - profile/rule registry는 1차 저장/조회/수정/삭제를 제공한다.
   - `/lab/rules`는 숫자/JSON 직접 입력 대신 한글 UI로 profile 값, 이벤트 판단 영역, 분석 객체 타입을 저장한다.
   - 저장된 rule은 `va=1` overlay와 `/lab/analysis/taps/{tapId}/events`에서 1차 event engine으로 판정한다.
@@ -113,7 +114,7 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - 운영용 WebRTC auth / STUN / TURN / ICE policy 설정
 - 운영용 metrics / admin API
 - 외부 RTSP source별 세밀한 reconnect 정책
-- 영상분석 rule matching/per-client override, tracker 기반 안정 이벤트 판정
+- 영상분석 운영용 rule/profile matching 우선순위 고도화, tracker 고도화/Kalman 예측
 - adaptive tuner 운영 기준값과 장시간 회귀 검증
 
 ### 최근 정리
@@ -327,6 +328,7 @@ MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
 | `MEDIA_SERVER_ANALYSIS_CONFIDENCE` | `va=1` 기본 confidence threshold. 기본 `0.25` |
 | `MEDIA_SERVER_ANALYSIS_NMS` | `va=1` 기본 NMS threshold. 기본 `0.45` |
 | `MEDIA_SERVER_ANALYSIS_PREPROCESS` | `va=1` 기본 YOLO 전처리. 기본 `letterbox` |
+| `MEDIA_SERVER_ANALYSIS_TRACKING` | `1`이면 `va=1` 기본 tracker 사용. 기본 `1` |
 | `MEDIA_SERVER_ANALYSIS_OVERLAY_WAIT_MS` | `va=1` 기본 overlay result 대기 시간. 기본 `180` |
 | `MEDIA_SERVER_ANALYSIS_OVERLAY_SYNC_TOLERANCE_MS` | `va=1` 기본 PTS 매칭 허용 범위. 기본 `400` |
 | `MEDIA_SERVER_ANALYSIS_OVERLAY_THICKNESS` | `va=1` 기본 detection box 두께. 기본 `3` |
@@ -402,6 +404,7 @@ cp scripts/.media_server.env.example scripts/.media_server.env
 | `./server.sh test` | 안정 기능 기준 통합 테스트. 한글 원인 리포트와 `.media_server.test/` 로그 생성 |
 | `./server.sh verify-codecs` | source/route codec matrix 자동 검증 |
 | `./server.sh verify-va` | YOLO/VA overlay lab, RTSP, WebRTC 회귀 검증 |
+| `./server.sh verify-va-events` | 실제 이동 영상 기준 tracker, line-crossing, enter, exit 이벤트 검증 |
 
 ### 권장 개발 흐름
 처음 환경 구성:
@@ -462,13 +465,16 @@ ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성
 ```bash
 ./server.sh test
 ./server.sh verify-codecs
+./server.sh verify-va
+./server.sh verify-va-events
 ```
 
 `./server.sh test`의 기본 기준은 안정 기능으로 승격한 스트리밍 + 기본 VA 기능을 포함한다.
 - 모든 test 모드 포함: 스크립트/JSON 정적 검사, 서버 start/status/diagnose, LAN IP 기준 외부 클라이언트 접근성.
 - stable 포함: 제3자 RTSP upstream reachability advisory, 로컬 file source, 로컬 RTSP pull source, 로컬 WebRTC publish source의 RTSP/WebRTC 소비, YOLO/VA overlay 회귀 검증.
 - 제외: HTTP/HLS URI source, YouTube source/import, `/lab` UI, 룰/이벤트/POST, adaptive tuner.
-- 선택 검증: `./server.sh test --include-rules`.
+- 선택 검증: `./server.sh test --include-rules`는 profile/rule registry CRUD와 rule match 기반 profile 자동 선택을 추가 확인한다.
+- 선택 검증: `./server.sh test --include-va-events`는 실제 이동 영상 기반 tracker/event 판정을 추가 확인한다.
 - 예외 생략: `./server.sh test --skip-va`는 ONNX/브라우저 자동화가 불가능한 환경에서만 사용한다.
 - 외부 네트워크 또는 LAN IP probe가 막힌 격리 환경에서만 `./server.sh test --skip-external`로 LAN IP 외부 접근성과 제3자 RTSP upstream 확인을 생략한다.
 - 신뢰 가능한 카메라/테스트 RTSP URL이 있으면 `MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS='rtsp://...' ./server.sh test`로 hard gate 검증한다.
@@ -821,7 +827,8 @@ SharedStream
 - analysis tap은 profile의 `fps`로 wall-clock 기준 frame sampling을 수행하고, `maxQueue`를 넘으면 오래된 raw frame부터 버린다.
 - RTSP/WebRTC consume 요청에 `va=1`을 붙이면 서버 기본 VA profile을 사용해 같은 source에 analysis tap을 자동으로 붙이고, egress raw video 구간에 detection box/label을 합성한다.
 - 저장된 rule은 `va=1` overlay 합성 시 매 frame 평가된다. 영상 재생 중 `/lab/rules`에서 rule을 바꾸면 다음 overlay frame부터 새 rule snapshot이 적용된다.
-- rule event engine 1차 범위는 `presence`, `enter`, `exit`, `line-crossing(any)`다. tracker가 아직 없으므로 다중 동일 class 객체의 `enter/exit/line-crossing`은 detection index 기준 상태 추적으로만 동작한다.
+- 기본 `va=1` profile은 lightweight tracker를 켜고, detection metadata와 event payload에 `trackId`를 포함한다.
+- rule event engine 1차 범위는 `presence`, `enter`, `exit`, `line-crossing(any)`다. tracker가 켜진 profile은 `trackId` 기준으로 객체 상태를 유지하고, tracker를 끈 profile은 호환성 때문에 detection index 기준으로 fallback한다.
 - 이벤트로 판정된 detection은 `event.triggered=true` metadata를 갖고, overlay에서는 `이벤트 {label} {score%}` 또는 `Event {label} {score%}`와 rule highlight color로 깜빡인다.
 - `eventActions.post.enabled=true`이고 URL이 있으면 overlay stream 또는 `/events?dispatch=1` 경로에서 POST worker에 enqueue할 수 있다. 실제 외부 전송은 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1`로 명시적으로 켠 경우에만 수행한다.
 - POST worker는 `curl`을 background thread에서 실행하므로 overlay 처리 thread를 직접 막지 않는다. 기본값은 안전하게 꺼져 있으며, 켠 경우 queue 초과 시 오래된 요청을 버리고 같은 이벤트는 cooldown 동안 재전송을 억제한다.
@@ -830,6 +837,8 @@ SharedStream
 - 고정 input ONNX model에서 input size 변경으로 inference가 실패하면 기본 input size로 되돌리고 input-size adaptive만 비활성화한다. fps adaptive는 계속 유지한다.
 - detection label은 기본적으로 `차량(자동차) 88%`, `사람 91%`처럼 한글 카테고리 묶음과 percentage로 표기한다.
 - `labelLang=en`을 지정하면 `Vehicle(car) 88%`, `Person 91%`처럼 첫 글자만 대문자인 짧은 영문 카테고리 묶음으로 표시한다.
+- overlay snapshot/debug URL에 `trackIds=1` 또는 `drawTrackIds=1`을 붙이면 `사람 #1 91%`처럼 객체 ID를 label에 함께 표시한다.
+- `trackTrails=1` 또는 `drawTrackTrails=1`을 붙이면 tracker가 유지한 최근 중심점 궤적을 객체 카테고리 색상으로 함께 그린다.
 - overlay renderer는 Pango/Cairo가 빌드에 잡히면 한글/Unicode label을 직접 렌더링하고, Pango/Cairo가 없는 환경에서는 영문 ASCII fallback으로 표시한다.
 - 이전 실험용 query인 `overlay=1`, `analysis=1`, `analysisOverlay=1`과 세부 override query는 호환성/디버그 목적으로만 남겨 둔다.
 - overlay stream은 egress가 재작성한 normalized PTS를 원본 source PTS로 되돌려 analysis result history와 매칭한다. 이 덕분에 loop/replay 또는 B-frame reorder가 있어도 단순 최신 결과를 덮어쓰는 것보다 박스 밀림이 줄어든다.
@@ -959,7 +968,7 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/profiles'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/rules'
 ```
 
-`/lab/analysis/profiles`와 `/lab/analysis/rules`는 1차 persistent registry를 제공한다. 기본 저장 파일은 `.media_server.analysis_registry.json`이며 `.gitignore`에 포함되어 있다. 현재 단계에서는 등록한 rule을 `va=1` overlay와 `/lab/analysis/taps/{tapId}/events`에 적용한다. source/route/client별 자동 매칭과 per-client override는 아직 후속 단계다.
+`/lab/analysis/profiles`와 `/lab/analysis/rules`는 1차 persistent registry를 제공한다. 기본 저장 파일은 `.media_server.analysis_registry.json`이며 `.gitignore`에 포함되어 있다. 현재 단계에서는 등록한 rule을 `va=1` overlay와 `/lab/analysis/taps/{tapId}/events`에 적용한다. rule의 `match.sourceKind`, `match.route`, `match.clientId`는 분석 결과 context와 비교해 적용 여부를 결정한다. URL에 `profileId/profile` 또는 `fps/maxQueue` 같은 세부 튜닝값이 없으면, 현재 context와 맞는 rule의 `analysis.profileId`가 profile 자동 선택에 사용된다. 여러 rule이 동시에 맞는 경우는 `priority`가 높은 rule을 우선하고, priority가 같으면 sourceKind/route/clientId가 더 구체적인 rule을 우선한다. `/lab/analysis/taps`는 active tap 목록과 각 tap의 context/profileSelection을 반환한다.
 
 웹에서 등록하려면 `/lab/rules`의 시각적 룰 편집기를 사용한다.
 - profile은 `fps`, `queue`, `confidence`, `nms`, `input size`, adaptive 여부를 slider/dropdown으로 조정한다.
@@ -978,6 +987,7 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/rules'
 - POST 전송은 비동기 worker가 처리한다. 기본값은 opt-in이며 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1`일 때만 실제 전송한다. 운영 stream에서는 `va=1` overlay 경로에서 enqueue되고, 개발 검증은 `/lab/analysis/taps/{tapId}/events?dispatch=1`로 강제로 enqueue할 수 있다.
 - POST worker 상태는 `/lab/analysis/event-post/status`에서 `queueSize`, `sentCount`, `failedCount`, `droppedCount`, `suppressedCount`로 확인한다.
 - 영상 기동 중 rule을 수정하면 overlay/evaluate 경로는 저장소 snapshot을 다시 읽어 다음 frame부터 새 설정을 사용한다.
+- profile 자동 선택은 analysis tap 생성 시점에 결정된다. 이미 떠 있는 tap의 profile을 바꾸려면 tap 또는 stream session을 재시작한다.
 - 저장 버튼은 같은 `/lab/analysis/profiles`와 `/lab/analysis/rules` API를 호출한다.
 - 생성되는 JSON preview는 디버그/검토용이며, 일반 사용 흐름에서는 직접 JSON을 편집하지 않는다.
 - 기본 profile은 조회용이며 수정/삭제 대상이 아니다.
@@ -997,7 +1007,9 @@ curl -fsS -X PUT 'http://127.0.0.1:8080/lab/analysis/profiles/fast-local' \
 
 curl -fsS -X POST 'http://127.0.0.1:8080/lab/analysis/rules' \
   -H 'Content-Type: application/json' \
-  --data '{"id":"file-overlay","enabled":true,"match":{"sourceKind":"file"},"analysis":{"profileId":"fast-local"},"outputs":{"overlay":true}}'
+  --data '{"id":"file-overlay","priority":10,"enabled":true,"match":{"sourceKind":"file","route":"http"},"analysis":{"profileId":"fast-local"},"outputs":{"overlay":true}}'
+
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps'
 
 curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/rules/file-overlay'
 curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/profiles/fast-local'
@@ -1094,7 +1106,10 @@ RTSP egress 기준:
 선택 검증:
 ```bash
 ./server.sh test --include-rules
+./server.sh test --include-va-events
+./server.sh test --include-rules --include-va-events
 ```
+`--include-rules`는 profile/rule registry CRUD와 rule match 기반 profile 자동 선택을 확인한다. `--include-va-events`는 레포에 포함한 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4` 이동 영상으로 presence, line-crossing, enter, exit 이벤트와 track ID 포함 여부를 확인한다. 이벤트/룰 POST 연동은 아직 운영 안정 기능으로 승격하지 않았으므로 별도 장시간 검증 후 기본 테스트 편입을 판단한다.
 
 ### 1. 서버 상태 진단
 ```bash
@@ -1286,7 +1301,8 @@ MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS='rtsp://camera-or-test-host/live' ./server.
    - 현재 relay 안정화 기준으로 file, RTSP pull, WebRTC publish source의 주요 경로를 분석 1차 범위로 검증했다.
    - HTTP/HLS는 코드 경로가 있지만 최신 `source=http -> RTSP` 503 재현 때문에 분석 1차 범위에서 제외하고 후속 안정화에서 다시 확인한다.
    - 송신 경로(RTSP/WebRTC egress)는 직접 막지 않는다.
-   - 다음 개발은 tracker 기반 이벤트 안정화, 저장된 profile/rule의 source/route/client 자동 매칭 순서로 진행한다.
+   - tracker 기반 이벤트 실제 이동 영상 검증과 rule/profile matching 우선순위 1차 smoke는 완료했다.
+   - 다음 개발은 실제 RTSP/WebRTC route별 profile/rule matching 장시간 검증, tracker ID switch 통계와 Kalman/ByteTrack류 보강 검토 순서로 진행한다.
    - 외부 RTSP, WebRTC 운영 설정, 실험실 YouTube, `/lab/import` 외부 네트워크 재검증 같은 보류 항목은 후속 안정화에서 다시 main 기준으로 확인한다.
 2. 운영 안정화 후속
    - 외부 RTSP source별 timeout/profile 설정 확장

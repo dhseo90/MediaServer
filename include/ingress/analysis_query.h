@@ -15,6 +15,8 @@ struct AnalysisOverlayTimingOptions {
 };
 
 analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map<std::string, std::string>& query);
+analysis::AnalysisProfile ResolveAnalysisProfileForContext(analysis::AnalysisProfile profile,
+                                                           const analysis::AnalysisContext& context);
 analysis::OverlayRenderOptions BuildOverlayRenderOptionsFromQuery(
     const std::unordered_map<std::string, std::string>& query);
 AnalysisOverlayTimingOptions BuildAnalysisOverlayTimingOptionsFromQuery(

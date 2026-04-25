@@ -30,6 +30,7 @@ constexpr const char* kEnvDefaultAnalysisInputHeight = "MEDIA_SERVER_ANALYSIS_IN
 constexpr const char* kEnvDefaultAnalysisConfidence = "MEDIA_SERVER_ANALYSIS_CONFIDENCE";
 constexpr const char* kEnvDefaultAnalysisNms = "MEDIA_SERVER_ANALYSIS_NMS";
 constexpr const char* kEnvDefaultAnalysisPreprocess = "MEDIA_SERVER_ANALYSIS_PREPROCESS";
+constexpr const char* kEnvDefaultAnalysisTracking = "MEDIA_SERVER_ANALYSIS_TRACKING";
 constexpr const char* kEnvDefaultAnalysisOverlayWaitMs = "MEDIA_SERVER_ANALYSIS_OVERLAY_WAIT_MS";
 constexpr const char* kEnvDefaultAnalysisOverlaySyncToleranceMs =
     "MEDIA_SERVER_ANALYSIS_OVERLAY_SYNC_TOLERANCE_MS";
@@ -245,6 +246,8 @@ app::AppConfig LoadAppConfig() {
     config.default_analysis_nms = ReadFloatEnv(kEnvDefaultAnalysisNms, config.default_analysis_nms);
     config.default_analysis_preprocess =
         ReadStringEnv(kEnvDefaultAnalysisPreprocess, config.default_analysis_preprocess);
+    config.default_analysis_tracking_enabled =
+        ReadBoolEnv(kEnvDefaultAnalysisTracking, config.default_analysis_tracking_enabled);
     config.default_analysis_overlay_wait_ms =
         ReadIntEnv(kEnvDefaultAnalysisOverlayWaitMs, config.default_analysis_overlay_wait_ms);
     config.default_analysis_overlay_sync_tolerance_ms =

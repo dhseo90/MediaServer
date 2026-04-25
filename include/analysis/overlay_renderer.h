@@ -14,6 +14,8 @@ struct OverlayRenderOptions {
     int line_thickness{3};
     bool draw_labels{true};
     bool draw_event_highlight{true};
+    bool draw_track_ids{false};
+    bool draw_track_trails{false};
     OverlayLabelLanguage label_language{OverlayLabelLanguage::Korean};
 };
 

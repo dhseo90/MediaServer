@@ -40,6 +40,8 @@ struct Detection {
     std::string label;
     float score{0.0F};
     RectF box;
+    // tracker가 켜진 profile에서는 같은 객체를 frame 간 연결하기 위한 안정 ID를 채운다.
+    std::uint64_t track_id{0};
     // 룰 엔진에서 이벤트로 판단한 객체는 overlay renderer가 강조 표시한다.
     bool event_triggered{false};
     std::string event_rule_id;
@@ -49,9 +51,21 @@ struct Detection {
 };
 
 struct Track {
+    struct TrailPoint {
+        float x{0.0F};
+        float y{0.0F};
+        std::int64_t pts{0};
+    };
+
     std::uint64_t track_id{0};
     Detection detection;
     std::uint32_t age{0};
+    std::uint32_t hits{0};
+    std::uint32_t missed{0};
+    std::int64_t first_seen_pts{0};
+    std::int64_t last_seen_pts{0};
+    std::string state{"tentative"};
+    std::vector<TrailPoint> trail;
 };
 
 struct PoseKeypoint {
@@ -59,6 +73,12 @@ struct PoseKeypoint {
     float x{0.0F};
     float y{0.0F};
     float score{0.0F};
+};
+
+struct AnalysisContext {
+    std::string source_kind{"*"};
+    std::string route{"*"};
+    std::string client_id;
 };
 
 struct AnalysisProfile {
@@ -93,6 +113,13 @@ struct AnalysisProfile {
     int adaptive_cooldown_ms{3000};
     float adaptive_high_latency_ratio{0.85F};
     float adaptive_low_latency_ratio{0.35F};
+    // URL에서 profile/profileId 또는 세부 튜닝값을 직접 지정했는지 기록해 registry 자동 선택과 충돌을 피한다.
+    bool explicit_profile_requested{false};
+    bool allow_rule_profile_override{true};
+    std::string profile_selection_source{"default"};
+    std::string selected_by_rule_id;
+    int selected_rule_priority{0};
+    int selected_rule_specificity{0};
 };
 
 inline std::string BuildProfileKey(const AnalysisProfile& profile) {
@@ -122,6 +149,7 @@ inline std::string BuildProfileKey(const AnalysisProfile& profile) {
 struct AnalysisResult {
     std::string source_key;
     std::string profile_key;
+    AnalysisContext context;
     std::int64_t pts{0};
     std::vector<Detection> detections;
     std::vector<Track> tracks;
