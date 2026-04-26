@@ -32,6 +32,12 @@ Usage:
   verify-va      YOLO/VA overlay의 lab, RTSP, WebRTC 회귀 검증을 수행합니다.
   verify-va-events
                  이동 테스트 영상으로 tracker 기반 presence/enter/exit/line-crossing을 검증합니다.
+  verify-route-profiles
+                 실제 RTSP/WebRTC overlay 세션에서 route별 profile/rule matching을 검증합니다.
+  verify-tracker-stability
+                 이동 영상에서 track ID 유지/분절 통계를 수집합니다.
+  verify-adaptive
+                 adaptive tuner의 downshift/upshift 장시간 회귀를 검증합니다.
 
 install 옵션:
   --basic        AI/ONNX 없이 미디어 스트리밍 의존성만 설치하고 기본 빌드를 build-gst로 설정합니다.
@@ -120,6 +126,18 @@ case "${cmd}" in
   verify-va-events)
     require_internal verify_va_tracking_events.sh
     exec "${INTERNAL_DIR}/verify_va_tracking_events.sh" "$@"
+    ;;
+  verify-route-profiles)
+    require_internal verify_route_profile_matching.sh
+    exec "${INTERNAL_DIR}/verify_route_profile_matching.sh" "$@"
+    ;;
+  verify-tracker-stability)
+    require_internal verify_tracker_stability.sh
+    exec "${INTERNAL_DIR}/verify_tracker_stability.sh" "$@"
+    ;;
+  verify-adaptive)
+    require_internal verify_adaptive_tuner.sh
+    exec "${INTERNAL_DIR}/verify_adaptive_tuner.sh" "$@"
     ;;
   *)
     echo "알 수 없는 명령입니다: ${cmd}"

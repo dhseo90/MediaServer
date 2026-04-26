@@ -405,6 +405,9 @@ cp scripts/.media_server.env.example scripts/.media_server.env
 | `./server.sh verify-codecs` | source/route codec matrix 자동 검증 |
 | `./server.sh verify-va` | YOLO/VA overlay lab, RTSP, WebRTC 회귀 검증 |
 | `./server.sh verify-va-events` | 실제 이동 영상 기준 tracker, line-crossing, enter, exit 이벤트 검증 |
+| `./server.sh verify-route-profiles` | 실제 RTSP/WebRTC overlay 세션 기준 route별 profile/rule matching 검증 |
+| `./server.sh verify-tracker-stability` | 이동 영상 기준 track ID 유지/분절 통계 수집 |
+| `./server.sh verify-adaptive` | adaptive tuner의 과부하 downshift와 저부하 upshift 회귀 검증 |
 
 ### 권장 개발 흐름
 처음 환경 구성:
@@ -467,6 +470,9 @@ ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성
 ./server.sh verify-codecs
 ./server.sh verify-va
 ./server.sh verify-va-events
+./server.sh verify-route-profiles
+./server.sh verify-tracker-stability
+./server.sh verify-adaptive
 ```
 
 `./server.sh test`의 기본 기준은 안정 기능으로 승격한 스트리밍 + 기본 VA 기능을 포함한다.
@@ -958,7 +964,12 @@ MEDIA_SERVER_VERIFY_VA_DURATION_S=30 \
 - `MEDIA_SERVER_VERIFY_VA_SKIP_RTSP=1`: RTSP 검증 제외
 - `MEDIA_SERVER_VERIFY_VA_EXTRA_QUERY='overlayWaitMs=180&overlaySyncToleranceMs=400'`: 추가 query 적용
 
-1차 YOLO parser는 `YOLOv8/YOLO11` 계열의 `[1, 84, N]` 또는 `[1, N, 84]` 출력과 `YOLOv5` 계열의 objectness 포함 `[1, N, 85]` 출력을 대상으로 한다. fp32 출력 tensor만 지원한다. 기본 전처리는 YOLO 계열에 맞춘 letterbox이며, 모델 출력 좌표에서 padding과 scale을 역보정해 원본 frame 기준 normalized box로 변환한다. 모델이 objectness 포함 layout이면 `objectness=1`을 명시할 수 있다.
+1차 YOLO parser는 `YOLOv8/YOLO11` 계열의 `[1, 84, N]` 또는 `[1, N, 84]` 출력과 `YOLOv5` 계열의 objectness 포함 `[1, N, 85]` 출력을 대상으로 한다. fp32 출력 tensor만 지원한다. 기본 전처리는 YOLO 계열에 맞춘 letterbox이며, 모델 출력 좌표에서 padding과 scale을 역보정해 원본 frame 기준 normalized box로 변환한다.
+
+모델 output layout 옵션:
+- `outputLayout=auto|channels-first|channels-last`: 기본 `auto`. `[1, 84, N]`는 channels-first, `[1, N, 84]`는 channels-last로 해석한다.
+- `boxFormat=cxcywh|xyxy`: 기본 `cxcywh`. corner 좌표 모델은 `xyxy`로 지정한다.
+- `scoreMode=auto|class-only|objectness-class`: 기본 `auto`. YOLOv5류 objectness 포함 모델은 `objectness=1` 또는 `scoreMode=objectness-class`로 명시할 수 있다.
 
 분석 API 설계/상태 확인 endpoint:
 
@@ -1302,7 +1313,7 @@ MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS='rtsp://camera-or-test-host/live' ./server.
    - HTTP/HLS는 코드 경로가 있지만 최신 `source=http -> RTSP` 503 재현 때문에 분석 1차 범위에서 제외하고 후속 안정화에서 다시 확인한다.
    - 송신 경로(RTSP/WebRTC egress)는 직접 막지 않는다.
    - tracker 기반 이벤트 실제 이동 영상 검증과 rule/profile matching 우선순위 1차 smoke는 완료했다.
-   - 다음 개발은 실제 RTSP/WebRTC route별 profile/rule matching 장시간 검증, tracker ID switch 통계와 Kalman/ByteTrack류 보강 검토 순서로 진행한다.
+   - 다음 개발은 route별 profile/rule matching 검증을 장시간 반복 기준으로 확장하고, tracker ID switch 통계와 Kalman/ByteTrack류 보강 검토 순서로 진행한다.
    - 외부 RTSP, WebRTC 운영 설정, 실험실 YouTube, `/lab/import` 외부 네트워크 재검증 같은 보류 항목은 후속 안정화에서 다시 main 기준으로 확인한다.
 2. 운영 안정화 후속
    - 외부 RTSP source별 timeout/profile 설정 확장

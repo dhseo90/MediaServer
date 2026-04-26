@@ -89,6 +89,12 @@ bool HasProfileTuningQuery(const std::unordered_map<std::string, std::string>& q
                            "objectness",
                            "preprocess",
                            "yoloPreprocess",
+                           "outputLayout",
+                           "yoloOutputLayout",
+                           "boxFormat",
+                           "yoloBoxFormat",
+                           "scoreMode",
+                           "yoloScoreMode",
                            "detect",
                            "tracking",
                            "pose",
@@ -296,6 +302,36 @@ bool IsBuiltInAnalysisProfileId(const std::string& id) {
            id == "yolo-balanced" || id == "yolo-quality";
 }
 
+std::string NormalizeYoloOutputLayout(std::string value) {
+    value = ToLower(value);
+    if (value == "channels-first" || value == "attrs-first" || value == "nchw" || value == "bcn") {
+        return "channels-first";
+    }
+    if (value == "channels-last" || value == "attrs-last" || value == "nhwc" || value == "bnc") {
+        return "channels-last";
+    }
+    return "auto";
+}
+
+std::string NormalizeYoloBoxFormat(std::string value) {
+    value = ToLower(value);
+    if (value == "xyxy" || value == "corners") {
+        return "xyxy";
+    }
+    return "cxcywh";
+}
+
+std::string NormalizeYoloScoreMode(std::string value) {
+    value = ToLower(value);
+    if (value == "class" || value == "class-only" || value == "no-objectness") {
+        return "class-only";
+    }
+    if (value == "objectness" || value == "objectness-class" || value == "obj-class") {
+        return "objectness-class";
+    }
+    return "auto";
+}
+
 void ApplyBuiltInProfile(const std::string& id, analysis::AnalysisProfile* profile) {
     if (profile == nullptr || !IsBuiltInAnalysisProfileId(id)) {
         return;
@@ -341,6 +377,21 @@ void ApplyProfileDocument(const std::string& document, analysis::AnalysisProfile
         profile->yolo_preprocess_mode = *preprocess == "stretch" ? "stretch" : "letterbox";
     } else if (const auto preprocess = ParseStringField(document, "yoloPreprocess"); preprocess.has_value()) {
         profile->yolo_preprocess_mode = *preprocess == "stretch" ? "stretch" : "letterbox";
+    }
+    if (const auto layout = ParseStringField(document, "outputLayout"); layout.has_value()) {
+        profile->yolo_output_layout = NormalizeYoloOutputLayout(*layout);
+    } else if (const auto layout = ParseStringField(document, "yoloOutputLayout"); layout.has_value()) {
+        profile->yolo_output_layout = NormalizeYoloOutputLayout(*layout);
+    }
+    if (const auto box_format = ParseStringField(document, "boxFormat"); box_format.has_value()) {
+        profile->yolo_box_format = NormalizeYoloBoxFormat(*box_format);
+    } else if (const auto box_format = ParseStringField(document, "yoloBoxFormat"); box_format.has_value()) {
+        profile->yolo_box_format = NormalizeYoloBoxFormat(*box_format);
+    }
+    if (const auto score_mode = ParseStringField(document, "scoreMode"); score_mode.has_value()) {
+        profile->yolo_score_mode = NormalizeYoloScoreMode(*score_mode);
+    } else if (const auto score_mode = ParseStringField(document, "yoloScoreMode"); score_mode.has_value()) {
+        profile->yolo_score_mode = NormalizeYoloScoreMode(*score_mode);
     }
     profile->target_fps = NumberFieldAsInt(document, "fps", profile->target_fps, 1, 60);
     profile->target_fps = NumberFieldAsInt(document, "targetFps", profile->target_fps, 1, 60);
@@ -554,6 +605,21 @@ analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map
         profile.yolo_preprocess_mode = it->second == "stretch" ? "stretch" : "letterbox";
     } else if (const auto it = query.find("yoloPreprocess"); it != query.end() && !it->second.empty()) {
         profile.yolo_preprocess_mode = it->second == "stretch" ? "stretch" : "letterbox";
+    }
+    if (const auto it = query.find("outputLayout"); it != query.end() && !it->second.empty()) {
+        profile.yolo_output_layout = NormalizeYoloOutputLayout(it->second);
+    } else if (const auto it = query.find("yoloOutputLayout"); it != query.end() && !it->second.empty()) {
+        profile.yolo_output_layout = NormalizeYoloOutputLayout(it->second);
+    }
+    if (const auto it = query.find("boxFormat"); it != query.end() && !it->second.empty()) {
+        profile.yolo_box_format = NormalizeYoloBoxFormat(it->second);
+    } else if (const auto it = query.find("yoloBoxFormat"); it != query.end() && !it->second.empty()) {
+        profile.yolo_box_format = NormalizeYoloBoxFormat(it->second);
+    }
+    if (const auto it = query.find("scoreMode"); it != query.end() && !it->second.empty()) {
+        profile.yolo_score_mode = NormalizeYoloScoreMode(it->second);
+    } else if (const auto it = query.find("yoloScoreMode"); it != query.end() && !it->second.empty()) {
+        profile.yolo_score_mode = NormalizeYoloScoreMode(it->second);
     }
     profile.enable_object_detection = ParseBoolQuery(query, "detect", profile.enable_object_detection);
     profile.enable_tracking = ParseBoolQuery(query, "tracking", profile.enable_tracking);

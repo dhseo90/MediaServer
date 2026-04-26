@@ -96,6 +96,9 @@ struct AnalysisProfile {
     float nms_threshold{0.45F};
     bool yolo_has_objectness{false};
     std::string yolo_preprocess_mode{"letterbox"};
+    std::string yolo_output_layout{"auto"};
+    std::string yolo_box_format{"cxcywh"};
+    std::string yolo_score_mode{"auto"};
     bool enable_object_detection{true};
     bool enable_tracking{false};
     bool enable_pose{false};
@@ -131,6 +134,9 @@ inline std::string BuildProfileKey(const AnalysisProfile& profile) {
         << ":conf=" << profile.confidence_threshold
         << ":nms=" << profile.nms_threshold
         << ":preprocess=" << profile.yolo_preprocess_mode
+        << ":layout=" << profile.yolo_output_layout
+        << ":box=" << profile.yolo_box_format
+        << ":scoreMode=" << profile.yolo_score_mode
         << ":det=" << (profile.enable_object_detection ? 1 : 0)
         << ":track=" << (profile.enable_tracking ? 1 : 0)
         << ":pose=" << (profile.enable_pose ? 1 : 0)
