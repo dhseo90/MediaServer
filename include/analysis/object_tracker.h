@@ -12,7 +12,8 @@ struct ObjectTrackerOptions {
     std::uint32_t min_confirmed_hits{2};
     std::uint32_t max_missed_frames{8};
     std::size_t max_trail_points{32};
-    // 비어 있거나 "*"가 들어 있으면 모든 detection을 track 대상으로 본다. 기본값은 UI가 다루기 쉬운 카테고리 토큰이다.
+    bool track_all_when_class_labels_empty{true};
+    // 비어 있으면 옵션에 따라 전체/없음으로 나뉘고, "*"가 들어 있으면 모든 detection을 track 대상으로 본다.
     std::vector<std::string> class_labels{"person", "vehicle"};
 };
 

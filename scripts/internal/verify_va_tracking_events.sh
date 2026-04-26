@@ -224,7 +224,10 @@ create_rule() {
 }
 
 create_rule "${RUN_ID}-presence" \
-"{\"id\":\"${RUN_ID}-presence\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.25,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
+"{\"id\":\"${RUN_ID}-presence\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.25,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#00ff00\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
+
+create_rule "${RUN_ID}-multi-category-presence" \
+"{\"id\":\"${RUN_ID}-multi-category-presence\",\"priority\":95,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\",\"vehicle\",\"road\",\"animal\",\"sports\",\"tableware\",\"food\",\"furniture\",\"device\",\"object\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.25,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
 
 create_rule "${RUN_ID}-line-left" \
 "{\"id\":\"${RUN_ID}-line-left\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"line-crossing\",\"minConfidence\":0.25,\"region\":{\"type\":\"line\",\"direction\":\"any\",\"points\":[{\"x\":0.25,\"y\":0.05},{\"x\":0.25,\"y\":0.98}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
@@ -289,6 +292,7 @@ min_tracks = int(sys.argv[10])
 counts = collections.Counter()
 tracks_by_type = collections.defaultdict(set)
 tracks_by_rule = collections.defaultdict(set)
+highlight_colors_by_rule = collections.defaultdict(set)
 samples = []
 for line in events_file.read_text().splitlines():
     if not line.strip():
@@ -300,17 +304,23 @@ for line in events_file.read_text().splitlines():
             continue
         event_type = event.get("type", "")
         obj = event.get("object") or {}
+        action = event.get("action") or {}
+        highlight = action.get("highlight") or {}
         track_id = obj.get("trackId", 0)
+        color = str(highlight.get("color") or "").lower()
         counts[event_type] += 1
         counts[rule_id] += 1
         tracks_by_type[event_type].add(track_id)
         tracks_by_rule[rule_id].add(track_id)
+        if color:
+            highlight_colors_by_rule[rule_id].add(color)
         if len(samples) < 12:
             samples.append({
                 "rule": rule_id,
                 "type": event_type,
                 "track": track_id,
                 "score": round(float(obj.get("score", 0.0)), 3),
+                "highlight": color,
             })
 
 snapshot = json.loads(snapshot_file.read_text()).get("tap") or {}
@@ -327,6 +337,7 @@ unique_tracks = {
 print("event_counts=", dict(counts))
 print("event_tracks=", {k: sorted(v) for k, v in tracks_by_type.items()})
 print("rule_tracks=", {k: sorted(v) for k, v in tracks_by_rule.items()})
+print("highlight_colors=", {k: sorted(v) for k, v in highlight_colors_by_rule.items()})
 print("samples=", samples)
 print("snapshot_track_count=", latest.get("trackCount", 0), "listed=", listed)
 print("analyzed=", snapshot.get("analyzedPackets", 0), "avgMs=", snapshot.get("averageAnalysisMs", 0))
@@ -334,6 +345,8 @@ print("analyzed=", snapshot.get("analyzedPackets", 0), "avgMs=", snapshot.get("a
 errors = []
 if counts.get("presence", 0) < min_presence:
     errors.append(f"presence 이벤트 부족: {counts.get('presence', 0)} < {min_presence}")
+if counts.get(f"{run_id}-multi-category-presence", 0) < min_presence:
+    errors.append(f"다중 카테고리 presence 이벤트 부족: {counts.get(f'{run_id}-multi-category-presence', 0)} < {min_presence}")
 if counts.get("enter", 0) < min_enter:
     errors.append(f"enter 이벤트 부족: {counts.get('enter', 0)} < {min_enter}")
 if counts.get("exit", 0) < min_exit:
@@ -346,6 +359,12 @@ if not listed:
     errors.append("/lab/analysis/taps 목록에 생성한 tap이 없습니다")
 if latest.get("trackCount", 0) < min_tracks:
     errors.append(f"snapshot trackCount 부족: {latest.get('trackCount', 0)} < {min_tracks}")
+for rule_id, colors in highlight_colors_by_rule.items():
+    unexpected = {color for color in colors if color != "#ff0000"}
+    if unexpected:
+        errors.append(f"{rule_id} highlight color가 빨간색 고정이 아님: {sorted(unexpected)}")
+if "#ff0000" not in highlight_colors_by_rule.get(f"{run_id}-presence", set()):
+    errors.append("커스텀 highlight 입력을 빨간색으로 고정한 이벤트가 없습니다")
 
 if errors:
     for error in errors:
@@ -354,6 +373,8 @@ if errors:
 PY
 log_pass "presence/enter/exit/line-crossing 이벤트 검증"
 log_pass "trackId 기반 이벤트 및 active tap 목록 검증"
+log_pass "다중 카테고리 presence 이벤트 검증"
+log_pass "이벤트 blink highlight 빨간색 고정 검증"
 log_info "overlay=${OVERLAY_FILE}"
 log_info "events_log=${EVENTS_FILE}"
 

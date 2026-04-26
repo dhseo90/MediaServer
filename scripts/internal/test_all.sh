@@ -24,6 +24,7 @@ SKIP_EXTERNAL_CLIENT=0
 SKIP_EXTERNAL_SOURCE=0
 SKIP_VA=0
 INCLUDE_RULES=0
+INCLUDE_RULE_UI=0
 INCLUDE_VA_EVENTS=0
 INCLUDE_IMAGE_ANALYSIS=0
 INCLUDE_WEBRTC_ICE=0
@@ -56,6 +57,7 @@ Options:
   --quick             정적 검사, start, status, diagnose, LAN IP 외부 접근성까지만 실행
   --stable            기본값. 안정화된 로컬 스트리밍 + LAN IP 외부 접근성 + 외부 RTSP upstream advisory 실행
   --include-rules     선택 검증: profile/rule registry API smoke test를 추가
+  --include-rule-ui   선택 검증: /lab/rules Rule/Profile 카테고리 UI smoke test를 추가
   --include-va-events 선택 검증: 이동 영상 기반 tracker 이벤트 검증을 추가
   --include-image-analysis
                        선택 검증: 정적 이미지 metadata/snapshot/overlay API를 추가
@@ -89,6 +91,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     --include-rules)
       INCLUDE_RULES=1
+      ;;
+    --include-rule-ui)
+      INCLUDE_RULE_UI=1
       ;;
     --include-va-events)
       INCLUDE_VA_EVENTS=1
@@ -168,8 +173,9 @@ MediaServer 통합 테스트 시작
   6. stable 모드에서는 기본 설치 범위인 YOLO/VA overlay가 lab API, RTSP, WebRTC에서 동작해야 함
 - 제외:
   HLS/외부 HTTP URI, YouTube, /lab UI, 룰/이벤트/POST, adaptive tuner, 외부 TURN relay
-  룰 registry는 --include-rules, 이동 이벤트는 --include-va-events, 이미지 분석은 --include-image-analysis,
-  WebRTC ICE는 --include-webrtc-ice, URI 장기 회귀는 --include-uri-longrun으로 선택 실행 가능
+  룰 registry는 --include-rules, Rule UI는 --include-rule-ui, 이동 이벤트는 --include-va-events,
+  이미지 분석은 --include-image-analysis, WebRTC ICE는 --include-webrtc-ice,
+  URI 장기 회귀는 --include-uri-longrun으로 선택 실행 가능
 
 EOF_HEADER
 }
@@ -428,6 +434,20 @@ else
   skip_step "profile/rule registry 선택 검증" "아직 안정 기능으로 승격하지 않아 기본 테스트에서 제외합니다. 필요하면 --include-rules를 사용하세요."
 fi
 
+if [[ "${INCLUDE_RULE_UI}" == "1" ]]; then
+  if [[ ${DEPENDENCY_FAILED} -ne 0 ]]; then
+    skip_step "Rule/Profile UI 선택 검증" "서버 readiness가 실패해 Rule UI 검증을 생략합니다."
+  else
+    run_step \
+      "rule-ui-smoke" \
+      "선택 검증: Rule/Profile 카테고리 UI" \
+      "Rule/Profile UI 검증 실패입니다. /lab/rules DOM, 버튼 동작, 카테고리 payload를 확인하세요." \
+      "./server.sh verify-rule-ui" || true
+  fi
+else
+  skip_step "Rule/Profile UI 선택 검증" "브라우저 자동화가 필요한 항목이라 기본 테스트에서 제외합니다. 필요하면 --include-rule-ui를 사용하세요."
+fi
+
 if [[ "${INCLUDE_VA_EVENTS}" == "1" ]]; then
   if [[ ${DEPENDENCY_FAILED} -ne 0 ]]; then
     skip_step "VA tracking 이벤트 선택 검증" "서버 readiness가 실패해 tracker 이벤트 검증을 생략합니다."
@@ -450,8 +470,8 @@ if [[ "${INCLUDE_IMAGE_ANALYSIS}" == "1" ]]; then
   else
     run_step \
       "image-analysis" \
-      "선택 검증: 정적 이미지 분석 API" \
-      "정적 이미지 분석 API 검증 실패입니다. 이미지 decode, ONNX Runtime, YOLO 모델/라벨, overlay JPEG 인코딩을 확인하세요." \
+      "선택 검증: 정적 이미지 분석 API + tracking category" \
+      "정적 이미지 분석 API 검증 실패입니다. 이미지 decode, ONNX Runtime, YOLO 모델/라벨, overlay JPEG 인코딩, trackingClasses category/all 정책을 확인하세요." \
       "./server.sh verify-image-analysis" || true
   fi
 else

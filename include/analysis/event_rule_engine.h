@@ -15,7 +15,7 @@ struct AnalysisEvent {
     std::string label;
     float score{0.0F};
     RectF box;
-    std::string highlight_color{"#ffcc00"};
+    std::string highlight_color{"#ff0000"};
     int highlight_duration_ms{1200};
     bool highlight_enabled{true};
     bool post_enabled{false};

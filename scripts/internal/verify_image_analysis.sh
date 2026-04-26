@@ -26,7 +26,15 @@ SNAPSHOT_FILE="/tmp/media_server_${RUN_ID}_snapshot.jpg"
 OVERLAY_FILE="/tmp/media_server_${RUN_ID}_overlay.jpg"
 TRAVERSAL_FILE="/tmp/media_server_${RUN_ID}_traversal.json"
 TRACKING_DEFAULT_FILE="/tmp/media_server_${RUN_ID}_tracking_default.json"
+TRACKING_EMPTY_FILE="/tmp/media_server_${RUN_ID}_tracking_empty.json"
 TRACKING_ANIMAL_FILE="/tmp/media_server_${RUN_ID}_tracking_animal.json"
+TRACKING_ROAD_FILE="/tmp/media_server_${RUN_ID}_tracking_road.json"
+TRACKING_SPORTS_FILE="/tmp/media_server_${RUN_ID}_tracking_sports.json"
+TRACKING_TABLEWARE_FILE="/tmp/media_server_${RUN_ID}_tracking_tableware.json"
+TRACKING_FOOD_FILE="/tmp/media_server_${RUN_ID}_tracking_food.json"
+TRACKING_FURNITURE_FILE="/tmp/media_server_${RUN_ID}_tracking_furniture.json"
+TRACKING_DEVICE_FILE="/tmp/media_server_${RUN_ID}_tracking_device.json"
+TRACKING_OBJECT_FILE="/tmp/media_server_${RUN_ID}_tracking_object.json"
 TRACKING_ALL_FILE="/tmp/media_server_${RUN_ID}_tracking_all.json"
 
 log_info() {
@@ -180,9 +188,28 @@ else
 fi
 
 if curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1" > "${TRACKING_DEFAULT_FILE}" &&
+   curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=" > "${TRACKING_EMPTY_FILE}" &&
    curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=animal" > "${TRACKING_ANIMAL_FILE}" &&
+   curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=road" > "${TRACKING_ROAD_FILE}" &&
+   curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=sports" > "${TRACKING_SPORTS_FILE}" &&
+   curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=tableware" > "${TRACKING_TABLEWARE_FILE}" &&
+   curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=food" > "${TRACKING_FOOD_FILE}" &&
+   curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=furniture" > "${TRACKING_FURNITURE_FILE}" &&
+   curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=device" > "${TRACKING_DEVICE_FILE}" &&
+   curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=object" > "${TRACKING_OBJECT_FILE}" &&
    curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=$(urlencode_token "*")" > "${TRACKING_ALL_FILE}"; then
-  if python3 - "${TRACKING_DEFAULT_FILE}" "${TRACKING_ANIMAL_FILE}" "${TRACKING_ALL_FILE}" <<'PY'
+  if python3 - \
+    "${TRACKING_DEFAULT_FILE}" \
+    "${TRACKING_EMPTY_FILE}" \
+    "${TRACKING_ANIMAL_FILE}" \
+    "${TRACKING_ROAD_FILE}" \
+    "${TRACKING_SPORTS_FILE}" \
+    "${TRACKING_TABLEWARE_FILE}" \
+    "${TRACKING_FOOD_FILE}" \
+    "${TRACKING_FURNITURE_FILE}" \
+    "${TRACKING_DEVICE_FILE}" \
+    "${TRACKING_OBJECT_FILE}" \
+    "${TRACKING_ALL_FILE}" <<'PY'
 import json
 import pathlib
 import sys
@@ -198,10 +225,26 @@ def tracked_labels(path):
     }
 
 default = tracked_labels(sys.argv[1])
-animal = tracked_labels(sys.argv[2])
-all_classes = tracked_labels(sys.argv[3])
+empty = tracked_labels(sys.argv[2])
+animal = tracked_labels(sys.argv[3])
+road = tracked_labels(sys.argv[4])
+sports = tracked_labels(sys.argv[5])
+tableware = tracked_labels(sys.argv[6])
+food = tracked_labels(sys.argv[7])
+furniture = tracked_labels(sys.argv[8])
+device = tracked_labels(sys.argv[9])
+objects = tracked_labels(sys.argv[10])
+all_classes = tracked_labels(sys.argv[11])
 print("tracking_default=", default)
+print("tracking_empty=", empty)
 print("tracking_animal=", animal)
+print("tracking_road=", road)
+print("tracking_sports=", sports)
+print("tracking_tableware=", tableware)
+print("tracking_food=", food)
+print("tracking_furniture=", furniture)
+print("tracking_device=", device)
+print("tracking_object=", objects)
 print("tracking_all=", all_classes)
 
 expected_default = {"person", "bicycle", "car", "motorcycle", "bus", "truck", "airplane", "train", "boat"}
@@ -209,10 +252,29 @@ if default["tracked"] <= 0:
     raise SystemExit("기본 tracking 결과가 비어 있음")
 if not set(default["labels"]).issubset(expected_default):
     raise SystemExit(f"기본 tracking에 person/vehicle 외 label 포함: {default['labels']}")
+if empty["tracked"] != 0:
+    raise SystemExit(f"빈 trackingClasses가 추적을 생성함: {empty}")
 if not {"bird", "dog"}.issubset(set(animal["labels"])):
     raise SystemExit(f"animal tracking에 기대 label이 없음: {animal['labels']}")
 if any(label in set(animal["labels"]) for label in ("person", "car", "bus", "motorcycle", "bicycle")):
     raise SystemExit(f"animal tracking에 비동물 label 포함: {animal['labels']}")
+
+category_expectations = [
+    ("road", road, {"traffic light"}, {"person", "car", "dog", "pizza", "tv", "umbrella"}),
+    ("sports", sports, set(), {"person", "car", "dog", "pizza", "tv", "umbrella"}),
+    ("tableware", tableware, {"bottle", "cup", "bowl"}, {"person", "car", "dog", "pizza", "tv", "umbrella"}),
+    ("food", food, {"pizza"}, {"person", "car", "dog", "tv", "umbrella"}),
+    ("furniture", furniture, {"bench", "chair", "couch", "potted plant", "dining table"}, {"person", "car", "dog", "pizza", "tv", "umbrella"}),
+    ("device", device, {"tv", "laptop", "microwave", "oven", "clock"}, {"person", "car", "dog", "pizza", "umbrella"}),
+    ("object", objects, {"backpack", "umbrella"}, {"person", "car", "dog", "pizza", "tv"}),
+]
+for name, result, expected_labels, disallowed_labels in category_expectations:
+    labels = set(result["labels"])
+    if not expected_labels.issubset(labels):
+        raise SystemExit(f"{name} tracking에 기대 label이 없음: {result['labels']}")
+    overlap = labels & disallowed_labels
+    if overlap:
+        raise SystemExit(f"{name} tracking에 다른 카테고리 label 포함: {sorted(overlap)} from {result['labels']}")
 if all_classes["tracked"] != all_classes["total"]:
     raise SystemExit(f"전체 tracking 수 불일치: {all_classes['tracked']} != {all_classes['total']}")
 PY
@@ -261,7 +323,15 @@ echo "- 실패: ${FAIL_COUNT}"
 echo "- 건너뜀: ${SKIP_COUNT}"
 echo "- metadata: ${METADATA_FILE}"
 echo "- tracking default: ${TRACKING_DEFAULT_FILE}"
+echo "- tracking empty: ${TRACKING_EMPTY_FILE}"
 echo "- tracking animal: ${TRACKING_ANIMAL_FILE}"
+echo "- tracking road: ${TRACKING_ROAD_FILE}"
+echo "- tracking sports: ${TRACKING_SPORTS_FILE}"
+echo "- tracking tableware: ${TRACKING_TABLEWARE_FILE}"
+echo "- tracking food: ${TRACKING_FOOD_FILE}"
+echo "- tracking furniture: ${TRACKING_FURNITURE_FILE}"
+echo "- tracking device: ${TRACKING_DEVICE_FILE}"
+echo "- tracking object: ${TRACKING_OBJECT_FILE}"
 echo "- tracking all: ${TRACKING_ALL_FILE}"
 echo "- snapshot: ${SNAPSHOT_FILE}"
 echo "- overlay: ${OVERLAY_FILE}"

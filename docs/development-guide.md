@@ -99,7 +99,7 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
   - profile/rule registry는 1차 저장/조회/수정/삭제를 제공한다.
   - `/lab/rules`는 숫자/JSON 직접 입력 대신 한글 UI로 profile 값, 이벤트 판단 영역, 분석 객체 타입을 저장한다.
   - 저장된 rule은 `va=1` overlay와 `/lab/analysis/taps/{tapId}/events`에서 1차 event engine으로 판정한다.
-  - 이벤트 발생 객체는 overlay에서 `이벤트`/`Event` label과 깜빡임 강조 색상으로 표시한다.
+  - 이벤트 발생 객체는 overlay에서 `이벤트`/`Event` label과 카테고리 기본색/빨간색 깜빡임으로 표시한다.
   - `eventActions.post`가 켜진 rule은 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1`일 때 bounded queue 기반 POST worker가 `media-server.va.event.v1` payload로 비동기 전송한다.
 - 실험실 기능
   - `source=youtube` resolver 경로는 코드에 남아 있지만 기본값으로는 비활성화되어 있다.
@@ -324,7 +324,7 @@ MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
 | `MEDIA_SERVER_ANALYSIS_NMS` | `va=1` 기본 NMS threshold. 기본 `0.45` |
 | `MEDIA_SERVER_ANALYSIS_PREPROCESS` | `va=1` 기본 YOLO 전처리. 기본 `letterbox` |
 | `MEDIA_SERVER_ANALYSIS_TRACKING` | `1`이면 `va=1` 기본 tracker 사용. 기본 `1` |
-| `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES` | tracker가 ID/trail을 붙일 카테고리/class 목록. 기본 `person,vehicle`, 동물은 `animal`, 전체는 `*` |
+| `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES` | tracker가 ID/trail을 붙일 카테고리/class 목록. 기본 `person,vehicle`; 추가 카테고리는 `road`, `animal`, `sports`, `tableware`, `food`, `furniture`, `device`, `object`, 전체는 `*` |
 | `MEDIA_SERVER_ANALYSIS_OVERLAY_WAIT_MS` | `va=1` 기본 overlay result 대기 시간. 기본 `180` |
 | `MEDIA_SERVER_ANALYSIS_OVERLAY_SYNC_TOLERANCE_MS` | `va=1` 기본 PTS 매칭 허용 범위. 기본 `400` |
 | `MEDIA_SERVER_ANALYSIS_OVERLAY_THICKNESS` | `va=1` 기본 detection box 두께. 기본 `3` |
@@ -417,13 +417,15 @@ WebRTC STUN/TURN 검증 상태:
 | `./server.sh test` | 안정 기능 기준 통합 테스트. 한글 원인 리포트와 `.media_server.test/` 로그 생성 |
 | `./server.sh verify-codecs` | source/route codec matrix 자동 검증 |
 | `./server.sh verify-webrtc-ice` | STUN/TURN/ICE transport policy와 candidate 수집 상태 검증 |
-| `./server.sh verify-uri-longrun` | HTTP/HLS URI source 로컬 반복 검증과 선택 외부 URL 회귀 검증 |
-| `./server.sh verify-va` | YOLO/VA overlay lab, RTSP, WebRTC 회귀 검증 |
+| `./server.sh verify-uri-longrun` | HTTP/HLS URI source 로컬 반복 검증과 선택 외부 URL 반복 확인 |
+| `./server.sh verify-va` | YOLO/VA overlay lab, RTSP, WebRTC 검증 |
 | `./server.sh verify-va-events` | 실제 이동 영상 기준 tracker, line-crossing, enter, exit 이벤트 검증 |
+| `./server.sh verify-va-category-samples` | 실제 영상 샘플과 sports 전용 샘플 기준 VA 카테고리별 presence 이벤트 검증 |
 | `./server.sh verify-route-profiles` | 실제 RTSP/WebRTC overlay 세션 기준 route별 profile/rule matching 검증 |
+| `./server.sh verify-rule-ui` | `/lab/rules` Rule/Profile 카테고리 버튼, category catalog, 저장 payload 검증 |
 | `./server.sh verify-tracker-stability` | 이동 영상 기준 track ID 유지/분절 통계 수집 |
-| `./server.sh verify-yolo-layouts` | YOLO 모델별 output layout/box/score 조합 회귀 검증 |
-| `./server.sh verify-adaptive` | adaptive tuner의 과부하 downshift와 저부하 upshift 회귀 검증 |
+| `./server.sh verify-yolo-layouts` | YOLO 모델별 output layout/box/score 조합 검증 |
+| `./server.sh verify-adaptive` | adaptive tuner의 과부하 downshift와 저부하 upshift 검증 |
 
 ### 권장 개발 흐름
 처음 환경 구성:
@@ -499,7 +501,7 @@ ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성
 - 제외: HLS/외부 HTTP URI source, YouTube source/import, `/lab` UI, 룰/이벤트/POST, adaptive tuner. 단 로컬 HLS VOD는 `verify-codecs` 선택 matrix에서 검증 가능하다.
 - 선택 검증: `./server.sh test --include-rules`는 profile/rule registry CRUD와 rule match 기반 profile 자동 선택을 추가 확인한다.
 - 선택 검증: `./server.sh test --include-va-events`는 실제 이동 영상 기반 tracker/event 판정을 추가 확인한다.
-- 선택 검증: `./server.sh test --include-image-analysis`는 개발용 정적 이미지 분석 API를 추가 확인한다.
+- 선택 검증: `./server.sh test --include-image-analysis`는 개발용 정적 이미지 분석 API와 tracking category/all 정책을 추가 확인한다.
 - 선택 검증: `./server.sh test --include-webrtc-ice`는 WebRTC STUN/TURN/ICE candidate 수집을 추가 확인한다.
 - 선택 검증: `./server.sh test --include-uri-longrun`은 HTTP/HLS URI source 반복 검증을 추가 확인한다.
 - 외부 운영 TURN은 credential이 있어야 hard gate로 검증할 수 있다. 서버를 `MEDIA_SERVER_WEBRTC_TURN_SERVER=turn://user:pass@host:3478 MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay`로 띄운 뒤 `./server.sh verify-webrtc-ice --external-turn`을 실행한다. credential이 없으면 이 검증은 skip으로 남긴다.

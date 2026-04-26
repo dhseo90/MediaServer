@@ -778,7 +778,7 @@ bool RenderDetectionOverlay(const RawVideoFrame& frame,
             options.draw_event_highlight && detection.event_triggered && ShouldDrawEventBlink(frame, detection);
         const Color normal_color = ColorForDetection(detection);
         const Color box_color = event_on
-                                    ? ParseHexColorOrDefault(detection.event_highlight_color, Color{255, 204, 0})
+                                    ? ParseHexColorOrDefault(detection.event_highlight_color, Color{255, 0, 0})
                                     : normal_color;
         const int box_thickness = event_on ? ClampInt(thickness + 3, 1, 16) : thickness;
         DrawRect(output, x1, y1, x2, y2, box_thickness, box_color);

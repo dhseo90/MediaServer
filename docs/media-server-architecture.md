@@ -137,6 +137,7 @@ video/
   sample_h264.mp4
   sample_h265.mp4
   va_four_scene_sample.mp4
+  va_sports_sample.mp4
 CMakeLists.txt
 ```
 

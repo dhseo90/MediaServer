@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "app_config.h"
+#include "analysis/category_tokens.h"
 #include "analysis/detector.h"
 #include "analysis/event_post_dispatcher.h"
 #include "analysis/event_rule_engine.h"
@@ -124,6 +125,18 @@ std::string JsonEscape(const std::string& value) {
         }
     }
     return out;
+}
+
+// HTML template 안의 고정 placeholder를 한 번에 치환한다.
+void ReplaceAll(std::string* text, const std::string& needle, const std::string& replacement) {
+    if (text == nullptr || needle.empty()) {
+        return;
+    }
+    std::size_t pos = 0;
+    while ((pos = text->find(needle, pos)) != std::string::npos) {
+        text->replace(pos, needle.size(), replacement);
+        pos += replacement.size();
+    }
 }
 
 bool ParseBoolQuery(const std::unordered_map<std::string, std::string>& query,
@@ -227,6 +240,109 @@ std::optional<std::string> ParseStringField(const std::string& body, const std::
     return std::nullopt;
 }
 
+// JSON 문자열에서 지정 field의 중괄호/대괄호 범위를 문자열 리터럴을 피해 추출한다.
+std::optional<std::string> ExtractDelimitedField(const std::string& body,
+                                                 const std::string& field,
+                                                 char open_ch,
+                                                 char close_ch) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t pos = body.find(needle);
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    pos = body.find(':', pos + needle.size());
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    pos = body.find(open_ch, pos);
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+
+    bool in_string = false;
+    bool escaped = false;
+    int depth = 0;
+    const std::size_t start = pos;
+    for (; pos < body.size(); ++pos) {
+        const char ch = body[pos];
+        if (escaped) {
+            escaped = false;
+            continue;
+        }
+        if (ch == '\\' && in_string) {
+            escaped = true;
+            continue;
+        }
+        if (ch == '"') {
+            in_string = !in_string;
+            continue;
+        }
+        if (in_string) {
+            continue;
+        }
+        if (ch == open_ch) {
+            ++depth;
+        } else if (ch == close_ch) {
+            --depth;
+            if (depth == 0) {
+                return body.substr(start, pos - start + 1);
+            }
+        }
+    }
+    return std::nullopt;
+}
+
+// JSON 문자열에서 object field 본문을 추출한다.
+std::optional<std::string> ExtractObjectField(const std::string& body, const std::string& field) {
+    return ExtractDelimitedField(body, field, '{', '}');
+}
+
+// JSON 문자열에서 array field 본문을 추출한다.
+std::optional<std::string> ExtractArrayField(const std::string& body, const std::string& field) {
+    return ExtractDelimitedField(body, field, '[', ']');
+}
+
+// string array에 공백이 아닌 실제 값이 하나 이상 있는지 확인한다.
+bool StringArrayHasNonEmptyValue(const std::string& array_body) {
+    bool in_string = false;
+    bool escaped = false;
+    std::string current;
+    for (std::size_t pos = 1; pos + 1 < array_body.size(); ++pos) {
+        const char ch = array_body[pos];
+        if (!in_string) {
+            if (ch == '"') {
+                in_string = true;
+                current.clear();
+            }
+            continue;
+        }
+        if (escaped) {
+            current.push_back(ch);
+            escaped = false;
+            continue;
+        }
+        if (ch == '\\') {
+            escaped = true;
+            continue;
+        }
+        if (ch == '"') {
+            if (!Trim(current).empty()) {
+                return true;
+            }
+            in_string = false;
+            continue;
+        }
+        current.push_back(ch);
+    }
+    return false;
+}
+
+// object 본문 안의 string array field가 비어 있지 않은지 확인한다.
+bool HasNonEmptyStringArrayField(const std::string& body, const std::string& field) {
+    const auto array = ExtractArrayField(body, field);
+    return array.has_value() && StringArrayHasNonEmptyValue(*array);
+}
+
 bool LooksLikeJsonObject(const std::string& body) {
     const std::string trimmed = Trim(body);
     return trimmed.size() >= 2 && trimmed.front() == '{' && trimmed.back() == '}';
@@ -321,7 +437,7 @@ public:
             << "\"fps\":\"number\",\"maxQueue\":\"number\"},\"outputs\":{\"metadata\":\"bool\","
             << "\"snapshot\":\"bool\",\"overlay\":\"bool\",\"events\":\"bool\"},"
             << "\"eventActions\":{\"highlight\":{\"enabled\":\"bool\",\"mode\":\"blink\","
-            << "\"durationMs\":\"number\",\"color\":\"#RRGGBB\"},\"post\":{\"enabled\":\"bool\","
+            << "\"durationMs\":\"number\",\"color\":\"fixed #ff0000\"},\"post\":{\"enabled\":\"bool\","
             << "\"method\":\"POST\",\"url\":\"string\",\"payloadFormat\":\"media-server.va.event.v1\"}}},"
             << "\"rules\":";
         AppendDocumentsArray(out, rules_);
@@ -531,6 +647,24 @@ private:
         if (profile && IsBuiltInAnalysisProfileId(*id)) {
             SetRegistryError(error_message, "built-in profile id is reserved");
             return std::nullopt;
+        }
+        if (profile) {
+            if (const auto tracking_classes = ExtractArrayField(body, "trackingClasses");
+                tracking_classes.has_value() && !StringArrayHasNonEmptyValue(*tracking_classes)) {
+                SetRegistryError(error_message, "profile trackingClasses must include at least one category");
+                return std::nullopt;
+            }
+            if (const auto tracking_classes = ParseStringField(body, "trackingClasses");
+                tracking_classes.has_value() && Trim(*tracking_classes).empty()) {
+                SetRegistryError(error_message, "profile trackingClasses must include at least one category");
+                return std::nullopt;
+            }
+        } else {
+            const auto analysis = ExtractObjectField(body, "analysis");
+            if (!analysis.has_value() || !HasNonEmptyStringArrayField(*analysis, "classes")) {
+                SetRegistryError(error_message, "rule analysis.classes must include at least one category");
+                return std::nullopt;
+            }
         }
         return Document{*id, Trim(body)};
     }
@@ -2333,8 +2467,10 @@ std::string BuildTestPageHtml(bool lab_mode) {
 </html>)";
 }
 
+std::string AnalysisCategoryCatalogJson();
+
 std::string BuildLabRuleEditorPageHtml() {
-    return R"RULEPAGE(<!DOCTYPE html>
+    std::string html = R"RULEPAGE(<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
@@ -2521,7 +2657,7 @@ std::string BuildLabRuleEditorPageHtml() {
     }
     .check-grid label {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 8px;
       padding: 10px;
       border: 1px solid var(--line);
@@ -2575,6 +2711,21 @@ std::string BuildLabRuleEditorPageHtml() {
       font-size: 12px;
       font-weight: 800;
       color: var(--ink);
+    }
+    .category-label {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+    .category-title {
+      font-weight: 800;
+    }
+    .category-detail {
+      font-size: 11px;
+      line-height: 1.35;
+      max-height: 78px;
+      overflow: auto;
+      overflow-wrap: anywhere;
     }
     .preview-panel {
       border: 1px solid var(--line);
@@ -2638,6 +2789,32 @@ std::string BuildLabRuleEditorPageHtml() {
       border-radius: 0;
       box-shadow: none;
       background: transparent;
+    }
+    .validation-dialog {
+      width: min(420px, calc(100vw - 32px));
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card-bg);
+      color: var(--ink);
+      padding: 0;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.26);
+    }
+    .validation-dialog::backdrop {
+      background: rgba(0,0,0,0.32);
+    }
+    .validation-dialog form {
+      display: grid;
+      gap: 14px;
+      padding: 20px;
+    }
+    .validation-dialog h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .validation-dialog p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
     }
     .hint { margin: 0; font-size: 0.9rem; color: var(--muted); }
     @media (max-width: 980px) {
@@ -2716,10 +2893,21 @@ std::string BuildLabRuleEditorPageHtml() {
           </label>
           <label>Tracking 대상 카테고리</label>
           <div class="pill-grid">
+            <button id="selectDefaultTrackingBtn" class="secondary mini-button">기본</button>
+            <button id="selectAllTrackingBtn" class="secondary mini-button">전체 선택</button>
+            <button id="clearTrackingBtn" class="secondary mini-button">전체 해제</button>
+          </div>
+          <div class="pill-grid">
             <label class="mini-check"><input data-tracking-category type="checkbox" value="person" checked /> 사람</label>
             <label class="mini-check"><input data-tracking-category type="checkbox" value="vehicle" checked /> 차량</label>
+            <label class="mini-check"><input data-tracking-category type="checkbox" value="road" /> 도로</label>
             <label class="mini-check"><input data-tracking-category type="checkbox" value="animal" /> 동물</label>
-            <label class="mini-check"><input data-tracking-category type="checkbox" value="*" /> 전체</label>
+            <label class="mini-check"><input data-tracking-category type="checkbox" value="sports" /> 운동</label>
+            <label class="mini-check"><input data-tracking-category type="checkbox" value="tableware" /> 식기</label>
+            <label class="mini-check"><input data-tracking-category type="checkbox" value="food" /> 음식</label>
+            <label class="mini-check"><input data-tracking-category type="checkbox" value="furniture" /> 가구</label>
+            <label class="mini-check"><input data-tracking-category type="checkbox" value="device" /> 기기</label>
+            <label class="mini-check"><input data-tracking-category type="checkbox" value="object" /> 잡화</label>
           </div>
           <p class="hint">ID/trail과 enter/exit/line-crossing 판정 대상입니다. 세부 객체명은 JSON/API에서만 직접 지정합니다.</p>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
@@ -2739,7 +2927,7 @@ std::string BuildLabRuleEditorPageHtml() {
           </label>
           <div class="row">
             <label>Rule ID
-              <input id="ruleId" value="file-person-car-area" />
+              <input id="ruleId" value="file-person-vehicle-area" />
             </label>
             <label>사용 여부
               <select id="ruleEnabled">
@@ -2780,30 +2968,11 @@ std::string BuildLabRuleEditorPageHtml() {
               </select>
             </label>
           </div>
-          <label>분석할 객체 타입</label>
+          <label>분석할 객체 카테고리</label>
           <div class="class-tools">
-            <div class="class-filter-row">
-              <label>카테고리 필터
-                <select id="classFilterInput">
-                  <option value="" selected>전체 카테고리 보기</option>
-                  <option value="사람">사람</option>
-                  <option value="차량">차량</option>
-                  <option value="도로">도로</option>
-                  <option value="동물">동물</option>
-                  <option value="운동">운동</option>
-                  <option value="식기">식기</option>
-                  <option value="음식">음식</option>
-                  <option value="가구">가구</option>
-                  <option value="기기">기기</option>
-                  <option value="잡화">잡화</option>
-                </select>
-              </label>
-              <p class="hint">객체 값은 COCO label 기준으로 고정되어 있어 직접 입력하지 않고 카테고리별로 선택합니다.</p>
-            </div>
+            <p class="hint">Rule은 기존 객체 카테고리 단위로 선택합니다. 세부 COCO 객체명은 JSON/API에서 직접 지정할 수 있습니다.</p>
             <div class="pill-grid">
-              <button id="selectCoreClassesBtn" class="secondary mini-button">주요 객체</button>
-              <button id="selectVehicleClassesBtn" class="secondary mini-button">사람/차량</button>
-              <button id="selectAnimalClassesBtn" class="secondary mini-button">동물</button>
+              <button id="selectCoreClassesBtn" class="secondary mini-button">기본</button>
               <button id="selectAllClassesBtn" class="secondary mini-button">전체 선택</button>
               <button id="clearClassesBtn" class="secondary mini-button">전체 해제</button>
             </div>
@@ -2840,14 +3009,9 @@ std::string BuildLabRuleEditorPageHtml() {
                 <input id="eventFlashInput" type="checkbox" checked />
                 이벤트가 발생한 객체를 overlay에서 깜빡임으로 강조
               </label>
-              <div class="row">
-                <label>깜빡임 시간(ms)
-                  <input id="eventFlashMsInput" type="number" min="100" max="10000" value="1200" />
-                </label>
-                <label>강조 색상
-                  <input id="eventFlashColorInput" type="color" value="#ffcc00" />
-                </label>
-              </div>
+              <label>깜빡임 시간(ms)
+                <input id="eventFlashMsInput" type="number" min="100" max="10000" value="1200" />
+              </label>
               <label>이벤트 POST URL
                 <input id="eventPostUrlInput" placeholder="https://example.internal/events" />
               </label>
@@ -2892,98 +3056,26 @@ std::string BuildLabRuleEditorPageHtml() {
     </details>
   </main>
 
+  <dialog id="validationDialog" class="validation-dialog">
+    <form method="dialog">
+      <h2>설정 확인</h2>
+      <p id="validationDialogMessage"></p>
+      <button id="validationDialogClose" value="ok">확인</button>
+    </form>
+  </dialog>
+
   <script>
-    const classes = [
-      { value: 'person', category: '사람', label: '단독', group: 'person core' },
-      { value: 'bicycle', category: '차량', label: '자전거', group: 'vehicle core' },
-      { value: 'car', category: '차량', label: '자동차', group: 'vehicle core' },
-      { value: 'motorcycle', category: '차량', label: '오토바이', group: 'vehicle core' },
-      { value: 'airplane', category: '차량', label: '비행기', group: 'vehicle' },
-      { value: 'bus', category: '차량', label: '버스', group: 'vehicle core' },
-      { value: 'train', category: '차량', label: '기차', group: 'vehicle' },
-      { value: 'truck', category: '차량', label: '트럭', group: 'vehicle core' },
-      { value: 'boat', category: '차량', label: '보트', group: 'vehicle' },
-      { value: 'traffic light', category: '도로', label: '신호등', group: 'traffic core' },
-      { value: 'fire hydrant', category: '도로', label: '소화전', group: 'traffic' },
-      { value: 'stop sign', category: '도로', label: '정지 표지판', group: 'traffic core' },
-      { value: 'parking meter', category: '도로', label: '주차 미터기', group: 'traffic' },
-      { value: 'bird', category: '동물', label: '새', group: 'animal' },
-      { value: 'cat', category: '동물', label: '고양이', group: 'animal' },
-      { value: 'dog', category: '동물', label: '강아지', group: 'animal core' },
-      { value: 'horse', category: '동물', label: '말', group: 'animal' },
-      { value: 'sheep', category: '동물', label: '양', group: 'animal' },
-      { value: 'cow', category: '동물', label: '소', group: 'animal' },
-      { value: 'elephant', category: '동물', label: '코끼리', group: 'animal' },
-      { value: 'bear', category: '동물', label: '곰', group: 'animal' },
-      { value: 'zebra', category: '동물', label: '얼룩말', group: 'animal' },
-      { value: 'giraffe', category: '동물', label: '기린', group: 'animal' },
-      { value: 'backpack', category: '잡화', label: '백팩', group: 'object' },
-      { value: 'umbrella', category: '잡화', label: '우산', group: 'object' },
-      { value: 'handbag', category: '잡화', label: '핸드백', group: 'object' },
-      { value: 'tie', category: '잡화', label: '넥타이', group: 'object' },
-      { value: 'suitcase', category: '잡화', label: '여행가방', group: 'object' },
-      { value: 'frisbee', category: '운동', label: '프리스비', group: 'sports' },
-      { value: 'skis', category: '운동', label: '스키', group: 'sports' },
-      { value: 'snowboard', category: '운동', label: '스노보드', group: 'sports' },
-      { value: 'sports ball', category: '운동', label: '공', group: 'sports' },
-      { value: 'kite', category: '운동', label: '연', group: 'sports' },
-      { value: 'baseball bat', category: '운동', label: '야구 배트', group: 'sports' },
-      { value: 'baseball glove', category: '운동', label: '야구 글러브', group: 'sports' },
-      { value: 'skateboard', category: '운동', label: '스케이트보드', group: 'sports' },
-      { value: 'surfboard', category: '운동', label: '서프보드', group: 'sports' },
-      { value: 'tennis racket', category: '운동', label: '테니스 라켓', group: 'sports' },
-      { value: 'bottle', category: '식기', label: '병', group: 'tableware' },
-      { value: 'wine glass', category: '식기', label: '와인잔', group: 'tableware' },
-      { value: 'cup', category: '식기', label: '컵', group: 'tableware' },
-      { value: 'fork', category: '식기', label: '포크', group: 'tableware' },
-      { value: 'knife', category: '식기', label: '칼', group: 'tableware' },
-      { value: 'spoon', category: '식기', label: '숟가락', group: 'tableware' },
-      { value: 'bowl', category: '식기', label: '그릇', group: 'tableware' },
-      { value: 'banana', category: '음식', label: '바나나', group: 'food' },
-      { value: 'apple', category: '음식', label: '사과', group: 'food' },
-      { value: 'sandwich', category: '음식', label: '샌드위치', group: 'food' },
-      { value: 'orange', category: '음식', label: '오렌지', group: 'food' },
-      { value: 'broccoli', category: '음식', label: '브로콜리', group: 'food' },
-      { value: 'carrot', category: '음식', label: '당근', group: 'food' },
-      { value: 'hot dog', category: '음식', label: '핫도그', group: 'food' },
-      { value: 'pizza', category: '음식', label: '피자', group: 'food' },
-      { value: 'donut', category: '음식', label: '도넛', group: 'food' },
-      { value: 'cake', category: '음식', label: '케이크', group: 'food' },
-      { value: 'bench', category: '가구', label: '벤치', group: 'furniture' },
-      { value: 'chair', category: '가구', label: '의자', group: 'furniture' },
-      { value: 'couch', category: '가구', label: '소파', group: 'furniture' },
-      { value: 'potted plant', category: '가구', label: '화분', group: 'furniture' },
-      { value: 'bed', category: '가구', label: '침대', group: 'furniture' },
-      { value: 'dining table', category: '가구', label: '식탁', group: 'furniture' },
-      { value: 'toilet', category: '가구', label: '변기', group: 'furniture' },
-      { value: 'tv', category: '기기', label: 'TV', group: 'electronics' },
-      { value: 'laptop', category: '기기', label: '노트북', group: 'electronics' },
-      { value: 'mouse', category: '기기', label: '마우스', group: 'electronics' },
-      { value: 'remote', category: '기기', label: '리모컨', group: 'electronics' },
-      { value: 'keyboard', category: '기기', label: '키보드', group: 'electronics' },
-      { value: 'cell phone', category: '기기', label: '휴대폰', group: 'electronics' },
-      { value: 'microwave', category: '기기', label: '전자레인지', group: 'appliance' },
-      { value: 'oven', category: '기기', label: '오븐', group: 'appliance' },
-      { value: 'toaster', category: '기기', label: '토스터', group: 'appliance' },
-      { value: 'sink', category: '가구', label: '싱크대', group: 'appliance' },
-      { value: 'refrigerator', category: '기기', label: '냉장고', group: 'appliance' },
-      { value: 'book', category: '잡화', label: '책', group: 'object' },
-      { value: 'clock', category: '기기', label: '시계', group: 'object' },
-      { value: 'vase', category: '잡화', label: '꽃병', group: 'object' },
-      { value: 'scissors', category: '잡화', label: '가위', group: 'object' },
-      { value: 'teddy bear', category: '잡화', label: '곰인형', group: 'object' },
-      { value: 'hair drier', category: '기기', label: '헤어드라이어', group: 'object' },
-      { value: 'toothbrush', category: '잡화', label: '칫솔', group: 'object' }
-    ];
-    const classCategoryOrder = ['사람', '차량', '도로', '동물', '운동', '식기', '음식', '가구', '기기', '잡화'];
-    classes.sort((left, right) => {
-      const leftCategoryIndex = classCategoryOrder.indexOf(left.category);
-      const rightCategoryIndex = classCategoryOrder.indexOf(right.category);
-      const leftOrder = leftCategoryIndex >= 0 ? leftCategoryIndex : 999;
-      const rightOrder = rightCategoryIndex >= 0 ? rightCategoryIndex : 999;
-      if (leftOrder !== rightOrder) return leftOrder - rightOrder;
-      return left.label.localeCompare(right.label, 'ko');
-    });
+    const categoryCatalog = __MEDIA_SERVER_CATEGORY_CATALOG__;
+    const ruleCategories = categoryCatalog.map((item) => ({
+      value: item.value,
+      label: item.label,
+      hint: item.hint,
+      group: item.group
+    }));
+    const ruleCategoryLabels = Object.fromEntries(categoryCatalog.map((item) => [item.value, item.labels || []]));
+    const ruleCategoryDisplayLabels = Object.fromEntries(
+      categoryCatalog.map((item) => [item.value, item.displayLabels || [item.label]])
+    );
     let builtInProfiles = [];
     let profiles = [];
     let rules = [];
@@ -3052,54 +3144,37 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     function selectedTrackingClasses() {
-      const selected = Array.from(document.querySelectorAll('[data-tracking-category]:checked'))
-        .map((el) => el.value);
-      return selected.includes('*') ? ['*'] : selected;
+      return Array.from(document.querySelectorAll('[data-tracking-category]:checked')).map((el) => el.value);
     }
 
     function setTrackingClasses(values) {
       const rawValues = Array.isArray(values) && values.length > 0 ? values : ['person', 'vehicle'];
       const normalized = new Set(rawValues.map(normalizeTrackingToken).filter(Boolean));
       const hasAll = normalized.has('*') || normalized.has('all') || normalized.has('any');
-      const vehicleLabels = new Set(['bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat']);
-      const animalLabels = new Set(['bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe']);
       document.querySelectorAll('[data-tracking-category]').forEach((el) => {
         const value = el.value;
+        const categoryLabels = ruleCategoryLabels[value] || [];
         el.checked =
-          (value === '*' && hasAll) ||
-          (!hasAll && value === 'person' &&
-            (normalized.has('person') || normalized.has('people') || normalized.has('human') || normalized.has('humans'))) ||
-          (!hasAll && value === 'vehicle' &&
-            (normalized.has('vehicle') || normalized.has('vehicles') ||
-              Array.from(vehicleLabels).some((label) => normalized.has(label)))) ||
-          (!hasAll && value === 'animal' &&
-            (normalized.has('animal') || normalized.has('animals') ||
-              Array.from(animalLabels).some((label) => normalized.has(label))));
+          hasAll ||
+          (!hasAll && normalized.has(value)) ||
+          (!hasAll && categoryLabels.some((label) => normalized.has(normalizeTrackingToken(label))));
       });
     }
 
-    function normalizeTrackingCategorySelection(changed) {
-      if (!changed) return;
-      if (changed.value === '*' && changed.checked) {
-        document.querySelectorAll('[data-tracking-category]').forEach((el) => {
-          if (el !== changed) el.checked = false;
-        });
-      } else if (changed.checked) {
-        const all = document.querySelector('[data-tracking-category][value="*"]');
-        if (all) all.checked = false;
-      }
-      if (selectedTrackingClasses().length === 0) {
-        const person = document.querySelector('[data-tracking-category][value="person"]');
-        if (person) person.checked = true;
-      }
+    function setTrackingCategoryChecks(predicate) {
+      document.querySelectorAll('[data-tracking-category]').forEach((el) => {
+        el.checked = predicate(el.value, el);
+      });
+      updatePreviews();
     }
 
     function selectedClasses() {
-      return Array.from(document.querySelectorAll('[data-class-check]:checked')).map((el) => el.value);
+      const selected = Array.from(document.querySelectorAll('[data-rule-category]:checked')).map((el) => el.value);
+      return selected.includes('*') ? ['*'] : selected;
     }
 
     function setCheckedClasses(predicate) {
-      document.querySelectorAll('[data-class-check]').forEach((el) => {
+      document.querySelectorAll('[data-rule-category]').forEach((el) => {
         const group = el.dataset.classGroup || '';
         el.checked = predicate(el.value, group, el);
       });
@@ -3107,18 +3182,7 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     function filterClassChecks() {
-      const selectedCategory = ($('classFilterInput').value || '').trim();
-      document.querySelectorAll('[data-class-item]').forEach((el) => {
-        const category = el.dataset.category || '';
-        el.classList.toggle('is-hidden', selectedCategory.length > 0 && category !== selectedCategory);
-      });
-      document.querySelectorAll('[data-class-group-title]').forEach((title) => {
-        const category = title.dataset.category || '';
-        const visibleCount = Array.from(document.querySelectorAll(`[data-class-item][data-category="${category}"]`))
-          .filter((el) => !el.classList.contains('is-hidden'))
-          .length;
-        title.classList.toggle('is-hidden', visibleCount === 0);
-      });
+      return;
     }
 
     function isLineRule() {
@@ -3187,7 +3251,7 @@ std::string BuildLabRuleEditorPageHtml() {
           mode: 'blink',
           target: 'matched-object',
           durationMs: clampedIntValue('eventFlashMsInput', 1200, 100, 10000),
-          color: $('eventFlashColorInput').value || '#ffcc00'
+          color: '#ff0000'
         },
         post: {
           enabled: postUrl.length > 0,
@@ -3206,7 +3270,7 @@ std::string BuildLabRuleEditorPageHtml() {
         eventId: 'evt_20260425_000001',
         timestamp: '2026-04-25T00:00:00.000Z',
         rule: {
-          id: $('ruleId').value.trim() || 'file-person-car-area',
+          id: $('ruleId').value.trim() || 'file-person-vehicle-area',
           type: $('ruleEventType').value
         },
         source: {
@@ -3246,7 +3310,7 @@ std::string BuildLabRuleEditorPageHtml() {
         region.direction = 'any';
       }
       return {
-        id: $('ruleId').value.trim() || 'file-person-car-area',
+        id: $('ruleId').value.trim() || 'file-person-vehicle-area',
         enabled: $('ruleEnabled').value === 'true',
         match: {
           sourceKind: $('ruleSourceKind').value,
@@ -3300,35 +3364,64 @@ std::string BuildLabRuleEditorPageHtml() {
       drawRegion();
     }
 
+    // 저장 전 검증 실패를 상태창과 화면 다이얼로그로 동시에 표시한다.
+    function validationWarning(message) {
+      if (!message) return false;
+      window.__mediaServerLastValidationMessage = message;
+      status(message);
+      const dialog = $('validationDialog');
+      const dialogMessage = $('validationDialogMessage');
+      if (dialog && dialogMessage && typeof dialog.showModal === 'function') {
+        dialogMessage.textContent = message;
+        if (!dialog.open) {
+          dialog.showModal();
+        }
+      } else if (typeof window.alert === 'function') {
+        window.alert(message);
+      }
+      return true;
+    }
+
+    // Profile 저장 payload에 추적 대상 카테고리가 최소 1개 있는지 확인한다.
+    function validateProfilePayload(payload) {
+      const classes = Array.isArray(payload?.trackingClasses) ? payload.trackingClasses : [];
+      return classes.length > 0 ? '' : 'Tracking 대상 카테고리를 1개 이상 선택하세요.';
+    }
+
+    // Rule 저장 payload에 분석 대상 카테고리가 최소 1개 있는지 확인한다.
+    function validateRulePayload(payload) {
+      const classes = Array.isArray(payload?.analysis?.classes) ? payload.analysis.classes : [];
+      return classes.length > 0 ? '' : '분석할 객체 카테고리를 1개 이상 선택하세요.';
+    }
+
     function renderClassChecks() {
       const container = $('classChecks');
       container.innerHTML = '';
-      let lastCategory = '';
-      for (const item of classes) {
-        const { value, category, label, group } = item;
-        if (category !== lastCategory) {
-          const title = document.createElement('div');
-          title.className = 'class-group-title';
-          title.dataset.classGroupTitle = '1';
-          title.dataset.category = category;
-          title.textContent = category;
-          container.appendChild(title);
-          lastCategory = category;
-        }
+      for (const item of ruleCategories) {
+        const { value, label, hint, group } = item;
         const wrapper = document.createElement('label');
         wrapper.dataset.classItem = '1';
-        wrapper.dataset.category = category;
-        wrapper.dataset.search = `${value} ${category} ${label} ${group}`;
+        wrapper.dataset.category = label;
+        wrapper.dataset.search = `${value} ${label} ${hint} ${group}`;
         const input = document.createElement('input');
         input.type = 'checkbox';
         input.value = value;
-        input.dataset.classCheck = '1';
+        input.dataset.ruleCategory = '1';
         input.dataset.classGroup = group;
-        input.checked = value === 'person' || value === 'car' || value === 'bus' || value === 'truck';
+        input.checked = value === 'person' || value === 'vehicle';
         input.addEventListener('change', updatePreviews);
         wrapper.appendChild(input);
-        const displayLabel = category === '사람' ? `${category} ${label}` : `${category}(${label})`;
-        wrapper.appendChild(document.createTextNode(`${displayLabel} · ${value}`));
+        const labelBox = document.createElement('span');
+        labelBox.className = 'category-label';
+        const title = document.createElement('span');
+        title.className = 'category-title';
+        title.textContent = label;
+        const detail = document.createElement('span');
+        detail.className = 'category-detail';
+        detail.textContent = `포함: ${(ruleCategoryDisplayLabels[value] || [label]).join(', ')}`;
+        labelBox.appendChild(title);
+        labelBox.appendChild(detail);
+        wrapper.appendChild(labelBox);
         container.appendChild(wrapper);
       }
       filterClassChecks();
@@ -3511,15 +3604,19 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     function loadRule(item) {
-      $('ruleId').value = item.id || 'file-person-car-area';
+      $('ruleId').value = item.id || 'file-person-vehicle-area';
       $('ruleEnabled').value = item.enabled === false ? 'false' : 'true';
       $('ruleSourceKind').value = item.match?.sourceKind || '*';
       $('ruleRoute').value = item.match?.route || '*';
       $('ruleProfileId').value = item.analysis?.profileId || $('ruleProfileId').value;
       $('ruleEventType').value = item.event?.type || 'presence';
-      const classSet = new Set(item.analysis?.classes || []);
-      document.querySelectorAll('[data-class-check]').forEach((el) => {
-        el.checked = classSet.size === 0 ? (el.value === 'person' || el.value === 'car') : classSet.has(el.value);
+      const classSet = new Set((item.analysis?.classes || []).map((value) => normalizeTrackingToken(value)));
+      const hasAll = classSet.has('*') || classSet.has('all') || classSet.has('any');
+      document.querySelectorAll('[data-rule-category]').forEach((el) => {
+        const categoryLabels = ruleCategoryLabels[el.value] || [];
+        el.checked = classSet.size === 0
+          ? (el.value === 'person' || el.value === 'vehicle')
+          : hasAll || classSet.has(el.value) || categoryLabels.some((label) => classSet.has(normalizeTrackingToken(label)));
       });
       filterClassChecks();
       $('ruleConfidence').value = Math.round(Number(item.event?.minConfidence ?? 0.25) * 100);
@@ -3536,15 +3633,16 @@ std::string BuildLabRuleEditorPageHtml() {
       const post = eventActions.post || {};
       $('eventFlashInput').checked = highlight.enabled !== false;
       $('eventFlashMsInput').value = Number(highlight.durationMs || 1200);
-      $('eventFlashColorInput').value = typeof highlight.color === 'string' && highlight.color
-        ? highlight.color
-        : '#ffcc00';
       $('eventPostUrlInput').value = typeof post.url === 'string' ? post.url : '';
       updatePreviews();
     }
 
     async function saveProfile() {
       const payload = profileJson();
+      const warning = validateProfilePayload(payload);
+      if (validationWarning(warning)) {
+        throw new Error(warning);
+      }
       const response = await requestJson(`/lab/analysis/profiles/${encodeURIComponent(payload.id)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -3565,6 +3663,10 @@ std::string BuildLabRuleEditorPageHtml() {
 
     async function saveRule() {
       const payload = ruleJson();
+      const warning = validateRulePayload(payload);
+      if (validationWarning(warning)) {
+        throw new Error(warning);
+      }
       const response = await requestJson(`/lab/analysis/rules/${encodeURIComponent(payload.id)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -3574,6 +3676,15 @@ std::string BuildLabRuleEditorPageHtml() {
       $('ruleSelect').value = `custom:${payload.id}`;
       status(`Rule 저장 완료: ${payload.id}`, response);
     }
+
+    window.__mediaServerRuleEditorApi = {
+      profileJson,
+      ruleJson,
+      validateProfilePayload,
+      validateRulePayload,
+      saveProfile,
+      saveRule
+    };
 
     async function deleteRule() {
       const id = $('ruleId').value.trim();
@@ -3760,10 +3871,12 @@ std::string BuildLabRuleEditorPageHtml() {
         });
       }
     };
-    $('classFilterInput').addEventListener('change', filterClassChecks);
-    $('selectCoreClassesBtn').onclick = () => setCheckedClasses((value, group) => group.includes('core'));
-    $('selectVehicleClassesBtn').onclick = () => setCheckedClasses((value, group) => value === 'person' || group.includes('vehicle'));
-    $('selectAnimalClassesBtn').onclick = () => setCheckedClasses((value, group) => group.includes('animal'));
+    const classFilterInput = $('classFilterInput');
+    if (classFilterInput) classFilterInput.addEventListener('change', filterClassChecks);
+    $('selectDefaultTrackingBtn').onclick = () => setTrackingCategoryChecks((value) => value === 'person' || value === 'vehicle');
+    $('selectAllTrackingBtn').onclick = () => setTrackingCategoryChecks(() => true);
+    $('clearTrackingBtn').onclick = () => setTrackingCategoryChecks(() => false);
+    $('selectCoreClassesBtn').onclick = () => setCheckedClasses((value) => value === 'person' || value === 'vehicle');
     $('selectAllClassesBtn').onclick = () => setCheckedClasses(() => true);
     $('clearClassesBtn').onclick = () => setCheckedClasses(() => false);
     $('profileSelect').onchange = () => {
@@ -3781,13 +3894,13 @@ std::string BuildLabRuleEditorPageHtml() {
       const value = $('ruleSelect').value;
       if (!value) {
         loadRule({
-          id: 'file-person-car-area',
+          id: 'file-person-vehicle-area',
           enabled: true,
           match: { sourceKind: 'file', route: '*' },
-          analysis: { profileId: $('ruleProfileId').value, classes: ['person', 'car', 'bus', 'truck'] },
+          analysis: { profileId: $('ruleProfileId').value, classes: ['person', 'vehicle'] },
           event: { type: 'presence', minConfidence: 0.25, minDurationMs: 0, region: { type: 'polygon', points: regionPoints } },
           eventActions: {
-            highlight: { enabled: true, mode: 'blink', target: 'matched-object', durationMs: 1200, color: '#ffcc00' },
+            highlight: { enabled: true, mode: 'blink', target: 'matched-object', durationMs: 1200, color: '#ff0000' },
             post: { enabled: false, method: 'POST', url: '', contentType: 'application/json', payloadFormat: 'media-server.va.event.v1' }
           }
         });
@@ -3797,14 +3910,13 @@ std::string BuildLabRuleEditorPageHtml() {
       const item = rules.find((entry) => entry.id === id);
       if (item) loadRule(item);
     };
-    for (const id of ['profileFps', 'profileQueue', 'profileConfidence', 'profileNms', 'profileInputWidth', 'profileInputHeight', 'profileDetector', 'profileAdaptive', 'profileId', 'ruleId', 'ruleEnabled', 'ruleSourceKind', 'ruleRoute', 'ruleProfileId', 'ruleEventType', 'ruleConfidence', 'ruleMinDurationMs', 'eventFlashInput', 'eventFlashMsInput', 'eventFlashColorInput', 'eventPostUrlInput']) {
+    for (const id of ['profileFps', 'profileQueue', 'profileConfidence', 'profileNms', 'profileInputWidth', 'profileInputHeight', 'profileDetector', 'profileAdaptive', 'profileId', 'ruleId', 'ruleEnabled', 'ruleSourceKind', 'ruleRoute', 'ruleProfileId', 'ruleEventType', 'ruleConfidence', 'ruleMinDurationMs', 'eventFlashInput', 'eventFlashMsInput', 'eventPostUrlInput']) {
       const el = $(id);
       if (el) el.addEventListener('input', updatePreviews);
       if (el) el.addEventListener('change', updatePreviews);
     }
     document.querySelectorAll('[data-tracking-category]').forEach((el) => {
       el.addEventListener('change', () => {
-        normalizeTrackingCategorySelection(el);
         updatePreviews();
       });
     });
@@ -3851,6 +3963,8 @@ std::string BuildLabRuleEditorPageHtml() {
   </script>
 </body>
 </html>)RULEPAGE";
+    ReplaceAll(&html, "__MEDIA_SERVER_CATEGORY_CATALOG__", AnalysisCategoryCatalogJson());
+    return html;
 }
 
 std::string BuildLabImportPageHtml() {
@@ -4697,8 +4811,50 @@ struct StaticImageAnalysis {
     double analysis_ms{0.0};
 };
 
+// 문자열 vector를 JSON array로 직렬화한다.
+std::string StringVectorJson(const std::vector<std::string>& values) {
+    std::ostringstream out;
+    out << "[";
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(values[i]) << "\"";
+    }
+    out << "]";
+    return out.str();
+}
+
+// Rule/Profile UI와 capabilities API가 공유하는 category catalog를 JSON으로 만든다.
+std::string AnalysisCategoryCatalogJson() {
+    std::ostringstream out;
+    out << "[";
+    const auto& categories = analysis::CategoryTokenCatalog();
+    for (std::size_t i = 0; i < categories.size(); ++i) {
+        const auto& item = categories[i];
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"value\":\"" << JsonEscape(item.token) << "\","
+            << "\"label\":\"" << JsonEscape(item.label_ko) << "\","
+            << "\"hint\":\"" << JsonEscape(item.hint) << "\","
+            << "\"group\":\"" << JsonEscape(item.group) << "\","
+            << "\"aliases\":" << StringVectorJson(item.aliases) << ","
+            << "\"labels\":" << StringVectorJson(item.labels) << ","
+            << "\"displayLabels\":" << StringVectorJson(item.display_labels_ko)
+            << "}";
+    }
+    out << "]";
+    return out.str();
+}
+
 std::string AnalysisCapabilitiesJson() {
-    return R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"yoloOutputLayouts":["auto","channels-first","channels-last"],"yoloBoxFormats":["cxcywh","xyxy"],"yoloScoreModes":["auto","class-only","objectness-class","score-class","class-score"],"outputs":["metadata","events","snapshot.jpg","overlay.jpg","image-metadata","image-snapshot.jpg","image-overlay.jpg","rtsp-overlay","webrtc-overlay"],"eventTypes":["presence","enter","exit","line-crossing"],"eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile with lightweight tracking for person/vehicle categories","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"tracking":"optional object tracking on/off","trackingClasses":"optional comma-separated categories/classes: person,vehicle,animal or '*' for all","fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","outputLayout":"optional YOLO output tensor layout: auto|channels-first|channels-last","boxFormat":"optional YOLO box format: cxcywh|xyxy","scoreMode":"optional YOLO score mode: auto|class-only|objectness-class|score-class|class-score","thickness":"optional box line thickness","drawLabels":"optional label visibility","trackIds":"optional track id labels on overlay","trackTrails":"optional track trail overlay"}})";
+    std::ostringstream out;
+    out << R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"yoloOutputLayouts":["auto","channels-first","channels-last"],"yoloBoxFormats":["cxcywh","xyxy"],"yoloScoreModes":["auto","class-only","objectness-class","score-class","class-score"],"outputs":["metadata","events","snapshot.jpg","overlay.jpg","image-metadata","image-snapshot.jpg","image-overlay.jpg","rtsp-overlay","webrtc-overlay"],"eventTypes":["presence","enter","exit","line-crossing"],)"
+        << "\"trackingCategories\":" << AnalysisCategoryCatalogJson() << ","
+        << R"("eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile with lightweight tracking for person/vehicle categories","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"tracking":"optional object tracking on/off","trackingClasses":"optional comma-separated categories/classes: person,vehicle,road,animal,sports,tableware,food,furniture,device,object or '*' for all","fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","outputLayout":"optional YOLO output tensor layout: auto|channels-first|channels-last","boxFormat":"optional YOLO box format: cxcywh|xyxy","scoreMode":"optional YOLO score mode: auto|class-only|objectness-class|score-class|class-score","thickness":"optional box line thickness","drawLabels":"optional label visibility","trackIds":"optional track id labels on overlay","trackTrails":"optional track trail overlay"}})";
+    return out.str();
 }
 
 std::string AnalysisProfilesJson() {
@@ -4912,6 +5068,7 @@ bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& quer
     if (output->profile.enable_tracking) {
         analysis::ObjectTrackerOptions tracker_options;
         tracker_options.class_labels = output->profile.tracking_class_labels;
+        tracker_options.track_all_when_class_labels_empty = !output->profile.tracking_classes_specified;
         analysis::ObjectTracker tracker(tracker_options);
         tracker.Update(&output->result);
     }

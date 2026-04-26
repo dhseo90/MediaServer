@@ -1,6 +1,8 @@
 // 파일 용도: 분석 룰 저장소의 JSON 문서를 파싱하고 detection 결과와 비교해 이벤트를 생성한다.
 #include "analysis/event_rule_engine.h"
 
+#include "analysis/category_tokens.h"
+
 #include <algorithm>
 #include <cctype>
 #include <cmath>
@@ -33,6 +35,7 @@ struct EventRule {
     std::string match_route{"*"};
     std::string match_client_id;
     std::vector<std::string> classes;
+    bool classes_specified{false};
     std::string event_type{"presence"};
     float min_confidence{0.0F};
     int min_duration_ms{0};
@@ -40,7 +43,7 @@ struct EventRule {
     std::string direction{"any"};
     std::vector<RulePoint> points;
     bool highlight_enabled{true};
-    std::string highlight_color{"#ffcc00"};
+    std::string highlight_color{"#ff0000"};
     int highlight_duration_ms{1200};
     bool post_enabled{false};
     std::string post_url;
@@ -315,6 +318,7 @@ std::optional<EventRule> ParseRule(const std::string& document) {
     }
 
     if (const auto analysis = ExtractObjectField(document, "analysis"); analysis.has_value()) {
+        rule.classes_specified = ExtractArrayField(*analysis, "classes").has_value();
         rule.classes = ParseStringArrayField(*analysis, "classes");
     }
 
@@ -341,9 +345,10 @@ std::optional<EventRule> ParseRule(const std::string& document) {
     if (const auto actions = ExtractObjectField(document, "eventActions"); actions.has_value()) {
         if (const auto highlight = ExtractObjectField(*actions, "highlight"); highlight.has_value()) {
             rule.highlight_enabled = ParseBoolField(*highlight, "enabled").value_or(rule.highlight_enabled);
-            rule.highlight_color = ParseStringField(*highlight, "color").value_or(rule.highlight_color);
             rule.highlight_duration_ms =
                 static_cast<int>(ParseNumberField(*highlight, "durationMs").value_or(rule.highlight_duration_ms));
+            // 이벤트 강조는 카테고리 기본색과 빨간색을 blink로 번갈아 표시하도록 색상을 고정한다.
+            rule.highlight_color = "#ff0000";
         }
         if (const auto post = ExtractObjectField(*actions, "post"); post.has_value()) {
             rule.post_enabled = ParseBoolField(*post, "enabled").value_or(rule.post_enabled);
@@ -359,29 +364,16 @@ std::optional<EventRule> ParseRule(const std::string& document) {
 
 bool MatchesClass(const EventRule& rule, const Detection& detection) {
     if (rule.classes.empty()) {
-        return true;
+        return !rule.classes_specified;
     }
-    const std::string label = ToLower(detection.label);
+    const std::string label = NormalizeClassToken(detection.label);
     const std::string class_id = std::to_string(detection.class_id);
     for (const auto& raw_class : rule.classes) {
-        const std::string wanted = ToLower(Trim(raw_class));
-        if (wanted.empty() || wanted == "*" || wanted == label || wanted == class_id) {
-            return true;
+        const std::string wanted = NormalizeClassToken(raw_class);
+        if (wanted.empty()) {
+            continue;
         }
-        // 룰 UI/JSON에서도 tracker와 같은 큰 카테고리 토큰을 사용할 수 있게 맞춘다.
-        if ((wanted == "person" || wanted == "people" || wanted == "human" || wanted == "humans") &&
-            label == "person") {
-            return true;
-        }
-        if ((wanted == "vehicle" || wanted == "vehicles") &&
-            (label == "bicycle" || label == "car" || label == "motorcycle" || label == "airplane" ||
-             label == "bus" || label == "train" || label == "truck" || label == "boat")) {
-            return true;
-        }
-        if ((wanted == "animal" || wanted == "animals") &&
-            (label == "bird" || label == "cat" || label == "dog" || label == "horse" ||
-             label == "sheep" || label == "cow" || label == "elephant" || label == "bear" ||
-             label == "zebra" || label == "giraffe")) {
+        if (IsAllClassesToken(wanted) || wanted == label || wanted == class_id || MatchesCategoryToken(wanted, label)) {
             return true;
         }
     }

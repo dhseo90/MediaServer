@@ -36,8 +36,12 @@ Usage:
   verify-va      YOLO/VA overlay의 lab, RTSP, WebRTC 회귀 검증을 수행합니다.
   verify-va-events
                  이동 테스트 영상으로 tracker 기반 presence/enter/exit/line-crossing을 검증합니다.
+  verify-va-category-samples
+                 실제 영상 샘플에서 VA 카테고리별 presence 이벤트를 검증합니다.
   verify-route-profiles
                  실제 RTSP/WebRTC overlay 세션에서 route별 profile/rule matching을 검증합니다.
+  verify-rule-ui
+                 /lab/rules Rule/Profile 카테고리 버튼과 저장 payload를 검증합니다.
   verify-tracker-stability
                  이동 영상에서 track ID 유지/분절 통계를 수집합니다.
   verify-yolo-layouts
@@ -145,9 +149,17 @@ case "${cmd}" in
     require_internal verify_va_tracking_events.sh
     exec "${INTERNAL_DIR}/verify_va_tracking_events.sh" "$@"
     ;;
+  verify-va-category-samples)
+    require_internal verify_va_category_samples.sh
+    exec "${INTERNAL_DIR}/verify_va_category_samples.sh" "$@"
+    ;;
   verify-route-profiles)
     require_internal verify_route_profile_matching.sh
     exec "${INTERNAL_DIR}/verify_route_profile_matching.sh" "$@"
+    ;;
+  verify-rule-ui)
+    require_internal verify_rule_ui_smoke.sh
+    exec "${INTERNAL_DIR}/verify_rule_ui_smoke.sh" "$@"
     ;;
   verify-tracker-stability)
     require_internal verify_tracker_stability.sh
