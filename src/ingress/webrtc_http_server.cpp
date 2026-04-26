@@ -410,7 +410,7 @@ private:
     };
 
     static std::string BuiltInProfilesArrayJson() {
-        return R"([{"id":"server-default-va","detector":"server-config","adaptive":true,"description":"URL에는 va=1만 두고 detector/model/labels/fps 기본값은 stdafx.h/env 설정을 따른다. detector 부하가 높으면 fps부터 낮추고 필요 시 input size를 낮춘다."},{"id":"debug-dummy","detector":"dummy","fps":5,"maxQueue":2,"description":"raw decode/sampling lifecycle 확인용"},{"id":"yolo-fast","detector":"yolo","fps":8,"maxQueue":1,"preprocess":"letterbox","inputWidth":640,"inputHeight":640,"confidence":0.25,"nms":0.45,"adaptive":true,"description":"움직임이 큰 장면의 overlay 지연 최소화"},{"id":"yolo-balanced","detector":"yolo","fps":5,"maxQueue":2,"preprocess":"letterbox","inputWidth":640,"inputHeight":640,"confidence":0.35,"nms":0.45,"adaptive":true,"description":"기본 객체 감지 균형값"},{"id":"yolo-quality","detector":"yolo","fps":3,"maxQueue":2,"preprocess":"letterbox","inputWidth":960,"inputHeight":960,"confidence":0.35,"nms":0.45,"adaptive":true,"description":"정확도 우선, CPU 비용 증가"}])";
+        return R"([{"id":"server-default-va","detector":"server-config","adaptive":true,"trackingClasses":["person","bicycle","car","motorcycle","bus","truck"],"description":"URL에는 va=1만 두고 detector/model/labels/fps 기본값은 stdafx.h/env 설정을 따른다. tracker는 기본적으로 사람/차량 계열에만 ID를 붙인다."},{"id":"debug-dummy","detector":"dummy","fps":5,"maxQueue":2,"trackingClasses":["person","bicycle","car","motorcycle","bus","truck"],"description":"raw decode/sampling lifecycle 확인용"},{"id":"yolo-fast","detector":"yolo","fps":8,"maxQueue":1,"preprocess":"letterbox","inputWidth":640,"inputHeight":640,"confidence":0.25,"nms":0.45,"adaptive":true,"trackingClasses":["person","bicycle","car","motorcycle","bus","truck"],"description":"움직임이 큰 장면의 overlay 지연 최소화"},{"id":"yolo-balanced","detector":"yolo","fps":5,"maxQueue":2,"preprocess":"letterbox","inputWidth":640,"inputHeight":640,"confidence":0.35,"nms":0.45,"adaptive":true,"trackingClasses":["person","bicycle","car","motorcycle","bus","truck"],"description":"기본 객체 감지 균형값"},{"id":"yolo-quality","detector":"yolo","fps":3,"maxQueue":2,"preprocess":"letterbox","inputWidth":960,"inputHeight":960,"confidence":0.35,"nms":0.45,"adaptive":true,"trackingClasses":["person","bicycle","car","motorcycle","bus","truck"],"description":"정확도 우선, CPU 비용 증가"}])";
     }
 
     static void AppendDocumentsArray(std::ostream& out, const std::vector<Document>& documents) {
@@ -819,6 +819,11 @@ std::string BuildTestPageHtml(bool lab_mode) {
               </label>
               <label>이미지 파일
                 <input id="imageAnalysisToken" value="va-four-scene-sample.png" />
+              </label>
+              <label>등록된 이미지 선택
+                <select id="imageAnalysisTokenSelect">
+                  <option value="va-four-scene-sample.png" selected>va-four-scene-sample.png</option>
+                </select>
               </label>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                 <label>라벨 언어
@@ -1345,6 +1350,12 @@ std::string BuildTestPageHtml(bool lab_mode) {
             <button id="whepBtn" class="secondary">WHEP 테스트</button>
             <button id="clearBtn" class="secondary">로그 지우기</button>
           </div>
+          <div style="display:grid;gap:6px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--details-bg);font-size:0.9rem;">
+            <div><strong>ICE</strong> <span id="icePolicyStatus">loading</span> <span id="iceServersStatus"></span></div>
+            <div id="iceWarningStatus" style="color:#b45309;font-weight:700;"></div>
+            <div id="consumerCandidateSummary">consumer local h/s/r/u 0/0/0/0 · remote h/s/r/u 0/0/0/0</div>
+            <div id="publisherCandidateSummary">publisher local h/s/r/u 0/0/0/0 · remote h/s/r/u 0/0/0/0</div>
+          </div>
 )" + analysis_controls + R"(
 )" + experimental_note + R"(        </div>
       </div>
@@ -1409,6 +1420,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
     const analysisTrackTrailsInputEl = document.getElementById('analysisTrackTrailsInput');
     const imageAnalysisSourceKindEl = document.getElementById('imageAnalysisSourceKind');
     const imageAnalysisTokenEl = document.getElementById('imageAnalysisToken');
+    const imageAnalysisTokenSelectEl = document.getElementById('imageAnalysisTokenSelect');
     const imageAnalysisLabelLangEl = document.getElementById('imageAnalysisLabelLang');
     const imageAnalysisQualityEl = document.getElementById('imageAnalysisQuality');
     const imageAnalysisThicknessEl = document.getElementById('imageAnalysisThickness');
@@ -1417,6 +1429,11 @@ std::string BuildTestPageHtml(bool lab_mode) {
     const imageAnalysisStatusEl = document.getElementById('imageAnalysisStatus');
     const imageAnalysisPreviewEl = document.getElementById('imageAnalysisPreview');
     const imageAnalysisMetadataEl = document.getElementById('imageAnalysisMetadata');
+    const icePolicyStatusEl = document.getElementById('icePolicyStatus');
+    const iceServersStatusEl = document.getElementById('iceServersStatus');
+    const iceWarningStatusEl = document.getElementById('iceWarningStatus');
+    const consumerCandidateSummaryEl = document.getElementById('consumerCandidateSummary');
+    const publisherCandidateSummaryEl = document.getElementById('publisherCandidateSummary');
     const sourceFieldEls = Array.from(document.querySelectorAll('[data-source-field]'));
     let pc = null;
     let sessionId = null;
@@ -1428,17 +1445,125 @@ std::string BuildTestPageHtml(bool lab_mode) {
     let publisherStream = null;
     let consumerLocalIceCount = 0;
     let consumerRemoteIceCount = 0;
+    let labFilesPayload = null;
     let publisherLocalIceCount = 0;
     let publisherRemoteIceCount = 0;
     let consumerEmptyIcePolls = 0;
     let publisherEmptyIcePolls = 0;
+    let webRtcConfigPayload = null;
     const consumerTrackKinds = new Set();
     const publisherTrackKinds = new Set();
+    const consumerCandidateTypes = {
+      local: { host: 0, srflx: 0, relay: 0, unknown: 0 },
+      remote: { host: 0, srflx: 0, relay: 0, unknown: 0 }
+    };
+    const publisherCandidateTypes = {
+      local: { host: 0, srflx: 0, relay: 0, unknown: 0 },
+      remote: { host: 0, srflx: 0, relay: 0, unknown: 0 }
+    };
 
     function log(message) {
       const ts = new Date().toLocaleTimeString();
       logEl.textContent += `[${ts}] ${message}\n`;
       logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    async function loadWebRtcConfig() {
+      if (webRtcConfigPayload) return webRtcConfigPayload;
+      const response = await fetch('/webrtc/config', { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error(`/webrtc/config HTTP ${response.status}`);
+      }
+      webRtcConfigPayload = await response.json();
+      updateIceConfigStatus(webRtcConfigPayload);
+      return webRtcConfigPayload;
+    }
+
+    function resetCandidateTypes(target) {
+      for (const side of ['local', 'remote']) {
+        target[side].host = 0;
+        target[side].srflx = 0;
+        target[side].relay = 0;
+        target[side].unknown = 0;
+      }
+    }
+
+    function candidateType(candidateText) {
+      const match = String(candidateText || '').match(/ typ ([a-zA-Z0-9_-]+)/);
+      return match ? match[1] : 'unknown';
+    }
+
+    function recordCandidateType(target, side, candidateText) {
+      const type = candidateType(candidateText);
+      if (!Object.prototype.hasOwnProperty.call(target[side], type)) {
+        target[side].unknown += 1;
+      } else {
+        target[side][type] += 1;
+      }
+      updateCandidateSummaries();
+    }
+
+    function candidateSummaryText(label, target) {
+      const local = target.local;
+      const remote = target.remote;
+      return `${label} local h/s/r/u ${local.host}/${local.srflx}/${local.relay}/${local.unknown} · remote h/s/r/u ${remote.host}/${remote.srflx}/${remote.relay}/${remote.unknown}`;
+    }
+
+    function updateCandidateSummaries() {
+      if (consumerCandidateSummaryEl) {
+        consumerCandidateSummaryEl.textContent = candidateSummaryText('consumer', consumerCandidateTypes);
+      }
+      if (publisherCandidateSummaryEl) {
+        publisherCandidateSummaryEl.textContent = candidateSummaryText('publisher', publisherCandidateTypes);
+      }
+    }
+
+    function updateIceConfigStatus(payload) {
+      const config = peerConnectionConfigFromPayload(payload);
+      const iceServers = Array.isArray(config.iceServers) ? config.iceServers : [];
+      const urls = iceServers.flatMap((server) => Array.isArray(server.urls) ? server.urls : [server.urls]).filter(Boolean);
+      const policy = config.iceTransportPolicy || 'all';
+      const requestedPolicy = payload && payload.requestedIceTransportPolicy ? payload.requestedIceTransportPolicy : policy;
+      if (icePolicyStatusEl) icePolicyStatusEl.textContent = `policy=${policy}`;
+      if (iceServersStatusEl) iceServersStatusEl.textContent = `servers=${urls.length}`;
+      const hasTurn = urls.some((url) => String(url).startsWith('turn:') || String(url).startsWith('turns:'));
+      const hasLoopbackTurn = urls.some((url) => /^turns?:((127\.)|localhost|\[::1\])/.test(String(url)));
+      if (iceWarningStatusEl) {
+        if (requestedPolicy === 'relay' && !hasTurn) {
+          iceWarningStatusEl.textContent = 'relay 요청 상태지만 TURN 서버가 없어 policy=all로 fallback됐습니다.';
+        } else if (policy === 'relay' && hasLoopbackTurn) {
+          iceWarningStatusEl.textContent = 'relay 강제 + loopback TURN입니다. 브라우저 검증은 LAN IP TURN 권장.';
+        } else {
+          iceWarningStatusEl.textContent = '';
+        }
+      }
+    }
+
+    function peerConnectionConfigFromPayload(payload) {
+      const raw = payload && payload.peerConnectionConfig && typeof payload.peerConnectionConfig === 'object'
+        ? payload.peerConnectionConfig
+        : {};
+      const config = {};
+      if (Array.isArray(raw.iceServers)) {
+        config.iceServers = raw.iceServers;
+      }
+      if (raw.iceTransportPolicy === 'relay' || raw.iceTransportPolicy === 'all') {
+        config.iceTransportPolicy = raw.iceTransportPolicy;
+      }
+      return config;
+    }
+
+    async function createPeerConnection(label) {
+      try {
+        const payload = await loadWebRtcConfig();
+        const config = peerConnectionConfigFromPayload(payload);
+        const iceServerCount = Array.isArray(config.iceServers) ? config.iceServers.length : 0;
+        log(`${label} ICE config policy=${config.iceTransportPolicy || 'all'} servers=${iceServerCount}`);
+        return new RTCPeerConnection(config);
+      } catch (error) {
+        log(`${label} ICE config 로드 실패, 브라우저 기본값 사용: ${error.message}`);
+        return new RTCPeerConnection();
+      }
     }
 
     function snapshotState() {
@@ -1487,9 +1612,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
     async function loadFileOptions() {
       if (!fileInputEl || fileInputEl.tagName !== 'SELECT') return;
       try {
-        const response = await fetch('/lab/files');
-        if (!response.ok) return;
-        const payload = await response.json();
+        const payload = await loadLabFilesPayload();
         const files = Array.isArray(payload.files) ? payload.files : [];
         if (files.length === 0) return;
         const previous = fileInputEl.dataset.loaded === '1'
@@ -1506,6 +1629,51 @@ std::string BuildTestPageHtml(bool lab_mode) {
         fileInputEl.dataset.loaded = '1';
       } catch (error) {
         log(`파일 목록 로드 실패: ${error.message}`);
+      }
+    }
+
+    async function loadLabFilesPayload() {
+      if (labFilesPayload) return labFilesPayload;
+      const response = await fetch('/lab/files', { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error(`/lab/files HTTP ${response.status}`);
+      }
+      labFilesPayload = await response.json();
+      return labFilesPayload;
+    }
+
+    async function loadImageAnalysisOptions() {
+      if (!imageAnalysisTokenSelectEl || !imageAnalysisTokenEl) return;
+      try {
+        const payload = await loadLabFilesPayload();
+        const sourceKind = imageAnalysisSourceKindEl ? imageAnalysisSourceKindEl.value : 'asset';
+        const values = sourceKind === 'file'
+          ? (Array.isArray(payload.imageFiles) ? payload.imageFiles : [])
+          : (Array.isArray(payload.assetImages) ? payload.assetImages : []);
+        const fallback = sourceKind === 'file'
+          ? (values[0] || '')
+          : (payload.defaultImage || values[0] || 'va-four-scene-sample.png');
+        const previous = imageAnalysisTokenEl.value || fallback;
+        imageAnalysisTokenSelectEl.innerHTML = '';
+        for (const value of values) {
+          const option = document.createElement('option');
+          option.value = value;
+          option.textContent = value;
+          imageAnalysisTokenSelectEl.appendChild(option);
+        }
+        if (values.length === 0 && fallback) {
+          const option = document.createElement('option');
+          option.value = fallback;
+          option.textContent = fallback;
+          imageAnalysisTokenSelectEl.appendChild(option);
+        }
+        const selected = values.includes(previous) ? previous : fallback;
+        if (selected) {
+          imageAnalysisTokenSelectEl.value = selected;
+          imageAnalysisTokenEl.value = selected;
+        }
+      } catch (error) {
+        log(`이미지 목록 로드 실패: ${error.message}`);
       }
     }
 
@@ -1692,6 +1860,8 @@ std::string BuildTestPageHtml(bool lab_mode) {
       consumerRemoteIceCount = 0;
       consumerEmptyIcePolls = 0;
       consumerTrackKinds.clear();
+      resetCandidateTypes(consumerCandidateTypes);
+      updateCandidateSummaries();
       if (pc) {
         pc.close();
         pc = null;
@@ -1713,6 +1883,8 @@ std::string BuildTestPageHtml(bool lab_mode) {
       publisherRemoteIceCount = 0;
       publisherEmptyIcePolls = 0;
       publisherTrackKinds.clear();
+      resetCandidateTypes(publisherCandidateTypes);
+      updateCandidateSummaries();
       if (publisherPc) {
         publisherPc.close();
         publisherPc = null;
@@ -1736,6 +1908,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
       for (const item of candidates) {
         await pc.addIceCandidate(item);
         consumerRemoteIceCount += 1;
+        recordCandidateType(consumerCandidateTypes, 'remote', item.candidate);
       }
       if (candidates.length > 0) {
         consumerEmptyIcePolls = 0;
@@ -1759,6 +1932,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
       for (const item of candidates) {
         await publisherPc.addIceCandidate(item);
         publisherRemoteIceCount += 1;
+        recordCandidateType(publisherCandidateTypes, 'remote', item.candidate);
       }
       if (candidates.length > 0) {
         publisherEmptyIcePolls = 0;
@@ -1776,7 +1950,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
     async function startSimple() {
       await stopSession();
       sessionBase = '/webrtc/session';
-      pc = new RTCPeerConnection();
+      pc = await createPeerConnection('consumer');
       pc.onconnectionstatechange = () => log(`consumer connectionState=${pc.connectionState}`);
       pc.oniceconnectionstatechange = () => log(`consumer iceConnectionState=${pc.iceConnectionState}`);
       pc.ontrack = (event) => {
@@ -1789,6 +1963,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
       pc.onicecandidate = async (event) => {
         if (!sessionId || !event.candidate) return;
         consumerLocalIceCount += 1;
+        recordCandidateType(consumerCandidateTypes, 'local', event.candidate.candidate);
         log(`consumer local ICE +1 (total=${consumerLocalIceCount})`);
         await fetch(`${sessionBase}/${sessionId}/ice`, {
           method: 'POST',
@@ -1823,7 +1998,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
     async function startWhep() {
       await stopSession();
       sessionBase = '/whep/session';
-      pc = new RTCPeerConnection();
+      pc = await createPeerConnection('consumer');
       pc.addTransceiver('video', { direction: 'recvonly' });
       pc.addTransceiver('audio', { direction: 'recvonly' });
       pc.onconnectionstatechange = () => log(`consumer connectionState=${pc.connectionState}`);
@@ -1838,6 +2013,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
       pc.onicecandidate = async (event) => {
         if (!sessionId || !event.candidate) return;
         consumerLocalIceCount += 1;
+        recordCandidateType(consumerCandidateTypes, 'local', event.candidate.candidate);
         log(`consumer local ICE +1 (total=${consumerLocalIceCount})`);
         await fetch(`${sessionBase}/${sessionId}`, {
           method: 'PATCH',
@@ -1872,7 +2048,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
 
     async function startPublish() {
       await stopPublisher();
-      publisherPc = new RTCPeerConnection();
+      publisherPc = await createPeerConnection('publisher');
       publisherPc.onconnectionstatechange = () => log(`publisher connectionState=${publisherPc.connectionState}`);
       publisherPc.oniceconnectionstatechange = () => log(`publisher iceConnectionState=${publisherPc.iceConnectionState}`);
       publisherStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -1913,6 +2089,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
       publisherPc.onicecandidate = async (event) => {
         if (!publisherSessionId || !event.candidate) return;
         publisherLocalIceCount += 1;
+        recordCandidateType(publisherCandidateTypes, 'local', event.candidate.candidate);
         log(`publisher local ICE +1 (total=${publisherLocalIceCount})`);
         await fetch(`/whip/publish/session/${publisherSessionId}/ice`, {
           method: 'POST',
@@ -1982,8 +2159,16 @@ std::string BuildTestPageHtml(bool lab_mode) {
       imageAnalysisSourceKindEl.addEventListener('change', () => {
         if (!imageAnalysisTokenEl) return;
         imageAnalysisTokenEl.value = imageAnalysisSourceKindEl.value === 'file'
-          ? 'imports/example.png'
+          ? ''
           : 'va-four-scene-sample.png';
+        loadImageAnalysisOptions();
+      });
+    }
+    if (imageAnalysisTokenSelectEl) {
+      imageAnalysisTokenSelectEl.addEventListener('change', () => {
+        if (imageAnalysisTokenEl) {
+          imageAnalysisTokenEl.value = imageAnalysisTokenSelectEl.value;
+        }
       });
     }
     function applyTheme(theme) {
@@ -2118,7 +2303,10 @@ std::string BuildTestPageHtml(bool lab_mode) {
       }
     }
     updateSourceFields();
+    updateCandidateSummaries();
+    loadWebRtcConfig().catch((error) => log(`ICE config 로드 실패: ${error.message}`));
     loadFileOptions();
+    loadImageAnalysisOptions();
     if (imageAnalysisOverlayBtn) {
       runImageAnalysis('overlay').catch((error) => {
         if (imageAnalysisStatusEl) imageAnalysisStatusEl.textContent = `자동 분석 실패: ${error.message}`;
@@ -2523,7 +2711,7 @@ std::string BuildLabRuleEditorPageHtml() {
       <div class="card">
         <div class="pad stack">
           <h2>2. 이벤트 Rule</h2>
-          <p class="hint">영역과 객체 타입을 지정합니다. 저장된 룰은 `va=1` overlay와 events API에 바로 적용됩니다. 진입/이탈/라인 통과는 tracker가 붙인 객체 ID 기준으로 판정합니다.</p>
+          <p class="hint">영역과 객체 타입을 지정합니다. 저장된 룰은 `va=1` overlay와 events API에 바로 적용됩니다. 진입/이탈/라인 통과는 tracker가 붙인 객체 ID 기준으로 판정합니다. 기본 tracker 대상은 사람/차량 계열입니다.</p>
           <label>저장된 Rule
             <select id="ruleSelect"></select>
           </label>
@@ -4117,6 +4305,105 @@ std::string SourceJson(const std::string& session_id, const std::string& source_
     return out.str();
 }
 
+struct BrowserIceServer {
+    std::string urls;
+    std::string username;
+    std::string credential;
+    bool has_credentials{false};
+};
+
+// 설정 URI prefix를 브라우저 RTCIceServer urls 형식으로 바꾼다.
+bool ConvertConfiguredIceUriToBrowserUrl(const std::string& configured_uri,
+                                         const std::string& configured_prefix,
+                                         const std::string& browser_prefix,
+                                         std::string* rest) {
+    if (rest == nullptr || configured_uri.rfind(configured_prefix, 0) != 0) {
+        return false;
+    }
+    *rest = browser_prefix + configured_uri.substr(configured_prefix.size());
+    return true;
+}
+
+// turn://user:pass@host:port URI를 브라우저가 요구하는 urls/username/credential 필드로 분리한다.
+BrowserIceServer BuildTurnIceServerForBrowser(const std::string& turn_uri) {
+    BrowserIceServer out;
+    std::string browser_url;
+    if (!ConvertConfiguredIceUriToBrowserUrl(turn_uri, "turn://", "turn:", &browser_url) &&
+        !ConvertConfiguredIceUriToBrowserUrl(turn_uri, "turns://", "turns:", &browser_url)) {
+        return out;
+    }
+
+    const std::size_t scheme_colon = browser_url.find(':');
+    const std::size_t at = browser_url.find('@', scheme_colon == std::string::npos ? 0 : scheme_colon + 1);
+    if (at != std::string::npos) {
+        const std::string userinfo =
+            browser_url.substr((scheme_colon == std::string::npos ? 0 : scheme_colon + 1),
+                               at - (scheme_colon == std::string::npos ? 0 : scheme_colon + 1));
+        const std::size_t colon = userinfo.find(':');
+        if (colon != std::string::npos) {
+            out.username = UrlDecode(userinfo.substr(0, colon));
+            out.credential = UrlDecode(userinfo.substr(colon + 1));
+            out.has_credentials = true;
+        } else if (!userinfo.empty()) {
+            out.username = UrlDecode(userinfo);
+            out.has_credentials = true;
+        }
+        out.urls = browser_url.substr(0, scheme_colon + 1) + browser_url.substr(at + 1);
+        return out;
+    }
+
+    out.urls = browser_url;
+    return out;
+}
+
+// 서버 WebRTC env 설정을 브라우저 RTCPeerConnection 생성 옵션 JSON으로 직렬화한다.
+std::string WebRtcBrowserConfigJson() {
+    const auto& config = app::GetAppConfig();
+    std::vector<BrowserIceServer> servers;
+    if (!config.webrtc_stun_server.empty()) {
+        BrowserIceServer stun;
+        ConvertConfiguredIceUriToBrowserUrl(config.webrtc_stun_server, "stun://", "stun:", &stun.urls);
+        if (!stun.urls.empty()) {
+            servers.push_back(std::move(stun));
+        }
+    }
+    if (!config.webrtc_turn_server.empty()) {
+        BrowserIceServer turn = BuildTurnIceServerForBrowser(config.webrtc_turn_server);
+        if (!turn.urls.empty()) {
+            servers.push_back(std::move(turn));
+        }
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"requestedIceTransportPolicy\":\"" << JsonEscape(config.webrtc_requested_ice_transport_policy) << "\","
+        << "\"iceTransportPolicy\":\"" << JsonEscape(config.webrtc_ice_transport_policy) << "\","
+        << "\"relayPolicyFallback\":"
+        << (config.webrtc_requested_ice_transport_policy == "relay" &&
+                    config.webrtc_ice_transport_policy != "relay"
+                ? "true"
+                : "false")
+        << ","
+        << "\"hasStun\":" << (!config.webrtc_stun_server.empty() ? "true" : "false") << ","
+        << "\"hasTurn\":" << (!config.webrtc_turn_server.empty() ? "true" : "false") << ","
+        << "\"peerConnectionConfig\":{"
+        << "\"iceTransportPolicy\":\"" << JsonEscape(config.webrtc_ice_transport_policy) << "\","
+        << "\"iceServers\":[";
+    for (std::size_t i = 0; i < servers.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{\"urls\":\"" << JsonEscape(servers[i].urls) << "\"";
+        if (servers[i].has_credentials) {
+            out << ",\"username\":\"" << JsonEscape(servers[i].username) << "\""
+                << ",\"credential\":\"" << JsonEscape(servers[i].credential) << "\"";
+        }
+        out << "}";
+    }
+    out << "]}}";
+    return out.str();
+}
+
 std::string DetectionJson(const analysis::Detection& detection) {
     std::ostringstream out;
     out << "{"
@@ -4236,6 +4523,14 @@ std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot
         << "\"confidenceThreshold\":" << snapshot.confidence_threshold << ","
         << "\"nmsThreshold\":" << snapshot.nms_threshold << ","
         << "\"trackingEnabled\":" << (snapshot.tracking_enabled ? "true" : "false") << ","
+        << "\"trackingClassLabels\":[";
+    for (std::size_t i = 0; i < snapshot.tracking_class_labels.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(snapshot.tracking_class_labels[i]) << "\"";
+    }
+    out << "],"
         << "\"adaptiveTuningEnabled\":" << (snapshot.adaptive_tuning_enabled ? "true" : "false") << ","
         << "\"adaptiveInputSizeEnabled\":" << (snapshot.adaptive_input_size_enabled ? "true" : "false") << ","
         << "\"adaptiveInputSizeDisabled\":" << (snapshot.adaptive_input_size_disabled ? "true" : "false") << ","
@@ -4326,7 +4621,7 @@ struct StaticImageAnalysis {
 };
 
 std::string AnalysisCapabilitiesJson() {
-    return R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"yoloOutputLayouts":["auto","channels-first","channels-last"],"yoloBoxFormats":["cxcywh","xyxy"],"yoloScoreModes":["auto","class-only","objectness-class","score-class","class-score"],"outputs":["metadata","events","snapshot.jpg","overlay.jpg","image-metadata","image-snapshot.jpg","image-overlay.jpg","rtsp-overlay","webrtc-overlay"],"eventTypes":["presence","enter","exit","line-crossing"],"eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile with lightweight tracking","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"tracking":"optional object tracking on/off","fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","outputLayout":"optional YOLO output tensor layout: auto|channels-first|channels-last","boxFormat":"optional YOLO box format: cxcywh|xyxy","scoreMode":"optional YOLO score mode: auto|class-only|objectness-class|score-class|class-score","thickness":"optional box line thickness","drawLabels":"optional label visibility","trackIds":"optional track id labels on overlay","trackTrails":"optional track trail overlay"}})";
+    return R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"yoloOutputLayouts":["auto","channels-first","channels-last"],"yoloBoxFormats":["cxcywh","xyxy"],"yoloScoreModes":["auto","class-only","objectness-class","score-class","class-score"],"outputs":["metadata","events","snapshot.jpg","overlay.jpg","image-metadata","image-snapshot.jpg","image-overlay.jpg","rtsp-overlay","webrtc-overlay"],"eventTypes":["presence","enter","exit","line-crossing"],"eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile with lightweight tracking for person/vehicle classes","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"tracking":"optional object tracking on/off","trackingClasses":"optional comma-separated labels or '*' for all tracked classes","fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","outputLayout":"optional YOLO output tensor layout: auto|channels-first|channels-last","boxFormat":"optional YOLO box format: cxcywh|xyxy","scoreMode":"optional YOLO score mode: auto|class-only|objectness-class|score-class|class-score","thickness":"optional box line thickness","drawLabels":"optional label visibility","trackIds":"optional track id labels on overlay","trackTrails":"optional track trail overlay"}})";
 }
 
 std::string AnalysisProfilesJson() {
@@ -4538,7 +4833,9 @@ bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& quer
     output->result.context = std::move(context);
     output->result.pts = output->frame.pts;
     if (output->profile.enable_tracking) {
-        analysis::ObjectTracker tracker;
+        analysis::ObjectTrackerOptions tracker_options;
+        tracker_options.class_labels = output->profile.tracking_class_labels;
+        analysis::ObjectTracker tracker(tracker_options);
         tracker.Update(&output->result);
     }
     if (error_message != nullptr) {
@@ -4689,15 +4986,16 @@ bool IsSupportedMediaFile(const std::filesystem::path& path) {
     return ext == ".mp4" || ext == ".mov" || ext == ".mkv" || ext == ".webm" || ext == ".m4v";
 }
 
-std::string LabFilesJson() {
-    const auto root = std::filesystem::path(app::GetAppConfig().file_root_path);
+// 지정한 root 아래에서 predicate를 만족하는 파일만 상대 경로로 모아 UI/API에 노출한다.
+std::vector<std::string> CollectRelativeFiles(const std::filesystem::path& root,
+                                              bool (*predicate)(const std::filesystem::path&)) {
     std::vector<std::string> files;
     std::error_code ec;
     if (std::filesystem::exists(root, ec) && std::filesystem::is_directory(root, ec)) {
         for (std::filesystem::recursive_directory_iterator it(root, std::filesystem::directory_options::skip_permission_denied, ec);
              !ec && it != std::filesystem::recursive_directory_iterator();
              it.increment(ec)) {
-            if (!it->is_regular_file(ec) || !IsSupportedMediaFile(it->path())) {
+            if (!it->is_regular_file(ec) || !predicate(it->path())) {
                 continue;
             }
             std::error_code relative_ec;
@@ -4708,6 +5006,27 @@ std::string LabFilesJson() {
         }
     }
     std::sort(files.begin(), files.end());
+    return files;
+}
+
+// /lab/files 응답에서 재사용하는 문자열 배열 필드를 JSON으로 직렬화한다.
+void AppendJsonStringArray(std::ostringstream& out, const std::string& name, const std::vector<std::string>& values) {
+    out << "\"" << JsonEscape(name) << "\":[";
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(values[i]) << "\"";
+    }
+    out << "]";
+}
+
+std::string LabFilesJson() {
+    const auto root = std::filesystem::path(app::GetAppConfig().file_root_path);
+    const auto asset_root = std::filesystem::path("docs") / "assets";
+    const auto files = CollectRelativeFiles(root, IsSupportedMediaFile);
+    const auto image_files = CollectRelativeFiles(root, IsSupportedImageFile);
+    const auto asset_images = CollectRelativeFiles(asset_root, IsSupportedImageFile);
 
     std::string default_file = std::filesystem::path(app::GetAppConfig().default_file_path).filename().string();
     std::error_code relative_ec;
@@ -4719,15 +5038,15 @@ std::string LabFilesJson() {
 
     std::ostringstream out;
     out << "{\"root\":\"" << JsonEscape(root.filename().string()) << "\","
+        << "\"assetRoot\":\"" << JsonEscape(asset_root.generic_string()) << "\","
         << "\"defaultFile\":\"" << JsonEscape(default_file) << "\","
-        << "\"files\":[";
-    for (std::size_t i = 0; i < files.size(); ++i) {
-        if (i != 0) {
-            out << ",";
-        }
-        out << "\"" << JsonEscape(files[i]) << "\"";
-    }
-    out << "]}";
+        << "\"defaultImage\":\"va-four-scene-sample.png\",";
+    AppendJsonStringArray(out, "files", files);
+    out << ",";
+    AppendJsonStringArray(out, "imageFiles", image_files);
+    out << ",";
+    AppendJsonStringArray(out, "assetImages", asset_images);
+    out << "}";
     return out.str();
 }
 
@@ -4958,6 +5277,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             ok.content_type = "text/html; charset=utf-8";
                             ok.headers["Cache-Control"] = "no-store";
                             ok.body = BuildTestPageHtml(false);
+                            return ok;
+                        }
+
+                        if (request.method == "GET" && request.path == "/webrtc/config") {
+                            HttpResponse ok = JsonResponse(200, "OK", WebRtcBrowserConfigJson());
+                            ok.headers["Cache-Control"] = "no-store";
                             return ok;
                         }
 

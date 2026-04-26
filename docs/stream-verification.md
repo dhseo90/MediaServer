@@ -8,13 +8,27 @@
 - 최신 기준으로 기본 안정 기준은 `file`, 로컬 `RTSP pull`, 로컬 `WebRTC publish`, 로컬 `HTTP URI`, LAN IP 기준 외부 클라이언트 접근성, 제3자 RTSP upstream advisory, 기본 YOLO/VA overlay다.
 - 과거 blocker였던 `HTTP URI -> RTSP 503`은 URI/VOD source pacing 보정 후 로컬 HTTP MP4 matrix에서 통과했다.
 - 아래 문서에는 과거 통과/실패 이력도 남아 있다. 과거 이력은 회귀 추적용이며, 현재 작업 우선순위는 최신 검증 결과를 기준으로 판단한다.
-- 로컬 HLS VOD는 codec matrix 선택 검증에서 통과했다. 외부 HLS/HTTP URI는 네트워크/upstream 상태 영향이 있으므로 기본 안정 테스트가 아닌 선택 검증으로 남긴다.
+- 로컬 HLS VOD와 공개 HLS 후보(Mux/Apple)는 `verify-uri-longrun` 선택 검증에서 통과했다. 외부 HLS/HTTP URI는 네트워크/upstream 상태 영향이 있으므로 기본 안정 테스트가 아닌 선택 검증으로 남긴다.
 
 최신 후속 검증 결과:
 - `2026-04-26`: `./server.sh test --no-start` stable 기준 통과 `15/0/5`.
 - `2026-04-26`: `--include-rules --include-va-events` 선택 검증 통과 `6/0/6`.
 - `2026-04-26`: `./server.sh verify-route-profiles` RTSP/WebRTC overlay route profile matching 통과 `6/0/0`.
-- `2026-04-26`: `./server.sh verify-tracker-stability --long` 120초 x 3회 반복 통과, `fragmentationRatio avg=1.7`, `stalePtsRatio max=0.0`.
+- `2026-04-26`: `./server.sh verify-tracker-stability --long --overlap-focus` 통과 `8/0/0`. `fragmentationRatio min=1.6 max=1.75 avg=1.65`, `overlapFragmentationRatio max=1.75`, `overlapSampleCountTotal=1797`, `stalePtsRatio max=0.005`.
+- `2026-04-26`: WebRTC ICE 설정 검증용 `./server.sh verify-webrtc-ice`와 HTTP/HLS URI 장기 회귀용 `./server.sh verify-uri-longrun` 진입점 추가.
+- `2026-04-26`: `./server.sh verify-webrtc-ice --skip-browser --skip-whip` candidate 수집 통과, `./server.sh verify-uri-longrun --iterations 1` 로컬 HTTP/HLS 반복 검증 통과.
+- `2026-04-26`: `./server.sh verify-va-events --duration 30` 기본 이벤트 임계값 통과, `./server.sh verify-tracker-stability --duration 8 --repeat 1 --overlap-focus` 겹침 구간 smoke 통과.
+- `2026-04-26`: Mac 로컬 coturn으로 `MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay ./server.sh verify-webrtc-ice --require-relay` 통과 `7/0/0`. Google STUN, Mac coturn TURN, relay ICE policy 조합에서 relay candidate 수집, 브라우저 WebRTC file consume playback, WHIP publish -> WebRTC signaling을 확인했다.
+- `2026-04-26`: Windows WSL2 coturn은 실행과 localhost 접근까지 확인했지만, Mac -> Windows LAN inbound가 `No route to host`로 막혀 end-to-end 검증을 보류했다. WSL mirrored, Hyper-V firewall rule, Windows firewall rule은 테스트 후 원복했다.
+- `2026-04-26`: 외부 HLS advisory 최초 비교에서 Mux `x36xhzz.m3u8`와 Apple `img_bipbop_adv_example_fmp4/master.m3u8` 모두 audio/video caps와 WebRTC signaling은 잡혔지만 RTSP default route probe가 timeout으로 실패했다. 원인은 ABR HLS의 alternate/duplicate pad를 연결하지 않아 upstream not-linked 오류가 `Internal data stream error`로 번지는 경로였다.
+- `2026-04-26`: `UriSourceWorker`가 선택하지 않는 HLS pad를 `queue ! fakesink`로 배수하도록 수정한 뒤 Mux/Apple 외부 HLS advisory 재검증 통과. 두 URL 모두 `RTSP /default -> h264/aac`, WebRTC signaling session 생성 통과.
+- `2026-04-26`: `./server.sh verify-uri-longrun --iterations 3 --include-external --skip-local-http --skip-local-hls --external-rtsp-routes default,h264,opus` 통과. Mux/Apple 공개 HLS 후보 모두 매 반복 `RTSP /default`, `/h264`, `/opus`, WebRTC signaling 통과, 결과 `pass=3 fail=0 skip=6`.
+- `2026-04-26`: `MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay`와 TURN 미설정 조합에서 `/webrtc/config`가 `requestedIceTransportPolicy=relay`, 실제 `iceTransportPolicy=all`, `relayPolicyFallback=true`를 반환함을 확인했다. `/lab`과 `/webrtc/test` UI는 `relay 요청 상태지만 TURN 서버가 없어 policy=all로 fallback됐습니다.` 경고와 host/srflx/relay candidate 수를 표시했다.
+- `2026-04-26`: `/lab`에서 테스트용 `route=webrtc` VA rule(presence, line-crossing)을 등록하고 `va_four_scene_sample.mp4`, `imports/va_tracking_event_1280x720_30fps_h264.mp4` 두 영상 모두 WebRTC simple signaling 재생을 확인했다. 두 경로 모두 `consumer ontrack kind=video`, `iceConnectionState=connected`, `connectionState=connected`, candidate 요약 `local h/s/r/u 2/2/0/0`, `remote h/s/r/u 15/3/0/1`로 통과했다. 테스트용 rule은 검증 후 삭제했다.
+- `2026-04-26`: `./server.sh verify-tracker-stability --duration 30 --repeat 2 --overlap-focus` 통과 `6/0/0`. 두 반복 모두 `fragmentationRatio=1.0`, `overlapFragmentationRatio=1.0`, `maxSimultaneousTracks=4`로 겹침 구간 track 분절은 재현되지 않았다.
+- `2026-04-26`: `./server.sh verify-va-events --duration 30` 통과 `9/0/0`. presence `558`, line-crossing `4`, enter `2`, exit `2` 이벤트와 trackId 기반 rule event를 확인했다.
+- `2026-04-26`: `./server.sh verify-va-events --long` 통과 `9/0/0`. presence `2280`, line-crossing `4`, enter `2`, exit `2`, snapshot `trackCount=4`, analyzed `734`, 평균 분석 시간 `92.3452ms`를 확인했다.
+- `2026-04-26`: 기본 tracker class 정책을 사람/차량 계열(`person,bicycle,car,motorcycle,bus,truck`)로 제한했다. 기타 객체는 detection/overlay만 유지하며, 시간 기반 이벤트가 필요한 class는 `trackingClasses` 또는 `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES`로 opt-in한다.
 
 ## 지원 대상
 - `file -> RTSP`
@@ -34,7 +48,8 @@
 - browser publisher / 실제 media playback 기준 `WebRTC publish -> WebRTC(simple signaling) consume` 검증 통과
 - browser publisher / 실제 media playback 기준 `WebRTC publish -> WebRTC(WHEP) consume` 검증 통과
 
-`WebRTC source`는 WHIP publish 기반 1차 ingest를 사용한다. STUN/TURN 서버는 env로 설정할 수 있고, 운영용 auth/강제 ICE policy는 아직 별도 설계가 필요하다.
+`WebRTC source`는 WHIP publish 기반 1차 ingest를 사용한다. STUN/TURN 서버와 ICE transport policy는 env로 설정할 수 있다. Mac 로컬 coturn 기준으로 relay candidate 수집, 브라우저 playback, WHIP publish -> WebRTC signaling은 통과했다. 외부 운영 TURN 서버 relay/auth end-to-end 테스트는 진행하지 않았고, 별도 Windows WSL2 TURN 검증도 보류 상태다.
+`GET /webrtc/config`는 같은 STUN/TURN/ICE policy 설정을 브라우저 `RTCPeerConnection` 설정으로 내려준다. Lab과 WebRTC 테스트 페이지의 simple signaling, WHEP, WHIP 경로는 이 API를 사용해 서버와 같은 ICE policy로 테스트한다. `MEDIA_SERVER_WEBRTC_TURN_SERVER`는 브라우저에서도 접근 가능한 주소를 사용해야 하며, 로컬 relay 강제 테스트에서는 `127.0.0.1`보다 Mac LAN IP를 권장한다.
 
 실험실 기능 정책:
 - `source=youtube`는 코드에 남아 있지만 기본 test scope에는 포함하지 않는다.
@@ -72,9 +87,13 @@
    - `./server.sh test` 기본 기준에는 LAN IP 외부 클라이언트 접근성을 hard gate로 포함한다.
    - 제3자 RTSP upstream 후보는 remote 응답 지연과 upstream 상태 영향이 커서 기본 stable에서는 advisory로 본다.
    - 신뢰 가능한 카메라/테스트 RTSP URL을 `MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS`로 지정하면 hard gate로 검증한다.
+   - 외부 HTTP/HLS URL은 `./server.sh verify-uri-longrun --include-external --external-urls <url>`로 advisory 검증한다. 기본 외부 RTSP route는 `default`만 확인하며, 필요할 때 `--external-rtsp-routes default,h264,opus`로 넓힌다.
 2. WebRTC 운영 환경 테스트
    - STUN/TURN env 적용 상태에서 로컬 WebRTC egress/WHIP ingest signaling 재검증은 통과했다.
-   - 실제 외부 TURN relay, auth, 강제 ICE policy는 별도 설계 후 검증한다.
+   - Mac 로컬 coturn 검증 명령은 `MEDIA_SERVER_WEBRTC_STUN_SERVER=stun://stun.l.google.com:19302 MEDIA_SERVER_WEBRTC_TURN_SERVER=turn://test:testpass@<mac-lan-ip>:3478 MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay ./server.sh verify-webrtc-ice --require-relay`이다.
+   - Mac 한 대에서 browser, MediaServer, coturn을 함께 돌리는 테스트는 coturn에 `--allow-loopback-peers`가 필요하다. 이 옵션은 로컬 개발 검증용이며 운영 TURN에는 사용하지 않는다.
+   - `./server.sh verify-webrtc-ice`로 candidate 수집, `MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay` 정책, relay candidate 여부를 확인한다.
+   - 외부 운영 TURN 서버 relay/auth end-to-end 테스트는 진행하지 않았다. 별도 호스트 TURN 검증은 운영 TURN 계정 또는 정상 inbound가 가능한 별도 호스트가 있어야 하므로 기본 안정 테스트에서 제외한다.
 3. audio-only input 정책 확정
    - 현재는 video relay/analysis 기준으로 설계되어 있어 audio-only는 정식 지원 범위 밖
 4. 영상분석 선택 테스트
@@ -102,7 +121,7 @@
   - LAN IP 기준 외부 클라이언트 접근성은 모든 `./server.sh test` 모드에서 확인한다.
   - 제3자 RTSP upstream reachability는 stable `./server.sh test`에서 advisory로 확인한다.
   - 신뢰 가능한 외부 RTSP URL을 명시한 경우에는 hard gate로 검증한다.
-  - 로컬 HTTP URI source는 기본 matrix에 포함한다. 로컬 HLS VOD는 선택 matrix로 검증하며, 외부 HLS/HTTP URI, 실험실 YouTube, 운영용 TURN relay/auth 검증은 선택 테스트로 남긴다.
+  - 로컬 HTTP URI source는 기본 matrix에 포함한다. 로컬 HLS VOD와 외부 HLS/HTTP URI는 `./server.sh verify-uri-longrun` 선택 검증으로 남긴다. Mux/Apple 공개 HLS advisory는 `2026-04-26` 기준 통과했지만, 외부 URL 의존성 때문에 기본 stable hard gate로 승격하지 않는다.
   - YOLO/VA overlay는 기본 설치/기본 실행 범위이므로 `./server.sh test` 기본 기준에 포함한다.
   - profile/rule/event, adaptive tuner는 선택 테스트로 유지하고 기본 안정 기준에는 넣지 않는다.
 - 권장 실행 순서
@@ -110,11 +129,13 @@
   2. `./server.sh test`
   3. 필요 시 `./server.sh test --include-rules`
   4. 필요 시 `./server.sh test --include-va-events`
-  5. 필요 시 `./server.sh verify-route-profiles`
-  6. 필요 시 `./server.sh verify-tracker-stability`
-  7. 필요 시 `./server.sh verify-yolo-layouts`
-  8. 필요 시 `./server.sh verify-adaptive`
-  9. `./server.sh stop`
+  5. 필요 시 `./server.sh test --include-webrtc-ice`
+  6. 필요 시 `./server.sh verify-uri-longrun`
+  7. 필요 시 `./server.sh verify-route-profiles`
+  8. 필요 시 `./server.sh verify-tracker-stability`
+  9. 필요 시 `./server.sh verify-yolo-layouts`
+  10. 필요 시 `./server.sh verify-adaptive`
+  11. `./server.sh stop`
 - 판단 규칙
   - 위 stable 기준이 깨지면 분석 관련 변경보다 스트리밍 안정화 수정을 먼저 한다.
   - profile/rule/event 같은 분석 관련 기능은 선택 테스트로 검증하되, 안정 기능으로 승격 전까지 기본 `./server.sh test`에는 넣지 않는다.
@@ -122,9 +143,9 @@
 
 ## 분석 1차 구현 이후 보류 테스트 이력
 - 분석 1차 구현은 file/RTSP/WebRTC local core 경로 중심으로 진행했다. 아래 항목은 main 기준 선택 테스트로 기록한다.
-  - `HTTP URI -> RTSP` 최신 `503` 재확인 및 수정 완료. 로컬 HLS VOD 선택 검증 통과, 외부 HLS/HTTP URI는 선택 검증으로 유지
+  - `HTTP URI -> RTSP` 최신 `503` 재확인 및 수정 완료. 로컬 HLS VOD와 Mux/Apple 공개 HLS advisory 통과, 외부 HLS/HTTP URI는 선택 검증으로 유지
   - 외부 RTSP source 장시간/codec 심화 재검증
-  - WebRTC 운영 환경 테스트(실제 외부 TURN relay/auth/ICE policy)
+  - WebRTC 운영 환경 테스트(외부 운영 TURN 서버 relay/auth는 아직 테스트하지 않음)
   - audio-only input 정책 확정
   - 실험실 YouTube 회귀 검증
   - `/lab/import` 외부 네트워크 재검증
@@ -180,7 +201,7 @@
 - 현재 판단
   - `file`, `RTSP pull`, `WebRTC publish`를 대상으로 한 분석 1차 브랜치는 진행 가능하다.
   - 이 시점의 `source=http` RTSP 503은 후속 `2026-04-26` 점검에서 URI/VOD source pacing 보정으로 정리했다.
-  - HLS/외부 HTTP URI source는 여전히 네트워크/upstream 상태 영향이 커서 선택 검증으로 둔다.
+  - HLS/외부 HTTP URI source는 Mux/Apple 공개 HLS advisory 기준 통과했다. 단 네트워크/upstream 상태 영향이 커서 선택 검증으로 둔다.
   - detached lifecycle 스크립트의 Codex 환경 특이점은 분석 blocker라기보다 main 안정화 이력의 별도 항목으로 둔다.
 
 ## 실험실 YouTube 개발 중단 사유
@@ -672,7 +693,7 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - 테스트 tap, ONNX foreground 서버, 임시 POST 수신 서버를 종료해 잔여 listen port가 없음을 확인했다.
 - `2026-04-25` lightweight tracker 1차 구현 smoke test를 추가했다.
   - `src/analysis/object_tracker.cpp`에서 IoU와 중심점 거리 기반 track matching을 추가했다.
-  - 기본 `va=1` profile은 `MEDIA_SERVER_ANALYSIS_TRACKING=1` 기본값으로 tracker를 켠다. query `tracking=0`으로 디버그 비활성화할 수 있다.
+  - 기본 `va=1` profile은 `MEDIA_SERVER_ANALYSIS_TRACKING=1` 기본값으로 tracker를 켠다. query `tracking=0`으로 디버그 비활성화할 수 있다. 기본 tracking class는 사람/차량 계열이며, `trackingClasses=*` 또는 class 목록으로 조정할 수 있다.
   - detection metadata는 `trackId`를 포함하고, `latestResult.tracks[]`는 `trackId`, `age`, `hits`, `missed`, `state`, 최근 box, 중심점 `trail[]`을 반환한다.
   - overlay snapshot/debug URL에 `trackIds=1`을 붙이면 label에 `#trackId`가 함께 표시되고, `trackTrails=1`을 붙이면 최근 이동 궤적이 표시된다.
   - `imports/yolo11n_object_detection_slideshow_1280x720_30fps_h264.mp4` 기준 smoke에서 사람 장면 `trackId=1,2`가 여러 poll 동안 유지되고 `trackingEnabled=true`, `state=confirmed`를 확인했다.

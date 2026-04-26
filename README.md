@@ -37,9 +37,9 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC or HTTP/
 
 부분 지원/재확인 필요:
 
-- `HLS/외부 HTTP URI -> RTSP/WebRTC`: 로컬 HLS VOD 선택 검증은 통과했지만, 외부 HLS/HTTP는 네트워크와 upstream 상태 영향이 있어 선택 검증으로 유지
+- `HLS/외부 HTTP URI -> RTSP/WebRTC`: 로컬 HLS VOD와 공개 HLS 후보(Mux/Apple) advisory 검증은 통과했다. 외부 URL은 upstream/CDN 상태 영향이 있어 기본 안정 테스트가 아닌 선택 검증으로 유지
 - YouTube source/import: 실험실 기능, 기본 운영 기능 아님
-- 운영용 WebRTC: STUN/TURN env 설정과 로컬 signaling 재검증은 통과, auth/강제 ICE policy는 미구현
+- 운영용 WebRTC: Google STUN 기본값, TURN env opt-in, ICE transport policy 설정 경로가 추가됨. Mac 로컬 coturn 기준 relay candidate, 브라우저 playback, WHIP publish 검증은 통과했다. 외부 운영 TURN 서버 relay/auth end-to-end 테스트는 진행하지 않았고, Windows WSL2 TURN은 환경 제약으로 별도 보류했다.
 
 ## 설치 및 실행 환경
 
@@ -151,6 +151,10 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 
 ```bash
 ./server.sh verify-codecs
+./server.sh verify-webrtc-ice
+./server.sh verify-uri-longrun
+./server.sh verify-uri-longrun --include-external --external-urls https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+./server.sh verify-uri-longrun --include-external --external-rtsp-routes default,h264,opus --external-urls https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
 ./server.sh verify-va
 ./server.sh verify-va-events
 ./server.sh verify-route-profiles
@@ -166,6 +170,7 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 
 - RTSP: `rtsp://127.0.0.1:8554/dhseo`
 - 통합 Lab UI: `http://127.0.0.1:8080/lab`
+- WebRTC 브라우저 ICE 설정: `GET http://127.0.0.1:8080/webrtc/config`
 - WebRTC simple signaling: `POST http://127.0.0.1:8080/webrtc/session?...`
 - WHEP consume: `POST http://127.0.0.1:8080/whep?...`
 - WHIP publish: `POST http://127.0.0.1:8080/whip/publish?sourceId=...`
@@ -221,6 +226,8 @@ rtsp://127.0.0.1:8554/dhseo?source=webrtc&url={source_id}
 
 상세한 VA/YOLO 모델 기준, 객체 카테고리, rule/event, 정적 이미지 분석 API는 [docs/video-analysis.md](docs/video-analysis.md)를 봅니다.
 
+기본 tracker는 사람/차량 계열(`person,bicycle,car,motorcycle,bus,truck`)에만 `trackId`/trail을 붙이고, 그 외 객체는 detection/overlay만 유지합니다. 시간 기반 이벤트가 필요한 객체는 `trackingClasses=<label-list>` 또는 `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES`로 opt-in합니다.
+
 VA overlay 샘플:
 
 ![VA overlay 한글 라벨 샘플](docs/assets/va-four-scene-overlay-ko.jpg)
@@ -275,6 +282,7 @@ curl -fsS -o overlay.jpg \
 - 룰/이벤트/POST 장시간 검증
 - adaptive tuner 장시간 검증
 - 정적 이미지 분석 API
+- 외부 운영 TURN 서버 relay/auth 검증 및 별도 호스트 TURN 재검증
 
 선택 검증:
 
@@ -282,6 +290,8 @@ curl -fsS -o overlay.jpg \
 ./server.sh test --include-rules
 ./server.sh test --include-va-events
 ./server.sh test --include-image-analysis
+./server.sh test --include-webrtc-ice
+./server.sh test --include-uri-longrun
 ```
 
 상세 검증 기준과 과거 통과/보류 이력은 `docs/stream-verification.md`를 봅니다.

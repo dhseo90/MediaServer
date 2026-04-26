@@ -67,6 +67,16 @@ std::string ToLower(std::string value) {
     return value;
 }
 
+std::string TrimToken(std::string value) {
+    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front())) != 0) {
+        value.erase(value.begin());
+    }
+    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.back())) != 0) {
+        value.pop_back();
+    }
+    return value;
+}
+
 bool HasAnyQueryKey(const std::unordered_map<std::string, std::string>& query,
                     const std::vector<std::string>& keys) {
     return std::any_of(keys.begin(), keys.end(), [&query](const std::string& key) {
@@ -97,6 +107,8 @@ bool HasProfileTuningQuery(const std::unordered_map<std::string, std::string>& q
                            "yoloScoreMode",
                            "detect",
                            "tracking",
+                           "trackingClasses",
+                           "trackClasses",
                            "pose",
                            "detectorDelayMs",
                            "adaptive",
@@ -168,6 +180,71 @@ std::optional<std::string> ExtractDelimitedField(const std::string& body,
 
 std::optional<std::string> ExtractObjectField(const std::string& body, const std::string& field) {
     return ExtractDelimitedField(body, field, '{', '}');
+}
+
+std::optional<std::string> ExtractArrayField(const std::string& body, const std::string& field) {
+    return ExtractDelimitedField(body, field, '[', ']');
+}
+
+// JSON string array 필드를 profile의 class 목록 옵션으로 파싱한다.
+std::vector<std::string> ParseStringArrayField(const std::string& body, const std::string& field) {
+    std::vector<std::string> values;
+    const auto array = ExtractArrayField(body, field);
+    if (!array.has_value()) {
+        return values;
+    }
+
+    bool in_string = false;
+    bool escaped = false;
+    std::string current;
+    for (std::size_t i = 1; i + 1 < array->size(); ++i) {
+        const char ch = (*array)[i];
+        if (!in_string) {
+            if (ch == '"') {
+                in_string = true;
+                current.clear();
+            }
+            continue;
+        }
+        if (escaped) {
+            current.push_back(ch);
+            escaped = false;
+            continue;
+        }
+        if (ch == '\\') {
+            escaped = true;
+            continue;
+        }
+        if (ch == '"') {
+            values.push_back(current);
+            in_string = false;
+            continue;
+        }
+        current.push_back(ch);
+    }
+    return values;
+}
+
+// query string의 comma/semicolon 구분 class 목록을 vector로 바꾼다. label 내부 공백은 유지한다.
+std::vector<std::string> ParseStringList(std::string value) {
+    std::vector<std::string> values;
+    std::string current;
+    for (const char ch : value) {
+        if (ch == ',' || ch == ';') {
+            current = TrimToken(current);
+            if (!current.empty()) {
+                values.push_back(std::move(current));
+                current.clear();
+            }
+            continue;
+        }
+        current.push_back(ch);
+    }
+    current = TrimToken(current);
+    if (!current.empty()) {
+        values.push_back(std::move(current));
+    }
+    return values;
 }
 
 std::optional<std::string> ParseStringField(const std::string& body, const std::string& field) {
@@ -427,6 +504,21 @@ void ApplyProfileDocument(const std::string& document, analysis::AnalysisProfile
     profile->yolo_has_objectness = ParseBoolField(document, "objectness").value_or(profile->yolo_has_objectness);
     profile->enable_object_detection = ParseBoolField(document, "detect").value_or(profile->enable_object_detection);
     profile->enable_tracking = ParseBoolField(document, "tracking").value_or(profile->enable_tracking);
+    if (auto classes = ParseStringArrayField(document, "trackingClasses"); !classes.empty()) {
+        profile->tracking_class_labels = std::move(classes);
+    } else if (auto classes = ParseStringArrayField(document, "trackClasses"); !classes.empty()) {
+        profile->tracking_class_labels = std::move(classes);
+    } else if (const auto classes = ParseStringField(document, "trackingClasses"); classes.has_value()) {
+        auto parsed = ParseStringList(*classes);
+        if (!parsed.empty()) {
+            profile->tracking_class_labels = std::move(parsed);
+        }
+    } else if (const auto classes = ParseStringField(document, "trackClasses"); classes.has_value()) {
+        auto parsed = ParseStringList(*classes);
+        if (!parsed.empty()) {
+            profile->tracking_class_labels = std::move(parsed);
+        }
+    }
     profile->enable_pose = ParseBoolField(document, "pose").value_or(profile->enable_pose);
     profile->enable_overlay = ParseBoolField(document, "overlay").value_or(profile->enable_overlay);
     profile->adaptive_tuning_enabled =
@@ -560,6 +652,7 @@ analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map
         profile.yolo_preprocess_mode = config.default_analysis_preprocess;
         profile.enable_overlay = true;
         profile.enable_tracking = config.default_analysis_tracking_enabled;
+        profile.tracking_class_labels = config.default_analysis_tracking_classes;
         profile.adaptive_tuning_enabled = config.default_analysis_adaptive_enabled;
         profile.adaptive_input_size_enabled = config.default_analysis_adaptive_input_enabled;
         profile.adaptive_min_fps = config.default_analysis_adaptive_min_fps;
@@ -629,6 +722,17 @@ analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map
     }
     profile.enable_object_detection = ParseBoolQuery(query, "detect", profile.enable_object_detection);
     profile.enable_tracking = ParseBoolQuery(query, "tracking", profile.enable_tracking);
+    if (const auto it = query.find("trackingClasses"); it != query.end()) {
+        auto classes = ParseStringList(it->second);
+        if (!classes.empty()) {
+            profile.tracking_class_labels = std::move(classes);
+        }
+    } else if (const auto it = query.find("trackClasses"); it != query.end()) {
+        auto classes = ParseStringList(it->second);
+        if (!classes.empty()) {
+            profile.tracking_class_labels = std::move(classes);
+        }
+    }
     profile.enable_pose = ParseBoolQuery(query, "pose", profile.enable_pose);
     profile.enable_overlay = ParseBoolQuery(query, "overlay", profile.enable_overlay);
     profile.debug_detector_delay_ms =

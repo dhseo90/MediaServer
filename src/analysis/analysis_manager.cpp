@@ -46,6 +46,13 @@ std::optional<AnalysisResult> FindResultNearPtsLocked(const std::deque<AnalysisR
     return best;
 }
 
+// profile의 tracking class 정책을 ObjectTracker 생성 옵션으로 변환한다.
+ObjectTrackerOptions BuildTrackerOptions(const AnalysisProfile& profile) {
+    ObjectTrackerOptions options;
+    options.class_labels = profile.tracking_class_labels;
+    return options;
+}
+
 }  // namespace
 
 AnalysisManager::~AnalysisManager() {
@@ -106,7 +113,7 @@ AnalysisManager::AttachResult AnalysisManager::AttachStream(const core::StreamKe
     tap->profile_key = BuildProfileKey(tap->profile);
     tap->detector = CreateDetector(tap->profile);
     if (tap->profile.enable_tracking) {
-        tap->tracker = std::make_unique<ObjectTracker>();
+        tap->tracker = std::make_unique<ObjectTracker>(BuildTrackerOptions(tap->profile));
     }
 
     std::string error_message;
@@ -586,6 +593,7 @@ AnalysisManager::TapSnapshot AnalysisManager::BuildSnapshotLocked(const std::sha
         .confidence_threshold = tap->profile.confidence_threshold,
         .nms_threshold = tap->profile.nms_threshold,
         .tracking_enabled = tap->profile.enable_tracking,
+        .tracking_class_labels = tap->profile.tracking_class_labels,
         .adaptive_tuning_enabled = tap->profile.adaptive_tuning_enabled,
         .adaptive_input_size_enabled = tap->profile.adaptive_input_size_enabled,
         .adaptive_input_size_disabled = tap->adaptive_input_size_disabled,

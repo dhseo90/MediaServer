@@ -29,6 +29,10 @@ Usage:
   foreground     서버를 foreground로 실행합니다. 개발 중 로그를 바로 볼 때 사용합니다.
   test           안정 기능과 LAN IP 외부 접근성 통합 테스트를 한글 리포트로 실행합니다.
   verify-codecs  file/RTSP/WebRTC source와 codec route matrix를 자동 검증합니다.
+  verify-webrtc-ice
+                 WebRTC STUN/TURN/ICE policy와 candidate 수집 상태를 검증합니다.
+  verify-uri-longrun
+                 HTTP/HLS URI source의 로컬 반복 검증과 선택 외부 URL 회귀 검증을 수행합니다.
   verify-va      YOLO/VA overlay의 lab, RTSP, WebRTC 회귀 검증을 수행합니다.
   verify-va-events
                  이동 테스트 영상으로 tracker 기반 presence/enter/exit/line-crossing을 검증합니다.
@@ -124,6 +128,14 @@ case "${cmd}" in
   verify-codecs)
     require_internal verify_codec_matrix.sh
     exec "${INTERNAL_DIR}/verify_codec_matrix.sh" "$@"
+    ;;
+  verify-webrtc-ice)
+    require_internal verify_webrtc_ice_config.sh
+    exec "${INTERNAL_DIR}/verify_webrtc_ice_config.sh" "$@"
+    ;;
+  verify-uri-longrun)
+    require_internal verify_uri_source_longrun.sh
+    exec "${INTERNAL_DIR}/verify_uri_source_longrun.sh" "$@"
     ;;
   verify-va)
     require_internal verify_va_overlay.sh
