@@ -51,6 +51,7 @@ public:
         float confidence_threshold{0.0F};
         float nms_threshold{0.0F};
         bool tracking_enabled{false};
+        std::vector<std::string> tracking_class_labels;
         bool adaptive_tuning_enabled{false};
         bool adaptive_input_size_enabled{false};
         bool adaptive_input_size_disabled{false};

@@ -31,6 +31,7 @@ struct AppConfig {
     float default_analysis_nms{app_config::kDefaultAnalysisNms};
     std::string default_analysis_preprocess{app_config::kDefaultAnalysisPreprocess};
     bool default_analysis_tracking_enabled{app_config::kDefaultAnalysisTrackingEnabled};
+    std::vector<std::string> default_analysis_tracking_classes{"person", "bicycle", "car", "motorcycle", "bus", "truck"};
     int default_analysis_overlay_wait_ms{app_config::kDefaultAnalysisOverlayWaitMs};
     int default_analysis_overlay_sync_tolerance_ms{app_config::kDefaultAnalysisOverlaySyncToleranceMs};
     int default_analysis_overlay_thickness{app_config::kDefaultAnalysisOverlayThickness};
@@ -52,8 +53,10 @@ struct AppConfig {
     bool session_trace{false};
     bool webrtc_trace{false};
     bool webrtc_trace_verbose{false};
-    std::string webrtc_stun_server;
+    std::string webrtc_stun_server{"stun://stun.l.google.com:19302"};
     std::string webrtc_turn_server;
+    std::string webrtc_requested_ice_transport_policy{"all"};
+    std::string webrtc_ice_transport_policy{"all"};
     int webrtc_source_ready_timeout_ms{12000};
     int rtsp_source_preflight_timeout_ms{1500};
     int rtsp_source_start_timeout_ms{3000};

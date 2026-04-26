@@ -22,6 +22,7 @@ FAIL_COUNT=0
 SKIP_COUNT=0
 TAP_ID=""
 RULE_IDS=()
+LONG_MODE=0
 
 log_info() {
   echo "[info] $*"
@@ -47,6 +48,29 @@ require_cmd() {
     log_fail "필수 도구가 없습니다: $1"
     exit 1
   fi
+}
+
+usage() {
+  cat <<'EOF_USAGE'
+VA tracking event 검증
+
+Usage:
+  ./server.sh verify-va-events [options]
+
+Options:
+  --long                 장시간 검증 기본값 적용: slow long 영상, duration=120s
+  --duration <seconds>   polling 시간을 초 단위로 지정. poll-count보다 우선
+  --poll-count <count>   polling 횟수. 기본 180
+  --interval <seconds>   polling 간격. 기본 0.2
+  --file <token>         video root 기준 이동 테스트 파일 token
+  -h, --help             도움말 출력
+
+환경 변수:
+  MEDIA_SERVER_VERIFY_VA_EVENTS_FILE
+  MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S
+  MEDIA_SERVER_VERIFY_VA_EVENTS_POLL_COUNT
+  MEDIA_SERVER_VERIFY_VA_EVENTS_POLL_INTERVAL_S
+EOF_USAGE
 }
 
 resolve_port() {
@@ -115,6 +139,61 @@ EVENTS_FILE="/tmp/media_server_${RUN_ID}_events.ndjson"
 SNAPSHOT_FILE="/tmp/media_server_${RUN_ID}_snapshot.json"
 TAPS_FILE="/tmp/media_server_${RUN_ID}_taps.json"
 OVERLAY_FILE="${MEDIA_SERVER_VERIFY_VA_EVENTS_OVERLAY_FILE:-/tmp/media_server_${RUN_ID}_overlay.jpg}"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --long)
+      LONG_MODE=1
+      ;;
+    --duration)
+      DURATION_S="$2"
+      shift
+      ;;
+    --poll-count)
+      POLL_COUNT="$2"
+      shift
+      ;;
+    --interval)
+      POLL_INTERVAL_S="$2"
+      shift
+      ;;
+    --file)
+      FILE_TOKEN="$2"
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "알 수 없는 verify-va-events 옵션입니다: $1"
+      echo
+      usage
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+if [[ "${LONG_MODE}" == "1" && "${FILE_TOKEN}" == "imports/va_tracking_event_1280x720_30fps_h264.mp4" ]]; then
+  FILE_TOKEN="imports/va_tracking_event_slow_long_1280x720_30fps_h264.mp4"
+  DURATION_S="${DURATION_S:-120}"
+fi
+if [[ -n "${MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S:-}" ]]; then
+  DURATION_S="${MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S}"
+fi
+if [[ -n "${DURATION_S:-}" ]]; then
+  POLL_COUNT="$(python3 - "${DURATION_S}" "${POLL_INTERVAL_S}" <<'PY'
+import math
+import sys
+
+duration = float(sys.argv[1])
+interval = float(sys.argv[2])
+print(max(1, int(math.ceil(duration / interval))))
+PY
+)"
+fi
+LOCAL_FILE="${FILE_ROOT}/${FILE_TOKEN}"
 
 log_info "http_base=${HTTP_BASE}"
 log_info "file=${FILE_TOKEN}"

@@ -2,6 +2,7 @@
 #include "app_config.h"
 
 #include <cerrno>
+#include <cctype>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -31,6 +32,7 @@ constexpr const char* kEnvDefaultAnalysisConfidence = "MEDIA_SERVER_ANALYSIS_CON
 constexpr const char* kEnvDefaultAnalysisNms = "MEDIA_SERVER_ANALYSIS_NMS";
 constexpr const char* kEnvDefaultAnalysisPreprocess = "MEDIA_SERVER_ANALYSIS_PREPROCESS";
 constexpr const char* kEnvDefaultAnalysisTracking = "MEDIA_SERVER_ANALYSIS_TRACKING";
+constexpr const char* kEnvDefaultAnalysisTrackingClasses = "MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES";
 constexpr const char* kEnvDefaultAnalysisOverlayWaitMs = "MEDIA_SERVER_ANALYSIS_OVERLAY_WAIT_MS";
 constexpr const char* kEnvDefaultAnalysisOverlaySyncToleranceMs =
     "MEDIA_SERVER_ANALYSIS_OVERLAY_SYNC_TOLERANCE_MS";
@@ -57,6 +59,7 @@ constexpr const char* kEnvWebRtcTrace = "MEDIA_SERVER_WEBRTC_TRACE";
 constexpr const char* kEnvWebRtcTraceVerbose = "MEDIA_SERVER_WEBRTC_TRACE_VERBOSE";
 constexpr const char* kEnvWebRtcStunServer = "MEDIA_SERVER_WEBRTC_STUN_SERVER";
 constexpr const char* kEnvWebRtcTurnServer = "MEDIA_SERVER_WEBRTC_TURN_SERVER";
+constexpr const char* kEnvWebRtcIceTransportPolicy = "MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY";
 constexpr const char* kEnvWebRtcSourceReadyTimeoutMs = "MEDIA_SERVER_WEBRTC_SOURCE_READY_TIMEOUT_MS";
 constexpr const char* kEnvRtspSourcePreflightTimeoutMs = "MEDIA_SERVER_RTSP_SOURCE_PREFLIGHT_TIMEOUT_MS";
 constexpr const char* kEnvRtspSourceStartTimeoutMs = "MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS";
@@ -181,11 +184,63 @@ bool ReadBoolEnv(const char* name, bool fallback) {
     return fallback;
 }
 
+// class label처럼 내부 공백이 의미 있는 값을 위해 token 양끝 공백만 정리한다.
+std::string TrimToken(std::string value) {
+    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front())) != 0) {
+        value.erase(value.begin());
+    }
+    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.back())) != 0) {
+        value.pop_back();
+    }
+    return value;
+}
+
+// 쉼표/세미콜론으로 구분된 env 목록을 vector로 반환한다.
+std::vector<std::string> SplitList(std::string value) {
+    std::vector<std::string> out;
+    std::string current;
+    for (const char ch : value) {
+        if (ch == ',' || ch == ';') {
+            current = TrimToken(current);
+            if (!current.empty()) {
+                out.push_back(std::move(current));
+                current.clear();
+            }
+            continue;
+        }
+        current.push_back(ch);
+    }
+    current = TrimToken(current);
+    if (!current.empty()) {
+        out.push_back(std::move(current));
+    }
+    return out;
+}
+
+// env 목록이 비어 있지 않을 때만 기본 vector를 덮어쓴다.
+std::vector<std::string> ReadStringListEnv(const char* name, const std::vector<std::string>& fallback) {
+    const char* value = ReadEnv(name);
+    if (value == nullptr) {
+        return fallback;
+    }
+    auto parsed = SplitList(value);
+    if (parsed.empty()) {
+        std::cerr << "[env] invalid " << name << "='" << value << "', fallback default list\n";
+        return fallback;
+    }
+    return parsed;
+}
+
 bool IsAllowedX264Preset(const std::string& preset) {
     return preset == "ultrafast" || preset == "superfast" || preset == "veryfast" ||
            preset == "faster" || preset == "fast" || preset == "medium" ||
            preset == "slow" || preset == "slower" || preset == "veryslow" ||
            preset == "placebo";
+}
+
+// 운영 환경에서 허용할 WebRTC ICE transport policy 값만 통과시킨다.
+bool IsAllowedWebRtcIceTransportPolicy(const std::string& value) {
+    return value == "all" || value == "relay";
 }
 
 void ValidatePositiveInt(int* value, int fallback, const char* description) {
@@ -250,6 +305,8 @@ app::AppConfig LoadAppConfig() {
         ReadStringEnv(kEnvDefaultAnalysisPreprocess, config.default_analysis_preprocess);
     config.default_analysis_tracking_enabled =
         ReadBoolEnv(kEnvDefaultAnalysisTracking, config.default_analysis_tracking_enabled);
+    config.default_analysis_tracking_classes =
+        ReadStringListEnv(kEnvDefaultAnalysisTrackingClasses, config.default_analysis_tracking_classes);
     config.default_analysis_overlay_wait_ms =
         ReadIntEnv(kEnvDefaultAnalysisOverlayWaitMs, config.default_analysis_overlay_wait_ms);
     config.default_analysis_overlay_sync_tolerance_ms =
@@ -296,6 +353,9 @@ app::AppConfig LoadAppConfig() {
     config.webrtc_trace_verbose = ReadBoolEnv(kEnvWebRtcTraceVerbose, config.webrtc_trace_verbose);
     config.webrtc_stun_server = ReadStringEnv(kEnvWebRtcStunServer, config.webrtc_stun_server);
     config.webrtc_turn_server = ReadStringEnv(kEnvWebRtcTurnServer, config.webrtc_turn_server);
+    config.webrtc_ice_transport_policy =
+        ReadStringEnv(kEnvWebRtcIceTransportPolicy, config.webrtc_ice_transport_policy);
+    config.webrtc_requested_ice_transport_policy = config.webrtc_ice_transport_policy;
     config.webrtc_source_ready_timeout_ms =
         ReadIntEnv(kEnvWebRtcSourceReadyTimeoutMs, config.webrtc_source_ready_timeout_ms);
     config.rtsp_source_preflight_timeout_ms =
@@ -479,6 +539,16 @@ app::AppConfig LoadAppConfig() {
         std::cerr << "[env] invalid WebRTC x264 preset '" << config.webrtc_x264_speed_preset
                   << "', fallback superfast\n";
         config.webrtc_x264_speed_preset = "superfast";
+    }
+    if (!IsAllowedWebRtcIceTransportPolicy(config.webrtc_ice_transport_policy)) {
+        std::cerr << "[env] invalid WebRTC ICE transport policy '"
+                  << config.webrtc_ice_transport_policy << "', fallback all\n";
+        config.webrtc_ice_transport_policy = "all";
+        config.webrtc_requested_ice_transport_policy = "all";
+    }
+    if (config.webrtc_ice_transport_policy == "relay" && config.webrtc_turn_server.empty()) {
+        std::cerr << "[env] WebRTC ICE relay policy requires MEDIA_SERVER_WEBRTC_TURN_SERVER, fallback all\n";
+        config.webrtc_ice_transport_policy = "all";
     }
     if (config.youtube_resolver_bin.empty()) {
         std::cerr << "[env] YouTube resolver binary cannot be empty, fallback yt-dlp\n";

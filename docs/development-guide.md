@@ -77,7 +77,7 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 
 ### 부분 구현
 - `HLS/외부 HTTP URI source -> RTSP/WebRTC`
-  - 로컬 HTTP MP4는 통과했지만, HLS와 외부 HTTP URI는 네트워크/upstream 상태 영향이 커서 선택 검증으로 둔다.
+  - 로컬 HTTP MP4, 로컬 HLS VOD, Mux/Apple 공개 HLS advisory는 통과했다. 외부 HTTP/HLS URI는 네트워크/upstream 상태 영향이 커서 선택 검증으로 둔다.
 - `WebRTC egress`
   - HTTP signaling / WHEP endpoint 존재
   - 브라우저 연결용 코어 파이프라인 존재
@@ -324,6 +324,7 @@ MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
 | `MEDIA_SERVER_ANALYSIS_NMS` | `va=1` 기본 NMS threshold. 기본 `0.45` |
 | `MEDIA_SERVER_ANALYSIS_PREPROCESS` | `va=1` 기본 YOLO 전처리. 기본 `letterbox` |
 | `MEDIA_SERVER_ANALYSIS_TRACKING` | `1`이면 `va=1` 기본 tracker 사용. 기본 `1` |
+| `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES` | tracker가 ID/trail을 붙일 class 목록. 기본 `person,bicycle,car,motorcycle,bus,truck`, 전체는 `*` |
 | `MEDIA_SERVER_ANALYSIS_OVERLAY_WAIT_MS` | `va=1` 기본 overlay result 대기 시간. 기본 `180` |
 | `MEDIA_SERVER_ANALYSIS_OVERLAY_SYNC_TOLERANCE_MS` | `va=1` 기본 PTS 매칭 허용 범위. 기본 `400` |
 | `MEDIA_SERVER_ANALYSIS_OVERLAY_THICKNESS` | `va=1` 기본 detection box 두께. 기본 `3` |
@@ -345,8 +346,9 @@ MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
 | `MEDIA_SERVER_SESSION_TRACE` | `1`이면 SessionManager acquire/cleanup 로그 출력 |
 | `MEDIA_SERVER_WEBRTC_TRACE` | `1`이면 WebRTC 협상/상태 로그 출력 |
 | `MEDIA_SERVER_WEBRTC_TRACE_VERBOSE` | `1`이면 sample/pad/caps/SDP 상세 로그 추가 |
-| `MEDIA_SERVER_WEBRTC_STUN_SERVER` | WebRTC egress/WHIP ingest에 적용할 STUN 서버. 예: `stun://stun.l.google.com:19302` |
+| `MEDIA_SERVER_WEBRTC_STUN_SERVER` | WebRTC egress/WHIP ingest에 적용할 STUN 서버. 기본 `stun://stun.l.google.com:19302` |
 | `MEDIA_SERVER_WEBRTC_TURN_SERVER` | WebRTC egress/WHIP ingest에 적용할 TURN 서버. 예: `turn://user:pass@turn.example.com:3478` |
+| `MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY` | WebRTC ICE candidate 정책. `all` 또는 `relay`. `relay`는 TURN server가 없으면 `all`로 fallback |
 | `MEDIA_SERVER_WEBRTC_SOURCE_READY_TIMEOUT_MS` | WHIP publish source track 준비 대기 시간 |
 | `MEDIA_SERVER_WEBRTC_VIDEO_WIDTH` | WebRTC 송출 video 정규화 width. 기본 `1280` |
 | `MEDIA_SERVER_WEBRTC_VIDEO_HEIGHT` | WebRTC 송출 video 정규화 height. 기본 `720` |
@@ -363,6 +365,8 @@ MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
 | `MEDIA_SERVER_URI_TRACK_SETTLE_MAX_MS` | URI source track discovery 전체 상한. 기본 `2500` |
 | `MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS` | `./server.sh test`에서 hard gate로 볼 외부 RTSP URL 후보 목록. 쉼표/세미콜론 구분 |
 | `MEDIA_SERVER_TEST_REQUIRE_EXTERNAL_SOURCE` | `1`이면 기본 외부 RTSP 후보 실패도 hard fail 처리 |
+| `MEDIA_SERVER_VERIFY_URI_EXTERNAL_URLS` | `./server.sh verify-uri-longrun --include-external`에서 검증할 외부 HTTP/HLS URL 목록. 쉼표/세미콜론 구분 |
+| `MEDIA_SERVER_VERIFY_URI_EXTERNAL_RTSP_ROUTE_KEYS` | 외부 HTTP/HLS advisory에서 검증할 RTSP route key 목록. 기본 `default` |
 | `MEDIA_SERVER_RTSP_SOURCE_PREFLIGHT_TIMEOUT_MS` | 외부 RTSP host:port 사전 연결성 검사 timeout |
 | `MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS` | RTSP/URI source 첫 sample 대기 timeout |
 | `MEDIA_SERVER_RTSP_TRACK_SETTLE_QUIET_PERIOD_MS` | 첫 track 이후 추가 track discovery quiet period |
@@ -385,6 +389,17 @@ cp scripts/.media_server.env.example scripts/.media_server.env
 
 `./server.sh start`, `./server.sh restart`, `./server.sh foreground`는 이 파일이 있으면 읽어서 적용한다.
 
+WebRTC STUN/TURN 검증 상태:
+
+- STUN은 `stun://stun.l.google.com:19302`로 검증했다.
+- TURN 설정 경로와 `verify-webrtc-ice`는 Mac 로컬 coturn 기준으로 relay candidate 수집, 브라우저 WebRTC file consume playback, WHIP publish -> WebRTC signaling까지 통과했다.
+- `GET /webrtc/config`는 서버 STUN/TURN env와 ICE transport policy를 브라우저 `RTCPeerConnection` 설정으로 내려준다. `/lab`과 `/webrtc/test`의 simple/WHEP/WHIP peer는 이 설정을 사용하며, candidate type(host/srflx/relay) 수와 policy를 화면에 표시한다. `relay` 요청인데 TURN이 없으면 서버는 실제 policy를 `all`로 fallback하고 UI는 경고를 표시한다.
+- `MEDIA_SERVER_WEBRTC_TURN_SERVER`는 브라우저에서도 접근 가능한 주소여야 한다. 로컬 relay 강제 검증에서는 `turn://test:testpass@<mac-lan-ip>:3478`처럼 Mac LAN IP를 쓰는 것을 권장한다.
+- Mac 로컬 단일 머신 검증에서는 coturn을 `--allow-loopback-peers`와 함께 실행해야 한다. 이 옵션은 loopback peer 허용 때문에 로컬 개발 검증에만 사용하고 운영 TURN에는 사용하지 않는다.
+- Windows WSL2 coturn은 서버 실행과 Windows localhost 접근까지 확인했지만, Mac -> Windows LAN inbound가 `No route to host`로 막혀 보류했다.
+- 외부 운영 TURN 서버 relay/auth end-to-end 테스트는 진행하지 않았다.
+- 다음 작업은 정상 inbound가 가능한 별도 호스트 또는 운영 TURN 계정이 준비됐을 때 운영형 end-to-end 검증을 추가하는 것이다.
+
 ### 실행 스크립트 역할
 일반 사용자는 루트의 `server.sh`만 사용한다. 세부 구현은 `scripts/internal/` 아래에 숨겨져 있으며, 직접 실행은 디버깅이 필요할 때만 권장한다.
 
@@ -401,6 +416,8 @@ cp scripts/.media_server.env.example scripts/.media_server.env
 | `./server.sh foreground` | foreground 실행. 개발/디버깅 권장 |
 | `./server.sh test` | 안정 기능 기준 통합 테스트. 한글 원인 리포트와 `.media_server.test/` 로그 생성 |
 | `./server.sh verify-codecs` | source/route codec matrix 자동 검증 |
+| `./server.sh verify-webrtc-ice` | STUN/TURN/ICE transport policy와 candidate 수집 상태 검증 |
+| `./server.sh verify-uri-longrun` | HTTP/HLS URI source 로컬 반복 검증과 선택 외부 URL 회귀 검증 |
 | `./server.sh verify-va` | YOLO/VA overlay lab, RTSP, WebRTC 회귀 검증 |
 | `./server.sh verify-va-events` | 실제 이동 영상 기준 tracker, line-crossing, enter, exit 이벤트 검증 |
 | `./server.sh verify-route-profiles` | 실제 RTSP/WebRTC overlay 세션 기준 route별 profile/rule matching 검증 |
@@ -483,6 +500,8 @@ ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성
 - 선택 검증: `./server.sh test --include-rules`는 profile/rule registry CRUD와 rule match 기반 profile 자동 선택을 추가 확인한다.
 - 선택 검증: `./server.sh test --include-va-events`는 실제 이동 영상 기반 tracker/event 판정을 추가 확인한다.
 - 선택 검증: `./server.sh test --include-image-analysis`는 개발용 정적 이미지 분석 API를 추가 확인한다.
+- 선택 검증: `./server.sh test --include-webrtc-ice`는 WebRTC STUN/TURN/ICE candidate 수집을 추가 확인한다.
+- 선택 검증: `./server.sh test --include-uri-longrun`은 HTTP/HLS URI source 반복 검증을 추가 확인한다.
 - 예외 생략: `./server.sh test --skip-va`는 ONNX/브라우저 자동화가 불가능한 환경에서만 사용한다.
 - 외부 네트워크 또는 LAN IP probe가 막힌 격리 환경에서만 `./server.sh test --skip-external`로 LAN IP 외부 접근성과 제3자 RTSP upstream 확인을 생략한다.
 - 신뢰 가능한 카메라/테스트 RTSP URL이 있으면 `MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS='rtsp://...' ./server.sh test`로 hard gate 검증한다.
@@ -501,10 +520,19 @@ tracker 장시간 검증:
 
 tracker fragmentation 계산은 기본적으로 다음 안정화 필터를 적용한다.
 - `segmentAware=1`: PTS 역행/중복 PTS를 감지해 파일 반복/정지 경계를 segment로 분리한다.
-- `classWhitelist=person`: 테스트 목적상 사람 track만 fragmentation 계산에 포함한다.
+- `classWhitelist=person`: 테스트 목적상 사람 track만 fragmentation 계산에 포함한다. 런타임 tracker 기본 대상은 사람/차량 계열이다.
 - `minTrackSamples=3`: 1~2회만 보인 짧은 오검출 track은 제외한다.
 - `maxStaleRatio=0.3`: 같은 PTS가 과도하게 반복되면 분석 source가 멈춘 것으로 보고 실패시킨다.
+- `overlapFocus=0`: 기본 fragmentation 검증은 전체 person track 기준이다. 겹침/교차 장면만 강하게 보고 싶으면 `--overlap-focus`를 사용한다.
 - 필요하면 `--class-whitelist '*'`, `--min-track-samples 1`, `--max-stale-ratio 1.0`, `--no-segment-aware`, `--no-long-sample`로 원시 계산에 가깝게 바꿀 수 있다.
+
+겹침 장면 중심 tracker 검증:
+
+```bash
+./server.sh verify-tracker-stability --long --overlap-focus
+```
+
+`--overlap-focus`는 동시에 보이는 객체 수가 `--overlap-min` 이상인 구간의 track fragmentation을 따로 계산한다. 현재 lightweight tracker의 한계를 장기적으로 Kalman/ByteTrack 도입 여부 판단 자료로 남기기 위한 옵션이다.
 
 변경 전후 최소 확인:
 
@@ -715,7 +743,7 @@ POST http://127.0.0.1:8080/whep?source=webrtc&url={source_id}
 
 ### 6. HTTP/HLS URL -> RTSP / WebRTC
 
-HTTP/HLS playable URL은 기존 URI source 경로로 소비한다. 로컬 HTTP MP4는 RTSP/WebRTC matrix를 통과했으며, HLS와 외부 HTTP URI는 네트워크/upstream 상태 영향 때문에 선택 검증으로 둔다.
+HTTP/HLS playable URL은 기존 URI source 경로로 소비한다. 로컬 HTTP MP4, 로컬 HLS VOD, Mux/Apple 공개 HLS advisory는 RTSP/WebRTC matrix를 통과했으며, 외부 HTTP/HLS URI는 네트워크/upstream 상태 영향 때문에 선택 검증으로 둔다.
 
 ```text
 rtsp://127.0.0.1:8554/dhseo?source=http&url={urlencoded_http_media_url}
@@ -726,7 +754,8 @@ POST http://127.0.0.1:8080/whep?source=hls&url={urlencoded_m3u8_url}
 
 주의:
 - `source=http -> RTSP/WebRTC`는 로컬 HTTP MP4 기준 통과했다.
-- `source=hls`와 외부 HTTP URI는 선택 검증으로 둔다.
+- `source=hls`는 로컬 HLS VOD와 Mux/Apple 공개 HLS advisory 기준 통과했다. 단 외부 URL은 선택 검증으로 둔다.
+- ABR HLS에서 선택하지 않는 alternate/duplicate pad는 URI source 내부에서 `queue ! fakesink`로 배수해 upstream not-linked 오류를 막는다.
 - 짧은 VOD 반복, video-only 입력, late joiner 검증은 현재 WebRTC 중심으로 문서화한다.
 
 ### 7. Experimental: YouTube watch/live URL -> RTSP / WebRTC
@@ -858,7 +887,7 @@ RTSP egress 기준:
 - 기본 VA: YOLO/ONNX 분석, overlay snapshot, RTSP overlay, WebRTC simple/WHEP overlay
 
 기본 제외 항목:
-- `HLS/외부 HTTP URI source`: 네트워크와 upstream 상태 영향이 커서 선택 검증
+- `HLS/외부 HTTP URI source`: 공개 HLS advisory는 통과했지만 네트워크와 upstream 상태 영향이 커서 선택 검증
 - `YouTube source/import`: 실험실 기능
 - `/lab` UI, 룰/이벤트/POST, adaptive tuner: 아직 안정 기능으로 승격하지 않음
 

@@ -1425,6 +1425,7 @@ public:
         }
 
         branches_.clear();
+        ignored_branches_.clear();
         if (pipeline_ != nullptr) {
             gst_object_unref(pipeline_);
             pipeline_ = nullptr;
@@ -1449,8 +1450,62 @@ private:
         std::thread sample_thread;
     };
 
+    struct IgnoredBranch {
+        GstElement* queue{nullptr};
+        GstElement* sink{nullptr};
+    };
+
     static void OnPadAdded(GstElement* /*src*/, GstPad* pad, gpointer user_data) {
         static_cast<UriSourceWorker*>(user_data)->HandlePadAdded(pad);
+    }
+
+    // 외부 ABR HLS에서 선택하지 않는 alternate/duplicate pad를 배수해 upstream not-linked 오류를 막는다.
+    bool LinkPadToDiscardSink(GstPad* pad, const char* caps_name) {
+        if (pipeline_ == nullptr || pad == nullptr) {
+            return false;
+        }
+
+        auto branch = std::make_unique<IgnoredBranch>();
+        branch->queue = gst_element_factory_make("queue", nullptr);
+        branch->sink = gst_element_factory_make("fakesink", nullptr);
+        if (branch->queue == nullptr || branch->sink == nullptr) {
+            return false;
+        }
+
+        g_object_set(branch->queue,
+                     "max-size-buffers",
+                     static_cast<guint>(4),
+                     "max-size-time",
+                     static_cast<guint64>(100 * GST_MSECOND),
+                     "max-size-bytes",
+                     static_cast<guint>(0),
+                     "leaky",
+                     2,
+                     nullptr);
+        g_object_set(branch->sink, "sync", FALSE, "async", FALSE, nullptr);
+
+        gst_bin_add(GST_BIN(pipeline_), branch->queue);
+        gst_bin_add(GST_BIN(pipeline_), branch->sink);
+        const bool linked = gst_element_link(branch->queue, branch->sink);
+        GstPad* queue_sink_pad = gst_element_get_static_pad(branch->queue, "sink");
+        if (!linked || queue_sink_pad == nullptr || gst_pad_link(pad, queue_sink_pad) != GST_PAD_LINK_OK) {
+            if (queue_sink_pad != nullptr) {
+                gst_object_unref(queue_sink_pad);
+            }
+            gst_bin_remove(GST_BIN(pipeline_), branch->sink);
+            gst_bin_remove(GST_BIN(pipeline_), branch->queue);
+            return false;
+        }
+        gst_object_unref(queue_sink_pad);
+
+        gst_element_sync_state_with_parent(branch->queue);
+        gst_element_sync_state_with_parent(branch->sink);
+        {
+            std::lock_guard lock(mu_);
+            ignored_branches_.push_back(std::move(branch));
+        }
+        std::cerr << "[uri-source] discard extra pad caps=" << (caps_name != nullptr ? caps_name : "unknown") << "\n";
+        return true;
     }
 
     bool HasBranchKind(MediaKind kind) const {
@@ -1485,16 +1540,20 @@ private:
         } else if (g_str_has_prefix(caps_name, "audio/")) {
             kind = MediaKind::Audio;
         } else {
+            (void)LinkPadToDiscardSink(pad, caps_name);
             gst_caps_unref(caps);
             return;
         }
 
+        bool already_has_kind = false;
         {
             std::lock_guard lock(mu_);
-            if (HasBranchKind(kind)) {
-                gst_caps_unref(caps);
-                return;
-            }
+            already_has_kind = HasBranchKind(kind);
+        }
+        if (already_has_kind) {
+            (void)LinkPadToDiscardSink(pad, caps_name);
+            gst_caps_unref(caps);
+            return;
         }
 
         TrackInfo track;
@@ -1842,6 +1901,7 @@ private:
     std::chrono::steady_clock::time_point last_discovery_at_{};
     std::string source_error_;
     std::vector<std::unique_ptr<EncodeBranch>> branches_;
+    std::vector<std::unique_ptr<IgnoredBranch>> ignored_branches_;
 #endif
 };
 

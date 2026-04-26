@@ -53,6 +53,7 @@ curl -fsS -o overlay.jpg \
 ```
 
 정적 이미지 분석은 서버에 overlay 파일을 저장하지 않고 요청 시 즉석에서 JPEG 응답을 생성합니다.
+`/lab`의 "정적 이미지 분석" 섹션은 `/lab/files`에서 `docs/assets` 샘플 이미지와 video root의 이미지 파일 목록을 받아 드롭다운으로 표시합니다. 직접 API를 호출할 때도 경로는 각 root 기준 상대경로만 허용합니다.
 
 ## Overlay 샘플
 
@@ -129,6 +130,9 @@ VA 분석은 relay 경로를 직접 대체하지 않고 같은 source stream을 
 - YOLO/ONNX inference
 - detection box, label, score, timestamp 생성
 - tracker가 켜진 경우 frame 간 detection 연결 후 `trackId` 부여
+  - 기본 추적 대상은 `person`, `bicycle`, `car`, `motorcycle`, `bus`, `truck`
+  - 그 외 객체는 detection/overlay만 유지하고 ID/trail은 붙이지 않는다.
+  - 가방/상자/장비처럼 시간 기반 이벤트가 필요한 객체는 query/profile의 `trackingClasses` 또는 `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES`로 opt-in한다.
 - RTSP/WebRTC raw video 구간에 overlay 합성
 - metadata/snapshot/overlay JPEG API 제공
 
@@ -250,7 +254,11 @@ Route/profile/rule 검증:
 ```bash
 ./server.sh verify-route-profiles
 ./server.sh verify-tracker-stability
+./server.sh verify-tracker-stability --long --overlap-focus
+./server.sh verify-va-events --long
 ./server.sh verify-adaptive
 ```
+
+브라우저 overlay 수동 확인은 `/lab`에서 `va=1`, `trackIds=1`, `trackTrails=1`을 켜고 진행한다. `2026-04-26` 기준 `route=webrtc` 테스트 rule(presence, line-crossing)을 임시 등록한 뒤 `va_four_scene_sample.mp4`와 `imports/va_tracking_event_1280x720_30fps_h264.mp4` 모두 WebRTC simple signaling 연결과 overlay 표출을 확인했다.
 
 상세 검증 이력은 `stream-verification.md`를 봅니다.

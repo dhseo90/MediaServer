@@ -61,6 +61,10 @@ Options:
   --class-whitelist <csv> 통계에 포함할 객체 class. 기본 person, 전체는 *
   --min-track-samples <n> n회 미만 관측 track은 fragmentation 계산에서 제외
   --max-stale-ratio <v>   같은 PTS 반복 샘플 허용 비율. 기본 0.3
+  --overlap-focus          동시 객체 겹침 구간 통계를 hard gate로 확인
+  --overlap-min <n>        overlap 구간으로 볼 동시 track 수. 기본 3
+  --max-overlap-fragmentation <v>
+                           overlap 구간 fragmentation ratio 허용 상한. 기본 2.5
   --restart-between-iterations
                            반복마다 source idle cleanup을 기다려 파일을 처음부터 다시 검증
   --continuous-source     반복 사이 source를 재시작하지 않고 연속 스트림처럼 검증
@@ -77,6 +81,9 @@ Options:
   MEDIA_SERVER_VERIFY_TRACKER_CLASS_WHITELIST
   MEDIA_SERVER_VERIFY_TRACKER_MIN_TRACK_SAMPLES
   MEDIA_SERVER_VERIFY_TRACKER_MAX_STALE_RATIO
+  MEDIA_SERVER_VERIFY_TRACKER_OVERLAP_FOCUS
+  MEDIA_SERVER_VERIFY_TRACKER_OVERLAP_MIN_SIMULTANEOUS
+  MEDIA_SERVER_VERIFY_TRACKER_MAX_OVERLAP_FRAGMENTATION_RATIO
   MEDIA_SERVER_VERIFY_TRACKER_RESTART_BETWEEN_ITERATIONS
   MEDIA_SERVER_VERIFY_TRACKER_RESTART_WAIT_S
   MEDIA_SERVER_VERIFY_TRACKER_SEGMENT_AWARE
@@ -237,6 +244,9 @@ MAX_FRAGMENTATION_RATIO="${MEDIA_SERVER_VERIFY_TRACKER_MAX_FRAGMENTATION_RATIO:-
 CLASS_WHITELIST="${MEDIA_SERVER_VERIFY_TRACKER_CLASS_WHITELIST:-person}"
 MIN_TRACK_SAMPLES="${MEDIA_SERVER_VERIFY_TRACKER_MIN_TRACK_SAMPLES:-3}"
 MAX_STALE_RATIO="${MEDIA_SERVER_VERIFY_TRACKER_MAX_STALE_RATIO:-0.3}"
+OVERLAP_FOCUS="${MEDIA_SERVER_VERIFY_TRACKER_OVERLAP_FOCUS:-0}"
+OVERLAP_MIN_SIMULTANEOUS="${MEDIA_SERVER_VERIFY_TRACKER_OVERLAP_MIN_SIMULTANEOUS:-3}"
+MAX_OVERLAP_FRAGMENTATION_RATIO="${MEDIA_SERVER_VERIFY_TRACKER_MAX_OVERLAP_FRAGMENTATION_RATIO:-2.5}"
 RESTART_BETWEEN_ITERATIONS="${MEDIA_SERVER_VERIFY_TRACKER_RESTART_BETWEEN_ITERATIONS:-}"
 RESTART_WAIT_S="${MEDIA_SERVER_VERIFY_TRACKER_RESTART_WAIT_S:-}"
 SEGMENT_AWARE="${MEDIA_SERVER_VERIFY_TRACKER_SEGMENT_AWARE:-1}"
@@ -284,6 +294,17 @@ while [[ $# -gt 0 ]]; do
       ;;
     --max-stale-ratio)
       MAX_STALE_RATIO="$2"
+      shift
+      ;;
+    --overlap-focus)
+      OVERLAP_FOCUS=1
+      ;;
+    --overlap-min)
+      OVERLAP_MIN_SIMULTANEOUS="$2"
+      shift
+      ;;
+    --max-overlap-fragmentation)
+      MAX_OVERLAP_FRAGMENTATION_RATIO="$2"
       shift
       ;;
     --restart-between-iterations)
@@ -369,6 +390,7 @@ log_info "http_base=${HTTP_BASE}"
 log_info "file=${FILE_TOKEN}"
 log_info "repeat=${REPEAT_COUNT} poll=${POLL_COUNT} interval=${POLL_INTERVAL_S}s duration=${DURATION_S:-auto}"
 log_info "segmentAware=${SEGMENT_AWARE} classWhitelist=${CLASS_WHITELIST} minTrackSamples=${MIN_TRACK_SAMPLES} maxStaleRatio=${MAX_STALE_RATIO}"
+log_info "overlapFocus=${OVERLAP_FOCUS} overlapMin=${OVERLAP_MIN_SIMULTANEOUS} maxOverlapFragmentation=${MAX_OVERLAP_FRAGMENTATION_RATIO}"
 log_info "restartBetweenIterations=${RESTART_BETWEEN_ITERATIONS} restartWait=${RESTART_WAIT_S}s"
 log_info "summary=${SUMMARY_FILE}"
 
@@ -412,7 +434,10 @@ for iteration in $(seq 1 "${REPEAT_COUNT}"); do
     "${CLASS_WHITELIST}" \
     "${MIN_TRACK_SAMPLES}" \
     "${SEGMENT_AWARE}" \
-    "${MAX_STALE_RATIO}" <<'PY'
+    "${MAX_STALE_RATIO}" \
+    "${OVERLAP_FOCUS}" \
+    "${OVERLAP_MIN_SIMULTANEOUS}" \
+    "${MAX_OVERLAP_FRAGMENTATION_RATIO}" <<'PY'
 import collections
 import json
 import pathlib
@@ -429,6 +454,9 @@ class_whitelist_raw = sys.argv[7].strip()
 min_track_samples = max(1, int(sys.argv[8]))
 segment_aware = sys.argv[9] != "0"
 max_stale_ratio = float(sys.argv[10])
+overlap_focus = sys.argv[11] == "1"
+overlap_min_simultaneous = max(1, int(sys.argv[12]))
+max_overlap_fragmentation_ratio = float(sys.argv[13])
 allowed_classes = {
     item.strip().lower()
     for item in class_whitelist_raw.split(",")
@@ -516,6 +544,8 @@ def summarize_segment(segment_index, segment):
     }
     excluded_short_tracks.update(set(track_samples) - eligible_track_ids)
     max_simultaneous = 0
+    overlap_samples = 0
+    overlap_track_ids = set()
     for sample in segment:
         simultaneous = 0
         for track in sample["tracks"]:
@@ -526,9 +556,17 @@ def summarize_segment(segment_index, segment):
             if key in eligible_track_ids:
                 simultaneous += 1
         max_simultaneous = max(max_simultaneous, simultaneous)
+        if simultaneous >= overlap_min_simultaneous:
+            overlap_samples += 1
+            for track in sample["tracks"]:
+                track_id = int(track.get("trackId") or 0)
+                key = f"{segment_index}:{track_id}"
+                if key in eligible_track_ids:
+                    overlap_track_ids.add(key)
 
     unique_tracks = len(eligible_track_ids)
     fragmentation_ratio = unique_tracks / max(1, max_simultaneous)
+    overlap_fragmentation_ratio = len(overlap_track_ids) / max(1, max_simultaneous)
     lifetimes = [track_samples[key] for key in eligible_track_ids]
     return {
         "segment": segment_index,
@@ -539,6 +577,9 @@ def summarize_segment(segment_index, segment):
         "uniqueTracks": unique_tracks,
         "maxSimultaneousTracks": max_simultaneous,
         "fragmentationRatio": round(fragmentation_ratio, 3),
+        "overlapSampleCount": overlap_samples,
+        "overlapUniqueTracks": len(overlap_track_ids),
+        "overlapFragmentationRatio": round(overlap_fragmentation_ratio, 3),
         "medianTrackLifetimeSamples": statistics.median(lifetimes) if lifetimes else 0,
         "trackSummary": [
             {
@@ -559,6 +600,8 @@ segment_summaries = [
 unique_tracks = sum(segment["uniqueTracks"] for segment in segment_summaries)
 max_simultaneous = max((segment["maxSimultaneousTracks"] for segment in segment_summaries), default=0)
 fragmentation_ratio = max((segment["fragmentationRatio"] for segment in segment_summaries), default=0.0)
+overlap_sample_count = sum(segment["overlapSampleCount"] for segment in segment_summaries)
+overlap_fragmentation_ratio = max((segment["overlapFragmentationRatio"] for segment in segment_summaries), default=0.0)
 lifetimes = [
     track["samples"]
     for segment in segment_summaries
@@ -582,6 +625,10 @@ summary = {
     "uniqueTracks": unique_tracks,
     "maxSimultaneousTracks": max_simultaneous,
     "fragmentationRatio": round(fragmentation_ratio, 3),
+    "overlapFocus": overlap_focus,
+    "overlapMinSimultaneous": overlap_min_simultaneous,
+    "overlapSampleCount": overlap_sample_count,
+    "overlapFragmentationRatio": round(overlap_fragmentation_ratio, 3),
     "excludedShortTracks": len(excluded_short_tracks),
     "excludedClassTracks": len(excluded_class_tracks),
     "medianTrackLifetimeSamples": median_lifetime,
@@ -605,6 +652,12 @@ if fragmentation_ratio > max_fragmentation_ratio:
     )
 if stale_pts_ratio > max_stale_ratio:
     errors.append(f"stale PTS ratio 초과: {stale_pts_ratio:.3f} > {max_stale_ratio:.3f}")
+if overlap_focus and overlap_sample_count <= 0:
+    errors.append(f"overlap sample 없음: simultaneous >= {overlap_min_simultaneous}")
+if overlap_focus and overlap_fragmentation_ratio > max_overlap_fragmentation_ratio:
+    errors.append(
+        f"overlap fragmentation ratio 초과: {overlap_fragmentation_ratio:.3f} > {max_overlap_fragmentation_ratio:.3f}"
+    )
 if final_analyzed <= 0:
     errors.append("분석 packet이 증가하지 않음")
 
@@ -637,11 +690,15 @@ items = [json.loads(line) for line in pathlib.Path(sys.argv[1]).read_text().spli
 if not items:
     raise SystemExit(0)
 ratios = [float(item["fragmentationRatio"]) for item in items]
+overlap_ratios = [float(item.get("overlapFragmentationRatio", 0.0)) for item in items]
+overlap_samples = [int(item.get("overlapSampleCount", 0)) for item in items]
 stale_ratios = [float(item.get("stalePtsRatio", 0.0)) for item in items]
 print("tracker_repeat_count=", len(items))
 print("fragmentation_ratio_min=", min(ratios))
 print("fragmentation_ratio_max=", max(ratios))
 print("fragmentation_ratio_avg=", round(statistics.mean(ratios), 3))
+print("overlap_fragmentation_ratio_max=", max(overlap_ratios))
+print("overlap_sample_count_total=", sum(overlap_samples))
 print("stale_pts_ratio_max=", max(stale_ratios))
 PY
 log_pass "tracker stability 반복 요약 생성"

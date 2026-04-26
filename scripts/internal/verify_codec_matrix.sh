@@ -346,8 +346,54 @@ stop_tracked_launcher() {
 probe_rtsp_url() {
   local url="$1"
   local timeout_us="$2"
-  ffprobe -v error -rtsp_transport tcp -rw_timeout "${timeout_us}" \
-    -show_entries stream=index,codec_name,codec_type -of compact=p=0:nk=1 "${url}"
+  local command_timeout_s
+  command_timeout_s="$(python3 - "${timeout_us}" <<'PY'
+import math
+import sys
+
+timeout_us = int(sys.argv[1])
+print(max(10, min(120, math.ceil(timeout_us / 1000000) + 10)))
+PY
+)"
+
+  # ffprobe의 RTSP rw_timeout만으로 종료되지 않는 외부 upstream 대기 상태를 프로세스 단위로 제한한다.
+  python3 - "${command_timeout_s}" "${timeout_us}" "${url}" <<'PY'
+import subprocess
+import sys
+
+command_timeout_s = float(sys.argv[1])
+timeout_us = sys.argv[2]
+url = sys.argv[3]
+cmd = [
+    "ffprobe",
+    "-v", "error",
+    "-rtsp_transport", "tcp",
+    "-rw_timeout", timeout_us,
+    "-show_entries", "stream=index,codec_name,codec_type",
+    "-of", "compact=p=0:nk=1",
+    url,
+]
+
+try:
+    result = subprocess.run(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        timeout=command_timeout_s,
+    )
+except subprocess.TimeoutExpired as exc:
+    if exc.stdout:
+        sys.stdout.write(exc.stdout if isinstance(exc.stdout, str) else exc.stdout.decode("utf-8", "replace"))
+    if exc.stderr:
+        sys.stderr.write(exc.stderr if isinstance(exc.stderr, str) else exc.stderr.decode("utf-8", "replace"))
+    sys.stderr.write(f"ffprobe command timed out after {command_timeout_s:.0f}s\n")
+    raise SystemExit(124)
+
+sys.stdout.write(result.stdout)
+sys.stderr.write(result.stderr)
+raise SystemExit(result.returncode)
+PY
 }
 
 verify_rtsp_case() {

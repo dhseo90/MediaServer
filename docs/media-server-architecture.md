@@ -425,8 +425,10 @@ SharedStream
 - `MEDIA_SERVER_GST_ATTACH_CONTEXT=default|1`: gstreamer attach 시 기본 GLib context 강제 사용
 - `MEDIA_SERVER_WEBRTC_TRACE=1`: WebRTC 협상/상태/RTCP workaround 로그 출력
 - `MEDIA_SERVER_WEBRTC_TRACE_VERBOSE=1`: sample/pad/caps/SDP detail 로그까지 출력
-- `MEDIA_SERVER_WEBRTC_STUN_SERVER`: WebRTC egress/WHIP ingest에 적용할 STUN server URI
+- `MEDIA_SERVER_WEBRTC_STUN_SERVER`: WebRTC egress/WHIP ingest에 적용할 STUN server URI. 기본값은 Google STUN
 - `MEDIA_SERVER_WEBRTC_TURN_SERVER`: WebRTC egress/WHIP ingest에 적용할 TURN server URI
+- `MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=all|relay`: WebRTC ICE candidate 정책. `relay`는 TURN server가 있을 때만 유지한다.
+- `GET /webrtc/config`: 위 STUN/TURN/ICE 정책을 브라우저 `RTCPeerConnection` 설정으로 내려준다.
 - 주요 설정(컴파일 타임):
   - `include/stdafx.h`
   - `kStreamRoute`: RTSP 경로 (`/dhseo`)

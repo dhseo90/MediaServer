@@ -57,6 +57,22 @@ bool SetStringPropertyIfPresent(GObject* object, const char* property, const std
     return true;
 }
 
+// GStreamer 버전별 webrtcbin property 차이를 흡수하면서 ICE relay/all 정책을 적용한다.
+bool SetIceTransportPolicyIfPresent(GObject* object, const std::string& value) {
+    if (object == nullptr || value.empty()) {
+        return false;
+    }
+    GParamSpec* pspec = g_object_class_find_property(G_OBJECT_GET_CLASS(object), "ice-transport-policy");
+    if (pspec == nullptr || (pspec->flags & G_PARAM_WRITABLE) == 0) {
+        return false;
+    }
+
+    const auto policy = value == "relay" ? GST_WEBRTC_ICE_TRANSPORT_POLICY_RELAY
+                                         : GST_WEBRTC_ICE_TRANSPORT_POLICY_ALL;
+    g_object_set(object, "ice-transport-policy", policy, nullptr);
+    return true;
+}
+
 guint ConfigureRtcpFeedbackRetentionForObject(GObject* object) {
     if (object == nullptr) {
         return 0;
@@ -300,10 +316,14 @@ void ConfigureIceServers(GstElement* webrtcbin) {
     const auto& config = app::GetAppConfig();
     const bool stun_set = SetStringPropertyIfPresent(G_OBJECT(webrtcbin), "stun-server", config.webrtc_stun_server);
     const bool turn_set = SetStringPropertyIfPresent(G_OBJECT(webrtcbin), "turn-server", config.webrtc_turn_server);
-    if (config.webrtc_trace && (stun_set || turn_set)) {
+    const bool ice_policy_set =
+        SetIceTransportPolicyIfPresent(G_OBJECT(webrtcbin), config.webrtc_ice_transport_policy);
+    if (config.webrtc_trace && (stun_set || turn_set || ice_policy_set)) {
         std::cerr << "[webrtc] ice servers configured"
                   << " stun=" << (stun_set ? "yes" : "no")
-                  << " turn=" << (turn_set ? "yes" : "no") << "\n";
+                  << " turn=" << (turn_set ? "yes" : "no")
+                  << " policy=" << config.webrtc_ice_transport_policy
+                  << " policySet=" << (ice_policy_set ? "yes" : "no") << "\n";
     }
 }
 

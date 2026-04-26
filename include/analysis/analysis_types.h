@@ -101,6 +101,8 @@ struct AnalysisProfile {
     std::string yolo_score_mode{"auto"};
     bool enable_object_detection{true};
     bool enable_tracking{false};
+    // tracker는 기본적으로 동선 의미가 큰 사람/차량 계열만 ID를 붙인다. 빈 값이나 "*"는 전체 추적 opt-in이다.
+    std::vector<std::string> tracking_class_labels{"person", "bicycle", "car", "motorcycle", "bus", "truck"};
     bool enable_pose{false};
     bool enable_overlay{false};
     int debug_detector_delay_ms{0};
@@ -139,6 +141,14 @@ inline std::string BuildProfileKey(const AnalysisProfile& profile) {
         << ":scoreMode=" << profile.yolo_score_mode
         << ":det=" << (profile.enable_object_detection ? 1 : 0)
         << ":track=" << (profile.enable_tracking ? 1 : 0)
+        << ":trackClasses=";
+    for (std::size_t i = 0; i < profile.tracking_class_labels.size(); ++i) {
+        if (i != 0) {
+            oss << ",";
+        }
+        oss << profile.tracking_class_labels[i];
+    }
+    oss
         << ":pose=" << (profile.enable_pose ? 1 : 0)
         << ":overlay=" << (profile.enable_overlay ? 1 : 0)
         << ":adaptive=" << (profile.adaptive_tuning_enabled ? 1 : 0)

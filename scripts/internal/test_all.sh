@@ -26,6 +26,8 @@ SKIP_VA=0
 INCLUDE_RULES=0
 INCLUDE_VA_EVENTS=0
 INCLUDE_IMAGE_ANALYSIS=0
+INCLUDE_WEBRTC_ICE=0
+INCLUDE_URI_LONGRUN=0
 FAIL_FAST=0
 REQUIRE_EXTERNAL_SOURCE=0
 
@@ -57,6 +59,10 @@ Options:
   --include-va-events 선택 검증: 이동 영상 기반 tracker 이벤트 검증을 추가
   --include-image-analysis
                        선택 검증: 정적 이미지 metadata/snapshot/overlay API를 추가
+  --include-webrtc-ice
+                       선택 검증: WebRTC STUN/TURN/ICE policy와 candidate 수집 상태를 추가
+  --include-uri-longrun
+                       선택 검증: HTTP/HLS URI source 장기 회귀를 추가
   --require-external-source
                        제3자 RTSP upstream 후보 실패도 hard fail로 처리
   --skip-external     LAN IP 외부 클라이언트 접근성과 제3자 RTSP upstream 검증 생략. 격리된 개발 환경에서만 사용
@@ -89,6 +95,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     --include-image-analysis)
       INCLUDE_IMAGE_ANALYSIS=1
+      ;;
+    --include-webrtc-ice)
+      INCLUDE_WEBRTC_ICE=1
+      ;;
+    --include-uri-longrun)
+      INCLUDE_URI_LONGRUN=1
       ;;
     --require-external-source)
       REQUIRE_EXTERNAL_SOURCE=1
@@ -155,8 +167,9 @@ MediaServer 통합 테스트 시작
   5. stable 모드에서는 안정화된 로컬 source(file/RTSP/WebRTC publish/HTTP URI)가 RTSP/WebRTC 기본 경로로 소비되어야 함
   6. stable 모드에서는 기본 설치 범위인 YOLO/VA overlay가 lab API, RTSP, WebRTC에서 동작해야 함
 - 제외:
-  HLS/외부 HTTP URI, YouTube, /lab UI, 룰/이벤트/POST, adaptive tuner
-  룰 registry는 --include-rules, 이동 이벤트는 --include-va-events, 이미지 분석은 --include-image-analysis로 선택 실행 가능
+  HLS/외부 HTTP URI, YouTube, /lab UI, 룰/이벤트/POST, adaptive tuner, 외부 TURN relay
+  룰 registry는 --include-rules, 이동 이벤트는 --include-va-events, 이미지 분석은 --include-image-analysis,
+  WebRTC ICE는 --include-webrtc-ice, URI 장기 회귀는 --include-uri-longrun으로 선택 실행 가능
 
 EOF_HEADER
 }
@@ -361,6 +374,20 @@ else
   skip_step "HLS/외부 HTTP URI source" "네트워크와 upstream 상태 영향이 큰 항목이라 기본 안정 테스트에서 제외합니다."
 fi
 
+if [[ "${INCLUDE_URI_LONGRUN}" == "1" ]]; then
+  if [[ ${DEPENDENCY_FAILED} -ne 0 ]]; then
+    skip_step "HTTP/HLS URI 장기 회귀 선택 검증" "서버 readiness가 실패해 URI 장기 회귀를 생략합니다."
+  else
+    run_step \
+      "uri-longrun" \
+      "선택 검증: HTTP/HLS URI source 장기 회귀" \
+      "HTTP/HLS URI 장기 회귀 실패입니다. 로컬 HTTP/HLS launcher, URI source timeout, 외부 upstream 상태를 확인하세요." \
+      "./server.sh verify-uri-longrun" || true
+  fi
+else
+  skip_step "HTTP/HLS URI 장기 회귀 선택 검증" "HLS/외부 HTTP URI는 환경 영향이 커 기본 테스트에서 제외합니다. 필요하면 --include-uri-longrun을 사용하세요."
+fi
+
 if [[ "${SKIP_VA}" == "1" ]]; then
   skip_step "YOLO/VA overlay 검증" "--skip-va 또는 --quick 옵션으로 생략했습니다."
 elif [[ ${DEPENDENCY_FAILED} -ne 0 ]]; then
@@ -371,6 +398,20 @@ else
     "YOLO/VA overlay 회귀 검증" \
     "VA overlay 검증 실패입니다. ONNX Runtime, YOLO 모델/라벨, detector 성능, WebRTC playback을 확인하세요." \
     "./server.sh verify-va" || true
+fi
+
+if [[ "${INCLUDE_WEBRTC_ICE}" == "1" ]]; then
+  if [[ ${DEPENDENCY_FAILED} -ne 0 ]]; then
+    skip_step "WebRTC ICE 선택 검증" "서버 readiness가 실패해 WebRTC ICE 검증을 생략합니다."
+  else
+    run_step \
+      "webrtc-ice" \
+      "선택 검증: WebRTC STUN/TURN/ICE policy" \
+      "WebRTC ICE 검증 실패입니다. STUN/TURN URI, relay policy, TURN 계정, candidate 수집 상태를 확인하세요." \
+      "./server.sh verify-webrtc-ice" || true
+  fi
+else
+  skip_step "WebRTC ICE 선택 검증" "실제 TURN/auth/ICE policy 검증은 환경 의존 항목이라 기본 테스트에서 제외합니다. 필요하면 --include-webrtc-ice를 사용하세요."
 fi
 
 if [[ "${INCLUDE_RULES}" == "1" ]]; then
