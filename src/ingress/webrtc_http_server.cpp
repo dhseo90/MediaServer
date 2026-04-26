@@ -1,4 +1,6 @@
-// 파일 용도: WebRTC simple signaling, WHEP consume, WHIP publish HTTP API를 구현한다.
+// 파일 요약: HTTP API와 Lab UI를 제공하는 내장 웹 서버 구현이다.
+// 동작 요약: WebRTC simple signaling, WHEP, WHIP, /webrtc/config, analysis tap/rule/profile API를 처리한다.
+// 동작 요약: Lab/Rule/Import HTML을 생성하고, 정적 이미지 분석과 이벤트 POST 상태 응답도 이 파일에서 묶는다.
 #include "ingress/webrtc_http_server.h"
 
 #include <arpa/inet.h>
@@ -648,6 +650,7 @@ private:
             SetRegistryError(error_message, "built-in profile id is reserved");
             return std::nullopt;
         }
+        // UI/API 양쪽에서 빈 카테고리 저장을 막아, 룰이 의도 없이 전체 매칭처럼 동작하지 않게 한다.
         if (profile) {
             if (const auto tracking_classes = ExtractArrayField(body, "trackingClasses");
                 tracking_classes.has_value() && !StringArrayHasNonEmptyValue(*tracking_classes)) {
@@ -923,12 +926,12 @@ std::string BuildTestPageHtml(bool lab_mode) {
         <div class="lab-mode-grid">
           <div class="lab-mode-card"><strong>스트림 테스트</strong><span>file, RTSP, HTTP/HLS, WebRTC source를 같은 플레이어로 확인합니다.</span></div>
           <div class="lab-mode-card"><strong>VA 분석</strong><span>객체 감지 overlay와 label 언어를 서버 기본 profile로 빠르게 켭니다.</span></div>
-          <div class="lab-mode-card"><strong>룰 편집</strong><span>영역, 객체 타입, 이벤트 전송 설정을 시각적으로 저장합니다.</span></div>
+          <div class="lab-mode-card"><strong>룰 편집</strong><span>영역, 객체 카테고리, 이벤트 전송 설정을 시각적으로 저장합니다.</span></div>
           <div class="lab-mode-card"><strong>실험 기능</strong><span>YouTube 직접 표출은 opt-in, 파일 다운로드는 개발용 샘플 생성 도구로 분리합니다.</span></div>
         </div>
         <details style="border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(255,255,255,0.04);">
-          <summary style="cursor:pointer;font-weight:800;color:var(--ink);">표출 가능한 객체 타입 안내</summary>
-          <p style="margin:10px 0 0;">현재 기본 YOLO 모델은 COCO 80개 객체 타입을 기준으로 합니다. 화면 표기는 한글 카테고리로 묶고, 서버 내부 rule 값은 COCO 영문 label을 그대로 사용합니다.</p>
+          <summary style="cursor:pointer;font-weight:800;color:var(--ink);">표출 가능한 객체 카테고리 안내</summary>
+          <p style="margin:10px 0 0;">현재 기본 YOLO 모델은 COCO 80개 객체 클래스를 기준으로 합니다. 화면 표기는 한글 카테고리로 묶고, 서버 내부 rule 값은 COCO 영문 label을 그대로 사용합니다.</p>
           <pre style="min-height:0;margin-top:10px;">사람: 사람 단독
 차량: 자전거, 자동차, 오토바이, 비행기, 버스, 기차, 트럭, 보트
 도로: 신호등, 소화전, 정지 표지판, 주차 미터기
@@ -2921,7 +2924,7 @@ std::string BuildLabRuleEditorPageHtml() {
       <div class="card">
         <div class="pad stack">
           <h2>2. 이벤트 Rule</h2>
-          <p class="hint">영역과 객체 타입을 지정합니다. 저장된 룰은 `va=1` overlay와 events API에 바로 적용됩니다. 진입/이탈/라인 통과는 tracker가 붙인 객체 ID 기준으로 판정합니다. 기본 tracker 대상은 사람/차량 카테고리입니다.</p>
+          <p class="hint">영역과 객체 카테고리를 지정합니다. 저장된 룰은 `va=1` overlay와 events API에 바로 적용됩니다. 진입/이탈/라인 통과는 tracker가 붙인 객체 ID 기준으로 판정합니다. 기본 tracker 대상은 사람/차량 카테고리입니다.</p>
           <label>저장된 Rule
             <select id="ruleSelect"></select>
           </label>
@@ -5031,6 +5034,7 @@ bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& quer
 
     auto profile_query = query;
     if (!QueryHasAny(profile_query, {"va", "analysis", "overlay", "detector", "profile", "profileId"})) {
+        // 정적 이미지 분석도 영상 VA와 같은 기본 profile을 쓰도록 va=1을 암시한다.
         profile_query["va"] = "1";
     }
     analysis::AnalysisContext context;
@@ -5066,6 +5070,7 @@ bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& quer
     output->result.context = std::move(context);
     output->result.pts = output->frame.pts;
     if (output->profile.enable_tracking) {
+        // 이미지 API는 frame이 한 장뿐이라 일회성 tracker로 trackId 정책만 동일하게 적용한다.
         analysis::ObjectTrackerOptions tracker_options;
         tracker_options.class_labels = output->profile.tracking_class_labels;
         tracker_options.track_all_when_class_labels_empty = !output->profile.tracking_classes_specified;
@@ -5126,6 +5131,7 @@ bool DetachAnalysisTapAndReleaseRuntimes(core::SessionManager& session_manager, 
         return false;
     }
     const bool detached = session_manager.DetachAnalysisTap(tap_id);
+    // 이벤트 룰 runtime은 enter/exit/line-crossing 이전 상태를 들고 있으므로 tap 수명과 함께 정리한다.
     ReleaseEventRuleRuntimeForKey("webrtc-overlay:" + tap_id);
     ReleaseEventRuleRuntimeForKey("tap-events:" + tap_id);
     ReleaseEventRuleRuntimeForKey("tap-overlay:" + tap_id);
@@ -5331,6 +5337,7 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
             const auto bridge_lock = weak_bridge.lock();
             const std::int64_t source_pts =
                 bridge_lock != nullptr ? bridge_lock->ResolveOverlaySourcePts(frame_pts) : frame_pts;
+            // WebRTC overlay frame PTS를 원본 packet PTS로 되돌려 가장 가까운 분석 결과를 우선 사용한다.
             auto result = session_manager.WaitAnalysisResultNearPts(
                 tap_id, source_pts, tolerance_ns, std::chrono::milliseconds(wait_timeout_ms));
             if (result.has_value()) {
@@ -5338,6 +5345,7 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
                 analysis::DispatchEventPosts(evaluation.annotated_result, evaluation.events);
                 return evaluation.annotated_result;
             }
+            // 동기화 허용 시간 안에 결과가 아직 없으면 최신 snapshot으로 fallback해 overlay 공백을 줄인다.
             const auto snapshot = session_manager.AnalysisTapSnapshot(tap_id);
             if (!snapshot.has_value() || !snapshot->latest_result.has_value()) {
                 return std::optional<analysis::AnalysisResult>{};

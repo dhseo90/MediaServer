@@ -1,4 +1,6 @@
-// 파일 용도: 동시 세션/스트림 admission과 release 카운터를 구현한다.
+// 파일 요약: 동시 세션과 stream 수 제한을 관리한다.
+// 동작 요약: admission 성공/실패와 release 카운터를 단순하고 예측 가능하게 유지한다.
+// 동작 요약: 과도한 동시 요청이 서버 자원을 잠식하지 않도록 한다.
 #include "core/resource_guard.h"
 
 namespace core {

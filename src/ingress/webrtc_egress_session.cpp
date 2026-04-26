@@ -1,4 +1,6 @@
-// 파일 용도: SharedStream 패킷을 WebRTC RTP 송출 pipeline에 넣고 signaling offer/answer/ICE를 처리한다.
+// 파일 요약: SharedStream을 WebRTC peer connection으로 송출하는 egress 구현이다.
+// 동작 요약: GStreamer webrtcbin pipeline, SDP offer/answer, trickle ICE, RTP appsrc 입력을 관리한다.
+// 동작 요약: file/RTSP/URI/WebRTC source를 브라우저 consumer가 받을 수 있게 signaling 상태를 추적한다.
 #include "ingress/webrtc_egress_session.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER

@@ -1,4 +1,6 @@
-// 파일 용도: SourceSpec을 canonical key로 정규화해 같은 원본 요청을 하나의 SharedStream으로 묶는다.
+// 파일 요약: SourceSpec을 canonical StreamKey로 정규화한다.
+// 동작 요약: query 순서나 표현 차이로 같은 원본이 중복 stream이 되지 않도록 key를 만든다.
+// 동작 요약: 파일/URL/WebRTC/YouTube source dedup 기준을 한 곳에 모은다.
 #include "core/stream_key.h"
 
 #include <algorithm>

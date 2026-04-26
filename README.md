@@ -280,7 +280,7 @@ curl -fsS -o overlay.jpg \
 - 서버 start/status/diagnose
 - LAN IP 기준 외부 클라이언트 접근성
 - stable local stream 경로: file, local RTSP pull, local WebRTC publish, local HTTP URI
-- 기본 YOLO/VA overlay 회귀
+- 기본 YOLO/VA overlay 검증
 
 기본 제외:
 

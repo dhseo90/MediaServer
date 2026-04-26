@@ -1,4 +1,6 @@
-// 파일 용도: MediaServer 프로세스 진입점으로 설정, Registry, RTSP 서버, WebRTC HTTP 서버를 초기화한다.
+// 파일 요약: MediaServer 프로세스 진입점이다.
+// 동작 요약: 런타임 설정을 로드하고 StreamRegistry, SessionManager, RTSP/WebRTC 서버를 초기화한다.
+// 동작 요약: SIGINT/SIGTERM을 받아 실행 중인 세션과 서버 자원을 순서대로 정리한다.
 #include <atomic>
 #include <chrono>
 #include <csignal>

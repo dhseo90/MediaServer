@@ -1,4 +1,6 @@
-// 파일 용도: HTTP/RTSP query에서 analysis profile과 overlay 옵션을 공통으로 해석한다.
+// 파일 요약: query/registry 기반 AnalysisProfile과 overlay 옵션 생성 API를 선언한다.
+// 동작 요약: request context별 profile/rule matching, query override, capabilities parsing 계약을 제공한다.
+// 동작 요약: RTSP/WebRTC/HTTP analysis endpoint가 같은 해석 정책을 쓰게 한다.
 #pragma once
 
 #include <unordered_map>

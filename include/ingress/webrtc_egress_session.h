@@ -1,4 +1,6 @@
-// 파일 용도: SharedStream을 WebRTC peer connection으로 송출하는 egress 세션을 선언한다.
+// 파일 요약: SharedStream을 WebRTC peer로 송출하는 egress session을 선언한다.
+// 동작 요약: offer/answer, ICE, state snapshot, session stop API를 제공한다.
+// 동작 요약: HTTP signaling handler가 GStreamer WebRTC 구현을 제어하는 계약이다.
 #pragma once
 
 #include <deque>

@@ -1,4 +1,6 @@
-// 파일 용도: 환경변수와 기본값을 합친 런타임 설정 구조체와 접근 함수를 선언한다.
+// 파일 요약: 환경변수와 기본값을 합친 런타임 설정 구조체를 선언한다.
+// 동작 요약: source, WebRTC, VA, import, event POST 관련 옵션을 AppConfig에 모은다.
+// 동작 요약: 전역 config 초기화와 조회 API를 제공한다.
 #pragma once
 
 #include <cstdint>

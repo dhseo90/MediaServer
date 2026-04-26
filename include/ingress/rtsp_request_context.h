@@ -1,4 +1,6 @@
-// 파일 용도: RTSP 요청 URI에서 route/query/path 정보를 추출하는 컨텍스트 파서를 선언한다.
+// 파일 요약: RTSP URI에서 route/query/client 정보를 추출하는 helper를 선언한다.
+// 동작 요약: GStreamer RTSP server callback에서 내부 IngressRequest를 만들기 위한 계약이다.
+// 동작 요약: 요청 path와 query parsing을 RTSP 구현 밖에서도 테스트 가능하게 분리한다.
 #pragma once
 
 #include <optional>

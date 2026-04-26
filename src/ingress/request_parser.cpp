@@ -1,4 +1,6 @@
-// 파일 용도: URL query의 file/url/source 값을 해석해 SourceSpec을 만들고 잘못된 요청을 걸러낸다.
+// 파일 요약: HTTP/RTSP query에서 file/url/source 요청을 SourceSpec으로 해석한다.
+// 동작 요약: 경로 이탈, 절대경로, 누락된 source 같은 잘못된 요청을 초기에 거부한다.
+// 동작 요약: route별 codec 선택과 source kind를 SessionManager 입력 형태로 정규화한다.
 #include "ingress/request_parser.h"
 
 #include <filesystem>

@@ -1,4 +1,6 @@
-// 파일 용도: /lab/import job의 검증, yt-dlp 실행, 상태 저장을 구현한다.
+// 파일 요약: /lab/import의 개발용 URL import job을 관리한다.
+// 동작 요약: 요청 검증, yt-dlp 실행, ffmpeg 정규화, 상태 snapshot과 로그 요약을 처리한다.
+// 동작 요약: job 상태는 mutex로 보호해 HTTP handler와 worker thread가 안전하게 공유한다.
 #include "ingress/lab_import_manager.h"
 
 #include <algorithm>

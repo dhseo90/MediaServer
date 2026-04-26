@@ -1,4 +1,6 @@
-// 파일 용도: 외부 명령을 timeout과 stdout/stderr 캡처와 함께 실행하는 공용 helper를 선언한다.
+// 파일 요약: 외부 command 실행 helper를 선언한다.
+// 동작 요약: timeout, stdout/stderr 캡처, exit code를 담는 결과 타입을 제공한다.
+// 동작 요약: yt-dlp/ffmpeg 같은 보조 도구 호출을 안전하게 감싼다.
 #pragma once
 
 #include <string>

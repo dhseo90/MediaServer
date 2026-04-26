@@ -1,4 +1,6 @@
-// 파일 용도: SharedStream 패킷을 RTSP media appsrc로 전달하며 초기 패킷 큐와 timestamp 보정을 처리한다.
+// 파일 요약: SharedStream packet을 RTSP media appsrc로 전달하는 egress bridge 구현이다.
+// 동작 요약: 초기 keyframe/audio packet을 큐에 보관했다가 appsrc 준비 후 밀어 넣는다.
+// 동작 요약: GStreamer timestamp와 backpressure 상태를 보정해 RTSP client 재생을 안정화한다.
 #include "ingress/rtsp_egress_session.h"
 
 #include <algorithm>

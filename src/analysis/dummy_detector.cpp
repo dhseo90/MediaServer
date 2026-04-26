@@ -1,4 +1,6 @@
-// 파일 용도: 실제 YOLO/ONNX 연동 전 분석 파이프라인 수명과 결과 전달을 검증하는 dummy detector를 구현한다.
+// 파일 요약: 실제 YOLO 없이 분석 pipeline을 검증하는 dummy detector 구현이다.
+// 동작 요약: 입력 frame 크기와 시간 정보를 바탕으로 deterministic detection을 생성한다.
+// 동작 요약: 디코딩, sampling, overlay, rule/event 흐름을 빠르게 smoke test할 때 사용한다.
 #include "analysis/detector.h"
 
 namespace analysis {

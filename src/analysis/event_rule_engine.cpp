@@ -1,4 +1,6 @@
-// 파일 용도: 분석 룰 저장소의 JSON 문서를 파싱하고 detection 결과와 비교해 이벤트를 생성한다.
+// 파일 요약: 저장된 rule JSON을 detection 결과에 적용해 이벤트를 생성한다.
+// 동작 요약: presence/enter/exit/line-crossing을 trackId 또는 detection key 기준 상태로 판정한다.
+// 동작 요약: triggered detection에 이벤트 label, highlight, POST payload용 event metadata를 붙인다.
 #include "analysis/event_rule_engine.h"
 
 #include "analysis/category_tokens.h"
@@ -453,6 +455,7 @@ bool DurationSatisfied(EventRuleRuntime* runtime,
                        const EventRule& rule,
                        bool condition,
                        std::int64_t pts) {
+    // presence류 이벤트는 minDurationMs가 있을 때 같은 객체가 영역 안에 머문 시간을 누적한다.
     if (rule.min_duration_ms <= 0) {
         return condition;
     }
@@ -529,6 +532,7 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
         if (!MatchesRuleContext(*rule, result.context)) {
             continue;
         }
+        // 여기까지 통과한 rule만 현재 frame/result의 실제 평가 대상이다.
         rules.push_back(*rule);
     }
     evaluation.active_rule_count = rules.size();
@@ -574,6 +578,7 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
                 const float previous_side = had_previous ? prev_it->second : side;
                 constexpr float kLineEpsilon = 0.0005F;
                 if (rule.event_type == "line-crossing") {
+                    // 선분 양쪽 부호가 바뀐 경우만 crossing으로 보고, 선 위 떨림은 epsilon으로 무시한다.
                     triggered = had_previous && std::fabs(previous_side) > kLineEpsilon &&
                                 std::fabs(side) > kLineEpsilon && previous_side * side < 0.0F;
                 }

@@ -1,4 +1,6 @@
-// 파일 용도: RTSP/WebRTC URL query를 IngressRequest와 SourceSpec으로 변환하는 파서를 선언한다.
+// 파일 요약: URL query를 IngressRequest와 SourceSpec으로 바꾸는 파서를 선언한다.
+// 동작 요약: file/url/source 파라미터, route codec, 경로 안전성 검증 계약을 제공한다.
+// 동작 요약: RTSP와 HTTP/WebRTC endpoint가 같은 요청 해석 로직을 쓰게 한다.
 #pragma once
 
 #include "media_types.h"

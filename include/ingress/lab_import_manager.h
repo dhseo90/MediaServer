@@ -1,4 +1,6 @@
-// 파일 용도: /lab/import에서 사용하는 개발용 URL import job 생성과 상태 조회를 선언한다.
+// 파일 요약: /lab/import 개발용 import job manager를 선언한다.
+// 동작 요약: job 생성, 조회, 목록, 상태 snapshot, worker 실행 계약을 제공한다.
+// 동작 요약: 외부 URL을 repo video root의 재사용 가능한 샘플 파일로 정규화한다.
 #pragma once
 
 #include <cstdint>

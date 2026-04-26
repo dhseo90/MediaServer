@@ -1,4 +1,6 @@
-// 파일 용도: GStreamer RTSP server를 띄우고 media-configure 시 SessionManager와 RTSP egress bridge를 연결한다.
+// 파일 요약: GStreamer RTSP server를 실행하고 요청마다 egress session을 연결한다.
+// 동작 요약: media-configure 시 route/query를 해석해 SessionManager session을 생성한다.
+// 동작 요약: RTSP pipeline appsrc와 SharedStream 사이의 생명주기를 조율한다.
 #include "ingress/gstreamer_rtsp_server.h"
 
 #include <chrono>

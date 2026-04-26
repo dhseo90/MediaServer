@@ -1,4 +1,6 @@
-// 파일 용도: 요청을 SharedStream과 SourceWorker에 연결하고 세션 생명주기를 관리하는 SessionManager를 선언한다.
+// 파일 요약: 요청을 source worker, SharedStream, egress session으로 연결하는 관리자를 선언한다.
+// 동작 요약: RTSP/WebRTC session 생성, WebRTC source publish 소비, analysis tap API를 제공한다.
+// 동작 요약: 서버 런타임에서 가장 바깥 orchestration 계약이다.
 #pragma once
 
 #include "analysis/analysis_manager.h"

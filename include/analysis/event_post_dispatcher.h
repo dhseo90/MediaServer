@@ -1,4 +1,6 @@
-// 파일 용도: 분석 이벤트를 외부 HTTP endpoint로 비동기 POST 전송하는 dispatcher API를 선언한다.
+// 파일 요약: 분석 이벤트 비동기 POST dispatcher를 선언한다.
+// 동작 요약: bounded queue, worker lifecycle, status snapshot, enqueue API를 제공한다.
+// 동작 요약: event rule engine 결과를 외부 HTTP endpoint로 opt-in 전송한다.
 #pragma once
 
 #include <cstddef>

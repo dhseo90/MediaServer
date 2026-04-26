@@ -1,4 +1,6 @@
-// 파일 용도: GStreamer jpegenc를 사용해 분석 raw frame을 JPEG snapshot으로 인코딩한다.
+// 파일 요약: 분석 raw frame을 JPEG snapshot으로 인코딩한다.
+// 동작 요약: GStreamer appsrc/jpegenc/appsink pipeline을 사용해 HTTP 응답용 JPEG bytes를 생성한다.
+// 동작 요약: snapshot/overlay API가 원본 frame과 합성 frame을 같은 방식으로 내려보내게 한다.
 #include "analysis/snapshot_encoder.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER

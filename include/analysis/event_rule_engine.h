@@ -1,4 +1,6 @@
-// 파일 용도: 저장된 분석 룰 JSON을 detection 결과에 적용해 이벤트 발생 객체를 판정한다.
+// 파일 요약: 저장된 분석 rule을 detection 결과에 적용하는 event engine API를 선언한다.
+// 동작 요약: event metadata, runtime state, POST dispatch에 필요한 Event 구조를 제공한다.
+// 동작 요약: presence/enter/exit/line-crossing 판정을 AnalysisResult에 반영한다.
 #pragma once
 
 #include <memory>

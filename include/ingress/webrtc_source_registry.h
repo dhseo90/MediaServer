@@ -1,4 +1,6 @@
-// 파일 용도: WHIP publish로 들어온 WebRTC source 세션을 source id 기준으로 보관하는 Registry를 선언한다.
+// 파일 요약: WHIP publish WebRTC source session registry를 선언한다.
+// 동작 요약: source id별 등록/조회/삭제와 session 목록 조회 API를 제공한다.
+// 동작 요약: WebRTC publish 입력을 다른 consumer가 source=webrtc로 재사용하게 한다.
 #pragma once
 
 #include <condition_variable>

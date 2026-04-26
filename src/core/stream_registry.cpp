@@ -1,4 +1,6 @@
-// 파일 용도: StreamKey별 SharedStream acquire/release와 idle 제거 조건을 구현한다.
+// 파일 요약: StreamKey별 SharedStream acquire/release를 관리한다.
+// 동작 요약: 같은 원본 요청은 기존 stream을 재사용하고, idle stream은 정리 대상이 된다.
+// 동작 요약: SessionManager가 source worker 중복 생성을 피하게 하는 dedup 저장소다.
 #include "core/stream_registry.h"
 
 namespace core {

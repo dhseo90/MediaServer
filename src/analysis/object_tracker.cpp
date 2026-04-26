@@ -1,4 +1,6 @@
-// 파일 용도: IoU와 중심점 거리를 이용한 경량 객체 tracker를 구현한다.
+// 파일 요약: 경량 IoU/중심점 거리 기반 object tracker 구현이다.
+// 동작 요약: frame별 detection을 기존 track과 매칭해 trackId, 상태, trail을 유지한다.
+// 동작 요약: tracking category token을 적용해 필요한 객체에만 ID와 trail을 부여한다.
 #include "analysis/object_tracker.h"
 
 #include "analysis/category_tokens.h"

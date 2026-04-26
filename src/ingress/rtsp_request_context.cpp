@@ -1,4 +1,6 @@
-// 파일 용도: GStreamer RTSP URI를 서버 내부 IngressRequest 형태로 변환한다.
+// 파일 요약: GStreamer RTSP 요청 URI를 내부 IngressRequest로 변환한다.
+// 동작 요약: route path, query string, client 주소를 추출해 SessionManager가 이해하는 context를 만든다.
+// 동작 요약: GStreamer 미사용 빌드에서는 안전한 stub 동작을 제공한다.
 #include "ingress/rtsp_request_context.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER

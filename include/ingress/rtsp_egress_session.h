@@ -1,4 +1,6 @@
-// 파일 용도: SharedStream 패킷을 GStreamer RTSP media appsrc로 밀어 넣는 RTSP egress 세션을 선언한다.
+// 파일 요약: SharedStream을 RTSP appsrc로 보내는 egress session을 선언한다.
+// 동작 요약: media 준비, packet queue, timestamp 보정, source subscription lifecycle을 관리한다.
+// 동작 요약: GStreamer RTSP media와 core stream 사이의 bridge 계약이다.
 #pragma once
 
 #include <deque>

@@ -1,4 +1,6 @@
-// 파일 용도: 로컬 이미지 파일을 분석 가능한 RGB RawVideoFrame으로 디코딩하는 API를 선언한다.
+// 파일 요약: 로컬 이미지 파일을 RawVideoFrame으로 디코딩하는 API를 선언한다.
+// 동작 요약: 정적 이미지 분석 endpoint가 video analysis detector 입력을 재사용하도록 한다.
+// 동작 요약: GStreamer 기반 decode 성공/실패를 구조화된 결과로 반환한다.
 #pragma once
 
 #include <filesystem>

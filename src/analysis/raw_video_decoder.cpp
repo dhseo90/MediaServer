@@ -1,4 +1,6 @@
-// 파일 용도: GStreamer appsrc/appsink 기반 raw video decode hub를 구현한다.
+// 파일 요약: compressed video packet을 raw frame으로 변환하는 분석 전용 decoder 구현이다.
+// 동작 요약: GStreamer appsrc/appsink pipeline으로 source packet을 디코딩하고 frame callback으로 전달한다.
+// 동작 요약: analysis tap이 egress path와 분리된 raw frame 흐름을 갖도록 한다.
 #include "analysis/raw_video_decoder.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER

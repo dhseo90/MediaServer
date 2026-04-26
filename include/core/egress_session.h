@@ -1,4 +1,6 @@
-// 파일 용도: RTSP/WebRTC 등 클라이언트 송출 세션이 구현해야 하는 공통 인터페이스를 선언한다.
+// 파일 요약: RTSP/WebRTC 송출 세션의 공통 인터페이스를 선언한다.
+// 동작 요약: start/stop/id 같은 lifecycle API로 SessionManager가 egress 구현을 다룬다.
+// 동작 요약: 구체적인 프로토콜별 세션은 이 인터페이스 뒤에 숨는다.
 #pragma once
 
 #include <memory>

@@ -1,4 +1,6 @@
-// 파일 용도: SharedStream에 분석 tap을 붙이고 detector 실행 상태와 최신 결과를 관리한다.
+// 파일 요약: SharedStream analysis tap과 detector worker를 관리하는 API를 선언한다.
+// 동작 요약: tap 생성/삭제, metadata/snapshot/overlay 조회, 최신 결과 snapshot을 제공한다.
+// 동작 요약: HTTP API와 egress overlay probe가 분석 상태를 공유하는 중심 계약이다.
 #pragma once
 
 #include <chrono>

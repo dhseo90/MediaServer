@@ -1,4 +1,6 @@
-// 파일 용도: GStreamer RTSP server 어댑터와 SessionManager 연결 지점을 선언한다.
+// 파일 요약: GStreamer RTSP server adapter를 선언한다.
+// 동작 요약: start/stop과 listen port 조회 API로 main에서 RTSP server를 제어한다.
+// 동작 요약: media-configure 시 SessionManager로 요청을 연결하는 구현 뒤의 인터페이스다.
 #pragma once
 
 #include <cstdint>

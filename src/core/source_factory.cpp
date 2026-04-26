@@ -1,4 +1,6 @@
-// 파일 용도: File, RTSP pull, WebRTC, HTTP/HLS URI, YouTube resolver 위임 source worker와 codec/descriptor 변환 로직을 구현한다.
+// 파일 요약: File, RTSP pull, WebRTC, HTTP/HLS URI, YouTube source worker를 생성한다.
+// 동작 요약: GStreamer 기반 source pipeline, descriptor discovery, packet 변환, URI pad 선택을 구현한다.
+// 동작 요약: 다양한 원본 source를 SharedStream으로 공급하는 핵심 factory다.
 #include "core/source_factory.h"
 
 #include <algorithm>

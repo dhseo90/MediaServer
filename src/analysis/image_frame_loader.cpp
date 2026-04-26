@@ -1,4 +1,6 @@
-// 파일 용도: GStreamer로 JPEG/PNG/WebP 등 이미지 파일을 한 프레임 RGB 데이터로 변환한다.
+// 파일 요약: 로컬 이미지 파일을 분석 가능한 raw frame으로 디코딩한다.
+// 동작 요약: GStreamer decodebin/appsink를 사용해 JPEG/PNG/WebP 등을 RGB frame으로 변환한다.
+// 동작 요약: 정적 이미지 분석 API가 영상 분석 pipeline과 같은 detector 입력을 쓰게 한다.
 #include "analysis/image_frame_loader.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER

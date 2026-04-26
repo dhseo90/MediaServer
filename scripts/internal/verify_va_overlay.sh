@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 파일 용도: YOLO/VA overlay 경로를 lab 상태, RTSP consume, WebRTC consume 기준으로 회귀 검증한다.
+# 파일 용도: YOLO/VA overlay 경로를 lab 상태, RTSP consume, WebRTC consume 기준으로 검증한다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

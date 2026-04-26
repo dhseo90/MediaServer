@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 파일 용도: adaptive tuner가 과부하/저부하 상황에서 fps를 자동 조절하는지 장시간 회귀 검증한다.
+# 파일 용도: adaptive tuner가 과부하/저부하 상황에서 fps를 자동 조절하는지 장시간 검증한다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -217,9 +217,9 @@ DOWN_TAP="${CREATED_TAP_ID}"
 log_pass "downshift tap 생성: ${DOWN_TAP}"
 poll_tap "${DOWN_TAP}" "${DOWN_LOG}" "${POLL_COUNT}" "${POLL_INTERVAL_S}"
 if assert_downshift "${DOWN_LOG}"; then
-  log_pass "adaptive downshift 회귀 검증"
+  log_pass "adaptive downshift 장시간 검증"
 else
-  log_fail "adaptive downshift 회귀 검증 실패"
+  log_fail "adaptive downshift 장시간 검증 실패"
 fi
 curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${DOWN_TAP}" >/dev/null 2>&1 || true
 
@@ -229,9 +229,9 @@ UP_TAP="${CREATED_TAP_ID}"
 log_pass "upshift tap 생성: ${UP_TAP}"
 poll_tap "${UP_TAP}" "${UP_LOG}" "${POLL_COUNT}" "${POLL_INTERVAL_S}"
 if assert_upshift "${UP_LOG}"; then
-  log_pass "adaptive upshift 회귀 검증"
+  log_pass "adaptive upshift 장시간 검증"
 else
-  log_fail "adaptive upshift 회귀 검증 실패"
+  log_fail "adaptive upshift 장시간 검증 실패"
 fi
 curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${UP_TAP}" >/dev/null 2>&1 || true
 

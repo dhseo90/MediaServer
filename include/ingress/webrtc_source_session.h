@@ -1,4 +1,6 @@
-// 파일 용도: WebRTC WHIP publish 입력을 SharedStream source로 변환하는 세션을 선언한다.
+// 파일 요약: WHIP publish 입력을 SharedStream source로 변환하는 세션을 선언한다.
+// 동작 요약: SDP answer, ICE 후보, descriptor 준비 상태, published packet 공급 계약을 제공한다.
+// 동작 요약: 브라우저 publisher와 서버 내부 stream 모델 사이를 연결한다.
 #pragma once
 
 #include <chrono>

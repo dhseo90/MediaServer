@@ -1,4 +1,6 @@
-// 파일 용도: 외부 명령 실행과 stdout/stderr 캡처 로직을 구현한다.
+// 파일 요약: 외부 명령 실행과 stdout/stderr 캡처 helper 구현이다.
+// 동작 요약: timeout, exit code, 출력 제한을 적용해 yt-dlp/ffmpeg류 호출을 제어한다.
+// 동작 요약: 실험실 import/resolver가 shell command 세부 구현을 직접 다루지 않게 한다.
 #include "core/command_runner.h"
 
 #include <array>

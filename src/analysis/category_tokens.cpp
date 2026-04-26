@@ -1,4 +1,6 @@
-// 파일 용도: VA tracker와 event rule engine이 공유하는 객체 카테고리 토큰 해석을 구현한다.
+// 파일 요약: VA category token catalog와 COCO label 매칭 규칙을 구현한다.
+// 동작 요약: Rule UI, capabilities API, tracker, event rule engine이 같은 카테고리 정의를 공유한다.
+// 동작 요약: 공백/대소문자 차이를 정규화하고 person/vehicle/sports 등 묶음 token을 실제 label로 확장한다.
 #include "analysis/category_tokens.h"
 
 #include <algorithm>

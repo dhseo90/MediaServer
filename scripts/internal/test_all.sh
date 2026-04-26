@@ -45,7 +45,7 @@ Usage:
   3. LAN IP 기준 외부 클라이언트 접근성을 확인
   4. 제3자 RTSP upstream reachability를 advisory로 확인
   5. 안정화된 로컬 source(file, RTSP pull, WebRTC publish)의 RTSP/WebRTC 기본 경로 검증
-  6. 기본 설치 범위인 YOLO/VA overlay 회귀 검증
+  6. 기본 설치 범위인 YOLO/VA overlay 검증
 
 기본에서 제외되는 항목:
   - HLS/외부 HTTP URI source: 네트워크와 upstream 상태 영향이 커서 선택 검증
@@ -64,7 +64,7 @@ Options:
   --include-webrtc-ice
                        선택 검증: WebRTC STUN/TURN/ICE policy와 candidate 수집 상태를 추가
   --include-uri-longrun
-                       선택 검증: HTTP/HLS URI source 장기 회귀를 추가
+                       선택 검증: HTTP/HLS URI source 장기 검증을 추가
   --require-external-source
                        제3자 RTSP upstream 후보 실패도 hard fail로 처리
   --skip-external     LAN IP 외부 클라이언트 접근성과 제3자 RTSP upstream 검증 생략. 격리된 개발 환경에서만 사용
@@ -175,7 +175,7 @@ MediaServer 통합 테스트 시작
   HLS/외부 HTTP URI, YouTube, /lab UI, 룰/이벤트/POST, adaptive tuner, 외부 TURN relay
   룰 registry는 --include-rules, Rule UI는 --include-rule-ui, 이동 이벤트는 --include-va-events,
   이미지 분석은 --include-image-analysis, WebRTC ICE는 --include-webrtc-ice,
-  URI 장기 회귀는 --include-uri-longrun으로 선택 실행 가능
+  URI 장기 검증은 --include-uri-longrun으로 선택 실행 가능
 
 EOF_HEADER
 }
@@ -382,16 +382,16 @@ fi
 
 if [[ "${INCLUDE_URI_LONGRUN}" == "1" ]]; then
   if [[ ${DEPENDENCY_FAILED} -ne 0 ]]; then
-    skip_step "HTTP/HLS URI 장기 회귀 선택 검증" "서버 readiness가 실패해 URI 장기 회귀를 생략합니다."
+    skip_step "HTTP/HLS URI 장기 검증 선택 검증" "서버 readiness가 실패해 URI 장기 검증을 생략합니다."
   else
     run_step \
       "uri-longrun" \
-      "선택 검증: HTTP/HLS URI source 장기 회귀" \
-      "HTTP/HLS URI 장기 회귀 실패입니다. 로컬 HTTP/HLS launcher, URI source timeout, 외부 upstream 상태를 확인하세요." \
+      "선택 검증: HTTP/HLS URI source 장기 검증" \
+      "HTTP/HLS URI 장기 검증 실패입니다. 로컬 HTTP/HLS launcher, URI source timeout, 외부 upstream 상태를 확인하세요." \
       "./server.sh verify-uri-longrun" || true
   fi
 else
-  skip_step "HTTP/HLS URI 장기 회귀 선택 검증" "HLS/외부 HTTP URI는 환경 영향이 커 기본 테스트에서 제외합니다. 필요하면 --include-uri-longrun을 사용하세요."
+  skip_step "HTTP/HLS URI 장기 검증 선택 검증" "HLS/외부 HTTP URI는 환경 영향이 커 기본 테스트에서 제외합니다. 필요하면 --include-uri-longrun을 사용하세요."
 fi
 
 if [[ "${SKIP_VA}" == "1" ]]; then
@@ -401,7 +401,7 @@ elif [[ ${DEPENDENCY_FAILED} -ne 0 ]]; then
 else
   run_step \
     "va-overlay" \
-    "YOLO/VA overlay 회귀 검증" \
+    "YOLO/VA overlay 검증" \
     "VA overlay 검증 실패입니다. ONNX Runtime, YOLO 모델/라벨, detector 성능, WebRTC playback을 확인하세요." \
     "./server.sh verify-va" || true
 fi

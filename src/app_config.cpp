@@ -1,4 +1,6 @@
-// 파일 용도: 환경변수 값을 읽어 AppConfig를 구성하고 서버 전체 기본 설정을 제공한다.
+// 파일 요약: 환경변수와 기본 상수를 합쳐 서버 전체 AppConfig를 구성한다.
+// 동작 요약: WebRTC ICE, VA, import, source timeout, event POST 같은 런타임 옵션을 해석한다.
+// 동작 요약: 잘못된 값은 안전한 기본값으로 보정하고 필요한 경고를 표준 오류에 남긴다.
 #include "app_config.h"
 
 #include <cerrno>
