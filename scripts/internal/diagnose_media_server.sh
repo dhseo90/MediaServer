@@ -67,6 +67,12 @@ read_config() {
   else
     PORT="$(sed -nE 's/.*kRtspListenPort = ([0-9]+).*/\1/p' "${STD_AFX}" | head -n1)"
   fi
+  if [[ -n "${MEDIA_SERVER_LISTEN_PORT:-}" ]]; then
+    PORT="${MEDIA_SERVER_LISTEN_PORT}"
+  fi
+  if [[ -z "${PORT}" ]]; then
+    PORT="8554"
+  fi
   HTTP_PORT="$(sed -nE 's/.*kHttpListenPort = ([0-9]+).*/\1/p' "${STD_AFX}" | head -n1)"
   if [[ -n "${MEDIA_SERVER_HTTP_LISTEN_PORT:-}" ]]; then
     HTTP_PORT="${MEDIA_SERVER_HTTP_LISTEN_PORT}"

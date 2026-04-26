@@ -60,6 +60,7 @@ install 옵션:
   - AI 빌드가 기본입니다: build-gst-onnx + ONNX Runtime + YOLO 모델.
   - 외부 PC에서도 접근 가능하도록 RTSP/HTTP를 0.0.0.0에 바인딩합니다.
   - 로컬 환경 오버라이드는 scripts/.media_server.env에 저장합니다.
+  - start background 방식은 기본 nohup입니다. macOS에서 필요하면 MEDIA_SERVER_START_MODE=launchd를 명시합니다.
   - WebRTC STUN/TURN은 MEDIA_SERVER_WEBRTC_STUN_SERVER, MEDIA_SERVER_WEBRTC_TURN_SERVER로 지정합니다.
 EOF_USAGE
 }

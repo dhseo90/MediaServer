@@ -27,6 +27,23 @@ cleanup_state_files() {
   rm -f "${PID_FILE}" "${MODE_FILE}" "${PORT_FILE}" "${ADDRESS_FILE}" "${PLIST_FILE}"
 }
 
+stop_launchd_job() {
+  if ! media_server_has_cmd launchctl; then
+    return 1
+  fi
+  if [[ -f "${PLIST_FILE}" ]]; then
+    echo "unloading launchd job: ${PLIST_FILE}"
+    launchctl bootout "gui/$(id -u)" "${PLIST_FILE}" >/dev/null 2>&1 || true
+    return 0
+  fi
+  if launchctl print "gui/$(id -u)/com.dhseo.mediaserver" >/dev/null 2>&1; then
+    echo "unloading launchd job: com.dhseo.mediaserver"
+    launchctl bootout "gui/$(id -u)/com.dhseo.mediaserver" >/dev/null 2>&1 || true
+    return 0
+  fi
+  return 1
+}
+
 add_port() {
   local port="$1"
   [[ -n "${port}" && "${port}" =~ ^[0-9]+$ ]] || return 0
@@ -117,6 +134,9 @@ stop_listener_pids() {
 
 collect_ports
 STOPPED=1
+if stop_launchd_job; then
+  STOPPED=0
+fi
 if [[ -f "${PID_FILE}" ]]; then
   PID="$(cat "${PID_FILE}")"
   if stop_pid "${PID}" "media_server"; then
