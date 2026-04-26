@@ -932,6 +932,7 @@ bool WebRtcEgressSession::Start(const std::string& session_id,
     if (audio_appsrc_ != nullptr) {
         g_object_set(audio_appsrc_, "is-live", TRUE, "format", GST_FORMAT_TIME, "block", FALSE, nullptr);
     }
+    webrtc_gst::ConfigureIceServers(webrtcbin_);
     g_signal_connect(webrtcbin_, "on-ice-candidate", G_CALLBACK(OnLocalIceCandidate), this);
     g_signal_connect(webrtcbin_, "on-new-transceiver", G_CALLBACK(OnNewTransceiver), this);
     g_signal_connect(webrtcbin_, "notify::ice-connection-state", G_CALLBACK(OnIceConnectionStateNotify), this);

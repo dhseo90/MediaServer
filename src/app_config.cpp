@@ -55,6 +55,8 @@ constexpr const char* kEnvForceTcpOnly = "MEDIA_SERVER_FORCE_RTSP_TCP";
 constexpr const char* kEnvSessionTrace = "MEDIA_SERVER_SESSION_TRACE";
 constexpr const char* kEnvWebRtcTrace = "MEDIA_SERVER_WEBRTC_TRACE";
 constexpr const char* kEnvWebRtcTraceVerbose = "MEDIA_SERVER_WEBRTC_TRACE_VERBOSE";
+constexpr const char* kEnvWebRtcStunServer = "MEDIA_SERVER_WEBRTC_STUN_SERVER";
+constexpr const char* kEnvWebRtcTurnServer = "MEDIA_SERVER_WEBRTC_TURN_SERVER";
 constexpr const char* kEnvWebRtcSourceReadyTimeoutMs = "MEDIA_SERVER_WEBRTC_SOURCE_READY_TIMEOUT_MS";
 constexpr const char* kEnvRtspSourcePreflightTimeoutMs = "MEDIA_SERVER_RTSP_SOURCE_PREFLIGHT_TIMEOUT_MS";
 constexpr const char* kEnvRtspSourceStartTimeoutMs = "MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS";
@@ -292,6 +294,8 @@ app::AppConfig LoadAppConfig() {
     config.session_trace = ReadBoolEnv(kEnvSessionTrace, config.session_trace);
     config.webrtc_trace = ReadBoolEnv(kEnvWebRtcTrace, config.webrtc_trace);
     config.webrtc_trace_verbose = ReadBoolEnv(kEnvWebRtcTraceVerbose, config.webrtc_trace_verbose);
+    config.webrtc_stun_server = ReadStringEnv(kEnvWebRtcStunServer, config.webrtc_stun_server);
+    config.webrtc_turn_server = ReadStringEnv(kEnvWebRtcTurnServer, config.webrtc_turn_server);
     config.webrtc_source_ready_timeout_ms =
         ReadIntEnv(kEnvWebRtcSourceReadyTimeoutMs, config.webrtc_source_ready_timeout_ms);
     config.rtsp_source_preflight_timeout_ms =

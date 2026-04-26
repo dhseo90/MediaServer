@@ -85,7 +85,8 @@ cleanup_runtime_documents() {
   if [[ -n "${TAP_ID}" ]]; then
     curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}" >/dev/null 2>&1 || true
   fi
-  for rule_id in "${RULE_IDS[@]}"; do
+  for rule_id in "${RULE_IDS[@]:-}"; do
+    [[ -n "${rule_id}" ]] || continue
     curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/rules/${rule_id}" >/dev/null 2>&1 || true
   done
 }

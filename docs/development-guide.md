@@ -53,7 +53,7 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 | `RTSP` | `file` | `rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4` |
 | `RTSP` | `RTSP` | `rtsp://127.0.0.1:8554/dhseo?url=rtsp%3A%2F%2Fcamera-host%3A554%2Flive` |
 | `RTSP` | `WebRTC` | `rtsp://127.0.0.1:8554/dhseo?source=webrtc&url=publisher-demo` |
-| `RTSP` | `HTTP/HLS URI` | `rtsp://127.0.0.1:8554/dhseo?source=http&url={urlencoded_http_media_url}` (현재 재확인 필요) |
+| `RTSP` | `HTTP/HLS URI` | `rtsp://127.0.0.1:8554/dhseo?source=http&url={urlencoded_http_media_url}` |
 | `WebRTC` | `file` | `POST /webrtc/session?file=sample_h264.mp4` |
 | `WebRTC` | `RTSP` | `POST /webrtc/session?url=rtsp%3A%2F%2Fcamera-host%3A554%2Flive` |
 | `WebRTC` | `WebRTC` | `POST /webrtc/session?source=webrtc&url=publisher-demo` |
@@ -67,7 +67,7 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - `RTSP pull -> RTSP`
 - `RTSP pull -> WebRTC(signaling)`
 - `HTTP media URL -> WebRTC(signaling)` 1차 안정 경로
-  - `source=http` WebRTC signaling은 최신 blocker 체크에서도 세션 생성이 성공했다.
+  - `source=http` 로컬 HTTP MP4는 RTSP/WebRTC 기본 matrix에서 통과했다.
 - 동일 source 요청에 대한 `StreamRegistry` 기반 dedup 구조
 - `SharedStream` 기반 video/audio fan-out
 - route별 video/audio codec 변환
@@ -76,9 +76,8 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - 외부 RTSP source용 preflight + timeout 분리 진단
 
 ### 부분 구현
-- `HTTP/HLS URI source -> RTSP`
-  - route/pipeline 구현은 존재하고 과거 통과 이력도 있다.
-  - 최신 blocker 체크에서 `source=http` RTSP route의 `503 Service Unavailable`이 다시 관찰되어 현재는 재확인 필요 상태로 둔다.
+- `HLS/외부 HTTP URI source -> RTSP/WebRTC`
+  - 로컬 HTTP MP4는 통과했지만, HLS와 외부 HTTP URI는 네트워크/upstream 상태 영향이 커서 선택 검증으로 둔다.
 - `WebRTC egress`
   - HTTP signaling / WHEP endpoint 존재
   - 브라우저 연결용 코어 파이프라인 존재
@@ -111,7 +110,7 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
   - YouTube 파일 다운로드(`/lab/import`)는 개발용 샘플 생성 도구로 기본 표시하며 `MEDIA_SERVER_ENABLE_LAB_YOUTUBE_IMPORT=0`으로 끌 수 있다.
   - `yt-dlp -> HTTP/HLS URL -> UriSourceWorker` 구조이며 로그인, 지역 제한, bot check가 걸리면 우회하지 않고 실패시킨다.
   - 공개 repo와 기본 운영 흐름에서는 YouTube direct source를 기본으로 쓰지 않는다.
-  - 권한 문제가 없는 HTTP/HLS playable URI는 WebRTC 경로 중심으로 먼저 사용하고, RTSP 경로는 위 blocker를 재확인한 뒤 안정 지원으로 승격한다.
+  - 권한 문제가 없는 로컬 HTTP playable URI는 RTSP/WebRTC 경로를 기본 matrix에 포함한다. HLS/외부 HTTP URI는 선택 검증으로 둔다.
 
 ### 최근 정리
 - WebRTC egress/source 양쪽에 중복되어 있던 GStreamer RTCP workaround, SDP sanitize, pipeline clock/latency 설정을 `ingress/webrtc_gst_utils`로 공통화했습니다.
@@ -346,6 +345,8 @@ MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
 | `MEDIA_SERVER_SESSION_TRACE` | `1`이면 SessionManager acquire/cleanup 로그 출력 |
 | `MEDIA_SERVER_WEBRTC_TRACE` | `1`이면 WebRTC 협상/상태 로그 출력 |
 | `MEDIA_SERVER_WEBRTC_TRACE_VERBOSE` | `1`이면 sample/pad/caps/SDP 상세 로그 추가 |
+| `MEDIA_SERVER_WEBRTC_STUN_SERVER` | WebRTC egress/WHIP ingest에 적용할 STUN 서버. 예: `stun://stun.l.google.com:19302` |
+| `MEDIA_SERVER_WEBRTC_TURN_SERVER` | WebRTC egress/WHIP ingest에 적용할 TURN 서버. 예: `turn://user:pass@turn.example.com:3478` |
 | `MEDIA_SERVER_WEBRTC_SOURCE_READY_TIMEOUT_MS` | WHIP publish source track 준비 대기 시간 |
 | `MEDIA_SERVER_WEBRTC_VIDEO_WIDTH` | WebRTC 송출 video 정규화 width. 기본 `1280` |
 | `MEDIA_SERVER_WEBRTC_VIDEO_HEIGHT` | WebRTC 송출 video 정규화 height. 기본 `720` |
@@ -476,8 +477,8 @@ ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성
 
 `./server.sh test`의 기본 기준은 안정 기능으로 승격한 스트리밍 + 기본 VA 기능을 포함한다.
 - 모든 test 모드 포함: 스크립트/JSON 정적 검사, 서버 start/status/diagnose, LAN IP 기준 외부 클라이언트 접근성.
-- stable 포함: 제3자 RTSP upstream reachability advisory, 로컬 file source, 로컬 RTSP pull source, 로컬 WebRTC publish source의 RTSP/WebRTC 소비, YOLO/VA overlay 회귀 검증.
-- 제외: HTTP/HLS URI source, YouTube source/import, `/lab` UI, 룰/이벤트/POST, adaptive tuner.
+- stable 포함: 제3자 RTSP upstream reachability advisory, 로컬 file source, 로컬 RTSP pull source, 로컬 WebRTC publish source, 로컬 HTTP URI source의 RTSP/WebRTC 소비, YOLO/VA overlay 회귀 검증.
+- 제외: HLS/외부 HTTP URI source, YouTube source/import, `/lab` UI, 룰/이벤트/POST, adaptive tuner.
 - 선택 검증: `./server.sh test --include-rules`는 profile/rule registry CRUD와 rule match 기반 profile 자동 선택을 추가 확인한다.
 - 선택 검증: `./server.sh test --include-va-events`는 실제 이동 영상 기반 tracker/event 판정을 추가 확인한다.
 - 선택 검증: `./server.sh test --include-image-analysis`는 개발용 정적 이미지 분석 API를 추가 확인한다.
@@ -713,7 +714,7 @@ POST http://127.0.0.1:8080/whep?source=webrtc&url={source_id}
 
 ### 6. HTTP/HLS URL -> RTSP / WebRTC
 
-HTTP/HLS playable URL은 기존 URI source 경로로 소비한다. 현재 안정 기준은 WebRTC consume 쪽이며, RTSP consume 쪽은 과거 통과 이력은 있으나 최신 blocker 체크에서 `503 Service Unavailable`이 재현되어 재확인 대상으로 둔다.
+HTTP/HLS playable URL은 기존 URI source 경로로 소비한다. 로컬 HTTP MP4는 RTSP/WebRTC matrix를 통과했으며, HLS와 외부 HTTP URI는 네트워크/upstream 상태 영향 때문에 선택 검증으로 둔다.
 
 ```text
 rtsp://127.0.0.1:8554/dhseo?source=http&url={urlencoded_http_media_url}
@@ -723,8 +724,8 @@ POST http://127.0.0.1:8080/whep?source=hls&url={urlencoded_m3u8_url}
 ```
 
 주의:
-- `source=http|hls -> WebRTC`는 1차 지원 경로로 본다. 최신 blocker 체크에서 signaling/session 생성은 통과했다.
-- `source=http|hls -> RTSP`는 부분 구현/재검증 필요 상태다.
+- `source=http -> RTSP/WebRTC`는 로컬 HTTP MP4 기준 통과했다.
+- `source=hls`와 외부 HTTP URI는 선택 검증으로 둔다.
 - 짧은 VOD 반복, video-only 입력, late joiner 검증은 현재 WebRTC 중심으로 문서화한다.
 
 ### 7. Experimental: YouTube watch/live URL -> RTSP / WebRTC
@@ -856,7 +857,7 @@ RTSP egress 기준:
 - 기본 VA: YOLO/ONNX 분석, overlay snapshot, RTSP overlay, WebRTC simple/WHEP overlay
 
 기본 제외 항목:
-- `HTTP/HLS URI source`: 최신 blocker 기준 RTSP 503 재확인 필요
+- `HLS/외부 HTTP URI source`: 네트워크와 upstream 상태 영향이 커서 선택 검증
 - `YouTube source/import`: 실험실 기능
 - `/lab` UI, 룰/이벤트/POST, adaptive tuner: 아직 안정 기능으로 승격하지 않음
 
@@ -973,10 +974,10 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./server.sh urls
 - `RTSP(h264 + pcmu local source) -> WebRTC(signaling)`
 - `RTSP(h264 + pcma local source) -> RTSP`
 - `RTSP(h264 + pcma local source) -> WebRTC(signaling)`
-- `HTTP video-only MP4 -> RTSP` (과거 통과, 현재 재확인 필요)
+- `HTTP video-only MP4 -> RTSP`
   - 입력 파일: `sample_h264_video_only.mp4`
   - 결과: `h264/hevc video + route silent audio`
-  - 최신 blocker 체크에서는 `source=http` RTSP route에서 `503`이 재현되어 현재 완료 상태가 아니라 재확인 대상으로 본다.
+  - URI/VOD source pacing 보정 후 로컬 HTTP matrix에서 통과했다.
 - `HTTP video-only MP4 -> WebRTC(simple signaling/playback)`
   - browser consumer 기준 video-only track 및 `decoded video frame` 확인
 - `WebRTC publish(publisher-demo2 local WHIP test) -> RTSP`
@@ -990,8 +991,9 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./server.sh urls
   - browser consumer 기준 audio/video track 및 `decoded video frame` 확인
 - 로컬 전체 matrix 과거 결과
   - 당시 결과: `pass=63 fail=0 skip=3`
-  - 최신 blocker 체크 결과: `pass=57 fail=6 skip=3`
-  - 최신 실패 6건은 `source=http` RTSP route probe에서 발생했으므로, 분석 1차 범위에서는 `HTTP/HLS URI`를 제외한다.
+  - `2026-04-24` blocker 체크 결과: `pass=57 fail=6 skip=3`
+  - 실패 6건은 `source=http` RTSP route probe에서 발생했다.
+  - `2026-04-26` URI/VOD source pacing 보정 후 로컬 HTTP MP4 matrix가 다시 통과했고, 기본 테스트 범위에 포함했다.
 
 실험실 기능 검증 이력:
 - `YouTube resolver(fake yt-dlp -> local HTTP MP4) -> RTSP`

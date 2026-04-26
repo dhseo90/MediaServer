@@ -13,6 +13,7 @@ struct RtcpWorkaroundStats {
 };
 
 void ConfigurePipelineClockAndLatency(GstElement* element);
+void ConfigureIceServers(GstElement* webrtcbin);
 GstWebRTCSessionDescription* BuildSessionDescriptionWithoutRtcpFeedback(
     const GstWebRTCSessionDescription* description);
 RtcpWorkaroundStats ApplyRtcpWorkarounds(GstElement* root, GstElement* pipeline);

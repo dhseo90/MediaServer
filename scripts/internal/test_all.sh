@@ -45,7 +45,7 @@ Usage:
   6. 기본 설치 범위인 YOLO/VA overlay 회귀 검증
 
 기본에서 제외되는 항목:
-  - HTTP/HLS URI source: 최신 blocker 기준 RTSP 503 재확인 필요
+  - HLS/외부 HTTP URI source: 네트워크와 upstream 상태 영향이 커서 선택 검증
   - YouTube source/import: 실험실 기능
   - /lab UI, 룰/이벤트/POST, adaptive tuner: 아직 안정 기능으로 승격하지 않음
   - 정적 이미지 분석 API: 개발용 endpoint라 선택 검증으로만 실행
@@ -152,10 +152,10 @@ MediaServer 통합 테스트 시작
   2. 서버가 RTSP/HTTP 포트를 열고 /health에 응답해야 함
   3. 모든 test 모드에서 LAN IP 기준 외부 클라이언트 접근성이 확인되어야 함
   4. stable 모드에서는 제3자 RTSP upstream reachability를 advisory로 확인해야 함
-  5. stable 모드에서는 안정화된 로컬 source(file/RTSP/WebRTC publish)가 RTSP/WebRTC 기본 경로로 소비되어야 함
+  5. stable 모드에서는 안정화된 로컬 source(file/RTSP/WebRTC publish/HTTP URI)가 RTSP/WebRTC 기본 경로로 소비되어야 함
   6. stable 모드에서는 기본 설치 범위인 YOLO/VA overlay가 lab API, RTSP, WebRTC에서 동작해야 함
 - 제외:
-  HTTP/HLS, YouTube, /lab UI, 룰/이벤트/POST, adaptive tuner
+  HLS/외부 HTTP URI, YouTube, /lab UI, 룰/이벤트/POST, adaptive tuner
   룰 registry는 --include-rules, 이동 이벤트는 --include-va-events, 이미지 분석은 --include-image-analysis로 선택 실행 가능
 
 EOF_HEADER
@@ -184,7 +184,7 @@ infer_reason() {
   elif grep -Eiq "HTTP health check failed|health failed|/health|Connection refused|Failed to connect" "${log_file}"; then
     echo "HTTP 서버가 준비되지 않았거나 접근할 수 없습니다. 서버 로그와 HTTP 포트를 확인하세요."
   elif grep -Eiq "RTSP probe failed|RTSP probe timeout|ffprobe.*failed|Invalid data found|timed out waiting for RTSP source|503 Service Unavailable" "${log_file}"; then
-    echo "RTSP 미디어 생성 또는 source 준비가 실패했습니다. source token, route, codec 변환, 최신 503 blocker 여부를 확인하세요."
+    echo "RTSP 미디어 생성 또는 source 준비가 실패했습니다. source token, route, codec 변환, URI source pacing 여부를 확인하세요."
   elif grep -Eiq "WebRTC .*failed|session create failed|missing sessionId|decoded video frame|playback.*failed|consumer.*timeout" "${log_file}"; then
     echo "WebRTC signaling/playback 검증이 실패했습니다. HTTP signaling, 브라우저 자동화, RTP payload 흐름을 확인하세요."
   elif grep -Eiq "missing detections|detections=0|decoderErrors|lab YOLO analysis status failed" "${log_file}"; then
@@ -356,7 +356,9 @@ else
   run_codec_filter "rtsp_local_h264_pcmu" "local RTSP H264/PCMU -> RTSP/WebRTC"
   run_codec_filter "rtsp_local_h264_pcma" "local RTSP H264/PCMA -> RTSP/WebRTC"
   run_codec_filter "webrtc_local_publish_h264_opus" "local WHIP publish -> RTSP/WebRTC"
-  skip_step "HTTP/HLS URI source" "최신 blocker 기준 RTSP 503 재확인 필요 항목이라 안정 테스트에서 제외합니다."
+  run_codec_filter "http_local_h264_aac" "local HTTP URI H264/AAC -> RTSP/WebRTC"
+  run_codec_filter "http_local_h264_video_only" "local HTTP URI video-only -> RTSP/WebRTC"
+  skip_step "HLS/외부 HTTP URI source" "네트워크와 upstream 상태 영향이 큰 항목이라 기본 안정 테스트에서 제외합니다."
 fi
 
 if [[ "${SKIP_VA}" == "1" ]]; then

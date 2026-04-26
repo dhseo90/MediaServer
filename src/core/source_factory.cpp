@@ -1679,7 +1679,10 @@ private:
             return nullptr;
         }
 
-        g_object_set(branch->sink, "emit-signals", FALSE, "sync", FALSE, "max-buffers", 16, "drop", TRUE, nullptr);
+        // HTTP MP4 같은 URI/VOD source도 RTSP/WebRTC 소비자 입장에서는 지속 스트림이어야 한다.
+        // sync=false로 두면 파일을 순식간에 소진하며 EOF/seek가 반복되어 RTSP DESCRIBE 준비 중 appsrc가
+        // 과도한 burst를 받는 문제가 생길 수 있으므로, RTSP pull source와 동일하게 clock pace를 따른다.
+        g_object_set(branch->sink, "emit-signals", FALSE, "sync", TRUE, "max-buffers", 16, "drop", TRUE, nullptr);
         return branch;
     }
 

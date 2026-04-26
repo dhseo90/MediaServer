@@ -8,7 +8,7 @@
   - Egress: RTSP, WebRTC
 - 미래 확장:
   - YouTube live/uploaded URL 실험실 기능의 권한/정책 정리
-  - 운영용 WebRTC auth / STUN / TURN / ICE policy 추가
+  - 운영용 WebRTC auth / 강제 ICE policy 추가
   - 영상 분석 tracker/rule/profile 고도화
 - 핵심 요구:
   - 동일 소스에 대한 다중 클라이언트 요청 시 Source Pull 1회 + N-way fan-out
@@ -70,7 +70,7 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC or HTTP/
 - `POST /webrtc/session?source=http&url={urlencoded_http_media_url}`
   - egress: `WebRTC`
   - source: `HTTP URI`
-  - RTSP egress의 HTTP/HLS URI source는 최신 blocker 체크에서 재확인 필요 상태다.
+  - 로컬 HTTP MP4 source 기준 RTSP/WebRTC egress가 통과했다. HLS/외부 HTTP URI는 선택 검증으로 남긴다.
 
 ## 3. 핵심 개념
 
@@ -296,7 +296,7 @@ SharedStream
 
 구현 원칙:
 - 기본 source protocol은 `source=hls` 또는 `source=http`로 먼저 연다. 현재 1차 `UriSourceWorker`는 GStreamer `uridecodebin`으로 HTTP/HLS media URL을 수신한 뒤 내부 표준 패킷(`H264` video, `AAC` audio)으로 재인코딩한다.
-- `source=http|hls -> WebRTC`는 1차 지원 경로로 본다. `source=http|hls -> RTSP`는 구현 경로와 과거 통과 이력이 있지만 최신 blocker 체크에서 `503 Service Unavailable`이 재현되어 재확인 필요 상태다.
+- `source=http -> RTSP/WebRTC`는 로컬 HTTP MP4 기준 기본 matrix를 통과했다. `source=hls`와 외부 HTTP URI는 네트워크/upstream 상태 영향을 받으므로 선택 검증으로 둔다.
 - `source=youtube`는 `yt-dlp` 기반 resolver를 통과하는 실험실 옵션으로 두고, 기본값으로는 숨긴다.
 - `/lab`를 통합 진입점으로 두고 안정 테스트, VA 분석, 룰 편집, 실험실 가져오기를 같은 화면에서 접고 펼친다.
 - `/webrtc/test`, `/lab/rules`, `/lab/import`는 자동화와 기존 bookmark 호환 route로 유지하되, 일반 수동 진입점은 `/lab` 하나로 본다.
@@ -393,7 +393,7 @@ SharedStream
   - `url`/`file`는 하나만 지정해야 함
   - query value는 URL 인코딩 권장
   - 현재 RTSP egress는 `H264/H265` video와 `AAC/Opus/PCMU/PCMA` audio route를 제공한다.
-  - HTTP/HLS URI source의 RTSP egress는 최신 blocker 체크에서 재확인 필요 상태다.
+  - 로컬 HTTP MP4 URI source의 RTSP egress는 통과했다. HLS/외부 HTTP URI는 선택 검증으로 남긴다.
 
 ## 15. 실행 스크립트 / 설정 위치
 - 사용자 진입점은 루트의 `./server.sh` 하나로 통합한다.
@@ -425,6 +425,8 @@ SharedStream
 - `MEDIA_SERVER_GST_ATTACH_CONTEXT=default|1`: gstreamer attach 시 기본 GLib context 강제 사용
 - `MEDIA_SERVER_WEBRTC_TRACE=1`: WebRTC 협상/상태/RTCP workaround 로그 출력
 - `MEDIA_SERVER_WEBRTC_TRACE_VERBOSE=1`: sample/pad/caps/SDP detail 로그까지 출력
+- `MEDIA_SERVER_WEBRTC_STUN_SERVER`: WebRTC egress/WHIP ingest에 적용할 STUN server URI
+- `MEDIA_SERVER_WEBRTC_TURN_SERVER`: WebRTC egress/WHIP ingest에 적용할 TURN server URI
 - 주요 설정(컴파일 타임):
   - `include/stdafx.h`
   - `kStreamRoute`: RTSP 경로 (`/dhseo`)

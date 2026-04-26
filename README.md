@@ -5,7 +5,7 @@ C++17 기반 미디어 서버입니다. `GStreamer`를 중심으로 `RTSP`, `Web
 목표 연결 모델:
 
 ```text
-Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Original Source
+Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC or HTTP/HLS URI) <-> Original Source
 ```
 
 `Client -> MediaServer` 프로토콜과 `MediaServer -> Original Source` 프로토콜은 URL/endpoint와 query로 독립 선택합니다.
@@ -31,15 +31,15 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - `RTSP pull -> RTSP`
 - `RTSP pull -> WebRTC(signaling/WHEP)`
 - `WebRTC publish(WHIP) -> RTSP/WebRTC` 1차 경로
+- `HTTP URI(local MP4) -> RTSP/WebRTC`
 - `va=1` 기반 YOLO/ONNX 객체 감지 overlay
 - 정적 이미지 분석 API: metadata, snapshot JPEG, overlay JPEG
 
 부분 지원/재확인 필요:
 
-- `HTTP/HLS URI -> WebRTC`: 1차 동작 경로
-- `HTTP/HLS URI -> RTSP`: 과거 통과 이력은 있으나 최신 blocker에서 `503` 재현, 재확인 필요
+- `HLS/외부 HTTP URI -> RTSP/WebRTC`: 네트워크와 upstream 상태 영향이 있어 선택 검증으로 유지
 - YouTube source/import: 실험실 기능, 기본 운영 기능 아님
-- 운영용 WebRTC auth/STUN/TURN/ICE policy: 미정리
+- 운영용 WebRTC: STUN/TURN env 설정은 지원, auth/강제 ICE policy는 미구현
 
 ## 설치 및 실행 환경
 
@@ -263,12 +263,12 @@ curl -fsS -o overlay.jpg \
 - 스크립트/JSON 정적 검사
 - 서버 start/status/diagnose
 - LAN IP 기준 외부 클라이언트 접근성
-- stable local stream 경로: file, local RTSP pull, local WebRTC publish
+- stable local stream 경로: file, local RTSP pull, local WebRTC publish, local HTTP URI
 - 기본 YOLO/VA overlay 회귀
 
 기본 제외:
 
-- HTTP/HLS URI source의 RTSP 경로
+- HLS/외부 HTTP URI source
 - YouTube source/import
 - 룰/이벤트/POST 장시간 검증
 - adaptive tuner 장시간 검증
