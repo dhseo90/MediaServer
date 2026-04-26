@@ -329,6 +329,12 @@ std::string NormalizeYoloScoreMode(std::string value) {
     if (value == "objectness" || value == "objectness-class" || value == "obj-class") {
         return "objectness-class";
     }
+    if (value == "score-class" || value == "score-label" || value == "end2end") {
+        return "score-class";
+    }
+    if (value == "class-score" || value == "label-score") {
+        return "class-score";
+    }
     return "auto";
 }
 
