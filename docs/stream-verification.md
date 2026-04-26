@@ -8,7 +8,7 @@
 - 최신 blocker 체크 기준으로 기본 안정 기준은 `file`, 로컬 `RTSP pull`, 로컬 `WebRTC publish`, LAN IP 기준 외부 클라이언트 접근성, 제3자 RTSP upstream advisory, 기본 YOLO/VA overlay다.
 - `HTTP/HLS URI -> WebRTC(signaling)`은 같은 체크에서 세션 생성이 성공했지만, `HTTP URI -> RTSP`는 `503 Service Unavailable`이 다시 관찰되어 재확인이 필요하다.
 - 아래 문서에는 과거 통과 이력도 남아 있다. 과거 이력은 회귀 추적용이며, 현재 작업 우선순위는 최신 blocker 체크 결과를 기준으로 판단한다.
-- 따라서 영상분석 1차 범위에는 `HTTP/HLS URI`를 넣지 않고, 분석 skeleton과 로컬 core 경로 검증 이후 main 후속 안정화에서 다시 확인한다.
+- 따라서 영상분석 1차 범위에는 `HTTP/HLS URI`를 넣지 않고, 분석 skeleton과 로컬 core 경로 검증 이후 main 별도 선택 검증으로 다시 확인한다.
 
 ## 지원 대상
 - `file -> RTSP`
@@ -60,7 +60,7 @@
   - `POST http://{media-server-host}:8080/webrtc/session?source=webrtc&url={source_id}`
   - `POST http://{media-server-host}:8080/whep?source=webrtc&url={source_id}`
 
-## 남은 테스트 스텝
+## 선택/보류 테스트 범위
 1. 외부 RTSP source 심화 재검증
    - `./server.sh test` 기본 기준에는 LAN IP 외부 클라이언트 접근성을 hard gate로 포함한다.
    - 제3자 RTSP upstream 후보는 remote 응답 지연과 upstream 상태 영향이 커서 기본 stable에서는 advisory로 본다.
@@ -69,7 +69,7 @@
    - auth, STUN/TURN, ICE policy를 붙인 상태에서 브라우저 간 consume/publish 재검증
 3. audio-only input 정책 확정
    - 현재는 video relay/analysis 기준으로 설계되어 있어 audio-only는 정식 지원 범위 밖
-4. 영상분석 후속 테스트 추가
+4. 영상분석 선택 테스트
    - 1차 analysis tap, raw decode hub, drop/frame-sampling, YOLO/ONNX, RTSP/WebRTC overlay는 로컬 smoke test 완료
    - adaptive tuner 1차 smoke test는 완료했으며, rule event engine은 presence/enter/exit/line-crossing 1차 구현 후 build 검증 완료
 5. 실험실 YouTube 회귀 검증
@@ -94,7 +94,7 @@
   - LAN IP 기준 외부 클라이언트 접근성은 모든 `./server.sh test` 모드에서 확인한다.
   - 제3자 RTSP upstream reachability는 stable `./server.sh test`에서 advisory로 확인한다.
   - 신뢰 가능한 외부 RTSP URL을 명시한 경우에는 hard gate로 검증한다.
-  - HTTP/HLS URI, 실험실 YouTube, 운영용 STUN/TURN/auth는 blocker가 아니라 후속 테스트로 남긴다.
+  - HTTP/HLS URI, 실험실 YouTube, 운영용 STUN/TURN/auth는 blocker가 아니라 선택 테스트로 남긴다.
   - YOLO/VA overlay는 기본 설치/기본 실행 범위이므로 `./server.sh test` 기본 기준에 포함한다.
   - profile/rule/event, adaptive tuner는 선택 테스트로 유지하고 기본 안정 기준에는 넣지 않는다.
 - 권장 실행 순서
@@ -108,22 +108,20 @@
   8. 필요 시 `./server.sh verify-adaptive`
   9. `./server.sh stop`
 - 판단 규칙
-  - 위 stable 기준이 깨지면 분석 후속 개발보다 스트리밍 안정화 수정을 먼저 한다.
-  - profile/rule/event 같은 분석 후속 개발은 선택 테스트로 검증하되, 안정 기능으로 승격 전까지 기본 `./server.sh test`에는 넣지 않는다.
+  - 위 stable 기준이 깨지면 분석 관련 변경보다 스트리밍 안정화 수정을 먼저 한다.
+  - profile/rule/event 같은 분석 관련 기능은 선택 테스트로 검증하되, 안정 기능으로 승격 전까지 기본 `./server.sh test`에는 넣지 않는다.
   - 새 기능을 추가하면 먼저 선택 테스트(`--include-*`)로 묶고, 반복 검증 후 안정 기능으로 판단될 때만 기본 `./server.sh test` 기준에 승격한다.
 
-## 분석 1차 구현 이후 보류 테스트와 복귀 계획
-- 분석 1차 구현은 file/RTSP/WebRTC local core 경로 중심으로 진행했다. 아래 항목은 main 기준 후속 테스트로 보류한다.
+## 분석 1차 구현 이후 보류 테스트 이력
+- 분석 1차 구현은 file/RTSP/WebRTC local core 경로 중심으로 진행했다. 아래 항목은 main 기준 선택 테스트로 기록한다.
   - `HTTP/HLS URI -> RTSP` 최신 `503` 재확인 및 수정
   - 외부 RTSP source 장시간/codec 심화 재검증
   - WebRTC 운영 환경 테스트(auth/STUN/TURN/ICE)
   - audio-only input 정책 확정
   - 실험실 YouTube 회귀 검증
   - `/lab/import` 외부 네트워크 재검증
-- profile/rule/event 같은 분석 후속 개발 전후에는 이 문서의 `남은 테스트 스텝` 순서로 돌아와 보류 항목을 재개한다.
-- 현재 계획은 `분석 local smoke 유지 -> tracker/event 안정화 -> HTTP/HLS RTSP 재확인 -> WebRTC 운영 환경 테스트` 순서다.
 
-## 영상분석 skeleton 검증 계획
+## 영상분석 skeleton 검증 기준
 - 1차 skeleton 검증
   - `./server.sh start`로 AI 포함 기본 빌드(`build-gst-onnx`)와 analysis module 포함 여부를 확인한다.
   - 기존 `file -> RTSP`, `file -> WebRTC(signaling)` smoke test가 그대로 동작해야 한다.
@@ -174,7 +172,7 @@
 - 현재 판단
   - `file`, `RTSP pull`, `WebRTC publish`를 대상으로 한 분석 1차 브랜치는 진행 가능하다.
   - 다만 `HTTP/HLS URI source`를 분석 1차 범위에 포함하면, 이번에 재현된 `source=http` RTSP 503을 먼저 정리해야 한다.
-  - detached lifecycle 스크립트의 Codex 환경 특이점은 분석 blocker라기보다 main 후속 안정화 항목으로 둔다.
+  - detached lifecycle 스크립트의 Codex 환경 특이점은 분석 blocker라기보다 main 안정화 이력의 별도 항목으로 둔다.
 
 ## 실험실 YouTube 개발 중단 사유
 - 현재 `source=youtube` 경로는 코드 수준 1차 연결과 일부 재생 검증까지는 끝났지만, 기본 기능으로 승격할 정도의 안정성은 확보하지 못했다.
@@ -464,7 +462,7 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
 - browser consumer 기준으로 `decoded video frame`이 확인돼, 이전의 `audio만 재생되고 video는 0 bytes` 상태는 해소됐다.
 
 ## 과거 라운드 수정 사항
-- live source(`RTSP`, 향후 `WebRTC`)는 마지막 subscriber가 빠지면 즉시 cleanup 하도록 변경했다.
+- live source(`RTSP`, `WebRTC`)는 마지막 subscriber가 빠지면 즉시 cleanup 하도록 변경했다.
 - `SourceWorker` liveness를 체크해서 죽은 worker를 재사용하지 않도록 보강했다.
 - 이 변경 후 `RTSP(h265+opus)`와 `RTSP(h264+pcmu)`의 연속 요청/transform route 재검증이 통과했다.
 - `source=http` RTSP `503` 원인을 수정했다.
@@ -554,7 +552,7 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - Homebrew layout 보정을 위해 CMake ONNX include 탐색에 `onnxruntime` suffix를 추가했다.
   - `build-gst-onnx`를 `MEDIA_SERVER_USE_ONNXRUNTIME=ON`, `MEDIA_SERVER_ONNXRUNTIME_ROOT=/opt/homebrew/opt/onnxruntime`로 구성했고 빌드가 통과했다.
   - 검증용 모델은 Ultralytics assets `v8.4.0`의 `yolo11n.onnx`를 `models/` 아래에 로컬로만 내려받았다.
-  - 검증용 label은 `models/coco.names`의 COCO 80개 class다. 현재 overlay에 표출 가능한 class 목록은 `README.md`의 YOLO/COCO 기준 섹션에 명시했다.
+  - 검증용 label은 `models/coco.names`의 COCO 80개 class다. 현재 overlay에 표출 가능한 class 목록은 `docs/video-analysis.md`의 YOLO/COCO 기준 섹션에 명시했다.
   - 당시 검증용 영상은 Ultralytics `bus.jpg`를 `video/imports/yolo_bus_test.mp4`로 변환해 사용했다.
   - `POST /lab/analysis/taps?file=imports/yolo_bus_test.mp4&profileId=yolo-bus-smoke&detector=yolo&model=models/yolo11n.onnx&labels=models/coco.names&fps=2&maxQueue=2&inputWidth=640&inputHeight=640&confidence=0.25&nms=0.45`가 성공했다.
   - 2초 후 status에서 `detectorType=yolo`, `analyzedPackets=87`, `decoderErrors=0`, `detections`에 `person`, `bus`가 포함됨을 확인했다.
@@ -714,30 +712,6 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - `/lab/analysis/image/snapshot.jpg`, `/lab/analysis/image/overlay.jpg`는 각각 원본 snapshot과 detection overlay JPEG를 반환한다.
   - `asset`은 `docs/assets`, `file`/`image`는 video root 기준 상대경로만 허용하며 절대경로와 `..` 경로 이탈은 400으로 거부한다.
   - 기본 `./server.sh test`에는 아직 넣지 않고 `./server.sh test --include-image-analysis` 선택 검증으로 연결했다.
-
-## 남은 확인 항목
-- 다음 구현 순서
-  - 1차: tracker 통계 결과 기준으로 Kalman/ByteTrack류 보강 여부 판단
-  - 2차: 정적 이미지 분석 API를 `/lab` UI에 연결할지, 업로드/임시파일 정책을 둘지 결정
-  - 3차: 다양한 `xyxy` end2end 호환 모델을 추가 확보해 실제 모델 검증을 hard gate로 승격
-  - 4차: `./server.sh verify-va`, `./server.sh verify-va-events`, `./server.sh verify-image-analysis`를 더 긴 duration/반복으로 누적
-- source/route/client rule matching, context 기반 profile 자동 선택, priority 기반 rule 선택은 VA rule context 기준 1차 구현했고, route별 장시간 검증은 통과했다. 남은 작업은 운영 기본값을 확정하는 것이다.
-- `HTTP/HLS URI -> RTSP` 최신 `503` 재확인 및 수정
-- audio-only input은 현재 video relay/analysis 준비 범위 밖이다. RTSP/WebRTC egress는 video track을 기준으로 동작한다.
-- 외부 wowza source 재검증
-- 외부 RTSP source timeout 원인 분리
-  - 실제 remote server 응답 지연인지
-  - 현재 네트워크 환경 제약인지
-  - RTSP source timeout 설정이 너무 짧은지
-
-현재 wowza에 대해서는 아래처럼 해석한다.
-- `RTSP preflight failed ...`이면 네트워크 또는 remote port reachability 문제 쪽이 먼저다.
-- `timed out waiting for RTSP source samples`이면 TCP 연결 이후 RTSP setup/SDP/sample 수신이 지연되거나 upstream 응답이 늦은 쪽이다.
-
-실제 관찰 결과는 다음과 같다.
-- 기본값(`MEDIA_SERVER_RTSP_SOURCE_PREFLIGHT_TIMEOUT_MS=1500`)에서는 `wowzaec2demo.streamlock.net:554`에 대해 `connection timed out`가 먼저 난다.
-- preflight를 끄고 `MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS=8000`으로 늘리면, 연결 이후 단계에서 여전히 sample이 들어오지 않아 `timed out waiting for RTSP source samples`가 난다.
-- 따라서 현재 wowza 실패는 `source codec` 문제가 아니라, 현재 환경 기준 외부 RTSP reachability 또는 upstream 응답 지연 쪽으로 보는 것이 맞다.
 
 ## 예시 주소
 - file -> RTSP

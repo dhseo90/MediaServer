@@ -130,6 +130,7 @@ scripts/
   internal/                # server.sh가 호출하는 내부 스크립트
 docs/
   development-guide.md
+  video-analysis.md
   media-server-architecture.md
   stream-verification.md
 video/
@@ -263,7 +264,7 @@ public:
   - stream acquire/release
   - source reconnect/failure
 
-## 12. 단계별 구현 계획
+## 12. 구현 흐름 요약
 1. `StreamKey` canonicalization + parser 정의
 2. `StreamRegistry + SharedStream` 구현 (dedup + queue/drop-oldest fan-out)
 3. RTSP ingress/egress 연결 (실제 라이브러리 연동)
@@ -321,9 +322,7 @@ SharedStream
 
 ## 12.2 영상 분석 계층
 
-현재 MediaServer 안에는 1차 영상 분석 계층이 들어가 있다. 분석 로직은 relay 경로를 직접 대체하지 않고, `SharedStream`을 구독하는 별도 처리 경로로 붙는다.
-
-권장 구조:
+현재 MediaServer에는 1차 영상 분석 계층이 포함되어 있다. 분석 로직은 relay 경로를 직접 대체하지 않고 `SharedStream`을 구독하는 별도 처리 경로로 붙는다.
 
 ```text
 Original Source
@@ -338,7 +337,7 @@ SharedStream
     |       - object detection
     |       - tracking
     |       - event extraction
-    |       - snapshot / crop image
+    |       - snapshot / overlay image
     |
     +----> RTSP Egress
     |
@@ -346,66 +345,21 @@ SharedStream
 ```
 
 분석 계층의 출력 타입:
-- `metadata`
-  - detection box, class, score, timestamp
-- `derived image`
-  - JPEG snapshot, thumbnail, crop image
-- `rendered stream`
-  - overlay가 그려진 별도 video stream
+- metadata: detection box, class, score, timestamp, track id
+- derived image: JPEG snapshot, overlay JPEG
+- rendered stream: RTSP/WebRTC 영상 위 detection overlay
 
-클라이언트 전달 방식 후보:
-- 기존 RTSP/WebRTC 영상 위에 overlay를 그린 2차 스트림 제공
-- 별도 HTTP endpoint로 snapshot 이미지 제공
-- 정적 이미지 파일을 분석해 metadata와 overlay JPEG를 반환하는 개발용 endpoint 제공
-- WebRTC data channel 또는 별도 API로 metadata 제공
+구조 원칙:
+- source 수집과 분석 로직을 분리해 기본 relay 안정성을 유지한다.
+- relay subscriber와 analysis subscriber를 분리해서 관리한다.
+- source 제거는 relay client와 analysis subscriber가 모두 빠진 뒤에만 수행한다.
+- `va=1` 요청은 같은 source에 analysis tap을 붙이고 encoder 직전 raw video 구간에 overlay를 합성한다.
+- detector/model/labels/fps/queue 기본값은 URL이 아니라 `include/stdafx.h`, `scripts/.media_server.env`, `MEDIA_SERVER_ANALYSIS_*` 환경변수로 관리한다.
+- tracker가 켜진 profile은 event rule을 객체 ID 기준으로 평가한다. tracker를 끈 profile은 fallback을 사용한다.
+- overlay result는 source PTS와 가까운 analysis result를 우선 사용하고, 매칭 실패 시 최신 result로 fallback한다.
+- 정적 이미지 분석은 `docs/assets` 또는 video root 기준 상대경로만 허용하고, 절대경로와 `..` 경로 이탈은 거부한다.
 
-이 원칙을 두는 이유:
-- source 수집과 분석 로직을 분리해야 기본 relay 경로를 안정적으로 유지할 수 있다.
-- 같은 `SharedStream`에서 `relay subscriber`와 `analysis subscriber`를 동시에 붙일 수 있다.
-- `SharedStream::RefCount()`는 relay client만 세며, analysis tap은 `AnalysisSubscriberCount()`/`TotalSubscriberCount()`로 별도 확인한다. source 제거는 relay client와 analysis subscriber가 모두 빠진 뒤에만 수행해 cleanup race로 분석 tap이 중간에 끊기지 않게 한다.
-- 이후 객체 감지 모델 교체, snapshot 정책 추가, 이벤트 API 추가가 쉬워진다.
-
-현재 구현:
-- `analysis::AnalysisProfile`: fps, queue, detection/tracking/pose/overlay 사용 여부를 담는 profile 단위
-- `analysis::Detector`: YOLO/ONNX Runtime detector를 붙일 교체형 인터페이스
-- `analysis::AnalysisManager`: stream key + profile 기준으로 `SharedStream` analysis tap을 등록하고 최신 결과를 보관하는 계층
-- `analysis::DummyDetector`: compressed video packet tap lifecycle만 확인하는 임시 detector
-- `analysis::RawVideoDecoder`: H264/H265/VP8 compressed packet을 raw RGB frame으로 변환하는 decoder hub
-- `analysis::Detector` factory: profile의 `detector_type`에 따라 dummy detector 또는 YOLO/ONNX detector를 선택한다.
-- `analysis::YoloOnnxDetector`: ONNX Runtime optional build에서 YOLO 계열 model output을 detection metadata로 변환한다.
-- `analysis::ObjectTracker`: detection box를 IoU/중심점 거리로 frame 간 연결해 `trackId`, age/hits/missed/state와 최근 중심점 trail을 만든다.
-- `analysis::RenderDetectionOverlay`: OpenCV 없이 최신 raw frame 위에 detection box/label을 그리는 renderer
-- `analysis::EncodeJpeg`: 최신 분석 raw frame을 JPEG snapshot으로 변환한다.
-- `ingress::AttachAnalysisOverlayProbe`: RTSP/WebRTC egress raw video 구간에 frame PTS와 가까운 detection result를 합성하는 GStreamer probe
-- `SessionManager::AttachAnalysisTap`: 기존 source parsing/dedup/source worker 시작 흐름을 재사용하는 analysis attach 진입점
-- `/lab/analysis/taps`: 개발용 HTTP attach/status/detach endpoint
-- `/lab/analysis/taps/{tapId}/metadata`: 최신 detection metadata JSON endpoint
-- `/lab/analysis/taps/{tapId}/snapshot.jpg`: 최신 분석 frame JPEG snapshot endpoint
-- `/lab/analysis/taps/{tapId}/overlay.jpg`: 최신 분석 frame에 detection box/label을 그린 JPEG endpoint
-- `/lab/analysis/image?asset=...` 또는 `?file=...`: 정적 이미지 한 장을 decode하고 YOLO metadata JSON을 반환하는 개발용 endpoint
-- `/lab/analysis/image/snapshot.jpg`, `/lab/analysis/image/overlay.jpg`: 같은 정적 이미지의 원본/overlay JPEG endpoint
-- RTSP/WebRTC consume query에 `va=1`을 지정하면 egress가 같은 source에 analysis tap을 자동으로 붙이고, encoder 직전 raw frame에 overlay를 합성한다.
-- `va=1`의 detector/model/labels/fps/queue/tracking 기본값은 URL이 아니라 `include/stdafx.h`와 `MEDIA_SERVER_ANALYSIS_*` 환경변수로 관리한다. `overlay=1`, `analysis=1`, `analysisOverlay=1`은 호환성용 alias다.
-- 기본 VA profile은 tracker를 켜며, event rule engine은 `trackId`가 있으면 `presence`, `enter`, `exit`, `line-crossing(any)` 상태를 객체 ID 기준으로 유지한다. tracker를 끈 profile은 detection index 기반 fallback을 사용한다.
-- adaptive tuner는 detector 처리시간, pending queue, queue drop을 보고 런타임 `fps`를 먼저 낮춘다. fps가 하한에 닿은 뒤에도 과부하가 지속되면 dynamic input을 지원하는 모델에서 `inputWidth/inputHeight`를 낮춘다.
-- 고정 input ONNX model에서 input size 변경으로 inference가 실패하면 기본 input size로 되돌리고 input-size adaptive만 비활성화한다. fps adaptive는 계속 유지한다.
-- RTSP/WebRTC egress는 source packet PTS를 세션별 normalized PTS로 바꾸므로, overlay probe는 normalized PTS를 다시 source PTS로 매핑한 뒤 analysis result history에서 가장 가까운 결과를 찾는다.
-- PTS 매칭이 실패하는 WHEP/browser 경로에서는 최신 result fallback을 적용한다. 이 경우 완전한 frame-result sync보다는 overlay 미표시를 피하는 쪽을 우선한다.
-- `overlaySyncToleranceMs`는 result 매칭 허용 범위이고 기본 `400`ms다. `overlayWaitMs`는 result가 아직 도착하지 않은 경우 probe가 기다리는 최대 시간이고 기본 `180`ms다.
-- raw frame은 detector로 바로 들어가지 않고 profile의 `target_fps` 기준 wall-clock sampling을 거쳐 bounded queue에 들어간다.
-- detector가 느려 queue가 `max_queue_size`를 넘으면 오래된 frame부터 버려 relay path와 decoder path 지연을 제한한다.
-- `2026-04-24` 기준 `yolo11n.onnx` + COCO labels smoke test에서 `person`, `bus` detection metadata 생성을 확인했다.
-- 기본 VA profile의 현재 검증 모델은 Ultralytics assets `v8.4.0`의 `yolo11n.onnx`이고, label은 `models/coco.names`의 COCO 80개 class다. 세부 객체 목록은 `README.md`의 YOLO/COCO 기준 섹션에 둔다.
-- YOLO 전처리는 기본 letterbox다. detector output box는 input padding/scale을 역보정한 뒤 원본 frame 기준 normalized 좌표로 저장한다. 호환성 검증용으로 `preprocess=stretch`도 남겨 둔다.
-- YOLO output parser는 `outputLayout=auto|channels-first|channels-last`, `boxFormat=cxcywh|xyxy`, `scoreMode=auto|class-only|objectness-class|score-class|class-score`를 profile/query로 받는다. 기본값은 `YOLOv8/YOLO11` 계열 `[1, 84, N]`/`[1, N, 84]`와 `cxcywh` box를 자동 판별하는 모드다. `YOLOv5`처럼 fp16 `[1, N, 85]` objectness tensor를 내는 모델은 `channels-last + objectness-class`로 검증하고, NMS/end2end 계열 `[x1,y1,x2,y2,score,class]` 후보는 `xyxy + score-class`로 분리한다. class/score 순서가 반대인 모델은 `class-score`를 사용한다.
-- `AnalysisManager::TapSnapshot`은 `lastAnalysisMs`, `averageAnalysisMs`, `maxAnalysisMs`를 제공한다.
-- `/lab/analysis/capabilities`는 detector/profile/rule 지원 범위를 노출한다.
-- `/lab/analysis/profiles`, `/lab/analysis/rules`는 1차 persistent registry API다. 기본 저장 파일은 `.media_server.analysis_registry.json`이고, rule은 저장/조회/수정/삭제와 함께 `sourceKind`/`route`/`clientId` context filter를 통해 `va=1` overlay와 analysis tap event 판정에 적용된다. URL에 명시 profile/tuning query가 없으면 context와 맞는 rule의 `analysis.profileId`를 사용해 저장 profile을 자동 선택한다. profile 자동 선택은 `priority`가 높은 rule을 우선하고, priority가 같으면 더 구체적인 match 조건을 우선한다.
-
-아직 남은 핵심 작업:
-- tracker ID switch 통계 수집 결과를 누적해 Kalman/ByteTrack류 보강 여부 판단
-- 정적 이미지 분석 endpoint를 `/lab` UI에 연결할지, 업로드/임시파일 정책을 둘지 판단
-- adaptive tuner의 운영 기준값(profile별 bounds/cooldown) 정리
+상세 VA 사용법, YOLO/COCO label, overlay 샘플, rule/event API는 `docs/video-analysis.md`를 본다.
 
 ## 13. 라이브러리 선택
 - `live555`: Linux/macOS/Windows 모두 사용 가능. RTSP 서버/클라이언트에 집중된 경량 라이브러리.
