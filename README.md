@@ -19,6 +19,7 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC or HTTP/
 | [README.md](README.md) | 빠른 설치, 실행, 대표 URL, 현재 지원 범위 |
 | [docs/development-guide.md](docs/development-guide.md) | 긴 개발/운영 가이드, 전체 환경변수, 상세 URL/API, 라이선스 메모 |
 | [docs/video-analysis.md](docs/video-analysis.md) | VA/YOLO 분석, overlay 샘플, rule/event, 정적 이미지 분석 API |
+| [docs/youtube-import.md](docs/youtube-import.md) | YouTube source/import 실험 기능 상태, 실패 유형, 운영 전환 조건 |
 | [docs/media-server-architecture.md](docs/media-server-architecture.md) | 전체 구조, 동시성, source/egress/analysis 설계 |
 | [docs/stream-verification.md](docs/stream-verification.md) | 검증 기준, 통과/보류 항목, blocker와 테스트 이력 |
 
@@ -153,6 +154,7 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 ./server.sh verify-codecs
 ./server.sh verify-webrtc-ice
 ./server.sh verify-webrtc-ice --external-turn
+./server.sh verify-multichannel
 ./server.sh verify-uri-longrun
 ./server.sh verify-uri-longrun --include-external --use-default-external
 ./server.sh verify-uri-longrun --include-external --external-urls https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
@@ -163,6 +165,8 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 ./server.sh verify-va-category-samples --no-sports
 ./server.sh verify-route-profiles
 ./server.sh verify-rule-ui
+./server.sh verify-event-post
+./server.sh verify-lab-import-ui
 ./server.sh verify-tracker-stability
 ./server.sh verify-yolo-layouts
 ./server.sh verify-adaptive

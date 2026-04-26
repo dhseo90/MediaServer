@@ -36,6 +36,10 @@ TRACKING_FURNITURE_FILE="/tmp/media_server_${RUN_ID}_tracking_furniture.json"
 TRACKING_DEVICE_FILE="/tmp/media_server_${RUN_ID}_tracking_device.json"
 TRACKING_OBJECT_FILE="/tmp/media_server_${RUN_ID}_tracking_object.json"
 TRACKING_ALL_FILE="/tmp/media_server_${RUN_ID}_tracking_all.json"
+TRACKING_MIXED_FILE="/tmp/media_server_${RUN_ID}_tracking_mixed_animal_car.json"
+TRACKING_DIRECT_CLASS_FILE="/tmp/media_server_${RUN_ID}_tracking_direct_traffic_light.json"
+TRACKING_ALIAS_FILE="/tmp/media_server_${RUN_ID}_tracking_alias_vehicles.json"
+TRACKING_SUMMARY_FILE="/tmp/media_server_${RUN_ID}_tracking_summary.json"
 
 log_info() {
   echo "[info] $*"
@@ -197,7 +201,10 @@ if curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1" > "${TRACKING
    curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=furniture" > "${TRACKING_FURNITURE_FILE}" &&
    curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=device" > "${TRACKING_DEVICE_FILE}" &&
    curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=object" > "${TRACKING_OBJECT_FILE}" &&
-   curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=$(urlencode_token "*")" > "${TRACKING_ALL_FILE}"; then
+   curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=$(urlencode_token "*")" > "${TRACKING_ALL_FILE}" &&
+   curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=$(urlencode_token "animal,car")" > "${TRACKING_MIXED_FILE}" &&
+   curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=$(urlencode_token "traffic light")" > "${TRACKING_DIRECT_CLASS_FILE}" &&
+   curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=vehicles" > "${TRACKING_ALIAS_FILE}"; then
   if python3 - \
     "${TRACKING_DEFAULT_FILE}" \
     "${TRACKING_EMPTY_FILE}" \
@@ -209,7 +216,11 @@ if curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1" > "${TRACKING
     "${TRACKING_FURNITURE_FILE}" \
     "${TRACKING_DEVICE_FILE}" \
     "${TRACKING_OBJECT_FILE}" \
-    "${TRACKING_ALL_FILE}" <<'PY'
+    "${TRACKING_ALL_FILE}" \
+    "${TRACKING_MIXED_FILE}" \
+    "${TRACKING_DIRECT_CLASS_FILE}" \
+    "${TRACKING_ALIAS_FILE}" \
+    "${TRACKING_SUMMARY_FILE}" <<'PY'
 import json
 import pathlib
 import sys
@@ -235,6 +246,26 @@ furniture = tracked_labels(sys.argv[8])
 device = tracked_labels(sys.argv[9])
 objects = tracked_labels(sys.argv[10])
 all_classes = tracked_labels(sys.argv[11])
+mixed = tracked_labels(sys.argv[12])
+direct_class = tracked_labels(sys.argv[13])
+alias = tracked_labels(sys.argv[14])
+summary_file = pathlib.Path(sys.argv[15])
+summary = {
+    "default": default,
+    "empty": empty,
+    "animal": animal,
+    "road": road,
+    "sports": sports,
+    "tableware": tableware,
+    "food": food,
+    "furniture": furniture,
+    "device": device,
+    "object": objects,
+    "all": all_classes,
+    "mixedAnimalCar": mixed,
+    "directTrafficLight": direct_class,
+    "aliasVehicles": alias,
+}
 print("tracking_default=", default)
 print("tracking_empty=", empty)
 print("tracking_animal=", animal)
@@ -246,6 +277,9 @@ print("tracking_furniture=", furniture)
 print("tracking_device=", device)
 print("tracking_object=", objects)
 print("tracking_all=", all_classes)
+print("tracking_mixed_animal_car=", mixed)
+print("tracking_direct_traffic_light=", direct_class)
+print("tracking_alias_vehicles=", alias)
 
 expected_default = {"person", "bicycle", "car", "motorcycle", "bus", "truck", "airplane", "train", "boat"}
 if default["tracked"] <= 0:
@@ -277,14 +311,27 @@ for name, result, expected_labels, disallowed_labels in category_expectations:
         raise SystemExit(f"{name} tracking에 다른 카테고리 label 포함: {sorted(overlap)} from {result['labels']}")
 if all_classes["tracked"] != all_classes["total"]:
     raise SystemExit(f"전체 tracking 수 불일치: {all_classes['tracked']} != {all_classes['total']}")
+mixed_labels = set(mixed["labels"])
+if not {"bird", "dog", "car"}.issubset(mixed_labels):
+    raise SystemExit(f"animal,car 혼합 tracking에 기대 label이 없음: {mixed['labels']}")
+if mixed_labels & {"person", "traffic light", "pizza", "tv", "umbrella"}:
+    raise SystemExit(f"animal,car 혼합 tracking에 다른 카테고리 label 포함: {mixed['labels']}")
+if set(direct_class["labels"]) != {"traffic light"}:
+    raise SystemExit(f"직접 class label tracking 결과가 traffic light 단독이 아님: {direct_class['labels']}")
+alias_labels = set(alias["labels"])
+if alias["tracked"] <= 0 or not alias_labels.issubset(expected_default - {"person"}):
+    raise SystemExit(f"vehicles alias tracking 결과가 vehicle category가 아님: {alias['labels']}")
+if "person" in alias_labels:
+    raise SystemExit(f"vehicles alias tracking에 person 포함: {alias['labels']}")
+summary_file.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
 PY
   then
-    log_pass "trackingClasses category/all 정책 확인"
+    log_pass "trackingClasses category/all/mixed/direct/alias 정책 확인"
   else
-    log_fail "trackingClasses category/all 정책 검증 실패"
+    log_fail "trackingClasses category/all/mixed/direct/alias 정책 검증 실패"
   fi
 else
-  log_fail "trackingClasses category/all endpoint 호출 실패"
+  log_fail "trackingClasses category/all/mixed/direct/alias endpoint 호출 실패"
 fi
 
 if curl -fsS -o "${SNAPSHOT_FILE}" "${HTTP_BASE}/lab/analysis/image/snapshot.jpg?${QUERY}&quality=80"; then
@@ -333,6 +380,10 @@ echo "- tracking furniture: ${TRACKING_FURNITURE_FILE}"
 echo "- tracking device: ${TRACKING_DEVICE_FILE}"
 echo "- tracking object: ${TRACKING_OBJECT_FILE}"
 echo "- tracking all: ${TRACKING_ALL_FILE}"
+echo "- tracking mixed animal,car: ${TRACKING_MIXED_FILE}"
+echo "- tracking direct traffic light: ${TRACKING_DIRECT_CLASS_FILE}"
+echo "- tracking alias vehicles: ${TRACKING_ALIAS_FILE}"
+echo "- tracking summary: ${TRACKING_SUMMARY_FILE}"
 echo "- snapshot: ${SNAPSHOT_FILE}"
 echo "- overlay: ${OVERLAY_FILE}"
 

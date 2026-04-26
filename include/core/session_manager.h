@@ -31,12 +31,22 @@ public:
         bool stream_created{false};
     };
 
+    struct RuntimeStateSnapshot {
+        std::size_t active_sessions{0};
+        std::size_t resource_active_sessions{0};
+        std::size_t resource_active_streams{0};
+        std::size_t registry_active_streams{0};
+        std::size_t active_analysis_taps{0};
+    };
+
     SessionManager(StreamRegistry& registry, ResourceGuard& resource_guard);
     ~SessionManager() = default;
 
     CreateResult CreateSession(const media::IngressRequest& request, SharedStream::SubscriberCallback callback);
     bool CloseSession(const std::string& session_id);
     std::size_t ActiveSessionCount() const;
+    // 다채널 검증에서 session 수와 dedup stream 수가 기대대로 움직이는지 확인한다.
+    RuntimeStateSnapshot GetRuntimeStateSnapshot() const;
     AnalysisTapResult AttachAnalysisTap(const media::IngressRequest& request, analysis::AnalysisProfile profile);
     bool DetachAnalysisTap(const std::string& tap_id);
     std::optional<analysis::AnalysisManager::TapSnapshot> AnalysisTapSnapshot(const std::string& tap_id) const;

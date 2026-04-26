@@ -35,6 +35,24 @@
 - `2026-04-26`: `verify-image-analysis`에 10개 tracking category와 `trackingClasses=*` 자동 검증을 추가했다. 기본 category, 개별 category, 전체 tracking 정책을 정적 이미지 API 기준으로 확인한다.
 - `2026-04-26`: 외부 운영 TURN 검증용 `./server.sh verify-webrtc-ice --external-turn` 모드를 추가했다. 가입 없이 사용할 수 있는 신뢰 가능한 TURN credential은 확보하지 못했으므로 credential 미설정 시 skip한다.
 - `2026-04-26`: 외부 HLS advisory 기본 후보를 Mux/Apple 2개로 정리하고 `./server.sh verify-uri-longrun --include-external --use-default-external` 진입점을 추가했다.
+- `2026-04-26`: Rule/Profile UI smoke에 category catalog 순서/스키마, 포함 객체명 표시, 저장 payload/API round-trip 검증을 추가했다.
+- `2026-04-26`: `verify-image-analysis`에 `trackingClasses=animal,car`, `traffic light`, `vehicles`, `*` 검증을 추가했고, `verify-va-category-samples`에 `car` 직접 class와 `vehicles` alias rule event 검증을 추가했다.
+- `2026-04-26`: `verify-va-events`에 `minDurationMs=500` presence rule, line-crossing `any/forward/reverse` 방향 분할 검증, enter/exit/line-crossing rule별 유효 trackId 상태 검증을 추가했다.
+- `2026-04-26`: line-crossing 방향 검증 재실행 통과. `./server.sh verify-rule-ui --http-base http://127.0.0.1:8081`는 `lineDirectionPayload=forward`를 확인했고, `MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-va-events --duration 30`은 `17/0/0`, line-crossing `8`, 방향별 분할 합 일치를 확인했다.
+- `2026-04-26`: `./server.sh verify-event-post`를 추가하고 POST worker 검증을 분리했다. `--mode schema`는 `MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE=64`에서 `enqueued=6`, `sent=3`, `failed=3`, `suppressed=6` 및 `media-server.va.event.v1` payload schema를 확인했다. `--mode queue`는 `MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE=2`에서 slow endpoint로 `enqueued=18`, `dropped=15`를 확인했다.
+- `2026-04-26`: `verify-va-events --duration 30` 재실행 통과 `17/0/0`. 모든 event rule에서 blink highlight color `#ff0000`, `durationMs=1500`이 유지되는 것을 확인했다.
+- `2026-04-26`: overlay event label 우선순위를 조정했다. 이벤트 label은 먼저 배치 후보를 예약하고 마지막에 그려 일반 객체 label보다 덜 가려지게 했다.
+- `2026-04-26`: `verify-image-analysis`가 tracking summary JSON을 출력하도록 보강했다. 정적 fixture 기준 animal/road/category/all/direct/alias tracking 결과와 overlay JPEG 생성을 재확인했다.
+- `2026-04-26`: `verify-va-category-samples`에 기본/sports 샘플 사전 진단과 category coverage JSON을 추가했다. sports 샘플이 없을 때는 `--no-sports` 대안을 안내한다.
+- `2026-04-26`: `verify-tracker-stability` summary에 class/category별 track/sample count를 추가했다. `--duration 8 --repeat 1 --overlap-focus` smoke에서 `fragmentationRatio=1.0`, `stalePtsRatio=0.0`, `categoryTrackCounts={'person': 4}`를 확인했다.
+- `2026-04-26`: `verify-yolo-layouts`에 case summary NDJSON과 score/layout 실패 힌트를 추가했다. `--duration 5 --no-download` 기준 YOLO11, YOLOv5, xyxy score-class 조합이 `7/0/0`으로 통과했다.
+- `2026-04-26`: `verify-adaptive`에 input-size downshift/fallback 케이스와 상태 전환 summary JSON을 추가했다. smoke에서 fps downshift `7→3`, input size `640→320`, fps upshift `2→6`을 확인했다.
+- `2026-04-26`: `verify-webrtc-ice`가 TURN 미설정 relay 요청 fallback을 실패로 보지 않고 `/webrtc/config`의 `requestedIceTransportPolicy=relay`, effective `iceTransportPolicy=all`, `relayPolicyFallback=true`를 검증한다. `--external-turn` credential 미설정 skip도 summary JSON으로 남긴다.
+- `2026-04-26`: 기본 외부 HLS 후보(Mux/Apple) advisory 재확인 통과. `MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 ./server.sh verify-uri-longrun --iterations 1 --include-external --use-default-external --skip-local-http --skip-local-hls --external-rtsp-routes default`에서 두 후보 모두 `RTSP /default -> h264/aac`, WebRTC signaling 통과했다.
+- `2026-04-26`: YouTube/import 실험 기능 상태를 `docs/youtube-import.md`로 분리하고, resolver 실패 유형에 bot check, rate limit, DNS/connection failure를 추가했다.
+- `2026-04-26`: `./server.sh verify-lab-import-ui`를 추가했다. `/lab/import` HTML 필수 요소와 `/lab/import/jobs` 기본 응답 구조를 확인한다.
+- `2026-04-26`: `./server.sh verify-multichannel`을 추가했다. 같은 영상 여러 WebRTC client는 `activeSessions=N`, dedup stream `1`이어야 하고, 여러 영상 여러 client는 source 수만큼 dedup stream이 늘어야 한다. 검증은 `/lab/runtime/status`의 `sessionManager.resourceActiveStreams`, `registryActiveStreams`, `webrtcHttp.egressSessions`를 함께 확인한다.
+- `2026-04-26`: 통합 smoke 재실행. `MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 ./server.sh test --no-start --include-rules --include-rule-ui --include-va-events --include-image-analysis`는 `18/1/4`로 WHIP publish 케이스가 1회 readiness race(`unknown WebRTC source`) 실패했다. 같은 서버에서 `MEDIA_SERVER_VERIFY_SOURCE_FILTER=webrtc_local_publish_h264_opus ./server.sh verify-codecs` 단독 재실행은 `5/0/11`로 통과했다.
 
 ## 지원 대상
 - `file -> RTSP`
@@ -53,6 +71,9 @@
 - `WebRTC publish(local WHIP test publisher) -> WebRTC(signaling)` 자동 검증 통과
 - browser publisher / 실제 media playback 기준 `WebRTC publish -> WebRTC(simple signaling) consume` 검증 통과
 - browser publisher / 실제 media playback 기준 `WebRTC publish -> WebRTC(WHEP) consume` 검증 통과
+- file source 기준 WebRTC 다채널 consume 검증 범위 추가
+  - 같은 영상 다중 client: source worker는 1개만 유지하고 subscriber만 증가해야 한다.
+  - 여러 영상 다중 client: source별로 stream이 1개씩 생기고, 같은 source 안에서는 fan-out으로 공유해야 한다.
 
 `WebRTC source`는 WHIP publish 기반 1차 ingest를 사용한다. STUN/TURN 서버와 ICE transport policy는 env로 설정할 수 있다. Mac 로컬 coturn 기준으로 relay candidate 수집, 브라우저 playback, WHIP publish -> WebRTC signaling은 통과했다. 외부 운영 TURN 서버 relay/auth end-to-end 테스트는 진행하지 않았고, 별도 Windows WSL2 TURN 검증도 보류 상태다.
 `GET /webrtc/config`는 같은 STUN/TURN/ICE policy 설정을 브라우저 `RTCPeerConnection` 설정으로 내려준다. Lab과 WebRTC 테스트 페이지의 simple signaling, WHEP, WHIP 경로는 이 API를 사용해 서버와 같은 ICE policy로 테스트한다. `MEDIA_SERVER_WEBRTC_TURN_SERVER`는 브라우저에서도 접근 가능한 주소를 사용해야 하며, 로컬 relay 강제 테스트에서는 `127.0.0.1`보다 Mac LAN IP를 권장한다.
@@ -136,12 +157,13 @@
   3. 필요 시 `./server.sh test --include-rules`
   4. 필요 시 `./server.sh test --include-va-events`
   5. 필요 시 `./server.sh test --include-webrtc-ice`
-  6. 필요 시 `./server.sh verify-uri-longrun`
-  7. 필요 시 `./server.sh verify-route-profiles`
-  8. 필요 시 `./server.sh verify-tracker-stability`
-  9. 필요 시 `./server.sh verify-yolo-layouts`
-  10. 필요 시 `./server.sh verify-adaptive`
-  11. `./server.sh stop`
+  6. 필요 시 `./server.sh verify-multichannel`
+  7. 필요 시 `./server.sh verify-uri-longrun`
+  8. 필요 시 `./server.sh verify-route-profiles`
+  9. 필요 시 `./server.sh verify-tracker-stability`
+  10. 필요 시 `./server.sh verify-yolo-layouts`
+  11. 필요 시 `./server.sh verify-adaptive`
+  12. `./server.sh stop`
 - 판단 규칙
   - 위 stable 기준이 깨지면 분석 관련 변경보다 스트리밍 안정화 수정을 먼저 한다.
   - profile/rule/event 같은 분석 관련 기능은 선택 테스트로 검증하되, 안정 기능으로 승격 전까지 기본 `./server.sh test`에는 넣지 않는다.
@@ -662,7 +684,7 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - 인앱 브라우저에서 `http://127.0.0.1:8081/lab/rules`가 렌더링되는 것을 확인했다.
   - UI는 profile 성능값을 slider/dropdown으로 조정하고, rule은 source/route/profile/event type/객체 카테고리와 16:9 polygon 영역을 저장한다.
   - polygon 영역은 최대 12점까지 지정하고, 기존 점 근처 drag/drop으로 점 위치를 이동한다.
-  - `line-crossing`은 polygon 대신 2점 선분으로 전환하며, 현재 방향은 `any` 양방향으로 저장한다.
+  - `line-crossing`은 polygon 대신 2점 선분으로 전환하며, 방향은 `any`, `forward`, `reverse` 중 하나로 저장한다.
   - 이벤트 발생 시 matched object 깜빡임 강조와 POST URL 설정을 `eventActions`로 저장한다. 강조 색상은 UI에서 받지 않고 카테고리 기본색/빨간색 blink로 고정한다. POST payload는 `media-server.va.event.v1` 고정 format preview만 보여주고 사용자가 수정할 수 없다.
   - 저장은 기존 `PUT /lab/analysis/profiles/{id}`와 `PUT /lab/analysis/rules/{id}` API를 사용한다. 저장된 rule은 이후 rule event engine에서 `va=1` overlay와 events API에 적용한다.
 - `2026-04-25` `/lab/rules` 룰 편집 전체 테스트를 임시 registry로 실행했다.
@@ -678,7 +700,7 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - 이 시점에는 실제 POST 전송은 수행하지 않았다. 전송 실행은 이후 POST delivery worker 구현에서 연결했다.
 - `2026-04-25` rule event engine 1차 구현을 추가했다.
   - 저장된 rule JSON을 detection 결과에 적용하는 `src/analysis/event_rule_engine.cpp`를 추가했다.
-  - 지원 이벤트는 `presence`, `enter`, `exit`, `line-crossing(any)`다.
+  - 지원 이벤트는 `presence`, `enter`, `exit`, `line-crossing(any/forward/reverse)`다.
   - `va=1` RTSP/WebRTC overlay와 `/lab/analysis/taps/{tapId}/overlay.jpg`는 저장된 rule snapshot을 평가해 이벤트 객체를 `이벤트`/`Event` label과 카테고리 기본색/빨간색 blink highlight로 표시한다.
   - `/lab/analysis/taps/{tapId}/events`는 최신 result에 rule을 적용한 event JSON을 반환한다.
   - 이 시점에는 `eventActions.post`가 저장/응답에만 포함됐고 실제 HTTP POST 전송은 아직 수행하지 않았다.

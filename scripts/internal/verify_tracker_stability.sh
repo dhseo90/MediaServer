@@ -463,6 +463,26 @@ allowed_classes = {
     if item.strip()
 }
 allow_all_classes = not allowed_classes or "*" in allowed_classes or "all" in allowed_classes
+category_by_label = {
+    "person": "person",
+    "bicycle": "vehicle", "car": "vehicle", "motorcycle": "vehicle", "airplane": "vehicle",
+    "bus": "vehicle", "train": "vehicle", "truck": "vehicle", "boat": "vehicle",
+    "traffic light": "road", "fire hydrant": "road", "stop sign": "road", "parking meter": "road",
+    "bird": "animal", "cat": "animal", "dog": "animal", "horse": "animal", "sheep": "animal",
+    "cow": "animal", "elephant": "animal", "bear": "animal", "zebra": "animal", "giraffe": "animal",
+    "frisbee": "sports", "skis": "sports", "snowboard": "sports", "sports ball": "sports",
+    "kite": "sports", "baseball bat": "sports", "baseball glove": "sports",
+    "skateboard": "sports", "surfboard": "sports", "tennis racket": "sports",
+    "bottle": "tableware", "wine glass": "tableware", "cup": "tableware", "fork": "tableware",
+    "knife": "tableware", "spoon": "tableware", "bowl": "tableware",
+    "banana": "food", "apple": "food", "sandwich": "food", "orange": "food", "broccoli": "food",
+    "carrot": "food", "hot dog": "food", "pizza": "food", "donut": "food", "cake": "food",
+    "bench": "furniture", "chair": "furniture", "couch": "furniture", "potted plant": "furniture",
+    "bed": "furniture", "dining table": "furniture", "toilet": "furniture", "sink": "furniture",
+    "tv": "device", "laptop": "device", "mouse": "device", "remote": "device", "keyboard": "device",
+    "cell phone": "device", "microwave": "device", "oven": "device", "toaster": "device",
+    "refrigerator": "device", "clock": "device", "hair drier": "device",
+}
 
 raw_samples = []
 for line in snapshots_file.read_text().splitlines():
@@ -520,6 +540,7 @@ def summarize_segment(segment_index, segment):
     track_labels = {}
     track_first_pts = {}
     track_last_pts = {}
+    class_sample_counts = collections.Counter()
     raw_track_ids = set()
     for sample in segment:
         for track in sample["tracks"]:
@@ -534,6 +555,7 @@ def summarize_segment(segment_index, segment):
                 excluded_class_tracks.add(key)
                 continue
             track_samples[key] += 1
+            class_sample_counts[str(label or "").lower()] += 1
             pts = int(track.get("lastSeenPts") or sample["pts"] or 0)
             track_first_pts.setdefault(key, pts)
             track_last_pts[key] = pts
@@ -565,6 +587,13 @@ def summarize_segment(segment_index, segment):
                     overlap_track_ids.add(key)
 
     unique_tracks = len(eligible_track_ids)
+    class_track_counts = collections.Counter(str(track_labels.get(key, "")).lower() for key in eligible_track_ids)
+    category_track_counts = collections.Counter()
+    for label, track_count in class_track_counts.items():
+        category_track_counts[category_by_label.get(label, "object")] += track_count
+    category_sample_counts = collections.Counter()
+    for label, sample_count in class_sample_counts.items():
+        category_sample_counts[category_by_label.get(label, "object")] += sample_count
     fragmentation_ratio = unique_tracks / max(1, max_simultaneous)
     overlap_fragmentation_ratio = len(overlap_track_ids) / max(1, max_simultaneous)
     lifetimes = [track_samples[key] for key in eligible_track_ids]
@@ -581,6 +610,10 @@ def summarize_segment(segment_index, segment):
         "overlapUniqueTracks": len(overlap_track_ids),
         "overlapFragmentationRatio": round(overlap_fragmentation_ratio, 3),
         "medianTrackLifetimeSamples": statistics.median(lifetimes) if lifetimes else 0,
+        "classTrackCounts": dict(sorted(class_track_counts.items())),
+        "classSampleCounts": dict(sorted(class_sample_counts.items())),
+        "categoryTrackCounts": dict(sorted(category_track_counts.items())),
+        "categorySampleCounts": dict(sorted(category_sample_counts.items())),
         "trackSummary": [
             {
                 "id": key,
@@ -607,6 +640,15 @@ lifetimes = [
     for segment in segment_summaries
     for track in segment["trackSummary"]
 ]
+class_track_counts = collections.Counter()
+class_sample_counts = collections.Counter()
+category_track_counts = collections.Counter()
+category_sample_counts = collections.Counter()
+for segment in segment_summaries:
+    class_track_counts.update(segment.get("classTrackCounts") or {})
+    class_sample_counts.update(segment.get("classSampleCounts") or {})
+    category_track_counts.update(segment.get("categoryTrackCounts") or {})
+    category_sample_counts.update(segment.get("categorySampleCounts") or {})
 median_lifetime = statistics.median(lifetimes) if lifetimes else 0
 final_analyzed = max(analyzed_values) if analyzed_values else 0
 avg_ms = avg_ms_values[-1] if avg_ms_values else 0.0
@@ -631,6 +673,10 @@ summary = {
     "overlapFragmentationRatio": round(overlap_fragmentation_ratio, 3),
     "excludedShortTracks": len(excluded_short_tracks),
     "excludedClassTracks": len(excluded_class_tracks),
+    "classTrackCounts": dict(sorted(class_track_counts.items())),
+    "classSampleCounts": dict(sorted(class_sample_counts.items())),
+    "categoryTrackCounts": dict(sorted(category_track_counts.items())),
+    "categorySampleCounts": dict(sorted(category_sample_counts.items())),
     "medianTrackLifetimeSamples": median_lifetime,
     "emptyDetectionSamples": empty_detection_samples,
     "finalAnalyzedPackets": final_analyzed,
@@ -681,6 +727,7 @@ PY
 done
 
 python3 - "${SUMMARY_FILE}" <<'PY'
+import collections
 import json
 import pathlib
 import statistics
@@ -693,6 +740,13 @@ ratios = [float(item["fragmentationRatio"]) for item in items]
 overlap_ratios = [float(item.get("overlapFragmentationRatio", 0.0)) for item in items]
 overlap_samples = [int(item.get("overlapSampleCount", 0)) for item in items]
 stale_ratios = [float(item.get("stalePtsRatio", 0.0)) for item in items]
+category_track_counts = collections.Counter()
+category_sample_counts = collections.Counter()
+class_track_counts = collections.Counter()
+for item in items:
+    category_track_counts.update(item.get("categoryTrackCounts") or {})
+    category_sample_counts.update(item.get("categorySampleCounts") or {})
+    class_track_counts.update(item.get("classTrackCounts") or {})
 print("tracker_repeat_count=", len(items))
 print("fragmentation_ratio_min=", min(ratios))
 print("fragmentation_ratio_max=", max(ratios))
@@ -700,6 +754,9 @@ print("fragmentation_ratio_avg=", round(statistics.mean(ratios), 3))
 print("overlap_fragmentation_ratio_max=", max(overlap_ratios))
 print("overlap_sample_count_total=", sum(overlap_samples))
 print("stale_pts_ratio_max=", max(stale_ratios))
+print("category_track_counts=", dict(sorted(category_track_counts.items())))
+print("category_sample_counts=", dict(sorted(category_sample_counts.items())))
+print("class_track_counts=", dict(sorted(class_track_counts.items())))
 PY
 log_pass "tracker stability 반복 요약 생성"
 

@@ -22,6 +22,8 @@ FAIL_COUNT=0
 SKIP_COUNT=0
 TAP_IDS=()
 RUN_ID="yolo-layouts-$(date +%s)-$$"
+SUMMARY_FILE="/tmp/media_server_${RUN_ID}_summary.ndjson"
+LAST_STATUS_FILE=""
 
 YOLOV5_URL="${MEDIA_SERVER_VERIFY_YOLOV5_URL:-https://github.com/ultralytics/yolov5/releases/download/v7.0/yolov5n.onnx}"
 YOLOV5_MODEL="${MEDIA_SERVER_VERIFY_YOLOV5_MODEL:-models/yolov5n.onnx}"
@@ -184,6 +186,7 @@ poll_tap_until_ready() {
   started_at="$(date +%s)"
   status=""
   status_file="/tmp/media_server_${RUN_ID}_${label//[^A-Za-z0-9_]/_}.json"
+  LAST_STATUS_FILE="${status_file}"
   while true; do
     now="$(date +%s)"
     if (( now - started_at >= DURATION_S )); then
@@ -206,6 +209,63 @@ poll_tap_until_ready() {
   return 1
 }
 
+append_case_summary() {
+  # 케이스별 마지막 tap 상태와 parser 옵션을 JSONL로 남겨 score/layout 원인 분석을 쉽게 한다.
+  local label="$1"
+  local ok="$2"
+  local query="$3"
+  local reason="$4"
+  local status_file="${LAST_STATUS_FILE}"
+  python3 - "${SUMMARY_FILE}" "${label}" "${ok}" "${reason}" "${status_file}" "${query}" <<'PY'
+import json
+import pathlib
+import sys
+import urllib.parse
+
+summary_file = pathlib.Path(sys.argv[1])
+label = sys.argv[2]
+ok = sys.argv[3] == "1"
+reason = sys.argv[4]
+status_path = pathlib.Path(sys.argv[5]) if sys.argv[5] else None
+query = dict(urllib.parse.parse_qsl(sys.argv[6], keep_blank_values=True))
+tap = {}
+if status_path and status_path.exists():
+    try:
+        tap = (json.loads(status_path.read_text()).get("tap") or {})
+    except json.JSONDecodeError:
+        tap = {}
+latest = tap.get("latestResult") or {}
+detections = latest.get("detections") or []
+labels = sorted({str(item.get("label") or "") for item in detections if item.get("label")})
+summary = {
+    "label": label,
+    "ok": ok,
+    "reason": reason,
+    "model": query.get("model", ""),
+    "outputLayout": query.get("outputLayout", ""),
+    "boxFormat": query.get("boxFormat", ""),
+    "scoreMode": query.get("scoreMode", ""),
+    "analyzedPackets": tap.get("analyzedPackets", 0),
+    "decoderErrors": tap.get("decoderErrors", 0),
+    "detectionCount": len(detections),
+    "labels": labels[:20],
+    "statusFile": str(status_path) if status_path else "",
+}
+with summary_file.open("a", encoding="utf-8") as handle:
+    handle.write(json.dumps(summary, ensure_ascii=False) + "\n")
+PY
+}
+
+print_yolo_failure_hints() {
+  # scoreMode/boxFormat/layout 조합 오류는 detection 0건으로 보이는 일이 많아 확인 순서를 함께 출력한다.
+  local label="$1"
+  local query="$2"
+  echo "[hint] ${label}: detection이 0건이면 outputLayout, boxFormat, scoreMode 조합을 우선 확인하세요."
+  echo "[hint] query=${query}"
+  echo "[hint] channels-first/cxcywh/class-only는 YOLOv8/YOLO11 계열, channels-last/cxcywh/objectness-class는 YOLOv5 계열에서 주로 사용합니다."
+  echo "[hint] end2end/후처리 포함 모델은 xyxy + score-class 또는 class-score 계열일 수 있습니다."
+}
+
 run_case() {
   local label="$1"
   local query="$2"
@@ -216,14 +276,18 @@ run_case() {
   if [[ -z "${tap_id}" ]]; then
     log_fail "${label}: analysis tap 생성 실패"
     echo "${response}" | sed 's/^/  /'
+    append_case_summary "${label}" "0" "${query}" "tap creation failed"
     return
   fi
   TAP_IDS+=("${tap_id}")
   log_pass "${label}: analysis tap 생성: ${tap_id}"
   if poll_tap_until_ready "${tap_id}" "${label}"; then
     log_pass "${label}: detection 생성 확인"
+    append_case_summary "${label}" "1" "${query}" "detections ready"
   else
     log_fail "${label}: detection 생성 실패"
+    append_case_summary "${label}" "0" "${query}" "detections missing"
+    print_yolo_failure_hints "${label}" "${query}"
   fi
   curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${tap_id}" >/dev/null 2>&1 || true
 }
@@ -316,6 +380,7 @@ echo "== YOLO layout 검증 요약 =="
 echo "- 통과: ${PASS_COUNT}"
 echo "- 실패: ${FAIL_COUNT}"
 echo "- 건너뜀: ${SKIP_COUNT}"
+echo "- summary: ${SUMMARY_FILE}"
 
 if (( FAIL_COUNT > 0 )); then
   exit 1

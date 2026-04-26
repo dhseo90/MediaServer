@@ -147,6 +147,21 @@ std::size_t SessionManager::ActiveSessionCount() const {
     return sessions_.size();
 }
 
+// 런타임 진단 API가 session/stream accounting을 한 번에 노출할 수 있게 현재 상태를 모은다.
+SessionManager::RuntimeStateSnapshot SessionManager::GetRuntimeStateSnapshot() const {
+    RuntimeStateSnapshot snapshot;
+    {
+        std::lock_guard lock(mu_);
+        snapshot.active_sessions = sessions_.size();
+    }
+    // ResourceGuard와 Registry 값을 같이 노출해 fan-out dedup 누락과 accounting 불일치를 분리해서 볼 수 있게 한다.
+    snapshot.resource_active_sessions = resource_guard_.ActiveSessions();
+    snapshot.resource_active_streams = resource_guard_.ActiveStreams();
+    snapshot.registry_active_streams = registry_.ActiveStreamCount();
+    snapshot.active_analysis_taps = analysis_manager_.ActiveTapCount();
+    return snapshot;
+}
+
 SessionManager::AnalysisTapResult SessionManager::AttachAnalysisTap(const media::IngressRequest& request,
                                                                     analysis::AnalysisProfile profile) {
     std::string parse_error;

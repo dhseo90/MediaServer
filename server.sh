@@ -31,6 +31,8 @@ Usage:
   verify-codecs  file/RTSP/WebRTC source와 codec route matrix를 자동 검증합니다.
   verify-webrtc-ice
                  WebRTC STUN/TURN/ICE policy와 candidate 수집 상태를 검증합니다.
+  verify-multichannel
+                 같은 영상/여러 영상을 다중 WebRTC client가 동시에 소비하는 fan-out을 검증합니다.
   verify-uri-longrun
                  HTTP/HLS URI source의 로컬 반복 검증과 선택 외부 URL 반복 검증을 수행합니다.
   verify-va      YOLO/VA overlay의 lab, RTSP, WebRTC 검증을 수행합니다.
@@ -42,6 +44,10 @@ Usage:
                  실제 RTSP/WebRTC overlay 세션에서 route별 profile/rule matching을 검증합니다.
   verify-rule-ui
                  /lab/rules Rule/Profile 카테고리 버튼과 저장 payload를 검증합니다.
+  verify-event-post
+                 VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
+  verify-lab-import-ui
+                 /lab/import 실험실 import UI와 jobs API를 검증합니다.
   verify-tracker-stability
                  이동 영상에서 track ID 유지/분절 통계를 수집합니다.
   verify-yolo-layouts
@@ -137,6 +143,10 @@ case "${cmd}" in
     require_internal verify_webrtc_ice_config.sh
     exec "${INTERNAL_DIR}/verify_webrtc_ice_config.sh" "$@"
     ;;
+  verify-multichannel)
+    require_internal verify_multichannel_webrtc.sh
+    exec "${INTERNAL_DIR}/verify_multichannel_webrtc.sh" "$@"
+    ;;
   verify-uri-longrun)
     require_internal verify_uri_source_longrun.sh
     exec "${INTERNAL_DIR}/verify_uri_source_longrun.sh" "$@"
@@ -160,6 +170,14 @@ case "${cmd}" in
   verify-rule-ui)
     require_internal verify_rule_ui_smoke.sh
     exec "${INTERNAL_DIR}/verify_rule_ui_smoke.sh" "$@"
+    ;;
+  verify-event-post)
+    require_internal verify_event_post_dispatch.sh
+    exec "${INTERNAL_DIR}/verify_event_post_dispatch.sh" "$@"
+    ;;
+  verify-lab-import-ui)
+    require_internal verify_lab_import_ui.sh
+    exec "${INTERNAL_DIR}/verify_lab_import_ui.sh" "$@"
     ;;
   verify-tracker-stability)
     require_internal verify_tracker_stability.sh

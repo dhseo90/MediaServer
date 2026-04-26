@@ -25,6 +25,7 @@ RULE_IDS=()
 RUN_ID="vacat-$(date +%s)-$$"
 EVENTS_FILE="/tmp/media_server_${RUN_ID}_events.ndjson"
 SNAPSHOT_FILE="/tmp/media_server_${RUN_ID}_snapshot.json"
+COVERAGE_FILE="/tmp/media_server_${RUN_ID}_coverage.json"
 
 # 검증 진행 상황을 정보 로그로 출력한다.
 log_info() {
@@ -89,6 +90,31 @@ import urllib.parse
 
 print(urllib.parse.quote(sys.argv[1], safe="/._-"))
 PY
+}
+
+# 샘플 파일의 존재, 크기, 길이를 사전에 출력해 실패 원인을 빠르게 좁힌다.
+describe_sample_file() {
+  local label="$1"
+  local token="$2"
+  local path="$3"
+  if [[ ! -f "${path}" ]]; then
+    log_fail "${label} 샘플 영상이 없습니다: ${path}"
+    echo "  file token: ${token}"
+    echo "  file root : ${FILE_ROOT}"
+    echo "  다른 파일을 쓰려면 --file 또는 --sports-file 옵션을 지정하세요."
+    if [[ "${label}" == "sports" ]]; then
+      echo "  sports 검증만 임시 제외하려면 --no-sports를 사용하세요."
+    fi
+    exit 1
+  fi
+  local bytes
+  bytes="$(wc -c < "${path}" | tr -d ' ')"
+  local duration="unknown"
+  if command -v ffprobe >/dev/null 2>&1; then
+    duration="$(ffprobe -v error -show_entries format=duration -of default=nk=1:nw=1 "${path}" 2>/dev/null | head -n1 || true)"
+    duration="${duration:-unknown}"
+  fi
+  log_pass "${label} 샘플 사전 진단: ${token} (${bytes} bytes, duration=${duration}s)"
 }
 
 # 검증 중 생성한 tap/rule 문서를 종료 시 정리한다.
@@ -203,13 +229,9 @@ if [[ "${INCLUDE_SPORTS}" == "1" ]]; then
 fi
 log_info "poll=${POLL_COUNT} interval=${INTERVAL_S}s"
 
-if [[ ! -f "${LOCAL_FILE}" ]]; then
-  log_fail "VA 카테고리 샘플 영상이 없습니다: ${LOCAL_FILE}"
-  exit 1
-fi
-if [[ "${INCLUDE_SPORTS}" == "1" && ! -f "${SPORTS_LOCAL_FILE}" ]]; then
-  log_fail "VA sports 카테고리 샘플 영상이 없습니다: ${SPORTS_LOCAL_FILE}"
-  exit 1
+describe_sample_file "기본" "${FILE_TOKEN}" "${LOCAL_FILE}"
+if [[ "${INCLUDE_SPORTS}" == "1" ]]; then
+  describe_sample_file "sports" "${SPORTS_FILE_TOKEN}" "${SPORTS_LOCAL_FILE}"
 fi
 
 if ! curl -fsS --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
@@ -218,16 +240,24 @@ if ! curl -fsS --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
 fi
 log_pass "HTTP health ok"
 
-# category token별 presence rule을 임시로 저장한다.
-create_category_rule() {
-  local category="$1"
-  local rule_id="${RUN_ID}-${category}"
+# presence rule을 임시로 저장한다. classes_json은 category token, alias, 직접 class label을 모두 받을 수 있다.
+create_presence_rule() {
+  local rule_suffix="$1"
+  local classes_json="$2"
+  local label="$3"
+  local rule_id="${RUN_ID}-${rule_suffix}"
   RULE_IDS+=("${rule_id}")
   curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/rules/${rule_id}" \
     -H 'Content-Type: application/json' \
-    --data "{\"id\":\"${rule_id}\",\"priority\":80,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"${category}\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.20,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1200,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}" \
+    --data "{\"id\":\"${rule_id}\",\"priority\":80,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":${classes_json}},\"event\":{\"type\":\"presence\",\"minConfidence\":0.20,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1200,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}" \
     >/dev/null
-  log_pass "category rule 저장: ${category}"
+  log_pass "presence rule 저장: ${label}"
+}
+
+# category token별 presence rule을 임시로 저장한다.
+create_category_rule() {
+  local category="$1"
+  create_presence_rule "${category}" "[\"${category}\"]" "category ${category}"
 }
 
 CATEGORIES=(person vehicle road animal tableware food furniture device object)
@@ -240,6 +270,9 @@ fi
 for category in "${CATEGORIES[@]}"; do
   create_category_rule "${category}"
 done
+EXTRA_RULE_SUFFIXES=(direct-car alias-vehicles)
+create_presence_rule "direct-car" "[\"car\"]" "direct class car"
+create_presence_rule "alias-vehicles" "[\"vehicles\"]" "alias vehicles"
 
 : > "${EVENTS_FILE}"
 
@@ -274,7 +307,7 @@ if [[ "${INCLUDE_SPORTS}" == "1" ]]; then
   collect_category_events "${SPORTS_FILE_TOKEN}"
 fi
 
-python3 - "${EVENTS_FILE}" "${SNAPSHOT_FILE}" "${RUN_ID}" "${CATEGORIES[@]}" <<'PY'
+python3 - "${EVENTS_FILE}" "${SNAPSHOT_FILE}" "${RUN_ID}" "${COVERAGE_FILE}" "${CATEGORIES[@]}" "${EXTRA_RULE_SUFFIXES[@]}" <<'PY'
 import collections
 import json
 import pathlib
@@ -283,7 +316,8 @@ import sys
 events_file = pathlib.Path(sys.argv[1])
 snapshot_file = pathlib.Path(sys.argv[2])
 run_id = sys.argv[3]
-categories = sys.argv[4:]
+coverage_file = pathlib.Path(sys.argv[4])
+expected_rule_suffixes = sys.argv[5:]
 counts = collections.Counter()
 labels_by_category = collections.defaultdict(set)
 
@@ -308,19 +342,45 @@ print("category_labels=", {key: sorted(value) for key, value in labels_by_catego
 print("snapshot_detections=", len(latest.get("detections") or []), "analyzed=", snapshot.get("analyzedPackets", 0))
 
 errors = []
-for category in categories:
-    if counts.get(category, 0) <= 0:
-        errors.append(f"{category} category presence 이벤트가 없습니다")
+missing = []
+for rule_suffix in expected_rule_suffixes:
+    if counts.get(rule_suffix, 0) <= 0:
+        missing.append(rule_suffix)
+        errors.append(f"{rule_suffix} presence 이벤트가 없습니다")
 if snapshot.get("analyzedPackets", 0) <= 0:
     errors.append("analysis tap이 frame을 분석하지 못했습니다")
+if "car" not in labels_by_category.get("direct-car", set()):
+    errors.append(f"direct class car rule이 car label을 만들지 못했습니다: {sorted(labels_by_category.get('direct-car', set()))}")
+vehicle_labels = {"bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat"}
+alias_labels = labels_by_category.get("alias-vehicles", set())
+if not alias_labels or not alias_labels.issubset(vehicle_labels):
+    errors.append(f"vehicles alias rule 결과가 vehicle label 묶음이 아닙니다: {sorted(alias_labels)}")
 
 if errors:
+    coverage_file.write_text(json.dumps({
+        "runId": run_id,
+        "expected": expected_rule_suffixes,
+        "counts": dict(counts),
+        "labels": {key: sorted(value) for key, value in labels_by_category.items()},
+        "missing": missing,
+        "analyzedPackets": snapshot.get("analyzedPackets", 0),
+    }, ensure_ascii=False, indent=2), encoding="utf-8")
     for error in errors:
         print("[fail]", error)
     raise SystemExit(1)
+
+coverage_file.write_text(json.dumps({
+    "runId": run_id,
+    "expected": expected_rule_suffixes,
+    "counts": dict(counts),
+    "labels": {key: sorted(value) for key, value in labels_by_category.items()},
+    "missing": missing,
+    "analyzedPackets": snapshot.get("analyzedPackets", 0),
+}, ensure_ascii=False, indent=2), encoding="utf-8")
 PY
 log_pass "카테고리별 presence 이벤트 확인"
 log_info "events_log=${EVENTS_FILE}"
+log_info "coverage=${COVERAGE_FILE}"
 
 echo
 echo "== VA 카테고리 영상 샘플 검증 요약 =="
@@ -329,6 +389,7 @@ echo "- 실패: ${FAIL_COUNT}"
 echo "- 건너뜀: ${SKIP_COUNT}"
 echo "- events: ${EVENTS_FILE}"
 echo "- snapshot: ${SNAPSHOT_FILE}"
+echo "- coverage: ${COVERAGE_FILE}"
 
 if (( FAIL_COUNT > 0 )); then
   exit 1

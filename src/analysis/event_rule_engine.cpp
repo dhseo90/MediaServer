@@ -439,6 +439,19 @@ float SignedLineSide(const RulePoint& point, const std::vector<RulePoint>& line)
     return (b.x - a.x) * (point.y - a.y) - (b.y - a.y) * (point.x - a.x);
 }
 
+bool IsAllowedLineCrossingDirection(const std::string& direction, float previous_side, float side) {
+    // 선분 시작점->끝점 기준 signed side 변화로 정방향/역방향 통과를 구분한다.
+    const bool forward = previous_side < 0.0F && side > 0.0F;
+    const bool reverse = previous_side > 0.0F && side < 0.0F;
+    if (direction == "forward") {
+        return forward;
+    }
+    if (direction == "reverse") {
+        return reverse;
+    }
+    return forward || reverse;
+}
+
 std::string StateKey(const EventRule& rule, const Detection& detection, std::size_t detection_index) {
     std::ostringstream out;
     if (detection.track_id > 0) {
@@ -578,9 +591,10 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
                 const float previous_side = had_previous ? prev_it->second : side;
                 constexpr float kLineEpsilon = 0.0005F;
                 if (rule.event_type == "line-crossing") {
-                    // 선분 양쪽 부호가 바뀐 경우만 crossing으로 보고, 선 위 떨림은 epsilon으로 무시한다.
+                    // 선분 양쪽 부호가 바뀐 경우만 crossing으로 보고, direction이 맞지 않는 통과는 제외한다.
                     triggered = had_previous && std::fabs(previous_side) > kLineEpsilon &&
-                                std::fabs(side) > kLineEpsilon && previous_side * side < 0.0F;
+                                std::fabs(side) > kLineEpsilon && previous_side * side < 0.0F &&
+                                IsAllowedLineCrossingDirection(rule.direction, previous_side, side);
                 }
                 if (std::fabs(side) > kLineEpsilon) {
                     safe_runtime->previous_side[key] = side;

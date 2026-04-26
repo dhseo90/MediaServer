@@ -18,6 +18,9 @@ DEFAULT_EXTERNAL_URLS="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8;https:/
 PASS_COUNT=0
 FAIL_COUNT=0
 SKIP_COUNT=0
+RUN_ID="uri-longrun-$(date +%s)-$$"
+SUMMARY_FILE="/tmp/media_server_${RUN_ID}_summary.json"
+EXTERNAL_CONFIG_FILE=""
 
 # 검증 진행 상황을 같은 형식으로 출력한다.
 log_info() { echo "[info] $*"; }
@@ -192,6 +195,7 @@ if [[ "${INCLUDE_EXTERNAL}" == "1" ]]; then
     log_skip "external HTTP/HLS URI: MEDIA_SERVER_VERIFY_URI_EXTERNAL_URLS 또는 --external-urls가 비어 있어 생략"
   else
     external_config="$(make_external_config "${EXTERNAL_URLS}" "${EXTERNAL_RTSP_ROUTE_KEYS}")"
+    EXTERNAL_CONFIG_FILE="${external_config}"
     log_info "external URI config: ${external_config}"
     for ((iteration = 1; iteration <= ITERATIONS; iteration += 1)); do
       log_info "external HTTP/HLS URI: ${iteration}/${ITERATIONS} 반복 검증 시작"
@@ -211,9 +215,31 @@ echo "HTTP/HLS URI source 장기 검증 결과"
 echo "- pass: ${PASS_COUNT}"
 echo "- fail: ${FAIL_COUNT}"
 echo "- skip: ${SKIP_COUNT}"
+python3 - "${SUMMARY_FILE}" "${ITERATIONS}" "${INCLUDE_EXTERNAL}" "${USE_DEFAULT_EXTERNAL}" "${EXTERNAL_URLS}" "${EXTERNAL_RTSP_ROUTE_KEYS}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" "${EXTERNAL_CONFIG_FILE}" <<'PY'
+import json
+import pathlib
+import re
+import sys
+
+urls = [item.strip() for item in re.split(r"[,;]", sys.argv[5]) if item.strip()]
+summary = {
+    "iterations": int(sys.argv[2]),
+    "includeExternal": sys.argv[3] == "1",
+    "useDefaultExternal": sys.argv[4] == "1",
+    "externalUrls": urls,
+    "externalRtspRoutes": [item.strip() for item in sys.argv[6].split(",") if item.strip()],
+    "pass": int(sys.argv[7]),
+    "fail": int(sys.argv[8]),
+    "skip": int(sys.argv[9]),
+    "externalConfig": sys.argv[10],
+    "advisory": "외부 URL은 upstream/CDN 상태에 영향을 받으므로 선택 검증 결과로만 해석한다.",
+}
+pathlib.Path(sys.argv[1]).write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+PY
+echo "- summary: ${SUMMARY_FILE}"
 
 if [[ ${FAIL_COUNT} -gt 0 ]]; then
-  echo "실패 원인 후보: 서버 readiness, HTTP/HLS launcher, URI source timeout, ffprobe/WebRTC signaling, 외부 upstream 상태를 확인하세요."
+  echo "실패 원인 후보: 서버 readiness, HTTP/HLS launcher, URI source timeout, EOS/reconnect 로그, ffprobe/WebRTC signaling, 외부 upstream 상태를 확인하세요."
   exit 1
 fi
 exit 0
