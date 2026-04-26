@@ -1,4 +1,6 @@
-// 파일 용도: SharedStream analysis subscriber, raw decode hub, detector 실행 결과와 최신 frame을 관리한다.
+// 파일 요약: SharedStream에 분석 tap을 붙이고 detector 실행 상태를 관리한다.
+// 동작 요약: raw decode, sampling, bounded queue, detector worker, 최신 frame/result snapshot을 조율한다.
+// 동작 요약: route/profile/rule matching과 adaptive tuner 상태를 tap별로 노출한다.
 #include "analysis/analysis_manager.h"
 
 #include <algorithm>
@@ -383,6 +385,7 @@ void AnalysisManager::HandleFrame(const std::weak_ptr<AnalysisTap>& weak_tap, Ra
         const bool too_soon = min_interval.count() > 0 && tap->last_sampled_at.time_since_epoch().count() > 0 &&
                               now - tap->last_sampled_at < min_interval;
         if (too_soon) {
+            // detector queue를 늘리기보다 샘플링 단계에서 frame을 버려 relay path 지연 전파를 막는다.
             ++tap->sample_dropped_frames;
             ++tap->dropped_packets;
             return;
@@ -497,6 +500,7 @@ void AnalysisManager::UpdateAdaptiveTuningLocked(const std::shared_ptr<AnalysisT
         !queue_pressure && elapsed_ms < target_interval_ms * tap->profile.adaptive_low_latency_ratio;
 
     auto apply_input_size = [&](int width, int height, const char* state) {
+        // 입력 크기 변경은 detector가 runtime profile update를 지원할 때만 적용한다.
         AnalysisProfile next = tap->profile;
         next.model_input_width = ClampEvenInt(width, next.adaptive_min_input_width, next.adaptive_max_input_width);
         next.model_input_height = ClampEvenInt(height, next.adaptive_min_input_height, next.adaptive_max_input_height);
@@ -519,6 +523,7 @@ void AnalysisManager::UpdateAdaptiveTuningLocked(const std::shared_ptr<AnalysisT
     bool changed = false;
     if (overloaded) {
         tap->adaptive_underloaded_streak = 0;
+        // 부하가 높으면 fps를 먼저 낮추고, 그래도 부족하면 입력 해상도를 단계적으로 낮춘다.
         if (tap->profile.target_fps > tap->profile.adaptive_min_fps) {
             --tap->profile.target_fps;
             tap->profile_key = BuildProfileKey(tap->profile);
@@ -535,6 +540,7 @@ void AnalysisManager::UpdateAdaptiveTuningLocked(const std::shared_ptr<AnalysisT
     } else if (underloaded) {
         ++tap->adaptive_underloaded_streak;
         if (tap->adaptive_underloaded_streak >= 3) {
+            // 저부하가 연속으로 관찰될 때만 품질/fps를 되돌려 짧은 흔들림에 과민 반응하지 않는다.
             if (tap->profile.adaptive_input_size_enabled && !tap->adaptive_input_size_disabled &&
                 (tap->profile.model_input_width < tap->profile.adaptive_max_input_width ||
                  tap->profile.model_input_height < tap->profile.adaptive_max_input_height)) {

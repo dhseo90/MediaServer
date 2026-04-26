@@ -1,4 +1,6 @@
-// 파일 용도: detector의 frame 단위 detection을 같은 객체 단위 track으로 연결하는 lightweight tracker를 선언한다.
+// 파일 요약: frame별 detection을 track 단위로 연결하는 lightweight tracker를 선언한다.
+// 동작 요약: IoU/중심점 거리 기반 매칭 옵션, class/category whitelist, trail 상태를 제공한다.
+// 동작 요약: 분석 이벤트와 overlay가 안정적인 trackId를 사용할 수 있게 한다.
 #pragma once
 
 #include "analysis/analysis_types.h"

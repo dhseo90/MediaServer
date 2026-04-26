@@ -32,8 +32,8 @@ Usage:
   verify-webrtc-ice
                  WebRTC STUN/TURN/ICE policy와 candidate 수집 상태를 검증합니다.
   verify-uri-longrun
-                 HTTP/HLS URI source의 로컬 반복 검증과 선택 외부 URL 회귀 검증을 수행합니다.
-  verify-va      YOLO/VA overlay의 lab, RTSP, WebRTC 회귀 검증을 수행합니다.
+                 HTTP/HLS URI source의 로컬 반복 검증과 선택 외부 URL 반복 검증을 수행합니다.
+  verify-va      YOLO/VA overlay의 lab, RTSP, WebRTC 검증을 수행합니다.
   verify-va-events
                  이동 테스트 영상으로 tracker 기반 presence/enter/exit/line-crossing을 검증합니다.
   verify-va-category-samples
@@ -47,7 +47,7 @@ Usage:
   verify-yolo-layouts
                  YOLO 모델별 output layout/box/score 조합을 실제 모델로 검증합니다.
   verify-adaptive
-                 adaptive tuner의 downshift/upshift 장시간 회귀를 검증합니다.
+                 adaptive tuner의 downshift/upshift 장시간 안정성을 검증합니다.
   verify-image-analysis
                  정적 이미지 입력의 YOLO metadata/snapshot/overlay API를 검증합니다.
 

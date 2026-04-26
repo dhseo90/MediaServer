@@ -1,4 +1,6 @@
-// 파일 용도: yt-dlp를 실행해 YouTube URL을 HTTP/HLS playable URL로 해석한다.
+// 파일 요약: yt-dlp를 호출해 YouTube URL을 HTTP/HLS media URL로 해석한다.
+// 동작 요약: format selector, timeout, 실패 메시지 요약, resolved URL metadata를 관리한다.
+// 동작 요약: 실험실 source/import 기능에서만 쓰는 opt-in resolver다.
 #include "core/youtube_resolver.h"
 
 #include <algorithm>

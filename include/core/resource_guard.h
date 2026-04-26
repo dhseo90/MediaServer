@@ -1,4 +1,6 @@
-// 파일 용도: 동시 세션/스트림 수 제한을 관리하는 ResourceGuard를 선언한다.
+// 파일 요약: 동시 세션/stream admission guard를 선언한다.
+// 동작 요약: tryAcquire/release와 현재 카운터 snapshot으로 resource limit을 적용한다.
+// 동작 요약: 과도한 요청을 일관된 방식으로 거부하기 위한 공통 도구다.
 #pragma once
 
 #include "stdafx.h"

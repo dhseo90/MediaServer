@@ -1,4 +1,6 @@
-// 파일 용도: 영상분석 모듈이 공유하는 프레임, 검출 결과, 분석 프로파일 타입을 정의한다.
+// 파일 요약: 영상분석 모듈이 공유하는 frame/result/profile 타입을 정의한다.
+// 동작 요약: Detection, Track, AnalysisProfile, overlay/adaptive 옵션과 profile key 생성을 포함한다.
+// 동작 요약: detector, tracker, overlay, manager 사이의 데이터 계약이다.
 #pragma once
 
 #include <cstdint>

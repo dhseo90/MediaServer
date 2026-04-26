@@ -1,4 +1,6 @@
-// 파일 용도: 이벤트 POST 요청을 bounded queue에 넣고 background worker에서 curl로 전송한다.
+// 파일 요약: 분석 이벤트를 외부 HTTP endpoint로 비동기 POST 전송한다.
+// 동작 요약: bounded queue와 worker thread로 relay path를 막지 않고 curl 기반 전송을 수행한다.
+// 동작 요약: 전송 실패/성공 통계와 cooldown을 관리해 event storm을 완화한다.
 #include "analysis/event_post_dispatcher.h"
 
 #include <algorithm>

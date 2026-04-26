@@ -1,4 +1,6 @@
-// 파일 용도: analysis profile에 따라 dummy 또는 YOLO/ONNX detector를 생성한다.
+// 파일 요약: AnalysisProfile에 맞는 detector 인스턴스를 생성한다.
+// 동작 요약: dummy detector와 YOLO/ONNX detector 선택을 한 곳에 모은다.
+// 동작 요약: 상위 AnalysisManager가 detector 구현 세부사항을 몰라도 되게 한다.
 #include "analysis/detector.h"
 
 namespace analysis {

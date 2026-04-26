@@ -7,7 +7,7 @@
 ## 현재 기준 요약
 - 최신 기준으로 기본 안정 기준은 `file`, 로컬 `RTSP pull`, 로컬 `WebRTC publish`, 로컬 `HTTP URI`, LAN IP 기준 외부 클라이언트 접근성, 제3자 RTSP upstream advisory, 기본 YOLO/VA overlay다.
 - 과거 blocker였던 `HTTP URI -> RTSP 503`은 URI/VOD source pacing 보정 후 로컬 HTTP MP4 matrix에서 통과했다.
-- 아래 문서에는 과거 통과/실패 이력도 남아 있다. 과거 이력은 회귀 추적용이며, 현재 작업 우선순위는 최신 검증 결과를 기준으로 판단한다.
+- 아래 문서에는 과거 통과/실패 이력도 남아 있다. 과거 이력은 변경 영향 추적용이며, 현재 작업 우선순위는 최신 검증 결과를 기준으로 판단한다.
 - 로컬 HLS VOD와 공개 HLS 후보(Mux/Apple)는 `verify-uri-longrun` 선택 검증에서 통과했다. 외부 HLS/HTTP URI는 네트워크/upstream 상태 영향이 있으므로 기본 안정 테스트가 아닌 선택 검증으로 남긴다.
 
 최신 후속 검증 결과:
@@ -15,7 +15,7 @@
 - `2026-04-26`: `--include-rules --include-va-events` 선택 검증 통과 `6/0/6`.
 - `2026-04-26`: `./server.sh verify-route-profiles` RTSP/WebRTC overlay route profile matching 통과 `6/0/0`.
 - `2026-04-26`: `./server.sh verify-tracker-stability --long --overlap-focus` 통과 `8/0/0`. `fragmentationRatio min=1.6 max=1.75 avg=1.65`, `overlapFragmentationRatio max=1.75`, `overlapSampleCountTotal=1797`, `stalePtsRatio max=0.005`.
-- `2026-04-26`: WebRTC ICE 설정 검증용 `./server.sh verify-webrtc-ice`와 HTTP/HLS URI 장기 회귀용 `./server.sh verify-uri-longrun` 진입점 추가.
+- `2026-04-26`: WebRTC ICE 설정 검증용 `./server.sh verify-webrtc-ice`와 HTTP/HLS URI 장기 검증용 `./server.sh verify-uri-longrun` 진입점 추가.
 - `2026-04-26`: `./server.sh verify-webrtc-ice --skip-browser --skip-whip` candidate 수집 통과, `./server.sh verify-uri-longrun --iterations 1` 로컬 HTTP/HLS 반복 검증 통과.
 - `2026-04-26`: `./server.sh verify-va-events --duration 30` 기본 이벤트 임계값 통과, `./server.sh verify-tracker-stability --duration 8 --repeat 1 --overlap-focus` 겹침 구간 smoke 통과.
 - `2026-04-26`: Mac 로컬 coturn으로 `MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay ./server.sh verify-webrtc-ice --require-relay` 통과 `7/0/0`. Google STUN, Mac coturn TURN, relay ICE policy 조합에서 relay candidate 수집, 브라우저 WebRTC file consume playback, WHIP publish -> WebRTC signaling을 확인했다.
@@ -105,7 +105,7 @@
 4. 영상분석 선택 테스트
    - 1차 analysis tap, raw decode hub, drop/frame-sampling, YOLO/ONNX, RTSP/WebRTC overlay는 로컬 smoke test 완료
    - adaptive tuner 1차 smoke test는 완료했으며, rule event engine은 presence/enter/exit/line-crossing 1차 구현 후 build 검증 완료
-5. 실험실 YouTube 회귀 검증
+5. 실험실 YouTube 검증
    - 기본 scope는 아니며, 명시적으로 opt-in 했을 때만 별도 확인
 6. `/lab/import` 외부 네트워크 재검증
    - `2026-04-24` 공개 VOD `aqz-KE-bpKQ` 기준으로 성공/실패가 모두 재현됐다.
@@ -153,7 +153,7 @@
   - 외부 RTSP source 장시간/codec 심화 재검증
   - WebRTC 운영 환경 테스트(외부 운영 TURN 서버 relay/auth는 아직 테스트하지 않음)
   - audio-only input 정책 확정
-  - 실험실 YouTube 회귀 검증
+  - 실험실 YouTube 검증
   - `/lab/import` 외부 네트워크 재검증
 
 ## 영상분석 skeleton 검증 기준
@@ -214,12 +214,12 @@
 - 현재 `source=youtube` 경로는 코드 수준 1차 연결과 일부 재생 검증까지는 끝났지만, 기본 기능으로 승격할 정도의 안정성은 확보하지 못했다.
 - 중단 사유는 서버 내부 codec/route 구조보다 외부 요인 비중이 크다.
   - `yt-dlp` 해석 성공 여부가 YouTube 측 bot check, 로그인 요구, 지역 제한, 일시적인 정책 변화에 영향을 받는다.
-  - resolver가 반환하는 URL이 서명된 임시 URL이라 재현성과 회귀 테스트 안정성이 낮다.
+  - resolver가 반환하는 URL이 서명된 임시 URL이라 재현성과 장기 검증 안정성이 낮다.
   - 같은 URL도 시점에 따라 progressive HTTP, HLS fallback, 접근 거부가 섞일 수 있다.
 - `2026-04-24` 실제 재검증에서는 공개 VOD `https://www.youtube.com/watch?v=aqz-KE-bpKQ`에 대해 서로 다른 결과가 나왔다.
   - shell 기반 `/lab/import` job과 `yt-dlp --skip-download -g` resolver 경로는 bot check 오류로 실패했다.
   - Chrome `/lab/import` UI에서 다시 만든 job은 `yt-dlp`가 `[jsc:deno]`로 challenge를 푼 뒤 `ready`까지 완료됐다.
-- 따라서 현재는 기본 기능이 아니라 `/lab` 기반 실험실 기능으로만 유지하고, 회귀 검증도 opt-in 상황에서만 수행한다.
+- 따라서 현재는 기본 기능이 아니라 `/lab` 기반 실험실 기능으로만 유지하고, 장기 검증도 opt-in 상황에서만 수행한다.
 
 ## 실험실 YouTube 현재 미확인 사항
 - 동일 URL이 장기간 반복 테스트에서 계속 재생 가능한지
@@ -642,12 +642,12 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - `detector=dummy&fps=8&maxQueue=1&adaptive=1&adaptiveMinFps=2&adaptiveCooldownMs=300&detectorDelayMs=400`으로 과부하를 만들었고, `targetFps=2`, `adaptiveDownshiftCount=6`을 확인했다.
   - `adaptiveInputSize=1&adaptiveMinFps=8&adaptiveInputStep=160&detectorDelayMs=500`으로 input-size 조절을 만들었고, `modelInputWidth=320`, `modelInputHeight=320`, `adaptiveState=downshift-input`을 확인했다.
   - 임시 서버는 `RTSP 8555`, `HTTP 8081`에서 실행했고 smoke test 후 종료했다.
-- `2026-04-25` YOLO/VA overlay 회귀 스크립트 `./server.sh verify-va`를 추가했다.
+- `2026-04-25` YOLO/VA overlay 검증 스크립트 `./server.sh verify-va`를 추가했다.
   - ONNX build 서버에서 기본 `va_four_scene_sample.mp4` 기준 lab YOLO status, overlay JPEG, RTSP overlay decode, WebRTC simple playback, WHEP playback을 확인한다.
   - 짧은 smoke 기준 `MEDIA_SERVER_VERIFY_VA_DURATION_S=4`, `MEDIA_SERVER_VERIFY_VA_SKIP_WEBRTC=1`에서 lab+RTSP가 통과했다.
   - 이어 `MEDIA_SERVER_VERIFY_VA_DURATION_S=2`, `MEDIA_SERVER_VERIFY_VA_WEBRTC_HOLD_MS=1000`, `MEDIA_SERVER_VERIFY_VA_SKIP_LAB=1`, `MEDIA_SERVER_VERIFY_VA_SKIP_RTSP=1`에서 WebRTC simple/WHEP playback이 통과했다.
-  - RTSP decode 중 `non monotonically increasing dts` 경고가 1회 관찰됐지만 decode 자체는 성공했다. 장시간 회귀에서 반복성 여부를 추가 확인한다.
-- `2026-04-25` `imports/NewYorkDriving.mp4` 기준 45초 lab+RTSP VA 회귀를 실행했다.
+  - RTSP decode 중 `non monotonically increasing dts` 경고가 1회 관찰됐지만 decode 자체는 성공했다. 장시간 검증에서 반복성 여부를 추가 확인한다.
+- `2026-04-25` `imports/NewYorkDriving.mp4` 기준 45초 lab+RTSP VA 검증을 실행했다.
   - `decodedFrames`, `analyzedPackets`, detection label이 지속 증가했고 `car`, `person`, `truck`, `bus`, `traffic light` 등이 검출됐다.
   - `targetFps=8`, `adaptiveState=steady`, 평균 분석 시간 약 `88ms` 수준으로 유지됐다.
   - RTSP VA overlay decode가 통과했고, 이전 짧은 파일에서 보였던 DTS 경고는 재현되지 않았다.
@@ -658,9 +658,9 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - 별도 임시 파일 기준으로 서버 재시작 후 `GET /lab/analysis/profiles/persist-profile`, `GET /lab/analysis/rules/persist-rule`이 저장된 JSON을 다시 반환함을 확인했다.
 - `2026-04-25` `/lab/rules` 시각적 profile/rule 편집 UI 1차 smoke test를 추가했다.
   - `/lab`에는 시각적 룰 편집 페이지 링크만 남기고 JSON 직접 편집 블록은 제거했다.
-  - `/lab/rules` HTML에 `VA 룰 편집기`, `이벤트 판단 영역`, `분석할 객체 타입`, `Profile 저장` 요소가 포함됨을 확인했다.
+  - `/lab/rules` HTML에 `VA 룰 편집기`, `이벤트 판단 영역`, `분석할 객체 카테고리`, `Profile 저장` 요소가 포함됨을 확인했다.
   - 인앱 브라우저에서 `http://127.0.0.1:8081/lab/rules`가 렌더링되는 것을 확인했다.
-  - UI는 profile 성능값을 slider/dropdown으로 조정하고, rule은 source/route/profile/event type/class와 16:9 polygon 영역을 저장한다.
+  - UI는 profile 성능값을 slider/dropdown으로 조정하고, rule은 source/route/profile/event type/객체 카테고리와 16:9 polygon 영역을 저장한다.
   - polygon 영역은 최대 12점까지 지정하고, 기존 점 근처 drag/drop으로 점 위치를 이동한다.
   - `line-crossing`은 polygon 대신 2점 선분으로 전환하며, 현재 방향은 `any` 양방향으로 저장한다.
   - 이벤트 발생 시 matched object 깜빡임 강조와 POST URL 설정을 `eventActions`로 저장한다. 강조 색상은 UI에서 받지 않고 카테고리 기본색/빨간색 blink로 고정한다. POST payload는 `media-server.va.event.v1` 고정 format preview만 보여주고 사용자가 수정할 수 없다.
@@ -740,7 +740,7 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - `outputLayout=auto|channels-first|channels-last`, `boxFormat=cxcywh|xyxy`, `scoreMode=auto|class-only|objectness-class|score-class|class-score`를 query/profile 문서에서 받을 수 있다.
   - 기본값은 기존 `YOLOv8/YOLO11` 검증 모델과 호환되는 `auto + cxcywh + auto`다.
   - `./server.sh verify-yolo-layouts`로 기본 `yolo11n.onnx`, 실제 `YOLOv5n` fp16 모델, end2end xyxy 모델의 parser 조합을 검증한다. score/class 순서가 반대인 모델은 `scoreMode=class-score`로 분리한다.
-- `2026-04-26` adaptive tuner 장시간 회귀 검증을 `./server.sh verify-adaptive`에 추가했다.
+- `2026-04-26` adaptive tuner 장시간 검증을 `./server.sh verify-adaptive`에 추가했다.
   - dummy detector delay로 과부하를 만들어 `targetFps` downshift를 확인한다.
   - delay 없는 저부하 tap으로 `targetFps` upshift를 확인한다.
 - `2026-04-26` 정적 이미지 분석 API와 선택 검증 `./server.sh verify-image-analysis`를 추가했다.

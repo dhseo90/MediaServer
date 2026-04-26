@@ -1,4 +1,6 @@
-// 파일 용도: OpenCV 없이 raw RGB/BGR frame에 detection box와 label overlay를 그린다.
+// 파일 요약: raw RGB/BGR frame 위에 detection overlay를 직접 그린다.
+// 동작 요약: 카테고리별 색상, 한글/영문 label, track id/trail, event blink highlight를 렌더링한다.
+// 동작 요약: OpenCV 의존 없이 snapshot과 RTSP/WebRTC overlay 모두에서 재사용된다.
 #include "analysis/overlay_renderer.h"
 
 #include <algorithm>

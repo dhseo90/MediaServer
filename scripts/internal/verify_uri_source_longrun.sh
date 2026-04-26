@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 파일 용도: HTTP/HLS URI source 경로를 반복 검증해 장시간 회귀와 외부 URL 옵션 검증을 수행한다.
+# 파일 용도: HTTP/HLS URI source 경로를 반복 검증해 장시간 안정성과 외부 URL 옵션 검증을 수행한다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -31,7 +31,7 @@ log_skip() { echo "[skip] $*"; SKIP_COUNT=$((SKIP_COUNT + 1)); }
 # verify-uri-longrun 명령의 사용법과 선택 검증 기준을 출력한다.
 usage() {
   cat <<'EOF_USAGE'
-HTTP/HLS URI source 장기 회귀 검증
+HTTP/HLS URI source 장기 검증
 
 Usage:
   ./server.sh verify-uri-longrun [options]
@@ -164,7 +164,7 @@ print(output)
 PY
 }
 
-echo "HTTP/HLS URI source 장기 회귀 검증 시작"
+echo "HTTP/HLS URI source 장기 검증 시작"
 echo "- 반복 횟수: ${ITERATIONS}"
 echo "- 외부 URL 포함: ${INCLUDE_EXTERNAL}"
 echo "- 외부 RTSP route keys: ${EXTERNAL_RTSP_ROUTE_KEYS}"
@@ -207,7 +207,7 @@ else
 fi
 
 echo
-echo "HTTP/HLS URI source 장기 회귀 결과"
+echo "HTTP/HLS URI source 장기 검증 결과"
 echo "- pass: ${PASS_COUNT}"
 echo "- fail: ${FAIL_COUNT}"
 echo "- skip: ${SKIP_COUNT}"

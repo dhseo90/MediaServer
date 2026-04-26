@@ -1,4 +1,6 @@
-// 파일 용도: 브라우저/테스트 publisher의 WebRTC RTP 입력을 appsink로 받아 SharedStream 패킷으로 변환한다.
+// 파일 요약: 브라우저/테스트 publisher의 WebRTC 입력을 SharedStream source로 변환한다.
+// 동작 요약: WHIP answer/ICE 처리 후 appsink에서 RTP/media sample을 읽어 MediaPacket으로 만든다.
+// 동작 요약: published source를 RTSP/WebRTC consumer가 다시 구독할 수 있도록 descriptor와 packet을 공급한다.
 #include "ingress/webrtc_source_session.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER

@@ -1,4 +1,6 @@
-// 파일 용도: 클라이언트 요청을 dedup된 SharedStream에 연결하고 SourceWorker 시작/정리를 조율한다.
+// 파일 요약: 클라이언트 요청을 SharedStream과 source worker에 연결하는 orchestration 구현이다.
+// 동작 요약: 동일 source dedup, resource admission, egress session 생성, analysis tap 생성을 조율한다.
+// 동작 요약: RTSP/WebRTC/HTTP API가 공통으로 사용하는 session lifecycle 중심부다.
 #include "core/session_manager.h"
 
 #include <chrono>

@@ -1,4 +1,6 @@
-// 파일 용도: SourceWorker에서 받은 패킷을 구독자별 큐로 fan-out하고 캐시 keyframe/audio를 재전달한다.
+// 파일 요약: 하나의 source packet을 여러 subscriber에게 fan-out한다.
+// 동작 요약: subscriber별 bounded queue, cached keyframe/audio 재전달, idle 상태를 관리한다.
+// 동작 요약: source worker와 여러 egress/analysis consumer 사이의 thread-safe 버퍼 역할을 한다.
 #include "core/shared_stream.h"
 
 #include <exception>

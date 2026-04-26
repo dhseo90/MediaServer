@@ -1,4 +1,6 @@
-// 파일 용도: GStreamer buffer probe에서 최신 detection metadata를 raw frame에 합성한다.
+// 파일 요약: GStreamer raw video buffer에 분석 overlay를 합성하는 probe 구현이다.
+// 동작 요약: buffer PTS를 source PTS로 매핑하고 최신 AnalysisResult를 찾아 box/label/event highlight를 그린다.
+// 동작 요약: overlay 실패가 송출 pipeline을 깨지 않도록 방어적으로 동작한다.
 #include "ingress/analysis_overlay_probe.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER

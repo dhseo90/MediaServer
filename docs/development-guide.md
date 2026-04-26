@@ -29,7 +29,7 @@ SourceWorker (File / RTSP Pull / WebRTC / HTTP-HLS URI)
 이 프로젝트가 의도하는 실제 연결 모델은 아래와 같습니다.
 
 ```text
-Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Original Source
+Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC or HTTP/HLS URI) <-> Original Source
 ```
 
 즉 `Client -> MediaServer` 구간과 `MediaServer -> Original Source` 구간은 서로 독립적으로 선택됩니다.
@@ -97,7 +97,7 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
   - adaptive tuner는 detector 부하에 따라 런타임 `fps`를 먼저 낮추고, 가능한 경우 input size까지 낮춘다.
   - lightweight tracker가 detection box를 frame 간 연결해 `trackId`를 붙이고, 이벤트 룰은 기본적으로 이 객체 ID 기준으로 상태를 추적한다.
   - profile/rule registry는 1차 저장/조회/수정/삭제를 제공한다.
-  - `/lab/rules`는 숫자/JSON 직접 입력 대신 한글 UI로 profile 값, 이벤트 판단 영역, 분석 객체 타입을 저장한다.
+  - `/lab/rules`는 숫자/JSON 직접 입력 대신 한글 UI로 profile 값, 이벤트 판단 영역, 분석 객체 카테고리를 저장한다.
   - 저장된 rule은 `va=1` overlay와 `/lab/analysis/taps/{tapId}/events`에서 1차 event engine으로 판정한다.
   - 이벤트 발생 객체는 overlay에서 `이벤트`/`Event` label과 카테고리 기본색/빨간색 깜빡임으로 표시한다.
   - `eventActions.post`가 켜진 rule은 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1`일 때 bounded queue 기반 POST worker가 `media-server.va.event.v1` payload로 비동기 전송한다.
@@ -488,7 +488,9 @@ ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성
 ./server.sh verify-codecs
 ./server.sh verify-va
 ./server.sh verify-va-events
+./server.sh verify-va-category-samples
 ./server.sh verify-route-profiles
+./server.sh verify-rule-ui
 ./server.sh verify-tracker-stability
 ./server.sh verify-yolo-layouts
 ./server.sh verify-adaptive
@@ -497,7 +499,7 @@ ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성
 
 `./server.sh test`의 기본 기준은 안정 기능으로 승격한 스트리밍 + 기본 VA 기능을 포함한다.
 - 모든 test 모드 포함: 스크립트/JSON 정적 검사, 서버 start/status/diagnose, LAN IP 기준 외부 클라이언트 접근성.
-- stable 포함: 제3자 RTSP upstream reachability advisory, 로컬 file source, 로컬 RTSP pull source, 로컬 WebRTC publish source, 로컬 HTTP URI source의 RTSP/WebRTC 소비, YOLO/VA overlay 회귀 검증.
+- stable 포함: 제3자 RTSP upstream reachability advisory, 로컬 file source, 로컬 RTSP pull source, 로컬 WebRTC publish source, 로컬 HTTP URI source의 RTSP/WebRTC 소비, YOLO/VA overlay 검증.
 - 제외: HLS/외부 HTTP URI source, YouTube source/import, `/lab` UI, 룰/이벤트/POST, adaptive tuner. 단 로컬 HLS VOD는 `verify-codecs` 선택 matrix에서 검증 가능하다.
 - 선택 검증: `./server.sh test --include-rules`는 profile/rule registry CRUD와 rule match 기반 profile 자동 선택을 추가 확인한다.
 - 선택 검증: `./server.sh test --include-va-events`는 실제 이동 영상 기반 tracker/event 판정을 추가 확인한다.
@@ -1042,7 +1044,7 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./server.sh urls
   - 결과: `delegate stopped -> resolved -> reconnected` 반복 확인
 
 실험실 YouTube 개발이 기본 기능 승격 전에 멈춘 이유:
-- 외부 요인이 커서 회귀 테스트가 안정적이지 않다.
+- 외부 요인이 커서 장기 검증이 안정적이지 않다.
 - `yt-dlp` 결과가 YouTube bot check, 로그인 요구, 지역 제한, 서명 URL 만료 정책에 영향을 받는다.
 - `2026-04-24` 같은 공개 VOD `https://www.youtube.com/watch?v=aqz-KE-bpKQ`도 시점에 따라 결과가 갈렸다.
   - shell에서 바로 실행한 `/lab/import`와 resolver 단독 실행은 `Sign in to confirm you're not a bot`으로 실패했다.
@@ -1050,7 +1052,7 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./server.sh urls
 - 그래서 현재는 `/lab`에서만 보이는 개발용 기능으로 유지하고, 기본 relay/analysis 경로는 `file`, `rtsp`, `webrtc`, `http/hls` 중심으로 진행한다.
 
 현재 미확인 사항:
-- YouTube URL 장기 회귀 안정성
+- YouTube URL 장기 검증 안정성
 - login/region/private/live archive 전환 실패 패턴의 일관성
 - cookie 없이 접근 가능한 공개 URL이 현재 시점에도 안정적으로 남아 있는지
 - YouTube import 성공/실패가 시점에 따라 왜 갈리는지
@@ -1070,7 +1072,7 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./server.sh urls
 외부 RTSP source는 로컬 샘플과 다르게 네트워크 상태 영향을 크게 받습니다.
 
 기본 `./server.sh test`는 config에 남아 있는 제3자 RTSP 후보를 advisory로 확인합니다.
-후보가 실패해도 코드 회귀 실패로 단정하지 않고, 신뢰 가능한 카메라/테스트 서버 URL을 명시했을 때만 hard gate로 봅니다.
+후보가 실패해도 코드 변경으로 인한 실패로 단정하지 않고, 신뢰 가능한 카메라/테스트 서버 URL을 명시했을 때만 hard gate로 봅니다.
 
 ```bash
 MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS='rtsp://camera-or-test-host/live' ./server.sh test

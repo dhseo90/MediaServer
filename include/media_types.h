@@ -1,4 +1,6 @@
-// 파일 용도: 요청, 소스, 코덱, 트랙, 패킷처럼 서버 전체가 공유하는 미디어 타입을 정의한다.
+// 파일 요약: 서버 전체가 공유하는 미디어/요청 타입을 정의한다.
+// 동작 요약: codec, route, source spec, track descriptor, packet, ingress request 구조체를 담는다.
+// 동작 요약: core/ingress/analysis 모듈 사이의 공통 계약 역할을 한다.
 #pragma once
 
 #include "stdafx.h"

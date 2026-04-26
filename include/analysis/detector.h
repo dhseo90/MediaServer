@@ -1,4 +1,6 @@
-// 파일 용도: YOLO/ONNX 같은 실제 detector를 교체 가능하게 만드는 분석 엔진 인터페이스를 선언한다.
+// 파일 요약: 분석 detector 공통 인터페이스와 factory 함수를 선언한다.
+// 동작 요약: dummy/YOLO detector가 같은 AnalyzeFrame 계약을 구현한다.
+// 동작 요약: AnalysisProfile과 RawVideoFrame을 detector 구현으로 넘기는 경계를 정의한다.
 #pragma once
 
 #include "analysis/analysis_types.h"

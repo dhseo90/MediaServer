@@ -1,4 +1,6 @@
-// 파일 용도: 분석 결과를 raw frame 위에 그리는 overlay renderer API를 선언한다.
+// 파일 요약: 분석 결과를 raw frame 위에 그리는 renderer API를 선언한다.
+// 동작 요약: label 언어, track id/trail, event highlight, line thickness 옵션을 제공한다.
+// 동작 요약: snapshot JPEG와 live egress overlay가 같은 렌더러를 사용한다.
 #pragma once
 
 #include "analysis/analysis_types.h"

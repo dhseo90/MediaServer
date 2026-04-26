@@ -1,4 +1,6 @@
-// 파일 용도: 요청 route의 video/audio codec에 맞는 RTSP egress GStreamer pipeline 문자열을 만든다.
+// 파일 요약: 요청 route에 맞는 GStreamer launch 문자열을 생성한다.
+// 동작 요약: RTSP egress video/audio codec 조합과 source decode 경로를 구성한다.
+// 동작 요약: 플러그인 availability와 route 정책에 맞춰 pipeline branch를 선택한다.
 #include "ingress/gst_pipeline_builder.h"
 
 #include <filesystem>

@@ -1,4 +1,6 @@
-// 파일 용도: 하나의 원본 소스를 여러 구독자에게 fan-out하는 SharedStream을 선언한다.
+// 파일 요약: 원본 source packet을 여러 subscriber에게 fan-out하는 stream을 선언한다.
+// 동작 요약: subscriber queue, cached packet, descriptor, idle 상태 조회 API를 제공한다.
+// 동작 요약: source worker와 egress/analysis consumer 사이의 공통 데이터 허브다.
 #pragma once
 
 #include <condition_variable>

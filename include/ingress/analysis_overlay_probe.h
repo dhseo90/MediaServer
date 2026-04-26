@@ -1,4 +1,6 @@
-// 파일 용도: RTSP/WebRTC egress GStreamer raw video 구간에 analysis overlay probe를 붙인다.
+// 파일 요약: GStreamer raw video 구간에 분석 overlay probe를 붙이는 API를 선언한다.
+// 동작 요약: stream key, analysis manager, overlay options를 pipeline element에 연결한다.
+// 동작 요약: RTSP/WebRTC egress가 같은 overlay 합성 경로를 사용하게 한다.
 #pragma once
 
 #include <cstdint>

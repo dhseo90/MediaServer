@@ -1,4 +1,6 @@
-// 파일 용도: StreamKey별 SharedStream 인스턴스 공유와 제거를 관리하는 Registry를 선언한다.
+// 파일 요약: StreamKey별 SharedStream 공유 저장소를 선언한다.
+// 동작 요약: acquire/release, idle cleanup, stream snapshot 조회 API를 제공한다.
+// 동작 요약: SessionManager가 원본 source dedup을 수행하는 계약이다.
 #pragma once
 
 #include "core/shared_stream.h"

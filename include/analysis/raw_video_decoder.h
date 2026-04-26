@@ -1,4 +1,6 @@
-// 파일 용도: 분석 전용으로 compressed video packet을 raw frame으로 변환하는 decoder 인터페이스를 선언한다.
+// 파일 요약: compressed video packet을 RawVideoFrame으로 디코딩하는 인터페이스를 선언한다.
+// 동작 요약: decoder callback, start/stop, decode packet API로 analysis 전용 raw frame 흐름을 제공한다.
+// 동작 요약: GStreamer 미사용 빌드에서는 생성 실패를 명확히 반환한다.
 #pragma once
 
 #include "analysis/analysis_types.h"

@@ -1,4 +1,6 @@
-// 파일 용도: 분석 raw frame을 HTTP snapshot으로 내려보낼 수 있게 이미지 인코딩 API를 선언한다.
+// 파일 요약: RawVideoFrame을 JPEG bytes로 인코딩하는 API를 선언한다.
+// 동작 요약: snapshot/overlay HTTP API가 같은 encoder 계약을 사용한다.
+// 동작 요약: GStreamer 미사용 빌드에서는 실패를 명확히 반환한다.
 #pragma once
 
 #include "analysis/analysis_types.h"

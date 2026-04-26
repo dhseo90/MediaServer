@@ -168,9 +168,9 @@ PTS 매칭이 실패하면 최신 result로 fallback합니다. 이 fallback은 o
 룰 편집 UI 동작:
 
 - profile은 fps, queue, confidence, nms, input size, adaptive 여부를 slider/dropdown으로 조정
-- rule은 대상 source/route, 사용할 profile, 이벤트 타입, 분석 객체 타입을 선택
+- rule은 대상 source/route, 사용할 profile, 이벤트 타입, 분석 객체 카테고리를 선택
 - Rule/Profile 카테고리 버튼은 `기본`이 사람+차량만 선택, `전체 선택`이 모든 카테고리 선택, `전체 해제`가 모든 카테고리 해제다.
-- 전체 해제 상태는 다시 고르기 위해 비워 둔 임시 상태이며 저장할 수 없다. Rule 저장 시 분석 카테고리가 비어 있으면 경고 다이얼로그를 띄우고 저장을 막는다.
+- 전체 해제 상태는 다시 고르기 위해 비워 둔 임시 상태이며 저장할 수 없다. Rule 저장 시 분석 카테고리가 비어 있으면 화면 다이얼로그를 띄우고 저장을 막는다.
 - Profile도 tracking category가 비어 있으면 저장할 수 없다. 전체 match/전체 추적이 필요하면 전체 선택 또는 API의 `*` 토큰을 사용한다.
 - polygon 영역은 최대 12개 점까지 지정
 - 이미 지정된 점 근처를 드래그하면 새 점을 추가하지 않고 기존 점 위치 이동
@@ -231,13 +231,13 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/rules'
 
 ## 검증
 
-기본 VA 회귀 검증:
+기본 VA 검증:
 
 ```bash
 ./server.sh verify-va
 ```
 
-긴 회귀 검증:
+긴 안정성 검증:
 
 ```bash
 MEDIA_SERVER_VERIFY_VA_DURATION_S=120 ./server.sh verify-va
@@ -246,7 +246,7 @@ MEDIA_SERVER_VERIFY_VA_DURATION_S=120 ./server.sh verify-va
 자주 쓰는 옵션:
 
 - `MEDIA_SERVER_VERIFY_VA_FILE=imports/NewYorkDriving.mp4`: 로컬에 큰 움직임 영상이 있을 때 변경
-- `MEDIA_SERVER_VERIFY_VA_DURATION_S=120`: 회귀 시간을 늘림
+- `MEDIA_SERVER_VERIFY_VA_DURATION_S=120`: 검증 시간을 늘림
 - `MEDIA_SERVER_VERIFY_VA_SKIP_WEBRTC=1`: 브라우저 검증 제외
 - `MEDIA_SERVER_VERIFY_VA_SKIP_RTSP=1`: RTSP 검증 제외
 - `MEDIA_SERVER_VERIFY_VA_EXTRA_QUERY='overlayWaitMs=180&overlaySyncToleranceMs=400'`: 추가 query 적용

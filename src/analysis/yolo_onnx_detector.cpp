@@ -1,4 +1,6 @@
-// 파일 용도: ONNX Runtime 기반 YOLO object detector와 ONNX 미사용 빌드용 stub을 구현한다.
+// 파일 요약: ONNX Runtime 기반 YOLO detector와 미사용 빌드용 stub 구현이다.
+// 동작 요약: 전처리, inference, output layout/box/score parsing, NMS를 수행한다.
+// 동작 요약: YOLOv8/YOLO11/YOLOv5 계열 output 차이를 profile 옵션으로 흡수한다.
 #include "analysis/detector.h"
 
 #include <algorithm>
