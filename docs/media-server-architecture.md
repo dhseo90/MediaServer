@@ -355,12 +355,13 @@ SharedStream
 클라이언트 전달 방식 후보:
 - 기존 RTSP/WebRTC 영상 위에 overlay를 그린 2차 스트림 제공
 - 별도 HTTP endpoint로 snapshot 이미지 제공
+- 정적 이미지 파일을 분석해 metadata와 overlay JPEG를 반환하는 개발용 endpoint 제공
 - WebRTC data channel 또는 별도 API로 metadata 제공
 
 이 원칙을 두는 이유:
 - source 수집과 분석 로직을 분리해야 기본 relay 경로를 안정적으로 유지할 수 있다.
 - 같은 `SharedStream`에서 `relay subscriber`와 `analysis subscriber`를 동시에 붙일 수 있다.
-- `SharedStream::RefCount()`는 relay client만 세며, analysis tap은 `AnalysisSubscriberCount()`로 별도 확인한다. 따라서 분석 기능이 붙어도 live source idle cleanup을 막지 않는다.
+- `SharedStream::RefCount()`는 relay client만 세며, analysis tap은 `AnalysisSubscriberCount()`/`TotalSubscriberCount()`로 별도 확인한다. source 제거는 relay client와 analysis subscriber가 모두 빠진 뒤에만 수행해 cleanup race로 분석 tap이 중간에 끊기지 않게 한다.
 - 이후 객체 감지 모델 교체, snapshot 정책 추가, 이벤트 API 추가가 쉬워진다.
 
 현재 구현:
@@ -380,6 +381,8 @@ SharedStream
 - `/lab/analysis/taps/{tapId}/metadata`: 최신 detection metadata JSON endpoint
 - `/lab/analysis/taps/{tapId}/snapshot.jpg`: 최신 분석 frame JPEG snapshot endpoint
 - `/lab/analysis/taps/{tapId}/overlay.jpg`: 최신 분석 frame에 detection box/label을 그린 JPEG endpoint
+- `/lab/analysis/image?asset=...` 또는 `?file=...`: 정적 이미지 한 장을 decode하고 YOLO metadata JSON을 반환하는 개발용 endpoint
+- `/lab/analysis/image/snapshot.jpg`, `/lab/analysis/image/overlay.jpg`: 같은 정적 이미지의 원본/overlay JPEG endpoint
 - RTSP/WebRTC consume query에 `va=1`을 지정하면 egress가 같은 source에 analysis tap을 자동으로 붙이고, encoder 직전 raw frame에 overlay를 합성한다.
 - `va=1`의 detector/model/labels/fps/queue/tracking 기본값은 URL이 아니라 `include/stdafx.h`와 `MEDIA_SERVER_ANALYSIS_*` 환경변수로 관리한다. `overlay=1`, `analysis=1`, `analysisOverlay=1`은 호환성용 alias다.
 - 기본 VA profile은 tracker를 켜며, event rule engine은 `trackId`가 있으면 `presence`, `enter`, `exit`, `line-crossing(any)` 상태를 객체 ID 기준으로 유지한다. tracker를 끈 profile은 detection index 기반 fallback을 사용한다.
@@ -399,11 +402,9 @@ SharedStream
 - `/lab/analysis/profiles`, `/lab/analysis/rules`는 1차 persistent registry API다. 기본 저장 파일은 `.media_server.analysis_registry.json`이고, rule은 저장/조회/수정/삭제와 함께 `sourceKind`/`route`/`clientId` context filter를 통해 `va=1` overlay와 analysis tap event 판정에 적용된다. URL에 명시 profile/tuning query가 없으면 context와 맞는 rule의 `analysis.profileId`를 사용해 저장 profile을 자동 선택한다. profile 자동 선택은 `priority`가 높은 rule을 우선하고, priority가 같으면 더 구체적인 match 조건을 우선한다.
 
 아직 남은 핵심 작업:
-- 실제 RTSP/WebRTC route별 profile/rule matching 장시간 검증
 - tracker ID switch 통계 수집 결과를 누적해 Kalman/ByteTrack류 보강 여부 판단
-- 이미지 입력을 받아 분석 결과 overlay 이미지를 반환하는 개발용 endpoint
-- 모델별 output layout 옵션 정교화
-- adaptive tuner의 운영 기준값(profile별 bounds/cooldown)과 반복/장시간 회귀 테스트
+- 정적 이미지 분석 endpoint를 `/lab` UI에 연결할지, 업로드/임시파일 정책을 둘지 판단
+- adaptive tuner의 운영 기준값(profile별 bounds/cooldown) 정리
 
 ## 13. 라이브러리 선택
 - `live555`: Linux/macOS/Windows 모두 사용 가능. RTSP 서버/클라이언트에 집중된 경량 라이브러리.

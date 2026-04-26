@@ -40,6 +40,8 @@ Usage:
                  YOLO 모델별 output layout/box/score 조합을 실제 모델로 검증합니다.
   verify-adaptive
                  adaptive tuner의 downshift/upshift 장시간 회귀를 검증합니다.
+  verify-image-analysis
+                 정적 이미지 입력의 YOLO metadata/snapshot/overlay API를 검증합니다.
 
 install 옵션:
   --basic        AI/ONNX 없이 미디어 스트리밍 의존성만 설치하고 기본 빌드를 build-gst로 설정합니다.
@@ -144,6 +146,10 @@ case "${cmd}" in
   verify-adaptive)
     require_internal verify_adaptive_tuner.sh
     exec "${INTERNAL_DIR}/verify_adaptive_tuner.sh" "$@"
+    ;;
+  verify-image-analysis)
+    require_internal verify_image_analysis.sh
+    exec "${INTERNAL_DIR}/verify_image_analysis.sh" "$@"
     ;;
   *)
     echo "알 수 없는 명령입니다: ${cmd}"

@@ -15,6 +15,7 @@
 #include <fstream>
 #include <filesystem>
 #include <iostream>
+#include <initializer_list>
 #include <mutex>
 #include <optional>
 #include <sstream>
@@ -25,8 +26,11 @@
 #include <vector>
 
 #include "app_config.h"
+#include "analysis/detector.h"
 #include "analysis/event_post_dispatcher.h"
 #include "analysis/event_rule_engine.h"
+#include "analysis/image_frame_loader.h"
+#include "analysis/object_tracker.h"
 #include "analysis/overlay_renderer.h"
 #include "analysis/snapshot_encoder.h"
 #include "ingress/analysis_query.h"
@@ -4131,8 +4135,17 @@ std::string AnalysisTapListJson(const std::vector<analysis::AnalysisManager::Tap
     return out.str();
 }
 
+struct StaticImageAnalysis {
+    analysis::RawVideoFrame frame;
+    analysis::AnalysisResult result;
+    analysis::AnalysisProfile profile;
+    std::string root_name;
+    std::string token;
+    double analysis_ms{0.0};
+};
+
 std::string AnalysisCapabilitiesJson() {
-    return R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"yoloOutputLayouts":["auto","channels-first","channels-last"],"yoloBoxFormats":["cxcywh","xyxy"],"yoloScoreModes":["auto","class-only","objectness-class","score-class","class-score"],"outputs":["metadata","events","snapshot.jpg","overlay.jpg","rtsp-overlay","webrtc-overlay"],"eventTypes":["presence","enter","exit","line-crossing"],"eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile with lightweight tracking","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"tracking":"optional object tracking on/off","fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","outputLayout":"optional YOLO output tensor layout: auto/channels-first/channels-last","boxFormat":"optional YOLO box format: cxcywh/xyxy","scoreMode":"optional YOLO score mode: auto/class-only/objectness-class/score-class/class-score","thickness":"optional box line thickness","drawLabels":"optional label visibility","trackIds":"optional track id labels on overlay","trackTrails":"optional track trail overlay"}})";
+    return R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"yoloOutputLayouts":["auto","channels-first","channels-last"],"yoloBoxFormats":["cxcywh","xyxy"],"yoloScoreModes":["auto","class-only","objectness-class","score-class","class-score"],"outputs":["metadata","events","snapshot.jpg","overlay.jpg","image-metadata","image-snapshot.jpg","image-overlay.jpg","rtsp-overlay","webrtc-overlay"],"eventTypes":["presence","enter","exit","line-crossing"],"eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile with lightweight tracking","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"tracking":"optional object tracking on/off","fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","outputLayout":"optional YOLO output tensor layout: auto|channels-first|channels-last","boxFormat":"optional YOLO box format: cxcywh|xyxy","scoreMode":"optional YOLO score mode: auto|class-only|objectness-class|score-class|class-score","thickness":"optional box line thickness","drawLabels":"optional label visibility","trackIds":"optional track id labels on overlay","trackTrails":"optional track trail overlay"}})";
 }
 
 std::string AnalysisProfilesJson() {
@@ -4141,6 +4154,232 @@ std::string AnalysisProfilesJson() {
 
 std::string AnalysisRulesJson() {
     return AnalysisRegistry().RulesJson();
+}
+
+bool IsSupportedImageFile(const std::filesystem::path& path) {
+    std::string ext = path.extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    return ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".bmp" || ext == ".webp";
+}
+
+bool HasParentTraversal(const std::filesystem::path& path) {
+    for (const auto& part : path) {
+        if (part == "..") {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::filesystem::path ProjectRelativeRoot(const std::filesystem::path& root) {
+    if (root.is_absolute()) {
+        return root;
+    }
+    return std::filesystem::current_path() / root;
+}
+
+bool ResolvePathUnderRoot(const std::filesystem::path& root,
+                          const std::string& token,
+                          std::filesystem::path* output,
+                          std::string* normalized_token,
+                          std::string* error_message) {
+    if (output == nullptr || normalized_token == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "internal image path output is missing";
+        }
+        return false;
+    }
+    if (token.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "image file token is required";
+        }
+        return false;
+    }
+
+    const std::filesystem::path token_path(token);
+    if (token_path.is_absolute() || HasParentTraversal(token_path)) {
+        if (error_message != nullptr) {
+            *error_message = "image path must be relative and stay inside the allowed root";
+        }
+        return false;
+    }
+
+    std::error_code ec;
+    const auto root_abs = std::filesystem::weakly_canonical(ProjectRelativeRoot(root), ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = "image root is not accessible";
+        }
+        return false;
+    }
+
+    const auto candidate = std::filesystem::weakly_canonical(root_abs / token_path, ec);
+    if (ec || !std::filesystem::exists(candidate, ec) || !std::filesystem::is_regular_file(candidate, ec)) {
+        if (error_message != nullptr) {
+            *error_message = "image file not found";
+        }
+        return false;
+    }
+    if (!IsSupportedImageFile(candidate)) {
+        if (error_message != nullptr) {
+            *error_message = "unsupported image extension";
+        }
+        return false;
+    }
+
+    std::error_code relative_ec;
+    const auto relative = std::filesystem::relative(candidate, root_abs, relative_ec);
+    if (relative_ec || relative.empty() || relative.is_absolute() || HasParentTraversal(relative)) {
+        if (error_message != nullptr) {
+            *error_message = "image path escaped the allowed root";
+        }
+        return false;
+    }
+
+    *output = candidate;
+    *normalized_token = relative.generic_string();
+    return true;
+}
+
+bool ResolveImageRequestPath(const std::unordered_map<std::string, std::string>& query,
+                             std::filesystem::path* output,
+                             std::string* root_name,
+                             std::string* normalized_token,
+                             std::string* error_message) {
+    if (output == nullptr || root_name == nullptr || normalized_token == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "internal image request output is missing";
+        }
+        return false;
+    }
+
+    if (const auto it = query.find("asset"); it != query.end() && !it->second.empty()) {
+        *root_name = "docs/assets";
+        return ResolvePathUnderRoot(std::filesystem::path("docs") / "assets",
+                                    it->second,
+                                    output,
+                                    normalized_token,
+                                    error_message);
+    }
+
+    std::string token;
+    if (const auto it = query.find("file"); it != query.end() && !it->second.empty()) {
+        token = it->second;
+    } else if (const auto it = query.find("image"); it != query.end() && !it->second.empty()) {
+        token = it->second;
+    }
+
+    if (token.empty()) {
+        const std::filesystem::path default_asset = std::filesystem::path("docs") / "assets" / "va-four-scene-sample.png";
+        std::error_code ec;
+        if (std::filesystem::exists(ProjectRelativeRoot(default_asset), ec)) {
+            *root_name = "docs/assets";
+            return ResolvePathUnderRoot(std::filesystem::path("docs") / "assets",
+                                        "va-four-scene-sample.png",
+                                        output,
+                                        normalized_token,
+                                        error_message);
+        }
+        if (error_message != nullptr) {
+            *error_message = "file, image, or asset query is required";
+        }
+        return false;
+    }
+
+    *root_name = "video";
+    return ResolvePathUnderRoot(app::GetAppConfig().file_root_path, token, output, normalized_token, error_message);
+}
+
+bool QueryHasAny(const std::unordered_map<std::string, std::string>& query,
+                 std::initializer_list<const char*> keys) {
+    return std::any_of(keys.begin(), keys.end(), [&query](const char* key) {
+        return query.find(key) != query.end();
+    });
+}
+
+bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& query,
+                        StaticImageAnalysis* output,
+                        std::string* error_message) {
+    if (output == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "missing static image analysis output";
+        }
+        return false;
+    }
+    *output = StaticImageAnalysis{};
+
+    std::filesystem::path image_path;
+    if (!ResolveImageRequestPath(query, &image_path, &output->root_name, &output->token, error_message)) {
+        return false;
+    }
+
+    if (!analysis::DecodeImageFileToRawFrame(image_path, &output->frame, error_message)) {
+        return false;
+    }
+    output->frame.source_key = "image:" + output->root_name + "/" + output->token;
+
+    auto profile_query = query;
+    if (!QueryHasAny(profile_query, {"va", "analysis", "overlay", "detector", "profile", "profileId"})) {
+        profile_query["va"] = "1";
+    }
+    analysis::AnalysisContext context;
+    context.source_kind = "image";
+    context.route = "http";
+    context.client_id = "analysis-image";
+    output->profile = ResolveAnalysisProfileForContext(BuildAnalysisProfileFromQuery(profile_query), context);
+    output->profile.adaptive_tuning_enabled = false;
+    output->profile.adaptive_input_size_enabled = false;
+
+    auto detector = analysis::CreateDetector(output->profile);
+    if (detector == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "failed to create image detector";
+        }
+        return false;
+    }
+    if (!detector->Start(error_message)) {
+        return false;
+    }
+
+    const auto started_at = std::chrono::steady_clock::now();
+    const bool analyzed = detector->Analyze(output->frame, &output->result, error_message);
+    output->analysis_ms =
+        std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started_at).count();
+    detector->Stop();
+    if (!analyzed) {
+        return false;
+    }
+
+    output->result.source_key = output->frame.source_key;
+    output->result.profile_key = analysis::BuildProfileKey(output->profile);
+    output->result.context = std::move(context);
+    output->result.pts = output->frame.pts;
+    if (output->profile.enable_tracking) {
+        analysis::ObjectTracker tracker;
+        tracker.Update(&output->result);
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+std::string StaticImageAnalysisJson(const StaticImageAnalysis& analysis) {
+    std::ostringstream out;
+    out << "{"
+        << "\"image\":{"
+        << "\"root\":\"" << JsonEscape(analysis.root_name) << "\","
+        << "\"file\":\"" << JsonEscape(analysis.token) << "\","
+        << "\"width\":" << analysis.frame.width << ","
+        << "\"height\":" << analysis.frame.height
+        << "},"
+        << "\"analysisMs\":" << analysis.analysis_ms << ","
+        << "\"profileKey\":\"" << JsonEscape(analysis.result.profile_key) << "\","
+        << "\"result\":" << AnalysisResultJson(analysis.result)
+        << "}";
+    return out.str();
 }
 
 std::mutex& EventRuleRuntimeMapMutex() {
@@ -4708,6 +4947,85 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return JsonResponse(200, "OK",
                                                     "{\"ok\":true,\"deleted\":\"" + JsonEscape(id) + "\"}");
                             }
+                        }
+
+                        const auto analysis_image_prefix = std::string("/lab/analysis/image");
+                        if (request.path == analysis_image_prefix ||
+                            request.path.rfind(analysis_image_prefix + "/", 0) == 0) {
+                            if (request.method != "GET") {
+                                return JsonResponse(405, "Method Not Allowed",
+                                                    "{\"error\":\"method not allowed\"}");
+                            }
+                            const std::string suffix = request.path.size() == analysis_image_prefix.size()
+                                                           ? std::string()
+                                                           : request.path.substr(analysis_image_prefix.size());
+
+                            StaticImageAnalysis image_analysis;
+                            std::string error_message;
+                            if (!AnalyzeStaticImage(query, &image_analysis, &error_message)) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"" +
+                                                        JsonEscape(error_message.empty()
+                                                                       ? "failed to analyze image"
+                                                                       : error_message) +
+                                                        "\"}");
+                            }
+
+                            if (suffix.empty() || suffix == "/metadata") {
+                                return JsonResponse(200, "OK", StaticImageAnalysisJson(image_analysis));
+                            }
+
+                            if (suffix == "/snapshot" || suffix == "/snapshot.jpg") {
+                                const int quality = ParseClampedIntQuery(query, "quality", 85, 1, 100);
+                                analysis::EncodedImage image;
+                                if (!analysis::EncodeJpeg(image_analysis.frame, quality, &image, &error_message)) {
+                                    return HttpResponse{500,
+                                                        "Internal Server Error",
+                                                        "text/plain; charset=utf-8",
+                                                        {},
+                                                        error_message.empty() ? "failed to encode image snapshot"
+                                                                              : error_message};
+                                }
+                                HttpResponse ok;
+                                ok.content_type = image.content_type;
+                                ok.headers["Cache-Control"] = "no-store";
+                                ok.body.assign(reinterpret_cast<const char*>(image.data.data()), image.data.size());
+                                return ok;
+                            }
+
+                            if (suffix == "/overlay" || suffix == "/overlay.jpg") {
+                                analysis::RawVideoFrame overlay_frame;
+                                analysis::OverlayRenderOptions options = BuildOverlayRenderOptionsFromQuery(query);
+                                if (!analysis::RenderDetectionOverlay(
+                                        image_analysis.frame, image_analysis.result, options, &overlay_frame, &error_message)) {
+                                    return HttpResponse{500,
+                                                        "Internal Server Error",
+                                                        "text/plain; charset=utf-8",
+                                                        {},
+                                                        error_message.empty() ? "failed to render image overlay"
+                                                                              : error_message};
+                                }
+
+                                const int quality = ParseClampedIntQuery(query, "quality", 85, 1, 100);
+                                analysis::EncodedImage image;
+                                if (!analysis::EncodeJpeg(overlay_frame, quality, &image, &error_message)) {
+                                    return HttpResponse{500,
+                                                        "Internal Server Error",
+                                                        "text/plain; charset=utf-8",
+                                                        {},
+                                                        error_message.empty() ? "failed to encode image overlay"
+                                                                              : error_message};
+                                }
+                                HttpResponse ok;
+                                ok.content_type = image.content_type;
+                                ok.headers["Cache-Control"] = "no-store";
+                                ok.body.assign(reinterpret_cast<const char*>(image.data.data()), image.data.size());
+                                return ok;
+                            }
+
+                            return JsonResponse(404, "Not Found",
+                                                "{\"error\":\"analysis image endpoint not found\"}");
                         }
 
                         if (request.path == "/lab/analysis/taps") {

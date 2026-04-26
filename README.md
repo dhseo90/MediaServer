@@ -475,6 +475,7 @@ ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성
 ./server.sh verify-tracker-stability
 ./server.sh verify-yolo-layouts
 ./server.sh verify-adaptive
+./server.sh verify-image-analysis
 ```
 
 `./server.sh test`의 기본 기준은 안정 기능으로 승격한 스트리밍 + 기본 VA 기능을 포함한다.
@@ -483,11 +484,29 @@ ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성
 - 제외: HTTP/HLS URI source, YouTube source/import, `/lab` UI, 룰/이벤트/POST, adaptive tuner.
 - 선택 검증: `./server.sh test --include-rules`는 profile/rule registry CRUD와 rule match 기반 profile 자동 선택을 추가 확인한다.
 - 선택 검증: `./server.sh test --include-va-events`는 실제 이동 영상 기반 tracker/event 판정을 추가 확인한다.
+- 선택 검증: `./server.sh test --include-image-analysis`는 개발용 정적 이미지 분석 API를 추가 확인한다.
 - 예외 생략: `./server.sh test --skip-va`는 ONNX/브라우저 자동화가 불가능한 환경에서만 사용한다.
 - 외부 네트워크 또는 LAN IP probe가 막힌 격리 환경에서만 `./server.sh test --skip-external`로 LAN IP 외부 접근성과 제3자 RTSP upstream 확인을 생략한다.
 - 신뢰 가능한 카메라/테스트 RTSP URL이 있으면 `MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS='rtsp://...' ./server.sh test`로 hard gate 검증한다.
 - 실패 시 `.media_server.test/<timestamp>/` 아래에 원본 로그를 남기고, 콘솔에는 한글 원인 추정을 출력한다.
 - 앞으로 기능을 추가할 때는 안정 기능으로 승격한 항목만 `./server.sh test` 기본 기준에 넣고, 아직 실험/불안정한 항목은 `--include-*` 선택 검증으로 먼저 둔다.
+
+tracker 장시간 검증:
+
+```bash
+./server.sh verify-tracker-stability --long
+```
+
+`--long`은 기본 120초 x 3회 반복으로 동작한다. 기본 파일을 따로 지정하지 않으면 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4`에서 2분 이상 장기 샘플 `video/imports/va_tracking_event_slow_long_1280x720_30fps_h264.mp4`를 자동 생성해 사용한다. 장기 샘플은 원본 이동 영상을 5배 슬로우모션으로 늘려 서버 EOF loop와 편집 컷 경계를 피한다. 이 장기 샘플은 로컬 검증 산출물이며 git에는 포함하지 않는다.
+
+반복 검증은 기본적으로 각 iteration 사이에 source idle cleanup을 기다려 같은 파일을 처음부터 다시 분석한다. 이렇게 해야 2회차가 1회차 재생이 끝난 파일 source의 중간/끝부분에 붙어서 stale PTS가 누적되는 오판을 피할 수 있다. 연속 스트림처럼 source를 재시작하지 않고 보고 싶다면 `--continuous-source`를 사용한다.
+
+tracker fragmentation 계산은 기본적으로 다음 안정화 필터를 적용한다.
+- `segmentAware=1`: PTS 역행/중복 PTS를 감지해 파일 반복/정지 경계를 segment로 분리한다.
+- `classWhitelist=person`: 테스트 목적상 사람 track만 fragmentation 계산에 포함한다.
+- `minTrackSamples=3`: 1~2회만 보인 짧은 오검출 track은 제외한다.
+- `maxStaleRatio=0.3`: 같은 PTS가 과도하게 반복되면 분석 source가 멈춘 것으로 보고 실패시킨다.
+- 필요하면 `--class-whitelist '*'`, `--min-track-samples 1`, `--max-stale-ratio 1.0`, `--no-segment-aware`, `--no-long-sample`로 원시 계산에 가깝게 바꿀 수 있다.
 
 변경 전후 최소 확인:
 
@@ -806,7 +825,7 @@ SharedStream
 핵심 원칙:
 - 분석 로직은 `SourceWorker` 안에 섞지 않고 `SharedStream`을 구독하는 별도 계층으로 둡니다.
 - 원본 전송 경로와 분석 파이프라인을 분리해서, 분석 기능 추가가 기본 스트리밍 안정성을 깨지 않게 합니다.
-- `SharedStream`은 client subscriber와 analysis subscriber를 분리해서 센다. 분석 tap이 붙어도 live source cleanup 기준인 client ref-count를 증가시키지 않는다.
+- `SharedStream`은 client subscriber와 analysis subscriber를 분리해서 센다. 분석 tap은 relay client ref-count를 증가시키지 않지만, source 제거는 전체 subscriber가 빠진 뒤에만 수행해 분석 중 cleanup race를 피한다.
 - 분석 결과는 최소 세 가지 타입으로 나눠 다룹니다.
   - `metadata`: box, label, score, timestamp
   - `derived image`: JPEG snapshot, thumbnail, crop image
@@ -1051,7 +1070,7 @@ adaptive tuner 상태는 `/lab/analysis/taps/{tapId}`에서 확인한다.
 클라이언트 전달 방식 후보:
 - RTSP/WebRTC 본 스트림 위에 overlay된 영상으로 전달
 - 별도 HTTP API로 원본 snapshot과 overlay snapshot 이미지를 전달
-- 정적 이미지 입력을 받아 detection metadata와 overlay 이미지를 반환하는 개발용 API 추가
+- 정적 이미지 입력을 받아 detection metadata와 overlay 이미지를 반환하는 개발용 API 제공
 - WebRTC data channel 또는 별도 API로 detection metadata를 전달
 
 즉 미래 구조는 단순한 `stream relay`를 넘어 아래처럼 확장됩니다.
@@ -1063,6 +1082,23 @@ Client <-> (RTSP or WebRTC) <-> MediaServer
                                    +-> Analysis Path
                                    +-> Snapshot / Metadata Path
 ```
+
+정적 이미지 분석 API:
+
+```bash
+# docs/assets 기본 샘플 이미지를 YOLO로 분석하고 metadata를 JSON으로 반환
+curl -fsS 'http://127.0.0.1:8081/lab/analysis/image?asset=va-four-scene-sample.png'
+
+# 원본 이미지를 JPEG snapshot으로 반환
+curl -fsS -o snapshot.jpg \
+  'http://127.0.0.1:8081/lab/analysis/image/snapshot.jpg?asset=va-four-scene-sample.png&quality=80'
+
+# detection overlay가 합성된 JPEG 반환
+curl -fsS -o overlay.jpg \
+  'http://127.0.0.1:8081/lab/analysis/image/overlay.jpg?asset=va-four-scene-sample.png&labelLang=ko&quality=88'
+```
+
+이미지 입력은 기본적으로 `asset=<docs/assets 파일명>` 또는 `file=<video root 기준 상대경로>`를 받는다. 절대경로와 `..` 경로 이탈은 거부한다. 기본 profile query가 없으면 `va=1`과 동일하게 서버 기본 YOLO profile을 사용하고, 필요하면 `detector`, `profile`, `confidence`, `inputWidth`, `outputLayout`, `boxFormat`, `scoreMode` 같은 기존 VA query를 그대로 붙일 수 있다.
 
 ## 현재 지원 codec route
 
@@ -1324,7 +1360,8 @@ MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS='rtsp://camera-or-test-host/live' ./server.
    - HTTP/HLS는 코드 경로가 있지만 최신 `source=http -> RTSP` 503 재현 때문에 분석 1차 범위에서 제외하고 후속 안정화에서 다시 확인한다.
    - 송신 경로(RTSP/WebRTC egress)는 직접 막지 않는다.
    - tracker 기반 이벤트 실제 이동 영상 검증과 rule/profile matching 우선순위 1차 smoke는 완료했다.
-   - 다음 개발은 route별 profile/rule matching 검증을 장시간 반복 기준으로 확장하고, tracker ID switch 통계와 Kalman/ByteTrack류 보강 검토 순서로 진행한다.
+   - route별 profile/rule matching 장시간 검증, tracker ID switch 통계, 정적 이미지 분석 API 1차 구현은 완료했다.
+   - 다음 개발은 Kalman/ByteTrack류 tracker 보강 필요성 재판단, 이미지 분석 UI 연결, 외부 RTSP/WebRTC 운영 설정 정리 순서로 진행한다.
    - 외부 RTSP, WebRTC 운영 설정, 실험실 YouTube, `/lab/import` 외부 네트워크 재검증 같은 보류 항목은 후속 안정화에서 다시 main 기준으로 확인한다.
 2. 운영 안정화 후속
    - 외부 RTSP source별 timeout/profile 설정 확장
@@ -1336,4 +1373,4 @@ MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS='rtsp://camera-or-test-host/live' ./server.
    - `/lab/import` 파일 다운로드는 개발용 샘플 생성 도구로 기본 표시하되, 필요하면 `MEDIA_SERVER_ENABLE_LAB_YOUTUBE_IMPORT=0`으로 끈다.
    - 공개 repo 기본 흐름에서는 `source=http|hls`를 사용하고, 실험실 검증은 명시적인 opt-in에서만 수행한다.
    - 지역 제한/로그인 필요/비공개 URL은 우회하지 않고 실패시키는 정책을 유지한다.
-   - 정적 이미지 파일을 업로드/선택하면 YOLO 분석 결과를 overlay 이미지와 metadata로 반환하는 API를 검토한다.
+   - 정적 이미지 분석은 현재 `asset`/`file` query 기반이다. 업로드 UI/임시파일 정책은 추후 별도 검토한다.

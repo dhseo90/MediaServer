@@ -22,10 +22,10 @@ bool StreamRegistry::TryRemoveIfIdle(const StreamKey& key) {
     if (it == streams_.end()) {
         return false;
     }
-    if (it->second->RefCount() > 0) {
+    if (it->second->TotalSubscriberCount() > 0) {
         return false;
     }
-    // subscriber가 완전히 빠진 뒤에만 source를 멈추고 registry에서 제거한다.
+    // relay client와 analysis tap이 모두 빠진 뒤에만 source를 멈추고 registry에서 제거한다.
     it->second->StopSource();
     streams_.erase(it);
     return true;

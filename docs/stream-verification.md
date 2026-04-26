@@ -127,7 +127,7 @@
 - 1차 skeleton 검증
   - `./server.sh start`로 AI 포함 기본 빌드(`build-gst-onnx`)와 analysis module 포함 여부를 확인한다.
   - 기존 `file -> RTSP`, `file -> WebRTC(signaling)` smoke test가 그대로 동작해야 한다.
-  - analysis tap이 붙어도 `SharedStream::RefCount()`는 relay client 수만 세야 한다.
+  - analysis tap이 붙어도 `SharedStream::RefCount()`는 relay client 수만 세되, source 제거는 `TotalSubscriberCount()` 기준으로 analysis tap까지 빠진 뒤에만 수행해야 한다.
   - 개발용 HTTP endpoint:
     - `POST /lab/analysis/taps?file=sample_h264.mp4&profileId=debug&fps=5`
     - `GET /lab/analysis/taps/{tapId}`
@@ -697,6 +697,11 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - `unique_tracks`, `max_simultaneous_tracks`, `fragmentation_ratio`, track별 관측 sample 수, 평균 분석 시간을 출력한다.
   - 이 값은 ground truth 기반 ID switch count는 아니며, Kalman/ByteTrack류 보강 필요성을 판단하기 위한 1차 proxy다.
   - `--duration`, `--repeat`, `--interval`, `--long` 옵션으로 반복/장시간 측정이 가능하다.
+  - `--long`은 30초 기본 이동 영상을 5배 슬로우모션으로 늘린 150초 장기 샘플 `imports/va_tracking_event_slow_long_1280x720_30fps_h264.mp4`를 로컬에 자동 생성해 서버 loop/편집 컷 경계 영향을 줄인다.
+  - `--long` 반복 검증은 기본적으로 iteration 사이에 source idle cleanup을 기다려 같은 파일을 처음부터 다시 분석한다. 연속 source 동작을 보고 싶으면 `--continuous-source`를 사용한다.
+  - 장시간 통계는 기본적으로 `person` class만 포함하고, 3회 미만 관측 track은 제외한다. `--class-whitelist`, `--min-track-samples`로 조정할 수 있다.
+  - PTS 역행/중복 PTS는 segment-aware 모드에서 반복/정지 경계로 분리한다. 중복 PTS 비율이 기본 `0.3`을 넘으면 source 정지/EOF 가능성이 있어 실패로 처리한다.
+  - long 검증의 fragmentation ratio는 전체 반복 횟수 누적값이 아니라 segment별 ratio의 최댓값으로 판단한다.
 - `2026-04-26` YOLO output layout 옵션을 명시적으로 선택할 수 있게 정리했다.
   - `outputLayout=auto|channels-first|channels-last`, `boxFormat=cxcywh|xyxy`, `scoreMode=auto|class-only|objectness-class|score-class|class-score`를 query/profile 문서에서 받을 수 있다.
   - 기본값은 기존 `YOLOv8/YOLO11` 검증 모델과 호환되는 `auto + cxcywh + auto`다.
@@ -704,14 +709,19 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
 - `2026-04-26` adaptive tuner 장시간 회귀 검증을 `./server.sh verify-adaptive`에 추가했다.
   - dummy detector delay로 과부하를 만들어 `targetFps` downshift를 확인한다.
   - delay 없는 저부하 tap으로 `targetFps` upshift를 확인한다.
+- `2026-04-26` 정적 이미지 분석 API와 선택 검증 `./server.sh verify-image-analysis`를 추가했다.
+  - `/lab/analysis/image?asset=va-four-scene-sample.png`는 docs/assets의 샘플 이미지를 decode하고 YOLO metadata JSON을 반환한다.
+  - `/lab/analysis/image/snapshot.jpg`, `/lab/analysis/image/overlay.jpg`는 각각 원본 snapshot과 detection overlay JPEG를 반환한다.
+  - `asset`은 `docs/assets`, `file`/`image`는 video root 기준 상대경로만 허용하며 절대경로와 `..` 경로 이탈은 400으로 거부한다.
+  - 기본 `./server.sh test`에는 아직 넣지 않고 `./server.sh test --include-image-analysis` 선택 검증으로 연결했다.
 
 ## 남은 확인 항목
 - 다음 구현 순서
-  - 1차: `./server.sh verify-route-profiles`, `./server.sh verify-tracker-stability`, `./server.sh verify-yolo-layouts`, `./server.sh verify-adaptive`를 더 긴 duration/반복 횟수 기준으로 확장
-  - 2차: tracker 통계 결과 기준으로 Kalman/ByteTrack류 보강 여부 판단
+  - 1차: tracker 통계 결과 기준으로 Kalman/ByteTrack류 보강 여부 판단
+  - 2차: 정적 이미지 분석 API를 `/lab` UI에 연결할지, 업로드/임시파일 정책을 둘지 결정
   - 3차: 다양한 `xyxy` end2end 호환 모델을 추가 확보해 실제 모델 검증을 hard gate로 승격
-  - 4차: `./server.sh verify-va`와 `./server.sh verify-va-events`를 더 긴 duration으로 반복 실행해 adaptive tuner/tracker 장시간 회귀 누적
-- source/route/client rule matching, context 기반 profile 자동 선택, priority 기반 rule 선택은 VA rule context 기준 1차 구현했다. 남은 작업은 route별 검증을 반복/장시간 기준으로 확장하고 운영 기본값을 확정하는 것이다.
+  - 4차: `./server.sh verify-va`, `./server.sh verify-va-events`, `./server.sh verify-image-analysis`를 더 긴 duration/반복으로 누적
+- source/route/client rule matching, context 기반 profile 자동 선택, priority 기반 rule 선택은 VA rule context 기준 1차 구현했고, route별 장시간 검증은 통과했다. 남은 작업은 운영 기본값을 확정하는 것이다.
 - `HTTP/HLS URI -> RTSP` 최신 `503` 재확인 및 수정
 - audio-only input은 현재 video relay/analysis 준비 범위 밖이다. RTSP/WebRTC egress는 video track을 기준으로 동작한다.
 - 외부 wowza source 재검증

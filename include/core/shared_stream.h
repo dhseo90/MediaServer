@@ -25,7 +25,7 @@ public:
     bool AddSubscriber(const std::string& session_id, SubscriberCallback callback);
     bool AddAnalysisSubscriber(const std::string& subscriber_id, SubscriberCallback callback);
     void RemoveSubscriber(const std::string& session_id);
-    // RefCount는 relay client 수만 센다. analysis tap은 live source cleanup을 막으면 안 된다.
+    // RefCount는 relay client 수만 센다. source 제거 판단은 analysis tap까지 포함한 TotalSubscriberCount를 쓴다.
     std::size_t RefCount() const;
     std::size_t AnalysisSubscriberCount() const;
     std::size_t TotalSubscriberCount() const;
