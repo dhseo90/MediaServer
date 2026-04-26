@@ -111,6 +111,10 @@
 - 8차 묶음은 YouTube/import 상태 문서 분리, resolver 실패 유형 확장, Lab import UI smoke, lifecycle/idle cleanup 기준 정리, 최종 smoke 재실행을 완료했다.
 - 검증: `./server.sh verify-lab-import-ui --http-base http://127.0.0.1:8081` 통과 `3/0/0`. `/lab/import` HTML 필수 요소와 `/lab/import/jobs` 구조를 확인했다.
 - 검증: `MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 ./server.sh test --no-start --include-rules --include-rule-ui --include-va-events --include-image-analysis`는 `18/1/4`로 WHIP publish 케이스가 1회 readiness race(`unknown WebRTC source`) 실패했다.
-- 재검증: `MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_VERIFY_SOURCE_FILTER=webrtc_local_publish_h264_opus ./server.sh verify-codecs` 통과 `5/0/11`. 실패 케이스 단독 재실행은 통과했다.
-- 다음 안정 커밋 후보는 이번 18~60번 개발 묶음 전체다. 단, 통합 smoke 전체 재실행은 WHIP race 때문에 단독 재검증 통과 사실을 커밋 메시지/PR 설명에 함께 적는다.
-- 추가 다채널 점검은 `./server.sh verify-multichannel`로 분리했다. 같은 영상 다중 WebRTC client는 `activeSessions=N`, dedup stream `1`을 확인하고, 여러 영상 다중 client는 source 수와 같은 dedup stream 수를 확인한다.
+- 후속 보강: WHIP publish source readiness를 `/lab/runtime/status`의 `webrtcHttp.publishSources[].hasVideo/hasAudio` 기준으로 기다리게 했다. `MEDIA_SERVER_VERIFY_SOURCE_FILTER=webrtc_local_publish_h264_opus ./server.sh verify-codecs`는 readiness 보강 후 `5/0/11`로 통과했다.
+- 추가 다채널 점검은 `./server.sh verify-multichannel`로 분리했다. 같은 영상 다중 WebRTC client는 `activeSessions=N`, dedup stream `1`을 확인하고, 여러 영상 다중 client는 source 수와 같은 dedup stream 수를 확인한다. `--include-va`는 VA overlay 다채널의 `activeAnalysisTaps`와 종료 후 cleanup까지 확인한다.
+- 9차 장기성 검증 묶음은 WHIP readiness 보강, 다채널 VA 반복, URI/HLS 반복, VA/tracker/YOLO/adaptive, WebRTC ICE, route profile, 전체 codec matrix를 같은 서버 세션에서 재검증했다.
+- 검증: `./server.sh verify-multichannel --include-va --repeat 3 --single-clients 3 --clients-per-source 2 --hold-ms 12000` 통과 `24/0/0`. 일반/VA 단일 source와 다중 source fan-out 모두 반복 간 cleanup까지 확인했다.
+- 검증: `./server.sh verify-uri-longrun --iterations 3 --include-external --use-default-external --external-rtsp-routes default,h264,opus` 통과 `12/0/0`. 로컬 HTTP/HLS와 Mux/Apple 외부 HLS advisory를 함께 확인했다.
+- 검증: `./server.sh verify-va-events --long` 통과 `17/0/0`, `./server.sh verify-tracker-stability --long --overlap-focus` 통과 `8/0/0`, `./server.sh verify-yolo-layouts --duration 10 --no-download` 통과 `7/0/0`, `./server.sh verify-adaptive` 통과 `8/0/0`.
+- 검증: `./server.sh verify-route-profiles` 통과 `7/0/0`, `./server.sh verify-webrtc-ice` 통과 `8/0/0`, `./server.sh verify-codecs` 통과 `67/0/3`. 외부 운영 TURN relay/auth는 credential 미확보로 이번 묶음에서도 진행하지 않았다.

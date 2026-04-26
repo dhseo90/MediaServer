@@ -159,6 +159,9 @@ cleanup() {
       wait "${pid}" 2>/dev/null || true
     fi
   done
+  for log_file in "${LAUNCHER_LOGS[@]:-}"; do
+    cleanup_whip_session_from_log "${log_file}"
+  done
 }
 
 start_local_launcher() {
@@ -302,9 +305,12 @@ start_whip_publisher() {
   local duration_s="$4"
 
   # WebRTC source 검증은 WHIP publisher를 먼저 띄우고 sourceId를 MediaServer consumer 요청에서 사용한다.
+  # launcher PID가 실제 Python publisher를 가리키게 해야 SIGTERM 시 cleanup DELETE가 실행된다.
   local log_file="/tmp/${name}.publisher.log"
-  nohup bash -lc \
-    "source \"${SCRIPT_DIR}/env_common.sh\" && media_server_apply_homebrew_gst_env && python3 -u \"${SCRIPT_DIR}/whip_publish_test.py\" --http-base \"${http_base}\" --source-id \"${source_id}\" --duration \"${duration_s}\"" \
+  nohup python3 -u "${SCRIPT_DIR}/whip_publish_test.py" \
+    --http-base "${http_base}" \
+    --source-id "${source_id}" \
+    --duration "${duration_s}" \
     > "${log_file}" 2>&1 &
   local launcher_pid=$!
   LAUNCHER_PIDS+=("${launcher_pid}")
@@ -319,8 +325,13 @@ start_whip_publisher() {
       return 1
     fi
     if grep -q "session created:" "${log_file}" 2>/dev/null; then
-      log_info "publisher ready: sourceId=${source_id}"
-      return 0
+      if wait_for_published_webrtc_source_ready "${http_base}" "${source_id}" 20; then
+        log_info "publisher ready: sourceId=${source_id}"
+        return 0
+      fi
+      log_fail "${name}: WHIP publisher registered but media tracks did not become ready"
+      tail -n 80 "${log_file}" || true
+      return 1
     fi
     sleep 1
   done
@@ -328,6 +339,63 @@ start_whip_publisher() {
   log_fail "${name}: WHIP publisher did not become ready"
   tail -n 80 "${log_file}" || true
   return 1
+}
+
+wait_for_published_webrtc_source_ready() {
+  local http_base="$1"
+  local source_id="$2"
+  local timeout_s="$3"
+
+  # WHIP HTTP 응답 직후에는 sourceId가 등록됐더라도 track descriptor가 아직 준비되지 않았을 수 있다.
+  # 서버 runtime status에서 video/audio readiness를 확인한 뒤 consumer 검증으로 넘어간다.
+  python3 - "${http_base}" "${source_id}" "${timeout_s}" <<'PY'
+import json
+import sys
+import time
+import urllib.request
+
+http_base = sys.argv[1].rstrip("/")
+source_id = sys.argv[2]
+deadline = time.time() + float(sys.argv[3])
+last = {}
+while time.time() < deadline:
+    try:
+        with urllib.request.urlopen(f"{http_base}/lab/runtime/status", timeout=3) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except Exception as exc:  # noqa: BLE001
+        last = {"error": str(exc)}
+        time.sleep(0.5)
+        continue
+    for source in payload.get("webrtcHttp", {}).get("publishSources", []):
+        if source.get("sourceId") == source_id:
+            last = source
+            if source.get("active") and source.get("hasVideo") and source.get("hasAudio"):
+                print(
+                    "published source ready: "
+                    f"sourceId={source_id} hasVideo={source.get('hasVideo')} "
+                    f"hasAudio={source.get('hasAudio')} subscribers={source.get('subscriberCount', 0)}"
+                )
+                raise SystemExit(0)
+    time.sleep(0.5)
+print(f"published source not ready: sourceId={source_id} last={json.dumps(last, ensure_ascii=False)}", file=sys.stderr)
+raise SystemExit(1)
+PY
+}
+
+cleanup_whip_session_from_log() {
+  local log_file="$1"
+  [[ -z "${log_file}" || ! -f "${log_file}" ]] && return 0
+
+  # publisher가 비정상 종료되어 자체 cleanup을 못 해도 서버 session은 검증 스크립트가 회수한다.
+  local session_id
+  while IFS= read -r session_id; do
+    [[ -z "${session_id}" ]] && continue
+    local encoded_session
+    encoded_session="$(urlencode "${session_id}")"
+    if curl -fsS -X DELETE "http://${HTTP_ADDRESS}:${HTTP_PORT}/whip/publish/session/${encoded_session}" >/dev/null 2>&1; then
+      log_info "WHIP publish session deleted: ${session_id}"
+    fi
+  done < <(sed -n 's/.*session created: \([^ ]*\).*/\1/p' "${log_file}" | sort -u)
 }
 
 stop_tracked_launcher() {
@@ -339,6 +407,7 @@ stop_tracked_launcher() {
     wait "${pid}" 2>/dev/null || true
   fi
   if [[ -n "${log_file}" && -f "${log_file}" ]]; then
+    cleanup_whip_session_from_log "${log_file}"
     log_info "launcher stopped: pid=${pid} log=${log_file}"
   fi
 }

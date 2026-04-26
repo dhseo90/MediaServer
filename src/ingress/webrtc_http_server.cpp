@@ -41,6 +41,7 @@
 #include "ingress/request_parser.h"
 #include "ingress/lab_import_manager.h"
 #include "ingress/webrtc_egress_session.h"
+#include "ingress/webrtc_source_registry.h"
 #include "ingress/webrtc_source_session.h"
 
 namespace ingress {
@@ -4525,7 +4526,8 @@ std::string SourceJson(const std::string& session_id, const std::string& source_
 // 다채널 검증과 수동 진단에서 WebRTC session 수와 dedup stream 수를 비교할 수 있게 JSON으로 직렬화한다.
 std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& snapshot,
                               std::size_t http_egress_sessions,
-                              std::size_t whip_publish_sessions) {
+                              std::size_t whip_publish_sessions,
+                              const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources) {
     std::ostringstream out;
     out << "{"
         << "\"ok\":true,"
@@ -4538,7 +4540,22 @@ std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& 
         << "},"
         << "\"webrtcHttp\":{"
         << "\"egressSessions\":" << http_egress_sessions << ","
-        << "\"publishSessions\":" << whip_publish_sessions
+        << "\"publishSessions\":" << whip_publish_sessions << ","
+        << "\"publishSources\":[";
+    for (std::size_t i = 0; i < publish_sources.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"sourceId\":\"" << JsonEscape(publish_sources[i].source_id) << "\","
+            << "\"active\":" << (publish_sources[i].active ? "true" : "false") << ","
+            << "\"hasDescriptor\":" << (publish_sources[i].has_descriptor ? "true" : "false") << ","
+            << "\"hasVideo\":" << (publish_sources[i].has_video ? "true" : "false") << ","
+            << "\"hasAudio\":" << (publish_sources[i].has_audio ? "true" : "false") << ","
+            << "\"subscriberCount\":" << publish_sources[i].subscriber_count
+            << "}";
+    }
+    out << "]"
         << "}"
         << "}";
     return out.str();
@@ -5649,7 +5666,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                 "OK",
                                                 RuntimeStatusJson(impl_->session_manager.GetRuntimeStateSnapshot(),
                                                                   http_egress_sessions,
-                                                                  whip_publish_sessions));
+                                                                  whip_publish_sessions,
+                                                                  WebRtcSourceRegistry::Instance().Snapshots()));
                         }
 
                         if (request.method == "GET" && request.path == "/lab/analysis/capabilities") {

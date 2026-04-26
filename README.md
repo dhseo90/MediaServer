@@ -155,6 +155,7 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 ./server.sh verify-webrtc-ice
 ./server.sh verify-webrtc-ice --external-turn
 ./server.sh verify-multichannel
+./server.sh verify-multichannel --include-va --repeat 2
 ./server.sh verify-uri-longrun
 ./server.sh verify-uri-longrun --include-external --use-default-external
 ./server.sh verify-uri-longrun --include-external --external-urls https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8

@@ -909,7 +909,7 @@ RTSP egress 기준:
 ```
 `--include-rules`는 profile/rule registry CRUD와 rule match 기반 profile 자동 선택을 확인한다. `--include-va-events`는 레포에 포함한 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4` 이동 영상으로 presence, line-crossing, enter, exit 이벤트와 track ID 포함 여부를 확인한다. 이벤트/룰 POST 연동은 아직 운영 안정 기능으로 승격하지 않았으므로 별도 장시간 검증 후 기본 테스트 편입을 판단한다.
 
-YOLO/adaptive/WebRTC/URI 선택 검증은 `/tmp/media_server_*_summary.*` 파일을 함께 남긴다. `verify-yolo-layouts`는 parser 조합별 마지막 tap 상태, `verify-adaptive`는 downshift/input-size/upshift 상태 전환, `verify-webrtc-ice`는 requested/effective ICE policy와 relay fallback, `verify-multichannel`은 다중 client session/stream fan-out 상태, `verify-uri-longrun`은 외부 URL advisory 결과를 요약한다.
+YOLO/adaptive/WebRTC/URI 선택 검증은 `/tmp/media_server_*_summary.*` 파일을 함께 남긴다. `verify-yolo-layouts`는 parser 조합별 마지막 tap 상태, `verify-adaptive`는 downshift/input-size/upshift 상태 전환, `verify-webrtc-ice`는 requested/effective ICE policy와 relay fallback, `verify-multichannel`은 일반/VA overlay 다중 client session, stream fan-out, analysis tap cleanup 상태, `verify-uri-longrun`은 외부 URL advisory 결과를 요약한다.
 
 ### 1. 서버 상태 진단
 ```bash
@@ -1035,6 +1035,7 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./server.sh urls
   - browser consumer 기준 audio/video track 및 `decoded video frame` 확인
 - `file -> WebRTC 다채널 consume`
   - 같은 영상 다중 client는 dedup stream `1`, 여러 영상 다중 client는 source 수와 같은 stream 수를 확인
+  - `--include-va` 기준 VA overlay 다중 client는 session 수와 analysis tap 수가 일치하고 종료 후 cleanup되는지 확인
 - 로컬 전체 matrix 과거 결과
   - 당시 결과: `pass=63 fail=0 skip=3`
   - `2026-04-24` blocker 체크 결과: `pass=57 fail=6 skip=3`
