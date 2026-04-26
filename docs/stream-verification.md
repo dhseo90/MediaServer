@@ -104,8 +104,9 @@
   4. 필요 시 `./server.sh test --include-va-events`
   5. 필요 시 `./server.sh verify-route-profiles`
   6. 필요 시 `./server.sh verify-tracker-stability`
-  7. 필요 시 `./server.sh verify-adaptive`
-  8. `./server.sh stop`
+  7. 필요 시 `./server.sh verify-yolo-layouts`
+  8. 필요 시 `./server.sh verify-adaptive`
+  9. `./server.sh stop`
 - 판단 규칙
   - 위 stable 기준이 깨지면 분석 후속 개발보다 스트리밍 안정화 수정을 먼저 한다.
   - profile/rule/event 같은 분석 후속 개발은 선택 테스트로 검증하되, 안정 기능으로 승격 전까지 기본 `./server.sh test`에는 넣지 않는다.
@@ -695,18 +696,20 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - 기본 이동 영상 `imports/va_tracking_event_1280x720_30fps_h264.mp4`로 analysis tap을 만들고 active tap snapshot을 polling한다.
   - `unique_tracks`, `max_simultaneous_tracks`, `fragmentation_ratio`, track별 관측 sample 수, 평균 분석 시간을 출력한다.
   - 이 값은 ground truth 기반 ID switch count는 아니며, Kalman/ByteTrack류 보강 필요성을 판단하기 위한 1차 proxy다.
+  - `--duration`, `--repeat`, `--interval`, `--long` 옵션으로 반복/장시간 측정이 가능하다.
 - `2026-04-26` YOLO output layout 옵션을 명시적으로 선택할 수 있게 정리했다.
-  - `outputLayout=auto|channels-first|channels-last`, `boxFormat=cxcywh|xyxy`, `scoreMode=auto|class-only|objectness-class`를 query/profile 문서에서 받을 수 있다.
+  - `outputLayout=auto|channels-first|channels-last`, `boxFormat=cxcywh|xyxy`, `scoreMode=auto|class-only|objectness-class|score-class|class-score`를 query/profile 문서에서 받을 수 있다.
   - 기본값은 기존 `YOLOv8/YOLO11` 검증 모델과 호환되는 `auto + cxcywh + auto`다.
+  - `./server.sh verify-yolo-layouts`로 기본 `yolo11n.onnx`, 실제 `YOLOv5n` fp16 모델, end2end xyxy 모델의 parser 조합을 검증한다. score/class 순서가 반대인 모델은 `scoreMode=class-score`로 분리한다.
 - `2026-04-26` adaptive tuner 장시간 회귀 검증을 `./server.sh verify-adaptive`에 추가했다.
   - dummy detector delay로 과부하를 만들어 `targetFps` downshift를 확인한다.
   - delay 없는 저부하 tap으로 `targetFps` upshift를 확인한다.
 
 ## 남은 확인 항목
 - 다음 구현 순서
-  - 1차: `./server.sh verify-route-profiles`, `./server.sh verify-tracker-stability`, `./server.sh verify-adaptive`를 더 긴 duration/반복 횟수 기준으로 확장
+  - 1차: `./server.sh verify-route-profiles`, `./server.sh verify-tracker-stability`, `./server.sh verify-yolo-layouts`, `./server.sh verify-adaptive`를 더 긴 duration/반복 횟수 기준으로 확장
   - 2차: tracker 통계 결과 기준으로 Kalman/ByteTrack류 보강 여부 판단
-  - 3차: 모델별 output layout 실제 모델 샘플 추가 검증
+  - 3차: 다양한 `xyxy` end2end 호환 모델을 추가 확보해 실제 모델 검증을 hard gate로 승격
   - 4차: `./server.sh verify-va`와 `./server.sh verify-va-events`를 더 긴 duration으로 반복 실행해 adaptive tuner/tracker 장시간 회귀 누적
 - source/route/client rule matching, context 기반 profile 자동 선택, priority 기반 rule 선택은 VA rule context 기준 1차 구현했다. 남은 작업은 route별 검증을 반복/장시간 기준으로 확장하고 운영 기본값을 확정하는 것이다.
 - `HTTP/HLS URI -> RTSP` 최신 `503` 재확인 및 수정

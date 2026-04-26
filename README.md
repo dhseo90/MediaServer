@@ -407,6 +407,7 @@ cp scripts/.media_server.env.example scripts/.media_server.env
 | `./server.sh verify-va-events` | 실제 이동 영상 기준 tracker, line-crossing, enter, exit 이벤트 검증 |
 | `./server.sh verify-route-profiles` | 실제 RTSP/WebRTC overlay 세션 기준 route별 profile/rule matching 검증 |
 | `./server.sh verify-tracker-stability` | 이동 영상 기준 track ID 유지/분절 통계 수집 |
+| `./server.sh verify-yolo-layouts` | YOLO 모델별 output layout/box/score 조합 회귀 검증 |
 | `./server.sh verify-adaptive` | adaptive tuner의 과부하 downshift와 저부하 upshift 회귀 검증 |
 
 ### 권장 개발 흐름
@@ -472,6 +473,7 @@ ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성
 ./server.sh verify-va-events
 ./server.sh verify-route-profiles
 ./server.sh verify-tracker-stability
+./server.sh verify-yolo-layouts
 ./server.sh verify-adaptive
 ```
 
@@ -964,12 +966,21 @@ MEDIA_SERVER_VERIFY_VA_DURATION_S=30 \
 - `MEDIA_SERVER_VERIFY_VA_SKIP_RTSP=1`: RTSP 검증 제외
 - `MEDIA_SERVER_VERIFY_VA_EXTRA_QUERY='overlayWaitMs=180&overlaySyncToleranceMs=400'`: 추가 query 적용
 
-1차 YOLO parser는 `YOLOv8/YOLO11` 계열의 `[1, 84, N]` 또는 `[1, N, 84]` 출력과 `YOLOv5` 계열의 objectness 포함 `[1, N, 85]` 출력을 대상으로 한다. fp32 출력 tensor만 지원한다. 기본 전처리는 YOLO 계열에 맞춘 letterbox이며, 모델 출력 좌표에서 padding과 scale을 역보정해 원본 frame 기준 normalized box로 변환한다.
+1차 YOLO parser는 `YOLOv8/YOLO11` 계열의 `[1, 84, N]` 또는 `[1, N, 84]` 출력과 `YOLOv5` 계열의 objectness 포함 `[1, N, 85]` 출력을 대상으로 한다. fp32/fp16 NCHW 입력 모델과 fp32/fp16 단일 output tensor를 지원한다. 기본 전처리는 YOLO 계열에 맞춘 letterbox이며, 모델 출력 좌표에서 padding과 scale을 역보정해 원본 frame 기준 normalized box로 변환한다.
 
 모델 output layout 옵션:
 - `outputLayout=auto|channels-first|channels-last`: 기본 `auto`. `[1, 84, N]`는 channels-first, `[1, N, 84]`는 channels-last로 해석한다.
 - `boxFormat=cxcywh|xyxy`: 기본 `cxcywh`. corner 좌표 모델은 `xyxy`로 지정한다.
-- `scoreMode=auto|class-only|objectness-class`: 기본 `auto`. YOLOv5류 objectness 포함 모델은 `objectness=1` 또는 `scoreMode=objectness-class`로 명시할 수 있다.
+- `scoreMode=auto|class-only|objectness-class|score-class|class-score`: 기본 `auto`. YOLOv5류 objectness 포함 모델은 `objectness=1` 또는 `scoreMode=objectness-class`로 명시할 수 있다. NMS/end2end 모델처럼 `[x1,y1,x2,y2,score,class]` 후보를 직접 내는 모델은 `boxFormat=xyxy&scoreMode=score-class`로 검증하고, class/score 순서가 반대인 모델은 `class-score`를 사용한다.
+
+YOLO parser 조합 검증:
+
+```bash
+./server.sh verify-yolo-layouts
+./server.sh verify-yolo-layouts --long
+```
+
+`./server.sh verify-yolo-layouts`는 기본 `yolo11n.onnx`의 `channels-first + cxcywh + class-only`, 실제 `YOLOv5n` 모델의 `channels-last + cxcywh + objectness-class + fp16`, end2end xyxy 모델의 `uint8 HWC input + channels-last + xyxy + score-class` 경로를 확인한다. 선택 모델을 쓰려면 `MEDIA_SERVER_VERIFY_YOLO_XYXY_MODEL` 또는 `--xyxy-model`로 바꿀 수 있다.
 
 분석 API 설계/상태 확인 endpoint:
 

@@ -393,7 +393,7 @@ SharedStream
 - `2026-04-24` 기준 `yolo11n.onnx` + COCO labels smoke test에서 `person`, `bus` detection metadata 생성을 확인했다.
 - 기본 VA profile의 현재 검증 모델은 Ultralytics assets `v8.4.0`의 `yolo11n.onnx`이고, label은 `models/coco.names`의 COCO 80개 class다. 세부 객체 목록은 `README.md`의 YOLO/COCO 기준 섹션에 둔다.
 - YOLO 전처리는 기본 letterbox다. detector output box는 input padding/scale을 역보정한 뒤 원본 frame 기준 normalized 좌표로 저장한다. 호환성 검증용으로 `preprocess=stretch`도 남겨 둔다.
-- YOLO output parser는 `outputLayout=auto|channels-first|channels-last`, `boxFormat=cxcywh|xyxy`, `scoreMode=auto|class-only|objectness-class`를 profile/query로 받는다. 기본값은 `YOLOv8/YOLO11` 계열 `[1, 84, N]`/`[1, N, 84]`와 `cxcywh` box를 자동 판별하는 모드다.
+- YOLO output parser는 `outputLayout=auto|channels-first|channels-last`, `boxFormat=cxcywh|xyxy`, `scoreMode=auto|class-only|objectness-class|score-class|class-score`를 profile/query로 받는다. 기본값은 `YOLOv8/YOLO11` 계열 `[1, 84, N]`/`[1, N, 84]`와 `cxcywh` box를 자동 판별하는 모드다. `YOLOv5`처럼 fp16 `[1, N, 85]` objectness tensor를 내는 모델은 `channels-last + objectness-class`로 검증하고, NMS/end2end 계열 `[x1,y1,x2,y2,score,class]` 후보는 `xyxy + score-class`로 분리한다. class/score 순서가 반대인 모델은 `class-score`를 사용한다.
 - `AnalysisManager::TapSnapshot`은 `lastAnalysisMs`, `averageAnalysisMs`, `maxAnalysisMs`를 제공한다.
 - `/lab/analysis/capabilities`는 detector/profile/rule 지원 범위를 노출한다.
 - `/lab/analysis/profiles`, `/lab/analysis/rules`는 1차 persistent registry API다. 기본 저장 파일은 `.media_server.analysis_registry.json`이고, rule은 저장/조회/수정/삭제와 함께 `sourceKind`/`route`/`clientId` context filter를 통해 `va=1` overlay와 analysis tap event 판정에 적용된다. URL에 명시 profile/tuning query가 없으면 context와 맞는 rule의 `analysis.profileId`를 사용해 저장 profile을 자동 선택한다. profile 자동 선택은 `priority`가 높은 rule을 우선하고, priority가 같으면 더 구체적인 match 조건을 우선한다.

@@ -36,6 +36,8 @@ Usage:
                  실제 RTSP/WebRTC overlay 세션에서 route별 profile/rule matching을 검증합니다.
   verify-tracker-stability
                  이동 영상에서 track ID 유지/분절 통계를 수집합니다.
+  verify-yolo-layouts
+                 YOLO 모델별 output layout/box/score 조합을 실제 모델로 검증합니다.
   verify-adaptive
                  adaptive tuner의 downshift/upshift 장시간 회귀를 검증합니다.
 
@@ -134,6 +136,10 @@ case "${cmd}" in
   verify-tracker-stability)
     require_internal verify_tracker_stability.sh
     exec "${INTERNAL_DIR}/verify_tracker_stability.sh" "$@"
+    ;;
+  verify-yolo-layouts)
+    require_internal verify_yolo_layouts.sh
+    exec "${INTERNAL_DIR}/verify_yolo_layouts.sh" "$@"
     ;;
   verify-adaptive)
     require_internal verify_adaptive_tuner.sh
