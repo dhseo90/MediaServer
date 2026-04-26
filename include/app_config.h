@@ -52,6 +52,8 @@ struct AppConfig {
     bool session_trace{false};
     bool webrtc_trace{false};
     bool webrtc_trace_verbose{false};
+    std::string webrtc_stun_server;
+    std::string webrtc_turn_server;
     int webrtc_source_ready_timeout_ms{12000};
     int rtsp_source_preflight_timeout_ms{1500};
     int rtsp_source_start_timeout_ms{3000};

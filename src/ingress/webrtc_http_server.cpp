@@ -806,6 +806,49 @@ std::string BuildTestPageHtml(bool lab_mode) {
 식기: 병, 와인잔, 컵, 포크, 칼, 숟가락, 그릇
 잡화: 백팩, 우산, 핸드백, 넥타이, 여행가방, 책, 꽃병, 가위, 곰인형, 칫솔</pre>
         </details>
+        <details id="image-analysis" open class="lab-details">
+          <summary style="cursor:pointer;font-weight:800;color:var(--ink);">정적 이미지 분석</summary>
+          <p class="lab-detail-note">영상 스트림 없이 이미지 한 장을 YOLO/VA profile로 분석합니다. 기본 샘플은 `docs/assets`에 포함된 license-safe 이미지입니다.</p>
+          <div class="image-analysis-grid">
+            <div class="controls">
+              <label>이미지 위치
+                <select id="imageAnalysisSourceKind">
+                  <option value="asset" selected>docs/assets 샘플</option>
+                  <option value="file">video root 상대경로</option>
+                </select>
+              </label>
+              <label>이미지 파일
+                <input id="imageAnalysisToken" value="va-four-scene-sample.png" />
+              </label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <label>라벨 언어
+                  <select id="imageAnalysisLabelLang">
+                    <option value="ko" selected>한글</option>
+                    <option value="en">English</option>
+                  </select>
+                </label>
+                <label>품질
+                  <input id="imageAnalysisQuality" value="88" />
+                </label>
+              </div>
+              <label>박스 두께
+                <input id="imageAnalysisThickness" value="3" />
+              </label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <button id="imageAnalysisOverlayBtn" class="secondary" type="button">Overlay 보기</button>
+                <button id="imageAnalysisSnapshotBtn" class="secondary" type="button">원본 보기</button>
+              </div>
+              <p id="imageAnalysisStatus" style="margin:0;color:var(--muted);font-size:0.9rem;">대기 중</p>
+            </div>
+            <div class="image-preview-panel">
+              <img id="imageAnalysisPreview" alt="정적 이미지 분석 결과" />
+            </div>
+          </div>
+          <details class="image-metadata-drawer">
+            <summary style="cursor:pointer;font-weight:700;color:var(--ink);">분석 metadata 보기</summary>
+            <pre id="imageAnalysisMetadata" class="compact-pre"></pre>
+          </details>
+        </details>
         <details id="rule-editor" open class="lab-details">
           <summary style="cursor:pointer;font-weight:800;color:var(--ink);">시각적 룰 편집</summary>
           <p class="lab-detail-note">이벤트 판단 영역, 분석 객체, 이벤트 전송 설정을 한 곳에서 편집합니다. 위에서 선택한 스트림 소스를 룰 미리보기에도 그대로 사용합니다.</p>
@@ -1005,6 +1048,10 @@ std::string BuildTestPageHtml(bool lab_mode) {
       border-radius: 22px;
       border: 1px solid var(--line);
     }
+    img {
+      max-width: 100%;
+      display: block;
+    }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
@@ -1186,6 +1233,37 @@ std::string BuildTestPageHtml(bool lab_mode) {
       --canvas-bg: var(--code-bg);
       --danger: #ff7777;
     }
+    .image-analysis-grid {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.38fr) minmax(0, 1fr);
+      gap: clamp(14px, 2vw, 22px);
+      align-items: start;
+    }
+    .image-preview-panel {
+      min-height: 260px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at top right, rgba(11,110,105,0.12), transparent 34%),
+        var(--details-bg);
+      overflow: hidden;
+    }
+    .image-preview-panel img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+    .image-metadata-drawer {
+      margin-top: 12px;
+      padding: 12px;
+    }
+    .image-metadata-drawer pre {
+      margin-top: 12px;
+      max-height: 360px;
+      overflow: auto;
+    }
     #va-analysis {
       background: var(--details-bg) !important;
       border-radius: 22px !important;
@@ -1199,6 +1277,9 @@ std::string BuildTestPageHtml(bool lab_mode) {
         grid-template-columns: 1fr;
       }
       .lab-mode-card {
+        grid-template-columns: 1fr;
+      }
+      .image-analysis-grid {
         grid-template-columns: 1fr;
       }
       main {
@@ -1326,6 +1407,16 @@ std::string BuildTestPageHtml(bool lab_mode) {
     const analysisLabelLangInputEl = document.getElementById('analysisLabelLangInput');
     const analysisTrackIdsInputEl = document.getElementById('analysisTrackIdsInput');
     const analysisTrackTrailsInputEl = document.getElementById('analysisTrackTrailsInput');
+    const imageAnalysisSourceKindEl = document.getElementById('imageAnalysisSourceKind');
+    const imageAnalysisTokenEl = document.getElementById('imageAnalysisToken');
+    const imageAnalysisLabelLangEl = document.getElementById('imageAnalysisLabelLang');
+    const imageAnalysisQualityEl = document.getElementById('imageAnalysisQuality');
+    const imageAnalysisThicknessEl = document.getElementById('imageAnalysisThickness');
+    const imageAnalysisOverlayBtn = document.getElementById('imageAnalysisOverlayBtn');
+    const imageAnalysisSnapshotBtn = document.getElementById('imageAnalysisSnapshotBtn');
+    const imageAnalysisStatusEl = document.getElementById('imageAnalysisStatus');
+    const imageAnalysisPreviewEl = document.getElementById('imageAnalysisPreview');
+    const imageAnalysisMetadataEl = document.getElementById('imageAnalysisMetadata');
     const sourceFieldEls = Array.from(document.querySelectorAll('[data-source-field]'));
     let pc = null;
     let sessionId = null;
@@ -1522,6 +1613,70 @@ std::string BuildTestPageHtml(bool lab_mode) {
         }
       }
       return params.toString();
+    }
+
+    function buildImageAnalysisParams() {
+      const params = new URLSearchParams();
+      const sourceKind = imageAnalysisSourceKindEl ? imageAnalysisSourceKindEl.value : 'asset';
+      const token = imageAnalysisTokenEl && imageAnalysisTokenEl.value
+        ? imageAnalysisTokenEl.value.trim()
+        : 'va-four-scene-sample.png';
+      if (sourceKind === 'file') {
+        params.set('file', token);
+      } else {
+        params.set('asset', token);
+      }
+      if (imageAnalysisLabelLangEl && imageAnalysisLabelLangEl.value) {
+        params.set('labelLang', imageAnalysisLabelLangEl.value);
+      }
+      if (imageAnalysisQualityEl && imageAnalysisQualityEl.value) {
+        params.set('quality', imageAnalysisQualityEl.value);
+      }
+      if (imageAnalysisThicknessEl && imageAnalysisThicknessEl.value) {
+        params.set('thickness', imageAnalysisThicknessEl.value);
+      }
+      return params;
+    }
+
+    function detectionSummary(payload) {
+      const detections = payload && payload.result && Array.isArray(payload.result.detections)
+        ? payload.result.detections
+        : [];
+      const labels = [...new Set(detections.map((item) => item.label).filter(Boolean))].slice(0, 8);
+      return {
+        count: detections.length,
+        labels,
+        width: payload && payload.image ? payload.image.width : 0,
+        height: payload && payload.image ? payload.image.height : 0,
+        analysisMs: payload && typeof payload.analysisMs === 'number' ? payload.analysisMs : 0
+      };
+    }
+
+    async function runImageAnalysis(mode = 'overlay') {
+      if (!imageAnalysisPreviewEl || !imageAnalysisMetadataEl) return;
+      const params = buildImageAnalysisParams();
+      if (imageAnalysisStatusEl) {
+        imageAnalysisStatusEl.textContent = '분석 중...';
+      }
+      const metadataResponse = await fetch(`/lab/analysis/image?${params.toString()}`, { cache: 'no-store' });
+      const metadataText = await metadataResponse.text();
+      if (!metadataResponse.ok) {
+        throw new Error(metadataText || `metadata HTTP ${metadataResponse.status}`);
+      }
+      const payload = JSON.parse(metadataText);
+      imageAnalysisMetadataEl.textContent = JSON.stringify(payload, null, 2);
+      const summary = detectionSummary(payload);
+      const imageParams = new URLSearchParams(params);
+      imageParams.set('_', String(Date.now()));
+      const endpoint = mode === 'snapshot'
+        ? '/lab/analysis/image/snapshot.jpg'
+        : '/lab/analysis/image/overlay.jpg';
+      imageAnalysisPreviewEl.src = `${endpoint}?${imageParams.toString()}`;
+      if (imageAnalysisStatusEl) {
+        const labelText = summary.labels.length > 0 ? ` / ${summary.labels.join(', ')}` : '';
+        imageAnalysisStatusEl.textContent =
+          `분석 완료: ${summary.count}개 객체${labelText} / ${summary.width}x${summary.height} / ${summary.analysisMs.toFixed(1)}ms`;
+      }
     }
 
     async function stopSession() {
@@ -1811,6 +1966,26 @@ std::string BuildTestPageHtml(bool lab_mode) {
     document.getElementById('consumePublishedBtn').onclick = () => playPublishedSimple().catch((error) => log(error.message));
     document.getElementById('consumePublishedWhepBtn').onclick = () => playPublishedWhep().catch((error) => log(error.message));
     document.getElementById('clearBtn').onclick = () => { logEl.textContent = ''; };
+    if (imageAnalysisOverlayBtn) {
+      imageAnalysisOverlayBtn.onclick = () => runImageAnalysis('overlay').catch((error) => {
+        if (imageAnalysisStatusEl) imageAnalysisStatusEl.textContent = `분석 실패: ${error.message}`;
+        log(`정적 이미지 분석 실패: ${error.message}`);
+      });
+    }
+    if (imageAnalysisSnapshotBtn) {
+      imageAnalysisSnapshotBtn.onclick = () => runImageAnalysis('snapshot').catch((error) => {
+        if (imageAnalysisStatusEl) imageAnalysisStatusEl.textContent = `분석 실패: ${error.message}`;
+        log(`정적 이미지 분석 실패: ${error.message}`);
+      });
+    }
+    if (imageAnalysisSourceKindEl) {
+      imageAnalysisSourceKindEl.addEventListener('change', () => {
+        if (!imageAnalysisTokenEl) return;
+        imageAnalysisTokenEl.value = imageAnalysisSourceKindEl.value === 'file'
+          ? 'imports/example.png'
+          : 'va-four-scene-sample.png';
+      });
+    }
     function applyTheme(theme) {
       const nextTheme = theme === 'dark' ? 'dark' : 'light';
       document.documentElement.dataset.theme = nextTheme;
@@ -1944,6 +2119,11 @@ std::string BuildTestPageHtml(bool lab_mode) {
     }
     updateSourceFields();
     loadFileOptions();
+    if (imageAnalysisOverlayBtn) {
+      runImageAnalysis('overlay').catch((error) => {
+        if (imageAnalysisStatusEl) imageAnalysisStatusEl.textContent = `자동 분석 실패: ${error.message}`;
+      });
+    }
     window.__mediaServerTestApi = {
       startSimple,
       startWhep,
@@ -1952,6 +2132,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
       stopPublisher,
       playPublishedSimple,
       playPublishedWhep,
+      runImageAnalysis,
       buildQuery,
       waitForPlayback,
       snapshotState,

@@ -2,8 +2,11 @@
 #include "ingress/webrtc_gst_utils.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
+#include <iostream>
 #include <sstream>
 #include <string>
+
+#include "app_config.h"
 
 namespace ingress::webrtc_gst {
 namespace {
@@ -39,6 +42,18 @@ bool SetRtcpFeedbackRetentionWindow(GObject* object) {
     // This relay does not implement RTX/NACK replay yet, so retaining browser
     // RTCP feedback packets only adds noise and can hit GStreamer assertions.
     g_object_set(object, "rtcp-feedback-retention-window", static_cast<guint64>(0), nullptr);
+    return true;
+}
+
+bool SetStringPropertyIfPresent(GObject* object, const char* property, const std::string& value) {
+    if (object == nullptr || property == nullptr || value.empty()) {
+        return false;
+    }
+    GParamSpec* pspec = g_object_class_find_property(G_OBJECT_GET_CLASS(object), property);
+    if (pspec == nullptr || (pspec->flags & G_PARAM_WRITABLE) == 0) {
+        return false;
+    }
+    g_object_set(object, property, value.c_str(), nullptr);
     return true;
 }
 
@@ -275,6 +290,21 @@ void ConfigurePipelineClockAndLatency(GstElement* element) {
         gst_object_unref(clock);
     }
     gst_pipeline_set_latency(GST_PIPELINE(element), kWebRtcPipelineLatency);
+}
+
+void ConfigureIceServers(GstElement* webrtcbin) {
+    if (webrtcbin == nullptr) {
+        return;
+    }
+
+    const auto& config = app::GetAppConfig();
+    const bool stun_set = SetStringPropertyIfPresent(G_OBJECT(webrtcbin), "stun-server", config.webrtc_stun_server);
+    const bool turn_set = SetStringPropertyIfPresent(G_OBJECT(webrtcbin), "turn-server", config.webrtc_turn_server);
+    if (config.webrtc_trace && (stun_set || turn_set)) {
+        std::cerr << "[webrtc] ice servers configured"
+                  << " stun=" << (stun_set ? "yes" : "no")
+                  << " turn=" << (turn_set ? "yes" : "no") << "\n";
+    }
 }
 
 GstWebRTCSessionDescription* BuildSessionDescriptionWithoutRtcpFeedback(

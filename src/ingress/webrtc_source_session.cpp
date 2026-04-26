@@ -286,6 +286,7 @@ bool WebRtcSourceSession::Start(const std::string& session_id, const std::string
     webrtc_gst::ConfigurePipelineClockAndLatency(pipeline_);
     g_signal_connect(pipeline_, "deep-element-added", G_CALLBACK(webrtc_gst::OnDeepElementAdded), pipeline_);
     g_object_set(webrtcbin_, "bundle-policy", GST_WEBRTC_BUNDLE_POLICY_MAX_BUNDLE, nullptr);
+    webrtc_gst::ConfigureIceServers(webrtcbin_);
     g_signal_connect(webrtcbin_, "on-ice-candidate", G_CALLBACK(OnLocalIceCandidate), this);
     g_signal_connect(webrtcbin_, "pad-added", G_CALLBACK(OnPadAdded), this);
     // macOS/Homebrew 환경에서 관찰된 RTCP/clock 이슈를 source pipeline에도 동일하게 적용한다.

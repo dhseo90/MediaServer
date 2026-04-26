@@ -135,8 +135,13 @@ collect_process_state() {
     if kill -0 "${PID}" 2>/dev/null; then
       print_line "PASS" "process alive"
     else
-      print_line "FAIL" "stale pid file"
-      OVERALL=1
+      if media_server_is_tcp_listening "${PORT}" || media_server_is_tcp_listening "${HTTP_PORT}"; then
+        print_line "WARN" "stale pid file, but server ports are listening"
+        print_line "TIP" "foreground 실행 또는 이전 detached 종료 후 남은 pid 파일일 수 있습니다." "  "
+      else
+        print_line "FAIL" "stale pid file"
+        OVERALL=1
+      fi
     fi
   else
     print_line "WARN" "pid file missing"
