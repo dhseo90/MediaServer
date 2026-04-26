@@ -393,16 +393,17 @@ SharedStream
 - `2026-04-24` 기준 `yolo11n.onnx` + COCO labels smoke test에서 `person`, `bus` detection metadata 생성을 확인했다.
 - 기본 VA profile의 현재 검증 모델은 Ultralytics assets `v8.4.0`의 `yolo11n.onnx`이고, label은 `models/coco.names`의 COCO 80개 class다. 세부 객체 목록은 `README.md`의 YOLO/COCO 기준 섹션에 둔다.
 - YOLO 전처리는 기본 letterbox다. detector output box는 input padding/scale을 역보정한 뒤 원본 frame 기준 normalized 좌표로 저장한다. 호환성 검증용으로 `preprocess=stretch`도 남겨 둔다.
+- YOLO output parser는 `outputLayout=auto|channels-first|channels-last`, `boxFormat=cxcywh|xyxy`, `scoreMode=auto|class-only|objectness-class`를 profile/query로 받는다. 기본값은 `YOLOv8/YOLO11` 계열 `[1, 84, N]`/`[1, N, 84]`와 `cxcywh` box를 자동 판별하는 모드다.
 - `AnalysisManager::TapSnapshot`은 `lastAnalysisMs`, `averageAnalysisMs`, `maxAnalysisMs`를 제공한다.
 - `/lab/analysis/capabilities`는 detector/profile/rule 지원 범위를 노출한다.
 - `/lab/analysis/profiles`, `/lab/analysis/rules`는 1차 persistent registry API다. 기본 저장 파일은 `.media_server.analysis_registry.json`이고, rule은 저장/조회/수정/삭제와 함께 `sourceKind`/`route`/`clientId` context filter를 통해 `va=1` overlay와 analysis tap event 판정에 적용된다. URL에 명시 profile/tuning query가 없으면 context와 맞는 rule의 `analysis.profileId`를 사용해 저장 profile을 자동 선택한다. profile 자동 선택은 `priority`가 높은 rule을 우선하고, priority가 같으면 더 구체적인 match 조건을 우선한다.
 
 아직 남은 핵심 작업:
 - 실제 RTSP/WebRTC route별 profile/rule matching 장시간 검증
-- tracker ID switch 통계 수집과 Kalman/ByteTrack류 보강 여부 판단
+- tracker ID switch 통계 수집 결과를 누적해 Kalman/ByteTrack류 보강 여부 판단
 - 이미지 입력을 받아 분석 결과 overlay 이미지를 반환하는 개발용 endpoint
 - 모델별 output layout 옵션 정교화
-- adaptive tuner의 운영 기준값(profile별 bounds/cooldown)과 추가 장시간 회귀 테스트
+- adaptive tuner의 운영 기준값(profile별 bounds/cooldown)과 반복/장시간 회귀 테스트
 
 ## 13. 라이브러리 선택
 - `live555`: Linux/macOS/Windows 모두 사용 가능. RTSP 서버/클라이언트에 집중된 경량 라이브러리.

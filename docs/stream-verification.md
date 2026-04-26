@@ -102,7 +102,10 @@
   2. `./server.sh test`
   3. 필요 시 `./server.sh test --include-rules`
   4. 필요 시 `./server.sh test --include-va-events`
-  5. `./server.sh stop`
+  5. 필요 시 `./server.sh verify-route-profiles`
+  6. 필요 시 `./server.sh verify-tracker-stability`
+  7. 필요 시 `./server.sh verify-adaptive`
+  8. `./server.sh stop`
 - 판단 규칙
   - 위 stable 기준이 깨지면 분석 후속 개발보다 스트리밍 안정화 수정을 먼저 한다.
   - profile/rule/event 같은 분석 후속 개발은 선택 테스트로 검증하되, 안정 기능으로 승격 전까지 기본 `./server.sh test`에는 넣지 않는다.
@@ -684,14 +687,28 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - 이벤트 payload의 `trackId`, active tap snapshot의 `latestResult.tracks[]`, overlay snapshot 생성을 함께 확인한다.
   - 수동 검증 기준 30초 이동 영상에서 `presence=672`, `line-crossing=5`, `enter=3`, `exit=2`, snapshot `trackCount=4`, 평균 분석 시간 약 `87ms`를 확인했다.
   - 자동 검증 기준 `./server.sh verify-va-events`는 `pass=9 fail=0 skip=0`으로 통과했다.
+- `2026-04-26` 실제 RTSP/WebRTC overlay route별 profile/rule matching 검증을 `./server.sh verify-route-profiles`에 추가했다.
+  - 임시 profile/rule을 `route=rtsp`, `route=webrtc`로 각각 등록하고, URL에는 `va=1`만 둔 상태에서 저장 rule의 `analysis.profileId`가 자동 선택되는지 확인한다.
+  - RTSP는 실제 `ffmpeg` RTSP consumer를 띄운 뒤 active tap snapshot에서 `context.route=rtsp`, `profileSelection.source=rule`, `ruleId`, `profileKey`, `detectorType=dummy`를 확인한다.
+  - WebRTC는 headless browser playback을 띄운 뒤 active tap snapshot에서 `context.route=webrtc`와 route별 profile 선택을 확인한다.
+- `2026-04-26` tracker ID 유지/분절 통계 수집을 `./server.sh verify-tracker-stability`에 추가했다.
+  - 기본 이동 영상 `imports/va_tracking_event_1280x720_30fps_h264.mp4`로 analysis tap을 만들고 active tap snapshot을 polling한다.
+  - `unique_tracks`, `max_simultaneous_tracks`, `fragmentation_ratio`, track별 관측 sample 수, 평균 분석 시간을 출력한다.
+  - 이 값은 ground truth 기반 ID switch count는 아니며, Kalman/ByteTrack류 보강 필요성을 판단하기 위한 1차 proxy다.
+- `2026-04-26` YOLO output layout 옵션을 명시적으로 선택할 수 있게 정리했다.
+  - `outputLayout=auto|channels-first|channels-last`, `boxFormat=cxcywh|xyxy`, `scoreMode=auto|class-only|objectness-class`를 query/profile 문서에서 받을 수 있다.
+  - 기본값은 기존 `YOLOv8/YOLO11` 검증 모델과 호환되는 `auto + cxcywh + auto`다.
+- `2026-04-26` adaptive tuner 장시간 회귀 검증을 `./server.sh verify-adaptive`에 추가했다.
+  - dummy detector delay로 과부하를 만들어 `targetFps` downshift를 확인한다.
+  - delay 없는 저부하 tap으로 `targetFps` upshift를 확인한다.
 
 ## 남은 확인 항목
 - 다음 구현 순서
-  - 1차: 실제 RTSP/WebRTC route별 profile/rule matching 장시간 검증
-  - 2차: tracker ID switch 통계 수집, Kalman/ByteTrack류 보강 여부 판단
-  - 3차: 모델별 output layout 옵션 정교화
+  - 1차: `./server.sh verify-route-profiles`, `./server.sh verify-tracker-stability`, `./server.sh verify-adaptive`를 더 긴 duration/반복 횟수 기준으로 확장
+  - 2차: tracker 통계 결과 기준으로 Kalman/ByteTrack류 보강 여부 판단
+  - 3차: 모델별 output layout 실제 모델 샘플 추가 검증
   - 4차: `./server.sh verify-va`와 `./server.sh verify-va-events`를 더 긴 duration으로 반복 실행해 adaptive tuner/tracker 장시간 회귀 누적
-- source/route/client rule matching, context 기반 profile 자동 선택, priority 기반 rule 선택은 VA rule context 기준 1차 구현했다. 남은 작업은 실제 RTSP/WebRTC route별 장시간 검증과 운영 기본값 확정이다.
+- source/route/client rule matching, context 기반 profile 자동 선택, priority 기반 rule 선택은 VA rule context 기준 1차 구현했다. 남은 작업은 route별 검증을 반복/장시간 기준으로 확장하고 운영 기본값을 확정하는 것이다.
 - `HTTP/HLS URI -> RTSP` 최신 `503` 재확인 및 수정
 - audio-only input은 현재 video relay/analysis 준비 범위 밖이다. RTSP/WebRTC egress는 video track을 기준으로 동작한다.
 - 외부 wowza source 재검증

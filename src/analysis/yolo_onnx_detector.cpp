@@ -249,6 +249,55 @@ std::optional<RectF> MapYoloBoxToFrame(float cx,
     };
 }
 
+std::optional<RectF> MapYoloCornersToFrame(float x1,
+                                           float y1,
+                                           float x2,
+                                           float y2,
+                                           bool normalized,
+                                           const YoloPreprocessInfo& info) {
+    if (info.frame_width <= 0 || info.frame_height <= 0 || info.input_width <= 0 || info.input_height <= 0) {
+        return std::nullopt;
+    }
+
+    if (normalized) {
+        x1 *= static_cast<float>(info.input_width);
+        x2 *= static_cast<float>(info.input_width);
+        y1 *= static_cast<float>(info.input_height);
+        y2 *= static_cast<float>(info.input_height);
+    }
+
+    if (x2 < x1) {
+        std::swap(x1, x2);
+    }
+    if (y2 < y1) {
+        std::swap(y1, y2);
+    }
+
+    const float x_scale = std::max(0.0001F, info.scale_x);
+    const float y_scale = std::max(0.0001F, info.scale_y);
+    const float frame_x1 = (x1 - info.pad_x) / x_scale;
+    const float frame_y1 = (y1 - info.pad_y) / y_scale;
+    const float frame_x2 = (x2 - info.pad_x) / x_scale;
+    const float frame_y2 = (y2 - info.pad_y) / y_scale;
+
+    const float clamped_x1 = std::max(0.0F, std::min(static_cast<float>(info.frame_width), frame_x1));
+    const float clamped_y1 = std::max(0.0F, std::min(static_cast<float>(info.frame_height), frame_y1));
+    const float clamped_x2 = std::max(0.0F, std::min(static_cast<float>(info.frame_width), frame_x2));
+    const float clamped_y2 = std::max(0.0F, std::min(static_cast<float>(info.frame_height), frame_y2));
+    if (clamped_x2 <= clamped_x1 || clamped_y2 <= clamped_y1) {
+        return std::nullopt;
+    }
+
+    const float inv_frame_w = 1.0F / static_cast<float>(info.frame_width);
+    const float inv_frame_h = 1.0F / static_cast<float>(info.frame_height);
+    return RectF{
+        .x = Clamp01(clamped_x1 * inv_frame_w),
+        .y = Clamp01(clamped_y1 * inv_frame_h),
+        .width = Clamp01((clamped_x2 - clamped_x1) * inv_frame_w),
+        .height = Clamp01((clamped_y2 - clamped_y1) * inv_frame_h),
+    };
+}
+
 #if MEDIA_SERVER_USE_ONNXRUNTIME
 
 class YoloOnnxDetector final : public Detector {
@@ -378,7 +427,14 @@ private:
         std::int64_t candidates = 0;
         std::int64_t attrs = 0;
         bool channels_first = false;
-        if (shape[1] > 0 && shape[2] > 0 && shape[1] < shape[2]) {
+        if (profile_.yolo_output_layout == "channels-first") {
+            attrs = shape[1];
+            candidates = shape[2];
+            channels_first = true;
+        } else if (profile_.yolo_output_layout == "channels-last") {
+            candidates = shape[1];
+            attrs = shape[2];
+        } else if (shape[1] > 0 && shape[2] > 0 && shape[1] < shape[2]) {
             attrs = shape[1];
             candidates = shape[2];
             channels_first = true;
@@ -390,7 +446,12 @@ private:
             return {};
         }
 
-        const bool has_objectness = profile_.yolo_has_objectness || attrs == 85;
+        bool has_objectness = profile_.yolo_has_objectness || attrs == 85;
+        if (profile_.yolo_score_mode == "class-only") {
+            has_objectness = false;
+        } else if (profile_.yolo_score_mode == "objectness-class") {
+            has_objectness = true;
+        }
         const std::int64_t class_offset = has_objectness ? 5 : 4;
         const std::int64_t class_count = attrs - class_offset;
         if (class_count <= 0) {
@@ -421,12 +482,14 @@ private:
                 continue;
             }
 
-            const float cx = at(i, 0);
-            const float cy = at(i, 1);
-            const float width = at(i, 2);
-            const float height = at(i, 3);
-            const bool normalized = std::max({std::fabs(cx), std::fabs(cy), std::fabs(width), std::fabs(height)}) <= 2.0F;
-            const auto box = MapYoloBoxToFrame(cx, cy, width, height, normalized, preprocess_info);
+            const float b0 = at(i, 0);
+            const float b1 = at(i, 1);
+            const float b2 = at(i, 2);
+            const float b3 = at(i, 3);
+            const bool normalized = std::max({std::fabs(b0), std::fabs(b1), std::fabs(b2), std::fabs(b3)}) <= 2.0F;
+            const auto box = profile_.yolo_box_format == "xyxy"
+                                 ? MapYoloCornersToFrame(b0, b1, b2, b3, normalized, preprocess_info)
+                                 : MapYoloBoxToFrame(b0, b1, b2, b3, normalized, preprocess_info);
             if (!box.has_value()) {
                 continue;
             }
