@@ -25,6 +25,7 @@ CANDIDATES_FILE="/tmp/media_server_${RUN_ID}_candidates.ndjson"
 SESSION_JSON="/tmp/media_server_${RUN_ID}_session.json"
 CONFIG_JSON="/tmp/media_server_${RUN_ID}_webrtc_config.json"
 BROWSER_LOG="/tmp/media_server_${RUN_ID}_browser.json"
+SUMMARY_FILE="/tmp/media_server_${RUN_ID}_summary.json"
 SESSION_ID=""
 REQUIRE_RELAY=0
 EXTERNAL_TURN_MODE=0
@@ -278,6 +279,7 @@ if [[ -n "${MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER:-}" ]]; then
   TURN_SERVER="${MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER}"
 fi
 ICE_POLICY="${MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY:-all}"
+EFFECTIVE_ICE_POLICY="${ICE_POLICY}"
 
 log_info "http_base=${HTTP_BASE}"
 log_info "file=${FILE_TOKEN}"
@@ -287,6 +289,19 @@ log_info "ice_policy=${ICE_POLICY} require_relay=${REQUIRE_RELAY}"
 if [[ "${EXTERNAL_TURN_MODE}" == "1" && -z "${TURN_SERVER}" ]]; then
   log_skip "외부 운영 TURN 검증 생략: MEDIA_SERVER_WEBRTC_TURN_SERVER 또는 MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER가 없습니다."
   echo "[info] Metered Open Relay도 TURN REST API credential은 무료 계정/API key가 필요합니다."
+  python3 - "${SUMMARY_FILE}" <<'PY'
+import json
+import pathlib
+import sys
+
+pathlib.Path(sys.argv[1]).write_text(json.dumps({
+    "mode": "external-turn",
+    "status": "skip",
+    "reason": "missing TURN credential",
+    "note": "외부 운영 TURN relay 검증은 가입/API key 기반 credential이 필요하다.",
+}, ensure_ascii=False, indent=2), encoding="utf-8")
+PY
+  echo "- summary: ${SUMMARY_FILE}"
   echo
   echo "== WebRTC ICE 설정 검증 요약 =="
   echo "- 통과: ${PASS_COUNT}"
@@ -318,7 +333,7 @@ else
   log_pass "TURN URI 형식 확인"
 fi
 if [[ "${ICE_POLICY}" == "relay" && -z "${TURN_SERVER}" ]]; then
-  log_fail "relay ICE policy는 MEDIA_SERVER_WEBRTC_TURN_SERVER가 필요합니다"
+  log_pass "relay 요청 + TURN 미설정 fallback 시나리오 확인 대상"
 fi
 
 if ! curl -fsS --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
@@ -328,6 +343,14 @@ fi
 log_pass "HTTP health ok"
 
 if curl -fsS --max-time 3 "${HTTP_BASE}/webrtc/config" > "${CONFIG_JSON}"; then
+  EFFECTIVE_ICE_POLICY="$(python3 - "${CONFIG_JSON}" <<'PY'
+import json
+import pathlib
+import sys
+payload = json.loads(pathlib.Path(sys.argv[1]).read_text())
+print((payload.get("peerConnectionConfig") or {}).get("iceTransportPolicy", payload.get("iceTransportPolicy", "all")))
+PY
+)"
   if python3 - "${CONFIG_JSON}" "${STUN_SERVER}" "${TURN_SERVER}" "${ICE_POLICY}" <<'PY'
 import json
 import pathlib
@@ -340,6 +363,9 @@ expected_policy = sys.argv[4]
 payload = json.loads(path.read_text())
 pc_config = payload.get("peerConnectionConfig") or {}
 policy = pc_config.get("iceTransportPolicy", "all")
+requested_policy = payload.get("requestedIceTransportPolicy", policy)
+fallback = bool(payload.get("relayPolicyFallback"))
+has_turn = bool(payload.get("hasTurn"))
 servers = pc_config.get("iceServers") or []
 urls = []
 for server in servers:
@@ -349,8 +375,13 @@ for server in servers:
     elif value:
         urls.append(str(value))
 print("browser_ice_policy=", policy)
+print("browser_requested_ice_policy=", requested_policy)
+print("browser_relay_fallback=", fallback)
 print("browser_ice_urls=", urls)
-if policy != expected_policy:
+if expected_policy == "relay" and not expected_turn:
+    if requested_policy != "relay" or policy != "all" or not fallback or has_turn:
+        raise SystemExit(f"relay fallback mismatch: requested={requested_policy}, policy={policy}, fallback={fallback}, hasTurn={has_turn}")
+elif policy != expected_policy:
     raise SystemExit(f"browser iceTransportPolicy mismatch: {policy} != {expected_policy}")
 if expected_stun and not any(item.startswith("stun:") for item in urls):
     raise SystemExit("browser config에 STUN server가 없습니다")
@@ -398,7 +429,7 @@ if [[ -n "${SESSION_ID}" ]]; then
     sleep "${POLL_INTERVAL_S}"
   done
 
-  if python3 - "${CANDIDATES_FILE}" "${REQUIRE_RELAY}" "${ICE_POLICY}" <<'PY'
+  if python3 - "${CANDIDATES_FILE}" "${REQUIRE_RELAY}" "${EFFECTIVE_ICE_POLICY}" <<'PY'
 import collections
 import json
 import pathlib
@@ -477,6 +508,50 @@ else
   fi
 fi
 
+python3 - "${SUMMARY_FILE}" "${CONFIG_JSON}" "${CANDIDATES_FILE}" "${EXTERNAL_TURN_MODE}" "${REQUIRE_RELAY}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" <<'PY'
+import collections
+import json
+import pathlib
+import re
+import sys
+
+summary_path = pathlib.Path(sys.argv[1])
+config_path = pathlib.Path(sys.argv[2])
+candidates_path = pathlib.Path(sys.argv[3])
+counts = collections.Counter()
+if candidates_path.exists():
+    for line in candidates_path.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            payload = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        for item in payload.get("candidates", []):
+            match = re.search(r" typ ([a-zA-Z0-9_-]+)", item.get("candidate", ""))
+            counts[match.group(1) if match else "unknown"] += 1
+config = {}
+if config_path.exists():
+    try:
+        config = json.loads(config_path.read_text())
+    except json.JSONDecodeError:
+        config = {}
+summary = {
+    "mode": "external-turn" if sys.argv[4] == "1" else "local",
+    "requireRelay": sys.argv[5] == "1",
+    "requestedIceTransportPolicy": config.get("requestedIceTransportPolicy", ""),
+    "iceTransportPolicy": config.get("iceTransportPolicy", ""),
+    "relayPolicyFallback": bool(config.get("relayPolicyFallback")),
+    "hasStun": bool(config.get("hasStun")),
+    "hasTurn": bool(config.get("hasTurn")),
+    "candidateTypes": dict(sorted(counts.items())),
+    "pass": int(sys.argv[6]),
+    "fail": int(sys.argv[7]),
+    "skip": int(sys.argv[8]),
+}
+summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+PY
+
 echo
 echo "== WebRTC ICE 설정 검증 요약 =="
 echo "- 통과: ${PASS_COUNT}"
@@ -485,6 +560,7 @@ echo "- 건너뜀: ${SKIP_COUNT}"
 echo "- browser config: ${CONFIG_JSON}"
 echo "- candidates: ${CANDIDATES_FILE}"
 echo "- browser log: ${BROWSER_LOG}"
+echo "- summary: ${SUMMARY_FILE}"
 
 if (( FAIL_COUNT > 0 )); then
   exit 1

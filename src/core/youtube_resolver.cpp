@@ -191,6 +191,18 @@ std::string ClassifyYtDlpFailure(const std::string& stderr_text) {
         lower.find("age-restricted") != std::string::npos) {
         return "authentication required";
     }
+    if (lower.find("not a bot") != std::string::npos ||
+        lower.find("bot check") != std::string::npos ||
+        lower.find("captcha") != std::string::npos ||
+        lower.find("automated requests") != std::string::npos) {
+        return "bot check required";
+    }
+    if (lower.find("too many requests") != std::string::npos ||
+        lower.find("http error 429") != std::string::npos ||
+        lower.find("rate-limit") != std::string::npos ||
+        lower.find("rate limit") != std::string::npos) {
+        return "rate limited";
+    }
     if (lower.find("live stream recording is not available") != std::string::npos) {
         return "live archive unavailable";
     }
@@ -207,6 +219,16 @@ std::string ClassifyYtDlpFailure(const std::string& stderr_text) {
     if (lower.find("timed out") != std::string::npos ||
         lower.find("timeout") != std::string::npos) {
         return "network timeout";
+    }
+    if (lower.find("temporary failure in name resolution") != std::string::npos ||
+        lower.find("could not resolve host") != std::string::npos ||
+        lower.find("name or service not known") != std::string::npos) {
+        return "dns failure";
+    }
+    if (lower.find("connection reset") != std::string::npos ||
+        lower.find("connection refused") != std::string::npos ||
+        lower.find("network is unreachable") != std::string::npos) {
+        return "network connection failure";
     }
     return {};
 }

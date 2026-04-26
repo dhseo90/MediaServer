@@ -28,6 +28,18 @@ try {
       (async () => {
         const requiredCategoryValues = ['person', 'vehicle', 'road', 'animal', 'sports', 'tableware', 'food', 'furniture', 'device', 'object'];
         const koWords = ['사람', '차량', '도로', '동물', '운동', '식기', '음식', '가구', '기기', '잡화'];
+        const expectedDetailWordsByCategory = {
+          person: ['사람'],
+          vehicle: ['자전거', '자동차', '보트'],
+          road: ['신호등', '주차 미터기'],
+          animal: ['새', '개', '기린'],
+          sports: ['프리스비', '공', '테니스 라켓'],
+          tableware: ['병', '컵', '그릇'],
+          food: ['바나나', '피자', '케이크'],
+          furniture: ['벤치', '의자', '싱크대'],
+          device: ['TV', '노트북', '헤어드라이어'],
+          object: ['백팩', '곰인형', '칫솔'],
+        };
         const $ = (id) => document.getElementById(id);
         const checkedValues = (selector) => Array.from(document.querySelectorAll(selector + ':checked')).map((el) => el.value).sort();
         const click = (id) => {
@@ -65,6 +77,27 @@ try {
             throw new Error(id + ' text mismatch: ' + actual + ' != ' + expected);
           }
         };
+        const setValue = (id, value) => {
+          const el = $(id);
+          if (!el) throw new Error('missing input: ' + id);
+          el.value = value;
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+        const apiJson = async (url, options = {}) => {
+          const response = await fetch(url, options);
+          const text = await response.text();
+          let payload = {};
+          try {
+            payload = text ? JSON.parse(text) : {};
+          } catch (_) {
+            payload = { raw: text };
+          }
+          if (!response.ok) {
+            throw new Error(payload.error || text || 'HTTP ' + response.status);
+          }
+          return payload;
+        };
 
         expectText('selectDefaultTrackingBtn', '기본');
         expectText('selectAllTrackingBtn', '전체 선택');
@@ -74,6 +107,12 @@ try {
         expectText('clearClassesBtn', '전체 해제');
         if ($('eventFlashColorInput')) {
           throw new Error('highlight color input must not be visible');
+        }
+        if (!$('ruleLineDirection')) {
+          throw new Error('missing line direction select');
+        }
+        if ($('ruleLineDirection').value !== 'any') {
+          throw new Error('line direction default mismatch: ' + $('ruleLineDirection').value);
         }
 
         const ruleChecks = Array.from(document.querySelectorAll('[data-rule-category]'));
@@ -90,6 +129,23 @@ try {
         for (const word of ['자동차', '신호등', '백팩', '칫솔']) {
           if (!detailText.includes(word)) {
             throw new Error('missing Korean included object label: ' + word);
+          }
+        }
+        const detailByCategory = {};
+        for (const input of ruleChecks) {
+          const wrapper = input.closest('[data-class-item]');
+          const detail = wrapper ? wrapper.querySelector('.category-detail') : null;
+          detailByCategory[input.value] = detail ? detail.textContent : '';
+        }
+        for (const [category, words] of Object.entries(expectedDetailWordsByCategory)) {
+          const text = detailByCategory[category] || '';
+          if (!text.startsWith('포함: ')) {
+            throw new Error('category detail prefix mismatch for ' + category + ': ' + text);
+          }
+          for (const word of words) {
+            if (!text.includes(word)) {
+              throw new Error('category detail missing ' + word + ' for ' + category + ': ' + text);
+            }
           }
         }
 
@@ -121,6 +177,19 @@ try {
         expectValidationDialog('rule', '분석할 객체 카테고리');
         click('selectCoreClassesBtn');
         expectList('rule default button', checkedValues('[data-rule-category]'), ['person', 'vehicle']);
+        setValue('ruleEventType', 'line-crossing');
+        setValue('ruleLineDirection', 'forward');
+        const lineRulePayload = window.ruleJson();
+        if (lineRulePayload.event?.region?.type !== 'line') {
+          throw new Error('line-crossing payload region.type mismatch: ' + JSON.stringify(lineRulePayload.event?.region));
+        }
+        if (lineRulePayload.event?.region?.direction !== 'forward') {
+          throw new Error('line-crossing direction payload mismatch: ' + lineRulePayload.event?.region?.direction);
+        }
+        if (!Array.isArray(lineRulePayload.event?.region?.points) || lineRulePayload.event.region.points.length !== 2) {
+          throw new Error('line-crossing points length mismatch: ' + JSON.stringify(lineRulePayload.event?.region?.points));
+        }
+        setValue('ruleEventType', 'presence');
 
         expectList('profile default initial', checkedValues('[data-tracking-category]'), ['person', 'vehicle']);
         click('selectAllTrackingBtn');
@@ -147,14 +216,56 @@ try {
         click('selectDefaultTrackingBtn');
         expectList('profile default button', checkedValues('[data-tracking-category]'), ['person', 'vehicle']);
 
+        const smokeId = 'rule-ui-smoke-' + Date.now();
+        const savedProfileId = smokeId + '-profile';
+        const savedRuleId = smokeId + '-rule';
+        try {
+          setValue('profileId', savedProfileId);
+          click('selectAllTrackingBtn');
+          await ruleApi.saveProfile();
+          const savedProfile = await apiJson('/lab/analysis/profiles/' + encodeURIComponent(savedProfileId));
+          expectList('saved profile trackingClasses', savedProfile.profile?.trackingClasses || [], requiredCategoryValues);
+
+          setValue('ruleId', savedRuleId);
+          const ruleProfileSelect = $('ruleProfileId');
+          if (!Array.from(ruleProfileSelect.options).some((option) => option.value === savedProfileId)) {
+            throw new Error('saved profile missing in rule profile select');
+          }
+          ruleProfileSelect.value = savedProfileId;
+          ruleProfileSelect.dispatchEvent(new Event('change', { bubbles: true }));
+          click('selectCoreClassesBtn');
+          const rulePayload = window.ruleJson();
+          if (rulePayload.analysis.profileId !== savedProfileId) {
+            throw new Error('rule payload profileId mismatch: ' + rulePayload.analysis.profileId);
+          }
+          expectList('rule payload default classes', rulePayload.analysis.classes, ['person', 'vehicle']);
+          await ruleApi.saveRule();
+          const savedRule = await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedRuleId));
+          if (savedRule.rule?.analysis?.profileId !== savedProfileId) {
+            throw new Error('saved rule profileId mismatch: ' + JSON.stringify(savedRule.rule?.analysis));
+          }
+          expectList('saved rule analysis.classes', savedRule.rule?.analysis?.classes || [], ['person', 'vehicle']);
+        } finally {
+          await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedRuleId), { method: 'DELETE' }).catch(() => {});
+          await apiJson('/lab/analysis/profiles/' + encodeURIComponent(savedProfileId), { method: 'DELETE' }).catch(() => {});
+        }
+
         return {
           ruleButtons: ['기본', '전체 선택', '전체 해제'],
           profileButtons: ['기본', '전체 선택', '전체 해제'],
           categories: requiredCategoryValues,
+          categoryDetails: detailByCategory,
+          lineDirectionPayload: lineRulePayload.event.region.direction,
           ruleClearClasses: emptyRule.analysis.classes,
           profileClearTrackingClasses: emptyProfile.trackingClasses,
           ruleWarning,
           profileWarning,
+          roundTrip: {
+            profileId: savedProfileId,
+            ruleId: savedRuleId,
+            savedProfileTrackingClasses: requiredCategoryValues,
+            savedRuleClasses: ['person', 'vehicle'],
+          },
         };
       })()
     `,

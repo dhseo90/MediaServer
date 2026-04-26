@@ -25,6 +25,8 @@ CREATED_TAP_ID=""
 RUN_ID="adaptive-$(date +%s)-$$"
 DOWN_LOG="/tmp/media_server_${RUN_ID}_downshift.ndjson"
 UP_LOG="/tmp/media_server_${RUN_ID}_upshift.ndjson"
+INPUT_LOG="/tmp/media_server_${RUN_ID}_input_size.ndjson"
+SUMMARY_FILE="/tmp/media_server_${RUN_ID}_summary.json"
 
 log_info() {
   echo "[info] $*"
@@ -131,6 +133,10 @@ for line in pathlib.Path(sys.argv[1]).read_text().splitlines():
         "down": int(tap.get("adaptiveDownshiftCount") or 0),
         "up": int(tap.get("adaptiveUpshiftCount") or 0),
         "state": tap.get("adaptiveState") or "",
+        "modelInputWidth": int(tap.get("modelInputWidth") or 0),
+        "modelInputHeight": int(tap.get("modelInputHeight") or 0),
+        "adaptiveInputSizeEnabled": bool(tap.get("adaptiveInputSizeEnabled")),
+        "adaptiveInputSizeDisabled": bool(tap.get("adaptiveInputSizeDisabled")),
         "avgMs": float(tap.get("averageAnalysisMs") or 0.0),
         "analyzed": int(tap.get("analyzedPackets") or 0),
     })
@@ -143,11 +149,51 @@ max_down = max(v["down"] for v in values)
 print("downshift_initial=", values[0])
 print("downshift_final=", last)
 print("downshift_min_fps=", min_fps, "max_downshift_count=", max_down)
+print("downshift_input_min=", min(v["modelInputWidth"] for v in values if v["modelInputWidth"] > 0), "x", min(v["modelInputHeight"] for v in values if v["modelInputHeight"] > 0))
 if max_down <= 0:
     raise SystemExit("adaptive downshift가 발생하지 않음")
 if min_fps > 3:
     raise SystemExit(f"targetFps가 충분히 내려가지 않음: min={min_fps}")
 if last["analyzed"] <= 0:
+    raise SystemExit("분석 packet이 증가하지 않음")
+PY
+}
+
+assert_input_size_fallback() {
+  python3 - "$1" <<'PY'
+import json
+import pathlib
+import sys
+
+values = []
+for line in pathlib.Path(sys.argv[1]).read_text().splitlines():
+    if not line.strip():
+        continue
+    tap = json.loads(line).get("tap") or {}
+    values.append({
+        "targetFps": int(tap.get("targetFps") or 0),
+        "state": tap.get("adaptiveState") or "",
+        "modelInputWidth": int(tap.get("modelInputWidth") or 0),
+        "modelInputHeight": int(tap.get("modelInputHeight") or 0),
+        "adaptiveInputSizeEnabled": bool(tap.get("adaptiveInputSizeEnabled")),
+        "adaptiveInputSizeDisabled": bool(tap.get("adaptiveInputSizeDisabled")),
+        "analyzed": int(tap.get("analyzedPackets") or 0),
+    })
+
+if len(values) < 5:
+    raise SystemExit("snapshot sample 부족")
+widths = [v["modelInputWidth"] for v in values if v["modelInputWidth"] > 0]
+heights = [v["modelInputHeight"] for v in values if v["modelInputHeight"] > 0]
+states = sorted({v["state"] for v in values if v["state"]})
+disabled = any(v["adaptiveInputSizeDisabled"] for v in values)
+print("input_size_initial=", values[0])
+print("input_size_final=", values[-1])
+print("input_size_min=", min(widths or [0]), "x", min(heights or [0]), "states=", states, "disabled=", disabled)
+if not any(v["adaptiveInputSizeEnabled"] for v in values):
+    raise SystemExit("adaptive input-size가 활성화된 snapshot이 없음")
+if not disabled and not any(v["modelInputWidth"] <= 480 and v["modelInputHeight"] <= 480 for v in values):
+    raise SystemExit("adaptive input-size가 줄지 않았고 fallback disabled 상태도 아님")
+if values[-1]["analyzed"] <= 0:
     raise SystemExit("분석 packet이 증가하지 않음")
 PY
 }
@@ -168,6 +214,8 @@ for line in pathlib.Path(sys.argv[1]).read_text().splitlines():
         "down": int(tap.get("adaptiveDownshiftCount") or 0),
         "up": int(tap.get("adaptiveUpshiftCount") or 0),
         "state": tap.get("adaptiveState") or "",
+        "modelInputWidth": int(tap.get("modelInputWidth") or 0),
+        "modelInputHeight": int(tap.get("modelInputHeight") or 0),
         "avgMs": float(tap.get("averageAnalysisMs") or 0.0),
         "analyzed": int(tap.get("analyzedPackets") or 0),
     })
@@ -223,6 +271,18 @@ else
 fi
 curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${DOWN_TAP}" >/dev/null 2>&1 || true
 
+INPUT_QUERY="file=${ENCODED_FILE}&va=1&detector=dummy&fps=8&maxQueue=1&adaptive=1&adaptiveInputSize=1&inputWidth=640&inputHeight=640&adaptiveMinFps=8&adaptiveMaxFps=8&adaptiveMinInputWidth=320&adaptiveMinInputHeight=320&adaptiveMaxInputWidth=640&adaptiveMaxInputHeight=640&adaptiveInputStep=160&adaptiveCooldownMs=250&detectorDelayMs=220"
+create_tap "${INPUT_QUERY}"
+INPUT_TAP="${CREATED_TAP_ID}"
+log_pass "input-size tap 생성: ${INPUT_TAP}"
+poll_tap "${INPUT_TAP}" "${INPUT_LOG}" "${POLL_COUNT}" "${POLL_INTERVAL_S}"
+if assert_input_size_fallback "${INPUT_LOG}"; then
+  log_pass "adaptive input-size downshift/fallback 검증"
+else
+  log_fail "adaptive input-size downshift/fallback 검증 실패"
+fi
+curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${INPUT_TAP}" >/dev/null 2>&1 || true
+
 UP_QUERY="file=${ENCODED_FILE}&va=1&detector=dummy&fps=2&maxQueue=2&adaptive=1&adaptiveInputSize=0&adaptiveMinFps=2&adaptiveMaxFps=6&adaptiveCooldownMs=250&detectorDelayMs=0"
 create_tap "${UP_QUERY}"
 UP_TAP="${CREATED_TAP_ID}"
@@ -235,13 +295,59 @@ else
 fi
 curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${UP_TAP}" >/dev/null 2>&1 || true
 
+python3 - "${DOWN_LOG}" "${INPUT_LOG}" "${UP_LOG}" "${SUMMARY_FILE}" <<'PY'
+import json
+import pathlib
+import sys
+
+def load(path):
+    items = []
+    for line in pathlib.Path(path).read_text().splitlines():
+        if not line.strip():
+            continue
+        tap = json.loads(line).get("tap") or {}
+        items.append({
+            "targetFps": tap.get("targetFps", 0),
+            "modelInputWidth": tap.get("modelInputWidth", 0),
+            "modelInputHeight": tap.get("modelInputHeight", 0),
+            "state": tap.get("adaptiveState", ""),
+            "downshiftCount": tap.get("adaptiveDownshiftCount", 0),
+            "upshiftCount": tap.get("adaptiveUpshiftCount", 0),
+            "averageAnalysisMs": tap.get("averageAnalysisMs", 0),
+        })
+    return items
+
+summary = {
+    "downshift": {
+        "first": load(sys.argv[1])[0] if load(sys.argv[1]) else {},
+        "last": load(sys.argv[1])[-1] if load(sys.argv[1]) else {},
+        "states": sorted({item["state"] for item in load(sys.argv[1]) if item["state"]}),
+    },
+    "inputSize": {
+        "first": load(sys.argv[2])[0] if load(sys.argv[2]) else {},
+        "last": load(sys.argv[2])[-1] if load(sys.argv[2]) else {},
+        "states": sorted({item["state"] for item in load(sys.argv[2]) if item["state"]}),
+    },
+    "upshift": {
+        "first": load(sys.argv[3])[0] if load(sys.argv[3]) else {},
+        "last": load(sys.argv[3])[-1] if load(sys.argv[3]) else {},
+        "states": sorted({item["state"] for item in load(sys.argv[3]) if item["state"]}),
+    },
+}
+pathlib.Path(sys.argv[4]).write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+print("adaptive_summary=", summary)
+PY
+log_pass "adaptive 상태 전환 summary 생성"
+
 echo
 echo "== adaptive tuner 검증 요약 =="
 echo "- 통과: ${PASS_COUNT}"
 echo "- 실패: ${FAIL_COUNT}"
 echo "- 건너뜀: ${SKIP_COUNT}"
 echo "- downshift log: ${DOWN_LOG}"
+echo "- input-size log: ${INPUT_LOG}"
 echo "- upshift log: ${UP_LOG}"
+echo "- summary: ${SUMMARY_FILE}"
 
 if (( FAIL_COUNT > 0 )); then
   exit 1

@@ -2967,7 +2967,14 @@ std::string BuildLabRuleEditorPageHtml() {
                 <option value="presence" selected>영역 내 객체 감지(권장)</option>
                 <option value="enter">영역 진입</option>
                 <option value="exit">영역 이탈</option>
-                <option value="line-crossing">라인 통과(양방향)</option>
+                <option value="line-crossing">라인 통과</option>
+              </select>
+            </label>
+            <label>라인 통과 방향
+              <select id="ruleLineDirection">
+                <option value="any" selected>양방향</option>
+                <option value="forward">정방향(-측→+측)</option>
+                <option value="reverse">역방향(+측→-측)</option>
               </select>
             </label>
           </div>
@@ -3192,6 +3199,18 @@ std::string BuildLabRuleEditorPageHtml() {
       return $('ruleEventType').value === 'line-crossing';
     }
 
+    function lineDirectionValue() {
+      const value = $('ruleLineDirection')?.value || 'any';
+      return ['any', 'forward', 'reverse'].includes(value) ? value : 'any';
+    }
+
+    function lineDirectionLabel() {
+      const value = lineDirectionValue();
+      if (value === 'forward') return '정방향(-측→+측)';
+      if (value === 'reverse') return '역방향(+측→-측)';
+      return '양방향';
+    }
+
     function maxGeometryPoints() {
       return isLineRule() ? lineMaxPoints : polygonMaxPoints;
     }
@@ -3310,7 +3329,7 @@ std::string BuildLabRuleEditorPageHtml() {
         points
       };
       if (lineMode) {
-        region.direction = 'any';
+        region.direction = lineDirectionValue();
       }
       return {
         id: $('ruleId').value.trim() || 'file-person-vehicle-area',
@@ -3350,8 +3369,9 @@ std::string BuildLabRuleEditorPageHtml() {
       const lineMode = isLineRule();
       $('geometryLabel').textContent = lineMode ? '이벤트 판단 선' : '이벤트 판단 영역';
       $('clearRegionBtn').textContent = lineMode ? '선 지우기' : '영역 지우기';
+      $('ruleLineDirection').disabled = !lineMode;
       $('geometryHint').textContent = lineMode
-        ? '라인 통과 룰은 선분의 시작/끝 2개 점만 사용합니다. 방향은 현재 any(양방향)로 저장합니다. 기존 점 근처를 드래그하면 점 위치를 이동합니다.'
+        ? `라인 통과 룰은 선분의 시작/끝 2개 점만 사용합니다. 방향은 ${lineDirectionLabel()}으로 저장합니다. 기존 점 근처를 드래그하면 점 위치를 이동합니다.`
         : `캔버스를 클릭해 다각형 꼭짓점을 추가합니다. 3개 이상이면 영역으로 저장됩니다. 최대 ${polygonMaxPoints}개까지 지정할 수 있습니다. 기존 점 근처를 드래그하면 새 점을 만들지 않고 점 위치를 이동합니다.`;
     }
 
@@ -3613,6 +3633,9 @@ std::string BuildLabRuleEditorPageHtml() {
       $('ruleRoute').value = item.match?.route || '*';
       $('ruleProfileId').value = item.analysis?.profileId || $('ruleProfileId').value;
       $('ruleEventType').value = item.event?.type || 'presence';
+      $('ruleLineDirection').value = ['any', 'forward', 'reverse'].includes(item.event?.region?.direction)
+        ? item.event.region.direction
+        : 'any';
       const classSet = new Set((item.analysis?.classes || []).map((value) => normalizeTrackingToken(value)));
       const hasAll = classSet.has('*') || classSet.has('all') || classSet.has('any');
       document.querySelectorAll('[data-rule-category]').forEach((el) => {
@@ -3751,7 +3774,7 @@ std::string BuildLabRuleEditorPageHtml() {
         14
       );
       if (lineMode) {
-        ctx.fillText('방향: any(양방향)', 16, 36);
+        ctx.fillText(`방향: ${lineDirectionLabel()}`, 16, 36);
       }
       regionPoints.forEach((point, index) => {
         const x = point.x * width;
@@ -3913,7 +3936,7 @@ std::string BuildLabRuleEditorPageHtml() {
       const item = rules.find((entry) => entry.id === id);
       if (item) loadRule(item);
     };
-    for (const id of ['profileFps', 'profileQueue', 'profileConfidence', 'profileNms', 'profileInputWidth', 'profileInputHeight', 'profileDetector', 'profileAdaptive', 'profileId', 'ruleId', 'ruleEnabled', 'ruleSourceKind', 'ruleRoute', 'ruleProfileId', 'ruleEventType', 'ruleConfidence', 'ruleMinDurationMs', 'eventFlashInput', 'eventFlashMsInput', 'eventPostUrlInput']) {
+    for (const id of ['profileFps', 'profileQueue', 'profileConfidence', 'profileNms', 'profileInputWidth', 'profileInputHeight', 'profileDetector', 'profileAdaptive', 'profileId', 'ruleId', 'ruleEnabled', 'ruleSourceKind', 'ruleRoute', 'ruleProfileId', 'ruleEventType', 'ruleLineDirection', 'ruleConfidence', 'ruleMinDurationMs', 'eventFlashInput', 'eventFlashMsInput', 'eventPostUrlInput']) {
       const el = $(id);
       if (el) el.addEventListener('input', updatePreviews);
       if (el) el.addEventListener('change', updatePreviews);
@@ -4495,6 +4518,28 @@ std::string SourceJson(const std::string& session_id, const std::string& source_
         << "\"sessionId\":\"" << JsonEscape(session_id) << "\","
         << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
         << "\"answer\":\"" << JsonEscape(answer) << "\""
+        << "}";
+    return out.str();
+}
+
+// 다채널 검증과 수동 진단에서 WebRTC session 수와 dedup stream 수를 비교할 수 있게 JSON으로 직렬화한다.
+std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& snapshot,
+                              std::size_t http_egress_sessions,
+                              std::size_t whip_publish_sessions) {
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"sessionManager\":{"
+        << "\"activeSessions\":" << snapshot.active_sessions << ","
+        << "\"resourceActiveSessions\":" << snapshot.resource_active_sessions << ","
+        << "\"resourceActiveStreams\":" << snapshot.resource_active_streams << ","
+        << "\"registryActiveStreams\":" << snapshot.registry_active_streams << ","
+        << "\"activeAnalysisTaps\":" << snapshot.active_analysis_taps
+        << "},"
+        << "\"webrtcHttp\":{"
+        << "\"egressSessions\":" << http_egress_sessions << ","
+        << "\"publishSessions\":" << whip_publish_sessions
+        << "}"
         << "}";
     return out.str();
 }
@@ -5165,7 +5210,8 @@ std::string AnalysisEventJson(const analysis::AnalysisEvent& event) {
         << ",\"mode\":\"blink\",\"color\":\"" << JsonEscape(event.highlight_color)
         << "\",\"durationMs\":" << event.highlight_duration_ms << "},"
         << "\"post\":{\"enabled\":" << (event.post_enabled ? "true" : "false")
-        << ",\"url\":\"" << JsonEscape(event.post_url) << "\"}"
+        << ",\"method\":\"POST\",\"url\":\"" << JsonEscape(event.post_url)
+        << "\",\"payloadFormat\":\"media-server.va.event.v1\"}"
         << "}"
         << "}";
     return out.str();
@@ -5589,6 +5635,21 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                         if (request.method == "GET" && request.path == "/lab/files") {
                             return JsonResponse(200, "OK", LabFilesJson());
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/runtime/status") {
+                            std::size_t http_egress_sessions = 0;
+                            std::size_t whip_publish_sessions = 0;
+                            {
+                                std::lock_guard lock(impl_->mu);
+                                http_egress_sessions = impl_->sessions.size();
+                                whip_publish_sessions = impl_->source_sessions.size();
+                            }
+                            return JsonResponse(200,
+                                                "OK",
+                                                RuntimeStatusJson(impl_->session_manager.GetRuntimeStateSnapshot(),
+                                                                  http_egress_sessions,
+                                                                  whip_publish_sessions));
                         }
 
                         if (request.method == "GET" && request.path == "/lab/analysis/capabilities") {

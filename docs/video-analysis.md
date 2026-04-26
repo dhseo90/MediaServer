@@ -163,7 +163,7 @@ PTS 매칭이 실패하면 최신 result로 fallback합니다. 이 fallback은 o
 - presence
 - enter
 - exit
-- line-crossing(any)
+- line-crossing(`any`, `forward`, `reverse`)
 
 룰 편집 UI 동작:
 
@@ -175,11 +175,12 @@ PTS 매칭이 실패하면 최신 result로 fallback합니다. 이 fallback은 o
 - polygon 영역은 최대 12개 점까지 지정
 - 이미 지정된 점 근처를 드래그하면 새 점을 추가하지 않고 기존 점 위치 이동
 - line-crossing rule은 polygon 대신 2개 점짜리 선분으로 저장
-- 현재 line-crossing 방향은 `any`로 저장하며 양방향 통과를 같은 이벤트로 봄
+- line-crossing 방향은 `any`, `forward`, `reverse` 중 하나로 저장한다. `forward`/`reverse`는 선분 시작점에서 끝점으로 향하는 벡터 기준 signed side 변화로 구분한다.
 
 이벤트 발생 객체는 overlay에서 `이벤트` 또는 `Event` label을 붙이고, 카테고리 기본색과 빨간색을 번갈아 표시하는 blink highlight로 강조합니다.
+overlay label은 겹침을 줄이기 위해 먼저 후보 위치를 계산합니다. 이벤트 label은 일반 label보다 먼저 자리를 예약하고 마지막에 그려서, line-crossing/enter/exit 같은 이벤트 객체가 일반 객체 label에 가려지지 않게 합니다.
 
-Event POST는 기본 비활성화입니다. 실제 외부 전송은 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1`로 명시적으로 켠 경우에만 수행합니다.
+Event POST는 기본 비활성화입니다. 실제 외부 전송은 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1`로 명시적으로 켠 경우에만 수행합니다. 전송 payload는 `media-server.va.event.v1`로 고정하며 `schema`, `eventId`, `timestampMs`, `source`, `rule`, `object`, `action.highlight`, `action.post`를 포함합니다. worker는 bounded queue와 cooldown을 사용하므로 전송 실패, drop, suppress 상태는 `/lab/analysis/event-post/status`와 `./server.sh verify-event-post`로 확인합니다.
 
 ## API
 
@@ -209,6 +210,31 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/capabilities'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/profiles'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/rules'
 ```
+
+`/lab/analysis/capabilities`의 `trackingCategories`는 Rule/Profile UI와 tracker/rule engine이 공유하는 카테고리 catalog입니다.
+
+```json
+{
+  "trackingCategories": [
+    {
+      "value": "person",
+      "label": "사람",
+      "group": "core person",
+      "labels": ["person"],
+      "displayLabels": ["사람"]
+    },
+    {
+      "value": "vehicle",
+      "label": "차량",
+      "group": "core vehicle",
+      "labels": ["bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat"],
+      "displayLabels": ["자전거", "자동차", "오토바이", "비행기", "버스", "기차", "트럭", "보트"]
+    }
+  ]
+}
+```
+
+Rule 저장 payload는 `analysis.classes`, Profile 저장 payload는 `trackingClasses`에 같은 category token을 담습니다. 빈 배열은 UI/API 모두에서 저장을 막습니다.
 
 ## YOLO parser 옵션
 
@@ -257,7 +283,7 @@ MEDIA_SERVER_VERIFY_VA_DURATION_S=120 ./server.sh verify-va
 ./server.sh verify-image-analysis
 ```
 
-`./server.sh test --include-image-analysis`는 정적 이미지 분석 API와 함께 기본 `person,vehicle`, 10개 개별 카테고리, `*` tracking category 정책을 리포트에 표시한다.
+`./server.sh test --include-image-analysis`는 정적 이미지 분석 API와 함께 기본 `person,vehicle`, 10개 개별 카테고리, `*` 전체 추적, `animal,car` 혼합 입력, `traffic light` 직접 class label, `vehicles` alias 정책을 리포트에 표시한다.
 
 Route/profile/rule 검증:
 
@@ -272,6 +298,16 @@ Route/profile/rule 검증:
 ./server.sh verify-adaptive
 ```
 
-`verify-va-category-samples`는 기본적으로 `va_four_scene_sample.mp4`와 sports 전용 `va_sports_sample.mp4`를 함께 사용해 10개 카테고리를 모두 hard fail 기준으로 확인한다. 브라우저 overlay 수동 확인은 `/lab`에서 `va=1`, `trackIds=1`, `trackTrails=1`을 켜고 진행한다. `2026-04-26` 기준 `route=webrtc` 테스트 rule(presence, line-crossing)을 임시 등록한 뒤 `va_four_scene_sample.mp4`와 `imports/va_tracking_event_1280x720_30fps_h264.mp4` 모두 WebRTC simple signaling 연결과 overlay 표출을 확인했다.
+`verify-va-events`는 presence, `minDurationMs` presence, enter, exit, line-crossing을 같은 이동 테스트 영상에서 확인한다. line-crossing은 `any` 결과가 `forward`/`reverse` 방향별 결과로 분할되는지 함께 확인하고, enter/exit/line-crossing 이벤트는 tracker가 붙인 유효 `trackId` 기준으로 검증한다.
+
+`verify-event-post`는 event POST worker를 켠 서버에서 실행한다. `--mode schema`는 성공 endpoint, 실패 endpoint, cooldown 억제, payload schema를 확인하고, `--mode queue`는 `MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE=1` 또는 `2`로 시작한 서버에서 slow endpoint를 이용해 `droppedCount` 증가를 확인한다.
+
+`verify-va-category-samples`는 기본적으로 `va_four_scene_sample.mp4`와 sports 전용 `va_sports_sample.mp4`를 함께 사용해 10개 카테고리를 모두 hard fail 기준으로 확인한다. 같은 검증에서 `car` 직접 class rule과 `vehicles` alias rule도 presence event로 확인한다. 실행 시작 시 샘플 파일 크기와 ffprobe duration을 사전 진단하고, 성공/실패와 관계없이 category coverage JSON 경로를 출력한다. 브라우저 overlay 수동 확인은 `/lab`에서 `va=1`, `trackIds=1`, `trackTrails=1`을 켜고 진행한다. `2026-04-26` 기준 `route=webrtc` 테스트 rule(presence, line-crossing)을 임시 등록한 뒤 `va_four_scene_sample.mp4`와 `imports/va_tracking_event_1280x720_30fps_h264.mp4` 모두 WebRTC simple signaling 연결과 overlay 표출을 확인했다.
+
+`verify-tracker-stability`는 fragmentation/stale PTS 기준 외에 class/category별 track/sample count를 summary NDJSON과 반복 요약에 출력한다. 기본 stale PTS 허용 비율은 `0.3`이고, `--overlap-focus`는 동시 track이 많은 구간의 fragmentation ratio를 별도로 hard gate로 확인한다.
+
+`verify-adaptive`는 downshift, input-size downshift/fallback, upshift를 각각 별도 tap으로 검증하고 summary JSON을 남긴다. 기본 장시간 검증은 `POLL_COUNT=80`, `INTERVAL=0.25s`이며 smoke가 필요하면 `MEDIA_SERVER_VERIFY_ADAPTIVE_POLL_COUNT=50`처럼 줄여 실행한다. input-size 케이스는 fps 하향을 막은 상태에서 640 입력이 480/320 단계로 내려가는지 확인한다.
+
+`verify-yolo-layouts`는 각 모델/layout/box/scoreMode 케이스의 마지막 tap 상태를 summary NDJSON으로 남긴다. detection이 0건이면 output layout, box format, score mode 조합을 우선 확인하라는 힌트를 출력한다.
 
 상세 검증 이력은 `stream-verification.md`를 봅니다.

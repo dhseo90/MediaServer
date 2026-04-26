@@ -223,17 +223,31 @@ create_rule() {
   log_pass "rule 저장: ${rule_id}"
 }
 
+create_line_rule() {
+  # line-crossing direction별 판정이 같은 선분에서 any 결과를 forward/reverse로 나누는지 확인한다.
+  local suffix="$1"
+  local direction="$2"
+  local x="$3"
+  local rule_id="${RUN_ID}-${suffix}"
+  create_rule "${rule_id}" \
+"{\"id\":\"${rule_id}\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"line-crossing\",\"minConfidence\":0.25,\"region\":{\"type\":\"line\",\"direction\":\"${direction}\",\"points\":[{\"x\":${x},\"y\":0.05},{\"x\":${x},\"y\":0.98}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
+}
+
 create_rule "${RUN_ID}-presence" \
 "{\"id\":\"${RUN_ID}-presence\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.25,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#00ff00\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
+
+create_rule "${RUN_ID}-presence-500ms" \
+"{\"id\":\"${RUN_ID}-presence-500ms\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.25,\"minDurationMs\":500,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
 
 create_rule "${RUN_ID}-multi-category-presence" \
 "{\"id\":\"${RUN_ID}-multi-category-presence\",\"priority\":95,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\",\"vehicle\",\"road\",\"animal\",\"sports\",\"tableware\",\"food\",\"furniture\",\"device\",\"object\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.25,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
 
-create_rule "${RUN_ID}-line-left" \
-"{\"id\":\"${RUN_ID}-line-left\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"line-crossing\",\"minConfidence\":0.25,\"region\":{\"type\":\"line\",\"direction\":\"any\",\"points\":[{\"x\":0.25,\"y\":0.05},{\"x\":0.25,\"y\":0.98}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
-
-create_rule "${RUN_ID}-line-right" \
-"{\"id\":\"${RUN_ID}-line-right\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"line-crossing\",\"minConfidence\":0.25,\"region\":{\"type\":\"line\",\"direction\":\"any\",\"points\":[{\"x\":0.75,\"y\":0.05},{\"x\":0.75,\"y\":0.98}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
+create_line_rule "line-left" "any" "0.25"
+create_line_rule "line-left-forward" "forward" "0.25"
+create_line_rule "line-left-reverse" "reverse" "0.25"
+create_line_rule "line-right" "any" "0.75"
+create_line_rule "line-right-forward" "forward" "0.75"
+create_line_rule "line-right-reverse" "reverse" "0.75"
 
 create_rule "${RUN_ID}-enter-center" \
 "{\"id\":\"${RUN_ID}-enter-center\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"enter\",\"minConfidence\":0.25,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.35,\"y\":0.25},{\"x\":0.65,\"y\":0.25},{\"x\":0.65,\"y\":0.98},{\"x\":0.35,\"y\":0.98}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
@@ -293,6 +307,7 @@ counts = collections.Counter()
 tracks_by_type = collections.defaultdict(set)
 tracks_by_rule = collections.defaultdict(set)
 highlight_colors_by_rule = collections.defaultdict(set)
+highlight_durations_by_rule = collections.defaultdict(set)
 samples = []
 for line in events_file.read_text().splitlines():
     if not line.strip():
@@ -308,12 +323,15 @@ for line in events_file.read_text().splitlines():
         highlight = action.get("highlight") or {}
         track_id = obj.get("trackId", 0)
         color = str(highlight.get("color") or "").lower()
+        duration_ms = highlight.get("durationMs")
         counts[event_type] += 1
         counts[rule_id] += 1
         tracks_by_type[event_type].add(track_id)
         tracks_by_rule[rule_id].add(track_id)
         if color:
             highlight_colors_by_rule[rule_id].add(color)
+        if isinstance(duration_ms, int):
+            highlight_durations_by_rule[rule_id].add(duration_ms)
         if len(samples) < 12:
             samples.append({
                 "rule": rule_id,
@@ -321,6 +339,7 @@ for line in events_file.read_text().splitlines():
                 "track": track_id,
                 "score": round(float(obj.get("score", 0.0)), 3),
                 "highlight": color,
+                "durationMs": duration_ms,
             })
 
 snapshot = json.loads(snapshot_file.read_text()).get("tap") or {}
@@ -338,6 +357,7 @@ print("event_counts=", dict(counts))
 print("event_tracks=", {k: sorted(v) for k, v in tracks_by_type.items()})
 print("rule_tracks=", {k: sorted(v) for k, v in tracks_by_rule.items()})
 print("highlight_colors=", {k: sorted(v) for k, v in highlight_colors_by_rule.items()})
+print("highlight_durations=", {k: sorted(v) for k, v in highlight_durations_by_rule.items()})
 print("samples=", samples)
 print("snapshot_track_count=", latest.get("trackCount", 0), "listed=", listed)
 print("analyzed=", snapshot.get("analyzedPackets", 0), "avgMs=", snapshot.get("averageAnalysisMs", 0))
@@ -345,6 +365,8 @@ print("analyzed=", snapshot.get("analyzedPackets", 0), "avgMs=", snapshot.get("a
 errors = []
 if counts.get("presence", 0) < min_presence:
     errors.append(f"presence 이벤트 부족: {counts.get('presence', 0)} < {min_presence}")
+if counts.get(f"{run_id}-presence-500ms", 0) < min_presence:
+    errors.append(f"minDuration presence 이벤트 부족: {counts.get(f'{run_id}-presence-500ms', 0)} < {min_presence}")
 if counts.get(f"{run_id}-multi-category-presence", 0) < min_presence:
     errors.append(f"다중 카테고리 presence 이벤트 부족: {counts.get(f'{run_id}-multi-category-presence', 0)} < {min_presence}")
 if counts.get("enter", 0) < min_enter:
@@ -353,6 +375,30 @@ if counts.get("exit", 0) < min_exit:
     errors.append(f"exit 이벤트 부족: {counts.get('exit', 0)} < {min_exit}")
 if counts.get("line-crossing", 0) < min_line:
     errors.append(f"line-crossing 이벤트 부족: {counts.get('line-crossing', 0)} < {min_line}")
+for rule_suffix in ("enter-center", "exit-center", "line-left", "line-right"):
+    rule_id = f"{run_id}-{rule_suffix}"
+    if counts.get(rule_id, 0) <= 0:
+        errors.append(f"{rule_suffix} rule 이벤트가 없습니다")
+directed_line_total = 0
+for side in ("left", "right"):
+    any_rule = f"{run_id}-line-{side}"
+    forward_rule = f"{run_id}-line-{side}-forward"
+    reverse_rule = f"{run_id}-line-{side}-reverse"
+    any_count = counts.get(any_rule, 0)
+    forward_count = counts.get(forward_rule, 0)
+    reverse_count = counts.get(reverse_rule, 0)
+    directed_line_total += forward_count + reverse_count
+    if any_count > 0 and forward_count + reverse_count != any_count:
+        errors.append(
+            f"line-{side} direction 분할 불일치: any={any_count}, "
+            f"forward={forward_count}, reverse={reverse_count}"
+        )
+if directed_line_total <= 0:
+    errors.append("forward/reverse line-crossing 이벤트가 없습니다")
+for event_type in ("enter", "exit", "line-crossing"):
+    bad_tracks = [track for track in tracks_by_type.get(event_type, set()) if not isinstance(track, int) or track <= 0]
+    if bad_tracks:
+        errors.append(f"{event_type} 이벤트에 유효하지 않은 trackId가 있습니다: {bad_tracks}")
 if len(unique_tracks) < min_tracks:
     errors.append(f"이벤트 trackId 종류 부족: {len(unique_tracks)} < {min_tracks}")
 if not listed:
@@ -363,8 +409,14 @@ for rule_id, colors in highlight_colors_by_rule.items():
     unexpected = {color for color in colors if color != "#ff0000"}
     if unexpected:
         errors.append(f"{rule_id} highlight color가 빨간색 고정이 아님: {sorted(unexpected)}")
+for rule_id, durations in highlight_durations_by_rule.items():
+    unexpected = {duration for duration in durations if duration != 1500}
+    if unexpected:
+        errors.append(f"{rule_id} highlight durationMs가 1500으로 유지되지 않음: {sorted(unexpected)}")
 if "#ff0000" not in highlight_colors_by_rule.get(f"{run_id}-presence", set()):
     errors.append("커스텀 highlight 입력을 빨간색으로 고정한 이벤트가 없습니다")
+if 1500 not in highlight_durations_by_rule.get(f"{run_id}-presence", set()):
+    errors.append("presence rule blink durationMs=1500 이벤트가 없습니다")
 
 if errors:
     for error in errors:
@@ -374,7 +426,7 @@ PY
 log_pass "presence/enter/exit/line-crossing 이벤트 검증"
 log_pass "trackId 기반 이벤트 및 active tap 목록 검증"
 log_pass "다중 카테고리 presence 이벤트 검증"
-log_pass "이벤트 blink highlight 빨간색 고정 검증"
+log_pass "이벤트 blink highlight 색상/시간 검증"
 log_info "overlay=${OVERLAY_FILE}"
 log_info "events_log=${EVENTS_FILE}"
 

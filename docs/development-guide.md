@@ -417,12 +417,15 @@ WebRTC STUN/TURN 검증 상태:
 | `./server.sh test` | 안정 기능 기준 통합 테스트. 한글 원인 리포트와 `.media_server.test/` 로그 생성 |
 | `./server.sh verify-codecs` | source/route codec matrix 자동 검증 |
 | `./server.sh verify-webrtc-ice` | STUN/TURN/ICE transport policy와 candidate 수집 상태 검증 |
+| `./server.sh verify-multichannel` | 같은 영상/여러 영상 기준 다중 WebRTC client fan-out 검증 |
 | `./server.sh verify-uri-longrun` | HTTP/HLS URI source 로컬 반복 검증과 선택 외부 URL 반복 확인 |
 | `./server.sh verify-va` | YOLO/VA overlay lab, RTSP, WebRTC 검증 |
-| `./server.sh verify-va-events` | 실제 이동 영상 기준 tracker, line-crossing, enter, exit 이벤트 검증 |
-| `./server.sh verify-va-category-samples` | 실제 영상 샘플과 sports 전용 샘플 기준 VA 카테고리별 presence 이벤트 검증 |
+| `./server.sh verify-va-events` | 실제 이동 영상 기준 tracker, line-crossing 방향, enter, exit 이벤트 검증 |
+| `./server.sh verify-va-category-samples` | 실제 영상 샘플과 sports 전용 샘플 기준 VA 카테고리, 직접 class, alias presence 이벤트 검증 |
 | `./server.sh verify-route-profiles` | 실제 RTSP/WebRTC overlay 세션 기준 route별 profile/rule matching 검증 |
-| `./server.sh verify-rule-ui` | `/lab/rules` Rule/Profile 카테고리 버튼, category catalog, 저장 payload 검증 |
+| `./server.sh verify-rule-ui` | `/lab/rules` Rule/Profile 카테고리 버튼, category catalog 순서/스키마, 저장 payload round-trip 검증 |
+| `./server.sh verify-event-post` | VA event POST payload schema, 실패/cooldown/queue counter 검증 |
+| `./server.sh verify-lab-import-ui` | `/lab/import` 실험실 import UI와 jobs API smoke 검증 |
 | `./server.sh verify-tracker-stability` | 이동 영상 기준 track ID 유지/분절 통계 수집 |
 | `./server.sh verify-yolo-layouts` | YOLO 모델별 output layout/box/score 조합 검증 |
 | `./server.sh verify-adaptive` | adaptive tuner의 과부하 downshift와 저부하 upshift 검증 |
@@ -520,7 +523,7 @@ tracker 장시간 검증:
 ./server.sh verify-tracker-stability --long
 ```
 
-`--long`은 기본 120초 x 3회 반복으로 동작한다. 기본 파일을 따로 지정하지 않으면 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4`에서 2분 이상 장기 샘플 `video/imports/va_tracking_event_slow_long_1280x720_30fps_h264.mp4`를 자동 생성해 사용한다. 장기 샘플은 원본 이동 영상을 5배 슬로우모션으로 늘려 서버 EOF loop와 편집 컷 경계를 피한다. 이 장기 샘플은 로컬 검증 산출물이며 git에는 포함하지 않는다.
+`--long`은 기본 120초 x 3회 반복으로 동작한다. 기본 파일을 따로 지정하지 않으면 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4`에서 2분 이상 장기 샘플 `video/imports/va_tracking_event_slow_long_1280x720_30fps_h264.mp4`를 자동 생성해 사용한다. 장기 샘플은 원본 이동 영상을 5배 슬로우모션으로 늘려 서버 EOF loop와 편집 컷 경계를 피한다. 이 장기 샘플은 로컬 검증 산출물이며 git에는 포함하지 않는다. 결과 summary에는 fragmentation ratio, overlap fragmentation ratio, stale PTS ratio, class/category별 track/sample count가 포함된다. stale PTS ratio 기본 허용치는 `0.3`이며 반복 PTS가 많으면 동일 frame 재사용이나 loop 경계 영향을 먼저 의심한다.
 
 반복 검증은 기본적으로 각 iteration 사이에 source idle cleanup을 기다려 같은 파일을 처음부터 다시 분석한다. 이렇게 해야 2회차가 1회차 재생이 끝난 파일 source의 중간/끝부분에 붙어서 stale PTS가 누적되는 오판을 피할 수 있다. 연속 스트림처럼 source를 재시작하지 않고 보고 싶다면 `--continuous-source`를 사용한다.
 
@@ -816,6 +819,7 @@ POST http://127.0.0.1:8080/whep?source=youtube&url={urlencoded_youtube_watch_or_
 
 `/lab/import`는 YouTube URL을 개발용 샘플 파일로 내려받아 `video/imports` 아래에 저장한다.
 이 경로는 `source=youtube` 직접 표출과 분리되어 있으며 기본값으로 UI/API가 보인다.
+실험 기능 상태와 실패 유형은 `docs/youtube-import.md`에 별도로 정리한다.
 저장된 파일 token은 기존 file source와 동일하게 사용한다.
 
 ```text
@@ -905,6 +909,8 @@ RTSP egress 기준:
 ```
 `--include-rules`는 profile/rule registry CRUD와 rule match 기반 profile 자동 선택을 확인한다. `--include-va-events`는 레포에 포함한 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4` 이동 영상으로 presence, line-crossing, enter, exit 이벤트와 track ID 포함 여부를 확인한다. 이벤트/룰 POST 연동은 아직 운영 안정 기능으로 승격하지 않았으므로 별도 장시간 검증 후 기본 테스트 편입을 판단한다.
 
+YOLO/adaptive/WebRTC/URI 선택 검증은 `/tmp/media_server_*_summary.*` 파일을 함께 남긴다. `verify-yolo-layouts`는 parser 조합별 마지막 tap 상태, `verify-adaptive`는 downshift/input-size/upshift 상태 전환, `verify-webrtc-ice`는 requested/effective ICE policy와 relay fallback, `verify-multichannel`은 다중 client session/stream fan-out 상태, `verify-uri-longrun`은 외부 URL advisory 결과를 요약한다.
+
 ### 1. 서버 상태 진단
 ```bash
 ./server.sh status
@@ -946,6 +952,8 @@ MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=1 ./server.sh verify-codecs
 ```bash
 MEDIA_SERVER_SESSION_TRACE=1 ./server.sh foreground
 ```
+
+source/session lifecycle trace는 역할을 나눠 사용한다. `MEDIA_SERVER_SESSION_TRACE=1`은 StreamRegistry acquire/reuse/idle cleanup 중심 로그이고, `MEDIA_SERVER_WEBRTC_TRACE=1`은 WebRTC 협상/상태 로그, `MEDIA_SERVER_WEBRTC_TRACE_VERBOSE=1`은 sample/pad/SDP 같은 고빈도 detail 로그다. StreamRegistry idle cleanup 검증은 `verify-tracker-stability --restart-between-iterations`처럼 iteration 사이에 idle grace보다 길게 대기하는 검증으로 확인한다.
 
 특정 source만:
 ```bash
@@ -1025,6 +1033,8 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./server.sh urls
   - browser consumer 기준 `decoded video frame` 확인
 - `WebRTC publish(browser publisher) -> WebRTC(WHEP)`
   - browser consumer 기준 audio/video track 및 `decoded video frame` 확인
+- `file -> WebRTC 다채널 consume`
+  - 같은 영상 다중 client는 dedup stream `1`, 여러 영상 다중 client는 source 수와 같은 stream 수를 확인
 - 로컬 전체 matrix 과거 결과
   - 당시 결과: `pass=63 fail=0 skip=3`
   - `2026-04-24` blocker 체크 결과: `pass=57 fail=6 skip=3`

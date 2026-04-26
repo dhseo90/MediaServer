@@ -750,6 +750,7 @@ bool RenderDetectionOverlay(const RawVideoFrame& frame,
         std::string text;
         Color color;
         Color text_color;
+        bool event_priority{false};
     };
     std::vector<LabelDrawItem> labels;
     std::vector<PixelRect> placed_label_rects;
@@ -785,18 +786,61 @@ bool RenderDetectionOverlay(const RawVideoFrame& frame,
         const int box_thickness = event_on ? ClampInt(thickness + 3, 1, 16) : thickness;
         DrawRect(output, x1, y1, x2, y2, box_thickness, box_color);
 
-        if (!options.draw_labels) {
-            continue;
+    }
+
+    if (options.draw_labels) {
+        std::vector<std::size_t> label_indices;
+        label_indices.reserve(result.detections.size());
+        for (std::size_t index = 0; index < result.detections.size(); ++index) {
+            label_indices.push_back(index);
         }
-        const std::string label = BuildLabel(detection, options.label_language, options.draw_track_ids);
-        const TextSize text_size = MeasureOverlayText(frame, label, text_scale);
-        const int label_width = std::min(frame.width, text_size.width + label_padding * 2);
-        const int label_height = text_size.height + label_padding * 2;
-        const PixelRect object_rect{x1, y1, x2, y2};
-        const PixelRect label_rect =
-            PlaceLabelRect(object_rect, label_width, label_height, frame.width, frame.height, placed_label_rects);
-        placed_label_rects.push_back(label_rect);
-        labels.push_back(LabelDrawItem{label_rect, label, box_color, TextColorForBackground(box_color)});
+        std::stable_sort(label_indices.begin(), label_indices.end(), [&result](std::size_t lhs, std::size_t rhs) {
+            const auto& left = result.detections[lhs];
+            const auto& right = result.detections[rhs];
+            if (left.event_triggered != right.event_triggered) {
+                return left.event_triggered && !right.event_triggered;
+            }
+            return left.score > right.score;
+        });
+
+        // 이벤트 label은 먼저 자리를 잡아 일반 객체 label에 밀리지 않게 하고, 실제 출력은 마지막에 그린다.
+        for (const std::size_t index : label_indices) {
+            const auto& detection = result.detections[index];
+            const int x1 = ClampInt(static_cast<int>(std::lround(detection.box.x * frame.width)), 0, frame.width - 1);
+            const int y1 = ClampInt(static_cast<int>(std::lround(detection.box.y * frame.height)), 0, frame.height - 1);
+            const int x2 =
+                ClampInt(static_cast<int>(std::lround((detection.box.x + detection.box.width) * frame.width)),
+                         0,
+                         frame.width - 1);
+            const int y2 =
+                ClampInt(static_cast<int>(std::lround((detection.box.y + detection.box.height) * frame.height)),
+                         0,
+                         frame.height - 1);
+            if (x2 <= x1 || y2 <= y1) {
+                continue;
+            }
+
+            const bool event_on =
+                options.draw_event_highlight && detection.event_triggered && ShouldDrawEventBlink(frame, detection);
+            const Color normal_color = ColorForDetection(detection);
+            const Color label_color = event_on
+                                          ? ParseHexColorOrDefault(detection.event_highlight_color, Color{255, 0, 0})
+                                          : normal_color;
+            const std::string label = BuildLabel(detection, options.label_language, options.draw_track_ids);
+            const TextSize text_size = MeasureOverlayText(frame, label, text_scale);
+            const int label_width = std::min(frame.width, text_size.width + label_padding * 2);
+            const int label_height = text_size.height + label_padding * 2;
+            const PixelRect object_rect{x1, y1, x2, y2};
+            const PixelRect label_rect =
+                PlaceLabelRect(object_rect, label_width, label_height, frame.width, frame.height, placed_label_rects);
+            placed_label_rects.push_back(label_rect);
+            labels.push_back(
+                LabelDrawItem{label_rect, label, label_color, TextColorForBackground(label_color), detection.event_triggered});
+        }
+
+        std::stable_sort(labels.begin(), labels.end(), [](const LabelDrawItem& lhs, const LabelDrawItem& rhs) {
+            return !lhs.event_priority && rhs.event_priority;
+        });
     }
 
     for (const auto& label : labels) {

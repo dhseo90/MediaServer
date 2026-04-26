@@ -134,22 +134,41 @@ if curl -fsS "${HTTP_BASE}/lab/analysis/capabilities" > "${CAPABILITIES_FILE}" &
    node - "${CAPABILITIES_FILE}" <<'JS'
 const fs = require("node:fs");
 const payload = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
-const expected = ["person", "vehicle", "road", "animal", "sports", "tableware", "food", "furniture", "device", "object"];
+const expected = [
+  { value: "person", label: "사람", group: "core person", labels: ["person"], displayLabels: ["사람"] },
+  { value: "vehicle", label: "차량", group: "core vehicle", labels: ["bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat"], displayLabels: ["자전거", "자동차", "오토바이", "비행기", "버스", "기차", "트럭", "보트"] },
+  { value: "road", label: "도로", group: "road", labels: ["traffic light", "fire hydrant", "stop sign", "parking meter"], displayLabels: ["신호등", "소화전", "정지 표지판", "주차 미터기"] },
+  { value: "animal", label: "동물", group: "animal", labels: ["bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe"], displayLabels: ["새", "고양이", "개", "말", "양", "소", "코끼리", "곰", "얼룩말", "기린"] },
+  { value: "sports", label: "운동", group: "sports", labels: ["frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket"], displayLabels: ["프리스비", "스키", "스노보드", "공", "연", "야구 배트", "야구 글러브", "스케이트보드", "서프보드", "테니스 라켓"] },
+  { value: "tableware", label: "식기", group: "tableware", labels: ["bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl"], displayLabels: ["병", "와인잔", "컵", "포크", "칼", "숟가락", "그릇"] },
+  { value: "food", label: "음식", group: "food", labels: ["banana", "apple", "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake"], displayLabels: ["바나나", "사과", "샌드위치", "오렌지", "브로콜리", "당근", "핫도그", "피자", "도넛", "케이크"] },
+  { value: "furniture", label: "가구", group: "furniture", labels: ["bench", "chair", "couch", "potted plant", "bed", "dining table", "toilet", "sink"], displayLabels: ["벤치", "의자", "소파", "화분", "침대", "식탁", "변기", "싱크대"] },
+  { value: "device", label: "기기", group: "device", labels: ["tv", "laptop", "mouse", "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "refrigerator", "clock", "hair drier"], displayLabels: ["TV", "노트북", "마우스", "리모컨", "키보드", "휴대폰", "전자레인지", "오븐", "토스터", "냉장고", "시계", "헤어드라이어"] },
+  { value: "object", label: "잡화", group: "object", labels: ["backpack", "umbrella", "handbag", "tie", "suitcase", "book", "vase", "scissors", "teddy bear", "toothbrush"], displayLabels: ["백팩", "우산", "핸드백", "넥타이", "여행가방", "책", "꽃병", "가위", "곰인형", "칫솔"] },
+];
 const categories = Array.isArray(payload.trackingCategories) ? payload.trackingCategories : [];
 const values = categories.map((item) => item.value);
-if (JSON.stringify(values) !== JSON.stringify(expected)) {
+if (JSON.stringify(values) !== JSON.stringify(expected.map((item) => item.value))) {
   throw new Error(`trackingCategories mismatch: ${JSON.stringify(values)}`);
 }
-for (const item of categories) {
-  if (!item.label || !Array.isArray(item.labels) || !Array.isArray(item.displayLabels)) {
-    throw new Error(`category schema mismatch: ${JSON.stringify(item)}`);
+for (let i = 0; i < expected.length; i += 1) {
+  const item = categories[i];
+  const want = expected[i];
+  if (item.label !== want.label || item.group !== want.group) {
+    throw new Error(`category metadata mismatch: ${JSON.stringify(item)}`);
+  }
+  if (JSON.stringify(item.labels) !== JSON.stringify(want.labels)) {
+    throw new Error(`category labels mismatch for ${want.value}: ${JSON.stringify(item.labels)}`);
+  }
+  if (JSON.stringify(item.displayLabels) !== JSON.stringify(want.displayLabels)) {
+    throw new Error(`category displayLabels mismatch for ${want.value}: ${JSON.stringify(item.displayLabels)}`);
   }
 }
 JS
 then
-  log_pass "capabilities category catalog 확인"
+  log_pass "capabilities category catalog 순서/스키마 확인"
 else
-  log_fail "capabilities category catalog 확인 실패"
+  log_fail "capabilities category catalog 순서/스키마 확인 실패"
   sed -n '1,120p' "${CAPABILITIES_FILE}" | sed 's/^/[api] /'
 fi
 
