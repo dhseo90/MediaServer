@@ -29,7 +29,10 @@
 - `2026-04-26`: `./server.sh verify-va-events --duration 30` 통과 `9/0/0`. presence `558`, line-crossing `4`, enter `2`, exit `2` 이벤트와 trackId 기반 rule event를 확인했다.
 - `2026-04-26`: `./server.sh verify-va-events --long` 통과 `9/0/0`. presence `2280`, line-crossing `4`, enter `2`, exit `2`, snapshot `trackCount=4`, analyzed `734`, 평균 분석 시간 `92.3452ms`를 확인했다.
 - `2026-04-26`: 기본 tracker 대상 정책을 개별 객체명이 아닌 카테고리 토큰(`person,vehicle`)으로 정리했다. 기타 객체는 detection/overlay만 유지하며, 동물 등 시간 기반 이벤트가 필요한 category/class는 `trackingClasses` 또는 `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES`로 opt-in한다.
-- `2026-04-26`: `verify-image-analysis`에 `trackingClasses=animal`과 `trackingClasses=*` 자동 검증을 추가했다. 기본 category, animal category, 전체 tracking 정책을 정적 이미지 API 기준으로 확인한다.
+- `2026-04-26`: Rule UI를 기존 한글 분류였던 `person`, `vehicle`, `road`, `animal`, `sports`, `tableware`, `food`, `furniture`, `device`, `object` 카테고리 중심으로 정리하고, 각 카테고리 박스에 포함 객체명을 한글로 표시한다. rule engine과 tracker는 공용 C++ 카테고리 토큰 해석을 공유하며 `/lab/analysis/capabilities`의 `trackingCategories`로 같은 catalog를 노출한다.
+- `2026-04-26`: Rule/Profile 카테고리 UI smoke 검증 명령 `./server.sh verify-rule-ui`를 추가했다. 버튼은 `기본=사람+차량`, `전체 선택=모든 카테고리`, `전체 해제=빈 선택`을 확인한다. 빈 선택 상태에서 저장하면 화면 다이얼로그를 띄우고 저장을 막으며, API도 `analysis.classes=[]`와 `trackingClasses=[]` 저장을 거부한다.
+- `2026-04-26`: 실제 영상 샘플 기준 카테고리 이벤트 확인 명령 `./server.sh verify-va-category-samples`를 추가했다. 기본 샘플 `va_four_scene_sample.mp4`는 `person`, `vehicle`, `road`, `animal`, `tableware`, `food`, `furniture`, `device`, `object` presence 이벤트를 확인하고, sports 전용 `va_sports_sample.mp4`로 `sports`까지 hard fail 검증한다. sports 검증을 임시 제외할 때만 `--no-sports`를 쓴다.
+- `2026-04-26`: `verify-image-analysis`에 10개 tracking category와 `trackingClasses=*` 자동 검증을 추가했다. 기본 category, 개별 category, 전체 tracking 정책을 정적 이미지 API 기준으로 확인한다.
 - `2026-04-26`: 외부 운영 TURN 검증용 `./server.sh verify-webrtc-ice --external-turn` 모드를 추가했다. 가입 없이 사용할 수 있는 신뢰 가능한 TURN credential은 확보하지 못했으므로 credential 미설정 시 skip한다.
 - `2026-04-26`: 외부 HLS advisory 기본 후보를 Mux/Apple 2개로 정리하고 `./server.sh verify-uri-longrun --include-external --use-default-external` 진입점을 추가했다.
 
@@ -660,7 +663,7 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - UI는 profile 성능값을 slider/dropdown으로 조정하고, rule은 source/route/profile/event type/class와 16:9 polygon 영역을 저장한다.
   - polygon 영역은 최대 12점까지 지정하고, 기존 점 근처 drag/drop으로 점 위치를 이동한다.
   - `line-crossing`은 polygon 대신 2점 선분으로 전환하며, 현재 방향은 `any` 양방향으로 저장한다.
-  - 이벤트 발생 시 matched object 깜빡임 강조와 POST URL 설정을 `eventActions`로 저장한다. POST payload는 `media-server.va.event.v1` 고정 format preview만 보여주고 사용자가 수정할 수 없다.
+  - 이벤트 발생 시 matched object 깜빡임 강조와 POST URL 설정을 `eventActions`로 저장한다. 강조 색상은 UI에서 받지 않고 카테고리 기본색/빨간색 blink로 고정한다. POST payload는 `media-server.va.event.v1` 고정 format preview만 보여주고 사용자가 수정할 수 없다.
   - 저장은 기존 `PUT /lab/analysis/profiles/{id}`와 `PUT /lab/analysis/rules/{id}` API를 사용한다. 저장된 rule은 이후 rule event engine에서 `va=1` overlay와 events API에 적용한다.
 - `2026-04-25` `/lab/rules` 룰 편집 전체 테스트를 임시 registry로 실행했다.
   - `MEDIA_SERVER_ANALYSIS_REGISTRY=.media_server_rule_ui_full_test.json` 서버에서 profile 저장, polygon rule 저장, line-crossing rule 저장을 확인했다.
@@ -669,20 +672,20 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - line-crossing rule은 UI가 `이벤트 판단 선`으로 전환되고, 기존 점 drag/drop 뒤 `region.type=line`, `direction=any`, 2개 point로 저장됐다.
   - 서버 재시작 후 같은 임시 registry에서 저장된 profile/rule 3건이 다시 조회되어 persistence를 확인했다.
 - `2026-04-25` `/lab/rules` event action UI smoke test를 추가했다.
-  - matched object 깜빡임 강조 설정을 `eventActions.highlight`로 저장했다.
+  - matched object 깜빡임 강조 설정을 `eventActions.highlight`로 저장했다. 강조 색상은 UI 입력 없이 빨간색으로 고정한다.
   - 사용자는 POST URL만 입력하고, payload는 `media-server.va.event.v1` 고정 preview로만 표시한다.
   - `ui-event-action-test` rule 저장 후 `eventActions.highlight.mode=blink`, `target=matched-object`, `eventActions.post.method=POST`, `payloadFormat=media-server.va.event.v1`이 registry에 저장됨을 확인했다.
   - 이 시점에는 실제 POST 전송은 수행하지 않았다. 전송 실행은 이후 POST delivery worker 구현에서 연결했다.
 - `2026-04-25` rule event engine 1차 구현을 추가했다.
   - 저장된 rule JSON을 detection 결과에 적용하는 `src/analysis/event_rule_engine.cpp`를 추가했다.
   - 지원 이벤트는 `presence`, `enter`, `exit`, `line-crossing(any)`다.
-  - `va=1` RTSP/WebRTC overlay와 `/lab/analysis/taps/{tapId}/overlay.jpg`는 저장된 rule snapshot을 평가해 이벤트 객체를 `이벤트`/`Event` label과 blink highlight로 표시한다.
+  - `va=1` RTSP/WebRTC overlay와 `/lab/analysis/taps/{tapId}/overlay.jpg`는 저장된 rule snapshot을 평가해 이벤트 객체를 `이벤트`/`Event` label과 카테고리 기본색/빨간색 blink highlight로 표시한다.
   - `/lab/analysis/taps/{tapId}/events`는 최신 result에 rule을 적용한 event JSON을 반환한다.
   - 이 시점에는 `eventActions.post`가 저장/응답에만 포함됐고 실제 HTTP POST 전송은 아직 수행하지 않았다.
   - 당시에는 tracker가 없어서 다중 동일 class 객체의 `enter/exit/line-crossing`은 detection index 기준 상태 추적으로만 동작했다. 이후 `2026-04-25` lightweight tracker 1차 구현에서 `trackId` 기준 상태 추적으로 변경했다.
   - `./server.sh start` 기준 AI 포함 기본 빌드가 통과했다.
   - ONNX build 서버에서 `imports/yolo_bus_test.mp4`와 전체 화면 polygon `presence` rule을 사용해 `/lab/analysis/taps/analysis-tap-1/events`가 `person`, `bus` 이벤트 5건과 `event.triggered=true` detection metadata를 반환함을 확인했다.
-  - 같은 tap의 `/overlay.jpg`는 `JPEG 640x480`으로 생성됐고, 이벤트 객체가 `이벤트`/`Event` label과 highlight color로 표시됨을 이미지로 확인했다.
+  - 같은 tap의 `/overlay.jpg`는 `JPEG 640x480`으로 생성됐고, 이벤트 객체가 `이벤트`/`Event` label과 blink highlight로 표시됨을 이미지로 확인했다.
   - 합성 detection 기반 단위 smoke에서 `presence_events=1`, `enter_events=1`, `exit_events=1`, `line_events=1`을 확인했다.
 - `2026-04-25` event POST delivery worker 1차 구현을 추가했다.
   - `src/analysis/event_post_dispatcher.cpp`가 이벤트 POST를 bounded queue에 넣고 background worker에서 `curl`로 전송한다.
@@ -696,7 +699,7 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - 테스트 tap, ONNX foreground 서버, 임시 POST 수신 서버를 종료해 잔여 listen port가 없음을 확인했다.
 - `2026-04-25` lightweight tracker 1차 구현 smoke test를 추가했다.
   - `src/analysis/object_tracker.cpp`에서 IoU와 중심점 거리 기반 track matching을 추가했다.
-  - 기본 `va=1` profile은 `MEDIA_SERVER_ANALYSIS_TRACKING=1` 기본값으로 tracker를 켠다. query `tracking=0`으로 디버그 비활성화할 수 있다. 기본 tracking category는 `person,vehicle`이며, `trackingClasses=animal`, `trackingClasses=*` 또는 class 목록으로 조정할 수 있다.
+  - 기본 `va=1` profile은 `MEDIA_SERVER_ANALYSIS_TRACKING=1` 기본값으로 tracker를 켠다. query `tracking=0`으로 디버그 비활성화할 수 있다. 기본 tracking category는 `person,vehicle`이며, `trackingClasses=road`, `trackingClasses=animal`, `trackingClasses=sports`, `trackingClasses=tableware`, `trackingClasses=food`, `trackingClasses=furniture`, `trackingClasses=device`, `trackingClasses=object`, `trackingClasses=*` 또는 class 목록으로 조정할 수 있다.
   - detection metadata는 `trackId`를 포함하고, `latestResult.tracks[]`는 `trackId`, `age`, `hits`, `missed`, `state`, 최근 box, 중심점 `trail[]`을 반환한다.
   - overlay snapshot/debug URL에 `trackIds=1`을 붙이면 label에 `#trackId`가 함께 표시되고, `trackTrails=1`을 붙이면 최근 이동 궤적이 표시된다.
   - `imports/yolo11n_object_detection_slideshow_1280x720_30fps_h264.mp4` 기준 smoke에서 사람 장면 `trackId=1,2`가 여러 poll 동안 유지되고 `trackingEnabled=true`, `state=confirmed`를 확인했다.

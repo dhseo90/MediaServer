@@ -30,6 +30,10 @@ WEBRTC_NODE_PID=""
 RTSP_LOG="/tmp/media_server_${RUN_ID}_rtsp.log"
 WEBRTC_LOG="/tmp/media_server_${RUN_ID}_webrtc.json"
 TAPS_FILE="/tmp/media_server_${RUN_ID}_taps.json"
+PROFILE_RTSP_READ_FILE="/tmp/media_server_${RUN_ID}_profile_rtsp.json"
+PROFILE_WEBRTC_READ_FILE="/tmp/media_server_${RUN_ID}_profile_webrtc.json"
+RULE_RTSP_READ_FILE="/tmp/media_server_${RUN_ID}_rule_rtsp.json"
+RULE_WEBRTC_READ_FILE="/tmp/media_server_${RUN_ID}_rule_webrtc.json"
 
 log_info() {
   echo "[info] $*"
@@ -184,10 +188,10 @@ if ! curl -fsS --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
 fi
 log_pass "HTTP health ok"
 
-PROFILE_RTSP_JSON="{\"id\":\"${PROFILE_RTSP}\",\"detector\":\"dummy\",\"fps\":3,\"maxQueue\":1,\"confidence\":0.25,\"nms\":0.45,\"tracking\":false,\"adaptive\":false}"
-PROFILE_WEBRTC_JSON="{\"id\":\"${PROFILE_WEBRTC}\",\"detector\":\"dummy\",\"fps\":6,\"maxQueue\":2,\"confidence\":0.25,\"nms\":0.45,\"tracking\":false,\"adaptive\":false}"
-RULE_RTSP_JSON="{\"id\":\"${RULE_RTSP}\",\"priority\":120,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"rtsp\"},\"analysis\":{\"profileId\":\"${PROFILE_RTSP}\",\"classes\":[\"person\",\"car\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.1,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
-RULE_WEBRTC_JSON="{\"id\":\"${RULE_WEBRTC}\",\"priority\":120,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"webrtc\"},\"analysis\":{\"profileId\":\"${PROFILE_WEBRTC}\",\"classes\":[\"person\",\"car\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.1,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
+PROFILE_RTSP_JSON="{\"id\":\"${PROFILE_RTSP}\",\"detector\":\"dummy\",\"fps\":3,\"maxQueue\":1,\"confidence\":0.25,\"nms\":0.45,\"tracking\":false,\"adaptive\":false,\"trackingClasses\":[\"person\",\"vehicle\",\"animal\",\"food\"]}"
+PROFILE_WEBRTC_JSON="{\"id\":\"${PROFILE_WEBRTC}\",\"detector\":\"dummy\",\"fps\":6,\"maxQueue\":2,\"confidence\":0.25,\"nms\":0.45,\"tracking\":false,\"adaptive\":false,\"trackingClasses\":[\"road\",\"sports\",\"tableware\",\"furniture\",\"device\",\"object\"]}"
+RULE_RTSP_JSON="{\"id\":\"${RULE_RTSP}\",\"priority\":120,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"rtsp\"},\"analysis\":{\"profileId\":\"${PROFILE_RTSP}\",\"classes\":[\"person\",\"vehicle\",\"animal\",\"food\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.1,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
+RULE_WEBRTC_JSON="{\"id\":\"${RULE_WEBRTC}\",\"priority\":120,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"webrtc\"},\"analysis\":{\"profileId\":\"${PROFILE_WEBRTC}\",\"classes\":[\"road\",\"sports\",\"tableware\",\"furniture\",\"device\",\"object\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.1,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
 
 curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/profiles/${PROFILE_RTSP}" \
   -H 'Content-Type: application/json' --data "${PROFILE_RTSP_JSON}" >/dev/null
@@ -198,6 +202,47 @@ curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/rules/${RULE_RTSP}" \
 curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/rules/${RULE_WEBRTC}" \
   -H 'Content-Type: application/json' --data "${RULE_WEBRTC_JSON}" >/dev/null
 log_pass "route별 profile/rule 저장"
+
+if curl -fsS "${HTTP_BASE}/lab/analysis/profiles/${PROFILE_RTSP}" > "${PROFILE_RTSP_READ_FILE}" &&
+   curl -fsS "${HTTP_BASE}/lab/analysis/profiles/${PROFILE_WEBRTC}" > "${PROFILE_WEBRTC_READ_FILE}" &&
+   curl -fsS "${HTTP_BASE}/lab/analysis/rules/${RULE_RTSP}" > "${RULE_RTSP_READ_FILE}" &&
+   curl -fsS "${HTTP_BASE}/lab/analysis/rules/${RULE_WEBRTC}" > "${RULE_WEBRTC_READ_FILE}"; then
+  if python3 - \
+    "${PROFILE_RTSP_READ_FILE}" \
+    "${PROFILE_WEBRTC_READ_FILE}" \
+    "${RULE_RTSP_READ_FILE}" \
+    "${RULE_WEBRTC_READ_FILE}" <<'PY'
+import json
+import pathlib
+import sys
+
+profile_rtsp = json.loads(pathlib.Path(sys.argv[1]).read_text()).get("profile") or {}
+profile_webrtc = json.loads(pathlib.Path(sys.argv[2]).read_text()).get("profile") or {}
+rule_rtsp = json.loads(pathlib.Path(sys.argv[3]).read_text()).get("rule") or {}
+rule_webrtc = json.loads(pathlib.Path(sys.argv[4]).read_text()).get("rule") or {}
+
+expected_profile_rtsp = ["person", "vehicle", "animal", "food"]
+expected_profile_webrtc = ["road", "sports", "tableware", "furniture", "device", "object"]
+expected_rule_rtsp = ["person", "vehicle", "animal", "food"]
+expected_rule_webrtc = ["road", "sports", "tableware", "furniture", "device", "object"]
+
+def require_exact_list(name, value, expected):
+    if value != expected:
+        raise SystemExit(f"{name} mismatch: {value} != {expected}")
+
+require_exact_list("profile rtsp trackingClasses", profile_rtsp.get("trackingClasses"), expected_profile_rtsp)
+require_exact_list("profile webrtc trackingClasses", profile_webrtc.get("trackingClasses"), expected_profile_webrtc)
+require_exact_list("rule rtsp classes", (rule_rtsp.get("analysis") or {}).get("classes"), expected_rule_rtsp)
+require_exact_list("rule webrtc classes", (rule_webrtc.get("analysis") or {}).get("classes"), expected_rule_webrtc)
+PY
+  then
+    log_pass "Profile/Rule 카테고리 저장·복원 확인"
+  else
+    log_fail "Profile/Rule 카테고리 저장·복원 검증 실패"
+  fi
+else
+  log_fail "Profile/Rule 카테고리 저장·복원 endpoint 호출 실패"
+fi
 
 RTSP_URL="rtsp://${RTSP_HOST}:${RTSP_PORT}/${ROUTE}?file=${ENCODED_FILE}&va=1"
 log_info "rtsp_url=${RTSP_URL}"

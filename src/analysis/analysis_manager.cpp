@@ -50,6 +50,7 @@ std::optional<AnalysisResult> FindResultNearPtsLocked(const std::deque<AnalysisR
 ObjectTrackerOptions BuildTrackerOptions(const AnalysisProfile& profile) {
     ObjectTrackerOptions options;
     options.class_labels = profile.tracking_class_labels;
+    options.track_all_when_class_labels_empty = !profile.tracking_classes_specified;
     return options;
 }
 

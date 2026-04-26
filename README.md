@@ -159,7 +159,10 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 ./server.sh verify-uri-longrun --include-external --external-rtsp-routes default,h264,opus --external-urls https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
 ./server.sh verify-va
 ./server.sh verify-va-events
+./server.sh verify-va-category-samples
+./server.sh verify-va-category-samples --no-sports
 ./server.sh verify-route-profiles
+./server.sh verify-rule-ui
 ./server.sh verify-tracker-stability
 ./server.sh verify-yolo-layouts
 ./server.sh verify-adaptive
@@ -228,7 +231,9 @@ rtsp://127.0.0.1:8554/dhseo?source=webrtc&url={source_id}
 
 상세한 VA/YOLO 모델 기준, 객체 카테고리, rule/event, 정적 이미지 분석 API는 [docs/video-analysis.md](docs/video-analysis.md)를 봅니다.
 
-기본 tracker는 카테고리 토큰 `person,vehicle`에만 `trackId`/trail을 붙이고, 그 외 객체는 detection/overlay만 유지합니다. 동물 같은 시간 기반 이벤트가 필요한 객체는 `trackingClasses=animal` 또는 `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES=person,vehicle,animal`처럼 opt-in합니다.
+기본 tracker는 카테고리 토큰 `person,vehicle`에만 `trackId`/trail을 붙이고, 그 외 객체는 detection/overlay만 유지합니다. 시간 기반 이벤트가 필요한 객체는 `trackingClasses=animal,food` 또는 `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES=person,vehicle,animal`처럼 opt-in합니다. 지원 카테고리는 `person`, `vehicle`, `road`, `animal`, `sports`, `tableware`, `food`, `furniture`, `device`, `object`입니다.
+
+카테고리 검증은 `va_four_scene_sample.mp4`와 sports 전용 `va_sports_sample.mp4`를 함께 사용합니다. `/lab/analysis/capabilities`의 `trackingCategories`가 Rule/Profile UI, tracker, rule engine이 공유하는 category catalog입니다.
 
 VA overlay 샘플:
 
@@ -290,6 +295,7 @@ curl -fsS -o overlay.jpg \
 
 ```bash
 ./server.sh test --include-rules
+./server.sh test --include-rule-ui
 ./server.sh test --include-va-events
 ./server.sh test --include-image-analysis
 ./server.sh test --include-webrtc-ice

@@ -1,8 +1,9 @@
 // 파일 용도: IoU와 중심점 거리를 이용한 경량 객체 tracker를 구현한다.
 #include "analysis/object_tracker.h"
 
+#include "analysis/category_tokens.h"
+
 #include <algorithm>
-#include <cctype>
 #include <cmath>
 
 namespace analysis {
@@ -52,44 +53,10 @@ bool SameClass(const Detection& lhs, const Detection& rhs) {
     return lhs.class_id == rhs.class_id && lhs.label == rhs.label;
 }
 
-// class label/id 비교가 대소문자와 공백 표기에 흔들리지 않도록 정규화한다.
-std::string NormalizeClassToken(std::string value) {
-    value.erase(std::remove_if(value.begin(),
-                               value.end(),
-                               [](unsigned char ch) { return std::isspace(ch) != 0; }),
-                value.end());
-    std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
-        return static_cast<char>(std::tolower(ch));
-    });
-    return value;
-}
-
-// trackingClasses override에서 전체 추적을 뜻하는 토큰인지 확인한다.
-bool IsAllClassesToken(const std::string& value) {
-    return value == "*" || value == "all" || value == "any";
-}
-
-// 사람/차량/동물처럼 UI에 노출하는 카테고리 토큰을 실제 COCO label 묶음으로 확장한다.
-bool MatchesCategoryToken(const std::string& wanted, const std::string& label) {
-    if (wanted == "person" || wanted == "people" || wanted == "human" || wanted == "humans") {
-        return label == "person";
-    }
-    if (wanted == "vehicle" || wanted == "vehicles") {
-        return label == "bicycle" || label == "car" || label == "motorcycle" || label == "airplane" ||
-               label == "bus" || label == "train" || label == "truck" || label == "boat";
-    }
-    if (wanted == "animal" || wanted == "animals") {
-        return label == "bird" || label == "cat" || label == "dog" || label == "horse" ||
-               label == "sheep" || label == "cow" || label == "elephant" || label == "bear" ||
-               label == "zebra" || label == "giraffe";
-    }
-    return false;
-}
-
 // detection이 현재 tracker whitelist에 포함되는지 판단한다.
 bool ShouldTrackDetection(const Detection& detection, const ObjectTrackerOptions& options) {
     if (options.class_labels.empty()) {
-        return true;
+        return options.track_all_when_class_labels_empty;
     }
 
     const std::string label = NormalizeClassToken(detection.label);

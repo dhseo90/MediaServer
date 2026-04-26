@@ -133,10 +133,13 @@ VA 분석은 relay 경로를 직접 대체하지 않고 같은 source stream을 
   - 기본 추적 대상은 카테고리 토큰 `person`, `vehicle`
   - `vehicle`은 COCO 차량 계열(`bicycle`, `car`, `motorcycle`, `airplane`, `bus`, `train`, `truck`, `boat`)을 포함한다.
   - `animal`을 추가하면 COCO 동물 계열(`bird`, `cat`, `dog`, `horse`, `sheep`, `cow`, `elephant`, `bear`, `zebra`, `giraffe`)을 추적한다.
+  - `road`, `sports`, `tableware`, `food`, `furniture`, `device`, `object`를 추가하면 도로 표식/운동/식기/음식/가구/기기/잡화 계열도 시간 기반 이벤트 대상으로 opt-in한다.
   - 그 외 객체는 detection/overlay만 유지하고 ID/trail은 붙이지 않는다.
-  - 가방/상자/장비처럼 시간 기반 이벤트가 필요한 객체는 query/profile의 `trackingClasses` 또는 `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES`로 opt-in한다.
+  - 기본 대상 밖의 카테고리에 시간 기반 이벤트가 필요하면 query/profile의 `trackingClasses` 또는 `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES`로 opt-in한다.
 - RTSP/WebRTC raw video 구간에 overlay 합성
 - metadata/snapshot/overlay JPEG API 제공
+
+Rule UI는 개별 COCO 객체명을 모두 체크박스로 노출하지 않고 기존 한글 카테고리인 `person`, `vehicle`, `road`, `animal`, `sports`, `tableware`, `food`, `furniture`, `device`, `object` 단위로 선택하게 한다. 각 카테고리 박스에는 포함 객체명을 한글로 표시한다. 이 카테고리 목록은 `/lab/analysis/capabilities`의 `trackingCategories`와 같은 C++ catalog에서 내려오며, JSON/API에서는 기존처럼 세부 class label 또는 class id를 직접 지정할 수 있다.
 
 느린 detector 상황에서는 relay path를 막지 않기 위해 오래된 분석 frame부터 버립니다. adaptive tuner가 켜져 있으면 detector 처리 시간, pending queue, queue drop을 보고 런타임 fps를 먼저 낮춥니다. 모델이 dynamic input을 지원하면 input size도 단계적으로 낮출 수 있습니다.
 
@@ -166,12 +169,15 @@ PTS 매칭이 실패하면 최신 result로 fallback합니다. 이 fallback은 o
 
 - profile은 fps, queue, confidence, nms, input size, adaptive 여부를 slider/dropdown으로 조정
 - rule은 대상 source/route, 사용할 profile, 이벤트 타입, 분석 객체 타입을 선택
+- Rule/Profile 카테고리 버튼은 `기본`이 사람+차량만 선택, `전체 선택`이 모든 카테고리 선택, `전체 해제`가 모든 카테고리 해제다.
+- 전체 해제 상태는 다시 고르기 위해 비워 둔 임시 상태이며 저장할 수 없다. Rule 저장 시 분석 카테고리가 비어 있으면 경고 다이얼로그를 띄우고 저장을 막는다.
+- Profile도 tracking category가 비어 있으면 저장할 수 없다. 전체 match/전체 추적이 필요하면 전체 선택 또는 API의 `*` 토큰을 사용한다.
 - polygon 영역은 최대 12개 점까지 지정
 - 이미 지정된 점 근처를 드래그하면 새 점을 추가하지 않고 기존 점 위치 이동
 - line-crossing rule은 polygon 대신 2개 점짜리 선분으로 저장
 - 현재 line-crossing 방향은 `any`로 저장하며 양방향 통과를 같은 이벤트로 봄
 
-이벤트 발생 객체는 overlay에서 `이벤트` 또는 `Event` label과 blink highlight로 강조합니다.
+이벤트 발생 객체는 overlay에서 `이벤트` 또는 `Event` label을 붙이고, 카테고리 기본색과 빨간색을 번갈아 표시하는 blink highlight로 강조합니다.
 
 Event POST는 기본 비활성화입니다. 실제 외부 전송은 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1`로 명시적으로 켠 경우에만 수행합니다.
 
@@ -251,16 +257,21 @@ MEDIA_SERVER_VERIFY_VA_DURATION_S=120 ./server.sh verify-va
 ./server.sh verify-image-analysis
 ```
 
+`./server.sh test --include-image-analysis`는 정적 이미지 분석 API와 함께 기본 `person,vehicle`, 10개 개별 카테고리, `*` tracking category 정책을 리포트에 표시한다.
+
 Route/profile/rule 검증:
 
 ```bash
 ./server.sh verify-route-profiles
+./server.sh verify-rule-ui
 ./server.sh verify-tracker-stability
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-events --long
+./server.sh verify-va-category-samples
+./server.sh verify-va-category-samples --no-sports
 ./server.sh verify-adaptive
 ```
 
-브라우저 overlay 수동 확인은 `/lab`에서 `va=1`, `trackIds=1`, `trackTrails=1`을 켜고 진행한다. `2026-04-26` 기준 `route=webrtc` 테스트 rule(presence, line-crossing)을 임시 등록한 뒤 `va_four_scene_sample.mp4`와 `imports/va_tracking_event_1280x720_30fps_h264.mp4` 모두 WebRTC simple signaling 연결과 overlay 표출을 확인했다.
+`verify-va-category-samples`는 기본적으로 `va_four_scene_sample.mp4`와 sports 전용 `va_sports_sample.mp4`를 함께 사용해 10개 카테고리를 모두 hard fail 기준으로 확인한다. 브라우저 overlay 수동 확인은 `/lab`에서 `va=1`, `trackIds=1`, `trackTrails=1`을 켜고 진행한다. `2026-04-26` 기준 `route=webrtc` 테스트 rule(presence, line-crossing)을 임시 등록한 뒤 `va_four_scene_sample.mp4`와 `imports/va_tracking_event_1280x720_30fps_h264.mp4` 모두 WebRTC simple signaling 연결과 overlay 표출을 확인했다.
 
 상세 검증 이력은 `stream-verification.md`를 봅니다.

@@ -504,20 +504,18 @@ void ApplyProfileDocument(const std::string& document, analysis::AnalysisProfile
     profile->yolo_has_objectness = ParseBoolField(document, "objectness").value_or(profile->yolo_has_objectness);
     profile->enable_object_detection = ParseBoolField(document, "detect").value_or(profile->enable_object_detection);
     profile->enable_tracking = ParseBoolField(document, "tracking").value_or(profile->enable_tracking);
-    if (auto classes = ParseStringArrayField(document, "trackingClasses"); !classes.empty()) {
-        profile->tracking_class_labels = std::move(classes);
-    } else if (auto classes = ParseStringArrayField(document, "trackClasses"); !classes.empty()) {
-        profile->tracking_class_labels = std::move(classes);
+    if (ExtractArrayField(document, "trackingClasses").has_value()) {
+        profile->tracking_classes_specified = true;
+        profile->tracking_class_labels = ParseStringArrayField(document, "trackingClasses");
+    } else if (ExtractArrayField(document, "trackClasses").has_value()) {
+        profile->tracking_classes_specified = true;
+        profile->tracking_class_labels = ParseStringArrayField(document, "trackClasses");
     } else if (const auto classes = ParseStringField(document, "trackingClasses"); classes.has_value()) {
-        auto parsed = ParseStringList(*classes);
-        if (!parsed.empty()) {
-            profile->tracking_class_labels = std::move(parsed);
-        }
+        profile->tracking_classes_specified = true;
+        profile->tracking_class_labels = ParseStringList(*classes);
     } else if (const auto classes = ParseStringField(document, "trackClasses"); classes.has_value()) {
-        auto parsed = ParseStringList(*classes);
-        if (!parsed.empty()) {
-            profile->tracking_class_labels = std::move(parsed);
-        }
+        profile->tracking_classes_specified = true;
+        profile->tracking_class_labels = ParseStringList(*classes);
     }
     profile->enable_pose = ParseBoolField(document, "pose").value_or(profile->enable_pose);
     profile->enable_overlay = ParseBoolField(document, "overlay").value_or(profile->enable_overlay);
@@ -723,15 +721,11 @@ analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map
     profile.enable_object_detection = ParseBoolQuery(query, "detect", profile.enable_object_detection);
     profile.enable_tracking = ParseBoolQuery(query, "tracking", profile.enable_tracking);
     if (const auto it = query.find("trackingClasses"); it != query.end()) {
-        auto classes = ParseStringList(it->second);
-        if (!classes.empty()) {
-            profile.tracking_class_labels = std::move(classes);
-        }
+        profile.tracking_classes_specified = true;
+        profile.tracking_class_labels = ParseStringList(it->second);
     } else if (const auto it = query.find("trackClasses"); it != query.end()) {
-        auto classes = ParseStringList(it->second);
-        if (!classes.empty()) {
-            profile.tracking_class_labels = std::move(classes);
-        }
+        profile.tracking_classes_specified = true;
+        profile.tracking_class_labels = ParseStringList(it->second);
     }
     profile.enable_pose = ParseBoolQuery(query, "pose", profile.enable_pose);
     profile.enable_overlay = ParseBoolQuery(query, "overlay", profile.enable_overlay);

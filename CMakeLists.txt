@@ -14,6 +14,7 @@ find_package(PkgConfig QUIET)
 
 add_executable(media_server
     src/analysis/analysis_manager.cpp
+    src/analysis/category_tokens.cpp
     src/analysis/detector_factory.cpp
     src/analysis/dummy_detector.cpp
     src/analysis/event_post_dispatcher.cpp
