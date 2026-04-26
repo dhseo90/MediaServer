@@ -37,9 +37,9 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC or HTTP/
 
 부분 지원/재확인 필요:
 
-- `HLS/외부 HTTP URI -> RTSP/WebRTC`: 네트워크와 upstream 상태 영향이 있어 선택 검증으로 유지
+- `HLS/외부 HTTP URI -> RTSP/WebRTC`: 로컬 HLS VOD 선택 검증은 통과했지만, 외부 HLS/HTTP는 네트워크와 upstream 상태 영향이 있어 선택 검증으로 유지
 - YouTube source/import: 실험실 기능, 기본 운영 기능 아님
-- 운영용 WebRTC: STUN/TURN env 설정은 지원, auth/강제 ICE policy는 미구현
+- 운영용 WebRTC: STUN/TURN env 설정과 로컬 signaling 재검증은 통과, auth/강제 ICE policy는 미구현
 
 ## 설치 및 실행 환경
 
@@ -98,6 +98,8 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC or HTTP/
 ```
 
 `./server.sh start`는 새 환경에서 외부 PC 접근 테스트가 가능하도록 RTSP/HTTP를 기본적으로 `0.0.0.0`에 bind합니다. 실제 포트와 URL은 환경변수/포트 충돌에 따라 달라질 수 있으므로 항상 `./server.sh status` 또는 `./server.sh urls` 출력값을 우선합니다.
+
+기본 background 실행 방식은 `nohup`입니다. macOS에서 시스템 사용자 세션에 붙여 더 오래 유지하고 싶으면 선택적으로 `MEDIA_SERVER_START_MODE=launchd ./server.sh start`를 사용할 수 있습니다. Codex 같은 샌드박스형 실행환경에서는 background child process 정리 정책이 섞일 수 있으므로, 자동 검증 중에는 `./server.sh foreground`가 더 재현성이 좋습니다.
 
 macOS/Homebrew에서 수동 설치가 필요하면:
 

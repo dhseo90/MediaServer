@@ -8,7 +8,13 @@
 - 최신 기준으로 기본 안정 기준은 `file`, 로컬 `RTSP pull`, 로컬 `WebRTC publish`, 로컬 `HTTP URI`, LAN IP 기준 외부 클라이언트 접근성, 제3자 RTSP upstream advisory, 기본 YOLO/VA overlay다.
 - 과거 blocker였던 `HTTP URI -> RTSP 503`은 URI/VOD source pacing 보정 후 로컬 HTTP MP4 matrix에서 통과했다.
 - 아래 문서에는 과거 통과/실패 이력도 남아 있다. 과거 이력은 회귀 추적용이며, 현재 작업 우선순위는 최신 검증 결과를 기준으로 판단한다.
-- `HLS`와 외부 HTTP URI는 네트워크/upstream 상태 영향이 있으므로 기본 안정 테스트가 아닌 선택 검증으로 남긴다.
+- 로컬 HLS VOD는 codec matrix 선택 검증에서 통과했다. 외부 HLS/HTTP URI는 네트워크/upstream 상태 영향이 있으므로 기본 안정 테스트가 아닌 선택 검증으로 남긴다.
+
+최신 후속 검증 결과:
+- `2026-04-26`: `./server.sh test --no-start` stable 기준 통과 `15/0/5`.
+- `2026-04-26`: `--include-rules --include-va-events` 선택 검증 통과 `6/0/6`.
+- `2026-04-26`: `./server.sh verify-route-profiles` RTSP/WebRTC overlay route profile matching 통과 `6/0/0`.
+- `2026-04-26`: `./server.sh verify-tracker-stability --long` 120초 x 3회 반복 통과, `fragmentationRatio avg=1.7`, `stalePtsRatio max=0.0`.
 
 ## 지원 대상
 - `file -> RTSP`
@@ -67,8 +73,8 @@
    - 제3자 RTSP upstream 후보는 remote 응답 지연과 upstream 상태 영향이 커서 기본 stable에서는 advisory로 본다.
    - 신뢰 가능한 카메라/테스트 RTSP URL을 `MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS`로 지정하면 hard gate로 검증한다.
 2. WebRTC 운영 환경 테스트
-   - STUN/TURN env 적용 상태에서 브라우저 간 consume/publish 재검증
-   - auth와 강제 ICE policy는 별도 설계 후 검증
+   - STUN/TURN env 적용 상태에서 로컬 WebRTC egress/WHIP ingest signaling 재검증은 통과했다.
+   - 실제 외부 TURN relay, auth, 강제 ICE policy는 별도 설계 후 검증한다.
 3. audio-only input 정책 확정
    - 현재는 video relay/analysis 기준으로 설계되어 있어 audio-only는 정식 지원 범위 밖
 4. 영상분석 선택 테스트
@@ -96,7 +102,7 @@
   - LAN IP 기준 외부 클라이언트 접근성은 모든 `./server.sh test` 모드에서 확인한다.
   - 제3자 RTSP upstream reachability는 stable `./server.sh test`에서 advisory로 확인한다.
   - 신뢰 가능한 외부 RTSP URL을 명시한 경우에는 hard gate로 검증한다.
-  - 로컬 HTTP URI source는 기본 matrix에 포함한다. HLS/외부 HTTP URI, 실험실 YouTube, 운영용 STUN/TURN/auth 검증은 선택 테스트로 남긴다.
+  - 로컬 HTTP URI source는 기본 matrix에 포함한다. 로컬 HLS VOD는 선택 matrix로 검증하며, 외부 HLS/HTTP URI, 실험실 YouTube, 운영용 TURN relay/auth 검증은 선택 테스트로 남긴다.
   - YOLO/VA overlay는 기본 설치/기본 실행 범위이므로 `./server.sh test` 기본 기준에 포함한다.
   - profile/rule/event, adaptive tuner는 선택 테스트로 유지하고 기본 안정 기준에는 넣지 않는다.
 - 권장 실행 순서
@@ -116,9 +122,9 @@
 
 ## 분석 1차 구현 이후 보류 테스트 이력
 - 분석 1차 구현은 file/RTSP/WebRTC local core 경로 중심으로 진행했다. 아래 항목은 main 기준 선택 테스트로 기록한다.
-  - `HTTP URI -> RTSP` 최신 `503` 재확인 및 수정 완료. HLS/외부 HTTP URI는 선택 검증으로 유지
+  - `HTTP URI -> RTSP` 최신 `503` 재확인 및 수정 완료. 로컬 HLS VOD 선택 검증 통과, 외부 HLS/HTTP URI는 선택 검증으로 유지
   - 외부 RTSP source 장시간/codec 심화 재검증
-  - WebRTC 운영 환경 테스트(STUN/TURN/auth/ICE policy)
+  - WebRTC 운영 환경 테스트(실제 외부 TURN relay/auth/ICE policy)
   - audio-only input 정책 확정
   - 실험실 YouTube 회귀 검증
   - `/lab/import` 외부 네트워크 재검증

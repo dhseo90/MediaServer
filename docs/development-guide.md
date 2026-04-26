@@ -367,6 +367,7 @@ MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
 | `MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS` | RTSP/URI source 첫 sample 대기 timeout |
 | `MEDIA_SERVER_RTSP_TRACK_SETTLE_QUIET_PERIOD_MS` | 첫 track 이후 추가 track discovery quiet period |
 | `MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS` | track discovery 전체 상한 |
+| `MEDIA_SERVER_START_MODE` | `./server.sh start` background 실행 방식. 기본 `nohup`, macOS 선택값 `launchd` |
 | `MEDIA_SERVER_START_STABILITY_WAIT_S` | `./server.sh start`가 listen 확인 후 프로세스 생존을 추가 확인하는 시간. 기본 `1` |
 | `MEDIA_SERVER_GST_ATTACH_CONTEXT` | GStreamer RTSP server main context 강제 설정 |
 | `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE` | `1`이면 숨겨진 실험실 `source=youtube` 경로를 노출. 기본 `0` |
@@ -478,7 +479,7 @@ ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성
 `./server.sh test`의 기본 기준은 안정 기능으로 승격한 스트리밍 + 기본 VA 기능을 포함한다.
 - 모든 test 모드 포함: 스크립트/JSON 정적 검사, 서버 start/status/diagnose, LAN IP 기준 외부 클라이언트 접근성.
 - stable 포함: 제3자 RTSP upstream reachability advisory, 로컬 file source, 로컬 RTSP pull source, 로컬 WebRTC publish source, 로컬 HTTP URI source의 RTSP/WebRTC 소비, YOLO/VA overlay 회귀 검증.
-- 제외: HLS/외부 HTTP URI source, YouTube source/import, `/lab` UI, 룰/이벤트/POST, adaptive tuner.
+- 제외: HLS/외부 HTTP URI source, YouTube source/import, `/lab` UI, 룰/이벤트/POST, adaptive tuner. 단 로컬 HLS VOD는 `verify-codecs` 선택 matrix에서 검증 가능하다.
 - 선택 검증: `./server.sh test --include-rules`는 profile/rule registry CRUD와 rule match 기반 profile 자동 선택을 추가 확인한다.
 - 선택 검증: `./server.sh test --include-va-events`는 실제 이동 영상 기반 tracker/event 판정을 추가 확인한다.
 - 선택 검증: `./server.sh test --include-image-analysis`는 개발용 정적 이미지 분석 API를 추가 확인한다.

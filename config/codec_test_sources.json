@@ -69,6 +69,25 @@
       }
     },
     {
+      "name": "hls_local_h264_aac",
+      "source_kind": "hls",
+      "source": "http://127.0.0.1:8766/index.m3u8",
+      "enabled": true,
+      "requires_network": false,
+      "notes": "Local HLS VOD generated from sample_h264.mp4. Verifies source=hls without external network dependency.",
+      "verify_profile": {
+        "label": "local-hls",
+        "ffprobe_timeout_us": 15000000,
+        "webrtc_http_timeout_s": 25,
+        "rtsp_route_keys": ["default", "h264", "opus"]
+      },
+      "launcher": {
+        "type": "local_hls",
+        "port": 8766,
+        "input": "video/sample_h264.mp4"
+      }
+    },
+    {
       "name": "youtube_upload_h264_aac",
       "source_kind": "youtube",
       "source": "https://www.youtube.com/watch?v=aqz-KE-bpKQ",

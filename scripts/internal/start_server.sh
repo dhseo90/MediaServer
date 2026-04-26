@@ -47,6 +47,8 @@ MEDIA_SERVER_AUTO_DIAGNOSE="${MEDIA_SERVER_AUTO_DIAGNOSE:-1}"
 MEDIA_SERVER_SKIP_BUILD="${MEDIA_SERVER_SKIP_BUILD:-0}"
 MEDIA_SERVER_SKIP_ENV_CHECK="${MEDIA_SERVER_SKIP_ENV_CHECK:-0}"
 MEDIA_SERVER_START_STABILITY_WAIT_S="${MEDIA_SERVER_START_STABILITY_WAIT_S:-1}"
+MEDIA_SERVER_START_MODE="${MEDIA_SERVER_START_MODE:-nohup}"
+LAUNCHD_LABEL="com.dhseo.mediaserver"
 
 client_host() {
   local value="$1"
@@ -90,6 +92,72 @@ find_media_server_listener_pids() {
   { lsof -nP -iTCP:"${port}" -sTCP:LISTEN -Fp -c media_server 2>/dev/null || true; } \
     | sed -n 's/^p//p' \
     | sort -u
+}
+
+xml_escape() {
+  local value="$1"
+  value="${value//&/&amp;}"
+  value="${value//</&lt;}"
+  value="${value//>/&gt;}"
+  value="${value//\"/&quot;}"
+  value="${value//\'/&apos;}"
+  printf '%s' "${value}"
+}
+
+write_launchd_plist() {
+  local env_key env_value
+  {
+    cat <<EOF_PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>${LAUNCHD_LABEL}</string>
+  <key>WorkingDirectory</key>
+  <string>$(xml_escape "${ROOT_DIR}")</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>$(xml_escape "${MEDIA_SERVER_BIN}")</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+EOF_PLIST
+    for item in "${env_vars[@]}"; do
+      env_key="${item%%=*}"
+      env_value="${item#*=}"
+      [[ -n "${env_key}" ]] || continue
+      cat <<EOF_ENV
+    <key>$(xml_escape "${env_key}")</key>
+    <string>$(xml_escape "${env_value}")</string>
+EOF_ENV
+    done
+    cat <<EOF_PLIST
+  </dict>
+  <key>StandardOutPath</key>
+  <string>$(xml_escape "${LOG_FILE}")</string>
+  <key>StandardErrorPath</key>
+  <string>$(xml_escape "${LOG_FILE}")</string>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <false/>
+</dict>
+</plist>
+EOF_PLIST
+  } > "${PLIST_FILE}"
+}
+
+start_with_launchd() {
+  local domain="gui/$(id -u)"
+  write_launchd_plist
+  launchctl bootout "${domain}" "${PLIST_FILE}" >/dev/null 2>&1 || true
+  if launchctl bootstrap "${domain}" "${PLIST_FILE}" >/dev/null 2>&1; then
+    NEW_PID=""
+    echo "launchd" > "${MODE_FILE}"
+    return 0
+  fi
+  return 1
 }
 
 is_recorded_server_alive() {
@@ -224,6 +292,15 @@ start_detached() {
     fi
   done
 
+  if [[ "$(uname -s)" == "Darwin" ]] && media_server_has_cmd launchctl &&
+      [[ "${MEDIA_SERVER_START_MODE}" == "launchd" ]]; then
+    if start_with_launchd; then
+      return 0
+    fi
+    echo "[start] launchd start failed"
+    return 1
+  fi
+
   (
     cd "${ROOT_DIR}"
     exec nohup env "${env_vars[@]}" "${MEDIA_SERVER_BIN}" < /dev/null > "${LOG_FILE}" 2>&1
@@ -272,6 +349,9 @@ for port in "${PORT_CANDIDATES[@]}"; do
   echo "[3/3] start: ${MEDIA_SERVER_LISTEN_ADDRESS}:${port}, http ${MEDIA_SERVER_HTTP_LISTEN_ADDRESS}:${MEDIA_SERVER_HTTP_LISTEN_PORT}"
   start_detached "${port}"
   if wait_listen "${port}"; then
+    if [[ -z "${NEW_PID}" ]]; then
+      NEW_PID="$(find_media_server_listener_pids "${port}" | head -n1)"
+    fi
     if [[ "${MEDIA_SERVER_START_STABILITY_WAIT_S}" != "0" ]]; then
       sleep "${MEDIA_SERVER_START_STABILITY_WAIT_S}"
       if [[ -n "${NEW_PID}" ]] && ! kill -0 "${NEW_PID}" 2>/dev/null; then

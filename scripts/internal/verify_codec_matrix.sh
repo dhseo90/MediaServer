@@ -97,6 +97,15 @@ if isinstance(value, list):
 PY
 }
 
+client_host() {
+  local value="$1"
+  if [[ -z "${value}" || "${value}" == "0.0.0.0" || "${value}" == "::" ]]; then
+    printf '127.0.0.1'
+  else
+    printf '%s' "${value}"
+  fi
+}
+
 load_config() {
   if [[ ! -f "${CONFIG_FILE}" ]]; then
     echo "[verify] missing config file: ${CONFIG_FILE}"
@@ -125,17 +134,19 @@ resolve_runtime_config() {
   RTSP_PORT="${MEDIA_SERVER_LISTEN_PORT:-${RTSP_PORT:-8554}}"
 
   if [[ -f "${ADDRESS_FILE}" ]]; then
-    RTSP_ADDRESS="$(cat "${ADDRESS_FILE}")"
+    RTSP_BIND_ADDRESS="$(cat "${ADDRESS_FILE}")"
   else
-    RTSP_ADDRESS="$(media_server_read_const_charp "${STD_AFX}" "kRtspListenAddress" || true)"
+    RTSP_BIND_ADDRESS="$(media_server_read_const_charp "${STD_AFX}" "kRtspListenAddress" || true)"
   fi
-  RTSP_ADDRESS="${MEDIA_SERVER_LISTEN_ADDRESS:-${RTSP_ADDRESS:-127.0.0.1}}"
+  RTSP_BIND_ADDRESS="${MEDIA_SERVER_LISTEN_ADDRESS:-${RTSP_BIND_ADDRESS:-127.0.0.1}}"
+  RTSP_ADDRESS="$(client_host "${MEDIA_SERVER_VERIFY_RTSP_HOST:-${RTSP_BIND_ADDRESS}}")"
 
   HTTP_PORT="$(sed -nE 's/.*kHttpListenPort = ([0-9]+).*/\1/p' "${STD_AFX}" | head -n1)"
   HTTP_PORT="${MEDIA_SERVER_HTTP_LISTEN_PORT:-${HTTP_PORT:-8080}}"
 
-  HTTP_ADDRESS="$(media_server_read_const_charp "${STD_AFX}" "kHttpListenAddress" || true)"
-  HTTP_ADDRESS="${MEDIA_SERVER_HTTP_LISTEN_ADDRESS:-${HTTP_ADDRESS:-127.0.0.1}}"
+  HTTP_BIND_ADDRESS="$(media_server_read_const_charp "${STD_AFX}" "kHttpListenAddress" || true)"
+  HTTP_BIND_ADDRESS="${MEDIA_SERVER_HTTP_LISTEN_ADDRESS:-${HTTP_BIND_ADDRESS:-127.0.0.1}}"
+  HTTP_ADDRESS="$(client_host "${MEDIA_SERVER_VERIFY_HTTP_HOST:-${HTTP_BIND_ADDRESS}}")"
 
   ROUTE="$(media_server_read_const_charp "${STD_AFX}" "kStreamRoute" || true)"
   ROUTE="${MEDIA_SERVER_ROUTE:-${ROUTE:-dhseo}}"
@@ -231,6 +242,55 @@ start_local_http_launcher() {
   done
 
   log_fail "${name}: local HTTP launcher did not become ready"
+  tail -n 40 "${log_file}" || true
+  return 1
+}
+
+start_local_hls_launcher() {
+  local name="$1"
+  local port="$2"
+  local input_rel="$3"
+
+  # HLS URI source 검증은 로컬 MP4를 /tmp HLS VOD로 변환한 뒤 정적 HTTP 서버로 제공한다.
+  if media_server_is_tcp_listening "${port}"; then
+    log_info "HLS launcher already listening on ${port} (${name})"
+    return 0
+  fi
+
+  local input_path="${ROOT_DIR}/${input_rel}"
+  local hls_dir="/tmp/${name}_hls"
+  local log_file="/tmp/${name}.hls.log"
+  mkdir -p "${hls_dir}"
+  if ! ffmpeg -hide_banner -loglevel error -y -stream_loop 3 -i "${input_path}" \
+      -c copy -f hls -hls_time 1 -hls_list_size 0 -hls_flags independent_segments \
+      "${hls_dir}/index.m3u8" > "${log_file}" 2>&1; then
+    log_fail "${name}: failed to generate local HLS VOD"
+    tail -n 40 "${log_file}" || true
+    return 1
+  fi
+
+  python3 -m http.server "${port}" --bind 127.0.0.1 --directory "${hls_dir}" \
+    >> "${log_file}" 2>&1 &
+  local launcher_pid=$!
+  LAUNCHER_PIDS+=("${launcher_pid}")
+  LAUNCHER_LOGS+=("${log_file}")
+  LAST_LAUNCHER_PID="${launcher_pid}"
+  LAST_LAUNCHER_LOG="${log_file}"
+
+  for _ in {1..20}; do
+    if ! kill -0 "${launcher_pid}" 2>/dev/null; then
+      log_fail "${name}: local HLS launcher exited early"
+      tail -n 40 "${log_file}" || true
+      return 1
+    fi
+    if media_server_is_tcp_listening "${port}"; then
+      log_info "HLS launcher ready: http://127.0.0.1:${port}/index.m3u8"
+      return 0
+    fi
+    sleep 0.5
+  done
+
+  log_fail "${name}: local HLS launcher did not become ready"
   tail -n 40 "${log_file}" || true
   return 1
 }
@@ -513,7 +573,12 @@ PY
       start_local_launcher "${name}" "${launcher_port}" "${launcher_mount}" "${launcher_input}" "${launcher_video}" "${launcher_audio}" || return
     elif [[ "${launcher_type}" == "local_http" ]]; then
       start_local_http_launcher "${name}" "${launcher_port}" "${launcher_root}" || return
+    elif [[ "${launcher_type}" == "local_hls" ]]; then
+      start_local_hls_launcher "${name}" "${launcher_port}" "${launcher_input}" || return
     elif [[ "${launcher_type}" == "whip_publish" ]]; then
+      # 서버 registry에 이전 publisher가 잠시 남아 있어도 matrix 재실행이 충돌하지 않도록 매번 고유 sourceId를 쓴다.
+      launcher_source_id="${launcher_source_id:-publisher-verify}-$$-${RANDOM}"
+      source="${launcher_source_id}"
       start_whip_publisher "${name}" "http://${HTTP_ADDRESS}:${HTTP_PORT}" "${launcher_source_id}" "${launcher_duration:-60}" || return
     fi
   fi
@@ -607,8 +672,8 @@ main() {
   resolve_runtime_config
   trap cleanup EXIT
 
-  log_info "server rtsp=${RTSP_ADDRESS}:${RTSP_PORT} route=${ROUTE}"
-  log_info "server http=${HTTP_ADDRESS}:${HTTP_PORT}"
+  log_info "server rtsp=${RTSP_BIND_ADDRESS:-${RTSP_ADDRESS}}:${RTSP_PORT} route=${ROUTE} client=${RTSP_ADDRESS}"
+  log_info "server http=${HTTP_BIND_ADDRESS:-${HTTP_ADDRESS}}:${HTTP_PORT} client=${HTTP_ADDRESS}"
   if [[ -f "${PID_FILE}" ]]; then
     log_info "pid file: ${PID_FILE} ($(cat "${PID_FILE}" 2>/dev/null || true))"
   fi

@@ -70,7 +70,7 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC or HTTP/
 - `POST /webrtc/session?source=http&url={urlencoded_http_media_url}`
   - egress: `WebRTC`
   - source: `HTTP URI`
-  - 로컬 HTTP MP4 source 기준 RTSP/WebRTC egress가 통과했다. HLS/외부 HTTP URI는 선택 검증으로 남긴다.
+  - 로컬 HTTP MP4 source 기준 RTSP/WebRTC egress가 통과했다. 로컬 HLS VOD는 선택 검증으로 통과했고, 외부 HLS/HTTP URI는 선택 검증으로 남긴다.
 
 ## 3. 핵심 개념
 
@@ -296,7 +296,7 @@ SharedStream
 
 구현 원칙:
 - 기본 source protocol은 `source=hls` 또는 `source=http`로 먼저 연다. 현재 1차 `UriSourceWorker`는 GStreamer `uridecodebin`으로 HTTP/HLS media URL을 수신한 뒤 내부 표준 패킷(`H264` video, `AAC` audio)으로 재인코딩한다.
-- `source=http -> RTSP/WebRTC`는 로컬 HTTP MP4 기준 기본 matrix를 통과했다. `source=hls`와 외부 HTTP URI는 네트워크/upstream 상태 영향을 받으므로 선택 검증으로 둔다.
+- `source=http -> RTSP/WebRTC`는 로컬 HTTP MP4 기준 기본 matrix를 통과했다. `source=hls`는 로컬 HLS VOD 기준 선택 matrix를 통과했으며, 외부 HLS/HTTP URI는 네트워크/upstream 상태 영향을 받으므로 선택 검증으로 둔다.
 - `source=youtube`는 `yt-dlp` 기반 resolver를 통과하는 실험실 옵션으로 두고, 기본값으로는 숨긴다.
 - `/lab`를 통합 진입점으로 두고 안정 테스트, VA 분석, 룰 편집, 실험실 가져오기를 같은 화면에서 접고 펼친다.
 - `/webrtc/test`, `/lab/rules`, `/lab/import`는 자동화와 기존 bookmark 호환 route로 유지하되, 일반 수동 진입점은 `/lab` 하나로 본다.
@@ -393,7 +393,7 @@ SharedStream
   - `url`/`file`는 하나만 지정해야 함
   - query value는 URL 인코딩 권장
   - 현재 RTSP egress는 `H264/H265` video와 `AAC/Opus/PCMU/PCMA` audio route를 제공한다.
-  - 로컬 HTTP MP4 URI source의 RTSP egress는 통과했다. HLS/외부 HTTP URI는 선택 검증으로 남긴다.
+  - 로컬 HTTP MP4 URI source의 RTSP egress는 통과했다. 로컬 HLS VOD는 선택 검증 통과, 외부 HLS/HTTP URI는 선택 검증으로 남긴다.
 
 ## 15. 실행 스크립트 / 설정 위치
 - 사용자 진입점은 루트의 `./server.sh` 하나로 통합한다.
