@@ -16,10 +16,11 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 
 | 문서 | 용도 |
 | --- | --- |
-| `README.md` | 빠른 설치, 실행, 대표 URL, 현재 지원 범위 |
-| `docs/development-guide.md` | 긴 개발/운영 가이드, 전체 환경변수, 상세 URL/API, 라이선스 메모 |
-| `docs/media-server-architecture.md` | 전체 구조, 동시성, source/egress/analysis 설계 |
-| `docs/stream-verification.md` | 검증 기준, 통과/보류 항목, blocker와 테스트 이력 |
+| [README.md](README.md) | 빠른 설치, 실행, 대표 URL, 현재 지원 범위 |
+| [docs/development-guide.md](docs/development-guide.md) | 긴 개발/운영 가이드, 전체 환경변수, 상세 URL/API, 라이선스 메모 |
+| [docs/video-analysis.md](docs/video-analysis.md) | VA/YOLO 분석, overlay 샘플, rule/event, 정적 이미지 분석 API |
+| [docs/media-server-architecture.md](docs/media-server-architecture.md) | 전체 구조, 동시성, source/egress/analysis 설계 |
+| [docs/stream-verification.md](docs/stream-verification.md) | 검증 기준, 통과/보류 항목, blocker와 테스트 이력 |
 
 ## 현재 지원 범위
 
@@ -39,7 +40,6 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC) <-> Ori
 - `HTTP/HLS URI -> RTSP`: 과거 통과 이력은 있으나 최신 blocker에서 `503` 재현, 재확인 필요
 - YouTube source/import: 실험실 기능, 기본 운영 기능 아님
 - 운영용 WebRTC auth/STUN/TURN/ICE policy: 미정리
-- tracker 고도화(Kalman/ByteTrack): 보강 여부 검토 단계
 
 ## 설치 및 실행 환경
 
@@ -107,7 +107,28 @@ brew install cmake pkg-config ffmpeg node python yt-dlp deno \
   gst-rtsp-server libnice libnice-gstreamer onnxruntime
 ```
 
-Linux 패키지 상세는 `docs/development-guide.md`의 개발 및 실행 환경 섹션을 봅니다.
+Linux/Debian 계열에서 수동 설치가 필요하면:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y \
+  build-essential cmake pkg-config curl python3 nodejs ffmpeg \
+  libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+  gstreamer1.0-tools gstreamer1.0-plugins-base \
+  gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
+  gstreamer1.0-plugins-ugly gstreamer1.0-libav \
+  libgstrtspserver-1.0-dev
+```
+
+macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobject` 탐색 문제가 나면 `./server.sh`가 아래 계열 환경변수를 자동 보정합니다.
+
+- `PATH`
+- `PKG_CONFIG_PATH`
+- `GI_TYPELIB_PATH`
+- `GST_PLUGIN_SCANNER`
+- `DYLD_FALLBACK_LIBRARY_PATH`
+
+설치/환경 세부 설명은 [docs/development-guide.md](docs/development-guide.md)를 봅니다.
 
 ## 기본 명령
 
@@ -196,6 +217,12 @@ rtsp://127.0.0.1:8554/dhseo?source=webrtc&url={source_id}
 
 ## VA / 이미지 분석 빠른 예시
 
+상세한 VA/YOLO 모델 기준, 객체 카테고리, rule/event, 정적 이미지 분석 API는 [docs/video-analysis.md](docs/video-analysis.md)를 봅니다.
+
+VA overlay 샘플:
+
+![VA overlay 한글 라벨 샘플](docs/assets/va-four-scene-overlay-ko.jpg)
+
 RTSP overlay stream:
 
 ```text
@@ -279,14 +306,3 @@ curl -fsS -o overlay.jpg \
 - 바이너리 배포 전에는 `NOTICE` 또는 third-party license 문서가 필요합니다.
 
 상세 메모는 `docs/development-guide.md`의 라이선스/배포 주의사항을 봅니다.
-
-## 다음 작업
-
-현재 권장 순서:
-
-1. 정적 이미지 분석 API를 `/lab` UI에 연결할지 결정
-2. 이미지 업로드/임시파일 정책 설계
-3. tracker 통계 기준으로 Kalman/ByteTrack 도입 여부 재판단
-4. 외부 RTSP source별 timeout/profile 설정 확장
-5. WebRTC 운영 설정(auth/STUN/TURN/ICE policy) 정리
-6. HTTP/HLS URI source의 RTSP `503` blocker 재확인
