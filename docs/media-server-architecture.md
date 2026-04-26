@@ -129,6 +129,7 @@ scripts/
   .media_server.env.example
   internal/                # server.sh가 호출하는 내부 스크립트
 docs/
+  development-guide.md
   media-server-architecture.md
   stream-verification.md
 video/
