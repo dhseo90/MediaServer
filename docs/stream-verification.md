@@ -11,6 +11,10 @@
 - 로컬 HLS VOD와 공개 HLS 후보(Mux/Apple)는 `verify-uri-longrun` 선택 검증에서 통과했다. 외부 HLS/HTTP URI는 네트워크/upstream 상태 영향이 있으므로 기본 안정 테스트가 아닌 선택 검증으로 남긴다.
 
 최신 후속 검증 결과:
+- `2026-04-27`: WHIP readiness 보강과 다채널 VA 검증 확장 후 장기성 묶음을 재실행했다. `./server.sh verify-multichannel --include-va --repeat 3 --single-clients 3 --clients-per-source 2 --hold-ms 12000` 통과 `24/0/0`, summary `/tmp/media_server_multichannel-1777235810-13407_summary.json`. 일반 단일 source fan-out, 일반 다중 source fan-out, VA 단일 source, VA 다중 source 모두 반복 간 종료 후 `activeSessions=0`, `registryActiveStreams=0`, `activeAnalysisTaps=0` cleanup을 확인했다.
+- `2026-04-27`: `MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 ./server.sh verify-uri-longrun --iterations 3 --include-external --use-default-external --external-rtsp-routes default,h264,opus` 통과 `12/0/0`, summary `/tmp/media_server_uri-longrun-1777236136-18792_summary.json`. 로컬 HTTP MP4, 로컬 HTTP video-only, 로컬 HLS VOD, Mux/Apple 외부 HLS advisory 모두 3회 반복 통과했다.
+- `2026-04-27`: VA/트래커/튜너 장기성 검증 통과. `./server.sh verify-va-events --long`은 `17/0/0`, `./server.sh verify-tracker-stability --long --overlap-focus`는 `8/0/0`으로 `fragmentationRatio min=1.6 max=1.75 avg=1.7`, `overlapFragmentationRatio max=1.75`, `stalePtsRatio max=0.0`을 확인했다. `./server.sh verify-yolo-layouts --duration 10 --no-download`는 `7/0/0`, `./server.sh verify-adaptive`는 `8/0/0`으로 통과했다.
+- `2026-04-27`: 스트리밍 matrix 재검증 통과. `./server.sh verify-route-profiles`는 `7/0/0`, `./server.sh verify-webrtc-ice`는 `8/0/0`, `MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 ./server.sh verify-codecs`는 `67/0/3`으로 통과했다. 외부 운영 TURN relay/auth 검증은 credential 미확보 상태라 여전히 미진행이다.
 - `2026-04-26`: `./server.sh test --no-start` stable 기준 통과 `15/0/5`.
 - `2026-04-26`: `--include-rules --include-va-events` 선택 검증 통과 `6/0/6`.
 - `2026-04-26`: `./server.sh verify-route-profiles` RTSP/WebRTC overlay route profile matching 통과 `6/0/0`.
@@ -53,6 +57,8 @@
 - `2026-04-26`: `./server.sh verify-lab-import-ui`를 추가했다. `/lab/import` HTML 필수 요소와 `/lab/import/jobs` 기본 응답 구조를 확인한다.
 - `2026-04-26`: `./server.sh verify-multichannel`을 추가했다. 같은 영상 여러 WebRTC client는 `activeSessions=N`, dedup stream `1`이어야 하고, 여러 영상 여러 client는 source 수만큼 dedup stream이 늘어야 한다. 검증은 `/lab/runtime/status`의 `sessionManager.resourceActiveStreams`, `registryActiveStreams`, `webrtcHttp.egressSessions`를 함께 확인한다.
 - `2026-04-26`: 통합 smoke 재실행. `MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 ./server.sh test --no-start --include-rules --include-rule-ui --include-va-events --include-image-analysis`는 `18/1/4`로 WHIP publish 케이스가 1회 readiness race(`unknown WebRTC source`) 실패했다. 같은 서버에서 `MEDIA_SERVER_VERIFY_SOURCE_FILTER=webrtc_local_publish_h264_opus ./server.sh verify-codecs` 단독 재실행은 `5/0/11`로 통과했다.
+- `2026-04-26`: WHIP publish readiness를 `/lab/runtime/status`의 `webrtcHttp.publishSources[].hasVideo/hasAudio`까지 기다리도록 보강했다. `MEDIA_SERVER_VERIFY_SOURCE_FILTER=webrtc_local_publish_h264_opus ./server.sh verify-codecs` 재검증은 `5/0/11`로 통과했고, publisher 등록 직후 track 준비 race를 consumer 검증 전에 차단한다.
+- `2026-04-26`: `./server.sh verify-multichannel`에 `--include-va`, `--va-only`, `--repeat`, `--va-single-source`, `--va-sources`를 추가했다. 일반 file consume뿐 아니라 VA overlay 다채널에서도 `activeSessions`, dedup stream 수, `activeAnalysisTaps` 수, 종료 후 cleanup 상태를 summary JSON으로 남긴다.
 
 ## 지원 대상
 - `file -> RTSP`
@@ -74,6 +80,7 @@
 - file source 기준 WebRTC 다채널 consume 검증 범위 추가
   - 같은 영상 다중 client: source worker는 1개만 유지하고 subscriber만 증가해야 한다.
   - 여러 영상 다중 client: source별로 stream이 1개씩 생기고, 같은 source 안에서는 fan-out으로 공유해야 한다.
+  - VA overlay 다중 client: session 수만큼 analysis tap이 붙고 종료 후 `activeAnalysisTaps=0`으로 정리되어야 한다.
 
 `WebRTC source`는 WHIP publish 기반 1차 ingest를 사용한다. STUN/TURN 서버와 ICE transport policy는 env로 설정할 수 있다. Mac 로컬 coturn 기준으로 relay candidate 수집, 브라우저 playback, WHIP publish -> WebRTC signaling은 통과했다. 외부 운영 TURN 서버 relay/auth end-to-end 테스트는 진행하지 않았고, 별도 Windows WSL2 TURN 검증도 보류 상태다.
 `GET /webrtc/config`는 같은 STUN/TURN/ICE policy 설정을 브라우저 `RTCPeerConnection` 설정으로 내려준다. Lab과 WebRTC 테스트 페이지의 simple signaling, WHEP, WHIP 경로는 이 API를 사용해 서버와 같은 ICE policy로 테스트한다. `MEDIA_SERVER_WEBRTC_TURN_SERVER`는 브라우저에서도 접근 가능한 주소를 사용해야 하며, 로컬 relay 강제 테스트에서는 `127.0.0.1`보다 Mac LAN IP를 권장한다.
@@ -158,6 +165,7 @@
   4. 필요 시 `./server.sh test --include-va-events`
   5. 필요 시 `./server.sh test --include-webrtc-ice`
   6. 필요 시 `./server.sh verify-multichannel`
+     - VA overlay 다채널까지 보려면 `./server.sh verify-multichannel --include-va --repeat 2`
   7. 필요 시 `./server.sh verify-uri-longrun`
   8. 필요 시 `./server.sh verify-route-profiles`
   9. 필요 시 `./server.sh verify-tracker-stability`

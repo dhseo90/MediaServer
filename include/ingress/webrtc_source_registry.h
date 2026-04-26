@@ -10,6 +10,7 @@
 #include <shared_mutex>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "media_types.h"
 
@@ -18,6 +19,16 @@ namespace ingress {
 class PublishedWebRtcSource : public std::enable_shared_from_this<PublishedWebRtcSource> {
 public:
     using SubscriberCallback = std::function<void(const media::Packet&)>;
+
+    // runtime status API가 WHIP source 등록 상태와 track 준비 상태를 원자적인 값 묶음으로 노출할 때 사용한다.
+    struct Snapshot {
+        std::string source_id;
+        bool active{false};
+        bool has_descriptor{false};
+        bool has_video{false};
+        bool has_audio{false};
+        std::size_t subscriber_count{0};
+    };
 
     explicit PublishedWebRtcSource(std::string source_id);
 
@@ -36,6 +47,8 @@ public:
 
     void Close();
     bool IsActive() const;
+    // WHIP readiness 검증에서 등록 여부와 track readiness를 분리해 확인한다.
+    Snapshot GetSnapshot() const;
 
 private:
     std::string source_id_;
@@ -55,6 +68,8 @@ public:
 
     bool Register(const std::shared_ptr<PublishedWebRtcSource>& source);
     std::shared_ptr<PublishedWebRtcSource> Find(const std::string& source_id) const;
+    // WHIP publisher readiness와 운영 진단용으로 현재 registry에 남아 있는 source 상태를 복사한다.
+    std::vector<PublishedWebRtcSource::Snapshot> Snapshots() const;
     void Remove(const std::string& source_id);
 
 private:

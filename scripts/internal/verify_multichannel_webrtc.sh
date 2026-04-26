@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # 파일 용도: WebRTC 다채널 client가 같은 source와 여러 source를 동시에 소비할 때 fan-out/dedup 상태를 검증한다.
+# 동작 요약: headless Chrome playback, runtime session/stream/tap count, 반복 실행 summary를 함께 남긴다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -7,22 +8,31 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 HTTP_BASE="${MEDIA_SERVER_VERIFY_MULTICHANNEL_HTTP_BASE:-http://127.0.0.1:8081}"
 PAGE_PATH="${MEDIA_SERVER_VERIFY_MULTICHANNEL_PAGE_PATH:-/webrtc/test}"
+VA_PAGE_PATH="${MEDIA_SERVER_VERIFY_MULTICHANNEL_VA_PAGE_PATH:-/lab}"
 SINGLE_SOURCE="${MEDIA_SERVER_VERIFY_MULTICHANNEL_SINGLE_SOURCE:-sample_h264.mp4}"
 MULTI_SOURCES_CSV="${MEDIA_SERVER_VERIFY_MULTICHANNEL_SOURCES:-sample_h264.mp4,va_four_scene_sample.mp4}"
+VA_SINGLE_SOURCE="${MEDIA_SERVER_VERIFY_MULTICHANNEL_VA_SINGLE_SOURCE:-va_four_scene_sample.mp4}"
+VA_SOURCES_CSV="${MEDIA_SERVER_VERIFY_MULTICHANNEL_VA_SOURCES:-va_four_scene_sample.mp4,imports/va_tracking_event_1280x720_30fps_h264.mp4}"
 SINGLE_CLIENTS="${MEDIA_SERVER_VERIFY_MULTICHANNEL_SINGLE_CLIENTS:-3}"
 CLIENTS_PER_SOURCE="${MEDIA_SERVER_VERIFY_MULTICHANNEL_CLIENTS_PER_SOURCE:-2}"
+REPEAT_COUNT="${MEDIA_SERVER_VERIFY_MULTICHANNEL_REPEAT:-1}"
 HOLD_MS="${MEDIA_SERVER_VERIFY_MULTICHANNEL_HOLD_MS:-10000}"
 TIMEOUT_MS="${MEDIA_SERVER_VERIFY_MULTICHANNEL_TIMEOUT_MS:-60000}"
 CONSUMER_TIMEOUT_MS="${MEDIA_SERVER_VERIFY_MULTICHANNEL_CONSUMER_TIMEOUT_MS:-35000}"
 DEBUG_PORT_BASE="${MEDIA_SERVER_VERIFY_MULTICHANNEL_DEBUG_PORT_BASE:-9400}"
-SUMMARY_FILE="${MEDIA_SERVER_VERIFY_MULTICHANNEL_SUMMARY_FILE:-/tmp/media_server_multichannel_summary_$$.json}"
+VA_ANALYSIS_FPS="${MEDIA_SERVER_VERIFY_MULTICHANNEL_VA_FPS:-5}"
+RUN_ID="multichannel-$(date +%s)-$$"
+SUMMARY_FILE="${MEDIA_SERVER_VERIFY_MULTICHANNEL_SUMMARY_FILE:-/tmp/media_server_${RUN_ID}_summary.json}"
+CASES_FILE="/tmp/media_server_${RUN_ID}_cases.ndjson"
 
 RUN_SINGLE=1
 RUN_MULTI=1
+RUN_VA="${MEDIA_SERVER_VERIFY_MULTICHANNEL_INCLUDE_VA:-0}"
 PASS_COUNT=0
 FAIL_COUNT=0
 CLIENT_RUN_INDEX=0
 STARTED_CLIENT_PID=""
+MATCHED_RUNTIME_STATUS=""
 
 # 일반 진행 메시지를 출력한다.
 log_info() {
@@ -51,17 +61,22 @@ Options:
   --http-base <url>            기본값: ${HTTP_BASE}
   --single-source <file>       같은 영상 다중 client 검증 파일
   --sources <a,b>              여러 영상 다중 client 검증 파일 목록
+  --va-single-source <file>    VA overlay 같은 영상 다중 client 검증 파일
+  --va-sources <a,b>           VA overlay 여러 영상 다중 client 검증 파일 목록
   --single-clients <n>         같은 영상에 붙일 client 수
   --clients-per-source <n>     여러 영상 검증에서 source마다 붙일 client 수
+  --repeat <n>                 전체 case 반복 횟수
   --hold-ms <ms>               재생 확인 후 session 유지 시간
   --debug-port-base <port>     headless Chrome CDP 시작 port
+  --include-va                 VA overlay 다채널 case도 실행
   --single-only                같은 영상 다중 client 검증만 실행
   --multi-only                 여러 영상 다중 client 검증만 실행
+  --va-only                    VA overlay 다채널 case만 실행
 EOF_USAGE
 }
 
+# shell wrapper에서도 동일한 검증을 재현할 수 있도록 주요 값을 CLI/env 양쪽에서 받는다.
 parse_args() {
-  # shell wrapper에서도 동일한 검증을 재현할 수 있도록 주요 값을 CLI/env 양쪽에서 받는다.
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --http-base)
@@ -76,12 +91,24 @@ parse_args() {
         MULTI_SOURCES_CSV="${2:-}"
         shift 2
         ;;
+      --va-single-source)
+        VA_SINGLE_SOURCE="${2:-}"
+        shift 2
+        ;;
+      --va-sources)
+        VA_SOURCES_CSV="${2:-}"
+        shift 2
+        ;;
       --single-clients)
         SINGLE_CLIENTS="${2:-}"
         shift 2
         ;;
       --clients-per-source)
         CLIENTS_PER_SOURCE="${2:-}"
+        shift 2
+        ;;
+      --repeat)
+        REPEAT_COUNT="${2:-}"
         shift 2
         ;;
       --hold-ms)
@@ -92,12 +119,26 @@ parse_args() {
         DEBUG_PORT_BASE="${2:-}"
         shift 2
         ;;
+      --include-va)
+        RUN_VA=1
+        shift
+        ;;
       --single-only)
+        RUN_SINGLE=1
         RUN_MULTI=0
+        RUN_VA=0
         shift
         ;;
       --multi-only)
         RUN_SINGLE=0
+        RUN_MULTI=1
+        RUN_VA=0
+        shift
+        ;;
+      --va-only)
+        RUN_SINGLE=0
+        RUN_MULTI=0
+        RUN_VA=1
         shift
         ;;
       -h|--help)
@@ -135,7 +176,17 @@ json_number() {
 import json
 import sys
 
-payload = json.loads(sys.argv[1])
+def parse_json(text):
+    while text:
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            if not text.endswith("}"):
+                raise
+            text = text[:-1]
+    return {}
+
+payload = parse_json(sys.argv[1])
 value = payload
 for key in sys.argv[2].split("."):
     value = value.get(key, 0) if isinstance(value, dict) else 0
@@ -154,6 +205,12 @@ for item in sys.argv[1].split(","):
     if value:
         print(value)
 PY
+}
+
+# 배열 값을 summary에 넣기 쉬운 쉼표 구분 문자열로 만든다.
+join_by_comma() {
+  local IFS=","
+  echo "$*"
 }
 
 # 양수 정수 옵션이 잘못 들어온 경우 검증을 중단한다.
@@ -176,19 +233,47 @@ assert_source_file_exists() {
   fi
 }
 
-# 이전 검증의 idle stream이 사라져 stream 수 판정이 깨끗해질 때까지 기다린다.
+# status JSON을 파일에 쓰기 전에 파싱 가능한 형태로 정규화한다.
+write_status_json_file() {
+  local output_file="$1"
+  local json_text="${2:-{}}"
+  python3 - "${output_file}" "${json_text}" <<'PY'
+import json
+import pathlib
+import sys
+
+text = sys.argv[2] or "{}"
+payload = {}
+while text:
+    try:
+        payload = json.loads(text)
+        break
+    except json.JSONDecodeError:
+        if not text.endswith("}"):
+            payload = {}
+            break
+        text = text[:-1]
+pathlib.Path(sys.argv[1]).write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+PY
+}
+
+# 이전 검증의 idle stream/tap이 사라져 stream 수 판정이 깨끗해질 때까지 기다린다.
 wait_for_idle_runtime() {
-  # 이전 검증의 file/VOD idle grace가 남아 있으면 stream 수 판정이 흐려지므로 시작 전에 비어질 때까지 기다린다.
   local deadline=$((SECONDS + 35))
   local last_status=""
   while (( SECONDS < deadline )); do
     last_status="$(runtime_status || true)"
     if [[ -n "${last_status}" ]]; then
-      local active_sessions resource_streams egress_sessions
+      local active_sessions resource_streams egress_sessions analysis_taps
       active_sessions="$(json_number "${last_status}" "sessionManager.activeSessions")"
       resource_streams="$(json_number "${last_status}" "sessionManager.resourceActiveStreams")"
       egress_sessions="$(json_number "${last_status}" "webrtcHttp.egressSessions")"
-      if [[ "${active_sessions}" -eq 0 && "${resource_streams}" -eq 0 && "${egress_sessions}" -eq 0 ]]; then
+      analysis_taps="$(json_number "${last_status}" "sessionManager.activeAnalysisTaps")"
+      if [[ "${active_sessions}" -eq 0 &&
+            "${resource_streams}" -eq 0 &&
+            "${egress_sessions}" -eq 0 &&
+            "${analysis_taps}" -eq 0 ]]; then
+        MATCHED_RUNTIME_STATUS="${last_status}"
         return 0
       fi
     fi
@@ -199,26 +284,31 @@ wait_for_idle_runtime() {
   return 1
 }
 
-# 동시 client가 붙은 동안 session 수와 dedup stream 수가 기대값과 일치하는지 반복 확인한다.
+# 동시 client가 붙은 동안 session 수, dedup stream 수, analysis tap 수가 기대값과 일치하는지 반복 확인한다.
 wait_for_runtime_counts() {
   local label="$1"
   local expected_sessions="$2"
   local expected_streams="$3"
+  local expected_analysis_taps="$4"
   local deadline=$((SECONDS + 45))
   local last_status=""
+  MATCHED_RUNTIME_STATUS=""
   while (( SECONDS < deadline )); do
     last_status="$(runtime_status || true)"
     if [[ -n "${last_status}" ]]; then
-      local active_sessions resource_streams registry_streams egress_sessions
+      local active_sessions resource_streams registry_streams egress_sessions analysis_taps
       active_sessions="$(json_number "${last_status}" "sessionManager.activeSessions")"
       resource_streams="$(json_number "${last_status}" "sessionManager.resourceActiveStreams")"
       registry_streams="$(json_number "${last_status}" "sessionManager.registryActiveStreams")"
       egress_sessions="$(json_number "${last_status}" "webrtcHttp.egressSessions")"
+      analysis_taps="$(json_number "${last_status}" "sessionManager.activeAnalysisTaps")"
       if [[ "${active_sessions}" -eq "${expected_sessions}" &&
             "${egress_sessions}" -eq "${expected_sessions}" &&
             "${resource_streams}" -eq "${expected_streams}" &&
-            "${registry_streams}" -eq "${expected_streams}" ]]; then
-        log_pass "${label}: runtime activeSessions=${active_sessions}, activeStreams=${resource_streams}"
+            "${registry_streams}" -eq "${expected_streams}" &&
+            "${analysis_taps}" -eq "${expected_analysis_taps}" ]]; then
+        MATCHED_RUNTIME_STATUS="${last_status}"
+        log_pass "${label}: runtime activeSessions=${active_sessions}, activeStreams=${resource_streams}, activeAnalysisTaps=${analysis_taps}"
         return 0
       fi
     fi
@@ -226,27 +316,34 @@ wait_for_runtime_counts() {
   done
   log_fail "${label}: runtime count mismatch"
   [[ -n "${last_status}" ]] && echo "${last_status}" | sed 's/^/  /'
+  MATCHED_RUNTIME_STATUS="${last_status}"
   return 1
 }
 
 # 하나의 headless Chrome client를 띄워 지정 file source를 WebRTC로 재생한다.
 start_client() {
-  local label="$1"
-  local file_name="$2"
-  local debug_port="$3"
-  local log_file="$4"
+  local file_name="$1"
+  local debug_port="$2"
+  local log_file="$3"
+  local va_enabled="$4"
+  local page_path="${PAGE_PATH}"
+  local command=(node "${SCRIPT_DIR}/browser_webrtc_publish_consume_check.mjs"
+    --http-base "${HTTP_BASE}"
+    --mode simple
+    --file "${file_name}"
+    --debug-port "${debug_port}"
+    --post-playback-hold-ms "${HOLD_MS}"
+    --consumer-playback-timeout-ms "${CONSUMER_TIMEOUT_MS}"
+    --timeout-ms "${TIMEOUT_MS}")
+
+  if [[ "${va_enabled}" == "1" ]]; then
+    page_path="${VA_PAGE_PATH}"
+    command+=(--va --analysis-fps "${VA_ANALYSIS_FPS}")
+  fi
+  command+=(--page-path "${page_path}")
 
   # 각 client는 독립 headless Chrome을 사용해 실제 WebRTC media playback까지 확인한다.
-  node "${SCRIPT_DIR}/browser_webrtc_publish_consume_check.mjs" \
-    --http-base "${HTTP_BASE}" \
-    --page-path "${PAGE_PATH}" \
-    --mode simple \
-    --file "${file_name}" \
-    --debug-port "${debug_port}" \
-    --post-playback-hold-ms "${HOLD_MS}" \
-    --consumer-playback-timeout-ms "${CONSUMER_TIMEOUT_MS}" \
-    --timeout-ms "${TIMEOUT_MS}" \
-    > "${log_file}" 2>&1 &
+  "${command[@]}" > "${log_file}" 2>&1 &
   STARTED_CLIENT_PID="$!"
 }
 
@@ -273,63 +370,192 @@ wait_clients() {
   return 1
 }
 
-# 같은 source/여러 source 케이스를 공통 절차로 실행한다.
-run_multichannel_case() {
+# case 실행 결과를 NDJSON으로 남겨 마지막 summary에서 상세 배열로 합친다.
+append_case_summary() {
   local label="$1"
-  local expected_streams="$2"
-  shift 2
-  local files=("$@")
-  local expected_sessions="${#files[@]}"
-  local pairs=()
-  local source_file debug_port log_file pid
-
-  wait_for_idle_runtime || return 1
-  log_info "${label}: clients=${expected_sessions}, expectedStreams=${expected_streams}, holdMs=${HOLD_MS}"
-
-  for source_file in "${files[@]}"; do
-    CLIENT_RUN_INDEX=$((CLIENT_RUN_INDEX + 1))
-    debug_port=$((DEBUG_PORT_BASE + CLIENT_RUN_INDEX))
-    log_file="/tmp/media_server_multichannel_${label//[^A-Za-z0-9_]/_}_${CLIENT_RUN_INDEX}.log"
-    start_client "${label}" "${source_file}" "${debug_port}" "${log_file}"
-    pid="${STARTED_CLIENT_PID}"
-    pairs+=("${pid}" "${log_file}")
-    log_info "${label}: client pid=${pid} file=${source_file} debugPort=${debug_port}"
-  done
-
-  wait_for_runtime_counts "${label}" "${expected_sessions}" "${expected_streams}" || true
-  wait_clients "${label}" "${pairs[@]}" || return 1
-  wait_for_idle_runtime || return 1
-}
-
-# 마지막 runtime 상태와 pass/fail 카운터를 JSON 파일로 남긴다.
-write_summary() {
-  # CI와 수동 점검에서 같은 결과를 참조할 수 있도록 마지막 카운터를 JSON으로 남긴다.
-  local status_json
-  status_json="$(runtime_status || printf '{}')"
-  python3 - "${SUMMARY_FILE}" "${PASS_COUNT}" "${FAIL_COUNT}" "${HTTP_BASE}" "${status_json}" <<'PY'
+  local iteration="$2"
+  local va_enabled="$3"
+  local expected_sessions="$4"
+  local expected_streams="$5"
+  local expected_analysis_taps="$6"
+  local result="$7"
+  local sources_csv="$8"
+  local logs_csv="$9"
+  local active_status_file="${10:-}"
+  local final_status_file="${11:-}"
+  python3 - "${CASES_FILE}" "${label}" "${iteration}" "${va_enabled}" \
+    "${expected_sessions}" "${expected_streams}" "${expected_analysis_taps}" \
+    "${result}" "${sources_csv}" "${logs_csv}" "${active_status_file}" "${final_status_file}" <<'PY'
 import json
 import pathlib
 import sys
 
-out = {
-    "pass": int(sys.argv[2]),
-    "fail": int(sys.argv[3]),
-    "httpBase": sys.argv[4],
-    "finalStatus": json.loads(sys.argv[5] or "{}"),
+def parse_json_file(path):
+    if not path:
+        return {}
+    try:
+        return json.loads(pathlib.Path(path).read_text(encoding="utf-8") or "{}")
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+payload = {
+    "label": sys.argv[2],
+    "iteration": int(sys.argv[3]),
+    "va": sys.argv[4] == "1",
+    "expected": {
+        "sessions": int(sys.argv[5]),
+        "streams": int(sys.argv[6]),
+        "analysisTaps": int(sys.argv[7]),
+    },
+    "result": sys.argv[8],
+    "sourceFiles": [item for item in sys.argv[9].split(",") if item],
+    "clientLogs": [item for item in sys.argv[10].split(",") if item],
+    "activeStatus": parse_json_file(sys.argv[11]),
+    "finalStatus": parse_json_file(sys.argv[12]),
 }
-pathlib.Path(sys.argv[1]).write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n")
+with pathlib.Path(sys.argv[1]).open("a", encoding="utf-8") as fh:
+    fh.write(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n")
+PY
+}
+
+# 같은 source/여러 source case를 공통 절차로 실행한다.
+run_multichannel_case() {
+  local label="$1"
+  local iteration="$2"
+  local expected_streams="$3"
+  local va_enabled="$4"
+  shift 4
+  local files=("$@")
+  local expected_sessions="${#files[@]}"
+  local expected_analysis_taps=0
+  local pairs=()
+  local logs=()
+  local source_file debug_port log_file pid runtime_ok=0 clients_ok=0 final_idle_ok=0 result="fail"
+  local active_status="" final_status=""
+  local safe_label="${label//[^A-Za-z0-9_]/_}"
+  local active_status_file="/tmp/media_server_${RUN_ID}_${safe_label}_${iteration}_active.json"
+  local final_status_file="/tmp/media_server_${RUN_ID}_${safe_label}_${iteration}_final.json"
+
+  if [[ "${va_enabled}" == "1" ]]; then
+    expected_analysis_taps="${expected_sessions}"
+  fi
+
+  wait_for_idle_runtime || {
+    write_status_json_file "${final_status_file}" "$(runtime_status || printf '{}')"
+    append_case_summary "${label}" "${iteration}" "${va_enabled}" "${expected_sessions}" "${expected_streams}" \
+      "${expected_analysis_taps}" "fail" "$(join_by_comma "${files[@]}")" "" "" "${final_status_file}"
+    return 1
+  }
+
+  log_info "${label}: iteration=${iteration}, va=${va_enabled}, clients=${expected_sessions}, expectedStreams=${expected_streams}, expectedAnalysisTaps=${expected_analysis_taps}, holdMs=${HOLD_MS}"
+
+  for source_file in "${files[@]}"; do
+    CLIENT_RUN_INDEX=$((CLIENT_RUN_INDEX + 1))
+    debug_port=$((DEBUG_PORT_BASE + CLIENT_RUN_INDEX))
+    log_file="/tmp/media_server_${RUN_ID}_${label//[^A-Za-z0-9_]/_}_${iteration}_${CLIENT_RUN_INDEX}.log"
+    start_client "${source_file}" "${debug_port}" "${log_file}" "${va_enabled}"
+    pid="${STARTED_CLIENT_PID}"
+    pairs+=("${pid}" "${log_file}")
+    logs+=("${log_file}")
+    log_info "${label}: client pid=${pid} file=${source_file} debugPort=${debug_port} log=${log_file}"
+  done
+
+  if wait_for_runtime_counts "${label}" "${expected_sessions}" "${expected_streams}" "${expected_analysis_taps}"; then
+    runtime_ok=1
+  fi
+  active_status="${MATCHED_RUNTIME_STATUS:-$(runtime_status || printf '{}')}"
+  write_status_json_file "${active_status_file}" "${active_status:-{}}"
+
+  if wait_clients "${label}" "${pairs[@]}"; then
+    clients_ok=1
+  fi
+  if wait_for_idle_runtime; then
+    final_idle_ok=1
+  fi
+  final_status="${MATCHED_RUNTIME_STATUS:-$(runtime_status || printf '{}')}"
+  write_status_json_file "${final_status_file}" "${final_status:-{}}"
+
+  if [[ "${runtime_ok}" -eq 1 && "${clients_ok}" -eq 1 && "${final_idle_ok}" -eq 1 ]]; then
+    result="pass"
+  fi
+  append_case_summary "${label}" "${iteration}" "${va_enabled}" "${expected_sessions}" "${expected_streams}" \
+    "${expected_analysis_taps}" "${result}" "$(join_by_comma "${files[@]}")" "$(join_by_comma "${logs[@]}")" \
+    "${active_status_file}" "${final_status_file}"
+
+  [[ "${result}" == "pass" ]]
+}
+
+# 여러 source와 source별 client 수로 실행할 파일 배열을 만든다.
+expand_source_clients() {
+  local csv="$1"
+  local clients_per_source="$2"
+  local out_var="$3"
+  local unique_var="$4"
+  local expanded=()
+  local unique=0
+  local source_file
+  while IFS= read -r source_file; do
+    assert_source_file_exists "${source_file}"
+    unique=$((unique + 1))
+    for _ in $(seq 1 "${clients_per_source}"); do
+      expanded+=("${source_file}")
+    done
+  done < <(csv_to_lines "${csv}")
+  if [[ "${unique}" -eq 0 ]]; then
+    echo "[verify] source list must include at least one file"
+    exit 1
+  fi
+  eval "${out_var}=(\"\${expanded[@]}\")"
+  eval "${unique_var}=\"${unique}\""
+}
+
+# 마지막 runtime 상태와 case별 상세 결과를 JSON 파일로 남긴다.
+write_summary() {
+  local status_json
+  status_json="$(runtime_status || printf '{}')"
+  python3 - "${SUMMARY_FILE}" "${CASES_FILE}" "${PASS_COUNT}" "${FAIL_COUNT}" "${HTTP_BASE}" "${status_json}" <<'PY'
+import json
+import pathlib
+import sys
+
+def parse_json(text):
+    while text:
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            if not text.endswith("}"):
+                return {}
+            text = text[:-1]
+    return {}
+
+cases_path = pathlib.Path(sys.argv[2])
+cases = []
+if cases_path.exists():
+    for line in cases_path.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            cases.append(json.loads(line))
+out = {
+    "pass": int(sys.argv[3]),
+    "fail": int(sys.argv[4]),
+    "httpBase": sys.argv[5],
+    "cases": cases,
+    "finalStatus": parse_json(sys.argv[6] or "{}"),
+}
+pathlib.Path(sys.argv[1]).write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
   log_info "summary=${SUMMARY_FILE}"
 }
 
-# 입력 검증, 단일 source fan-out, 다중 source fan-out 검증을 순서대로 실행한다.
+# 입력 검증, 단일 source fan-out, 다중 source fan-out, VA overlay 조합을 순서대로 실행한다.
 main() {
   parse_args "$@"
+  : > "${CASES_FILE}"
   require_cmd curl
   require_cmd node
   require_cmd python3
   assert_positive_int "${SINGLE_CLIENTS}" "single-clients"
   assert_positive_int "${CLIENTS_PER_SOURCE}" "clients-per-source"
+  assert_positive_int "${REPEAT_COUNT}" "repeat"
   assert_positive_int "${HOLD_MS}" "hold-ms"
   assert_positive_int "${DEBUG_PORT_BASE}" "debug-port-base"
 
@@ -339,31 +565,38 @@ main() {
     exit 1
   fi
 
-  if [[ "${RUN_SINGLE}" -eq 1 ]]; then
-    assert_source_file_exists "${SINGLE_SOURCE}"
-    local single_files=()
-    for _ in $(seq 1 "${SINGLE_CLIENTS}"); do
-      single_files+=("${SINGLE_SOURCE}")
-    done
-    run_multichannel_case "single-source" 1 "${single_files[@]}" || true
-  fi
-
-  if [[ "${RUN_MULTI}" -eq 1 ]]; then
-    local multi_files=()
-    local unique_sources=0
-    while IFS= read -r source_file; do
-      assert_source_file_exists "${source_file}"
-      unique_sources=$((unique_sources + 1))
-      for _ in $(seq 1 "${CLIENTS_PER_SOURCE}"); do
-        multi_files+=("${source_file}")
+  local iteration
+  for iteration in $(seq 1 "${REPEAT_COUNT}"); do
+    if [[ "${RUN_SINGLE}" -eq 1 ]]; then
+      assert_source_file_exists "${SINGLE_SOURCE}"
+      local single_files=()
+      for _ in $(seq 1 "${SINGLE_CLIENTS}"); do
+        single_files+=("${SINGLE_SOURCE}")
       done
-    done < <(csv_to_lines "${MULTI_SOURCES_CSV}")
-    if [[ "${unique_sources}" -eq 0 ]]; then
-      echo "[verify] --sources must include at least one file"
-      exit 1
+      run_multichannel_case "single-source" "${iteration}" 1 0 "${single_files[@]}" || true
     fi
-    run_multichannel_case "multi-source" "${unique_sources}" "${multi_files[@]}" || true
-  fi
+
+    if [[ "${RUN_MULTI}" -eq 1 ]]; then
+      local multi_files=()
+      local unique_sources=0
+      expand_source_clients "${MULTI_SOURCES_CSV}" "${CLIENTS_PER_SOURCE}" multi_files unique_sources
+      run_multichannel_case "multi-source" "${iteration}" "${unique_sources}" 0 "${multi_files[@]}" || true
+    fi
+
+    if [[ "${RUN_VA}" == "1" || "${RUN_VA}" == "true" || "${RUN_VA}" == "yes" ]]; then
+      assert_source_file_exists "${VA_SINGLE_SOURCE}"
+      local va_single_files=()
+      for _ in $(seq 1 "${SINGLE_CLIENTS}"); do
+        va_single_files+=("${VA_SINGLE_SOURCE}")
+      done
+      run_multichannel_case "va-single-source" "${iteration}" 1 1 "${va_single_files[@]}" || true
+
+      local va_multi_files=()
+      local va_unique_sources=0
+      expand_source_clients "${VA_SOURCES_CSV}" "${CLIENTS_PER_SOURCE}" va_multi_files va_unique_sources
+      run_multichannel_case "va-multi-source" "${iteration}" "${va_unique_sources}" 1 "${va_multi_files[@]}" || true
+    fi
+  done
 
   write_summary
   echo

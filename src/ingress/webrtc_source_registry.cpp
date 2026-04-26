@@ -161,6 +161,26 @@ bool PublishedWebRtcSource::IsActive() const {
     return active_;
 }
 
+// runtime status가 lock을 오래 잡지 않도록 descriptor와 subscriber 수를 값으로 복사한다.
+PublishedWebRtcSource::Snapshot PublishedWebRtcSource::GetSnapshot() const {
+    Snapshot snapshot;
+    snapshot.source_id = source_id_;
+    {
+        std::lock_guard lock(descriptor_mu_);
+        snapshot.active = active_;
+        snapshot.has_descriptor = descriptor_.has_value();
+        if (descriptor_.has_value()) {
+            snapshot.has_video = DescriptorHasKind(*descriptor_, media::MediaKind::Video);
+            snapshot.has_audio = DescriptorHasKind(*descriptor_, media::MediaKind::Audio);
+        }
+    }
+    {
+        std::shared_lock lock(subscribers_mu_);
+        snapshot.subscriber_count = subscribers_.size();
+    }
+    return snapshot;
+}
+
 WebRtcSourceRegistry& WebRtcSourceRegistry::Instance() {
     static WebRtcSourceRegistry registry;
     return registry;
@@ -195,6 +215,27 @@ std::shared_ptr<PublishedWebRtcSource> WebRtcSourceRegistry::Find(const std::str
         return nullptr;
     }
     return it->second;
+}
+
+// registry lock 안에서 각 source 내부 lock까지 중첩하지 않도록 shared_ptr 목록을 먼저 복사한다.
+std::vector<PublishedWebRtcSource::Snapshot> WebRtcSourceRegistry::Snapshots() const {
+    std::vector<std::shared_ptr<PublishedWebRtcSource>> sources;
+    {
+        std::shared_lock lock(mu_);
+        sources.reserve(sources_.size());
+        for (const auto& [_, source] : sources_) {
+            sources.push_back(source);
+        }
+    }
+
+    std::vector<PublishedWebRtcSource::Snapshot> snapshots;
+    snapshots.reserve(sources.size());
+    for (const auto& source : sources) {
+        if (source != nullptr) {
+            snapshots.push_back(source->GetSnapshot());
+        }
+    }
+    return snapshots;
 }
 
 void WebRtcSourceRegistry::Remove(const std::string& source_id) {
