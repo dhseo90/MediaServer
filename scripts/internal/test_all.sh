@@ -25,6 +25,7 @@ SKIP_EXTERNAL_SOURCE=0
 SKIP_VA=0
 INCLUDE_RULES=0
 INCLUDE_VA_EVENTS=0
+INCLUDE_IMAGE_ANALYSIS=0
 FAIL_FAST=0
 REQUIRE_EXTERNAL_SOURCE=0
 
@@ -47,12 +48,15 @@ Usage:
   - HTTP/HLS URI source: 최신 blocker 기준 RTSP 503 재확인 필요
   - YouTube source/import: 실험실 기능
   - /lab UI, 룰/이벤트/POST, adaptive tuner: 아직 안정 기능으로 승격하지 않음
+  - 정적 이미지 분석 API: 개발용 endpoint라 선택 검증으로만 실행
 
 Options:
   --quick             정적 검사, start, status, diagnose, LAN IP 외부 접근성까지만 실행
   --stable            기본값. 안정화된 로컬 스트리밍 + LAN IP 외부 접근성 + 외부 RTSP upstream advisory 실행
   --include-rules     선택 검증: profile/rule registry API smoke test를 추가
   --include-va-events 선택 검증: 이동 영상 기반 tracker 이벤트 검증을 추가
+  --include-image-analysis
+                       선택 검증: 정적 이미지 metadata/snapshot/overlay API를 추가
   --require-external-source
                        제3자 RTSP upstream 후보 실패도 hard fail로 처리
   --skip-external     LAN IP 외부 클라이언트 접근성과 제3자 RTSP upstream 검증 생략. 격리된 개발 환경에서만 사용
@@ -82,6 +86,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     --include-va-events)
       INCLUDE_VA_EVENTS=1
+      ;;
+    --include-image-analysis)
+      INCLUDE_IMAGE_ANALYSIS=1
       ;;
     --require-external-source)
       REQUIRE_EXTERNAL_SOURCE=1
@@ -149,7 +156,7 @@ MediaServer 통합 테스트 시작
   6. stable 모드에서는 기본 설치 범위인 YOLO/VA overlay가 lab API, RTSP, WebRTC에서 동작해야 함
 - 제외:
   HTTP/HLS, YouTube, /lab UI, 룰/이벤트/POST, adaptive tuner
-  룰 registry는 --include-rules, 이동 이벤트는 --include-va-events로 선택 실행 가능
+  룰 registry는 --include-rules, 이동 이벤트는 --include-va-events, 이미지 분석은 --include-image-analysis로 선택 실행 가능
 
 EOF_HEADER
 }
@@ -390,6 +397,22 @@ if [[ "${INCLUDE_VA_EVENTS}" == "1" ]]; then
   fi
 else
   skip_step "VA tracking 이벤트 선택 검증" "실제 이동 영상 기반 검증은 아직 기본 기준이 아닙니다. 필요하면 --include-va-events를 사용하세요."
+fi
+
+if [[ "${INCLUDE_IMAGE_ANALYSIS}" == "1" ]]; then
+  if [[ ${DEPENDENCY_FAILED} -ne 0 ]]; then
+    skip_step "정적 이미지 분석 선택 검증" "서버 readiness가 실패해 image analysis 검증을 생략합니다."
+  elif [[ "${SKIP_VA}" == "1" ]]; then
+    skip_step "정적 이미지 분석 선택 검증" "--skip-va 옵션으로 YOLO 기반 이미지 분석 검증을 생략합니다."
+  else
+    run_step \
+      "image-analysis" \
+      "선택 검증: 정적 이미지 분석 API" \
+      "정적 이미지 분석 API 검증 실패입니다. 이미지 decode, ONNX Runtime, YOLO 모델/라벨, overlay JPEG 인코딩을 확인하세요." \
+      "./server.sh verify-image-analysis" || true
+  fi
+else
+  skip_step "정적 이미지 분석 선택 검증" "개발용 endpoint라 기본 테스트에서 제외합니다. 필요하면 --include-image-analysis를 사용하세요."
 fi
 
 if [[ "${STOP_AFTER}" == "1" ]]; then

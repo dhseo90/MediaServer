@@ -39,6 +39,11 @@ log_fail() {
   FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
+log_skip() {
+  echo "[skip] $*"
+  SKIP_COUNT=$((SKIP_COUNT + 1))
+}
+
 usage() {
   cat <<'EOF_USAGE'
 Tracker stability 검증
@@ -53,6 +58,14 @@ Options:
   --interval <seconds>    polling 간격. 기본 0.2
   --poll-count <count>    duration 미지정 시 polling 횟수
   --max-fragmentation <v> fragmentation ratio 허용 상한
+  --class-whitelist <csv> 통계에 포함할 객체 class. 기본 person, 전체는 *
+  --min-track-samples <n> n회 미만 관측 track은 fragmentation 계산에서 제외
+  --max-stale-ratio <v>   같은 PTS 반복 샘플 허용 비율. 기본 0.3
+  --restart-between-iterations
+                           반복마다 source idle cleanup을 기다려 파일을 처음부터 다시 검증
+  --continuous-source     반복 사이 source를 재시작하지 않고 연속 스트림처럼 검증
+  --no-segment-aware      PTS 역행/반복 경계별 segment 분리를 끔
+  --no-long-sample        --long 기본 장기 샘플 자동 준비를 끔
   --file <token>          video root 기준 테스트 파일 token
   -h, --help              도움말 출력
 
@@ -61,6 +74,13 @@ Options:
   MEDIA_SERVER_VERIFY_TRACKER_REPEAT_COUNT
   MEDIA_SERVER_VERIFY_TRACKER_POLL_COUNT
   MEDIA_SERVER_VERIFY_TRACKER_POLL_INTERVAL_S
+  MEDIA_SERVER_VERIFY_TRACKER_CLASS_WHITELIST
+  MEDIA_SERVER_VERIFY_TRACKER_MIN_TRACK_SAMPLES
+  MEDIA_SERVER_VERIFY_TRACKER_MAX_STALE_RATIO
+  MEDIA_SERVER_VERIFY_TRACKER_RESTART_BETWEEN_ITERATIONS
+  MEDIA_SERVER_VERIFY_TRACKER_RESTART_WAIT_S
+  MEDIA_SERVER_VERIFY_TRACKER_SEGMENT_AWARE
+  MEDIA_SERVER_VERIFY_TRACKER_PREPARE_LONG_SAMPLE
 EOF_USAGE
 }
 
@@ -84,6 +104,14 @@ resolve_port() {
   printf '%s' "${parsed:-${fallback}}"
 }
 
+read_const_int() {
+  local const_name="$1"
+  local fallback="$2"
+  local parsed
+  parsed="$(sed -nE "s/.*${const_name} = ([0-9]+).*/\\1/p" "${STD_AFX}" | head -n1)"
+  printf '%s' "${parsed:-${fallback}}"
+}
+
 client_host() {
   local value="$1"
   if [[ -z "${value}" || "${value}" == "0.0.0.0" || "${value}" == "::" ]]; then
@@ -102,6 +130,85 @@ print(urllib.parse.quote(sys.argv[1], safe="/._-"))
 PY
 }
 
+resolve_project_path() {
+  local value="$1"
+  if [[ -z "${value}" ]]; then
+    return 0
+  fi
+  case "${value}" in
+    /*)
+      printf '%s' "${value}"
+      ;;
+    *)
+      printf '%s/%s' "${ROOT_DIR}" "${value}"
+      ;;
+  esac
+}
+
+resolve_file_token_path() {
+  local token="$1"
+  local file_root="${MEDIA_SERVER_FILE_ROOT:-$(media_server_read_const_charp "${STD_AFX}" "kFileRootPath" || true)}"
+  file_root="${file_root:-video}"
+  case "${file_root}" in
+    /*)
+      printf '%s/%s' "${file_root}" "${token}"
+      ;;
+    *)
+      printf '%s/%s/%s' "${ROOT_DIR}" "${file_root}" "${token}"
+      ;;
+  esac
+}
+
+file_duration_s() {
+  local file_path="$1"
+  if [[ ! -f "${file_path}" ]] || ! command -v ffprobe >/dev/null 2>&1; then
+    printf '0'
+    return
+  fi
+  ffprobe -v error -show_entries format=duration -of default=nk=1:nw=1 "${file_path}" 2>/dev/null | head -n1
+}
+
+prepare_long_tracker_sample() {
+  local source_token="$1"
+  local target_token="$2"
+  local min_duration_s="$3"
+  local source_path target_path current_duration
+  source_path="$(resolve_file_token_path "${source_token}")"
+  target_path="$(resolve_file_token_path "${target_token}")"
+  current_duration="$(file_duration_s "${target_path}")"
+
+  if python3 - "${current_duration}" "${min_duration_s}" <<'PY' >/dev/null; then
+import sys
+
+current = float(sys.argv[1] or 0)
+minimum = float(sys.argv[2])
+raise SystemExit(0 if current >= minimum else 1)
+PY
+    log_info "long tracker sample exists: ${target_token} (${current_duration}s)"
+    return 0
+  fi
+  if [[ ! -f "${source_path}" ]]; then
+    log_skip "long tracker sample source 없음: ${source_token}"
+    return 1
+  fi
+  if ! command -v ffmpeg >/dev/null 2>&1; then
+    log_skip "ffmpeg가 없어 long tracker sample 자동 생성을 건너뜁니다"
+    return 1
+  fi
+  if [[ -f "${target_path}" ]]; then
+    log_skip "long tracker sample이 있지만 길이가 부족합니다: ${target_token} (${current_duration}s)"
+    return 1
+  fi
+
+  mkdir -p "$(dirname "${target_path}")"
+  log_info "long tracker sample 생성: ${target_token}"
+  ffmpeg -hide_banner -loglevel error -y -i "${source_path}" \
+    -filter_complex "[0:v]setpts=5*PTS,fps=30,scale=1280:720,setsar=1,format=yuv420p[v]" \
+    -map "[v]" -an -c:v libx264 -preset veryfast -crf 23 -movflags +faststart "${target_path}"
+  current_duration="$(file_duration_s "${target_path}")"
+  log_info "long tracker sample ready: ${target_token} (${current_duration}s)"
+}
+
 cleanup_runtime_documents() {
   if ((${#TAP_IDS[@]} > 0)); then
     for tap_id in "${TAP_IDS[@]}"; do
@@ -111,21 +218,38 @@ cleanup_runtime_documents() {
 }
 trap cleanup_runtime_documents EXIT
 
-FILE_TOKEN="${MEDIA_SERVER_VERIFY_TRACKER_FILE:-imports/va_tracking_event_1280x720_30fps_h264.mp4}"
+DEFAULT_FILE_TOKEN="imports/va_tracking_event_1280x720_30fps_h264.mp4"
+LONG_FILE_TOKEN="${MEDIA_SERVER_VERIFY_TRACKER_LONG_FILE:-imports/va_tracking_event_slow_long_1280x720_30fps_h264.mp4}"
+FILE_TOKEN="${MEDIA_SERVER_VERIFY_TRACKER_FILE:-${DEFAULT_FILE_TOKEN}}"
+FILE_TOKEN_SET=0
+LONG_MODE=0
 POLL_COUNT="${MEDIA_SERVER_VERIFY_TRACKER_POLL_COUNT:-150}"
 POLL_INTERVAL_S="${MEDIA_SERVER_VERIFY_TRACKER_POLL_INTERVAL_S:-0.2}"
 DURATION_S="${MEDIA_SERVER_VERIFY_TRACKER_DURATION_S:-}"
 REPEAT_COUNT="${MEDIA_SERVER_VERIFY_TRACKER_REPEAT_COUNT:-1}"
+REPEAT_COUNT_SET=0
+if [[ -n "${MEDIA_SERVER_VERIFY_TRACKER_REPEAT_COUNT:-}" ]]; then
+  REPEAT_COUNT_SET=1
+fi
 MIN_SAMPLES="${MEDIA_SERVER_VERIFY_TRACKER_MIN_SAMPLES:-20}"
 MIN_MAX_SIMULTANEOUS="${MEDIA_SERVER_VERIFY_TRACKER_MIN_MAX_SIMULTANEOUS:-3}"
 MAX_FRAGMENTATION_RATIO="${MEDIA_SERVER_VERIFY_TRACKER_MAX_FRAGMENTATION_RATIO:-3.0}"
+CLASS_WHITELIST="${MEDIA_SERVER_VERIFY_TRACKER_CLASS_WHITELIST:-person}"
+MIN_TRACK_SAMPLES="${MEDIA_SERVER_VERIFY_TRACKER_MIN_TRACK_SAMPLES:-3}"
+MAX_STALE_RATIO="${MEDIA_SERVER_VERIFY_TRACKER_MAX_STALE_RATIO:-0.3}"
+RESTART_BETWEEN_ITERATIONS="${MEDIA_SERVER_VERIFY_TRACKER_RESTART_BETWEEN_ITERATIONS:-}"
+RESTART_WAIT_S="${MEDIA_SERVER_VERIFY_TRACKER_RESTART_WAIT_S:-}"
+SEGMENT_AWARE="${MEDIA_SERVER_VERIFY_TRACKER_SEGMENT_AWARE:-1}"
+PREPARE_LONG_SAMPLE="${MEDIA_SERVER_VERIFY_TRACKER_PREPARE_LONG_SAMPLE:-1}"
+LONG_SAMPLE_SOURCE="${MEDIA_SERVER_VERIFY_TRACKER_LONG_SOURCE_FILE:-${DEFAULT_FILE_TOKEN}}"
+LONG_SAMPLE_MIN_DURATION_S="${MEDIA_SERVER_VERIFY_TRACKER_LONG_MIN_DURATION_S:-125}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --long)
+      LONG_MODE=1
       DURATION_S="${DURATION_S:-120}"
-      REPEAT_COUNT="${REPEAT_COUNT:-3}"
-      if [[ "${REPEAT_COUNT}" == "1" ]]; then
+      if [[ "${REPEAT_COUNT_SET}" == "0" && "${REPEAT_COUNT}" == "1" ]]; then
         REPEAT_COUNT=3
       fi
       ;;
@@ -135,6 +259,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --repeat)
       REPEAT_COUNT="$2"
+      REPEAT_COUNT_SET=1
       shift
       ;;
     --interval)
@@ -149,8 +274,33 @@ while [[ $# -gt 0 ]]; do
       MAX_FRAGMENTATION_RATIO="$2"
       shift
       ;;
+    --class-whitelist)
+      CLASS_WHITELIST="$2"
+      shift
+      ;;
+    --min-track-samples)
+      MIN_TRACK_SAMPLES="$2"
+      shift
+      ;;
+    --max-stale-ratio)
+      MAX_STALE_RATIO="$2"
+      shift
+      ;;
+    --restart-between-iterations)
+      RESTART_BETWEEN_ITERATIONS=1
+      ;;
+    --continuous-source)
+      RESTART_BETWEEN_ITERATIONS=0
+      ;;
+    --no-segment-aware)
+      SEGMENT_AWARE=0
+      ;;
+    --no-long-sample)
+      PREPARE_LONG_SAMPLE=0
+      ;;
     --file)
       FILE_TOKEN="$2"
+      FILE_TOKEN_SET=1
       shift
       ;;
     -h|--help)
@@ -169,6 +319,33 @@ done
 
 require_cmd curl
 require_cmd python3
+
+if [[ -z "${RESTART_BETWEEN_ITERATIONS}" ]]; then
+  if [[ "${LONG_MODE}" == "1" ]]; then
+    RESTART_BETWEEN_ITERATIONS=1
+  else
+    RESTART_BETWEEN_ITERATIONS=0
+  fi
+fi
+if [[ -z "${RESTART_WAIT_S}" ]]; then
+  idle_grace_ms="${MEDIA_SERVER_IDLE_GRACE_MS:-$(read_const_int "kIdleGracePeriodMs" "10000")}"
+  RESTART_WAIT_S="$(python3 - "${idle_grace_ms}" <<'PY'
+import math
+import sys
+
+idle_ms = max(0.0, float(sys.argv[1] or 0))
+print(max(1, int(math.ceil(idle_ms / 1000.0)) + 1))
+PY
+)"
+fi
+
+if [[ "${LONG_MODE}" == "1" && "${FILE_TOKEN_SET}" == "0" && "${PREPARE_LONG_SAMPLE}" == "1" ]]; then
+  if prepare_long_tracker_sample "${LONG_SAMPLE_SOURCE}" "${LONG_FILE_TOKEN}" "${LONG_SAMPLE_MIN_DURATION_S}"; then
+    FILE_TOKEN="${LONG_FILE_TOKEN}"
+  else
+    log_skip "long tracker sample 준비 실패. 기본 파일로 계속 진행합니다: ${FILE_TOKEN}"
+  fi
+fi
 
 HTTP_PORT="$(resolve_port "${MEDIA_SERVER_HTTP_LISTEN_PORT:-}" "kHttpListenPort" "8080")"
 HTTP_ADDRESS="${MEDIA_SERVER_HTTP_LISTEN_ADDRESS:-$(media_server_read_const_charp "${STD_AFX}" "kHttpListenAddress" || true)}"
@@ -191,6 +368,8 @@ fi
 log_info "http_base=${HTTP_BASE}"
 log_info "file=${FILE_TOKEN}"
 log_info "repeat=${REPEAT_COUNT} poll=${POLL_COUNT} interval=${POLL_INTERVAL_S}s duration=${DURATION_S:-auto}"
+log_info "segmentAware=${SEGMENT_AWARE} classWhitelist=${CLASS_WHITELIST} minTrackSamples=${MIN_TRACK_SAMPLES} maxStaleRatio=${MAX_STALE_RATIO}"
+log_info "restartBetweenIterations=${RESTART_BETWEEN_ITERATIONS} restartWait=${RESTART_WAIT_S}s"
 log_info "summary=${SUMMARY_FILE}"
 
 if ! curl -fsS --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
@@ -229,7 +408,11 @@ for iteration in $(seq 1 "${REPEAT_COUNT}"); do
     "${MIN_MAX_SIMULTANEOUS}" \
     "${MAX_FRAGMENTATION_RATIO}" \
     "${iteration}" \
-    "${SUMMARY_FILE}" <<'PY'
+    "${SUMMARY_FILE}" \
+    "${CLASS_WHITELIST}" \
+    "${MIN_TRACK_SAMPLES}" \
+    "${SEGMENT_AWARE}" \
+    "${MAX_STALE_RATIO}" <<'PY'
 import collections
 import json
 import pathlib
@@ -242,83 +425,186 @@ min_max_simultaneous = int(sys.argv[3])
 max_fragmentation_ratio = float(sys.argv[4])
 iteration = int(sys.argv[5])
 summary_file = pathlib.Path(sys.argv[6])
+class_whitelist_raw = sys.argv[7].strip()
+min_track_samples = max(1, int(sys.argv[8]))
+segment_aware = sys.argv[9] != "0"
+max_stale_ratio = float(sys.argv[10])
+allowed_classes = {
+    item.strip().lower()
+    for item in class_whitelist_raw.split(",")
+    if item.strip()
+}
+allow_all_classes = not allowed_classes or "*" in allowed_classes or "all" in allowed_classes
 
-samples = []
-track_samples = collections.Counter()
-track_labels = {}
-track_first_pts = {}
-track_last_pts = {}
-max_simultaneous = 0
-empty_detection_samples = 0
-analyzed_values = []
-avg_ms_values = []
-
+raw_samples = []
 for line in snapshots_file.read_text().splitlines():
     if not line.strip():
         continue
     payload = json.loads(line)
     tap = payload.get("tap") or {}
     latest = tap.get("latestResult") or {}
-    tracks = latest.get("tracks") or []
-    detections = latest.get("detections") or []
-    analyzed_values.append(int(tap.get("analyzedPackets") or 0))
-    avg_ms_values.append(float(tap.get("averageAnalysisMs") or 0.0))
-    if not detections:
-        empty_detection_samples += 1
-    max_simultaneous = max(max_simultaneous, len(tracks))
-    for track in tracks:
-        track_id = int(track.get("trackId") or 0)
-        if track_id <= 0:
-            continue
-        track_samples[track_id] += 1
-        track_labels.setdefault(track_id, track.get("label") or "")
-        pts = int(track.get("lastSeenPts") or latest.get("pts") or 0)
-        track_first_pts.setdefault(track_id, pts)
-        track_last_pts[track_id] = pts
-    samples.append(tap)
+    pts = int(latest.get("pts") or 0)
+    raw_samples.append({
+        "tap": tap,
+        "latest": latest,
+        "pts": pts,
+        "tracks": latest.get("tracks") or [],
+        "detections": latest.get("detections") or [],
+        "analyzed": int(tap.get("analyzedPackets") or 0),
+        "avgMs": float(tap.get("averageAnalysisMs") or 0.0),
+    })
 
-unique_tracks = len(track_samples)
-fragmentation_ratio = unique_tracks / max(1, max_simultaneous)
-lifetimes = list(track_samples.values())
+segments = [[]]
+previous_pts = None
+seen_pts_in_segment = set()
+stale_pts_samples = 0
+pts_regression_count = 0
+for sample in raw_samples:
+    pts = sample["pts"]
+    if segment_aware and previous_pts is not None and pts > 0 and previous_pts > 0 and pts < previous_pts:
+        pts_regression_count += 1
+        segments.append([])
+        seen_pts_in_segment = set()
+    if segment_aware and pts > 0 and pts in seen_pts_in_segment:
+        stale_pts_samples += 1
+        previous_pts = pts
+        continue
+    segments[-1].append(sample)
+    if pts > 0:
+        seen_pts_in_segment.add(pts)
+    previous_pts = pts
+
+segments = [segment for segment in segments if segment]
+effective_samples = [sample for segment in segments for sample in segment]
+empty_detection_samples = sum(1 for sample in effective_samples if not sample["detections"])
+analyzed_values = [sample["analyzed"] for sample in raw_samples]
+avg_ms_values = [sample["avgMs"] for sample in raw_samples]
+excluded_class_tracks = set()
+excluded_short_tracks = set()
+
+def class_allowed(label):
+    if allow_all_classes:
+        return True
+    return str(label or "").lower() in allowed_classes
+
+def summarize_segment(segment_index, segment):
+    track_samples = collections.Counter()
+    track_labels = {}
+    track_first_pts = {}
+    track_last_pts = {}
+    raw_track_ids = set()
+    for sample in segment:
+        for track in sample["tracks"]:
+            track_id = int(track.get("trackId") or 0)
+            if track_id <= 0:
+                continue
+            key = f"{segment_index}:{track_id}"
+            raw_track_ids.add(key)
+            label = track.get("label") or ""
+            track_labels.setdefault(key, label)
+            if not class_allowed(label):
+                excluded_class_tracks.add(key)
+                continue
+            track_samples[key] += 1
+            pts = int(track.get("lastSeenPts") or sample["pts"] or 0)
+            track_first_pts.setdefault(key, pts)
+            track_last_pts[key] = pts
+
+    eligible_track_ids = {
+        key for key, count in track_samples.items()
+        if count >= min_track_samples
+    }
+    excluded_short_tracks.update(set(track_samples) - eligible_track_ids)
+    max_simultaneous = 0
+    for sample in segment:
+        simultaneous = 0
+        for track in sample["tracks"]:
+            track_id = int(track.get("trackId") or 0)
+            if track_id <= 0:
+                continue
+            key = f"{segment_index}:{track_id}"
+            if key in eligible_track_ids:
+                simultaneous += 1
+        max_simultaneous = max(max_simultaneous, simultaneous)
+
+    unique_tracks = len(eligible_track_ids)
+    fragmentation_ratio = unique_tracks / max(1, max_simultaneous)
+    lifetimes = [track_samples[key] for key in eligible_track_ids]
+    return {
+        "segment": segment_index,
+        "samples": len(segment),
+        "firstPts": segment[0]["pts"] if segment else 0,
+        "lastPts": segment[-1]["pts"] if segment else 0,
+        "rawTracks": len(raw_track_ids),
+        "uniqueTracks": unique_tracks,
+        "maxSimultaneousTracks": max_simultaneous,
+        "fragmentationRatio": round(fragmentation_ratio, 3),
+        "medianTrackLifetimeSamples": statistics.median(lifetimes) if lifetimes else 0,
+        "trackSummary": [
+            {
+                "id": key,
+                "label": track_labels.get(key, ""),
+                "samples": track_samples[key],
+                "firstPts": track_first_pts.get(key, 0),
+                "lastPts": track_last_pts.get(key, 0),
+            }
+            for key in sorted(eligible_track_ids)
+        ],
+    }
+
+segment_summaries = [
+    summarize_segment(index, segment)
+    for index, segment in enumerate(segments, start=1)
+]
+unique_tracks = sum(segment["uniqueTracks"] for segment in segment_summaries)
+max_simultaneous = max((segment["maxSimultaneousTracks"] for segment in segment_summaries), default=0)
+fragmentation_ratio = max((segment["fragmentationRatio"] for segment in segment_summaries), default=0.0)
+lifetimes = [
+    track["samples"]
+    for segment in segment_summaries
+    for track in segment["trackSummary"]
+]
 median_lifetime = statistics.median(lifetimes) if lifetimes else 0
-short_tracks = sum(1 for value in lifetimes if value <= 2)
 final_analyzed = max(analyzed_values) if analyzed_values else 0
 avg_ms = avg_ms_values[-1] if avg_ms_values else 0.0
+stale_pts_ratio = stale_pts_samples / max(1, len(raw_samples))
 summary = {
     "iteration": iteration,
-    "samples": len(samples),
+    "rawSamples": len(raw_samples),
+    "samples": len(effective_samples),
+    "segmentAware": segment_aware,
+    "segmentCount": len(segment_summaries),
+    "ptsRegressionCount": pts_regression_count,
+    "stalePtsSamples": stale_pts_samples,
+    "stalePtsRatio": round(stale_pts_ratio, 3),
+    "classWhitelist": sorted(allowed_classes) if not allow_all_classes else ["*"],
+    "minTrackSamples": min_track_samples,
     "uniqueTracks": unique_tracks,
     "maxSimultaneousTracks": max_simultaneous,
     "fragmentationRatio": round(fragmentation_ratio, 3),
-    "shortTracksLe2Samples": short_tracks,
+    "excludedShortTracks": len(excluded_short_tracks),
+    "excludedClassTracks": len(excluded_class_tracks),
     "medianTrackLifetimeSamples": median_lifetime,
     "emptyDetectionSamples": empty_detection_samples,
     "finalAnalyzedPackets": final_analyzed,
     "averageAnalysisMs": round(avg_ms, 3),
-    "trackSummary": [
-        {
-            "id": track_id,
-            "label": track_labels.get(track_id, ""),
-            "samples": count,
-            "firstPts": track_first_pts.get(track_id, 0),
-            "lastPts": track_last_pts.get(track_id, 0),
-        }
-        for track_id, count in sorted(track_samples.items())
-    ],
+    "segments": segment_summaries,
 }
 print("tracker_iteration_summary=", summary)
 with summary_file.open("a") as handle:
     handle.write(json.dumps(summary, ensure_ascii=False) + "\n")
 
 errors = []
-if len(samples) < min_samples:
-    errors.append(f"snapshot sample 부족: {len(samples)} < {min_samples}")
+if len(effective_samples) < min_samples:
+    errors.append(f"effective snapshot sample 부족: {len(effective_samples)} < {min_samples}")
 if max_simultaneous < min_max_simultaneous:
     errors.append(f"동시 track 수 부족: {max_simultaneous} < {min_max_simultaneous}")
 if fragmentation_ratio > max_fragmentation_ratio:
     errors.append(
         f"track fragmentation ratio 초과: {fragmentation_ratio:.3f} > {max_fragmentation_ratio:.3f}"
     )
+if stale_pts_ratio > max_stale_ratio:
+    errors.append(f"stale PTS ratio 초과: {stale_pts_ratio:.3f} > {max_stale_ratio:.3f}")
 if final_analyzed <= 0:
     errors.append("분석 packet이 증가하지 않음")
 
@@ -335,6 +621,10 @@ PY
 
   curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${CURRENT_TAP_ID}" >/dev/null 2>&1 || true
   CURRENT_TAP_ID=""
+  if [[ "${RESTART_BETWEEN_ITERATIONS}" == "1" && "${iteration}" -lt "${REPEAT_COUNT}" ]]; then
+    log_info "source 재시작 대기: ${RESTART_WAIT_S}s"
+    sleep "${RESTART_WAIT_S}"
+  fi
 done
 
 python3 - "${SUMMARY_FILE}" <<'PY'
@@ -347,10 +637,12 @@ items = [json.loads(line) for line in pathlib.Path(sys.argv[1]).read_text().spli
 if not items:
     raise SystemExit(0)
 ratios = [float(item["fragmentationRatio"]) for item in items]
+stale_ratios = [float(item.get("stalePtsRatio", 0.0)) for item in items]
 print("tracker_repeat_count=", len(items))
 print("fragmentation_ratio_min=", min(ratios))
 print("fragmentation_ratio_max=", max(ratios))
 print("fragmentation_ratio_avg=", round(statistics.mean(ratios), 3))
+print("stale_pts_ratio_max=", max(stale_ratios))
 PY
 log_pass "tracker stability 반복 요약 생성"
 
