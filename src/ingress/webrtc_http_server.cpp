@@ -410,7 +410,7 @@ private:
     };
 
     static std::string BuiltInProfilesArrayJson() {
-        return R"([{"id":"server-default-va","detector":"server-config","adaptive":true,"trackingClasses":["person","bicycle","car","motorcycle","bus","truck"],"description":"URL에는 va=1만 두고 detector/model/labels/fps 기본값은 stdafx.h/env 설정을 따른다. tracker는 기본적으로 사람/차량 계열에만 ID를 붙인다."},{"id":"debug-dummy","detector":"dummy","fps":5,"maxQueue":2,"trackingClasses":["person","bicycle","car","motorcycle","bus","truck"],"description":"raw decode/sampling lifecycle 확인용"},{"id":"yolo-fast","detector":"yolo","fps":8,"maxQueue":1,"preprocess":"letterbox","inputWidth":640,"inputHeight":640,"confidence":0.25,"nms":0.45,"adaptive":true,"trackingClasses":["person","bicycle","car","motorcycle","bus","truck"],"description":"움직임이 큰 장면의 overlay 지연 최소화"},{"id":"yolo-balanced","detector":"yolo","fps":5,"maxQueue":2,"preprocess":"letterbox","inputWidth":640,"inputHeight":640,"confidence":0.35,"nms":0.45,"adaptive":true,"trackingClasses":["person","bicycle","car","motorcycle","bus","truck"],"description":"기본 객체 감지 균형값"},{"id":"yolo-quality","detector":"yolo","fps":3,"maxQueue":2,"preprocess":"letterbox","inputWidth":960,"inputHeight":960,"confidence":0.35,"nms":0.45,"adaptive":true,"trackingClasses":["person","bicycle","car","motorcycle","bus","truck"],"description":"정확도 우선, CPU 비용 증가"}])";
+        return R"([{"id":"server-default-va","detector":"server-config","adaptive":true,"trackingClasses":["person","vehicle"],"description":"URL에는 va=1만 두고 detector/model/labels/fps 기본값은 stdafx.h/env 설정을 따른다. tracker는 기본적으로 사람/차량 카테고리에만 ID를 붙인다."},{"id":"debug-dummy","detector":"dummy","fps":5,"maxQueue":2,"trackingClasses":["person","vehicle"],"description":"raw decode/sampling lifecycle 확인용"},{"id":"yolo-fast","detector":"yolo","fps":8,"maxQueue":1,"preprocess":"letterbox","inputWidth":640,"inputHeight":640,"confidence":0.25,"nms":0.45,"adaptive":true,"trackingClasses":["person","vehicle"],"description":"움직임이 큰 장면의 overlay 지연 최소화"},{"id":"yolo-balanced","detector":"yolo","fps":5,"maxQueue":2,"preprocess":"letterbox","inputWidth":640,"inputHeight":640,"confidence":0.35,"nms":0.45,"adaptive":true,"trackingClasses":["person","vehicle"],"description":"기본 객체 감지 균형값"},{"id":"yolo-quality","detector":"yolo","fps":3,"maxQueue":2,"preprocess":"letterbox","inputWidth":960,"inputHeight":960,"confidence":0.35,"nms":0.45,"adaptive":true,"trackingClasses":["person","vehicle"],"description":"정확도 우선, CPU 비용 증가"}])";
     }
 
     static void AppendDocumentsArray(std::ostream& out, const std::vector<Document>& documents) {
@@ -2562,6 +2562,20 @@ std::string BuildLabRuleEditorPageHtml() {
       font-size: 12px;
       border-radius: 999px;
     }
+    .mini-check {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--soft-bg);
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--ink);
+    }
     .preview-panel {
       border: 1px solid var(--line);
       border-radius: 18px;
@@ -2700,6 +2714,14 @@ std::string BuildLabRuleEditorPageHtml() {
             <input id="profileAdaptive" type="checkbox" checked />
             부하가 높으면 FPS/input size 자동 조절
           </label>
+          <label>Tracking 대상 카테고리</label>
+          <div class="pill-grid">
+            <label class="mini-check"><input data-tracking-category type="checkbox" value="person" checked /> 사람</label>
+            <label class="mini-check"><input data-tracking-category type="checkbox" value="vehicle" checked /> 차량</label>
+            <label class="mini-check"><input data-tracking-category type="checkbox" value="animal" /> 동물</label>
+            <label class="mini-check"><input data-tracking-category type="checkbox" value="*" /> 전체</label>
+          </div>
+          <p class="hint">ID/trail과 enter/exit/line-crossing 판정 대상입니다. 세부 객체명은 JSON/API에서만 직접 지정합니다.</p>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
             <button id="newProfileBtn" class="secondary">새 Profile</button>
             <button id="saveProfileBtn">Profile 저장</button>
@@ -2711,7 +2733,7 @@ std::string BuildLabRuleEditorPageHtml() {
       <div class="card">
         <div class="pad stack">
           <h2>2. 이벤트 Rule</h2>
-          <p class="hint">영역과 객체 타입을 지정합니다. 저장된 룰은 `va=1` overlay와 events API에 바로 적용됩니다. 진입/이탈/라인 통과는 tracker가 붙인 객체 ID 기준으로 판정합니다. 기본 tracker 대상은 사람/차량 계열입니다.</p>
+          <p class="hint">영역과 객체 타입을 지정합니다. 저장된 룰은 `va=1` overlay와 events API에 바로 적용됩니다. 진입/이탈/라인 통과는 tracker가 붙인 객체 ID 기준으로 판정합니다. 기본 tracker 대상은 사람/차량 카테고리입니다.</p>
           <label>저장된 Rule
             <select id="ruleSelect"></select>
           </label>
@@ -3025,6 +3047,53 @@ std::string BuildLabRuleEditorPageHtml() {
       return Math.max(min, Math.min(max, Math.round(value)));
     }
 
+    function normalizeTrackingToken(value) {
+      return String(value || '').trim().toLowerCase().replace(/\s+/g, '');
+    }
+
+    function selectedTrackingClasses() {
+      const selected = Array.from(document.querySelectorAll('[data-tracking-category]:checked'))
+        .map((el) => el.value);
+      return selected.includes('*') ? ['*'] : selected;
+    }
+
+    function setTrackingClasses(values) {
+      const rawValues = Array.isArray(values) && values.length > 0 ? values : ['person', 'vehicle'];
+      const normalized = new Set(rawValues.map(normalizeTrackingToken).filter(Boolean));
+      const hasAll = normalized.has('*') || normalized.has('all') || normalized.has('any');
+      const vehicleLabels = new Set(['bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat']);
+      const animalLabels = new Set(['bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe']);
+      document.querySelectorAll('[data-tracking-category]').forEach((el) => {
+        const value = el.value;
+        el.checked =
+          (value === '*' && hasAll) ||
+          (!hasAll && value === 'person' &&
+            (normalized.has('person') || normalized.has('people') || normalized.has('human') || normalized.has('humans'))) ||
+          (!hasAll && value === 'vehicle' &&
+            (normalized.has('vehicle') || normalized.has('vehicles') ||
+              Array.from(vehicleLabels).some((label) => normalized.has(label)))) ||
+          (!hasAll && value === 'animal' &&
+            (normalized.has('animal') || normalized.has('animals') ||
+              Array.from(animalLabels).some((label) => normalized.has(label))));
+      });
+    }
+
+    function normalizeTrackingCategorySelection(changed) {
+      if (!changed) return;
+      if (changed.value === '*' && changed.checked) {
+        document.querySelectorAll('[data-tracking-category]').forEach((el) => {
+          if (el !== changed) el.checked = false;
+        });
+      } else if (changed.checked) {
+        const all = document.querySelector('[data-tracking-category][value="*"]');
+        if (all) all.checked = false;
+      }
+      if (selectedTrackingClasses().length === 0) {
+        const person = document.querySelector('[data-tracking-category][value="person"]');
+        if (person) person.checked = true;
+      }
+    }
+
     function selectedClasses() {
       return Array.from(document.querySelectorAll('[data-class-check]:checked')).map((el) => el.value);
     }
@@ -3105,7 +3174,8 @@ std::string BuildLabRuleEditorPageHtml() {
         nms: percentValue('profileNms'),
         inputWidth: Number($('profileInputWidth').value),
         inputHeight: Number($('profileInputHeight').value),
-        adaptive: $('profileAdaptive').checked
+        adaptive: $('profileAdaptive').checked,
+        trackingClasses: selectedTrackingClasses()
       };
     }
 
@@ -3436,6 +3506,7 @@ std::string BuildLabRuleEditorPageHtml() {
       $('profileInputWidth').value = String(item.inputWidth || item.modelInputWidth || 640);
       $('profileInputHeight').value = String(item.inputHeight || item.modelInputHeight || 640);
       $('profileAdaptive').checked = item.adaptive !== false;
+      setTrackingClasses(item.trackingClasses || item.trackClasses || ['person', 'vehicle']);
       updatePreviews();
     }
 
@@ -3662,7 +3733,7 @@ std::string BuildLabRuleEditorPageHtml() {
     };
     $('newProfileBtn').onclick = () => {
       $('profileSelect').value = '';
-      loadProfile({ id: 'fast-local', detector: 'yolo', fps: 6, maxQueue: 1, confidence: 0.25, nms: 0.45, inputWidth: 640, inputHeight: 640, adaptive: true });
+      loadProfile({ id: 'fast-local', detector: 'yolo', fps: 6, maxQueue: 1, confidence: 0.25, nms: 0.45, inputWidth: 640, inputHeight: 640, adaptive: true, trackingClasses: ['person', 'vehicle'] });
     };
     $('saveProfileBtn').onclick = () => saveProfile().catch((error) => status(`Profile 저장 실패: ${error.message}`));
     $('deleteProfileBtn').onclick = () => deleteProfile().catch((error) => status(`Profile 삭제 실패: ${error.message}`));
@@ -3731,6 +3802,12 @@ std::string BuildLabRuleEditorPageHtml() {
       if (el) el.addEventListener('input', updatePreviews);
       if (el) el.addEventListener('change', updatePreviews);
     }
+    document.querySelectorAll('[data-tracking-category]').forEach((el) => {
+      el.addEventListener('change', () => {
+        normalizeTrackingCategorySelection(el);
+        updatePreviews();
+      });
+    });
 
     function applyTheme(theme) {
       const nextTheme = theme === 'dark' ? 'dark' : 'light';
@@ -4621,7 +4698,7 @@ struct StaticImageAnalysis {
 };
 
 std::string AnalysisCapabilitiesJson() {
-    return R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"yoloOutputLayouts":["auto","channels-first","channels-last"],"yoloBoxFormats":["cxcywh","xyxy"],"yoloScoreModes":["auto","class-only","objectness-class","score-class","class-score"],"outputs":["metadata","events","snapshot.jpg","overlay.jpg","image-metadata","image-snapshot.jpg","image-overlay.jpg","rtsp-overlay","webrtc-overlay"],"eventTypes":["presence","enter","exit","line-crossing"],"eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile with lightweight tracking for person/vehicle classes","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"tracking":"optional object tracking on/off","trackingClasses":"optional comma-separated labels or '*' for all tracked classes","fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","outputLayout":"optional YOLO output tensor layout: auto|channels-first|channels-last","boxFormat":"optional YOLO box format: cxcywh|xyxy","scoreMode":"optional YOLO score mode: auto|class-only|objectness-class|score-class|class-score","thickness":"optional box line thickness","drawLabels":"optional label visibility","trackIds":"optional track id labels on overlay","trackTrails":"optional track trail overlay"}})";
+    return R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"yoloOutputLayouts":["auto","channels-first","channels-last"],"yoloBoxFormats":["cxcywh","xyxy"],"yoloScoreModes":["auto","class-only","objectness-class","score-class","class-score"],"outputs":["metadata","events","snapshot.jpg","overlay.jpg","image-metadata","image-snapshot.jpg","image-overlay.jpg","rtsp-overlay","webrtc-overlay"],"eventTypes":["presence","enter","exit","line-crossing"],"eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile with lightweight tracking for person/vehicle categories","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"tracking":"optional object tracking on/off","trackingClasses":"optional comma-separated categories/classes: person,vehicle,animal or '*' for all","fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","outputLayout":"optional YOLO output tensor layout: auto|channels-first|channels-last","boxFormat":"optional YOLO box format: cxcywh|xyxy","scoreMode":"optional YOLO score mode: auto|class-only|objectness-class|score-class|class-score","thickness":"optional box line thickness","drawLabels":"optional label visibility","trackIds":"optional track id labels on overlay","trackTrails":"optional track trail overlay"}})";
 }
 
 std::string AnalysisProfilesJson() {

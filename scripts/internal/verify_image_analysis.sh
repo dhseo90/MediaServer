@@ -25,6 +25,9 @@ METADATA_FILE="/tmp/media_server_${RUN_ID}_metadata.json"
 SNAPSHOT_FILE="/tmp/media_server_${RUN_ID}_snapshot.jpg"
 OVERLAY_FILE="/tmp/media_server_${RUN_ID}_overlay.jpg"
 TRAVERSAL_FILE="/tmp/media_server_${RUN_ID}_traversal.json"
+TRACKING_DEFAULT_FILE="/tmp/media_server_${RUN_ID}_tracking_default.json"
+TRACKING_ANIMAL_FILE="/tmp/media_server_${RUN_ID}_tracking_animal.json"
+TRACKING_ALL_FILE="/tmp/media_server_${RUN_ID}_tracking_all.json"
 
 log_info() {
   echo "[info] $*"
@@ -176,6 +179,52 @@ else
   log_fail "image metadata endpoint 호출 실패"
 fi
 
+if curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1" > "${TRACKING_DEFAULT_FILE}" &&
+   curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=animal" > "${TRACKING_ANIMAL_FILE}" &&
+   curl -fsS "${HTTP_BASE}/lab/analysis/image?${QUERY}&tracking=1&trackingClasses=$(urlencode_token "*")" > "${TRACKING_ALL_FILE}"; then
+  if python3 - "${TRACKING_DEFAULT_FILE}" "${TRACKING_ANIMAL_FILE}" "${TRACKING_ALL_FILE}" <<'PY'
+import json
+import pathlib
+import sys
+
+def tracked_labels(path):
+    payload = json.loads(pathlib.Path(path).read_text())
+    detections = (payload.get("result") or {}).get("detections") or []
+    tracked = [item for item in detections if int(item.get("trackId") or 0) > 0]
+    return {
+        "total": len(detections),
+        "tracked": len(tracked),
+        "labels": sorted({str(item.get("label") or "") for item in tracked}),
+    }
+
+default = tracked_labels(sys.argv[1])
+animal = tracked_labels(sys.argv[2])
+all_classes = tracked_labels(sys.argv[3])
+print("tracking_default=", default)
+print("tracking_animal=", animal)
+print("tracking_all=", all_classes)
+
+expected_default = {"person", "bicycle", "car", "motorcycle", "bus", "truck", "airplane", "train", "boat"}
+if default["tracked"] <= 0:
+    raise SystemExit("기본 tracking 결과가 비어 있음")
+if not set(default["labels"]).issubset(expected_default):
+    raise SystemExit(f"기본 tracking에 person/vehicle 외 label 포함: {default['labels']}")
+if not {"bird", "dog"}.issubset(set(animal["labels"])):
+    raise SystemExit(f"animal tracking에 기대 label이 없음: {animal['labels']}")
+if any(label in set(animal["labels"]) for label in ("person", "car", "bus", "motorcycle", "bicycle")):
+    raise SystemExit(f"animal tracking에 비동물 label 포함: {animal['labels']}")
+if all_classes["tracked"] != all_classes["total"]:
+    raise SystemExit(f"전체 tracking 수 불일치: {all_classes['tracked']} != {all_classes['total']}")
+PY
+  then
+    log_pass "trackingClasses category/all 정책 확인"
+  else
+    log_fail "trackingClasses category/all 정책 검증 실패"
+  fi
+else
+  log_fail "trackingClasses category/all endpoint 호출 실패"
+fi
+
 if curl -fsS -o "${SNAPSHOT_FILE}" "${HTTP_BASE}/lab/analysis/image/snapshot.jpg?${QUERY}&quality=80"; then
   bytes="$(wc -c < "${SNAPSHOT_FILE}" | tr -d ' ')"
   if [[ "${bytes}" -gt 1024 ]]; then
@@ -211,6 +260,9 @@ echo "- 통과: ${PASS_COUNT}"
 echo "- 실패: ${FAIL_COUNT}"
 echo "- 건너뜀: ${SKIP_COUNT}"
 echo "- metadata: ${METADATA_FILE}"
+echo "- tracking default: ${TRACKING_DEFAULT_FILE}"
+echo "- tracking animal: ${TRACKING_ANIMAL_FILE}"
+echo "- tracking all: ${TRACKING_ALL_FILE}"
 echo "- snapshot: ${SNAPSHOT_FILE}"
 echo "- overlay: ${OVERLAY_FILE}"
 

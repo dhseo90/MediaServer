@@ -324,7 +324,7 @@ MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
 | `MEDIA_SERVER_ANALYSIS_NMS` | `va=1` 기본 NMS threshold. 기본 `0.45` |
 | `MEDIA_SERVER_ANALYSIS_PREPROCESS` | `va=1` 기본 YOLO 전처리. 기본 `letterbox` |
 | `MEDIA_SERVER_ANALYSIS_TRACKING` | `1`이면 `va=1` 기본 tracker 사용. 기본 `1` |
-| `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES` | tracker가 ID/trail을 붙일 class 목록. 기본 `person,bicycle,car,motorcycle,bus,truck`, 전체는 `*` |
+| `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES` | tracker가 ID/trail을 붙일 카테고리/class 목록. 기본 `person,vehicle`, 동물은 `animal`, 전체는 `*` |
 | `MEDIA_SERVER_ANALYSIS_OVERLAY_WAIT_MS` | `va=1` 기본 overlay result 대기 시간. 기본 `180` |
 | `MEDIA_SERVER_ANALYSIS_OVERLAY_SYNC_TOLERANCE_MS` | `va=1` 기본 PTS 매칭 허용 범위. 기본 `400` |
 | `MEDIA_SERVER_ANALYSIS_OVERLAY_THICKNESS` | `va=1` 기본 detection box 두께. 기본 `3` |
@@ -502,6 +502,8 @@ ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성
 - 선택 검증: `./server.sh test --include-image-analysis`는 개발용 정적 이미지 분석 API를 추가 확인한다.
 - 선택 검증: `./server.sh test --include-webrtc-ice`는 WebRTC STUN/TURN/ICE candidate 수집을 추가 확인한다.
 - 선택 검증: `./server.sh test --include-uri-longrun`은 HTTP/HLS URI source 반복 검증을 추가 확인한다.
+- 외부 운영 TURN은 credential이 있어야 hard gate로 검증할 수 있다. 서버를 `MEDIA_SERVER_WEBRTC_TURN_SERVER=turn://user:pass@host:3478 MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay`로 띄운 뒤 `./server.sh verify-webrtc-ice --external-turn`을 실행한다. credential이 없으면 이 검증은 skip으로 남긴다.
+- 외부 HLS advisory는 `./server.sh verify-uri-longrun --include-external --use-default-external`로 Mux/Apple 공개 HLS 후보 2개를 반복 확인한다.
 - 예외 생략: `./server.sh test --skip-va`는 ONNX/브라우저 자동화가 불가능한 환경에서만 사용한다.
 - 외부 네트워크 또는 LAN IP probe가 막힌 격리 환경에서만 `./server.sh test --skip-external`로 LAN IP 외부 접근성과 제3자 RTSP upstream 확인을 생략한다.
 - 신뢰 가능한 카메라/테스트 RTSP URL이 있으면 `MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS='rtsp://...' ./server.sh test`로 hard gate 검증한다.
@@ -520,7 +522,7 @@ tracker 장시간 검증:
 
 tracker fragmentation 계산은 기본적으로 다음 안정화 필터를 적용한다.
 - `segmentAware=1`: PTS 역행/중복 PTS를 감지해 파일 반복/정지 경계를 segment로 분리한다.
-- `classWhitelist=person`: 테스트 목적상 사람 track만 fragmentation 계산에 포함한다. 런타임 tracker 기본 대상은 사람/차량 계열이다.
+- `classWhitelist=person`: 테스트 목적상 사람 track만 fragmentation 계산에 포함한다. 런타임 tracker 기본 대상은 `person,vehicle` 카테고리다.
 - `minTrackSamples=3`: 1~2회만 보인 짧은 오검출 track은 제외한다.
 - `maxStaleRatio=0.3`: 같은 PTS가 과도하게 반복되면 분석 source가 멈춘 것으로 보고 실패시킨다.
 - `overlapFocus=0`: 기본 fragmentation 검증은 전체 person track 기준이다. 겹침/교차 장면만 강하게 보고 싶으면 `--overlap-focus`를 사용한다.

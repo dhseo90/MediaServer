@@ -368,6 +368,22 @@ bool MatchesClass(const EventRule& rule, const Detection& detection) {
         if (wanted.empty() || wanted == "*" || wanted == label || wanted == class_id) {
             return true;
         }
+        // 룰 UI/JSON에서도 tracker와 같은 큰 카테고리 토큰을 사용할 수 있게 맞춘다.
+        if ((wanted == "person" || wanted == "people" || wanted == "human" || wanted == "humans") &&
+            label == "person") {
+            return true;
+        }
+        if ((wanted == "vehicle" || wanted == "vehicles") &&
+            (label == "bicycle" || label == "car" || label == "motorcycle" || label == "airplane" ||
+             label == "bus" || label == "train" || label == "truck" || label == "boat")) {
+            return true;
+        }
+        if ((wanted == "animal" || wanted == "animals") &&
+            (label == "bird" || label == "cat" || label == "dog" || label == "horse" ||
+             label == "sheep" || label == "cow" || label == "elephant" || label == "bear" ||
+             label == "zebra" || label == "giraffe")) {
+            return true;
+        }
     }
     return false;
 }

@@ -130,7 +130,9 @@ VA 분석은 relay 경로를 직접 대체하지 않고 같은 source stream을 
 - YOLO/ONNX inference
 - detection box, label, score, timestamp 생성
 - tracker가 켜진 경우 frame 간 detection 연결 후 `trackId` 부여
-  - 기본 추적 대상은 `person`, `bicycle`, `car`, `motorcycle`, `bus`, `truck`
+  - 기본 추적 대상은 카테고리 토큰 `person`, `vehicle`
+  - `vehicle`은 COCO 차량 계열(`bicycle`, `car`, `motorcycle`, `airplane`, `bus`, `train`, `truck`, `boat`)을 포함한다.
+  - `animal`을 추가하면 COCO 동물 계열(`bird`, `cat`, `dog`, `horse`, `sheep`, `cow`, `elephant`, `bear`, `zebra`, `giraffe`)을 추적한다.
   - 그 외 객체는 detection/overlay만 유지하고 ID/trail은 붙이지 않는다.
   - 가방/상자/장비처럼 시간 기반 이벤트가 필요한 객체는 query/profile의 `trackingClasses` 또는 `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES`로 opt-in한다.
 - RTSP/WebRTC raw video 구간에 overlay 합성

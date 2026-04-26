@@ -69,6 +69,23 @@ bool IsAllClassesToken(const std::string& value) {
     return value == "*" || value == "all" || value == "any";
 }
 
+// 사람/차량/동물처럼 UI에 노출하는 카테고리 토큰을 실제 COCO label 묶음으로 확장한다.
+bool MatchesCategoryToken(const std::string& wanted, const std::string& label) {
+    if (wanted == "person" || wanted == "people" || wanted == "human" || wanted == "humans") {
+        return label == "person";
+    }
+    if (wanted == "vehicle" || wanted == "vehicles") {
+        return label == "bicycle" || label == "car" || label == "motorcycle" || label == "airplane" ||
+               label == "bus" || label == "train" || label == "truck" || label == "boat";
+    }
+    if (wanted == "animal" || wanted == "animals") {
+        return label == "bird" || label == "cat" || label == "dog" || label == "horse" ||
+               label == "sheep" || label == "cow" || label == "elephant" || label == "bear" ||
+               label == "zebra" || label == "giraffe";
+    }
+    return false;
+}
+
 // detection이 현재 tracker whitelist에 포함되는지 판단한다.
 bool ShouldTrackDetection(const Detection& detection, const ObjectTrackerOptions& options) {
     if (options.class_labels.empty()) {
@@ -82,12 +99,8 @@ bool ShouldTrackDetection(const Detection& detection, const ObjectTrackerOptions
         if (wanted.empty()) {
             continue;
         }
-        if (IsAllClassesToken(wanted) || wanted == label || wanted == class_id) {
-            return true;
-        }
-        if ((wanted == "vehicle" || wanted == "vehicles") &&
-            (label == "bicycle" || label == "car" || label == "motorcycle" || label == "bus" ||
-             label == "truck")) {
+        if (IsAllClassesToken(wanted) || wanted == label || wanted == class_id ||
+            MatchesCategoryToken(wanted, label)) {
             return true;
         }
     }

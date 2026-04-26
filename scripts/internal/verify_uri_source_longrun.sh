@@ -13,6 +13,8 @@ SKIP_LOCAL_HTTP=0
 SKIP_LOCAL_HLS=0
 EXTERNAL_URLS="${MEDIA_SERVER_VERIFY_URI_EXTERNAL_URLS:-}"
 EXTERNAL_RTSP_ROUTE_KEYS="${MEDIA_SERVER_VERIFY_URI_EXTERNAL_RTSP_ROUTE_KEYS:-default}"
+USE_DEFAULT_EXTERNAL="${MEDIA_SERVER_VERIFY_URI_USE_DEFAULT_EXTERNAL:-0}"
+DEFAULT_EXTERNAL_URLS="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8;https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8"
 PASS_COUNT=0
 FAIL_COUNT=0
 SKIP_COUNT=0
@@ -37,6 +39,7 @@ Usage:
 Options:
   --iterations <n>       반복 횟수. 기본 3
   --include-external     MEDIA_SERVER_VERIFY_URI_EXTERNAL_URLS에 지정한 외부 HTTP/HLS URL도 검증
+  --use-default-external 공개 HLS advisory 후보 2개(Mux/Apple)를 외부 URL로 사용
   --external-urls <csv>  외부 URL 목록. 쉼표 또는 세미콜론으로 구분
   --external-rtsp-routes <csv>
                          외부 URL에서 검증할 RTSP route key 목록. 기본 default
@@ -47,12 +50,14 @@ Options:
 환경 변수:
   MEDIA_SERVER_VERIFY_URI_LONGRUN_ITERATIONS
   MEDIA_SERVER_VERIFY_URI_LONGRUN_INCLUDE_EXTERNAL=1
+  MEDIA_SERVER_VERIFY_URI_USE_DEFAULT_EXTERNAL=1
   MEDIA_SERVER_VERIFY_URI_EXTERNAL_URLS="https://example/a.mp4,https://example/live.m3u8"
   MEDIA_SERVER_VERIFY_URI_EXTERNAL_RTSP_ROUTE_KEYS="default,h264"
 
 기준:
   - 로컬 HTTP MP4와 로컬 HLS VOD는 네트워크 영향 없이 반복 검증합니다.
   - 외부 HTTP/HLS URL은 upstream, CDN, 방화벽 영향이 있으므로 명시적으로 켰을 때만 검증합니다.
+  - 기본 외부 후보는 advisory 용도이며, upstream 상태 변화 때문에 기본 안정 기준에는 넣지 않습니다.
 EOF_USAGE
 }
 
@@ -64,6 +69,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     --include-external)
       INCLUDE_EXTERNAL=1
+      ;;
+    --use-default-external)
+      USE_DEFAULT_EXTERNAL=1
       ;;
     --external-urls)
       EXTERNAL_URLS="$2"
@@ -96,6 +104,10 @@ done
 if ! [[ "${ITERATIONS}" =~ ^[0-9]+$ ]] || [[ "${ITERATIONS}" -lt 1 ]]; then
   log_fail "--iterations는 1 이상의 정수여야 합니다: ${ITERATIONS}"
   exit 1
+fi
+
+if [[ "${INCLUDE_EXTERNAL}" == "1" && -z "${EXTERNAL_URLS}" && "${USE_DEFAULT_EXTERNAL}" == "1" ]]; then
+  EXTERNAL_URLS="${DEFAULT_EXTERNAL_URLS}"
 fi
 
 # verify-codecs의 source filter를 한 번 실행해 반복 검증 결과를 누적한다.
@@ -156,6 +168,9 @@ echo "HTTP/HLS URI source 장기 회귀 검증 시작"
 echo "- 반복 횟수: ${ITERATIONS}"
 echo "- 외부 URL 포함: ${INCLUDE_EXTERNAL}"
 echo "- 외부 RTSP route keys: ${EXTERNAL_RTSP_ROUTE_KEYS}"
+if [[ "${INCLUDE_EXTERNAL}" == "1" && -n "${EXTERNAL_URLS}" ]]; then
+  echo "- 외부 URL: ${EXTERNAL_URLS}"
+fi
 
 for ((iteration = 1; iteration <= ITERATIONS; iteration += 1)); do
   if [[ "${SKIP_LOCAL_HTTP}" == "1" ]]; then
