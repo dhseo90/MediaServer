@@ -28,7 +28,10 @@
 - `2026-04-26`: `./server.sh verify-tracker-stability --duration 30 --repeat 2 --overlap-focus` 통과 `6/0/0`. 두 반복 모두 `fragmentationRatio=1.0`, `overlapFragmentationRatio=1.0`, `maxSimultaneousTracks=4`로 겹침 구간 track 분절은 재현되지 않았다.
 - `2026-04-26`: `./server.sh verify-va-events --duration 30` 통과 `9/0/0`. presence `558`, line-crossing `4`, enter `2`, exit `2` 이벤트와 trackId 기반 rule event를 확인했다.
 - `2026-04-26`: `./server.sh verify-va-events --long` 통과 `9/0/0`. presence `2280`, line-crossing `4`, enter `2`, exit `2`, snapshot `trackCount=4`, analyzed `734`, 평균 분석 시간 `92.3452ms`를 확인했다.
-- `2026-04-26`: 기본 tracker class 정책을 사람/차량 계열(`person,bicycle,car,motorcycle,bus,truck`)로 제한했다. 기타 객체는 detection/overlay만 유지하며, 시간 기반 이벤트가 필요한 class는 `trackingClasses` 또는 `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES`로 opt-in한다.
+- `2026-04-26`: 기본 tracker 대상 정책을 개별 객체명이 아닌 카테고리 토큰(`person,vehicle`)으로 정리했다. 기타 객체는 detection/overlay만 유지하며, 동물 등 시간 기반 이벤트가 필요한 category/class는 `trackingClasses` 또는 `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES`로 opt-in한다.
+- `2026-04-26`: `verify-image-analysis`에 `trackingClasses=animal`과 `trackingClasses=*` 자동 검증을 추가했다. 기본 category, animal category, 전체 tracking 정책을 정적 이미지 API 기준으로 확인한다.
+- `2026-04-26`: 외부 운영 TURN 검증용 `./server.sh verify-webrtc-ice --external-turn` 모드를 추가했다. 가입 없이 사용할 수 있는 신뢰 가능한 TURN credential은 확보하지 못했으므로 credential 미설정 시 skip한다.
+- `2026-04-26`: 외부 HLS advisory 기본 후보를 Mux/Apple 2개로 정리하고 `./server.sh verify-uri-longrun --include-external --use-default-external` 진입점을 추가했다.
 
 ## 지원 대상
 - `file -> RTSP`
@@ -693,7 +696,7 @@ MEDIA_SERVER_VERIFY_SOURCE_FILTER=rtsp_local_h265_opus ./server.sh verify-codecs
   - 테스트 tap, ONNX foreground 서버, 임시 POST 수신 서버를 종료해 잔여 listen port가 없음을 확인했다.
 - `2026-04-25` lightweight tracker 1차 구현 smoke test를 추가했다.
   - `src/analysis/object_tracker.cpp`에서 IoU와 중심점 거리 기반 track matching을 추가했다.
-  - 기본 `va=1` profile은 `MEDIA_SERVER_ANALYSIS_TRACKING=1` 기본값으로 tracker를 켠다. query `tracking=0`으로 디버그 비활성화할 수 있다. 기본 tracking class는 사람/차량 계열이며, `trackingClasses=*` 또는 class 목록으로 조정할 수 있다.
+  - 기본 `va=1` profile은 `MEDIA_SERVER_ANALYSIS_TRACKING=1` 기본값으로 tracker를 켠다. query `tracking=0`으로 디버그 비활성화할 수 있다. 기본 tracking category는 `person,vehicle`이며, `trackingClasses=animal`, `trackingClasses=*` 또는 class 목록으로 조정할 수 있다.
   - detection metadata는 `trackId`를 포함하고, `latestResult.tracks[]`는 `trackId`, `age`, `hits`, `missed`, `state`, 최근 box, 중심점 `trail[]`을 반환한다.
   - overlay snapshot/debug URL에 `trackIds=1`을 붙이면 label에 `#trackId`가 함께 표시되고, `trackTrails=1`을 붙이면 최근 이동 궤적이 표시된다.
   - `imports/yolo11n_object_detection_slideshow_1280x720_30fps_h264.mp4` 기준 smoke에서 사람 장면 `trackId=1,2`가 여러 poll 동안 유지되고 `trackingEnabled=true`, `state=confirmed`를 확인했다.

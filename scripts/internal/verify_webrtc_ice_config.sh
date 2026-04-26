@@ -27,6 +27,7 @@ CONFIG_JSON="/tmp/media_server_${RUN_ID}_webrtc_config.json"
 BROWSER_LOG="/tmp/media_server_${RUN_ID}_browser.json"
 SESSION_ID=""
 REQUIRE_RELAY=0
+EXTERNAL_TURN_MODE=0
 SKIP_BROWSER=0
 SKIP_WHIP=0
 PRINT_LOCAL_COTURN_EXAMPLE=0
@@ -55,6 +56,7 @@ Usage:
 
 Options:
   --require-relay    relay candidate가 반드시 수집되어야 함. 실제 TURN 서버/계정 검증용
+  --external-turn    외부 운영 TURN credential 검증 모드. relay policy와 TURN credential 필요
   --skip-browser     브라우저 WebRTC playback 검증 생략
   --skip-whip        WHIP publish -> consume 검증 생략
   --file <token>     file source token. 기본 sample_h264.mp4
@@ -66,6 +68,7 @@ Options:
   MEDIA_SERVER_WEBRTC_STUN_SERVER
   MEDIA_SERVER_WEBRTC_TURN_SERVER
   MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=all|relay
+  MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER
   MEDIA_SERVER_VERIFY_WEBRTC_ICE_REQUIRE_RELAY=1
   MEDIA_SERVER_VERIFY_WEBRTC_ICE_POLL_COUNT
   MEDIA_SERVER_VERIFY_WEBRTC_ICE_POLL_INTERVAL_S
@@ -85,6 +88,16 @@ Mac 로컬 coturn 단일 머신 검증 예:
 주의:
   --allow-loopback-peers는 browser, MediaServer, coturn을 같은 Mac에서 돌리는
   개발 검증용 옵션입니다. 운영 TURN 서버에는 사용하지 않습니다.
+
+외부 운영 TURN 검증 예:
+  MEDIA_SERVER_WEBRTC_STUN_SERVER=stun://stun.l.google.com:19302 \
+  MEDIA_SERVER_WEBRTC_TURN_SERVER=turn://user:pass@turn.example.com:3478 \
+  MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay \
+  ./server.sh foreground
+
+  MEDIA_SERVER_WEBRTC_TURN_SERVER=turn://user:pass@turn.example.com:3478 \
+  MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay \
+  ./server.sh verify-webrtc-ice --external-turn
 EOF_USAGE
 }
 
@@ -124,6 +137,10 @@ EOF_EXAMPLE
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --require-relay)
+      REQUIRE_RELAY=1
+      ;;
+    --external-turn)
+      EXTERNAL_TURN_MODE=1
       REQUIRE_RELAY=1
       ;;
     --skip-browser)
@@ -257,6 +274,9 @@ HTTP_HOST="$(client_host "${MEDIA_SERVER_VERIFY_WEBRTC_ICE_HTTP_HOST:-${MEDIA_SE
 HTTP_BASE="${MEDIA_SERVER_VERIFY_WEBRTC_ICE_HTTP_BASE:-http://${HTTP_HOST}:${HTTP_PORT}}"
 STUN_SERVER="${MEDIA_SERVER_WEBRTC_STUN_SERVER:-stun://stun.l.google.com:19302}"
 TURN_SERVER="${MEDIA_SERVER_WEBRTC_TURN_SERVER:-}"
+if [[ -n "${MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER:-}" ]]; then
+  TURN_SERVER="${MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER}"
+fi
 ICE_POLICY="${MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY:-all}"
 
 log_info "http_base=${HTTP_BASE}"
@@ -264,8 +284,24 @@ log_info "file=${FILE_TOKEN}"
 log_info "stun=${STUN_SERVER:-<unset>}"
 log_info "turn=$([[ -n "${TURN_SERVER}" ]] && printf '<set>' || printf '<unset>')"
 log_info "ice_policy=${ICE_POLICY} require_relay=${REQUIRE_RELAY}"
+if [[ "${EXTERNAL_TURN_MODE}" == "1" && -z "${TURN_SERVER}" ]]; then
+  log_skip "외부 운영 TURN 검증 생략: MEDIA_SERVER_WEBRTC_TURN_SERVER 또는 MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER가 없습니다."
+  echo "[info] Metered Open Relay도 TURN REST API credential은 무료 계정/API key가 필요합니다."
+  echo
+  echo "== WebRTC ICE 설정 검증 요약 =="
+  echo "- 통과: ${PASS_COUNT}"
+  echo "- 실패: ${FAIL_COUNT}"
+  echo "- 건너뜀: ${SKIP_COUNT}"
+  exit 0
+fi
 if [[ "${TURN_SERVER}" =~ @127\.0\.0\.1:|@localhost:|@\[::1\]:|://127\.0\.0\.1:|://localhost:|://\[::1\]: ]]; then
   log_info "local TURN detected: Mac 단일 머신 coturn 검증이면 --allow-loopback-peers가 필요할 수 있습니다."
+fi
+if [[ "${EXTERNAL_TURN_MODE}" == "1" && "${TURN_SERVER}" =~ @127\.0\.0\.1:|@localhost:|@\[::1\]:|://127\.0\.0\.1:|://localhost:|://\[::1\]:|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\. ]]; then
+  log_fail "--external-turn은 loopback/LAN TURN이 아닌 외부 운영 TURN credential 검증용입니다"
+fi
+if [[ "${EXTERNAL_TURN_MODE}" == "1" && "${ICE_POLICY}" != "relay" ]]; then
+  log_fail "--external-turn 검증은 MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay가 필요합니다"
 fi
 
 if [[ "${ICE_POLICY}" != "all" && "${ICE_POLICY}" != "relay" ]]; then

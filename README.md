@@ -152,7 +152,9 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 ```bash
 ./server.sh verify-codecs
 ./server.sh verify-webrtc-ice
+./server.sh verify-webrtc-ice --external-turn
 ./server.sh verify-uri-longrun
+./server.sh verify-uri-longrun --include-external --use-default-external
 ./server.sh verify-uri-longrun --include-external --external-urls https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
 ./server.sh verify-uri-longrun --include-external --external-rtsp-routes default,h264,opus --external-urls https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
 ./server.sh verify-va
@@ -226,7 +228,7 @@ rtsp://127.0.0.1:8554/dhseo?source=webrtc&url={source_id}
 
 상세한 VA/YOLO 모델 기준, 객체 카테고리, rule/event, 정적 이미지 분석 API는 [docs/video-analysis.md](docs/video-analysis.md)를 봅니다.
 
-기본 tracker는 사람/차량 계열(`person,bicycle,car,motorcycle,bus,truck`)에만 `trackId`/trail을 붙이고, 그 외 객체는 detection/overlay만 유지합니다. 시간 기반 이벤트가 필요한 객체는 `trackingClasses=<label-list>` 또는 `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES`로 opt-in합니다.
+기본 tracker는 카테고리 토큰 `person,vehicle`에만 `trackId`/trail을 붙이고, 그 외 객체는 detection/overlay만 유지합니다. 동물 같은 시간 기반 이벤트가 필요한 객체는 `trackingClasses=animal` 또는 `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES=person,vehicle,animal`처럼 opt-in합니다.
 
 VA overlay 샘플:
 

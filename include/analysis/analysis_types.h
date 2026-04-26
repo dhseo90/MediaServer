@@ -101,8 +101,8 @@ struct AnalysisProfile {
     std::string yolo_score_mode{"auto"};
     bool enable_object_detection{true};
     bool enable_tracking{false};
-    // tracker는 기본적으로 동선 의미가 큰 사람/차량 계열만 ID를 붙인다. 빈 값이나 "*"는 전체 추적 opt-in이다.
-    std::vector<std::string> tracking_class_labels{"person", "bicycle", "car", "motorcycle", "bus", "truck"};
+    // tracker는 기본적으로 동선 의미가 큰 카테고리 단위로 ID를 붙인다. 빈 값이나 "*"는 전체 추적 opt-in이다.
+    std::vector<std::string> tracking_class_labels{"person", "vehicle"};
     bool enable_pose{false};
     bool enable_overlay{false};
     int debug_detector_delay_ms{0};
