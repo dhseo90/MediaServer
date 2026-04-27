@@ -56,6 +56,8 @@ Usage:
                  adaptive tuner의 downshift/upshift 장시간 안정성을 검증합니다.
   verify-image-analysis
                  정적 이미지 입력의 YOLO metadata/snapshot/overlay API를 검증합니다.
+  summarize-reports
+                 /tmp의 검증 summary JSON/NDJSON을 짧은 Markdown 리포트로 변환합니다.
 
 install 옵션:
   --basic        AI/ONNX 없이 미디어 스트리밍 의존성만 설치하고 기본 빌드를 build-gst로 설정합니다.
@@ -194,6 +196,10 @@ case "${cmd}" in
   verify-image-analysis)
     require_internal verify_image_analysis.sh
     exec "${INTERNAL_DIR}/verify_image_analysis.sh" "$@"
+    ;;
+  summarize-reports)
+    require_internal summarize_verification_reports.py
+    exec "${INTERNAL_DIR}/summarize_verification_reports.py" "$@"
     ;;
   *)
     echo "알 수 없는 명령입니다: ${cmd}"

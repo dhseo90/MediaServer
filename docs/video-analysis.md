@@ -300,11 +300,11 @@ Route/profile/rule 검증:
 
 `verify-va-events`는 presence, `minDurationMs` presence, enter, exit, line-crossing을 같은 이동 테스트 영상에서 확인한다. line-crossing은 `any` 결과가 `forward`/`reverse` 방향별 결과로 분할되는지 함께 확인하고, enter/exit/line-crossing 이벤트는 tracker가 붙인 유효 `trackId` 기준으로 검증한다.
 
-`verify-event-post`는 event POST worker를 켠 서버에서 실행한다. `--mode schema`는 성공 endpoint, 실패 endpoint, cooldown 억제, payload schema를 확인하고, `--mode queue`는 `MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE=1` 또는 `2`로 시작한 서버에서 slow endpoint를 이용해 `droppedCount` 증가를 확인한다.
+`verify-event-post`는 event POST worker를 켠 서버에서 실행한다. `--mode schema`는 성공 endpoint, 실패 endpoint, cooldown 억제, payload schema를 확인하고, `--mode queue`는 `MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE=1` 또는 `2`로 시작한 서버에서 slow endpoint를 이용해 `droppedCount` 증가를 확인한다. `--mode recovery`는 초반에 실패하던 endpoint가 같은 검증 중 복구될 때 `failedCount`와 `sentCount`가 모두 증가하는지 확인한다.
 
 `verify-va-category-samples`는 기본적으로 `va_four_scene_sample.mp4`와 sports 전용 `va_sports_sample.mp4`를 함께 사용해 10개 카테고리를 모두 hard fail 기준으로 확인한다. 같은 검증에서 `car` 직접 class rule과 `vehicles` alias rule도 presence event로 확인한다. 실행 시작 시 샘플 파일 크기와 ffprobe duration을 사전 진단하고, 성공/실패와 관계없이 category coverage JSON 경로를 출력한다. 브라우저 overlay 수동 확인은 `/lab`에서 `va=1`, `trackIds=1`, `trackTrails=1`을 켜고 진행한다. `2026-04-26` 기준 `route=webrtc` 테스트 rule(presence, line-crossing)을 임시 등록한 뒤 `va_four_scene_sample.mp4`와 `imports/va_tracking_event_1280x720_30fps_h264.mp4` 모두 WebRTC simple signaling 연결과 overlay 표출을 확인했다.
 
-`verify-tracker-stability`는 fragmentation/stale PTS 기준 외에 class/category별 track/sample count를 summary NDJSON과 반복 요약에 출력한다. 기본 stale PTS 허용 비율은 `0.3`이고, `--overlap-focus`는 동시 track이 많은 구간의 fragmentation ratio를 별도로 hard gate로 확인한다.
+`verify-tracker-stability`는 fragmentation/stale PTS 기준 외에 class/category별 track/sample count를 summary NDJSON과 반복 요약에 출력한다. 기본 stale PTS 허용 비율은 `0.3`이고, `--overlap-focus`는 동시 track이 많은 구간의 fragmentation ratio를 별도로 hard gate로 확인한다. 더 강한 ID switch 검증이 필요하면 겹침/교차가 많은 샘플을 `--file imports/<sample>.mp4 --long --overlap-focus` 형태로 지정해 같은 기준을 재사용한다.
 
 `verify-adaptive`는 downshift, input-size downshift/fallback, upshift를 각각 별도 tap으로 검증하고 summary JSON을 남긴다. 기본 장시간 검증은 `POLL_COUNT=80`, `INTERVAL=0.25s`이며 smoke가 필요하면 `MEDIA_SERVER_VERIFY_ADAPTIVE_POLL_COUNT=50`처럼 줄여 실행한다. input-size 케이스는 fps 하향을 막은 상태에서 640 입력이 480/320 단계로 내려가는지 확인한다.
 

@@ -20,6 +20,7 @@ FAIL_COUNT=0
 SKIP_COUNT=0
 RUN_ID="uri-longrun-$(date +%s)-$$"
 SUMMARY_FILE="/tmp/media_server_${RUN_ID}_summary.json"
+FAILURE_FILE="/tmp/media_server_${RUN_ID}_failures.ndjson"
 EXTERNAL_CONFIG_FILE=""
 
 # 검증 진행 상황을 같은 형식으로 출력한다.
@@ -30,6 +31,59 @@ log_pass() { echo "[pass] $*"; PASS_COUNT=$((PASS_COUNT + 1)); }
 log_fail() { echo "[fail] $*"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
 # 환경 의존으로 생략한 항목을 누적하고 이유를 출력한다.
 log_skip() { echo "[skip] $*"; SKIP_COUNT=$((SKIP_COUNT + 1)); }
+
+# 실패 label을 로그 파일명에 넣을 수 있도록 안전한 token으로 줄인다.
+safe_token() {
+  printf '%s' "$1" | tr -c 'A-Za-z0-9_' '_'
+}
+
+# verify-codecs 로그를 보고 DNS/HTTP/playlist/not-linked/timeout 같은 원인을 1차 분류한다.
+classify_failure_log() {
+  local log_file="$1"
+  python3 - "${log_file}" <<'PY'
+import pathlib
+import re
+import sys
+
+text = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace").lower()
+rules = [
+    ("dns", [r"could not resolve", r"name or service not known", r"temporary failure in name resolution", r"nodename nor servname"]),
+    ("http-status", [r"http\s+(4\d\d|5\d\d)", r"server returned 4\d\d", r"server returned 5\d\d", r"status code"]),
+    ("playlist-parse", [r"playlist", r"m3u8", r"no uri handler", r"parse"]),
+    ("pad-not-linked", [r"not-linked", r"not linked", r"internal data stream error"]),
+    ("timeout", [r"timed out", r"timeout", r"operation timed out", r"ffprobe.*exit"]),
+    ("connection", [r"connection refused", r"connection reset", r"no route to host", r"network is unreachable"]),
+]
+matches = []
+for name, patterns in rules:
+    if any(re.search(pattern, text) for pattern in patterns):
+        matches.append(name)
+print(",".join(matches) if matches else "unknown")
+PY
+}
+
+# 실패 분류 결과를 summary JSON에서 읽을 수 있도록 NDJSON에 누적한다.
+append_failure_record() {
+  local label="$1"
+  local iteration="$2"
+  local log_file="$3"
+  local classification="$4"
+  python3 - "${FAILURE_FILE}" "${label}" "${iteration}" "${log_file}" "${classification}" <<'PY'
+import json
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+record = {
+    "label": sys.argv[2],
+    "iteration": int(sys.argv[3]),
+    "logFile": sys.argv[4],
+    "classification": [item for item in sys.argv[5].split(",") if item],
+}
+with path.open("a", encoding="utf-8") as handle:
+    handle.write(json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n")
+PY
+}
 
 # verify-uri-longrun 명령의 사용법과 선택 검증 기준을 출력한다.
 usage() {
@@ -118,11 +172,17 @@ run_codec_filter_once() {
   local filter="$1"
   local label="$2"
   local iteration="$3"
+  local log_file="/tmp/media_server_${RUN_ID}_$(safe_token "${label}")_${iteration}.log"
   log_info "${label}: ${iteration}/${ITERATIONS} 반복 검증 시작"
-  if MEDIA_SERVER_VERIFY_SOURCE_FILTER="${filter}" "${ROOT_DIR}/server.sh" verify-codecs; then
+  if MEDIA_SERVER_VERIFY_SOURCE_FILTER="${filter}" "${ROOT_DIR}/server.sh" verify-codecs >"${log_file}" 2>&1; then
+    cat "${log_file}"
     log_pass "${label}: ${iteration}/${ITERATIONS} 통과"
   else
-    log_fail "${label}: ${iteration}/${ITERATIONS} 실패"
+    cat "${log_file}"
+    local classification
+    classification="$(classify_failure_log "${log_file}")"
+    append_failure_record "${label}" "${iteration}" "${log_file}" "${classification}"
+    log_fail "${label}: ${iteration}/${ITERATIONS} 실패 classification=${classification} log=${log_file}"
   fi
 }
 
@@ -198,11 +258,16 @@ if [[ "${INCLUDE_EXTERNAL}" == "1" ]]; then
     EXTERNAL_CONFIG_FILE="${external_config}"
     log_info "external URI config: ${external_config}"
     for ((iteration = 1; iteration <= ITERATIONS; iteration += 1)); do
+      external_log="/tmp/media_server_${RUN_ID}_external_${iteration}.log"
       log_info "external HTTP/HLS URI: ${iteration}/${ITERATIONS} 반복 검증 시작"
-      if MEDIA_SERVER_VERIFY_CONFIG="${external_config}" MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=1 "${ROOT_DIR}/server.sh" verify-codecs; then
+      if MEDIA_SERVER_VERIFY_CONFIG="${external_config}" MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=1 "${ROOT_DIR}/server.sh" verify-codecs >"${external_log}" 2>&1; then
+        cat "${external_log}"
         log_pass "external HTTP/HLS URI: ${iteration}/${ITERATIONS} 통과"
       else
-        log_fail "external HTTP/HLS URI: ${iteration}/${ITERATIONS} 실패"
+        cat "${external_log}"
+        classification="$(classify_failure_log "${external_log}")"
+        append_failure_record "external HTTP/HLS URI" "${iteration}" "${external_log}" "${classification}"
+        log_fail "external HTTP/HLS URI: ${iteration}/${ITERATIONS} 실패 classification=${classification} log=${external_log}"
       fi
     done
   fi
@@ -215,13 +280,19 @@ echo "HTTP/HLS URI source 장기 검증 결과"
 echo "- pass: ${PASS_COUNT}"
 echo "- fail: ${FAIL_COUNT}"
 echo "- skip: ${SKIP_COUNT}"
-python3 - "${SUMMARY_FILE}" "${ITERATIONS}" "${INCLUDE_EXTERNAL}" "${USE_DEFAULT_EXTERNAL}" "${EXTERNAL_URLS}" "${EXTERNAL_RTSP_ROUTE_KEYS}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" "${EXTERNAL_CONFIG_FILE}" <<'PY'
+python3 - "${SUMMARY_FILE}" "${ITERATIONS}" "${INCLUDE_EXTERNAL}" "${USE_DEFAULT_EXTERNAL}" "${EXTERNAL_URLS}" "${EXTERNAL_RTSP_ROUTE_KEYS}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" "${EXTERNAL_CONFIG_FILE}" "${FAILURE_FILE}" <<'PY'
 import json
 import pathlib
 import re
 import sys
 
 urls = [item.strip() for item in re.split(r"[,;]", sys.argv[5]) if item.strip()]
+failure_path = pathlib.Path(sys.argv[11])
+failures = []
+if failure_path.exists():
+    for line in failure_path.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            failures.append(json.loads(line))
 summary = {
     "iterations": int(sys.argv[2]),
     "includeExternal": sys.argv[3] == "1",
@@ -232,11 +303,13 @@ summary = {
     "fail": int(sys.argv[8]),
     "skip": int(sys.argv[9]),
     "externalConfig": sys.argv[10],
+    "failureClassifications": failures,
     "advisory": "외부 URL은 upstream/CDN 상태에 영향을 받으므로 선택 검증 결과로만 해석한다.",
 }
 pathlib.Path(sys.argv[1]).write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
 PY
 echo "- summary: ${SUMMARY_FILE}"
+echo "- failure classifications: ${FAILURE_FILE}"
 
 if [[ ${FAIL_COUNT} -gt 0 ]]; then
   echo "실패 원인 후보: 서버 readiness, HTTP/HLS launcher, URI source timeout, EOS/reconnect 로그, ffprobe/WebRTC signaling, 외부 upstream 상태를 확인하세요."

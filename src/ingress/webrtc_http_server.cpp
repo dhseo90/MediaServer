@@ -1494,6 +1494,44 @@ std::string BuildTestPageHtml(bool lab_mode) {
             <div id="consumerCandidateSummary">consumer local h/s/r/u 0/0/0/0 · remote h/s/r/u 0/0/0/0</div>
             <div id="publisherCandidateSummary">publisher local h/s/r/u 0/0/0/0 · remote h/s/r/u 0/0/0/0</div>
           </div>
+          <details open style="border:1px solid var(--line);border-radius:14px;padding:10px;background:var(--details-bg);">
+            <summary style="cursor:pointer;font-weight:700;color:var(--ink);">런타임 상태</summary>
+            <div id="runtimeStatusPanel" style="display:grid;gap:6px;margin-top:10px;font-size:0.9rem;color:var(--muted);">
+              <div>session 0 · stream 0 · tap 0</div>
+              <div>egress 0 · publish 0</div>
+              <div id="runtimePublishSources" style="white-space:pre-wrap;">publish source 없음</div>
+            </div>
+          </details>
+          <details style="border:1px solid var(--line);border-radius:14px;padding:10px;background:var(--details-bg);">
+            <summary style="cursor:pointer;font-weight:700;color:var(--ink);">다채널 수동 테스트</summary>
+            <div style="display:grid;gap:10px;margin-top:10px;">
+              <label>단일 영상
+                <input id="multiSingleFileInput" value="sample_h264.mp4" />
+              </label>
+              <label>다중 영상 목록
+                <textarea id="multiSourceListInput" style="min-height:86px;">sample_h264.mp4
+va_four_scene_sample.mp4</textarea>
+              </label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <label>단일 영상 client
+                  <input id="multiSingleClientsInput" value="2" />
+                </label>
+                <label>source별 client
+                  <input id="multiClientsPerSourceInput" value="2" />
+                </label>
+              </div>
+              <label style="display:flex;align-items:center;gap:8px;">
+                <input id="multiVaInput" type="checkbox" style="width:auto;" />
+                VA overlay로 실행
+              </label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <button id="multiSingleBtn" class="secondary" type="button">단일 영상 실행</button>
+                <button id="multiManyBtn" class="secondary" type="button">여러 영상 실행</button>
+              </div>
+              <button id="multiStopBtn" class="secondary" type="button">다채널 중지</button>
+              <pre id="multiStatusLog" class="compact-pre" style="min-height:90px;"></pre>
+            </div>
+          </details>
 )" + analysis_controls + R"(
 )" + experimental_note + R"(        </div>
       </div>
@@ -1572,6 +1610,14 @@ std::string BuildTestPageHtml(bool lab_mode) {
     const iceWarningStatusEl = document.getElementById('iceWarningStatus');
     const consumerCandidateSummaryEl = document.getElementById('consumerCandidateSummary');
     const publisherCandidateSummaryEl = document.getElementById('publisherCandidateSummary');
+    const runtimeStatusPanelEl = document.getElementById('runtimeStatusPanel');
+    const runtimePublishSourcesEl = document.getElementById('runtimePublishSources');
+    const multiSingleFileInputEl = document.getElementById('multiSingleFileInput');
+    const multiSourceListInputEl = document.getElementById('multiSourceListInput');
+    const multiSingleClientsInputEl = document.getElementById('multiSingleClientsInput');
+    const multiClientsPerSourceInputEl = document.getElementById('multiClientsPerSourceInput');
+    const multiVaInputEl = document.getElementById('multiVaInput');
+    const multiStatusLogEl = document.getElementById('multiStatusLog');
     const sourceFieldEls = Array.from(document.querySelectorAll('[data-source-field]'));
     let pc = null;
     let sessionId = null;
@@ -1589,6 +1635,8 @@ std::string BuildTestPageHtml(bool lab_mode) {
     let consumerEmptyIcePolls = 0;
     let publisherEmptyIcePolls = 0;
     let webRtcConfigPayload = null;
+    let runtimeStatusTimer = null;
+    const multiClients = [];
     const consumerTrackKinds = new Set();
     const publisherTrackKinds = new Set();
     const consumerCandidateTypes = {
@@ -1654,6 +1702,189 @@ std::string BuildTestPageHtml(bool lab_mode) {
       if (publisherCandidateSummaryEl) {
         publisherCandidateSummaryEl.textContent = candidateSummaryText('publisher', publisherCandidateTypes);
       }
+    }
+
+    // 런타임 상태의 boolean 값을 짧은 한글 배지 텍스트로 바꾼다.
+    function runtimeFlag(value) {
+      return value ? '준비' : '대기';
+    }
+
+    // /lab/runtime/status 응답을 사람이 훑기 쉬운 두 줄과 publish source 목록으로 표시한다.
+    function renderRuntimeStatus(payload) {
+      if (!runtimeStatusPanelEl || !payload) return;
+      const sessionManager = payload.sessionManager || {};
+      const webrtcHttp = payload.webrtcHttp || {};
+      const publishSources = Array.isArray(webrtcHttp.publishSources) ? webrtcHttp.publishSources : [];
+      const summaryLines = [
+        `session ${sessionManager.activeSessions || 0} · stream ${sessionManager.registryActiveStreams || 0} · tap ${sessionManager.activeAnalysisTaps || 0}`,
+        `egress ${webrtcHttp.egressSessions || 0} · publish ${webrtcHttp.publishSessions || 0}`
+      ];
+      const sourceLines = publishSources.map((source) => (
+        `${source.sourceId || '<unknown>'} · video ${runtimeFlag(source.hasVideo)} · audio ${runtimeFlag(source.hasAudio)} · subscriber ${source.subscriberCount || 0}`
+      ));
+      runtimeStatusPanelEl.children[0].textContent = summaryLines[0];
+      runtimeStatusPanelEl.children[1].textContent = summaryLines[1];
+      if (runtimePublishSourcesEl) {
+        runtimePublishSourcesEl.textContent = sourceLines.length > 0 ? sourceLines.join('\n') : 'publish source 없음';
+      }
+    }
+
+    // 서버 runtime status를 주기적으로 조회해 WHIP readiness와 fan-out 상태를 화면에 반영한다.
+    async function refreshRuntimeStatus() {
+      if (!runtimeStatusPanelEl) return;
+      try {
+        const response = await fetch('/lab/runtime/status', { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        renderRuntimeStatus(await response.json());
+      } catch (error) {
+        runtimeStatusPanelEl.children[0].textContent = `runtime status 실패: ${error.message}`;
+      }
+    }
+
+    // 다채널 수동 테스트 로그를 화면과 기존 세션 로그에 함께 남긴다.
+    function appendMultiLog(message) {
+      const ts = new Date().toLocaleTimeString();
+      if (multiStatusLogEl) {
+        multiStatusLogEl.textContent += `[${ts}] ${message}\n`;
+        multiStatusLogEl.scrollTop = multiStatusLogEl.scrollHeight;
+      }
+      log(`다채널: ${message}`);
+    }
+
+    // input 값이 비어 있거나 잘못됐을 때 안전한 기본 client 수를 반환한다.
+    function positiveIntegerInput(inputEl, fallback) {
+      const value = Number.parseInt(inputEl && inputEl.value ? inputEl.value : '', 10);
+      return Number.isFinite(value) && value > 0 ? value : fallback;
+    }
+
+    // 다채널 테스트에서 쓰는 file query를 기존 Lab VA 옵션과 충돌하지 않게 별도로 만든다.
+    function buildMultiQuery(fileName, vaEnabled) {
+      const params = new URLSearchParams();
+      params.set('file', fileName);
+      if (vaEnabled) {
+        params.set('va', '1');
+        params.set('fps', '5');
+        params.set('labelLang', 'ko');
+      }
+      return params.toString();
+    }
+
+    // 다채널 수동 테스트로 만든 peer/session/video를 모두 닫아 서버 cleanup을 유도한다.
+    async function stopMultichannelManual() {
+      const clients = multiClients.splice(0, multiClients.length);
+      await Promise.all(clients.map(async (client) => {
+        if (client.pollTimer) clearInterval(client.pollTimer);
+        if (client.sessionId) {
+          await fetch(`/webrtc/session/${client.sessionId}`, { method: 'DELETE' }).catch(() => {});
+        }
+        if (client.pc) client.pc.close();
+        if (client.video && client.video.parentNode) {
+          client.video.parentNode.removeChild(client.video);
+        }
+      }));
+      appendMultiLog(`정리 완료: ${clients.length}개 client`);
+      await refreshRuntimeStatus();
+    }
+
+    // 하나의 WebRTC simple signaling consumer를 만들고 재생 가능한 상태까지 기다린다.
+    async function startMultichannelClient(fileName, index, vaEnabled) {
+      const client = {
+        fileName,
+        index,
+        pc: await createPeerConnection(`multi-${index}`),
+        sessionId: '',
+        pollTimer: null,
+        video: document.createElement('video'),
+        trackKinds: new Set()
+      };
+      client.video.autoplay = true;
+      client.video.playsInline = true;
+      client.video.muted = true;
+      client.video.style.cssText = 'position:fixed;left:-4px;top:-4px;width:1px;height:1px;opacity:0;pointer-events:none;';
+      document.body.appendChild(client.video);
+      client.pc.ontrack = (event) => {
+        client.video.srcObject = event.streams[0];
+        client.trackKinds.add(event.track.kind);
+      };
+      client.pc.onicecandidate = async (event) => {
+        if (!client.sessionId || !event.candidate) return;
+        await fetch(`/webrtc/session/${client.sessionId}/ice`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sdpMLineIndex: event.candidate.sdpMLineIndex,
+            candidate: event.candidate.candidate
+          })
+        }).catch(() => {});
+      };
+      const response = await fetch(`/webrtc/session?${buildMultiQuery(fileName, vaEnabled)}`, { method: 'POST' });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || `${fileName} 세션 생성 실패`);
+      client.sessionId = payload.sessionId;
+      await client.pc.setRemoteDescription({ type: 'offer', sdp: payload.offer });
+      const answer = await client.pc.createAnswer();
+      await client.pc.setLocalDescription(answer);
+      await fetch(`/webrtc/session/${client.sessionId}/answer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/sdp' },
+        body: answer.sdp
+      });
+      client.pollTimer = setInterval(async () => {
+        const iceResponse = await fetch(`/webrtc/session/${client.sessionId}/ice`).catch(() => null);
+        if (!iceResponse || !iceResponse.ok) return;
+        const icePayload = await iceResponse.json();
+        for (const candidate of icePayload.candidates || []) {
+          await client.pc.addIceCandidate(candidate).catch(() => {});
+        }
+      }, 1000);
+      multiClients.push(client);
+      return client;
+    }
+
+    // 생성한 다채널 client가 실제 media frame 또는 RTP 통계를 받을 때까지 기다린다.
+    async function waitForMultichannelClient(client, timeoutMs = 18000) {
+      const startedAt = Date.now();
+      while (Date.now() - startedAt < timeoutMs) {
+        try {
+          const playPromise = client.video.play();
+          if (playPromise && typeof playPromise.catch === 'function') playPromise.catch(() => {});
+        } catch (_) {}
+        const connected = ['connected', 'completed'].includes(client.pc.connectionState || '');
+        const ready = client.video.readyState >= 2 && Number(client.video.videoWidth || 0) > 0;
+        const stats = await collectPeerStats(client.pc);
+        if (connected && (ready || stats.inboundVideoFramesDecoded > 0 || stats.inboundVideoBytes > 0)) {
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 250));
+      }
+      throw new Error(`${client.fileName} client ${client.index} playback timeout`);
+    }
+
+    // 사용자가 입력한 단일/다중 source 목록으로 여러 WebRTC client를 동시에 열어 fan-out 상태를 확인한다.
+    async function runMultichannelManual(mode) {
+      await stopMultichannelManual();
+      if (multiStatusLogEl) multiStatusLogEl.textContent = '';
+      const vaEnabled = !!(multiVaInputEl && multiVaInputEl.checked);
+      const files = [];
+      if (mode === 'single') {
+        const fileName = multiSingleFileInputEl && multiSingleFileInputEl.value ? multiSingleFileInputEl.value.trim() : 'sample_h264.mp4';
+        const count = positiveIntegerInput(multiSingleClientsInputEl, 2);
+        for (let index = 0; index < count; index += 1) files.push(fileName);
+      } else {
+        const sourceLines = String(multiSourceListInputEl && multiSourceListInputEl.value ? multiSourceListInputEl.value : '')
+          .split(/\r?\n|,/)
+          .map((item) => item.trim())
+          .filter(Boolean);
+        const perSource = positiveIntegerInput(multiClientsPerSourceInputEl, 2);
+        for (const fileName of sourceLines.length > 0 ? sourceLines : ['sample_h264.mp4', 'va_four_scene_sample.mp4']) {
+          for (let index = 0; index < perSource; index += 1) files.push(fileName);
+        }
+      }
+      appendMultiLog(`시작: mode=${mode} clients=${files.length} va=${vaEnabled ? 'on' : 'off'}`);
+      const clients = await Promise.all(files.map((fileName, index) => startMultichannelClient(fileName, index + 1, vaEnabled)));
+      await Promise.all(clients.map((client) => waitForMultichannelClient(client)));
+      appendMultiLog(`playback 확인 완료: ${clients.length}개 client`);
+      await refreshRuntimeStatus();
     }
 
     function updateIceConfigStatus(payload) {
@@ -2281,6 +2512,9 @@ std::string BuildTestPageHtml(bool lab_mode) {
     document.getElementById('consumePublishedBtn').onclick = () => playPublishedSimple().catch((error) => log(error.message));
     document.getElementById('consumePublishedWhepBtn').onclick = () => playPublishedWhep().catch((error) => log(error.message));
     document.getElementById('clearBtn').onclick = () => { logEl.textContent = ''; };
+    document.getElementById('multiSingleBtn').onclick = () => runMultichannelManual('single').catch((error) => appendMultiLog(error.message));
+    document.getElementById('multiManyBtn').onclick = () => runMultichannelManual('many').catch((error) => appendMultiLog(error.message));
+    document.getElementById('multiStopBtn').onclick = () => stopMultichannelManual().catch((error) => appendMultiLog(error.message));
     if (imageAnalysisOverlayBtn) {
       imageAnalysisOverlayBtn.onclick = () => runImageAnalysis('overlay').catch((error) => {
         if (imageAnalysisStatusEl) imageAnalysisStatusEl.textContent = `분석 실패: ${error.message}`;
@@ -2443,6 +2677,8 @@ std::string BuildTestPageHtml(bool lab_mode) {
     updateSourceFields();
     updateCandidateSummaries();
     loadWebRtcConfig().catch((error) => log(`ICE config 로드 실패: ${error.message}`));
+    refreshRuntimeStatus().catch((error) => log(`runtime status 로드 실패: ${error.message}`));
+    runtimeStatusTimer = setInterval(() => { refreshRuntimeStatus().catch((error) => log(`runtime status 로드 실패: ${error.message}`)); }, 2000);
     loadFileOptions();
     loadImageAnalysisOptions();
     if (imageAnalysisOverlayBtn) {
@@ -2461,11 +2697,19 @@ std::string BuildTestPageHtml(bool lab_mode) {
       runImageAnalysis,
       buildQuery,
       waitForPlayback,
+      runMultichannelManual,
+      stopMultichannelManual,
+      refreshRuntimeStatus,
       snapshotState,
       collectPeerStats
     };
     hydrateLabComponents().catch((error) => log(`컴포넌트 로드 실패: ${error.message}`));
-    window.addEventListener('beforeunload', () => { stopSession(); stopPublisher(); });
+    window.addEventListener('beforeunload', () => {
+      if (runtimeStatusTimer) clearInterval(runtimeStatusTimer);
+      stopMultichannelManual();
+      stopSession();
+      stopPublisher();
+    });
   </script>
 </body>
 </html>)";

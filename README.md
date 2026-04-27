@@ -167,11 +167,13 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 ./server.sh verify-route-profiles
 ./server.sh verify-rule-ui
 ./server.sh verify-event-post
+./server.sh verify-event-post --mode recovery
 ./server.sh verify-lab-import-ui
 ./server.sh verify-tracker-stability
 ./server.sh verify-yolo-layouts
 ./server.sh verify-adaptive
 ./server.sh verify-image-analysis
+./server.sh summarize-reports /tmp/media_server_*summary*.json --output /tmp/media_server_verification_report.md
 ```
 
 ## 대표 접속 주소
