@@ -2,6 +2,8 @@
 # 파일 용도: /tmp에 남은 MediaServer 검증 summary JSON/NDJSON을 짧은 Markdown 리포트로 변환한다.
 # 동작 요약: 여러 검증 스크립트의 서로 다른 summary schema를 읽어 pass/fail/skip과 핵심 상태만 표로 요약한다.
 
+from __future__ import annotations
+
 import argparse
 import glob
 import json
@@ -73,6 +75,10 @@ def detect_report_kind(path: pathlib.Path, payload: dict[str, Any]) -> str:
     name = path.name
     if "multichannel" in name:
         return "multichannel"
+    if "predev" in name:
+        return "predev"
+    if "evtpost" in name or payload.get("kind") == "event-post":
+        return "event-post"
     if "uri-longrun" in name:
         return "uri-longrun"
     if "webrtc-ice" in name:
@@ -109,7 +115,17 @@ def summarize_details(kind: str, payloads: list[dict[str, Any]]) -> str:
     first = payloads[0]
     if kind == "multichannel":
         cases = first.get("cases") if isinstance(first.get("cases"), list) else []
-        return f"cases={len(cases)} final={first.get('finalStatus', {}).get('sessionManager', {})}"
+        decoded = 0
+        for case in cases:
+            for report in case.get("clientReports", []):
+                decoded += int(((report.get("stats") or {}).get("inboundVideoFramesDecoded") or 0))
+        return f"cases={len(cases)} decodedFrames={decoded} final={first.get('finalStatus', {}).get('sessionManager', {})}"
+    if kind == "event-post":
+        return f"mode={first.get('mode')} received={first.get('receivedCount')} paths={first.get('receivedPathCounts', {})}"
+    if kind == "predev":
+        steps = first.get("steps") if isinstance(first.get("steps"), list) else []
+        failed = [step.get("name") for step in steps if step.get("result") != "pass"]
+        return f"durationSec={first.get('durationSec')} steps={len(steps)} failed={','.join(str(item) for item in failed)}"
     if kind == "uri-longrun":
         failures = first.get("failureClassifications") if isinstance(first.get("failureClassifications"), list) else []
         classes = sorted({",".join(item.get("classification", [])) for item in failures if isinstance(item, dict)})

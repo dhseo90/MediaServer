@@ -429,6 +429,7 @@ WebRTC STUN/TURN 검증 상태:
 | `./server.sh verify-tracker-stability` | 이동 영상 기준 track ID 유지/분절 통계 수집 |
 | `./server.sh verify-yolo-layouts` | YOLO 모델별 output layout/box/score 조합 검증 |
 | `./server.sh verify-adaptive` | adaptive tuner의 과부하 downshift와 저부하 upshift 검증 |
+| `./server.sh verify-predev` | 기능 개발 재개 전 smoke, 다채널, VA event, event POST, cleanup, report 묶음 검증 |
 | `./server.sh summarize-reports` | `/tmp/media_server_*summary*.json` 검증 결과를 짧은 Markdown 표로 요약 |
 
 ### 권장 개발 흐름
@@ -911,6 +912,8 @@ RTSP egress 기준:
 `--include-rules`는 profile/rule registry CRUD와 rule match 기반 profile 자동 선택을 확인한다. `--include-va-events`는 레포에 포함한 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4` 이동 영상으로 presence, line-crossing, enter, exit 이벤트와 track ID 포함 여부를 확인한다. 이벤트/룰 POST 연동은 아직 운영 안정 기능으로 승격하지 않았으므로 별도 장시간 검증 후 기본 테스트 편입을 판단한다.
 
 YOLO/adaptive/WebRTC/URI 선택 검증은 `/tmp/media_server_*_summary.*` 파일을 함께 남긴다. `verify-yolo-layouts`는 parser 조합별 마지막 tap 상태, `verify-adaptive`는 downshift/input-size/upshift 상태 전환, `verify-webrtc-ice`는 requested/effective ICE policy와 relay fallback, `verify-multichannel`은 일반/VA overlay 다중 client session, stream fan-out, analysis tap cleanup 상태, `verify-uri-longrun`은 외부 URL advisory 결과와 실패 시 DNS/HTTP status/playlist/pad-not-linked/timeout 분류를 요약한다. 여러 summary를 한 번에 훑을 때는 `./server.sh summarize-reports /tmp/media_server_*summary*.json --output /tmp/media_server_verification_report.md`를 사용한다.
+
+기능 개발을 다시 시작하기 전 안정화 기준은 `./server.sh verify-predev --soak-minutes 30`으로 확인한다. 이 명령은 서버를 직접 시작한 뒤 통합 smoke, 다채널 WebRTC/VA, VA event, event POST schema/recovery/queue, summary report, runtime idle, 대표 port cleanup을 한 번에 확인한다. 개발 중 빠른 확인은 `./server.sh verify-predev --quick`을 사용한다.
 
 ### 1. 서버 상태 진단
 ```bash
