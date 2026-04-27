@@ -173,6 +173,7 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 ./server.sh verify-yolo-layouts
 ./server.sh verify-adaptive
 ./server.sh verify-image-analysis
+./server.sh verify-predev --soak-minutes 30
 ./server.sh summarize-reports /tmp/media_server_*summary*.json --output /tmp/media_server_verification_report.md
 ```
 

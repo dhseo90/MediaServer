@@ -398,6 +398,47 @@ def parse_json_file(path):
     except (OSError, json.JSONDecodeError):
         return {}
 
+def parse_browser_log(path):
+    report = {"logFile": path}
+    try:
+        text = pathlib.Path(path).read_text(encoding="utf-8", errors="replace")
+    except OSError as exc:
+        report["error"] = str(exc)
+        return report
+    start = text.find("{")
+    end = text.rfind("}")
+    if start < 0 or end < start:
+        report["error"] = "missing JSON report"
+        return report
+    try:
+        payload = json.loads(text[start:end + 1])
+    except json.JSONDecodeError as exc:
+        report["error"] = f"invalid JSON report: {exc}"
+        return report
+    state = payload.get("state") or payload.get("publisherState") or {}
+    stats = state.get("stats") or {}
+    report.update({
+        "ok": bool(payload.get("ok")),
+        "mode": payload.get("mode"),
+        "sourceId": payload.get("sourceId"),
+        "connectionState": state.get("consumerConnectionState") or state.get("publisherConnectionState") or "",
+        "iceConnectionState": state.get("consumerIceConnectionState") or state.get("publisherIceConnectionState") or "",
+        "consumerTrackKinds": state.get("consumerTrackKinds", []),
+        "consumerVideoWidth": state.get("consumerVideoWidth", 0),
+        "consumerVideoHeight": state.get("consumerVideoHeight", 0),
+        "stats": {
+            "inboundVideoBytes": stats.get("inboundVideoBytes", 0),
+            "inboundVideoFramesDecoded": stats.get("inboundVideoFramesDecoded", 0),
+            "inboundAudioBytes": stats.get("inboundAudioBytes", 0),
+        },
+    })
+    return report
+
+client_reports = [
+    parse_browser_log(item)
+    for item in sys.argv[10].split(",")
+    if item
+]
 payload = {
     "label": sys.argv[2],
     "iteration": int(sys.argv[3]),
@@ -410,6 +451,7 @@ payload = {
     "result": sys.argv[8],
     "sourceFiles": [item for item in sys.argv[9].split(",") if item],
     "clientLogs": [item for item in sys.argv[10].split(",") if item],
+    "clientReports": client_reports,
     "activeStatus": parse_json_file(sys.argv[11]),
     "finalStatus": parse_json_file(sys.argv[12]),
 }

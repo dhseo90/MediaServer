@@ -13,6 +13,7 @@ RECEIVED_FILE="/tmp/media_server_${RUN_ID}_received.ndjson"
 EVENTS_FILE="/tmp/media_server_${RUN_ID}_events.json"
 STATUS_BEFORE_FILE="/tmp/media_server_${RUN_ID}_status_before.json"
 STATUS_AFTER_FILE="/tmp/media_server_${RUN_ID}_status_after.json"
+SUMMARY_FILE="${MEDIA_SERVER_VERIFY_EVENT_POST_SUMMARY_FILE:-/tmp/media_server_${RUN_ID}_summary.json}"
 RULE_IDS=()
 TAP_ID=""
 RECEIVER_PID=""
@@ -22,7 +23,7 @@ SKIP_COUNT=0
 
 usage() {
   cat <<EOF_USAGE
-Usage: ./server.sh verify-event-post [--mode schema|queue|recovery] [--http-base URL] [--file FILE_TOKEN] [--receiver-port PORT]
+Usage: ./server.sh verify-event-post [--mode schema|queue|recovery] [--http-base URL] [--file FILE_TOKEN] [--receiver-port PORT] [--summary-file PATH]
 
 모드:
   schema  POST payload schema, 성공/실패 카운터, cooldown suppressedCount를 검증합니다.
@@ -50,6 +51,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --receiver-port)
       RECEIVER_PORT="${2:-}"
+      shift 2
+      ;;
+    --summary-file)
+      SUMMARY_FILE="${2:-}"
       shift 2
       ;;
     -h|--help)
@@ -366,6 +371,55 @@ PY
   log_pass "POST endpoint recovery 후 실패/성공 counter 검증"
 }
 
+write_summary() {
+  # event POST 검증 결과와 수신 endpoint별 건수를 JSON summary로 남긴다.
+  local status_after="{}"
+  if [[ -f "${STATUS_AFTER_FILE}" ]]; then
+    status_after="$(cat "${STATUS_AFTER_FILE}")"
+  fi
+  python3 - "${SUMMARY_FILE}" "${MODE}" "${HTTP_BASE}" "${FILE_TOKEN}" \
+    "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" "${STATUS_BEFORE_FILE}" "${STATUS_AFTER_FILE}" "${RECEIVED_FILE}" "${status_after}" <<'PY'
+import json
+import pathlib
+import sys
+
+def read_json_file(path):
+    try:
+        return json.loads(pathlib.Path(path).read_text(encoding="utf-8") or "{}")
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+received_path = pathlib.Path(sys.argv[10])
+received = []
+if received_path.exists():
+    for line in received_path.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            try:
+                received.append(json.loads(line))
+            except json.JSONDecodeError:
+                pass
+path_counts = {}
+for item in received:
+    path_counts[item.get("path", "")] = path_counts.get(item.get("path", ""), 0) + 1
+
+summary = {
+    "kind": "event-post",
+    "mode": sys.argv[2],
+    "httpBase": sys.argv[3],
+    "file": sys.argv[4],
+    "pass": int(sys.argv[5]),
+    "fail": int(sys.argv[6]),
+    "skip": int(sys.argv[7]),
+    "statusBefore": read_json_file(sys.argv[8]),
+    "statusAfter": read_json_file(sys.argv[9]),
+    "receivedFile": str(received_path),
+    "receivedCount": len(received),
+    "receivedPathCounts": path_counts,
+}
+pathlib.Path(sys.argv[1]).write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+}
+
 if [[ "${MODE}" != "schema" && "${MODE}" != "queue" && "${MODE}" != "recovery" ]]; then
   echo "지원하지 않는 mode입니다: ${MODE}"
   usage
@@ -426,6 +480,8 @@ echo "- 건너뜀: ${SKIP_COUNT}"
 echo "- received: ${RECEIVED_FILE}"
 echo "- status_before: ${STATUS_BEFORE_FILE}"
 echo "- status_after: ${STATUS_AFTER_FILE}"
+write_summary
+echo "- summary: ${SUMMARY_FILE}"
 if [[ ${FAIL_COUNT} -gt 0 ]]; then
   exit 1
 fi

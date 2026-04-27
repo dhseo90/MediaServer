@@ -124,3 +124,6 @@
 - 검증: `./server.sh verify-multichannel --include-va --repeat 1 --single-clients 2 --clients-per-source 2 --hold-ms 5000` 통과 `8/0`.
 - 검증: `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 ./server.sh verify-event-post --mode recovery` 통과 `11/0/0`. 복구 endpoint에서 `sentCount=3`, `failedCount=3`, `/flaky` 수신 `8`건을 확인했다.
 - 검증: `./server.sh summarize-reports /tmp/media_server_*summary*.json --output /tmp/media_server_verification_report.md` 출력 생성 확인.
+- 11차 후속 개발은 기능 개발 재개 전 안정화 묶음 `./server.sh verify-predev`를 추가했다. 통합 smoke, 다채널 WebRTC/VA, VA event, event POST schema/recovery/queue, summary report, runtime idle, 대표 port cleanup을 하나의 실행으로 확인한다.
+- 검증: `./server.sh verify-predev --quick` 통과 `14/0/0`.
+- 검증: `./server.sh verify-predev --soak-minutes 30` 통과 `89/0/0`, duration `2457s`, summary `/tmp/media_server_predev-1777284107-17671_summary.json`, report `/tmp/media_server_predev-1777284107-17671_report.md`. 종료 후 `8080/8081/8554/8555` listener 없음.
