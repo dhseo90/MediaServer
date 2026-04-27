@@ -9,14 +9,16 @@ source "${SCRIPT_DIR}/env_common.sh"
 media_server_apply_homebrew_gst_env
 
 ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
-if [[ -f "${ENV_FILE}" ]]; then
+if [[ -f "${ENV_FILE}" && "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" != "1" ]]; then
   # shellcheck disable=SC1090
   set -a
   source "${ENV_FILE}"
   set +a
+elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
+  echo "[env] skipped local override: ${ENV_FILE}"
 fi
 
-MODE="stable"
+MODE="basic"
 NO_START=0
 STOP_AFTER=0
 SKIP_CODECS=0
@@ -29,6 +31,10 @@ INCLUDE_VA_EVENTS=0
 INCLUDE_IMAGE_ANALYSIS=0
 INCLUDE_WEBRTC_ICE=0
 INCLUDE_URI_LONGRUN=0
+INCLUDE_EVENT_POST=0
+INCLUDE_MULTICHANNEL=0
+INCLUDE_REPORT_SUMMARY=0
+URI_LONGRUN_EXTERNAL=0
 FAIL_FAST=0
 REQUIRE_EXTERNAL_SOURCE=0
 
@@ -39,23 +45,32 @@ MediaServer 통합 테스트
 Usage:
   ./server.sh test [options]
 
-기본 기준(stable):
+테스트 모드:
+  --basic     기본값입니다. 외부망/LAN 접근성 없이 로컬 hard gate만 실행합니다. 커밋 전 기본 확인용입니다.
+  --full      basic + Rule UI, VA event, image analysis, event POST, multichannel, report summary를 실행합니다.
+  --external  full + LAN IP 접근성, 외부 RTSP advisory, WebRTC ICE, 외부 URI longrun을 실행합니다.
+  --stable    기존 stable 기준입니다. 안정화된 로컬 스트리밍 + LAN IP 접근성 + 외부 RTSP advisory를 실행합니다.
+
+basic 기준:
   1. 스크립트 문법과 codec matrix JSON이 깨지지 않았는지 확인
   2. 서버를 시작하고 RTSP/HTTP listen, /health, 기본 샘플 파일을 확인
-  3. LAN IP 기준 외부 클라이언트 접근성을 확인
-  4. 제3자 RTSP upstream reachability를 advisory로 확인
-  5. 안정화된 로컬 source(file, RTSP pull, WebRTC publish)의 RTSP/WebRTC 기본 경로 검증
-  6. 기본 설치 범위인 YOLO/VA overlay 검증
+  3. 검증 summary Markdown/HTML 생성 smoke를 확인
+  4. 안정화된 로컬 source(file, RTSP pull, WebRTC publish, HTTP URI)의 RTSP/WebRTC 기본 경로 검증
+  5. 기본 설치 범위인 YOLO/VA overlay 검증
 
 기본에서 제외되는 항목:
   - HLS/외부 HTTP URI source: 네트워크와 upstream 상태 영향이 커서 선택 검증
   - YouTube source/import: 실험실 기능
-  - /lab UI, 룰/이벤트/POST, adaptive tuner: 아직 안정 기능으로 승격하지 않음
-  - 정적 이미지 분석 API: 개발용 endpoint라 선택 검증으로만 실행
+  - LAN IP 외부 클라이언트 접근성, 제3자 RTSP upstream, WebRTC ICE, 외부 TURN relay
+  - adaptive tuner 장시간 검증
+  - Rule/Profile UI, 룰/이벤트/POST, 정적 이미지 분석 API, 다채널 fan-out은 full 또는 선택 검증으로 실행
 
 Options:
   --quick             정적 검사, start, status, diagnose, LAN IP 외부 접근성까지만 실행
-  --stable            기본값. 안정화된 로컬 스트리밍 + LAN IP 외부 접근성 + 외부 RTSP upstream advisory 실행
+  --basic             기본값. 로컬 기본 테스트. 외부/LAN probe를 제외하고 report summary smoke 포함
+  --stable            기존 stable 기준. 안정화된 로컬 스트리밍 + LAN IP 외부 접근성 + 외부 RTSP upstream advisory 실행
+  --full              로컬 풀 테스트. basic에 Rule/VA event/event POST/multichannel 검증 추가
+  --external          외부 의존 테스트. full에 LAN/외부 RTSP/WebRTC ICE/외부 URI 검증 추가
   --include-rules     선택 검증: profile/rule registry API smoke test를 추가
   --include-rule-ui   선택 검증: /lab/rules Rule/Profile 카테고리 UI smoke test를 추가
   --include-va-events 선택 검증: 이동 영상 기반 tracker 이벤트 검증을 추가
@@ -65,6 +80,11 @@ Options:
                        선택 검증: WebRTC STUN/TURN/ICE policy와 candidate 수집 상태를 추가
   --include-uri-longrun
                        선택 검증: HTTP/HLS URI source 장기 검증을 추가
+  --include-event-post 선택 검증: event POST schema/recovery smoke test를 추가
+  --include-multichannel
+                       선택 검증: 일반/VA WebRTC 다채널 fan-out smoke test를 추가
+  --include-report-summary
+                       선택 검증: /tmp summary Markdown/HTML 리포트 생성 smoke를 추가
   --require-external-source
                        제3자 RTSP upstream 후보 실패도 hard fail로 처리
   --skip-external     LAN IP 외부 클라이언트 접근성과 제3자 RTSP upstream 검증 생략. 격리된 개발 환경에서만 사용
@@ -86,8 +106,17 @@ while [[ $# -gt 0 ]]; do
     --quick)
       MODE="quick"
       ;;
+    --basic)
+      MODE="basic"
+      ;;
     --stable)
       MODE="stable"
+      ;;
+    --full)
+      MODE="full"
+      ;;
+    --external)
+      MODE="external"
       ;;
     --include-rules)
       INCLUDE_RULES=1
@@ -106,6 +135,15 @@ while [[ $# -gt 0 ]]; do
       ;;
     --include-uri-longrun)
       INCLUDE_URI_LONGRUN=1
+      ;;
+    --include-event-post)
+      INCLUDE_EVENT_POST=1
+      ;;
+    --include-multichannel)
+      INCLUDE_MULTICHANNEL=1
+      ;;
+    --include-report-summary)
+      INCLUDE_REPORT_SUMMARY=1
       ;;
     --require-external-source)
       REQUIRE_EXTERNAL_SOURCE=1
@@ -149,6 +187,37 @@ if [[ "${MODE}" == "quick" ]]; then
   SKIP_VA=1
 fi
 
+if [[ "${MODE}" == "basic" ]]; then
+  SKIP_EXTERNAL_CLIENT=1
+  SKIP_EXTERNAL_SOURCE=1
+  INCLUDE_REPORT_SUMMARY=1
+fi
+
+if [[ "${MODE}" == "full" ]]; then
+  SKIP_EXTERNAL_CLIENT=1
+  SKIP_EXTERNAL_SOURCE=1
+  INCLUDE_RULES=1
+  INCLUDE_RULE_UI=1
+  INCLUDE_VA_EVENTS=1
+  INCLUDE_IMAGE_ANALYSIS=1
+  INCLUDE_EVENT_POST=1
+  INCLUDE_MULTICHANNEL=1
+  INCLUDE_REPORT_SUMMARY=1
+fi
+
+if [[ "${MODE}" == "external" ]]; then
+  INCLUDE_RULES=1
+  INCLUDE_RULE_UI=1
+  INCLUDE_VA_EVENTS=1
+  INCLUDE_IMAGE_ANALYSIS=1
+  INCLUDE_WEBRTC_ICE=1
+  INCLUDE_URI_LONGRUN=1
+  INCLUDE_EVENT_POST=1
+  INCLUDE_MULTICHANNEL=1
+  INCLUDE_REPORT_SUMMARY=1
+  URI_LONGRUN_EXTERNAL=1
+fi
+
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 LOG_DIR="${ROOT_DIR}/.media_server.test/${TIMESTAMP}"
 mkdir -p "${LOG_DIR}"
@@ -167,15 +236,17 @@ MediaServer 통합 테스트 시작
 - 기준:
   1. 코드/스크립트 기본 구조가 깨지지 않아야 함
   2. 서버가 RTSP/HTTP 포트를 열고 /health에 응답해야 함
-  3. 모든 test 모드에서 LAN IP 기준 외부 클라이언트 접근성이 확인되어야 함
-  4. stable 모드에서는 제3자 RTSP upstream reachability를 advisory로 확인해야 함
-  5. stable 모드에서는 안정화된 로컬 source(file/RTSP/WebRTC publish/HTTP URI)가 RTSP/WebRTC 기본 경로로 소비되어야 함
-  6. stable 모드에서는 기본 설치 범위인 YOLO/VA overlay가 lab API, RTSP, WebRTC에서 동작해야 함
+  3. basic/full 모드는 외부망/LAN probe를 제외하고 로컬 재현성을 우선함
+  4. stable/external 모드는 LAN IP 외부 클라이언트 접근성과 제3자 RTSP upstream advisory를 확인함
+  5. basic/stable/full/external 모드는 안정화된 로컬 source(file/RTSP/WebRTC publish/HTTP URI)를 RTSP/WebRTC 기본 경로로 소비해야 함
+  6. basic/stable/full/external 모드는 기본 설치 범위인 YOLO/VA overlay가 lab API, RTSP, WebRTC에서 동작해야 함
+  7. full/external 모드는 Rule UI, VA event, image analysis, event POST, multichannel까지 확인함
 - 제외:
-  HLS/외부 HTTP URI, YouTube, /lab UI, 룰/이벤트/POST, adaptive tuner, 외부 TURN relay
+  YouTube, adaptive tuner, 외부 TURN relay
   룰 registry는 --include-rules, Rule UI는 --include-rule-ui, 이동 이벤트는 --include-va-events,
   이미지 분석은 --include-image-analysis, WebRTC ICE는 --include-webrtc-ice,
-  URI 장기 검증은 --include-uri-longrun으로 선택 실행 가능
+  URI 장기 검증은 --include-uri-longrun, event POST는 --include-event-post,
+  다채널 fan-out은 --include-multichannel로 선택 실행 가능
 
 EOF_HEADER
 }
@@ -278,7 +349,7 @@ print_summary() {
   echo "- 건너뜀: ${SKIP_COUNT}"
   echo "- 상세 로그: ${LOG_DIR}"
   if [[ ${FAIL_COUNT} -eq 0 ]]; then
-    print_line "결론" "현재 stable 기준선은 통과했습니다."
+    print_line "결론" "현재 ${MODE} 기준선은 통과했습니다."
   else
     print_line "결론" "실패 항목이 있습니다. 위 한글 원인과 개별 로그를 기준으로 수정하세요."
   fi
@@ -308,14 +379,28 @@ run_step \
   "config/codec_test_sources.json 문법이 깨졌습니다." \
   "python3 -m json.tool config/codec_test_sources.json >/dev/null" || true
 
+if [[ "${INCLUDE_REPORT_SUMMARY}" == "1" ]]; then
+  run_step \
+    "report-summary" \
+    "검증 summary Markdown/HTML 생성 smoke" \
+    "검증 summary 리포트 생성 실패입니다. /tmp summary JSON/NDJSON 파싱과 출력 경로 권한을 확인하세요." \
+    "./server.sh summarize-reports /tmp/media_server_*summary*.json --output '${LOG_DIR}/verification_report.md' --html-output '${LOG_DIR}/verification_report.html'" || true
+else
+  skip_step "검증 summary 리포트 생성 smoke" "현재 모드에는 포함하지 않습니다. 필요하면 --include-report-summary 또는 --basic/--full/--external을 사용하세요."
+fi
+
 if [[ "${NO_START}" == "1" ]]; then
   skip_step "서버 자동 시작" "--no-start 옵션이 지정되어 이미 실행 중인 서버만 검사합니다."
 else
+  start_env=""
+  if [[ "${INCLUDE_EVENT_POST}" == "1" ]]; then
+    start_env="MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE=256"
+  fi
   if ! run_step \
       "start" \
       "서버 시작 또는 기존 서버 확인" \
       "서버 시작 실패입니다. 빌드, ONNX Runtime, 모델 파일, 포트 바인딩을 확인하세요." \
-      "MEDIA_SERVER_AUTO_DIAGNOSE=0 ./server.sh start"; then
+      "${start_env} MEDIA_SERVER_AUTO_DIAGNOSE=0 ./server.sh start"; then
     DEPENDENCY_FAILED=1
   fi
 fi
@@ -384,11 +469,15 @@ if [[ "${INCLUDE_URI_LONGRUN}" == "1" ]]; then
   if [[ ${DEPENDENCY_FAILED} -ne 0 ]]; then
     skip_step "HTTP/HLS URI 장기 검증 선택 검증" "서버 readiness가 실패해 URI 장기 검증을 생략합니다."
   else
+    uri_longrun_command="./server.sh verify-uri-longrun"
+    if [[ "${URI_LONGRUN_EXTERNAL}" == "1" ]]; then
+      uri_longrun_command="./server.sh verify-uri-longrun --include-external --use-default-external"
+    fi
     run_step \
       "uri-longrun" \
       "선택 검증: HTTP/HLS URI source 장기 검증" \
       "HTTP/HLS URI 장기 검증 실패입니다. 로컬 HTTP/HLS launcher, URI source timeout, 외부 upstream 상태를 확인하세요." \
-      "./server.sh verify-uri-longrun" || true
+      "${uri_longrun_command}" || true
   fi
 else
   skip_step "HTTP/HLS URI 장기 검증 선택 검증" "HLS/외부 HTTP URI는 환경 영향이 커 기본 테스트에서 제외합니다. 필요하면 --include-uri-longrun을 사용하세요."
@@ -404,6 +493,34 @@ else
     "YOLO/VA overlay 검증" \
     "VA overlay 검증 실패입니다. ONNX Runtime, YOLO 모델/라벨, detector 성능, WebRTC playback을 확인하세요." \
     "./server.sh verify-va" || true
+fi
+
+if [[ "${INCLUDE_EVENT_POST}" == "1" ]]; then
+  if [[ ${DEPENDENCY_FAILED} -ne 0 ]]; then
+    skip_step "event POST 선택 검증" "서버 readiness가 실패해 event POST 검증을 생략합니다."
+  else
+    run_step \
+      "event-post-longrun" \
+      "선택 검증: event POST schema/recovery smoke" \
+      "event POST 검증 실패입니다. 서버가 MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1로 실행됐는지와 POST worker counter를 확인하세요." \
+      "./server.sh verify-event-post-longrun --iterations 1 --modes schema,recovery" || true
+  fi
+else
+  skip_step "event POST 선택 검증" "event POST worker 검증은 full/predev 기준입니다. 필요하면 --include-event-post 또는 --full을 사용하세요."
+fi
+
+if [[ "${INCLUDE_MULTICHANNEL}" == "1" ]]; then
+  if [[ ${DEPENDENCY_FAILED} -ne 0 ]]; then
+    skip_step "다채널 WebRTC 선택 검증" "서버 readiness가 실패해 다채널 검증을 생략합니다."
+  else
+    run_step \
+      "multichannel" \
+      "선택 검증: 일반/VA WebRTC 다채널 fan-out" \
+      "다채널 WebRTC 검증 실패입니다. runtime session/stream/tap count, headless browser playback, cleanup 상태를 확인하세요." \
+      "./server.sh verify-multichannel --include-va --repeat 1 --single-clients 2 --clients-per-source 2 --hold-ms 5000" || true
+  fi
+else
+  skip_step "다채널 WebRTC 선택 검증" "브라우저 다중 client 검증은 full/predev 기준입니다. 필요하면 --include-multichannel 또는 --full을 사용하세요."
 fi
 
 if [[ "${INCLUDE_WEBRTC_ICE}" == "1" ]]; then

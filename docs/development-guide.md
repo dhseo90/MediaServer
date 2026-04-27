@@ -311,6 +311,7 @@ MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
 | `MEDIA_SERVER_LISTEN_PORT` | RTSP bind port |
 | `MEDIA_SERVER_HTTP_LISTEN_ADDRESS` | WebRTC HTTP bind address |
 | `MEDIA_SERVER_HTTP_LISTEN_PORT` | WebRTC HTTP bind port |
+| `MEDIA_SERVER_SKIP_LOCAL_ENV` | `1`이면 `./server.sh foreground`가 `scripts/.media_server.env`를 source하지 않음. 자동 검증에서 호출자가 지정한 bind/port를 보존할 때 사용 |
 | `MEDIA_SERVER_FILE_ROOT` | `?file=` 접근 가능 root |
 | `MEDIA_SERVER_DEFAULT_FILE` | 기본 sample file |
 | `MEDIA_SERVER_ANALYSIS_DETECTOR` | `va=1` 기본 detector. 기본 `yolo` |
@@ -414,7 +415,7 @@ WebRTC STUN/TURN 검증 상태:
 | `./server.sh diagnose` | 실행환경, 포트, source 접근성 진단 |
 | `./server.sh urls` | 같은 LAN의 다른 PC에서 복사해 테스트할 URL 출력 |
 | `./server.sh foreground` | foreground 실행. 개발/디버깅 권장 |
-| `./server.sh test` | 안정 기능 기준 통합 테스트. 한글 원인 리포트와 `.media_server.test/` 로그 생성 |
+| `./server.sh test` | 안정 기능 기준 통합 테스트. 무옵션은 `--basic`이며 한글 원인 리포트와 `.media_server.test/` 로그 생성 |
 | `./server.sh verify-codecs` | source/route codec matrix 자동 검증 |
 | `./server.sh verify-webrtc-ice` | STUN/TURN/ICE transport policy와 candidate 수집 상태 검증 |
 | `./server.sh verify-multichannel` | 같은 영상/여러 영상 기준 다중 WebRTC client fan-out 검증 |
@@ -491,6 +492,10 @@ ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성
 
 ```bash
 ./server.sh test
+./server.sh test --basic
+./server.sh test --full
+./server.sh test --external
+./server.sh test --stable
 ./server.sh verify-codecs
 ./server.sh verify-va
 ./server.sh verify-va-events
@@ -503,19 +508,25 @@ ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성
 ./server.sh verify-image-analysis
 ```
 
-`./server.sh test`의 기본 기준은 안정 기능으로 승격한 스트리밍 + 기본 VA 기능을 포함한다.
-- 모든 test 모드 포함: 스크립트/JSON 정적 검사, 서버 start/status/diagnose, LAN IP 기준 외부 클라이언트 접근성.
-- stable 포함: 제3자 RTSP upstream reachability advisory, 로컬 file source, 로컬 RTSP pull source, 로컬 WebRTC publish source, 로컬 HTTP URI source의 RTSP/WebRTC 소비, YOLO/VA overlay 검증.
-- 제외: HLS/외부 HTTP URI source, YouTube source/import, `/lab` UI, 룰/이벤트/POST, adaptive tuner. 단 로컬 HLS VOD는 `verify-codecs` 선택 matrix에서 검증 가능하다.
+`./server.sh test`는 무옵션일 때 `--basic`과 동일하게 실행한다. 새 작업에서는 목적에 따라 `--basic`, `--full`, `--external`, `--stable`을 명시해도 된다.
+- `./server.sh test` 또는 `--basic`: 스크립트/JSON 정적 검사, summary report smoke, 서버 start/status/diagnose, 로컬 file/RTSP/WebRTC publish/HTTP URI source의 RTSP/WebRTC 소비, YOLO/VA overlay 검증. LAN IP/외부망 probe는 제외한다.
+- `--full`: `--basic`에 profile/rule registry, Rule/Profile UI, VA tracking event, 정적 이미지 분석, event POST schema/recovery, 일반/VA WebRTC 다채널 fan-out을 추가한다.
+- `--external`: `--full`에 LAN IP 외부 클라이언트 접근성, 제3자 RTSP upstream advisory, WebRTC ICE, 외부 HTTP/HLS URI longrun을 추가한다.
+- `--stable`: 기존 stable 호환 기준으로, 로컬 stream/VA 검증과 LAN IP 외부 클라이언트 접근성, 제3자 RTSP upstream advisory를 포함한다.
+- 제외: YouTube source/import, adaptive tuner 장시간 검증, 외부 운영 TURN relay/auth. 로컬 HLS VOD는 `verify-codecs` 선택 matrix에서 검증 가능하다.
 - 선택 검증: `./server.sh test --include-rules`는 profile/rule registry CRUD와 rule match 기반 profile 자동 선택을 추가 확인한다.
+- 선택 검증: `./server.sh test --include-rule-ui`는 Rule/Profile 카테고리 UI와 저장 payload를 추가 확인한다.
 - 선택 검증: `./server.sh test --include-va-events`는 실제 이동 영상 기반 tracker/event 판정을 추가 확인한다.
 - 선택 검증: `./server.sh test --include-image-analysis`는 개발용 정적 이미지 분석 API와 tracking category/all 정책을 추가 확인한다.
 - 선택 검증: `./server.sh test --include-webrtc-ice`는 WebRTC STUN/TURN/ICE candidate 수집을 추가 확인한다.
 - 선택 검증: `./server.sh test --include-uri-longrun`은 HTTP/HLS URI source 반복 검증을 추가 확인한다.
+- 선택 검증: `./server.sh test --include-event-post`는 event POST schema/recovery smoke를 추가 확인한다.
+- 선택 검증: `./server.sh test --include-multichannel`은 일반/VA WebRTC 다채널 fan-out과 cleanup을 추가 확인한다.
+- 선택 검증: `./server.sh test --include-report-summary`는 `/tmp/media_server_*summary*.json` Markdown/HTML report 생성을 추가 확인한다.
 - 외부 운영 TURN은 credential이 있어야 hard gate로 검증할 수 있다. 서버를 `MEDIA_SERVER_WEBRTC_TURN_SERVER=turn://user:pass@host:3478 MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay`로 띄운 뒤 `./server.sh verify-webrtc-ice --external-turn`을 실행한다. credential이 없으면 이 검증은 skip으로 남긴다.
 - 외부 HLS advisory는 `./server.sh verify-uri-longrun --include-external --use-default-external`로 Mux/Apple 공개 HLS 후보 2개를 반복 확인한다.
 - 예외 생략: `./server.sh test --skip-va`는 ONNX/브라우저 자동화가 불가능한 환경에서만 사용한다.
-- 외부 네트워크 또는 LAN IP probe가 막힌 격리 환경에서만 `./server.sh test --skip-external`로 LAN IP 외부 접근성과 제3자 RTSP upstream 확인을 생략한다.
+- 외부 네트워크 또는 LAN IP probe가 막힌 격리 환경에서 `--stable` 또는 `--external`을 돌릴 때만 `./server.sh test --skip-external`로 LAN IP 외부 접근성과 제3자 RTSP upstream 확인을 생략한다.
 - 신뢰 가능한 카메라/테스트 RTSP URL이 있으면 `MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS='rtsp://...' ./server.sh test`로 hard gate 검증한다.
 - 실패 시 `.media_server.test/<timestamp>/` 아래에 원본 로그를 남기고, 콘솔에는 한글 원인 추정을 출력한다.
 - 새 기능을 추가할 때는 안정 기능으로 승격한 항목만 `./server.sh test` 기본 기준에 넣고, 아직 실험/불안정한 항목은 `--include-*` 선택 검증으로 먼저 둔다.
@@ -894,27 +905,35 @@ RTSP egress 기준:
 기본 포함 항목:
 - 정적 검사: `server.sh`, `scripts/internal/*.sh`, `config/codec_test_sources.json`
 - 서버 readiness: start/status/diagnose, RTSP/HTTP listen, `/health`
-- LAN IP 기준 외부 클라이언트 접근성: `http://{LAN_IP}:{HTTP_PORT}/health`, `/lab`, `rtsp://{LAN_IP}:{RTSP_PORT}/...`
-- 제3자 RTSP upstream reachability: stable 기준에서 advisory로 확인. 명시 URL을 주면 hard gate
+- 검증 summary Markdown/HTML report smoke
 - 안정화된 local core stream: `file`, 로컬 `RTSP pull`, 로컬 `WebRTC publish`
+- 로컬 HTTP URI source
 - 기본 VA: YOLO/ONNX 분석, overlay snapshot, RTSP overlay, WebRTC simple/WHEP overlay
 
 기본 제외 항목:
 - `HLS/외부 HTTP URI source`: 공개 HLS advisory는 통과했지만 네트워크와 upstream 상태 영향이 커서 선택 검증
+- LAN IP 기준 외부 클라이언트 접근성, 제3자 RTSP upstream reachability, WebRTC ICE, 외부 TURN relay/auth
 - `YouTube source/import`: 실험실 기능
-- `/lab` UI, 룰/이벤트/POST, adaptive tuner: 아직 안정 기능으로 승격하지 않음
+- Rule/Profile UI, 룰/이벤트/POST, 정적 이미지 분석 API, WebRTC 다채널 fan-out은 `--full` 또는 선택 검증에서 실행
+- adaptive tuner 장시간 검증
 
 선택 검증:
 ```bash
 ./server.sh test --include-rules
+./server.sh test --include-rule-ui
 ./server.sh test --include-va-events
-./server.sh test --include-rules --include-va-events
+./server.sh test --include-image-analysis
+./server.sh test --include-webrtc-ice
+./server.sh test --include-uri-longrun
+./server.sh test --include-event-post
+./server.sh test --include-multichannel
+./server.sh test --include-report-summary
 ```
-`--include-rules`는 profile/rule registry CRUD와 rule match 기반 profile 자동 선택을 확인한다. `--include-va-events`는 레포에 포함한 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4` 이동 영상으로 presence, line-crossing, enter, exit 이벤트와 track ID 포함 여부를 확인한다. 이벤트/룰 POST 연동은 아직 운영 안정 기능으로 승격하지 않았으므로 별도 장시간 검증 후 기본 테스트 편입을 판단한다.
+`--include-rules`는 profile/rule registry CRUD와 rule match 기반 profile 자동 선택을 확인한다. `--include-va-events`는 레포에 포함한 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4` 이동 영상으로 presence, line-crossing, enter, exit 이벤트와 track ID 포함 여부를 확인한다. `--full`은 Rule/Profile UI, VA event, image analysis, event POST, multichannel, report summary를 한 번에 포함한다. `--external`은 `--full`에 LAN IP 외부 접근성, 외부 RTSP advisory, WebRTC ICE, 외부 HTTP/HLS URI longrun을 추가한다. 기존 LAN/외부 RTSP 포함 기준이 필요하면 `--stable`을 사용한다.
 
 YOLO/adaptive/WebRTC/URI 선택 검증은 `/tmp/media_server_*_summary.*` 파일을 함께 남긴다. `verify-yolo-layouts`는 parser 조합별 마지막 tap 상태, `verify-adaptive`는 downshift/input-size/upshift 상태 전환, `verify-webrtc-ice`는 requested/effective ICE policy와 relay fallback, `verify-multichannel`은 일반/VA overlay 다중 client session, stream fan-out, analysis tap cleanup 상태, `verify-uri-longrun`은 외부 URL advisory 결과와 실패 시 DNS/HTTP status/playlist/pad-not-linked/timeout 분류를 요약한다. 외부 URI는 `config/external_uri_sources.example.json` 형식으로 별도 config를 관리하고 `./server.sh verify-uri-longrun --external-config <path>`로 실행할 수 있다. 여러 summary를 한 번에 훑을 때는 `./server.sh summarize-reports /tmp/media_server_*summary*.json --output /tmp/media_server_verification_report.md --html-output /tmp/media_server_verification_report.html`를 사용한다. Lab에서는 `/lab/reports`와 `/lab/reports/content?path=...`가 `/tmp/media_server_*` 텍스트 산출물만 노출하므로 최근 리포트를 브라우저에서 바로 확인할 수 있다.
 
-기능 개발을 다시 시작하기 전 안정화 기준은 `./server.sh verify-predev --soak-minutes 30`으로 확인한다. 이 명령은 서버를 직접 시작한 뒤 통합 smoke, 다채널 WebRTC/VA, VA event, event POST schema/recovery/queue, summary report, runtime idle, 대표 port cleanup을 한 번에 확인한다. 외부 운영 TURN credential과 `MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay`가 준비된 경우에만 `./server.sh verify-predev --include-external-turn`을 사용해 relay/auth를 hard gate로 올린다. 개발 중 빠른 확인은 `./server.sh verify-predev --quick`을 사용한다.
+기능 개발을 다시 시작하기 전 안정화 기준은 `./server.sh verify-predev --soak-minutes 30`으로 확인한다. 이 명령은 서버를 직접 시작한 뒤 통합 smoke, 다채널 WebRTC/VA, VA event, event POST schema/recovery/queue, summary report, runtime idle, 대표 port cleanup을 한 번에 확인한다. 기본 predev는 샌드박스/로컬 개발 환경 재현성을 위해 loopback bind와 `--skip-external` 통합 smoke를 사용한다. LAN IP 외부 클라이언트 접근성까지 hard gate로 보려면 `./server.sh verify-predev --include-external-client`를 사용한다. 외부 운영 TURN credential과 `MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay`가 준비된 경우에만 `./server.sh verify-predev --include-external-turn`을 사용해 relay/auth를 hard gate로 올린다. 개발 중 빠른 확인은 `./server.sh verify-predev --quick`을 사용한다.
 
 ### 1. 서버 상태 진단
 ```bash
@@ -922,7 +941,7 @@ YOLO/adaptive/WebRTC/URI 선택 검증은 `/tmp/media_server_*_summary.*` 파일
 ./server.sh diagnose
 ```
 
-외부 클라이언트 접근성은 `./server.sh test --quick`을 포함한 모든 test 모드에서 hard gate로 확인한다. 제3자 RTSP upstream은 stable 기준에서 advisory로 확인하고, 명시 URL을 주면 hard gate로 본다. 진단만 따로 보려면:
+외부 클라이언트 접근성은 `--quick`, `--stable`, `--external`에서 hard gate로 확인한다. 제3자 RTSP upstream은 `--stable`, `--external` 기준에서 advisory로 확인하고, 명시 URL을 주면 hard gate로 본다. 진단만 따로 보려면:
 ```bash
 ./scripts/internal/test_external_access.sh
 ./scripts/internal/test_external_source_reachability.sh
@@ -1087,7 +1106,7 @@ MEDIA_SERVER_EXTERNAL_HOST=<MACBOOK_LAN_IP> ./server.sh urls
 
 외부 RTSP source는 로컬 샘플과 다르게 네트워크 상태 영향을 크게 받습니다.
 
-기본 `./server.sh test`는 config에 남아 있는 제3자 RTSP 후보를 advisory로 확인합니다.
+제3자 RTSP 후보 advisory는 `./server.sh test --stable` 또는 `./server.sh test --external`에서 확인합니다.
 후보가 실패해도 코드 변경으로 인한 실패로 단정하지 않고, 신뢰 가능한 카메라/테스트 서버 URL을 명시했을 때만 hard gate로 봅니다.
 
 ```bash

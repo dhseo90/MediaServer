@@ -127,5 +127,38 @@
 - 11차 후속 개발은 기능 개발 재개 전 안정화 묶음 `./server.sh verify-predev`를 추가했다. 통합 smoke, 다채널 WebRTC/VA, VA event, event POST schema/recovery/queue, summary report, runtime idle, 대표 port cleanup을 하나의 실행으로 확인한다.
 - 검증: `./server.sh verify-predev --quick` 통과 `14/0/0`.
 - 검증: `./server.sh verify-predev --soak-minutes 30` 통과 `89/0/0`, duration `2457s`, summary `/tmp/media_server_predev-1777284107-17671_summary.json`, report `/tmp/media_server_predev-1777284107-17671_report.md`. 종료 후 `8080/8081/8554/8555` listener 없음.
-- 12차 후속 개발은 Lab 리포트 뷰어, event POST 상태 패널, 다채널 client별 통계 표시, `/lab/runtime/status` profile/rule matching 요약, `verify-event-post-longrun`, `verify-tracker-stability --stress`, `verify-uri-longrun --external-config`, `verify-predev --include-external-turn`, `summarize-reports --html-output`을 추가한다.
+- 12차 후속 개발은 Lab 리포트 뷰어, event POST 상태 패널, 다채널 client별 통계 표시, `/lab/runtime/status` profile/rule matching 요약, `verify-event-post-longrun`, `verify-tracker-stability --stress`, `verify-uri-longrun --external-config`, `verify-predev --include-external-turn`, `summarize-reports --html-output`을 추가했다.
 - 외부 운영 TURN relay/auth는 credential 확보 전까지 기본 안정 기준에서 제외한다. `--include-external-turn`을 명시하면 credential/policy 누락도 실패로 처리한다.
+
+## 13차 잔여 안정화 이슈 15개
+
+압축 전 대화에 있던 번호 목록은 파일에 남아 있지 않아, 현재 코드 기준으로 남은 안정화 잔여 이슈를 아래 15개로 재고정한다. 신규 기능 구현은 제외하고, 검증/리포트/문서의 추적성을 우선 보강한다.
+
+1.  [x] `verify-predev --quick` 도움말과 실제 VA event duration 설명 일치
+2.  [x] `verify-predev` 외부 TURN hard gate 제외 상태를 summary step에 skip으로 기록
+3.  [x] `verify-predev` runtime idle 판정에 WebRTC publish session/source 잔여 상태 포함
+4.  [x] `verify-predev`를 loopback 기본 bind로 실행하고 로컬 env override와 cleanup port 판정 정리
+5.  [x] `verify-predev` LAN IP 외부 접근성 hard gate를 `--include-external-client`로 분리
+6.  [x] `verify-predev` summary에 status, workDir, finishedAt metadata 추가
+7.  [x] `verify-event-post-longrun` summary에 status, httpBase, workDir, duration metadata 추가
+8.  [x] `verify-event-post-longrun` mode 오타/중복을 시작 전에 검출
+9.  [x] `summarize-reports`가 삭제 중인 `/tmp` 파일 stat 실패에 견디도록 보강
+10. [x] `summarize-reports`가 읽기 실패 파일을 전체 실패가 아닌 개별 실패 payload로 기록
+11. [x] `summarize-reports` Markdown 표에 상태 컬럼 추가
+12. [x] `summarize-reports` report kind 추정 범위 확장
+13. [x] Lab report 목록/본문 응답에 extension, kind, maxBytes, truncatedBytes metadata 추가
+14. [x] Lab report UI truncation 문구를 실제 max/truncated byte 기준으로 표시
+15. [x] 후속 기능 후보에 사람 객체 자동 모자이크 모드 추가
+
+- 검증: `./server.sh verify-predev --skip-build --soak-minutes 0 --heartbeat-interval 30` 통과 `8/0/3`, summary `/tmp/media_server_predev-1777292825-16550_summary.json`, report `/tmp/media_server_predev-1777292825-16550_report.md`, report html `/tmp/media_server_predev-1777292825-16550_report.html`. 기본 predev에서는 LAN IP 외부 접근성과 외부 TURN hard gate가 skip으로 기록되고, 종료 후 `8080/8081/8554/8555` listener 없음.
+
+## 14차 테스트 모드 분리
+
+- `./server.sh test` 무옵션은 `--basic`으로 실행한다. basic은 로컬 재현성을 우선해 외부망/LAN probe 없이 정적 검사, summary report smoke, 서버 readiness, 로컬 stream matrix, 기본 YOLO/VA overlay를 확인한다.
+- `./server.sh test --full`은 basic에 Rule/Profile UI, VA event, image analysis, event POST, 일반/VA WebRTC 다채널 fan-out을 추가한다.
+- `./server.sh test --external`은 full에 LAN IP 외부 클라이언트 접근성, 외부 RTSP advisory, WebRTC ICE, 외부 HTTP/HLS URI longrun을 추가한다.
+- `./server.sh test --stable`은 기존 stable 호환 기준으로 로컬 stream/VA와 LAN IP 외부 클라이언트 접근성, 제3자 RTSP upstream advisory를 함께 본다.
+
+## 후속 기능 후보
+
+- 사람 객체 자동 모자이크 모드: 우선 `person bbox mosaic`부터 검토한다. `redaction=person-mosaic`, `redactionClasses=person`, margin/block size, 원본 route 노출 정책, `verify-redaction` 같은 별도 검증이 필요하다. 얼굴/세그멘테이션 기반 비식별화는 정확도와 누락 리스크가 커서 2단계 후보로 둔다.

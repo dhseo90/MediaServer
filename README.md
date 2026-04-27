@@ -146,7 +146,7 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 | `./server.sh status` | 프로세스/포트/로그 상태 확인 |
 | `./server.sh diagnose` | 실행환경/포트/source 진단 |
 | `./server.sh urls` | 다른 PC에서 복사해 쓸 테스트 URL 출력 |
-| `./server.sh test` | 안정 기능 기준 통합 테스트 |
+| `./server.sh test` | 안정 기능 기준 통합 테스트. 무옵션은 `--basic`이며 `--full`, `--external`, `--stable` 모드 지원 |
 
 선택 검증:
 
@@ -177,6 +177,7 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 ./server.sh verify-adaptive
 ./server.sh verify-image-analysis
 ./server.sh verify-predev --soak-minutes 30
+./server.sh verify-predev --include-external-client
 ./server.sh verify-predev --include-external-turn
 ./server.sh summarize-reports /tmp/media_server_*summary*.json --output /tmp/media_server_verification_report.md --html-output /tmp/media_server_verification_report.html
 ```
@@ -281,28 +282,29 @@ curl -fsS -o overlay.jpg \
 
 ## 테스트 기준
 
-기본 통합 테스트:
+기본/풀/외부 통합 테스트:
 
 ```bash
 ./server.sh test
+./server.sh test --basic
+./server.sh test --full
+./server.sh test --external
+./server.sh test --stable
 ```
 
-기본 포함:
+모드 기준:
 
-- 스크립트/JSON 정적 검사
-- 서버 start/status/diagnose
-- LAN IP 기준 외부 클라이언트 접근성
-- stable local stream 경로: file, local RTSP pull, local WebRTC publish, local HTTP URI
-- 기본 YOLO/VA overlay 검증
+- `./server.sh test` 또는 `--basic`: 스크립트/JSON 정적 검사, summary report smoke, 서버 start/status/diagnose, 로컬 stream 경로, 기본 YOLO/VA overlay. 외부망/LAN probe 제외
+- `--full`: basic + Rule/Profile UI, VA event, 정적 이미지 분석, event POST schema/recovery, 일반/VA WebRTC 다채널 fan-out
+- `--external`: full + LAN IP 외부 클라이언트 접근성, 외부 RTSP advisory, WebRTC ICE, 외부 HTTP/HLS URI longrun
+- `--stable`: 기존 stable 호환 모드. 로컬 stream/VA + LAN IP 외부 클라이언트 접근성과 외부 RTSP advisory 포함
 
 기본 제외:
 
-- HLS/외부 HTTP URI source
 - YouTube source/import
-- 룰/이벤트/POST 장시간 검증
+- 외부 운영 TURN 서버 relay/auth 검증
 - adaptive tuner 장시간 검증
-- 정적 이미지 분석 API
-- 외부 운영 TURN 서버 relay/auth 검증 및 별도 호스트 TURN 재검증
+- 별도 호스트 TURN 재검증
 
 선택 검증:
 
@@ -313,6 +315,9 @@ curl -fsS -o overlay.jpg \
 ./server.sh test --include-image-analysis
 ./server.sh test --include-webrtc-ice
 ./server.sh test --include-uri-longrun
+./server.sh test --include-event-post
+./server.sh test --include-multichannel
+./server.sh test --include-report-summary
 ```
 
 상세 검증 기준과 과거 통과/보류 이력은 `docs/stream-verification.md`를 봅니다.

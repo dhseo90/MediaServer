@@ -1830,8 +1830,10 @@ va_four_scene_sample.mp4</textarea>
       const response = await fetch(`/lab/reports/content?path=${encodeURIComponent(reportSelectEl.value)}`, { cache: 'no-store' });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || `report HTTP ${response.status}`);
-      const prefix = payload.truncated ? `[앞부분 ${payload.content.length} bytes만 표시]\n` : '';
-      reportContentEl.textContent = `${payload.name}\n${payload.path}\n\n${prefix}${payload.content || ''}`;
+      const prefix = payload.truncated
+        ? `[앞부분 ${payload.maxBytes || payload.content.length} bytes만 표시 · 생략 ${payload.truncatedBytes || 0} bytes]\n`
+        : '';
+      reportContentEl.textContent = `${payload.kind || 'report'} · ${payload.name}\n${payload.path}\n\n${prefix}${payload.content || ''}`;
     }
 
     // 다채널 수동 테스트 로그를 화면과 기존 세션 로그에 함께 남긴다.
@@ -5785,6 +5787,7 @@ std::string LabReportsJson() {
             << "\"path\":\"" << JsonEscape(reports[i].string()) << "\","
             << "\"name\":\"" << JsonEscape(name) << "\","
             << "\"kind\":\"" << JsonEscape(LabReportKindFromName(name)) << "\","
+            << "\"extension\":\"" << JsonEscape(reports[i].extension().string()) << "\","
             << "\"sizeBytes\":" << (size_ec ? 0 : size)
             << "}";
     }
@@ -5821,10 +5824,14 @@ bool BuildLabReportContentJson(const std::string& requested_path,
     content.resize(static_cast<std::size_t>(std::max<std::streamsize>(0, input.gcount())));
 
     std::ostringstream out;
+    const auto truncated_bytes = (!size_ec && size > kMaxReportBytes) ? (size - kMaxReportBytes) : 0;
     out << "{"
         << "\"path\":\"" << JsonEscape(resolved.string()) << "\","
         << "\"name\":\"" << JsonEscape(resolved.filename().string()) << "\","
+        << "\"kind\":\"" << JsonEscape(LabReportKindFromName(resolved.filename().string())) << "\","
         << "\"sizeBytes\":" << (size_ec ? content.size() : size) << ","
+        << "\"maxBytes\":" << kMaxReportBytes << ","
+        << "\"truncatedBytes\":" << truncated_bytes << ","
         << "\"truncated\":" << (!size_ec && size > kMaxReportBytes ? "true" : "false") << ","
         << "\"content\":\"" << JsonEscape(content) << "\""
         << "}";
