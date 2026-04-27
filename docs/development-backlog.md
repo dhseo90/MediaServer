@@ -127,3 +127,5 @@
 - 11차 후속 개발은 기능 개발 재개 전 안정화 묶음 `./server.sh verify-predev`를 추가했다. 통합 smoke, 다채널 WebRTC/VA, VA event, event POST schema/recovery/queue, summary report, runtime idle, 대표 port cleanup을 하나의 실행으로 확인한다.
 - 검증: `./server.sh verify-predev --quick` 통과 `14/0/0`.
 - 검증: `./server.sh verify-predev --soak-minutes 30` 통과 `89/0/0`, duration `2457s`, summary `/tmp/media_server_predev-1777284107-17671_summary.json`, report `/tmp/media_server_predev-1777284107-17671_report.md`. 종료 후 `8080/8081/8554/8555` listener 없음.
+- 12차 후속 개발은 Lab 리포트 뷰어, event POST 상태 패널, 다채널 client별 통계 표시, `/lab/runtime/status` profile/rule matching 요약, `verify-event-post-longrun`, `verify-tracker-stability --stress`, `verify-uri-longrun --external-config`, `verify-predev --include-external-turn`, `summarize-reports --html-output`을 추가한다.
+- 외부 운영 TURN relay/auth는 credential 확보 전까지 기본 안정 기준에서 제외한다. `--include-external-turn`을 명시하면 credential/policy 누락도 실패로 처리한다.

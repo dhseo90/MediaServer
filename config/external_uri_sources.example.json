@@ -1,0 +1,25 @@
+{
+  "_comment": "파일 용도: verify-uri-longrun에서 사용할 외부 HTTP/HLS URI source 목록 예시입니다. 실제 운영 검증 URL은 이 파일을 복사해 별도 파일에 작성합니다.",
+  "rtspRouteKeys": [
+    "default"
+  ],
+  "sources": [
+    {
+      "name": "external_hls_example",
+      "source_kind": "hls",
+      "source": "https://example.com/path/to/playlist.m3u8",
+      "enabled": true,
+      "requires_network": true,
+      "notes": "실제 장시간 검증 전 공개/사내 HLS URL로 교체하세요.",
+      "verify_profile": {
+        "label": "external-uri",
+        "ffprobe_timeout_us": 30000000,
+        "webrtc_http_timeout_s": 45,
+        "rtsp_route_keys": [
+          "default"
+        ],
+        "server_env_hint": "MEDIA_SERVER_RTSP_SOURCE_START_TIMEOUT_MS=20000 MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS=15000"
+      }
+    }
+  ]
+}

@@ -15,11 +15,13 @@ MULTICHANNEL_HOLD_MS="${MEDIA_SERVER_VERIFY_PREDEV_MULTICHANNEL_HOLD_MS:-7000}"
 MULTICHANNEL_SINGLE_CLIENTS="${MEDIA_SERVER_VERIFY_PREDEV_SINGLE_CLIENTS:-2}"
 MULTICHANNEL_CLIENTS_PER_SOURCE="${MEDIA_SERVER_VERIFY_PREDEV_CLIENTS_PER_SOURCE:-2}"
 VA_EVENT_DURATION_S="${MEDIA_SERVER_VERIFY_PREDEV_VA_EVENT_DURATION_S:-30}"
+HEARTBEAT_INTERVAL_S="${MEDIA_SERVER_VERIFY_PREDEV_HEARTBEAT_INTERVAL_S:-30}"
 RUN_ID="predev-$(date +%s)-$$"
 WORK_DIR="/tmp/media_server_${RUN_ID}"
 STEPS_FILE="${WORK_DIR}/steps.ndjson"
 SUMMARY_FILE="${MEDIA_SERVER_VERIFY_PREDEV_SUMMARY_FILE:-/tmp/media_server_${RUN_ID}_summary.json}"
 REPORT_FILE="${MEDIA_SERVER_VERIFY_PREDEV_REPORT_FILE:-/tmp/media_server_${RUN_ID}_report.md}"
+REPORT_HTML_FILE="${MEDIA_SERVER_VERIFY_PREDEV_REPORT_HTML_FILE:-/tmp/media_server_${RUN_ID}_report.html}"
 SERVER_LOG="${WORK_DIR}/server.log"
 SERVER_PID=""
 PASS_COUNT=0
@@ -27,6 +29,7 @@ FAIL_COUNT=0
 SKIP_COUNT=0
 SKIP_BUILD=0
 QUICK_MODE=0
+INCLUDE_EXTERNAL_TURN=0
 
 mkdir -p "${WORK_DIR}"
 
@@ -46,12 +49,16 @@ Options:
   --http-port <port>       테스트 HTTP port. 기본 ${HTTP_PORT}
   --summary-file <path>    predev summary JSON 출력 경로
   --report-file <path>     summarize-reports Markdown 출력 경로
+  --report-html-file <path>
+                           summarize-reports HTML 출력 경로
+  --include-external-turn  외부 운영 TURN credential/relay 검증을 hard gate로 포함
+  --heartbeat-interval <n> 긴 step 진행 중 상태 출력 주기. 기본 ${HEARTBEAT_INTERVAL_S}초, 0이면 끔
   -h, --help               도움말 출력
 
 기준:
   - 통합 smoke, 다채널 WebRTC, VA event, event POST schema/recovery/queue를 확인합니다.
   - 종료 시 runtime session/stream/tap cleanup과 8080/8081/8554/8555 listener 정리를 hard check합니다.
-  - 외부 TURN credential이 없는 환경에서는 외부 TURN hard gate를 포함하지 않습니다.
+  - 외부 TURN credential이 없는 환경에서는 외부 TURN hard gate를 기본 포함하지 않습니다.
 EOF_USAGE
 }
 
@@ -89,6 +96,18 @@ parse_args() {
         ;;
       --report-file)
         REPORT_FILE="${2:-}"
+        shift 2
+        ;;
+      --report-html-file)
+        REPORT_HTML_FILE="${2:-}"
+        shift 2
+        ;;
+      --include-external-turn)
+        INCLUDE_EXTERNAL_TURN=1
+        shift
+        ;;
+      --heartbeat-interval)
+        HEARTBEAT_INTERVAL_S="${2:-}"
         shift 2
         ;;
       -h|--help)
@@ -155,8 +174,22 @@ run_step() {
   local command="$2"
   local log_file="${WORK_DIR}/${name//[^A-Za-z0-9_]/_}.log"
   local started_at="${SECONDS}"
+  local next_heartbeat=$((SECONDS + HEARTBEAT_INTERVAL_S))
   log_info "${name} 시작"
-  if (cd "${ROOT_DIR}" && bash -lc "${command}") >"${log_file}" 2>&1; then
+  (cd "${ROOT_DIR}" && bash -lc "${command}") >"${log_file}" 2>&1 &
+  local step_pid="$!"
+  while kill -0 "${step_pid}" >/dev/null 2>&1; do
+    if [[ "${HEARTBEAT_INTERVAL_S}" =~ ^[0-9]+$ ]] && (( HEARTBEAT_INTERVAL_S > 0 && SECONDS >= next_heartbeat )); then
+      local elapsed=$((SECONDS - started_at))
+      echo "[info] ${name} 진행 중 (${elapsed}s) log=${log_file}"
+      if [[ -s "${log_file}" ]]; then
+        tail -n 3 "${log_file}" | sed 's/^/[tail] /' || true
+      fi
+      next_heartbeat=$((SECONDS + HEARTBEAT_INTERVAL_S))
+    fi
+    sleep 1
+  done
+  if wait "${step_pid}"; then
     local duration=$((SECONDS - started_at))
     PASS_COUNT=$((PASS_COUNT + 1))
     append_step "${name}" "pass" "${command}" "${log_file}" "${duration}"
@@ -169,6 +202,28 @@ run_step() {
   echo "[fail] ${name} (${duration}s) log=${log_file}"
   tail -n 80 "${log_file}" || true
   return 1
+}
+
+# 외부 운영 TURN credential과 relay policy가 준비된 경우에만 hard gate를 수행한다.
+run_external_turn_gate() {
+  if [[ "${INCLUDE_EXTERNAL_TURN}" != "1" ]]; then
+    echo "[info] external-turn-hard-gate: --include-external-turn 미지정으로 기본 안정 묶음에서는 제외"
+    return 0
+  fi
+  if [[ -z "${MEDIA_SERVER_WEBRTC_TURN_SERVER:-${MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER:-}}" ]]; then
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+    append_step "external-turn-hard-gate" "fail" "missing TURN credential" "" 0
+    echo "[fail] external-turn-hard-gate: MEDIA_SERVER_WEBRTC_TURN_SERVER 또는 MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER가 필요합니다"
+    return 1
+  fi
+  if [[ "${MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY:-all}" != "relay" ]]; then
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+    append_step "external-turn-hard-gate" "fail" "missing relay policy" "" 0
+    echo "[fail] external-turn-hard-gate: MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay가 필요합니다"
+    return 1
+  fi
+  run_step "external-turn-hard-gate" \
+    "MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_VERIFY_WEBRTC_ICE_HTTP_BASE=${HTTP_BASE} ./server.sh verify-webrtc-ice --external-turn" || true
 }
 
 # 지정 port에 listener가 남아 있는지 확인한다.
@@ -342,7 +397,7 @@ run_soak_loop() {
   while (( SECONDS < deadline || iteration == 1 )); do
     log_info "soak iteration ${iteration} 시작"
     run_step "soak-${iteration}-multichannel" \
-      "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} ./server.sh verify-multichannel --http-base ${HTTP_BASE} --include-va --repeat 1 --single-clients ${MULTICHANNEL_SINGLE_CLIENTS} --clients-per-source ${MULTICHANNEL_CLIENTS_PER_SOURCE} --hold-ms ${MULTICHANNEL_HOLD_MS}" || true
+      "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_VERIFY_MULTICHANNEL_TIMEOUT_MS=90000 MEDIA_SERVER_VERIFY_MULTICHANNEL_CONSUMER_TIMEOUT_MS=60000 ./server.sh verify-multichannel --http-base ${HTTP_BASE} --include-va --repeat 1 --single-clients ${MULTICHANNEL_SINGLE_CLIENTS} --clients-per-source ${MULTICHANNEL_CLIENTS_PER_SOURCE} --hold-ms ${MULTICHANNEL_HOLD_MS}" || true
     run_step "soak-${iteration}-va-events" \
       "MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=${VA_EVENT_DURATION_S} ./server.sh verify-va-events --duration ${VA_EVENT_DURATION_S}" || true
     run_step "soak-${iteration}-event-post-schema" \
@@ -357,7 +412,7 @@ run_soak_loop() {
 # 전체 predev summary JSON을 생성한다.
 write_summary() {
   local duration_sec="$1"
-  python3 - "${SUMMARY_FILE}" "${STEPS_FILE}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" "${duration_sec}" "${REPORT_FILE}" "${SOAK_MINUTES}" "${QUICK_MODE}" <<'PY'
+  python3 - "${SUMMARY_FILE}" "${STEPS_FILE}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" "${duration_sec}" "${REPORT_FILE}" "${REPORT_HTML_FILE}" "${SOAK_MINUTES}" "${QUICK_MODE}" "${INCLUDE_EXTERNAL_TURN}" <<'PY'
 import json
 import pathlib
 import sys
@@ -375,8 +430,10 @@ summary = {
     "skip": int(sys.argv[5]),
     "durationSec": int(float(sys.argv[6])),
     "reportFile": sys.argv[7],
-    "soakMinutes": int(sys.argv[8]),
-    "quickMode": sys.argv[9] == "1",
+    "reportHtmlFile": sys.argv[8],
+    "soakMinutes": int(sys.argv[9]),
+    "quickMode": sys.argv[10] == "1",
+    "includeExternalTurn": sys.argv[11] == "1",
     "steps": steps,
 }
 pathlib.Path(sys.argv[1]).write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -394,6 +451,7 @@ trap cleanup EXIT
 main() {
   parse_args "$@"
   assert_non_negative_int "${SOAK_MINUTES}" "soak-minutes"
+  assert_non_negative_int "${HEARTBEAT_INTERVAL_S}" "heartbeat-interval"
   require_cmd bash
   require_cmd cmake
   require_cmd curl
@@ -416,6 +474,7 @@ main() {
   if [[ -n "${SERVER_PID}" ]] && kill -0 "${SERVER_PID}" >/dev/null 2>&1; then
     run_step "integrated-smoke" \
       "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} ./server.sh test --no-start --include-rules --include-rule-ui --include-va-events --include-image-analysis" || true
+    run_external_turn_gate || true
     run_soak_loop
     assert_runtime_idle "main-runtime-idle" || true
   fi
@@ -430,7 +489,7 @@ main() {
 
   write_summary "$((SECONDS - started_at))"
   run_step "summary-report" \
-    "./server.sh summarize-reports /tmp/media_server_*summary*.json --output ${REPORT_FILE}" || true
+    "./server.sh summarize-reports /tmp/media_server_*summary*.json --output ${REPORT_FILE} --html-output ${REPORT_HTML_FILE}" || true
   write_summary "$((SECONDS - started_at))"
 
   echo
@@ -440,6 +499,7 @@ main() {
   echo "- 건너뜀: ${SKIP_COUNT}"
   echo "- summary: ${SUMMARY_FILE}"
   echo "- report: ${REPORT_FILE}"
+  echo "- report html: ${REPORT_HTML_FILE}"
   echo "- logs: ${WORK_DIR}"
   if [[ "${FAIL_COUNT}" -gt 0 ]]; then
     exit 1

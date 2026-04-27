@@ -158,6 +158,7 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 ./server.sh verify-multichannel --include-va --repeat 2
 ./server.sh verify-uri-longrun
 ./server.sh verify-uri-longrun --include-external --use-default-external
+./server.sh verify-uri-longrun --external-config config/external_uri_sources.example.json
 ./server.sh verify-uri-longrun --include-external --external-urls https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
 ./server.sh verify-uri-longrun --include-external --external-rtsp-routes default,h264,opus --external-urls https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
 ./server.sh verify-va
@@ -168,13 +169,16 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 ./server.sh verify-rule-ui
 ./server.sh verify-event-post
 ./server.sh verify-event-post --mode recovery
+./server.sh verify-event-post-longrun --iterations 3
 ./server.sh verify-lab-import-ui
 ./server.sh verify-tracker-stability
+./server.sh verify-tracker-stability --stress
 ./server.sh verify-yolo-layouts
 ./server.sh verify-adaptive
 ./server.sh verify-image-analysis
 ./server.sh verify-predev --soak-minutes 30
-./server.sh summarize-reports /tmp/media_server_*summary*.json --output /tmp/media_server_verification_report.md
+./server.sh verify-predev --include-external-turn
+./server.sh summarize-reports /tmp/media_server_*summary*.json --output /tmp/media_server_verification_report.md --html-output /tmp/media_server_verification_report.html
 ```
 
 ## 대표 접속 주소
@@ -183,6 +187,7 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 
 - RTSP: `rtsp://127.0.0.1:8554/dhseo`
 - 통합 Lab UI: `http://127.0.0.1:8080/lab`
+- Lab 검증 리포트 API: `GET http://127.0.0.1:8080/lab/reports`
 - WebRTC 브라우저 ICE 설정: `GET http://127.0.0.1:8080/webrtc/config`
 - WebRTC simple signaling: `POST http://127.0.0.1:8080/webrtc/session?...`
 - WHEP consume: `POST http://127.0.0.1:8080/whep?...`

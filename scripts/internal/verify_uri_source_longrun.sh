@@ -15,6 +15,7 @@ EXTERNAL_URLS="${MEDIA_SERVER_VERIFY_URI_EXTERNAL_URLS:-}"
 EXTERNAL_RTSP_ROUTE_KEYS="${MEDIA_SERVER_VERIFY_URI_EXTERNAL_RTSP_ROUTE_KEYS:-default}"
 USE_DEFAULT_EXTERNAL="${MEDIA_SERVER_VERIFY_URI_USE_DEFAULT_EXTERNAL:-0}"
 DEFAULT_EXTERNAL_URLS="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8;https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8"
+EXTERNAL_INPUT_CONFIG="${MEDIA_SERVER_VERIFY_URI_EXTERNAL_CONFIG:-}"
 PASS_COUNT=0
 FAIL_COUNT=0
 SKIP_COUNT=0
@@ -98,6 +99,8 @@ Options:
   --include-external     MEDIA_SERVER_VERIFY_URI_EXTERNAL_URLS에 지정한 외부 HTTP/HLS URL도 검증
   --use-default-external 공개 HLS advisory 후보 2개(Mux/Apple)를 외부 URL로 사용
   --external-urls <csv>  외부 URL 목록. 쉼표 또는 세미콜론으로 구분
+  --external-config <path>
+                         외부 URI source config JSON. 지정 시 --include-external을 자동 적용
   --external-rtsp-routes <csv>
                          외부 URL에서 검증할 RTSP route key 목록. 기본 default
   --skip-local-http      로컬 HTTP MP4 source 반복 검증 생략
@@ -109,6 +112,7 @@ Options:
   MEDIA_SERVER_VERIFY_URI_LONGRUN_INCLUDE_EXTERNAL=1
   MEDIA_SERVER_VERIFY_URI_USE_DEFAULT_EXTERNAL=1
   MEDIA_SERVER_VERIFY_URI_EXTERNAL_URLS="https://example/a.mp4,https://example/live.m3u8"
+  MEDIA_SERVER_VERIFY_URI_EXTERNAL_CONFIG="config/external_uri_sources.example.json"
   MEDIA_SERVER_VERIFY_URI_EXTERNAL_RTSP_ROUTE_KEYS="default,h264"
 
 기준:
@@ -132,6 +136,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     --external-urls)
       EXTERNAL_URLS="$2"
+      shift
+      ;;
+    --external-config)
+      EXTERNAL_INPUT_CONFIG="$2"
+      INCLUDE_EXTERNAL=1
       shift
       ;;
     --external-rtsp-routes)
@@ -227,6 +236,61 @@ print(output)
 PY
 }
 
+# 사용자가 관리하는 외부 URI config에서 source URL과 route key를 추출해 summary에 반영한다.
+load_external_config_metadata() {
+  local config_path="$1"
+  python3 - "${config_path}" <<'PY'
+import json
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+payload = json.loads(path.read_text(encoding="utf-8"))
+urls = []
+routes = []
+
+def add_routes(values):
+    if isinstance(values, str):
+        values = [item.strip() for item in values.replace(";", ",").split(",")]
+    if isinstance(values, list):
+        for item in values:
+            text = str(item).strip()
+            if text and text not in routes:
+                routes.append(text)
+
+if isinstance(payload, dict):
+    if isinstance(payload.get("urls"), list):
+        urls.extend(str(item).strip() for item in payload["urls"] if str(item).strip())
+    add_routes(payload.get("rtspRouteKeys") or payload.get("externalRtspRoutes") or payload.get("routeKeys"))
+    sources = payload.get("sources") if isinstance(payload.get("sources"), list) else []
+    for source in sources:
+        if not isinstance(source, dict):
+            continue
+        url = str(source.get("source") or source.get("url") or "").strip()
+        if url:
+            urls.append(url)
+        verify_profile = source.get("verify_profile") or source.get("verifyProfile") or {}
+        if isinstance(verify_profile, dict):
+            add_routes(verify_profile.get("rtsp_route_keys") or verify_profile.get("rtspRouteKeys"))
+
+print(";".join(dict.fromkeys(urls)))
+print(",".join(routes or ["default"]))
+PY
+}
+
+if [[ -n "${EXTERNAL_INPUT_CONFIG}" ]]; then
+  if [[ ! -f "${EXTERNAL_INPUT_CONFIG}" ]]; then
+    log_fail "external config 파일이 없습니다: ${EXTERNAL_INPUT_CONFIG}"
+    exit 1
+  fi
+  external_config_metadata="$(load_external_config_metadata "${EXTERNAL_INPUT_CONFIG}")"
+  EXTERNAL_URLS="$(printf '%s\n' "${external_config_metadata}" | sed -n '1p')"
+  EXTERNAL_RTSP_ROUTE_KEYS="$(printf '%s\n' "${external_config_metadata}" | sed -n '2p')"
+  EXTERNAL_RTSP_ROUTE_KEYS="${EXTERNAL_RTSP_ROUTE_KEYS:-default}"
+  EXTERNAL_CONFIG_FILE="${EXTERNAL_INPUT_CONFIG}"
+  INCLUDE_EXTERNAL=1
+fi
+
 echo "HTTP/HLS URI source 장기 검증 시작"
 echo "- 반복 횟수: ${ITERATIONS}"
 echo "- 외부 URL 포함: ${INCLUDE_EXTERNAL}"
@@ -254,8 +318,12 @@ if [[ "${INCLUDE_EXTERNAL}" == "1" ]]; then
   if [[ -z "${EXTERNAL_URLS}" ]]; then
     log_skip "external HTTP/HLS URI: MEDIA_SERVER_VERIFY_URI_EXTERNAL_URLS 또는 --external-urls가 비어 있어 생략"
   else
-    external_config="$(make_external_config "${EXTERNAL_URLS}" "${EXTERNAL_RTSP_ROUTE_KEYS}")"
-    EXTERNAL_CONFIG_FILE="${external_config}"
+    if [[ -n "${EXTERNAL_INPUT_CONFIG}" ]]; then
+      external_config="${EXTERNAL_INPUT_CONFIG}"
+    else
+      external_config="$(make_external_config "${EXTERNAL_URLS}" "${EXTERNAL_RTSP_ROUTE_KEYS}")"
+      EXTERNAL_CONFIG_FILE="${external_config}"
+    fi
     log_info "external URI config: ${external_config}"
     for ((iteration = 1; iteration <= ITERATIONS; iteration += 1)); do
       external_log="/tmp/media_server_${RUN_ID}_external_${iteration}.log"

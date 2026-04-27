@@ -46,6 +46,8 @@ Usage:
                  /lab/rules Rule/Profile 카테고리 버튼과 저장 payload를 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
+  verify-event-post-longrun
+                 event POST schema/recovery/선택 queue 검증을 반복 실행합니다.
   verify-lab-import-ui
                  /lab/import 실험실 import UI와 jobs API를 검증합니다.
   verify-tracker-stability
@@ -177,6 +179,10 @@ case "${cmd}" in
   verify-event-post)
     require_internal verify_event_post_dispatch.sh
     exec "${INTERNAL_DIR}/verify_event_post_dispatch.sh" "$@"
+    ;;
+  verify-event-post-longrun)
+    require_internal verify_event_post_longrun.sh
+    exec "${INTERNAL_DIR}/verify_event_post_longrun.sh" "$@"
     ;;
   verify-lab-import-ui)
     require_internal verify_lab_import_ui.sh

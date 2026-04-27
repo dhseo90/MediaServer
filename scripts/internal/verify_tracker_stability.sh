@@ -53,6 +53,7 @@ Usage:
 
 Options:
   --long                  장시간 기본값 적용: duration=120s, repeat=3
+  --stress                장시간+겹침 중심+엄격 기준을 묶은 tracker stress preset
   --duration <seconds>    iteration당 polling 시간. poll-count보다 우선
   --repeat <count>        반복 횟수
   --interval <seconds>    polling 간격. 기본 0.2
@@ -65,6 +66,8 @@ Options:
   --overlap-min <n>        overlap 구간으로 볼 동시 track 수. 기본 3
   --max-overlap-fragmentation <v>
                            overlap 구간 fragmentation ratio 허용 상한. 기본 2.5
+  --max-id-switch-risk <v>
+                           fragmentation/stale/overlap 기반 ID switch 위험 점수 허용 상한. 기본 2.0
   --restart-between-iterations
                            반복마다 source idle cleanup을 기다려 파일을 처음부터 다시 검증
   --continuous-source     반복 사이 source를 재시작하지 않고 연속 스트림처럼 검증
@@ -81,6 +84,7 @@ Options:
   MEDIA_SERVER_VERIFY_TRACKER_CLASS_WHITELIST
   MEDIA_SERVER_VERIFY_TRACKER_MIN_TRACK_SAMPLES
   MEDIA_SERVER_VERIFY_TRACKER_MAX_STALE_RATIO
+  MEDIA_SERVER_VERIFY_TRACKER_MAX_ID_SWITCH_RISK
   MEDIA_SERVER_VERIFY_TRACKER_OVERLAP_FOCUS
   MEDIA_SERVER_VERIFY_TRACKER_OVERLAP_MIN_SIMULTANEOUS
   MEDIA_SERVER_VERIFY_TRACKER_MAX_OVERLAP_FRAGMENTATION_RATIO
@@ -230,6 +234,7 @@ LONG_FILE_TOKEN="${MEDIA_SERVER_VERIFY_TRACKER_LONG_FILE:-imports/va_tracking_ev
 FILE_TOKEN="${MEDIA_SERVER_VERIFY_TRACKER_FILE:-${DEFAULT_FILE_TOKEN}}"
 FILE_TOKEN_SET=0
 LONG_MODE=0
+STRESS_MODE=0
 POLL_COUNT="${MEDIA_SERVER_VERIFY_TRACKER_POLL_COUNT:-150}"
 POLL_INTERVAL_S="${MEDIA_SERVER_VERIFY_TRACKER_POLL_INTERVAL_S:-0.2}"
 DURATION_S="${MEDIA_SERVER_VERIFY_TRACKER_DURATION_S:-}"
@@ -244,6 +249,7 @@ MAX_FRAGMENTATION_RATIO="${MEDIA_SERVER_VERIFY_TRACKER_MAX_FRAGMENTATION_RATIO:-
 CLASS_WHITELIST="${MEDIA_SERVER_VERIFY_TRACKER_CLASS_WHITELIST:-person}"
 MIN_TRACK_SAMPLES="${MEDIA_SERVER_VERIFY_TRACKER_MIN_TRACK_SAMPLES:-3}"
 MAX_STALE_RATIO="${MEDIA_SERVER_VERIFY_TRACKER_MAX_STALE_RATIO:-0.3}"
+MAX_ID_SWITCH_RISK="${MEDIA_SERVER_VERIFY_TRACKER_MAX_ID_SWITCH_RISK:-2.0}"
 OVERLAP_FOCUS="${MEDIA_SERVER_VERIFY_TRACKER_OVERLAP_FOCUS:-0}"
 OVERLAP_MIN_SIMULTANEOUS="${MEDIA_SERVER_VERIFY_TRACKER_OVERLAP_MIN_SIMULTANEOUS:-3}"
 MAX_OVERLAP_FRAGMENTATION_RATIO="${MEDIA_SERVER_VERIFY_TRACKER_MAX_OVERLAP_FRAGMENTATION_RATIO:-2.5}"
@@ -259,6 +265,19 @@ while [[ $# -gt 0 ]]; do
     --long)
       LONG_MODE=1
       DURATION_S="${DURATION_S:-120}"
+      if [[ "${REPEAT_COUNT_SET}" == "0" && "${REPEAT_COUNT}" == "1" ]]; then
+        REPEAT_COUNT=3
+      fi
+      ;;
+    --stress)
+      STRESS_MODE=1
+      LONG_MODE=1
+      OVERLAP_FOCUS=1
+      DURATION_S="${DURATION_S:-180}"
+      MAX_FRAGMENTATION_RATIO=2.0
+      MAX_OVERLAP_FRAGMENTATION_RATIO=2.0
+      MAX_STALE_RATIO=0.2
+      MIN_TRACK_SAMPLES=5
       if [[ "${REPEAT_COUNT_SET}" == "0" && "${REPEAT_COUNT}" == "1" ]]; then
         REPEAT_COUNT=3
       fi
@@ -294,6 +313,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --max-stale-ratio)
       MAX_STALE_RATIO="$2"
+      shift
+      ;;
+    --max-id-switch-risk)
+      MAX_ID_SWITCH_RISK="$2"
       shift
       ;;
     --overlap-focus)
@@ -389,7 +412,7 @@ fi
 log_info "http_base=${HTTP_BASE}"
 log_info "file=${FILE_TOKEN}"
 log_info "repeat=${REPEAT_COUNT} poll=${POLL_COUNT} interval=${POLL_INTERVAL_S}s duration=${DURATION_S:-auto}"
-log_info "segmentAware=${SEGMENT_AWARE} classWhitelist=${CLASS_WHITELIST} minTrackSamples=${MIN_TRACK_SAMPLES} maxStaleRatio=${MAX_STALE_RATIO}"
+log_info "stress=${STRESS_MODE} segmentAware=${SEGMENT_AWARE} classWhitelist=${CLASS_WHITELIST} minTrackSamples=${MIN_TRACK_SAMPLES} maxStaleRatio=${MAX_STALE_RATIO} maxIdSwitchRisk=${MAX_ID_SWITCH_RISK}"
 log_info "overlapFocus=${OVERLAP_FOCUS} overlapMin=${OVERLAP_MIN_SIMULTANEOUS} maxOverlapFragmentation=${MAX_OVERLAP_FRAGMENTATION_RATIO}"
 log_info "restartBetweenIterations=${RESTART_BETWEEN_ITERATIONS} restartWait=${RESTART_WAIT_S}s"
 log_info "summary=${SUMMARY_FILE}"
@@ -437,7 +460,9 @@ for iteration in $(seq 1 "${REPEAT_COUNT}"); do
     "${MAX_STALE_RATIO}" \
     "${OVERLAP_FOCUS}" \
     "${OVERLAP_MIN_SIMULTANEOUS}" \
-    "${MAX_OVERLAP_FRAGMENTATION_RATIO}" <<'PY'
+    "${MAX_OVERLAP_FRAGMENTATION_RATIO}" \
+    "${MAX_ID_SWITCH_RISK}" \
+    "${STRESS_MODE}" <<'PY'
 import collections
 import json
 import pathlib
@@ -457,6 +482,8 @@ max_stale_ratio = float(sys.argv[10])
 overlap_focus = sys.argv[11] == "1"
 overlap_min_simultaneous = max(1, int(sys.argv[12]))
 max_overlap_fragmentation_ratio = float(sys.argv[13])
+max_id_switch_risk = float(sys.argv[14])
+stress_mode = sys.argv[15] == "1"
 allowed_classes = {
     item.strip().lower()
     for item in class_whitelist_raw.split(",")
@@ -653,6 +680,12 @@ median_lifetime = statistics.median(lifetimes) if lifetimes else 0
 final_analyzed = max(analyzed_values) if analyzed_values else 0
 avg_ms = avg_ms_values[-1] if avg_ms_values else 0.0
 stale_pts_ratio = stale_pts_samples / max(1, len(raw_samples))
+id_switch_risk_score = (
+    max(0.0, fragmentation_ratio - 1.0)
+    + max(0.0, overlap_fragmentation_ratio - 1.0)
+    + stale_pts_ratio * 2.0
+    + pts_regression_count * 0.1
+)
 summary = {
     "iteration": iteration,
     "rawSamples": len(raw_samples),
@@ -662,6 +695,8 @@ summary = {
     "ptsRegressionCount": pts_regression_count,
     "stalePtsSamples": stale_pts_samples,
     "stalePtsRatio": round(stale_pts_ratio, 3),
+    "stressMode": stress_mode,
+    "idSwitchRiskScore": round(id_switch_risk_score, 3),
     "classWhitelist": sorted(allowed_classes) if not allow_all_classes else ["*"],
     "minTrackSamples": min_track_samples,
     "uniqueTracks": unique_tracks,
@@ -698,6 +733,8 @@ if fragmentation_ratio > max_fragmentation_ratio:
     )
 if stale_pts_ratio > max_stale_ratio:
     errors.append(f"stale PTS ratio 초과: {stale_pts_ratio:.3f} > {max_stale_ratio:.3f}")
+if id_switch_risk_score > max_id_switch_risk:
+    errors.append(f"ID switch 위험 점수 초과: {id_switch_risk_score:.3f} > {max_id_switch_risk:.3f}")
 if overlap_focus and overlap_sample_count <= 0:
     errors.append(f"overlap sample 없음: simultaneous >= {overlap_min_simultaneous}")
 if overlap_focus and overlap_fragmentation_ratio > max_overlap_fragmentation_ratio:
@@ -740,6 +777,7 @@ ratios = [float(item["fragmentationRatio"]) for item in items]
 overlap_ratios = [float(item.get("overlapFragmentationRatio", 0.0)) for item in items]
 overlap_samples = [int(item.get("overlapSampleCount", 0)) for item in items]
 stale_ratios = [float(item.get("stalePtsRatio", 0.0)) for item in items]
+risk_scores = [float(item.get("idSwitchRiskScore", 0.0)) for item in items]
 category_track_counts = collections.Counter()
 category_sample_counts = collections.Counter()
 class_track_counts = collections.Counter()
@@ -754,6 +792,7 @@ print("fragmentation_ratio_avg=", round(statistics.mean(ratios), 3))
 print("overlap_fragmentation_ratio_max=", max(overlap_ratios))
 print("overlap_sample_count_total=", sum(overlap_samples))
 print("stale_pts_ratio_max=", max(stale_ratios))
+print("id_switch_risk_score_max=", max(risk_scores))
 print("category_track_counts=", dict(sorted(category_track_counts.items())))
 print("category_sample_counts=", dict(sorted(category_sample_counts.items())))
 print("class_track_counts=", dict(sorted(class_track_counts.items())))

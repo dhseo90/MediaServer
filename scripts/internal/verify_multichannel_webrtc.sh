@@ -168,6 +168,38 @@ runtime_status() {
   curl -fsS --max-time 3 "${HTTP_BASE}/lab/runtime/status"
 }
 
+# 실패한 browser client가 session DELETE까지 도달하지 못한 경우 남은 analysis tap을 명시적으로 정리한다.
+cleanup_active_analysis_taps() {
+  local status_json="${1:-}"
+  if [[ -z "${status_json}" ]]; then
+    status_json="$(runtime_status || printf '{}')"
+  fi
+  python3 - "${status_json}" <<'PY' | while IFS= read -r tap_id; do
+import json
+import sys
+
+text = sys.argv[1] or "{}"
+payload = {}
+while text:
+    try:
+        payload = json.loads(text)
+        break
+    except json.JSONDecodeError:
+        if not text.endswith("}"):
+            payload = {}
+            break
+        text = text[:-1]
+for tap in ((payload.get("analysisMatching") or {}).get("activeTaps") or []):
+    tap_id = str(tap.get("tapId") or "").strip()
+    if tap_id:
+        print(tap_id)
+PY
+    [[ -n "${tap_id}" ]] || continue
+    log_info "남은 analysis tap 정리: ${tap_id}"
+    curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${tap_id}" >/dev/null 2>&1 || true
+  done
+}
+
 # 간단한 dotted path로 JSON 숫자 필드를 추출한다.
 json_number() {
   local json_text="$1"
@@ -510,9 +542,14 @@ run_multichannel_case() {
 
   if wait_clients "${label}" "${pairs[@]}"; then
     clients_ok=1
+  else
+    cleanup_active_analysis_taps "$(runtime_status || printf '{}')"
   fi
   if wait_for_idle_runtime; then
     final_idle_ok=1
+  else
+    cleanup_active_analysis_taps "$(runtime_status || printf '{}')"
+    wait_for_idle_runtime >/dev/null 2>&1 || true
   fi
   final_status="${MATCHED_RUNTIME_STATUS:-$(runtime_status || printf '{}')}"
   write_status_json_file "${final_status_file}" "${final_status:-{}}"
