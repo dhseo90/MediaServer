@@ -17,6 +17,7 @@ SUMMARY_FILE="${MEDIA_SERVER_VERIFY_EVENT_POST_LONGRUN_SUMMARY_FILE:-/tmp/media_
 PASS_COUNT=0
 FAIL_COUNT=0
 SKIP_COUNT=0
+STARTED_AT="${SECONDS}"
 
 mkdir -p "${WORK_DIR}"
 
@@ -95,10 +96,11 @@ run_event_post_mode() {
 
 # 전체 반복 결과를 JSON으로 저장한다.
 write_summary() {
-  python3 - "${SUMMARY_FILE}" "${STEPS_FILE}" "${ITERATIONS}" "${MODES}" "${INCLUDE_QUEUE}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" <<'PY'
+  python3 - "${SUMMARY_FILE}" "${STEPS_FILE}" "${ITERATIONS}" "${MODES}" "${INCLUDE_QUEUE}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" "${HTTP_BASE}" "${WORK_DIR}" "$((SECONDS - STARTED_AT))" <<'PY'
 import json
 import pathlib
 import sys
+import time
 
 steps = []
 steps_path = pathlib.Path(sys.argv[2])
@@ -108,12 +110,17 @@ if steps_path.exists():
             steps.append(json.loads(line))
 summary = {
     "kind": "event-post-longrun",
+    "status": "fail" if int(sys.argv[7]) > 0 else "pass",
     "iterations": int(sys.argv[3]),
     "modes": [item.strip() for item in sys.argv[4].split(",") if item.strip()],
     "includeQueue": sys.argv[5] == "1",
     "pass": int(sys.argv[6]),
     "fail": int(sys.argv[7]),
     "skip": int(sys.argv[8]),
+    "httpBase": sys.argv[9],
+    "workDir": sys.argv[10],
+    "durationSec": int(float(sys.argv[11])),
+    "finishedAtEpochMs": int(time.time() * 1000),
     "steps": steps,
 }
 pathlib.Path(sys.argv[1]).write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -160,14 +167,44 @@ if ! [[ "${ITERATIONS}" =~ ^[0-9]+$ ]] || [[ "${ITERATIONS}" -lt 1 ]]; then
   exit 1
 fi
 
+MODE_LIST=()
+SEEN_MODES_CSV=","
+
+# mode 오타나 중복으로 장시간 검증이 엉뚱하게 반복되지 않도록 시작 전에 정규화한다.
+add_mode() {
+  local mode="$1"
+  mode="$(printf '%s' "${mode}" | xargs)"
+  [[ -n "${mode}" ]] || return 0
+  case "${mode}" in
+    schema|recovery|queue)
+      ;;
+    *)
+      echo "[fail] 지원하지 않는 event POST longrun mode입니다: ${mode}"
+      exit 1
+      ;;
+  esac
+  if [[ "${SEEN_MODES_CSV}" != *",${mode},"* ]]; then
+    MODE_LIST+=("${mode}")
+    SEEN_MODES_CSV+="${mode},"
+  fi
+}
+
+IFS=',' read -r -a RAW_MODE_LIST <<<"${MODES}"
+for mode in "${RAW_MODE_LIST[@]}"; do
+  add_mode "${mode}"
+done
+if [[ "${INCLUDE_QUEUE}" == "1" ]]; then
+  add_mode "queue"
+fi
+if [[ "${#MODE_LIST[@]}" -eq 0 ]]; then
+  echo "[fail] 실행할 event POST longrun mode가 없습니다"
+  exit 1
+fi
+MODES="$(IFS=,; printf '%s' "${MODE_LIST[*]}")"
+
 if ! curl -fsS --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
   echo "[fail] HTTP health check 실패: ${HTTP_BASE}/health"
   exit 1
-fi
-
-IFS=',' read -r -a MODE_LIST <<<"${MODES}"
-if [[ "${INCLUDE_QUEUE}" == "1" ]]; then
-  MODE_LIST+=("queue")
 fi
 
 : >"${STEPS_FILE}"

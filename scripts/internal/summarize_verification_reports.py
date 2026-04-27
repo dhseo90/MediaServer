@@ -42,12 +42,23 @@ def expand_paths(raw_paths: list[str], default_glob: str) -> list[pathlib.Path]:
                 continue
             seen.add(key)
             resolved.append(path)
-    return sorted(resolved, key=lambda item: item.stat().st_mtime, reverse=True)
+    return sorted(resolved, key=lambda item: safe_mtime(item), reverse=True)
+
+
+# 삭제 중인 /tmp 파일이나 권한 문제로 stat가 실패해도 리포트 전체 생성을 중단하지 않는다.
+def safe_mtime(path: pathlib.Path) -> float:
+    try:
+        return path.stat().st_mtime
+    except OSError:
+        return 0.0
 
 
 # JSON 또는 NDJSON 파일을 읽어 schema 차이를 숨긴 payload 목록으로 반환한다.
 def load_payloads(path: pathlib.Path) -> list[dict[str, Any]]:
-    text = path.read_text(encoding="utf-8", errors="replace").strip()
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace").strip()
+    except OSError as exc:
+        return [{"kind": "read-error", "status": "fail", "pass": 0, "fail": 1, "skip": 0, "error": str(exc)}]
     if not text:
         return []
     try:
@@ -85,6 +96,16 @@ def detect_report_kind(path: pathlib.Path, payload: dict[str, Any]) -> str:
         return "event-post"
     if "uri-longrun" in name:
         return "uri-longrun"
+    if "va-events" in name:
+        return "va-events"
+    if "route-profile" in name or "route-profiles" in name:
+        return "route-profiles"
+    if "rule-ui" in name:
+        return "rule-ui"
+    if "codec" in name:
+        return "codec-matrix"
+    if "category" in name:
+        return "va-category"
     if "webrtc-ice" in name:
         return "webrtc-ice"
     if "tracker-stability" in name:
@@ -98,6 +119,20 @@ def detect_report_kind(path: pathlib.Path, payload: dict[str, Any]) -> str:
     if "pass" in payload or "fail" in payload:
         return "generic"
     return "ndjson"
+
+
+# fail count와 명시 status를 합쳐 사람이 훑기 쉬운 상태 문자열로 만든다.
+def extract_status(payloads: list[dict[str, Any]]) -> str:
+    if not payloads:
+        return "empty"
+    first = payloads[0]
+    status = first.get("status")
+    if isinstance(status, str) and status:
+        return status
+    failed = first.get("fail")
+    if isinstance(failed, int):
+        return "fail" if failed > 0 else "pass"
+    return "info"
 
 
 # payload에서 공통 pass/fail/skip 값을 꺼낸다.
@@ -127,11 +162,15 @@ def summarize_details(kind: str, payloads: list[dict[str, Any]]) -> str:
     if kind == "event-post":
         return f"mode={first.get('mode')} received={first.get('receivedCount')} paths={first.get('receivedPathCounts', {})}"
     if kind == "event-post-longrun":
-        return f"iterations={first.get('iterations')} modes={first.get('modes')} steps={len(first.get('steps', []))}"
+        return f"status={first.get('status', '-')} iterations={first.get('iterations')} modes={first.get('modes')} durationSec={first.get('durationSec', '-')}"
     if kind == "predev":
         steps = first.get("steps") if isinstance(first.get("steps"), list) else []
-        failed = [step.get("name") for step in steps if step.get("result") != "pass"]
-        return f"durationSec={first.get('durationSec')} steps={len(steps)} failed={','.join(str(item) for item in failed)}"
+        failed = [step.get("name") for step in steps if step.get("result") == "fail"]
+        skipped = [step.get("name") for step in steps if step.get("result") == "skip"]
+        return (
+            f"durationSec={first.get('durationSec')} steps={len(steps)} "
+            f"failed={','.join(str(item) for item in failed)} skipped={','.join(str(item) for item in skipped)}"
+        )
     if kind == "uri-longrun":
         failures = first.get("failureClassifications") if isinstance(first.get("failureClassifications"), list) else []
         classes = sorted({",".join(item.get("classification", [])) for item in failures if isinstance(item, dict)})
@@ -243,24 +282,25 @@ def render_markdown(paths: list[pathlib.Path]) -> str:
     rows = [
         "# MediaServer 검증 요약",
         "",
-        "| 파일 | 유형 | pass | fail | skip | 핵심 detail |",
-        "| --- | --- | ---: | ---: | ---: | --- |",
+        "| 파일 | 유형 | 상태 | pass | fail | skip | 핵심 detail |",
+        "| --- | --- | --- | ---: | ---: | ---: | --- |",
     ]
     for path in paths:
         payloads = load_payloads(path)
         kind = detect_report_kind(path, payloads[0] if payloads else {})
+        status = extract_status(payloads)
         passed, failed, skipped = extract_counts(payloads)
         detail = summarize_details(kind, payloads)
         rows.append(
             "| "
             + " | ".join(
                 escape_cell(item)
-                for item in (str(path), kind, passed, failed, skipped, detail)
+                for item in (str(path), kind, status, passed, failed, skipped, detail)
             )
             + " |"
         )
     if len(rows) == 4:
-        rows.append("| - | - | - | - | - | summary 파일 없음 |")
+        rows.append("| - | - | empty | - | - | - | summary 파일 없음 |")
     rows.append("")
     rows.append("## 상세")
     rows.append("")

@@ -9,6 +9,8 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 BUILD_DIR="${MEDIA_SERVER_VERIFY_PREDEV_BUILD_DIR:-build-gst-onnx}"
 RTSP_PORT="${MEDIA_SERVER_VERIFY_PREDEV_RTSP_PORT:-8555}"
 HTTP_PORT="${MEDIA_SERVER_VERIFY_PREDEV_HTTP_PORT:-8081}"
+RTSP_LISTEN_ADDRESS="${MEDIA_SERVER_VERIFY_PREDEV_RTSP_LISTEN_ADDRESS:-}"
+HTTP_LISTEN_ADDRESS="${MEDIA_SERVER_VERIFY_PREDEV_HTTP_LISTEN_ADDRESS:-}"
 HTTP_BASE="${MEDIA_SERVER_VERIFY_PREDEV_HTTP_BASE:-http://127.0.0.1:${HTTP_PORT}}"
 SOAK_MINUTES="${MEDIA_SERVER_VERIFY_PREDEV_SOAK_MINUTES:-30}"
 MULTICHANNEL_HOLD_MS="${MEDIA_SERVER_VERIFY_PREDEV_MULTICHANNEL_HOLD_MS:-7000}"
@@ -30,6 +32,7 @@ SKIP_COUNT=0
 SKIP_BUILD=0
 QUICK_MODE=0
 INCLUDE_EXTERNAL_TURN=0
+INCLUDE_EXTERNAL_CLIENT=0
 
 mkdir -p "${WORK_DIR}"
 
@@ -43,21 +46,28 @@ Usage:
 
 Options:
   --soak-minutes <n>       다채널/VA/event POST 반복 안정화 시간. 기본 ${SOAK_MINUTES}
-  --quick                  개발 중 빠른 확인. soak=1분, VA event duration=12초
+  --quick                  개발 중 빠른 확인. soak=1분, VA event duration=30초
   --skip-build             cmake build 단계를 생략
   --rtsp-port <port>       테스트 RTSP port. 기본 ${RTSP_PORT}
   --http-port <port>       테스트 HTTP port. 기본 ${HTTP_PORT}
+  --rtsp-listen-address <addr>
+                           테스트 RTSP bind address. 기본은 로컬 검증 127.0.0.1, --include-external-client 0.0.0.0
+  --http-listen-address <addr>
+                           테스트 HTTP bind address. 기본은 로컬 검증 127.0.0.1, --include-external-client 0.0.0.0
   --summary-file <path>    predev summary JSON 출력 경로
   --report-file <path>     summarize-reports Markdown 출력 경로
   --report-html-file <path>
                            summarize-reports HTML 출력 경로
   --include-external-turn  외부 운영 TURN credential/relay 검증을 hard gate로 포함
+  --include-external-client
+                           LAN IP 외부 클라이언트 접근성도 hard gate로 포함
   --heartbeat-interval <n> 긴 step 진행 중 상태 출력 주기. 기본 ${HEARTBEAT_INTERVAL_S}초, 0이면 끔
   -h, --help               도움말 출력
 
 기준:
   - 통합 smoke, 다채널 WebRTC, VA event, event POST schema/recovery/queue를 확인합니다.
   - 종료 시 runtime session/stream/tap cleanup과 8080/8081/8554/8555 listener 정리를 hard check합니다.
+  - LAN IP 외부 접근성은 bind/방화벽 영향이 커서 --include-external-client 지정 시에만 hard gate로 포함합니다.
   - 외부 TURN credential이 없는 환경에서는 외부 TURN hard gate를 기본 포함하지 않습니다.
 EOF_USAGE
 }
@@ -90,6 +100,14 @@ parse_args() {
         HTTP_BASE="http://127.0.0.1:${HTTP_PORT}"
         shift 2
         ;;
+      --rtsp-listen-address)
+        RTSP_LISTEN_ADDRESS="${2:-}"
+        shift 2
+        ;;
+      --http-listen-address)
+        HTTP_LISTEN_ADDRESS="${2:-}"
+        shift 2
+        ;;
       --summary-file)
         SUMMARY_FILE="${2:-}"
         shift 2
@@ -104,6 +122,10 @@ parse_args() {
         ;;
       --include-external-turn)
         INCLUDE_EXTERNAL_TURN=1
+        shift
+        ;;
+      --include-external-client)
+        INCLUDE_EXTERNAL_CLIENT=1
         shift
         ;;
       --heartbeat-interval)
@@ -208,6 +230,8 @@ run_step() {
 run_external_turn_gate() {
   if [[ "${INCLUDE_EXTERNAL_TURN}" != "1" ]]; then
     echo "[info] external-turn-hard-gate: --include-external-turn 미지정으로 기본 안정 묶음에서는 제외"
+    SKIP_COUNT=$((SKIP_COUNT + 1))
+    append_step "external-turn-hard-gate" "skip" "--include-external-turn not requested" "" 0
     return 0
   fi
   if [[ -z "${MEDIA_SERVER_WEBRTC_TURN_SERVER:-${MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER:-}}" ]]; then
@@ -274,6 +298,9 @@ start_server() {
     MEDIA_SERVER_SKIP_BUILD=1 \
     MEDIA_SERVER_LISTEN_PORT="${RTSP_PORT}" \
     MEDIA_SERVER_HTTP_LISTEN_PORT="${HTTP_PORT}" \
+    MEDIA_SERVER_LISTEN_ADDRESS="${RTSP_LISTEN_ADDRESS}" \
+    MEDIA_SERVER_HTTP_LISTEN_ADDRESS="${HTTP_LISTEN_ADDRESS}" \
+    MEDIA_SERVER_SKIP_LOCAL_ENV="${MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV:-1}" \
     MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 \
     MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE="${queue_size}" \
       ./scripts/internal/run_server_foreground.sh
@@ -315,6 +342,8 @@ checks = {
     "registryActiveStreams": session.get("registryActiveStreams", 0),
     "activeAnalysisTaps": session.get("activeAnalysisTaps", 0),
     "egressSessions": webrtc.get("egressSessions", 0),
+    "publishSessions": webrtc.get("publishSessions", 0),
+    "publishSources": len(webrtc.get("publishSources") or []),
 }
 bad = {key: value for key, value in checks.items() if int(value or 0) != 0}
 if bad:
@@ -359,7 +388,15 @@ assert_ports_clean() {
   local log_file="${WORK_DIR}/ports-clean.log"
   : >"${log_file}"
   local busy=0
-  for port in 8080 8081 8554 8555; do
+  local ports=(8080 8081 8554 8555 "${RTSP_PORT}" "${HTTP_PORT}")
+  local seen_ports=()
+  local port
+  for port in "${ports[@]}"; do
+    [[ -n "${port}" ]] || continue
+    if [[ " ${seen_ports[*]-} " == *" ${port} "* ]]; then
+      continue
+    fi
+    seen_ports+=("${port}")
     if lsof -nP -iTCP:"${port}" -sTCP:LISTEN >>"${log_file}" 2>&1; then
       busy=1
     fi
@@ -412,10 +449,11 @@ run_soak_loop() {
 # 전체 predev summary JSON을 생성한다.
 write_summary() {
   local duration_sec="$1"
-  python3 - "${SUMMARY_FILE}" "${STEPS_FILE}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" "${duration_sec}" "${REPORT_FILE}" "${REPORT_HTML_FILE}" "${SOAK_MINUTES}" "${QUICK_MODE}" "${INCLUDE_EXTERNAL_TURN}" <<'PY'
+  python3 - "${SUMMARY_FILE}" "${STEPS_FILE}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" "${duration_sec}" "${REPORT_FILE}" "${REPORT_HTML_FILE}" "${SOAK_MINUTES}" "${QUICK_MODE}" "${INCLUDE_EXTERNAL_TURN}" "${WORK_DIR}" "${INCLUDE_EXTERNAL_CLIENT}" <<'PY'
 import json
 import pathlib
 import sys
+import time
 
 steps = []
 steps_path = pathlib.Path(sys.argv[2])
@@ -425,6 +463,7 @@ if steps_path.exists():
             steps.append(json.loads(line))
 summary = {
     "kind": "predev",
+    "status": "fail" if int(sys.argv[4]) > 0 else "pass",
     "pass": int(sys.argv[3]),
     "fail": int(sys.argv[4]),
     "skip": int(sys.argv[5]),
@@ -434,6 +473,9 @@ summary = {
     "soakMinutes": int(sys.argv[9]),
     "quickMode": sys.argv[10] == "1",
     "includeExternalTurn": sys.argv[11] == "1",
+    "workDir": sys.argv[12],
+    "includeExternalClient": sys.argv[13] == "1",
+    "finishedAtEpochMs": int(time.time() * 1000),
     "steps": steps,
 }
 pathlib.Path(sys.argv[1]).write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -450,6 +492,12 @@ trap cleanup EXIT
 # predev 안정화 검증을 순서대로 실행한다.
 main() {
   parse_args "$@"
+  if [[ -z "${RTSP_LISTEN_ADDRESS}" ]]; then
+    RTSP_LISTEN_ADDRESS="$([[ "${INCLUDE_EXTERNAL_CLIENT}" == "1" ]] && printf '0.0.0.0' || printf '127.0.0.1')"
+  fi
+  if [[ -z "${HTTP_LISTEN_ADDRESS}" ]]; then
+    HTTP_LISTEN_ADDRESS="$([[ "${INCLUDE_EXTERNAL_CLIENT}" == "1" ]] && printf '0.0.0.0' || printf '127.0.0.1')"
+  fi
   assert_non_negative_int "${SOAK_MINUTES}" "soak-minutes"
   assert_non_negative_int "${HEARTBEAT_INTERVAL_S}" "heartbeat-interval"
   require_cmd bash
@@ -460,6 +508,10 @@ main() {
   require_cmd python3
 
   local started_at="${SECONDS}"
+  local external_client_option="--skip-external"
+  if [[ "${INCLUDE_EXTERNAL_CLIENT}" == "1" ]]; then
+    external_client_option=""
+  fi
   : >"${STEPS_FILE}"
 
   if [[ "${SKIP_BUILD}" -eq 0 ]]; then
@@ -473,7 +525,7 @@ main() {
   start_server 256 || true
   if [[ -n "${SERVER_PID}" ]] && kill -0 "${SERVER_PID}" >/dev/null 2>&1; then
     run_step "integrated-smoke" \
-      "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} ./server.sh test --no-start --include-rules --include-rule-ui --include-va-events --include-image-analysis" || true
+      "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_LISTEN_ADDRESS=${RTSP_LISTEN_ADDRESS} MEDIA_SERVER_HTTP_LISTEN_ADDRESS=${HTTP_LISTEN_ADDRESS} MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV:-1} ./server.sh test --no-start ${external_client_option} --include-rules --include-rule-ui --include-va-events --include-image-analysis" || true
     run_external_turn_gate || true
     run_soak_loop
     assert_runtime_idle "main-runtime-idle" || true

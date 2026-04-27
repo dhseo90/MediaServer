@@ -27,7 +27,7 @@ Usage:
 
 개발/검증 명령:
   foreground     서버를 foreground로 실행합니다. 개발 중 로그를 바로 볼 때 사용합니다.
-  test           안정 기능과 LAN IP 외부 접근성 통합 테스트를 한글 리포트로 실행합니다.
+  test           기본값은 --basic입니다. 기본/풀/외부 통합 테스트를 한글 리포트로 실행합니다.
   verify-codecs  file/RTSP/WebRTC source와 codec route matrix를 자동 검증합니다.
   verify-webrtc-ice
                  WebRTC STUN/TURN/ICE policy와 candidate 수집 상태를 검증합니다.

@@ -2,15 +2,21 @@
 
 ## 목적
 - 현재 지원 중인 source/egress 조합을 반복 검증한다.
-- 로컬 샘플 파일, 로컬 RTSP test source, LAN IP 외부 클라이언트 접근성, 제3자 RTSP upstream advisory를 함께 사용한다.
+- 로컬 샘플 파일, 로컬 RTSP test source, WebRTC publish, 로컬 HTTP URI를 기본 기준으로 반복 검증한다.
+- LAN IP 외부 클라이언트 접근성, 제3자 RTSP upstream advisory, WebRTC ICE, 외부 HTTP/HLS URI는 `--external` 또는 선택 검증에서 확인한다.
 
 ## 현재 기준 요약
-- 최신 기준으로 기본 안정 기준은 `file`, 로컬 `RTSP pull`, 로컬 `WebRTC publish`, 로컬 `HTTP URI`, LAN IP 기준 외부 클라이언트 접근성, 제3자 RTSP upstream advisory, 기본 YOLO/VA overlay다.
+- 최신 기준으로 `./server.sh test`는 무옵션일 때 `--basic`과 동일하다. 기본 안정 기준은 `file`, 로컬 `RTSP pull`, 로컬 `WebRTC publish`, 로컬 `HTTP URI`, 검증 summary report smoke, 기본 YOLO/VA overlay다.
+- `--full`은 Rule/Profile UI, VA event, image analysis, event POST, multichannel을 포함한다.
+- `--external`은 `--full`에 LAN IP 외부 클라이언트 접근성, 제3자 RTSP upstream advisory, WebRTC ICE, 외부 HTTP/HLS URI longrun을 추가한다.
+- `--stable`은 기존 stable 호환 모드로 로컬 stream/VA와 LAN IP 외부 클라이언트 접근성, 제3자 RTSP upstream advisory를 함께 본다.
 - 과거 blocker였던 `HTTP URI -> RTSP 503`은 URI/VOD source pacing 보정 후 로컬 HTTP MP4 matrix에서 통과했다.
 - 아래 문서에는 과거 통과/실패 이력도 남아 있다. 과거 이력은 변경 영향 추적용이며, 현재 작업 우선순위는 최신 검증 결과를 기준으로 판단한다.
 - 로컬 HLS VOD와 공개 HLS 후보(Mux/Apple)는 `verify-uri-longrun` 선택 검증에서 통과했다. 외부 HLS/HTTP URI는 네트워크/upstream 상태 영향이 있으므로 기본 안정 테스트가 아닌 선택 검증으로 남긴다.
 
 최신 후속 검증 결과:
+- `2026-04-27`: 통합 test 모드를 `basic/full/external/stable`로 분리했다. `./server.sh test`는 기본값 `--basic`으로 동작하며 외부망/LAN probe 없이 로컬 재현성을 우선한다. `--full`은 Rule/Profile UI, VA event, image analysis, event POST, multichannel, report summary를 포함하고, `--external`은 LAN IP 외부 접근성, 외부 RTSP advisory, WebRTC ICE, 외부 HTTP/HLS URI longrun까지 확장한다. 기존 LAN/외부 RTSP 포함 기준은 `--stable`에 남겼다.
+- `2026-04-27`: 13차 잔여 안정화 이슈로 `verify-predev`의 loopback 기본 bind, 로컬 env override 격리, LAN IP 외부 접근성 hard gate 분리, 외부 TURN skip step 기록, runtime idle의 publish session/source 확인, custom port cleanup, summary metadata를 보강했다. `./server.sh verify-predev --skip-build --soak-minutes 0 --heartbeat-interval 30` 통과 `8/0/3`, summary `/tmp/media_server_predev-1777292825-16550_summary.json`, report `/tmp/media_server_predev-1777292825-16550_report.md`, report html `/tmp/media_server_predev-1777292825-16550_report.html`. 최종 cleanup 후 `8080/8081/8554/8555` listener는 없었다.
 - `2026-04-27`: 안정화 후속 1~9 개발로 `/lab/runtime/status`에 profile/rule matching 요약을 추가하고, Lab에 event POST 설정/상태 패널, 다채널 client별 state/frame/byte 통계, `/tmp/media_server_*` 검증 리포트 뷰어를 추가했다. 검증 스크립트는 `summarize-reports --html-output`, `verify-event-post-longrun`, `verify-tracker-stability --stress`, `verify-uri-longrun --external-config`, `verify-predev --include-external-turn`을 지원한다. 외부 운영 TURN relay/auth는 credential 확보 전까지 기본 안정 기준에 넣지 않고, `--include-external-turn`을 명시한 경우에만 hard gate로 실패 처리한다.
 - `2026-04-27`: 기능 개발 재개 전 안정화 묶음 명령 `./server.sh verify-predev`를 추가했다. 이 명령은 통합 smoke, 다채널 WebRTC/VA, VA event, event POST schema/recovery/queue, summary report, runtime idle, 대표 port cleanup을 하나의 실행으로 확인한다. `./server.sh verify-predev --quick` 통과 `14/0/0`, `./server.sh verify-predev --soak-minutes 30` 통과 `89/0/0`, summary `/tmp/media_server_predev-1777284107-17671_summary.json`, report `/tmp/media_server_predev-1777284107-17671_report.md`를 확인했다. 최종 cleanup 후 `8080/8081/8554/8555` listener는 없었다.
 - `2026-04-27`: 후속 개발로 `/lab`과 `/webrtc/test`에 `/lab/runtime/status` 기반 런타임 상태 패널과 다채널 WebRTC 수동 테스트 패널을 추가했다. 같은 화면에서 active session/stream/tap, WHIP publish source의 video/audio readiness, subscriber count를 확인할 수 있다. 브라우저 확인에서 `/lab` title, runtime panel, 다채널 버튼 DOM, runtime text `session 0 · stream 0 · tap 0`을 확인했다.
@@ -124,8 +130,9 @@
 
 ## 선택/보류 테스트 범위
 1. 외부 RTSP source 심화 재검증
-   - `./server.sh test` 기본 기준에는 LAN IP 외부 클라이언트 접근성을 hard gate로 포함한다.
-   - 제3자 RTSP upstream 후보는 remote 응답 지연과 upstream 상태 영향이 커서 기본 stable에서는 advisory로 본다.
+   - `./server.sh test` 기본 기준은 로컬 재현성을 우선하므로 LAN IP 외부 클라이언트 접근성을 포함하지 않는다.
+   - LAN IP 외부 클라이언트 접근성은 `./server.sh test --external` 또는 `./server.sh test --stable`에서 hard gate로 확인한다.
+   - 제3자 RTSP upstream 후보는 remote 응답 지연과 upstream 상태 영향이 커서 `--stable`/`--external`에서는 advisory로 본다.
    - 신뢰 가능한 카메라/테스트 RTSP URL을 `MEDIA_SERVER_TEST_EXTERNAL_RTSP_URLS`로 지정하면 hard gate로 검증한다.
    - 외부 HTTP/HLS URL은 `./server.sh verify-uri-longrun --include-external --external-urls <url>`로 advisory 검증한다. 기본 외부 RTSP route는 `default`만 확인하며, 필요할 때 `--external-rtsp-routes default,h264,opus`로 넓힌다.
 2. WebRTC 운영 환경 테스트
@@ -158,18 +165,19 @@
   - source descriptor/audio-video track discovery가 로컬 검증 범위에서 일관되어야 한다.
   - 서버 중지 후 listen port와 잔여 foreground process가 남지 않아야 한다.
 - 이번 체크에서 우선 보는 범위
-  - LAN IP 기준 외부 클라이언트 접근성은 모든 `./server.sh test` 모드에서 확인한다.
-  - 제3자 RTSP upstream reachability는 stable `./server.sh test`에서 advisory로 확인한다.
+  - `./server.sh test` 무옵션은 `--basic`과 같으며, 로컬 재현성을 우선해 LAN IP/외부망 probe를 제외한다.
+  - LAN IP 기준 외부 클라이언트 접근성은 `--external` 또는 `--stable` 모드에서 확인한다.
+  - 제3자 RTSP upstream reachability는 `--external` 또는 `--stable` 모드에서 advisory로 확인한다.
   - 신뢰 가능한 외부 RTSP URL을 명시한 경우에는 hard gate로 검증한다.
-  - 로컬 HTTP URI source는 기본 matrix에 포함한다. 로컬 HLS VOD와 외부 HLS/HTTP URI는 `./server.sh verify-uri-longrun` 선택 검증으로 남긴다. Mux/Apple 공개 HLS advisory는 `2026-04-26` 기준 통과했지만, 외부 URL 의존성 때문에 기본 stable hard gate로 승격하지 않는다.
+  - 로컬 HTTP URI source는 기본 matrix에 포함한다. 로컬 HLS VOD와 외부 HLS/HTTP URI는 `./server.sh verify-uri-longrun` 선택 검증으로 남긴다. Mux/Apple 공개 HLS advisory는 `2026-04-26` 기준 통과했지만, 외부 URL 의존성 때문에 basic hard gate로 승격하지 않는다.
   - YOLO/VA overlay는 기본 설치/기본 실행 범위이므로 `./server.sh test` 기본 기준에 포함한다.
   - profile/rule/event, adaptive tuner는 선택 테스트로 유지하고 기본 안정 기준에는 넣지 않는다.
 - 권장 실행 순서
   1. `./server.sh install`
   2. `./server.sh test`
-  3. 필요 시 `./server.sh test --include-rules`
-  4. 필요 시 `./server.sh test --include-va-events`
-  5. 필요 시 `./server.sh test --include-webrtc-ice`
+  3. 로컬 풀 범위가 필요하면 `./server.sh test --full`
+  4. LAN/외부망 범위가 필요하면 `./server.sh test --external`
+  5. 기존 stable 호환 기준이 필요하면 `./server.sh test --stable`
   6. 필요 시 `./server.sh verify-multichannel`
      - VA overlay 다채널까지 보려면 `./server.sh verify-multichannel --include-va --repeat 2`
   7. 필요 시 `./server.sh verify-uri-longrun`
@@ -179,7 +187,7 @@
   11. 필요 시 `./server.sh verify-adaptive`
   12. `./server.sh stop`
 - 판단 규칙
-  - 위 stable 기준이 깨지면 분석 관련 변경보다 스트리밍 안정화 수정을 먼저 한다.
+  - 위 통합 테스트 기준이 깨지면 분석 관련 변경보다 스트리밍 안정화 수정을 먼저 한다.
   - profile/rule/event 같은 분석 관련 기능은 선택 테스트로 검증하되, 안정 기능으로 승격 전까지 기본 `./server.sh test`에는 넣지 않는다.
   - 새 기능을 추가하면 먼저 선택 테스트(`--include-*`)로 묶고, 반복 검증 후 안정 기능으로 판단될 때만 기본 `./server.sh test` 기준에 승격한다.
 
