@@ -13,6 +13,7 @@
 #include <cerrno>
 #include <chrono>
 #include <cctype>
+#include <cstdint>
 #include <cstring>
 #include <fstream>
 #include <filesystem>
@@ -1500,6 +1501,25 @@ std::string BuildTestPageHtml(bool lab_mode) {
               <div>session 0 · stream 0 · tap 0</div>
               <div>egress 0 · publish 0</div>
               <div id="runtimePublishSources" style="white-space:pre-wrap;">publish source 없음</div>
+              <div id="runtimeAnalysisMatches" style="white-space:pre-wrap;">profile/rule matching 대기</div>
+            </div>
+          </details>
+          <details style="border:1px solid var(--line);border-radius:14px;padding:10px;background:var(--details-bg);">
+            <summary style="cursor:pointer;font-weight:700;color:var(--ink);">Event POST 설정/상태</summary>
+            <div style="display:grid;gap:8px;margin-top:10px;font-size:0.9rem;color:var(--muted);">
+              <div id="eventPostStatusPanel" style="white-space:pre-wrap;">event POST 상태 로딩 중</div>
+              <button id="eventPostRefreshBtn" class="secondary" type="button">상태 새로고침</button>
+            </div>
+          </details>
+          <details style="border:1px solid var(--line);border-radius:14px;padding:10px;background:var(--details-bg);">
+            <summary style="cursor:pointer;font-weight:700;color:var(--ink);">검증 리포트</summary>
+            <div style="display:grid;gap:8px;margin-top:10px;">
+              <div style="display:grid;grid-template-columns:1fr auto;gap:8px;">
+                <select id="reportSelect"></select>
+                <button id="reportRefreshBtn" class="secondary" type="button">목록</button>
+              </div>
+              <button id="reportOpenBtn" class="secondary" type="button">선택 리포트 보기</button>
+              <pre id="reportContent" class="compact-pre" style="min-height:120px;max-height:320px;"></pre>
             </div>
           </details>
           <details style="border:1px solid var(--line);border-radius:14px;padding:10px;background:var(--details-bg);">
@@ -1529,6 +1549,7 @@ va_four_scene_sample.mp4</textarea>
                 <button id="multiManyBtn" class="secondary" type="button">여러 영상 실행</button>
               </div>
               <button id="multiStopBtn" class="secondary" type="button">다채널 중지</button>
+              <pre id="multiStatsLog" class="compact-pre" style="min-height:90px;"></pre>
               <pre id="multiStatusLog" class="compact-pre" style="min-height:90px;"></pre>
             </div>
           </details>
@@ -1612,12 +1633,20 @@ va_four_scene_sample.mp4</textarea>
     const publisherCandidateSummaryEl = document.getElementById('publisherCandidateSummary');
     const runtimeStatusPanelEl = document.getElementById('runtimeStatusPanel');
     const runtimePublishSourcesEl = document.getElementById('runtimePublishSources');
+    const runtimeAnalysisMatchesEl = document.getElementById('runtimeAnalysisMatches');
+    const eventPostStatusPanelEl = document.getElementById('eventPostStatusPanel');
+    const eventPostRefreshBtnEl = document.getElementById('eventPostRefreshBtn');
+    const reportSelectEl = document.getElementById('reportSelect');
+    const reportRefreshBtnEl = document.getElementById('reportRefreshBtn');
+    const reportOpenBtnEl = document.getElementById('reportOpenBtn');
+    const reportContentEl = document.getElementById('reportContent');
     const multiSingleFileInputEl = document.getElementById('multiSingleFileInput');
     const multiSourceListInputEl = document.getElementById('multiSourceListInput');
     const multiSingleClientsInputEl = document.getElementById('multiSingleClientsInput');
     const multiClientsPerSourceInputEl = document.getElementById('multiClientsPerSourceInput');
     const multiVaInputEl = document.getElementById('multiVaInput');
     const multiStatusLogEl = document.getElementById('multiStatusLog');
+    const multiStatsLogEl = document.getElementById('multiStatsLog');
     const sourceFieldEls = Array.from(document.querySelectorAll('[data-source-field]'));
     let pc = null;
     let sessionId = null;
@@ -1714,7 +1743,9 @@ va_four_scene_sample.mp4</textarea>
       if (!runtimeStatusPanelEl || !payload) return;
       const sessionManager = payload.sessionManager || {};
       const webrtcHttp = payload.webrtcHttp || {};
+      const analysisMatching = payload.analysisMatching || {};
       const publishSources = Array.isArray(webrtcHttp.publishSources) ? webrtcHttp.publishSources : [];
+      const activeTaps = Array.isArray(analysisMatching.activeTaps) ? analysisMatching.activeTaps : [];
       const summaryLines = [
         `session ${sessionManager.activeSessions || 0} · stream ${sessionManager.registryActiveStreams || 0} · tap ${sessionManager.activeAnalysisTaps || 0}`,
         `egress ${webrtcHttp.egressSessions || 0} · publish ${webrtcHttp.publishSessions || 0}`
@@ -1722,10 +1753,17 @@ va_four_scene_sample.mp4</textarea>
       const sourceLines = publishSources.map((source) => (
         `${source.sourceId || '<unknown>'} · video ${runtimeFlag(source.hasVideo)} · audio ${runtimeFlag(source.hasAudio)} · subscriber ${source.subscriberCount || 0}`
       ));
+      const matchLines = activeTaps.map((tap) => (
+        `${tap.tapId || '<tap>'} · ${tap.sourceKind || '-'}:${tap.route || '-'} · profile=${tap.profileKey || '-'} · rule=${tap.selectedRuleId || tap.profileSelectionSource || '-'}`
+      ));
       runtimeStatusPanelEl.children[0].textContent = summaryLines[0];
       runtimeStatusPanelEl.children[1].textContent = summaryLines[1];
       if (runtimePublishSourcesEl) {
         runtimePublishSourcesEl.textContent = sourceLines.length > 0 ? sourceLines.join('\n') : 'publish source 없음';
+      }
+      if (runtimeAnalysisMatchesEl) {
+        const header = `profiles ${analysisMatching.profileDocumentCount || 0} · rules ${analysisMatching.ruleDocumentCount || 0}`;
+        runtimeAnalysisMatchesEl.textContent = matchLines.length > 0 ? `${header}\n${matchLines.join('\n')}` : `${header}\nactive tap 없음`;
       }
     }
 
@@ -1739,6 +1777,61 @@ va_four_scene_sample.mp4</textarea>
       } catch (error) {
         runtimeStatusPanelEl.children[0].textContent = `runtime status 실패: ${error.message}`;
       }
+    }
+
+    // event POST worker의 런타임 설정과 counter를 Lab에서 즉시 확인할 수 있게 표시한다.
+    function renderEventPostStatus(payload) {
+      if (!eventPostStatusPanelEl || !payload) return;
+      const lines = [
+        `enabled ${payload.enabled ? 'on' : 'off'} · queue ${payload.queueSize || 0}/${payload.maxQueueSize || 0}`,
+        `enqueued ${payload.enqueuedCount || 0} · sent ${payload.sentCount || 0} · failed ${payload.failedCount || 0}`,
+        `dropped ${payload.droppedCount || 0} · suppressed ${payload.suppressedCount || 0}`
+      ];
+      if (payload.lastError) {
+        lines.push(`lastError ${payload.lastError}`);
+      }
+      eventPostStatusPanelEl.textContent = lines.join('\n');
+    }
+
+    // event POST 상태 endpoint를 조회해 전송 설정과 실패 counter를 갱신한다.
+    async function refreshEventPostStatus() {
+      if (!eventPostStatusPanelEl) return;
+      try {
+        const response = await fetch('/lab/analysis/event-post/status', { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        renderEventPostStatus(await response.json());
+      } catch (error) {
+        eventPostStatusPanelEl.textContent = `event POST 상태 실패: ${error.message}`;
+      }
+    }
+
+    // /tmp에 남은 검증 리포트 목록을 선택 상자에 채운다.
+    async function refreshReportList() {
+      if (!reportSelectEl) return;
+      const response = await fetch('/lab/reports', { cache: 'no-store' });
+      if (!response.ok) throw new Error(`/lab/reports HTTP ${response.status}`);
+      const payload = await response.json();
+      const reports = Array.isArray(payload.reports) ? payload.reports : [];
+      reportSelectEl.innerHTML = '';
+      for (const report of reports) {
+        const option = document.createElement('option');
+        option.value = report.path;
+        option.textContent = `${report.kind || 'report'} · ${report.name || report.path} · ${Math.round((report.sizeBytes || 0) / 1024)} KiB`;
+        reportSelectEl.appendChild(option);
+      }
+      if (reportContentEl) {
+        reportContentEl.textContent = reports.length > 0 ? `${reports.length}개 리포트 발견` : '표시할 검증 리포트가 없습니다.';
+      }
+    }
+
+    // 선택한 리포트 본문을 읽어 Lab 안에서 빠르게 확인한다.
+    async function openSelectedReport() {
+      if (!reportSelectEl || !reportContentEl || !reportSelectEl.value) return;
+      const response = await fetch(`/lab/reports/content?path=${encodeURIComponent(reportSelectEl.value)}`, { cache: 'no-store' });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || `report HTTP ${response.status}`);
+      const prefix = payload.truncated ? `[앞부분 ${payload.content.length} bytes만 표시]\n` : '';
+      reportContentEl.textContent = `${payload.name}\n${payload.path}\n\n${prefix}${payload.content || ''}`;
     }
 
     // 다채널 수동 테스트 로그를 화면과 기존 세션 로그에 함께 남긴다.
@@ -1795,7 +1888,9 @@ va_four_scene_sample.mp4</textarea>
         sessionId: '',
         pollTimer: null,
         video: document.createElement('video'),
-        trackKinds: new Set()
+        trackKinds: new Set(),
+        lastStats: null,
+        lastState: 'new'
       };
       client.video.autoplay = true;
       client.video.playsInline = true;
@@ -1852,6 +1947,8 @@ va_four_scene_sample.mp4</textarea>
         const connected = ['connected', 'completed'].includes(client.pc.connectionState || '');
         const ready = client.video.readyState >= 2 && Number(client.video.videoWidth || 0) > 0;
         const stats = await collectPeerStats(client.pc);
+        client.lastStats = stats;
+        client.lastState = `${client.pc.connectionState || 'unknown'}/${client.pc.iceConnectionState || 'unknown'}`;
         if (connected && (ready || stats.inboundVideoFramesDecoded > 0 || stats.inboundVideoBytes > 0)) {
           return;
         }
@@ -1860,10 +1957,28 @@ va_four_scene_sample.mp4</textarea>
       throw new Error(`${client.fileName} client ${client.index} playback timeout`);
     }
 
+    // 다채널 client별 ICE/state/frame/byte 통계를 표 형태 텍스트로 갱신한다.
+    async function renderMultichannelStats(clients) {
+      if (!multiStatsLogEl) return;
+      const lines = [];
+      for (const client of clients) {
+        const stats = client.lastStats || await collectPeerStats(client.pc).catch(() => ({}));
+        client.lastStats = stats;
+        const state = `${client.pc.connectionState || 'unknown'}/${client.pc.iceConnectionState || 'unknown'}`;
+        client.lastState = state;
+        const tracks = Array.from(client.trackKinds || []).join(',') || '-';
+        lines.push(
+          `#${client.index} ${client.fileName} · state ${state} · tracks ${tracks} · frames ${stats.inboundVideoFramesDecoded || 0} · bytes ${stats.inboundVideoBytes || 0}`
+        );
+      }
+      multiStatsLogEl.textContent = lines.length > 0 ? lines.join('\n') : 'client 통계 없음';
+    }
+
     // 사용자가 입력한 단일/다중 source 목록으로 여러 WebRTC client를 동시에 열어 fan-out 상태를 확인한다.
     async function runMultichannelManual(mode) {
       await stopMultichannelManual();
       if (multiStatusLogEl) multiStatusLogEl.textContent = '';
+      if (multiStatsLogEl) multiStatsLogEl.textContent = '';
       const vaEnabled = !!(multiVaInputEl && multiVaInputEl.checked);
       const files = [];
       if (mode === 'single') {
@@ -1883,6 +1998,7 @@ va_four_scene_sample.mp4</textarea>
       appendMultiLog(`시작: mode=${mode} clients=${files.length} va=${vaEnabled ? 'on' : 'off'}`);
       const clients = await Promise.all(files.map((fileName, index) => startMultichannelClient(fileName, index + 1, vaEnabled)));
       await Promise.all(clients.map((client) => waitForMultichannelClient(client)));
+      await renderMultichannelStats(clients);
       appendMultiLog(`playback 확인 완료: ${clients.length}개 client`);
       await refreshRuntimeStatus();
     }
@@ -2515,6 +2631,21 @@ va_four_scene_sample.mp4</textarea>
     document.getElementById('multiSingleBtn').onclick = () => runMultichannelManual('single').catch((error) => appendMultiLog(error.message));
     document.getElementById('multiManyBtn').onclick = () => runMultichannelManual('many').catch((error) => appendMultiLog(error.message));
     document.getElementById('multiStopBtn').onclick = () => stopMultichannelManual().catch((error) => appendMultiLog(error.message));
+    if (eventPostRefreshBtnEl) {
+      eventPostRefreshBtnEl.onclick = () => refreshEventPostStatus().catch((error) => {
+        if (eventPostStatusPanelEl) eventPostStatusPanelEl.textContent = `event POST 상태 실패: ${error.message}`;
+      });
+    }
+    if (reportRefreshBtnEl) {
+      reportRefreshBtnEl.onclick = () => refreshReportList().catch((error) => {
+        if (reportContentEl) reportContentEl.textContent = `리포트 목록 실패: ${error.message}`;
+      });
+    }
+    if (reportOpenBtnEl) {
+      reportOpenBtnEl.onclick = () => openSelectedReport().catch((error) => {
+        if (reportContentEl) reportContentEl.textContent = `리포트 열기 실패: ${error.message}`;
+      });
+    }
     if (imageAnalysisOverlayBtn) {
       imageAnalysisOverlayBtn.onclick = () => runImageAnalysis('overlay').catch((error) => {
         if (imageAnalysisStatusEl) imageAnalysisStatusEl.textContent = `분석 실패: ${error.message}`;
@@ -2679,6 +2810,8 @@ va_four_scene_sample.mp4</textarea>
     loadWebRtcConfig().catch((error) => log(`ICE config 로드 실패: ${error.message}`));
     refreshRuntimeStatus().catch((error) => log(`runtime status 로드 실패: ${error.message}`));
     runtimeStatusTimer = setInterval(() => { refreshRuntimeStatus().catch((error) => log(`runtime status 로드 실패: ${error.message}`)); }, 2000);
+    refreshEventPostStatus().catch((error) => log(`event POST 상태 로드 실패: ${error.message}`));
+    refreshReportList().catch((error) => log(`검증 리포트 목록 로드 실패: ${error.message}`));
     loadFileOptions();
     loadImageAnalysisOptions();
     if (imageAnalysisOverlayBtn) {
@@ -2700,6 +2833,9 @@ va_four_scene_sample.mp4</textarea>
       runMultichannelManual,
       stopMultichannelManual,
       refreshRuntimeStatus,
+      refreshEventPostStatus,
+      refreshReportList,
+      openSelectedReport,
       snapshotState,
       collectPeerStats
     };
@@ -4771,7 +4907,10 @@ std::string SourceJson(const std::string& session_id, const std::string& source_
 std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& snapshot,
                               std::size_t http_egress_sessions,
                               std::size_t whip_publish_sessions,
-                              const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources) {
+                              const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
+                              const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps) {
+    const auto profile_documents = AnalysisProfileDocumentsSnapshot();
+    const auto rule_documents = AnalysisRuleDocumentsSnapshot();
     std::ostringstream out;
     out << "{"
         << "\"ok\":true,"
@@ -4797,6 +4936,31 @@ std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& 
             << "\"hasVideo\":" << (publish_sources[i].has_video ? "true" : "false") << ","
             << "\"hasAudio\":" << (publish_sources[i].has_audio ? "true" : "false") << ","
             << "\"subscriberCount\":" << publish_sources[i].subscriber_count
+            << "}";
+    }
+    out << "]"
+        << "},"
+        << "\"analysisMatching\":{"
+        << "\"profileDocumentCount\":" << profile_documents.size() << ","
+        << "\"ruleDocumentCount\":" << rule_documents.size() << ","
+        << "\"activeTapCount\":" << analysis_taps.size() << ","
+        << "\"activeTaps\":[";
+    for (std::size_t i = 0; i < analysis_taps.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        const auto& tap = analysis_taps[i];
+        out << "{"
+            << "\"tapId\":\"" << JsonEscape(tap.tap_id) << "\","
+            << "\"streamKey\":\"" << JsonEscape(tap.stream_key) << "\","
+            << "\"profileKey\":\"" << JsonEscape(tap.profile_key) << "\","
+            << "\"sourceKind\":\"" << JsonEscape(tap.context.source_kind) << "\","
+            << "\"route\":\"" << JsonEscape(tap.context.route) << "\","
+            << "\"clientId\":\"" << JsonEscape(tap.context.client_id) << "\","
+            << "\"profileSelectionSource\":\"" << JsonEscape(tap.profile_selection_source) << "\","
+            << "\"selectedRuleId\":\"" << JsonEscape(tap.selected_by_rule_id) << "\","
+            << "\"selectedRulePriority\":" << tap.selected_rule_priority << ","
+            << "\"selectedRuleSpecificity\":" << tap.selected_rule_specificity
             << "}";
     }
     out << "]"
@@ -5525,6 +5689,151 @@ std::string AnalysisEventPostStatusJson() {
     return out.str();
 }
 
+// Lab 리포트 뷰어가 노출할 수 있는 검증 산출물 확장자만 허용한다.
+bool IsLabReportExtension(const std::filesystem::path& path) {
+    std::string ext = path.extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    return ext == ".json" || ext == ".ndjson" || ext == ".md" || ext == ".html" || ext == ".log";
+}
+
+// /tmp 아래 media_server_* 텍스트 산출물만 읽도록 제한해 임의 파일 노출을 막는다.
+bool IsSafeLabReportPath(const std::filesystem::path& raw_path, std::filesystem::path* resolved_path) {
+    std::error_code ec;
+    const auto canonical = std::filesystem::weakly_canonical(raw_path, ec);
+    if (ec || canonical.empty()) {
+        return false;
+    }
+    const std::string full_path = canonical.string();
+    if (full_path.rfind("/tmp/", 0) != 0 && full_path.rfind("/private/tmp/", 0) != 0) {
+        return false;
+    }
+    if (canonical.filename().string().rfind("media_server_", 0) != 0) {
+        return false;
+    }
+    if (!IsLabReportExtension(canonical) || !std::filesystem::is_regular_file(canonical, ec) || ec) {
+        return false;
+    }
+    if (resolved_path != nullptr) {
+        *resolved_path = canonical;
+    }
+    return true;
+}
+
+// 파일명 규칙으로 검증 리포트 종류를 추정해 UI 필터 없이도 대략적인 맥락을 보여준다.
+std::string LabReportKindFromName(const std::string& name) {
+    if (name.find("predev") != std::string::npos) {
+        return "predev";
+    }
+    if (name.find("multichannel") != std::string::npos) {
+        return "multichannel";
+    }
+    if (name.find("evtpost-longrun") != std::string::npos) {
+        return "event-post-longrun";
+    }
+    if (name.find("evtpost") != std::string::npos || name.find("event-post") != std::string::npos) {
+        return "event-post";
+    }
+    if (name.find("uri-longrun") != std::string::npos) {
+        return "uri-longrun";
+    }
+    if (name.find("webrtc-ice") != std::string::npos) {
+        return "webrtc-ice";
+    }
+    if (name.find("tracker-stability") != std::string::npos) {
+        return "tracker";
+    }
+    if (name.find("report") != std::string::npos) {
+        return "report";
+    }
+    return "artifact";
+}
+
+// /tmp에 남은 최신 검증 산출물을 Lab UI에서 선택할 수 있는 JSON 목록으로 만든다.
+std::string LabReportsJson() {
+    std::vector<std::filesystem::path> reports;
+    std::error_code ec;
+    for (const auto& entry : std::filesystem::directory_iterator("/tmp", ec)) {
+        if (ec) {
+            break;
+        }
+        std::filesystem::path resolved;
+        if (IsSafeLabReportPath(entry.path(), &resolved)) {
+            reports.push_back(resolved);
+        }
+    }
+    std::sort(reports.begin(), reports.end(), [](const auto& lhs, const auto& rhs) {
+        std::error_code lhs_ec;
+        std::error_code rhs_ec;
+        return std::filesystem::last_write_time(lhs, lhs_ec) > std::filesystem::last_write_time(rhs, rhs_ec);
+    });
+    if (reports.size() > 80) {
+        reports.resize(80);
+    }
+
+    std::ostringstream out;
+    out << "{\"reports\":[";
+    for (std::size_t i = 0; i < reports.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        std::error_code size_ec;
+        const auto size = std::filesystem::file_size(reports[i], size_ec);
+        const std::string name = reports[i].filename().string();
+        out << "{"
+            << "\"path\":\"" << JsonEscape(reports[i].string()) << "\","
+            << "\"name\":\"" << JsonEscape(name) << "\","
+            << "\"kind\":\"" << JsonEscape(LabReportKindFromName(name)) << "\","
+            << "\"sizeBytes\":" << (size_ec ? 0 : size)
+            << "}";
+    }
+    out << "]}";
+    return out.str();
+}
+
+// 큰 로그가 Lab 화면을 잠그지 않도록 앞부분만 읽고 truncation 여부를 같이 내려준다.
+bool BuildLabReportContentJson(const std::string& requested_path,
+                               std::string* response_body,
+                               std::string* error_message) {
+    std::filesystem::path resolved;
+    if (!IsSafeLabReportPath(std::filesystem::path(requested_path), &resolved)) {
+        if (error_message != nullptr) {
+            *error_message = "report path is not allowed";
+        }
+        return false;
+    }
+
+    constexpr std::size_t kMaxReportBytes = 1024 * 1024;
+    std::error_code size_ec;
+    const auto size = std::filesystem::file_size(resolved, size_ec);
+    const std::size_t bytes_to_read =
+        size_ec ? kMaxReportBytes : static_cast<std::size_t>(std::min<std::uintmax_t>(size, kMaxReportBytes));
+    std::string content(bytes_to_read, '\0');
+    std::ifstream input(resolved, std::ios::binary);
+    if (!input.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open report file";
+        }
+        return false;
+    }
+    input.read(content.data(), static_cast<std::streamsize>(content.size()));
+    content.resize(static_cast<std::size_t>(std::max<std::streamsize>(0, input.gcount())));
+
+    std::ostringstream out;
+    out << "{"
+        << "\"path\":\"" << JsonEscape(resolved.string()) << "\","
+        << "\"name\":\"" << JsonEscape(resolved.filename().string()) << "\","
+        << "\"sizeBytes\":" << (size_ec ? content.size() : size) << ","
+        << "\"truncated\":" << (!size_ec && size > kMaxReportBytes ? "true" : "false") << ","
+        << "\"content\":\"" << JsonEscape(content) << "\""
+        << "}";
+    if (response_body != nullptr) {
+        *response_body = out.str();
+    }
+    return true;
+}
+
 bool IsSupportedMediaFile(const std::filesystem::path& path) {
     std::string ext = path.extension().string();
     std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char ch) {
@@ -5898,6 +6207,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return JsonResponse(200, "OK", LabFilesJson());
                         }
 
+                        if (request.method == "GET" && request.path == "/lab/reports") {
+                            return JsonResponse(200, "OK", LabReportsJson());
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/reports/content") {
+                            std::string response_body;
+                            std::string error_message;
+                            const auto path_it = query.find("path");
+                            if (path_it == query.end()) {
+                                error_message = "report path is required";
+                            }
+                            if (path_it == query.end() ||
+                                !BuildLabReportContentJson(path_it->second, &response_body, &error_message)) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            }
+                            return JsonResponse(200, "OK", response_body);
+                        }
+
                         if (request.method == "GET" && request.path == "/lab/runtime/status") {
                             std::size_t http_egress_sessions = 0;
                             std::size_t whip_publish_sessions = 0;
@@ -5911,7 +6240,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                 RuntimeStatusJson(impl_->session_manager.GetRuntimeStateSnapshot(),
                                                                   http_egress_sessions,
                                                                   whip_publish_sessions,
-                                                                  WebRtcSourceRegistry::Instance().Snapshots()));
+                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                  impl_->session_manager.AnalysisTapSnapshots()));
                         }
 
                         if (request.method == "GET" && request.path == "/lab/analysis/capabilities") {

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import argparse
 import glob
+import html
 import json
 import pathlib
 from typing import Any
@@ -16,6 +17,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="MediaServer 검증 summary Markdown 리포트 생성")
     parser.add_argument("paths", nargs="*", help="summary JSON/NDJSON 파일 또는 glob")
     parser.add_argument("--output", "-o", help="Markdown 출력 파일. 생략하면 stdout")
+    parser.add_argument("--html-output", help="HTML 출력 파일. Lab 리포트 뷰어에서 상세 리포트로 확인할 때 사용")
     parser.add_argument(
         "--default-glob",
         default="/tmp/media_server_*summary*json*",
@@ -77,6 +79,8 @@ def detect_report_kind(path: pathlib.Path, payload: dict[str, Any]) -> str:
         return "multichannel"
     if "predev" in name:
         return "predev"
+    if "evtpost-longrun" in name or payload.get("kind") == "event-post-longrun":
+        return "event-post-longrun"
     if "evtpost" in name or payload.get("kind") == "event-post":
         return "event-post"
     if "uri-longrun" in name:
@@ -122,6 +126,8 @@ def summarize_details(kind: str, payloads: list[dict[str, Any]]) -> str:
         return f"cases={len(cases)} decodedFrames={decoded} final={first.get('finalStatus', {}).get('sessionManager', {})}"
     if kind == "event-post":
         return f"mode={first.get('mode')} received={first.get('receivedCount')} paths={first.get('receivedPathCounts', {})}"
+    if kind == "event-post-longrun":
+        return f"iterations={first.get('iterations')} modes={first.get('modes')} steps={len(first.get('steps', []))}"
     if kind == "predev":
         steps = first.get("steps") if isinstance(first.get("steps"), list) else []
         failed = [step.get("name") for step in steps if step.get("result") != "pass"]
@@ -150,6 +156,88 @@ def escape_cell(value: Any) -> str:
     return str(value).replace("|", "\\|").replace("\n", " ")
 
 
+# 검증 유형별 원본 payload에서 표 밖에 둘 상세 항목을 추려낸다.
+def detail_lines(kind: str, payloads: list[dict[str, Any]]) -> list[str]:
+    if not payloads:
+        return ["- payload 없음"]
+    first = payloads[0]
+    lines: list[str] = []
+    if kind == "predev":
+        lines.append(f"- durationSec: `{first.get('durationSec', '-')}`")
+        lines.append(f"- soakMinutes: `{first.get('soakMinutes', '-')}`")
+        for step in first.get("steps", [])[:40]:
+            if not isinstance(step, dict):
+                continue
+            lines.append(
+                f"- step `{step.get('name', '-')}`: `{step.get('result', '-')}` "
+                f"duration=`{step.get('durationSec', '-')}` log=`{step.get('logFile', '-')}`"
+            )
+        return lines
+    if kind == "multichannel":
+        for case in first.get("cases", [])[:20]:
+            if not isinstance(case, dict):
+                continue
+            lines.append(
+                f"- case `{case.get('name') or case.get('case') or '-'}`: "
+                f"clients=`{case.get('expectedClients', '-')}` streams=`{case.get('expectedStreams', '-')}`"
+            )
+            for report in case.get("clientReports", [])[:8]:
+                stats = report.get("stats") or {}
+                lines.append(
+                    f"- client `{report.get('index', '-')}` file=`{report.get('fileName', '-')}` "
+                    f"frames=`{stats.get('inboundVideoFramesDecoded', 0)}` bytes=`{stats.get('inboundVideoBytes', 0)}`"
+                )
+        return lines or ["- multichannel case 없음"]
+    if kind == "event-post":
+        lines.append(f"- mode: `{first.get('mode', '-')}`")
+        lines.append(f"- receivedCount: `{first.get('receivedCount', '-')}`")
+        lines.append(f"- receivedPathCounts: `{first.get('receivedPathCounts', {})}`")
+        lines.append(f"- status: `{first.get('status', first.get('dispatcherStatus', {}))}`")
+        return lines
+    if kind == "event-post-longrun":
+        lines.append(f"- iterations: `{first.get('iterations', '-')}`")
+        lines.append(f"- modes: `{first.get('modes', [])}`")
+        for step in first.get("steps", [])[:40]:
+            if isinstance(step, dict):
+                lines.append(
+                    f"- step `{step.get('name', '-')}`: `{step.get('result', '-')}` "
+                    f"duration=`{step.get('durationSec', '-')}` log=`{step.get('logFile', '-')}`"
+                )
+        return lines
+    if kind == "uri-longrun":
+        lines.append(f"- iterations: `{first.get('iterations', '-')}`")
+        lines.append(f"- includeExternal: `{first.get('includeExternal', '-')}`")
+        lines.append(f"- externalConfig: `{first.get('externalConfig', '')}`")
+        for failure in first.get("failureClassifications", [])[:20]:
+            if isinstance(failure, dict):
+                lines.append(
+                    f"- failure `{failure.get('label', '-')}` iteration=`{failure.get('iteration', '-')}` "
+                    f"classification=`{failure.get('classification', [])}` log=`{failure.get('logFile', '-')}`"
+                )
+        return lines
+    if kind == "webrtc-ice":
+        for key in (
+            "mode",
+            "requireRelay",
+            "requestedIceTransportPolicy",
+            "iceTransportPolicy",
+            "relayPolicyFallback",
+            "hasStun",
+            "hasTurn",
+            "candidateTypes",
+        ):
+            lines.append(f"- {key}: `{first.get(key, '-')}`")
+        return lines
+    if kind == "tracker":
+        for item in payloads[:20]:
+            lines.append(
+                f"- iteration `{item.get('iteration', '-')}` fragmentation=`{item.get('fragmentationRatio', '-')}` "
+                f"overlap=`{item.get('overlapFragmentationRatio', '-')}` idSwitchRisk=`{item.get('idSwitchRiskScore', '-')}`"
+            )
+        return lines
+    return [f"- {key}: `{value}`" for key, value in list(first.items())[:12]]
+
+
 # 전체 파일 목록을 하나의 Markdown 리포트로 렌더링한다.
 def render_markdown(paths: list[pathlib.Path]) -> str:
     rows = [
@@ -174,7 +262,31 @@ def render_markdown(paths: list[pathlib.Path]) -> str:
     if len(rows) == 4:
         rows.append("| - | - | - | - | - | summary 파일 없음 |")
     rows.append("")
+    rows.append("## 상세")
+    rows.append("")
+    for path in paths:
+        payloads = load_payloads(path)
+        kind = detect_report_kind(path, payloads[0] if payloads else {})
+        rows.append(f"### {path.name}")
+        rows.append("")
+        rows.extend(detail_lines(kind, payloads))
+        rows.append("")
     return "\n".join(rows)
+
+
+# Markdown과 같은 payload를 간단한 단일 HTML 문서로 렌더링한다.
+def render_html(paths: list[pathlib.Path]) -> str:
+    escaped = html.escape(render_markdown(paths))
+    return (
+        '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
+        "<title>MediaServer 검증 리포트</title>"
+        "<style>body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;"
+        "margin:24px;line-height:1.5;color:#17202a;background:#f8fafc;}"
+        "pre{white-space:pre-wrap;background:#fff;border:1px solid #d8dee9;border-radius:8px;padding:16px;}"
+        "</style></head><body><pre>"
+        + escaped
+        + "</pre></body></html>"
+    )
 
 
 # 진입점: Markdown을 stdout 또는 지정 파일로 내보낸다.
@@ -186,6 +298,8 @@ def main() -> int:
         pathlib.Path(args.output).write_text(markdown, encoding="utf-8")
     else:
         print(markdown)
+    if args.html_output:
+        pathlib.Path(args.html_output).write_text(render_html(paths), encoding="utf-8")
     return 0
 
 
