@@ -22,11 +22,12 @@ SKIP_COUNT=0
 
 usage() {
   cat <<EOF_USAGE
-Usage: ./server.sh verify-event-post [--mode schema|queue] [--http-base URL] [--file FILE_TOKEN] [--receiver-port PORT]
+Usage: ./server.sh verify-event-post [--mode schema|queue|recovery] [--http-base URL] [--file FILE_TOKEN] [--receiver-port PORT]
 
 모드:
   schema  POST payload schema, 성공/실패 카운터, cooldown suppressedCount를 검증합니다.
   queue   작은 MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE에서 slow endpoint로 droppedCount를 검증합니다.
+  recovery 실패하던 endpoint가 같은 검증 중 복구됐을 때 failedCount와 sentCount가 함께 증가하는지 검증합니다.
 
 서버는 MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 상태로 실행되어 있어야 합니다.
 queue 모드는 MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE=1 또는 2로 서버를 시작하는 것을 권장합니다.
@@ -114,12 +115,17 @@ received_path = sys.argv[1]
 port = int(sys.argv[2])
 
 class Handler(BaseHTTPRequestHandler):
+    flaky_count = 0
+
     def do_POST(self):
         length = int(self.headers.get("Content-Length", "0") or "0")
         body = self.rfile.read(length).decode("utf-8", errors="replace")
         with open(received_path, "a", encoding="utf-8") as handle:
             handle.write(json.dumps({"path": self.path, "body": body}, ensure_ascii=False) + "\n")
-        if self.path.startswith("/slow"):
+        if self.path.startswith("/flaky"):
+            Handler.flaky_count += 1
+            self.send_response(500 if Handler.flaky_count <= 3 else 204)
+        elif self.path.startswith("/slow"):
             time.sleep(1.5)
             self.send_response(204)
         elif self.path.startswith("/fail"):
@@ -319,7 +325,48 @@ validate_queue_mode() {
   log_pass "POST queue 포화 droppedCount 검증"
 }
 
-if [[ "${MODE}" != "schema" && "${MODE}" != "queue" ]]; then
+validate_recovery_mode() {
+  # 같은 dispatch 안에서 초반 요청은 실패하고 이후 요청은 성공하게 만들어 endpoint 복구 후 전송 재개를 확인한다.
+  local before_json="$1"
+  local before_failed before_sent
+  before_failed="$(json_field "${before_json}" "failedCount")"
+  before_sent="$(json_field "${before_json}" "sentCount")"
+
+  dispatch_events
+  if ! wait_for_status_delta "failedCount" "${before_failed}" 1 50; then
+    log_fail "recovery 모드에서 failedCount 증가를 확인하지 못했습니다"
+    exit 1
+  fi
+  if ! wait_for_status_delta "sentCount" "${before_sent}" 1 50; then
+    log_fail "recovery 모드에서 endpoint 복구 후 sentCount 증가를 확인하지 못했습니다"
+    exit 1
+  fi
+  local after_json
+  after_json="$(event_post_status)"
+  printf '%s' "${after_json}" > "${STATUS_AFTER_FILE}"
+  python3 - "${STATUS_AFTER_FILE}" "${RECEIVED_FILE}" <<'PY'
+import json
+import pathlib
+import sys
+
+status = json.loads(pathlib.Path(sys.argv[1]).read_text())
+received = [
+    json.loads(line)
+    for line in pathlib.Path(sys.argv[2]).read_text(encoding="utf-8").splitlines()
+    if line.strip()
+]
+flaky_hits = [item for item in received if item.get("path") == "/flaky"]
+if len(flaky_hits) < 4:
+    raise SystemExit(f"/flaky 수신 건수가 부족합니다: {len(flaky_hits)}")
+if status.get("failedCount", 0) < 1 or status.get("sentCount", 0) < 1:
+    raise SystemExit(f"복구 검증 counter 부족: {status}")
+print("recovery_status=", status)
+print("flaky_received=", len(flaky_hits))
+PY
+  log_pass "POST endpoint recovery 후 실패/성공 counter 검증"
+}
+
+if [[ "${MODE}" != "schema" && "${MODE}" != "queue" && "${MODE}" != "recovery" ]]; then
   echo "지원하지 않는 mode입니다: ${MODE}"
   usage
   exit 1
@@ -352,17 +399,23 @@ start_receiver
 if [[ "${MODE}" == "schema" ]]; then
   create_rule "success" "/event"
   create_rule "fail" "/fail"
-else
+elif [[ "${MODE}" == "queue" ]]; then
   for index in 1 2 3 4 5 6; do
     create_rule "slow-${index}" "/slow"
+  done
+else
+  for index in 1 2 3 4 5 6; do
+    create_rule "flaky-${index}" "/flaky"
   done
 fi
 create_tap
 
 if [[ "${MODE}" == "schema" ]]; then
   validate_schema_mode "${status_before}"
-else
+elif [[ "${MODE}" == "queue" ]]; then
   validate_queue_mode "${status_before}"
+else
+  validate_recovery_mode "${status_before}"
 fi
 
 echo

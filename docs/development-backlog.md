@@ -118,3 +118,9 @@
 - 검증: `./server.sh verify-uri-longrun --iterations 3 --include-external --use-default-external --external-rtsp-routes default,h264,opus` 통과 `12/0/0`. 로컬 HTTP/HLS와 Mux/Apple 외부 HLS advisory를 함께 확인했다.
 - 검증: `./server.sh verify-va-events --long` 통과 `17/0/0`, `./server.sh verify-tracker-stability --long --overlap-focus` 통과 `8/0/0`, `./server.sh verify-yolo-layouts --duration 10 --no-download` 통과 `7/0/0`, `./server.sh verify-adaptive` 통과 `8/0/0`.
 - 검증: `./server.sh verify-route-profiles` 통과 `7/0/0`, `./server.sh verify-webrtc-ice` 통과 `8/0/0`, `./server.sh verify-codecs` 통과 `67/0/3`. 외부 운영 TURN relay/auth는 credential 미확보로 이번 묶음에서도 진행하지 않았다.
+- 10차 후속 개발은 Lab runtime 상태 표시, 수동 다채널 WebRTC 패널, 검증 summary Markdown 생성기, URI 실패 원인 분류, event POST recovery 검증을 추가했다.
+- 검증: `MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 ./server.sh test --no-start --include-rules --include-rule-ui --include-va-events --include-image-analysis` 통과 `19/0/4`.
+- 검증: `/lab` 브라우저 확인에서 runtime panel, 다채널 수동 테스트 DOM, runtime text `session 0 · stream 0 · tap 0`을 확인했다.
+- 검증: `./server.sh verify-multichannel --include-va --repeat 1 --single-clients 2 --clients-per-source 2 --hold-ms 5000` 통과 `8/0`.
+- 검증: `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 ./server.sh verify-event-post --mode recovery` 통과 `11/0/0`. 복구 endpoint에서 `sentCount=3`, `failedCount=3`, `/flaky` 수신 `8`건을 확인했다.
+- 검증: `./server.sh summarize-reports /tmp/media_server_*summary*.json --output /tmp/media_server_verification_report.md` 출력 생성 확인.
