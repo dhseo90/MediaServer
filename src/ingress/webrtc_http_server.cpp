@@ -879,6 +879,10 @@ std::string BuildTestPageHtml(bool lab_mode) {
                 <input id="analysisTrackTrailsInput" type="checkbox" style="width:auto;" />
                 객체 이동 궤적 표시
               </label>
+              <label style="display:flex;align-items:center;gap:8px;">
+                <input id="analysisRedactionInput" type="checkbox" style="width:auto;" />
+                사람 객체 모자이크
+              </label>
               <label>객체 표기 언어
                 <select id="analysisLabelLangInput">
                   <option value="ko" selected>한글: 차량(자동차)</option>
@@ -910,6 +914,17 @@ std::string BuildTestPageHtml(bool lab_mode) {
                       <option value="letterbox">letterbox</option>
                       <option value="stretch">stretch</option>
                     </select>
+                  </label>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <label>모자이크 block
+                      <input id="analysisRedactionBlockInput" placeholder="20" />
+                    </label>
+                    <label>모자이크 margin
+                      <input id="analysisRedactionMarginInput" placeholder="0.08" />
+                    </label>
+                  </div>
+                  <label>모자이크 대상
+                    <input id="analysisRedactionClassesInput" value="person" />
                   </label>
                 </div>
               </details>
@@ -978,6 +993,18 @@ std::string BuildTestPageHtml(bool lab_mode) {
               <label>박스 두께
                 <input id="imageAnalysisThickness" value="3" />
               </label>
+              <label style="display:flex;align-items:center;gap:8px;">
+                <input id="imageAnalysisRedaction" type="checkbox" style="width:auto;" />
+                사람 객체 모자이크
+              </label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <label>모자이크 block
+                  <input id="imageAnalysisRedactionBlock" value="20" />
+                </label>
+                <label>모자이크 margin
+                  <input id="imageAnalysisRedactionMargin" value="0.08" />
+                </label>
+              </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <button id="imageAnalysisOverlayBtn" class="secondary" type="button">Overlay 보기</button>
                 <button id="imageAnalysisSnapshotBtn" class="secondary" type="button">원본 보기</button>
@@ -1124,14 +1151,24 @@ std::string BuildTestPageHtml(bool lab_mode) {
     }
     .hero {
       display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+      grid-template-columns: minmax(0, 760px);
+      justify-content: center;
+      align-items: start;
       gap: clamp(18px, 3vw, 30px);
       padding: clamp(18px, 3vw, 30px);
+    }
+    .stream-panel {
+      display: grid;
+      gap: 14px;
+      justify-items: stretch;
     }
     h1 { margin: 0 0 8px; font-size: clamp(30px, 4vw, 48px); letter-spacing: -0.055em; line-height: 0.98; }
     h2 { margin: 0; font-size: clamp(22px, 2.5vw, 32px); letter-spacing: -0.045em; }
     p { color: var(--muted); line-height: 1.5; }
     .controls {
+      width: 100%;
+      max-width: 760px;
+      justify-self: center;
       display: grid;
       gap: 12px;
       align-content: start;
@@ -1139,6 +1176,10 @@ std::string BuildTestPageHtml(bool lab_mode) {
       border: 1px solid var(--line);
       border-radius: 22px;
       background: var(--details-bg);
+    }
+    .hero > div,
+    .controls {
+      min-width: 0;
     }
     label {
       display: grid;
@@ -1185,12 +1226,26 @@ std::string BuildTestPageHtml(bool lab_mode) {
     a:hover {
       text-decoration: underline;
     }
-    video {
+    .video-frame {
       width: 100%;
+      max-width: 760px;
+      justify-self: center;
       aspect-ratio: 16 / 9;
+      max-height: min(52vh, 420px);
       background: #000;
       border-radius: 22px;
       border: 1px solid var(--line);
+      overflow: hidden;
+    }
+    /* WebRTC metadata가 늦게 들어와도 실제 영상 크기가 Lab 레이아웃을 밀어내지 않게 프레임이 크기를 고정한다. */
+    .video-frame video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      background: #000;
+      border: 0;
+      border-radius: 21px;
     }
     img {
       max-width: 100%;
@@ -1379,12 +1434,23 @@ std::string BuildTestPageHtml(bool lab_mode) {
     }
     .image-analysis-grid {
       display: grid;
-      grid-template-columns: minmax(260px, 0.38fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 760px);
+      justify-content: center;
       gap: clamp(14px, 2vw, 22px);
       align-items: start;
     }
+    .image-analysis-grid > .stack {
+      width: 100%;
+      max-width: 760px;
+      justify-self: center;
+    }
     .image-preview-panel {
+      width: 100%;
+      max-width: 760px;
+      justify-self: center;
       min-height: 260px;
+      max-height: min(58vh, 520px);
+      aspect-ratio: 16 / 9;
       display: grid;
       place-items: center;
       border: 1px solid var(--line);
@@ -1396,7 +1462,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
     }
     .image-preview-panel img {
       width: 100%;
-      height: auto;
+      height: 100%;
       object-fit: contain;
     }
     .image-metadata-drawer {
@@ -1416,9 +1482,12 @@ std::string BuildTestPageHtml(bool lab_mode) {
     #va-analysis > summary {
       font-size: 1rem;
     }
-    @media (max-width: 900px) {
+    @media (max-width: 1100px) {
       .hero, .grid {
         grid-template-columns: 1fr;
+      }
+      .controls {
+        max-width: 760px;
       }
       .lab-mode-card {
         grid-template-columns: 1fr;
@@ -1426,14 +1495,22 @@ std::string BuildTestPageHtml(bool lab_mode) {
       .image-analysis-grid {
         grid-template-columns: 1fr;
       }
+      .image-analysis-grid > .stack {
+        max-width: 760px;
+      }
       main {
-        width: min(100% - 20px, 720px);
+        width: min(100% - 20px, 760px);
       }
       h1 {
         font-size: clamp(28px, 9vw, 40px);
       }
       div[style*="grid-template-columns:1fr 1fr"] {
         grid-template-columns: 1fr !important;
+      }
+    }
+    @media (max-width: 900px) {
+      .hero, .grid {
+        grid-template-columns: 1fr;
       }
     }
     @media (max-width: 560px) {
@@ -1455,10 +1532,12 @@ std::string BuildTestPageHtml(bool lab_mode) {
     </div>
     <section id="stream-test" class="card">
       <div class="hero">
-        <div>
+        <div class="stream-panel">
           <h1>)" + hero_title + R"(</h1>
 )" + page_link + R"(          <p>)" + hero_body + R"(</p>
-          <video id="video" autoplay playsinline controls></video>
+          <div class="video-frame">
+            <video id="video" autoplay playsinline controls></video>
+          </div>
         </div>
         <div class="controls">
           <label>소스 종류
@@ -1574,7 +1653,9 @@ va_four_scene_sample.mp4</textarea>
         <div class="grid">
           <div>
             <label>발행 화면 미리보기</label>
-            <video id="publisherVideo" autoplay playsinline controls muted></video>
+            <div class="video-frame">
+              <video id="publisherVideo" autoplay playsinline controls muted></video>
+            </div>
           </div>
           <div class="controls">
             <label>발행 소스 ID
@@ -1615,12 +1696,19 @@ va_four_scene_sample.mp4</textarea>
     const analysisLabelLangInputEl = document.getElementById('analysisLabelLangInput');
     const analysisTrackIdsInputEl = document.getElementById('analysisTrackIdsInput');
     const analysisTrackTrailsInputEl = document.getElementById('analysisTrackTrailsInput');
+    const analysisRedactionInputEl = document.getElementById('analysisRedactionInput');
+    const analysisRedactionClassesInputEl = document.getElementById('analysisRedactionClassesInput');
+    const analysisRedactionBlockInputEl = document.getElementById('analysisRedactionBlockInput');
+    const analysisRedactionMarginInputEl = document.getElementById('analysisRedactionMarginInput');
     const imageAnalysisSourceKindEl = document.getElementById('imageAnalysisSourceKind');
     const imageAnalysisTokenEl = document.getElementById('imageAnalysisToken');
     const imageAnalysisTokenSelectEl = document.getElementById('imageAnalysisTokenSelect');
     const imageAnalysisLabelLangEl = document.getElementById('imageAnalysisLabelLang');
     const imageAnalysisQualityEl = document.getElementById('imageAnalysisQuality');
     const imageAnalysisThicknessEl = document.getElementById('imageAnalysisThickness');
+    const imageAnalysisRedactionEl = document.getElementById('imageAnalysisRedaction');
+    const imageAnalysisRedactionBlockEl = document.getElementById('imageAnalysisRedactionBlock');
+    const imageAnalysisRedactionMarginEl = document.getElementById('imageAnalysisRedactionMargin');
     const imageAnalysisOverlayBtn = document.getElementById('imageAnalysisOverlayBtn');
     const imageAnalysisSnapshotBtn = document.getElementById('imageAnalysisSnapshotBtn');
     const imageAnalysisStatusEl = document.getElementById('imageAnalysisStatus');
@@ -2266,11 +2354,24 @@ va_four_scene_sample.mp4</textarea>
         if (analysisTrackTrailsInputEl && analysisTrackTrailsInputEl.checked) {
           params.set('trackTrails', '1');
         }
+        if (analysisRedactionInputEl && analysisRedactionInputEl.checked) {
+          params.set('redaction', 'person-mosaic');
+          const classes = analysisRedactionClassesInputEl && analysisRedactionClassesInputEl.value
+            ? analysisRedactionClassesInputEl.value.trim()
+            : 'person';
+          params.set('redactionClasses', classes || 'person');
+          if (analysisRedactionBlockInputEl && analysisRedactionBlockInputEl.value) {
+            params.set('redactionBlockSize', analysisRedactionBlockInputEl.value);
+          }
+          if (analysisRedactionMarginInputEl && analysisRedactionMarginInputEl.value) {
+            params.set('redactionMarginRatio', analysisRedactionMarginInputEl.value);
+          }
+        }
       }
       return params.toString();
     }
 
-    function buildImageAnalysisParams() {
+    function buildImageAnalysisParams(mode = 'overlay') {
       const params = new URLSearchParams();
       const sourceKind = imageAnalysisSourceKindEl ? imageAnalysisSourceKindEl.value : 'asset';
       const token = imageAnalysisTokenEl && imageAnalysisTokenEl.value
@@ -2289,6 +2390,16 @@ va_four_scene_sample.mp4</textarea>
       }
       if (imageAnalysisThicknessEl && imageAnalysisThicknessEl.value) {
         params.set('thickness', imageAnalysisThicknessEl.value);
+      }
+      if (mode !== 'snapshot' && imageAnalysisRedactionEl && imageAnalysisRedactionEl.checked) {
+        params.set('redaction', 'person-mosaic');
+        params.set('redactionClasses', 'person');
+        if (imageAnalysisRedactionBlockEl && imageAnalysisRedactionBlockEl.value) {
+          params.set('redactionBlockSize', imageAnalysisRedactionBlockEl.value);
+        }
+        if (imageAnalysisRedactionMarginEl && imageAnalysisRedactionMarginEl.value) {
+          params.set('redactionMarginRatio', imageAnalysisRedactionMarginEl.value);
+        }
       }
       return params;
     }
@@ -2309,7 +2420,7 @@ va_four_scene_sample.mp4</textarea>
 
     async function runImageAnalysis(mode = 'overlay') {
       if (!imageAnalysisPreviewEl || !imageAnalysisMetadataEl) return;
-      const params = buildImageAnalysisParams();
+      const params = buildImageAnalysisParams(mode);
       if (imageAnalysisStatusEl) {
         imageAnalysisStatusEl.textContent = '분석 중...';
       }
@@ -5328,7 +5439,7 @@ std::string AnalysisCapabilitiesJson() {
     std::ostringstream out;
     out << R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"yoloOutputLayouts":["auto","channels-first","channels-last"],"yoloBoxFormats":["cxcywh","xyxy"],"yoloScoreModes":["auto","class-only","objectness-class","score-class","class-score"],"outputs":["metadata","events","snapshot.jpg","overlay.jpg","image-metadata","image-snapshot.jpg","image-overlay.jpg","rtsp-overlay","webrtc-overlay"],"eventTypes":["presence","enter","exit","line-crossing"],)"
         << "\"trackingCategories\":" << AnalysisCategoryCatalogJson() << ","
-        << R"("eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile with lightweight tracking for person/vehicle categories","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"tracking":"optional object tracking on/off","trackingClasses":"optional comma-separated categories/classes: person,vehicle,road,animal,sports,tableware,food,furniture,device,object or '*' for all","fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","outputLayout":"optional YOLO output tensor layout: auto|channels-first|channels-last","boxFormat":"optional YOLO box format: cxcywh|xyxy","scoreMode":"optional YOLO score mode: auto|class-only|objectness-class|score-class|class-score","thickness":"optional box line thickness","drawLabels":"optional label visibility","trackIds":"optional track id labels on overlay","trackTrails":"optional track trail overlay"}})";
+        << R"("eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile with lightweight tracking for person/vehicle categories","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"tracking":"optional object tracking on/off","trackingClasses":"optional comma-separated categories/classes: person,vehicle,road,animal,sports,tableware,food,furniture,device,object or '*' for all","fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","outputLayout":"optional YOLO output tensor layout: auto|channels-first|channels-last","boxFormat":"optional YOLO box format: cxcywh|xyxy","scoreMode":"optional YOLO score mode: auto|class-only|objectness-class|score-class|class-score","thickness":"optional box line thickness","drawLabels":"optional label visibility","trackIds":"optional track id labels on overlay","trackTrails":"optional track trail overlay","redaction":"optional person-mosaic/mosaic overlay redaction","redactionClasses":"optional comma-separated redaction categories/classes, default person","redactionBlockSize":"optional mosaic block size in pixels","redactionMarginRatio":"optional bbox expansion ratio for redaction"}})";
     return out.str();
 }
 

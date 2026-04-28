@@ -16,6 +16,7 @@
 지원하는 출력 경로:
 
 - RTSP/WebRTC 영상 위 detection overlay
+- 사람 객체 bbox 기반 redaction overlay
 - analysis metadata JSON
 - snapshot JPEG
 - overlay JPEG
@@ -51,6 +52,20 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/image?asset=va-four-scene-sample.p
 curl -fsS -o overlay.jpg \
   'http://127.0.0.1:8080/lab/analysis/image/overlay.jpg?asset=va-four-scene-sample.png&labelLang=ko&quality=88'
 ```
+
+사람 객체 자동 모자이크:
+
+```bash
+curl -fsS -o person-mosaic.jpg \
+  'http://127.0.0.1:8080/lab/analysis/image/overlay.jpg?asset=va-four-scene-sample.png&redaction=person-mosaic&redactionBlockSize=20&redactionMarginRatio=0.08'
+```
+
+```text
+rtsp://127.0.0.1:8554/dhseo?file=va_four_scene_sample.mp4&va=1&redaction=person-mosaic&redactionBlockSize=20
+POST http://127.0.0.1:8080/webrtc/session?file=va_four_scene_sample.mp4&va=1&redaction=person-mosaic&redactionBlockSize=20
+```
+
+현재 redaction은 얼굴 인식/세그멘테이션이 아니라 detection bbox 기반 block mosaic입니다. 사람 검출이 누락되면 원본 영역이 남을 수 있으므로 운영 배포 전에는 실제 카메라 각도와 조명에서 `./server.sh verify-redaction --long`과 샘플별 수동 확인을 같이 수행해야 합니다. 원본 snapshot endpoint와 redaction 없는 overlay route는 그대로 원본을 보여줄 수 있으므로, 비식별화가 필수인 환경에서는 노출 route 정책도 함께 제한합니다.
 
 정적 이미지 분석은 서버에 overlay 파일을 저장하지 않고 요청 시 즉석에서 JPEG 응답을 생성합니다.
 `/lab`의 "정적 이미지 분석" 섹션은 `/lab/files`에서 `docs/assets` 샘플 이미지와 video root의 이미지 파일 목록을 받아 드롭다운으로 표시합니다. 직접 API를 호출할 때도 경로는 각 root 기준 상대경로만 허용합니다.
@@ -139,6 +154,14 @@ VA 분석은 relay 경로를 직접 대체하지 않고 같은 source stream을 
 - RTSP/WebRTC raw video 구간에 overlay 합성
 - metadata/snapshot/overlay JPEG API 제공
 
+사람 객체 자동 모자이크:
+
+- `redaction=person-mosaic` 또는 `redaction=mosaic`을 `va=1` overlay URL에 붙이면 detection 결과 중 사람 bbox 영역을 block mosaic으로 비식별 처리한다.
+- 기본 대상은 `redactionClasses=person`이며, 필요하면 category token, class label, class id, `*`를 comma 구분으로 지정할 수 있다.
+- `redactionBlockSize`는 mosaic tile 크기이며 기본 `18`, 범위는 `4..128`이다.
+- `redactionMarginRatio`는 bbox 주변 확장 비율이며 기본 `0.08`, 범위는 `0..0.5`이다.
+- 현재 구현은 bbox 기반이라 검출 누락, 사람 일부 영역 누락, segmentation/face 단위 정밀 비식별화까지 보장하지 않는다. 운영 비식별화 기능으로 쓰는 배포에서는 `./server.sh verify-redaction --long`과 실제 샘플 수동 확인, 원본 route 비노출 정책을 함께 적용한다.
+
 Rule UI는 개별 COCO 객체명을 모두 체크박스로 노출하지 않고 기존 한글 카테고리인 `person`, `vehicle`, `road`, `animal`, `sports`, `tableware`, `food`, `furniture`, `device`, `object` 단위로 선택하게 한다. 각 카테고리 박스에는 포함 객체명을 한글로 표시한다. 이 카테고리 목록은 `/lab/analysis/capabilities`의 `trackingCategories`와 같은 C++ catalog에서 내려오며, JSON/API에서는 기존처럼 세부 class label 또는 class id를 직접 지정할 수 있다.
 
 느린 detector 상황에서는 relay path를 막지 않기 위해 오래된 분석 frame부터 버립니다. adaptive tuner가 켜져 있으면 detector 처리 시간, pending queue, queue drop을 보고 런타임 fps를 먼저 낮춥니다. 모델이 dynamic input을 지원하면 input size도 단계적으로 낮출 수 있습니다.
@@ -200,6 +223,7 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/events?dispatch=1'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-post/status'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/snapshot.jpg?quality=85' -o snapshot.jpg
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/overlay.jpg?quality=85&thickness=3&drawLabels=1' -o overlay.jpg
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/overlay.jpg?quality=85&redaction=person-mosaic&redactionBlockSize=20' -o person-mosaic.jpg
 curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}'
 ```
 

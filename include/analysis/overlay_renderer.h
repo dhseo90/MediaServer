@@ -12,6 +12,11 @@ enum class OverlayLabelLanguage {
     English,
 };
 
+enum class OverlayRedactionMode {
+    None,
+    Mosaic,
+};
+
 struct OverlayRenderOptions {
     int line_thickness{3};
     bool draw_labels{true};
@@ -19,6 +24,10 @@ struct OverlayRenderOptions {
     bool draw_track_ids{false};
     bool draw_track_trails{false};
     OverlayLabelLanguage label_language{OverlayLabelLanguage::Korean};
+    OverlayRedactionMode redaction_mode{OverlayRedactionMode::None};
+    std::vector<std::string> redaction_class_labels{"person"};
+    int redaction_block_size{18};
+    float redaction_margin_ratio{0.08F};
 };
 
 bool RenderDetectionOverlay(const RawVideoFrame& frame,

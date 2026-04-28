@@ -13,6 +13,8 @@
 #include <string>
 #include <vector>
 
+#include "analysis/category_tokens.h"
+
 #if MEDIA_SERVER_USE_PANGOCAIRO
 #include <cairo.h>
 #include <pango/pangocairo.h>
@@ -112,6 +114,22 @@ void PutPixel(RawVideoFrame* frame, int x, int y, Color color) {
         frame->data[offset + 1] = color.g;
         frame->data[offset + 2] = color.r;
     }
+}
+
+// mosaic 평균색 계산을 위해 frame format 차이를 숨기고 RGB 순서로 픽셀을 읽는다.
+Color ReadPixelAsRgb(const RawVideoFrame& frame, int x, int y) {
+    if (x < 0 || y < 0 || x >= frame.width || y >= frame.height ||
+        (frame.format != PixelFormat::RGB && frame.format != PixelFormat::BGR)) {
+        return Color{0, 0, 0};
+    }
+    const std::size_t offset = static_cast<std::size_t>((y * frame.width + x) * 3);
+    if (offset + 2 >= frame.data.size()) {
+        return Color{0, 0, 0};
+    }
+    if (frame.format == PixelFormat::RGB) {
+        return Color{frame.data[offset], frame.data[offset + 1], frame.data[offset + 2]};
+    }
+    return Color{frame.data[offset + 2], frame.data[offset + 1], frame.data[offset]};
 }
 
 void BlendPixel(RawVideoFrame* frame, int x, int y, Color color, unsigned char alpha) {
@@ -216,6 +234,33 @@ PixelRect MakePixelRect(int x, int y, int width, int height, int frame_width, in
     x = ClampInt(x, 0, std::max(0, frame_width - width));
     y = ClampInt(y, 0, std::max(0, frame_height - height));
     return PixelRect{x, y, x + width - 1, y + height - 1};
+}
+
+// bbox 경계 누락을 줄이기 위해 비율 기반 margin을 적용하되 frame 밖으로 나가지 않게 제한한다.
+PixelRect ExpandRect(PixelRect rect, int frame_width, int frame_height, float margin_ratio) {
+    margin_ratio = std::max(0.0F, std::min(0.5F, margin_ratio));
+    const int width = std::max(1, rect.x2 - rect.x1 + 1);
+    const int height = std::max(1, rect.y2 - rect.y1 + 1);
+    const int margin_x = static_cast<int>(std::lround(static_cast<float>(width) * margin_ratio));
+    const int margin_y = static_cast<int>(std::lround(static_cast<float>(height) * margin_ratio));
+    rect.x1 = ClampInt(rect.x1 - margin_x, 0, frame_width - 1);
+    rect.x2 = ClampInt(rect.x2 + margin_x, 0, frame_width - 1);
+    rect.y1 = ClampInt(rect.y1 - margin_y, 0, frame_height - 1);
+    rect.y2 = ClampInt(rect.y2 + margin_y, 0, frame_height - 1);
+    return rect;
+}
+
+// normalized detection box를 실제 pixel 좌표로 변환한다.
+PixelRect DetectionPixelRect(const Detection& detection, int frame_width, int frame_height) {
+    const int x1 = ClampInt(static_cast<int>(std::lround(detection.box.x * frame_width)), 0, frame_width - 1);
+    const int y1 = ClampInt(static_cast<int>(std::lround(detection.box.y * frame_height)), 0, frame_height - 1);
+    const int x2 = ClampInt(static_cast<int>(std::lround((detection.box.x + detection.box.width) * frame_width)),
+                            0,
+                            frame_width - 1);
+    const int y2 = ClampInt(static_cast<int>(std::lround((detection.box.y + detection.box.height) * frame_height)),
+                            0,
+                            frame_height - 1);
+    return PixelRect{x1, y1, x2, y2};
 }
 
 bool Intersects(const PixelRect& a, const PixelRect& b, int margin = 0) {
@@ -559,6 +604,88 @@ Color ColorForDetection(const Detection& detection) {
     return ColorForCategory(NamesForDetection(detection).category);
 }
 
+// redactionClasses는 category token, alias, class label, class id를 모두 허용한다.
+bool MatchesAnyRedactionClass(const Detection& detection, const std::vector<std::string>& class_labels) {
+    const std::string label = NormalizeClassToken(
+        NormalizeLabel(detection.label.empty() ? ("class_" + std::to_string(detection.class_id)) : detection.label));
+    const std::string class_id = std::to_string(detection.class_id);
+    for (const auto& raw_wanted : class_labels) {
+        const std::string wanted = NormalizeClassToken(raw_wanted);
+        if (wanted.empty()) {
+            continue;
+        }
+        if (IsAllClassesToken(wanted) || wanted == label || wanted == class_id || MatchesCategoryToken(wanted, label)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// 지정 영역을 tile 평균색으로 다시 채워 낮은 비용의 block mosaic을 만든다.
+void ApplyMosaic(RawVideoFrame* frame, PixelRect rect, int block_size) {
+    if (frame == nullptr) {
+        return;
+    }
+    block_size = ClampInt(block_size, 4, 128);
+    rect.x1 = ClampInt(rect.x1, 0, frame->width - 1);
+    rect.x2 = ClampInt(rect.x2, 0, frame->width - 1);
+    rect.y1 = ClampInt(rect.y1, 0, frame->height - 1);
+    rect.y2 = ClampInt(rect.y2, 0, frame->height - 1);
+    if (rect.x2 <= rect.x1 || rect.y2 <= rect.y1) {
+        return;
+    }
+
+    // bbox 안을 작은 tile 평균색으로 덮어 원본 사람 형상을 낮은 비용으로 흐린다.
+    for (int by = rect.y1; by <= rect.y2; by += block_size) {
+        const int tile_y2 = std::min(rect.y2, by + block_size - 1);
+        for (int bx = rect.x1; bx <= rect.x2; bx += block_size) {
+            const int tile_x2 = std::min(rect.x2, bx + block_size - 1);
+            std::uint64_t sum_r = 0;
+            std::uint64_t sum_g = 0;
+            std::uint64_t sum_b = 0;
+            std::uint64_t count = 0;
+            for (int y = by; y <= tile_y2; ++y) {
+                for (int x = bx; x <= tile_x2; ++x) {
+                    const Color pixel = ReadPixelAsRgb(*frame, x, y);
+                    sum_r += pixel.r;
+                    sum_g += pixel.g;
+                    sum_b += pixel.b;
+                    ++count;
+                }
+            }
+            if (count == 0) {
+                continue;
+            }
+            const Color average{
+                static_cast<unsigned char>(sum_r / count),
+                static_cast<unsigned char>(sum_g / count),
+                static_cast<unsigned char>(sum_b / count),
+            };
+            FillRect(frame, bx, by, tile_x2, tile_y2, average);
+        }
+    }
+}
+
+// box/label을 그리기 전에 원본 영역을 먼저 비식별 처리한다.
+void ApplyRedaction(RawVideoFrame* output, const AnalysisResult& result, const OverlayRenderOptions& options) {
+    if (output == nullptr || options.redaction_mode == OverlayRedactionMode::None) {
+        return;
+    }
+    if (options.redaction_mode == OverlayRedactionMode::Mosaic) {
+        for (const auto& detection : result.detections) {
+            if (!MatchesAnyRedactionClass(detection, options.redaction_class_labels)) {
+                continue;
+            }
+            PixelRect rect = DetectionPixelRect(detection, output->width, output->height);
+            if (rect.x2 <= rect.x1 || rect.y2 <= rect.y1) {
+                continue;
+            }
+            rect = ExpandRect(rect, output->width, output->height, options.redaction_margin_ratio);
+            ApplyMosaic(output, rect, options.redaction_block_size);
+        }
+    }
+}
+
 void DrawTrackTrail(RawVideoFrame* output, const Track& track, int frame_width, int frame_height, int thickness) {
     if (output == nullptr || track.trail.size() < 2) {
         return;
@@ -758,21 +885,21 @@ bool RenderDetectionOverlay(const RawVideoFrame& frame,
     placed_label_rects.reserve(result.detections.size());
 
     if (options.draw_track_trails) {
+        ApplyRedaction(output, result, options);
         for (const auto& track : result.tracks) {
             DrawTrackTrail(output, track, frame.width, frame.height, thickness);
         }
+    } else {
+        ApplyRedaction(output, result, options);
     }
 
     // Box를 먼저 모두 그리고 label은 마지막에 그려야 다른 객체 box가 label을 덮지 않는다.
     for (const auto& detection : result.detections) {
-        const int x1 = ClampInt(static_cast<int>(std::lround(detection.box.x * frame.width)), 0, frame.width - 1);
-        const int y1 = ClampInt(static_cast<int>(std::lround(detection.box.y * frame.height)), 0, frame.height - 1);
-        const int x2 = ClampInt(static_cast<int>(std::lround((detection.box.x + detection.box.width) * frame.width)),
-                                0,
-                                frame.width - 1);
-        const int y2 = ClampInt(static_cast<int>(std::lround((detection.box.y + detection.box.height) * frame.height)),
-                                0,
-                                frame.height - 1);
+        const PixelRect detection_rect = DetectionPixelRect(detection, frame.width, frame.height);
+        const int x1 = detection_rect.x1;
+        const int y1 = detection_rect.y1;
+        const int x2 = detection_rect.x2;
+        const int y2 = detection_rect.y2;
         if (x2 <= x1 || y2 <= y1) {
             continue;
         }
@@ -806,16 +933,11 @@ bool RenderDetectionOverlay(const RawVideoFrame& frame,
         // 이벤트 label은 먼저 자리를 잡아 일반 객체 label에 밀리지 않게 하고, 실제 출력은 마지막에 그린다.
         for (const std::size_t index : label_indices) {
             const auto& detection = result.detections[index];
-            const int x1 = ClampInt(static_cast<int>(std::lround(detection.box.x * frame.width)), 0, frame.width - 1);
-            const int y1 = ClampInt(static_cast<int>(std::lround(detection.box.y * frame.height)), 0, frame.height - 1);
-            const int x2 =
-                ClampInt(static_cast<int>(std::lround((detection.box.x + detection.box.width) * frame.width)),
-                         0,
-                         frame.width - 1);
-            const int y2 =
-                ClampInt(static_cast<int>(std::lround((detection.box.y + detection.box.height) * frame.height)),
-                         0,
-                         frame.height - 1);
+            const PixelRect detection_rect = DetectionPixelRect(detection, frame.width, frame.height);
+            const int x1 = detection_rect.x1;
+            const int y1 = detection_rect.y1;
+            const int x2 = detection_rect.x2;
+            const int y2 = detection_rect.y2;
             if (x2 <= x1 || y2 <= y1) {
                 continue;
             }

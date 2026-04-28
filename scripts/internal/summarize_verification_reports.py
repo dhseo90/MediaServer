@@ -108,6 +108,8 @@ def detect_report_kind(path: pathlib.Path, payload: dict[str, Any]) -> str:
         return "va-category"
     if "webrtc-ice" in name:
         return "webrtc-ice"
+    if "redaction" in name or payload.get("kind") == "redaction":
+        return "redaction"
     if "tracker-stability" in name:
         return "tracker"
     if "adaptive" in name:
@@ -178,6 +180,11 @@ def summarize_details(kind: str, payloads: list[dict[str, Any]]) -> str:
     if kind == "webrtc-ice":
         candidates = first.get("candidateTypes") or first.get("candidates") or {}
         return f"mode={first.get('mode')} requireRelay={first.get('requireRelay')} candidates={candidates}"
+    if kind == "redaction":
+        redaction = first.get("redaction") if isinstance(first.get("redaction"), dict) else {}
+        steps = first.get("steps") if isinstance(first.get("steps"), list) else []
+        failed = [step.get("name") for step in steps if isinstance(step, dict) and step.get("result") == "fail"]
+        return f"mode={redaction.get('mode', '-')} classes={redaction.get('classes', '-')} steps={len(steps)} failed={','.join(str(item) for item in failed)}"
     if kind == "tracker":
         ratios = [item.get("fragmentationRatio") for item in payloads if "fragmentationRatio" in item]
         overlap = [item.get("overlapFragmentationRatio") for item in payloads if "overlapFragmentationRatio" in item]
@@ -232,6 +239,18 @@ def detail_lines(kind: str, payloads: list[dict[str, Any]]) -> list[str]:
         lines.append(f"- receivedCount: `{first.get('receivedCount', '-')}`")
         lines.append(f"- receivedPathCounts: `{first.get('receivedPathCounts', {})}`")
         lines.append(f"- status: `{first.get('status', first.get('dispatcherStatus', {}))}`")
+        return lines
+    if kind == "redaction":
+        lines.append(f"- videoFile: `{first.get('videoFile', '-')}`")
+        lines.append(f"- imageAsset: `{first.get('imageAsset', '-')}`")
+        lines.append(f"- redaction: `{first.get('redaction', {})}`")
+        for step in first.get("steps", [])[:30]:
+            if not isinstance(step, dict):
+                continue
+            lines.append(
+                f"- step `{step.get('name', '-')}`: `{step.get('result', '-')}` "
+                f"duration=`{step.get('durationSec', '-')}` log=`{step.get('logFile', '-')}`"
+            )
         return lines
     if kind == "event-post-longrun":
         lines.append(f"- iterations: `{first.get('iterations', '-')}`")

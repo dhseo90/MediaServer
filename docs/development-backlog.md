@@ -155,10 +155,18 @@
 ## 14차 테스트 모드 분리
 
 - `./server.sh test` 무옵션은 `--basic`으로 실행한다. basic은 로컬 재현성을 우선해 외부망/LAN probe 없이 정적 검사, summary report smoke, 서버 readiness, 로컬 stream matrix, 기본 YOLO/VA overlay를 확인한다.
-- `./server.sh test --full`은 basic에 Rule/Profile UI, VA event, image analysis, event POST, 일반/VA WebRTC 다채널 fan-out을 추가한다.
+- `./server.sh test --full`은 basic에 Rule/Profile UI, VA event, image analysis, event POST, 일반/VA WebRTC 다채널 fan-out, 사람 객체 자동 모자이크 검증을 추가한다.
 - `./server.sh test --external`은 full에 LAN IP 외부 클라이언트 접근성, 외부 RTSP advisory, WebRTC ICE, 외부 HTTP/HLS URI longrun을 추가한다.
 - `./server.sh test --stable`은 기존 stable 호환 기준으로 로컬 stream/VA와 LAN IP 외부 클라이언트 접근성, 제3자 RTSP upstream advisory를 함께 본다.
 
+## 15차 사람 객체 자동 모자이크 승격
+
+- `redaction=person-mosaic`을 정적 이미지 overlay, RTSP overlay, WebRTC overlay, Lab VA controls에 연결했다.
+- `redactionClasses`, `redactionBlockSize`, `redactionMarginRatio` query를 공통 overlay render option으로 사용한다.
+- `./server.sh verify-redaction`을 추가했다. 기본은 정적 이미지 pixel diff와 live VA overlay 검증이며, `--include-multichannel`, `--include-events`, `--include-tracker`, `--long`으로 장기 검증 범위를 확장한다.
+- `./server.sh test --full`과 `./server.sh verify-predev`에는 redaction smoke를 포함한다. predev에서 제외해야 할 때만 `--skip-redaction`을 쓴다.
+- 운영 주의: 현재 방식은 detection bbox 기반 block mosaic이다. 사람 검출 누락, 심한 motion blur, 부분 가림 장면은 수동 샘플 검토가 필요하다. 원본 snapshot/비-redaction route는 그대로 원본을 노출할 수 있으므로 route 공개 정책을 함께 제한해야 한다.
+
 ## 후속 기능 후보
 
-- 사람 객체 자동 모자이크 모드: 우선 `person bbox mosaic`부터 검토한다. `redaction=person-mosaic`, `redactionClasses=person`, margin/block size, 원본 route 노출 정책, `verify-redaction` 같은 별도 검증이 필요하다. 얼굴/세그멘테이션 기반 비식별화는 정확도와 누락 리스크가 커서 2단계 후보로 둔다.
+- 얼굴/세그멘테이션 기반 비식별화: 현재 bbox 기반 모자이크를 보완할 수 있는 detector/model 후보를 별도 검토한다.

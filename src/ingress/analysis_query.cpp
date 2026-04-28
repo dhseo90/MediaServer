@@ -86,6 +86,19 @@ bool HasAnyQueryKey(const std::unordered_map<std::string, std::string>& query,
     });
 }
 
+// 여러 alias key 중 먼저 등장한 query 값을 반환해 URL 호환성을 유지한다.
+std::string FindStringQuery(const std::unordered_map<std::string, std::string>& query,
+                            const std::vector<std::string>& keys,
+                            std::string default_value = {}) {
+    for (const auto& key : keys) {
+        const auto it = query.find(key);
+        if (it != query.end()) {
+            return it->second;
+        }
+    }
+    return default_value;
+}
+
 bool HasProfileTuningQuery(const std::unordered_map<std::string, std::string>& query) {
     return HasAnyQueryKey(query,
                           {"detector",
@@ -815,6 +828,26 @@ analysis::OverlayRenderOptions BuildOverlayRenderOptionsFromQuery(
                                      ? analysis::OverlayLabelLanguage::English
                                      : analysis::OverlayLabelLanguage::Korean;
     }
+
+    const std::string redaction = ToLower(TrimToken(FindStringQuery(query, {"redaction", "redactionMode"})));
+    if (redaction == "person-mosaic" || redaction == "mosaic" || redaction == "1" || redaction == "true" ||
+        redaction == "yes" || redaction == "on") {
+        options.redaction_mode = analysis::OverlayRedactionMode::Mosaic;
+    } else if (redaction == "none" || redaction == "0" || redaction == "false" || redaction == "off") {
+        options.redaction_mode = analysis::OverlayRedactionMode::None;
+    }
+    const std::string redaction_classes = FindStringQuery(query, {"redactionClasses", "redactClasses"});
+    if (!redaction_classes.empty()) {
+        options.redaction_class_labels = ParseStringList(redaction_classes);
+    }
+    options.redaction_block_size =
+        ParseClampedIntQuery(query,
+                             "redactionBlockSize",
+                             ParseClampedIntQuery(query, "mosaicBlockSize", options.redaction_block_size, 4, 128),
+                             4,
+                             128);
+    options.redaction_margin_ratio =
+        ParseClampedFloatQuery(query, "redactionMarginRatio", options.redaction_margin_ratio, 0.0F, 0.5F);
     return options;
 }
 

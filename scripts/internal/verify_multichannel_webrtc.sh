@@ -21,6 +21,10 @@ TIMEOUT_MS="${MEDIA_SERVER_VERIFY_MULTICHANNEL_TIMEOUT_MS:-60000}"
 CONSUMER_TIMEOUT_MS="${MEDIA_SERVER_VERIFY_MULTICHANNEL_CONSUMER_TIMEOUT_MS:-35000}"
 DEBUG_PORT_BASE="${MEDIA_SERVER_VERIFY_MULTICHANNEL_DEBUG_PORT_BASE:-9400}"
 VA_ANALYSIS_FPS="${MEDIA_SERVER_VERIFY_MULTICHANNEL_VA_FPS:-5}"
+VA_REDACTION_MODE="${MEDIA_SERVER_VERIFY_MULTICHANNEL_VA_REDACTION:-}"
+VA_REDACTION_CLASSES="${MEDIA_SERVER_VERIFY_MULTICHANNEL_VA_REDACTION_CLASSES:-}"
+VA_REDACTION_BLOCK_SIZE="${MEDIA_SERVER_VERIFY_MULTICHANNEL_VA_REDACTION_BLOCK_SIZE:-}"
+VA_REDACTION_MARGIN_RATIO="${MEDIA_SERVER_VERIFY_MULTICHANNEL_VA_REDACTION_MARGIN_RATIO:-}"
 RUN_ID="multichannel-$(date +%s)-$$"
 SUMMARY_FILE="${MEDIA_SERVER_VERIFY_MULTICHANNEL_SUMMARY_FILE:-/tmp/media_server_${RUN_ID}_summary.json}"
 CASES_FILE="/tmp/media_server_${RUN_ID}_cases.ndjson"
@@ -69,6 +73,10 @@ Options:
   --hold-ms <ms>               재생 확인 후 session 유지 시간
   --debug-port-base <port>     headless Chrome CDP 시작 port
   --include-va                 VA overlay 다채널 case도 실행
+  --va-redaction <mode>        VA 다채널 overlay에 redaction mode를 적용. 예: person-mosaic
+  --va-redaction-classes <csv> VA redaction 대상 category/class. 기본 person
+  --va-redaction-block-size <n>
+  --va-redaction-margin-ratio <n>
   --single-only                같은 영상 다중 client 검증만 실행
   --multi-only                 여러 영상 다중 client 검증만 실행
   --va-only                    VA overlay 다채널 case만 실행
@@ -122,6 +130,22 @@ parse_args() {
       --include-va)
         RUN_VA=1
         shift
+        ;;
+      --va-redaction)
+        VA_REDACTION_MODE="${2:-}"
+        shift 2
+        ;;
+      --va-redaction-classes)
+        VA_REDACTION_CLASSES="${2:-}"
+        shift 2
+        ;;
+      --va-redaction-block-size)
+        VA_REDACTION_BLOCK_SIZE="${2:-}"
+        shift 2
+        ;;
+      --va-redaction-margin-ratio)
+        VA_REDACTION_MARGIN_RATIO="${2:-}"
+        shift 2
         ;;
       --single-only)
         RUN_SINGLE=1
@@ -371,6 +395,18 @@ start_client() {
   if [[ "${va_enabled}" == "1" ]]; then
     page_path="${VA_PAGE_PATH}"
     command+=(--va --analysis-fps "${VA_ANALYSIS_FPS}")
+    if [[ -n "${VA_REDACTION_MODE}" ]]; then
+      command+=(--redaction "${VA_REDACTION_MODE}")
+    fi
+    if [[ -n "${VA_REDACTION_CLASSES}" ]]; then
+      command+=(--redaction-classes "${VA_REDACTION_CLASSES}")
+    fi
+    if [[ -n "${VA_REDACTION_BLOCK_SIZE}" ]]; then
+      command+=(--redaction-block-size "${VA_REDACTION_BLOCK_SIZE}")
+    fi
+    if [[ -n "${VA_REDACTION_MARGIN_RATIO}" ]]; then
+      command+=(--redaction-margin-ratio "${VA_REDACTION_MARGIN_RATIO}")
+    fi
   fi
   command+=(--page-path "${page_path}")
 
