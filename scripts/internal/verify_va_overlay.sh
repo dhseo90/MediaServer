@@ -156,6 +156,10 @@ WEBRTC_HOLD_MS="${MEDIA_SERVER_VERIFY_VA_WEBRTC_HOLD_MS:-5000}"
 WEBRTC_TIMEOUT_MS="${MEDIA_SERVER_VERIFY_VA_WEBRTC_TIMEOUT_MS:-45000}"
 REQUIRE_DETECTIONS="${MEDIA_SERVER_VERIFY_VA_REQUIRE_DETECTIONS:-1}"
 EXTRA_QUERY="${MEDIA_SERVER_VERIFY_VA_EXTRA_QUERY:-}"
+REDACTION_MODE="${MEDIA_SERVER_VERIFY_VA_REDACTION:-}"
+REDACTION_CLASSES="${MEDIA_SERVER_VERIFY_VA_REDACTION_CLASSES:-}"
+REDACTION_BLOCK_SIZE="${MEDIA_SERVER_VERIFY_VA_REDACTION_BLOCK_SIZE:-}"
+REDACTION_MARGIN_RATIO="${MEDIA_SERVER_VERIFY_VA_REDACTION_MARGIN_RATIO:-}"
 SKIP_LAB="${MEDIA_SERVER_VERIFY_VA_SKIP_LAB:-0}"
 SKIP_RTSP="${MEDIA_SERVER_VERIFY_VA_SKIP_RTSP:-0}"
 SKIP_WEBRTC="${MEDIA_SERVER_VERIFY_VA_SKIP_WEBRTC:-0}"
@@ -283,7 +287,7 @@ print(
 
   local overlay_file
   overlay_file="$(mktemp "${TMPDIR:-/tmp}/media-server-overlay.XXXXXX")"
-  if curl -fsS "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}/overlay.jpg?quality=80&thickness=3&drawLabels=1" -o "${overlay_file}" &&
+  if curl -fsS "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}/overlay.jpg?quality=80&thickness=3&drawLabels=1$(append_extra_query "${EXTRA_QUERY}")" -o "${overlay_file}" &&
      python3 - "${overlay_file}" <<'PY'
 import pathlib
 import sys
@@ -328,14 +332,28 @@ run_webrtc_mode() {
   fi
   require_cmd node
 
-  if node "${SCRIPT_DIR}/browser_webrtc_publish_consume_check.mjs" \
+  local command=(node "${SCRIPT_DIR}/browser_webrtc_publish_consume_check.mjs"
       --http-base "${HTTP_BASE}" \
       --mode "${mode}" \
       --file "${FILE_TOKEN}" \
       --va 1 \
       --post-playback-hold-ms "${WEBRTC_HOLD_MS}" \
       --consumer-playback-timeout-ms "${WEBRTC_TIMEOUT_MS}" \
-      --timeout-ms "${WEBRTC_TIMEOUT_MS}" >/tmp/media_server_va_${mode}.json; then
+      --timeout-ms "${WEBRTC_TIMEOUT_MS}")
+  if [[ -n "${REDACTION_MODE}" ]]; then
+    command+=(--redaction "${REDACTION_MODE}")
+  fi
+  if [[ -n "${REDACTION_CLASSES}" ]]; then
+    command+=(--redaction-classes "${REDACTION_CLASSES}")
+  fi
+  if [[ -n "${REDACTION_BLOCK_SIZE}" ]]; then
+    command+=(--redaction-block-size "${REDACTION_BLOCK_SIZE}")
+  fi
+  if [[ -n "${REDACTION_MARGIN_RATIO}" ]]; then
+    command+=(--redaction-margin-ratio "${REDACTION_MARGIN_RATIO}")
+  fi
+
+  if "${command[@]}" >/tmp/media_server_va_${mode}.json; then
     log_pass "WebRTC ${mode} VA overlay playback ok"
     sed -n '1,40p' "/tmp/media_server_va_${mode}.json" | sed 's/^/[browser] /'
   else

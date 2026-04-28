@@ -24,6 +24,7 @@ RUN_ID="image-analysis-$(date +%s)-$$"
 METADATA_FILE="/tmp/media_server_${RUN_ID}_metadata.json"
 SNAPSHOT_FILE="/tmp/media_server_${RUN_ID}_snapshot.jpg"
 OVERLAY_FILE="/tmp/media_server_${RUN_ID}_overlay.jpg"
+REDACTION_OVERLAY_FILE="/tmp/media_server_${RUN_ID}_redaction_overlay.jpg"
 TRAVERSAL_FILE="/tmp/media_server_${RUN_ID}_traversal.json"
 TRACKING_DEFAULT_FILE="/tmp/media_server_${RUN_ID}_tracking_default.json"
 TRACKING_EMPTY_FILE="/tmp/media_server_${RUN_ID}_tracking_empty.json"
@@ -356,6 +357,17 @@ else
   log_fail "image overlay endpoint 호출 실패"
 fi
 
+if curl -fsS -o "${REDACTION_OVERLAY_FILE}" "${HTTP_BASE}/lab/analysis/image/overlay.jpg?${QUERY}&quality=88&labelLang=ko&thickness=3&redaction=person-mosaic&redactionBlockSize=20"; then
+  bytes="$(wc -c < "${REDACTION_OVERLAY_FILE}" | tr -d ' ')"
+  if [[ "${bytes}" -gt 1024 ]]; then
+    log_pass "person mosaic redaction overlay JPEG 생성 (${bytes} bytes)"
+  else
+    log_fail "person mosaic redaction overlay JPEG 크기가 너무 작음 (${bytes} bytes)"
+  fi
+else
+  log_fail "person mosaic redaction overlay endpoint 호출 실패"
+fi
+
 status="$(curl -sS -o "${TRAVERSAL_FILE}" -w '%{http_code}' "${HTTP_BASE}/lab/analysis/image?asset=../stream-verification.md" || true)"
 if [[ "${status}" == "400" ]]; then
   log_pass "image path traversal 방어 확인"
@@ -386,6 +398,7 @@ echo "- tracking alias vehicles: ${TRACKING_ALIAS_FILE}"
 echo "- tracking summary: ${TRACKING_SUMMARY_FILE}"
 echo "- snapshot: ${SNAPSHOT_FILE}"
 echo "- overlay: ${OVERLAY_FILE}"
+echo "- person mosaic overlay: ${REDACTION_OVERLAY_FILE}"
 
 if (( FAIL_COUNT > 0 )); then
   exit 1

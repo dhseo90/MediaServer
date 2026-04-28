@@ -17,6 +17,7 @@ MULTICHANNEL_HOLD_MS="${MEDIA_SERVER_VERIFY_PREDEV_MULTICHANNEL_HOLD_MS:-7000}"
 MULTICHANNEL_SINGLE_CLIENTS="${MEDIA_SERVER_VERIFY_PREDEV_SINGLE_CLIENTS:-2}"
 MULTICHANNEL_CLIENTS_PER_SOURCE="${MEDIA_SERVER_VERIFY_PREDEV_CLIENTS_PER_SOURCE:-2}"
 VA_EVENT_DURATION_S="${MEDIA_SERVER_VERIFY_PREDEV_VA_EVENT_DURATION_S:-30}"
+REDACTION_DURATION_S="${MEDIA_SERVER_VERIFY_PREDEV_REDACTION_DURATION_S:-12}"
 HEARTBEAT_INTERVAL_S="${MEDIA_SERVER_VERIFY_PREDEV_HEARTBEAT_INTERVAL_S:-30}"
 RUN_ID="predev-$(date +%s)-$$"
 WORK_DIR="/tmp/media_server_${RUN_ID}"
@@ -33,6 +34,7 @@ SKIP_BUILD=0
 QUICK_MODE=0
 INCLUDE_EXTERNAL_TURN=0
 INCLUDE_EXTERNAL_CLIENT=0
+INCLUDE_REDACTION="${MEDIA_SERVER_VERIFY_PREDEV_INCLUDE_REDACTION:-1}"
 
 mkdir -p "${WORK_DIR}"
 
@@ -61,11 +63,12 @@ Options:
   --include-external-turn  외부 운영 TURN credential/relay 검증을 hard gate로 포함
   --include-external-client
                            LAN IP 외부 클라이언트 접근성도 hard gate로 포함
+  --skip-redaction         사람 객체 자동 모자이크 검증을 predev 묶음에서 제외
   --heartbeat-interval <n> 긴 step 진행 중 상태 출력 주기. 기본 ${HEARTBEAT_INTERVAL_S}초, 0이면 끔
   -h, --help               도움말 출력
 
 기준:
-  - 통합 smoke, 다채널 WebRTC, VA event, event POST schema/recovery/queue를 확인합니다.
+  - 통합 smoke, 다채널 WebRTC, VA event, redaction, event POST schema/recovery/queue를 확인합니다.
   - 종료 시 runtime session/stream/tap cleanup과 8080/8081/8554/8555 listener 정리를 hard check합니다.
   - LAN IP 외부 접근성은 bind/방화벽 영향이 커서 --include-external-client 지정 시에만 hard gate로 포함합니다.
   - 외부 TURN credential이 없는 환경에서는 외부 TURN hard gate를 기본 포함하지 않습니다.
@@ -84,6 +87,7 @@ parse_args() {
         QUICK_MODE=1
         SOAK_MINUTES=1
         VA_EVENT_DURATION_S=30
+        REDACTION_DURATION_S=10
         MULTICHANNEL_HOLD_MS=3500
         shift
         ;;
@@ -126,6 +130,10 @@ parse_args() {
         ;;
       --include-external-client)
         INCLUDE_EXTERNAL_CLIENT=1
+        shift
+        ;;
+      --skip-redaction)
+        INCLUDE_REDACTION=0
         shift
         ;;
       --heartbeat-interval)
@@ -441,6 +449,14 @@ run_soak_loop() {
       "MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=${HTTP_BASE} ./server.sh verify-event-post --mode schema" || true
     run_step "soak-${iteration}-event-post-recovery" \
       "MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=${HTTP_BASE} ./server.sh verify-event-post --mode recovery" || true
+    if [[ "${INCLUDE_REDACTION}" == "1" ]]; then
+      run_step "soak-${iteration}-redaction" \
+        "MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=${HTTP_BASE} ./server.sh verify-redaction --live-only --duration ${REDACTION_DURATION_S}" || true
+    else
+      SKIP_COUNT=$((SKIP_COUNT + 1))
+      append_step "soak-${iteration}-redaction" "skip" "--skip-redaction" "" 0
+      echo "[skip] soak-${iteration}-redaction: --skip-redaction"
+    fi
     assert_runtime_idle "soak-${iteration}-runtime-idle" || true
     iteration=$((iteration + 1))
   done
@@ -449,7 +465,7 @@ run_soak_loop() {
 # 전체 predev summary JSON을 생성한다.
 write_summary() {
   local duration_sec="$1"
-  python3 - "${SUMMARY_FILE}" "${STEPS_FILE}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" "${duration_sec}" "${REPORT_FILE}" "${REPORT_HTML_FILE}" "${SOAK_MINUTES}" "${QUICK_MODE}" "${INCLUDE_EXTERNAL_TURN}" "${WORK_DIR}" "${INCLUDE_EXTERNAL_CLIENT}" <<'PY'
+  python3 - "${SUMMARY_FILE}" "${STEPS_FILE}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" "${duration_sec}" "${REPORT_FILE}" "${REPORT_HTML_FILE}" "${SOAK_MINUTES}" "${QUICK_MODE}" "${INCLUDE_EXTERNAL_TURN}" "${WORK_DIR}" "${INCLUDE_EXTERNAL_CLIENT}" "${INCLUDE_REDACTION}" <<'PY'
 import json
 import pathlib
 import sys
@@ -475,6 +491,7 @@ summary = {
     "includeExternalTurn": sys.argv[11] == "1",
     "workDir": sys.argv[12],
     "includeExternalClient": sys.argv[13] == "1",
+    "includeRedaction": sys.argv[14] == "1",
     "finishedAtEpochMs": int(time.time() * 1000),
     "steps": steps,
 }
@@ -525,7 +542,7 @@ main() {
   start_server 256 || true
   if [[ -n "${SERVER_PID}" ]] && kill -0 "${SERVER_PID}" >/dev/null 2>&1; then
     run_step "integrated-smoke" \
-      "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_LISTEN_ADDRESS=${RTSP_LISTEN_ADDRESS} MEDIA_SERVER_HTTP_LISTEN_ADDRESS=${HTTP_LISTEN_ADDRESS} MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV:-1} ./server.sh test --no-start ${external_client_option} --include-rules --include-rule-ui --include-va-events --include-image-analysis" || true
+      "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_LISTEN_ADDRESS=${RTSP_LISTEN_ADDRESS} MEDIA_SERVER_HTTP_LISTEN_ADDRESS=${HTTP_LISTEN_ADDRESS} MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV:-1} ./server.sh test --no-start ${external_client_option} --include-rules --include-rule-ui --include-va-events --include-image-analysis $([[ "${INCLUDE_REDACTION}" == "1" ]] && printf -- '--include-redaction')" || true
     run_external_turn_gate || true
     run_soak_loop
     assert_runtime_idle "main-runtime-idle" || true

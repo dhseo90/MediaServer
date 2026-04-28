@@ -36,6 +36,10 @@ const analysisOptions = {
   overlayWaitMs: args.overlayWaitMs || "",
   overlaySyncToleranceMs: args.overlaySyncToleranceMs || "",
   preprocess: args.preprocess || "",
+  redaction: args.redaction || args.redactionMode || "",
+  redactionClasses: args.redactionClasses || "",
+  redactionBlockSize: args.redactionBlockSize || args.mosaicBlockSize || "",
+  redactionMarginRatio: args.redactionMarginRatio || "",
 };
 
 if (!chromePath) {
@@ -372,6 +376,16 @@ function setupAnalysisControlsExpression() {
             if (analysisOverlayToleranceInput) analysisOverlayToleranceInput.value = ${JSON.stringify(analysisOptions.overlaySyncToleranceMs)};
             const analysisPreprocessInput = document.getElementById('analysisPreprocessInput');
             if (analysisPreprocessInput) analysisPreprocessInput.value = ${JSON.stringify(analysisOptions.preprocess)};
+            const analysisRedactionInput = document.getElementById('analysisRedactionInput');
+            if (analysisRedactionInput) analysisRedactionInput.checked = Boolean(${JSON.stringify(analysisOptions.redaction)});
+            const analysisRedactionClassesInput = document.getElementById('analysisRedactionClassesInput');
+            if (analysisRedactionClassesInput && ${JSON.stringify(analysisOptions.redactionClasses)}) {
+              analysisRedactionClassesInput.value = ${JSON.stringify(analysisOptions.redactionClasses)};
+            }
+            const analysisRedactionBlockInput = document.getElementById('analysisRedactionBlockInput');
+            if (analysisRedactionBlockInput) analysisRedactionBlockInput.value = ${JSON.stringify(analysisOptions.redactionBlockSize)};
+            const analysisRedactionMarginInput = document.getElementById('analysisRedactionMarginInput');
+            if (analysisRedactionMarginInput) analysisRedactionMarginInput.value = ${JSON.stringify(analysisOptions.redactionMarginRatio)};
           }
   `;
 }

@@ -162,6 +162,8 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 ./server.sh verify-uri-longrun --include-external --external-urls https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
 ./server.sh verify-uri-longrun --include-external --external-rtsp-routes default,h264,opus --external-urls https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
 ./server.sh verify-va
+./server.sh verify-redaction
+./server.sh verify-redaction --include-multichannel --include-events --include-tracker
 ./server.sh verify-va-events
 ./server.sh verify-va-category-samples
 ./server.sh verify-va-category-samples --no-sports
@@ -278,6 +280,20 @@ curl -fsS -o overlay.jpg \
   'http://127.0.0.1:8080/lab/analysis/image/overlay.jpg?asset=va-four-scene-sample.png&labelLang=ko&quality=88'
 ```
 
+사람 bbox 기반 자동 모자이크:
+
+```bash
+curl -fsS -o person-mosaic.jpg \
+  'http://127.0.0.1:8080/lab/analysis/image/overlay.jpg?asset=va-four-scene-sample.png&redaction=person-mosaic&redactionBlockSize=20'
+```
+
+RTSP/WebRTC overlay에서도 동일 query를 사용합니다. 개인정보 보호가 필요한 배포에서는 원본 snapshot/비-redaction route를 별도로 노출하지 않도록 upstream route 정책을 함께 제한해야 합니다.
+
+```text
+rtsp://127.0.0.1:8554/dhseo?file=va_four_scene_sample.mp4&va=1&redaction=person-mosaic&redactionBlockSize=20
+POST http://127.0.0.1:8080/webrtc/session?file=va_four_scene_sample.mp4&va=1&redaction=person-mosaic&redactionBlockSize=20
+```
+
 정적 이미지 분석은 서버에 overlay 파일을 저장하지 않고 요청 시 즉석에서 JPEG 응답을 생성합니다.
 
 ## 테스트 기준
@@ -295,7 +311,7 @@ curl -fsS -o overlay.jpg \
 모드 기준:
 
 - `./server.sh test` 또는 `--basic`: 스크립트/JSON 정적 검사, summary report smoke, 서버 start/status/diagnose, 로컬 stream 경로, 기본 YOLO/VA overlay. 외부망/LAN probe 제외
-- `--full`: basic + Rule/Profile UI, VA event, 정적 이미지 분석, event POST schema/recovery, 일반/VA WebRTC 다채널 fan-out
+- `--full`: basic + Rule/Profile UI, VA event, 정적 이미지 분석, event POST schema/recovery, 일반/VA WebRTC 다채널 fan-out, 사람 객체 자동 모자이크 검증
 - `--external`: full + LAN IP 외부 클라이언트 접근성, 외부 RTSP advisory, WebRTC ICE, 외부 HTTP/HLS URI longrun
 - `--stable`: 기존 stable 호환 모드. 로컬 stream/VA + LAN IP 외부 클라이언트 접근성과 외부 RTSP advisory 포함
 
@@ -317,6 +333,7 @@ curl -fsS -o overlay.jpg \
 ./server.sh test --include-uri-longrun
 ./server.sh test --include-event-post
 ./server.sh test --include-multichannel
+./server.sh test --include-redaction
 ./server.sh test --include-report-summary
 ```
 

@@ -36,6 +36,8 @@ Usage:
   verify-uri-longrun
                  HTTP/HLS URI source의 로컬 반복 검증과 선택 외부 URL 반복 검증을 수행합니다.
   verify-va      YOLO/VA overlay의 lab, RTSP, WebRTC 검증을 수행합니다.
+  verify-redaction
+                 사람 객체 자동 모자이크(redaction)의 image/live/multichannel 검증을 수행합니다.
   verify-va-events
                  이동 테스트 영상으로 tracker 기반 presence/enter/exit/line-crossing을 검증합니다.
   verify-va-category-samples
@@ -159,6 +161,10 @@ case "${cmd}" in
   verify-va)
     require_internal verify_va_overlay.sh
     exec "${INTERNAL_DIR}/verify_va_overlay.sh" "$@"
+    ;;
+  verify-redaction)
+    require_internal verify_redaction.sh
+    exec "${INTERNAL_DIR}/verify_redaction.sh" "$@"
     ;;
   verify-va-events)
     require_internal verify_va_tracking_events.sh
