@@ -893,19 +893,27 @@ std::string BuildTestPageHtml(bool lab_mode) {
                 <summary style="cursor:pointer;color:var(--muted);">고급 튜닝(선택)</summary>
                 <div style="display:grid;gap:10px;margin-top:10px;">
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                    <label>FPS
-                      <input id="analysisFpsInput" placeholder="자동" />
+                    <label class="range-field">
+                      <span class="range-head"><span>FPS</span><output data-range-value-for="analysisFpsInput"></output></span>
+                      <input id="analysisFpsInput" type="range" min="1" max="30" step="1" value="8" data-default="8" data-unit="fps" data-query-optional="1" />
+                      <span class="range-meta">min 1 · max 30 · default 8 · 변경 시 적용</span>
                     </label>
-                    <label>Queue
-                      <input id="analysisQueueInput" placeholder="자동" />
+                    <label class="range-field">
+                      <span class="range-head"><span>Queue</span><output data-range-value-for="analysisQueueInput"></output></span>
+                      <input id="analysisQueueInput" type="range" min="1" max="8" step="1" value="1" data-default="1" data-query-optional="1" />
+                      <span class="range-meta">min 1 · max 8 · default 1 · 변경 시 적용</span>
                     </label>
                   </div>
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                    <label>Overlay wait(ms)
-                      <input id="analysisOverlayWaitInput" placeholder="자동" />
+                    <label class="range-field">
+                      <span class="range-head"><span>Overlay wait</span><output data-range-value-for="analysisOverlayWaitInput"></output></span>
+                      <input id="analysisOverlayWaitInput" type="range" min="0" max="2000" step="20" value="180" data-default="180" data-unit="ms" data-query-optional="1" />
+                      <span class="range-meta">min 0 · max 2000 · default 180ms · 변경 시 적용</span>
                     </label>
-                    <label>PTS tolerance(ms)
-                      <input id="analysisOverlayToleranceInput" placeholder="자동" />
+                    <label class="range-field">
+                      <span class="range-head"><span>PTS tolerance</span><output data-range-value-for="analysisOverlayToleranceInput"></output></span>
+                      <input id="analysisOverlayToleranceInput" type="range" min="0" max="5000" step="50" value="400" data-default="400" data-unit="ms" data-query-optional="1" />
+                      <span class="range-meta">min 0 · max 5000 · default 400ms · 변경 시 적용</span>
                     </label>
                   </div>
                   <label>전처리
@@ -916,11 +924,15 @@ std::string BuildTestPageHtml(bool lab_mode) {
                     </select>
                   </label>
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                    <label>모자이크 block
-                      <input id="analysisRedactionBlockInput" placeholder="20" />
+                    <label class="range-field">
+                      <span class="range-head"><span>모자이크 block</span><output data-range-value-for="analysisRedactionBlockInput"></output></span>
+                      <input id="analysisRedactionBlockInput" type="range" min="4" max="128" step="1" value="20" data-default="20" data-unit="px" />
+                      <span class="range-meta">min 4 · max 128 · default 20px</span>
                     </label>
-                    <label>모자이크 margin
-                      <input id="analysisRedactionMarginInput" placeholder="0.08" />
+                    <label class="range-field">
+                      <span class="range-head"><span>모자이크 margin</span><output data-range-value-for="analysisRedactionMarginInput"></output></span>
+                      <input id="analysisRedactionMarginInput" type="range" min="0" max="0.5" step="0.01" value="0.08" data-default="0.08" />
+                      <span class="range-meta">min 0 · max 0.5 · default 0.08</span>
                     </label>
                   </div>
                   <label>모자이크 대상
@@ -986,23 +998,31 @@ std::string BuildTestPageHtml(bool lab_mode) {
                     <option value="en">English</option>
                   </select>
                 </label>
-                <label>품질
-                  <input id="imageAnalysisQuality" value="88" />
+                <label class="range-field">
+                  <span class="range-head"><span>품질</span><output data-range-value-for="imageAnalysisQuality"></output></span>
+                  <input id="imageAnalysisQuality" type="range" min="1" max="100" step="1" value="88" data-default="88" />
+                  <span class="range-meta">min 1 · max 100 · default 88</span>
                 </label>
               </div>
-              <label>박스 두께
-                <input id="imageAnalysisThickness" value="3" />
+              <label class="range-field">
+                <span class="range-head"><span>박스 두께</span><output data-range-value-for="imageAnalysisThickness"></output></span>
+                <input id="imageAnalysisThickness" type="range" min="1" max="16" step="1" value="3" data-default="3" data-unit="px" />
+                <span class="range-meta">min 1 · max 16 · default 3px</span>
               </label>
               <label style="display:flex;align-items:center;gap:8px;">
                 <input id="imageAnalysisRedaction" type="checkbox" style="width:auto;" />
                 사람 객체 모자이크
               </label>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                <label>모자이크 block
-                  <input id="imageAnalysisRedactionBlock" value="20" />
+                <label class="range-field">
+                  <span class="range-head"><span>모자이크 block</span><output data-range-value-for="imageAnalysisRedactionBlock"></output></span>
+                  <input id="imageAnalysisRedactionBlock" type="range" min="4" max="128" step="1" value="20" data-default="20" data-unit="px" />
+                  <span class="range-meta">min 4 · max 128 · default 20px</span>
                 </label>
-                <label>모자이크 margin
-                  <input id="imageAnalysisRedactionMargin" value="0.08" />
+                <label class="range-field">
+                  <span class="range-head"><span>모자이크 margin</span><output data-range-value-for="imageAnalysisRedactionMargin"></output></span>
+                  <input id="imageAnalysisRedactionMargin" type="range" min="0" max="0.5" step="0.01" value="0.08" data-default="0.08" />
+                  <span class="range-meta">min 0 · max 0.5 · default 0.08</span>
                 </label>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -1151,10 +1171,10 @@ std::string BuildTestPageHtml(bool lab_mode) {
     }
     .hero {
       display: grid;
-      grid-template-columns: minmax(0, 760px);
+      grid-template-columns: minmax(0, 680px) minmax(320px, 380px);
       justify-content: center;
       align-items: start;
-      gap: clamp(18px, 3vw, 30px);
+      gap: clamp(18px, 2.4vw, 28px);
       padding: clamp(18px, 3vw, 30px);
     }
     .stream-panel {
@@ -1167,7 +1187,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
     p { color: var(--muted); line-height: 1.5; }
     .controls {
       width: 100%;
-      max-width: 760px;
+      max-width: 380px;
       justify-self: center;
       display: grid;
       gap: 12px;
@@ -1226,9 +1246,33 @@ std::string BuildTestPageHtml(bool lab_mode) {
     a:hover {
       text-decoration: underline;
     }
+    .range-field {
+      gap: 8px;
+    }
+    .range-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .range-head output {
+      color: var(--ink);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .range-field input[type="range"] {
+      padding: 0;
+      accent-color: var(--accent);
+      box-shadow: none;
+    }
+    .range-meta {
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.35;
+    }
     .video-frame {
       width: 100%;
-      max-width: 760px;
+      max-width: 680px;
       justify-self: center;
       aspect-ratio: 16 / 9;
       max-height: min(52vh, 420px);
@@ -1434,19 +1478,19 @@ std::string BuildTestPageHtml(bool lab_mode) {
     }
     .image-analysis-grid {
       display: grid;
-      grid-template-columns: minmax(0, 760px);
+      grid-template-columns: minmax(260px, 360px) minmax(320px, 720px);
       justify-content: center;
       gap: clamp(14px, 2vw, 22px);
       align-items: start;
     }
-    .image-analysis-grid > .stack {
+    .image-analysis-grid > .controls {
       width: 100%;
-      max-width: 760px;
+      max-width: 360px;
       justify-self: center;
     }
     .image-preview-panel {
       width: 100%;
-      max-width: 760px;
+      max-width: 720px;
       justify-self: center;
       min-height: 260px;
       max-height: min(58vh, 520px);
@@ -1482,7 +1526,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
     #va-analysis > summary {
       font-size: 1rem;
     }
-    @media (max-width: 1100px) {
+    @media (max-width: 1180px) {
       .hero, .grid {
         grid-template-columns: 1fr;
       }
@@ -1495,7 +1539,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
       .image-analysis-grid {
         grid-template-columns: 1fr;
       }
-      .image-analysis-grid > .stack {
+      .image-analysis-grid > .controls {
         max-width: 760px;
       }
       main {
@@ -1764,6 +1808,48 @@ va_four_scene_sample.mp4</textarea>
       local: { host: 0, srflx: 0, relay: 0, unknown: 0 },
       remote: { host: 0, srflx: 0, relay: 0, unknown: 0 }
     };
+
+    function formatRangeValue(input) {
+      if (!input) return '';
+      const rawValue = input.value || input.dataset.default || '';
+      const step = input.step || '1';
+      let text = rawValue;
+      if (step.includes('.')) {
+        const decimals = (step.split('.')[1] || '').length;
+        text = Number(rawValue).toFixed(decimals).replace(/\.?0+$/, '');
+      }
+      return `${text}${input.dataset.unit || ''}`;
+    }
+
+    function updateRangeDisplay(input) {
+      if (!input) return;
+      const output = document.querySelector(`[data-range-value-for="${input.id}"]`);
+      if (output) {
+        output.textContent = formatRangeValue(input);
+      }
+    }
+
+    function bindRangeControls() {
+      for (const input of Array.from(document.querySelectorAll('input[type="range"][data-default]'))) {
+        updateRangeDisplay(input);
+        input.addEventListener('input', () => {
+          input.dataset.rangeDirty = '1';
+          updateRangeDisplay(input);
+        });
+        input.addEventListener('change', () => {
+          input.dataset.rangeDirty = '1';
+          updateRangeDisplay(input);
+        });
+      }
+    }
+
+    function rangeQueryValue(input, options = {}) {
+      if (!input || !input.value) return '';
+      if (options.changedOnly && input.dataset.rangeDirty !== '1') {
+        return '';
+      }
+      return input.value;
+    }
 
     function log(message) {
       const ts = new Date().toLocaleTimeString();
@@ -2337,13 +2423,17 @@ va_four_scene_sample.mp4</textarea>
         if (analysisLabelLangInputEl && analysisLabelLangInputEl.value) {
           params.set('labelLang', analysisLabelLangInputEl.value);
         }
-        if (analysisFpsInputEl && analysisFpsInputEl.value) params.set('fps', analysisFpsInputEl.value);
-        if (analysisQueueInputEl && analysisQueueInputEl.value) params.set('maxQueue', analysisQueueInputEl.value);
-        if (analysisOverlayWaitInputEl && analysisOverlayWaitInputEl.value) {
-          params.set('overlayWaitMs', analysisOverlayWaitInputEl.value);
+        const fpsOverride = rangeQueryValue(analysisFpsInputEl, { changedOnly: true });
+        if (fpsOverride) params.set('fps', fpsOverride);
+        const queueOverride = rangeQueryValue(analysisQueueInputEl, { changedOnly: true });
+        if (queueOverride) params.set('maxQueue', queueOverride);
+        const overlayWaitOverride = rangeQueryValue(analysisOverlayWaitInputEl, { changedOnly: true });
+        if (overlayWaitOverride) {
+          params.set('overlayWaitMs', overlayWaitOverride);
         }
-        if (analysisOverlayToleranceInputEl && analysisOverlayToleranceInputEl.value) {
-          params.set('overlaySyncToleranceMs', analysisOverlayToleranceInputEl.value);
+        const overlayToleranceOverride = rangeQueryValue(analysisOverlayToleranceInputEl, { changedOnly: true });
+        if (overlayToleranceOverride) {
+          params.set('overlaySyncToleranceMs', overlayToleranceOverride);
         }
         if (analysisPreprocessInputEl && analysisPreprocessInputEl.value) {
           params.set('preprocess', analysisPreprocessInputEl.value);
@@ -2360,11 +2450,13 @@ va_four_scene_sample.mp4</textarea>
             ? analysisRedactionClassesInputEl.value.trim()
             : 'person';
           params.set('redactionClasses', classes || 'person');
-          if (analysisRedactionBlockInputEl && analysisRedactionBlockInputEl.value) {
-            params.set('redactionBlockSize', analysisRedactionBlockInputEl.value);
+          const redactionBlockSize = rangeQueryValue(analysisRedactionBlockInputEl);
+          if (redactionBlockSize) {
+            params.set('redactionBlockSize', redactionBlockSize);
           }
-          if (analysisRedactionMarginInputEl && analysisRedactionMarginInputEl.value) {
-            params.set('redactionMarginRatio', analysisRedactionMarginInputEl.value);
+          const redactionMarginRatio = rangeQueryValue(analysisRedactionMarginInputEl);
+          if (redactionMarginRatio) {
+            params.set('redactionMarginRatio', redactionMarginRatio);
           }
         }
       }
@@ -2385,20 +2477,24 @@ va_four_scene_sample.mp4</textarea>
       if (imageAnalysisLabelLangEl && imageAnalysisLabelLangEl.value) {
         params.set('labelLang', imageAnalysisLabelLangEl.value);
       }
-      if (imageAnalysisQualityEl && imageAnalysisQualityEl.value) {
-        params.set('quality', imageAnalysisQualityEl.value);
+      const imageQuality = rangeQueryValue(imageAnalysisQualityEl);
+      if (imageQuality) {
+        params.set('quality', imageQuality);
       }
-      if (imageAnalysisThicknessEl && imageAnalysisThicknessEl.value) {
-        params.set('thickness', imageAnalysisThicknessEl.value);
+      const imageThickness = rangeQueryValue(imageAnalysisThicknessEl);
+      if (imageThickness) {
+        params.set('thickness', imageThickness);
       }
       if (mode !== 'snapshot' && imageAnalysisRedactionEl && imageAnalysisRedactionEl.checked) {
         params.set('redaction', 'person-mosaic');
         params.set('redactionClasses', 'person');
-        if (imageAnalysisRedactionBlockEl && imageAnalysisRedactionBlockEl.value) {
-          params.set('redactionBlockSize', imageAnalysisRedactionBlockEl.value);
+        const imageRedactionBlockSize = rangeQueryValue(imageAnalysisRedactionBlockEl);
+        if (imageRedactionBlockSize) {
+          params.set('redactionBlockSize', imageRedactionBlockSize);
         }
-        if (imageAnalysisRedactionMarginEl && imageAnalysisRedactionMarginEl.value) {
-          params.set('redactionMarginRatio', imageAnalysisRedactionMarginEl.value);
+        const imageRedactionMarginRatio = rangeQueryValue(imageAnalysisRedactionMarginEl);
+        if (imageRedactionMarginRatio) {
+          params.set('redactionMarginRatio', imageRedactionMarginRatio);
         }
       }
       return params;
@@ -2918,6 +3014,7 @@ va_four_scene_sample.mp4</textarea>
         sourceInput.addEventListener('change', notifyEmbeddedSourceChanged);
       }
     }
+    bindRangeControls();
     updateSourceFields();
     updateCandidateSummaries();
     loadWebRtcConfig().catch((error) => log(`ICE config 로드 실패: ${error.message}`));

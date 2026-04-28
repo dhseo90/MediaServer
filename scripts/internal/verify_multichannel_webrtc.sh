@@ -32,6 +32,7 @@ CASES_FILE="/tmp/media_server_${RUN_ID}_cases.ndjson"
 RUN_SINGLE=1
 RUN_MULTI=1
 RUN_VA="${MEDIA_SERVER_VERIFY_MULTICHANNEL_INCLUDE_VA:-0}"
+REQUIRE_IDLE_PRECHECK="${MEDIA_SERVER_VERIFY_MULTICHANNEL_REQUIRE_IDLE_PRECHECK:-1}"
 PASS_COUNT=0
 FAIL_COUNT=0
 CLIENT_RUN_INDEX=0
@@ -77,6 +78,7 @@ Options:
   --va-redaction-classes <csv> VA redaction 대상 category/class. 기본 person
   --va-redaction-block-size <n>
   --va-redaction-margin-ratio <n>
+  --skip-idle-precheck         시작 시 runtime idle 확인을 건너뜀
   --single-only                같은 영상 다중 client 검증만 실행
   --multi-only                 여러 영상 다중 client 검증만 실행
   --va-only                    VA overlay 다채널 case만 실행
@@ -146,6 +148,10 @@ parse_args() {
       --va-redaction-margin-ratio)
         VA_REDACTION_MARGIN_RATIO="${2:-}"
         shift 2
+        ;;
+      --skip-idle-precheck)
+        REQUIRE_IDLE_PRECHECK=0
+        shift
         ;;
       --single-only)
         RUN_SINGLE=1
@@ -678,6 +684,18 @@ main() {
     echo "[verify] runtime status API unavailable: ${HTTP_BASE}/lab/runtime/status"
     echo "[verify] start server first, for example: MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 ./server.sh foreground"
     exit 1
+  fi
+
+  if [[ "${REQUIRE_IDLE_PRECHECK}" == "1" ]]; then
+    log_info "startup runtime idle precheck"
+    if wait_for_idle_runtime; then
+      log_pass "startup runtime idle precheck ok"
+    else
+      write_summary
+      exit 1
+    fi
+  else
+    log_info "startup runtime idle precheck skipped"
   fi
 
   local iteration
