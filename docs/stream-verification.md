@@ -15,6 +15,7 @@
 - 로컬 HLS VOD와 공개 HLS 후보(Mux/Apple)는 `verify-uri-longrun` 선택 검증에서 통과했다. 외부 HLS/HTTP URI는 네트워크/upstream 상태 영향이 있으므로 기본 안정 테스트가 아닌 선택 검증으로 남긴다.
 
 최신 후속 검증 결과:
+- `2026-04-28`: Lab resize 안정화를 위해 stream/정적 이미지 분석을 bounded 2열 기준으로 정리하고 `./server.sh verify-lab-layout`을 추가했다. 390/768/1180/1365/1600 폭에서 stream과 image-analysis 모두 가로 overflow 없이 통과 `10/0`, summary `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_lab-layout-1777370197934-39090_summary.json`. 정적 이미지 분석과 VA 고급 튜닝의 숫자 입력은 min/max/default가 보이는 range slider로 바꿨다. `verify-redaction`은 runtime idle precheck를 즉시 실패가 아니라 최대 35초 대기 후 판정하도록 보강했다. `./server.sh verify-predev --skip-build --soak-minutes 30 --heartbeat-interval 30` 통과 `68/0/2`, duration `2512s`, summary `/tmp/media_server_predev-1777373074-81416_summary.json`, report `/tmp/media_server_predev-1777373074-81416_report.md`, report html `/tmp/media_server_predev-1777373074-81416_report.html`. 최종 cleanup 후 `8080/8081/8554/8555` listener는 없었다.
 - `2026-04-27`: 사람 객체 자동 모자이크를 운영 승격 후보에서 자동 검증 대상으로 올렸다. `./server.sh verify-redaction`은 정적 이미지 bbox pixel diff, RTSP/WebRTC redaction overlay, 선택 다채널/event/tracker 호환 검증을 summary JSON으로 남긴다. `./server.sh test --full`과 `./server.sh verify-predev`는 redaction smoke를 포함하며, 운영 TURN relay/auth 검증은 credential 미확보로 여전히 기본 기준에 넣지 않는다.
 - `2026-04-27`: 통합 test 모드를 `basic/full/external/stable`로 분리했다. `./server.sh test`는 기본값 `--basic`으로 동작하며 외부망/LAN probe 없이 로컬 재현성을 우선한다. `--full`은 Rule/Profile UI, VA event, image analysis, event POST, multichannel, redaction, report summary를 포함하고, `--external`은 LAN IP 외부 접근성, 외부 RTSP advisory, WebRTC ICE, 외부 HTTP/HLS URI longrun까지 확장한다. 기존 LAN/외부 RTSP 포함 기준은 `--stable`에 남겼다.
 - `2026-04-27`: 13차 잔여 안정화 이슈로 `verify-predev`의 loopback 기본 bind, 로컬 env override 격리, LAN IP 외부 접근성 hard gate 분리, 외부 TURN skip step 기록, runtime idle의 publish session/source 확인, custom port cleanup, summary metadata를 보강했다. `./server.sh verify-predev --skip-build --soak-minutes 0 --heartbeat-interval 30` 통과 `8/0/3`, summary `/tmp/media_server_predev-1777292825-16550_summary.json`, report `/tmp/media_server_predev-1777292825-16550_report.md`, report html `/tmp/media_server_predev-1777292825-16550_report.html`. 최종 cleanup 후 `8080/8081/8554/8555` listener는 없었다.
@@ -183,12 +184,13 @@
   6. 필요 시 `./server.sh verify-multichannel`
      - VA overlay 다채널까지 보려면 `./server.sh verify-multichannel --include-va --repeat 2`
   7. 필요 시 `./server.sh verify-redaction --include-multichannel --include-events --include-tracker`
-  8. 필요 시 `./server.sh verify-uri-longrun`
-  9. 필요 시 `./server.sh verify-route-profiles`
-  10. 필요 시 `./server.sh verify-tracker-stability`
-  11. 필요 시 `./server.sh verify-yolo-layouts`
-  12. 필요 시 `./server.sh verify-adaptive`
-  13. `./server.sh stop`
+  8. Lab 반응형 UI를 건드렸다면 `./server.sh verify-lab-layout`
+  9. 필요 시 `./server.sh verify-uri-longrun`
+  10. 필요 시 `./server.sh verify-route-profiles`
+  11. 필요 시 `./server.sh verify-tracker-stability`
+  12. 필요 시 `./server.sh verify-yolo-layouts`
+  13. 필요 시 `./server.sh verify-adaptive`
+  14. `./server.sh stop`
 - 판단 규칙
   - 위 통합 테스트 기준이 깨지면 분석 관련 변경보다 스트리밍 안정화 수정을 먼저 한다.
   - profile/rule/event 같은 분석 관련 기능은 선택 테스트로 검증하되, 안정 기능으로 승격 전까지 기본 `./server.sh test`에는 넣지 않는다.

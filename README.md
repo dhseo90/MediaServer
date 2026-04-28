@@ -173,6 +173,7 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 ./server.sh verify-event-post --mode recovery
 ./server.sh verify-event-post-longrun --iterations 3
 ./server.sh verify-lab-import-ui
+./server.sh verify-lab-layout
 ./server.sh verify-tracker-stability
 ./server.sh verify-tracker-stability --stress
 ./server.sh verify-yolo-layouts

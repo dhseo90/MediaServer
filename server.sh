@@ -52,6 +52,8 @@ Usage:
                  event POST schema/recovery/선택 queue 검증을 반복 실행합니다.
   verify-lab-import-ui
                  /lab/import 실험실 import UI와 jobs API를 검증합니다.
+  verify-lab-layout
+                 /lab 주요 화면의 반응형 레이아웃과 가로 overflow를 폭별로 검증합니다.
   verify-tracker-stability
                  이동 영상에서 track ID 유지/분절 통계를 수집합니다.
   verify-yolo-layouts
@@ -193,6 +195,10 @@ case "${cmd}" in
   verify-lab-import-ui)
     require_internal verify_lab_import_ui.sh
     exec "${INTERNAL_DIR}/verify_lab_import_ui.sh" "$@"
+    ;;
+  verify-lab-layout)
+    require_internal verify_lab_layout.mjs
+    exec "${INTERNAL_DIR}/verify_lab_layout.mjs" "$@"
     ;;
   verify-tracker-stability)
     require_internal verify_tracker_stability.sh

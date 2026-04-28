@@ -428,6 +428,7 @@ WebRTC STUN/TURN 검증 상태:
 | `./server.sh verify-event-post` | VA event POST payload schema, 실패/cooldown/queue/recovery counter 검증 |
 | `./server.sh verify-event-post-longrun` | event POST schema/recovery/선택 queue 검증 반복 실행 |
 | `./server.sh verify-lab-import-ui` | `/lab/import` 실험실 import UI와 jobs API smoke 검증 |
+| `./server.sh verify-lab-layout` | `/lab` stream/정적 이미지 분석 화면의 반응형 배치와 가로 overflow 폭별 검증 |
 | `./server.sh verify-tracker-stability` | 이동 영상 기준 track ID 유지/분절 통계와 stress preset 수집 |
 | `./server.sh verify-yolo-layouts` | YOLO 모델별 output layout/box/score 조합 검증 |
 | `./server.sh verify-adaptive` | adaptive tuner의 과부하 downshift와 저부하 upshift 검증 |

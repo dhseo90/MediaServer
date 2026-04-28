@@ -40,6 +40,8 @@ RUN_MULTICHANNEL="${MEDIA_SERVER_VERIFY_REDACTION_INCLUDE_MULTICHANNEL:-0}"
 RUN_EVENTS="${MEDIA_SERVER_VERIFY_REDACTION_INCLUDE_EVENTS:-0}"
 RUN_TRACKER="${MEDIA_SERVER_VERIFY_REDACTION_INCLUDE_TRACKER:-0}"
 RUN_URI="${MEDIA_SERVER_VERIFY_REDACTION_INCLUDE_URI:-0}"
+REQUIRE_IDLE_PRECHECK="${MEDIA_SERVER_VERIFY_REDACTION_REQUIRE_IDLE_PRECHECK:-1}"
+IDLE_PRECHECK_TIMEOUT_S="${MEDIA_SERVER_VERIFY_REDACTION_IDLE_PRECHECK_TIMEOUT_S:-35}"
 PASS_COUNT=0
 FAIL_COUNT=0
 SKIP_COUNT=0
@@ -69,6 +71,8 @@ Options:
   --include-events           VA event 검증을 함께 실행해 redaction과 event 동시 사용성을 확인
   --include-tracker          tracker 안정성 검증을 함께 실행
   --include-uri              URI/HLS source 장기 검증 준비 상태를 summary에 포함
+  --skip-idle-precheck       시작 시 runtime 잔여 session/stream/tap 확인을 건너뜀
+  --idle-precheck-timeout <s> runtime idle 대기 시간. 기본 ${IDLE_PRECHECK_TIMEOUT_S}
   --long                     duration=30, repeat=2, multichannel/events/tracker 포함
   --static-only              정적 이미지 redaction만 검증
   --live-only                RTSP/WebRTC live redaction만 검증
@@ -138,6 +142,74 @@ import urllib.parse
 
 print(urllib.parse.quote(sys.argv[1], safe="/._-"))
 PY
+}
+
+# 서버 runtime status endpoint에서 현재 session/stream 숫자를 가져온다.
+runtime_status() {
+  curl -fsS --max-time 3 "${HTTP_BASE}/lab/runtime/status"
+}
+
+# dotted path로 runtime status JSON 숫자 필드를 추출한다.
+json_number() {
+  local json_text="$1"
+  local json_path="$2"
+  python3 - "${json_text}" "${json_path}" <<'PY'
+import json
+import sys
+
+text = sys.argv[1] or "{}"
+payload = {}
+while text:
+    try:
+        payload = json.loads(text)
+        break
+    except json.JSONDecodeError:
+        if not text.endswith("}"):
+            payload = {}
+            break
+        text = text[:-1]
+value = payload
+for key in sys.argv[2].split("."):
+    value = value.get(key, 0) if isinstance(value, dict) else 0
+print(int(value or 0))
+PY
+}
+
+# redaction 장기 검증 시작 전에 남은 수동 세션/stream/tap이 있는지 확인해 결과 오염을 막는다.
+assert_runtime_idle_precheck() {
+  if [[ "${REQUIRE_IDLE_PRECHECK}" != "1" ]]; then
+    skip_step "runtime-idle-precheck" "--skip-idle-precheck 지정"
+    return 0
+  fi
+  local deadline=$((SECONDS + IDLE_PRECHECK_TIMEOUT_S))
+  local status_json="" active_sessions=0 resource_streams=0 egress_sessions=0 analysis_taps=0
+  log_info "runtime idle precheck 대기 최대 ${IDLE_PRECHECK_TIMEOUT_S}s"
+  while (( SECONDS < deadline )); do
+    status_json="$(runtime_status || true)"
+    if [[ -n "${status_json}" ]]; then
+      active_sessions="$(json_number "${status_json}" "sessionManager.activeSessions")"
+      resource_streams="$(json_number "${status_json}" "sessionManager.resourceActiveStreams")"
+      egress_sessions="$(json_number "${status_json}" "webrtcHttp.egressSessions")"
+      analysis_taps="$(json_number "${status_json}" "sessionManager.activeAnalysisTaps")"
+      if [[ "${active_sessions}" -eq 0 &&
+            "${resource_streams}" -eq 0 &&
+            "${egress_sessions}" -eq 0 &&
+            "${analysis_taps}" -eq 0 ]]; then
+        log_pass "runtime idle precheck ok"
+        append_step "runtime-idle-precheck" "pass" "${HTTP_BASE}/lab/runtime/status" "" 0
+        return 0
+      fi
+    fi
+    sleep 0.5
+  done
+  if [[ -z "${status_json}" ]]; then
+    log_fail "runtime idle precheck 실패: ${HTTP_BASE}/lab/runtime/status 호출 실패"
+  else
+    log_fail "runtime idle precheck 실패: activeSessions=${active_sessions}, resourceActiveStreams=${resource_streams}, egressSessions=${egress_sessions}, activeAnalysisTaps=${analysis_taps}"
+  fi
+  echo "${status_json}" | sed 's/^/  /'
+  append_step "runtime-idle-precheck" "fail" "${HTTP_BASE}/lab/runtime/status" "" 0
+  return 1
 }
 
 # step 결과를 NDJSON으로 남겨 마지막 summary에서 상세 원인을 볼 수 있게 한다.
@@ -516,6 +588,14 @@ parse_args() {
         RUN_URI=1
         shift
         ;;
+      --skip-idle-precheck)
+        REQUIRE_IDLE_PRECHECK=0
+        shift
+        ;;
+      --idle-precheck-timeout)
+        IDLE_PRECHECK_TIMEOUT_S="${2:-}"
+        shift 2
+        ;;
       --long)
         DURATION_S=30
         REPEAT_COUNT=2
@@ -584,6 +664,11 @@ main() {
   fi
   log_pass "HTTP health ok"
   append_step "health" "pass" "${HTTP_BASE}/health" "" 0
+
+  if ! assert_runtime_idle_precheck; then
+    write_summary
+    exit 1
+  fi
 
   if [[ "${RUN_STATIC}" == "1" ]]; then
     run_static_redaction || true
