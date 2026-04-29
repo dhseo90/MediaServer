@@ -105,14 +105,78 @@ try {
         expectText('selectCoreClassesBtn', '기본');
         expectText('selectAllClassesBtn', '전체 선택');
         expectText('clearClassesBtn', '전체 해제');
+        expectText('analysisSettingsTabBtn', '영상 분석 설정');
+        expectText('analysisViewerTabBtn', '영상 분석 보기');
         if ($('eventFlashColorInput')) {
           throw new Error('highlight color input must not be visible');
+        }
+        if (!document.body.textContent.includes('영상 분석 관리') ||
+            !document.body.textContent.includes('vaRule=숫자') ||
+            !document.body.textContent.includes('영상 분석 설정 ID')) {
+          throw new Error('missing video analysis management labels');
+        }
+        for (const id of ['vaRuleSelect', 'vaRuleId', 'vaRuleName', 'vaRuleSourceKind', 'vaRuleFileSelect', 'saveVaRuleBtn']) {
+          if (!$(id)) throw new Error('missing vaRule setting control: ' + id);
+        }
+        if ($('vaRuleId').getAttribute('inputmode') !== 'numeric') {
+          throw new Error('vaRule id must use numeric input mode');
+        }
+        expectText('stopPreviewBtn', '영상 보기 시작');
+        for (const sectionText of ['기본 설정', '영상/영역', '시나리오', '객체/조건', '출력/저장']) {
+          if (!document.body.textContent.includes(sectionText)) {
+            throw new Error('missing rule section tab: ' + sectionText);
+          }
+        }
+        if (!document.body.textContent.includes('영상 프레임 보기') ||
+            !document.body.textContent.includes('영상 파일 선택') ||
+            !document.body.textContent.includes('메인 /lab 선택 소스') ||
+            !document.body.textContent.includes('객체 검출 오버레이 보기') ||
+            !document.body.textContent.includes('영역/Zone 그리기 중 영상 프레임 보기')) {
+          throw new Error('missing prominent video frame preview controls');
+        }
+        if (!$('previewSourceMode') || !$('previewFileSelect')) {
+          throw new Error('missing video preview source selector');
+        }
+        if ($('previewSourceMode').value !== 'vaRule') {
+          throw new Error('preview source mode default mismatch: ' + $('previewSourceMode').value);
+        }
+        if (!$('previewFileSelect').value) {
+          throw new Error('preview file select must have a default value');
+        }
+        if (!$('previewOverlayInput') || $('previewOverlayInput').checked !== true) {
+          throw new Error('preview overlay must be visible and enabled by default');
+        }
+        if (!$('viewWebRtcUrl') || !$('viewRtspUrl') || !$('viewTapUrl') || !$('viewVaRuleSelect')) {
+          throw new Error('missing video analysis view controls');
+        }
+        click('analysisViewerTabBtn');
+        if (!$('settingsPanel').hidden || $('viewerPanel').hidden) {
+          throw new Error('viewer tab visibility mismatch');
+        }
+        if (!$('viewWebRtcUrl').value.includes('/webrtc/session?file=')) {
+          throw new Error('viewer live URL mismatch: ' + $('viewWebRtcUrl').value);
+        }
+        click('analysisSettingsTabBtn');
+        if ($('settingsPanel').hidden || !$('viewerPanel').hidden) {
+          throw new Error('settings tab visibility mismatch');
+        }
+        if (document.body.textContent.includes('영역 배경 영상')) {
+          throw new Error('old video preview label must not be visible');
         }
         if (!$('ruleLineDirection')) {
           throw new Error('missing line direction select');
         }
         if ($('ruleLineDirection').value !== 'any') {
           throw new Error('line direction default mismatch: ' + $('ruleLineDirection').value);
+        }
+        const scenarioRadio = document.querySelector('input[name="ruleKind"][value="scenario"]');
+        const basicRadio = document.querySelector('input[name="ruleKind"][value="basic"]');
+        if (!scenarioRadio || !basicRadio || !$('scenarioPanel')) {
+          throw new Error('missing scenario rule controls');
+        }
+        const classGridStyle = window.getComputedStyle($('classChecks'));
+        if (classGridStyle.overflowY === 'auto' || classGridStyle.maxHeight !== 'none') {
+          throw new Error('rule class grid must not have an internal scrollbar');
         }
 
         const ruleChecks = Array.from(document.querySelectorAll('[data-rule-category]'));
@@ -189,6 +253,65 @@ try {
         if (!Array.isArray(lineRulePayload.event?.region?.points) || lineRulePayload.event.region.points.length !== 2) {
           throw new Error('line-crossing points length mismatch: ' + JSON.stringify(lineRulePayload.event?.region?.points));
         }
+        scenarioRadio.click();
+        for (const forbiddenText of ['Restricted zone ID', 'Candidate 진입', 'Confirmed 체류', 'Cooldown(ms)']) {
+          if (document.body.textContent.includes(forbiddenText)) {
+            throw new Error('scenario UI must use Korean operator labels, found: ' + forbiddenText);
+          }
+        }
+        if ($('scenarioCandidateMs').type !== 'range' ||
+            $('scenarioDwellMs').type !== 'range' ||
+            $('scenarioCooldownMs').type !== 'range') {
+          throw new Error('scenario time controls must use range bars');
+        }
+        const rangeMetaText = Array.from(document.querySelectorAll('.range-meta')).map((el) => el.textContent).join(' ');
+        for (const expected of ['범위 0~30,000 ms', '기본 2,000 ms', '범위 1,000~120,000 ms', '기본 10,000 ms', '범위 0~60,000 ms', '기본 5,000 ms']) {
+          if (!rangeMetaText.includes(expected)) {
+            throw new Error('scenario range metadata missing: ' + expected);
+          }
+        }
+        setValue('scenarioCandidateMs', '2000');
+        setValue('scenarioDwellMs', '10000');
+        setValue('scenarioCooldownMs', '5000');
+        setValue('scenarioZoneIds', 'zone-a, zone-b');
+        const stableOnly = $('scenarioStableOnly');
+        stableOnly.checked = true;
+        stableOnly.dispatchEvent(new Event('change', { bubbles: true }));
+        const scenarioPayload = window.ruleJson();
+        if (scenarioPayload.ruleKind !== 'scenario' || scenarioPayload.event?.type !== 'intrusion-dwell') {
+          throw new Error('scenario payload type mismatch: ' + JSON.stringify(scenarioPayload));
+        }
+        if (scenarioPayload.scenario?.candidateTimeMs !== 2000 ||
+            scenarioPayload.scenario?.dwellTimeMs !== 10000 ||
+            scenarioPayload.scenario?.cooldownMs !== 5000) {
+          throw new Error('scenario timing payload mismatch: ' + JSON.stringify(scenarioPayload.scenario));
+        }
+        expectList('scenario restricted zones', scenarioPayload.scenario?.restrictedZoneIds || [], ['zone-a', 'zone-b']);
+        if (scenarioPayload.scenario?.trackHealth?.requireStableTrack !== true) {
+          throw new Error('scenario track health payload mismatch: ' + JSON.stringify(scenarioPayload.scenario));
+        }
+        if (!$('scenarioSummaryText').textContent.includes('10,000 ms') ||
+            !$('scenarioSummaryText').textContent.includes('5,000 ms')) {
+          throw new Error('scenario summary ms label mismatch: ' + $('scenarioSummaryText').textContent);
+        }
+        if (!$('scenarioReadinessZone').textContent.includes('zone-a') ||
+            !$('scenarioReadinessTiming').textContent.includes('확정 10,000 ms') ||
+            !$('scenarioReadinessEmit').textContent.includes('intrusion-dwell') ||
+            !$('scenarioReadinessHealth').textContent.includes('안정적인 track')) {
+          throw new Error('scenario readiness summary mismatch');
+        }
+        if (scenarioPayload.event?.region?.type !== 'polygon' ||
+            !Array.isArray(scenarioPayload.event?.region?.points) ||
+            scenarioPayload.event.region.points.length < 3) {
+          throw new Error('scenario region payload mismatch: ' + JSON.stringify(scenarioPayload.event?.region));
+        }
+        setValue('scenarioDwellMs', '1000');
+        const scenarioWarning = ruleApi.validateRulePayload(window.ruleJson());
+        if (!scenarioWarning.includes('체류 확정 시간')) {
+          throw new Error('scenario timing validation mismatch: ' + scenarioWarning);
+        }
+        setValue('scenarioDwellMs', '10000');
+        basicRadio.click();
         setValue('ruleEventType', 'presence');
 
         expectList('profile default initial', checkedValues('[data-tracking-category]'), ['person', 'vehicle']);
@@ -219,6 +342,8 @@ try {
         const smokeId = 'rule-ui-smoke-' + Date.now();
         const savedProfileId = smokeId + '-profile';
         const savedRuleId = smokeId + '-rule';
+        const savedScenarioRuleId = smokeId + '-scenario-rule';
+        const savedVaRuleId = String(Date.now()).slice(-10);
         try {
           setValue('profileId', savedProfileId);
           click('selectAllTrackingBtn');
@@ -245,7 +370,58 @@ try {
             throw new Error('saved rule profileId mismatch: ' + JSON.stringify(savedRule.rule?.analysis));
           }
           expectList('saved rule analysis.classes', savedRule.rule?.analysis?.classes || [], ['person', 'vehicle']);
+
+          scenarioRadio.click();
+          setValue('ruleId', savedScenarioRuleId);
+          setValue('scenarioCandidateMs', '2500');
+          setValue('scenarioDwellMs', '12000');
+          setValue('scenarioCooldownMs', '7000');
+          setValue('scenarioZoneIds', 'lobby');
+          stableOnly.checked = true;
+          stableOnly.dispatchEvent(new Event('change', { bubbles: true }));
+          click('selectCoreClassesBtn');
+          await ruleApi.saveRule();
+          const savedScenarioRule = await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedScenarioRuleId));
+          if (savedScenarioRule.rule?.ruleKind !== 'scenario' ||
+              savedScenarioRule.rule?.event?.type !== 'intrusion-dwell') {
+            throw new Error('saved scenario rule type mismatch: ' + JSON.stringify(savedScenarioRule.rule));
+          }
+          if (savedScenarioRule.rule?.scenario?.candidateTimeMs !== 2500 ||
+              savedScenarioRule.rule?.scenario?.dwellTimeMs !== 12000 ||
+              savedScenarioRule.rule?.scenario?.cooldownMs !== 7000) {
+            throw new Error('saved scenario timing mismatch: ' + JSON.stringify(savedScenarioRule.rule?.scenario));
+          }
+          expectList('saved scenario zones', savedScenarioRule.rule?.scenario?.restrictedZoneIds || [], ['lobby']);
+
+          setValue('vaRuleId', savedVaRuleId);
+          setValue('vaRuleName', 'smoke 영상 분석 설정');
+          setValue('vaRuleSourceKind', 'file');
+          setValue('vaRuleFileSelect', $('previewFileSelect').value || 'sample_h264.mp4');
+          const vaRulePayload = ruleApi.vaRuleJson();
+          if (vaRulePayload.id !== savedVaRuleId ||
+              vaRulePayload.match?.vaRule !== savedVaRuleId ||
+              vaRulePayload.source?.kind !== 'file' ||
+              !vaRulePayload.source?.file) {
+            throw new Error('vaRule payload mismatch: ' + JSON.stringify(vaRulePayload));
+          }
+          await ruleApi.saveVaRule();
+          const savedVaRule = await apiJson('/lab/analysis/va-rules/' + encodeURIComponent(savedVaRuleId));
+          if (savedVaRule.vaRule?.id !== savedVaRuleId ||
+              savedVaRule.vaRule?.match?.vaRule !== savedVaRuleId ||
+              savedVaRule.vaRule?.source?.kind !== 'file') {
+            throw new Error('saved vaRule mismatch: ' + JSON.stringify(savedVaRule.vaRule));
+          }
+          setValue('viewVaRuleSelect', savedVaRuleId);
+          const ruleMode = document.querySelector('input[name="viewMode"][value="rule"]');
+          if (!ruleMode) throw new Error('missing viewer rule mode');
+          ruleMode.click();
+          if (!$('viewWebRtcUrl').value.includes('vaRule=' + savedVaRuleId) ||
+              $('viewWebRtcUrl').value.includes('file=')) {
+            throw new Error('viewer vaRule URL must be locked to vaRule only: ' + $('viewWebRtcUrl').value);
+          }
         } finally {
+          await apiJson('/lab/analysis/va-rules/' + encodeURIComponent(savedVaRuleId), { method: 'DELETE' }).catch(() => {});
+          await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedScenarioRuleId), { method: 'DELETE' }).catch(() => {});
           await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedRuleId), { method: 'DELETE' }).catch(() => {});
           await apiJson('/lab/analysis/profiles/' + encodeURIComponent(savedProfileId), { method: 'DELETE' }).catch(() => {});
         }
@@ -256,6 +432,8 @@ try {
           categories: requiredCategoryValues,
           categoryDetails: detailByCategory,
           lineDirectionPayload: lineRulePayload.event.region.direction,
+          scenarioType: scenarioPayload.scenario.type,
+          scenarioZones: scenarioPayload.scenario.restrictedZoneIds,
           ruleClearClasses: emptyRule.analysis.classes,
           profileClearTrackingClasses: emptyProfile.trackingClasses,
           ruleWarning,
@@ -263,6 +441,8 @@ try {
           roundTrip: {
             profileId: savedProfileId,
             ruleId: savedRuleId,
+            scenarioRuleId: savedScenarioRuleId,
+            vaRuleId: savedVaRuleId,
             savedProfileTrackingClasses: requiredCategoryValues,
             savedRuleClasses: ['person', 'vehicle'],
           },

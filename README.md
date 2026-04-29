@@ -34,6 +34,7 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC or HTTP/
 - `WebRTC publish(WHIP) -> RTSP/WebRTC` 1차 경로
 - `HTTP URI(local MP4) -> RTSP/WebRTC`
 - `va=1` 기반 YOLO/ONNX 객체 감지 overlay
+- `vaRule=<숫자>` 기반 영상 분석 설정: source, profile, event rule, scenario, geometry를 하나의 저장 ID로 호출
 - 정적 이미지 분석 API: metadata, snapshot JPEG, overlay JPEG
 
 부분 지원/재확인 필요:
@@ -172,6 +173,7 @@ macOS/Homebrew 환경에서 GStreamer plugin scanner 또는 `libglib`, `libgobje
 ./server.sh verify-event-post
 ./server.sh verify-event-post --mode recovery
 ./server.sh verify-event-post-longrun --iterations 3
+./server.sh verify-analysis-state
 ./server.sh verify-lab-import-ui
 ./server.sh verify-lab-layout
 ./server.sh verify-tracker-stability
@@ -267,6 +269,15 @@ WebRTC overlay consume:
 ```text
 POST http://127.0.0.1:8080/webrtc/session?file=va_four_scene_sample.mp4&va=1
 ```
+
+저장된 영상 분석 설정 사용:
+
+```text
+POST http://127.0.0.1:8080/webrtc/session?vaRule=1
+rtsp://127.0.0.1:8554/dhseo?vaRule=1
+```
+
+`/lab/rules`의 영상 분석 관리 화면에서 숫자 기반 `vaRule`을 만들고, 보기 탭에서 원본 live, `va=1` overlay, 저장된 `vaRule` 모드를 분리해 확인할 수 있습니다.
 
 정적 이미지 metadata 분석:
 

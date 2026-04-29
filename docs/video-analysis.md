@@ -151,6 +151,45 @@ VA 분석은 relay 경로를 직접 대체하지 않고 같은 source stream을 
   - `road`, `sports`, `tableware`, `food`, `furniture`, `device`, `object`를 추가하면 도로 표식/운동/식기/음식/가구/기기/잡화 계열도 시간 기반 이벤트 대상으로 opt-in한다.
   - 그 외 객체는 detection/overlay만 유지하고 ID/trail은 붙이지 않는다.
   - 기본 대상 밖의 카테고리에 시간 기반 이벤트가 필요하면 query/profile의 `trackingClasses` 또는 `MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES`로 opt-in한다.
+- 후속 상태/상황 분석 계층은 기존 `AnalysisResult`를 직접 바꾸지 않고 `BuildTrackedObjects()` adapter를 통해 `TrackedObjectMetadata` 목록을 얻는다.
+  - 각 객체 metadata는 `stream_id/channel_id`, `frame_id`, `timestamp_ns/ms`, `track_id`, `class_id/class_name`, `confidence`, `bbox`, `center`, trail 기반 `direction`, `track_state`를 포함한다.
+  - 이 adapter는 read-only 변환 계층이며 기존 tracking id 생성, rule event JSON, overlay 출력 형식을 바꾸지 않는다.
+- `TrackStateManager`는 adapter 결과를 stream/channel별 track map으로 나눠 `first_seen`, `last_seen`, `lost_since`, 최신 bbox/center/confidence/class/direction, 최근 관측 ring buffer를 관리한다.
+  - 기본 ring buffer는 track당 최근 32개 관측이며, stream/channel별 active track은 기본 512개로 제한한다.
+  - trajectory는 원본 frame 없이 center/timestamp만 500ms 간격으로 downsample해 track당 최대 32개 point를 보관한다.
+  - 업데이트가 끊긴 track은 2초 뒤 `Lost`, 10초 뒤 `Terminated`로 전이하고 terminated 상태는 기본 2초 보관한 뒤 cleanup한다.
+  - cleanup은 기본 1초 간격으로 실행하며 active track은 cleanup 대상으로 삭제하지 않는다.
+  - frame 원본은 저장하지 않고 metadata만 저장한다.
+  - `/lab/analysis/taps/{tapId}` 응답의 `analyticsState.trackState`는 channel/active/lost/terminated track 수, observation/trajectory point 수, cleanup 횟수와 삭제 수를 디버그 metric으로 제공한다.
+  - `TrackHealth`는 direction-based tracking id의 진단 metadata다. association confidence, missed frame count, bbox overlap/center distance 기반 overlap risk, direction change count, last stable time, unstable 여부를 track별로 기록한다.
+  - track이 `Lost`가 되거나 다시 관측되면 `last_health_event`, `lost_count`, `reacquired_count`에 기록한다. 이 정보는 진단/후속 scenario 입력용이며 현재 tracking id 생성 알고리즘, Kalman Filter, Re-ID, 외부 tracker는 추가하지 않는다.
+  - `AppearanceProfile`은 Re-ID/attribute 분석을 위한 placeholder metadata다. embedding, embedding quality, 상/하의 색상, gender/hat/glasses placeholder, last updated time, sample count를 담는다.
+  - `IAppearanceExtractor`는 향후 appearance 분석 모델 연결 지점이고, 현재 기본 구현은 `NoOpAppearanceExtractor`다. 실제 Re-ID/attribute 모델, ONNXRuntime/TensorRT/OpenVINO 의존성, 매 프레임 appearance 실행은 추가하지 않는다.
+  - `AppearanceUpdatePolicy`는 `onTrackCreated`, `everyNSeconds`, `onTrackLost`, `onReacquireCandidate`, `onLowConfidenceAssociation` trigger를 분리한다. 기본값은 `MEDIA_SERVER_ANALYSIS_APPEARANCE_ENABLED=0`이라 extractor 호출 자체를 하지 않는다.
+- `SceneContextBuilder`는 `TrackRuntimeState`와 기존 rule 문서의 polygon/line region을 입력으로 받아 track별 zone/line context만 계산한다.
+  - `ZoneState`는 현재/이전 zone, 진입/이탈 시각, dwell time, restricted zone 포함 여부를 담는다.
+  - `LineCrossState`는 line별 이전/현재 signed side, crossing 여부, crossing 방향, 마지막 crossing 시각을 담는다.
+  - 이 계층은 이벤트를 직접 발생시키지 않으며 기존 rule event JSON, overlay highlight, POST dispatch 형식을 바꾸지 않는다.
+  - 오래 관측되지 않는 scene context는 track/scenario retention과 cleanup interval 정책을 공유해 다채널 state 증가를 제한한다.
+- 기존 presence/enter/exit/line-crossing rule event engine은 이벤트 출력 owner로 유지한다.
+  - `trackId`가 있는 객체는 내부적으로 `TrackStateManager` snapshot과 `SceneContextBuilder`의 `ZoneState`/`LineCrossState`를 사용해 기존 이벤트 타입을 판단한다.
+  - tracker가 꺼졌거나 `trackId=0`인 객체는 기존 detection index fallback으로 평가해 기존 호환성을 유지한다.
+- `EventManager`는 rule/scenario 이벤트의 내부 lifecycle을 `start`, `update`, `confirmed`, `cooldown`, `end` 단계로 관리한다.
+  - lifecycle key는 stream/channel, scenario/rule id, zone id, track id 또는 fallback object key를 기준으로 만든다.
+  - 기존 rule event는 호환 옵션으로 기존 반복 emit과 JSON/API/POST 형식을 유지한다. 후속 ScenarioEngine은 cooldown/update interval 옵션을 사용해 동일 track/zone 중복 이벤트를 억제한다.
+  - ended/cooldown event state는 cleanup interval마다 retention을 초과한 항목만 삭제한다.
+- `ScenarioEngine`은 상태 머신 기반 상황 이벤트를 기존 RuleEventEngine과 별도 계층으로 실행하는 계층이다.
+  - phase는 `Idle`, `Candidate`, `Observing`, `Confirmed`, `Cooldown`, `Ended`를 사용한다.
+  - `ScenarioInstance`는 stream/channel, scenario id, zone id, track id, phase 진입/확정/cooldown/end 시각을 보관한다.
+  - `IScenario` 구현체를 등록하면 `SceneContext`의 track별 context를 평가하고, emit은 `EventManager` lifecycle을 통해 처리한다.
+  - 기본 skeleton 설정은 `MEDIA_SERVER_ANALYSIS_SCENARIO_ENABLED`, `MEDIA_SERVER_ANALYSIS_SCENARIO_MAX_INSTANCES_PER_CHANNEL`, `MEDIA_SERVER_ANALYSIS_SCENARIO_COOLDOWN_MS`, `MEDIA_SERVER_ANALYSIS_SCENARIO_UPDATE_INTERVAL_MS`, `MEDIA_SERVER_ANALYSIS_SCENARIO_RETENTION_MS`로 분리한다. 기존 `MEDIA_SERVER_ANALYSIS_SCENARIO_ENDED_RETENTION_MS`는 호환 입력으로 유지한다.
+- `IntrusionDwellScenario`는 첫 번째 상황 기반 scenario다.
+  - 기존 intrusion/presence/enter rule event와 별도 이벤트 타입 `intrusion-dwell`을 사용한다.
+  - 기본 대상은 `person`이며, `MEDIA_SERVER_ANALYSIS_INTRUSION_DWELL_TARGET_CLASSES`로 category token/class/id를 조정할 수 있다.
+  - 기존 rule 문서의 polygon region을 restricted zone으로 재사용하고, `MEDIA_SERVER_ANALYSIS_INTRUSION_DWELL_RESTRICTED_ZONE_IDS`가 비어 있으면 모든 polygon zone을 대상으로 본다.
+  - 같은 `trackId`가 restricted zone에 들어오면 `Candidate`, 2초 이상 유지되면 `Observing`, 10초 이상 체류하면 `Confirmed`가 된다.
+  - `Confirmed` 전이는 `EventManager`를 통해 `intrusion-dwell` 이벤트를 1회만 emit한다. 같은 track이 계속 zone 내부에 있어도 중복 emit하지 않고, zone 밖으로 나가면 `Ended`가 된다.
+  - 기본값은 꺼짐이며 `MEDIA_SERVER_ANALYSIS_INTRUSION_DWELL_ENABLED=1`로 켠다. 시간값은 `MEDIA_SERVER_ANALYSIS_INTRUSION_DWELL_CANDIDATE_MS`, `MEDIA_SERVER_ANALYSIS_INTRUSION_DWELL_DWELL_MS`, `MEDIA_SERVER_ANALYSIS_INTRUSION_DWELL_COOLDOWN_MS`로 조정한다.
 - RTSP/WebRTC raw video 구간에 overlay 합성
 - metadata/snapshot/overlay JPEG API 제공
 
@@ -179,7 +218,13 @@ PTS 매칭이 실패하면 최신 result로 fallback합니다. 이 fallback은 o
 
 ## Rule / Event
 
-`/lab`의 VA 룰 편집기에서 profile과 event rule을 저장할 수 있습니다.
+`/lab/rules`의 **영상 분석 관리** 화면에서 profile, event rule, 영상 분석 설정(`vaRule`)을 저장할 수 있습니다. `/lab`에서는 같은 컴포넌트를 Shadow DOM으로 불러와 메인 실험실 안에서 이동할 수 있습니다.
+
+URL 사용 방식:
+
+- `?va=1`: 요청한 file/RTSP/WebRTC source에 서버 기본 VA overlay를 적용한다.
+- `?vaRule=<숫자>`: 저장된 영상 분석 설정 ID를 사용한다. 이 설정은 source, profile, 이벤트 rule, scenario, geometry를 함께 묶으며 URL에는 `file/url/source` override를 함께 붙이지 않는다.
+- `vaRule` 문서는 `match.vaRule`로 기존 rule과 분리되어, 기본 `va=1` rule event와 저장 설정 기반 event가 섞이지 않게 한다.
 
 지원하는 event rule 1차 범위:
 
@@ -190,8 +235,16 @@ PTS 매칭이 실패하면 최신 result로 fallback합니다. 이 fallback은 o
 
 룰 편집 UI 동작:
 
+- 최상단 탭은 `영상 분석 설정`과 `영상 분석 보기`로 분리한다.
+- `영상 분석 설정` 탭은 숫자 기반 `vaRule` ID, 설정 이름, 연결할 영상 소스, profile, 기본 이벤트/시나리오, 영역/라인, 출력 동작을 저장한다.
+- `영상 분석 보기` 탭은 `Live Streaming`, `영상 + VA Overlay`, `영상 + VA Rule` 세 모드로 나뉜다. `영상 + VA Rule` 모드는 선택한 `vaRule`의 source만 사용하고 생성 URL도 `?vaRule=<id>` 형태로 표시한다.
 - profile은 fps, queue, confidence, nms, input size, adaptive 여부를 slider/dropdown으로 조정
-- rule은 대상 source/route, 사용할 profile, 이벤트 타입, 분석 객체 카테고리를 선택
+- rule은 대상 source/route, 사용할 profile, rule 구성 방식, 이벤트 타입 또는 시나리오 템플릿, 분석 객체 카테고리를 선택
+- Rule UI는 `기본 설정`, `영상/영역`, `시나리오`, `객체/조건`, `출력/저장` 섹션 탭으로 주요 설정 위치를 바로 찾을 수 있게 한다.
+- 영상 프레임 보기는 Rule 기본 정보 바로 아래의 `영상/영역` 섹션에 배치한다. 기본값은 현재 `vaRule`에 묶은 영상 소스이며, 필요하면 video root 파일 또는 메인 `/lab` 선택 소스를 사용할 수 있다. 선택한 영상의 객체 검출 overlay JPEG를 아래 영역 캔버스 배경으로 표시하고, 필요하면 원본 프레임 보기로 끌 수 있다.
+- rule 구성 방식은 `기본 이벤트`와 `시나리오`로 나뉜다. 기본 이벤트는 기존 `presence`, `enter`, `exit`, `line-crossing` 설정을 그대로 사용한다.
+- 시나리오 방식의 첫 UI 템플릿은 `Intrusion Dwell`이다. 제한구역 이름, 후보 판단 시간(ms), 체류 확정 시간(ms), 재알림 대기 시간(ms), 불안정 track 제외 여부를 설정하고, payload에는 `ruleKind=scenario`, `event.type=intrusion-dwell`, `scenario` 설정 블록을 저장한다.
+- 시나리오 UI는 각 시간 range의 현재값, 최소/최대/기본값/단위를 `ms` 형식으로 표시한다. 저장 전 점검 영역에서 제한구역, 대상 객체, 시간 조건, 발생 이벤트, track 조건, 영역 형태를 한 번 더 요약하고, 상태 흐름 미리보기와 처음 보인 시각, 체류 시간, 구역 이동, 라인 방향, 중복 억제, track 안정성 같은 debug field 안내를 함께 표시한다.
 - Rule/Profile 카테고리 버튼은 `기본`이 사람+차량만 선택, `전체 선택`이 모든 카테고리 선택, `전체 해제`가 모든 카테고리 해제다.
 - 전체 해제 상태는 다시 고르기 위해 비워 둔 임시 상태이며 저장할 수 없다. Rule 저장 시 분석 카테고리가 비어 있으면 화면 다이얼로그를 띄우고 저장을 막는다.
 - Profile도 tracking category가 비어 있으면 저장할 수 없다. 전체 match/전체 추적이 필요하면 전체 선택 또는 API의 `*` 토큰을 사용한다.
@@ -233,9 +286,28 @@ Capabilities/profile/rule registry:
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/capabilities'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/profiles'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/rules'
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/va-rules'
 ```
 
 `/lab/analysis/capabilities`의 `trackingCategories`는 Rule/Profile UI와 tracker/rule engine이 공유하는 카테고리 catalog입니다.
+
+영상 분석 설정(`vaRule`) 저장 예시:
+
+```bash
+curl -fsS -X POST 'http://127.0.0.1:8080/lab/analysis/va-rules' \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"lobby sample","source":{"kind":"file","file":"sample_h264.mp4"},"analysis":{"profileId":"server-default-va","classes":["person","vehicle"]},"event":{"type":"presence","region":{"type":"polygon","points":[{"x":0.2,"y":0.2},{"x":0.8,"y":0.2},{"x":0.8,"y":0.8}]},"minConfidence":0.25,"minDurationMs":0},"outputs":{"overlay":true,"metadata":true,"events":true}}'
+```
+
+저장 후 사용 예시:
+
+```text
+POST http://127.0.0.1:8080/webrtc/session?vaRule=1
+rtsp://127.0.0.1:8554/dhseo?vaRule=1
+POST http://127.0.0.1:8080/lab/analysis/taps?vaRule=1
+```
+
+`vaRule` 요청에 `file`, `url`, `source`를 함께 붙이면 저장 설정의 source mapping을 깨뜨릴 수 있으므로 서버가 거부한다.
 
 ```json
 {
@@ -314,6 +386,7 @@ Route/profile/rule 검증:
 ```bash
 ./server.sh verify-route-profiles
 ./server.sh verify-rule-ui
+./server.sh verify-analysis-state
 ./server.sh verify-tracker-stability
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-events --long
@@ -325,6 +398,8 @@ Route/profile/rule 검증:
 `verify-va-events`는 presence, `minDurationMs` presence, enter, exit, line-crossing을 같은 이동 테스트 영상에서 확인한다. line-crossing은 `any` 결과가 `forward`/`reverse` 방향별 결과로 분할되는지 함께 확인하고, enter/exit/line-crossing 이벤트는 tracker가 붙인 유효 `trackId` 기준으로 검증한다.
 
 `verify-event-post`는 event POST worker를 켠 서버에서 실행한다. `--mode schema`는 성공 endpoint, 실패 endpoint, cooldown 억제, payload schema를 확인하고, `--mode queue`는 `MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE=1` 또는 `2`로 시작한 서버에서 slow endpoint를 이용해 `droppedCount` 증가를 확인한다. `--mode recovery`는 초반에 실패하던 endpoint가 같은 검증 중 복구될 때 `failedCount`와 `sentCount`가 모두 증가하는지 확인한다.
+
+`verify-analysis-state`는 mock detection/tracking metadata로 TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwellScenario, TrackHealth, Appearance NoOp hook, cleanup 정책을 직접 검증한다. media pipeline을 띄우지 않기 때문에 상황 기반 VA 내부 상태 전이와 기존 스트리밍 회귀 검증을 분리해서 확인할 수 있다.
 
 `verify-va-category-samples`는 기본적으로 `va_four_scene_sample.mp4`와 sports 전용 `va_sports_sample.mp4`를 함께 사용해 10개 카테고리를 모두 hard fail 기준으로 확인한다. 같은 검증에서 `car` 직접 class rule과 `vehicles` alias rule도 presence event로 확인한다. 실행 시작 시 샘플 파일 크기와 ffprobe duration을 사전 진단하고, 성공/실패와 관계없이 category coverage JSON 경로를 출력한다. 브라우저 overlay 수동 확인은 `/lab`에서 `va=1`, `trackIds=1`, `trackTrails=1`을 켜고 진행한다. `2026-04-26` 기준 `route=webrtc` 테스트 rule(presence, line-crossing)을 임시 등록한 뒤 `va_four_scene_sample.mp4`와 `imports/va_tracking_event_1280x720_30fps_h264.mp4` 모두 WebRTC simple signaling 연결과 overlay 표출을 확인했다.
 

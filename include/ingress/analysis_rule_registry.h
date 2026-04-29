@@ -4,11 +4,17 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 #include <vector>
+
+#include "media_types.h"
 
 namespace ingress {
 
 std::vector<std::string> AnalysisProfileDocumentsSnapshot();
 std::vector<std::string> AnalysisRuleDocumentsSnapshot();
+std::vector<std::string> VideoAnalysisRuleDocumentsSnapshot();
+
+bool ApplyVideoAnalysisRuleToRequest(media::IngressRequest* request, std::string* error_message);
 
 }  // namespace ingress

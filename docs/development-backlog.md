@@ -94,6 +94,8 @@
 - 검증: `MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-va-events --duration 30` 통과. `presence-500ms`, `enter-center`, `exit-center`, `line-left`, `line-right` rule 이벤트와 유효 trackId를 확인했다.
 - 4차 묶음은 line-crossing 방향을 `any`, `forward`, `reverse`로 확장하고 Rule UI 선택값 저장과 이벤트 방향 분할 검증을 추가했다.
 - 검증: `./server.sh verify-rule-ui --http-base http://127.0.0.1:8081` 통과. `line-crossing` payload에 `direction=forward`가 저장되는 것을 확인했다.
+- 4-1차 UI 묶음은 `/lab/rules`에 `기본 이벤트`/`시나리오` 구성 방식을 추가하고, 첫 템플릿으로 `Intrusion Dwell` 설정 payload preview를 제공한다.
+- 검증: `./server.sh verify-rule-ui --http-base http://127.0.0.1:8081` 통과. `intrusion-dwell` payload, 제한구역 이름, 후보 판단/체류 확정/재알림 대기 시간(ms), track 안정성 옵션 validation을 확인했다.
 - 검증: `MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-va-events --duration 30` 통과. line-crossing `8`, `line-left/right` any 결과와 `forward/reverse` 분할 합이 일치하는 것을 확인했다.
 - 5차 묶음은 `./server.sh verify-event-post`를 추가해 POST payload schema, 실패 counter, cooldown suppress, bounded queue drop을 분리 검증한다.
 - 검증: `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE=64 ./server.sh verify-event-post --mode schema` 통과. `enqueued=6`, `sent=3`, `failed=3`, `suppressed=6`, schema `media-server.va.event.v1` payload를 확인했다.
@@ -170,3 +172,31 @@
 ## 후속 기능 후보
 
 - 얼굴/세그멘테이션 기반 비식별화: 현재 bbox 기반 모자이크를 보완할 수 있는 detector/model 후보를 별도 검토한다.
+
+## 16차 상황 기반 VA 확장 후보
+
+- [x] `/lab/rules` 시나리오 설정 UI: 기본 이벤트와 시나리오 방식을 분리하고 `Intrusion Dwell` 제한구역 이름, 후보 판단/체류 확정/재알림 대기 시간(ms), track 안정성 payload를 저장한다.
+- [x] `/lab/rules` 시나리오 저장 전 점검 UI: 제한구역, 대상 객체, 시간 조건, 발생 이벤트, track 조건, 영역 형태를 저장 전에 요약한다.
+- [x] `/lab/rules` 영상 분석 관리 개편: `영상 분석 설정`/`영상 분석 보기` 탭으로 분리하고 숫자 기반 `vaRule` ID에 source/profile/event/scenario/geometry를 묶는다.
+- [x] `vaRule=<id>` URL binding: RTSP/WebRTC/analysis tap 요청에서 저장된 source를 적용하고, `file/url/source` override 조합은 거부한다.
+- [x] `IntrusionDwellScenario`: restricted zone 진입 후 일정 시간 이상 체류한 person track을 `intrusion-dwell`로 1회 emit한다.
+- [x] `verify-analysis-state`: TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwellScenario, TrackHealth, Appearance NoOp, cleanup 정책을 mock metadata 기반 단위 smoke로 검증한다.
+- [ ] scenario rule payload를 runtime `ScenarioEngine` per-rule 설정으로 연결한다.
+- [ ] scenario timeline/debug UI에서 track별 phase, first seen, dwell time, zone 이동, 중복 억제 상태를 live 표시한다.
+- [ ] `vaRule`별 runtime debug view: 선택한 설정의 active tracks, event lifecycle, scenario instance, cleanup metric을 보기 탭에서 live 표시한다.
+- [ ] `LoiteringScenario`: 같은 zone 또는 근접 영역에서 이동 반경이 작은 track의 장시간 배회를 판단한다.
+- [ ] `ZoneOccupancyScenario`: restricted zone 내부 동시 track 수가 threshold를 넘는 상황을 판단한다.
+- [ ] `LineDwellScenario`: line-crossing 직후 특정 방향 또는 특정 zone에 머무르는 상황을 판단한다.
+- [ ] `StoppedVehicleScenario`: vehicle category가 restricted zone 또는 도로 ROI에서 일정 시간 이상 정지한 상황을 판단한다.
+- [ ] `AbandonedObjectCandidateScenario`: person track 이탈 후 object track이 같은 위치에 남아 있는 후보를 판단한다. appearance는 NoOp hook과 geometry metadata만 사용한다.
+- [x] `ReIdentificationHookScenario`: Re-ID 모델 없이 `AppearanceProfile`, `IAppearanceExtractor`, `NoOpAppearanceExtractor`, `AppearanceUpdatePolicy` hook과 cooldown 정책 입력점을 준비한다.
+- [ ] 실제 Re-ID/attribute extractor: 모델 선택, n초 간격 sampling, GPU/CPU budget, 개인정보 정책 검토 후 별도 단계에서 구현한다.
+
+## 17차 다채널 VA state cleanup 후보
+
+- [x] stream/channel별 active track 상한, 관측 ring buffer 상한, downsampled trajectory 상한을 config로 분리한다.
+- [x] terminated track, stale scene context, ended/cooldown scenario instance, event lifecycle state를 cleanup interval 기준으로 정리한다.
+- [x] `/lab/analysis/taps/{tapId}`에 track state memory/debug metric을 추가한다.
+- [ ] EventRuleRuntime의 scenario/event/scene context metric을 lab runtime endpoint로 노출한다.
+- [ ] `verify-va-state-cleanup` 스크립트를 추가해 mock metadata 기반으로 retention/cleanup/capacity 정책을 자동 검증한다.
+- [ ] 다채널 장기 soak에서 `analyticsState.trackState` 증가율과 cleanup counter를 summary report에 포함한다.

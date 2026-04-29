@@ -337,6 +337,11 @@ SharedStream
     |  \-> Analysis Pipeline
     |       - object detection
     |       - tracking
+    |       - tracked object metadata adapter
+    |       - track state manager
+    |       - scene context builder
+    |       - event manager lifecycle
+    |       - scenario engine state machine
     |       - event extraction
     |       - snapshot / overlay image
     |
@@ -347,6 +352,12 @@ SharedStream
 
 분석 계층의 출력 타입:
 - metadata: detection box, class, score, timestamp, track id
+- internal tracked object metadata: stream/channel id, frame id, timestamp, bbox center, trail-based direction
+- internal track runtime state: first/last seen, lostSince, lifecycle state, bounded recent observations, downsampled trajectory, health/appearance placeholder
+- internal scene context: per-track zone dwell/restricted state, line side/crossing direction state with stale context cleanup
+- internal event lifecycle: start/update/confirmed/cooldown/end state keyed by stream, rule/scenario, zone, track
+- internal scenario state: per stream/channel/track scenario phase and timestamps
+- internal analytics state metrics: active/lost/terminated track counts, observation/trajectory counts, cleanup counters
 - derived image: JPEG snapshot, overlay JPEG
 - rendered stream: RTSP/WebRTC 영상 위 detection overlay
 
@@ -355,8 +366,13 @@ SharedStream
 - relay subscriber와 analysis subscriber를 분리해서 관리한다.
 - source 제거는 relay client와 analysis subscriber가 모두 빠진 뒤에만 수행한다.
 - `va=1` 요청은 같은 source에 analysis tap을 붙이고 encoder 직전 raw video 구간에 overlay를 합성한다.
+- `vaRule=<id>` 요청은 ingress 단계에서 저장된 영상 분석 설정을 조회해 source/profile/rule binding을 적용한다. 이 경로는 `file/url/source` override와 함께 쓰지 않으며, event/scene context matching은 `match.vaRule` 기준으로 일반 `va=1` rule과 분리된다.
 - detector/model/labels/fps/queue 기본값은 URL이 아니라 `include/stdafx.h`, `scripts/.media_server.env`, `MEDIA_SERVER_ANALYSIS_*` 환경변수로 관리한다.
 - tracker가 켜진 profile은 event rule을 객체 ID 기준으로 평가한다. tracker를 끈 profile은 fallback을 사용한다.
+- track runtime state는 stream/channel별 active track 상한, 관측 ring buffer 상한, trajectory point 상한, terminated retention, cleanup interval로 제한한다. cleanup은 active track을 삭제하지 않고 Lost/Terminated/stale 내부 상태만 대상으로 한다.
+- scene context builder는 기존 rule/vaRule 문서의 polygon/line region을 재사용하지만 이벤트 출력은 하지 않는다. rule event 결과는 기존 event rule engine이 계속 담당하며, trackId가 있는 객체의 polygon/line 판단은 TrackState/SceneContext 기반으로 계산한다. `AnalysisContext.va_rule_id`가 있으면 해당 `vaRule` 문서만 scene geometry 후보로 사용한다.
+- event manager는 내부 lifecycle과 cooldown/update interval 정책을 담당한다. 기존 rule event는 호환 옵션으로 외부 이벤트 JSON/API/POST payload를 유지하고, 신규 scenario event는 같은 manager의 key를 사용해 기존 rule event와 충돌하지 않게 분리한다.
+- scenario engine은 기존 RuleEventEngine과 별도 계층이며 `IScenario` 구현체를 등록해 상태 머신 상황 이벤트를 확장한다. scenario instance와 event lifecycle state는 retention/cleanup interval을 공유한다. `IntrusionDwellScenario`는 restricted zone 체류를 `intrusion-dwell` 이벤트로 판단하며 기본 비활성화 상태라 기존 intrusion/line-crossing rule event를 변경하지 않는다.
 - overlay result는 source PTS와 가까운 analysis result를 우선 사용하고, 매칭 실패 시 최신 result로 fallback한다.
 - 정적 이미지 분석은 `docs/assets` 또는 video root 기준 상대경로만 허용하고, 절대경로와 `..` 경로 이탈은 거부한다.
 
