@@ -13,11 +13,19 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 
 ## 대표 UI 미리보기
 
+**룰 목록과 저장된 vaRule 관리**
+
 ![영상 분석 룰 목록](docs/assets/ui/analysis-rule-list.png)
+
+**룰 편집 기본 정보**
 
 ![영상 분석 룰 편집](docs/assets/ui/analysis-rule-editor-basic.png)
 
+**영역/라인 캔버스**
+
 ![영역/라인 캔버스](docs/assets/ui/analysis-region-canvas.png)
+
+**영상 분석 테스트/미리보기**
 
 ![영상 분석 보기](docs/assets/ui/analysis-preview.png)
 
