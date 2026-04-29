@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <limits>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -832,19 +833,72 @@ void DrawOverlayText(RawVideoFrame* frame, int x, int y, const std::string& text
 #endif
 }
 
-std::string BuildLabel(const Detection& detection, OverlayLabelLanguage language, bool draw_track_ids) {
+const AnalysisDebugTrackState* FindDebugTrack(const AnalysisResult& result, std::uint64_t track_id) {
+    if (track_id == 0 || !result.debug_state.has_value()) {
+        return nullptr;
+    }
+    const auto& tracks = result.debug_state->tracks;
+    const auto it = std::find_if(tracks.begin(), tracks.end(), [track_id](const AnalysisDebugTrackState& track) {
+        return track.track_id == track_id;
+    });
+    return it == tracks.end() ? nullptr : &(*it);
+}
+
+std::string BuildDebugSuffix(const AnalysisDebugTrackState* debug) {
+    if (debug == nullptr) {
+        return {};
+    }
+    std::ostringstream out;
+    if (!debug->current_zone.empty()) {
+        out << " z:" << debug->current_zone;
+        out << " dwell:" << debug->dwell_time_ms << "ms";
+    }
+    if (!debug->primary_line_id.empty()) {
+        out << " line:" << debug->primary_line_id
+            << " side:" << static_cast<int>(std::lround(debug->line_side * 100.0F));
+        if (!debug->crossing_direction.empty() && debug->crossing_direction != "none") {
+            out << " cross:" << debug->crossing_direction;
+        }
+    }
+    if (!debug->scenario_phase.empty()) {
+        if (!debug->scenario_name.empty()) {
+            out << " scenario:" << debug->scenario_name;
+        }
+        out << " phase:" << debug->scenario_phase;
+    }
+    if (debug->ground_point_available) {
+        out << " gp:" << static_cast<int>(std::lround(debug->ground_point_x * 100.0)) << ","
+            << static_cast<int>(std::lround(debug->ground_point_y * 100.0));
+        if (debug->ground_point_fallback) {
+            out << "(img)";
+        }
+    }
+    out << " health:" << (debug->track_unstable ? "unstable" : "stable");
+    return out.str();
+}
+
+std::string BuildLabel(const Detection& detection,
+                       const AnalysisResult& result,
+                       OverlayLabelLanguage language,
+                       bool draw_track_ids,
+                       bool draw_debug_overlay) {
     char score[16];
     const int percent = ClampInt(static_cast<int>(std::lround(detection.score * 100.0F)), 0, 100);
     std::snprintf(score, sizeof(score), "%d%%", percent);
     std::string label = GroupedOverlayLabel(detection, language);
-    if (draw_track_ids && detection.track_id > 0) {
-        label += " #" + std::to_string(detection.track_id);
-    }
     if (detection.event_triggered) {
         label = EffectiveLabelLanguage(language) == OverlayLabelLanguage::Korean ? ("이벤트 " + label)
                                                                                 : ("Event " + label);
     }
-    return label + " " + score;
+    label += " ";
+    label += score;
+    if ((draw_track_ids || draw_debug_overlay) && detection.track_id > 0) {
+        label += " (#" + std::to_string(detection.track_id) + ")";
+    }
+    if (draw_debug_overlay) {
+        label += BuildDebugSuffix(FindDebugTrack(result, detection.track_id));
+    }
+    return label;
 }
 
 }  // namespace
@@ -948,7 +1002,11 @@ bool RenderDetectionOverlay(const RawVideoFrame& frame,
             const Color label_color = event_on
                                           ? ParseHexColorOrDefault(detection.event_highlight_color, Color{255, 0, 0})
                                           : normal_color;
-            const std::string label = BuildLabel(detection, options.label_language, options.draw_track_ids);
+            const std::string label = BuildLabel(detection,
+                                                 result,
+                                                 options.label_language,
+                                                 options.draw_track_ids,
+                                                 options.draw_debug_overlay);
             const TextSize text_size = MeasureOverlayText(frame, label, text_scale);
             const int label_width = std::min(frame.width, text_size.width + label_padding * 2);
             const int label_height = text_size.height + label_padding * 2;

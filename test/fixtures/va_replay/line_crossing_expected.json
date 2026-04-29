@@ -1,0 +1,23 @@
+{
+  "timestampToleranceMs": 250,
+  "events": [
+    {
+      "streamId": "baseline-line",
+      "channelId": "baseline-line",
+      "frameId": 2,
+      "timestampMs": 1300,
+      "type": "line-crossing",
+      "lineId": "line-crossing",
+      "trackId": 21
+    }
+  ],
+  "frames": [
+    {
+      "streamId": "baseline-line",
+      "channelId": "baseline-line",
+      "frameId": 2,
+      "eventCount": 1,
+      "trackState": { "total": 1, "active": 1, "lost": 0, "terminated": 0 }
+    }
+  ]
+}

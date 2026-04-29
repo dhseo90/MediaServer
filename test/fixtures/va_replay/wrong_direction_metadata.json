@@ -1,0 +1,89 @@
+{
+  "frames": [
+    {
+      "streamId": "baseline-wrong-direction",
+      "channelId": "baseline-wrong-direction",
+      "frameId": 1,
+      "timestampMs": 1000,
+      "objects": [
+        {
+          "trackId": 81,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.94,
+          "bbox": { "x": 0.35, "y": 0.7, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.4, "y": 0.75 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-wrong-direction",
+      "channelId": "baseline-wrong-direction",
+      "frameId": 2,
+      "timestampMs": 1300,
+      "objects": [
+        {
+          "trackId": 81,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.93,
+          "bbox": { "x": 0.55, "y": 0.7, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.6, "y": 0.75 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-wrong-direction",
+      "channelId": "baseline-wrong-direction",
+      "frameId": 3,
+      "timestampMs": 1400,
+      "objects": [
+        {
+          "trackId": 81,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.93,
+          "bbox": { "x": 0.56, "y": 0.7, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.61, "y": 0.75 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-wrong-direction",
+      "channelId": "baseline-wrong-direction",
+      "frameId": 4,
+      "timestampMs": 1600,
+      "objects": [
+        {
+          "trackId": 81,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.93,
+          "bbox": { "x": 0.35, "y": 0.7, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.4, "y": 0.75 },
+          "direction": "left"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-wrong-direction",
+      "channelId": "baseline-wrong-direction",
+      "frameId": 5,
+      "timestampMs": 1800,
+      "objects": [
+        {
+          "trackId": 81,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.93,
+          "bbox": { "x": 0.55, "y": 0.7, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.6, "y": 0.75 },
+          "direction": "right"
+        }
+      ]
+    }
+  ]
+}

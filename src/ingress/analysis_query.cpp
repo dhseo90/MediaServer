@@ -106,6 +106,10 @@ bool HasProfileTuningQuery(const std::unordered_map<std::string, std::string>& q
                            "labels",
                            "fps",
                            "maxQueue",
+                           "frameSampleInterval",
+                           "sampleEveryNFrames",
+                           "maxFrameAgeMs",
+                           "analysisMaxFrameAgeMs",
                            "inputWidth",
                            "inputHeight",
                            "maxDetections",
@@ -505,6 +509,14 @@ void ApplyProfileDocument(const std::string& document, analysis::AnalysisProfile
                                                   static_cast<int>(profile->max_queue_size),
                                                   1,
                                                   128));
+    profile->frame_sample_interval =
+        NumberFieldAsInt(document, "frameSampleInterval", profile->frame_sample_interval, 1, 300);
+    profile->frame_sample_interval =
+        NumberFieldAsInt(document, "sampleEveryNFrames", profile->frame_sample_interval, 1, 300);
+    profile->max_frame_age_ms =
+        NumberFieldAsInt(document, "maxFrameAgeMs", profile->max_frame_age_ms, 0, 600000);
+    profile->max_frame_age_ms =
+        NumberFieldAsInt(document, "analysisMaxFrameAgeMs", profile->max_frame_age_ms, 0, 600000);
     profile->model_input_width = NumberFieldAsInt(document, "inputWidth", profile->model_input_width, 32, 4096);
     profile->model_input_width = NumberFieldAsInt(document, "modelInputWidth", profile->model_input_width, 32, 4096);
     profile->model_input_height = NumberFieldAsInt(document, "inputHeight", profile->model_input_height, 32, 4096);
@@ -534,6 +546,9 @@ void ApplyProfileDocument(const std::string& document, analysis::AnalysisProfile
     }
     profile->enable_pose = ParseBoolField(document, "pose").value_or(profile->enable_pose);
     profile->enable_overlay = ParseBoolField(document, "overlay").value_or(profile->enable_overlay);
+    profile->enable_debug_state =
+        ParseBoolField(document, "debugState")
+            .value_or(ParseBoolField(document, "debugOverlay").value_or(profile->enable_debug_state));
     profile->adaptive_tuning_enabled =
         ParseBoolField(document, "adaptive").value_or(profile->adaptive_tuning_enabled);
     profile->adaptive_input_size_enabled =
@@ -658,6 +673,8 @@ analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map
         profile.labels_path = config.default_analysis_labels_path;
         profile.target_fps = config.default_analysis_fps;
         profile.max_queue_size = config.default_analysis_max_queue;
+        profile.frame_sample_interval = config.default_analysis_frame_sample_interval;
+        profile.max_frame_age_ms = config.default_analysis_max_frame_age_ms;
         profile.model_input_width = config.default_analysis_input_width;
         profile.model_input_height = config.default_analysis_input_height;
         profile.confidence_threshold = config.default_analysis_confidence;
@@ -706,6 +723,14 @@ analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map
     profile.target_fps = ParseClampedIntQuery(query, "fps", profile.target_fps, 1, 60);
     profile.max_queue_size =
         static_cast<std::size_t>(ParseClampedIntQuery(query, "maxQueue", static_cast<int>(profile.max_queue_size), 1, 128));
+    profile.frame_sample_interval =
+        ParseClampedIntQuery(query, "frameSampleInterval", profile.frame_sample_interval, 1, 300);
+    profile.frame_sample_interval =
+        ParseClampedIntQuery(query, "sampleEveryNFrames", profile.frame_sample_interval, 1, 300);
+    profile.max_frame_age_ms =
+        ParseClampedIntQuery(query, "maxFrameAgeMs", profile.max_frame_age_ms, 0, 600000);
+    profile.max_frame_age_ms =
+        ParseClampedIntQuery(query, "analysisMaxFrameAgeMs", profile.max_frame_age_ms, 0, 600000);
     profile.model_input_width = ParseClampedIntQuery(query, "inputWidth", profile.model_input_width, 32, 4096);
     profile.model_input_height = ParseClampedIntQuery(query, "inputHeight", profile.model_input_height, 32, 4096);
     profile.max_detections = ParseClampedIntQuery(query, "maxDetections", profile.max_detections, 1, 1000);
@@ -744,6 +769,12 @@ analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map
     }
     profile.enable_pose = ParseBoolQuery(query, "pose", profile.enable_pose);
     profile.enable_overlay = ParseBoolQuery(query, "overlay", profile.enable_overlay);
+    profile.enable_debug_state =
+        ParseBoolQuery(query,
+                       "debugState",
+                       ParseBoolQuery(query,
+                                      "debugOverlay",
+                                      ParseBoolQuery(query, "vaDebug", app::GetAppConfig().default_analysis_debug_overlay_enabled)));
     profile.debug_detector_delay_ms =
         ParseClampedIntQuery(query, "detectorDelayMs", profile.debug_detector_delay_ms, 0, 5000);
     profile.adaptive_tuning_enabled =
@@ -819,6 +850,17 @@ analysis::OverlayRenderOptions BuildOverlayRenderOptionsFromQuery(
         ParseBoolQuery(query, "trackIds", ParseBoolQuery(query, "drawTrackIds", options.draw_track_ids));
     options.draw_track_trails =
         ParseBoolQuery(query, "trackTrails", ParseBoolQuery(query, "drawTrackTrails", options.draw_track_trails));
+    options.draw_debug_overlay =
+        ParseBoolQuery(query,
+                       "debugOverlay",
+                       ParseBoolQuery(query,
+                                      "debugState",
+                                      ParseBoolQuery(query,
+                                                     "vaDebug",
+                                                     app::GetAppConfig().default_analysis_debug_overlay_enabled)));
+    if (options.draw_debug_overlay) {
+        options.draw_track_ids = true;
+    }
     if (const auto it = query.find("labelLang"); it != query.end() && !it->second.empty()) {
         options.label_language = it->second == "en" || it->second == "english"
                                      ? analysis::OverlayLabelLanguage::English

@@ -80,6 +80,7 @@ std::vector<TrackedObjectMetadata> BuildTrackedObjects(const AnalysisResult& res
         object.class_id = detection.class_id;
         object.class_name = detection.label;
         object.confidence = detection.score;
+        object.association_confidence = detection.track_id > 0 ? detection.association_confidence : -1.0F;
         object.bbox = detection.box;
         object.center = CenterOf(detection.box);
         if (track != nullptr) {

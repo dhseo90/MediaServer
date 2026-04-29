@@ -1,0 +1,32 @@
+{
+  "timestampToleranceMs": 250,
+  "events": [
+    {
+      "streamId": "baseline-intrusion",
+      "channelId": "baseline-intrusion",
+      "frameId": 1,
+      "timestampMs": 1000,
+      "type": "presence",
+      "zoneId": "intrusion-zone",
+      "trackId": 11
+    },
+    {
+      "streamId": "baseline-intrusion",
+      "channelId": "baseline-intrusion",
+      "frameId": 2,
+      "timestampMs": 1400,
+      "type": "presence",
+      "zoneId": "intrusion-zone",
+      "trackId": 11
+    }
+  ],
+  "frames": [
+    {
+      "streamId": "baseline-intrusion",
+      "channelId": "baseline-intrusion",
+      "frameId": 2,
+      "eventCount": 1,
+      "trackState": { "total": 1, "active": 1, "lost": 0, "terminated": 0 }
+    }
+  ]
+}

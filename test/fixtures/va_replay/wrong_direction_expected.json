@@ -1,0 +1,35 @@
+{
+  "timestampToleranceMs": 250,
+  "events": [
+    {
+      "streamId": "baseline-wrong-direction",
+      "channelId": "baseline-wrong-direction",
+      "frameId": 2,
+      "timestampMs": 1300,
+      "type": "wrong-direction",
+      "lineId": "wrong-direction-line",
+      "trackId": 81
+    }
+  ],
+  "frames": [
+    {
+      "streamId": "baseline-wrong-direction",
+      "channelId": "baseline-wrong-direction",
+      "frameId": 2,
+      "eventCount": 1,
+      "activeRuleCount": 1,
+      "trackState": { "total": 1, "active": 1, "lost": 0, "terminated": 0 },
+      "scenarioState": { "instances": 1, "active": 1 },
+      "eventManager": { "states": 1 }
+    },
+    {
+      "streamId": "baseline-wrong-direction",
+      "channelId": "baseline-wrong-direction",
+      "frameId": 5,
+      "eventCount": 0,
+      "activeRuleCount": 1,
+      "trackState": { "total": 1, "active": 1, "lost": 0, "terminated": 0 },
+      "eventManager": { "states": 1 }
+    }
+  ]
+}

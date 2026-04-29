@@ -33,6 +33,7 @@
 #include "analysis/detector.h"
 #include "analysis/event_post_dispatcher.h"
 #include "analysis/event_rule_engine.h"
+#include "analysis/event_storage.h"
 #include "analysis/image_frame_loader.h"
 #include "analysis/object_tracker.h"
 #include "analysis/overlay_renderer.h"
@@ -450,7 +451,8 @@ public:
             << "\"plannedRuleShape\":{\"id\":\"string\",\"enabled\":\"bool\",\"priority\":\"number\","
             << "\"match\":{\"sourceKind\":\"file|rtsp|webrtc|http|hls|youtube|*\",\"route\":\"http|rtsp|webrtc|*\","
             << "\"clientId\":\"optional\"},\"analysis\":{\"profileId\":\"string\",\"detector\":\"dummy|yolo\","
-            << "\"fps\":\"number\",\"maxQueue\":\"number\"},\"outputs\":{\"metadata\":\"bool\","
+            << "\"fps\":\"number\",\"maxQueue\":\"number\",\"frameSampleInterval\":\"number\","
+            << "\"maxFrameAgeMs\":\"number\"},\"outputs\":{\"metadata\":\"bool\","
             << "\"snapshot\":\"bool\",\"overlay\":\"bool\",\"events\":\"bool\"},"
             << "\"eventActions\":{\"highlight\":{\"enabled\":\"bool\",\"mode\":\"blink\","
             << "\"durationMs\":\"number\",\"color\":\"fixed #ff0000\"},\"post\":{\"enabled\":\"bool\","
@@ -1108,12 +1110,12 @@ std::string BuildTestPageHtml(bool lab_mode) {
         <div class="section-heading">
           <p class="eyebrow">Unified Lab</p>
           <h2>통합 테스트/실험실</h2>
-          <p>`/lab` 하나에서 스트림 재생, VA 분석, 룰 편집, 실험실 도구를 접고 펼치며 확인합니다. 다른 route는 자동화와 기존 링크 호환을 위해서만 유지합니다.</p>
+          <p>`/lab` 하나에서 스트림 재생, VA 분석, 영상 분석 설정, 실험실 도구를 접고 펼치며 확인합니다. 다른 route는 자동화와 기존 링크 호환을 위해서만 유지합니다.</p>
         </div>
         <div class="lab-mode-grid">
           <div class="lab-mode-card"><strong>스트림 테스트</strong><span>file, RTSP, HTTP/HLS, WebRTC source를 같은 플레이어로 확인합니다.</span></div>
           <div class="lab-mode-card"><strong>VA 분석</strong><span>객체 감지 overlay와 label 언어를 서버 기본 profile로 빠르게 켭니다.</span></div>
-          <div class="lab-mode-card"><strong>룰 편집</strong><span>영역, 객체 카테고리, 이벤트 전송 설정을 시각적으로 저장합니다.</span></div>
+          <div class="lab-mode-card"><strong>영상 분석 설정</strong><span>소스, 객체 카테고리, 이벤트/시나리오, 영역을 숫자 ID로 저장합니다.</span></div>
           <div class="lab-mode-card"><strong>실험 기능</strong><span>YouTube 직접 표출은 opt-in, 파일 다운로드는 개발용 샘플 생성 도구로 분리합니다.</span></div>
         </div>
         <details style="border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(255,255,255,0.04);">
@@ -1199,9 +1201,9 @@ std::string BuildTestPageHtml(bool lab_mode) {
           </details>
         </details>
         <details id="rule-editor" open class="lab-details">
-          <summary style="cursor:pointer;font-weight:800;color:var(--ink);">시각적 룰 편집</summary>
-          <p class="lab-detail-note">이벤트 판단 영역, 분석 객체, 이벤트 전송 설정을 한 곳에서 편집합니다. 위에서 선택한 스트림 소스를 룰 미리보기에도 그대로 사용합니다.</p>
-          <div id="ruleEditorComponent" class="embedded-component" data-component-url="/lab/rules?embed=1">룰 편집기를 불러오는 중입니다.</div>
+          <summary style="cursor:pointer;font-weight:800;color:var(--ink);">영상 분석 설정</summary>
+          <p class="lab-detail-note">분석할 영상 소스, 이벤트 판단 영역, 분석 객체, 이벤트/시나리오 설정을 하나의 숫자 ID로 저장합니다.</p>
+          <div id="ruleEditorComponent" class="embedded-component" data-component-url="/lab/rules?embed=1">영상 분석 설정 화면을 불러오는 중입니다.</div>
         </details>
         <details id="lab-import" class="lab-details">
           <summary style="cursor:pointer;font-weight:800;color:var(--ink);">실험실 가져오기</summary>
@@ -1268,6 +1270,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
       --focus: rgba(255,77,141,0.24);
     }
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     body {
       margin: 0;
       font-family: "Avenir Next", "Pretendard", "Noto Sans KR", sans-serif;
@@ -3277,6 +3280,7 @@ std::string BuildLabRuleEditorPageHtml() {
       --shadow: 18px 24px 52px rgba(0,0,0,0.46), -10px -10px 34px rgba(255,255,255,0.035);
     }
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     body {
       margin: 0;
       font-family: "Avenir Next", "Pretendard", sans-serif;
@@ -3337,6 +3341,405 @@ std::string BuildLabRuleEditorPageHtml() {
     h1 { margin: 0; font-size: 36px; letter-spacing: -0.03em; }
     h2 { margin: 0; font-size: 22px; letter-spacing: -0.02em; }
     p { color: var(--muted); line-height: 1.55; }
+    .section-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .count-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--soft-bg);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .management-toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: end;
+    }
+    .management-toolbar .toolbar-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .management-toolbar .toolbar-actions button {
+      width: auto;
+      min-width: 120px;
+      white-space: nowrap;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .summary-tile {
+      min-height: 76px;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--soft-bg);
+      display: grid;
+      gap: 4px;
+    }
+    .summary-tile span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .summary-tile strong {
+      color: var(--ink);
+      font-size: 22px;
+      letter-spacing: -0.02em;
+    }
+    .rule-list-panel {
+      display: grid;
+      gap: 10px;
+    }
+    .rule-list-controls {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) minmax(150px, 0.35fr) minmax(170px, 0.4fr) minmax(120px, auto);
+      gap: 10px;
+      align-items: end;
+    }
+    .rule-filter-summary {
+      min-height: 40px;
+      padding: 0 2px 2px;
+      display: inline-flex;
+      align-items: end;
+      justify-content: flex-start;
+      gap: 8px;
+      color: var(--muted);
+    }
+    .rule-filter-summary span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      padding-bottom: 9px;
+    }
+    .rule-filter-summary strong {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--field-bg);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .rule-list {
+      display: grid;
+      gap: 8px;
+    }
+    .rule-row {
+      display: grid;
+      grid-template-columns: 76px minmax(220px, 1.25fr) minmax(160px, 0.9fr) minmax(170px, 0.95fr) minmax(150px, 0.75fr) minmax(260px, auto);
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--field-bg);
+      text-align: left;
+    }
+    .rule-row.is-header {
+      min-height: 0;
+      padding: 0 12px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .rule-row.is-selected {
+      border-color: rgba(11,110,105,0.52);
+      box-shadow: inset 0 0 0 1px rgba(11,110,105,0.20);
+    }
+    :root[data-theme="dark"] .rule-row.is-selected {
+      border-color: rgba(255,77,141,0.55);
+      box-shadow: inset 0 0 0 1px rgba(255,77,141,0.18);
+    }
+    .rule-main {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+    .rule-main strong, .rule-cell {
+      overflow-wrap: anywhere;
+    }
+    .rule-main span, .rule-cell {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .rule-cell-stack {
+      display: grid;
+      gap: 6px;
+      align-content: center;
+    }
+    .rule-cell-stack strong {
+      color: var(--ink);
+      font-size: 13px;
+    }
+    .rule-cell-stack span {
+      overflow-wrap: anywhere;
+    }
+    .rule-id-badge, .status-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 30px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--soft-bg);
+      color: var(--ink);
+      font-weight: 900;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .status-chip.is-muted {
+      color: var(--muted);
+      background: var(--secondary-bg);
+    }
+    .status-chip.is-active {
+      color: #fff;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+    }
+    .status-chip.is-scenario {
+      color: #fff;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+    }
+    .row-actions {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+    }
+    .row-actions button {
+      min-height: 34px;
+      padding: 7px 9px;
+      border-radius: 11px;
+      font-size: 12px;
+    }
+    .empty-state {
+      padding: 18px;
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+      background: var(--soft-bg);
+      color: var(--muted);
+      text-align: center;
+    }
+    .editor-panel {
+      scroll-margin-top: 18px;
+    }
+    .editor-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .edit-step-nav {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      box-shadow: none;
+    }
+    .edit-step-card {
+      scroll-margin-top: 86px;
+    }
+    .step-title {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .step-title > span {
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-weight: 900;
+    }
+    .step-title h2 {
+      margin-bottom: 4px;
+    }
+    .inline-details {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--soft-bg);
+      overflow: hidden;
+    }
+    .inline-details > summary {
+      cursor: pointer;
+      padding: 13px 14px;
+      color: var(--ink);
+      font-weight: 900;
+    }
+    .inline-details > .stack,
+    .inline-details > label {
+      padding: 0 14px 14px;
+    }
+    .review-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .review-tile {
+      min-height: 74px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--soft-bg);
+      display: grid;
+      gap: 4px;
+    }
+    .review-tile strong {
+      color: var(--ink);
+      font-size: 13px;
+    }
+    .review-tile span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+    .profile-summary-panel {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--soft-bg);
+    }
+    .profile-summary-item {
+      min-height: 64px;
+      padding: 10px 11px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--field-bg);
+      display: grid;
+      gap: 4px;
+      align-content: center;
+    }
+    .profile-summary-item span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .profile-summary-item strong {
+      color: var(--ink);
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+    .profile-delete-note {
+      min-height: 38px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--field-bg);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .profile-delete-note.is-warning {
+      color: var(--danger);
+      border-color: rgba(213,75,75,0.45);
+    }
+    .readonly-id {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      padding: 11px 13px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--soft-bg);
+      color: var(--ink);
+      font-weight: 900;
+    }
+    .feedback-toast {
+      position: sticky;
+      top: 12px;
+      z-index: 20;
+      display: none;
+      padding: 13px 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--card-bg);
+      color: var(--ink);
+      box-shadow: var(--shadow);
+      font-weight: 800;
+    }
+    .feedback-toast.is-visible {
+      display: block;
+    }
+    .feedback-toast.is-success {
+      border-color: rgba(11,110,105,0.45);
+      background: rgba(11,110,105,0.13);
+    }
+    .feedback-toast.is-error {
+      border-color: rgba(213,75,75,0.55);
+      background: rgba(213,75,75,0.14);
+    }
+    .validation-summary {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--soft-bg);
+    }
+    .validation-summary.is-ok {
+      border-color: rgba(11,110,105,0.45);
+      background: rgba(11,110,105,0.10);
+    }
+    .validation-summary.is-error {
+      border-color: rgba(213,75,75,0.55);
+      background: rgba(213,75,75,0.12);
+    }
+    .validation-item {
+      display: grid;
+      gap: 3px;
+      padding: 8px 10px;
+      border-radius: 11px;
+      background: rgba(255,255,255,0.42);
+    }
+    :root[data-theme="dark"] .validation-item {
+      background: rgba(255,255,255,0.055);
+    }
+    .validation-item strong {
+      color: var(--ink);
+      font-size: 12px;
+    }
+    .validation-item span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .dirty-state {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .dirty-state.is-dirty {
+      color: var(--danger);
+      font-weight: 800;
+    }
     .card {
       background: var(--card-bg);
       border: 1px solid var(--line);
@@ -3371,6 +3774,10 @@ std::string BuildLabRuleEditorPageHtml() {
       font-weight: 800;
       cursor: pointer;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
+    }
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
     }
     button.secondary {
       color: var(--ink);
@@ -3532,6 +3939,40 @@ std::string BuildLabRuleEditorPageHtml() {
       line-height: 1.45;
       overflow-wrap: anywhere;
     }
+    .viewer-status-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .viewer-status-card {
+      min-height: 72px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--soft-bg);
+      display: grid;
+      gap: 5px;
+      align-content: center;
+    }
+    .viewer-status-card span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .viewer-status-card strong {
+      color: var(--ink);
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+    .viewer-status-card.is-connecting strong {
+      color: var(--accent2);
+    }
+    .viewer-status-card.is-playing strong {
+      color: var(--accent);
+    }
+    .viewer-status-card.is-error strong {
+      color: var(--danger);
+    }
     .view-frame {
       display: grid;
       gap: 12px;
@@ -3557,6 +3998,30 @@ std::string BuildLabRuleEditorPageHtml() {
     .url-grid textarea {
       min-height: 92px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+    .developer-url-details > .pad {
+      border-top: 1px solid var(--line);
+    }
+    .url-field {
+      display: grid;
+      gap: 8px;
+    }
+    .url-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .url-title-row span {
+      color: var(--ink);
+      font-weight: 800;
+    }
+    .copy-url-btn {
+      width: auto;
+      min-width: 72px;
+      padding: 8px 10px;
+      border-radius: 10px;
       font-size: 12px;
     }
     .form-note {
@@ -3706,6 +4171,62 @@ std::string BuildLabRuleEditorPageHtml() {
       display: grid;
       gap: 10px;
     }
+    .geometry-status-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .geometry-status-card {
+      min-height: 72px;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--soft-bg);
+      display: grid;
+      gap: 4px;
+      align-content: center;
+    }
+    .geometry-status-card span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .geometry-status-card strong {
+      color: var(--ink);
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+    .geometry-status-card.is-ok strong {
+      color: var(--accent);
+    }
+    .geometry-status-card.is-error strong {
+      color: var(--danger);
+    }
+    .geometry-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .coordinate-list {
+      display: grid;
+      gap: 7px;
+      padding: 0 14px 14px;
+    }
+    .coordinate-row {
+      display: grid;
+      grid-template-columns: 64px 1fr 1fr;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--field-bg);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .coordinate-row strong {
+      color: var(--ink);
+    }
     .canvas-wrap {
       background: var(--canvas-bg);
       border: 1px solid var(--line);
@@ -3787,16 +4308,33 @@ std::string BuildLabRuleEditorPageHtml() {
       color: var(--muted);
       line-height: 1.5;
     }
+    .dialog-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
     .hint { margin: 0; font-size: 0.9rem; color: var(--muted); }
     @media (max-width: 980px) {
       .grid, .row { grid-template-columns: 1fr; }
       .check-grid { grid-template-columns: 1fr 1fr; }
       .class-filter-row { grid-template-columns: 1fr; }
-      .phase-strip, .metric-grid, .scenario-readiness, .rule-tabs, .url-grid { grid-template-columns: 1fr 1fr; }
+      .phase-strip, .metric-grid, .scenario-readiness, .rule-tabs, .url-grid, .summary-grid, .geometry-status-grid, .viewer-status-grid, .rule-list-controls { grid-template-columns: 1fr 1fr; }
+      .management-toolbar { grid-template-columns: 1fr; }
+      .management-toolbar .toolbar-actions { justify-content: flex-start; }
+      .rule-row {
+        grid-template-columns: 72px minmax(0, 1fr);
+      }
+      .rule-row.is-header { display: none; }
+      .rule-row .rule-cell, .rule-row .row-actions {
+        grid-column: 1 / -1;
+      }
     }
     @media (max-width: 720px) {
-      .primary-tabs, .url-grid { grid-template-columns: 1fr; }
+      .primary-tabs, .url-grid, .summary-grid, .review-grid, .geometry-status-grid, .geometry-actions, .viewer-status-grid, .rule-list-controls, .profile-summary-panel { grid-template-columns: 1fr; }
       .segmented.view-mode { grid-template-columns: 1fr; }
+      .management-toolbar .toolbar-actions { justify-content: stretch; }
+      .management-toolbar .toolbar-actions button { width: 100%; }
+      .row-actions { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -3817,22 +4355,126 @@ std::string BuildLabRuleEditorPageHtml() {
       <button id="analysisViewerTabBtn" type="button" data-primary-tab="viewer">영상 분석 보기</button>
     </nav>
 
+    <div id="feedbackToast" class="feedback-toast" role="status" aria-live="polite"></div>
+
     <section id="settingsPanel" class="workspace-panel">
+      <section class="card" id="vaRuleLibraryCard">
+        <div class="pad stack">
+          <div class="management-toolbar">
+            <div class="stack">
+              <div class="section-title-row">
+                <h2>저장된 영상 분석 룰</h2>
+                <span id="vaRuleCountBadge" class="count-badge">0개 저장</span>
+              </div>
+              <p class="hint">룰은 영상 소스, 분석 profile, 이벤트, 시나리오, 영역을 하나의 숫자 ID로 묶습니다. 외부 요청은 `vaRule=숫자`만 사용합니다.</p>
+            </div>
+            <div class="toolbar-actions">
+              <button id="addVaRuleBtn" type="button">룰 추가</button>
+            </div>
+          </div>
+          <div class="summary-grid">
+            <div class="summary-tile"><span>전체 룰</span><strong id="vaRuleTotalMetric">0</strong></div>
+            <div class="summary-tile"><span>적용 중</span><strong id="vaRuleActiveMetric">0</strong></div>
+            <div class="summary-tile"><span>시나리오</span><strong id="vaRuleScenarioMetric">0</strong></div>
+            <div class="summary-tile"><span>다음 자동 번호</span><strong id="vaRuleNextIdMetric">#1</strong></div>
+          </div>
+          <div class="rule-list-controls">
+            <label>룰 검색
+              <input id="vaRuleSearchInput" placeholder="이름, ID, 소스, 이벤트, 객체 검색" />
+            </label>
+            <label>상태 필터
+              <select id="vaRuleStatusFilter">
+                <option value="all" selected>전체</option>
+                <option value="active">적용 중</option>
+                <option value="inactive">비활성</option>
+              </select>
+            </label>
+            <label>이벤트 방식
+              <select id="vaRuleKindFilter">
+                <option value="all" selected>전체</option>
+                <option value="basic">기본 이벤트</option>
+                <option value="scenario">시나리오</option>
+              </select>
+            </label>
+            <div class="rule-filter-summary">
+              <span>표시 중</span>
+              <strong id="vaRuleFilteredMetric">0개</strong>
+            </div>
+          </div>
+          <div class="rule-list-panel">
+            <div id="vaRuleList" class="rule-list"></div>
+            <p id="vaRuleListHint" class="hint">각 행의 보기/수정/복제/삭제 버튼으로 해당 룰을 바로 관리합니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="vaRuleEditorPanel" class="workspace-panel editor-panel" hidden>
       <section class="card">
         <div class="pad stack">
-          <h2>영상 분석 설정 ID</h2>
-          <p class="hint">저장된 설정은 `vaRule=숫자`로 호출합니다. 이 ID가 소스와 룰을 함께 묶기 때문에 보기 탭이나 외부 클라이언트에서 다른 영상을 잘못 조합하는 일을 막습니다.</p>
+          <div class="editor-heading">
+            <div class="stack">
+              <div class="section-title-row">
+                <h2 id="vaRuleEditorTitle">영상 분석 룰 편집</h2>
+                <span id="vaRuleEditorModeBadge" class="count-badge">새 룰</span>
+              </div>
+              <p class="hint">추가/수정 중에만 열리는 편집 화면입니다. 저장하면 목록으로 돌아갑니다.</p>
+            </div>
+            <button id="cancelVaRuleEditBtn" type="button" class="secondary" style="width:auto;min-width:120px;">목록으로</button>
+          </div>
+          <select id="vaRuleSelect" hidden></select>
+        </div>
+      </section>
+
+      <nav class="rule-tabs edit-step-nav" aria-label="룰 편집 섹션">
+        <button type="button" class="secondary" data-rule-section-target="ruleBasicSection">기본 정보</button>
+        <button type="button" class="secondary" data-rule-section-target="ruleSourceSection">영상 소스</button>
+        <button type="button" class="secondary" data-rule-section-target="profileSection">분석 Profile</button>
+        <button type="button" class="secondary" data-rule-section-target="ruleScenarioSection">이벤트 방식</button>
+        <button type="button" class="secondary" data-rule-section-target="ruleObjectsSection">대상 객체</button>
+        <button type="button" class="secondary" data-rule-section-target="geometryLabel">영역/라인</button>
+        <button type="button" class="secondary" data-rule-section-target="ruleOutputSection">이벤트 동작</button>
+        <button type="button" class="secondary" data-rule-section-target="ruleReviewSection">저장 전 검토</button>
+      </nav>
+
+      <section id="ruleBasicSection" class="card edit-step-card section-anchor">
+        <div class="pad stack">
+          <div class="step-title">
+            <span>1</span>
+            <div>
+              <h2>기본 정보</h2>
+              <p class="hint">저장 번호, 이름, 적용 상태만 먼저 확인합니다.</p>
+            </div>
+          </div>
           <div class="row">
-            <label>저장된 영상 분석 설정
-              <select id="vaRuleSelect"></select>
+            <label>Rule ID
+              <input id="vaRuleId" type="hidden" inputmode="numeric" pattern="[0-9]*" />
+              <input id="ruleId" type="hidden" value="file-person-vehicle-area" />
+              <div id="vaRuleIdDisplay" class="readonly-id">저장 시 자동 지정</div>
+              <span class="form-note">새 룰 번호는 기존 서버 규칙대로 저장 시 다음 숫자로 자동 지정됩니다.</span>
             </label>
-            <label>설정 ID
-              <input id="vaRuleId" inputmode="numeric" pattern="[0-9]*" placeholder="비우면 다음 번호 자동 발급" />
+            <label>Rule 이름
+              <input id="vaRuleName" value="샘플 파일 분석 설정" />
             </label>
           </div>
-          <label>설정 이름
-            <input id="vaRuleName" value="샘플 파일 분석 설정" />
+          <label>적용 상태
+            <select id="ruleEnabled">
+              <option value="true" selected>적용함</option>
+              <option value="false">저장만 하고 적용 안 함</option>
+            </select>
+            <span class="form-note">테스트 중인 Rule을 삭제하지 않고 잠시 꺼둘 때만 `저장만 하고 적용 안 함`을 씁니다.</span>
           </label>
+        </div>
+      </section>
+
+      <section id="ruleSourceSection" class="card edit-step-card section-anchor">
+        <div class="pad stack">
+          <div class="step-title">
+            <span>2</span>
+            <div>
+              <h2>영상 소스</h2>
+              <p class="hint">이 Rule이 묶을 영상 소스와 적용 route를 확인합니다.</p>
+            </div>
+          </div>
           <div class="row">
             <label>분석할 영상 종류
               <select id="vaRuleSourceKind">
@@ -3847,129 +4489,10 @@ std::string BuildLabRuleEditorPageHtml() {
                 <option value="sample_h264.mp4" selected>sample_h264.mp4</option>
               </select>
             </label>
-            <label id="vaRuleUrlField" hidden>분석할 영상 URL 또는 Source ID
+            <label id="vaRuleUrlField" hidden>
+              <span id="vaRuleUrlLabelText">분석할 영상 URL 또는 Source ID</span>
               <input id="vaRuleUrlInput" placeholder="rtsp://camera.local/stream 또는 published-source-id" />
-            </label>
-          </div>
-          <p id="vaRuleSourceSummary" class="source-lock">현재 설정 소스: file=sample_h264.mp4</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
-            <button id="newVaRuleBtn" type="button" class="secondary">새 설정</button>
-            <button id="saveVaRuleBtn" type="button">영상 분석 설정 저장</button>
-            <button id="deleteVaRuleBtn" type="button" class="danger">설정 삭제</button>
-          </div>
-        </div>
-      </section>
-
-    <section class="grid">
-      <div class="card">
-        <div class="pad stack">
-          <h2>1. 분석 Profile</h2>
-          <p class="hint">detector 처리량과 품질을 정하는 값입니다. 저장된 profile은 rule에서 선택할 수 있습니다.</p>
-          <label>저장된 Profile
-            <select id="profileSelect"></select>
-          </label>
-          <div class="row">
-            <label>Profile ID
-              <input id="profileId" value="fast-local" />
-            </label>
-            <label>Detector
-              <select id="profileDetector">
-                <option value="yolo">YOLO</option>
-                <option value="dummy">Dummy</option>
-              </select>
-            </label>
-          </div>
-          <div class="row">
-            <label>분석 FPS: <span id="profileFpsValue">6</span>
-              <input id="profileFps" type="range" min="1" max="30" value="6" />
-            </label>
-            <label>Queue 크기: <span id="profileQueueValue">1</span>
-              <input id="profileQueue" type="range" min="1" max="8" value="1" />
-            </label>
-          </div>
-          <div class="row">
-            <label>신뢰도 threshold: <span id="profileConfidenceValue">25%</span>
-              <input id="profileConfidence" type="range" min="1" max="100" value="25" />
-            </label>
-            <label>NMS threshold: <span id="profileNmsValue">45%</span>
-              <input id="profileNms" type="range" min="1" max="100" value="45" />
-            </label>
-          </div>
-          <div class="row">
-            <label>입력 Width
-              <select id="profileInputWidth">
-                <option value="320">320</option>
-                <option value="640" selected>640</option>
-                <option value="960">960</option>
-              </select>
-            </label>
-            <label>입력 Height
-              <select id="profileInputHeight">
-                <option value="320">320</option>
-                <option value="640" selected>640</option>
-                <option value="960">960</option>
-              </select>
-            </label>
-          </div>
-          <label style="display:flex;align-items:center;gap:8px;">
-            <input id="profileAdaptive" type="checkbox" checked />
-            부하가 높으면 FPS/input size 자동 조절
-          </label>
-          <label>Tracking 대상 카테고리</label>
-          <div class="pill-grid">
-            <button id="selectDefaultTrackingBtn" class="secondary mini-button">기본</button>
-            <button id="selectAllTrackingBtn" class="secondary mini-button">전체 선택</button>
-            <button id="clearTrackingBtn" class="secondary mini-button">전체 해제</button>
-          </div>
-          <div class="pill-grid">
-            <label class="mini-check"><input data-tracking-category type="checkbox" value="person" checked /> 사람</label>
-            <label class="mini-check"><input data-tracking-category type="checkbox" value="vehicle" checked /> 차량</label>
-            <label class="mini-check"><input data-tracking-category type="checkbox" value="road" /> 도로</label>
-            <label class="mini-check"><input data-tracking-category type="checkbox" value="animal" /> 동물</label>
-            <label class="mini-check"><input data-tracking-category type="checkbox" value="sports" /> 운동</label>
-            <label class="mini-check"><input data-tracking-category type="checkbox" value="tableware" /> 식기</label>
-            <label class="mini-check"><input data-tracking-category type="checkbox" value="food" /> 음식</label>
-            <label class="mini-check"><input data-tracking-category type="checkbox" value="furniture" /> 가구</label>
-            <label class="mini-check"><input data-tracking-category type="checkbox" value="device" /> 기기</label>
-            <label class="mini-check"><input data-tracking-category type="checkbox" value="object" /> 잡화</label>
-          </div>
-          <p class="hint">ID/trail과 enter/exit/line-crossing 판정 대상입니다. 세부 객체명은 JSON/API에서만 직접 지정합니다.</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
-            <button id="newProfileBtn" class="secondary">새 Profile</button>
-            <button id="saveProfileBtn">Profile 저장</button>
-            <button id="deleteProfileBtn" class="danger">Profile 삭제</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="pad stack">
-          <h2>2. 이벤트 Rule</h2>
-          <p class="hint">영역과 객체 카테고리를 지정합니다. 저장된 룰은 `va=1` overlay와 events API에 바로 적용됩니다. 진입/이탈/라인 통과는 tracker가 붙인 객체 ID 기준으로 판정합니다. 기본 tracker 대상은 사람/차량 카테고리입니다.</p>
-          <div class="rule-tabs" aria-label="Rule 편집 섹션">
-            <button type="button" class="secondary" data-rule-section-target="ruleBasicSection">기본 설정</button>
-            <button type="button" class="secondary" data-rule-section-target="rulePreviewSection">영상/영역</button>
-            <button type="button" class="secondary" data-rule-section-target="ruleScenarioSection">시나리오</button>
-            <button type="button" class="secondary" data-rule-section-target="ruleObjectsSection">객체/조건</button>
-            <button type="button" class="secondary" data-rule-section-target="ruleOutputSection">출력/저장</button>
-          </div>
-          <label id="ruleBasicSection" class="section-anchor">저장된 Rule
-            <select id="ruleSelect"></select>
-          </label>
-          <label>Rule 구성 방식</label>
-          <div class="segmented" role="group" aria-label="Rule 구성 방식">
-            <label><input type="radio" name="ruleKind" value="basic" checked /> 기본 이벤트</label>
-            <label><input type="radio" name="ruleKind" value="scenario" /> 시나리오</label>
-          </div>
-          <div class="row">
-            <label>Rule ID
-              <input id="ruleId" value="file-person-vehicle-area" />
-            </label>
-            <label>사용 여부
-              <select id="ruleEnabled">
-                <option value="true" selected>사용</option>
-                <option value="false">사용 안 함</option>
-              </select>
+              <span id="vaRuleUrlHelp" class="form-note">RTSP/HTTP/HLS는 URL, WebRTC는 publish Source ID를 입력합니다.</span>
             </label>
           </div>
           <div class="row">
@@ -3991,10 +4514,127 @@ std::string BuildLabRuleEditorPageHtml() {
               </select>
             </label>
           </div>
+          <p id="vaRuleSourceHelp" class="form-note">서버 파일은 아래 파일 목록만 선택하면 됩니다. URL 또는 Source ID 입력칸은 RTSP/HTTP/HLS/WebRTC 소스를 고를 때만 표시됩니다.</p>
+          <p id="vaRuleSourceSummary" class="source-lock">현재 설정 소스: file=sample_h264.mp4</p>
+        </div>
+      </section>
+
+      <section id="profileSection" class="card edit-step-card section-anchor">
+        <div class="pad stack">
+          <div class="step-title">
+            <span>3</span>
+            <div>
+              <h2>분석 Profile</h2>
+              <p class="hint">실제 분석에 사용할 profile을 고르고, 세부 성능값은 필요할 때만 펼칩니다.</p>
+            </div>
+          </div>
+          <label>사용할 Profile
+            <select id="ruleProfileId"></select>
+          </label>
+          <div id="profileSummaryText" class="profile-summary-panel" aria-live="polite"></div>
+          <details class="inline-details">
+            <summary>고급 Profile 설정</summary>
+            <div class="stack">
+              <div class="section-title-row">
+                <span class="hint">Profile registry를 수정할 때만 펼칩니다. 저장하면 같은 Profile을 쓰는 룰에 적용됩니다.</span>
+                <span id="profileCountBadge" class="count-badge">0개 저장</span>
+              </div>
+              <label>저장된 Profile
+                <select id="profileSelect"></select>
+              </label>
+              <div class="row">
+                <label>Profile ID
+                  <input id="profileId" value="fast-local" />
+                </label>
+                <label>Detector
+                  <select id="profileDetector">
+                    <option value="yolo">YOLO/ONNX</option>
+                    <option value="dummy">개발용 더미(검증용)</option>
+                  </select>
+                  <span id="detectorHelp" class="form-note">YOLO/ONNX는 실제 객체 검출입니다. 개발용 더미는 모델 없이 파이프라인과 UI만 확인할 때 쓰며 운영 설정에는 보통 사용하지 않습니다.</span>
+                </label>
+              </div>
+              <div class="row">
+                <label>분석 FPS: <span id="profileFpsValue">6</span>
+                  <input id="profileFps" type="range" min="1" max="30" value="6" />
+                </label>
+                <label>Queue 크기: <span id="profileQueueValue">1</span>
+                  <input id="profileQueue" type="range" min="1" max="8" value="1" />
+                </label>
+              </div>
+              <div class="row">
+                <label>신뢰도 threshold: <span id="profileConfidenceValue">25%</span>
+                  <input id="profileConfidence" type="range" min="1" max="100" value="25" />
+                </label>
+                <label>NMS threshold: <span id="profileNmsValue">45%</span>
+                  <input id="profileNms" type="range" min="1" max="100" value="45" />
+                </label>
+              </div>
+              <div class="row">
+                <label>입력 Width
+                  <select id="profileInputWidth">
+                    <option value="320">320</option>
+                    <option value="640" selected>640</option>
+                    <option value="960">960</option>
+                  </select>
+                </label>
+                <label>입력 Height
+                  <select id="profileInputHeight">
+                    <option value="320">320</option>
+                    <option value="640" selected>640</option>
+                    <option value="960">960</option>
+                  </select>
+                </label>
+              </div>
+              <label style="display:flex;align-items:center;gap:8px;">
+                <input id="profileAdaptive" type="checkbox" checked />
+                부하가 높으면 FPS/input size 자동 조절
+              </label>
+              <label>Tracking 대상 카테고리</label>
+              <div class="pill-grid">
+                <button id="selectDefaultTrackingBtn" class="secondary mini-button">기본</button>
+                <button id="selectAllTrackingBtn" class="secondary mini-button">전체 선택</button>
+                <button id="clearTrackingBtn" class="secondary mini-button">전체 해제</button>
+              </div>
+              <div class="pill-grid">
+                <label class="mini-check"><input data-tracking-category type="checkbox" value="person" checked /> 사람</label>
+                <label class="mini-check"><input data-tracking-category type="checkbox" value="vehicle" checked /> 차량</label>
+                <label class="mini-check"><input data-tracking-category type="checkbox" value="road" /> 도로</label>
+                <label class="mini-check"><input data-tracking-category type="checkbox" value="animal" /> 동물</label>
+                <label class="mini-check"><input data-tracking-category type="checkbox" value="sports" /> 운동</label>
+                <label class="mini-check"><input data-tracking-category type="checkbox" value="tableware" /> 식기</label>
+                <label class="mini-check"><input data-tracking-category type="checkbox" value="food" /> 음식</label>
+                <label class="mini-check"><input data-tracking-category type="checkbox" value="furniture" /> 가구</label>
+                <label class="mini-check"><input data-tracking-category type="checkbox" value="device" /> 기기</label>
+                <label class="mini-check"><input data-tracking-category type="checkbox" value="object" /> 잡화</label>
+              </div>
+              <p class="hint">ID/trail과 enter/exit/line-crossing 판정 대상입니다. 세부 객체명은 JSON/API에서만 직접 지정합니다.</p>
+              <p id="profileDeleteWarningText" class="profile-delete-note">저장 Profile만 삭제할 수 있습니다.</p>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+                <button id="newProfileBtn" class="secondary">새 Profile</button>
+                <button id="saveProfileBtn">Profile 저장</button>
+                <button id="deleteProfileBtn" class="danger">Profile 삭제</button>
+              </div>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section id="ruleScenarioSection" class="card edit-step-card section-anchor">
+        <div class="pad stack">
+          <div class="step-title">
+            <span>4</span>
+            <div>
+              <h2>이벤트 방식</h2>
+              <p class="hint">기본 이벤트와 시나리오 중 하나를 고르면 필요한 입력만 표시합니다.</p>
+            </div>
+          </div>
+          <label>Rule 구성 방식</label>
+          <div class="segmented" role="group" aria-label="Rule 구성 방식">
+            <label><input type="radio" name="ruleKind" value="basic" checked /> 기본 이벤트</label>
+            <label><input type="radio" name="ruleKind" value="scenario" /> 시나리오</label>
+          </div>
           <div class="row">
-            <label>사용할 Profile
-              <select id="ruleProfileId"></select>
-            </label>
             <label class="basic-rule-panel">이벤트 타입
               <select id="ruleEventType">
                 <option value="presence" selected>영역 내 객체 감지(권장)</option>
@@ -4011,50 +4651,12 @@ std::string BuildLabRuleEditorPageHtml() {
               </select>
             </label>
           </div>
-          <div id="rulePreviewSection" class="preview-panel section-anchor">
-            <h2 style="font-size:18px;">영상 프레임 보기</h2>
-            <p class="hint">아래 영역 캔버스의 배경으로 선택한 영상의 최신 프레임을 표시합니다. 기본값은 위에서 묶은 영상 분석 설정 소스입니다.</p>
-            <div class="row">
-              <label>영상 소스
-                <select id="previewSourceMode">
-                  <option value="vaRule" selected>현재 영상 분석 설정 소스</option>
-                  <option value="file">영상 파일 선택</option>
-                  <option value="main">메인 /lab 선택 소스</option>
-                </select>
-              </label>
-              <label>영상 파일
-                <select id="previewFileSelect">
-                  <option value="sample_h264.mp4" selected>sample_h264.mp4</option>
-                </select>
-              </label>
-            </div>
-            <label style="display:flex;align-items:center;gap:8px;">
-              <input id="previewOverlayInput" type="checkbox" checked />
-              객체 검출 오버레이 보기
-            </label>
-            <label style="display:flex;align-items:center;gap:8px;">
-              <input id="autoPreviewInput" type="checkbox" />
-              영역/Zone 그리기 중 영상 프레임 보기
-            </label>
-            <button id="stopPreviewBtn" class="secondary">영상 보기 시작</button>
-            <p id="previewStatus" class="hint">꺼져 있습니다. 필요할 때만 켜서 영역을 맞추세요.</p>
-          </div>
-          <div id="ruleScenarioSection" class="section-anchor"></div>
           <div id="scenarioPanel" class="scenario-panel" hidden>
-            <div class="row">
-              <label>시나리오 템플릿
-                <select id="scenarioType">
-                  <option value="intrusion-dwell" selected>Intrusion Dwell · 제한구역 체류</option>
-                  <option value="loitering" disabled>Loitering · 후속</option>
-                  <option value="zone-occupancy" disabled>Zone Occupancy · 후속</option>
-                  <option value="line-dwell" disabled>Line Dwell · 후속</option>
-                </select>
-              </label>
-              <label>제한구역 이름(선택)
-                <input id="scenarioZoneIds" placeholder="예: 로비, 금지구역A · 비우면 현재 영역 전체" />
-              </label>
-            </div>
-            <p class="hint">제한구역 이름은 여러 구역을 구분할 때 쓰는 라벨입니다. 비워 두면 캔버스에 그린 현재 영역 전체를 하나의 제한구역으로 사용합니다.</p>
+            <label>시나리오 템플릿
+              <select id="scenarioType">
+                <option value="intrusion-dwell" selected>Intrusion Dwell · 제한구역 체류</option>
+              </select>
+            </label>
             <div class="row">
               <label>후보 판단 시간(ms): <span id="scenarioCandidateMsValue">2,000 ms</span>
                 <input id="scenarioCandidateMs" type="range" min="0" max="30000" step="500" value="2000" />
@@ -4069,10 +4671,6 @@ std::string BuildLabRuleEditorPageHtml() {
               <label>재알림 대기 시간(ms): <span id="scenarioCooldownMsValue">5,000 ms</span>
                 <input id="scenarioCooldownMs" type="range" min="0" max="60000" step="1000" value="5000" />
                 <span class="range-meta">범위 0~60,000 ms · 기본 5,000 ms · 1,000 ms 단위</span>
-              </label>
-              <label style="display:flex;align-items:center;gap:8px;">
-                <input id="scenarioStableOnly" type="checkbox" />
-                불안정 track은 후보에서 제외
               </label>
             </div>
             <div class="scenario-summary" aria-live="polite">
@@ -4110,7 +4708,34 @@ std::string BuildLabRuleEditorPageHtml() {
             </div>
             <p class="hint">이 UI는 시나리오 rule payload를 저장하고, 현재 polygon을 제한구역 후보로 사용합니다. 실제 engine 활성화는 서버의 scenario 설정값과 함께 동작합니다.</p>
           </div>
-          <label id="ruleObjectsSection" class="section-anchor">분석할 객체 카테고리</label>
+          <details class="inline-details">
+            <summary>고급: standalone Rule 문서</summary>
+            <div class="stack">
+              <div class="section-title-row">
+                <span class="hint">기존 `/lab/analysis/rules` 저장 흐름 검증용입니다. VA Rule 저장 payload는 기존 구조를 유지합니다.</span>
+                <span id="ruleCountBadge" class="count-badge">0개 저장</span>
+              </div>
+              <label>저장된 Rule
+                <select id="ruleSelect"></select>
+              </label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <button id="saveRuleBtn">Rule 저장</button>
+                <button id="deleteRuleBtn" class="danger">Rule 삭제</button>
+              </div>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section id="ruleObjectsSection" class="card edit-step-card section-anchor">
+        <div class="pad stack">
+          <div class="step-title">
+            <span>5</span>
+            <div>
+              <h2>대상 객체</h2>
+              <p class="hint">분석할 카테고리와 이벤트 판단 threshold를 정합니다.</p>
+            </div>
+          </div>
           <div class="class-tools">
             <p class="hint">Rule은 기존 객체 카테고리 단위로 선택합니다. 세부 COCO 객체명은 JSON/API에서 직접 지정할 수 있습니다.</p>
             <div class="pill-grid">
@@ -4128,39 +4753,139 @@ std::string BuildLabRuleEditorPageHtml() {
               <input id="ruleMinDurationMs" type="number" min="0" value="0" />
             </label>
           </div>
-          <label id="geometryLabel">이벤트 판단 영역</label>
+          <label id="scenarioStableOnlyLabel" style="display:flex;align-items:center;gap:8px;">
+            <input id="scenarioStableOnly" type="checkbox" />
+            불안정 track은 후보에서 제외
+          </label>
+        </div>
+      </section>
+
+      <section class="card edit-step-card section-anchor">
+        <div class="pad stack">
+          <div class="step-title">
+            <span>6</span>
+            <div>
+              <h2 id="geometryLabel">영역/라인 설정</h2>
+              <p class="hint">영상 프레임을 확인하면서 polygon 또는 line을 지정합니다.</p>
+            </div>
+          </div>
+          <div class="geometry-status-grid" aria-label="영역/라인 상태">
+            <div id="geometryModeCard" class="geometry-status-card">
+              <span>편집 모드</span>
+              <strong id="geometryModeText">polygon</strong>
+            </div>
+            <div id="geometryPointCard" class="geometry-status-card">
+              <span>점 개수</span>
+              <strong id="geometryPointCountText">0/12</strong>
+            </div>
+            <div id="geometryMinimumCard" class="geometry-status-card">
+              <span>저장 가능 여부</span>
+              <strong id="geometryMinimumText">계산 중</strong>
+            </div>
+            <div class="geometry-status-card">
+              <span>현재 영역 이름</span>
+              <strong id="geometryRegionNameText">현재 영역 전체</strong>
+            </div>
+          </div>
+          <div id="rulePreviewSection" class="preview-panel section-anchor">
+            <h2 style="font-size:18px;">영상 프레임 보기</h2>
+            <p class="hint">선택한 영상의 실제 프레임을 바로 확인하고, 아래 영역 캔버스에도 같은 프레임을 배경으로 씁니다.</p>
+            <div class="row">
+              <label>영상 소스
+                <select id="previewSourceMode">
+                  <option value="vaRule" selected>현재 영상 분석 설정 소스</option>
+                  <option value="file">다른 서버 파일 임시 보기</option>
+                  <option value="main">메인 /lab 선택 소스</option>
+                </select>
+              </label>
+              <label id="previewFileField">임시 보기 파일
+                <select id="previewFileSelect">
+                  <option value="sample_h264.mp4" selected>sample_h264.mp4</option>
+                </select>
+              </label>
+            </div>
+            <label style="display:flex;align-items:center;gap:8px;">
+              <input id="previewOverlayInput" type="checkbox" checked />
+              객체 검출 오버레이 보기
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;">
+              <input id="autoPreviewInput" type="checkbox" />
+              영역 캔버스에도 이 프레임 표시
+            </label>
+            <button id="stopPreviewBtn" class="secondary">영상 보기 시작</button>
+            <p id="previewStatus" class="hint">꺼져 있습니다. 필요할 때만 켜서 영역을 맞추세요.</p>
+          </div>
+          <label id="scenarioZoneIdsLabel">영역 이름
+            <input id="scenarioZoneIds" placeholder="예: 로비, 금지구역A · 비우면 현재 영역 전체" />
+            <span class="form-note">시나리오에서 여러 구역을 구분할 때 쓰는 라벨입니다. 기본 이벤트에서는 메모용으로만 봅니다.</span>
+          </label>
           <div class="canvas-wrap">
             <canvas id="regionCanvas" width="960" height="540"></canvas>
           </div>
           <p id="geometryHint" class="hint">캔버스를 클릭해 다각형 꼭짓점을 추가합니다. 3개 이상이면 영역으로 저장됩니다. 최대 12개까지 지정할 수 있습니다. 기존 점 근처를 드래그하면 새 점을 만들지 않고 점 위치를 이동합니다.</p>
-          <div id="ruleOutputSection" class="card section-anchor" style="box-shadow:none;background:rgba(255,255,255,0.04);">
-            <div class="pad stack" style="padding:16px;">
-              <h2 style="font-size:18px;">이벤트 발생 시 동작</h2>
-              <p class="hint">저장된 룰은 va=1 overlay와 events API에서 바로 판정됩니다. 깜빡임 강조와 POST 전송 워커가 적용됩니다.</p>
-              <label style="display:flex;align-items:center;gap:8px;">
-                <input id="eventFlashInput" type="checkbox" checked />
-                이벤트가 발생한 객체를 overlay에서 깜빡임으로 강조
-              </label>
-              <label>깜빡임 시간(ms)
-                <input id="eventFlashMsInput" type="number" min="100" max="10000" value="1200" />
-              </label>
-              <label>이벤트 POST URL
-                <input id="eventPostUrlInput" placeholder="https://example.internal/events" />
-              </label>
-              <p class="hint">사용자는 URL만 입력합니다. 이벤트 payload format은 서버에서 고정하며 아래 preview는 수정할 수 없습니다. 실제 POST 전송은 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1`일 때만 수행됩니다.</p>
-              <label>고정 POST payload 예시
-                <textarea id="eventPayloadPreview" readonly spellcheck="false"></textarea>
-              </label>
+          <p id="geometryValidationText" class="source-lock">영역 상태를 계산 중입니다.</p>
+          <div class="geometry-actions">
+            <button id="undoRegionBtn" type="button" class="secondary">되돌리기</button>
+            <button id="deleteLastPointBtn" type="button" class="secondary">마지막 점 삭제</button>
+            <button id="clearRegionBtn" type="button" class="secondary">전체 영역 초기화</button>
+          </div>
+          <details class="inline-details">
+            <summary>좌표 목록</summary>
+            <div id="regionCoordinateList" class="coordinate-list"></div>
+          </details>
+        </div>
+      </section>
+
+      <section id="ruleOutputSection" class="card edit-step-card section-anchor">
+        <div class="pad stack">
+          <div class="step-title">
+            <span>7</span>
+            <div>
+              <h2>이벤트 동작</h2>
+              <p class="hint">이벤트 발생 시 overlay 강조와 POST 전송 옵션을 정합니다.</p>
             </div>
           </div>
+          <label style="display:flex;align-items:center;gap:8px;">
+            <input id="eventFlashInput" type="checkbox" checked />
+            이벤트가 발생한 객체를 overlay에서 깜빡임으로 강조
+          </label>
+          <label>깜빡임 시간(ms)
+            <input id="eventFlashMsInput" type="number" min="100" max="10000" value="1200" />
+          </label>
+          <label>이벤트 POST URL
+            <input id="eventPostUrlInput" placeholder="https://example.internal/events" />
+          </label>
+          <p class="hint">실제 POST 전송은 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1`일 때만 수행됩니다.</p>
+          <details class="inline-details">
+            <summary>Payload preview</summary>
+            <label>고정 POST payload 예시
+                <textarea id="eventPayloadPreview" readonly spellcheck="false"></textarea>
+            </label>
+          </details>
+        </div>
+      </section>
+
+      <section id="ruleReviewSection" class="card edit-step-card section-anchor">
+        <div class="pad stack">
+          <div class="step-title">
+            <span>8</span>
+            <div>
+              <h2>저장 전 검토</h2>
+              <p class="hint">현재 설정 요약과 저장 가능 여부를 확인한 뒤 저장합니다.</p>
+            </div>
+          </div>
+          <div id="ruleReviewSummary" class="review-grid"></div>
+          <p id="ruleSaveReadiness" class="source-lock">저장 가능 여부를 계산 중입니다.</p>
+          <div id="ruleValidationSummary" class="validation-summary" aria-live="polite"></div>
+          <p id="ruleDirtyState" class="dirty-state">변경 상태를 계산 중입니다.</p>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
-            <button id="clearRegionBtn" class="secondary">영역 지우기</button>
-            <button id="saveRuleBtn">Rule 저장</button>
-            <button id="deleteRuleBtn" class="danger">Rule 삭제</button>
+            <button id="newVaRuleBtn" type="button" class="secondary" hidden>새 설정</button>
+            <button id="saveVaRuleBtn" type="button">영상 분석 설정 저장</button>
+            <button id="cancelVaRuleEditBtnBottom" type="button" class="secondary">목록으로</button>
+            <button id="deleteVaRuleBtn" type="button" class="danger">설정 삭제</button>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
     <details class="debug-drawer">
       <summary>개발자 정보: 생성 JSON / 상태</summary>
@@ -4192,19 +4917,21 @@ std::string BuildLabRuleEditorPageHtml() {
         </div>
       </section>
     </details>
+      </section>
     </section>
 
     <section id="viewerPanel" class="workspace-panel" hidden>
       <div class="card">
         <div class="pad stack">
-          <h2>영상 분석 보기</h2>
-          <p class="hint">보기 탭은 실제 영상 확인용입니다. Live Streaming은 원본, VA Overlay는 `va=1`, VA Rule은 `vaRule=숫자`만 사용합니다.</p>
+          <h2>영상 분석 테스트 / 미리보기</h2>
+          <p class="hint">Live Streaming, 기본 VA overlay, 저장된 VA Rule을 실제 화면으로 빠르게 확인하는 탭입니다.</p>
           <label>보기 모드</label>
           <div class="segmented view-mode" role="group" aria-label="보기 모드">
             <label><input type="radio" name="viewMode" value="live" checked /> Live Streaming</label>
             <label><input type="radio" name="viewMode" value="overlay" /> 영상 + VA Overlay</label>
             <label><input type="radio" name="viewMode" value="rule" /> 영상 + VA Rule</label>
           </div>
+          <p id="viewModeHelpText" class="form-note">Live Streaming은 원본 영상만 확인합니다.</p>
           <div class="row" id="viewDirectSourceFields">
             <label>보기 영상 종류
               <select id="viewSourceKind">
@@ -4227,9 +4954,25 @@ std::string BuildLabRuleEditorPageHtml() {
             <label>사용할 영상 분석 설정 ID
               <select id="viewVaRuleSelect"></select>
             </label>
+            <p class="form-note">영상 + VA Rule 모드에서는 영상 소스를 따로 고르지 않습니다. 선택한 ID에 저장된 영상 소스가 자동으로 고정됩니다.</p>
             <p id="viewRuleSourceSummary" class="source-lock">저장된 설정을 선택하면 연결된 영상 소스가 표시됩니다.</p>
           </div>
           <p id="viewBindingSummary" class="source-lock">Live Streaming · file=sample_h264.mp4</p>
+          <div class="viewer-status-grid" aria-label="영상 분석 보기 상태">
+            <div id="viewConnectionStateCard" class="viewer-status-card is-idle">
+              <span>연결 상태</span>
+              <strong id="viewConnectionStateText">대기</strong>
+            </div>
+            <div class="viewer-status-card">
+              <span>현재 모드</span>
+              <strong id="viewModeSummaryText">Live Streaming</strong>
+            </div>
+            <div class="viewer-status-card">
+              <span>연결 소스</span>
+              <strong id="viewSourceSummaryText">file=sample_h264.mp4</strong>
+            </div>
+          </div>
+          <p id="viewConnectionMessage" class="form-note">보기 시작을 누르면 분석 tap을 만들고 프레임을 표시합니다.</p>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <button id="startViewPreviewBtn" type="button">보기 시작</button>
             <button id="stopViewPreviewBtn" type="button" class="secondary">보기 중지</button>
@@ -4240,27 +4983,41 @@ std::string BuildLabRuleEditorPageHtml() {
           </div>
         </div>
       </div>
-      <div class="card">
+      <details class="debug-drawer developer-url-details">
+        <summary>개발자 요청 URL</summary>
         <div class="pad stack">
-          <h2>요청 URL</h2>
-          <p class="hint">외부 클라이언트는 아래처럼 가볍게 요청합니다. 저장 설정 모드에서는 URL에 `vaRule`만 두고 `file/url/source` override를 붙이지 않습니다.</p>
+          <p class="hint">외부 클라이언트나 자동화에서 직접 호출할 때만 펼쳐서 확인합니다.</p>
+          <div class="row">
+            <label>Web/HTTP 서버 주소
+              <input id="viewServerBaseUrl" />
+              <span class="form-note">현재 브라우저 주소를 기본값으로 씁니다. 다른 PC에서 볼 때는 이 서버의 LAN IP로 바꾸세요.</span>
+            </label>
+            <label>RTSP 서버 주소
+              <input id="viewRtspAuthority" />
+              <span class="form-note">RTSP/VLC URL에 들어갈 `host:port`입니다. 실행 포트 설정을 기본값으로 채웁니다.</span>
+            </label>
+          </div>
           <div class="url-grid">
-            <label>WebRTC simple signaling
+            <label class="url-field">
+              <span class="url-title-row"><span>WebRTC simple signaling</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewWebRtcUrl">복사</button></span>
               <textarea id="viewWebRtcUrl" readonly spellcheck="false"></textarea>
             </label>
-            <label>WHEP
+            <label class="url-field">
+              <span class="url-title-row"><span>WHEP</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewWhepUrl">복사</button></span>
               <textarea id="viewWhepUrl" readonly spellcheck="false"></textarea>
             </label>
-            <label>RTSP/VLC
+            <label class="url-field">
+              <span class="url-title-row"><span>RTSP/VLC</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewRtspUrl">복사</button></span>
               <textarea id="viewRtspUrl" readonly spellcheck="false"></textarea>
             </label>
-            <label>분석 Tap Preview
+            <label class="url-field">
+              <span class="url-title-row"><span>분석 Tap Preview</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewTapUrl">복사</button></span>
               <textarea id="viewTapUrl" readonly spellcheck="false"></textarea>
             </label>
           </div>
-          <p class="form-note">예: 기본 overlay는 `?file=sample_h264.mp4&va=1`, 저장 설정은 `?vaRule=1` 형태입니다.</p>
+          <p class="form-note">URL 규칙: Live Streaming은 source query만, 영상 + VA Overlay는 `va=1`을 추가, 영상 + VA Rule은 `vaRule=숫자`만 사용합니다.</p>
         </div>
-      </div>
+      </details>
     </section>
   </main>
 
@@ -4269,6 +5026,17 @@ std::string BuildLabRuleEditorPageHtml() {
       <h2>설정 확인</h2>
       <p id="validationDialogMessage"></p>
       <button id="validationDialogClose" value="ok">확인</button>
+    </form>
+  </dialog>
+
+  <dialog id="deleteVaRuleDialog" class="validation-dialog">
+    <form method="dialog">
+      <h2>영상 분석 룰 삭제</h2>
+      <p id="deleteVaRuleDialogMessage"></p>
+      <div class="dialog-actions">
+        <button id="cancelDeleteVaRuleBtn" type="button" class="secondary">취소</button>
+        <button id="confirmDeleteVaRuleBtn" type="button" class="danger">삭제</button>
+      </div>
     </form>
   </dialog>
 
@@ -4284,18 +5052,32 @@ std::string BuildLabRuleEditorPageHtml() {
     const ruleCategoryDisplayLabels = Object.fromEntries(
       categoryCatalog.map((item) => [item.value, item.displayLabels || [item.label]])
     );
+    const serverDefaults = {
+      rtspPort: __MEDIA_SERVER_RTSP_PORT__,
+      streamRoute: "__MEDIA_SERVER_STREAM_ROUTE__"
+    };
     let builtInProfiles = [];
     let profiles = [];
     let rules = [];
     let vaRules = [];
+    let selectedVaRuleId = '';
+    let vaRuleListSearch = '';
+    let vaRuleStatusFilter = 'all';
+    let vaRuleKindFilter = 'all';
+    let pendingDeleteVaRuleId = '';
+    let vaRuleEditorMode = 'closed';
+    let vaRuleEditorBaseline = '';
+    let vaRuleDirty = false;
     let previewTapId = '';
     let previewTimer = null;
     let previewImage = null;
     let previewFailureCount = 0;
     let previewSourceLabel = '';
+    let regionUndoStack = [];
     let viewTapId = '';
     let viewTimer = null;
     let viewFailureCount = 0;
+    let viewConnectionState = 'idle';
     let regionPoints = [
       { x: 0.20, y: 0.22 },
       { x: 0.80, y: 0.22 },
@@ -4307,13 +5089,83 @@ std::string BuildLabRuleEditorPageHtml() {
     const polygonMaxPoints = 12;
     const lineMaxPoints = 2;
     const dragHitRadiusPx = 16;
+    const regionUndoMax = 20;
 
     const $ = (id) => document.getElementById(id);
     const canvas = $('regionCanvas');
     const ctx = canvas.getContext('2d');
+    let feedbackTimer = null;
+
+    const VaUiComponents = Object.freeze({
+      RuleList: {
+        state: ['vaRules', 'selectedVaRuleId', 'vaRuleListSearch', 'vaRuleStatusFilter', 'vaRuleKindFilter'],
+        selectors: ['vaRuleList', 'vaRuleSearchInput', 'vaRuleStatusFilter', 'vaRuleKindFilter'],
+        actions: ['renderVaRuleLibrary', 'selectVaRule', 'duplicateVaRuleById', 'toggleVaRuleEnabled', 'deleteVaRuleById']
+      },
+      RuleEditor: {
+        state: ['vaRuleEditorMode', 'vaRuleEditorBaseline', 'vaRuleDirty', 'regionPoints'],
+        selectors: ['vaRuleEditorPanel', 'ruleBasicSection', 'ruleSourceSection', 'ruleReviewSection'],
+        actions: ['openVaRuleEditorForNew', 'openVaRuleEditorForEdit', 'saveVaRule', 'closeVaRuleEditor']
+      },
+      ProfileSelector: {
+        state: ['builtInProfiles', 'profiles'],
+        selectors: ['ruleProfileId', 'profileSummaryText', 'profileSelect'],
+        actions: ['renderProfileSelects', 'loadProfile', 'saveProfile', 'deleteProfile', 'updateProfileSummaryText']
+      },
+      EventModeSelector: {
+        selectors: ['ruleEventType', 'ruleLineDirection', 'ruleKind'],
+        actions: ['setRuleKind', 'updateRuleModeUi', 'ruleJson']
+      },
+      ScenarioEditor: {
+        selectors: ['scenarioType', 'scenarioCandidateMs', 'scenarioDwellMs', 'scenarioCooldownMs', 'scenarioStableOnly'],
+        actions: ['scenarioJson', 'updateRangeLabels']
+      },
+      ObjectCategorySelector: {
+        selectors: ['classChecks', 'data-rule-category', 'data-tracking-category'],
+        actions: ['renderClassChecks', 'selectedClasses', 'selectedTrackingClasses']
+      },
+      RegionCanvasEditor: {
+        state: ['regionPoints', 'regionUndoStack', 'previewImage'],
+        selectors: ['regionCanvas', 'geometryValidationText', 'regionCoordinateList'],
+        actions: ['drawRegion', 'undoRegionChange', 'deleteLastRegionPoint', 'clearRegionGeometry']
+      },
+      EventActionEditor: {
+        selectors: ['eventFlashInput', 'eventFlashMsInput', 'eventPostUrlInput'],
+        actions: ['eventActionsJson', 'eventPayloadExampleJson']
+      },
+      RuleReviewPanel: {
+        selectors: ['ruleReviewSummary', 'ruleSaveReadiness', 'ruleValidationSummary'],
+        actions: ['updateReviewSummary', 'validateVaRulePayloadDetailed']
+      },
+      AnalysisPreviewPanel: {
+        state: ['previewTapId', 'viewTapId'],
+        selectors: ['rulePreviewSection', 'viewerPanel', 'viewPreviewImage'],
+        actions: ['startRulePreview', 'stopRulePreview', 'startViewPreview', 'stopViewPreview']
+      },
+      DeveloperUrlPanel: {
+        selectors: ['viewWebRtcUrl', 'viewWhepUrl', 'viewRtspUrl', 'viewTapUrl'],
+        actions: ['updateGeneratedUrls', 'copyGeneratedUrl']
+      }
+    });
 
     function status(message, payload = null) {
       $('statusBox').textContent = payload ? `${message}\n${JSON.stringify(payload, null, 2)}` : message;
+    }
+
+    function showFeedback(message, tone = 'success') {
+      const el = $('feedbackToast');
+      if (!el) return;
+      el.textContent = message;
+      el.className = `feedback-toast is-visible is-${tone}`;
+      clearTimeout(feedbackTimer);
+      feedbackTimer = setTimeout(() => {
+        el.className = 'feedback-toast';
+      }, 4200);
+    }
+
+    function setText(id, text) {
+      const el = $(id);
+      if (el) el.textContent = text;
     }
 
     function previewStatus(message) {
@@ -4384,6 +5236,11 @@ std::string BuildLabRuleEditorPageHtml() {
       return String($('vaRuleId')?.value || '').trim();
     }
 
+    function isVaRuleEditorOpen() {
+      const panel = $('vaRuleEditorPanel');
+      return Boolean(panel && !panel.hidden);
+    }
+
     function selectedViewMode() {
       const selected = document.querySelector('input[name="viewMode"]:checked');
       return selected ? selected.value : 'live';
@@ -4394,12 +5251,553 @@ std::string BuildLabRuleEditorPageHtml() {
       return vaRules.find((item) => String(item.id) === String(id)) || null;
     }
 
+    function numericVaRuleId(value) {
+      const text = String(value || '').trim();
+      if (!/^[0-9]+$/.test(text)) return 0;
+      const number = Number(text);
+      return Number.isInteger(number) ? number : 0;
+    }
+
+    function sortedVaRules() {
+      return [...vaRules].sort((left, right) => {
+        const leftId = numericVaRuleId(left.id);
+        const rightId = numericVaRuleId(right.id);
+        if (leftId !== rightId) return leftId - rightId;
+        return String(left.id || '').localeCompare(String(right.id || ''));
+      });
+    }
+
+    function isVaRuleEnabled(item) {
+      return item?.enabled !== false;
+    }
+
+    function vaRuleKind(item) {
+      return item?.ruleKind === 'scenario' || item?.scenario ? 'scenario' : 'basic';
+    }
+
+    function lineDirectionLabel(value) {
+      const direction = String(value || 'any');
+      if (direction === 'forward') return '정방향';
+      if (direction === 'reverse') return '역방향';
+      return '양방향';
+    }
+
+    function formatVaRuleTime(value) {
+      if (value === undefined || value === null || value === '') return '';
+      let date = null;
+      if (typeof value === 'number' || /^[0-9]+$/.test(String(value))) {
+        const number = Number(value);
+        if (Number.isFinite(number)) {
+          date = new Date(number < 10000000000 ? number * 1000 : number);
+        }
+      } else {
+        date = new Date(String(value));
+      }
+      if (!date || Number.isNaN(date.getTime())) return '';
+      return new Intl.DateTimeFormat('ko-KR', {
+        year: '2-digit',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    }
+
+    function vaRuleLastModifiedText(item) {
+      const value = item?.updatedAtMs ?? item?.updatedAt ?? item?.modifiedAtMs ?? item?.modifiedAt ?? item?.lastModifiedAt ?? item?.lastModified;
+      const formatted = formatVaRuleTime(value);
+      return formatted ? `마지막 수정 ${formatted}` : '';
+    }
+
+    function vaRuleSearchText(item) {
+      return [
+        item?.id,
+        item?.name,
+        sourceLabel(item?.source || {}),
+        detectorLabel(item?.analysis?.profileId),
+        eventTypeLabel(item?.event?.type),
+        vaRuleScenarioText(item),
+        classSummary(item?.analysis?.classes || []),
+        isVaRuleEnabled(item) ? '적용 중 active enabled' : '비활성 inactive disabled'
+      ].join(' ').toLowerCase();
+    }
+
+    function filteredVaRules() {
+      const query = vaRuleListSearch.trim().toLowerCase();
+      return sortedVaRules().filter((item) => {
+        if (vaRuleStatusFilter === 'active' && !isVaRuleEnabled(item)) return false;
+        if (vaRuleStatusFilter === 'inactive' && isVaRuleEnabled(item)) return false;
+        if (vaRuleKindFilter !== 'all' && vaRuleKind(item) !== vaRuleKindFilter) return false;
+        if (query && !vaRuleSearchText(item).includes(query)) return false;
+        return true;
+      });
+    }
+
+    function nextAvailableVaRuleId() {
+      let maxSeen = 0;
+      for (const item of vaRules) {
+        const id = numericVaRuleId(item.id);
+        if (id >= 1) {
+          maxSeen = Math.max(maxSeen, id);
+        }
+      }
+      return String(maxSeen + 1);
+    }
+
+    function eventTypeLabel(type) {
+      const value = String(type || 'presence');
+      if (value === 'enter') return '영역 진입';
+      if (value === 'exit') return '영역 이탈';
+      if (value === 'line-crossing') return '라인 통과';
+      if (value === 'intrusion-dwell') return '체류 시나리오';
+      if (value === 're-entry') return '재진입';
+      if (value === 'wrong-direction') return '역방향 통과';
+      if (value === 'reverse-line-crossing') return '역방향 통과';
+      if (value === 'intrusion-after-line-crossing') return '라인 후 침입';
+      if (value === 'loitering') return '배회';
+      return '영역 내 감지';
+    }
+
+    function detectorLabel(profileId) {
+      const id = String(profileId || 'server-default-va');
+      const profile = [...builtInProfiles, ...profiles].find((item) => item.id === id);
+      if (!profile) return id;
+      return `${id} · ${(profile.detector === 'dummy' ? '개발용 더미' : 'YOLO/ONNX')}`;
+    }
+
+    function isBuiltInProfileId(id) {
+      const value = String(id || '');
+      return builtInProfiles.some((item) => String(item.id) === value);
+    }
+
+    function selectedTrackingClassesFromProfile(profile) {
+      return profile?.trackingClasses || profile?.trackClasses || ['person', 'vehicle'];
+    }
+
+    function classSummary(classes) {
+      const values = Array.isArray(classes) && classes.length > 0 ? classes : ['person', 'vehicle'];
+      if (values.includes('*')) return '전체 객체';
+      return values.map((value) => {
+        const item = ruleCategories.find((candidate) => candidate.value === value);
+        return item ? item.label : value;
+      }).join(', ');
+    }
+
+    function profileUsageItems(profileId) {
+      const id = String(profileId || '').trim();
+      if (!id) return [];
+      const usage = [];
+      for (const item of rules) {
+        if (String(item?.analysis?.profileId || '') === id) {
+          usage.push(`Rule ${item.id || ''}`.trim());
+        }
+      }
+      for (const item of vaRules) {
+        if (String(item?.analysis?.profileId || '') === id) {
+          usage.push(`VA Rule #${item.id}${item.name ? ` ${item.name}` : ''}`);
+        }
+      }
+      return usage;
+    }
+
+    function updateProfileDeleteWarning() {
+      const el = $('profileDeleteWarningText');
+      if (!el) return;
+      const id = $('profileId')?.value.trim() || '';
+      const usedBy = profileUsageItems(id);
+      el.classList.toggle('is-warning', isBuiltInProfileId(id) || usedBy.length > 0);
+      if (!id) {
+        el.textContent = '삭제할 Profile ID가 없습니다.';
+      } else if (isBuiltInProfileId(id)) {
+        el.textContent = `기본 Profile '${id}'는 삭제할 수 없습니다. 복사해서 저장 Profile로 만든 뒤 수정하세요.`;
+      } else if (usedBy.length > 0) {
+        el.textContent = `이 Profile은 ${usedBy.slice(0, 3).join(', ')}${usedBy.length > 3 ? ` 외 ${usedBy.length - 3}개` : ''}에서 사용 중입니다. 삭제 전에 연결을 바꾸는 것을 권장합니다.`;
+      } else {
+        el.textContent = `저장 Profile '${id}'는 현재 사용하는 룰이 없습니다.`;
+      }
+    }
+
+    function vaRuleScenarioText(item) {
+      if (item?.ruleKind === 'scenario' || item?.scenario || item?.event?.type === 'intrusion-dwell') {
+        const scenario = item.scenario || {};
+        if ((scenario.type || item.event?.type) === 'intrusion-dwell') {
+          return `Intrusion Dwell · ${msLabel(scenario.dwellTimeMs ?? 10000)}`;
+        }
+        return eventTypeLabel(scenario.type || item.event?.type || 'scenario');
+      }
+      return '기본 이벤트';
+    }
+
+    function vaRuleSubtitle(item) {
+      const eventText = eventTypeLabel(item?.event?.type);
+      const classText = classSummary(item?.analysis?.classes || []);
+      return `${eventText} · ${classText}`;
+    }
+
+    function vaRuleEventDetailText(item) {
+      const event = item?.event || {};
+      const scenario = item?.scenario || {};
+      const classText = classSummary(item?.analysis?.classes || []);
+      if (vaRuleKind(item) === 'scenario') {
+        const scenarioType = scenario.type || event.type || 'scenario';
+        if (scenarioType === 'intrusion-dwell') {
+          return `${classText} · 후보 ${msLabel(scenario.candidateTimeMs ?? 2000)} · 체류 ${msLabel(scenario.dwellTimeMs ?? 10000)}`;
+        }
+        if (scenarioType === 're-entry') {
+          return `${classText} · 재진입 감지`;
+        }
+        if (scenarioType === 'wrong-direction' || scenarioType === 'reverse-line-crossing') {
+          return `${classText} · 허용 방향 반대`;
+        }
+        if (scenarioType === 'intrusion-after-line-crossing') {
+          return `${classText} · 라인 통과 후 구역 진입`;
+        }
+        if (scenarioType === 'loitering') {
+          return `${classText} · 체류/이동 반경`;
+        }
+      }
+      if (event.type === 'line-crossing') {
+        return `${classText} · ${lineDirectionLabel(event.region?.direction)}`;
+      }
+      return `${classText} · 최소 ${Math.round(Number(event.minConfidence ?? 0.25) * 100)}%`;
+    }
+
+    function updateVaRuleIdDisplay() {
+      const display = $('vaRuleIdDisplay');
+      if (!display) return;
+      const id = currentVaRuleId();
+      const nextId = nextAvailableVaRuleId();
+      display.textContent = id ? `#${id}` : (nextId ? `저장 시 #${nextId} 자동 지정` : '사용 가능한 번호 없음');
+    }
+
+    function setVaRuleEditorVisible(visible) {
+      const panel = $('vaRuleEditorPanel');
+      if (panel) panel.hidden = !visible;
+      vaRuleEditorMode = visible ? vaRuleEditorMode : 'closed';
+      if (!visible) {
+        stopRulePreview({ silent: true }).catch(() => {});
+        vaRuleEditorBaseline = '';
+        vaRuleDirty = false;
+        updateVaRuleDirtyIndicator();
+      }
+      if ($('deleteVaRuleBtn')) $('deleteVaRuleBtn').hidden = !currentVaRuleId();
+      notifyEmbedHeight();
+    }
+
+    function serializedVaRuleEditorState() {
+      try {
+        return JSON.stringify(vaRuleJson());
+      } catch (_) {
+        return '';
+      }
+    }
+
+    function updateVaRuleDirtyIndicator() {
+      const indicator = $('ruleDirtyState');
+      if (!indicator) return;
+      if (!isVaRuleEditorOpen()) {
+        indicator.textContent = '편집 중인 변경사항이 없습니다.';
+        indicator.classList.remove('is-dirty');
+        return;
+      }
+      indicator.textContent = vaRuleDirty
+        ? '저장하지 않은 변경사항이 있습니다.'
+        : '저장된 내용과 동일합니다.';
+      indicator.classList.toggle('is-dirty', vaRuleDirty);
+    }
+
+    function refreshVaRuleDirtyState() {
+      if (!isVaRuleEditorOpen() || !vaRuleEditorBaseline) {
+        vaRuleDirty = false;
+        updateVaRuleDirtyIndicator();
+        return;
+      }
+      vaRuleDirty = serializedVaRuleEditorState() !== vaRuleEditorBaseline;
+      updateVaRuleDirtyIndicator();
+    }
+
+    function resetVaRuleDirtyBaseline() {
+      vaRuleEditorBaseline = serializedVaRuleEditorState();
+      vaRuleDirty = false;
+      resetRegionUndoStack();
+      updateVaRuleDirtyIndicator();
+    }
+
+    function confirmDiscardVaRuleChanges(actionLabel) {
+      if (!isVaRuleEditorOpen() || !vaRuleDirty) return true;
+      const label = actionLabel || '이동';
+      const ok = window.confirm(`저장하지 않은 변경사항이 있습니다. 저장하지 않고 ${label}할까요?`);
+      if (!ok) {
+        showFeedback('저장하지 않은 변경사항이 있어 이동을 취소했습니다.', 'error');
+      }
+      return ok;
+    }
+
+    function selectVaRule(id) {
+      const nextId = String(id || '');
+      if (isVaRuleEditorOpen() && vaRuleDirty && nextId !== currentVaRuleId()) {
+        if (!confirmDiscardVaRuleChanges('다른 룰로 이동')) {
+          return false;
+        }
+        closeVaRuleEditor({ skipDirtyCheck: true });
+      }
+      selectedVaRuleId = String(id || '');
+      if ($('vaRuleSelect')) $('vaRuleSelect').value = selectedVaRuleId;
+      if ($('viewVaRuleSelect') && selectedVaRuleId) $('viewVaRuleSelect').value = selectedVaRuleId;
+      renderVaRuleLibrary();
+      updateViewModeUi();
+      return true;
+    }
+
+    function openVaRuleEditorForNew() {
+      if (!confirmDiscardVaRuleChanges('새 룰 작성으로 이동')) {
+        return;
+      }
+      selectedVaRuleId = '';
+      vaRuleEditorMode = 'new';
+      loadVaRule(null);
+      if ($('vaRuleEditorTitle')) $('vaRuleEditorTitle').textContent = '새 영상 분석 룰 추가';
+      if ($('vaRuleEditorModeBadge')) $('vaRuleEditorModeBadge').textContent = '새 룰';
+      if ($('saveVaRuleBtn')) $('saveVaRuleBtn').textContent = '룰 저장';
+      setVaRuleEditorVisible(true);
+      resetVaRuleDirtyBaseline();
+      $('vaRuleEditorPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      status('새 영상 분석 룰을 작성합니다.');
+      showFeedback('새 룰 작성 모드');
+    }
+
+    function openVaRuleEditorForEdit(id) {
+      if (isVaRuleEditorOpen() && vaRuleDirty && String(id || '') !== currentVaRuleId()) {
+        if (!confirmDiscardVaRuleChanges('다른 룰 수정으로 이동')) {
+          return;
+        }
+      }
+      const item = vaRules.find((entry) => String(entry.id) === String(id));
+      if (!item) {
+        showFeedback('수정할 룰을 먼저 선택하세요.', 'error');
+        return;
+      }
+      selectedVaRuleId = String(item.id);
+      vaRuleEditorMode = 'edit';
+      loadVaRule(item);
+      if ($('vaRuleEditorTitle')) $('vaRuleEditorTitle').textContent = `영상 분석 룰 #${item.id} 수정`;
+      if ($('vaRuleEditorModeBadge')) $('vaRuleEditorModeBadge').textContent = '수정 중';
+      if ($('saveVaRuleBtn')) $('saveVaRuleBtn').textContent = '수정 내용 저장';
+      setVaRuleEditorVisible(true);
+      resetVaRuleDirtyBaseline();
+      renderVaRuleLibrary();
+      $('vaRuleEditorPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function closeVaRuleEditor(options = {}) {
+      if (!options.skipDirtyCheck && !confirmDiscardVaRuleChanges('목록으로 이동')) {
+        return false;
+      }
+      setVaRuleEditorVisible(false);
+      $('vaRuleLibraryCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return true;
+    }
+
+    function renderVaRuleLibrary() {
+      const container = $('vaRuleList');
+      if (!container) return;
+      container.innerHTML = '';
+      const allItems = sortedVaRules();
+      const items = filteredVaRules();
+      const selectedExists = selectedVaRuleId && items.some((item) => String(item.id) === selectedVaRuleId);
+      if (!selectedExists) {
+        selectedVaRuleId = items.length > 0 ? String(items[0].id) : '';
+      }
+      setText('vaRuleFilteredMetric', `${items.length.toLocaleString('ko-KR')}개`);
+      if (allItems.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.textContent = '저장된 영상 분석 룰이 없습니다. 룰 추가를 눌러 첫 설정을 만드세요.';
+        container.appendChild(empty);
+        updateVaRuleIdDisplay();
+        return;
+      }
+      if (items.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.textContent = '검색/필터 조건과 일치하는 룰이 없습니다. 검색어 또는 필터를 조정하세요.';
+        container.appendChild(empty);
+        updateVaRuleIdDisplay();
+        return;
+      }
+
+      const header = document.createElement('div');
+      header.className = 'rule-row is-header';
+      ['ID', '룰 이름', '연결 영상', '이벤트', '상태', '작업'].forEach((text) => {
+        const cell = document.createElement('div');
+        cell.textContent = text;
+        header.appendChild(cell);
+      });
+      container.appendChild(header);
+
+      for (const item of items) {
+        const row = document.createElement('div');
+        row.className = `rule-row${String(item.id) === selectedVaRuleId ? ' is-selected' : ''}`;
+        row.tabIndex = 0;
+        row.addEventListener('click', () => selectVaRule(item.id));
+        row.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            selectVaRule(item.id);
+          }
+        });
+
+        const idCell = document.createElement('div');
+        idCell.className = 'rule-id-badge';
+        idCell.textContent = `#${item.id}`;
+        row.appendChild(idCell);
+
+        const main = document.createElement('div');
+        main.className = 'rule-main';
+        const title = document.createElement('strong');
+        title.textContent = item.name || `영상 분석 룰 ${item.id}`;
+        const meta = document.createElement('span');
+        const modifiedText = vaRuleLastModifiedText(item);
+        meta.textContent = [
+          detectorLabel(item.analysis?.profileId),
+          classSummary(item.analysis?.classes || []),
+          modifiedText
+        ].filter(Boolean).join(' · ');
+        main.appendChild(title);
+        main.appendChild(meta);
+        row.appendChild(main);
+
+        const source = document.createElement('div');
+        source.className = 'rule-cell';
+        source.textContent = sourceLabel(item.source || {});
+        row.appendChild(source);
+
+        const eventCell = document.createElement('div');
+        eventCell.className = 'rule-cell rule-cell-stack';
+        const kindChip = document.createElement('span');
+        kindChip.className = `status-chip${vaRuleKind(item) === 'scenario' ? ' is-scenario' : ' is-muted'}`;
+        kindChip.textContent = vaRuleKind(item) === 'scenario' ? '시나리오' : '기본 이벤트';
+        const eventTitle = document.createElement('strong');
+        eventTitle.textContent = eventTypeLabel(vaRuleKind(item) === 'scenario'
+          ? (item.scenario?.type || item.event?.type)
+          : item.event?.type);
+        const eventDetail = document.createElement('span');
+        eventDetail.textContent = vaRuleEventDetailText(item);
+        eventCell.appendChild(kindChip);
+        eventCell.appendChild(eventTitle);
+        eventCell.appendChild(eventDetail);
+        row.appendChild(eventCell);
+
+        const stateCell = document.createElement('div');
+        stateCell.className = 'rule-cell rule-cell-stack';
+        const stateChip = document.createElement('span');
+        stateChip.className = `status-chip${isVaRuleEnabled(item) ? ' is-active' : ' is-muted'}`;
+        stateChip.textContent = isVaRuleEnabled(item) ? '적용 중' : '비활성';
+        const scenarioText = document.createElement('span');
+        scenarioText.textContent = vaRuleScenarioText(item);
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'secondary';
+        toggle.textContent = isVaRuleEnabled(item) ? '비활성화' : '적용';
+        toggle.addEventListener('click', (event) => {
+          event.stopPropagation();
+          toggleVaRuleEnabled(item.id).catch((error) => {
+            status(`영상 분석 룰 상태 변경 실패: ${error.message}`);
+            showFeedback(`상태 변경 실패: ${error.message}`, 'error');
+          });
+        });
+        stateCell.appendChild(stateChip);
+        stateCell.appendChild(scenarioText);
+        stateCell.appendChild(toggle);
+        row.appendChild(stateCell);
+
+        const actions = document.createElement('div');
+        actions.className = 'row-actions';
+        const viewButton = document.createElement('button');
+        viewButton.type = 'button';
+        viewButton.className = 'secondary';
+        viewButton.textContent = '보기';
+        viewButton.addEventListener('click', (event) => {
+          event.stopPropagation();
+          openVaRuleInViewer(item.id);
+        });
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.className = 'secondary';
+        edit.textContent = '수정';
+        edit.addEventListener('click', (event) => {
+          event.stopPropagation();
+          openVaRuleEditorForEdit(item.id);
+        });
+        const duplicate = document.createElement('button');
+        duplicate.type = 'button';
+        duplicate.className = 'secondary';
+        duplicate.textContent = '복제';
+        duplicate.addEventListener('click', (event) => {
+          event.stopPropagation();
+          duplicateVaRuleById(item.id).catch((error) => {
+            status(`영상 분석 룰 복제 실패: ${error.message}`);
+            showFeedback(`복제 실패: ${error.message}`, 'error');
+          });
+        });
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'danger';
+        remove.textContent = '삭제';
+        remove.addEventListener('click', (event) => {
+          event.stopPropagation();
+          deleteVaRuleById(item.id, { confirm: true }).catch((error) => {
+            status(`영상 분석 룰 삭제 실패: ${error.message}`);
+            showFeedback(`영상 분석 룰 삭제 실패: ${error.message}`, 'error');
+          });
+        });
+        actions.appendChild(viewButton);
+        actions.appendChild(edit);
+        actions.appendChild(duplicate);
+        actions.appendChild(remove);
+        row.appendChild(actions);
+        container.appendChild(row);
+      }
+      updateVaRuleIdDisplay();
+    }
+
+    function openVaRuleInViewer(id) {
+      if (!confirmDiscardVaRuleChanges('영상 분석 보기로 이동')) {
+        return;
+      }
+      closeVaRuleEditor({ skipDirtyCheck: true });
+      selectVaRule(id);
+      if ($('viewVaRuleSelect')) $('viewVaRuleSelect').value = String(id);
+      const ruleMode = document.querySelector('input[name="viewMode"][value="rule"]');
+      if (ruleMode) {
+        ruleMode.checked = true;
+      }
+      const viewerButton = $('analysisViewerTabBtn');
+      if (viewerButton) viewerButton.click();
+      updateViewModeUi();
+    }
+
     function updateVaRuleSourceUi() {
       const source = currentVaRuleSourceJson();
       const fileField = $('vaRuleFileField');
       const urlField = $('vaRuleUrlField');
       if (fileField) fileField.hidden = source.kind !== 'file';
       if (urlField) urlField.hidden = source.kind === 'file';
+      if ($('vaRuleUrlLabelText')) {
+        $('vaRuleUrlLabelText').textContent = source.kind === 'webrtc'
+          ? 'WebRTC Source ID'
+          : '분석할 영상 URL';
+      }
+      if ($('vaRuleUrlHelp')) {
+        $('vaRuleUrlHelp').textContent = source.kind === 'webrtc'
+          ? 'WHIP/WebRTC publish로 등록된 sourceId를 입력합니다.'
+          : 'RTSP 또는 HTTP/HLS 전체 URL을 입력합니다.';
+      }
+      if ($('vaRuleSourceHelp')) {
+        $('vaRuleSourceHelp').textContent = source.kind === 'file'
+          ? '서버 파일은 파일 목록만 선택하면 됩니다. URL 또는 Source ID 입력칸은 RTSP/HTTP/HLS/WebRTC 소스를 고를 때만 표시됩니다.'
+          : '외부/게시 소스를 분석 설정에 묶는 모드입니다. 이 값은 vaRule URL 요청 시 자동으로 재사용됩니다.';
+      }
       if ($('vaRuleSourceSummary')) {
         $('vaRuleSourceSummary').textContent = `현재 설정 소스: ${sourceLabel(source)}`;
       }
@@ -4414,7 +5812,9 @@ std::string BuildLabRuleEditorPageHtml() {
     function updatePreviewSourceUi() {
       const mode = $('previewSourceMode')?.value || 'file';
       const fileSelect = $('previewFileSelect');
+      const fileField = $('previewFileField');
       if (fileSelect) fileSelect.disabled = mode !== 'file';
+      if (fileField) fileField.hidden = mode !== 'file';
     }
 
     function applyPreviewAnalysisParams(params) {
@@ -4601,12 +6001,56 @@ std::string BuildLabRuleEditorPageHtml() {
       };
     }
 
+    function cloneRegionPoints(points = regionPoints) {
+      return points.map((point) => clampPoint(point));
+    }
+
+    function pushRegionUndo() {
+      regionUndoStack.push(cloneRegionPoints());
+      if (regionUndoStack.length > regionUndoMax) {
+        regionUndoStack.shift();
+      }
+      updateGeometryActionButtons();
+    }
+
+    function resetRegionUndoStack() {
+      regionUndoStack = [];
+      updateGeometryActionButtons();
+    }
+
+    function undoRegionChange() {
+      if (regionUndoStack.length === 0) {
+        showFeedback('되돌릴 영역 변경사항이 없습니다.', 'error');
+        return;
+      }
+      regionPoints = cloneRegionPoints(regionUndoStack.pop());
+      updatePreviews();
+      showFeedback('영역 변경을 되돌렸습니다.');
+    }
+
+    function deleteLastRegionPoint() {
+      if (regionPoints.length === 0) {
+        showFeedback('삭제할 점이 없습니다.', 'error');
+        return;
+      }
+      pushRegionUndo();
+      regionPoints = regionPoints.slice(0, -1);
+      updatePreviews();
+    }
+
+    function clearRegionGeometry() {
+      if (regionPoints.length === 0) {
+        showFeedback('이미 비어 있는 영역입니다.', 'error');
+        return;
+      }
+      pushRegionUndo();
+      regionPoints = [];
+      updatePreviews();
+    }
+
     function normalizeGeometryForMode() {
       const maxPoints = maxGeometryPoints();
       regionPoints = regionPoints.map(clampPoint).slice(0, maxPoints);
-      if (isLineRule() && regionPoints.length < lineMaxPoints) {
-        regionPoints = defaultLinePoints();
-      }
     }
 
     function profileJson() {
@@ -4799,19 +6243,206 @@ std::string BuildLabRuleEditorPageHtml() {
       if ($('scenarioReadinessGeometry')) {
         $('scenarioReadinessGeometry').textContent = `polygon ${regionPoints.length}개 점`;
       }
+      setText('geometryRegionNameText', currentGeometryName());
+    }
+
+    function selectedProfileDocument() {
+      const id = $('ruleProfileId')?.value || $('profileId')?.value || 'server-default-va';
+      return [...builtInProfiles, ...profiles].find((item) => item.id === id) || null;
+    }
+
+    function profileSummaryItem(label, value) {
+      const item = document.createElement('div');
+      item.className = 'profile-summary-item';
+      const labelEl = document.createElement('span');
+      labelEl.textContent = label;
+      const valueEl = document.createElement('strong');
+      valueEl.textContent = value;
+      item.appendChild(labelEl);
+      item.appendChild(valueEl);
+      return item;
+    }
+
+    function updateProfileSummaryText() {
+      const container = $('profileSummaryText');
+      if (!container) return;
+      container.innerHTML = '';
+      const profile = selectedProfileDocument();
+      const id = $('ruleProfileId')?.value || $('profileId')?.value || 'server-default-va';
+      const detector = profile
+        ? (profile.detector === 'dummy' ? '개발용 더미' : (profile.detector === 'server-config' ? '서버 기본값' : 'YOLO/ONNX'))
+        : '선택 필요';
+      const fps = profile?.fps || profile?.targetFps || $('profileFps')?.value || 6;
+      const width = profile?.inputWidth || profile?.modelInputWidth || $('profileInputWidth')?.value || 640;
+      const height = profile?.inputHeight || profile?.modelInputHeight || $('profileInputHeight')?.value || 640;
+      const confidence = Math.round(Number(profile?.confidence ?? profile?.confidenceThreshold ?? percentValue('profileConfidence')) * 100);
+      const nms = Math.round(Number(profile?.nms ?? profile?.nmsThreshold ?? percentValue('profileNms')) * 100);
+      const tracking = classSummary(selectedTrackingClassesFromProfile(profile));
+      [
+        ['Profile', id],
+        ['Detector', detector],
+        ['FPS', `${fps}`],
+        ['Input size', `${width} x ${height}`],
+        ['Confidence', `${confidence}%`],
+        ['NMS', `${nms}%`],
+        ['Tracking category', tracking]
+      ].forEach(([label, value]) => {
+        container.appendChild(profileSummaryItem(label, value));
+      });
+      updateProfileDeleteWarning();
+    }
+
+    function reviewTile(label, value) {
+      const tile = document.createElement('div');
+      tile.className = 'review-tile';
+      const title = document.createElement('strong');
+      title.textContent = label;
+      const body = document.createElement('span');
+      body.textContent = value;
+      tile.appendChild(title);
+      tile.appendChild(body);
+      return tile;
+    }
+
+    function updateReviewSummary(currentRule) {
+      const container = $('ruleReviewSummary');
+      if (!container) return;
+      const payload = vaRuleJson();
+      const source = payload.source || currentVaRuleSourceJson();
+      const scenarioMode = payload.ruleKind === 'scenario' || Boolean(payload.scenario);
+      container.innerHTML = '';
+      container.appendChild(reviewTile('Rule', `${currentVaRuleId() ? `#${currentVaRuleId()}` : '신규'} · ${payload.name || '이름 없음'} · ${payload.enabled === false ? '저장만 함' : '적용함'}`));
+      container.appendChild(reviewTile('영상 소스', sourceLabel(source)));
+      container.appendChild(reviewTile('Profile', $('ruleProfileId')?.value || 'server-default-va'));
+      container.appendChild(reviewTile('이벤트 방식', scenarioMode ? vaRuleScenarioText(payload) : eventTypeLabel(currentRule?.event?.type)));
+      container.appendChild(reviewTile('대상 객체', classSummary(currentRule?.analysis?.classes || [])));
+      container.appendChild(reviewTile('영역/라인', `${currentRule?.event?.region?.type || 'polygon'} · 점 ${regionPoints.length}/${maxGeometryPoints()}`));
+      const validation = validateVaRulePayloadDetailed(payload);
+      const firstError = firstValidationMessage(validation);
+      setText('ruleSaveReadiness', firstError ? `저장 불가: ${firstError}` : '저장 가능: 필수 입력이 채워졌습니다.');
+      renderValidationSummary(validation);
+      updateVaRuleSaveButton(validation);
+    }
+
+    function renderValidationSummary(validation) {
+      const container = $('ruleValidationSummary');
+      if (!container) return;
+      const errors = validation?.errors || [];
+      container.innerHTML = '';
+      container.className = `validation-summary ${errors.length > 0 ? 'is-error' : 'is-ok'}`;
+      if (errors.length === 0) {
+        const item = document.createElement('div');
+        item.className = 'validation-item';
+        const title = document.createElement('strong');
+        title.textContent = '검증 통과';
+        const message = document.createElement('span');
+        message.textContent = '필수값, 영역/라인, 시나리오 시간 조건, POST URL 형식이 저장 가능한 상태입니다.';
+        item.appendChild(title);
+        item.appendChild(message);
+        container.appendChild(item);
+        return;
+      }
+      for (const error of errors) {
+        const item = document.createElement('div');
+        item.className = 'validation-item';
+        const title = document.createElement('strong');
+        title.textContent = error.section || '확인 필요';
+        const message = document.createElement('span');
+        message.textContent = error.message || '입력값을 확인하세요.';
+        item.appendChild(title);
+        item.appendChild(message);
+        container.appendChild(item);
+      }
+    }
+
+    function updateVaRuleSaveButton(validation) {
+      const button = $('saveVaRuleBtn');
+      if (!button) return;
+      const disabled = (validation?.errors || []).length > 0;
+      button.disabled = disabled;
+      button.title = disabled ? firstValidationMessage(validation) : '';
     }
 
     function updateGeometryText() {
       const scenarioMode = isScenarioRule();
       const lineMode = isLineRule();
-      $('geometryLabel').textContent = lineMode ? '이벤트 판단 선' : (scenarioMode ? '시나리오 restricted zone' : '이벤트 판단 영역');
-      $('clearRegionBtn').textContent = lineMode ? '선 지우기' : (scenarioMode ? 'Zone 지우기' : '영역 지우기');
+      const valid = regionPoints.length >= minimumGeometryPoints();
+      const mode = regionPoints.length === 0 ? 'none' : (lineMode ? 'line' : 'polygon');
+      const regionName = currentGeometryName();
+      $('geometryLabel').textContent = lineMode ? '이벤트 판단 선' : (scenarioMode ? '시나리오 제한구역' : '이벤트 판단 영역');
+      $('clearRegionBtn').textContent = '전체 영역 초기화';
       $('ruleLineDirection').disabled = !lineMode;
       $('geometryHint').textContent = lineMode
         ? `라인 통과 룰은 선분의 시작/끝 2개 점만 사용합니다. 방향은 ${lineDirectionLabel()}으로 저장합니다. 기존 점 근처를 드래그하면 점 위치를 이동합니다.`
         : (scenarioMode
           ? `Intrusion Dwell은 현재 polygon을 제한구역 후보로 저장합니다. 3개 이상이면 구역으로 저장되며, 같은 track이 설정 시간 이상 머물면 체류 확정 후보가 됩니다.`
           : `캔버스를 클릭해 다각형 꼭짓점을 추가합니다. 3개 이상이면 영역으로 저장됩니다. 최대 ${polygonMaxPoints}개까지 지정할 수 있습니다. 기존 점 근처를 드래그하면 새 점을 만들지 않고 점 위치를 이동합니다.`);
+      setText(
+        'geometryValidationText',
+        valid
+          ? `${lineMode ? 'line' : 'polygon'} 설정 가능 · 점 ${regionPoints.length}/${maxGeometryPoints()}`
+          : `${lineMode ? 'line' : 'polygon'} 설정 불가 · 최소 ${minimumGeometryPoints()}개 점이 필요합니다.`
+      );
+      setText('geometryModeText', mode);
+      setText('geometryPointCountText', `${regionPoints.length}/${maxGeometryPoints()}`);
+      setText('geometryMinimumText', valid
+        ? `충족 · 최소 ${minimumGeometryPoints()}개`
+        : `부족 · 최소 ${minimumGeometryPoints()}개 필요`);
+      setText('geometryRegionNameText', regionName);
+      $('geometryMinimumCard')?.classList.toggle('is-ok', valid);
+      $('geometryMinimumCard')?.classList.toggle('is-error', !valid);
+      $('geometryModeCard')?.classList.toggle('is-error', mode === 'none');
+      $('geometryModeCard')?.classList.toggle('is-ok', mode !== 'none');
+      updateGeometryActionButtons();
+      renderRegionCoordinates();
+    }
+
+    function currentGeometryName() {
+      if (isScenarioRule()) {
+        const zones = splitCsvTokens($('scenarioZoneIds')?.value || '');
+        return zones.length > 0 ? zones.join(', ') : '현재 제한구역';
+      }
+      if (isLineRule()) {
+        return 'line-crossing';
+      }
+      return '기본 이벤트 영역';
+    }
+
+    function updateGeometryActionButtons() {
+      const undoButton = $('undoRegionBtn');
+      const deleteButton = $('deleteLastPointBtn');
+      const clearButton = $('clearRegionBtn');
+      if (undoButton) undoButton.disabled = regionUndoStack.length === 0;
+      if (deleteButton) deleteButton.disabled = regionPoints.length === 0;
+      if (clearButton) clearButton.disabled = regionPoints.length === 0;
+    }
+
+    function renderRegionCoordinates() {
+      const container = $('regionCoordinateList');
+      if (!container) return;
+      container.innerHTML = '';
+      if (regionPoints.length === 0) {
+        const row = document.createElement('div');
+        row.className = 'coordinate-row';
+        row.style.gridTemplateColumns = '1fr';
+        row.textContent = '등록된 점이 없습니다. 캔버스를 클릭해 점을 추가하세요.';
+        container.appendChild(row);
+        return;
+      }
+      regionPoints.forEach((point, index) => {
+        const row = document.createElement('div');
+        row.className = 'coordinate-row';
+        const label = document.createElement('strong');
+        label.textContent = `#${index + 1}`;
+        const x = document.createElement('span');
+        x.textContent = `x ${Number(point.x).toFixed(4)}`;
+        const y = document.createElement('span');
+        y.textContent = `y ${Number(point.y).toFixed(4)}`;
+        row.appendChild(label);
+        row.appendChild(x);
+        row.appendChild(y);
+        container.appendChild(row);
+      });
     }
 
     function updateRuleModeUi() {
@@ -4821,9 +6452,8 @@ std::string BuildLabRuleEditorPageHtml() {
       document.querySelectorAll('.basic-rule-panel').forEach((el) => {
         el.hidden = scenarioMode;
       });
-      if (scenarioMode && regionPoints.length < 3) {
-        regionPoints = defaultPolygonPoints();
-      }
+      if ($('scenarioStableOnlyLabel')) $('scenarioStableOnlyLabel').hidden = !scenarioMode;
+      if ($('scenarioZoneIdsLabel')) $('scenarioZoneIdsLabel').hidden = !scenarioMode;
     }
 
     function updatePreviews() {
@@ -4840,7 +6470,145 @@ std::string BuildLabRuleEditorPageHtml() {
         $('vaRuleJsonPreview').value = JSON.stringify(vaRuleJson(), null, 2);
       }
       $('eventPayloadPreview').value = JSON.stringify(eventPayloadExampleJson(currentRule.event.region), null, 2);
+      updateProfileSummaryText();
+      updateReviewSummary(currentRule);
+      refreshVaRuleDirtyState();
       drawRegion();
+    }
+
+    function validationResult(errors = [], warnings = []) {
+      return { errors, warnings };
+    }
+
+    function firstValidationMessage(result) {
+      return result?.errors?.[0]?.message || result?.warnings?.[0]?.message || '';
+    }
+
+    function validateHttpPostUrl(value) {
+      const text = String(value || '').trim();
+      if (!text) return true;
+      try {
+        const url = new URL(text);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function validateSourceUrl(kind, value) {
+      const text = String(value || '').trim();
+      if (!text) return false;
+      if (kind === 'webrtc') return true;
+      try {
+        const url = new URL(text);
+        if (kind === 'rtsp') return url.protocol === 'rtsp:' || url.protocol === 'rtsps:';
+        if (kind === 'http' || kind === 'hls') return url.protocol === 'http:' || url.protocol === 'https:';
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function addValidationError(errors, section, message) {
+      errors.push({ section, message });
+    }
+
+    function validateRulePayloadDetailed(payload) {
+      const errors = [];
+      const classes = Array.isArray(payload?.analysis?.classes) ? payload.analysis.classes : [];
+      if (classes.length === 0) {
+        addValidationError(errors, '대상 객체', '분석할 객체 카테고리를 1개 이상 선택하세요.');
+      }
+
+      const profileId = String(payload?.analysis?.profileId || $('ruleProfileId')?.value || '').trim();
+      if (!profileId) {
+        addValidationError(errors, '분석 Profile', '사용할 Profile을 선택하세요.');
+      }
+
+      const selectedKind = document.querySelector('input[name="ruleKind"]:checked')?.value || '';
+      if (!selectedKind) {
+        addValidationError(errors, '이벤트 방식', '기본 이벤트 또는 시나리오 중 하나를 선택하세요.');
+      }
+
+      const scenarioMode = payload?.ruleKind === 'scenario' || Boolean(payload?.scenario);
+      const region = payload?.event?.region || {};
+      const points = Array.isArray(region.points) ? region.points : [];
+      if (scenarioMode) {
+        const scenario = payload.scenario || {};
+        if (!scenario.type) {
+          addValidationError(errors, '이벤트 방식', '시나리오 템플릿을 선택하세요.');
+        } else if (scenario.type !== 'intrusion-dwell') {
+          addValidationError(errors, '이벤트 방식', '현재 UI에서 저장 가능한 시나리오는 Intrusion Dwell입니다.');
+        }
+        const candidateTimeMs = Number(scenario.candidateTimeMs);
+        const dwellTimeMs = Number(scenario.dwellTimeMs);
+        const cooldownMs = Number(scenario.cooldownMs);
+        if (!Number.isFinite(candidateTimeMs) || candidateTimeMs < 0) {
+          addValidationError(errors, '시나리오 시간 조건', '후보 판단 시간(ms)은 0 이상이어야 합니다.');
+        }
+        if (!Number.isFinite(dwellTimeMs) || dwellTimeMs <= candidateTimeMs) {
+          addValidationError(errors, '시나리오 시간 조건', '체류 확정 시간(ms)은 후보 판단 시간(ms)보다 커야 합니다.');
+        }
+        if (!Number.isFinite(cooldownMs) || cooldownMs < 0) {
+          addValidationError(errors, '시나리오 시간 조건', '재알림 대기 시간(ms)은 0 이상이어야 합니다.');
+        }
+        if (region.type !== 'polygon' || points.length < 3) {
+          addValidationError(errors, '영역/라인 설정', '시나리오 제한구역 polygon은 최소 3개 점이 필요합니다.');
+        }
+      } else {
+        const eventType = String(payload?.event?.type || '').trim();
+        if (!eventType) {
+          addValidationError(errors, '이벤트 방식', '이벤트 타입을 선택하세요.');
+        }
+        if (eventType === 'line-crossing') {
+          if (region.type !== 'line' || points.length < 2) {
+            addValidationError(errors, '영역/라인 설정', 'line crossing은 선 좌표 2개 점이 필요합니다.');
+          }
+        } else if (region.type !== 'polygon' || points.length < 3) {
+          addValidationError(errors, '영역/라인 설정', 'polygon 이벤트 영역은 최소 3개 점이 필요합니다.');
+        }
+      }
+
+      const postUrl = String(payload?.eventActions?.post?.url || '').trim();
+      if (postUrl && !validateHttpPostUrl(postUrl)) {
+        addValidationError(errors, '이벤트 동작', 'POST URL은 http:// 또는 https:// 형식이어야 합니다.');
+      }
+
+      return validationResult(errors);
+    }
+
+    function validateVaRulePayloadDetailed(payload) {
+      const errors = [];
+      const name = String($('vaRuleName')?.value || '').trim();
+      if (!name) {
+        addValidationError(errors, '기본 정보', 'Rule 이름을 입력하세요.');
+      }
+
+      const id = String(payload?.id || '').trim();
+      if (id && !/^[0-9]+$/.test(id)) {
+        addValidationError(errors, '기본 정보', '영상 분석 설정 ID는 URL 구성을 위해 숫자만 사용할 수 있습니다.');
+      }
+
+      const source = payload?.source || {};
+      const kind = normalizedSourceKind(source.kind);
+      if (kind === 'file') {
+        if (!source.file) {
+          addValidationError(errors, '영상 소스', '영상 분석 설정에 연결할 영상 파일을 선택하세요.');
+        }
+      } else {
+        const sourceValue = String(source.url || '').trim();
+        if (!sourceValue) {
+          addValidationError(errors, '영상 소스', '영상 분석 설정에 연결할 URL 또는 Source ID를 입력하세요.');
+        } else if (!validateSourceUrl(kind, sourceValue)) {
+          addValidationError(errors, '영상 소스', kind === 'webrtc'
+            ? 'WebRTC Source ID를 입력하세요.'
+            : '선택한 영상 종류에 맞는 URL 형식을 입력하세요.');
+        }
+      }
+
+      const ruleValidation = validateRulePayloadDetailed(payload);
+      errors.push(...ruleValidation.errors);
+      return validationResult(errors);
     }
 
     // 저장 전 검증 실패를 상태창과 화면 다이얼로그로 동시에 표시한다.
@@ -4848,6 +6616,7 @@ std::string BuildLabRuleEditorPageHtml() {
       if (!message) return false;
       window.__mediaServerLastValidationMessage = message;
       status(message);
+      showFeedback(message, 'error');
       const dialog = $('validationDialog');
       const dialogMessage = $('validationDialogMessage');
       if (dialog && dialogMessage && typeof dialog.showModal === 'function') {
@@ -4869,39 +6638,11 @@ std::string BuildLabRuleEditorPageHtml() {
 
     // Rule 저장 payload에 분석 대상 카테고리가 최소 1개 있는지 확인한다.
     function validateRulePayload(payload) {
-      const classes = Array.isArray(payload?.analysis?.classes) ? payload.analysis.classes : [];
-      if (classes.length === 0) {
-        return '분석할 객체 카테고리를 1개 이상 선택하세요.';
-      }
-      if (payload?.ruleKind === 'scenario' || payload?.scenario) {
-        const scenario = payload.scenario || {};
-        if (scenario.type !== 'intrusion-dwell') {
-          return '현재 UI에서 저장 가능한 시나리오는 Intrusion Dwell입니다.';
-        }
-        if (Number(scenario.dwellTimeMs || 0) < Number(scenario.candidateTimeMs || 0)) {
-          return '체류 확정 시간(ms)은 후보 판단 시간(ms)보다 크거나 같아야 합니다.';
-        }
-        const points = Array.isArray(payload?.event?.region?.points) ? payload.event.region.points : [];
-        if (payload?.event?.region?.type !== 'polygon' || points.length < 3) {
-          return 'Intrusion Dwell 시나리오는 3개 이상 점을 가진 restricted zone이 필요합니다.';
-        }
-      }
-      return '';
+      return firstValidationMessage(validateRulePayloadDetailed(payload));
     }
 
     function validateVaRulePayload(payload) {
-      const ruleWarning = validateRulePayload(payload);
-      if (ruleWarning) return ruleWarning;
-      const id = String(payload?.id || '').trim();
-      if (id && !/^[0-9]+$/.test(id)) {
-        return '영상 분석 설정 ID는 URL 구성을 위해 숫자만 사용할 수 있습니다.';
-      }
-      const source = payload?.source || {};
-      const kind = normalizedSourceKind(source.kind);
-      if (kind === 'file') {
-        return source.file ? '' : '영상 분석 설정에 연결할 영상 파일을 선택하세요.';
-      }
-      return String(source.url || '').trim() ? '' : '영상 분석 설정에 연결할 URL 또는 Source ID를 입력하세요.';
+      return firstValidationMessage(validateVaRulePayloadDetailed(payload));
     }
 
     function renderClassChecks() {
@@ -5033,6 +6774,7 @@ std::string BuildLabRuleEditorPageHtml() {
             ? '객체 검출 오버레이를 준비 중입니다. 모델 로딩, 프레임 디코딩, 분석 결과를 확인 중입니다.'
             : '아직 프레임을 준비 중입니다. 파일 디코딩 또는 분석 tap 상태를 확인 중입니다.');
         }
+        drawRegion();
       };
       const imagePath = previewOverlayEnabled()
         ? `overlay.jpg?quality=72&thickness=3&drawLabels=1&trackIds=1&trackTrails=1&labelLang=ko`
@@ -5050,6 +6792,7 @@ std::string BuildLabRuleEditorPageHtml() {
       previewTapId = payload.tapId || '';
       setRulePreviewUi(true);
       previewStatus(`${previewOverlayEnabled() ? '객체 검출 오버레이' : '원본 프레임'} 시작: ${previewSourceLabel}`);
+      drawRegion();
       refreshPreviewFrame();
       previewTimer = setInterval(refreshPreviewFrame, 500);
     }
@@ -5116,6 +6859,20 @@ std::string BuildLabRuleEditorPageHtml() {
       }
     }
 
+    function updateRegistryCountBadges() {
+      setText('vaRuleCountBadge', `${vaRules.length.toLocaleString('ko-KR')}개 저장`);
+      setText('profileCountBadge', `${profiles.length.toLocaleString('ko-KR')}개 저장`);
+      setText('ruleCountBadge', `${rules.length.toLocaleString('ko-KR')}개 저장`);
+      const activeCount = vaRules.filter((item) => item.enabled !== false).length;
+      const scenarioCount = vaRules.filter((item) => item.ruleKind === 'scenario' || item.scenario).length;
+      setText('vaRuleTotalMetric', vaRules.length.toLocaleString('ko-KR'));
+      setText('vaRuleActiveMetric', activeCount.toLocaleString('ko-KR'));
+      setText('vaRuleScenarioMetric', scenarioCount.toLocaleString('ko-KR'));
+      const nextId = nextAvailableVaRuleId();
+      setText('vaRuleNextIdMetric', nextId ? `#${nextId}` : '없음');
+      updateVaRuleIdDisplay();
+    }
+
     async function refreshRegistry() {
       const [profilePayload, rulePayload, vaRulePayload] = await Promise.all([
         requestJson('/lab/analysis/profiles'),
@@ -5129,6 +6886,8 @@ std::string BuildLabRuleEditorPageHtml() {
       renderProfileSelects();
       renderRuleSelect();
       renderVaRuleSelects();
+      updateRegistryCountBadges();
+      renderVaRuleLibrary();
       updatePreviews();
       updateViewModeUi();
       status('목록을 불러왔습니다.', {
@@ -5150,6 +6909,7 @@ std::string BuildLabRuleEditorPageHtml() {
       $('profileInputHeight').value = String(item.inputHeight || item.modelInputHeight || 640);
       $('profileAdaptive').checked = item.adaptive !== false;
       setTrackingClasses(item.trackingClasses || item.trackClasses || ['person', 'vehicle']);
+      updateProfileDeleteWarning();
       updatePreviews();
     }
 
@@ -5186,6 +6946,8 @@ std::string BuildLabRuleEditorPageHtml() {
           x: Math.max(0, Math.min(1, Number(point.x || 0))),
           y: Math.max(0, Math.min(1, Number(point.y || 0)))
         }));
+      } else {
+        regionPoints = defaultPolygonPoints();
       }
       const eventActions = item.eventActions || {};
       const highlight = eventActions.highlight || {};
@@ -5225,6 +6987,8 @@ std::string BuildLabRuleEditorPageHtml() {
         });
         updateVaRuleSourceUi();
         updateViewModeUi();
+        updateVaRuleIdDisplay();
+        if ($('deleteVaRuleBtn')) $('deleteVaRuleBtn').hidden = true;
         return;
       }
       $('vaRuleId').value = item.id || '';
@@ -5241,6 +7005,8 @@ std::string BuildLabRuleEditorPageHtml() {
       loadRule(item);
       updateVaRuleSourceUi();
       updateViewModeUi();
+      updateVaRuleIdDisplay();
+      if ($('deleteVaRuleBtn')) $('deleteVaRuleBtn').hidden = false;
     }
 
     async function saveProfile() {
@@ -5257,14 +7023,30 @@ std::string BuildLabRuleEditorPageHtml() {
       await refreshRegistry();
       $('profileSelect').value = `custom:${payload.id}`;
       status(`Profile 저장 완료: ${payload.id}`, response);
+      showFeedback(`Profile '${payload.id}' 저장 완료`);
     }
 
     async function deleteProfile() {
       const id = $('profileId').value.trim();
       if (!id) throw new Error('삭제할 profile id가 없습니다.');
+      if (isBuiltInProfileId(id)) {
+        throw new Error(`기본 Profile '${id}'는 삭제할 수 없습니다.`);
+      }
+      const usedBy = profileUsageItems(id);
+      if (usedBy.length > 0) {
+        const message = `Profile '${id}'는 ${usedBy.slice(0, 5).join(', ')}${usedBy.length > 5 ? ` 외 ${usedBy.length - 5}개` : ''}에서 사용 중입니다. 그래도 삭제할까요?`;
+        if (!window.confirm(message)) {
+          showFeedback('Profile 삭제를 취소했습니다.', 'error');
+          return;
+        }
+      } else if (!window.confirm(`저장 Profile '${id}'를 삭제할까요?`)) {
+        showFeedback('Profile 삭제를 취소했습니다.', 'error');
+        return;
+      }
       const response = await requestJson(`/lab/analysis/profiles/${encodeURIComponent(id)}`, { method: 'DELETE' });
       await refreshRegistry();
       status(`Profile 삭제 완료: ${id}`, response);
+      showFeedback(`Profile '${id}' 삭제 완료`);
     }
 
     async function saveRule() {
@@ -5281,6 +7063,7 @@ std::string BuildLabRuleEditorPageHtml() {
       await refreshRegistry();
       $('ruleSelect').value = `custom:${payload.id}`;
       status(`Rule 저장 완료: ${payload.id}`, response);
+      showFeedback(`Rule '${payload.id}' 저장 완료`);
     }
 
     async function saveVaRule() {
@@ -5300,14 +7083,20 @@ std::string BuildLabRuleEditorPageHtml() {
       const savedId = response?.vaRule?.id || id;
       await refreshRegistry();
       if (savedId) {
+        selectedVaRuleId = String(savedId);
         $('vaRuleSelect').value = String(savedId);
         $('viewVaRuleSelect').value = String(savedId);
-        loadVaRule(vaRules.find((entry) => String(entry.id) === String(savedId)) || response.vaRule);
       }
+      renderVaRuleLibrary();
+      resetVaRuleDirtyBaseline();
+      closeVaRuleEditor({ skipDirtyCheck: true });
       status(`영상 분석 설정 저장 완료: ${savedId || '(auto)'}`, response);
+      showFeedback(`영상 분석 설정 #${savedId || '(auto)'} 저장 완료`);
+      return response;
     }
 
     window.__mediaServerRuleEditorApi = {
+      components: VaUiComponents,
       profileJson,
       ruleJson,
       scenarioJson,
@@ -5326,19 +7115,149 @@ std::string BuildLabRuleEditorPageHtml() {
       const response = await requestJson(`/lab/analysis/rules/${encodeURIComponent(id)}`, { method: 'DELETE' });
       await refreshRegistry();
       status(`Rule 삭제 완료: ${id}`, response);
+      showFeedback(`Rule '${id}' 삭제 완료`);
+    }
+
+    function cloneVaRuleForWrite(item) {
+      return JSON.parse(JSON.stringify(item || {}));
+    }
+
+    async function duplicateVaRuleById(id) {
+      id = String(id || '').trim();
+      const item = vaRules.find((entry) => String(entry.id) === id);
+      if (!item) throw new Error('복제할 영상 분석 룰을 찾을 수 없습니다.');
+      if (isVaRuleEditorOpen() && vaRuleDirty && !confirmDiscardVaRuleChanges('룰 복제로 이동')) {
+        return;
+      }
+      const payload = cloneVaRuleForWrite(item);
+      delete payload.id;
+      delete payload.match;
+      payload.enabled = false;
+      payload.name = `${item.name || `영상 분석 룰 ${item.id}`} 복제`;
+      const response = await requestJson('/lab/analysis/va-rules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const savedId = response?.vaRule?.id || '';
+      await refreshRegistry();
+      if (savedId) {
+        selectedVaRuleId = String(savedId);
+        if ($('vaRuleSelect')) $('vaRuleSelect').value = String(savedId);
+        if ($('viewVaRuleSelect')) $('viewVaRuleSelect').value = String(savedId);
+      }
+      renderVaRuleLibrary();
+      status(`영상 분석 룰 복제 완료: #${item.id} -> #${savedId || '(auto)'}`, response);
+      showFeedback(`룰 #${item.id}를 비활성 상태로 복제했습니다.`);
+    }
+
+    async function toggleVaRuleEnabled(id) {
+      id = String(id || '').trim();
+      const item = vaRules.find((entry) => String(entry.id) === id);
+      if (!item) throw new Error('상태를 변경할 영상 분석 룰을 찾을 수 없습니다.');
+      if (isVaRuleEditorOpen() && vaRuleDirty && !confirmDiscardVaRuleChanges('룰 상태 변경')) {
+        return;
+      }
+      const payload = cloneVaRuleForWrite(item);
+      payload.enabled = !isVaRuleEnabled(item);
+      const response = await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      await refreshRegistry();
+      selectedVaRuleId = id;
+      renderVaRuleLibrary();
+      const nextLabel = payload.enabled ? '적용 중' : '비활성';
+      status(`영상 분석 룰 #${id} 상태 변경 완료: ${nextLabel}`, response);
+      showFeedback(`룰 #${id} 상태를 ${nextLabel}(으)로 변경했습니다.`);
+    }
+
+    function showVaRuleDeleteDialog(id) {
+      id = String(id || '').trim();
+      const item = vaRules.find((entry) => String(entry.id) === id);
+      if (!item) {
+        showFeedback('삭제할 룰을 찾을 수 없습니다.', 'error');
+        return;
+      }
+      pendingDeleteVaRuleId = id;
+      const name = item.name || `영상 분석 룰 ${id}`;
+      setText('deleteVaRuleDialogMessage', `룰 #${id} · ${name}을 삭제할까요? 삭제 후에는 되돌릴 수 없습니다.`);
+      const dialog = $('deleteVaRuleDialog');
+      if (dialog && typeof dialog.showModal === 'function') {
+        dialog.showModal();
+      } else if (window.confirm(`룰 #${id} · ${name}을 삭제할까요? 삭제 후에는 되돌릴 수 없습니다.`)) {
+        deleteVaRuleById(id).catch((error) => {
+          status(`영상 분석 룰 삭제 실패: ${error.message}`);
+          showFeedback(`삭제 실패: ${error.message}`, 'error');
+        });
+      }
+    }
+
+    async function deleteVaRuleById(id, options = {}) {
+      id = String(id || '').trim();
+      if (!id) throw new Error('삭제할 영상 분석 설정 ID가 없습니다.');
+      if (isVaRuleEditorOpen() && vaRuleDirty && id === currentVaRuleId() &&
+          !confirmDiscardVaRuleChanges('현재 편집 중인 룰 삭제로 이동')) {
+        return;
+      }
+      if (options.confirm) {
+        showVaRuleDeleteDialog(id);
+        return;
+      }
+      const response = await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      await refreshRegistry();
+      if (selectedVaRuleId === id) {
+        selectedVaRuleId = vaRules.length > 0 ? String(sortedVaRules()[0].id) : '';
+      }
+      if (currentVaRuleId() === id) {
+        closeVaRuleEditor({ skipDirtyCheck: true });
+        loadVaRule(null);
+      }
+      renderVaRuleLibrary();
+      status(`영상 분석 설정 삭제 완료: ${id}`, response);
+      showFeedback(`영상 분석 설정 #${id} 삭제 완료`);
     }
 
     async function deleteVaRule() {
-      const id = currentVaRuleId();
-      if (!id) throw new Error('삭제할 영상 분석 설정 ID가 없습니다.');
-      const response = await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(id)}`, { method: 'DELETE' });
-      await refreshRegistry();
-      loadVaRule(null);
-      status(`영상 분석 설정 삭제 완료: ${id}`, response);
+      await deleteVaRuleById(currentVaRuleId(), { confirm: true });
     }
 
     function viewPreviewStatus(message) {
       if ($('viewPreviewStatus')) $('viewPreviewStatus').textContent = message;
+    }
+
+    function viewConnectionStateLabel(state) {
+      if (state === 'connecting') return '연결 중';
+      if (state === 'playing') return '재생 중';
+      if (state === 'stopped') return '중지됨';
+      if (state === 'error') return '오류';
+      return '대기';
+    }
+
+    function setViewPreviewUi(active) {
+      const startButton = $('startViewPreviewBtn');
+      const stopButton = $('stopViewPreviewBtn');
+      const connecting = viewConnectionState === 'connecting';
+      if (startButton) {
+        startButton.textContent = active ? '다시 시작' : '보기 시작';
+        startButton.disabled = connecting;
+      }
+      if (stopButton) stopButton.disabled = !active && !connecting;
+    }
+
+    function setViewConnectionState(state, message = '') {
+      viewConnectionState = state || 'idle';
+      const card = $('viewConnectionStateCard');
+      if (card) {
+        card.className = `viewer-status-card is-${viewConnectionState}`;
+      }
+      setText('viewConnectionStateText', viewConnectionStateLabel(viewConnectionState));
+      if (message) {
+        setText('viewConnectionMessage', message);
+        viewPreviewStatus(message);
+      }
+      setViewPreviewUi(Boolean(viewTapId));
     }
 
     function buildViewParams() {
@@ -5379,23 +7298,72 @@ std::string BuildLabRuleEditorPageHtml() {
           ? `이 설정은 ${sourceLabel(rule.source || {})}에만 연결됩니다. URL에는 vaRule=${rule.id}만 사용합니다.`
           : '저장된 설정을 선택하면 연결된 영상 소스가 표시됩니다.';
       }
+      const sourceSummary = mode === 'rule'
+        ? (rule ? sourceLabel(rule.source || {}) : '저장된 설정 선택 필요')
+        : sourceLabel(source);
+      const modeHelp = mode === 'rule'
+        ? '영상 + VA Rule은 저장된 Rule ID만 선택합니다. 영상 소스는 해당 Rule에 묶인 값으로 자동 고정됩니다.'
+        : (mode === 'overlay'
+          ? '영상 + VA Overlay는 선택한 영상에 기본 객체 검출 overlay를 얹어 확인합니다.'
+          : 'Live Streaming은 선택한 영상의 원본 프레임만 확인합니다.');
       const bindingText = mode === 'rule'
         ? (rule ? `${viewModeLabel(mode)} · vaRule=${rule.id} · ${sourceLabel(rule.source || {})}` : `${viewModeLabel(mode)} · 설정 선택 필요`)
         : `${viewModeLabel(mode)} · ${sourceLabel(source)}`;
       if ($('viewBindingSummary')) $('viewBindingSummary').textContent = bindingText;
+      setText('viewModeHelpText', modeHelp);
+      setText('viewModeSummaryText', viewModeLabel(mode));
+      setText('viewSourceSummaryText', sourceSummary);
       updateGeneratedUrls();
     }
 
     function updateGeneratedUrls() {
       const params = buildViewParams();
       const query = params.toString();
-      const origin = window.location.origin;
-      const host = window.location.hostname || '127.0.0.1';
+      const fallbackOrigin = window.location.origin;
+      const baseInput = $('viewServerBaseUrl');
+      const rtspInput = $('viewRtspAuthority');
+      if (baseInput && !baseInput.value) {
+        baseInput.value = fallbackOrigin;
+      }
+      if (rtspInput && !rtspInput.value) {
+        rtspInput.value = `${window.location.hostname || '127.0.0.1'}:${serverDefaults.rtspPort || 8554}`;
+      }
+      const origin = String(baseInput?.value || fallbackOrigin).replace(/\/+$/, '');
+      const rtspAuthority = String(rtspInput?.value || `${window.location.hostname || '127.0.0.1'}:${serverDefaults.rtspPort || 8554}`).replace(/^rtsp:\/\//, '').replace(/\/+$/, '');
+      const route = String(serverDefaults.streamRoute || 'dhseo').replace(/^\/+/, '');
       const querySuffix = query ? `?${query}` : '';
       if ($('viewWebRtcUrl')) $('viewWebRtcUrl').value = `${origin}/webrtc/session${querySuffix}`;
       if ($('viewWhepUrl')) $('viewWhepUrl').value = `${origin}/whep${querySuffix}`;
-      if ($('viewRtspUrl')) $('viewRtspUrl').value = `rtsp://${host}:8554/dhseo${querySuffix}`;
+      if ($('viewRtspUrl')) $('viewRtspUrl').value = `rtsp://${rtspAuthority}/${route}${querySuffix}`;
       if ($('viewTapUrl')) $('viewTapUrl').value = `${origin}/lab/analysis/taps${querySuffix}`;
+    }
+
+    async function copyGeneratedUrl(targetId, button = null) {
+      const field = $(targetId);
+      const value = String(field?.value || '').trim();
+      if (!value) {
+        showFeedback('복사할 URL이 없습니다.', 'error');
+        return;
+      }
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(value);
+        } else {
+          field.focus();
+          field.select();
+          if (!document.execCommand('copy')) {
+            throw new Error('clipboard fallback failed');
+          }
+        }
+        showFeedback('요청 URL을 복사했습니다.');
+        if (button) {
+          const previous = button.textContent;
+          button.textContent = '복사됨';
+          setTimeout(() => { button.textContent = previous || '복사'; }, 1200);
+        }
+      } catch (error) {
+        showFeedback('브라우저가 클립보드 복사를 막았습니다. URL을 직접 선택해 복사하세요.', 'error');
+      }
     }
 
     async function stopViewPreview(options = {}) {
@@ -5411,29 +7379,34 @@ std::string BuildLabRuleEditorPageHtml() {
         await fetch(`/lab/analysis/taps/${encodeURIComponent(tapId)}`, { method: 'DELETE' }).catch(() => {});
       }
       if (!options.silent) {
-        viewPreviewStatus('보기를 중지했습니다.');
+        setViewConnectionState('stopped', '보기를 중지했습니다.');
+      } else if (!viewTapId) {
+        setViewPreviewUi(false);
       }
     }
 
     function refreshViewFrame() {
       if (!viewTapId || !$('viewPreviewImage')) return;
       const mode = selectedViewMode();
+      const activeTapId = viewTapId;
       const imagePath = mode === 'live'
         ? 'snapshot.jpg?quality=76'
         : 'overlay.jpg?quality=76&thickness=3&drawLabels=1&trackIds=1&trackTrails=1&labelLang=ko';
       const image = new Image();
       image.onload = () => {
+        if (viewTapId !== activeTapId) return;
         viewFailureCount = 0;
         $('viewPreviewImage').src = image.src;
-        viewPreviewStatus(`${viewModeLabel(mode)} 실행 중: ${$('viewBindingSummary')?.textContent || ''}`);
+        setViewConnectionState('playing', `${viewModeLabel(mode)} 재생 중: ${$('viewBindingSummary')?.textContent || ''}`);
       };
       image.onerror = () => {
+        if (viewTapId !== activeTapId) return;
         viewFailureCount += 1;
         if (viewFailureCount >= 4) {
-          viewPreviewStatus('프레임을 준비 중입니다. 소스 연결, 디코딩, 분석 tap 상태를 확인하고 있습니다.');
+          setViewConnectionState('error', '프레임을 가져오지 못했습니다. 소스 연결, 디코딩, 분석 tap 상태를 확인하세요.');
         }
       };
-      image.src = `/lab/analysis/taps/${encodeURIComponent(viewTapId)}/${imagePath}&_=${Date.now()}`;
+      image.src = `/lab/analysis/taps/${encodeURIComponent(activeTapId)}/${imagePath}&_=${Date.now()}`;
     }
 
     async function startViewPreview() {
@@ -5446,10 +7419,11 @@ std::string BuildLabRuleEditorPageHtml() {
       if ((params.get('source') || '') !== '' && !params.get('url')) {
         throw new Error('URL 또는 Source ID를 입력하세요.');
       }
-      viewPreviewStatus('보기 tap 생성 중...');
+      setViewConnectionState('connecting', '분석 tap을 생성하고 프레임을 기다리는 중입니다.');
       const payload = await requestJson(`/lab/analysis/taps?${params.toString()}`, { method: 'POST' });
       viewTapId = payload.tapId || '';
-      viewPreviewStatus(`${viewModeLabel(selectedViewMode())} 시작: ${$('viewBindingSummary')?.textContent || ''}`);
+      setViewPreviewUi(true);
+      setViewConnectionState('connecting', `${viewModeLabel(selectedViewMode())} 연결 중: ${$('viewBindingSummary')?.textContent || ''}`);
       refreshViewFrame();
       viewTimer = setInterval(refreshViewFrame, 500);
     }
@@ -5466,6 +7440,14 @@ std::string BuildLabRuleEditorPageHtml() {
       } else {
         ctx.fillStyle = '#08110e';
         ctx.fillRect(0, 0, width, height);
+        const message = regionCanvasMessage();
+        if (message) {
+          ctx.fillStyle = 'rgba(242,240,223,0.84)';
+          ctx.font = 'bold 18px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(message, width / 2, height / 2);
+        }
       }
       ctx.strokeStyle = 'rgba(242,240,223,0.08)';
       ctx.lineWidth = 1;
@@ -5528,6 +7510,16 @@ std::string BuildLabRuleEditorPageHtml() {
       });
     }
 
+    function regionCanvasMessage() {
+      if (previewImage) return '';
+      if (previewTapId || $('autoPreviewInput')?.checked) {
+        return previewFailureCount >= 4
+          ? '프레임 로딩을 확인 중입니다'
+          : '프레임 로딩 중입니다';
+      }
+      return '영상 보기 시작을 누르면 프레임이 표시됩니다';
+    }
+
     function canvasPointFromEvent(event) {
       const rect = canvas.getBoundingClientRect();
       return {
@@ -5553,235 +7545,341 @@ std::string BuildLabRuleEditorPageHtml() {
       return bestIndex;
     }
 
-    canvas.addEventListener('pointerdown', (event) => {
-      event.preventDefault();
-      const point = clampPoint(canvasPointFromEvent(event));
-      const hitIndex = hitTestPointIndex(point);
-      didDragPoint = false;
-      if (hitIndex >= 0) {
-        draggingPointIndex = hitIndex;
-        canvas.setPointerCapture(event.pointerId);
-        return;
-      }
-      if (regionPoints.length >= maxGeometryPoints()) {
-        status(`${isLineRule() ? '선' : '영역'} 점은 최대 ${maxGeometryPoints()}개까지 지정할 수 있습니다. 기존 점을 드래그해서 위치를 바꿔주세요.`);
-        return;
-      }
-      regionPoints.push(point);
-      draggingPointIndex = regionPoints.length - 1;
-      didDragPoint = true;
-      canvas.setPointerCapture(event.pointerId);
-      updatePreviews();
-    });
-
-    canvas.addEventListener('pointermove', (event) => {
-      if (draggingPointIndex < 0) return;
-      event.preventDefault();
-      regionPoints[draggingPointIndex] = clampPoint(canvasPointFromEvent(event));
-      didDragPoint = true;
-      updatePreviews();
-    });
-
-    function finishPointDrag(event) {
-      if (draggingPointIndex >= 0) {
+    function bindRegionCanvasEditorEvents() {
+      canvas.addEventListener('pointerdown', (event) => {
         event.preventDefault();
-        if (canvas.hasPointerCapture(event.pointerId)) {
-          canvas.releasePointerCapture(event.pointerId);
+        const point = clampPoint(canvasPointFromEvent(event));
+        const hitIndex = hitTestPointIndex(point);
+        didDragPoint = false;
+        if (hitIndex >= 0) {
+          pushRegionUndo();
+          draggingPointIndex = hitIndex;
+          canvas.setPointerCapture(event.pointerId);
+          return;
         }
-        draggingPointIndex = -1;
-        if (didDragPoint) {
-          updatePreviews();
+        if (regionPoints.length >= maxGeometryPoints()) {
+          status(`${isLineRule() ? '선' : '영역'} 점은 최대 ${maxGeometryPoints()}개까지 지정할 수 있습니다. 기존 점을 드래그해서 위치를 바꿔주세요.`);
+          return;
+        }
+        pushRegionUndo();
+        regionPoints.push(point);
+        draggingPointIndex = regionPoints.length - 1;
+        didDragPoint = true;
+        canvas.setPointerCapture(event.pointerId);
+        updatePreviews();
+      });
+
+      canvas.addEventListener('pointermove', (event) => {
+        if (draggingPointIndex < 0) return;
+        event.preventDefault();
+        regionPoints[draggingPointIndex] = clampPoint(canvasPointFromEvent(event));
+        didDragPoint = true;
+        updatePreviews();
+      });
+
+      function finishPointDrag(event) {
+        if (draggingPointIndex >= 0) {
+          event.preventDefault();
+          if (canvas.hasPointerCapture(event.pointerId)) {
+            canvas.releasePointerCapture(event.pointerId);
+          }
+          draggingPointIndex = -1;
+          if (didDragPoint) {
+            updatePreviews();
+          }
+        }
+      }
+
+      canvas.addEventListener('pointerup', finishPointDrag);
+      canvas.addEventListener('pointercancel', finishPointDrag);
+      $('undoRegionBtn').onclick = undoRegionChange;
+      $('deleteLastPointBtn').onclick = deleteLastRegionPoint;
+      $('clearRegionBtn').onclick = clearRegionGeometry;
+    }
+
+    function bindProfileSelectorEvents() {
+      $('newProfileBtn').onclick = () => {
+        $('profileSelect').value = '';
+        loadProfile({ id: 'fast-local', detector: 'yolo', fps: 6, maxQueue: 1, confidence: 0.25, nms: 0.45, inputWidth: 640, inputHeight: 640, adaptive: true, trackingClasses: ['person', 'vehicle'] });
+      };
+      $('saveProfileBtn').onclick = () => saveProfile().catch((error) => {
+        status(`Profile 저장 실패: ${error.message}`);
+        showFeedback(`Profile 저장 실패: ${error.message}`, 'error');
+      });
+      $('deleteProfileBtn').onclick = () => deleteProfile().catch((error) => {
+        status(`Profile 삭제 실패: ${error.message}`);
+        showFeedback(`Profile 삭제 실패: ${error.message}`, 'error');
+      });
+      $('profileSelect').onchange = () => {
+        const value = $('profileSelect').value;
+        if (!value) {
+          $('newProfileBtn').click();
+          return;
+        }
+        const [kind, id] = value.split(':');
+        const source = kind === 'builtin' ? builtInProfiles : profiles;
+        const item = source.find((entry) => entry.id === id);
+        if (item) loadProfile(item);
+      };
+    }
+
+    function bindStoredRuleEvents() {
+      $('saveRuleBtn').onclick = () => saveRule().catch((error) => {
+        status(`Rule 저장 실패: ${error.message}`);
+        showFeedback(`Rule 저장 실패: ${error.message}`, 'error');
+      });
+      $('deleteRuleBtn').onclick = () => deleteRule().catch((error) => {
+        status(`Rule 삭제 실패: ${error.message}`);
+        showFeedback(`Rule 삭제 실패: ${error.message}`, 'error');
+      });
+      $('ruleSelect').onchange = () => {
+        const value = $('ruleSelect').value;
+        if (!value) {
+          loadRule({
+            id: 'file-person-vehicle-area',
+            enabled: true,
+            match: { sourceKind: 'file', route: '*' },
+            analysis: { profileId: $('ruleProfileId').value, classes: ['person', 'vehicle'] },
+            event: { type: 'presence', minConfidence: 0.25, minDurationMs: 0, region: { type: 'polygon', points: regionPoints } },
+            eventActions: {
+              highlight: { enabled: true, mode: 'blink', target: 'matched-object', durationMs: 1200, color: '#ff0000' },
+              post: { enabled: false, method: 'POST', url: '', contentType: 'application/json', payloadFormat: 'media-server.va.event.v1' }
+            }
+          });
+          return;
+        }
+        const [, id] = value.split(':');
+        const item = rules.find((entry) => entry.id === id);
+        if (item) loadRule(item);
+      };
+    }
+
+    function bindRuleListEvents() {
+      $('addVaRuleBtn').onclick = openVaRuleEditorForNew;
+      $('vaRuleSearchInput').addEventListener('input', () => {
+        vaRuleListSearch = $('vaRuleSearchInput').value || '';
+        renderVaRuleLibrary();
+      });
+      $('vaRuleStatusFilter').addEventListener('change', () => {
+        vaRuleStatusFilter = $('vaRuleStatusFilter').value || 'all';
+        renderVaRuleLibrary();
+      });
+      $('vaRuleKindFilter').addEventListener('change', () => {
+        vaRuleKindFilter = $('vaRuleKindFilter').value || 'all';
+        renderVaRuleLibrary();
+      });
+    }
+
+    function bindRuleEditorEvents() {
+      $('newVaRuleBtn').onclick = () => {
+        openVaRuleEditorForNew();
+      };
+      $('cancelVaRuleEditBtn').onclick = closeVaRuleEditor;
+      $('cancelVaRuleEditBtnBottom').onclick = closeVaRuleEditor;
+      $('saveVaRuleBtn').onclick = () => saveVaRule().catch((error) => {
+        status(`영상 분석 설정 저장 실패: ${error.message}`);
+        showFeedback(`영상 분석 설정 저장 실패: ${error.message}`, 'error');
+      });
+      $('deleteVaRuleBtn').onclick = () => deleteVaRule().catch((error) => {
+        status(`영상 분석 설정 삭제 실패: ${error.message}`);
+        showFeedback(`영상 분석 설정 삭제 실패: ${error.message}`, 'error');
+      });
+      $('cancelDeleteVaRuleBtn').onclick = () => {
+        pendingDeleteVaRuleId = '';
+        $('deleteVaRuleDialog')?.close();
+      };
+      $('confirmDeleteVaRuleBtn').onclick = () => {
+        const id = pendingDeleteVaRuleId;
+        pendingDeleteVaRuleId = '';
+        $('deleteVaRuleDialog')?.close();
+        deleteVaRuleById(id).catch((error) => {
+          status(`영상 분석 룰 삭제 실패: ${error.message}`);
+          showFeedback(`삭제 실패: ${error.message}`, 'error');
+        });
+      };
+      $('vaRuleSelect').onchange = () => {
+        const id = $('vaRuleSelect').value;
+        if (isVaRuleEditorOpen() && vaRuleDirty && String(id || '') !== currentVaRuleId()) {
+          if (!confirmDiscardVaRuleChanges('다른 룰로 이동')) {
+            $('vaRuleSelect').value = currentVaRuleId();
+            return;
+          }
+        }
+        if (!id) {
+          loadVaRule(null);
+          resetVaRuleDirtyBaseline();
+          return;
+        }
+        const item = vaRules.find((entry) => String(entry.id) === String(id));
+        if (item) {
+          loadVaRule(item);
+          resetVaRuleDirtyBaseline();
+          $('viewVaRuleSelect').value = String(item.id);
+        }
+      };
+      for (const id of ['vaRuleId', 'vaRuleName', 'vaRuleSourceKind', 'vaRuleFileSelect', 'vaRuleUrlInput']) {
+        const el = $(id);
+        if (el) {
+          el.addEventListener('input', () => {
+            updateVaRuleSourceUi();
+            updateViewModeUi();
+            updatePreviews();
+          });
+          el.addEventListener('change', () => {
+            updateVaRuleSourceUi();
+            updateViewModeUi();
+            updatePreviews();
+          });
         }
       }
     }
 
-    canvas.addEventListener('pointerup', finishPointDrag);
-    canvas.addEventListener('pointercancel', finishPointDrag);
-
-    $('clearRegionBtn').onclick = () => {
-      regionPoints = isLineRule() ? defaultLinePoints() : [];
-      updatePreviews();
-    };
-    $('newProfileBtn').onclick = () => {
-      $('profileSelect').value = '';
-      loadProfile({ id: 'fast-local', detector: 'yolo', fps: 6, maxQueue: 1, confidence: 0.25, nms: 0.45, inputWidth: 640, inputHeight: 640, adaptive: true, trackingClasses: ['person', 'vehicle'] });
-    };
-    $('saveProfileBtn').onclick = () => saveProfile().catch((error) => status(`Profile 저장 실패: ${error.message}`));
-    $('deleteProfileBtn').onclick = () => deleteProfile().catch((error) => status(`Profile 삭제 실패: ${error.message}`));
-    $('saveRuleBtn').onclick = () => saveRule().catch((error) => status(`Rule 저장 실패: ${error.message}`));
-    $('deleteRuleBtn').onclick = () => deleteRule().catch((error) => status(`Rule 삭제 실패: ${error.message}`));
-    $('newVaRuleBtn').onclick = () => {
-      $('vaRuleSelect').value = '';
-      loadVaRule(null);
-      status('새 영상 분석 설정을 작성합니다.');
-    };
-    $('saveVaRuleBtn').onclick = () => saveVaRule().catch((error) => status(`영상 분석 설정 저장 실패: ${error.message}`));
-    $('deleteVaRuleBtn').onclick = () => deleteVaRule().catch((error) => status(`영상 분석 설정 삭제 실패: ${error.message}`));
-    $('startViewPreviewBtn').onclick = () => startViewPreview().catch((error) => {
-      viewPreviewStatus(`보기 시작 실패: ${error.message}`);
-      status(`보기 시작 실패: ${error.message}`);
-    });
-    $('stopViewPreviewBtn').onclick = () => stopViewPreview().catch((error) => viewPreviewStatus(`보기 중지 실패: ${error.message}`));
-    $('autoPreviewInput').addEventListener('change', () => {
-      if ($('autoPreviewInput').checked) {
-        startRulePreview().catch((error) => {
-          setRulePreviewUi(false);
-          previewStatus(`메인 영상 프레임 보기 실패: ${error.message}`);
-        });
-      } else {
-        stopRulePreview().catch((error) => previewStatus(`미리보기 중지 실패: ${error.message}`));
-      }
-    });
-    $('stopPreviewBtn').onclick = () => {
-      if (previewTapId || $('autoPreviewInput').checked) {
-        stopRulePreview().catch((error) => previewStatus(`미리보기 중지 실패: ${error.message}`));
-      } else {
-        setRulePreviewUi(true);
-        startRulePreview().catch((error) => {
-          setRulePreviewUi(false);
-          previewStatus(`메인 영상 프레임 보기 실패: ${error.message}`);
-        });
-      }
-    };
-    $('previewSourceMode').addEventListener('change', () => {
-      updatePreviewSourceUi();
-      if (previewTapId || $('autoPreviewInput').checked) {
-        startRulePreview().catch((error) => {
-          setRulePreviewUi(false);
-          previewStatus(`영상 프레임 보기 실패: ${error.message}`);
-        });
-      }
-    });
-    $('previewFileSelect').addEventListener('change', () => {
-      if (previewTapId || $('autoPreviewInput').checked) {
-        startRulePreview().catch((error) => {
-          setRulePreviewUi(false);
-          previewStatus(`영상 프레임 보기 실패: ${error.message}`);
-        });
-      }
-    });
-    $('previewOverlayInput').addEventListener('change', () => {
-      if (previewTapId || $('autoPreviewInput').checked) {
-        startRulePreview().catch((error) => {
-          setRulePreviewUi(false);
-          previewStatus(`영상 프레임 보기 실패: ${error.message}`);
-        });
-      }
-    });
-    document.querySelectorAll('[data-primary-tab]').forEach((button) => {
-      button.addEventListener('click', () => {
-        const tabName = button.dataset.primaryTab || 'settings';
-        $('settingsPanel').hidden = tabName !== 'settings';
-        $('viewerPanel').hidden = tabName !== 'viewer';
-        document.querySelectorAll('[data-primary-tab]').forEach((candidate) => {
-          candidate.classList.toggle('is-active', candidate === button);
-        });
-        if (tabName === 'viewer') {
-          updateViewModeUi();
+    function bindAnalysisPreviewPanelEvents() {
+      $('startViewPreviewBtn').onclick = () => startViewPreview().catch((error) => {
+        setViewConnectionState('error', `보기 시작 실패: ${error.message}`);
+        status(`보기 시작 실패: ${error.message}`);
+      });
+      $('stopViewPreviewBtn').onclick = () => stopViewPreview().catch((error) => setViewConnectionState('error', `보기 중지 실패: ${error.message}`));
+      $('autoPreviewInput').addEventListener('change', () => {
+        if ($('autoPreviewInput').checked) {
+          startRulePreview().catch((error) => {
+            setRulePreviewUi(false);
+            previewStatus(`메인 영상 프레임 보기 실패: ${error.message}`);
+          });
+        } else {
+          stopRulePreview().catch((error) => previewStatus(`미리보기 중지 실패: ${error.message}`));
         }
       });
-    });
-    document.querySelectorAll('[data-rule-section-target]').forEach((button) => {
-      button.addEventListener('click', () => {
-        const target = $(button.dataset.ruleSectionTarget || '');
-        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $('stopPreviewBtn').onclick = () => {
+        if (previewTapId || $('autoPreviewInput').checked) {
+          stopRulePreview().catch((error) => previewStatus(`미리보기 중지 실패: ${error.message}`));
+        } else {
+          setRulePreviewUi(true);
+          startRulePreview().catch((error) => {
+            setRulePreviewUi(false);
+            previewStatus(`메인 영상 프레임 보기 실패: ${error.message}`);
+          });
+        }
+      };
+      $('previewSourceMode').addEventListener('change', () => {
+        updatePreviewSourceUi();
+        if (previewTapId || $('autoPreviewInput').checked) {
+          startRulePreview().catch((error) => {
+            setRulePreviewUi(false);
+            previewStatus(`영상 프레임 보기 실패: ${error.message}`);
+          });
+        }
       });
-    });
-    const classFilterInput = $('classFilterInput');
-    if (classFilterInput) classFilterInput.addEventListener('change', filterClassChecks);
-    $('selectDefaultTrackingBtn').onclick = () => setTrackingCategoryChecks((value) => value === 'person' || value === 'vehicle');
-    $('selectAllTrackingBtn').onclick = () => setTrackingCategoryChecks(() => true);
-    $('clearTrackingBtn').onclick = () => setTrackingCategoryChecks(() => false);
-    $('selectCoreClassesBtn').onclick = () => setCheckedClasses((value) => value === 'person' || value === 'vehicle');
-    $('selectAllClassesBtn').onclick = () => setCheckedClasses(() => true);
-    $('clearClassesBtn').onclick = () => setCheckedClasses(() => false);
-    $('profileSelect').onchange = () => {
-      const value = $('profileSelect').value;
-      if (!value) {
-        $('newProfileBtn').click();
-        return;
+      $('previewFileSelect').addEventListener('change', () => {
+        if (previewTapId || $('autoPreviewInput').checked) {
+          startRulePreview().catch((error) => {
+            setRulePreviewUi(false);
+            previewStatus(`영상 프레임 보기 실패: ${error.message}`);
+          });
+        }
+      });
+      $('previewOverlayInput').addEventListener('change', () => {
+        if (previewTapId || $('autoPreviewInput').checked) {
+          startRulePreview().catch((error) => {
+            setRulePreviewUi(false);
+            previewStatus(`영상 프레임 보기 실패: ${error.message}`);
+          });
+        }
+      });
+    }
+
+    function bindDeveloperUrlPanelEvents() {
+      $('viewVaRuleSelect').onchange = updateViewModeUi;
+      document.querySelectorAll('input[name="viewMode"]').forEach((el) => {
+        el.addEventListener('change', updateViewModeUi);
+      });
+      document.querySelectorAll('[data-copy-url-target]').forEach((button) => {
+        button.addEventListener('click', () => {
+          copyGeneratedUrl(button.dataset.copyUrlTarget || '', button);
+        });
+      });
+      for (const id of ['viewSourceKind', 'viewFileSelect', 'viewUrlInput', 'viewServerBaseUrl', 'viewRtspAuthority']) {
+        const el = $(id);
+        if (el) {
+          el.addEventListener('input', updateViewModeUi);
+          el.addEventListener('change', updateViewModeUi);
+        }
       }
-      const [kind, id] = value.split(':');
-      const source = kind === 'builtin' ? builtInProfiles : profiles;
-      const item = source.find((entry) => entry.id === id);
-      if (item) loadProfile(item);
-    };
-    $('ruleSelect').onchange = () => {
-      const value = $('ruleSelect').value;
-      if (!value) {
-        loadRule({
-          id: 'file-person-vehicle-area',
-          enabled: true,
-          match: { sourceKind: 'file', route: '*' },
-          analysis: { profileId: $('ruleProfileId').value, classes: ['person', 'vehicle'] },
-          event: { type: 'presence', minConfidence: 0.25, minDurationMs: 0, region: { type: 'polygon', points: regionPoints } },
-          eventActions: {
-            highlight: { enabled: true, mode: 'blink', target: 'matched-object', durationMs: 1200, color: '#ff0000' },
-            post: { enabled: false, method: 'POST', url: '', contentType: 'application/json', payloadFormat: 'media-server.va.event.v1' }
+    }
+
+    function bindNavigationEvents() {
+      document.querySelectorAll('[data-primary-tab]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const tabName = button.dataset.primaryTab || 'settings';
+          if (tabName !== 'settings' && isVaRuleEditorOpen() && vaRuleDirty) {
+            if (!confirmDiscardVaRuleChanges('영상 분석 보기로 이동')) {
+              return;
+            }
+            closeVaRuleEditor({ skipDirtyCheck: true });
+          }
+          $('settingsPanel').hidden = tabName !== 'settings';
+          $('viewerPanel').hidden = tabName !== 'viewer';
+          document.querySelectorAll('[data-primary-tab]').forEach((candidate) => {
+            candidate.classList.toggle('is-active', candidate === button);
+          });
+          if (tabName === 'viewer') {
+            updateViewModeUi();
           }
         });
-        return;
-      }
-      const [, id] = value.split(':');
-      const item = rules.find((entry) => entry.id === id);
-      if (item) loadRule(item);
-    };
-    $('vaRuleSelect').onchange = () => {
-      const id = $('vaRuleSelect').value;
-      if (!id) {
-        loadVaRule(null);
-        return;
-      }
-      const item = vaRules.find((entry) => String(entry.id) === String(id));
-      if (item) {
-        loadVaRule(item);
-        $('viewVaRuleSelect').value = String(item.id);
-      }
-    };
-    $('viewVaRuleSelect').onchange = updateViewModeUi;
-    document.querySelectorAll('input[name="viewMode"]').forEach((el) => {
-      el.addEventListener('change', updateViewModeUi);
-    });
-    for (const id of ['vaRuleId', 'vaRuleName', 'vaRuleSourceKind', 'vaRuleFileSelect', 'vaRuleUrlInput']) {
-      const el = $(id);
-      if (el) {
-        el.addEventListener('input', () => {
-          updateVaRuleSourceUi();
-          updateViewModeUi();
-          updatePreviews();
+      });
+      document.querySelectorAll('[data-rule-section-target]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const target = $(button.dataset.ruleSectionTarget || '');
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
+      });
+    }
+
+    function bindObjectCategorySelectorEvents() {
+      const classFilterInput = $('classFilterInput');
+      if (classFilterInput) classFilterInput.addEventListener('change', filterClassChecks);
+      $('selectDefaultTrackingBtn').onclick = () => setTrackingCategoryChecks((value) => value === 'person' || value === 'vehicle');
+      $('selectAllTrackingBtn').onclick = () => setTrackingCategoryChecks(() => true);
+      $('clearTrackingBtn').onclick = () => setTrackingCategoryChecks(() => false);
+      $('selectCoreClassesBtn').onclick = () => setCheckedClasses((value) => value === 'person' || value === 'vehicle');
+      $('selectAllClassesBtn').onclick = () => setCheckedClasses(() => true);
+      $('clearClassesBtn').onclick = () => setCheckedClasses(() => false);
+      document.querySelectorAll('[data-tracking-category]').forEach((el) => {
         el.addEventListener('change', () => {
-          updateVaRuleSourceUi();
-          updateViewModeUi();
           updatePreviews();
         });
-      }
-    }
-    for (const id of ['viewSourceKind', 'viewFileSelect', 'viewUrlInput']) {
-      const el = $(id);
-      if (el) {
-        el.addEventListener('input', updateViewModeUi);
-        el.addEventListener('change', updateViewModeUi);
-      }
-    }
-    for (const id of ['profileFps', 'profileQueue', 'profileConfidence', 'profileNms', 'profileInputWidth', 'profileInputHeight', 'profileDetector', 'profileAdaptive', 'profileId', 'ruleId', 'ruleEnabled', 'ruleSourceKind', 'ruleRoute', 'ruleProfileId', 'ruleEventType', 'ruleLineDirection', 'ruleConfidence', 'ruleMinDurationMs', 'scenarioType', 'scenarioZoneIds', 'scenarioCandidateMs', 'scenarioDwellMs', 'scenarioCooldownMs', 'scenarioStableOnly', 'eventFlashInput', 'eventFlashMsInput', 'eventPostUrlInput']) {
-      const el = $(id);
-      if (el) el.addEventListener('input', updatePreviews);
-      if (el) el.addEventListener('change', updatePreviews);
-    }
-    document.querySelectorAll('input[name="ruleKind"]').forEach((el) => {
-      el.addEventListener('change', () => {
-        if (isScenarioRule() && regionPoints.length < 3) {
-          regionPoints = defaultPolygonPoints();
-        }
-        updatePreviews();
       });
-    });
-    document.querySelectorAll('[data-tracking-category]').forEach((el) => {
-      el.addEventListener('change', () => {
-        updatePreviews();
+    }
+
+    function bindRuleInputEvents() {
+      for (const id of ['profileFps', 'profileQueue', 'profileConfidence', 'profileNms', 'profileInputWidth', 'profileInputHeight', 'profileDetector', 'profileAdaptive', 'profileId', 'ruleId', 'ruleEnabled', 'ruleSourceKind', 'ruleRoute', 'ruleProfileId', 'ruleEventType', 'ruleLineDirection', 'ruleConfidence', 'ruleMinDurationMs', 'scenarioType', 'scenarioZoneIds', 'scenarioCandidateMs', 'scenarioDwellMs', 'scenarioCooldownMs', 'scenarioStableOnly', 'eventFlashInput', 'eventFlashMsInput', 'eventPostUrlInput']) {
+        const el = $(id);
+        if (el) el.addEventListener('input', updatePreviews);
+        if (el) el.addEventListener('change', updatePreviews);
+      }
+      document.querySelectorAll('input[name="ruleKind"]').forEach((el) => {
+        el.addEventListener('change', () => {
+          if (isScenarioRule() && regionPoints.length < 3) {
+            pushRegionUndo();
+            regionPoints = defaultPolygonPoints();
+          }
+          updatePreviews();
+        });
       });
-    });
+    }
+
+    function bindVaUiComponents() {
+      bindRegionCanvasEditorEvents();
+      bindProfileSelectorEvents();
+      bindStoredRuleEvents();
+      bindRuleListEvents();
+      bindRuleEditorEvents();
+      bindAnalysisPreviewPanelEvents();
+      bindDeveloperUrlPanelEvents();
+      bindNavigationEvents();
+      bindObjectCategorySelectorEvents();
+      bindRuleInputEvents();
+    }
 
     function applyTheme(theme) {
       const nextTheme = theme === 'dark' ? 'dark' : 'light';
@@ -5817,7 +7915,11 @@ std::string BuildLabRuleEditorPageHtml() {
     applyTheme(document.documentElement.dataset.theme);
 
     renderClassChecks();
+    bindVaUiComponents();
     setRulePreviewUi(false);
+    setViewPreviewUi(false);
+    setViewConnectionState('idle', '보기 시작을 누르면 분석 tap을 만들고 프레임을 표시합니다.');
+    setVaRuleEditorVisible(false);
     updateVaRuleSourceUi();
     updateViewModeUi();
     updatePreviews();
@@ -5827,10 +7929,19 @@ std::string BuildLabRuleEditorPageHtml() {
       stopRulePreview({ silent: true });
       stopViewPreview({ silent: true });
     });
+    window.addEventListener('beforeunload', (event) => {
+      if (!isVaRuleEditorOpen() || !vaRuleDirty) return;
+      event.preventDefault();
+      event.returnValue = '';
+    });
   </script>
 </body>
 </html>)RULEPAGE";
     ReplaceAll(&html, "__MEDIA_SERVER_CATEGORY_CATALOG__", AnalysisCategoryCatalogJson());
+    ReplaceAll(&html, "__MEDIA_SERVER_RTSP_PORT__",
+               std::to_string(app::GetAppConfig().rtsp_listen_port));
+    ReplaceAll(&html, "__MEDIA_SERVER_STREAM_ROUTE__",
+               JsonEscape(app::GetAppConfig().stream_route));
     return html;
 }
 
@@ -6554,6 +8665,205 @@ std::string DetectionJson(const analysis::Detection& detection) {
     return out.str();
 }
 
+std::string AnalysisDebugLineStateJson(const analysis::AnalysisDebugLineState& line) {
+    std::ostringstream out;
+    out << "{"
+        << "\"lineId\":\"" << JsonEscape(line.line_id) << "\","
+        << "\"allowedDirection\":\"" << JsonEscape(line.allowed_direction) << "\","
+        << "\"previousSide\":" << line.previous_side << ","
+        << "\"currentSide\":" << line.current_side << ","
+        << "\"crossed\":" << (line.crossed ? "true" : "false") << ","
+        << "\"direction\":\"" << JsonEscape(line.direction) << "\","
+        << "\"rawCrossed\":" << (line.raw_crossed ? "true" : "false") << ","
+        << "\"rawDirection\":\"" << JsonEscape(line.raw_direction) << "\","
+        << "\"directionAllowed\":" << (line.direction_allowed ? "true" : "false") << ","
+        << "\"lastCrossTimeMs\":" << line.last_cross_time_ms
+        << "}";
+    return out.str();
+}
+
+std::string AnalysisDebugTrackStateJson(const analysis::AnalysisDebugTrackState& track) {
+    std::ostringstream out;
+    out << "{"
+        << "\"streamId\":\"" << JsonEscape(track.stream_id) << "\","
+        << "\"channelId\":\"" << JsonEscape(track.channel_id) << "\","
+        << "\"trackId\":" << track.track_id << ","
+        << "\"classId\":" << track.class_id << ","
+        << "\"className\":\"" << JsonEscape(track.class_name) << "\","
+        << "\"confidence\":" << track.confidence << ","
+        << "\"bbox\":{"
+        << "\"x\":" << track.bbox.x << ","
+        << "\"y\":" << track.bbox.y << ","
+        << "\"width\":" << track.bbox.width << ","
+        << "\"height\":" << track.bbox.height
+        << "},"
+        << "\"speed\":{"
+        << "\"value\":" << track.speed << ","
+        << "\"usesGroundPlane\":" << (track.speed_uses_ground_plane ? "true" : "false") << ","
+        << "\"units\":\"" << JsonEscape(track.speed_units) << "\""
+        << "}";
+    if (track.ground_point_available) {
+        out << ",\"footPoint\":{"
+            << "\"x\":" << track.foot_point_x << ","
+            << "\"y\":" << track.foot_point_y
+            << "},"
+            << "\"groundPoint\":{"
+            << "\"x\":" << track.ground_point_x << ","
+            << "\"y\":" << track.ground_point_y << ","
+            << "\"valid\":" << (track.ground_point_valid ? "true" : "false") << ","
+            << "\"fallbackToImage\":" << (track.ground_point_fallback ? "true" : "false") << ","
+            << "\"units\":\"" << JsonEscape(track.ground_point_units) << "\""
+            << "}";
+    }
+    out << ","
+        << "\"lifecycleState\":\"" << JsonEscape(track.lifecycle_state) << "\","
+        << "\"zoneState\":{"
+        << "\"currentZone\":\"" << JsonEscape(track.current_zone) << "\","
+        << "\"previousZone\":\"" << JsonEscape(track.previous_zone) << "\","
+        << "\"enteredAtMs\":" << track.entered_at_ms << ","
+        << "\"exitedAtMs\":" << track.exited_at_ms << ","
+        << "\"dwellTimeMs\":" << track.dwell_time_ms << ","
+        << "\"insideRestrictedZone\":" << (track.inside_restricted_zone ? "true" : "false")
+        << "},"
+        << "\"lineStates\":[";
+    for (std::size_t i = 0; i < track.line_states.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << AnalysisDebugLineStateJson(track.line_states[i]);
+    }
+    out << "],"
+        << "\"scenarioName\":\"" << JsonEscape(track.scenario_name) << "\","
+        << "\"scenarioPhase\":\"" << JsonEscape(track.scenario_phase) << "\","
+        << "\"eventLifecycle\":\"" << JsonEscape(track.event_lifecycle) << "\","
+        << "\"trackHealth\":{"
+        << "\"status\":\"" << JsonEscape(track.track_health) << "\","
+        << "\"stable\":" << (!track.track_unstable ? "true" : "false") << ","
+        << "\"associationConfidence\":" << track.association_confidence << ","
+        << "\"missedFrameCount\":" << track.missed_frame_count << ","
+        << "\"overlapRisk\":" << track.overlap_risk << ","
+        << "\"directionChangeCount\":" << track.direction_change_count
+        << "}"
+        << "}";
+    return out.str();
+}
+
+std::string AnalysisDebugStateJson(const std::optional<analysis::AnalysisDebugState>& debug_state) {
+    if (!debug_state.has_value()) {
+        return "null";
+    }
+    const auto& debug = *debug_state;
+    std::ostringstream out;
+    out << "{"
+        << "\"enabled\":" << (debug.enabled ? "true" : "false") << ","
+        << "\"streamId\":\"" << JsonEscape(debug.stream_id) << "\","
+        << "\"channelId\":\"" << JsonEscape(debug.channel_id) << "\","
+        << "\"timestampMs\":" << debug.timestamp_ms << ","
+        << "\"counts\":{"
+        << "\"tracks\":" << debug.track_count << ","
+        << "\"activeTracks\":" << debug.active_track_count << ","
+        << "\"lostTracks\":" << debug.lost_track_count << ","
+        << "\"reacquiredTracks\":" << debug.reacquired_track_count << ","
+        << "\"terminatedTracks\":" << debug.terminated_track_count << ","
+        << "\"scenarioInstances\":" << debug.scenario_instance_count << ","
+        << "\"activeScenarios\":" << debug.active_scenario_count << ","
+        << "\"eventStates\":" << debug.event_state_count << ","
+        << "\"activeEventStates\":" << debug.active_event_state_count
+        << "},"
+        << "\"tracks\":[";
+    for (std::size_t i = 0; i < debug.tracks.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << AnalysisDebugTrackStateJson(debug.tracks[i]);
+    }
+    out << "]}";
+    return out.str();
+}
+
+std::string TrackHealthMetricsJson(const analysis::TrackHealthMetrics& metrics) {
+    std::ostringstream out;
+    out << "{"
+        << "\"unstableTrackCount\":" << metrics.unstable_track_count << ","
+        << "\"overlapRiskTrackCount\":" << metrics.overlap_risk_track_count << ","
+        << "\"missedFrameTrackCount\":" << metrics.missed_frame_track_count << ","
+        << "\"missedFrameTotal\":" << metrics.missed_frame_total << ","
+        << "\"missedFrameMax\":" << metrics.missed_frame_max << ","
+        << "\"directionChangeTrackCount\":" << metrics.direction_change_track_count << ","
+        << "\"directionChangeTotal\":" << metrics.direction_change_total << ","
+        << "\"directionChangeMax\":" << metrics.direction_change_max
+        << "}";
+    return out.str();
+}
+
+std::string AnalysisChannelMetricsJson(const analysis::AnalysisChannelMetrics& channel) {
+    std::ostringstream out;
+    out << "{"
+        << "\"streamId\":\"" << JsonEscape(channel.stream_id) << "\","
+        << "\"channelId\":\"" << JsonEscape(channel.channel_id) << "\","
+        << "\"trackState\":{"
+        << "\"totalTracks\":" << channel.total_track_count << ","
+        << "\"activeTracks\":" << channel.active_track_count << ","
+        << "\"lostTracks\":" << channel.lost_track_count << ","
+        << "\"reacquiredTracks\":" << channel.reacquired_track_count << ","
+        << "\"terminatedTracks\":" << channel.terminated_track_count
+        << "},"
+        << "\"scenarioState\":{"
+        << "\"activeScenarios\":" << channel.active_scenario_count
+        << "},"
+        << "\"eventState\":{"
+        << "\"eventStates\":" << channel.event_state_count << ","
+        << "\"activeEventStates\":" << channel.active_event_state_count << ","
+        << "\"eventsEmitted\":" << channel.event_emitted_count << ","
+        << "\"eventsDeduped\":" << channel.event_dedup_count
+        << "},"
+        << "\"trackHealth\":" << TrackHealthMetricsJson(channel.track_health)
+        << "}";
+    return out.str();
+}
+
+std::string AnalysisMetricsReportJson(const std::optional<analysis::AnalysisMetricsReport>& report) {
+    if (!report.has_value()) {
+        return "null";
+    }
+    const auto& metrics = *report;
+    std::ostringstream out;
+    out << "{"
+        << "\"enabled\":" << (metrics.enabled ? "true" : "false") << ","
+        << "\"streamId\":\"" << JsonEscape(metrics.stream_id) << "\","
+        << "\"channelId\":\"" << JsonEscape(metrics.channel_id) << "\","
+        << "\"timestampMs\":" << metrics.timestamp_ms << ","
+        << "\"channelCount\":" << metrics.channel_count << ","
+        << "\"trackState\":{"
+        << "\"totalTracks\":" << metrics.total_track_count << ","
+        << "\"activeTracks\":" << metrics.active_track_count << ","
+        << "\"lostTracks\":" << metrics.lost_track_count << ","
+        << "\"reacquiredTracks\":" << metrics.reacquired_track_count << ","
+        << "\"terminatedTracks\":" << metrics.terminated_track_count << ","
+        << "\"terminatedTrackCleanupCount\":" << metrics.terminated_track_cleanup_count
+        << "},"
+        << "\"scenarioState\":{"
+        << "\"activeScenarios\":" << metrics.active_scenario_count << ","
+        << "\"scenarioCleanupCount\":" << metrics.scenario_cleanup_count
+        << "},"
+        << "\"eventState\":{"
+        << "\"activeEventStates\":" << metrics.active_event_state_count << ","
+        << "\"eventsEmitted\":" << metrics.event_emitted_count << ","
+        << "\"eventsDeduped\":" << metrics.event_dedup_count << ","
+        << "\"eventCleanupCount\":" << metrics.event_cleanup_count
+        << "},"
+        << "\"trackHealth\":" << TrackHealthMetricsJson(metrics.track_health)
+        << ",\"channels\":[";
+    for (std::size_t i = 0; i < metrics.channels.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << AnalysisChannelMetricsJson(metrics.channels[i]);
+    }
+    out << "]}";
+    return out.str();
+}
+
 std::string TrackJson(const analysis::Track& track) {
     std::ostringstream out;
     out << "{"
@@ -6616,12 +8926,19 @@ std::string AnalysisResultJson(const analysis::AnalysisResult& result) {
         out << TrackJson(result.tracks[i]);
     }
     out << "],"
-        << "\"poseKeypoints\":" << result.pose_keypoints.size()
-        << "}";
+        << "\"poseKeypoints\":" << result.pose_keypoints.size();
+    if (result.debug_state.has_value()) {
+        out << ",\"debugState\":" << AnalysisDebugStateJson(result.debug_state);
+    }
+    if (result.metrics_report.has_value()) {
+        out << ",\"metricsReport\":" << AnalysisMetricsReportJson(result.metrics_report);
+    }
+    out << "}";
     return out.str();
 }
 
 std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot& snapshot) {
+    const auto& appearance_stats = snapshot.track_state_metrics.appearance_extractor_stats;
     std::ostringstream out;
     out << "{"
         << "\"tapId\":\"" << JsonEscape(snapshot.tap_id) << "\","
@@ -6641,6 +8958,8 @@ std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot
         << "\"detectorType\":\"" << JsonEscape(snapshot.detector_type) << "\","
         << "\"targetFps\":" << snapshot.target_fps << ","
         << "\"maxQueueSize\":" << snapshot.max_queue_size << ","
+        << "\"frameSampleInterval\":" << snapshot.frame_sample_interval << ","
+        << "\"maxFrameAgeMs\":" << snapshot.max_frame_age_ms << ","
         << "\"modelInputWidth\":" << snapshot.model_input_width << ","
         << "\"modelInputHeight\":" << snapshot.model_input_height << ","
         << "\"debugDetectorDelayMs\":" << snapshot.debug_detector_delay_ms << ","
@@ -6661,10 +8980,31 @@ std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot
         << "\"totalTracks\":" << snapshot.track_state_metrics.total_tracks << ","
         << "\"activeTracks\":" << snapshot.track_state_metrics.active_tracks << ","
         << "\"lostTracks\":" << snapshot.track_state_metrics.lost_tracks << ","
+        << "\"reacquiredTracks\":" << snapshot.track_state_metrics.reacquired_tracks << ","
         << "\"terminatedTracks\":" << snapshot.track_state_metrics.terminated_tracks << ","
         << "\"totalObservations\":" << snapshot.track_state_metrics.total_observations << ","
         << "\"totalTrajectoryPoints\":" << snapshot.track_state_metrics.total_trajectory_points << ","
         << "\"appearanceProfiles\":" << snapshot.track_state_metrics.appearance_profile_count << ","
+        << "\"appearanceExtractor\":{"
+        << "\"enabled\":" << (appearance_stats.enabled ? "true" : "false") << ","
+        << "\"name\":\"" << JsonEscape(appearance_stats.extractor_name) << "\","
+        << "\"requests\":" << appearance_stats.request_count << ","
+        << "\"queued\":" << appearance_stats.queued_count << ","
+        << "\"completed\":" << appearance_stats.completed_count << ","
+        << "\"failed\":" << appearance_stats.failed_count << ","
+        << "\"dropped\":" << appearance_stats.dropped_count << ","
+        << "\"missingCrop\":" << appearance_stats.missing_crop_count << ","
+        << "\"busyDrops\":" << appearance_stats.busy_drop_count << ","
+        << "\"queueFullDrops\":" << appearance_stats.queue_full_drop_count << ","
+        << "\"globalQueueDrops\":" << appearance_stats.global_queue_drop_count << ","
+        << "\"rateLimited\":" << appearance_stats.rate_limited_count << ","
+        << "\"staleDrops\":" << appearance_stats.stale_drop_count << ","
+        << "\"lastQueueLatencyMs\":" << appearance_stats.last_queue_latency_ms << ","
+        << "\"maxQueueLatencyMs\":" << appearance_stats.max_queue_latency_ms << ","
+        << "\"lastInferenceMs\":" << appearance_stats.last_inference_time_ms << ","
+        << "\"maxInferenceMs\":" << appearance_stats.max_inference_time_ms << ","
+        << "\"lastError\":\"" << JsonEscape(appearance_stats.last_error) << "\""
+        << "},"
         << "\"maxActiveTracksPerChannel\":"
         << snapshot.track_state_metrics.max_active_tracks_per_channel << ","
         << "\"maxTracksPerChannel\":" << snapshot.track_state_metrics.max_tracks_per_channel << ","
@@ -6696,11 +9036,35 @@ std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot
         << "\"droppedPackets\":" << snapshot.dropped_packets << ","
         << "\"sampleDroppedFrames\":" << snapshot.sample_dropped_frames << ","
         << "\"queueDroppedFrames\":" << snapshot.queue_dropped_frames << ","
+        << "\"sampleIntervalDroppedFrames\":" << snapshot.sample_interval_dropped_frames << ","
+        << "\"staleQueueDroppedFrames\":" << snapshot.stale_queue_dropped_frames << ","
         << "\"decoderErrors\":" << snapshot.decoder_errors << ","
         << "\"pendingFrames\":" << snapshot.pending_frames << ","
+        << "\"peakPendingFrames\":" << snapshot.peak_pending_frames << ","
+        << "\"effectiveDecodedFps\":" << snapshot.effective_decoded_fps << ","
+        << "\"effectiveSampledFps\":" << snapshot.effective_sampled_fps << ","
+        << "\"effectiveAnalyzedFps\":" << snapshot.effective_analyzed_fps << ","
+        << "\"lastQueueWaitMs\":" << snapshot.last_queue_wait_ms << ","
+        << "\"averageQueueWaitMs\":" << snapshot.average_queue_wait_ms << ","
+        << "\"maxQueueWaitMs\":" << snapshot.max_queue_wait_ms << ","
         << "\"lastAnalysisMs\":" << snapshot.last_analysis_ms << ","
         << "\"averageAnalysisMs\":" << snapshot.average_analysis_ms << ","
         << "\"maxAnalysisMs\":" << snapshot.max_analysis_ms << ","
+        << "\"lastInferenceMs\":" << snapshot.last_inference_ms << ","
+        << "\"averageInferenceMs\":" << snapshot.average_inference_ms << ","
+        << "\"maxInferenceMs\":" << snapshot.max_inference_ms << ","
+        << "\"analyticsQueue\":{"
+        << "\"pending\":" << snapshot.pending_frames << ","
+        << "\"capacity\":" << snapshot.max_queue_size << ","
+        << "\"peakPending\":" << snapshot.peak_pending_frames << ","
+        << "\"dropOldest\":" << snapshot.queue_dropped_frames << ","
+        << "\"staleDrops\":" << snapshot.stale_queue_dropped_frames << ","
+        << "\"sampleIntervalDrops\":" << snapshot.sample_interval_dropped_frames << ","
+        << "\"sampleDrops\":" << snapshot.sample_dropped_frames << ","
+        << "\"lastWaitMs\":" << snapshot.last_queue_wait_ms << ","
+        << "\"averageWaitMs\":" << snapshot.average_queue_wait_ms << ","
+        << "\"maxWaitMs\":" << snapshot.max_queue_wait_ms
+        << "},"
         << "\"hasLatestFrame\":" << (snapshot.has_latest_frame ? "true" : "false") << ","
         << "\"latestFrameWidth\":" << snapshot.latest_frame_width << ","
         << "\"latestFrameHeight\":" << snapshot.latest_frame_height << ","
@@ -6725,6 +9089,146 @@ std::string AnalysisMetadataJson(const std::string& tap_id,
         << "\"result\":";
     if (result.has_value()) {
         out << AnalysisResultJson(*result);
+    } else {
+        out << "null";
+    }
+    out << "}";
+    return out.str();
+}
+
+std::string AnalysisStateDumpJson(const std::string& tap_id,
+                                  const analysis::AnalysisManager::TapSnapshot& snapshot,
+                                  const std::optional<analysis::EventRuleEvaluation>& evaluation) {
+    const auto& appearance_stats = snapshot.track_state_metrics.appearance_extractor_stats;
+    std::ostringstream out;
+    out << "{"
+        << "\"tapId\":\"" << JsonEscape(tap_id) << "\","
+        << "\"streamKey\":\"" << JsonEscape(snapshot.stream_key) << "\","
+        << "\"channelId\":\"" << JsonEscape(snapshot.stream_key) << "\","
+        << "\"hasResult\":" << (snapshot.latest_result.has_value() ? "true" : "false") << ","
+        << "\"analyticsState\":{"
+        << "\"trackState\":{"
+        << "\"channelCount\":" << snapshot.track_state_metrics.channel_count << ","
+        << "\"totalTracks\":" << snapshot.track_state_metrics.total_tracks << ","
+        << "\"activeTracks\":" << snapshot.track_state_metrics.active_tracks << ","
+        << "\"lostTracks\":" << snapshot.track_state_metrics.lost_tracks << ","
+        << "\"reacquiredTracks\":" << snapshot.track_state_metrics.reacquired_tracks << ","
+        << "\"terminatedTracks\":" << snapshot.track_state_metrics.terminated_tracks << ","
+        << "\"cleanupRuns\":" << snapshot.track_state_metrics.cleanup_runs << ","
+        << "\"appearanceExtractor\":{"
+        << "\"enabled\":" << (appearance_stats.enabled ? "true" : "false") << ","
+        << "\"name\":\"" << JsonEscape(appearance_stats.extractor_name) << "\","
+        << "\"requests\":" << appearance_stats.request_count << ","
+        << "\"queued\":" << appearance_stats.queued_count << ","
+        << "\"completed\":" << appearance_stats.completed_count << ","
+        << "\"dropped\":" << appearance_stats.dropped_count << ","
+        << "\"rateLimited\":" << appearance_stats.rate_limited_count << ","
+        << "\"staleDrops\":" << appearance_stats.stale_drop_count << ","
+        << "\"lastError\":\"" << JsonEscape(appearance_stats.last_error) << "\""
+        << "}"
+        << "}},"
+        << "\"debugState\":";
+    if (evaluation.has_value()) {
+        out << AnalysisDebugStateJson(evaluation->annotated_result.debug_state);
+    } else {
+        out << "null";
+    }
+    out << "}";
+    return out.str();
+}
+
+std::string AnalysisMetricsDumpJson(const std::string& tap_id,
+                                    const analysis::AnalysisManager::TapSnapshot& snapshot,
+                                    const std::optional<analysis::EventRuleEvaluation>& evaluation) {
+    const auto& appearance_stats = snapshot.track_state_metrics.appearance_extractor_stats;
+    std::ostringstream out;
+    out << "{"
+        << "\"tapId\":\"" << JsonEscape(tap_id) << "\","
+        << "\"streamKey\":\"" << JsonEscape(snapshot.stream_key) << "\","
+        << "\"channelId\":\"" << JsonEscape(snapshot.stream_key) << "\","
+        << "\"hasResult\":" << (snapshot.latest_result.has_value() ? "true" : "false") << ","
+        << "\"tapState\":{"
+        << "\"receivedVideoPackets\":" << snapshot.received_video_packets << ","
+        << "\"decodedFrames\":" << snapshot.decoded_frames << ","
+        << "\"sampledFrames\":" << snapshot.sampled_frames << ","
+        << "\"analyzedPackets\":" << snapshot.analyzed_packets << ","
+        << "\"droppedPackets\":" << snapshot.dropped_packets << ","
+        << "\"sampleDroppedFrames\":" << snapshot.sample_dropped_frames << ","
+        << "\"queueDroppedFrames\":" << snapshot.queue_dropped_frames << ","
+        << "\"sampleIntervalDroppedFrames\":" << snapshot.sample_interval_dropped_frames << ","
+        << "\"staleQueueDroppedFrames\":" << snapshot.stale_queue_dropped_frames << ","
+        << "\"pendingFrames\":" << snapshot.pending_frames << ","
+        << "\"peakPendingFrames\":" << snapshot.peak_pending_frames << ","
+        << "\"targetFps\":" << snapshot.target_fps << ","
+        << "\"effectiveDecodedFps\":" << snapshot.effective_decoded_fps << ","
+        << "\"effectiveSampledFps\":" << snapshot.effective_sampled_fps << ","
+        << "\"effectiveAnalyzedFps\":" << snapshot.effective_analyzed_fps << ","
+        << "\"frameSampleInterval\":" << snapshot.frame_sample_interval << ","
+        << "\"maxQueueSize\":" << snapshot.max_queue_size << ","
+        << "\"maxFrameAgeMs\":" << snapshot.max_frame_age_ms << ","
+        << "\"lastQueueWaitMs\":" << snapshot.last_queue_wait_ms << ","
+        << "\"averageQueueWaitMs\":" << snapshot.average_queue_wait_ms << ","
+        << "\"maxQueueWaitMs\":" << snapshot.max_queue_wait_ms << ","
+        << "\"lastAnalysisMs\":" << snapshot.last_analysis_ms << ","
+        << "\"averageAnalysisMs\":" << snapshot.average_analysis_ms << ","
+        << "\"maxAnalysisMs\":" << snapshot.max_analysis_ms << ","
+        << "\"lastInferenceMs\":" << snapshot.last_inference_ms << ","
+        << "\"averageInferenceMs\":" << snapshot.average_inference_ms << ","
+        << "\"maxInferenceMs\":" << snapshot.max_inference_ms << ","
+        << "\"analyticsQueue\":{"
+        << "\"pending\":" << snapshot.pending_frames << ","
+        << "\"capacity\":" << snapshot.max_queue_size << ","
+        << "\"peakPending\":" << snapshot.peak_pending_frames << ","
+        << "\"dropOldest\":" << snapshot.queue_dropped_frames << ","
+        << "\"staleDrops\":" << snapshot.stale_queue_dropped_frames << ","
+        << "\"sampleIntervalDrops\":" << snapshot.sample_interval_dropped_frames << ","
+        << "\"sampleDrops\":" << snapshot.sample_dropped_frames << ","
+        << "\"lastWaitMs\":" << snapshot.last_queue_wait_ms << ","
+        << "\"averageWaitMs\":" << snapshot.average_queue_wait_ms << ","
+        << "\"maxWaitMs\":" << snapshot.max_queue_wait_ms
+        << "}"
+        << "},"
+        << "\"trackState\":{"
+        << "\"channelCount\":" << snapshot.track_state_metrics.channel_count << ","
+        << "\"totalTracks\":" << snapshot.track_state_metrics.total_tracks << ","
+        << "\"activeTracks\":" << snapshot.track_state_metrics.active_tracks << ","
+        << "\"lostTracks\":" << snapshot.track_state_metrics.lost_tracks << ","
+        << "\"reacquiredTracks\":" << snapshot.track_state_metrics.reacquired_tracks << ","
+        << "\"terminatedTracks\":" << snapshot.track_state_metrics.terminated_tracks << ","
+        << "\"cleanupRuns\":" << snapshot.track_state_metrics.cleanup_runs << ","
+        << "\"terminatedTrackCleanupCount\":"
+        << snapshot.track_state_metrics.tracks_removed_by_cleanup << ","
+        << "\"lastCleanupTimeMs\":" << snapshot.track_state_metrics.last_cleanup_time_ms << ","
+        << "\"appearanceExtractor\":{"
+        << "\"enabled\":" << (appearance_stats.enabled ? "true" : "false") << ","
+        << "\"name\":\"" << JsonEscape(appearance_stats.extractor_name) << "\","
+        << "\"requests\":" << appearance_stats.request_count << ","
+        << "\"queued\":" << appearance_stats.queued_count << ","
+        << "\"completed\":" << appearance_stats.completed_count << ","
+        << "\"failed\":" << appearance_stats.failed_count << ","
+        << "\"dropped\":" << appearance_stats.dropped_count << ","
+        << "\"missingCrop\":" << appearance_stats.missing_crop_count << ","
+        << "\"busyDrops\":" << appearance_stats.busy_drop_count << ","
+        << "\"queueFullDrops\":" << appearance_stats.queue_full_drop_count << ","
+        << "\"globalQueueDrops\":" << appearance_stats.global_queue_drop_count << ","
+        << "\"rateLimited\":" << appearance_stats.rate_limited_count << ","
+        << "\"staleDrops\":" << appearance_stats.stale_drop_count << ","
+        << "\"lastQueueLatencyMs\":" << appearance_stats.last_queue_latency_ms << ","
+        << "\"maxQueueLatencyMs\":" << appearance_stats.max_queue_latency_ms << ","
+        << "\"lastInferenceMs\":" << appearance_stats.last_inference_time_ms << ","
+        << "\"maxInferenceMs\":" << appearance_stats.max_inference_time_ms << ","
+        << "\"lastError\":\"" << JsonEscape(appearance_stats.last_error) << "\""
+        << "}"
+        << "},"
+        << "\"metricsReport\":";
+    if (evaluation.has_value()) {
+        out << AnalysisMetricsReportJson(evaluation->metrics_report);
+    } else {
+        out << "null";
+    }
+    out << ",\"trackingIssueReport\":";
+    if (evaluation.has_value() && !evaluation->tracking_issue_report_json.empty()) {
+        out << evaluation->tracking_issue_report_json;
     } else {
         out << "null";
     }
@@ -6808,7 +9312,7 @@ std::string AnalysisCapabilitiesJson() {
     std::ostringstream out;
     out << R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"yoloOutputLayouts":["auto","channels-first","channels-last"],"yoloBoxFormats":["cxcywh","xyxy"],"yoloScoreModes":["auto","class-only","objectness-class","score-class","class-score"],"outputs":["metadata","events","snapshot.jpg","overlay.jpg","image-metadata","image-snapshot.jpg","image-overlay.jpg","rtsp-overlay","webrtc-overlay"],"eventTypes":["presence","enter","exit","line-crossing"],)"
         << "\"trackingCategories\":" << AnalysisCategoryCatalogJson() << ","
-        << R"("eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile with lightweight tracking for person/vehicle categories","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"tracking":"optional object tracking on/off","trackingClasses":"optional comma-separated categories/classes: person,vehicle,road,animal,sports,tableware,food,furniture,device,object or '*' for all","fps":"optional VA sampling fps override","maxQueue":"optional detector queue override","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","outputLayout":"optional YOLO output tensor layout: auto|channels-first|channels-last","boxFormat":"optional YOLO box format: cxcywh|xyxy","scoreMode":"optional YOLO score mode: auto|class-only|objectness-class|score-class|class-score","thickness":"optional box line thickness","drawLabels":"optional label visibility","trackIds":"optional track id labels on overlay","trackTrails":"optional track trail overlay","redaction":"optional person-mosaic/mosaic overlay redaction","redactionClasses":"optional comma-separated redaction categories/classes, default person","redactionBlockSize":"optional mosaic block size in pixels","redactionMarginRatio":"optional bbox expansion ratio for redaction"}})";
+        << R"("eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","peakPendingFrames","effectiveDecodedFps","effectiveSampledFps","effectiveAnalyzedFps","lastQueueWaitMs","averageQueueWaitMs","lastInferenceMs","averageInferenceMs","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile with lightweight tracking for person/vehicle categories","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"tracking":"optional object tracking on/off","trackingClasses":"optional comma-separated categories/classes: person,vehicle,road,animal,sports,tableware,food,furniture,device,object or '*' for all","fps":"optional VA wall-clock sampling fps override","maxQueue":"optional detector queue override","frameSampleInterval":"optional deterministic decoded-frame sampling interval; 1 means every decoded frame after fps gate","sampleEveryNFrames":"alias for frameSampleInterval","maxFrameAgeMs":"optional stale analysis frame drop threshold; 0 disables age drop","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","outputLayout":"optional YOLO output tensor layout: auto|channels-first|channels-last","boxFormat":"optional YOLO box format: cxcywh|xyxy","scoreMode":"optional YOLO score mode: auto|class-only|objectness-class|score-class|class-score","thickness":"optional box line thickness","drawLabels":"optional label visibility","trackIds":"optional track id labels on overlay","trackTrails":"optional track trail overlay","redaction":"optional person-mosaic/mosaic overlay redaction","redactionClasses":"optional comma-separated redaction categories/classes, default person","redactionBlockSize":"optional mosaic block size in pixels","redactionMarginRatio":"optional bbox expansion ratio for redaction"}})";
     return out.str();
 }
 
@@ -7030,6 +9534,13 @@ bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& quer
         analysis::ObjectTrackerOptions tracker_options;
         tracker_options.class_labels = output->profile.tracking_class_labels;
         tracker_options.track_all_when_class_labels_empty = !output->profile.tracking_classes_specified;
+        const auto& config = app::GetAppConfig();
+        tracker_options.iou_weight = config.analysis_tracking_iou_weight;
+        tracker_options.distance_weight = config.analysis_tracking_distance_weight;
+        tracker_options.direction_weight = config.analysis_tracking_direction_weight;
+        tracker_options.class_weight = config.analysis_tracking_class_weight;
+        tracker_options.min_association_score = config.analysis_tracking_min_association_score;
+        tracker_options.max_missed_frames = config.analysis_tracking_lost_buffer_frames;
         analysis::ObjectTracker tracker(tracker_options);
         tracker.Update(&output->result);
     }
@@ -7091,6 +9602,8 @@ bool DetachAnalysisTapAndReleaseRuntimes(core::SessionManager& session_manager, 
     ReleaseEventRuleRuntimeForKey("webrtc-overlay:" + tap_id);
     ReleaseEventRuleRuntimeForKey("tap-events:" + tap_id);
     ReleaseEventRuleRuntimeForKey("tap-overlay:" + tap_id);
+    ReleaseEventRuleRuntimeForKey("tap-state-dump:" + tap_id);
+    ReleaseEventRuleRuntimeForKey("tap-metrics:" + tap_id);
     return detached;
 }
 
@@ -7158,6 +9671,191 @@ std::string AnalysisEventsJson(const std::string& tap_id,
     return out.str();
 }
 
+WebRtcMetadataChannelConfig BuildWebRtcMetadataChannelConfigFromQuery(
+    const std::unordered_map<std::string, std::string>& query) {
+    const auto& app_config = app::GetAppConfig();
+    WebRtcMetadataChannelConfig config;
+    config.enabled = ParseBoolQuery(
+        query,
+        "vaMetadata",
+        ParseBoolQuery(query,
+                       "metadataChannel",
+                       ParseBoolQuery(query,
+                                      "vaDataChannel",
+                                      app_config.webrtc_va_metadata_channel_enabled)));
+    config.label = app_config.webrtc_va_metadata_channel_label;
+    if (const auto it = query.find("vaMetadataLabel"); it != query.end() && !Trim(it->second).empty()) {
+        config.label = Trim(it->second);
+    }
+    config.interval_ms = ParseClampedIntQuery(query,
+                                              "vaMetadataIntervalMs",
+                                              app_config.webrtc_va_metadata_interval_ms,
+                                              0,
+                                              60000);
+    config.max_message_bytes = static_cast<std::size_t>(
+        ParseClampedIntQuery(query,
+                             "vaMetadataMaxMessageBytes",
+                             static_cast<int>(app_config.webrtc_va_metadata_max_message_bytes),
+                             256,
+                             1048576));
+    config.max_buffered_bytes = static_cast<std::size_t>(
+        ParseClampedIntQuery(query,
+                             "vaMetadataMaxBufferedBytes",
+                             static_cast<int>(app_config.webrtc_va_metadata_max_buffered_bytes),
+                             1024,
+                             4194304));
+    return config;
+}
+
+std::string WebRtcVaMetadataTrackJson(const analysis::AnalysisDebugTrackState& track) {
+    std::ostringstream out;
+    out << "{"
+        << "\"trackId\":" << track.track_id << ","
+        << "\"bbox\":{"
+        << "\"x\":" << track.bbox.x << ","
+        << "\"y\":" << track.bbox.y << ","
+        << "\"width\":" << track.bbox.width << ","
+        << "\"height\":" << track.bbox.height
+        << "},"
+        << "\"classId\":" << track.class_id << ","
+        << "\"className\":\"" << JsonEscape(track.class_name) << "\","
+        << "\"confidence\":" << track.confidence << ","
+        << "\"speed\":{"
+        << "\"value\":" << track.speed << ","
+        << "\"usesGroundPlane\":" << (track.speed_uses_ground_plane ? "true" : "false") << ","
+        << "\"units\":\"" << JsonEscape(track.speed_units) << "\""
+        << "},"
+        << "\"currentZone\":\"" << JsonEscape(track.current_zone) << "\","
+        << "\"previousZone\":\"" << JsonEscape(track.previous_zone) << "\","
+        << "\"dwellTimeMs\":" << track.dwell_time_ms << ","
+        << "\"insideRestrictedZone\":" << (track.inside_restricted_zone ? "true" : "false") << ","
+        << "\"scenarioName\":\"" << JsonEscape(track.scenario_name) << "\","
+        << "\"scenarioPhase\":\"" << JsonEscape(track.scenario_phase) << "\","
+        << "\"lineState\":{"
+        << "\"lineId\":\"" << JsonEscape(track.primary_line_id) << "\","
+        << "\"side\":" << track.line_side << ","
+        << "\"direction\":\"" << JsonEscape(track.crossing_direction) << "\""
+        << "}";
+    if (track.ground_point_available) {
+        out << ",\"footPoint\":{"
+            << "\"x\":" << track.foot_point_x << ","
+            << "\"y\":" << track.foot_point_y
+            << "},"
+            << "\"groundPoint\":{"
+            << "\"x\":" << track.ground_point_x << ","
+            << "\"y\":" << track.ground_point_y << ","
+            << "\"valid\":" << (track.ground_point_valid ? "true" : "false") << ","
+            << "\"fallbackToImage\":" << (track.ground_point_fallback ? "true" : "false") << ","
+            << "\"units\":\"" << JsonEscape(track.ground_point_units) << "\""
+            << "}";
+    }
+    out << ","
+        << "\"trackHealth\":{"
+        << "\"status\":\"" << JsonEscape(track.track_health) << "\","
+        << "\"stable\":" << (!track.track_unstable ? "true" : "false") << ","
+        << "\"associationConfidence\":" << track.association_confidence << ","
+        << "\"missedFrameCount\":" << track.missed_frame_count << ","
+        << "\"overlapRisk\":" << track.overlap_risk << ","
+        << "\"directionChangeCount\":" << track.direction_change_count
+        << "}"
+        << "}";
+    return out.str();
+}
+
+std::string WebRtcVaMetadataDetectionJson(const analysis::Detection& detection) {
+    std::ostringstream out;
+    out << "{"
+        << "\"trackId\":" << detection.track_id << ","
+        << "\"bbox\":{"
+        << "\"x\":" << detection.box.x << ","
+        << "\"y\":" << detection.box.y << ","
+        << "\"width\":" << detection.box.width << ","
+        << "\"height\":" << detection.box.height
+        << "},"
+        << "\"classId\":" << detection.class_id << ","
+        << "\"className\":\"" << JsonEscape(detection.label) << "\","
+        << "\"confidence\":" << detection.score << ","
+        << "\"currentZone\":\"\","
+        << "\"previousZone\":\"\","
+        << "\"dwellTimeMs\":0,"
+        << "\"insideRestrictedZone\":false,"
+        << "\"scenarioPhase\":\"\","
+        << "\"lineState\":{\"lineId\":\"\",\"side\":0,\"direction\":\"none\"},"
+        << "\"trackHealth\":{"
+        << "\"status\":\"unknown\","
+        << "\"stable\":true,"
+        << "\"associationConfidence\":" << detection.association_confidence << ","
+        << "\"missedFrameCount\":0,"
+        << "\"overlapRisk\":0,"
+        << "\"directionChangeCount\":0"
+        << "}"
+        << "}";
+    return out.str();
+}
+
+std::string WebRtcVaMetadataEventJson(const analysis::AnalysisEvent& event) {
+    std::ostringstream out;
+    out << "{"
+        << "\"eventId\":\"" << JsonEscape(event.event_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(event.event_type) << "\","
+        << "\"status\":\"" << JsonEscape(event.status.empty() ? "emitted" : event.status) << "\","
+        << "\"ruleId\":\"" << JsonEscape(event.rule_id) << "\","
+        << "\"trackId\":" << event.track_id << ","
+        << "\"classId\":" << event.class_id << ","
+        << "\"className\":\"" << JsonEscape(event.label) << "\","
+        << "\"confidence\":" << event.score << ","
+        << "\"zoneId\":\"" << JsonEscape(event.zone_id) << "\","
+        << "\"lineId\":\"" << JsonEscape(event.line_id) << "\","
+        << "\"scenarioName\":\"" << JsonEscape(event.scenario_name) << "\","
+        << "\"scenarioPhase\":\"" << JsonEscape(event.scenario_phase) << "\""
+        << "}";
+    return out.str();
+}
+
+std::string WebRtcVaMetadataMessageJson(const analysis::AnalysisResult& result,
+                                        const std::vector<analysis::AnalysisEvent>& events) {
+    std::string channel_id = result.source_key;
+    if (result.debug_state.has_value() && !result.debug_state->channel_id.empty()) {
+        channel_id = result.debug_state->channel_id;
+    } else if (!result.context.client_id.empty()) {
+        channel_id = result.context.client_id;
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.webrtc.va-metadata.v1\","
+        << "\"streamId\":\"" << JsonEscape(result.source_key) << "\","
+        << "\"channelId\":\"" << JsonEscape(channel_id) << "\","
+        << "\"profileKey\":\"" << JsonEscape(result.profile_key) << "\","
+        << "\"frameId\":" << result.frame_id << ","
+        << "\"pts\":" << result.pts << ","
+        << "\"timestampMs\":" << (result.pts / 1000000LL) << ","
+        << "\"tracks\":[";
+    if (result.debug_state.has_value()) {
+        for (std::size_t i = 0; i < result.debug_state->tracks.size(); ++i) {
+            if (i != 0) {
+                out << ",";
+            }
+            out << WebRtcVaMetadataTrackJson(result.debug_state->tracks[i]);
+        }
+    } else {
+        for (std::size_t i = 0; i < result.detections.size(); ++i) {
+            if (i != 0) {
+                out << ",";
+            }
+            out << WebRtcVaMetadataDetectionJson(result.detections[i]);
+        }
+    }
+    out << "],\"events\":[";
+    for (std::size_t i = 0; i < events.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << WebRtcVaMetadataEventJson(events[i]);
+    }
+    out << "]}";
+    return out.str();
+}
+
 std::string AnalysisEventPostStatusJson() {
     const auto snapshot = analysis::GetEventPostDispatcherSnapshot();
     std::ostringstream out;
@@ -7170,6 +9868,38 @@ std::string AnalysisEventPostStatusJson() {
         << "\"failedCount\":" << snapshot.failed_count << ","
         << "\"droppedCount\":" << snapshot.dropped_count << ","
         << "\"suppressedCount\":" << snapshot.suppressed_count << ","
+        << "\"lastError\":\"" << JsonEscape(snapshot.last_error) << "\""
+        << "}";
+    return out.str();
+}
+
+std::string AnalysisEventStorageStatusJson() {
+    const auto snapshot = analysis::GetEventStorageSnapshot();
+    std::ostringstream out;
+    out << "{"
+        << "\"enabled\":" << (snapshot.enabled ? "true" : "false") << ","
+        << "\"path\":\"" << JsonEscape(snapshot.path) << "\","
+        << "\"queueSize\":" << snapshot.queue_size << ","
+        << "\"maxQueueSize\":" << snapshot.max_queue_size << ","
+        << "\"enqueuedCount\":" << snapshot.enqueued_count << ","
+        << "\"storedCount\":" << snapshot.stored_count << ","
+        << "\"failedCount\":" << snapshot.failed_count << ","
+        << "\"droppedCount\":" << snapshot.dropped_count << ","
+        << "\"snapshotHook\":{"
+        << "\"enabled\":" << (snapshot.snapshot_hook_enabled ? "true" : "false") << ","
+        << "\"directory\":\"" << JsonEscape(snapshot.snapshot_dir) << "\","
+        << "\"failedCount\":" << snapshot.snapshot_hook_failed_count << ","
+        << "\"lastError\":\"" << JsonEscape(snapshot.last_snapshot_error) << "\""
+        << "},"
+        << "\"clipHook\":{"
+        << "\"enabled\":" << (snapshot.clip_hook_enabled ? "true" : "false") << ","
+        << "\"directory\":\"" << JsonEscape(snapshot.clip_dir) << "\","
+        << "\"preEventMs\":" << snapshot.pre_event_ms << ","
+        << "\"postEventMs\":" << snapshot.post_event_ms << ","
+        << "\"clipBufferMs\":" << snapshot.clip_buffer_ms << ","
+        << "\"failedCount\":" << snapshot.clip_hook_failed_count << ","
+        << "\"lastError\":\"" << JsonEscape(snapshot.last_clip_error) << "\""
+        << "},"
         << "\"lastError\":\"" << JsonEscape(snapshot.last_error) << "\""
         << "}";
     return out.str();
@@ -7432,12 +10162,17 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
     overlay_config.render_options = BuildOverlayRenderOptionsFromQuery(query);
     overlay_config.sync_tolerance_ns = static_cast<std::int64_t>(timing_options.sync_tolerance_ms) * 1000000LL;
     overlay_config.wait_timeout_ms = timing_options.wait_timeout_ms;
+    const auto metadata_channel_config = BuildWebRtcMetadataChannelConfigFromQuery(query);
+    const bool metadata_channel_enabled = metadata_channel_config.enabled;
+    bridge->SetMetadataChannelConfig(metadata_channel_config);
     auto event_runtime = EventRuleRuntimeForKey("webrtc-overlay:" + attach_result.tap_id);
     overlay_config.result_provider =
         [&session_manager,
          tap_id = attach_result.tap_id,
          weak_bridge,
          event_runtime,
+         metadata_channel_enabled,
+         debug_overlay = overlay_config.render_options.draw_debug_overlay,
          tolerance_ns = overlay_config.sync_tolerance_ns,
          wait_timeout_ms = overlay_config.wait_timeout_ms](std::int64_t frame_pts)
             -> std::optional<analysis::AnalysisResult> {
@@ -7448,8 +10183,16 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
             auto result = session_manager.WaitAnalysisResultNearPts(
                 tap_id, source_pts, tolerance_ns, std::chrono::milliseconds(wait_timeout_ms));
             if (result.has_value()) {
+                result->debug_state_requested =
+                    result->debug_state_requested || debug_overlay || metadata_channel_enabled;
+                result->debug_state_log_enabled = result->debug_state_log_enabled || debug_overlay;
                 const auto evaluation = EvaluateStoredEventRules(*result, event_runtime);
+                analysis::DispatchEventRecords(evaluation.annotated_result, evaluation.events);
                 analysis::DispatchEventPosts(evaluation.annotated_result, evaluation.events);
+                if (metadata_channel_enabled && bridge_lock != nullptr) {
+                    bridge_lock->PublishAnalysisMetadata(
+                        WebRtcVaMetadataMessageJson(evaluation.annotated_result, evaluation.events));
+                }
                 return evaluation.annotated_result;
             }
             // 동기화 허용 시간 안에 결과가 아직 없으면 최신 snapshot으로 fallback해 overlay 공백을 줄인다.
@@ -7457,8 +10200,17 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
             if (!snapshot.has_value() || !snapshot->latest_result.has_value()) {
                 return std::optional<analysis::AnalysisResult>{};
             }
-            const auto evaluation = EvaluateStoredEventRules(*snapshot->latest_result, event_runtime);
+            auto latest_result = *snapshot->latest_result;
+            latest_result.debug_state_requested =
+                latest_result.debug_state_requested || debug_overlay || metadata_channel_enabled;
+            latest_result.debug_state_log_enabled = latest_result.debug_state_log_enabled || debug_overlay;
+            const auto evaluation = EvaluateStoredEventRules(latest_result, event_runtime);
+            analysis::DispatchEventRecords(evaluation.annotated_result, evaluation.events);
             analysis::DispatchEventPosts(evaluation.annotated_result, evaluation.events);
+            if (metadata_channel_enabled && bridge_lock != nullptr) {
+                bridge_lock->PublishAnalysisMetadata(
+                    WebRtcVaMetadataMessageJson(evaluation.annotated_result, evaluation.events));
+            }
             return evaluation.annotated_result;
         };
     bridge->SetAnalysisOverlay(std::move(overlay_config));
@@ -7824,6 +10576,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return JsonResponse(200, "OK", AnalysisEventPostStatusJson());
                         }
 
+                        if (request.method == "GET" && request.path == "/lab/analysis/event-storage/status") {
+                            return JsonResponse(200, "OK", AnalysisEventStorageStatusJson());
+                        }
+
                         if (request.method == "GET" && request.path == "/lab/analysis/profiles") {
                             return JsonResponse(200, "OK", AnalysisProfilesJson());
                         }
@@ -8110,6 +10866,47 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     AnalysisMetadataJson(tap_id, result->latest_result));
                             }
 
+                            if (request.method == "GET" && (suffix == "/state" || suffix == "/state-dump")) {
+                                const auto snapshot = impl_->session_manager.AnalysisTapSnapshot(tap_id);
+                                if (!snapshot.has_value()) {
+                                    return JsonResponse(404, "Not Found",
+                                                        "{\"error\":\"analysis tap not found\"}");
+                                }
+                                std::optional<analysis::EventRuleEvaluation> evaluation;
+                                if (snapshot->latest_result.has_value()) {
+                                    auto result = *snapshot->latest_result;
+                                    result.debug_state_requested = true;
+                                    result.debug_state_log_enabled = false;
+                                    evaluation = EvaluateStoredEventRules(
+                                        result, EventRuleRuntimeForKey("tap-state-dump:" + tap_id));
+                                }
+                                return JsonResponse(200,
+                                                    "OK",
+                                                    AnalysisStateDumpJson(tap_id,
+                                                                          *snapshot,
+                                                                          evaluation));
+                            }
+
+                            if (request.method == "GET" && (suffix == "/metrics" || suffix == "/metrics-dump")) {
+                                const auto snapshot = impl_->session_manager.AnalysisTapSnapshot(tap_id);
+                                if (!snapshot.has_value()) {
+                                    return JsonResponse(404, "Not Found",
+                                                        "{\"error\":\"analysis tap not found\"}");
+                                }
+                                std::optional<analysis::EventRuleEvaluation> evaluation;
+                                if (snapshot->latest_result.has_value()) {
+                                    auto result = *snapshot->latest_result;
+                                    result.metrics_report_requested = true;
+                                    evaluation = EvaluateStoredEventRules(
+                                        result, EventRuleRuntimeForKey("tap-metrics:" + tap_id));
+                                }
+                                return JsonResponse(200,
+                                                    "OK",
+                                                    AnalysisMetricsDumpJson(tap_id,
+                                                                            *snapshot,
+                                                                            evaluation));
+                            }
+
                             if (request.method == "GET" && suffix == "/events") {
                                 const auto snapshot = impl_->session_manager.AnalysisTapSnapshot(tap_id);
                                 if (!snapshot.has_value()) {
@@ -8121,6 +10918,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     evaluation = EvaluateStoredEventRules(
                                         *snapshot->latest_result, EventRuleRuntimeForKey("tap-events:" + tap_id));
                                     if (ParseBoolQuery(query, "dispatch", false)) {
+                                        analysis::DispatchEventRecords(evaluation->annotated_result, evaluation->events);
                                         analysis::DispatchEventPosts(evaluation->annotated_result, evaluation->events);
                                     }
                                 }
@@ -8176,8 +10974,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                                 analysis::RawVideoFrame overlay_frame;
                                 analysis::OverlayRenderOptions options = BuildOverlayRenderOptionsFromQuery(query);
+                                auto overlay_result = *latest->result;
+                                overlay_result.debug_state_requested =
+                                    overlay_result.debug_state_requested || options.draw_debug_overlay;
+                                overlay_result.debug_state_log_enabled =
+                                    overlay_result.debug_state_log_enabled || options.draw_debug_overlay;
                                 const auto evaluation = EvaluateStoredEventRules(
-                                    *latest->result, EventRuleRuntimeForKey("tap-overlay:" + tap_id));
+                                    overlay_result, EventRuleRuntimeForKey("tap-overlay:" + tap_id));
                                 std::string error_message;
                                 if (!analysis::RenderDetectionOverlay(
                                         latest->frame, evaluation.annotated_result, options, &overlay_frame, &error_message)) {

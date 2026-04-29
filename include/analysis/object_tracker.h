@@ -7,12 +7,26 @@
 
 namespace analysis {
 
+struct ObjectAssociationScore {
+    float iou_score{0.0F};
+    float center_distance_score{0.0F};
+    float direction_score{0.5F};
+    float class_consistency_score{0.0F};
+    float final_score{0.0F};
+};
+
 struct ObjectTrackerOptions {
     float min_iou{0.30F};
     float max_center_distance{0.18F};
+    float iou_weight{app_config::kDefaultAnalysisTrackingIouWeight};
+    float distance_weight{app_config::kDefaultAnalysisTrackingDistanceWeight};
+    float direction_weight{app_config::kDefaultAnalysisTrackingDirectionWeight};
+    float class_weight{app_config::kDefaultAnalysisTrackingClassWeight};
+    float min_association_score{app_config::kDefaultAnalysisTrackingMinAssociationScore};
     float smoothing_alpha{0.65F};
     std::uint32_t min_confirmed_hits{2};
-    std::uint32_t max_missed_frames{8};
+    std::uint32_t max_missed_frames{
+        static_cast<std::uint32_t>(app_config::kDefaultAnalysisTrackingLostBufferFrames)};
     std::size_t max_trail_points{32};
     bool track_all_when_class_labels_empty{true};
     // 비어 있으면 옵션에 따라 전체/없음으로 나뉘고, "*"가 들어 있으면 모든 detection을 track 대상으로 본다.

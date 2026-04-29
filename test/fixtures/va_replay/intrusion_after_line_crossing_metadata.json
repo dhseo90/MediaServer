@@ -1,0 +1,106 @@
+{
+  "frames": [
+    {
+      "streamId": "baseline-intrusion-after-line-crossing",
+      "channelId": "baseline-intrusion-after-line-crossing",
+      "frameId": 1,
+      "timestampMs": 1000,
+      "objects": [
+        {
+          "trackId": 91,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.95,
+          "bbox": { "x": 0.35, "y": 0.25, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.4, "y": 0.3 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-intrusion-after-line-crossing",
+      "channelId": "baseline-intrusion-after-line-crossing",
+      "frameId": 2,
+      "timestampMs": 1200,
+      "objects": [
+        {
+          "trackId": 91,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.95,
+          "bbox": { "x": 0.55, "y": 0.25, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.6, "y": 0.3 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-intrusion-after-line-crossing",
+      "channelId": "baseline-intrusion-after-line-crossing",
+      "frameId": 3,
+      "timestampMs": 2000,
+      "objects": [
+        {
+          "trackId": 91,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.95,
+          "bbox": { "x": 0.65, "y": 0.25, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.7, "y": 0.3 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-intrusion-after-line-crossing",
+      "channelId": "baseline-intrusion-after-line-crossing",
+      "frameId": 4,
+      "timestampMs": 3000,
+      "objects": [
+        {
+          "trackId": 91,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.94,
+          "bbox": { "x": 0.67, "y": 0.25, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.72, "y": 0.3 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-intrusion-after-line-crossing",
+      "channelId": "baseline-intrusion-after-line-crossing",
+      "frameId": 5,
+      "timestampMs": 4200,
+      "objects": [
+        {
+          "trackId": 91,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.94,
+          "bbox": { "x": 0.69, "y": 0.25, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.74, "y": 0.3 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-intrusion-after-line-crossing",
+      "channelId": "baseline-intrusion-after-line-crossing",
+      "frameId": 6,
+      "timestampMs": 4300,
+      "objects": [
+        {
+          "trackId": 91,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.94,
+          "bbox": { "x": 0.7, "y": 0.25, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.75, "y": 0.3 },
+          "direction": "right"
+        }
+      ]
+    }
+  ]
+}

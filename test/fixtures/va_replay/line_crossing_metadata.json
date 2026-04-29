@@ -1,0 +1,38 @@
+{
+  "frames": [
+    {
+      "streamId": "baseline-line",
+      "channelId": "baseline-line",
+      "frameId": 1,
+      "timestampMs": 1000,
+      "objects": [
+        {
+          "trackId": 21,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.92,
+          "bbox": { "x": 0.35, "y": 0.75, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.4, "y": 0.8 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-line",
+      "channelId": "baseline-line",
+      "frameId": 2,
+      "timestampMs": 1300,
+      "objects": [
+        {
+          "trackId": 21,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.91,
+          "bbox": { "x": 0.55, "y": 0.75, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.6, "y": 0.8 },
+          "direction": "right"
+        }
+      ]
+    }
+  ]
+}

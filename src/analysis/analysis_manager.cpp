@@ -28,6 +28,16 @@ int ClampEvenInt(int value, int min_value, int max_value) {
     return std::max(2, clamped);
 }
 
+double RatePerSecond(std::size_t count,
+                     std::chrono::steady_clock::time_point started_at,
+                     std::chrono::steady_clock::time_point now) {
+    if (count == 0 || started_at.time_since_epoch().count() == 0 || now <= started_at) {
+        return 0.0;
+    }
+    const double elapsed_seconds = std::chrono::duration<double>(now - started_at).count();
+    return elapsed_seconds > 0.0 ? static_cast<double>(count) / elapsed_seconds : 0.0;
+}
+
 std::optional<AnalysisResult> FindResultNearPtsLocked(const std::deque<AnalysisResult>& result_history,
                                                       std::int64_t pts,
                                                       std::int64_t tolerance_ns) {
@@ -54,9 +64,16 @@ std::optional<AnalysisResult> FindResultNearPtsLocked(const std::deque<AnalysisR
 
 // profile의 tracking class 정책을 ObjectTracker 생성 옵션으로 변환한다.
 ObjectTrackerOptions BuildTrackerOptions(const AnalysisProfile& profile) {
+    const auto& config = app::GetAppConfig();
     ObjectTrackerOptions options;
     options.class_labels = profile.tracking_class_labels;
     options.track_all_when_class_labels_empty = !profile.tracking_classes_specified;
+    options.iou_weight = config.analysis_tracking_iou_weight;
+    options.distance_weight = config.analysis_tracking_distance_weight;
+    options.direction_weight = config.analysis_tracking_direction_weight;
+    options.class_weight = config.analysis_tracking_class_weight;
+    options.min_association_score = config.analysis_tracking_min_association_score;
+    options.max_missed_frames = config.analysis_tracking_lost_buffer_frames;
     return options;
 }
 
@@ -82,6 +99,8 @@ AnalysisManager::AttachResult AnalysisManager::AttachStream(const core::StreamKe
     tap->stream = stream;
     tap->profile.target_fps = std::max(1, std::min(60, tap->profile.target_fps));
     tap->profile.max_queue_size = std::max<std::size_t>(1, std::min<std::size_t>(128, tap->profile.max_queue_size));
+    tap->profile.frame_sample_interval = std::max(1, std::min(300, tap->profile.frame_sample_interval));
+    tap->profile.max_frame_age_ms = std::max(0, std::min(600000, tap->profile.max_frame_age_ms));
     tap->profile.model_input_width = std::max(32, std::min(4096, tap->profile.model_input_width));
     tap->profile.model_input_height = std::max(32, std::min(4096, tap->profile.model_input_height));
     tap->profile.max_detections = std::max(1, std::min(1000, tap->profile.max_detections));
@@ -118,10 +137,11 @@ AnalysisManager::AttachResult AnalysisManager::AttachStream(const core::StreamKe
         tap->profile.adaptive_low_latency_ratio = tap->profile.adaptive_high_latency_ratio * 0.5F;
     }
     tap->profile_key = BuildProfileKey(tap->profile);
+    tap->attached_at = std::chrono::steady_clock::now();
     tap->detector = CreateDetector(tap->profile);
     tap->track_state_manager = TrackStateManager(
         BuildTrackStateManagerOptionsFromConfig(app::GetAppConfig()),
-        std::make_shared<NoOpAppearanceExtractor>());
+        CreateAppearanceExtractorFromConfig(app::GetAppConfig()));
     if (tap->profile.enable_tracking) {
         tap->tracker = std::make_unique<ObjectTracker>(BuildTrackerOptions(tap->profile));
     }
@@ -384,8 +404,18 @@ void AnalysisManager::HandleFrame(const std::weak_ptr<AnalysisTap>& weak_tap, Ra
     {
         std::lock_guard tap_lock(tap->mu);
         ++tap->decoded_frames;
+        ++tap->decoded_frame_sequence;
 
         const auto now = std::chrono::steady_clock::now();
+        if (tap->profile.frame_sample_interval > 1 &&
+            ((tap->decoded_frame_sequence - 1) %
+             static_cast<std::uint64_t>(tap->profile.frame_sample_interval)) != 0) {
+            ++tap->sample_interval_dropped_frames;
+            ++tap->sample_dropped_frames;
+            ++tap->dropped_packets;
+            return;
+        }
+
         const auto min_interval =
             tap->profile.target_fps > 0 ? std::chrono::nanoseconds(1000000000LL / tap->profile.target_fps)
                                         : std::chrono::nanoseconds(0);
@@ -405,7 +435,8 @@ void AnalysisManager::HandleFrame(const std::weak_ptr<AnalysisTap>& weak_tap, Ra
             ++tap->queue_dropped_frames;
             ++tap->dropped_packets;
         }
-        tap->frame_queue.push_back(std::move(frame));
+        tap->frame_queue.push_back(AnalysisTap::QueuedFrame{.frame = std::move(frame), .enqueued_at = now});
+        tap->peak_pending_frames = std::max(tap->peak_pending_frames, tap->frame_queue.size());
         should_notify = true;
     }
     if (should_notify) {
@@ -420,23 +451,43 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
             return;
         }
 
-        RawVideoFrame frame;
+        AnalysisTap::QueuedFrame queued_frame;
         {
             std::unique_lock lock(tap->mu);
             tap->frame_cv.wait(lock, [&] { return tap->frame_worker_stop || !tap->frame_queue.empty(); });
             if (tap->frame_worker_stop) {
                 return;
             }
-            frame = std::move(tap->frame_queue.front());
+            queued_frame = std::move(tap->frame_queue.front());
             tap->frame_queue.pop_front();
         }
 
+        const auto dequeued_at = std::chrono::steady_clock::now();
+        const double queue_wait_ms =
+            std::chrono::duration<double, std::milli>(dequeued_at - queued_frame.enqueued_at).count();
+        {
+            std::lock_guard tap_lock(tap->mu);
+            tap->last_queue_wait_ms = queue_wait_ms;
+            tap->total_queue_wait_ms += queue_wait_ms;
+            tap->max_queue_wait_ms = std::max(tap->max_queue_wait_ms, queue_wait_ms);
+            ++tap->queue_wait_samples;
+            if (tap->profile.max_frame_age_ms > 0 &&
+                queue_wait_ms > static_cast<double>(tap->profile.max_frame_age_ms)) {
+                ++tap->stale_queue_dropped_frames;
+                ++tap->dropped_packets;
+                continue;
+            }
+        }
+
+        RawVideoFrame frame = std::move(queued_frame.frame);
         AnalysisResult result;
         result.source_key = tap->stream_key;
         result.profile_key = tap->profile_key;
         result.context = tap->context;
         result.frame_id = tap->next_frame_id.fetch_add(1);
         result.pts = frame.pts;
+        result.debug_state_requested = tap->profile.enable_debug_state;
+        result.debug_state_log_enabled = tap->profile.enable_debug_state;
 
         const auto analysis_started_at = std::chrono::steady_clock::now();
         if (tap->profile.debug_detector_delay_ms > 0) {
@@ -444,11 +495,21 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
         }
 
         std::string error_message;
-        if (tap->detector != nullptr && !tap->detector->Analyze(frame, &result, &error_message)) {
+        const auto inference_started_at = std::chrono::steady_clock::now();
+        const bool analyzed = tap->detector == nullptr ||
+                              tap->detector->Analyze(frame, &result, &error_message);
+        const auto inference_finished_at = std::chrono::steady_clock::now();
+        const double inference_ms =
+            std::chrono::duration<double, std::milli>(inference_finished_at - inference_started_at).count();
+        if (!analyzed) {
             const auto analysis_finished_at = std::chrono::steady_clock::now();
             const double elapsed_ms =
                 std::chrono::duration<double, std::milli>(analysis_finished_at - analysis_started_at).count();
             std::lock_guard tap_lock(tap->mu);
+            tap->last_inference_ms = inference_ms;
+            tap->total_inference_ms += inference_ms;
+            tap->max_inference_ms = std::max(tap->max_inference_ms, inference_ms);
+            ++tap->inference_samples;
             tap->last_analysis_ms = elapsed_ms;
             tap->max_analysis_ms = std::max(tap->max_analysis_ms, elapsed_ms);
             DisableAdaptiveInputSizeLocked(tap);
@@ -459,15 +520,25 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
             // detector는 frame 단위 결과만 만들기 때문에, tracker에서 같은 객체에 안정 ID를 붙인다.
             tap->tracker->Update(&result);
         }
-        tap->track_state_manager.Update(result.source_key, result.source_key, BuildTrackedObjects(result), result.pts);
+        tap->track_state_manager.Update(result.source_key,
+                                        result.source_key,
+                                        BuildTrackedObjects(result),
+                                        result.pts,
+                                        &frame);
         const auto analysis_finished_at = std::chrono::steady_clock::now();
         const double elapsed_ms =
             std::chrono::duration<double, std::milli>(analysis_finished_at - analysis_started_at).count();
         result.profile_key = tap->profile_key;
         result.context = tap->context;
+        result.debug_state_requested = tap->profile.enable_debug_state;
+        result.debug_state_log_enabled = tap->profile.enable_debug_state;
 
         std::lock_guard tap_lock(tap->mu);
         ++tap->analyzed_packets;
+        tap->last_inference_ms = inference_ms;
+        tap->total_inference_ms += inference_ms;
+        tap->max_inference_ms = std::max(tap->max_inference_ms, inference_ms);
+        ++tap->inference_samples;
         tap->last_analysis_ms = elapsed_ms;
         tap->total_analysis_ms += elapsed_ms;
         tap->max_analysis_ms = std::max(tap->max_analysis_ms, elapsed_ms);
@@ -477,12 +548,14 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
         while (tap->result_history.size() > kMaxResultHistory) {
             tap->result_history.pop_front();
         }
-        UpdateAdaptiveTuningLocked(tap, elapsed_ms);
+        UpdateAdaptiveTuningLocked(tap, elapsed_ms, queue_wait_ms);
         tap->result_cv.notify_all();
     }
 }
 
-void AnalysisManager::UpdateAdaptiveTuningLocked(const std::shared_ptr<AnalysisTap>& tap, double elapsed_ms) {
+void AnalysisManager::UpdateAdaptiveTuningLocked(const std::shared_ptr<AnalysisTap>& tap,
+                                                 double elapsed_ms,
+                                                 double queue_wait_ms) {
     if (tap == nullptr || !tap->profile.adaptive_tuning_enabled) {
         return;
     }
@@ -499,10 +572,17 @@ void AnalysisManager::UpdateAdaptiveTuningLocked(const std::shared_ptr<AnalysisT
             ? tap->queue_dropped_frames - tap->adaptive_last_queue_dropped_frames
             : 0;
     tap->adaptive_last_queue_dropped_frames = tap->queue_dropped_frames;
+    const std::size_t stale_drop_delta =
+        tap->stale_queue_dropped_frames >= tap->adaptive_last_stale_queue_dropped_frames
+            ? tap->stale_queue_dropped_frames - tap->adaptive_last_stale_queue_dropped_frames
+            : 0;
+    tap->adaptive_last_stale_queue_dropped_frames = tap->stale_queue_dropped_frames;
 
     const int fps = std::max(1, tap->profile.target_fps);
     const double target_interval_ms = 1000.0 / static_cast<double>(fps);
-    const bool queue_pressure = !tap->frame_queue.empty() || queue_drop_delta > 0;
+    const bool queue_pressure =
+        !tap->frame_queue.empty() || queue_drop_delta > 0 || stale_drop_delta > 0 ||
+        queue_wait_ms > target_interval_ms;
     const bool overloaded =
         queue_pressure || elapsed_ms > target_interval_ms * tap->profile.adaptive_high_latency_ratio;
     const bool underloaded =
@@ -578,6 +658,17 @@ void AnalysisManager::UpdateAdaptiveTuningLocked(const std::shared_ptr<AnalysisT
 }
 
 AnalysisManager::TapSnapshot AnalysisManager::BuildSnapshotLocked(const std::shared_ptr<AnalysisTap>& tap) {
+    const auto now = std::chrono::steady_clock::now();
+    const double average_queue_wait_ms =
+        tap->queue_wait_samples > 0
+            ? tap->total_queue_wait_ms / static_cast<double>(tap->queue_wait_samples)
+            : 0.0;
+    const double average_analysis_ms =
+        tap->analyzed_packets > 0 ? tap->total_analysis_ms / static_cast<double>(tap->analyzed_packets) : 0.0;
+    const double average_inference_ms =
+        tap->inference_samples > 0
+            ? tap->total_inference_ms / static_cast<double>(tap->inference_samples)
+            : 0.0;
     return TapSnapshot{
         .tap_id = tap->tap_id,
         .stream_key = tap->stream_key,
@@ -595,14 +686,27 @@ AnalysisManager::TapSnapshot AnalysisManager::BuildSnapshotLocked(const std::sha
         .dropped_packets = tap->dropped_packets,
         .sample_dropped_frames = tap->sample_dropped_frames,
         .queue_dropped_frames = tap->queue_dropped_frames,
+        .sample_interval_dropped_frames = tap->sample_interval_dropped_frames,
+        .stale_queue_dropped_frames = tap->stale_queue_dropped_frames,
         .decoder_errors = tap->decoder_errors,
         .pending_frames = tap->frame_queue.size(),
+        .peak_pending_frames = tap->peak_pending_frames,
+        .effective_decoded_fps = RatePerSecond(tap->decoded_frames, tap->attached_at, now),
+        .effective_sampled_fps = RatePerSecond(tap->sampled_frames, tap->attached_at, now),
+        .effective_analyzed_fps = RatePerSecond(tap->analyzed_packets, tap->attached_at, now),
+        .last_queue_wait_ms = tap->last_queue_wait_ms,
+        .average_queue_wait_ms = average_queue_wait_ms,
+        .max_queue_wait_ms = tap->max_queue_wait_ms,
         .last_analysis_ms = tap->last_analysis_ms,
-        .average_analysis_ms =
-            tap->analyzed_packets > 0 ? tap->total_analysis_ms / static_cast<double>(tap->analyzed_packets) : 0.0,
+        .average_analysis_ms = average_analysis_ms,
         .max_analysis_ms = tap->max_analysis_ms,
+        .last_inference_ms = tap->last_inference_ms,
+        .average_inference_ms = average_inference_ms,
+        .max_inference_ms = tap->max_inference_ms,
         .target_fps = tap->profile.target_fps,
         .max_queue_size = tap->profile.max_queue_size,
+        .frame_sample_interval = tap->profile.frame_sample_interval,
+        .max_frame_age_ms = tap->profile.max_frame_age_ms,
         .model_input_width = tap->profile.model_input_width,
         .model_input_height = tap->profile.model_input_height,
         .debug_detector_delay_ms = tap->profile.debug_detector_delay_ms,

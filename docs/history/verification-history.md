@@ -1,0 +1,173 @@
+# Verification History
+
+이 문서는 과거 상세 검증 이력을 보존합니다. 현재 실행해야 할 검증 기준은 [../stream-verification.md](../stream-verification.md)를 봅니다.
+
+## 2026-04-29 - Step 32 통합 검증
+
+통과:
+
+- Release build
+  - `cmake -S . -B build-release-gst-onnx -DCMAKE_BUILD_TYPE=Release -DMEDIA_SERVER_USE_GSTREAMER=ON -DMEDIA_SERVER_USE_ONNXRUNTIME=ON -DMEDIA_SERVER_ONNXRUNTIME_ROOT=/opt/homebrew/opt/onnxruntime`
+  - `cmake --build build-release-gst-onnx`
+- `./server.sh verify-analysis-state`: `9/0`
+- `./server.sh verify-va-replay`: `10 cases`
+- Intrusion, LineCrossing, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering fixture
+- EventRecord/snapshot/clip hook replay: expected 2, actual 2
+- JSON Lines 2건, snapshot marker 2건, clip marker 2건 생성
+- Debug overlay off/on, state-dump, overlay JPEG 확인
+- WebRTC VA metadata DataChannel 기본 off와 `vaMetadata=1` offer m-line 차이 확인
+- Event POST schema/recovery는 event POST 활성 서버에서 분리 재검증 통과
+
+보류:
+
+- WebRTC DataChannel browser message 수신 자동화
+- 실제 Re-ID enabled 모델 검증
+- 신규 전체 코드 반영 후 30분 이상 다채널 soak
+
+## 2026-04-29 - UI/검증 항목 재검증
+
+통과:
+
+- `./server.sh build`
+- `./server.sh verify-analysis-state`: `4/0`
+- `./server.sh verify-rule-ui --http-base http://127.0.0.1:8081`: `5/0/0`
+- `./server.sh verify-lab-layout --http-base http://127.0.0.1:8081`: `10/0`
+- `./server.sh test --no-start --include-rules --include-rule-ui --include-va-events --include-image-analysis --include-redaction`: `19/0/8`
+- `./server.sh verify-event-post --mode schema`: `7/0/0`
+- `./server.sh verify-event-post --mode recovery`: `11/0/0`
+- 다채널 live streaming 1/2/4/8 client 단계: 각각 `3/0`
+- VA overlay 4/8 client: 각각 `5/0`
+
+cleanup 확인:
+
+- runtime `activeSessions=0`
+- `resourceActiveStreams=0`
+- `activeAnalysisTaps=0`
+
+## 2026-04-28 - `/lab/rules` 영상 분석 관리 개편
+
+통과:
+
+- `./server.sh build`
+- Release GStreamer/ONNX build
+- `./server.sh verify-rule-ui --http-base http://127.0.0.1:8081`: `5/0/0`
+- `./server.sh verify-lab-layout --http-base http://127.0.0.1:8081`: `10/0`
+- 통합 smoke: `19/0/8`
+- `./server.sh verify-multichannel --include-va`: `9/0/0`
+- `./server.sh verify-predev --skip-build --soak-minutes 30`: `68/0/2`, duration 약 2483s
+
+확인:
+
+- `영상 분석 설정`/`영상 분석 보기` 탭 분리
+- `vaRule=<id>` 모드에서 source override 없이 저장 source만 사용
+- 최종 cleanup 후 `8080/8081/8554/8555` listener 없음
+
+## 2026-04-28 - Lab layout 안정화
+
+통과:
+
+- `./server.sh verify-lab-layout`: 390/768/1180/1365/1600 폭에서 stream/image-analysis overflow 없음
+- `./server.sh verify-predev --skip-build --soak-minutes 30`: `68/0/2`, duration 약 2512s
+
+## 2026-04-27 - Redaction 승격과 test mode 분리
+
+통과:
+
+- 사람 객체 자동 모자이크 smoke
+- `./server.sh verify-redaction`
+- `./server.sh test --full`
+- `./server.sh verify-predev`
+
+변경:
+
+- `./server.sh test` 기본값을 `--basic`으로 정리
+- `--full`, `--external`, `--stable` 모드 분리
+
+## 2026-04-27 - Predev 안정화 묶음
+
+통과:
+
+- `./server.sh verify-predev --quick`: `14/0/0`
+- `./server.sh verify-predev --soak-minutes 30`: `89/0/0`
+- summary/report 생성
+- 종료 후 대표 port listener 없음
+
+추가:
+
+- runtime status panel
+- 다채널 WebRTC 수동 테스트 panel
+- `summarize-reports`
+- `verify-event-post --mode recovery`
+
+## 2026-04-27 - 다채널/URI/VA 장기성
+
+통과:
+
+- `./server.sh verify-multichannel --include-va --repeat 3 --single-clients 3 --clients-per-source 2 --hold-ms 12000`: `24/0/0`
+- `./server.sh verify-uri-longrun --iterations 3 --include-external --use-default-external --external-rtsp-routes default,h264,opus`: `12/0/0`
+- `./server.sh verify-va-events --long`: `17/0/0`
+- `./server.sh verify-tracker-stability --long --overlap-focus`: `8/0/0`
+- `./server.sh verify-yolo-layouts --duration 10 --no-download`: `7/0/0`
+- `./server.sh verify-adaptive`: `8/0/0`
+- `./server.sh verify-route-profiles`: `7/0/0`
+- `./server.sh verify-webrtc-ice`: `8/0/0`
+- `./server.sh verify-codecs`: `67/0/3`
+
+보류:
+
+- 외부 운영 TURN relay/auth credential 미확보
+
+## 2026-04-26 - VA event/category/tracker 검증
+
+통과:
+
+- `./server.sh test --no-start`: stable 기준 `15/0/5`
+- `--include-rules --include-va-events`: `6/0/6`
+- `./server.sh verify-route-profiles`: `6/0/0`
+- `./server.sh verify-tracker-stability --long --overlap-focus`: `8/0/0`
+- `./server.sh verify-webrtc-ice --skip-browser --skip-whip`
+- `./server.sh verify-uri-longrun --iterations 1`
+- `./server.sh verify-va-events --duration 30`
+- `./server.sh verify-va-events --long`
+- `./server.sh verify-rule-ui`
+- `./server.sh verify-image-analysis`
+- `./server.sh verify-va-category-samples`
+- `./server.sh verify-event-post --mode schema`
+- `./server.sh verify-event-post --mode queue`
+
+확인:
+
+- presence, enter, exit, line-crossing 이벤트
+- line-crossing `any/forward/reverse` 방향 분할
+- event highlight color/duration 유지
+- POST worker queue/dedupe/failure counter
+- tracker category/class counts와 overlap smoke
+
+## 2026-04-26 - WebRTC ICE/TURN/HLS
+
+통과:
+
+- Mac 로컬 coturn 기준 relay candidate 수집
+- browser WebRTC file consume playback
+- WHIP publish -> WebRTC signaling
+- 외부 HLS Mux/Apple advisory: HLS pad drain 보정 후 RTSP/WebRTC signaling 통과
+- relay 요청 + TURN 미설정 fallback 확인
+
+보류:
+
+- Windows WSL2 coturn end-to-end: Mac -> Windows LAN inbound `No route to host`
+
+## 2026-04-24 - 영상 분석 착수 전 기준선
+
+통과 기준:
+
+- 로컬 `file -> RTSP`
+- 로컬 `file -> WebRTC`
+- 로컬 `RTSP pull -> RTSP/WebRTC`
+- 로컬 `WebRTC publish -> RTSP/WebRTC`
+- 동일 source 다중 session에서 SharedStream 재사용
+- `start/stop/restart/status/diagnose`
+- source descriptor와 audio/video track discovery
+- 서버 중지 후 listener cleanup
+
+이 기준선 이후 VA overlay, rule event, TrackState/Scenario 계층을 단계적으로 추가했습니다.

@@ -1,0 +1,80 @@
+{
+  "frames": [
+    {
+      "streamId": "replay-stream-a",
+      "channelId": "replay-channel-a",
+      "frameId": 1,
+      "timestampMs": 1000,
+      "objects": [
+        {
+          "trackId": 101,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.94,
+          "bbox": { "x": 0.15, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.2, "y": 0.2 },
+          "direction": "right",
+          "directionDx": 0.02,
+          "directionDy": 0.0
+        }
+      ]
+    },
+    {
+      "streamId": "replay-stream-a",
+      "channelId": "replay-channel-a",
+      "frameId": 2,
+      "timestampMs": 3000,
+      "objects": [
+        {
+          "trackId": 101,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.93,
+          "bbox": { "x": 0.2, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.25, "y": 0.2 },
+          "direction": "right",
+          "directionDx": 0.02,
+          "directionDy": 0.0
+        }
+      ]
+    },
+    {
+      "streamId": "replay-stream-a",
+      "channelId": "replay-channel-a",
+      "frameId": 3,
+      "timestampMs": 11000,
+      "objects": [
+        {
+          "trackId": 101,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.92,
+          "bbox": { "x": 0.44, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.49, "y": 0.2 },
+          "direction": "right",
+          "directionDx": 0.02,
+          "directionDy": 0.0
+        }
+      ]
+    },
+    {
+      "streamId": "replay-stream-a",
+      "channelId": "replay-channel-a",
+      "frameId": 4,
+      "timestampMs": 12000,
+      "objects": [
+        {
+          "trackId": 101,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.91,
+          "bbox": { "x": 0.57, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.62, "y": 0.2 },
+          "direction": "right",
+          "directionDx": 0.02,
+          "directionDy": 0.0
+        }
+      ]
+    }
+  ]
+}

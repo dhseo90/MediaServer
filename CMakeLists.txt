@@ -21,16 +21,21 @@ add_executable(media_server
     src/analysis/event_manager.cpp
     src/analysis/event_post_dispatcher.cpp
     src/analysis/event_rule_engine.cpp
+    src/analysis/event_storage.cpp
     src/analysis/image_frame_loader.cpp
+    src/analysis/intrusion_after_line_crossing_scenario.cpp
     src/analysis/intrusion_dwell_scenario.cpp
+    src/analysis/loitering_scenario.cpp
     src/analysis/object_tracker.cpp
     src/analysis/overlay_renderer.cpp
     src/analysis/raw_video_decoder.cpp
+    src/analysis/re_entry_scenario.cpp
     src/analysis/scene_context_builder.cpp
     src/analysis/scenario_engine.cpp
     src/analysis/snapshot_encoder.cpp
     src/analysis/track_state_manager.cpp
     src/analysis/tracked_object_metadata.cpp
+    src/analysis/wrong_direction_scenario.cpp
     src/analysis/yolo_onnx_detector.cpp
     src/app_config.cpp
     src/main.cpp

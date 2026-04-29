@@ -39,6 +39,13 @@ bool StageShouldEmit(EventLifecycleStage stage, const EventLifecycleOptions& opt
     return false;
 }
 
+std::string ChannelMetricKey(const EventLifecycleKey& key) {
+    if (!key.channel_id.empty()) {
+        return key.channel_id;
+    }
+    return key.stream_id;
+}
+
 }  // namespace
 
 const char* ToString(EventLifecycleStage stage) {
@@ -69,6 +76,48 @@ EventLifecycleDecision EventManager::Update(const EventCandidate& candidate,
 
     const std::string key = BuildStateKey(candidate.key);
     EventLifecycleState& state = states_[key];
+    state.key = candidate.key;
+    auto record_decision = [this, &candidate](const EventLifecycleDecision& item) {
+        EventManagerChannelMetrics& channel = channel_metrics_[ChannelMetricKey(candidate.key)];
+        channel.stream_id = candidate.key.stream_id;
+        channel.channel_id = candidate.key.channel_id.empty() ? candidate.key.stream_id : candidate.key.channel_id;
+        if (item.emit) {
+            ++emitted_count_;
+            ++channel.emitted_count;
+        }
+        if (item.suppressed) {
+            ++suppressed_count_;
+            ++channel.suppressed_count;
+        }
+    };
+    auto apply_metadata = [&candidate, &state](EventLifecycleDecision* item) {
+        if (item == nullptr) {
+            return;
+        }
+        AnalysisEvent& event = item->event;
+        event.status = ToString(item->stage);
+        event.start_time_ms = TimestampMs(state.first_seen_ns);
+        event.update_time_ms = TimestampMs(state.last_seen_ns);
+        if (item->stage == EventLifecycleStage::End) {
+            event.end_time_ms = TimestampMs(state.ended_at_ns);
+        }
+        if (event.zone_id.empty() && event.line_id.empty() && event.event_type != "line-crossing") {
+            event.zone_id = candidate.key.zone_id;
+        }
+        if (event.line_id.empty() && event.event_type == "line-crossing") {
+            event.line_id = candidate.key.zone_id;
+        }
+        if (event.scenario_name.empty() &&
+            event.event_type != "presence" &&
+            event.event_type != "enter" &&
+            event.event_type != "exit" &&
+            event.event_type != "line-crossing") {
+            event.scenario_name = candidate.key.scenario_id;
+        }
+        if (event.scenario_phase.empty() && !event.scenario_name.empty()) {
+            event.scenario_phase = event.status;
+        }
+    };
 
     if (!candidate.active) {
         if (state.active) {
@@ -82,11 +131,14 @@ EventLifecycleDecision EventManager::Update(const EventCandidate& candidate,
             if (decision.emit) {
                 state.last_emitted_ns = timestamp_ns;
             }
+            apply_metadata(&decision);
+            record_decision(decision);
             return decision;
         }
         decision.stage = state.cooldown_until_ns > timestamp_ns ? EventLifecycleStage::Cooldown
                                                                 : EventLifecycleStage::None;
         decision.suppressed = decision.stage == EventLifecycleStage::Cooldown;
+        record_decision(decision);
         return decision;
     }
 
@@ -94,6 +146,7 @@ EventLifecycleDecision EventManager::Update(const EventCandidate& candidate,
         state.last_seen_ns = timestamp_ns;
         decision.stage = EventLifecycleStage::Cooldown;
         decision.suppressed = true;
+        record_decision(decision);
         return decision;
     }
 
@@ -125,11 +178,16 @@ EventLifecycleDecision EventManager::Update(const EventCandidate& candidate,
     if (decision.emit) {
         state.last_emitted_ns = timestamp_ns;
     }
+    apply_metadata(&decision);
+    record_decision(decision);
     return decision;
 }
 
 void EventManager::Reset() {
     states_.clear();
+    channel_metrics_.clear();
+    emitted_count_ = 0;
+    suppressed_count_ = 0;
     last_cleanup_time_ns_ = 0;
     cleanup_runs_ = 0;
     states_removed_by_cleanup_ = 0;
@@ -142,6 +200,8 @@ std::size_t EventManager::ActiveStateCount() const {
 EventManagerMetrics EventManager::Metrics() const {
     EventManagerMetrics metrics;
     metrics.total_states = states_.size();
+    metrics.emitted_count = emitted_count_;
+    metrics.suppressed_count = suppressed_count_;
     metrics.cleanup_runs = cleanup_runs_;
     metrics.states_removed_by_cleanup = states_removed_by_cleanup_;
     metrics.last_cleanup_time_ns = last_cleanup_time_ns_;
@@ -157,6 +217,64 @@ EventManagerMetrics EventManager::Metrics() const {
         }
     }
     return metrics;
+}
+
+std::vector<EventManagerChannelMetrics> EventManager::ChannelMetrics() const {
+    std::vector<EventManagerChannelMetrics> metrics;
+    metrics.reserve(channel_metrics_.size());
+    for (const auto& [_, channel] : channel_metrics_) {
+        metrics.push_back(channel);
+    }
+    for (const auto& [_, state] : states_) {
+        const EventLifecycleKey& key = state.key;
+        EventManagerChannelMetrics* channel = nullptr;
+        const std::string metric_key = ChannelMetricKey(key);
+        for (auto& item : metrics) {
+            if ((item.channel_id.empty() ? item.stream_id : item.channel_id) == metric_key) {
+                channel = &item;
+                break;
+            }
+        }
+        if (channel == nullptr) {
+            metrics.push_back(EventManagerChannelMetrics{});
+            channel = &metrics.back();
+            channel->stream_id = key.stream_id;
+            channel->channel_id = key.channel_id.empty() ? key.stream_id : key.channel_id;
+        }
+        ++channel->total_states;
+        if (state.active) {
+            ++channel->active_states;
+        }
+    }
+    std::sort(metrics.begin(), metrics.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.channel_id < rhs.channel_id;
+    });
+    return metrics;
+}
+
+std::vector<EventLifecycleStateSnapshot> EventManager::Snapshot() const {
+    std::vector<EventLifecycleStateSnapshot> snapshot;
+    snapshot.reserve(states_.size());
+    for (const auto& [key, state] : states_) {
+        EventLifecycleStateSnapshot item;
+        item.key = key;
+        item.stream_id = state.key.stream_id;
+        item.channel_id = state.key.channel_id;
+        item.scenario_id = state.key.scenario_id;
+        item.zone_id = state.key.zone_id;
+        item.track_id = state.key.track_id;
+        item.object_key = state.key.object_key;
+        item.stage = state.stage;
+        item.active = state.active;
+        item.confirmed = state.confirmed;
+        item.first_seen_ms = TimestampMs(state.first_seen_ns);
+        item.last_seen_ms = TimestampMs(state.last_seen_ns);
+        item.last_emitted_ms = TimestampMs(state.last_emitted_ns);
+        item.cooldown_until_ms = TimestampMs(state.cooldown_until_ns);
+        item.ended_at_ms = TimestampMs(state.ended_at_ns);
+        snapshot.push_back(std::move(item));
+    }
+    return snapshot;
 }
 
 std::string EventManager::BuildStateKey(const EventLifecycleKey& key) {

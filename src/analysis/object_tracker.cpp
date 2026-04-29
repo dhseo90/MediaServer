@@ -84,6 +84,69 @@ Track::TrailPoint CenterPoint(const Detection& detection, std::int64_t pts) {
     };
 }
 
+float ClassConsistencyScore(const Detection& tracked, const Detection& detection) {
+    return SameClass(tracked, detection) ? 1.0F : 0.0F;
+}
+
+float CenterDistanceScore(float center_distance, const ObjectTrackerOptions& options) {
+    if (options.max_center_distance <= 0.0F) {
+        return 0.0F;
+    }
+    return Clamp01(1.0F - center_distance / options.max_center_distance);
+}
+
+float DirectionScore(const Track& track, const Detection& detection) {
+    if (track.trail.size() < 2) {
+        return 0.5F;
+    }
+
+    constexpr float kDirectionEpsilon = 0.0005F;
+    const auto& previous = track.trail[track.trail.size() - 2];
+    const auto& current = track.trail.back();
+    const float detection_center_x = Clamp01(detection.box.x + detection.box.width * 0.5F);
+    const float detection_center_y = Clamp01(detection.box.y + detection.box.height * 0.5F);
+    const float previous_dx = current.x - previous.x;
+    const float previous_dy = current.y - previous.y;
+    const float candidate_dx = detection_center_x - current.x;
+    const float candidate_dy = detection_center_y - current.y;
+    const float previous_norm = std::sqrt(previous_dx * previous_dx + previous_dy * previous_dy);
+    const float candidate_norm = std::sqrt(candidate_dx * candidate_dx + candidate_dy * candidate_dy);
+    if (previous_norm < kDirectionEpsilon && candidate_norm < kDirectionEpsilon) {
+        return 1.0F;
+    }
+    if (previous_norm < kDirectionEpsilon || candidate_norm < kDirectionEpsilon) {
+        return 0.75F;
+    }
+    const float cosine =
+        (previous_dx * candidate_dx + previous_dy * candidate_dy) / (previous_norm * candidate_norm);
+    return Clamp01((cosine + 1.0F) * 0.5F);
+}
+
+ObjectAssociationScore BuildAssociationScore(const Track& track,
+                                             const Detection& detection,
+                                             const ObjectTrackerOptions& options) {
+    ObjectAssociationScore score;
+    const Detection& tracked = track.detection;
+    score.iou_score = IoU(tracked.box, detection.box);
+    score.center_distance_score = CenterDistanceScore(CenterDistance(tracked.box, detection.box), options);
+    score.direction_score = DirectionScore(track, detection);
+    score.class_consistency_score = ClassConsistencyScore(tracked, detection);
+    const float total_weight =
+        options.iou_weight + options.distance_weight + options.direction_weight + options.class_weight;
+    if (total_weight <= 0.0F) {
+        score.final_score = std::max(score.iou_score,
+                                     score.center_distance_score * options.min_iou);
+        return score;
+    }
+    score.final_score =
+        Clamp01((score.iou_score * options.iou_weight +
+                 score.center_distance_score * options.distance_weight +
+                 score.direction_score * options.direction_weight +
+                 score.class_consistency_score * options.class_weight) /
+                total_weight);
+    return score;
+}
+
 void AppendTrailPoint(Track* track, const Detection& detection, std::int64_t pts, std::size_t max_points) {
     if (track == nullptr || max_points == 0) {
         return;
@@ -117,6 +180,19 @@ std::string TrackState(const Track& track, const ObjectTrackerOptions& options) 
 ObjectTracker::ObjectTracker(ObjectTrackerOptions options) : options_(options) {
     options_.min_iou = std::max(0.0F, std::min(1.0F, options_.min_iou));
     options_.max_center_distance = std::max(0.01F, std::min(1.0F, options_.max_center_distance));
+    options_.iou_weight = std::max(0.0F, options_.iou_weight);
+    options_.distance_weight = std::max(0.0F, options_.distance_weight);
+    options_.direction_weight = std::max(0.0F, options_.direction_weight);
+    options_.class_weight = std::max(0.0F, options_.class_weight);
+    if (options_.iou_weight + options_.distance_weight + options_.direction_weight +
+            options_.class_weight <=
+        0.0F) {
+        options_.iou_weight = app_config::kDefaultAnalysisTrackingIouWeight;
+        options_.distance_weight = app_config::kDefaultAnalysisTrackingDistanceWeight;
+        options_.direction_weight = app_config::kDefaultAnalysisTrackingDirectionWeight;
+        options_.class_weight = app_config::kDefaultAnalysisTrackingClassWeight;
+    }
+    options_.min_association_score = std::max(0.0F, std::min(1.0F, options_.min_association_score));
     options_.smoothing_alpha = std::max(0.0F, std::min(0.95F, options_.smoothing_alpha));
     options_.min_confirmed_hits = std::max<std::uint32_t>(1, options_.min_confirmed_hits);
     options_.max_missed_frames = std::max<std::uint32_t>(1, options_.max_missed_frames);
@@ -143,7 +219,7 @@ void ObjectTracker::Update(AnalysisResult* result) {
     struct Candidate {
         std::size_t track_index{0};
         std::size_t detection_index{0};
-        float score{0.0F};
+        ObjectAssociationScore score;
     };
 
     std::vector<Candidate> candidates;
@@ -164,15 +240,18 @@ void ObjectTracker::Update(AnalysisResult* result) {
                 continue;
             }
 
-            // IoU가 낮아도 중심점이 충분히 가까우면 일시적인 box 흔들림으로 보고 약한 후보로 둔다.
-            const float center_score =
-                std::max(0.0F, 1.0F - center_distance / options_.max_center_distance) * options_.min_iou;
-            candidates.push_back(Candidate{track_index, detection_index, std::max(iou, center_score)});
+            const ObjectAssociationScore score =
+                BuildAssociationScore(tracks_[track_index].public_track, detection, options_);
+            if (score.class_consistency_score <= 0.0F ||
+                score.final_score < options_.min_association_score) {
+                continue;
+            }
+            candidates.push_back(Candidate{track_index, detection_index, score});
         }
     }
 
     std::sort(candidates.begin(), candidates.end(), [](const Candidate& lhs, const Candidate& rhs) {
-        return lhs.score > rhs.score;
+        return lhs.score.final_score > rhs.score.final_score;
     });
 
     std::vector<bool> matched_tracks(tracks_.size(), false);
@@ -184,7 +263,9 @@ void ObjectTracker::Update(AnalysisResult* result) {
 
         ActiveTrack& track = tracks_[candidate.track_index];
         Detection detection = result->detections[candidate.detection_index];
+        const bool was_lost_buffer_track = track.public_track.missed > 0;
         detection.track_id = track.public_track.track_id;
+        detection.association_confidence = candidate.score.final_score;
         detection.box = SmoothRect(track.public_track.detection.box, detection.box, options_.smoothing_alpha);
 
         track.public_track.detection = detection;
@@ -192,7 +273,8 @@ void ObjectTracker::Update(AnalysisResult* result) {
         ++track.public_track.hits;
         track.public_track.missed = 0;
         track.public_track.last_seen_pts = result->pts;
-        track.public_track.state = TrackState(track.public_track, options_);
+        track.public_track.state =
+            was_lost_buffer_track ? "reacquired" : TrackState(track.public_track, options_);
         AppendTrailPoint(&track.public_track, detection, result->pts, options_.max_trail_points);
 
         result->detections[candidate.detection_index] = detection;
@@ -209,10 +291,12 @@ void ObjectTracker::Update(AnalysisResult* result) {
         if (!ShouldTrackDetection(detection, options_)) {
             // whitelist 밖 객체는 detection overlay만 유지하고 trackId/trail 부하는 만들지 않는다.
             detection.track_id = 0;
+            detection.association_confidence = 0.0F;
             result->detections[detection_index] = detection;
             continue;
         }
         detection.track_id = next_track_id_++;
+        detection.association_confidence = 1.0F;
         Track public_track;
         public_track.track_id = detection.track_id;
         public_track.detection = detection;

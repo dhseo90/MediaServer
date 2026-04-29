@@ -64,6 +64,10 @@ Usage:
                  정적 이미지 입력의 YOLO metadata/snapshot/overlay API를 검증합니다.
   verify-analysis-state
                  TrackState/SceneContext/EventManager/Scenario/Appearance hook 단위 smoke를 검증합니다.
+  replay-va-metadata
+                 저장된 detection/tracking metadata를 media pipeline 없이 VA rule/scenario 계층에 replay합니다.
+  verify-va-replay
+                 VA metadata replay baseline fixture와 expected event JSON을 비교 검증합니다.
   verify-predev  기능 개발 재개 전 smoke, 다채널, event POST, cleanup, report를 묶어 검증합니다.
   summarize-reports
                  /tmp의 검증 summary JSON/NDJSON을 짧은 Markdown 리포트로 변환합니다.
@@ -221,6 +225,14 @@ case "${cmd}" in
   verify-analysis-state)
     require_internal verify_analysis_state_smoke.sh
     exec "${INTERNAL_DIR}/verify_analysis_state_smoke.sh" "$@"
+    ;;
+  replay-va-metadata)
+    require_internal replay_va_metadata.sh
+    exec "${INTERNAL_DIR}/replay_va_metadata.sh" "$@"
+    ;;
+  verify-va-replay)
+    require_internal verify_va_replay_baselines.sh
+    exec "${INTERNAL_DIR}/verify_va_replay_baselines.sh" "$@"
     ;;
   verify-predev)
     require_internal verify_predev_stability.sh

@@ -1,0 +1,51 @@
+{
+  "timestampToleranceMs": 250,
+  "events": [
+    {
+      "streamId": "baseline-dwell",
+      "channelId": "baseline-dwell",
+      "frameId": 1,
+      "timestampMs": 1000,
+      "type": "presence",
+      "zoneId": "intrusion-zone",
+      "trackId": 31
+    },
+    {
+      "streamId": "baseline-dwell",
+      "channelId": "baseline-dwell",
+      "frameId": 2,
+      "timestampMs": 3000,
+      "type": "presence",
+      "zoneId": "intrusion-zone",
+      "trackId": 31
+    },
+    {
+      "streamId": "baseline-dwell",
+      "channelId": "baseline-dwell",
+      "frameId": 3,
+      "timestampMs": 11000,
+      "type": "presence",
+      "zoneId": "intrusion-zone",
+      "trackId": 31
+    },
+    {
+      "streamId": "baseline-dwell",
+      "channelId": "baseline-dwell",
+      "frameId": 3,
+      "timestampMs": 11000,
+      "type": "intrusion-dwell",
+      "zoneId": "intrusion-zone",
+      "trackId": 31
+    }
+  ],
+  "frames": [
+    {
+      "streamId": "baseline-dwell",
+      "channelId": "baseline-dwell",
+      "frameId": 3,
+      "eventCount": 2,
+      "trackState": { "total": 1, "active": 1, "lost": 0, "terminated": 0 },
+      "scenarioState": { "instances": 1, "active": 1 }
+    }
+  ]
+}

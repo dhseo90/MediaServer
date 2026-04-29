@@ -1,0 +1,37 @@
+{
+  "timestampToleranceMs": 250,
+  "events": [
+    {
+      "streamId": "baseline-cleanup",
+      "channelId": "baseline-cleanup",
+      "frameId": 1,
+      "timestampMs": 1000,
+      "type": "presence",
+      "zoneId": "intrusion-zone",
+      "trackId": 41
+    }
+  ],
+  "frames": [
+    {
+      "streamId": "baseline-cleanup",
+      "channelId": "baseline-cleanup",
+      "frameId": 2,
+      "eventCount": 0,
+      "trackState": { "total": 1, "active": 0, "lost": 1, "terminated": 0 }
+    },
+    {
+      "streamId": "baseline-cleanup",
+      "channelId": "baseline-cleanup",
+      "frameId": 3,
+      "eventCount": 0,
+      "trackState": { "total": 1, "active": 0, "lost": 0, "terminated": 1 }
+    },
+    {
+      "streamId": "baseline-cleanup",
+      "channelId": "baseline-cleanup",
+      "frameId": 4,
+      "eventCount": 0,
+      "trackState": { "total": 0, "active": 0, "lost": 0, "terminated": 0, "tracksRemovedByCleanup": 1 }
+    }
+  ]
+}

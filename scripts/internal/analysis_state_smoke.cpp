@@ -3,17 +3,25 @@
 // Appearance hook, cleanup 정책을 mock metadata로 직접 검증한다.
 #include "analysis/appearance_extractor.h"
 #include "analysis/event_manager.h"
+#include "analysis/intrusion_after_line_crossing_scenario.h"
 #include "analysis/intrusion_dwell_scenario.h"
+#include "analysis/loitering_scenario.h"
+#include "analysis/object_tracker.h"
+#include "analysis/re_entry_scenario.h"
 #include "analysis/scenario_engine.h"
 #include "analysis/scene_context_builder.h"
 #include "analysis/track_state_manager.h"
+#include "analysis/wrong_direction_scenario.h"
+#include "app_config.h"
 
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace {
@@ -63,6 +71,32 @@ TrackedObjectMetadata MakeObject(std::uint64_t track_id,
     return object;
 }
 
+Detection MakeDetection(int class_id,
+                        const std::string& label,
+                        float center_x,
+                        float center_y,
+                        float width = 0.1F,
+                        float height = 0.1F) {
+    Detection detection;
+    detection.class_id = class_id;
+    detection.label = label;
+    detection.score = 0.9F;
+    detection.box = RectF{center_x - width * 0.5F, center_y - height * 0.5F, width, height};
+    return detection;
+}
+
+AnalysisResult MakeTrackerFrame(std::uint64_t frame_id,
+                                std::int64_t timestamp_ms,
+                                std::vector<Detection> detections) {
+    AnalysisResult result;
+    result.source_key = "tracker-smoke";
+    result.profile_key = "tracker-smoke";
+    result.frame_id = frame_id;
+    result.pts = Ms(timestamp_ms);
+    result.detections = std::move(detections);
+    return result;
+}
+
 TrackRuntimeState MakeTrackState(std::uint64_t track_id,
                                  std::int64_t timestamp_ms,
                                  float center_x,
@@ -96,6 +130,128 @@ const TrackRuntimeState* FindTrack(const std::vector<TrackRuntimeState>& states,
         }
     }
     return nullptr;
+}
+
+bool HasTrackingIssue(const TrackingIssueReport& report,
+                      const std::string& issue_type,
+                      std::uint64_t track_id) {
+    for (const auto& issue : report.issues) {
+        if (issue.issue_type == issue_type && issue.track_id == track_id) {
+            return true;
+        }
+    }
+    return false;
+}
+
+class RecordingAppearanceExtractor final : public IAppearanceExtractor {
+public:
+    bool Enabled() const override {
+        return true;
+    }
+
+    AppearanceExtractorStats Stats() const override {
+        return stats;
+    }
+
+    std::optional<AppearanceProfile> Extract(const AppearanceExtractionInput& input,
+                                             const AppearanceProfile* previous_profile) override {
+        ++stats.request_count;
+        last_crop_width = input.crop_width;
+        last_crop_height = input.crop_height;
+        if (input.crop_rgb.empty()) {
+            ++stats.missing_crop_count;
+            ++stats.dropped_count;
+            return std::nullopt;
+        }
+        ++stats.completed_count;
+        AppearanceProfile profile = previous_profile != nullptr ? *previous_profile : AppearanceProfile{};
+        profile.embedding = {0.1F, 0.2F, 0.3F};
+        profile.embedding_quality = 0.9F;
+        profile.last_updated_time_ns = input.timestamp_ns;
+        profile.last_updated_time_ms = input.timestamp_ms;
+        profile.sample_count = previous_profile != nullptr ? previous_profile->sample_count + 1 : 1;
+        return profile;
+    }
+
+    mutable AppearanceExtractorStats stats{.enabled = true, .extractor_name = "recording"};
+    int last_crop_width{0};
+    int last_crop_height{0};
+};
+
+void VerifyObjectTrackerAssociationScoring() {
+    ObjectTrackerOptions options;
+    options.class_labels = {"*"};
+    options.smoothing_alpha = 0.0F;
+    options.max_center_distance = 0.2F;
+    options.min_iou = 0.05F;
+    options.iou_weight = 0.0F;
+    options.distance_weight = 0.0F;
+    options.direction_weight = 1.0F;
+    options.class_weight = 0.0F;
+    options.min_association_score = 0.4F;
+    ObjectTracker tracker(options);
+
+    auto frame1 = MakeTrackerFrame(1, 1000, {MakeDetection(0, "person", 0.20F, 0.20F)});
+    tracker.Update(&frame1);
+    Expect(frame1.detections.size() == 1 && frame1.detections[0].track_id == 1,
+           "ObjectTracker must create a first track");
+
+    auto frame2 = MakeTrackerFrame(2, 1100, {MakeDetection(0, "person", 0.25F, 0.20F)});
+    tracker.Update(&frame2);
+    Expect(frame2.detections[0].track_id == 1 &&
+               frame2.detections[0].association_confidence >= 0.4F,
+           "ObjectTracker must keep the track before direction history is mature");
+
+    auto frame3 = MakeTrackerFrame(3,
+                                   1200,
+                                   {MakeDetection(0, "person", 0.22F, 0.20F),
+                                    MakeDetection(0, "person", 0.30F, 0.20F)});
+    tracker.Update(&frame3);
+    Expect(frame3.detections[0].track_id != 1 && frame3.detections[1].track_id == 1,
+           "direction score must prefer the candidate that continues the existing movement");
+    Expect(frame3.detections[1].association_confidence >= 0.99F,
+           "matched detection must carry the final association score");
+
+    auto frame4 = MakeTrackerFrame(4, 1300, {MakeDetection(2, "car", 0.34F, 0.20F)});
+    tracker.Update(&frame4);
+    Expect(frame4.detections[0].track_id != 1,
+           "class consistency must prevent a different class from stealing an existing track id");
+
+    ObjectTrackerOptions lost_buffer_options;
+    lost_buffer_options.class_labels = {"*"};
+    lost_buffer_options.smoothing_alpha = 0.0F;
+    lost_buffer_options.max_missed_frames = 2;
+    lost_buffer_options.min_iou = 0.05F;
+    lost_buffer_options.max_center_distance = 0.2F;
+    ObjectTracker lost_buffer_tracker(lost_buffer_options);
+    auto lost_frame1 = MakeTrackerFrame(10, 1000, {MakeDetection(0, "person", 0.20F, 0.20F)});
+    lost_buffer_tracker.Update(&lost_frame1);
+    auto lost_frame2 = MakeTrackerFrame(11, 1100, {});
+    lost_buffer_tracker.Update(&lost_frame2);
+    auto reacquired_frame = MakeTrackerFrame(12, 1200, {MakeDetection(0, "person", 0.21F, 0.20F)});
+    lost_buffer_tracker.Update(&reacquired_frame);
+    Expect(reacquired_frame.detections[0].track_id == lost_frame1.detections[0].track_id &&
+               !reacquired_frame.tracks.empty() &&
+               reacquired_frame.tracks[0].state == "reacquired",
+           "ObjectTracker must mark a lost-buffer match as reacquired for one frame");
+    auto stable_frame = MakeTrackerFrame(13, 1300, {MakeDetection(0, "person", 0.22F, 0.20F)});
+    lost_buffer_tracker.Update(&stable_frame);
+    Expect(!stable_frame.tracks.empty() && stable_frame.tracks[0].state != "reacquired",
+           "ObjectTracker reacquired state must clear after the next stable observation");
+
+    TrackStateManager manager;
+    auto object1 = MakeObject(90, 1, 1000, 0.2F, 0.2F);
+    object1.association_confidence = 1.0F;
+    auto object2 = MakeObject(90, 2, 1100, 0.22F, 0.2F);
+    object2.association_confidence = 0.42F;
+    manager.Update("stream-a", "channel-a", {object1}, Ms(1000));
+    manager.Update("stream-a", "channel-a", {object2}, Ms(1100));
+    const auto states = manager.Snapshot("channel-a");
+    const auto* track = FindTrack(states, 90);
+    Expect(track != nullptr && std::fabs(track->health.association_confidence - 0.42F) < 0.001F,
+           "TrackHealth must use tracker associationConfidence when metadata provides it");
+
+    Pass("ObjectTracker IoU/distance/direction/class association scoring");
 }
 
 SceneZoneDefinition MakeZone(const std::string& zone_id = "restricted-a",
@@ -166,6 +322,23 @@ SceneContext MakeSceneContext(std::int64_t timestamp_ms,
     return context;
 }
 
+std::vector<TrackTrajectoryPoint> MakeTrajectory(std::int64_t start_ms,
+                                                 const std::vector<NormalizedPointF>& points,
+                                                 std::int64_t step_ms = 1000) {
+    std::vector<TrackTrajectoryPoint> trajectory;
+    trajectory.reserve(points.size());
+    for (std::size_t i = 0; i < points.size(); ++i) {
+        TrackTrajectoryPoint point;
+        point.frame_id = static_cast<std::uint64_t>(i + 1);
+        point.timestamp_ms = start_ms + static_cast<std::int64_t>(i) * step_ms;
+        point.timestamp_ns = Ms(point.timestamp_ms);
+        point.center = points[i];
+        point.foot_point = points[i];
+        trajectory.push_back(point);
+    }
+    return trajectory;
+}
+
 EventCandidate MakeCandidate(std::uint64_t track_id,
                              std::int64_t timestamp_ms,
                              bool active,
@@ -202,6 +375,12 @@ void VerifyTrackStateManagerAndHealth() {
     options.cleanup_interval_ns = 0;
     options.missed_frame_unstable_threshold = 1;
     options.direction_change_unstable_threshold = 2;
+    options.tracking_issue_report_enabled = true;
+    options.tracking_issue_log_enabled = false;
+    options.tracking_issue_rate_limit_ns = 0;
+    options.tracking_issue_overlap_risk_threshold = 0.1F;
+    options.tracking_issue_missed_frame_jump_threshold = 1;
+    options.tracking_issue_direction_change_jump_threshold = 1;
     TrackStateManager manager(options);
 
     manager.Update("stream-a", "channel-a", {MakeObject(1, 1, 1000, 0.2F, 0.2F)}, Ms(1000));
@@ -230,6 +409,10 @@ void VerifyTrackStateManagerAndHealth() {
     Expect(track_a->lost_since_time_ms == 2300, "lostSince must be calculated from lastSeen+timeout");
     Expect(track_a->health.missed_frame_count > 0 && track_a->health.last_health_event == "lost",
            "TrackHealth must record missed/lost state");
+    auto issue_report = manager.TrackingIssueSnapshot("channel-a");
+    Expect(HasTrackingIssue(issue_report, "missed-frame-spike", 1) &&
+               HasTrackingIssue(issue_report, "lost", 1),
+           "Tracking issue report must record missed-frame and lost issues");
 
     manager.Update("stream-a", "channel-a", {}, Ms(3300));
     channel_a = manager.Snapshot("channel-a");
@@ -266,6 +449,9 @@ void VerifyTrackStateManagerAndHealth() {
     Expect(health_track != nullptr && health_track->health.overlap_risk > 0.0F &&
                health_track->health.is_unstable,
            "TrackHealth must flag overlap risk as unstable");
+    issue_report = health_manager.TrackingIssueSnapshot("channel-a");
+    Expect(HasTrackingIssue(issue_report, "overlap-risk", 20),
+           "Tracking issue report must record high overlap risk");
 
     health_manager.Update("stream-a", "channel-a", {MakeObject(20, 2, 1100, 0.9F, 0.9F, "left")}, Ms(1100));
     health_manager.Update("stream-a", "channel-a", {MakeObject(20, 3, 1200, 0.2F, 0.2F, "right")}, Ms(1200));
@@ -275,6 +461,26 @@ void VerifyTrackStateManagerAndHealth() {
                (health_track->health.direction_change_count > 0 ||
                 health_track->health.association_confidence < options.low_association_confidence_threshold),
            "TrackHealth must record direction changes or low association confidence");
+    issue_report = health_manager.TrackingIssueSnapshot("channel-a");
+    Expect(HasTrackingIssue(issue_report, "direction-change-spike", 20) ||
+               HasTrackingIssue(issue_report, "low-association-confidence", 20),
+           "Tracking issue report must record direction or association instability");
+
+    health_manager.Update("stream-a", "channel-a", {}, Ms(2300));
+    health_manager.Update("stream-a", "channel-a", {MakeObject(20, 4, 2400, 0.21F, 0.2F, "right")}, Ms(2400));
+    health_states = health_manager.Snapshot("channel-a");
+    health_track = FindTrack(health_states, 20);
+    Expect(health_track != nullptr && health_track->lifecycle_state == TrackLifecycleState::Reacquired,
+           "TrackStateManager must expose Lost -> Reacquired as a lifecycle state");
+    Expect(health_manager.Metrics().reacquired_tracks == 1 &&
+               health_manager.Metrics().active_tracks >= 1,
+           "TrackStateManager metrics must count reacquired tracks as active-like");
+    issue_report = health_manager.TrackingIssueSnapshot("channel-a");
+    Expect(HasTrackingIssue(issue_report, "reacquired", 20),
+           "Tracking issue report must record lost to reacquired transitions");
+    const std::string issue_json = TrackingIssueReportToJson(issue_report);
+    Expect(issue_json.find("\"schema\":\"media-server.va.tracking-issue-report.v1\"") != std::string::npos,
+           "Tracking issue report must support JSON output");
 
     TrackStateManager appearance_manager([&] {
         TrackStateManagerOptions appearance_options = options;
@@ -295,7 +501,82 @@ void VerifyTrackStateManagerAndHealth() {
     Expect(!no_op.Extract(AppearanceExtractionInput{}, nullptr).has_value(),
            "NoOpAppearanceExtractor must not call a real model");
 
-    Pass("TrackStateManager, TrackHealth, Appearance NoOp, cleanup limits");
+    auto recording_extractor = std::make_shared<RecordingAppearanceExtractor>();
+    TrackStateManager crop_manager([&] {
+        TrackStateManagerOptions crop_options = options;
+        crop_options.appearance_update_policy.enabled = true;
+        crop_options.appearance_update_policy.on_track_created = true;
+        return crop_options;
+    }(), recording_extractor);
+    RawVideoFrame crop_frame;
+    crop_frame.source_key = "stream-a";
+    crop_frame.width = 20;
+    crop_frame.height = 20;
+    crop_frame.format = PixelFormat::RGB;
+    crop_frame.pts = Ms(1000);
+    crop_frame.data.assign(static_cast<std::size_t>(crop_frame.width * crop_frame.height * 3), 127U);
+    crop_manager.Update("stream-a",
+                        "channel-a",
+                        {MakeObject(31, 1, 1000, 0.5F, 0.5F)},
+                        Ms(1000),
+                        &crop_frame);
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    crop_manager.Update("stream-a", "channel-a", {}, Ms(1010));
+    const auto crop_states = crop_manager.Snapshot("channel-a");
+    const auto* crop_track = FindTrack(crop_states, 31);
+    Expect(crop_track != nullptr && crop_track->appearance_profile.has_value() &&
+               crop_track->appearance_profile->embedding.size() == 3 &&
+               recording_extractor->last_crop_width > 0 &&
+               crop_manager.Metrics().appearance_extractor_stats.completed_count == 1,
+           "TrackStateManager must pass bounded RGB bbox crops to appearance extractor policy calls");
+
+    auto budget_extractor = std::make_shared<RecordingAppearanceExtractor>();
+    TrackStateManager budget_manager([&] {
+        TrackStateManagerOptions budget_options = options;
+        budget_options.appearance_update_policy.enabled = true;
+        budget_options.appearance_update_policy.on_track_created = true;
+        budget_options.appearance_update_policy.max_queue_size = 1;
+        budget_options.appearance_update_policy.per_stream_rate_limit_ms = 1000;
+        budget_options.appearance_update_policy.global_max_queue_size = 4;
+        return budget_options;
+    }(), budget_extractor);
+    budget_manager.Update("stream-a",
+                          "channel-a",
+                          {MakeObject(32, 1, 2000, 0.4F, 0.4F),
+                           MakeObject(33, 1, 2000, 0.6F, 0.6F)},
+                          Ms(2000),
+                          &crop_frame);
+    const auto budget_stats = budget_manager.Metrics().appearance_extractor_stats;
+    Expect(budget_stats.queued_count == 1 && budget_stats.rate_limited_count == 1,
+           "appearance execution budget must enforce per-stream Re-ID rate limits");
+
+    app::AppConfig fallback_config;
+    fallback_config.analysis_appearance_enabled = true;
+    fallback_config.analysis_appearance_extractor = "onnx-reid";
+    fallback_config.analysis_appearance_model_path = "/tmp/media-server-missing-reid-model.onnx";
+    const auto fallback_extractor = CreateAppearanceExtractorFromConfig(fallback_config);
+    Expect(fallback_extractor != nullptr &&
+               fallback_extractor->Stats().extractor_name == "noop",
+           "missing Re-ID model path must fall back to NoOpAppearanceExtractor");
+
+    TrackStateManagerOptions speed_options = options;
+    speed_options.use_ground_plane_for_speed = true;
+    TrackStateManager speed_manager(speed_options);
+    auto speed_object1 = MakeObject(50, 1, 1000, 0.2F, 0.2F);
+    speed_object1.ground_point = GroundPointF{0.0, 0.0, true, false, "meters"};
+    auto speed_object2 = MakeObject(50, 2, 2000, 0.3F, 0.2F);
+    speed_object2.ground_point = GroundPointF{3.0, 4.0, true, false, "meters"};
+    speed_manager.Update("stream-a", "channel-a", {speed_object1}, Ms(1000));
+    speed_manager.Update("stream-a", "channel-a", {speed_object2}, Ms(2000));
+    const auto speed_states = speed_manager.Snapshot("channel-a");
+    const auto* speed_track = FindTrack(speed_states, 50);
+    Expect(speed_track != nullptr && speed_track->latest_ground_point.has_value() &&
+               speed_track->latest_speed_uses_ground_plane &&
+               std::fabs(speed_track->latest_speed - 5.0) < 0.0001 &&
+               speed_track->latest_speed_units == "meters_per_second",
+           "TrackStateManager must calculate optional ground-plane speed from metadata ground points");
+
+    Pass("TrackStateManager, TrackHealth, Appearance extractor/fallback, cleanup limits");
 }
 
 void VerifySceneContextBuilder() {
@@ -315,6 +596,53 @@ void VerifySceneContextBuilder() {
     context = builder.Build("stream-a", "channel-a", {state}, {zone}, {line}, Ms(3000));
     Expect(context.tracks[0].zone_state.dwell_time_ms == 2000,
            "ZoneState dwellTimeMs must be calculated from enteredAt");
+
+    SceneGeometryConfig calibrated_geometry;
+    calibrated_geometry.zones = {zone};
+    calibrated_geometry.lines = {line};
+    HomographyConfig homography;
+    homography.calibration_id = "calibration-a";
+    homography.channel_id = "channel-a";
+    homography.enabled = true;
+    homography.image_to_ground = {2.0, 0.0, 0.0,
+                                  0.0, 3.0, 0.0,
+                                  0.0, 0.0, 1.0};
+    homography.units = "meters";
+    calibrated_geometry.homographies.push_back(homography);
+    const auto calibrated_trajectory = MakeTrajectory(1000,
+                                                      {NormalizedPointF{0.2F, 0.25F},
+                                                       NormalizedPointF{0.25F, 0.25F}},
+                                                      2000);
+    state.trajectory.assign(calibrated_trajectory.begin(), calibrated_trajectory.end());
+    SceneContextBuilderOptions calibrated_builder_options;
+    calibrated_builder_options.use_ground_plane_for_speed = true;
+    SceneContextBuilder calibrated_builder(calibrated_builder_options);
+    context = calibrated_builder.Build("stream-a", "channel-a", {state}, calibrated_geometry, Ms(3000));
+    Expect(!context.tracks.empty() && std::fabs(context.tracks[0].foot_point.x - 0.25F) < 0.0001F &&
+               std::fabs(context.tracks[0].foot_point.y - 0.25F) < 0.0001F,
+           "SceneContextBuilder must use bbox bottom center as the image foot point");
+    Expect(context.tracks[0].ground_point.valid &&
+               !context.tracks[0].ground_point.fallback_to_image &&
+               std::fabs(context.tracks[0].ground_point.x - 0.5) < 0.0001 &&
+               std::fabs(context.tracks[0].ground_point.y - 0.75) < 0.0001 &&
+               context.tracks[0].ground_point.units == "meters",
+           "SceneContextBuilder must project bbox bottom center to ground-plane coordinates");
+    Expect(context.tracks[0].trajectory.size() == 2 &&
+               context.tracks[0].trajectory.back().ground_point.has_value() &&
+               context.tracks[0].trajectory.back().ground_point->valid &&
+               std::fabs(context.tracks[0].trajectory.back().ground_point->x - 0.5) < 0.0001 &&
+               context.tracks[0].speed_uses_ground_plane &&
+               std::fabs(context.tracks[0].speed - 0.05) < 0.0001 &&
+               context.tracks[0].speed_units == "meters_per_second",
+           "SceneContextBuilder must project trajectory points and calculate optional ground-plane speed");
+
+    SceneGeometryConfig fallback_geometry;
+    fallback_geometry.zones = {zone};
+    context = builder.Build("stream-a", "channel-a", {state}, fallback_geometry, Ms(3100));
+    Expect(!context.tracks.empty() && !context.tracks[0].ground_point.valid &&
+               context.tracks[0].ground_point.fallback_to_image &&
+               context.tracks[0].ground_point.units == "image",
+           "SceneContextBuilder must fallback to image coordinates when homography is unset");
 
     state = MakeTrackState(1, 4000, 0.6F, 0.2F);
     context = builder.Build("stream-a", "channel-a", {state}, {zone}, {line}, Ms(4000));
@@ -458,14 +786,320 @@ void VerifyScenarioEngineAndIntrusionDwell() {
     Pass("ScenarioEngine and IntrusionDwellScenario phase/dedup/re-entry/cleanup");
 }
 
+void VerifyReEntryScenario() {
+    ScenarioEngineOptions engine_options;
+    engine_options.enabled = true;
+    engine_options.default_cooldown_ms = 1000;
+    engine_options.default_update_interval_ms = 0;
+    engine_options.ended_retention_ms = 500;
+    engine_options.cleanup_interval_ms = 0;
+    engine_options.max_instances_per_channel = 32;
+
+    ReEntryScenarioOptions options;
+    options.enabled = true;
+    options.re_entry_window_ms = 3000;
+    options.cooldown_ms = 1000;
+    options.target_class_tokens = {"person"};
+    options.target_zone_ids = {"restricted-a"};
+
+    ScenarioEngine engine(engine_options);
+    engine.RegisterScenario(std::make_unique<ReEntryScenario>(options));
+    EventManager event_manager;
+
+    auto exit_context = MakeTrackContext(7, 1000, false, 0);
+    exit_context.zone_state.previous_zone = "restricted-a";
+    exit_context.zone_state.exited_at_ns = Ms(1000);
+    exit_context.zone_state.exited_at_ms = 1000;
+    exit_context.zone_state.changed = true;
+    exit_context.zone_states[0] = exit_context.zone_state;
+    auto events = engine.Evaluate(MakeSceneContext(1000, {exit_context}), &event_manager);
+    Expect(events.empty(), "ReEntry must only record exit without emitting");
+
+    events = engine.Evaluate(MakeSceneContext(2500, {MakeTrackContext(7, 2500, true, 0)}),
+                             &event_manager);
+    Expect(events.size() == 1 && events[0].event_type == "re-entry" &&
+               events[0].track_id == 7 && events[0].zone_id == "restricted-a",
+           "ReEntry must emit once when the same track re-enters inside the window");
+
+    events = engine.Evaluate(MakeSceneContext(2600, {MakeTrackContext(7, 2600, true, 100)}),
+                             &event_manager);
+    Expect(events.empty(), "ReEntry must not duplicate while the track remains inside");
+
+    auto second_exit = MakeTrackContext(7, 2700, false, 0);
+    second_exit.zone_state.previous_zone = "restricted-a";
+    second_exit.zone_state.exited_at_ns = Ms(2700);
+    second_exit.zone_state.exited_at_ms = 2700;
+    second_exit.zone_state.changed = true;
+    second_exit.zone_states[0] = second_exit.zone_state;
+    events = engine.Evaluate(MakeSceneContext(2700, {second_exit}), &event_manager);
+    Expect(events.empty(), "ReEntry end phase must stay internal when emit_end is disabled");
+
+    events = engine.Evaluate(MakeSceneContext(2800, {MakeTrackContext(7, 2800, true, 0)}),
+                             &event_manager);
+    Expect(events.empty(), "ReEntry must honor cooldown after a previous event");
+
+    auto late_exit = MakeTrackContext(8, 1000, false, 0);
+    late_exit.zone_state.previous_zone = "restricted-a";
+    late_exit.zone_state.exited_at_ns = Ms(1000);
+    late_exit.zone_state.exited_at_ms = 1000;
+    late_exit.zone_state.changed = true;
+    late_exit.zone_states[0] = late_exit.zone_state;
+    engine.Evaluate(MakeSceneContext(1000, {late_exit}), &event_manager);
+    events = engine.Evaluate(MakeSceneContext(4501, {MakeTrackContext(8, 4501, true, 0)}),
+                             &event_manager);
+    Expect(events.empty(), "ReEntry must not emit when re-entry window expired");
+
+    Pass("ReEntryScenario exit/re-entry/cooldown/window");
+}
+
+LineCrossState MakeLineState(const std::string& line_id,
+                             const std::string& allowed_direction,
+                             const std::string& raw_direction,
+                             bool raw_crossed = true) {
+    LineCrossState line;
+    line.line_id = line_id;
+    line.allowed_direction = allowed_direction;
+    line.previous_side = raw_direction == "reverse" ? 0.3F : -0.3F;
+    line.current_side = raw_direction == "reverse" ? -0.3F : 0.3F;
+    line.raw_crossed = raw_crossed;
+    line.raw_direction = raw_crossed ? raw_direction : "none";
+    line.direction_allowed = allowed_direction == "any" || allowed_direction == raw_direction;
+    line.crossed = raw_crossed && line.direction_allowed;
+    line.direction = line.crossed ? raw_direction : "none";
+    return line;
+}
+
+void VerifyWrongDirectionScenario() {
+    ScenarioEngineOptions engine_options;
+    engine_options.enabled = true;
+    engine_options.default_cooldown_ms = 1000;
+    engine_options.default_update_interval_ms = 0;
+    engine_options.ended_retention_ms = 500;
+    engine_options.cleanup_interval_ms = 0;
+    engine_options.max_instances_per_channel = 32;
+
+    WrongDirectionScenarioOptions options;
+    options.enabled = true;
+    options.cooldown_ms = 1000;
+    options.target_class_tokens = {"person"};
+    options.target_line_ids = {"line-a"};
+
+    ScenarioEngine engine(engine_options);
+    engine.RegisterScenario(std::make_unique<WrongDirectionScenario>(options));
+    EventManager event_manager;
+
+    auto allowed_track = MakeTrackContext(20, 1000, false, 0);
+    allowed_track.line_states.push_back(MakeLineState("line-a", "forward", "forward"));
+    auto events = engine.Evaluate(MakeSceneContext(1000, {allowed_track}), &event_manager);
+    Expect(events.empty(), "WrongDirection must not emit for allowed crossing direction");
+
+    auto wrong_track = MakeTrackContext(20, 2000, false, 0);
+    wrong_track.line_states.push_back(MakeLineState("line-a", "forward", "reverse"));
+    events = engine.Evaluate(MakeSceneContext(2000, {wrong_track}), &event_manager);
+    Expect(events.size() == 1 && events[0].event_type == "wrong-direction" &&
+               events[0].line_id == "line-a" && events[0].track_id == 20,
+           "WrongDirection must emit when raw crossing direction violates allowedDirection");
+
+    auto no_cross_track = MakeTrackContext(20, 2100, false, 0);
+    no_cross_track.line_states.push_back(MakeLineState("line-a", "forward", "none", false));
+    events = engine.Evaluate(MakeSceneContext(2100, {no_cross_track}), &event_manager);
+    Expect(events.empty(), "WrongDirection end phase must stay internal when emit_end is disabled");
+
+    auto cooldown_track = MakeTrackContext(20, 2200, false, 0);
+    cooldown_track.line_states.push_back(MakeLineState("line-a", "forward", "reverse"));
+    events = engine.Evaluate(MakeSceneContext(2200, {cooldown_track}), &event_manager);
+    Expect(events.empty(), "WrongDirection must suppress duplicate crossing during cooldown");
+
+    WrongDirectionScenarioOptions override_options;
+    override_options.enabled = true;
+    override_options.cooldown_ms = 1000;
+    override_options.target_class_tokens = {"person"};
+    override_options.allowed_direction_rules = {"line-b:reverse"};
+    ScenarioEngine override_engine(engine_options);
+    override_engine.RegisterScenario(std::make_unique<WrongDirectionScenario>(override_options));
+    EventManager override_events;
+    auto override_track = MakeTrackContext(21, 3000, false, 0);
+    override_track.line_states.push_back(MakeLineState("line-b", "any", "forward"));
+    events = override_engine.Evaluate(MakeSceneContext(3000, {override_track}), &override_events);
+    Expect(events.size() == 1 && events[0].line_id == "line-b",
+           "WrongDirection must support lineId-specific allowedDirection overrides");
+
+    Pass("WrongDirectionScenario allowed/raw direction/cooldown");
+}
+
+void VerifyIntrusionAfterLineCrossingScenario() {
+    ScenarioEngineOptions engine_options;
+    engine_options.enabled = true;
+    engine_options.default_cooldown_ms = 1000;
+    engine_options.default_update_interval_ms = 0;
+    engine_options.ended_retention_ms = 500;
+    engine_options.cleanup_interval_ms = 0;
+    engine_options.max_instances_per_channel = 32;
+
+    IntrusionAfterLineCrossingScenarioOptions options;
+    options.enabled = true;
+    options.max_delay_after_crossing_ms = 3000;
+    options.dwell_time_ms = 2000;
+    options.cooldown_ms = 1000;
+    options.target_class_tokens = {"person"};
+    options.target_line_ids = {"entry-line"};
+    options.target_zone_ids = {"target-zone"};
+
+    ScenarioEngine engine(engine_options);
+    engine.RegisterScenario(std::make_unique<IntrusionAfterLineCrossingScenario>(options));
+    EventManager event_manager;
+
+    auto line_crossed = MakeTrackContext(30, 1000, false, 0, "target-zone");
+    line_crossed.line_states.push_back(MakeLineState("entry-line", "any", "forward"));
+    auto events = engine.Evaluate(MakeSceneContext(1000, {line_crossed}), &event_manager);
+    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::LineCrossed,
+           "IntrusionAfterLineCrossing must record line crossing before zone entry");
+
+    events = engine.Evaluate(MakeSceneContext(1500, {MakeTrackContext(30, 1500, true, 0, "target-zone")}),
+                             &event_manager);
+    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::ZoneEntered,
+           "IntrusionAfterLineCrossing must enter ZoneEntered on target zone entry");
+
+    events = engine.Evaluate(MakeSceneContext(2500, {MakeTrackContext(30, 2500, true, 1000, "target-zone")}),
+                             &event_manager);
+    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Observing,
+           "IntrusionAfterLineCrossing must observe until dwellTimeMs");
+
+    events = engine.Evaluate(MakeSceneContext(3500, {MakeTrackContext(30, 3500, true, 2000, "target-zone")}),
+                             &event_manager);
+    Expect(events.size() == 1 &&
+               events[0].event_type == "intrusion-after-line-crossing" &&
+               events[0].line_id == "entry-line" &&
+               events[0].zone_id == "target-zone",
+           "IntrusionAfterLineCrossing must emit after line crossing, zone entry, and dwell");
+    Expect(engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Confirmed,
+           "IntrusionAfterLineCrossing must enter Confirmed phase");
+
+    events = engine.Evaluate(MakeSceneContext(3600, {MakeTrackContext(30, 3600, true, 2100, "target-zone")}),
+                             &event_manager);
+    Expect(events.empty(), "IntrusionAfterLineCrossing must not duplicate while condition remains true");
+
+    events = engine.Evaluate(MakeSceneContext(3700, {MakeTrackContext(30, 3700, false, 0, "target-zone")}),
+                             &event_manager);
+    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Ended,
+           "IntrusionAfterLineCrossing must end when track exits the target zone");
+
+    auto late_crossed = MakeTrackContext(31, 10000, false, 0, "target-zone");
+    late_crossed.line_states.push_back(MakeLineState("entry-line", "any", "forward"));
+    engine.Evaluate(MakeSceneContext(10000, {late_crossed}), &event_manager);
+    events = engine.Evaluate(MakeSceneContext(13501, {MakeTrackContext(31, 13501, true, 2000, "target-zone")}),
+                             &event_manager);
+    Expect(events.empty(), "IntrusionAfterLineCrossing must respect maxDelayAfterCrossingMs");
+
+    Pass("IntrusionAfterLineCrossingScenario line/zone/dwell/dedup/window");
+}
+
+void VerifyLoiteringScenario() {
+    ScenarioEngineOptions engine_options;
+    engine_options.enabled = true;
+    engine_options.default_cooldown_ms = 1000;
+    engine_options.default_update_interval_ms = 0;
+    engine_options.ended_retention_ms = 500;
+    engine_options.cleanup_interval_ms = 0;
+    engine_options.max_instances_per_channel = 32;
+
+    LoiteringScenarioOptions options;
+    options.enabled = true;
+    options.min_dwell_time_ms = 3000;
+    options.max_movement_radius = 0.05F;
+    options.min_trajectory_points = 3;
+    options.cooldown_ms = 1000;
+    options.target_class_tokens = {"person"};
+    options.target_zone_ids = {"loiter-zone"};
+
+    ScenarioEngine engine(engine_options);
+    engine.RegisterScenario(std::make_unique<LoiteringScenario>(options));
+    EventManager event_manager;
+
+    auto candidate = MakeTrackContext(40, 1000, true, 0, "loiter-zone");
+    candidate.trajectory = MakeTrajectory(1000, {NormalizedPointF{0.2F, 0.2F}});
+    auto events = engine.Evaluate(MakeSceneContext(1000, {candidate}), &event_manager);
+    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Candidate,
+           "Loitering must start as Candidate inside target zone");
+
+    auto observing = MakeTrackContext(40, 2500, true, 1500, "loiter-zone");
+    observing.trajectory = MakeTrajectory(1000,
+                                          {NormalizedPointF{0.2F, 0.2F},
+                                           NormalizedPointF{0.22F, 0.2F}});
+    events = engine.Evaluate(MakeSceneContext(2500, {observing}), &event_manager);
+    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Observing,
+           "Loitering must observe until dwell and trajectory thresholds are met");
+
+    auto confirmed = MakeTrackContext(40, 4000, true, 3000, "loiter-zone");
+    confirmed.trajectory = MakeTrajectory(1000,
+                                          {NormalizedPointF{0.2F, 0.2F},
+                                           NormalizedPointF{0.22F, 0.2F},
+                                           NormalizedPointF{0.21F, 0.21F},
+                                           NormalizedPointF{0.2F, 0.22F}});
+    events = engine.Evaluate(MakeSceneContext(4000, {confirmed}), &event_manager);
+    Expect(events.size() == 1 && events[0].event_type == "loitering" &&
+               events[0].zone_id == "loiter-zone" && events[0].track_id == 40,
+           "Loitering must emit after dwell and small movement radius conditions are met");
+    Expect(engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Confirmed,
+           "Loitering must enter Confirmed phase");
+
+    events = engine.Evaluate(MakeSceneContext(4100, {confirmed}), &event_manager);
+    Expect(events.empty(), "Loitering must not duplicate while the track remains in the zone");
+
+    auto exited = MakeTrackContext(40, 4200, false, 0, "loiter-zone");
+    events = engine.Evaluate(MakeSceneContext(4200, {exited}), &event_manager);
+    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Ended,
+           "Loitering must end when the track exits the target zone");
+
+    ScenarioEngine moving_engine(engine_options);
+    moving_engine.RegisterScenario(std::make_unique<LoiteringScenario>(options));
+    EventManager moving_events;
+    auto moving = MakeTrackContext(41, 5000, true, 3000, "loiter-zone");
+    moving.trajectory = MakeTrajectory(2000,
+                                       {NormalizedPointF{0.2F, 0.2F},
+                                        NormalizedPointF{0.32F, 0.2F},
+                                        NormalizedPointF{0.44F, 0.2F},
+                                        NormalizedPointF{0.55F, 0.2F}});
+    events = moving_engine.Evaluate(MakeSceneContext(5000, {moving}), &moving_events);
+    Expect(events.empty(), "Loitering must not emit when movement radius is larger than threshold");
+
+    LoiteringScenarioOptions ground_options = options;
+    ground_options.use_ground_plane_movement_radius = true;
+    ScenarioEngine ground_engine(engine_options);
+    ground_engine.RegisterScenario(std::make_unique<LoiteringScenario>(ground_options));
+    EventManager ground_events;
+    auto ground_loitering = MakeTrackContext(42, 6000, true, 3000, "loiter-zone");
+    ground_loitering.trajectory = MakeTrajectory(3000,
+                                                 {NormalizedPointF{0.2F, 0.2F},
+                                                  NormalizedPointF{0.4F, 0.2F},
+                                                  NormalizedPointF{0.6F, 0.2F},
+                                                  NormalizedPointF{0.8F, 0.2F}},
+                                                 1000);
+    for (std::size_t i = 0; i < ground_loitering.trajectory.size(); ++i) {
+        ground_loitering.trajectory[i].ground_point =
+            GroundPointF{0.01 * static_cast<double>(i), 0.0, true, false, "meters"};
+    }
+    events = ground_engine.Evaluate(MakeSceneContext(6000, {ground_loitering}), &ground_events);
+    Expect(events.size() == 1 && events[0].event_type == "loitering" &&
+               events[0].metadata_json.find("\"usesGroundPlane\":true") != std::string::npos,
+           "Loitering must optionally use ground-plane trajectory radius when available");
+
+    Pass("LoiteringScenario dwell/trajectory/radius/dedup/exit");
+}
+
 }  // namespace
 
 int main() {
     try {
+        VerifyObjectTrackerAssociationScoring();
         VerifyTrackStateManagerAndHealth();
         VerifySceneContextBuilder();
         VerifyEventManager();
         VerifyScenarioEngineAndIntrusionDwell();
+        VerifyReEntryScenario();
+        VerifyWrongDirectionScenario();
+        VerifyIntrusionAfterLineCrossingScenario();
+        VerifyLoiteringScenario();
         std::cout << "[summary] pass=" << g_pass_count << " fail=0\n";
         return EXIT_SUCCESS;
     } catch (const std::exception& ex) {

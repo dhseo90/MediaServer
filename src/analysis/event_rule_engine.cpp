@@ -6,9 +6,13 @@
 #include "analysis/category_tokens.h"
 #include "analysis/event_manager.h"
 #include "analysis/intrusion_dwell_scenario.h"
+#include "analysis/intrusion_after_line_crossing_scenario.h"
+#include "analysis/loitering_scenario.h"
+#include "analysis/re_entry_scenario.h"
 #include "analysis/scene_context_builder.h"
 #include "analysis/scenario_engine.h"
 #include "analysis/tracked_object_metadata.h"
+#include "analysis/wrong_direction_scenario.h"
 
 #include "app_config.h"
 
@@ -16,6 +20,7 @@
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
+#include <iostream>
 #include <mutex>
 #include <sstream>
 #include <unordered_map>
@@ -32,6 +37,8 @@ struct EventRuleRuntime {
     SceneContextBuilder scenario_scene_context_builder;
     ScenarioEngine scenario_engine;
     EventManager event_manager;
+    std::int64_t metrics_log_interval_ns{0};
+    std::int64_t last_metrics_log_time_ns{0};
     std::unordered_map<std::string, bool> previous_inside;
     std::unordered_map<std::string, float> previous_side;
     std::unordered_map<std::string, std::int64_t> inside_since_pts;
@@ -514,6 +521,76 @@ const TrackRuntimeState* FindTrackState(const std::vector<TrackRuntimeState>& tr
     return it == track_states.end() ? nullptr : &(*it);
 }
 
+std::string JsonEscape(const std::string& value) {
+    std::ostringstream out;
+    for (const char ch : value) {
+        switch (ch) {
+            case '\\':
+                out << "\\\\";
+                break;
+            case '"':
+                out << "\\\"";
+                break;
+            case '\n':
+                out << "\\n";
+                break;
+            case '\r':
+                out << "\\r";
+                break;
+            case '\t':
+                out << "\\t";
+                break;
+            default:
+                out << ch;
+                break;
+        }
+    }
+    return out.str();
+}
+
+std::string TrackHealthSnapshotJson(const TrackHealth& health) {
+    const TrackHealthSnapshot snapshot = MakeTrackHealthSnapshot(health);
+    std::ostringstream out;
+    out << "{"
+        << "\"associationConfidence\":" << snapshot.association_confidence << ","
+        << "\"missedFrameCount\":" << snapshot.missed_frame_count << ","
+        << "\"overlapRisk\":" << snapshot.overlap_risk << ","
+        << "\"directionChangeCount\":" << snapshot.direction_change_count << ","
+        << "\"lastStableTimeMs\":" << snapshot.last_stable_time_ms << ","
+        << "\"unstable\":" << (snapshot.is_unstable ? "true" : "false") << ","
+        << "\"lastHealthEvent\":\"" << JsonEscape(snapshot.last_health_event) << "\","
+        << "\"lastHealthEventTimeMs\":" << snapshot.last_health_event_time_ms << ","
+        << "\"lostCount\":" << snapshot.lost_count << ","
+        << "\"reacquiredCount\":" << snapshot.reacquired_count
+        << "}";
+    return out.str();
+}
+
+void AttachTrackHealthSnapshots(std::vector<AnalysisEvent>* events,
+                                const std::vector<TrackRuntimeState>& track_states) {
+    if (events == nullptr || events->empty()) {
+        return;
+    }
+    for (auto& event : *events) {
+        if (event.track_id == 0) {
+            continue;
+        }
+        const auto* track_state = FindTrackState(track_states, event.track_id);
+        if (track_state == nullptr) {
+            continue;
+        }
+        const std::string existing_metadata =
+            event.metadata_json.empty() ? std::string{"{}"} : event.metadata_json;
+        std::ostringstream metadata;
+        metadata << "{"
+                 << "\"schema\":\"media-server.va.event-track-health.v1\","
+                 << "\"eventMetadata\":" << existing_metadata << ","
+                 << "\"trackHealth\":" << TrackHealthSnapshotJson(track_state->health)
+                 << "}";
+        event.metadata_json = metadata.str();
+    }
+}
+
 const TrackSceneContext* FindTrackSceneContext(const SceneContext& scene_context, std::uint64_t track_id) {
     const auto it =
         std::find_if(scene_context.tracks.begin(), scene_context.tracks.end(), [track_id](const TrackSceneContext& track) {
@@ -678,6 +755,11 @@ bool EmitManagedEvent(EventRuleRuntime* runtime,
     candidate.key.track_id = detection.track_id;
     candidate.key.object_key = object_key;
     candidate.event = BuildAnalysisEvent(rule, detection);
+    if (rule.region_type == "line") {
+        candidate.event.line_id = rule.id;
+    } else {
+        candidate.event.zone_id = rule.id;
+    }
     candidate.timestamp_ns = result.pts;
     candidate.active = true;
     candidate.confirmed = rule.event_type == "presence";
@@ -687,6 +769,327 @@ bool EmitManagedEvent(EventRuleRuntime* runtime,
         events->push_back(decision.event);
     }
     return decision.emit;
+}
+
+const ScenarioInstance* FindScenarioInstance(const std::vector<ScenarioInstance>& instances,
+                                             std::uint64_t track_id) {
+    const ScenarioInstance* fallback = nullptr;
+    for (const auto& instance : instances) {
+        if (instance.track_id != track_id) {
+            continue;
+        }
+        if (instance.phase == ScenarioPhase::LineCrossed ||
+            instance.phase == ScenarioPhase::ZoneEntered ||
+            instance.phase == ScenarioPhase::Candidate ||
+            instance.phase == ScenarioPhase::Observing ||
+            instance.phase == ScenarioPhase::Confirmed) {
+            return &instance;
+        }
+        if (fallback == nullptr) {
+            fallback = &instance;
+        }
+    }
+    return fallback;
+}
+
+const EventLifecycleStateSnapshot* FindEventLifecycleState(
+    const std::vector<EventLifecycleStateSnapshot>& states,
+    std::uint64_t track_id) {
+    if (track_id == 0) {
+        return nullptr;
+    }
+    const std::string token = "|track:" + std::to_string(track_id);
+    const EventLifecycleStateSnapshot* fallback = nullptr;
+    for (const auto& state : states) {
+        if (state.track_id != track_id && state.key.find(token) == std::string::npos) {
+            continue;
+        }
+        if (state.active) {
+            return &state;
+        }
+        if (fallback == nullptr) {
+            fallback = &state;
+        }
+    }
+    return fallback;
+}
+
+AnalysisDebugState BuildDebugState(const AnalysisResult& result,
+                                   const std::string& channel_id,
+                                   const SceneContext& scene_context,
+                                   const ScenarioEngine& scenario_engine,
+                                   const EventManager& event_manager) {
+    AnalysisDebugState debug;
+    debug.enabled = true;
+    debug.stream_id = result.source_key;
+    debug.channel_id = channel_id;
+    debug.timestamp_ms = result.pts / 1000000LL;
+
+    const auto scenario_instances = scenario_engine.Snapshot(channel_id);
+    const auto scenario_metrics = scenario_engine.Metrics();
+    const auto event_metrics = event_manager.Metrics();
+    const auto event_states = event_manager.Snapshot();
+    debug.scenario_instance_count = scenario_metrics.total_instances;
+    debug.active_scenario_count = scenario_metrics.active_instances;
+    debug.event_state_count = event_metrics.total_states;
+    debug.active_event_state_count = event_metrics.active_states;
+    debug.track_count = scene_context.tracks.size();
+    debug.tracks.reserve(scene_context.tracks.size());
+    const bool include_ground_point =
+        app::GetAppConfig().default_analysis_debug_ground_point_enabled;
+
+    for (const auto& track_context : scene_context.tracks) {
+        AnalysisDebugTrackState track;
+        track.stream_id = track_context.stream_id;
+        track.channel_id = track_context.channel_id;
+        track.track_id = track_context.track_id;
+        track.class_id = track_context.class_id;
+        track.class_name = track_context.class_name;
+        track.confidence = track_context.confidence;
+        track.bbox = track_context.bbox;
+        track.speed = track_context.speed;
+        track.speed_uses_ground_plane = track_context.speed_uses_ground_plane;
+        track.speed_units = track_context.speed_units;
+        if (include_ground_point) {
+            track.ground_point_available = true;
+            track.ground_point_valid = track_context.ground_point.valid;
+            track.ground_point_fallback = track_context.ground_point.fallback_to_image;
+            track.foot_point_x = track_context.foot_point.x;
+            track.foot_point_y = track_context.foot_point.y;
+            track.ground_point_x = track_context.ground_point.x;
+            track.ground_point_y = track_context.ground_point.y;
+            track.ground_point_units = track_context.ground_point.units;
+        }
+        track.lifecycle_state = ToString(track_context.lifecycle_state);
+        if (track_context.lifecycle_state == TrackLifecycleState::Active) {
+            ++debug.active_track_count;
+        } else if (track_context.lifecycle_state == TrackLifecycleState::Lost) {
+            ++debug.lost_track_count;
+        } else if (track_context.lifecycle_state == TrackLifecycleState::Reacquired) {
+            ++debug.active_track_count;
+            ++debug.reacquired_track_count;
+        } else if (track_context.lifecycle_state == TrackLifecycleState::Terminated) {
+            ++debug.terminated_track_count;
+        }
+
+        track.current_zone = track_context.zone_state.current_zone;
+        track.previous_zone = track_context.zone_state.previous_zone;
+        track.entered_at_ms = track_context.zone_state.entered_at_ms;
+        track.exited_at_ms = track_context.zone_state.exited_at_ms;
+        track.dwell_time_ms = track_context.zone_state.dwell_time_ms;
+        track.inside_restricted_zone = track_context.zone_state.is_inside_restricted_zone;
+        for (const auto& line_state : track_context.line_states) {
+            AnalysisDebugLineState line;
+            line.line_id = line_state.line_id;
+            line.allowed_direction = line_state.allowed_direction;
+            line.previous_side = line_state.previous_side;
+            line.current_side = line_state.current_side;
+            line.crossed = line_state.crossed;
+            line.direction = line_state.direction;
+            line.raw_crossed = line_state.raw_crossed;
+            line.raw_direction = line_state.raw_direction;
+            line.direction_allowed = line_state.direction_allowed;
+            line.last_cross_time_ms = line_state.last_cross_time_ms;
+            track.line_states.push_back(line);
+            if (track.primary_line_id.empty()) {
+                track.primary_line_id = line.line_id;
+                track.line_side = line.current_side;
+                track.crossing_direction = line.raw_direction != "none" ? line.raw_direction : line.direction;
+            }
+        }
+
+        if (const auto* instance = FindScenarioInstance(scenario_instances, track.track_id); instance != nullptr) {
+            track.scenario_name = instance->scenario_id;
+            track.scenario_phase = ToString(instance->phase);
+        }
+        if (const auto* event_state = FindEventLifecycleState(event_states, track.track_id); event_state != nullptr) {
+            track.event_lifecycle = ToString(event_state->stage);
+        }
+        track.association_confidence = track_context.track_health.association_confidence;
+        track.missed_frame_count = track_context.track_health.missed_frame_count;
+        track.overlap_risk = track_context.track_health.overlap_risk;
+        track.direction_change_count = track_context.track_health.direction_change_count;
+        track.track_unstable = track_context.track_health.is_unstable;
+        track.track_health = track.track_unstable ? "unstable" : "stable";
+        debug.tracks.push_back(std::move(track));
+    }
+    return debug;
+}
+
+void MaybeLogDebugState(const AnalysisDebugState& debug) {
+    if (!debug.enabled) {
+        return;
+    }
+    std::cerr << "[analysis-debug] stream=" << debug.stream_id
+              << " channel=" << debug.channel_id
+              << " tracks=" << debug.track_count
+              << " activeTracks=" << debug.active_track_count
+              << " lostTracks=" << debug.lost_track_count
+              << " reacquiredTracks=" << debug.reacquired_track_count
+              << " terminatedTracks=" << debug.terminated_track_count
+              << " scenarios=" << debug.scenario_instance_count
+              << " activeScenarios=" << debug.active_scenario_count
+              << " eventStates=" << debug.event_state_count
+              << " activeEventStates=" << debug.active_event_state_count << "\n";
+}
+
+std::int64_t MsToNs(std::int64_t value_ms) {
+    return std::max<std::int64_t>(0, value_ms) * 1000000LL;
+}
+
+AnalysisChannelMetrics& FindOrCreateChannelMetrics(std::vector<AnalysisChannelMetrics>* channels,
+                                                   const std::string& stream_id,
+                                                   const std::string& channel_id) {
+    const std::string resolved_channel_id = channel_id.empty() ? stream_id : channel_id;
+    for (auto& channel : *channels) {
+        if (channel.channel_id == resolved_channel_id) {
+            if (channel.stream_id.empty()) {
+                channel.stream_id = stream_id;
+            }
+            return channel;
+        }
+    }
+    channels->push_back(AnalysisChannelMetrics{});
+    AnalysisChannelMetrics& channel = channels->back();
+    channel.stream_id = stream_id;
+    channel.channel_id = resolved_channel_id;
+    return channel;
+}
+
+void AccumulateTrackHealth(const TrackHealth& health, TrackHealthMetrics* metrics) {
+    if (metrics == nullptr) {
+        return;
+    }
+    if (health.is_unstable) {
+        ++metrics->unstable_track_count;
+    }
+    if (health.overlap_risk > 0.0F) {
+        ++metrics->overlap_risk_track_count;
+    }
+    if (health.missed_frame_count > 0) {
+        ++metrics->missed_frame_track_count;
+    }
+    metrics->missed_frame_total += health.missed_frame_count;
+    metrics->missed_frame_max = std::max(metrics->missed_frame_max, health.missed_frame_count);
+    if (health.direction_change_count > 0) {
+        ++metrics->direction_change_track_count;
+    }
+    metrics->direction_change_total += health.direction_change_count;
+    metrics->direction_change_max = std::max(metrics->direction_change_max, health.direction_change_count);
+}
+
+AnalysisMetricsReport BuildMetricsReport(const AnalysisResult& result,
+                                         const std::string& channel_id,
+                                         const std::vector<TrackRuntimeState>& track_states,
+                                         const TrackStateMetrics& track_metrics,
+                                         const ScenarioEngine& scenario_engine,
+                                         const EventManager& event_manager) {
+    AnalysisMetricsReport report;
+    report.enabled = true;
+    report.stream_id = result.source_key;
+    report.channel_id = channel_id;
+    report.timestamp_ms = result.pts / 1000000LL;
+    FindOrCreateChannelMetrics(&report.channels, result.source_key, channel_id);
+    report.total_track_count = track_metrics.total_tracks;
+    report.active_track_count = track_metrics.active_tracks;
+    report.lost_track_count = track_metrics.lost_tracks;
+    report.reacquired_track_count = track_metrics.reacquired_tracks;
+    report.terminated_track_count = track_metrics.terminated_tracks;
+    report.terminated_track_cleanup_count = track_metrics.tracks_removed_by_cleanup;
+
+    for (const auto& state : track_states) {
+        AnalysisChannelMetrics& channel =
+            FindOrCreateChannelMetrics(&report.channels, state.stream_id, state.channel_id);
+        ++channel.total_track_count;
+        if (state.lifecycle_state == TrackLifecycleState::Active) {
+            ++channel.active_track_count;
+        } else if (state.lifecycle_state == TrackLifecycleState::Lost) {
+            ++channel.lost_track_count;
+        } else if (state.lifecycle_state == TrackLifecycleState::Reacquired) {
+            ++channel.active_track_count;
+            ++channel.reacquired_track_count;
+        } else if (state.lifecycle_state == TrackLifecycleState::Terminated) {
+            ++channel.terminated_track_count;
+        }
+        AccumulateTrackHealth(state.health, &channel.track_health);
+        AccumulateTrackHealth(state.health, &report.track_health);
+    }
+
+    const auto scenario_metrics = scenario_engine.Metrics();
+    report.active_scenario_count = scenario_metrics.active_instances;
+    report.scenario_cleanup_count = scenario_metrics.instances_removed_by_cleanup;
+    for (const auto& instance : scenario_engine.Snapshot()) {
+        if (instance.phase != ScenarioPhase::LineCrossed &&
+            instance.phase != ScenarioPhase::ZoneEntered &&
+            instance.phase != ScenarioPhase::Candidate &&
+            instance.phase != ScenarioPhase::Observing &&
+            instance.phase != ScenarioPhase::Confirmed) {
+            continue;
+        }
+        AnalysisChannelMetrics& channel =
+            FindOrCreateChannelMetrics(&report.channels, instance.stream_id, instance.channel_id);
+        ++channel.active_scenario_count;
+    }
+
+    const auto event_metrics = event_manager.Metrics();
+    report.active_event_state_count = event_metrics.active_states;
+    report.event_emitted_count = event_metrics.emitted_count;
+    report.event_dedup_count = event_metrics.suppressed_count;
+    report.event_cleanup_count = event_metrics.states_removed_by_cleanup;
+    for (const auto& channel_event_metrics : event_manager.ChannelMetrics()) {
+        AnalysisChannelMetrics& channel =
+            FindOrCreateChannelMetrics(&report.channels,
+                                       channel_event_metrics.stream_id,
+                                       channel_event_metrics.channel_id);
+        channel.event_state_count = channel_event_metrics.total_states;
+        channel.active_event_state_count = channel_event_metrics.active_states;
+        channel.event_emitted_count = channel_event_metrics.emitted_count;
+        channel.event_dedup_count = channel_event_metrics.suppressed_count;
+    }
+
+    report.channel_count = report.channels.size();
+    std::sort(report.channels.begin(), report.channels.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.channel_id < rhs.channel_id;
+    });
+    return report;
+}
+
+bool ShouldLogMetrics(EventRuleRuntime* runtime, std::int64_t timestamp_ns) {
+    if (runtime == nullptr || runtime->metrics_log_interval_ns <= 0 || timestamp_ns <= 0) {
+        return false;
+    }
+    if (runtime->last_metrics_log_time_ns <= 0) {
+        runtime->last_metrics_log_time_ns = timestamp_ns;
+        return false;
+    }
+    if (timestamp_ns >= runtime->last_metrics_log_time_ns + runtime->metrics_log_interval_ns) {
+        runtime->last_metrics_log_time_ns = timestamp_ns;
+        return true;
+    }
+    return false;
+}
+
+void LogMetricsReport(const AnalysisMetricsReport& report) {
+    if (!report.enabled) {
+        return;
+    }
+    std::cerr << "[analysis-metrics] stream=" << report.stream_id
+              << " channel=" << report.channel_id
+              << " channels=" << report.channel_count
+              << " activeTracks=" << report.active_track_count
+              << " lostTracks=" << report.lost_track_count
+              << " reacquiredTracks=" << report.reacquired_track_count
+              << " terminatedTracks=" << report.terminated_track_count
+              << " activeScenarios=" << report.active_scenario_count
+              << " eventsEmitted=" << report.event_emitted_count
+              << " eventDedup=" << report.event_dedup_count
+              << " unstableTracks=" << report.track_health.unstable_track_count
+              << " overlapRiskTracks=" << report.track_health.overlap_risk_track_count
+              << " missedFrameTotal=" << report.track_health.missed_frame_total
+              << " directionChangeTotal=" << report.track_health.direction_change_total
+              << " terminatedCleanup=" << report.terminated_track_cleanup_count
+              << " scenarioCleanup=" << report.scenario_cleanup_count
+              << " eventCleanup=" << report.event_cleanup_count << "\n";
 }
 
 }  // namespace
@@ -703,6 +1106,25 @@ EventRuleRuntime::EventRuleRuntime()
             std::make_unique<IntrusionDwellScenario>(
                 BuildIntrusionDwellScenarioOptionsFromConfig(config)));
     }
+    if (config.analysis_re_entry_enabled) {
+        scenario_engine.RegisterScenario(
+            std::make_unique<ReEntryScenario>(BuildReEntryScenarioOptionsFromConfig(config)));
+    }
+    if (config.analysis_wrong_direction_enabled) {
+        scenario_engine.RegisterScenario(
+            std::make_unique<WrongDirectionScenario>(
+                BuildWrongDirectionScenarioOptionsFromConfig(config)));
+    }
+    if (config.analysis_intrusion_after_line_crossing_enabled) {
+        scenario_engine.RegisterScenario(
+            std::make_unique<IntrusionAfterLineCrossingScenario>(
+                BuildIntrusionAfterLineCrossingScenarioOptionsFromConfig(config)));
+    }
+    if (config.analysis_loitering_enabled) {
+        scenario_engine.RegisterScenario(
+            std::make_unique<LoiteringScenario>(BuildLoiteringScenarioOptionsFromConfig(config)));
+    }
+    metrics_log_interval_ns = MsToNs(config.analysis_metrics_log_interval_ms);
 }
 
 std::shared_ptr<EventRuleRuntime> CreateEventRuleRuntime() {
@@ -714,7 +1136,7 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
                                             const std::shared_ptr<EventRuleRuntime>& runtime) {
     EventRuleEvaluation evaluation;
     evaluation.annotated_result = result;
-    if (rule_documents.empty()) {
+    if (rule_documents.empty() && !result.debug_state_requested && !result.metrics_report_requested) {
         return evaluation;
     }
 
@@ -737,7 +1159,7 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
         rules.push_back(*rule);
     }
     evaluation.active_rule_count = rules.size();
-    if (rules.empty()) {
+    if (rules.empty() && !result.debug_state_requested && !result.metrics_report_requested) {
         return evaluation;
     }
 
@@ -746,6 +1168,7 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
     const std::string channel_id = ResolveRuntimeChannelId(result.source_key);
     safe_runtime->track_state_manager.Update(result.source_key, channel_id, BuildTrackedObjects(result), result.pts);
     const auto track_states = safe_runtime->track_state_manager.Snapshot(channel_id);
+    const auto track_metrics = safe_runtime->track_state_manager.Metrics();
 
     for (std::size_t detection_index = 0; detection_index < result.detections.size(); ++detection_index) {
         const auto& original_detection = result.detections[detection_index];
@@ -830,20 +1253,68 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
 
     const SceneGeometryConfig scenario_geometry =
         BuildSceneGeometryConfigFromRuleDocuments(rule_documents, result.context);
-    if (!scenario_geometry.zones.empty() && !track_states.empty()) {
-        const SceneContext scenario_context = safe_runtime->scenario_scene_context_builder.Build(
+    std::optional<SceneContext> scenario_context_for_debug;
+    if ((!scenario_geometry.zones.empty() || !scenario_geometry.lines.empty() || result.debug_state_requested) &&
+        !track_states.empty()) {
+        SceneContext scenario_context = safe_runtime->scenario_scene_context_builder.Build(
             result.source_key, channel_id, track_states, scenario_geometry, result.pts);
-        auto scenario_events =
-            safe_runtime->scenario_engine.Evaluate(scenario_context, &safe_runtime->event_manager);
-        for (const auto& event : scenario_events) {
-            for (auto& detection : evaluation.annotated_result.detections) {
-                if (event.track_id > 0 && detection.track_id == event.track_id) {
-                    MarkDetectionEvent(&detection, event);
-                    ++evaluation.matched_detection_count;
-                    break;
+        if (!scenario_geometry.zones.empty() || !scenario_geometry.lines.empty()) {
+            auto scenario_events =
+                safe_runtime->scenario_engine.Evaluate(scenario_context, &safe_runtime->event_manager);
+            for (const auto& event : scenario_events) {
+                for (auto& detection : evaluation.annotated_result.detections) {
+                    if (event.track_id > 0 && detection.track_id == event.track_id) {
+                        MarkDetectionEvent(&detection, event);
+                        ++evaluation.matched_detection_count;
+                        break;
+                    }
                 }
+                evaluation.events.push_back(event);
             }
-            evaluation.events.push_back(event);
+        }
+        if (result.debug_state_requested) {
+            scenario_context_for_debug = std::move(scenario_context);
+        }
+    }
+    AttachTrackHealthSnapshots(&evaluation.events, track_states);
+
+    if (result.debug_state_requested && !scenario_context_for_debug.has_value()) {
+        SceneContext empty_context;
+        empty_context.stream_id = result.source_key;
+        empty_context.channel_id = channel_id;
+        empty_context.timestamp_ns = result.pts;
+        empty_context.timestamp_ms = result.pts / 1000000LL;
+        scenario_context_for_debug = std::move(empty_context);
+    }
+    if (result.debug_state_requested && scenario_context_for_debug.has_value()) {
+        evaluation.annotated_result.debug_state =
+            BuildDebugState(result,
+                            channel_id,
+                            *scenario_context_for_debug,
+                            safe_runtime->scenario_engine,
+                            safe_runtime->event_manager);
+        if (result.debug_state_log_enabled) {
+            MaybeLogDebugState(*evaluation.annotated_result.debug_state);
+        }
+    }
+
+    const bool should_log_metrics = ShouldLogMetrics(safe_runtime.get(), result.pts);
+    if (result.metrics_report_requested || should_log_metrics) {
+        const auto all_track_states = safe_runtime->track_state_manager.Snapshot();
+        AnalysisMetricsReport metrics_report = BuildMetricsReport(result,
+                                                                  channel_id,
+                                                                  all_track_states,
+                                                                  track_metrics,
+                                                                  safe_runtime->scenario_engine,
+                                                                  safe_runtime->event_manager);
+        if (should_log_metrics) {
+            LogMetricsReport(metrics_report);
+        }
+        if (result.metrics_report_requested) {
+            evaluation.metrics_report = metrics_report;
+            evaluation.tracking_issue_report_json =
+                TrackingIssueReportToJson(safe_runtime->track_state_manager.TrackingIssueSnapshot());
+            evaluation.annotated_result.metrics_report = std::move(metrics_report);
         }
     }
 

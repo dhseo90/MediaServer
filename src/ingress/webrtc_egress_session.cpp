@@ -734,6 +734,30 @@ void OnIceConnectionStateNotify(GObject* /*object*/, GParamSpec* /*pspec*/, gpoi
     session->HandleIceConnectionStateChanged();
 }
 
+void OnMetadataChannelOpen(GstWebRTCDataChannel* /*channel*/, gpointer user_data) {
+    auto* session = static_cast<WebRtcEgressSession*>(user_data);
+    if (session == nullptr) {
+        return;
+    }
+    session->HandleMetadataChannelOpen();
+}
+
+void OnMetadataChannelClose(GstWebRTCDataChannel* /*channel*/, gpointer user_data) {
+    auto* session = static_cast<WebRtcEgressSession*>(user_data);
+    if (session == nullptr) {
+        return;
+    }
+    session->HandleMetadataChannelClose();
+}
+
+void OnMetadataChannelError(GstWebRTCDataChannel* /*channel*/, GError* error, gpointer user_data) {
+    auto* session = static_cast<WebRtcEgressSession*>(user_data);
+    if (session == nullptr) {
+        return;
+    }
+    session->HandleMetadataChannelError(error != nullptr ? error->message : "unknown data channel error");
+}
+
 void OnOfferCreated(GstPromise* promise, gpointer user_data) {
     auto* session = static_cast<WebRtcEgressSession*>(user_data);
     if (session == nullptr) {
@@ -839,6 +863,92 @@ void WebRtcEgressSession::QueuePendingPacket(const media::Packet& packet) {
     }
     pending_packets_.push_back(packet);
     TrimPendingPackets(&pending_packets_);
+}
+
+void WebRtcEgressSession::SetMetadataChannelConfig(WebRtcMetadataChannelConfig config) {
+    if (config.label.empty()) {
+        config.label = app_config::kDefaultWebRtcVaMetadataChannelLabel;
+    }
+    if (config.interval_ms < 0) {
+        config.interval_ms = app_config::kDefaultWebRtcVaMetadataIntervalMs;
+    }
+    if (config.max_message_bytes == 0) {
+        config.max_message_bytes = app_config::kDefaultWebRtcVaMetadataMaxMessageBytes;
+    }
+    if (config.max_buffered_bytes == 0) {
+        config.max_buffered_bytes = app_config::kDefaultWebRtcVaMetadataMaxBufferedBytes;
+    }
+    std::lock_guard lock(metadata_mu_);
+    metadata_channel_config_ = std::move(config);
+    last_metadata_sent_at_ms_ = 0;
+    metadata_messages_sent_ = 0;
+    metadata_messages_dropped_ = 0;
+    metadata_send_failures_ = 0;
+}
+
+bool WebRtcEgressSession::PublishAnalysisMetadata(const std::string& message) {
+    if (message.empty()) {
+        return false;
+    }
+    const auto now_ms = static_cast<std::int64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch())
+            .count());
+#if MEDIA_SERVER_USE_GSTREAMER
+    GstWebRTCDataChannel* channel = nullptr;
+    {
+        std::lock_guard lock(metadata_mu_);
+        if (!metadata_channel_config_.enabled || metadata_data_channel_ == nullptr || !metadata_channel_open_) {
+            return false;
+        }
+        if (metadata_channel_config_.interval_ms > 0 &&
+            now_ms - last_metadata_sent_at_ms_ < metadata_channel_config_.interval_ms) {
+            ++metadata_messages_dropped_;
+            return false;
+        }
+        if (message.size() > metadata_channel_config_.max_message_bytes) {
+            ++metadata_messages_dropped_;
+            if (app::GetAppConfig().webrtc_trace && metadata_messages_dropped_ <= 3) {
+                std::cerr << "[webrtc-metadata] drop oversized session=" << session_id_
+                          << " bytes=" << message.size()
+                          << " max=" << metadata_channel_config_.max_message_bytes << "\n";
+            }
+            return false;
+        }
+        guint64 buffered_amount = 0;
+        g_object_get(metadata_data_channel_, "buffered-amount", &buffered_amount, nullptr);
+        if (buffered_amount > metadata_channel_config_.max_buffered_bytes) {
+            ++metadata_messages_dropped_;
+            return false;
+        }
+        channel = GST_WEBRTC_DATA_CHANNEL(g_object_ref(metadata_data_channel_));
+        last_metadata_sent_at_ms_ = now_ms;
+    }
+
+    GError* error = nullptr;
+    const gboolean queued = gst_webrtc_data_channel_send_string_full(channel, message.c_str(), &error);
+    g_object_unref(channel);
+    if (queued == TRUE) {
+        std::lock_guard lock(metadata_mu_);
+        ++metadata_messages_sent_;
+        return true;
+    }
+    {
+        std::lock_guard lock(metadata_mu_);
+        ++metadata_send_failures_;
+    }
+    if (app::GetAppConfig().webrtc_trace) {
+        std::cerr << "[webrtc-metadata] send failed session=" << session_id_
+                  << " error=" << (error != nullptr ? error->message : "unknown") << "\n";
+    }
+    if (error != nullptr) {
+        g_error_free(error);
+    }
+    return false;
+#else
+    (void)now_ms;
+    return false;
+#endif
 }
 
 bool WebRtcEgressSession::Start(const std::string& session_id,
@@ -1023,6 +1133,15 @@ void WebRtcEgressSession::Stop() {
     if (audio_appsrc_ != nullptr) {
         gst_object_unref(audio_appsrc_);
         audio_appsrc_ = nullptr;
+    }
+    {
+        std::lock_guard lock(metadata_mu_);
+        metadata_channel_open_ = false;
+        if (metadata_data_channel_ != nullptr) {
+            gst_webrtc_data_channel_close(metadata_data_channel_);
+            g_object_unref(metadata_data_channel_);
+            metadata_data_channel_ = nullptr;
+        }
     }
     if (webrtcbin_ != nullptr) {
         gst_object_unref(webrtcbin_);
@@ -1433,6 +1552,67 @@ bool WebRtcEgressSession::EnsureTransportPadsLinked(bool answerer_mode, std::str
 #endif
 }
 
+bool WebRtcEgressSession::EnsureMetadataDataChannel() {
+#if MEDIA_SERVER_USE_GSTREAMER
+    WebRtcMetadataChannelConfig config;
+    {
+        std::lock_guard lock(metadata_mu_);
+        config = metadata_channel_config_;
+        if (!config.enabled || metadata_data_channel_ != nullptr) {
+            return metadata_data_channel_ != nullptr;
+        }
+    }
+    if (webrtcbin_ == nullptr) {
+        return false;
+    }
+    if (g_signal_lookup("create-data-channel", G_OBJECT_TYPE(webrtcbin_)) == 0) {
+        if (app::GetAppConfig().webrtc_trace) {
+            std::cerr << "[webrtc-metadata] create-data-channel signal unavailable session="
+                      << session_id_ << "\n";
+        }
+        return false;
+    }
+
+    GstStructure* options =
+        gst_structure_new("data-channel-options", "ordered", G_TYPE_BOOLEAN, FALSE, nullptr);
+    GstWebRTCDataChannel* channel = nullptr;
+    g_signal_emit_by_name(webrtcbin_, "create-data-channel", config.label.c_str(), options, &channel);
+    if (options != nullptr) {
+        gst_structure_free(options);
+    }
+    if (channel == nullptr) {
+        if (app::GetAppConfig().webrtc_trace) {
+            std::cerr << "[webrtc-metadata] failed to create data channel session="
+                      << session_id_ << "\n";
+        }
+        return false;
+    }
+
+    g_signal_connect(channel, "on-open", G_CALLBACK(OnMetadataChannelOpen), this);
+    g_signal_connect(channel, "on-close", G_CALLBACK(OnMetadataChannelClose), this);
+    g_signal_connect(channel, "on-error", G_CALLBACK(OnMetadataChannelError), this);
+    g_object_set(channel, "buffered-amount-low-threshold", static_cast<guint64>(config.max_buffered_bytes / 2), nullptr);
+    {
+        std::lock_guard lock(metadata_mu_);
+        if (!metadata_channel_config_.enabled) {
+            gst_webrtc_data_channel_close(channel);
+            g_object_unref(channel);
+            return false;
+        }
+        metadata_data_channel_ = channel;
+        metadata_channel_open_ = false;
+    }
+    if (app::GetAppConfig().webrtc_trace) {
+        std::cerr << "[webrtc-metadata] created data channel session=" << session_id_
+                  << " label=" << config.label
+                  << " intervalMs=" << config.interval_ms << "\n";
+    }
+    return true;
+#else
+    return false;
+#endif
+}
+
 bool WebRtcEgressSession::CreateOffer(std::string* sdp_offer, std::string* error_message) {
 #if MEDIA_SERVER_USE_GSTREAMER
     if (!started_ || webrtcbin_ == nullptr) {
@@ -1446,6 +1626,7 @@ bool WebRtcEgressSession::CreateOffer(std::string* sdp_offer, std::string* error
         local_offer_.reset();
         negotiation_error_.clear();
     }
+    (void)EnsureMetadataDataChannel();
     if (!EnsureTransportPadsLinked(false, error_message)) {
         return false;
     }
@@ -1606,6 +1787,7 @@ bool WebRtcEgressSession::SetRemoteOffer(const std::string& sdp_offer, std::stri
                   << "\n";
     }
 
+    (void)EnsureMetadataDataChannel();
     if (!EnsureTransportPadsLinked(true, error_message)) {
         gst_sdp_message_free(sdp);
         return false;
@@ -1751,6 +1933,35 @@ void WebRtcEgressSession::HandleIceConnectionStateChanged() {
     }
     if (connected) {
         StartMediaOutputIfReady("ice-connected");
+    }
+}
+
+void WebRtcEgressSession::HandleMetadataChannelOpen() {
+    std::lock_guard lock(metadata_mu_);
+    metadata_channel_open_ = true;
+    if (app::GetAppConfig().webrtc_trace) {
+        std::cerr << "[webrtc-metadata] open session=" << session_id_
+                  << " label=" << metadata_channel_config_.label << "\n";
+    }
+}
+
+void WebRtcEgressSession::HandleMetadataChannelClose() {
+    std::lock_guard lock(metadata_mu_);
+    metadata_channel_open_ = false;
+    if (app::GetAppConfig().webrtc_trace) {
+        std::cerr << "[webrtc-metadata] close session=" << session_id_
+                  << " sent=" << metadata_messages_sent_
+                  << " dropped=" << metadata_messages_dropped_
+                  << " failures=" << metadata_send_failures_ << "\n";
+    }
+}
+
+void WebRtcEgressSession::HandleMetadataChannelError(const std::string& message) {
+    std::lock_guard lock(metadata_mu_);
+    ++metadata_send_failures_;
+    if (app::GetAppConfig().webrtc_trace) {
+        std::cerr << "[webrtc-metadata] error session=" << session_id_
+                  << " error=" << message << "\n";
     }
 }
 

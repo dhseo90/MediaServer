@@ -1,0 +1,51 @@
+[
+  {
+    "id": "entry-line",
+    "enabled": true,
+    "match": {
+      "sourceKind": "*",
+      "route": "*"
+    },
+    "ruleKind": "scenario",
+    "analysis": {
+      "classes": ["person"]
+    },
+    "event": {
+      "type": "intrusion-after-line-crossing",
+      "minConfidence": 0.1,
+      "region": {
+        "type": "line",
+        "direction": "any",
+        "points": [
+          { "x": 0.5, "y": 0.0 },
+          { "x": 0.5, "y": 1.0 }
+        ]
+      }
+    }
+  },
+  {
+    "id": "target-zone",
+    "enabled": true,
+    "match": {
+      "sourceKind": "*",
+      "route": "*"
+    },
+    "ruleKind": "scenario",
+    "analysis": {
+      "classes": ["person"]
+    },
+    "event": {
+      "type": "intrusion-after-line-crossing",
+      "minConfidence": 0.1,
+      "region": {
+        "type": "polygon",
+        "points": [
+          { "x": 0.65, "y": 0.1 },
+          { "x": 0.9, "y": 0.1 },
+          { "x": 0.9, "y": 0.5 },
+          { "x": 0.65, "y": 0.5 }
+        ]
+      }
+    }
+  }
+]

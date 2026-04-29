@@ -23,11 +23,25 @@ constexpr const char* kEnvHttpListenAddress = "MEDIA_SERVER_HTTP_LISTEN_ADDRESS"
 constexpr const char* kEnvHttpListenPort = "MEDIA_SERVER_HTTP_LISTEN_PORT";
 constexpr const char* kEnvFileRoot = "MEDIA_SERVER_FILE_ROOT";
 constexpr const char* kEnvDefaultFile = "MEDIA_SERVER_DEFAULT_FILE";
+constexpr const char* kEnvWebRtcVaMetadataChannelEnabled =
+    "MEDIA_SERVER_WEBRTC_VA_METADATA_CHANNEL_ENABLED";
+constexpr const char* kEnvWebRtcVaMetadataChannelLabel =
+    "MEDIA_SERVER_WEBRTC_VA_METADATA_CHANNEL_LABEL";
+constexpr const char* kEnvWebRtcVaMetadataIntervalMs =
+    "MEDIA_SERVER_WEBRTC_VA_METADATA_INTERVAL_MS";
+constexpr const char* kEnvWebRtcVaMetadataMaxMessageBytes =
+    "MEDIA_SERVER_WEBRTC_VA_METADATA_MAX_MESSAGE_BYTES";
+constexpr const char* kEnvWebRtcVaMetadataMaxBufferedBytes =
+    "MEDIA_SERVER_WEBRTC_VA_METADATA_MAX_BUFFERED_BYTES";
 constexpr const char* kEnvDefaultAnalysisDetector = "MEDIA_SERVER_ANALYSIS_DETECTOR";
 constexpr const char* kEnvDefaultAnalysisModel = "MEDIA_SERVER_ANALYSIS_MODEL";
 constexpr const char* kEnvDefaultAnalysisLabels = "MEDIA_SERVER_ANALYSIS_LABELS";
 constexpr const char* kEnvDefaultAnalysisFps = "MEDIA_SERVER_ANALYSIS_FPS";
 constexpr const char* kEnvDefaultAnalysisMaxQueue = "MEDIA_SERVER_ANALYSIS_MAX_QUEUE";
+constexpr const char* kEnvDefaultAnalysisFrameSampleInterval =
+    "MEDIA_SERVER_ANALYSIS_FRAME_SAMPLE_INTERVAL";
+constexpr const char* kEnvDefaultAnalysisMaxFrameAgeMs =
+    "MEDIA_SERVER_ANALYSIS_MAX_FRAME_AGE_MS";
 constexpr const char* kEnvDefaultAnalysisInputWidth = "MEDIA_SERVER_ANALYSIS_INPUT_WIDTH";
 constexpr const char* kEnvDefaultAnalysisInputHeight = "MEDIA_SERVER_ANALYSIS_INPUT_HEIGHT";
 constexpr const char* kEnvDefaultAnalysisConfidence = "MEDIA_SERVER_ANALYSIS_CONFIDENCE";
@@ -35,10 +49,33 @@ constexpr const char* kEnvDefaultAnalysisNms = "MEDIA_SERVER_ANALYSIS_NMS";
 constexpr const char* kEnvDefaultAnalysisPreprocess = "MEDIA_SERVER_ANALYSIS_PREPROCESS";
 constexpr const char* kEnvDefaultAnalysisTracking = "MEDIA_SERVER_ANALYSIS_TRACKING";
 constexpr const char* kEnvDefaultAnalysisTrackingClasses = "MEDIA_SERVER_ANALYSIS_TRACKING_CLASSES";
+constexpr const char* kEnvAnalysisTrackingLostBufferFrames =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_LOST_BUFFER_FRAMES";
+constexpr const char* kEnvAnalysisTrackingIouWeight = "MEDIA_SERVER_ANALYSIS_TRACKING_IOU_WEIGHT";
+constexpr const char* kEnvAnalysisTrackingDistanceWeight =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_DISTANCE_WEIGHT";
+constexpr const char* kEnvAnalysisTrackingDirectionWeight =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_DIRECTION_WEIGHT";
+constexpr const char* kEnvAnalysisTrackingClassWeight = "MEDIA_SERVER_ANALYSIS_TRACKING_CLASS_WEIGHT";
+constexpr const char* kEnvAnalysisTrackingMinAssociationScore =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_MIN_ASSOCIATION_SCORE";
 constexpr const char* kEnvDefaultAnalysisOverlayWaitMs = "MEDIA_SERVER_ANALYSIS_OVERLAY_WAIT_MS";
 constexpr const char* kEnvDefaultAnalysisOverlaySyncToleranceMs =
     "MEDIA_SERVER_ANALYSIS_OVERLAY_SYNC_TOLERANCE_MS";
 constexpr const char* kEnvDefaultAnalysisOverlayThickness = "MEDIA_SERVER_ANALYSIS_OVERLAY_THICKNESS";
+constexpr const char* kEnvDefaultAnalysisDebugOverlay = "MEDIA_SERVER_ANALYSIS_DEBUG_OVERLAY";
+constexpr const char* kEnvDefaultAnalysisDebugGroundPoint =
+    "MEDIA_SERVER_ANALYSIS_DEBUG_GROUND_POINT";
+constexpr const char* kEnvAnalysisMetricsLogIntervalMs = "MEDIA_SERVER_ANALYSIS_METRICS_LOG_INTERVAL_MS";
+constexpr const char* kEnvAnalysisHomographyEnabled = "MEDIA_SERVER_ANALYSIS_HOMOGRAPHY_ENABLED";
+constexpr const char* kEnvAnalysisHomographyMatrix = "MEDIA_SERVER_ANALYSIS_HOMOGRAPHY_MATRIX";
+constexpr const char* kEnvAnalysisHomographyStreamId = "MEDIA_SERVER_ANALYSIS_HOMOGRAPHY_STREAM_ID";
+constexpr const char* kEnvAnalysisHomographyChannelId = "MEDIA_SERVER_ANALYSIS_HOMOGRAPHY_CHANNEL_ID";
+constexpr const char* kEnvAnalysisHomographyUnits = "MEDIA_SERVER_ANALYSIS_HOMOGRAPHY_UNITS";
+constexpr const char* kEnvAnalysisGroundPlaneSpeedEnabled =
+    "MEDIA_SERVER_ANALYSIS_GROUND_PLANE_SPEED_ENABLED";
+constexpr const char* kEnvAnalysisGroundPlaneMovementRadiusEnabled =
+    "MEDIA_SERVER_ANALYSIS_GROUND_PLANE_MOVEMENT_RADIUS_ENABLED";
 constexpr const char* kEnvDefaultAnalysisAdaptive = "MEDIA_SERVER_ANALYSIS_ADAPTIVE";
 constexpr const char* kEnvDefaultAnalysisAdaptiveInput = "MEDIA_SERVER_ANALYSIS_ADAPTIVE_INPUT_SIZE";
 constexpr const char* kEnvDefaultAnalysisAdaptiveMinFps = "MEDIA_SERVER_ANALYSIS_ADAPTIVE_MIN_FPS";
@@ -55,6 +92,17 @@ constexpr const char* kEnvAnalysisEventPostEnabled = "MEDIA_SERVER_ANALYSIS_EVEN
 constexpr const char* kEnvAnalysisEventPostTimeoutMs = "MEDIA_SERVER_ANALYSIS_EVENT_POST_TIMEOUT_MS";
 constexpr const char* kEnvAnalysisEventPostMaxQueue = "MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE";
 constexpr const char* kEnvAnalysisEventPostCooldownMs = "MEDIA_SERVER_ANALYSIS_EVENT_POST_COOLDOWN_MS";
+constexpr const char* kEnvAnalysisEventStorageEnabled = "MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED";
+constexpr const char* kEnvAnalysisEventStoragePath = "MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH";
+constexpr const char* kEnvAnalysisEventStorageMaxQueue = "MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_QUEUE";
+constexpr const char* kEnvAnalysisEventSnapshotHookEnabled =
+    "MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED";
+constexpr const char* kEnvAnalysisEventSnapshotDir = "MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR";
+constexpr const char* kEnvAnalysisEventClipHookEnabled = "MEDIA_SERVER_ANALYSIS_EVENT_CLIP_HOOK_ENABLED";
+constexpr const char* kEnvAnalysisEventClipDir = "MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR";
+constexpr const char* kEnvAnalysisEventPreEventMs = "MEDIA_SERVER_ANALYSIS_EVENT_PRE_EVENT_MS";
+constexpr const char* kEnvAnalysisEventPostEventMs = "MEDIA_SERVER_ANALYSIS_EVENT_POST_EVENT_MS";
+constexpr const char* kEnvAnalysisEventClipBufferMs = "MEDIA_SERVER_ANALYSIS_EVENT_CLIP_BUFFER_MS";
 constexpr const char* kEnvAnalysisMaxActiveTracksPerStream =
     "MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_TRACKS_PER_STREAM";
 constexpr const char* kEnvAnalysisMaxRecentObservationsPerTrack =
@@ -63,6 +111,10 @@ constexpr const char* kEnvAnalysisMaxTrajectoryPointsPerTrack =
     "MEDIA_SERVER_ANALYSIS_MAX_TRAJECTORY_POINTS_PER_TRACK";
 constexpr const char* kEnvAnalysisTrajectoryDownsampleMs =
     "MEDIA_SERVER_ANALYSIS_TRAJECTORY_DOWNSAMPLE_MS";
+constexpr const char* kEnvAnalysisLostTrackTimeoutMs =
+    "MEDIA_SERVER_ANALYSIS_LOST_TRACK_TIMEOUT_MS";
+constexpr const char* kEnvAnalysisTerminatedTrackTimeoutMs =
+    "MEDIA_SERVER_ANALYSIS_TERMINATED_TRACK_TIMEOUT_MS";
 constexpr const char* kEnvAnalysisTerminatedTrackRetentionMs =
     "MEDIA_SERVER_ANALYSIS_TERMINATED_TRACK_RETENTION_MS";
 constexpr const char* kEnvAnalysisCleanupIntervalMs = "MEDIA_SERVER_ANALYSIS_CLEANUP_INTERVAL_MS";
@@ -88,7 +140,88 @@ constexpr const char* kEnvAnalysisIntrusionDwellTargetClasses =
     "MEDIA_SERVER_ANALYSIS_INTRUSION_DWELL_TARGET_CLASSES";
 constexpr const char* kEnvAnalysisIntrusionDwellRestrictedZoneIds =
     "MEDIA_SERVER_ANALYSIS_INTRUSION_DWELL_RESTRICTED_ZONE_IDS";
+constexpr const char* kEnvAnalysisReEntryEnabled = "MEDIA_SERVER_ANALYSIS_RE_ENTRY_ENABLED";
+constexpr const char* kEnvAnalysisReEntryWindowMs = "MEDIA_SERVER_ANALYSIS_RE_ENTRY_WINDOW_MS";
+constexpr const char* kEnvAnalysisReEntryCooldownMs = "MEDIA_SERVER_ANALYSIS_RE_ENTRY_COOLDOWN_MS";
+constexpr const char* kEnvAnalysisReEntryTargetClasses =
+    "MEDIA_SERVER_ANALYSIS_RE_ENTRY_TARGET_CLASSES";
+constexpr const char* kEnvAnalysisReEntryTargetZoneIds =
+    "MEDIA_SERVER_ANALYSIS_RE_ENTRY_TARGET_ZONE_IDS";
+constexpr const char* kEnvAnalysisWrongDirectionEnabled =
+    "MEDIA_SERVER_ANALYSIS_WRONG_DIRECTION_ENABLED";
+constexpr const char* kEnvAnalysisWrongDirectionCooldownMs =
+    "MEDIA_SERVER_ANALYSIS_WRONG_DIRECTION_COOLDOWN_MS";
+constexpr const char* kEnvAnalysisWrongDirectionTargetClasses =
+    "MEDIA_SERVER_ANALYSIS_WRONG_DIRECTION_TARGET_CLASSES";
+constexpr const char* kEnvAnalysisWrongDirectionTargetLineIds =
+    "MEDIA_SERVER_ANALYSIS_WRONG_DIRECTION_TARGET_LINE_IDS";
+constexpr const char* kEnvAnalysisWrongDirectionAllowedDirections =
+    "MEDIA_SERVER_ANALYSIS_WRONG_DIRECTION_ALLOWED_DIRECTIONS";
+constexpr const char* kEnvAnalysisIntrusionAfterLineCrossingEnabled =
+    "MEDIA_SERVER_ANALYSIS_INTRUSION_AFTER_LINE_CROSSING_ENABLED";
+constexpr const char* kEnvAnalysisIntrusionAfterLineCrossingMaxDelayMs =
+    "MEDIA_SERVER_ANALYSIS_INTRUSION_AFTER_LINE_CROSSING_MAX_DELAY_MS";
+constexpr const char* kEnvAnalysisIntrusionAfterLineCrossingDwellMs =
+    "MEDIA_SERVER_ANALYSIS_INTRUSION_AFTER_LINE_CROSSING_DWELL_MS";
+constexpr const char* kEnvAnalysisIntrusionAfterLineCrossingCooldownMs =
+    "MEDIA_SERVER_ANALYSIS_INTRUSION_AFTER_LINE_CROSSING_COOLDOWN_MS";
+constexpr const char* kEnvAnalysisIntrusionAfterLineCrossingTargetClasses =
+    "MEDIA_SERVER_ANALYSIS_INTRUSION_AFTER_LINE_CROSSING_TARGET_CLASSES";
+constexpr const char* kEnvAnalysisIntrusionAfterLineCrossingTargetLineIds =
+    "MEDIA_SERVER_ANALYSIS_INTRUSION_AFTER_LINE_CROSSING_TARGET_LINE_IDS";
+constexpr const char* kEnvAnalysisIntrusionAfterLineCrossingTargetZoneIds =
+    "MEDIA_SERVER_ANALYSIS_INTRUSION_AFTER_LINE_CROSSING_TARGET_ZONE_IDS";
+constexpr const char* kEnvAnalysisLoiteringEnabled =
+    "MEDIA_SERVER_ANALYSIS_LOITERING_ENABLED";
+constexpr const char* kEnvAnalysisLoiteringMinDwellTimeMs =
+    "MEDIA_SERVER_ANALYSIS_LOITERING_MIN_DWELL_TIME_MS";
+constexpr const char* kEnvAnalysisLoiteringMaxMovementRadius =
+    "MEDIA_SERVER_ANALYSIS_LOITERING_MAX_MOVEMENT_RADIUS";
+constexpr const char* kEnvAnalysisLoiteringMinTrajectoryPoints =
+    "MEDIA_SERVER_ANALYSIS_LOITERING_MIN_TRAJECTORY_POINTS";
+constexpr const char* kEnvAnalysisLoiteringCooldownMs =
+    "MEDIA_SERVER_ANALYSIS_LOITERING_COOLDOWN_MS";
+constexpr const char* kEnvAnalysisLoiteringTargetClasses =
+    "MEDIA_SERVER_ANALYSIS_LOITERING_TARGET_CLASSES";
+constexpr const char* kEnvAnalysisLoiteringTargetZoneIds =
+    "MEDIA_SERVER_ANALYSIS_LOITERING_TARGET_ZONE_IDS";
+constexpr const char* kEnvAnalysisLoiteringUseGroundPlane =
+    "MEDIA_SERVER_ANALYSIS_LOITERING_USE_GROUND_PLANE";
+constexpr const char* kEnvAnalysisTrackingIssueReportEnabled =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_ISSUE_REPORT_ENABLED";
+constexpr const char* kEnvAnalysisTrackingIssueLogEnabled =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_ISSUE_LOG_ENABLED";
+constexpr const char* kEnvAnalysisTrackingIssueMaxEntries =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_ISSUE_MAX_ENTRIES";
+constexpr const char* kEnvAnalysisTrackingIssueRateLimitMs =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_ISSUE_RATE_LIMIT_MS";
+constexpr const char* kEnvAnalysisTrackingIssueOverlapRiskThreshold =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_ISSUE_OVERLAP_RISK_THRESHOLD";
+constexpr const char* kEnvAnalysisTrackingIssueMissedFrameJumpThreshold =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_ISSUE_MISSED_FRAME_JUMP_THRESHOLD";
+constexpr const char* kEnvAnalysisTrackingIssueDirectionChangeJumpThreshold =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_ISSUE_DIRECTION_CHANGE_JUMP_THRESHOLD";
 constexpr const char* kEnvAnalysisAppearanceEnabled = "MEDIA_SERVER_ANALYSIS_APPEARANCE_ENABLED";
+constexpr const char* kEnvAnalysisAppearanceExtractor = "MEDIA_SERVER_ANALYSIS_APPEARANCE_EXTRACTOR";
+constexpr const char* kEnvAnalysisAppearanceModel = "MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL";
+constexpr const char* kEnvAnalysisAppearanceInputWidth =
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_INPUT_WIDTH";
+constexpr const char* kEnvAnalysisAppearanceInputHeight =
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_INPUT_HEIGHT";
+constexpr const char* kEnvAnalysisAppearanceMaxEmbeddingDim =
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_MAX_EMBEDDING_DIM";
+constexpr const char* kEnvAnalysisAppearanceLogEnabled =
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_LOG_ENABLED";
+constexpr const char* kEnvAnalysisAppearanceAsyncEnabled =
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_ASYNC_ENABLED";
+constexpr const char* kEnvAnalysisAppearanceMaxQueue =
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_MAX_QUEUE";
+constexpr const char* kEnvAnalysisAppearanceGlobalMaxQueue =
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_GLOBAL_MAX_QUEUE";
+constexpr const char* kEnvAnalysisAppearancePerStreamRateLimitMs =
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_PER_STREAM_RATE_LIMIT_MS";
+constexpr const char* kEnvAnalysisAppearanceMaxJobAgeMs =
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_MAX_JOB_AGE_MS";
 constexpr const char* kEnvAnalysisAppearanceOnTrackCreated =
     "MEDIA_SERVER_ANALYSIS_APPEARANCE_ON_TRACK_CREATED";
 constexpr const char* kEnvAnalysisAppearanceEveryNSeconds =
@@ -340,6 +473,16 @@ app::AppConfig LoadAppConfig() {
     config.http_listen_port = ReadPortEnv(kEnvHttpListenPort, config.http_listen_port);
     config.file_root_path = ReadStringEnv(kEnvFileRoot, config.file_root_path);
     config.default_file_path = ReadStringEnv(kEnvDefaultFile, config.default_file_path);
+    config.webrtc_va_metadata_channel_enabled =
+        ReadBoolEnv(kEnvWebRtcVaMetadataChannelEnabled, config.webrtc_va_metadata_channel_enabled);
+    config.webrtc_va_metadata_channel_label =
+        ReadStringEnv(kEnvWebRtcVaMetadataChannelLabel, config.webrtc_va_metadata_channel_label);
+    config.webrtc_va_metadata_interval_ms =
+        ReadIntEnv(kEnvWebRtcVaMetadataIntervalMs, config.webrtc_va_metadata_interval_ms);
+    config.webrtc_va_metadata_max_message_bytes =
+        ReadSizeEnv(kEnvWebRtcVaMetadataMaxMessageBytes, config.webrtc_va_metadata_max_message_bytes);
+    config.webrtc_va_metadata_max_buffered_bytes =
+        ReadSizeEnv(kEnvWebRtcVaMetadataMaxBufferedBytes, config.webrtc_va_metadata_max_buffered_bytes);
     config.default_analysis_detector =
         ReadStringEnv(kEnvDefaultAnalysisDetector, config.default_analysis_detector);
     config.default_analysis_model_path =
@@ -349,6 +492,11 @@ app::AppConfig LoadAppConfig() {
     config.default_analysis_fps = ReadIntEnv(kEnvDefaultAnalysisFps, config.default_analysis_fps);
     config.default_analysis_max_queue =
         ReadSizeEnv(kEnvDefaultAnalysisMaxQueue, config.default_analysis_max_queue);
+    config.default_analysis_frame_sample_interval =
+        ReadIntEnv(kEnvDefaultAnalysisFrameSampleInterval,
+                   config.default_analysis_frame_sample_interval);
+    config.default_analysis_max_frame_age_ms =
+        ReadIntEnv(kEnvDefaultAnalysisMaxFrameAgeMs, config.default_analysis_max_frame_age_ms);
     config.default_analysis_input_width =
         ReadIntEnv(kEnvDefaultAnalysisInputWidth, config.default_analysis_input_width);
     config.default_analysis_input_height =
@@ -362,12 +510,50 @@ app::AppConfig LoadAppConfig() {
         ReadBoolEnv(kEnvDefaultAnalysisTracking, config.default_analysis_tracking_enabled);
     config.default_analysis_tracking_classes =
         ReadStringListEnv(kEnvDefaultAnalysisTrackingClasses, config.default_analysis_tracking_classes);
+    config.analysis_tracking_lost_buffer_frames = static_cast<std::uint32_t>(
+        std::max(0,
+                 ReadIntEnv(kEnvAnalysisTrackingLostBufferFrames,
+                            static_cast<int>(config.analysis_tracking_lost_buffer_frames))));
+    config.analysis_tracking_iou_weight =
+        ReadFloatEnv(kEnvAnalysisTrackingIouWeight, config.analysis_tracking_iou_weight);
+    config.analysis_tracking_distance_weight =
+        ReadFloatEnv(kEnvAnalysisTrackingDistanceWeight, config.analysis_tracking_distance_weight);
+    config.analysis_tracking_direction_weight =
+        ReadFloatEnv(kEnvAnalysisTrackingDirectionWeight, config.analysis_tracking_direction_weight);
+    config.analysis_tracking_class_weight =
+        ReadFloatEnv(kEnvAnalysisTrackingClassWeight, config.analysis_tracking_class_weight);
+    config.analysis_tracking_min_association_score =
+        ReadFloatEnv(kEnvAnalysisTrackingMinAssociationScore,
+                     config.analysis_tracking_min_association_score);
     config.default_analysis_overlay_wait_ms =
         ReadIntEnv(kEnvDefaultAnalysisOverlayWaitMs, config.default_analysis_overlay_wait_ms);
     config.default_analysis_overlay_sync_tolerance_ms =
         ReadIntEnv(kEnvDefaultAnalysisOverlaySyncToleranceMs, config.default_analysis_overlay_sync_tolerance_ms);
     config.default_analysis_overlay_thickness =
         ReadIntEnv(kEnvDefaultAnalysisOverlayThickness, config.default_analysis_overlay_thickness);
+    config.default_analysis_debug_overlay_enabled =
+        ReadBoolEnv(kEnvDefaultAnalysisDebugOverlay, config.default_analysis_debug_overlay_enabled);
+    config.default_analysis_debug_ground_point_enabled =
+        ReadBoolEnv(kEnvDefaultAnalysisDebugGroundPoint,
+                    config.default_analysis_debug_ground_point_enabled);
+    config.analysis_metrics_log_interval_ms =
+        ReadIntEnv(kEnvAnalysisMetricsLogIntervalMs, config.analysis_metrics_log_interval_ms);
+    config.analysis_homography_enabled =
+        ReadBoolEnv(kEnvAnalysisHomographyEnabled, config.analysis_homography_enabled);
+    config.analysis_homography_matrix =
+        ReadStringEnv(kEnvAnalysisHomographyMatrix, config.analysis_homography_matrix);
+    config.analysis_homography_stream_id =
+        ReadStringEnv(kEnvAnalysisHomographyStreamId, config.analysis_homography_stream_id);
+    config.analysis_homography_channel_id =
+        ReadStringEnv(kEnvAnalysisHomographyChannelId, config.analysis_homography_channel_id);
+    config.analysis_homography_units =
+        ReadStringEnv(kEnvAnalysisHomographyUnits, config.analysis_homography_units);
+    config.analysis_ground_plane_speed_enabled =
+        ReadBoolEnv(kEnvAnalysisGroundPlaneSpeedEnabled,
+                    config.analysis_ground_plane_speed_enabled);
+    config.analysis_ground_plane_movement_radius_enabled =
+        ReadBoolEnv(kEnvAnalysisGroundPlaneMovementRadiusEnabled,
+                    config.analysis_ground_plane_movement_radius_enabled);
     config.default_analysis_adaptive_enabled =
         ReadBoolEnv(kEnvDefaultAnalysisAdaptive, config.default_analysis_adaptive_enabled);
     config.default_analysis_adaptive_input_enabled =
@@ -397,6 +583,26 @@ app::AppConfig LoadAppConfig() {
         ReadSizeEnv(kEnvAnalysisEventPostMaxQueue, config.analysis_event_post_max_queue);
     config.analysis_event_post_cooldown_ms =
         ReadIntEnv(kEnvAnalysisEventPostCooldownMs, config.analysis_event_post_cooldown_ms);
+    config.analysis_event_storage_enabled =
+        ReadBoolEnv(kEnvAnalysisEventStorageEnabled, config.analysis_event_storage_enabled);
+    config.analysis_event_storage_path =
+        ReadStringEnv(kEnvAnalysisEventStoragePath, config.analysis_event_storage_path);
+    config.analysis_event_storage_max_queue =
+        ReadSizeEnv(kEnvAnalysisEventStorageMaxQueue, config.analysis_event_storage_max_queue);
+    config.analysis_event_snapshot_hook_enabled =
+        ReadBoolEnv(kEnvAnalysisEventSnapshotHookEnabled, config.analysis_event_snapshot_hook_enabled);
+    config.analysis_event_snapshot_dir =
+        ReadStringEnv(kEnvAnalysisEventSnapshotDir, config.analysis_event_snapshot_dir);
+    config.analysis_event_clip_hook_enabled =
+        ReadBoolEnv(kEnvAnalysisEventClipHookEnabled, config.analysis_event_clip_hook_enabled);
+    config.analysis_event_clip_dir =
+        ReadStringEnv(kEnvAnalysisEventClipDir, config.analysis_event_clip_dir);
+    config.analysis_event_pre_event_ms =
+        ReadIntEnv(kEnvAnalysisEventPreEventMs, config.analysis_event_pre_event_ms);
+    config.analysis_event_post_event_ms =
+        ReadIntEnv(kEnvAnalysisEventPostEventMs, config.analysis_event_post_event_ms);
+    config.analysis_event_clip_buffer_ms =
+        ReadIntEnv(kEnvAnalysisEventClipBufferMs, config.analysis_event_clip_buffer_ms);
     config.analysis_scenario_enabled =
         ReadBoolEnv(kEnvAnalysisScenarioEnabled, config.analysis_scenario_enabled);
     config.analysis_max_active_tracks_per_stream =
@@ -411,6 +617,11 @@ app::AppConfig LoadAppConfig() {
     config.analysis_trajectory_downsample_ms =
         ReadIntEnv(kEnvAnalysisTrajectoryDownsampleMs,
                    config.analysis_trajectory_downsample_ms);
+    config.analysis_lost_track_timeout_ms =
+        ReadIntEnv(kEnvAnalysisLostTrackTimeoutMs, config.analysis_lost_track_timeout_ms);
+    config.analysis_terminated_track_timeout_ms =
+        ReadIntEnv(kEnvAnalysisTerminatedTrackTimeoutMs,
+                   config.analysis_terminated_track_timeout_ms);
     config.analysis_terminated_track_retention_ms =
         ReadIntEnv(kEnvAnalysisTerminatedTrackRetentionMs,
                    config.analysis_terminated_track_retention_ms);
@@ -443,8 +654,128 @@ app::AppConfig LoadAppConfig() {
     config.analysis_intrusion_dwell_restricted_zone_ids =
         ReadOptionalStringListEnv(kEnvAnalysisIntrusionDwellRestrictedZoneIds,
                                   config.analysis_intrusion_dwell_restricted_zone_ids);
+    config.analysis_re_entry_enabled =
+        ReadBoolEnv(kEnvAnalysisReEntryEnabled, config.analysis_re_entry_enabled);
+    config.analysis_re_entry_window_ms =
+        ReadIntEnv(kEnvAnalysisReEntryWindowMs, config.analysis_re_entry_window_ms);
+    config.analysis_re_entry_cooldown_ms =
+        ReadIntEnv(kEnvAnalysisReEntryCooldownMs, config.analysis_re_entry_cooldown_ms);
+    config.analysis_re_entry_target_classes =
+        ReadStringListEnv(kEnvAnalysisReEntryTargetClasses,
+                          config.analysis_re_entry_target_classes);
+    config.analysis_re_entry_target_zone_ids =
+        ReadOptionalStringListEnv(kEnvAnalysisReEntryTargetZoneIds,
+                                  config.analysis_re_entry_target_zone_ids);
+    config.analysis_wrong_direction_enabled =
+        ReadBoolEnv(kEnvAnalysisWrongDirectionEnabled, config.analysis_wrong_direction_enabled);
+    config.analysis_wrong_direction_cooldown_ms =
+        ReadIntEnv(kEnvAnalysisWrongDirectionCooldownMs,
+                   config.analysis_wrong_direction_cooldown_ms);
+    config.analysis_wrong_direction_target_classes =
+        ReadStringListEnv(kEnvAnalysisWrongDirectionTargetClasses,
+                          config.analysis_wrong_direction_target_classes);
+    config.analysis_wrong_direction_target_line_ids =
+        ReadOptionalStringListEnv(kEnvAnalysisWrongDirectionTargetLineIds,
+                                  config.analysis_wrong_direction_target_line_ids);
+    config.analysis_wrong_direction_allowed_directions =
+        ReadOptionalStringListEnv(kEnvAnalysisWrongDirectionAllowedDirections,
+                                  config.analysis_wrong_direction_allowed_directions);
+    config.analysis_intrusion_after_line_crossing_enabled =
+        ReadBoolEnv(kEnvAnalysisIntrusionAfterLineCrossingEnabled,
+                    config.analysis_intrusion_after_line_crossing_enabled);
+    config.analysis_intrusion_after_line_crossing_max_delay_ms =
+        ReadIntEnv(kEnvAnalysisIntrusionAfterLineCrossingMaxDelayMs,
+                   config.analysis_intrusion_after_line_crossing_max_delay_ms);
+    config.analysis_intrusion_after_line_crossing_dwell_ms =
+        ReadIntEnv(kEnvAnalysisIntrusionAfterLineCrossingDwellMs,
+                   config.analysis_intrusion_after_line_crossing_dwell_ms);
+    config.analysis_intrusion_after_line_crossing_cooldown_ms =
+        ReadIntEnv(kEnvAnalysisIntrusionAfterLineCrossingCooldownMs,
+                   config.analysis_intrusion_after_line_crossing_cooldown_ms);
+    config.analysis_intrusion_after_line_crossing_target_classes =
+        ReadStringListEnv(kEnvAnalysisIntrusionAfterLineCrossingTargetClasses,
+                          config.analysis_intrusion_after_line_crossing_target_classes);
+    config.analysis_intrusion_after_line_crossing_target_line_ids =
+        ReadOptionalStringListEnv(kEnvAnalysisIntrusionAfterLineCrossingTargetLineIds,
+                                  config.analysis_intrusion_after_line_crossing_target_line_ids);
+    config.analysis_intrusion_after_line_crossing_target_zone_ids =
+        ReadOptionalStringListEnv(kEnvAnalysisIntrusionAfterLineCrossingTargetZoneIds,
+                                  config.analysis_intrusion_after_line_crossing_target_zone_ids);
+    config.analysis_loitering_enabled =
+        ReadBoolEnv(kEnvAnalysisLoiteringEnabled, config.analysis_loitering_enabled);
+    config.analysis_loitering_min_dwell_time_ms =
+        ReadIntEnv(kEnvAnalysisLoiteringMinDwellTimeMs,
+                   config.analysis_loitering_min_dwell_time_ms);
+    config.analysis_loitering_max_movement_radius =
+        ReadFloatEnv(kEnvAnalysisLoiteringMaxMovementRadius,
+                     config.analysis_loitering_max_movement_radius);
+    config.analysis_loitering_min_trajectory_points =
+        ReadSizeEnv(kEnvAnalysisLoiteringMinTrajectoryPoints,
+                    config.analysis_loitering_min_trajectory_points);
+    config.analysis_loitering_cooldown_ms =
+        ReadIntEnv(kEnvAnalysisLoiteringCooldownMs, config.analysis_loitering_cooldown_ms);
+    config.analysis_loitering_target_classes =
+        ReadStringListEnv(kEnvAnalysisLoiteringTargetClasses,
+                          config.analysis_loitering_target_classes);
+    config.analysis_loitering_target_zone_ids =
+        ReadOptionalStringListEnv(kEnvAnalysisLoiteringTargetZoneIds,
+                                  config.analysis_loitering_target_zone_ids);
+    config.analysis_loitering_use_ground_plane =
+        ReadBoolEnv(kEnvAnalysisLoiteringUseGroundPlane,
+                    config.analysis_loitering_use_ground_plane);
+    config.analysis_tracking_issue_report_enabled =
+        ReadBoolEnv(kEnvAnalysisTrackingIssueReportEnabled,
+                    config.analysis_tracking_issue_report_enabled);
+    config.analysis_tracking_issue_log_enabled =
+        ReadBoolEnv(kEnvAnalysisTrackingIssueLogEnabled,
+                    config.analysis_tracking_issue_log_enabled);
+    config.analysis_tracking_issue_max_entries =
+        ReadSizeEnv(kEnvAnalysisTrackingIssueMaxEntries,
+                    config.analysis_tracking_issue_max_entries);
+    config.analysis_tracking_issue_rate_limit_ms =
+        ReadIntEnv(kEnvAnalysisTrackingIssueRateLimitMs,
+                   config.analysis_tracking_issue_rate_limit_ms);
+    config.analysis_tracking_issue_overlap_risk_threshold =
+        ReadFloatEnv(kEnvAnalysisTrackingIssueOverlapRiskThreshold,
+                     config.analysis_tracking_issue_overlap_risk_threshold);
+    config.analysis_tracking_issue_missed_frame_jump_threshold =
+        static_cast<std::uint32_t>(std::max(
+            0,
+            ReadIntEnv(kEnvAnalysisTrackingIssueMissedFrameJumpThreshold,
+                       static_cast<int>(config.analysis_tracking_issue_missed_frame_jump_threshold))));
+    config.analysis_tracking_issue_direction_change_jump_threshold =
+        static_cast<std::uint32_t>(std::max(
+            0,
+            ReadIntEnv(kEnvAnalysisTrackingIssueDirectionChangeJumpThreshold,
+                       static_cast<int>(config.analysis_tracking_issue_direction_change_jump_threshold))));
     config.analysis_appearance_enabled =
         ReadBoolEnv(kEnvAnalysisAppearanceEnabled, config.analysis_appearance_enabled);
+    config.analysis_appearance_extractor =
+        ReadStringEnv(kEnvAnalysisAppearanceExtractor, config.analysis_appearance_extractor);
+    config.analysis_appearance_model_path =
+        ReadStringEnv(kEnvAnalysisAppearanceModel, config.analysis_appearance_model_path);
+    config.analysis_appearance_input_width =
+        ReadIntEnv(kEnvAnalysisAppearanceInputWidth, config.analysis_appearance_input_width);
+    config.analysis_appearance_input_height =
+        ReadIntEnv(kEnvAnalysisAppearanceInputHeight, config.analysis_appearance_input_height);
+    config.analysis_appearance_max_embedding_dim =
+        ReadSizeEnv(kEnvAnalysisAppearanceMaxEmbeddingDim,
+                    config.analysis_appearance_max_embedding_dim);
+    config.analysis_appearance_log_enabled =
+        ReadBoolEnv(kEnvAnalysisAppearanceLogEnabled, config.analysis_appearance_log_enabled);
+    config.analysis_appearance_async_enabled =
+        ReadBoolEnv(kEnvAnalysisAppearanceAsyncEnabled, config.analysis_appearance_async_enabled);
+    config.analysis_appearance_max_queue =
+        ReadSizeEnv(kEnvAnalysisAppearanceMaxQueue, config.analysis_appearance_max_queue);
+    config.analysis_appearance_global_max_queue =
+        ReadSizeEnv(kEnvAnalysisAppearanceGlobalMaxQueue,
+                    config.analysis_appearance_global_max_queue);
+    config.analysis_appearance_per_stream_rate_limit_ms =
+        ReadIntEnv(kEnvAnalysisAppearancePerStreamRateLimitMs,
+                   config.analysis_appearance_per_stream_rate_limit_ms);
+    config.analysis_appearance_max_job_age_ms =
+        ReadIntEnv(kEnvAnalysisAppearanceMaxJobAgeMs,
+                   config.analysis_appearance_max_job_age_ms);
     config.analysis_appearance_on_track_created =
         ReadBoolEnv(kEnvAnalysisAppearanceOnTrackCreated,
                     config.analysis_appearance_on_track_created);
@@ -464,6 +795,7 @@ app::AppConfig LoadAppConfig() {
     config.default_analysis_model_path = ResolveRuntimePath(config.default_analysis_model_path);
     config.default_analysis_labels_path = ResolveRuntimePath(config.default_analysis_labels_path);
     config.analysis_registry_path = ResolveRuntimePath(config.analysis_registry_path);
+    config.analysis_appearance_model_path = ResolveRuntimePath(config.analysis_appearance_model_path);
     config.force_rtsp_tcp = ReadBoolEnv(kEnvForceTcpOnly, config.force_rtsp_tcp);
     config.session_trace = ReadBoolEnv(kEnvSessionTrace, config.session_trace);
     config.webrtc_trace = ReadBoolEnv(kEnvWebRtcTrace, config.webrtc_trace);
@@ -519,6 +851,28 @@ app::AppConfig LoadAppConfig() {
         std::cerr << "[env] idle grace ms cannot be negative, fallback 0\n";
         config.idle_grace_period_ms = 0;
     }
+    if (config.webrtc_va_metadata_channel_label.empty()) {
+        std::cerr << "[env] WebRTC VA metadata channel label cannot be empty, fallback "
+                  << app_config::kDefaultWebRtcVaMetadataChannelLabel << "\n";
+        config.webrtc_va_metadata_channel_label = app_config::kDefaultWebRtcVaMetadataChannelLabel;
+    }
+    if (config.webrtc_va_metadata_interval_ms < 0) {
+        std::cerr << "[env] WebRTC VA metadata interval cannot be negative, fallback "
+                  << app_config::kDefaultWebRtcVaMetadataIntervalMs << "\n";
+        config.webrtc_va_metadata_interval_ms = app_config::kDefaultWebRtcVaMetadataIntervalMs;
+    }
+    if (config.webrtc_va_metadata_max_message_bytes == 0) {
+        std::cerr << "[env] WebRTC VA metadata max message bytes cannot be 0, fallback "
+                  << app_config::kDefaultWebRtcVaMetadataMaxMessageBytes << "\n";
+        config.webrtc_va_metadata_max_message_bytes =
+            app_config::kDefaultWebRtcVaMetadataMaxMessageBytes;
+    }
+    if (config.webrtc_va_metadata_max_buffered_bytes == 0) {
+        std::cerr << "[env] WebRTC VA metadata max buffered bytes cannot be 0, fallback "
+                  << app_config::kDefaultWebRtcVaMetadataMaxBufferedBytes << "\n";
+        config.webrtc_va_metadata_max_buffered_bytes =
+            app_config::kDefaultWebRtcVaMetadataMaxBufferedBytes;
+    }
     if (config.default_analysis_detector.empty()) {
         std::cerr << "[env] default analysis detector cannot be empty, fallback yolo\n";
         config.default_analysis_detector = "yolo";
@@ -528,6 +882,18 @@ app::AppConfig LoadAppConfig() {
         std::cerr << "[env] analysis max queue cannot be 0, fallback 1\n";
         config.default_analysis_max_queue = 1;
     }
+    ValidatePositiveInt(&config.default_analysis_frame_sample_interval,
+                        app_config::kDefaultAnalysisFrameSampleInterval,
+                        "Analysis frame sample interval");
+    config.default_analysis_frame_sample_interval =
+        std::min(300, config.default_analysis_frame_sample_interval);
+    if (config.default_analysis_max_frame_age_ms < 0) {
+        std::cerr << "[env] analysis max frame age ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisMaxFrameAgeMs << "\n";
+        config.default_analysis_max_frame_age_ms = app_config::kDefaultAnalysisMaxFrameAgeMs;
+    }
+    config.default_analysis_max_frame_age_ms =
+        std::min(600000, config.default_analysis_max_frame_age_ms);
     ValidatePositiveInt(&config.default_analysis_input_width,
                         app_config::kDefaultAnalysisInputWidth,
                         "Analysis input width");
@@ -547,6 +913,52 @@ app::AppConfig LoadAppConfig() {
     if (config.default_analysis_preprocess != "stretch") {
         config.default_analysis_preprocess = "letterbox";
     }
+    if (config.analysis_tracking_lost_buffer_frames == 0) {
+        std::cerr << "[env] analysis tracking lost buffer frames cannot be 0, fallback "
+                  << app_config::kDefaultAnalysisTrackingLostBufferFrames << "\n";
+        config.analysis_tracking_lost_buffer_frames =
+            static_cast<std::uint32_t>(app_config::kDefaultAnalysisTrackingLostBufferFrames);
+    }
+    if (config.analysis_tracking_iou_weight < 0.0F) {
+        std::cerr << "[env] analysis tracking IoU weight cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisTrackingIouWeight << "\n";
+        config.analysis_tracking_iou_weight = app_config::kDefaultAnalysisTrackingIouWeight;
+    }
+    if (config.analysis_tracking_distance_weight < 0.0F) {
+        std::cerr << "[env] analysis tracking distance weight cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisTrackingDistanceWeight << "\n";
+        config.analysis_tracking_distance_weight =
+            app_config::kDefaultAnalysisTrackingDistanceWeight;
+    }
+    if (config.analysis_tracking_direction_weight < 0.0F) {
+        std::cerr << "[env] analysis tracking direction weight cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisTrackingDirectionWeight << "\n";
+        config.analysis_tracking_direction_weight =
+            app_config::kDefaultAnalysisTrackingDirectionWeight;
+    }
+    if (config.analysis_tracking_class_weight < 0.0F) {
+        std::cerr << "[env] analysis tracking class weight cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisTrackingClassWeight << "\n";
+        config.analysis_tracking_class_weight = app_config::kDefaultAnalysisTrackingClassWeight;
+    }
+    if (config.analysis_tracking_iou_weight + config.analysis_tracking_distance_weight +
+            config.analysis_tracking_direction_weight + config.analysis_tracking_class_weight <=
+        0.0F) {
+        std::cerr << "[env] analysis tracking association weights cannot all be zero, fallback defaults\n";
+        config.analysis_tracking_iou_weight = app_config::kDefaultAnalysisTrackingIouWeight;
+        config.analysis_tracking_distance_weight =
+            app_config::kDefaultAnalysisTrackingDistanceWeight;
+        config.analysis_tracking_direction_weight =
+            app_config::kDefaultAnalysisTrackingDirectionWeight;
+        config.analysis_tracking_class_weight = app_config::kDefaultAnalysisTrackingClassWeight;
+    }
+    if (config.analysis_tracking_min_association_score < 0.0F ||
+        config.analysis_tracking_min_association_score > 1.0F) {
+        std::cerr << "[env] analysis tracking min association score must be between 0 and 1, fallback "
+                  << app_config::kDefaultAnalysisTrackingMinAssociationScore << "\n";
+        config.analysis_tracking_min_association_score =
+            app_config::kDefaultAnalysisTrackingMinAssociationScore;
+    }
     if (config.default_analysis_overlay_wait_ms < 0) {
         std::cerr << "[env] analysis overlay wait cannot be negative, fallback 0\n";
         config.default_analysis_overlay_wait_ms = 0;
@@ -554,6 +966,15 @@ app::AppConfig LoadAppConfig() {
     if (config.default_analysis_overlay_sync_tolerance_ms < 0) {
         std::cerr << "[env] analysis overlay tolerance cannot be negative, fallback 0\n";
         config.default_analysis_overlay_sync_tolerance_ms = 0;
+    }
+    if (config.analysis_homography_enabled && config.analysis_homography_matrix.empty()) {
+        std::cerr << "[env] analysis homography enabled but matrix is empty; ground-plane mapping disabled\n";
+        config.analysis_homography_enabled = false;
+    }
+    if (config.analysis_homography_units.empty()) {
+        std::cerr << "[env] analysis homography units cannot be empty, fallback "
+                  << app_config::kDefaultAnalysisHomographyUnits << "\n";
+        config.analysis_homography_units = app_config::kDefaultAnalysisHomographyUnits;
     }
     ValidatePositiveInt(&config.default_analysis_overlay_thickness,
                         app_config::kDefaultAnalysisOverlayThickness,
@@ -609,6 +1030,49 @@ app::AppConfig LoadAppConfig() {
                   << app_config::kDefaultAnalysisEventPostCooldownMs << "\n";
         config.analysis_event_post_cooldown_ms = app_config::kDefaultAnalysisEventPostCooldownMs;
     }
+    if (config.analysis_event_storage_path.empty()) {
+        std::cerr << "[env] analysis event storage path cannot be empty, fallback "
+                  << app_config::kDefaultAnalysisEventStoragePath << "\n";
+        config.analysis_event_storage_path = app_config::kDefaultAnalysisEventStoragePath;
+    }
+    if (config.analysis_event_storage_max_queue == 0) {
+        std::cerr << "[env] analysis event storage max queue cannot be 0, fallback "
+                  << app_config::kDefaultAnalysisEventStorageMaxQueue << "\n";
+        config.analysis_event_storage_max_queue = app_config::kDefaultAnalysisEventStorageMaxQueue;
+    }
+    if (config.analysis_event_snapshot_dir.empty()) {
+        std::cerr << "[env] analysis event snapshot dir cannot be empty, fallback "
+                  << app_config::kDefaultAnalysisEventSnapshotDir << "\n";
+        config.analysis_event_snapshot_dir = app_config::kDefaultAnalysisEventSnapshotDir;
+    }
+    if (config.analysis_event_clip_dir.empty()) {
+        std::cerr << "[env] analysis event clip dir cannot be empty, fallback "
+                  << app_config::kDefaultAnalysisEventClipDir << "\n";
+        config.analysis_event_clip_dir = app_config::kDefaultAnalysisEventClipDir;
+    }
+    if (config.analysis_event_pre_event_ms < 0) {
+        std::cerr << "[env] analysis event pre event ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisEventPreEventMs << "\n";
+        config.analysis_event_pre_event_ms = app_config::kDefaultAnalysisEventPreEventMs;
+    }
+    if (config.analysis_event_post_event_ms < 0) {
+        std::cerr << "[env] analysis event post event ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisEventPostEventMs << "\n";
+        config.analysis_event_post_event_ms = app_config::kDefaultAnalysisEventPostEventMs;
+    }
+    if (config.analysis_event_clip_buffer_ms < 0) {
+        std::cerr << "[env] analysis event clip buffer ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisEventClipBufferMs << "\n";
+        config.analysis_event_clip_buffer_ms = app_config::kDefaultAnalysisEventClipBufferMs;
+    }
+    if (config.analysis_event_pre_event_ms > config.analysis_event_clip_buffer_ms) {
+        std::cerr << "[env] analysis event pre event ms exceeds clip buffer, clamping to buffer\n";
+        config.analysis_event_pre_event_ms = config.analysis_event_clip_buffer_ms;
+    }
+    if (config.analysis_event_post_event_ms > config.analysis_event_clip_buffer_ms) {
+        std::cerr << "[env] analysis event post event ms exceeds clip buffer, clamping to buffer\n";
+        config.analysis_event_post_event_ms = config.analysis_event_clip_buffer_ms;
+    }
     if (config.analysis_max_active_tracks_per_stream == 0) {
         std::cerr << "[env] analysis max active tracks per stream cannot be 0, fallback "
                   << app_config::kDefaultAnalysisMaxActiveTracksPerStream << "\n";
@@ -633,6 +1097,16 @@ app::AppConfig LoadAppConfig() {
         config.analysis_trajectory_downsample_ms =
             app_config::kDefaultAnalysisTrajectoryDownsampleMs;
     }
+    if (config.analysis_lost_track_timeout_ms < 0) {
+        std::cerr << "[env] analysis lost track timeout ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisLostTrackTimeoutMs << "\n";
+        config.analysis_lost_track_timeout_ms = app_config::kDefaultAnalysisLostTrackTimeoutMs;
+    }
+    if (config.analysis_terminated_track_timeout_ms < config.analysis_lost_track_timeout_ms) {
+        std::cerr << "[env] analysis terminated track timeout ms cannot be less than lost timeout, "
+                     "using lost timeout\n";
+        config.analysis_terminated_track_timeout_ms = config.analysis_lost_track_timeout_ms;
+    }
     if (config.analysis_terminated_track_retention_ms < 0) {
         std::cerr << "[env] analysis terminated track retention ms cannot be negative, fallback "
                   << app_config::kDefaultAnalysisTerminatedTrackRetentionMs << "\n";
@@ -643,6 +1117,11 @@ app::AppConfig LoadAppConfig() {
         std::cerr << "[env] analysis cleanup interval ms cannot be negative, fallback "
                   << app_config::kDefaultAnalysisCleanupIntervalMs << "\n";
         config.analysis_cleanup_interval_ms = app_config::kDefaultAnalysisCleanupIntervalMs;
+    }
+    if (config.analysis_metrics_log_interval_ms < 0) {
+        std::cerr << "[env] analysis metrics log interval ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisMetricsLogIntervalMs << "\n";
+        config.analysis_metrics_log_interval_ms = app_config::kDefaultAnalysisMetricsLogIntervalMs;
     }
     if (config.analysis_scenario_max_instances_per_channel == 0) {
         std::cerr << "[env] analysis scenario max instances cannot be 0, fallback "
@@ -690,11 +1169,139 @@ app::AppConfig LoadAppConfig() {
         config.analysis_intrusion_dwell_cooldown_ms =
             app_config::kDefaultAnalysisIntrusionDwellCooldownMs;
     }
+    if (config.analysis_re_entry_window_ms < 0) {
+        std::cerr << "[env] re-entry window ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisReEntryWindowMs << "\n";
+        config.analysis_re_entry_window_ms = app_config::kDefaultAnalysisReEntryWindowMs;
+    }
+    if (config.analysis_re_entry_cooldown_ms < 0) {
+        std::cerr << "[env] re-entry cooldown ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisReEntryCooldownMs << "\n";
+        config.analysis_re_entry_cooldown_ms = app_config::kDefaultAnalysisReEntryCooldownMs;
+    }
+    if (config.analysis_wrong_direction_cooldown_ms < 0) {
+        std::cerr << "[env] wrong-direction cooldown ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisWrongDirectionCooldownMs << "\n";
+        config.analysis_wrong_direction_cooldown_ms =
+            app_config::kDefaultAnalysisWrongDirectionCooldownMs;
+    }
+    if (config.analysis_intrusion_after_line_crossing_max_delay_ms < 0) {
+        std::cerr << "[env] intrusion-after-line-crossing max delay ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisIntrusionAfterLineCrossingMaxDelayMs << "\n";
+        config.analysis_intrusion_after_line_crossing_max_delay_ms =
+            app_config::kDefaultAnalysisIntrusionAfterLineCrossingMaxDelayMs;
+    }
+    if (config.analysis_intrusion_after_line_crossing_dwell_ms < 0) {
+        std::cerr << "[env] intrusion-after-line-crossing dwell ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisIntrusionAfterLineCrossingDwellMs << "\n";
+        config.analysis_intrusion_after_line_crossing_dwell_ms =
+            app_config::kDefaultAnalysisIntrusionAfterLineCrossingDwellMs;
+    }
+    if (config.analysis_intrusion_after_line_crossing_cooldown_ms < 0) {
+        std::cerr << "[env] intrusion-after-line-crossing cooldown ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisIntrusionAfterLineCrossingCooldownMs << "\n";
+        config.analysis_intrusion_after_line_crossing_cooldown_ms =
+            app_config::kDefaultAnalysisIntrusionAfterLineCrossingCooldownMs;
+    }
+    if (config.analysis_loitering_min_dwell_time_ms < 0) {
+        std::cerr << "[env] loitering min dwell time ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisLoiteringMinDwellTimeMs << "\n";
+        config.analysis_loitering_min_dwell_time_ms =
+            app_config::kDefaultAnalysisLoiteringMinDwellTimeMs;
+    }
+    if (config.analysis_loitering_max_movement_radius < 0.0F) {
+        std::cerr << "[env] loitering max movement radius cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisLoiteringMaxMovementRadius << "\n";
+        config.analysis_loitering_max_movement_radius =
+            app_config::kDefaultAnalysisLoiteringMaxMovementRadius;
+    }
+    if (config.analysis_loitering_min_trajectory_points < 2) {
+        std::cerr << "[env] loitering min trajectory points must be at least 2, fallback "
+                  << app_config::kDefaultAnalysisLoiteringMinTrajectoryPoints << "\n";
+        config.analysis_loitering_min_trajectory_points =
+            app_config::kDefaultAnalysisLoiteringMinTrajectoryPoints;
+    }
+    if (config.analysis_loitering_cooldown_ms < 0) {
+        std::cerr << "[env] loitering cooldown ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisLoiteringCooldownMs << "\n";
+        config.analysis_loitering_cooldown_ms =
+            app_config::kDefaultAnalysisLoiteringCooldownMs;
+    }
+    if (config.analysis_tracking_issue_max_entries == 0) {
+        std::cerr << "[env] tracking issue max entries cannot be 0, fallback "
+                  << app_config::kDefaultAnalysisTrackingIssueMaxEntries << "\n";
+        config.analysis_tracking_issue_max_entries =
+            app_config::kDefaultAnalysisTrackingIssueMaxEntries;
+    }
+    if (config.analysis_tracking_issue_rate_limit_ms < 0) {
+        std::cerr << "[env] tracking issue rate limit ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisTrackingIssueRateLimitMs << "\n";
+        config.analysis_tracking_issue_rate_limit_ms =
+            app_config::kDefaultAnalysisTrackingIssueRateLimitMs;
+    }
+    if (config.analysis_tracking_issue_overlap_risk_threshold < 0.0F ||
+        config.analysis_tracking_issue_overlap_risk_threshold > 1.0F) {
+        std::cerr << "[env] tracking issue overlap risk threshold must be within 0..1, fallback "
+                  << app_config::kDefaultAnalysisTrackingIssueOverlapRiskThreshold << "\n";
+        config.analysis_tracking_issue_overlap_risk_threshold =
+            app_config::kDefaultAnalysisTrackingIssueOverlapRiskThreshold;
+    }
+    if (config.analysis_tracking_issue_missed_frame_jump_threshold == 0) {
+        config.analysis_tracking_issue_missed_frame_jump_threshold =
+            static_cast<std::uint32_t>(
+                app_config::kDefaultAnalysisTrackingIssueMissedFrameJumpThreshold);
+    }
+    if (config.analysis_tracking_issue_direction_change_jump_threshold == 0) {
+        config.analysis_tracking_issue_direction_change_jump_threshold =
+            static_cast<std::uint32_t>(
+                app_config::kDefaultAnalysisTrackingIssueDirectionChangeJumpThreshold);
+    }
     if (config.analysis_appearance_every_n_seconds < 0) {
         std::cerr << "[env] appearance every n seconds cannot be negative, fallback "
                   << app_config::kDefaultAnalysisAppearanceEveryNSeconds << "\n";
         config.analysis_appearance_every_n_seconds =
             app_config::kDefaultAnalysisAppearanceEveryNSeconds;
+    }
+    if (config.analysis_appearance_extractor != "noop" &&
+        config.analysis_appearance_extractor != "onnx-reid") {
+        std::cerr << "[env] unsupported appearance extractor '"
+                  << config.analysis_appearance_extractor << "', fallback noop\n";
+        config.analysis_appearance_extractor = "noop";
+    }
+    ValidatePositiveInt(&config.analysis_appearance_input_width,
+                        app_config::kDefaultAnalysisAppearanceInputWidth,
+                        "Appearance input width");
+    ValidatePositiveInt(&config.analysis_appearance_input_height,
+                        app_config::kDefaultAnalysisAppearanceInputHeight,
+                        "Appearance input height");
+    if (config.analysis_appearance_max_embedding_dim == 0) {
+        std::cerr << "[env] appearance max embedding dim cannot be 0, fallback "
+                  << app_config::kDefaultAnalysisAppearanceMaxEmbeddingDim << "\n";
+        config.analysis_appearance_max_embedding_dim =
+            app_config::kDefaultAnalysisAppearanceMaxEmbeddingDim;
+    }
+    if (config.analysis_appearance_max_queue == 0) {
+        std::cerr << "[env] appearance max queue cannot be 0, fallback "
+                  << app_config::kDefaultAnalysisAppearanceMaxQueue << "\n";
+        config.analysis_appearance_max_queue = app_config::kDefaultAnalysisAppearanceMaxQueue;
+    }
+    if (config.analysis_appearance_global_max_queue == 0) {
+        std::cerr << "[env] appearance global max queue cannot be 0, fallback "
+                  << app_config::kDefaultAnalysisAppearanceGlobalMaxQueue << "\n";
+        config.analysis_appearance_global_max_queue =
+            app_config::kDefaultAnalysisAppearanceGlobalMaxQueue;
+    }
+    if (config.analysis_appearance_per_stream_rate_limit_ms < 0) {
+        std::cerr << "[env] appearance per-stream rate limit cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisAppearancePerStreamRateLimitMs << "\n";
+        config.analysis_appearance_per_stream_rate_limit_ms =
+            app_config::kDefaultAnalysisAppearancePerStreamRateLimitMs;
+    }
+    if (config.analysis_appearance_max_job_age_ms < 0) {
+        std::cerr << "[env] appearance max job age cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisAppearanceMaxJobAgeMs << "\n";
+        config.analysis_appearance_max_job_age_ms =
+            app_config::kDefaultAnalysisAppearanceMaxJobAgeMs;
     }
     if (config.webrtc_source_ready_timeout_ms <= 0) {
         std::cerr << "[env] WebRTC source ready timeout must be positive, fallback 12000\n";
