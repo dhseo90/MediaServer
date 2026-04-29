@@ -55,6 +55,50 @@ constexpr const char* kEnvAnalysisEventPostEnabled = "MEDIA_SERVER_ANALYSIS_EVEN
 constexpr const char* kEnvAnalysisEventPostTimeoutMs = "MEDIA_SERVER_ANALYSIS_EVENT_POST_TIMEOUT_MS";
 constexpr const char* kEnvAnalysisEventPostMaxQueue = "MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE";
 constexpr const char* kEnvAnalysisEventPostCooldownMs = "MEDIA_SERVER_ANALYSIS_EVENT_POST_COOLDOWN_MS";
+constexpr const char* kEnvAnalysisMaxActiveTracksPerStream =
+    "MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_TRACKS_PER_STREAM";
+constexpr const char* kEnvAnalysisMaxRecentObservationsPerTrack =
+    "MEDIA_SERVER_ANALYSIS_MAX_RECENT_OBSERVATIONS_PER_TRACK";
+constexpr const char* kEnvAnalysisMaxTrajectoryPointsPerTrack =
+    "MEDIA_SERVER_ANALYSIS_MAX_TRAJECTORY_POINTS_PER_TRACK";
+constexpr const char* kEnvAnalysisTrajectoryDownsampleMs =
+    "MEDIA_SERVER_ANALYSIS_TRAJECTORY_DOWNSAMPLE_MS";
+constexpr const char* kEnvAnalysisTerminatedTrackRetentionMs =
+    "MEDIA_SERVER_ANALYSIS_TERMINATED_TRACK_RETENTION_MS";
+constexpr const char* kEnvAnalysisCleanupIntervalMs = "MEDIA_SERVER_ANALYSIS_CLEANUP_INTERVAL_MS";
+constexpr const char* kEnvAnalysisScenarioEnabled = "MEDIA_SERVER_ANALYSIS_SCENARIO_ENABLED";
+constexpr const char* kEnvAnalysisScenarioMaxInstancesPerChannel =
+    "MEDIA_SERVER_ANALYSIS_SCENARIO_MAX_INSTANCES_PER_CHANNEL";
+constexpr const char* kEnvAnalysisScenarioCooldownMs = "MEDIA_SERVER_ANALYSIS_SCENARIO_COOLDOWN_MS";
+constexpr const char* kEnvAnalysisScenarioUpdateIntervalMs =
+    "MEDIA_SERVER_ANALYSIS_SCENARIO_UPDATE_INTERVAL_MS";
+constexpr const char* kEnvAnalysisScenarioRetentionMs =
+    "MEDIA_SERVER_ANALYSIS_SCENARIO_RETENTION_MS";
+constexpr const char* kEnvAnalysisScenarioEndedRetentionMs =
+    "MEDIA_SERVER_ANALYSIS_SCENARIO_ENDED_RETENTION_MS";
+constexpr const char* kEnvAnalysisIntrusionDwellEnabled =
+    "MEDIA_SERVER_ANALYSIS_INTRUSION_DWELL_ENABLED";
+constexpr const char* kEnvAnalysisIntrusionDwellCandidateMs =
+    "MEDIA_SERVER_ANALYSIS_INTRUSION_DWELL_CANDIDATE_MS";
+constexpr const char* kEnvAnalysisIntrusionDwellDwellMs =
+    "MEDIA_SERVER_ANALYSIS_INTRUSION_DWELL_DWELL_MS";
+constexpr const char* kEnvAnalysisIntrusionDwellCooldownMs =
+    "MEDIA_SERVER_ANALYSIS_INTRUSION_DWELL_COOLDOWN_MS";
+constexpr const char* kEnvAnalysisIntrusionDwellTargetClasses =
+    "MEDIA_SERVER_ANALYSIS_INTRUSION_DWELL_TARGET_CLASSES";
+constexpr const char* kEnvAnalysisIntrusionDwellRestrictedZoneIds =
+    "MEDIA_SERVER_ANALYSIS_INTRUSION_DWELL_RESTRICTED_ZONE_IDS";
+constexpr const char* kEnvAnalysisAppearanceEnabled = "MEDIA_SERVER_ANALYSIS_APPEARANCE_ENABLED";
+constexpr const char* kEnvAnalysisAppearanceOnTrackCreated =
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_ON_TRACK_CREATED";
+constexpr const char* kEnvAnalysisAppearanceEveryNSeconds =
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_EVERY_N_SECONDS";
+constexpr const char* kEnvAnalysisAppearanceOnTrackLost =
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_ON_TRACK_LOST";
+constexpr const char* kEnvAnalysisAppearanceOnReacquireCandidate =
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_ON_REACQUIRE_CANDIDATE";
+constexpr const char* kEnvAnalysisAppearanceOnLowConfidenceAssociation =
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_ON_LOW_CONFIDENCE_ASSOCIATION";
 constexpr const char* kEnvForceTcpOnly = "MEDIA_SERVER_FORCE_RTSP_TCP";
 constexpr const char* kEnvSessionTrace = "MEDIA_SERVER_SESSION_TRACE";
 constexpr const char* kEnvWebRtcTrace = "MEDIA_SERVER_WEBRTC_TRACE";
@@ -233,6 +277,15 @@ std::vector<std::string> ReadStringListEnv(const char* name, const std::vector<s
     return parsed;
 }
 
+std::vector<std::string> ReadOptionalStringListEnv(const char* name,
+                                                   const std::vector<std::string>& fallback) {
+    const char* value = ReadEnv(name);
+    if (value == nullptr) {
+        return fallback;
+    }
+    return SplitList(value);
+}
+
 bool IsAllowedX264Preset(const std::string& preset) {
     return preset == "ultrafast" || preset == "superfast" || preset == "veryfast" ||
            preset == "faster" || preset == "fast" || preset == "medium" ||
@@ -344,6 +397,68 @@ app::AppConfig LoadAppConfig() {
         ReadSizeEnv(kEnvAnalysisEventPostMaxQueue, config.analysis_event_post_max_queue);
     config.analysis_event_post_cooldown_ms =
         ReadIntEnv(kEnvAnalysisEventPostCooldownMs, config.analysis_event_post_cooldown_ms);
+    config.analysis_scenario_enabled =
+        ReadBoolEnv(kEnvAnalysisScenarioEnabled, config.analysis_scenario_enabled);
+    config.analysis_max_active_tracks_per_stream =
+        ReadSizeEnv(kEnvAnalysisMaxActiveTracksPerStream,
+                    config.analysis_max_active_tracks_per_stream);
+    config.analysis_max_recent_observations_per_track =
+        ReadSizeEnv(kEnvAnalysisMaxRecentObservationsPerTrack,
+                    config.analysis_max_recent_observations_per_track);
+    config.analysis_max_trajectory_points_per_track =
+        ReadSizeEnv(kEnvAnalysisMaxTrajectoryPointsPerTrack,
+                    config.analysis_max_trajectory_points_per_track);
+    config.analysis_trajectory_downsample_ms =
+        ReadIntEnv(kEnvAnalysisTrajectoryDownsampleMs,
+                   config.analysis_trajectory_downsample_ms);
+    config.analysis_terminated_track_retention_ms =
+        ReadIntEnv(kEnvAnalysisTerminatedTrackRetentionMs,
+                   config.analysis_terminated_track_retention_ms);
+    config.analysis_cleanup_interval_ms =
+        ReadIntEnv(kEnvAnalysisCleanupIntervalMs, config.analysis_cleanup_interval_ms);
+    config.analysis_scenario_max_instances_per_channel =
+        ReadSizeEnv(kEnvAnalysisScenarioMaxInstancesPerChannel,
+                    config.analysis_scenario_max_instances_per_channel);
+    config.analysis_scenario_cooldown_ms =
+        ReadIntEnv(kEnvAnalysisScenarioCooldownMs, config.analysis_scenario_cooldown_ms);
+    config.analysis_scenario_update_interval_ms =
+        ReadIntEnv(kEnvAnalysisScenarioUpdateIntervalMs, config.analysis_scenario_update_interval_ms);
+    config.analysis_scenario_ended_retention_ms =
+        ReadIntEnv(kEnvAnalysisScenarioEndedRetentionMs, config.analysis_scenario_ended_retention_ms);
+    config.analysis_scenario_retention_ms = config.analysis_scenario_ended_retention_ms;
+    config.analysis_scenario_retention_ms =
+        ReadIntEnv(kEnvAnalysisScenarioRetentionMs, config.analysis_scenario_retention_ms);
+    config.analysis_scenario_ended_retention_ms = config.analysis_scenario_retention_ms;
+    config.analysis_intrusion_dwell_enabled =
+        ReadBoolEnv(kEnvAnalysisIntrusionDwellEnabled, config.analysis_intrusion_dwell_enabled);
+    config.analysis_intrusion_dwell_candidate_ms =
+        ReadIntEnv(kEnvAnalysisIntrusionDwellCandidateMs, config.analysis_intrusion_dwell_candidate_ms);
+    config.analysis_intrusion_dwell_dwell_ms =
+        ReadIntEnv(kEnvAnalysisIntrusionDwellDwellMs, config.analysis_intrusion_dwell_dwell_ms);
+    config.analysis_intrusion_dwell_cooldown_ms =
+        ReadIntEnv(kEnvAnalysisIntrusionDwellCooldownMs, config.analysis_intrusion_dwell_cooldown_ms);
+    config.analysis_intrusion_dwell_target_classes =
+        ReadStringListEnv(kEnvAnalysisIntrusionDwellTargetClasses,
+                          config.analysis_intrusion_dwell_target_classes);
+    config.analysis_intrusion_dwell_restricted_zone_ids =
+        ReadOptionalStringListEnv(kEnvAnalysisIntrusionDwellRestrictedZoneIds,
+                                  config.analysis_intrusion_dwell_restricted_zone_ids);
+    config.analysis_appearance_enabled =
+        ReadBoolEnv(kEnvAnalysisAppearanceEnabled, config.analysis_appearance_enabled);
+    config.analysis_appearance_on_track_created =
+        ReadBoolEnv(kEnvAnalysisAppearanceOnTrackCreated,
+                    config.analysis_appearance_on_track_created);
+    config.analysis_appearance_every_n_seconds =
+        ReadIntEnv(kEnvAnalysisAppearanceEveryNSeconds,
+                   config.analysis_appearance_every_n_seconds);
+    config.analysis_appearance_on_track_lost =
+        ReadBoolEnv(kEnvAnalysisAppearanceOnTrackLost, config.analysis_appearance_on_track_lost);
+    config.analysis_appearance_on_reacquire_candidate =
+        ReadBoolEnv(kEnvAnalysisAppearanceOnReacquireCandidate,
+                    config.analysis_appearance_on_reacquire_candidate);
+    config.analysis_appearance_on_low_confidence_association =
+        ReadBoolEnv(kEnvAnalysisAppearanceOnLowConfidenceAssociation,
+                    config.analysis_appearance_on_low_confidence_association);
     config.file_root_path = ResolveRuntimePath(config.file_root_path);
     config.default_file_path = ResolveRuntimePath(config.default_file_path);
     config.default_analysis_model_path = ResolveRuntimePath(config.default_analysis_model_path);
@@ -493,6 +608,93 @@ app::AppConfig LoadAppConfig() {
         std::cerr << "[env] analysis event post cooldown ms cannot be negative, fallback "
                   << app_config::kDefaultAnalysisEventPostCooldownMs << "\n";
         config.analysis_event_post_cooldown_ms = app_config::kDefaultAnalysisEventPostCooldownMs;
+    }
+    if (config.analysis_max_active_tracks_per_stream == 0) {
+        std::cerr << "[env] analysis max active tracks per stream cannot be 0, fallback "
+                  << app_config::kDefaultAnalysisMaxActiveTracksPerStream << "\n";
+        config.analysis_max_active_tracks_per_stream =
+            app_config::kDefaultAnalysisMaxActiveTracksPerStream;
+    }
+    if (config.analysis_max_recent_observations_per_track == 0) {
+        std::cerr << "[env] analysis max recent observations per track cannot be 0, fallback "
+                  << app_config::kDefaultAnalysisMaxRecentObservationsPerTrack << "\n";
+        config.analysis_max_recent_observations_per_track =
+            app_config::kDefaultAnalysisMaxRecentObservationsPerTrack;
+    }
+    if (config.analysis_max_trajectory_points_per_track == 0) {
+        std::cerr << "[env] analysis max trajectory points per track cannot be 0, fallback "
+                  << app_config::kDefaultAnalysisMaxTrajectoryPointsPerTrack << "\n";
+        config.analysis_max_trajectory_points_per_track =
+            app_config::kDefaultAnalysisMaxTrajectoryPointsPerTrack;
+    }
+    if (config.analysis_trajectory_downsample_ms < 0) {
+        std::cerr << "[env] analysis trajectory downsample ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisTrajectoryDownsampleMs << "\n";
+        config.analysis_trajectory_downsample_ms =
+            app_config::kDefaultAnalysisTrajectoryDownsampleMs;
+    }
+    if (config.analysis_terminated_track_retention_ms < 0) {
+        std::cerr << "[env] analysis terminated track retention ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisTerminatedTrackRetentionMs << "\n";
+        config.analysis_terminated_track_retention_ms =
+            app_config::kDefaultAnalysisTerminatedTrackRetentionMs;
+    }
+    if (config.analysis_cleanup_interval_ms < 0) {
+        std::cerr << "[env] analysis cleanup interval ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisCleanupIntervalMs << "\n";
+        config.analysis_cleanup_interval_ms = app_config::kDefaultAnalysisCleanupIntervalMs;
+    }
+    if (config.analysis_scenario_max_instances_per_channel == 0) {
+        std::cerr << "[env] analysis scenario max instances cannot be 0, fallback "
+                  << app_config::kDefaultAnalysisScenarioMaxInstancesPerChannel << "\n";
+        config.analysis_scenario_max_instances_per_channel =
+            app_config::kDefaultAnalysisScenarioMaxInstancesPerChannel;
+    }
+    if (config.analysis_scenario_cooldown_ms < 0) {
+        std::cerr << "[env] analysis scenario cooldown ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisScenarioCooldownMs << "\n";
+        config.analysis_scenario_cooldown_ms = app_config::kDefaultAnalysisScenarioCooldownMs;
+    }
+    if (config.analysis_scenario_update_interval_ms < 0) {
+        std::cerr << "[env] analysis scenario update interval ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisScenarioUpdateIntervalMs << "\n";
+        config.analysis_scenario_update_interval_ms =
+            app_config::kDefaultAnalysisScenarioUpdateIntervalMs;
+    }
+    if (config.analysis_scenario_ended_retention_ms < 0) {
+        std::cerr << "[env] analysis scenario ended retention ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisScenarioEndedRetentionMs << "\n";
+        config.analysis_scenario_ended_retention_ms =
+            app_config::kDefaultAnalysisScenarioEndedRetentionMs;
+    }
+    if (config.analysis_scenario_retention_ms < 0) {
+        std::cerr << "[env] analysis scenario retention ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisScenarioRetentionMs << "\n";
+        config.analysis_scenario_retention_ms =
+            app_config::kDefaultAnalysisScenarioRetentionMs;
+        config.analysis_scenario_ended_retention_ms = config.analysis_scenario_retention_ms;
+    }
+    if (config.analysis_intrusion_dwell_candidate_ms < 0) {
+        std::cerr << "[env] intrusion dwell candidate ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisIntrusionDwellCandidateMs << "\n";
+        config.analysis_intrusion_dwell_candidate_ms =
+            app_config::kDefaultAnalysisIntrusionDwellCandidateMs;
+    }
+    if (config.analysis_intrusion_dwell_dwell_ms < config.analysis_intrusion_dwell_candidate_ms) {
+        std::cerr << "[env] intrusion dwell ms cannot be less than candidate ms, using candidate ms\n";
+        config.analysis_intrusion_dwell_dwell_ms = config.analysis_intrusion_dwell_candidate_ms;
+    }
+    if (config.analysis_intrusion_dwell_cooldown_ms < 0) {
+        std::cerr << "[env] intrusion dwell cooldown ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisIntrusionDwellCooldownMs << "\n";
+        config.analysis_intrusion_dwell_cooldown_ms =
+            app_config::kDefaultAnalysisIntrusionDwellCooldownMs;
+    }
+    if (config.analysis_appearance_every_n_seconds < 0) {
+        std::cerr << "[env] appearance every n seconds cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisAppearanceEveryNSeconds << "\n";
+        config.analysis_appearance_every_n_seconds =
+            app_config::kDefaultAnalysisAppearanceEveryNSeconds;
     }
     if (config.webrtc_source_ready_timeout_ms <= 0) {
         std::cerr << "[env] WebRTC source ready timeout must be positive, fallback 12000\n";

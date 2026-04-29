@@ -81,6 +81,7 @@ struct AnalysisContext {
     std::string source_kind{"*"};
     std::string route{"*"};
     std::string client_id;
+    std::string va_rule_id;
 };
 
 struct AnalysisProfile {
@@ -170,6 +171,7 @@ struct AnalysisResult {
     std::string source_key;
     std::string profile_key;
     AnalysisContext context;
+    std::uint64_t frame_id{0};
     std::int64_t pts{0};
     std::vector<Detection> detections;
     std::vector<Track> tracks;

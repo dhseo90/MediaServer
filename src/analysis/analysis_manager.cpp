@@ -3,8 +3,12 @@
 // 동작 요약: route/profile/rule matching과 adaptive tuner 상태를 tap별로 노출한다.
 #include "analysis/analysis_manager.h"
 
+#include "analysis/tracked_object_metadata.h"
+#include "app_config.h"
+
 #include <algorithm>
 #include <limits>
+#include <memory>
 
 namespace analysis {
 
@@ -115,6 +119,9 @@ AnalysisManager::AttachResult AnalysisManager::AttachStream(const core::StreamKe
     }
     tap->profile_key = BuildProfileKey(tap->profile);
     tap->detector = CreateDetector(tap->profile);
+    tap->track_state_manager = TrackStateManager(
+        BuildTrackStateManagerOptionsFromConfig(app::GetAppConfig()),
+        std::make_shared<NoOpAppearanceExtractor>());
     if (tap->profile.enable_tracking) {
         tap->tracker = std::make_unique<ObjectTracker>(BuildTrackerOptions(tap->profile));
     }
@@ -428,6 +435,7 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
         result.source_key = tap->stream_key;
         result.profile_key = tap->profile_key;
         result.context = tap->context;
+        result.frame_id = tap->next_frame_id.fetch_add(1);
         result.pts = frame.pts;
 
         const auto analysis_started_at = std::chrono::steady_clock::now();
@@ -451,6 +459,7 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
             // detector는 frame 단위 결과만 만들기 때문에, tracker에서 같은 객체에 안정 ID를 붙인다.
             tap->tracker->Update(&result);
         }
+        tap->track_state_manager.Update(result.source_key, result.source_key, BuildTrackedObjects(result), result.pts);
         const auto analysis_finished_at = std::chrono::steady_clock::now();
         const double elapsed_ms =
             std::chrono::duration<double, std::milli>(analysis_finished_at - analysis_started_at).count();
@@ -601,6 +610,7 @@ AnalysisManager::TapSnapshot AnalysisManager::BuildSnapshotLocked(const std::sha
         .nms_threshold = tap->profile.nms_threshold,
         .tracking_enabled = tap->profile.enable_tracking,
         .tracking_class_labels = tap->profile.tracking_class_labels,
+        .track_state_metrics = tap->track_state_manager.Metrics(),
         .adaptive_tuning_enabled = tap->profile.adaptive_tuning_enabled,
         .adaptive_input_size_enabled = tap->profile.adaptive_input_size_enabled,
         .adaptive_input_size_disabled = tap->adaptive_input_size_disabled,

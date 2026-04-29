@@ -62,6 +62,8 @@ Usage:
                  adaptive tuner의 downshift/upshift 장시간 안정성을 검증합니다.
   verify-image-analysis
                  정적 이미지 입력의 YOLO metadata/snapshot/overlay API를 검증합니다.
+  verify-analysis-state
+                 TrackState/SceneContext/EventManager/Scenario/Appearance hook 단위 smoke를 검증합니다.
   verify-predev  기능 개발 재개 전 smoke, 다채널, event POST, cleanup, report를 묶어 검증합니다.
   summarize-reports
                  /tmp의 검증 summary JSON/NDJSON을 짧은 Markdown 리포트로 변환합니다.
@@ -215,6 +217,10 @@ case "${cmd}" in
   verify-image-analysis)
     require_internal verify_image_analysis.sh
     exec "${INTERNAL_DIR}/verify_image_analysis.sh" "$@"
+    ;;
+  verify-analysis-state)
+    require_internal verify_analysis_state_smoke.sh
+    exec "${INTERNAL_DIR}/verify_analysis_state_smoke.sh" "$@"
     ;;
   verify-predev)
     require_internal verify_predev_stability.sh

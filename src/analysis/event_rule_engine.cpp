@@ -4,6 +4,13 @@
 #include "analysis/event_rule_engine.h"
 
 #include "analysis/category_tokens.h"
+#include "analysis/event_manager.h"
+#include "analysis/intrusion_dwell_scenario.h"
+#include "analysis/scene_context_builder.h"
+#include "analysis/scenario_engine.h"
+#include "analysis/tracked_object_metadata.h"
+
+#include "app_config.h"
 
 #include <algorithm>
 #include <cctype>
@@ -12,11 +19,19 @@
 #include <mutex>
 #include <sstream>
 #include <unordered_map>
+#include <utility>
 
 namespace analysis {
 
 struct EventRuleRuntime {
+    EventRuleRuntime();
+
     std::mutex mu;
+    TrackStateManager track_state_manager;
+    SceneContextBuilder rule_scene_context_builder;
+    SceneContextBuilder scenario_scene_context_builder;
+    ScenarioEngine scenario_engine;
+    EventManager event_manager;
     std::unordered_map<std::string, bool> previous_inside;
     std::unordered_map<std::string, float> previous_side;
     std::unordered_map<std::string, std::int64_t> inside_since_pts;
@@ -36,6 +51,7 @@ struct EventRule {
     std::string match_source_kind{"*"};
     std::string match_route{"*"};
     std::string match_client_id;
+    std::string match_va_rule_id;
     std::vector<std::string> classes;
     bool classes_specified{false};
     std::string event_type{"presence"};
@@ -317,6 +333,8 @@ std::optional<EventRule> ParseRule(const std::string& document) {
         rule.match_source_kind = ToLower(ParseStringField(*match, "sourceKind").value_or(rule.match_source_kind));
         rule.match_route = ToLower(ParseStringField(*match, "route").value_or(rule.match_route));
         rule.match_client_id = ParseStringField(*match, "clientId").value_or("");
+        rule.match_va_rule_id = ParseStringField(*match, "vaRule").value_or(
+            ParseStringField(*match, "vaRuleId").value_or(""));
     }
 
     if (const auto analysis = ExtractObjectField(document, "analysis"); analysis.has_value()) {
@@ -391,6 +409,12 @@ bool MatchesToken(const std::string& wanted, const std::string& actual) {
 }
 
 bool MatchesRuleContext(const EventRule& rule, const AnalysisContext& context) {
+    if (!context.va_rule_id.empty()) {
+        return rule.match_va_rule_id == context.va_rule_id;
+    }
+    if (!rule.match_va_rule_id.empty()) {
+        return false;
+    }
     if (!MatchesToken(rule.match_source_kind, context.source_kind)) {
         return false;
     }
@@ -452,6 +476,101 @@ bool IsAllowedLineCrossingDirection(const std::string& direction, float previous
     return forward || reverse;
 }
 
+std::string ResolveRuntimeChannelId(const std::string& source_key) {
+    return source_key.empty() ? std::string{"default"} : source_key;
+}
+
+std::vector<SceneGeometryPoint> ToSceneGeometryPoints(const std::vector<RulePoint>& points) {
+    std::vector<SceneGeometryPoint> out;
+    out.reserve(points.size());
+    for (const auto& point : points) {
+        out.push_back(SceneGeometryPoint{point.x, point.y});
+    }
+    return out;
+}
+
+SceneGeometryConfig BuildSceneGeometryConfig(const EventRule& rule) {
+    SceneGeometryConfig config;
+    if (rule.region_type == "polygon") {
+        SceneZoneDefinition zone;
+        zone.zone_id = rule.id;
+        zone.restricted = true;
+        zone.polygon = ToSceneGeometryPoints(rule.points);
+        config.zones.push_back(std::move(zone));
+    } else if (rule.region_type == "line") {
+        SceneLineDefinition line;
+        line.line_id = rule.id;
+        line.allowed_direction = rule.direction;
+        line.points = ToSceneGeometryPoints(rule.points);
+        config.lines.push_back(std::move(line));
+    }
+    return config;
+}
+
+const TrackRuntimeState* FindTrackState(const std::vector<TrackRuntimeState>& track_states, std::uint64_t track_id) {
+    const auto it = std::find_if(track_states.begin(), track_states.end(), [track_id](const TrackRuntimeState& state) {
+        return state.track_id == track_id;
+    });
+    return it == track_states.end() ? nullptr : &(*it);
+}
+
+const TrackSceneContext* FindTrackSceneContext(const SceneContext& scene_context, std::uint64_t track_id) {
+    const auto it =
+        std::find_if(scene_context.tracks.begin(), scene_context.tracks.end(), [track_id](const TrackSceneContext& track) {
+            return track.track_id == track_id;
+        });
+    return it == scene_context.tracks.end() ? nullptr : &(*it);
+}
+
+const ZoneState* FindZoneState(const TrackSceneContext& track_context, const std::string& zone_id) {
+    const auto it =
+        std::find_if(track_context.zone_states.begin(), track_context.zone_states.end(), [&](const ZoneState& state) {
+            return state.current_zone == zone_id || state.previous_zone == zone_id;
+        });
+    return it == track_context.zone_states.end() ? nullptr : &(*it);
+}
+
+const LineCrossState* FindLineCrossState(const TrackSceneContext& track_context, const std::string& line_id) {
+    const auto it =
+        std::find_if(track_context.line_states.begin(), track_context.line_states.end(), [&](const LineCrossState& state) {
+            return state.line_id == line_id;
+        });
+    return it == track_context.line_states.end() ? nullptr : &(*it);
+}
+
+bool DurationSatisfied(const ZoneState& zone_state, const EventRule& rule) {
+    if (rule.min_duration_ms <= 0) {
+        return zone_state.current_zone == rule.id;
+    }
+    return zone_state.current_zone == rule.id && zone_state.dwell_time_ms >= rule.min_duration_ms;
+}
+
+bool EvaluateSceneContextRule(const EventRule& rule, const TrackSceneContext& track_context) {
+    if (rule.region_type == "polygon") {
+        const ZoneState* zone_state = FindZoneState(track_context, rule.id);
+        if (zone_state == nullptr) {
+            return false;
+        }
+        if (rule.event_type == "presence") {
+            return DurationSatisfied(*zone_state, rule);
+        }
+        if (rule.event_type == "enter") {
+            return zone_state->had_previous_observation && zone_state->changed && zone_state->previous_zone.empty() &&
+                   zone_state->current_zone == rule.id;
+        }
+        if (rule.event_type == "exit") {
+            return zone_state->had_previous_observation && zone_state->changed && zone_state->previous_zone == rule.id &&
+                   zone_state->current_zone.empty();
+        }
+        return false;
+    }
+    if (rule.region_type == "line") {
+        const LineCrossState* line_state = FindLineCrossState(track_context, rule.id);
+        return rule.event_type == "line-crossing" && line_state != nullptr && line_state->crossed;
+    }
+    return false;
+}
+
 std::string StateKey(const EventRule& rule, const Detection& detection, std::size_t detection_index) {
     std::ostringstream out;
     if (detection.track_id > 0) {
@@ -498,6 +617,17 @@ void MarkDetectionEvent(Detection* detection, const EventRule& rule) {
     detection->event_highlight_duration_ms = std::max(100, rule.highlight_duration_ms);
 }
 
+void MarkDetectionEvent(Detection* detection, const AnalysisEvent& event) {
+    if (detection == nullptr || detection->event_triggered) {
+        return;
+    }
+    detection->event_triggered = true;
+    detection->event_rule_id = event.rule_id;
+    detection->event_type = event.event_type;
+    detection->event_highlight_color = event.highlight_color;
+    detection->event_highlight_duration_ms = std::max(100, event.highlight_duration_ms);
+}
+
 AnalysisEvent BuildAnalysisEvent(const EventRule& rule, const Detection& detection) {
     AnalysisEvent event;
     event.rule_id = rule.id;
@@ -515,7 +645,65 @@ AnalysisEvent BuildAnalysisEvent(const EventRule& rule, const Detection& detecti
     return event;
 }
 
+EventLifecycleOptions RuleEventLifecycleOptions(const EventRule& rule) {
+    EventLifecycleOptions options;
+    // 기존 rule event는 API/overlay/POST 호환을 위해 매 evaluation emit을 유지한다.
+    // ScenarioEngine은 같은 EventManager에 cooldown/update interval을 지정해 중복을 억제한다.
+    options.cooldown_ms = 0;
+    options.update_interval_ms = 0;
+    options.cleanup_interval_ms = app::GetAppConfig().analysis_cleanup_interval_ms;
+    options.emit_start = true;
+    options.emit_update = true;
+    options.emit_confirmed = true;
+    options.emit_end = false;
+    (void)rule;
+    return options;
+}
+
+bool EmitManagedEvent(EventRuleRuntime* runtime,
+                      const AnalysisResult& result,
+                      const std::string& channel_id,
+                      const EventRule& rule,
+                      const Detection& detection,
+                      const std::string& object_key,
+                      std::vector<AnalysisEvent>* events) {
+    if (runtime == nullptr || events == nullptr) {
+        return false;
+    }
+    EventCandidate candidate;
+    candidate.key.stream_id = result.source_key;
+    candidate.key.channel_id = channel_id;
+    candidate.key.scenario_id = rule.id;
+    candidate.key.zone_id = rule.id;
+    candidate.key.track_id = detection.track_id;
+    candidate.key.object_key = object_key;
+    candidate.event = BuildAnalysisEvent(rule, detection);
+    candidate.timestamp_ns = result.pts;
+    candidate.active = true;
+    candidate.confirmed = rule.event_type == "presence";
+
+    const auto decision = runtime->event_manager.Update(candidate, RuleEventLifecycleOptions(rule));
+    if (decision.emit) {
+        events->push_back(decision.event);
+    }
+    return decision.emit;
+}
+
 }  // namespace
+
+EventRuleRuntime::EventRuleRuntime()
+    : track_state_manager(BuildTrackStateManagerOptionsFromConfig(app::GetAppConfig()),
+                          std::make_shared<NoOpAppearanceExtractor>()),
+      rule_scene_context_builder(BuildSceneContextBuilderOptionsFromConfig(app::GetAppConfig())),
+      scenario_scene_context_builder(BuildSceneContextBuilderOptionsFromConfig(app::GetAppConfig())),
+      scenario_engine(BuildScenarioEngineOptionsFromConfig(app::GetAppConfig())) {
+    const auto& config = app::GetAppConfig();
+    if (config.analysis_intrusion_dwell_enabled) {
+        scenario_engine.RegisterScenario(
+            std::make_unique<IntrusionDwellScenario>(
+                BuildIntrusionDwellScenarioOptionsFromConfig(config)));
+    }
+}
 
 std::shared_ptr<EventRuleRuntime> CreateEventRuleRuntime() {
     return std::make_shared<EventRuleRuntime>();
@@ -555,6 +743,9 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
 
     const auto safe_runtime = runtime != nullptr ? runtime : CreateEventRuleRuntime();
     std::lock_guard lock(safe_runtime->mu);
+    const std::string channel_id = ResolveRuntimeChannelId(result.source_key);
+    safe_runtime->track_state_manager.Update(result.source_key, channel_id, BuildTrackedObjects(result), result.pts);
+    const auto track_states = safe_runtime->track_state_manager.Snapshot(channel_id);
 
     for (std::size_t detection_index = 0; detection_index < result.detections.size(); ++detection_index) {
         const auto& original_detection = result.detections[detection_index];
@@ -564,10 +755,27 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
             }
 
             const std::string key = StateKey(rule, original_detection, detection_index);
-            const RulePoint center = DetectionCenter(original_detection);
             bool triggered = false;
+            bool evaluated_with_scene_context = false;
 
-            if (rule.region_type == "polygon") {
+            if (original_detection.track_id > 0) {
+                const TrackRuntimeState* track_state = FindTrackState(track_states, original_detection.track_id);
+                if (track_state != nullptr) {
+                    const SceneGeometryConfig geometry_config = BuildSceneGeometryConfig(rule);
+                    const std::vector<TrackRuntimeState> single_track_state{*track_state};
+                    const SceneContext scene_context = safe_runtime->rule_scene_context_builder.Build(
+                        result.source_key, channel_id, single_track_state, geometry_config, result.pts);
+                    const TrackSceneContext* track_context =
+                        FindTrackSceneContext(scene_context, original_detection.track_id);
+                    if (track_context != nullptr) {
+                        triggered = EvaluateSceneContextRule(rule, *track_context);
+                        evaluated_with_scene_context = true;
+                    }
+                }
+            }
+
+            if (!evaluated_with_scene_context && rule.region_type == "polygon") {
+                const RulePoint center = DetectionCenter(original_detection);
                 const bool inside = PointInPolygon(center, rule.points);
                 const auto prev_it = safe_runtime->previous_inside.find(key);
                 const bool had_previous = prev_it != safe_runtime->previous_inside.end();
@@ -584,7 +792,8 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
                 if (!inside) {
                     safe_runtime->inside_since_pts.erase(key);
                 }
-            } else if (rule.region_type == "line") {
+            } else if (!evaluated_with_scene_context && rule.region_type == "line") {
+                const RulePoint center = DetectionCenter(original_detection);
                 const float side = SignedLineSide(center, rule.points);
                 const auto prev_it = safe_runtime->previous_side.find(key);
                 const bool had_previous = prev_it != safe_runtime->previous_side.end();
@@ -604,7 +813,8 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
             if (triggered) {
                 safe_runtime->highlight_until_pts[key] =
                     result.pts + static_cast<std::int64_t>(std::max(100, rule.highlight_duration_ms)) * 1000000LL;
-                evaluation.events.push_back(BuildAnalysisEvent(rule, original_detection));
+                EmitManagedEvent(
+                    safe_runtime.get(), result, channel_id, rule, original_detection, key, &evaluation.events);
             }
 
             const auto highlight_until = safe_runtime->highlight_until_pts.find(key);
@@ -615,6 +825,25 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
                 MarkDetectionEvent(&evaluation.annotated_result.detections[detection_index], rule);
                 ++evaluation.matched_detection_count;
             }
+        }
+    }
+
+    const SceneGeometryConfig scenario_geometry =
+        BuildSceneGeometryConfigFromRuleDocuments(rule_documents, result.context);
+    if (!scenario_geometry.zones.empty() && !track_states.empty()) {
+        const SceneContext scenario_context = safe_runtime->scenario_scene_context_builder.Build(
+            result.source_key, channel_id, track_states, scenario_geometry, result.pts);
+        auto scenario_events =
+            safe_runtime->scenario_engine.Evaluate(scenario_context, &safe_runtime->event_manager);
+        for (const auto& event : scenario_events) {
+            for (auto& detection : evaluation.annotated_result.detections) {
+                if (event.track_id > 0 && detection.track_id == event.track_id) {
+                    MarkDetectionEvent(&detection, event);
+                    ++evaluation.matched_detection_count;
+                    break;
+                }
+            }
+            evaluation.events.push_back(event);
         }
     }
 

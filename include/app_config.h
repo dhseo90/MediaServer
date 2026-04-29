@@ -51,6 +51,38 @@ struct AppConfig {
     int analysis_event_post_timeout_ms{app_config::kDefaultAnalysisEventPostTimeoutMs};
     std::size_t analysis_event_post_max_queue{app_config::kDefaultAnalysisEventPostMaxQueue};
     int analysis_event_post_cooldown_ms{app_config::kDefaultAnalysisEventPostCooldownMs};
+    bool analysis_scenario_enabled{app_config::kDefaultAnalysisScenarioEnabled};
+    std::size_t analysis_max_active_tracks_per_stream{
+        app_config::kDefaultAnalysisMaxActiveTracksPerStream};
+    std::size_t analysis_max_recent_observations_per_track{
+        app_config::kDefaultAnalysisMaxRecentObservationsPerTrack};
+    std::size_t analysis_max_trajectory_points_per_track{
+        app_config::kDefaultAnalysisMaxTrajectoryPointsPerTrack};
+    int analysis_trajectory_downsample_ms{app_config::kDefaultAnalysisTrajectoryDownsampleMs};
+    int analysis_terminated_track_retention_ms{
+        app_config::kDefaultAnalysisTerminatedTrackRetentionMs};
+    int analysis_cleanup_interval_ms{app_config::kDefaultAnalysisCleanupIntervalMs};
+    std::size_t analysis_scenario_max_instances_per_channel{
+        app_config::kDefaultAnalysisScenarioMaxInstancesPerChannel};
+    int analysis_scenario_cooldown_ms{app_config::kDefaultAnalysisScenarioCooldownMs};
+    int analysis_scenario_update_interval_ms{app_config::kDefaultAnalysisScenarioUpdateIntervalMs};
+    int analysis_scenario_retention_ms{app_config::kDefaultAnalysisScenarioRetentionMs};
+    int analysis_scenario_ended_retention_ms{app_config::kDefaultAnalysisScenarioEndedRetentionMs};
+    bool analysis_intrusion_dwell_enabled{app_config::kDefaultAnalysisIntrusionDwellEnabled};
+    int analysis_intrusion_dwell_candidate_ms{app_config::kDefaultAnalysisIntrusionDwellCandidateMs};
+    int analysis_intrusion_dwell_dwell_ms{app_config::kDefaultAnalysisIntrusionDwellDwellMs};
+    int analysis_intrusion_dwell_cooldown_ms{app_config::kDefaultAnalysisIntrusionDwellCooldownMs};
+    std::vector<std::string> analysis_intrusion_dwell_target_classes{"person"};
+    std::vector<std::string> analysis_intrusion_dwell_restricted_zone_ids;
+    bool analysis_appearance_enabled{app_config::kDefaultAnalysisAppearanceEnabled};
+    bool analysis_appearance_on_track_created{
+        app_config::kDefaultAnalysisAppearanceOnTrackCreated};
+    int analysis_appearance_every_n_seconds{app_config::kDefaultAnalysisAppearanceEveryNSeconds};
+    bool analysis_appearance_on_track_lost{app_config::kDefaultAnalysisAppearanceOnTrackLost};
+    bool analysis_appearance_on_reacquire_candidate{
+        app_config::kDefaultAnalysisAppearanceOnReacquireCandidate};
+    bool analysis_appearance_on_low_confidence_association{
+        app_config::kDefaultAnalysisAppearanceOnLowConfidenceAssociation};
     bool force_rtsp_tcp{false};
     bool session_trace{false};
     bool webrtc_trace{false};

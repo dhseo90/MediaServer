@@ -94,6 +94,7 @@ event_post_status() {
 cleanup() {
   # 검증 중 생성한 rule/tap/receiver를 정리해 다음 검증에 영향을 남기지 않는다.
   set +e
+  set +u
   if [[ -n "${TAP_ID}" ]]; then
     curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}" >/dev/null 2>&1
   fi

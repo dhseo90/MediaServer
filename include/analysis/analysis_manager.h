@@ -10,6 +10,7 @@
 #include "analysis/detector.h"
 #include "analysis/object_tracker.h"
 #include "analysis/raw_video_decoder.h"
+#include "analysis/track_state_manager.h"
 #include "core/shared_stream.h"
 #include "core/stream_key.h"
 
@@ -54,6 +55,7 @@ public:
         float nms_threshold{0.0F};
         bool tracking_enabled{false};
         std::vector<std::string> tracking_class_labels;
+        TrackStateMetrics track_state_metrics;
         bool adaptive_tuning_enabled{false};
         bool adaptive_input_size_enabled{false};
         bool adaptive_input_size_disabled{false};
@@ -115,6 +117,7 @@ private:
         std::weak_ptr<core::SharedStream> stream;
         std::unique_ptr<Detector> detector;
         std::unique_ptr<ObjectTracker> tracker;
+        TrackStateManager track_state_manager;
         std::unique_ptr<RawVideoDecoder> decoder;
         media::CodecId decoder_codec{media::CodecId::Unknown};
         std::string decoder_track_id;
@@ -139,6 +142,7 @@ private:
         double max_analysis_ms{0.0};
         std::chrono::steady_clock::time_point last_sampled_at{};
         std::chrono::steady_clock::time_point last_adaptive_tuned_at{};
+        std::atomic<std::uint64_t> next_frame_id{1};
         std::size_t adaptive_last_queue_dropped_frames{0};
         int adaptive_underloaded_streak{0};
         std::size_t adaptive_downshift_count{0};
