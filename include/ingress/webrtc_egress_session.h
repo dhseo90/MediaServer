@@ -17,6 +17,8 @@ struct _GstElement;
 using GstElement = _GstElement;
 struct _GstWebRTCRTPTransceiver;
 using GstWebRTCRTPTransceiver = _GstWebRTCRTPTransceiver;
+struct _GstWebRTCDataChannel;
+using GstWebRTCDataChannel = _GstWebRTCDataChannel;
 #endif
 
 namespace ingress {
@@ -24,6 +26,14 @@ namespace ingress {
 struct WebRtcIceCandidate {
     std::uint32_t sdp_mline_index{0};
     std::string candidate;
+};
+
+struct WebRtcMetadataChannelConfig {
+    bool enabled{false};
+    std::string label{"va-metadata"};
+    int interval_ms{500};
+    std::size_t max_message_bytes{65536};
+    std::size_t max_buffered_bytes{262144};
 };
 
 class WebRtcEgressSession final : public core::EgressSession {
@@ -38,6 +48,8 @@ public:
 
     void HandleSample(const media::Packet& packet);
     void SetAnalysisOverlay(AnalysisOverlayConfig config);
+    void SetMetadataChannelConfig(WebRtcMetadataChannelConfig config);
+    bool PublishAnalysisMetadata(const std::string& message);
     std::int64_t ResolveOverlaySourcePts(std::int64_t normalized_pts) const;
 
     bool CreateOffer(std::string* sdp_offer, std::string* error_message);
@@ -53,6 +65,9 @@ public:
     void HandleLocalIceCandidate(std::uint32_t sdp_mline_index, const std::string& candidate);
     void HandleOfferCreated(const std::string& sdp_offer, const std::string& error_message);
     void HandleIceConnectionStateChanged();
+    void HandleMetadataChannelOpen();
+    void HandleMetadataChannelClose();
+    void HandleMetadataChannelError(const std::string& message);
     void TraceRtpOut(const char* kind, std::size_t bytes);
     void TracePadBuffer(const std::string& label, std::size_t bytes);
     void TraceSdpSummary(const char* label, const std::string& sdp_text) const;
@@ -82,6 +97,7 @@ private:
     void StartMediaOutputIfReady(const char* reason);
     void ReplayCachedVideoKeyframe();
     void FlushPendingPackets();
+    bool EnsureMetadataDataChannel();
 #endif
 
     std::string session_id_;
@@ -113,12 +129,20 @@ private:
     bool ice_connected_{false};
     bool media_output_ready_{false};
     AnalysisOverlayConfig analysis_overlay_;
+    WebRtcMetadataChannelConfig metadata_channel_config_;
+    mutable std::mutex metadata_mu_;
+    std::int64_t last_metadata_sent_at_ms_{0};
+    std::uint64_t metadata_messages_sent_{0};
+    std::uint64_t metadata_messages_dropped_{0};
+    std::uint64_t metadata_send_failures_{0};
+    bool metadata_channel_open_{false};
 
 #if MEDIA_SERVER_USE_GSTREAMER
     GstElement* pipeline_{nullptr};
     GstElement* video_appsrc_{nullptr};
     GstElement* audio_appsrc_{nullptr};
     GstElement* webrtcbin_{nullptr};
+    GstWebRTCDataChannel* metadata_data_channel_{nullptr};
     unsigned int bus_watch_id_{0};
     bool transport_pads_linked_{false};
     std::size_t traced_video_samples_{0};

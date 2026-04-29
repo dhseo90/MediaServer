@@ -23,6 +23,7 @@ struct OverlayRenderOptions {
     bool draw_event_highlight{true};
     bool draw_track_ids{false};
     bool draw_track_trails{false};
+    bool draw_debug_overlay{false};
     OverlayLabelLanguage label_language{OverlayLabelLanguage::Korean};
     OverlayRedactionMode redaction_mode{OverlayRedactionMode::None};
     std::vector<std::string> redaction_class_labels{"person"};

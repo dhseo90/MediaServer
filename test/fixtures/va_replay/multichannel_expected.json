@@ -1,0 +1,32 @@
+{
+  "timestampToleranceMs": 250,
+  "events": [
+    {
+      "streamId": "baseline-multi-a",
+      "channelId": "baseline-channel-a",
+      "frameId": 1,
+      "timestampMs": 1000,
+      "type": "presence",
+      "zoneId": "intrusion-zone",
+      "trackId": 51
+    },
+    {
+      "streamId": "baseline-multi-b",
+      "channelId": "baseline-channel-b",
+      "frameId": 1,
+      "timestampMs": 1000,
+      "type": "presence",
+      "zoneId": "intrusion-zone",
+      "trackId": 51
+    }
+  ],
+  "frames": [
+    {
+      "streamId": "baseline-multi-b",
+      "channelId": "baseline-channel-b",
+      "frameId": 1,
+      "eventCount": 1,
+      "trackState": { "total": 2, "active": 2, "lost": 0, "terminated": 0 }
+    }
+  ]
+}

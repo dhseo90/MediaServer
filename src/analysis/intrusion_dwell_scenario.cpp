@@ -56,7 +56,8 @@ ScenarioUpdate IntrusionDwellScenario::Evaluate(const SceneContext& scene_contex
     (void)scene_context;
     ScenarioUpdate update;
     if (!options_.enabled || track_context.track_id == 0 ||
-        track_context.lifecycle_state != TrackLifecycleState::Active ||
+        (track_context.lifecycle_state != TrackLifecycleState::Active &&
+         track_context.lifecycle_state != TrackLifecycleState::Reacquired) ||
         !MatchesTargetClass(track_context)) {
         if (previous_instance != nullptr &&
             (previous_instance->phase == ScenarioPhase::Candidate ||
@@ -77,6 +78,9 @@ ScenarioUpdate IntrusionDwellScenario::Evaluate(const SceneContext& scene_contex
             event.highlight_color = "#ff0000";
             event.highlight_duration_ms = 1500;
             event.post_enabled = false;
+            event.zone_id = previous_instance->zone_id;
+            event.scenario_name = kScenarioId;
+            event.scenario_phase = "ended";
             update.event = event;
         }
         return update;
@@ -185,6 +189,8 @@ AnalysisEvent IntrusionDwellScenario::BuildEvent(const TrackSceneContext& track_
     event.highlight_duration_ms = 1500;
     event.highlight_enabled = true;
     event.post_enabled = false;
+    event.zone_id = zone_state.current_zone;
+    event.scenario_name = kScenarioId;
     return event;
 }
 

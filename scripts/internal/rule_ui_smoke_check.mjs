@@ -28,6 +28,7 @@ try {
       (async () => {
         const requiredCategoryValues = ['person', 'vehicle', 'road', 'animal', 'sports', 'tableware', 'food', 'furniture', 'device', 'object'];
         const koWords = ['사람', '차량', '도로', '동물', '운동', '식기', '음식', '가구', '기기', '잡화'];
+        window.confirm = () => true;
         const expectedDetailWordsByCategory = {
           person: ['사람'],
           vehicle: ['자전거', '자동차', '보트'],
@@ -112,27 +113,42 @@ try {
         }
         if (!document.body.textContent.includes('영상 분석 관리') ||
             !document.body.textContent.includes('vaRule=숫자') ||
-            !document.body.textContent.includes('영상 분석 설정 ID')) {
+            !document.body.textContent.includes('저장된 영상 분석 룰')) {
           throw new Error('missing video analysis management labels');
         }
-        for (const id of ['vaRuleSelect', 'vaRuleId', 'vaRuleName', 'vaRuleSourceKind', 'vaRuleFileSelect', 'saveVaRuleBtn']) {
+        for (const id of ['addVaRuleBtn', 'vaRuleList', 'vaRuleTotalMetric', 'vaRuleNextIdMetric']) {
+          if (!$(id)) throw new Error('missing vaRule management control: ' + id);
+        }
+        for (const id of ['editSelectedVaRuleBtn', 'duplicateSelectedVaRuleBtn', 'deleteSelectedVaRuleBtn']) {
+          if ($(id)) throw new Error('selected-rule toolbar action should be removed: ' + id);
+        }
+        click('addVaRuleBtn');
+        if ($('vaRuleEditorPanel').hidden) {
+          throw new Error('vaRule editor must open after add');
+        }
+        for (const id of ['vaRuleSelect', 'vaRuleId', 'vaRuleIdDisplay', 'vaRuleName', 'vaRuleSourceKind', 'vaRuleFileSelect', 'saveVaRuleBtn']) {
           if (!$(id)) throw new Error('missing vaRule setting control: ' + id);
         }
-        if ($('vaRuleId').getAttribute('inputmode') !== 'numeric') {
-          throw new Error('vaRule id must use numeric input mode');
+        if ($('vaRuleId').type !== 'hidden' || !$('vaRuleIdDisplay').textContent.includes('#')) {
+          throw new Error('vaRule id must be automatic and hidden from direct editing');
         }
         expectText('stopPreviewBtn', '영상 보기 시작');
-        for (const sectionText of ['기본 설정', '영상/영역', '시나리오', '객체/조건', '출력/저장']) {
+        for (const sectionText of ['기본 정보', '영상 소스', '분석 Profile', '이벤트 방식', '대상 객체', '영역/라인', '이벤트 동작', '저장 전 검토']) {
           if (!document.body.textContent.includes(sectionText)) {
             throw new Error('missing rule section tab: ' + sectionText);
           }
         }
         if (!document.body.textContent.includes('영상 프레임 보기') ||
-            !document.body.textContent.includes('영상 파일 선택') ||
+            !document.body.textContent.includes('다른 서버 파일 임시 보기') ||
             !document.body.textContent.includes('메인 /lab 선택 소스') ||
             !document.body.textContent.includes('객체 검출 오버레이 보기') ||
-            !document.body.textContent.includes('영역/Zone 그리기 중 영상 프레임 보기')) {
+            !document.body.textContent.includes('영역 캔버스에도 이 프레임 표시')) {
           throw new Error('missing prominent video frame preview controls');
+        }
+        if (!document.body.textContent.includes('고급 Profile 설정') ||
+            !document.body.textContent.includes('Payload preview') ||
+            !document.body.textContent.includes('저장 가능 여부')) {
+          throw new Error('missing staged edit form structure');
         }
         if (!$('previewSourceMode') || !$('previewFileSelect')) {
           throw new Error('missing video preview source selector');
@@ -343,7 +359,7 @@ try {
         const savedProfileId = smokeId + '-profile';
         const savedRuleId = smokeId + '-rule';
         const savedScenarioRuleId = smokeId + '-scenario-rule';
-        const savedVaRuleId = String(Date.now()).slice(-10);
+        let savedVaRuleId = '';
         try {
           setValue('profileId', savedProfileId);
           click('selectAllTrackingBtn');
@@ -359,6 +375,8 @@ try {
           ruleProfileSelect.value = savedProfileId;
           ruleProfileSelect.dispatchEvent(new Event('change', { bubbles: true }));
           click('selectCoreClassesBtn');
+          setValue('ruleEventType', 'line-crossing');
+          setValue('ruleLineDirection', 'any');
           const rulePayload = window.ruleJson();
           if (rulePayload.analysis.profileId !== savedProfileId) {
             throw new Error('rule payload profileId mismatch: ' + rulePayload.analysis.profileId);
@@ -393,18 +411,37 @@ try {
           }
           expectList('saved scenario zones', savedScenarioRule.rule?.scenario?.restrictedZoneIds || [], ['lobby']);
 
-          setValue('vaRuleId', savedVaRuleId);
+          if (!$('vaRuleEditorPanel').hidden) {
+            click('cancelVaRuleEditBtn');
+          }
+          click('addVaRuleBtn');
+          if (!$('vaRuleIdDisplay').textContent.includes('자동 지정')) {
+            throw new Error('new vaRule must show automatic id assignment');
+          }
           setValue('vaRuleName', 'smoke 영상 분석 설정');
           setValue('vaRuleSourceKind', 'file');
           setValue('vaRuleFileSelect', $('previewFileSelect').value || 'sample_h264.mp4');
+          scenarioRadio.click();
+          setValue('scenarioCandidateMs', '2000');
+          setValue('scenarioDwellMs', '10000');
+          setValue('scenarioCooldownMs', '5000');
+          setValue('scenarioZoneIds', 'smoke-zone');
+          click('selectCoreClassesBtn');
           const vaRulePayload = ruleApi.vaRuleJson();
-          if (vaRulePayload.id !== savedVaRuleId ||
-              vaRulePayload.match?.vaRule !== savedVaRuleId ||
+          if (vaRulePayload.id ||
+              vaRulePayload.match?.vaRule ||
               vaRulePayload.source?.kind !== 'file' ||
               !vaRulePayload.source?.file) {
             throw new Error('vaRule payload mismatch: ' + JSON.stringify(vaRulePayload));
           }
-          await ruleApi.saveVaRule();
+          const savedVaRuleResponse = await ruleApi.saveVaRule();
+          savedVaRuleId = String(savedVaRuleResponse?.vaRule?.id || '');
+          if (!/^[1-9][0-9]{0,3}$/.test(savedVaRuleId)) {
+            throw new Error('auto vaRule id must be numeric 1..9999: ' + savedVaRuleId);
+          }
+          if (!$('vaRuleEditorPanel').hidden) {
+            throw new Error('vaRule editor must close after save');
+          }
           const savedVaRule = await apiJson('/lab/analysis/va-rules/' + encodeURIComponent(savedVaRuleId));
           if (savedVaRule.vaRule?.id !== savedVaRuleId ||
               savedVaRule.vaRule?.match?.vaRule !== savedVaRuleId ||

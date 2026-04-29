@@ -1,0 +1,55 @@
+{
+  "timestampToleranceMs": 250,
+  "events": [
+    {
+      "streamId": "baseline-reacquire",
+      "channelId": "baseline-reacquire",
+      "frameId": 1,
+      "timestampMs": 1000,
+      "type": "presence",
+      "zoneId": "intrusion-zone",
+      "trackId": 61
+    },
+    {
+      "streamId": "baseline-reacquire",
+      "channelId": "baseline-reacquire",
+      "frameId": 3,
+      "timestampMs": 4500,
+      "type": "presence",
+      "zoneId": "intrusion-zone",
+      "trackId": 61
+    },
+    {
+      "streamId": "baseline-reacquire",
+      "channelId": "baseline-reacquire",
+      "frameId": 4,
+      "timestampMs": 4600,
+      "type": "presence",
+      "zoneId": "intrusion-zone",
+      "trackId": 61
+    }
+  ],
+  "frames": [
+    {
+      "streamId": "baseline-reacquire",
+      "channelId": "baseline-reacquire",
+      "frameId": 2,
+      "eventCount": 0,
+      "trackState": { "total": 1, "active": 0, "lost": 1, "reacquired": 0, "terminated": 0 }
+    },
+    {
+      "streamId": "baseline-reacquire",
+      "channelId": "baseline-reacquire",
+      "frameId": 3,
+      "eventCount": 1,
+      "trackState": { "total": 1, "active": 1, "lost": 0, "reacquired": 1, "terminated": 0 }
+    },
+    {
+      "streamId": "baseline-reacquire",
+      "channelId": "baseline-reacquire",
+      "frameId": 4,
+      "eventCount": 1,
+      "trackState": { "total": 1, "active": 1, "lost": 0, "reacquired": 0, "terminated": 0 }
+    }
+  ]
+}

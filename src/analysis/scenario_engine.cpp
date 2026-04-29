@@ -25,6 +25,10 @@ const char* ToString(ScenarioPhase phase) {
     switch (phase) {
         case ScenarioPhase::Idle:
             return "idle";
+        case ScenarioPhase::LineCrossed:
+            return "line-crossed";
+        case ScenarioPhase::ZoneEntered:
+            return "zone-entered";
         case ScenarioPhase::Candidate:
             return "candidate";
         case ScenarioPhase::Observing:
@@ -41,7 +45,12 @@ const char* ToString(ScenarioPhase phase) {
 
 ScenarioEngineOptions BuildScenarioEngineOptionsFromConfig(const app::AppConfig& config) {
     ScenarioEngineOptions options;
-    options.enabled = config.analysis_scenario_enabled || config.analysis_intrusion_dwell_enabled;
+    options.enabled = config.analysis_scenario_enabled ||
+                      config.analysis_intrusion_dwell_enabled ||
+                      config.analysis_re_entry_enabled ||
+                      config.analysis_wrong_direction_enabled ||
+                      config.analysis_intrusion_after_line_crossing_enabled ||
+                      config.analysis_loitering_enabled;
     options.max_instances_per_channel = config.analysis_scenario_max_instances_per_channel;
     options.default_cooldown_ms = config.analysis_scenario_cooldown_ms;
     options.default_update_interval_ms = config.analysis_scenario_update_interval_ms;
@@ -128,6 +137,11 @@ std::vector<AnalysisEvent> ScenarioEngine::Evaluate(const SceneContext& scene_co
                 candidate.key.track_id = track_context.track_id;
                 candidate.key.object_key = instance_key;
                 candidate.event = *update.event;
+                if (candidate.event.zone_id.empty() && candidate.event.line_id.empty()) {
+                    candidate.event.zone_id = instance.zone_id;
+                }
+                candidate.event.scenario_name = scenario_id;
+                candidate.event.scenario_phase = ToString(instance.phase);
                 candidate.timestamp_ns = scene_context.timestamp_ns;
                 candidate.active = update.active || IsActivePhase(update.phase);
                 candidate.confirmed = update.confirmed || update.phase == ScenarioPhase::Confirmed;
@@ -220,7 +234,8 @@ std::string ScenarioEngine::BuildInstanceKey(const std::string& scenario_id, std
 }
 
 bool ScenarioEngine::IsActivePhase(ScenarioPhase phase) {
-    return phase == ScenarioPhase::Candidate || phase == ScenarioPhase::Observing ||
+    return phase == ScenarioPhase::LineCrossed || phase == ScenarioPhase::ZoneEntered ||
+           phase == ScenarioPhase::Candidate || phase == ScenarioPhase::Observing ||
            phase == ScenarioPhase::Confirmed;
 }
 

@@ -44,6 +44,8 @@ struct Detection {
     RectF box;
     // tracker가 켜진 profile에서는 같은 객체를 frame 간 연결하기 위한 안정 ID를 채운다.
     std::uint64_t track_id{0};
+    // tracker 내부 association score다. 외부 event payload에는 사용하지 않고 TrackHealth 입력으로 전달한다.
+    float association_confidence{1.0F};
     // 룰 엔진에서 이벤트로 판단한 객체는 overlay renderer가 강조 표시한다.
     bool event_triggered{false};
     std::string event_rule_id;
@@ -92,6 +94,8 @@ struct AnalysisProfile {
     std::string labels_path;
     int target_fps{5};
     std::size_t max_queue_size{2};
+    int frame_sample_interval{1};
+    int max_frame_age_ms{0};
     int model_input_width{640};
     int model_input_height{640};
     int max_detections{50};
@@ -109,6 +113,7 @@ struct AnalysisProfile {
     bool tracking_classes_specified{false};
     bool enable_pose{false};
     bool enable_overlay{false};
+    bool enable_debug_state{false};
     int debug_detector_delay_ms{0};
     bool adaptive_tuning_enabled{false};
     bool adaptive_input_size_enabled{false};
@@ -136,6 +141,8 @@ inline std::string BuildProfileKey(const AnalysisProfile& profile) {
     oss << profile.profile_id << ":detector=" << profile.detector_type
         << ":model=" << (profile.model_path.empty() ? "default" : "custom")
         << ":fps=" << profile.target_fps << ":queue=" << profile.max_queue_size
+        << ":sampleInterval=" << profile.frame_sample_interval
+        << ":maxFrameAgeMs=" << profile.max_frame_age_ms
         << ":input=" << profile.model_input_width << "x" << profile.model_input_height
         << ":conf=" << profile.confidence_threshold
         << ":nms=" << profile.nms_threshold
@@ -156,6 +163,7 @@ inline std::string BuildProfileKey(const AnalysisProfile& profile) {
     oss
         << ":pose=" << (profile.enable_pose ? 1 : 0)
         << ":overlay=" << (profile.enable_overlay ? 1 : 0)
+        << ":debugState=" << (profile.enable_debug_state ? 1 : 0)
         << ":adaptive=" << (profile.adaptive_tuning_enabled ? 1 : 0)
         << ":adaptiveInput=" << (profile.adaptive_input_size_enabled ? 1 : 0)
         << ":adaptiveFps=" << profile.adaptive_min_fps << "-" << profile.adaptive_max_fps
@@ -167,6 +175,126 @@ inline std::string BuildProfileKey(const AnalysisProfile& profile) {
     return oss.str();
 }
 
+struct AnalysisDebugLineState {
+    std::string line_id;
+    std::string allowed_direction{"any"};
+    float previous_side{0.0F};
+    float current_side{0.0F};
+    bool crossed{false};
+    std::string direction{"none"};
+    bool raw_crossed{false};
+    std::string raw_direction{"none"};
+    bool direction_allowed{true};
+    std::int64_t last_cross_time_ms{0};
+};
+
+struct AnalysisDebugTrackState {
+    std::string stream_id;
+    std::string channel_id;
+    std::uint64_t track_id{0};
+    int class_id{-1};
+    std::string class_name;
+    float confidence{0.0F};
+    RectF bbox;
+    bool ground_point_available{false};
+    bool ground_point_valid{false};
+    bool ground_point_fallback{true};
+    float foot_point_x{0.0F};
+    float foot_point_y{0.0F};
+    double ground_point_x{0.0};
+    double ground_point_y{0.0};
+    std::string ground_point_units;
+    double speed{0.0};
+    bool speed_uses_ground_plane{false};
+    std::string speed_units{"image_per_second"};
+    std::string lifecycle_state;
+    std::string current_zone;
+    std::string previous_zone;
+    std::int64_t entered_at_ms{0};
+    std::int64_t exited_at_ms{0};
+    std::int64_t dwell_time_ms{0};
+    bool inside_restricted_zone{false};
+    std::vector<AnalysisDebugLineState> line_states;
+    std::string primary_line_id;
+    float line_side{0.0F};
+    std::string crossing_direction{"none"};
+    std::string scenario_name;
+    std::string scenario_phase;
+    std::string event_lifecycle;
+    float association_confidence{1.0F};
+    std::uint32_t missed_frame_count{0};
+    float overlap_risk{0.0F};
+    std::uint32_t direction_change_count{0};
+    bool track_unstable{false};
+    std::string track_health;
+};
+
+struct AnalysisDebugState {
+    bool enabled{false};
+    std::string stream_id;
+    std::string channel_id;
+    std::int64_t timestamp_ms{0};
+    std::size_t track_count{0};
+    std::size_t active_track_count{0};
+    std::size_t lost_track_count{0};
+    std::size_t reacquired_track_count{0};
+    std::size_t terminated_track_count{0};
+    std::size_t scenario_instance_count{0};
+    std::size_t active_scenario_count{0};
+    std::size_t event_state_count{0};
+    std::size_t active_event_state_count{0};
+    std::vector<AnalysisDebugTrackState> tracks;
+};
+
+struct TrackHealthMetrics {
+    std::size_t unstable_track_count{0};
+    std::size_t overlap_risk_track_count{0};
+    std::size_t missed_frame_track_count{0};
+    std::uint64_t missed_frame_total{0};
+    std::uint32_t missed_frame_max{0};
+    std::size_t direction_change_track_count{0};
+    std::uint64_t direction_change_total{0};
+    std::uint32_t direction_change_max{0};
+};
+
+struct AnalysisChannelMetrics {
+    std::string stream_id;
+    std::string channel_id;
+    std::size_t total_track_count{0};
+    std::size_t active_track_count{0};
+    std::size_t lost_track_count{0};
+    std::size_t reacquired_track_count{0};
+    std::size_t terminated_track_count{0};
+    std::size_t active_scenario_count{0};
+    std::size_t event_state_count{0};
+    std::size_t active_event_state_count{0};
+    std::uint64_t event_emitted_count{0};
+    std::uint64_t event_dedup_count{0};
+    TrackHealthMetrics track_health;
+};
+
+struct AnalysisMetricsReport {
+    bool enabled{false};
+    std::string stream_id;
+    std::string channel_id;
+    std::int64_t timestamp_ms{0};
+    std::size_t channel_count{0};
+    std::size_t total_track_count{0};
+    std::size_t active_track_count{0};
+    std::size_t lost_track_count{0};
+    std::size_t reacquired_track_count{0};
+    std::size_t terminated_track_count{0};
+    std::size_t terminated_track_cleanup_count{0};
+    std::size_t active_scenario_count{0};
+    std::size_t scenario_cleanup_count{0};
+    std::size_t active_event_state_count{0};
+    std::uint64_t event_emitted_count{0};
+    std::uint64_t event_dedup_count{0};
+    std::size_t event_cleanup_count{0};
+    TrackHealthMetrics track_health;
+    std::vector<AnalysisChannelMetrics> channels;
+};
+
 struct AnalysisResult {
     std::string source_key;
     std::string profile_key;
@@ -176,6 +304,11 @@ struct AnalysisResult {
     std::vector<Detection> detections;
     std::vector<Track> tracks;
     std::vector<PoseKeypoint> pose_keypoints;
+    bool debug_state_requested{false};
+    bool debug_state_log_enabled{false};
+    bool metrics_report_requested{false};
+    std::optional<AnalysisDebugState> debug_state;
+    std::optional<AnalysisMetricsReport> metrics_report;
 };
 
 }  // namespace analysis

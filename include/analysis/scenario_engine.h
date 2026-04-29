@@ -19,6 +19,8 @@ namespace analysis {
 
 enum class ScenarioPhase {
     Idle,
+    LineCrossed,
+    ZoneEntered,
     Candidate,
     Observing,
     Confirmed,

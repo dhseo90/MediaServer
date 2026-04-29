@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "analysis/event_rule_engine.h"
 
@@ -62,10 +63,39 @@ struct EventManagerMetrics {
     std::size_t active_states{0};
     std::size_t cooldown_states{0};
     std::size_t ended_states{0};
+    std::uint64_t emitted_count{0};
+    std::uint64_t suppressed_count{0};
     std::size_t cleanup_runs{0};
     std::size_t states_removed_by_cleanup{0};
     std::int64_t last_cleanup_time_ns{0};
     std::int64_t last_cleanup_time_ms{0};
+};
+
+struct EventManagerChannelMetrics {
+    std::string stream_id;
+    std::string channel_id;
+    std::size_t total_states{0};
+    std::size_t active_states{0};
+    std::uint64_t emitted_count{0};
+    std::uint64_t suppressed_count{0};
+};
+
+struct EventLifecycleStateSnapshot {
+    std::string key;
+    std::string stream_id;
+    std::string channel_id;
+    std::string scenario_id;
+    std::string zone_id;
+    std::uint64_t track_id{0};
+    std::string object_key;
+    EventLifecycleStage stage{EventLifecycleStage::None};
+    bool active{false};
+    bool confirmed{false};
+    std::int64_t first_seen_ms{0};
+    std::int64_t last_seen_ms{0};
+    std::int64_t last_emitted_ms{0};
+    std::int64_t cooldown_until_ms{0};
+    std::int64_t ended_at_ms{0};
 };
 
 class EventManager {
@@ -75,9 +105,12 @@ public:
     void Reset();
     std::size_t ActiveStateCount() const;
     EventManagerMetrics Metrics() const;
+    std::vector<EventManagerChannelMetrics> ChannelMetrics() const;
+    std::vector<EventLifecycleStateSnapshot> Snapshot() const;
 
 private:
     struct EventLifecycleState {
+        EventLifecycleKey key;
         EventLifecycleStage stage{EventLifecycleStage::None};
         bool active{false};
         bool confirmed{false};
@@ -97,6 +130,9 @@ private:
     std::size_t Cleanup(std::int64_t timestamp_ns, const EventLifecycleOptions& options);
 
     std::unordered_map<std::string, EventLifecycleState> states_;
+    std::unordered_map<std::string, EventManagerChannelMetrics> channel_metrics_;
+    std::uint64_t emitted_count_{0};
+    std::uint64_t suppressed_count_{0};
     std::int64_t last_cleanup_time_ns_{0};
     std::size_t cleanup_runs_{0};
     std::size_t states_removed_by_cleanup_{0};

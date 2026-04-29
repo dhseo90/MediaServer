@@ -10,6 +10,7 @@
 #include "app_config.h"
 #include "analysis/event_post_dispatcher.h"
 #include "analysis/event_rule_engine.h"
+#include "analysis/event_storage.h"
 #include "ingress/analysis_query.h"
 #include "ingress/analysis_rule_registry.h"
 #include "ingress/gst_pipeline_builder.h"
@@ -213,6 +214,7 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
              analysis_tap_id,
              weak_bridge,
              event_runtime,
+             debug_overlay = overlay_config.render_options.draw_debug_overlay,
              tolerance_ns = overlay_config.sync_tolerance_ns,
              wait_timeout_ms = overlay_config.wait_timeout_ms](std::int64_t frame_pts)
                 -> std::optional<analysis::AnalysisResult> {
@@ -222,8 +224,11 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
                 auto result = manager->WaitAnalysisResultNearPts(
                     analysis_tap_id, source_pts, tolerance_ns, std::chrono::milliseconds(wait_timeout_ms));
                 if (result.has_value()) {
+                    result->debug_state_requested = result->debug_state_requested || debug_overlay;
+                    result->debug_state_log_enabled = result->debug_state_log_enabled || debug_overlay;
                     const auto evaluation =
                         analysis::ApplyEventRulesToResult(*result, AnalysisRuleDocumentsSnapshot(), event_runtime);
+                    analysis::DispatchEventRecords(evaluation.annotated_result, evaluation.events);
                     analysis::DispatchEventPosts(evaluation.annotated_result, evaluation.events);
                     return evaluation.annotated_result;
                 }
@@ -231,8 +236,12 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
                 if (!snapshot.has_value() || !snapshot->latest_result.has_value()) {
                     return std::optional<analysis::AnalysisResult>{};
                 }
+                auto latest_result = *snapshot->latest_result;
+                latest_result.debug_state_requested = latest_result.debug_state_requested || debug_overlay;
+                latest_result.debug_state_log_enabled = latest_result.debug_state_log_enabled || debug_overlay;
                 const auto evaluation = analysis::ApplyEventRulesToResult(
-                    *snapshot->latest_result, AnalysisRuleDocumentsSnapshot(), event_runtime);
+                    latest_result, AnalysisRuleDocumentsSnapshot(), event_runtime);
+                analysis::DispatchEventRecords(evaluation.annotated_result, evaluation.events);
                 analysis::DispatchEventPosts(evaluation.annotated_result, evaluation.events);
                 return evaluation.annotated_result;
             };

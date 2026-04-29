@@ -1,0 +1,38 @@
+{
+  "frames": [
+    {
+      "streamId": "baseline-intrusion",
+      "channelId": "baseline-intrusion",
+      "frameId": 1,
+      "timestampMs": 1000,
+      "objects": [
+        {
+          "trackId": 11,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.91,
+          "bbox": { "x": 0.15, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.2, "y": 0.2 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-intrusion",
+      "channelId": "baseline-intrusion",
+      "frameId": 2,
+      "timestampMs": 1400,
+      "objects": [
+        {
+          "trackId": 11,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.9,
+          "bbox": { "x": 0.2, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.25, "y": 0.2 },
+          "direction": "right"
+        }
+      ]
+    }
+  ]
+}

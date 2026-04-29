@@ -1,202 +1,473 @@
-<!--
-이 파일의 목적/역할: MediaServer의 후속 개발 60개 작업을 실행 순서와 상태로 추적한다.
--->
+# Development Backlog
 
-# MediaServer 후속 개발 체크리스트
+이 문서는 현재 남은 작업과 후속 로드맵만 관리합니다. 완료된 개발 이력은 [history/development-history.md](./history/development-history.md), 과거 검증 이력은 [history/verification-history.md](./history/verification-history.md)를 봅니다.
 
 상태 표기:
 
-- `[ ]`: 미시작
-- `[~]`: 진행 중
-- `[x]`: 완료
+- `예정`: 아직 구현하지 않은 작업
+- `진행`: 현재 정리 또는 검토 중인 작업
+- `실험`: 기본 비활성 또는 제한된 조건에서만 확인한 작업
+- `보류`: 외부 credential, 모델, 운영 정책 등 선행 조건이 필요한 작업
+- `완료`: 구현/검증 완료. 상세 이력은 history 문서에 보관
 
-## 1차 안정화와 Rule/Profile 검증
+## 현재 상태 요약
 
-1.  [x] 60개 작업 추적용 체크리스트 문서 추가
-2.  [x] 현재 검증 명령별 pass/fail 기준 재정리
-3.  [x] `/lab/rules` 저장 payload 스키마 문서화
-4.  [x] Rule/Profile 카테고리 API 응답 예시 추가
-5.  [x] Rule/Profile 빈 카테고리 validation 테스트 보강
-6.  [x] Rule UI 카테고리 표시 스냅샷 검증 추가
-7.  [x] Rule UI payload와 API 저장값 비교 테스트 추가
-8.  [x] Profile 기본/전체/해제 버튼 상태 테스트 보강
-9.  [x] Rule 기본/전체/해제 버튼 상태 테스트 보강
-10. [x] 카테고리 catalog 순서 고정 테스트 추가
+- 구현 완료: RTSP/WebRTC relay, File/RTSP/WebRTC/HTTP-HLS source, YOLO/ONNX VA overlay, Rule/Profile UI, `vaRule=<id>` 호출, 기존 Intrusion/LineCrossing 이벤트 회귀 구조.
+- 구현 완료: TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, TrackHealth, cleanup 정책.
+- 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage, snapshot/clip hook, WebRTC VA metadata DataChannel 출력 구조.
+- 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
+- 실험/제약: snapshot/clip은 hook/marker 중심이며 실제 제품용 frame extraction/clip recorder는 후속 구현입니다.
+- 남은 핵심: 장시간 다채널 안정성, 운영 이벤트 조회/보관, UI 제품화, 실제 현장 샘플 기반 튜닝입니다.
 
-## Category/Rule Engine 정밀화
+## P0 - 문서/UI 정리
 
-11. [x] `trackingClasses`와 category token 혼용 입력 테스트
-12. [x] 세부 COCO class label 직접 입력 테스트
-13. [x] `trackingClasses=*` 전체 추적 테스트 확장
-14. [x] category token alias 매칭 테스트 추가
-15. [x] Rule engine class/category match 단위 테스트 추가
-16. [x] presence 이벤트 minDuration 테스트 보강
-17. [x] enter/exit 상태 유지 테스트 보강
-18. [x] line-crossing 방향 옵션 설계
-19. [x] line-crossing 방향 옵션 구현
-20. [x] line-crossing 방향별 검증 영상/테스트 추가
-21. [x] 이벤트 highlight blink timing 테스트 추가
-22. [x] 이벤트 POST payload schema 검증 강화
-23. [x] 이벤트 POST 실패/재시도/드롭 카운터 테스트
-24. [x] 이벤트 POST cooldown 정책 문서화
-25. [x] 이벤트 POST 큐 포화 상황 검증
+### P0-1. 문서 구조 최종 QA
 
-## Overlay/Tracker 안정화
+- 상태: 진행
+- 목적: README와 `docs/*.md` 사이의 중복, 깨진 링크, 구현 완료/실험/예정 표현 혼선을 제거합니다.
+- 관련 파일: `README.md`, `docs/ui-guide.md`, `docs/video-analysis.md`, `docs/media-server-architecture.md`, `docs/development-guide.md`, `docs/config-reference.md`, `docs/stream-verification.md`, `docs/development-backlog.md`
+- 검증 명령:
 
-26. [x] overlay label collision 개선 검토
-27. [x] overlay label collision 테스트 영상 추가
-28. [x] overlay event label 표시 우선순위 정리
-29. [x] overlay track trail 표시 성능 점검
-30. [x] tracker fragmentation 장시간 기준 재평가
-31. [x] tracker 겹침 장면 추가 샘플 제작
-32. [x] tracker stale PTS 비율 기준 문서화
-33. [x] tracker class/category별 통계 리포트 추가
-34. [x] 동물/도로/스포츠 category tracking opt-in 검증
-35. [x] 정적 이미지 분석 API category fixture 확장
-36. [x] `verify-image-analysis` 결과 리포트 상세화
-37. [x] `verify-va-category-samples` 샘플 coverage 리포트 추가
-38. [x] sports 샘플 의존성 실패 메시지 개선
-39. [x] VA 샘플 파일 존재 여부 사전 진단 추가
+```bash
+git diff --check -- README.md docs
+```
 
-## YOLO/Adaptive/WebRTC/URI 검증
+- 우선순위 이유: 문서가 다음 개발 지시와 검증 기준의 기준점이므로 먼저 안정화해야 합니다.
 
-40. [x] YOLO layout 검증 결과 요약 JSON 출력
-41. [x] YOLO score mode 실패 원인 메시지 개선
-42. [x] adaptive tuner 상태 전환 로그 정리
-43. [x] adaptive tuner input-size fallback 테스트 추가
-44. [x] adaptive tuner longrun threshold 문서화
-45. [x] WebRTC ICE config UI 상태 테스트 보강
-46. [x] TURN 미설정 relay fallback 테스트 유지보수
-47. [x] 외부 TURN credential 준비 시나리오 문서화
-48. [x] `verify-webrtc-ice --external-turn` skip/pass 리포트 개선
-49. [x] WHIP publish 실패 원인 분류 로그 개선
-50. [x] WHEP/simple signaling 공통 검증 helper 정리
-51. [x] HTTP/HLS URI longrun 기본 외부 후보 상태 재확인
-52. [x] 외부 HLS advisory 결과 캐시/리포트 추가
-53. [x] URI source EOS/reconnect 로그 정리
-54. [x] YouTube import 실험 기능 상태 문서 분리
-55. [x] YouTube resolver 실패 타입 분류 추가
-56. [x] `/lab/import` job 상태 UI 검증 추가
-57. [x] source/session lifecycle trace 옵션 정리
-58. [x] StreamRegistry idle cleanup 검증 추가
-59. [x] 통합 `./server.sh test --include-*` 조합 smoke 재실행
-60. [x] 다음 안정 커밋 후보 범위 산정
+### P0-2. UI screenshot 최신화
 
-## 현재 진행 메모
+- 상태: 예정
+- 목적: README와 UI guide의 대표 화면이 실제 `/lab/rules` UI와 일치하도록 스크린샷을 갱신합니다.
+- 관련 파일: `docs/assets/ui/`, `README.md`, `docs/ui-guide.md`, `scripts/internal/verify_lab_layout.mjs`
+- 검증 명령:
 
-- 1차 묶음은 문서 추적, Rule/Profile 카테고리 schema, UI 표시, 빈 선택 validation, 저장 payload round-trip 검증까지 완료했다.
-- 기능 동작을 바꾸기보다 이미 구현된 카테고리 정책이 UI/API/문서에서 같은 의미로 보이는지 먼저 고정한다.
-- 검증: `./server.sh verify-rule-ui --http-base http://127.0.0.1:8081` 통과. catalog 순서/스키마, UI 포함 객체명 표시, 빈 선택 차단, 저장 payload/API round-trip을 확인했다.
-- 2차 묶음은 trackingClasses category/all/mixed/direct/alias 정책과 rule engine category/direct class/alias presence match까지 완료했다.
-- 검증: `MEDIA_SERVER_VERIFY_IMAGE_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-image-analysis` 통과. `animal,car`, `traffic light`, `vehicles`, `*` 정책을 확인했다.
-- 검증: `MEDIA_SERVER_VERIFY_VA_CATEGORY_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-va-category-samples --duration 10` 통과. 기본 category 10개와 `car` 직접 class, `vehicles` alias rule 이벤트를 확인했다.
-- 3차 묶음은 `verify-va-events`에 `minDurationMs=500` presence rule과 enter/exit/line-crossing rule별 trackId 상태 검증을 추가했다.
-- 검증: `MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-va-events --duration 30` 통과. `presence-500ms`, `enter-center`, `exit-center`, `line-left`, `line-right` rule 이벤트와 유효 trackId를 확인했다.
-- 4차 묶음은 line-crossing 방향을 `any`, `forward`, `reverse`로 확장하고 Rule UI 선택값 저장과 이벤트 방향 분할 검증을 추가했다.
-- 검증: `./server.sh verify-rule-ui --http-base http://127.0.0.1:8081` 통과. `line-crossing` payload에 `direction=forward`가 저장되는 것을 확인했다.
-- 4-1차 UI 묶음은 `/lab/rules`에 `기본 이벤트`/`시나리오` 구성 방식을 추가하고, 첫 템플릿으로 `Intrusion Dwell` 설정 payload preview를 제공한다.
-- 검증: `./server.sh verify-rule-ui --http-base http://127.0.0.1:8081` 통과. `intrusion-dwell` payload, 제한구역 이름, 후보 판단/체류 확정/재알림 대기 시간(ms), track 안정성 옵션 validation을 확인했다.
-- 검증: `MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-va-events --duration 30` 통과. line-crossing `8`, `line-left/right` any 결과와 `forward/reverse` 분할 합이 일치하는 것을 확인했다.
-- 5차 묶음은 `./server.sh verify-event-post`를 추가해 POST payload schema, 실패 counter, cooldown suppress, bounded queue drop을 분리 검증한다.
-- 검증: `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE=64 ./server.sh verify-event-post --mode schema` 통과. `enqueued=6`, `sent=3`, `failed=3`, `suppressed=6`, schema `media-server.va.event.v1` payload를 확인했다.
-- 검증: `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE=2 ./server.sh verify-event-post --mode queue` 통과. slow endpoint에서 `enqueued=18`, `dropped=15`, `maxQueueSize=2`를 확인했다.
-- 검증: `MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-va-events --duration 30` 재실행 통과. 모든 이벤트 rule에서 highlight color `#ff0000`, `durationMs=1500`이 유지되는 것을 확인했다.
-- 6차 묶음은 overlay label placement, tracker class/category 통계, category sample preflight/coverage 리포트를 보강했다. 새 대용량 binary fixture는 추가하지 않고 기존 `va_tracking_event*`, `va_four_scene_sample`, `va_sports_sample`과 자동 생성 long sample 정책을 사용한다.
-- 검증: `MEDIA_SERVER_VERIFY_IMAGE_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-image-analysis` 통과 `6/0/0`. tracking summary JSON과 animal/road/category/all/direct/alias 결과를 확인했다.
-- 검증: `MEDIA_SERVER_VERIFY_VA_CATEGORY_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-va-category-samples --duration 10` 통과 `18/0/0`. 기본/sports 샘플 사전 진단, category coverage JSON, sports labels를 확인했다.
-- 검증: `MEDIA_SERVER_VERIFY_TRACKER_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-tracker-stability --duration 8 --repeat 1 --overlap-focus` 통과 `4/0/0`. category/class track/sample counts, stalePtsRatio `0.0`, fragmentationRatio `1.0`을 확인했다.
-- 7차 묶음은 YOLO/adaptive/WebRTC/URI 검증 리포트를 JSON summary와 실패 힌트 중심으로 보강했다.
-- 검증: `MEDIA_SERVER_VERIFY_YOLO_LAYOUT_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-yolo-layouts --duration 5 --no-download` 통과 `7/0/0`. 세 layout/score 조합 summary NDJSON을 확인했다.
-- 검증: `MEDIA_SERVER_VERIFY_ADAPTIVE_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_ADAPTIVE_POLL_COUNT=50 ./server.sh verify-adaptive` 통과 `8/0/0`. downshift, input-size `640→320`, upshift summary JSON을 확인했다.
-- 검증: `MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay MEDIA_SERVER_WEBRTC_TURN_SERVER= ./server.sh verify-webrtc-ice --skip-browser --skip-whip` 통과 `7/0/2`. TURN 미설정 relay 요청이 `/webrtc/config`에서 `relayPolicyFallback=true`, effective policy `all`로 내려가는 것을 확인했다.
-- 검증: `MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 ./server.sh verify-uri-longrun --iterations 1 --include-external --use-default-external --skip-local-http --skip-local-hls --external-rtsp-routes default` 통과. Mux/Apple 외부 HLS 후보 모두 `RTSP /default -> h264/aac`, WebRTC signaling 통과했고 summary JSON을 확인했다.
-- 8차 묶음은 YouTube/import 상태 문서 분리, resolver 실패 유형 확장, Lab import UI smoke, lifecycle/idle cleanup 기준 정리, 최종 smoke 재실행을 완료했다.
-- 검증: `./server.sh verify-lab-import-ui --http-base http://127.0.0.1:8081` 통과 `3/0/0`. `/lab/import` HTML 필수 요소와 `/lab/import/jobs` 구조를 확인했다.
-- 검증: `MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 ./server.sh test --no-start --include-rules --include-rule-ui --include-va-events --include-image-analysis`는 `18/1/4`로 WHIP publish 케이스가 1회 readiness race(`unknown WebRTC source`) 실패했다.
-- 후속 보강: WHIP publish source readiness를 `/lab/runtime/status`의 `webrtcHttp.publishSources[].hasVideo/hasAudio` 기준으로 기다리게 했다. `MEDIA_SERVER_VERIFY_SOURCE_FILTER=webrtc_local_publish_h264_opus ./server.sh verify-codecs`는 readiness 보강 후 `5/0/11`로 통과했다.
-- 추가 다채널 점검은 `./server.sh verify-multichannel`로 분리했다. 같은 영상 다중 WebRTC client는 `activeSessions=N`, dedup stream `1`을 확인하고, 여러 영상 다중 client는 source 수와 같은 dedup stream 수를 확인한다. `--include-va`는 VA overlay 다채널의 `activeAnalysisTaps`와 종료 후 cleanup까지 확인한다.
-- 9차 장기성 검증 묶음은 WHIP readiness 보강, 다채널 VA 반복, URI/HLS 반복, VA/tracker/YOLO/adaptive, WebRTC ICE, route profile, 전체 codec matrix를 같은 서버 세션에서 재검증했다.
-- 검증: `./server.sh verify-multichannel --include-va --repeat 3 --single-clients 3 --clients-per-source 2 --hold-ms 12000` 통과 `24/0/0`. 일반/VA 단일 source와 다중 source fan-out 모두 반복 간 cleanup까지 확인했다.
-- 검증: `./server.sh verify-uri-longrun --iterations 3 --include-external --use-default-external --external-rtsp-routes default,h264,opus` 통과 `12/0/0`. 로컬 HTTP/HLS와 Mux/Apple 외부 HLS advisory를 함께 확인했다.
-- 검증: `./server.sh verify-va-events --long` 통과 `17/0/0`, `./server.sh verify-tracker-stability --long --overlap-focus` 통과 `8/0/0`, `./server.sh verify-yolo-layouts --duration 10 --no-download` 통과 `7/0/0`, `./server.sh verify-adaptive` 통과 `8/0/0`.
-- 검증: `./server.sh verify-route-profiles` 통과 `7/0/0`, `./server.sh verify-webrtc-ice` 통과 `8/0/0`, `./server.sh verify-codecs` 통과 `67/0/3`. 외부 운영 TURN relay/auth는 credential 미확보로 이번 묶음에서도 진행하지 않았다.
-- 10차 후속 개발은 Lab runtime 상태 표시, 수동 다채널 WebRTC 패널, 검증 summary Markdown 생성기, URI 실패 원인 분류, event POST recovery 검증을 추가했다.
-- 검증: `MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 ./server.sh test --no-start --include-rules --include-rule-ui --include-va-events --include-image-analysis` 통과 `19/0/4`.
-- 검증: `/lab` 브라우저 확인에서 runtime panel, 다채널 수동 테스트 DOM, runtime text `session 0 · stream 0 · tap 0`을 확인했다.
-- 검증: `./server.sh verify-multichannel --include-va --repeat 1 --single-clients 2 --clients-per-source 2 --hold-ms 5000` 통과 `8/0`.
-- 검증: `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 ./server.sh verify-event-post --mode recovery` 통과 `11/0/0`. 복구 endpoint에서 `sentCount=3`, `failedCount=3`, `/flaky` 수신 `8`건을 확인했다.
-- 검증: `./server.sh summarize-reports /tmp/media_server_*summary*.json --output /tmp/media_server_verification_report.md` 출력 생성 확인.
-- 11차 후속 개발은 기능 개발 재개 전 안정화 묶음 `./server.sh verify-predev`를 추가했다. 통합 smoke, 다채널 WebRTC/VA, VA event, event POST schema/recovery/queue, summary report, runtime idle, 대표 port cleanup을 하나의 실행으로 확인한다.
-- 검증: `./server.sh verify-predev --quick` 통과 `14/0/0`.
-- 검증: `./server.sh verify-predev --soak-minutes 30` 통과 `89/0/0`, duration `2457s`, summary `/tmp/media_server_predev-1777284107-17671_summary.json`, report `/tmp/media_server_predev-1777284107-17671_report.md`. 종료 후 `8080/8081/8554/8555` listener 없음.
-- 12차 후속 개발은 Lab 리포트 뷰어, event POST 상태 패널, 다채널 client별 통계 표시, `/lab/runtime/status` profile/rule matching 요약, `verify-event-post-longrun`, `verify-tracker-stability --stress`, `verify-uri-longrun --external-config`, `verify-predev --include-external-turn`, `summarize-reports --html-output`을 추가했다.
-- 외부 운영 TURN relay/auth는 credential 확보 전까지 기본 안정 기준에서 제외한다. `--include-external-turn`을 명시하면 credential/policy 누락도 실패로 처리한다.
+```bash
+./server.sh verify-lab-layout
+```
 
-## 13차 잔여 안정화 이슈 15개
+- 우선순위 이유: UI 개편 후 문서의 첫인상과 실제 화면이 어긋나면 사용자 검수 비용이 커집니다.
 
-압축 전 대화에 있던 번호 목록은 파일에 남아 있지 않아, 현재 코드 기준으로 남은 안정화 잔여 이슈를 아래 15개로 재고정한다. 신규 기능 구현은 제외하고, 검증/리포트/문서의 추적성을 우선 보강한다.
+### P0-3. 영상 분석 설정 UI 후속 피드백 반영
 
-1.  [x] `verify-predev --quick` 도움말과 실제 VA event duration 설명 일치
-2.  [x] `verify-predev` 외부 TURN hard gate 제외 상태를 summary step에 skip으로 기록
-3.  [x] `verify-predev` runtime idle 판정에 WebRTC publish session/source 잔여 상태 포함
-4.  [x] `verify-predev`를 loopback 기본 bind로 실행하고 로컬 env override와 cleanup port 판정 정리
-5.  [x] `verify-predev` LAN IP 외부 접근성 hard gate를 `--include-external-client`로 분리
-6.  [x] `verify-predev` summary에 status, workDir, finishedAt metadata 추가
-7.  [x] `verify-event-post-longrun` summary에 status, httpBase, workDir, duration metadata 추가
-8.  [x] `verify-event-post-longrun` mode 오타/중복을 시작 전에 검출
-9.  [x] `summarize-reports`가 삭제 중인 `/tmp` 파일 stat 실패에 견디도록 보강
-10. [x] `summarize-reports`가 읽기 실패 파일을 전체 실패가 아닌 개별 실패 payload로 기록
-11. [x] `summarize-reports` Markdown 표에 상태 컬럼 추가
-12. [x] `summarize-reports` report kind 추정 범위 확장
-13. [x] Lab report 목록/본문 응답에 extension, kind, maxBytes, truncatedBytes metadata 추가
-14. [x] Lab report UI truncation 문구를 실제 max/truncated byte 기준으로 표시
-15. [x] 후속 기능 후보에 사람 객체 자동 모자이크 모드 추가
+- 상태: 예정
+- 목적: 룰 목록/편집/보기 탭에서 저장 피드백, 삭제 확인, source 매핑 안내, 개발자 URL 접힘 영역 같은 UX를 최종 점검합니다.
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/rule_ui_smoke_check.mjs`, `docs/ui-guide.md`
+- 검증 명령:
 
-- 검증: `./server.sh verify-predev --skip-build --soak-minutes 0 --heartbeat-interval 30` 통과 `8/0/3`, summary `/tmp/media_server_predev-1777292825-16550_summary.json`, report `/tmp/media_server_predev-1777292825-16550_report.md`, report html `/tmp/media_server_predev-1777292825-16550_report.html`. 기본 predev에서는 LAN IP 외부 접근성과 외부 TURN hard gate가 skip으로 기록되고, 종료 후 `8080/8081/8554/8555` listener 없음.
+```bash
+./server.sh verify-rule-ui
+./server.sh verify-lab-layout
+```
 
-## 14차 테스트 모드 분리
+- 우선순위 이유: 현재 가장 자주 만지는 화면이며 rule 설정 오류가 VA 검증 오류로 이어질 수 있습니다.
 
-- `./server.sh test` 무옵션은 `--basic`으로 실행한다. basic은 로컬 재현성을 우선해 외부망/LAN probe 없이 정적 검사, summary report smoke, 서버 readiness, 로컬 stream matrix, 기본 YOLO/VA overlay를 확인한다.
-- `./server.sh test --full`은 basic에 Rule/Profile UI, VA event, image analysis, event POST, 일반/VA WebRTC 다채널 fan-out, 사람 객체 자동 모자이크 검증을 추가한다.
-- `./server.sh test --external`은 full에 LAN IP 외부 클라이언트 접근성, 외부 RTSP advisory, WebRTC ICE, 외부 HTTP/HLS URI longrun을 추가한다.
-- `./server.sh test --stable`은 기존 stable 호환 기준으로 로컬 stream/VA와 LAN IP 외부 클라이언트 접근성, 제3자 RTSP upstream advisory를 함께 본다.
+## P1 - 안정화/검증
 
-## 15차 사람 객체 자동 모자이크 승격
+### P1-1. 30분 이상 다채널 soak 재실행
 
-- `redaction=person-mosaic`을 정적 이미지 overlay, RTSP overlay, WebRTC overlay, Lab VA controls에 연결했다.
-- `redactionClasses`, `redactionBlockSize`, `redactionMarginRatio` query를 공통 overlay render option으로 사용한다.
-- `./server.sh verify-redaction`을 추가했다. 기본은 정적 이미지 pixel diff와 live VA overlay 검증이며, `--include-multichannel`, `--include-events`, `--include-tracker`, `--long`으로 장기 검증 범위를 확장한다.
-- `./server.sh test --full`과 `./server.sh verify-predev`에는 redaction smoke를 포함한다. predev에서 제외해야 할 때만 `--skip-redaction`을 쓴다.
-- 운영 주의: 현재 방식은 detection bbox 기반 block mosaic이다. 사람 검출 누락, 심한 motion blur, 부분 가림 장면은 수동 샘플 검토가 필요하다. 원본 snapshot/비-redaction route는 그대로 원본을 노출할 수 있으므로 route 공개 정책을 함께 제한해야 한다.
+- 상태: 예정
+- 목적: Step 32 이후 문서/UI/VA 변경 묶음 기준으로 memory/CPU/event/state count가 안정화되는지 확인합니다.
+- 관련 파일: `scripts/internal/verify_predev_stability.sh`, `docs/stream-verification.md`
+- 검증 명령:
 
-## 후속 기능 후보
+```bash
+./server.sh verify-predev --soak-minutes 30
+```
 
-- 얼굴/세그멘테이션 기반 비식별화: 현재 bbox 기반 모자이크를 보완할 수 있는 detector/model 후보를 별도 검토한다.
+- 우선순위 이유: 미디어 서버에서는 장시간 안정성이 기능 추가보다 먼저입니다.
 
-## 16차 상황 기반 VA 확장 후보
+### P1-2. 2시간 이상 장기 soak
 
-- [x] `/lab/rules` 시나리오 설정 UI: 기본 이벤트와 시나리오 방식을 분리하고 `Intrusion Dwell` 제한구역 이름, 후보 판단/체류 확정/재알림 대기 시간(ms), track 안정성 payload를 저장한다.
-- [x] `/lab/rules` 시나리오 저장 전 점검 UI: 제한구역, 대상 객체, 시간 조건, 발생 이벤트, track 조건, 영역 형태를 저장 전에 요약한다.
-- [x] `/lab/rules` 영상 분석 관리 개편: `영상 분석 설정`/`영상 분석 보기` 탭으로 분리하고 숫자 기반 `vaRule` ID에 source/profile/event/scenario/geometry를 묶는다.
-- [x] `vaRule=<id>` URL binding: RTSP/WebRTC/analysis tap 요청에서 저장된 source를 적용하고, `file/url/source` override 조합은 거부한다.
-- [x] `IntrusionDwellScenario`: restricted zone 진입 후 일정 시간 이상 체류한 person track을 `intrusion-dwell`로 1회 emit한다.
-- [x] `verify-analysis-state`: TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwellScenario, TrackHealth, Appearance NoOp, cleanup 정책을 mock metadata 기반 단위 smoke로 검증한다.
-- [ ] scenario rule payload를 runtime `ScenarioEngine` per-rule 설정으로 연결한다.
-- [ ] scenario timeline/debug UI에서 track별 phase, first seen, dwell time, zone 이동, 중복 억제 상태를 live 표시한다.
-- [ ] `vaRule`별 runtime debug view: 선택한 설정의 active tracks, event lifecycle, scenario instance, cleanup metric을 보기 탭에서 live 표시한다.
-- [ ] `LoiteringScenario`: 같은 zone 또는 근접 영역에서 이동 반경이 작은 track의 장시간 배회를 판단한다.
-- [ ] `ZoneOccupancyScenario`: restricted zone 내부 동시 track 수가 threshold를 넘는 상황을 판단한다.
-- [ ] `LineDwellScenario`: line-crossing 직후 특정 방향 또는 특정 zone에 머무르는 상황을 판단한다.
-- [ ] `StoppedVehicleScenario`: vehicle category가 restricted zone 또는 도로 ROI에서 일정 시간 이상 정지한 상황을 판단한다.
-- [ ] `AbandonedObjectCandidateScenario`: person track 이탈 후 object track이 같은 위치에 남아 있는 후보를 판단한다. appearance는 NoOp hook과 geometry metadata만 사용한다.
-- [x] `ReIdentificationHookScenario`: Re-ID 모델 없이 `AppearanceProfile`, `IAppearanceExtractor`, `NoOpAppearanceExtractor`, `AppearanceUpdatePolicy` hook과 cooldown 정책 입력점을 준비한다.
-- [ ] 실제 Re-ID/attribute extractor: 모델 선택, n초 간격 sampling, GPU/CPU budget, 개인정보 정책 검토 후 별도 단계에서 구현한다.
+- 상태: 예정
+- 목적: 30분 테스트에서 보이지 않는 누적 memory, queue, event/state 증가를 확인합니다.
+- 관련 파일: `scripts/internal/verify_predev_stability.sh`, `src/analysis/track_state_manager.cpp`, `src/analysis/event_manager.cpp`, `src/analysis/scenario_engine.cpp`
+- 검증 명령:
 
-## 17차 다채널 VA state cleanup 후보
+```bash
+./server.sh verify-predev --soak-minutes 120
+```
 
-- [x] stream/channel별 active track 상한, 관측 ring buffer 상한, downsampled trajectory 상한을 config로 분리한다.
-- [x] terminated track, stale scene context, ended/cooldown scenario instance, event lifecycle state를 cleanup interval 기준으로 정리한다.
-- [x] `/lab/analysis/taps/{tapId}`에 track state memory/debug metric을 추가한다.
-- [ ] EventRuleRuntime의 scenario/event/scene context metric을 lab runtime endpoint로 노출한다.
-- [ ] `verify-va-state-cleanup` 스크립트를 추가해 mock metadata 기반으로 retention/cleanup/capacity 정책을 자동 검증한다.
-- [ ] 다채널 장기 soak에서 `analyticsState.trackState` 증가율과 cleanup counter를 summary report에 포함한다.
+- 우선순위 이유: 다채널 운영 환경에서는 작은 누수가 긴 시간 후 streaming 안정성 문제로 커질 수 있습니다.
+
+### P1-3. VA state cleanup 전용 검증 추가
+
+- 상태: 예정
+- 목적: mock metadata로 track/scenario/event retention, cap, active state 보호를 빠르게 검증하는 전용 테스트를 추가합니다.
+- 관련 파일: `scripts/internal/analysis_state_smoke.cpp`, `scripts/internal/verify_analysis_state_smoke.sh`, `src/analysis/track_state_manager.cpp`, `src/analysis/scenario_engine.cpp`, `src/analysis/event_manager.cpp`
+- 검증 명령:
+
+```bash
+./server.sh verify-analysis-state
+```
+
+- 우선순위 이유: cleanup 버그는 다채널 장시간 테스트 전 작은 fixture로 먼저 잡아야 합니다.
+
+### P1-4. WebRTC DataChannel browser 수신 자동화
+
+- 상태: 예정
+- 목적: offer/application m-line 확인을 넘어 browser에서 VA metadata message를 실제 수신하는 검증을 자동화합니다.
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/ingress/webrtc_egress_session.cpp`, `scripts/internal/verify_webrtc_ice_config.sh`
+- 검증 명령:
+
+```bash
+./server.sh verify-webrtc-ice
+```
+
+- 우선순위 이유: WebRTC metadata는 제품 UI overlay와 연동될 가능성이 높아 수신 검증이 필요합니다.
+
+## P2 - 이벤트 운영
+
+### P2-1. EventRecord 조회/검색 API
+
+- 상태: 예정
+- 목적: 저장된 EventRecord를 eventId, eventType, streamId/channelId, trackId, 시간 범위로 조회할 수 있게 합니다.
+- 관련 파일: `include/analysis/event_storage.h`, `src/analysis/event_storage.cpp`, `src/ingress/webrtc_http_server.cpp`, `docs/video-analysis.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-event-post --mode schema
+./server.sh verify-va-replay
+```
+
+- 우선순위 이유: 이벤트를 저장만 하고 조회하지 못하면 운영 화면과 사후 분석으로 이어지기 어렵습니다.
+
+### P2-2. EventRecord retention/rotation/recovery
+
+- 상태: 예정
+- 목적: JSON Lines 파일 증가, corruption, 서버 재시작 후 복구 정책을 정리합니다.
+- 관련 파일: `src/analysis/event_storage.cpp`, `include/analysis/event_storage.h`, `docs/config-reference.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-event-post --mode recovery
+```
+
+- 우선순위 이유: 이벤트 저장은 운영 데이터이므로 장기 보관 정책과 실패 복구가 필요합니다.
+
+### P2-3. Runtime status에 VA/event metric 노출
+
+- 상태: 예정
+- 목적: active/lost/terminated track, scenario instance, event emitted/dedup, cleanup count를 `/lab/runtime/status`에서 확인합니다.
+- 관련 파일: `src/analysis/event_rule_engine.cpp`, `src/analysis/track_state_manager.cpp`, `src/analysis/event_manager.cpp`, `src/ingress/webrtc_http_server.cpp`
+- 검증 명령:
+
+```bash
+./server.sh verify-analysis-state
+./server.sh verify-lab-layout
+```
+
+- 우선순위 이유: 장시간 테스트 중 내부 상태가 무한 증가하는지 UI/API로 바로 봐야 합니다.
+
+### P2-4. Event POST 활성/비활성 smoke 분리
+
+- 상태: 예정
+- 목적: Event POST가 꺼진 기본 서버와 켜진 서버의 기대 결과를 test output에서 명확히 분리합니다.
+- 관련 파일: `scripts/internal/test_all.sh`, `scripts/internal/verify_event_post_dispatch.sh`, `src/analysis/event_post_dispatcher.cpp`
+- 검증 명령:
+
+```bash
+./server.sh test --full
+./server.sh verify-event-post --mode schema
+./server.sh verify-event-post --mode recovery
+```
+
+- 우선순위 이유: POST 설정 차이 때문에 통합 검증 결과 해석이 흐려지는 문제를 줄입니다.
+
+## P3 - UI/제품화
+
+### P3-1. Scenario timeline/debug UI
+
+- 상태: 예정
+- 목적: track별 first seen, dwell time, zone 이동, ScenarioPhase, 중복 억제 상태를 timeline으로 표시합니다.
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/analysis/event_rule_engine.cpp`, `docs/ui-guide.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-rule-ui
+./server.sh verify-lab-layout
+```
+
+- 우선순위 이유: 상황 기반 이벤트는 내부 상태가 보이지 않으면 오탐/미탐 원인 분석이 어렵습니다.
+
+### P3-2. `vaRule` runtime debug view
+
+- 상태: 예정
+- 목적: 선택한 rule의 active tracks, scene context, scenario instances, event lifecycle, cleanup metric을 실시간으로 표시합니다.
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/analysis/event_rule_engine.cpp`, `docs/ui-guide.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-analysis-state
+./server.sh verify-lab-layout
+```
+
+- 우선순위 이유: 저장 rule과 실제 실행 rule이 일치하는지 운영자가 확인할 수 있어야 합니다.
+
+### P3-3. Tracking issue report UI
+
+- 상태: 예정
+- 목적: overlapRisk, missedFrame spike, directionChange spike, lost/reacquired 기록을 rule/debug 화면에 연결합니다.
+- 관련 파일: `src/analysis/track_state_manager.cpp`, `src/analysis/event_rule_engine.cpp`, `docs/ui-guide.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-tracker-stability --long --overlap-focus
+```
+
+- 우선순위 이유: direction-based tracking의 한계를 보완하기 전에 실제 실패 패턴을 볼 수 있어야 합니다.
+
+### P3-4. EventRecord 검색 UI
+
+- 상태: 예정
+- 목적: 이벤트 목록, 필터, EventRecord detail, snapshot/clip link placeholder를 Lab에서 확인합니다.
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/analysis/event_storage.cpp`, `docs/ui-guide.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-lab-layout
+./server.sh verify-event-post --mode schema
+```
+
+- 우선순위 이유: 이벤트 운영 기능은 저장 API만으로는 제품 사용 흐름이 완성되지 않습니다.
+
+## P4 - 시나리오 확장
+
+### P4-1. Scenario rule payload를 runtime per-rule 설정으로 연결
+
+- 상태: 예정
+- 목적: UI에서 저장한 scenario rule 조건이 runtime ScenarioEngine의 per-rule 설정으로 일관되게 적용되도록 정리합니다.
+- 관련 파일: `src/ingress/analysis_query.cpp`, `src/analysis/event_rule_engine.cpp`, `src/analysis/scenario_engine.cpp`, `include/analysis/scenario_engine.h`
+- 검증 명령:
+
+```bash
+./server.sh verify-rule-ui
+./server.sh verify-va-replay
+```
+
+- 우선순위 이유: env 기반 scenario와 저장 rule 기반 scenario가 혼동되면 현장 설정 재현성이 떨어집니다.
+
+### P4-2. Loitering 실제 샘플 튜닝
+
+- 상태: 예정
+- 목적: 실제 CCTV 샘플에서 dwell time, movement radius, trajectory point 기준을 조정합니다.
+- 관련 파일: `src/analysis/loitering_scenario.cpp`, `test/fixtures/va_replay/loitering_metadata.json`, `docs/video-analysis.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-va-replay
+./server.sh verify-va-events --long
+```
+
+- 우선순위 이유: Loitering은 threshold 민감도가 높아 fixture만으로 제품 품질을 판단하기 어렵습니다.
+
+### P4-3. ZoneOccupancyScenario
+
+- 상태: 예정
+- 목적: 특정 zone 내부 동시 track 수가 threshold 이상일 때 crowd/occupancy 이벤트를 발생시킵니다.
+- 관련 파일: `src/analysis/scenario_engine.cpp`, `src/analysis/scene_context_builder.cpp`, `include/analysis/scenario_engine.h`, `test/fixtures/va_replay/`
+- 검증 명령:
+
+```bash
+./server.sh verify-va-replay
+./server.sh verify-analysis-state
+```
+
+- 우선순위 이유: 침입/체류 다음으로 운영 현장에서 이해하기 쉬운 zone 기반 scenario입니다.
+
+### P4-4. 후속 scenario 후보 정리
+
+- 상태: 예정
+- 목적: LineDwell, StoppedVehicle, AbandonedObjectCandidate를 최소 구현 후보로 구체화합니다.
+- 관련 파일: `docs/video-analysis.md`, `docs/config-reference.md`, `src/analysis/`
+- 검증 명령:
+
+```bash
+./server.sh verify-va-replay
+```
+
+- 우선순위 이유: scenario를 무작정 늘리기 전에 상태 머신, fixture, UI 노출 기준을 먼저 맞춰야 합니다.
+
+## P5 - Tracking/Re-ID 고도화
+
+### P5-1. 실제 샘플 기반 TrackHealth threshold 수집
+
+- 상태: 예정
+- 목적: overlapRisk, missedFrameCount, directionChangeCount 기준을 실제 영상에서 수집해 report threshold를 조정합니다.
+- 관련 파일: `src/analysis/track_state_manager.cpp`, `scripts/internal/verify_tracker_stability.sh`, `docs/video-analysis.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-tracker-stability --long --overlap-focus
+```
+
+- 우선순위 이유: tracker를 바꾸기 전에 현재 direction-based tracker가 어디서 흔들리는지 수치화해야 합니다.
+
+### P5-2. Association 보강 전후 replay 비교
+
+- 상태: 예정
+- 목적: IoU + center distance + direction + class score 적용 전후 event 결과와 tracking issue 감소율을 비교합니다.
+- 관련 파일: `src/analysis/object_tracker.cpp`, `src/analysis/track_state_manager.cpp`, `test/fixtures/va_replay/`
+- 검증 명령:
+
+```bash
+./server.sh verify-va-replay
+./server.sh verify-analysis-state
+```
+
+- 우선순위 이유: association 개선은 이벤트 결과를 바꿀 수 있으므로 replay 비교가 필수입니다.
+
+### P5-3. Lost/reacquired 장기 검증
+
+- 상태: 예정
+- 목적: 짧은 detection 누락에서 같은 track이 유지되고, lost buffer가 무한 증가하지 않는지 확인합니다.
+- 관련 파일: `src/analysis/track_state_manager.cpp`, `test/fixtures/va_replay/reacquire_metadata.json`
+- 검증 명령:
+
+```bash
+./server.sh verify-va-replay
+./server.sh verify-predev --soak-minutes 30
+```
+
+- 우선순위 이유: 상황 기반 이벤트는 track 시간 연속성이 핵심입니다.
+
+### P5-4. 실제 Re-ID enabled 모델 benchmark
+
+- 상태: 실험
+- 목적: 기본 disabled 상태를 유지하면서 모델 파일이 있을 때만 Re-ID extractor 성능과 품질을 측정합니다.
+- 관련 파일: `src/analysis/appearance_extractor.cpp`, `src/analysis/track_state_manager.cpp`, `docs/config-reference.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-analysis-state
+```
+
+- 우선순위 이유: Re-ID는 다채널 CPU/GPU 비용과 개인정보 영향이 커서 실험 결과 없이 기본 기능으로 승격하면 안 됩니다.
+
+### P5-5. Appearance/embedding 운영 정책
+
+- 상태: 예정
+- 목적: embedding 저장 기간, 암호화/삭제, 개인정보 안내, attribute extractor 유지 여부를 정리합니다.
+- 관련 파일: `docs/video-analysis.md`, `docs/config-reference.md`, `src/analysis/appearance_extractor.cpp`
+- 검증 명령:
+
+```bash
+git diff --check -- docs
+```
+
+- 우선순위 이유: appearance 기능은 기술 구현보다 운영 정책과 안전장치가 먼저 필요합니다.
+
+## P6 - 녹화/snapshot/clip
+
+### P6-1. 실제 snapshot frame extraction
+
+- 상태: 예정
+- 목적: EventRecord 발생 시점의 frame snapshot을 저장하고 `snapshotPath`와 연결합니다.
+- 관련 파일: `src/analysis/snapshot_encoder.cpp`, `src/analysis/event_manager.cpp`, `src/analysis/event_storage.cpp`
+- 검증 명령:
+
+```bash
+./server.sh verify-va-replay
+./server.sh verify-event-post --mode schema
+```
+
+- 우선순위 이유: 이벤트 사후 확인에는 텍스트 record보다 snapshot이 먼저 필요합니다.
+
+### P6-2. Pre/post event clip recorder
+
+- 상태: 예정
+- 목적: 제한된 ring buffer로 이벤트 전후 clip을 저장하고 `clipPath`와 연결합니다.
+- 관련 파일: `src/core/shared_stream.cpp`, `src/analysis/event_manager.cpp`, `src/analysis/event_storage.cpp`
+- 검증 명령:
+
+```bash
+./server.sh verify-predev --soak-minutes 30
+```
+
+- 우선순위 이유: clip recorder는 frame buffer와 encoder 부하가 있어 streaming 안정성 검증이 필수입니다.
+
+### P6-3. Snapshot/clip retention과 실패 metric
+
+- 상태: 예정
+- 목적: 저장 실패 counter, retention/rotation, disk 사용량 상한을 config와 runtime status에 연결합니다.
+- 관련 파일: `src/analysis/event_storage.cpp`, `src/analysis/event_rule_engine.cpp`, `docs/config-reference.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-analysis-state
+./server.sh verify-lab-layout
+```
+
+- 우선순위 이유: 파일 저장 기능은 디스크를 무제한 사용하지 않도록 운영 보호가 필요합니다.
+
+## P7 - 외부 연동
+
+### P7-1. 운영 TURN relay/auth 검증
+
+- 상태: 보류
+- 목적: 실제 TURN credential로 WebRTC relay/auth 경로를 end-to-end 검증합니다.
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `docs/stream-verification.md`, `docs/config-reference.md`
+- 검증 명령:
+
+```bash
+MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER='turn://user:pass@example.local:3478' \
+  ./server.sh verify-webrtc-ice
+```
+
+- 우선순위 이유: 외부 네트워크 WebRTC 운영에는 TURN 검증이 필요하지만 credential이 선행되어야 합니다.
+
+### P7-2. WebRTC metadata client schema/example
+
+- 상태: 예정
+- 목적: DataChannel VA metadata JSON schema와 browser client 예제를 분리 문서화합니다.
+- 관련 파일: `src/ingress/webrtc_egress_session.cpp`, `docs/media-server-architecture.md`, `docs/video-analysis.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-webrtc-ice
+```
+
+- 우선순위 이유: 영상과 별도 metadata를 UI에서 쓰려면 message contract가 명확해야 합니다.
+
+### P7-3. Event JSON schema/OpenAPI 분리
+
+- 상태: 예정
+- 목적: 기존 외부 이벤트 JSON/API/POST 형식을 별도 schema 문서 또는 OpenAPI로 정리합니다.
+- 관련 파일: `docs/video-analysis.md`, `src/analysis/event_manager.cpp`, `src/analysis/event_post_dispatcher.cpp`
+- 검증 명령:
+
+```bash
+./server.sh verify-event-post --mode schema
+```
+
+- 우선순위 이유: 외부 연동이 늘어날수록 payload 변경 금지 원칙을 문서 계약으로 고정해야 합니다.
+
+### P7-4. YouTube import/source 유지 여부 결정
+
+- 상태: 보류
+- 목적: 실험 기능으로 남길지, import만 유지할지, source 직접 표출을 제거할지 결정합니다.
+- 관련 파일: `docs/youtube-import.md`, `src/core/source_factory.cpp`, `src/ingress/lab_import_manager.cpp`
+- 검증 명령:
+
+```bash
+./server.sh verify-lab-import-ui
+```
+
+- 우선순위 이유: 외부 서비스 정책/권한 영향이 있어 core streaming 안정화와 분리해 판단해야 합니다.
+
+## 완료 이력 링크
+
+완료된 과거 작업은 삭제하지 않고 [history/development-history.md](./history/development-history.md)에 보관합니다.
+
+현재 history 문서에는 다음 묶음이 보존되어 있습니다.
+
+- 1차 - Rule/Profile 안정화
+- 2차 - Category/Rule Engine 정밀화
+- 3차 - Overlay/Tracker 안정화
+- 4차 - YOLO/Adaptive/WebRTC/URI 검증
+- 5차 - YouTube/import와 Lab 통합
+- 6차 - 다채널/리포트/Predev 안정화
+- 7차 - Test mode 분리와 redaction
+- 8차 - 상황 기반 VA Step 0-11
+- 9차 - Step 12-19 검증/운영 도구
+- 10차 - Step 20-28 Scenario/Tracking/Geometry
+- 11차 - Step 29-32 Re-ID/성능/통합

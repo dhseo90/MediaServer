@@ -1,0 +1,62 @@
+{
+  "frames": [
+    {
+      "streamId": "baseline-reacquire",
+      "channelId": "baseline-reacquire",
+      "frameId": 1,
+      "timestampMs": 1000,
+      "objects": [
+        {
+          "trackId": 61,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.91,
+          "bbox": { "x": 0.15, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.2, "y": 0.2 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-reacquire",
+      "channelId": "baseline-reacquire",
+      "frameId": 2,
+      "timestampMs": 4000,
+      "objects": []
+    },
+    {
+      "streamId": "baseline-reacquire",
+      "channelId": "baseline-reacquire",
+      "frameId": 3,
+      "timestampMs": 4500,
+      "objects": [
+        {
+          "trackId": 61,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.9,
+          "bbox": { "x": 0.17, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.22, "y": 0.2 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-reacquire",
+      "channelId": "baseline-reacquire",
+      "frameId": 4,
+      "timestampMs": 4600,
+      "objects": [
+        {
+          "trackId": 61,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.9,
+          "bbox": { "x": 0.2, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.25, "y": 0.2 },
+          "direction": "right"
+        }
+      ]
+    }
+  ]
+}

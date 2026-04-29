@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstdint>
+#include <array>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -38,9 +39,27 @@ struct SceneLineDefinition {
     std::vector<SceneGeometryPoint> points;
 };
 
+struct SceneGroundPoint {
+    double x{0.0};
+    double y{0.0};
+    bool valid{false};
+    bool fallback_to_image{true};
+    std::string units{"image"};
+};
+
+struct HomographyConfig {
+    std::string calibration_id;
+    std::string stream_id;
+    std::string channel_id;
+    bool enabled{false};
+    std::array<double, 9> image_to_ground{};
+    std::string units{"ground"};
+};
+
 struct SceneGeometryConfig {
     std::vector<SceneZoneDefinition> zones;
     std::vector<SceneLineDefinition> lines;
+    std::vector<HomographyConfig> homographies;
 };
 
 struct ZoneState {
@@ -59,10 +78,14 @@ struct ZoneState {
 
 struct LineCrossState {
     std::string line_id;
+    std::string allowed_direction{"any"};
     float previous_side{0.0F};
     float current_side{0.0F};
     bool crossed{false};
     std::string direction{"none"};
+    bool raw_crossed{false};
+    std::string raw_direction{"none"};
+    bool direction_allowed{true};
     std::int64_t last_cross_time_ns{0};
     std::int64_t last_cross_time_ms{0};
 };
@@ -79,7 +102,13 @@ struct TrackSceneContext {
     std::optional<AppearanceProfile> appearance_profile;
     ObjectDirection direction;
     NormalizedPointF center;
+    NormalizedPointF foot_point;
+    SceneGroundPoint ground_point;
+    double speed{0.0};
+    bool speed_uses_ground_plane{false};
+    std::string speed_units{"image_per_second"};
     RectF bbox;
+    std::vector<TrackTrajectoryPoint> trajectory;
     ZoneState zone_state;
     std::vector<ZoneState> zone_states;
     std::vector<LineCrossState> line_states;
@@ -97,6 +126,10 @@ struct SceneContextBuilderOptions {
     std::size_t max_track_contexts_per_channel{2048};
     std::int64_t retained_context_ms{5000};
     std::int64_t cleanup_interval_ms{1000};
+    bool use_ground_plane_for_speed{app_config::kDefaultAnalysisGroundPlaneSpeedEnabled};
+    bool use_ground_plane_for_movement_radius{
+        app_config::kDefaultAnalysisGroundPlaneMovementRadiusEnabled};
+    std::vector<HomographyConfig> homographies;
 };
 
 class SceneContextBuilder {
@@ -126,7 +159,17 @@ private:
 
     using TrackContextMap = std::unordered_map<std::uint64_t, TrackSceneRuntime>;
 
+    SceneContext BuildWithGeometry(const std::string& stream_id,
+                                   const std::string& channel_id,
+                                   const std::vector<TrackRuntimeState>& track_states,
+                                   const std::vector<SceneZoneDefinition>& zones,
+                                   const std::vector<SceneLineDefinition>& lines,
+                                   const std::vector<HomographyConfig>& homographies,
+                                   std::int64_t timestamp_ns);
     static std::string ResolveChannelId(const std::string& stream_id, const std::string& channel_id);
+    void LogHomographyFailureOnce(const HomographyConfig& homography,
+                                  const std::string& resolved_channel_id,
+                                  const std::string& reason);
     bool ShouldRunCleanup(std::int64_t timestamp_ns) const;
     void CleanupChannel(TrackContextMap* contexts,
                         const std::vector<std::uint64_t>& observed_track_ids,
@@ -136,6 +179,7 @@ private:
 
     SceneContextBuilderOptions options_;
     std::unordered_map<std::string, TrackContextMap> contexts_by_channel_;
+    std::unordered_map<std::string, bool> homography_failure_log_keys_;
     std::int64_t last_cleanup_time_ns_{0};
 };
 

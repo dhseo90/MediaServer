@@ -1,0 +1,47 @@
+{
+  "timestampToleranceMs": 250,
+  "events": [
+    {
+      "streamId": "baseline-intrusion-after-line-crossing",
+      "channelId": "baseline-intrusion-after-line-crossing",
+      "frameId": 5,
+      "timestampMs": 4200,
+      "type": "intrusion-after-line-crossing",
+      "lineId": "entry-line",
+      "zoneId": "target-zone",
+      "trackId": 91
+    }
+  ],
+  "frames": [
+    {
+      "streamId": "baseline-intrusion-after-line-crossing",
+      "channelId": "baseline-intrusion-after-line-crossing",
+      "frameId": 2,
+      "eventCount": 0,
+      "activeRuleCount": 2,
+      "trackState": { "total": 1, "active": 1, "lost": 0, "terminated": 0 },
+      "scenarioState": { "instances": 1, "active": 1 },
+      "eventManager": { "states": 0 }
+    },
+    {
+      "streamId": "baseline-intrusion-after-line-crossing",
+      "channelId": "baseline-intrusion-after-line-crossing",
+      "frameId": 5,
+      "eventCount": 1,
+      "activeRuleCount": 2,
+      "trackState": { "total": 1, "active": 1, "lost": 0, "terminated": 0 },
+      "scenarioState": { "instances": 1, "active": 1 },
+      "eventManager": { "states": 1 }
+    },
+    {
+      "streamId": "baseline-intrusion-after-line-crossing",
+      "channelId": "baseline-intrusion-after-line-crossing",
+      "frameId": 6,
+      "eventCount": 0,
+      "activeRuleCount": 2,
+      "trackState": { "total": 1, "active": 1, "lost": 0, "terminated": 0 },
+      "scenarioState": { "instances": 1, "active": 1 },
+      "eventManager": { "states": 1 }
+    }
+  ]
+}

@@ -8,7 +8,10 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <iostream>
+#include <limits>
 #include <optional>
+#include <sstream>
 #include <utility>
 
 namespace analysis {
@@ -16,6 +19,7 @@ namespace analysis {
 namespace {
 
 constexpr float kLineEpsilon = 0.0005F;
+constexpr double kHomographyEpsilon = 0.000000001;
 
 std::int64_t TimestampMs(std::int64_t timestamp_ns) {
     return timestamp_ns / 1000000LL;
@@ -286,6 +290,114 @@ std::vector<SceneGeometryPoint> ParsePoints(const std::string& region) {
     return points;
 }
 
+std::vector<double> ParseNumberArrayBody(const std::string& array_body) {
+    std::vector<double> values;
+    bool in_string = false;
+    bool escaped = false;
+    std::size_t pos = 0;
+    while (pos < array_body.size()) {
+        const char ch = array_body[pos];
+        if (escaped) {
+            escaped = false;
+            ++pos;
+            continue;
+        }
+        if (ch == '\\' && in_string) {
+            escaped = true;
+            ++pos;
+            continue;
+        }
+        if (ch == '"') {
+            in_string = !in_string;
+            ++pos;
+            continue;
+        }
+        if (in_string ||
+            (std::isdigit(static_cast<unsigned char>(ch)) == 0 && ch != '-' &&
+             ch != '+' && ch != '.')) {
+            ++pos;
+            continue;
+        }
+
+        const std::size_t start = pos;
+        while (pos < array_body.size() &&
+               (std::isdigit(static_cast<unsigned char>(array_body[pos])) != 0 ||
+                array_body[pos] == '-' || array_body[pos] == '+' ||
+                array_body[pos] == '.' || array_body[pos] == 'e' ||
+                array_body[pos] == 'E')) {
+            ++pos;
+        }
+        try {
+            values.push_back(std::stod(array_body.substr(start, pos - start)));
+        } catch (...) {
+        }
+    }
+    return values;
+}
+
+std::vector<double> ParseNumberArrayField(const std::string& body, const std::string& field) {
+    const auto array = ExtractArrayField(body, field);
+    return array.has_value() ? ParseNumberArrayBody(*array) : std::vector<double>{};
+}
+
+std::vector<double> ParseNumberListString(const std::string& value) {
+    std::string array_like = value;
+    std::replace(array_like.begin(), array_like.end(), ';', ',');
+    std::replace(array_like.begin(), array_like.end(), ' ', ',');
+    return ParseNumberArrayBody(array_like);
+}
+
+double HomographyDeterminant(const std::array<double, 9>& matrix) {
+    return matrix[0] * (matrix[4] * matrix[8] - matrix[5] * matrix[7]) -
+           matrix[1] * (matrix[3] * matrix[8] - matrix[5] * matrix[6]) +
+           matrix[2] * (matrix[3] * matrix[7] - matrix[4] * matrix[6]);
+}
+
+std::optional<std::array<double, 9>> MatrixFromNumbers(const std::vector<double>& numbers,
+                                                       const std::string& source_name) {
+    if (numbers.empty()) {
+        return std::nullopt;
+    }
+    if (numbers.size() != 9) {
+        std::cerr << "[analysis][homography] invalid matrix from " << source_name
+                  << ": expected 9 numbers, got " << numbers.size() << "\n";
+        return std::nullopt;
+    }
+    std::array<double, 9> matrix{};
+    for (std::size_t i = 0; i < matrix.size(); ++i) {
+        if (!std::isfinite(numbers[i])) {
+            std::cerr << "[analysis][homography] invalid matrix from " << source_name
+                      << ": non-finite value at index " << i << "\n";
+            return std::nullopt;
+        }
+        matrix[i] = numbers[i];
+    }
+    if (std::fabs(HomographyDeterminant(matrix)) <= kHomographyEpsilon) {
+        std::cerr << "[analysis][homography] invalid matrix from " << source_name
+                  << ": determinant is near zero\n";
+        return std::nullopt;
+    }
+    return matrix;
+}
+
+std::optional<std::array<double, 9>> ParseMatrixFromHomographyObject(const std::string& body,
+                                                                     const std::string& source_name) {
+    for (const auto& field : {"imageToGround", "imageToGroundMatrix", "matrix", "homography"}) {
+        auto matrix = MatrixFromNumbers(ParseNumberArrayField(body, field), source_name + "." + field);
+        if (matrix.has_value()) {
+            return matrix;
+        }
+    }
+    return std::nullopt;
+}
+
+NormalizedPointF BBoxBottomCenter(const RectF& bbox) {
+    return NormalizedPointF{
+        std::max(0.0F, std::min(1.0F, bbox.x + bbox.width * 0.5F)),
+        std::max(0.0F, std::min(1.0F, bbox.y + bbox.height)),
+    };
+}
+
 bool DefinitionMatchesChannel(const std::string& stream_id,
                               const std::string& channel_id,
                               const std::string& definition_stream_id,
@@ -342,6 +454,217 @@ bool ContainsTrackId(const std::vector<std::uint64_t>& track_ids, std::uint64_t 
     return std::find(track_ids.begin(), track_ids.end(), track_id) != track_ids.end();
 }
 
+std::optional<HomographyConfig> ParseHomographyObject(const std::string& body,
+                                                      const std::string& source_name) {
+    HomographyConfig homography;
+    homography.calibration_id = ParseStringField(body, "id").value_or(
+        ParseStringField(body, "calibrationId").value_or(source_name));
+    homography.stream_id = ParseStringField(body, "streamId").value_or("");
+    homography.channel_id = ParseStringField(body, "channelId").value_or("");
+    homography.enabled = ParseBoolField(body, "enabled").value_or(true);
+    homography.units = ParseStringField(body, "units").value_or("ground");
+    if (!homography.enabled) {
+        return std::nullopt;
+    }
+    auto matrix = ParseMatrixFromHomographyObject(body, source_name);
+    if (!matrix.has_value()) {
+        std::cerr << "[analysis][homography] enabled calibration has no valid matrix: "
+                  << source_name << "\n";
+        return std::nullopt;
+    }
+    homography.image_to_ground = *matrix;
+    if (homography.units.empty()) {
+        homography.units = "ground";
+    }
+    return homography;
+}
+
+void AppendHomographiesFromDocument(const std::string& document,
+                                    const AnalysisContext& context,
+                                    std::vector<HomographyConfig>* homographies) {
+    if (homographies == nullptr || !MatchesRuleContext(document, context)) {
+        return;
+    }
+    for (const auto& field : {"homography", "cameraCalibration"}) {
+        const auto object = ExtractObjectField(document, field);
+        if (!object.has_value()) {
+            continue;
+        }
+        auto homography = ParseHomographyObject(*object, field);
+        if (homography.has_value()) {
+            homographies->push_back(std::move(*homography));
+        }
+    }
+    for (const auto& field : {"homographies", "cameraCalibrations"}) {
+        for (const auto& object : ExtractObjectArray(document, field)) {
+            auto homography = ParseHomographyObject(object, field);
+            if (homography.has_value()) {
+                homographies->push_back(std::move(*homography));
+            }
+        }
+    }
+}
+
+const HomographyConfig* FindHomographyForChannel(const std::string& stream_id,
+                                                 const std::string& channel_id,
+                                                 const std::vector<HomographyConfig>& homographies) {
+    const HomographyConfig* wildcard = nullptr;
+    for (const auto& homography : homographies) {
+        if (!homography.enabled) {
+            continue;
+        }
+        if (homography.stream_id.empty() && homography.channel_id.empty()) {
+            if (wildcard == nullptr) {
+                wildcard = &homography;
+            }
+            continue;
+        }
+        if (DefinitionMatchesChannel(stream_id,
+                                     channel_id,
+                                     homography.stream_id,
+                                     homography.channel_id)) {
+            return &homography;
+        }
+    }
+    return wildcard;
+}
+
+SceneGroundPoint MakeImageFallbackGroundPoint(const NormalizedPointF& foot_point) {
+    SceneGroundPoint point;
+    point.x = foot_point.x;
+    point.y = foot_point.y;
+    point.valid = false;
+    point.fallback_to_image = true;
+    point.units = "image";
+    return point;
+}
+
+SceneGroundPoint ProjectGroundPoint(const NormalizedPointF& foot_point,
+                                    const HomographyConfig* homography) {
+    if (homography == nullptr) {
+        return MakeImageFallbackGroundPoint(foot_point);
+    }
+    const auto& h = homography->image_to_ground;
+    const double x = foot_point.x;
+    const double y = foot_point.y;
+    const double denominator = h[6] * x + h[7] * y + h[8];
+    if (!std::isfinite(denominator) || std::fabs(denominator) <= kHomographyEpsilon) {
+        return MakeImageFallbackGroundPoint(foot_point);
+    }
+    const double ground_x = (h[0] * x + h[1] * y + h[2]) / denominator;
+    const double ground_y = (h[3] * x + h[4] * y + h[5]) / denominator;
+    if (!std::isfinite(ground_x) || !std::isfinite(ground_y)) {
+        return MakeImageFallbackGroundPoint(foot_point);
+    }
+    SceneGroundPoint point;
+    point.x = ground_x;
+    point.y = ground_y;
+    point.valid = true;
+    point.fallback_to_image = false;
+    point.units = homography->units.empty() ? "ground" : homography->units;
+    return point;
+}
+
+SceneGroundPoint ToSceneGroundPoint(const GroundPointF& point) {
+    SceneGroundPoint scene_point;
+    scene_point.x = point.x;
+    scene_point.y = point.y;
+    scene_point.valid = point.valid;
+    scene_point.fallback_to_image = point.fallback_to_image;
+    scene_point.units = point.units.empty() ? std::string{"image"} : point.units;
+    return scene_point;
+}
+
+GroundPointF ToGroundPointF(const SceneGroundPoint& point) {
+    GroundPointF ground_point;
+    ground_point.x = point.x;
+    ground_point.y = point.y;
+    ground_point.valid = point.valid;
+    ground_point.fallback_to_image = point.fallback_to_image;
+    ground_point.units = point.units.empty() ? std::string{"image"} : point.units;
+    return ground_point;
+}
+
+NormalizedPointF TrajectoryProjectionPoint(const TrackTrajectoryPoint& point) {
+    if (point.foot_point.x != 0.0F || point.foot_point.y != 0.0F) {
+        return point.foot_point;
+    }
+    return point.center;
+}
+
+double GroundDistance(const GroundPointF& lhs, const GroundPointF& rhs) {
+    const double dx = lhs.x - rhs.x;
+    const double dy = lhs.y - rhs.y;
+    return std::sqrt(dx * dx + dy * dy);
+}
+
+double ImageDistance(const NormalizedPointF& lhs, const NormalizedPointF& rhs) {
+    const double dx = static_cast<double>(lhs.x - rhs.x);
+    const double dy = static_cast<double>(lhs.y - rhs.y);
+    return std::sqrt(dx * dx + dy * dy);
+}
+
+std::string GroundSpeedUnits(const GroundPointF& point) {
+    return point.units.empty() ? std::string{"ground_per_second"} : point.units + "_per_second";
+}
+
+void PopulateTrajectoryGroundPoints(std::vector<TrackTrajectoryPoint>* trajectory,
+                                    const HomographyConfig* homography) {
+    if (trajectory == nullptr) {
+        return;
+    }
+    for (auto& point : *trajectory) {
+        if (point.ground_point.has_value()) {
+            continue;
+        }
+        point.ground_point = ToGroundPointF(
+            ProjectGroundPoint(TrajectoryProjectionPoint(point), homography));
+    }
+}
+
+struct SpeedSummary {
+    double value{0.0};
+    bool uses_ground_plane{false};
+    std::string units{"image_per_second"};
+    bool available{false};
+};
+
+SpeedSummary CalculateTrajectorySpeed(const std::vector<TrackTrajectoryPoint>& trajectory,
+                                      bool use_ground_plane) {
+    SpeedSummary speed;
+    if (trajectory.size() < 2) {
+        return speed;
+    }
+
+    const auto& previous = trajectory[trajectory.size() - 2];
+    const auto& current = trajectory[trajectory.size() - 1];
+    if (current.timestamp_ns <= previous.timestamp_ns) {
+        return speed;
+    }
+    const double elapsed_seconds =
+        static_cast<double>(current.timestamp_ns - previous.timestamp_ns) / 1000000000.0;
+    if (elapsed_seconds <= 0.0) {
+        return speed;
+    }
+
+    if (use_ground_plane && previous.ground_point.has_value() &&
+        current.ground_point.has_value() && previous.ground_point->valid &&
+        current.ground_point->valid && !previous.ground_point->fallback_to_image &&
+        !current.ground_point->fallback_to_image) {
+        speed.value = GroundDistance(*previous.ground_point, *current.ground_point) / elapsed_seconds;
+        speed.uses_ground_plane = true;
+        speed.units = GroundSpeedUnits(*current.ground_point);
+        speed.available = true;
+        return speed;
+    }
+
+    speed.value = ImageDistance(previous.center, current.center) / elapsed_seconds;
+    speed.uses_ground_plane = false;
+    speed.units = "image_per_second";
+    speed.available = true;
+    return speed;
+}
+
 }  // namespace
 
 SceneContextBuilder::SceneContextBuilder(SceneContextBuilderOptions options) : options_(options) {
@@ -357,8 +680,30 @@ SceneContext SceneContextBuilder::Build(const std::string& stream_id,
                                         const std::vector<SceneZoneDefinition>& zones,
                                         const std::vector<SceneLineDefinition>& lines,
                                         std::int64_t timestamp_ns) {
+    static const std::vector<HomographyConfig> kNoHomographies;
+    return BuildWithGeometry(stream_id,
+                             channel_id,
+                             track_states,
+                             zones,
+                             lines,
+                             kNoHomographies,
+                             timestamp_ns);
+}
+
+SceneContext SceneContextBuilder::BuildWithGeometry(const std::string& stream_id,
+                                                    const std::string& channel_id,
+                                                    const std::vector<TrackRuntimeState>& track_states,
+                                                    const std::vector<SceneZoneDefinition>& zones,
+                                                    const std::vector<SceneLineDefinition>& lines,
+                                                    const std::vector<HomographyConfig>& homographies,
+                                                    std::int64_t timestamp_ns) {
     const std::string resolved_channel_id = ResolveChannelId(stream_id, channel_id);
     auto& runtime_by_track = contexts_by_channel_[resolved_channel_id];
+    const HomographyConfig* homography =
+        FindHomographyForChannel(stream_id, resolved_channel_id, homographies);
+    if (homography == nullptr) {
+        homography = FindHomographyForChannel(stream_id, resolved_channel_id, options_.homographies);
+    }
 
     SceneContext context;
     context.stream_id = stream_id;
@@ -394,7 +739,32 @@ SceneContext SceneContextBuilder::Build(const std::string& stream_id,
         track_context.appearance_profile = track_state.appearance_profile;
         track_context.direction = track_state.latest_direction;
         track_context.center = track_state.latest_center;
+        track_context.foot_point =
+            (track_state.latest_foot_point.x != 0.0F || track_state.latest_foot_point.y != 0.0F)
+                ? track_state.latest_foot_point
+                : BBoxBottomCenter(track_state.latest_bbox);
+        const bool has_track_ground_point = track_state.latest_ground_point.has_value();
+        track_context.ground_point = has_track_ground_point
+                                         ? ToSceneGroundPoint(*track_state.latest_ground_point)
+                                         : ProjectGroundPoint(track_context.foot_point, homography);
+        if (!has_track_ground_point && homography != nullptr && !track_context.ground_point.valid) {
+            LogHomographyFailureOnce(*homography,
+                                     resolved_channel_id,
+                                     "projected point is not finite or denominator is near zero");
+        }
+        track_context.speed = track_state.latest_speed;
+        track_context.speed_uses_ground_plane = track_state.latest_speed_uses_ground_plane;
+        track_context.speed_units = track_state.latest_speed_units;
         track_context.bbox = track_state.latest_bbox;
+        track_context.trajectory.assign(track_state.trajectory.begin(), track_state.trajectory.end());
+        PopulateTrajectoryGroundPoints(&track_context.trajectory, homography);
+        const auto scene_speed =
+            CalculateTrajectorySpeed(track_context.trajectory, options_.use_ground_plane_for_speed);
+        if (scene_speed.available) {
+            track_context.speed = scene_speed.value;
+            track_context.speed_uses_ground_plane = scene_speed.uses_ground_plane;
+            track_context.speed_units = scene_speed.units;
+        }
 
         bool has_primary_zone_state = false;
         for (const auto& zone : zones) {
@@ -446,10 +816,12 @@ SceneContext SceneContextBuilder::Build(const std::string& stream_id,
             const bool had_previous = previous_it != runtime.previous_line_side.end();
             const float previous_side = had_previous ? previous_it->second : current_side;
             const std::string crossing_direction = CrossingDirection(previous_side, current_side);
-            const bool crossed = had_previous && std::fabs(previous_side) > kLineEpsilon &&
-                                 std::fabs(current_side) > kLineEpsilon &&
-                                 previous_side * current_side < 0.0F &&
-                                 DirectionAllowed(line.allowed_direction, crossing_direction);
+            const bool raw_crossed = had_previous && std::fabs(previous_side) > kLineEpsilon &&
+                                     std::fabs(current_side) > kLineEpsilon &&
+                                     previous_side * current_side < 0.0F;
+            const bool direction_allowed = !raw_crossed ||
+                                           DirectionAllowed(line.allowed_direction, crossing_direction);
+            const bool crossed = raw_crossed && direction_allowed;
 
             if (std::fabs(current_side) > kLineEpsilon) {
                 runtime.previous_line_side[line.line_id] = current_side;
@@ -460,10 +832,14 @@ SceneContext SceneContextBuilder::Build(const std::string& stream_id,
 
             LineCrossState line_state;
             line_state.line_id = line.line_id;
+            line_state.allowed_direction = line.allowed_direction;
             line_state.previous_side = previous_side;
             line_state.current_side = current_side;
             line_state.crossed = crossed;
             line_state.direction = crossed ? crossing_direction : "none";
+            line_state.raw_crossed = raw_crossed;
+            line_state.raw_direction = raw_crossed ? crossing_direction : "none";
+            line_state.direction_allowed = direction_allowed;
             line_state.last_cross_time_ns = runtime.last_cross_time_ns[line.line_id];
             line_state.last_cross_time_ms = TimestampMs(line_state.last_cross_time_ns);
             track_context.line_states.push_back(line_state);
@@ -486,16 +862,18 @@ SceneContext SceneContextBuilder::Build(const std::string& stream_id,
                                         const std::vector<TrackRuntimeState>& track_states,
                                         const SceneGeometryConfig& geometry_config,
                                         std::int64_t timestamp_ns) {
-    return Build(stream_id,
-                 channel_id,
-                 track_states,
-                 geometry_config.zones,
-                 geometry_config.lines,
-                 timestamp_ns);
+    return BuildWithGeometry(stream_id,
+                             channel_id,
+                             track_states,
+                             geometry_config.zones,
+                             geometry_config.lines,
+                             geometry_config.homographies,
+                             timestamp_ns);
 }
 
 void SceneContextBuilder::Reset() {
     contexts_by_channel_.clear();
+    homography_failure_log_keys_.clear();
     last_cleanup_time_ns_ = 0;
 }
 
@@ -504,6 +882,19 @@ std::string SceneContextBuilder::ResolveChannelId(const std::string& stream_id, 
         return channel_id;
     }
     return stream_id.empty() ? std::string{"default"} : stream_id;
+}
+
+void SceneContextBuilder::LogHomographyFailureOnce(const HomographyConfig& homography,
+                                                   const std::string& resolved_channel_id,
+                                                   const std::string& reason) {
+    const std::string key = resolved_channel_id + "|" + homography.calibration_id + "|" + reason;
+    if (homography_failure_log_keys_.find(key) != homography_failure_log_keys_.end()) {
+        return;
+    }
+    homography_failure_log_keys_[key] = true;
+    std::cerr << "[analysis][homography] transform fallback channel=" << resolved_channel_id
+              << " calibration=" << homography.calibration_id
+              << " reason=" << reason << "\n";
 }
 
 bool SceneContextBuilder::ShouldRunCleanup(std::int64_t timestamp_ns) const {
@@ -559,6 +950,7 @@ SceneGeometryConfig BuildSceneGeometryConfigFromRuleDocuments(const std::vector<
                                                               const AnalysisContext& context) {
     SceneGeometryConfig config;
     for (const auto& document : rule_documents) {
+        AppendHomographiesFromDocument(document, context, &config.homographies);
         const std::string rule_id = ParseStringField(document, "id").value_or("");
         if (rule_id.empty() || !ParseBoolField(document, "enabled").value_or(true)) {
             continue;
@@ -603,6 +995,27 @@ SceneContextBuilderOptions BuildSceneContextBuilderOptionsFromConfig(const app::
         std::max<std::size_t>(1, config.analysis_max_active_tracks_per_stream * 2);
     options.retained_context_ms = config.analysis_scenario_retention_ms;
     options.cleanup_interval_ms = config.analysis_cleanup_interval_ms;
+    options.use_ground_plane_for_speed = config.analysis_ground_plane_speed_enabled;
+    options.use_ground_plane_for_movement_radius =
+        config.analysis_ground_plane_movement_radius_enabled;
+    if (config.analysis_homography_enabled) {
+        HomographyConfig homography;
+        homography.calibration_id = "env";
+        homography.stream_id = config.analysis_homography_stream_id;
+        homography.channel_id = config.analysis_homography_channel_id;
+        homography.enabled = true;
+        homography.units = config.analysis_homography_units.empty()
+                               ? std::string{"ground"}
+                               : config.analysis_homography_units;
+        auto matrix = MatrixFromNumbers(ParseNumberListString(config.analysis_homography_matrix),
+                                        "MEDIA_SERVER_ANALYSIS_HOMOGRAPHY_MATRIX");
+        if (matrix.has_value()) {
+            homography.image_to_ground = *matrix;
+            options.homographies.push_back(std::move(homography));
+        } else {
+            std::cerr << "[analysis][homography] env homography ignored because matrix is invalid\n";
+        }
+    }
     return options;
 }
 

@@ -8,6 +8,7 @@
 #include <iostream>
 #include <thread>
 
+#include "analysis/event_storage.h"
 #include "app_config.h"
 #include "core/resource_guard.h"
 #include "core/session_manager.h"
@@ -79,5 +80,6 @@ int main() {
 
     webrtc_http_server.Stop();
     gst_rtsp_server.Stop();
+    analysis::StopEventStorage();
     return 0;
 }

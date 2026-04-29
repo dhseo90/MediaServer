@@ -12,6 +12,14 @@ struct NormalizedPointF {
     float y{0.0F};
 };
 
+struct GroundPointF {
+    double x{0.0};
+    double y{0.0};
+    bool valid{false};
+    bool fallback_to_image{true};
+    std::string units{"image"};
+};
+
 struct ObjectDirection {
     std::string label{"unknown"};
     float dx{0.0F};
@@ -28,8 +36,10 @@ struct TrackedObjectMetadata {
     int class_id{-1};
     std::string class_name;
     float confidence{0.0F};
+    float association_confidence{-1.0F};
     RectF bbox;
     NormalizedPointF center;
+    std::optional<GroundPointF> ground_point;
     ObjectDirection direction;
     std::string track_state;
 };

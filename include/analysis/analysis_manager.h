@@ -41,13 +41,27 @@ public:
         std::size_t dropped_packets{0};
         std::size_t sample_dropped_frames{0};
         std::size_t queue_dropped_frames{0};
+        std::size_t sample_interval_dropped_frames{0};
+        std::size_t stale_queue_dropped_frames{0};
         std::size_t decoder_errors{0};
         std::size_t pending_frames{0};
+        std::size_t peak_pending_frames{0};
+        double effective_decoded_fps{0.0};
+        double effective_sampled_fps{0.0};
+        double effective_analyzed_fps{0.0};
+        double last_queue_wait_ms{0.0};
+        double average_queue_wait_ms{0.0};
+        double max_queue_wait_ms{0.0};
         double last_analysis_ms{0.0};
         double average_analysis_ms{0.0};
         double max_analysis_ms{0.0};
+        double last_inference_ms{0.0};
+        double average_inference_ms{0.0};
+        double max_inference_ms{0.0};
         int target_fps{0};
         std::size_t max_queue_size{0};
+        int frame_sample_interval{1};
+        int max_frame_age_ms{0};
         int model_input_width{0};
         int model_input_height{0};
         int debug_detector_delay_ms{0};
@@ -109,6 +123,11 @@ public:
 
 private:
     struct AnalysisTap {
+        struct QueuedFrame {
+            RawVideoFrame frame;
+            std::chrono::steady_clock::time_point enqueued_at;
+        };
+
         std::string tap_id;
         core::StreamKey stream_key;
         AnalysisContext context;
@@ -125,7 +144,7 @@ private:
         mutable std::mutex mu;
         std::condition_variable frame_cv;
         std::condition_variable result_cv;
-        std::deque<RawVideoFrame> frame_queue;
+        std::deque<QueuedFrame> frame_queue;
         std::deque<AnalysisResult> result_history;
         std::optional<AnalysisResult> latest_result;
         std::optional<RawVideoFrame> latest_frame;
@@ -136,14 +155,28 @@ private:
         std::size_t dropped_packets{0};
         std::size_t sample_dropped_frames{0};
         std::size_t queue_dropped_frames{0};
+        std::size_t sample_interval_dropped_frames{0};
+        std::size_t stale_queue_dropped_frames{0};
         std::size_t decoder_errors{0};
+        std::size_t peak_pending_frames{0};
+        double last_queue_wait_ms{0.0};
+        double total_queue_wait_ms{0.0};
+        double max_queue_wait_ms{0.0};
+        std::size_t queue_wait_samples{0};
         double last_analysis_ms{0.0};
         double total_analysis_ms{0.0};
         double max_analysis_ms{0.0};
+        double last_inference_ms{0.0};
+        double total_inference_ms{0.0};
+        double max_inference_ms{0.0};
+        std::size_t inference_samples{0};
+        std::chrono::steady_clock::time_point attached_at{};
         std::chrono::steady_clock::time_point last_sampled_at{};
         std::chrono::steady_clock::time_point last_adaptive_tuned_at{};
         std::atomic<std::uint64_t> next_frame_id{1};
+        std::uint64_t decoded_frame_sequence{0};
         std::size_t adaptive_last_queue_dropped_frames{0};
+        std::size_t adaptive_last_stale_queue_dropped_frames{0};
         int adaptive_underloaded_streak{0};
         std::size_t adaptive_downshift_count{0};
         std::size_t adaptive_upshift_count{0};
@@ -156,7 +189,9 @@ private:
     static void HandlePacket(const std::weak_ptr<AnalysisTap>& weak_tap, const media::Packet& packet);
     static void HandleFrame(const std::weak_ptr<AnalysisTap>& weak_tap, RawVideoFrame frame);
     static void AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_tap);
-    static void UpdateAdaptiveTuningLocked(const std::shared_ptr<AnalysisTap>& tap, double elapsed_ms);
+    static void UpdateAdaptiveTuningLocked(const std::shared_ptr<AnalysisTap>& tap,
+                                           double elapsed_ms,
+                                           double queue_wait_ms);
     static TapSnapshot BuildSnapshotLocked(const std::shared_ptr<AnalysisTap>& tap);
     static void DisableAdaptiveInputSizeLocked(const std::shared_ptr<AnalysisTap>& tap);
     static void StopTapRuntime(const std::shared_ptr<AnalysisTap>& tap);

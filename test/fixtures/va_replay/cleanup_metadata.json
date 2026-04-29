@@ -1,0 +1,42 @@
+{
+  "frames": [
+    {
+      "streamId": "baseline-cleanup",
+      "channelId": "baseline-cleanup",
+      "frameId": 1,
+      "timestampMs": 1000,
+      "objects": [
+        {
+          "trackId": 41,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.9,
+          "bbox": { "x": 0.15, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.2, "y": 0.2 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-cleanup",
+      "channelId": "baseline-cleanup",
+      "frameId": 2,
+      "timestampMs": 4000,
+      "objects": []
+    },
+    {
+      "streamId": "baseline-cleanup",
+      "channelId": "baseline-cleanup",
+      "frameId": 3,
+      "timestampMs": 12000,
+      "objects": []
+    },
+    {
+      "streamId": "baseline-cleanup",
+      "channelId": "baseline-cleanup",
+      "frameId": 4,
+      "timestampMs": 14000,
+      "objects": []
+    }
+  ]
+}

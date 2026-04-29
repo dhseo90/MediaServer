@@ -1,0 +1,35 @@
+{
+  "timestampToleranceMs": 250,
+  "events": [
+    {
+      "streamId": "baseline-re-entry",
+      "channelId": "baseline-re-entry",
+      "frameId": 3,
+      "timestampMs": 3500,
+      "type": "re-entry",
+      "zoneId": "re-entry-zone",
+      "trackId": 71
+    }
+  ],
+  "frames": [
+    {
+      "streamId": "baseline-re-entry",
+      "channelId": "baseline-re-entry",
+      "frameId": 3,
+      "eventCount": 1,
+      "activeRuleCount": 1,
+      "trackState": { "total": 1, "active": 1, "lost": 0, "terminated": 0 },
+      "scenarioState": { "instances": 1, "active": 1 },
+      "eventManager": { "states": 1 }
+    },
+    {
+      "streamId": "baseline-re-entry",
+      "channelId": "baseline-re-entry",
+      "frameId": 6,
+      "eventCount": 0,
+      "activeRuleCount": 1,
+      "trackState": { "total": 1, "active": 1, "lost": 0, "terminated": 0 },
+      "eventManager": { "states": 1 }
+    }
+  ]
+}
