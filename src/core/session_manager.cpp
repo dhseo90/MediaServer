@@ -30,6 +30,9 @@ analysis::AnalysisContext BuildAnalysisContext(const media::IngressRequest& requ
     context.source_kind = media::ToString(source_spec.kind);
     context.route = request.protocol.empty() ? "*" : request.protocol;
     context.client_id = request.client_id;
+    if (const auto it = request.query.find("vaRule"); it != request.query.end()) {
+        context.va_rule_id = it->second;
+    }
     return context;
 }
 

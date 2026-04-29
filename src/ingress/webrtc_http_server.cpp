@@ -428,6 +428,18 @@ public:
         return out.str();
     }
 
+    std::string VaRulesJson() {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        std::ostringstream out;
+        out << "{\"status\":\"registry\",\"storagePath\":\"" << JsonEscape(storage_path_.string()) << "\","
+            << "\"scope\":\"저장된 vaRule은 영상 소스, 분석 profile, 이벤트 rule, scenario, geometry를 하나의 ID로 묶는다.\","
+            << "\"url\":\"?vaRule=<id>\",\"vaRules\":";
+        AppendDocumentsArray(out, va_rules_);
+        out << "}";
+        return out.str();
+    }
+
     std::string RulesJson() {
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
@@ -462,12 +474,29 @@ public:
         return FindDocumentLocked(rules_, id);
     }
 
+    std::optional<std::string> VaRuleJson(const std::string& id) {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        return FindDocumentLocked(va_rules_, id);
+    }
+
     std::vector<std::string> RuleDocuments() {
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
         std::vector<std::string> out;
         out.reserve(rules_.size());
         for (const auto& rule : rules_) {
+            out.push_back(rule.body);
+        }
+        return out;
+    }
+
+    std::vector<std::string> VaRuleDocuments() {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        std::vector<std::string> out;
+        out.reserve(va_rules_.size());
+        for (const auto& rule : va_rules_) {
             out.push_back(rule.body);
         }
         return out;
@@ -492,12 +521,56 @@ public:
         return CreateDocument(false, body, response, error_message);
     }
 
+    bool CreateVaRule(const std::string& body, std::string* response, std::string* error_message) {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        const auto prepared = PrepareVaRuleDocumentLocked("", body, error_message);
+        if (!prepared.has_value()) {
+            return false;
+        }
+        if (FindDocumentLocked(va_rules_, prepared->id).has_value()) {
+            SetRegistryError(error_message, "vaRule id already exists");
+            return false;
+        }
+        va_rules_.push_back(*prepared);
+        SaveLocked();
+        if (response != nullptr) {
+            *response = DocumentResponseJson("vaRule", *prepared);
+        }
+        return true;
+    }
+
     bool UpsertProfile(const std::string& id, const std::string& body, std::string* response, std::string* error_message) {
         return UpsertDocument(true, id, body, response, error_message);
     }
 
     bool UpsertRule(const std::string& id, const std::string& body, std::string* response, std::string* error_message) {
         return UpsertDocument(false, id, body, response, error_message);
+    }
+
+    bool UpsertVaRule(const std::string& id, const std::string& body, std::string* response, std::string* error_message) {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        const auto prepared = PrepareVaRuleDocumentLocked(id, body, error_message);
+        if (!prepared.has_value()) {
+            return false;
+        }
+        bool updated = false;
+        for (auto& item : va_rules_) {
+            if (item.id == prepared->id) {
+                item = *prepared;
+                updated = true;
+                break;
+            }
+        }
+        if (!updated) {
+            va_rules_.push_back(*prepared);
+        }
+        SaveLocked();
+        if (response != nullptr) {
+            *response = DocumentResponseJson("vaRule", *prepared, updated ? "updated" : "created");
+        }
+        return true;
     }
 
     bool DeleteProfile(const std::string& id) {
@@ -517,6 +590,16 @@ public:
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
         const bool removed = RemoveDocumentLocked(rules_, id);
+        if (removed) {
+            SaveLocked();
+        }
+        return removed;
+    }
+
+    bool DeleteVaRule(const std::string& id) {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        const bool removed = RemoveDocumentLocked(va_rules_, id);
         if (removed) {
             SaveLocked();
         }
@@ -559,6 +642,7 @@ private:
         const std::string content = buffer.str();
         LoadDocumentsLocked("profiles", content, &profiles_);
         LoadDocumentsLocked("rules", content, &rules_);
+        LoadDocumentsLocked("vaRules", content, &va_rules_);
     }
 
     static void LoadDocumentsLocked(const std::string& field,
@@ -674,6 +758,77 @@ private:
         return Document{*id, Trim(body)};
     }
 
+    std::optional<Document> PrepareVaRuleDocumentLocked(const std::string& path_id,
+                                                        const std::string& body,
+                                                        std::string* error_message) const {
+        if (!LooksLikeJsonObject(body)) {
+            SetRegistryError(error_message, "request body must be a JSON object");
+            return std::nullopt;
+        }
+        std::string id = ParseStringField(body, "id").value_or("");
+        if (id.empty()) {
+            id = path_id.empty() ? NextVaRuleIdLocked() : path_id;
+        }
+        if (!path_id.empty() && id != path_id) {
+            SetRegistryError(error_message, "path id and body id must match");
+            return std::nullopt;
+        }
+        if (id.empty() || !std::all_of(id.begin(), id.end(), [](unsigned char ch) {
+                return std::isdigit(ch) != 0;
+            })) {
+            SetRegistryError(error_message, "vaRule id must be numeric");
+            return std::nullopt;
+        }
+        const auto source = ExtractObjectField(body, "source");
+        if (!source.has_value()) {
+            SetRegistryError(error_message, "vaRule requires object field 'source'");
+            return std::nullopt;
+        }
+        const std::string source_kind = ParseStringField(*source, "kind").value_or("");
+        if (source_kind.empty()) {
+            SetRegistryError(error_message, "vaRule source.kind is required");
+            return std::nullopt;
+        }
+        if (source_kind == "file") {
+            if (!ParseStringField(*source, "file").has_value() ||
+                Trim(*ParseStringField(*source, "file")).empty()) {
+                SetRegistryError(error_message, "vaRule source.file is required for file source");
+                return std::nullopt;
+            }
+        } else if (!ParseStringField(*source, "url").has_value() ||
+                   Trim(*ParseStringField(*source, "url")).empty()) {
+            SetRegistryError(error_message, "vaRule source.url is required for non-file source");
+            return std::nullopt;
+        }
+        const auto analysis = ExtractObjectField(body, "analysis");
+        if (!analysis.has_value() || !HasNonEmptyStringArrayField(*analysis, "classes")) {
+            SetRegistryError(error_message, "vaRule analysis.classes must include at least one category");
+            return std::nullopt;
+        }
+        std::string normalized = Trim(body);
+        if (!ParseStringField(normalized, "id").has_value()) {
+            normalized.insert(normalized.find('{') + 1, "\"id\":\"" + JsonEscape(id) + "\",");
+        }
+        if (!ExtractObjectField(normalized, "match").has_value()) {
+            normalized.insert(normalized.find('{') + 1,
+                              "\"match\":{\"sourceKind\":\"*\",\"route\":\"*\",\"vaRule\":\"" +
+                                  JsonEscape(id) + "\"},");
+        }
+        return Document{id, normalized};
+    }
+
+    std::string NextVaRuleIdLocked() const {
+        std::uint64_t next_id = 1;
+        for (const auto& item : va_rules_) {
+            char* end = nullptr;
+            const unsigned long long parsed = std::strtoull(item.id.c_str(), &end, 10);
+            if (end != item.id.c_str() && *end == '\0') {
+                next_id = std::max(next_id, static_cast<std::uint64_t>(parsed) + 1);
+            }
+        }
+        return std::to_string(next_id);
+    }
+
     static std::optional<std::string> FindDocumentLocked(const std::vector<Document>& documents,
                                                          const std::string& id) {
         for (const auto& item : documents) {
@@ -723,6 +878,8 @@ private:
         AppendDocumentsArray(out, profiles_);
         out << ",\n  \"rules\": ";
         AppendDocumentsArray(out, rules_);
+        out << ",\n  \"vaRules\": ";
+        AppendDocumentsArray(out, va_rules_);
         out << "\n}\n";
     }
 
@@ -731,6 +888,7 @@ private:
     std::filesystem::path storage_path_;
     std::vector<Document> profiles_;
     std::vector<Document> rules_;
+    std::vector<Document> va_rules_;
 };
 
 AnalysisDocumentRegistry& AnalysisRegistry() {
@@ -2898,6 +3056,7 @@ va_four_scene_sample.mp4</textarea>
     function transformComponentScript(text) {
       return text
         .replaceAll('document.getElementById(', 'root.getElementById(')
+        .replaceAll('document.querySelector(', 'root.querySelector(')
         .replaceAll('document.querySelectorAll(', 'root.querySelectorAll(')
         .replaceAll("root.getElementById('themeToggleBtn').onclick = () => {", "const __themeToggleBtn = root.getElementById('themeToggleBtn'); if (__themeToggleBtn) __themeToggleBtn.onclick = () => {")
         .replaceAll("$('themeToggleBtn').onclick = () => {", "if ($('themeToggleBtn')) $('themeToggleBtn').onclick = () => {");
@@ -3069,7 +3228,7 @@ std::string BuildLabRuleEditorPageHtml() {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VA 룰 편집기</title>
+  <title>영상 분석 관리</title>
   <script>
     (() => {
       const saved = localStorage.getItem('mediaServerTheme');
@@ -3245,9 +3404,7 @@ std::string BuildLabRuleEditorPageHtml() {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
-      max-height: 280px;
-      overflow: auto;
-      padding-right: 4px;
+      overflow: visible;
     }
     .check-grid label {
       display: flex;
@@ -3287,6 +3444,228 @@ std::string BuildLabRuleEditorPageHtml() {
       grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 8px;
     }
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--soft-bg);
+    }
+    .segmented label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 9px 10px;
+      border-radius: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .segmented input { width: auto; }
+    .segmented label:has(input:checked) {
+      background: var(--field-bg);
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .segmented.view-mode {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .rule-tabs {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--soft-bg);
+    }
+    .rule-tabs button {
+      min-height: 38px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      white-space: normal;
+    }
+    .section-anchor {
+      scroll-margin-top: 18px;
+    }
+    .primary-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      padding: 6px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--soft-bg);
+    }
+    .primary-tabs button {
+      min-height: 48px;
+      border-radius: 14px;
+      color: var(--ink);
+      background: var(--secondary-bg);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+    .primary-tabs button.is-active {
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-color: transparent;
+    }
+    .workspace-panel {
+      display: grid;
+      gap: 20px;
+    }
+    .workspace-panel[hidden] {
+      display: none;
+    }
+    .source-lock {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--soft-bg);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+    .view-frame {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--soft-bg);
+    }
+    .view-frame img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: contain;
+      display: block;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: var(--canvas-bg);
+    }
+    .url-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .url-grid textarea {
+      min-height: 92px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+    .form-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .scenario-panel {
+      display: grid;
+      gap: 14px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--soft-bg);
+    }
+    .scenario-panel[hidden], .basic-rule-panel[hidden] {
+      display: none;
+    }
+    .phase-strip {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .phase-chip {
+      min-height: 38px;
+      padding: 9px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--field-bg);
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .phase-chip.is-emphasis {
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-color: transparent;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .metric-tile {
+      min-height: 64px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--field-bg);
+      display: grid;
+      gap: 3px;
+    }
+    .metric-tile strong {
+      font-size: 13px;
+    }
+    .metric-tile span {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.3;
+    }
+    .scenario-summary {
+      display: grid;
+      gap: 6px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--field-bg);
+    }
+    .scenario-summary strong {
+      font-size: 13px;
+      color: var(--ink);
+    }
+    .scenario-summary span {
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 13px;
+    }
+    .scenario-readiness {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .scenario-check {
+      min-height: 70px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--field-bg);
+      display: grid;
+      gap: 4px;
+      align-content: start;
+    }
+    .scenario-check strong {
+      color: var(--ink);
+      font-size: 12px;
+    }
+    .scenario-check span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+    .range-meta {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
     button.mini-button {
       padding: 9px 10px;
       font-size: 12px;
@@ -3317,8 +3696,6 @@ std::string BuildLabRuleEditorPageHtml() {
     .category-detail {
       font-size: 11px;
       line-height: 1.35;
-      max-height: 78px;
-      overflow: auto;
       overflow-wrap: anywhere;
     }
     .preview-panel {
@@ -3415,6 +3792,11 @@ std::string BuildLabRuleEditorPageHtml() {
       .grid, .row { grid-template-columns: 1fr; }
       .check-grid { grid-template-columns: 1fr 1fr; }
       .class-filter-row { grid-template-columns: 1fr; }
+      .phase-strip, .metric-grid, .scenario-readiness, .rule-tabs, .url-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 720px) {
+      .primary-tabs, .url-grid { grid-template-columns: 1fr; }
+      .segmented.view-mode { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -3426,9 +3808,57 @@ std::string BuildLabRuleEditorPageHtml() {
     </div>
     <section class="hero">
       <p class="standalone-nav" style="margin:0;"><a href="/lab">실험실로 돌아가기</a> · <a href="/webrtc/test">안정 테스트 페이지</a></p>
-      <h1>VA 룰 편집기</h1>
-      <p style="margin:0;">숫자를 JSON으로 직접 적지 않고, profile 성능값과 이벤트 룰을 한글 UI로 구성합니다. 룰은 “어떤 영역에서 어떤 객체를 판단할지”를 저장하는 형태입니다.</p>
+      <h1>영상 분석 관리</h1>
+      <p style="margin:0;">영상 분석 설정은 소스, profile, 이벤트, 시나리오, 영역을 하나의 숫자 ID로 묶습니다. 보기 탭에서는 라이브, 기본 VA overlay, 저장된 VA Rule 모드를 분리해서 확인합니다.</p>
     </section>
+
+    <nav class="primary-tabs" aria-label="영상 분석 관리 탭">
+      <button id="analysisSettingsTabBtn" type="button" class="is-active" data-primary-tab="settings">영상 분석 설정</button>
+      <button id="analysisViewerTabBtn" type="button" data-primary-tab="viewer">영상 분석 보기</button>
+    </nav>
+
+    <section id="settingsPanel" class="workspace-panel">
+      <section class="card">
+        <div class="pad stack">
+          <h2>영상 분석 설정 ID</h2>
+          <p class="hint">저장된 설정은 `vaRule=숫자`로 호출합니다. 이 ID가 소스와 룰을 함께 묶기 때문에 보기 탭이나 외부 클라이언트에서 다른 영상을 잘못 조합하는 일을 막습니다.</p>
+          <div class="row">
+            <label>저장된 영상 분석 설정
+              <select id="vaRuleSelect"></select>
+            </label>
+            <label>설정 ID
+              <input id="vaRuleId" inputmode="numeric" pattern="[0-9]*" placeholder="비우면 다음 번호 자동 발급" />
+            </label>
+          </div>
+          <label>설정 이름
+            <input id="vaRuleName" value="샘플 파일 분석 설정" />
+          </label>
+          <div class="row">
+            <label>분석할 영상 종류
+              <select id="vaRuleSourceKind">
+                <option value="file" selected>서버 파일</option>
+                <option value="rtsp">RTSP URL</option>
+                <option value="http">HTTP/HLS URL</option>
+                <option value="webrtc">WebRTC Source ID</option>
+              </select>
+            </label>
+            <label id="vaRuleFileField">분석할 영상 파일
+              <select id="vaRuleFileSelect">
+                <option value="sample_h264.mp4" selected>sample_h264.mp4</option>
+              </select>
+            </label>
+            <label id="vaRuleUrlField" hidden>분석할 영상 URL 또는 Source ID
+              <input id="vaRuleUrlInput" placeholder="rtsp://camera.local/stream 또는 published-source-id" />
+            </label>
+          </div>
+          <p id="vaRuleSourceSummary" class="source-lock">현재 설정 소스: file=sample_h264.mp4</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+            <button id="newVaRuleBtn" type="button" class="secondary">새 설정</button>
+            <button id="saveVaRuleBtn" type="button">영상 분석 설정 저장</button>
+            <button id="deleteVaRuleBtn" type="button" class="danger">설정 삭제</button>
+          </div>
+        </div>
+      </section>
 
     <section class="grid">
       <div class="card">
@@ -3516,9 +3946,21 @@ std::string BuildLabRuleEditorPageHtml() {
         <div class="pad stack">
           <h2>2. 이벤트 Rule</h2>
           <p class="hint">영역과 객체 카테고리를 지정합니다. 저장된 룰은 `va=1` overlay와 events API에 바로 적용됩니다. 진입/이탈/라인 통과는 tracker가 붙인 객체 ID 기준으로 판정합니다. 기본 tracker 대상은 사람/차량 카테고리입니다.</p>
-          <label>저장된 Rule
+          <div class="rule-tabs" aria-label="Rule 편집 섹션">
+            <button type="button" class="secondary" data-rule-section-target="ruleBasicSection">기본 설정</button>
+            <button type="button" class="secondary" data-rule-section-target="rulePreviewSection">영상/영역</button>
+            <button type="button" class="secondary" data-rule-section-target="ruleScenarioSection">시나리오</button>
+            <button type="button" class="secondary" data-rule-section-target="ruleObjectsSection">객체/조건</button>
+            <button type="button" class="secondary" data-rule-section-target="ruleOutputSection">출력/저장</button>
+          </div>
+          <label id="ruleBasicSection" class="section-anchor">저장된 Rule
             <select id="ruleSelect"></select>
           </label>
+          <label>Rule 구성 방식</label>
+          <div class="segmented" role="group" aria-label="Rule 구성 방식">
+            <label><input type="radio" name="ruleKind" value="basic" checked /> 기본 이벤트</label>
+            <label><input type="radio" name="ruleKind" value="scenario" /> 시나리오</label>
+          </div>
           <div class="row">
             <label>Rule ID
               <input id="ruleId" value="file-person-vehicle-area" />
@@ -3553,7 +3995,7 @@ std::string BuildLabRuleEditorPageHtml() {
             <label>사용할 Profile
               <select id="ruleProfileId"></select>
             </label>
-            <label>이벤트 타입
+            <label class="basic-rule-panel">이벤트 타입
               <select id="ruleEventType">
                 <option value="presence" selected>영역 내 객체 감지(권장)</option>
                 <option value="enter">영역 진입</option>
@@ -3561,7 +4003,7 @@ std::string BuildLabRuleEditorPageHtml() {
                 <option value="line-crossing">라인 통과</option>
               </select>
             </label>
-            <label>라인 통과 방향
+            <label class="basic-rule-panel">라인 통과 방향
               <select id="ruleLineDirection">
                 <option value="any" selected>양방향</option>
                 <option value="forward">정방향(-측→+측)</option>
@@ -3569,7 +4011,106 @@ std::string BuildLabRuleEditorPageHtml() {
               </select>
             </label>
           </div>
-          <label>분석할 객체 카테고리</label>
+          <div id="rulePreviewSection" class="preview-panel section-anchor">
+            <h2 style="font-size:18px;">영상 프레임 보기</h2>
+            <p class="hint">아래 영역 캔버스의 배경으로 선택한 영상의 최신 프레임을 표시합니다. 기본값은 위에서 묶은 영상 분석 설정 소스입니다.</p>
+            <div class="row">
+              <label>영상 소스
+                <select id="previewSourceMode">
+                  <option value="vaRule" selected>현재 영상 분석 설정 소스</option>
+                  <option value="file">영상 파일 선택</option>
+                  <option value="main">메인 /lab 선택 소스</option>
+                </select>
+              </label>
+              <label>영상 파일
+                <select id="previewFileSelect">
+                  <option value="sample_h264.mp4" selected>sample_h264.mp4</option>
+                </select>
+              </label>
+            </div>
+            <label style="display:flex;align-items:center;gap:8px;">
+              <input id="previewOverlayInput" type="checkbox" checked />
+              객체 검출 오버레이 보기
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;">
+              <input id="autoPreviewInput" type="checkbox" />
+              영역/Zone 그리기 중 영상 프레임 보기
+            </label>
+            <button id="stopPreviewBtn" class="secondary">영상 보기 시작</button>
+            <p id="previewStatus" class="hint">꺼져 있습니다. 필요할 때만 켜서 영역을 맞추세요.</p>
+          </div>
+          <div id="ruleScenarioSection" class="section-anchor"></div>
+          <div id="scenarioPanel" class="scenario-panel" hidden>
+            <div class="row">
+              <label>시나리오 템플릿
+                <select id="scenarioType">
+                  <option value="intrusion-dwell" selected>Intrusion Dwell · 제한구역 체류</option>
+                  <option value="loitering" disabled>Loitering · 후속</option>
+                  <option value="zone-occupancy" disabled>Zone Occupancy · 후속</option>
+                  <option value="line-dwell" disabled>Line Dwell · 후속</option>
+                </select>
+              </label>
+              <label>제한구역 이름(선택)
+                <input id="scenarioZoneIds" placeholder="예: 로비, 금지구역A · 비우면 현재 영역 전체" />
+              </label>
+            </div>
+            <p class="hint">제한구역 이름은 여러 구역을 구분할 때 쓰는 라벨입니다. 비워 두면 캔버스에 그린 현재 영역 전체를 하나의 제한구역으로 사용합니다.</p>
+            <div class="row">
+              <label>후보 판단 시간(ms): <span id="scenarioCandidateMsValue">2,000 ms</span>
+                <input id="scenarioCandidateMs" type="range" min="0" max="30000" step="500" value="2000" />
+                <span class="range-meta">범위 0~30,000 ms · 기본 2,000 ms · 500 ms 단위</span>
+              </label>
+              <label>체류 확정 시간(ms): <span id="scenarioDwellMsValue">10,000 ms</span>
+                <input id="scenarioDwellMs" type="range" min="1000" max="120000" step="1000" value="10000" />
+                <span class="range-meta">범위 1,000~120,000 ms · 기본 10,000 ms · 1,000 ms 단위</span>
+              </label>
+            </div>
+            <div class="row">
+              <label>재알림 대기 시간(ms): <span id="scenarioCooldownMsValue">5,000 ms</span>
+                <input id="scenarioCooldownMs" type="range" min="0" max="60000" step="1000" value="5000" />
+                <span class="range-meta">범위 0~60,000 ms · 기본 5,000 ms · 1,000 ms 단위</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;">
+                <input id="scenarioStableOnly" type="checkbox" />
+                불안정 track은 후보에서 제외
+              </label>
+            </div>
+            <div class="scenario-summary" aria-live="polite">
+              <strong>판단 요약</strong>
+              <span id="scenarioSummaryText">사람 track이 제한구역 안에 들어오면 후보가 되고, 설정한 시간 이상 머물면 체류 이벤트를 1회 발생시킵니다.</span>
+            </div>
+            <div>
+              <label style="margin-bottom:8px;">저장 전 점검</label>
+              <div class="scenario-readiness">
+                <div class="scenario-check"><strong>제한구역</strong><span id="scenarioReadinessZone">현재 그린 제한구역</span></div>
+                <div class="scenario-check"><strong>대상 객체</strong><span id="scenarioReadinessTarget">사람, 차량</span></div>
+                <div class="scenario-check"><strong>시간 조건</strong><span id="scenarioReadinessTiming">2,000 ms / 10,000 ms / 5,000 ms</span></div>
+                <div class="scenario-check"><strong>발생 이벤트</strong><span id="scenarioReadinessEmit">intrusion-dwell · 같은 track 1회</span></div>
+                <div class="scenario-check"><strong>Track 조건</strong><span id="scenarioReadinessHealth">불안정 track 허용</span></div>
+                <div class="scenario-check"><strong>영역 형태</strong><span id="scenarioReadinessGeometry">polygon 4개 점</span></div>
+              </div>
+            </div>
+            <div>
+              <label style="margin-bottom:8px;">상태 흐름 미리보기</label>
+              <div class="phase-strip">
+                <div class="phase-chip">대기</div>
+                <div class="phase-chip">진입 후보</div>
+                <div class="phase-chip">관찰 중</div>
+                <div class="phase-chip is-emphasis">체류 확정 1회 알림</div>
+                <div class="phase-chip">종료</div>
+              </div>
+            </div>
+            <div class="metric-grid" aria-label="Scenario debug fields">
+              <div class="metric-tile"><strong>처음 보인 시각</strong><span>track이 처음 감지된 시간</span></div>
+              <div class="metric-tile"><strong>체류 시간</strong><span>제한구역 안에 머문 시간</span></div>
+              <div class="metric-tile"><strong>구역 이동</strong><span>이전 구역 → 현재 구역</span></div>
+              <div class="metric-tile"><strong>라인 방향</strong><span>선을 넘은 방향</span></div>
+              <div class="metric-tile"><strong>중복 억제</strong><span>같은 track은 확정 알림 1회</span></div>
+              <div class="metric-tile"><strong>Track 안정성</strong><span>ID 흔들림 진단값</span></div>
+            </div>
+            <p class="hint">이 UI는 시나리오 rule payload를 저장하고, 현재 polygon을 제한구역 후보로 사용합니다. 실제 engine 활성화는 서버의 scenario 설정값과 함께 동작합니다.</p>
+          </div>
+          <label id="ruleObjectsSection" class="section-anchor">분석할 객체 카테고리</label>
           <div class="class-tools">
             <p class="hint">Rule은 기존 객체 카테고리 단위로 선택합니다. 세부 COCO 객체명은 JSON/API에서 직접 지정할 수 있습니다.</p>
             <div class="pill-grid">
@@ -3587,22 +4128,12 @@ std::string BuildLabRuleEditorPageHtml() {
               <input id="ruleMinDurationMs" type="number" min="0" value="0" />
             </label>
           </div>
-          <div class="preview-panel">
-            <h2 style="font-size:18px;">영역 배경 영상</h2>
-            <p class="hint">메인 `/lab` 상단에서 선택한 소스를 그대로 사용해 캔버스 배경 프레임을 표시합니다. 룰 편집 안에서는 별도 파일을 다시 고르지 않습니다.</p>
-            <label style="display:flex;align-items:center;gap:8px;">
-              <input id="autoPreviewInput" type="checkbox" />
-              룰 설정 중 메인 영상 프레임 보기
-            </label>
-            <button id="stopPreviewBtn" class="secondary">영상 보기 중지</button>
-            <p id="previewStatus" class="hint">꺼져 있습니다. 필요할 때만 켜서 영역을 맞추세요.</p>
-          </div>
           <label id="geometryLabel">이벤트 판단 영역</label>
           <div class="canvas-wrap">
             <canvas id="regionCanvas" width="960" height="540"></canvas>
           </div>
           <p id="geometryHint" class="hint">캔버스를 클릭해 다각형 꼭짓점을 추가합니다. 3개 이상이면 영역으로 저장됩니다. 최대 12개까지 지정할 수 있습니다. 기존 점 근처를 드래그하면 새 점을 만들지 않고 점 위치를 이동합니다.</p>
-          <div class="card" style="box-shadow:none;background:rgba(255,255,255,0.04);">
+          <div id="ruleOutputSection" class="card section-anchor" style="box-shadow:none;background:rgba(255,255,255,0.04);">
             <div class="pad stack" style="padding:16px;">
               <h2 style="font-size:18px;">이벤트 발생 시 동작</h2>
               <p class="hint">저장된 룰은 va=1 overlay와 events API에서 바로 판정됩니다. 깜빡임 강조와 POST 전송 워커가 적용됩니다.</p>
@@ -3646,6 +4177,12 @@ std::string BuildLabRuleEditorPageHtml() {
             <textarea id="ruleJsonPreview" spellcheck="false"></textarea>
           </div>
         </div>
+        <div class="card">
+          <div class="pad stack">
+            <h2>생성되는 영상 분석 설정 JSON</h2>
+            <textarea id="vaRuleJsonPreview" spellcheck="false"></textarea>
+          </div>
+        </div>
       </section>
 
       <section class="card">
@@ -3655,6 +4192,76 @@ std::string BuildLabRuleEditorPageHtml() {
         </div>
       </section>
     </details>
+    </section>
+
+    <section id="viewerPanel" class="workspace-panel" hidden>
+      <div class="card">
+        <div class="pad stack">
+          <h2>영상 분석 보기</h2>
+          <p class="hint">보기 탭은 실제 영상 확인용입니다. Live Streaming은 원본, VA Overlay는 `va=1`, VA Rule은 `vaRule=숫자`만 사용합니다.</p>
+          <label>보기 모드</label>
+          <div class="segmented view-mode" role="group" aria-label="보기 모드">
+            <label><input type="radio" name="viewMode" value="live" checked /> Live Streaming</label>
+            <label><input type="radio" name="viewMode" value="overlay" /> 영상 + VA Overlay</label>
+            <label><input type="radio" name="viewMode" value="rule" /> 영상 + VA Rule</label>
+          </div>
+          <div class="row" id="viewDirectSourceFields">
+            <label>보기 영상 종류
+              <select id="viewSourceKind">
+                <option value="file" selected>서버 파일</option>
+                <option value="rtsp">RTSP URL</option>
+                <option value="http">HTTP/HLS URL</option>
+                <option value="webrtc">WebRTC Source ID</option>
+              </select>
+            </label>
+            <label id="viewFileField">보기 영상 파일
+              <select id="viewFileSelect">
+                <option value="sample_h264.mp4" selected>sample_h264.mp4</option>
+              </select>
+            </label>
+            <label id="viewUrlField" hidden>보기 영상 URL 또는 Source ID
+              <input id="viewUrlInput" placeholder="rtsp://camera.local/stream 또는 published-source-id" />
+            </label>
+          </div>
+          <div id="viewRuleFields" class="stack" hidden>
+            <label>사용할 영상 분석 설정 ID
+              <select id="viewVaRuleSelect"></select>
+            </label>
+            <p id="viewRuleSourceSummary" class="source-lock">저장된 설정을 선택하면 연결된 영상 소스가 표시됩니다.</p>
+          </div>
+          <p id="viewBindingSummary" class="source-lock">Live Streaming · file=sample_h264.mp4</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <button id="startViewPreviewBtn" type="button">보기 시작</button>
+            <button id="stopViewPreviewBtn" type="button" class="secondary">보기 중지</button>
+          </div>
+          <div class="view-frame">
+            <img id="viewPreviewImage" alt="영상 분석 보기 프레임" />
+            <p id="viewPreviewStatus" class="hint">대기 중입니다.</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="pad stack">
+          <h2>요청 URL</h2>
+          <p class="hint">외부 클라이언트는 아래처럼 가볍게 요청합니다. 저장 설정 모드에서는 URL에 `vaRule`만 두고 `file/url/source` override를 붙이지 않습니다.</p>
+          <div class="url-grid">
+            <label>WebRTC simple signaling
+              <textarea id="viewWebRtcUrl" readonly spellcheck="false"></textarea>
+            </label>
+            <label>WHEP
+              <textarea id="viewWhepUrl" readonly spellcheck="false"></textarea>
+            </label>
+            <label>RTSP/VLC
+              <textarea id="viewRtspUrl" readonly spellcheck="false"></textarea>
+            </label>
+            <label>분석 Tap Preview
+              <textarea id="viewTapUrl" readonly spellcheck="false"></textarea>
+            </label>
+          </div>
+          <p class="form-note">예: 기본 overlay는 `?file=sample_h264.mp4&va=1`, 저장 설정은 `?vaRule=1` 형태입니다.</p>
+        </div>
+      </div>
+    </section>
   </main>
 
   <dialog id="validationDialog" class="validation-dialog">
@@ -3680,11 +4287,15 @@ std::string BuildLabRuleEditorPageHtml() {
     let builtInProfiles = [];
     let profiles = [];
     let rules = [];
+    let vaRules = [];
     let previewTapId = '';
     let previewTimer = null;
     let previewImage = null;
     let previewFailureCount = 0;
     let previewSourceLabel = '';
+    let viewTapId = '';
+    let viewTimer = null;
+    let viewFailureCount = 0;
     let regionPoints = [
       { x: 0.20, y: 0.22 },
       { x: 0.80, y: 0.22 },
@@ -3715,6 +4326,112 @@ std::string BuildLabRuleEditorPageHtml() {
       if (button) button.textContent = active ? '영상 보기 중지' : '영상 보기 시작';
     }
 
+    function previewOverlayEnabled() {
+      return $('previewOverlayInput')?.checked !== false;
+    }
+
+    function normalizedSourceKind(kind) {
+      const value = String(kind || 'file').toLowerCase();
+      if (['file', 'rtsp', 'http', 'hls', 'webrtc'].includes(value)) return value;
+      return 'file';
+    }
+
+    function sourceJsonFromControls(prefix) {
+      const kind = normalizedSourceKind($(prefix + 'SourceKind')?.value || 'file');
+      if (kind === 'file') {
+        return {
+          kind: 'file',
+          file: $(prefix + 'FileSelect')?.value || 'sample_h264.mp4'
+        };
+      }
+      const url = String($(prefix + 'UrlInput')?.value || '').trim();
+      return { kind, url };
+    }
+
+    function sourceLabel(source) {
+      const kind = normalizedSourceKind(source?.kind || 'file');
+      if (kind === 'file') return `file=${source?.file || 'sample_h264.mp4'}`;
+      if (kind === 'webrtc') return `webrtc source=${source?.url || '(입력 필요)'}`;
+      return `${kind}=${source?.url || '(입력 필요)'}`;
+    }
+
+    function paramsFromSourceJson(source) {
+      const params = new URLSearchParams();
+      const kind = normalizedSourceKind(source?.kind || 'file');
+      if (kind === 'file') {
+        params.set('file', source?.file || 'sample_h264.mp4');
+        return params;
+      }
+      params.set('source', kind);
+      params.set('url', source?.url || '');
+      return params;
+    }
+
+    function applyBasicOverlayParams(params) {
+      params.set('va', '1');
+      params.set('drawLabels', '1');
+      params.set('trackIds', '1');
+      params.set('trackTrails', '1');
+      params.set('labelLang', 'ko');
+      return params;
+    }
+
+    function currentVaRuleSourceJson() {
+      return sourceJsonFromControls('vaRule');
+    }
+
+    function currentVaRuleId() {
+      return String($('vaRuleId')?.value || '').trim();
+    }
+
+    function selectedViewMode() {
+      const selected = document.querySelector('input[name="viewMode"]:checked');
+      return selected ? selected.value : 'live';
+    }
+
+    function selectedViewVaRule() {
+      const id = $('viewVaRuleSelect')?.value || $('vaRuleSelect')?.value.replace(/^custom:/, '') || '';
+      return vaRules.find((item) => String(item.id) === String(id)) || null;
+    }
+
+    function updateVaRuleSourceUi() {
+      const source = currentVaRuleSourceJson();
+      const fileField = $('vaRuleFileField');
+      const urlField = $('vaRuleUrlField');
+      if (fileField) fileField.hidden = source.kind !== 'file';
+      if (urlField) urlField.hidden = source.kind === 'file';
+      if ($('vaRuleSourceSummary')) {
+        $('vaRuleSourceSummary').textContent = `현재 설정 소스: ${sourceLabel(source)}`;
+      }
+      if ($('previewSourceMode')?.value === 'vaRule' && (previewTapId || $('autoPreviewInput')?.checked)) {
+        startRulePreview().catch((error) => {
+          setRulePreviewUi(false);
+          previewStatus(`영상 프레임 보기 실패: ${error.message}`);
+        });
+      }
+    }
+
+    function updatePreviewSourceUi() {
+      const mode = $('previewSourceMode')?.value || 'file';
+      const fileSelect = $('previewFileSelect');
+      if (fileSelect) fileSelect.disabled = mode !== 'file';
+    }
+
+    function applyPreviewAnalysisParams(params) {
+      if (previewOverlayEnabled()) {
+        applyBasicOverlayParams(params);
+      } else {
+        params.delete('va');
+        params.delete('analysis');
+        params.delete('overlay');
+        params.set('detector', 'dummy');
+      }
+      params.set('fps', '4');
+      params.set('maxQueue', '1');
+      params.set('adaptive', '1');
+      return params;
+    }
+
     async function requestJson(url, options = {}) {
       const response = await fetch(url, options);
       const text = await response.text();
@@ -3738,6 +4455,11 @@ std::string BuildLabRuleEditorPageHtml() {
       const value = Number($(id).value || fallback);
       if (!Number.isFinite(value)) return fallback;
       return Math.max(min, Math.min(max, Math.round(value)));
+    }
+
+    function msLabel(value) {
+      const number = Number(value || 0);
+      return `${Math.round(number).toLocaleString('ko-KR')} ms`;
     }
 
     function normalizeTrackingToken(value) {
@@ -3787,7 +4509,53 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     function isLineRule() {
+      if (isScenarioRule()) return false;
       return $('ruleEventType').value === 'line-crossing';
+    }
+
+    function isScenarioRule() {
+      const selected = document.querySelector('input[name="ruleKind"]:checked');
+      return selected && selected.value === 'scenario';
+    }
+
+    function setRuleKind(kind) {
+      const normalized = kind === 'scenario' ? 'scenario' : 'basic';
+      document.querySelectorAll('input[name="ruleKind"]').forEach((el) => {
+        el.checked = el.value === normalized;
+      });
+      if (normalized === 'scenario' && isLineRule()) {
+        $('ruleEventType').value = 'presence';
+      }
+    }
+
+    function splitCsvTokens(value) {
+      return String(value || '')
+        .split(/[;,]/)
+        .map((token) => token.trim())
+        .filter(Boolean);
+    }
+
+    function scenarioJson() {
+      const candidateTimeMs = clampedIntValue('scenarioCandidateMs', 2000, 0, 3600000);
+      const dwellTimeMs = clampedIntValue('scenarioDwellMs', 10000, 0, 86400000);
+      const cooldownMs = clampedIntValue('scenarioCooldownMs', 5000, 0, 86400000);
+      return {
+        type: $('scenarioType').value || 'intrusion-dwell',
+        enabled: true,
+        candidateTimeMs,
+        dwellTimeMs,
+        cooldownMs,
+        targetClasses: selectedClasses(),
+        restrictedZoneIds: splitCsvTokens($('scenarioZoneIds').value),
+        trackHealth: {
+          requireStableTrack: $('scenarioStableOnly').checked
+        },
+        lifecycle: {
+          emit: 'confirmed-once',
+          duplicateKey: 'stream/channel/scenario/zone/track',
+          endWhen: ['zone-exit', 'track-lost-or-terminated']
+        }
+      };
     }
 
     function lineDirectionValue() {
@@ -3878,13 +4646,13 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function eventPayloadExampleJson(region) {
       const classes = selectedClasses();
-      return {
+      const payload = {
         schema: 'media-server.va.event.v1',
         eventId: 'evt_20260425_000001',
         timestamp: '2026-04-25T00:00:00.000Z',
         rule: {
           id: $('ruleId').value.trim() || 'file-person-vehicle-area',
-          type: $('ruleEventType').value
+          type: isScenarioRule() ? 'intrusion-dwell' : $('ruleEventType').value
         },
         source: {
           kind: $('ruleSourceKind').value,
@@ -3906,11 +4674,22 @@ std::string BuildLabRuleEditorPageHtml() {
           highlight: eventActionsJson().highlight
         }
       };
+      if (isScenarioRule()) {
+        payload.scenario = {
+          phase: 'Confirmed',
+          lifecycle: 'emit-once',
+          candidateTimeMs: clampedIntValue('scenarioCandidateMs', 2000, 0, 3600000),
+          dwellTimeMs: clampedIntValue('scenarioDwellMs', 10000, 0, 86400000),
+          trackHealth: $('scenarioStableOnly').checked ? 'stable-only' : 'allow-unstable'
+        };
+      }
+      return payload;
     }
 
     function ruleJson() {
       normalizeGeometryForMode();
-      const lineMode = isLineRule();
+      const scenarioMode = isScenarioRule();
+      const lineMode = !scenarioMode && isLineRule();
       const points = regionPoints.map((point) => ({
         x: Number(point.x.toFixed(4)),
         y: Number(point.y.toFixed(4))
@@ -3922,7 +4701,8 @@ std::string BuildLabRuleEditorPageHtml() {
       if (lineMode) {
         region.direction = lineDirectionValue();
       }
-      return {
+      const scenario = scenarioMode ? scenarioJson() : null;
+      const payload = {
         id: $('ruleId').value.trim() || 'file-person-vehicle-area',
         enabled: $('ruleEnabled').value === 'true',
         match: {
@@ -3934,7 +4714,7 @@ std::string BuildLabRuleEditorPageHtml() {
           classes: selectedClasses()
         },
         event: {
-          type: $('ruleEventType').value,
+          type: scenarioMode ? scenario.type : $('ruleEventType').value,
           region,
           minConfidence: percentValue('ruleConfidence'),
           minDurationMs: Number($('ruleMinDurationMs').value || 0)
@@ -3946,6 +4726,37 @@ std::string BuildLabRuleEditorPageHtml() {
         },
         eventActions: eventActionsJson()
       };
+      if (scenarioMode) {
+        payload.ruleKind = 'scenario';
+        payload.scenario = scenario;
+      } else {
+        payload.ruleKind = 'basic';
+      }
+      return payload;
+    }
+
+    function vaRuleJson() {
+      const payload = ruleJson();
+      const id = currentVaRuleId();
+      if (id) {
+        payload.id = id;
+        payload.match = {
+          sourceKind: '*',
+          route: '*',
+          vaRule: id
+        };
+      } else {
+        delete payload.id;
+        delete payload.match;
+      }
+      payload.name = $('vaRuleName')?.value.trim() || (id ? `영상 분석 설정 ${id}` : '새 영상 분석 설정');
+      payload.source = currentVaRuleSourceJson();
+      payload.binding = {
+        urlMode: id ? `vaRule=${id}` : 'vaRule=<auto>',
+        sourceLocked: true,
+        sourceOverrideAllowed: false
+      };
+      return payload;
     }
 
     function updateRangeLabels() {
@@ -3954,26 +4765,80 @@ std::string BuildLabRuleEditorPageHtml() {
       $('profileConfidenceValue').textContent = `${$('profileConfidence').value}%`;
       $('profileNmsValue').textContent = `${$('profileNms').value}%`;
       $('ruleConfidenceValue').textContent = `${$('ruleConfidence').value}%`;
+      const candidateTimeMs = clampedIntValue('scenarioCandidateMs', 2000, 0, 3600000);
+      const dwellTimeMs = clampedIntValue('scenarioDwellMs', 10000, 0, 86400000);
+      const cooldownMs = clampedIntValue('scenarioCooldownMs', 5000, 0, 86400000);
+      if ($('scenarioCandidateMsValue')) $('scenarioCandidateMsValue').textContent = msLabel(candidateTimeMs);
+      if ($('scenarioDwellMsValue')) $('scenarioDwellMsValue').textContent = msLabel(dwellTimeMs);
+      if ($('scenarioCooldownMsValue')) $('scenarioCooldownMsValue').textContent = msLabel(cooldownMs);
+      if ($('scenarioSummaryText')) {
+        const zones = splitCsvTokens($('scenarioZoneIds').value);
+        const zoneLabel = zones.length > 0 ? zones.join(', ') : '현재 그린 제한구역';
+        const stability = $('scenarioStableOnly').checked ? '안정적인 track만' : '감지된 track';
+        $('scenarioSummaryText').textContent =
+          `${stability}이 ${zoneLabel} 안에 들어오면 ${msLabel(candidateTimeMs)} 뒤 후보로 보고, ${msLabel(dwellTimeMs)} 이상 머물면 intrusion-dwell 이벤트를 1회 발생시킵니다. 같은 track은 ${msLabel(cooldownMs)} 동안 중복 알림을 억제합니다.`;
+      }
+      const zones = splitCsvTokens($('scenarioZoneIds').value);
+      const zoneLabel = zones.length > 0 ? zones.join(', ') : '현재 그린 제한구역';
+      const classes = selectedClasses();
+      const classLabel = classes.length > 0 ? classes.join(', ') : '선택 필요';
+      if ($('scenarioReadinessZone')) $('scenarioReadinessZone').textContent = zoneLabel;
+      if ($('scenarioReadinessTarget')) $('scenarioReadinessTarget').textContent = classLabel;
+      if ($('scenarioReadinessTiming')) {
+        $('scenarioReadinessTiming').textContent =
+          `후보 ${msLabel(candidateTimeMs)} · 확정 ${msLabel(dwellTimeMs)} · 재알림 ${msLabel(cooldownMs)}`;
+      }
+      if ($('scenarioReadinessEmit')) {
+        $('scenarioReadinessEmit').textContent = 'intrusion-dwell · 같은 track/구역 1회';
+      }
+      if ($('scenarioReadinessHealth')) {
+        $('scenarioReadinessHealth').textContent = $('scenarioStableOnly').checked
+          ? '안정적인 track만 후보로 판단'
+          : '불안정 track도 후보로 허용';
+      }
+      if ($('scenarioReadinessGeometry')) {
+        $('scenarioReadinessGeometry').textContent = `polygon ${regionPoints.length}개 점`;
+      }
     }
 
     function updateGeometryText() {
+      const scenarioMode = isScenarioRule();
       const lineMode = isLineRule();
-      $('geometryLabel').textContent = lineMode ? '이벤트 판단 선' : '이벤트 판단 영역';
-      $('clearRegionBtn').textContent = lineMode ? '선 지우기' : '영역 지우기';
+      $('geometryLabel').textContent = lineMode ? '이벤트 판단 선' : (scenarioMode ? '시나리오 restricted zone' : '이벤트 판단 영역');
+      $('clearRegionBtn').textContent = lineMode ? '선 지우기' : (scenarioMode ? 'Zone 지우기' : '영역 지우기');
       $('ruleLineDirection').disabled = !lineMode;
       $('geometryHint').textContent = lineMode
         ? `라인 통과 룰은 선분의 시작/끝 2개 점만 사용합니다. 방향은 ${lineDirectionLabel()}으로 저장합니다. 기존 점 근처를 드래그하면 점 위치를 이동합니다.`
-        : `캔버스를 클릭해 다각형 꼭짓점을 추가합니다. 3개 이상이면 영역으로 저장됩니다. 최대 ${polygonMaxPoints}개까지 지정할 수 있습니다. 기존 점 근처를 드래그하면 새 점을 만들지 않고 점 위치를 이동합니다.`;
+        : (scenarioMode
+          ? `Intrusion Dwell은 현재 polygon을 제한구역 후보로 저장합니다. 3개 이상이면 구역으로 저장되며, 같은 track이 설정 시간 이상 머물면 체류 확정 후보가 됩니다.`
+          : `캔버스를 클릭해 다각형 꼭짓점을 추가합니다. 3개 이상이면 영역으로 저장됩니다. 최대 ${polygonMaxPoints}개까지 지정할 수 있습니다. 기존 점 근처를 드래그하면 새 점을 만들지 않고 점 위치를 이동합니다.`);
+    }
+
+    function updateRuleModeUi() {
+      const scenarioMode = isScenarioRule();
+      const panel = $('scenarioPanel');
+      if (panel) panel.hidden = !scenarioMode;
+      document.querySelectorAll('.basic-rule-panel').forEach((el) => {
+        el.hidden = scenarioMode;
+      });
+      if (scenarioMode && regionPoints.length < 3) {
+        regionPoints = defaultPolygonPoints();
+      }
     }
 
     function updatePreviews() {
       normalizeGeometryForMode();
+      updateRuleModeUi();
+      updatePreviewSourceUi();
       updateRangeLabels();
       updateGeometryText();
       filterClassChecks();
       $('profileJsonPreview').value = JSON.stringify(profileJson(), null, 2);
       const currentRule = ruleJson();
       $('ruleJsonPreview').value = JSON.stringify(currentRule, null, 2);
+      if ($('vaRuleJsonPreview')) {
+        $('vaRuleJsonPreview').value = JSON.stringify(vaRuleJson(), null, 2);
+      }
       $('eventPayloadPreview').value = JSON.stringify(eventPayloadExampleJson(currentRule.event.region), null, 2);
       drawRegion();
     }
@@ -4005,7 +4870,38 @@ std::string BuildLabRuleEditorPageHtml() {
     // Rule 저장 payload에 분석 대상 카테고리가 최소 1개 있는지 확인한다.
     function validateRulePayload(payload) {
       const classes = Array.isArray(payload?.analysis?.classes) ? payload.analysis.classes : [];
-      return classes.length > 0 ? '' : '분석할 객체 카테고리를 1개 이상 선택하세요.';
+      if (classes.length === 0) {
+        return '분석할 객체 카테고리를 1개 이상 선택하세요.';
+      }
+      if (payload?.ruleKind === 'scenario' || payload?.scenario) {
+        const scenario = payload.scenario || {};
+        if (scenario.type !== 'intrusion-dwell') {
+          return '현재 UI에서 저장 가능한 시나리오는 Intrusion Dwell입니다.';
+        }
+        if (Number(scenario.dwellTimeMs || 0) < Number(scenario.candidateTimeMs || 0)) {
+          return '체류 확정 시간(ms)은 후보 판단 시간(ms)보다 크거나 같아야 합니다.';
+        }
+        const points = Array.isArray(payload?.event?.region?.points) ? payload.event.region.points : [];
+        if (payload?.event?.region?.type !== 'polygon' || points.length < 3) {
+          return 'Intrusion Dwell 시나리오는 3개 이상 점을 가진 restricted zone이 필요합니다.';
+        }
+      }
+      return '';
+    }
+
+    function validateVaRulePayload(payload) {
+      const ruleWarning = validateRulePayload(payload);
+      if (ruleWarning) return ruleWarning;
+      const id = String(payload?.id || '').trim();
+      if (id && !/^[0-9]+$/.test(id)) {
+        return '영상 분석 설정 ID는 URL 구성을 위해 숫자만 사용할 수 있습니다.';
+      }
+      const source = payload?.source || {};
+      const kind = normalizedSourceKind(source.kind);
+      if (kind === 'file') {
+        return source.file ? '' : '영상 분석 설정에 연결할 영상 파일을 선택하세요.';
+      }
+      return String(source.url || '').trim() ? '' : '영상 분석 설정에 연결할 URL 또는 Source ID를 입력하세요.';
     }
 
     function renderClassChecks() {
@@ -4042,21 +4938,27 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     async function loadPreviewFileOptions() {
-      const select = $('previewFileSelect');
-      if (!select) return;
+      const selects = ['previewFileSelect', 'vaRuleFileSelect', 'viewFileSelect']
+        .map((id) => $(id))
+        .filter(Boolean);
+      if (selects.length === 0) return;
       try {
         const payload = await requestJson('/lab/files');
         const files = Array.isArray(payload.files) ? payload.files : [];
         if (files.length === 0) return;
-        const previous = select.dataset.loaded === '1'
-          ? select.value
-          : (payload.defaultFile || select.value || 'sample_h264.mp4');
-        select.innerHTML = '';
-        for (const file of files) {
-          addOption(select, file, file);
+        for (const select of selects) {
+          const previous = select.dataset.loaded === '1'
+            ? select.value
+            : (payload.defaultFile || select.value || 'sample_h264.mp4');
+          select.innerHTML = '';
+          for (const file of files) {
+            addOption(select, file, file);
+          }
+          select.value = files.includes(previous) ? previous : files[0];
+          select.dataset.loaded = '1';
         }
-        select.value = files.includes(previous) ? previous : files[0];
-        select.dataset.loaded = '1';
+        updateVaRuleSourceUi();
+        updateViewModeUi();
       } catch (error) {
         previewStatus(`파일 목록 로드 실패: ${error.message}`);
       }
@@ -4082,6 +4984,15 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     function buildPreviewParamsFromParent() {
+      const mode = $('previewSourceMode')?.value || 'file';
+      if (mode === 'vaRule') {
+        return applyPreviewAnalysisParams(paramsFromSourceJson(currentVaRuleSourceJson()));
+      }
+      if (mode === 'file') {
+        const params = new URLSearchParams();
+        params.set('file', $('previewFileSelect')?.value || 'sample_h264.mp4');
+        return applyPreviewAnalysisParams(params);
+      }
       let params = new URLSearchParams();
       try {
         if (window.parent && window.parent.__mediaServerTestApi && window.parent.__mediaServerTestApi.buildQuery) {
@@ -4092,15 +5003,11 @@ std::string BuildLabRuleEditorPageHtml() {
       if (!Array.from(params.keys()).length) {
         params.set('file', 'sample_h264.mp4');
       }
-      params.delete('va');
+      if (!previewOverlayEnabled()) params.delete('va');
       params.delete('labelLang');
       params.delete('overlayWaitMs');
       params.delete('overlaySyncToleranceMs');
-      params.set('detector', 'dummy');
-      params.set('fps', '4');
-      params.set('maxQueue', '1');
-      params.set('adaptive', '1');
-      return params;
+      return applyPreviewAnalysisParams(params);
     }
 
     function describePreviewSource(params) {
@@ -4116,27 +5023,33 @@ std::string BuildLabRuleEditorPageHtml() {
       image.onload = () => {
         previewImage = image;
         previewFailureCount = 0;
-        previewStatus(`메인 영상 프레임 보기 실행 중: ${previewSourceLabel}`);
+        previewStatus(`${previewOverlayEnabled() ? '객체 검출 오버레이' : '원본 프레임'} 실행 중: ${previewSourceLabel}`);
         drawRegion();
       };
       image.onerror = () => {
         previewFailureCount += 1;
         if (previewFailureCount >= 4) {
-          previewStatus('아직 프레임을 준비 중입니다. 파일 디코딩 또는 분석 tap 상태를 확인 중입니다.');
+          previewStatus(previewOverlayEnabled()
+            ? '객체 검출 오버레이를 준비 중입니다. 모델 로딩, 프레임 디코딩, 분석 결과를 확인 중입니다.'
+            : '아직 프레임을 준비 중입니다. 파일 디코딩 또는 분석 tap 상태를 확인 중입니다.');
         }
       };
-      image.src = `/lab/analysis/taps/${encodeURIComponent(previewTapId)}/snapshot.jpg?quality=72&_=${Date.now()}`;
+      const imagePath = previewOverlayEnabled()
+        ? `overlay.jpg?quality=72&thickness=3&drawLabels=1&trackIds=1&trackTrails=1&labelLang=ko`
+        : `snapshot.jpg?quality=72`;
+      image.src = `/lab/analysis/taps/${encodeURIComponent(previewTapId)}/${imagePath}&_=${Date.now()}`;
     }
 
     async function startRulePreview() {
       await stopRulePreview({ silent: true });
+      updatePreviewSourceUi();
       const params = buildPreviewParamsFromParent();
       previewSourceLabel = describePreviewSource(params);
       previewStatus('미리보기 tap 생성 중...');
       const payload = await requestJson(`/lab/analysis/taps?${params.toString()}`, { method: 'POST' });
       previewTapId = payload.tapId || '';
       setRulePreviewUi(true);
-      previewStatus(`메인 영상 프레임 보기 시작: ${previewSourceLabel}`);
+      previewStatus(`${previewOverlayEnabled() ? '객체 검출 오버레이' : '원본 프레임'} 시작: ${previewSourceLabel}`);
       refreshPreviewFrame();
       previewTimer = setInterval(refreshPreviewFrame, 500);
     }
@@ -4185,21 +5098,44 @@ std::string BuildLabRuleEditorPageHtml() {
       }
     }
 
+    function renderVaRuleSelects() {
+      const selects = [$('vaRuleSelect'), $('viewVaRuleSelect')].filter(Boolean);
+      for (const select of selects) {
+        const previous = select.value;
+        select.innerHTML = '';
+        addOption(select, '', select.id === 'viewVaRuleSelect' ? '저장된 설정 선택' : '새 영상 분석 설정');
+        for (const item of vaRules) {
+          const name = item.name ? ` · ${item.name}` : '';
+          addOption(select, String(item.id), `#${item.id}${name}`);
+        }
+        if (previous && Array.from(select.options).some((option) => option.value === previous)) {
+          select.value = previous;
+        } else if (select.id === 'viewVaRuleSelect' && !select.value && vaRules.length > 0) {
+          select.value = String(vaRules[0].id);
+        }
+      }
+    }
+
     async function refreshRegistry() {
-      const [profilePayload, rulePayload] = await Promise.all([
+      const [profilePayload, rulePayload, vaRulePayload] = await Promise.all([
         requestJson('/lab/analysis/profiles'),
-        requestJson('/lab/analysis/rules')
+        requestJson('/lab/analysis/rules'),
+        requestJson('/lab/analysis/va-rules')
       ]);
       builtInProfiles = Array.isArray(profilePayload.builtInProfiles) ? profilePayload.builtInProfiles : [];
       profiles = Array.isArray(profilePayload.profiles) ? profilePayload.profiles : [];
       rules = Array.isArray(rulePayload.rules) ? rulePayload.rules : [];
+      vaRules = Array.isArray(vaRulePayload.vaRules) ? vaRulePayload.vaRules : [];
       renderProfileSelects();
       renderRuleSelect();
+      renderVaRuleSelects();
       updatePreviews();
+      updateViewModeUi();
       status('목록을 불러왔습니다.', {
         builtInProfiles: builtInProfiles.length,
         profiles: profiles.length,
-        rules: rules.length
+        rules: rules.length,
+        vaRules: vaRules.length
       });
     }
 
@@ -4223,7 +5159,13 @@ std::string BuildLabRuleEditorPageHtml() {
       $('ruleSourceKind').value = item.match?.sourceKind || '*';
       $('ruleRoute').value = item.match?.route || '*';
       $('ruleProfileId').value = item.analysis?.profileId || $('ruleProfileId').value;
-      $('ruleEventType').value = item.event?.type || 'presence';
+      const scenarioMode = item.ruleKind === 'scenario' ||
+        item.scenario?.type === 'intrusion-dwell' ||
+        item.event?.type === 'intrusion-dwell';
+      setRuleKind(scenarioMode ? 'scenario' : 'basic');
+      $('ruleEventType').value = ['presence', 'enter', 'exit', 'line-crossing'].includes(item.event?.type)
+        ? item.event.type
+        : 'presence';
       $('ruleLineDirection').value = ['any', 'forward', 'reverse'].includes(item.event?.region?.direction)
         ? item.event.region.direction
         : 'any';
@@ -4251,7 +5193,54 @@ std::string BuildLabRuleEditorPageHtml() {
       $('eventFlashInput').checked = highlight.enabled !== false;
       $('eventFlashMsInput').value = Number(highlight.durationMs || 1200);
       $('eventPostUrlInput').value = typeof post.url === 'string' ? post.url : '';
+      const scenario = item.scenario || {};
+      $('scenarioType').value = scenario.type === 'intrusion-dwell' ? 'intrusion-dwell' : 'intrusion-dwell';
+      $('scenarioCandidateMs').value = Number(scenario.candidateTimeMs ?? 2000);
+      $('scenarioDwellMs').value = Number(scenario.dwellTimeMs ?? 10000);
+      $('scenarioCooldownMs').value = Number(scenario.cooldownMs ?? 5000);
+      $('scenarioZoneIds').value = Array.isArray(scenario.restrictedZoneIds)
+        ? scenario.restrictedZoneIds.join(', ')
+        : '';
+      $('scenarioStableOnly').checked = scenario.trackHealth?.requireStableTrack === true;
       updatePreviews();
+    }
+
+    function loadVaRule(item) {
+      if (!item) {
+        $('vaRuleId').value = '';
+        $('vaRuleName').value = '샘플 파일 분석 설정';
+        $('vaRuleSourceKind').value = 'file';
+        $('vaRuleFileSelect').value = $('vaRuleFileSelect').value || 'sample_h264.mp4';
+        $('vaRuleUrlInput').value = '';
+        loadRule({
+          id: 'file-person-vehicle-area',
+          enabled: true,
+          match: { sourceKind: '*', route: '*' },
+          analysis: { profileId: $('ruleProfileId').value, classes: ['person', 'vehicle'] },
+          event: { type: 'presence', minConfidence: 0.25, minDurationMs: 0, region: { type: 'polygon', points: defaultPolygonPoints() } },
+          eventActions: {
+            highlight: { enabled: true, mode: 'blink', target: 'matched-object', durationMs: 1200, color: '#ff0000' },
+            post: { enabled: false, method: 'POST', url: '', contentType: 'application/json', payloadFormat: 'media-server.va.event.v1' }
+          }
+        });
+        updateVaRuleSourceUi();
+        updateViewModeUi();
+        return;
+      }
+      $('vaRuleId').value = item.id || '';
+      $('vaRuleName').value = item.name || `영상 분석 설정 ${item.id || ''}`;
+      const source = item.source || {};
+      const sourceKind = normalizedSourceKind(source.kind || 'file');
+      $('vaRuleSourceKind').value = sourceKind;
+      if (sourceKind === 'file') {
+        $('vaRuleFileSelect').value = source.file || $('vaRuleFileSelect').value || 'sample_h264.mp4';
+        $('vaRuleUrlInput').value = '';
+      } else {
+        $('vaRuleUrlInput').value = source.url || '';
+      }
+      loadRule(item);
+      updateVaRuleSourceUi();
+      updateViewModeUi();
     }
 
     async function saveProfile() {
@@ -4294,13 +5283,41 @@ std::string BuildLabRuleEditorPageHtml() {
       status(`Rule 저장 완료: ${payload.id}`, response);
     }
 
+    async function saveVaRule() {
+      const payload = vaRuleJson();
+      const warning = validateVaRulePayload(payload);
+      if (validationWarning(warning)) {
+        throw new Error(warning);
+      }
+      const id = String(payload.id || '').trim();
+      const response = await requestJson(id
+        ? `/lab/analysis/va-rules/${encodeURIComponent(id)}`
+        : '/lab/analysis/va-rules', {
+        method: id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const savedId = response?.vaRule?.id || id;
+      await refreshRegistry();
+      if (savedId) {
+        $('vaRuleSelect').value = String(savedId);
+        $('viewVaRuleSelect').value = String(savedId);
+        loadVaRule(vaRules.find((entry) => String(entry.id) === String(savedId)) || response.vaRule);
+      }
+      status(`영상 분석 설정 저장 완료: ${savedId || '(auto)'}`, response);
+    }
+
     window.__mediaServerRuleEditorApi = {
       profileJson,
       ruleJson,
+      scenarioJson,
+      vaRuleJson,
       validateProfilePayload,
       validateRulePayload,
+      validateVaRulePayload,
       saveProfile,
-      saveRule
+      saveRule,
+      saveVaRule
     };
 
     async function deleteRule() {
@@ -4309,6 +5326,132 @@ std::string BuildLabRuleEditorPageHtml() {
       const response = await requestJson(`/lab/analysis/rules/${encodeURIComponent(id)}`, { method: 'DELETE' });
       await refreshRegistry();
       status(`Rule 삭제 완료: ${id}`, response);
+    }
+
+    async function deleteVaRule() {
+      const id = currentVaRuleId();
+      if (!id) throw new Error('삭제할 영상 분석 설정 ID가 없습니다.');
+      const response = await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      await refreshRegistry();
+      loadVaRule(null);
+      status(`영상 분석 설정 삭제 완료: ${id}`, response);
+    }
+
+    function viewPreviewStatus(message) {
+      if ($('viewPreviewStatus')) $('viewPreviewStatus').textContent = message;
+    }
+
+    function buildViewParams() {
+      const mode = selectedViewMode();
+      if (mode === 'rule') {
+        const id = $('viewVaRuleSelect')?.value || '';
+        const params = new URLSearchParams();
+        if (id) params.set('vaRule', id);
+        return params;
+      }
+      const params = paramsFromSourceJson(sourceJsonFromControls('view'));
+      if (mode === 'overlay') {
+        applyBasicOverlayParams(params);
+      }
+      return params;
+    }
+
+    function viewModeLabel(mode) {
+      if (mode === 'overlay') return '영상 + VA Overlay';
+      if (mode === 'rule') return '영상 + VA Rule';
+      return 'Live Streaming';
+    }
+
+    function updateViewModeUi() {
+      const mode = selectedViewMode();
+      const directFields = $('viewDirectSourceFields');
+      const ruleFields = $('viewRuleFields');
+      if (directFields) directFields.hidden = mode === 'rule';
+      if (ruleFields) ruleFields.hidden = mode !== 'rule';
+
+      const source = sourceJsonFromControls('view');
+      if ($('viewFileField')) $('viewFileField').hidden = mode === 'rule' || source.kind !== 'file';
+      if ($('viewUrlField')) $('viewUrlField').hidden = mode === 'rule' || source.kind === 'file';
+
+      const rule = selectedViewVaRule();
+      if ($('viewRuleSourceSummary')) {
+        $('viewRuleSourceSummary').textContent = rule
+          ? `이 설정은 ${sourceLabel(rule.source || {})}에만 연결됩니다. URL에는 vaRule=${rule.id}만 사용합니다.`
+          : '저장된 설정을 선택하면 연결된 영상 소스가 표시됩니다.';
+      }
+      const bindingText = mode === 'rule'
+        ? (rule ? `${viewModeLabel(mode)} · vaRule=${rule.id} · ${sourceLabel(rule.source || {})}` : `${viewModeLabel(mode)} · 설정 선택 필요`)
+        : `${viewModeLabel(mode)} · ${sourceLabel(source)}`;
+      if ($('viewBindingSummary')) $('viewBindingSummary').textContent = bindingText;
+      updateGeneratedUrls();
+    }
+
+    function updateGeneratedUrls() {
+      const params = buildViewParams();
+      const query = params.toString();
+      const origin = window.location.origin;
+      const host = window.location.hostname || '127.0.0.1';
+      const querySuffix = query ? `?${query}` : '';
+      if ($('viewWebRtcUrl')) $('viewWebRtcUrl').value = `${origin}/webrtc/session${querySuffix}`;
+      if ($('viewWhepUrl')) $('viewWhepUrl').value = `${origin}/whep${querySuffix}`;
+      if ($('viewRtspUrl')) $('viewRtspUrl').value = `rtsp://${host}:8554/dhseo${querySuffix}`;
+      if ($('viewTapUrl')) $('viewTapUrl').value = `${origin}/lab/analysis/taps${querySuffix}`;
+    }
+
+    async function stopViewPreview(options = {}) {
+      if (viewTimer) {
+        clearInterval(viewTimer);
+        viewTimer = null;
+      }
+      const tapId = viewTapId;
+      viewTapId = '';
+      viewFailureCount = 0;
+      if ($('viewPreviewImage')) $('viewPreviewImage').removeAttribute('src');
+      if (tapId) {
+        await fetch(`/lab/analysis/taps/${encodeURIComponent(tapId)}`, { method: 'DELETE' }).catch(() => {});
+      }
+      if (!options.silent) {
+        viewPreviewStatus('보기를 중지했습니다.');
+      }
+    }
+
+    function refreshViewFrame() {
+      if (!viewTapId || !$('viewPreviewImage')) return;
+      const mode = selectedViewMode();
+      const imagePath = mode === 'live'
+        ? 'snapshot.jpg?quality=76'
+        : 'overlay.jpg?quality=76&thickness=3&drawLabels=1&trackIds=1&trackTrails=1&labelLang=ko';
+      const image = new Image();
+      image.onload = () => {
+        viewFailureCount = 0;
+        $('viewPreviewImage').src = image.src;
+        viewPreviewStatus(`${viewModeLabel(mode)} 실행 중: ${$('viewBindingSummary')?.textContent || ''}`);
+      };
+      image.onerror = () => {
+        viewFailureCount += 1;
+        if (viewFailureCount >= 4) {
+          viewPreviewStatus('프레임을 준비 중입니다. 소스 연결, 디코딩, 분석 tap 상태를 확인하고 있습니다.');
+        }
+      };
+      image.src = `/lab/analysis/taps/${encodeURIComponent(viewTapId)}/${imagePath}&_=${Date.now()}`;
+    }
+
+    async function startViewPreview() {
+      await stopViewPreview({ silent: true });
+      updateViewModeUi();
+      const params = buildViewParams();
+      if (selectedViewMode() === 'rule' && !params.get('vaRule')) {
+        throw new Error('영상 + VA Rule 모드는 저장된 영상 분석 설정 ID를 선택해야 합니다.');
+      }
+      if ((params.get('source') || '') !== '' && !params.get('url')) {
+        throw new Error('URL 또는 Source ID를 입력하세요.');
+      }
+      viewPreviewStatus('보기 tap 생성 중...');
+      const payload = await requestJson(`/lab/analysis/taps?${params.toString()}`, { method: 'POST' });
+      viewTapId = payload.tapId || '';
+      viewPreviewStatus(`${viewModeLabel(selectedViewMode())} 시작: ${$('viewBindingSummary')?.textContent || ''}`);
+      refreshViewFrame();
+      viewTimer = setInterval(refreshViewFrame, 500);
     }
 
     function drawRegion() {
@@ -4467,6 +5610,18 @@ std::string BuildLabRuleEditorPageHtml() {
     $('deleteProfileBtn').onclick = () => deleteProfile().catch((error) => status(`Profile 삭제 실패: ${error.message}`));
     $('saveRuleBtn').onclick = () => saveRule().catch((error) => status(`Rule 저장 실패: ${error.message}`));
     $('deleteRuleBtn').onclick = () => deleteRule().catch((error) => status(`Rule 삭제 실패: ${error.message}`));
+    $('newVaRuleBtn').onclick = () => {
+      $('vaRuleSelect').value = '';
+      loadVaRule(null);
+      status('새 영상 분석 설정을 작성합니다.');
+    };
+    $('saveVaRuleBtn').onclick = () => saveVaRule().catch((error) => status(`영상 분석 설정 저장 실패: ${error.message}`));
+    $('deleteVaRuleBtn').onclick = () => deleteVaRule().catch((error) => status(`영상 분석 설정 삭제 실패: ${error.message}`));
+    $('startViewPreviewBtn').onclick = () => startViewPreview().catch((error) => {
+      viewPreviewStatus(`보기 시작 실패: ${error.message}`);
+      status(`보기 시작 실패: ${error.message}`);
+    });
+    $('stopViewPreviewBtn').onclick = () => stopViewPreview().catch((error) => viewPreviewStatus(`보기 중지 실패: ${error.message}`));
     $('autoPreviewInput').addEventListener('change', () => {
       if ($('autoPreviewInput').checked) {
         startRulePreview().catch((error) => {
@@ -4488,6 +5643,50 @@ std::string BuildLabRuleEditorPageHtml() {
         });
       }
     };
+    $('previewSourceMode').addEventListener('change', () => {
+      updatePreviewSourceUi();
+      if (previewTapId || $('autoPreviewInput').checked) {
+        startRulePreview().catch((error) => {
+          setRulePreviewUi(false);
+          previewStatus(`영상 프레임 보기 실패: ${error.message}`);
+        });
+      }
+    });
+    $('previewFileSelect').addEventListener('change', () => {
+      if (previewTapId || $('autoPreviewInput').checked) {
+        startRulePreview().catch((error) => {
+          setRulePreviewUi(false);
+          previewStatus(`영상 프레임 보기 실패: ${error.message}`);
+        });
+      }
+    });
+    $('previewOverlayInput').addEventListener('change', () => {
+      if (previewTapId || $('autoPreviewInput').checked) {
+        startRulePreview().catch((error) => {
+          setRulePreviewUi(false);
+          previewStatus(`영상 프레임 보기 실패: ${error.message}`);
+        });
+      }
+    });
+    document.querySelectorAll('[data-primary-tab]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const tabName = button.dataset.primaryTab || 'settings';
+        $('settingsPanel').hidden = tabName !== 'settings';
+        $('viewerPanel').hidden = tabName !== 'viewer';
+        document.querySelectorAll('[data-primary-tab]').forEach((candidate) => {
+          candidate.classList.toggle('is-active', candidate === button);
+        });
+        if (tabName === 'viewer') {
+          updateViewModeUi();
+        }
+      });
+    });
+    document.querySelectorAll('[data-rule-section-target]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const target = $(button.dataset.ruleSectionTarget || '');
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
     const classFilterInput = $('classFilterInput');
     if (classFilterInput) classFilterInput.addEventListener('change', filterClassChecks);
     $('selectDefaultTrackingBtn').onclick = () => setTrackingCategoryChecks((value) => value === 'person' || value === 'vehicle');
@@ -4527,11 +5726,57 @@ std::string BuildLabRuleEditorPageHtml() {
       const item = rules.find((entry) => entry.id === id);
       if (item) loadRule(item);
     };
-    for (const id of ['profileFps', 'profileQueue', 'profileConfidence', 'profileNms', 'profileInputWidth', 'profileInputHeight', 'profileDetector', 'profileAdaptive', 'profileId', 'ruleId', 'ruleEnabled', 'ruleSourceKind', 'ruleRoute', 'ruleProfileId', 'ruleEventType', 'ruleLineDirection', 'ruleConfidence', 'ruleMinDurationMs', 'eventFlashInput', 'eventFlashMsInput', 'eventPostUrlInput']) {
+    $('vaRuleSelect').onchange = () => {
+      const id = $('vaRuleSelect').value;
+      if (!id) {
+        loadVaRule(null);
+        return;
+      }
+      const item = vaRules.find((entry) => String(entry.id) === String(id));
+      if (item) {
+        loadVaRule(item);
+        $('viewVaRuleSelect').value = String(item.id);
+      }
+    };
+    $('viewVaRuleSelect').onchange = updateViewModeUi;
+    document.querySelectorAll('input[name="viewMode"]').forEach((el) => {
+      el.addEventListener('change', updateViewModeUi);
+    });
+    for (const id of ['vaRuleId', 'vaRuleName', 'vaRuleSourceKind', 'vaRuleFileSelect', 'vaRuleUrlInput']) {
+      const el = $(id);
+      if (el) {
+        el.addEventListener('input', () => {
+          updateVaRuleSourceUi();
+          updateViewModeUi();
+          updatePreviews();
+        });
+        el.addEventListener('change', () => {
+          updateVaRuleSourceUi();
+          updateViewModeUi();
+          updatePreviews();
+        });
+      }
+    }
+    for (const id of ['viewSourceKind', 'viewFileSelect', 'viewUrlInput']) {
+      const el = $(id);
+      if (el) {
+        el.addEventListener('input', updateViewModeUi);
+        el.addEventListener('change', updateViewModeUi);
+      }
+    }
+    for (const id of ['profileFps', 'profileQueue', 'profileConfidence', 'profileNms', 'profileInputWidth', 'profileInputHeight', 'profileDetector', 'profileAdaptive', 'profileId', 'ruleId', 'ruleEnabled', 'ruleSourceKind', 'ruleRoute', 'ruleProfileId', 'ruleEventType', 'ruleLineDirection', 'ruleConfidence', 'ruleMinDurationMs', 'scenarioType', 'scenarioZoneIds', 'scenarioCandidateMs', 'scenarioDwellMs', 'scenarioCooldownMs', 'scenarioStableOnly', 'eventFlashInput', 'eventFlashMsInput', 'eventPostUrlInput']) {
       const el = $(id);
       if (el) el.addEventListener('input', updatePreviews);
       if (el) el.addEventListener('change', updatePreviews);
     }
+    document.querySelectorAll('input[name="ruleKind"]').forEach((el) => {
+      el.addEventListener('change', () => {
+        if (isScenarioRule() && regionPoints.length < 3) {
+          regionPoints = defaultPolygonPoints();
+        }
+        updatePreviews();
+      });
+    });
     document.querySelectorAll('[data-tracking-category]').forEach((el) => {
       el.addEventListener('change', () => {
         updatePreviews();
@@ -4573,10 +5818,15 @@ std::string BuildLabRuleEditorPageHtml() {
 
     renderClassChecks();
     setRulePreviewUi(false);
+    updateVaRuleSourceUi();
+    updateViewModeUi();
     updatePreviews();
     loadPreviewFileOptions();
     refreshRegistry().catch((error) => status(`목록 로드 실패: ${error.message}`));
-    window.addEventListener('beforeunload', () => { stopRulePreview({ silent: true }); });
+    window.addEventListener('beforeunload', () => {
+      stopRulePreview({ silent: true });
+      stopViewPreview({ silent: true });
+    });
   </script>
 </body>
 </html>)RULEPAGE";
@@ -5405,6 +6655,28 @@ std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot
         out << "\"" << JsonEscape(snapshot.tracking_class_labels[i]) << "\"";
     }
     out << "],"
+        << "\"analyticsState\":{"
+        << "\"trackState\":{"
+        << "\"channelCount\":" << snapshot.track_state_metrics.channel_count << ","
+        << "\"totalTracks\":" << snapshot.track_state_metrics.total_tracks << ","
+        << "\"activeTracks\":" << snapshot.track_state_metrics.active_tracks << ","
+        << "\"lostTracks\":" << snapshot.track_state_metrics.lost_tracks << ","
+        << "\"terminatedTracks\":" << snapshot.track_state_metrics.terminated_tracks << ","
+        << "\"totalObservations\":" << snapshot.track_state_metrics.total_observations << ","
+        << "\"totalTrajectoryPoints\":" << snapshot.track_state_metrics.total_trajectory_points << ","
+        << "\"appearanceProfiles\":" << snapshot.track_state_metrics.appearance_profile_count << ","
+        << "\"maxActiveTracksPerChannel\":"
+        << snapshot.track_state_metrics.max_active_tracks_per_channel << ","
+        << "\"maxTracksPerChannel\":" << snapshot.track_state_metrics.max_tracks_per_channel << ","
+        << "\"maxObservationHistory\":"
+        << snapshot.track_state_metrics.max_observation_history << ","
+        << "\"maxTrajectoryPointsPerTrack\":"
+        << snapshot.track_state_metrics.max_trajectory_points_per_track << ","
+        << "\"cleanupRuns\":" << snapshot.track_state_metrics.cleanup_runs << ","
+        << "\"tracksRemovedByCleanup\":"
+        << snapshot.track_state_metrics.tracks_removed_by_cleanup << ","
+        << "\"lastCleanupTimeMs\":" << snapshot.track_state_metrics.last_cleanup_time_ms
+        << "}},"
         << "\"adaptiveTuningEnabled\":" << (snapshot.adaptive_tuning_enabled ? "true" : "false") << ","
         << "\"adaptiveInputSizeEnabled\":" << (snapshot.adaptive_input_size_enabled ? "true" : "false") << ","
         << "\"adaptiveInputSizeDisabled\":" << (snapshot.adaptive_input_size_disabled ? "true" : "false") << ","
@@ -5546,6 +6818,10 @@ std::string AnalysisProfilesJson() {
 
 std::string AnalysisRulesJson() {
     return AnalysisRegistry().RulesJson();
+}
+
+std::string AnalysisVaRulesJson() {
+    return AnalysisRegistry().VaRulesJson();
 }
 
 bool IsSupportedImageFile(const std::filesystem::path& path) {
@@ -6243,11 +7519,92 @@ bool SendAll(int fd, const std::string& data) {
 }  // namespace
 
 std::vector<std::string> AnalysisRuleDocumentsSnapshot() {
-    return AnalysisRegistry().RuleDocuments();
+    auto documents = AnalysisRegistry().RuleDocuments();
+    auto va_rule_documents = AnalysisRegistry().VaRuleDocuments();
+    documents.insert(documents.end(), va_rule_documents.begin(), va_rule_documents.end());
+    return documents;
 }
 
 std::vector<std::string> AnalysisProfileDocumentsSnapshot() {
     return AnalysisRegistry().ProfileDocuments();
+}
+
+std::vector<std::string> VideoAnalysisRuleDocumentsSnapshot() {
+    return AnalysisRegistry().VaRuleDocuments();
+}
+
+bool ApplyVideoAnalysisRuleToRequest(media::IngressRequest* request, std::string* error_message) {
+    if (request == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "request is missing";
+        }
+        return false;
+    }
+    if (request->query.find("_vaRuleResolved") != request->query.end()) {
+        return true;
+    }
+    std::string va_rule_id;
+    if (const auto it = request->query.find("vaRule"); it != request->query.end()) {
+        va_rule_id = it->second;
+    } else if (const auto it = request->query.find("vaRuleId"); it != request->query.end()) {
+        va_rule_id = it->second;
+    }
+    if (va_rule_id.empty()) {
+        return true;
+    }
+    if (request->query.find("file") != request->query.end() ||
+        request->query.find("url") != request->query.end() ||
+        request->query.find("source") != request->query.end()) {
+        if (error_message != nullptr) {
+            *error_message = "vaRule cannot be combined with file/url/source override";
+        }
+        return false;
+    }
+    const auto document = AnalysisRegistry().VaRuleJson(va_rule_id);
+    if (!document.has_value()) {
+        if (error_message != nullptr) {
+            *error_message = "vaRule not found: " + va_rule_id;
+        }
+        return false;
+    }
+    const auto source = ExtractObjectField(*document, "source");
+    if (!source.has_value()) {
+        if (error_message != nullptr) {
+            *error_message = "vaRule source is missing: " + va_rule_id;
+        }
+        return false;
+    }
+    const std::string source_kind = ParseStringField(*source, "kind").value_or("");
+    if (source_kind == "file") {
+        const std::string file = ParseStringField(*source, "file").value_or("");
+        if (file.empty()) {
+            if (error_message != nullptr) {
+                *error_message = "vaRule file source is empty: " + va_rule_id;
+            }
+            return false;
+        }
+        request->query["file"] = file;
+    } else {
+        const std::string url = ParseStringField(*source, "url").value_or("");
+        if (url.empty()) {
+            if (error_message != nullptr) {
+                *error_message = "vaRule url source is empty: " + va_rule_id;
+            }
+            return false;
+        }
+        request->query["url"] = url;
+        request->query["source"] = source_kind.empty() ? "rtsp" : source_kind;
+    }
+    if (const auto analysis = ExtractObjectField(*document, "analysis"); analysis.has_value()) {
+        const std::string profile_id = ParseStringField(*analysis, "profileId").value_or("");
+        if (!profile_id.empty()) {
+            request->query["profileId"] = profile_id;
+        }
+    }
+    request->query["vaRule"] = va_rule_id;
+    request->query["va"] = "1";
+    request->query["_vaRuleResolved"] = "1";
+    return true;
 }
 
 bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t port, std::string* error_message) {
@@ -6495,6 +7852,20 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return JsonResponse(201, "Created", response_body);
                         }
 
+                        if (request.method == "GET" && request.path == "/lab/analysis/va-rules") {
+                            return JsonResponse(200, "OK", AnalysisVaRulesJson());
+                        }
+
+                        if (request.method == "POST" && request.path == "/lab/analysis/va-rules") {
+                            std::string response_body;
+                            std::string error_message;
+                            if (!AnalysisRegistry().CreateVaRule(request.body, &response_body, &error_message)) {
+                                return JsonResponse(400, "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            }
+                            return JsonResponse(201, "Created", response_body);
+                        }
+
                         const auto analysis_profile_prefix = std::string("/lab/analysis/profiles/");
                         if (request.path.rfind(analysis_profile_prefix, 0) == 0) {
                             const std::string id = UrlDecode(request.path.substr(analysis_profile_prefix.size()));
@@ -6559,6 +7930,41 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 if (!AnalysisRegistry().DeleteRule(id)) {
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis rule not found\"}");
+                                }
+                                return JsonResponse(200, "OK",
+                                                    "{\"ok\":true,\"deleted\":\"" + JsonEscape(id) + "\"}");
+                            }
+                        }
+
+                        const auto analysis_va_rule_prefix = std::string("/lab/analysis/va-rules/");
+                        if (request.path.rfind(analysis_va_rule_prefix, 0) == 0) {
+                            const std::string id = UrlDecode(request.path.substr(analysis_va_rule_prefix.size()));
+                            if (id.empty()) {
+                                return JsonResponse(400, "Bad Request",
+                                                    "{\"error\":\"vaRule id is required\"}");
+                            }
+                            if (request.method == "GET") {
+                                const auto rule = AnalysisRegistry().VaRuleJson(id);
+                                if (!rule.has_value()) {
+                                    return JsonResponse(404, "Not Found",
+                                                        "{\"error\":\"vaRule not found\"}");
+                                }
+                                return JsonResponse(200, "OK",
+                                                    "{\"vaRule\":" + *rule + "}");
+                            }
+                            if (request.method == "PUT") {
+                                std::string response_body;
+                                std::string error_message;
+                                if (!AnalysisRegistry().UpsertVaRule(id, request.body, &response_body, &error_message)) {
+                                    return JsonResponse(400, "Bad Request",
+                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                }
+                                return JsonResponse(200, "OK", response_body);
+                            }
+                            if (request.method == "DELETE") {
+                                if (!AnalysisRegistry().DeleteVaRule(id)) {
+                                    return JsonResponse(404, "Not Found",
+                                                        "{\"error\":\"vaRule not found\"}");
                                 }
                                 return JsonResponse(200, "OK",
                                                     "{\"ok\":true,\"deleted\":\"" + JsonEscape(id) + "\"}");
@@ -6655,8 +8061,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     "analysis-http-" + std::to_string(impl_->next_session_id.fetch_add(1));
                                 media::IngressRequest ingress_request =
                                     BuildHttpIngressRequest(route_path, query, tap_client_id);
+                                std::string va_rule_error;
+                                if (!ApplyVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
+                                    return JsonResponse(400, "Bad Request",
+                                                        "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
+                                }
                                 auto result = impl_->session_manager.AttachAnalysisTap(
-                                    ingress_request, BuildAnalysisProfileFromQuery(query));
+                                    ingress_request, BuildAnalysisProfileFromQuery(ingress_request.query));
                                 if (!result.ok) {
                                     return JsonResponse(400, "Bad Request",
                                                         "{\"error\":\"" + JsonEscape(result.message) + "\"}");
@@ -6809,11 +8220,21 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             const std::string session_id = "webrtc-http-" + std::to_string(impl_->next_session_id.fetch_add(1));
                             const std::string ingress_client_id = session_id + "-ingress";
                             media::IngressRequest ingress_request = BuildHttpIngressRequest(route_path, query, ingress_client_id);
+                            std::string va_rule_error;
+                            if (!ApplyVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
+                                return JsonResponse(400, "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
+                            }
                             auto bridge = std::make_shared<WebRtcEgressSession>();
                             std::string analysis_tap_id;
                             std::string error_message;
                             if (!AttachWebRtcAnalysisOverlay(
-                                    impl_->session_manager, ingress_request, query, bridge, &analysis_tap_id, &error_message)) {
+                                    impl_->session_manager,
+                                    ingress_request,
+                                    ingress_request.query,
+                                    bridge,
+                                    &analysis_tap_id,
+                                    &error_message)) {
                                 return JsonResponse(400, "Bad Request",
                                                     "{\"error\":\"" + JsonEscape(error_message) + "\"}");
                             }
@@ -6867,11 +8288,20 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             const std::string session_id = "whep-" + std::to_string(impl_->next_session_id.fetch_add(1));
                             const std::string ingress_client_id = session_id + "-ingress";
                             media::IngressRequest ingress_request = BuildHttpIngressRequest(route_path, query, ingress_client_id);
+                            std::string va_rule_error;
+                            if (!ApplyVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
+                                return HttpResponse{400, "Bad Request", "text/plain; charset=utf-8", {}, va_rule_error};
+                            }
                             auto bridge = std::make_shared<WebRtcEgressSession>();
                             std::string analysis_tap_id;
                             std::string error_message;
                             if (!AttachWebRtcAnalysisOverlay(
-                                    impl_->session_manager, ingress_request, query, bridge, &analysis_tap_id, &error_message)) {
+                                    impl_->session_manager,
+                                    ingress_request,
+                                    ingress_request.query,
+                                    bridge,
+                                    &analysis_tap_id,
+                                    &error_message)) {
                                 return HttpResponse{400, "Bad Request", "text/plain; charset=utf-8", {}, error_message};
                             }
                             auto create_result = impl_->session_manager.CreateSession(

@@ -162,6 +162,11 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
 
     media::IngressRequest request = *request_opt;
     request.client_id = "gst-session-" + std::to_string(runtime->next_session_id.fetch_add(1));
+    std::string va_rule_error;
+    if (!ApplyVideoAnalysisRuleToRequest(&request, &va_rule_error)) {
+        std::cerr << "[gst] invalid vaRule request: " << va_rule_error << "\n";
+        return;
+    }
     const VideoCodec video_codec = CodecFromPath(request.path, config.stream_route);
     const media::CodecId audio_codec = AudioCodecFromPath(request.path, config.stream_route);
 

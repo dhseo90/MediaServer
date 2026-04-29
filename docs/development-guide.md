@@ -96,8 +96,9 @@ Client <-> (RTSP or WebRTC) <-> MediaServer <-> (File or RTSP or WebRTC or HTTP/
   - metadata, snapshot, overlay snapshot 개발용 API를 제공한다.
   - adaptive tuner는 detector 부하에 따라 런타임 `fps`를 먼저 낮추고, 가능한 경우 input size까지 낮춘다.
   - lightweight tracker가 detection box를 frame 간 연결해 `trackId`를 붙이고, 이벤트 룰은 기본적으로 이 객체 ID 기준으로 상태를 추적한다.
-  - profile/rule registry는 1차 저장/조회/수정/삭제를 제공한다.
-  - `/lab/rules`는 숫자/JSON 직접 입력 대신 한글 UI로 profile 값, 이벤트 판단 영역, 분석 객체 카테고리를 저장한다.
+  - profile/rule/vaRule registry는 1차 저장/조회/수정/삭제를 제공한다.
+  - `/lab/rules`는 **영상 분석 관리** 화면이다. 최상단 `영상 분석 설정` 탭에서 숫자 기반 `vaRule` ID, source, profile, 이벤트/시나리오, 영역을 저장하고, `영상 분석 보기` 탭에서 Live Streaming, `va=1` overlay, `vaRule=<id>` 모드를 분리해 확인한다.
+  - `vaRule=<id>` 요청은 저장 설정의 source만 사용하며 `file/url/source` override와 함께 쓰면 서버가 거부한다.
   - 저장된 rule은 `va=1` overlay와 `/lab/analysis/taps/{tapId}/events`에서 1차 event engine으로 판정한다.
   - 이벤트 발생 객체는 overlay에서 `이벤트`/`Event` label과 카테고리 기본색/빨간색 깜빡임으로 표시한다.
   - `eventActions.post`가 켜진 rule은 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1`일 때 bounded queue 기반 POST worker가 `media-server.va.event.v1` payload로 비동기 전송한다.
@@ -343,6 +344,14 @@ MEDIA_SERVER_HTTP_LISTEN_PORT=8081 \
 | `MEDIA_SERVER_ANALYSIS_EVENT_POST_TIMEOUT_MS` | event POST 1건의 curl timeout. 기본 `3000` |
 | `MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE` | event POST worker queue 상한. 기본 `256` |
 | `MEDIA_SERVER_ANALYSIS_EVENT_POST_COOLDOWN_MS` | 같은 이벤트 dedupe key 재전송 억제 시간. 기본 `2000` |
+| `MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_TRACKS_PER_STREAM` | stream/channel별 active track 상한. 기본 `512`; 초과 시 새 track state 생성을 보류하며 active track은 cleanup하지 않음 |
+| `MEDIA_SERVER_ANALYSIS_MAX_RECENT_OBSERVATIONS_PER_TRACK` | track별 최근 관측 ring buffer 길이. 기본 `32` |
+| `MEDIA_SERVER_ANALYSIS_MAX_TRAJECTORY_POINTS_PER_TRACK` | track별 downsampled trajectory point 상한. 기본 `32` |
+| `MEDIA_SERVER_ANALYSIS_TRAJECTORY_DOWNSAMPLE_MS` | trajectory point 저장 최소 간격. 기본 `500` |
+| `MEDIA_SERVER_ANALYSIS_TERMINATED_TRACK_RETENTION_MS` | `Terminated` track state 보관 시간. 기본 `2000` |
+| `MEDIA_SERVER_ANALYSIS_CLEANUP_INTERVAL_MS` | track/scene/scenario/event state cleanup 최소 실행 간격. 기본 `1000` |
+| `MEDIA_SERVER_ANALYSIS_SCENARIO_MAX_INSTANCES_PER_CHANNEL` | channel별 scenario instance 상한. 기본 `2048` |
+| `MEDIA_SERVER_ANALYSIS_SCENARIO_RETENTION_MS` | `Ended`/`Cooldown` scenario instance 보관 시간. 기본 `5000`; 기존 `MEDIA_SERVER_ANALYSIS_SCENARIO_ENDED_RETENTION_MS`도 호환 입력으로 유지 |
 | `MEDIA_SERVER_FORCE_RTSP_TCP` | `1`이면 RTSP transport를 TCP 위주로 강제 |
 | `MEDIA_SERVER_SESSION_TRACE` | `1`이면 SessionManager acquire/cleanup 로그 출력 |
 | `MEDIA_SERVER_WEBRTC_TRACE` | `1`이면 WebRTC 협상/상태 로그 출력 |
@@ -424,9 +433,10 @@ WebRTC STUN/TURN 검증 상태:
 | `./server.sh verify-va-events` | 실제 이동 영상 기준 tracker, line-crossing 방향, enter, exit 이벤트 검증 |
 | `./server.sh verify-va-category-samples` | 실제 영상 샘플과 sports 전용 샘플 기준 VA 카테고리, 직접 class, alias presence 이벤트 검증 |
 | `./server.sh verify-route-profiles` | 실제 RTSP/WebRTC overlay 세션 기준 route별 profile/rule matching 검증 |
-| `./server.sh verify-rule-ui` | `/lab/rules` Rule/Profile 카테고리 버튼, category catalog 순서/스키마, 저장 payload round-trip 검증 |
+| `./server.sh verify-rule-ui` | `/lab/rules` Rule/Profile 카테고리 버튼, category catalog 순서/스키마, 기본 이벤트/시나리오 payload, 저장 payload round-trip 검증 |
 | `./server.sh verify-event-post` | VA event POST payload schema, 실패/cooldown/queue/recovery counter 검증 |
 | `./server.sh verify-event-post-longrun` | event POST schema/recovery/선택 queue 검증 반복 실행 |
+| `./server.sh verify-analysis-state` | mock metadata 기반 TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwellScenario, TrackHealth, Appearance NoOp, cleanup 정책 단위 smoke 검증 |
 | `./server.sh verify-lab-import-ui` | `/lab/import` 실험실 import UI와 jobs API smoke 검증 |
 | `./server.sh verify-lab-layout` | `/lab` stream/정적 이미지 분석 화면의 반응형 배치와 가로 overflow 폭별 검증 |
 | `./server.sh verify-tracker-stability` | 이동 영상 기준 track ID 유지/분절 통계와 stress preset 수집 |
@@ -503,6 +513,7 @@ ONNX Runtime 개발 파일이 없으면 `MEDIA_SERVER_USE_ONNXRUNTIME=ON` 구성
 ./server.sh verify-va-category-samples
 ./server.sh verify-route-profiles
 ./server.sh verify-rule-ui
+./server.sh verify-analysis-state
 ./server.sh verify-tracker-stability
 ./server.sh verify-yolo-layouts
 ./server.sh verify-adaptive
@@ -675,10 +686,10 @@ macOS/Homebrew 기준으로는 `gstreamer`, `gst-plugins-*`, `gstreamer-rtsp-ser
 - RTSP: `rtsp://127.0.0.1:8554/dhseo`
 - lab 통합 page: `http://127.0.0.1:8080/lab`
 - stable test 호환 page: `http://127.0.0.1:8080/webrtc/test`
-- lab rule editor 호환 page: `http://127.0.0.1:8080/lab/rules`
+- lab 영상 분석 관리 호환 page: `http://127.0.0.1:8080/lab/rules`
 - lab import 호환 page: `http://127.0.0.1:8080/lab/import`
 
-일반 수동 테스트와 개발 UI는 `/lab`를 기준으로 사용한다. `/webrtc/test`, `/lab/rules`, `/lab/import`는 자동화, 기존 링크, 직접 디버깅을 위한 호환 route다.
+일반 수동 테스트와 개발 UI는 `/lab`를 기준으로 사용한다. `/webrtc/test`, `/lab/rules`, `/lab/import`는 자동화, 기존 링크, 직접 디버깅을 위한 호환 route다. 영상 분석 설정을 URL로 고정해 볼 때는 `?vaRule=<숫자>`를 사용하고, 단순 overlay는 기존처럼 `?va=1`을 사용한다.
 
 실행 로그에 실제 listen 주소와 포트가 출력됩니다.
 
