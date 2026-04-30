@@ -3,6 +3,7 @@
 // 동작 요약: HTTP signaling handler가 GStreamer WebRTC 구현을 제어하는 계약이다.
 #pragma once
 
+#include <cstdint>
 #include <deque>
 #include <optional>
 #include <string>
@@ -36,6 +37,27 @@ struct WebRtcMetadataChannelConfig {
     std::size_t max_buffered_bytes{262144};
 };
 
+struct WebRtcMetadataChannelStats {
+    std::string session_id;
+    bool enabled{false};
+    bool open{false};
+    std::string label{"va-metadata"};
+    int interval_ms{500};
+    std::size_t max_message_bytes{65536};
+    std::size_t max_buffered_bytes{262144};
+    std::uint64_t sent_count{0};
+    std::uint64_t dropped_count{0};
+    std::uint64_t skipped_count{0};
+    std::uint64_t interval_skipped_count{0};
+    std::uint64_t oversized_drop_count{0};
+    std::uint64_t buffered_drop_count{0};
+    std::uint64_t send_failure_count{0};
+    std::uint64_t last_buffered_amount{0};
+    std::uint64_t max_buffered_amount{0};
+    std::uint64_t last_message_bytes{0};
+    std::uint64_t max_message_bytes_observed{0};
+};
+
 class WebRtcEgressSession final : public core::EgressSession {
 public:
     WebRtcEgressSession();
@@ -49,6 +71,8 @@ public:
     void HandleSample(const media::Packet& packet);
     void SetAnalysisOverlay(AnalysisOverlayConfig config);
     void SetMetadataChannelConfig(WebRtcMetadataChannelConfig config);
+    bool MetadataChannelReady() const;
+    WebRtcMetadataChannelStats MetadataChannelStatsSnapshot() const;
     bool PublishAnalysisMetadata(const std::string& message);
     std::int64_t ResolveOverlaySourcePts(std::int64_t normalized_pts) const;
 
@@ -134,7 +158,15 @@ private:
     std::int64_t last_metadata_sent_at_ms_{0};
     std::uint64_t metadata_messages_sent_{0};
     std::uint64_t metadata_messages_dropped_{0};
+    std::uint64_t metadata_messages_skipped_{0};
+    std::uint64_t metadata_interval_skipped_{0};
+    std::uint64_t metadata_oversized_dropped_{0};
+    std::uint64_t metadata_buffered_dropped_{0};
     std::uint64_t metadata_send_failures_{0};
+    std::uint64_t metadata_last_buffered_amount_{0};
+    std::uint64_t metadata_max_buffered_amount_{0};
+    std::uint64_t metadata_last_message_bytes_{0};
+    std::uint64_t metadata_max_message_bytes_observed_{0};
     bool metadata_channel_open_{false};
 
 #if MEDIA_SERVER_USE_GSTREAMER

@@ -1,0 +1,537 @@
+#!/usr/bin/env python3
+"""Long-run VA Metadata Runtime Console verification.
+
+This is an optional soak test. It starts a local test server, keeps WebRTC
+metadata, SSE side-channel, dashboard polling, and optional RTSP overlay
+consumers active for the requested duration, then verifies cleanup.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import signal
+import subprocess
+import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+from pathlib import Path
+from typing import Any
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="VA Runtime Console long-run verification")
+    parser.add_argument("--duration-minutes", type=float, default=float(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_MINUTES", "30")))
+    parser.add_argument("--clients", type=int, default=int(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_CLIENTS", "1")))
+    parser.add_argument("--include-rtsp", action="store_true", default=os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_INCLUDE_RTSP", "0") == "1")
+    parser.add_argument("--include-sidechannel", action="store_true", default=os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_INCLUDE_SIDECHANNEL", "1") != "0")
+    parser.add_argument("--include-dashboard", action="store_true", default=os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_INCLUDE_DASHBOARD", "1") != "0")
+    parser.add_argument("--no-sidechannel", action="store_true")
+    parser.add_argument("--no-dashboard", action="store_true")
+    parser.add_argument("--skip-build", action="store_true")
+    parser.add_argument("--file", default=os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_FILE", "sample_h264.mp4"))
+    parser.add_argument("--rtsp-port", type=int, default=int(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_RTSP_PORT", "8555")))
+    parser.add_argument("--http-port", type=int, default=int(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_HTTP_PORT", "8081")))
+    parser.add_argument("--poll-interval-seconds", type=float, default=float(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_POLL_SECONDS", "5")))
+    parser.add_argument("--work-dir", default=os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_WORK_DIR", ""))
+    parser.add_argument("--summary-file", default=os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_SUMMARY", ""))
+    parser.add_argument("--report-file", default=os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_REPORT", ""))
+    return parser.parse_args()
+
+
+def log(message: str) -> None:
+    print(message, flush=True)
+
+
+def request_json(base: str, method: str, path: str, timeout: float = 5.0) -> dict[str, Any]:
+    url = f"{base.rstrip('/')}{path}"
+    request = urllib.request.Request(url, method=method)
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            text = response.read().decode("utf-8", errors="replace")
+            return json.loads(text or "{}")
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"{method} {path} HTTP {exc.code}: {body}") from exc
+
+
+def wait_health(base: str, timeout_s: float) -> None:
+    deadline = time.monotonic() + timeout_s
+    last_error = ""
+    while time.monotonic() < deadline:
+        try:
+            payload = request_json(base, "GET", "/health", 2.0)
+            if payload.get("status") == "ok":
+                return
+        except Exception as exc:  # noqa: BLE001
+            last_error = str(exc)
+        time.sleep(0.5)
+    raise RuntimeError(f"server health did not become ready: {last_error}")
+
+
+def run_command(command: list[str], cwd: Path, log_path: Path, env: dict[str, str] | None = None) -> int:
+    with log_path.open("w", encoding="utf-8") as handle:
+        proc = subprocess.run(command, cwd=cwd, env=env, stdout=handle, stderr=subprocess.STDOUT, text=True)
+    return int(proc.returncode)
+
+
+def popen_command(command: list[str], cwd: Path, log_path: Path, env: dict[str, str] | None = None) -> subprocess.Popen[str]:
+    handle = log_path.open("w", encoding="utf-8")
+    proc = subprocess.Popen(command, cwd=cwd, env=env, stdout=handle, stderr=subprocess.STDOUT, text=True)
+    setattr(proc, "_log_handle", handle)
+    return proc
+
+
+def close_process(proc: subprocess.Popen[str], timeout_s: float = 10.0) -> int:
+    handle = getattr(proc, "_log_handle", None)
+    try:
+        return proc.wait(timeout=timeout_s)
+    except subprocess.TimeoutExpired:
+        proc.terminate()
+        try:
+            return proc.wait(timeout=5.0)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            return proc.wait(timeout=5.0)
+    finally:
+        if handle is not None:
+            handle.close()
+
+
+def terminate_process(proc: subprocess.Popen[str], timeout_s: float = 10.0) -> int:
+    if proc.poll() is not None:
+        return close_process(proc, 0.1)
+    proc.terminate()
+    return close_process(proc, timeout_s)
+
+
+def process_metrics(pid: int) -> dict[str, Any]:
+    try:
+        output = subprocess.check_output(
+            ["ps", "-p", str(pid), "-o", "rss=", "-o", "%cpu=", "-o", "etime="],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except subprocess.SubprocessError:
+        return {"rssKb": 0, "cpuPercent": 0.0, "etime": ""}
+    parts = output.split(None, 2)
+    if len(parts) < 2:
+        return {"rssKb": 0, "cpuPercent": 0.0, "etime": output}
+    return {
+        "rssKb": int(float(parts[0] or 0)),
+        "cpuPercent": float(parts[1] or 0.0),
+        "etime": parts[2] if len(parts) > 2 else "",
+    }
+
+
+def create_dashboard_tap(base: str, file_token: str) -> str:
+    query = urllib.parse.urlencode(
+        {
+            "file": file_token,
+            "va": "1",
+            "profileId": f"runtime-console-longrun-{int(time.time())}",
+        }
+    )
+    payload = request_json(base, "POST", f"/lab/analysis/taps?{query}", 10.0)
+    tap_id = str(payload.get("tapId") or "")
+    if not tap_id:
+        raise RuntimeError(f"analysis tap creation failed: {payload}")
+    return tap_id
+
+
+def delete_tap(base: str, tap_id: str) -> None:
+    if tap_id:
+        try:
+            request_json(base, "DELETE", f"/lab/analysis/taps/{urllib.parse.quote(tap_id)}", 5.0)
+        except Exception as exc:  # noqa: BLE001
+            log(f"[warn] dashboard tap cleanup failed: {exc}")
+
+
+def runtime_counts(payload: dict[str, Any]) -> dict[str, int]:
+    session = payload.get("sessionManager") if isinstance(payload.get("sessionManager"), dict) else {}
+    webrtc = payload.get("webrtcHttp") if isinstance(payload.get("webrtcHttp"), dict) else {}
+    metadata = webrtc.get("metadataSideChannel") if isinstance(webrtc.get("metadataSideChannel"), dict) else {}
+    return {
+        "activeSessions": int(session.get("activeSessions", 0) or 0),
+        "resourceActiveStreams": int(session.get("resourceActiveStreams", 0) or 0),
+        "registryActiveStreams": int(session.get("registryActiveStreams", 0) or 0),
+        "activeAnalysisTaps": int(session.get("activeAnalysisTaps", 0) or 0),
+        "egressSessions": int(webrtc.get("egressSessions", 0) or 0),
+        "publishSessions": int(webrtc.get("publishSessions", 0) or 0),
+        "activeSseClients": int(metadata.get("activeSseClients", 0) or 0),
+        "activeWebSocketClients": int(metadata.get("activeWebSocketClients", 0) or 0),
+    }
+
+
+def collect_sample(base: str, pid: int, tap_id: str) -> dict[str, Any]:
+    runtime = request_json(base, "GET", "/lab/runtime/status", 5.0)
+    sample: dict[str, Any] = {
+        "timestampMs": int(time.time() * 1000),
+        "process": process_metrics(pid),
+        "runtime": runtime_counts(runtime),
+    }
+    if tap_id:
+        metrics = request_json(base, "GET", f"/lab/analysis/taps/{urllib.parse.quote(tap_id)}/metrics", 5.0)
+        tap_state = metrics.get("tapState") if isinstance(metrics.get("tapState"), dict) else {}
+        track_state = metrics.get("trackState") if isinstance(metrics.get("trackState"), dict) else {}
+        report = metrics.get("metricsReport") if isinstance(metrics.get("metricsReport"), dict) else {}
+        sample["tapMetrics"] = {
+            "decodedFrames": int(tap_state.get("decodedFrames", 0) or 0),
+            "sampledFrames": int(tap_state.get("sampledFrames", 0) or 0),
+            "analyzedPackets": int(tap_state.get("analyzedPackets", 0) or 0),
+            "pendingFrames": int(tap_state.get("pendingFrames", 0) or 0),
+            "peakPendingFrames": int(tap_state.get("peakPendingFrames", 0) or 0),
+            "inferenceMs": float(tap_state.get("averageInferenceMs", 0) or 0.0),
+            "activeTracks": int(track_state.get("activeTracks", 0) or 0),
+            "lostTracks": int(track_state.get("lostTracks", 0) or 0),
+            "scenarioInstances": int((report.get("scenarioInstances") or report.get("activeScenarioCount") or 0) or 0),
+            "eventEmittedCount": int((report.get("eventEmittedCount") or report.get("eventsEmitted") or 0) or 0),
+            "eventDedupCount": int((report.get("eventDedupCount") or 0) or 0),
+        }
+    return sample
+
+
+def wait_runtime_idle(base: str, timeout_s: float, samples: list[dict[str, Any]]) -> tuple[bool, dict[str, int]]:
+    deadline = time.monotonic() + timeout_s
+    latest: dict[str, int] = {}
+    while time.monotonic() < deadline:
+        try:
+            latest = runtime_counts(request_json(base, "GET", "/lab/runtime/status", 5.0))
+            samples.append({"timestampMs": int(time.time() * 1000), "runtime": latest, "phase": "cleanup"})
+            if all(value == 0 for value in latest.values()):
+                return True, latest
+        except Exception:
+            pass
+        time.sleep(1.0)
+    return False, latest
+
+
+def ports_clean(ports: list[int]) -> bool:
+    for port in sorted(set(ports)):
+        result = subprocess.run(
+            ["lsof", "-nP", f"-iTCP:{port}", "-sTCP:LISTEN"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+        if result.returncode == 0:
+            return False
+    return True
+
+
+def load_json(path: Path) -> dict[str, Any]:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def parse_metadata_log(server_log: Path) -> dict[str, int]:
+    totals = {"metadataMessagesSent": 0, "metadataMessagesDropped": 0, "metadataSendFailures": 0}
+    if not server_log.exists():
+        return totals
+    pattern = re.compile(r"\[webrtc-metadata\] close .* sent=(\d+) dropped=(\d+) failures=(\d+)")
+    for line in server_log.read_text(encoding="utf-8", errors="replace").splitlines():
+        match = pattern.search(line)
+        if not match:
+            continue
+        totals["metadataMessagesSent"] += int(match.group(1))
+        totals["metadataMessagesDropped"] += int(match.group(2))
+        totals["metadataSendFailures"] += int(match.group(3))
+    return totals
+
+
+def write_report(report_file: Path, summary: dict[str, Any]) -> None:
+    lines = [
+        "# VA Runtime Console Long-run Report",
+        "",
+        f"- status: `{summary['status']}`",
+        f"- durationSec: `{summary['durationSec']}`",
+        f"- clients: `{summary['clients']}`",
+        f"- includeRtsp: `{summary['includeRtsp']}`",
+        f"- includeSideChannel: `{summary['includeSideChannel']}`",
+        f"- includeDashboard: `{summary['includeDashboard']}`",
+        f"- summary: `{summary['summaryFile']}`",
+        f"- workDir: `{summary['workDir']}`",
+        "",
+        "## Metrics",
+        "",
+        f"- maxRssKb: `{summary['metrics']['maxRssKb']}`",
+        f"- maxCpuPercent: `{summary['metrics']['maxCpuPercent']}`",
+        f"- dashboardPollingCount: `{summary['metrics']['dashboardPollingCount']}`",
+        f"- sseMessageCount: `{summary['metrics']['sseMessageCount']}`",
+        f"- webrtcMetadataMessageCount: `{summary['metrics']['webrtcMetadataMessageCount']}`",
+        f"- metadataMessagesSent: `{summary['metrics']['metadataMessagesSent']}`",
+        f"- metadataMessagesDropped: `{summary['metrics']['metadataMessagesDropped']}`",
+        f"- metadataSendFailures: `{summary['metrics']['metadataSendFailures']}`",
+        "",
+        "## Cleanup",
+        "",
+        f"- runtimeIdle: `{summary['cleanup']['runtimeIdle']}`",
+        f"- portsClean: `{summary['cleanup']['portsClean']}`",
+        f"- finalRuntime: `{summary['cleanup']['finalRuntime']}`",
+        "",
+        "## Steps",
+        "",
+    ]
+    for step in summary["steps"]:
+        lines.append(f"- `{step['name']}`: `{step['status']}` log=`{step.get('logFile', '')}`")
+    report_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def main() -> int:
+    args = parse_args()
+    if args.duration_minutes <= 0:
+        raise SystemExit("--duration-minutes must be greater than 0")
+    if args.clients <= 0:
+        raise SystemExit("--clients must be greater than 0")
+    if args.no_sidechannel:
+        args.include_sidechannel = False
+    if args.no_dashboard:
+        args.include_dashboard = False
+
+    root = Path(__file__).resolve().parents[2]
+    run_id = f"va-runtime-longrun-{int(time.time())}-{os.getpid()}"
+    work_dir = Path(args.work_dir or f"/tmp/media_server_{run_id}")
+    work_dir.mkdir(parents=True, exist_ok=True)
+    summary_file = Path(args.summary_file or f"/tmp/media_server_{run_id}_summary.json")
+    report_file = Path(args.report_file or f"/tmp/media_server_{run_id}_report.md")
+    server_log = work_dir / "server.log"
+    http_base = f"http://127.0.0.1:{args.http_port}"
+    rtsp_base = f"rtsp://127.0.0.1:{args.rtsp_port}/dhseo"
+    duration_sec = int(args.duration_minutes * 60)
+    duration_ms = duration_sec * 1000
+
+    steps: list[dict[str, Any]] = []
+    samples: list[dict[str, Any]] = []
+    children: list[tuple[str, subprocess.Popen[str], Path]] = []
+    server_proc: subprocess.Popen[str] | None = None
+    dashboard_tap_id = ""
+
+    def step(name: str, status: str, log_path: Path | str = "", extra: dict[str, Any] | None = None) -> None:
+        record = {"name": name, "status": status, "logFile": str(log_path)}
+        if extra:
+            record.update(extra)
+        steps.append(record)
+        log(f"[{status}] {name}" + (f" log={log_path}" if log_path else ""))
+
+    try:
+        if not args.skip_build:
+            build_log = work_dir / "build.log"
+            code = run_command(["./server.sh", "build"], root, build_log)
+            step("build", "pass" if code == 0 else "fail", build_log, {"exitCode": code})
+            if code != 0:
+                raise RuntimeError("build failed")
+        else:
+            step("build", "skip")
+
+        env = os.environ.copy()
+        env.update(
+            {
+                "MEDIA_SERVER_SKIP_BUILD": "1",
+                "MEDIA_SERVER_LISTEN_ADDRESS": "127.0.0.1",
+                "MEDIA_SERVER_HTTP_LISTEN_ADDRESS": "127.0.0.1",
+                "MEDIA_SERVER_LISTEN_PORT": str(args.rtsp_port),
+                "MEDIA_SERVER_HTTP_LISTEN_PORT": str(args.http_port),
+                "MEDIA_SERVER_FORCE_RTSP_TCP": "1",
+                "MEDIA_SERVER_WEBRTC_TRACE": "1",
+            }
+        )
+        server_proc = popen_command(["./server.sh", "foreground"], root, server_log, env)
+        wait_health(http_base, 30.0)
+        step("server-start", "pass", server_log, {"pid": server_proc.pid})
+
+        if args.include_dashboard:
+            dashboard_tap_id = create_dashboard_tap(http_base, args.file)
+            step("dashboard-tap-create", "pass", "", {"tapId": dashboard_tap_id})
+        else:
+            step("dashboard", "skip")
+
+        for index in range(args.clients):
+            summary = work_dir / f"webrtc-client-{index + 1}-summary.json"
+            log_path = work_dir / f"webrtc-client-{index + 1}.log"
+            command = [
+                "./server.sh",
+                "verify-webrtc-va-metadata",
+                "--http-base",
+                http_base,
+                "--file",
+                args.file,
+                "--timeout-ms",
+                str(duration_ms + 45000),
+                "--hold-ms",
+                str(duration_ms),
+                "--summary-file",
+                str(summary),
+                "--debug-port",
+                str(9233 + index),
+            ]
+            children.append((f"webrtc-client-{index + 1}", popen_command(command, root, log_path), log_path))
+            step(f"webrtc-client-{index + 1}-start", "pass", log_path)
+
+        if args.include_sidechannel:
+            sse_summary = work_dir / "sse-sidechannel-summary.json"
+            sse_log = work_dir / "sse-sidechannel.log"
+            command = [
+                "./server.sh",
+                "verify-va-metadata-sidechannel",
+                "--http-base",
+                http_base,
+                "--file",
+                args.file,
+                "--timeout-ms",
+                str(duration_ms + 30000),
+                "--interval-ms",
+                "500",
+                "--max-messages",
+                "0",
+                "--stream-max-duration-ms",
+                str(duration_ms),
+                "--skip-cleanup-count-check",
+                "--summary-file",
+                str(sse_summary),
+            ]
+            children.append(("sse-sidechannel", popen_command(command, root, sse_log), sse_log))
+            step("sse-sidechannel-start", "pass", sse_log)
+        else:
+            step("sse-sidechannel", "skip")
+
+        if args.include_rtsp:
+            rtsp_log = work_dir / "rtsp-overlay.log"
+            encoded_file = urllib.parse.quote(args.file, safe="")
+            rtsp_url = f"{rtsp_base}?file={encoded_file}&va=1"
+            command = [
+                "ffmpeg",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-rtsp_transport",
+                "tcp",
+                "-fflags",
+                "+genpts+igndts",
+                "-use_wallclock_as_timestamps",
+                "1",
+                "-i",
+                rtsp_url,
+                "-t",
+                str(duration_sec),
+                "-an",
+                "-f",
+                "null",
+                "-",
+            ]
+            children.append(("rtsp-overlay", popen_command(command, root, rtsp_log), rtsp_log))
+            step("rtsp-overlay-start", "pass", rtsp_log, {"url": rtsp_url})
+        else:
+            step("rtsp-overlay", "skip")
+
+        deadline = time.monotonic() + duration_sec
+        dashboard_poll_count = 0
+        while time.monotonic() < deadline:
+            try:
+                sample = collect_sample(http_base, server_proc.pid, dashboard_tap_id if args.include_dashboard else "")
+                samples.append(sample)
+                dashboard_poll_count += 1 if args.include_dashboard else 0
+                counts = sample.get("runtime", {})
+                rss = sample.get("process", {}).get("rssKb", 0)
+                log(
+                    "[sample] "
+                    f"rssKb={rss} activeSessions={counts.get('activeSessions', 0)} "
+                    f"taps={counts.get('activeAnalysisTaps', 0)} "
+                    f"sse={counts.get('activeSseClients', 0)} ws={counts.get('activeWebSocketClients', 0)}"
+                )
+            except Exception as exc:  # noqa: BLE001
+                step("poll-sample", "fail", "", {"error": str(exc)})
+            time.sleep(max(args.poll_interval_seconds, 1.0))
+
+        child_results = []
+        for name, proc, log_path in children:
+            code = close_process(proc, 30.0)
+            status = "pass" if code == 0 else "fail"
+            step(name, status, log_path, {"exitCode": code})
+            child_results.append({"name": name, "exitCode": code, "logFile": str(log_path)})
+
+        delete_tap(http_base, dashboard_tap_id)
+        dashboard_tap_id = ""
+        runtime_idle, final_runtime = wait_runtime_idle(http_base, 30.0, samples)
+        step("runtime-cleanup", "pass" if runtime_idle else "fail", "", {"finalRuntime": final_runtime})
+    except Exception as exc:  # noqa: BLE001
+        step("longrun", "fail", "", {"error": str(exc)})
+    finally:
+        if dashboard_tap_id:
+            delete_tap(http_base, dashboard_tap_id)
+        for _name, proc, _log_path in children:
+            if proc.poll() is None:
+                terminate_process(proc, 5.0)
+        if server_proc is not None and server_proc.poll() is None:
+            server_proc.send_signal(signal.SIGTERM)
+            close_process(server_proc, 10.0)
+
+    port_ok = ports_clean([args.http_port, args.rtsp_port, 8080, 8081, 8554, 8555])
+    step("ports-clean", "pass" if port_ok else "fail")
+
+    webrtc_message_count = 0
+    sse_message_count = 0
+    for path in work_dir.glob("*summary.json"):
+        payload = load_json(path)
+        if payload.get("kind") == "webrtc-va-metadata":
+            webrtc_message_count += int(payload.get("metadataMessageCount", 0) or 0)
+        elif payload.get("kind") == "va-metadata-sidechannel":
+            sse_message_count += int(payload.get("metadataMessageCount", 0) or 0)
+
+    rss_values = [int(((sample.get("process") or {}).get("rssKb") or 0)) for sample in samples if "process" in sample]
+    cpu_values = [float(((sample.get("process") or {}).get("cpuPercent") or 0.0)) for sample in samples if "process" in sample]
+    server_metadata = parse_metadata_log(server_log)
+    failed_steps = [item for item in steps if item.get("status") == "fail"]
+    summary = {
+        "kind": "va-runtime-console-longrun",
+        "status": "fail" if failed_steps else "pass",
+        "ok": not failed_steps,
+        "pass": len([item for item in steps if item.get("status") == "pass"]),
+        "fail": len(failed_steps),
+        "skip": len([item for item in steps if item.get("status") == "skip"]),
+        "durationSec": duration_sec,
+        "durationMinutes": args.duration_minutes,
+        "clients": args.clients,
+        "includeRtsp": bool(args.include_rtsp),
+        "includeSideChannel": bool(args.include_sidechannel),
+        "includeDashboard": bool(args.include_dashboard),
+        "httpBase": http_base,
+        "rtspBase": rtsp_base,
+        "file": args.file,
+        "workDir": str(work_dir),
+        "summaryFile": str(summary_file),
+        "reportFile": str(report_file),
+        "metrics": {
+            "sampleCount": len(samples),
+            "maxRssKb": max(rss_values) if rss_values else 0,
+            "firstRssKb": rss_values[0] if rss_values else 0,
+            "lastRssKb": rss_values[-1] if rss_values else 0,
+            "maxCpuPercent": max(cpu_values) if cpu_values else 0.0,
+            "dashboardPollingCount": len([item for item in samples if "tapMetrics" in item]),
+            "webrtcMetadataMessageCount": webrtc_message_count,
+            "sseMessageCount": sse_message_count,
+            **server_metadata,
+        },
+        "cleanup": {
+            "runtimeIdle": not any(item.get("name") == "runtime-cleanup" and item.get("status") == "fail" for item in steps),
+            "portsClean": port_ok,
+            "finalRuntime": next((item.get("finalRuntime") for item in reversed(steps) if item.get("name") == "runtime-cleanup"), {}),
+        },
+        "steps": steps,
+        "samples": samples[-120:],
+    }
+    summary_file.write_text(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_report(report_file, summary)
+    log(f"[summary-json] {summary_file}")
+    log(f"[report-md] {report_file}")
+    log(f"[summary] pass={summary['pass']} fail={summary['fail']} skip={summary['skip']}")
+    return 0 if summary["ok"] else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

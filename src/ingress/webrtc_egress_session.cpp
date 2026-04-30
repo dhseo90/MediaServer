@@ -883,7 +883,48 @@ void WebRtcEgressSession::SetMetadataChannelConfig(WebRtcMetadataChannelConfig c
     last_metadata_sent_at_ms_ = 0;
     metadata_messages_sent_ = 0;
     metadata_messages_dropped_ = 0;
+    metadata_messages_skipped_ = 0;
+    metadata_interval_skipped_ = 0;
+    metadata_oversized_dropped_ = 0;
+    metadata_buffered_dropped_ = 0;
     metadata_send_failures_ = 0;
+    metadata_last_buffered_amount_ = 0;
+    metadata_max_buffered_amount_ = 0;
+    metadata_last_message_bytes_ = 0;
+    metadata_max_message_bytes_observed_ = 0;
+}
+
+bool WebRtcEgressSession::MetadataChannelReady() const {
+    std::lock_guard lock(metadata_mu_);
+    return metadata_channel_config_.enabled && metadata_channel_open_
+#if MEDIA_SERVER_USE_GSTREAMER
+           && metadata_data_channel_ != nullptr
+#endif
+        ;
+}
+
+WebRtcMetadataChannelStats WebRtcEgressSession::MetadataChannelStatsSnapshot() const {
+    std::lock_guard lock(metadata_mu_);
+    WebRtcMetadataChannelStats stats;
+    stats.session_id = session_id_;
+    stats.enabled = metadata_channel_config_.enabled;
+    stats.open = metadata_channel_open_;
+    stats.label = metadata_channel_config_.label;
+    stats.interval_ms = metadata_channel_config_.interval_ms;
+    stats.max_message_bytes = metadata_channel_config_.max_message_bytes;
+    stats.max_buffered_bytes = metadata_channel_config_.max_buffered_bytes;
+    stats.sent_count = metadata_messages_sent_;
+    stats.dropped_count = metadata_messages_dropped_;
+    stats.skipped_count = metadata_messages_skipped_;
+    stats.interval_skipped_count = metadata_interval_skipped_;
+    stats.oversized_drop_count = metadata_oversized_dropped_;
+    stats.buffered_drop_count = metadata_buffered_dropped_;
+    stats.send_failure_count = metadata_send_failures_;
+    stats.last_buffered_amount = metadata_last_buffered_amount_;
+    stats.max_buffered_amount = metadata_max_buffered_amount_;
+    stats.last_message_bytes = metadata_last_message_bytes_;
+    stats.max_message_bytes_observed = metadata_max_message_bytes_observed_;
+    return stats;
 }
 
 bool WebRtcEgressSession::PublishAnalysisMetadata(const std::string& message) {
@@ -899,15 +940,22 @@ bool WebRtcEgressSession::PublishAnalysisMetadata(const std::string& message) {
     {
         std::lock_guard lock(metadata_mu_);
         if (!metadata_channel_config_.enabled || metadata_data_channel_ == nullptr || !metadata_channel_open_) {
+            ++metadata_messages_skipped_;
             return false;
         }
+        metadata_last_message_bytes_ = static_cast<std::uint64_t>(message.size());
+        metadata_max_message_bytes_observed_ =
+            std::max(metadata_max_message_bytes_observed_, metadata_last_message_bytes_);
         if (metadata_channel_config_.interval_ms > 0 &&
             now_ms - last_metadata_sent_at_ms_ < metadata_channel_config_.interval_ms) {
             ++metadata_messages_dropped_;
+            ++metadata_messages_skipped_;
+            ++metadata_interval_skipped_;
             return false;
         }
         if (message.size() > metadata_channel_config_.max_message_bytes) {
             ++metadata_messages_dropped_;
+            ++metadata_oversized_dropped_;
             if (app::GetAppConfig().webrtc_trace && metadata_messages_dropped_ <= 3) {
                 std::cerr << "[webrtc-metadata] drop oversized session=" << session_id_
                           << " bytes=" << message.size()
@@ -917,8 +965,16 @@ bool WebRtcEgressSession::PublishAnalysisMetadata(const std::string& message) {
         }
         guint64 buffered_amount = 0;
         g_object_get(metadata_data_channel_, "buffered-amount", &buffered_amount, nullptr);
+        metadata_last_buffered_amount_ = static_cast<std::uint64_t>(buffered_amount);
+        metadata_max_buffered_amount_ = std::max(metadata_max_buffered_amount_, metadata_last_buffered_amount_);
         if (buffered_amount > metadata_channel_config_.max_buffered_bytes) {
             ++metadata_messages_dropped_;
+            ++metadata_buffered_dropped_;
+            if (app::GetAppConfig().webrtc_trace && metadata_buffered_dropped_ <= 3) {
+                std::cerr << "[webrtc-metadata] drop buffered session=" << session_id_
+                          << " buffered=" << buffered_amount
+                          << " max=" << metadata_channel_config_.max_buffered_bytes << "\n";
+            }
             return false;
         }
         channel = GST_WEBRTC_DATA_CHANNEL(g_object_ref(metadata_data_channel_));
@@ -936,6 +992,7 @@ bool WebRtcEgressSession::PublishAnalysisMetadata(const std::string& message) {
     {
         std::lock_guard lock(metadata_mu_);
         ++metadata_send_failures_;
+        ++metadata_messages_dropped_;
     }
     if (app::GetAppConfig().webrtc_trace) {
         std::cerr << "[webrtc-metadata] send failed session=" << session_id_
@@ -1952,6 +2009,9 @@ void WebRtcEgressSession::HandleMetadataChannelClose() {
         std::cerr << "[webrtc-metadata] close session=" << session_id_
                   << " sent=" << metadata_messages_sent_
                   << " dropped=" << metadata_messages_dropped_
+                  << " skipped=" << metadata_messages_skipped_
+                  << " bufferedDrops=" << metadata_buffered_dropped_
+                  << " maxBuffered=" << metadata_max_buffered_amount_
                   << " failures=" << metadata_send_failures_ << "\n";
     }
 }

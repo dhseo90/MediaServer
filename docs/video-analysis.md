@@ -42,7 +42,8 @@ Source Stream
   -> RuleEventEngine
   -> ScenarioEngine
   -> EventManager
-  -> Overlay / Metadata / Event POST / EventRecord / WebRTC DataChannel
+  -> VaRuntimeMetadataBuilder
+  -> Overlay / Runtime Metadata / Event POST / EventRecord / WebRTC DataChannel / SSE-WS Side-Channel
 ```
 
 ### YOLO/ONNX Detection
@@ -413,7 +414,85 @@ Snapshot/clip hook 상태:
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-storage/status'
 ```
 
-## 12. WebRTC VA Metadata DataChannel
+## 12. VA Runtime Metadata
+
+`VaRuntimeMetadataBuilder`는 WebRTC DataChannel, Lab runtime dashboard, SSE/WebSocket side-channel이 공통으로 쓸 내부 frame 구조를 만듭니다.
+
+현재 구현 상태:
+
+- 구현 완료: 내부 `VaRuntimeMetadataFrame` 구조와 builder
+- 구현 완료: WebRTC DataChannel 호환 serializer
+- 구현 완료: SSE/WebSocket side-channel용 runtime metadata JSON 직렬화
+- 구현 완료: Lab 런타임 대시보드의 metrics/state dump 표시 경로
+- 예정: WebSocket command/filter/subscribe-unsubscribe 제어와 custom client SDK 수준의 예제
+
+내부 schema:
+
+- `media-server.va.runtime-metadata.v1`
+
+내부 frame 구조:
+
+- `schema`
+- `streamId` / `channelId`
+- `frameId`
+- `pts` / `timestampMs`
+- `videoFramePtsMs` / `analysisPtsMs` / `syncDeltaMs`
+- `syncStatus` / `syncToleranceMs`
+- `metadataSequence` / `sentAtMs`
+- `frameWidth` / `frameHeight` / `coordinateSpace`
+- `source`
+- `tracks[]`
+- `events[]`
+- `scenarios[]`
+- `metrics`
+- `trackingIssueReport`
+
+`tracks[]`는 trackId, className, confidence, bbox, currentZone, dwellTimeMs, scenarioPhase, TrackHealth를 포함합니다. `events[]`는 eventId, eventType, status, zoneId, lineId, scenarioName, scenarioPhase를 포함합니다.
+
+기존 외부 event JSON/API/POST 형식은 이 내부 frame으로 바꾸지 않습니다. Event POST와 `/lab/analysis/taps/{tapId}/events`는 기존 payload 호환성을 유지합니다.
+
+WebRTC DataChannel은 기존 외부 schema인 `media-server.webrtc.va-metadata.v1`을 유지합니다. 내부 builder가 만든 frame을 WebRTC 호환 serializer로 투영하며, `source`, `scenarios`, `metrics`, `trackingIssueReport` 같은 dashboard 전용 필드는 DataChannel 기존 schema에 추가하지 않습니다.
+
+message size 보호는 두 단계로 둡니다.
+
+- builder: track/event count budget을 적용할 수 있는 구조
+- publisher: `vaMetadataMaxMessageBytes`, `vaMetadataMaxBufferedBytes`, `vaMetadataIntervalMs`로 최종 전송 제한
+- SSE/WebSocket side-channel: `intervalMs`, `maxMessageBytes`, `maxTracks`, `maxEvents` query로 전송량 제한
+
+WebRTC DataChannel 송신 backpressure 정책:
+
+- DataChannel이 아직 열리지 않았거나 닫힌 상태이면 WebRTC metadata JSON을 만들지 않고 전송도 시도하지 않는다.
+- `vaMetadataIntervalMs`보다 짧은 간격의 송신 요청은 throttle되어 skip/drop counter에 기록된다.
+- message가 `vaMetadataMaxMessageBytes`를 넘으면 전송하지 않고 drop한다.
+- GStreamer DataChannel의 `buffered-amount`가 `vaMetadataMaxBufferedBytes`를 넘으면 전송하지 않고 drop한다.
+- DataChannel send 실패는 metadata 실패로만 기록하고 WebRTC video/audio session 실패로 전파하지 않는다.
+- `/lab/runtime/status`의 `webrtcHttp.metadataDataChannel`에서 `sentCount`, `droppedCount`, `skippedCount`, `intervalSkippedCount`, `oversizedDropCount`, `bufferedDropCount`, `sendFailureCount`, `maxBufferedAmount`를 확인할 수 있다.
+
+WebRTC metadata interval 튜닝 기준:
+
+- 서버 기본 interval은 현재 기본값을 유지한다. interval을 낮추는 것은 client-side overlay 갱신 빈도를 늘리는 것이며, video frame과 analysis result의 PTS sync 문제를 대신 해결하지 않는다.
+- 테스트 query로는 `vaMetadataIntervalMs=100`, `vaMetadataIntervalMs=200`, `vaMetadataIntervalMs=500`을 사용한다.
+- `vaMetadataMaxBufferedBytes`를 낮추거나 interval을 과도하게 줄였을 때 DataChannel buffered amount가 증가하면 interval을 더 낮추지 않는다.
+- publisher drop은 `metadataSequence` gap으로 추정할 수 있지만, 이 값은 interval gate에 의한 정상 suppression과 buffered/full drop을 구분하지 않는다. 정확한 server-side `sent/dropped/failures` 집계는 `MEDIA_SERVER_WEBRTC_TRACE=1`의 `[webrtc-metadata] close` 로그 또는 longrun summary에서 확인한다.
+
+2026-04-30 로컬 단일 WebRTC viewer, `imports/va_tracking_event_1280x720_30fps_h264.mp4`, 8초 유지 측정:
+
+| `vaMetadataIntervalMs` | 수신 메시지 | 평균 수신 간격 | sequence gap 추정 | 평균 `abs(syncDeltaMs)` | 최대 `abs(syncDeltaMs)` | client `bufferedAmount` max |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 100 | 71 | 117.03ms | 179 | 173.83ms | 266ms | 0 |
+| 200 | 38 | 219.54ms | 210 | 174.21ms | 266ms | 0 |
+| 500 | 16 | 516.07ms | 225 | 174.56ms | 266ms | 0 |
+
+추가 공격 조건으로 `vaMetadataIntervalMs=0`, `vaMetadataMaxBufferedBytes=1024`를 같은 환경에서 8초 실행했을 때 수신 메시지는 250개, 평균 수신 간격은 32.86ms, sequence gap 추정은 0, client `bufferedAmount` max는 0이었다. 이 로컬 조건에서는 max buffered bytes 초과 drop이 재현되지 않았다.
+
+권장값:
+
+- 다채널/운영 기본: 현재 기본값 `500ms` 유지.
+- Lab 단일 viewer에서 더 부드러운 client-side overlay가 필요할 때: `200ms`부터 테스트.
+- 단일 스트림 sync 진단/데모: `100ms` 사용 가능. 단, `bufferedAmount`, sequence gap, CPU/네트워크 사용량을 함께 확인한다.
+- `100ms`에서도 sync delta가 줄지 않으면 interval보다 analysis latency, PTS 기준, frame sampling, inference cadence를 먼저 본다.
+
+## 13. WebRTC VA Metadata DataChannel
 
 WebRTC VA metadata DataChannel은 기본 off입니다. `vaMetadata=1` query 또는 관련 env로 명시적으로 켭니다.
 
@@ -428,6 +507,16 @@ WebRTC VA metadata DataChannel은 기본 off입니다. `vaMetadata=1` query 또�
   "frameId": 123,
   "pts": 123456789,
   "timestampMs": 123456,
+  "videoFramePtsMs": 123456,
+  "analysisPtsMs": 123456,
+  "syncDeltaMs": 0,
+  "syncStatus": "exact",
+  "syncToleranceMs": 200,
+  "metadataSequence": 42,
+  "sentAtMs": 1760000000000,
+  "frameWidth": 1280,
+  "frameHeight": 720,
+  "coordinateSpace": "normalized-frame",
   "tracks": [
     {
       "trackId": 7,
@@ -473,7 +562,147 @@ WebRTC VA metadata DataChannel은 기본 off입니다. `vaMetadata=1` query 또�
 
 전송 주기와 message/buffer 상한은 config/query로 제한합니다. DataChannel 생성/전송 실패가 audio/video streaming 실패로 이어지면 안 됩니다.
 
-## 13. Debug Overlay / State Dump
+Lab의 WebRTC 메타데이터 뷰어는 이 메시지를 수신해 browser client-side canvas overlay를 그릴 수 있습니다.
+`bbox`는 원본 frame 기준 normalized `[0, 1]` 좌표이며, viewer는 `video.videoWidth/videoHeight`와 현재 표시 영역의 letterbox offset을 사용해 화면 좌표로 변환합니다.
+`frameWidth/frameHeight`는 metadata가 계산된 원본 frame 크기 진단값이며, `coordinateSpace`는 현재 `normalized-frame`입니다.
+WebRTC 메타데이터 뷰어는 영상 위에 server-side bbox를 합성하지 않고, DataChannel metadata를 받은 브라우저 canvas가 현재 관측 중인 track만 그립니다. `missedFrameCount > 0` 또는 lost/terminated track은 상태/진단용으로는 유지할 수 있지만 viewer overlay 대상에서는 제외합니다.
+client-side overlay는 WebRTC browser viewer 전용입니다. RTSP 일반 viewer는 metadata DataChannel을 이해하지 못하므로 기존 server-side overlay를 사용합니다.
+
+Fallback 정책:
+
+- RTSP/server-side overlay는 가까운 PTS 분석 결과가 없을 때 기존처럼 latest result fallback을 사용할 수 있습니다.
+- WebRTC DataChannel payload는 fallback 사용 여부를 `syncStatus=fallback-latest`로 명시합니다.
+- WebRTC client-side overlay는 기본적으로 `fallback-latest` metadata를 그리지 않습니다. 현재 표시 중인 video frame과 bbox가 어긋나는 것을 피하기 위한 정책입니다.
+- Lab viewer에서 `fallback metadata 표시(opt-in)`을 켜거나 URL에 `clientOverlayFallback=1` 또는 `vaMetadataDrawFallback=1`을 전달한 경우에만 fallback metadata를 흐리게 표시합니다.
+- fallback metadata가 숨겨진 횟수는 WebRTC 메타데이터 뷰어의 `Fallback 숨김` 지표로 확인합니다.
+- fallback을 숨겨도 WebRTC video/audio stream과 DataChannel 수신은 계속 유지됩니다.
+
+Sync 진단 필드:
+
+- `videoFramePtsMs`: WebRTC video overlay probe가 현재 처리 중인 video frame PTS를 ms로 환산한 값입니다.
+- `analysisPtsMs`: DataChannel payload에 사용된 분석 결과 PTS입니다.
+- `syncDeltaMs`: `analysisPtsMs - videoFramePtsMs`입니다. 양수면 분석 결과가 video frame보다 뒤쪽 PTS입니다.
+- `syncStatus`: `exact`, `near`, `fallback-latest`, `missing`, `stale` 중 하나입니다.
+- `exact/near`: `WaitAnalysisResultNearPts(...)`가 허용 오차 내 분석 결과를 찾은 경우입니다.
+- `fallback-latest`: 허용 오차 내 결과가 없어 기존 latest result fallback을 사용한 경우입니다.
+- `missing/stale`: 전송할 분석 결과가 없거나 너무 오래된 것으로 판단되는 경우의 진단 상태입니다.
+- `metadataSequence`: WebRTC metadata publisher 기준 단조 증가 sequence입니다.
+- `sentAtMs`: metadata message를 생성한 server wall-clock timestamp입니다.
+
+이 필드는 client-side overlay와 video presentation frame의 싱크 문제를 진단하기 위한 top-level 확장입니다. 기존 `tracks[]`, `events[]`, WebRTC audio/video 흐름, RTSP server-side overlay fallback, Event POST/API payload 형식은 바꾸지 않습니다.
+
+Client-side overlay draw / memory guard:
+
+- DataChannel message 수신 시점에는 overlay를 즉시 그리지 않고 bounded metadata buffer에 저장합니다.
+- overlay draw는 `requestVideoFrameCallback`의 현재 video presentation frame 기준으로 수행합니다. 지원하지 않는 브라우저는 `requestAnimationFrame + video.currentTime` fallback을 사용하되, video time이 전진한 경우에만 다시 그립니다.
+- browser `video.currentTime`과 backend PTS가 같은 기준이라고 가정하지 않고, 수신된 exact/near metadata로 offset을 보정한 뒤 가장 가까운 metadata를 선택합니다.
+- metadata buffer는 entry 수, 보관 시간, metadata age 기준으로 제한하며, 초과분은 오래된 항목부터 drop합니다. Lab UI에서는 `Metadata buffer`, `Metadata drop`, `표시 video frame`, `Overlay draw`, `영상 멈춤` 지표로 상태를 확인합니다.
+- 일정 시간 video frame callback이 없으면 `videoStalled=true`로 표시하고 overlay를 stale clear합니다. 이 상태에서도 DataChannel 수신은 유지하지만 bbox overlay는 새 metadata 기준으로 움직이지 않습니다.
+- 검증용 query(`verify-webrtc-va-metadata-sync`)에서만 synthetic metadata를 주입해 buffer 상한과 drop counter를 자동 확인합니다. 일반 viewer 동작에는 노출하지 않습니다.
+
+검증:
+
+```bash
+./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8080
+./server.sh verify-webrtc-va-metadata-sync --http-base http://127.0.0.1:8080
+```
+
+이 검증은 browser `RTCPeerConnection`으로 video track, ICE connected, `va-metadata` DataChannel open, 최소 1개 metadata message 수신을 확인합니다.
+`verify-webrtc-va-metadata-sync`는 Lab UI에서 WebRTC metadata viewer를 직접 열고, requestVideoFrameCallback frame 증가, fallback-latest 기본 숨김, metadata buffer 상한, stale clear, video stall 중 overlay draw 중단을 함께 검증합니다.
+
+## 14. SSE Metadata Side-Channel
+
+RTSP 일반 client는 DataChannel을 이해하지 못합니다. custom RTSP client나 외부 dashboard가 실시간 VA metadata를 받으려면 RTSP video와 별도의 SSE endpoint를 함께 소비합니다.
+
+Endpoint:
+
+```bash
+curl -N 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/metadata/stream'
+curl -N 'http://127.0.0.1:8080/lab/analysis/metadata/stream?vaRule=1'
+```
+
+정책:
+
+- message event payload는 `media-server.va.runtime-metadata.v1` 구조를 사용합니다.
+- `WebRTC DataChannel` 기존 외부 schema인 `media-server.webrtc.va-metadata.v1`은 변경하지 않습니다.
+- `intervalMs`로 최소 전송 간격을 제한합니다.
+- `maxMessageBytes`, `maxTracks`, `maxEvents`로 message 크기를 제한합니다.
+- 같은 frame의 metadata는 반복 전송하지 않고 heartbeat/stale comment로만 연결 상태를 유지합니다.
+- `/lab/analysis/metadata/stream?vaRule=<id>`는 연결 수명 동안 임시 analysis tap을 만들고, client disconnect 후 tap/runtime을 정리합니다.
+- `/lab/analysis/taps/{tapId}/metadata/stream`은 기존 active tap을 재사용합니다.
+- SSE 연결 실패나 client disconnect는 RTSP/WebRTC media pipeline 실패로 전파되지 않습니다.
+
+Custom client 예:
+
+```text
+RTSP video: rtsp://127.0.0.1:8554/dhseo?vaRule=1
+Metadata : http://127.0.0.1:8080/lab/analysis/metadata/stream?vaRule=1
+```
+
+VLC/ffplay/IINA 같은 일반 RTSP viewer는 SSE metadata를 표시하지 않습니다.
+Lab의 개발자 요청 URL 패널은 RTSP 원본 스트림과 SSE metadata stream을 `커스텀 RTSP + 메타데이터 연결 정보`로 함께 보여줍니다. SSE stream 자체는 `./server.sh verify-sse-metadata --http-base http://127.0.0.1:8080`로 smoke 검증할 수 있습니다.
+
+명시적 side-channel 검증:
+
+```bash
+./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8080
+```
+
+## 15. WebSocket Metadata Side-Channel
+
+WebSocket side-channel은 SSE와 같은 runtime metadata payload를 text frame으로 전달합니다. 현재 구현은 metadata subscribe 중심의 최소 구현이며, client command/filter/subscribe-unsubscribe 제어는 후속 확장입니다.
+
+Endpoint:
+
+```text
+WS /ws/va-metadata?tapId=<id>
+WS /ws/va-metadata?vaRule=<id>
+WS /ws/va-metadata?file=sample_h264.mp4
+```
+
+정책:
+
+- message text frame payload는 `media-server.va.runtime-metadata.v1` JSON입니다.
+- `intervalMs`, `maxMessageBytes`, `maxTracks`, `maxEvents`, `maxMessages`, `streamMaxDurationMs` query를 지원합니다.
+- `maxClients` query를 통해 동시 metadata WebSocket client 수를 제한합니다. 기본값은 16입니다.
+- `tapId=<id>`는 기존 active tap을 재사용합니다.
+- `vaRule=<id>` 또는 source query는 연결 수명 동안 임시 analysis tap을 만들고 disconnect 후 cleanup합니다.
+- WebSocket handshake/stream 실패는 RTSP/WebRTC media pipeline 실패로 전파되지 않습니다.
+- 기존 WebRTC DataChannel schema와 Event POST/API payload는 변경하지 않습니다.
+
+Smoke:
+
+```bash
+./server.sh verify-ws-metadata --http-base http://127.0.0.1:8080
+```
+
+## 16. Client-side Overlay / Server-side Overlay 정책
+
+VA overlay는 출력 방식에 따라 역할이 다릅니다.
+
+| 방식 | 현재 상태 | 설명 |
+| --- | --- | --- |
+| RTSP 서버 오버레이 | 구현 완료 | 일반 RTSP player가 볼 수 있도록 서버가 bbox/label을 영상 위에 직접 합성 |
+| WebRTC Server-side Overlay | 구현 완료 | `va=1`/`vaRule=<id>` 요청에서 서버 합성 영상 출력 |
+| WebRTC Client-side Overlay | 구현 완료 | `vaMetadata=1` DataChannel metadata를 브라우저 canvas가 그리는 Lab viewer 전용 표시 |
+| Custom RTSP + Side-channel Overlay | 예정 | custom client가 RTSP raw video와 SSE/WS metadata를 함께 받아 직접 overlay |
+
+RTSP 일반 viewer(VLC/ffplay/IINA)는 WebRTC DataChannel을 이해하지 못합니다. RTSP에서 metadata UI가 필요하면 server-side overlay를 사용하거나, custom client가 RTSP raw stream과 SSE/WS side-channel을 별도로 조합해야 합니다.
+
+Runtime Console 장시간 검증:
+
+```bash
+./server.sh verify-va-runtime-console-longrun \
+  --duration-minutes 30 \
+  --clients 1 \
+  --include-sidechannel \
+  --include-dashboard \
+  --include-rtsp
+```
+
+이 명령은 WebRTC DataChannel 수신, dashboard polling, SSE side-channel, 선택 RTSP server-side overlay consumer를 함께 유지하고 RSS/CPU/session/tap/metadata client cleanup을 summary JSON과 Markdown report로 남깁니다.
+
+## 17. Debug Overlay / State Dump
 
 Debug overlay는 기본 off입니다. 특정 tap 또는 overlay 요청에서만 `debugOverlay=1`, `debugState=1`, `vaDebug=1` 중 하나를 지정해 켭니다.
 
@@ -499,7 +728,10 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/overlay.jpg?debugOver
 
 Debug 출력은 내부 상태 확인용이며 기존 event JSON/API/POST 형식을 바꾸지 않습니다.
 
-## 14. Replay 검증
+Lab의 VA 런타임 대시보드는 위 endpoint와 `/lab/runtime/status`, event POST/storage status endpoint를 재사용해 운영 상태를 카드와 JSON으로 표시합니다.
+대시보드 탭이 닫혀 있을 때는 polling하지 않으며, 자동 갱신은 최소 2초 이상 간격으로 제한합니다.
+
+## 18. Replay 검증
 
 `replay-va-metadata`는 실제 RTSP/WebRTC pipeline 없이 detection/tracking metadata를 replay하는 도구입니다.
 
@@ -551,7 +783,7 @@ Debug 출력은 내부 상태 확인용이며 기존 event JSON/API/POST 형식�
 
 현재 검증 명령과 기준은 [stream-verification.md](./stream-verification.md)에 둡니다. 과거 날짜별 이력은 [history/verification-history.md](./history/verification-history.md)를 봅니다.
 
-## 15. 제한사항
+## 19. 제한사항
 
 - Tracker는 여전히 direction-based/lightweight tracker입니다. Kalman Filter, BoT-SORT, ByteTrack은 도입하지 않았습니다.
 - 실제 Re-ID/attribute 분석은 기본 비활성입니다. 실험용 ONNX Re-ID extractor hook은 있지만 운영 feature로 보려면 모델, 성능, 개인정보 정책 검증이 필요합니다.

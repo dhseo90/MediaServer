@@ -11,6 +11,7 @@
 #include "analysis/scenario_engine.h"
 #include "analysis/scene_context_builder.h"
 #include "analysis/track_state_manager.h"
+#include "analysis/va_runtime_metadata.h"
 #include "analysis/wrong_direction_scenario.h"
 #include "app_config.h"
 
@@ -1087,6 +1088,132 @@ void VerifyLoiteringScenario() {
     Pass("LoiteringScenario dwell/trajectory/radius/dedup/exit");
 }
 
+void VerifyVaRuntimeMetadataBuilder() {
+    AnalysisResult result;
+    result.source_key = "file:sample_h264.mp4";
+    result.profile_key = "server-default-va";
+    result.context.source_kind = "file";
+    result.context.route = "webrtc";
+    result.context.client_id = "browser-1";
+    result.context.va_rule_id = "3";
+    result.frame_id = 77;
+    result.pts = Ms(12345);
+
+    AnalysisDebugTrackState debug_track;
+    debug_track.stream_id = "file:sample_h264.mp4";
+    debug_track.channel_id = "browser-1";
+    debug_track.track_id = 7;
+    debug_track.class_id = 0;
+    debug_track.class_name = "person";
+    debug_track.confidence = 0.92F;
+    debug_track.bbox = RectF{0.2F, 0.3F, 0.1F, 0.2F};
+    debug_track.speed = 0.35;
+    debug_track.speed_units = "meters_per_second";
+    debug_track.current_zone = "restricted-zone";
+    debug_track.previous_zone = "lobby";
+    debug_track.dwell_time_ms = 3200;
+    debug_track.inside_restricted_zone = true;
+    debug_track.primary_line_id = "line-a";
+    debug_track.line_side = 1.0F;
+    debug_track.crossing_direction = "forward";
+    debug_track.scenario_name = "intrusion-dwell";
+    debug_track.scenario_phase = "Observing";
+    debug_track.association_confidence = 0.91F;
+    debug_track.overlap_risk = 0.2F;
+    debug_track.direction_change_count = 1;
+    debug_track.track_health = "stable";
+
+    AnalysisDebugState debug_state;
+    debug_state.enabled = true;
+    debug_state.stream_id = result.source_key;
+    debug_state.channel_id = "browser-1";
+    debug_state.tracks.push_back(debug_track);
+    result.debug_state = debug_state;
+
+    AnalysisMetricsReport metrics;
+    metrics.enabled = true;
+    metrics.timestamp_ms = 12345;
+    metrics.channel_count = 1;
+    metrics.active_track_count = 1;
+    metrics.active_scenario_count = 1;
+    metrics.active_event_state_count = 1;
+    metrics.event_emitted_count = 4;
+    metrics.event_dedup_count = 2;
+    metrics.track_health.unstable_track_count = 0;
+    metrics.track_health.overlap_risk_track_count = 1;
+    result.metrics_report = metrics;
+
+    AnalysisEvent event;
+    event.event_id = "evt-1";
+    event.event_type = "intrusion-dwell";
+    event.status = "confirmed";
+    event.rule_id = "scenario:intrusion-dwell";
+    event.track_id = 7;
+    event.class_id = 0;
+    event.label = "person";
+    event.score = 0.92F;
+    event.zone_id = "restricted-zone";
+    event.line_id = "line-a";
+    event.scenario_name = "intrusion-dwell";
+    event.scenario_phase = "Confirmed";
+
+    VaRuntimeMetadataBuildOptions options;
+    const auto frame = BuildVaRuntimeMetadataFrame(
+        result, {event}, options, "{\"issues\":[{\"type\":\"overlapRisk\"}]}");
+    Expect(frame.schema == kVaRuntimeMetadataSchema, "runtime metadata must use internal schema by default");
+    Expect(frame.stream_id == result.source_key && frame.channel_id == "browser-1",
+           "runtime metadata must keep stream/channel identity");
+    Expect(frame.source.va_rule_id == "3" && frame.source.route == "webrtc",
+           "runtime metadata must include source summary");
+    Expect(frame.tracks.size() == 1 && frame.tracks[0].track_id == 7 &&
+               frame.tracks[0].scenario_phase == "Observing" &&
+               frame.tracks[0].track_health.association_confidence > 0.9F,
+           "runtime metadata must include track context and TrackHealth");
+    Expect(frame.events.size() == 1 && frame.events[0].event_type == "intrusion-dwell" &&
+               frame.events[0].scenario_phase == "Confirmed",
+           "runtime metadata must include event context");
+    Expect(frame.scenarios.size() == 1 && frame.scenarios[0].scenario_name == "intrusion-dwell",
+           "runtime metadata must derive scenario summary from tracks");
+    Expect(frame.metrics.has_value() && frame.metrics->event_emitted_count == 4 &&
+               frame.metrics->event_dedup_count == 2,
+           "runtime metadata must include metrics summary when available");
+
+    const std::string runtime_json = SerializeVaRuntimeMetadataFrameJson(frame);
+    Expect(runtime_json.find("\"schema\":\"media-server.va.runtime-metadata.v1\"") != std::string::npos &&
+               runtime_json.find("\"source\"") != std::string::npos &&
+               runtime_json.find("\"scenarios\"") != std::string::npos &&
+               runtime_json.find("\"metrics\"") != std::string::npos &&
+               runtime_json.find("\"trackingIssueReport\"") != std::string::npos,
+           "runtime metadata JSON must include dashboard/side-channel fields");
+
+    VaRuntimeMetadataBuildOptions web_rtc_options;
+    web_rtc_options.schema = kWebRtcVaMetadataSchema;
+    web_rtc_options.include_source = false;
+    web_rtc_options.include_scenarios = false;
+    web_rtc_options.include_metrics = false;
+    web_rtc_options.include_tracking_issue_report = false;
+    const auto web_rtc_frame = BuildVaRuntimeMetadataFrame(result, {event}, web_rtc_options);
+    const std::string web_rtc_json = SerializeVaRuntimeMetadataFrameForWebRtcJson(web_rtc_frame);
+    Expect(web_rtc_json.find("\"schema\":\"media-server.webrtc.va-metadata.v1\"") != std::string::npos &&
+               web_rtc_json.find("\"tracks\"") != std::string::npos &&
+               web_rtc_json.find("\"events\"") != std::string::npos,
+           "WebRTC metadata serializer must keep existing schema and primary arrays");
+    Expect(web_rtc_json.find("\"source\"") == std::string::npos &&
+               web_rtc_json.find("\"scenarios\"") == std::string::npos &&
+               web_rtc_json.find("\"metrics\"") == std::string::npos &&
+               web_rtc_json.find("\"trackingIssueReport\"") == std::string::npos,
+           "WebRTC metadata serializer must not add runtime-only fields to the external schema");
+
+    VaRuntimeMetadataBuildOptions budget_options;
+    budget_options.max_tracks = 0;
+    budget_options.max_events = 1;
+    const auto budget_frame = BuildVaRuntimeMetadataFrame(result, {event, event}, budget_options);
+    Expect(budget_frame.events.size() == 1,
+           "runtime metadata builder must support event count budget before byte-size publishing limits");
+
+    Pass("VaRuntimeMetadata builder/schema/WebRTC compatibility");
+}
+
 }  // namespace
 
 int main() {
@@ -1100,6 +1227,7 @@ int main() {
         VerifyWrongDirectionScenario();
         VerifyIntrusionAfterLineCrossingScenario();
         VerifyLoiteringScenario();
+        VerifyVaRuntimeMetadataBuilder();
         std::cout << "[summary] pass=" << g_pass_count << " fail=0\n";
         return EXIT_SUCCESS;
     } catch (const std::exception& ex) {

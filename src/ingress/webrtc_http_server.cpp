@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cerrno>
 #include <chrono>
@@ -19,6 +20,7 @@
 #include <filesystem>
 #include <iostream>
 #include <initializer_list>
+#include <limits>
 #include <mutex>
 #include <optional>
 #include <sstream>
@@ -38,6 +40,7 @@
 #include "analysis/object_tracker.h"
 #include "analysis/overlay_renderer.h"
 #include "analysis/snapshot_encoder.h"
+#include "analysis/va_runtime_metadata.h"
 #include "ingress/analysis_query.h"
 #include "ingress/analysis_rule_registry.h"
 #include "ingress/request_parser.h"
@@ -49,6 +52,8 @@
 namespace ingress {
 
 namespace {
+
+std::atomic<std::uint64_t> g_web_rtc_metadata_sequence{0};
 
 std::string Trim(std::string value) {
     while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front())) != 0) {
@@ -3371,11 +3376,21 @@ std::string BuildLabRuleEditorPageHtml() {
       justify-content: flex-end;
       gap: 8px;
     }
-    .management-toolbar .toolbar-actions button {
-      width: auto;
-      min-width: 120px;
-      white-space: nowrap;
-    }
+	    .management-toolbar .toolbar-actions button {
+	      width: auto;
+	      min-width: 120px;
+	      white-space: nowrap;
+	    }
+	    #vaRuleLibraryCard .management-toolbar {
+	      grid-template-columns: 1fr;
+	      align-items: start;
+	    }
+	    #vaRuleLibraryCard .management-toolbar .toolbar-actions {
+	      justify-content: flex-start;
+	    }
+	    #vaRuleLibraryCard .management-toolbar .toolbar-actions button {
+	      min-width: 180px;
+	    }
     .summary-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -3404,63 +3419,63 @@ std::string BuildLabRuleEditorPageHtml() {
       display: grid;
       gap: 10px;
     }
-    .rule-list-controls {
-      display: grid;
-      grid-template-columns: minmax(260px, 1fr) minmax(150px, 0.35fr) minmax(170px, 0.4fr) minmax(120px, auto);
-      gap: 10px;
-      align-items: end;
-    }
-    .rule-filter-summary {
-      min-height: 40px;
-      padding: 0 2px 2px;
-      display: inline-flex;
-      align-items: end;
-      justify-content: flex-start;
-      gap: 8px;
-      color: var(--muted);
-    }
-    .rule-filter-summary span {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
-      padding-bottom: 9px;
-    }
-    .rule-filter-summary strong {
-      min-height: 38px;
-      display: inline-flex;
-      align-items: center;
-      padding: 0 10px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: var(--field-bg);
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 800;
-    }
+	    .rule-list-controls {
+	      display: grid;
+	      grid-template-columns: minmax(220px, 1fr) minmax(130px, 0.3fr) minmax(150px, 0.35fr) minmax(88px, 0.18fr);
+	      gap: 10px;
+	      align-items: start;
+	    }
+	    .rule-filter-summary {
+	      min-height: 0;
+	      padding: 0;
+	      display: grid;
+	      gap: 6px;
+	    }
+	    .rule-filter-summary span {
+	      color: var(--ink);
+	      font-size: 13px;
+	      font-weight: 800;
+	    }
+	    .rule-filter-summary strong {
+	      min-height: 44px;
+	      display: flex;
+	      align-items: center;
+	      padding: 0 12px;
+	      border: 1px solid var(--line);
+	      border-radius: 14px;
+	      background: var(--field-bg);
+	      color: var(--muted);
+	      font-size: 14px;
+	      font-weight: 800;
+	    }
     .rule-list {
       display: grid;
       gap: 8px;
     }
-    .rule-row {
-      display: grid;
-      grid-template-columns: 76px minmax(220px, 1.25fr) minmax(160px, 0.9fr) minmax(170px, 0.95fr) minmax(150px, 0.75fr) minmax(260px, auto);
-      gap: 10px;
-      align-items: center;
-      padding: 12px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: var(--field-bg);
-      text-align: left;
-    }
-    .rule-row.is-header {
-      min-height: 0;
-      padding: 0 12px;
+	    .rule-row {
+	      display: grid;
+	      grid-template-columns: 64px minmax(150px, 1.1fr) minmax(150px, 0.85fr) minmax(170px, 1fr) minmax(130px, 0.75fr) minmax(190px, 0.75fr);
+	      gap: 10px;
+	      align-items: start;
+	      padding: 12px;
+	      border: 1px solid var(--line);
+	      border-radius: 16px;
+	      background: var(--field-bg);
+	      text-align: left;
+	    }
+	    .rule-row > * {
+	      min-width: 0;
+	    }
+	    .rule-row.is-header {
+	      min-height: 0;
+	      padding: 0 12px;
       border: 0;
       background: transparent;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
-    }
+	      color: var(--muted);
+	      font-size: 12px;
+	      font-weight: 800;
+	      align-items: center;
+	    }
     .rule-row.is-selected {
       border-color: rgba(11,110,105,0.52);
       box-shadow: inset 0 0 0 1px rgba(11,110,105,0.20);
@@ -3494,10 +3509,10 @@ std::string BuildLabRuleEditorPageHtml() {
     .rule-cell-stack span {
       overflow-wrap: anywhere;
     }
-    .rule-id-badge, .status-chip {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+	    .rule-id-badge, .status-chip {
+	      display: inline-flex;
+	      align-items: center;
+	      justify-content: center;
       min-height: 30px;
       padding: 5px 9px;
       border-radius: 999px;
@@ -3505,9 +3520,11 @@ std::string BuildLabRuleEditorPageHtml() {
       background: var(--soft-bg);
       color: var(--ink);
       font-weight: 900;
-      font-size: 12px;
-      white-space: nowrap;
-    }
+	      font-size: 12px;
+	      white-space: nowrap;
+	      width: fit-content;
+	      max-width: 100%;
+	    }
     .status-chip.is-muted {
       color: var(--muted);
       background: var(--secondary-bg);
@@ -3522,17 +3539,26 @@ std::string BuildLabRuleEditorPageHtml() {
       border-color: transparent;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
     }
-    .row-actions {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 6px;
-    }
-    .row-actions button {
-      min-height: 34px;
-      padding: 7px 9px;
-      border-radius: 11px;
-      font-size: 12px;
-    }
+	    .row-actions {
+	      display: flex;
+	      flex-wrap: wrap;
+	      justify-content: flex-end;
+	      align-items: center;
+	      gap: 4px;
+	    }
+	    .row-actions button {
+	      flex: 0 0 auto;
+	      width: auto;
+	      min-width: 40px;
+	      min-height: 32px;
+	      padding: 6px 7px;
+	      border-radius: 10px;
+	      font-size: 12px;
+	    }
+	    .rule-cell-stack button {
+	      width: fit-content;
+	      min-width: 90px;
+	    }
     .empty-state {
       padding: 18px;
       border: 1px dashed var(--line);
@@ -3879,7 +3905,7 @@ std::string BuildLabRuleEditorPageHtml() {
       box-shadow: inset 0 0 0 1px var(--line);
     }
     .segmented.view-mode {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
     .rule-tabs {
       display: grid;
@@ -3902,7 +3928,7 @@ std::string BuildLabRuleEditorPageHtml() {
     }
     .primary-tabs {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
       padding: 6px;
       border: 1px solid var(--line);
@@ -3981,14 +4007,146 @@ std::string BuildLabRuleEditorPageHtml() {
       border-radius: 18px;
       background: var(--soft-bg);
     }
-    .view-frame img {
+    .view-frame img,
+    .metadata-video-stage {
       width: 100%;
       aspect-ratio: 16 / 9;
-      object-fit: contain;
       display: block;
       border-radius: 16px;
       border: 1px solid var(--line);
       background: var(--canvas-bg);
+    }
+    .view-frame img {
+      object-fit: contain;
+    }
+    .view-frame img[hidden],
+    .metadata-video-stage[hidden] {
+      display: none;
+    }
+    .metadata-video-stage {
+      position: relative;
+      overflow: hidden;
+    }
+    .metadata-video-stage video,
+    .metadata-video-stage canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+    .metadata-video-stage video {
+      object-fit: contain;
+      background: #000;
+    }
+    .metadata-overlay-canvas {
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 180ms ease;
+    }
+    .metadata-overlay-canvas.is-stale {
+      opacity: 0.35;
+    }
+    .metadata-stale-badge {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      background: rgba(18, 18, 13, 0.74);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 900;
+      pointer-events: none;
+    }
+    .metadata-overlay-controls {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .metadata-overlay-controls label {
+      min-height: 36px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--soft-bg);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dashboard-toolbar {
+      display: grid;
+      grid-template-columns: 1.2fr 1.2fr 1fr auto auto;
+      gap: 10px;
+      align-items: end;
+    }
+    .dashboard-card-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .dashboard-json-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .dashboard-json-grid pre,
+    .dashboard-pre {
+      min-height: 220px;
+      max-height: 420px;
+      margin: 0;
+      padding: 12px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--canvas-bg);
+      color: var(--ink);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .metadata-viewer-panel {
+      display: grid;
+      gap: 14px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--field-bg);
+    }
+    .metadata-viewer-panel[hidden] {
+      display: none;
+    }
+    .metadata-status-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .metadata-json-preview {
+      min-height: 180px;
+      max-height: 340px;
+      margin: 0;
+      padding: 12px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--canvas-bg);
+      color: var(--ink);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .metadata-error {
+      color: var(--danger);
+      font-weight: 800;
     }
     .url-grid {
       display: grid;
@@ -3997,6 +4155,59 @@ std::string BuildLabRuleEditorPageHtml() {
     }
     .url-grid textarea {
       min-height: 92px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+    .output-policy-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .output-policy-card {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--soft-bg);
+      display: grid;
+      gap: 6px;
+    }
+    .output-policy-card strong {
+      color: var(--ink);
+      font-size: 13px;
+    }
+    .output-policy-card span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .pairing-panel {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .pairing-card {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--soft-bg);
+    }
+    .pairing-card.is-custom {
+      background: rgba(95, 135, 116, 0.08);
+    }
+    .pairing-card strong {
+      color: var(--ink);
+      font-size: 14px;
+    }
+    .pairing-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .pairing-card textarea {
+      min-height: 64px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       font-size: 12px;
     }
@@ -4318,7 +4529,7 @@ std::string BuildLabRuleEditorPageHtml() {
       .grid, .row { grid-template-columns: 1fr; }
       .check-grid { grid-template-columns: 1fr 1fr; }
       .class-filter-row { grid-template-columns: 1fr; }
-      .phase-strip, .metric-grid, .scenario-readiness, .rule-tabs, .url-grid, .summary-grid, .geometry-status-grid, .viewer-status-grid, .rule-list-controls { grid-template-columns: 1fr 1fr; }
+      .phase-strip, .metric-grid, .scenario-readiness, .rule-tabs, .url-grid, .output-policy-grid, .summary-grid, .geometry-status-grid, .viewer-status-grid, .metadata-status-grid, .metadata-overlay-controls, .dashboard-toolbar, .dashboard-card-grid, .dashboard-json-grid, .rule-list-controls { grid-template-columns: 1fr 1fr; }
       .management-toolbar { grid-template-columns: 1fr; }
       .management-toolbar .toolbar-actions { justify-content: flex-start; }
       .rule-row {
@@ -4329,13 +4540,13 @@ std::string BuildLabRuleEditorPageHtml() {
         grid-column: 1 / -1;
       }
     }
-    @media (max-width: 720px) {
-      .primary-tabs, .url-grid, .summary-grid, .review-grid, .geometry-status-grid, .geometry-actions, .viewer-status-grid, .rule-list-controls, .profile-summary-panel { grid-template-columns: 1fr; }
-      .segmented.view-mode { grid-template-columns: 1fr; }
-      .management-toolbar .toolbar-actions { justify-content: stretch; }
-      .management-toolbar .toolbar-actions button { width: 100%; }
-      .row-actions { grid-template-columns: 1fr; }
-    }
+	    @media (max-width: 720px) {
+	      .primary-tabs, .url-grid, .output-policy-grid, .summary-grid, .review-grid, .geometry-status-grid, .geometry-actions, .viewer-status-grid, .metadata-status-grid, .metadata-overlay-controls, .dashboard-toolbar, .dashboard-card-grid, .dashboard-json-grid, .rule-list-controls, .profile-summary-panel { grid-template-columns: 1fr; }
+	      .segmented.view-mode { grid-template-columns: 1fr; }
+	      .management-toolbar .toolbar-actions { justify-content: stretch; }
+	      .management-toolbar .toolbar-actions button { width: 100%; }
+	      .row-actions { justify-content: flex-start; }
+	    }
   </style>
 </head>
 <body>
@@ -4347,12 +4558,13 @@ std::string BuildLabRuleEditorPageHtml() {
     <section class="hero">
       <p class="standalone-nav" style="margin:0;"><a href="/lab">실험실로 돌아가기</a> · <a href="/webrtc/test">안정 테스트 페이지</a></p>
       <h1>영상 분석 관리</h1>
-      <p style="margin:0;">영상 분석 설정은 소스, profile, 이벤트, 시나리오, 영역을 하나의 숫자 ID로 묶습니다. 보기 탭에서는 라이브, 기본 VA overlay, 저장된 VA Rule 모드를 분리해서 확인합니다.</p>
+      <p style="margin:0;">영상 분석 설정은 소스, profile, 이벤트, 시나리오, 영역을 하나의 숫자 ID로 묶습니다. 보기 탭에서는 실시간 영상/오버레이/메타데이터를 확인하고, 대시보드 탭에서는 현재 VA 런타임 상태를 확인합니다.</p>
     </section>
 
     <nav class="primary-tabs" aria-label="영상 분석 관리 탭">
       <button id="analysisSettingsTabBtn" type="button" class="is-active" data-primary-tab="settings">영상 분석 설정</button>
       <button id="analysisViewerTabBtn" type="button" data-primary-tab="viewer">영상 분석 보기</button>
+      <button id="analysisDashboardTabBtn" type="button" data-primary-tab="dashboard">런타임 대시보드</button>
     </nav>
 
     <div id="feedbackToast" class="feedback-toast" role="status" aria-live="polite"></div>
@@ -4712,7 +4924,7 @@ std::string BuildLabRuleEditorPageHtml() {
             <summary>고급: standalone Rule 문서</summary>
             <div class="stack">
               <div class="section-title-row">
-                <span class="hint">기존 `/lab/analysis/rules` 저장 흐름 검증용입니다. VA Rule 저장 payload는 기존 구조를 유지합니다.</span>
+                <span class="hint">기존 `/lab/analysis/rules` 저장 흐름 검증용입니다. VA 룰 저장 payload는 기존 구조를 유지합니다.</span>
                 <span id="ruleCountBadge" class="count-badge">0개 저장</span>
               </div>
               <label>저장된 Rule
@@ -4924,14 +5136,15 @@ std::string BuildLabRuleEditorPageHtml() {
       <div class="card">
         <div class="pad stack">
           <h2>영상 분석 테스트 / 미리보기</h2>
-          <p class="hint">Live Streaming, 기본 VA overlay, 저장된 VA Rule을 실제 화면으로 빠르게 확인하는 탭입니다.</p>
+          <p class="hint">실시간 스트리밍, 기본 VA 오버레이, 저장된 VA 룰을 실제 화면으로 빠르게 확인하는 탭입니다.</p>
           <label>보기 모드</label>
           <div class="segmented view-mode" role="group" aria-label="보기 모드">
-            <label><input type="radio" name="viewMode" value="live" checked /> Live Streaming</label>
-            <label><input type="radio" name="viewMode" value="overlay" /> 영상 + VA Overlay</label>
-            <label><input type="radio" name="viewMode" value="rule" /> 영상 + VA Rule</label>
+            <label><input type="radio" name="viewMode" value="live" checked /> 실시간 스트리밍</label>
+            <label><input type="radio" name="viewMode" value="overlay" /> 영상 + VA 오버레이</label>
+            <label><input type="radio" name="viewMode" value="rule" /> 영상 + VA 룰</label>
+            <label><input type="radio" name="viewMode" value="metadata" /> WebRTC 메타데이터</label>
           </div>
-          <p id="viewModeHelpText" class="form-note">Live Streaming은 원본 영상만 확인합니다.</p>
+          <p id="viewModeHelpText" class="form-note">실시간 스트리밍은 원본 영상만 확인합니다.</p>
           <div class="row" id="viewDirectSourceFields">
             <label>보기 영상 종류
               <select id="viewSourceKind">
@@ -4954,10 +5167,10 @@ std::string BuildLabRuleEditorPageHtml() {
             <label>사용할 영상 분석 설정 ID
               <select id="viewVaRuleSelect"></select>
             </label>
-            <p class="form-note">영상 + VA Rule 모드에서는 영상 소스를 따로 고르지 않습니다. 선택한 ID에 저장된 영상 소스가 자동으로 고정됩니다.</p>
+            <p class="form-note">영상 + VA 룰 모드에서는 영상 소스를 따로 고르지 않습니다. 선택한 ID에 저장된 영상 소스가 자동으로 고정됩니다.</p>
             <p id="viewRuleSourceSummary" class="source-lock">저장된 설정을 선택하면 연결된 영상 소스가 표시됩니다.</p>
           </div>
-          <p id="viewBindingSummary" class="source-lock">Live Streaming · file=sample_h264.mp4</p>
+          <p id="viewBindingSummary" class="source-lock">실시간 스트리밍 · file=sample_h264.mp4</p>
           <div class="viewer-status-grid" aria-label="영상 분석 보기 상태">
             <div id="viewConnectionStateCard" class="viewer-status-card is-idle">
               <span>연결 상태</span>
@@ -4965,7 +5178,7 @@ std::string BuildLabRuleEditorPageHtml() {
             </div>
             <div class="viewer-status-card">
               <span>현재 모드</span>
-              <strong id="viewModeSummaryText">Live Streaming</strong>
+              <strong id="viewModeSummaryText">실시간 스트리밍</strong>
             </div>
             <div class="viewer-status-card">
               <span>연결 소스</span>
@@ -4979,43 +5192,273 @@ std::string BuildLabRuleEditorPageHtml() {
           </div>
           <div class="view-frame">
             <img id="viewPreviewImage" alt="영상 분석 보기 프레임" />
+            <div id="viewWebRtcStage" class="metadata-video-stage" hidden>
+              <video id="viewWebRtcVideo" autoplay playsinline controls></video>
+              <canvas id="viewMetadataOverlayCanvas" class="metadata-overlay-canvas"></canvas>
+              <span id="metadataStaleBadge" class="metadata-stale-badge" hidden>메타데이터 지연</span>
+            </div>
             <p id="viewPreviewStatus" class="hint">대기 중입니다.</p>
           </div>
+          <section id="metadataViewerPanel" class="metadata-viewer-panel" hidden>
+            <div>
+              <h3>WebRTC 메타데이터 뷰어</h3>
+              <p class="form-note">`vaMetadata=1` DataChannel 수신 상태와 최신 JSON, 브라우저 client-side overlay를 확인합니다. DataChannel이 실패해도 영상 재생은 계속 유지합니다.</p>
+            </div>
+            <div class="metadata-overlay-controls" aria-label="Client overlay 표시 옵션">
+              <label><input id="metadataOverlayBboxInput" type="checkbox" checked /> 박스</label>
+              <label><input id="metadataOverlayLabelInput" type="checkbox" checked /> 라벨</label>
+              <label><input id="metadataOverlayTrackIdInput" type="checkbox" checked /> Track ID</label>
+              <label><input id="metadataOverlayScenarioInput" type="checkbox" checked /> 시나리오</label>
+              <label><input id="metadataOverlayEventInput" type="checkbox" checked /> 이벤트</label>
+              <label><input id="metadataOverlayHealthInput" type="checkbox" checked /> TrackHealth</label>
+              <label><input id="metadataOverlayZoneInput" type="checkbox" checked /> 현재 Zone</label>
+              <label><input id="metadataOverlayDwellInput" type="checkbox" checked /> 체류 시간</label>
+              <label><input id="metadataOverlayFallbackInput" type="checkbox" /> fallback metadata 표시(opt-in)</label>
+            </div>
+            <div class="metadata-status-grid">
+              <div class="viewer-status-card">
+                <span>DataChannel 상태</span>
+                <strong id="metadataChannelStateText">비활성</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>Label</span>
+                <strong id="metadataChannelLabelText">va-metadata</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>Metadata 수신</span>
+                <strong id="metadataMessageCountText">0</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>Metadata buffer</span>
+                <strong id="metadataBufferCountText">0</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>Metadata drop</span>
+                <strong id="metadataBufferDropCountText">0</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>표시 video frame</span>
+                <strong id="metadataVideoFrameCountText">0</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>Overlay draw</span>
+                <strong id="metadataDrawCountText">0</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>마지막 video frame</span>
+                <strong id="metadataLastVideoFrameText">-</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>마지막 metadata</span>
+                <strong id="metadataLastMessageAtText">-</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>영상 멈춤</span>
+                <strong id="metadataVideoStalledText">아니오</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>선택 syncDelta</span>
+                <strong id="metadataSelectedDeltaText">-</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>Metadata 지연</span>
+                <strong id="metadataLagText">-</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>Stale 횟수</span>
+                <strong id="metadataStaleCountText">0</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>Fallback 숨김</span>
+                <strong id="metadataFallbackHiddenCountText">0</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>최신 timestamp</span>
+                <strong id="metadataLatestTimestampText">-</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>Track 수</span>
+                <strong id="metadataTrackCountText">0</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>이벤트 수</span>
+                <strong id="metadataEventCountText">0</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>시나리오 수</span>
+                <strong id="metadataScenarioCountText">0</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>JSON 파싱</span>
+                <strong id="metadataParseStateText">대기</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>Parse 실패</span>
+                <strong id="metadataParseFailCountText">0</strong>
+              </div>
+            </div>
+            <p id="metadataParseErrorText" class="metadata-error" hidden></p>
+            <pre id="metadataJsonPreview" class="metadata-json-preview">메타데이터 수신 대기 중</pre>
+          </section>
         </div>
       </div>
       <details class="debug-drawer developer-url-details">
         <summary>개발자 요청 URL</summary>
         <div class="pad stack">
-          <p class="hint">외부 클라이언트나 자동화에서 직접 호출할 때만 펼쳐서 확인합니다.</p>
-          <div class="row">
-            <label>Web/HTTP 서버 주소
-              <input id="viewServerBaseUrl" />
-              <span class="form-note">현재 브라우저 주소를 기본값으로 씁니다. 다른 PC에서 볼 때는 이 서버의 LAN IP로 바꾸세요.</span>
-            </label>
+          <p class="hint">외부 클라이언트나 자동화에서 직접 호출할 때만 펼쳐서 확인합니다. WebRTC 메타데이터와 RTSP 오버레이는 동작 방식이 다릅니다.</p>
+          <div class="output-policy-grid" aria-label="VA 출력 방식 정책">
+            <div class="output-policy-card">
+              <strong>WebRTC 메타데이터 뷰어</strong>
+              <span>WebRTC video + `vaMetadata=1` DataChannel을 브라우저가 받아 client-side canvas overlay로 표시합니다.</span>
+            </div>
+            <div class="output-policy-card">
+              <strong>RTSP 서버 오버레이</strong>
+              <span>VLC/ffplay/IINA 같은 일반 RTSP client는 서버가 그린 `va=1` 또는 `vaRule=<id>` 오버레이 영상을 봅니다.</span>
+            </div>
+            <div class="output-policy-card">
+              <strong>RTSP 원본 스트림</strong>
+              <span>오버레이 없는 원본 RTSP 영상입니다. 분석 메타데이터나 bbox UI는 포함되지 않습니다.</span>
+            </div>
+            <div class="output-policy-card">
+              <strong>커스텀 메타데이터 사이드채널</strong>
+              <span>일반 RTSP client는 메타데이터 채널을 표시하지 못합니다. 커스텀 client는 RTSP video와 별도 SSE metadata stream을 함께 처리해야 합니다.</span>
+            </div>
+          </div>
+	          <div class="row">
+	            <label>Web/HTTP 서버 주소
+	              <input id="viewServerBaseUrl" />
+	              <span class="form-note">현재 브라우저 주소를 기본값으로 씁니다. 다른 PC에서 볼 때는 이 서버의 LAN IP로 바꾸세요.</span>
+	            </label>
             <label>RTSP 서버 주소
               <input id="viewRtspAuthority" />
-              <span class="form-note">RTSP/VLC URL에 들어갈 `host:port`입니다. 실행 포트 설정을 기본값으로 채웁니다.</span>
+	              <span class="form-note">RTSP/VLC URL에 들어갈 `host:port`입니다. 실행 포트 설정을 기본값으로 채웁니다.</span>
+	            </label>
+	          </div>
+	          <div class="pairing-panel" aria-label="Custom RTSP metadata pairing">
+	            <div class="pairing-card">
+	              <strong>일반 RTSP viewer</strong>
+	              <p>VLC/ffplay/IINA는 metadata side-channel을 자동으로 읽지 않습니다. 객체 박스가 필요한 일반 viewer는 서버가 직접 그린 overlay URL을 사용합니다.</p>
+	              <label class="url-field">
+		                <span class="url-title-row"><span>RTSP 서버 오버레이</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewPairingRtspOverlayUrl">복사</button></span>
+	                <textarea id="viewPairingRtspOverlayUrl" readonly spellcheck="false"></textarea>
+	              </label>
+	            </div>
+	            <div class="pairing-card is-custom">
+		              <strong>커스텀 RTSP + 메타데이터 연결 정보</strong>
+		              <p>커스텀 client는 RTSP 원본 스트림을 재생하고, 별도 SSE/WS metadata stream을 받아 client-side overlay를 직접 그립니다.</p>
+	              <label class="url-field">
+		                <span class="url-title-row"><span>RTSP 원본 스트림</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewPairingRtspRawUrl">복사</button></span>
+	                <textarea id="viewPairingRtspRawUrl" readonly spellcheck="false"></textarea>
+	              </label>
+	              <label class="url-field">
+		                <span class="url-title-row"><span>SSE 메타데이터 스트림</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewPairingMetadataSideChannelUrl">복사</button></span>
+	                <textarea id="viewPairingMetadataSideChannelUrl" readonly spellcheck="false"></textarea>
+	              </label>
+	            </div>
+	          </div>
+	          <div class="url-grid">
+	            <label class="url-field">
+	              <span class="url-title-row"><span>WebRTC simple signaling</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewWebRtcUrl">복사</button></span>
+	              <textarea id="viewWebRtcUrl" readonly spellcheck="false"></textarea>
             </label>
-          </div>
-          <div class="url-grid">
             <label class="url-field">
-              <span class="url-title-row"><span>WebRTC simple signaling</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewWebRtcUrl">복사</button></span>
-              <textarea id="viewWebRtcUrl" readonly spellcheck="false"></textarea>
+	              <span class="url-title-row"><span>WebRTC 메타데이터 뷰어</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewWebRtcMetadataUrl">복사</button></span>
+              <textarea id="viewWebRtcMetadataUrl" readonly spellcheck="false"></textarea>
             </label>
             <label class="url-field">
               <span class="url-title-row"><span>WHEP</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewWhepUrl">복사</button></span>
               <textarea id="viewWhepUrl" readonly spellcheck="false"></textarea>
             </label>
             <label class="url-field">
-              <span class="url-title-row"><span>RTSP/VLC</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewRtspUrl">복사</button></span>
+	              <span class="url-title-row"><span>RTSP 서버 오버레이</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewRtspUrl">복사</button></span>
               <textarea id="viewRtspUrl" readonly spellcheck="false"></textarea>
             </label>
             <label class="url-field">
-              <span class="url-title-row"><span>분석 Tap Preview</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewTapUrl">복사</button></span>
-              <textarea id="viewTapUrl" readonly spellcheck="false"></textarea>
+	              <span class="url-title-row"><span>RTSP 원본 스트림</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewRtspRawUrl">복사</button></span>
+              <textarea id="viewRtspRawUrl" readonly spellcheck="false"></textarea>
+            </label>
+            <label class="url-field">
+		              <span class="url-title-row"><span>커스텀 메타데이터 사이드채널</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewMetadataSideChannelUrl">복사</button></span>
+	              <textarea id="viewMetadataSideChannelUrl" readonly spellcheck="false"></textarea>
+	            </label>
+	            <label class="url-field">
+		              <span class="url-title-row"><span>커스텀 WebSocket 사이드채널</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewWebSocketSideChannelUrl">복사</button></span>
+	              <textarea id="viewWebSocketSideChannelUrl" readonly spellcheck="false"></textarea>
+	            </label>
+	            <label class="url-field">
+		              <span class="url-title-row"><span>분석 Tap 미리보기</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewTapUrl">복사</button></span>
+	              <textarea id="viewTapUrl" readonly spellcheck="false"></textarea>
+	            </label>
+	          </div>
+		          <p class="form-note">URL 규칙: WebRTC 메타데이터는 DataChannel 기반 client-side overlay이고, RTSP 오버레이는 서버가 영상에 직접 그린 결과입니다. RTSP 원본 스트림에는 overlay/metadata가 없습니다. SSE/WS side-channel은 custom client/dashboard용이며 일반 VLC/ffplay용 기능이 아닙니다.</p>
+	        </div>
+	      </details>
+    </section>
+
+    <section id="dashboardPanel" class="workspace-panel" hidden>
+      <div class="card">
+        <div class="pad stack">
+          <div class="management-toolbar">
+            <div class="stack">
+              <h2>VA 런타임 대시보드</h2>
+              <p class="hint">실시간 분석 서버 상태를 보는 운영용 화면입니다. 대시보드 탭이 열려 있을 때만 주기적으로 갱신합니다.</p>
+            </div>
+            <div class="toolbar-actions">
+              <button id="dashboardRefreshBtn" type="button" class="secondary">새로고침</button>
+            </div>
+          </div>
+          <div class="dashboard-toolbar">
+            <label>분석 Tap
+              <select id="dashboardTapSelect"></select>
+            </label>
+            <label>룰
+              <select id="dashboardRuleSelect"></select>
+            </label>
+            <label>갱신 주기
+              <select id="dashboardRefreshInterval">
+                <option value="0">수동</option>
+                <option value="2000">2초</option>
+                <option value="5000" selected>5초</option>
+                <option value="10000">10초</option>
+              </select>
+            </label>
+            <label style="min-height:42px;display:flex;align-items:center;gap:8px;">
+              <input id="dashboardAutoRefreshInput" type="checkbox" checked />
+              자동 갱신
+            </label>
+            <p id="dashboardStatusText" class="form-note">대시보드 대기 중</p>
+          </div>
+          <div class="dashboard-card-grid" aria-label="VA 런타임 대시보드 카드">
+            <div class="viewer-status-card"><span>소스 종류</span><strong id="dashboardSourceKind">-</strong></div>
+            <div class="viewer-status-card"><span>활성 세션</span><strong id="dashboardActiveSessions">0</strong></div>
+            <div class="viewer-status-card"><span>활성 스트림</span><strong id="dashboardActiveStreams">0</strong></div>
+            <div class="viewer-status-card"><span>분석 Tap</span><strong id="dashboardActiveTaps">0</strong></div>
+            <div class="viewer-status-card"><span>디코딩 FPS</span><strong id="dashboardDecodedFps">0</strong></div>
+            <div class="viewer-status-card"><span>샘플링 FPS</span><strong id="dashboardSampledFps">0</strong></div>
+            <div class="viewer-status-card"><span>분석 FPS</span><strong id="dashboardAnalyzedFps">0</strong></div>
+            <div class="viewer-status-card"><span>대기/상한/최대 큐</span><strong id="dashboardQueueSummary">0/0/0</strong></div>
+            <div class="viewer-status-card"><span>추론 지연</span><strong id="dashboardInferenceLatency">0ms</strong></div>
+            <div class="viewer-status-card"><span>Track A/L/R/T</span><strong id="dashboardTrackCounts">0/0/0/0</strong></div>
+            <div class="viewer-status-card"><span>시나리오 인스턴스</span><strong id="dashboardScenarioCount">0</strong></div>
+            <div class="viewer-status-card"><span>발생/중복 억제 이벤트</span><strong id="dashboardEventCounts">0/0</strong></div>
+            <div class="viewer-status-card"><span>불안정 TrackHealth</span><strong id="dashboardUnstableCount">0</strong></div>
+            <div class="viewer-status-card"><span>겹침 위험</span><strong id="dashboardOverlapRiskCount">0</strong></div>
+            <div class="viewer-status-card"><span>이벤트 POST</span><strong id="dashboardEventPostStatus">-</strong></div>
+            <div class="viewer-status-card"><span>이벤트 저장</span><strong id="dashboardEventStorageStatus">-</strong></div>
+          </div>
+        </div>
+      </div>
+      <details class="debug-drawer">
+        <summary>상태 덤프 / tracking issue report</summary>
+        <div class="pad stack">
+          <div class="dashboard-json-grid">
+            <label class="stack">상태 덤프 JSON
+              <pre id="dashboardStateDumpJson">tap을 선택하면 상태 덤프가 표시됩니다.</pre>
+            </label>
+            <label class="stack">tracking issue report
+              <pre id="dashboardTrackingIssueReport">tracking issue report 없음</pre>
             </label>
           </div>
-          <p class="form-note">URL 규칙: Live Streaming은 source query만, 영상 + VA Overlay는 `va=1`을 추가, 영상 + VA Rule은 `vaRule=숫자`만 사용합니다.</p>
         </div>
       </details>
     </section>
@@ -5078,6 +5521,50 @@ std::string BuildLabRuleEditorPageHtml() {
     let viewTimer = null;
     let viewFailureCount = 0;
     let viewConnectionState = 'idle';
+    let viewWebRtcPeer = null;
+    let viewWebRtcSessionId = '';
+    let viewWebRtcIceTimer = null;
+    let viewWebRtcEmptyIcePolls = 0;
+    let viewMetadataChannel = null;
+    let viewMetadataState = 'disabled';
+    let viewMetadataLabel = 'va-metadata';
+    let viewMetadataMessageCount = 0;
+    let viewMetadataLatestTimestampMs = 0;
+    let viewMetadataTrackCount = 0;
+    let viewMetadataEventCount = 0;
+    let viewMetadataScenarioCount = 0;
+    let viewMetadataParseError = '';
+    let viewMetadataParseFailCount = 0;
+    let viewMetadataLastJsonText = '';
+    let viewMetadataLastMessageAt = 0;
+    let viewMetadataStallTimer = null;
+    let viewMetadataVideoStallTimer = null;
+    let viewMetadataLatestPayload = null;
+    let viewMetadataBuffer = [];
+    let viewMetadataBufferDropCount = 0;
+    let viewMetadataDrawCount = 0;
+    let viewMetadataVideoPresentedFrames = 0;
+    let viewMetadataLastVideoFrameAt = 0;
+    let viewMetadataLastVideoFrameMediaTimeMs = null;
+    let viewMetadataVideoStalled = false;
+    let viewMetadataSelectedSyncDeltaMs = null;
+    let viewMetadataSelectedLagMs = null;
+    let viewMetadataStaleCount = 0;
+    let viewMetadataFallbackHiddenCount = 0;
+    let viewMetadataLastHiddenFallbackSequence = 0;
+    let viewMetadataOverlayTimer = null;
+    let viewMetadataOverlayTimerKind = '';
+    let viewMetadataOverlayStale = false;
+    let viewMetadataVideoPtsOffsetMs = null;
+    let viewMetadataPtsCalibrationCount = 0;
+    let viewMetadataPresentationLoopRunning = false;
+    let viewMetadataPresentationLoopStartedAt = 0;
+    let dashboardActive = false;
+    let dashboardTimer = null;
+    let dashboardLastRefreshAt = 0;
+    let dashboardLastPayload = null;
+    let dashboardLastTapId = '';
+    let dashboardRefreshInFlight = false;
     let regionPoints = [
       { x: 0.20, y: 0.22 },
       { x: 0.80, y: 0.22 },
@@ -5394,7 +5881,7 @@ std::string BuildLabRuleEditorPageHtml() {
       }
       for (const item of vaRules) {
         if (String(item?.analysis?.profileId || '') === id) {
-          usage.push(`VA Rule #${item.id}${item.name ? ` ${item.name}` : ''}`);
+          usage.push(`VA 룰 #${item.id}${item.name ? ` ${item.name}` : ''}`);
         }
       }
       return usage;
@@ -6857,6 +7344,7 @@ std::string BuildLabRuleEditorPageHtml() {
           select.value = String(vaRules[0].id);
         }
       }
+      renderDashboardRuleSelect();
     }
 
     function updateRegistryCountBadges() {
@@ -7227,6 +7715,858 @@ std::string BuildLabRuleEditorPageHtml() {
       if ($('viewPreviewStatus')) $('viewPreviewStatus').textContent = message;
     }
 
+    function isMetadataViewMode() {
+      return selectedViewMode() === 'metadata';
+    }
+
+    function metadataStateLabel(state) {
+      if (state === 'connecting') return '연결 중';
+      if (state === 'open') return '열림';
+      if (state === 'receiving') return '수신 중';
+      if (state === 'stalled') return '지연';
+      if (state === 'closed') return '닫힘';
+      if (state === 'error') return '오류';
+      return '비활성';
+    }
+
+    function formatMetadataTimestamp(value) {
+      const number = Number(value || 0);
+      if (!Number.isFinite(number) || number <= 0) return '-';
+      const date = new Date(number < 10000000000 ? number * 1000 : number);
+      if (Number.isNaN(date.getTime())) return `${number}`;
+      return `${date.toLocaleTimeString('ko-KR')} · ${number}`;
+    }
+
+    function formatMetadataMs(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return '-';
+      return `${Math.round(number)}ms`;
+    }
+
+    function formatMetadataWallTime(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number) || number <= 0) return '-';
+      const date = new Date(number);
+      if (Number.isNaN(date.getTime())) return '-';
+      const ageMs = Math.max(0, Date.now() - number);
+      return `${date.toLocaleTimeString('ko-KR')} · ${Math.round(ageMs)}ms 전`;
+    }
+
+    function updateMetadataViewerPanel() {
+      setText('metadataChannelStateText', metadataStateLabel(viewMetadataState));
+      setText('metadataChannelLabelText', viewMetadataLabel || 'va-metadata');
+      setText('metadataMessageCountText', String(viewMetadataMessageCount));
+      setText('metadataBufferCountText', String(viewMetadataBuffer.length));
+      setText('metadataBufferDropCountText', String(viewMetadataBufferDropCount));
+      setText('metadataVideoFrameCountText', String(viewMetadataVideoPresentedFrames));
+      setText('metadataDrawCountText', String(viewMetadataDrawCount));
+      setText('metadataLastVideoFrameText', formatMetadataWallTime(viewMetadataLastVideoFrameAt));
+      setText('metadataLastMessageAtText', formatMetadataWallTime(viewMetadataLastMessageAt));
+      setText('metadataVideoStalledText', viewMetadataVideoStalled ? '예' : '아니오');
+      setText('metadataSelectedDeltaText', formatMetadataMs(viewMetadataSelectedSyncDeltaMs));
+      setText('metadataLagText', formatMetadataMs(viewMetadataSelectedLagMs));
+      setText('metadataStaleCountText', String(viewMetadataStaleCount));
+      setText('metadataFallbackHiddenCountText', String(viewMetadataFallbackHiddenCount));
+      setText('metadataLatestTimestampText', formatMetadataTimestamp(viewMetadataLatestTimestampMs));
+      setText('metadataTrackCountText', String(viewMetadataTrackCount));
+      setText('metadataEventCountText', String(viewMetadataEventCount));
+      setText('metadataScenarioCountText', String(viewMetadataScenarioCount));
+      setText('metadataParseStateText', viewMetadataParseError ? '오류' : (viewMetadataMessageCount > 0 ? '정상' : '대기'));
+      setText('metadataParseFailCountText', String(viewMetadataParseFailCount));
+      const errorEl = $('metadataParseErrorText');
+      if (errorEl) {
+        errorEl.hidden = !viewMetadataParseError;
+        errorEl.textContent = viewMetadataParseError;
+      }
+      const preview = $('metadataJsonPreview');
+      if (preview) preview.textContent = viewMetadataLastJsonText || '메타데이터 수신 대기 중';
+    }
+
+    function clearMetadataStallTimer() {
+      if (viewMetadataStallTimer) {
+        clearTimeout(viewMetadataStallTimer);
+        viewMetadataStallTimer = null;
+      }
+    }
+
+    function clearMetadataVideoStallTimer() {
+      if (viewMetadataVideoStallTimer) {
+        clearTimeout(viewMetadataVideoStallTimer);
+        viewMetadataVideoStallTimer = null;
+      }
+    }
+
+    function metadataVideoStallTimeoutMs() {
+      return 1200;
+    }
+
+    function metadataVideoStallReferenceAt() {
+      return viewMetadataLastVideoFrameAt || viewMetadataPresentationLoopStartedAt || 0;
+    }
+
+    function setMetadataVideoStalled(stalled) {
+      const next = Boolean(stalled);
+      const changed = next !== viewMetadataVideoStalled;
+      viewMetadataVideoStalled = next;
+      if (next && changed) {
+        clearMetadataOverlay({ stale: true });
+      } else if (changed) {
+        updateMetadataViewerPanel();
+      }
+    }
+
+    function checkMetadataVideoStall() {
+      if (!viewMetadataPresentationLoopRunning) return;
+      const referenceAt = metadataVideoStallReferenceAt();
+      if (referenceAt <= 0) return;
+      const stalled = Date.now() - referenceAt > metadataVideoStallTimeoutMs();
+      if (stalled) {
+        setMetadataVideoStalled(true);
+      }
+    }
+
+    function scheduleMetadataVideoStallCheck() {
+      clearMetadataVideoStallTimer();
+      if (!viewMetadataPresentationLoopRunning) return;
+      viewMetadataVideoStallTimer = setTimeout(() => {
+        viewMetadataVideoStallTimer = null;
+        checkMetadataVideoStall();
+        scheduleMetadataVideoStallCheck();
+      }, metadataVideoStallTimeoutMs());
+    }
+
+    function scheduleMetadataStallCheck() {
+      clearMetadataStallTimer();
+      viewMetadataStallTimer = setTimeout(() => {
+        if (!viewWebRtcSessionId && !viewMetadataChannel) return;
+        if (!viewMetadataChannel || viewMetadataChannel.readyState !== 'open') {
+          viewMetadataState = 'stalled';
+          updateMetadataViewerPanel();
+          clearMetadataOverlay({ stale: true });
+          return;
+        }
+        if (viewMetadataMessageCount === 0 || Date.now() - viewMetadataLastMessageAt > 6000) {
+          viewMetadataState = 'stalled';
+          updateMetadataViewerPanel();
+          clearMetadataOverlay({ stale: true });
+        }
+      }, 6500);
+    }
+
+    function resetMetadataViewerState(state = 'disabled') {
+      viewMetadataChannel = null;
+      viewMetadataState = state;
+      viewMetadataLabel = 'va-metadata';
+      viewMetadataMessageCount = 0;
+      viewMetadataLatestTimestampMs = 0;
+      viewMetadataTrackCount = 0;
+      viewMetadataEventCount = 0;
+      viewMetadataScenarioCount = 0;
+      viewMetadataParseError = '';
+      viewMetadataParseFailCount = 0;
+      viewMetadataLastJsonText = '';
+      viewMetadataLastMessageAt = 0;
+      viewMetadataLatestPayload = null;
+      viewMetadataBuffer = [];
+      viewMetadataBufferDropCount = 0;
+      viewMetadataDrawCount = 0;
+      viewMetadataVideoPresentedFrames = 0;
+      viewMetadataLastVideoFrameAt = 0;
+      viewMetadataLastVideoFrameMediaTimeMs = null;
+      viewMetadataVideoStalled = false;
+      viewMetadataSelectedSyncDeltaMs = null;
+      viewMetadataSelectedLagMs = null;
+      viewMetadataStaleCount = 0;
+      viewMetadataFallbackHiddenCount = 0;
+      viewMetadataLastHiddenFallbackSequence = 0;
+      viewMetadataVideoPtsOffsetMs = null;
+      viewMetadataPtsCalibrationCount = 0;
+      viewMetadataPresentationLoopStartedAt = 0;
+      clearMetadataStallTimer();
+      clearMetadataVideoStallTimer();
+      updateMetadataViewerPanel();
+      clearMetadataOverlay();
+    }
+
+    function setMetadataChannelState(state, message = '') {
+      viewMetadataState = state || 'disabled';
+      if (message) setText('viewConnectionMessage', message);
+      updateMetadataViewerPanel();
+    }
+
+    function metadataOverlayOptions() {
+      return {
+        bbox: $('metadataOverlayBboxInput')?.checked !== false,
+        label: $('metadataOverlayLabelInput')?.checked !== false,
+        trackId: $('metadataOverlayTrackIdInput')?.checked !== false,
+        scenario: $('metadataOverlayScenarioInput')?.checked !== false,
+        event: $('metadataOverlayEventInput')?.checked !== false,
+        health: $('metadataOverlayHealthInput')?.checked !== false,
+        zone: $('metadataOverlayZoneInput')?.checked !== false,
+        dwell: $('metadataOverlayDwellInput')?.checked !== false,
+        fallback: $('metadataOverlayFallbackInput')?.checked === true
+      };
+    }
+
+    function queryFlagEnabled(value) {
+      const text = String(value || '').toLowerCase();
+      return text === '1' || text === 'true' || text === 'yes' || text === 'on';
+    }
+
+    function metadataFallbackRequestedByPageQuery() {
+      const params = new URLSearchParams(window.location.search);
+      return queryFlagEnabled(params.get('clientOverlayFallback')) ||
+        queryFlagEnabled(params.get('vaMetadataDrawFallback'));
+    }
+
+    function applyMetadataViewerQueryDefaults() {
+      const fallbackInput = $('metadataOverlayFallbackInput');
+      if (fallbackInput && metadataFallbackRequestedByPageQuery()) {
+        fallbackInput.checked = true;
+      }
+    }
+
+    function clientOverlayFallbackEnabled() {
+      return $('metadataOverlayFallbackInput')?.checked === true;
+    }
+
+    function applyClientOverlayFallbackParam(params) {
+      if (clientOverlayFallbackEnabled()) {
+        params.set('clientOverlayFallback', '1');
+      }
+      return params;
+    }
+
+    function metadataFrameSize(payload = null) {
+      const video = $('viewWebRtcVideo');
+      const frame = payload?.frame || payload?.image || {};
+      const width = Number(payload?.frameWidth || payload?.sourceFrameWidth || payload?.videoWidth || frame.width || video?.videoWidth || 0);
+      const height = Number(payload?.frameHeight || payload?.sourceFrameHeight || payload?.videoHeight || frame.height || video?.videoHeight || 0);
+      return {
+        width: Number.isFinite(width) && width > 0 ? width : 0,
+        height: Number.isFinite(height) && height > 0 ? height : 0
+      };
+    }
+
+    function clampUnit(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return 0;
+      return Math.max(0, Math.min(1, number));
+    }
+
+    function normalizeMetadataBbox(bbox, frameSize) {
+      if (!bbox) return null;
+      const x = Number(bbox.x);
+      const y = Number(bbox.y);
+      const width = Number(bbox.width);
+      const height = Number(bbox.height);
+      if (![x, y, width, height].every(Number.isFinite)) return null;
+      const looksNormalized = Math.max(Math.abs(x), Math.abs(y), Math.abs(width), Math.abs(height)) <= 1.5;
+      if (looksNormalized) {
+        return {
+          x: clampUnit(x),
+          y: clampUnit(y),
+          width: Math.max(0, Math.min(1, width)),
+          height: Math.max(0, Math.min(1, height))
+        };
+      }
+      if (!frameSize.width || !frameSize.height) return null;
+      return {
+        x: clampUnit(x / frameSize.width),
+        y: clampUnit(y / frameSize.height),
+        width: Math.max(0, Math.min(1, width / frameSize.width)),
+        height: Math.max(0, Math.min(1, height / frameSize.height))
+      };
+    }
+
+    function metadataVideoContentRect(payload = null) {
+      const stage = $('viewWebRtcStage');
+      if (!stage || stage.hidden) return null;
+      const rect = stage.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return null;
+      const video = $('viewWebRtcVideo');
+      const frameSize = metadataFrameSize(payload);
+      const intrinsicWidth = video?.videoWidth || frameSize.width || 16;
+      const intrinsicHeight = video?.videoHeight || frameSize.height || 9;
+      const scale = Math.min(rect.width / intrinsicWidth, rect.height / intrinsicHeight);
+      const contentWidth = intrinsicWidth * scale;
+      const contentHeight = intrinsicHeight * scale;
+      return {
+        x: (rect.width - contentWidth) / 2,
+        y: (rect.height - contentHeight) / 2,
+        width: contentWidth,
+        height: contentHeight,
+        cssWidth: rect.width,
+        cssHeight: rect.height
+      };
+    }
+
+    function resizeMetadataOverlayCanvas() {
+      const canvas = $('viewMetadataOverlayCanvas');
+      const stage = $('viewWebRtcStage');
+      if (!canvas || !stage || stage.hidden) return null;
+      const rect = stage.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return null;
+      const dpr = window.devicePixelRatio || 1;
+      const nextWidth = Math.max(1, Math.round(rect.width * dpr));
+      const nextHeight = Math.max(1, Math.round(rect.height * dpr));
+      if (canvas.width !== nextWidth) canvas.width = nextWidth;
+      if (canvas.height !== nextHeight) canvas.height = nextHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      return { canvas, ctx, width: rect.width, height: rect.height };
+    }
+
+    function metadataEventForTrack(payload, trackId) {
+      const id = Number(trackId || 0);
+      if (!Array.isArray(payload?.events)) return null;
+      return payload.events.find((event) => Number(event.trackId || 0) === id) || null;
+    }
+
+    function isMetadataTrackUnstable(track) {
+      const health = track?.trackHealth || {};
+      if (health.stable === false || health.isUnstable === true) return true;
+      const status = String(health.status || '').toLowerCase();
+      return status.includes('unstable') || status.includes('lost');
+    }
+
+    function shouldDrawMetadataTrack(track) {
+      const health = track?.trackHealth || {};
+      const missedFrameCount = Number(health.missedFrameCount || 0);
+      if (Number.isFinite(missedFrameCount) && missedFrameCount > 0) return false;
+      const lifecycleState = String(track?.lifecycleState || '').toLowerCase();
+      if (lifecycleState === 'lost' || lifecycleState === 'terminated') return false;
+      return true;
+    }
+
+    function metadataConfidenceLabel(confidence) {
+      const value = Number(confidence);
+      if (!Number.isFinite(value)) return '';
+      return `${Math.round(Math.max(0, Math.min(1, value)) * 100)}%`;
+    }
+
+    function metadataDwellLabel(ms) {
+      const value = Number(ms || 0);
+      if (!Number.isFinite(value) || value <= 0) return '';
+      if (value >= 1000) return `${(value / 1000).toFixed(1)}s`;
+      return `${Math.round(value)}ms`;
+    }
+
+    function drawMetadataLabel(ctx, lines, x, y, color, maxWidth) {
+      const visibleLines = lines.filter(Boolean);
+      if (visibleLines.length === 0) return;
+      ctx.save();
+      ctx.font = '700 12px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      const paddingX = 7;
+      const paddingY = 5;
+      const lineHeight = 16;
+      const textWidth = Math.min(
+        maxWidth,
+        Math.max(...visibleLines.map((line) => ctx.measureText(line).width)) + paddingX * 2
+      );
+      const boxHeight = visibleLines.length * lineHeight + paddingY * 2;
+      const boxX = Math.max(0, Math.min(x, maxWidth - textWidth));
+      const boxY = Math.max(0, y - boxHeight - 4);
+      ctx.fillStyle = 'rgba(18,18,13,0.78)';
+      ctx.fillRect(boxX, boxY, textWidth, boxHeight);
+      ctx.fillStyle = color;
+      ctx.fillRect(boxX, boxY, 3, boxHeight);
+      ctx.fillStyle = '#fff';
+      visibleLines.forEach((line, index) => {
+        ctx.fillText(line, boxX + paddingX, boxY + paddingY + 12 + index * lineHeight);
+      });
+      ctx.restore();
+    }
+
+    function setMetadataOverlayStale(stale) {
+      const next = Boolean(stale);
+      const changed = next !== viewMetadataOverlayStale;
+      if (next && !viewMetadataOverlayStale) {
+        viewMetadataStaleCount += 1;
+      }
+      viewMetadataOverlayStale = next;
+      const canvas = $('viewMetadataOverlayCanvas');
+      if (canvas) canvas.classList.toggle('is-stale', next);
+      const badge = $('metadataStaleBadge');
+      if (badge) badge.hidden = !next;
+      if (changed) updateMetadataViewerPanel();
+    }
+
+    function clearMetadataOverlay(options = {}) {
+      const surface = resizeMetadataOverlayCanvas();
+      if (surface) {
+        surface.ctx.clearRect(0, 0, surface.width, surface.height);
+      }
+      viewMetadataSelectedSyncDeltaMs = null;
+      viewMetadataSelectedLagMs = null;
+      setMetadataOverlayStale(Boolean(options.stale));
+      updateMetadataViewerPanel();
+    }
+
+    function metadataNumber(value, fallback = null) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number : fallback;
+    }
+
+    function metadataPayloadKeyMs(payload) {
+      const videoFramePtsMs = metadataNumber(payload?.videoFramePtsMs);
+      if (videoFramePtsMs !== null) return videoFramePtsMs;
+      const analysisPtsMs = metadataNumber(payload?.analysisPtsMs);
+      if (analysisPtsMs !== null) return analysisPtsMs;
+      const timestampMs = metadataNumber(payload?.timestampMs ?? payload?.timestamp);
+      if (timestampMs !== null) return timestampMs;
+      const pts = metadataNumber(payload?.pts);
+      return pts !== null ? Math.round(pts / 1000000) : null;
+    }
+
+    function metadataDrawToleranceMs(payload) {
+      const value = metadataNumber(payload?.syncToleranceMs);
+      if (value !== null && value >= 0) return Math.max(80, Math.min(200, value));
+      return 200;
+    }
+
+    function metadataSyncStatus(payload) {
+      const status = String(payload?.syncStatus || '').toLowerCase();
+      return status || 'unknown';
+    }
+
+    function isFallbackMetadata(payload) {
+      return metadataSyncStatus(payload) === 'fallback-latest';
+    }
+
+    function metadataPayloadDrawable(payload, options = metadataOverlayOptions()) {
+      const status = metadataSyncStatus(payload);
+      if (status === 'fallback-latest') return options.fallback === true;
+      if (status === 'missing' || status === 'stale') return false;
+      if (status && status !== 'exact' && status !== 'near') return false;
+      return true;
+    }
+
+    function noteFallbackHidden(payload) {
+      const sequence = Number(payload?.metadataSequence || 0);
+      if (sequence > 0 && sequence === viewMetadataLastHiddenFallbackSequence) return;
+      viewMetadataLastHiddenFallbackSequence = sequence > 0 ? sequence : viewMetadataLastHiddenFallbackSequence;
+      viewMetadataFallbackHiddenCount += 1;
+      updateMetadataViewerPanel();
+    }
+
+    function maxMetadataBufferEntries() {
+      return 90;
+    }
+
+    function maxMetadataBufferMs() {
+      return 5000;
+    }
+
+    function maxMetadataAgeMs() {
+      return 5000;
+    }
+
+    function pruneMetadataBuffer(now = Date.now()) {
+      const beforeCount = viewMetadataBuffer.length;
+      const newestKeyMs = viewMetadataBuffer.reduce((maxKey, entry) => (
+        Number.isFinite(entry.keyMs) ? Math.max(maxKey, entry.keyMs) : maxKey
+      ), Number.NEGATIVE_INFINITY);
+      const minKeyMs = Number.isFinite(newestKeyMs) ? newestKeyMs - maxMetadataAgeMs() : Number.NEGATIVE_INFINITY;
+      viewMetadataBuffer = viewMetadataBuffer
+        .filter((entry) => now - entry.receivedAtMs <= maxMetadataBufferMs())
+        .filter((entry) => entry.keyMs >= minKeyMs)
+        .sort((left, right) => left.keyMs - right.keyMs);
+      viewMetadataBufferDropCount += Math.max(0, beforeCount - viewMetadataBuffer.length);
+      const maxItems = maxMetadataBufferEntries();
+      if (viewMetadataBuffer.length > maxItems) {
+        const overflow = viewMetadataBuffer.length - maxItems;
+        viewMetadataBuffer.splice(0, overflow);
+        viewMetadataBufferDropCount += overflow;
+      }
+    }
+
+    function bufferMetadataPayload(payload) {
+      const keyMs = metadataPayloadKeyMs(payload);
+      if (keyMs === null) {
+        viewMetadataBufferDropCount += 1;
+        return;
+      }
+      const receivedAtMs = Date.now();
+      viewMetadataBuffer.push({ keyMs, receivedAtMs, payload });
+      pruneMetadataBuffer(receivedAtMs);
+    }
+
+    function metadataSyncVerificationDebugEnabled() {
+      return new URLSearchParams(window.location.search).has('verify-webrtc-va-metadata-sync');
+    }
+
+    function metadataSyncVerificationSnapshot() {
+      return {
+        metadataBufferSize: viewMetadataBuffer.length,
+        metadataBufferDropCount: viewMetadataBufferDropCount,
+        maxMetadataBufferEntries: maxMetadataBufferEntries(),
+        maxMetadataBufferMs: maxMetadataBufferMs(),
+        maxMetadataAgeMs: maxMetadataAgeMs()
+      };
+    }
+
+    function installMetadataSyncVerificationDebugHook() {
+      if (!metadataSyncVerificationDebugEnabled()) return;
+      window.__vaMetadataViewerDebug = {
+        snapshot: metadataSyncVerificationSnapshot,
+        injectSyntheticBufferEntries(count = maxMetadataBufferEntries() + 32) {
+          const total = Math.max(0, Math.round(Number(count) || 0));
+          const basePtsMs = Date.now();
+          for (let index = 0; index < total; index += 1) {
+            bufferMetadataPayload({
+              schema: 'media-server.webrtc.va-metadata.v1',
+              streamId: 'verify-buffer',
+              channelId: 'verify-buffer',
+              frameId: index + 1,
+              timestampMs: basePtsMs + index * 33,
+              videoFramePtsMs: basePtsMs + index * 33,
+              analysisPtsMs: basePtsMs + index * 33,
+              syncDeltaMs: 0,
+              syncStatus: 'exact',
+              syncToleranceMs: 200,
+              metadataSequence: index + 1,
+              sentAtMs: Date.now(),
+              frameWidth: 1280,
+              frameHeight: 720,
+              coordinateSpace: 'normalized-frame',
+              tracks: [],
+              events: [],
+              scenarios: []
+            });
+          }
+          updateMetadataViewerPanel();
+          return metadataSyncVerificationSnapshot();
+        }
+      };
+    }
+
+    function currentMediaTimeMs(videoFrameMetadata = null) {
+      const video = $('viewWebRtcVideo');
+      const mediaTimeMs = metadataNumber(videoFrameMetadata?.mediaTime);
+      const fallbackTimeMs = metadataNumber(video?.currentTime);
+      return mediaTimeMs !== null ? mediaTimeMs * 1000 : (fallbackTimeMs !== null ? fallbackTimeMs * 1000 : null);
+    }
+
+    function recordMetadataVideoFramePresented(videoFrameMetadata = null, options = {}) {
+      const presentedFrames = metadataNumber(videoFrameMetadata?.presentedFrames);
+      if (presentedFrames !== null && presentedFrames > 0) {
+        viewMetadataVideoPresentedFrames = Math.max(viewMetadataVideoPresentedFrames, Math.round(presentedFrames));
+      } else if (options.increment !== false) {
+        viewMetadataVideoPresentedFrames += 1;
+      }
+      viewMetadataLastVideoFrameAt = Date.now();
+      viewMetadataLastVideoFrameMediaTimeMs = currentMediaTimeMs(videoFrameMetadata);
+      setMetadataVideoStalled(false);
+      scheduleMetadataVideoStallCheck();
+      updateMetadataViewerPanel();
+    }
+
+    function recordMetadataAnimationFrameIfVideoAdvanced() {
+      const mediaTimeMs = currentMediaTimeMs(null);
+      if (mediaTimeMs === null) {
+        checkMetadataVideoStall();
+        return false;
+      }
+      const previousMediaTimeMs = viewMetadataLastVideoFrameMediaTimeMs;
+      const advanced = previousMediaTimeMs === null || Math.abs(mediaTimeMs - previousMediaTimeMs) >= 1;
+      if (advanced) {
+        recordMetadataVideoFramePresented(null);
+        return true;
+      }
+      checkMetadataVideoStall();
+      return false;
+    }
+
+    function calibrationCandidateMetadata() {
+      for (let index = viewMetadataBuffer.length - 1; index >= 0; index -= 1) {
+        const payload = viewMetadataBuffer[index].payload;
+        const status = metadataSyncStatus(payload);
+        if (status === 'exact' || status === 'near') {
+          return viewMetadataBuffer[index];
+        }
+      }
+      return viewMetadataBuffer.length > 0 ? viewMetadataBuffer[viewMetadataBuffer.length - 1] : null;
+    }
+
+    function ensureMetadataPtsCalibration(mediaTimeMs) {
+      if (mediaTimeMs === null) return false;
+      if (viewMetadataVideoPtsOffsetMs !== null) return true;
+      const candidate = calibrationCandidateMetadata();
+      if (!candidate) return false;
+      viewMetadataVideoPtsOffsetMs = candidate.keyMs - mediaTimeMs;
+      viewMetadataPtsCalibrationCount = 1;
+      return true;
+    }
+
+    function updateMetadataPtsCalibration(mediaTimeMs, selectedEntry) {
+      if (mediaTimeMs === null || !selectedEntry || isFallbackMetadata(selectedEntry.payload)) return;
+      const nextOffsetMs = selectedEntry.keyMs - mediaTimeMs;
+      if (viewMetadataVideoPtsOffsetMs === null) {
+        viewMetadataVideoPtsOffsetMs = nextOffsetMs;
+        viewMetadataPtsCalibrationCount = 1;
+        return;
+      }
+      const driftMs = Math.abs(nextOffsetMs - viewMetadataVideoPtsOffsetMs);
+      if (driftMs <= 1000) {
+        viewMetadataVideoPtsOffsetMs = viewMetadataVideoPtsOffsetMs * 0.92 + nextOffsetMs * 0.08;
+        viewMetadataPtsCalibrationCount += 1;
+      }
+    }
+
+    function currentPresentedVideoPtsMs(videoFrameMetadata = null) {
+      const mediaTimeMs = currentMediaTimeMs(videoFrameMetadata);
+      if (!ensureMetadataPtsCalibration(mediaTimeMs)) return null;
+      if (viewMetadataVideoPtsOffsetMs === null) return null;
+      return mediaTimeMs + viewMetadataVideoPtsOffsetMs;
+    }
+
+    function selectMetadataForPresentedFrame(videoFrameMetadata = null) {
+      pruneMetadataBuffer();
+      const mediaTimeMs = currentMediaTimeMs(videoFrameMetadata);
+      const currentPtsMs = currentPresentedVideoPtsMs(videoFrameMetadata);
+      if (currentPtsMs === null) return null;
+      let best = null;
+      let fallbackCandidate = null;
+      const options = metadataOverlayOptions();
+      for (const entry of viewMetadataBuffer) {
+        const payload = entry.payload;
+        const deltaMs = Math.abs(entry.keyMs - currentPtsMs);
+        const toleranceMs = metadataDrawToleranceMs(payload);
+        if (deltaMs > toleranceMs) continue;
+        if (isFallbackMetadata(payload)) {
+          if (!options.fallback) {
+            noteFallbackHidden(payload);
+            continue;
+          }
+          if (!fallbackCandidate || deltaMs < fallbackCandidate.deltaMs) {
+            fallbackCandidate = { entry, payload, deltaMs, toleranceMs };
+          }
+          continue;
+        }
+        if (!metadataPayloadDrawable(payload, options)) continue;
+        if (!best || deltaMs < best.deltaMs) {
+          best = { entry, payload, deltaMs, toleranceMs };
+        }
+      }
+      const selected = best || fallbackCandidate;
+      if (selected) {
+        updateMetadataPtsCalibration(mediaTimeMs, selected.entry);
+      }
+      return selected;
+    }
+
+    function updateSelectedMetadataDiagnostics(payload, selectedDeltaMs = null) {
+      const selectedDelta = metadataNumber(selectedDeltaMs);
+      viewMetadataSelectedSyncDeltaMs = selectedDelta !== null
+        ? Math.round(selectedDelta)
+        : metadataNumber(payload?.syncDeltaMs);
+      const sentAtMs = metadataNumber(payload?.sentAtMs);
+      viewMetadataSelectedLagMs = sentAtMs !== null ? Math.max(0, Date.now() - sentAtMs) : null;
+      updateMetadataViewerPanel();
+    }
+
+    function drawMetadataOverlayForPayload(payload, videoFrameMetadata = null, selectedDeltaMs = null) {
+      const surface = resizeMetadataOverlayCanvas();
+      if (!surface) return;
+      const stale = Boolean(viewMetadataLastMessageAt && Date.now() - viewMetadataLastMessageAt > 3000);
+      setMetadataOverlayStale(stale);
+      if (stale || !payload || !Array.isArray(payload.tracks) || payload.tracks.length === 0) {
+        return;
+      }
+      updateSelectedMetadataDiagnostics(payload, selectedDeltaMs);
+      const content = metadataVideoContentRect(payload);
+      if (!content) return;
+      const frameSize = metadataFrameSize(payload);
+      const options = metadataOverlayOptions();
+      const anyText = options.label || options.trackId || options.zone || options.dwell || options.scenario || options.health;
+      const fallback = isFallbackMetadata(payload);
+      surface.ctx.save();
+      surface.ctx.globalAlpha = fallback ? 0.42 : 1;
+      for (const track of payload.tracks) {
+        if (!shouldDrawMetadataTrack(track)) continue;
+        const bbox = normalizeMetadataBbox(track.bbox, frameSize);
+        if (!bbox) continue;
+        const x = content.x + bbox.x * content.width;
+        const y = content.y + bbox.y * content.height;
+        const width = bbox.width * content.width;
+        const height = bbox.height * content.height;
+        const event = options.event ? metadataEventForTrack(payload, track.trackId) : null;
+        const unstable = options.health && isMetadataTrackUnstable(track);
+        const color = event ? '#ffcc00' : (unstable ? '#f56565' : '#6fd0a5');
+        if (options.event && event) {
+          surface.ctx.fillStyle = 'rgba(255, 204, 0, 0.16)';
+          surface.ctx.fillRect(x, y, width, height);
+        }
+        if (options.bbox || event) {
+          surface.ctx.strokeStyle = color;
+          surface.ctx.lineWidth = event ? 4 : 3;
+          surface.ctx.strokeRect(x, y, width, height);
+        }
+        if (!anyText) continue;
+        const lines = [];
+        if (options.label) {
+          const confidence = metadataConfidenceLabel(track.confidence);
+          lines.push(`${track.className || 'object'}${confidence ? ` ${confidence}` : ''}`);
+        }
+        if (options.trackId && Number(track.trackId || 0) > 0) {
+          lines.push(`#${track.trackId}`);
+        }
+        if (options.zone && track.currentZone) {
+          lines.push(`zone ${track.currentZone}`);
+        }
+        if (options.dwell) {
+          const dwell = metadataDwellLabel(track.dwellTimeMs);
+          if (dwell) lines.push(`체류 ${dwell}`);
+        }
+        if (options.scenario && (track.scenarioPhase || track.scenarioName)) {
+          lines.push(`${track.scenarioName || 'scenario'} ${track.scenarioPhase || ''}`.trim());
+        }
+        if (options.health) {
+          lines.push(unstable ? 'TrackHealth 불안정' : 'TrackHealth 안정');
+        }
+        if (options.event && event) {
+          lines.push(`이벤트 ${event.eventType || event.status || 'emitted'}`);
+        }
+        if (fallback) {
+          lines.push('fallback metadata');
+        }
+        drawMetadataLabel(surface.ctx, lines, x, y, color, surface.width);
+      }
+      surface.ctx.restore();
+      viewMetadataDrawCount += 1;
+      updateMetadataViewerPanel();
+    }
+
+    function drawMetadataOverlay(videoFrameMetadata = null) {
+      if (viewMetadataVideoStalled) {
+        clearMetadataOverlay({ stale: true });
+        return;
+      }
+      const selected = selectMetadataForPresentedFrame(videoFrameMetadata);
+      if (!selected) {
+        clearMetadataOverlay({ stale: viewMetadataMessageCount > 0 });
+        return;
+      }
+      viewMetadataLatestPayload = selected.payload;
+      drawMetadataOverlayForPayload(selected.payload, videoFrameMetadata, selected.deltaMs);
+    }
+
+    function scheduleMetadataOverlayFrame() {
+      if (!viewMetadataPresentationLoopRunning || viewMetadataOverlayTimer !== null) return;
+      const video = $('viewWebRtcVideo');
+      if (video && typeof video.requestVideoFrameCallback === 'function') {
+        viewMetadataOverlayTimerKind = 'video-frame';
+        viewMetadataOverlayTimer = video.requestVideoFrameCallback((_now, metadata) => {
+          viewMetadataOverlayTimer = null;
+          viewMetadataOverlayTimerKind = '';
+          if (!viewMetadataPresentationLoopRunning) return;
+          recordMetadataVideoFramePresented(metadata);
+          drawMetadataOverlay(metadata);
+          scheduleMetadataOverlayFrame();
+        });
+        return;
+      }
+      viewMetadataOverlayTimerKind = 'animation-frame';
+      viewMetadataOverlayTimer = window.requestAnimationFrame(() => {
+        viewMetadataOverlayTimer = null;
+        viewMetadataOverlayTimerKind = '';
+        if (!viewMetadataPresentationLoopRunning) return;
+        const videoAdvanced = recordMetadataAnimationFrameIfVideoAdvanced();
+        if (videoAdvanced && !viewMetadataVideoStalled) {
+          drawMetadataOverlay(null);
+        }
+        scheduleMetadataOverlayFrame();
+      });
+    }
+
+    function startMetadataOverlayTicker() {
+      if (!viewMetadataPresentationLoopRunning) {
+        viewMetadataPresentationLoopStartedAt = Date.now();
+      }
+      viewMetadataPresentationLoopRunning = true;
+      scheduleMetadataVideoStallCheck();
+      scheduleMetadataOverlayFrame();
+    }
+
+    function stopMetadataOverlayTicker() {
+      viewMetadataPresentationLoopRunning = false;
+      clearMetadataVideoStallTimer();
+      if (viewMetadataOverlayTimer) {
+        const video = $('viewWebRtcVideo');
+        if (viewMetadataOverlayTimerKind === 'video-frame' && video && typeof video.cancelVideoFrameCallback === 'function') {
+          video.cancelVideoFrameCallback(viewMetadataOverlayTimer);
+        } else {
+          window.cancelAnimationFrame(viewMetadataOverlayTimer);
+        }
+        viewMetadataOverlayTimer = null;
+        viewMetadataOverlayTimerKind = '';
+      }
+    }
+
+    async function metadataPayloadText(data) {
+      if (typeof data === 'string') return data;
+      if (data instanceof Blob) return await data.text();
+      if (data instanceof ArrayBuffer) return new TextDecoder().decode(data);
+      return String(data || '');
+    }
+
+    async function handleMetadataMessage(event) {
+      let text = '';
+      try {
+        text = await metadataPayloadText(event.data);
+        const parsed = JSON.parse(text);
+        viewMetadataMessageCount += 1;
+        viewMetadataLatestTimestampMs = Number(parsed.timestampMs || parsed.timestamp || parsed.pts || Date.now());
+        viewMetadataTrackCount = Array.isArray(parsed.tracks) ? parsed.tracks.length : 0;
+        viewMetadataEventCount = Array.isArray(parsed.events) ? parsed.events.length : 0;
+        viewMetadataScenarioCount = Array.isArray(parsed.scenarios) ? parsed.scenarios.length : 0;
+        viewMetadataParseError = '';
+        viewMetadataLastJsonText = JSON.stringify(parsed, null, 2);
+        viewMetadataLastMessageAt = Date.now();
+        viewMetadataLatestPayload = parsed;
+        bufferMetadataPayload(parsed);
+        viewMetadataState = 'receiving';
+        setText('viewConnectionMessage', `DataChannel '${viewMetadataLabel || 'va-metadata'}' 메타데이터 수신 중입니다.`);
+        updateMetadataViewerPanel();
+        scheduleMetadataStallCheck();
+      } catch (error) {
+        viewMetadataParseFailCount += 1;
+        viewMetadataParseError = `JSON parse 실패: ${error.message}`;
+        viewMetadataLastJsonText = text || '(empty message)';
+        viewMetadataLastMessageAt = Date.now();
+        updateMetadataViewerPanel();
+      }
+    }
+
+    function attachMetadataDataChannel(channel) {
+      viewMetadataChannel = channel;
+      viewMetadataLabel = channel?.label || 'va-metadata';
+      setMetadataChannelState(channel?.readyState === 'open' ? 'open' : 'connecting');
+      if (!channel) return;
+      channel.onopen = () => {
+        setMetadataChannelState('open', `DataChannel '${viewMetadataLabel}' 연결됨. 메타데이터 수신을 기다리는 중입니다.`);
+        scheduleMetadataStallCheck();
+      };
+      channel.onmessage = (event) => {
+        handleMetadataMessage(event).catch((error) => {
+          viewMetadataParseFailCount += 1;
+          viewMetadataParseError = `메타데이터 처리 실패: ${error.message}`;
+          updateMetadataViewerPanel();
+        });
+      };
+      channel.onclose = () => {
+        clearMetadataStallTimer();
+        clearMetadataOverlay();
+        setMetadataChannelState('closed', `DataChannel '${viewMetadataLabel}'이 닫혔습니다. 영상 연결은 별도로 유지됩니다.`);
+      };
+      channel.onerror = () => {
+        clearMetadataOverlay();
+        setMetadataChannelState('error', `DataChannel '${viewMetadataLabel}' 오류가 발생했습니다. 영상 연결은 별도로 유지됩니다.`);
+      };
+    }
+
     function viewConnectionStateLabel(state) {
       if (state === 'connecting') return '연결 중';
       if (state === 'playing') return '재생 중';
@@ -7257,7 +8597,7 @@ std::string BuildLabRuleEditorPageHtml() {
         setText('viewConnectionMessage', message);
         viewPreviewStatus(message);
       }
-      setViewPreviewUi(Boolean(viewTapId));
+      setViewPreviewUi(Boolean(viewTapId || viewWebRtcSessionId));
     }
 
     function buildViewParams() {
@@ -7271,14 +8611,75 @@ std::string BuildLabRuleEditorPageHtml() {
       const params = paramsFromSourceJson(sourceJsonFromControls('view'));
       if (mode === 'overlay') {
         applyBasicOverlayParams(params);
+      } else if (mode === 'metadata') {
+        applyBasicOverlayParams(params);
+        params.set('renderVideoOverlay', '0');
+        params.set('drawLabels', '0');
+        params.set('trackIds', '0');
+        params.set('trackTrails', '0');
+        params.set('vaMetadata', '1');
+        applyClientOverlayFallbackParam(params);
       }
       return params;
     }
 
+    function buildRawViewParams() {
+      if (selectedViewMode() === 'rule') {
+        const rule = selectedViewVaRule();
+        return paramsFromSourceJson(rule?.source || {});
+      }
+      return paramsFromSourceJson(sourceJsonFromControls('view'));
+    }
+
+    function buildRtspOverlayParams() {
+      if (selectedViewMode() === 'rule') {
+        const id = $('viewVaRuleSelect')?.value || '';
+        const params = new URLSearchParams();
+        if (id) params.set('vaRule', id);
+        return params;
+      }
+      return applyBasicOverlayParams(buildRawViewParams());
+    }
+
+    function buildWebRtcMetadataParams() {
+      const params = applyBasicOverlayParams(buildRawViewParams());
+      params.set('renderVideoOverlay', '0');
+      params.set('drawLabels', '0');
+      params.set('trackIds', '0');
+      params.set('trackTrails', '0');
+      params.set('vaMetadata', '1');
+      applyClientOverlayFallbackParam(params);
+      return params;
+    }
+
+	    function buildMetadataSideChannelParams() {
+	      if (selectedViewMode() === 'rule') {
+	        const id = $('viewVaRuleSelect')?.value || '';
+	        const params = new URLSearchParams();
+	        if (id) params.set('vaRule', id);
+	        params.set('intervalMs', '500');
+	        params.set('maxMessageBytes', '65536');
+	        return params;
+	      }
+	      const params = buildRawViewParams();
+	      params.set('va', '1');
+	      params.set('intervalMs', '500');
+	      params.set('maxMessageBytes', '65536');
+	      return params;
+	    }
+
+	    function websocketOriginFromHttpOrigin(origin) {
+	      const value = String(origin || window.location.origin).replace(/\/+$/, '');
+	      if (value.startsWith('https://')) return `wss://${value.slice('https://'.length)}`;
+	      if (value.startsWith('http://')) return `ws://${value.slice('http://'.length)}`;
+	      return `ws://${value.replace(/^\/+/, '')}`;
+	    }
+
     function viewModeLabel(mode) {
-      if (mode === 'overlay') return '영상 + VA Overlay';
-      if (mode === 'rule') return '영상 + VA Rule';
-      return 'Live Streaming';
+      if (mode === 'overlay') return '영상 + VA 오버레이';
+      if (mode === 'rule') return '영상 + VA 룰';
+      if (mode === 'metadata') return 'WebRTC 메타데이터';
+      return '실시간 스트리밍';
     }
 
     function updateViewModeUi() {
@@ -7287,6 +8688,10 @@ std::string BuildLabRuleEditorPageHtml() {
       const ruleFields = $('viewRuleFields');
       if (directFields) directFields.hidden = mode === 'rule';
       if (ruleFields) ruleFields.hidden = mode !== 'rule';
+      if ($('metadataViewerPanel')) $('metadataViewerPanel').hidden = mode !== 'metadata';
+      if ($('viewPreviewImage')) $('viewPreviewImage').hidden = mode === 'metadata';
+      if ($('viewWebRtcStage')) $('viewWebRtcStage').hidden = mode !== 'metadata';
+      if (mode !== 'metadata') clearMetadataOverlay();
 
       const source = sourceJsonFromControls('view');
       if ($('viewFileField')) $('viewFileField').hidden = mode === 'rule' || source.kind !== 'file';
@@ -7301,11 +8706,13 @@ std::string BuildLabRuleEditorPageHtml() {
       const sourceSummary = mode === 'rule'
         ? (rule ? sourceLabel(rule.source || {}) : '저장된 설정 선택 필요')
         : sourceLabel(source);
-      const modeHelp = mode === 'rule'
-        ? '영상 + VA Rule은 저장된 Rule ID만 선택합니다. 영상 소스는 해당 Rule에 묶인 값으로 자동 고정됩니다.'
+      const modeHelp = mode === 'metadata'
+        ? 'WebRTC 메타데이터는 simple signaling으로 영상을 재생하고 vaMetadata=1 DataChannel JSON 수신 상태를 확인합니다.'
+        : (mode === 'rule'
+        ? '영상 + VA 룰은 저장된 룰 ID만 선택합니다. 영상 소스는 해당 룰에 묶인 값으로 자동 고정됩니다.'
         : (mode === 'overlay'
-          ? '영상 + VA Overlay는 선택한 영상에 기본 객체 검출 overlay를 얹어 확인합니다.'
-          : 'Live Streaming은 선택한 영상의 원본 프레임만 확인합니다.');
+          ? '영상 + VA 오버레이는 선택한 영상에 기본 객체 검출 overlay를 얹어 확인합니다.'
+          : '실시간 스트리밍은 선택한 영상의 원본 프레임만 확인합니다.'));
       const bindingText = mode === 'rule'
         ? (rule ? `${viewModeLabel(mode)} · vaRule=${rule.id} · ${sourceLabel(rule.source || {})}` : `${viewModeLabel(mode)} · 설정 선택 필요`)
         : `${viewModeLabel(mode)} · ${sourceLabel(source)}`;
@@ -7319,6 +8726,10 @@ std::string BuildLabRuleEditorPageHtml() {
     function updateGeneratedUrls() {
       const params = buildViewParams();
       const query = params.toString();
+      const rawQuery = buildRawViewParams().toString();
+      const rtspOverlayQuery = buildRtspOverlayParams().toString();
+      const metadataQuery = buildWebRtcMetadataParams().toString();
+      const sideChannelQuery = buildMetadataSideChannelParams().toString();
       const fallbackOrigin = window.location.origin;
       const baseInput = $('viewServerBaseUrl');
       const rtspInput = $('viewRtspAuthority');
@@ -7332,10 +8743,214 @@ std::string BuildLabRuleEditorPageHtml() {
       const rtspAuthority = String(rtspInput?.value || `${window.location.hostname || '127.0.0.1'}:${serverDefaults.rtspPort || 8554}`).replace(/^rtsp:\/\//, '').replace(/\/+$/, '');
       const route = String(serverDefaults.streamRoute || 'dhseo').replace(/^\/+/, '');
       const querySuffix = query ? `?${query}` : '';
-      if ($('viewWebRtcUrl')) $('viewWebRtcUrl').value = `${origin}/webrtc/session${querySuffix}`;
-      if ($('viewWhepUrl')) $('viewWhepUrl').value = `${origin}/whep${querySuffix}`;
-      if ($('viewRtspUrl')) $('viewRtspUrl').value = `rtsp://${rtspAuthority}/${route}${querySuffix}`;
-      if ($('viewTapUrl')) $('viewTapUrl').value = `${origin}/lab/analysis/taps${querySuffix}`;
+      const rawQuerySuffix = rawQuery ? `?${rawQuery}` : '';
+      const rtspOverlayQuerySuffix = rtspOverlayQuery ? `?${rtspOverlayQuery}` : '';
+	      const metadataQuerySuffix = metadataQuery ? `?${metadataQuery}` : '';
+	      const metadataSideChannelUrl = viewTapId
+	        ? `${origin}/lab/analysis/taps/${encodeURIComponent(viewTapId)}/metadata/stream?intervalMs=500&maxMessageBytes=65536`
+	        : `${origin}/lab/analysis/metadata/stream${sideChannelQuery ? `?${sideChannelQuery}` : ''}`;
+	      const wsSideChannelQuery = viewTapId
+	        ? `tapId=${encodeURIComponent(viewTapId)}&intervalMs=500&maxMessageBytes=65536`
+	        : sideChannelQuery;
+	      const webSocketSideChannelUrl = `${websocketOriginFromHttpOrigin(origin)}/ws/va-metadata${wsSideChannelQuery ? `?${wsSideChannelQuery}` : ''}`;
+	      const rtspOverlayUrl = `rtsp://${rtspAuthority}/${route}${rtspOverlayQuerySuffix}`;
+	      const rtspRawUrl = `rtsp://${rtspAuthority}/${route}${rawQuerySuffix}`;
+	      if ($('viewWebRtcUrl')) $('viewWebRtcUrl').value = `${origin}/webrtc/session${querySuffix}`;
+	      if ($('viewWebRtcMetadataUrl')) $('viewWebRtcMetadataUrl').value = `${origin}/webrtc/session${metadataQuerySuffix}`;
+	      if ($('viewWhepUrl')) $('viewWhepUrl').value = `${origin}/whep${querySuffix}`;
+	      if ($('viewRtspUrl')) $('viewRtspUrl').value = rtspOverlayUrl;
+	      if ($('viewRtspRawUrl')) $('viewRtspRawUrl').value = rtspRawUrl;
+	      if ($('viewMetadataSideChannelUrl')) $('viewMetadataSideChannelUrl').value = metadataSideChannelUrl;
+	      if ($('viewWebSocketSideChannelUrl')) $('viewWebSocketSideChannelUrl').value = webSocketSideChannelUrl;
+	      if ($('viewPairingRtspOverlayUrl')) $('viewPairingRtspOverlayUrl').value = rtspOverlayUrl;
+	      if ($('viewPairingRtspRawUrl')) $('viewPairingRtspRawUrl').value = rtspRawUrl;
+	      if ($('viewPairingMetadataSideChannelUrl')) $('viewPairingMetadataSideChannelUrl').value = metadataSideChannelUrl;
+	      if ($('viewTapUrl')) $('viewTapUrl').value = `${origin}/lab/analysis/taps${querySuffix}`;
+	    }
+
+    function dashboardNumber(value, fallback = 0) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number : fallback;
+    }
+
+    function dashboardFixed(value, digits = 1) {
+      const number = dashboardNumber(value, 0);
+      return number.toFixed(digits);
+    }
+
+    function dashboardMs(value) {
+      return `${dashboardFixed(value, 1)}ms`;
+    }
+
+    function dashboardSet(id, value) {
+      setText(id, value === undefined || value === null || value === '' ? '-' : String(value));
+    }
+
+    async function dashboardFetchJson(path) {
+      const response = await fetch(path, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`${path} HTTP ${response.status}`);
+      return await response.json();
+    }
+
+    function renderDashboardRuleSelect() {
+      const select = $('dashboardRuleSelect');
+      if (!select) return;
+      const previous = select.value;
+      select.innerHTML = '';
+      addOption(select, '', '전체 룰');
+      for (const item of sortedVaRules()) {
+        addOption(select, String(item.id), `#${item.id}${item.name ? ` · ${item.name}` : ''}`);
+      }
+      if (previous && Array.from(select.options).some((option) => option.value === previous)) {
+        select.value = previous;
+      }
+    }
+
+    function renderDashboardTapSelect(taps) {
+      const select = $('dashboardTapSelect');
+      if (!select) return '';
+      const previous = dashboardLastTapId || select.value || '';
+      const selectedRuleId = $('dashboardRuleSelect')?.value || '';
+      select.innerHTML = '';
+      if (!Array.isArray(taps) || taps.length === 0) {
+        addOption(select, '', 'active tap 없음');
+        dashboardLastTapId = '';
+        return '';
+      }
+      for (const tap of taps) {
+        const ruleId = tap?.profileSelection?.ruleId || tap?.selectedRuleId || '';
+        const label = `${tap.tapId || '<tap>'} · ${tap.context?.sourceKind || tap.sourceKind || '-'} · rule=${ruleId || '-'}`;
+        addOption(select, tap.tapId || '', label);
+      }
+      const options = Array.from(select.options).map((option) => option.value);
+      let nextValue = options.includes(previous) ? previous : '';
+      if (!nextValue && selectedRuleId) {
+        const matched = taps.find((tap) => String(tap?.profileSelection?.ruleId || tap?.selectedRuleId || '') === selectedRuleId);
+        nextValue = matched?.tapId || '';
+      }
+      if (!nextValue) nextValue = taps[0]?.tapId || '';
+      select.value = nextValue;
+      dashboardLastTapId = nextValue;
+      return nextValue;
+    }
+
+    function dashboardEventPostLabel(payload) {
+      if (!payload) return '-';
+      return `${payload.enabled ? 'on' : 'off'} · q ${payload.queueSize || 0}/${payload.maxQueueSize || 0} · sent ${payload.sentCount || 0} · fail ${payload.failedCount || 0}`;
+    }
+
+    function dashboardEventStorageLabel(payload) {
+      if (!payload) return '-';
+      return `${payload.enabled ? 'on' : 'off'} · q ${payload.queueSize || 0}/${payload.maxQueueSize || 0} · stored ${payload.storedCount || 0} · fail ${payload.failedCount || 0}`;
+    }
+
+    function dashboardPrettyJson(payload, fallback) {
+      if (!payload) return fallback;
+      try {
+        return JSON.stringify(payload, null, 2);
+      } catch (_) {
+        return fallback;
+      }
+    }
+
+    function renderDashboard(payload) {
+      dashboardLastPayload = payload;
+      const runtime = payload?.runtime || {};
+      const tapsPayload = payload?.tapsPayload || {};
+      const tapMetrics = payload?.tapMetrics || null;
+      const stateDump = payload?.stateDump || null;
+      const selectedTap = payload?.selectedTap || null;
+      const sessionManager = runtime.sessionManager || {};
+      const analysisMatching = runtime.analysisMatching || {};
+      const tapState = tapMetrics?.tapState || selectedTap || {};
+      const snapshotTrackState = selectedTap?.analyticsState?.trackState || {};
+      const trackState = tapMetrics?.trackState || snapshotTrackState || {};
+      const metricsReport = tapMetrics?.metricsReport || {};
+      const reportTrackState = metricsReport.trackState || {};
+      const scenarioState = metricsReport.scenarioState || {};
+      const eventState = metricsReport.eventState || {};
+      const trackHealth = metricsReport.trackHealth || {};
+      const debugCounts = stateDump?.debugState?.counts || {};
+
+      dashboardSet('dashboardSourceKind', selectedTap?.context?.sourceKind || selectedTap?.sourceKind || '-');
+      dashboardSet('dashboardActiveSessions', sessionManager.activeSessions || 0);
+      dashboardSet('dashboardActiveStreams', sessionManager.registryActiveStreams || sessionManager.resourceActiveStreams || 0);
+      dashboardSet('dashboardActiveTaps', analysisMatching.activeTapCount ?? tapsPayload.activeTaps ?? 0);
+      dashboardSet('dashboardDecodedFps', dashboardFixed(tapState.effectiveDecodedFps));
+      dashboardSet('dashboardSampledFps', dashboardFixed(tapState.effectiveSampledFps));
+      dashboardSet('dashboardAnalyzedFps', dashboardFixed(tapState.effectiveAnalyzedFps));
+      dashboardSet('dashboardQueueSummary', `${tapState.analyticsQueue?.pending ?? tapState.pendingFrames ?? 0}/${tapState.analyticsQueue?.capacity ?? tapState.maxQueueSize ?? 0}/${tapState.analyticsQueue?.peakPending ?? tapState.peakPendingFrames ?? 0}`);
+      dashboardSet('dashboardInferenceLatency', `last ${dashboardMs(tapState.lastInferenceMs)} · avg ${dashboardMs(tapState.averageInferenceMs)} · max ${dashboardMs(tapState.maxInferenceMs)}`);
+      dashboardSet(
+        'dashboardTrackCounts',
+        `${reportTrackState.activeTracks ?? trackState.activeTracks ?? 0}/${reportTrackState.lostTracks ?? trackState.lostTracks ?? 0}/${reportTrackState.reacquiredTracks ?? trackState.reacquiredTracks ?? 0}/${reportTrackState.terminatedTracks ?? trackState.terminatedTracks ?? 0}`
+      );
+      dashboardSet('dashboardScenarioCount', scenarioState.activeScenarios ?? debugCounts.scenarioInstances ?? 0);
+      dashboardSet('dashboardEventCounts', `${eventState.eventsEmitted ?? 0}/${eventState.eventsDeduped ?? 0}`);
+      dashboardSet('dashboardUnstableCount', trackHealth.unstableTrackCount ?? 0);
+      dashboardSet('dashboardOverlapRiskCount', trackHealth.overlapRiskTrackCount ?? 0);
+      dashboardSet('dashboardEventPostStatus', dashboardEventPostLabel(payload?.eventPost));
+      dashboardSet('dashboardEventStorageStatus', dashboardEventStorageLabel(payload?.eventStorage));
+      dashboardSet('dashboardStatusText', `마지막 갱신 ${new Date().toLocaleTimeString('ko-KR')} · tap ${dashboardLastTapId || '-'}`);
+      const statePre = $('dashboardStateDumpJson');
+      if (statePre) statePre.textContent = dashboardPrettyJson(stateDump, 'tap을 선택하면 상태 덤프가 표시됩니다.');
+      const issuePre = $('dashboardTrackingIssueReport');
+      if (issuePre) issuePre.textContent = dashboardPrettyJson(tapMetrics?.trackingIssueReport, 'tracking issue report 없음');
+    }
+
+    async function refreshDashboard(options = {}) {
+      if (!options.force && !dashboardActive) return;
+      const now = Date.now();
+      if (!options.force && now - dashboardLastRefreshAt < 1000) return;
+      if (dashboardRefreshInFlight) return;
+      dashboardRefreshInFlight = true;
+      dashboardLastRefreshAt = now;
+      try {
+        dashboardSet('dashboardStatusText', '갱신 중...');
+        const [runtime, tapsPayload, eventPost, eventStorage] = await Promise.all([
+          dashboardFetchJson('/lab/runtime/status'),
+          dashboardFetchJson('/lab/analysis/taps'),
+          dashboardFetchJson('/lab/analysis/event-post/status'),
+          dashboardFetchJson('/lab/analysis/event-storage/status')
+        ]);
+        const taps = Array.isArray(tapsPayload.taps) ? tapsPayload.taps : [];
+        const tapId = renderDashboardTapSelect(taps);
+        let tapMetrics = null;
+        let stateDump = null;
+        let selectedTap = taps.find((tap) => tap.tapId === tapId) || null;
+        if (tapId) {
+          [tapMetrics, stateDump] = await Promise.all([
+            dashboardFetchJson(`/lab/analysis/taps/${encodeURIComponent(tapId)}/metrics`),
+            dashboardFetchJson(`/lab/analysis/taps/${encodeURIComponent(tapId)}/state-dump`)
+          ]);
+        }
+        renderDashboard({ runtime, tapsPayload, eventPost, eventStorage, tapMetrics, stateDump, selectedTap });
+      } catch (error) {
+        dashboardSet('dashboardStatusText', `갱신 실패: ${error.message}`);
+      } finally {
+        dashboardRefreshInFlight = false;
+      }
+    }
+
+    function stopDashboardPolling() {
+      if (dashboardTimer) {
+        clearInterval(dashboardTimer);
+        dashboardTimer = null;
+      }
+    }
+
+    function startDashboardPolling() {
+      stopDashboardPolling();
+      if (!dashboardActive) return;
+      const autoRefresh = $('dashboardAutoRefreshInput')?.checked !== false;
+      const rawIntervalMs = dashboardNumber($('dashboardRefreshInterval')?.value, 5000);
+      const intervalMs = rawIntervalMs <= 0 ? 0 : Math.max(2000, rawIntervalMs);
+      refreshDashboard({ force: true }).catch(() => {});
+      if (autoRefresh && intervalMs > 0) {
+        dashboardTimer = setInterval(() => {
+          refreshDashboard().catch(() => {});
+        }, intervalMs);
+      }
     }
 
     async function copyGeneratedUrl(targetId, button = null) {
@@ -7366,18 +8981,167 @@ std::string BuildLabRuleEditorPageHtml() {
       }
     }
 
+    async function pollViewWebRtcIce() {
+      if (!viewWebRtcSessionId || !viewWebRtcPeer) return;
+      const response = await fetch(`/webrtc/session/${encodeURIComponent(viewWebRtcSessionId)}/ice`).catch(() => null);
+      if (!response || !response.ok) return;
+      const payload = await response.json();
+      const candidates = Array.isArray(payload.candidates) ? payload.candidates : [];
+      for (const item of candidates) {
+        try {
+          await viewWebRtcPeer.addIceCandidate(item);
+        } catch (_) {
+        }
+      }
+      if (candidates.length > 0) {
+        viewWebRtcEmptyIcePolls = 0;
+      } else if (viewWebRtcPeer && ['connected', 'completed'].includes(viewWebRtcPeer.iceConnectionState || '')) {
+        viewWebRtcEmptyIcePolls += 1;
+        if (viewWebRtcEmptyIcePolls >= 3 && viewWebRtcIceTimer) {
+          clearInterval(viewWebRtcIceTimer);
+          viewWebRtcIceTimer = null;
+        }
+      }
+    }
+
+    async function closeViewWebRtcSession() {
+      clearMetadataStallTimer();
+      if (viewWebRtcIceTimer) {
+        clearInterval(viewWebRtcIceTimer);
+        viewWebRtcIceTimer = null;
+      }
+      if (viewMetadataChannel) {
+        try {
+          viewMetadataChannel.onopen = null;
+          viewMetadataChannel.onmessage = null;
+          viewMetadataChannel.onclose = null;
+          viewMetadataChannel.onerror = null;
+          viewMetadataChannel.close();
+        } catch (_) {
+        }
+      }
+      viewMetadataChannel = null;
+      if (viewWebRtcPeer) {
+        try {
+          viewWebRtcPeer.close();
+        } catch (_) {
+        }
+      }
+      viewWebRtcPeer = null;
+      const sessionId = viewWebRtcSessionId;
+      viewWebRtcSessionId = '';
+      viewWebRtcEmptyIcePolls = 0;
+      stopMetadataOverlayTicker();
+      const video = $('viewWebRtcVideo');
+      if (video) {
+        if (video.srcObject) {
+          for (const track of video.srcObject.getTracks()) {
+            track.stop();
+          }
+        }
+        video.srcObject = null;
+      }
+      if (sessionId) {
+        await fetch(`/webrtc/session/${encodeURIComponent(sessionId)}`, { method: 'DELETE' }).catch(() => {});
+      }
+      clearMetadataOverlay();
+    }
+
+    async function startWebRtcMetadataViewer(params) {
+      if (!window.RTCPeerConnection) {
+        throw new Error('이 브라우저는 RTCPeerConnection을 지원하지 않습니다.');
+      }
+      resetMetadataViewerState('connecting');
+      startMetadataOverlayTicker();
+      setViewConnectionState('connecting', 'WebRTC 세션을 만들고 DataChannel을 기다리는 중입니다.');
+      const pc = new RTCPeerConnection({ iceServers: [] });
+      viewWebRtcPeer = pc;
+      pc.onconnectionstatechange = () => {
+        if (pc !== viewWebRtcPeer) return;
+        const state = pc.connectionState || '';
+        if (['failed', 'disconnected'].includes(state)) {
+          setViewConnectionState('error', `WebRTC 연결 상태: ${state}`);
+        } else if (['connected', 'completed'].includes(state)) {
+          setViewConnectionState('playing', 'WebRTC 영상 재생 중입니다. metadata DataChannel 수신 상태를 확인하세요.');
+        }
+      };
+      pc.oniceconnectionstatechange = () => {
+        if (pc !== viewWebRtcPeer) return;
+        if (['failed', 'disconnected'].includes(pc.iceConnectionState || '')) {
+          setViewConnectionState('error', `WebRTC ICE 상태: ${pc.iceConnectionState}`);
+        }
+      };
+      pc.ondatachannel = (event) => {
+        if (pc !== viewWebRtcPeer) return;
+        attachMetadataDataChannel(event.channel);
+      };
+      pc.ontrack = (event) => {
+        if (pc !== viewWebRtcPeer) return;
+        const video = $('viewWebRtcVideo');
+        if (!video) return;
+        if ($('viewWebRtcStage')) $('viewWebRtcStage').hidden = false;
+        video.srcObject = event.streams[0];
+        video.muted = false;
+        video.volume = 1.0;
+        const playPromise = video.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch(() => {});
+        }
+        setViewConnectionState('playing', 'WebRTC 영상 재생 중입니다. DataChannel 연결을 기다리는 중입니다.');
+      };
+      pc.onicecandidate = async (event) => {
+        if (!viewWebRtcSessionId || !event.candidate) return;
+        await fetch(`/webrtc/session/${encodeURIComponent(viewWebRtcSessionId)}/ice`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sdpMLineIndex: event.candidate.sdpMLineIndex,
+            candidate: event.candidate.candidate
+          })
+        }).catch(() => {});
+      };
+
+      const response = await fetch(`/webrtc/session?${params.toString()}`, { method: 'POST' });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || 'WebRTC 세션 생성 실패');
+      }
+      viewWebRtcSessionId = payload.sessionId || '';
+      if (!viewWebRtcSessionId || !payload.offer) {
+        throw new Error('WebRTC 세션 응답에 sessionId 또는 offer가 없습니다.');
+      }
+      await pc.setRemoteDescription({ type: 'offer', sdp: payload.offer });
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      await fetch(`/webrtc/session/${encodeURIComponent(viewWebRtcSessionId)}/answer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/sdp' },
+        body: answer.sdp
+      });
+      setViewPreviewUi(true);
+      viewWebRtcIceTimer = setInterval(() => {
+        pollViewWebRtcIce().catch(() => {});
+      }, 1000);
+      scheduleMetadataStallCheck();
+    }
+
     async function stopViewPreview(options = {}) {
       if (viewTimer) {
         clearInterval(viewTimer);
         viewTimer = null;
       }
+      await closeViewWebRtcSession();
       const tapId = viewTapId;
       viewTapId = '';
       viewFailureCount = 0;
       if ($('viewPreviewImage')) $('viewPreviewImage').removeAttribute('src');
+      if (isMetadataViewMode()) {
+        resetMetadataViewerState('disabled');
+      }
       if (tapId) {
         await fetch(`/lab/analysis/taps/${encodeURIComponent(tapId)}`, { method: 'DELETE' }).catch(() => {});
       }
+      updateGeneratedUrls();
       if (!options.silent) {
         setViewConnectionState('stopped', '보기를 중지했습니다.');
       } else if (!viewTapId) {
@@ -7414,16 +9178,21 @@ std::string BuildLabRuleEditorPageHtml() {
       updateViewModeUi();
       const params = buildViewParams();
       if (selectedViewMode() === 'rule' && !params.get('vaRule')) {
-        throw new Error('영상 + VA Rule 모드는 저장된 영상 분석 설정 ID를 선택해야 합니다.');
+        throw new Error('영상 + VA 룰 모드는 저장된 영상 분석 설정 ID를 선택해야 합니다.');
       }
       if ((params.get('source') || '') !== '' && !params.get('url')) {
         throw new Error('URL 또는 Source ID를 입력하세요.');
+      }
+      if (selectedViewMode() === 'metadata') {
+        await startWebRtcMetadataViewer(params);
+        return;
       }
       setViewConnectionState('connecting', '분석 tap을 생성하고 프레임을 기다리는 중입니다.');
       const payload = await requestJson(`/lab/analysis/taps?${params.toString()}`, { method: 'POST' });
       viewTapId = payload.tapId || '';
       setViewPreviewUi(true);
       setViewConnectionState('connecting', `${viewModeLabel(selectedViewMode())} 연결 중: ${$('viewBindingSummary')?.textContent || ''}`);
+      updateGeneratedUrls();
       refreshViewFrame();
       viewTimer = setInterval(refreshViewFrame, 500);
     }
@@ -7805,6 +9574,36 @@ std::string BuildLabRuleEditorPageHtml() {
           el.addEventListener('change', updateViewModeUi);
         }
       }
+      for (const id of ['metadataOverlayBboxInput', 'metadataOverlayLabelInput', 'metadataOverlayTrackIdInput', 'metadataOverlayScenarioInput', 'metadataOverlayEventInput', 'metadataOverlayHealthInput', 'metadataOverlayZoneInput', 'metadataOverlayDwellInput', 'metadataOverlayFallbackInput']) {
+        const el = $(id);
+        if (el) {
+          el.addEventListener('change', () => {
+            updateGeneratedUrls();
+            scheduleMetadataOverlayFrame();
+          });
+        }
+      }
+      for (const id of ['dashboardRefreshInterval', 'dashboardAutoRefreshInput']) {
+        const el = $(id);
+        if (el) {
+          el.addEventListener('change', startDashboardPolling);
+        }
+      }
+      if ($('dashboardRefreshBtn')) {
+        $('dashboardRefreshBtn').addEventListener('click', () => refreshDashboard({ force: true }).catch(() => {}));
+      }
+      if ($('dashboardTapSelect')) {
+        $('dashboardTapSelect').addEventListener('change', () => {
+          dashboardLastTapId = $('dashboardTapSelect').value || '';
+          refreshDashboard({ force: true }).catch(() => {});
+        });
+      }
+      if ($('dashboardRuleSelect')) {
+        $('dashboardRuleSelect').addEventListener('change', () => {
+          dashboardLastTapId = '';
+          refreshDashboard({ force: true }).catch(() => {});
+        });
+      }
     }
 
     function bindNavigationEvents() {
@@ -7819,12 +9618,16 @@ std::string BuildLabRuleEditorPageHtml() {
           }
           $('settingsPanel').hidden = tabName !== 'settings';
           $('viewerPanel').hidden = tabName !== 'viewer';
+          $('dashboardPanel').hidden = tabName !== 'dashboard';
           document.querySelectorAll('[data-primary-tab]').forEach((candidate) => {
             candidate.classList.toggle('is-active', candidate === button);
           });
           if (tabName === 'viewer') {
             updateViewModeUi();
           }
+          dashboardActive = tabName === 'dashboard';
+          if (dashboardActive) startDashboardPolling();
+          else stopDashboardPolling();
         });
       });
       document.querySelectorAll('[data-rule-section-target]').forEach((button) => {
@@ -7904,7 +9707,10 @@ std::string BuildLabRuleEditorPageHtml() {
       }
     });
     window.addEventListener('load', notifyEmbedHeight);
-    window.addEventListener('resize', notifyEmbedHeight);
+    window.addEventListener('resize', () => {
+      notifyEmbedHeight();
+      scheduleMetadataOverlayFrame();
+    });
     if (window.ResizeObserver) {
       new ResizeObserver(notifyEmbedHeight).observe(document.body);
     }
@@ -7916,6 +9722,8 @@ std::string BuildLabRuleEditorPageHtml() {
 
     renderClassChecks();
     bindVaUiComponents();
+    applyMetadataViewerQueryDefaults();
+    installMetadataSyncVerificationDebugHook();
     setRulePreviewUi(false);
     setViewPreviewUi(false);
     setViewConnectionState('idle', '보기 시작을 누르면 분석 tap을 만들고 프레임을 표시합니다.');
@@ -7928,6 +9736,7 @@ std::string BuildLabRuleEditorPageHtml() {
     window.addEventListener('beforeunload', () => {
       stopRulePreview({ silent: true });
       stopViewPreview({ silent: true });
+      stopDashboardPolling();
     });
     window.addEventListener('beforeunload', (event) => {
       if (!isVaRuleEditorOpen() || !vaRuleDirty) return;
@@ -8408,6 +10217,8 @@ struct WebRtcHttpServer::Impl {
     std::unordered_map<std::string, SessionEntry> sessions;
     std::unordered_map<std::string, SourceSessionEntry> source_sessions;
     std::atomic<std::uint64_t> next_session_id{1};
+    std::atomic<int> active_sse_metadata_clients{0};
+    std::atomic<int> active_ws_metadata_clients{0};
 };
 
 WebRtcHttpServer::WebRtcHttpServer(core::SessionManager& session_manager)
@@ -8474,10 +10285,72 @@ std::string SourceJson(const std::string& session_id, const std::string& source_
     return out.str();
 }
 
+std::string WebRtcMetadataChannelsJson(const std::vector<WebRtcMetadataChannelStats>& stats) {
+    std::uint64_t sent_count = 0;
+    std::uint64_t dropped_count = 0;
+    std::uint64_t skipped_count = 0;
+    std::uint64_t interval_skipped_count = 0;
+    std::uint64_t oversized_drop_count = 0;
+    std::uint64_t buffered_drop_count = 0;
+    std::uint64_t send_failure_count = 0;
+    std::uint64_t max_buffered_amount = 0;
+    std::ostringstream out;
+    out << "{";
+    out << "\"sessions\":[";
+    for (std::size_t i = 0; i < stats.size(); ++i) {
+        const auto& item = stats[i];
+        sent_count += item.sent_count;
+        dropped_count += item.dropped_count;
+        skipped_count += item.skipped_count;
+        interval_skipped_count += item.interval_skipped_count;
+        oversized_drop_count += item.oversized_drop_count;
+        buffered_drop_count += item.buffered_drop_count;
+        send_failure_count += item.send_failure_count;
+        max_buffered_amount = std::max(max_buffered_amount, item.max_buffered_amount);
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"sessionId\":\"" << JsonEscape(item.session_id) << "\","
+            << "\"enabled\":" << (item.enabled ? "true" : "false") << ","
+            << "\"open\":" << (item.open ? "true" : "false") << ","
+            << "\"label\":\"" << JsonEscape(item.label) << "\","
+            << "\"intervalMs\":" << item.interval_ms << ","
+            << "\"maxMessageBytes\":" << item.max_message_bytes << ","
+            << "\"maxBufferedBytes\":" << item.max_buffered_bytes << ","
+            << "\"sentCount\":" << item.sent_count << ","
+            << "\"droppedCount\":" << item.dropped_count << ","
+            << "\"skippedCount\":" << item.skipped_count << ","
+            << "\"intervalSkippedCount\":" << item.interval_skipped_count << ","
+            << "\"oversizedDropCount\":" << item.oversized_drop_count << ","
+            << "\"bufferedDropCount\":" << item.buffered_drop_count << ","
+            << "\"sendFailureCount\":" << item.send_failure_count << ","
+            << "\"lastBufferedAmount\":" << item.last_buffered_amount << ","
+            << "\"maxBufferedAmount\":" << item.max_buffered_amount << ","
+            << "\"lastMessageBytes\":" << item.last_message_bytes << ","
+            << "\"maxMessageBytesObserved\":" << item.max_message_bytes_observed
+            << "}";
+    }
+    out << "],"
+        << "\"sentCount\":" << sent_count << ","
+        << "\"droppedCount\":" << dropped_count << ","
+        << "\"skippedCount\":" << skipped_count << ","
+        << "\"intervalSkippedCount\":" << interval_skipped_count << ","
+        << "\"oversizedDropCount\":" << oversized_drop_count << ","
+        << "\"bufferedDropCount\":" << buffered_drop_count << ","
+        << "\"sendFailureCount\":" << send_failure_count << ","
+        << "\"maxBufferedAmount\":" << max_buffered_amount
+        << "}";
+    return out.str();
+}
+
 // 다채널 검증과 수동 진단에서 WebRTC session 수와 dedup stream 수를 비교할 수 있게 JSON으로 직렬화한다.
 std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& snapshot,
                               std::size_t http_egress_sessions,
                               std::size_t whip_publish_sessions,
+                              const std::vector<WebRtcMetadataChannelStats>& metadata_channel_stats,
+                              int active_sse_metadata_clients,
+                              int active_ws_metadata_clients,
                               const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
                               const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps) {
     const auto profile_documents = AnalysisProfileDocumentsSnapshot();
@@ -8495,6 +10368,11 @@ std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& 
         << "\"webrtcHttp\":{"
         << "\"egressSessions\":" << http_egress_sessions << ","
         << "\"publishSessions\":" << whip_publish_sessions << ","
+        << "\"metadataSideChannel\":{"
+        << "\"activeSseClients\":" << active_sse_metadata_clients << ","
+        << "\"activeWebSocketClients\":" << active_ws_metadata_clients
+        << "},"
+        << "\"metadataDataChannel\":" << WebRtcMetadataChannelsJson(metadata_channel_stats) << ","
         << "\"publishSources\":[";
     for (std::size_t i = 0; i < publish_sources.size(); ++i) {
         if (i != 0) {
@@ -9096,6 +10974,508 @@ std::string AnalysisMetadataJson(const std::string& tap_id,
     return out.str();
 }
 
+bool SendAll(int fd, const std::string& data);
+void SuppressSocketSigPipe(int fd);
+analysis::EventRuleEvaluation EvaluateStoredEventRules(
+    const analysis::AnalysisResult& result,
+    const std::shared_ptr<analysis::EventRuleRuntime>& runtime);
+
+struct VaMetadataStreamOptions {
+    int interval_ms{app::GetAppConfig().webrtc_va_metadata_interval_ms};
+    int stale_after_ms{5000};
+    int stream_max_duration_ms{0};
+    int stream_max_messages{0};
+    std::size_t max_message_bytes{app::GetAppConfig().webrtc_va_metadata_max_message_bytes};
+    std::size_t max_tracks{128};
+    std::size_t max_events{64};
+};
+
+VaMetadataStreamOptions BuildVaMetadataStreamOptions(const std::unordered_map<std::string, std::string>& query) {
+    const auto& config = app::GetAppConfig();
+    VaMetadataStreamOptions options;
+    options.interval_ms =
+        ParseClampedIntQuery(query,
+                             "intervalMs",
+                             ParseClampedIntQuery(query,
+                                                  "metadataIntervalMs",
+                                                  config.webrtc_va_metadata_interval_ms,
+                                                  100,
+                                                  60000),
+                             100,
+                             60000);
+    options.stale_after_ms =
+        ParseClampedIntQuery(query,
+                             "staleAfterMs",
+                             std::max(5000, options.interval_ms * 3),
+                             options.interval_ms,
+                             600000);
+    options.stream_max_duration_ms =
+        ParseClampedIntQuery(query, "streamMaxDurationMs", 0, 0, 24 * 60 * 60 * 1000);
+    options.stream_max_messages =
+        ParseClampedIntQuery(query,
+                             "maxMessages",
+                             ParseClampedIntQuery(query, "sseMaxMessages", 0, 0, 1000000),
+                             0,
+                             1000000);
+    options.max_message_bytes = static_cast<std::size_t>(
+        ParseClampedIntQuery(query,
+                             "maxMessageBytes",
+                             ParseClampedIntQuery(query,
+                                                  "vaMetadataMaxMessageBytes",
+                                                  static_cast<int>(config.webrtc_va_metadata_max_message_bytes),
+                                                  256,
+                                                  1048576),
+                             256,
+                             1048576));
+    options.max_tracks = static_cast<std::size_t>(
+        ParseClampedIntQuery(query, "maxTracks", 128, 1, 10000));
+    options.max_events = static_cast<std::size_t>(
+        ParseClampedIntQuery(query, "maxEvents", 64, 1, 10000));
+    return options;
+}
+
+std::string BuildVaRuntimeMetadataJsonWithinBudget(const analysis::AnalysisResult& result,
+                                                   const std::vector<analysis::AnalysisEvent>& events,
+                                                   const std::string& tracking_issue_report_json,
+                                                   const VaMetadataStreamOptions& stream_options) {
+    analysis::VaRuntimeMetadataBuildOptions options;
+    options.schema = analysis::kVaRuntimeMetadataSchema;
+    options.include_source = true;
+    options.include_scenarios = true;
+    options.include_metrics = true;
+    options.include_tracking_issue_report = true;
+    options.max_tracks = stream_options.max_tracks;
+    options.max_events = stream_options.max_events;
+
+    std::string serialized;
+    for (int attempt = 0; attempt < 16; ++attempt) {
+        serialized = analysis::SerializeVaRuntimeMetadataFrameJson(
+            analysis::BuildVaRuntimeMetadataFrame(result, events, options, tracking_issue_report_json));
+        if (serialized.size() <= stream_options.max_message_bytes) {
+            return serialized;
+        }
+        bool reduced = false;
+        if (options.max_events > 1) {
+            options.max_events = std::max<std::size_t>(1, options.max_events / 2);
+            reduced = true;
+        } else if (options.max_tracks > 1) {
+            options.max_tracks = std::max<std::size_t>(1, options.max_tracks / 2);
+            reduced = true;
+        }
+        if (!reduced) {
+            break;
+        }
+    }
+    return {};
+}
+
+std::string LowerAscii(std::string value) {
+    std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    return value;
+}
+
+std::string HeaderValue(const HttpRequest& request, const std::string& key) {
+    if (const auto it = request.headers.find(key); it != request.headers.end()) {
+        return it->second;
+    }
+    const std::string wanted = LowerAscii(key);
+    for (const auto& [header_key, header_value] : request.headers) {
+        if (LowerAscii(header_key) == wanted) {
+            return header_value;
+        }
+    }
+    return {};
+}
+
+bool HeaderContainsToken(const std::string& header, const std::string& token) {
+    const std::string wanted = LowerAscii(token);
+    std::size_t start = 0;
+    while (start <= header.size()) {
+        const std::size_t comma = header.find(',', start);
+        std::string part = header.substr(start, comma == std::string::npos ? std::string::npos : comma - start);
+        part = LowerAscii(Trim(std::move(part)));
+        if (part == wanted) {
+            return true;
+        }
+        if (comma == std::string::npos) {
+            break;
+        }
+        start = comma + 1;
+    }
+    return false;
+}
+
+std::uint32_t Sha1RotateLeft(std::uint32_t value, int bits) {
+    return (value << bits) | (value >> (32 - bits));
+}
+
+std::array<unsigned char, 20> Sha1Digest(const std::string& input) {
+    std::vector<unsigned char> message(input.begin(), input.end());
+    const std::uint64_t bit_length = static_cast<std::uint64_t>(message.size()) * 8ULL;
+    message.push_back(0x80U);
+    while ((message.size() % 64U) != 56U) {
+        message.push_back(0U);
+    }
+    for (int shift = 56; shift >= 0; shift -= 8) {
+        message.push_back(static_cast<unsigned char>((bit_length >> shift) & 0xFFU));
+    }
+
+    std::uint32_t h0 = 0x67452301U;
+    std::uint32_t h1 = 0xEFCDAB89U;
+    std::uint32_t h2 = 0x98BADCFEU;
+    std::uint32_t h3 = 0x10325476U;
+    std::uint32_t h4 = 0xC3D2E1F0U;
+
+    for (std::size_t chunk = 0; chunk < message.size(); chunk += 64U) {
+        std::uint32_t words[80]{};
+        for (int i = 0; i < 16; ++i) {
+            const std::size_t offset = chunk + static_cast<std::size_t>(i) * 4U;
+            words[i] = (static_cast<std::uint32_t>(message[offset]) << 24U) |
+                       (static_cast<std::uint32_t>(message[offset + 1]) << 16U) |
+                       (static_cast<std::uint32_t>(message[offset + 2]) << 8U) |
+                       static_cast<std::uint32_t>(message[offset + 3]);
+        }
+        for (int i = 16; i < 80; ++i) {
+            words[i] = Sha1RotateLeft(words[i - 3] ^ words[i - 8] ^ words[i - 14] ^ words[i - 16], 1);
+        }
+
+        std::uint32_t a = h0;
+        std::uint32_t b = h1;
+        std::uint32_t c = h2;
+        std::uint32_t d = h3;
+        std::uint32_t e = h4;
+
+        for (int i = 0; i < 80; ++i) {
+            std::uint32_t f = 0;
+            std::uint32_t k = 0;
+            if (i < 20) {
+                f = (b & c) | ((~b) & d);
+                k = 0x5A827999U;
+            } else if (i < 40) {
+                f = b ^ c ^ d;
+                k = 0x6ED9EBA1U;
+            } else if (i < 60) {
+                f = (b & c) | (b & d) | (c & d);
+                k = 0x8F1BBCDCU;
+            } else {
+                f = b ^ c ^ d;
+                k = 0xCA62C1D6U;
+            }
+            const std::uint32_t temp = Sha1RotateLeft(a, 5) + f + e + k + words[i];
+            e = d;
+            d = c;
+            c = Sha1RotateLeft(b, 30);
+            b = a;
+            a = temp;
+        }
+
+        h0 += a;
+        h1 += b;
+        h2 += c;
+        h3 += d;
+        h4 += e;
+    }
+
+    std::array<unsigned char, 20> digest{};
+    const std::uint32_t values[5] = {h0, h1, h2, h3, h4};
+    for (int i = 0; i < 5; ++i) {
+        digest[static_cast<std::size_t>(i) * 4U] = static_cast<unsigned char>((values[i] >> 24U) & 0xFFU);
+        digest[static_cast<std::size_t>(i) * 4U + 1U] = static_cast<unsigned char>((values[i] >> 16U) & 0xFFU);
+        digest[static_cast<std::size_t>(i) * 4U + 2U] = static_cast<unsigned char>((values[i] >> 8U) & 0xFFU);
+        digest[static_cast<std::size_t>(i) * 4U + 3U] = static_cast<unsigned char>(values[i] & 0xFFU);
+    }
+    return digest;
+}
+
+std::string Base64Encode(const unsigned char* data, std::size_t size) {
+    static constexpr char kAlphabet[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    std::string output;
+    output.reserve(((size + 2U) / 3U) * 4U);
+    for (std::size_t i = 0; i < size; i += 3U) {
+        const std::uint32_t octet_a = data[i];
+        const std::uint32_t octet_b = i + 1U < size ? data[i + 1U] : 0U;
+        const std::uint32_t octet_c = i + 2U < size ? data[i + 2U] : 0U;
+        const std::uint32_t triple = (octet_a << 16U) | (octet_b << 8U) | octet_c;
+        output.push_back(kAlphabet[(triple >> 18U) & 0x3FU]);
+        output.push_back(kAlphabet[(triple >> 12U) & 0x3FU]);
+        output.push_back(i + 1U < size ? kAlphabet[(triple >> 6U) & 0x3FU] : '=');
+        output.push_back(i + 2U < size ? kAlphabet[triple & 0x3FU] : '=');
+    }
+    return output;
+}
+
+std::string WebSocketAcceptKey(const std::string& client_key) {
+    static constexpr const char* kMagicGuid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    const auto digest = Sha1Digest(client_key + kMagicGuid);
+    return Base64Encode(digest.data(), digest.size());
+}
+
+bool ValidateWebSocketUpgrade(const HttpRequest& request,
+                              std::string* websocket_key,
+                              std::string* error_message) {
+    if (request.method != "GET") {
+        if (error_message != nullptr) {
+            *error_message = "WebSocket endpoint requires GET";
+        }
+        return false;
+    }
+    if (!HeaderContainsToken(HeaderValue(request, "Connection"), "Upgrade") ||
+        LowerAscii(HeaderValue(request, "Upgrade")) != "websocket") {
+        if (error_message != nullptr) {
+            *error_message = "missing WebSocket upgrade headers";
+        }
+        return false;
+    }
+    const std::string key = HeaderValue(request, "Sec-WebSocket-Key");
+    if (key.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "missing Sec-WebSocket-Key";
+        }
+        return false;
+    }
+    if (websocket_key != nullptr) {
+        *websocket_key = key;
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+bool SendWebSocketHandshake(int fd, const std::string& client_key) {
+    std::ostringstream out;
+    out << "HTTP/1.1 101 Switching Protocols\r\n"
+        << "Upgrade: websocket\r\n"
+        << "Connection: Upgrade\r\n"
+        << "Sec-WebSocket-Accept: " << WebSocketAcceptKey(client_key) << "\r\n"
+        << "Access-Control-Allow-Origin: *\r\n"
+        << "\r\n";
+    return SendAll(fd, out.str());
+}
+
+bool SendWebSocketTextFrame(int fd, const std::string& payload) {
+    std::string frame;
+    frame.push_back(static_cast<char>(0x81U));
+    const std::uint64_t size = static_cast<std::uint64_t>(payload.size());
+    if (size <= 125U) {
+        frame.push_back(static_cast<char>(size));
+    } else if (size <= 65535U) {
+        frame.push_back(static_cast<char>(126U));
+        frame.push_back(static_cast<char>((size >> 8U) & 0xFFU));
+        frame.push_back(static_cast<char>(size & 0xFFU));
+    } else {
+        frame.push_back(static_cast<char>(127U));
+        for (int shift = 56; shift >= 0; shift -= 8) {
+            frame.push_back(static_cast<char>((size >> shift) & 0xFFU));
+        }
+    }
+    frame += payload;
+    return SendAll(fd, frame);
+}
+
+bool SendWebSocketCloseFrame(int fd) {
+    const std::string frame{static_cast<char>(0x88), static_cast<char>(0x00)};
+    return SendAll(fd, frame);
+}
+
+bool SendSseHeaders(int fd) {
+    std::ostringstream out;
+    out << "HTTP/1.1 200 OK\r\n"
+        << "Content-Type: text/event-stream; charset=utf-8\r\n"
+        << "Cache-Control: no-cache, no-transform\r\n"
+        << "Connection: close\r\n"
+        << "Access-Control-Allow-Origin: *\r\n"
+        << "Access-Control-Allow-Headers: Content-Type\r\n"
+        << "Access-Control-Allow-Methods: GET, OPTIONS\r\n"
+        << "X-Accel-Buffering: no\r\n"
+        << "\r\n";
+    return SendAll(fd, out.str());
+}
+
+bool SendSseComment(int fd, const std::string& comment) {
+    return SendAll(fd, ": " + comment + "\n\n");
+}
+
+bool SendSseEvent(int fd, const std::string& event_name, const std::string& data, std::uint64_t event_id) {
+    std::ostringstream out;
+    if (event_id > 0) {
+        out << "id: " << event_id << "\n";
+    }
+    if (!event_name.empty()) {
+        out << "event: " << event_name << "\n";
+    }
+    out << "data: " << data << "\n\n";
+    return SendAll(fd, out.str());
+}
+
+bool StreamVaMetadataSse(int client_fd,
+                         const std::atomic<bool>& running,
+                         core::SessionManager& session_manager,
+                         const std::string& tap_id,
+                         const std::unordered_map<std::string, std::string>& query) {
+    SuppressSocketSigPipe(client_fd);
+    const VaMetadataStreamOptions options = BuildVaMetadataStreamOptions(query);
+    if (!SendSseHeaders(client_fd)) {
+        return false;
+    }
+
+    auto event_runtime = analysis::CreateEventRuleRuntime();
+    std::uint64_t sse_sequence = 1;
+    std::uint64_t last_frame_id = 0;
+    std::int64_t last_pts = std::numeric_limits<std::int64_t>::min();
+    int sent_messages = 0;
+    auto started_at = std::chrono::steady_clock::now();
+    auto last_fresh_at = started_at;
+    auto last_stale_comment_at = started_at - std::chrono::milliseconds(options.stale_after_ms);
+
+    if (!SendSseComment(client_fd,
+                        "va metadata stream opened; schema=" +
+                            std::string(analysis::kVaRuntimeMetadataSchema) +
+                            "; tapId=" + tap_id)) {
+        return false;
+    }
+
+    while (running.load()) {
+        const auto now = std::chrono::steady_clock::now();
+        if (options.stream_max_duration_ms > 0 &&
+            now - started_at >= std::chrono::milliseconds(options.stream_max_duration_ms)) {
+            (void)SendSseComment(client_fd, "stream max duration reached");
+            break;
+        }
+
+        const auto snapshot = session_manager.AnalysisTapSnapshot(tap_id);
+        if (!snapshot.has_value()) {
+            (void)SendSseEvent(client_fd,
+                               "error",
+                               "{\"error\":\"analysis tap not found\",\"tapId\":\"" + JsonEscape(tap_id) + "\"}",
+                               sse_sequence++);
+            return false;
+        }
+
+        bool should_sleep = true;
+        if (snapshot->latest_result.has_value()) {
+            auto result = *snapshot->latest_result;
+            const bool duplicate_frame = result.frame_id == last_frame_id && result.pts == last_pts;
+            if (!duplicate_frame) {
+                result.debug_state_requested = true;
+                result.debug_state_log_enabled = false;
+                result.metrics_report_requested = true;
+                const auto evaluation = EvaluateStoredEventRules(result, event_runtime);
+                const std::string payload = BuildVaRuntimeMetadataJsonWithinBudget(
+                    evaluation.annotated_result,
+                    evaluation.events,
+                    evaluation.tracking_issue_report_json,
+                    options);
+                if (!payload.empty()) {
+                    if (!SendSseEvent(client_fd, "metadata", payload, sse_sequence++)) {
+                        return false;
+                    }
+                    last_frame_id = result.frame_id;
+                    last_pts = result.pts;
+                    last_fresh_at = now;
+                    ++sent_messages;
+                    should_sleep = false;
+                    if (options.stream_max_messages > 0 && sent_messages >= options.stream_max_messages) {
+                        (void)SendSseComment(client_fd, "stream max message count reached");
+                        break;
+                    }
+                } else if (!SendSseComment(
+                               client_fd,
+                               "metadata skipped because serialized frame exceeded maxMessageBytes=" +
+                                   std::to_string(options.max_message_bytes))) {
+                    return false;
+                }
+            } else if (now - last_fresh_at >= std::chrono::milliseconds(options.stale_after_ms) &&
+                       now - last_stale_comment_at >= std::chrono::milliseconds(options.stale_after_ms)) {
+                last_stale_comment_at = now;
+                if (!SendSseComment(client_fd,
+                                    "stale metadata skipped; tapId=" + tap_id +
+                                        "; frameId=" + std::to_string(last_frame_id))) {
+                    return false;
+                }
+            } else if (!SendSseComment(client_fd, "heartbeat")) {
+                return false;
+            }
+        } else if (!SendSseComment(client_fd, "waiting for analysis result; tapId=" + tap_id)) {
+            return false;
+        }
+
+        if (should_sleep) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(options.interval_ms));
+        }
+    }
+    return true;
+}
+
+bool StreamVaMetadataWebSocket(int client_fd,
+                               const std::atomic<bool>& running,
+                               core::SessionManager& session_manager,
+                               const std::string& tap_id,
+                               const std::unordered_map<std::string, std::string>& query,
+                               const std::string& websocket_key) {
+    SuppressSocketSigPipe(client_fd);
+    const VaMetadataStreamOptions options = BuildVaMetadataStreamOptions(query);
+    if (!SendWebSocketHandshake(client_fd, websocket_key)) {
+        return false;
+    }
+
+    auto event_runtime = analysis::CreateEventRuleRuntime();
+    std::uint64_t last_frame_id = 0;
+    std::int64_t last_pts = std::numeric_limits<std::int64_t>::min();
+    int sent_messages = 0;
+    const auto started_at = std::chrono::steady_clock::now();
+
+    while (running.load()) {
+        const auto now = std::chrono::steady_clock::now();
+        if (options.stream_max_duration_ms > 0 &&
+            now - started_at >= std::chrono::milliseconds(options.stream_max_duration_ms)) {
+            break;
+        }
+
+        const auto snapshot = session_manager.AnalysisTapSnapshot(tap_id);
+        if (!snapshot.has_value()) {
+            (void)SendWebSocketTextFrame(
+                client_fd,
+                "{\"error\":\"analysis tap not found\",\"tapId\":\"" + JsonEscape(tap_id) + "\"}");
+            return false;
+        }
+
+        if (snapshot->latest_result.has_value()) {
+            auto result = *snapshot->latest_result;
+            const bool duplicate_frame = result.frame_id == last_frame_id && result.pts == last_pts;
+            if (!duplicate_frame) {
+                result.debug_state_requested = true;
+                result.debug_state_log_enabled = false;
+                result.metrics_report_requested = true;
+                const auto evaluation = EvaluateStoredEventRules(result, event_runtime);
+                const std::string payload = BuildVaRuntimeMetadataJsonWithinBudget(
+                    evaluation.annotated_result,
+                    evaluation.events,
+                    evaluation.tracking_issue_report_json,
+                    options);
+                if (!payload.empty()) {
+                    if (!SendWebSocketTextFrame(client_fd, payload)) {
+                        return false;
+                    }
+                    last_frame_id = result.frame_id;
+                    last_pts = result.pts;
+                    ++sent_messages;
+                    if (options.stream_max_messages > 0 && sent_messages >= options.stream_max_messages) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(options.interval_ms));
+    }
+    (void)SendWebSocketCloseFrame(client_fd);
+    return true;
+}
+
 std::string AnalysisStateDumpJson(const std::string& tap_id,
                                   const analysis::AnalysisManager::TapSnapshot& snapshot,
                                   const std::optional<analysis::EventRuleEvaluation>& evaluation) {
@@ -9310,7 +11690,7 @@ std::string AnalysisCategoryCatalogJson() {
 
 std::string AnalysisCapabilitiesJson() {
     std::ostringstream out;
-    out << R"({"detectors":[{"id":"dummy","name":"Dummy detector","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"yoloOutputLayouts":["auto","channels-first","channels-last"],"yoloBoxFormats":["cxcywh","xyxy"],"yoloScoreModes":["auto","class-only","objectness-class","score-class","class-score"],"outputs":["metadata","events","snapshot.jpg","overlay.jpg","image-metadata","image-snapshot.jpg","image-overlay.jpg","rtsp-overlay","webrtc-overlay"],"eventTypes":["presence","enter","exit","line-crossing"],)"
+    out << R"({"detectors":[{"id":"dummy","name":"테스트용 더미 검출기","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"yoloOutputLayouts":["auto","channels-first","channels-last"],"yoloBoxFormats":["cxcywh","xyxy"],"yoloScoreModes":["auto","class-only","objectness-class","score-class","class-score"],"outputs":["metadata","events","snapshot.jpg","overlay.jpg","image-metadata","image-snapshot.jpg","image-overlay.jpg","rtsp-overlay","webrtc-overlay"],"eventTypes":["presence","enter","exit","line-crossing"],)"
         << "\"trackingCategories\":" << AnalysisCategoryCatalogJson() << ","
         << R"("eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","peakPendingFrames","effectiveDecodedFps","effectiveSampledFps","effectiveAnalyzedFps","lastQueueWaitMs","averageQueueWaitMs","lastInferenceMs","averageInferenceMs","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile with lightweight tracking for person/vehicle categories","overlay":"legacy alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"tracking":"optional object tracking on/off","trackingClasses":"optional comma-separated categories/classes: person,vehicle,road,animal,sports,tableware,food,furniture,device,object or '*' for all","fps":"optional VA wall-clock sampling fps override","maxQueue":"optional detector queue override","frameSampleInterval":"optional deterministic decoded-frame sampling interval; 1 means every decoded frame after fps gate","sampleEveryNFrames":"alias for frameSampleInterval","maxFrameAgeMs":"optional stale analysis frame drop threshold; 0 disables age drop","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","outputLayout":"optional YOLO output tensor layout: auto|channels-first|channels-last","boxFormat":"optional YOLO box format: cxcywh|xyxy","scoreMode":"optional YOLO score mode: auto|class-only|objectness-class|score-class|class-score","thickness":"optional box line thickness","drawLabels":"optional label visibility","trackIds":"optional track id labels on overlay","trackTrails":"optional track trail overlay","redaction":"optional person-mosaic/mosaic overlay redaction","redactionClasses":"optional comma-separated redaction categories/classes, default person","redactionBlockSize":"optional mosaic block size in pixels","redactionMarginRatio":"optional bbox expansion ratio for redaction"}})";
     return out.str();
@@ -9529,6 +11909,8 @@ bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& quer
     output->result.profile_key = analysis::BuildProfileKey(output->profile);
     output->result.context = std::move(context);
     output->result.pts = output->frame.pts;
+    output->result.frame_width = output->frame.width;
+    output->result.frame_height = output->frame.height;
     if (output->profile.enable_tracking) {
         // 이미지 API는 frame이 한 장뿐이라 일회성 tracker로 trackId 정책만 동일하게 적용한다.
         analysis::ObjectTrackerOptions tracker_options;
@@ -9707,153 +12089,70 @@ WebRtcMetadataChannelConfig BuildWebRtcMetadataChannelConfigFromQuery(
     return config;
 }
 
-std::string WebRtcVaMetadataTrackJson(const analysis::AnalysisDebugTrackState& track) {
-    std::ostringstream out;
-    out << "{"
-        << "\"trackId\":" << track.track_id << ","
-        << "\"bbox\":{"
-        << "\"x\":" << track.bbox.x << ","
-        << "\"y\":" << track.bbox.y << ","
-        << "\"width\":" << track.bbox.width << ","
-        << "\"height\":" << track.bbox.height
-        << "},"
-        << "\"classId\":" << track.class_id << ","
-        << "\"className\":\"" << JsonEscape(track.class_name) << "\","
-        << "\"confidence\":" << track.confidence << ","
-        << "\"speed\":{"
-        << "\"value\":" << track.speed << ","
-        << "\"usesGroundPlane\":" << (track.speed_uses_ground_plane ? "true" : "false") << ","
-        << "\"units\":\"" << JsonEscape(track.speed_units) << "\""
-        << "},"
-        << "\"currentZone\":\"" << JsonEscape(track.current_zone) << "\","
-        << "\"previousZone\":\"" << JsonEscape(track.previous_zone) << "\","
-        << "\"dwellTimeMs\":" << track.dwell_time_ms << ","
-        << "\"insideRestrictedZone\":" << (track.inside_restricted_zone ? "true" : "false") << ","
-        << "\"scenarioName\":\"" << JsonEscape(track.scenario_name) << "\","
-        << "\"scenarioPhase\":\"" << JsonEscape(track.scenario_phase) << "\","
-        << "\"lineState\":{"
-        << "\"lineId\":\"" << JsonEscape(track.primary_line_id) << "\","
-        << "\"side\":" << track.line_side << ","
-        << "\"direction\":\"" << JsonEscape(track.crossing_direction) << "\""
-        << "}";
-    if (track.ground_point_available) {
-        out << ",\"footPoint\":{"
-            << "\"x\":" << track.foot_point_x << ","
-            << "\"y\":" << track.foot_point_y
-            << "},"
-            << "\"groundPoint\":{"
-            << "\"x\":" << track.ground_point_x << ","
-            << "\"y\":" << track.ground_point_y << ","
-            << "\"valid\":" << (track.ground_point_valid ? "true" : "false") << ","
-            << "\"fallbackToImage\":" << (track.ground_point_fallback ? "true" : "false") << ","
-            << "\"units\":\"" << JsonEscape(track.ground_point_units) << "\""
-            << "}";
-    }
-    out << ","
-        << "\"trackHealth\":{"
-        << "\"status\":\"" << JsonEscape(track.track_health) << "\","
-        << "\"stable\":" << (!track.track_unstable ? "true" : "false") << ","
-        << "\"associationConfidence\":" << track.association_confidence << ","
-        << "\"missedFrameCount\":" << track.missed_frame_count << ","
-        << "\"overlapRisk\":" << track.overlap_risk << ","
-        << "\"directionChangeCount\":" << track.direction_change_count
-        << "}"
-        << "}";
-    return out.str();
+std::int64_t PtsNsToMs(std::int64_t pts_ns) {
+    return pts_ns / 1000000LL;
 }
 
-std::string WebRtcVaMetadataDetectionJson(const analysis::Detection& detection) {
-    std::ostringstream out;
-    out << "{"
-        << "\"trackId\":" << detection.track_id << ","
-        << "\"bbox\":{"
-        << "\"x\":" << detection.box.x << ","
-        << "\"y\":" << detection.box.y << ","
-        << "\"width\":" << detection.box.width << ","
-        << "\"height\":" << detection.box.height
-        << "},"
-        << "\"classId\":" << detection.class_id << ","
-        << "\"className\":\"" << JsonEscape(detection.label) << "\","
-        << "\"confidence\":" << detection.score << ","
-        << "\"currentZone\":\"\","
-        << "\"previousZone\":\"\","
-        << "\"dwellTimeMs\":0,"
-        << "\"insideRestrictedZone\":false,"
-        << "\"scenarioPhase\":\"\","
-        << "\"lineState\":{\"lineId\":\"\",\"side\":0,\"direction\":\"none\"},"
-        << "\"trackHealth\":{"
-        << "\"status\":\"unknown\","
-        << "\"stable\":true,"
-        << "\"associationConfidence\":" << detection.association_confidence << ","
-        << "\"missedFrameCount\":0,"
-        << "\"overlapRisk\":0,"
-        << "\"directionChangeCount\":0"
-        << "}"
-        << "}";
-    return out.str();
+std::int64_t NowUnixMs() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::system_clock::now().time_since_epoch())
+        .count();
 }
 
-std::string WebRtcVaMetadataEventJson(const analysis::AnalysisEvent& event) {
-    std::ostringstream out;
-    out << "{"
-        << "\"eventId\":\"" << JsonEscape(event.event_id) << "\","
-        << "\"eventType\":\"" << JsonEscape(event.event_type) << "\","
-        << "\"status\":\"" << JsonEscape(event.status.empty() ? "emitted" : event.status) << "\","
-        << "\"ruleId\":\"" << JsonEscape(event.rule_id) << "\","
-        << "\"trackId\":" << event.track_id << ","
-        << "\"classId\":" << event.class_id << ","
-        << "\"className\":\"" << JsonEscape(event.label) << "\","
-        << "\"confidence\":" << event.score << ","
-        << "\"zoneId\":\"" << JsonEscape(event.zone_id) << "\","
-        << "\"lineId\":\"" << JsonEscape(event.line_id) << "\","
-        << "\"scenarioName\":\"" << JsonEscape(event.scenario_name) << "\","
-        << "\"scenarioPhase\":\"" << JsonEscape(event.scenario_phase) << "\""
-        << "}";
-    return out.str();
+std::string WebRtcSyncStatusForMatch(std::int64_t video_frame_pts_ns, std::int64_t analysis_pts_ns) {
+    return video_frame_pts_ns == analysis_pts_ns ? "exact" : "near";
+}
+
+analysis::VaRuntimeSyncInfo BuildWebRtcVaMetadataSyncInfo(std::int64_t video_frame_pts_ns,
+                                                          std::int64_t analysis_pts_ns,
+                                                          std::int64_t sync_tolerance_ns,
+                                                          std::string sync_status,
+                                                          int frame_width,
+                                                          int frame_height) {
+    analysis::VaRuntimeSyncInfo sync;
+    sync.available = true;
+    sync.video_frame_pts_ms = PtsNsToMs(video_frame_pts_ns);
+    sync.analysis_pts_ms = PtsNsToMs(analysis_pts_ns);
+    sync.sync_delta_ms = PtsNsToMs(analysis_pts_ns - video_frame_pts_ns);
+    sync.sync_status = std::move(sync_status);
+    sync.sync_tolerance_ms = PtsNsToMs(sync_tolerance_ns);
+    sync.metadata_sequence = g_web_rtc_metadata_sequence.fetch_add(1, std::memory_order_relaxed) + 1;
+    sync.sent_at_ms = NowUnixMs();
+    sync.frame_width = frame_width;
+    sync.frame_height = frame_height;
+    sync.coordinate_space = "normalized-frame";
+    return sync;
 }
 
 std::string WebRtcVaMetadataMessageJson(const analysis::AnalysisResult& result,
-                                        const std::vector<analysis::AnalysisEvent>& events) {
-    std::string channel_id = result.source_key;
-    if (result.debug_state.has_value() && !result.debug_state->channel_id.empty()) {
-        channel_id = result.debug_state->channel_id;
-    } else if (!result.context.client_id.empty()) {
-        channel_id = result.context.client_id;
-    }
-    std::ostringstream out;
-    out << "{"
-        << "\"schema\":\"media-server.webrtc.va-metadata.v1\","
-        << "\"streamId\":\"" << JsonEscape(result.source_key) << "\","
-        << "\"channelId\":\"" << JsonEscape(channel_id) << "\","
-        << "\"profileKey\":\"" << JsonEscape(result.profile_key) << "\","
-        << "\"frameId\":" << result.frame_id << ","
-        << "\"pts\":" << result.pts << ","
-        << "\"timestampMs\":" << (result.pts / 1000000LL) << ","
-        << "\"tracks\":[";
-    if (result.debug_state.has_value()) {
-        for (std::size_t i = 0; i < result.debug_state->tracks.size(); ++i) {
-            if (i != 0) {
-                out << ",";
-            }
-            out << WebRtcVaMetadataTrackJson(result.debug_state->tracks[i]);
-        }
-    } else {
-        for (std::size_t i = 0; i < result.detections.size(); ++i) {
-            if (i != 0) {
-                out << ",";
-            }
-            out << WebRtcVaMetadataDetectionJson(result.detections[i]);
-        }
-    }
-    out << "],\"events\":[";
-    for (std::size_t i = 0; i < events.size(); ++i) {
-        if (i != 0) {
-            out << ",";
-        }
-        out << WebRtcVaMetadataEventJson(events[i]);
-    }
-    out << "]}";
-    return out.str();
+                                        const std::vector<analysis::AnalysisEvent>& events,
+                                        const analysis::VaRuntimeSyncInfo& sync_info) {
+    analysis::VaRuntimeMetadataBuildOptions options;
+    options.schema = analysis::kWebRtcVaMetadataSchema;
+    options.include_source = false;
+    options.include_scenarios = false;
+    options.include_metrics = false;
+    options.include_tracking_issue_report = false;
+    options.include_missed_tracks = false;
+    options.sync = sync_info;
+    return analysis::SerializeVaRuntimeMetadataFrameForWebRtcJson(
+        analysis::BuildVaRuntimeMetadataFrame(result, events, options));
+}
+
+std::string WebRtcVaMetadataMissingMessageJson(const std::string& stream_id,
+                                               std::int64_t video_frame_pts_ns,
+                                               std::int64_t sync_tolerance_ns) {
+    analysis::VaRuntimeMetadataFrame frame;
+    frame.schema = analysis::kWebRtcVaMetadataSchema;
+    frame.stream_id = stream_id;
+    frame.channel_id = stream_id;
+    frame.pts = video_frame_pts_ns;
+    frame.timestamp_ms = PtsNsToMs(video_frame_pts_ns);
+    frame.sync = BuildWebRtcVaMetadataSyncInfo(
+        video_frame_pts_ns, video_frame_pts_ns, sync_tolerance_ns, "missing", 0, 0);
+    frame.sync.analysis_pts_ms = 0;
+    frame.sync.sync_delta_ms = 0;
+    return analysis::SerializeVaRuntimeMetadataFrameForWebRtcJson(frame);
 }
 
 std::string AnalysisEventPostStatusJson() {
@@ -10159,6 +12458,8 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
     const auto timing_options = BuildAnalysisOverlayTimingOptionsFromQuery(query);
     std::weak_ptr<WebRtcEgressSession> weak_bridge = bridge;
     overlay_config.enabled = true;
+    overlay_config.render_video_overlay =
+        ParseBoolQuery(query, "renderVideoOverlay", ParseBoolQuery(query, "videoOverlay", true));
     overlay_config.render_options = BuildOverlayRenderOptionsFromQuery(query);
     overlay_config.sync_tolerance_ns = static_cast<std::int64_t>(timing_options.sync_tolerance_ms) * 1000000LL;
     overlay_config.wait_timeout_ms = timing_options.wait_timeout_ms;
@@ -10189,15 +12490,26 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
                 const auto evaluation = EvaluateStoredEventRules(*result, event_runtime);
                 analysis::DispatchEventRecords(evaluation.annotated_result, evaluation.events);
                 analysis::DispatchEventPosts(evaluation.annotated_result, evaluation.events);
-                if (metadata_channel_enabled && bridge_lock != nullptr) {
+                if (metadata_channel_enabled && bridge_lock != nullptr && bridge_lock->MetadataChannelReady()) {
+                    const auto sync_info = BuildWebRtcVaMetadataSyncInfo(
+                        source_pts,
+                        evaluation.annotated_result.pts,
+                        tolerance_ns,
+                        WebRtcSyncStatusForMatch(source_pts, evaluation.annotated_result.pts),
+                        evaluation.annotated_result.frame_width,
+                        evaluation.annotated_result.frame_height);
                     bridge_lock->PublishAnalysisMetadata(
-                        WebRtcVaMetadataMessageJson(evaluation.annotated_result, evaluation.events));
+                        WebRtcVaMetadataMessageJson(evaluation.annotated_result, evaluation.events, sync_info));
                 }
                 return evaluation.annotated_result;
             }
             // 동기화 허용 시간 안에 결과가 아직 없으면 최신 snapshot으로 fallback해 overlay 공백을 줄인다.
             const auto snapshot = session_manager.AnalysisTapSnapshot(tap_id);
             if (!snapshot.has_value() || !snapshot->latest_result.has_value()) {
+                if (metadata_channel_enabled && bridge_lock != nullptr && bridge_lock->MetadataChannelReady()) {
+                    bridge_lock->PublishAnalysisMetadata(
+                        WebRtcVaMetadataMissingMessageJson(tap_id, source_pts, tolerance_ns));
+                }
                 return std::optional<analysis::AnalysisResult>{};
             }
             auto latest_result = *snapshot->latest_result;
@@ -10207,9 +12519,15 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
             const auto evaluation = EvaluateStoredEventRules(latest_result, event_runtime);
             analysis::DispatchEventRecords(evaluation.annotated_result, evaluation.events);
             analysis::DispatchEventPosts(evaluation.annotated_result, evaluation.events);
-            if (metadata_channel_enabled && bridge_lock != nullptr) {
+            if (metadata_channel_enabled && bridge_lock != nullptr && bridge_lock->MetadataChannelReady()) {
+                const auto sync_info = BuildWebRtcVaMetadataSyncInfo(source_pts,
+                                                                     evaluation.annotated_result.pts,
+                                                                     tolerance_ns,
+                                                                     "fallback-latest",
+                                                                     evaluation.annotated_result.frame_width,
+                                                                     evaluation.annotated_result.frame_height);
                 bridge_lock->PublishAnalysisMetadata(
-                    WebRtcVaMetadataMessageJson(evaluation.annotated_result, evaluation.events));
+                    WebRtcVaMetadataMessageJson(evaluation.annotated_result, evaluation.events, sync_info));
             }
             return evaluation.annotated_result;
         };
@@ -10259,13 +12577,26 @@ std::string LabImportJobsJson(const std::vector<LabImportJobSnapshot>& jobs) {
 bool SendAll(int fd, const std::string& data) {
     std::size_t sent = 0;
     while (sent < data.size()) {
-        const ssize_t bytes = send(fd, data.data() + sent, data.size() - sent, 0);
+        int flags = 0;
+#ifdef MSG_NOSIGNAL
+        flags |= MSG_NOSIGNAL;
+#endif
+        const ssize_t bytes = send(fd, data.data() + sent, data.size() - sent, flags);
         if (bytes <= 0) {
             return false;
         }
         sent += static_cast<std::size_t>(bytes);
     }
     return true;
+}
+
+void SuppressSocketSigPipe(int fd) {
+#ifdef SO_NOSIGPIPE
+    int enabled = 1;
+    (void)setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &enabled, sizeof(enabled));
+#else
+    (void)fd;
+#endif
 }
 
 }  // namespace
@@ -10424,6 +12755,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
             std::thread([this, client_fd] {
                 auto request_opt = ReadHttpRequest(client_fd);
                 HttpResponse response;
+                bool response_sent = false;
                 if (!request_opt.has_value()) {
                     response.status = 400;
                     response.status_text = "Bad Request";
@@ -10438,6 +12770,40 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         const auto query = ParseQueryString(request.query);
                         const auto& config = app::GetAppConfig();
                         const std::string route_path = "/" + config.stream_route;
+                        auto stream_metadata_sse_response = [&](const std::string& tap_id,
+                                                                bool detach_on_close) -> HttpResponse {
+                            response_sent = true;
+                            impl_->active_sse_metadata_clients.fetch_add(1);
+                            (void)StreamVaMetadataSse(client_fd, running_, impl_->session_manager, tap_id, query);
+                            impl_->active_sse_metadata_clients.fetch_sub(1);
+                            if (detach_on_close) {
+                                (void)DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, tap_id);
+                            }
+                            return HttpResponse{};
+                        };
+                        auto stream_metadata_websocket_response = [&](const std::string& tap_id,
+                                                                      bool detach_on_close,
+                                                                      const std::string& websocket_key) -> HttpResponse {
+                            const int max_clients = ParseClampedIntQuery(query, "maxClients", 16, 1, 256);
+                            const int previous_clients = impl_->active_ws_metadata_clients.fetch_add(1);
+                            if (previous_clients >= max_clients) {
+                                impl_->active_ws_metadata_clients.fetch_sub(1);
+                                if (detach_on_close) {
+                                    (void)DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, tap_id);
+                                }
+                                return JsonResponse(429,
+                                                    "Too Many Requests",
+                                                    "{\"error\":\"too many VA metadata WebSocket clients\"}");
+                            }
+                            response_sent = true;
+                            (void)StreamVaMetadataWebSocket(
+                                client_fd, running_, impl_->session_manager, tap_id, query, websocket_key);
+                            impl_->active_ws_metadata_clients.fetch_sub(1);
+                            if (detach_on_close) {
+                                (void)DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, tap_id);
+                            }
+                            return HttpResponse{};
+                        };
 
                         if (request.method == "GET" && request.path == "/health") {
                             HttpResponse ok;
@@ -10554,16 +12920,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         if (request.method == "GET" && request.path == "/lab/runtime/status") {
                             std::size_t http_egress_sessions = 0;
                             std::size_t whip_publish_sessions = 0;
+                            std::vector<WebRtcMetadataChannelStats> metadata_channel_stats;
                             {
                                 std::lock_guard lock(impl_->mu);
                                 http_egress_sessions = impl_->sessions.size();
                                 whip_publish_sessions = impl_->source_sessions.size();
+                                metadata_channel_stats.reserve(impl_->sessions.size());
+                                for (const auto& [_, entry] : impl_->sessions) {
+                                    if (entry.bridge != nullptr) {
+                                        metadata_channel_stats.push_back(entry.bridge->MetadataChannelStatsSnapshot());
+                                    }
+                                }
                             }
                             return JsonResponse(200,
                                                 "OK",
                                                 RuntimeStatusJson(impl_->session_manager.GetRuntimeStateSnapshot(),
                                                                   http_egress_sessions,
                                                                   whip_publish_sessions,
+                                                                  metadata_channel_stats,
+                                                                  impl_->active_sse_metadata_clients.load(),
+                                                                  impl_->active_ws_metadata_clients.load(),
                                                                   WebRtcSourceRegistry::Instance().Snapshots(),
                                                                   impl_->session_manager.AnalysisTapSnapshots()));
                         }
@@ -10806,6 +13182,78 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                 "{\"error\":\"analysis image endpoint not found\"}");
                         }
 
+                        if (request.path == "/ws/va-metadata") {
+                            std::string websocket_key;
+                            std::string websocket_error;
+                            if (!ValidateWebSocketUpgrade(request, &websocket_key, &websocket_error)) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(websocket_error) + "\"}");
+                            }
+                            if (const auto tap_it = query.find("tapId");
+                                tap_it != query.end() && !tap_it->second.empty()) {
+                                const std::string tap_id = tap_it->second;
+                                const auto snapshot = impl_->session_manager.AnalysisTapSnapshot(tap_id);
+                                if (!snapshot.has_value()) {
+                                    return JsonResponse(404,
+                                                        "Not Found",
+                                                        "{\"error\":\"analysis tap not found\"}");
+                                }
+                                return stream_metadata_websocket_response(tap_id, false, websocket_key);
+                            }
+                            if (!QueryHasAny(query, {"vaRule", "vaRuleId", "file", "url", "source"})) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"tapId, vaRule, or source query is required\"}");
+                            }
+                            const std::string tap_client_id =
+                                "analysis-ws-" + std::to_string(impl_->next_session_id.fetch_add(1));
+                            media::IngressRequest ingress_request =
+                                BuildHttpIngressRequest(route_path, query, tap_client_id);
+                            std::string va_rule_error;
+                            if (!ApplyVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
+                            }
+                            ingress_request.query["va"] = "1";
+                            auto result = impl_->session_manager.AttachAnalysisTap(
+                                ingress_request, BuildAnalysisProfileFromQuery(ingress_request.query));
+                            if (!result.ok) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(result.message) + "\"}");
+                            }
+                            return stream_metadata_websocket_response(result.tap_id, true, websocket_key);
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/analysis/metadata/stream") {
+                            if (!QueryHasAny(query, {"vaRule", "vaRuleId", "file", "url", "source"})) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"vaRule or source query is required\"}");
+                            }
+                            const std::string tap_client_id =
+                                "analysis-sse-" + std::to_string(impl_->next_session_id.fetch_add(1));
+                            media::IngressRequest ingress_request =
+                                BuildHttpIngressRequest(route_path, query, tap_client_id);
+                            std::string va_rule_error;
+                            if (!ApplyVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
+                            }
+                            ingress_request.query["va"] = "1";
+                            auto result = impl_->session_manager.AttachAnalysisTap(
+                                ingress_request, BuildAnalysisProfileFromQuery(ingress_request.query));
+                            if (!result.ok) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(result.message) + "\"}");
+                            }
+                            return stream_metadata_sse_response(result.tap_id, true);
+                        }
+
                         if (request.path == "/lab/analysis/taps") {
                             if (request.method == "GET") {
                                 return JsonResponse(200, "OK",
@@ -10854,6 +13302,15 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 }
                                 return JsonResponse(200, "OK",
                                                     "{\"tap\":" + AnalysisTapSnapshotJson(*snapshot) + "}");
+                            }
+
+                            if (request.method == "GET" && suffix == "/metadata/stream") {
+                                const auto snapshot = impl_->session_manager.AnalysisTapSnapshot(tap_id);
+                                if (!snapshot.has_value()) {
+                                    return JsonResponse(404, "Not Found",
+                                                        "{\"error\":\"analysis tap not found\"}");
+                                }
+                                return stream_metadata_sse_response(tap_id, false);
                             }
 
                             if (request.method == "GET" && suffix == "/metadata") {
@@ -11326,8 +13783,11 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                     }();
                 }
 
-                const std::string encoded = BuildHttpResponse(response);
-                (void)SendAll(client_fd, encoded);
+                if (!response_sent) {
+                    SuppressSocketSigPipe(client_fd);
+                    const std::string encoded = BuildHttpResponse(response);
+                    (void)SendAll(client_fd, encoded);
+                }
                 close(client_fd);
             }).detach();
         }

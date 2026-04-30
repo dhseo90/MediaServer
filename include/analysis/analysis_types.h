@@ -301,6 +301,8 @@ struct AnalysisResult {
     AnalysisContext context;
     std::uint64_t frame_id{0};
     std::int64_t pts{0};
+    int frame_width{0};
+    int frame_height{0};
     std::vector<Detection> detections;
     std::vector<Track> tracks;
     std::vector<PoseKeypoint> pose_keypoints;

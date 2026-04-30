@@ -87,6 +87,9 @@ GstPadProbeReturn OnOverlayBuffer(GstPad* pad, GstPadProbeInfo* info, gpointer u
     if (!result.has_value() || result->detections.empty()) {
         return GST_PAD_PROBE_OK;
     }
+    if (!state->config.render_video_overlay) {
+        return GST_PAD_PROBE_OK;
+    }
 
     int width = 0;
     int height = 0;
