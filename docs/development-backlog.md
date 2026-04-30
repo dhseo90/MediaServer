@@ -15,9 +15,10 @@
 - 구현 완료: RTSP/WebRTC relay, File/RTSP/WebRTC/HTTP-HLS source, YOLO/ONNX VA overlay, Rule/Profile UI, `vaRule=<id>` 호출, 기존 Intrusion/LineCrossing 이벤트 회귀 구조.
 - 구현 완료: TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, TrackHealth, cleanup 정책.
 - 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage, snapshot/clip hook, WebRTC VA metadata DataChannel 출력 구조.
+- 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard, SSE/WS metadata side-channel, RTSP overlay 정책 UI, 자동/longrun 검증 명령.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
 - 실험/제약: snapshot/clip은 hook/marker 중심이며 실제 제품용 frame extraction/clip recorder는 후속 구현입니다.
-- 남은 핵심: 장시간 다채널 안정성, 운영 이벤트 조회/보관, UI 제품화, 실제 현장 샘플 기반 튜닝입니다.
+- 남은 핵심: 실제 30분/2시간 장시간 검증 재실행, 운영 이벤트 조회/보관, dashboard 고도화, custom metadata client 예제, 실제 현장 샘플 기반 튜닝입니다.
 
 ## P0 - 문서/UI 정리
 
@@ -76,20 +77,39 @@ git diff --check -- README.md docs
 
 - 우선순위 이유: 미디어 서버에서는 장시간 안정성이 기능 추가보다 먼저입니다.
 
-### P1-2. 2시간 이상 장기 soak
+### P1-2. VA Runtime Console 30분 이상 longrun
+
+- 상태: 예정
+- 목적: WebRTC metadata viewer, DataChannel 수신, dashboard polling, SSE side-channel, RTSP server-side overlay consumer가 함께 켜진 상태에서 RSS/CPU/session/tap/client cleanup을 확인합니다.
+- 관련 파일: `scripts/internal/verify_va_runtime_console_longrun.py`, `scripts/internal/verify_webrtc_va_metadata.mjs`, `scripts/internal/va_metadata_stream_smoke.py`, `docs/stream-verification.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-va-runtime-console-longrun \
+  --duration-minutes 30 \
+  --clients 1 \
+  --include-sidechannel \
+  --include-dashboard \
+  --include-rtsp
+```
+
+- 우선순위 이유: Runtime Console은 UI, WebRTC DataChannel, SSE client, RTSP overlay consumer가 동시에 붙기 때문에 단기 smoke만으로는 누수나 stalled 상태를 판단하기 어렵습니다.
+
+### P1-3. 2시간 이상 장기 soak
 
 - 상태: 예정
 - 목적: 30분 테스트에서 보이지 않는 누적 memory, queue, event/state 증가를 확인합니다.
-- 관련 파일: `scripts/internal/verify_predev_stability.sh`, `src/analysis/track_state_manager.cpp`, `src/analysis/event_manager.cpp`, `src/analysis/scenario_engine.cpp`
+- 관련 파일: `scripts/internal/verify_predev_stability.sh`, `scripts/internal/verify_va_runtime_console_longrun.py`, `src/analysis/track_state_manager.cpp`, `src/analysis/event_manager.cpp`, `src/analysis/scenario_engine.cpp`
 - 검증 명령:
 
 ```bash
 ./server.sh verify-predev --soak-minutes 120
+./server.sh verify-va-runtime-console-longrun --duration-minutes 120 --clients 1 --include-sidechannel --include-dashboard --include-rtsp
 ```
 
 - 우선순위 이유: 다채널 운영 환경에서는 작은 누수가 긴 시간 후 streaming 안정성 문제로 커질 수 있습니다.
 
-### P1-3. VA state cleanup 전용 검증 추가
+### P1-4. VA state cleanup 전용 검증 추가
 
 - 상태: 예정
 - 목적: mock metadata로 track/scenario/event retention, cap, active state 보호를 빠르게 검증하는 전용 테스트를 추가합니다.
@@ -102,18 +122,18 @@ git diff --check -- README.md docs
 
 - 우선순위 이유: cleanup 버그는 다채널 장시간 테스트 전 작은 fixture로 먼저 잡아야 합니다.
 
-### P1-4. WebRTC DataChannel browser 수신 자동화
+### P1-5. WebRTC DataChannel browser 수신 자동화
 
-- 상태: 예정
+- 상태: 완료
 - 목적: offer/application m-line 확인을 넘어 browser에서 VA metadata message를 실제 수신하는 검증을 자동화합니다.
-- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/ingress/webrtc_egress_session.cpp`, `scripts/internal/verify_webrtc_ice_config.sh`
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/ingress/webrtc_egress_session.cpp`, `scripts/internal/verify_webrtc_va_metadata.mjs`
 - 검증 명령:
 
 ```bash
-./server.sh verify-webrtc-ice
+./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8080
 ```
 
-- 우선순위 이유: WebRTC metadata는 제품 UI overlay와 연동될 가능성이 높아 수신 검증이 필요합니다.
+- 우선순위 이유: WebRTC metadata는 Lab client-side overlay와 Runtime Console의 핵심 입력이므로 실제 브라우저 수신 검증이 필요했습니다.
 
 ## P2 - 이벤트 운영
 
@@ -191,8 +211,8 @@ git diff --check -- README.md docs
 
 ### P3-2. `vaRule` runtime debug view
 
-- 상태: 예정
-- 목적: 선택한 rule의 active tracks, scene context, scenario instances, event lifecycle, cleanup metric을 실시간으로 표시합니다.
+- 상태: 진행
+- 목적: 선택한 rule의 active tracks, scene context, scenario instances, event lifecycle, cleanup metric을 실시간으로 표시합니다. 1차 Runtime Dashboard는 구현됐고, rule별 drill-down과 timeline은 후속입니다.
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/analysis/event_rule_engine.cpp`, `docs/ui-guide.md`
 - 검증 명령:
 
@@ -205,8 +225,8 @@ git diff --check -- README.md docs
 
 ### P3-3. Tracking issue report UI
 
-- 상태: 예정
-- 목적: overlapRisk, missedFrame spike, directionChange spike, lost/reacquired 기록을 rule/debug 화면에 연결합니다.
+- 상태: 진행
+- 목적: overlapRisk, missedFrame spike, directionChange spike, lost/reacquired 기록을 Runtime Dashboard/state dump에 연결했습니다. 사람이 보기 쉬운 table/timeline UI는 후속입니다.
 - 관련 파일: `src/analysis/track_state_manager.cpp`, `src/analysis/event_rule_engine.cpp`, `docs/ui-guide.md`
 - 검증 명령:
 
@@ -229,6 +249,21 @@ git diff --check -- README.md docs
 ```
 
 - 우선순위 이유: 이벤트 운영 기능은 저장 API만으로는 제품 사용 흐름이 완성되지 않습니다.
+
+### P3-5. Runtime Dashboard 고도화
+
+- 상태: 예정
+- 목적: 현재 카드/JSON 중심 dashboard를 stream/rule/tap별 drill-down, trend sparkline, stale warning, cleanup warning 중심으로 정리합니다.
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/verify_va_runtime_console_longrun.py`, `docs/ui-guide.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-lab-layout
+./server.sh verify-va-runtime-console
+./server.sh verify-va-runtime-console-longrun --duration-minutes 30 --clients 1 --include-sidechannel --include-dashboard
+```
+
+- 우선순위 이유: Runtime Console은 운영자가 현재 분석 상태를 빠르게 판단하는 화면이므로 raw JSON보다 시각적 요약이 필요합니다.
 
 ## P4 - 시나리오 확장
 
@@ -356,7 +391,7 @@ git diff --check -- docs
 
 - 우선순위 이유: appearance 기능은 기술 구현보다 운영 정책과 안전장치가 먼저 필요합니다.
 
-## P6 - 녹화/snapshot/clip
+## P6 - Snapshot/clip hook
 
 ### P6-1. 실제 snapshot frame extraction
 
@@ -417,18 +452,45 @@ MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER='turn://user:pass@example.local:
 
 ### P7-2. WebRTC metadata client schema/example
 
-- 상태: 예정
-- 목적: DataChannel VA metadata JSON schema와 browser client 예제를 분리 문서화합니다.
-- 관련 파일: `src/ingress/webrtc_egress_session.cpp`, `docs/media-server-architecture.md`, `docs/video-analysis.md`
+- 상태: 진행
+- 목적: DataChannel VA metadata JSON schema와 browser client 예제를 분리 문서화합니다. Lab viewer와 검증 스크립트는 구현됐고, 독립 예제 문서/샘플은 후속입니다.
+- 관련 파일: `src/ingress/webrtc_egress_session.cpp`, `scripts/internal/verify_webrtc_va_metadata.mjs`, `docs/media-server-architecture.md`, `docs/video-analysis.md`
 - 검증 명령:
 
 ```bash
-./server.sh verify-webrtc-ice
+./server.sh verify-webrtc-va-metadata
 ```
 
 - 우선순위 이유: 영상과 별도 metadata를 UI에서 쓰려면 message contract가 명확해야 합니다.
 
-### P7-3. Event JSON schema/OpenAPI 분리
+### P7-3. WebSocket metadata 제어 기능 검토
+
+- 상태: 보류
+- 목적: 현재 WebSocket은 SSE와 같은 단방향 metadata stream 최소 구현입니다. client command, filter, subscribe/unsubscribe 제어가 실제로 필요한지 운영 UI 요구와 함께 검토합니다.
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/verify_ws_va_metadata.mjs`, `docs/video-analysis.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-ws-metadata
+```
+
+- 우선순위 이유: 단순 수신은 SSE로 충분하므로 WebSocket 제어 기능은 custom client 요구가 명확해진 뒤 확장해야 합니다.
+
+### P7-4. Custom RTSP + metadata client 예제
+
+- 상태: 예정
+- 목적: RTSP raw stream과 SSE/WS metadata side-channel을 함께 받아 client-side overlay를 그리는 최소 예제를 제공합니다. 일반 VLC/ffplay에 metadata UI가 생기는 기능은 아닙니다.
+- 관련 파일: `scripts/internal/va_metadata_stream_smoke.py`, `docs/ui-guide.md`, `docs/stream-verification.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-rtsp-va-overlay-policy
+./server.sh verify-va-metadata-sidechannel
+```
+
+- 우선순위 이유: RTSP 일반 viewer와 custom client의 차이를 실제 예제로 보여줘야 현장 연동 혼선을 줄일 수 있습니다.
+
+### P7-5. Event JSON schema/OpenAPI 분리
 
 - 상태: 예정
 - 목적: 기존 외부 이벤트 JSON/API/POST 형식을 별도 schema 문서 또는 OpenAPI로 정리합니다.
@@ -441,7 +503,7 @@ MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER='turn://user:pass@example.local:
 
 - 우선순위 이유: 외부 연동이 늘어날수록 payload 변경 금지 원칙을 문서 계약으로 고정해야 합니다.
 
-### P7-4. YouTube import/source 유지 여부 결정
+### P7-6. YouTube import/source 유지 여부 결정
 
 - 상태: 보류
 - 목적: 실험 기능으로 남길지, import만 유지할지, source 직접 표출을 제거할지 결정합니다.

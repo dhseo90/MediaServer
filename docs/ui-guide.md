@@ -15,7 +15,7 @@
 `/lab/rules`는 두 탭으로 나뉩니다.
 
 - 영상 분석 설정: 저장된 영상 분석 룰 목록과 룰 편집 화면
-- 영상 분석 보기: Live Streaming, VA Overlay, VA Rule 미리보기
+- 영상 분석 보기: 실시간 스트리밍, VA 오버레이, VA 룰 미리보기
 
 ![영상 분석 룰 목록](assets/ui/analysis-rule-list.png)
 
@@ -180,11 +180,30 @@ EventRecord/snapshot/clip hook:
 
 | 모드 | 설명 |
 | --- | --- |
-| Live Streaming | 선택한 영상의 원본 프레임만 확인 |
-| 영상 + VA Overlay | 선택한 영상에 기본 `va=1` 객체 검출 overlay 적용 |
-| 영상 + VA Rule | 저장된 `vaRule` ID를 선택하고, 해당 룰에 묶인 source/profile/rule을 사용 |
+| 실시간 스트리밍 | 선택한 영상의 원본 프레임만 확인 |
+| 영상 + VA 오버레이 | 선택한 영상에 기본 `va=1` 객체 검출 overlay 적용 |
+| 영상 + VA 룰 | 저장된 `vaRule` ID를 선택하고, 해당 룰에 묶인 source/profile/rule을 사용 |
+| WebRTC 메타데이터 | WebRTC simple signaling 영상과 `vaMetadata=1` DataChannel 수신 JSON을 확인 |
 
-`영상 + VA Rule` 모드에서는 source를 따로 선택하지 않습니다. 선택한 rule ID에 저장된 source가 자동으로 고정됩니다.
+`영상 + VA 룰` 모드에서는 source를 따로 선택하지 않습니다. 선택한 rule ID에 저장된 source가 자동으로 고정됩니다.
+
+`WebRTC 메타데이터` 모드는 DataChannel 상태, 최신 metadata JSON, browser client-side overlay를 확인하는 테스트 화면입니다.
+기본 label은 `va-metadata`이며 상태는 `비활성`, `연결 중`, `열림`, `수신 중`, `지연`, `닫힘`, `오류`로 표시됩니다.
+DataChannel이 열리지 않거나 JSON parse에 실패해도 영상 재생 자체는 별도 상태로 유지되어야 합니다.
+overlay는 WebRTC browser viewer 전용이며 RTSP 일반 viewer에는 적용되지 않습니다. 이 모드의 video track은 서버가 bbox를 합성하지 않은 원본 영상이고, 브라우저 canvas가 현재 관측 중인 track만 그립니다. 표시 옵션은 박스, 라벨, Track ID, 시나리오, 이벤트 highlight, TrackHealth, 현재 Zone, 체류 시간을 개별로 켜고 끌 수 있습니다.
+metadata가 일정 시간 갱신되지 않으면 stale 상태로 표시하고 overlay를 흐리게 보여줍니다.
+overlay는 DataChannel 수신 즉시 그리지 않고 현재 표시 중인 video frame 기준으로 가장 가까운 metadata를 선택합니다. 상태 패널의 `Metadata 수신`, `Metadata buffer`, `Metadata drop`, `표시 video frame`, `Overlay draw`, `마지막 video frame`, `마지막 metadata`, `영상 멈춤` 값을 함께 보면 metadata 수신과 실제 overlay draw가 분리되어 동작하는지 확인할 수 있습니다.
+영상 frame callback이 멈춘 상태에서는 DataChannel이 계속 열려 있어도 overlay는 갱신하지 않고 stale 상태로 정리합니다.
+
+WebRTC 메타데이터 뷰어 사용 순서:
+
+1. `영상 분석 보기` 탭에서 `WebRTC 메타데이터` 모드를 선택합니다.
+2. 서버 파일, URL source, 또는 저장 rule 기반 source를 선택합니다.
+3. `보기 시작`을 누르면 `/webrtc/session?...&vaMetadata=1` 세션을 생성합니다.
+4. 영상은 WebRTC video track으로 재생되고 metadata는 `va-metadata` DataChannel로 수신됩니다.
+5. JSON preview와 Track/이벤트/시나리오 count를 확인합니다.
+6. client-side overlay toggle로 박스/라벨/Track ID/시나리오/이벤트/TrackHealth 표시를 조정합니다.
+7. `보기 중지`를 누르면 WebRTC session과 metadata channel이 닫히고 overlay canvas가 정리됩니다.
 
 연결 상태:
 
@@ -200,12 +219,113 @@ EventRecord/snapshot/clip hook:
 
 URL 규칙:
 
-- Live Streaming: source query만 사용
-- 영상 + VA Overlay: `va=1` 추가
-- 영상 + VA Rule: `vaRule=<숫자>`만 사용
+- 실시간 스트리밍: source query만 사용
+- 영상 + VA 오버레이: `va=1` 추가
+- 영상 + VA 룰: `vaRule=<숫자>`만 사용
+- WebRTC 메타데이터: WebRTC simple signaling URL에 `vaMetadata=1`을 명시적으로 추가
 - `vaRule` 요청에는 `file/url/source` override를 함께 쓰지 않음
 
-## 10. 자주 발생하는 오류
+출력 방식 정책:
+
+| 출력 방식 | 용도 | 주의 |
+| --- | --- | --- |
+| WebRTC 메타데이터 뷰어 | WebRTC video와 DataChannel metadata를 브라우저가 받아 client-side overlay 표시 | RTSP client에서는 동작하지 않음 |
+| RTSP 서버 오버레이 | VLC/ffplay/IINA 같은 일반 RTSP client에서 VA overlay 영상 확인 | 서버가 영상 위에 직접 bbox/label을 그린 결과 |
+| RTSP 원본 스트림 | overlay 없는 원본 RTSP 출력 | metadata UI 없음 |
+| 커스텀 메타데이터 사이드채널 | custom client가 RTSP video와 별도 SSE metadata stream을 함께 처리 | 일반 VLC/ffplay는 side-channel metadata를 표시하지 못함 |
+
+개발자 요청 URL 패널의 `커스텀 RTSP + 메타데이터 연결 정보` 영역은 custom client가 같이 사용해야 하는 값을 한 번에 보여줍니다.
+
+- RTSP 원본 스트림: custom client가 재생할 overlay 없는 영상
+- SSE 메타데이터 스트림: 같은 source 또는 `vaRule`에 대한 runtime metadata JSON
+- RTSP 서버 오버레이: 일반 RTSP viewer에서 바로 확인할 때 쓰는 대체 URL
+
+현재 Lab에서 바로 복사 가능한 custom side-channel URL은 SSE endpoint입니다.
+
+- 기존 active tap: `/lab/analysis/taps/{tapId}/metadata/stream`
+- rule 기반 임시 tap: `/lab/analysis/metadata/stream?vaRule=<id>`
+
+SSE와 WebSocket은 일반 RTSP viewer 기능이 아니라 custom client/dashboard 연동용입니다. Lab URL 패널은 기본적으로 SSE URL을 보여주며, WebSocket은 `/ws/va-metadata?tapId=<id>` 또는 `/ws/va-metadata?vaRule=<id>`로 직접 사용할 수 있습니다.
+
+현재 상태:
+
+- 구현 완료: WebRTC 메타데이터 뷰어, DataChannel 수신 상태 표시, latest JSON preview, client-side overlay canvas/toggle
+- 구현 완료: 런타임 대시보드의 metrics/state dump/tracking issue report 표시
+- 구현 완료: SSE metadata side-channel과 Lab의 custom pairing URL 표시
+- 구현 완료: WebSocket metadata side-channel 최소 subscribe/stream endpoint
+- 예정: WebSocket command/filter/subscribe-unsubscribe 제어, custom RTSP client 예제 overlay renderer
+
+검증용 smoke:
+
+```bash
+./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8080
+./server.sh verify-sse-metadata --http-base http://127.0.0.1:8080
+./server.sh verify-ws-metadata --http-base http://127.0.0.1:8080
+```
+
+## 10. VA 런타임 대시보드
+
+VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보는 운영용 탭입니다.
+
+![VA 런타임 대시보드](assets/ui/analysis-runtime-dashboard.png)
+
+표시 항목:
+
+- 소스 종류
+- 활성 세션 / 스트림 / 분석 Tap
+- 디코딩 / 샘플링 / 분석 FPS
+- 대기 / 상한 / 최대 큐
+- 추론 지연
+- active / lost / reacquired / terminated track count
+- 시나리오 인스턴스 수
+- 발생 / 중복 억제 이벤트 수
+- TrackHealth unstable count
+- overlapRisk count
+- 이벤트 POST 상태
+- 이벤트 저장 상태
+
+선택 UI:
+
+- 분석 Tap: 현재 활성 tap 중 하나를 선택합니다.
+- 룰: 저장된 rule ID를 기준으로 관련 tap을 우선 선택할 때 사용합니다.
+- 갱신 주기: 수동, 2초, 5초, 10초 중 선택합니다.
+
+대시보드 탭이 닫혀 있을 때는 polling하지 않습니다. 자동 갱신은 최소 2초 이상 간격으로 동작해 다채널 분석 성능에 부담을 주지 않도록 제한합니다.
+세부 상태는 `상태 덤프 / tracking issue report` 접힘 영역에서 JSON으로 확인할 수 있습니다.
+
+VA 런타임 대시보드 사용 순서:
+
+1. 서버 실행 후 `/lab/rules`의 `영상 분석 보기` 탭을 엽니다.
+2. preview 또는 metadata viewer로 analysis tap을 만들거나 저장 rule을 선택합니다.
+3. VA 런타임 대시보드 영역에서 tap/rule을 선택합니다.
+4. 갱신 주기를 선택하면 `/lab/runtime/status`, `/metrics`, `/state-dump`를 polling합니다.
+5. dashboard를 접거나 refresh를 끄면 polling을 중단합니다.
+
+재사용 endpoint:
+
+```bash
+curl -fsS 'http://127.0.0.1:8080/lab/runtime/status'
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps'
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/metrics'
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/state-dump'
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-post/status'
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-storage/status'
+```
+
+장시간 검증:
+
+```bash
+./server.sh verify-va-runtime-console-longrun \
+  --duration-minutes 30 \
+  --clients 1 \
+  --include-sidechannel \
+  --include-dashboard \
+  --include-rtsp
+```
+
+이 검증은 선택 longrun입니다. 기본 `./server.sh test`에는 포함하지 않습니다.
+
+## 11. 자주 발생하는 오류
 
 | 오류 | 원인 | 처리 |
 | --- | --- | --- |

@@ -9,6 +9,7 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 - VA overlay: `va=1`로 YOLO/ONNX detection overlay를 요청할 수 있습니다.
 - 영상 분석 UI: Rule/Profile/Scenario, 객체 category, polygon/line, event action을 `/lab/rules`에서 설정합니다.
 - 저장 설정 호출: 숫자 ID 기반 `vaRule=<id>`로 저장된 source/profile/rule/scenario를 호출합니다.
+- VA Metadata Runtime Console: WebRTC 메타데이터 뷰어, 브라우저 client-side overlay, 런타임 대시보드, SSE/WS side-channel 검증 경로를 제공합니다.
 - 이벤트/검증: Event POST, EventRecord JSON Lines 저장, VA metadata replay/baseline 검증 구조를 제공합니다.
 
 ## 대표 UI 미리보기
@@ -17,13 +18,9 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 
 ![영상 분석 룰 목록](docs/assets/ui/analysis-rule-list.png)
 
-**룰 편집 기본 정보**
+**영상 프레임을 보며 영역/라인 설정**
 
-![영상 분석 룰 편집](docs/assets/ui/analysis-rule-editor-basic.png)
-
-**영역/라인 캔버스**
-
-![영역/라인 캔버스](docs/assets/ui/analysis-region-canvas.png)
+![영상 분석 영역 캔버스](docs/assets/ui/analysis-region-canvas.png)
 
 **영상 분석 테스트/미리보기**
 
@@ -37,7 +34,7 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 File / RTSP Pull / WebRTC Publish / HTTP-HLS URI
         -> Media Server
         -> RTSP Output / WebRTC Output
-        -> optional VA Overlay / Rule Event / Scenario Event / Metadata
+        -> optional VA 오버레이 / 룰 이벤트 / 시나리오 이벤트 / 런타임 메타데이터
 ```
 
 VA 내부 흐름:
@@ -49,7 +46,7 @@ YOLO Detection
   -> SceneContextBuilder
   -> RuleEventEngine / ScenarioEngine
   -> EventManager
-  -> Overlay / Metadata / Event POST / EventRecord
+  -> Overlay / Runtime Metadata / Event POST / EventRecord
 ```
 
 ## 빠른 시작
@@ -88,7 +85,7 @@ YOLO Detection
 | WebRTC signaling | `POST http://127.0.0.1:8080/webrtc/session?file=sample_h264.mp4` |
 | WHEP | `POST http://127.0.0.1:8080/whep?file=sample_h264.mp4` |
 | VA overlay | `rtsp://127.0.0.1:8554/dhseo?file=va_four_scene_sample.mp4&va=1` |
-| 저장 VA Rule | `rtsp://127.0.0.1:8554/dhseo?vaRule=1` |
+| 저장 VA 룰 | `rtsp://127.0.0.1:8554/dhseo?vaRule=1` |
 
 ## 영상 분석 사용 흐름
 
@@ -96,8 +93,11 @@ YOLO Detection
 2. 룰을 추가하고 source, profile, 기본 event 또는 scenario를 선택합니다.
 3. polygon 제한구역 또는 line crossing 선을 지정합니다.
 4. 저장하면 숫자 기반 `vaRule` ID가 배정됩니다.
-5. 영상 분석 보기 탭에서 Live Streaming, `va=1`, `vaRule=<id>` 모드로 확인합니다.
-6. 외부 클라이언트에서는 `?va=1` 또는 `?vaRule=<id>` URL을 사용합니다.
+5. 영상 분석 보기 탭에서 실시간 스트리밍, `va=1`, `vaRule=<id>` 모드로 확인합니다.
+6. WebRTC 메타데이터 뷰어에서는 `vaMetadata=1` DataChannel과 browser client-side overlay를 확인합니다.
+7. 외부 RTSP 클라이언트에서는 `?va=1` 또는 `?vaRule=<id>` server-side overlay URL을 사용합니다.
+
+RTSP 일반 viewer는 WebRTC DataChannel metadata를 표시하지 않습니다. custom client가 metadata를 따로 소비해야 할 때는 RTSP raw stream과 SSE/WS metadata side-channel을 별도로 조합합니다. 자세한 정책은 [docs/ui-guide.md](docs/ui-guide.md)와 [docs/video-analysis.md](docs/video-analysis.md)를 봅니다.
 
 ## 테스트 요약
 
@@ -124,6 +124,13 @@ VA replay/상태 검증:
 ```bash
 ./server.sh verify-analysis-state
 ./server.sh verify-va-replay
+```
+
+VA Metadata Runtime Console 검증:
+
+```bash
+./server.sh verify-webrtc-va-metadata
+./server.sh verify-va-runtime-console
 ```
 
 현재 검증 기준은 [docs/stream-verification.md](docs/stream-verification.md)에 정리되어 있습니다.

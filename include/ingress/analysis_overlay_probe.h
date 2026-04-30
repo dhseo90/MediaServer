@@ -20,6 +20,7 @@ namespace ingress {
 
 struct AnalysisOverlayConfig {
     bool enabled{false};
+    bool render_video_overlay{true};
     analysis::OverlayRenderOptions render_options;
     std::int64_t sync_tolerance_ns{
         static_cast<std::int64_t>(app_config::kDefaultAnalysisOverlaySyncToleranceMs) * 1000000};

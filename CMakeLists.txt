@@ -35,6 +35,7 @@ add_executable(media_server
     src/analysis/snapshot_encoder.cpp
     src/analysis/track_state_manager.cpp
     src/analysis/tracked_object_metadata.cpp
+    src/analysis/va_runtime_metadata.cpp
     src/analysis/wrong_direction_scenario.cpp
     src/analysis/yolo_onnx_detector.cpp
     src/app_config.cpp

@@ -90,6 +90,8 @@ def detect_report_kind(path: pathlib.Path, payload: dict[str, Any]) -> str:
         return "multichannel"
     if "predev" in name:
         return "predev"
+    if "va-runtime-longrun" in name or payload.get("kind") == "va-runtime-console-longrun":
+        return "va-runtime-console-longrun"
     if "evtpost-longrun" in name or payload.get("kind") == "event-post-longrun":
         return "event-post-longrun"
     if "evtpost" in name or payload.get("kind") == "event-post":
@@ -173,6 +175,16 @@ def summarize_details(kind: str, payloads: list[dict[str, Any]]) -> str:
             f"durationSec={first.get('durationSec')} steps={len(steps)} "
             f"failed={','.join(str(item) for item in failed)} skipped={','.join(str(item) for item in skipped)}"
         )
+    if kind == "va-runtime-console-longrun":
+        metrics = first.get("metrics") if isinstance(first.get("metrics"), dict) else {}
+        cleanup = first.get("cleanup") if isinstance(first.get("cleanup"), dict) else {}
+        return (
+            f"durationSec={first.get('durationSec')} clients={first.get('clients')} "
+            f"rssMaxKb={metrics.get('maxRssKb', '-')} "
+            f"webrtcMsgs={metrics.get('webrtcMetadataMessageCount', '-')} "
+            f"sseMsgs={metrics.get('sseMessageCount', '-')} "
+            f"cleanup={cleanup.get('runtimeIdle', '-')}/{cleanup.get('portsClean', '-')}"
+        )
     if kind == "uri-longrun":
         failures = first.get("failureClassifications") if isinstance(first.get("failureClassifications"), list) else []
         classes = sorted({",".join(item.get("classification", [])) for item in failures if isinstance(item, dict)})
@@ -218,6 +230,23 @@ def detail_lines(kind: str, payloads: list[dict[str, Any]]) -> list[str]:
                 f"- step `{step.get('name', '-')}`: `{step.get('result', '-')}` "
                 f"duration=`{step.get('durationSec', '-')}` log=`{step.get('logFile', '-')}`"
             )
+        return lines
+    if kind == "va-runtime-console-longrun":
+        metrics = first.get("metrics") if isinstance(first.get("metrics"), dict) else {}
+        cleanup = first.get("cleanup") if isinstance(first.get("cleanup"), dict) else {}
+        lines.append(f"- durationSec: `{first.get('durationSec', '-')}`")
+        lines.append(f"- clients: `{first.get('clients', '-')}`")
+        lines.append(f"- maxRssKb: `{metrics.get('maxRssKb', '-')}`")
+        lines.append(f"- maxCpuPercent: `{metrics.get('maxCpuPercent', '-')}`")
+        lines.append(f"- webrtcMetadataMessageCount: `{metrics.get('webrtcMetadataMessageCount', '-')}`")
+        lines.append(f"- sseMessageCount: `{metrics.get('sseMessageCount', '-')}`")
+        lines.append(f"- metadataMessagesDropped: `{metrics.get('metadataMessagesDropped', '-')}`")
+        lines.append(f"- runtimeIdle: `{cleanup.get('runtimeIdle', '-')}`")
+        lines.append(f"- portsClean: `{cleanup.get('portsClean', '-')}`")
+        lines.append(f"- reportFile: `{first.get('reportFile', '-')}`")
+        for step in first.get("steps", [])[:40]:
+            if isinstance(step, dict):
+                lines.append(f"- step `{step.get('name', '-')}`: `{step.get('status', '-')}` log=`{step.get('logFile', '-')}`")
         return lines
     if kind == "multichannel":
         for case in first.get("cases", [])[:20]:

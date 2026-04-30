@@ -64,6 +64,22 @@ Usage:
                  정적 이미지 입력의 YOLO metadata/snapshot/overlay API를 검증합니다.
   verify-analysis-state
                  TrackState/SceneContext/EventManager/Scenario/Appearance hook 단위 smoke를 검증합니다.
+  verify-sse-metadata
+                 VA metadata SSE side-channel schema/cleanup을 검증합니다.
+  verify-va-metadata-sidechannel
+                 VA metadata SSE side-channel schema/cleanup을 summary JSON과 함께 검증합니다.
+  verify-webrtc-va-metadata
+                 WebRTC vaMetadata=1 DataChannel의 video/ICE/schema 수신을 브라우저로 검증합니다.
+  verify-webrtc-va-metadata-sync
+                 Lab WebRTC metadata viewer의 video frame / overlay sync 정책을 브라우저로 검증합니다.
+  verify-va-runtime-console
+                 VA Runtime Dashboard용 metrics/state/status endpoint를 검증합니다.
+  verify-va-runtime-console-longrun
+                 WebRTC metadata/dashboard/SSE/선택 RTSP overlay 장시간 안정성을 검증합니다.
+  verify-rtsp-va-overlay-policy
+                 RTSP raw/server-side overlay와 metadata side-channel 분리 정책을 검증합니다.
+  verify-ws-metadata
+                 VA metadata WebSocket side-channel handshake/schema/cleanup을 검증합니다.
   replay-va-metadata
                  저장된 detection/tracking metadata를 media pipeline 없이 VA rule/scenario 계층에 replay합니다.
   verify-va-replay
@@ -225,6 +241,38 @@ case "${cmd}" in
   verify-analysis-state)
     require_internal verify_analysis_state_smoke.sh
     exec "${INTERNAL_DIR}/verify_analysis_state_smoke.sh" "$@"
+    ;;
+  verify-sse-metadata)
+    require_internal va_metadata_stream_smoke.py
+    exec "${INTERNAL_DIR}/va_metadata_stream_smoke.py" "$@"
+    ;;
+  verify-va-metadata-sidechannel)
+    require_internal va_metadata_stream_smoke.py
+    exec "${INTERNAL_DIR}/va_metadata_stream_smoke.py" "$@"
+    ;;
+  verify-webrtc-va-metadata)
+    require_internal verify_webrtc_va_metadata.mjs
+    exec "${INTERNAL_DIR}/verify_webrtc_va_metadata.mjs" "$@"
+    ;;
+  verify-webrtc-va-metadata-sync)
+    require_internal verify_webrtc_va_metadata_sync.mjs
+    exec "${INTERNAL_DIR}/verify_webrtc_va_metadata_sync.mjs" "$@"
+    ;;
+  verify-va-runtime-console)
+    require_internal verify_va_runtime_console.py
+    exec "${INTERNAL_DIR}/verify_va_runtime_console.py" "$@"
+    ;;
+  verify-va-runtime-console-longrun)
+    require_internal verify_va_runtime_console_longrun.py
+    exec "${INTERNAL_DIR}/verify_va_runtime_console_longrun.py" "$@"
+    ;;
+  verify-rtsp-va-overlay-policy)
+    require_internal verify_rtsp_va_overlay_policy.sh
+    exec "${INTERNAL_DIR}/verify_rtsp_va_overlay_policy.sh" "$@"
+    ;;
+  verify-ws-metadata)
+    require_internal verify_ws_va_metadata.mjs
+    exec "${INTERNAL_DIR}/verify_ws_va_metadata.mjs" "$@"
     ;;
   replay-va-metadata)
     require_internal replay_va_metadata.sh

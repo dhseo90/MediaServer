@@ -2,6 +2,31 @@
 
 이 문서는 과거 상세 검증 이력을 보존합니다. 현재 실행해야 할 검증 기준은 [../stream-verification.md](../stream-verification.md)를 봅니다.
 
+## 2026-04-30 - VA Runtime Console / WebRTC metadata overlay sync 안정화
+
+통과:
+
+- `./server.sh build`
+- `git diff --check`
+- Markdown link/image path check
+- `./server.sh test`: sandbox 실행은 localhost TCP/RTSP probe `Operation not permitted`로 실패했으나, 권한 상승 재실행 기준 `15/0/12` 통과
+- `./server.sh verify-webrtc-va-metadata-sync --http-base http://127.0.0.1:8081 --file imports/va_tracking_event_1280x720_30fps_h264.mp4`: `12/0`
+- `./server.sh verify-va-runtime-console-longrun --duration-minutes 30 --clients 1 --include-rtsp --include-sidechannel --include-dashboard --skip-build`: `10/0/1`
+
+확인:
+
+- WebRTC metadata viewer는 `requestVideoFrameCallback` 기준으로 overlay를 그리고, DataChannel 수신 시점에 즉시 draw하지 않음
+- `syncStatus=fallback-latest` metadata는 기본 draw하지 않음
+- video stalled 상태에서 metadata가 계속 들어와도 overlay draw count가 증가하지 않음
+- 검증 전용 hook으로 metadata buffer 상한 `90`과 drop counter 동작 확인
+- longrun 최종 cleanup: `activeSessions=0`, `activeAnalysisTaps=0`, `activeSseClients=0`, `activeWebSocketClients=0`, `egressSessions=0`, `publishSessions=0`
+- longrun `portsClean=true`
+
+관찰/후속:
+
+- 30분 longrun 중 RSS는 warm-up 이후 완만히 증가했고 최종 `maxRssKb=747872`, `lastRssKb=747872`로 기록됨
+- crash/session leak/client leak은 보이지 않았지만, 2시간 이상 장기 검증에서 메모리 평탄화 여부를 추가 확인할 것
+
 ## 2026-04-29 - Step 32 통합 검증
 
 통과:

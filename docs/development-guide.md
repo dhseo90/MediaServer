@@ -224,6 +224,11 @@ gst-inspect-1.0 uridecodebin
 ./server.sh verify-va-events
 ./server.sh verify-event-post
 ./server.sh verify-analysis-state
+./server.sh verify-va-runtime-console
+./server.sh verify-va-runtime-console-longrun --duration-minutes 30 --clients 1 --include-sidechannel --include-dashboard
+./server.sh verify-va-metadata-sidechannel
+./server.sh verify-webrtc-va-metadata
+./server.sh verify-rtsp-va-overlay-policy
 ./server.sh replay-va-metadata --input test/fixtures/va_metadata_replay_basic.json --output /tmp/va_metadata_replay.json
 ./server.sh verify-va-replay
 ./server.sh verify-tracker-stability
@@ -233,6 +238,8 @@ gst-inspect-1.0 uridecodebin
 ```
 
 장시간 또는 다채널 검증 기준은 [stream-verification.md](./stream-verification.md)에 유지합니다.
+
+VA Metadata Runtime Console 계열 검증은 선택 검증입니다. 기본 `./server.sh test`에는 포함하지 않고, WebRTC DataChannel, SSE side-channel, dashboard/state endpoint, RTSP overlay 정책을 수정했을 때 별도로 실행합니다. 단기 명령은 summary JSON 경로를 출력하고, `verify-va-runtime-console-longrun`은 summary JSON과 Markdown report를 함께 생성합니다.
 
 ## UI 개발 시 검증 명령
 
@@ -253,7 +260,7 @@ Lab/영상 분석 UI를 수정한 뒤에는 최소한 아래 검증을 실행합
 
 - 영상 분석 설정 탭: 룰 목록, 룰 추가/수정/삭제, 저장 전 검증
 - 룰 편집 화면: 기본 정보, 영상 소스, Profile, 이벤트 방식, 영역/라인, 이벤트 동작
-- 영상 분석 보기 탭: Live Streaming, VA Overlay, VA Rule, 개발자 요청 URL 접힘 영역
+- 영상 분석 보기 탭: 실시간 스트리밍, VA 오버레이, VA 룰, 개발자 요청 URL 접힘 영역
 
 UI 사용 흐름은 [ui-guide.md](./ui-guide.md)에 별도로 유지합니다.
 

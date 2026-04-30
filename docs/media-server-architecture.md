@@ -162,10 +162,20 @@ SharedStream packet
   -> RuleEventEngine
   -> ScenarioEngine
   -> EventManager
-  -> Overlay / Metadata / Event POST / EventRecord
+  -> VaRuntimeMetadataBuilder
+  -> Overlay / Runtime Metadata / Event POST / EventRecord / WebRTC DataChannel / SSE-WS Side-Channel
 ```
 
 RTSP/WebRTC overlay는 egress raw video 구간에서 가까운 PTS의 analysis result를 합성합니다. PTS 매칭 실패 시 최신 result로 fallback합니다.
+
+`VaRuntimeMetadataBuilder`는 viewer/dashboard/side-channel이 공유할 내부 runtime metadata frame을 만듭니다. WebRTC DataChannel은 이 frame을 기존 `media-server.webrtc.va-metadata.v1` schema로 투영해 외부 호환성을 유지하고, dashboard와 SSE/WS side-channel은 `media-server.va.runtime-metadata.v1` 내부 schema를 사용합니다.
+
+Metadata 출력 정책:
+
+- WebRTC browser viewer: video/audio stream과 별도로 `vaMetadata=1` DataChannel을 열고, Lab client-side canvas overlay가 metadata를 표시합니다.
+- RTSP 일반 viewer: DataChannel이 없으므로 server-side overlay가 기본 표시 방식입니다.
+- Custom RTSP client: RTSP raw stream과 SSE/WS metadata side-channel을 별도로 연결해 client-side overlay를 직접 구현할 수 있습니다.
+- 런타임 대시보드: `/lab/runtime/status`, `/metrics`, `/state-dump`, event status endpoint를 polling하고 media pipeline을 직접 blocking하지 않습니다.
 
 VA 상세 동작과 API는 [video-analysis.md](./video-analysis.md)에 둡니다.
 
@@ -181,6 +191,7 @@ VA 상태는 streamId/channelId 기준으로 분리합니다. 서로 다른 chan
 | ScenarioInstance | ScenarioEngine | stream/channel/track/scenario별 phase와 timestamp |
 | EventState | EventManager | event lifecycle, cooldown, dedupe, cleanup 대상 state |
 | EventRecord | EventStorage | event 조회/연결용 optional 저장 record |
+| VaRuntimeMetadataFrame | VaRuntimeMetadataBuilder | stream/channel/frame 기준 tracks/events/scenarios/metrics를 묶는 dashboard/DataChannel/side-channel 공통 frame |
 
 핵심 원칙:
 
@@ -241,6 +252,8 @@ GET /lab/analysis/event-storage/status
 - inference latency
 - TrackHealth unstable/overlap/missed/direction summary
 - EventStorage/Event POST queue 상태
+- metadata side-channel active client count
+- WebRTC metadata sent/dropped/failure count는 trace log와 longrun summary에서 확인
 
 검증 기준은 [stream-verification.md](./stream-verification.md)에 둡니다.
 
@@ -249,7 +262,9 @@ GET /lab/analysis/event-storage/status
 | 확장 포인트 | 현재 상태 | 목적 |
 | --- | --- | --- |
 | EventStorage | optional JSON Lines | EventRecord 저장과 후속 조회/API 연결 |
-| WebRTC DataChannel | opt-in | bbox/track/scenario/event metadata를 video stream과 별도로 전달 |
+| WebRTC DataChannel | opt-in | runtime metadata frame을 기존 WebRTC schema로 직렬화해 video stream과 별도로 전달 |
+| Runtime Metadata Side-Channel | SSE/WebSocket 최소 구현 | custom client가 RTSP video와 별도 metadata stream을 함께 소비 |
+| 런타임 대시보드 | 구현 완료 | active session/stream/tap, VA metrics, state dump, tracking issue report를 Lab에서 확인 |
 | Re-ID hook | 기본 NoOp, 실험용 extractor hook | appearance profile과 reacquire/low confidence association 보조 |
 | Homography | optional config | image point를 ground-plane point로 변환해 distance/speed/radius 계산 보조 |
 | Snapshot/Clip hook | marker hook 중심 | EventRecord와 snapshot/clip path 연결. 실제 recorder는 후속 |

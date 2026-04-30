@@ -486,6 +486,8 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
         result.context = tap->context;
         result.frame_id = tap->next_frame_id.fetch_add(1);
         result.pts = frame.pts;
+        result.frame_width = frame.width;
+        result.frame_height = frame.height;
         result.debug_state_requested = tap->profile.enable_debug_state;
         result.debug_state_log_enabled = tap->profile.enable_debug_state;
 
