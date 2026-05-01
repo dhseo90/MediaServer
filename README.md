@@ -9,7 +9,7 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 - VA overlay: `va=1`로 YOLO/ONNX detection overlay를 요청할 수 있습니다.
 - 영상 분석 UI: Rule/Profile/Scenario, 객체 category, polygon/line, event action을 `/lab/rules`에서 설정합니다.
 - 저장 설정 호출: 숫자 ID 기반 `vaRule=<id>`로 저장된 source/profile/rule/scenario를 호출합니다.
-- VA Metadata Runtime Console: WebRTC 메타데이터 뷰어, 브라우저 client-side overlay, 런타임 대시보드, SSE/WS side-channel 검증 경로를 제공합니다.
+- VA Metadata Runtime Console: WebRTC 메타데이터 뷰어, 브라우저 client-side overlay, drill-down 런타임 대시보드, vaRule debug, SSE/WS side-channel과 custom SSE client 예제를 제공합니다.
 - 이벤트/검증: Event POST, EventRecord JSON Lines 저장, VA metadata replay/baseline 검증 구조를 제공합니다.
 
 ## 대표 UI 미리보기

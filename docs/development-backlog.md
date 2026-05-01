@@ -15,10 +15,10 @@
 - 구현 완료: RTSP/WebRTC relay, File/RTSP/WebRTC/HTTP-HLS source, YOLO/ONNX VA overlay, Rule/Profile UI, `vaRule=<id>` 호출, 기존 Intrusion/LineCrossing 이벤트 회귀 구조.
 - 구현 완료: TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, TrackHealth, cleanup 정책.
 - 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage, snapshot/clip hook, WebRTC VA metadata DataChannel 출력 구조.
-- 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard, SSE/WS metadata side-channel, RTSP overlay 정책 UI, 자동/longrun 검증 명령.
+- 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, 자동/longrun 검증 명령.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
 - 실험/제약: snapshot/clip은 hook/marker 중심이며 실제 제품용 frame extraction/clip recorder는 후속 구현입니다.
-- 남은 핵심: 실제 30분/2시간 장시간 검증 재실행, 운영 이벤트 조회/보관, dashboard 고도화, custom metadata client 예제, 실제 현장 샘플 기반 튜닝입니다.
+- 남은 핵심: 실제 30분/2시간 장시간 검증 재실행, 운영 이벤트 조회/보관, 정밀 scenario timeline, dashboard trend/stale/cleanup warning, custom overlay renderer, 실제 현장 샘플 기반 튜닝입니다.
 
 ## P0 - 문서/UI 정리
 
@@ -79,9 +79,9 @@ git diff --check -- README.md docs
 
 ### P1-2. VA Runtime Console 30분 이상 longrun
 
-- 상태: 예정
-- 목적: WebRTC metadata viewer, DataChannel 수신, dashboard polling, SSE side-channel, RTSP server-side overlay consumer가 함께 켜진 상태에서 RSS/CPU/session/tap/client cleanup을 확인합니다.
-- 관련 파일: `scripts/internal/verify_va_runtime_console_longrun.py`, `scripts/internal/verify_webrtc_va_metadata.mjs`, `scripts/internal/va_metadata_stream_smoke.py`, `docs/stream-verification.md`
+- 상태: 진행
+- 목적: WebRTC metadata viewer, DataChannel 수신, dashboard polling, SSE side-channel, RTSP server-side overlay consumer가 함께 켜진 상태에서 RSS/CPU/session/tap/client cleanup과 connect/disconnect cycle 후 idle baseline RSS를 확인합니다.
+- 관련 파일: `scripts/internal/verify_va_runtime_console_longrun.py`, `scripts/internal/verify_va_runtime_console_cycles.py`, `scripts/internal/verify_webrtc_va_metadata.mjs`, `scripts/internal/va_metadata_stream_smoke.py`, `docs/stream-verification.md`
 - 검증 명령:
 
 ```bash
@@ -91,15 +91,100 @@ git diff --check -- README.md docs
   --include-sidechannel \
   --include-dashboard \
   --include-rtsp
+
+./server.sh verify-va-runtime-console-cycles \
+  --cycles 10 \
+  --active-minutes 5 \
+  --idle-minutes 2 \
+  --clients 1 \
+  --include-sidechannel \
+  --include-dashboard \
+  --include-rtsp
 ```
 
-- 우선순위 이유: Runtime Console은 UI, WebRTC DataChannel, SSE client, RTSP overlay consumer가 동시에 붙기 때문에 단기 smoke만으로는 누수나 stalled 상태를 판단하기 어렵습니다.
+- 우선순위 이유: Runtime Console은 UI, WebRTC DataChannel, SSE client, RTSP overlay consumer가 동시에 붙기 때문에 단기 smoke만으로는 누수나 stalled 상태를 판단하기 어렵습니다. Cycle 검증은 active peak 증가와 idle baseline 누적 증가를 분리하기 위한 선택 검증입니다.
 
-### P1-3. 2시간 이상 장기 soak
+### P1-3. VA Runtime Console RSS WARNING: RTSP/GStreamer egress 및 Full fanout 후보 후속 검증
 
-- 상태: 예정
-- 목적: 30분 테스트에서 보이지 않는 누적 memory, queue, event/state 증가를 확인합니다.
+- 상태: 진행
+- 목적: VA Runtime Console longrun에서 기능과 cleanup은 통과했지만 RSS plateau가 확정되지 않은 상태를 추적합니다. 기능 PASS와 메모리 WARNING은 분리해서 판단하며, Runtime Console stable 승격은 보류합니다.
+- 관련 파일: `scripts/internal/verify_va_runtime_console_longrun.py`, `scripts/internal/verify_va_runtime_console_cycles.py`, `src/ingress/webrtc_http_server.cpp`, `docs/stream-verification.md`
+- 확인 결과:
+  - 120m full longrun: WebRTC metadata client, dashboard polling, SSE side-channel, RTSP overlay consumer 동시 구성에서 기능 실패 없음, cleanup 실패 없음, port cleanup 정상. 다만 RSS가 plateau로 보기 어렵고 마지막 구간에서도 증가 기울기가 남아 WARNING입니다.
+  - 60m 분리 run: Base, Dashboard, Side-channel, RTSP, Full comparison 모두 cleanup pass입니다. RTSP run과 Full run에서 RSS 증가가 상대적으로 크며, RTSP/GStreamer egress와 Full 조합 fanout이 우선 의심 후보입니다.
+  - idle-after-cleanup: consumer cleanup 후 activeSessions, activeStreams, activeAnalysisTaps, SSE/WS clients, RTSP consumers가 모두 0이고 idle RSS는 유지/하락했습니다.
+  - idle-after-cleanup 해석: process-level leak 증거는 약합니다.
+  - connect/disconnect cycle test: cleanup failure 없음, port cleanup 정상, `idleEndRssMb` 단조 증가는 없음. 명확한 lifecycle count 누수보다는 allocator high-water / GStreamer buffer pool retention 가능성이 큽니다.
+  - lifecycle count 누수는 관찰되지 않았습니다.
+  - RSS plateau는 확인되지 않았고 RSS WARNING 유지입니다.
+- 최종 판정:
+  - 기능 안정성: PASS
+  - cleanup 안정성: PASS
+  - port cleanup: PASS
+  - 메모리 안정성: WARNING
+  - Runtime Console stable 승격: 보류
+- HOLD/FAIL이 아닌 이유: crash, child process 실패, cleanup count 잔류, port listener 잔류가 없습니다.
+- 원인 후보:
+  - RTSP overlay consumer / GStreamer egress / server-side overlay path
+  - allocator high-water / GStreamer-WebRTC buffer pool retention
+  - Full fanout / tap 공유 / VaRuntimeMetadataBuilder / JSON serialization 조합
+  - SSE/WS side-channel fanout / per-client queue / JSON serialization
+  - WebRTC metadata/DataChannel 또는 공통 media/analysis path
+- 후속 검증 계획:
+
+```bash
+./server.sh verify-va-runtime-console-cycles \
+  --cycles 10 \
+  --active-minutes 5 \
+  --idle-minutes 2 \
+  --clients 1 \
+  --include-rtsp \
+  --rss-warmup-minutes 5 \
+  --rss-large-drop-mb 20
+
+./server.sh verify-va-runtime-console-cycles \
+  --cycles 20 \
+  --active-minutes 5 \
+  --idle-minutes 2 \
+  --clients 1 \
+  --include-sidechannel \
+  --include-dashboard \
+  --include-rtsp \
+  --rss-warmup-minutes 5 \
+  --rss-large-drop-mb 20
+
+./server.sh verify-va-runtime-console-longrun \
+  --duration-minutes 120 \
+  --clients 1 \
+  --include-dashboard \
+  --include-sidechannel \
+  --include-rtsp \
+  --rss-warmup-minutes 5 \
+  --rss-large-drop-mb 20 \
+  --idle-after-cleanup-minutes 30 \
+  --idle-sample-interval-seconds 30
+```
+
+- 계측 계획:
+  - RTSP overlay consumer unprepare/finalize 확인
+  - GStreamer pipeline state NULL 전환 확인
+  - appsrc/appsink/probe/buffer pool release 계측
+  - VaRuntimeMetadataBuilder allocation 계측
+  - JSON serialization payload size 계측
+  - SSE/WS per-client queue metric 보강
+  - dashboard state-dump/metrics response allocation 계측
+- 보류 조건:
+  - Runtime Console stable 승격은 RTSP-only cycle 및 추가 full longrun/idle 확인 전까지 보류합니다.
+  - `./server.sh verify-predev --soak-minutes 30`은 조건부 실행 가능합니다.
+  - `./server.sh verify-predev --soak-minutes 120`은 RTSP/GStreamer RSS 후보를 더 좁힌 뒤 실행을 권장합니다.
+- 우선순위 이유: 기능은 안정적으로 동작하지만 RTSP/Full 조합 RSS 증가가 운영 장시간 안정성에 영향을 줄 수 있으므로, 구현 확대보다 원인 분리와 계측을 먼저 진행합니다.
+
+### P1-4. 2시간 이상 장기 soak
+
+- 상태: 보류
+- 목적: 30분 테스트에서 보이지 않는 누적 memory, queue, event/state 증가를 확인합니다. VA Runtime Console RSS WARNING 원인 분리 또는 계측 보강 후 실행합니다.
 - 관련 파일: `scripts/internal/verify_predev_stability.sh`, `scripts/internal/verify_va_runtime_console_longrun.py`, `src/analysis/track_state_manager.cpp`, `src/analysis/event_manager.cpp`, `src/analysis/scenario_engine.cpp`
+- 선행 조건: P1-3의 RTSP/GStreamer egress, Full fanout, metadata allocation 원인 후보를 추가 분리하거나 계측 보강합니다.
 - 검증 명령:
 
 ```bash
@@ -109,7 +194,7 @@ git diff --check -- README.md docs
 
 - 우선순위 이유: 다채널 운영 환경에서는 작은 누수가 긴 시간 후 streaming 안정성 문제로 커질 수 있습니다.
 
-### P1-4. VA state cleanup 전용 검증 추가
+### P1-5. VA state cleanup 전용 검증 추가
 
 - 상태: 예정
 - 목적: mock metadata로 track/scenario/event retention, cap, active state 보호를 빠르게 검증하는 전용 테스트를 추가합니다.
@@ -122,7 +207,7 @@ git diff --check -- README.md docs
 
 - 우선순위 이유: cleanup 버그는 다채널 장시간 테스트 전 작은 fixture로 먼저 잡아야 합니다.
 
-### P1-5. WebRTC DataChannel browser 수신 자동화
+### P1-6. WebRTC DataChannel browser 수신 자동화
 
 - 상태: 완료
 - 목적: offer/application m-line 확인을 넘어 browser에서 VA metadata message를 실제 수신하는 검증을 자동화합니다.
@@ -197,8 +282,8 @@ git diff --check -- README.md docs
 
 ### P3-1. Scenario timeline/debug UI
 
-- 상태: 예정
-- 목적: track별 first seen, dwell time, zone 이동, ScenarioPhase, 중복 억제 상태를 timeline으로 표시합니다.
+- 상태: 진행
+- 목적: Runtime Dashboard의 Scenarios list와 vaRule Runtime Debug 1차는 구현했습니다. 남은 작업은 track별 first seen, phase entered time, cooldown remaining, zone 이동, 중복 억제 상태를 timeline으로 표시하는 것입니다.
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/analysis/event_rule_engine.cpp`, `docs/ui-guide.md`
 - 검증 명령:
 
@@ -212,13 +297,14 @@ git diff --check -- README.md docs
 ### P3-2. `vaRule` runtime debug view
 
 - 상태: 진행
-- 목적: 선택한 rule의 active tracks, scene context, scenario instances, event lifecycle, cleanup metric을 실시간으로 표시합니다. 1차 Runtime Dashboard는 구현됐고, rule별 drill-down과 timeline은 후속입니다.
+- 목적: Runtime Dashboard 내부 1차 패널로 선택 rule, active tap ruleId 매칭, source/profile, event/scenario, region, event lifecycle, recent event를 표시합니다. 남은 작업은 rule별 상세 진입, phase timestamp/cooldown remaining, 더 긴 scenario timeline입니다.
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/analysis/event_rule_engine.cpp`, `docs/ui-guide.md`
 - 검증 명령:
 
 ```bash
 ./server.sh verify-analysis-state
 ./server.sh verify-lab-layout
+./server.sh verify-va-runtime-console
 ```
 
 - 우선순위 이유: 저장 rule과 실제 실행 rule이 일치하는지 운영자가 확인할 수 있어야 합니다.
@@ -226,7 +312,7 @@ git diff --check -- README.md docs
 ### P3-3. Tracking issue report UI
 
 - 상태: 진행
-- 목적: overlapRisk, missedFrame spike, directionChange spike, lost/reacquired 기록을 Runtime Dashboard/state dump에 연결했습니다. 사람이 보기 쉬운 table/timeline UI는 후속입니다.
+- 목적: overlapRisk, missedFrame spike, directionChange spike, lost/reacquired 기록을 Runtime Dashboard table과 state dump에 연결했습니다. 남은 작업은 issue grouping, focus filter, timeline 표시입니다.
 - 관련 파일: `src/analysis/track_state_manager.cpp`, `src/analysis/event_rule_engine.cpp`, `docs/ui-guide.md`
 - 검증 명령:
 
@@ -252,8 +338,8 @@ git diff --check -- README.md docs
 
 ### P3-5. Runtime Dashboard 고도화
 
-- 상태: 예정
-- 목적: 현재 카드/JSON 중심 dashboard를 stream/rule/tap별 drill-down, trend sparkline, stale warning, cleanup warning 중심으로 정리합니다.
+- 상태: 진행
+- 목적: Overview, Tracks, Scenarios, Events, Metadata, Tracking Issues, vaRule Runtime Debug 1차 drill-down은 구현했습니다. 남은 작업은 trend sparkline, stale warning, cleanup warning, 정밀 scenario timeline입니다.
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/verify_va_runtime_console_longrun.py`, `docs/ui-guide.md`
 - 검증 명령:
 
@@ -478,12 +564,14 @@ MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER='turn://user:pass@example.local:
 
 ### P7-4. Custom RTSP + metadata client 예제
 
-- 상태: 예정
-- 목적: RTSP raw stream과 SSE/WS metadata side-channel을 함께 받아 client-side overlay를 그리는 최소 예제를 제공합니다. 일반 VLC/ffplay에 metadata UI가 생기는 기능은 아닙니다.
-- 관련 파일: `scripts/internal/va_metadata_stream_smoke.py`, `docs/ui-guide.md`, `docs/stream-verification.md`
+- 상태: 진행
+- 목적: SSE metadata side-channel 수신 예제 `scripts/examples/va_metadata_sse_client.py`는 구현했습니다. 남은 작업은 RTSP raw stream과 metadata를 실제로 동기화해 client-side overlay renderer까지 그리는 별도 예제입니다. 일반 VLC/ffplay에 metadata UI가 생기는 기능은 아닙니다.
+- 관련 파일: `scripts/examples/va_metadata_sse_client.py`, `scripts/internal/va_metadata_stream_smoke.py`, `docs/ui-guide.md`, `docs/stream-verification.md`
 - 검증 명령:
 
 ```bash
+python3 -m py_compile scripts/examples/va_metadata_sse_client.py
+python3 scripts/examples/va_metadata_sse_client.py --help
 ./server.sh verify-rtsp-va-overlay-policy
 ./server.sh verify-va-metadata-sidechannel
 ```

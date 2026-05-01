@@ -76,6 +76,8 @@ Usage:
                  VA Runtime Dashboard용 metrics/state/status endpoint를 검증합니다.
   verify-va-runtime-console-longrun
                  WebRTC metadata/dashboard/SSE/선택 RTSP overlay 장시간 안정성을 검증합니다.
+  verify-va-runtime-console-cycles
+                 WebRTC/dashboard/SSE/RTSP consumer connect/disconnect cycle RSS baseline을 검증합니다.
   verify-rtsp-va-overlay-policy
                  RTSP raw/server-side overlay와 metadata side-channel 분리 정책을 검증합니다.
   verify-ws-metadata
@@ -265,6 +267,10 @@ case "${cmd}" in
   verify-va-runtime-console-longrun)
     require_internal verify_va_runtime_console_longrun.py
     exec "${INTERNAL_DIR}/verify_va_runtime_console_longrun.py" "$@"
+    ;;
+  verify-va-runtime-console-cycles)
+    require_internal verify_va_runtime_console_cycles.py
+    exec "${INTERNAL_DIR}/verify_va_runtime_console_cycles.py" "$@"
     ;;
   verify-rtsp-va-overlay-policy)
     require_internal verify_rtsp_va_overlay_policy.sh

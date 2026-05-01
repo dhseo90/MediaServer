@@ -423,8 +423,10 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-storage/status'
 - 구현 완료: 내부 `VaRuntimeMetadataFrame` 구조와 builder
 - 구현 완료: WebRTC DataChannel 호환 serializer
 - 구현 완료: SSE/WebSocket side-channel용 runtime metadata JSON 직렬화
-- 구현 완료: Lab 런타임 대시보드의 metrics/state dump 표시 경로
-- 예정: WebSocket command/filter/subscribe-unsubscribe 제어와 custom client SDK 수준의 예제
+- 구현 완료: Lab 런타임 대시보드의 Overview/Tracks/Scenarios/Events/Metadata/Tracking Issues drill-down 1차 표시
+- 구현 완료: Runtime Dashboard 내부 vaRule Runtime Debug 1차 패널
+- 구현 완료: SSE metadata side-channel 수신 중심 custom client 예제
+- 예정: phase entered time/cooldown remaining을 포함한 정밀 scenario timeline, WebSocket command/filter/subscribe-unsubscribe 제어, custom client overlay renderer
 
 내부 schema:
 
@@ -447,9 +449,9 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-storage/status'
 - `metrics`
 - `trackingIssueReport`
 
-`tracks[]`는 trackId, className, confidence, bbox, currentZone, dwellTimeMs, scenarioPhase, TrackHealth를 포함합니다. `events[]`는 eventId, eventType, status, zoneId, lineId, scenarioName, scenarioPhase를 포함합니다.
+`tracks[]`는 trackId, className, confidence, bbox, currentZone, dwellTimeMs, scenarioPhase, TrackHealth를 포함합니다. `events[]`는 eventId, eventType, status, zoneId, lineId, scenarioName, scenarioPhase를 포함합니다. Lab Runtime Dashboard는 이 값과 `/metrics`, `/state-dump`, `/events`를 재사용해 drill-down UI를 구성합니다.
 
-기존 외부 event JSON/API/POST 형식은 이 내부 frame으로 바꾸지 않습니다. Event POST와 `/lab/analysis/taps/{tapId}/events`는 기존 payload 호환성을 유지합니다.
+기존 외부 event JSON/API/POST 형식은 이 내부 frame이나 dashboard/debug UI 때문에 바뀌지 않습니다. Event POST와 `/lab/analysis/taps/{tapId}/events`는 기존 payload 호환성을 유지합니다.
 
 WebRTC DataChannel은 기존 외부 schema인 `media-server.webrtc.va-metadata.v1`을 유지합니다. 내부 builder가 만든 frame을 WebRTC 호환 serializer로 투영하며, `source`, `scenarios`, `metrics`, `trackingIssueReport` 같은 dashboard 전용 필드는 DataChannel 기존 schema에 추가하지 않습니다.
 
@@ -642,6 +644,15 @@ Metadata : http://127.0.0.1:8080/lab/analysis/metadata/stream?vaRule=1
 VLC/ffplay/IINA 같은 일반 RTSP viewer는 SSE metadata를 표시하지 않습니다.
 Lab의 개발자 요청 URL 패널은 RTSP 원본 스트림과 SSE metadata stream을 `커스텀 RTSP + 메타데이터 연결 정보`로 함께 보여줍니다. SSE stream 자체는 `./server.sh verify-sse-metadata --http-base http://127.0.0.1:8080`로 smoke 검증할 수 있습니다.
 
+SSE 수신만 확인하는 최소 custom client 예제:
+
+```bash
+python3 scripts/examples/va_metadata_sse_client.py \
+  'http://127.0.0.1:8080/lab/analysis/metadata/stream?vaRule=1&intervalMs=500&maxMessageBytes=65536'
+```
+
+이 예제는 metadata 수신/parse/schema/count/preview 출력만 담당합니다. RTSP video player와 overlay renderer는 포함하지 않습니다.
+
 명시적 side-channel 검증:
 
 ```bash
@@ -685,7 +696,8 @@ VA overlay는 출력 방식에 따라 역할이 다릅니다.
 | RTSP 서버 오버레이 | 구현 완료 | 일반 RTSP player가 볼 수 있도록 서버가 bbox/label을 영상 위에 직접 합성 |
 | WebRTC Server-side Overlay | 구현 완료 | `va=1`/`vaRule=<id>` 요청에서 서버 합성 영상 출력 |
 | WebRTC Client-side Overlay | 구현 완료 | `vaMetadata=1` DataChannel metadata를 브라우저 canvas가 그리는 Lab viewer 전용 표시 |
-| Custom RTSP + Side-channel Overlay | 예정 | custom client가 RTSP raw video와 SSE/WS metadata를 함께 받아 직접 overlay |
+| Custom SSE Metadata Client | 구현 완료 | `scripts/examples/va_metadata_sse_client.py`가 side-channel metadata 수신과 schema/count/preview 확인을 담당 |
+| Custom RTSP + Side-channel Overlay | 예정 | custom client가 RTSP raw video와 SSE/WS metadata를 함께 받아 직접 overlay renderer까지 구현 |
 
 RTSP 일반 viewer(VLC/ffplay/IINA)는 WebRTC DataChannel을 이해하지 못합니다. RTSP에서 metadata UI가 필요하면 server-side overlay를 사용하거나, custom client가 RTSP raw stream과 SSE/WS side-channel을 별도로 조합해야 합니다.
 
@@ -728,8 +740,10 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/overlay.jpg?debugOver
 
 Debug 출력은 내부 상태 확인용이며 기존 event JSON/API/POST 형식을 바꾸지 않습니다.
 
-Lab의 VA 런타임 대시보드는 위 endpoint와 `/lab/runtime/status`, event POST/storage status endpoint를 재사용해 운영 상태를 카드와 JSON으로 표시합니다.
+Lab의 VA 런타임 대시보드는 위 endpoint와 `/lab/runtime/status`, event POST/storage status endpoint를 재사용해 운영 상태를 카드, table, raw JSON으로 표시합니다. 1차 drill-down은 Overview, vaRule Runtime Debug, Tracks, Scenarios, Events, Metadata, Tracking Issues 영역으로 나뉩니다.
 대시보드 탭이 닫혀 있을 때는 polling하지 않으며, 자동 갱신은 최소 2초 이상 간격으로 제한합니다.
+
+현재 vaRule Runtime Debug와 Scenarios table은 state-dump/metrics에 이미 노출된 값만 사용합니다. phase entered time, cooldown remaining 같은 정밀 timeline 필드는 후속 endpoint 또는 state-dump 확장 없이는 표시하지 않습니다.
 
 ## 18. Replay 검증
 
