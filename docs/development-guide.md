@@ -226,6 +226,8 @@ gst-inspect-1.0 uridecodebin
 ./server.sh verify-analysis-state
 ./server.sh verify-va-runtime-console
 ./server.sh verify-va-runtime-console-longrun --duration-minutes 30 --clients 1 --include-sidechannel --include-dashboard
+./server.sh verify-va-runtime-console-longrun --duration-minutes 30 --clients 1 --include-sidechannel --include-dashboard --include-rtsp --idle-after-cleanup-minutes 15
+./server.sh verify-va-runtime-console-cycles --cycles 10 --active-minutes 5 --idle-minutes 2 --clients 1 --include-sidechannel --include-dashboard --include-rtsp
 ./server.sh verify-va-metadata-sidechannel
 ./server.sh verify-webrtc-va-metadata
 ./server.sh verify-rtsp-va-overlay-policy

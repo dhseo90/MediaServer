@@ -237,6 +237,15 @@ curl -N 'http://127.0.0.1:8080/lab/analysis/metadata/stream?vaRule=1&intervalMs=
 curl -N 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/metadata/stream?intervalMs=500&maxMessageBytes=65536'
 ```
 
+Custom SSE metadata client 예제:
+
+```bash
+python3 scripts/examples/va_metadata_sse_client.py \
+  'http://127.0.0.1:8080/lab/analysis/metadata/stream?vaRule=1&intervalMs=500&maxMessageBytes=65536'
+```
+
+이 예제는 SSE URL을 입력받아 `event: metadata`를 수신하고, JSON parse/schema 확인, `tracks/events/scenarios` count, 최근 metadata preview를 출력합니다. RTSP video 재생기나 overlay renderer는 포함하지 않습니다. 영상은 위 ffplay/VLC 같은 일반 RTSP player로 별도 재생해야 하며, 일반 VLC/ffplay/IINA는 SSE/WS metadata side-channel을 자동 overlay하지 않습니다.
+
 확인할 항목:
 
 - 응답 header가 `text/event-stream`인지 확인
@@ -277,14 +286,19 @@ WebSocket metadata side-channel smoke:
 VA Runtime Console 자동 검증:
 
 ```bash
+./server.sh verify-lab-layout
+./server.sh verify-analysis-state
 ./server.sh verify-va-runtime-console --http-base http://127.0.0.1:8080
 ```
 
 확인할 항목:
 
 - 임시 analysis tap 생성 후 dashboard polling이 가능한지 확인
+- Runtime Dashboard drill-down UI가 lab layout을 깨뜨리지 않는지 확인
+- state-dump 기반 Tracks/Scenarios/Tracking Issues 표시와 vaRule Runtime Debug가 기존 endpoint만 재사용하는지 확인
 - `/lab/analysis/taps/{tapId}/metrics`의 `tapState`, `trackState`, `metricsReport` 확인
 - `/lab/analysis/taps/{tapId}/state-dump` JSON 확인
+- `/lab/analysis/taps/{tapId}/events` 접근과 recent event buffer 확인
 - `/lab/analysis/event-post/status`, `/lab/analysis/event-storage/status`, `/lab/runtime/status` 접근 확인
 - smoke용 analysis tap cleanup 확인
 
@@ -325,16 +339,49 @@ RTSP server-side overlay consumer까지 함께 유지할 때:
   --include-rtsp
 ```
 
+consumer cleanup 이후 서버를 즉시 종료하지 않고 idle RSS를 관찰할 때:
+
+```bash
+./server.sh verify-va-runtime-console-longrun \
+  --duration-minutes 30 \
+  --clients 1 \
+  --include-sidechannel \
+  --include-dashboard \
+  --include-rtsp \
+  --idle-after-cleanup-minutes 15 \
+  --idle-sample-interval-seconds 30
+```
+
+consumer connect/disconnect cycle 이후 idle baseline RSS 누적 증가를 확인할 때:
+
+```bash
+./server.sh verify-va-runtime-console-cycles \
+  --cycles 10 \
+  --active-minutes 5 \
+  --idle-minutes 2 \
+  --clients 1 \
+  --include-sidechannel \
+  --include-dashboard \
+  --include-rtsp \
+  --rss-warmup-minutes 5 \
+  --rss-large-drop-mb 20
+```
+
 확인할 항목:
 
 - WebRTC `vaMetadata=1` DataChannel이 장시간 metadata를 계속 수신하는지 확인
-- dashboard polling 중 `/metrics`, `/state-dump`, event POST/storage status 접근이 유지되는지 확인
+- dashboard polling 중 `/metrics`, `/state-dump`, `/events`, event POST/storage status 접근이 유지되는지 확인
+- dashboard drill-down과 vaRule Runtime Debug polling이 media pipeline을 blocking하지 않는지 확인
 - SSE metadata side-channel client가 장시간 연결 후 cleanup되는지 확인
 - `--include-rtsp` 지정 시 RTSP `va=1` server-side overlay consumer가 함께 유지되는지 확인
 - process RSS/CPU, active sessions/streams/taps, metadata side-channel client count를 주기적으로 기록
+- `--idle-after-cleanup-minutes` 지정 시 consumer와 dashboard tap cleanup 후 서버 process를 유지하면서 idle RSS/CPU와 active count 재상승 여부를 별도로 기록
+- `verify-va-runtime-console-cycles`는 서버를 유지한 채 WebRTC/SSE/dashboard/RTSP consumer를 반복 연결/해제하고 cycle별 active peak RSS와 idleEnd RSS baseline을 비교
 - WebRTC metadata sent/dropped/failure count는 longrun 서버 로그의 `[webrtc-metadata] close` 라인에서 집계
 - 종료 후 active sessions, active analysis taps, SSE/WS metadata clients가 0으로 정리되는지 확인
-- summary JSON과 Markdown report를 `/tmp/media_server_va-runtime-longrun-*` 경로에 남김
+- idle 관찰 중 active sessions/streams/taps, SSE/WS clients, RTSP egress consumer가 다시 증가하면 cleanup/RSS 해석보다 `idleJudgement`를 우선 확인
+- cycle 검증에서는 cycle별 cleanup count가 0이 아니면 `HOLD`, 최종 port cleanup 실패는 `FAIL`, idleEnd RSS가 cycle마다 계속 증가하면 `WARNING`으로 판단
+- longrun summary JSON과 Markdown report는 `/tmp/media_server_va-runtime-longrun-*`, cycle summary/report는 `/tmp/media_server_va-runtime-cycles-*` 경로에 남김
 
 기본 `./server.sh test`에는 포함하지 않습니다. 30분 이상 실행하는 선택 검증이며, 잠자기 전에는 `--duration-minutes 120`처럼 시간을 늘려 실행합니다. 이 명령은 검증용 subprocess env로 `MEDIA_SERVER_WEBRTC_TRACE=1`을 켜서 DataChannel sent/drop/failure count를 로그에서 집계하며, `scripts/.media_server.env` 같은 영구 설정 파일은 수정하지 않습니다.
 

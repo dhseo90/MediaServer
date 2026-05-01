@@ -22,6 +22,11 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+KB_PER_MB = 1024.0
+DEFAULT_RSS_WARMUP_MINUTES = 5.0
+DEFAULT_RSS_LARGE_DROP_MB = 20.0
+DEFAULT_IDLE_SAMPLE_INTERVAL_SECONDS = 30.0
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="VA Runtime Console long-run verification")
@@ -40,6 +45,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--work-dir", default=os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_WORK_DIR", ""))
     parser.add_argument("--summary-file", default=os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_SUMMARY", ""))
     parser.add_argument("--report-file", default=os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_REPORT", ""))
+    parser.add_argument("--rss-warmup-minutes", type=float, default=float(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_RSS_WARMUP_MINUTES", str(DEFAULT_RSS_WARMUP_MINUTES))))
+    parser.add_argument("--rss-large-drop-mb", type=float, default=float(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_RSS_LARGE_DROP_MB", str(DEFAULT_RSS_LARGE_DROP_MB))))
+    parser.add_argument("--idle-after-cleanup-minutes", type=float, default=float(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_IDLE_AFTER_CLEANUP_MINUTES", "0")))
+    parser.add_argument("--idle-sample-interval-seconds", type=float, default=float(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_IDLE_SAMPLE_SECONDS", str(DEFAULT_IDLE_SAMPLE_INTERVAL_SECONDS))))
     return parser.parse_args()
 
 
@@ -210,6 +219,132 @@ def wait_runtime_idle(base: str, timeout_s: float, samples: list[dict[str, Any]]
     return False, latest
 
 
+def active_streams(counts: dict[str, Any]) -> int:
+    resource_streams = int(counts.get("resourceActiveStreams", 0) or 0)
+    registry_streams = int(counts.get("registryActiveStreams", 0) or 0)
+    return max(resource_streams, registry_streams)
+
+
+def runtime_count_max(samples: list[dict[str, Any]], key: str) -> int:
+    maximum = 0
+    for sample in samples:
+        runtime = sample.get("runtime") if isinstance(sample.get("runtime"), dict) else {}
+        if key == "activeStreams":
+            value = active_streams(runtime)
+        else:
+            value = int(runtime.get(key, 0) or 0)
+        maximum = max(maximum, value)
+    return maximum
+
+
+def observe_idle_after_cleanup(base: str, pid: int, duration_s: float, interval_s: float) -> list[dict[str, Any]]:
+    samples: list[dict[str, Any]] = []
+    deadline = time.monotonic() + duration_s
+    interval = max(interval_s, 1.0)
+    while True:
+        sample = collect_sample(base, pid, "")
+        sample["phase"] = "idle-after-cleanup"
+        samples.append(sample)
+        counts = sample.get("runtime", {})
+        rss = sample.get("process", {}).get("rssKb", 0)
+        log(
+            "[idle-sample] "
+            f"rssKb={rss} activeSessions={counts.get('activeSessions', 0)} "
+            f"streams={active_streams(counts)} "
+            f"taps={counts.get('activeAnalysisTaps', 0)} "
+            f"sse={counts.get('activeSseClients', 0)} ws={counts.get('activeWebSocketClients', 0)} "
+            f"rtspConsumers={counts.get('egressSessions', 0)}"
+        )
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        time.sleep(min(interval, remaining))
+    return samples
+
+
+def summarize_idle_after_cleanup(
+    enabled: bool,
+    requested_duration_s: int,
+    sample_interval_s: float,
+    cleanup_ok: bool,
+    samples: list[dict[str, Any]],
+) -> dict[str, Any]:
+    rss_samples = build_rss_samples(samples)
+    rss_values = [int(sample.get("rssKb", 0) or 0) for sample in rss_samples]
+    first = rss_samples[0] if rss_samples else {}
+    last = rss_samples[-1] if rss_samples else {}
+    observed_minutes = 0.0
+    rss_delta_mb = 0.0
+    rss_delta_per_minute_mb = 0.0
+    if first and last:
+        observed_minutes = max(
+            0.0,
+            (float(last.get("elapsedSec", 0.0) or 0.0) - float(first.get("elapsedSec", 0.0) or 0.0)) / 60.0,
+        )
+        rss_delta_mb = mb_from_kb(int(last.get("rssKb", 0) or 0) - int(first.get("rssKb", 0) or 0))
+        rss_delta_per_minute_mb = rate_per_minute(rss_delta_mb, observed_minutes)
+
+    active_sessions_max = runtime_count_max(samples, "activeSessions")
+    active_streams_max = runtime_count_max(samples, "activeStreams")
+    active_taps_max = runtime_count_max(samples, "activeAnalysisTaps")
+    sse_clients_max = runtime_count_max(samples, "activeSseClients")
+    ws_clients_max = runtime_count_max(samples, "activeWebSocketClients")
+    rtsp_consumers_max = runtime_count_max(samples, "egressSessions")
+    active_count_reappeared = any(
+        value > 0
+        for value in [
+            active_sessions_max,
+            active_streams_max,
+            active_taps_max,
+            sse_clients_max,
+            ws_clients_max,
+            rtsp_consumers_max,
+        ]
+    )
+
+    judgement = "DISABLED"
+    reason = "idle-after-cleanup disabled"
+    if enabled and not cleanup_ok:
+        judgement = "HOLD"
+        reason = "cleanup did not reach idle before idle observation"
+    elif enabled and active_count_reappeared:
+        judgement = "HOLD"
+        reason = "runtime counts reappeared during idle observation"
+    elif enabled and not rss_samples:
+        judgement = "WARNING"
+        reason = "idle observation produced no RSS samples"
+    elif enabled and rss_delta_mb > 0:
+        judgement = "WARNING"
+        reason = "RSS increased during idle observation"
+    elif enabled:
+        judgement = "PASS"
+        reason = "RSS stayed flat or decreased during idle observation"
+
+    return {
+        "enabled": enabled,
+        "durationSeconds": requested_duration_s,
+        "sampleIntervalSeconds": sample_interval_s,
+        "sampleCount": len(samples),
+        "rssSampleCount": len(rss_samples),
+        "rssFirstMb": first.get("rssMb"),
+        "rssLastMb": last.get("rssMb"),
+        "rssMaxMb": mb_from_kb(max(rss_values)) if rss_values else None,
+        "rssDeltaMb": rss_delta_mb if rss_samples else None,
+        "rssDeltaPerMinuteMb": rss_delta_per_minute_mb if rss_samples else None,
+        "observedMinutes": round(observed_minutes, 3),
+        "activeSessionsMax": active_sessions_max,
+        "activeStreamsMax": active_streams_max,
+        "activeAnalysisTapsMax": active_taps_max,
+        "sseClientsMax": sse_clients_max,
+        "wsClientsMax": ws_clients_max,
+        "rtspConsumersMax": rtsp_consumers_max,
+        "activeCountReappeared": active_count_reappeared,
+        "judgement": judgement,
+        "reason": reason,
+        "rssSamples": rss_samples,
+    }
+
+
 def ports_clean(ports: list[int]) -> bool:
     for port in sorted(set(ports)):
         result = subprocess.run(
@@ -245,7 +380,216 @@ def parse_metadata_log(server_log: Path) -> dict[str, int]:
     return totals
 
 
+def mb_from_kb(value: int | float) -> float:
+    return round(float(value) / KB_PER_MB, 2)
+
+
+def rate_per_minute(delta_mb: float, elapsed_minutes: float) -> float:
+    if elapsed_minutes <= 0:
+        return 0.0
+    return round(delta_mb / elapsed_minutes, 3)
+
+
+def build_rss_samples(samples: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rss_samples: list[dict[str, Any]] = []
+    first_timestamp_ms: int | None = None
+    for sample in samples:
+        process = sample.get("process") if isinstance(sample.get("process"), dict) else {}
+        rss_kb = int(process.get("rssKb", 0) or 0)
+        if rss_kb <= 0:
+            continue
+        timestamp_ms = int(sample.get("timestampMs", 0) or 0)
+        if first_timestamp_ms is None:
+            first_timestamp_ms = timestamp_ms
+        elapsed_sec = max(0.0, (timestamp_ms - first_timestamp_ms) / 1000.0)
+        rss_samples.append(
+            {
+                "timestampMs": timestamp_ms,
+                "elapsedSec": round(elapsed_sec, 3),
+                "elapsedMinutes": round(elapsed_sec / 60.0, 3),
+                "rssKb": rss_kb,
+                "rssMb": mb_from_kb(rss_kb),
+                "cpuPercent": float(process.get("cpuPercent", 0.0) or 0.0),
+                "etime": str(process.get("etime", "")),
+            }
+        )
+    return rss_samples
+
+
+def compact_rss_sample(sample: dict[str, Any] | None) -> dict[str, Any]:
+    if not sample:
+        return {}
+    return {
+        "timestampMs": sample.get("timestampMs"),
+        "elapsedSec": sample.get("elapsedSec"),
+        "elapsedMinutes": sample.get("elapsedMinutes"),
+        "rssKb": sample.get("rssKb"),
+        "rssMb": sample.get("rssMb"),
+    }
+
+
+def summarize_rss_window(name: str, samples: list[dict[str, Any]], start_minute: float, end_minute: float) -> dict[str, Any]:
+    selected = [
+        sample
+        for sample in samples
+        if float(sample.get("elapsedMinutes", 0.0) or 0.0) >= start_minute
+        and float(sample.get("elapsedMinutes", 0.0) or 0.0) <= end_minute
+    ]
+    if not selected:
+        return {
+            "name": name,
+            "startMinute": round(start_minute, 3),
+            "endMinute": round(end_minute, 3),
+            "available": False,
+            "sampleCount": 0,
+            "observedMinutes": 0.0,
+            "rssStartMb": None,
+            "rssEndMb": None,
+            "rssMaxMb": None,
+            "rssDeltaMb": None,
+            "rssDeltaPerMinuteMb": None,
+        }
+
+    start = selected[0]
+    end = selected[-1]
+    max_sample = max(selected, key=lambda item: int(item.get("rssKb", 0) or 0))
+    observed_minutes = max(0.0, (float(end.get("elapsedSec", 0.0) or 0.0) - float(start.get("elapsedSec", 0.0) or 0.0)) / 60.0)
+    delta_mb = mb_from_kb(int(end.get("rssKb", 0) or 0) - int(start.get("rssKb", 0) or 0))
+    return {
+        "name": name,
+        "startMinute": round(start_minute, 3),
+        "endMinute": round(end_minute, 3),
+        "available": True,
+        "sampleCount": len(selected),
+        "observedMinutes": round(observed_minutes, 3),
+        "startElapsedMinutes": start.get("elapsedMinutes"),
+        "endElapsedMinutes": end.get("elapsedMinutes"),
+        "rssStartMb": start.get("rssMb"),
+        "rssEndMb": end.get("rssMb"),
+        "rssMaxMb": max_sample.get("rssMb"),
+        "rssDeltaMb": delta_mb,
+        "rssDeltaPerMinuteMb": rate_per_minute(delta_mb, observed_minutes),
+    }
+
+
+def find_large_rss_drops(samples: list[dict[str, Any]], threshold_mb: float) -> list[dict[str, Any]]:
+    drops: list[dict[str, Any]] = []
+    run_start: dict[str, Any] | None = None
+    run_end: dict[str, Any] | None = None
+
+    def flush() -> None:
+        nonlocal run_start, run_end
+        if run_start and run_end:
+            delta_mb = mb_from_kb(int(run_end.get("rssKb", 0) or 0) - int(run_start.get("rssKb", 0) or 0))
+            if delta_mb <= -abs(threshold_mb):
+                elapsed_minutes = max(
+                    0.0,
+                    (float(run_end.get("elapsedSec", 0.0) or 0.0) - float(run_start.get("elapsedSec", 0.0) or 0.0)) / 60.0,
+                )
+                drops.append(
+                    {
+                        "startElapsedMinutes": run_start.get("elapsedMinutes"),
+                        "endElapsedMinutes": run_end.get("elapsedMinutes"),
+                        "observedMinutes": round(elapsed_minutes, 3),
+                        "rssStartMb": run_start.get("rssMb"),
+                        "rssEndMb": run_end.get("rssMb"),
+                        "rssDeltaMb": delta_mb,
+                        "rssDeltaPerMinuteMb": rate_per_minute(delta_mb, elapsed_minutes),
+                    }
+                )
+        run_start = None
+        run_end = None
+
+    for index in range(1, len(samples)):
+        previous = samples[index - 1]
+        current = samples[index]
+        if int(current.get("rssKb", 0) or 0) < int(previous.get("rssKb", 0) or 0):
+            if run_start is None:
+                run_start = previous
+            run_end = current
+        else:
+            flush()
+    flush()
+    return drops
+
+
+def analyze_rss(samples: list[dict[str, Any]], warmup_minutes: float, large_drop_mb: float) -> dict[str, Any]:
+    if not samples:
+        return {
+            "unit": "MiB",
+            "sampleCount": 0,
+            "warmupMinutes": warmup_minutes,
+            "largeDropThresholdMb": large_drop_mb,
+            "firstSample": {},
+            "lastSample": {},
+            "warmupBaselineSample": {},
+            "firstToLast": {},
+            "warmupToLast": {},
+            "windows": [],
+            "largeDrops": [],
+        }
+
+    first = samples[0]
+    last = samples[-1]
+    warmup_baseline = next(
+        (sample for sample in samples if float(sample.get("elapsedMinutes", 0.0) or 0.0) >= warmup_minutes),
+        last,
+    )
+    total_minutes = max(0.0, (float(last.get("elapsedSec", 0.0) or 0.0) - float(first.get("elapsedSec", 0.0) or 0.0)) / 60.0)
+    warmup_minutes_observed = max(
+        0.0,
+        (float(last.get("elapsedSec", 0.0) or 0.0) - float(warmup_baseline.get("elapsedSec", 0.0) or 0.0)) / 60.0,
+    )
+    first_delta_mb = mb_from_kb(int(last.get("rssKb", 0) or 0) - int(first.get("rssKb", 0) or 0))
+    warmup_delta_mb = mb_from_kb(int(last.get("rssKb", 0) or 0) - int(warmup_baseline.get("rssKb", 0) or 0))
+    last_elapsed_minute = float(last.get("elapsedMinutes", 0.0) or 0.0)
+    windows = [
+        summarize_rss_window("0-30m", samples, 0.0, 30.0),
+        summarize_rss_window("30-60m", samples, 30.0, 60.0),
+        summarize_rss_window("60-90m", samples, 60.0, 90.0),
+        summarize_rss_window("90-120m", samples, 90.0, 120.0),
+        summarize_rss_window("last-30m", samples, max(0.0, last_elapsed_minute - 30.0), last_elapsed_minute),
+        summarize_rss_window("last-10m", samples, max(0.0, last_elapsed_minute - 10.0), last_elapsed_minute),
+    ]
+    return {
+        "unit": "MiB",
+        "sampleCount": len(samples),
+        "warmupMinutes": warmup_minutes,
+        "largeDropThresholdMb": large_drop_mb,
+        "firstSample": compact_rss_sample(first),
+        "lastSample": compact_rss_sample(last),
+        "warmupBaselineSample": compact_rss_sample(warmup_baseline),
+        "firstToLast": {
+            "observedMinutes": round(total_minutes, 3),
+            "rssDeltaMb": first_delta_mb,
+            "rssDeltaPerMinuteMb": rate_per_minute(first_delta_mb, total_minutes),
+        },
+        "warmupToLast": {
+            "observedMinutes": round(warmup_minutes_observed, 3),
+            "rssDeltaMb": warmup_delta_mb,
+            "rssDeltaPerMinuteMb": rate_per_minute(warmup_delta_mb, warmup_minutes_observed),
+        },
+        "windows": windows,
+        "largeDrops": find_large_rss_drops(samples, large_drop_mb),
+    }
+
+
+def markdown_value(value: Any) -> str:
+    if value is None:
+        return "-"
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
+
+
 def write_report(report_file: Path, summary: dict[str, Any]) -> None:
+    rss_analysis = summary.get("rssAnalysis") if isinstance(summary.get("rssAnalysis"), dict) else {}
+    idle = summary.get("idleAfterCleanup") if isinstance(summary.get("idleAfterCleanup"), dict) else {}
+    first_sample = rss_analysis.get("firstSample") if isinstance(rss_analysis.get("firstSample"), dict) else {}
+    last_sample = rss_analysis.get("lastSample") if isinstance(rss_analysis.get("lastSample"), dict) else {}
+    warmup_sample = rss_analysis.get("warmupBaselineSample") if isinstance(rss_analysis.get("warmupBaselineSample"), dict) else {}
+    first_to_last = rss_analysis.get("firstToLast") if isinstance(rss_analysis.get("firstToLast"), dict) else {}
+    warmup_to_last = rss_analysis.get("warmupToLast") if isinstance(rss_analysis.get("warmupToLast"), dict) else {}
     lines = [
         "# VA Runtime Console Long-run Report",
         "",
@@ -269,15 +613,104 @@ def write_report(report_file: Path, summary: dict[str, Any]) -> None:
         f"- metadataMessagesDropped: `{summary['metrics']['metadataMessagesDropped']}`",
         f"- metadataSendFailures: `{summary['metrics']['metadataSendFailures']}`",
         "",
-        "## Cleanup",
+        "## RSS Trend",
         "",
-        f"- runtimeIdle: `{summary['cleanup']['runtimeIdle']}`",
-        f"- portsClean: `{summary['cleanup']['portsClean']}`",
-        f"- finalRuntime: `{summary['cleanup']['finalRuntime']}`",
+        f"- rssSampleCount: `{rss_analysis.get('sampleCount', 0)}`",
+        f"- firstSample: elapsedMin=`{first_sample.get('elapsedMinutes', '-')}` rssMb=`{first_sample.get('rssMb', '-')}`",
+        f"- warmupBaselineSample: warmupMinutes=`{rss_analysis.get('warmupMinutes', '-')}` elapsedMin=`{warmup_sample.get('elapsedMinutes', '-')}` rssMb=`{warmup_sample.get('rssMb', '-')}`",
+        f"- lastSample: elapsedMin=`{last_sample.get('elapsedMinutes', '-')}` rssMb=`{last_sample.get('rssMb', '-')}`",
+        f"- firstToLast: deltaMb=`{first_to_last.get('rssDeltaMb', '-')}` slopeMbPerMin=`{first_to_last.get('rssDeltaPerMinuteMb', '-')}` observedMin=`{first_to_last.get('observedMinutes', '-')}`",
+        f"- warmupToLast: deltaMb=`{warmup_to_last.get('rssDeltaMb', '-')}` slopeMbPerMin=`{warmup_to_last.get('rssDeltaPerMinuteMb', '-')}` observedMin=`{warmup_to_last.get('observedMinutes', '-')}`",
         "",
-        "## Steps",
-        "",
+        "| window | samples | observedMin | rssStartMb | rssEndMb | rssMaxMb | rssDeltaMb | rssDeltaPerMinuteMb |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
+    for window in rss_analysis.get("windows", []):
+        if not isinstance(window, dict):
+            continue
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    markdown_value(window.get("name")),
+                    markdown_value(window.get("sampleCount")),
+                    markdown_value(window.get("observedMinutes")),
+                    markdown_value(window.get("rssStartMb")),
+                    markdown_value(window.get("rssEndMb")),
+                    markdown_value(window.get("rssMaxMb")),
+                    markdown_value(window.get("rssDeltaMb")),
+                    markdown_value(window.get("rssDeltaPerMinuteMb")),
+                ]
+            )
+            + " |"
+        )
+    lines.extend(
+        [
+            "",
+            "## RSS Large Drops",
+            "",
+            f"- thresholdMb: `{rss_analysis.get('largeDropThresholdMb', '-')}`",
+        ]
+    )
+    large_drops = [item for item in rss_analysis.get("largeDrops", []) if isinstance(item, dict)]
+    if large_drops:
+        lines.extend(
+            [
+                "",
+                "| startElapsedMin | endElapsedMin | observedMin | rssStartMb | rssEndMb | rssDeltaMb | rssDeltaPerMinuteMb |",
+                "| ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+            ]
+        )
+        for drop in large_drops:
+            lines.append(
+                "| "
+                + " | ".join(
+                    [
+                        markdown_value(drop.get("startElapsedMinutes")),
+                        markdown_value(drop.get("endElapsedMinutes")),
+                        markdown_value(drop.get("observedMinutes")),
+                        markdown_value(drop.get("rssStartMb")),
+                        markdown_value(drop.get("rssEndMb")),
+                        markdown_value(drop.get("rssDeltaMb")),
+                        markdown_value(drop.get("rssDeltaPerMinuteMb")),
+                    ]
+                )
+                + " |"
+            )
+    else:
+        lines.append("- none")
+    lines.extend(
+        [
+            "",
+            "## Idle After Cleanup",
+            "",
+            f"- enabled: `{idle.get('enabled', False)}`",
+            f"- durationSec: `{idle.get('durationSeconds', 0)}`",
+            f"- sampleIntervalSec: `{idle.get('sampleIntervalSeconds', '-')}`",
+            f"- judgement: `{idle.get('judgement', 'DISABLED')}`",
+            f"- reason: `{idle.get('reason', '-')}`",
+            f"- rssFirstMb: `{idle.get('rssFirstMb', '-')}`",
+            f"- rssLastMb: `{idle.get('rssLastMb', '-')}`",
+            f"- rssMaxMb: `{idle.get('rssMaxMb', '-')}`",
+            f"- rssDeltaMb: `{idle.get('rssDeltaMb', '-')}`",
+            f"- rssDeltaPerMinuteMb: `{idle.get('rssDeltaPerMinuteMb', '-')}`",
+            f"- activeSessionsMax: `{idle.get('activeSessionsMax', 0)}`",
+            f"- activeStreamsMax: `{idle.get('activeStreamsMax', 0)}`",
+            f"- activeAnalysisTapsMax: `{idle.get('activeAnalysisTapsMax', 0)}`",
+            f"- sseClientsMax: `{idle.get('sseClientsMax', 0)}`",
+            f"- wsClientsMax: `{idle.get('wsClientsMax', 0)}`",
+            f"- rtspConsumersMax: `{idle.get('rtspConsumersMax', 0)}`",
+            "",
+            "## Cleanup",
+            "",
+            f"- runtimeIdle: `{summary['cleanup']['runtimeIdle']}`",
+            f"- portsClean: `{summary['cleanup']['portsClean']}`",
+            f"- finalRuntime: `{summary['cleanup']['finalRuntime']}`",
+            "",
+            "## Steps",
+            "",
+        ]
+    )
     for step in summary["steps"]:
         lines.append(f"- `{step['name']}`: `{step['status']}` log=`{step.get('logFile', '')}`")
     report_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -289,6 +722,14 @@ def main() -> int:
         raise SystemExit("--duration-minutes must be greater than 0")
     if args.clients <= 0:
         raise SystemExit("--clients must be greater than 0")
+    if args.rss_warmup_minutes < 0:
+        raise SystemExit("--rss-warmup-minutes must be greater than or equal to 0")
+    if args.rss_large_drop_mb < 0:
+        raise SystemExit("--rss-large-drop-mb must be greater than or equal to 0")
+    if args.idle_after_cleanup_minutes < 0:
+        raise SystemExit("--idle-after-cleanup-minutes must be greater than or equal to 0")
+    if args.idle_sample_interval_seconds <= 0:
+        raise SystemExit("--idle-sample-interval-seconds must be greater than 0")
     if args.no_sidechannel:
         args.include_sidechannel = False
     if args.no_dashboard:
@@ -308,9 +749,13 @@ def main() -> int:
 
     steps: list[dict[str, Any]] = []
     samples: list[dict[str, Any]] = []
+    idle_samples: list[dict[str, Any]] = []
     children: list[tuple[str, subprocess.Popen[str], Path]] = []
     server_proc: subprocess.Popen[str] | None = None
     dashboard_tap_id = ""
+    idle_enabled = args.idle_after_cleanup_minutes > 0
+    idle_duration_sec = max(1, int(round(args.idle_after_cleanup_minutes * 60))) if idle_enabled else 0
+    idle_interval_sec = max(args.idle_sample_interval_seconds, 1.0)
 
     def step(name: str, status: str, log_path: Path | str = "", extra: dict[str, Any] | None = None) -> None:
         record = {"name": name, "status": status, "logFile": str(log_path)}
@@ -459,6 +904,23 @@ def main() -> int:
         dashboard_tap_id = ""
         runtime_idle, final_runtime = wait_runtime_idle(http_base, 30.0, samples)
         step("runtime-cleanup", "pass" if runtime_idle else "fail", "", {"finalRuntime": final_runtime})
+        if idle_enabled:
+            if runtime_idle and server_proc is not None and server_proc.poll() is None:
+                idle_samples = observe_idle_after_cleanup(http_base, server_proc.pid, idle_duration_sec, idle_interval_sec)
+                idle_preview = summarize_idle_after_cleanup(True, idle_duration_sec, idle_interval_sec, True, idle_samples)
+                step(
+                    "idle-after-cleanup",
+                    "pass",
+                    "",
+                    {
+                        "judgement": idle_preview["judgement"],
+                        "reason": idle_preview["reason"],
+                        "sampleCount": idle_preview["sampleCount"],
+                    },
+                )
+            else:
+                idle_preview = summarize_idle_after_cleanup(True, idle_duration_sec, idle_interval_sec, False, [])
+                step("idle-after-cleanup", "pass", "", {"judgement": idle_preview["judgement"], "reason": idle_preview["reason"]})
     except Exception as exc:  # noqa: BLE001
         step("longrun", "fail", "", {"error": str(exc)})
     finally:
@@ -483,10 +945,17 @@ def main() -> int:
         elif payload.get("kind") == "va-metadata-sidechannel":
             sse_message_count += int(payload.get("metadataMessageCount", 0) or 0)
 
-    rss_values = [int(((sample.get("process") or {}).get("rssKb") or 0)) for sample in samples if "process" in sample]
-    cpu_values = [float(((sample.get("process") or {}).get("cpuPercent") or 0.0)) for sample in samples if "process" in sample]
+    rss_samples = build_rss_samples(samples)
+    rss_analysis = analyze_rss(rss_samples, args.rss_warmup_minutes, args.rss_large_drop_mb)
+    rss_values = [int(sample.get("rssKb", 0) or 0) for sample in rss_samples]
+    cpu_values = [float(sample.get("cpuPercent", 0.0) or 0.0) for sample in rss_samples]
     server_metadata = parse_metadata_log(server_log)
     failed_steps = [item for item in steps if item.get("status") == "fail"]
+    cleanup_ok = not any(item.get("name") == "runtime-cleanup" and item.get("status") == "fail" for item in steps)
+    idle_summary = summarize_idle_after_cleanup(idle_enabled, idle_duration_sec, idle_interval_sec, cleanup_ok, idle_samples)
+    first_to_last = rss_analysis.get("firstToLast") if isinstance(rss_analysis.get("firstToLast"), dict) else {}
+    warmup_baseline = rss_analysis.get("warmupBaselineSample") if isinstance(rss_analysis.get("warmupBaselineSample"), dict) else {}
+    warmup_to_last = rss_analysis.get("warmupToLast") if isinstance(rss_analysis.get("warmupToLast"), dict) else {}
     summary = {
         "kind": "va-runtime-console-longrun",
         "status": "fail" if failed_steps else "pass",
@@ -506,11 +975,32 @@ def main() -> int:
         "workDir": str(work_dir),
         "summaryFile": str(summary_file),
         "reportFile": str(report_file),
+        "idleAfterCleanupEnabled": idle_summary["enabled"],
+        "idleDurationSeconds": idle_summary["durationSeconds"],
+        "idleRssFirstMb": idle_summary["rssFirstMb"],
+        "idleRssLastMb": idle_summary["rssLastMb"],
+        "idleRssMaxMb": idle_summary["rssMaxMb"],
+        "idleRssDeltaMb": idle_summary["rssDeltaMb"],
+        "idleRssDeltaPerMinuteMb": idle_summary["rssDeltaPerMinuteMb"],
+        "idleActiveSessionsMax": idle_summary["activeSessionsMax"],
+        "idleActiveStreamsMax": idle_summary["activeStreamsMax"],
+        "idleActiveAnalysisTapsMax": idle_summary["activeAnalysisTapsMax"],
+        "idleSseClientsMax": idle_summary["sseClientsMax"],
+        "idleWsClientsMax": idle_summary["wsClientsMax"],
+        "idleRtspConsumersMax": idle_summary["rtspConsumersMax"],
+        "idleJudgement": idle_summary["judgement"],
         "metrics": {
             "sampleCount": len(samples),
+            "rssSampleCount": len(rss_samples),
             "maxRssKb": max(rss_values) if rss_values else 0,
             "firstRssKb": rss_values[0] if rss_values else 0,
             "lastRssKb": rss_values[-1] if rss_values else 0,
+            "rssDeltaMb": first_to_last.get("rssDeltaMb", 0.0),
+            "rssDeltaPerMinuteMb": first_to_last.get("rssDeltaPerMinuteMb", 0.0),
+            "warmupRssKb": warmup_baseline.get("rssKb", 0),
+            "warmupRssElapsedMinutes": warmup_baseline.get("elapsedMinutes", 0.0),
+            "warmupRssDeltaMb": warmup_to_last.get("rssDeltaMb", 0.0),
+            "warmupRssDeltaPerMinuteMb": warmup_to_last.get("rssDeltaPerMinuteMb", 0.0),
             "maxCpuPercent": max(cpu_values) if cpu_values else 0.0,
             "dashboardPollingCount": len([item for item in samples if "tapMetrics" in item]),
             "webrtcMetadataMessageCount": webrtc_message_count,
@@ -518,11 +1008,15 @@ def main() -> int:
             **server_metadata,
         },
         "cleanup": {
-            "runtimeIdle": not any(item.get("name") == "runtime-cleanup" and item.get("status") == "fail" for item in steps),
+            "runtimeIdle": cleanup_ok,
             "portsClean": port_ok,
             "finalRuntime": next((item.get("finalRuntime") for item in reversed(steps) if item.get("name") == "runtime-cleanup"), {}),
         },
+        "idleAfterCleanup": idle_summary,
         "steps": steps,
+        "rssAnalysis": rss_analysis,
+        "rssSamples": rss_samples,
+        "idleSamples": idle_samples,
         "samples": samples[-120:],
     }
     summary_file.write_text(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")

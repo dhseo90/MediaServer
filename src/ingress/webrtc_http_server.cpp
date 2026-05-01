@@ -3539,6 +3539,10 @@ std::string BuildLabRuleEditorPageHtml() {
       border-color: transparent;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
     }
+    .status-chip.is-warning {
+      color: var(--danger);
+      background: var(--secondary-bg);
+    }
 	    .row-actions {
 	      display: flex;
 	      flex-wrap: wrap;
@@ -4111,6 +4115,74 @@ std::string BuildLabRuleEditorPageHtml() {
       line-height: 1.5;
       white-space: pre-wrap;
       overflow-wrap: anywhere;
+    }
+    .dashboard-drilldown {
+      display: grid;
+      gap: 18px;
+    }
+    .dashboard-drilldown-section {
+      display: grid;
+      gap: 10px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+    .dashboard-section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .dashboard-section-header h3 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 15px;
+    }
+    .dashboard-section-summary {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+    .dashboard-table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--canvas-bg);
+    }
+    .dashboard-table {
+      width: 100%;
+      min-width: 720px;
+      border-collapse: collapse;
+      color: var(--ink);
+      font-size: 12px;
+    }
+    .dashboard-table th,
+    .dashboard-table td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+    .dashboard-table th {
+      color: var(--muted);
+      background: var(--soft-bg);
+      font-weight: 900;
+    }
+    .dashboard-table tbody tr:last-child td {
+      border-bottom: 0;
+    }
+    .dashboard-table .dashboard-empty-cell {
+      color: var(--muted);
+      text-align: center;
+      white-space: normal;
+    }
+    .dashboard-table .status-chip {
+      min-height: 24px;
+      padding: 3px 8px;
+      font-size: 11px;
     }
     .metadata-viewer-panel {
       display: grid;
@@ -5428,23 +5500,111 @@ std::string BuildLabRuleEditorPageHtml() {
             </label>
             <p id="dashboardStatusText" class="form-note">대시보드 대기 중</p>
           </div>
-          <div class="dashboard-card-grid" aria-label="VA 런타임 대시보드 카드">
-            <div class="viewer-status-card"><span>소스 종류</span><strong id="dashboardSourceKind">-</strong></div>
-            <div class="viewer-status-card"><span>활성 세션</span><strong id="dashboardActiveSessions">0</strong></div>
-            <div class="viewer-status-card"><span>활성 스트림</span><strong id="dashboardActiveStreams">0</strong></div>
-            <div class="viewer-status-card"><span>분석 Tap</span><strong id="dashboardActiveTaps">0</strong></div>
-            <div class="viewer-status-card"><span>디코딩 FPS</span><strong id="dashboardDecodedFps">0</strong></div>
-            <div class="viewer-status-card"><span>샘플링 FPS</span><strong id="dashboardSampledFps">0</strong></div>
-            <div class="viewer-status-card"><span>분석 FPS</span><strong id="dashboardAnalyzedFps">0</strong></div>
-            <div class="viewer-status-card"><span>대기/상한/최대 큐</span><strong id="dashboardQueueSummary">0/0/0</strong></div>
-            <div class="viewer-status-card"><span>추론 지연</span><strong id="dashboardInferenceLatency">0ms</strong></div>
-            <div class="viewer-status-card"><span>Track A/L/R/T</span><strong id="dashboardTrackCounts">0/0/0/0</strong></div>
-            <div class="viewer-status-card"><span>시나리오 인스턴스</span><strong id="dashboardScenarioCount">0</strong></div>
-            <div class="viewer-status-card"><span>발생/중복 억제 이벤트</span><strong id="dashboardEventCounts">0/0</strong></div>
-            <div class="viewer-status-card"><span>불안정 TrackHealth</span><strong id="dashboardUnstableCount">0</strong></div>
-            <div class="viewer-status-card"><span>겹침 위험</span><strong id="dashboardOverlapRiskCount">0</strong></div>
-            <div class="viewer-status-card"><span>이벤트 POST</span><strong id="dashboardEventPostStatus">-</strong></div>
-            <div class="viewer-status-card"><span>이벤트 저장</span><strong id="dashboardEventStorageStatus">-</strong></div>
+          <div class="dashboard-drilldown">
+            <section class="dashboard-drilldown-section" aria-labelledby="dashboardOverviewTitle">
+              <div class="dashboard-section-header">
+                <h3 id="dashboardOverviewTitle">Overview</h3>
+                <p id="dashboardOverviewSummary" class="dashboard-section-summary">선택된 tap 없음</p>
+              </div>
+              <div class="dashboard-card-grid" aria-label="VA 런타임 대시보드 카드">
+                <div class="viewer-status-card"><span>소스 종류</span><strong id="dashboardSourceKind">-</strong></div>
+                <div class="viewer-status-card"><span>활성 세션</span><strong id="dashboardActiveSessions">0</strong></div>
+                <div class="viewer-status-card"><span>활성 스트림</span><strong id="dashboardActiveStreams">0</strong></div>
+                <div class="viewer-status-card"><span>분석 Tap</span><strong id="dashboardActiveTaps">0</strong></div>
+                <div class="viewer-status-card"><span>디코딩 FPS</span><strong id="dashboardDecodedFps">0</strong></div>
+                <div class="viewer-status-card"><span>샘플링 FPS</span><strong id="dashboardSampledFps">0</strong></div>
+                <div class="viewer-status-card"><span>분석 FPS</span><strong id="dashboardAnalyzedFps">0</strong></div>
+                <div class="viewer-status-card"><span>대기/상한/최대 큐</span><strong id="dashboardQueueSummary">0/0/0</strong></div>
+                <div class="viewer-status-card"><span>추론 지연</span><strong id="dashboardInferenceLatency">0ms</strong></div>
+                <div class="viewer-status-card"><span>Track A/L/R/T</span><strong id="dashboardTrackCounts">0/0/0/0</strong></div>
+                <div class="viewer-status-card"><span>시나리오 인스턴스</span><strong id="dashboardScenarioCount">0</strong></div>
+                <div class="viewer-status-card"><span>발생/중복 억제 이벤트</span><strong id="dashboardEventCounts">0/0</strong></div>
+                <div class="viewer-status-card"><span>불안정 TrackHealth</span><strong id="dashboardUnstableCount">0</strong></div>
+                <div class="viewer-status-card"><span>겹침 위험</span><strong id="dashboardOverlapRiskCount">0</strong></div>
+                <div class="viewer-status-card"><span>이벤트 POST</span><strong id="dashboardEventPostStatus">-</strong></div>
+                <div class="viewer-status-card"><span>이벤트 저장</span><strong id="dashboardEventStorageStatus">-</strong></div>
+              </div>
+            </section>
+            <section class="dashboard-drilldown-section" aria-labelledby="dashboardVaRuleDebugTitle">
+              <div class="dashboard-section-header">
+                <h3 id="dashboardVaRuleDebugTitle">vaRule Runtime Debug</h3>
+                <p id="dashboardVaRuleDebugSummary" class="dashboard-section-summary">active tap 또는 rule 선택 대기 중</p>
+              </div>
+              <div class="dashboard-card-grid" aria-label="vaRule runtime debug cards">
+                <div class="viewer-status-card"><span>vaRule</span><strong id="dashboardVaRuleIdentity">-</strong></div>
+                <div class="viewer-status-card"><span>Tap 매칭</span><strong id="dashboardVaRuleTapMatch">-</strong></div>
+                <div class="viewer-status-card"><span>Source</span><strong id="dashboardVaRuleSource">-</strong></div>
+                <div class="viewer-status-card"><span>Profile</span><strong id="dashboardVaRuleProfile">-</strong></div>
+                <div class="viewer-status-card"><span>Event / Scenario</span><strong id="dashboardVaRuleEventType">-</strong></div>
+                <div class="viewer-status-card"><span>Region</span><strong id="dashboardVaRuleRegion">-</strong></div>
+                <div class="viewer-status-card"><span>Event lifecycle</span><strong id="dashboardVaRuleLifecycle">-</strong></div>
+                <div class="viewer-status-card"><span>Recent event</span><strong id="dashboardVaRuleRecentEvent">-</strong></div>
+              </div>
+            </section>
+            <section class="dashboard-drilldown-section" aria-labelledby="dashboardTracksTitle">
+              <div class="dashboard-section-header">
+                <h3 id="dashboardTracksTitle">Tracks</h3>
+                <p id="dashboardTracksSummary" class="dashboard-section-summary">track 없음</p>
+              </div>
+              <div class="dashboard-table-wrap">
+                <table class="dashboard-table" aria-label="Track drill-down">
+                  <thead><tr><th>Track</th><th>Class</th><th>Lifecycle</th><th>Zone</th><th>Dwell</th><th>TrackHealth</th></tr></thead>
+                  <tbody id="dashboardTrackRows"><tr><td class="dashboard-empty-cell" colspan="6">tap을 선택하면 track 목록이 표시됩니다.</td></tr></tbody>
+                </table>
+              </div>
+            </section>
+            <section class="dashboard-drilldown-section" aria-labelledby="dashboardScenariosTitle">
+              <div class="dashboard-section-header">
+                <h3 id="dashboardScenariosTitle">Scenarios</h3>
+                <p id="dashboardScenariosSummary" class="dashboard-section-summary">scenario 없음</p>
+              </div>
+              <div class="dashboard-table-wrap">
+                <table class="dashboard-table" aria-label="Scenario drill-down">
+                  <thead><tr><th>Scenario</th><th>Phase</th><th>Track</th><th>Zone/Line</th><th>Elapsed</th><th>Cooldown</th></tr></thead>
+                  <tbody id="dashboardScenarioRows"><tr><td class="dashboard-empty-cell" colspan="6">활성 scenario가 표시됩니다.</td></tr></tbody>
+                </table>
+              </div>
+            </section>
+            <section class="dashboard-drilldown-section" aria-labelledby="dashboardEventsTitle">
+              <div class="dashboard-section-header">
+                <h3 id="dashboardEventsTitle">Events</h3>
+                <p id="dashboardEventsSummary" class="dashboard-section-summary">emitted 0 · dedup 0</p>
+              </div>
+              <div class="dashboard-table-wrap">
+                <table class="dashboard-table" aria-label="Recent event drill-down">
+                  <thead><tr><th>Type</th><th>Track</th><th>Class</th><th>Rule</th><th>Zone/Line</th><th>Status</th></tr></thead>
+                  <tbody id="dashboardEventRows"><tr><td class="dashboard-empty-cell" colspan="6">최근 event가 표시됩니다.</td></tr></tbody>
+                </table>
+              </div>
+            </section>
+            <section class="dashboard-drilldown-section" aria-labelledby="dashboardMetadataTitle">
+              <div class="dashboard-section-header">
+                <h3 id="dashboardMetadataTitle">Metadata</h3>
+                <p id="dashboardMetadataSummary" class="dashboard-section-summary">metadata channel 대기 중</p>
+              </div>
+              <div class="dashboard-card-grid" aria-label="Metadata backpressure cards">
+                <div class="viewer-status-card"><span>DataChannel sent</span><strong id="dashboardMetadataSent">0</strong></div>
+                <div class="viewer-status-card"><span>dropped/skipped</span><strong id="dashboardMetadataDropped">0/0</strong></div>
+                <div class="viewer-status-card"><span>send failures</span><strong id="dashboardMetadataFailures">0</strong></div>
+                <div class="viewer-status-card"><span>buffered drop/max</span><strong id="dashboardMetadataBuffered">0/0</strong></div>
+                <div class="viewer-status-card"><span>SSE clients</span><strong id="dashboardMetadataSseClients">0</strong></div>
+                <div class="viewer-status-card"><span>WS clients</span><strong id="dashboardMetadataWsClients">0</strong></div>
+                <div class="viewer-status-card"><span>stale</span><strong id="dashboardMetadataStale">-</strong></div>
+                <div class="viewer-status-card"><span>fallback hidden</span><strong id="dashboardMetadataFallback">-</strong></div>
+              </div>
+            </section>
+            <section class="dashboard-drilldown-section" aria-labelledby="dashboardIssuesTitle">
+              <div class="dashboard-section-header">
+                <h3 id="dashboardIssuesTitle">Tracking Issues</h3>
+                <p id="dashboardIssuesSummary" class="dashboard-section-summary">issue 없음</p>
+              </div>
+              <div class="dashboard-table-wrap">
+                <table class="dashboard-table" aria-label="Tracking issue drill-down">
+                  <thead><tr><th>Type</th><th>Track</th><th>Class</th><th>Severity</th><th>Timestamp</th><th>Health</th></tr></thead>
+                  <tbody id="dashboardIssueRows"><tr><td class="dashboard-empty-cell" colspan="6">tracking issue report가 표시됩니다.</td></tr></tbody>
+                </table>
+              </div>
+            </section>
           </div>
         </div>
       </div>
@@ -5565,6 +5725,8 @@ std::string BuildLabRuleEditorPageHtml() {
     let dashboardLastPayload = null;
     let dashboardLastTapId = '';
     let dashboardRefreshInFlight = false;
+    let dashboardRecentEvents = [];
+    let dashboardRecentEventKeys = new Set();
     let regionPoints = [
       { x: 0.20, y: 0.22 },
       { x: 0.80, y: 0.22 },
@@ -8853,12 +9015,371 @@ std::string BuildLabRuleEditorPageHtml() {
       }
     }
 
+    function dashboardDuration(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number) || number <= 0) return '-';
+      if (number >= 1000) {
+        return `${(number / 1000).toFixed(number >= 10000 ? 0 : 1)}s`;
+      }
+      return `${Math.round(number)}ms`;
+    }
+
+    function dashboardTimestamp(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number) || number <= 0) return '-';
+      if (number > 1000000000000) {
+        return new Date(number).toLocaleTimeString('ko-KR');
+      }
+      return `${Math.round(number)}ms`;
+    }
+
+    function dashboardConfidence(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number) || number <= 0) return '-';
+      return `${Math.round(number * 100)}%`;
+    }
+
+    function dashboardText(value, fallback = '-') {
+      if (value === undefined || value === null || value === '') return fallback;
+      return String(value);
+    }
+
+    function dashboardChip(label, state = 'muted') {
+      const chip = document.createElement('span');
+      chip.className = `status-chip is-${state}`;
+      chip.textContent = label;
+      return chip;
+    }
+
+    function dashboardSetEmptyRows(tbodyId, colspan, message) {
+      const tbody = $(tbodyId);
+      if (!tbody) return;
+      tbody.textContent = '';
+      const row = document.createElement('tr');
+      const cell = document.createElement('td');
+      cell.className = 'dashboard-empty-cell';
+      cell.colSpan = colspan;
+      cell.textContent = message;
+      row.appendChild(cell);
+      tbody.appendChild(row);
+    }
+
+    function dashboardAppendRow(tbodyId, cells) {
+      const tbody = $(tbodyId);
+      if (!tbody) return;
+      const row = document.createElement('tr');
+      for (const value of cells) {
+        const cell = document.createElement('td');
+        if (value instanceof Node) {
+          cell.appendChild(value);
+        } else {
+          cell.textContent = dashboardText(value);
+        }
+        row.appendChild(cell);
+      }
+      tbody.appendChild(row);
+    }
+
+    function dashboardRowsStart(tbodyId) {
+      const tbody = $(tbodyId);
+      if (tbody) tbody.textContent = '';
+      return tbody;
+    }
+
+    function dashboardDebugTracks(stateDump) {
+      const tracks = stateDump?.debugState?.tracks;
+      return Array.isArray(tracks) ? tracks : [];
+    }
+
+    function dashboardTrackZone(track) {
+      return track?.zoneState?.currentZone || track?.currentZone || '-';
+    }
+
+    function dashboardTrackDwell(track) {
+      return dashboardDuration(track?.zoneState?.dwellTimeMs ?? track?.dwellTimeMs);
+    }
+
+    function dashboardTrackHealthChip(track) {
+      const health = track?.trackHealth || {};
+      const stable = health.stable !== false && health.status !== 'unstable';
+      const label = stable ? 'stable' : 'unstable';
+      return dashboardChip(label, stable ? 'active' : 'warning');
+    }
+
+	    function dashboardTrackById(tracks) {
+	      const out = new Map();
+	      for (const track of tracks) {
+	        out.set(String(track?.trackId ?? ''), track);
+	      }
+	      return out;
+	    }
+
+	    function dashboardTapRuleId(tap) {
+	      return tap?.profileSelection?.ruleId || tap?.selectedRuleId || tap?.ruleId || '';
+	    }
+
+	    function dashboardSelectedRuleContext(selectedTap) {
+	      const selectedRuleId = $('dashboardRuleSelect')?.value || dashboardTapRuleId(selectedTap) || '';
+	      const rule = vaRules.find((item) => String(item.id) === String(selectedRuleId)) || null;
+	      return { selectedRuleId, rule, tapRuleId: dashboardTapRuleId(selectedTap) };
+	    }
+
+	    function dashboardRuleIdentity(rule, ruleId) {
+	      if (rule) return `#${rule.id}${rule.name ? ` · ${rule.name}` : ''}`;
+	      if (ruleId) return `#${ruleId} · 저장 rule 없음`;
+	      return 'rule 선택 필요';
+	    }
+
+	    function dashboardRuleEventScenarioLabel(rule) {
+	      if (!rule) return '-';
+	      const scenarioType = rule?.scenario?.type || rule?.event?.type || 'presence';
+	      const label = eventTypeLabel(scenarioType);
+	      return vaRuleKind(rule) === 'scenario' ? `${label} · scenario` : `${label} · event`;
+	    }
+
+	    function dashboardRuleRegionSummary(rule) {
+	      if (!rule) return '-';
+	      const region = rule?.event?.region || {};
+	      const points = Array.isArray(region.points) ? region.points.length : 0;
+	      const parts = [region.type || 'polygon', `점 ${points}`];
+	      if (region.name) parts.push(region.name);
+	      if (region.direction) parts.push(lineDirectionLabel(region.direction));
+	      const zones = Array.isArray(rule?.scenario?.restrictedZoneIds)
+	        ? rule.scenario.restrictedZoneIds.filter(Boolean)
+	        : [];
+	      if (zones.length > 0) {
+	        parts.push(`zones ${zones.slice(0, 3).join(', ')}${zones.length > 3 ? ` 외 ${zones.length - 3}` : ''}`);
+	      }
+	      return parts.join(' · ');
+	    }
+
+	    function dashboardEventLifecycleSummary(tapMetrics, stateDump) {
+	      const eventState = tapMetrics?.metricsReport?.eventState || {};
+	      const tracks = dashboardDebugTracks(stateDump);
+	      const lifecycleCounts = new Map();
+	      for (const track of tracks) {
+	        const lifecycle = track?.eventLifecycle || '';
+	        if (!lifecycle) continue;
+	        lifecycleCounts.set(lifecycle, (lifecycleCounts.get(lifecycle) || 0) + 1);
+	      }
+	      const cooldownCount = Array.from(lifecycleCounts.entries()).reduce((count, [key, value]) => {
+	        return String(key).includes('cooldown') ? count + value : count;
+	      }, 0);
+	      const lifecycleText = Array.from(lifecycleCounts.entries())
+	        .slice(0, 3)
+	        .map(([key, value]) => `${key} ${value}`)
+	        .join(' · ');
+	      return [
+	        `emitted ${eventState.eventsEmitted ?? 0}`,
+	        `dedup ${eventState.eventsDeduped ?? 0}`,
+	        `cooldown ${cooldownCount}`,
+	        lifecycleText
+	      ].filter(Boolean).join(' · ');
+	    }
+
+	    function dashboardRecentEventLabel(ruleId = '') {
+	      const matched = dashboardRecentEvents.find((candidate) => {
+	        return !ruleId || String(candidate?.event?.ruleId || '') === String(ruleId);
+	      });
+	      const item = matched || (ruleId ? null : dashboardRecentEvents[0]);
+	      if (!item) return 'recent 없음';
+	      const event = item.event || {};
+	      const object = event.object || {};
+	      const trackText = object.trackId === undefined || object.trackId === null ? '-' : object.trackId;
+	      return `${event.type || '-'} · track ${trackText} · ${item.zoneLine || '-'}`;
+	    }
+
+	    function renderDashboardVaRuleDebug({ selectedTap, tapMetrics, stateDump }) {
+	      const { selectedRuleId, rule, tapRuleId } = dashboardSelectedRuleContext(selectedTap);
+	      const hasTap = Boolean(selectedTap);
+	      const ruleMatchesTap = hasTap && selectedRuleId && tapRuleId && String(selectedRuleId) === String(tapRuleId);
+	      const tapMatchText = hasTap
+	        ? `${selectedTap.tapId || '<tap>'} · rule=${tapRuleId || '-'} · ${selectedRuleId ? (ruleMatchesTap ? 'match' : 'mismatch') : 'rule 미선택'}`
+	        : 'active tap 없음';
+	      const summaryParts = [];
+	      summaryParts.push(rule ? dashboardRuleIdentity(rule, selectedRuleId) : dashboardRuleIdentity(null, selectedRuleId));
+	      summaryParts.push(hasTap ? `tap ${selectedTap.tapId || '-'}` : 'active tap 없음');
+	      if (hasTap && selectedRuleId && tapRuleId) summaryParts.push(ruleMatchesTap ? 'rule match' : 'rule mismatch');
+	      dashboardSet('dashboardVaRuleDebugSummary', summaryParts.join(' · '));
+	      dashboardSet('dashboardVaRuleIdentity', dashboardRuleIdentity(rule, selectedRuleId));
+	      dashboardSet('dashboardVaRuleTapMatch', tapMatchText);
+	      dashboardSet('dashboardVaRuleSource', rule ? sourceLabel(rule.source || {}) : '-');
+	      dashboardSet('dashboardVaRuleProfile', rule ? detectorLabel(rule.analysis?.profileId) : '-');
+	      dashboardSet('dashboardVaRuleEventType', dashboardRuleEventScenarioLabel(rule));
+	      dashboardSet('dashboardVaRuleRegion', dashboardRuleRegionSummary(rule));
+	      dashboardSet('dashboardVaRuleLifecycle', hasTap ? dashboardEventLifecycleSummary(tapMetrics, stateDump) : 'active tap 없음');
+	      dashboardSet('dashboardVaRuleRecentEvent', hasTap ? dashboardRecentEventLabel(selectedRuleId || tapRuleId) : 'recent 없음');
+	    }
+
+	    function renderDashboardTracks(stateDump, tapMetrics) {
+	      const tracks = dashboardDebugTracks(stateDump);
+	      const reportTrackState = tapMetrics?.metricsReport?.trackState || {};
+      const snapshotTrackState = tapMetrics?.trackState || {};
+      const counts = {
+        active: reportTrackState.activeTracks ?? snapshotTrackState.activeTracks ?? 0,
+        lost: reportTrackState.lostTracks ?? snapshotTrackState.lostTracks ?? 0,
+        reacquired: reportTrackState.reacquiredTracks ?? snapshotTrackState.reacquiredTracks ?? 0,
+        terminated: reportTrackState.terminatedTracks ?? snapshotTrackState.terminatedTracks ?? 0,
+      };
+      dashboardSet('dashboardTracksSummary', `A/L/R/T ${counts.active}/${counts.lost}/${counts.reacquired}/${counts.terminated} · rows ${tracks.length}`);
+      const tbody = dashboardRowsStart('dashboardTrackRows');
+      if (!tbody || tracks.length === 0) {
+        dashboardSetEmptyRows('dashboardTrackRows', 6, '현재 표시할 track이 없습니다.');
+        return;
+      }
+      for (const track of tracks.slice(0, 100)) {
+        const classText = `${dashboardText(track.className)} · ${dashboardConfidence(track.confidence)}`;
+        dashboardAppendRow('dashboardTrackRows', [
+          track.trackId ?? '-',
+          classText,
+          track.lifecycleState || '-',
+          dashboardTrackZone(track),
+          dashboardTrackDwell(track),
+          dashboardTrackHealthChip(track),
+        ]);
+      }
+    }
+
+    function renderDashboardScenarios(stateDump, tapMetrics) {
+      const tracks = dashboardDebugTracks(stateDump);
+      const scenarioRows = tracks.filter((track) => track?.scenarioName || track?.scenarioPhase);
+      const scenarioState = tapMetrics?.metricsReport?.scenarioState || {};
+      const activeCount = scenarioState.activeScenarios ?? stateDump?.debugState?.counts?.activeScenarios ?? scenarioRows.length;
+      dashboardSet('dashboardScenariosSummary', `active ${activeCount} · rows ${scenarioRows.length}`);
+      const tbody = dashboardRowsStart('dashboardScenarioRows');
+      if (!tbody || scenarioRows.length === 0) {
+        dashboardSetEmptyRows('dashboardScenarioRows', 6, '현재 표시할 scenario instance가 없습니다.');
+        return;
+      }
+      for (const track of scenarioRows.slice(0, 100)) {
+        const lineId = track?.primaryLineId || track?.lineStates?.[0]?.lineId || '';
+        const zoneLine = [dashboardTrackZone(track), lineId].filter((item) => item && item !== '-').join(' / ') || '-';
+        dashboardAppendRow('dashboardScenarioRows', [
+          track.scenarioName || '-',
+          track.scenarioPhase || '-',
+          track.trackId ?? '-',
+          zoneLine,
+          dashboardTrackDwell(track),
+          track.eventLifecycle || '-',
+        ]);
+      }
+    }
+
+    function dashboardEventKey(tapId, event) {
+      const object = event?.object || {};
+      return [
+        tapId || '-',
+        event?.ruleId || '-',
+        event?.type || '-',
+        object.trackId ?? '-',
+        object.label || '-',
+      ].join('|');
+    }
+
+    function dashboardResetRecentEvents() {
+      dashboardRecentEvents = [];
+      dashboardRecentEventKeys = new Set();
+    }
+
+    function dashboardUpdateRecentEvents(tapId, events, trackMap) {
+      if (!Array.isArray(events)) return;
+      const now = Date.now();
+      for (const event of events) {
+        const key = dashboardEventKey(tapId, event);
+        if (dashboardRecentEventKeys.has(key)) continue;
+        const object = event?.object || {};
+        const track = trackMap.get(String(object.trackId ?? ''));
+        const lineId = track?.primaryLineId || track?.lineStates?.[0]?.lineId || '';
+        const zoneLine = [dashboardTrackZone(track), lineId].filter((item) => item && item !== '-').join(' / ') || '-';
+        dashboardRecentEventKeys.add(key);
+        dashboardRecentEvents.unshift({ key, event, zoneLine, receivedAt: now });
+      }
+      while (dashboardRecentEvents.length > 25) {
+        const removed = dashboardRecentEvents.pop();
+        if (removed?.key) dashboardRecentEventKeys.delete(removed.key);
+      }
+    }
+
+    function renderDashboardEvents(tapEvents, tapMetrics, stateDump, tapId) {
+      const eventState = tapMetrics?.metricsReport?.eventState || {};
+      const emitted = eventState.eventsEmitted ?? 0;
+      const deduped = eventState.eventsDeduped ?? 0;
+      const tracks = dashboardDebugTracks(stateDump);
+      dashboardUpdateRecentEvents(tapId, tapEvents?.events, dashboardTrackById(tracks));
+      dashboardSet('dashboardEventsSummary', `emitted ${emitted} · dedup ${deduped} · recent ${dashboardRecentEvents.length}`);
+      const tbody = dashboardRowsStart('dashboardEventRows');
+      if (!tbody || dashboardRecentEvents.length === 0) {
+        dashboardSetEmptyRows('dashboardEventRows', 6, '최근 event가 없습니다.');
+        return;
+      }
+      for (const item of dashboardRecentEvents) {
+        const event = item.event || {};
+        const object = event.object || {};
+        const status = event?.action?.post?.enabled ? 'post enabled' : 'local';
+        dashboardAppendRow('dashboardEventRows', [
+          event.type || '-',
+          object.trackId ?? '-',
+          object.label || '-',
+          event.ruleId || '-',
+          item.zoneLine || '-',
+          status,
+        ]);
+      }
+    }
+
+    function renderDashboardMetadata(runtime) {
+      const webrtc = runtime?.webrtcHttp || {};
+      const metadata = webrtc.metadataDataChannel || {};
+      const sideChannel = webrtc.metadataSideChannel || {};
+      const sessions = Array.isArray(metadata.sessions) ? metadata.sessions : [];
+      dashboardSet('dashboardMetadataSent', metadata.sentCount ?? 0);
+      dashboardSet('dashboardMetadataDropped', `${metadata.droppedCount ?? 0}/${metadata.skippedCount ?? 0}`);
+      dashboardSet('dashboardMetadataFailures', metadata.sendFailureCount ?? 0);
+      dashboardSet('dashboardMetadataBuffered', `${metadata.bufferedDropCount ?? 0}/${metadata.maxBufferedAmount ?? 0}`);
+      dashboardSet('dashboardMetadataSseClients', sideChannel.activeSseClients ?? 0);
+      dashboardSet('dashboardMetadataWsClients', sideChannel.activeWebSocketClients ?? 0);
+      const viewerHasMetadata = viewMetadataMessageCount > 0 || viewMetadataStaleCount > 0 || viewMetadataFallbackHiddenCount > 0;
+      dashboardSet('dashboardMetadataStale', viewerHasMetadata ? viewMetadataStaleCount : '-');
+      dashboardSet('dashboardMetadataFallback', viewerHasMetadata ? viewMetadataFallbackHiddenCount : '-');
+      dashboardSet(
+        'dashboardMetadataSummary',
+        `datachannel sessions ${sessions.length} · oversized ${metadata.oversizedDropCount ?? 0} · interval skip ${metadata.intervalSkippedCount ?? 0}`
+      );
+    }
+
+    function renderDashboardIssues(tapMetrics) {
+      const report = tapMetrics?.trackingIssueReport || {};
+      const issues = Array.isArray(report.issues) ? report.issues : [];
+      dashboardSet(
+        'dashboardIssuesSummary',
+        `total ${report.totalIssues ?? 0} · retained ${report.retainedIssues ?? issues.length} · rate-limited ${report.rateLimitedCount ?? 0}`
+      );
+      const tbody = dashboardRowsStart('dashboardIssueRows');
+      if (!tbody || issues.length === 0) {
+        dashboardSetEmptyRows('dashboardIssueRows', 6, 'tracking issue가 없습니다.');
+        return;
+      }
+      for (const issue of issues.slice(0, 100)) {
+        const health = issue.trackHealth || {};
+        const healthText = `assoc ${dashboardConfidence(health.associationConfidence)} · missed ${health.missedFrameCount ?? 0}`;
+        dashboardAppendRow('dashboardIssueRows', [
+          issue.type || '-',
+          issue.trackId ?? '-',
+          issue.className || '-',
+          dashboardChip(issue.severity || '-', issue.severity === 'warning' ? 'warning' : 'muted'),
+          dashboardTimestamp(issue.timestampMs),
+          healthText,
+        ]);
+      }
+    }
+
     function renderDashboard(payload) {
       dashboardLastPayload = payload;
       const runtime = payload?.runtime || {};
       const tapsPayload = payload?.tapsPayload || {};
       const tapMetrics = payload?.tapMetrics || null;
       const stateDump = payload?.stateDump || null;
+      const tapEvents = payload?.tapEvents || null;
       const selectedTap = payload?.selectedTap || null;
       const sessionManager = runtime.sessionManager || {};
       const analysisMatching = runtime.analysisMatching || {};
@@ -8892,6 +9413,13 @@ std::string BuildLabRuleEditorPageHtml() {
       dashboardSet('dashboardEventPostStatus', dashboardEventPostLabel(payload?.eventPost));
       dashboardSet('dashboardEventStorageStatus', dashboardEventStorageLabel(payload?.eventStorage));
       dashboardSet('dashboardStatusText', `마지막 갱신 ${new Date().toLocaleTimeString('ko-KR')} · tap ${dashboardLastTapId || '-'}`);
+      dashboardSet('dashboardOverviewSummary', selectedTap ? `${selectedTap.tapId || '-'} · ${selectedTap.streamKey || '-'}` : '선택된 tap 없음');
+	      renderDashboardEvents(tapEvents, tapMetrics, stateDump, dashboardLastTapId);
+	      renderDashboardVaRuleDebug({ selectedTap, tapMetrics, stateDump });
+	      renderDashboardTracks(stateDump, tapMetrics);
+	      renderDashboardScenarios(stateDump, tapMetrics);
+	      renderDashboardMetadata(runtime);
+	      renderDashboardIssues(tapMetrics);
       const statePre = $('dashboardStateDumpJson');
       if (statePre) statePre.textContent = dashboardPrettyJson(stateDump, 'tap을 선택하면 상태 덤프가 표시됩니다.');
       const issuePre = $('dashboardTrackingIssueReport');
@@ -8914,17 +9442,23 @@ std::string BuildLabRuleEditorPageHtml() {
           dashboardFetchJson('/lab/analysis/event-storage/status')
         ]);
         const taps = Array.isArray(tapsPayload.taps) ? tapsPayload.taps : [];
+        const previousTapId = dashboardLastTapId;
         const tapId = renderDashboardTapSelect(taps);
         let tapMetrics = null;
         let stateDump = null;
+        let tapEvents = null;
         let selectedTap = taps.find((tap) => tap.tapId === tapId) || null;
+        if (tapId !== previousTapId) {
+          dashboardResetRecentEvents();
+        }
         if (tapId) {
-          [tapMetrics, stateDump] = await Promise.all([
+          [tapMetrics, stateDump, tapEvents] = await Promise.all([
             dashboardFetchJson(`/lab/analysis/taps/${encodeURIComponent(tapId)}/metrics`),
-            dashboardFetchJson(`/lab/analysis/taps/${encodeURIComponent(tapId)}/state-dump`)
+            dashboardFetchJson(`/lab/analysis/taps/${encodeURIComponent(tapId)}/state-dump`),
+            dashboardFetchJson(`/lab/analysis/taps/${encodeURIComponent(tapId)}/events`).catch(() => null)
           ]);
         }
-        renderDashboard({ runtime, tapsPayload, eventPost, eventStorage, tapMetrics, stateDump, selectedTap });
+        renderDashboard({ runtime, tapsPayload, eventPost, eventStorage, tapMetrics, stateDump, tapEvents, selectedTap });
       } catch (error) {
         dashboardSet('dashboardStatusText', `갱신 실패: ${error.message}`);
       } finally {
@@ -9595,12 +10129,14 @@ std::string BuildLabRuleEditorPageHtml() {
       if ($('dashboardTapSelect')) {
         $('dashboardTapSelect').addEventListener('change', () => {
           dashboardLastTapId = $('dashboardTapSelect').value || '';
+          dashboardResetRecentEvents();
           refreshDashboard({ force: true }).catch(() => {});
         });
       }
       if ($('dashboardRuleSelect')) {
         $('dashboardRuleSelect').addEventListener('change', () => {
           dashboardLastTapId = '';
+          dashboardResetRecentEvents();
           refreshDashboard({ force: true }).catch(() => {});
         });
       }
