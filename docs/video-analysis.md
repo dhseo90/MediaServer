@@ -648,10 +648,12 @@ SSE 수신만 확인하는 최소 custom client 예제:
 
 ```bash
 python3 scripts/examples/va_metadata_sse_client.py \
-  'http://127.0.0.1:8080/lab/analysis/metadata/stream?vaRule=1&intervalMs=500&maxMessageBytes=65536'
+  --url 'http://127.0.0.1:8080/lab/analysis/metadata/stream?vaRule=1&intervalMs=500&maxMessageBytes=65536' \
+  --max-messages 5 \
+  --timeout-seconds 15
 ```
 
-이 예제는 metadata 수신/parse/schema/count/preview 출력만 담당합니다. RTSP video player와 overlay renderer는 포함하지 않습니다.
+이 예제는 metadata 수신, JSON parse, `media-server.va.runtime-metadata.v1` schema 확인, `streamId/channelId`, `tracks/events/scenarios` count, latest timestamp, message count 출력만 담당합니다. payload 본문까지 확인하려면 `--print-json`을 추가합니다. RTSP video player와 overlay renderer는 포함하지 않습니다. 일반 VLC/ffplay/IINA는 SSE/WS metadata side-channel을 자동 overlay하지 않습니다.
 
 명시적 side-channel 검증:
 
@@ -696,7 +698,7 @@ VA overlay는 출력 방식에 따라 역할이 다릅니다.
 | RTSP 서버 오버레이 | 구현 완료 | 일반 RTSP player가 볼 수 있도록 서버가 bbox/label을 영상 위에 직접 합성 |
 | WebRTC Server-side Overlay | 구현 완료 | `va=1`/`vaRule=<id>` 요청에서 서버 합성 영상 출력 |
 | WebRTC Client-side Overlay | 구현 완료 | `vaMetadata=1` DataChannel metadata를 브라우저 canvas가 그리는 Lab viewer 전용 표시 |
-| Custom SSE Metadata Client | 구현 완료 | `scripts/examples/va_metadata_sse_client.py`가 side-channel metadata 수신과 schema/count/preview 확인을 담당 |
+| Custom SSE Metadata Client | 구현 완료 | `scripts/examples/va_metadata_sse_client.py`가 side-channel metadata 수신과 schema/count/timestamp 확인을 담당 |
 | Custom RTSP + Side-channel Overlay | 예정 | custom client가 RTSP raw video와 SSE/WS metadata를 함께 받아 직접 overlay renderer까지 구현 |
 
 RTSP 일반 viewer(VLC/ffplay/IINA)는 WebRTC DataChannel을 이해하지 못합니다. RTSP에서 metadata UI가 필요하면 server-side overlay를 사용하거나, custom client가 RTSP raw stream과 SSE/WS side-channel을 별도로 조합해야 합니다.
@@ -740,10 +742,12 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/overlay.jpg?debugOver
 
 Debug 출력은 내부 상태 확인용이며 기존 event JSON/API/POST 형식을 바꾸지 않습니다.
 
-Lab의 VA 런타임 대시보드는 위 endpoint와 `/lab/runtime/status`, event POST/storage status endpoint를 재사용해 운영 상태를 카드, table, raw JSON으로 표시합니다. 1차 drill-down은 Overview, vaRule Runtime Debug, Tracks, Scenarios, Events, Metadata, Tracking Issues 영역으로 나뉩니다.
+Lab의 VA 런타임 대시보드는 위 endpoint와 `/lab/runtime/status`, event POST/storage status endpoint를 재사용해 운영 상태를 카드, table, raw JSON으로 표시합니다. 1차 drill-down은 Overview, vaRule Runtime Debug, Tracks, Scenarios, Scenario Timeline, Events, Metadata, Tracking Issues 영역으로 나뉩니다.
 대시보드 탭이 닫혀 있을 때는 polling하지 않으며, 자동 갱신은 최소 2초 이상 간격으로 제한합니다.
 
-현재 vaRule Runtime Debug와 Scenarios table은 state-dump/metrics에 이미 노출된 값만 사용합니다. phase entered time, cooldown remaining 같은 정밀 timeline 필드는 후속 endpoint 또는 state-dump 확장 없이는 표시하지 않습니다.
+Scenario Timeline은 scenario 판단 로직이나 기존 event JSON/API/POST 형식을 바꾸지 않고, 현재 `state-dump`의 track별 `scenarioName`, `scenarioPhase`, zone/line 상태와 `/events` buffer를 조합해 active scenario instance를 디버그용으로 보여줍니다. Candidate/Observing/Confirmed/Cooldown/Ended 같은 phase는 운영자가 상태 전이를 빠르게 구분하기 위한 표시이며, event emit/cooldown 판단 자체는 ScenarioEngine과 EventManager의 기존 로직을 따릅니다.
+
+현재 vaRule Runtime Debug와 Scenarios/Scenario Timeline table은 state-dump/metrics에 이미 노출된 값만 사용합니다. phase entered time, cooldown remaining 같은 정밀 timeline 필드는 후속 endpoint 또는 state-dump 확장 없이는 표시하지 않습니다.
 
 ## 18. Replay 검증
 
