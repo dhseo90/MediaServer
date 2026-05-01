@@ -5611,18 +5611,29 @@ std::string BuildLabRuleEditorPageHtml() {
             </section>
             <section class="dashboard-drilldown-section" aria-labelledby="dashboardMetadataTitle">
               <div class="dashboard-section-header">
-                <h3 id="dashboardMetadataTitle">Metadata</h3>
+                <h3 id="dashboardMetadataTitle">Metadata / Backpressure</h3>
                 <p id="dashboardMetadataSummary" class="dashboard-section-summary">metadata channel 대기 중</p>
               </div>
               <div class="dashboard-card-grid" aria-label="Metadata backpressure cards">
+                <div class="viewer-status-card"><span>Runtime memory</span><strong id="dashboardRuntimeMemoryWarning">RSS WARNING 유지</strong></div>
+                <div class="viewer-status-card"><span>Live RSS</span><strong id="dashboardRuntimeRss">longrun report에서 확인</strong></div>
+                <div class="viewer-status-card"><span>Session/Stream/Tap</span><strong id="dashboardBackpressureRuntime">0/0/0</strong></div>
+                <div class="viewer-status-card"><span>DataChannel sessions</span><strong id="dashboardMetadataSessions">0/0 open</strong></div>
                 <div class="viewer-status-card"><span>DataChannel sent</span><strong id="dashboardMetadataSent">0</strong></div>
                 <div class="viewer-status-card"><span>dropped/skipped</span><strong id="dashboardMetadataDropped">0/0</strong></div>
+                <div class="viewer-status-card"><span>interval/oversized skip</span><strong id="dashboardMetadataSkipped">0/0</strong></div>
                 <div class="viewer-status-card"><span>send failures</span><strong id="dashboardMetadataFailures">0</strong></div>
                 <div class="viewer-status-card"><span>buffered drop/max</span><strong id="dashboardMetadataBuffered">0/0</strong></div>
+                <div class="viewer-status-card"><span>last/max buffered</span><strong id="dashboardMetadataBufferedObserved">0/0</strong></div>
                 <div class="viewer-status-card"><span>SSE clients</span><strong id="dashboardMetadataSseClients">0</strong></div>
                 <div class="viewer-status-card"><span>WS clients</span><strong id="dashboardMetadataWsClients">0</strong></div>
-                <div class="viewer-status-card"><span>stale</span><strong id="dashboardMetadataStale">-</strong></div>
-                <div class="viewer-status-card"><span>fallback hidden</span><strong id="dashboardMetadataFallback">-</strong></div>
+                <div class="viewer-status-card"><span>SSE/WS sent/drop</span><strong id="dashboardSideChannelSentDropped">미제공</strong></div>
+                <div class="viewer-status-card"><span>Queue pending/cap/peak</span><strong id="dashboardBackpressureQueue">0/0/0</strong></div>
+                <div class="viewer-status-card"><span>Queue drops</span><strong id="dashboardBackpressureQueueDrops">0/0</strong></div>
+                <div class="viewer-status-card"><span>Sample drops</span><strong id="dashboardBackpressureSampleDrops">0/0</strong></div>
+                <div class="viewer-status-card"><span>Queue wait</span><strong id="dashboardBackpressureQueueWait">0ms</strong></div>
+                <div class="viewer-status-card"><span>client stale/drop</span><strong id="dashboardMetadataStale">미제공</strong></div>
+                <div class="viewer-status-card"><span>fallback hidden</span><strong id="dashboardMetadataFallback">미제공</strong></div>
               </div>
             </section>
             <section class="dashboard-drilldown-section" aria-labelledby="dashboardIssuesTitle">
@@ -9486,23 +9497,60 @@ std::string BuildLabRuleEditorPageHtml() {
       }
     }
 
-    function renderDashboardMetadata(runtime) {
+    function renderDashboardMetadata(runtime, tapMetrics, tapsPayload) {
       const webrtc = runtime?.webrtcHttp || {};
       const metadata = webrtc.metadataDataChannel || {};
       const sideChannel = webrtc.metadataSideChannel || {};
+      const sessionManager = runtime?.sessionManager || {};
+      const analysisMatching = runtime?.analysisMatching || {};
+      const tapState = tapMetrics?.tapState || {};
+      const queue = tapState.analyticsQueue || {};
       const sessions = Array.isArray(metadata.sessions) ? metadata.sessions : [];
+      const openSessions = sessions.filter((session) => session?.open).length;
+      const maxLastBufferedAmount = sessions.reduce((maxValue, session) => {
+        return Math.max(maxValue, dashboardNumber(session?.lastBufferedAmount, 0));
+      }, 0);
+      const maxObservedBufferedAmount = sessions.reduce((maxValue, session) => {
+        return Math.max(maxValue, dashboardNumber(session?.maxBufferedAmount, 0));
+      }, dashboardNumber(metadata.maxBufferedAmount, 0));
+      dashboardSet('dashboardRuntimeMemoryWarning', 'RSS WARNING 유지');
+      dashboardSet('dashboardRuntimeRss', 'longrun report에서 확인');
+      dashboardSet(
+        'dashboardBackpressureRuntime',
+        `${sessionManager.activeSessions || 0}/${sessionManager.registryActiveStreams || sessionManager.resourceActiveStreams || 0}/${analysisMatching.activeTapCount ?? tapsPayload?.activeTaps ?? 0}`
+      );
+      dashboardSet('dashboardMetadataSessions', `${openSessions}/${sessions.length} open`);
       dashboardSet('dashboardMetadataSent', metadata.sentCount ?? 0);
       dashboardSet('dashboardMetadataDropped', `${metadata.droppedCount ?? 0}/${metadata.skippedCount ?? 0}`);
+      dashboardSet('dashboardMetadataSkipped', `${metadata.intervalSkippedCount ?? 0}/${metadata.oversizedDropCount ?? 0}`);
       dashboardSet('dashboardMetadataFailures', metadata.sendFailureCount ?? 0);
       dashboardSet('dashboardMetadataBuffered', `${metadata.bufferedDropCount ?? 0}/${metadata.maxBufferedAmount ?? 0}`);
+      dashboardSet('dashboardMetadataBufferedObserved', `${maxLastBufferedAmount}/${maxObservedBufferedAmount}`);
       dashboardSet('dashboardMetadataSseClients', sideChannel.activeSseClients ?? 0);
       dashboardSet('dashboardMetadataWsClients', sideChannel.activeWebSocketClients ?? 0);
+      dashboardSet('dashboardSideChannelSentDropped', '미제공');
+      dashboardSet(
+        'dashboardBackpressureQueue',
+        `${queue.pending ?? tapState.pendingFrames ?? 0}/${queue.capacity ?? tapState.maxQueueSize ?? 0}/${queue.peakPending ?? tapState.peakPendingFrames ?? 0}`
+      );
+      dashboardSet(
+        'dashboardBackpressureQueueDrops',
+        `${queue.dropOldest ?? tapState.queueDroppedFrames ?? 0}/${queue.staleDrops ?? tapState.staleQueueDroppedFrames ?? 0}`
+      );
+      dashboardSet(
+        'dashboardBackpressureSampleDrops',
+        `${queue.sampleDrops ?? tapState.sampleDroppedFrames ?? 0}/${queue.sampleIntervalDrops ?? tapState.sampleIntervalDroppedFrames ?? 0}`
+      );
+      dashboardSet(
+        'dashboardBackpressureQueueWait',
+        `last ${dashboardMs(queue.lastWaitMs ?? tapState.lastQueueWaitMs)} · avg ${dashboardMs(queue.averageWaitMs ?? tapState.averageQueueWaitMs)} · max ${dashboardMs(queue.maxWaitMs ?? tapState.maxQueueWaitMs)}`
+      );
       const viewerHasMetadata = viewMetadataMessageCount > 0 || viewMetadataStaleCount > 0 || viewMetadataFallbackHiddenCount > 0;
-      dashboardSet('dashboardMetadataStale', viewerHasMetadata ? viewMetadataStaleCount : '-');
-      dashboardSet('dashboardMetadataFallback', viewerHasMetadata ? viewMetadataFallbackHiddenCount : '-');
+      dashboardSet('dashboardMetadataStale', viewerHasMetadata ? `${viewMetadataStaleCount}/${viewMetadataBufferDropCount}` : '미제공');
+      dashboardSet('dashboardMetadataFallback', viewerHasMetadata ? viewMetadataFallbackHiddenCount : '미제공');
       dashboardSet(
         'dashboardMetadataSummary',
-        `datachannel sessions ${sessions.length} · oversized ${metadata.oversizedDropCount ?? 0} · interval skip ${metadata.intervalSkippedCount ?? 0}`
+        `runtime ${sessionManager.activeSessions || 0}/${sessionManager.registryActiveStreams || sessionManager.resourceActiveStreams || 0}/${analysisMatching.activeTapCount ?? tapsPayload?.activeTaps ?? 0} · datachannel ${openSessions}/${sessions.length} open · queue ${queue.pending ?? tapState.pendingFrames ?? 0}/${queue.capacity ?? tapState.maxQueueSize ?? 0}/${queue.peakPending ?? tapState.peakPendingFrames ?? 0}`
       );
     }
 
@@ -9578,7 +9626,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	      renderDashboardTracks(stateDump, tapMetrics);
 	      renderDashboardScenarios(stateDump, tapMetrics);
 	      renderDashboardScenarioTimeline(stateDump, tapMetrics, selectedTap);
-	      renderDashboardMetadata(runtime);
+	      renderDashboardMetadata(runtime, tapMetrics, tapsPayload);
 	      renderDashboardIssues(tapMetrics);
       const statePre = $('dashboardStateDumpJson');
       if (statePre) statePre.textContent = dashboardPrettyJson(stateDump, 'tap을 선택하면 상태 덤프가 표시됩니다.');

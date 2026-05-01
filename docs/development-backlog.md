@@ -166,6 +166,7 @@ git diff --check -- README.md docs
 ```
 
 - 계측 계획:
+  - Runtime Dashboard Metadata / Backpressure 패널로 DataChannel sent/drop/skip/failure, SSE/WS client count, analytics queue drop 상태를 읽기 전용으로 관찰합니다. 이 패널은 RSS WARNING을 해결한 것이 아니며 live RSS가 없으면 longrun report를 기준으로 판단합니다.
   - RTSP overlay consumer unprepare/finalize 확인
   - GStreamer pipeline state NULL 전환 확인
   - appsrc/appsink/probe/buffer pool release 계측
