@@ -246,14 +246,16 @@ URL 규칙:
 - rule 기반 임시 tap: `/lab/analysis/metadata/stream?vaRule=<id>`
 
 SSE와 WebSocket은 일반 RTSP viewer 기능이 아니라 custom client/dashboard 연동용입니다. Lab URL 패널은 기본적으로 SSE URL을 보여주며, WebSocket은 `/ws/va-metadata?tapId=<id>` 또는 `/ws/va-metadata?vaRule=<id>`로 직접 사용할 수 있습니다.
-SSE 수신만 확인하는 최소 custom client 예제는 `scripts/examples/va_metadata_sse_client.py`입니다. 이 예제는 RTSP player를 구현하지 않고, metadata event를 받아 JSON schema와 `tracks/events/scenarios` count, 최근 metadata preview만 출력합니다.
+SSE 수신만 확인하는 최소 custom client 예제는 `scripts/examples/va_metadata_sse_client.py`입니다. 이 예제는 RTSP player를 구현하지 않고, metadata event를 받아 JSON schema, `streamId/channelId`, `tracks/events/scenarios` count, last timestamp만 출력합니다.
 
 ```bash
 python3 scripts/examples/va_metadata_sse_client.py \
-  'http://127.0.0.1:8080/lab/analysis/metadata/stream?vaRule=1&intervalMs=500&maxMessageBytes=65536'
+  --url 'http://127.0.0.1:8080/lab/analysis/metadata/stream?vaRule=1&intervalMs=500&maxMessageBytes=65536' \
+  --max-messages 5 \
+  --timeout-seconds 15
 ```
 
-RTSP 영상은 별도 player로 확인합니다. 일반 VLC/ffplay/IINA는 위 SSE metadata를 자동 overlay하지 않습니다.
+예제 출력은 connected 상태, message count, schema, `streamId/channelId`, `tracks/events/scenarios` count, last timestamp를 보여줍니다. payload 본문까지 확인하려면 `--print-json`을 추가합니다. RTSP 영상은 별도 player로 확인합니다. 일반 VLC/ffplay/IINA는 위 SSE metadata를 자동 overlay하지 않습니다.
 
 ```bash
 ffplay -rtsp_transport tcp 'rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4'
@@ -294,6 +296,7 @@ VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보
 - Tracks: trackId, className/confidence, lifecycle, currentZone, dwellTimeMs, TrackHealth
 - 시나리오 인스턴스 수
 - Scenarios: scenarioName, phase, trackId, zone/line, elapsed/dwell, cooldown/event lifecycle
+- Scenario Timeline: active scenario instance별 scenarioName, phase, trackId, zoneId, lineId, elapsed, cooldown, recent event
 - 발생 / 중복 억제 이벤트 수
 - Events: 최근 event, eventType, trackId, class/rule, zone/line, status
 - Metadata: WebRTC DataChannel sent/dropped/skipped/failure, SSE/WS client count, buffered/stale/fallback count
@@ -312,14 +315,15 @@ VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보
 drill-down 사용법:
 
 - Overview는 session/stream/tap 수, FPS, queue, inference latency, event POST/storage 상태를 빠르게 확인하는 영역입니다.
-- vaRule Runtime Debug는 선택 rule과 active tap의 ruleId가 일치하는지 보여줍니다. active tap이 없으면 안내 상태만 표시합니다.
+- vaRule Runtime Debug는 선택 rule과 active tap의 ruleId가 일치하는지 보여주고, source/profile/event/scenario/region, event lifecycle, recent event를 요약합니다. active tap이 없으면 안내 상태만 표시합니다.
 - Tracks는 state-dump의 debug track을 표로 보여주며, trackId/class/lifecycle/currentZone/dwellTimeMs/TrackHealth를 확인합니다.
-- Scenarios는 현재 state-dump에 노출된 scenarioName/scenarioPhase/zone/line/dwell/eventLifecycle 값을 list 형태로 보여줍니다. phase entered time과 cooldown remaining의 정확한 timestamp는 아직 별도 UI로 표시하지 않습니다.
+- Scenarios는 현재 state-dump에 노출된 scenarioName/scenarioPhase/zone/line/elapsed/cooldown 값을 list 형태로 보여줍니다. phase entered time과 cooldown remaining의 정확한 timestamp는 아직 별도 UI로 표시하지 않습니다.
+- Scenario Timeline은 같은 state-dump와 `/events` buffer를 조합해 active scenario instance를 시간 흐름 점검용 table로 표시합니다. Candidate/Observing/Confirmed/Cooldown/Ended phase는 chip으로 구분하고, 연결 가능한 recent event가 있으면 eventType/status를 함께 보여줍니다.
 - Events는 선택 tap의 `/events` buffer를 받아 최근 event를 표시합니다. 선택 rule이 있으면 해당 rule의 recent event만 vaRule Runtime Debug 카드에 반영합니다.
 - Metadata와 Tracking Issues는 WebRTC DataChannel, SSE/WS client, stale/fallback, tracking issue report를 운영 상태 점검용으로 요약합니다.
 
 대시보드 탭이 닫혀 있을 때는 polling하지 않습니다. 자동 갱신은 최소 2초 이상 간격으로 동작해 다채널 분석 성능에 부담을 주지 않도록 제한합니다.
-vaRule Runtime Debug는 새 backend API 없이 선택된 rule과 active tap의 ruleId를 대조하고, 기존 metrics/state-dump/event buffer에서 확인 가능한 track/scenario/event 상태를 표시합니다. phase entered time, cooldown remaining 같은 세부 시각 값은 현재 state-dump에 노출된 값이 있을 때만 표시하며, 원본 JSON은 `상태 덤프 / tracking issue report` 접힘 영역에서 확인할 수 있습니다.
+vaRule Runtime Debug와 Scenario Timeline은 새 backend API 없이 선택된 rule과 active tap의 ruleId를 대조하고, 기존 metrics/state-dump/event buffer에서 확인 가능한 track/scenario/event 상태를 표시합니다. phase entered time 같은 세부 시각 값은 현재 state-dump에 노출된 값이 있을 때만 표시하며, 원본 JSON은 `상태 덤프 / tracking issue report` 접힘 영역에서 확인할 수 있습니다.
 
 VA 런타임 대시보드 사용 순서:
 

@@ -241,10 +241,12 @@ Custom SSE metadata client 예제:
 
 ```bash
 python3 scripts/examples/va_metadata_sse_client.py \
-  'http://127.0.0.1:8080/lab/analysis/metadata/stream?vaRule=1&intervalMs=500&maxMessageBytes=65536'
+  --url 'http://127.0.0.1:8080/lab/analysis/metadata/stream?vaRule=1&intervalMs=500&maxMessageBytes=65536' \
+  --max-messages 5 \
+  --timeout-seconds 15
 ```
 
-이 예제는 SSE URL을 입력받아 `event: metadata`를 수신하고, JSON parse/schema 확인, `tracks/events/scenarios` count, 최근 metadata preview를 출력합니다. RTSP video 재생기나 overlay renderer는 포함하지 않습니다. 영상은 위 ffplay/VLC 같은 일반 RTSP player로 별도 재생해야 하며, 일반 VLC/ffplay/IINA는 SSE/WS metadata side-channel을 자동 overlay하지 않습니다.
+이 예제는 SSE URL을 입력받아 `event: metadata`를 수신하고, JSON parse/schema 확인, `streamId/channelId`, `tracks/events/scenarios` count, latest timestamp, message count를 출력합니다. payload 본문까지 보고 싶으면 `--print-json`을 추가합니다. RTSP video 재생기나 overlay renderer는 포함하지 않습니다. 영상은 위 ffplay/VLC 같은 일반 RTSP player로 별도 재생해야 하며, 일반 VLC/ffplay/IINA는 SSE/WS metadata side-channel을 자동 overlay하지 않습니다.
 
 확인할 항목:
 

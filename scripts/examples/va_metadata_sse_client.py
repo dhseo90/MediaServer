@@ -30,21 +30,26 @@ def parse_args() -> argparse.Namespace:
         description="Receive VA runtime metadata from an SSE side-channel."
     )
     parser.add_argument(
-        "sse_url",
+        "legacy_url",
         nargs="?",
-        default=DEFAULT_SSE_URL,
+        help=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        "--url",
+        default="",
         help=f"SSE metadata URL. Default: {DEFAULT_SSE_URL}",
     )
     parser.add_argument("--max-messages", type=int, default=5, help="0 means keep reading.")
-    parser.add_argument("--timeout-ms", type=int, default=15000)
     parser.add_argument(
-        "--preview-bytes",
-        type=int,
-        default=1200,
-        help="Maximum JSON preview bytes per metadata message.",
+        "--timeout-seconds",
+        type=float,
+        default=15.0,
+        help="Maximum time to wait for metadata messages.",
     )
-    parser.add_argument("--pretty", action="store_true", help="Pretty-print the preview JSON.")
-    return parser.parse_args()
+    parser.add_argument("--print-json", action="store_true", help="Print each metadata payload.")
+    args = parser.parse_args()
+    args.url = args.url or args.legacy_url or DEFAULT_SSE_URL
+    return args
 
 
 def open_sse(url: str, timeout_s: float) -> tuple[http.client.HTTPConnection, http.client.HTTPResponse]:
@@ -72,53 +77,50 @@ def open_sse(url: str, timeout_s: float) -> tuple[http.client.HTTPConnection, ht
     return conn, response
 
 
-def validate_metadata(payload: dict[str, Any]) -> list[str]:
-    warnings: list[str] = []
+def validate_metadata(payload: dict[str, Any]) -> None:
+    errors: list[str] = []
     if payload.get("schema") != SCHEMA:
-        warnings.append(f"schema={payload.get('schema')!r}, expected {SCHEMA!r}")
+        errors.append(f"schema={payload.get('schema')!r}, expected {SCHEMA!r}")
     for name in ("tracks", "events", "scenarios"):
         if not isinstance(payload.get(name), list):
-            warnings.append(f"{name} is not an array")
+            errors.append(f"{name} is not an array")
     if not isinstance(payload.get("metrics"), dict):
-        warnings.append("metrics is not an object")
-    return warnings
+        errors.append("metrics is not an object")
+    if errors:
+        raise RuntimeError("metadata schema mismatch: " + "; ".join(errors))
 
 
-def compact_preview(payload: dict[str, Any], pretty: bool, limit: int) -> str:
-    if pretty:
-        text = json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True)
-    else:
-        text = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
-    if limit <= 0 or len(text.encode("utf-8")) <= limit:
-        return text
-    encoded = text.encode("utf-8")[:limit]
-    return encoded.decode("utf-8", errors="ignore") + "...<truncated>"
+def latest_timestamp(payload: dict[str, Any]) -> Any:
+    for name in ("timestampMs", "timestamp", "sentAtMs", "analysisPtsMs", "videoFramePtsMs"):
+        value = payload.get(name)
+        if value is not None:
+            return value
+    return "-"
 
 
 def print_metadata(payload: dict[str, Any], message_count: int, args: argparse.Namespace) -> None:
-    warnings = validate_metadata(payload)
+    validate_metadata(payload)
     tracks = payload.get("tracks") if isinstance(payload.get("tracks"), list) else []
     events = payload.get("events") if isinstance(payload.get("events"), list) else []
     scenarios = payload.get("scenarios") if isinstance(payload.get("scenarios"), list) else []
-    timestamp_ms = payload.get("timestampMs") or payload.get("timestamp")
     print(
         "[metadata] "
-        f"#{message_count} schema={payload.get('schema', '-')} "
+        f"messageCount={message_count} schema={payload.get('schema', '-')} "
+        f"streamId={payload.get('streamId', '-')} channelId={payload.get('channelId', '-')} "
         f"tracks={len(tracks)} events={len(events)} scenarios={len(scenarios)} "
-        f"timestampMs={timestamp_ms if timestamp_ms is not None else '-'}"
+        f"lastTimestamp={latest_timestamp(payload)}"
     )
-    if warnings:
-        print("[schema-warning] " + "; ".join(warnings), file=sys.stderr)
-    print("[preview]")
-    print(compact_preview(payload, args.pretty, args.preview_bytes))
+    if args.print_json:
+        print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
 
 
 def read_loop(response: http.client.HTTPResponse, args: argparse.Namespace) -> int:
     message_count = 0
     comment_count = 0
+    latest_payload: dict[str, Any] | None = None
     event_name = ""
     data_lines: list[str] = []
-    deadline = time.monotonic() + max(args.timeout_ms / 1000.0, 1.0)
+    deadline = time.monotonic() + max(args.timeout_seconds, 1.0)
     while time.monotonic() < deadline:
         try:
             raw = response.readline()
@@ -129,8 +131,12 @@ def read_loop(response: http.client.HTTPResponse, args: argparse.Namespace) -> i
         line = raw.decode("utf-8", errors="replace").rstrip("\r\n")
         if not line:
             if event_name == "metadata" and data_lines:
-                payload = json.loads("\n".join(data_lines))
+                try:
+                    payload = json.loads("\n".join(data_lines))
+                except json.JSONDecodeError as exc:
+                    raise RuntimeError(f"metadata JSON parse failed: {exc}") from exc
                 message_count += 1
+                latest_payload = payload
                 print_metadata(payload, message_count, args)
                 if args.max_messages > 0 and message_count >= args.max_messages:
                     break
@@ -145,19 +151,30 @@ def read_loop(response: http.client.HTTPResponse, args: argparse.Namespace) -> i
             continue
         if line.startswith("data:"):
             data_lines.append(line.split(":", 1)[1].strip())
-    print(f"[summary] metadataMessages={message_count} comments={comment_count}")
     if message_count == 0:
         raise RuntimeError("metadata event was not received before timeout")
+    if args.max_messages > 0 and message_count < args.max_messages and time.monotonic() >= deadline:
+        raise RuntimeError(
+            "timeout before receiving requested metadata messages: "
+            f"received={message_count} requested={args.max_messages}"
+        )
+    print(
+        "[summary] "
+        f"messageCount={message_count} comments={comment_count} "
+        f"schema={latest_payload.get('schema', '-') if latest_payload else '-'} "
+        f"lastTimestamp={latest_timestamp(latest_payload or {})}"
+    )
     return message_count
 
 
 def main() -> int:
     args = parse_args()
-    timeout_s = max(args.timeout_ms / 1000.0, 1.0)
-    print(f"[connect] {args.sse_url}")
+    timeout_s = max(args.timeout_seconds, 1.0)
+    print(f"[connect] {args.url}")
     conn: http.client.HTTPConnection | None = None
     try:
-        conn, response = open_sse(args.sse_url, timeout_s)
+        conn, response = open_sse(args.url, timeout_s)
+        print("[connected]")
         read_loop(response, args)
         return 0
     except Exception as exc:  # noqa: BLE001

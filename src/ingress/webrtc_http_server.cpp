@@ -3543,6 +3543,26 @@ std::string BuildLabRuleEditorPageHtml() {
       color: var(--danger);
       background: var(--secondary-bg);
     }
+    .status-chip.is-phase-candidate {
+      color: #174ea6;
+      background: rgba(66,133,244,0.13);
+    }
+    .status-chip.is-phase-observing {
+      color: #0b6e69;
+      background: rgba(11,110,105,0.14);
+    }
+    .status-chip.is-phase-confirmed {
+      color: #0f5132;
+      background: rgba(34,197,94,0.15);
+    }
+    .status-chip.is-phase-cooldown {
+      color: #9a3412;
+      background: rgba(249,115,22,0.16);
+    }
+    .status-chip.is-phase-ended {
+      color: var(--muted);
+      background: var(--secondary-bg);
+    }
 	    .row-actions {
 	      display: flex;
 	      flex-wrap: wrap;
@@ -5562,6 +5582,18 @@ std::string BuildLabRuleEditorPageHtml() {
                 <table class="dashboard-table" aria-label="Scenario drill-down">
                   <thead><tr><th>Scenario</th><th>Phase</th><th>Track</th><th>Zone/Line</th><th>Elapsed</th><th>Cooldown</th></tr></thead>
                   <tbody id="dashboardScenarioRows"><tr><td class="dashboard-empty-cell" colspan="6">활성 scenario가 표시됩니다.</td></tr></tbody>
+                </table>
+              </div>
+            </section>
+            <section class="dashboard-drilldown-section" aria-labelledby="dashboardScenarioTimelineTitle">
+              <div class="dashboard-section-header">
+                <h3 id="dashboardScenarioTimelineTitle">Scenario Timeline</h3>
+                <p id="dashboardScenarioTimelineSummary" class="dashboard-section-summary">timeline 대기 중</p>
+              </div>
+              <div class="dashboard-table-wrap">
+                <table class="dashboard-table" aria-label="Scenario timeline debug">
+                  <thead><tr><th>Scenario</th><th>Phase</th><th>Track</th><th>Zone</th><th>Line</th><th>Elapsed</th><th>Cooldown</th><th>Recent event</th></tr></thead>
+                  <tbody id="dashboardScenarioTimelineRows"><tr><td class="dashboard-empty-cell" colspan="8">활성 scenario timeline이 표시됩니다.</td></tr></tbody>
                 </table>
               </div>
             </section>
@@ -9099,6 +9131,79 @@ std::string BuildLabRuleEditorPageHtml() {
       return dashboardDuration(track?.zoneState?.dwellTimeMs ?? track?.dwellTimeMs);
     }
 
+    function dashboardFirstDuration(...values) {
+      for (const value of values) {
+        const number = Number(value);
+        if (Number.isFinite(number) && number > 0) {
+          return dashboardDuration(number);
+        }
+      }
+      return '-';
+    }
+
+    function dashboardScenarioElapsed(track) {
+      const scenario = track?.scenarioState || track?.scenario || {};
+      return dashboardFirstDuration(
+        track?.scenarioElapsedMs,
+        track?.phaseElapsedMs,
+        track?.elapsedMs,
+        scenario.elapsedMs,
+        scenario.phaseElapsedMs,
+        scenario.dwellTimeMs,
+        track?.zoneState?.dwellTimeMs,
+        track?.dwellTimeMs
+      );
+    }
+
+    function dashboardScenarioCooldown(track) {
+      const scenario = track?.scenarioState || track?.scenario || {};
+      const cooldown = dashboardFirstDuration(
+        track?.cooldownRemainingMs,
+        track?.eventCooldownRemainingMs,
+        scenario.cooldownRemainingMs,
+        scenario.cooldownMs
+      );
+      if (cooldown !== '-') return cooldown;
+      return track?.eventLifecycle || scenario.phase || '-';
+    }
+
+    function dashboardScenarioLineId(track) {
+      const lineStates = Array.isArray(track?.lineStates) ? track.lineStates : [];
+      const line = lineStates.find((item) => item?.lineId) || null;
+      return track?.primaryLineId || line?.lineId || track?.lineId || '-';
+    }
+
+    function dashboardScenarioPhaseLabel(phase) {
+      const raw = String(phase || '').trim();
+      if (!raw) return '-';
+      const normalized = raw.toLowerCase();
+      const labels = {
+        idle: 'Idle',
+        candidate: 'Candidate',
+        observing: 'Observing',
+        confirmed: 'Confirmed',
+        cooldown: 'Cooldown',
+        ended: 'Ended',
+        'line-crossed': 'Line crossed',
+        'zone-entered': 'Zone entered',
+      };
+      return labels[normalized] || raw;
+    }
+
+    function dashboardScenarioPhaseTone(phase) {
+      const normalized = String(phase || '').trim().toLowerCase();
+      if (normalized === 'candidate' || normalized === 'line-crossed') return 'phase-candidate';
+      if (normalized === 'observing' || normalized === 'zone-entered') return 'phase-observing';
+      if (normalized === 'confirmed') return 'phase-confirmed';
+      if (normalized === 'cooldown') return 'phase-cooldown';
+      if (normalized === 'ended' || normalized === 'idle') return 'phase-ended';
+      return 'scenario';
+    }
+
+    function dashboardScenarioPhaseChip(phase) {
+      return dashboardChip(dashboardScenarioPhaseLabel(phase), dashboardScenarioPhaseTone(phase));
+    }
+
     function dashboardTrackHealthChip(track) {
       const health = track?.trackHealth || {};
       const stable = health.stable !== false && health.status !== 'unstable';
@@ -9189,6 +9294,30 @@ std::string BuildLabRuleEditorPageHtml() {
 	      return `${event.type || '-'} · track ${trackText} · ${item.zoneLine || '-'}`;
 	    }
 
+    function dashboardEventStatusLabel(event) {
+      return event?.action?.post?.enabled ? 'post enabled' : 'local';
+    }
+
+    function dashboardScenarioRecentEventLabel(track, ruleId = '') {
+      const trackId = String(track?.trackId ?? '');
+      const scenarioName = String(track?.scenarioName || '').toLowerCase();
+      const matched = dashboardRecentEvents.find((candidate) => {
+        const event = candidate?.event || {};
+        const object = event.object || {};
+        const sameTrack = trackId && String(object.trackId ?? '') === trackId;
+        const sameRule = !ruleId || String(event.ruleId || '') === String(ruleId);
+        const sameScenario = !scenarioName || String(event.type || '').toLowerCase() === scenarioName;
+        return sameTrack && sameRule && sameScenario;
+      }) || dashboardRecentEvents.find((candidate) => {
+        const event = candidate?.event || {};
+        const object = event.object || {};
+        return trackId && String(object.trackId ?? '') === trackId;
+      });
+      if (!matched) return '-';
+      const event = matched.event || {};
+      return `${event.type || '-'} · ${dashboardEventStatusLabel(event)}`;
+    }
+
 	    function renderDashboardVaRuleDebug({ selectedTap, tapMetrics, stateDump }) {
 	      const { selectedRuleId, rule, tapRuleId } = dashboardSelectedRuleContext(selectedTap);
 	      const hasTap = Boolean(selectedTap);
@@ -9256,11 +9385,41 @@ std::string BuildLabRuleEditorPageHtml() {
         const zoneLine = [dashboardTrackZone(track), lineId].filter((item) => item && item !== '-').join(' / ') || '-';
         dashboardAppendRow('dashboardScenarioRows', [
           track.scenarioName || '-',
-          track.scenarioPhase || '-',
+          dashboardScenarioPhaseChip(track.scenarioPhase),
           track.trackId ?? '-',
           zoneLine,
-          dashboardTrackDwell(track),
-          track.eventLifecycle || '-',
+          dashboardScenarioElapsed(track),
+          dashboardScenarioCooldown(track),
+        ]);
+      }
+    }
+
+    function renderDashboardScenarioTimeline(stateDump, tapMetrics, selectedTap) {
+      const tracks = dashboardDebugTracks(stateDump);
+      const scenarioRows = tracks.filter((track) => track?.scenarioName || track?.scenarioPhase);
+      const eventState = tapMetrics?.metricsReport?.eventState || {};
+      const scenarioState = tapMetrics?.metricsReport?.scenarioState || {};
+      const { selectedRuleId, tapRuleId } = dashboardSelectedRuleContext(selectedTap);
+      const ruleId = selectedRuleId || tapRuleId || '';
+      dashboardSet(
+        'dashboardScenarioTimelineSummary',
+        `rows ${scenarioRows.length} · active ${scenarioState.activeScenarios ?? scenarioRows.length} · emitted ${eventState.eventsEmitted ?? 0} · dedup ${eventState.eventsDeduped ?? 0}`
+      );
+      const tbody = dashboardRowsStart('dashboardScenarioTimelineRows');
+      if (!tbody || scenarioRows.length === 0) {
+        dashboardSetEmptyRows('dashboardScenarioTimelineRows', 8, '현재 표시할 scenario timeline이 없습니다.');
+        return;
+      }
+      for (const track of scenarioRows.slice(0, 100)) {
+        dashboardAppendRow('dashboardScenarioTimelineRows', [
+          track.scenarioName || '-',
+          dashboardScenarioPhaseChip(track.scenarioPhase),
+          track.trackId ?? '-',
+          dashboardTrackZone(track),
+          dashboardScenarioLineId(track),
+          dashboardScenarioElapsed(track),
+          dashboardScenarioCooldown(track),
+          dashboardScenarioRecentEventLabel(track, ruleId),
         ]);
       }
     }
@@ -9418,6 +9577,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	      renderDashboardVaRuleDebug({ selectedTap, tapMetrics, stateDump });
 	      renderDashboardTracks(stateDump, tapMetrics);
 	      renderDashboardScenarios(stateDump, tapMetrics);
+	      renderDashboardScenarioTimeline(stateDump, tapMetrics, selectedTap);
 	      renderDashboardMetadata(runtime);
 	      renderDashboardIssues(tapMetrics);
       const statePre = $('dashboardStateDumpJson');
