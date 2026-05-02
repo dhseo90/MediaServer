@@ -59,6 +59,8 @@ constexpr const char* kEnvAnalysisTrackingDirectionWeight =
 constexpr const char* kEnvAnalysisTrackingClassWeight = "MEDIA_SERVER_ANALYSIS_TRACKING_CLASS_WEIGHT";
 constexpr const char* kEnvAnalysisTrackingMinAssociationScore =
     "MEDIA_SERVER_ANALYSIS_TRACKING_MIN_ASSOCIATION_SCORE";
+constexpr const char* kEnvAnalysisTrackingSmoothingAlpha =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_SMOOTHING_ALPHA";
 constexpr const char* kEnvDefaultAnalysisOverlayWaitMs = "MEDIA_SERVER_ANALYSIS_OVERLAY_WAIT_MS";
 constexpr const char* kEnvDefaultAnalysisOverlaySyncToleranceMs =
     "MEDIA_SERVER_ANALYSIS_OVERLAY_SYNC_TOLERANCE_MS";
@@ -525,6 +527,9 @@ app::AppConfig LoadAppConfig() {
     config.analysis_tracking_min_association_score =
         ReadFloatEnv(kEnvAnalysisTrackingMinAssociationScore,
                      config.analysis_tracking_min_association_score);
+    config.analysis_tracking_smoothing_alpha =
+        ReadFloatEnv(kEnvAnalysisTrackingSmoothingAlpha,
+                     config.analysis_tracking_smoothing_alpha);
     config.default_analysis_overlay_wait_ms =
         ReadIntEnv(kEnvDefaultAnalysisOverlayWaitMs, config.default_analysis_overlay_wait_ms);
     config.default_analysis_overlay_sync_tolerance_ms =
@@ -958,6 +963,13 @@ app::AppConfig LoadAppConfig() {
                   << app_config::kDefaultAnalysisTrackingMinAssociationScore << "\n";
         config.analysis_tracking_min_association_score =
             app_config::kDefaultAnalysisTrackingMinAssociationScore;
+    }
+    if (config.analysis_tracking_smoothing_alpha < 0.0F ||
+        config.analysis_tracking_smoothing_alpha > 0.95F) {
+        std::cerr << "[env] analysis tracking smoothing alpha must be between 0 and 0.95, fallback "
+                  << app_config::kDefaultAnalysisTrackingSmoothingAlpha << "\n";
+        config.analysis_tracking_smoothing_alpha =
+            app_config::kDefaultAnalysisTrackingSmoothingAlpha;
     }
     if (config.default_analysis_overlay_wait_ms < 0) {
         std::cerr << "[env] analysis overlay wait cannot be negative, fallback 0\n";

@@ -54,6 +54,7 @@ inline constexpr float kDefaultAnalysisTrackingDistanceWeight = 0.35F;
 inline constexpr float kDefaultAnalysisTrackingDirectionWeight = 0.15F;
 inline constexpr float kDefaultAnalysisTrackingClassWeight = 0.05F;
 inline constexpr float kDefaultAnalysisTrackingMinAssociationScore = 0.10F;
+inline constexpr float kDefaultAnalysisTrackingSmoothingAlpha = 0.20F;
 inline constexpr int kDefaultAnalysisOverlayWaitMs = 180;
 inline constexpr int kDefaultAnalysisOverlaySyncToleranceMs = 400;
 inline constexpr int kDefaultAnalysisOverlayThickness = 3;

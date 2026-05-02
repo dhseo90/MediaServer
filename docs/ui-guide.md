@@ -192,7 +192,14 @@ EventRecord/snapshot/clip hook:
 DataChannel이 열리지 않거나 JSON parse에 실패해도 영상 재생 자체는 별도 상태로 유지되어야 합니다.
 overlay는 WebRTC browser viewer 전용이며 RTSP 일반 viewer에는 적용되지 않습니다. 이 모드의 video track은 서버가 bbox를 합성하지 않은 원본 영상이고, 브라우저 canvas가 현재 관측 중인 track만 그립니다. 표시 옵션은 박스, 라벨, Track ID, 시나리오, 이벤트 highlight, TrackHealth, 현재 Zone, 체류 시간을 개별로 켜고 끌 수 있습니다.
 metadata가 일정 시간 갱신되지 않으면 stale 상태로 표시하고 overlay를 흐리게 보여줍니다.
-overlay는 DataChannel 수신 즉시 그리지 않고 현재 표시 중인 video frame 기준으로 가장 가까운 metadata를 선택합니다. 상태 패널의 `Metadata 수신`, `Metadata buffer`, `Metadata drop`, `표시 video frame`, `Overlay draw`, `마지막 video frame`, `마지막 metadata`, `영상 멈춤` 값을 함께 보면 metadata 수신과 실제 overlay draw가 분리되어 동작하는지 확인할 수 있습니다.
+overlay는 DataChannel 수신 즉시 그리지 않고 현재 표시 중인 video frame 기준으로 가장 가까운 metadata를 선택합니다. DataChannel은 정상 수신 중이지만 현재 frame에 맞는 metadata가 없으면 `프레임 매칭 실패`로 분리해 표시하며, 짧은 grace window 동안 마지막 overlay를 유지해 불필요한 깜빡임을 줄입니다.
+WebRTC 메타데이터 모드의 기본 client overlay는 `fallback-latest` payload를 받지 않고 `missing` 상태로 처리합니다. 파일 loop 경계처럼 video frame과 분석 결과 PTS가 크게 벌어진 경우 오래된 bbox가 실제 객체와 다른 위치에 그려지는 것을 막기 위한 정책입니다. fallback 확인이 필요하면 `fallback metadata 표시(opt-in)`을 켭니다.
+파일 loop로 metadata timestamp가 되감기면 client overlay buffer와 PTS 보정을 초기화해 새 loop의 bbox를 현재 video frame에 다시 맞춥니다.
+파일 loop 경계에서는 analysis tap의 tracker/track-state도 새 playback cycle로 정리해 이전 loop의 track ID와 lifecycle 상태가 Runtime Dashboard에 누적되지 않게 합니다.
+`BBox 진단 갱신`은 자동 polling 없이 기존 tap을 찾은 뒤 `/lab/analysis/taps/<tapId>/bbox-diagnostics?ptsMs=...`를 한 번 조회해 WebRTC DataChannel track bbox와 near-PTS detector 원본/tracker 보정 bbox를 비교합니다. `Detector 원본 bbox` 표시를 켜면 현재 metadata frame과 가까운 snapshot일 때 tracker smoothing 전 box를 점선으로 겹쳐 볼 수 있습니다.
+진단 table은 `DC selected`, `detector raw`, `track` bbox를 분리해서 보여줍니다. `det↔DC`, `track↔DC`는 IoU와 center distance를 함께 표시하며, `continuity`와 `TrackHealth` 열은 center jump, 가까운 같은 class track, association confidence, overlapRisk, missed count, lost/reacquired 상태를 확인하는 용도입니다.
+초 단위로 overlay가 늦게 따라오면 metadata selector 또는 PTS sync 문제를 먼저 봅니다. `det↔DC`와 `track↔DC`가 높고 center distance가 작지만 ID만 흔들리면 bbox 좌표 문제가 아니라 tracker association/ID continuity 문제로 봅니다. `detector raw`부터 실제 객체와 어긋나면 detector 후처리, model box format, coordinate transform 쪽을 분리해서 확인합니다.
+상태 패널의 `Metadata 수신`, `Metadata buffer`, `Metadata drop`, `프레임 매칭 실패`, `표시 video frame`, `Overlay draw`, `마지막 video frame`, `마지막 metadata`, `영상 멈춤` 값을 함께 보면 metadata 수신과 실제 overlay draw가 분리되어 동작하는지 확인할 수 있습니다.
 영상 frame callback이 멈춘 상태에서는 DataChannel이 계속 열려 있어도 overlay는 갱신하지 않고 stale 상태로 정리합니다.
 
 WebRTC 메타데이터 뷰어 사용 순서:
@@ -203,7 +210,8 @@ WebRTC 메타데이터 뷰어 사용 순서:
 4. 영상은 WebRTC video track으로 재생되고 metadata는 `va-metadata` DataChannel로 수신됩니다.
 5. JSON preview와 Track/이벤트/시나리오 count를 확인합니다.
 6. client-side overlay toggle로 박스/라벨/Track ID/시나리오/이벤트/TrackHealth 표시를 조정합니다.
-7. `보기 중지`를 누르면 WebRTC session과 metadata channel이 닫히고 overlay canvas가 정리됩니다.
+7. bbox 위치가 의심되면 `BBox 진단 갱신`을 눌러 DataChannel/detector/track box의 IoU와 판단 문구를 확인합니다.
+8. `보기 중지`를 누르면 WebRTC session과 metadata channel이 닫히고 overlay canvas가 정리됩니다.
 
 연결 상태:
 

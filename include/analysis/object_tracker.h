@@ -23,7 +23,7 @@ struct ObjectTrackerOptions {
     float direction_weight{app_config::kDefaultAnalysisTrackingDirectionWeight};
     float class_weight{app_config::kDefaultAnalysisTrackingClassWeight};
     float min_association_score{app_config::kDefaultAnalysisTrackingMinAssociationScore};
-    float smoothing_alpha{0.65F};
+    float smoothing_alpha{app_config::kDefaultAnalysisTrackingSmoothingAlpha};
     std::uint32_t min_confirmed_hits{2};
     std::uint32_t max_missed_frames{
         static_cast<std::uint32_t>(app_config::kDefaultAnalysisTrackingLostBufferFrames)};

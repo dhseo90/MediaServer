@@ -156,6 +156,13 @@ WebRTC VA 메타데이터 뷰어 수동 확인:
 7. 상태가 `연결 중`에서 `열림` 또는 `수신 중`으로 전환되고 message count, Track/이벤트/시나리오 count, latest JSON preview가 갱신되는지 확인한다.
 8. DataChannel이 `지연` 또는 `오류`가 되어도 영상 재생 상태가 별도로 유지되는지 확인한다.
 
+WebRTC VA metadata overlay sync 수동 판단 기준:
+
+- 초 단위로 bbox overlay가 영상보다 늦게 따라오면 metadata selector 또는 PTS sync 문제를 먼저 의심한다.
+- `BBox 진단 갱신`에서 `det↔DC`, `track↔DC` IoU가 높고 center distance가 작지만 trackId만 흔들리면 tracker association / ID continuity 문제로 분리한다.
+- `detector raw` bbox부터 실제 객체와 어긋나면 detector 후처리, model box format, letterbox/coordinate transform 문제로 분리한다.
+- `frame matching failure`가 계속 증가하거나 `syncDeltaMs`가 1500~2000ms 이상으로 지속되면 WebRTC metadata selector와 PTS 보정을 다시 확인한다.
+
 WebRTC VA metadata 자동 검증:
 
 ```bash

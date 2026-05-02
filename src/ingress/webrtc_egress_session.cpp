@@ -33,7 +33,7 @@ std::string BuildLaunch(const media::StreamDescriptor& descriptor);
 
 constexpr std::int64_t kWebRtcVideoFrameDurationNs = 33333333;
 constexpr std::int64_t kWebRtcDefaultAudioFrameDurationNs = 20000000;
-constexpr std::size_t kMaxVideoTimestampMappings = 2048;
+constexpr std::size_t kMaxVideoTimestampMappings = 8192;
 constexpr std::int64_t kMaxTimestampMappingDistanceNs = 2000000000LL;
 
 std::int64_t AbsDiff(std::int64_t lhs, std::int64_t rhs) {

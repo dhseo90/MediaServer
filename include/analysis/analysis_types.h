@@ -42,6 +42,9 @@ struct Detection {
     std::string label;
     float score{0.0F};
     RectF box;
+    // detector 원본 box를 보존해 tracker smoothing 이후 표시 위치 차이를 진단한다.
+    bool detector_box_available{false};
+    RectF detector_box;
     // tracker가 켜진 profile에서는 같은 객체를 frame 간 연결하기 위한 안정 ID를 채운다.
     std::uint64_t track_id{0};
     // tracker 내부 association score다. 외부 event payload에는 사용하지 않고 TrackHealth 입력으로 전달한다.

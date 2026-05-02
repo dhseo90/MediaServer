@@ -393,7 +393,23 @@ git diff --check -- README.md docs
 
 - 우선순위 이유: tracker를 바꾸기 전에 현재 direction-based tracker가 어디서 흔들리는지 수치화해야 합니다.
 
-### P5-2. Association 보강 전후 replay 비교
+### P5-2. Close-object association guard / overlapRisk 기반 ID continuity 튜닝 설계
+
+- 상태: 검토
+- 목적: 가까운 동일 class 객체가 겹치는 구간에서 `overlapRisk`, `associationConfidence`, lost/reacquired, missed-frame spike를 이용해 ID continuity 보수화가 필요한지 설계합니다.
+- 관련 파일: `src/analysis/object_tracker.cpp`, `src/analysis/track_state_manager.cpp`, `scripts/internal/verify_tracker_stability.sh`, `docs/video-analysis.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-tracker-stability --long --overlap-focus
+./server.sh verify-va-replay
+./server.sh verify-analysis-state
+```
+
+- 범위 제외: Kalman Filter, ByteTrack, BoT-SORT, Re-ID 모델 같은 대형 tracker 교체는 이 항목의 범위가 아닙니다.
+- 우선순위 이유: 현재 direction-based tracker를 유지한 채 close-object association 한계를 먼저 정량화하고, 이벤트 결과 변화가 없는지 replay로 비교해야 합니다.
+
+### P5-3. Association 보강 전후 replay 비교
 
 - 상태: 예정
 - 목적: IoU + center distance + direction + class score 적용 전후 event 결과와 tracking issue 감소율을 비교합니다.
@@ -407,7 +423,7 @@ git diff --check -- README.md docs
 
 - 우선순위 이유: association 개선은 이벤트 결과를 바꿀 수 있으므로 replay 비교가 필수입니다.
 
-### P5-3. Lost/reacquired 장기 검증
+### P5-4. Lost/reacquired 장기 검증
 
 - 상태: 예정
 - 목적: 짧은 detection 누락에서 같은 track이 유지되고, lost buffer가 무한 증가하지 않는지 확인합니다.
@@ -421,7 +437,7 @@ git diff --check -- README.md docs
 
 - 우선순위 이유: 상황 기반 이벤트는 track 시간 연속성이 핵심입니다.
 
-### P5-4. 실제 Re-ID enabled 모델 benchmark
+### P5-5. 실제 Re-ID enabled 모델 benchmark
 
 - 상태: 실험
 - 목적: 기본 disabled 상태를 유지하면서 모델 파일이 있을 때만 Re-ID extractor 성능과 품질을 측정합니다.
@@ -434,7 +450,7 @@ git diff --check -- README.md docs
 
 - 우선순위 이유: Re-ID는 다채널 CPU/GPU 비용과 개인정보 영향이 커서 실험 결과 없이 기본 기능으로 승격하면 안 됩니다.
 
-### P5-5. Appearance/embedding 운영 정책
+### P5-6. Appearance/embedding 운영 정책
 
 - 상태: 예정
 - 목적: embedding 저장 기간, 암호화/삭제, 개인정보 안내, attribute extractor 유지 여부를 정리합니다.
