@@ -57,6 +57,30 @@ struct Detection {
     int event_highlight_duration_ms{1200};
 };
 
+struct CloseObjectAssociationDiagnostic {
+    std::uint64_t track_id{0};
+    std::size_t detection_index{0};
+    int class_id{-1};
+    std::string class_name;
+    std::string mode{"off"};
+    float close_object_risk{0.0F};
+    std::uint64_t nearest_same_class_track_id{0};
+    float nearest_same_class_distance{0.0F};
+    bool nearest_same_class_distance_available{false};
+    float candidate_score{0.0F};
+    float ranking_score{0.0F};
+    float best_score{0.0F};
+    float second_score{0.0F};
+    float score_margin{1.0F};
+    float center_jump{0.0F};
+    bool direction_conflict{false};
+    bool would_penalize{false};
+    bool would_hold_reacquire{false};
+    bool matched{false};
+    bool rejected{false};
+    std::string guard_decision{"off"};
+};
+
 struct Track {
     struct TrailPoint {
         float x{0.0F};
@@ -308,6 +332,7 @@ struct AnalysisResult {
     int frame_height{0};
     std::vector<Detection> detections;
     std::vector<Track> tracks;
+    std::vector<CloseObjectAssociationDiagnostic> close_object_diagnostics;
     std::vector<PoseKeypoint> pose_keypoints;
     bool debug_state_requested{false};
     bool debug_state_log_enabled{false};

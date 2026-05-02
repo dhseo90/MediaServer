@@ -6,9 +6,38 @@
 #include "analysis/category_tokens.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
+#include <limits>
 
 namespace analysis {
+
+CloseObjectGuardMode ParseCloseObjectGuardMode(const std::string& value) {
+    std::string normalized = value;
+    std::transform(normalized.begin(),
+                   normalized.end(),
+                   normalized.begin(),
+                   [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+    if (normalized == "diagnostic" || normalized == "diagnostics" || normalized == "diag") {
+        return CloseObjectGuardMode::Diagnostic;
+    }
+    if (normalized == "enforce" || normalized == "guard") {
+        return CloseObjectGuardMode::Enforce;
+    }
+    return CloseObjectGuardMode::Off;
+}
+
+std::string CloseObjectGuardModeToString(CloseObjectGuardMode mode) {
+    switch (mode) {
+        case CloseObjectGuardMode::Diagnostic:
+            return "diagnostic";
+        case CloseObjectGuardMode::Enforce:
+            return "enforce";
+        case CloseObjectGuardMode::Off:
+        default:
+            return "off";
+    }
+}
 
 namespace {
 
@@ -194,6 +223,18 @@ ObjectTracker::ObjectTracker(ObjectTrackerOptions options) : options_(options) {
     }
     options_.min_association_score = std::max(0.0F, std::min(1.0F, options_.min_association_score));
     options_.smoothing_alpha = std::max(0.0F, std::min(0.95F, options_.smoothing_alpha));
+    options_.close_object_distance_ratio =
+        std::max(0.01F, std::min(4.0F, options_.close_object_distance_ratio));
+    options_.close_object_overlap_threshold =
+        std::max(0.0F, std::min(1.0F, options_.close_object_overlap_threshold));
+    options_.close_object_low_margin_threshold =
+        std::max(0.01F, std::min(1.0F, options_.close_object_low_margin_threshold));
+    options_.close_object_center_jump_penalty =
+        std::max(0.0F, std::min(1.0F, options_.close_object_center_jump_penalty));
+    options_.close_object_min_score_boost =
+        std::max(0.0F, std::min(1.0F, options_.close_object_min_score_boost));
+    options_.max_close_object_diagnostics =
+        std::max<std::size_t>(1, std::min<std::size_t>(256, options_.max_close_object_diagnostics));
     options_.min_confirmed_hits = std::max<std::uint32_t>(1, options_.min_confirmed_hits);
     options_.max_missed_frames = std::max<std::uint32_t>(1, options_.max_missed_frames);
     options_.max_trail_points = std::max<std::size_t>(2, std::min<std::size_t>(256, options_.max_trail_points));
@@ -215,11 +256,15 @@ void ObjectTracker::Update(AnalysisResult* result) {
     if (result == nullptr) {
         return;
     }
+    result->close_object_diagnostics.clear();
 
     struct Candidate {
         std::size_t track_index{0};
         std::size_t detection_index{0};
         ObjectAssociationScore score;
+        float ranking_score{0.0F};
+        CloseObjectAssociationDiagnostic diagnostic;
+        bool has_diagnostic{false};
     };
 
     std::vector<Candidate> candidates;
@@ -246,17 +291,148 @@ void ObjectTracker::Update(AnalysisResult* result) {
                 score.final_score < options_.min_association_score) {
                 continue;
             }
-            candidates.push_back(Candidate{track_index, detection_index, score});
+            candidates.push_back(Candidate{track_index, detection_index, score, score.final_score});
+        }
+    }
+
+    const bool close_object_diagnostics_enabled =
+        options_.close_object_guard_mode != CloseObjectGuardMode::Off;
+    if (close_object_diagnostics_enabled) {
+        const std::string guard_mode = CloseObjectGuardModeToString(options_.close_object_guard_mode);
+        for (Candidate& candidate : candidates) {
+            const ActiveTrack& track = tracks_[candidate.track_index];
+            const Detection& detection = result->detections[candidate.detection_index];
+
+            float best_score = 0.0F;
+            float second_score = 0.0F;
+            for (const Candidate& peer : candidates) {
+                if (peer.detection_index != candidate.detection_index) {
+                    continue;
+                }
+                const float score = peer.score.final_score;
+                if (score > best_score) {
+                    second_score = best_score;
+                    best_score = score;
+                } else if (score > second_score) {
+                    second_score = score;
+                }
+            }
+            const float score_margin = std::max(0.0F, best_score - second_score);
+
+            float nearest_distance = std::numeric_limits<float>::max();
+            float nearest_overlap = 0.0F;
+            std::uint64_t nearest_track_id = 0;
+            for (std::size_t track_index = 0; track_index < tracks_.size(); ++track_index) {
+                if (track_index == candidate.track_index) {
+                    continue;
+                }
+                const Track& peer = tracks_[track_index].public_track;
+                if (!SameClass(peer.detection, detection)) {
+                    continue;
+                }
+                const float distance = CenterDistance(peer.detection.box, detection.box);
+                if (distance < nearest_distance) {
+                    nearest_distance = distance;
+                    nearest_track_id = peer.track_id;
+                }
+                nearest_overlap = std::max(nearest_overlap, IoU(peer.detection.box, detection.box));
+            }
+
+            const float center_jump = CenterDistance(track.public_track.detection.box, detection.box);
+            const bool direction_conflict =
+                candidate.score.direction_score < 0.35F &&
+                center_jump > options_.max_center_distance * 0.5F;
+            const bool has_nearest = nearest_track_id > 0 &&
+                                     nearest_distance < std::numeric_limits<float>::max();
+            const float distance_threshold =
+                std::max(0.001F, options_.max_center_distance * options_.close_object_distance_ratio);
+            const float proximity_component =
+                has_nearest ? Clamp01(1.0F - nearest_distance / distance_threshold) : 0.0F;
+            const float overlap_component =
+                options_.close_object_overlap_threshold > 0.0F
+                    ? Clamp01(nearest_overlap / options_.close_object_overlap_threshold)
+                    : (nearest_overlap > 0.0F ? 1.0F : 0.0F);
+            const float spatial_component = std::max(proximity_component, overlap_component);
+            const float low_margin_component =
+                Clamp01(1.0F - score_margin / options_.close_object_low_margin_threshold);
+            const float low_score_component = Clamp01(1.0F - candidate.score.final_score);
+            const float jump_component = Clamp01(center_jump / options_.max_center_distance);
+            const float ambiguity_component = std::max(low_margin_component, low_score_component);
+            const float close_object_risk =
+                spatial_component <= 0.0F
+                    ? 0.0F
+                    : Clamp01(spatial_component * 0.65F + ambiguity_component * 0.25F +
+                              jump_component * 0.10F);
+
+            CloseObjectAssociationDiagnostic diagnostic;
+            diagnostic.track_id = track.public_track.track_id;
+            diagnostic.detection_index = candidate.detection_index;
+            diagnostic.class_id = detection.class_id;
+            diagnostic.class_name = detection.label;
+            diagnostic.mode = guard_mode;
+            diagnostic.close_object_risk = close_object_risk;
+            diagnostic.nearest_same_class_track_id = nearest_track_id;
+            diagnostic.nearest_same_class_distance_available = has_nearest;
+            diagnostic.nearest_same_class_distance = has_nearest ? nearest_distance : 0.0F;
+            diagnostic.candidate_score = candidate.score.final_score;
+            diagnostic.ranking_score = candidate.ranking_score;
+            diagnostic.best_score = best_score;
+            diagnostic.second_score = second_score;
+            diagnostic.score_margin = score_margin;
+            diagnostic.center_jump = center_jump;
+            diagnostic.direction_conflict = direction_conflict;
+            diagnostic.would_penalize =
+                close_object_risk >= 0.25F &&
+                (direction_conflict ||
+                 center_jump >= options_.max_center_distance ||
+                 score_margin <= options_.close_object_low_margin_threshold);
+            diagnostic.would_hold_reacquire =
+                track.public_track.missed > 0 &&
+                close_object_risk >= 0.25F &&
+                (candidate.score.final_score < 0.75F ||
+                 score_margin <= options_.close_object_low_margin_threshold);
+            diagnostic.guard_decision = "observe";
+
+            if (options_.close_object_guard_mode == CloseObjectGuardMode::Enforce) {
+                float adjusted_score = candidate.score.final_score;
+                if (diagnostic.would_penalize) {
+                    adjusted_score -= options_.close_object_center_jump_penalty * close_object_risk;
+                    diagnostic.guard_decision = "enforce-penalize";
+                }
+                if (!direction_conflict && track.public_track.missed == 0 &&
+                    track.public_track.hits >= options_.min_confirmed_hits &&
+                    close_object_risk > 0.0F &&
+                    score_margin <= options_.close_object_low_margin_threshold) {
+                    adjusted_score += options_.close_object_min_score_boost * close_object_risk;
+                    if (diagnostic.guard_decision == "observe") {
+                        diagnostic.guard_decision = "enforce-continuity-bias";
+                    }
+                }
+                candidate.ranking_score = Clamp01(adjusted_score);
+                diagnostic.ranking_score = candidate.ranking_score;
+            } else if (diagnostic.would_hold_reacquire) {
+                diagnostic.guard_decision = "would-hold-reacquire";
+            } else if (diagnostic.would_penalize) {
+                diagnostic.guard_decision = "would-penalize";
+            }
+
+            candidate.diagnostic = std::move(diagnostic);
+            candidate.has_diagnostic = true;
         }
     }
 
     std::sort(candidates.begin(), candidates.end(), [](const Candidate& lhs, const Candidate& rhs) {
-        return lhs.score.final_score > rhs.score.final_score;
+        if (lhs.ranking_score == rhs.ranking_score) {
+            return lhs.score.final_score > rhs.score.final_score;
+        }
+        return lhs.ranking_score > rhs.ranking_score;
     });
 
     std::vector<bool> matched_tracks(tracks_.size(), false);
     std::vector<bool> matched_detections(result->detections.size(), false);
-    for (const Candidate& candidate : candidates) {
+    std::vector<bool> selected_candidates(candidates.size(), false);
+    for (std::size_t candidate_index = 0; candidate_index < candidates.size(); ++candidate_index) {
+        const Candidate& candidate = candidates[candidate_index];
         if (matched_tracks[candidate.track_index] || matched_detections[candidate.detection_index]) {
             continue;
         }
@@ -265,7 +441,7 @@ void ObjectTracker::Update(AnalysisResult* result) {
         Detection detection = result->detections[candidate.detection_index];
         const bool was_lost_buffer_track = track.public_track.missed > 0;
         detection.track_id = track.public_track.track_id;
-        detection.association_confidence = candidate.score.final_score;
+        detection.association_confidence = candidate.ranking_score;
         detection.box = SmoothRect(track.public_track.detection.box, detection.box, options_.smoothing_alpha);
 
         track.public_track.detection = detection;
@@ -280,6 +456,36 @@ void ObjectTracker::Update(AnalysisResult* result) {
         result->detections[candidate.detection_index] = detection;
         matched_tracks[candidate.track_index] = true;
         matched_detections[candidate.detection_index] = true;
+        selected_candidates[candidate_index] = true;
+    }
+
+    if (close_object_diagnostics_enabled) {
+        result->close_object_diagnostics.reserve(
+            std::min(options_.max_close_object_diagnostics, candidates.size()));
+        for (std::size_t candidate_index = 0; candidate_index < candidates.size(); ++candidate_index) {
+            const Candidate& candidate = candidates[candidate_index];
+            if (!candidate.has_diagnostic) {
+                continue;
+            }
+            CloseObjectAssociationDiagnostic diagnostic = candidate.diagnostic;
+            diagnostic.matched = selected_candidates[candidate_index];
+            diagnostic.rejected =
+                !diagnostic.matched &&
+                (matched_tracks[candidate.track_index] || matched_detections[candidate.detection_index]);
+            const bool emit =
+                diagnostic.matched ||
+                diagnostic.close_object_risk >= 0.05F ||
+                diagnostic.score_margin <= options_.close_object_low_margin_threshold ||
+                diagnostic.would_penalize ||
+                diagnostic.would_hold_reacquire;
+            if (!emit) {
+                continue;
+            }
+            result->close_object_diagnostics.push_back(std::move(diagnostic));
+            if (result->close_object_diagnostics.size() >= options_.max_close_object_diagnostics) {
+                break;
+            }
+        }
     }
 
     for (std::size_t detection_index = 0; detection_index < result->detections.size(); ++detection_index) {

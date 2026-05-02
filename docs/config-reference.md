@@ -138,6 +138,15 @@
 | `MEDIA_SERVER_ANALYSIS_TRACKING_CLASS_WEIGHT` | `0.05` | association class consistency weight |
 | `MEDIA_SERVER_ANALYSIS_TRACKING_MIN_ASSOCIATION_SCORE` | `0.10` | matching 최소 점수 |
 | `MEDIA_SERVER_ANALYSIS_TRACKING_SMOOTHING_ALPHA` | `0.20` | bbox smoothing 비율. 높을수록 흔들림은 줄지만 moving object overlay가 뒤따라감 |
+| `MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE` | `off` | close-object association guard 모드. `off`는 기존 동작, `diagnostic`은 후보 진단만 수집, `enforce`에서만 opt-in score 보정 skeleton 적용 |
+| `MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_DISTANCE_RATIO` | `0.65` | 같은 class track/detection 근접 위험을 계산할 때 `max_center_distance`에 곱하는 비율 |
+| `MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_OVERLAP_THRESHOLD` | `0.20` | close-object overlap risk 계산 기준 |
+| `MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_LOW_MARGIN_THRESHOLD` | `0.08` | best/second association score margin이 낮다고 볼 기준 |
+| `MEDIA_SERVER_ANALYSIS_TRACKING_CENTER_JUMP_PENALTY` | `0.10` | `enforce` 모드에서 큰 center jump 후보에 적용할 수 있는 score 감점 상한 |
+| `MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_MIN_SCORE_BOOST` | `0.03` | `enforce` 모드에서 안정 track continuity 후보에 적용할 수 있는 작은 score 보정 |
+| `MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_MAX_DIAGNOSTICS` | `64` | frame별 close-object candidate diagnostic 보관 상한 |
+
+지원 값은 `off`, `diagnostic`, `enforce`입니다. close-object guard는 lightweight direction-based tracker 내부의 opt-in 진단/보정 skeleton이다. 기본 `off`에서는 scoring, Event POST payload, WebRTC/SSE/WS metadata schema, Scenario 판단이 바뀌지 않는다. `diagnostic`은 `closeObjectRisk`, `scoreMargin`, `centerJump`, `guardDecision` 같은 후보 진단만 남기며 tracking 결과를 바꾸지 않는다. `enforce`는 실험적 opt-in으로 center jump penalty와 continuity boost 후보를 ranking에 반영할 수 있지만 default on 전환은 보류한다. Kalman, ByteTrack, BoT-SORT, Re-ID 모델 도입이 아니다.
 
 ### TrackState/cleanup
 

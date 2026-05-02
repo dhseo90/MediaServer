@@ -198,6 +198,8 @@ WebRTC 메타데이터 모드의 기본 client overlay는 `fallback-latest` payl
 파일 loop 경계에서는 analysis tap의 tracker/track-state도 새 playback cycle로 정리해 이전 loop의 track ID와 lifecycle 상태가 Runtime Dashboard에 누적되지 않게 합니다.
 `BBox 진단 갱신`은 자동 polling 없이 기존 tap을 찾은 뒤 `/lab/analysis/taps/<tapId>/bbox-diagnostics?ptsMs=...`를 한 번 조회해 WebRTC DataChannel track bbox와 near-PTS detector 원본/tracker 보정 bbox를 비교합니다. `Detector 원본 bbox` 표시를 켜면 현재 metadata frame과 가까운 snapshot일 때 tracker smoothing 전 box를 점선으로 겹쳐 볼 수 있습니다.
 진단 table은 `DC selected`, `detector raw`, `track` bbox를 분리해서 보여줍니다. `det↔DC`, `track↔DC`는 IoU와 center distance를 함께 표시하며, `continuity`와 `TrackHealth` 열은 center jump, 가까운 같은 class track, association confidence, overlapRisk, missed count, lost/reacquired 상태를 확인하는 용도입니다.
+`close-object guard` 열은 같은 class 객체가 가까운 구간의 tracker association 진단값을 보여줍니다. `closeObjectRisk`, `nearestSameClassTrackId`, best/second score, `scoreMargin`, `centerJump`, direction conflict, would-penalize/hold-reacquire, `guardMode`, `guardDecision`은 진단용이며 `diagnostic-only` 모드에서는 tracking 결과를 바꾸지 않습니다. 기본 정책은 `guard off`이고 기존 동작을 유지합니다. `diagnostic-only`는 score 변경 없는 관찰, `enforce`는 실험적 opt-in score 보정 skeleton 적용 상태를 뜻하며 default on 전환은 보류합니다.
+`closeObjectGuardApplied`가 `false`이면 `enforce` 모드라도 해당 row의 ranking score는 보정되지 않은 상태입니다. 값이 없으면 `미제공` 또는 `guard off`로 표시해 direct tap/source tap과 실제 tracker 진단 부재를 구분합니다.
 초 단위로 overlay가 늦게 따라오면 metadata selector 또는 PTS sync 문제를 먼저 봅니다. `det↔DC`와 `track↔DC`가 높고 center distance가 작지만 ID만 흔들리면 bbox 좌표 문제가 아니라 tracker association/ID continuity 문제로 봅니다. `detector raw`부터 실제 객체와 어긋나면 detector 후처리, model box format, coordinate transform 쪽을 분리해서 확인합니다.
 상태 패널의 `Metadata 수신`, `Metadata buffer`, `Metadata drop`, `프레임 매칭 실패`, `표시 video frame`, `Overlay draw`, `마지막 video frame`, `마지막 metadata`, `영상 멈춤` 값을 함께 보면 metadata 수신과 실제 overlay draw가 분리되어 동작하는지 확인할 수 있습니다.
 영상 frame callback이 멈춘 상태에서는 DataChannel이 계속 열려 있어도 overlay는 갱신하지 않고 stale 상태로 정리합니다.
@@ -308,7 +310,7 @@ VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보
 - 발생 / 중복 억제 이벤트 수
 - Events: 최근 event, eventType, trackId, class/rule, zone/line, status
 - Metadata / Backpressure: WebRTC DataChannel sent/dropped/skipped/failure, max buffered amount, SSE/WS client count, metadata JSON build/payload size, RTSP/GStreamer debug counter 요약, analytics queue pending/capacity/peak/drop, client stale/fallback count
-- Tracking Issues: issue type, trackId, severity, timestamp, health 요약
+- Tracking Issues: issue type, trackId, severity, timestamp, health/guard 요약. close-object diagnostic이 켜져 있으면 close-object-risk, low-margin-association, center-jump-risk, reacquire candidate를 함께 보여줌
 - TrackHealth unstable count
 - overlapRisk count
 - 이벤트 POST 상태

@@ -3,6 +3,7 @@
 // 동작 요약: 잘못된 값은 안전한 기본값으로 보정하고 필요한 경고를 표준 오류에 남긴다.
 #include "app_config.h"
 
+#include <algorithm>
 #include <cerrno>
 #include <cctype>
 #include <cstdlib>
@@ -61,6 +62,20 @@ constexpr const char* kEnvAnalysisTrackingMinAssociationScore =
     "MEDIA_SERVER_ANALYSIS_TRACKING_MIN_ASSOCIATION_SCORE";
 constexpr const char* kEnvAnalysisTrackingSmoothingAlpha =
     "MEDIA_SERVER_ANALYSIS_TRACKING_SMOOTHING_ALPHA";
+constexpr const char* kEnvAnalysisTrackingCloseObjectGuardMode =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE";
+constexpr const char* kEnvAnalysisTrackingCloseObjectDistanceRatio =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_DISTANCE_RATIO";
+constexpr const char* kEnvAnalysisTrackingCloseObjectOverlapThreshold =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_OVERLAP_THRESHOLD";
+constexpr const char* kEnvAnalysisTrackingCloseObjectLowMarginThreshold =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_LOW_MARGIN_THRESHOLD";
+constexpr const char* kEnvAnalysisTrackingCenterJumpPenalty =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_CENTER_JUMP_PENALTY";
+constexpr const char* kEnvAnalysisTrackingCloseObjectMinScoreBoost =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_MIN_SCORE_BOOST";
+constexpr const char* kEnvAnalysisTrackingCloseObjectMaxDiagnostics =
+    "MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_MAX_DIAGNOSTICS";
 constexpr const char* kEnvDefaultAnalysisOverlayWaitMs = "MEDIA_SERVER_ANALYSIS_OVERLAY_WAIT_MS";
 constexpr const char* kEnvDefaultAnalysisOverlaySyncToleranceMs =
     "MEDIA_SERVER_ANALYSIS_OVERLAY_SYNC_TOLERANCE_MS";
@@ -530,6 +545,27 @@ app::AppConfig LoadAppConfig() {
     config.analysis_tracking_smoothing_alpha =
         ReadFloatEnv(kEnvAnalysisTrackingSmoothingAlpha,
                      config.analysis_tracking_smoothing_alpha);
+    config.analysis_tracking_close_object_guard_mode =
+        ReadStringEnv(kEnvAnalysisTrackingCloseObjectGuardMode,
+                      config.analysis_tracking_close_object_guard_mode);
+    config.analysis_tracking_close_object_distance_ratio =
+        ReadFloatEnv(kEnvAnalysisTrackingCloseObjectDistanceRatio,
+                     config.analysis_tracking_close_object_distance_ratio);
+    config.analysis_tracking_close_object_overlap_threshold =
+        ReadFloatEnv(kEnvAnalysisTrackingCloseObjectOverlapThreshold,
+                     config.analysis_tracking_close_object_overlap_threshold);
+    config.analysis_tracking_close_object_low_margin_threshold =
+        ReadFloatEnv(kEnvAnalysisTrackingCloseObjectLowMarginThreshold,
+                     config.analysis_tracking_close_object_low_margin_threshold);
+    config.analysis_tracking_center_jump_penalty =
+        ReadFloatEnv(kEnvAnalysisTrackingCenterJumpPenalty,
+                     config.analysis_tracking_center_jump_penalty);
+    config.analysis_tracking_close_object_min_score_boost =
+        ReadFloatEnv(kEnvAnalysisTrackingCloseObjectMinScoreBoost,
+                     config.analysis_tracking_close_object_min_score_boost);
+    config.analysis_tracking_close_object_max_diagnostics =
+        ReadSizeEnv(kEnvAnalysisTrackingCloseObjectMaxDiagnostics,
+                    config.analysis_tracking_close_object_max_diagnostics);
     config.default_analysis_overlay_wait_ms =
         ReadIntEnv(kEnvDefaultAnalysisOverlayWaitMs, config.default_analysis_overlay_wait_ms);
     config.default_analysis_overlay_sync_tolerance_ms =
@@ -970,6 +1006,60 @@ app::AppConfig LoadAppConfig() {
                   << app_config::kDefaultAnalysisTrackingSmoothingAlpha << "\n";
         config.analysis_tracking_smoothing_alpha =
             app_config::kDefaultAnalysisTrackingSmoothingAlpha;
+    }
+    std::transform(config.analysis_tracking_close_object_guard_mode.begin(),
+                   config.analysis_tracking_close_object_guard_mode.end(),
+                   config.analysis_tracking_close_object_guard_mode.begin(),
+                   [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+    if (config.analysis_tracking_close_object_guard_mode != "off" &&
+        config.analysis_tracking_close_object_guard_mode != "diagnostic" &&
+        config.analysis_tracking_close_object_guard_mode != "enforce") {
+        std::cerr << "[env] analysis tracking close-object guard mode must be off, diagnostic, or enforce, fallback "
+                  << app_config::kDefaultAnalysisTrackingCloseObjectGuardMode << "\n";
+        config.analysis_tracking_close_object_guard_mode =
+            app_config::kDefaultAnalysisTrackingCloseObjectGuardMode;
+    }
+    if (config.analysis_tracking_close_object_distance_ratio <= 0.0F ||
+        config.analysis_tracking_close_object_distance_ratio > 4.0F) {
+        std::cerr << "[env] analysis tracking close-object distance ratio must be within (0,4], fallback "
+                  << app_config::kDefaultAnalysisTrackingCloseObjectDistanceRatio << "\n";
+        config.analysis_tracking_close_object_distance_ratio =
+            app_config::kDefaultAnalysisTrackingCloseObjectDistanceRatio;
+    }
+    if (config.analysis_tracking_close_object_overlap_threshold < 0.0F ||
+        config.analysis_tracking_close_object_overlap_threshold > 1.0F) {
+        std::cerr << "[env] analysis tracking close-object overlap threshold must be between 0 and 1, fallback "
+                  << app_config::kDefaultAnalysisTrackingCloseObjectOverlapThreshold << "\n";
+        config.analysis_tracking_close_object_overlap_threshold =
+            app_config::kDefaultAnalysisTrackingCloseObjectOverlapThreshold;
+    }
+    if (config.analysis_tracking_close_object_low_margin_threshold <= 0.0F ||
+        config.analysis_tracking_close_object_low_margin_threshold > 1.0F) {
+        std::cerr << "[env] analysis tracking close-object low margin threshold must be within (0,1], fallback "
+                  << app_config::kDefaultAnalysisTrackingCloseObjectLowMarginThreshold << "\n";
+        config.analysis_tracking_close_object_low_margin_threshold =
+            app_config::kDefaultAnalysisTrackingCloseObjectLowMarginThreshold;
+    }
+    if (config.analysis_tracking_center_jump_penalty < 0.0F ||
+        config.analysis_tracking_center_jump_penalty > 1.0F) {
+        std::cerr << "[env] analysis tracking center jump penalty must be between 0 and 1, fallback "
+                  << app_config::kDefaultAnalysisTrackingCenterJumpPenalty << "\n";
+        config.analysis_tracking_center_jump_penalty =
+            app_config::kDefaultAnalysisTrackingCenterJumpPenalty;
+    }
+    if (config.analysis_tracking_close_object_min_score_boost < 0.0F ||
+        config.analysis_tracking_close_object_min_score_boost > 1.0F) {
+        std::cerr << "[env] analysis tracking close-object min score boost must be between 0 and 1, fallback "
+                  << app_config::kDefaultAnalysisTrackingCloseObjectMinScoreBoost << "\n";
+        config.analysis_tracking_close_object_min_score_boost =
+            app_config::kDefaultAnalysisTrackingCloseObjectMinScoreBoost;
+    }
+    if (config.analysis_tracking_close_object_max_diagnostics == 0 ||
+        config.analysis_tracking_close_object_max_diagnostics > 256) {
+        std::cerr << "[env] analysis tracking close-object max diagnostics must be 1..256, fallback "
+                  << app_config::kDefaultAnalysisTrackingCloseObjectMaxDiagnostics << "\n";
+        config.analysis_tracking_close_object_max_diagnostics =
+            app_config::kDefaultAnalysisTrackingCloseObjectMaxDiagnostics;
     }
     if (config.default_analysis_overlay_wait_ms < 0) {
         std::cerr << "[env] analysis overlay wait cannot be negative, fallback 0\n";

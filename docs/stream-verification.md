@@ -75,6 +75,26 @@ WebRTC/stream 변경:
 ./server.sh verify-tracker-stability --long --overlap-focus
 ```
 
+Close-object guard 검증은 guard off 회귀, diagnostic 회귀, enforce opt-in 비교를 분리합니다. 기본값은 `off`이므로 먼저 일반 회귀가 baseline을 유지하는지 확인하고, `diagnostic` 모드에서 score 변경 없이 metadata/UI 진단만 노출되는지 확인한 뒤, `enforce` 모드에서 같은 fixture를 다시 실행해 ID continuity 지표만 비교합니다.
+
+```bash
+./server.sh verify-tracker-stability --long --overlap-focus
+./server.sh verify-va-replay
+./server.sh verify-analysis-state
+
+MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=diagnostic ./server.sh verify-analysis-state
+MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=diagnostic ./server.sh verify-va-replay
+MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=diagnostic ./server.sh verify-va-events
+MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=diagnostic ./server.sh verify-webrtc-va-metadata-sync --file imports/va_tracking_event_1280x720_30fps_h264.mp4
+MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=diagnostic ./server.sh verify-va-runtime-console
+
+MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verify-tracker-stability --long --overlap-focus
+MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verify-va-replay
+MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verify-analysis-state
+```
+
+비교 기준은 associationConfidence 최저값, overlapRisk 최대값, center jump 최대값, lost/reacquired, missed-frame-spike, direction-change-spike, trackId swap 여부입니다. `verify-va-replay` 또는 event/scenario 결과가 흔들리면 guard는 default off로 유지합니다. default on 전환은 여러 fixture와 현장 샘플에서 ID continuity 개선과 replay/event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
+
 반복 다채널 VA 검증:
 
 ```bash
@@ -162,6 +182,8 @@ WebRTC VA metadata overlay sync 수동 판단 기준:
 - `BBox 진단 갱신`에서 `det↔DC`, `track↔DC` IoU가 높고 center distance가 작지만 trackId만 흔들리면 tracker association / ID continuity 문제로 분리한다.
 - `detector raw` bbox부터 실제 객체와 어긋나면 detector 후처리, model box format, letterbox/coordinate transform 문제로 분리한다.
 - `frame matching failure`가 계속 증가하거나 `syncDeltaMs`가 1500~2000ms 이상으로 지속되면 WebRTC metadata selector와 PTS 보정을 다시 확인한다.
+- close-object guard mode가 `diagnostic`이면 `closeObjectRisk`, `scoreMargin`, `centerJump`, `guardDecision`만 보고 score 변경은 없다고 판단한다. `enforce`에서는 `closeObjectGuardApplied`, would-penalize/hold-reacquire, rejected 후보 수를 함께 보고 실제 보정 여부를 분리한다.
+- det/DC/track bbox가 서로 잘 맞는데 ID만 흔들리면 WebRTC DataChannel schema나 canvas scale 문제가 아니라 tracker association 후보로 본다.
 
 WebRTC VA metadata 자동 검증:
 
