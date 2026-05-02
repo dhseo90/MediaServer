@@ -13,7 +13,9 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <mutex>
+#include <optional>
 #include <sstream>
 #include <thread>
 #include <utility>
@@ -156,6 +158,329 @@ std::string EventRecordJson(const EventRecord& record) {
         << "\"metadata\":" << (record.metadata_json.empty() ? "{}" : record.metadata_json)
         << "}";
     return out.str();
+}
+
+std::string TrimCopy(std::string value) {
+    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front())) != 0) {
+        value.erase(value.begin());
+    }
+    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.back())) != 0) {
+        value.pop_back();
+    }
+    return value;
+}
+
+void SkipWhitespace(const std::string& json, std::size_t* pos) {
+    while (pos != nullptr && *pos < json.size() &&
+           std::isspace(static_cast<unsigned char>(json[*pos])) != 0) {
+        ++(*pos);
+    }
+}
+
+bool SkipJsonString(const std::string& json, std::size_t* pos, std::string* decoded = nullptr) {
+    if (pos == nullptr || *pos >= json.size() || json[*pos] != '"') {
+        return false;
+    }
+    ++(*pos);
+    bool escaped = false;
+    std::string out;
+    for (; *pos < json.size(); ++(*pos)) {
+        const char ch = json[*pos];
+        if (escaped) {
+            switch (ch) {
+                case 'n':
+                    out.push_back('\n');
+                    break;
+                case 'r':
+                    out.push_back('\r');
+                    break;
+                case 't':
+                    out.push_back('\t');
+                    break;
+                case '"':
+                case '\\':
+                case '/':
+                    out.push_back(ch);
+                    break;
+                default:
+                    out.push_back(ch);
+                    break;
+            }
+            escaped = false;
+            continue;
+        }
+        if (ch == '\\') {
+            escaped = true;
+            continue;
+        }
+        if (ch == '"') {
+            ++(*pos);
+            if (decoded != nullptr) {
+                *decoded = std::move(out);
+            }
+            return true;
+        }
+        out.push_back(ch);
+    }
+    return false;
+}
+
+bool SkipDelimitedJsonValue(const std::string& json,
+                            std::size_t* pos,
+                            char open_ch,
+                            char close_ch) {
+    if (pos == nullptr || *pos >= json.size() || json[*pos] != open_ch) {
+        return false;
+    }
+    int depth = 0;
+    for (; *pos < json.size(); ++(*pos)) {
+        const char ch = json[*pos];
+        if (ch == '"') {
+            if (!SkipJsonString(json, pos)) {
+                return false;
+            }
+            --(*pos);
+            continue;
+        }
+        if (ch == open_ch) {
+            ++depth;
+        } else if (ch == close_ch) {
+            --depth;
+            if (depth == 0) {
+                ++(*pos);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool SkipJsonValue(const std::string& json, std::size_t* pos) {
+    if (pos == nullptr) {
+        return false;
+    }
+    SkipWhitespace(json, pos);
+    if (*pos >= json.size()) {
+        return false;
+    }
+    const char ch = json[*pos];
+    if (ch == '"') {
+        return SkipJsonString(json, pos);
+    }
+    if (ch == '{') {
+        return SkipDelimitedJsonValue(json, pos, '{', '}');
+    }
+    if (ch == '[') {
+        return SkipDelimitedJsonValue(json, pos, '[', ']');
+    }
+    const std::size_t start = *pos;
+    while (*pos < json.size() && json[*pos] != ',' && json[*pos] != '}') {
+        ++(*pos);
+    }
+    return *pos > start;
+}
+
+bool ValidateTopLevelJsonObject(const std::string& json) {
+    std::size_t pos = 0;
+    SkipWhitespace(json, &pos);
+    if (pos >= json.size() || json[pos] != '{') {
+        return false;
+    }
+    ++pos;
+    SkipWhitespace(json, &pos);
+    if (pos < json.size() && json[pos] == '}') {
+        ++pos;
+        SkipWhitespace(json, &pos);
+        return pos == json.size();
+    }
+    while (pos < json.size()) {
+        std::string key;
+        if (!SkipJsonString(json, &pos, &key)) {
+            return false;
+        }
+        SkipWhitespace(json, &pos);
+        if (pos >= json.size() || json[pos] != ':') {
+            return false;
+        }
+        ++pos;
+        if (!SkipJsonValue(json, &pos)) {
+            return false;
+        }
+        SkipWhitespace(json, &pos);
+        if (pos < json.size() && json[pos] == ',') {
+            ++pos;
+            SkipWhitespace(json, &pos);
+            continue;
+        }
+        if (pos < json.size() && json[pos] == '}') {
+            ++pos;
+            SkipWhitespace(json, &pos);
+            return pos == json.size();
+        }
+        return false;
+    }
+    return false;
+}
+
+std::optional<std::string> ExtractTopLevelJsonValue(const std::string& json, const std::string& field) {
+    std::size_t pos = 0;
+    SkipWhitespace(json, &pos);
+    if (pos >= json.size() || json[pos] != '{') {
+        return std::nullopt;
+    }
+    ++pos;
+    while (pos < json.size()) {
+        SkipWhitespace(json, &pos);
+        if (pos < json.size() && json[pos] == '}') {
+            return std::nullopt;
+        }
+        std::string key;
+        if (!SkipJsonString(json, &pos, &key)) {
+            return std::nullopt;
+        }
+        SkipWhitespace(json, &pos);
+        if (pos >= json.size() || json[pos] != ':') {
+            return std::nullopt;
+        }
+        ++pos;
+        SkipWhitespace(json, &pos);
+        const std::size_t value_start = pos;
+        if (!SkipJsonValue(json, &pos)) {
+            return std::nullopt;
+        }
+        if (key == field) {
+            return json.substr(value_start, pos - value_start);
+        }
+        SkipWhitespace(json, &pos);
+        if (pos < json.size() && json[pos] == ',') {
+            ++pos;
+            continue;
+        }
+        if (pos < json.size() && json[pos] == '}') {
+            return std::nullopt;
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string> ExtractTopLevelString(const std::string& json, const std::string& field) {
+    const auto value = ExtractTopLevelJsonValue(json, field);
+    if (!value.has_value()) {
+        return std::nullopt;
+    }
+    std::size_t pos = 0;
+    SkipWhitespace(*value, &pos);
+    std::string decoded;
+    if (!SkipJsonString(*value, &pos, &decoded)) {
+        return std::nullopt;
+    }
+    SkipWhitespace(*value, &pos);
+    if (pos != value->size()) {
+        return std::nullopt;
+    }
+    return decoded;
+}
+
+std::optional<std::int64_t> ExtractTopLevelInt64(const std::string& json, const std::string& field) {
+    const auto value = ExtractTopLevelJsonValue(json, field);
+    if (!value.has_value()) {
+        return std::nullopt;
+    }
+    const std::string trimmed = TrimCopy(*value);
+    if (trimmed.empty() || trimmed.front() == '"') {
+        return std::nullopt;
+    }
+    std::size_t consumed = 0;
+    try {
+        const std::int64_t parsed = std::stoll(trimmed, &consumed, 10);
+        if (consumed != trimmed.size()) {
+            return std::nullopt;
+        }
+        return parsed;
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
+struct ParsedEventRecordLine {
+    std::string event_id;
+    std::string event_type;
+    std::string stream_id;
+    std::string channel_id;
+    std::uint64_t track_id{0};
+    std::string status;
+    std::string zone_id;
+    std::string line_id;
+    std::string scenario_name;
+    std::string scenario_phase;
+    std::int64_t start_time_ms{0};
+    std::int64_t update_time_ms{0};
+    std::int64_t end_time_ms{0};
+};
+
+bool ParseEventRecordLine(const std::string& line, ParsedEventRecordLine* record) {
+    if (record == nullptr || line.size() > 1024 * 1024 || !ValidateTopLevelJsonObject(line)) {
+        return false;
+    }
+    const auto schema = ExtractTopLevelString(line, "schema");
+    if (!schema.has_value() || *schema != "media-server.va.event-record.v1") {
+        return false;
+    }
+    const auto track_id = ExtractTopLevelInt64(line, "trackId");
+    const auto start_time = ExtractTopLevelInt64(line, "startTime");
+    const auto update_time = ExtractTopLevelInt64(line, "updateTime");
+    const auto end_time = ExtractTopLevelInt64(line, "endTime");
+    if (!track_id.has_value() || *track_id < 0 || !start_time.has_value() ||
+        !update_time.has_value() || !end_time.has_value()) {
+        return false;
+    }
+    record->event_id = ExtractTopLevelString(line, "eventId").value_or("");
+    record->event_type = ExtractTopLevelString(line, "eventType").value_or("");
+    record->stream_id = ExtractTopLevelString(line, "streamId").value_or("");
+    record->channel_id = ExtractTopLevelString(line, "channelId").value_or("");
+    record->track_id = static_cast<std::uint64_t>(*track_id);
+    record->status = ExtractTopLevelString(line, "status").value_or("");
+    record->zone_id = ExtractTopLevelString(line, "zoneId").value_or("");
+    record->line_id = ExtractTopLevelString(line, "lineId").value_or("");
+    record->scenario_name = ExtractTopLevelString(line, "scenarioName").value_or("");
+    record->scenario_phase = ExtractTopLevelString(line, "scenarioPhase").value_or("");
+    record->start_time_ms = *start_time;
+    record->update_time_ms = *update_time;
+    record->end_time_ms = *end_time;
+    return true;
+}
+
+bool StringFilterMatches(const std::string& expected, const std::string& actual) {
+    return expected.empty() || expected == actual;
+}
+
+bool EventRecordMatchesQuery(const ParsedEventRecordLine& record,
+                             const EventRecordQueryOptions& options) {
+    if (!StringFilterMatches(options.event_id, record.event_id) ||
+        !StringFilterMatches(options.event_type, record.event_type) ||
+        !StringFilterMatches(options.stream_id, record.stream_id) ||
+        !StringFilterMatches(options.channel_id, record.channel_id) ||
+        !StringFilterMatches(options.status, record.status) ||
+        !StringFilterMatches(options.zone_id, record.zone_id) ||
+        !StringFilterMatches(options.line_id, record.line_id) ||
+        !StringFilterMatches(options.scenario_name, record.scenario_name) ||
+        !StringFilterMatches(options.scenario_phase, record.scenario_phase)) {
+        return false;
+    }
+    if (options.has_track_id && record.track_id != options.track_id) {
+        return false;
+    }
+    const std::int64_t record_end = record.end_time_ms > 0
+                                        ? record.end_time_ms
+                                        : (record.update_time_ms > 0 ? record.update_time_ms
+                                                                     : record.start_time_ms);
+    if (options.has_start_time_ms && record_end < options.start_time_ms) {
+        return false;
+    }
+    if (options.has_end_time_ms && record.start_time_ms > options.end_time_ms) {
+        return false;
+    }
+    return true;
 }
 
 std::string TrimForLog(std::string value) {
@@ -510,6 +835,74 @@ void DispatchEventRecords(const AnalysisResult& result, const std::vector<Analys
 
 EventStorageSnapshot GetEventStorageSnapshot() {
     return Dispatcher().Snapshot();
+}
+
+bool QueryEventRecords(const EventRecordQueryOptions& options,
+                       EventRecordQueryResult* result,
+                       std::string* error_message) {
+    if (result == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "result is required";
+        }
+        return false;
+    }
+    *result = EventRecordQueryResult{};
+    result->storage = GetEventStorageSnapshot();
+    const std::size_t limit = std::max<std::size_t>(1, options.limit);
+    result->limit = limit;
+
+    const std::filesystem::path path(result->storage.path);
+    std::error_code ec;
+    result->file_exists = !path.empty() && std::filesystem::exists(path, ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = ec.message();
+        }
+        return false;
+    }
+    if (!result->storage.enabled || path.empty() || !result->file_exists) {
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
+    }
+
+    std::ifstream input(path);
+    if (!input.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open event storage file";
+        }
+        return false;
+    }
+
+    std::string line;
+    while (std::getline(input, line)) {
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
+        }
+        if (TrimCopy(line).empty()) {
+            continue;
+        }
+        ParsedEventRecordLine parsed;
+        if (!ParseEventRecordLine(line, &parsed)) {
+            ++result->skipped_corrupt_lines;
+            continue;
+        }
+        if (!EventRecordMatchesQuery(parsed, options)) {
+            continue;
+        }
+        if (result->records_json.size() >= limit) {
+            result->has_more = true;
+            result->truncated = true;
+            break;
+        }
+        result->records_json.push_back(std::move(line));
+    }
+
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
 }
 
 void StopEventStorage() {

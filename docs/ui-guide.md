@@ -320,6 +320,7 @@ drill-down 사용법:
 - Scenarios는 현재 state-dump에 노출된 scenarioName/scenarioPhase/zone/line/elapsed/cooldown 값을 list 형태로 보여줍니다. scenario instance가 없거나 zone/dwell 값이 비어 있으면 `조건을 만족한 track 없음`, `rule 매칭 없음`, `zone 조건 미충족`, `현재 track이 zone 내부에 없음`, `zone context 없음` 같은 짧은 empty reason을 표시합니다. phase entered time과 cooldown remaining의 정확한 timestamp는 아직 별도 UI로 표시하지 않습니다.
 - Scenario Timeline은 같은 state-dump와 `/events` buffer를 조합해 active scenario instance를 시간 흐름 점검용 table로 표시합니다. Candidate/Observing/Confirmed/Cooldown/Ended phase는 chip으로 구분하고, 연결 가능한 recent event가 있으면 eventType/status를 함께 보여줍니다. 표시할 timeline이 없을 때도 Scenarios와 같은 empty reason을 사용합니다.
 - Events는 선택 tap의 `/events` buffer를 받아 최근 event를 표시합니다. 선택 rule이 있으면 해당 rule의 recent event만 vaRule Runtime Debug 카드에 반영합니다.
+- Event Records는 저장된 EventRecord metadata를 수동 검색하는 접힘 섹션입니다. `eventType`, `streamId`, `channelId`, `trackId`, `scenarioName`, `status`, `startTimeMs`, `endTimeMs`, `limit` filter를 입력하고 검색 버튼을 눌렀을 때만 `/lab/analysis/events/records`를 호출합니다. 결과 table은 eventId, eventType, startTime/status, stream/channel, track/class, zone/line, scenario/phase, snapshotPath/clipPath placeholder를 보여주며, eventId를 선택하면 detail 영역에서 원본 JSON을 확인합니다. 영상 재생, snapshot 추출, clip recorder 제어는 제공하지 않습니다.
 - Metadata / Backpressure는 WebRTC DataChannel sent/dropped/skipped/failure, max buffered amount, SSE/WS client count, 선택 tap의 analytics queue pending/capacity/peak/drop, `debugCounters`의 metadata JSON build/payload size, RTSP lifecycle/pending queue/appsrc/flow return/fanout balance를 읽기 전용으로 요약합니다. count 불균형, cleanup 잔여, failure가 관찰되면 warning badge로 표시합니다. 현재 endpoint가 제공하지 않는 SSE/WS sent/drop/failure 누적값, 서버 dashboard polling count, live RSS는 `미제공` 또는 `longrun report에서 확인`으로 표시합니다.
 - Runtime Dashboard의 RSS 표시는 장시간 검증 결과나 longrun report를 대체하지 않습니다. Runtime Console RSS는 해제 가능 후보 상태로 정리했지만 active 구간 high-water 관찰은 유지하며, stable 승격은 verify-predev 30분 이후 별도 판단합니다. live dashboard 패널은 RTSP/GStreamer egress 또는 Full fanout 후보를 좁히기 위한 운영 관찰 보조 화면입니다.
 
@@ -343,6 +344,7 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/metrics'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/state-dump'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/events'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-post/status'
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records?limit=100'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-storage/status'
 ```
 

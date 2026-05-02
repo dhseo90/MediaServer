@@ -307,7 +307,7 @@ VA Runtime Console 자동 검증:
 - `/lab/analysis/taps/{tapId}/metrics`의 `tapState`, `trackState`, `metricsReport` 확인
 - `/lab/analysis/taps/{tapId}/state-dump` JSON 확인
 - `/lab/analysis/taps/{tapId}/events` 접근과 recent event buffer 확인
-- `/lab/analysis/event-post/status`, `/lab/analysis/event-storage/status`, `/lab/runtime/status` 접근 확인
+- `/lab/analysis/event-post/status`, `/lab/analysis/event-storage/status`, `/lab/analysis/events/records`, `/lab/runtime/status` 접근 확인
 - smoke용 analysis tap cleanup 확인
 
 RTSP VA overlay 정책 자동 검증:
@@ -498,6 +498,7 @@ Event POST recovery/queue:
 - 신규 scenario event도 EventManager를 통해 emit
 - POST 실패가 media pipeline 실패로 이어지지 않음
 - queue/dedupe/cooldown counter가 무한 증가하지 않음
+- EventRecord 조회 API는 저장된 metadata만 반환하며 영상 검색, snapshot 추출, clip recorder를 수행하지 않음
 
 ## Replay 검증
 

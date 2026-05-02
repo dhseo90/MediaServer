@@ -4208,6 +4208,93 @@ std::string BuildLabRuleEditorPageHtml() {
       padding: 3px 8px;
       font-size: 11px;
     }
+    .event-records-details {
+      display: grid;
+      gap: 10px;
+    }
+    .event-records-details > summary {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      color: var(--ink);
+      font-weight: 900;
+      list-style-position: inside;
+    }
+    .event-records-details > summary span {
+      color: var(--ink);
+      font-size: 15px;
+    }
+    .event-records-panel {
+      display: grid;
+      gap: 12px;
+      padding-top: 8px;
+    }
+    .event-record-filter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+    .event-record-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .event-record-state {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+    .event-record-id-button {
+      appearance: none;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--accent);
+      font: inherit;
+      font-weight: 900;
+      text-align: left;
+      cursor: pointer;
+      overflow-wrap: anywhere;
+    }
+    .event-record-path {
+      display: inline-block;
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: top;
+      color: var(--accent);
+    }
+    .event-record-detail-drawer {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--canvas-bg);
+    }
+    .event-record-detail-drawer > summary {
+      cursor: pointer;
+      padding: 10px 12px;
+      color: var(--ink);
+      font-weight: 900;
+    }
+    .event-record-detail-drawer pre {
+      max-height: 320px;
+      margin: 0;
+      padding: 12px;
+      overflow: auto;
+      border-top: 1px solid var(--line);
+      color: var(--ink);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
     .metadata-viewer-panel {
       display: grid;
       gap: 14px;
@@ -4625,7 +4712,7 @@ std::string BuildLabRuleEditorPageHtml() {
       .grid, .row { grid-template-columns: 1fr; }
       .check-grid { grid-template-columns: 1fr 1fr; }
       .class-filter-row { grid-template-columns: 1fr; }
-      .phase-strip, .metric-grid, .scenario-readiness, .rule-tabs, .url-grid, .output-policy-grid, .summary-grid, .geometry-status-grid, .viewer-status-grid, .metadata-status-grid, .metadata-overlay-controls, .dashboard-toolbar, .dashboard-card-grid, .dashboard-json-grid, .rule-list-controls { grid-template-columns: 1fr 1fr; }
+      .phase-strip, .metric-grid, .scenario-readiness, .rule-tabs, .url-grid, .output-policy-grid, .summary-grid, .geometry-status-grid, .viewer-status-grid, .metadata-status-grid, .metadata-overlay-controls, .dashboard-toolbar, .dashboard-card-grid, .dashboard-json-grid, .event-record-filter-grid, .rule-list-controls { grid-template-columns: 1fr 1fr; }
       .management-toolbar { grid-template-columns: 1fr; }
       .management-toolbar .toolbar-actions { justify-content: flex-start; }
       .rule-row {
@@ -4637,7 +4724,7 @@ std::string BuildLabRuleEditorPageHtml() {
       }
     }
 	    @media (max-width: 720px) {
-	      .primary-tabs, .url-grid, .output-policy-grid, .summary-grid, .review-grid, .geometry-status-grid, .geometry-actions, .viewer-status-grid, .metadata-status-grid, .metadata-overlay-controls, .dashboard-toolbar, .dashboard-card-grid, .dashboard-json-grid, .rule-list-controls, .profile-summary-panel { grid-template-columns: 1fr; }
+	      .primary-tabs, .url-grid, .output-policy-grid, .summary-grid, .review-grid, .geometry-status-grid, .geometry-actions, .viewer-status-grid, .metadata-status-grid, .metadata-overlay-controls, .dashboard-toolbar, .dashboard-card-grid, .dashboard-json-grid, .event-record-filter-grid, .rule-list-controls, .profile-summary-panel { grid-template-columns: 1fr; }
 	      .segmented.view-mode { grid-template-columns: 1fr; }
 	      .management-toolbar .toolbar-actions { justify-content: stretch; }
 	      .management-toolbar .toolbar-actions button { width: 100%; }
@@ -5613,6 +5700,75 @@ std::string BuildLabRuleEditorPageHtml() {
                 </table>
               </div>
             </section>
+            <section class="dashboard-drilldown-section" aria-labelledby="dashboardEventRecordsTitle">
+              <details id="dashboardEventRecordsDetails" class="event-records-details">
+                <summary><span id="dashboardEventRecordsTitle">Event Records</span><small id="dashboardEventRecordsSummary" class="dashboard-section-summary">검색 전</small></summary>
+                <div class="event-records-panel">
+                  <div class="event-record-filter-grid" aria-label="EventRecord 검색 필터">
+                    <label>eventType
+                      <select id="eventRecordEventTypeFilter">
+                        <option value="">전체</option>
+                        <option value="presence">presence</option>
+                        <option value="enter">enter</option>
+                        <option value="exit">exit</option>
+                        <option value="line-crossing">line-crossing</option>
+                      </select>
+                    </label>
+                    <label>streamId
+                      <input id="eventRecordStreamIdFilter" type="text" placeholder="streamId" />
+                    </label>
+                    <label>channelId
+                      <input id="eventRecordChannelIdFilter" type="text" placeholder="channelId" />
+                    </label>
+                    <label>trackId
+                      <input id="eventRecordTrackIdFilter" type="number" min="0" step="1" placeholder="trackId" />
+                    </label>
+                    <label>scenarioName
+                      <input id="eventRecordScenarioNameFilter" type="text" placeholder="scenarioName" />
+                    </label>
+                    <label>status
+                      <select id="eventRecordStatusFilter">
+                        <option value="">전체</option>
+                        <option value="emitted">emitted</option>
+                        <option value="confirmed">confirmed</option>
+                        <option value="candidate">candidate</option>
+                        <option value="cooldown">cooldown</option>
+                        <option value="ended">ended</option>
+                      </select>
+                    </label>
+                    <label>startTimeMs
+                      <input id="eventRecordStartTimeFilter" type="number" min="0" step="1" placeholder="시작 ms" />
+                    </label>
+                    <label>endTimeMs
+                      <input id="eventRecordEndTimeFilter" type="number" min="0" step="1" placeholder="종료 ms" />
+                    </label>
+                    <label>limit
+                      <select id="eventRecordLimitFilter">
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100" selected>100</option>
+                        <option value="250">250</option>
+                        <option value="500">500</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div class="event-record-actions">
+                    <button id="eventRecordSearchBtn" type="button" class="secondary">검색</button>
+                    <p id="eventRecordStateText" class="event-record-state">검색 버튼을 누르면 저장된 EventRecord metadata를 조회합니다.</p>
+                  </div>
+                  <div class="dashboard-table-wrap">
+                    <table class="dashboard-table" aria-label="EventRecord 검색 결과">
+                      <thead><tr><th>eventId</th><th>eventType</th><th>timestamp/startTime</th><th>status</th><th>stream/channel</th><th>trackId</th><th>className</th><th>zone/line</th><th>scenario/phase</th><th>snapshotPath</th><th>clipPath</th></tr></thead>
+                      <tbody id="eventRecordRows"><tr><td class="dashboard-empty-cell" colspan="11">검색 결과가 여기에 표시됩니다.</td></tr></tbody>
+                    </table>
+                  </div>
+                  <details id="eventRecordDetailDrawer" class="event-record-detail-drawer">
+                    <summary>EventRecord detail</summary>
+                    <pre id="eventRecordDetailJson">eventId를 선택하면 원본 EventRecord JSON이 표시됩니다.</pre>
+                  </details>
+                </div>
+              </details>
+            </section>
             <section class="dashboard-drilldown-section" aria-labelledby="dashboardMetadataTitle">
               <div class="dashboard-section-header">
                 <h3 id="dashboardMetadataTitle">Metadata / Backpressure</h3>
@@ -5786,6 +5942,9 @@ std::string BuildLabRuleEditorPageHtml() {
     let dashboardTapSelectionManual = false;
     let dashboardRecentEvents = [];
     let dashboardRecentEventKeys = new Set();
+    let eventRecordSearchInFlight = false;
+    let eventRecordResults = [];
+    let eventRecordSelectedIndex = -1;
     let regionPoints = [
       { x: 0.20, y: 0.22 },
       { x: 0.80, y: 0.22 },
@@ -9625,6 +9784,162 @@ std::string BuildLabRuleEditorPageHtml() {
       }
     }
 
+    function eventRecordFilterValue(id) {
+      return String($(id)?.value || '').trim();
+    }
+
+    function eventRecordBuildQuery() {
+      const params = new URLSearchParams();
+      const mappings = [
+        ['eventRecordEventTypeFilter', 'eventType'],
+        ['eventRecordStreamIdFilter', 'streamId'],
+        ['eventRecordChannelIdFilter', 'channelId'],
+        ['eventRecordTrackIdFilter', 'trackId'],
+        ['eventRecordScenarioNameFilter', 'scenarioName'],
+        ['eventRecordStatusFilter', 'status'],
+        ['eventRecordStartTimeFilter', 'startTimeMs'],
+        ['eventRecordEndTimeFilter', 'endTimeMs'],
+      ];
+      for (const [id, key] of mappings) {
+        const value = eventRecordFilterValue(id);
+        if (value) params.set(key, value);
+      }
+      params.set('limit', eventRecordFilterValue('eventRecordLimitFilter') || '100');
+      return params;
+    }
+
+    function eventRecordValue(record, ...keys) {
+      for (const key of keys) {
+        const value = record?.[key];
+        if (value !== undefined && value !== null && value !== '') return value;
+      }
+      return '';
+    }
+
+    function eventRecordTimeLabel(record) {
+      const timestamp = eventRecordValue(record, 'timestampMs', 'timestamp', 'startTime', 'startTimeMs');
+      return dashboardTimestamp(timestamp);
+    }
+
+    function eventRecordPair(record, firstKey, secondKey) {
+      const first = dashboardText(record?.[firstKey], '');
+      const second = dashboardText(record?.[secondKey], '');
+      return [first, second].filter(Boolean).join(' / ') || '-';
+    }
+
+    function eventRecordStatusNode(status) {
+      const normalized = String(status || '').trim().toLowerCase();
+      const tone = normalized === 'confirmed' ? 'active'
+        : (normalized === 'failed' || normalized === 'error' ? 'warning' : 'muted');
+      return dashboardChip(status || '-', tone);
+    }
+
+    function eventRecordPathNode(path) {
+      const value = String(path || '').trim();
+      if (!value) return '-';
+      const isHttp = /^https?:\/\//i.test(value);
+      const node = document.createElement(isHttp ? 'a' : 'span');
+      node.className = 'event-record-path';
+      node.textContent = value;
+      node.title = value;
+      if (isHttp) {
+        node.href = value;
+        node.target = '_blank';
+        node.rel = 'noopener';
+      }
+      return node;
+    }
+
+    function eventRecordIdButton(record, index) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'event-record-id-button';
+      button.textContent = eventRecordValue(record, 'eventId') || `<record ${index + 1}>`;
+      button.addEventListener('click', () => selectEventRecordDetail(index));
+      return button;
+    }
+
+    function selectEventRecordDetail(index) {
+      eventRecordSelectedIndex = index;
+      const record = eventRecordResults[index] || null;
+      const pre = $('eventRecordDetailJson');
+      if (pre) pre.textContent = record ? dashboardPrettyJson(record, 'EventRecord JSON 표시 실패') : 'eventId를 선택하면 원본 EventRecord JSON이 표시됩니다.';
+      const drawer = $('eventRecordDetailDrawer');
+      if (drawer && record) drawer.open = true;
+      if (drawer && !record) drawer.open = false;
+    }
+
+    function eventRecordEmptyMessage(payload) {
+      const storage = payload?.storage || {};
+      if (storage.enabled === false) return 'EventRecord 저장 비활성 상태입니다.';
+      if (storage.exists === false) return 'EventRecord 저장 파일이 아직 없습니다.';
+      return '조건에 맞는 EventRecord가 없습니다.';
+    }
+
+    function renderEventRecordResults(payload) {
+      const records = Array.isArray(payload?.records) ? payload.records : [];
+      eventRecordResults = records;
+      eventRecordSelectedIndex = -1;
+      const storage = payload?.storage || {};
+      const hasMoreText = payload?.hasMore ? 'hasMore 있음' : 'hasMore 없음';
+      const corruptText = `corrupt skip ${payload?.skippedCorruptLines ?? 0}`;
+      const storageText = `${storage.enabled ? 'storage on' : 'storage off'} · ${storage.exists ? 'file 있음' : 'file 없음'}`;
+      dashboardSet('dashboardEventRecordsSummary', `records ${records.length} · limit ${payload?.limit ?? '-'} · ${hasMoreText}`);
+      dashboardSet('eventRecordStateText', `${storageText} · ${corruptText}${payload?.truncated ? ' · truncated' : ''}`);
+      const tbody = dashboardRowsStart('eventRecordRows');
+      if (!tbody || records.length === 0) {
+        dashboardSetEmptyRows('eventRecordRows', 11, eventRecordEmptyMessage(payload));
+        selectEventRecordDetail(-1);
+        return;
+      }
+      records.forEach((record, index) => {
+        dashboardAppendRow('eventRecordRows', [
+          eventRecordIdButton(record, index),
+          eventRecordValue(record, 'eventType'),
+          eventRecordTimeLabel(record),
+          eventRecordStatusNode(eventRecordValue(record, 'status')),
+          eventRecordPair(record, 'streamId', 'channelId'),
+          eventRecordValue(record, 'trackId'),
+          eventRecordValue(record, 'className'),
+          eventRecordPair(record, 'zoneId', 'lineId'),
+          eventRecordPair(record, 'scenarioName', 'scenarioPhase'),
+          eventRecordPathNode(eventRecordValue(record, 'snapshotPath')),
+          eventRecordPathNode(eventRecordValue(record, 'clipPath')),
+        ]);
+      });
+      selectEventRecordDetail(0);
+    }
+
+    async function searchEventRecords() {
+      if (eventRecordSearchInFlight) return;
+      eventRecordSearchInFlight = true;
+      const searchButton = $('eventRecordSearchBtn');
+      if (searchButton) searchButton.disabled = true;
+      const details = $('dashboardEventRecordsDetails');
+      if (details) details.open = true;
+      dashboardSet('dashboardEventRecordsSummary', '조회 중');
+      dashboardSet('eventRecordStateText', 'EventRecord metadata 조회 중...');
+      try {
+        const params = eventRecordBuildQuery();
+        const response = await fetch(`/lab/analysis/events/records?${params.toString()}`, { cache: 'no-store' });
+        const text = await response.text();
+        if (!response.ok) {
+          throw new Error(text || `HTTP ${response.status}`);
+        }
+        const payload = JSON.parse(text);
+        renderEventRecordResults(payload);
+      } catch (error) {
+        eventRecordResults = [];
+        dashboardSet('dashboardEventRecordsSummary', '조회 실패');
+        dashboardSet('eventRecordStateText', `조회 실패: ${error.message}`);
+        dashboardSetEmptyRows('eventRecordRows', 11, 'EventRecord 조회 API 응답을 확인하세요.');
+        selectEventRecordDetail(-1);
+      } finally {
+        eventRecordSearchInFlight = false;
+        if (searchButton) searchButton.disabled = false;
+      }
+    }
+
     function renderDashboardMetadata(runtime, tapMetrics, tapsPayload) {
       const webrtc = runtime?.webrtcHttp || {};
       const metadata = webrtc.metadataDataChannel || {};
@@ -10626,6 +10941,11 @@ std::string BuildLabRuleEditorPageHtml() {
           dashboardTapSelectionManual = false;
           dashboardResetRecentEvents();
           refreshDashboard({ force: true }).catch(() => {});
+        });
+      }
+      if ($('eventRecordSearchBtn')) {
+        $('eventRecordSearchBtn').addEventListener('click', () => {
+          searchEventRecords().catch(() => {});
         });
       }
     }
@@ -13229,6 +13549,167 @@ std::string AnalysisEventStorageStatusJson() {
     return out.str();
 }
 
+bool ParseStrictInt64(const std::string& raw, std::int64_t* value) {
+    if (value == nullptr || raw.empty()) {
+        return false;
+    }
+    std::size_t consumed = 0;
+    try {
+        const std::int64_t parsed = std::stoll(raw, &consumed, 10);
+        if (consumed != raw.size()) {
+            return false;
+        }
+        *value = parsed;
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+bool ParseStrictUint64(const std::string& raw, std::uint64_t* value) {
+    if (value == nullptr || raw.empty() || raw.front() == '-') {
+        return false;
+    }
+    std::size_t consumed = 0;
+    try {
+        const unsigned long long parsed = std::stoull(raw, &consumed, 10);
+        if (consumed != raw.size()) {
+            return false;
+        }
+        *value = static_cast<std::uint64_t>(parsed);
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+bool ApplyStringEventRecordFilter(const std::unordered_map<std::string, std::string>& query,
+                                  const std::string& key,
+                                  std::string* out) {
+    const auto it = query.find(key);
+    if (it == query.end() || out == nullptr) {
+        return false;
+    }
+    *out = Trim(it->second);
+    return true;
+}
+
+bool BuildEventRecordQueryOptions(const std::unordered_map<std::string, std::string>& query,
+                                  analysis::EventRecordQueryOptions* options,
+                                  std::string* error_message) {
+    if (options == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "query options are required";
+        }
+        return false;
+    }
+    *options = analysis::EventRecordQueryOptions{};
+    ApplyStringEventRecordFilter(query, "eventId", &options->event_id);
+    ApplyStringEventRecordFilter(query, "eventType", &options->event_type);
+    ApplyStringEventRecordFilter(query, "streamId", &options->stream_id);
+    ApplyStringEventRecordFilter(query, "channelId", &options->channel_id);
+    ApplyStringEventRecordFilter(query, "status", &options->status);
+    ApplyStringEventRecordFilter(query, "zoneId", &options->zone_id);
+    ApplyStringEventRecordFilter(query, "lineId", &options->line_id);
+    ApplyStringEventRecordFilter(query, "scenarioName", &options->scenario_name);
+    ApplyStringEventRecordFilter(query, "scenarioPhase", &options->scenario_phase);
+
+    if (const auto it = query.find("trackId"); it != query.end() && !Trim(it->second).empty()) {
+        std::uint64_t parsed = 0;
+        if (!ParseStrictUint64(Trim(it->second), &parsed)) {
+            if (error_message != nullptr) {
+                *error_message = "trackId must be a non-negative integer";
+            }
+            return false;
+        }
+        options->has_track_id = true;
+        options->track_id = parsed;
+    }
+
+    if (const auto it = query.find("startTimeMs"); it != query.end() && !Trim(it->second).empty()) {
+        std::int64_t parsed = 0;
+        if (!ParseStrictInt64(Trim(it->second), &parsed) || parsed < 0) {
+            if (error_message != nullptr) {
+                *error_message = "startTimeMs must be a non-negative integer";
+            }
+            return false;
+        }
+        options->has_start_time_ms = true;
+        options->start_time_ms = parsed;
+    }
+
+    if (const auto it = query.find("endTimeMs"); it != query.end() && !Trim(it->second).empty()) {
+        std::int64_t parsed = 0;
+        if (!ParseStrictInt64(Trim(it->second), &parsed) || parsed < 0) {
+            if (error_message != nullptr) {
+                *error_message = "endTimeMs must be a non-negative integer";
+            }
+            return false;
+        }
+        options->has_end_time_ms = true;
+        options->end_time_ms = parsed;
+    }
+
+    if (options->has_start_time_ms && options->has_end_time_ms &&
+        options->start_time_ms > options->end_time_ms) {
+        if (error_message != nullptr) {
+            *error_message = "startTimeMs must be less than or equal to endTimeMs";
+        }
+        return false;
+    }
+
+    constexpr std::size_t kDefaultLimit = 100;
+    constexpr std::size_t kMaxLimit = 500;
+    options->limit = kDefaultLimit;
+    if (const auto it = query.find("limit"); it != query.end() && !Trim(it->second).empty()) {
+        std::uint64_t parsed = 0;
+        if (!ParseStrictUint64(Trim(it->second), &parsed) || parsed == 0) {
+            if (error_message != nullptr) {
+                *error_message = "limit must be a positive integer";
+            }
+            return false;
+        }
+        options->limit = static_cast<std::size_t>(std::min<std::uint64_t>(parsed, kMaxLimit));
+    }
+
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+std::string AnalysisEventRecordsJson(const analysis::EventRecordQueryResult& result) {
+    const auto& snapshot = result.storage;
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.va.event-record-list.v1\","
+        << "\"records\":[";
+    for (std::size_t i = 0; i < result.records_json.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << result.records_json[i];
+    }
+    out << "],"
+        << "\"limit\":" << result.limit << ","
+        << "\"hasMore\":" << (result.has_more ? "true" : "false") << ","
+        << "\"truncated\":" << (result.truncated ? "true" : "false") << ","
+        << "\"skippedCorruptLines\":" << result.skipped_corrupt_lines << ","
+        << "\"storage\":{"
+        << "\"enabled\":" << (snapshot.enabled ? "true" : "false") << ","
+        << "\"path\":\"" << JsonEscape(snapshot.path) << "\","
+        << "\"exists\":" << (result.file_exists ? "true" : "false") << ","
+        << "\"queueSize\":" << snapshot.queue_size << ","
+        << "\"maxQueueSize\":" << snapshot.max_queue_size << ","
+        << "\"enqueuedCount\":" << snapshot.enqueued_count << ","
+        << "\"storedCount\":" << snapshot.stored_count << ","
+        << "\"failedCount\":" << snapshot.failed_count << ","
+        << "\"droppedCount\":" << snapshot.dropped_count
+        << "}"
+        << "}";
+    return out.str();
+}
+
 // Lab 리포트 뷰어가 노출할 수 있는 검증 산출물 확장자만 허용한다.
 bool IsLabReportExtension(const std::filesystem::path& path) {
     std::string ext = path.extension().string();
@@ -13979,6 +14460,23 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                         if (request.method == "GET" && request.path == "/lab/analysis/event-storage/status") {
                             return JsonResponse(200, "OK", AnalysisEventStorageStatusJson());
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/analysis/events/records") {
+                            analysis::EventRecordQueryOptions options;
+                            std::string error_message;
+                            if (!BuildEventRecordQueryOptions(query, &options, &error_message)) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            }
+                            analysis::EventRecordQueryResult result;
+                            if (!analysis::QueryEventRecords(options, &result, &error_message)) {
+                                return JsonResponse(500,
+                                                    "Internal Server Error",
+                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            }
+                            return JsonResponse(200, "OK", AnalysisEventRecordsJson(result));
                         }
 
                         if (request.method == "GET" && request.path == "/lab/analysis/profiles") {
