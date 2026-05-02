@@ -5683,8 +5683,8 @@ std::string BuildLabRuleEditorPageHtml() {
               </div>
               <div class="dashboard-table-wrap">
                 <table class="dashboard-table" aria-label="Scenario timeline debug">
-                  <thead><tr><th>Scenario</th><th>Phase</th><th>Track</th><th>Zone</th><th>Line</th><th>Elapsed</th><th>Cooldown</th><th>Recent event</th></tr></thead>
-                  <tbody id="dashboardScenarioTimelineRows"><tr><td class="dashboard-empty-cell" colspan="8">활성 scenario timeline이 표시됩니다.</td></tr></tbody>
+                  <thead><tr><th>Scenario</th><th>Phase</th><th>Track</th><th>Zone</th><th>Line</th><th>Elapsed</th><th>Cooldown</th><th>Event</th><th>Dedup</th><th>Recent event</th></tr></thead>
+                  <tbody id="dashboardScenarioTimelineRows"><tr><td class="dashboard-empty-cell" colspan="10">활성 scenario timeline이 표시됩니다.</td></tr></tbody>
                 </table>
               </div>
             </section>
@@ -9582,10 +9582,10 @@ std::string BuildLabRuleEditorPageHtml() {
       return event?.action?.post?.enabled ? 'post enabled' : 'local';
     }
 
-    function dashboardScenarioRecentEventLabel(track, ruleId = '') {
+    function dashboardFindScenarioRecentEvent(track, ruleId = '') {
       const trackId = String(track?.trackId ?? '');
       const scenarioName = String(track?.scenarioName || '').toLowerCase();
-      const matched = dashboardRecentEvents.find((candidate) => {
+      return dashboardRecentEvents.find((candidate) => {
         const event = candidate?.event || {};
         const object = event.object || {};
         const sameTrack = trackId && String(object.trackId ?? '') === trackId;
@@ -9597,9 +9597,30 @@ std::string BuildLabRuleEditorPageHtml() {
         const object = event.object || {};
         return trackId && String(object.trackId ?? '') === trackId;
       });
+    }
+
+    function dashboardScenarioEventEmittedChip(track, ruleId = '') {
+      const matched = dashboardFindScenarioRecentEvent(track, ruleId);
+      return dashboardChip(matched ? 'emitted' : 'not emitted', matched ? 'active' : 'muted');
+    }
+
+    function dashboardScenarioDedupLabel(eventState) {
+      const deduped = Number(eventState?.eventsDeduped ?? 0);
+      if (!Number.isFinite(deduped) || deduped <= 0) return 'dedup 0';
+      return `dedup ${deduped}`;
+    }
+
+    function dashboardScenarioRecentEventLabel(track, ruleId = '') {
+      const matched = dashboardFindScenarioRecentEvent(track, ruleId);
       if (!matched) return 'confirmed event 없음';
       const event = matched.event || {};
-      return `${event.type || '-'} · ${dashboardEventStatusLabel(event)}`;
+      const eventId = event.eventId || event.id || '';
+      const parts = [
+        eventId ? `id ${eventId}` : '',
+        event.type || '-',
+        event.status || dashboardEventStatusLabel(event),
+      ].filter(Boolean);
+      return parts.join(' · ');
     }
 
 	    function renderDashboardVaRuleDebug({ selectedTap, tapMetrics, stateDump }) {
@@ -9705,7 +9726,7 @@ std::string BuildLabRuleEditorPageHtml() {
       );
       const tbody = dashboardRowsStart('dashboardScenarioTimelineRows');
       if (!tbody || scenarioRows.length === 0) {
-        dashboardSetEmptyRows('dashboardScenarioTimelineRows', 8, dashboardScenarioEmptyReason(tracks, tapMetrics, selectedTap));
+        dashboardSetEmptyRows('dashboardScenarioTimelineRows', 10, dashboardScenarioEmptyReason(tracks, tapMetrics, selectedTap));
         return;
       }
       for (const track of scenarioRows.slice(0, 100)) {
@@ -9717,6 +9738,8 @@ std::string BuildLabRuleEditorPageHtml() {
           dashboardScenarioLineId(track),
           dashboardScenarioElapsed(track),
           dashboardScenarioCooldown(track),
+          dashboardScenarioEventEmittedChip(track, ruleId),
+          dashboardScenarioDedupLabel(eventState),
           dashboardScenarioRecentEventLabel(track, ruleId),
         ]);
       }

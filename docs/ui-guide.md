@@ -296,7 +296,7 @@ VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보
 - Tracks: trackId, className/confidence, lifecycle, currentZone, dwellTimeMs, TrackHealth
 - 시나리오 인스턴스 수
 - Scenarios: scenarioName, phase, trackId, zone/line, elapsed/dwell, cooldown/event lifecycle
-- Scenario Timeline: active scenario instance별 scenarioName, phase, trackId, zoneId, lineId, elapsed, cooldown, recent event
+- Scenario Timeline: active scenario instance별 scenarioName, phase, trackId, zoneId, lineId, elapsed, cooldown, event emitted, dedup, recent event
 - 발생 / 중복 억제 이벤트 수
 - Events: 최근 event, eventType, trackId, class/rule, zone/line, status
 - Metadata / Backpressure: WebRTC DataChannel sent/dropped/skipped/failure, max buffered amount, SSE/WS client count, metadata JSON build/payload size, RTSP/GStreamer debug counter 요약, analytics queue pending/capacity/peak/drop, client stale/fallback count
@@ -318,7 +318,7 @@ drill-down 사용법:
 - vaRule Runtime Debug는 선택 rule과 active tap의 관계를 `rule matched`, `source 기반 tap · rule 매칭 없음`, `rule 미연결 분석 tap`, `rule mismatch`, `active tap 없음`으로 구분하고, source/profile/event/scenario/region, event lifecycle, recent event를 요약합니다. `rule mismatch`는 선택 ruleId와 active tap ruleId가 실제로 다를 때만 표시하며, ruleId가 없는 direct file/source 기반 tap은 mismatch로 표시하지 않습니다.
 - Tracks는 state-dump의 debug track을 표로 보여주며, trackId/class/lifecycle/currentZone/dwellTimeMs/TrackHealth를 확인합니다.
 - Scenarios는 현재 state-dump에 노출된 scenarioName/scenarioPhase/zone/line/elapsed/cooldown 값을 list 형태로 보여줍니다. scenario instance가 없거나 zone/dwell 값이 비어 있으면 `조건을 만족한 track 없음`, `rule 매칭 없음`, `zone 조건 미충족`, `현재 track이 zone 내부에 없음`, `zone context 없음` 같은 짧은 empty reason을 표시합니다. phase entered time과 cooldown remaining의 정확한 timestamp는 아직 별도 UI로 표시하지 않습니다.
-- Scenario Timeline은 같은 state-dump와 `/events` buffer를 조합해 active scenario instance를 시간 흐름 점검용 table로 표시합니다. Candidate/Observing/Confirmed/Cooldown/Ended phase는 chip으로 구분하고, 연결 가능한 recent event가 있으면 eventType/status를 함께 보여줍니다. 표시할 timeline이 없을 때도 Scenarios와 같은 empty reason을 사용합니다.
+- Scenario Timeline은 같은 state-dump와 `/events` buffer를 조합해 active scenario instance를 시간 흐름 점검용 table로 표시합니다. Candidate/Observing/Confirmed/Cooldown/Ended phase는 chip으로 구분하고, row별 event emitted 여부, dedup count, 연결 가능한 recent event의 eventId/eventType/status를 함께 보여줍니다. 표시할 timeline이 없을 때도 Scenarios와 같은 empty reason을 사용합니다.
 - Events는 선택 tap의 `/events` buffer를 받아 최근 event를 표시합니다. 선택 rule이 있으면 해당 rule의 recent event만 vaRule Runtime Debug 카드에 반영합니다.
 - Event Records는 저장된 EventRecord metadata를 수동 검색하는 접힘 섹션입니다. `eventType`, `streamId`, `channelId`, `trackId`, `scenarioName`, `status`, `startTimeMs`, `endTimeMs`, `limit` filter를 입력하고 검색 버튼을 눌렀을 때만 `/lab/analysis/events/records`를 호출합니다. 결과 table은 eventId, eventType, startTime/status, stream/channel, track/class, zone/line, scenario/phase, snapshotPath/clipPath placeholder를 보여주며, eventId를 선택하면 detail 영역에서 원본 JSON을 확인합니다. 영상 재생, snapshot 추출, clip recorder 제어는 제공하지 않습니다.
 - Metadata / Backpressure는 WebRTC DataChannel sent/dropped/skipped/failure, max buffered amount, SSE/WS client count, 선택 tap의 analytics queue pending/capacity/peak/drop, `debugCounters`의 metadata JSON build/payload size, RTSP lifecycle/pending queue/appsrc/flow return/fanout balance를 읽기 전용으로 요약합니다. count 불균형, cleanup 잔여, failure가 관찰되면 warning badge로 표시합니다. 현재 endpoint가 제공하지 않는 SSE/WS sent/drop/failure 누적값, 서버 dashboard polling count, live RSS는 `미제공` 또는 `longrun report에서 확인`으로 표시합니다.
