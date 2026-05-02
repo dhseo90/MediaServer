@@ -1328,9 +1328,11 @@ std::string BuildTestPageHtml(bool lab_mode) {
     }
     .theme-toggle {
       width: auto;
-      min-width: 112px;
-      padding: 9px 13px;
+      min-width: 86px;
+      min-height: 32px;
+      padding: 6px 10px;
       border-radius: 999px;
+      font-size: 12px;
       background: var(--secondary-bg);
       color: var(--ink);
       border: 1px solid var(--line);
@@ -3249,94 +3251,181 @@ std::string BuildLabRuleEditorPageHtml() {
       document.documentElement.dataset.embed = params.get('embed') === '1' ? '1' : '0';
     })();
   </script>
-  <style>
-    :root {
-      --bg: #f6f1e8;
-      --panel: #fffaf0;
-      --panel2: #f3ead8;
-      --ink: #172026;
-      --muted: #66737c;
-      --accent: #0b6e69;
-      --accent2: #f0b35b;
-      --danger: #d54b4b;
-      --line: rgba(23,32,38,0.12);
-      --card-bg: rgba(255,250,240,0.9);
-      --field-bg: rgba(255,255,255,0.86);
-      --secondary-bg: #fff;
-      --soft-bg: rgba(11,110,105,0.08);
-      --code-bg: #172026;
-      --code-ink: #e8f4f1;
-      --canvas-bg: #f1e7d5;
-      --shadow: 0 22px 70px rgba(38,44,54,0.14);
-    }
-    :root[data-theme="dark"] {
-      --bg: #252525;
-      --panel: #2b2b2b;
-      --panel2: #303030;
-      --ink: #f4f4f4;
-      --muted: #b6b6b6;
-      --accent: #ff4d8d;
-      --accent2: #ff9f66;
-      --danger: #ff7777;
-      --line: rgba(255,255,255,0.10);
-      --card-bg: rgba(42,42,42,0.92);
-      --field-bg: rgba(18,18,18,0.88);
-      --secondary-bg: rgba(255,255,255,0.08);
-      --soft-bg: rgba(255,255,255,0.055);
-      --code-bg: rgba(14,14,14,0.94);
-      --code-ink: #efefef;
-      --canvas-bg: #191919;
-      --shadow: 18px 24px 52px rgba(0,0,0,0.46), -10px -10px 34px rgba(255,255,255,0.035);
-    }
-    * { box-sizing: border-box; }
-    [hidden] { display: none !important; }
-    body {
-      margin: 0;
-      font-family: "Avenir Next", "Pretendard", sans-serif;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 10% -8%, rgba(240,179,91,0.32), transparent 28%),
-        radial-gradient(circle at 92% 8%, rgba(11,110,105,0.16), transparent 26%),
-        linear-gradient(145deg, #fbf8f0 0%, var(--bg) 54%, #eaf3ef 100%);
-      min-height: 100vh;
-    }
-    :root[data-theme="dark"] body {
-      background:
-        radial-gradient(circle at 18% 8%, rgba(255,77,141,0.08), transparent 30%),
-        radial-gradient(circle at 82% 2%, rgba(255,159,102,0.06), transparent 32%),
-        linear-gradient(135deg, #202020 0%, var(--bg) 54%, #202020 100%);
-    }
+	<style>
+	    :root {
+	      --color-bg: #f6f8fb;
+	      --color-bg-elevated: #ffffff;
+	      --color-surface: #ffffff;
+	      --color-surface-muted: #f1f5f9;
+	      --color-surface-hover: #e8f3f2;
+	      --color-border: #d8e0e8;
+	      --color-border-strong: #b7c4d1;
+	      --color-text: #172026;
+	      --color-text-muted: #5f6f7a;
+	      --color-text-subtle: #84919c;
+	      --color-link: #0f766e;
+	      --color-primary: #0f766e;
+	      --color-primary-hover: #0b5f59;
+	      --color-success: #15803d;
+	      --color-warning: #b45309;
+	      --color-danger: #dc2626;
+	      --color-info: #2563eb;
+	      --color-neutral: #64748b;
+	      --color-on-primary: #ffffff;
+	      --color-on-danger: #ffffff;
+	      --color-success-bg: #dcfce7;
+	      --color-warning-bg: #fff4d6;
+	      --color-danger-bg: #fee7e7;
+	      --color-info-bg: #dbeafe;
+	      --color-neutral-bg: #e2e8f0;
+	      --color-input-bg: #ffffff;
+	      --color-input-border: #cbd5e1;
+	      --color-input-focus: #14b8a6;
+	      --color-input-disabled-bg: #eef2f6;
+	      --color-placeholder: #94a3b8;
+	      --color-table-header-bg: #f1f5f9;
+	      --color-table-row-hover: #edf7f6;
+	      --color-table-row-selected: #d9f0ed;
+	      --color-table-border: #e2e8f0;
+	      --color-code-bg: #111827;
+	      --color-code-text: #e5edf5;
+	      --color-debug-bg: #f8fafc;
+	      --color-debug-border: #cbd5e1;
+	      --overlay-box-track: #34d399;
+	      --overlay-box-detector: #f472b6;
+	      --overlay-box-selected: #facc15;
+	      --overlay-label-bg: rgba(15, 23, 42, 0.82);
+	      --overlay-label-text: #ffffff;
+	      --overlay-stale-opacity: 0.35;
+	      --overlay-debug-line: rgba(226, 232, 240, 0.35);
+	      --overlay-event-highlight: rgba(250, 204, 21, 0.22);
+	      --overlay-frame-dim: rgba(0, 0, 0, 0.18);
+	      --overlay-canvas-bg: #08110e;
+	      --overlay-canvas-text: rgba(242, 240, 223, 0.84);
+	      --overlay-region-fill: rgba(52, 211, 153, 0.22);
+	      --overlay-line: #facc15;
+	      --overlay-point-fill: #facc15;
+	      --overlay-point-text: #12120d;
+	      --radius-sm: 8px;
+	      --radius-md: 12px;
+	      --radius-lg: 16px;
+	      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
+	      --shadow-md: 0 12px 32px rgba(15, 23, 42, 0.12);
+	      --space-1: 4px;
+	      --space-2: 8px;
+	      --space-3: 12px;
+	      --space-4: 16px;
+	      --space-5: 20px;
+	      --space-6: 24px;
+	      --space-8: 32px;
+	      --bg: var(--color-bg);
+	      --panel: var(--color-surface);
+	      --panel2: var(--color-surface-muted);
+	      --ink: var(--color-text);
+	      --muted: var(--color-text-muted);
+	      --accent: var(--color-primary);
+	      --accent2: var(--color-primary-hover);
+	      --danger: var(--color-danger);
+	      --line: var(--color-border);
+	      --card-bg: var(--color-surface);
+	      --field-bg: var(--color-input-bg);
+	      --secondary-bg: var(--color-bg-elevated);
+	      --soft-bg: var(--color-surface-muted);
+	      --code-bg: var(--color-code-bg);
+	      --code-ink: var(--color-code-text);
+	      --canvas-bg: var(--color-debug-bg);
+	      --shadow: var(--shadow-md);
+	    }
+	    :root[data-theme="dark"] {
+	      --color-bg: #111827;
+	      --color-bg-elevated: #17212f;
+	      --color-surface: #1f2937;
+	      --color-surface-muted: #263241;
+	      --color-surface-hover: #203f3d;
+	      --color-border: #405163;
+	      --color-border-strong: #64748b;
+	      --color-text: #f8fafc;
+	      --color-text-muted: #cbd5e1;
+	      --color-text-subtle: #94a3b8;
+	      --color-link: #5eead4;
+	      --color-primary: #2dd4bf;
+	      --color-primary-hover: #5eead4;
+	      --color-success: #4ade80;
+	      --color-warning: #fbbf24;
+	      --color-danger: #f87171;
+	      --color-info: #60a5fa;
+	      --color-neutral: #cbd5e1;
+	      --color-on-primary: #06231f;
+	      --color-on-danger: #260606;
+	      --color-success-bg: rgba(34, 197, 94, 0.18);
+	      --color-warning-bg: rgba(245, 158, 11, 0.17);
+	      --color-danger-bg: rgba(239, 68, 68, 0.16);
+	      --color-info-bg: rgba(59, 130, 246, 0.20);
+	      --color-neutral-bg: rgba(148, 163, 184, 0.18);
+	      --color-input-bg: #111827;
+	      --color-input-border: #4b5f73;
+	      --color-input-focus: #5eead4;
+	      --color-input-disabled-bg: #202938;
+	      --color-placeholder: #7f8fa3;
+	      --color-table-header-bg: #263241;
+	      --color-table-row-hover: #1f3938;
+	      --color-table-row-selected: #24504c;
+	      --color-table-border: #53677a;
+	      --color-code-bg: #0b1120;
+	      --color-code-text: #e5edf5;
+	      --color-debug-bg: #151f2e;
+	      --color-debug-border: #4b5f73;
+	      --overlay-label-bg: rgba(2, 6, 23, 0.86);
+	      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
+	      --shadow-md: 0 16px 38px rgba(0, 0, 0, 0.34);
+	    }
+	    * { box-sizing: border-box; }
+	    [hidden] { display: none !important; }
+	    body {
+	      margin: 0;
+	      font-family: "Avenir Next", "Pretendard", sans-serif;
+	      color: var(--color-text);
+	      background: var(--color-bg);
+	      min-height: 100vh;
+	    }
+	    :root[data-theme="dark"] body {
+	      background: var(--color-bg);
+	    }
     :root[data-embed="1"] body {
       background: transparent;
       min-height: auto;
     }
-    main {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 32px 20px 56px;
-      display: grid;
-      gap: 20px;
-    }
+	    main,
+	    .page-shell {
+	      max-width: 1280px;
+	      margin: 0 auto;
+	      padding: var(--space-8) var(--space-5) 56px;
+	      display: grid;
+	      gap: var(--space-5);
+	    }
     :root[data-embed="1"] main {
       max-width: none;
       padding: 0;
     }
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 14px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .topbar strong { color: var(--ink); }
+	    .page-header,
+	    .topbar {
+	      display: flex;
+	      align-items: center;
+	      justify-content: space-between;
+	      gap: var(--space-3);
+	      margin-bottom: var(--space-4);
+	      color: var(--color-text-muted);
+	      font-size: 13px;
+	    }
+	    .topbar strong { color: var(--color-text); }
     .standalone-nav { display: none; }
     .theme-toggle {
       width: auto;
-      min-width: 112px;
-      padding: 9px 13px;
+      min-width: 86px;
+      min-height: 32px;
+      padding: 6px 10px;
       border-radius: 999px;
+      font-size: 12px;
       background: var(--secondary-bg);
       color: var(--ink);
       border: 1px solid var(--line);
@@ -3345,30 +3434,419 @@ std::string BuildLabRuleEditorPageHtml() {
     :root[data-embed="1"] .topbar {
       display: none;
     }
-    a { color: var(--accent); text-decoration: none; font-weight: 700; }
-    a:hover { text-decoration: underline; }
-    h1 { margin: 0; font-size: 36px; letter-spacing: -0.03em; }
-    h2 { margin: 0; font-size: 22px; letter-spacing: -0.02em; }
-    p { color: var(--muted); line-height: 1.55; }
-    .section-title-row {
+	    a { color: var(--color-link); text-decoration: none; font-weight: 700; }
+	    a:hover { text-decoration: underline; }
+	    h1, .page-title { margin: 0; font-size: 36px; letter-spacing: 0; }
+	    h2 { margin: 0; font-size: 22px; letter-spacing: 0; }
+	    p, .page-subtitle { color: var(--color-text-muted); line-height: 1.55; }
+	    .section-stack,
+	    .workspace-panel,
+	    .dashboard-drilldown,
+	    .stack {
+	      display: grid;
+	      gap: var(--space-4);
+	    }
+	    .section-card,
+	    .card {
+	      background: var(--color-surface);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-lg);
+	      box-shadow: var(--shadow-md);
+	      overflow: hidden;
+	    }
+	    .section-card-muted,
+	    .scenario-panel,
+	    .preview-panel,
+	    .metadata-viewer-panel,
+	    .output-policy-card,
+	    .pairing-card,
+	    .inline-details,
+	    .source-lock,
+	    .profile-summary-panel,
+	    .validation-summary,
+	    .readonly-id,
+	    .coordinate-row,
+	    .mini-check {
+	      background: var(--color-surface-muted);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-lg);
+	    }
+	    .toolbar,
+	    .management-toolbar {
+	      display: grid;
+	      grid-template-columns: minmax(0, 1fr) auto;
+	      gap: var(--space-3);
+	      align-items: end;
+	    }
+	    .toolbar-spacer { flex: 1 1 auto; }
+	    .split-layout,
+	    .row {
+	      display: grid;
+	      grid-template-columns: 1fr 1fr;
+	      gap: var(--space-3);
+	    }
+	    .sticky-summary {
+	      position: sticky;
+	      top: var(--space-3);
+	      z-index: 10;
+	    }
+	    .button,
+	    button {
+	      width: 100%;
+	      min-height: 42px;
+	      border: 1px solid transparent;
+	      border-radius: var(--radius-md);
+	      padding: 11px 13px;
+	      font: inherit;
+	      font-weight: 800;
+	      cursor: pointer;
+	      background: var(--color-primary);
+	      color: var(--color-on-primary);
+	      box-shadow: var(--shadow-sm);
+	    }
+	    .button:hover,
+	    button:hover {
+	      background: var(--color-primary-hover);
+	    }
+	    .button-primary {
+	      background: var(--color-primary);
+	      color: var(--color-on-primary);
+	    }
+	    .button-secondary,
+	    button.secondary,
+	    .theme-toggle {
+	      color: var(--color-text);
+	      border-color: var(--color-border);
+	      background: var(--color-bg-elevated);
+	      box-shadow: none;
+	    }
+	    .button-secondary:hover,
+	    button.secondary:hover,
+	    .theme-toggle:hover {
+	      background: var(--color-surface-hover);
+	      border-color: var(--color-border-strong);
+	    }
+	    .topbar .theme-toggle {
+	      flex: 0 0 auto;
+	      width: auto;
+	      min-width: 86px;
+	      min-height: 32px;
+	      padding: 6px 10px;
+	      font-size: 12px;
+	      justify-self: end;
+	    }
+	    .button-ghost {
+	      color: var(--color-link);
+	      border-color: var(--color-border);
+	      background: transparent;
+	      box-shadow: none;
+	    }
+	    .button-ghost:hover {
+	      background: var(--color-surface-hover);
+	    }
+	    .button-danger,
+	    button.danger {
+	      color: var(--color-on-danger);
+	      background: var(--color-danger);
+	      box-shadow: none;
+	    }
+	    .button-danger:hover,
+	    button.danger:hover {
+	      background: var(--color-danger);
+	      filter: brightness(0.96);
+	    }
+	    .button-icon {
+	      width: 38px;
+	      min-width: 38px;
+	      min-height: 38px;
+	      padding: 0;
+	      display: inline-grid;
+	      place-items: center;
+	    }
+	    .button-compact,
+	    button.mini-button,
+	    .copy-url-btn,
+	    .row-actions button {
+	      min-height: 32px;
+	      padding: 7px 10px;
+	      border-radius: var(--radius-sm);
+	      font-size: 12px;
+	    }
+	    button:disabled,
+	    .button:disabled {
+	      cursor: not-allowed;
+	      color: var(--color-text-subtle);
+	      background: var(--color-input-disabled-bg);
+	      border-color: var(--color-border);
+	      opacity: 1;
+	      box-shadow: none;
+	    }
+	    input:focus-visible,
+	    select:focus-visible,
+	    textarea:focus-visible,
+	    button:focus-visible,
+	    summary:focus-visible,
+	    .event-record-id-button:focus-visible {
+	      outline: 3px solid var(--color-input-focus);
+	      outline-offset: 2px;
+	    }
+	    .badge,
+	    .count-badge,
+	    .rule-id-badge,
+	    .status-chip {
+	      display: inline-flex;
+	      align-items: center;
+	      justify-content: center;
+	      min-height: 28px;
+	      width: fit-content;
+	      max-width: 100%;
+	      padding: 4px 9px;
+	      border-radius: 999px;
+	      border: 1px solid var(--color-border);
+	      background: var(--color-neutral-bg);
+	      color: var(--color-neutral);
+	      font-size: 12px;
+	      font-weight: 900;
+	      white-space: nowrap;
+	    }
+	    .badge-neutral,
+	    .status-chip.is-muted,
+	    .status-chip.is-phase-ended {
+	      color: var(--color-neutral);
+	      background: var(--color-neutral-bg);
+	    }
+	    .badge-success,
+	    .status-chip.is-active,
+	    .status-chip.is-scenario,
+	    .status-chip.is-phase-confirmed {
+	      color: var(--color-success);
+	      background: var(--color-success-bg);
+	      border-color: color-mix(in srgb, var(--color-success) 42%, var(--color-border));
+	    }
+	    .badge-warning,
+	    .status-chip.is-warning,
+	    .status-chip.is-phase-cooldown {
+	      color: var(--color-warning);
+	      background: var(--color-warning-bg);
+	      border-color: color-mix(in srgb, var(--color-warning) 42%, var(--color-border));
+	    }
+	    .badge-danger {
+	      color: var(--color-danger);
+	      background: var(--color-danger-bg);
+	      border-color: color-mix(in srgb, var(--color-danger) 42%, var(--color-border));
+	    }
+	    .badge-info,
+	    .status-chip.is-phase-candidate,
+	    .status-chip.is-phase-observing {
+	      color: var(--color-info);
+	      background: var(--color-info-bg);
+	      border-color: color-mix(in srgb, var(--color-info) 42%, var(--color-border));
+	    }
+	    .badge-muted {
+	      color: var(--color-text-subtle);
+	      background: var(--color-surface-muted);
+	    }
+	    .form-grid,
+	    .rule-list-controls,
+	    .event-record-filter-grid {
+	      display: grid;
+	      gap: var(--space-3);
+	      align-items: end;
+	    }
+	    .form-section {
+	      display: grid;
+	      gap: var(--space-4);
+	      padding: var(--space-4);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-lg);
+	      background: var(--color-surface-muted);
+	    }
+	    .field,
+	    label {
+	      display: grid;
+	      gap: 6px;
+	      color: var(--color-text-muted);
+	      font-size: 13px;
+	    }
+	    .field-label {
+	      color: var(--color-text);
+	      font-weight: 800;
+	    }
+	    .field-help,
+	    .form-note,
+	    .hint,
+	    .range-meta {
+	      margin: 0;
+	      color: var(--color-text-muted);
+	      font-size: 12px;
+	      line-height: 1.45;
+	    }
+	    .field-error,
+	    .metadata-error {
+	      color: var(--color-danger);
+	      font-weight: 800;
+	    }
+	    .input,
+	    .select,
+	    .textarea,
+	    input,
+	    select,
+	    textarea {
+	      width: 100%;
+	      border-radius: var(--radius-md);
+	      border: 1px solid var(--color-input-border);
+	      background: var(--color-input-bg);
+	      color: var(--color-text);
+	      padding: 11px 13px;
+	      font: inherit;
+	    }
+	    input::placeholder,
+	    textarea::placeholder {
+	      color: var(--color-placeholder);
+	    }
+	    input:disabled,
+	    select:disabled,
+	    textarea:disabled {
+	      color: var(--color-text-subtle);
+	      background: var(--color-input-disabled-bg);
+	      border-color: var(--color-border);
+	    }
+	    .checkbox-row,
+	    .mini-check,
+	    .metadata-overlay-controls label,
+	    .check-grid label {
+	      display: flex;
+	      align-items: center;
+	      gap: var(--space-2);
+	    }
+	    .data-table,
+	    .dashboard-table {
+	      width: 100%;
+	      min-width: 720px;
+	      border-collapse: collapse;
+	      color: var(--color-text);
+	      font-size: 12px;
+	    }
+	    .data-table-compact,
+	    .dashboard-table .status-chip {
+	      font-size: 11px;
+	    }
+	    .table-actions {
+	      display: flex;
+	      gap: var(--space-2);
+	      align-items: center;
+	      justify-content: flex-end;
+	      flex-wrap: wrap;
+	    }
+	    .table-cell-muted,
+	    .table-empty,
+	    .dashboard-table .dashboard-empty-cell {
+	      color: var(--color-text-muted);
+	    }
+	    .table-cell-code {
+	      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	      overflow-wrap: anywhere;
+	    }
+	    .table-empty,
+	    .dashboard-table .dashboard-empty-cell {
+	      text-align: center;
+	      white-space: normal;
+	    }
+	    .status-card,
+	    .viewer-status-card,
+	    .geometry-status-card,
+	    .scenario-check {
+	      min-height: 72px;
+	      padding: 12px 14px;
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-surface-muted);
+	      display: grid;
+	      gap: 5px;
+	      align-content: center;
+	    }
+	    .metric-card,
+	    .summary-tile,
+	    .review-tile,
+	    .metric-tile,
+	    .profile-summary-item {
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-surface-muted);
+	    }
+	    .debug-panel,
+	    .debug-drawer,
+	    .developer-panel,
+	    .developer-url-details {
+	      border: 1px solid var(--color-debug-border);
+	      border-radius: var(--radius-lg);
+	      background: var(--color-debug-bg);
+	      overflow: hidden;
+	    }
+	    .raw-json-panel,
+	    pre,
+	    .dashboard-pre,
+	    .metadata-json-preview {
+	      border: 1px solid var(--color-debug-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-code-bg);
+	      color: var(--color-code-text);
+	      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	    }
+	    .warning-panel {
+	      border: 1px solid var(--color-warning);
+	      border-radius: var(--radius-lg);
+	      background: var(--color-warning-bg);
+	      color: var(--color-warning);
+	    }
+	    .video-stage,
+	    .metadata-video-stage,
+	    .view-frame img {
+	      width: 100%;
+	      aspect-ratio: 16 / 9;
+	      display: block;
+	      border-radius: var(--radius-lg);
+	      border: 1px solid var(--color-border);
+	      background: var(--color-code-bg);
+	    }
+	    .video-overlay,
+	    .metadata-overlay-canvas {
+	      pointer-events: none;
+	      opacity: 1;
+	      transition: opacity 180ms ease;
+	    }
+	    .video-status-row,
+	    .metadata-diagnostic-actions {
+	      display: flex;
+	      align-items: center;
+	      gap: var(--space-3);
+	      flex-wrap: wrap;
+	    }
+	    .overlay-debug-toolbar {
+	      display: flex;
+	      align-items: center;
+	      gap: var(--space-2);
+	      flex-wrap: wrap;
+	    }
+	    .section-title-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
       flex-wrap: wrap;
     }
-    .count-badge {
-      display: inline-flex;
-      align-items: center;
-      min-height: 28px;
-      padding: 5px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: var(--soft-bg);
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
-    }
+	    .count-badge {
+	      display: inline-flex;
+	      align-items: center;
+	      min-height: 28px;
+	      padding: 5px 10px;
+	      border-radius: 999px;
+	      border: 1px solid var(--color-border);
+	      background: var(--color-neutral-bg);
+	      color: var(--color-neutral);
+	      font-size: 12px;
+	      font-weight: 800;
+	    }
     .management-toolbar {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -3406,27 +3884,27 @@ std::string BuildLabRuleEditorPageHtml() {
 	    }
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
     }
     .summary-tile {
       min-height: 76px;
       padding: 13px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: var(--soft-bg);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-surface-muted);
       display: grid;
       gap: 4px;
     }
     .summary-tile span {
-      color: var(--muted);
+      color: var(--color-text-muted);
       font-size: 12px;
       font-weight: 800;
     }
     .summary-tile strong {
-      color: var(--ink);
+      color: var(--color-text);
       font-size: 22px;
-      letter-spacing: -0.02em;
+      letter-spacing: 0;
     }
     .rule-list-panel {
       display: grid;
@@ -3434,68 +3912,86 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 	    .rule-list-controls {
 	      display: grid;
-	      grid-template-columns: minmax(220px, 1fr) minmax(130px, 0.3fr) minmax(150px, 0.35fr) minmax(88px, 0.18fr);
+	      grid-template-columns: minmax(260px, 1fr) minmax(132px, 0.28fr) minmax(156px, 0.34fr) auto auto;
 	      gap: 10px;
-	      align-items: start;
+	      align-items: end;
+	      padding: 12px;
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-lg);
+	      background: var(--color-surface-muted);
 	    }
-	    .rule-filter-summary {
-	      min-height: 0;
-	      padding: 0;
-	      display: grid;
-	      gap: 6px;
-	    }
-	    .rule-filter-summary span {
-	      color: var(--ink);
-	      font-size: 13px;
-	      font-weight: 800;
-	    }
-	    .rule-filter-summary strong {
+	    .rule-filter-summary,
+	    .rule-next-id-note {
 	      min-height: 44px;
 	      display: flex;
 	      align-items: center;
-	      padding: 0 12px;
-	      border: 1px solid var(--line);
-	      border-radius: 14px;
-	      background: var(--field-bg);
-	      color: var(--muted);
-	      font-size: 14px;
+	      justify-content: flex-end;
+	      gap: 8px;
+	      color: var(--color-text-muted);
+	      font-size: 12px;
 	      font-weight: 800;
+	      white-space: nowrap;
+	    }
+	    .rule-filter-summary span,
+	    .rule-next-id-note span:first-child {
+	      color: var(--color-text-subtle);
+	      font-size: 11px;
+	      font-weight: 900;
+	      text-transform: uppercase;
+	    }
+	    .rule-filter-summary strong,
+	    .rule-next-id-note strong {
+	      min-height: 24px;
+	      padding: 3px 8px;
+	      border-radius: 999px;
+	      border: 1px solid var(--color-border);
+	      background: var(--color-neutral-bg);
+	      color: var(--color-text-muted);
+	      font-size: 11px;
+	      font-weight: 900;
 	    }
     .rule-list {
       display: grid;
-      gap: 8px;
+      gap: 6px;
     }
 	    .rule-row {
 	      display: grid;
 	      grid-template-columns: 64px minmax(150px, 1.1fr) minmax(150px, 0.85fr) minmax(170px, 1fr) minmax(130px, 0.75fr) minmax(190px, 0.75fr);
-	      gap: 10px;
+	      gap: 12px;
 	      align-items: start;
 	      padding: 12px;
-	      border: 1px solid var(--line);
-	      border-radius: 16px;
-	      background: var(--field-bg);
+	      border: 1px solid var(--color-table-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-surface);
 	      text-align: left;
+	      transition: background 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+	    }
+	    .rule-row:not(.is-header):hover {
+	      border-color: var(--color-border-strong);
+	      background: var(--color-table-row-hover);
 	    }
 	    .rule-row > * {
 	      min-width: 0;
 	    }
 	    .rule-row.is-header {
 	      min-height: 0;
-	      padding: 0 12px;
-      border: 0;
-      background: transparent;
-	      color: var(--muted);
+	      padding: 0 12px 4px;
+	      border: 0;
+	      border-radius: 0;
+	      background: transparent;
+	      color: var(--color-text-subtle);
 	      font-size: 12px;
-	      font-weight: 800;
+	      font-weight: 900;
 	      align-items: center;
 	    }
-    .rule-row.is-selected {
-      border-color: rgba(11,110,105,0.52);
-      box-shadow: inset 0 0 0 1px rgba(11,110,105,0.20);
-    }
-    :root[data-theme="dark"] .rule-row.is-selected {
-      border-color: rgba(255,77,141,0.55);
-      box-shadow: inset 0 0 0 1px rgba(255,77,141,0.18);
+	    .rule-row.is-selected {
+	      border-color: var(--color-primary);
+	      background: var(--color-table-row-selected);
+	      box-shadow: inset 0 0 0 1px var(--color-primary);
+	    }
+	    :root[data-theme="dark"] .rule-row.is-selected {
+	      border-color: var(--color-primary);
+	      box-shadow: inset 0 0 0 1px var(--color-primary);
     }
     .rule-main {
       display: grid;
@@ -3506,7 +4002,7 @@ std::string BuildLabRuleEditorPageHtml() {
       overflow-wrap: anywhere;
     }
     .rule-main span, .rule-cell {
-      color: var(--muted);
+      color: var(--color-text-muted);
       font-size: 12px;
       line-height: 1.35;
     }
@@ -3529,83 +4025,139 @@ std::string BuildLabRuleEditorPageHtml() {
       min-height: 30px;
       padding: 5px 9px;
       border-radius: 999px;
-      border: 1px solid var(--line);
-      background: var(--soft-bg);
-      color: var(--ink);
+	      border: 1px solid var(--color-border);
+	      background: var(--color-neutral-bg);
+	      color: var(--color-neutral);
       font-weight: 900;
 	      font-size: 12px;
 	      white-space: nowrap;
 	      width: fit-content;
 	      max-width: 100%;
 	    }
-    .status-chip.is-muted {
-      color: var(--muted);
-      background: var(--secondary-bg);
-    }
-    .status-chip.is-active {
-      color: #fff;
-      border-color: transparent;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-    }
-    .status-chip.is-scenario {
-      color: #fff;
-      border-color: transparent;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-    }
-    .status-chip.is-warning {
-      color: var(--danger);
-      background: var(--secondary-bg);
-    }
-    .status-chip.is-phase-candidate {
-      color: #174ea6;
-      background: rgba(66,133,244,0.13);
-    }
-    .status-chip.is-phase-observing {
-      color: #0b6e69;
-      background: rgba(11,110,105,0.14);
-    }
-    .status-chip.is-phase-confirmed {
-      color: #0f5132;
-      background: rgba(34,197,94,0.15);
-    }
-    .status-chip.is-phase-cooldown {
-      color: #9a3412;
-      background: rgba(249,115,22,0.16);
-    }
-    .status-chip.is-phase-ended {
-      color: var(--muted);
-      background: var(--secondary-bg);
+	    .status-chip.is-muted {
+	      color: var(--color-neutral);
+	      background: var(--color-neutral-bg);
+	    }
+	    .status-chip.is-active {
+	      color: var(--color-success);
+	      border-color: color-mix(in srgb, var(--color-success) 42%, var(--color-border));
+	      background: var(--color-success-bg);
+	    }
+	    .status-chip.is-scenario {
+	      color: var(--color-success);
+	      border-color: color-mix(in srgb, var(--color-success) 42%, var(--color-border));
+	      background: var(--color-success-bg);
+	    }
+	    .status-chip.is-warning {
+	      color: var(--color-warning);
+	      background: var(--color-warning-bg);
+	      border-color: color-mix(in srgb, var(--color-warning) 42%, var(--color-border));
+	    }
+	    .status-chip.is-phase-candidate {
+	      color: var(--color-info);
+	      background: var(--color-info-bg);
+	      border-color: color-mix(in srgb, var(--color-info) 42%, var(--color-border));
+	    }
+	    .status-chip.is-phase-observing {
+	      color: var(--color-info);
+	      background: var(--color-info-bg);
+	      border-color: color-mix(in srgb, var(--color-info) 42%, var(--color-border));
+	    }
+	    .status-chip.is-phase-confirmed {
+	      color: var(--color-success);
+	      background: var(--color-success-bg);
+	      border-color: color-mix(in srgb, var(--color-success) 42%, var(--color-border));
+	    }
+	    .status-chip.is-phase-cooldown {
+	      color: var(--color-warning);
+	      background: var(--color-warning-bg);
+	      border-color: color-mix(in srgb, var(--color-warning) 42%, var(--color-border));
+	    }
+	    .status-chip.is-phase-ended {
+	      color: var(--color-neutral);
+	      background: var(--color-neutral-bg);
     }
 	    .row-actions {
 	      display: flex;
 	      flex-wrap: wrap;
 	      justify-content: flex-end;
 	      align-items: center;
-	      gap: 4px;
+	      gap: 6px;
 	    }
 	    .row-actions button {
 	      flex: 0 0 auto;
 	      width: auto;
-	      min-width: 40px;
+	      min-width: 48px;
 	      min-height: 32px;
-	      padding: 6px 7px;
-	      border-radius: 10px;
+	      padding: 6px 9px;
+	      border-radius: var(--radius-sm);
 	      font-size: 12px;
 	    }
 	    .rule-cell-stack button {
 	      width: fit-content;
 	      min-width: 90px;
 	    }
+	    .rule-state-cell {
+	      align-content: start;
+	    }
+	    .rule-state-cell button {
+	      margin-top: 2px;
+	    }
     .empty-state {
-      padding: 18px;
-      border: 1px dashed var(--line);
-      border-radius: 16px;
-      background: var(--soft-bg);
-      color: var(--muted);
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+      padding: 26px 18px;
+      border: 1px dashed var(--color-border-strong);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-muted);
+      color: var(--color-text-muted);
       text-align: center;
     }
+    .empty-state h3 {
+      margin: 0;
+      color: var(--color-text);
+      font-size: 16px;
+    }
+    .empty-state p {
+      margin: 0;
+      max-width: 520px;
+      color: var(--color-text-muted);
+      font-size: 13px;
+    }
+    .empty-state button {
+      width: auto;
+      min-width: 128px;
+      margin-top: 4px;
+    }
     .editor-panel {
+      gap: var(--space-4);
       scroll-margin-top: 18px;
+    }
+    .editor-sticky-stack {
+      position: sticky;
+      top: 12px;
+      z-index: 18;
+      display: grid;
+      gap: var(--space-2);
+      padding-bottom: var(--space-2);
+      background: var(--color-bg);
+    }
+    .editor-sticky-stack::before {
+      content: "";
+      position: absolute;
+      inset: -12px -2px 0;
+      z-index: -1;
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-bg);
+      box-shadow: 0 10px 18px color-mix(in srgb, var(--color-bg) 72%, transparent);
+    }
+    .editor-command-card {
+      position: relative;
+      z-index: 1;
+    }
+    .editor-command-card .pad {
+      padding: 16px;
     }
     .editor-heading {
       display: flex;
@@ -3614,19 +4166,110 @@ std::string BuildLabRuleEditorPageHtml() {
       gap: 12px;
       flex-wrap: wrap;
     }
+    .editor-command-bar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+    }
+    .rule-editor-identity {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .rule-editor-identity h2 {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+    .rule-editor-identity .hint {
+      margin-top: 4px;
+    }
+    .editor-id-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      margin-left: 6px;
+      padding: 3px 8px;
+      border: 1px solid var(--color-border);
+      border-radius: 999px;
+      background: var(--color-neutral-bg);
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .editor-save-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .editor-state-stack {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      flex-wrap: wrap;
+      max-width: 420px;
+    }
+    .save-state-badge {
+      min-height: 26px;
+      padding: 4px 9px;
+      border: 1px solid var(--color-border);
+      border-radius: 999px;
+      background: var(--color-neutral-bg);
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .save-state-badge.is-ok {
+      border-color: color-mix(in srgb, var(--color-success) 42%, var(--color-border));
+      background: var(--color-success-bg);
+      color: var(--color-success);
+    }
+    .save-state-badge.is-error,
+    .save-state-badge.is-dirty {
+      border-color: color-mix(in srgb, var(--color-danger) 42%, var(--color-border));
+      background: var(--color-danger-bg);
+      color: var(--color-danger);
+    }
+    .save-state-badge.is-muted {
+      background: var(--color-neutral-bg);
+      color: var(--color-text-muted);
+    }
+    .editor-save-actions button {
+      width: auto;
+      min-width: 96px;
+    }
     .edit-step-nav {
       grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin: 0;
       box-shadow: none;
+      position: relative;
+      z-index: 1;
+    }
+    .edit-step-select {
+      display: none;
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      min-height: 36px;
+      margin: 0;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 800;
     }
     .edit-step-card {
-      scroll-margin-top: 86px;
+      scroll-margin-top: 174px;
     }
     .step-title {
       display: flex;
       align-items: flex-start;
       gap: 12px;
     }
-    .step-title > span {
+	    .step-title > span {
       width: 34px;
       height: 34px;
       display: inline-flex;
@@ -3634,23 +4277,23 @@ std::string BuildLabRuleEditorPageHtml() {
       justify-content: center;
       flex: 0 0 auto;
       border-radius: 999px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: #fff;
+	      background: var(--color-primary);
+	      color: var(--color-on-primary);
       font-weight: 900;
     }
     .step-title h2 {
       margin-bottom: 4px;
     }
-    .inline-details {
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: var(--soft-bg);
+	    .inline-details {
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-lg);
+	      background: var(--color-surface-muted);
       overflow: hidden;
     }
     .inline-details > summary {
       cursor: pointer;
       padding: 13px 14px;
-      color: var(--ink);
+	      color: var(--color-text);
       font-weight: 900;
     }
     .inline-details > .stack,
@@ -3720,45 +4363,136 @@ std::string BuildLabRuleEditorPageHtml() {
       font-size: 12px;
       line-height: 1.4;
     }
-    .profile-delete-note.is-warning {
-      color: var(--danger);
-      border-color: rgba(213,75,75,0.45);
+	    .profile-delete-note.is-warning {
+	      color: var(--color-danger);
+	      border-color: var(--color-danger);
+	      background: var(--color-danger-bg);
+    }
+    .profile-guide-panel {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-muted);
+    }
+    .profile-guide-step {
+      display: grid;
+      gap: 4px;
+      min-height: 62px;
+      padding: 10px 11px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-elevated);
+    }
+    .profile-guide-step strong {
+      color: var(--color-text);
+      font-size: 13px;
+    }
+    .profile-guide-step span {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .profile-create-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      border: 1px dashed var(--color-border-strong);
+      border-radius: var(--radius-lg);
+      background: var(--color-bg-elevated);
+    }
+    .profile-create-panel strong {
+      display: block;
+      color: var(--color-text);
+      margin-bottom: 4px;
+    }
+    .profile-create-panel p {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .profile-create-panel button {
+      width: auto;
+      min-width: 124px;
+      white-space: nowrap;
+    }
+    .profile-create-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .profile-create-actions button {
+      flex: 0 0 auto;
+    }
+    .profile-draft-actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .profile-draft-actions button {
+      width: auto;
+      min-width: 124px;
     }
     .readonly-id {
-      min-height: 44px;
+      min-height: 43px;
       display: flex;
       align-items: center;
       padding: 11px 13px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--soft-bg);
-      color: var(--ink);
+      border: 1px solid var(--color-input-border);
+      border-radius: var(--radius-md);
+      background: var(--color-input-disabled-bg);
+      color: var(--color-text);
       font-weight: 900;
     }
-    .feedback-toast {
-      position: sticky;
-      top: 12px;
+    #ruleBasicSection .row > label {
+      align-content: start;
+    }
+    #ruleBasicSection .row input:not([type="hidden"]),
+    #ruleBasicSection .readonly-id {
+      min-height: 43px;
+    }
+    #ruleScenarioSection .row > label {
+      align-content: start;
+      min-width: 0;
+    }
+    #ruleScenarioSection select {
+      width: 100%;
+      min-height: 43px;
+      box-sizing: border-box;
+    }
+	    .feedback-toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
       z-index: 20;
       display: none;
+      max-width: min(420px, calc(100vw - 32px));
       padding: 13px 16px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--card-bg);
-      color: var(--ink);
+	      border: 1px solid var(--color-border);
+	      border-radius: 14px;
+	      background: var(--color-surface);
+	      color: var(--color-text);
       box-shadow: var(--shadow);
       font-weight: 800;
     }
     .feedback-toast.is-visible {
       display: block;
     }
-    .feedback-toast.is-success {
-      border-color: rgba(11,110,105,0.45);
-      background: rgba(11,110,105,0.13);
-    }
-    .feedback-toast.is-error {
-      border-color: rgba(213,75,75,0.55);
-      background: rgba(213,75,75,0.14);
-    }
+	    .feedback-toast.is-success {
+	      border-color: var(--color-success);
+	      background: var(--color-success-bg);
+	    }
+	    .feedback-toast.is-error {
+	      border-color: var(--color-danger);
+	      background: var(--color-danger-bg);
+	    }
     .validation-summary {
       display: grid;
       gap: 8px;
@@ -3767,24 +4501,24 @@ std::string BuildLabRuleEditorPageHtml() {
       border-radius: 14px;
       background: var(--soft-bg);
     }
-    .validation-summary.is-ok {
-      border-color: rgba(11,110,105,0.45);
-      background: rgba(11,110,105,0.10);
-    }
-    .validation-summary.is-error {
-      border-color: rgba(213,75,75,0.55);
-      background: rgba(213,75,75,0.12);
-    }
+	    .validation-summary.is-ok {
+	      border-color: var(--color-success);
+	      background: var(--color-success-bg);
+	    }
+	    .validation-summary.is-error {
+	      border-color: var(--color-danger);
+	      background: var(--color-danger-bg);
+	    }
     .validation-item {
       display: grid;
       gap: 3px;
       padding: 8px 10px;
       border-radius: 11px;
-      background: rgba(255,255,255,0.42);
-    }
-    :root[data-theme="dark"] .validation-item {
-      background: rgba(255,255,255,0.055);
-    }
+	      background: var(--color-bg-elevated);
+	    }
+	    :root[data-theme="dark"] .validation-item {
+	      background: var(--color-surface-muted);
+	    }
     .validation-item strong {
       color: var(--ink);
       font-size: 12px;
@@ -3799,69 +4533,99 @@ std::string BuildLabRuleEditorPageHtml() {
       font-size: 0.9rem;
       color: var(--muted);
     }
-    .dirty-state.is-dirty {
-      color: var(--danger);
+	    .dirty-state.is-dirty {
+	      color: var(--color-danger);
       font-weight: 800;
     }
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
+    .source-lock.is-ok,
+    .geometry-readiness.is-ok {
+      border-color: color-mix(in srgb, var(--color-success) 42%, var(--color-border));
+      background: var(--color-success-bg);
+      color: var(--color-success);
     }
+    .source-lock.is-error,
+    .geometry-readiness.is-error {
+      border-color: color-mix(in srgb, var(--color-danger) 42%, var(--color-border));
+      background: var(--color-danger-bg);
+      color: var(--color-danger);
+    }
+	    .card {
+	      background: var(--color-surface);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-lg);
+	      box-shadow: var(--shadow-md);
+	      overflow: hidden;
+	    }
     :root[data-embed="1"] .card {
       box-shadow: none;
       border-radius: 20px;
     }
-    .pad { padding: 24px; }
-    .grid { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
-    .stack { display: grid; gap: 14px; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; }
-    input, select, textarea, button {
-      width: 100%;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: var(--field-bg);
-      color: var(--ink);
-      padding: 11px 13px;
-      font: inherit;
-    }
-    input[type="checkbox"] { width: auto; }
-    input[type="range"] { padding: 0; accent-color: var(--accent); }
-    textarea { min-height: 190px; resize: vertical; }
-    button {
-      border: 0;
-      color: #fff;
-      font-weight: 800;
-      cursor: pointer;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-    }
-    button:disabled {
-      cursor: not-allowed;
-      opacity: 0.55;
-    }
-    button.secondary {
-      color: var(--ink);
-      border: 1px solid var(--line);
-      background: var(--secondary-bg);
-    }
-    button.danger {
-      color: #180b0b;
-      background: linear-gradient(135deg, var(--danger), #ffb0a8);
-    }
-    .hero {
-      display: grid;
-      gap: 10px;
-      margin-bottom: 0;
-      padding: 24px;
-      background: var(--card-bg);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
+	    .pad { padding: var(--space-6); }
+	    .grid { display: grid; grid-template-columns: 1fr; gap: var(--space-5); align-items: start; }
+	    .stack { display: grid; gap: var(--space-4); }
+	    .row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+	    label { display: grid; gap: 6px; color: var(--color-text-muted); font-size: 13px; }
+	    input, select, textarea, button {
+	      width: 100%;
+	      border-radius: var(--radius-md);
+	      border: 1px solid var(--color-input-border);
+	      background: var(--color-input-bg);
+	      color: var(--color-text);
+	      padding: 11px 13px;
+	      font: inherit;
+	    }
+	    input[type="checkbox"] {
+	      width: auto;
+	      accent-color: var(--color-primary);
+	    }
+	    input[type="range"] { padding: 0; accent-color: var(--color-primary); }
+	    textarea { min-height: 190px; resize: vertical; }
+	    button {
+	      border: 1px solid transparent;
+	      color: var(--color-on-primary);
+	      font-weight: 800;
+	      cursor: pointer;
+	      background: var(--color-primary);
+	    }
+	    button:disabled {
+	      cursor: not-allowed;
+	      color: var(--color-text-subtle);
+	      border-color: var(--color-border);
+	      background: var(--color-input-disabled-bg);
+	      opacity: 1;
+	      box-shadow: none;
+	    }
+	    button.secondary {
+	      color: var(--color-text);
+	      border: 1px solid var(--color-border);
+	      background: var(--color-bg-elevated);
+	    }
+	    .page-header.topbar .theme-toggle,
+	    .topbar > .theme-toggle {
+	      flex: 0 0 auto;
+	      width: auto;
+	      min-width: 86px;
+	      min-height: 32px;
+	      padding: 6px 10px;
+	      border-radius: 999px;
+	      font-size: 12px;
+	      justify-self: end;
+	    }
+	    button.danger {
+	      color: var(--color-on-danger);
+	      background: var(--color-danger);
+	    }
+	    .hero {
+	      display: grid;
+	      gap: 10px;
+	      margin-bottom: 0;
+	      padding: var(--space-6);
+	      background: var(--color-surface);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-lg);
+	      box-shadow: var(--shadow-md);
+	      overflow: hidden;
+	    }
     :root[data-embed="1"] .hero {
       padding: 24px;
       box-shadow: none;
@@ -3876,27 +4640,27 @@ std::string BuildLabRuleEditorPageHtml() {
       gap: 8px;
       overflow: visible;
     }
-    .check-grid label {
+	    .check-grid label {
       display: flex;
       align-items: flex-start;
       gap: 8px;
       padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--soft-bg);
-      color: var(--ink);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-surface-muted);
+	      color: var(--color-text);
     }
     .check-grid label.is-hidden { display: none; }
-    .class-group-title {
+	    .class-group-title {
       grid-column: 1 / -1;
       margin-top: 8px;
       padding: 8px 10px;
       border-radius: 12px;
-      background: var(--soft-bg);
-      color: var(--accent);
+	      background: var(--color-surface-muted);
+      color: var(--color-primary);
       font-weight: 800;
       font-size: 13px;
-      letter-spacing: -0.01em;
+      letter-spacing: 0;
     }
     .class-group-title.is-hidden { display: none; }
     .class-tools {
@@ -3914,14 +4678,14 @@ std::string BuildLabRuleEditorPageHtml() {
       grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 8px;
     }
-    .segmented {
+	    .segmented {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
       padding: 4px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: var(--soft-bg);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-lg);
+	      background: var(--color-surface-muted);
     }
     .segmented label {
       display: flex;
@@ -3931,15 +4695,15 @@ std::string BuildLabRuleEditorPageHtml() {
       min-height: 42px;
       padding: 9px 10px;
       border-radius: 12px;
-      color: var(--muted);
+	      color: var(--color-text-muted);
       font-weight: 800;
       cursor: pointer;
     }
     .segmented input { width: auto; }
-    .segmented label:has(input:checked) {
-      background: var(--field-bg);
-      color: var(--ink);
-      box-shadow: inset 0 0 0 1px var(--line);
+	    .segmented label:has(input:checked) {
+	      background: var(--color-bg-elevated);
+	      color: var(--color-text);
+	      box-shadow: inset 0 0 0 1px var(--color-border-strong);
     }
     .segmented.view-mode {
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -3963,28 +4727,28 @@ std::string BuildLabRuleEditorPageHtml() {
     .section-anchor {
       scroll-margin-top: 18px;
     }
-    .primary-tabs {
+	    .primary-tabs {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
       padding: 6px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: var(--soft-bg);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-lg);
+	      background: var(--color-surface-muted);
     }
-    .primary-tabs button {
-      min-height: 48px;
-      border-radius: 14px;
-      color: var(--ink);
-      background: var(--secondary-bg);
-      border: 1px solid var(--line);
-      box-shadow: none;
-    }
-    .primary-tabs button.is-active {
-      color: #fff;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border-color: transparent;
-    }
+	    .primary-tabs button {
+	      min-height: 48px;
+	      border-radius: var(--radius-md);
+	      color: var(--color-text);
+	      background: var(--color-bg-elevated);
+	      border: 1px solid var(--color-border);
+	      box-shadow: none;
+	    }
+	    .primary-tabs button.is-active {
+	      color: var(--color-on-primary);
+	      background: var(--color-primary);
+	      border-color: transparent;
+	    }
     .workspace-panel {
       display: grid;
       gap: 20px;
@@ -3992,12 +4756,12 @@ std::string BuildLabRuleEditorPageHtml() {
     .workspace-panel[hidden] {
       display: none;
     }
-    .source-lock {
-      padding: 12px 14px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--soft-bg);
-      color: var(--muted);
+	    .source-lock {
+	      padding: 12px 14px;
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-surface-muted);
+	      color: var(--color-text-muted);
       font-size: 13px;
       line-height: 1.45;
       overflow-wrap: anywhere;
@@ -4007,51 +4771,126 @@ std::string BuildLabRuleEditorPageHtml() {
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
     }
-    .viewer-status-card {
+    .viewer-console-card .pad {
+      gap: 14px;
+    }
+    .viewer-mode-toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: end;
+    }
+    .viewer-mode-toolbar .segmented.view-mode {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .viewer-mode-toolbar .segmented label {
+      min-height: 36px;
+      padding: 7px 9px;
+      font-size: 12px;
+    }
+    .viewer-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .viewer-actions button {
+      width: auto;
+      min-width: 96px;
+    }
+    .viewer-actions .button-ghost {
+      color: var(--color-text-muted);
+      border-color: var(--color-border);
+      background: var(--color-bg-elevated);
+    }
+    .viewer-actions .button-ghost:disabled {
+      border-color: var(--color-border);
+      background: var(--color-input-disabled-bg);
+      color: var(--color-text-subtle);
+      opacity: 0.68;
+    }
+    .viewer-input-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+      align-items: end;
+    }
+    .viewer-summary-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      padding: 10px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-muted);
+      color: var(--color-text-muted);
+      font-size: 12px;
+      font-weight: 800;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .viewer-summary-line > span:last-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .viewer-status-grid.viewer-status-grid-compact {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+	    .viewer-status-card {
       min-height: 72px;
       padding: 12px 14px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--soft-bg);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-surface-muted);
       display: grid;
       gap: 5px;
       align-content: center;
     }
-    .viewer-status-card span {
-      color: var(--muted);
+	    .viewer-status-card span {
+	      color: var(--color-text-muted);
       font-size: 12px;
       font-weight: 800;
     }
-    .viewer-status-card strong {
-      color: var(--ink);
+	    .viewer-status-card strong {
+	      color: var(--color-text);
       font-size: 14px;
       overflow-wrap: anywhere;
     }
-    .viewer-status-card.is-connecting strong {
-      color: var(--accent2);
+	    .viewer-status-card.is-connecting strong {
+	      color: var(--color-warning);
+	    }
+	    .viewer-status-card.is-playing strong {
+	      color: var(--color-success);
+	    }
+	    .viewer-status-card.is-error strong {
+	      color: var(--color-danger);
     }
-    .viewer-status-card.is-playing strong {
-      color: var(--accent);
-    }
-    .viewer-status-card.is-error strong {
-      color: var(--danger);
-    }
-    .view-frame {
+	    .viewer-status-card.is-stopped strong,
+	    .viewer-status-card.is-idle strong {
+	      color: var(--color-text-muted);
+	    }
+	    .viewer-status-card.is-warning strong,
+	    .viewer-status-card.is-stalled strong {
+	      color: var(--color-warning);
+	    }
+	    .view-frame {
       display: grid;
-      gap: 12px;
-      padding: 16px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: var(--soft-bg);
+      gap: 10px;
+      padding: 10px;
+	      border: 1px solid var(--color-table-border);
+	      border-radius: var(--radius-lg);
+	      background: var(--color-surface);
     }
     .view-frame img,
     .metadata-video-stage {
       width: 100%;
       aspect-ratio: 16 / 9;
       display: block;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: var(--canvas-bg);
+	      border-radius: var(--radius-md);
+	      border: 1px solid var(--color-border);
+	      background: var(--color-code-bg);
     }
     .view-frame img {
       object-fit: contain;
@@ -4074,17 +4913,17 @@ std::string BuildLabRuleEditorPageHtml() {
       border-radius: 0;
       background: transparent;
     }
-    .metadata-video-stage video {
-      object-fit: contain;
-      background: #000;
+	    .metadata-video-stage video {
+	      object-fit: contain;
+	      background: var(--color-code-bg);
     }
     .metadata-overlay-canvas {
       pointer-events: none;
       opacity: 1;
       transition: opacity 180ms ease;
     }
-    .metadata-overlay-canvas.is-stale {
-      opacity: 0.35;
+	    .metadata-overlay-canvas.is-stale {
+	      opacity: var(--overlay-stale-opacity);
     }
     .metadata-stale-badge {
       position: absolute;
@@ -4092,11 +4931,93 @@ std::string BuildLabRuleEditorPageHtml() {
       top: 12px;
       padding: 6px 9px;
       border-radius: 999px;
-      background: rgba(18, 18, 13, 0.74);
-      color: #fff;
+	      background: var(--overlay-label-bg);
+	      color: var(--overlay-label-text);
       font-size: 12px;
       font-weight: 900;
       pointer-events: none;
+    }
+    .viewer-compact-status-row,
+    .metadata-badge-strip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .compact-status,
+    .media-spec-chip,
+    .metadata-metric-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
+      padding: 4px 8px;
+      border: 1px solid var(--color-border);
+      border-radius: 999px;
+      background: var(--color-surface-muted);
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .compact-status span,
+    .media-spec-chip span,
+    .metadata-metric-badge span {
+      color: var(--color-text-subtle);
+      font-weight: 900;
+    }
+    .compact-status strong,
+    .media-spec-chip strong,
+    .metadata-metric-badge strong {
+      color: var(--color-text);
+      font-size: 11px;
+      overflow-wrap: anywhere;
+    }
+    .viewer-media-spec-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 8px;
+      padding-top: 2px;
+    }
+    .media-spec-group {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      min-width: 0;
+    }
+    .media-spec-chip {
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr);
+      justify-items: start;
+      width: 100%;
+      min-width: 0;
+      border-style: dashed;
+      background: var(--color-bg-elevated);
+    }
+    .media-spec-chip strong {
+      width: 100%;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .compact-status.is-warning,
+    .metadata-metric-badge.is-warning {
+      border-color: color-mix(in srgb, var(--color-warning) 42%, var(--color-border));
+      background: var(--color-warning-bg);
+      color: var(--color-warning);
+    }
+    .compact-status.is-danger,
+    .metadata-metric-badge.is-danger {
+      border-color: color-mix(in srgb, var(--color-danger) 42%, var(--color-border));
+      background: var(--color-danger-bg);
+      color: var(--color-danger);
+    }
+    .compact-status.is-success,
+    .metadata-metric-badge.is-success {
+      border-color: color-mix(in srgb, var(--color-success) 42%, var(--color-border));
+      background: var(--color-success-bg);
+      color: var(--color-success);
     }
     .metadata-overlay-controls {
       display: grid;
@@ -4106,10 +5027,10 @@ std::string BuildLabRuleEditorPageHtml() {
     .metadata-overlay-controls label {
       min-height: 36px;
       padding: 8px 10px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: var(--soft-bg);
-      color: var(--ink);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-surface-muted);
+	      color: var(--color-text);
       font-size: 12px;
       font-weight: 800;
       display: flex;
@@ -4126,11 +5047,67 @@ std::string BuildLabRuleEditorPageHtml() {
       display: grid;
       gap: 10px;
     }
+    .metadata-debug-details {
+      border: 1px solid var(--color-debug-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-debug-bg);
+      overflow: hidden;
+    }
+    .metadata-debug-details > summary {
+      cursor: pointer;
+      padding: 12px 14px;
+      color: var(--color-text);
+      font-weight: 900;
+    }
+    .metadata-debug-details[open] > summary {
+      border-bottom: 1px solid var(--color-debug-border);
+    }
+    .metadata-debug-details > .metadata-bbox-diagnostic {
+      padding: 14px;
+    }
     .dashboard-toolbar {
       display: grid;
       grid-template-columns: 1.2fr 1.2fr 1fr auto;
       gap: 10px;
       align-items: end;
+    }
+    .dashboard-health-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .dashboard-health-card,
+    .dashboard-detail-card {
+      min-height: 74px;
+      padding: 12px 14px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      display: grid;
+      gap: 5px;
+      align-content: center;
+      box-shadow: none;
+    }
+    .dashboard-health-card span,
+    .dashboard-detail-card span {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .dashboard-health-card strong,
+    .dashboard-detail-card strong {
+      color: var(--color-text);
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+    .dashboard-health-card.is-warning strong {
+      color: var(--color-warning);
+    }
+    .dashboard-health-card.is-danger strong {
+      color: var(--color-danger);
+    }
+    .dashboard-card-grid.dashboard-card-grid-compact {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     .dashboard-card-grid {
       display: grid;
@@ -4148,6 +5125,36 @@ std::string BuildLabRuleEditorPageHtml() {
       min-height: 26px;
       padding: 4px 8px;
       font-size: 11px;
+    }
+    .dashboard-detail-drawer {
+      border: 1px solid var(--color-debug-border);
+      border-radius: var(--radius-md);
+      background: var(--color-debug-bg);
+      overflow: hidden;
+    }
+    .dashboard-detail-drawer > summary {
+      cursor: pointer;
+      padding: 10px 12px;
+      color: var(--color-text);
+      font-weight: 900;
+      list-style-position: inside;
+    }
+    .dashboard-detail-drawer[open] > summary {
+      border-bottom: 1px solid var(--color-debug-border);
+    }
+    .dashboard-detail-drawer > .dashboard-detail-body {
+      padding: 12px;
+      display: grid;
+      gap: 12px;
+    }
+    .dashboard-debug-table {
+      table-layout: fixed;
+      min-width: 860px;
+    }
+    .dashboard-debug-table td,
+    .dashboard-debug-table th {
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
     .dashboard-trend-table {
       table-layout: fixed;
@@ -4173,17 +5180,17 @@ std::string BuildLabRuleEditorPageHtml() {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
     }
-    .dashboard-json-grid pre,
-    .dashboard-pre {
+	    .dashboard-json-grid pre,
+	    .dashboard-pre {
       min-height: 220px;
       max-height: 420px;
       margin: 0;
       padding: 12px;
       overflow: auto;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: var(--canvas-bg);
-      color: var(--ink);
+	      border: 1px solid var(--color-debug-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-code-bg);
+	      color: var(--color-code-text);
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       font-size: 12px;
       line-height: 1.5;
@@ -4194,11 +5201,31 @@ std::string BuildLabRuleEditorPageHtml() {
       display: grid;
       gap: 18px;
     }
-    .dashboard-drilldown-section {
+    #dashboardPanel.is-runtime-inactive .dashboard-toolbar,
+    #dashboardPanel.is-runtime-inactive .dashboard-drilldown {
+      opacity: 0.48;
+      filter: grayscale(0.18);
+    }
+    #dashboardPanel.is-runtime-inactive .dashboard-drilldown-section,
+    #dashboardPanel.is-runtime-inactive .dashboard-health-card,
+    #dashboardPanel.is-runtime-inactive .dashboard-detail-card,
+    #dashboardPanel.is-runtime-inactive .dashboard-table-wrap,
+    #dashboardPanel.is-runtime-inactive .dashboard-detail-drawer {
+      border-color: var(--color-border);
+      background: var(--color-surface-muted);
+      box-shadow: none;
+    }
+    #dashboardPanel.is-runtime-inactive .dashboard-section-summary {
+      color: var(--color-text-muted);
+    }
+	    .dashboard-drilldown-section {
       display: grid;
       gap: 10px;
-      padding-top: 14px;
-      border-top: 1px solid var(--line);
+      padding: 14px;
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-lg);
+	      background: var(--color-surface-muted);
+	      box-shadow: none;
     }
     .dashboard-section-header {
       display: flex;
@@ -4207,58 +5234,72 @@ std::string BuildLabRuleEditorPageHtml() {
       gap: 12px;
       flex-wrap: wrap;
     }
-    .dashboard-section-header h3 {
+	    .dashboard-section-header h3 {
       margin: 0;
-      color: var(--ink);
+	      color: var(--color-text);
       font-size: 15px;
     }
     .dashboard-section-summary {
       margin: 0;
-      color: var(--muted);
+	      color: var(--color-text-muted);
       font-size: 12px;
       font-weight: 800;
       overflow-wrap: anywhere;
     }
-    .dashboard-table-wrap {
-      overflow: auto;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: var(--canvas-bg);
+	    .dashboard-table-wrap {
+	      overflow: auto;
+	      border: 1px solid var(--color-table-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-surface);
     }
     .dashboard-table {
       width: 100%;
       min-width: 720px;
       border-collapse: collapse;
-      color: var(--ink);
+	      color: var(--color-text);
       font-size: 12px;
     }
     .dashboard-table th,
     .dashboard-table td {
       padding: 9px 10px;
-      border-bottom: 1px solid var(--line);
+	      border-bottom: 1px solid var(--color-table-border);
       text-align: left;
       vertical-align: top;
       white-space: nowrap;
     }
     .dashboard-table th {
-      color: var(--muted);
-      background: var(--soft-bg);
+	      color: var(--color-text-muted);
+	      background: var(--color-table-header-bg);
       font-weight: 900;
     }
     .dashboard-table tbody tr:last-child td {
       border-bottom: 0;
     }
-    .dashboard-table tbody tr.is-watch td {
-      background: rgba(240, 179, 91, 0.10);
-    }
-    .dashboard-table tbody tr.is-warning td {
-      background: rgba(213, 75, 75, 0.10);
-    }
-    .dashboard-table .dashboard-empty-cell {
-      color: var(--muted);
+	    .dashboard-table tbody tr:hover td {
+	      background: var(--color-table-row-hover);
+	    }
+	    .dashboard-table tbody tr.is-selected td {
+	      background: var(--color-table-row-selected);
+	    }
+	    .dashboard-table tbody tr.is-watch td {
+	      background: var(--color-warning-bg);
+	    }
+	    .dashboard-table tbody tr.is-warning td {
+	      background: var(--color-danger-bg);
+	    }
+	    .dashboard-table .dashboard-empty-cell {
+	      color: var(--color-text-muted);
       text-align: center;
       white-space: normal;
     }
+	    .dashboard-table .dashboard-empty-cell.is-error {
+	      color: var(--color-danger);
+	      background: var(--color-danger-bg);
+	      font-weight: 900;
+	    }
+	    .dashboard-table .dashboard-empty-cell.is-empty {
+	      background: var(--color-surface-muted);
+	    }
     .dashboard-table .status-chip {
       min-height: 24px;
       padding: 3px 8px;
@@ -4267,6 +5308,31 @@ std::string BuildLabRuleEditorPageHtml() {
     .dashboard-track-table {
       table-layout: fixed;
       min-width: 900px;
+    }
+    .dashboard-scenario-table {
+      table-layout: fixed;
+      min-width: 960px;
+    }
+    .dashboard-scenario-table th:nth-child(1),
+    .dashboard-scenario-table td:nth-child(1) { width: 170px; }
+    .dashboard-scenario-table th:nth-child(2),
+    .dashboard-scenario-table td:nth-child(2) { width: 120px; }
+    .dashboard-scenario-table th:nth-child(3),
+    .dashboard-scenario-table td:nth-child(3) { width: 72px; }
+    .dashboard-scenario-table th:nth-child(4),
+    .dashboard-scenario-table td:nth-child(4),
+    .dashboard-scenario-table th:nth-child(5),
+    .dashboard-scenario-table td:nth-child(5) { width: 145px; }
+    .dashboard-scenario-table th:nth-child(8),
+    .dashboard-scenario-table td:nth-child(8),
+    .dashboard-scenario-table th:nth-child(10),
+    .dashboard-scenario-table td:nth-child(10) { width: 140px; }
+    .dashboard-scenario-table td:nth-child(1),
+    .dashboard-scenario-table td:nth-child(4),
+    .dashboard-scenario-table td:nth-child(5),
+    .dashboard-scenario-table td:nth-child(10) {
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .dashboard-track-table th:nth-child(1),
     .dashboard-track-table td:nth-child(1) { width: 72px; }
@@ -4283,26 +5349,48 @@ std::string BuildLabRuleEditorPageHtml() {
     .dashboard-track-table td:nth-child(4),
     .dashboard-track-table td:nth-child(5),
     .dashboard-track-table td:nth-child(6) {
-      white-space: normal;
-      overflow-wrap: anywhere;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       line-height: 1.35;
+    }
+    .dashboard-ellipsis {
+      display: inline-block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      vertical-align: top;
+    }
+    .dashboard-inline-detail {
+      display: inline-grid;
+      gap: 4px;
+      max-width: 100%;
+    }
+    .dashboard-inline-detail small {
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .event-records-details {
       display: grid;
       gap: 10px;
     }
-    .event-records-details > summary {
+	    .event-records-details > summary {
       display: flex;
       align-items: baseline;
       justify-content: space-between;
       gap: 12px;
       cursor: pointer;
-      color: var(--ink);
+	      color: var(--color-text);
       font-weight: 900;
       list-style-position: inside;
     }
-    .event-records-details > summary span {
-      color: var(--ink);
+	    .event-records-details > summary span {
+	      color: var(--color-text);
       font-size: 15px;
     }
     .event-records-panel {
@@ -4310,11 +5398,31 @@ std::string BuildLabRuleEditorPageHtml() {
       gap: 12px;
       padding-top: 8px;
     }
+    .event-records-note {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
     .event-record-filter-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
       align-items: end;
+    }
+    .event-record-filter-grid label {
+      gap: 5px;
+      font-size: 11px;
+    }
+    .event-record-filter-grid input,
+    .event-record-filter-grid select {
+      min-height: 36px;
+      padding: 8px 10px;
+      font-size: 12px;
     }
     .event-record-actions {
       display: flex;
@@ -4323,42 +5431,84 @@ std::string BuildLabRuleEditorPageHtml() {
       gap: 10px;
       flex-wrap: wrap;
     }
-    .event-record-state {
-      margin: 0;
-      color: var(--muted);
+	    .event-record-state {
+	      margin: 0;
+	      color: var(--color-text-muted);
       font-size: 12px;
       font-weight: 800;
       overflow-wrap: anywhere;
     }
-    .event-record-id-button {
-      appearance: none;
-      border: 0;
-      padding: 0;
-      background: transparent;
-      color: var(--accent);
-      font: inherit;
-      font-weight: 900;
-      text-align: left;
-      cursor: pointer;
-      overflow-wrap: anywhere;
+    .event-record-actions button {
+      width: auto;
+      min-width: 112px;
     }
-    .event-record-path {
+    .event-record-table {
+      table-layout: fixed;
+      min-width: 1180px;
+    }
+    .event-record-table th:nth-child(1),
+    .event-record-table td:nth-child(1) { width: 150px; }
+    .event-record-table th:nth-child(2),
+    .event-record-table td:nth-child(2) { width: 110px; }
+    .event-record-table th:nth-child(3),
+    .event-record-table td:nth-child(3) { width: 140px; }
+    .event-record-table th:nth-child(4),
+    .event-record-table td:nth-child(4) { width: 105px; }
+    .event-record-table th:nth-child(5),
+    .event-record-table td:nth-child(5) { width: 170px; }
+    .event-record-table th:nth-child(8),
+    .event-record-table td:nth-child(8),
+    .event-record-table th:nth-child(9),
+    .event-record-table td:nth-child(9) { width: 150px; }
+    .event-record-table th:nth-child(10),
+    .event-record-table td:nth-child(10),
+    .event-record-table th:nth-child(11),
+    .event-record-table td:nth-child(11) { width: 110px; }
+    .event-record-table td:nth-child(5),
+    .event-record-table td:nth-child(8),
+    .event-record-table td:nth-child(9) {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+	    .event-record-id-button {
+	      appearance: none;
+	      width: auto;
+	      min-height: 0;
+	      border: 0;
+	      border-radius: 0;
+	      padding: 0;
+	      background: transparent;
+	      color: var(--color-link);
+	      font: inherit;
+	      font-weight: 900;
+	      text-align: left;
+	      cursor: pointer;
+	      box-shadow: none;
+	      overflow-wrap: anywhere;
+	    }
+	    .event-record-id-button:hover {
+	      background: transparent;
+	      color: var(--color-link);
+	      text-decoration: underline;
+	    }
+	    .event-record-path {
       display: inline-block;
-      max-width: 220px;
+      max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
       vertical-align: top;
-      color: var(--accent);
+	      color: var(--color-text-muted);
+	      font-weight: 900;
     }
-    .event-record-detail-drawer {
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: var(--canvas-bg);
+	    .event-record-detail-drawer {
+	      border: 1px solid var(--color-debug-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-debug-bg);
     }
     .event-record-detail-drawer > summary {
       cursor: pointer;
       padding: 10px 12px;
-      color: var(--ink);
+	      color: var(--color-text);
       font-weight: 900;
     }
     .event-record-detail-drawer pre {
@@ -4366,21 +5516,22 @@ std::string BuildLabRuleEditorPageHtml() {
       margin: 0;
       padding: 12px;
       overflow: auto;
-      border-top: 1px solid var(--line);
-      color: var(--ink);
+	      border-top: 1px solid var(--color-debug-border);
+	      color: var(--color-code-text);
+	      background: var(--color-code-bg);
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       font-size: 12px;
       line-height: 1.5;
       white-space: pre-wrap;
       overflow-wrap: anywhere;
     }
-    .metadata-viewer-panel {
+	    .metadata-viewer-panel {
       display: grid;
       gap: 14px;
       padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: var(--field-bg);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-lg);
+	      background: var(--color-surface-muted);
     }
     .metadata-viewer-panel[hidden] {
       display: none;
@@ -4390,24 +5541,30 @@ std::string BuildLabRuleEditorPageHtml() {
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
     }
+    .metadata-primary-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .metadata-primary-grid .viewer-status-card {
+      background: var(--color-bg-elevated);
+    }
     .metadata-json-preview {
       min-height: 180px;
       max-height: 340px;
       margin: 0;
       padding: 12px;
       overflow: auto;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: var(--canvas-bg);
-      color: var(--ink);
+	      border: 1px solid var(--color-debug-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-code-bg);
+	      color: var(--color-code-text);
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       font-size: 12px;
       line-height: 1.5;
       white-space: pre-wrap;
       overflow-wrap: anywhere;
     }
-    .metadata-error {
-      color: var(--danger);
+	    .metadata-error {
+	      color: var(--color-danger);
       font-weight: 800;
     }
     .url-grid {
@@ -4416,29 +5573,63 @@ std::string BuildLabRuleEditorPageHtml() {
       gap: 12px;
     }
     .url-grid textarea {
-      min-height: 92px;
+      min-height: 54px;
+      max-height: 96px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       font-size: 12px;
+      white-space: pre;
+      overflow: auto;
+      resize: vertical;
+    }
+    .url-section {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-muted);
+    }
+    .url-section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .url-section-header h3 {
+      margin: 0;
+      color: var(--color-text);
+      font-size: 15px;
+    }
+    .url-section-header p {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .url-section.is-custom {
+      background: var(--color-info-bg);
+      border-color: color-mix(in srgb, var(--color-info) 28%, var(--color-border));
     }
     .output-policy-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
     }
-    .output-policy-card {
-      padding: 12px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--soft-bg);
+	    .output-policy-card {
+	      padding: 12px;
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-surface-muted);
       display: grid;
       gap: 6px;
     }
     .output-policy-card strong {
-      color: var(--ink);
+	      color: var(--color-text);
       font-size: 13px;
     }
     .output-policy-card span {
-      color: var(--muted);
+	      color: var(--color-text-muted);
       font-size: 12px;
       line-height: 1.45;
     }
@@ -4447,24 +5638,24 @@ std::string BuildLabRuleEditorPageHtml() {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
     }
-    .pairing-card {
+	    .pairing-card {
       display: grid;
       gap: 10px;
       padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--soft-bg);
-    }
-    .pairing-card.is-custom {
-      background: rgba(95, 135, 116, 0.08);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-surface-muted);
+	    }
+	    .pairing-card.is-custom {
+	      background: var(--color-info-bg);
     }
     .pairing-card strong {
-      color: var(--ink);
+	      color: var(--color-text);
       font-size: 14px;
     }
     .pairing-card p {
       margin: 0;
-      color: var(--muted);
+	      color: var(--color-text-muted);
       font-size: 12px;
       line-height: 1.5;
     }
@@ -4473,8 +5664,8 @@ std::string BuildLabRuleEditorPageHtml() {
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       font-size: 12px;
     }
-    .developer-url-details > .pad {
-      border-top: 1px solid var(--line);
+	    .developer-url-details > .pad {
+	      border-top: 1px solid var(--color-debug-border);
     }
     .url-field {
       display: grid;
@@ -4486,30 +5677,26 @@ std::string BuildLabRuleEditorPageHtml() {
       justify-content: space-between;
       gap: 10px;
     }
-    .url-title-row span {
-      color: var(--ink);
+	    .url-title-row span {
+	      color: var(--color-text);
       font-weight: 800;
     }
     .copy-url-btn {
       width: auto;
       min-width: 72px;
-      padding: 8px 10px;
-      border-radius: 10px;
+      min-height: 30px;
+      padding: 6px 9px;
+      border-radius: var(--radius-sm);
       font-size: 12px;
     }
-    .form-note {
-      margin: 0;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.45;
-    }
-    .scenario-panel {
+	    .form-note { margin: 0; color: var(--color-text-muted); font-size: 12px; line-height: 1.45; }
+	    .scenario-panel {
       display: grid;
       gap: 14px;
       padding: 16px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: var(--soft-bg);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-lg);
+	      background: var(--color-surface-muted);
     }
     .scenario-panel[hidden], .basic-rule-panel[hidden] {
       display: none;
@@ -4519,33 +5706,33 @@ std::string BuildLabRuleEditorPageHtml() {
       grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 8px;
     }
-    .phase-chip {
+	    .phase-chip {
       min-height: 38px;
       padding: 9px 8px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--field-bg);
-      color: var(--muted);
+	      border: 1px solid var(--color-border);
+	      border-radius: 999px;
+	      background: var(--color-bg-elevated);
+	      color: var(--color-text-muted);
       text-align: center;
       font-size: 12px;
       font-weight: 800;
     }
-    .phase-chip.is-emphasis {
-      color: #fff;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border-color: transparent;
+	    .phase-chip.is-emphasis {
+	      color: var(--color-on-primary);
+	      background: var(--color-primary);
+	      border-color: transparent;
     }
     .metric-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
     }
-    .metric-tile {
+	    .metric-tile {
       min-height: 64px;
       padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--field-bg);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-bg-elevated);
       display: grid;
       gap: 3px;
     }
@@ -4553,24 +5740,24 @@ std::string BuildLabRuleEditorPageHtml() {
       font-size: 13px;
     }
     .metric-tile span {
-      color: var(--muted);
+	      color: var(--color-text-muted);
       font-size: 11px;
       line-height: 1.3;
     }
-    .scenario-summary {
+	    .scenario-summary {
       display: grid;
       gap: 6px;
       padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--field-bg);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-bg-elevated);
     }
     .scenario-summary strong {
       font-size: 13px;
-      color: var(--ink);
+	      color: var(--color-text);
     }
     .scenario-summary span {
-      color: var(--muted);
+	      color: var(--color-text-muted);
       line-height: 1.45;
       font-size: 13px;
     }
@@ -4579,28 +5766,28 @@ std::string BuildLabRuleEditorPageHtml() {
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
     }
-    .scenario-check {
+	    .scenario-check {
       min-height: 70px;
       padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--field-bg);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-bg-elevated);
       display: grid;
       gap: 4px;
       align-content: start;
     }
     .scenario-check strong {
-      color: var(--ink);
+	      color: var(--color-text);
       font-size: 12px;
     }
     .scenario-check span {
-      color: var(--muted);
+	      color: var(--color-text-muted);
       font-size: 12px;
       line-height: 1.35;
       overflow-wrap: anywhere;
     }
-    .range-meta {
-      color: var(--muted);
+	    .range-meta {
+	      color: var(--color-text-muted);
       font-size: 11px;
       line-height: 1.35;
     }
@@ -4609,19 +5796,19 @@ std::string BuildLabRuleEditorPageHtml() {
       font-size: 12px;
       border-radius: 999px;
     }
-    .mini-check {
+	    .mini-check {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
       min-height: 38px;
       padding: 9px 10px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--soft-bg);
+	      border: 1px solid var(--color-border);
+	      border-radius: 999px;
+	      background: var(--color-surface-muted);
       font-size: 12px;
       font-weight: 800;
-      color: var(--ink);
+	      color: var(--color-text);
     }
     .category-label {
       display: grid;
@@ -4636,10 +5823,10 @@ std::string BuildLabRuleEditorPageHtml() {
       line-height: 1.35;
       overflow-wrap: anywhere;
     }
-    .preview-panel {
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: var(--soft-bg);
+	    .preview-panel {
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-lg);
+	      background: var(--color-surface-muted);
       padding: 16px;
       display: grid;
       gap: 10px;
@@ -4649,123 +5836,133 @@ std::string BuildLabRuleEditorPageHtml() {
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
     }
-    .geometry-status-card {
+	    .geometry-status-card {
       min-height: 72px;
       padding: 11px 12px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--soft-bg);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-surface-muted);
       display: grid;
       gap: 4px;
       align-content: center;
     }
     .geometry-status-card span {
-      color: var(--muted);
+	      color: var(--color-text-muted);
       font-size: 12px;
       font-weight: 800;
     }
     .geometry-status-card strong {
-      color: var(--ink);
+	      color: var(--color-text);
       font-size: 14px;
       overflow-wrap: anywhere;
     }
-    .geometry-status-card.is-ok strong {
-      color: var(--accent);
-    }
-    .geometry-status-card.is-error strong {
-      color: var(--danger);
+	    .geometry-status-card.is-ok strong {
+	      color: var(--color-success);
+	    }
+	    .geometry-status-card.is-error strong {
+	      color: var(--color-danger);
     }
     .geometry-actions {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      padding: 10px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-muted);
+    }
+    .geometry-actions button {
+      width: auto;
+      min-width: 128px;
     }
     .coordinate-list {
       display: grid;
       gap: 7px;
       padding: 0 14px 14px;
     }
-    .coordinate-row {
+	    .coordinate-row {
       display: grid;
       grid-template-columns: 64px 1fr 1fr;
       gap: 8px;
       align-items: center;
       padding: 8px 10px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: var(--field-bg);
-      color: var(--muted);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-bg-elevated);
+	      color: var(--color-text-muted);
       font-size: 12px;
     }
-    .coordinate-row strong {
-      color: var(--ink);
-    }
-    .canvas-wrap {
-      background: var(--canvas-bg);
-      border: 1px solid var(--line);
-      border-radius: 18px;
+	    .coordinate-row strong {
+	      color: var(--color-text);
+	    }
+	    .canvas-wrap {
+	      background: var(--overlay-canvas-bg);
+	      border: 1px solid var(--color-border-strong);
+	      border-radius: var(--radius-lg);
       overflow: hidden;
+      box-shadow: inset 0 0 0 1px var(--overlay-debug-line);
     }
     canvas {
       width: 100%;
       aspect-ratio: 16 / 9;
       display: block;
-      background:
-        linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
-        radial-gradient(circle at center, rgba(111,208,165,0.11), transparent 50%),
-        var(--canvas-bg);
-      background-size: 10% 10%, 10% 10%, auto, auto;
+	      background:
+	        linear-gradient(var(--overlay-debug-line) 1px, transparent 1px),
+	        linear-gradient(90deg, var(--overlay-debug-line) 1px, transparent 1px),
+	        var(--overlay-canvas-bg);
+	      background-size: 10% 10%, 10% 10%, auto;
       cursor: crosshair;
       touch-action: none;
     }
-    pre {
+	    pre {
       white-space: pre-wrap;
       word-break: break-word;
       min-height: 140px;
       margin: 0;
       padding: 16px;
-      border-radius: 18px;
-      border: 1px solid var(--line);
-      background: var(--code-bg);
-      color: var(--code-ink);
-    }
-    .debug-drawer {
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      background: var(--soft-bg);
+	      border-radius: var(--radius-md);
+	      border: 1px solid var(--color-debug-border);
+	      background: var(--color-code-bg);
+	      color: var(--color-code-text);
+	    }
+	    .debug-drawer {
+	      border: 1px solid var(--color-debug-border);
+	      border-radius: var(--radius-lg);
+	      background: var(--color-debug-bg);
       overflow: hidden;
     }
     .debug-drawer > summary {
       cursor: pointer;
       padding: 16px 18px;
-      color: var(--ink);
+	      color: var(--color-text);
       font-weight: 800;
     }
     .debug-drawer[open] > summary {
-      border-bottom: 1px solid var(--line);
+	      border-bottom: 1px solid var(--color-debug-border);
     }
     .debug-drawer > .grid {
       padding: 16px;
     }
     .debug-drawer > .card {
       border: 0;
-      border-top: 1px solid var(--line);
+	      border-top: 1px solid var(--color-debug-border);
       border-radius: 0;
       box-shadow: none;
       background: transparent;
     }
-    .validation-dialog {
+	    .validation-dialog {
       width: min(420px, calc(100vw - 32px));
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: var(--card-bg);
-      color: var(--ink);
-      padding: 0;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.26);
-    }
-    .validation-dialog::backdrop {
-      background: rgba(0,0,0,0.32);
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-surface);
+	      color: var(--color-text);
+	      padding: 0;
+	      box-shadow: var(--shadow-md);
+	    }
+	    .validation-dialog::backdrop {
+	      background: var(--overlay-label-bg);
     }
     .validation-dialog form {
       display: grid;
@@ -4778,7 +5975,7 @@ std::string BuildLabRuleEditorPageHtml() {
     }
     .validation-dialog p {
       margin: 0;
-      color: var(--muted);
+	      color: var(--color-text-muted);
       line-height: 1.5;
     }
     .dialog-actions {
@@ -4786,12 +5983,77 @@ std::string BuildLabRuleEditorPageHtml() {
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
-    .hint { margin: 0; font-size: 0.9rem; color: var(--muted); }
+	    .hint { margin: 0; font-size: 0.9rem; color: var(--color-text-muted); }
     @media (max-width: 980px) {
       .grid, .row { grid-template-columns: 1fr; }
       .check-grid { grid-template-columns: 1fr 1fr; }
       .class-filter-row { grid-template-columns: 1fr; }
-      .phase-strip, .metric-grid, .scenario-readiness, .rule-tabs, .url-grid, .output-policy-grid, .summary-grid, .geometry-status-grid, .viewer-status-grid, .metadata-status-grid, .metadata-overlay-controls, .dashboard-toolbar, .dashboard-card-grid, .dashboard-json-grid, .event-record-filter-grid, .rule-list-controls { grid-template-columns: 1fr 1fr; }
+      .phase-strip, .metric-grid, .scenario-readiness, .rule-tabs, .url-grid, .output-policy-grid, .summary-grid, .geometry-status-grid, .viewer-status-grid, .metadata-status-grid, .metadata-primary-grid, .metadata-overlay-controls, .dashboard-toolbar, .dashboard-health-grid, .dashboard-card-grid, .dashboard-card-grid.dashboard-card-grid-compact, .dashboard-json-grid, .event-record-filter-grid, .rule-list-controls, .profile-guide-panel, .profile-create-panel, .viewer-input-grid, .viewer-media-spec-row { grid-template-columns: 1fr 1fr; }
+      .editor-command-bar,
+      .viewer-mode-toolbar {
+        grid-template-columns: 1fr;
+      }
+      .editor-save-actions,
+      .editor-state-stack,
+      .viewer-actions {
+        justify-content: flex-start;
+      }
+      .editor-sticky-stack {
+        top: 0;
+        gap: 6px;
+        padding-bottom: 6px;
+      }
+      .editor-sticky-stack::before {
+        inset: -8px -2px 0;
+      }
+      .editor-command-card .pad {
+        padding: 10px 12px;
+      }
+      .editor-command-bar {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px;
+      }
+      .rule-editor-identity {
+        gap: 8px;
+      }
+      .rule-editor-identity .hint,
+      .editor-state-stack {
+        display: none;
+      }
+      .rule-editor-identity h2 {
+        max-width: 42vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 16px;
+      }
+      .editor-save-actions {
+        justify-content: flex-end;
+        gap: 6px;
+        flex-wrap: nowrap;
+      }
+      .editor-save-actions button {
+        min-width: 64px;
+        min-height: 32px;
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+      .edit-step-nav {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+        padding: 4px;
+      }
+      .edit-step-nav button {
+        min-height: 30px;
+        padding: 6px 8px;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .edit-step-card {
+        scroll-margin-top: 150px;
+      }
       .management-toolbar { grid-template-columns: 1fr; }
       .management-toolbar .toolbar-actions { justify-content: flex-start; }
       .dashboard-header-actions { align-items: flex-start; }
@@ -4805,36 +6067,65 @@ std::string BuildLabRuleEditorPageHtml() {
       }
     }
 	    @media (max-width: 720px) {
-	      .primary-tabs, .url-grid, .output-policy-grid, .summary-grid, .review-grid, .geometry-status-grid, .geometry-actions, .viewer-status-grid, .metadata-status-grid, .metadata-overlay-controls, .dashboard-toolbar, .dashboard-card-grid, .dashboard-json-grid, .event-record-filter-grid, .rule-list-controls, .profile-summary-panel { grid-template-columns: 1fr; }
+      .primary-tabs, .url-grid, .output-policy-grid, .summary-grid, .review-grid, .geometry-status-grid, .geometry-actions, .viewer-status-grid, .metadata-status-grid, .metadata-primary-grid, .metadata-overlay-controls, .dashboard-toolbar, .dashboard-health-grid, .dashboard-card-grid, .dashboard-card-grid.dashboard-card-grid-compact, .dashboard-json-grid, .event-record-filter-grid, .rule-list-controls, .profile-summary-panel, .profile-guide-panel, .profile-create-panel, .viewer-input-grid, .viewer-media-spec-row, .media-spec-group { grid-template-columns: 1fr; }
+	      .rule-editor-identity {
+	        align-items: center;
+	        flex-direction: row;
+	      }
+	      .editor-save-actions button,
+	      .viewer-actions button,
+	      .geometry-actions button {
+	        width: 100%;
+	      }
+	      .editor-save-actions button {
+	        width: auto;
+	      }
+	      .rule-editor-identity h2 {
+	        max-width: 34vw;
+	      }
+	      .profile-draft-actions {
+	        grid-template-columns: 1fr 1fr;
+	      }
 	      .segmented.view-mode { grid-template-columns: 1fr; }
 	      .management-toolbar .toolbar-actions { justify-content: stretch; }
 	      .management-toolbar .toolbar-actions button { width: 100%; }
 	      .row-actions { justify-content: flex-start; }
 	    }
+    @media (max-width: 560px) {
+      .edit-step-nav {
+        display: none;
+      }
+      .edit-step-select {
+        display: block;
+      }
+      .edit-step-card {
+        scroll-margin-top: 112px;
+      }
+    }
   </style>
 </head>
 <body>
-  <main>
-    <div class="topbar">
-      <strong>MediaServer</strong>
-      <button id="themeToggleBtn" class="theme-toggle" type="button">다크 모드</button>
-    </div>
-    <section class="hero">
-      <p class="standalone-nav" style="margin:0;"><a href="/lab">실험실로 돌아가기</a> · <a href="/webrtc/test">안정 테스트 페이지</a></p>
-      <h1>영상 분석 관리</h1>
-      <p style="margin:0;">영상 분석 설정은 소스, profile, 이벤트, 시나리오, 영역을 하나의 숫자 ID로 묶습니다. 보기 탭에서는 실시간 영상/오버레이/메타데이터를 확인하고, 대시보드 탭에서는 현재 VA 런타임 상태를 확인합니다.</p>
-    </section>
+	  <main class="page-shell">
+	    <div class="page-header topbar">
+	      <strong>MediaServer</strong>
+	      <button id="themeToggleBtn" class="button button-secondary theme-toggle" type="button">다크 모드</button>
+	    </div>
+	    <section class="section-card hero">
+	      <p class="standalone-nav" style="margin:0;"><a href="/lab">실험실로 돌아가기</a> · <a href="/webrtc/test">안정 테스트 페이지</a></p>
+	      <h1 class="page-title">영상 분석 관리</h1>
+	      <p class="page-subtitle" style="margin:0;">영상 분석 설정은 소스, profile, 이벤트, 시나리오, 영역을 하나의 숫자 ID로 묶습니다. 보기 탭에서는 실시간 영상/오버레이/메타데이터를 확인하고, 대시보드 탭에서는 현재 VA 런타임 상태를 확인합니다.</p>
+	    </section>
 
-    <nav class="primary-tabs" aria-label="영상 분석 관리 탭">
-      <button id="analysisSettingsTabBtn" type="button" class="is-active" data-primary-tab="settings">영상 분석 설정</button>
-      <button id="analysisViewerTabBtn" type="button" data-primary-tab="viewer">영상 분석 보기</button>
-      <button id="analysisDashboardTabBtn" type="button" data-primary-tab="dashboard">런타임 대시보드</button>
-    </nav>
+	    <nav class="primary-tabs" aria-label="영상 분석 관리 탭">
+	      <button id="analysisSettingsTabBtn" type="button" class="button button-secondary is-active" data-primary-tab="settings">영상 분석 설정</button>
+	      <button id="analysisViewerTabBtn" type="button" class="button button-secondary" data-primary-tab="viewer">영상 분석 보기</button>
+	      <button id="analysisDashboardTabBtn" type="button" class="button button-secondary" data-primary-tab="dashboard">런타임 대시보드</button>
+	    </nav>
 
     <div id="feedbackToast" class="feedback-toast" role="status" aria-live="polite"></div>
 
-    <section id="settingsPanel" class="workspace-panel">
-      <section class="card" id="vaRuleLibraryCard">
+	    <section id="settingsPanel" class="section-stack workspace-panel">
+	      <section class="section-card card" id="vaRuleLibraryCard">
         <div class="pad stack">
           <div class="management-toolbar">
             <div class="stack">
@@ -4852,7 +6143,6 @@ std::string BuildLabRuleEditorPageHtml() {
             <div class="summary-tile"><span>전체 룰</span><strong id="vaRuleTotalMetric">0</strong></div>
             <div class="summary-tile"><span>적용 중</span><strong id="vaRuleActiveMetric">0</strong></div>
             <div class="summary-tile"><span>시나리오</span><strong id="vaRuleScenarioMetric">0</strong></div>
-            <div class="summary-tile"><span>다음 자동 번호</span><strong id="vaRuleNextIdMetric">#1</strong></div>
           </div>
           <div class="rule-list-controls">
             <label>룰 검색
@@ -4876,43 +6166,66 @@ std::string BuildLabRuleEditorPageHtml() {
               <span>표시 중</span>
               <strong id="vaRuleFilteredMetric">0개</strong>
             </div>
+            <div class="rule-next-id-note" aria-label="다음 자동 번호">
+              <span>다음 ID</span>
+              <strong id="vaRuleNextIdMetric">#1</strong>
+            </div>
           </div>
           <div class="rule-list-panel">
             <div id="vaRuleList" class="rule-list"></div>
-            <p id="vaRuleListHint" class="hint">각 행의 보기/수정/복제/삭제 버튼으로 해당 룰을 바로 관리합니다.</p>
+            <p id="vaRuleListHint" class="hint">상태 변경은 상태 열에서, 보기/수정/복제/삭제는 작업 열에서 처리합니다.</p>
           </div>
         </div>
       </section>
 
-      <section id="vaRuleEditorPanel" class="workspace-panel editor-panel" hidden>
-      <section class="card">
-        <div class="pad stack">
-          <div class="editor-heading">
-            <div class="stack">
-              <div class="section-title-row">
-                <h2 id="vaRuleEditorTitle">영상 분석 룰 편집</h2>
+      <section id="vaRuleEditorPanel" class="section-stack workspace-panel editor-panel" hidden>
+      <div class="editor-sticky-stack">
+        <section class="section-card card editor-command-card">
+          <div class="pad stack">
+            <div class="editor-command-bar">
+              <div class="rule-editor-identity">
                 <span id="vaRuleEditorModeBadge" class="count-badge">새 룰</span>
+                <div>
+                  <h2 id="vaRuleEditorTitle">영상 분석 룰 편집</h2>
+                  <p class="hint">Rule ID <strong id="editorRuleIdSummary" class="editor-id-pill">저장 시 자동 지정</strong></p>
+                </div>
               </div>
-              <p class="hint">추가/수정 중에만 열리는 편집 화면입니다. 저장하면 목록으로 돌아갑니다.</p>
+              <div class="editor-save-actions">
+                <div class="editor-state-stack" aria-live="polite">
+                  <span id="editorSaveStateSummary" class="save-state-badge is-muted">저장 상태 계산 중</span>
+                  <span id="editorDirtySummary" class="save-state-badge is-muted">변경 상태 계산 중</span>
+                </div>
+                <button id="saveVaRuleBtnTop" type="button">저장</button>
+                <button id="cancelVaRuleEditBtn" type="button" class="secondary">목록으로</button>
+              </div>
             </div>
-            <button id="cancelVaRuleEditBtn" type="button" class="secondary" style="width:auto;min-width:120px;">목록으로</button>
+            <select id="vaRuleSelect" hidden></select>
           </div>
-          <select id="vaRuleSelect" hidden></select>
-        </div>
-      </section>
+        </section>
 
-      <nav class="rule-tabs edit-step-nav" aria-label="룰 편집 섹션">
-        <button type="button" class="secondary" data-rule-section-target="ruleBasicSection">기본 정보</button>
-        <button type="button" class="secondary" data-rule-section-target="ruleSourceSection">영상 소스</button>
-        <button type="button" class="secondary" data-rule-section-target="profileSection">분석 Profile</button>
-        <button type="button" class="secondary" data-rule-section-target="ruleScenarioSection">이벤트 방식</button>
-        <button type="button" class="secondary" data-rule-section-target="ruleObjectsSection">대상 객체</button>
-        <button type="button" class="secondary" data-rule-section-target="geometryLabel">영역/라인</button>
-        <button type="button" class="secondary" data-rule-section-target="ruleOutputSection">이벤트 동작</button>
-        <button type="button" class="secondary" data-rule-section-target="ruleReviewSection">저장 전 검토</button>
-      </nav>
+        <nav class="rule-tabs edit-step-nav" aria-label="룰 편집 섹션">
+          <button type="button" class="secondary" data-rule-section-target="ruleBasicSection">기본 정보</button>
+          <button type="button" class="secondary" data-rule-section-target="ruleSourceSection">영상 소스</button>
+          <button type="button" class="secondary" data-rule-section-target="profileSection">분석 Profile</button>
+          <button type="button" class="secondary" data-rule-section-target="ruleScenarioSection">이벤트 방식</button>
+          <button type="button" class="secondary" data-rule-section-target="ruleObjectsSection">대상 객체</button>
+          <button type="button" class="secondary" data-rule-section-target="geometryLabel">영역/라인</button>
+          <button type="button" class="secondary" data-rule-section-target="ruleOutputSection">이벤트 동작</button>
+          <button type="button" class="secondary" data-rule-section-target="ruleReviewSection">저장 전 검토</button>
+        </nav>
+        <select id="editStepSelect" class="edit-step-select" aria-label="룰 편집 섹션 이동">
+          <option value="ruleBasicSection">기본 정보</option>
+          <option value="ruleSourceSection">영상 소스</option>
+          <option value="profileSection">분석 Profile</option>
+          <option value="ruleScenarioSection">이벤트 방식</option>
+          <option value="ruleObjectsSection">대상 객체</option>
+          <option value="geometryLabel">영역/라인</option>
+          <option value="ruleOutputSection">이벤트 동작</option>
+          <option value="ruleReviewSection">저장 전 검토</option>
+        </select>
+      </div>
 
-      <section id="ruleBasicSection" class="card edit-step-card section-anchor">
+      <section id="ruleBasicSection" class="section-card card edit-step-card section-anchor">
         <div class="pad stack">
           <div class="step-title">
             <span>1</span>
@@ -4942,7 +6255,7 @@ std::string BuildLabRuleEditorPageHtml() {
         </div>
       </section>
 
-      <section id="ruleSourceSection" class="card edit-step-card section-anchor">
+      <section id="ruleSourceSection" class="section-card card edit-step-card section-anchor">
         <div class="pad stack">
           <div class="step-title">
             <span>2</span>
@@ -4995,7 +6308,7 @@ std::string BuildLabRuleEditorPageHtml() {
         </div>
       </section>
 
-      <section id="profileSection" class="card edit-step-card section-anchor">
+      <section id="profileSection" class="section-card card edit-step-card section-anchor">
         <div class="pad stack">
           <div class="step-title">
             <span>3</span>
@@ -5004,18 +6317,43 @@ std::string BuildLabRuleEditorPageHtml() {
               <p class="hint">실제 분석에 사용할 profile을 고르고, 세부 성능값은 필요할 때만 펼칩니다.</p>
             </div>
           </div>
+          <div class="profile-guide-panel" aria-label="Profile 설정 흐름">
+            <div class="profile-guide-step">
+              <strong>1. 보통은 선택만</strong>
+              <span>`사용할 Profile`에서 기본 profile을 고르면 룰 저장에 충분합니다.</span>
+            </div>
+            <div class="profile-guide-step">
+              <strong>2. 새 Profile이 필요할 때</strong>
+              <span>아래 `새 Profile 설정`에서 새 입력을 시작한 뒤 세부값을 저장합니다.</span>
+            </div>
+            <div class="profile-guide-step">
+              <strong>3. 룰에 연결</strong>
+              <span>저장한 Profile은 다시 `사용할 Profile` 목록에서 선택해야 이 룰에 연결됩니다.</span>
+            </div>
+          </div>
           <label>사용할 Profile
             <select id="ruleProfileId"></select>
+            <span class="form-note">대부분은 저장된 Profile을 선택하면 됩니다. 새 분석 FPS/입력 크기가 필요할 때만 `새 Profile 설정`에서 시작합니다.</span>
           </label>
           <div id="profileSummaryText" class="profile-summary-panel" aria-live="polite"></div>
-          <details class="inline-details">
+          <div class="profile-create-panel" aria-label="새 Profile 설정">
+            <div>
+              <strong>새 Profile 설정</strong>
+              <p>새 분석 FPS, 입력 크기, detector 설정이 필요할 때만 시작합니다. 버튼을 누르면 아래 세부 설정이 새 Profile 입력 상태로 전환됩니다.</p>
+            </div>
+            <div class="profile-create-actions">
+              <button id="newProfileBtn" type="button" class="secondary">새 Profile</button>
+              <button id="cancelNewProfileBtn" type="button" class="button-ghost">닫기</button>
+            </div>
+          </div>
+          <details id="profileDetailsPanel" class="inline-details">
             <summary>고급 Profile 설정</summary>
             <div class="stack">
               <div class="section-title-row">
-                <span class="hint">Profile registry를 수정할 때만 펼칩니다. 저장하면 같은 Profile을 쓰는 룰에 적용됩니다.</span>
+                <span class="hint">입력값을 저장하면 사용할 Profile 목록에 추가됩니다. 닫으면 현재 선택 Profile로 돌아갑니다.</span>
                 <span id="profileCountBadge" class="count-badge">0개 저장</span>
               </div>
-              <label>저장된 Profile
+              <label hidden>저장된 Profile
                 <select id="profileSelect"></select>
               </label>
               <div class="row">
@@ -5085,18 +6423,18 @@ std::string BuildLabRuleEditorPageHtml() {
                 <label class="mini-check"><input data-tracking-category type="checkbox" value="object" /> 잡화</label>
               </div>
               <p class="hint">ID/trail과 enter/exit/line-crossing 판정 대상입니다. 세부 객체명은 JSON/API에서만 직접 지정합니다.</p>
-              <p id="profileDeleteWarningText" class="profile-delete-note">저장 Profile만 삭제할 수 있습니다.</p>
-              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
-                <button id="newProfileBtn" class="secondary">새 Profile</button>
+              <p id="profileDeleteWarningText" class="profile-delete-note" hidden>저장 Profile만 삭제할 수 있습니다.</p>
+              <div class="profile-draft-actions">
                 <button id="saveProfileBtn">Profile 저장</button>
-                <button id="deleteProfileBtn" class="danger">Profile 삭제</button>
+                <button id="closeProfileDetailsBtn" type="button" class="button-ghost">닫기</button>
               </div>
+              <button id="deleteProfileBtn" class="danger" hidden>Profile 삭제</button>
             </div>
           </details>
         </div>
       </section>
 
-      <section id="ruleScenarioSection" class="card edit-step-card section-anchor">
+      <section id="ruleScenarioSection" class="section-card card edit-step-card section-anchor">
         <div class="pad stack">
           <div class="step-title">
             <span>4</span>
@@ -5125,6 +6463,7 @@ std::string BuildLabRuleEditorPageHtml() {
                 <option value="forward">정방향(-측→+측)</option>
                 <option value="reverse">역방향(+측→-측)</option>
               </select>
+              <span class="form-note">라인 모드에서는 영역/라인 캔버스 선 중앙의 화살표가 현재 방향을 보여줍니다.</span>
             </label>
           </div>
           <div id="scenarioPanel" class="scenario-panel" hidden>
@@ -5150,7 +6489,7 @@ std::string BuildLabRuleEditorPageHtml() {
                   <option value="forward" selected>forward · 정방향(-측→+측)</option>
                   <option value="reverse">reverse · 역방향(+측→-측)</option>
                 </select>
-                <span class="form-note">wrong-direction은 허용 방향과 실제 통과 방향을 비교합니다. any는 위반 방향을 정의할 수 없어 사용하지 않습니다.</span>
+                <span class="form-note">wrong-direction은 허용 방향과 실제 통과 방향을 비교합니다. 캔버스 선 중앙의 화살표가 허용 방향입니다. any는 위반 방향을 정의할 수 없어 사용하지 않습니다.</span>
               </label>
               <label>중복 기준
                 <span class="range-meta">같은 track/line은 cooldown 동안 중복 알림을 억제합니다.</span>
@@ -5216,7 +6555,7 @@ std::string BuildLabRuleEditorPageHtml() {
         </div>
       </section>
 
-      <section id="ruleObjectsSection" class="card edit-step-card section-anchor">
+      <section id="ruleObjectsSection" class="section-card card edit-step-card section-anchor">
         <div class="pad stack">
           <div class="step-title">
             <span>5</span>
@@ -5249,7 +6588,7 @@ std::string BuildLabRuleEditorPageHtml() {
         </div>
       </section>
 
-      <section class="card edit-step-card section-anchor">
+      <section class="section-card card edit-step-card section-anchor">
         <div class="pad stack">
           <div class="step-title">
             <span>6</span>
@@ -5312,7 +6651,7 @@ std::string BuildLabRuleEditorPageHtml() {
             <canvas id="regionCanvas" width="960" height="540"></canvas>
           </div>
           <p id="geometryHint" class="hint">캔버스를 클릭해 다각형 꼭짓점을 추가합니다. 3개 이상이면 영역으로 저장됩니다. 최대 12개까지 지정할 수 있습니다. 기존 점 근처를 드래그하면 새 점을 만들지 않고 점 위치를 이동합니다.</p>
-          <p id="geometryValidationText" class="source-lock">영역 상태를 계산 중입니다.</p>
+          <p id="geometryValidationText" class="source-lock geometry-readiness">영역 상태를 계산 중입니다.</p>
           <div class="geometry-actions">
             <button id="undoRegionBtn" type="button" class="secondary">되돌리기</button>
             <button id="deleteLastPointBtn" type="button" class="secondary">마지막 점 삭제</button>
@@ -5325,7 +6664,7 @@ std::string BuildLabRuleEditorPageHtml() {
         </div>
       </section>
 
-      <section id="ruleOutputSection" class="card edit-step-card section-anchor">
+      <section id="ruleOutputSection" class="section-card card edit-step-card section-anchor">
         <div class="pad stack">
           <div class="step-title">
             <span>7</span>
@@ -5354,7 +6693,7 @@ std::string BuildLabRuleEditorPageHtml() {
         </div>
       </section>
 
-      <section id="ruleReviewSection" class="card edit-step-card section-anchor">
+      <section id="ruleReviewSection" class="section-card card edit-step-card section-anchor">
         <div class="pad stack">
           <div class="step-title">
             <span>8</span>
@@ -5376,22 +6715,22 @@ std::string BuildLabRuleEditorPageHtml() {
         </div>
       </section>
 
-    <details class="debug-drawer">
+    <details class="debug-panel debug-drawer">
       <summary>개발자 정보: 생성 JSON / 상태</summary>
       <section class="grid">
-        <div class="card">
+        <div class="section-card card">
           <div class="pad stack">
             <h2>생성되는 Profile JSON</h2>
             <textarea id="profileJsonPreview" spellcheck="false"></textarea>
           </div>
         </div>
-        <div class="card">
+        <div class="section-card card">
           <div class="pad stack">
             <h2>생성되는 Rule JSON</h2>
             <textarea id="ruleJsonPreview" spellcheck="false"></textarea>
           </div>
         </div>
-        <div class="card">
+        <div class="section-card card">
           <div class="pad stack">
             <h2>생성되는 영상 분석 설정 JSON</h2>
             <textarea id="vaRuleJsonPreview" spellcheck="false"></textarea>
@@ -5399,7 +6738,7 @@ std::string BuildLabRuleEditorPageHtml() {
         </div>
       </section>
 
-      <section class="card">
+      <section class="section-card card">
         <div class="pad stack">
           <h2>상태</h2>
           <pre id="statusBox">준비 중...</pre>
@@ -5409,20 +6748,34 @@ std::string BuildLabRuleEditorPageHtml() {
       </section>
     </section>
 
-    <section id="viewerPanel" class="workspace-panel" hidden>
-      <div class="card">
+	    <section id="viewerPanel" class="section-stack workspace-panel" hidden>
+	      <div class="section-card card viewer-console-card">
         <div class="pad stack">
-          <h2>영상 분석 테스트 / 미리보기</h2>
-          <p class="hint">실시간 스트리밍, 기본 VA 오버레이, 저장된 VA 룰을 실제 화면으로 빠르게 확인하는 탭입니다.</p>
-          <label>보기 모드</label>
-          <div class="segmented view-mode" role="group" aria-label="보기 모드">
-            <label><input type="radio" name="viewMode" value="live" checked /> 실시간 스트리밍</label>
-            <label><input type="radio" name="viewMode" value="overlay" /> 영상 + VA 오버레이</label>
-            <label><input type="radio" name="viewMode" value="rule" /> 영상 + VA 룰</label>
-            <label><input type="radio" name="viewMode" value="metadata" /> WebRTC 메타데이터</label>
+          <div class="section-title-row">
+            <div>
+              <h2>영상 분석 보기</h2>
+              <p class="hint">보기 시작, 상태, 영상, 메타데이터를 한 흐름에서 확인합니다.</p>
+            </div>
+            <span id="viewConnectionBadge" class="badge badge-muted">대기</span>
+          </div>
+          <div class="viewer-mode-toolbar">
+            <div>
+              <label>보기 모드</label>
+              <div class="segmented view-mode" role="group" aria-label="보기 모드">
+                <label><input type="radio" name="viewMode" value="live" checked /> 실시간</label>
+                <label><input type="radio" name="viewMode" value="overlay" /> VA 오버레이</label>
+                <label><input type="radio" name="viewMode" value="rule" /> VA 룰</label>
+                <label><input type="radio" name="viewMode" value="metadata" /> WebRTC 메타데이터</label>
+              </div>
+            </div>
+            <div class="viewer-actions" aria-label="영상 보기 작업">
+              <button id="startViewPreviewBtn" type="button">보기 시작</button>
+              <button id="restartViewPreviewBtn" type="button" class="secondary">재시작</button>
+              <button id="stopViewPreviewBtn" type="button" class="button-ghost">중지</button>
+            </div>
           </div>
           <p id="viewModeHelpText" class="form-note">실시간 스트리밍은 원본 영상만 확인합니다.</p>
-          <div class="row" id="viewDirectSourceFields">
+          <div class="viewer-input-grid" id="viewDirectSourceFields">
             <label>보기 영상 종류
               <select id="viewSourceKind">
                 <option value="file" selected>서버 파일</option>
@@ -5447,8 +6800,8 @@ std::string BuildLabRuleEditorPageHtml() {
             <p class="form-note">영상 + VA 룰 모드에서는 영상 소스를 따로 고르지 않습니다. 선택한 ID에 저장된 영상 소스가 자동으로 고정됩니다.</p>
             <p id="viewRuleSourceSummary" class="source-lock">저장된 설정을 선택하면 연결된 영상 소스가 표시됩니다.</p>
           </div>
-          <p id="viewBindingSummary" class="source-lock">실시간 스트리밍 · file=sample_h264.mp4</p>
-          <div class="viewer-status-grid" aria-label="영상 분석 보기 상태">
+          <p class="viewer-summary-line"><span>현재 보기</span><span id="viewBindingSummary">실시간 스트리밍 · file=sample_h264.mp4</span></p>
+          <div class="viewer-status-grid viewer-status-grid-compact" aria-label="영상 분석 보기 상태">
             <div id="viewConnectionStateCard" class="viewer-status-card is-idle">
               <span>연결 상태</span>
               <strong id="viewConnectionStateText">대기</strong>
@@ -5463,16 +6816,30 @@ std::string BuildLabRuleEditorPageHtml() {
             </div>
           </div>
           <p id="viewConnectionMessage" class="form-note">보기 시작을 누르면 분석 tap을 만들고 프레임을 표시합니다.</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <button id="startViewPreviewBtn" type="button">보기 시작</button>
-            <button id="stopViewPreviewBtn" type="button" class="secondary">보기 중지</button>
-          </div>
           <div class="view-frame">
             <img id="viewPreviewImage" alt="영상 분석 보기 프레임" />
-            <div id="viewWebRtcStage" class="metadata-video-stage" hidden>
-              <video id="viewWebRtcVideo" autoplay playsinline controls></video>
-              <canvas id="viewMetadataOverlayCanvas" class="metadata-overlay-canvas"></canvas>
+            <div id="viewWebRtcStage" class="video-stage metadata-video-stage" hidden>
+	              <video id="viewWebRtcVideo" autoplay playsinline controls></video>
+	              <canvas id="viewMetadataOverlayCanvas" class="video-overlay metadata-overlay-canvas"></canvas>
               <span id="metadataStaleBadge" class="metadata-stale-badge" hidden>메타데이터 지연</span>
+            </div>
+            <div class="viewer-compact-status-row" aria-label="영상 분석 보기 compact status">
+              <span class="compact-status" id="viewCompactConnection"><span>connection</span><strong id="viewCompactConnectionText">대기</strong></span>
+              <span class="compact-status" id="viewCompactFrame"><span>frame</span><strong id="viewCompactFrameText">대기</strong></span>
+              <span class="compact-status" id="viewCompactMetadata"><span>metadata</span><strong id="viewCompactMetadataText">미사용</strong></span>
+              <span class="compact-status" id="viewCompactTrack"><span>track</span><strong id="viewCompactTrackCountText">0</strong></span>
+              <span class="compact-status" id="viewCompactEvent"><span>event</span><strong id="viewCompactEventCountText">0</strong></span>
+              <span class="compact-status" id="viewCompactStale"><span>stale</span><strong id="viewCompactStaleText">없음</strong></span>
+            </div>
+            <div class="viewer-media-spec-row" aria-label="재생 중인 영상 스펙">
+              <div class="media-spec-group" aria-label="고정 영상 정보">
+                <span class="media-spec-chip"><span>source</span><strong id="viewMediaSourceText">file=sample_h264.mp4</strong></span>
+                <span class="media-spec-chip"><span>codec</span><strong id="viewMediaCodecText">-</strong></span>
+              </div>
+              <div class="media-spec-group" aria-label="재생 중 변경 정보">
+                <span class="media-spec-chip"><span>resolution</span><strong id="viewMediaResolutionText">-</strong></span>
+                <span class="media-spec-chip"><span>fps</span><strong id="viewMediaFpsText">-</strong></span>
+              </div>
             </div>
             <p id="viewPreviewStatus" class="hint">대기 중입니다.</p>
           </div>
@@ -5480,6 +6847,43 @@ std::string BuildLabRuleEditorPageHtml() {
             <div>
               <h3>WebRTC 메타데이터 뷰어</h3>
               <p class="form-note">`vaMetadata=1` DataChannel 수신 상태와 최신 JSON, 브라우저 client-side overlay를 확인합니다. DataChannel이 실패해도 영상 재생은 계속 유지합니다.</p>
+            </div>
+            <div class="metadata-status-grid metadata-primary-grid" aria-label="WebRTC metadata 주요 상태">
+              <div id="metadataChannelStateCard" class="viewer-status-card">
+                <span>DataChannel 상태</span>
+                <strong id="metadataChannelStateText">비활성</strong>
+              </div>
+              <div id="metadataLagCard" class="viewer-status-card">
+                <span>Metadata delay</span>
+                <strong id="metadataLagText">-</strong>
+              </div>
+              <div id="metadataSyncDeltaCard" class="viewer-status-card">
+                <span>syncDelta</span>
+                <strong id="metadataSelectedDeltaText">-</strong>
+              </div>
+              <div id="metadataSyncMissCard" class="viewer-status-card">
+                <span>Frame match failure</span>
+                <strong id="metadataSyncMissCountText">0</strong>
+              </div>
+            </div>
+            <div class="metadata-badge-strip" aria-label="WebRTC metadata compact counters">
+              <span class="metadata-metric-badge"><span>label</span><strong id="metadataChannelLabelText">va-metadata</strong></span>
+              <span class="metadata-metric-badge"><span>messages</span><strong id="metadataMessageCountText">0</strong></span>
+              <span class="metadata-metric-badge"><span>buffer</span><strong id="metadataBufferCountText">0</strong></span>
+              <span class="metadata-metric-badge" id="metadataBufferDropBadge"><span>drop</span><strong id="metadataBufferDropCountText">0</strong></span>
+              <span class="metadata-metric-badge"><span>video frames</span><strong id="metadataVideoFrameCountText">0</strong></span>
+              <span class="metadata-metric-badge"><span>draw</span><strong id="metadataDrawCountText">0</strong></span>
+              <span class="metadata-metric-badge"><span>last video</span><strong id="metadataLastVideoFrameText">-</strong></span>
+              <span class="metadata-metric-badge"><span>last metadata</span><strong id="metadataLastMessageAtText">-</strong></span>
+              <span class="metadata-metric-badge" id="metadataVideoStalledBadge"><span>video stalled</span><strong id="metadataVideoStalledText">아니오</strong></span>
+              <span class="metadata-metric-badge" id="metadataStaleCountBadge"><span>stale</span><strong id="metadataStaleCountText">0</strong></span>
+              <span class="metadata-metric-badge" id="metadataFallbackHiddenBadge"><span>fallback hidden</span><strong id="metadataFallbackHiddenCountText">0</strong></span>
+              <span class="metadata-metric-badge"><span>tracks</span><strong id="metadataTrackCountText">0</strong></span>
+              <span class="metadata-metric-badge"><span>events</span><strong id="metadataEventCountText">0</strong></span>
+              <span class="metadata-metric-badge"><span>scenarios</span><strong id="metadataScenarioCountText">0</strong></span>
+              <span class="metadata-metric-badge"><span>timestamp</span><strong id="metadataLatestTimestampText">-</strong></span>
+              <span class="metadata-metric-badge" id="metadataParseStateBadge"><span>JSON</span><strong id="metadataParseStateText">대기</strong></span>
+              <span class="metadata-metric-badge" id="metadataParseFailBadge"><span>parse fail</span><strong id="metadataParseFailCountText">0</strong></span>
             </div>
             <div class="metadata-overlay-controls" aria-label="Client overlay 표시 옵션">
               <label><input id="metadataOverlayBboxInput" type="checkbox" checked /> 박스</label>
@@ -5490,135 +6894,37 @@ std::string BuildLabRuleEditorPageHtml() {
               <label><input id="metadataOverlayHealthInput" type="checkbox" checked /> TrackHealth</label>
               <label><input id="metadataOverlayZoneInput" type="checkbox" checked /> 현재 Zone</label>
               <label><input id="metadataOverlayDwellInput" type="checkbox" checked /> 체류 시간</label>
-              <label><input id="metadataOverlayDetectionInput" type="checkbox" /> Detector 원본 bbox</label>
+              <label><input id="metadataOverlayDetectionInput" type="checkbox" /> Detector raw bbox(debug)</label>
               <label><input id="metadataOverlayFallbackInput" type="checkbox" /> fallback metadata 표시(opt-in)</label>
             </div>
-            <div class="metadata-bbox-diagnostic">
-              <div class="metadata-diagnostic-actions">
-                <button id="metadataBboxDiagnosticsBtn" type="button" class="secondary">BBox 진단 갱신</button>
-                <span id="metadataBboxDiagnosticState" class="form-note">진단 대기 중</span>
+            <details class="metadata-debug-details">
+              <summary>BBox diagnostics / close-object guard</summary>
+              <div class="metadata-bbox-diagnostic">
+                <div class="video-status-row overlay-debug-toolbar metadata-diagnostic-actions">
+                  <button id="metadataBboxDiagnosticsBtn" type="button" class="secondary">BBox 진단 갱신</button>
+                  <span id="metadataBboxDiagnosticState" class="form-note">진단 대기 중</span>
+                </div>
+                <p class="form-note">Detector raw bbox는 진단 endpoint의 원본 검출 박스, DataChannel selected bbox는 현재 브라우저가 선택한 metadata payload, track bbox는 runtime tracking 결과입니다. close-object guard는 off/diagnostic/enforce 모드를 그대로 표시합니다.</p>
+                <div class="dashboard-table-wrap">
+                  <table class="data-table data-table-compact dashboard-table" aria-label="BBox detector track comparison">
+                    <thead><tr><th>track</th><th>confidence</th><th>DC selected</th><th>detector raw</th><th>track</th><th>det↔DC</th><th>track↔DC</th><th>continuity</th><th>TrackHealth</th><th>close-object guard</th><th>판단</th></tr></thead>
+                    <tbody id="metadataBboxDiagnosticRows"><tr><td class="dashboard-empty-cell" colspan="11">BBox 진단 갱신을 누르면 detector/track 비교를 표시합니다.</td></tr></tbody>
+                  </table>
+                </div>
               </div>
-              <p class="form-note">Detector 원본 bbox를 켜면 점선은 Lab 진단 endpoint의 detector raw 결과이고, 실선은 현재 selected DataChannel payload를 기준으로 그립니다.</p>
-              <div class="dashboard-table-wrap">
-                <table class="dashboard-table" aria-label="BBox detector track comparison">
-                  <thead><tr><th>track</th><th>confidence</th><th>DC selected</th><th>detector raw</th><th>track</th><th>det↔DC</th><th>track↔DC</th><th>continuity</th><th>TrackHealth</th><th>close-object guard</th><th>판단</th></tr></thead>
-                  <tbody id="metadataBboxDiagnosticRows"><tr><td class="dashboard-empty-cell" colspan="11">BBox 진단 갱신을 누르면 detector/track 비교를 표시합니다.</td></tr></tbody>
-                </table>
-              </div>
-            </div>
-            <div class="metadata-status-grid">
-              <div class="viewer-status-card">
-                <span>DataChannel 상태</span>
-                <strong id="metadataChannelStateText">비활성</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>Label</span>
-                <strong id="metadataChannelLabelText">va-metadata</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>Metadata 수신</span>
-                <strong id="metadataMessageCountText">0</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>Metadata buffer</span>
-                <strong id="metadataBufferCountText">0</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>Metadata drop</span>
-                <strong id="metadataBufferDropCountText">0</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>표시 video frame</span>
-                <strong id="metadataVideoFrameCountText">0</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>Overlay draw</span>
-                <strong id="metadataDrawCountText">0</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>마지막 video frame</span>
-                <strong id="metadataLastVideoFrameText">-</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>마지막 metadata</span>
-                <strong id="metadataLastMessageAtText">-</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>영상 멈춤</span>
-                <strong id="metadataVideoStalledText">아니오</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>선택 syncDelta</span>
-                <strong id="metadataSelectedDeltaText">-</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>Metadata 지연</span>
-                <strong id="metadataLagText">-</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>프레임 매칭 실패</span>
-                <strong id="metadataSyncMissCountText">0</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>Stale 횟수</span>
-                <strong id="metadataStaleCountText">0</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>Fallback 숨김</span>
-                <strong id="metadataFallbackHiddenCountText">0</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>최신 timestamp</span>
-                <strong id="metadataLatestTimestampText">-</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>Track 수</span>
-                <strong id="metadataTrackCountText">0</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>이벤트 수</span>
-                <strong id="metadataEventCountText">0</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>시나리오 수</span>
-                <strong id="metadataScenarioCountText">0</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>JSON 파싱</span>
-                <strong id="metadataParseStateText">대기</strong>
-              </div>
-              <div class="viewer-status-card">
-                <span>Parse 실패</span>
-                <strong id="metadataParseFailCountText">0</strong>
-              </div>
-            </div>
+            </details>
             <p id="metadataParseErrorText" class="metadata-error" hidden></p>
-            <pre id="metadataJsonPreview" class="metadata-json-preview">메타데이터 수신 대기 중</pre>
+            <details class="metadata-debug-details">
+              <summary>Metadata payload raw JSON</summary>
+              <pre id="metadataJsonPreview" class="raw-json-panel metadata-json-preview">메타데이터 수신 대기 중</pre>
+            </details>
           </section>
         </div>
       </div>
-      <details class="debug-drawer developer-url-details">
+      <details class="debug-panel developer-panel debug-drawer developer-url-details">
         <summary>개발자 요청 URL</summary>
         <div class="pad stack">
           <p class="hint">외부 클라이언트나 자동화에서 직접 호출할 때만 펼쳐서 확인합니다. WebRTC 메타데이터와 RTSP 오버레이는 동작 방식이 다릅니다.</p>
-          <div class="output-policy-grid" aria-label="VA 출력 방식 정책">
-            <div class="output-policy-card">
-              <strong>WebRTC 메타데이터 뷰어</strong>
-              <span>WebRTC video + `vaMetadata=1` DataChannel을 브라우저가 받아 client-side canvas overlay로 표시합니다.</span>
-            </div>
-            <div class="output-policy-card">
-              <strong>RTSP 서버 오버레이</strong>
-              <span>VLC/ffplay/IINA 같은 일반 RTSP client는 서버가 그린 `va=1` 또는 `vaRule=<id>` 오버레이 영상을 봅니다.</span>
-            </div>
-            <div class="output-policy-card">
-              <strong>RTSP 원본 스트림</strong>
-              <span>오버레이 없는 원본 RTSP 영상입니다. 분석 메타데이터나 bbox UI는 포함되지 않습니다.</span>
-            </div>
-            <div class="output-policy-card">
-              <strong>커스텀 메타데이터 사이드채널</strong>
-              <span>일반 RTSP client는 메타데이터 채널을 표시하지 못합니다. 커스텀 client는 RTSP video와 별도 SSE metadata stream을 함께 처리해야 합니다.</span>
-            </div>
-          </div>
 	          <div class="row">
 	            <label>Web/HTTP 서버 주소
 	              <input id="viewServerBaseUrl" />
@@ -5629,69 +6935,67 @@ std::string BuildLabRuleEditorPageHtml() {
 	              <span class="form-note">RTSP/VLC URL에 들어갈 `host:port`입니다. 실행 포트 설정을 기본값으로 채웁니다.</span>
 	            </label>
 	          </div>
-	          <div class="pairing-panel" aria-label="Custom RTSP metadata pairing">
-	            <div class="pairing-card">
-	              <strong>일반 RTSP viewer</strong>
-	              <p>VLC/ffplay/IINA는 metadata side-channel을 자동으로 읽지 않습니다. 객체 박스가 필요한 일반 viewer는 서버가 직접 그린 overlay URL을 사용합니다.</p>
+	          <section class="url-section" aria-labelledby="generalViewerUrlsTitle">
+	            <div class="url-section-header">
+	              <div>
+	                <h3 id="generalViewerUrlsTitle">A. 일반 확인용</h3>
+	                <p>브라우저 또는 일반 RTSP viewer에서 바로 확인하는 URL입니다. VLC/ffplay/IINA는 SSE/WS metadata를 자동 overlay하지 않습니다.</p>
+	              </div>
+	              <span class="badge badge-muted">overlay 확인</span>
+	            </div>
+	            <div class="url-grid">
 	              <label class="url-field">
-		                <span class="url-title-row"><span>RTSP 서버 오버레이</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewPairingRtspOverlayUrl">복사</button></span>
-	                <textarea id="viewPairingRtspOverlayUrl" readonly spellcheck="false"></textarea>
+	                <span class="url-title-row"><span>WebRTC metadata viewer</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewWebRtcMetadataUrl">복사</button></span>
+	                <textarea id="viewWebRtcMetadataUrl" readonly spellcheck="false"></textarea>
+	              </label>
+	              <label class="url-field">
+	                <span class="url-title-row"><span>RTSP server overlay</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewRtspUrl">복사</button></span>
+	                <textarea id="viewRtspUrl" readonly spellcheck="false"></textarea>
+	              </label>
+	              <label class="url-field">
+	                <span class="url-title-row"><span>WebRTC simple signaling</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewWebRtcUrl">복사</button></span>
+	                <textarea id="viewWebRtcUrl" readonly spellcheck="false"></textarea>
+	              </label>
+	              <label class="url-field">
+	                <span class="url-title-row"><span>WHEP</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewWhepUrl">복사</button></span>
+	                <textarea id="viewWhepUrl" readonly spellcheck="false"></textarea>
 	              </label>
 	            </div>
-	            <div class="pairing-card is-custom">
-		              <strong>커스텀 RTSP + 메타데이터 연결 정보</strong>
-		              <p>커스텀 client는 RTSP 원본 스트림을 재생하고, 별도 SSE/WS metadata stream을 받아 client-side overlay를 직접 그립니다.</p>
+	          </section>
+	          <section class="url-section is-custom" aria-labelledby="customClientUrlsTitle">
+	            <div class="url-section-header">
+	              <div>
+	                <h3 id="customClientUrlsTitle">B. Custom client용</h3>
+	                <p>RTSP raw video를 재생하고 SSE/WS metadata stream을 별도로 받아 client-side overlay를 직접 그리는 클라이언트용입니다.</p>
+	              </div>
+	              <span class="badge badge-info">side-channel</span>
+	            </div>
+	            <div class="url-grid">
 	              <label class="url-field">
-		                <span class="url-title-row"><span>RTSP 원본 스트림</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewPairingRtspRawUrl">복사</button></span>
-	                <textarea id="viewPairingRtspRawUrl" readonly spellcheck="false"></textarea>
+	                <span class="url-title-row"><span>RTSP raw stream</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewRtspRawUrl">복사</button></span>
+	                <textarea id="viewRtspRawUrl" readonly spellcheck="false"></textarea>
 	              </label>
 	              <label class="url-field">
-		                <span class="url-title-row"><span>SSE 메타데이터 스트림</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewPairingMetadataSideChannelUrl">복사</button></span>
-	                <textarea id="viewPairingMetadataSideChannelUrl" readonly spellcheck="false"></textarea>
+	                <span class="url-title-row"><span>SSE metadata stream</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewMetadataSideChannelUrl">복사</button></span>
+	                <textarea id="viewMetadataSideChannelUrl" readonly spellcheck="false"></textarea>
+	              </label>
+	              <label class="url-field">
+	                <span class="url-title-row"><span>WS metadata stream</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewWebSocketSideChannelUrl">복사</button></span>
+	                <textarea id="viewWebSocketSideChannelUrl" readonly spellcheck="false"></textarea>
+	              </label>
+	              <label class="url-field">
+	                <span class="url-title-row"><span>Analysis tap preview</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewTapUrl">복사</button></span>
+	                <textarea id="viewTapUrl" readonly spellcheck="false"></textarea>
 	              </label>
 	            </div>
-	          </div>
-	          <div class="url-grid">
-	            <label class="url-field">
-	              <span class="url-title-row"><span>WebRTC simple signaling</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewWebRtcUrl">복사</button></span>
-	              <textarea id="viewWebRtcUrl" readonly spellcheck="false"></textarea>
-            </label>
-            <label class="url-field">
-	              <span class="url-title-row"><span>WebRTC 메타데이터 뷰어</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewWebRtcMetadataUrl">복사</button></span>
-              <textarea id="viewWebRtcMetadataUrl" readonly spellcheck="false"></textarea>
-            </label>
-            <label class="url-field">
-              <span class="url-title-row"><span>WHEP</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewWhepUrl">복사</button></span>
-              <textarea id="viewWhepUrl" readonly spellcheck="false"></textarea>
-            </label>
-            <label class="url-field">
-	              <span class="url-title-row"><span>RTSP 서버 오버레이</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewRtspUrl">복사</button></span>
-              <textarea id="viewRtspUrl" readonly spellcheck="false"></textarea>
-            </label>
-            <label class="url-field">
-	              <span class="url-title-row"><span>RTSP 원본 스트림</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewRtspRawUrl">복사</button></span>
-              <textarea id="viewRtspRawUrl" readonly spellcheck="false"></textarea>
-            </label>
-            <label class="url-field">
-		              <span class="url-title-row"><span>커스텀 메타데이터 사이드채널</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewMetadataSideChannelUrl">복사</button></span>
-	              <textarea id="viewMetadataSideChannelUrl" readonly spellcheck="false"></textarea>
-	            </label>
-	            <label class="url-field">
-		              <span class="url-title-row"><span>커스텀 WebSocket 사이드채널</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewWebSocketSideChannelUrl">복사</button></span>
-	              <textarea id="viewWebSocketSideChannelUrl" readonly spellcheck="false"></textarea>
-	            </label>
-	            <label class="url-field">
-		              <span class="url-title-row"><span>분석 Tap 미리보기</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewTapUrl">복사</button></span>
-	              <textarea id="viewTapUrl" readonly spellcheck="false"></textarea>
-	            </label>
-	          </div>
-		          <p class="form-note">URL 규칙: WebRTC 메타데이터는 DataChannel 기반 client-side overlay이고, RTSP 오버레이는 서버가 영상에 직접 그린 결과입니다. RTSP 원본 스트림에는 overlay/metadata가 없습니다. SSE/WS side-channel은 custom client/dashboard용이며 일반 VLC/ffplay용 기능이 아닙니다.</p>
+	          </section>
+		          <p class="form-note">URL 규칙: WebRTC metadata viewer는 DataChannel 기반 client-side overlay이고, RTSP server overlay는 서버가 영상에 직접 그린 결과입니다. RTSP raw stream에는 overlay/metadata가 없습니다. SSE/WS side-channel은 custom client/dashboard용이며 일반 VLC/ffplay/IINA용 자동 overlay 기능이 아닙니다.</p>
 	        </div>
 	      </details>
     </section>
 
-    <section id="dashboardPanel" class="workspace-panel" hidden>
-      <div class="card">
+	    <section id="dashboardPanel" class="section-stack workspace-panel" hidden>
+	      <div class="section-card card">
         <div class="pad stack">
           <div class="management-toolbar">
             <div class="stack">
@@ -5726,26 +7030,114 @@ std::string BuildLabRuleEditorPageHtml() {
           <div class="dashboard-drilldown">
             <section class="dashboard-drilldown-section" aria-labelledby="dashboardOverviewTitle">
               <div class="dashboard-section-header">
-                <h3 id="dashboardOverviewTitle">Overview</h3>
+                <h3 id="dashboardOverviewTitle">Health Summary</h3>
                 <p id="dashboardOverviewSummary" class="dashboard-section-summary">선택된 tap 없음</p>
               </div>
-              <div class="dashboard-card-grid" aria-label="VA 런타임 대시보드 카드">
-                <div class="viewer-status-card"><span>소스 종류</span><strong id="dashboardSourceKind">-</strong></div>
-                <div class="viewer-status-card"><span>활성 세션</span><strong id="dashboardActiveSessions">0</strong></div>
-                <div class="viewer-status-card"><span>활성 스트림</span><strong id="dashboardActiveStreams">0</strong></div>
-                <div class="viewer-status-card"><span>분석 Tap</span><strong id="dashboardActiveTaps">0</strong></div>
-                <div class="viewer-status-card"><span>디코딩 FPS</span><strong id="dashboardDecodedFps">0</strong></div>
-                <div class="viewer-status-card"><span>샘플링 FPS</span><strong id="dashboardSampledFps">0</strong></div>
-                <div class="viewer-status-card"><span>분석 FPS</span><strong id="dashboardAnalyzedFps">0</strong></div>
-                <div class="viewer-status-card"><span>대기/상한/최대 큐</span><strong id="dashboardQueueSummary">0/0/0</strong></div>
-                <div class="viewer-status-card"><span>추론 지연</span><strong id="dashboardInferenceLatency">0ms</strong></div>
-                <div class="viewer-status-card"><span>Track A/L/R/T</span><strong id="dashboardTrackCounts">0/0/0/0</strong></div>
-                <div class="viewer-status-card"><span>시나리오 인스턴스</span><strong id="dashboardScenarioCount">0</strong></div>
-                <div class="viewer-status-card"><span>발생/중복 억제 이벤트</span><strong id="dashboardEventCounts">0/0</strong></div>
-                <div class="viewer-status-card"><span>불안정 TrackHealth</span><strong id="dashboardUnstableCount">0</strong></div>
-                <div class="viewer-status-card"><span>겹침 위험</span><strong id="dashboardOverlapRiskCount">0</strong></div>
-                <div class="viewer-status-card"><span>이벤트 POST</span><strong id="dashboardEventPostStatus">-</strong></div>
-                <div class="viewer-status-card"><span>이벤트 저장</span><strong id="dashboardEventStorageStatus">-</strong></div>
+              <div class="dashboard-health-grid" aria-label="Runtime Dashboard health summary">
+                <div class="dashboard-health-card"><span>sessions</span><strong id="dashboardActiveSessions">0</strong></div>
+                <div class="dashboard-health-card"><span>streams</span><strong id="dashboardActiveStreams">0</strong></div>
+                <div class="dashboard-health-card"><span>analysis taps</span><strong id="dashboardActiveTaps">0</strong></div>
+                <div class="dashboard-health-card"><span>SSE/WS clients</span><strong id="dashboardHealthSideClients">0/0</strong></div>
+                <div class="dashboard-health-card"><span>RTSP consumers</span><strong id="dashboardHealthRtspConsumers">미제공</strong></div>
+                <div class="dashboard-health-card"><span>cleanup warning</span><strong id="dashboardHealthCleanupWarning">미제공</strong></div>
+                <div class="dashboard-health-card"><span>metadata stale</span><strong id="dashboardHealthMetadataStaleWarning">미제공</strong></div>
+                <div class="dashboard-health-card"><span>guard mode</span><strong id="dashboardHealthGuardMode">guard off</strong></div>
+              </div>
+            </section>
+            <section class="dashboard-drilldown-section" aria-labelledby="dashboardTrendTitle">
+              <div class="dashboard-section-header">
+                <h3 id="dashboardTrendTitle">Warnings</h3>
+                <p id="dashboardTrendSummary" class="dashboard-section-summary">trend sample 대기 중</p>
+              </div>
+              <div id="dashboardTrendWarnings" class="dashboard-warning-strip" aria-label="Runtime Dashboard warning badges">
+                <span class="status-chip is-muted">관찰 대기</span>
+              </div>
+              <div class="dashboard-card-grid dashboard-card-grid-compact" aria-label="Runtime Dashboard trend cards">
+                <div class="dashboard-detail-card"><span>Trend samples</span><strong id="dashboardTrendSampleCount">0/60</strong></div>
+                <div class="dashboard-detail-card"><span>Runtime delta</span><strong id="dashboardTrendRuntimeDelta">미제공</strong></div>
+                <div class="dashboard-detail-card"><span>Metadata stale</span><strong id="dashboardTrendStaleStatus">미제공</strong></div>
+                <div class="dashboard-detail-card"><span>Cleanup watch</span><strong id="dashboardTrendCleanupStatus">미제공</strong></div>
+              </div>
+              <details class="dashboard-detail-drawer">
+                <summary>Trend detail</summary>
+                <div class="dashboard-detail-body">
+                  <div class="dashboard-table-wrap">
+                    <table class="data-table data-table-compact dashboard-table dashboard-trend-table" aria-label="Runtime Dashboard trend summary">
+                      <thead><tr><th>Metric</th><th>Current</th><th>Trend</th><th>Window min/max</th><th>Note</th></tr></thead>
+                      <tbody id="dashboardTrendRows"><tr><td class="dashboard-empty-cell" colspan="5">Dashboard sample이 쌓이면 최근 trend가 표시됩니다.</td></tr></tbody>
+                    </table>
+                  </div>
+                </div>
+              </details>
+            </section>
+            <section class="dashboard-drilldown-section" aria-labelledby="dashboardMetadataTitle">
+              <div class="dashboard-section-header">
+                <h3 id="dashboardMetadataTitle">Metadata / Backpressure</h3>
+                <p id="dashboardMetadataSummary" class="dashboard-section-summary">metadata channel 대기 중</p>
+              </div>
+              <div id="dashboardBackpressureWarnings" class="dashboard-warning-strip" aria-label="Metadata backpressure warning badges">
+                <span class="status-chip is-muted">warning 없음</span>
+              </div>
+              <div class="dashboard-card-grid dashboard-card-grid-compact" aria-label="Metadata backpressure cards">
+                <div class="dashboard-detail-card"><span>WebRTC sent</span><strong id="dashboardMetadataSent">미제공</strong></div>
+                <div class="dashboard-detail-card"><span>WebRTC drop/fail</span><strong id="dashboardMetadataDropped">미제공</strong></div>
+                <div class="dashboard-detail-card"><span>DataChannel bufferedAmount</span><strong id="dashboardMetadataBufferedObserved">미제공</strong></div>
+                <div class="dashboard-detail-card"><span>SSE/WS clients</span><strong id="dashboardMetadataSideClients">0/0</strong></div>
+                <div class="dashboard-detail-card"><span>SSE/WS messages</span><strong id="dashboardSideChannelSentDropped">미제공</strong></div>
+                <div class="dashboard-detail-card"><span>metadataJsonBuildCount</span><strong id="dashboardMetadataJsonBuilds">미제공</strong></div>
+                <div class="dashboard-detail-card"><span>payload avg/max</span><strong id="dashboardMetadataPayloadBytes">미제공</strong></div>
+                <div class="dashboard-detail-card"><span>DataChannel sessions</span><strong id="dashboardMetadataSessions">미제공</strong></div>
+                <div class="dashboard-detail-card"><span>metadata stale/drop</span><strong id="dashboardMetadataStale">미제공</strong></div>
+              </div>
+              <details class="dashboard-detail-drawer">
+                <summary>Backpressure / debug counters</summary>
+                <div class="dashboard-detail-body">
+                  <div class="dashboard-card-grid dashboard-card-grid-compact" aria-label="Metadata backpressure detail cards">
+                    <div class="dashboard-detail-card"><span>Runtime memory</span><strong id="dashboardRuntimeMemoryWarning">RSS 해제 후보 · high-water 관찰</strong></div>
+                    <div class="dashboard-detail-card"><span>Live RSS</span><strong id="dashboardRuntimeRss">longrun report에서 확인</strong></div>
+                    <div class="dashboard-detail-card"><span>RSS 판단 기준</span><strong id="dashboardRuntimeRssGuidance">longrun report 기준</strong></div>
+                    <div class="dashboard-detail-card"><span>Session/Stream/Tap</span><strong id="dashboardBackpressureRuntime">0/0/0</strong></div>
+                    <div class="dashboard-detail-card"><span>interval/oversized skip</span><strong id="dashboardMetadataSkipped">미제공</strong></div>
+                    <div class="dashboard-detail-card"><span>send failures</span><strong id="dashboardMetadataFailures">미제공</strong></div>
+                    <div class="dashboard-detail-card"><span>buffered drop/max</span><strong id="dashboardMetadataBuffered">미제공</strong></div>
+                    <div class="dashboard-detail-card"><span>SSE clients</span><strong id="dashboardMetadataSseClients">0</strong></div>
+                    <div class="dashboard-detail-card"><span>WS clients</span><strong id="dashboardMetadataWsClients">0</strong></div>
+                    <div class="dashboard-detail-card"><span>Dashboard polling count</span><strong id="dashboardPollingCount">미제공</strong></div>
+                    <div class="dashboard-detail-card"><span>Queue pending/cap/peak</span><strong id="dashboardBackpressureQueue">0/0/0</strong></div>
+                    <div class="dashboard-detail-card"><span>Queue drops</span><strong id="dashboardBackpressureQueueDrops">0/0</strong></div>
+                    <div class="dashboard-detail-card"><span>Sample drops</span><strong id="dashboardBackpressureSampleDrops">0/0</strong></div>
+                    <div class="dashboard-detail-card"><span>Queue wait</span><strong id="dashboardBackpressureQueueWait">0ms</strong></div>
+                    <div class="dashboard-detail-card"><span>RTSP lifecycle</span><strong id="dashboardRtspLifecycle">미제공</strong></div>
+                    <div class="dashboard-detail-card"><span>RTSP pending peak</span><strong id="dashboardRtspPendingPeak">미제공</strong></div>
+                    <div class="dashboard-detail-card"><span>pending stop/destroy</span><strong id="dashboardRtspPendingResidual">미제공</strong></div>
+                    <div class="dashboard-detail-card"><span>appsrc after stop</span><strong id="dashboardAppsrcAfterStop">미제공</strong></div>
+                    <div class="dashboard-detail-card"><span>flow returns</span><strong id="dashboardRtspFlowReturns">미제공</strong></div>
+                    <div class="dashboard-detail-card"><span>fanout balance</span><strong id="dashboardFanoutBalance">미제공</strong></div>
+                    <div class="dashboard-detail-card"><span>cleanup warning</span><strong id="dashboardCleanupWarning">미제공</strong></div>
+                    <div class="dashboard-detail-card"><span>fallback hidden</span><strong id="dashboardMetadataFallback">미제공</strong></div>
+                  </div>
+                </div>
+              </details>
+            </section>
+            <section class="dashboard-drilldown-section" aria-labelledby="dashboardRuntimeDetailTitle">
+              <div class="dashboard-section-header">
+                <h3 id="dashboardRuntimeDetailTitle">Runtime Detail</h3>
+                <p class="dashboard-section-summary">source, queue, event 상태</p>
+              </div>
+              <div class="dashboard-card-grid dashboard-card-grid-compact" aria-label="VA runtime detail cards">
+                <div class="dashboard-detail-card"><span>소스 종류</span><strong id="dashboardSourceKind">-</strong></div>
+                <div class="dashboard-detail-card"><span>디코딩 FPS</span><strong id="dashboardDecodedFps">0</strong></div>
+                <div class="dashboard-detail-card"><span>샘플링 FPS</span><strong id="dashboardSampledFps">0</strong></div>
+                <div class="dashboard-detail-card"><span>분석 FPS</span><strong id="dashboardAnalyzedFps">0</strong></div>
+                <div class="dashboard-detail-card"><span>대기/상한/최대 큐</span><strong id="dashboardQueueSummary">0/0/0</strong></div>
+                <div class="dashboard-detail-card"><span>추론 지연</span><strong id="dashboardInferenceLatency">0ms</strong></div>
+                <div class="dashboard-detail-card"><span>Track A/L/R/T</span><strong id="dashboardTrackCounts">0/0/0/0</strong></div>
+                <div class="dashboard-detail-card"><span>시나리오 인스턴스</span><strong id="dashboardScenarioCount">0</strong></div>
+                <div class="dashboard-detail-card"><span>발생/중복 억제 이벤트</span><strong id="dashboardEventCounts">0/0</strong></div>
+                <div class="dashboard-detail-card"><span>불안정 TrackHealth</span><strong id="dashboardUnstableCount">0</strong></div>
+                <div class="dashboard-detail-card"><span>겹침 위험</span><strong id="dashboardOverlapRiskCount">0</strong></div>
+                <div class="dashboard-detail-card"><span>이벤트 POST</span><strong id="dashboardEventPostStatus">-</strong></div>
+                <div class="dashboard-detail-card"><span>이벤트 저장</span><strong id="dashboardEventStorageStatus">-</strong></div>
               </div>
             </section>
             <section class="dashboard-drilldown-section" aria-labelledby="dashboardVaRuleDebugTitle">
@@ -5760,6 +7152,7 @@ std::string BuildLabRuleEditorPageHtml() {
                 <div class="viewer-status-card"><span>Profile</span><strong id="dashboardVaRuleProfile">-</strong></div>
                 <div class="viewer-status-card"><span>Event / Scenario</span><strong id="dashboardVaRuleEventType">-</strong></div>
                 <div class="viewer-status-card"><span>Region</span><strong id="dashboardVaRuleRegion">-</strong></div>
+                <div class="viewer-status-card"><span>Scenario instance</span><strong id="dashboardVaRuleScenarioEmptyReason">-</strong></div>
                 <div class="viewer-status-card"><span>Event lifecycle</span><strong id="dashboardVaRuleLifecycle">-</strong></div>
                 <div class="viewer-status-card"><span>Recent event</span><strong id="dashboardVaRuleRecentEvent">-</strong></div>
               </div>
@@ -5770,7 +7163,7 @@ std::string BuildLabRuleEditorPageHtml() {
                 <p id="dashboardTracksSummary" class="dashboard-section-summary">track 없음</p>
               </div>
               <div class="dashboard-table-wrap">
-                <table class="dashboard-table dashboard-track-table" aria-label="Track drill-down">
+                <table class="data-table data-table-compact dashboard-table dashboard-track-table" aria-label="Track drill-down">
                   <thead><tr><th>Track</th><th>Class</th><th>Lifecycle</th><th>Zone</th><th>Dwell</th><th>TrackHealth</th></tr></thead>
                   <tbody id="dashboardTrackRows"><tr><td class="dashboard-empty-cell" colspan="6">tap을 선택하면 track 목록이 표시됩니다.</td></tr></tbody>
                 </table>
@@ -5782,7 +7175,7 @@ std::string BuildLabRuleEditorPageHtml() {
                 <p id="dashboardScenariosSummary" class="dashboard-section-summary">scenario 없음</p>
               </div>
               <div class="dashboard-table-wrap">
-                <table class="dashboard-table" aria-label="Scenario drill-down">
+                <table class="data-table data-table-compact dashboard-table" aria-label="Scenario drill-down">
                   <thead><tr><th>Scenario</th><th>Phase</th><th>Track</th><th>Zone/Line</th><th>Elapsed</th><th>Cooldown</th></tr></thead>
                   <tbody id="dashboardScenarioRows"><tr><td class="dashboard-empty-cell" colspan="6">활성 scenario가 표시됩니다.</td></tr></tbody>
                 </table>
@@ -5794,11 +7187,17 @@ std::string BuildLabRuleEditorPageHtml() {
                 <p id="dashboardScenarioTimelineSummary" class="dashboard-section-summary">timeline 대기 중</p>
               </div>
               <div class="dashboard-table-wrap">
-                <table class="dashboard-table" aria-label="Scenario timeline debug">
+                <table class="data-table data-table-compact dashboard-table dashboard-scenario-table" aria-label="Scenario timeline debug">
                   <thead><tr><th>Scenario</th><th>Phase</th><th>Track</th><th>Zone</th><th>Line</th><th>Elapsed</th><th>Cooldown</th><th>Event</th><th>Dedup</th><th>Recent event</th></tr></thead>
                   <tbody id="dashboardScenarioTimelineRows"><tr><td class="dashboard-empty-cell" colspan="10">활성 scenario timeline이 표시됩니다.</td></tr></tbody>
                 </table>
               </div>
+              <details class="dashboard-detail-drawer">
+                <summary>Scenario raw JSON</summary>
+                <div class="dashboard-detail-body">
+                  <pre id="dashboardScenarioTimelineJson" class="raw-json-panel dashboard-pre">scenario timeline raw JSON 없음</pre>
+                </div>
+              </details>
             </section>
             <section class="dashboard-drilldown-section" aria-labelledby="dashboardEventsTitle">
               <div class="dashboard-section-header">
@@ -5806,7 +7205,7 @@ std::string BuildLabRuleEditorPageHtml() {
                 <p id="dashboardEventsSummary" class="dashboard-section-summary">emitted 0 · dedup 0</p>
               </div>
               <div class="dashboard-table-wrap">
-                <table class="dashboard-table" aria-label="Recent event drill-down">
+                <table class="data-table data-table-compact dashboard-table" aria-label="Recent event drill-down">
                   <thead><tr><th>Type</th><th>Track</th><th>Class</th><th>Rule</th><th>Zone/Line</th><th>Status</th></tr></thead>
                   <tbody id="dashboardEventRows"><tr><td class="dashboard-empty-cell" colspan="6">최근 event가 표시됩니다.</td></tr></tbody>
                 </table>
@@ -5816,6 +7215,7 @@ std::string BuildLabRuleEditorPageHtml() {
               <details id="dashboardEventRecordsDetails" class="event-records-details">
                 <summary><span id="dashboardEventRecordsTitle">Event Records</span><small id="dashboardEventRecordsSummary" class="dashboard-section-summary">검색 전</small></summary>
                 <div class="event-records-panel">
+                  <p class="event-records-note"><span class="badge badge-muted">수동 조회</span><span>이 영역은 자동 polling하지 않습니다. 검색 버튼을 눌렀을 때 저장된 EventRecord metadata만 조회합니다.</span></p>
                   <div class="event-record-filter-grid" aria-label="EventRecord 검색 필터">
                     <label>eventType
                       <select id="eventRecordEventTypeFilter">
@@ -5865,80 +7265,21 @@ std::string BuildLabRuleEditorPageHtml() {
                     </label>
                   </div>
                   <div class="event-record-actions">
-                    <button id="eventRecordSearchBtn" type="button" class="secondary">검색</button>
-                    <p id="eventRecordStateText" class="event-record-state">검색 버튼을 누르면 저장된 EventRecord metadata를 조회합니다.</p>
+                    <button id="eventRecordSearchBtn" type="button">검색</button>
+                    <p id="eventRecordStateText" class="event-record-state">자동 갱신 없음 · 검색 버튼을 누르면 저장된 EventRecord metadata를 조회합니다.</p>
                   </div>
                   <div class="dashboard-table-wrap">
-                    <table class="dashboard-table" aria-label="EventRecord 검색 결과">
-                      <thead><tr><th>eventId</th><th>eventType</th><th>timestamp/startTime</th><th>status</th><th>stream/channel</th><th>trackId</th><th>className</th><th>zone/line</th><th>scenario/phase</th><th>snapshotPath</th><th>clipPath</th></tr></thead>
+                    <table class="data-table data-table-compact dashboard-table event-record-table" aria-label="EventRecord 검색 결과">
+                      <thead><tr><th>eventId</th><th>eventType</th><th>timestamp/startTime</th><th>status</th><th>stream/channel</th><th>trackId</th><th>className</th><th>zone/line</th><th>scenario/phase</th><th>snapshot</th><th>clip</th></tr></thead>
                       <tbody id="eventRecordRows"><tr><td class="dashboard-empty-cell" colspan="11">검색 결과가 여기에 표시됩니다.</td></tr></tbody>
                     </table>
                   </div>
                   <details id="eventRecordDetailDrawer" class="event-record-detail-drawer">
                     <summary>EventRecord detail</summary>
-                    <pre id="eventRecordDetailJson">eventId를 선택하면 원본 EventRecord JSON이 표시됩니다.</pre>
+	                    <pre id="eventRecordDetailJson" class="raw-json-panel">eventId를 선택하면 원본 EventRecord JSON이 표시됩니다.</pre>
                   </details>
                 </div>
               </details>
-            </section>
-            <section class="dashboard-drilldown-section" aria-labelledby="dashboardMetadataTitle">
-              <div class="dashboard-section-header">
-                <h3 id="dashboardMetadataTitle">Metadata / Backpressure</h3>
-                <p id="dashboardMetadataSummary" class="dashboard-section-summary">metadata channel 대기 중</p>
-              </div>
-              <div class="dashboard-card-grid" aria-label="Metadata backpressure cards">
-                <div class="viewer-status-card"><span>Runtime memory</span><strong id="dashboardRuntimeMemoryWarning">RSS 해제 후보 · high-water 관찰</strong></div>
-                <div class="viewer-status-card"><span>Live RSS</span><strong id="dashboardRuntimeRss">longrun report에서 확인</strong></div>
-                <div class="viewer-status-card"><span>RSS 판단 기준</span><strong id="dashboardRuntimeRssGuidance">longrun report 기준</strong></div>
-                <div class="viewer-status-card"><span>Session/Stream/Tap</span><strong id="dashboardBackpressureRuntime">0/0/0</strong></div>
-                <div class="viewer-status-card"><span>DataChannel sessions</span><strong id="dashboardMetadataSessions">0/0 open</strong></div>
-                <div class="viewer-status-card"><span>DataChannel sent</span><strong id="dashboardMetadataSent">0</strong></div>
-                <div class="viewer-status-card"><span>dropped/skipped</span><strong id="dashboardMetadataDropped">0/0</strong></div>
-                <div class="viewer-status-card"><span>interval/oversized skip</span><strong id="dashboardMetadataSkipped">0/0</strong></div>
-                <div class="viewer-status-card"><span>send failures</span><strong id="dashboardMetadataFailures">0</strong></div>
-                <div class="viewer-status-card"><span>buffered drop/max</span><strong id="dashboardMetadataBuffered">0/0</strong></div>
-                <div class="viewer-status-card"><span>last/max buffered</span><strong id="dashboardMetadataBufferedObserved">0/0</strong></div>
-                <div class="viewer-status-card"><span>SSE clients</span><strong id="dashboardMetadataSseClients">0</strong></div>
-                <div class="viewer-status-card"><span>WS clients</span><strong id="dashboardMetadataWsClients">0</strong></div>
-                <div class="viewer-status-card"><span>SSE/WS sent/drop</span><strong id="dashboardSideChannelSentDropped">미제공</strong></div>
-                <div class="viewer-status-card"><span>Metadata JSON builds</span><strong id="dashboardMetadataJsonBuilds">0</strong></div>
-                <div class="viewer-status-card"><span>Metadata payload avg/max</span><strong id="dashboardMetadataPayloadBytes">미제공</strong></div>
-                <div class="viewer-status-card"><span>Dashboard polling count</span><strong id="dashboardPollingCount">미제공</strong></div>
-                <div class="viewer-status-card"><span>Queue pending/cap/peak</span><strong id="dashboardBackpressureQueue">0/0/0</strong></div>
-                <div class="viewer-status-card"><span>Queue drops</span><strong id="dashboardBackpressureQueueDrops">0/0</strong></div>
-                <div class="viewer-status-card"><span>Sample drops</span><strong id="dashboardBackpressureSampleDrops">0/0</strong></div>
-                <div class="viewer-status-card"><span>Queue wait</span><strong id="dashboardBackpressureQueueWait">0ms</strong></div>
-                <div class="viewer-status-card"><span>RTSP lifecycle</span><strong id="dashboardRtspLifecycle">미제공</strong></div>
-                <div class="viewer-status-card"><span>RTSP pending peak</span><strong id="dashboardRtspPendingPeak">미제공</strong></div>
-                <div class="viewer-status-card"><span>pending stop/destroy</span><strong id="dashboardRtspPendingResidual">미제공</strong></div>
-                <div class="viewer-status-card"><span>appsrc after stop</span><strong id="dashboardAppsrcAfterStop">미제공</strong></div>
-                <div class="viewer-status-card"><span>flow returns</span><strong id="dashboardRtspFlowReturns">미제공</strong></div>
-                <div class="viewer-status-card"><span>fanout balance</span><strong id="dashboardFanoutBalance">미제공</strong></div>
-                <div class="viewer-status-card"><span>cleanup warning</span><strong id="dashboardCleanupWarning">미제공</strong></div>
-                <div class="viewer-status-card"><span>client stale/drop</span><strong id="dashboardMetadataStale">미제공</strong></div>
-                <div class="viewer-status-card"><span>fallback hidden</span><strong id="dashboardMetadataFallback">미제공</strong></div>
-              </div>
-            </section>
-            <section class="dashboard-drilldown-section" aria-labelledby="dashboardTrendTitle">
-              <div class="dashboard-section-header">
-                <h3 id="dashboardTrendTitle">Trend / Stale / Cleanup</h3>
-                <p id="dashboardTrendSummary" class="dashboard-section-summary">trend sample 대기 중</p>
-              </div>
-              <div id="dashboardTrendWarnings" class="dashboard-warning-strip" aria-label="Runtime Dashboard warning badges">
-                <span class="status-chip is-muted">관찰 대기</span>
-              </div>
-              <div class="dashboard-card-grid" aria-label="Runtime Dashboard trend cards">
-                <div class="viewer-status-card"><span>Trend samples</span><strong id="dashboardTrendSampleCount">0/60</strong></div>
-                <div class="viewer-status-card"><span>Runtime delta</span><strong id="dashboardTrendRuntimeDelta">미제공</strong></div>
-                <div class="viewer-status-card"><span>Metadata stale</span><strong id="dashboardTrendStaleStatus">미제공</strong></div>
-                <div class="viewer-status-card"><span>Cleanup watch</span><strong id="dashboardTrendCleanupStatus">미제공</strong></div>
-              </div>
-              <div class="dashboard-table-wrap">
-                <table class="dashboard-table dashboard-trend-table" aria-label="Runtime Dashboard trend summary">
-                  <thead><tr><th>Metric</th><th>Current</th><th>Trend</th><th>Window min/max</th><th>Note</th></tr></thead>
-                  <tbody id="dashboardTrendRows"><tr><td class="dashboard-empty-cell" colspan="5">Dashboard sample이 쌓이면 최근 trend가 표시됩니다.</td></tr></tbody>
-                </table>
-              </div>
             </section>
             <section class="dashboard-drilldown-section" aria-labelledby="dashboardIssuesTitle">
               <div class="dashboard-section-header">
@@ -5946,24 +7287,39 @@ std::string BuildLabRuleEditorPageHtml() {
                 <p id="dashboardIssuesSummary" class="dashboard-section-summary">issue 없음</p>
               </div>
               <div class="dashboard-table-wrap">
-                <table class="dashboard-table" aria-label="Tracking issue drill-down">
+                <table class="data-table data-table-compact dashboard-table" aria-label="Tracking issue drill-down">
                   <thead><tr><th>Type</th><th>Track</th><th>Class</th><th>Severity</th><th>Timestamp</th><th>Health / Guard</th></tr></thead>
                   <tbody id="dashboardIssueRows"><tr><td class="dashboard-empty-cell" colspan="6">tracking issue report가 표시됩니다.</td></tr></tbody>
                 </table>
               </div>
+              <details class="dashboard-detail-drawer">
+                <summary>close-object diagnostics</summary>
+                <div class="dashboard-detail-body">
+                  <p id="dashboardCloseObjectSummary" class="dashboard-section-summary">risk count와 warning만 summary에 표시합니다.</p>
+                  <div class="dashboard-table-wrap">
+                    <table class="data-table data-table-compact dashboard-table dashboard-debug-table" aria-label="close-object diagnostics detail">
+                      <thead><tr><th>Track</th><th>Class</th><th>Guard</th><th>closeObjectRisk</th><th>scoreMargin</th><th>centerJump</th><th>guardDecision</th><th>TrackHealth detail</th></tr></thead>
+                      <tbody id="dashboardCloseObjectRows"><tr><td class="dashboard-empty-cell" colspan="8">close-object diagnostics가 표시됩니다.</td></tr></tbody>
+                    </table>
+                  </div>
+                </div>
+              </details>
             </section>
           </div>
         </div>
       </div>
-      <details class="debug-drawer">
-        <summary>상태 덤프 / tracking issue report</summary>
+      <details class="debug-panel debug-drawer">
+        <summary>상태 덤프 / debugCounters / tracking issue detail</summary>
         <div class="pad stack">
           <div class="dashboard-json-grid">
             <label class="stack">상태 덤프 JSON
-              <pre id="dashboardStateDumpJson">tap을 선택하면 상태 덤프가 표시됩니다.</pre>
+	              <pre id="dashboardStateDumpJson" class="raw-json-panel">tap을 선택하면 상태 덤프가 표시됩니다.</pre>
+            </label>
+            <label class="stack">runtime debugCounters
+	              <pre id="dashboardDebugCountersJson" class="raw-json-panel">runtime debugCounters 없음</pre>
             </label>
             <label class="stack">tracking issue report
-              <pre id="dashboardTrackingIssueReport">tracking issue report 없음</pre>
+	              <pre id="dashboardTrackingIssueReport" class="raw-json-panel">tracking issue report 없음</pre>
             </label>
           </div>
         </div>
@@ -6002,10 +7358,13 @@ std::string BuildLabRuleEditorPageHtml() {
     const ruleCategoryDisplayLabels = Object.fromEntries(
       categoryCatalog.map((item) => [item.value, item.displayLabels || [item.label]])
     );
-    const serverDefaults = {
-      rtspPort: __MEDIA_SERVER_RTSP_PORT__,
-      streamRoute: "__MEDIA_SERVER_STREAM_ROUTE__"
-    };
+	    const serverDefaults = {
+	      rtspPort: __MEDIA_SERVER_RTSP_PORT__,
+	      streamRoute: "__MEDIA_SERVER_STREAM_ROUTE__"
+	    };
+	    function themeToken(name) {
+	      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+	    }
     let builtInProfiles = [];
     let profiles = [];
     let rules = [];
@@ -6028,6 +7387,8 @@ std::string BuildLabRuleEditorPageHtml() {
     let viewTimer = null;
     let viewFailureCount = 0;
     let viewConnectionState = 'idle';
+    let viewMediaSpecLastMetricsAt = 0;
+    let viewLastFpsText = '';
     let viewWebRtcPeer = null;
     let viewWebRtcSessionId = '';
     let viewWebRtcIceTimer = null;
@@ -6477,10 +7838,11 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function updateVaRuleIdDisplay() {
       const display = $('vaRuleIdDisplay');
-      if (!display) return;
       const id = currentVaRuleId();
       const nextId = nextAvailableVaRuleId();
-      display.textContent = id ? `#${id}` : (nextId ? `저장 시 #${nextId} 자동 지정` : '사용 가능한 번호 없음');
+      const label = id ? `#${id}` : (nextId ? `저장 시 #${nextId} 자동 지정` : '사용 가능한 번호 없음');
+      if (display) display.textContent = label;
+      if ($('editorRuleIdSummary')) $('editorRuleIdSummary').textContent = label;
     }
 
     function setVaRuleEditorVisible(visible) {
@@ -6507,16 +7869,29 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function updateVaRuleDirtyIndicator() {
       const indicator = $('ruleDirtyState');
-      if (!indicator) return;
+      const topIndicator = $('editorDirtySummary');
       if (!isVaRuleEditorOpen()) {
-        indicator.textContent = '편집 중인 변경사항이 없습니다.';
-        indicator.classList.remove('is-dirty');
+        if (indicator) {
+          indicator.textContent = '편집 중인 변경사항이 없습니다.';
+          indicator.classList.remove('is-dirty');
+        }
+        if (topIndicator) {
+          topIndicator.textContent = '변경 없음';
+          topIndicator.className = 'save-state-badge is-muted';
+        }
         return;
       }
-      indicator.textContent = vaRuleDirty
+      const text = vaRuleDirty
         ? '저장하지 않은 변경사항이 있습니다.'
         : '저장된 내용과 동일합니다.';
-      indicator.classList.toggle('is-dirty', vaRuleDirty);
+      if (indicator) {
+        indicator.textContent = text;
+        indicator.classList.toggle('is-dirty', vaRuleDirty);
+      }
+      if (topIndicator) {
+        topIndicator.textContent = vaRuleDirty ? '변경 있음' : '변경 없음';
+        topIndicator.className = `save-state-badge ${vaRuleDirty ? 'is-dirty' : 'is-muted'}`;
+      }
     }
 
     function refreshVaRuleDirtyState() {
@@ -6569,14 +7944,14 @@ std::string BuildLabRuleEditorPageHtml() {
       selectedVaRuleId = '';
       vaRuleEditorMode = 'new';
       loadVaRule(null);
-      if ($('vaRuleEditorTitle')) $('vaRuleEditorTitle').textContent = '새 영상 분석 룰 추가';
+      if ($('vaRuleEditorTitle')) $('vaRuleEditorTitle').textContent = $('vaRuleName')?.value || '새 영상 분석 룰';
       if ($('vaRuleEditorModeBadge')) $('vaRuleEditorModeBadge').textContent = '새 룰';
       if ($('saveVaRuleBtn')) $('saveVaRuleBtn').textContent = '룰 저장';
+      if ($('saveVaRuleBtnTop')) $('saveVaRuleBtnTop').textContent = '룰 저장';
       setVaRuleEditorVisible(true);
       resetVaRuleDirtyBaseline();
       $('vaRuleEditorPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       status('새 영상 분석 룰을 작성합니다.');
-      showFeedback('새 룰 작성 모드');
     }
 
     function openVaRuleEditorForEdit(id) {
@@ -6593,9 +7968,10 @@ std::string BuildLabRuleEditorPageHtml() {
       selectedVaRuleId = String(item.id);
       vaRuleEditorMode = 'edit';
       loadVaRule(item);
-      if ($('vaRuleEditorTitle')) $('vaRuleEditorTitle').textContent = `영상 분석 룰 #${item.id} 수정`;
+      if ($('vaRuleEditorTitle')) $('vaRuleEditorTitle').textContent = item.name || `영상 분석 룰 #${item.id}`;
       if ($('vaRuleEditorModeBadge')) $('vaRuleEditorModeBadge').textContent = '수정 중';
       if ($('saveVaRuleBtn')) $('saveVaRuleBtn').textContent = '수정 내용 저장';
+      if ($('saveVaRuleBtnTop')) $('saveVaRuleBtnTop').textContent = '수정 내용 저장';
       setVaRuleEditorVisible(true);
       resetVaRuleDirtyBaseline();
       renderVaRuleLibrary();
@@ -6611,6 +7987,29 @@ std::string BuildLabRuleEditorPageHtml() {
       return true;
     }
 
+    function renderVaRuleEmptyState(container, titleText, messageText, actionText = '', actionHandler = null) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      const title = document.createElement('h3');
+      title.textContent = titleText;
+      const message = document.createElement('p');
+      message.textContent = messageText;
+      empty.appendChild(title);
+      empty.appendChild(message);
+      if (actionText && typeof actionHandler === 'function') {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'secondary';
+        button.textContent = actionText;
+        button.addEventListener('click', (event) => {
+          event.stopPropagation();
+          actionHandler();
+        });
+        empty.appendChild(button);
+      }
+      container.appendChild(empty);
+    }
+
     function renderVaRuleLibrary() {
       const container = $('vaRuleList');
       if (!container) return;
@@ -6623,18 +8022,22 @@ std::string BuildLabRuleEditorPageHtml() {
       }
       setText('vaRuleFilteredMetric', `${items.length.toLocaleString('ko-KR')}개`);
       if (allItems.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'empty-state';
-        empty.textContent = '저장된 영상 분석 룰이 없습니다. 룰 추가를 눌러 첫 설정을 만드세요.';
-        container.appendChild(empty);
+        renderVaRuleEmptyState(
+          container,
+          '저장된 영상 분석 룰이 없습니다',
+          '소스, profile, 이벤트, 영역을 묶는 첫 설정을 만들면 vaRule ID로 바로 테스트할 수 있습니다.',
+          '첫 룰 추가',
+          openVaRuleEditorForNew
+        );
         updateVaRuleIdDisplay();
         return;
       }
       if (items.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'empty-state';
-        empty.textContent = '검색/필터 조건과 일치하는 룰이 없습니다. 검색어 또는 필터를 조정하세요.';
-        container.appendChild(empty);
+        renderVaRuleEmptyState(
+          container,
+          '조건에 맞는 룰이 없습니다',
+          '검색어, 적용 상태, 이벤트 방식 필터를 조정하면 숨겨진 룰을 다시 볼 수 있습니다.'
+        );
         updateVaRuleIdDisplay();
         return;
       }
@@ -6702,7 +8105,7 @@ std::string BuildLabRuleEditorPageHtml() {
         row.appendChild(eventCell);
 
         const stateCell = document.createElement('div');
-        stateCell.className = 'rule-cell rule-cell-stack';
+        stateCell.className = 'rule-cell rule-cell-stack rule-state-cell';
         const stateChip = document.createElement('span');
         stateChip.className = `status-chip${isVaRuleEnabled(item) ? ' is-active' : ' is-muted'}`;
         stateChip.textContent = isVaRuleEnabled(item) ? '적용 중' : '비활성';
@@ -6710,7 +8113,7 @@ std::string BuildLabRuleEditorPageHtml() {
         scenarioText.textContent = vaRuleScenarioText(item);
         const toggle = document.createElement('button');
         toggle.type = 'button';
-        toggle.className = 'secondary';
+        toggle.className = 'secondary button-compact';
         toggle.textContent = isVaRuleEnabled(item) ? '비활성화' : '적용';
         toggle.addEventListener('click', (event) => {
           event.stopPropagation();
@@ -6728,7 +8131,7 @@ std::string BuildLabRuleEditorPageHtml() {
         actions.className = 'row-actions';
         const viewButton = document.createElement('button');
         viewButton.type = 'button';
-        viewButton.className = 'secondary';
+        viewButton.className = 'secondary button-compact';
         viewButton.textContent = '보기';
         viewButton.addEventListener('click', (event) => {
           event.stopPropagation();
@@ -6736,7 +8139,7 @@ std::string BuildLabRuleEditorPageHtml() {
         });
         const edit = document.createElement('button');
         edit.type = 'button';
-        edit.className = 'secondary';
+        edit.className = 'secondary button-compact';
         edit.textContent = '수정';
         edit.addEventListener('click', (event) => {
           event.stopPropagation();
@@ -6744,7 +8147,7 @@ std::string BuildLabRuleEditorPageHtml() {
         });
         const duplicate = document.createElement('button');
         duplicate.type = 'button';
-        duplicate.className = 'secondary';
+        duplicate.className = 'secondary button-compact';
         duplicate.textContent = '복제';
         duplicate.addEventListener('click', (event) => {
           event.stopPropagation();
@@ -6755,7 +8158,7 @@ std::string BuildLabRuleEditorPageHtml() {
         });
         const remove = document.createElement('button');
         remove.type = 'button';
-        remove.className = 'danger';
+        remove.className = 'danger button-compact';
         remove.textContent = '삭제';
         remove.addEventListener('click', (event) => {
           event.stopPropagation();
@@ -7395,7 +8798,19 @@ std::string BuildLabRuleEditorPageHtml() {
       container.appendChild(reviewTile('영역/라인', `${currentRule?.event?.region?.type || 'polygon'} · 점 ${regionPoints.length}/${maxGeometryPoints()}`));
       const validation = validateVaRulePayloadDetailed(payload);
       const firstError = firstValidationMessage(validation);
-      setText('ruleSaveReadiness', firstError ? `저장 불가: ${firstError}` : '저장 가능: 필수 입력이 채워졌습니다.');
+      const saveText = firstError ? `저장 불가: ${firstError}` : '저장 가능: 필수 입력이 채워졌습니다.';
+      setText('ruleSaveReadiness', saveText);
+      const readiness = $('ruleSaveReadiness');
+      if (readiness) {
+        readiness.classList.toggle('is-ok', !firstError);
+        readiness.classList.toggle('is-error', Boolean(firstError));
+      }
+      const topState = $('editorSaveStateSummary');
+      if (topState) {
+        topState.textContent = firstError ? '저장 불가' : '저장 가능';
+        topState.className = `save-state-badge ${firstError ? 'is-error' : 'is-ok'}`;
+        topState.title = saveText;
+      }
       renderValidationSummary(validation);
       updateVaRuleSaveButton(validation);
     }
@@ -7432,11 +8847,11 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     function updateVaRuleSaveButton(validation) {
-      const button = $('saveVaRuleBtn');
-      if (!button) return;
       const disabled = (validation?.errors || []).length > 0;
-      button.disabled = disabled;
-      button.title = disabled ? firstValidationMessage(validation) : '';
+      for (const button of [$('saveVaRuleBtn'), $('saveVaRuleBtnTop')].filter(Boolean)) {
+        button.disabled = disabled;
+        button.title = disabled ? firstValidationMessage(validation) : '';
+      }
     }
 
     function updateGeometryText() {
@@ -7454,17 +8869,20 @@ std::string BuildLabRuleEditorPageHtml() {
         : (scenarioMode
           ? `Intrusion Dwell은 현재 polygon을 제한구역 후보로 저장합니다. 3개 이상이면 구역으로 저장되며, 같은 track이 설정 시간 이상 머물면 체류 확정 후보가 됩니다.`
           : `캔버스를 클릭해 다각형 꼭짓점을 추가합니다. 3개 이상이면 영역으로 저장됩니다. 최대 ${polygonMaxPoints}개까지 지정할 수 있습니다. 기존 점 근처를 드래그하면 새 점을 만들지 않고 점 위치를 이동합니다.`);
-      setText(
-        'geometryValidationText',
-        valid
-          ? `${lineMode ? 'line' : 'polygon'} 설정 가능 · 점 ${regionPoints.length}/${maxGeometryPoints()}`
-          : `${lineMode ? 'line' : 'polygon'} 설정 불가 · 최소 ${minimumGeometryPoints()}개 점이 필요합니다.`
-      );
+      const geometrySaveText = valid
+        ? `저장 가능: ${lineMode ? 'line' : 'polygon'} ${regionPoints.length}개 점`
+        : (lineMode
+          ? '저장 불가: line은 점 2개 필요'
+          : '저장 불가: polygon은 중복 없는 점 3개 이상 필요');
+      setText('geometryValidationText', geometrySaveText);
+      const geometryValidation = $('geometryValidationText');
+      if (geometryValidation) {
+        geometryValidation.classList.toggle('is-ok', valid);
+        geometryValidation.classList.toggle('is-error', !valid);
+      }
       setText('geometryModeText', mode);
       setText('geometryPointCountText', `${regionPoints.length}/${maxGeometryPoints()}`);
-      setText('geometryMinimumText', valid
-        ? `충족 · 최소 ${minimumGeometryPoints()}개`
-        : `부족 · 최소 ${minimumGeometryPoints()}개 필요`);
+      setText('geometryMinimumText', valid ? '저장 가능' : '저장 불가');
       setText('geometryRegionNameText', regionName);
       $('geometryMinimumCard')?.classList.toggle('is-ok', valid);
       $('geometryMinimumCard')?.classList.toggle('is-error', !valid);
@@ -8341,11 +9759,12 @@ std::string BuildLabRuleEditorPageHtml() {
       }
       pendingDeleteVaRuleId = id;
       const name = item.name || `영상 분석 룰 ${id}`;
-      setText('deleteVaRuleDialogMessage', `룰 #${id} · ${name}을 삭제할까요? 삭제 후에는 되돌릴 수 없습니다.`);
+      const message = `영상 분석 룰 #${id} '${name}'을 삭제합니다. 이 룰을 사용하는 vaRule=${id} 테스트 URL은 더 이상 같은 설정을 찾지 못합니다. 삭제 후 되돌릴 수 없습니다.`;
+      setText('deleteVaRuleDialogMessage', message);
       const dialog = $('deleteVaRuleDialog');
       if (dialog && typeof dialog.showModal === 'function') {
         dialog.showModal();
-      } else if (window.confirm(`룰 #${id} · ${name}을 삭제할까요? 삭제 후에는 되돌릴 수 없습니다.`)) {
+      } else if (window.confirm(message)) {
         deleteVaRuleById(id).catch((error) => {
           status(`영상 분석 룰 삭제 실패: ${error.message}`);
           showFeedback(`삭제 실패: ${error.message}`, 'error');
@@ -8384,6 +9803,101 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function viewPreviewStatus(message) {
       if ($('viewPreviewStatus')) $('viewPreviewStatus').textContent = message;
+    }
+
+    function selectedViewSourceForSpec() {
+      if (selectedViewMode() === 'rule') {
+        return selectedViewVaRule()?.source || {};
+      }
+      return sourceJsonFromControls('view');
+    }
+
+    function fileCodecHint(fileName) {
+      const name = String(fileName || '').toLowerCase();
+      const ext = name.split('.').pop().toLowerCase();
+      if (name.includes('h265') || name.includes('hevc')) return `${ext.toUpperCase()} · H.265/HEVC`;
+      if (name.includes('h264') || name.includes('avc')) return `${ext.toUpperCase()} · H.264/AVC`;
+      if (name.includes('vp9')) return `${ext.toUpperCase()} · VP9`;
+      if (name.includes('vp8')) return `${ext.toUpperCase()} · VP8`;
+      if (ext === 'mp4' || ext === 'm4v') return 'MP4 · H.264 가능';
+      if (ext === 'mov') return 'MOV 컨테이너';
+      if (ext === 'webm') return 'WebM · VP8/VP9 가능';
+      if (ext === 'mkv') return 'MKV 컨테이너';
+      return ext ? `${ext.toUpperCase()} 컨테이너` : '미제공';
+    }
+
+    function viewCodecSpecLabel() {
+      const mode = selectedViewMode();
+      const source = selectedViewSourceForSpec();
+      const kind = normalizedSourceKind(source.kind || 'file');
+      if (mode === 'metadata') return kind === 'file' ? `WebRTC · ${fileCodecHint(source.file || $('viewFileSelect')?.value || '')}` : 'WebRTC video';
+      if (kind === 'file') return fileCodecHint(source.file || $('viewFileSelect')?.value || '');
+      if (kind === 'rtsp') return 'RTSP source';
+      if (kind === 'webrtc') return 'WebRTC source';
+      if (kind === 'http') return 'HTTP/HLS source';
+      return '미제공';
+    }
+
+    function viewFpsSpecLabel(spec = {}) {
+      const fpsIntegerLabel = (value) => {
+        const number = Number(value);
+        return Number.isFinite(number) && number > 0 ? String(Math.round(number)) : '';
+      };
+      const trackFps = Number(spec.trackFps);
+      const trackLabel = fpsIntegerLabel(trackFps);
+      if (trackLabel) return trackLabel;
+      const decoded = Number(spec.effectiveDecodedFps);
+      const decodedLabel = fpsIntegerLabel(decoded);
+      if (decodedLabel) return decodedLabel;
+      const target = Number(spec.targetFps);
+      const targetLabel = fpsIntegerLabel(target);
+      if (targetLabel) return targetLabel;
+      const profile = selectedProfileDocument();
+      const profileFps = Number(profile?.fps || profile?.targetFps);
+      const profileLabel = fpsIntegerLabel(profileFps);
+      if (profileLabel) return profileLabel;
+      return '-';
+    }
+
+    function updateViewMediaSpecs(spec = {}) {
+      const video = $('viewWebRtcVideo');
+      const source = selectedViewSourceForSpec();
+      const sourceText = sourceLabel(source);
+      const width = Number(spec.width || spec.frameWidth || video?.videoWidth || 0);
+      const height = Number(spec.height || spec.frameHeight || video?.videoHeight || 0);
+      const track = video?.srcObject && typeof video.srcObject.getVideoTracks === 'function'
+        ? video.srcObject.getVideoTracks()[0]
+        : null;
+      const settings = track && typeof track.getSettings === 'function' ? track.getSettings() : {};
+      const fpsSpec = { ...spec };
+      if (!fpsSpec.trackFps && settings?.frameRate) fpsSpec.trackFps = settings.frameRate;
+      const fpsText = viewFpsSpecLabel(fpsSpec);
+      if (fpsText !== '-') {
+        viewLastFpsText = fpsText;
+      }
+      setText('viewMediaCodecText', viewCodecSpecLabel());
+      setText('viewMediaResolutionText', width > 0 && height > 0 ? `${Math.round(width)}x${Math.round(height)}` : '-');
+      setText('viewMediaFpsText', fpsText !== '-' ? fpsText : ((viewTapId || viewWebRtcSessionId) && viewLastFpsText ? viewLastFpsText : '-'));
+      setText('viewMediaSourceText', sourceText || '-');
+    }
+
+    async function refreshViewTapMediaSpecs(tapId, frameSize = {}) {
+      updateViewMediaSpecs(frameSize);
+      const now = Date.now();
+      if (!tapId || now - viewMediaSpecLastMetricsAt < 1600) return;
+      viewMediaSpecLastMetricsAt = now;
+      try {
+        const metrics = await requestJson(`/lab/analysis/taps/${encodeURIComponent(tapId)}/metrics`);
+        const tapState = metrics?.tapState || {};
+        updateViewMediaSpecs({
+          width: frameSize.width,
+          height: frameSize.height,
+          targetFps: tapState.targetFps,
+          effectiveDecodedFps: tapState.effectiveDecodedFps,
+          effectiveAnalyzedFps: tapState.effectiveAnalyzedFps
+        });
+      } catch (_) {
+      }
     }
 
     function isMetadataViewMode() {
@@ -8445,6 +9959,16 @@ std::string BuildLabRuleEditorPageHtml() {
       setText('metadataScenarioCountText', String(viewMetadataScenarioCount));
       setText('metadataParseStateText', viewMetadataParseError ? '오류' : (viewMetadataMessageCount > 0 ? '정상' : '대기'));
       setText('metadataParseFailCountText', String(viewMetadataParseFailCount));
+      setMetadataStatusCardState('metadataChannelStateCard', ['stalled', 'error'].includes(viewMetadataState) ? 'warning' : (viewMetadataState === 'receiving' || viewMetadataState === 'open' ? 'playing' : ''));
+      setMetadataStatusCardState('metadataLagCard', viewMetadataSelectedLagMs !== null && viewMetadataSelectedLagMs > 900 ? 'warning' : '');
+      setMetadataStatusCardState('metadataSyncDeltaCard', viewMetadataSelectedSyncDeltaMs !== null && Math.abs(viewMetadataSelectedSyncDeltaMs) > 400 ? 'warning' : '');
+      setMetadataStatusCardState('metadataSyncMissCard', viewMetadataSyncMissCount > 0 ? 'warning' : '');
+      setMetadataBadgeState('metadataBufferDropBadge', viewMetadataBufferDropCount > 0 ? 'warning' : '');
+      setMetadataBadgeState('metadataVideoStalledBadge', viewMetadataVideoStalled ? 'warning' : '');
+      setMetadataBadgeState('metadataStaleCountBadge', viewMetadataStaleCount > 0 ? 'warning' : '');
+      setMetadataBadgeState('metadataFallbackHiddenBadge', viewMetadataFallbackHiddenCount > 0 ? 'warning' : '');
+      setMetadataBadgeState('metadataParseStateBadge', viewMetadataParseError ? 'danger' : (viewMetadataMessageCount > 0 ? 'success' : ''));
+      setMetadataBadgeState('metadataParseFailBadge', viewMetadataParseFailCount > 0 ? 'danger' : '');
       const errorEl = $('metadataParseErrorText');
       if (errorEl) {
         errorEl.hidden = !viewMetadataParseError;
@@ -8452,6 +9976,8 @@ std::string BuildLabRuleEditorPageHtml() {
       }
       const preview = $('metadataJsonPreview');
       if (preview) preview.textContent = viewMetadataLastJsonText || '메타데이터 수신 대기 중';
+      if (isMetadataViewMode()) updateViewMediaSpecs();
+      updateViewerStatusSummary();
     }
 
     function clearMetadataStallTimer() {
@@ -8956,9 +10482,9 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function metadataGuardModeLabel(guard = null, guardInfo = null) {
       const rawMode = String(guard?.mode || guardInfo?.mode || 'off').trim().toLowerCase();
-      if (rawMode === 'diagnostic') return 'diagnostic-only · score 변경 없음';
-      if (rawMode === 'enforce') return 'score 보정 적용 중';
-      return 'guard off';
+      if (rawMode === 'diagnostic') return 'diagnostic · 보정 미적용';
+      if (rawMode === 'enforce') return 'enforce · 보정 적용';
+      return 'off · 관찰/보정 없음';
     }
 
     function metadataFormatOptionalNumber(value, digits = 2) {
@@ -9186,7 +10712,7 @@ std::string BuildLabRuleEditorPageHtml() {
     function metadataFormatCloseObjectGuard(guard, guardInfo, frameSize) {
       const modeLabel = metadataGuardModeLabel(guard, guardInfo);
       if (!guard) {
-        return modeLabel === 'guard off' ? modeLabel : `${modeLabel} · 값 미제공`;
+        return modeLabel.startsWith('off') ? modeLabel : `${modeLabel} · 값 미제공`;
       }
       const parts = [];
       parts.push(metadataGuardModeLabel(guard, guardInfo));
@@ -9321,8 +10847,8 @@ std::string BuildLabRuleEditorPageHtml() {
       surface.ctx.save();
       surface.ctx.setLineDash([6, 4]);
       surface.ctx.lineWidth = 2;
-      surface.ctx.strokeStyle = '#ff4fd8';
-      surface.ctx.fillStyle = '#ff4fd8';
+	      surface.ctx.strokeStyle = themeToken('--overlay-box-detector');
+	      surface.ctx.fillStyle = themeToken('--overlay-box-detector');
       surface.ctx.font = '800 11px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
       for (const detection of viewMetadataBboxDiagnostics.detectorDetections || []) {
         const bbox = normalizeMetadataBbox(metadataBboxFromItem(detection), frameSize);
@@ -9353,11 +10879,11 @@ std::string BuildLabRuleEditorPageHtml() {
       const boxHeight = visibleLines.length * lineHeight + paddingY * 2;
       const boxX = Math.max(0, Math.min(x, maxWidth - textWidth));
       const boxY = Math.max(0, y - boxHeight - 4);
-      ctx.fillStyle = 'rgba(18,18,13,0.78)';
+	      ctx.fillStyle = themeToken('--overlay-label-bg');
       ctx.fillRect(boxX, boxY, textWidth, boxHeight);
       ctx.fillStyle = color;
       ctx.fillRect(boxX, boxY, 3, boxHeight);
-      ctx.fillStyle = '#fff';
+	      ctx.fillStyle = themeToken('--overlay-label-text');
       visibleLines.forEach((line, index) => {
         ctx.fillText(line, boxX + paddingX, boxY + paddingY + 12 + index * lineHeight);
       });
@@ -9781,9 +11307,11 @@ std::string BuildLabRuleEditorPageHtml() {
         const height = bbox.height * content.height;
         const event = options.event ? metadataEventForTrack(payload, track.trackId) : null;
         const unstable = options.health && isMetadataTrackUnstable(track);
-        const color = event ? '#ffcc00' : (unstable ? '#f56565' : '#6fd0a5');
-        if (options.event && event) {
-          surface.ctx.fillStyle = 'rgba(255, 204, 0, 0.16)';
+	        const color = event
+	          ? themeToken('--overlay-box-selected')
+	          : (unstable ? themeToken('--color-danger') : themeToken('--overlay-box-track'));
+	        if (options.event && event) {
+	          surface.ctx.fillStyle = themeToken('--overlay-event-highlight');
           surface.ctx.fillRect(x, y, width, height);
         }
         if (options.bbox || event) {
@@ -9979,6 +11507,64 @@ std::string BuildLabRuleEditorPageHtml() {
       };
     }
 
+    function setViewerBadgeState(element, state, label) {
+      if (!element) return;
+      const normalized = state || 'muted';
+      element.className = `badge badge-${normalized === 'active' ? 'success' : normalized}`;
+      if (label !== undefined) element.textContent = label;
+    }
+
+    function setCompactStatusState(id, state) {
+      const element = $(id);
+      if (!element) return;
+      element.className = `compact-status${state ? ` is-${state}` : ''}`;
+    }
+
+    function setMetadataStatusCardState(id, state) {
+      const element = $(id);
+      if (!element) return;
+      element.className = `viewer-status-card${state ? ` is-${state}` : ''}`;
+    }
+
+    function setMetadataBadgeState(id, state) {
+      const element = $(id);
+      if (!element) return;
+      element.className = `metadata-metric-badge${state ? ` is-${state}` : ''}`;
+    }
+
+    function metadataCountText(value) {
+      const number = Number(value || 0);
+      return Number.isFinite(number) ? String(Math.round(number)) : '0';
+    }
+
+    function updateViewerStatusSummary() {
+      const stateLabel = viewConnectionStateLabel(viewConnectionState);
+      const warning = viewConnectionState === 'error' ||
+        viewMetadataState === 'stalled' ||
+        viewMetadataVideoStalled ||
+        viewMetadataOverlayStale ||
+        viewMetadataSyncMissActive;
+      const active = viewConnectionState === 'playing';
+      const badge = $('viewConnectionBadge');
+      setViewerBadgeState(badge, warning ? 'warning' : (active ? 'active' : 'muted'), warning ? `${stateLabel} · 확인 필요` : stateLabel);
+      setText('viewCompactConnectionText', stateLabel);
+      setText('viewCompactFrameText', isMetadataViewMode()
+        ? `${metadataCountText(viewMetadataVideoPresentedFrames)} frames`
+        : (viewTapId ? (viewConnectionState === 'playing' ? '프레임 수신 중' : 'tap 준비 중') : '대기'));
+      setText('viewCompactMetadataText', isMetadataViewMode() ? metadataStateLabel(viewMetadataState) : '미사용');
+      setText('viewCompactTrackCountText', metadataCountText(viewMetadataTrackCount));
+      setText('viewCompactEventCountText', metadataCountText(viewMetadataEventCount));
+      const staleParts = [];
+      if (viewMetadataOverlayStale) staleParts.push('metadata');
+      if (viewMetadataVideoStalled) staleParts.push('video');
+      if (viewMetadataSyncMissActive) staleParts.push('match');
+      setText('viewCompactStaleText', staleParts.length ? staleParts.join('/') : '없음');
+      setCompactStatusState('viewCompactConnection', viewConnectionState === 'error' ? 'danger' : (active ? 'success' : ''));
+      setCompactStatusState('viewCompactFrame', viewMetadataVideoStalled ? 'warning' : '');
+      setCompactStatusState('viewCompactMetadata', isMetadataViewMode() && ['stalled', 'error'].includes(viewMetadataState) ? 'warning' : (viewMetadataMessageCount > 0 ? 'success' : ''));
+      setCompactStatusState('viewCompactStale', staleParts.length ? 'warning' : '');
+    }
+
     function viewConnectionStateLabel(state) {
       if (state === 'connecting') return '연결 중';
       if (state === 'playing') return '재생 중';
@@ -9989,12 +11575,14 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function setViewPreviewUi(active) {
       const startButton = $('startViewPreviewBtn');
+      const restartButton = $('restartViewPreviewBtn');
       const stopButton = $('stopViewPreviewBtn');
       const connecting = viewConnectionState === 'connecting';
       if (startButton) {
-        startButton.textContent = active ? '다시 시작' : '보기 시작';
-        startButton.disabled = connecting;
+        startButton.textContent = '보기 시작';
+        startButton.disabled = active || connecting;
       }
+      if (restartButton) restartButton.disabled = !active || connecting;
       if (stopButton) stopButton.disabled = !active && !connecting;
     }
 
@@ -10010,6 +11598,7 @@ std::string BuildLabRuleEditorPageHtml() {
         viewPreviewStatus(message);
       }
       setViewPreviewUi(Boolean(viewTapId || viewWebRtcSessionId));
+      updateViewerStatusSummary();
     }
 
     function buildViewParams() {
@@ -10132,6 +11721,8 @@ std::string BuildLabRuleEditorPageHtml() {
       setText('viewModeHelpText', modeHelp);
       setText('viewModeSummaryText', viewModeLabel(mode));
       setText('viewSourceSummaryText', sourceSummary);
+      updateViewerStatusSummary();
+      updateViewMediaSpecs();
       updateGeneratedUrls();
     }
 
@@ -10333,13 +11924,65 @@ std::string BuildLabRuleEditorPageHtml() {
       return chip;
     }
 
-    function dashboardSetEmptyRows(tbodyId, colspan, message) {
+    function dashboardSetNode(id, node) {
+      const element = $(id);
+      if (!element) return;
+      element.textContent = '';
+      if (node instanceof Node) {
+        element.appendChild(node);
+      } else {
+        element.textContent = dashboardText(node);
+      }
+    }
+
+    function dashboardRenderChipStrip(id, chips) {
+      const container = $(id);
+      if (!container) return;
+      container.textContent = '';
+      const items = Array.isArray(chips) && chips.length > 0
+        ? chips
+        : [{ label: 'warning 없음', state: 'active' }];
+      for (const chip of items.slice(0, 10)) {
+        container.appendChild(dashboardChip(chip.label, chip.state || 'muted'));
+      }
+      if (items.length > 10) {
+        container.appendChild(dashboardChip(`+${items.length - 10}`, 'warning'));
+      }
+    }
+
+    function dashboardEllipsisNode(value, fallback = '-') {
+      const text = dashboardText(value, fallback);
+      const node = document.createElement('span');
+      node.className = 'dashboard-ellipsis';
+      node.textContent = text;
+      node.title = text;
+      return node;
+    }
+
+    function dashboardInlineDetailNode(primary, detail = '') {
+      const wrapper = document.createElement('span');
+      wrapper.className = 'dashboard-inline-detail';
+      if (primary instanceof Node) {
+        wrapper.appendChild(primary);
+      } else {
+        wrapper.appendChild(dashboardEllipsisNode(primary));
+      }
+      if (detail) {
+        const small = document.createElement('small');
+        small.textContent = detail;
+        small.title = detail;
+        wrapper.appendChild(small);
+      }
+      return wrapper;
+    }
+
+    function dashboardSetEmptyRows(tbodyId, colspan, message, state = 'empty') {
       const tbody = $(tbodyId);
       if (!tbody) return;
       tbody.textContent = '';
       const row = document.createElement('tr');
       const cell = document.createElement('td');
-      cell.className = 'dashboard-empty-cell';
+      cell.className = `dashboard-empty-cell is-${state}`;
       cell.colSpan = colspan;
       cell.textContent = message;
       row.appendChild(cell);
@@ -10821,6 +12464,33 @@ std::string BuildLabRuleEditorPageHtml() {
       return dashboardChip(label, stable ? 'active' : 'warning');
     }
 
+    function dashboardTrackHealthReason(track) {
+      const health = track?.trackHealth || {};
+      const parts = [];
+      const status = String(health.status || '').trim();
+      if (status && status !== 'stable') parts.push(status);
+      const assoc = Number(health.associationConfidence ?? track?.associationConfidence);
+      const overlap = Number(health.overlapRisk ?? track?.overlapRisk);
+      const missed = Number(health.missedFrameCount ?? track?.missedFrameCount);
+      const direction = Number(health.directionChangeCount ?? track?.directionChangeCount);
+      if (Number.isFinite(assoc)) parts.push(`assoc ${dashboardConfidence(assoc)}`);
+      if (Number.isFinite(overlap) && overlap > 0) parts.push(`overlap ${dashboardOptionalFixed(overlap)}`);
+      if (Number.isFinite(missed) && missed > 0) parts.push(`missed ${Math.round(missed)}`);
+      if (Number.isFinite(direction) && direction > 0) parts.push(`direction ${Math.round(direction)}`);
+      if (health.unstableReason) parts.push(health.unstableReason);
+      if (!parts.length) return 'detail 없음';
+      return parts.slice(0, 5).join(' · ');
+    }
+
+    function dashboardTrackHealthNode(track) {
+      const health = track?.trackHealth || {};
+      const stable = health.stable !== false && health.status !== 'unstable';
+      return dashboardInlineDetailNode(
+        dashboardChip(stable ? 'stable' : 'unstable', stable ? 'active' : 'warning'),
+        stable ? dashboardTrackHealthReason(track) : dashboardTrackHealthReason(track)
+      );
+    }
+
 	    function dashboardTrackById(tracks) {
 	      const out = new Map();
 	      for (const track of tracks) {
@@ -10864,19 +12534,26 @@ std::string BuildLabRuleEditorPageHtml() {
 
 	    function dashboardTapRuleMatchState(selectedTap, selectedRuleId, tapRuleId, rule = null) {
 	      if (!selectedTap) {
-	        return { label: 'active tap 없음', summary: 'active tap 없음' };
+	        return { label: 'active tap 없음', summary: 'active tap 없음', state: 'muted', detail: 'tap 생성 대기' };
 	      }
 	      const tapId = selectedTap.tapId || '<tap>';
 	      if (!tapRuleId) {
 	        const relation = selectedRuleId && dashboardTapMatchesRuleSource(selectedTap, rule)
 	          ? 'source 기반 tap · rule 매칭 없음'
 	          : 'rule 미연결 분석 tap';
-	        return { label: `${tapId} · ${relation}`, summary: relation };
+	        return { label: relation, summary: relation, state: 'muted', detail: tapId };
 	      }
 	      if (!selectedRuleId || String(selectedRuleId) === String(tapRuleId)) {
-	        return { label: `${tapId} · rule=${tapRuleId} · rule matched`, summary: 'rule matched' };
+	        return { label: 'rule matched', summary: 'rule matched', state: 'active', detail: `${tapId} · rule=${tapRuleId}` };
 	      }
-	      return { label: `${tapId} · rule=${tapRuleId} · rule mismatch`, summary: 'rule mismatch' };
+	      return { label: 'actual mismatch', summary: 'actual mismatch', state: 'warning', detail: `${tapId} · tap rule=${tapRuleId} · selected rule=${selectedRuleId}` };
+	    }
+
+	    function dashboardTapRuleMatchNode(match) {
+	      return dashboardInlineDetailNode(
+	        dashboardChip(match?.label || '-', match?.state || 'muted'),
+	        match?.detail || ''
+	      );
 	    }
 
 	    function dashboardSelectedRuleContext(selectedTap) {
@@ -10988,7 +12665,7 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function dashboardScenarioRecentEventLabel(track, ruleId = '') {
       const matched = dashboardFindScenarioRecentEvent(track, ruleId);
-      if (!matched) return 'confirmed event 없음';
+      if (!matched) return 'event 연결 없음';
       const event = matched.event || {};
       const eventId = event.eventId || event.id || '';
       const parts = [
@@ -10997,6 +12674,29 @@ std::string BuildLabRuleEditorPageHtml() {
         event.status || dashboardEventStatusLabel(event),
       ].filter(Boolean);
       return parts.join(' · ');
+    }
+
+    function dashboardScenarioTimelineRawPayload(stateDump, tapMetrics, selectedTap, scenarioRows) {
+      if (!tapMetrics && !stateDump && !selectedTap) return null;
+      return {
+        selectedTap: selectedTap ? {
+          tapId: selectedTap.tapId || '',
+          streamKey: selectedTap.streamKey || '',
+          sourceKind: selectedTap.context?.sourceKind || selectedTap.sourceKind || ''
+        } : null,
+        scenarioState: tapMetrics?.metricsReport?.scenarioState || null,
+        eventState: tapMetrics?.metricsReport?.eventState || null,
+        debugCounts: stateDump?.debugState?.counts || null,
+        rows: scenarioRows.map((track) => ({
+          scenarioName: track?.scenarioName || '',
+          scenarioPhase: track?.scenarioPhase || '',
+          trackId: track?.trackId ?? null,
+          zone: dashboardTrackZoneDisplay(track),
+          line: dashboardScenarioLineId(track),
+          elapsed: dashboardScenarioElapsed(track),
+          cooldown: dashboardScenarioCooldown(track)
+        }))
+      };
     }
 
 	    function renderDashboardVaRuleDebug({ selectedTap, tapMetrics, stateDump }) {
@@ -11009,11 +12709,12 @@ std::string BuildLabRuleEditorPageHtml() {
 	      if (hasTap) summaryParts.push(tapMatch.summary);
 	      dashboardSet('dashboardVaRuleDebugSummary', summaryParts.join(' · '));
 	      dashboardSet('dashboardVaRuleIdentity', dashboardRuleIdentity(rule, selectedRuleId));
-	      dashboardSet('dashboardVaRuleTapMatch', tapMatch.label);
+	      dashboardSetNode('dashboardVaRuleTapMatch', dashboardTapRuleMatchNode(tapMatch));
 	      dashboardSet('dashboardVaRuleSource', rule ? sourceLabel(rule.source || {}) : '-');
 	      dashboardSet('dashboardVaRuleProfile', rule ? detectorLabel(rule.analysis?.profileId) : '-');
 	      dashboardSet('dashboardVaRuleEventType', dashboardRuleEventScenarioLabel(rule));
 	      dashboardSet('dashboardVaRuleRegion', dashboardRuleRegionSummary(rule));
+	      dashboardSet('dashboardVaRuleScenarioEmptyReason', hasTap ? dashboardScenarioEmptyReason(dashboardDebugTracks(stateDump), tapMetrics, selectedTap) : 'active tap 없음');
 	      dashboardSet('dashboardVaRuleLifecycle', hasTap ? dashboardEventLifecycleSummary(tapMetrics, stateDump) : 'active tap 없음');
 	      dashboardSet('dashboardVaRuleRecentEvent', hasTap ? dashboardRecentEventLabel(selectedRuleId || tapRuleId) : 'confirmed event 없음');
 	    }
@@ -11038,11 +12739,11 @@ std::string BuildLabRuleEditorPageHtml() {
         const classText = `${dashboardText(track.className)} · ${dashboardConfidence(track.confidence)}`;
         dashboardAppendRow('dashboardTrackRows', [
           track.trackId ?? '-',
-          classText,
+          dashboardEllipsisNode(classText),
           track.lifecycleState || '-',
-          dashboardTrackZoneDisplay(track),
-          dashboardTrackDwellDisplay(track),
-          dashboardTrackHealthChip(track),
+          dashboardEllipsisNode(dashboardTrackZoneDisplay(track)),
+          dashboardEllipsisNode(dashboardTrackDwellDisplay(track)),
+          dashboardTrackHealthNode(track),
         ]);
       }
     }
@@ -11082,9 +12783,9 @@ std::string BuildLabRuleEditorPageHtml() {
           track.scenarioName || '-',
           dashboardScenarioPhaseChip(track.scenarioPhase),
           track.trackId ?? '-',
-          zoneLine,
+          dashboardEllipsisNode(zoneLine),
           dashboardScenarioElapsed(track),
-          dashboardScenarioCooldown(track),
+          dashboardEllipsisNode(dashboardScenarioCooldown(track)),
         ]);
       }
     }
@@ -11101,6 +12802,13 @@ std::string BuildLabRuleEditorPageHtml() {
         `rows ${scenarioRows.length} · active ${scenarioState.activeScenarios ?? scenarioRows.length} · emitted ${eventState.eventsEmitted ?? 0} · dedup ${eventState.eventsDeduped ?? 0}`
       );
       const tbody = dashboardRowsStart('dashboardScenarioTimelineRows');
+      const scenarioPre = $('dashboardScenarioTimelineJson');
+      if (scenarioPre) {
+        scenarioPre.textContent = dashboardPrettyJson(
+          dashboardScenarioTimelineRawPayload(stateDump, tapMetrics, selectedTap, scenarioRows),
+          'scenario timeline raw JSON 없음'
+        );
+      }
       if (!tbody || scenarioRows.length === 0) {
         dashboardSetEmptyRows('dashboardScenarioTimelineRows', 10, dashboardScenarioEmptyReason(tracks, tapMetrics, selectedTap));
         return;
@@ -11110,13 +12818,13 @@ std::string BuildLabRuleEditorPageHtml() {
           track.scenarioName || '-',
           dashboardScenarioPhaseChip(track.scenarioPhase),
           track.trackId ?? '-',
-          dashboardTrackZoneDisplay(track),
-          dashboardScenarioLineId(track),
+          dashboardEllipsisNode(dashboardTrackZoneDisplay(track)),
+          dashboardEllipsisNode(dashboardScenarioLineId(track)),
           dashboardScenarioElapsed(track),
-          dashboardScenarioCooldown(track),
+          dashboardEllipsisNode(dashboardScenarioCooldown(track)),
           dashboardScenarioEventEmittedChip(track, ruleId),
           dashboardScenarioDedupLabel(eventState),
-          dashboardScenarioRecentEventLabel(track, ruleId),
+          dashboardEllipsisNode(dashboardScenarioRecentEventLabel(track, ruleId)),
         ]);
       }
     }
@@ -11177,7 +12885,7 @@ std::string BuildLabRuleEditorPageHtml() {
           object.trackId ?? '-',
           object.label || '-',
           event.ruleId || '-',
-          item.zoneLine || '-',
+          dashboardEllipsisNode(item.zoneLine || '-'),
           status,
         ]);
       }
@@ -11235,17 +12943,10 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function eventRecordPathNode(path) {
       const value = String(path || '').trim();
-      if (!value) return '-';
-      const isHttp = /^https?:\/\//i.test(value);
-      const node = document.createElement(isHttp ? 'a' : 'span');
+      const node = document.createElement('span');
       node.className = 'event-record-path';
-      node.textContent = value;
-      node.title = value;
-      if (isHttp) {
-        node.href = value;
-        node.target = '_blank';
-        node.rel = 'noopener';
-      }
+      node.textContent = value ? '저장됨' : '없음';
+      node.title = value || '저장된 경로 없음';
       return node;
     }
 
@@ -11254,17 +12955,17 @@ std::string BuildLabRuleEditorPageHtml() {
       button.type = 'button';
       button.className = 'event-record-id-button';
       button.textContent = eventRecordValue(record, 'eventId') || `<record ${index + 1}>`;
-      button.addEventListener('click', () => selectEventRecordDetail(index));
+      button.addEventListener('click', () => selectEventRecordDetail(index, true));
       return button;
     }
 
-    function selectEventRecordDetail(index) {
+    function selectEventRecordDetail(index, openDrawer = false) {
       eventRecordSelectedIndex = index;
       const record = eventRecordResults[index] || null;
       const pre = $('eventRecordDetailJson');
       if (pre) pre.textContent = record ? dashboardPrettyJson(record, 'EventRecord JSON 표시 실패') : 'eventId를 선택하면 원본 EventRecord JSON이 표시됩니다.';
       const drawer = $('eventRecordDetailDrawer');
-      if (drawer && record) drawer.open = true;
+      if (drawer && record && openDrawer) drawer.open = true;
       if (drawer && !record) drawer.open = false;
     }
 
@@ -11306,7 +13007,7 @@ std::string BuildLabRuleEditorPageHtml() {
           eventRecordPathNode(eventRecordValue(record, 'clipPath')),
         ]);
       });
-      selectEventRecordDetail(0);
+      selectEventRecordDetail(-1);
     }
 
     async function searchEventRecords() {
@@ -11330,8 +13031,8 @@ std::string BuildLabRuleEditorPageHtml() {
       } catch (error) {
         eventRecordResults = [];
         dashboardSet('dashboardEventRecordsSummary', '조회 실패');
-        dashboardSet('eventRecordStateText', `조회 실패: ${error.message}`);
-        dashboardSetEmptyRows('eventRecordRows', 11, 'EventRecord 조회 API 응답을 확인하세요.');
+        dashboardSet('eventRecordStateText', `조회 실패 · ${error.message}`);
+        dashboardSetEmptyRows('eventRecordRows', 11, 'EventRecord 조회 API 응답을 확인하세요.', 'error');
         selectEventRecordDetail(-1);
       } finally {
         eventRecordSearchInFlight = false;
@@ -11401,6 +13102,11 @@ std::string BuildLabRuleEditorPageHtml() {
       const rtspEgressStarted = counter('rtspEgressSessionStartedCount');
       const rtspEgressStopped = counter('rtspEgressSessionStoppedCount');
       const rtspEgressDestroyed = counter('rtspEgressSessionDestroyedCount');
+      const rtspConsumerResidual = Math.max(
+        0,
+        (rtspEgressCreated ?? 0) - (rtspEgressDestroyed ?? 0),
+        (rtspEgressStarted ?? 0) - (rtspEgressStopped ?? 0)
+      );
       const rtspPendingPeak = counter('rtspPendingQueuePeak');
       const rtspPendingAtStop = counter('rtspPendingQueueSizeAtStop');
       const rtspPendingAtDestroy = counter('rtspPendingQueueSizeAtDestroy');
@@ -11439,6 +13145,26 @@ std::string BuildLabRuleEditorPageHtml() {
       if ((flowAfterStop ?? 0) > 0) cleanupIssues.push('flow after stop');
       if (metadataFailures !== null && metadataFailures > 0) cleanupIssues.push('metadata failure');
       if (lifecycleWarning || fanoutWarning) cleanupIssues.push('counter imbalance');
+      const viewerHasMetadata = viewMetadataMessageCount > 0 || viewMetadataStaleCount > 0 || viewMetadataFallbackHiddenCount > 0;
+      const metadataStaleText = viewerHasMetadata
+        ? `stale ${viewMetadataStaleCount} · drop ${viewMetadataBufferDropCount}`
+        : '미제공';
+      const metadataStaleWarning = viewerHasMetadata && (viewMetadataStaleCount > 0 || viewMetadataBufferDropCount > 0);
+      const cleanupText = cleanupIssues.length > 0
+        ? cleanupIssues.slice(0, 3).join(' · ')
+        : (noActiveRuntime ? '정상' : 'active 관찰 중');
+      const sideClientsProvided = dashboardOptionalNumber(sideChannel, 'activeSseClients') !== null ||
+        dashboardOptionalNumber(sideChannel, 'activeWebSocketClients') !== null;
+      const sideClientsText = sideClientsProvided ? `${activeSseClients}/${activeWsClients}` : '미제공';
+      const backpressureWarnings = [];
+      if ((metadataDropped ?? 0) > 0) backpressureWarnings.push({ label: `WebRTC drop ${metadataDropped}`, state: 'warning' });
+      if ((metadataFailures ?? 0) > 0) backpressureWarnings.push({ label: `WebRTC fail ${metadataFailures}`, state: 'warning' });
+      if ((metadataBufferedDrop ?? 0) > 0) backpressureWarnings.push({ label: `buffered drop ${metadataBufferedDrop}`, state: 'warning' });
+      if ((sideChannelDropped ?? 0) > 0) backpressureWarnings.push({ label: `SSE/WS drop ${sideChannelDropped}`, state: 'warning' });
+      if ((sideChannelFailures ?? 0) > 0) backpressureWarnings.push({ label: `SSE/WS fail ${sideChannelFailures}`, state: 'warning' });
+      if (metadataStaleWarning) backpressureWarnings.push({ label: metadataStaleText, state: 'warning' });
+      if (cleanupIssues.length > 0) backpressureWarnings.push({ label: cleanupText, state: 'warning' });
+      dashboardRenderChipStrip('dashboardBackpressureWarnings', backpressureWarnings);
 
       dashboardSet('dashboardRuntimeMemoryWarning', 'RSS WARNING 해제 가능 후보 · active high-water 관찰 유지');
       dashboardSet('dashboardRuntimeRss', 'longrun report에서 확인');
@@ -11448,11 +13174,19 @@ std::string BuildLabRuleEditorPageHtml() {
         `${activeSessions}/${activeStreams}/${activeTaps}`
       );
       dashboardSet('dashboardMetadataSessions', `${openSessions}/${sessions.length} open`);
+      dashboardSet('dashboardHealthSideClients', sideClientsText);
+      dashboardSet('dashboardMetadataSideClients', sideClientsText);
+      dashboardSet('dashboardHealthRtspConsumers', rtspEgressCreated === null && rtspEgressStarted === null ? '미제공' : rtspConsumerResidual);
+      dashboardSetWithWarning('dashboardHealthCleanupWarning', cleanupText, cleanupIssues.length > 0, 'warning');
+      dashboardSetWithWarning('dashboardHealthMetadataStaleWarning', metadataStaleText, metadataStaleWarning, 'stale');
+      dashboardSetNode('dashboardHealthGuardMode', dashboardChip(dashboardGuardModeLabel(tapMetrics?.closeObjectGuard), dashboardGuardModeTone(tapMetrics?.closeObjectGuard)));
       dashboardSet('dashboardMetadataSent', metadataSent ?? '미제공');
       dashboardSetWithWarning(
         'dashboardMetadataDropped',
-        `${metadataDropped ?? '미제공'}/${metadataSkipped ?? '미제공'}`,
-        (metadataDropped ?? 0) > 0
+        metadataDropped === null && metadataFailures === null
+          ? '미제공'
+          : `drop ${metadataDropped ?? 0} · fail ${metadataFailures ?? 0}`,
+        (metadataDropped ?? 0) > 0 || (metadataFailures ?? 0) > 0
       );
       dashboardSetWithWarning(
         'dashboardMetadataSkipped',
@@ -11465,7 +13199,7 @@ std::string BuildLabRuleEditorPageHtml() {
         `${metadataBufferedDrop ?? '미제공'}/${metadataMaxBuffered ?? '미제공'}`,
         (metadataBufferedDrop ?? 0) > 0
       );
-      dashboardSet('dashboardMetadataBufferedObserved', `${maxLastBufferedAmount}/${maxObservedBufferedAmount}`);
+      dashboardSet('dashboardMetadataBufferedObserved', `last ${dashboardBytes(maxLastBufferedAmount)} · max ${dashboardBytes(maxObservedBufferedAmount)}`);
       dashboardSet('dashboardMetadataSseClients', activeSseClients);
       dashboardSet('dashboardMetadataWsClients', activeWsClients);
       dashboardSetWithWarning(
@@ -11537,8 +13271,7 @@ std::string BuildLabRuleEditorPageHtml() {
         cleanupIssues.length > 0,
         'cleanup warning'
       );
-      const viewerHasMetadata = viewMetadataMessageCount > 0 || viewMetadataStaleCount > 0 || viewMetadataFallbackHiddenCount > 0;
-      dashboardSet('dashboardMetadataStale', viewerHasMetadata ? `${viewMetadataStaleCount}/${viewMetadataBufferDropCount}` : '미제공');
+      dashboardSetWithWarning('dashboardMetadataStale', metadataStaleText, metadataStaleWarning, 'stale');
       dashboardSet('dashboardMetadataFallback', viewerHasMetadata ? viewMetadataFallbackHiddenCount : '미제공');
       dashboardSet(
         'dashboardMetadataSummary',
@@ -11548,9 +13281,16 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function dashboardGuardModeLabel(guard = null) {
       const mode = String(guard?.mode || 'off').toLowerCase();
-      if (mode === 'diagnostic') return '진단 전용';
-      if (mode === 'enforce') return '보정 적용';
+      if (mode === 'diagnostic') return 'diagnostic-only · score 변경 없음';
+      if (mode === 'enforce') return 'enforce · opt-in 보정 적용';
       return 'guard off';
+    }
+
+    function dashboardGuardModeTone(guard = null) {
+      const mode = String(guard?.mode || 'off').toLowerCase();
+      if (mode === 'enforce') return 'warning';
+      if (mode === 'diagnostic') return 'muted';
+      return 'muted';
     }
 
     function dashboardOptionalFixed(value, digits = 2) {
@@ -11607,17 +13347,12 @@ std::string BuildLabRuleEditorPageHtml() {
         const health = track.trackHealth || {};
         const lost = health.lostCount ?? track.lostCount;
         const reacquired = health.reacquiredCount ?? track.reacquiredCount;
-        const details = [
-          `${guardLabel}`,
-          `risk ${dashboardOptionalFixed(diagnostic?.closeObjectRisk)}`,
-          `margin ${dashboardOptionalFixed(diagnostic?.scoreMargin)}`,
-          `jump ${dashboardNormalizedDistance(diagnostic?.centerJump)}`,
+        const healthDetails = [
           `assoc ${dashboardConfidence(health.associationConfidence ?? track.associationConfidence)}`,
           `overlap ${dashboardOptionalFixed(health.overlapRisk ?? track.overlapRisk)}`,
           `missed ${health.missedFrameCount ?? track.missedFrameCount ?? '미제공'}`,
           `lost/reacq ${lost ?? '미제공'}/${reacquired ?? '미제공'}`,
-          `direction ${health.directionChangeCount ?? track.directionChangeCount ?? '미제공'}`,
-          `decision ${diagnostic?.guardDecision || '미제공'}`
+          `direction ${health.directionChangeCount ?? track.directionChangeCount ?? '미제공'}`
         ];
         return {
           type: dashboardCloseObjectIssueLabel(diagnostic),
@@ -11625,7 +13360,13 @@ std::string BuildLabRuleEditorPageHtml() {
           className: diagnostic?.className || track.className || '-',
           severity: dashboardCloseObjectSeverity(diagnostic),
           timestampMs: tapMetrics?.metricsReport?.timestampMs,
-          healthText: details.join(' · ')
+          guardLabel,
+          healthText: `${guardLabel} · detail drawer에서 guard 값을 확인`,
+          risk: dashboardOptionalFixed(diagnostic?.closeObjectRisk),
+          margin: dashboardOptionalFixed(diagnostic?.scoreMargin),
+          centerJump: dashboardNormalizedDistance(diagnostic?.centerJump),
+          guardDecision: diagnostic?.guardDecision || '미제공',
+          healthDetails: healthDetails.join(' · ')
         };
       });
     }
@@ -11639,6 +13380,27 @@ std::string BuildLabRuleEditorPageHtml() {
         'dashboardIssuesSummary',
         `total ${(report.totalIssues ?? issues.length) + closeObjectIssues.length} · retained ${(report.retainedIssues ?? issues.length) + closeObjectIssues.length} · close-object ${closeObjectIssues.length} · ${guardLabel} · rate-limited ${report.rateLimitedCount ?? 0}`
       );
+      dashboardSet(
+        'dashboardCloseObjectSummary',
+        `risk count ${closeObjectIssues.length} · ${guardLabel}${closeObjectIssues.some((issue) => issue.severity === 'warning') ? ' · warning 있음' : ' · warning 없음'}`
+      );
+      const closeObjectTbody = dashboardRowsStart('dashboardCloseObjectRows');
+      if (!closeObjectTbody || closeObjectIssues.length === 0) {
+        dashboardSetEmptyRows('dashboardCloseObjectRows', 8, `close-object diagnostics가 없습니다. · ${guardLabel}`);
+      } else {
+        for (const issue of closeObjectIssues) {
+          dashboardAppendRow('dashboardCloseObjectRows', [
+            issue.trackId,
+            dashboardEllipsisNode(issue.className),
+            dashboardChip(issue.guardLabel, dashboardGuardModeTone(tapMetrics?.closeObjectGuard)),
+            issue.risk,
+            issue.margin,
+            issue.centerJump,
+            dashboardEllipsisNode(issue.guardDecision),
+            dashboardEllipsisNode(issue.healthDetails),
+          ]);
+        }
+      }
       const tbody = dashboardRowsStart('dashboardIssueRows');
       if (!tbody || (issues.length === 0 && closeObjectIssues.length === 0)) {
         dashboardSetEmptyRows('dashboardIssueRows', 6, `tracking issue가 없습니다. · ${guardLabel}`);
@@ -11670,7 +13432,7 @@ std::string BuildLabRuleEditorPageHtml() {
           issue.className,
           dashboardChip(issue.severity, issue.severity === 'warning' ? 'warning' : 'muted'),
           dashboardTimestamp(issue.timestampMs),
-          issue.healthText,
+          dashboardInlineDetailNode(dashboardChip(issue.guardLabel, dashboardGuardModeTone(tapMetrics?.closeObjectGuard)), 'risk/score/centerJump는 detail drawer'),
         ]);
       }
     }
@@ -11694,6 +13456,9 @@ std::string BuildLabRuleEditorPageHtml() {
       const eventState = metricsReport.eventState || {};
       const trackHealth = metricsReport.trackHealth || {};
       const debugCounts = stateDump?.debugState?.counts || {};
+      const dashboardRuntimeActive = Boolean(selectedTap || tapMetrics);
+      const dashboardPanel = $('dashboardPanel');
+      if (dashboardPanel) dashboardPanel.classList.toggle('is-runtime-inactive', !dashboardRuntimeActive);
 
       dashboardSet('dashboardSourceKind', selectedTap?.context?.sourceKind || selectedTap?.sourceKind || '-');
       dashboardSet('dashboardActiveSessions', sessionManager.activeSessions || 0);
@@ -11714,8 +13479,13 @@ std::string BuildLabRuleEditorPageHtml() {
       dashboardSet('dashboardOverlapRiskCount', trackHealth.overlapRiskTrackCount ?? 0);
       dashboardSet('dashboardEventPostStatus', dashboardEventPostLabel(payload?.eventPost));
       dashboardSet('dashboardEventStorageStatus', dashboardEventStorageLabel(payload?.eventStorage));
-      dashboardSet('dashboardStatusText', `마지막 갱신 ${new Date().toLocaleTimeString('ko-KR')} · tap ${dashboardLastTapId || '-'}`);
-      dashboardSet('dashboardOverviewSummary', selectedTap ? `${selectedTap.tapId || '-'} · ${selectedTap.streamKey || '-'}` : '선택된 tap 없음');
+      dashboardSet(
+        'dashboardStatusText',
+        dashboardRuntimeActive
+          ? `마지막 갱신 ${new Date().toLocaleTimeString('ko-KR')} · tap ${dashboardLastTapId || '-'}`
+          : `보기 탭에서 보기 시작 후 표시됩니다 · 마지막 갱신 ${new Date().toLocaleTimeString('ko-KR')}`
+      );
+      dashboardSet('dashboardOverviewSummary', selectedTap ? `${selectedTap.tapId || '-'} · ${selectedTap.streamKey || '-'}` : '표시할 tap 없음 · 영상 분석 보기에서 보기 시작 후 표시됩니다');
 	      renderDashboardEvents(tapEvents, tapMetrics, stateDump, dashboardLastTapId);
 	      renderDashboardVaRuleDebug({ selectedTap, tapMetrics, stateDump });
 	      renderDashboardTracks(stateDump, tapMetrics);
@@ -11726,6 +13496,8 @@ std::string BuildLabRuleEditorPageHtml() {
 	      renderDashboardIssues(tapMetrics, stateDump);
       const statePre = $('dashboardStateDumpJson');
       if (statePre) statePre.textContent = dashboardPrettyJson(stateDump, 'tap을 선택하면 상태 덤프가 표시됩니다.');
+      const debugPre = $('dashboardDebugCountersJson');
+      if (debugPre) debugPre.textContent = dashboardPrettyJson(runtime.debugCounters || null, 'runtime debugCounters 없음');
       const issuePre = $('dashboardTrackingIssueReport');
       if (issuePre) {
         const closeObjectRaw = tapMetrics
@@ -11965,6 +13737,7 @@ std::string BuildLabRuleEditorPageHtml() {
         if (playPromise && typeof playPromise.catch === 'function') {
           playPromise.catch(() => {});
         }
+        updateViewMediaSpecs();
         setViewConnectionState('playing', 'WebRTC 영상 재생 중입니다. DataChannel 연결을 기다리는 중입니다.');
       };
       pc.onicecandidate = async (event) => {
@@ -12013,6 +13786,8 @@ std::string BuildLabRuleEditorPageHtml() {
       const tapId = viewTapId;
       viewTapId = '';
       viewFailureCount = 0;
+      viewMediaSpecLastMetricsAt = 0;
+      viewLastFpsText = '';
       if (!options.silent && hadViewSession) {
         dashboardLastViewStopAt = Date.now();
       }
@@ -12026,6 +13801,7 @@ std::string BuildLabRuleEditorPageHtml() {
       updateGeneratedUrls();
       if (!options.silent) {
         setViewConnectionState('stopped', '보기를 중지했습니다.');
+        updateViewMediaSpecs();
       } else if (!viewTapId) {
         setViewPreviewUi(false);
       }
@@ -12044,6 +13820,7 @@ std::string BuildLabRuleEditorPageHtml() {
         viewFailureCount = 0;
         $('viewPreviewImage').src = image.src;
         setViewConnectionState('playing', `${viewModeLabel(mode)} 재생 중: ${$('viewBindingSummary')?.textContent || ''}`);
+        refreshViewTapMediaSpecs(activeTapId, { width: image.naturalWidth, height: image.naturalHeight }).catch(() => {});
       };
       image.onerror = () => {
         if (viewTapId !== activeTapId) return;
@@ -12057,6 +13834,7 @@ std::string BuildLabRuleEditorPageHtml() {
 
     async function startViewPreview() {
       await stopViewPreview({ silent: true });
+      viewLastFpsText = '';
       updateViewModeUi();
       const params = buildViewParams();
       if (selectedViewMode() === 'rule' && !params.get('vaRule')) {
@@ -12079,28 +13857,137 @@ std::string BuildLabRuleEditorPageHtml() {
       viewTimer = setInterval(refreshViewFrame, 500);
     }
 
+    function drawArrowHead(fromX, fromY, toX, toY, size = 13) {
+      const angle = Math.atan2(toY - fromY, toX - fromX);
+      ctx.beginPath();
+      ctx.moveTo(toX, toY);
+      ctx.lineTo(toX - size * Math.cos(angle - Math.PI / 6), toY - size * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(toX - size * Math.cos(angle + Math.PI / 6), toY - size * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawLineDirectionArrow(width, height) {
+      if (!isGeometryLineMode() || regionPoints.length < 2) return;
+      const start = regionPoints[0];
+      const end = regionPoints[1];
+      const x1 = start.x * width;
+      const y1 = start.y * height;
+      const x2 = end.x * width;
+      const y2 = end.y * height;
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      if (!Number.isFinite(len) || len < 1) return;
+      let nx = -dy / len;
+      let ny = dx / len;
+      const direction = activeLineDirectionValue();
+      const centerX = (x1 + x2) / 2;
+      const centerY = (y1 + y2) / 2;
+      const arrowLength = Math.max(36, Math.min(58, len * 0.22));
+      const drawOne = (multiplier, label) => {
+        const sx = centerX - nx * multiplier * arrowLength * 0.36;
+        const sy = centerY - ny * multiplier * arrowLength * 0.36;
+        const ex = centerX + nx * multiplier * arrowLength * 0.64;
+        const ey = centerY + ny * multiplier * arrowLength * 0.64;
+        ctx.save();
+        ctx.strokeStyle = themeToken('--overlay-box-selected');
+        ctx.fillStyle = themeToken('--overlay-box-selected');
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
+        drawArrowHead(sx, sy, ex, ey);
+        ctx.fillStyle = themeToken('--overlay-label-bg');
+        ctx.strokeStyle = themeToken('--overlay-label-bg');
+        ctx.lineWidth = 1;
+        ctx.font = 'bold 12px sans-serif';
+        const labelWidth = ctx.measureText(label).width + 14;
+        const labelX = ex + nx * multiplier * 8;
+        const labelY = ey + ny * multiplier * 8;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') {
+          ctx.roundRect(labelX - labelWidth / 2, labelY - 11, labelWidth, 22, 10);
+        } else {
+          ctx.rect(labelX - labelWidth / 2, labelY - 11, labelWidth, 22);
+        }
+        ctx.fill();
+        ctx.fillStyle = themeToken('--overlay-label-text');
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, labelX, labelY);
+        ctx.restore();
+      };
+      const drawTwoWay = () => {
+        const sx = centerX - nx * arrowLength * 0.6;
+        const sy = centerY - ny * arrowLength * 0.6;
+        const ex = centerX + nx * arrowLength * 0.6;
+        const ey = centerY + ny * arrowLength * 0.6;
+        ctx.save();
+        ctx.strokeStyle = themeToken('--overlay-box-selected');
+        ctx.fillStyle = themeToken('--overlay-box-selected');
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
+        drawArrowHead(sx, sy, ex, ey);
+        drawArrowHead(ex, ey, sx, sy);
+        const label = '양방향';
+        ctx.fillStyle = themeToken('--overlay-label-bg');
+        ctx.strokeStyle = themeToken('--overlay-label-bg');
+        ctx.lineWidth = 1;
+        ctx.font = 'bold 12px sans-serif';
+        const labelWidth = ctx.measureText(label).width + 14;
+        const labelX = centerX + nx * 18;
+        const labelY = centerY + ny * 18;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') {
+          ctx.roundRect(labelX - labelWidth / 2, labelY - 11, labelWidth, 22, 10);
+        } else {
+          ctx.rect(labelX - labelWidth / 2, labelY - 11, labelWidth, 22);
+        }
+        ctx.fill();
+        ctx.fillStyle = themeToken('--overlay-label-text');
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, labelX, labelY);
+        ctx.restore();
+      };
+      if (direction === 'reverse') {
+        drawOne(-1, '역방향');
+      } else if (direction === 'forward') {
+        drawOne(1, '정방향');
+      } else {
+        drawTwoWay();
+      }
+    }
+
     function drawRegion() {
       const lineMode = isGeometryLineMode();
       const width = canvas.width;
       const height = canvas.height;
       ctx.clearRect(0, 0, width, height);
-      if (previewImage) {
-        ctx.drawImage(previewImage, 0, 0, width, height);
-        ctx.fillStyle = 'rgba(0,0,0,0.18)';
-        ctx.fillRect(0, 0, width, height);
-      } else {
-        ctx.fillStyle = '#08110e';
-        ctx.fillRect(0, 0, width, height);
-        const message = regionCanvasMessage();
-        if (message) {
-          ctx.fillStyle = 'rgba(242,240,223,0.84)';
+	      if (previewImage) {
+	        ctx.drawImage(previewImage, 0, 0, width, height);
+	        ctx.fillStyle = themeToken('--overlay-frame-dim');
+	        ctx.fillRect(0, 0, width, height);
+	      } else {
+	        ctx.fillStyle = themeToken('--overlay-canvas-bg');
+	        ctx.fillRect(0, 0, width, height);
+	        const message = regionCanvasMessage();
+	        if (message) {
+	          ctx.fillStyle = themeToken('--overlay-canvas-text');
           ctx.font = 'bold 18px sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(message, width / 2, height / 2);
         }
       }
-      ctx.strokeStyle = 'rgba(242,240,223,0.08)';
+	      ctx.strokeStyle = themeToken('--overlay-debug-line');
       ctx.lineWidth = 1;
       for (let x = 0; x <= width; x += width / 10) {
         ctx.beginPath();
@@ -12124,14 +14011,15 @@ std::string BuildLabRuleEditorPageHtml() {
         });
         if (!lineMode && regionPoints.length >= 3) {
           ctx.closePath();
-          ctx.fillStyle = 'rgba(111,208,165,0.22)';
+	          ctx.fillStyle = themeToken('--overlay-region-fill');
           ctx.fill();
         }
-        ctx.strokeStyle = lineMode ? '#e7b65c' : '#6fd0a5';
+	        ctx.strokeStyle = lineMode ? themeToken('--overlay-line') : themeToken('--overlay-box-track');
         ctx.lineWidth = lineMode ? 5 : 4;
         ctx.stroke();
+        drawLineDirectionArrow(width, height);
       }
-      ctx.fillStyle = 'rgba(242,240,223,0.82)';
+	      ctx.fillStyle = themeToken('--overlay-canvas-text');
       ctx.font = 'bold 14px sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
@@ -12148,12 +14036,12 @@ std::string BuildLabRuleEditorPageHtml() {
         const y = point.y * height;
         ctx.beginPath();
         ctx.arc(x, y, 9, 0, Math.PI * 2);
-        ctx.fillStyle = '#e7b65c';
-        ctx.fill();
-        ctx.strokeStyle = '#12120d';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.fillStyle = '#12120d';
+	        ctx.fillStyle = themeToken('--overlay-point-fill');
+	        ctx.fill();
+	        ctx.strokeStyle = themeToken('--overlay-point-text');
+	        ctx.lineWidth = 2;
+	        ctx.stroke();
+	        ctx.fillStyle = themeToken('--overlay-point-text');
         ctx.font = 'bold 13px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -12252,7 +14140,21 @@ std::string BuildLabRuleEditorPageHtml() {
       $('newProfileBtn').onclick = () => {
         $('profileSelect').value = '';
         loadProfile({ id: 'fast-local', detector: 'yolo', fps: 6, maxQueue: 1, confidence: 0.25, nms: 0.45, inputWidth: 640, inputHeight: 640, adaptive: true, trackingClasses: ['person', 'vehicle'] });
+        const details = $('profileDetailsPanel');
+        if (details) {
+          details.open = true;
+          details.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
       };
+      const closeNewProfileSettings = () => {
+        const details = $('profileDetailsPanel');
+        if (details) details.open = false;
+        const current = selectedProfileDocument();
+        if (current) loadProfile(current);
+        status('새 Profile 설정을 닫았습니다.');
+      };
+      $('cancelNewProfileBtn').onclick = closeNewProfileSettings;
+      $('closeProfileDetailsBtn').onclick = closeNewProfileSettings;
       $('saveProfileBtn').onclick = () => saveProfile().catch((error) => {
         status(`Profile 저장 실패: ${error.message}`);
         showFeedback(`Profile 저장 실패: ${error.message}`, 'error');
@@ -12327,10 +14229,12 @@ std::string BuildLabRuleEditorPageHtml() {
       };
       $('cancelVaRuleEditBtn').onclick = closeVaRuleEditor;
       $('cancelVaRuleEditBtnBottom').onclick = closeVaRuleEditor;
-      $('saveVaRuleBtn').onclick = () => saveVaRule().catch((error) => {
+      const saveVaRuleHandler = () => saveVaRule().catch((error) => {
         status(`영상 분석 설정 저장 실패: ${error.message}`);
         showFeedback(`영상 분석 설정 저장 실패: ${error.message}`, 'error');
       });
+      $('saveVaRuleBtn').onclick = saveVaRuleHandler;
+      if ($('saveVaRuleBtnTop')) $('saveVaRuleBtnTop').onclick = saveVaRuleHandler;
       $('deleteVaRuleBtn').onclick = () => deleteVaRule().catch((error) => {
         status(`영상 분석 설정 삭제 실패: ${error.message}`);
         showFeedback(`영상 분석 설정 삭제 실패: ${error.message}`, 'error');
@@ -12375,11 +14279,17 @@ std::string BuildLabRuleEditorPageHtml() {
             updateVaRuleSourceUi();
             updateViewModeUi();
             updatePreviews();
+            if (id === 'vaRuleName' && $('vaRuleEditorTitle')) {
+              $('vaRuleEditorTitle').textContent = $('vaRuleName').value.trim() || (currentVaRuleId() ? `영상 분석 룰 #${currentVaRuleId()}` : '새 영상 분석 룰');
+            }
           });
           el.addEventListener('change', () => {
             updateVaRuleSourceUi();
             updateViewModeUi();
             updatePreviews();
+            if (id === 'vaRuleName' && $('vaRuleEditorTitle')) {
+              $('vaRuleEditorTitle').textContent = $('vaRuleName').value.trim() || (currentVaRuleId() ? `영상 분석 룰 #${currentVaRuleId()}` : '새 영상 분석 룰');
+            }
           });
         }
       }
@@ -12390,6 +14300,12 @@ std::string BuildLabRuleEditorPageHtml() {
         setViewConnectionState('error', `보기 시작 실패: ${error.message}`);
         status(`보기 시작 실패: ${error.message}`);
       });
+      if ($('restartViewPreviewBtn')) {
+        $('restartViewPreviewBtn').onclick = () => startViewPreview().catch((error) => {
+          setViewConnectionState('error', `보기 재시작 실패: ${error.message}`);
+          status(`보기 재시작 실패: ${error.message}`);
+        });
+      }
       $('stopViewPreviewBtn').onclick = () => stopViewPreview().catch((error) => setViewConnectionState('error', `보기 중지 실패: ${error.message}`));
       $('autoPreviewInput').addEventListener('change', () => {
         if ($('autoPreviewInput').checked) {
@@ -12532,9 +14448,19 @@ std::string BuildLabRuleEditorPageHtml() {
       document.querySelectorAll('[data-rule-section-target]').forEach((button) => {
         button.addEventListener('click', () => {
           const target = $(button.dataset.ruleSectionTarget || '');
-          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          if (target) {
+            if ($('editStepSelect')) $('editStepSelect').value = button.dataset.ruleSectionTarget || '';
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
         });
       });
+      if ($('editStepSelect')) {
+        $('editStepSelect').addEventListener('change', () => {
+          const targetId = $('editStepSelect').value || '';
+          const target = $(targetId);
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
     }
 
     function bindObjectCategorySelectorEvents() {
@@ -12780,9 +14706,11 @@ std::string BuildLabImportPageHtml() {
     .standalone-nav { display: none; }
     .theme-toggle {
       width: auto;
-      min-width: 112px;
-      padding: 9px 13px;
+      min-width: 86px;
+      min-height: 32px;
+      padding: 6px 10px;
       border-radius: 999px;
+      font-size: 12px;
       background: var(--secondary-bg);
       color: var(--ink);
       border: 1px solid var(--line);

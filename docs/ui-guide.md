@@ -12,10 +12,13 @@
 
 실제 host/port는 `./server.sh status` 또는 `./server.sh urls` 출력값을 우선합니다.
 
-`/lab/rules`는 두 탭으로 나뉩니다.
+UI는 light/dark theme-aware design token을 사용하며, card/button/form/table/badge/debug 영역은 같은 semantic color 규칙을 공유합니다.
+
+`/lab/rules`는 세 탭으로 나뉩니다.
 
 - 영상 분석 설정: 저장된 영상 분석 룰 목록과 룰 편집 화면
 - 영상 분석 보기: 실시간 스트리밍, VA 오버레이, VA 룰 미리보기
+- Runtime Dashboard: active analysis tap의 runtime metadata, backpressure, scenario/event/debug 상태
 
 ![영상 분석 룰 목록](assets/ui/analysis-rule-list.png)
 
@@ -63,11 +66,13 @@
 | 이벤트 동작 | overlay blink, blink 시간, POST URL, payload preview |
 | 저장 전 검토 | 현재 설정 요약, validation 결과, 저장 버튼 |
 
-저장하지 않은 변경사항이 있으면 목록 이동, 다른 룰 수정, 영상 분석 보기 이동 전에 확인 경고가 뜹니다. 저장/삭제 성공 또는 실패는 화면 상단 feedback으로 표시됩니다.
+편집 화면 상단의 룰 이름, 저장 상태, 저장/목록 버튼, 섹션 이동 영역은 스크롤 중에도 따라다닙니다. 일반 폭에서는 섹션 이동을 버튼 탭으로 표시하고, 버튼 텍스트를 읽기 어려운 매우 좁은 폭에서는 드롭다운으로 전환합니다.
+
+저장하지 않은 변경사항이 있으면 목록 이동, 다른 룰 수정, 영상 분석 보기 이동 전에 확인 경고가 뜹니다. 저장/삭제 성공 또는 실패는 feedback으로 표시됩니다.
 
 ## 4. 분석 Profile
 
-룰 편집 화면에서는 profile 선택과 요약을 먼저 보여주고, 세부 설정은 `고급 Profile 설정` 접힘 영역에서 다룹니다.
+룰 편집 화면에서는 profile 선택과 요약을 먼저 보여주고, 새 profile이 필요할 때만 `새 Profile 설정`을 시작합니다. 세부 설정은 `고급 Profile 설정` 접힘 영역에서 다루며, 룰 작성 흐름에서는 새 profile을 `Profile 저장`하거나 `닫기`로 닫는 동작만 노출합니다. 기존 profile 삭제 같은 관리 동작은 룰 작성의 기본 흐름에 노출하지 않습니다.
 
 Profile 항목:
 
@@ -101,6 +106,8 @@ Tracking category가 비어 있으면 profile 저장을 막습니다. 전체 추
 - `any`: 양방향
 - `forward`: 선분 시작점에서 끝점으로 향하는 기준의 정방향
 - `reverse`: 반대 방향
+
+라인 모드에서는 영역/라인 캔버스의 선 중앙에 현재 설정 방향을 나타내는 작은 화살표를 표시합니다. `any`는 양방향, `forward`/`reverse`는 선택한 한 방향만 표시합니다.
 
 ## 6. 시나리오 이벤트
 
@@ -148,6 +155,7 @@ Intrusion Dwell UI 항목:
 - 점 번호는 캔버스 안에 표시됩니다.
 - 좌표 목록은 접힘 영역에서 확인합니다.
 - 저장 전 검토에 영역 저장 가능 여부가 반영됩니다.
+- 저장 가능 여부는 `저장 가능: polygon 4개 점`, `저장 불가: line은 점 2개 필요`처럼 현재 geometry 조건을 직접 설명합니다.
 
 좌표는 기존 payload 구조와 같이 normalized 0~1 비율로 저장됩니다. 캔버스 크기가 바뀌어도 저장 좌표 비율은 유지됩니다.
 
@@ -187,6 +195,8 @@ EventRecord/snapshot/clip hook:
 
 `영상 + VA 룰` 모드에서는 source를 따로 선택하지 않습니다. 선택한 rule ID에 저장된 source가 자동으로 고정됩니다.
 
+영상 영역 아래에는 compact status row와 영상 spec row를 표시합니다. 변하지 않는 값인 source/codec은 왼쪽 그룹, 재생 중 갱신될 수 있는 resolution/fps는 오른쪽 그룹에 둡니다. FPS는 반올림한 정수만 보여주며, 재생 중 일시적으로 새 값이 없을 때는 마지막 유효 FPS를 유지해 값이 깜빡이지 않게 합니다.
+
 `WebRTC 메타데이터` 모드는 DataChannel 상태, 최신 metadata JSON, browser client-side overlay를 확인하는 테스트 화면입니다.
 기본 label은 `va-metadata`이며 상태는 `비활성`, `연결 중`, `열림`, `수신 중`, `지연`, `닫힘`, `오류`로 표시됩니다.
 DataChannel이 열리지 않거나 JSON parse에 실패해도 영상 재생 자체는 별도 상태로 유지되어야 합니다.
@@ -223,7 +233,7 @@ WebRTC 메타데이터 뷰어 사용 순서:
 - 중지됨
 - 오류
 
-요청 URL은 일반 화면에 크게 노출하지 않고 `개발자 요청 URL` 접힘 영역에 둡니다.
+요청 URL은 일반 화면에 크게 노출하지 않고 `개발자 요청 URL` 접힘 영역에 둡니다. 이 패널은 기본적으로 접혀 있으며, 일반 확인용 URL과 custom client용 side-channel URL을 분리해 보여줍니다.
 
 ![개발자 요청 URL](assets/ui/analysis-developer-url.png)
 
@@ -244,7 +254,12 @@ URL 규칙:
 | RTSP 원본 스트림 | overlay 없는 원본 RTSP 출력 | metadata UI 없음 |
 | 커스텀 메타데이터 사이드채널 | custom client가 RTSP video와 별도 SSE metadata stream을 함께 처리 | 일반 VLC/ffplay는 side-channel metadata를 표시하지 못함 |
 
-개발자 요청 URL 패널의 `커스텀 RTSP + 메타데이터 연결 정보` 영역은 custom client가 같이 사용해야 하는 값을 한 번에 보여줍니다.
+개발자 요청 URL 패널은 두 그룹으로 나뉩니다.
+
+- 일반 확인용: WebRTC metadata viewer, RTSP server overlay처럼 브라우저 또는 일반 RTSP viewer에서 바로 확인하는 URL
+- Custom client용: RTSP raw stream, SSE metadata stream, WS metadata stream처럼 custom client가 영상과 metadata를 직접 조합할 때 쓰는 URL
+
+Custom client 영역은 custom client가 같이 사용해야 하는 값을 한 번에 보여줍니다.
 
 - RTSP 원본 스트림: custom client가 재생할 overlay 없는 영상
 - SSE 메타데이터 스트림: 같은 source 또는 `vaRule`에 대한 runtime metadata JSON
@@ -290,32 +305,18 @@ ffplay -rtsp_transport tcp 'rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4'
 
 ## 10. VA 런타임 대시보드
 
-VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보는 운영용 탭입니다.
+VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보는 운영용 탭입니다. 화면은 Health Summary, Warnings, Metadata / Backpressure, Tracking / Scenario, Event Records, Debug 순서로 읽도록 정리되어 있습니다. 영상 분석 보기가 활성화되어 active tap이 생기기 전에는 대시보드 본문이 비활성 상태처럼 낮은 visual weight로 표시되고, 보기 탭에서 먼저 보기를 시작하라는 안내를 보여줍니다.
 
 ![VA 런타임 대시보드](assets/ui/analysis-runtime-dashboard.png)
 
 표시 항목:
 
-- 소스 종류
-- 활성 세션 / 스트림 / 분석 Tap
-- 디코딩 / 샘플링 / 분석 FPS
-- 대기 / 상한 / 최대 큐
-- 추론 지연
-- vaRule Runtime Debug: 선택 rule, active tap 매칭, source/profile, event/scenario, region, event lifecycle, recent event
-- active / lost / reacquired / terminated track count
-- Tracks: trackId, className/confidence, lifecycle, currentZone, dwellTimeMs, TrackHealth
-- 시나리오 인스턴스 수
-- Scenarios: scenarioName, phase, trackId, zone/line, elapsed/dwell, cooldown/event lifecycle
-- Scenario Timeline: active scenario instance별 scenarioName, phase, trackId, zoneId, lineId, elapsed, cooldown, event emitted, dedup, recent event
-- 발생 / 중복 억제 이벤트 수
-- Events: 최근 event, eventType, trackId, class/rule, zone/line, status
-- Metadata / Backpressure: WebRTC DataChannel sent/dropped/skipped/failure, max buffered amount, SSE/WS client count, metadata JSON build/payload size, RTSP/GStreamer debug counter 요약, analytics queue pending/capacity/peak/drop, client stale/fallback count
-- Trend / Stale / Cleanup: Dashboard client-side 최근 60개 sample 기준 active count, metadata counter, queue, RTSP/GStreamer counter의 delta/min/max와 stale/cleanup warning badge
-- Tracking Issues: issue type, trackId, severity, timestamp, health/guard 요약. close-object diagnostic이 켜져 있으면 close-object-risk, low-margin-association, center-jump-risk, reacquire candidate를 함께 보여줌
-- TrackHealth unstable count
-- overlapRisk count
-- 이벤트 POST 상태
-- 이벤트 저장 상태
+- Health Summary: sessions, streams, analysis taps, SSE/WS clients, RTSP consumers, cleanup warning, metadata stale, guard mode
+- Warnings: dashboard sample, runtime delta, cleanup watch, stale metadata를 badge 중심으로 표시
+- Metadata / Backpressure: WebRTC sent/drop/fail, SSE/WS client/message, metadata JSON build/payload size, DataChannel bufferedAmount
+- Tracking / Scenario: Tracks, Tracking Issues, Scenarios, Scenario Timeline
+- Event Records: 자동 polling 없이 검색 버튼으로만 조회하는 저장 event metadata table
+- Debug: vaRule Runtime Debug, raw JSON, debugCounters, tracking issue detail
 
 선택 UI:
 
@@ -331,7 +332,7 @@ drill-down 사용법:
 - Scenarios는 현재 state-dump에 노출된 scenarioName/scenarioPhase/zone/line/elapsed/cooldown 값을 list 형태로 보여줍니다. scenario instance가 없거나 zone/dwell 값이 비어 있으면 `조건을 만족한 track 없음`, `rule 매칭 없음`, `zone 조건 미충족`, `현재 track이 zone 내부에 없음`, `zone context 없음` 같은 짧은 empty reason을 표시합니다. phase entered time과 cooldown remaining의 정확한 timestamp는 아직 별도 UI로 표시하지 않습니다.
 - Scenario Timeline은 같은 state-dump와 `/events` buffer를 조합해 active scenario instance를 시간 흐름 점검용 table로 표시합니다. Candidate/Observing/Confirmed/Cooldown/Ended phase는 chip으로 구분하고, row별 event emitted 여부, dedup count, 연결 가능한 recent event의 eventId/eventType/status를 함께 보여줍니다. 표시할 timeline이 없을 때도 Scenarios와 같은 empty reason을 사용합니다.
 - Events는 선택 tap의 `/events` buffer를 받아 최근 event를 표시합니다. 선택 rule이 있으면 해당 rule의 recent event만 vaRule Runtime Debug 카드에 반영합니다.
-- Event Records는 저장된 EventRecord metadata를 수동 검색하는 접힘 섹션입니다. `eventType`, `streamId`, `channelId`, `trackId`, `scenarioName`, `status`, `startTimeMs`, `endTimeMs`, `limit` filter를 입력하고 검색 버튼을 눌렀을 때만 `/lab/analysis/events/records`를 호출합니다. 결과 table은 eventId, eventType, startTime/status, stream/channel, track/class, zone/line, scenario/phase, snapshotPath/clipPath placeholder를 보여주며, eventId를 선택하면 detail 영역에서 원본 JSON을 확인합니다. 영상 재생, snapshot 추출, clip recorder 제어는 제공하지 않습니다.
+- Event Records는 저장된 EventRecord metadata를 수동 검색하는 접힘 섹션입니다. `eventType`, `streamId`, `channelId`, `trackId`, `scenarioName`, `status`, `startTimeMs`, `endTimeMs`, `limit` filter를 입력하고 검색 버튼을 눌렀을 때만 `/lab/analysis/events/records`를 호출합니다. 결과 table은 eventId, eventType, startTime/status, stream/channel, track/class, zone/line, scenario/phase, snapshot/clip 저장 문자열을 보여주며, eventId를 선택하면 detail 영역에서 원본 JSON을 확인합니다. 영상 재생, snapshot 추출, clip recorder 제어는 제공하지 않습니다.
 - Metadata / Backpressure는 WebRTC DataChannel sent/dropped/skipped/failure, max buffered amount, SSE/WS client count, 선택 tap의 analytics queue pending/capacity/peak/drop, `debugCounters`의 metadata JSON build/payload size, RTSP lifecycle/pending queue/appsrc/flow return/fanout balance를 읽기 전용으로 요약합니다. count 불균형, cleanup 잔여, failure가 관찰되면 warning badge로 표시합니다. 현재 endpoint가 제공하지 않는 SSE/WS sent/drop/failure 누적값, 서버 dashboard polling count, live RSS는 `미제공` 또는 `longrun report에서 확인`으로 표시합니다.
 - Trend / Stale / Cleanup은 새 backend endpoint 없이 Dashboard가 이미 polling한 payload를 브라우저 client-side bounded buffer에 저장해 최근 변화만 보여줍니다. metadata 수신 age, video frame age, overlay draw age, DataChannel open 상태, SSE/WS client 존재 여부, 보기 중지 후 activeSessions/activeStreams/activeAnalysisTaps/SSE/WS/RTSP 잔류를 warning badge로 표시합니다. Dashboard tab이 비활성화되면 sample도 더 이상 추가되지 않습니다.
 - Runtime Dashboard의 RSS 표시는 장시간 검증 결과나 longrun report를 대체하지 않습니다. Runtime Console RSS는 해제 가능 후보 상태로 정리했지만 active 구간 high-water 관찰은 유지하며, stable 승격은 verify-predev 30분 이후 별도 판단합니다. live dashboard 패널은 RTSP/GStreamer egress 또는 Full fanout 후보를 좁히기 위한 운영 관찰 보조 화면입니다.
@@ -387,4 +388,6 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-storage/status'
 
 ## Screenshot 자산
 
-README와 이 문서에서 사용하는 screenshot은 `docs/assets/ui/` 아래 역할 기반 파일명으로 보관합니다. 새 이미지가 없으면 문서에 broken link를 만들지 않고 “이미지 추가 예정” 문구만 둡니다.
+README와 이 문서에서 사용하는 screenshot은 `docs/assets/ui/` 아래 역할 기반 파일명으로 보관합니다. 기본 문서 이미지는 light mode 대표 화면을 유지하고, dark mode는 수동 QA 또는 별도 파일명으로만 보강합니다. 새 이미지가 없으면 문서에 broken link를 만들지 않고 “이미지 추가 예정” 문구만 둡니다.
+
+문서용 screenshot은 화면 상단/하단에서 버튼, 입력, 카드 제목이 어색하게 반쯤 잘리지 않도록 section 경계 또는 대표 상태가 보이는 지점에서 자릅니다. 긴 화면은 한 장에 모든 내용을 넣기보다 핵심 section을 온전히 보여주는 대표 screenshot을 우선합니다.
