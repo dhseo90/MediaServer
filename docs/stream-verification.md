@@ -283,6 +283,21 @@ python3 scripts/examples/va_metadata_sse_client.py \
 
 이 예제는 SSE URL을 입력받아 `event: metadata`를 수신하고, JSON parse/schema 확인, `streamId/channelId`, `tracks/events/scenarios` count, latest timestamp, message count를 출력합니다. payload 본문까지 보고 싶으면 `--print-json`을 추가합니다. RTSP video 재생기나 overlay renderer는 포함하지 않습니다. 영상은 위 ffplay/VLC 같은 일반 RTSP player로 별도 재생해야 하며, 일반 VLC/ffplay/IINA는 SSE/WS metadata side-channel을 자동 overlay하지 않습니다.
 
+Custom RTSP + metadata overlay renderer는 아직 구현 전입니다. 구현 전 검증은 RTSP raw video 재생과 SSE metadata client smoke를 분리합니다. 즉, 일반 RTSP player로 영상이 열리는지 확인하고, 별도 curl 또는 `scripts/examples/va_metadata_sse_client.py`로 SSE metadata schema/count/timestamp가 정상인지 확인합니다. 이 단계에서 VLC/ffplay/IINA가 SSE/WS metadata를 자동 overlay한다고 판단하지 않습니다.
+
+구현 후 검증 후보:
+
+```bash
+python3 scripts/examples/rtsp_sse_overlay_viewer.py --help
+python3 scripts/examples/rtsp_sse_overlay_viewer.py \
+  --rtsp-url 'rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4' \
+  --sse-url 'http://127.0.0.1:8080/lab/analysis/metadata/stream?file=sample_h264.mp4&intervalMs=500' \
+  --timeout-seconds 15 \
+  --max-messages 30
+```
+
+구현 후에는 OpenCV window에서 RTSP raw frame이 표시되는지, SSE latest metadata로 bbox/trackId/className이 그려지는지, metadata가 끊겼을 때 stale 표시가 나오는지 확인합니다. 이 optional example 검증은 서버 core, RTSP server-side overlay 정책, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload 변경 검증이 아닙니다.
+
 확인할 항목:
 
 - 응답 header가 `text/event-stream`인지 확인
@@ -333,6 +348,9 @@ VA Runtime Console 자동 검증:
 - 임시 analysis tap 생성 후 dashboard polling이 가능한지 확인
 - Runtime Dashboard drill-down UI가 lab layout을 깨뜨리지 않는지 확인
 - state-dump 기반 Tracks/Scenarios/Tracking Issues 표시와 vaRule Runtime Debug가 기존 endpoint만 재사용하는지 확인
+- Runtime Dashboard의 Trend / Stale / Cleanup section이 최근 sample 수, delta/min/max, warning badge를 표시하는지 확인
+- dashboard tab을 벗어난 뒤 polling과 trend sample 증가가 멈추는지 확인
+- WebRTC metadata viewer 중지 후 activeSessions/activeStreams/activeAnalysisTaps/SSE/WS/RTSP 잔류가 있으면 cleanup warning으로 표시되는지 확인
 - `/lab/analysis/taps/{tapId}/metrics`의 `tapState`, `trackState`, `metricsReport` 확인
 - `/lab/analysis/taps/{tapId}/state-dump` JSON 확인
 - `/lab/analysis/taps/{tapId}/events` 접근과 recent event buffer 확인

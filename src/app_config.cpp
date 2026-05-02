@@ -112,6 +112,12 @@ constexpr const char* kEnvAnalysisEventPostCooldownMs = "MEDIA_SERVER_ANALYSIS_E
 constexpr const char* kEnvAnalysisEventStorageEnabled = "MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED";
 constexpr const char* kEnvAnalysisEventStoragePath = "MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH";
 constexpr const char* kEnvAnalysisEventStorageMaxQueue = "MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_QUEUE";
+constexpr const char* kEnvAnalysisEventStorageMaxFileBytes =
+    "MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_FILE_BYTES";
+constexpr const char* kEnvAnalysisEventStorageMaxArchives =
+    "MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_ARCHIVES";
+constexpr const char* kEnvAnalysisEventStorageMaxTotalBytes =
+    "MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_TOTAL_BYTES";
 constexpr const char* kEnvAnalysisEventSnapshotHookEnabled =
     "MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED";
 constexpr const char* kEnvAnalysisEventSnapshotDir = "MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR";
@@ -630,6 +636,15 @@ app::AppConfig LoadAppConfig() {
         ReadStringEnv(kEnvAnalysisEventStoragePath, config.analysis_event_storage_path);
     config.analysis_event_storage_max_queue =
         ReadSizeEnv(kEnvAnalysisEventStorageMaxQueue, config.analysis_event_storage_max_queue);
+    config.analysis_event_storage_max_file_bytes =
+        ReadSizeEnv(kEnvAnalysisEventStorageMaxFileBytes,
+                    config.analysis_event_storage_max_file_bytes);
+    config.analysis_event_storage_max_archives =
+        ReadSizeEnv(kEnvAnalysisEventStorageMaxArchives,
+                    config.analysis_event_storage_max_archives);
+    config.analysis_event_storage_max_total_bytes =
+        ReadSizeEnv(kEnvAnalysisEventStorageMaxTotalBytes,
+                    config.analysis_event_storage_max_total_bytes);
     config.analysis_event_snapshot_hook_enabled =
         ReadBoolEnv(kEnvAnalysisEventSnapshotHookEnabled, config.analysis_event_snapshot_hook_enabled);
     config.analysis_event_snapshot_dir =

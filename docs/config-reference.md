@@ -296,6 +296,11 @@ POST URL 자체는 rule output 설정에서 관리합니다. 외부 이벤트 JS
 | `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED` | `0` | EventRecord file storage |
 | `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH` | `.media_server.va_events.jsonl` | JSON Lines path |
 | `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_QUEUE` | `2048` | storage queue 상한 |
+| `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_FILE_BYTES` | `0` | active JSON Lines 파일 size rotation 기준. `0`이면 rotation 비활성 |
+| `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_ARCHIVES` | `0` | 보관할 rotated archive 파일 수 상한. `0`이면 파일 수 retention 비활성 |
+| `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_TOTAL_BYTES` | `0` | rotated archive 전체 byte 상한. `0`이면 byte retention 비활성 |
+
+EventRecord storage는 metadata JSON Lines만 저장하며 Event POST payload와 EventRecord 저장 schema는 변경하지 않습니다. Rotation은 active 파일이 `MAX_FILE_BYTES`를 넘기기 전에 같은 디렉터리에 `<active-stem>.<timestamp-ms>.<sequence><ext>` 형식 archive로 이동합니다. 1차 records 조회 API는 active file 중심으로 유지하고, rotation/retention/recovery 상태는 `/lab/analysis/event-storage/status`에서 확인합니다.
 
 ### Snapshot / clip hook
 

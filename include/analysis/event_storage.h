@@ -96,12 +96,23 @@ private:
 struct EventStorageSnapshot {
     bool enabled{false};
     std::string path;
+    std::string active_path;
+    std::uint64_t active_file_size_bytes{0};
+    std::uint64_t archived_file_count{0};
+    std::uint64_t total_archive_bytes{0};
     std::size_t queue_size{0};
     std::size_t max_queue_size{0};
     std::uint64_t enqueued_count{0};
     std::uint64_t stored_count{0};
     std::uint64_t failed_count{0};
+    std::uint64_t write_failed_count{0};
     std::uint64_t dropped_count{0};
+    std::uint64_t skipped_corrupt_lines{0};
+    std::uint64_t rotated_count{0};
+    std::uint64_t rotation_failed_count{0};
+    std::uint64_t retention_deleted_count{0};
+    std::uint64_t retention_deleted_bytes{0};
+    std::uint64_t retention_failed_count{0};
     bool snapshot_hook_enabled{false};
     bool clip_hook_enabled{false};
     std::string snapshot_dir;

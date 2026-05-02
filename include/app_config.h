@@ -100,6 +100,12 @@ struct AppConfig {
     bool analysis_event_storage_enabled{app_config::kDefaultAnalysisEventStorageEnabled};
     std::string analysis_event_storage_path{app_config::kDefaultAnalysisEventStoragePath};
     std::size_t analysis_event_storage_max_queue{app_config::kDefaultAnalysisEventStorageMaxQueue};
+    std::size_t analysis_event_storage_max_file_bytes{
+        app_config::kDefaultAnalysisEventStorageMaxFileBytes};
+    std::size_t analysis_event_storage_max_archives{
+        app_config::kDefaultAnalysisEventStorageMaxArchives};
+    std::size_t analysis_event_storage_max_total_bytes{
+        app_config::kDefaultAnalysisEventStorageMaxTotalBytes};
     bool analysis_event_snapshot_hook_enabled{app_config::kDefaultAnalysisEventSnapshotHookEnabled};
     std::string analysis_event_snapshot_dir{app_config::kDefaultAnalysisEventSnapshotDir};
     bool analysis_event_clip_hook_enabled{app_config::kDefaultAnalysisEventClipHookEnabled};

@@ -114,11 +114,11 @@ Scenario는 여러 frame에 걸친 시간 조건과 상태 전이를 판단하�
 | --- | --- | --- |
 | Intrusion Dwell | 구현됨 | 룰 편집 UI에서 선택 가능 |
 | ReEntry | 구현됨 | 전용 UI 템플릿은 후속 작업 |
-| WrongDirection | 구현됨 | 전용 UI 템플릿은 후속 작업 |
+| WrongDirection | 구현됨 | 룰 편집 UI에서 선택 가능 |
 | IntrusionAfterLineCrossing | 구현됨 | 전용 UI 템플릿은 후속 작업 |
 | Loitering | 구현됨 | 전용 UI 템플릿은 후속 작업 |
 
-현재 UI의 시나리오 템플릿은 `Intrusion Dwell · 제한구역 체류`를 중심으로 구성되어 있습니다.
+현재 UI의 시나리오 템플릿은 `Intrusion Dwell · 제한구역 체류`와 `WrongDirection · 금지 방향 통과`를 제공합니다. WrongDirection은 line 2점 geometry와 `forward`/`reverse` 허용 방향을 설정하며, `any` 방향은 위반 방향을 정의할 수 없으므로 사용하지 않습니다. 기존 `line-crossing` 기본 이벤트와 별도 scenario event로 동작하고 Event POST payload schema는 유지합니다.
 
 Intrusion Dwell UI 항목:
 
@@ -310,6 +310,7 @@ VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보
 - 발생 / 중복 억제 이벤트 수
 - Events: 최근 event, eventType, trackId, class/rule, zone/line, status
 - Metadata / Backpressure: WebRTC DataChannel sent/dropped/skipped/failure, max buffered amount, SSE/WS client count, metadata JSON build/payload size, RTSP/GStreamer debug counter 요약, analytics queue pending/capacity/peak/drop, client stale/fallback count
+- Trend / Stale / Cleanup: Dashboard client-side 최근 60개 sample 기준 active count, metadata counter, queue, RTSP/GStreamer counter의 delta/min/max와 stale/cleanup warning badge
 - Tracking Issues: issue type, trackId, severity, timestamp, health/guard 요약. close-object diagnostic이 켜져 있으면 close-object-risk, low-margin-association, center-jump-risk, reacquire candidate를 함께 보여줌
 - TrackHealth unstable count
 - overlapRisk count
@@ -332,6 +333,7 @@ drill-down 사용법:
 - Events는 선택 tap의 `/events` buffer를 받아 최근 event를 표시합니다. 선택 rule이 있으면 해당 rule의 recent event만 vaRule Runtime Debug 카드에 반영합니다.
 - Event Records는 저장된 EventRecord metadata를 수동 검색하는 접힘 섹션입니다. `eventType`, `streamId`, `channelId`, `trackId`, `scenarioName`, `status`, `startTimeMs`, `endTimeMs`, `limit` filter를 입력하고 검색 버튼을 눌렀을 때만 `/lab/analysis/events/records`를 호출합니다. 결과 table은 eventId, eventType, startTime/status, stream/channel, track/class, zone/line, scenario/phase, snapshotPath/clipPath placeholder를 보여주며, eventId를 선택하면 detail 영역에서 원본 JSON을 확인합니다. 영상 재생, snapshot 추출, clip recorder 제어는 제공하지 않습니다.
 - Metadata / Backpressure는 WebRTC DataChannel sent/dropped/skipped/failure, max buffered amount, SSE/WS client count, 선택 tap의 analytics queue pending/capacity/peak/drop, `debugCounters`의 metadata JSON build/payload size, RTSP lifecycle/pending queue/appsrc/flow return/fanout balance를 읽기 전용으로 요약합니다. count 불균형, cleanup 잔여, failure가 관찰되면 warning badge로 표시합니다. 현재 endpoint가 제공하지 않는 SSE/WS sent/drop/failure 누적값, 서버 dashboard polling count, live RSS는 `미제공` 또는 `longrun report에서 확인`으로 표시합니다.
+- Trend / Stale / Cleanup은 새 backend endpoint 없이 Dashboard가 이미 polling한 payload를 브라우저 client-side bounded buffer에 저장해 최근 변화만 보여줍니다. metadata 수신 age, video frame age, overlay draw age, DataChannel open 상태, SSE/WS client 존재 여부, 보기 중지 후 activeSessions/activeStreams/activeAnalysisTaps/SSE/WS/RTSP 잔류를 warning badge로 표시합니다. Dashboard tab이 비활성화되면 sample도 더 이상 추가되지 않습니다.
 - Runtime Dashboard의 RSS 표시는 장시간 검증 결과나 longrun report를 대체하지 않습니다. Runtime Console RSS는 해제 가능 후보 상태로 정리했지만 active 구간 high-water 관찰은 유지하며, stable 승격은 verify-predev 30분 이후 별도 판단합니다. live dashboard 패널은 RTSP/GStreamer egress 또는 Full fanout 후보를 좁히기 위한 운영 관찰 보조 화면입니다.
 
 대시보드 탭이 닫혀 있을 때는 polling하지 않습니다. 자동 갱신은 최소 2초 이상 간격으로 동작해 다채널 분석 성능에 부담을 주지 않도록 제한합니다.
