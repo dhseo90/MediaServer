@@ -433,7 +433,7 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records?eventType=presence&
 - 구현 완료: 내부 `VaRuntimeMetadataFrame` 구조와 builder
 - 구현 완료: WebRTC DataChannel 호환 serializer
 - 구현 완료: SSE/WebSocket side-channel용 runtime metadata JSON 직렬화
-- 구현 완료: Lab 런타임 대시보드의 Overview/Tracks/Scenarios/Events/Metadata/Tracking Issues drill-down 1차 표시
+- 구현 완료: Lab 런타임 대시보드의 Overview/Tracks/Scenarios/Scenario Timeline/Events/Metadata/Tracking Issues drill-down 1차 표시
 - 구현 완료: Runtime Dashboard 내부 vaRule Runtime Debug 1차 패널
 - 구현 완료: SSE metadata side-channel 수신 중심 custom client 예제
 - 예정: phase entered time/cooldown remaining을 포함한 정밀 scenario timeline, WebSocket command/filter/subscribe-unsubscribe 제어, custom client overlay renderer
@@ -755,7 +755,7 @@ Debug 출력은 내부 상태 확인용이며 기존 event JSON/API/POST 형식�
 Lab의 VA 런타임 대시보드는 위 endpoint와 `/lab/runtime/status`, event POST/storage status endpoint를 재사용해 운영 상태를 카드, table, raw JSON으로 표시합니다. 1차 drill-down은 Overview, vaRule Runtime Debug, Tracks, Scenarios, Scenario Timeline, Events, Metadata, Tracking Issues 영역으로 나뉩니다.
 대시보드 탭이 닫혀 있을 때는 polling하지 않으며, 자동 갱신은 최소 2초 이상 간격으로 제한합니다.
 
-Scenario Timeline은 scenario 판단 로직이나 기존 event JSON/API/POST 형식을 바꾸지 않고, 현재 `state-dump`의 track별 `scenarioName`, `scenarioPhase`, zone/line 상태와 `/events` buffer를 조합해 active scenario instance를 디버그용으로 보여줍니다. Candidate/Observing/Confirmed/Cooldown/Ended 같은 phase는 운영자가 상태 전이를 빠르게 구분하기 위한 표시이며, event emit/cooldown 판단 자체는 ScenarioEngine과 EventManager의 기존 로직을 따릅니다.
+Scenario Timeline은 scenario 판단 로직이나 기존 event JSON/API/POST 형식을 바꾸지 않고, 현재 `state-dump`의 track별 `scenarioName`, `scenarioPhase`, zone/line 상태와 `/events` buffer를 조합해 active scenario instance를 디버그용으로 보여줍니다. Candidate/Observing/Confirmed/Cooldown/Ended 같은 phase는 운영자가 상태 전이를 빠르게 구분하기 위한 표시이며, event emitted/dedup 표시는 기존 EventManager metrics와 recent event buffer를 읽기 전용으로 요약합니다. event emit/cooldown 판단 자체는 ScenarioEngine과 EventManager의 기존 로직을 따릅니다.
 
 현재 vaRule Runtime Debug와 Scenarios/Scenario Timeline table은 state-dump/metrics에 이미 노출된 값만 사용합니다. phase entered time, cooldown remaining 같은 정밀 timeline 필드는 후속 endpoint 또는 state-dump 확장 없이는 표시하지 않습니다.
 
