@@ -3380,6 +3380,15 @@ std::string BuildLabRuleEditorPageHtml() {
       justify-content: flex-end;
       gap: 8px;
     }
+    .dashboard-header-actions {
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+    .dashboard-header-actions #dashboardStatusText {
+      max-width: 360px;
+      text-align: right;
+    }
 	    .management-toolbar .toolbar-actions button {
 	      width: auto;
 	      min-width: 120px;
@@ -4119,7 +4128,7 @@ std::string BuildLabRuleEditorPageHtml() {
     }
     .dashboard-toolbar {
       display: grid;
-      grid-template-columns: 1.2fr 1.2fr 1fr auto auto;
+      grid-template-columns: 1.2fr 1.2fr 1fr auto;
       gap: 10px;
       align-items: end;
     }
@@ -4223,6 +4232,29 @@ std::string BuildLabRuleEditorPageHtml() {
       min-height: 24px;
       padding: 3px 8px;
       font-size: 11px;
+    }
+    .dashboard-track-table {
+      table-layout: fixed;
+      min-width: 900px;
+    }
+    .dashboard-track-table th:nth-child(1),
+    .dashboard-track-table td:nth-child(1) { width: 72px; }
+    .dashboard-track-table th:nth-child(2),
+    .dashboard-track-table td:nth-child(2) { width: 150px; }
+    .dashboard-track-table th:nth-child(3),
+    .dashboard-track-table td:nth-child(3) { width: 110px; }
+    .dashboard-track-table th:nth-child(4),
+    .dashboard-track-table td:nth-child(4) { width: 160px; }
+    .dashboard-track-table th:nth-child(5),
+    .dashboard-track-table td:nth-child(5) { width: 150px; }
+    .dashboard-track-table th:nth-child(6),
+    .dashboard-track-table td:nth-child(6) { width: 258px; }
+    .dashboard-track-table td:nth-child(4),
+    .dashboard-track-table td:nth-child(5),
+    .dashboard-track-table td:nth-child(6) {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      line-height: 1.35;
     }
     .event-records-details {
       display: grid;
@@ -4731,6 +4763,8 @@ std::string BuildLabRuleEditorPageHtml() {
       .phase-strip, .metric-grid, .scenario-readiness, .rule-tabs, .url-grid, .output-policy-grid, .summary-grid, .geometry-status-grid, .viewer-status-grid, .metadata-status-grid, .metadata-overlay-controls, .dashboard-toolbar, .dashboard-card-grid, .dashboard-json-grid, .event-record-filter-grid, .rule-list-controls { grid-template-columns: 1fr 1fr; }
       .management-toolbar { grid-template-columns: 1fr; }
       .management-toolbar .toolbar-actions { justify-content: flex-start; }
+      .dashboard-header-actions { align-items: flex-start; }
+      .dashboard-header-actions #dashboardStatusText { text-align: left; }
       .rule-row {
         grid-template-columns: 72px minmax(0, 1fr);
       }
@@ -5423,8 +5457,8 @@ std::string BuildLabRuleEditorPageHtml() {
               <p class="form-note">Detector 원본 bbox를 켜면 점선은 Lab 진단 endpoint의 detector raw 결과이고, 실선은 현재 selected DataChannel payload를 기준으로 그립니다.</p>
               <div class="dashboard-table-wrap">
                 <table class="dashboard-table" aria-label="BBox detector track comparison">
-                  <thead><tr><th>track</th><th>confidence</th><th>DC selected</th><th>detector raw</th><th>track</th><th>det↔DC</th><th>track↔DC</th><th>continuity</th><th>TrackHealth</th><th>판단</th></tr></thead>
-                  <tbody id="metadataBboxDiagnosticRows"><tr><td class="dashboard-empty-cell" colspan="10">BBox 진단 갱신을 누르면 detector/track 비교를 표시합니다.</td></tr></tbody>
+                  <thead><tr><th>track</th><th>confidence</th><th>DC selected</th><th>detector raw</th><th>track</th><th>det↔DC</th><th>track↔DC</th><th>continuity</th><th>TrackHealth</th><th>close-object guard</th><th>판단</th></tr></thead>
+                  <tbody id="metadataBboxDiagnosticRows"><tr><td class="dashboard-empty-cell" colspan="11">BBox 진단 갱신을 누르면 detector/track 비교를 표시합니다.</td></tr></tbody>
                 </table>
               </div>
             </div>
@@ -5620,8 +5654,9 @@ std::string BuildLabRuleEditorPageHtml() {
               <h2>VA 런타임 대시보드</h2>
               <p class="hint">실시간 분석 서버 상태를 보는 운영용 화면입니다. 대시보드 탭이 열려 있을 때만 주기적으로 갱신합니다.</p>
             </div>
-            <div class="toolbar-actions">
+            <div class="toolbar-actions dashboard-header-actions">
               <button id="dashboardRefreshBtn" type="button" class="secondary">새로고침</button>
+              <p id="dashboardStatusText" class="form-note">대시보드 대기 중</p>
             </div>
           </div>
           <div class="dashboard-toolbar">
@@ -5643,7 +5678,6 @@ std::string BuildLabRuleEditorPageHtml() {
               <input id="dashboardAutoRefreshInput" type="checkbox" checked />
               자동 갱신
             </label>
-            <p id="dashboardStatusText" class="form-note">대시보드 대기 중</p>
           </div>
           <div class="dashboard-drilldown">
             <section class="dashboard-drilldown-section" aria-labelledby="dashboardOverviewTitle">
@@ -5692,7 +5726,7 @@ std::string BuildLabRuleEditorPageHtml() {
                 <p id="dashboardTracksSummary" class="dashboard-section-summary">track 없음</p>
               </div>
               <div class="dashboard-table-wrap">
-                <table class="dashboard-table" aria-label="Track drill-down">
+                <table class="dashboard-table dashboard-track-table" aria-label="Track drill-down">
                   <thead><tr><th>Track</th><th>Class</th><th>Lifecycle</th><th>Zone</th><th>Dwell</th><th>TrackHealth</th></tr></thead>
                   <tbody id="dashboardTrackRows"><tr><td class="dashboard-empty-cell" colspan="6">tap을 선택하면 track 목록이 표시됩니다.</td></tr></tbody>
                 </table>
@@ -5848,7 +5882,7 @@ std::string BuildLabRuleEditorPageHtml() {
               </div>
               <div class="dashboard-table-wrap">
                 <table class="dashboard-table" aria-label="Tracking issue drill-down">
-                  <thead><tr><th>Type</th><th>Track</th><th>Class</th><th>Severity</th><th>Timestamp</th><th>Health</th></tr></thead>
+                  <thead><tr><th>Type</th><th>Track</th><th>Class</th><th>Severity</th><th>Timestamp</th><th>Health / Guard</th></tr></thead>
                   <tbody id="dashboardIssueRows"><tr><td class="dashboard-empty-cell" colspan="6">tracking issue report가 표시됩니다.</td></tr></tbody>
                 </table>
               </div>
@@ -8651,10 +8685,20 @@ std::string BuildLabRuleEditorPageHtml() {
       const assoc = metadataOptionalNumber(health.associationConfidence);
       const overlap = metadataOptionalNumber(health.overlapRisk);
       const missed = metadataOptionalNumber(health.missedFrameCount ?? resultTrack?.missed);
+      const directionChanges = metadataOptionalNumber(health.directionChangeCount);
       const lost = metadataOptionalNumber(health.lostCount ?? runtimeTrack?.lostCount ?? debugTrack?.lostCount);
       const reacquired = metadataOptionalNumber(health.reacquiredCount ?? runtimeTrack?.reacquiredCount ?? debugTrack?.reacquiredCount);
       const state = String(runtimeTrack?.lifecycleState || resultTrack?.state || '').trim();
       const status = String(health.status || '').trim();
+      const reasons = [];
+      if (status && status.toLowerCase().includes('unstable')) reasons.push('status unstable');
+      if (health.stable === false) reasons.push('stable=false');
+      if (Number.isFinite(assoc) && assoc < 0.8) reasons.push('assoc 낮음');
+      if (Number.isFinite(overlap) && overlap >= 0.2) reasons.push('overlap 높음');
+      if (Number.isFinite(missed) && missed > 0) reasons.push('missed 증가');
+      if (Number.isFinite(directionChanges) && directionChanges > 0) reasons.push('direction 변화');
+      if (Number.isFinite(lost) && lost > 0) reasons.push('lost 이력');
+      if (Number.isFinite(reacquired) && reacquired > 0) reasons.push('reacquired 이력');
       return {
         status,
         state,
@@ -8662,9 +8706,67 @@ std::string BuildLabRuleEditorPageHtml() {
         associationConfidence: assoc,
         overlapRisk: overlap,
         missedFrameCount: missed,
+        directionChangeCount: directionChanges,
         lostCount: lost,
-        reacquiredCount: reacquired
+        reacquiredCount: reacquired,
+        unstableReason: reasons.join(' · ')
       };
+    }
+
+    function metadataMapCloseObjectDiagnostics(items) {
+      const map = new Map();
+      for (const item of Array.isArray(items) ? items : []) {
+        const trackId = metadataItemTrackId(item);
+        if (trackId <= 0) continue;
+        const current = map.get(trackId);
+        const currentRisk = metadataOptionalNumber(current?.closeObjectRisk) ?? -1;
+        const nextRisk = metadataOptionalNumber(item?.closeObjectRisk) ?? -1;
+        if (!current || item?.matched === true || (!current.matched && nextRisk > currentRisk)) {
+          map.set(trackId, item);
+        }
+      }
+      return map;
+    }
+
+    function metadataNormalizedDistance(normalized, frameSize) {
+      const value = metadataOptionalNumber(normalized);
+      if (!Number.isFinite(value)) return null;
+      const width = Number(frameSize?.width || 0);
+      const height = Number(frameSize?.height || 0);
+      const pixels = width > 0 && height > 0
+        ? value * Math.sqrt(width * width + height * height)
+        : null;
+      return { normalized: value, pixels };
+    }
+
+    function metadataGuardModeLabel(guard = null, guardInfo = null) {
+      const rawMode = String(guard?.mode || guardInfo?.mode || 'off').trim().toLowerCase();
+      if (rawMode === 'diagnostic') return 'diagnostic-only · score 변경 없음';
+      if (rawMode === 'enforce') return 'score 보정 적용 중';
+      return 'guard off';
+    }
+
+    function metadataFormatOptionalNumber(value, digits = 2) {
+      const number = metadataOptionalNumber(value);
+      return Number.isFinite(number) ? number.toFixed(digits) : '미제공';
+    }
+
+    function metadataFormatOptionalBool(value) {
+      if (value === true) return 'true';
+      if (value === false) return 'false';
+      return '미제공';
+    }
+
+    function metadataGuardNeedsWatch(guard) {
+      if (!guard) return false;
+      if (guard.wouldPenalize === true || guard.wouldHoldReacquire === true) return true;
+      const risk = metadataOptionalNumber(guard.closeObjectRisk);
+      const margin = metadataOptionalNumber(guard.scoreMargin);
+      const centerJump = metadataOptionalNumber(guard.centerJump);
+      return (Number.isFinite(risk) && risk >= 0.25) ||
+        (Number.isFinite(margin) && margin <= 0.08) ||
+        (Number.isFinite(centerJump) && centerJump >= 0.08) ||
+        guard.directionConflict === true;
     }
 
     function metadataTrackContinuityDetails(runtimeTrack, payload, frameSize) {
@@ -8718,7 +8820,8 @@ std::string BuildLabRuleEditorPageHtml() {
       }
       if ((Number.isFinite(details.detectorIou) && details.detectorIou < 0.75) ||
           metadataHealthNeedsWatch(details.health) ||
-          metadataContinuityNeedsWatch(details.continuity, details.health)) {
+          metadataContinuityNeedsWatch(details.continuity, details.health) ||
+          metadataGuardNeedsWatch(details.guard)) {
         return 'watch';
       }
       return 'ok';
@@ -8730,6 +8833,7 @@ std::string BuildLabRuleEditorPageHtml() {
       if (!details.trackBox) return 'track box 없음';
       if (Number.isFinite(details.trackIou) && details.trackIou < 0.75) return 'metadata path 차이 의심';
       if (metadataContinuityNeedsWatch(details.continuity, details.health)) return 'ID swap 관찰 필요';
+      if (metadataGuardNeedsWatch(details.guard)) return 'close-object guard 관찰';
       if (metadataHealthNeedsWatch(details.health)) return 'TrackHealth 관찰';
       if (!Number.isFinite(details.detectorIou)) return '비교 불가';
       if (details.detectorIou >= 0.75) return 'bbox 일치';
@@ -8745,6 +8849,8 @@ std::string BuildLabRuleEditorPageHtml() {
       const resultTracks = Array.isArray(result.tracks) ? result.tracks : [];
       const debugTracks = Array.isArray(result.debugState?.tracks) ? result.debugState.tracks : [];
       const dataChannelTracks = Array.isArray(payload?.tracks) ? payload.tracks : [];
+      const closeObjectById = metadataMapCloseObjectDiagnostics(tap?.closeObjectDiagnostics);
+      const closeObjectGuard = tap?.closeObjectGuard || null;
       const detectorById = metadataMapByTrackId(detectorDetections);
       const detectionById = metadataMapByTrackId(detections);
       const resultTrackById = metadataMapByTrackId(resultTracks);
@@ -8768,6 +8874,7 @@ std::string BuildLabRuleEditorPageHtml() {
         const trackDistance = metadataBboxCenterDistance(runtimeBox, trackBox, frameSize);
         const continuity = metadataTrackContinuityDetails(runtimeTrack, payload, frameSize);
         const health = metadataTrackHealthDetails(runtimeTrack, debugTrack, resultTrack);
+        const guard = closeObjectById.get(trackId) || null;
         const details = {
           runtimeBox,
           detectorBox,
@@ -8777,7 +8884,8 @@ std::string BuildLabRuleEditorPageHtml() {
           detectorDistance,
           trackDistance,
           continuity,
-          health
+          health,
+          guard
         };
         const level = metadataDiagnosticLevel(details);
         rows.push({
@@ -8792,6 +8900,8 @@ std::string BuildLabRuleEditorPageHtml() {
           trackDistance,
           continuity,
           health,
+          guard,
+          guardInfo: closeObjectGuard,
           level,
           verdict: metadataDiagnosticVerdict(details)
         });
@@ -8816,13 +8926,16 @@ std::string BuildLabRuleEditorPageHtml() {
           trackDistance: null,
           continuity: null,
           health: metadataTrackHealthDetails(null, debugTrack, resultTrack),
+          guard: closeObjectById.get(trackId) || null,
+          guardInfo: closeObjectGuard,
           level: 'warning',
           verdict: metadataDiagnosticVerdict({
             runtimeBox: null,
             detectorBox,
             trackBox,
             detectorIou: null,
-            trackIou: null
+            trackIou: null,
+            guard: closeObjectById.get(trackId) || null
           })
         });
       }
@@ -8847,10 +8960,38 @@ std::string BuildLabRuleEditorPageHtml() {
       if (Number.isFinite(health.associationConfidence)) parts.push(`assoc ${health.associationConfidence.toFixed(2)}`);
       if (Number.isFinite(health.overlapRisk)) parts.push(`overlap ${health.overlapRisk.toFixed(2)}`);
       if (Number.isFinite(health.missedFrameCount)) parts.push(`missed ${Math.round(health.missedFrameCount)}`);
+      if (Number.isFinite(health.directionChangeCount)) parts.push(`direction ${Math.round(health.directionChangeCount)}`);
       const lost = Number.isFinite(health.lostCount) ? Math.round(health.lostCount) : '-';
       const reacquired = Number.isFinite(health.reacquiredCount) ? Math.round(health.reacquiredCount) : '-';
       parts.push(`lost/reacq ${lost}/${reacquired}`);
+      if (health.unstableReason) parts.push(`reason ${health.unstableReason}`);
       return parts.join(' · ');
+    }
+
+    function metadataFormatCloseObjectGuard(guard, guardInfo, frameSize) {
+      const modeLabel = metadataGuardModeLabel(guard, guardInfo);
+      if (!guard) {
+        return modeLabel === 'guard off' ? modeLabel : `${modeLabel} · 값 미제공`;
+      }
+      const parts = [];
+      parts.push(metadataGuardModeLabel(guard, guardInfo));
+      parts.push(`risk ${metadataFormatOptionalNumber(guard.closeObjectRisk)}`);
+      const nearestId = Number(guard.nearestSameClassTrackId || 0);
+      const nearest = metadataNormalizedDistance(guard.nearestSameClassDistance, frameSize);
+      parts.push(nearestId > 0 ? `nearest #${nearestId}` : 'nearest 미제공');
+      parts.push(nearest ? `nearestDist ${metadataFormatDistance(nearest)}` : 'nearestDist 미제공');
+      parts.push(`candidate ${metadataFormatOptionalNumber(guard.candidateScore)}`);
+      parts.push(`best ${metadataFormatOptionalNumber(guard.bestScore)}`);
+      parts.push(`second ${metadataFormatOptionalNumber(guard.secondScore)}`);
+      parts.push(`margin ${metadataFormatOptionalNumber(guard.scoreMargin)}`);
+      const centerJump = metadataNormalizedDistance(guard.centerJump, frameSize);
+      parts.push(centerJump ? `jump ${metadataFormatDistance(centerJump)}` : 'jump 미제공');
+      parts.push(`directionConflict ${metadataFormatOptionalBool(guard.directionConflict)}`);
+      parts.push(`wouldPenalize ${metadataFormatOptionalBool(guard.wouldPenalize)}`);
+      parts.push(`wouldHoldReacquire ${metadataFormatOptionalBool(guard.wouldHoldReacquire)}`);
+      parts.push(`applied ${metadataFormatOptionalBool(guard.closeObjectGuardApplied)}`);
+      parts.push(`decision ${guard.guardDecision || '미제공'}`);
+      return parts.join(' · ') || '-';
     }
 
     function renderMetadataBboxDiagnostics(rows = [], state = '') {
@@ -8862,7 +9003,7 @@ std::string BuildLabRuleEditorPageHtml() {
         const row = document.createElement('tr');
         const cell = document.createElement('td');
         cell.className = 'dashboard-empty-cell';
-        cell.colSpan = 10;
+        cell.colSpan = 11;
         cell.textContent = state || 'BBox 진단 갱신을 누르면 detector/track 비교를 표시합니다.';
         row.appendChild(cell);
         tbody.appendChild(row);
@@ -8885,6 +9026,7 @@ std::string BuildLabRuleEditorPageHtml() {
           metadataFormatIouDistance(item.trackIou, item.trackDistance),
           metadataFormatContinuity(item.continuity),
           metadataFormatHealthDetails(item.health),
+          metadataFormatCloseObjectGuard(item.guard, item.guardInfo, metadataFrameSize(viewMetadataLatestPayload)),
           item.verdict
         ];
         for (const value of cells) {
@@ -8934,7 +9076,9 @@ std::string BuildLabRuleEditorPageHtml() {
       const diagnosticTap = {
         ...tap,
         latestResult: diagnostics.result,
-        detectorDetections: diagnostics.detectorDetections || []
+        detectorDetections: diagnostics.detectorDetections || [],
+        closeObjectGuard: diagnostics.closeObjectGuard || null,
+        closeObjectDiagnostics: diagnostics.closeObjectDiagnostics || []
       };
       const rows = metadataBuildBboxDiagnosticRows(diagnosticTap, payload);
       const tapPtsMs = metadataNumber(diagnostics.matchedPtsMs);
@@ -8942,10 +9086,12 @@ std::string BuildLabRuleEditorPageHtml() {
         tapId: tap.tapId || '',
         ptsMs: tapPtsMs,
         detectorDetections: diagnostics.detectorDetections || [],
+        closeObjectGuard: diagnostics.closeObjectGuard || null,
+        closeObjectDiagnostics: diagnostics.closeObjectDiagnostics || [],
         rows
       };
       const deltaText = metadataNumber(diagnostics.matchedDeltaMs) !== null ? ` · matched delta ${diagnostics.matchedDeltaMs}ms` : '';
-      renderMetadataBboxDiagnostics(rows, `${tap.tapId || 'tap'} · detector ${viewMetadataBboxDiagnostics.detectorDetections.length} · rows ${rows.length}${deltaText}`);
+      renderMetadataBboxDiagnostics(rows, `${tap.tapId || 'tap'} · detector ${viewMetadataBboxDiagnostics.detectorDetections.length} · guard ${viewMetadataBboxDiagnostics.closeObjectDiagnostics.length} · rows ${rows.length}${deltaText}`);
       scheduleMetadataOverlayFrame();
     }
 
@@ -10841,21 +10987,114 @@ std::string BuildLabRuleEditorPageHtml() {
       );
     }
 
-    function renderDashboardIssues(tapMetrics) {
+    function dashboardGuardModeLabel(guard = null) {
+      const mode = String(guard?.mode || 'off').toLowerCase();
+      if (mode === 'diagnostic') return '진단 전용';
+      if (mode === 'enforce') return '보정 적용';
+      return 'guard off';
+    }
+
+    function dashboardOptionalFixed(value, digits = 2) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number.toFixed(digits) : '미제공';
+    }
+
+    function dashboardNormalizedDistance(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return '미제공';
+      return number >= 0.01 ? number.toFixed(3) : number.toFixed(4);
+    }
+
+    function dashboardCloseObjectIssueLabel(diagnostic) {
+      const labels = [];
+      const risk = Number(diagnostic?.closeObjectRisk);
+      const margin = Number(diagnostic?.scoreMargin);
+      const centerJump = Number(diagnostic?.centerJump);
+      if (diagnostic?.wouldHoldReacquire === true) labels.push('근접 객체 재획득 후보(close-object reacquire candidate)');
+      if (Number.isFinite(risk) && risk >= 0.25) labels.push('근접 객체 위험(close-object-risk)');
+      if (Number.isFinite(margin) && margin <= 0.08) labels.push('낮은 score margin(low-margin-association)');
+      if (Number.isFinite(centerJump) && centerJump >= 0.08) labels.push('center jump 위험(center-jump-risk)');
+      if (diagnostic?.directionConflict === true) labels.push('방향 충돌(direction-conflict)');
+      if (!labels.length) labels.push('close-object 관찰');
+      return labels.join(' · ');
+    }
+
+    function dashboardCloseObjectSeverity(diagnostic) {
+      const risk = Number(diagnostic?.closeObjectRisk);
+      if (diagnostic?.wouldHoldReacquire === true || diagnostic?.wouldPenalize === true ||
+          (Number.isFinite(risk) && risk >= 0.45)) {
+        return 'warning';
+      }
+      return 'watch';
+    }
+
+    function dashboardTrackHealthById(stateDump) {
+      const map = new Map();
+      for (const track of dashboardDebugTracks(stateDump)) {
+        const trackId = Number(track?.trackId || 0);
+        if (trackId > 0) map.set(trackId, track);
+      }
+      return map;
+    }
+
+    function dashboardCloseObjectIssueRows(tapMetrics, stateDump) {
+      const diagnostics = Array.isArray(tapMetrics?.closeObjectDiagnostics) ? tapMetrics.closeObjectDiagnostics : [];
+      const guard = tapMetrics?.closeObjectGuard || {};
+      const guardLabel = dashboardGuardModeLabel(guard);
+      const trackById = dashboardTrackHealthById(stateDump);
+      return diagnostics.slice(0, 64).map((diagnostic) => {
+        const trackId = Number(diagnostic?.trackId || 0);
+        const track = trackById.get(trackId) || {};
+        const health = track.trackHealth || {};
+        const lost = health.lostCount ?? track.lostCount;
+        const reacquired = health.reacquiredCount ?? track.reacquiredCount;
+        const details = [
+          `${guardLabel}`,
+          `risk ${dashboardOptionalFixed(diagnostic?.closeObjectRisk)}`,
+          `margin ${dashboardOptionalFixed(diagnostic?.scoreMargin)}`,
+          `jump ${dashboardNormalizedDistance(diagnostic?.centerJump)}`,
+          `assoc ${dashboardConfidence(health.associationConfidence ?? track.associationConfidence)}`,
+          `overlap ${dashboardOptionalFixed(health.overlapRisk ?? track.overlapRisk)}`,
+          `missed ${health.missedFrameCount ?? track.missedFrameCount ?? '미제공'}`,
+          `lost/reacq ${lost ?? '미제공'}/${reacquired ?? '미제공'}`,
+          `direction ${health.directionChangeCount ?? track.directionChangeCount ?? '미제공'}`,
+          `decision ${diagnostic?.guardDecision || '미제공'}`
+        ];
+        return {
+          type: dashboardCloseObjectIssueLabel(diagnostic),
+          trackId: trackId || '-',
+          className: diagnostic?.className || track.className || '-',
+          severity: dashboardCloseObjectSeverity(diagnostic),
+          timestampMs: tapMetrics?.metricsReport?.timestampMs,
+          healthText: details.join(' · ')
+        };
+      });
+    }
+
+    function renderDashboardIssues(tapMetrics, stateDump) {
       const report = tapMetrics?.trackingIssueReport || {};
       const issues = Array.isArray(report.issues) ? report.issues : [];
+      const closeObjectIssues = dashboardCloseObjectIssueRows(tapMetrics, stateDump);
+      const guardLabel = dashboardGuardModeLabel(tapMetrics?.closeObjectGuard);
       dashboardSet(
         'dashboardIssuesSummary',
-        `total ${report.totalIssues ?? 0} · retained ${report.retainedIssues ?? issues.length} · rate-limited ${report.rateLimitedCount ?? 0}`
+        `total ${(report.totalIssues ?? issues.length) + closeObjectIssues.length} · retained ${(report.retainedIssues ?? issues.length) + closeObjectIssues.length} · close-object ${closeObjectIssues.length} · ${guardLabel} · rate-limited ${report.rateLimitedCount ?? 0}`
       );
       const tbody = dashboardRowsStart('dashboardIssueRows');
-      if (!tbody || issues.length === 0) {
-        dashboardSetEmptyRows('dashboardIssueRows', 6, 'tracking issue가 없습니다.');
+      if (!tbody || (issues.length === 0 && closeObjectIssues.length === 0)) {
+        dashboardSetEmptyRows('dashboardIssueRows', 6, `tracking issue가 없습니다. · ${guardLabel}`);
         return;
       }
       for (const issue of issues.slice(0, 100)) {
         const health = issue.trackHealth || {};
-        const healthText = `assoc ${dashboardConfidence(health.associationConfidence)} · missed ${health.missedFrameCount ?? 0}`;
+        const healthText = [
+          `assoc ${dashboardConfidence(health.associationConfidence)}`,
+          `overlap ${dashboardOptionalFixed(health.overlapRisk)}`,
+          `missed ${health.missedFrameCount ?? 0}`,
+          `lost/reacq ${health.lostCount ?? '미제공'}/${health.reacquiredCount ?? '미제공'}`,
+          `direction ${health.directionChangeCount ?? '미제공'}`,
+          guardLabel
+        ].join(' · ');
         dashboardAppendRow('dashboardIssueRows', [
           issue.type || '-',
           issue.trackId ?? '-',
@@ -10863,6 +11102,16 @@ std::string BuildLabRuleEditorPageHtml() {
           dashboardChip(issue.severity || '-', issue.severity === 'warning' ? 'warning' : 'muted'),
           dashboardTimestamp(issue.timestampMs),
           healthText,
+        ]);
+      }
+      for (const issue of closeObjectIssues.slice(0, Math.max(0, 100 - issues.length))) {
+        dashboardAppendRow('dashboardIssueRows', [
+          issue.type,
+          issue.trackId,
+          issue.className,
+          dashboardChip(issue.severity, issue.severity === 'warning' ? 'warning' : 'muted'),
+          dashboardTimestamp(issue.timestampMs),
+          issue.healthText,
         ]);
       }
     }
@@ -10914,11 +11163,22 @@ std::string BuildLabRuleEditorPageHtml() {
 	      renderDashboardScenarios(stateDump, tapMetrics, selectedTap);
 	      renderDashboardScenarioTimeline(stateDump, tapMetrics, selectedTap);
 	      renderDashboardMetadata(runtime, tapMetrics, tapsPayload);
-	      renderDashboardIssues(tapMetrics);
+	      renderDashboardIssues(tapMetrics, stateDump);
       const statePre = $('dashboardStateDumpJson');
       if (statePre) statePre.textContent = dashboardPrettyJson(stateDump, 'tap을 선택하면 상태 덤프가 표시됩니다.');
       const issuePre = $('dashboardTrackingIssueReport');
-      if (issuePre) issuePre.textContent = dashboardPrettyJson(tapMetrics?.trackingIssueReport, 'tracking issue report 없음');
+      if (issuePre) {
+        const closeObjectRaw = tapMetrics
+          ? {
+              trackingIssueReport: tapMetrics.trackingIssueReport || null,
+              closeObjectGuard: tapMetrics.closeObjectGuard || { mode: 'off', label: 'guard off' },
+              closeObjectDiagnostics: Array.isArray(tapMetrics.closeObjectDiagnostics)
+                ? tapMetrics.closeObjectDiagnostics
+                : []
+            }
+          : null;
+        issuePre.textContent = dashboardPrettyJson(closeObjectRaw, 'tracking issue report 없음');
+      }
     }
 
     async function refreshDashboard(options = {}) {
@@ -12621,6 +12881,63 @@ std::string DetectorDetectionJson(const analysis::Detection& detection) {
     return DetectionJson(copy);
 }
 
+std::string CloseObjectAssociationDiagnosticJson(
+    const analysis::CloseObjectAssociationDiagnostic& diagnostic) {
+    const bool close_object_guard_applied =
+        diagnostic.mode == "enforce" && diagnostic.ranking_score != diagnostic.candidate_score;
+    std::ostringstream out;
+    out << "{"
+        << "\"trackId\":" << diagnostic.track_id << ","
+        << "\"detectionIndex\":" << diagnostic.detection_index << ","
+        << "\"classId\":" << diagnostic.class_id << ","
+        << "\"className\":\"" << JsonEscape(diagnostic.class_name) << "\","
+        << "\"mode\":\"" << JsonEscape(diagnostic.mode) << "\","
+        << "\"closeObjectRisk\":" << diagnostic.close_object_risk << ","
+        << "\"nearestSameClassTrackId\":" << diagnostic.nearest_same_class_track_id << ","
+        << "\"nearestSameClassDistance\":";
+    if (diagnostic.nearest_same_class_distance_available) {
+        out << diagnostic.nearest_same_class_distance;
+    } else {
+        out << "null";
+    }
+    out << ","
+        << "\"candidateScore\":" << diagnostic.candidate_score << ","
+        << "\"rankingScore\":" << diagnostic.ranking_score << ","
+        << "\"bestScore\":" << diagnostic.best_score << ","
+        << "\"secondScore\":" << diagnostic.second_score << ","
+        << "\"scoreMargin\":" << diagnostic.score_margin << ","
+        << "\"centerJump\":" << diagnostic.center_jump << ","
+        << "\"directionConflict\":" << (diagnostic.direction_conflict ? "true" : "false") << ","
+        << "\"wouldPenalize\":" << (diagnostic.would_penalize ? "true" : "false") << ","
+        << "\"wouldHoldReacquire\":" << (diagnostic.would_hold_reacquire ? "true" : "false") << ","
+        << "\"closeObjectGuardApplied\":" << (close_object_guard_applied ? "true" : "false") << ","
+        << "\"matched\":" << (diagnostic.matched ? "true" : "false") << ","
+        << "\"rejected\":" << (diagnostic.rejected ? "true" : "false") << ","
+        << "\"guardDecision\":\"" << JsonEscape(diagnostic.guard_decision) << "\""
+        << "}";
+    return out.str();
+}
+
+std::string CloseObjectGuardModeJson() {
+    const auto& config = app::GetAppConfig();
+    const analysis::CloseObjectGuardMode mode =
+        analysis::ParseCloseObjectGuardMode(config.analysis_tracking_close_object_guard_mode);
+    const std::string mode_text = analysis::CloseObjectGuardModeToString(mode);
+    std::string label = "guard off";
+    if (mode == analysis::CloseObjectGuardMode::Diagnostic) {
+        label = "diagnostic-only · score 변경 없음";
+    } else if (mode == analysis::CloseObjectGuardMode::Enforce) {
+        label = "score 보정 적용 중";
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"mode\":\"" << JsonEscape(mode_text) << "\","
+        << "\"label\":\"" << JsonEscape(label) << "\","
+        << "\"scoreMutationEnabled\":" << (mode == analysis::CloseObjectGuardMode::Enforce ? "true" : "false")
+        << "}";
+    return out.str();
+}
+
 std::string AnalysisDebugLineStateJson(const analysis::AnalysisDebugLineState& line) {
     std::ostringstream out;
     out << "{"
@@ -13077,11 +13394,22 @@ std::string AnalysisBboxDiagnosticsJson(const std::string& tap_id,
             out << DetectorDetectionJson(result->detections[i]);
         }
         out << "],"
+            << "\"closeObjectGuard\":" << CloseObjectGuardModeJson() << ","
+            << "\"closeObjectDiagnostics\":[";
+        for (std::size_t i = 0; i < result->close_object_diagnostics.size(); ++i) {
+            if (i != 0) {
+                out << ",";
+            }
+            out << CloseObjectAssociationDiagnosticJson(result->close_object_diagnostics[i]);
+        }
+        out << "],"
             << "\"result\":" << AnalysisResultJson(*result);
     } else {
         out << "\"matchedPtsMs\":null,"
             << "\"matchedDeltaMs\":null,"
             << "\"detectorDetections\":[],"
+            << "\"closeObjectGuard\":" << CloseObjectGuardModeJson() << ","
+            << "\"closeObjectDiagnostics\":[],"
             << "\"result\":null";
     }
     out << "}";
@@ -13726,6 +14054,18 @@ std::string AnalysisMetricsDumpJson(const std::string& tap_id,
     } else {
         out << "null";
     }
+    out << ",\"closeObjectGuard\":" << CloseObjectGuardModeJson()
+        << ",\"closeObjectDiagnostics\":[";
+    if (snapshot.latest_result.has_value()) {
+        const auto& diagnostics = snapshot.latest_result->close_object_diagnostics;
+        for (std::size_t i = 0; i < diagnostics.size(); ++i) {
+            if (i != 0) {
+                out << ",";
+            }
+            out << CloseObjectAssociationDiagnosticJson(diagnostics[i]);
+        }
+    }
+    out << "]";
     out << "}";
     return out.str();
 }
@@ -14037,6 +14377,18 @@ bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& quer
         tracker_options.class_weight = config.analysis_tracking_class_weight;
         tracker_options.min_association_score = config.analysis_tracking_min_association_score;
         tracker_options.smoothing_alpha = config.analysis_tracking_smoothing_alpha;
+        tracker_options.close_object_guard_mode =
+            analysis::ParseCloseObjectGuardMode(config.analysis_tracking_close_object_guard_mode);
+        tracker_options.close_object_distance_ratio = config.analysis_tracking_close_object_distance_ratio;
+        tracker_options.close_object_overlap_threshold =
+            config.analysis_tracking_close_object_overlap_threshold;
+        tracker_options.close_object_low_margin_threshold =
+            config.analysis_tracking_close_object_low_margin_threshold;
+        tracker_options.close_object_center_jump_penalty = config.analysis_tracking_center_jump_penalty;
+        tracker_options.close_object_min_score_boost =
+            config.analysis_tracking_close_object_min_score_boost;
+        tracker_options.max_close_object_diagnostics =
+            config.analysis_tracking_close_object_max_diagnostics;
         tracker_options.max_missed_frames = config.analysis_tracking_lost_buffer_frames;
         analysis::ObjectTracker tracker(tracker_options);
         tracker.Update(&output->result);

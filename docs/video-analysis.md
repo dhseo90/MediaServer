@@ -73,6 +73,8 @@ unmatched track은 제한된 lost buffer에 남고, 짧은 누락 뒤 같은 cla
 
 같은 class 객체가 가까워지거나 bbox가 겹치는 구간에서는 현재 direction-based/lightweight tracker의 ID continuity가 불안정할 수 있습니다. 이 경우 bbox 좌표가 틀렸다기보다 association score가 낮아지며 trackId가 흔들리거나 lost/reacquired로 보일 수 있습니다. Kalman Filter, ByteTrack, BoT-SORT, 실제 Re-ID 모델 도입이나 detector 후처리 변경은 이번 진단/보강 범위가 아닙니다.
 
+Close-object association guard는 이 한계를 관찰하기 위한 opt-in 진단/보정 skeleton입니다. 기본 정책은 `off`이며 기존 scoring, Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema, Scenario 판단 로직을 바꾸지 않습니다. `diagnostic` 모드는 후보와 risk만 남기고 score를 바꾸지 않으며, `enforce` 모드에서만 제한적인 score penalty/boost 후보가 적용됩니다. default-off, diagnostic, enforce opt-in 검증은 replay/event/metadata 경로를 통과했지만 현재 샘플에서 ID continuity 개선 근거는 제한적이므로 default on 전환은 보류합니다.
+
 ### TrackStateManager
 
 `TrackStateManager`는 stream/channel별 track map을 분리해서 관리합니다.
@@ -299,6 +301,8 @@ TrackHealth 주요 값:
 TrackingIssueReport는 `unstable-track`, `overlap-risk`, `missed-frame-spike`, `direction-change-spike`, `low-association-confidence`, `lost`, `reacquired`를 stream/channel별로 제한 수집합니다. 이 기능은 진단용이며 tracking id 생성 결과를 변경하지 않습니다.
 
 Close-object association 문제를 볼 때는 `TrackHealth.status`, `overlapRisk`, `associationConfidence`, `missedFrameCount`, lost/reacquired count, `missed-frame-spike`, `direction-change-spike`를 함께 봅니다. `overlapRisk`가 높고 `associationConfidence`가 낮아지는 동안 같은 class trackId만 흔들리면 detector보다 tracker association 한계 후보로 분리합니다.
+
+Close-object diagnostic이 켜진 경우 `closeObjectRisk`, `nearestSameClassTrackId`, `nearestSameClassDistance`, `candidateScore`, `bestScore`, `secondScore`, `scoreMargin`, `centerJump`, `directionConflict`, `wouldPenalize`, `wouldHoldReacquire`, `guardDecision`을 제한된 per-frame/per-track diagnostic으로 남길 수 있습니다. 이 값은 candidate matrix 전체 저장이 아니라 matched/rejected 주요 후보 요약이며 Runtime Dashboard와 WebRTC BBox 진단에서 사람에게 필요한 수준으로만 표시합니다. `guardDecision=observe`는 관찰만, `enforce-penalize`는 opt-in 보정 후보가 실제 ranking에 반영된 상태를 뜻합니다.
 
 ## 8. Appearance / Re-ID Hook
 

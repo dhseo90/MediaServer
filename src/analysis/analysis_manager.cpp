@@ -75,6 +75,15 @@ ObjectTrackerOptions BuildTrackerOptions(const AnalysisProfile& profile) {
     options.class_weight = config.analysis_tracking_class_weight;
     options.min_association_score = config.analysis_tracking_min_association_score;
     options.smoothing_alpha = config.analysis_tracking_smoothing_alpha;
+    options.close_object_guard_mode =
+        ParseCloseObjectGuardMode(config.analysis_tracking_close_object_guard_mode);
+    options.close_object_distance_ratio = config.analysis_tracking_close_object_distance_ratio;
+    options.close_object_overlap_threshold = config.analysis_tracking_close_object_overlap_threshold;
+    options.close_object_low_margin_threshold =
+        config.analysis_tracking_close_object_low_margin_threshold;
+    options.close_object_center_jump_penalty = config.analysis_tracking_center_jump_penalty;
+    options.close_object_min_score_boost = config.analysis_tracking_close_object_min_score_boost;
+    options.max_close_object_diagnostics = config.analysis_tracking_close_object_max_diagnostics;
     options.max_missed_frames = config.analysis_tracking_lost_buffer_frames;
     return options;
 }

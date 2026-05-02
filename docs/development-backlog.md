@@ -393,10 +393,10 @@ git diff --check -- README.md docs
 
 - 우선순위 이유: tracker를 바꾸기 전에 현재 direction-based tracker가 어디서 흔들리는지 수치화해야 합니다.
 
-### P5-2. Close-object association guard / overlapRisk 기반 ID continuity 튜닝 설계
+### P5-2. Close-object association diagnostic / opt-in guard
 
-- 상태: 검토
-- 목적: 가까운 동일 class 객체가 겹치는 구간에서 `overlapRisk`, `associationConfidence`, lost/reacquired, missed-frame spike를 이용해 ID continuity 보수화가 필요한지 설계합니다.
+- 상태: 완료: default off opt-in
+- 목적: 가까운 동일 class 객체가 겹치는 구간에서 `overlapRisk`, `associationConfidence`, lost/reacquired, missed-frame spike를 이용해 ID continuity 보수화가 필요한지 설계하고 opt-in diagnostic/guard skeleton으로 관측합니다.
 - 관련 파일: `src/analysis/object_tracker.cpp`, `src/analysis/track_state_manager.cpp`, `scripts/internal/verify_tracker_stability.sh`, `docs/video-analysis.md`
 - 검증 명령:
 
@@ -404,10 +404,14 @@ git diff --check -- README.md docs
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-replay
 ./server.sh verify-analysis-state
+MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=diagnostic ./server.sh verify-va-replay
+MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verify-tracker-stability --long --overlap-focus
 ```
 
+- 현재 정책: `MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=off`가 기본입니다. `diagnostic`은 score 변경 없는 관측, `enforce`는 실험적 opt-in 보정 skeleton이며 default on은 보류합니다.
+- 남은 작업: 현장/추가 fixture에서 threshold, center jump penalty, continuity boost 기준을 비교하고 event/scenario 결과 무변화를 재확인합니다. Kalman/Re-ID/ByteTrack 계열은 별도 실험 항목으로 분리합니다.
 - 범위 제외: Kalman Filter, ByteTrack, BoT-SORT, Re-ID 모델 같은 대형 tracker 교체는 이 항목의 범위가 아닙니다.
-- 우선순위 이유: 현재 direction-based tracker를 유지한 채 close-object association 한계를 먼저 정량화하고, 이벤트 결과 변화가 없는지 replay로 비교해야 합니다.
+- 우선순위 이유: 현재 direction-based tracker를 유지한 채 close-object association 한계를 먼저 정량화하고, 이벤트 결과 변화가 없는지 replay로 비교해야 합니다. 지금 단계에서 tracker 문제가 완전히 해결된 것으로 보지 않습니다.
 
 ### P5-3. Association 보강 전후 replay 비교
 

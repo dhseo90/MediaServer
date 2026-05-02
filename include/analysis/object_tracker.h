@@ -15,6 +15,15 @@ struct ObjectAssociationScore {
     float final_score{0.0F};
 };
 
+enum class CloseObjectGuardMode {
+    Off,
+    Diagnostic,
+    Enforce,
+};
+
+CloseObjectGuardMode ParseCloseObjectGuardMode(const std::string& value);
+std::string CloseObjectGuardModeToString(CloseObjectGuardMode mode);
+
 struct ObjectTrackerOptions {
     float min_iou{0.30F};
     float max_center_distance{0.18F};
@@ -24,6 +33,19 @@ struct ObjectTrackerOptions {
     float class_weight{app_config::kDefaultAnalysisTrackingClassWeight};
     float min_association_score{app_config::kDefaultAnalysisTrackingMinAssociationScore};
     float smoothing_alpha{app_config::kDefaultAnalysisTrackingSmoothingAlpha};
+    CloseObjectGuardMode close_object_guard_mode{CloseObjectGuardMode::Off};
+    float close_object_distance_ratio{
+        app_config::kDefaultAnalysisTrackingCloseObjectDistanceRatio};
+    float close_object_overlap_threshold{
+        app_config::kDefaultAnalysisTrackingCloseObjectOverlapThreshold};
+    float close_object_low_margin_threshold{
+        app_config::kDefaultAnalysisTrackingCloseObjectLowMarginThreshold};
+    float close_object_center_jump_penalty{
+        app_config::kDefaultAnalysisTrackingCenterJumpPenalty};
+    float close_object_min_score_boost{
+        app_config::kDefaultAnalysisTrackingCloseObjectMinScoreBoost};
+    std::size_t max_close_object_diagnostics{
+        app_config::kDefaultAnalysisTrackingCloseObjectMaxDiagnostics};
     std::uint32_t min_confirmed_hits{2};
     std::uint32_t max_missed_frames{
         static_cast<std::uint32_t>(app_config::kDefaultAnalysisTrackingLostBufferFrames)};

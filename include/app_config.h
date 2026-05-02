@@ -53,6 +53,20 @@ struct AppConfig {
         app_config::kDefaultAnalysisTrackingMinAssociationScore};
     float analysis_tracking_smoothing_alpha{
         app_config::kDefaultAnalysisTrackingSmoothingAlpha};
+    std::string analysis_tracking_close_object_guard_mode{
+        app_config::kDefaultAnalysisTrackingCloseObjectGuardMode};
+    float analysis_tracking_close_object_distance_ratio{
+        app_config::kDefaultAnalysisTrackingCloseObjectDistanceRatio};
+    float analysis_tracking_close_object_overlap_threshold{
+        app_config::kDefaultAnalysisTrackingCloseObjectOverlapThreshold};
+    float analysis_tracking_close_object_low_margin_threshold{
+        app_config::kDefaultAnalysisTrackingCloseObjectLowMarginThreshold};
+    float analysis_tracking_center_jump_penalty{
+        app_config::kDefaultAnalysisTrackingCenterJumpPenalty};
+    float analysis_tracking_close_object_min_score_boost{
+        app_config::kDefaultAnalysisTrackingCloseObjectMinScoreBoost};
+    std::size_t analysis_tracking_close_object_max_diagnostics{
+        app_config::kDefaultAnalysisTrackingCloseObjectMaxDiagnostics};
     int default_analysis_overlay_wait_ms{app_config::kDefaultAnalysisOverlayWaitMs};
     int default_analysis_overlay_sync_tolerance_ms{app_config::kDefaultAnalysisOverlaySyncToleranceMs};
     int default_analysis_overlay_thickness{app_config::kDefaultAnalysisOverlayThickness};
