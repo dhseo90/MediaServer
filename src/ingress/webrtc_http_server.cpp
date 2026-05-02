@@ -7732,7 +7732,7 @@ std::string BuildLabRuleEditorPageHtml() {
       if (value === 'line-crossing') return '라인 통과';
       if (value === 'intrusion-dwell') return '체류 시나리오';
       if (value === 're-entry') return '재진입';
-      if (value === 'wrong-direction') return '역방향 통과';
+      if (value === 'wrong-direction') return '금지 방향 통과';
       if (value === 'reverse-line-crossing') return '역방향 통과';
       if (value === 'intrusion-after-line-crossing') return '라인 후 침입';
       if (value === 'loitering') return '배회';
