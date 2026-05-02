@@ -176,6 +176,11 @@ def runtime_counts(payload: dict[str, Any]) -> dict[str, int]:
     }
 
 
+def runtime_debug_counters(payload: dict[str, Any]) -> dict[str, int]:
+    counters = payload.get("debugCounters") if isinstance(payload.get("debugCounters"), dict) else {}
+    return {str(key): int(value or 0) for key, value in counters.items() if isinstance(value, (int, float))}
+
+
 def collect_sample(base: str, pid: int, tap_id: str) -> dict[str, Any]:
     runtime = request_json(base, "GET", "/lab/runtime/status", 5.0)
     sample: dict[str, Any] = {
@@ -183,6 +188,9 @@ def collect_sample(base: str, pid: int, tap_id: str) -> dict[str, Any]:
         "process": process_metrics(pid),
         "runtime": runtime_counts(runtime),
     }
+    counters = runtime_debug_counters(runtime)
+    if counters:
+        sample["debugCounters"] = counters
     if tap_id:
         metrics = request_json(base, "GET", f"/lab/analysis/taps/{urllib.parse.quote(tap_id)}/metrics", 5.0)
         tap_state = metrics.get("tapState") if isinstance(metrics.get("tapState"), dict) else {}
@@ -235,6 +243,221 @@ def runtime_count_max(samples: list[dict[str, Any]], key: str) -> int:
             value = int(runtime.get(key, 0) or 0)
         maximum = max(maximum, value)
     return maximum
+
+
+def latest_debug_counters(samples: list[dict[str, Any]]) -> dict[str, int]:
+    for sample in reversed(samples):
+        counters = sample.get("debugCounters") if isinstance(sample.get("debugCounters"), dict) else {}
+        if counters:
+            return {str(key): int(value or 0) for key, value in counters.items() if isinstance(value, (int, float))}
+    return {}
+
+
+RTSP_GSTREAMER_DEBUG_COUNTER_KEYS = [
+    "rtspPendingQueuePeak",
+    "rtspPendingQueueSizeAtStop",
+    "rtspPendingQueueSizeAtDestroy",
+    "rtspPendingQueueFlushedCount",
+    "rtspPendingQueueDroppedCount",
+    "appsrcPushAfterStopCount",
+    "rtspAppsrcPushOkCount",
+    "rtspAppsrcPushFailCount",
+    "rtspAppsrcFlowErrorCount",
+    "rtspAppsrcFlowFlushingCount",
+    "rtspAppsrcFlowEosCount",
+    "rtspAppsrcFlowErrorReturnCount",
+    "rtspAppsrcFlowNotLinkedCount",
+    "rtspAppsrcFlowNotNegotiatedCount",
+    "rtspAppsrcFlowOtherErrorCount",
+    "rtspAppsrcFlowErrorAfterStopCount",
+    "rtspAppsrcFlowErrorDuringActiveCount",
+    "rtspAppsrcFlowErrorDuringStoppingCount",
+    "rtspAppsrcLastFlowReturn",
+    "rtspAppsrcLastFlowReturnPhase",
+    "rtspPipelineNullTransitionCount",
+    "busWatchCreatedCount",
+    "busWatchDestroyedCount",
+    "appsrcEosSentCount",
+    "appsrcClearedCount",
+    "overlayProbeAttachedCount",
+    "overlayProbeRemovedCount",
+]
+
+
+RTSP_FLOW_RETURN_LABELS = {
+    0: "OK",
+    -1: "NOT_LINKED",
+    -2: "FLUSHING",
+    -3: "EOS",
+    -4: "NOT_NEGOTIATED",
+    -5: "ERROR",
+    -6: "NOT_SUPPORTED",
+}
+
+
+RTSP_FLOW_PHASE_LABELS = {
+    0: "not-started",
+    1: "active",
+    2: "stopping",
+    3: "stopped",
+}
+
+
+def rtsp_flow_return_label(value: Any) -> str:
+    numeric = int(value or 0)
+    return RTSP_FLOW_RETURN_LABELS.get(numeric, f"UNKNOWN({numeric})")
+
+
+def rtsp_flow_phase_label(value: Any) -> str:
+    numeric = int(value or 0)
+    return RTSP_FLOW_PHASE_LABELS.get(numeric, f"unknown({numeric})")
+
+
+def rtsp_gstreamer_report_value(key: str, value: Any) -> str:
+    if key == "rtspAppsrcLastFlowReturn":
+        return f"{markdown_value(value)} ({rtsp_flow_return_label(value)})"
+    if key == "rtspAppsrcLastFlowReturnPhase":
+        return f"{markdown_value(value)} ({rtsp_flow_phase_label(value)})"
+    return markdown_value(value)
+
+
+def rtsp_gstreamer_debug_counters(counters: dict[str, Any]) -> dict[str, int]:
+    if not isinstance(counters, dict):
+        return {}
+    return {
+        key: int(counters.get(key, 0) or 0)
+        for key in RTSP_GSTREAMER_DEBUG_COUNTER_KEYS
+        if key in counters
+    }
+
+
+def rtsp_gstreamer_warning_details(counters: dict[str, Any]) -> list[dict[str, Any]]:
+    focus = rtsp_gstreamer_debug_counters(counters)
+    details: list[dict[str, Any]] = []
+
+    def add(condition: bool, counter: str, severity: str, reason: str) -> None:
+        if condition:
+            details.append(
+                {
+                    "counter": counter,
+                    "value": int(focus.get(counter, 0) or 0),
+                    "severity": severity,
+                    "reason": reason,
+                }
+            )
+
+    add(
+        int(focus.get("rtspPendingQueueSizeAtStop", 0) or 0) > 0,
+        "rtspPendingQueueSizeAtStop",
+        "WARNING",
+        "RTSP egress Stop 시점에 pending queue 잔여가 관측됨",
+    )
+    add(
+        int(focus.get("rtspPendingQueueSizeAtDestroy", 0) or 0) > 0,
+        "rtspPendingQueueSizeAtDestroy",
+        "WARNING_OR_HOLD_CANDIDATE",
+        "RTSP egress destroy 시점에 pending queue 잔여가 관측됨",
+    )
+    add(
+        int(focus.get("appsrcPushAfterStopCount", 0) or 0) > 0,
+        "appsrcPushAfterStopCount",
+        "WARNING",
+        "Stop 이후 appsrc push/enqueue 시도가 관측됨",
+    )
+    add(
+        int(focus.get("rtspAppsrcFlowErrorAfterStopCount", 0) or 0) > 0,
+        "rtspAppsrcFlowErrorAfterStopCount",
+        "WARNING",
+        "Stop 이후 appsrc flow error 또는 push 시도가 관측됨",
+    )
+    add(
+        int(focus.get("busWatchCreatedCount", 0) or 0) != int(focus.get("busWatchDestroyedCount", 0) or 0),
+        "busWatchCreatedCount",
+        "WARNING",
+        "bus watch create/destroy count mismatch",
+    )
+    add(
+        int(focus.get("overlayProbeAttachedCount", 0) or 0) != int(focus.get("overlayProbeRemovedCount", 0) or 0),
+        "overlayProbeAttachedCount",
+        "WARNING",
+        "overlay probe attach/remove count mismatch",
+    )
+    add(
+        int(focus.get("rtspAppsrcPushFailCount", 0) or 0) > 0,
+        "rtspAppsrcPushFailCount",
+        "WARNING",
+        "appsrc push failure가 관측됨",
+    )
+
+    typed_flow_total = sum(
+        int(focus.get(key, 0) or 0)
+        for key in [
+            "rtspAppsrcFlowFlushingCount",
+            "rtspAppsrcFlowEosCount",
+            "rtspAppsrcFlowErrorReturnCount",
+            "rtspAppsrcFlowNotLinkedCount",
+            "rtspAppsrcFlowNotNegotiatedCount",
+            "rtspAppsrcFlowOtherErrorCount",
+        ]
+    )
+    add(
+        int(focus.get("rtspAppsrcFlowErrorDuringActiveCount", 0) or 0) > 0,
+        "rtspAppsrcFlowErrorDuringActiveCount",
+        "WARNING",
+        "RTSP active 구간에서 non-OK GstFlowReturn이 관측됨",
+    )
+    add(
+        int(focus.get("rtspAppsrcFlowErrorReturnCount", 0) or 0) > 0,
+        "rtspAppsrcFlowErrorReturnCount",
+        "WARNING",
+        "GstFlowReturn ERROR가 관측됨",
+    )
+    add(
+        int(focus.get("rtspAppsrcFlowNotLinkedCount", 0) or 0) > 0,
+        "rtspAppsrcFlowNotLinkedCount",
+        "WARNING",
+        "GstFlowReturn NOT_LINKED가 관측됨",
+    )
+    add(
+        int(focus.get("rtspAppsrcFlowNotNegotiatedCount", 0) or 0) > 0,
+        "rtspAppsrcFlowNotNegotiatedCount",
+        "WARNING",
+        "GstFlowReturn NOT_NEGOTIATED가 관측됨",
+    )
+    add(
+        int(focus.get("rtspAppsrcFlowOtherErrorCount", 0) or 0) > 0,
+        "rtspAppsrcFlowOtherErrorCount",
+        "WARNING",
+        "분류되지 않은 non-OK GstFlowReturn이 관측됨",
+    )
+    add(
+        int(focus.get("rtspAppsrcFlowErrorCount", 0) or 0) > 0 and typed_flow_total == 0,
+        "rtspAppsrcFlowErrorCount",
+        "WARNING",
+        "GStreamer appsrc flow error가 관측됐지만 종류별 counter가 없음",
+    )
+    return details
+
+
+def rtsp_gstreamer_stop_destroy_snapshot(counters: dict[str, Any]) -> dict[str, Any]:
+    focus = rtsp_gstreamer_debug_counters(counters)
+    stop_size = int(focus.get("rtspPendingQueueSizeAtStop", 0) or 0)
+    destroy_size = int(focus.get("rtspPendingQueueSizeAtDestroy", 0) or 0)
+    return {
+        "rtspPendingQueueSizeAtStop": stop_size,
+        "rtspPendingQueueSizeAtDestroy": destroy_size,
+        "appsrcPushAfterStopCount": int(focus.get("appsrcPushAfterStopCount", 0) or 0),
+        "rtspAppsrcFlowErrorAfterStopCount": int(focus.get("rtspAppsrcFlowErrorAfterStopCount", 0) or 0),
+        "appsrcEosSentCount": int(focus.get("appsrcEosSentCount", 0) or 0),
+        "appsrcClearedCount": int(focus.get("appsrcClearedCount", 0) or 0),
+        "rtspAppsrcLastFlowReturn": int(focus.get("rtspAppsrcLastFlowReturn", 0) or 0),
+        "rtspAppsrcLastFlowReturnLabel": rtsp_flow_return_label(focus.get("rtspAppsrcLastFlowReturn", 0)),
+        "rtspAppsrcLastFlowReturnPhase": int(focus.get("rtspAppsrcLastFlowReturnPhase", 0) or 0),
+        "rtspAppsrcLastFlowReturnPhaseLabel": rtsp_flow_phase_label(
+            focus.get("rtspAppsrcLastFlowReturnPhase", 0)
+        ),
+        "pendingQueueRemaining": stop_size > 0 or destroy_size > 0,
+    }
 
 
 def observe_idle_after_cleanup(base: str, pid: int, duration_s: float, interval_s: float) -> list[dict[str, Any]]:
@@ -585,6 +808,7 @@ def markdown_value(value: Any) -> str:
 def write_report(report_file: Path, summary: dict[str, Any]) -> None:
     rss_analysis = summary.get("rssAnalysis") if isinstance(summary.get("rssAnalysis"), dict) else {}
     idle = summary.get("idleAfterCleanup") if isinstance(summary.get("idleAfterCleanup"), dict) else {}
+    debug_counters = summary.get("debugCounters") if isinstance(summary.get("debugCounters"), dict) else {}
     first_sample = rss_analysis.get("firstSample") if isinstance(rss_analysis.get("firstSample"), dict) else {}
     last_sample = rss_analysis.get("lastSample") if isinstance(rss_analysis.get("lastSample"), dict) else {}
     warmup_sample = rss_analysis.get("warmupBaselineSample") if isinstance(rss_analysis.get("warmupBaselineSample"), dict) else {}
@@ -679,6 +903,67 @@ def write_report(report_file: Path, summary: dict[str, Any]) -> None:
             )
     else:
         lines.append("- none")
+    if debug_counters:
+        lines.extend(["", "## Runtime Debug Counters", ""])
+        for key in sorted(debug_counters):
+            lines.append(f"- {key}: `{debug_counters[key]}`")
+    rtsp_counters = summary.get("rtspGstreamerDebugCounters") if isinstance(summary.get("rtspGstreamerDebugCounters"), dict) else {}
+    rtsp_stop_destroy = (
+        summary.get("rtspGstreamerStopDestroySnapshot")
+        if isinstance(summary.get("rtspGstreamerStopDestroySnapshot"), dict)
+        else {}
+    )
+    warning_details = (
+        summary.get("rtspGstreamerWarningDetails")
+        if isinstance(summary.get("rtspGstreamerWarningDetails"), list)
+        else []
+    )
+    if rtsp_counters:
+        lines.extend(
+            [
+                "",
+                "## RTSP/GStreamer Debug Counters",
+                "",
+                "| counter | value |",
+                "| --- | ---: |",
+            ]
+        )
+        for key in RTSP_GSTREAMER_DEBUG_COUNTER_KEYS:
+            if key in rtsp_counters:
+                lines.append(f"| {key} | {rtsp_gstreamer_report_value(key, rtsp_counters[key])} |")
+    if rtsp_stop_destroy:
+        lines.extend(
+            [
+                "",
+                "## RTSP/GStreamer Stop/Destroy Snapshot",
+                "",
+                f"- rtspPendingQueueSizeAtStop: `{rtsp_stop_destroy.get('rtspPendingQueueSizeAtStop', 0)}`",
+                f"- rtspPendingQueueSizeAtDestroy: `{rtsp_stop_destroy.get('rtspPendingQueueSizeAtDestroy', 0)}`",
+                f"- appsrcPushAfterStopCount: `{rtsp_stop_destroy.get('appsrcPushAfterStopCount', 0)}`",
+                (
+                    "- rtspAppsrcFlowErrorAfterStopCount: "
+                    f"`{rtsp_stop_destroy.get('rtspAppsrcFlowErrorAfterStopCount', 0)}`"
+                ),
+                f"- appsrcEosSentCount: `{rtsp_stop_destroy.get('appsrcEosSentCount', 0)}`",
+                f"- appsrcClearedCount: `{rtsp_stop_destroy.get('appsrcClearedCount', 0)}`",
+                (
+                    "- rtspAppsrcLastFlowReturn: "
+                    f"`{rtsp_stop_destroy.get('rtspAppsrcLastFlowReturn', 0)}` "
+                    f"({rtsp_stop_destroy.get('rtspAppsrcLastFlowReturnLabel', 'OK')})"
+                ),
+                (
+                    "- rtspAppsrcLastFlowReturnPhase: "
+                    f"`{rtsp_stop_destroy.get('rtspAppsrcLastFlowReturnPhase', 0)}` "
+                    f"({rtsp_stop_destroy.get('rtspAppsrcLastFlowReturnPhaseLabel', 'not-started')})"
+                ),
+                f"- pendingQueueRemaining: `{rtsp_stop_destroy.get('pendingQueueRemaining', False)}`",
+            ]
+        )
+    lines.extend(["", "## RTSP/GStreamer Warning Details", ""])
+    if warning_details:
+        lines.append(json.dumps(warning_details, ensure_ascii=False, indent=2))
+    else:
+        lines.append("[]")
     lines.extend(
         [
             "",
@@ -956,6 +1241,9 @@ def main() -> int:
     first_to_last = rss_analysis.get("firstToLast") if isinstance(rss_analysis.get("firstToLast"), dict) else {}
     warmup_baseline = rss_analysis.get("warmupBaselineSample") if isinstance(rss_analysis.get("warmupBaselineSample"), dict) else {}
     warmup_to_last = rss_analysis.get("warmupToLast") if isinstance(rss_analysis.get("warmupToLast"), dict) else {}
+    debug_counters = latest_debug_counters(idle_samples) or latest_debug_counters(samples)
+    rtsp_gstreamer_counters = rtsp_gstreamer_debug_counters(debug_counters)
+    rtsp_gstreamer_warnings = rtsp_gstreamer_warning_details(debug_counters)
     summary = {
         "kind": "va-runtime-console-longrun",
         "status": "fail" if failed_steps else "pass",
@@ -1007,6 +1295,10 @@ def main() -> int:
             "sseMessageCount": sse_message_count,
             **server_metadata,
         },
+        "debugCounters": debug_counters,
+        "rtspGstreamerDebugCounters": rtsp_gstreamer_counters,
+        "rtspGstreamerStopDestroySnapshot": rtsp_gstreamer_stop_destroy_snapshot(debug_counters),
+        "rtspGstreamerWarningDetails": rtsp_gstreamer_warnings,
         "cleanup": {
             "runtimeIdle": cleanup_ok,
             "portsClean": port_ok,

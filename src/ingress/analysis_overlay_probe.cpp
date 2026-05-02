@@ -10,6 +10,7 @@
 #include <cstring>
 
 #include "analysis/overlay_renderer.h"
+#include "core/runtime_debug_counters.h"
 
 namespace ingress {
 
@@ -134,6 +135,9 @@ GstPadProbeReturn OnOverlayBuffer(GstPad* pad, GstPadProbeInfo* info, gpointer u
 }
 
 void DestroyProbeState(gpointer data) {
+    if (data != nullptr) {
+        core::runtime_debug::RecordOverlayProbeRemoved();
+    }
     delete static_cast<ProbeState*>(data);
 }
 
@@ -166,7 +170,11 @@ bool AttachAnalysisOverlayProbe(GstElement* root, AnalysisOverlayConfig config, 
     }
 
     auto* state = new ProbeState{.config = std::move(config)};
-    gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_BUFFER, OnOverlayBuffer, state, DestroyProbeState);
+    const gulong probe_id =
+        gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_BUFFER, OnOverlayBuffer, state, DestroyProbeState);
+    if (probe_id != 0) {
+        core::runtime_debug::RecordOverlayProbeAttached();
+    }
     gst_object_unref(pad);
     gst_object_unref(overlay);
     if (error_message != nullptr) {

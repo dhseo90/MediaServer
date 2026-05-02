@@ -72,6 +72,7 @@ private:
     bool synthesize_silent_audio_{false};
     AnalysisOverlayConfig analysis_overlay_;
     bool started_{false};
+    bool stop_recorded_{false};
 
 #if MEDIA_SERVER_USE_GSTREAMER
     GstElement* media_element_{nullptr};

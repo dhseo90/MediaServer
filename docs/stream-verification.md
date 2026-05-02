@@ -354,6 +354,21 @@ consumer cleanup 이후 서버를 즉시 종료하지 않고 idle RSS를 관찰�
   --idle-sample-interval-seconds 30
 ```
 
+RSS WARNING 해제 여부를 판단하기 위한 full fanout 120분 active + 30분 idle 검증:
+
+```bash
+./server.sh verify-va-runtime-console-longrun \
+  --duration-minutes 120 \
+  --clients 1 \
+  --include-dashboard \
+  --include-sidechannel \
+  --include-rtsp \
+  --rss-warmup-minutes 5 \
+  --rss-large-drop-mb 20 \
+  --idle-after-cleanup-minutes 30 \
+  --idle-sample-interval-seconds 30
+```
+
 consumer connect/disconnect cycle 이후 idle baseline RSS 누적 증가를 확인할 때:
 
 ```bash
@@ -380,12 +395,36 @@ consumer connect/disconnect cycle 이후 idle baseline RSS 누적 증가를 확�
 - `--idle-after-cleanup-minutes` 지정 시 consumer와 dashboard tap cleanup 후 서버 process를 유지하면서 idle RSS/CPU와 active count 재상승 여부를 별도로 기록
 - `verify-va-runtime-console-cycles`는 서버를 유지한 채 WebRTC/SSE/dashboard/RTSP consumer를 반복 연결/해제하고 cycle별 active peak RSS와 idleEnd RSS baseline을 비교
 - WebRTC metadata sent/dropped/failure count는 longrun 서버 로그의 `[webrtc-metadata] close` 라인에서 집계
+- `/lab/runtime/status`의 `debugCounters` 블록으로 RTSP/GStreamer egress release와 fanout lifecycle counter를 확인
+- longrun/cycle summary JSON과 Markdown report의 `debugCounters` 또는 `Runtime Debug Counters` 섹션에서 counter 최종값을 확인
 - 종료 후 active sessions, active analysis taps, SSE/WS metadata clients가 0으로 정리되는지 확인
 - idle 관찰 중 active sessions/streams/taps, SSE/WS clients, RTSP egress consumer가 다시 증가하면 cleanup/RSS 해석보다 `idleJudgement`를 우선 확인
 - cycle 검증에서는 cycle별 cleanup count가 0이 아니면 `HOLD`, 최종 port cleanup 실패는 `FAIL`, idleEnd RSS가 cycle마다 계속 증가하면 `WARNING`으로 판단
+- active 구간 RSS slope와 idle-after-cleanup RSS slope는 분리해서 해석합니다. active 중 RSS가 증가해도 cleanup 후 모든 active count가 0이고 idle RSS가 유지/하락하면 lifecycle 잔여 증거보다 allocator high-water 또는 GStreamer/WebRTC buffer pool retention 후보로 봅니다.
 - longrun summary JSON과 Markdown report는 `/tmp/media_server_va-runtime-longrun-*`, cycle summary/report는 `/tmp/media_server_va-runtime-cycles-*` 경로에 남김
 
+최근 RSS WARNING 해제 후보 검증 결과:
+
+- RTSP-only 5-cycle: `PASS`. `monotonicIdleRssIncrease=false`, RTSP lifecycle counter 균형, pending queue stop/destroy 잔여 `0`, `appsrcPushAfterStopCount=0`, flow return은 FLUSHING 중심입니다.
+- Full 20-cycle: `PASS`. `monotonicIdleRssIncrease=false`, cleanup/port cleanup 정상, RTSP lifecycle/probe/bus watch counter 균형, pending queue stop/destroy 잔여 `0`, flow return은 전부 FLUSHING입니다.
+- 120m full + 30m idle-after-cleanup: `PASS`. Summary는 `/tmp/media_server_va-runtime-longrun-1777648583-19035_summary.json`, report는 `/tmp/media_server_va-runtime-longrun-1777648583-19035_report.md`입니다.
+- 120m active 구간은 warmup baseline `679.80MiB`에서 last RSS `881.38MiB`까지 증가했고, last-30m slope는 `+51.77MiB`, `+1.726MiB/min`입니다. active plateau는 뚜렷하지 않으므로 high-water 관찰 메모는 유지합니다.
+- cleanup 후 30분 idle RSS는 `642.97MiB -> 642.67MiB`로 유지/하락했고, idle 중 activeSessions, activeStreams, activeAnalysisTaps, SSE/WS clients, RTSP consumers 재증가는 없었습니다.
+- `ERROR` / `NOT_LINKED` / `NOT_NEGOTIATED` / `OTHER` flow return은 관찰되지 않았고, port cleanup은 정상입니다. 이 조합이면 RSS WARNING 해제 가능 후보로 볼 수 있지만 Runtime Console stable 승격은 별도 `verify-predev --soak-minutes 30` 이후 판단합니다.
+
 기본 `./server.sh test`에는 포함하지 않습니다. 30분 이상 실행하는 선택 검증이며, 잠자기 전에는 `--duration-minutes 120`처럼 시간을 늘려 실행합니다. 이 명령은 검증용 subprocess env로 `MEDIA_SERVER_WEBRTC_TRACE=1`을 켜서 DataChannel sent/drop/failure count를 로그에서 집계하며, `scripts/.media_server.env` 같은 영구 설정 파일은 수정하지 않습니다.
+
+Runtime debug counter는 기존 Event POST/WebRTC/SSE metadata payload schema를 변경하지 않는 내부 진단 값입니다. 기본적으로 counter만 누적하며, lifecycle trace log가 필요할 때만 `MEDIA_SERVER_RUNTIME_DEBUG_COUNTER_TRACE=1`을 서버 실행 환경에 추가합니다.
+
+주요 counter:
+
+- `rtspMediaConfiguredCount`, `rtspMediaUnpreparedCount`
+- `rtspEgressSessionCreatedCount`, `rtspEgressSessionStartedCount`, `rtspEgressSessionStoppedCount`, `rtspEgressSessionDestroyedCount`
+- `rtspAppsrcPushOkCount`, `rtspAppsrcPushFailCount`
+- `rtspPendingQueuePeak`, `rtspPendingQueueDroppedCount`
+- `sharedStreamSubscriberAddedCount`, `sharedStreamSubscriberRemovedCount`
+- `analysisTapAttachedCount`, `analysisTapDetachedCount`
+- `metadataJsonBuildCount`, `metadataJsonBytesTotal`, `metadataJsonBytesMax`
 
 ## VA overlay 검증
 

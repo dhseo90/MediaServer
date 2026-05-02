@@ -7,6 +7,7 @@
 #include <mutex>
 
 #include "app_config.h"
+#include "core/runtime_debug_counters.h"
 #include "core/stream_key.h"
 #include "ingress/analysis_query.h"
 
@@ -225,6 +226,7 @@ SessionManager::AnalysisTapResult SessionManager::AttachAnalysisTap(const media:
             .source_kind = source_spec->kind,
         };
     }
+    runtime_debug::RecordAnalysisTapAttached(attach_result.tap_id);
 
     return {.ok = true,
             .message = "ok",
@@ -246,6 +248,7 @@ bool SessionManager::DetachAnalysisTap(const std::string& tap_id) {
     }
 
     analysis_manager_.Detach(tap_id);
+    runtime_debug::RecordAnalysisTapDetached(tap_id);
     if (entry.source_kind != media::SourceSpec::Kind::File) {
         if (registry_.TryRemoveIfIdle(entry.stream_key)) {
             TraceSessionEvent("analysis cleanup removed live key=" + entry.stream_key);

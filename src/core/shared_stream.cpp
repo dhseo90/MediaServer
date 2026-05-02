@@ -6,6 +6,7 @@
 #include <exception>
 
 #include "app_config.h"
+#include "core/runtime_debug_counters.h"
 
 namespace core {
 
@@ -60,6 +61,8 @@ bool SharedStream::AddSubscriberWithRole(const std::string& subscriber_id,
         }
         return false;
     }
+    core::runtime_debug::RecordSharedStreamSubscriberAdded(
+        role == SubscriberRole::Analysis ? "analysis" : "client");
 
     std::deque<media::Packet> cached_gop;
     std::optional<media::Packet> cached_audio;
@@ -89,6 +92,8 @@ void SharedStream::RemoveSubscriber(const std::string& session_id) {
         state = it->second;
         subscribers_.erase(it);
     }
+    core::runtime_debug::RecordSharedStreamSubscriberRemoved(
+        state->role == SubscriberRole::Analysis ? "analysis" : "client");
 
     {
         std::lock_guard lock(state->mu);
@@ -112,6 +117,8 @@ void SharedStream::StopAllSubscribers() {
 
     // map lock을 잡은 채 join하지 않는다. callback 내부에서 다시 stream API를 부를 가능성을 막기 위해서다.
     for (const auto& state : states) {
+        core::runtime_debug::RecordSharedStreamSubscriberRemoved(
+            state->role == SubscriberRole::Analysis ? "analysis" : "client");
         {
             std::lock_guard state_lock(state->mu);
             state->stop = true;
