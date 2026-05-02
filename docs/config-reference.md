@@ -137,6 +137,7 @@
 | `MEDIA_SERVER_ANALYSIS_TRACKING_DIRECTION_WEIGHT` | `0.15` | association direction weight |
 | `MEDIA_SERVER_ANALYSIS_TRACKING_CLASS_WEIGHT` | `0.05` | association class consistency weight |
 | `MEDIA_SERVER_ANALYSIS_TRACKING_MIN_ASSOCIATION_SCORE` | `0.10` | matching 최소 점수 |
+| `MEDIA_SERVER_ANALYSIS_TRACKING_SMOOTHING_ALPHA` | `0.20` | bbox smoothing 비율. 높을수록 흔들림은 줄지만 moving object overlay가 뒤따라감 |
 
 ### TrackState/cleanup
 

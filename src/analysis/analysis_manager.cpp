@@ -15,6 +15,7 @@ namespace analysis {
 namespace {
 
 constexpr std::size_t kMaxResultHistory = 512;
+constexpr std::int64_t kPtsRollbackResetThresholdNs = 1000000000LL;
 
 std::int64_t AbsDiff(std::int64_t lhs, std::int64_t rhs) {
     return lhs >= rhs ? lhs - rhs : rhs - lhs;
@@ -73,6 +74,7 @@ ObjectTrackerOptions BuildTrackerOptions(const AnalysisProfile& profile) {
     options.direction_weight = config.analysis_tracking_direction_weight;
     options.class_weight = config.analysis_tracking_class_weight;
     options.min_association_score = config.analysis_tracking_min_association_score;
+    options.smoothing_alpha = config.analysis_tracking_smoothing_alpha;
     options.max_missed_frames = config.analysis_tracking_lost_buffer_frames;
     return options;
 }
@@ -518,6 +520,21 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
             ++tap->dropped_packets;
             continue;
         }
+        const bool pts_rolled_back =
+            tap->last_result_pts > 0 && result.pts + kPtsRollbackResetThresholdNs < tap->last_result_pts;
+        if (pts_rolled_back) {
+            if (tap->tracker != nullptr) {
+                tap->tracker->Reset();
+            }
+            tap->track_state_manager.Reset();
+            std::lock_guard tap_lock(tap->mu);
+            tap->latest_result.reset();
+            tap->result_history.clear();
+        }
+        for (auto& detection : result.detections) {
+            detection.detector_box = detection.box;
+            detection.detector_box_available = true;
+        }
         if (tap->tracker != nullptr) {
             // detector는 frame 단위 결과만 만들기 때문에, tracker에서 같은 객체에 안정 ID를 붙인다.
             tap->tracker->Update(&result);
@@ -544,6 +561,7 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
         tap->last_analysis_ms = elapsed_ms;
         tap->total_analysis_ms += elapsed_ms;
         tap->max_analysis_ms = std::max(tap->max_analysis_ms, elapsed_ms);
+        tap->last_result_pts = result.pts;
         tap->latest_frame = std::move(frame);
         tap->latest_result = std::move(result);
         tap->result_history.push_back(*tap->latest_result);

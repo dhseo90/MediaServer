@@ -51,6 +51,8 @@ struct AppConfig {
     float analysis_tracking_class_weight{app_config::kDefaultAnalysisTrackingClassWeight};
     float analysis_tracking_min_association_score{
         app_config::kDefaultAnalysisTrackingMinAssociationScore};
+    float analysis_tracking_smoothing_alpha{
+        app_config::kDefaultAnalysisTrackingSmoothingAlpha};
     int default_analysis_overlay_wait_ms{app_config::kDefaultAnalysisOverlayWaitMs};
     int default_analysis_overlay_sync_tolerance_ms{app_config::kDefaultAnalysisOverlaySyncToleranceMs};
     int default_analysis_overlay_thickness{app_config::kDefaultAnalysisOverlayThickness};

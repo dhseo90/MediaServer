@@ -4107,6 +4107,16 @@ std::string BuildLabRuleEditorPageHtml() {
       align-items: center;
       gap: 8px;
     }
+    .metadata-diagnostic-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .metadata-bbox-diagnostic {
+      display: grid;
+      gap: 10px;
+    }
     .dashboard-toolbar {
       display: grid;
       grid-template-columns: 1.2fr 1.2fr 1fr auto auto;
@@ -4197,6 +4207,12 @@ std::string BuildLabRuleEditorPageHtml() {
     }
     .dashboard-table tbody tr:last-child td {
       border-bottom: 0;
+    }
+    .dashboard-table tbody tr.is-watch td {
+      background: rgba(240, 179, 91, 0.10);
+    }
+    .dashboard-table tbody tr.is-warning td {
+      background: rgba(213, 75, 75, 0.10);
     }
     .dashboard-table .dashboard-empty-cell {
       color: var(--muted);
@@ -5396,7 +5412,21 @@ std::string BuildLabRuleEditorPageHtml() {
               <label><input id="metadataOverlayHealthInput" type="checkbox" checked /> TrackHealth</label>
               <label><input id="metadataOverlayZoneInput" type="checkbox" checked /> 현재 Zone</label>
               <label><input id="metadataOverlayDwellInput" type="checkbox" checked /> 체류 시간</label>
+              <label><input id="metadataOverlayDetectionInput" type="checkbox" /> Detector 원본 bbox</label>
               <label><input id="metadataOverlayFallbackInput" type="checkbox" /> fallback metadata 표시(opt-in)</label>
+            </div>
+            <div class="metadata-bbox-diagnostic">
+              <div class="metadata-diagnostic-actions">
+                <button id="metadataBboxDiagnosticsBtn" type="button" class="secondary">BBox 진단 갱신</button>
+                <span id="metadataBboxDiagnosticState" class="form-note">진단 대기 중</span>
+              </div>
+              <p class="form-note">Detector 원본 bbox를 켜면 점선은 Lab 진단 endpoint의 detector raw 결과이고, 실선은 현재 selected DataChannel payload를 기준으로 그립니다.</p>
+              <div class="dashboard-table-wrap">
+                <table class="dashboard-table" aria-label="BBox detector track comparison">
+                  <thead><tr><th>track</th><th>confidence</th><th>DC selected</th><th>detector raw</th><th>track</th><th>det↔DC</th><th>track↔DC</th><th>continuity</th><th>TrackHealth</th><th>판단</th></tr></thead>
+                  <tbody id="metadataBboxDiagnosticRows"><tr><td class="dashboard-empty-cell" colspan="10">BBox 진단 갱신을 누르면 detector/track 비교를 표시합니다.</td></tr></tbody>
+                </table>
+              </div>
             </div>
             <div class="metadata-status-grid">
               <div class="viewer-status-card">
@@ -5446,6 +5476,10 @@ std::string BuildLabRuleEditorPageHtml() {
               <div class="viewer-status-card">
                 <span>Metadata 지연</span>
                 <strong id="metadataLagText">-</strong>
+              </div>
+              <div class="viewer-status-card">
+                <span>프레임 매칭 실패</span>
+                <strong id="metadataSyncMissCountText">0</strong>
               </div>
               <div class="viewer-status-card">
                 <span>Stale 횟수</span>
@@ -5899,6 +5933,7 @@ std::string BuildLabRuleEditorPageHtml() {
     let viewWebRtcSessionId = '';
     let viewWebRtcIceTimer = null;
     let viewWebRtcEmptyIcePolls = 0;
+    let viewWebRtcAutoRestartTimer = null;
     let viewMetadataChannel = null;
     let viewMetadataState = 'disabled';
     let viewMetadataLabel = 'va-metadata';
@@ -5914,8 +5949,11 @@ std::string BuildLabRuleEditorPageHtml() {
     let viewMetadataStallTimer = null;
     let viewMetadataVideoStallTimer = null;
     let viewMetadataLatestPayload = null;
+    let viewMetadataSelectedEntry = null;
     let viewMetadataBuffer = [];
     let viewMetadataBufferDropCount = 0;
+    let viewMetadataLastPayloadKeyMs = null;
+    let viewMetadataBboxDiagnostics = null;
     let viewMetadataDrawCount = 0;
     let viewMetadataVideoPresentedFrames = 0;
     let viewMetadataLastVideoFrameAt = 0;
@@ -5923,12 +5961,16 @@ std::string BuildLabRuleEditorPageHtml() {
     let viewMetadataVideoStalled = false;
     let viewMetadataSelectedSyncDeltaMs = null;
     let viewMetadataSelectedLagMs = null;
+    let viewMetadataSyncMissCount = 0;
+    let viewMetadataSyncMissActive = false;
+    let viewMetadataSyncMissCleared = false;
     let viewMetadataStaleCount = 0;
     let viewMetadataFallbackHiddenCount = 0;
     let viewMetadataLastHiddenFallbackSequence = 0;
     let viewMetadataOverlayTimer = null;
     let viewMetadataOverlayTimerKind = '';
     let viewMetadataOverlayStale = false;
+    let viewMetadataLastDrawAt = 0;
     let viewMetadataVideoPtsOffsetMs = null;
     let viewMetadataPtsCalibrationCount = 0;
     let viewMetadataPresentationLoopRunning = false;
@@ -8145,6 +8187,7 @@ std::string BuildLabRuleEditorPageHtml() {
       setText('metadataVideoStalledText', viewMetadataVideoStalled ? '예' : '아니오');
       setText('metadataSelectedDeltaText', formatMetadataMs(viewMetadataSelectedSyncDeltaMs));
       setText('metadataLagText', formatMetadataMs(viewMetadataSelectedLagMs));
+      setText('metadataSyncMissCountText', String(viewMetadataSyncMissCount));
       setText('metadataStaleCountText', String(viewMetadataStaleCount));
       setText('metadataFallbackHiddenCountText', String(viewMetadataFallbackHiddenCount));
       setText('metadataLatestTimestampText', formatMetadataTimestamp(viewMetadataLatestTimestampMs));
@@ -8173,6 +8216,13 @@ std::string BuildLabRuleEditorPageHtml() {
       if (viewMetadataVideoStallTimer) {
         clearTimeout(viewMetadataVideoStallTimer);
         viewMetadataVideoStallTimer = null;
+      }
+    }
+
+    function clearViewWebRtcAutoRestartTimer() {
+      if (viewWebRtcAutoRestartTimer) {
+        clearTimeout(viewWebRtcAutoRestartTimer);
+        viewWebRtcAutoRestartTimer = null;
       }
     }
 
@@ -8247,8 +8297,12 @@ std::string BuildLabRuleEditorPageHtml() {
       viewMetadataLastJsonText = '';
       viewMetadataLastMessageAt = 0;
       viewMetadataLatestPayload = null;
+      viewMetadataSelectedEntry = null;
       viewMetadataBuffer = [];
       viewMetadataBufferDropCount = 0;
+      viewMetadataLastPayloadKeyMs = null;
+      viewMetadataBboxDiagnostics = null;
+      renderMetadataBboxDiagnostics([], '진단 대기 중');
       viewMetadataDrawCount = 0;
       viewMetadataVideoPresentedFrames = 0;
       viewMetadataLastVideoFrameAt = 0;
@@ -8256,9 +8310,13 @@ std::string BuildLabRuleEditorPageHtml() {
       viewMetadataVideoStalled = false;
       viewMetadataSelectedSyncDeltaMs = null;
       viewMetadataSelectedLagMs = null;
+      viewMetadataSyncMissCount = 0;
+      viewMetadataSyncMissActive = false;
+      viewMetadataSyncMissCleared = false;
       viewMetadataStaleCount = 0;
       viewMetadataFallbackHiddenCount = 0;
       viewMetadataLastHiddenFallbackSequence = 0;
+      viewMetadataLastDrawAt = 0;
       viewMetadataVideoPtsOffsetMs = null;
       viewMetadataPtsCalibrationCount = 0;
       viewMetadataPresentationLoopStartedAt = 0;
@@ -8284,6 +8342,7 @@ std::string BuildLabRuleEditorPageHtml() {
         health: $('metadataOverlayHealthInput')?.checked !== false,
         zone: $('metadataOverlayZoneInput')?.checked !== false,
         dwell: $('metadataOverlayDwellInput')?.checked !== false,
+        detection: $('metadataOverlayDetectionInput')?.checked === true,
         fallback: $('metadataOverlayFallbackInput')?.checked === true
       };
     }
@@ -8433,6 +8492,491 @@ std::string BuildLabRuleEditorPageHtml() {
       return `${Math.round(value)}ms`;
     }
 
+    function metadataOptionalNumber(value) {
+      if (value === undefined || value === null || value === '') return null;
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function metadataBboxFromItem(item) {
+      return item?.bbox || item?.box || item?.detection?.box || null;
+    }
+
+    function metadataBboxArea(box) {
+      if (!box) return 0;
+      const width = Math.max(0, Number(box.width || 0));
+      const height = Math.max(0, Number(box.height || 0));
+      return width * height;
+    }
+
+    function metadataBboxIou(left, right) {
+      if (!left || !right) return null;
+      const leftX2 = Number(left.x || 0) + Number(left.width || 0);
+      const leftY2 = Number(left.y || 0) + Number(left.height || 0);
+      const rightX2 = Number(right.x || 0) + Number(right.width || 0);
+      const rightY2 = Number(right.y || 0) + Number(right.height || 0);
+      const ix1 = Math.max(Number(left.x || 0), Number(right.x || 0));
+      const iy1 = Math.max(Number(left.y || 0), Number(right.y || 0));
+      const ix2 = Math.min(leftX2, rightX2);
+      const iy2 = Math.min(leftY2, rightY2);
+      const intersection = Math.max(0, ix2 - ix1) * Math.max(0, iy2 - iy1);
+      const union = metadataBboxArea(left) + metadataBboxArea(right) - intersection;
+      return union > 0 ? intersection / union : null;
+    }
+
+    function metadataBboxCenter(box) {
+      if (!box) return null;
+      const x = Number(box.x);
+      const y = Number(box.y);
+      const width = Number(box.width);
+      const height = Number(box.height);
+      if (![x, y, width, height].every(Number.isFinite)) return null;
+      return { x: x + width / 2, y: y + height / 2 };
+    }
+
+    function metadataBboxCenterDistance(left, right, frameSize = null) {
+      const leftCenter = metadataBboxCenter(left);
+      const rightCenter = metadataBboxCenter(right);
+      if (!leftCenter || !rightCenter) return null;
+      const dx = leftCenter.x - rightCenter.x;
+      const dy = leftCenter.y - rightCenter.y;
+      const normalized = Math.sqrt(dx * dx + dy * dy);
+      const width = Number(frameSize?.width || 0);
+      const height = Number(frameSize?.height || 0);
+      const pixels = width > 0 && height > 0
+        ? Math.sqrt((dx * width) * (dx * width) + (dy * height) * (dy * height))
+        : null;
+      return { normalized, pixels };
+    }
+
+    function metadataFormatBbox(box) {
+      if (!box) return '-';
+      const x = Number(box.x);
+      const y = Number(box.y);
+      const width = Number(box.width);
+      const height = Number(box.height);
+      if (![x, y, width, height].every(Number.isFinite)) return '-';
+      return `${x.toFixed(3)},${y.toFixed(3)} ${width.toFixed(3)}x${height.toFixed(3)}`;
+    }
+
+    function metadataFormatIou(value) {
+      return Number.isFinite(value) ? value.toFixed(2) : '-';
+    }
+
+    function metadataFormatDistance(distance) {
+      const pixels = Number(distance?.pixels);
+      if (Number.isFinite(pixels)) return `${Math.round(pixels)}px`;
+      const normalized = Number(distance?.normalized);
+      return Number.isFinite(normalized) ? normalized.toFixed(3) : '-';
+    }
+
+    function metadataFormatIouDistance(iou, distance) {
+      const iouText = metadataFormatIou(iou);
+      const distanceText = metadataFormatDistance(distance);
+      return distanceText === '-' ? iouText : `${iouText} / ${distanceText}`;
+    }
+
+    function metadataItemTrackId(item) {
+      const id = Number(item?.trackId ?? item?.track_id ?? 0);
+      return Number.isFinite(id) && id > 0 ? Math.round(id) : 0;
+    }
+
+    function metadataItemClassName(item) {
+      return String(item?.className || item?.label || item?.class_name || '').trim();
+    }
+
+    function metadataMapByTrackId(items = []) {
+      const map = new Map();
+      for (const item of Array.isArray(items) ? items : []) {
+        const id = metadataItemTrackId(item);
+        if (id > 0 && !map.has(id)) map.set(id, item);
+      }
+      return map;
+    }
+
+    function metadataTapMatchesPayload(tap, payload) {
+      if (!tap || !payload) return false;
+      const streamId = String(payload.streamId || '');
+      const channelId = String(payload.channelId || '');
+      if (streamId && tap.streamKey === streamId) return true;
+      if (channelId && tap.tapId === channelId) return true;
+      return false;
+    }
+
+    function metadataSelectDiagnosticTap(taps, payload) {
+      const list = Array.isArray(taps) ? taps : [];
+      if (viewTapId) {
+        const direct = list.find((tap) => tap?.tapId === viewTapId);
+        if (direct) return direct;
+      }
+      const matched = list.find((tap) => metadataTapMatchesPayload(tap, payload));
+      if (matched) return matched;
+      return list.find((tap) => tap?.context?.route === 'webrtc') || list[0] || null;
+    }
+
+    function metadataNearestSameClassTrack(track, tracks, frameSize) {
+      const trackId = metadataItemTrackId(track);
+      const className = metadataItemClassName(track);
+      const box = normalizeMetadataBbox(metadataBboxFromItem(track), frameSize);
+      let best = null;
+      for (const candidate of Array.isArray(tracks) ? tracks : []) {
+        const candidateId = metadataItemTrackId(candidate);
+        if (candidateId <= 0 || candidateId === trackId) continue;
+        if (className && metadataItemClassName(candidate) && metadataItemClassName(candidate) !== className) continue;
+        const distance = metadataBboxCenterDistance(box, normalizeMetadataBbox(metadataBboxFromItem(candidate), frameSize), frameSize);
+        if (!distance) continue;
+        if (!best || Number(distance.pixels ?? distance.normalized) < Number(best.distance.pixels ?? best.distance.normalized)) {
+          best = { trackId: candidateId, distance };
+        }
+      }
+      return best;
+    }
+
+    function metadataPreviousBufferedTrack(trackId, currentKeyMs) {
+      const keyMs = Number(currentKeyMs);
+      const sorted = [...viewMetadataBuffer]
+        .filter((entry) => Number.isFinite(entry.keyMs))
+        .sort((left, right) => right.keyMs - left.keyMs || right.receivedAtMs - left.receivedAtMs);
+      for (const entry of sorted) {
+        if (Number.isFinite(keyMs) && entry.keyMs >= keyMs) continue;
+        const tracks = Array.isArray(entry.payload?.tracks) ? entry.payload.tracks : [];
+        const track = tracks.find((item) => metadataItemTrackId(item) === trackId);
+        if (track) return { entry, track };
+      }
+      return null;
+    }
+
+    function metadataTrackHealthDetails(runtimeTrack, debugTrack, resultTrack) {
+      const health = runtimeTrack?.trackHealth || debugTrack?.trackHealth || {};
+      const assoc = metadataOptionalNumber(health.associationConfidence);
+      const overlap = metadataOptionalNumber(health.overlapRisk);
+      const missed = metadataOptionalNumber(health.missedFrameCount ?? resultTrack?.missed);
+      const lost = metadataOptionalNumber(health.lostCount ?? runtimeTrack?.lostCount ?? debugTrack?.lostCount);
+      const reacquired = metadataOptionalNumber(health.reacquiredCount ?? runtimeTrack?.reacquiredCount ?? debugTrack?.reacquiredCount);
+      const state = String(runtimeTrack?.lifecycleState || resultTrack?.state || '').trim();
+      const status = String(health.status || '').trim();
+      return {
+        status,
+        state,
+        stable: health.stable,
+        associationConfidence: assoc,
+        overlapRisk: overlap,
+        missedFrameCount: missed,
+        lostCount: lost,
+        reacquiredCount: reacquired
+      };
+    }
+
+    function metadataTrackContinuityDetails(runtimeTrack, payload, frameSize) {
+      const trackId = metadataItemTrackId(runtimeTrack);
+      const currentKeyMs = metadataPayloadKeyMs(payload);
+      const currentBox = normalizeMetadataBbox(metadataBboxFromItem(runtimeTrack), frameSize);
+      const previous = metadataPreviousBufferedTrack(trackId, currentKeyMs);
+      const previousBox = previous ? normalizeMetadataBbox(metadataBboxFromItem(previous.track), frameSize) : null;
+      const jumpDistance = previous ? metadataBboxCenterDistance(currentBox, previousBox, frameSize) : null;
+      const nearestSameClass = metadataNearestSameClassTrack(runtimeTrack, payload?.tracks, frameSize);
+      return {
+        jumpDistance,
+        nearestSameClassTrackId: nearestSameClass?.trackId || 0,
+        nearestSameClassDistance: nearestSameClass?.distance || null
+      };
+    }
+
+    function metadataHealthNeedsWatch(health) {
+      const status = String(health?.status || '').toLowerCase();
+      if (status.includes('unstable') || status.includes('lost') || health?.stable === false) return true;
+      const assoc = metadataOptionalNumber(health?.associationConfidence);
+      if (Number.isFinite(assoc) && assoc < 0.8) return true;
+      const overlap = metadataOptionalNumber(health?.overlapRisk);
+      if (Number.isFinite(overlap) && overlap >= 0.2) return true;
+      const missed = metadataOptionalNumber(health?.missedFrameCount);
+      if (Number.isFinite(missed) && missed > 0) return true;
+      const lost = metadataOptionalNumber(health?.lostCount);
+      const reacquired = metadataOptionalNumber(health?.reacquiredCount);
+      return (Number.isFinite(lost) && lost > 0) || (Number.isFinite(reacquired) && reacquired > 0);
+    }
+
+    function metadataContinuityNeedsWatch(continuity, health) {
+      const nearestPx = metadataOptionalNumber(continuity?.nearestSameClassDistance?.pixels);
+      const jumpPx = metadataOptionalNumber(continuity?.jumpDistance?.pixels);
+      const overlap = metadataOptionalNumber(health?.overlapRisk);
+      const assoc = metadataOptionalNumber(health?.associationConfidence);
+      if (Number.isFinite(jumpPx) && jumpPx >= 180) return true;
+      return Number.isFinite(nearestPx) && nearestPx <= 90 &&
+        ((Number.isFinite(overlap) && overlap >= 0.15) || (Number.isFinite(assoc) && assoc < 0.85));
+    }
+
+    function metadataDiagnosticLevel(details) {
+      if (!details.runtimeBox || !details.detectorBox || !details.trackBox) return 'warning';
+      if (Number.isFinite(details.trackIou) && details.trackIou < 0.75) return 'warning';
+      if (Number.isFinite(details.detectorIou) && details.detectorIou < 0.45) return 'warning';
+      const detectorDistancePx = Number(details.detectorDistance?.pixels);
+      const trackDistancePx = Number(details.trackDistance?.pixels);
+      if ((Number.isFinite(detectorDistancePx) && detectorDistancePx >= 120) ||
+          (Number.isFinite(trackDistancePx) && trackDistancePx >= 120)) {
+        return 'warning';
+      }
+      if ((Number.isFinite(details.detectorIou) && details.detectorIou < 0.75) ||
+          metadataHealthNeedsWatch(details.health) ||
+          metadataContinuityNeedsWatch(details.continuity, details.health)) {
+        return 'watch';
+      }
+      return 'ok';
+    }
+
+    function metadataDiagnosticVerdict(details) {
+      if (!details.runtimeBox) return 'DataChannel selected 없음';
+      if (!details.detectorBox) return 'detector raw 없음';
+      if (!details.trackBox) return 'track box 없음';
+      if (Number.isFinite(details.trackIou) && details.trackIou < 0.75) return 'metadata path 차이 의심';
+      if (metadataContinuityNeedsWatch(details.continuity, details.health)) return 'ID swap 관찰 필요';
+      if (metadataHealthNeedsWatch(details.health)) return 'TrackHealth 관찰';
+      if (!Number.isFinite(details.detectorIou)) return '비교 불가';
+      if (details.detectorIou >= 0.75) return 'bbox 일치';
+      if (details.detectorIou >= 0.45) return 'detector/track 차이 관찰';
+      return 'detector raw 차이 큼';
+    }
+
+    function metadataBuildBboxDiagnosticRows(tap, payload) {
+      const frameSize = metadataFrameSize(payload);
+      const result = tap?.latestResult || {};
+      const detections = Array.isArray(result.detections) ? result.detections : [];
+      const detectorDetections = Array.isArray(tap?.detectorDetections) ? tap.detectorDetections : detections;
+      const resultTracks = Array.isArray(result.tracks) ? result.tracks : [];
+      const debugTracks = Array.isArray(result.debugState?.tracks) ? result.debugState.tracks : [];
+      const dataChannelTracks = Array.isArray(payload?.tracks) ? payload.tracks : [];
+      const detectorById = metadataMapByTrackId(detectorDetections);
+      const detectionById = metadataMapByTrackId(detections);
+      const resultTrackById = metadataMapByTrackId(resultTracks);
+      const debugTrackById = metadataMapByTrackId(debugTracks);
+      const seen = new Set();
+      const rows = [];
+      for (const runtimeTrack of dataChannelTracks) {
+        const trackId = metadataItemTrackId(runtimeTrack);
+        if (trackId <= 0 || seen.has(trackId)) continue;
+        seen.add(trackId);
+        const detector = detectorById.get(trackId) || null;
+        const detection = detectionById.get(trackId) || null;
+        const resultTrack = resultTrackById.get(trackId) || null;
+        const debugTrack = debugTrackById.get(trackId) || null;
+        const runtimeBox = normalizeMetadataBbox(metadataBboxFromItem(runtimeTrack), frameSize);
+        const detectorBox = normalizeMetadataBbox(metadataBboxFromItem(detector), frameSize);
+        const trackBox = normalizeMetadataBbox(metadataBboxFromItem(resultTrack) || metadataBboxFromItem(debugTrack), frameSize) || runtimeBox;
+        const detectorIou = metadataBboxIou(runtimeBox, detectorBox);
+        const trackIou = metadataBboxIou(runtimeBox, trackBox);
+        const detectorDistance = metadataBboxCenterDistance(runtimeBox, detectorBox, frameSize);
+        const trackDistance = metadataBboxCenterDistance(runtimeBox, trackBox, frameSize);
+        const continuity = metadataTrackContinuityDetails(runtimeTrack, payload, frameSize);
+        const health = metadataTrackHealthDetails(runtimeTrack, debugTrack, resultTrack);
+        const details = {
+          runtimeBox,
+          detectorBox,
+          trackBox,
+          detectorIou,
+          trackIou,
+          detectorDistance,
+          trackDistance,
+          continuity,
+          health
+        };
+        const level = metadataDiagnosticLevel(details);
+        rows.push({
+          trackId,
+          confidence: runtimeTrack.confidence ?? detector?.score ?? detection?.score ?? resultTrack?.score ?? debugTrack?.confidence,
+          runtimeBox,
+          detectorBox,
+          trackBox,
+          detectorIou,
+          trackIou,
+          detectorDistance,
+          trackDistance,
+          continuity,
+          health,
+          level,
+          verdict: metadataDiagnosticVerdict(details)
+        });
+      }
+      for (const detector of detectorDetections) {
+        const trackId = metadataItemTrackId(detector);
+        if (trackId <= 0 || seen.has(trackId)) continue;
+        seen.add(trackId);
+        const resultTrack = resultTrackById.get(trackId) || null;
+        const debugTrack = debugTrackById.get(trackId) || null;
+        const detectorBox = normalizeMetadataBbox(metadataBboxFromItem(detector), frameSize);
+        const trackBox = normalizeMetadataBbox(metadataBboxFromItem(resultTrack) || metadataBboxFromItem(debugTrack), frameSize);
+        rows.push({
+          trackId,
+          confidence: detector.score,
+          runtimeBox: null,
+          detectorBox,
+          trackBox,
+          detectorIou: null,
+          trackIou: null,
+          detectorDistance: null,
+          trackDistance: null,
+          continuity: null,
+          health: metadataTrackHealthDetails(null, debugTrack, resultTrack),
+          level: 'warning',
+          verdict: metadataDiagnosticVerdict({
+            runtimeBox: null,
+            detectorBox,
+            trackBox,
+            detectorIou: null,
+            trackIou: null
+          })
+        });
+      }
+      return rows;
+    }
+
+    function metadataFormatContinuity(continuity) {
+      if (!continuity) return '-';
+      const parts = [];
+      if (continuity.jumpDistance) parts.push(`jump ${metadataFormatDistance(continuity.jumpDistance)}`);
+      if (continuity.nearestSameClassTrackId > 0 && continuity.nearestSameClassDistance) {
+        parts.push(`near #${continuity.nearestSameClassTrackId} ${metadataFormatDistance(continuity.nearestSameClassDistance)}`);
+      }
+      return parts.join(' · ') || '-';
+    }
+
+    function metadataFormatHealthDetails(health) {
+      if (!health) return '-';
+      const parts = [];
+      if (health.status) parts.push(health.status);
+      if (health.state) parts.push(health.state);
+      if (Number.isFinite(health.associationConfidence)) parts.push(`assoc ${health.associationConfidence.toFixed(2)}`);
+      if (Number.isFinite(health.overlapRisk)) parts.push(`overlap ${health.overlapRisk.toFixed(2)}`);
+      if (Number.isFinite(health.missedFrameCount)) parts.push(`missed ${Math.round(health.missedFrameCount)}`);
+      const lost = Number.isFinite(health.lostCount) ? Math.round(health.lostCount) : '-';
+      const reacquired = Number.isFinite(health.reacquiredCount) ? Math.round(health.reacquiredCount) : '-';
+      parts.push(`lost/reacq ${lost}/${reacquired}`);
+      return parts.join(' · ');
+    }
+
+    function renderMetadataBboxDiagnostics(rows = [], state = '') {
+      setText('metadataBboxDiagnosticState', state || '진단 대기 중');
+      const tbody = $('metadataBboxDiagnosticRows');
+      if (!tbody) return;
+      tbody.textContent = '';
+      if (!rows.length) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.className = 'dashboard-empty-cell';
+        cell.colSpan = 10;
+        cell.textContent = state || 'BBox 진단 갱신을 누르면 detector/track 비교를 표시합니다.';
+        row.appendChild(cell);
+        tbody.appendChild(row);
+        return;
+      }
+      for (const item of rows) {
+        const row = document.createElement('tr');
+        if (item.level === 'warning') {
+          row.className = 'is-warning';
+        } else if (item.level === 'watch') {
+          row.className = 'is-watch';
+        }
+        const cells = [
+          `#${item.trackId}`,
+          metadataConfidenceLabel(item.confidence) || '-',
+          metadataFormatBbox(item.runtimeBox),
+          metadataFormatBbox(item.detectorBox),
+          metadataFormatBbox(item.trackBox),
+          metadataFormatIouDistance(item.detectorIou, item.detectorDistance),
+          metadataFormatIouDistance(item.trackIou, item.trackDistance),
+          metadataFormatContinuity(item.continuity),
+          metadataFormatHealthDetails(item.health),
+          item.verdict
+        ];
+        for (const value of cells) {
+          const cell = document.createElement('td');
+          cell.textContent = value;
+          row.appendChild(cell);
+        }
+        tbody.appendChild(row);
+      }
+    }
+
+    async function refreshMetadataBboxDiagnostics() {
+      const payload = viewMetadataLatestPayload;
+      if (!payload) {
+        renderMetadataBboxDiagnostics([], 'metadata 수신 후 진단할 수 있습니다.');
+        return;
+      }
+      renderMetadataBboxDiagnostics([], 'BBox 진단 조회 중...');
+      const response = await fetch('/lab/analysis/taps', { cache: 'no-store' });
+      if (!response.ok) throw new Error(`/lab/analysis/taps HTTP ${response.status}`);
+      const body = await response.json();
+      const tap = metadataSelectDiagnosticTap(body.taps, payload);
+      if (!tap || !tap.tapId) {
+        viewMetadataBboxDiagnostics = null;
+        renderMetadataBboxDiagnostics([], 'active analysis tap이 없습니다.');
+        return;
+      }
+      const analysisPtsMs = metadataNumber(payload.analysisPtsMs ?? payload.timestampMs);
+      if (analysisPtsMs === null) {
+        viewMetadataBboxDiagnostics = null;
+        renderMetadataBboxDiagnostics([], 'metadata analysisPtsMs가 없어 진단할 수 없습니다.');
+        return;
+      }
+      const params = new URLSearchParams();
+      params.set('ptsMs', String(Math.round(analysisPtsMs)));
+      params.set('toleranceMs', String(metadataDrawToleranceMs(payload)));
+      const diagnosticsResponse = await fetch(`/lab/analysis/taps/${encodeURIComponent(tap.tapId)}/bbox-diagnostics?${params.toString()}`, { cache: 'no-store' });
+      if (!diagnosticsResponse.ok) {
+        throw new Error(`bbox diagnostics HTTP ${diagnosticsResponse.status}`);
+      }
+      const diagnostics = await diagnosticsResponse.json();
+      if (!diagnostics.matched || !diagnostics.result) {
+        viewMetadataBboxDiagnostics = null;
+        renderMetadataBboxDiagnostics([], `${tap.tapId} · near-PTS 분석 결과 없음`);
+        return;
+      }
+      const diagnosticTap = {
+        ...tap,
+        latestResult: diagnostics.result,
+        detectorDetections: diagnostics.detectorDetections || []
+      };
+      const rows = metadataBuildBboxDiagnosticRows(diagnosticTap, payload);
+      const tapPtsMs = metadataNumber(diagnostics.matchedPtsMs);
+      viewMetadataBboxDiagnostics = {
+        tapId: tap.tapId || '',
+        ptsMs: tapPtsMs,
+        detectorDetections: diagnostics.detectorDetections || [],
+        rows
+      };
+      const deltaText = metadataNumber(diagnostics.matchedDeltaMs) !== null ? ` · matched delta ${diagnostics.matchedDeltaMs}ms` : '';
+      renderMetadataBboxDiagnostics(rows, `${tap.tapId || 'tap'} · detector ${viewMetadataBboxDiagnostics.detectorDetections.length} · rows ${rows.length}${deltaText}`);
+      scheduleMetadataOverlayFrame();
+    }
+
+    function drawMetadataDetectionDiagnostics(surface, content, frameSize, payload) {
+      const options = metadataOverlayOptions();
+      if (!options.detection || !viewMetadataBboxDiagnostics) return;
+      const analysisPtsMs = metadataNumber(payload?.analysisPtsMs ?? payload?.timestampMs);
+      if (viewMetadataBboxDiagnostics.ptsMs !== null && analysisPtsMs !== null &&
+          Math.abs(viewMetadataBboxDiagnostics.ptsMs - analysisPtsMs) > 600) {
+        return;
+      }
+      surface.ctx.save();
+      surface.ctx.setLineDash([6, 4]);
+      surface.ctx.lineWidth = 2;
+      surface.ctx.strokeStyle = '#ff4fd8';
+      surface.ctx.fillStyle = '#ff4fd8';
+      surface.ctx.font = '800 11px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      for (const detection of viewMetadataBboxDiagnostics.detectorDetections || []) {
+        const bbox = normalizeMetadataBbox(metadataBboxFromItem(detection), frameSize);
+        if (!bbox) continue;
+        const x = content.x + bbox.x * content.width;
+        const y = content.y + bbox.y * content.height;
+        const width = bbox.width * content.width;
+        const height = bbox.height * content.height;
+        surface.ctx.strokeRect(x, y, width, height);
+        const label = `raw #${metadataItemTrackId(detection) || '-'} ${metadataConfidenceLabel(detection.score)}`;
+        surface.ctx.fillText(label, Math.max(0, x), Math.max(12, y - 4));
+      }
+      surface.ctx.restore();
+    }
+
     function drawMetadataLabel(ctx, lines, x, y, color, maxWidth) {
       const visibleLines = lines.filter(Boolean);
       if (visibleLines.length === 0) return;
@@ -8473,6 +9017,24 @@ std::string BuildLabRuleEditorPageHtml() {
       if (changed) updateMetadataViewerPanel();
     }
 
+    function setMetadataSyncMissActive(active) {
+      const next = Boolean(active);
+      if (next && !viewMetadataSyncMissActive) {
+        viewMetadataSyncMissCount += 1;
+      }
+      const changed = next !== viewMetadataSyncMissActive;
+      viewMetadataSyncMissActive = next;
+      if (changed) updateMetadataViewerPanel();
+    }
+
+    function metadataMessageStale(now = Date.now()) {
+      return Boolean(viewMetadataLastMessageAt && now - viewMetadataLastMessageAt > 3000);
+    }
+
+    function metadataNoMatchGraceMs() {
+      return 900;
+    }
+
     function clearMetadataOverlay(options = {}) {
       const surface = resizeMetadataOverlayCanvas();
       if (surface) {
@@ -8502,8 +9064,8 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function metadataDrawToleranceMs(payload) {
       const value = metadataNumber(payload?.syncToleranceMs);
-      if (value !== null && value >= 0) return Math.max(80, Math.min(200, value));
-      return 200;
+      if (value !== null && value >= 0) return Math.max(120, Math.min(600, value));
+      return 400;
     }
 
     function metadataSyncStatus(payload) {
@@ -8543,6 +9105,18 @@ std::string BuildLabRuleEditorPageHtml() {
       return 5000;
     }
 
+    function metadataTimelineRollbackThresholdMs() {
+      return 1500;
+    }
+
+    function resetMetadataOverlayTimeline() {
+      viewMetadataBuffer = [];
+      viewMetadataVideoPtsOffsetMs = null;
+      viewMetadataPtsCalibrationCount = 0;
+      viewMetadataSyncMissCleared = false;
+      setMetadataSyncMissActive(false);
+    }
+
     function pruneMetadataBuffer(now = Date.now()) {
       const beforeCount = viewMetadataBuffer.length;
       const newestKeyMs = viewMetadataBuffer.reduce((maxKey, entry) => (
@@ -8552,7 +9126,10 @@ std::string BuildLabRuleEditorPageHtml() {
       viewMetadataBuffer = viewMetadataBuffer
         .filter((entry) => now - entry.receivedAtMs <= maxMetadataBufferMs())
         .filter((entry) => entry.keyMs >= minKeyMs)
-        .sort((left, right) => left.keyMs - right.keyMs);
+        .sort((left, right) => {
+          const keyDelta = left.keyMs - right.keyMs;
+          return keyDelta !== 0 ? keyDelta : left.receivedAtMs - right.receivedAtMs;
+        });
       viewMetadataBufferDropCount += Math.max(0, beforeCount - viewMetadataBuffer.length);
       const maxItems = maxMetadataBufferEntries();
       if (viewMetadataBuffer.length > maxItems) {
@@ -8568,7 +9145,15 @@ std::string BuildLabRuleEditorPageHtml() {
         viewMetadataBufferDropCount += 1;
         return;
       }
+      if (viewMetadataLastPayloadKeyMs !== null &&
+          keyMs + metadataTimelineRollbackThresholdMs() < viewMetadataLastPayloadKeyMs) {
+        resetMetadataOverlayTimeline();
+      }
+      viewMetadataLastPayloadKeyMs = keyMs;
       const receivedAtMs = Date.now();
+      const beforeReplaceCount = viewMetadataBuffer.length;
+      viewMetadataBuffer = viewMetadataBuffer.filter((entry) => entry.keyMs !== keyMs);
+      viewMetadataBufferDropCount += Math.max(0, beforeReplaceCount - viewMetadataBuffer.length);
       viewMetadataBuffer.push({ keyMs, receivedAtMs, payload });
       pruneMetadataBuffer(receivedAtMs);
     }
@@ -8702,6 +9287,43 @@ std::string BuildLabRuleEditorPageHtml() {
       return mediaTimeMs + viewMetadataVideoPtsOffsetMs;
     }
 
+    function metadataMaxSelectedWallClockLagMs() {
+      return 900;
+    }
+
+    function metadataPayloadWallClockLagMs(payload, entry = null, now = Date.now()) {
+      const sentAtMs = metadataNumber(payload?.sentAtMs);
+      const receivedAtMs = metadataNumber(entry?.receivedAtMs);
+      const referenceMs = sentAtMs !== null ? sentAtMs : receivedAtMs;
+      return referenceMs !== null ? Math.max(0, now - referenceMs) : null;
+    }
+
+    function metadataCandidateIsBetter(candidate, current) {
+      if (!current) return true;
+      if (candidate.deltaMs !== current.deltaMs) return candidate.deltaMs < current.deltaMs;
+      return candidate.entry.receivedAtMs > current.entry.receivedAtMs;
+    }
+
+    function metadataCandidateIsNewer(candidate, current) {
+      if (!current) return true;
+      return candidate.entry.receivedAtMs > current.entry.receivedAtMs;
+    }
+
+    function metadataNewestRecentDrawableCandidate(options, now = Date.now(), currentPtsMs = null) {
+      let newest = null;
+      for (const entry of viewMetadataBuffer) {
+        const payload = entry.payload;
+        if (isFallbackMetadata(payload) && !options.fallback) continue;
+        if (!metadataPayloadDrawable(payload, options)) continue;
+        const lagMs = metadataPayloadWallClockLagMs(payload, entry, now);
+        if (lagMs === null || lagMs > metadataMaxSelectedWallClockLagMs()) continue;
+        const deltaMs = currentPtsMs !== null ? Math.abs(entry.keyMs - currentPtsMs) : 0;
+        const candidate = { entry, payload, deltaMs, toleranceMs: metadataDrawToleranceMs(payload) };
+        if (metadataCandidateIsNewer(candidate, newest)) newest = candidate;
+      }
+      return newest;
+    }
+
     function selectMetadataForPresentedFrame(videoFrameMetadata = null) {
       pruneMetadataBuffer();
       const mediaTimeMs = currentMediaTimeMs(videoFrameMetadata);
@@ -8709,6 +9331,8 @@ std::string BuildLabRuleEditorPageHtml() {
       if (currentPtsMs === null) return null;
       let best = null;
       let fallbackCandidate = null;
+      let newestDrawable = null;
+      const now = Date.now();
       const options = metadataOverlayOptions();
       for (const entry of viewMetadataBuffer) {
         const payload = entry.payload;
@@ -8720,19 +9344,39 @@ std::string BuildLabRuleEditorPageHtml() {
             noteFallbackHidden(payload);
             continue;
           }
-          if (!fallbackCandidate || deltaMs < fallbackCandidate.deltaMs) {
-            fallbackCandidate = { entry, payload, deltaMs, toleranceMs };
+          const candidate = { entry, payload, deltaMs, toleranceMs };
+          if (metadataCandidateIsBetter(candidate, fallbackCandidate)) {
+            fallbackCandidate = candidate;
           }
           continue;
         }
         if (!metadataPayloadDrawable(payload, options)) continue;
-        if (!best || deltaMs < best.deltaMs) {
-          best = { entry, payload, deltaMs, toleranceMs };
+        const candidate = { entry, payload, deltaMs, toleranceMs };
+        if (metadataCandidateIsNewer(candidate, newestDrawable)) {
+          newestDrawable = candidate;
+        }
+        if (metadataCandidateIsBetter(candidate, best)) {
+          best = candidate;
         }
       }
-      const selected = best || fallbackCandidate;
+      let selected = best || fallbackCandidate;
+      let forceRecalibrate = false;
+      const selectedLagMs = selected ? metadataPayloadWallClockLagMs(selected.payload, selected.entry, now) : null;
+      const newestRecent = metadataNewestRecentDrawableCandidate(options, now, currentPtsMs) || newestDrawable;
+      const newestLagMs = newestRecent ? metadataPayloadWallClockLagMs(newestRecent.payload, newestRecent.entry, now) : null;
+      if (selected && newestRecent &&
+          selectedLagMs !== null && selectedLagMs > metadataMaxSelectedWallClockLagMs() &&
+          newestLagMs !== null && newestLagMs <= metadataMaxSelectedWallClockLagMs()) {
+        selected = newestRecent;
+        forceRecalibrate = true;
+      }
       if (selected) {
-        updateMetadataPtsCalibration(mediaTimeMs, selected.entry);
+        if (forceRecalibrate && mediaTimeMs !== null) {
+          viewMetadataVideoPtsOffsetMs = selected.entry.keyMs - mediaTimeMs;
+          viewMetadataPtsCalibrationCount = 1;
+        } else {
+          updateMetadataPtsCalibration(mediaTimeMs, selected.entry);
+        }
       }
       return selected;
     }
@@ -8750,14 +9394,16 @@ std::string BuildLabRuleEditorPageHtml() {
     function drawMetadataOverlayForPayload(payload, videoFrameMetadata = null, selectedDeltaMs = null) {
       const surface = resizeMetadataOverlayCanvas();
       if (!surface) return;
-      const stale = Boolean(viewMetadataLastMessageAt && Date.now() - viewMetadataLastMessageAt > 3000);
+      const stale = metadataMessageStale();
       setMetadataOverlayStale(stale);
       if (stale || !payload || !Array.isArray(payload.tracks) || payload.tracks.length === 0) {
         return;
       }
+      setMetadataSyncMissActive(false);
       updateSelectedMetadataDiagnostics(payload, selectedDeltaMs);
       const content = metadataVideoContentRect(payload);
       if (!content) return;
+      viewMetadataSyncMissCleared = false;
       const frameSize = metadataFrameSize(payload);
       const options = metadataOverlayOptions();
       const anyText = options.label || options.trackId || options.zone || options.dwell || options.scenario || options.health;
@@ -8814,22 +9460,47 @@ std::string BuildLabRuleEditorPageHtml() {
         }
         drawMetadataLabel(surface.ctx, lines, x, y, color, surface.width);
       }
+      drawMetadataDetectionDiagnostics(surface, content, frameSize, payload);
       surface.ctx.restore();
       viewMetadataDrawCount += 1;
+      viewMetadataLastDrawAt = Date.now();
       updateMetadataViewerPanel();
+    }
+
+    function handleMetadataOverlayNoMatch() {
+      const now = Date.now();
+      const fresh = viewMetadataMessageCount > 0 && !metadataMessageStale(now);
+      if (fresh) {
+        setMetadataOverlayStale(false);
+        setMetadataSyncMissActive(true);
+        if (viewMetadataLastDrawAt > 0 && now - viewMetadataLastDrawAt <= metadataNoMatchGraceMs()) {
+          return;
+        }
+        if (viewMetadataSyncMissCleared) {
+          return;
+        }
+        clearMetadataOverlay({ stale: false });
+        viewMetadataSyncMissCleared = true;
+        return;
+      }
+      viewMetadataSyncMissCleared = false;
+      setMetadataSyncMissActive(false);
+      clearMetadataOverlay({ stale: viewMetadataMessageCount > 0 });
     }
 
     function drawMetadataOverlay(videoFrameMetadata = null) {
       if (viewMetadataVideoStalled) {
+        setMetadataSyncMissActive(false);
         clearMetadataOverlay({ stale: true });
         return;
       }
       const selected = selectMetadataForPresentedFrame(videoFrameMetadata);
       if (!selected) {
-        clearMetadataOverlay({ stale: viewMetadataMessageCount > 0 });
+        handleMetadataOverlayNoMatch();
         return;
       }
       viewMetadataLatestPayload = selected.payload;
+      viewMetadataSelectedEntry = selected.entry || null;
       drawMetadataOverlayForPayload(selected.payload, videoFrameMetadata, selected.deltaMs);
     }
 
@@ -10364,6 +11035,7 @@ std::string BuildLabRuleEditorPageHtml() {
 
     async function closeViewWebRtcSession() {
       clearMetadataStallTimer();
+      clearViewWebRtcAutoRestartTimer();
       if (viewWebRtcIceTimer) {
         clearInterval(viewWebRtcIceTimer);
         viewWebRtcIceTimer = null;
@@ -10405,6 +11077,19 @@ std::string BuildLabRuleEditorPageHtml() {
       clearMetadataOverlay();
     }
 
+    function scheduleViewWebRtcReplayRestart(pc) {
+      if (pc !== viewWebRtcPeer || !viewWebRtcSessionId || !isMetadataViewMode()) return;
+      if (viewWebRtcAutoRestartTimer) return;
+      setViewConnectionState('connecting', '파일 끝에 도달해 WebRTC 메타데이터 보기를 처음부터 다시 시작합니다.');
+      viewWebRtcAutoRestartTimer = setTimeout(() => {
+        viewWebRtcAutoRestartTimer = null;
+        if (pc !== viewWebRtcPeer || !isMetadataViewMode()) return;
+        startViewPreview().catch((error) => {
+          setViewConnectionState('error', `WebRTC 메타데이터 반복 재생 재시작 실패: ${error.message}`);
+        });
+      }, 150);
+    }
+
     async function startWebRtcMetadataViewer(params) {
       if (!window.RTCPeerConnection) {
         throw new Error('이 브라우저는 RTCPeerConnection을 지원하지 않습니다.');
@@ -10439,8 +11124,16 @@ std::string BuildLabRuleEditorPageHtml() {
         if (!video) return;
         if ($('viewWebRtcStage')) $('viewWebRtcStage').hidden = false;
         video.srcObject = event.streams[0];
+        video.loop = true;
         video.muted = false;
         video.volume = 1.0;
+        const stream = event.streams[0];
+        if (stream && typeof stream.getVideoTracks === 'function') {
+          for (const track of stream.getVideoTracks()) {
+            track.onended = () => scheduleViewWebRtcReplayRestart(pc);
+          }
+        }
+        video.onended = () => scheduleViewWebRtcReplayRestart(pc);
         const playPromise = video.play();
         if (playPromise && typeof playPromise.catch === 'function') {
           playPromise.catch(() => {});
@@ -10932,7 +11625,7 @@ std::string BuildLabRuleEditorPageHtml() {
           el.addEventListener('change', updateViewModeUi);
         }
       }
-      for (const id of ['metadataOverlayBboxInput', 'metadataOverlayLabelInput', 'metadataOverlayTrackIdInput', 'metadataOverlayScenarioInput', 'metadataOverlayEventInput', 'metadataOverlayHealthInput', 'metadataOverlayZoneInput', 'metadataOverlayDwellInput', 'metadataOverlayFallbackInput']) {
+      for (const id of ['metadataOverlayBboxInput', 'metadataOverlayLabelInput', 'metadataOverlayTrackIdInput', 'metadataOverlayScenarioInput', 'metadataOverlayEventInput', 'metadataOverlayHealthInput', 'metadataOverlayZoneInput', 'metadataOverlayDwellInput', 'metadataOverlayDetectionInput', 'metadataOverlayFallbackInput']) {
         const el = $(id);
         if (el) {
           el.addEventListener('change', () => {
@@ -10940,6 +11633,14 @@ std::string BuildLabRuleEditorPageHtml() {
             scheduleMetadataOverlayFrame();
           });
         }
+      }
+      if ($('metadataBboxDiagnosticsBtn')) {
+        $('metadataBboxDiagnosticsBtn').addEventListener('click', () => {
+          refreshMetadataBboxDiagnostics().catch((error) => {
+            viewMetadataBboxDiagnostics = null;
+            renderMetadataBboxDiagnostics([], `BBox 진단 실패: ${error.message}`);
+          });
+        });
       }
       for (const id of ['dashboardRefreshInterval', 'dashboardAutoRefreshInput']) {
         const el = $(id);
@@ -11911,6 +12612,15 @@ std::string DetectionJson(const analysis::Detection& detection) {
     return out.str();
 }
 
+std::string DetectorDetectionJson(const analysis::Detection& detection) {
+    if (!detection.detector_box_available) {
+        return DetectionJson(detection);
+    }
+    analysis::Detection copy = detection;
+    copy.box = detection.detector_box;
+    return DetectionJson(copy);
+}
+
 std::string AnalysisDebugLineStateJson(const analysis::AnalysisDebugLineState& line) {
     std::ostringstream out;
     out << "{"
@@ -12337,6 +13047,42 @@ std::string AnalysisMetadataJson(const std::string& tap_id,
         out << AnalysisResultJson(*result);
     } else {
         out << "null";
+    }
+    out << "}";
+    return out.str();
+}
+
+std::string AnalysisBboxDiagnosticsJson(const std::string& tap_id,
+                                        std::int64_t requested_pts_ms,
+                                        std::int64_t tolerance_ms,
+                                        const std::optional<analysis::AnalysisResult>& result) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.lab.bbox-diagnostics.v1\","
+        << "\"tapId\":\"" << JsonEscape(tap_id) << "\","
+        << "\"requestedPtsMs\":" << requested_pts_ms << ","
+        << "\"toleranceMs\":" << tolerance_ms << ","
+        << "\"matched\":" << (result.has_value() ? "true" : "false") << ",";
+    if (result.has_value()) {
+        const std::int64_t matched_pts_ms = result->pts / 1000000LL;
+        const std::int64_t delta_ms =
+            matched_pts_ms >= requested_pts_ms ? matched_pts_ms - requested_pts_ms : requested_pts_ms - matched_pts_ms;
+        out << "\"matchedPtsMs\":" << matched_pts_ms << ","
+            << "\"matchedDeltaMs\":" << delta_ms << ","
+            << "\"detectorDetections\":[";
+        for (std::size_t i = 0; i < result->detections.size(); ++i) {
+            if (i != 0) {
+                out << ",";
+            }
+            out << DetectorDetectionJson(result->detections[i]);
+        }
+        out << "],"
+            << "\"result\":" << AnalysisResultJson(*result);
+    } else {
+        out << "\"matchedPtsMs\":null,"
+            << "\"matchedDeltaMs\":null,"
+            << "\"detectorDetections\":[],"
+            << "\"result\":null";
     }
     out << "}";
     return out.str();
@@ -13290,6 +14036,7 @@ bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& quer
         tracker_options.direction_weight = config.analysis_tracking_direction_weight;
         tracker_options.class_weight = config.analysis_tracking_class_weight;
         tracker_options.min_association_score = config.analysis_tracking_min_association_score;
+        tracker_options.smoothing_alpha = config.analysis_tracking_smoothing_alpha;
         tracker_options.max_missed_frames = config.analysis_tracking_lost_buffer_frames;
         analysis::ObjectTracker tracker(tracker_options);
         tracker.Update(&output->result);
@@ -13994,6 +14741,9 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
     overlay_config.wait_timeout_ms = timing_options.wait_timeout_ms;
     const auto metadata_channel_config = BuildWebRtcMetadataChannelConfigFromQuery(query);
     const bool metadata_channel_enabled = metadata_channel_config.enabled;
+    const bool metadata_fallback_payload_enabled =
+        overlay_config.render_video_overlay ||
+        ParseBoolQuery(query, "clientOverlayFallback", ParseBoolQuery(query, "vaMetadataDrawFallback", false));
     bridge->SetMetadataChannelConfig(metadata_channel_config);
     auto event_runtime = EventRuleRuntimeForKey("webrtc-overlay:" + attach_result.tap_id);
     overlay_config.result_provider =
@@ -14002,6 +14752,7 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
          weak_bridge,
          event_runtime,
          metadata_channel_enabled,
+         metadata_fallback_payload_enabled,
          debug_overlay = overlay_config.render_options.draw_debug_overlay,
          tolerance_ns = overlay_config.sync_tolerance_ns,
          wait_timeout_ms = overlay_config.wait_timeout_ms](std::int64_t frame_pts)
@@ -14049,14 +14800,19 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
             analysis::DispatchEventRecords(evaluation.annotated_result, evaluation.events);
             analysis::DispatchEventPosts(evaluation.annotated_result, evaluation.events);
             if (metadata_channel_enabled && bridge_lock != nullptr && bridge_lock->MetadataChannelReady()) {
-                const auto sync_info = BuildWebRtcVaMetadataSyncInfo(source_pts,
-                                                                     evaluation.annotated_result.pts,
-                                                                     tolerance_ns,
-                                                                     "fallback-latest",
-                                                                     evaluation.annotated_result.frame_width,
-                                                                     evaluation.annotated_result.frame_height);
-                bridge_lock->PublishAnalysisMetadata(
-                    WebRtcVaMetadataMessageJson(evaluation.annotated_result, evaluation.events, sync_info));
+                if (metadata_fallback_payload_enabled) {
+                    const auto sync_info = BuildWebRtcVaMetadataSyncInfo(source_pts,
+                                                                         evaluation.annotated_result.pts,
+                                                                         tolerance_ns,
+                                                                         "fallback-latest",
+                                                                         evaluation.annotated_result.frame_width,
+                                                                         evaluation.annotated_result.frame_height);
+                    bridge_lock->PublishAnalysisMetadata(
+                        WebRtcVaMetadataMessageJson(evaluation.annotated_result, evaluation.events, sync_info));
+                } else {
+                    bridge_lock->PublishAnalysisMetadata(
+                        WebRtcVaMetadataMissingMessageJson(tap_id, source_pts, tolerance_ns));
+                }
             }
             return evaluation.annotated_result;
         };
@@ -14867,6 +15623,34 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 }
                                 return JsonResponse(200, "OK",
                                                     AnalysisMetadataJson(tap_id, result->latest_result));
+                            }
+
+                            if (request.method == "GET" && suffix == "/bbox-diagnostics") {
+                                const auto snapshot = impl_->session_manager.AnalysisTapSnapshot(tap_id);
+                                if (!snapshot.has_value()) {
+                                    return JsonResponse(404, "Not Found",
+                                                        "{\"error\":\"analysis tap not found\"}");
+                                }
+                                std::int64_t requested_pts_ms = 0;
+                                const auto pts_it = query.find("ptsMs");
+                                if (pts_it == query.end() ||
+                                    !ParseStrictInt64(pts_it->second, &requested_pts_ms)) {
+                                    return JsonResponse(400,
+                                                        "Bad Request",
+                                                        "{\"error\":\"ptsMs query is required\"}");
+                                }
+                                const int tolerance_ms =
+                                    ParseClampedIntQuery(query, "toleranceMs", 600, 0, 5000);
+                                const std::int64_t requested_pts_ns = requested_pts_ms * 1000000LL;
+                                const std::int64_t tolerance_ns = static_cast<std::int64_t>(tolerance_ms) * 1000000LL;
+                                const auto result = impl_->session_manager.WaitAnalysisResultNearPts(
+                                    tap_id, requested_pts_ns, tolerance_ns, std::chrono::milliseconds(0));
+                                return JsonResponse(200,
+                                                    "OK",
+                                                    AnalysisBboxDiagnosticsJson(tap_id,
+                                                                                requested_pts_ms,
+                                                                                tolerance_ms,
+                                                                                result));
                             }
 
                             if (request.method == "GET" && (suffix == "/state" || suffix == "/state-dump")) {

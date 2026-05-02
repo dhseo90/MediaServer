@@ -71,6 +71,8 @@ matching score는 다음 요소를 조합합니다.
 
 unmatched track은 제한된 lost buffer에 남고, 짧은 누락 뒤 같은 class/object가 다시 matching되면 `reacquired` 상태로 관측됩니다.
 
+같은 class 객체가 가까워지거나 bbox가 겹치는 구간에서는 현재 direction-based/lightweight tracker의 ID continuity가 불안정할 수 있습니다. 이 경우 bbox 좌표가 틀렸다기보다 association score가 낮아지며 trackId가 흔들리거나 lost/reacquired로 보일 수 있습니다. Kalman Filter, ByteTrack, BoT-SORT, 실제 Re-ID 모델 도입이나 detector 후처리 변경은 이번 진단/보강 범위가 아닙니다.
+
 ### TrackStateManager
 
 `TrackStateManager`는 stream/channel별 track map을 분리해서 관리합니다.
@@ -295,6 +297,8 @@ TrackHealth 주요 값:
 - lost/reacquired count
 
 TrackingIssueReport는 `unstable-track`, `overlap-risk`, `missed-frame-spike`, `direction-change-spike`, `low-association-confidence`, `lost`, `reacquired`를 stream/channel별로 제한 수집합니다. 이 기능은 진단용이며 tracking id 생성 결과를 변경하지 않습니다.
+
+Close-object association 문제를 볼 때는 `TrackHealth.status`, `overlapRisk`, `associationConfidence`, `missedFrameCount`, lost/reacquired count, `missed-frame-spike`, `direction-change-spike`를 함께 봅니다. `overlapRisk`가 높고 `associationConfidence`가 낮아지는 동안 같은 class trackId만 흔들리면 detector보다 tracker association 한계 후보로 분리합니다.
 
 ## 8. Appearance / Re-ID Hook
 

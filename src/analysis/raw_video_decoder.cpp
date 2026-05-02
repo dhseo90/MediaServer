@@ -9,13 +9,26 @@
 #include <gst/gst.h>
 #endif
 
+#include <algorithm>
+#include <deque>
 #include <iostream>
+#include <limits>
+#include <mutex>
+#include <optional>
 
 namespace analysis {
 
 namespace {
 
 #if MEDIA_SERVER_USE_GSTREAMER
+
+constexpr std::int64_t kDefaultVideoFrameDurationNs = 33333333LL;
+constexpr std::int64_t kMaxTimestampMappingDistanceNs = 500000000LL;
+constexpr std::size_t kMaxTimestampMappings = 4096;
+
+std::int64_t AbsDiff(std::int64_t lhs, std::int64_t rhs) {
+    return lhs >= rhs ? lhs - rhs : rhs - lhs;
+}
 
 GstCaps* BuildCapsFromTrack(const media::TrackInfo& track) {
     if (!track.caps_string.empty()) {
@@ -196,18 +209,21 @@ public:
         if (packet.payload.empty()) {
             return true;
         }
+        const media::Packet decoder_packet = NormalizePacketForDecoder(packet);
 
-        GstBuffer* buffer = gst_buffer_new_allocate(nullptr, packet.payload.size(), nullptr);
+        GstBuffer* buffer = gst_buffer_new_allocate(nullptr, decoder_packet.payload.size(), nullptr);
         if (buffer == nullptr) {
             if (error_message != nullptr) {
                 *error_message = "failed to allocate analysis decoder buffer";
             }
             return false;
         }
-        gst_buffer_fill(buffer, 0, packet.payload.data(), packet.payload.size());
-        GST_BUFFER_PTS(buffer) = packet.pts >= 0 ? static_cast<GstClockTime>(packet.pts) : GST_CLOCK_TIME_NONE;
-        GST_BUFFER_DTS(buffer) = packet.dts >= 0 ? static_cast<GstClockTime>(packet.dts) : GST_CLOCK_TIME_NONE;
-        if (packet.is_key_frame) {
+        gst_buffer_fill(buffer, 0, decoder_packet.payload.data(), decoder_packet.payload.size());
+        GST_BUFFER_PTS(buffer) =
+            decoder_packet.pts >= 0 ? static_cast<GstClockTime>(decoder_packet.pts) : GST_CLOCK_TIME_NONE;
+        GST_BUFFER_DTS(buffer) =
+            decoder_packet.dts >= 0 ? static_cast<GstClockTime>(decoder_packet.dts) : GST_CLOCK_TIME_NONE;
+        if (decoder_packet.is_key_frame) {
             GST_BUFFER_FLAG_UNSET(buffer, GST_BUFFER_FLAG_DELTA_UNIT);
         } else {
             GST_BUFFER_FLAG_SET(buffer, GST_BUFFER_FLAG_DELTA_UNIT);
@@ -228,6 +244,78 @@ public:
     }
 
 private:
+    struct TimestampMapping {
+        std::int64_t decoder_pts{0};
+        std::int64_t source_pts{0};
+    };
+
+    media::Packet NormalizePacketForDecoder(const media::Packet& packet) {
+        media::Packet normalized = packet;
+        if (packet.pts < 0 && packet.dts < 0) {
+            return normalized;
+        }
+
+        std::lock_guard lock(timestamp_mu_);
+        const std::int64_t source_reference =
+            packet.pts >= 0 && packet.dts >= 0 ? std::min(packet.pts, packet.dts)
+                                               : (packet.dts >= 0 ? packet.dts : packet.pts);
+        if (!input_base_pts_.has_value()) {
+            input_base_pts_ = source_reference >= 0 ? source_reference : 0;
+        }
+
+        const auto normalize = [this](std::int64_t value) {
+            if (value < 0) {
+                return std::int64_t{0};
+            }
+            return std::max<std::int64_t>(0, value - *input_base_pts_);
+        };
+
+        normalized.pts = packet.pts >= 0 ? normalize(packet.pts) : normalize(packet.dts);
+        normalized.dts = packet.dts >= 0 ? normalize(packet.dts) : normalized.pts;
+
+        if (last_input_dts_.has_value() && normalized.dts > *last_input_dts_) {
+            last_input_frame_duration_ns_ = normalized.dts - *last_input_dts_;
+        }
+        if (last_input_dts_.has_value() && normalized.dts <= *last_input_dts_) {
+            const std::int64_t frame_duration =
+                last_input_frame_duration_ns_ > 0 ? last_input_frame_duration_ns_ : kDefaultVideoFrameDurationNs;
+            const std::int64_t offset = *last_input_dts_ + frame_duration - normalized.dts;
+            normalized.pts += offset;
+            normalized.dts += offset;
+        }
+        last_input_dts_ = normalized.dts;
+
+        const std::int64_t source_pts =
+            packet.pts >= 0 ? packet.pts : (packet.dts >= 0 ? packet.dts : normalized.pts);
+        timestamp_mappings_.push_back(TimestampMapping{.decoder_pts = normalized.pts, .source_pts = source_pts});
+        while (timestamp_mappings_.size() > kMaxTimestampMappings) {
+            timestamp_mappings_.pop_front();
+        }
+        return normalized;
+    }
+
+    std::int64_t ResolveSourcePts(std::int64_t decoder_pts) const {
+        std::lock_guard lock(timestamp_mu_);
+        if (timestamp_mappings_.empty()) {
+            return decoder_pts;
+        }
+
+        std::int64_t best_source_pts = decoder_pts;
+        std::int64_t best_diff = std::numeric_limits<std::int64_t>::max();
+        for (auto it = timestamp_mappings_.rbegin(); it != timestamp_mappings_.rend(); ++it) {
+            const std::int64_t diff = AbsDiff(it->decoder_pts, decoder_pts);
+            if (diff >= best_diff) {
+                continue;
+            }
+            best_diff = diff;
+            best_source_pts = it->source_pts;
+            if (diff == 0) {
+                break;
+            }
+        }
+        return best_diff <= kMaxTimestampMappingDistanceNs ? best_source_pts : decoder_pts;
+    }
+
     void PullLoop() {
         auto* sink = GST_APP_SINK(appsink_);
         while (running_.load()) {
@@ -250,7 +338,9 @@ private:
 
             GstBuffer* buffer = gst_sample_get_buffer(sample);
             if (buffer != nullptr) {
-                frame.pts = GST_BUFFER_PTS_IS_VALID(buffer) ? static_cast<std::int64_t>(GST_BUFFER_PTS(buffer)) : 0;
+                const std::int64_t decoder_pts =
+                    GST_BUFFER_PTS_IS_VALID(buffer) ? static_cast<std::int64_t>(GST_BUFFER_PTS(buffer)) : 0;
+                frame.pts = ResolveSourcePts(decoder_pts);
                 GstMapInfo map;
                 if (gst_buffer_map(buffer, &map, GST_MAP_READ) == TRUE) {
                     frame.data.assign(map.data, map.data + map.size);
@@ -272,6 +362,11 @@ private:
     GstElement* appsrc_{nullptr};
     GstElement* appsink_{nullptr};
     std::thread sink_thread_;
+    mutable std::mutex timestamp_mu_;
+    std::optional<std::int64_t> input_base_pts_;
+    std::optional<std::int64_t> last_input_dts_;
+    std::int64_t last_input_frame_duration_ns_{kDefaultVideoFrameDurationNs};
+    std::deque<TimestampMapping> timestamp_mappings_;
 };
 
 #else

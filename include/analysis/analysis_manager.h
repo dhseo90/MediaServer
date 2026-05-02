@@ -175,6 +175,7 @@ private:
         std::chrono::steady_clock::time_point last_adaptive_tuned_at{};
         std::atomic<std::uint64_t> next_frame_id{1};
         std::uint64_t decoded_frame_sequence{0};
+        std::int64_t last_result_pts{0};
         std::size_t adaptive_last_queue_dropped_frames{0};
         std::size_t adaptive_last_stale_queue_dropped_frames{0};
         int adaptive_underloaded_streak{0};
