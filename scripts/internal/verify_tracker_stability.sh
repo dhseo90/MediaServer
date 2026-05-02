@@ -428,6 +428,8 @@ log_pass "HTTP health ok"
 for iteration in $(seq 1 "${REPEAT_COUNT}"); do
   CURRENT_TAP_ID=""
   SNAPSHOTS_FILE="/tmp/media_server_${RUN_ID}_iteration_${iteration}.ndjson"
+  SNAPSHOT_TMP="/tmp/media_server_${RUN_ID}_iteration_${iteration}_snapshot.json"
+  METRICS_TMP="/tmp/media_server_${RUN_ID}_iteration_${iteration}_metrics.json"
   log_info "iteration ${iteration}/${REPEAT_COUNT} 시작"
 
   TAP_RESPONSE="$(curl -fsS -X POST "${HTTP_BASE}/lab/analysis/taps?file=${ENCODED_FILE}&va=1&fps=8&maxQueue=1&trackIds=1&trackTrails=1")"
@@ -443,8 +445,22 @@ for iteration in $(seq 1 "${REPEAT_COUNT}"); do
   : > "${SNAPSHOTS_FILE}"
   for _ in $(seq 1 "${POLL_COUNT}"); do
     sleep "${POLL_INTERVAL_S}"
-    curl -fsS "${HTTP_BASE}/lab/analysis/taps/${CURRENT_TAP_ID}" >> "${SNAPSHOTS_FILE}"
-    printf '\n' >> "${SNAPSHOTS_FILE}"
+    curl -fsS "${HTTP_BASE}/lab/analysis/taps/${CURRENT_TAP_ID}" > "${SNAPSHOT_TMP}"
+    if ! curl -fsS "${HTTP_BASE}/lab/analysis/taps/${CURRENT_TAP_ID}/metrics" > "${METRICS_TMP}"; then
+      printf '{}' > "${METRICS_TMP}"
+    fi
+    python3 - "${SNAPSHOT_TMP}" "${METRICS_TMP}" >> "${SNAPSHOTS_FILE}" <<'PY'
+import json
+import pathlib
+import sys
+
+snapshot = json.loads(pathlib.Path(sys.argv[1]).read_text() or "{}")
+metrics = json.loads(pathlib.Path(sys.argv[2]).read_text() or "{}")
+tap = snapshot.get("tap") if isinstance(snapshot, dict) else None
+if not isinstance(tap, dict):
+    tap = snapshot if isinstance(snapshot, dict) else {}
+print(json.dumps({"tap": tap, "metrics": metrics}, ensure_ascii=False))
+PY
   done
 
   if python3 - \
@@ -517,10 +533,12 @@ for line in snapshots_file.read_text().splitlines():
         continue
     payload = json.loads(line)
     tap = payload.get("tap") or {}
+    metrics = payload.get("metrics") or {}
     latest = tap.get("latestResult") or {}
     pts = int(latest.get("pts") or 0)
     raw_samples.append({
         "tap": tap,
+        "metrics": metrics,
         "latest": latest,
         "pts": pts,
         "tracks": latest.get("tracks") or [],
@@ -686,6 +704,88 @@ id_switch_risk_score = (
     + stale_pts_ratio * 2.0
     + pts_regression_count * 0.1
 )
+association_confidence_values = []
+overlap_risk_values = []
+center_jump_values = []
+lost_count_values = []
+reacquired_count_values = []
+guard_decision_counts = collections.Counter()
+issue_counts = collections.Counter()
+event_counts = collections.Counter()
+scenario_counts = collections.Counter()
+close_object_guard_applied_count = 0
+rejected_by_close_object_guard_count = 0
+track_issue_rows = []
+for sample in effective_samples:
+    tap = sample.get("tap") or {}
+    latest = sample.get("latest") or {}
+    metrics = sample.get("metrics") or {}
+    track_state = ((tap.get("analyticsState") or {}).get("trackState") or {})
+    lost_count_values.append(int(track_state.get("lostTracks") or 0))
+    reacquired_count_values.append(int(track_state.get("reacquiredTracks") or 0))
+
+    for track in ((latest.get("debugState") or {}).get("tracks") or []):
+        health = track.get("trackHealth") or {}
+        assoc = health.get("associationConfidence")
+        overlap = health.get("overlapRisk")
+        if isinstance(assoc, (int, float)):
+            association_confidence_values.append(float(assoc))
+        if isinstance(overlap, (int, float)):
+            overlap_risk_values.append(float(overlap))
+
+    for diagnostic in metrics.get("closeObjectDiagnostics") or []:
+        decision = str(diagnostic.get("guardDecision") or "unknown")
+        guard_decision_counts[decision] += 1
+        if diagnostic.get("closeObjectGuardApplied") is True:
+            close_object_guard_applied_count += 1
+        if diagnostic.get("rejected") is True:
+            rejected_by_close_object_guard_count += 1
+        center_jump = diagnostic.get("centerJump")
+        if isinstance(center_jump, (int, float)):
+            center_jump_values.append(float(center_jump))
+        if len(track_issue_rows) < 200:
+            track_issue_rows.append({
+                "source": "close-object",
+                "trackId": diagnostic.get("trackId"),
+                "className": diagnostic.get("className"),
+                "type": decision,
+                "closeObjectRisk": diagnostic.get("closeObjectRisk"),
+                "scoreMargin": diagnostic.get("scoreMargin"),
+                "centerJump": diagnostic.get("centerJump"),
+                "guardApplied": diagnostic.get("closeObjectGuardApplied"),
+                "rejected": diagnostic.get("rejected"),
+            })
+
+    issue_report = metrics.get("trackingIssueReport") or {}
+    for issue in issue_report.get("issues") or []:
+        issue_type = str(issue.get("type") or issue.get("issueType") or "unknown")
+        issue_counts[issue_type] += 1
+        health = issue.get("trackHealth") or {}
+        assoc = health.get("associationConfidence")
+        overlap = health.get("overlapRisk")
+        if isinstance(assoc, (int, float)):
+            association_confidence_values.append(float(assoc))
+        if isinstance(overlap, (int, float)):
+            overlap_risk_values.append(float(overlap))
+        if len(track_issue_rows) < 200:
+            track_issue_rows.append({
+                "source": "tracking-issue",
+                "trackId": issue.get("trackId"),
+                "className": issue.get("className"),
+                "type": issue_type,
+                "associationConfidence": health.get("associationConfidence"),
+                "overlapRisk": health.get("overlapRisk"),
+                "missedFrameCount": health.get("missedFrameCount"),
+                "directionChangeCount": health.get("directionChangeCount"),
+            })
+
+    metrics_report = metrics.get("metricsReport") or {}
+    for key, value in (metrics_report.get("eventState") or {}).items():
+        if isinstance(value, (int, float)):
+            event_counts[key] = max(event_counts[key], int(value))
+    for key, value in (metrics_report.get("scenarioState") or {}).items():
+        if isinstance(value, (int, float)):
+            scenario_counts[key] = max(scenario_counts[key], int(value))
 summary = {
     "iteration": iteration,
     "rawSamples": len(raw_samples),
@@ -716,6 +816,23 @@ summary = {
     "emptyDetectionSamples": empty_detection_samples,
     "finalAnalyzedPackets": final_analyzed,
     "averageAnalysisMs": round(avg_ms, 3),
+    "minAssociationConfidence": round(min(association_confidence_values), 6)
+    if association_confidence_values else None,
+    "maxOverlapRisk": round(max(overlap_risk_values), 6) if overlap_risk_values else None,
+    "maxCenterJump": round(max(center_jump_values), 6) if center_jump_values else None,
+    "lostCount": max(lost_count_values) if lost_count_values else 0,
+    "reacquiredCount": max(reacquired_count_values) if reacquired_count_values else 0,
+    "missedFrameSpikeCount": int(issue_counts.get("missed-frame-spike", 0)),
+    "directionChangeSpikeCount": int(issue_counts.get("direction-change-spike", 0)),
+    "trackingIssueCounts": dict(sorted(issue_counts.items())),
+    "guardDecisionCounts": dict(sorted(guard_decision_counts.items())),
+    "closeObjectGuardAppliedCount": close_object_guard_applied_count,
+    "rejectedByCloseObjectGuardCount": rejected_by_close_object_guard_count,
+    "eventScenarioSignature": {
+        "eventState": dict(sorted(event_counts.items())),
+        "scenarioState": dict(sorted(scenario_counts.items())),
+    },
+    "trackIssueTable": track_issue_rows,
     "segments": segment_summaries,
 }
 print("tracker_iteration_summary=", summary)

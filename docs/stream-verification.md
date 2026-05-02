@@ -77,6 +77,16 @@ WebRTC/stream 변경:
 
 Close-object guard 검증은 guard off 회귀, diagnostic 회귀, enforce opt-in 비교를 분리합니다. 기본값은 `off`이므로 먼저 일반 회귀가 baseline을 유지하는지 확인하고, `diagnostic` 모드에서 score 변경 없이 metadata/UI 진단만 노출되는지 확인한 뒤, `enforce` 모드에서 같은 fixture를 다시 실행해 ID continuity 지표만 비교합니다.
 
+기본 비교 리포트는 같은 sample을 `off`, `diagnostic`, `enforce` 순서로 실행하고 mode별 tracker summary JSON과 Markdown report를 `/tmp/media_server_close_object_tracker_*` 아래에 남깁니다.
+
+```bash
+./server.sh compare-close-object-tracker \
+  --file imports/va_tracking_event_1280x720_30fps_h264.mp4 \
+  --modes off,diagnostic,enforce
+```
+
+비교 기준은 associationConfidence 최저값, overlapRisk 최대값, center jump 최대값, lost/reacquired, missed-frame-spike, direction-change-spike, ID switch risk, fragmentation, overlap fragmentation, guardDecision count, closeObjectGuardApplied/rejected count, event/scenario signature delta입니다. `diagnostic`은 score 변경이 없어야 하며 `enforce`는 opt-in 보정 후보로만 봅니다. event/scenario delta가 있거나 replay/event 결과가 흔들리면 close-object guard는 default on 전환 금지입니다. default on 전환은 여러 fixture와 현장 샘플에서 ID continuity 개선과 replay/event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
+
 ```bash
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-replay
@@ -93,7 +103,7 @@ MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verif
 MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verify-analysis-state
 ```
 
-비교 기준은 associationConfidence 최저값, overlapRisk 최대값, center jump 최대값, lost/reacquired, missed-frame-spike, direction-change-spike, trackId swap 여부입니다. `verify-va-replay` 또는 event/scenario 결과가 흔들리면 guard는 default off로 유지합니다. default on 전환은 여러 fixture와 현장 샘플에서 ID continuity 개선과 replay/event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
+수동 mode별 명령은 비교 리포트의 원인 분석이나 특정 mode 재현이 필요할 때 사용합니다. report judgement가 `hold`이면 event/scenario delta 또는 주요 회귀가 있다는 뜻이므로 default on 검토를 중단하고 fixture와 summary log를 먼저 확인합니다.
 
 반복 다채널 VA 검증:
 

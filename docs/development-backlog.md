@@ -413,12 +413,13 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ### P5-2. Close-object association diagnostic / opt-in guard
 
-- 상태: 완료: default off opt-in
+- 상태: 완료: default off opt-in, 비교 리포트 자동화 1차 완료
 - 목적: 가까운 동일 class 객체가 겹치는 구간에서 `overlapRisk`, `associationConfidence`, lost/reacquired, missed-frame spike를 이용해 ID continuity 보수화가 필요한지 설계하고 opt-in diagnostic/guard skeleton으로 관측합니다.
-- 관련 파일: `src/analysis/object_tracker.cpp`, `src/analysis/track_state_manager.cpp`, `scripts/internal/verify_tracker_stability.sh`, `docs/video-analysis.md`
+- 관련 파일: `src/analysis/object_tracker.cpp`, `src/analysis/track_state_manager.cpp`, `scripts/internal/verify_tracker_stability.sh`, `scripts/internal/compare_close_object_tracker.py`, `docs/video-analysis.md`
 - 검증 명령:
 
 ```bash
+./server.sh compare-close-object-tracker --file imports/va_tracking_event_1280x720_30fps_h264.mp4 --modes off,diagnostic,enforce
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-replay
 ./server.sh verify-analysis-state
@@ -427,7 +428,8 @@ MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verif
 ```
 
 - 현재 정책: `MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=off`가 기본입니다. `diagnostic`은 score 변경 없는 관측, `enforce`는 실험적 opt-in 보정 skeleton이며 default on은 보류합니다.
-- 남은 작업: 현장/추가 fixture에서 threshold, center jump penalty, continuity boost 기준을 비교하고 event/scenario 결과 무변화를 재확인합니다. Kalman/Re-ID/ByteTrack 계열은 별도 실험 항목으로 분리합니다.
+- 구현 완료: `compare-close-object-tracker`가 같은 sample을 `off`, `diagnostic`, `enforce` mode로 실행하고 JSON summary, Markdown report, mode별 비교 table, track별 issue table, event/scenario delta를 남깁니다.
+- 남은 작업: close-object fixture와 실제 현장 샘플을 추가해 threshold, center jump penalty, continuity boost 기준을 비교하고 event/scenario 결과 무변화를 재확인합니다. Kalman/Re-ID/ByteTrack 계열은 별도 실험 항목으로 분리합니다.
 - 범위 제외: Kalman Filter, ByteTrack, BoT-SORT, Re-ID 모델 같은 대형 tracker 교체는 이 항목의 범위가 아닙니다.
 - 우선순위 이유: 현재 direction-based tracker를 유지한 채 close-object association 한계를 먼저 정량화하고, 이벤트 결과 변화가 없는지 replay로 비교해야 합니다. 지금 단계에서 tracker 문제가 완전히 해결된 것으로 보지 않습니다.
 
