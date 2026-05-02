@@ -12071,6 +12071,22 @@ std::string BuildLabRuleEditorPageHtml() {
       };
     }
 
+    function dashboardTrendUnchangedWindow(key) {
+      const values = dashboardTrendSamples
+        .map((sample) => ({ t: sample.t, value: dashboardTrendNumber(sample.values?.[key]) }))
+        .filter((item) => item.value !== null);
+      if (values.length === 0) return { count: 0, durationMs: 0 };
+      const last = values[values.length - 1];
+      let firstSame = last;
+      let count = 1;
+      for (let index = values.length - 2; index >= 0; --index) {
+        if (values[index].value !== last.value) break;
+        firstSame = values[index];
+        count += 1;
+      }
+      return { count, durationMs: Math.max(0, last.t - firstSame.t) };
+    }
+
     function dashboardTrendWindowLabel() {
       if (dashboardTrendSamples.length === 0) return 'sample 없음';
       const first = dashboardTrendSamples[0];
@@ -12131,6 +12147,10 @@ std::string BuildLabRuleEditorPageHtml() {
       const queue = tapState.analyticsQueue || {};
       const sessions = Array.isArray(metadata.sessions) ? metadata.sessions : [];
       const counter = (key) => dashboardOptionalNumber(debugCounters, key);
+      const tapNumber = (value) => {
+        const number = Number(value);
+        return Number.isFinite(number) ? number : null;
+      };
       const metadataBuilds = counter('metadataJsonBuildCount');
       const metadataBytesTotal = counter('metadataJsonBytesTotal');
       const metadataBytesMax = counter('metadataJsonBytesMax');
@@ -12163,6 +12183,16 @@ std::string BuildLabRuleEditorPageHtml() {
       const metadataLastAgeMs = viewMetadataLastMessageAt > 0 ? sampledAtMs - viewMetadataLastMessageAt : null;
       const videoLastAgeMs = viewMetadataLastVideoFrameAt > 0 ? sampledAtMs - viewMetadataLastVideoFrameAt : null;
       const overlayDrawAgeMs = viewMetadataLastDrawAt > 0 ? sampledAtMs - viewMetadataLastDrawAt : null;
+      const tapProgressSignals = [
+        tapState.receivedVideoPackets,
+        tapState.decodedFrames,
+        tapState.sampledFrames,
+        tapState.analyzedPackets,
+        tapMetrics.metricsReport?.timestampMs
+      ].map(tapNumber).filter((value) => value !== null);
+      const tapMetricsProgress = tapProgressSignals.length
+        ? tapProgressSignals.reduce((sum, value) => sum + value, 0)
+        : null;
       return {
         t: sampledAtMs,
         tapId: dashboardLastTapId || '',
@@ -12198,6 +12228,7 @@ std::string BuildLabRuleEditorPageHtml() {
           rtspHardFlowErrors: hardFlowErrors,
           rtspConsumerResidual,
           fanoutResidual,
+          tapMetricsProgress,
           metadataLastAgeMs,
           videoLastAgeMs,
           overlayDrawAgeMs
@@ -12239,6 +12270,11 @@ std::string BuildLabRuleEditorPageHtml() {
           metadataBuildStats.delta <= 0) {
         warnings.push({ label: 'SSE/WS metadata 정체', state: 'warning' });
       }
+      const tapMetricsWindow = dashboardTrendUnchangedWindow('tapMetricsProgress');
+      if ((values.activeAnalysisTaps || 0) > 0 && values.tapMetricsProgress !== null &&
+          tapMetricsWindow.count >= 3 && tapMetricsWindow.durationMs >= 10000) {
+        warnings.push({ label: `tap metrics stale ${dashboardDuration(tapMetricsWindow.durationMs)}`, state: 'warning' });
+      }
       const activeResidual = (values.activeSessions || 0) + (values.activeStreams || 0) +
         (values.activeAnalysisTaps || 0) + (values.activeSseClients || 0) +
         (values.activeWsClients || 0) + (values.rtspConsumerResidual || 0);
@@ -12278,6 +12314,14 @@ std::string BuildLabRuleEditorPageHtml() {
       if (config.key === 'metadataLastAgeMs' && current > 3000) chips.push({ label: 'stale', state: 'warning' });
       if (config.key === 'videoLastAgeMs' && current > 3000) chips.push({ label: 'video stale', state: 'warning' });
       if (config.key === 'overlayDrawAgeMs' && current > 3000) chips.push({ label: 'draw stale', state: 'warning' });
+      if (config.key === 'tapMetricsProgress') {
+        const unchanged = dashboardTrendUnchangedWindow(config.key);
+        if (unchanged.count >= 3 && unchanged.durationMs >= 10000) {
+          chips.push({ label: `stale ${dashboardDuration(unchanged.durationMs)}`, state: 'warning' });
+        } else if (stats.count > 1 && delta === 0) {
+          chips.push({ label: '변화 없음', state: 'muted' });
+        }
+      }
       if (config.key === 'queuePending' && stats.max > 0) chips.push({ label: `peak ${dashboardTrendFormat(stats.max)}`, state: 'muted' });
       if (config.key === 'dashboardLocalPollingCount') chips.push({ label: 'client local', state: 'muted' });
       if (!chips.length) chips.push({ label: '정상', state: 'active' });
@@ -12341,6 +12385,7 @@ std::string BuildLabRuleEditorPageHtml() {
         { key: 'rtspHardFlowErrors', label: 'RTSP hard flow errors', kind: 'count', counter: true, warnPositive: true },
         { key: 'rtspConsumerResidual', label: 'RTSP consumer residual', kind: 'count', warnPositive: true },
         { key: 'fanoutResidual', label: 'fanout residual', kind: 'count', warnPositive: true },
+        { key: 'tapMetricsProgress', label: 'tap metrics progress', kind: 'count', counter: true },
         { key: 'metadataLastAgeMs', label: 'metadata receive age', kind: 'ms' },
         { key: 'videoLastAgeMs', label: 'last video frame age', kind: 'ms' },
         { key: 'overlayDrawAgeMs', label: 'overlay draw age', kind: 'ms' },
