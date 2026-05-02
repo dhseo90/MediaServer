@@ -308,6 +308,10 @@ std::size_t ReadSizeEnv(const char* name, std::size_t fallback) {
     if (value == nullptr) {
         return fallback;
     }
+    if (value[0] == '-') {
+        std::cerr << "[env] invalid " << name << "='" << value << "', fallback " << fallback << "\n";
+        return fallback;
+    }
 
     char* end = nullptr;
     errno = 0;

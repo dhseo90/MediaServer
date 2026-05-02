@@ -5470,9 +5470,14 @@ std::string BuildLabRuleEditorPageHtml() {
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .event-record-table td:nth-child(1) {
+      white-space: normal;
+    }
 	    .event-record-id-button {
 	      appearance: none;
+	      display: inline-block;
 	      width: auto;
+	      max-width: 100%;
 	      min-height: 0;
 	      border: 0;
 	      border-radius: 0;
@@ -5484,7 +5489,9 @@ std::string BuildLabRuleEditorPageHtml() {
 	      text-align: left;
 	      cursor: pointer;
 	      box-shadow: none;
+	      line-height: 1.35;
 	      overflow-wrap: anywhere;
+	      white-space: normal;
 	    }
 	    .event-record-id-button:hover {
 	      background: transparent;
@@ -7215,7 +7222,7 @@ std::string BuildLabRuleEditorPageHtml() {
               <details id="dashboardEventRecordsDetails" class="event-records-details">
                 <summary><span id="dashboardEventRecordsTitle">Event Records</span><small id="dashboardEventRecordsSummary" class="dashboard-section-summary">검색 전</small></summary>
                 <div class="event-records-panel">
-                  <p class="event-records-note"><span class="badge badge-muted">수동 조회</span><span>이 영역은 자동 polling하지 않습니다. 검색 버튼을 눌렀을 때 저장된 EventRecord metadata만 조회합니다.</span></p>
+                  <p class="event-records-note"><span class="badge badge-muted">수동 조회</span><span>이 영역은 자동 polling하지 않습니다. 검색 버튼을 눌렀을 때 active JSON Lines의 EventRecord metadata만 조회하며 rotated archive는 검색하지 않습니다.</span></p>
                   <div class="event-record-filter-grid" aria-label="EventRecord 검색 필터">
                     <label>eventType
                       <select id="eventRecordEventTypeFilter">
@@ -7266,7 +7273,7 @@ std::string BuildLabRuleEditorPageHtml() {
                   </div>
                   <div class="event-record-actions">
                     <button id="eventRecordSearchBtn" type="button">검색</button>
-                    <p id="eventRecordStateText" class="event-record-state">자동 갱신 없음 · 검색 버튼을 누르면 저장된 EventRecord metadata를 조회합니다.</p>
+                    <p id="eventRecordStateText" class="event-record-state">자동 갱신 없음 · active JSON Lines metadata 조회 · archive 제외</p>
                   </div>
                   <div class="dashboard-table-wrap">
                     <table class="data-table data-table-compact dashboard-table event-record-table" aria-label="EventRecord 검색 결과">
@@ -11876,7 +11883,7 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function dashboardEventStorageLabel(payload) {
       if (!payload) return '-';
-      return `${payload.enabled ? 'on' : 'off'} · q ${payload.queueSize || 0}/${payload.maxQueueSize || 0} · stored ${payload.storedCount || 0} · fail ${payload.failedCount || 0}`;
+      return `${payload.enabled ? 'on' : 'off'} · q ${payload.queueSize || 0}/${payload.maxQueueSize || 0} · stored ${payload.storedCount || 0} · fail ${payload.failedCount || 0} · arch ${payload.archivedFileCount || 0}`;
     }
 
     function dashboardPrettyJson(payload, fallback) {
@@ -12983,9 +12990,13 @@ std::string BuildLabRuleEditorPageHtml() {
       const storage = payload?.storage || {};
       const hasMoreText = payload?.hasMore ? 'hasMore 있음' : 'hasMore 없음';
       const corruptText = `corrupt skip ${payload?.skippedCorruptLines ?? 0}`;
+      const partialText = `partial ${payload?.partialLineCount ?? storage.partialLineCount ?? 0}`;
+      const activeSizeText = `active ${dashboardBytes(storage.activeFileSizeBytes ?? 0)}`;
+      const archiveText = `arch ${storage.archivedFileCount ?? 0}/${dashboardBytes(storage.totalArchiveBytes ?? 0)}`;
+      const deletedText = `deleted ${storage.retentionDeletedCount ?? 0}`;
       const storageText = `${storage.enabled ? 'storage on' : 'storage off'} · ${storage.exists ? 'file 있음' : 'file 없음'}`;
       dashboardSet('dashboardEventRecordsSummary', `records ${records.length} · limit ${payload?.limit ?? '-'} · ${hasMoreText}`);
-      dashboardSet('eventRecordStateText', `${storageText} · ${corruptText}${payload?.truncated ? ' · truncated' : ''}`);
+      dashboardSet('eventRecordStateText', `${storageText} · active only · ${activeSizeText} · ${archiveText} · ${deletedText} · ${corruptText} · ${partialText}${payload?.truncated ? ' · truncated' : ''}`);
       const tbody = dashboardRowsStart('eventRecordRows');
       if (!tbody || records.length === 0) {
         dashboardSetEmptyRows('eventRecordRows', 11, eventRecordEmptyMessage(payload));
@@ -17170,6 +17181,9 @@ std::string AnalysisEventStorageStatusJson() {
         << "\"writeFailedCount\":" << snapshot.write_failed_count << ","
         << "\"droppedCount\":" << snapshot.dropped_count << ","
         << "\"skippedCorruptLines\":" << snapshot.skipped_corrupt_lines << ","
+        << "\"partialLineCount\":" << snapshot.partial_line_count << ","
+        << "\"lastRecoveryTime\":" << snapshot.last_recovery_time_ms << ","
+        << "\"lastRecoveryStatus\":\"" << JsonEscape(snapshot.last_recovery_status) << "\","
         << "\"rotatedCount\":" << snapshot.rotated_count << ","
         << "\"rotationFailedCount\":" << snapshot.rotation_failed_count << ","
         << "\"retentionDeletedCount\":" << snapshot.retention_deleted_count << ","
@@ -17341,15 +17355,31 @@ std::string AnalysisEventRecordsJson(const analysis::EventRecordQueryResult& res
         << "\"hasMore\":" << (result.has_more ? "true" : "false") << ","
         << "\"truncated\":" << (result.truncated ? "true" : "false") << ","
         << "\"skippedCorruptLines\":" << result.skipped_corrupt_lines << ","
+        << "\"partialLineCount\":" << result.partial_line_count << ","
         << "\"storage\":{"
         << "\"enabled\":" << (snapshot.enabled ? "true" : "false") << ","
         << "\"path\":\"" << JsonEscape(snapshot.path) << "\","
+        << "\"activePath\":\"" << JsonEscape(snapshot.active_path.empty() ? snapshot.path
+                                                                          : snapshot.active_path)
+        << "\","
         << "\"exists\":" << (result.file_exists ? "true" : "false") << ","
+        << "\"activeFileSizeBytes\":" << snapshot.active_file_size_bytes << ","
+        << "\"archivedFileCount\":" << snapshot.archived_file_count << ","
+        << "\"totalArchiveBytes\":" << snapshot.total_archive_bytes << ","
+        << "\"rotatedCount\":" << snapshot.rotated_count << ","
+        << "\"retentionDeletedCount\":" << snapshot.retention_deleted_count << ","
+        << "\"retentionDeletedBytes\":" << snapshot.retention_deleted_bytes << ","
+        << "\"retentionFailedCount\":" << snapshot.retention_failed_count << ","
+        << "\"skippedCorruptLines\":" << snapshot.skipped_corrupt_lines << ","
+        << "\"partialLineCount\":" << snapshot.partial_line_count << ","
+        << "\"lastRecoveryTime\":" << snapshot.last_recovery_time_ms << ","
+        << "\"lastRecoveryStatus\":\"" << JsonEscape(snapshot.last_recovery_status) << "\","
         << "\"queueSize\":" << snapshot.queue_size << ","
         << "\"maxQueueSize\":" << snapshot.max_queue_size << ","
         << "\"enqueuedCount\":" << snapshot.enqueued_count << ","
         << "\"storedCount\":" << snapshot.stored_count << ","
         << "\"failedCount\":" << snapshot.failed_count << ","
+        << "\"writeFailedCount\":" << snapshot.write_failed_count << ","
         << "\"droppedCount\":" << snapshot.dropped_count
         << "}"
         << "}";

@@ -14,11 +14,11 @@
 
 - 구현 완료: RTSP/WebRTC relay, File/RTSP/WebRTC/HTTP-HLS source, YOLO/ONNX VA overlay, Rule/Profile UI, `vaRule=<id>` 호출, 기존 Intrusion/LineCrossing 이벤트 회귀 구조.
 - 구현 완료: TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, TrackHealth, cleanup 정책.
-- 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage, snapshot/clip hook, WebRTC VA metadata DataChannel 출력 구조.
+- 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage/query/search UI, EventRecord rotation/retention/recovery 1차, snapshot/clip hook, WebRTC VA metadata DataChannel 출력 구조.
 - 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, 자동/longrun 검증 명령.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
 - 실험/제약: snapshot/clip은 hook/marker 중심이며 실제 제품용 frame extraction/clip recorder는 후속 구현입니다.
-- 남은 핵심: 실제 30분/2시간 장시간 검증 재실행, 운영 이벤트 조회/보관, 정밀 scenario timeline, dashboard trend/stale/cleanup warning, custom overlay renderer, 실제 현장 샘플 기반 튜닝입니다.
+- 남은 핵심: 실제 30분/2시간 장시간 검증 재실행, EventRecord archive query/compaction, 정밀 scenario timeline, dashboard trend/stale/cleanup warning, custom overlay renderer, 실제 현장 샘플 기반 튜닝입니다.
 
 ## P0 - 문서/UI 정리
 
@@ -194,7 +194,7 @@ git diff --check -- README.md docs
 
 ### P2-1. EventRecord 조회/검색 API
 
-- 상태: 예정
+- 상태: 완료
 - 목적: 저장된 EventRecord를 eventId, eventType, streamId/channelId, trackId, 시간 범위로 조회할 수 있게 합니다.
 - 관련 파일: `include/analysis/event_storage.h`, `src/analysis/event_storage.cpp`, `src/ingress/webrtc_http_server.cpp`, `docs/video-analysis.md`
 - 검증 명령:
@@ -208,13 +208,29 @@ git diff --check -- README.md docs
 
 ### P2-2. EventRecord retention/rotation/recovery
 
-- 상태: 예정
+- 상태: 완료 (1차)
 - 목적: JSON Lines 파일 증가, corruption, 서버 재시작 후 복구 정책을 정리합니다.
 - 관련 파일: `src/analysis/event_storage.cpp`, `include/analysis/event_storage.h`, `docs/config-reference.md`
+- 구현 완료 범위:
+  - active JSON Lines 파일 size 기반 rotation
+  - `<active-stem>.<timestamp-ms>.<sequence><ext>` archive naming
+  - max archive count / max total archive bytes 기반 oldest-first retention
+  - active 파일 retention 제외
+  - corrupt JSON line / partial final line skip 및 count
+  - status API의 active/archive/retention/recovery/write failure summary
+  - records API가 corrupt line 하나로 전체 실패하지 않는 정책
+- 후속 범위:
+  - retention days 정책
+  - rotated archive query 옵션과 UI 필터
+  - storage compaction 또는 repair rewrite
+  - archive별 상세 status와 운영 cleanup 도구
+  - 실제 snapshot frame extraction과 pre/post clip recorder는 P6에서 별도 진행
 - 검증 명령:
 
 ```bash
+./server.sh build
 ./server.sh verify-event-post --mode recovery
+git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-verification.md docs/development-backlog.md
 ```
 
 - 우선순위 이유: 이벤트 저장은 운영 데이터이므로 장기 보관 정책과 실패 복구가 필요합니다.
@@ -294,9 +310,11 @@ git diff --check -- README.md docs
 
 ### P3-4. EventRecord 검색 UI
 
-- 상태: 예정
+- 상태: 완료 (1차)
 - 목적: 이벤트 목록, 필터, EventRecord detail, snapshot/clip link placeholder를 Lab에서 확인합니다.
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/analysis/event_storage.cpp`, `docs/ui-guide.md`
+- 구현 완료 범위: Runtime Dashboard의 수동 검색 UI, active file records 조회, storage status summary, corrupt/partial count 표시, snapshotPath/clipPath placeholder 표시입니다.
+- 후속 범위: rotated archive query UI, 대량 archive paging, 실제 snapshot/clip preview 연결입니다. 현재 UI는 영상 재생이나 clip recorder를 수행하지 않습니다.
 - 검증 명령:
 
 ```bash

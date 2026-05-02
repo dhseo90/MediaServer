@@ -91,6 +91,10 @@ event_post_status() {
   curl -fsS "${HTTP_BASE}/lab/analysis/event-post/status"
 }
 
+event_storage_status() {
+  curl -fsS "${HTTP_BASE}/lab/analysis/event-storage/status"
+}
+
 cleanup() {
   # 검증 중 생성한 rule/tap/receiver를 정리해 다음 검증에 영향을 남기지 않는다.
   set +e
@@ -372,6 +376,113 @@ PY
   log_pass "POST endpoint recovery 후 실패/성공 counter 검증"
 }
 
+validate_event_storage_recovery_policy() {
+  # EventStorage가 검증용 /tmp 경로로 켜진 경우에만 JSON Lines corrupt/partial skip 정책을 확인한다.
+  local storage_status enabled storage_path
+  if ! storage_status="$(event_storage_status 2>/dev/null)"; then
+    log_skip "EventStorage status endpoint 확인 실패로 recovery policy 검증 건너뜀"
+    return
+  fi
+  enabled="$(json_field "${storage_status}" "enabled")"
+  if [[ "${enabled}" != "True" && "${enabled}" != "true" ]]; then
+    log_skip "EventStorage 비활성 상태라 recovery policy 검증 건너뜀"
+    return
+  fi
+  storage_path="$(json_field "${storage_status}" "path")"
+  case "${storage_path}" in
+    /tmp/media_server_*)
+      ;;
+    *)
+      log_skip "EventStorage path가 검증용 /tmp/media_server_* 경로가 아니어서 파일 변조 검증 건너뜀: ${storage_path}"
+      return
+      ;;
+  esac
+
+  for _ in $(seq 1 20); do
+    storage_status="$(event_storage_status)"
+    if [[ "$(json_field "${storage_status}" "queueSize")" == "0" ]]; then
+      break
+    fi
+    sleep 0.2
+  done
+
+  local event_id="event-storage-recovery-${RUN_ID}"
+  python3 - "${storage_path}" "${event_id}" <<'PY'
+import json
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+event_id = sys.argv[2]
+path.parent.mkdir(parents=True, exist_ok=True)
+if path.exists() and path.stat().st_size > 0:
+    with path.open("rb+") as handle:
+        handle.seek(-1, 2)
+        if handle.read(1) != b"\n":
+            handle.seek(0, 2)
+            handle.write(b"\n")
+
+record = {
+    "schema": "media-server.va.event-record.v1",
+    "eventId": event_id,
+    "eventType": "verify-recovery",
+    "streamId": "verify-event-post",
+    "channelId": "verify-event-post",
+    "trackId": 1,
+    "classId": 0,
+    "className": "person",
+    "startTime": 1,
+    "updateTime": 1,
+    "endTime": 0,
+    "status": "emitted",
+    "zoneId": "",
+    "lineId": "",
+    "scenarioName": "",
+    "scenarioPhase": "",
+    "confidence": 0.99,
+    "snapshotPath": "",
+    "clipPath": "",
+    "preEventMs": 0,
+    "postEventMs": 0,
+    "metadata": {},
+}
+with path.open("ab") as handle:
+    handle.write(json.dumps(record, separators=(",", ":")).encode("utf-8") + b"\n")
+    handle.write(b'{"schema":"media-server.va.event-record.v1","eventId":"corrupt",broken}\n')
+    handle.write(b'{"schema":"media-server.va.event-record.v1","eventId":"partial"')
+PY
+
+  local encoded_event_id records_json status_json
+  encoded_event_id="$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "${event_id}")"
+  records_json="$(curl -fsS "${HTTP_BASE}/lab/analysis/events/records?eventId=${encoded_event_id}&limit=10")"
+  status_json="$(event_storage_status)"
+  python3 - "${records_json}" "${status_json}" "${event_id}" <<'PY'
+import json
+import sys
+
+records_payload = json.loads(sys.argv[1])
+status_payload = json.loads(sys.argv[2])
+event_id = sys.argv[3]
+
+records = records_payload.get("records", [])
+if not any(item.get("eventId") == event_id for item in records):
+    raise SystemExit("valid EventRecord line was not returned")
+if records_payload.get("skippedCorruptLines", 0) < 2:
+    raise SystemExit(f"records skippedCorruptLines too small: {records_payload}")
+if records_payload.get("partialLineCount", 0) < 1:
+    raise SystemExit(f"records partialLineCount too small: {records_payload}")
+if status_payload.get("skippedCorruptLines", 0) < 2:
+    raise SystemExit(f"status skippedCorruptLines too small: {status_payload}")
+if status_payload.get("partialLineCount", 0) < 1:
+    raise SystemExit(f"status partialLineCount too small: {status_payload}")
+if status_payload.get("lastRecoveryStatus") != "recovered":
+    raise SystemExit(f"unexpected lastRecoveryStatus: {status_payload}")
+print("event_storage_recovery_records=", records_payload)
+print("event_storage_recovery_status=", status_payload)
+PY
+  log_pass "EventStorage corrupt/partial JSON Lines recovery policy 검증"
+}
+
 write_summary() {
   # event POST 검증 결과와 수신 endpoint별 건수를 JSON summary로 남긴다.
   local status_after="{}"
@@ -471,6 +582,7 @@ elif [[ "${MODE}" == "queue" ]]; then
   validate_queue_mode "${status_before}"
 else
   validate_recovery_mode "${status_before}"
+  validate_event_storage_recovery_policy
 fi
 
 echo
