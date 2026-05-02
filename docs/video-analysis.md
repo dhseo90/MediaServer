@@ -227,7 +227,7 @@ Scenario는 여러 frame에 걸친 상태 전이와 시간 조건을 평가합�
 | --- | --- | --- |
 | IntrusionDwell | 구현됨, UI 템플릿 제공 | `intrusion-dwell` |
 | ReEntry | 구현됨, 전용 UI 템플릿 후속 | `re-entry` |
-| WrongDirection | 구현됨, 전용 UI 템플릿 후속 | `wrong-direction` |
+| WrongDirection | 구현됨, UI 템플릿 제공 | `wrong-direction` |
 | IntrusionAfterLineCrossing | 구현됨, 전용 UI 템플릿 후속 | `intrusion-after-line-crossing` |
 | Loitering | 구현됨, 전용 UI 템플릿 후속 | `loitering` |
 
@@ -256,6 +256,8 @@ Idle -> Candidate -> Observing -> Confirmed -> Cooldown -> Ended
 ### WrongDirection
 
 line별 허용 방향과 실제 crossing 방향이 다르면 `wrong-direction` 이벤트를 발생시킵니다. 기존 `line-crossing` 이벤트는 그대로 유지합니다.
+
+룰 편집 UI에서는 WrongDirection 템플릿을 선택한 뒤 target class/category, line 2점 geometry, 허용 방향 `forward` 또는 `reverse`, `cooldownMs`를 설정합니다. `any`는 양방향을 모두 허용해 위반 방향을 정의할 수 없으므로 WrongDirection 템플릿에서는 사용하지 않습니다. 이 UI는 기존 rule/event payload 구조의 `event.region.direction`을 재사용하며 ScenarioEngine 판단 로직, Event POST payload schema, WebRTC/SSE/WS metadata schema를 변경하지 않습니다.
 
 ### IntrusionAfterLineCrossing
 
@@ -673,6 +675,8 @@ python3 scripts/examples/va_metadata_sse_client.py \
 
 이 예제는 metadata 수신, JSON parse, `media-server.va.runtime-metadata.v1` schema 확인, `streamId/channelId`, `tracks/events/scenarios` count, latest timestamp, message count 출력만 담당합니다. payload 본문까지 확인하려면 `--print-json`을 추가합니다. RTSP video player와 overlay renderer는 포함하지 않습니다. 일반 VLC/ffplay/IINA는 SSE/WS metadata side-channel을 자동 overlay하지 않습니다.
 
+Custom RTSP + metadata overlay renderer는 설계 완료 / 구현 예정 상태의 optional client example입니다. 1차 구현 후보는 Python OpenCV로 RTSP raw stream을 열고 별도 SSE metadata stream에서 latest runtime metadata를 받아 bbox, trackId, className, event/scenario label을 client-side로 그리는 예제입니다. 이 예제는 서버 core 기능이 아니며 RTSP server-side overlay 정책, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload를 변경하지 않습니다. 일반 VLC/ffplay/IINA가 SSE/WS metadata를 자동 overlay하는 기능도 아닙니다.
+
 명시적 side-channel 검증:
 
 ```bash
@@ -717,7 +721,7 @@ VA overlay는 출력 방식에 따라 역할이 다릅니다.
 | WebRTC Server-side Overlay | 구현 완료 | `va=1`/`vaRule=<id>` 요청에서 서버 합성 영상 출력 |
 | WebRTC Client-side Overlay | 구현 완료 | `vaMetadata=1` DataChannel metadata를 브라우저 canvas가 그리는 Lab viewer 전용 표시 |
 | Custom SSE Metadata Client | 구현 완료 | `scripts/examples/va_metadata_sse_client.py`가 side-channel metadata 수신과 schema/count/timestamp 확인을 담당 |
-| Custom RTSP + Side-channel Overlay | 예정 | custom client가 RTSP raw video와 SSE/WS metadata를 함께 받아 직접 overlay renderer까지 구현 |
+| Custom RTSP + Side-channel Overlay | 설계 완료 / 구현 예정 | optional client example로 custom client가 RTSP raw video와 SSE/WS runtime metadata를 함께 받아 직접 overlay renderer까지 구현 |
 
 RTSP 일반 viewer(VLC/ffplay/IINA)는 WebRTC DataChannel을 이해하지 못합니다. RTSP에서 metadata UI가 필요하면 server-side overlay를 사용하거나, custom client가 RTSP raw stream과 SSE/WS side-channel을 별도로 조합해야 합니다.
 

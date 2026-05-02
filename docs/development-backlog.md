@@ -554,9 +554,9 @@ MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER='turn://user:pass@example.local:
 
 ### P7-4. Custom RTSP + metadata client 예제
 
-- 상태: 진행
-- 목적: SSE metadata side-channel 수신 예제 `scripts/examples/va_metadata_sse_client.py`는 구현했습니다. 남은 작업은 RTSP raw stream과 metadata를 실제로 동기화해 client-side overlay renderer까지 그리는 별도 예제입니다. 일반 VLC/ffplay에 metadata UI가 생기는 기능은 아닙니다.
-- 관련 파일: `scripts/examples/va_metadata_sse_client.py`, `scripts/internal/va_metadata_stream_smoke.py`, `docs/ui-guide.md`, `docs/stream-verification.md`
+- 상태: 설계 완료 / 구현 예정
+- 목적: SSE metadata side-channel 수신 예제 `scripts/examples/va_metadata_sse_client.py`는 구현했습니다. 다음 1차 구현 후보는 `scripts/examples/rtsp_sse_overlay_viewer.py` 형태의 Python OpenCV RTSP + SSE overlay optional client example입니다. 서버 core 기능이 아니며, RTSP raw stream과 SSE/WS runtime metadata를 custom client가 직접 조합해 client-side overlay renderer까지 그리는 별도 예제입니다. 일반 VLC/ffplay/IINA에 metadata UI가 생기는 기능은 아닙니다.
+- 관련 파일: `scripts/examples/va_metadata_sse_client.py`, `scripts/examples/rtsp_sse_overlay_viewer.py`, `scripts/internal/va_metadata_stream_smoke.py`, `docs/video-analysis.md`, `docs/ui-guide.md`, `docs/stream-verification.md`
 - 검증 명령:
 
 ```bash
@@ -566,7 +566,8 @@ python3 scripts/examples/va_metadata_sse_client.py --help
 ./server.sh verify-va-metadata-sidechannel
 ```
 
-- 우선순위 이유: RTSP 일반 viewer와 custom client의 차이를 실제 예제로 보여줘야 현장 연동 혼선을 줄일 수 있습니다.
+- 후속 구현 검증 후보: RTSP raw video 재생 확인과 SSE metadata client smoke를 분리해 먼저 통과시킨 뒤, optional OpenCV overlay 예제는 `--help`, 짧은 timeout 실행, stale metadata 표시, bbox/trackId/className draw 여부를 수동 확인합니다.
+- 우선순위 이유: RTSP 일반 viewer와 custom client의 차이를 실제 예제로 보여줘야 현장 연동 혼선을 줄일 수 있습니다. 서버 core, RTSP server-side overlay 정책, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload는 이 항목에서 변경하지 않습니다.
 
 ### P7-5. Event JSON schema/OpenAPI 분리
 

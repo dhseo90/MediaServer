@@ -418,6 +418,254 @@ struct ParsedEventRecordLine {
     std::int64_t end_time_ms{0};
 };
 
+struct ArchiveFileInfo {
+    std::filesystem::path path;
+    std::uint64_t size_bytes{0};
+    std::filesystem::file_time_type modified_time{};
+};
+
+std::filesystem::path EventStorageActivePath() {
+    return std::filesystem::path(app::GetAppConfig().analysis_event_storage_path);
+}
+
+bool EnsureParentDirectory(const std::filesystem::path& path, std::string* error_message) {
+    const std::filesystem::path parent = path.parent_path();
+    if (parent.empty()) {
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
+    }
+    std::error_code ec;
+    std::filesystem::create_directories(parent, ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = ec.message();
+        }
+        return false;
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+bool IsEventStorageArchivePath(const std::filesystem::path& active_path,
+                               const std::filesystem::path& candidate) {
+    if (candidate == active_path || candidate.filename() == active_path.filename()) {
+        return false;
+    }
+    const std::string active_stem = active_path.stem().string();
+    const std::string active_ext = active_path.extension().string();
+    const std::string name = candidate.filename().string();
+    if (active_stem.empty() || active_ext.empty()) {
+        return false;
+    }
+    return name.rfind(active_stem + ".", 0) == 0 && candidate.extension().string() == active_ext;
+}
+
+std::vector<ArchiveFileInfo> ListEventStorageArchives(const std::filesystem::path& active_path,
+                                                      std::string* error_message) {
+    std::vector<ArchiveFileInfo> archives;
+    const std::filesystem::path parent = active_path.parent_path().empty()
+                                             ? std::filesystem::path(".")
+                                             : active_path.parent_path();
+    std::error_code ec;
+    const bool parent_exists = std::filesystem::exists(parent, ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = ec.message();
+        }
+        return archives;
+    }
+    if (!parent_exists) {
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return archives;
+    }
+    for (const auto& entry : std::filesystem::directory_iterator(parent, ec)) {
+        if (ec) {
+            break;
+        }
+        if (!entry.is_regular_file(ec) || ec) {
+            ec.clear();
+            continue;
+        }
+        const std::filesystem::path candidate = entry.path();
+        if (!IsEventStorageArchivePath(active_path, candidate)) {
+            continue;
+        }
+        ArchiveFileInfo info;
+        info.path = candidate;
+        info.size_bytes = static_cast<std::uint64_t>(entry.file_size(ec));
+        if (ec) {
+            ec.clear();
+            info.size_bytes = 0;
+        }
+        info.modified_time = entry.last_write_time(ec);
+        if (ec) {
+            ec.clear();
+            info.modified_time = std::filesystem::file_time_type::min();
+        }
+        archives.push_back(std::move(info));
+    }
+    if (error_message != nullptr) {
+        *error_message = ec ? ec.message() : "";
+    }
+    return archives;
+}
+
+void SortEventStorageArchivesOldestFirst(std::vector<ArchiveFileInfo>* archives) {
+    if (archives == nullptr) {
+        return;
+    }
+    std::sort(archives->begin(), archives->end(), [](const ArchiveFileInfo& lhs,
+                                                     const ArchiveFileInfo& rhs) {
+        if (lhs.modified_time == rhs.modified_time) {
+            return lhs.path.filename().string() < rhs.path.filename().string();
+        }
+        return lhs.modified_time < rhs.modified_time;
+    });
+}
+
+std::filesystem::path BuildArchivePath(const std::filesystem::path& active_path) {
+    const std::filesystem::path parent = active_path.parent_path();
+    const std::string stem = active_path.stem().string();
+    const std::string ext = active_path.extension().string();
+    for (int attempt = 0; attempt < 1000; ++attempt) {
+        const std::string name = stem + "." + std::to_string(NowMs()) + "." +
+                                 std::to_string(NextSequence()) + ext;
+        std::filesystem::path archive = parent.empty() ? std::filesystem::path(name) : parent / name;
+        std::error_code ec;
+        if (!std::filesystem::exists(archive, ec)) {
+            return archive;
+        }
+    }
+    return parent.empty() ? std::filesystem::path(stem + "." + std::to_string(NowMs()) + ext)
+                          : parent / (stem + "." + std::to_string(NowMs()) + ext);
+}
+
+bool RotateActiveEventStorageIfNeeded(std::uint64_t next_record_bytes,
+                                      bool* rotated,
+                                      std::string* error_message) {
+    if (rotated != nullptr) {
+        *rotated = false;
+    }
+    const auto& config = app::GetAppConfig();
+    if (config.analysis_event_storage_max_file_bytes == 0) {
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
+    }
+    const std::filesystem::path active_path = EventStorageActivePath();
+    if (active_path.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "event storage active path is empty";
+        }
+        return false;
+    }
+    if (!EnsureParentDirectory(active_path, error_message)) {
+        return false;
+    }
+    std::error_code ec;
+    if (!std::filesystem::exists(active_path, ec)) {
+        if (error_message != nullptr) {
+            *error_message = ec ? ec.message() : "";
+        }
+        return !ec;
+    }
+    const std::uint64_t current_size = static_cast<std::uint64_t>(std::filesystem::file_size(active_path, ec));
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = ec.message();
+        }
+        return false;
+    }
+    if (current_size == 0 ||
+        current_size + next_record_bytes <= config.analysis_event_storage_max_file_bytes) {
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
+    }
+    const std::filesystem::path archive_path = BuildArchivePath(active_path);
+    std::filesystem::rename(active_path, archive_path, ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = ec.message();
+        }
+        return false;
+    }
+    if (rotated != nullptr) {
+        *rotated = true;
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+struct RetentionResult {
+    std::uint64_t deleted_count{0};
+    std::uint64_t deleted_bytes{0};
+    std::uint64_t failed_count{0};
+    std::string last_error;
+};
+
+RetentionResult ApplyEventStorageRetention() {
+    RetentionResult result;
+    const auto& config = app::GetAppConfig();
+    if (config.analysis_event_storage_max_archives == 0 &&
+        config.analysis_event_storage_max_total_bytes == 0) {
+        return result;
+    }
+    std::string error_message;
+    std::vector<ArchiveFileInfo> archives = ListEventStorageArchives(EventStorageActivePath(), &error_message);
+    if (!error_message.empty()) {
+        result.failed_count = 1;
+        result.last_error = error_message;
+        return result;
+    }
+    SortEventStorageArchivesOldestFirst(&archives);
+    std::uint64_t total_bytes = 0;
+    for (const auto& archive : archives) {
+        total_bytes += archive.size_bytes;
+    }
+    auto delete_archive = [&](const ArchiveFileInfo& archive) {
+        std::error_code ec;
+        std::filesystem::remove(archive.path, ec);
+        if (ec) {
+            ++result.failed_count;
+            result.last_error = ec.message();
+            return false;
+        }
+        ++result.deleted_count;
+        result.deleted_bytes += archive.size_bytes;
+        if (total_bytes >= archive.size_bytes) {
+            total_bytes -= archive.size_bytes;
+        } else {
+            total_bytes = 0;
+        }
+        return true;
+    };
+
+    std::size_t first_retained = 0;
+    while (config.analysis_event_storage_max_archives > 0 &&
+           archives.size() - first_retained > config.analysis_event_storage_max_archives) {
+        delete_archive(archives[first_retained]);
+        ++first_retained;
+    }
+    while (config.analysis_event_storage_max_total_bytes > 0 &&
+           total_bytes > config.analysis_event_storage_max_total_bytes &&
+           first_retained < archives.size()) {
+        delete_archive(archives[first_retained]);
+        ++first_retained;
+    }
+    return result;
+}
+
 bool ParseEventRecordLine(const std::string& line, ParsedEventRecordLine* record) {
     if (record == nullptr || line.size() > 1024 * 1024 || !ValidateTopLevelJsonObject(line)) {
         return false;
@@ -612,29 +860,48 @@ public:
 
     EventStorageSnapshot Snapshot() const {
         const auto& config = app::GetAppConfig();
-        std::lock_guard lock(mu_);
         EventStorageSnapshot snapshot;
-        snapshot.enabled = config.analysis_event_storage_enabled;
-        snapshot.path = config.analysis_event_storage_path;
-        snapshot.queue_size = queue_.size();
-        snapshot.max_queue_size = config.analysis_event_storage_max_queue;
-        snapshot.enqueued_count = enqueued_count_;
-        snapshot.stored_count = stored_count_;
-        snapshot.failed_count = failed_count_;
-        snapshot.dropped_count = dropped_count_;
-        snapshot.snapshot_hook_enabled = config.analysis_event_snapshot_hook_enabled;
-        snapshot.clip_hook_enabled = config.analysis_event_clip_hook_enabled;
-        snapshot.snapshot_dir = config.analysis_event_snapshot_dir;
-        snapshot.clip_dir = config.analysis_event_clip_dir;
-        snapshot.pre_event_ms = config.analysis_event_pre_event_ms;
-        snapshot.post_event_ms = config.analysis_event_post_event_ms;
-        snapshot.clip_buffer_ms = config.analysis_event_clip_buffer_ms;
-        snapshot.snapshot_hook_failed_count = snapshot_hook_failed_count_;
-        snapshot.clip_hook_failed_count = clip_hook_failed_count_;
-        snapshot.last_snapshot_error = last_snapshot_error_;
-        snapshot.last_clip_error = last_clip_error_;
-        snapshot.last_error = last_error_;
+        {
+            std::lock_guard lock(mu_);
+            snapshot.enabled = config.analysis_event_storage_enabled;
+            snapshot.path = config.analysis_event_storage_path;
+            snapshot.active_path = config.analysis_event_storage_path;
+            snapshot.queue_size = queue_.size();
+            snapshot.max_queue_size = config.analysis_event_storage_max_queue;
+            snapshot.enqueued_count = enqueued_count_;
+            snapshot.stored_count = stored_count_;
+            snapshot.failed_count = failed_count_;
+            snapshot.write_failed_count = failed_count_;
+            snapshot.dropped_count = dropped_count_;
+            snapshot.skipped_corrupt_lines = skipped_corrupt_lines_;
+            snapshot.rotated_count = rotated_count_;
+            snapshot.rotation_failed_count = rotation_failed_count_;
+            snapshot.retention_deleted_count = retention_deleted_count_;
+            snapshot.retention_deleted_bytes = retention_deleted_bytes_;
+            snapshot.retention_failed_count = retention_failed_count_;
+            snapshot.snapshot_hook_enabled = config.analysis_event_snapshot_hook_enabled;
+            snapshot.clip_hook_enabled = config.analysis_event_clip_hook_enabled;
+            snapshot.snapshot_dir = config.analysis_event_snapshot_dir;
+            snapshot.clip_dir = config.analysis_event_clip_dir;
+            snapshot.pre_event_ms = config.analysis_event_pre_event_ms;
+            snapshot.post_event_ms = config.analysis_event_post_event_ms;
+            snapshot.clip_buffer_ms = config.analysis_event_clip_buffer_ms;
+            snapshot.snapshot_hook_failed_count = snapshot_hook_failed_count_;
+            snapshot.clip_hook_failed_count = clip_hook_failed_count_;
+            snapshot.last_snapshot_error = last_snapshot_error_;
+            snapshot.last_clip_error = last_clip_error_;
+            snapshot.last_error = last_error_;
+        }
+        ApplyFileStats(&snapshot);
         return snapshot;
+    }
+
+    void RecordSkippedCorruptLines(std::uint64_t count) {
+        if (count == 0) {
+            return;
+        }
+        std::lock_guard lock(mu_);
+        skipped_corrupt_lines_ += count;
     }
 
     void Stop() {
@@ -671,9 +938,37 @@ private:
             }
 
             ApplyMediaHooks(&record);
+            const std::uint64_t next_record_bytes =
+                static_cast<std::uint64_t>(EventRecordJson(record).size() + 1);
+            bool rotated = false;
+            std::string rotation_error;
+            if (RotateActiveEventStorageIfNeeded(next_record_bytes, &rotated, &rotation_error)) {
+                if (rotated) {
+                    std::lock_guard lock(mu_);
+                    ++rotated_count_;
+                }
+            } else {
+                std::lock_guard lock(mu_);
+                ++rotation_failed_count_;
+                last_error_ = TrimForLog(rotation_error.empty() ? "failed to rotate event storage"
+                                                                : rotation_error);
+            }
             FileEventStorage storage(app::GetAppConfig().analysis_event_storage_path);
             std::string error_message;
             if (storage.Store(record, &error_message)) {
+                if (rotated) {
+                    const RetentionResult retention = ApplyEventStorageRetention();
+                    if (retention.deleted_count > 0 || retention.deleted_bytes > 0 ||
+                        retention.failed_count > 0) {
+                        std::lock_guard lock(mu_);
+                        retention_deleted_count_ += retention.deleted_count;
+                        retention_deleted_bytes_ += retention.deleted_bytes;
+                        retention_failed_count_ += retention.failed_count;
+                        if (!retention.last_error.empty()) {
+                            last_error_ = TrimForLog(retention.last_error);
+                        }
+                    }
+                }
                 std::lock_guard lock(mu_);
                 ++stored_count_;
                 continue;
@@ -738,6 +1033,30 @@ private:
         }
     }
 
+    static void ApplyFileStats(EventStorageSnapshot* snapshot) {
+        if (snapshot == nullptr) {
+            return;
+        }
+        const std::filesystem::path active_path(snapshot->active_path.empty() ? snapshot->path
+                                                                              : snapshot->active_path);
+        std::error_code ec;
+        if (!active_path.empty() && std::filesystem::exists(active_path, ec) && !ec) {
+            snapshot->active_file_size_bytes =
+                static_cast<std::uint64_t>(std::filesystem::file_size(active_path, ec));
+            if (ec) {
+                snapshot->active_file_size_bytes = 0;
+                ec.clear();
+            }
+        }
+        std::string error_message;
+        const std::vector<ArchiveFileInfo> archives = ListEventStorageArchives(active_path, &error_message);
+        snapshot->archived_file_count = static_cast<std::uint64_t>(archives.size());
+        snapshot->total_archive_bytes = 0;
+        for (const auto& archive : archives) {
+            snapshot->total_archive_bytes += archive.size_bytes;
+        }
+    }
+
     mutable std::mutex mu_;
     std::condition_variable cv_;
     std::deque<EventRecord> queue_;
@@ -748,6 +1067,12 @@ private:
     std::uint64_t stored_count_{0};
     std::uint64_t failed_count_{0};
     std::uint64_t dropped_count_{0};
+    std::uint64_t skipped_corrupt_lines_{0};
+    std::uint64_t rotated_count_{0};
+    std::uint64_t rotation_failed_count_{0};
+    std::uint64_t retention_deleted_count_{0};
+    std::uint64_t retention_deleted_bytes_{0};
+    std::uint64_t retention_failed_count_{0};
     std::uint64_t snapshot_hook_failed_count_{0};
     std::uint64_t clip_hook_failed_count_{0};
     std::string last_snapshot_error_;
@@ -876,6 +1201,7 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
     }
 
     std::string line;
+    std::uint64_t skipped_corrupt_lines = 0;
     while (std::getline(input, line)) {
         if (!line.empty() && line.back() == '\r') {
             line.pop_back();
@@ -886,6 +1212,7 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
         ParsedEventRecordLine parsed;
         if (!ParseEventRecordLine(line, &parsed)) {
             ++result->skipped_corrupt_lines;
+            ++skipped_corrupt_lines;
             continue;
         }
         if (!EventRecordMatchesQuery(parsed, options)) {
@@ -898,6 +1225,8 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
         }
         result->records_json.push_back(std::move(line));
     }
+    Dispatcher().RecordSkippedCorruptLines(skipped_corrupt_lines);
+    result->storage.skipped_corrupt_lines += skipped_corrupt_lines;
 
     if (error_message != nullptr) {
         error_message->clear();

@@ -4137,6 +4137,37 @@ std::string BuildLabRuleEditorPageHtml() {
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
     }
+    .dashboard-warning-strip {
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .dashboard-warning-strip .status-chip {
+      min-height: 26px;
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+    .dashboard-trend-table {
+      table-layout: fixed;
+      min-width: 860px;
+    }
+    .dashboard-trend-table th:nth-child(1),
+    .dashboard-trend-table td:nth-child(1) { width: 210px; }
+    .dashboard-trend-table th:nth-child(2),
+    .dashboard-trend-table td:nth-child(2) { width: 110px; }
+    .dashboard-trend-table th:nth-child(3),
+    .dashboard-trend-table td:nth-child(3) { width: 120px; }
+    .dashboard-trend-table th:nth-child(4),
+    .dashboard-trend-table td:nth-child(4) { width: 180px; }
+    .dashboard-trend-table td:nth-child(1),
+    .dashboard-trend-table td:nth-child(4),
+    .dashboard-trend-table td:nth-child(5) {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      line-height: 1.35;
+    }
     .dashboard-json-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5100,9 +5131,10 @@ std::string BuildLabRuleEditorPageHtml() {
             <label>시나리오 템플릿
               <select id="scenarioType">
                 <option value="intrusion-dwell" selected>Intrusion Dwell · 제한구역 체류</option>
+                <option value="wrong-direction">WrongDirection · 금지 방향 통과</option>
               </select>
             </label>
-            <div class="row">
+            <div id="scenarioDwellTimingRow" class="row">
               <label>후보 판단 시간(ms): <span id="scenarioCandidateMsValue">2,000 ms</span>
                 <input id="scenarioCandidateMs" type="range" min="0" max="30000" step="500" value="2000" />
                 <span class="range-meta">범위 0~30,000 ms · 기본 2,000 ms · 500 ms 단위</span>
@@ -5110,6 +5142,18 @@ std::string BuildLabRuleEditorPageHtml() {
               <label>체류 확정 시간(ms): <span id="scenarioDwellMsValue">10,000 ms</span>
                 <input id="scenarioDwellMs" type="range" min="1000" max="120000" step="1000" value="10000" />
                 <span class="range-meta">범위 1,000~120,000 ms · 기본 10,000 ms · 1,000 ms 단위</span>
+              </label>
+            </div>
+            <div id="scenarioWrongDirectionRow" class="row" hidden>
+              <label>허용 방향
+                <select id="scenarioLineDirection">
+                  <option value="forward" selected>forward · 정방향(-측→+측)</option>
+                  <option value="reverse">reverse · 역방향(+측→-측)</option>
+                </select>
+                <span class="form-note">wrong-direction은 허용 방향과 실제 통과 방향을 비교합니다. any는 위반 방향을 정의할 수 없어 사용하지 않습니다.</span>
+              </label>
+              <label>중복 기준
+                <span class="range-meta">같은 track/line은 cooldown 동안 중복 알림을 억제합니다.</span>
               </label>
             </div>
             <div class="row">
@@ -5135,7 +5179,7 @@ std::string BuildLabRuleEditorPageHtml() {
             </div>
             <div>
               <label style="margin-bottom:8px;">상태 흐름 미리보기</label>
-              <div class="phase-strip">
+              <div id="scenarioPhaseStrip" class="phase-strip">
                 <div class="phase-chip">대기</div>
                 <div class="phase-chip">진입 후보</div>
                 <div class="phase-chip">관찰 중</div>
@@ -5143,7 +5187,7 @@ std::string BuildLabRuleEditorPageHtml() {
                 <div class="phase-chip">종료</div>
               </div>
             </div>
-            <div class="metric-grid" aria-label="Scenario debug fields">
+            <div id="scenarioMetricGrid" class="metric-grid" aria-label="Scenario debug fields">
               <div class="metric-tile"><strong>처음 보인 시각</strong><span>track이 처음 감지된 시간</span></div>
               <div class="metric-tile"><strong>체류 시간</strong><span>제한구역 안에 머문 시간</span></div>
               <div class="metric-tile"><strong>구역 이동</strong><span>이전 구역 → 현재 구역</span></div>
@@ -5151,7 +5195,7 @@ std::string BuildLabRuleEditorPageHtml() {
               <div class="metric-tile"><strong>중복 억제</strong><span>같은 track은 확정 알림 1회</span></div>
               <div class="metric-tile"><strong>Track 안정성</strong><span>ID 흔들림 진단값</span></div>
             </div>
-            <p class="hint">이 UI는 시나리오 rule payload를 저장하고, 현재 polygon을 제한구역 후보로 사용합니다. 실제 engine 활성화는 서버의 scenario 설정값과 함께 동작합니다.</p>
+            <p id="scenarioPanelHint" class="hint">이 UI는 시나리오 rule payload를 저장하고, 현재 polygon을 제한구역 후보로 사용합니다. 실제 engine 활성화는 서버의 scenario 설정값과 함께 동작합니다.</p>
           </div>
           <details class="inline-details">
             <summary>고급: standalone Rule 문서</summary>
@@ -5875,6 +5919,27 @@ std::string BuildLabRuleEditorPageHtml() {
                 <div class="viewer-status-card"><span>fallback hidden</span><strong id="dashboardMetadataFallback">미제공</strong></div>
               </div>
             </section>
+            <section class="dashboard-drilldown-section" aria-labelledby="dashboardTrendTitle">
+              <div class="dashboard-section-header">
+                <h3 id="dashboardTrendTitle">Trend / Stale / Cleanup</h3>
+                <p id="dashboardTrendSummary" class="dashboard-section-summary">trend sample 대기 중</p>
+              </div>
+              <div id="dashboardTrendWarnings" class="dashboard-warning-strip" aria-label="Runtime Dashboard warning badges">
+                <span class="status-chip is-muted">관찰 대기</span>
+              </div>
+              <div class="dashboard-card-grid" aria-label="Runtime Dashboard trend cards">
+                <div class="viewer-status-card"><span>Trend samples</span><strong id="dashboardTrendSampleCount">0/60</strong></div>
+                <div class="viewer-status-card"><span>Runtime delta</span><strong id="dashboardTrendRuntimeDelta">미제공</strong></div>
+                <div class="viewer-status-card"><span>Metadata stale</span><strong id="dashboardTrendStaleStatus">미제공</strong></div>
+                <div class="viewer-status-card"><span>Cleanup watch</span><strong id="dashboardTrendCleanupStatus">미제공</strong></div>
+              </div>
+              <div class="dashboard-table-wrap">
+                <table class="dashboard-table dashboard-trend-table" aria-label="Runtime Dashboard trend summary">
+                  <thead><tr><th>Metric</th><th>Current</th><th>Trend</th><th>Window min/max</th><th>Note</th></tr></thead>
+                  <tbody id="dashboardTrendRows"><tr><td class="dashboard-empty-cell" colspan="5">Dashboard sample이 쌓이면 최근 trend가 표시됩니다.</td></tr></tbody>
+                </table>
+              </div>
+            </section>
             <section class="dashboard-drilldown-section" aria-labelledby="dashboardIssuesTitle">
               <div class="dashboard-section-header">
                 <h3 id="dashboardIssuesTitle">Tracking Issues</h3>
@@ -6018,6 +6083,11 @@ std::string BuildLabRuleEditorPageHtml() {
     let dashboardTapSelectionManual = false;
     let dashboardRecentEvents = [];
     let dashboardRecentEventKeys = new Set();
+    const dashboardTrendMaxSamples = 60;
+    let dashboardTrendSamples = [];
+    let dashboardLocalPollingCount = 0;
+    let dashboardLastViewStopAt = 0;
+    let dashboardLastDashboardStopAt = 0;
     let eventRecordSearchInFlight = false;
     let eventRecordResults = [];
     let eventRecordSelectedIndex = -1;
@@ -6861,6 +6931,18 @@ std::string BuildLabRuleEditorPageHtml() {
       return selected && selected.value === 'scenario';
     }
 
+    function selectedScenarioType() {
+      return $('scenarioType')?.value || 'intrusion-dwell';
+    }
+
+    function isWrongDirectionScenario() {
+      return isScenarioRule() && selectedScenarioType() === 'wrong-direction';
+    }
+
+    function isGeometryLineMode() {
+      return isLineRule() || isWrongDirectionScenario();
+    }
+
     function setRuleKind(kind) {
       const normalized = kind === 'scenario' ? 'scenario' : 'basic';
       document.querySelectorAll('input[name="ruleKind"]').forEach((el) => {
@@ -6879,11 +6961,28 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     function scenarioJson() {
+      const scenarioType = selectedScenarioType();
       const candidateTimeMs = clampedIntValue('scenarioCandidateMs', 2000, 0, 3600000);
       const dwellTimeMs = clampedIntValue('scenarioDwellMs', 10000, 0, 86400000);
       const cooldownMs = clampedIntValue('scenarioCooldownMs', 5000, 0, 86400000);
+      if (scenarioType === 'wrong-direction') {
+        return {
+          type: 'wrong-direction',
+          enabled: true,
+          cooldownMs,
+          targetClasses: selectedClasses(),
+          trackHealth: {
+            requireStableTrack: $('scenarioStableOnly').checked
+          },
+          lifecycle: {
+            emit: 'confirmed-once',
+            duplicateKey: 'stream/channel/scenario/line/track',
+            endWhen: ['cooldown-ended', 'track-lost-or-terminated']
+          }
+        };
+      }
       return {
-        type: $('scenarioType').value || 'intrusion-dwell',
+        type: scenarioType || 'intrusion-dwell',
         enabled: true,
         candidateTimeMs,
         dwellTimeMs,
@@ -6906,19 +7005,27 @@ std::string BuildLabRuleEditorPageHtml() {
       return ['any', 'forward', 'reverse'].includes(value) ? value : 'any';
     }
 
-    function lineDirectionLabel() {
-      const value = lineDirectionValue();
+    function scenarioLineDirectionValue() {
+      const value = $('scenarioLineDirection')?.value || 'forward';
+      return ['forward', 'reverse'].includes(value) ? value : 'forward';
+    }
+
+    function activeLineDirectionValue() {
+      return isWrongDirectionScenario() ? scenarioLineDirectionValue() : lineDirectionValue();
+    }
+
+    function lineDirectionLabel(value = activeLineDirectionValue()) {
       if (value === 'forward') return '정방향(-측→+측)';
       if (value === 'reverse') return '역방향(+측→-측)';
       return '양방향';
     }
 
     function maxGeometryPoints() {
-      return isLineRule() ? lineMaxPoints : polygonMaxPoints;
+      return isGeometryLineMode() ? lineMaxPoints : polygonMaxPoints;
     }
 
     function minimumGeometryPoints() {
-      return isLineRule() ? lineMaxPoints : 3;
+      return isGeometryLineMode() ? lineMaxPoints : 3;
     }
 
     function defaultLinePoints() {
@@ -7033,13 +7140,14 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function eventPayloadExampleJson(region) {
       const classes = selectedClasses();
+      const scenarioType = selectedScenarioType();
       const payload = {
         schema: 'media-server.va.event.v1',
         eventId: 'evt_20260425_000001',
         timestamp: '2026-04-25T00:00:00.000Z',
         rule: {
           id: $('ruleId').value.trim() || 'file-person-vehicle-area',
-          type: isScenarioRule() ? 'intrusion-dwell' : $('ruleEventType').value
+          type: isScenarioRule() ? scenarioType : $('ruleEventType').value
         },
         source: {
           kind: $('ruleSourceKind').value,
@@ -7062,13 +7170,20 @@ std::string BuildLabRuleEditorPageHtml() {
         }
       };
       if (isScenarioRule()) {
-        payload.scenario = {
-          phase: 'Confirmed',
-          lifecycle: 'emit-once',
-          candidateTimeMs: clampedIntValue('scenarioCandidateMs', 2000, 0, 3600000),
-          dwellTimeMs: clampedIntValue('scenarioDwellMs', 10000, 0, 86400000),
-          trackHealth: $('scenarioStableOnly').checked ? 'stable-only' : 'allow-unstable'
-        };
+        payload.scenario = scenarioType === 'wrong-direction'
+          ? {
+              phase: 'Confirmed',
+              lifecycle: 'emit-once',
+              cooldownMs: clampedIntValue('scenarioCooldownMs', 5000, 0, 86400000),
+              trackHealth: $('scenarioStableOnly').checked ? 'stable-only' : 'allow-unstable'
+            }
+          : {
+              phase: 'Confirmed',
+              lifecycle: 'emit-once',
+              candidateTimeMs: clampedIntValue('scenarioCandidateMs', 2000, 0, 3600000),
+              dwellTimeMs: clampedIntValue('scenarioDwellMs', 10000, 0, 86400000),
+              trackHealth: $('scenarioStableOnly').checked ? 'stable-only' : 'allow-unstable'
+            };
       }
       return payload;
     }
@@ -7076,7 +7191,7 @@ std::string BuildLabRuleEditorPageHtml() {
     function ruleJson() {
       normalizeGeometryForMode();
       const scenarioMode = isScenarioRule();
-      const lineMode = !scenarioMode && isLineRule();
+      const lineMode = isGeometryLineMode();
       const points = regionPoints.map((point) => ({
         x: Number(point.x.toFixed(4)),
         y: Number(point.y.toFixed(4))
@@ -7086,7 +7201,7 @@ std::string BuildLabRuleEditorPageHtml() {
         points
       };
       if (lineMode) {
-        region.direction = lineDirectionValue();
+        region.direction = activeLineDirectionValue();
       }
       const scenario = scenarioMode ? scenarioJson() : null;
       const payload = {
@@ -7155,6 +7270,7 @@ std::string BuildLabRuleEditorPageHtml() {
       const candidateTimeMs = clampedIntValue('scenarioCandidateMs', 2000, 0, 3600000);
       const dwellTimeMs = clampedIntValue('scenarioDwellMs', 10000, 0, 86400000);
       const cooldownMs = clampedIntValue('scenarioCooldownMs', 5000, 0, 86400000);
+      const wrongDirectionMode = isWrongDirectionScenario();
       if ($('scenarioCandidateMsValue')) $('scenarioCandidateMsValue').textContent = msLabel(candidateTimeMs);
       if ($('scenarioDwellMsValue')) $('scenarioDwellMsValue').textContent = msLabel(dwellTimeMs);
       if ($('scenarioCooldownMsValue')) $('scenarioCooldownMsValue').textContent = msLabel(cooldownMs);
@@ -7162,21 +7278,29 @@ std::string BuildLabRuleEditorPageHtml() {
         const zones = splitCsvTokens($('scenarioZoneIds').value);
         const zoneLabel = zones.length > 0 ? zones.join(', ') : '현재 그린 제한구역';
         const stability = $('scenarioStableOnly').checked ? '안정적인 track만' : '감지된 track';
-        $('scenarioSummaryText').textContent =
-          `${stability}이 ${zoneLabel} 안에 들어오면 ${msLabel(candidateTimeMs)} 뒤 후보로 보고, ${msLabel(dwellTimeMs)} 이상 머물면 intrusion-dwell 이벤트를 1회 발생시킵니다. 같은 track은 ${msLabel(cooldownMs)} 동안 중복 알림을 억제합니다.`;
+        $('scenarioSummaryText').textContent = wrongDirectionMode
+          ? `${stability}이 line을 통과할 때 실제 방향이 허용 방향(${lineDirectionLabel()})과 다르면 wrong-direction scenario event를 발생시킵니다. 같은 track/line은 ${msLabel(cooldownMs)} 동안 중복 알림을 억제합니다.`
+          : `${stability}이 ${zoneLabel} 안에 들어오면 ${msLabel(candidateTimeMs)} 뒤 후보로 보고, ${msLabel(dwellTimeMs)} 이상 머물면 intrusion-dwell 이벤트를 1회 발생시킵니다. 같은 track은 ${msLabel(cooldownMs)} 동안 중복 알림을 억제합니다.`;
       }
       const zones = splitCsvTokens($('scenarioZoneIds').value);
       const zoneLabel = zones.length > 0 ? zones.join(', ') : '현재 그린 제한구역';
       const classes = selectedClasses();
       const classLabel = classes.length > 0 ? classes.join(', ') : '선택 필요';
-      if ($('scenarioReadinessZone')) $('scenarioReadinessZone').textContent = zoneLabel;
+      if ($('scenarioReadinessZone')) {
+        $('scenarioReadinessZone').textContent = wrongDirectionMode
+          ? `line ${regionPoints.length}/${lineMaxPoints} · 허용 ${lineDirectionLabel()}`
+          : zoneLabel;
+      }
       if ($('scenarioReadinessTarget')) $('scenarioReadinessTarget').textContent = classLabel;
       if ($('scenarioReadinessTiming')) {
-        $('scenarioReadinessTiming').textContent =
-          `후보 ${msLabel(candidateTimeMs)} · 확정 ${msLabel(dwellTimeMs)} · 재알림 ${msLabel(cooldownMs)}`;
+        $('scenarioReadinessTiming').textContent = wrongDirectionMode
+          ? `재알림 ${msLabel(cooldownMs)} · same track/line dedupe`
+          : `후보 ${msLabel(candidateTimeMs)} · 확정 ${msLabel(dwellTimeMs)} · 재알림 ${msLabel(cooldownMs)}`;
       }
       if ($('scenarioReadinessEmit')) {
-        $('scenarioReadinessEmit').textContent = 'intrusion-dwell · 같은 track/구역 1회';
+        $('scenarioReadinessEmit').textContent = wrongDirectionMode
+          ? 'wrong-direction · line-crossing과 별도 scenario event'
+          : 'intrusion-dwell · 같은 track/구역 1회';
       }
       if ($('scenarioReadinessHealth')) {
         $('scenarioReadinessHealth').textContent = $('scenarioStableOnly').checked
@@ -7184,7 +7308,16 @@ std::string BuildLabRuleEditorPageHtml() {
           : '불안정 track도 후보로 허용';
       }
       if ($('scenarioReadinessGeometry')) {
-        $('scenarioReadinessGeometry').textContent = `polygon ${regionPoints.length}개 점`;
+        $('scenarioReadinessGeometry').textContent = wrongDirectionMode
+          ? `line ${regionPoints.length}/${lineMaxPoints} · forward/reverse 필수`
+          : `polygon ${regionPoints.length}개 점`;
+      }
+      renderScenarioPhasePreview(wrongDirectionMode);
+      renderScenarioMetricGrid(wrongDirectionMode);
+      if ($('scenarioPanelHint')) {
+        $('scenarioPanelHint').textContent = wrongDirectionMode
+          ? 'WrongDirection은 line geometry와 event.region.direction을 사용해 허용 방향을 저장합니다. 기존 line-crossing 기본 이벤트와 Event POST payload schema는 변경하지 않습니다.'
+          : '이 UI는 시나리오 rule payload를 저장하고, 현재 polygon을 제한구역 후보로 사용합니다. 실제 engine 활성화는 서버의 scenario 설정값과 함께 동작합니다.';
       }
       setText('geometryRegionNameText', currentGeometryName());
     }
@@ -7308,15 +7441,16 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function updateGeometryText() {
       const scenarioMode = isScenarioRule();
-      const lineMode = isLineRule();
+      const wrongDirectionMode = isWrongDirectionScenario();
+      const lineMode = isGeometryLineMode();
       const valid = regionPoints.length >= minimumGeometryPoints();
       const mode = regionPoints.length === 0 ? 'none' : (lineMode ? 'line' : 'polygon');
       const regionName = currentGeometryName();
-      $('geometryLabel').textContent = lineMode ? '이벤트 판단 선' : (scenarioMode ? '시나리오 제한구역' : '이벤트 판단 영역');
+      $('geometryLabel').textContent = lineMode ? (wrongDirectionMode ? 'WrongDirection 판단 선' : '이벤트 판단 선') : (scenarioMode ? '시나리오 제한구역' : '이벤트 판단 영역');
       $('clearRegionBtn').textContent = '전체 영역 초기화';
-      $('ruleLineDirection').disabled = !lineMode;
+      $('ruleLineDirection').disabled = !isLineRule();
       $('geometryHint').textContent = lineMode
-        ? `라인 통과 룰은 선분의 시작/끝 2개 점만 사용합니다. 방향은 ${lineDirectionLabel()}으로 저장합니다. 기존 점 근처를 드래그하면 점 위치를 이동합니다.`
+        ? `${wrongDirectionMode ? 'WrongDirection scenario' : '라인 통과 룰'}은 선분의 시작/끝 2개 점만 사용합니다. 방향은 ${lineDirectionLabel()}으로 저장합니다. 기존 점 근처를 드래그하면 점 위치를 이동합니다.`
         : (scenarioMode
           ? `Intrusion Dwell은 현재 polygon을 제한구역 후보로 저장합니다. 3개 이상이면 구역으로 저장되며, 같은 track이 설정 시간 이상 머물면 체류 확정 후보가 됩니다.`
           : `캔버스를 클릭해 다각형 꼭짓점을 추가합니다. 3개 이상이면 영역으로 저장됩니다. 최대 ${polygonMaxPoints}개까지 지정할 수 있습니다. 기존 점 근처를 드래그하면 새 점을 만들지 않고 점 위치를 이동합니다.`);
@@ -7341,6 +7475,9 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     function currentGeometryName() {
+      if (isWrongDirectionScenario()) {
+        return 'wrong-direction line';
+      }
       if (isScenarioRule()) {
         const zones = splitCsvTokens($('scenarioZoneIds')?.value || '');
         return zones.length > 0 ? zones.join(', ') : '현재 제한구역';
@@ -7388,15 +7525,79 @@ std::string BuildLabRuleEditorPageHtml() {
       });
     }
 
+    function renderScenarioPhasePreview(wrongDirectionMode) {
+      const container = $('scenarioPhaseStrip');
+      if (!container) return;
+      container.textContent = '';
+      const phases = wrongDirectionMode
+        ? [
+            ['Idle', false],
+            ['LineCrossed', false],
+            ['Confirmed', true],
+            ['Cooldown', false],
+            ['Ended', false],
+          ]
+        : [
+            ['대기', false],
+            ['진입 후보', false],
+            ['관찰 중', false],
+            ['체류 확정 1회 알림', true],
+            ['종료', false],
+          ];
+      for (const [label, emphasis] of phases) {
+        const chip = document.createElement('div');
+        chip.className = `phase-chip${emphasis ? ' is-emphasis' : ''}`;
+        chip.textContent = label;
+        container.appendChild(chip);
+      }
+    }
+
+    function renderScenarioMetricGrid(wrongDirectionMode) {
+      const container = $('scenarioMetricGrid');
+      if (!container) return;
+      container.textContent = '';
+      const metrics = wrongDirectionMode
+        ? [
+            ['Line crossed', '대상 track이 판단 선을 통과한 상태'],
+            ['허용 방향', `${lineDirectionLabel()}만 정상 통과로 봄`],
+            ['실제 방향', 'runtime rawDirection과 허용 방향을 비교'],
+            ['중복 억제', '같은 track/line은 cooldown 동안 1회 알림'],
+            ['기본 이벤트', '기존 line-crossing 이벤트와 별도 scenario event'],
+            ['Track 안정성', 'ID 흔들림과 방향 판단 품질을 함께 확인'],
+          ]
+        : [
+            ['처음 보인 시각', 'track이 처음 감지된 시간'],
+            ['체류 시간', '제한구역 안에 머문 시간'],
+            ['구역 이동', '이전 구역 → 현재 구역'],
+            ['라인 방향', '선을 넘은 방향'],
+            ['중복 억제', '같은 track은 확정 알림 1회'],
+            ['Track 안정성', 'ID 흔들림 진단값'],
+          ];
+      for (const [titleText, bodyText] of metrics) {
+        const tile = document.createElement('div');
+        tile.className = 'metric-tile';
+        const title = document.createElement('strong');
+        title.textContent = titleText;
+        const body = document.createElement('span');
+        body.textContent = bodyText;
+        tile.appendChild(title);
+        tile.appendChild(body);
+        container.appendChild(tile);
+      }
+    }
+
     function updateRuleModeUi() {
       const scenarioMode = isScenarioRule();
+      const wrongDirectionMode = isWrongDirectionScenario();
       const panel = $('scenarioPanel');
       if (panel) panel.hidden = !scenarioMode;
       document.querySelectorAll('.basic-rule-panel').forEach((el) => {
         el.hidden = scenarioMode;
       });
+      if ($('scenarioDwellTimingRow')) $('scenarioDwellTimingRow').hidden = !scenarioMode || wrongDirectionMode;
+      if ($('scenarioWrongDirectionRow')) $('scenarioWrongDirectionRow').hidden = !scenarioMode || !wrongDirectionMode;
       if ($('scenarioStableOnlyLabel')) $('scenarioStableOnlyLabel').hidden = !scenarioMode;
-      if ($('scenarioZoneIdsLabel')) $('scenarioZoneIdsLabel').hidden = !scenarioMode;
+      if ($('scenarioZoneIdsLabel')) $('scenarioZoneIdsLabel').hidden = !scenarioMode || wrongDirectionMode;
     }
 
     function updatePreviews() {
@@ -7480,23 +7681,32 @@ std::string BuildLabRuleEditorPageHtml() {
         const scenario = payload.scenario || {};
         if (!scenario.type) {
           addValidationError(errors, '이벤트 방식', '시나리오 템플릿을 선택하세요.');
-        } else if (scenario.type !== 'intrusion-dwell') {
-          addValidationError(errors, '이벤트 방식', '현재 UI에서 저장 가능한 시나리오는 Intrusion Dwell입니다.');
+        } else if (!['intrusion-dwell', 'wrong-direction'].includes(scenario.type)) {
+          addValidationError(errors, '이벤트 방식', '현재 UI에서 저장 가능한 시나리오는 Intrusion Dwell 또는 WrongDirection입니다.');
         }
-        const candidateTimeMs = Number(scenario.candidateTimeMs);
-        const dwellTimeMs = Number(scenario.dwellTimeMs);
         const cooldownMs = Number(scenario.cooldownMs);
-        if (!Number.isFinite(candidateTimeMs) || candidateTimeMs < 0) {
-          addValidationError(errors, '시나리오 시간 조건', '후보 판단 시간(ms)은 0 이상이어야 합니다.');
-        }
-        if (!Number.isFinite(dwellTimeMs) || dwellTimeMs <= candidateTimeMs) {
-          addValidationError(errors, '시나리오 시간 조건', '체류 확정 시간(ms)은 후보 판단 시간(ms)보다 커야 합니다.');
-        }
         if (!Number.isFinite(cooldownMs) || cooldownMs < 0) {
           addValidationError(errors, '시나리오 시간 조건', '재알림 대기 시간(ms)은 0 이상이어야 합니다.');
         }
-        if (region.type !== 'polygon' || points.length < 3) {
-          addValidationError(errors, '영역/라인 설정', '시나리오 제한구역 polygon은 최소 3개 점이 필요합니다.');
+        if (scenario.type === 'wrong-direction') {
+          if (region.type !== 'line' || points.length < 2) {
+            addValidationError(errors, '영역/라인 설정', 'WrongDirection은 line 좌표 2개 점이 필요합니다.');
+          }
+          if (!['forward', 'reverse'].includes(region.direction)) {
+            addValidationError(errors, '허용 방향', 'WrongDirection은 허용 방향을 forward 또는 reverse로 선택해야 합니다. any는 사용할 수 없습니다.');
+          }
+        } else {
+          const candidateTimeMs = Number(scenario.candidateTimeMs);
+          const dwellTimeMs = Number(scenario.dwellTimeMs);
+          if (!Number.isFinite(candidateTimeMs) || candidateTimeMs < 0) {
+            addValidationError(errors, '시나리오 시간 조건', '후보 판단 시간(ms)은 0 이상이어야 합니다.');
+          }
+          if (!Number.isFinite(dwellTimeMs) || dwellTimeMs <= candidateTimeMs) {
+            addValidationError(errors, '시나리오 시간 조건', '체류 확정 시간(ms)은 후보 판단 시간(ms)보다 커야 합니다.');
+          }
+          if (region.type !== 'polygon' || points.length < 3) {
+            addValidationError(errors, '영역/라인 설정', '시나리오 제한구역 polygon은 최소 3개 점이 필요합니다.');
+          }
         }
       } else {
         const eventType = String(payload?.event?.type || '').trim();
@@ -7865,7 +8075,9 @@ std::string BuildLabRuleEditorPageHtml() {
       $('ruleProfileId').value = item.analysis?.profileId || $('ruleProfileId').value;
       const scenarioMode = item.ruleKind === 'scenario' ||
         item.scenario?.type === 'intrusion-dwell' ||
-        item.event?.type === 'intrusion-dwell';
+        item.scenario?.type === 'wrong-direction' ||
+        item.event?.type === 'intrusion-dwell' ||
+        item.event?.type === 'wrong-direction';
       setRuleKind(scenarioMode ? 'scenario' : 'basic');
       $('ruleEventType').value = ['presence', 'enter', 'exit', 'line-crossing'].includes(item.event?.type)
         ? item.event.type
@@ -7900,7 +8112,10 @@ std::string BuildLabRuleEditorPageHtml() {
       $('eventFlashMsInput').value = Number(highlight.durationMs || 1200);
       $('eventPostUrlInput').value = typeof post.url === 'string' ? post.url : '';
       const scenario = item.scenario || {};
-      $('scenarioType').value = scenario.type === 'intrusion-dwell' ? 'intrusion-dwell' : 'intrusion-dwell';
+      $('scenarioType').value = scenario.type === 'wrong-direction' ? 'wrong-direction' : 'intrusion-dwell';
+      $('scenarioLineDirection').value = ['forward', 'reverse'].includes(item.event?.region?.direction)
+        ? item.event.region.direction
+        : 'forward';
       $('scenarioCandidateMs').value = Number(scenario.candidateTimeMs ?? 2000);
       $('scenarioDwellMs').value = Number(scenario.dwellTimeMs ?? 10000);
       $('scenarioCooldownMs').value = Number(scenario.cooldownMs ?? 5000);
@@ -10153,6 +10368,350 @@ std::string BuildLabRuleEditorPageHtml() {
       return tbody;
     }
 
+    function dashboardResetTrendSamples() {
+      dashboardTrendSamples = [];
+    }
+
+    function dashboardTrendNumber(value) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function dashboardTrendFormat(value, kind = 'count') {
+      const number = dashboardTrendNumber(value);
+      if (number === null) return '미제공';
+      if (kind === 'bytes') return dashboardBytes(number);
+      if (kind === 'ms') return dashboardMs(number);
+      if (kind === 'ratio') return number.toFixed(2);
+      if (Math.abs(number) < 10 && !Number.isInteger(number)) return number.toFixed(2);
+      return String(Math.round(number));
+    }
+
+    function dashboardTrendDeltaLabel(delta, kind = 'count') {
+      const number = dashboardTrendNumber(delta);
+      if (number === null) return '미제공';
+      if (number > 0) return `증가 +${dashboardTrendFormat(number, kind)}`;
+      if (number < 0) return `감소 -${dashboardTrendFormat(Math.abs(number), kind)}`;
+      return '유지';
+    }
+
+    function dashboardTrendStats(key) {
+      const values = dashboardTrendSamples
+        .map((sample) => ({ t: sample.t, value: dashboardTrendNumber(sample.values?.[key]) }))
+        .filter((item) => item.value !== null);
+      if (values.length === 0) return null;
+      const first = values[0];
+      const last = values[values.length - 1];
+      let min = last.value;
+      let max = last.value;
+      for (const item of values) {
+        min = Math.min(min, item.value);
+        max = Math.max(max, item.value);
+      }
+      const durationMs = Math.max(0, last.t - first.t);
+      const delta = last.value - first.value;
+      return {
+        count: values.length,
+        current: last.value,
+        delta,
+        min,
+        max,
+        durationMs,
+        ratePerSecond: durationMs > 0 ? delta / (durationMs / 1000) : 0
+      };
+    }
+
+    function dashboardTrendWindowLabel() {
+      if (dashboardTrendSamples.length === 0) return 'sample 없음';
+      const first = dashboardTrendSamples[0];
+      const last = dashboardTrendSamples[dashboardTrendSamples.length - 1];
+      return `${dashboardTrendSamples.length}/${dashboardTrendMaxSamples} samples · ${dashboardDuration(last.t - first.t)}`;
+    }
+
+    function dashboardTrendChipList(items) {
+      const wrapper = document.createElement('span');
+      wrapper.style.display = 'inline-flex';
+      wrapper.style.gap = '6px';
+      wrapper.style.flexWrap = 'wrap';
+      for (const item of items) {
+        wrapper.appendChild(dashboardChip(item.label, item.state || 'muted'));
+      }
+      return wrapper;
+    }
+
+    function dashboardRenderWarningStrip(warnings) {
+      const container = $('dashboardTrendWarnings');
+      if (!container) return;
+      container.textContent = '';
+      if (!warnings.length) {
+        container.appendChild(dashboardChip('warning 없음', 'active'));
+        container.appendChild(dashboardChip('live observation 보조', 'muted'));
+        return;
+      }
+      for (const warning of warnings.slice(0, 8)) {
+        container.appendChild(dashboardChip(warning.label, warning.state || 'warning'));
+      }
+      if (warnings.length > 8) {
+        container.appendChild(dashboardChip(`+${warnings.length - 8}`, 'warning'));
+      }
+    }
+
+    function dashboardSideChannelTotal(sideChannel, keys) {
+      let total = 0;
+      let found = false;
+      for (const key of keys) {
+        const value = dashboardOptionalNumber(sideChannel, key);
+        if (value === null) continue;
+        total += value;
+        found = true;
+      }
+      return found ? total : null;
+    }
+
+    function dashboardBuildTrendSample(payload, sampledAtMs = Date.now()) {
+      const runtime = payload?.runtime || {};
+      const webrtc = runtime.webrtcHttp || {};
+      const metadata = webrtc.metadataDataChannel || {};
+      const sideChannel = webrtc.metadataSideChannel || {};
+      const debugCounters = runtime.debugCounters || {};
+      const sessionManager = runtime.sessionManager || {};
+      const analysisMatching = runtime.analysisMatching || {};
+      const tapMetrics = payload?.tapMetrics || {};
+      const tapState = tapMetrics.tapState || {};
+      const queue = tapState.analyticsQueue || {};
+      const sessions = Array.isArray(metadata.sessions) ? metadata.sessions : [];
+      const counter = (key) => dashboardOptionalNumber(debugCounters, key);
+      const metadataBuilds = counter('metadataJsonBuildCount');
+      const metadataBytesTotal = counter('metadataJsonBytesTotal');
+      const metadataBytesMax = counter('metadataJsonBytesMax');
+      const metadataBytesAvg = metadataBuilds && metadataBuilds > 0 && metadataBytesTotal !== null
+        ? metadataBytesTotal / metadataBuilds
+        : null;
+      const rtspEgressCreated = counter('rtspEgressSessionCreatedCount');
+      const rtspEgressStarted = counter('rtspEgressSessionStartedCount');
+      const rtspEgressStopped = counter('rtspEgressSessionStoppedCount');
+      const rtspEgressDestroyed = counter('rtspEgressSessionDestroyedCount');
+      const rtspConsumerResidual = Math.max(
+        0,
+        (rtspEgressCreated ?? 0) - (rtspEgressDestroyed ?? 0),
+        (rtspEgressStarted ?? 0) - (rtspEgressStopped ?? 0)
+      );
+      const hardFlowErrors = (counter('rtspAppsrcFlowErrorReturnCount') ?? 0) +
+        (counter('rtspAppsrcFlowNotLinkedCount') ?? 0) +
+        (counter('rtspAppsrcFlowNotNegotiatedCount') ?? 0) +
+        (counter('rtspAppsrcFlowOtherErrorCount') ?? 0);
+      const fanoutResidual = Math.abs((counter('busWatchCreatedCount') ?? 0) - (counter('busWatchDestroyedCount') ?? 0)) +
+        Math.abs((counter('overlayProbeAttachedCount') ?? 0) - (counter('overlayProbeRemovedCount') ?? 0)) +
+        Math.abs((counter('sharedStreamSubscriberAddedCount') ?? 0) - (counter('sharedStreamSubscriberRemovedCount') ?? 0)) +
+        Math.abs((counter('analysisTapAttachedCount') ?? 0) - (counter('analysisTapDetachedCount') ?? 0));
+      const activeSessions = sessionManager.activeSessions || 0;
+      const activeStreams = sessionManager.registryActiveStreams || sessionManager.resourceActiveStreams || 0;
+      const activeTaps = analysisMatching.activeTapCount ?? payload?.tapsPayload?.activeTaps ?? 0;
+      const activeSseClients = sideChannel.activeSseClients ?? 0;
+      const activeWsClients = sideChannel.activeWebSocketClients ?? 0;
+      const openDataChannels = sessions.filter((session) => session?.open).length;
+      const metadataLastAgeMs = viewMetadataLastMessageAt > 0 ? sampledAtMs - viewMetadataLastMessageAt : null;
+      const videoLastAgeMs = viewMetadataLastVideoFrameAt > 0 ? sampledAtMs - viewMetadataLastVideoFrameAt : null;
+      const overlayDrawAgeMs = viewMetadataLastDrawAt > 0 ? sampledAtMs - viewMetadataLastDrawAt : null;
+      return {
+        t: sampledAtMs,
+        tapId: dashboardLastTapId || '',
+        values: {
+          activeSessions,
+          activeStreams,
+          activeAnalysisTaps: activeTaps,
+          activeSseClients,
+          activeWsClients,
+          openDataChannels,
+          metadataSent: dashboardOptionalNumber(metadata, 'sentCount'),
+          metadataDropped: dashboardOptionalNumber(metadata, 'droppedCount'),
+          metadataFailures: dashboardOptionalNumber(metadata, 'sendFailureCount'),
+          metadataBufferedDrop: dashboardOptionalNumber(metadata, 'bufferedDropCount'),
+          metadataMaxBuffered: dashboardOptionalNumber(metadata, 'maxBufferedAmount'),
+          metadataJsonBuildCount: metadataBuilds,
+          metadataPayloadAvgBytes: metadataBytesAvg,
+          metadataPayloadMaxBytes: metadataBytesMax,
+          sideChannelSent: dashboardSideChannelTotal(sideChannel, ['sentCount', 'sseSentCount', 'webSocketSentCount', 'wsSentCount']),
+          sideChannelDropped: dashboardSideChannelTotal(sideChannel, ['droppedCount', 'dropCount', 'sseDroppedCount', 'webSocketDroppedCount', 'wsDroppedCount']),
+          sideChannelFailures: dashboardSideChannelTotal(sideChannel, ['failureCount', 'failedCount', 'sendFailureCount', 'sseFailureCount', 'webSocketFailureCount', 'wsFailureCount']),
+          dashboardLocalPollingCount,
+          queuePending: queue.pending ?? tapState.pendingFrames ?? null,
+          queuePeak: queue.peakPending ?? tapState.peakPendingFrames ?? null,
+          queueDrops: (queue.dropOldest ?? tapState.queueDroppedFrames ?? 0) +
+            (queue.staleDrops ?? tapState.staleQueueDroppedFrames ?? 0),
+          sampleDrops: (queue.sampleDrops ?? tapState.sampleDroppedFrames ?? 0) +
+            (queue.sampleIntervalDrops ?? tapState.sampleIntervalDroppedFrames ?? 0),
+          rtspPendingPeak: counter('rtspPendingQueuePeak'),
+          rtspPendingResidual: (counter('rtspPendingQueueSizeAtStop') ?? 0) +
+            (counter('rtspPendingQueueSizeAtDestroy') ?? 0),
+          appsrcPushAfterStop: counter('appsrcPushAfterStopCount'),
+          rtspHardFlowErrors: hardFlowErrors,
+          rtspConsumerResidual,
+          fanoutResidual,
+          metadataLastAgeMs,
+          videoLastAgeMs,
+          overlayDrawAgeMs
+        }
+      };
+    }
+
+    function dashboardRecordTrendSample(payload) {
+      const sample = dashboardBuildTrendSample(payload);
+      dashboardTrendSamples.push(sample);
+      while (dashboardTrendSamples.length > dashboardTrendMaxSamples) {
+        dashboardTrendSamples.shift();
+      }
+      return sample;
+    }
+
+    function dashboardTrendWarnings(sample) {
+      if (!sample) return [];
+      const warnings = [];
+      const values = sample.values || {};
+      const metadataBuildStats = dashboardTrendStats('metadataJsonBuildCount');
+      const viewerActive = Boolean(viewTapId || viewWebRtcSessionId ||
+        ['playing', 'connecting'].includes(viewConnectionState));
+      const dataChannelOpen = (values.openDataChannels || 0) > 0 || viewMetadataState === 'open';
+      if (dataChannelOpen && values.metadataLastAgeMs === null) {
+        warnings.push({ label: 'DataChannel open · metadata 미수신', state: 'warning' });
+      } else if (dataChannelOpen && values.metadataLastAgeMs > 3000) {
+        warnings.push({ label: `metadata stale ${dashboardDuration(values.metadataLastAgeMs)}`, state: 'warning' });
+      }
+      if (viewerActive && values.videoLastAgeMs !== null && values.videoLastAgeMs > 3000) {
+        warnings.push({ label: `video frame stale ${dashboardDuration(values.videoLastAgeMs)}`, state: 'warning' });
+      }
+      if (dataChannelOpen && viewMetadataMessageCount > 0 && values.overlayDrawAgeMs !== null &&
+          values.overlayDrawAgeMs > 3000) {
+        warnings.push({ label: `overlay draw stale ${dashboardDuration(values.overlayDrawAgeMs)}`, state: 'warning' });
+      }
+      if ((values.activeSseClients || 0) + (values.activeWsClients || 0) > 0 &&
+          metadataBuildStats && metadataBuildStats.durationMs >= 5000 &&
+          metadataBuildStats.delta <= 0) {
+        warnings.push({ label: 'SSE/WS metadata 정체', state: 'warning' });
+      }
+      const activeResidual = (values.activeSessions || 0) + (values.activeStreams || 0) +
+        (values.activeAnalysisTaps || 0) + (values.activeSseClients || 0) +
+        (values.activeWsClients || 0) + (values.rtspConsumerResidual || 0);
+      const sinceViewStopMs = dashboardLastViewStopAt > 0 ? sample.t - dashboardLastViewStopAt : 0;
+      if (!viewerActive && sinceViewStopMs > 10000 && activeResidual > 0) {
+        warnings.push({ label: `보기 중지 후 active 잔류 ${activeResidual}`, state: 'warning' });
+      }
+      const sinceDashboardStopMs = dashboardLastDashboardStopAt > 0 ? sample.t - dashboardLastDashboardStopAt : 0;
+      if (!viewerActive && sinceDashboardStopMs > 10000 && activeResidual > 0) {
+        warnings.push({ label: `Dashboard inactive 후 active 잔류 ${activeResidual}`, state: 'warning' });
+      }
+      if ((values.rtspPendingResidual || 0) > 0) {
+        warnings.push({ label: `RTSP pending 잔류 ${values.rtspPendingResidual}`, state: 'warning' });
+      }
+      if ((values.appsrcPushAfterStop || 0) > 0) {
+        warnings.push({ label: `appsrc after stop ${values.appsrcPushAfterStop}`, state: 'warning' });
+      }
+      if ((values.rtspHardFlowErrors || 0) > 0) {
+        warnings.push({ label: `RTSP hard flow ${values.rtspHardFlowErrors}`, state: 'warning' });
+      }
+      if ((values.metadataDropped || 0) > 0 || (values.metadataFailures || 0) > 0 ||
+          (values.sideChannelDropped || 0) > 0 || (values.sideChannelFailures || 0) > 0) {
+        warnings.push({ label: 'metadata drop/failure 관찰', state: 'warning' });
+      }
+      return warnings;
+    }
+
+    function dashboardTrendNote(config, stats, sample) {
+      if (!stats) return dashboardChipList([{ label: '미제공', state: 'muted' }]);
+      const chips = [];
+      const delta = dashboardTrendNumber(stats.delta) ?? 0;
+      const current = dashboardTrendNumber(stats.current) ?? 0;
+      if (config.counter && delta > 0) chips.push({ label: `window +${dashboardTrendFormat(delta, config.kind)}`, state: 'active' });
+      if (!config.counter && delta !== 0) chips.push({ label: delta > 0 ? '증가 중' : '감소 중', state: 'muted' });
+      if (config.warnPositive && current > 0) chips.push({ label: 'warning', state: 'warning' });
+      if (config.warnDelta && delta > 0) chips.push({ label: '증가 warning', state: 'warning' });
+      if (config.key === 'metadataLastAgeMs' && current > 3000) chips.push({ label: 'stale', state: 'warning' });
+      if (config.key === 'videoLastAgeMs' && current > 3000) chips.push({ label: 'video stale', state: 'warning' });
+      if (config.key === 'overlayDrawAgeMs' && current > 3000) chips.push({ label: 'draw stale', state: 'warning' });
+      if (config.key === 'queuePending' && stats.max > 0) chips.push({ label: `peak ${dashboardTrendFormat(stats.max)}`, state: 'muted' });
+      if (config.key === 'dashboardLocalPollingCount') chips.push({ label: 'client local', state: 'muted' });
+      if (!chips.length) chips.push({ label: '정상', state: 'active' });
+      return dashboardTrendChipList(chips);
+    }
+
+    function renderDashboardTrend() {
+      const sample = dashboardTrendSamples[dashboardTrendSamples.length - 1] || null;
+      const warnings = dashboardTrendWarnings(sample);
+      dashboardRenderWarningStrip(warnings);
+      dashboardSet('dashboardTrendSampleCount', `${dashboardTrendSamples.length}/${dashboardTrendMaxSamples}`);
+      dashboardSet(
+        'dashboardTrendSummary',
+        `${dashboardTrendWindowLabel()} · warning ${warnings.length} · Runtime Dashboard는 longrun report를 대체하지 않습니다`
+      );
+      const sessionStats = dashboardTrendStats('activeSessions');
+      const streamStats = dashboardTrendStats('activeStreams');
+      const tapStats = dashboardTrendStats('activeAnalysisTaps');
+      dashboardSet(
+        'dashboardTrendRuntimeDelta',
+        sessionStats && streamStats && tapStats
+          ? `S ${dashboardTrendDeltaLabel(sessionStats.delta)} · St ${dashboardTrendDeltaLabel(streamStats.delta)} · Tap ${dashboardTrendDeltaLabel(tapStats.delta)}`
+          : '미제공'
+      );
+      const metadataAgeStats = dashboardTrendStats('metadataLastAgeMs');
+      const staleWarning = metadataAgeStats && metadataAgeStats.current > 3000;
+      dashboardSetWithWarning(
+        'dashboardTrendStaleStatus',
+        metadataAgeStats ? `metadata ${dashboardDuration(metadataAgeStats.current)}` : '미제공',
+        staleWarning,
+        'stale'
+      );
+      const cleanupResidual = sample ? (sample.values.activeSessions || 0) + (sample.values.activeStreams || 0) +
+        (sample.values.activeAnalysisTaps || 0) + (sample.values.activeSseClients || 0) +
+        (sample.values.activeWsClients || 0) + (sample.values.rtspConsumerResidual || 0) : null;
+      dashboardSetWithWarning(
+        'dashboardTrendCleanupStatus',
+        cleanupResidual === null ? '미제공' : `active residual ${cleanupResidual}`,
+        warnings.some((warning) => warning.label.includes('잔류') || warning.label.includes('pending') || warning.label.includes('appsrc')),
+        'cleanup'
+      );
+      const rows = [
+        { key: 'activeSessions', label: 'activeSessions', kind: 'count' },
+        { key: 'activeStreams', label: 'activeStreams', kind: 'count' },
+        { key: 'activeAnalysisTaps', label: 'activeAnalysisTaps', kind: 'count' },
+        { key: 'activeSseClients', label: 'SSE clients', kind: 'count' },
+        { key: 'activeWsClients', label: 'WS clients', kind: 'count' },
+        { key: 'metadataSent', label: 'WebRTC metadata sent', kind: 'count', counter: true },
+        { key: 'metadataDropped', label: 'WebRTC metadata dropped', kind: 'count', counter: true, warnDelta: true },
+        { key: 'metadataFailures', label: 'WebRTC metadata failures', kind: 'count', counter: true, warnDelta: true },
+        { key: 'metadataJsonBuildCount', label: 'metadataJsonBuildCount', kind: 'count', counter: true },
+        { key: 'metadataPayloadAvgBytes', label: 'metadata payload avg', kind: 'bytes' },
+        { key: 'metadataPayloadMaxBytes', label: 'metadata payload max', kind: 'bytes' },
+        { key: 'dashboardLocalPollingCount', label: 'dashboard polling count', kind: 'count', counter: true },
+        { key: 'queuePending', label: 'pending queue', kind: 'count' },
+        { key: 'queuePeak', label: 'pending queue peak', kind: 'count' },
+        { key: 'queueDrops', label: 'queue drops', kind: 'count', counter: true, warnDelta: true },
+        { key: 'sampleDrops', label: 'sample drops', kind: 'count', counter: true, warnDelta: true },
+        { key: 'rtspPendingResidual', label: 'RTSP pending stop/destroy', kind: 'count', warnPositive: true },
+        { key: 'appsrcPushAfterStop', label: 'appsrcPushAfterStopCount', kind: 'count', counter: true, warnPositive: true },
+        { key: 'rtspHardFlowErrors', label: 'RTSP hard flow errors', kind: 'count', counter: true, warnPositive: true },
+        { key: 'rtspConsumerResidual', label: 'RTSP consumer residual', kind: 'count', warnPositive: true },
+        { key: 'fanoutResidual', label: 'fanout residual', kind: 'count', warnPositive: true },
+        { key: 'metadataLastAgeMs', label: 'metadata receive age', kind: 'ms' },
+        { key: 'videoLastAgeMs', label: 'last video frame age', kind: 'ms' },
+        { key: 'overlayDrawAgeMs', label: 'overlay draw age', kind: 'ms' },
+      ];
+      const tbody = dashboardRowsStart('dashboardTrendRows');
+      if (!tbody || dashboardTrendSamples.length === 0) {
+        dashboardSetEmptyRows('dashboardTrendRows', 5, 'Dashboard sample이 쌓이면 최근 trend가 표시됩니다.');
+        return;
+      }
+      for (const row of rows) {
+        const stats = dashboardTrendStats(row.key);
+        dashboardAppendRow('dashboardTrendRows', [
+          row.label,
+          stats ? dashboardTrendFormat(stats.current, row.kind) : '미제공',
+          stats && stats.count > 1 ? dashboardTrendDeltaLabel(stats.delta, row.kind) : 'sample 대기',
+          stats ? `${dashboardTrendFormat(stats.min, row.kind)} / ${dashboardTrendFormat(stats.max, row.kind)}` : '미제공',
+          dashboardTrendNote(row, stats, sample),
+        ]);
+      }
+    }
+
     function dashboardDebugTracks(stateDump) {
       const tracks = stateDump?.debugState?.tracks;
       return Array.isArray(tracks) ? tracks : [];
@@ -11163,6 +11722,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	      renderDashboardScenarios(stateDump, tapMetrics, selectedTap);
 	      renderDashboardScenarioTimeline(stateDump, tapMetrics, selectedTap);
 	      renderDashboardMetadata(runtime, tapMetrics, tapsPayload);
+	      renderDashboardTrend();
 	      renderDashboardIssues(tapMetrics, stateDump);
       const statePre = $('dashboardStateDumpJson');
       if (statePre) statePre.textContent = dashboardPrettyJson(stateDump, 'tap을 선택하면 상태 덤프가 표시됩니다.');
@@ -11188,6 +11748,7 @@ std::string BuildLabRuleEditorPageHtml() {
       if (dashboardRefreshInFlight) return;
       dashboardRefreshInFlight = true;
       dashboardLastRefreshAt = now;
+      dashboardLocalPollingCount += 1;
       try {
         dashboardSet('dashboardStatusText', '갱신 중...');
         const [runtime, tapsPayload, eventPost, eventStorage] = await Promise.all([
@@ -11205,6 +11766,7 @@ std::string BuildLabRuleEditorPageHtml() {
         let selectedTap = taps.find((tap) => tap.tapId === tapId) || null;
         if (tapId !== previousTapId) {
           dashboardResetRecentEvents();
+          dashboardResetTrendSamples();
         }
         if (tapId) {
           [tapMetrics, stateDump, tapEvents] = await Promise.all([
@@ -11213,7 +11775,9 @@ std::string BuildLabRuleEditorPageHtml() {
             dashboardFetchJson(`/lab/analysis/taps/${encodeURIComponent(tapId)}/events`).catch(() => null)
           ]);
         }
-        renderDashboard({ runtime, tapsPayload, eventPost, eventStorage, tapMetrics, stateDump, tapEvents, selectedTap });
+        const payload = { runtime, tapsPayload, eventPost, eventStorage, tapMetrics, stateDump, tapEvents, selectedTap };
+        dashboardRecordTrendSample(payload);
+        renderDashboard(payload);
       } catch (error) {
         dashboardSet('dashboardStatusText', `갱신 실패: ${error.message}`);
       } finally {
@@ -11221,10 +11785,13 @@ std::string BuildLabRuleEditorPageHtml() {
       }
     }
 
-    function stopDashboardPolling() {
+    function stopDashboardPolling(options = {}) {
       if (dashboardTimer) {
         clearInterval(dashboardTimer);
         dashboardTimer = null;
+      }
+      if (options.recordInactive) {
+        dashboardLastDashboardStopAt = Date.now();
       }
     }
 
@@ -11441,10 +12008,14 @@ std::string BuildLabRuleEditorPageHtml() {
         clearInterval(viewTimer);
         viewTimer = null;
       }
+      const hadViewSession = Boolean(viewTapId || viewWebRtcSessionId || viewMetadataMessageCount > 0);
       await closeViewWebRtcSession();
       const tapId = viewTapId;
       viewTapId = '';
       viewFailureCount = 0;
+      if (!options.silent && hadViewSession) {
+        dashboardLastViewStopAt = Date.now();
+      }
       if ($('viewPreviewImage')) $('viewPreviewImage').removeAttribute('src');
       if (isMetadataViewMode()) {
         resetMetadataViewerState('disabled');
@@ -11509,7 +12080,7 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     function drawRegion() {
-      const lineMode = isLineRule();
+      const lineMode = isGeometryLineMode();
       const width = canvas.width;
       const height = canvas.height;
       ctx.clearRect(0, 0, width, height);
@@ -11638,7 +12209,7 @@ std::string BuildLabRuleEditorPageHtml() {
           return;
         }
         if (regionPoints.length >= maxGeometryPoints()) {
-          status(`${isLineRule() ? '선' : '영역'} 점은 최대 ${maxGeometryPoints()}개까지 지정할 수 있습니다. 기존 점을 드래그해서 위치를 바꿔주세요.`);
+          status(`${isGeometryLineMode() ? '선' : '영역'} 점은 최대 ${maxGeometryPoints()}개까지 지정할 수 있습니다. 기존 점을 드래그해서 위치를 바꿔주세요.`);
           return;
         }
         pushRegionUndo();
@@ -11955,7 +12526,7 @@ std::string BuildLabRuleEditorPageHtml() {
           }
           dashboardActive = tabName === 'dashboard';
           if (dashboardActive) startDashboardPolling();
-          else stopDashboardPolling();
+          else stopDashboardPolling({ recordInactive: true });
         });
       });
       document.querySelectorAll('[data-rule-section-target]').forEach((button) => {
@@ -11983,14 +12554,26 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     function bindRuleInputEvents() {
-      for (const id of ['profileFps', 'profileQueue', 'profileConfidence', 'profileNms', 'profileInputWidth', 'profileInputHeight', 'profileDetector', 'profileAdaptive', 'profileId', 'ruleId', 'ruleEnabled', 'ruleSourceKind', 'ruleRoute', 'ruleProfileId', 'ruleEventType', 'ruleLineDirection', 'ruleConfidence', 'ruleMinDurationMs', 'scenarioType', 'scenarioZoneIds', 'scenarioCandidateMs', 'scenarioDwellMs', 'scenarioCooldownMs', 'scenarioStableOnly', 'eventFlashInput', 'eventFlashMsInput', 'eventPostUrlInput']) {
+      for (const id of ['profileFps', 'profileQueue', 'profileConfidence', 'profileNms', 'profileInputWidth', 'profileInputHeight', 'profileDetector', 'profileAdaptive', 'profileId', 'ruleId', 'ruleEnabled', 'ruleSourceKind', 'ruleRoute', 'ruleProfileId', 'ruleEventType', 'ruleLineDirection', 'ruleConfidence', 'ruleMinDurationMs', 'scenarioType', 'scenarioLineDirection', 'scenarioZoneIds', 'scenarioCandidateMs', 'scenarioDwellMs', 'scenarioCooldownMs', 'scenarioStableOnly', 'eventFlashInput', 'eventFlashMsInput', 'eventPostUrlInput']) {
         const el = $(id);
         if (el) el.addEventListener('input', updatePreviews);
         if (el) el.addEventListener('change', updatePreviews);
       }
+      if ($('scenarioType')) {
+        $('scenarioType').addEventListener('change', () => {
+          pushRegionUndo();
+          regionPoints = $('scenarioType').value === 'wrong-direction'
+            ? defaultLinePoints()
+            : defaultPolygonPoints();
+          updatePreviews();
+        });
+      }
       document.querySelectorAll('input[name="ruleKind"]').forEach((el) => {
         el.addEventListener('change', () => {
-          if (isScenarioRule() && regionPoints.length < 3) {
+          if (isScenarioRule() && isWrongDirectionScenario() && regionPoints.length < 2) {
+            pushRegionUndo();
+            regionPoints = defaultLinePoints();
+          } else if (isScenarioRule() && regionPoints.length < 3) {
             pushRegionUndo();
             regionPoints = defaultPolygonPoints();
           }
@@ -14645,12 +15228,25 @@ std::string AnalysisEventStorageStatusJson() {
     out << "{"
         << "\"enabled\":" << (snapshot.enabled ? "true" : "false") << ","
         << "\"path\":\"" << JsonEscape(snapshot.path) << "\","
+        << "\"activePath\":\"" << JsonEscape(snapshot.active_path.empty() ? snapshot.path
+                                                                          : snapshot.active_path)
+        << "\","
+        << "\"activeFileSizeBytes\":" << snapshot.active_file_size_bytes << ","
+        << "\"archivedFileCount\":" << snapshot.archived_file_count << ","
+        << "\"totalArchiveBytes\":" << snapshot.total_archive_bytes << ","
         << "\"queueSize\":" << snapshot.queue_size << ","
         << "\"maxQueueSize\":" << snapshot.max_queue_size << ","
         << "\"enqueuedCount\":" << snapshot.enqueued_count << ","
         << "\"storedCount\":" << snapshot.stored_count << ","
         << "\"failedCount\":" << snapshot.failed_count << ","
+        << "\"writeFailedCount\":" << snapshot.write_failed_count << ","
         << "\"droppedCount\":" << snapshot.dropped_count << ","
+        << "\"skippedCorruptLines\":" << snapshot.skipped_corrupt_lines << ","
+        << "\"rotatedCount\":" << snapshot.rotated_count << ","
+        << "\"rotationFailedCount\":" << snapshot.rotation_failed_count << ","
+        << "\"retentionDeletedCount\":" << snapshot.retention_deleted_count << ","
+        << "\"retentionDeletedBytes\":" << snapshot.retention_deleted_bytes << ","
+        << "\"retentionFailedCount\":" << snapshot.retention_failed_count << ","
         << "\"snapshotHook\":{"
         << "\"enabled\":" << (snapshot.snapshot_hook_enabled ? "true" : "false") << ","
         << "\"directory\":\"" << JsonEscape(snapshot.snapshot_dir) << "\","
