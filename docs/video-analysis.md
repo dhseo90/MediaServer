@@ -306,6 +306,8 @@ Close-object association 문제를 볼 때는 `TrackHealth.status`, `overlapRisk
 
 Close-object diagnostic이 켜진 경우 `closeObjectRisk`, `nearestSameClassTrackId`, `nearestSameClassDistance`, `candidateScore`, `bestScore`, `secondScore`, `scoreMargin`, `centerJump`, `directionConflict`, `wouldPenalize`, `wouldHoldReacquire`, `guardDecision`을 제한된 per-frame/per-track diagnostic으로 남길 수 있습니다. 이 값은 candidate matrix 전체 저장이 아니라 matched/rejected 주요 후보 요약이며 Runtime Dashboard와 WebRTC BBox 진단에서 사람에게 필요한 수준으로만 표시합니다. `guardDecision=observe`는 관찰만, `enforce-penalize`는 opt-in 보정 후보가 실제 ranking에 반영된 상태를 뜻합니다.
 
+Close-object guard의 기본값은 `off`입니다. `compare-close-object-tracker` 리포트는 같은 sample에서 `off`, `diagnostic`, `enforce`를 비교해 threshold tuning과 default-on 검토 근거를 모으는 도구이며, event/scenario 결과가 달라지면 default on 전환 근거로 사용할 수 없습니다. 이 흐름은 현재 direction-based tracker의 한계를 정량화하는 진단/opt-in guard이며 Kalman, ByteTrack, BoT-SORT, Re-ID 같은 대형 tracker 교체가 아닙니다.
+
 ## 8. Appearance / Re-ID Hook
 
 AppearanceProfile과 IAppearanceExtractor는 향후 Re-ID/attribute 분석을 연결하기 위한 hook입니다.
