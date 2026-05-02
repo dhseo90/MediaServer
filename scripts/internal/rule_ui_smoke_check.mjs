@@ -327,6 +327,65 @@ try {
           throw new Error('scenario timing validation mismatch: ' + scenarioWarning);
         }
         setValue('scenarioDwellMs', '10000');
+        setValue('scenarioType', 'wrong-direction');
+        setValue('scenarioLineDirection', 'reverse');
+        setValue('scenarioCooldownMs', '6000');
+        if ($('scenarioWrongDirectionRow').hidden ||
+            !$('scenarioDwellTimingRow').hidden ||
+            !$('scenarioZoneIdsLabel').hidden) {
+          throw new Error('wrong-direction scenario panel visibility mismatch');
+        }
+        if (Array.from($('scenarioLineDirection').options).some((option) => option.value === 'any')) {
+          throw new Error('wrong-direction direction select must not expose any');
+        }
+        const wrongDirectionPayload = window.ruleJson();
+        if (wrongDirectionPayload.ruleKind !== 'scenario' ||
+            wrongDirectionPayload.event?.type !== 'wrong-direction' ||
+            wrongDirectionPayload.scenario?.type !== 'wrong-direction') {
+          throw new Error('wrong-direction payload type mismatch: ' + JSON.stringify(wrongDirectionPayload));
+        }
+        if (wrongDirectionPayload.event?.region?.type !== 'line' ||
+            wrongDirectionPayload.event?.region?.direction !== 'reverse' ||
+            !Array.isArray(wrongDirectionPayload.event?.region?.points) ||
+            wrongDirectionPayload.event.region.points.length !== 2) {
+          throw new Error('wrong-direction line payload mismatch: ' + JSON.stringify(wrongDirectionPayload.event?.region));
+        }
+        if (wrongDirectionPayload.scenario?.cooldownMs !== 6000 ||
+            Object.prototype.hasOwnProperty.call(wrongDirectionPayload.scenario || {}, 'candidateTimeMs') ||
+            Object.prototype.hasOwnProperty.call(wrongDirectionPayload.scenario || {}, 'dwellTimeMs')) {
+          throw new Error('wrong-direction scenario timing payload mismatch: ' + JSON.stringify(wrongDirectionPayload.scenario));
+        }
+        if (!String(wrongDirectionPayload.scenario?.lifecycle?.duplicateKey || '').includes('line/track')) {
+          throw new Error('wrong-direction duplicate key mismatch: ' + JSON.stringify(wrongDirectionPayload.scenario?.lifecycle));
+        }
+        if (!$('scenarioSummaryText').textContent.includes('허용 방향') ||
+            !$('scenarioSummaryText').textContent.includes('wrong-direction scenario event') ||
+            !$('scenarioReadinessZone').textContent.includes('line 2/2') ||
+            !$('scenarioReadinessTiming').textContent.includes('same track/line') ||
+            !$('scenarioReadinessEmit').textContent.includes('line-crossing과 별도')) {
+          throw new Error('wrong-direction summary/readiness mismatch');
+        }
+        const phaseText = $('scenarioPhaseStrip').textContent;
+        for (const expected of ['Idle', 'LineCrossed', 'Confirmed', 'Cooldown', 'Ended']) {
+          if (!phaseText.includes(expected)) {
+            throw new Error('wrong-direction phase preview missing: ' + expected);
+          }
+        }
+        const eventPreview = JSON.parse($('eventPayloadPreview').value);
+        if (eventPreview.rule?.type !== 'wrong-direction' ||
+            eventPreview.region?.type !== 'line' ||
+            eventPreview.region?.direction !== 'reverse' ||
+            eventPreview.scenario?.cooldownMs !== 6000) {
+          throw new Error('wrong-direction event payload preview mismatch: ' + JSON.stringify(eventPreview));
+        }
+        const wrongDirectionInvalid = JSON.parse(JSON.stringify(wrongDirectionPayload));
+        wrongDirectionInvalid.event.region.direction = 'any';
+        const wrongDirectionWarning = ruleApi.validateRulePayload(wrongDirectionInvalid);
+        if (!wrongDirectionWarning.includes('forward 또는 reverse')) {
+          throw new Error('wrong-direction direction validation mismatch: ' + wrongDirectionWarning);
+        }
+        setValue('scenarioType', 'intrusion-dwell');
+        setValue('scenarioCooldownMs', '5000');
         basicRadio.click();
         setValue('ruleEventType', 'presence');
 

@@ -125,7 +125,7 @@ Scenario는 여러 frame에 걸친 시간 조건과 상태 전이를 판단하�
 | IntrusionAfterLineCrossing | 구현됨 | 전용 UI 템플릿은 후속 작업 |
 | Loitering | 구현됨 | 전용 UI 템플릿은 후속 작업 |
 
-현재 UI의 시나리오 템플릿은 `Intrusion Dwell · 제한구역 체류`와 `WrongDirection · 금지 방향 통과`를 제공합니다. WrongDirection은 line 2점 geometry와 `forward`/`reverse` 허용 방향을 설정하며, `any` 방향은 위반 방향을 정의할 수 없으므로 사용하지 않습니다. 기존 `line-crossing` 기본 이벤트와 별도 scenario event로 동작하고 Event POST payload schema는 유지합니다.
+현재 UI의 시나리오 템플릿은 `Intrusion Dwell · 제한구역 체류`와 `WrongDirection · 금지 방향 통과`를 제공합니다. WrongDirection은 line 2점 geometry와 `forward`/`reverse` 허용 방향, `cooldownMs`를 설정하며, `any` 방향은 위반 방향을 정의할 수 없으므로 사용하지 않습니다. 저장 전 검토와 Payload preview는 기존 `line-crossing` 기본 이벤트와 별도 `wrong-direction` scenario event가 발생한다는 점을 함께 보여주며 Event POST payload schema는 유지합니다.
 
 Intrusion Dwell UI 항목:
 

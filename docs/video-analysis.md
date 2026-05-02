@@ -257,7 +257,7 @@ Idle -> Candidate -> Observing -> Confirmed -> Cooldown -> Ended
 
 line별 허용 방향과 실제 crossing 방향이 다르면 `wrong-direction` 이벤트를 발생시킵니다. 기존 `line-crossing` 이벤트는 그대로 유지합니다.
 
-룰 편집 UI에서는 WrongDirection 템플릿을 선택한 뒤 target class/category, line 2점 geometry, 허용 방향 `forward` 또는 `reverse`, `cooldownMs`를 설정합니다. `any`는 양방향을 모두 허용해 위반 방향을 정의할 수 없으므로 WrongDirection 템플릿에서는 사용하지 않습니다. 이 UI는 기존 rule/event payload 구조의 `event.region.direction`을 재사용하며 ScenarioEngine 판단 로직, Event POST payload schema, WebRTC/SSE/WS metadata schema를 변경하지 않습니다.
+룰 편집 UI에서는 WrongDirection 템플릿을 선택한 뒤 target class/category, line 2점 geometry, 허용 방향 `forward` 또는 `reverse`, `cooldownMs`를 설정합니다. `any`는 양방향을 모두 허용해 위반 방향을 정의할 수 없으므로 WrongDirection 템플릿에서는 사용하지 않습니다. 저장 전 검토와 Payload preview는 `wrong-direction` scenario payload, line geometry, 허용 방향, same track/line cooldown 중복 억제를 보여줍니다. 이 UI는 기존 rule/event payload 구조의 `event.region.direction`을 재사용하며 ScenarioEngine 판단 로직, Event POST payload schema, WebRTC/SSE/WS metadata schema를 변경하지 않습니다.
 
 ### IntrusionAfterLineCrossing
 
