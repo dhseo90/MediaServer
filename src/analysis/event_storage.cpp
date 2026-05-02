@@ -24,6 +24,20 @@ namespace analysis {
 
 namespace {
 
+constexpr std::size_t kMaxEventRecordLineBytes = 1024 * 1024;
+
+enum class BoundedLineStatus {
+    kLine,
+    kEnd,
+    kTooLong,
+    kReadError,
+};
+
+struct BoundedLineRead {
+    BoundedLineStatus status{BoundedLineStatus::kEnd};
+    bool had_newline{false};
+};
+
 std::string JsonEscape(const std::string& value) {
     std::string out;
     out.reserve(value.size() + 8);
@@ -158,6 +172,29 @@ std::string EventRecordJson(const EventRecord& record) {
         << "\"metadata\":" << (record.metadata_json.empty() ? "{}" : record.metadata_json)
         << "}";
     return out.str();
+}
+
+BoundedLineRead ReadBoundedJsonLine(std::istream& input, std::string* line) {
+    if (line == nullptr) {
+        return {BoundedLineStatus::kReadError, false};
+    }
+    line->clear();
+    char ch = '\0';
+    while (input.get(ch)) {
+        if (ch == '\n') {
+            return {BoundedLineStatus::kLine, true};
+        }
+        if (line->size() >= kMaxEventRecordLineBytes) {
+            input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            return {BoundedLineStatus::kTooLong, !input.eof()};
+        }
+        line->push_back(ch);
+    }
+    if (input.eof()) {
+        return line->empty() ? BoundedLineRead{BoundedLineStatus::kEnd, false}
+                             : BoundedLineRead{BoundedLineStatus::kLine, false};
+    }
+    return {BoundedLineStatus::kReadError, false};
 }
 
 std::string TrimCopy(std::string value) {
@@ -450,6 +487,25 @@ bool EnsureParentDirectory(const std::filesystem::path& path, std::string* error
     return true;
 }
 
+bool EventStorageFileNeedsLeadingNewline(const std::filesystem::path& path) {
+    std::error_code ec;
+    if (path.empty() || !std::filesystem::exists(path, ec) || ec) {
+        return false;
+    }
+    const auto size = std::filesystem::file_size(path, ec);
+    if (ec || size == 0) {
+        return false;
+    }
+    std::ifstream input(path, std::ios::binary);
+    if (!input.good()) {
+        return false;
+    }
+    input.seekg(static_cast<std::streamoff>(size - 1));
+    char last = '\0';
+    input.get(last);
+    return input.good() && last != '\n';
+}
+
 bool IsEventStorageArchivePath(const std::filesystem::path& active_path,
                                const std::filesystem::path& candidate) {
     if (candidate == active_path || candidate.filename() == active_path.filename()) {
@@ -458,10 +514,13 @@ bool IsEventStorageArchivePath(const std::filesystem::path& active_path,
     const std::string active_stem = active_path.stem().string();
     const std::string active_ext = active_path.extension().string();
     const std::string name = candidate.filename().string();
-    if (active_stem.empty() || active_ext.empty()) {
+    if (active_stem.empty()) {
         return false;
     }
-    return name.rfind(active_stem + ".", 0) == 0 && candidate.extension().string() == active_ext;
+    if (name.rfind(active_stem + ".", 0) != 0) {
+        return false;
+    }
+    return active_ext.empty() || candidate.extension().string() == active_ext;
 }
 
 std::vector<ArchiveFileInfo> ListEventStorageArchives(const std::filesystem::path& active_path,
@@ -667,7 +726,8 @@ RetentionResult ApplyEventStorageRetention() {
 }
 
 bool ParseEventRecordLine(const std::string& line, ParsedEventRecordLine* record) {
-    if (record == nullptr || line.size() > 1024 * 1024 || !ValidateTopLevelJsonObject(line)) {
+    if (record == nullptr || line.size() > kMaxEventRecordLineBytes ||
+        !ValidateTopLevelJsonObject(line)) {
         return false;
     }
     const auto schema = ExtractTopLevelString(line, "schema");
@@ -696,6 +756,129 @@ bool ParseEventRecordLine(const std::string& line, ParsedEventRecordLine* record
     record->update_time_ms = *update_time;
     record->end_time_ms = *end_time;
     return true;
+}
+
+struct EventStorageRecoveryScan {
+    bool file_exists{false};
+    std::uint64_t file_size_bytes{0};
+    std::filesystem::file_time_type modified_time{};
+    std::uint64_t skipped_corrupt_lines{0};
+    std::uint64_t partial_line_count{0};
+    std::uint64_t last_recovery_time_ms{0};
+    std::string status{"not-run"};
+    std::string last_error;
+};
+
+struct EventStorageActiveFileSignature {
+    std::string path;
+    bool exists{false};
+    std::uint64_t size_bytes{0};
+    std::filesystem::file_time_type modified_time{};
+    bool error{false};
+    std::string error_message;
+};
+
+EventStorageActiveFileSignature ReadActiveFileSignature(const std::filesystem::path& path) {
+    EventStorageActiveFileSignature signature;
+    signature.path = path.string();
+    if (path.empty()) {
+        return signature;
+    }
+    std::error_code ec;
+    signature.exists = std::filesystem::exists(path, ec);
+    if (ec) {
+        signature.error = true;
+        signature.error_message = ec.message();
+        return signature;
+    }
+    if (!signature.exists) {
+        return signature;
+    }
+    signature.size_bytes = static_cast<std::uint64_t>(std::filesystem::file_size(path, ec));
+    if (ec) {
+        signature.error = true;
+        signature.error_message = ec.message();
+        return signature;
+    }
+    signature.modified_time = std::filesystem::last_write_time(path, ec);
+    if (ec) {
+        signature.error = true;
+        signature.error_message = ec.message();
+    }
+    return signature;
+}
+
+bool SameActiveFileSignature(const EventStorageActiveFileSignature& lhs,
+                             const EventStorageActiveFileSignature& rhs) {
+    return lhs.path == rhs.path && lhs.exists == rhs.exists && lhs.size_bytes == rhs.size_bytes &&
+           lhs.modified_time == rhs.modified_time && lhs.error == rhs.error &&
+           lhs.error_message == rhs.error_message;
+}
+
+std::string RecoveryStatusForCounts(std::uint64_t skipped_corrupt_lines,
+                                    std::uint64_t partial_line_count) {
+    return skipped_corrupt_lines > 0 || partial_line_count > 0 ? "recovered" : "ok";
+}
+
+EventStorageRecoveryScan ScanActiveEventStorageFile(
+    const std::filesystem::path& path,
+    const EventStorageActiveFileSignature& signature) {
+    EventStorageRecoveryScan scan;
+    scan.file_exists = signature.exists;
+    scan.file_size_bytes = signature.size_bytes;
+    scan.modified_time = signature.modified_time;
+    scan.last_recovery_time_ms = NowMs();
+    if (signature.error) {
+        scan.status = "failed";
+        scan.last_error = signature.error_message;
+        return scan;
+    }
+    if (path.empty() || !signature.exists) {
+        scan.status = "missing";
+        return scan;
+    }
+
+    std::ifstream input(path);
+    if (!input.good()) {
+        scan.status = "failed";
+        scan.last_error = "failed to open event storage file";
+        return scan;
+    }
+
+    std::string line;
+    while (true) {
+        const BoundedLineRead read = ReadBoundedJsonLine(input, &line);
+        if (read.status == BoundedLineStatus::kEnd) {
+            break;
+        }
+        if (read.status == BoundedLineStatus::kReadError) {
+            scan.status = "failed";
+            scan.last_error = "failed to read event storage file";
+            return scan;
+        }
+        if (read.status == BoundedLineStatus::kTooLong) {
+            ++scan.skipped_corrupt_lines;
+            if (!read.had_newline) {
+                ++scan.partial_line_count;
+            }
+            continue;
+        }
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
+        }
+        if (TrimCopy(line).empty()) {
+            continue;
+        }
+        ParsedEventRecordLine parsed;
+        if (!ParseEventRecordLine(line, &parsed)) {
+            ++scan.skipped_corrupt_lines;
+            if (!read.had_newline) {
+                ++scan.partial_line_count;
+            }
+        }
+    }
+    scan.status = RecoveryStatusForCounts(scan.skipped_corrupt_lines, scan.partial_line_count);
+    return scan;
 }
 
 bool StringFilterMatches(const std::string& expected, const std::string& actual) {
@@ -873,7 +1056,6 @@ public:
             snapshot.failed_count = failed_count_;
             snapshot.write_failed_count = failed_count_;
             snapshot.dropped_count = dropped_count_;
-            snapshot.skipped_corrupt_lines = skipped_corrupt_lines_;
             snapshot.rotated_count = rotated_count_;
             snapshot.rotation_failed_count = rotation_failed_count_;
             snapshot.retention_deleted_count = retention_deleted_count_;
@@ -893,15 +1075,8 @@ public:
             snapshot.last_error = last_error_;
         }
         ApplyFileStats(&snapshot);
+        ApplyRecoveryScan(&snapshot);
         return snapshot;
-    }
-
-    void RecordSkippedCorruptLines(std::uint64_t count) {
-        if (count == 0) {
-            return;
-        }
-        std::lock_guard lock(mu_);
-        skipped_corrupt_lines_ += count;
     }
 
     void Stop() {
@@ -1057,7 +1232,50 @@ private:
         }
     }
 
+    void ApplyRecoveryScan(EventStorageSnapshot* snapshot) const {
+        if (snapshot == nullptr) {
+            return;
+        }
+        if (!snapshot->enabled) {
+            snapshot->last_recovery_status = "disabled";
+            return;
+        }
+        const std::filesystem::path active_path(snapshot->active_path.empty() ? snapshot->path
+                                                                              : snapshot->active_path);
+        const EventStorageRecoveryScan recovery = RecoveryScanForActivePath(active_path);
+        snapshot->skipped_corrupt_lines = recovery.skipped_corrupt_lines;
+        snapshot->partial_line_count = recovery.partial_line_count;
+        snapshot->last_recovery_time_ms = recovery.last_recovery_time_ms;
+        snapshot->last_recovery_status = recovery.status;
+        if (recovery.file_exists) {
+            snapshot->active_file_size_bytes = recovery.file_size_bytes;
+        }
+        if (!recovery.last_error.empty()) {
+            snapshot->last_error = TrimForLog(recovery.last_error);
+        }
+    }
+
+    EventStorageRecoveryScan RecoveryScanForActivePath(const std::filesystem::path& path) const {
+        const EventStorageActiveFileSignature signature = ReadActiveFileSignature(path);
+        {
+            std::lock_guard lock(recovery_mu_);
+            if (recovery_scan_cached_ && SameActiveFileSignature(recovery_signature_, signature)) {
+                return recovery_scan_;
+            }
+        }
+
+        EventStorageRecoveryScan scan = ScanActiveEventStorageFile(path, signature);
+        {
+            std::lock_guard lock(recovery_mu_);
+            recovery_signature_ = signature;
+            recovery_scan_ = scan;
+            recovery_scan_cached_ = true;
+        }
+        return scan;
+    }
+
     mutable std::mutex mu_;
+    mutable std::mutex recovery_mu_;
     std::condition_variable cv_;
     std::deque<EventRecord> queue_;
     std::thread worker_;
@@ -1067,7 +1285,6 @@ private:
     std::uint64_t stored_count_{0};
     std::uint64_t failed_count_{0};
     std::uint64_t dropped_count_{0};
-    std::uint64_t skipped_corrupt_lines_{0};
     std::uint64_t rotated_count_{0};
     std::uint64_t rotation_failed_count_{0};
     std::uint64_t retention_deleted_count_{0};
@@ -1078,6 +1295,9 @@ private:
     std::string last_snapshot_error_;
     std::string last_clip_error_;
     std::string last_error_;
+    mutable bool recovery_scan_cached_{false};
+    mutable EventStorageActiveFileSignature recovery_signature_;
+    mutable EventStorageRecoveryScan recovery_scan_;
 };
 
 EventStorageDispatcher& Dispatcher() {
@@ -1135,6 +1355,9 @@ bool FileEventStorage::Store(const EventRecord& record, std::string* error_messa
             *error_message = "failed to open event storage file";
         }
         return false;
+    }
+    if (EventStorageFileNeedsLeadingNewline(path)) {
+        output << "\n";
     }
     output << EventRecordJson(record) << "\n";
     if (!output.good()) {
@@ -1201,8 +1424,26 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
     }
 
     std::string line;
-    std::uint64_t skipped_corrupt_lines = 0;
-    while (std::getline(input, line)) {
+    std::uint64_t partial_line_count = 0;
+    while (true) {
+        const BoundedLineRead read = ReadBoundedJsonLine(input, &line);
+        if (read.status == BoundedLineStatus::kEnd) {
+            break;
+        }
+        if (read.status == BoundedLineStatus::kReadError) {
+            if (error_message != nullptr) {
+                *error_message = "failed to read event storage file";
+            }
+            return false;
+        }
+        if (read.status == BoundedLineStatus::kTooLong) {
+            ++result->skipped_corrupt_lines;
+            if (!read.had_newline) {
+                ++result->partial_line_count;
+                ++partial_line_count;
+            }
+            continue;
+        }
         if (!line.empty() && line.back() == '\r') {
             line.pop_back();
         }
@@ -1212,7 +1453,10 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
         ParsedEventRecordLine parsed;
         if (!ParseEventRecordLine(line, &parsed)) {
             ++result->skipped_corrupt_lines;
-            ++skipped_corrupt_lines;
+            if (!read.had_newline) {
+                ++result->partial_line_count;
+                ++partial_line_count;
+            }
             continue;
         }
         if (!EventRecordMatchesQuery(parsed, options)) {
@@ -1225,8 +1469,11 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
         }
         result->records_json.push_back(std::move(line));
     }
-    Dispatcher().RecordSkippedCorruptLines(skipped_corrupt_lines);
-    result->storage.skipped_corrupt_lines += skipped_corrupt_lines;
+    result->storage.skipped_corrupt_lines = result->skipped_corrupt_lines;
+    result->storage.partial_line_count = partial_line_count;
+    result->storage.last_recovery_time_ms = NowMs();
+    result->storage.last_recovery_status =
+        RecoveryStatusForCounts(result->skipped_corrupt_lines, result->partial_line_count);
 
     if (error_message != nullptr) {
         error_message->clear();

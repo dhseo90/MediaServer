@@ -390,7 +390,7 @@ Replay output의 `events[]`도 같은 핵심 구조를 유지합니다. 내부 T
 
 ## 11. EventRecord / Snapshot / Clip Hook
 
-EventRecord는 운영 조회와 snapshot/clip 연결을 위한 내부 저장 구조입니다. 기본값은 비활성입니다.
+EventRecord는 운영 조회와 snapshot/clip marker 연결을 위한 내부 metadata 저장 구조입니다. 기본값은 비활성입니다. 이 기능은 영상 녹화, VMS/NVR, frame snapshot 추출, clip recorder가 아니며 Event POST payload, WebRTC DataChannel metadata, SSE/WS metadata schema와 별도로 동작합니다.
 
 `media-server.va.event-record.v1` 필드:
 
@@ -409,7 +409,16 @@ EventRecord는 운영 조회와 snapshot/clip 연결을 위한 내부 저장 구
 - preEventMs / postEventMs
 - metadata
 
-저장은 JSON Lines 파일 append 방식이며 DB 의존성은 없습니다. 저장 실패는 counter와 로그에 남기고 streaming/event 출력은 계속 진행합니다.
+저장은 active JSON Lines 파일 append 방식이며 DB 의존성은 없습니다. 저장 실패는 counter와 로그에 남기고 streaming/event 출력은 계속 진행합니다.
+
+저장 파일 운영 정책:
+
+- `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_FILE_BYTES`가 0보다 크면 active JSON Lines 파일 size 기준으로 rotation합니다.
+- rotated archive 이름은 같은 디렉터리의 `<active-stem>.<timestamp-ms>.<sequence><ext>` 형식입니다.
+- `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_ARCHIVES`와 `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_TOTAL_BYTES`는 rotated archive만 oldest-first로 삭제합니다. active 파일은 retention 대상에서 제외합니다.
+- corrupt JSON line, 지나치게 긴 line, partial final line은 records API 전체 실패로 만들지 않고 skip/count 처리합니다.
+- recovery summary는 `/lab/analysis/event-storage/status`와 records API의 `skippedCorruptLines`, `partialLineCount`, `lastRecoveryTime`, `lastRecoveryStatus`에서 확인합니다.
+- 현재 records API 1차 범위는 active file 조회입니다. rotated archive query는 후속 확장입니다.
 
 Snapshot/clip hook 상태:
 
@@ -430,7 +439,7 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-storage/status'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records?eventType=presence&limit=100'
 ```
 
-`/lab/analysis/events/records`는 EventRecord JSON Lines 파일을 한 줄씩 읽어 `media-server.va.event-record-list.v1` 응답으로 반환합니다. 지원 filter는 `eventId`, `eventType`, `streamId`, `channelId`, `trackId`, `status`, `zoneId`, `lineId`, `scenarioName`, `scenarioPhase`, `startTimeMs`, `endTimeMs`, `limit`입니다. EventStorage가 비활성이거나 파일이 없으면 `records: []`와 storage 상태를 반환합니다. 손상된 JSON Lines 행은 전체 API 실패로 만들지 않고 `skippedCorruptLines`에 집계합니다.
+`/lab/analysis/events/records`는 active EventRecord JSON Lines 파일을 한 줄씩 읽어 `media-server.va.event-record-list.v1` 응답으로 반환합니다. 지원 filter는 `eventId`, `eventType`, `streamId`, `channelId`, `trackId`, `status`, `zoneId`, `lineId`, `scenarioName`, `scenarioPhase`, `startTimeMs`, `endTimeMs`, `limit`입니다. EventStorage가 비활성이거나 파일이 없으면 `records: []`와 storage 상태를 반환합니다. 손상되었거나 partial 상태인 JSON Lines 행은 전체 API 실패로 만들지 않고 `skippedCorruptLines`와 `partialLineCount`에 집계합니다. rotation/retention 상태는 `activeFileSizeBytes`, `archivedFileCount`, `totalArchiveBytes`, `rotatedCount`, `retentionDeletedCount`, `writeFailedCount`로 확인합니다.
 
 `/lab/rules` Runtime Dashboard의 Event Records 접힘 섹션은 이 조회 API를 수동 검색 UI로 노출합니다. 사용자가 검색 버튼을 누를 때만 API를 호출하며, snapshotPath/clipPath는 저장된 문자열 또는 placeholder로만 표시합니다. 영상 검색/재생, snapshot 추출, clip recorder 동작은 포함하지 않습니다.
 

@@ -108,6 +108,9 @@ struct EventStorageSnapshot {
     std::uint64_t write_failed_count{0};
     std::uint64_t dropped_count{0};
     std::uint64_t skipped_corrupt_lines{0};
+    std::uint64_t partial_line_count{0};
+    std::uint64_t last_recovery_time_ms{0};
+    std::string last_recovery_status{"not-run"};
     std::uint64_t rotated_count{0};
     std::uint64_t rotation_failed_count{0};
     std::uint64_t retention_deleted_count{0};
@@ -154,6 +157,7 @@ struct EventRecordQueryResult {
     bool has_more{false};
     bool truncated{false};
     std::uint64_t skipped_corrupt_lines{0};
+    std::uint64_t partial_line_count{0};
 };
 
 void DispatchEventRecords(const AnalysisResult& result, const std::vector<AnalysisEvent>& events);

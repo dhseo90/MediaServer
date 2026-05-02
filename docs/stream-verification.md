@@ -539,13 +539,27 @@ Event POST recovery/queue:
 ./server.sh verify-event-post --mode recovery
 ```
 
+EventStorage status/records smoke:
+
+```bash
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-storage/status'
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records?limit=5'
+```
+
+서버가 `8081` 같은 다른 HTTP port로 떠 있으면 port만 맞춰 실행합니다.
+
 확인 기준:
 
 - 기존 Intrusion / LineCrossing POST payload 형식 유지
 - 신규 scenario event도 EventManager를 통해 emit
 - POST 실패가 media pipeline 실패로 이어지지 않음
 - queue/dedupe/cooldown counter가 무한 증가하지 않음
+- Event POST payload 검증과 EventRecord storage 정책 검증은 별도입니다. Storage rotation/recovery가 추가되어도 POST payload field는 변경하지 않습니다.
 - EventRecord 조회 API는 저장된 metadata만 반환하며 영상 검색, snapshot 추출, clip recorder를 수행하지 않음
+- 손상되었거나 partial 상태인 EventRecord JSON Lines 행은 records API 전체 실패가 아니라 skip/count 처리됨
+- `/lab/analysis/event-storage/status`의 `skippedCorruptLines`, `partialLineCount`, `lastRecoveryStatus`로 recovery summary를 확인할 수 있음
+- `verify-event-post --mode recovery`는 EventStorage가 활성화되어 있고 안전한 `/tmp/media_server_*` path를 사용할 때 valid/corrupt/partial JSON Lines를 주입해 records API와 status recovery count를 확인함
+- Rotation/retention은 `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_FILE_BYTES`, `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_ARCHIVES`, `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_TOTAL_BYTES`를 켠 환경에서 status의 `activeFileSizeBytes`, `archivedFileCount`, `totalArchiveBytes`, `rotatedCount`, `retentionDeletedCount`로 smoke 확인함
 
 ## Replay 검증
 
@@ -713,7 +727,7 @@ Replay 결과 차이는 누락/초과/불일치 이벤트를 먼저 확인합니
 | 신규 scenarios | ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering replay 통과 |
 | TrackHealth | 진단 metadata만 추가, tracking id 생성 방식 유지 |
 | Appearance hook | 기본 NoOp, 실제 모델 호출 없음 |
-| EventRecord/hook | JSON Lines, snapshot/clip hook 실패가 event emit을 막지 않음 |
+| EventRecord/hook | JSON Lines rotation/recovery, snapshot/clip hook 실패가 event emit을 막지 않음 |
 | Cleanup | active track/scenario/event를 잘못 삭제하지 않음 |
 | 다채널 | 같은 trackId가 다른 channel에서 충돌하지 않음 |
 
