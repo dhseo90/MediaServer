@@ -62,6 +62,12 @@ WebRTC/stream 변경:
 ./server.sh verify-predev --soak-minutes 30
 ```
 
+120분 predev는 상시 검증이 아니라 장기 gate입니다. release candidate 전, RTSP/GStreamer/WebRTC media path 변경 후, SharedStream/VA metadata/dashboard/SSE/WS fanout 변경 후, 또는 30분 predev에서 active RSS high-water가 이전 기준보다 커졌을 때 실행합니다.
+
+```bash
+./server.sh verify-predev --soak-minutes 120
+```
+
 긴 VA event/tracker 검증:
 
 ```bash
@@ -410,7 +416,8 @@ consumer connect/disconnect cycle 이후 idle baseline RSS 누적 증가를 확�
 - 120m full + 30m idle-after-cleanup: `PASS`. Summary는 `/tmp/media_server_va-runtime-longrun-1777648583-19035_summary.json`, report는 `/tmp/media_server_va-runtime-longrun-1777648583-19035_report.md`입니다.
 - 120m active 구간은 warmup baseline `679.80MiB`에서 last RSS `881.38MiB`까지 증가했고, last-30m slope는 `+51.77MiB`, `+1.726MiB/min`입니다. active plateau는 뚜렷하지 않으므로 high-water 관찰 메모는 유지합니다.
 - cleanup 후 30분 idle RSS는 `642.97MiB -> 642.67MiB`로 유지/하락했고, idle 중 activeSessions, activeStreams, activeAnalysisTaps, SSE/WS clients, RTSP consumers 재증가는 없었습니다.
-- `ERROR` / `NOT_LINKED` / `NOT_NEGOTIATED` / `OTHER` flow return은 관찰되지 않았고, port cleanup은 정상입니다. 이 조합이면 RSS WARNING 해제 가능 후보로 볼 수 있지만 Runtime Console stable 승격은 별도 `verify-predev --soak-minutes 30` 이후 판단합니다.
+- `ERROR` / `NOT_LINKED` / `NOT_NEGOTIATED` / `OTHER` flow return은 관찰되지 않았고, port cleanup은 정상입니다. 이 조합이면 RSS WARNING 해제 가능 후보로 봅니다.
+- 후속 30분 predev 회귀 검증도 `PASS`입니다. Summary는 `/tmp/media_server_predev-1777679318-64004_summary.json`, report는 `/tmp/media_server_predev-1777679318-64004_report.md`이며 결과는 `pass=69`, `fail=0`, `skip=1`입니다. Runtime Console은 stable 승격 가능 상태로 판단하되 active 구간 high-water 관찰 메모는 유지합니다.
 
 기본 `./server.sh test`에는 포함하지 않습니다. 30분 이상 실행하는 선택 검증이며, 잠자기 전에는 `--duration-minutes 120`처럼 시간을 늘려 실행합니다. 이 명령은 검증용 subprocess env로 `MEDIA_SERVER_WEBRTC_TRACE=1`을 켜서 DataChannel sent/drop/failure count를 로그에서 집계하며, `scripts/.media_server.env` 같은 영구 설정 파일은 수정하지 않습니다.
 
