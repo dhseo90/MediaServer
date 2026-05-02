@@ -52,6 +52,7 @@
 | `MEDIA_SERVER_FORCE_RTSP_TCP` | `0` | RTSP source TCP-only 강제 |
 | `MEDIA_SERVER_GST_ATTACH_CONTEXT` | unset | GLib context attach mode |
 | `MEDIA_SERVER_SESSION_TRACE` | `0` | session/source lifecycle trace |
+| `MEDIA_SERVER_RUNTIME_DEBUG_COUNTER_TRACE` | `0` | Runtime debug counter lifecycle trace log. 기본은 counter만 누적하고, `1`이면 RTSP/GStreamer egress/session/tap/subscriber counter 변화 로그를 출력 |
 | `MEDIA_SERVER_WEBRTC_TRACE` | `0` | WebRTC 협상/상태 로그 |
 | `MEDIA_SERVER_WEBRTC_TRACE_VERBOSE` | `0` | sample/pad/caps/SDP 상세 로그 |
 | `MEDIA_SERVER_WEBRTC_STUN_SERVER` | Google STUN | WebRTC STUN URI |

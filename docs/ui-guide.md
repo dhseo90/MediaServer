@@ -315,13 +315,13 @@ VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보
 drill-down 사용법:
 
 - Overview는 session/stream/tap 수, FPS, queue, inference latency, event POST/storage 상태를 빠르게 확인하는 영역입니다.
-- vaRule Runtime Debug는 선택 rule과 active tap의 ruleId가 일치하는지 보여주고, source/profile/event/scenario/region, event lifecycle, recent event를 요약합니다. active tap이 없으면 안내 상태만 표시합니다.
+- vaRule Runtime Debug는 선택 rule과 active tap의 관계를 `정상-match`, `source-match`, `미연결`, `mismatch`로 구분하고, source/profile/event/scenario/region, event lifecycle, recent event를 요약합니다. ruleId가 없는 direct file/source 기반 tap은 mismatch가 아니라 rule 미연결 또는 source 기반 tap으로 표시합니다. active tap이 없으면 안내 상태만 표시합니다.
 - Tracks는 state-dump의 debug track을 표로 보여주며, trackId/class/lifecycle/currentZone/dwellTimeMs/TrackHealth를 확인합니다.
-- Scenarios는 현재 state-dump에 노출된 scenarioName/scenarioPhase/zone/line/elapsed/cooldown 값을 list 형태로 보여줍니다. phase entered time과 cooldown remaining의 정확한 timestamp는 아직 별도 UI로 표시하지 않습니다.
-- Scenario Timeline은 같은 state-dump와 `/events` buffer를 조합해 active scenario instance를 시간 흐름 점검용 table로 표시합니다. Candidate/Observing/Confirmed/Cooldown/Ended phase는 chip으로 구분하고, 연결 가능한 recent event가 있으면 eventType/status를 함께 보여줍니다.
+- Scenarios는 현재 state-dump에 노출된 scenarioName/scenarioPhase/zone/line/elapsed/cooldown 값을 list 형태로 보여줍니다. scenario instance가 없거나 zone/dwell 값이 비어 있으면 `현재 track이 zone 조건을 만족하지 않음`, `rule 매칭 없음`, `scenario instance 없음` 같은 짧은 empty reason을 표시합니다. phase entered time과 cooldown remaining의 정확한 timestamp는 아직 별도 UI로 표시하지 않습니다.
+- Scenario Timeline은 같은 state-dump와 `/events` buffer를 조합해 active scenario instance를 시간 흐름 점검용 table로 표시합니다. Candidate/Observing/Confirmed/Cooldown/Ended phase는 chip으로 구분하고, 연결 가능한 recent event가 있으면 eventType/status를 함께 보여줍니다. 표시할 timeline이 없을 때도 Scenarios와 같은 empty reason을 사용합니다.
 - Events는 선택 tap의 `/events` buffer를 받아 최근 event를 표시합니다. 선택 rule이 있으면 해당 rule의 recent event만 vaRule Runtime Debug 카드에 반영합니다.
 - Metadata / Backpressure는 WebRTC DataChannel sent/dropped/skipped/failure, max buffered amount, SSE/WS client count, 선택 tap의 analytics queue pending/capacity/peak/drop, client stale/fallback count를 읽기 전용으로 요약합니다. 현재 endpoint가 제공하지 않는 SSE/WS sent/drop 누적값과 live RSS는 `미제공` 또는 `longrun report에서 확인`으로 표시합니다.
-- Runtime Dashboard의 RSS 표시는 장시간 검증 결과를 대체하지 않습니다. Runtime Console RSS WARNING은 유지되며, live dashboard 패널은 RTSP/GStreamer egress 또는 Full fanout 후보를 좁히기 위한 운영 관찰 보조 화면입니다.
+- Runtime Dashboard의 RSS 표시는 장시간 검증 결과나 longrun report를 대체하지 않습니다. Runtime Console RSS는 해제 가능 후보 상태로 정리했지만 active 구간 high-water 관찰은 유지하며, stable 승격은 verify-predev 30분 이후 별도 판단합니다. live dashboard 패널은 RTSP/GStreamer egress 또는 Full fanout 후보를 좁히기 위한 운영 관찰 보조 화면입니다.
 
 대시보드 탭이 닫혀 있을 때는 polling하지 않습니다. 자동 갱신은 최소 2초 이상 간격으로 동작해 다채널 분석 성능에 부담을 주지 않도록 제한합니다.
 vaRule Runtime Debug와 Scenario Timeline은 새 backend API 없이 선택된 rule과 active tap의 ruleId를 대조하고, 기존 metrics/state-dump/event buffer에서 확인 가능한 track/scenario/event 상태를 표시합니다. phase entered time 같은 세부 시각 값은 현재 state-dump에 노출된 값이 있을 때만 표시하며, 원본 JSON은 `상태 덤프 / tracking issue report` 접힘 영역에서 확인할 수 있습니다.
