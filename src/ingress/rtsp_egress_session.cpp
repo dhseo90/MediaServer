@@ -11,6 +11,7 @@
 #include <gst/gst.h>
 #endif
 
+#include "core/runtime_debug_counters.h"
 #include "core/shared_stream.h"
 #include "ingress/analysis_overlay_probe.h"
 
@@ -123,13 +124,43 @@ GstCaps* BuildCapsFromTrack(const media::TrackInfo& track) {
     return nullptr;
 }
 
-bool PushToAppSrc(GstElement* element, const media::Packet& packet) {
+core::runtime_debug::RtspAppsrcFlowReturnKind ClassifyAppsrcFlowReturn(GstFlowReturn flow) {
+    switch (flow) {
+        case GST_FLOW_OK:
+            return core::runtime_debug::RtspAppsrcFlowReturnKind::Ok;
+        case GST_FLOW_FLUSHING:
+            return core::runtime_debug::RtspAppsrcFlowReturnKind::Flushing;
+        case GST_FLOW_EOS:
+            return core::runtime_debug::RtspAppsrcFlowReturnKind::Eos;
+        case GST_FLOW_ERROR:
+            return core::runtime_debug::RtspAppsrcFlowReturnKind::Error;
+        case GST_FLOW_NOT_LINKED:
+            return core::runtime_debug::RtspAppsrcFlowReturnKind::NotLinked;
+        case GST_FLOW_NOT_NEGOTIATED:
+            return core::runtime_debug::RtspAppsrcFlowReturnKind::NotNegotiated;
+        default:
+            return core::runtime_debug::RtspAppsrcFlowReturnKind::OtherError;
+    }
+}
+
+void RecordAppsrcFlowReturn(GstFlowReturn flow, core::runtime_debug::RtspAppsrcFlowPhase phase) {
+    core::runtime_debug::RecordRtspAppsrcFlowReturn(
+        static_cast<int>(flow),
+        phase,
+        ClassifyAppsrcFlowReturn(flow));
+}
+
+bool PushToAppSrc(GstElement* element,
+                  const media::Packet& packet,
+                  core::runtime_debug::RtspAppsrcFlowPhase phase) {
     if (element == nullptr || packet.payload.empty()) {
+        core::runtime_debug::RecordRtspAppsrcPush(false);
         return false;
     }
 
     GstBuffer* buffer = gst_buffer_new_allocate(nullptr, packet.payload.size(), nullptr);
     if (buffer == nullptr) {
+        core::runtime_debug::RecordRtspAppsrcPush(false);
         return false;
     }
 
@@ -141,11 +172,17 @@ bool PushToAppSrc(GstElement* element, const media::Packet& packet) {
     }
 
     const GstFlowReturn flow = gst_app_src_push_buffer(GST_APP_SRC(element), buffer);
-    return flow == GST_FLOW_OK;
+    const bool ok = flow == GST_FLOW_OK;
+    core::runtime_debug::RecordRtspAppsrcPush(ok);
+    RecordAppsrcFlowReturn(flow, phase);
+    return ok;
 }
 
-bool PushRawSilenceToAppSrc(GstElement* element, std::int64_t pts) {
+bool PushRawSilenceToAppSrc(GstElement* element,
+                            std::int64_t pts,
+                            core::runtime_debug::RtspAppsrcFlowPhase phase) {
     if (element == nullptr) {
+        core::runtime_debug::RecordRtspAppsrcPush(false);
         return false;
     }
 
@@ -153,6 +190,7 @@ bool PushRawSilenceToAppSrc(GstElement* element, std::int64_t pts) {
         static_cast<std::size_t>(kSilentAudioRate / 50 * kSilentAudioChannels * kSilentAudioBytesPerSample);
     GstBuffer* buffer = gst_buffer_new_allocate(nullptr, sample_count, nullptr);
     if (buffer == nullptr) {
+        core::runtime_debug::RecordRtspAppsrcPush(false);
         return false;
     }
     gst_buffer_memset(buffer, 0, 0, sample_count);
@@ -160,7 +198,10 @@ bool PushRawSilenceToAppSrc(GstElement* element, std::int64_t pts) {
     GST_BUFFER_DTS(buffer) = static_cast<GstClockTime>(pts);
     GST_BUFFER_DURATION(buffer) = static_cast<GstClockTime>(kSilentAudioFrameDurationNs);
     const GstFlowReturn flow = gst_app_src_push_buffer(GST_APP_SRC(element), buffer);
-    return flow == GST_FLOW_OK;
+    const bool ok = flow == GST_FLOW_OK;
+    core::runtime_debug::RecordRtspAppsrcPush(ok);
+    RecordAppsrcFlowReturn(flow, phase);
+    return ok;
 }
 
 }  // namespace
@@ -169,17 +210,25 @@ bool PushRawSilenceToAppSrc(GstElement* element, std::int64_t pts) {
 #if MEDIA_SERVER_USE_GSTREAMER
 RtspEgressSession::RtspEgressSession(GstElement* media_element, VideoCodec video_codec, media::CodecId audio_codec)
     : video_codec_(video_codec), audio_codec_(audio_codec), media_element_(media_element) {
+    core::runtime_debug::RecordRtspEgressSessionCreated();
     if (media_element_ != nullptr) {
         gst_object_ref(media_element_);
     }
 }
 #else
 RtspEgressSession::RtspEgressSession(void* /*media_element*/, VideoCodec video_codec, media::CodecId audio_codec)
-    : video_codec_(video_codec), audio_codec_(audio_codec) {}
+    : video_codec_(video_codec), audio_codec_(audio_codec) {
+    core::runtime_debug::RecordRtspEgressSessionCreated();
+}
 #endif
 
 RtspEgressSession::~RtspEgressSession() {
     Stop();
+    {
+        std::lock_guard lock(pending_mu_);
+        core::runtime_debug::RecordRtspPendingQueueSizeAtDestroy(pending_packets_.size());
+    }
+    core::runtime_debug::RecordRtspEgressSessionDestroyed(session_id_);
 }
 
 void RtspEgressSession::QueuePendingPacket(const media::Packet& packet) {
@@ -195,8 +244,10 @@ void RtspEgressSession::QueuePendingPacket(const media::Packet& packet) {
             pending_packets_.end());
     }
     pending_packets_.push_back(packet);
+    core::runtime_debug::RecordRtspPendingQueueSize(pending_packets_.size());
     while (pending_packets_.size() > kMaxPendingPackets) {
         pending_packets_.pop_front();
+        core::runtime_debug::RecordRtspPendingQueueDrop();
     }
 }
 
@@ -209,6 +260,10 @@ void RtspEgressSession::FlushPendingPackets() {
     {
         std::lock_guard lock(pending_mu_);
         pending.swap(pending_packets_);
+    }
+    if (!pending.empty()) {
+        core::runtime_debug::RecordRtspPendingQueueFlushed(pending.size());
+        core::runtime_debug::TraceLifecycle("rtsp.pending.flush packets=" + std::to_string(pending.size()));
     }
 
     // started_ 이후에 다시 HandleSample을 태워 appsrc caps/filter 조건을 동일하게 적용한다.
@@ -334,6 +389,8 @@ bool RtspEgressSession::Start(const std::string& session_id,
 #endif
 
     started_ = true;
+    stop_recorded_ = false;
+    core::runtime_debug::RecordRtspEgressSessionStarted(session_id_);
     PushSilentAudioPriming();
     // SessionManager가 source보다 subscriber를 먼저 붙이므로, Start 전 들어온 초기 패킷을 여기서 밀어 넣는다.
     FlushPendingPackets();
@@ -341,9 +398,14 @@ bool RtspEgressSession::Start(const std::string& session_id,
 }
 
 void RtspEgressSession::Stop() {
+    if (!stop_recorded_ && started_) {
+        core::runtime_debug::RecordRtspEgressSessionStopped(session_id_);
+        stop_recorded_ = true;
+    }
     started_ = false;
     {
         std::lock_guard lock(pending_mu_);
+        core::runtime_debug::RecordRtspPendingQueueSizeAtStop(pending_packets_.size());
         pending_packets_.clear();
         video_base_pts_.reset();
         audio_base_pts_.reset();
@@ -358,14 +420,20 @@ void RtspEgressSession::Stop() {
 
 #if MEDIA_SERVER_USE_GSTREAMER
     if (video_appsrc_ != nullptr) {
-        gst_app_src_end_of_stream(GST_APP_SRC(video_appsrc_));
+        const GstFlowReturn flow = gst_app_src_end_of_stream(GST_APP_SRC(video_appsrc_));
+        core::runtime_debug::RecordAppsrcEosSent();
+        RecordAppsrcFlowReturn(flow, core::runtime_debug::RtspAppsrcFlowPhase::Stopping);
         gst_object_unref(video_appsrc_);
         video_appsrc_ = nullptr;
+        core::runtime_debug::RecordAppsrcCleared();
     }
     if (audio_appsrc_ != nullptr) {
-        gst_app_src_end_of_stream(GST_APP_SRC(audio_appsrc_));
+        const GstFlowReturn flow = gst_app_src_end_of_stream(GST_APP_SRC(audio_appsrc_));
+        core::runtime_debug::RecordAppsrcEosSent();
+        RecordAppsrcFlowReturn(flow, core::runtime_debug::RtspAppsrcFlowPhase::Stopping);
         gst_object_unref(audio_appsrc_);
         audio_appsrc_ = nullptr;
+        core::runtime_debug::RecordAppsrcCleared();
     }
     if (media_element_ != nullptr) {
         gst_object_unref(media_element_);
@@ -376,6 +444,9 @@ void RtspEgressSession::Stop() {
 
 void RtspEgressSession::HandleSample(const media::Packet& packet) {
     if (!started_) {
+        if (stop_recorded_) {
+            core::runtime_debug::RecordAppsrcPushAfterStop();
+        }
         QueuePendingPacket(packet);
         return;
     }
@@ -386,12 +457,12 @@ void RtspEgressSession::HandleSample(const media::Packet& packet) {
     switch (packet.kind) {
         case media::MediaKind::Video:
             if (video_track_id_.empty() || normalized.track_id == video_track_id_) {
-                (void)PushToAppSrc(video_appsrc_, normalized);
+                (void)PushToAppSrc(video_appsrc_, normalized, core::runtime_debug::RtspAppsrcFlowPhase::Active);
             }
             break;
         case media::MediaKind::Audio:
             if (!audio_track_id_.empty() && normalized.track_id == audio_track_id_) {
-                (void)PushToAppSrc(audio_appsrc_, normalized);
+                (void)PushToAppSrc(audio_appsrc_, normalized, core::runtime_debug::RtspAppsrcFlowPhase::Active);
             }
             break;
         case media::MediaKind::Data:
@@ -490,7 +561,9 @@ void RtspEgressSession::PushSilentAudioPriming() {
     // RTSP factory launch는 route별 audio payloader를 항상 포함한다. 입력 audio가 없는 video-only source는
     // 짧은 무음 raw audio를 넣어 media prepare가 audio branch에서 멈추지 않게 한다.
     for (int i = 0; i < kSilentAudioPrimingFrames; ++i) {
-        (void)PushRawSilenceToAppSrc(audio_appsrc_, static_cast<std::int64_t>(i) * kSilentAudioFrameDurationNs);
+        (void)PushRawSilenceToAppSrc(audio_appsrc_,
+                                     static_cast<std::int64_t>(i) * kSilentAudioFrameDurationNs,
+                                     core::runtime_debug::RtspAppsrcFlowPhase::Active);
     }
 }
 #endif

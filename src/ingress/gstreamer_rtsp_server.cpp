@@ -11,6 +11,7 @@
 #include "analysis/event_post_dispatcher.h"
 #include "analysis/event_rule_engine.h"
 #include "analysis/event_storage.h"
+#include "core/runtime_debug_counters.h"
 #include "ingress/analysis_query.h"
 #include "ingress/analysis_rule_registry.h"
 #include "ingress/gst_pipeline_builder.h"
@@ -51,6 +52,7 @@ struct BusWatchData {
     GstElement* media_element{nullptr};
     bool loop_on_eos{false};
     guint source_id{0};
+    bool pipeline_null_recorded{false};
 };
 
 void DestroyRtspEgressSessionHolder(gpointer data) {
@@ -58,6 +60,26 @@ void DestroyRtspEgressSessionHolder(gpointer data) {
     delete holder;
 }
 
+bool IsElementInNullState(GstElement* element) {
+    if (element == nullptr) {
+        return false;
+    }
+    GstState state = GST_STATE_NULL;
+    GST_OBJECT_LOCK(element);
+    state = GST_STATE(element);
+    GST_OBJECT_UNLOCK(element);
+    return state == GST_STATE_NULL;
+}
+
+void MaybeRecordPipelineNullTransition(BusWatchData* watch) {
+    if (watch == nullptr || watch->pipeline_null_recorded || watch->media_element == nullptr) {
+        return;
+    }
+    if (IsElementInNullState(watch->media_element)) {
+        core::runtime_debug::RecordRtspPipelineNullTransition();
+        watch->pipeline_null_recorded = true;
+    }
+}
 
 bool AttachServerToContext(const GstRTSPServer* server, GMainContext* context, const char* label, guint* source_id) {
     // RTSP server는 GLib main context에 attach되어야 실제 socket accept와 client 처리가 시작된다.
@@ -93,6 +115,10 @@ void DestroyBusWatchData(gpointer data) {
     if (watch == nullptr) {
         return;
     }
+    if (watch->source_id != 0) {
+        core::runtime_debug::RecordBusWatchDestroyed();
+    }
+    MaybeRecordPipelineNullTransition(watch);
     watch->source_id = 0;
     if (watch->media_element != nullptr) {
         gst_object_unref(watch->media_element);
@@ -134,6 +160,9 @@ void OnMediaUnprepared(GstRTSPMedia* media, gpointer user_data) {
     gpointer tap_ptr = g_object_get_data(G_OBJECT(media), "analysis-tap-id");
     const char* sid = sid_ptr != nullptr ? static_cast<const char*>(sid_ptr) : nullptr;
     const char* tap_id = tap_ptr != nullptr ? static_cast<const char*>(tap_ptr) : nullptr;
+    core::runtime_debug::RecordRtspMediaUnprepared(sid != nullptr ? sid : "");
+    auto* watch = static_cast<BusWatchData*>(g_object_get_data(G_OBJECT(media), "bus-watch"));
+    MaybeRecordPipelineNullTransition(watch);
     if (tap_id != nullptr) {
         std::cerr << "[gst] media unprepared; detach analysis tap " << tap_id << "\n";
         runtime->session_manager.DetachAnalysisTap(tap_id);
@@ -278,6 +307,7 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
               << " audio=" << media::ToString(audio_codec)
               << " source=" << media::ToString(source_spec->kind)
               << " uri=" << source_spec->uri << "\n";
+    core::runtime_debug::RecordRtspMediaConfigured(request.client_id);
     g_object_set_data_full(G_OBJECT(media), "session-id", g_strdup(request.client_id.c_str()), g_free);
     if (!analysis_tap_id.empty()) {
         g_object_set_data_full(G_OBJECT(media), "analysis-tap-id", g_strdup(analysis_tap_id.c_str()), g_free);
@@ -296,6 +326,9 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
             .source_id = 0,
         };
         watch->source_id = gst_bus_add_watch(bus, OnBusMessage, watch);
+        if (watch->source_id != 0) {
+            core::runtime_debug::RecordBusWatchCreated();
+        }
         g_object_set_data_full(G_OBJECT(media), "bus-watch", watch, DestroyBusWatchData);
         gst_object_unref(bus);
     }

@@ -41,6 +41,7 @@
 #include "analysis/overlay_renderer.h"
 #include "analysis/snapshot_encoder.h"
 #include "analysis/va_runtime_metadata.h"
+#include "core/runtime_debug_counters.h"
 #include "ingress/analysis_query.h"
 #include "ingress/analysis_rule_registry.h"
 #include "ingress/request_parser.h"
@@ -11157,7 +11158,8 @@ std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& 
             << "}";
     }
     out << "]"
-        << "}"
+        << "},"
+        << "\"debugCounters\":" << core::runtime_debug::SnapshotJson()
         << "}";
     return out.str();
 }

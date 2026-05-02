@@ -106,86 +106,50 @@ git diff --check -- README.md docs
 
 ### P1-3. VA Runtime Console RSS WARNING: RTSP/GStreamer egress 및 Full fanout 후보 후속 검증
 
-- 상태: 진행
-- 목적: VA Runtime Console longrun에서 기능과 cleanup은 통과했지만 RSS plateau가 확정되지 않은 상태를 추적합니다. 기능 PASS와 메모리 WARNING은 분리해서 판단하며, Runtime Console stable 승격은 보류합니다.
-- 관련 파일: `scripts/internal/verify_va_runtime_console_longrun.py`, `scripts/internal/verify_va_runtime_console_cycles.py`, `src/ingress/webrtc_http_server.cpp`, `docs/stream-verification.md`
+- 상태: 완화/해제 후보
+- 목적: VA Runtime Console 안정화 트랙에서 기능, cleanup, port cleanup은 통과했고 RSS WARNING 해제 가능 근거가 확인된 상태를 추적합니다. active 구간 RSS high-water 관찰은 유지하며, Runtime Console stable 승격은 별도 `verify-predev --soak-minutes 30` 결과 이후 판단합니다.
+- 관련 파일: `scripts/internal/verify_va_runtime_console_longrun.py`, `scripts/internal/verify_va_runtime_console_cycles.py`, `src/ingress/gstreamer_rtsp_server.cpp`, `src/ingress/rtsp_egress_session.cpp`, `src/core/shared_stream.cpp`, `src/analysis/va_runtime_metadata.cpp`, `src/ingress/webrtc_http_server.cpp`, `docs/stream-verification.md`
 - 확인 결과:
-  - 120m full longrun: WebRTC metadata client, dashboard polling, SSE side-channel, RTSP overlay consumer 동시 구성에서 기능 실패 없음, cleanup 실패 없음, port cleanup 정상. 다만 RSS가 plateau로 보기 어렵고 마지막 구간에서도 증가 기울기가 남아 WARNING입니다.
-  - 60m 분리 run: Base, Dashboard, Side-channel, RTSP, Full comparison 모두 cleanup pass입니다. RTSP run과 Full run에서 RSS 증가가 상대적으로 크며, RTSP/GStreamer egress와 Full 조합 fanout이 우선 의심 후보입니다.
-  - idle-after-cleanup: consumer cleanup 후 activeSessions, activeStreams, activeAnalysisTaps, SSE/WS clients, RTSP consumers가 모두 0이고 idle RSS는 유지/하락했습니다.
-  - idle-after-cleanup 해석: process-level leak 증거는 약합니다.
-  - connect/disconnect cycle test: cleanup failure 없음, port cleanup 정상, `idleEndRssMb` 단조 증가는 없음. 명확한 lifecycle count 누수보다는 allocator high-water / GStreamer buffer pool retention 가능성이 큽니다.
-  - lifecycle count 누수는 관찰되지 않았습니다.
-  - RSS plateau는 확인되지 않았고 RSS WARNING 유지입니다.
+  - 최종 판정: RSS WARNING 해제 가능입니다. 단, active 구간 RSS plateau는 뚜렷하지 않아 allocator high-water 또는 GStreamer/WebRTC buffer pool retention 관찰 메모는 유지합니다.
+  - RTSP-only 5-cycle: `PASS`. Summary는 `/tmp/media_server_va-runtime-cycles-1777636885-89479_summary.json`입니다. `monotonicIdleRssIncrease=false`, cleanup 정상, port cleanup 정상입니다. RTSP lifecycle counter는 균형이고 pending queue stop/destroy 잔여는 `0`, `appsrcPushAfterStopCount=0`, flow return은 FLUSHING 중심이며 `ERROR` / `NOT_LINKED` / `NOT_NEGOTIATED` / `OTHER`는 없습니다.
+  - Full 20-cycle: `PASS`. Summary는 `/tmp/media_server_va-runtime-cycles-1777639240-94883_summary.json`입니다. `monotonicIdleRssIncrease=false`, cleanup 정상, port cleanup 정상입니다. RTSP lifecycle/probe/bus watch counter는 균형이고 pending queue stop/destroy 잔여는 `0`, flow return은 전부 FLUSHING이며 metadata/DataChannel/SSE cleanup failure는 없습니다.
+  - 120m full + 30m idle-after-cleanup: `PASS`. Summary는 `/tmp/media_server_va-runtime-longrun-1777648583-19035_summary.json`입니다. active last-30m는 `+51.77MiB`, `+1.726MiB/min`로 plateau가 뚜렷하지 않았습니다. cleanup 후 30분 idle RSS는 `642.97MiB -> 642.67MiB`로 유지/하락했습니다.
+  - 기능 실패, crash, child process 실패, cleanup 실패, port cleanup 실패, DataChannel failure는 없습니다.
+  - cleanup 후 activeSessions, activeStreams, activeAnalysisTaps, SSE/WS clients, RTSP consumers는 모두 0입니다.
+  - idle-after-cleanup 해석: cleanup 후 RSS 증가 지속은 보이지 않아 lifecycle leak 가능성은 낮고, allocator high-water 또는 GStreamer/WebRTC buffer pool retention 후보가 더 강합니다.
+  - active 구간 high-water 관찰은 유지합니다. active RSS 증가만으로 리소스 잔여를 단정하지 않습니다.
 - 최종 판정:
   - 기능 안정성: PASS
   - cleanup 안정성: PASS
   - port cleanup: PASS
-  - 메모리 안정성: WARNING
-  - Runtime Console stable 승격: 보류
+  - 메모리 안정성: RSS WARNING 해제 가능 후보
+  - Runtime Console stable 승격: `verify-predev --soak-minutes 30` 이후 별도 판단
 - HOLD/FAIL이 아닌 이유: crash, child process 실패, cleanup count 잔류, port listener 잔류가 없습니다.
 - 원인 후보:
-  - RTSP overlay consumer / GStreamer egress / server-side overlay path
   - allocator high-water / GStreamer-WebRTC buffer pool retention
-  - Full fanout / tap 공유 / VaRuntimeMetadataBuilder / JSON serialization 조합
-  - SSE/WS side-channel fanout / per-client queue / JSON serialization
-  - WebRTC metadata/DataChannel 또는 공통 media/analysis path
-- 후속 검증 계획:
-
-```bash
-./server.sh verify-va-runtime-console-cycles \
-  --cycles 10 \
-  --active-minutes 5 \
-  --idle-minutes 2 \
-  --clients 1 \
-  --include-rtsp \
-  --rss-warmup-minutes 5 \
-  --rss-large-drop-mb 20
-
-./server.sh verify-va-runtime-console-cycles \
-  --cycles 20 \
-  --active-minutes 5 \
-  --idle-minutes 2 \
-  --clients 1 \
-  --include-sidechannel \
-  --include-dashboard \
-  --include-rtsp \
-  --rss-warmup-minutes 5 \
-  --rss-large-drop-mb 20
-
-./server.sh verify-va-runtime-console-longrun \
-  --duration-minutes 120 \
-  --clients 1 \
-  --include-dashboard \
-  --include-sidechannel \
-  --include-rtsp \
-  --rss-warmup-minutes 5 \
-  --rss-large-drop-mb 20 \
-  --idle-after-cleanup-minutes 30 \
-  --idle-sample-interval-seconds 30
-```
-
-- 계측 계획:
-  - Runtime Dashboard Metadata / Backpressure 패널로 DataChannel sent/drop/skip/failure, SSE/WS client count, analytics queue drop 상태를 읽기 전용으로 관찰합니다. 이 패널은 RSS WARNING을 해결한 것이 아니며 live RSS가 없으면 longrun report를 기준으로 판단합니다.
-  - RTSP overlay consumer unprepare/finalize 확인
-  - GStreamer pipeline state NULL 전환 확인
-  - appsrc/appsink/probe/buffer pool release 계측
-  - VaRuntimeMetadataBuilder allocation 계측
-  - JSON serialization payload size 계측
-  - SSE/WS per-client queue metric 보강
-  - dashboard state-dump/metrics response allocation 계측
+  - Full fanout / tap 공유 / VaRuntimeMetadataBuilder / JSON serialization 조합의 active high-water
+  - RTSP overlay consumer / GStreamer egress / server-side overlay path는 lifecycle/queue/probe counter 기준으로 잔여 가능성이 낮아졌습니다.
+- 후속 방향:
+  - 추가 장시간 반복보다 기존 계측 결과를 기준으로 active high-water/retention 경향을 문서화합니다.
+  - Runtime Console stable 승격은 `verify-predev --soak-minutes 30` 결과를 확인한 뒤 별도로 판단합니다.
+- 1차 최소 debug counter 구현:
+  - `/lab/runtime/status`의 내부 `debugCounters` 블록과 longrun/cycle summary/report에 counter 최종값을 노출합니다.
+  - RTSP/GStreamer egress release: `OnMediaConfigure` / `OnMediaUnprepared`, RTSP egress session `Start` / `Stop` / destructor, appsrc push ok/fail, pending queue peak/drop을 계측합니다.
+  - fanout lifecycle: SharedStream subscriber add/remove, Analysis tap attach/detach를 계측합니다.
+  - metadata fanout: VaRuntimeMetadataBuilder build count와 JSON payload bytes total/max를 계측합니다.
+  - 기존 RTSP/WebRTC streaming flow, GStreamer pipeline 구성, Event POST/WebRTC/SSE metadata payload schema는 변경하지 않습니다.
+  - lifecycle trace log는 기본 off이며 필요할 때만 `MEDIA_SERVER_RUNTIME_DEBUG_COUNTER_TRACE=1`로 켭니다.
 - 보류 조건:
-  - Runtime Console stable 승격은 RTSP-only cycle 및 추가 full longrun/idle 확인 전까지 보류합니다.
-  - `./server.sh verify-predev --soak-minutes 30`은 조건부 실행 가능합니다.
-  - `./server.sh verify-predev --soak-minutes 120`은 RTSP/GStreamer RSS 후보를 더 좁힌 뒤 실행을 권장합니다.
-- 우선순위 이유: 기능은 안정적으로 동작하지만 RTSP/Full 조합 RSS 증가가 운영 장시간 안정성에 영향을 줄 수 있으므로, 구현 확대보다 원인 분리와 계측을 먼저 진행합니다.
+  - `./server.sh verify-predev --soak-minutes 120`은 아직 보류합니다.
+  - Runtime Console stable 승격 완료로 표기하지 않습니다.
+- 우선순위 이유: 기능과 cleanup은 안정적으로 동작하고 cleanup 후 idle RSS도 유지/하락했지만, active 구간 RSS high-water가 남아 있으므로 stable 승격 전 마지막 30분 predev 확인을 분리합니다.
 
 ### P1-4. 2시간 이상 장기 soak
 
 - 상태: 보류
 - 목적: 30분 테스트에서 보이지 않는 누적 memory, queue, event/state 증가를 확인합니다. VA Runtime Console RSS WARNING 원인 분리 또는 계측 보강 후 실행합니다.
 - 관련 파일: `scripts/internal/verify_predev_stability.sh`, `scripts/internal/verify_va_runtime_console_longrun.py`, `src/analysis/track_state_manager.cpp`, `src/analysis/event_manager.cpp`, `src/analysis/scenario_engine.cpp`
-- 선행 조건: P1-3의 RTSP/GStreamer egress, Full fanout, metadata allocation 원인 후보를 추가 분리하거나 계측 보강합니다.
+- 선행 조건: P1-3의 RTSP/GStreamer egress, Full fanout, metadata allocation 원인 후보에 대한 계측 구현과 해석을 먼저 진행합니다. `verify-predev --soak-minutes 120`은 아직 보류합니다.
 - 검증 명령:
 
 ```bash

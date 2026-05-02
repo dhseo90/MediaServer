@@ -230,6 +230,7 @@ def summarize_cycle(
     sse_clients_max = longrun.runtime_count_max(active_samples, "activeSseClients")
     ws_clients_max = longrun.runtime_count_max(active_samples, "activeWebSocketClients")
     rtsp_consumers_max = longrun.runtime_count_max(active_samples, "egressSessions")
+    debug_counters = longrun.latest_debug_counters(idle_samples) or longrun.latest_debug_counters(active_samples)
     return {
         "cycleIndex": cycle_index,
         "activeStartRssMb": rss_value(active_samples, "first"),
@@ -259,6 +260,10 @@ def summarize_cycle(
         "wsSent": 0,
         "wsDropped": None,
         "dashboardPollingCount": len([item for item in active_samples if "tapMetrics" in item]),
+        "debugCounters": debug_counters,
+        "rtspGstreamerDebugCounters": longrun.rtsp_gstreamer_debug_counters(debug_counters),
+        "rtspGstreamerStopDestroySnapshot": longrun.rtsp_gstreamer_stop_destroy_snapshot(debug_counters),
+        "rtspGstreamerWarningDetails": longrun.rtsp_gstreamer_warning_details(debug_counters),
         "cleanupOk": cleanup_ok,
         "idleJudgement": idle_summary.get("judgement"),
         "idleActiveCountReappeared": bool(idle_summary.get("activeCountReappeared", False)),
@@ -337,6 +342,83 @@ def write_report(report_file: Path, summary: dict[str, Any]) -> None:
             )
             + " |"
         )
+    debug_counters = summary.get("debugCounters") if isinstance(summary.get("debugCounters"), dict) else {}
+    rtsp_counters = summary.get("rtspGstreamerDebugCounters") if isinstance(summary.get("rtspGstreamerDebugCounters"), dict) else {}
+    warning_details = summary.get("rtspGstreamerWarningDetails") if isinstance(summary.get("rtspGstreamerWarningDetails"), list) else []
+    if debug_counters:
+        lines.extend(["", "## Runtime Debug Counters", ""])
+        for key in sorted(debug_counters):
+            lines.append(f"- {key}: `{debug_counters[key]}`")
+    if rtsp_counters:
+        lines.extend(
+            [
+                "",
+                "## RTSP/GStreamer Debug Counters",
+                "",
+                "| counter | value |",
+                "| --- | ---: |",
+            ]
+        )
+        for key in longrun.RTSP_GSTREAMER_DEBUG_COUNTER_KEYS:
+            if key in rtsp_counters:
+                lines.append(f"| {key} | {longrun.rtsp_gstreamer_report_value(key, rtsp_counters[key])} |")
+    lines.extend(
+        [
+            "",
+            "## RTSP/GStreamer Cycle Snapshots",
+            "",
+            "| cycle | pendingPeak | stopSize | destroySize | flushed | dropped | pushAfterStop | pushOk | pushFail | flowError | flushing | eos | error | notLinked | notNegotiated | other | activeFlow | stoppingFlow | afterStopFlow | lastFlow | lastPhase | busWatch | appsrcEos | appsrcCleared | overlayProbe | warningDetails |",
+            "| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | ---: | --- | --- |",
+        ]
+    )
+    for cycle in summary.get("cycleReports", []):
+        counters = cycle.get("rtspGstreamerDebugCounters") if isinstance(cycle.get("rtspGstreamerDebugCounters"), dict) else {}
+        details = cycle.get("rtspGstreamerWarningDetails") if isinstance(cycle.get("rtspGstreamerWarningDetails"), list) else []
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    longrun.markdown_value(cycle.get("cycleIndex")),
+                    longrun.markdown_value(counters.get("rtspPendingQueuePeak")),
+                    longrun.markdown_value(counters.get("rtspPendingQueueSizeAtStop")),
+                    longrun.markdown_value(counters.get("rtspPendingQueueSizeAtDestroy")),
+                    longrun.markdown_value(counters.get("rtspPendingQueueFlushedCount")),
+                    longrun.markdown_value(counters.get("rtspPendingQueueDroppedCount")),
+                    longrun.markdown_value(counters.get("appsrcPushAfterStopCount")),
+                    longrun.markdown_value(counters.get("rtspAppsrcPushOkCount")),
+                    longrun.markdown_value(counters.get("rtspAppsrcPushFailCount")),
+                    longrun.markdown_value(counters.get("rtspAppsrcFlowErrorCount")),
+                    longrun.markdown_value(counters.get("rtspAppsrcFlowFlushingCount")),
+                    longrun.markdown_value(counters.get("rtspAppsrcFlowEosCount")),
+                    longrun.markdown_value(counters.get("rtspAppsrcFlowErrorReturnCount")),
+                    longrun.markdown_value(counters.get("rtspAppsrcFlowNotLinkedCount")),
+                    longrun.markdown_value(counters.get("rtspAppsrcFlowNotNegotiatedCount")),
+                    longrun.markdown_value(counters.get("rtspAppsrcFlowOtherErrorCount")),
+                    longrun.markdown_value(counters.get("rtspAppsrcFlowErrorDuringActiveCount")),
+                    longrun.markdown_value(counters.get("rtspAppsrcFlowErrorDuringStoppingCount")),
+                    longrun.markdown_value(counters.get("rtspAppsrcFlowErrorAfterStopCount")),
+                    longrun.rtsp_gstreamer_report_value(
+                        "rtspAppsrcLastFlowReturn",
+                        counters.get("rtspAppsrcLastFlowReturn"),
+                    ),
+                    longrun.rtsp_gstreamer_report_value(
+                        "rtspAppsrcLastFlowReturnPhase",
+                        counters.get("rtspAppsrcLastFlowReturnPhase"),
+                    ),
+                    f"{longrun.markdown_value(counters.get('busWatchCreatedCount'))}/{longrun.markdown_value(counters.get('busWatchDestroyedCount'))}",
+                    longrun.markdown_value(counters.get("appsrcEosSentCount")),
+                    longrun.markdown_value(counters.get("appsrcClearedCount")),
+                    f"{longrun.markdown_value(counters.get('overlayProbeAttachedCount'))}/{longrun.markdown_value(counters.get('overlayProbeRemovedCount'))}",
+                    longrun.markdown_value(len(details)),
+                ]
+            )
+            + " |"
+        )
+    lines.extend(["", "## RTSP/GStreamer Warning Details", ""])
+    if warning_details:
+        lines.append(json.dumps(warning_details, ensure_ascii=False, indent=2))
+    else:
+        lines.append("[]")
     lines.extend(
         [
             "",
@@ -544,6 +626,16 @@ def main() -> int:
         "idleEndRssDeltas": trend["idleEndRssDeltas"],
         "maxIdleEndRssDeltaMb": trend["maxIdleEndRssDeltaMb"],
         "monotonicIdleRssIncrease": trend["monotonicIdleRssIncrease"],
+        "debugCounters": cycle_reports[-1].get("debugCounters", {}) if cycle_reports else {},
+        "rtspGstreamerDebugCounters": (
+            cycle_reports[-1].get("rtspGstreamerDebugCounters", {}) if cycle_reports else {}
+        ),
+        "rtspGstreamerStopDestroySnapshot": (
+            cycle_reports[-1].get("rtspGstreamerStopDestroySnapshot", {}) if cycle_reports else {}
+        ),
+        "rtspGstreamerWarningDetails": (
+            cycle_reports[-1].get("rtspGstreamerWarningDetails", []) if cycle_reports else []
+        ),
         "cleanupFailures": cleanup_failures,
         "childFailures": child_failures,
         "portClean": port_clean,
