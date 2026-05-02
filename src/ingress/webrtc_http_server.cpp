@@ -5616,7 +5616,7 @@ std::string BuildLabRuleEditorPageHtml() {
                 <p id="dashboardMetadataSummary" class="dashboard-section-summary">metadata channel 대기 중</p>
               </div>
               <div class="dashboard-card-grid" aria-label="Metadata backpressure cards">
-                <div class="viewer-status-card"><span>Runtime memory</span><strong id="dashboardRuntimeMemoryWarning">RSS WARNING 유지</strong></div>
+                <div class="viewer-status-card"><span>Runtime memory</span><strong id="dashboardRuntimeMemoryWarning">RSS 해제 후보 · high-water 관찰</strong></div>
                 <div class="viewer-status-card"><span>Live RSS</span><strong id="dashboardRuntimeRss">longrun report에서 확인</strong></div>
                 <div class="viewer-status-card"><span>Session/Stream/Tap</span><strong id="dashboardBackpressureRuntime">0/0/0</strong></div>
                 <div class="viewer-status-card"><span>DataChannel sessions</span><strong id="dashboardMetadataSessions">0/0 open</strong></div>
@@ -9024,9 +9024,7 @@ std::string BuildLabRuleEditorPageHtml() {
         return '';
       }
       for (const tap of taps) {
-        const ruleId = tap?.profileSelection?.ruleId || tap?.selectedRuleId || '';
-        const label = `${tap.tapId || '<tap>'} · ${tap.context?.sourceKind || tap.sourceKind || '-'} · rule=${ruleId || '-'}`;
-        addOption(select, tap.tapId || '', label);
+        addOption(select, tap.tapId || '', dashboardTapLabel(tap));
       }
       const options = Array.from(select.options).map((option) => option.value);
       let nextValue = options.includes(previous) ? previous : '';
@@ -9235,6 +9233,28 @@ std::string BuildLabRuleEditorPageHtml() {
 	      return tap?.profileSelection?.ruleId || tap?.selectedRuleId || tap?.ruleId || '';
 	    }
 
+	    function dashboardTapLabel(tap) {
+	      const ruleId = dashboardTapRuleId(tap);
+	      const source = tap?.context?.sourceKind || tap?.sourceKind || '-';
+	      const ruleText = ruleId ? `rule=${ruleId}` : 'rule 미연결';
+	      return `${tap?.tapId || '<tap>'} · ${source} · ${ruleText}`;
+	    }
+
+	    function dashboardTapRuleMatchState(selectedTap, selectedRuleId, tapRuleId) {
+	      if (!selectedTap) {
+	        return { label: 'active tap 없음', summary: 'active tap 없음' };
+	      }
+	      const tapId = selectedTap.tapId || '<tap>';
+	      if (!tapRuleId) {
+	        const relation = selectedRuleId ? 'source-match · rule 매칭 없음' : '미연결 · rule 미연결 분석 tap';
+	        return { label: `${tapId} · ${relation}`, summary: relation };
+	      }
+	      if (!selectedRuleId || String(selectedRuleId) === String(tapRuleId)) {
+	        return { label: `${tapId} · rule=${tapRuleId} · 정상-match`, summary: 'rule 정상-match' };
+	      }
+	      return { label: `${tapId} · rule=${tapRuleId} · mismatch`, summary: 'rule mismatch' };
+	    }
+
 	    function dashboardSelectedRuleContext(selectedTap) {
 	      const selectedRuleId = $('dashboardRuleSelect')?.value || dashboardTapRuleId(selectedTap) || '';
 	      const rule = vaRules.find((item) => String(item.id) === String(selectedRuleId)) || null;
@@ -9333,17 +9353,14 @@ std::string BuildLabRuleEditorPageHtml() {
 	    function renderDashboardVaRuleDebug({ selectedTap, tapMetrics, stateDump }) {
 	      const { selectedRuleId, rule, tapRuleId } = dashboardSelectedRuleContext(selectedTap);
 	      const hasTap = Boolean(selectedTap);
-	      const ruleMatchesTap = hasTap && selectedRuleId && tapRuleId && String(selectedRuleId) === String(tapRuleId);
-	      const tapMatchText = hasTap
-	        ? `${selectedTap.tapId || '<tap>'} · rule=${tapRuleId || '-'} · ${selectedRuleId ? (ruleMatchesTap ? 'match' : 'mismatch') : 'rule 미선택'}`
-	        : 'active tap 없음';
+	      const tapMatch = dashboardTapRuleMatchState(selectedTap, selectedRuleId, tapRuleId);
 	      const summaryParts = [];
 	      summaryParts.push(rule ? dashboardRuleIdentity(rule, selectedRuleId) : dashboardRuleIdentity(null, selectedRuleId));
 	      summaryParts.push(hasTap ? `tap ${selectedTap.tapId || '-'}` : 'active tap 없음');
-	      if (hasTap && selectedRuleId && tapRuleId) summaryParts.push(ruleMatchesTap ? 'rule match' : 'rule mismatch');
+	      if (hasTap) summaryParts.push(tapMatch.summary);
 	      dashboardSet('dashboardVaRuleDebugSummary', summaryParts.join(' · '));
 	      dashboardSet('dashboardVaRuleIdentity', dashboardRuleIdentity(rule, selectedRuleId));
-	      dashboardSet('dashboardVaRuleTapMatch', tapMatchText);
+	      dashboardSet('dashboardVaRuleTapMatch', tapMatch.label);
 	      dashboardSet('dashboardVaRuleSource', rule ? sourceLabel(rule.source || {}) : '-');
 	      dashboardSet('dashboardVaRuleProfile', rule ? detectorLabel(rule.analysis?.profileId) : '-');
 	      dashboardSet('dashboardVaRuleEventType', dashboardRuleEventScenarioLabel(rule));
@@ -9381,7 +9398,22 @@ std::string BuildLabRuleEditorPageHtml() {
       }
     }
 
-    function renderDashboardScenarios(stateDump, tapMetrics) {
+    function dashboardScenarioEmptyReason(tracks, tapMetrics, selectedTap) {
+      const { selectedRuleId, tapRuleId } = dashboardSelectedRuleContext(selectedTap);
+      if (!selectedTap) return 'active tap 없음';
+      if (selectedRuleId && !tapRuleId) return 'rule 매칭 없음';
+      if (selectedRuleId && tapRuleId && String(selectedRuleId) !== String(tapRuleId)) return 'rule 매칭 없음';
+      if (!tracks.length) return '현재 track 없음';
+      const scenarioState = tapMetrics?.metricsReport?.scenarioState || {};
+      const activeCount = scenarioState.activeScenarios ?? 0;
+      const hasZoneOrDwell = tracks.some((track) => {
+        return dashboardTrackZone(track) !== '-' || dashboardTrackDwell(track) !== '-';
+      });
+      if (activeCount === 0 && !hasZoneOrDwell) return '현재 track이 zone 조건을 만족하지 않음';
+      return 'scenario instance 없음';
+    }
+
+    function renderDashboardScenarios(stateDump, tapMetrics, selectedTap) {
       const tracks = dashboardDebugTracks(stateDump);
       const scenarioRows = tracks.filter((track) => track?.scenarioName || track?.scenarioPhase);
       const scenarioState = tapMetrics?.metricsReport?.scenarioState || {};
@@ -9389,7 +9421,7 @@ std::string BuildLabRuleEditorPageHtml() {
       dashboardSet('dashboardScenariosSummary', `active ${activeCount} · rows ${scenarioRows.length}`);
       const tbody = dashboardRowsStart('dashboardScenarioRows');
       if (!tbody || scenarioRows.length === 0) {
-        dashboardSetEmptyRows('dashboardScenarioRows', 6, '현재 표시할 scenario instance가 없습니다.');
+        dashboardSetEmptyRows('dashboardScenarioRows', 6, dashboardScenarioEmptyReason(tracks, tapMetrics, selectedTap));
         return;
       }
       for (const track of scenarioRows.slice(0, 100)) {
@@ -9419,7 +9451,7 @@ std::string BuildLabRuleEditorPageHtml() {
       );
       const tbody = dashboardRowsStart('dashboardScenarioTimelineRows');
       if (!tbody || scenarioRows.length === 0) {
-        dashboardSetEmptyRows('dashboardScenarioTimelineRows', 8, '현재 표시할 scenario timeline이 없습니다.');
+        dashboardSetEmptyRows('dashboardScenarioTimelineRows', 8, dashboardScenarioEmptyReason(tracks, tapMetrics, selectedTap));
         return;
       }
       for (const track of scenarioRows.slice(0, 100)) {
@@ -9514,7 +9546,7 @@ std::string BuildLabRuleEditorPageHtml() {
       const maxObservedBufferedAmount = sessions.reduce((maxValue, session) => {
         return Math.max(maxValue, dashboardNumber(session?.maxBufferedAmount, 0));
       }, dashboardNumber(metadata.maxBufferedAmount, 0));
-      dashboardSet('dashboardRuntimeMemoryWarning', 'RSS WARNING 유지');
+      dashboardSet('dashboardRuntimeMemoryWarning', 'RSS 해제 후보 · high-water 관찰');
       dashboardSet('dashboardRuntimeRss', 'longrun report에서 확인');
       dashboardSet(
         'dashboardBackpressureRuntime',
@@ -9625,7 +9657,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	      renderDashboardEvents(tapEvents, tapMetrics, stateDump, dashboardLastTapId);
 	      renderDashboardVaRuleDebug({ selectedTap, tapMetrics, stateDump });
 	      renderDashboardTracks(stateDump, tapMetrics);
-	      renderDashboardScenarios(stateDump, tapMetrics);
+	      renderDashboardScenarios(stateDump, tapMetrics, selectedTap);
 	      renderDashboardScenarioTimeline(stateDump, tapMetrics, selectedTap);
 	      renderDashboardMetadata(runtime, tapMetrics, tapsPayload);
 	      renderDashboardIssues(tapMetrics);
