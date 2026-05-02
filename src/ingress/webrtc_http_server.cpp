@@ -3146,6 +3146,9 @@ va_four_scene_sample.mp4</textarea>
         }
         shadow.appendChild(componentMain);
       }
+      for (const dialog of doc.querySelectorAll('body > dialog')) {
+        shadow.appendChild(document.importNode(dialog, true));
+      }
       for (const script of doc.querySelectorAll('script')) {
         const scriptText = script.textContent || '';
         if (!scriptText.trim()) continue;
@@ -5618,6 +5621,7 @@ std::string BuildLabRuleEditorPageHtml() {
               <div class="dashboard-card-grid" aria-label="Metadata backpressure cards">
                 <div class="viewer-status-card"><span>Runtime memory</span><strong id="dashboardRuntimeMemoryWarning">RSS 해제 후보 · high-water 관찰</strong></div>
                 <div class="viewer-status-card"><span>Live RSS</span><strong id="dashboardRuntimeRss">longrun report에서 확인</strong></div>
+                <div class="viewer-status-card"><span>RSS 판단 기준</span><strong id="dashboardRuntimeRssGuidance">longrun report 기준</strong></div>
                 <div class="viewer-status-card"><span>Session/Stream/Tap</span><strong id="dashboardBackpressureRuntime">0/0/0</strong></div>
                 <div class="viewer-status-card"><span>DataChannel sessions</span><strong id="dashboardMetadataSessions">0/0 open</strong></div>
                 <div class="viewer-status-card"><span>DataChannel sent</span><strong id="dashboardMetadataSent">0</strong></div>
@@ -5629,10 +5633,20 @@ std::string BuildLabRuleEditorPageHtml() {
                 <div class="viewer-status-card"><span>SSE clients</span><strong id="dashboardMetadataSseClients">0</strong></div>
                 <div class="viewer-status-card"><span>WS clients</span><strong id="dashboardMetadataWsClients">0</strong></div>
                 <div class="viewer-status-card"><span>SSE/WS sent/drop</span><strong id="dashboardSideChannelSentDropped">미제공</strong></div>
+                <div class="viewer-status-card"><span>Metadata JSON builds</span><strong id="dashboardMetadataJsonBuilds">0</strong></div>
+                <div class="viewer-status-card"><span>Metadata payload avg/max</span><strong id="dashboardMetadataPayloadBytes">미제공</strong></div>
+                <div class="viewer-status-card"><span>Dashboard polling count</span><strong id="dashboardPollingCount">미제공</strong></div>
                 <div class="viewer-status-card"><span>Queue pending/cap/peak</span><strong id="dashboardBackpressureQueue">0/0/0</strong></div>
                 <div class="viewer-status-card"><span>Queue drops</span><strong id="dashboardBackpressureQueueDrops">0/0</strong></div>
                 <div class="viewer-status-card"><span>Sample drops</span><strong id="dashboardBackpressureSampleDrops">0/0</strong></div>
                 <div class="viewer-status-card"><span>Queue wait</span><strong id="dashboardBackpressureQueueWait">0ms</strong></div>
+                <div class="viewer-status-card"><span>RTSP lifecycle</span><strong id="dashboardRtspLifecycle">미제공</strong></div>
+                <div class="viewer-status-card"><span>RTSP pending peak</span><strong id="dashboardRtspPendingPeak">미제공</strong></div>
+                <div class="viewer-status-card"><span>pending stop/destroy</span><strong id="dashboardRtspPendingResidual">미제공</strong></div>
+                <div class="viewer-status-card"><span>appsrc after stop</span><strong id="dashboardAppsrcAfterStop">미제공</strong></div>
+                <div class="viewer-status-card"><span>flow returns</span><strong id="dashboardRtspFlowReturns">미제공</strong></div>
+                <div class="viewer-status-card"><span>fanout balance</span><strong id="dashboardFanoutBalance">미제공</strong></div>
+                <div class="viewer-status-card"><span>cleanup warning</span><strong id="dashboardCleanupWarning">미제공</strong></div>
                 <div class="viewer-status-card"><span>client stale/drop</span><strong id="dashboardMetadataStale">미제공</strong></div>
                 <div class="viewer-status-card"><span>fallback hidden</span><strong id="dashboardMetadataFallback">미제공</strong></div>
               </div>
@@ -5769,6 +5783,7 @@ std::string BuildLabRuleEditorPageHtml() {
     let dashboardLastPayload = null;
     let dashboardLastTapId = '';
     let dashboardRefreshInFlight = false;
+    let dashboardTapSelectionManual = false;
     let dashboardRecentEvents = [];
     let dashboardRecentEventKeys = new Set();
     let regionPoints = [
@@ -8988,8 +9003,34 @@ std::string BuildLabRuleEditorPageHtml() {
       return `${dashboardFixed(value, 1)}ms`;
     }
 
+    function dashboardBytes(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number) || number < 0) return '미제공';
+      if (number >= 1024 * 1024) return `${(number / (1024 * 1024)).toFixed(1)}MiB`;
+      if (number >= 1024) return `${(number / 1024).toFixed(1)}KiB`;
+      return `${Math.round(number)}B`;
+    }
+
     function dashboardSet(id, value) {
       setText(id, value === undefined || value === null || value === '' ? '-' : String(value));
+    }
+
+    function dashboardSetWithWarning(id, value, warning, warningText = 'warning') {
+      const element = $(id);
+      if (!element) return;
+      element.textContent = '';
+      element.appendChild(document.createTextNode(value === undefined || value === null || value === '' ? '-' : String(value)));
+      if (warning) {
+        const chip = dashboardChip(warningText, 'warning');
+        chip.style.marginLeft = '6px';
+        element.appendChild(chip);
+      }
+    }
+
+    function dashboardOptionalNumber(payload, key) {
+      if (!payload || !Object.prototype.hasOwnProperty.call(payload, key)) return null;
+      const number = Number(payload[key]);
+      return Number.isFinite(number) ? number : null;
     }
 
     async function dashboardFetchJson(path) {
@@ -9017,9 +9058,10 @@ std::string BuildLabRuleEditorPageHtml() {
       if (!select) return '';
       const previous = dashboardLastTapId || select.value || '';
       const selectedRuleId = $('dashboardRuleSelect')?.value || '';
+      const selectedRule = vaRules.find((item) => String(item.id) === String(selectedRuleId)) || null;
       select.innerHTML = '';
+      addOption(select, '', selectedRuleId ? '선택 rule/source 대응 tap 없음' : 'active tap 없음');
       if (!Array.isArray(taps) || taps.length === 0) {
-        addOption(select, '', 'active tap 없음');
         dashboardLastTapId = '';
         return '';
       }
@@ -9027,12 +9069,19 @@ std::string BuildLabRuleEditorPageHtml() {
         addOption(select, tap.tapId || '', dashboardTapLabel(tap));
       }
       const options = Array.from(select.options).map((option) => option.value);
-      let nextValue = options.includes(previous) ? previous : '';
-      if (!nextValue && selectedRuleId) {
+      let nextValue = '';
+      if (selectedRuleId) {
+        if (dashboardTapSelectionManual && options.includes(previous)) {
+          nextValue = previous;
+        }
         const matched = taps.find((tap) => String(tap?.profileSelection?.ruleId || tap?.selectedRuleId || '') === selectedRuleId);
-        nextValue = matched?.tapId || '';
+        const sourceMatched = selectedRule
+          ? taps.find((tap) => !dashboardTapRuleId(tap) && dashboardTapMatchesRuleSource(tap, selectedRule))
+          : null;
+        if (!nextValue) nextValue = matched?.tapId || sourceMatched?.tapId || '';
+      } else {
+        nextValue = options.includes(previous) && previous ? previous : (taps[0]?.tapId || '');
       }
-      if (!nextValue) nextValue = taps[0]?.tapId || '';
       select.value = nextValue;
       dashboardLastTapId = nextValue;
       return nextValue;
@@ -9141,6 +9190,22 @@ std::string BuildLabRuleEditorPageHtml() {
       return dashboardDuration(track?.zoneState?.dwellTimeMs ?? track?.dwellTimeMs);
     }
 
+    function dashboardTrackHasZoneContext(track) {
+      return Boolean(track && (track.zoneState || track.currentZone !== undefined || track.dwellTimeMs !== undefined));
+    }
+
+    function dashboardTrackZoneDisplay(track) {
+      const zone = dashboardTrackZone(track);
+      if (zone !== '-') return zone;
+      return dashboardTrackHasZoneContext(track) ? '현재 track이 zone 내부에 없음' : 'zone context 없음';
+    }
+
+    function dashboardTrackDwellDisplay(track) {
+      const dwell = dashboardTrackDwell(track);
+      if (dwell !== '-') return dwell;
+      return dashboardTrackHasZoneContext(track) ? '현재 track이 zone 내부에 없음' : 'zone context 없음';
+    }
+
     function dashboardFirstDuration(...values) {
       for (const value of values) {
         const number = Number(value);
@@ -9233,6 +9298,28 @@ std::string BuildLabRuleEditorPageHtml() {
 	      return tap?.profileSelection?.ruleId || tap?.selectedRuleId || tap?.ruleId || '';
 	    }
 
+	    function dashboardNormalizeSourceValue(value) {
+	      return String(value || '').trim().replace(/\\/g, '/').replace(/\/+/g, '/').replace(/\/+$/, '');
+	    }
+
+	    function dashboardTapMatchesRuleSource(tap, rule) {
+	      if (!tap || !rule) return false;
+	      const source = rule.source || {};
+	      const ruleKind = normalizedSourceKind(source.kind || 'file');
+	      const tapKind = normalizedSourceKind(tap?.context?.sourceKind || tap?.sourceKind || ruleKind);
+	      if (ruleKind && tapKind && ruleKind !== tapKind) return false;
+	      const rawSourceValue = ruleKind === 'file'
+	        ? (source.file || 'sample_h264.mp4')
+	        : (source.url || '');
+	      const sourceValue = dashboardNormalizeSourceValue(rawSourceValue);
+	      if (!sourceValue) return false;
+	      const streamKey = dashboardNormalizeSourceValue(tap.streamKey || '');
+	      const expectedKey = `${ruleKind}::${sourceValue}`;
+	      const legacyKey = `${ruleKind}:${sourceValue}`;
+	      if (streamKey === expectedKey || streamKey === legacyKey || streamKey.endsWith(`::${sourceValue}`)) return true;
+	      return streamKey.includes(sourceValue);
+	    }
+
 	    function dashboardTapLabel(tap) {
 	      const ruleId = dashboardTapRuleId(tap);
 	      const source = tap?.context?.sourceKind || tap?.sourceKind || '-';
@@ -9240,19 +9327,21 @@ std::string BuildLabRuleEditorPageHtml() {
 	      return `${tap?.tapId || '<tap>'} · ${source} · ${ruleText}`;
 	    }
 
-	    function dashboardTapRuleMatchState(selectedTap, selectedRuleId, tapRuleId) {
+	    function dashboardTapRuleMatchState(selectedTap, selectedRuleId, tapRuleId, rule = null) {
 	      if (!selectedTap) {
 	        return { label: 'active tap 없음', summary: 'active tap 없음' };
 	      }
 	      const tapId = selectedTap.tapId || '<tap>';
 	      if (!tapRuleId) {
-	        const relation = selectedRuleId ? 'source-match · rule 매칭 없음' : '미연결 · rule 미연결 분석 tap';
+	        const relation = selectedRuleId && dashboardTapMatchesRuleSource(selectedTap, rule)
+	          ? 'source 기반 tap · rule 매칭 없음'
+	          : 'rule 미연결 분석 tap';
 	        return { label: `${tapId} · ${relation}`, summary: relation };
 	      }
 	      if (!selectedRuleId || String(selectedRuleId) === String(tapRuleId)) {
-	        return { label: `${tapId} · rule=${tapRuleId} · 정상-match`, summary: 'rule 정상-match' };
+	        return { label: `${tapId} · rule=${tapRuleId} · rule matched`, summary: 'rule matched' };
 	      }
-	      return { label: `${tapId} · rule=${tapRuleId} · mismatch`, summary: 'rule mismatch' };
+	      return { label: `${tapId} · rule=${tapRuleId} · rule mismatch`, summary: 'rule mismatch' };
 	    }
 
 	    function dashboardSelectedRuleContext(selectedTap) {
@@ -9300,8 +9389,12 @@ std::string BuildLabRuleEditorPageHtml() {
 	        lifecycleCounts.set(lifecycle, (lifecycleCounts.get(lifecycle) || 0) + 1);
 	      }
 	      const cooldownCount = Array.from(lifecycleCounts.entries()).reduce((count, [key, value]) => {
-	        return String(key).includes('cooldown') ? count + value : count;
+	          return String(key).includes('cooldown') ? count + value : count;
 	      }, 0);
+	      const eventStateCount = Number(eventState.eventStates ?? eventState.activeEventStates ?? 0);
+	      if (lifecycleCounts.size === 0 && (!Number.isFinite(eventStateCount) || eventStateCount === 0)) {
+	        return '아직 이벤트 lifecycle이 생성되지 않음';
+	      }
 	      const lifecycleText = Array.from(lifecycleCounts.entries())
 	        .slice(0, 3)
 	        .map(([key, value]) => `${key} ${value}`)
@@ -9319,7 +9412,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	        return !ruleId || String(candidate?.event?.ruleId || '') === String(ruleId);
 	      });
 	      const item = matched || (ruleId ? null : dashboardRecentEvents[0]);
-	      if (!item) return 'recent 없음';
+	      if (!item) return 'confirmed event 없음';
 	      const event = item.event || {};
 	      const object = event.object || {};
 	      const trackText = object.trackId === undefined || object.trackId === null ? '-' : object.trackId;
@@ -9345,7 +9438,7 @@ std::string BuildLabRuleEditorPageHtml() {
         const object = event.object || {};
         return trackId && String(object.trackId ?? '') === trackId;
       });
-      if (!matched) return '-';
+      if (!matched) return 'confirmed event 없음';
       const event = matched.event || {};
       return `${event.type || '-'} · ${dashboardEventStatusLabel(event)}`;
     }
@@ -9353,7 +9446,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	    function renderDashboardVaRuleDebug({ selectedTap, tapMetrics, stateDump }) {
 	      const { selectedRuleId, rule, tapRuleId } = dashboardSelectedRuleContext(selectedTap);
 	      const hasTap = Boolean(selectedTap);
-	      const tapMatch = dashboardTapRuleMatchState(selectedTap, selectedRuleId, tapRuleId);
+	      const tapMatch = dashboardTapRuleMatchState(selectedTap, selectedRuleId, tapRuleId, rule);
 	      const summaryParts = [];
 	      summaryParts.push(rule ? dashboardRuleIdentity(rule, selectedRuleId) : dashboardRuleIdentity(null, selectedRuleId));
 	      summaryParts.push(hasTap ? `tap ${selectedTap.tapId || '-'}` : 'active tap 없음');
@@ -9366,7 +9459,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	      dashboardSet('dashboardVaRuleEventType', dashboardRuleEventScenarioLabel(rule));
 	      dashboardSet('dashboardVaRuleRegion', dashboardRuleRegionSummary(rule));
 	      dashboardSet('dashboardVaRuleLifecycle', hasTap ? dashboardEventLifecycleSummary(tapMetrics, stateDump) : 'active tap 없음');
-	      dashboardSet('dashboardVaRuleRecentEvent', hasTap ? dashboardRecentEventLabel(selectedRuleId || tapRuleId) : 'recent 없음');
+	      dashboardSet('dashboardVaRuleRecentEvent', hasTap ? dashboardRecentEventLabel(selectedRuleId || tapRuleId) : 'confirmed event 없음');
 	    }
 
 	    function renderDashboardTracks(stateDump, tapMetrics) {
@@ -9391,26 +9484,27 @@ std::string BuildLabRuleEditorPageHtml() {
           track.trackId ?? '-',
           classText,
           track.lifecycleState || '-',
-          dashboardTrackZone(track),
-          dashboardTrackDwell(track),
+          dashboardTrackZoneDisplay(track),
+          dashboardTrackDwellDisplay(track),
           dashboardTrackHealthChip(track),
         ]);
       }
     }
 
     function dashboardScenarioEmptyReason(tracks, tapMetrics, selectedTap) {
-      const { selectedRuleId, tapRuleId } = dashboardSelectedRuleContext(selectedTap);
+      const { selectedRuleId, rule, tapRuleId } = dashboardSelectedRuleContext(selectedTap);
       if (!selectedTap) return 'active tap 없음';
+      const matchState = dashboardTapRuleMatchState(selectedTap, selectedRuleId, tapRuleId, rule);
       if (selectedRuleId && !tapRuleId) return 'rule 매칭 없음';
-      if (selectedRuleId && tapRuleId && String(selectedRuleId) !== String(tapRuleId)) return 'rule 매칭 없음';
-      if (!tracks.length) return '현재 track 없음';
+      if (selectedRuleId && matchState.summary !== 'rule matched') return 'rule 매칭 없음';
+      if (!tracks.length) return '조건을 만족한 track 없음';
       const scenarioState = tapMetrics?.metricsReport?.scenarioState || {};
       const activeCount = scenarioState.activeScenarios ?? 0;
       const hasZoneOrDwell = tracks.some((track) => {
         return dashboardTrackZone(track) !== '-' || dashboardTrackDwell(track) !== '-';
       });
-      if (activeCount === 0 && !hasZoneOrDwell) return '현재 track이 zone 조건을 만족하지 않음';
-      return 'scenario instance 없음';
+      if (activeCount === 0 && !hasZoneOrDwell) return 'zone 조건 미충족';
+      return '조건을 만족한 track 없음';
     }
 
     function renderDashboardScenarios(stateDump, tapMetrics, selectedTap) {
@@ -9426,7 +9520,8 @@ std::string BuildLabRuleEditorPageHtml() {
       }
       for (const track of scenarioRows.slice(0, 100)) {
         const lineId = track?.primaryLineId || track?.lineStates?.[0]?.lineId || '';
-        const zoneLine = [dashboardTrackZone(track), lineId].filter((item) => item && item !== '-').join(' / ') || '-';
+        const zoneLine = [dashboardTrackZone(track), lineId].filter((item) => item && item !== '-').join(' / ') ||
+          dashboardTrackZoneDisplay(track);
         dashboardAppendRow('dashboardScenarioRows', [
           track.scenarioName || '-',
           dashboardScenarioPhaseChip(track.scenarioPhase),
@@ -9459,7 +9554,7 @@ std::string BuildLabRuleEditorPageHtml() {
           track.scenarioName || '-',
           dashboardScenarioPhaseChip(track.scenarioPhase),
           track.trackId ?? '-',
-          dashboardTrackZone(track),
+          dashboardTrackZoneDisplay(track),
           dashboardScenarioLineId(track),
           dashboardScenarioElapsed(track),
           dashboardScenarioCooldown(track),
@@ -9512,7 +9607,7 @@ std::string BuildLabRuleEditorPageHtml() {
       dashboardSet('dashboardEventsSummary', `emitted ${emitted} · dedup ${deduped} · recent ${dashboardRecentEvents.length}`);
       const tbody = dashboardRowsStart('dashboardEventRows');
       if (!tbody || dashboardRecentEvents.length === 0) {
-        dashboardSetEmptyRows('dashboardEventRows', 6, '최근 event가 없습니다.');
+        dashboardSetEmptyRows('dashboardEventRows', 6, 'confirmed event 없음');
         return;
       }
       for (const item of dashboardRecentEvents) {
@@ -9534,34 +9629,146 @@ std::string BuildLabRuleEditorPageHtml() {
       const webrtc = runtime?.webrtcHttp || {};
       const metadata = webrtc.metadataDataChannel || {};
       const sideChannel = webrtc.metadataSideChannel || {};
+      const debugCounters = runtime?.debugCounters || {};
       const sessionManager = runtime?.sessionManager || {};
       const analysisMatching = runtime?.analysisMatching || {};
       const tapState = tapMetrics?.tapState || {};
       const queue = tapState.analyticsQueue || {};
       const sessions = Array.isArray(metadata.sessions) ? metadata.sessions : [];
       const openSessions = sessions.filter((session) => session?.open).length;
+      const activeSessions = sessionManager.activeSessions || 0;
+      const activeStreams = sessionManager.registryActiveStreams || sessionManager.resourceActiveStreams || 0;
+      const activeTaps = analysisMatching.activeTapCount ?? tapsPayload?.activeTaps ?? 0;
+      const activeSseClients = sideChannel.activeSseClients ?? 0;
+      const activeWsClients = sideChannel.activeWebSocketClients ?? 0;
+      const noActiveRuntime = activeSessions === 0 && activeStreams === 0 && activeTaps === 0 &&
+        activeSseClients === 0 && activeWsClients === 0;
       const maxLastBufferedAmount = sessions.reduce((maxValue, session) => {
         return Math.max(maxValue, dashboardNumber(session?.lastBufferedAmount, 0));
       }, 0);
       const maxObservedBufferedAmount = sessions.reduce((maxValue, session) => {
         return Math.max(maxValue, dashboardNumber(session?.maxBufferedAmount, 0));
       }, dashboardNumber(metadata.maxBufferedAmount, 0));
-      dashboardSet('dashboardRuntimeMemoryWarning', 'RSS 해제 후보 · high-water 관찰');
+
+      const metadataSent = dashboardOptionalNumber(metadata, 'sentCount');
+      const metadataDropped = dashboardOptionalNumber(metadata, 'droppedCount');
+      const metadataSkipped = dashboardOptionalNumber(metadata, 'skippedCount');
+      const metadataIntervalSkipped = dashboardOptionalNumber(metadata, 'intervalSkippedCount');
+      const metadataOversizedDrop = dashboardOptionalNumber(metadata, 'oversizedDropCount');
+      const metadataFailures = dashboardOptionalNumber(metadata, 'sendFailureCount');
+      const metadataBufferedDrop = dashboardOptionalNumber(metadata, 'bufferedDropCount');
+      const metadataMaxBuffered = dashboardOptionalNumber(metadata, 'maxBufferedAmount');
+
+      const sideChannelCount = (keys) => {
+        let total = 0;
+        let found = false;
+        for (const key of keys) {
+          const value = dashboardOptionalNumber(sideChannel, key);
+          if (value === null) continue;
+          total += value;
+          found = true;
+        }
+        return found ? total : null;
+      };
+      const sideChannelSent = sideChannelCount(['sentCount', 'sseSentCount', 'webSocketSentCount', 'wsSentCount']);
+      const sideChannelDropped = sideChannelCount(['droppedCount', 'dropCount', 'sseDroppedCount', 'webSocketDroppedCount', 'wsDroppedCount']);
+      const sideChannelFailures = sideChannelCount(['failureCount', 'failedCount', 'sendFailureCount', 'sseFailureCount', 'webSocketFailureCount', 'wsFailureCount']);
+
+      const counter = (key) => dashboardOptionalNumber(debugCounters, key);
+      const metadataBuilds = counter('metadataJsonBuildCount');
+      const metadataBytesTotal = counter('metadataJsonBytesTotal');
+      const metadataBytesMax = counter('metadataJsonBytesMax');
+      const metadataBytesAvg = metadataBuilds && metadataBuilds > 0 && metadataBytesTotal !== null
+        ? metadataBytesTotal / metadataBuilds
+        : null;
+      const rtspMediaConfigured = counter('rtspMediaConfiguredCount');
+      const rtspMediaUnprepared = counter('rtspMediaUnpreparedCount');
+      const rtspEgressCreated = counter('rtspEgressSessionCreatedCount');
+      const rtspEgressStarted = counter('rtspEgressSessionStartedCount');
+      const rtspEgressStopped = counter('rtspEgressSessionStoppedCount');
+      const rtspEgressDestroyed = counter('rtspEgressSessionDestroyedCount');
+      const rtspPendingPeak = counter('rtspPendingQueuePeak');
+      const rtspPendingAtStop = counter('rtspPendingQueueSizeAtStop');
+      const rtspPendingAtDestroy = counter('rtspPendingQueueSizeAtDestroy');
+      const appsrcPushAfterStop = counter('appsrcPushAfterStopCount');
+      const flowFlushing = counter('rtspAppsrcFlowFlushingCount');
+      const flowError = counter('rtspAppsrcFlowErrorReturnCount');
+      const flowNotLinked = counter('rtspAppsrcFlowNotLinkedCount');
+      const flowNotNegotiated = counter('rtspAppsrcFlowNotNegotiatedCount');
+      const flowOther = counter('rtspAppsrcFlowOtherErrorCount');
+      const flowAfterStop = counter('rtspAppsrcFlowErrorAfterStopCount');
+      const hardFlowErrors = (flowError ?? 0) + (flowNotLinked ?? 0) + (flowNotNegotiated ?? 0) + (flowOther ?? 0);
+      const busCreated = counter('busWatchCreatedCount');
+      const busDestroyed = counter('busWatchDestroyedCount');
+      const probeAttached = counter('overlayProbeAttachedCount');
+      const probeRemoved = counter('overlayProbeRemovedCount');
+      const subscriberAdded = counter('sharedStreamSubscriberAddedCount');
+      const subscriberRemoved = counter('sharedStreamSubscriberRemovedCount');
+      const tapAttached = counter('analysisTapAttachedCount');
+      const tapDetached = counter('analysisTapDetachedCount');
+      const lifecycleWarning = noActiveRuntime && (
+        (rtspMediaConfigured ?? 0) !== (rtspMediaUnprepared ?? 0) ||
+        (rtspEgressCreated ?? 0) !== (rtspEgressDestroyed ?? 0) ||
+        (rtspEgressStarted ?? 0) !== (rtspEgressStopped ?? 0)
+      );
+      const fanoutWarning = noActiveRuntime && (
+        (busCreated ?? 0) !== (busDestroyed ?? 0) ||
+        (probeAttached ?? 0) !== (probeRemoved ?? 0) ||
+        (subscriberAdded ?? 0) !== (subscriberRemoved ?? 0) ||
+        (tapAttached ?? 0) !== (tapDetached ?? 0)
+      );
+      const pendingResidual = (rtspPendingAtStop ?? 0) + (rtspPendingAtDestroy ?? 0);
+      const cleanupIssues = [];
+      if (pendingResidual > 0) cleanupIssues.push('pending residual');
+      if ((appsrcPushAfterStop ?? 0) > 0) cleanupIssues.push('appsrc after stop');
+      if (hardFlowErrors > 0) cleanupIssues.push('hard flow');
+      if ((flowAfterStop ?? 0) > 0) cleanupIssues.push('flow after stop');
+      if (metadataFailures !== null && metadataFailures > 0) cleanupIssues.push('metadata failure');
+      if (lifecycleWarning || fanoutWarning) cleanupIssues.push('counter imbalance');
+
+      dashboardSet('dashboardRuntimeMemoryWarning', 'RSS WARNING 해제 가능 후보 · active high-water 관찰 유지');
       dashboardSet('dashboardRuntimeRss', 'longrun report에서 확인');
+      dashboardSet('dashboardRuntimeRssGuidance', 'RSS는 longrun report 기준으로 판단');
       dashboardSet(
         'dashboardBackpressureRuntime',
-        `${sessionManager.activeSessions || 0}/${sessionManager.registryActiveStreams || sessionManager.resourceActiveStreams || 0}/${analysisMatching.activeTapCount ?? tapsPayload?.activeTaps ?? 0}`
+        `${activeSessions}/${activeStreams}/${activeTaps}`
       );
       dashboardSet('dashboardMetadataSessions', `${openSessions}/${sessions.length} open`);
-      dashboardSet('dashboardMetadataSent', metadata.sentCount ?? 0);
-      dashboardSet('dashboardMetadataDropped', `${metadata.droppedCount ?? 0}/${metadata.skippedCount ?? 0}`);
-      dashboardSet('dashboardMetadataSkipped', `${metadata.intervalSkippedCount ?? 0}/${metadata.oversizedDropCount ?? 0}`);
-      dashboardSet('dashboardMetadataFailures', metadata.sendFailureCount ?? 0);
-      dashboardSet('dashboardMetadataBuffered', `${metadata.bufferedDropCount ?? 0}/${metadata.maxBufferedAmount ?? 0}`);
+      dashboardSet('dashboardMetadataSent', metadataSent ?? '미제공');
+      dashboardSetWithWarning(
+        'dashboardMetadataDropped',
+        `${metadataDropped ?? '미제공'}/${metadataSkipped ?? '미제공'}`,
+        (metadataDropped ?? 0) > 0
+      );
+      dashboardSetWithWarning(
+        'dashboardMetadataSkipped',
+        `${metadataIntervalSkipped ?? '미제공'}/${metadataOversizedDrop ?? '미제공'}`,
+        (metadataOversizedDrop ?? 0) > 0
+      );
+      dashboardSetWithWarning('dashboardMetadataFailures', metadataFailures ?? '미제공', (metadataFailures ?? 0) > 0);
+      dashboardSetWithWarning(
+        'dashboardMetadataBuffered',
+        `${metadataBufferedDrop ?? '미제공'}/${metadataMaxBuffered ?? '미제공'}`,
+        (metadataBufferedDrop ?? 0) > 0
+      );
       dashboardSet('dashboardMetadataBufferedObserved', `${maxLastBufferedAmount}/${maxObservedBufferedAmount}`);
-      dashboardSet('dashboardMetadataSseClients', sideChannel.activeSseClients ?? 0);
-      dashboardSet('dashboardMetadataWsClients', sideChannel.activeWebSocketClients ?? 0);
-      dashboardSet('dashboardSideChannelSentDropped', '미제공');
+      dashboardSet('dashboardMetadataSseClients', activeSseClients);
+      dashboardSet('dashboardMetadataWsClients', activeWsClients);
+      dashboardSetWithWarning(
+        'dashboardSideChannelSentDropped',
+        sideChannelSent === null && sideChannelDropped === null && sideChannelFailures === null
+          ? '미제공'
+          : `sent ${sideChannelSent ?? 0} · drop ${sideChannelDropped ?? 0} · fail ${sideChannelFailures ?? 0}`,
+        (sideChannelDropped ?? 0) > 0 || (sideChannelFailures ?? 0) > 0
+      );
+      dashboardSet('dashboardMetadataJsonBuilds', metadataBuilds ?? '미제공');
+      dashboardSet(
+        'dashboardMetadataPayloadBytes',
+        metadataBytesAvg === null || metadataBytesMax === null
+          ? '미제공'
+          : `avg ${dashboardBytes(metadataBytesAvg)} · max ${dashboardBytes(metadataBytesMax)}`
+      );
+      dashboardSet('dashboardPollingCount', dashboardOptionalNumber(runtime, 'dashboardPollingCount') ?? '미제공');
       dashboardSet(
         'dashboardBackpressureQueue',
         `${queue.pending ?? tapState.pendingFrames ?? 0}/${queue.capacity ?? tapState.maxQueueSize ?? 0}/${queue.peakPending ?? tapState.peakPendingFrames ?? 0}`
@@ -9578,12 +9785,50 @@ std::string BuildLabRuleEditorPageHtml() {
         'dashboardBackpressureQueueWait',
         `last ${dashboardMs(queue.lastWaitMs ?? tapState.lastQueueWaitMs)} · avg ${dashboardMs(queue.averageWaitMs ?? tapState.averageQueueWaitMs)} · max ${dashboardMs(queue.maxWaitMs ?? tapState.maxQueueWaitMs)}`
       );
+      dashboardSetWithWarning(
+        'dashboardRtspLifecycle',
+        rtspMediaConfigured === null && rtspEgressCreated === null
+          ? '미제공'
+          : `media ${rtspMediaConfigured ?? 0}/${rtspMediaUnprepared ?? 0} · egress ${rtspEgressCreated ?? 0}/${rtspEgressStarted ?? 0}/${rtspEgressStopped ?? 0}/${rtspEgressDestroyed ?? 0}`,
+        lifecycleWarning
+      );
+      dashboardSet('dashboardRtspPendingPeak', rtspPendingPeak === null ? '미제공' : rtspPendingPeak);
+      dashboardSetWithWarning(
+        'dashboardRtspPendingResidual',
+        rtspPendingAtStop === null && rtspPendingAtDestroy === null
+          ? '미제공'
+          : `stop ${rtspPendingAtStop ?? 0} · destroy ${rtspPendingAtDestroy ?? 0}`,
+        pendingResidual > 0
+      );
+      dashboardSetWithWarning('dashboardAppsrcAfterStop', appsrcPushAfterStop ?? '미제공', (appsrcPushAfterStop ?? 0) > 0);
+      dashboardSetWithWarning(
+        'dashboardRtspFlowReturns',
+        flowFlushing === null && flowError === null && flowNotLinked === null && flowNotNegotiated === null
+          ? '미제공'
+          : `FLUSHING ${flowFlushing ?? 0} · ERROR ${flowError ?? 0} · NOT_LINKED ${flowNotLinked ?? 0} · NOT_NEGOTIATED ${flowNotNegotiated ?? 0} · OTHER ${flowOther ?? 0}`,
+        hardFlowErrors > 0
+      );
+      dashboardSetWithWarning(
+        'dashboardFanoutBalance',
+        busCreated === null && probeAttached === null && subscriberAdded === null && tapAttached === null
+          ? '미제공'
+          : `bus ${busCreated ?? 0}/${busDestroyed ?? 0} · probe ${probeAttached ?? 0}/${probeRemoved ?? 0} · sub ${subscriberAdded ?? 0}/${subscriberRemoved ?? 0} · tap ${tapAttached ?? 0}/${tapDetached ?? 0}`,
+        fanoutWarning
+      );
+      dashboardSetWithWarning(
+        'dashboardCleanupWarning',
+        cleanupIssues.length > 0
+          ? cleanupIssues.slice(0, 3).join(' · ')
+          : (noActiveRuntime ? '정상' : 'active 관찰 중'),
+        cleanupIssues.length > 0,
+        'cleanup warning'
+      );
       const viewerHasMetadata = viewMetadataMessageCount > 0 || viewMetadataStaleCount > 0 || viewMetadataFallbackHiddenCount > 0;
       dashboardSet('dashboardMetadataStale', viewerHasMetadata ? `${viewMetadataStaleCount}/${viewMetadataBufferDropCount}` : '미제공');
       dashboardSet('dashboardMetadataFallback', viewerHasMetadata ? viewMetadataFallbackHiddenCount : '미제공');
       dashboardSet(
         'dashboardMetadataSummary',
-        `runtime ${sessionManager.activeSessions || 0}/${sessionManager.registryActiveStreams || sessionManager.resourceActiveStreams || 0}/${analysisMatching.activeTapCount ?? tapsPayload?.activeTaps ?? 0} · datachannel ${openSessions}/${sessions.length} open · queue ${queue.pending ?? tapState.pendingFrames ?? 0}/${queue.capacity ?? tapState.maxQueueSize ?? 0}/${queue.peakPending ?? tapState.peakPendingFrames ?? 0}`
+        `RSS는 longrun report 기준으로 판단 · runtime ${activeSessions}/${activeStreams}/${activeTaps} · datachannel ${openSessions}/${sessions.length} open · queue ${queue.pending ?? tapState.pendingFrames ?? 0}/${queue.capacity ?? tapState.maxQueueSize ?? 0}/${queue.peakPending ?? tapState.peakPendingFrames ?? 0}`
       );
     }
 
@@ -10370,6 +10615,7 @@ std::string BuildLabRuleEditorPageHtml() {
       if ($('dashboardTapSelect')) {
         $('dashboardTapSelect').addEventListener('change', () => {
           dashboardLastTapId = $('dashboardTapSelect').value || '';
+          dashboardTapSelectionManual = true;
           dashboardResetRecentEvents();
           refreshDashboard({ force: true }).catch(() => {});
         });
@@ -10377,6 +10623,7 @@ std::string BuildLabRuleEditorPageHtml() {
       if ($('dashboardRuleSelect')) {
         $('dashboardRuleSelect').addEventListener('change', () => {
           dashboardLastTapId = '';
+          dashboardTapSelectionManual = false;
           dashboardResetRecentEvents();
           refreshDashboard({ force: true }).catch(() => {});
         });
