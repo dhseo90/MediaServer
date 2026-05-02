@@ -414,6 +414,16 @@ Snapshot/clip hook 상태:
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-storage/status'
 ```
 
+조회 API:
+
+```bash
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records?eventType=presence&limit=100'
+```
+
+`/lab/analysis/events/records`는 EventRecord JSON Lines 파일을 한 줄씩 읽어 `media-server.va.event-record-list.v1` 응답으로 반환합니다. 지원 filter는 `eventId`, `eventType`, `streamId`, `channelId`, `trackId`, `status`, `zoneId`, `lineId`, `scenarioName`, `scenarioPhase`, `startTimeMs`, `endTimeMs`, `limit`입니다. EventStorage가 비활성이거나 파일이 없으면 `records: []`와 storage 상태를 반환합니다. 손상된 JSON Lines 행은 전체 API 실패로 만들지 않고 `skippedCorruptLines`에 집계합니다.
+
+`/lab/rules` Runtime Dashboard의 Event Records 접힘 섹션은 이 조회 API를 수동 검색 UI로 노출합니다. 사용자가 검색 버튼을 누를 때만 API를 호출하며, snapshotPath/clipPath는 저장된 문자열 또는 placeholder로만 표시합니다. 영상 검색/재생, snapshot 추출, clip recorder 동작은 포함하지 않습니다.
+
 ## 12. VA Runtime Metadata
 
 `VaRuntimeMetadataBuilder`는 WebRTC DataChannel, Lab runtime dashboard, SSE/WebSocket side-channel이 공통으로 쓸 내부 frame 구조를 만듭니다.

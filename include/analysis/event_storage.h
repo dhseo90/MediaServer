@@ -116,8 +116,40 @@ struct EventStorageSnapshot {
     std::string last_error;
 };
 
+struct EventRecordQueryOptions {
+    std::string event_id;
+    std::string event_type;
+    std::string stream_id;
+    std::string channel_id;
+    bool has_track_id{false};
+    std::uint64_t track_id{0};
+    std::string status;
+    std::string zone_id;
+    std::string line_id;
+    std::string scenario_name;
+    std::string scenario_phase;
+    bool has_start_time_ms{false};
+    std::int64_t start_time_ms{0};
+    bool has_end_time_ms{false};
+    std::int64_t end_time_ms{0};
+    std::size_t limit{100};
+};
+
+struct EventRecordQueryResult {
+    EventStorageSnapshot storage;
+    bool file_exists{false};
+    std::vector<std::string> records_json;
+    std::size_t limit{100};
+    bool has_more{false};
+    bool truncated{false};
+    std::uint64_t skipped_corrupt_lines{0};
+};
+
 void DispatchEventRecords(const AnalysisResult& result, const std::vector<AnalysisEvent>& events);
 EventStorageSnapshot GetEventStorageSnapshot();
+bool QueryEventRecords(const EventRecordQueryOptions& options,
+                       EventRecordQueryResult* result,
+                       std::string* error_message);
 void StopEventStorage();
 
 }  // namespace analysis
