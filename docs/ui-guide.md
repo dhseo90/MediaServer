@@ -133,7 +133,7 @@ Scenario는 여러 frame에 걸친 시간 조건과 상태 전이를 판단하�
 | 시나리오 | 엔진/검증 상태 | UI 템플릿 상태 |
 | --- | --- | --- |
 | Intrusion Dwell | 구현됨 | 룰 편집 UI에서 선택 가능 |
-| ReEntry | 구현됨 | 전용 UI 템플릿은 후속 작업 |
+| ReEntry | 구현됨 | 룰 편집 UI에서 선택 가능 |
 | WrongDirection | 구현됨 | 룰 편집 UI에서 선택 가능 |
 | IntrusionAfterLineCrossing | 구현됨 | 전용 UI 템플릿은 후속 작업 |
 | Loitering | 구현됨 | 전용 UI 템플릿은 후속 작업 |
@@ -143,7 +143,15 @@ Scenario는 여러 frame에 걸친 시간 조건과 상태 전이를 판단하�
 | 템플릿 | 설정 항목 | event |
 | --- | --- | --- |
 | Intrusion Dwell · 제한구역 체류 | zone, 후보 시간, 체류 시간, cooldown | scenario event |
+| ReEntry · 이탈 후 재진입 | polygon zone, 재진입 window, 재진입 zone, cooldown | `re-entry` |
 | WrongDirection · 금지 방향 통과 | line 2점 geometry, 허용 방향, cooldown | `wrong-direction` |
+
+ReEntry UI 정책:
+
+- 같은 track이 polygon zone을 이탈한 뒤 `reEntryWindowMs` 안에 같은 zone으로 다시 들어오면 `re-entry` scenario event를 1회 발생시킵니다.
+- `같은 zone`은 현재 그린 polygon 또는 `targetZoneIds`로 저장된 zone을 그대로 사용합니다.
+- `지정 zone`은 `targetZoneIds`/`reEntryZoneIds`에 대상 zone 목록을 명시합니다. 현재 1차 UI는 같은-zone 재진입을 명시하는 용도이며, cross-zone A→B 재진입 판단은 후속 ScenarioEngine 확장 범위입니다.
+- Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직은 변경하지 않습니다.
 
 WrongDirection UI 정책:
 
@@ -162,6 +170,15 @@ Intrusion Dwell UI 항목:
 - 대상 객체
 - 불안정 track 제외
 - 상태 흐름 미리보기
+
+ReEntry UI 항목:
+
+- 재진입 window(ms)
+- 재알림 대기 시간(ms)
+- 재진입 zone: 같은 zone 또는 지정 zone
+- 대상 객체
+- 불안정 track 제외
+- Inside → Exited → ReEntryCandidate → Confirmed → Cooldown → Ended 상태 흐름 미리보기
 
 실제 scenario engine 활성화와 기본값은 서버 설정과 함께 동작합니다. 환경변수는 [config-reference.md](./config-reference.md)를 봅니다.
 

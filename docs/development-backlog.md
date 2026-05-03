@@ -15,10 +15,10 @@
 - 구현 완료: RTSP/WebRTC relay, File/RTSP/WebRTC/HTTP-HLS source, YOLO/ONNX VA overlay, Rule/Profile UI, `vaRule=<id>` 호출, 기존 Intrusion/LineCrossing 이벤트 회귀 구조.
 - 구현 완료: TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, TrackHealth, cleanup 정책.
 - 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage/query/search UI, EventRecord rotation/retention/recovery 1차, snapshot/clip hook, WebRTC VA metadata DataChannel 출력 구조.
-- 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, client-side Trend/Stale/Cleanup warning 1차, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, 자동/longrun 검증 명령.
+- 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, client-side Trend/Stale/Cleanup warning 1차, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, IntrusionDwell/ReEntry/WrongDirection scenario UI 템플릿, 자동/longrun 검증 명령.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
 - 실험/제약: snapshot/clip은 hook/marker 중심이며 실제 제품용 frame extraction/clip recorder는 후속 구현입니다.
-- 남은 핵심: EventRecord archive query/compaction, 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화(sparkline/장기 baseline), WS metadata filter/subscription/control, 실제 현장 샘플 기반 튜닝입니다.
+- 남은 핵심: EventRecord archive query/compaction, IntrusionAfterLineCrossing/Loitering UI 템플릿, 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화(sparkline/장기 baseline), WS metadata filter/subscription/control, 실제 현장 샘플 기반 튜닝입니다.
 
 ## P0 - 문서/UI 정리
 
@@ -374,9 +374,31 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 ./server.sh verify-va-replay
 ```
 
-- 후속: ReEntry / IntrusionAfterLineCrossing / Loitering 전용 UI 템플릿과 현장 fixture를 추가합니다.
+- 후속: IntrusionAfterLineCrossing / Loitering 전용 UI 템플릿과 현장 fixture를 추가합니다.
 
-### P4-2. Loitering 실제 샘플 튜닝
+### P4-2. ReEntry Scenario UI 템플릿
+
+- 상태: 완료
+- 목적: 룰 편집 UI에서 ReEntry scenario를 선택하고 저장할 수 있게 합니다.
+- 완료 범위:
+  - Scenario template 목록에 ReEntry 추가
+  - 재진입 window, cooldown, target zone, re-entry zone, unstable track exclude 설정
+  - Inside → Exited → ReEntryCandidate → Confirmed → Cooldown → Ended 상태 흐름 미리보기
+  - rule payload preview와 저장 전 validation
+  - 저장된 `reEntryWindowMs`, `cooldownMs`, `targetZoneIds`, `reEntryZoneIds` round-trip 검증
+  - Event POST payload, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직 변경 없음
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/rule_ui_smoke_check.mjs`, `docs/ui-guide.md`, `docs/video-analysis.md`, `docs/stream-verification.md`
+- 검증 명령:
+
+```bash
+./server.sh verify-rule-ui
+./server.sh verify-lab-layout
+./server.sh verify-analysis-state
+```
+
+- 후속: cross-zone A→B 재진입 판단은 별도 ScenarioEngine 확장으로 검토합니다.
+
+### P4-3. Loitering 실제 샘플 튜닝
 
 - 상태: 예정
 - 목적: 실제 CCTV 샘플에서 dwell time, movement radius, trajectory point 기준을 조정합니다.
@@ -390,7 +412,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 - 우선순위 이유: Loitering은 threshold 민감도가 높아 fixture만으로 제품 품질을 판단하기 어렵습니다.
 
-### P4-3. ZoneOccupancyScenario
+### P4-4. ZoneOccupancyScenario
 
 - 상태: 예정
 - 목적: 특정 zone 내부 동시 track 수가 threshold 이상일 때 crowd/occupancy 이벤트를 발생시킵니다.
@@ -404,7 +426,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 - 우선순위 이유: 침입/체류 다음으로 운영 현장에서 이해하기 쉬운 zone 기반 scenario입니다.
 
-### P4-4. 후속 scenario 후보 정리
+### P4-5. 후속 scenario 후보 정리
 
 - 상태: 예정
 - 목적: LineDwell, StoppedVehicle, AbandonedObjectCandidate를 최소 구현 후보로 구체화합니다.
