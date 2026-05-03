@@ -1,25 +1,29 @@
 # UI Guide
 
-이 문서는 `/lab`와 `/lab/rules`의 영상 분석 UI 사용법을 설명합니다. 서버 실행/검증 명령은 [development-guide.md](./development-guide.md), VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다.
+이 문서는 Auth, Ops, Client, Lab UI의 현재 shell 구조와 MVP 범위를 설명합니다. 서버 실행/검증 명령은 [development-guide.md](./development-guide.md), VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다.
 
 ## 1. UI 개요
 
 | 화면 | URL | 용도 |
 | --- | --- | --- |
+| Root entry | `http://127.0.0.1:8080/` | auth mode와 role에 따른 진입점 |
+| 최초 관리자 설정 | `http://127.0.0.1:8080/setup` | setup required 상태에서 admin password bootstrap |
+| 로그인 | `http://127.0.0.1:8080/login` | session mode에서 계정 로그인과 role별 landing 이동 |
+| 운영 콘솔 | `http://127.0.0.1:8080/ops` 또는 `/ops/live` | admin/operator용 운영 shell과 운영 홈 summary MVP |
+| 운영 Dashboard | `http://127.0.0.1:8080/ops/dashboard` | runtime status를 card/detail UI로 표시 |
+| 운영 Events | `http://127.0.0.1:8080/ops/events` | EventRecord/Event POST/storage 상태를 card/table UI로 표시 |
+| Source/View 관리 | `http://127.0.0.1:8080/ops/sources` | admin/operator용 SourceRegistry와 PublishedView 관리 MVP |
+| 계정 관리 | `http://127.0.0.1:8080/ops/users` | admin 전용 사용자 생성/초대/request 승인/비활성화 |
+| 클라이언트 포털 | `http://127.0.0.1:8080/client` 또는 `/client/live` | viewer/operator/admin용 client shell과 2x2 live monitor MVP |
+| 클라이언트 Dashboard | `http://127.0.0.1:8080/client/dashboard` | scoped PublishedView 상태 요약 MVP |
+| 접근 요청 | `http://127.0.0.1:8080/client/request-access` | pending client access request 제출 |
 | 통합 Lab | `http://127.0.0.1:8080/lab` | 스트림 재생, VA 분석, 영상 분석 설정, 실험실 도구를 한 화면에서 확인 |
 | 영상 분석 관리 | `http://127.0.0.1:8080/lab/rules` | 영상 분석 설정/보기/Runtime Dashboard 3탭 관리 |
-| 런타임 상태 | `http://127.0.0.1:8080/lab/runtime/status` | session, stream, analysis tap 상태 확인 |
-| 로그인 | `http://127.0.0.1:8080/login` | session mode에서 계정 로그인과 role별 landing 이동 |
-| Root entry | `http://127.0.0.1:8080/` | auth mode와 role에 따른 진입점 |
-| 운영 콘솔 | `http://127.0.0.1:8080/ops/live` | admin/operator용 운영 shell |
-| Source/View 관리 | `http://127.0.0.1:8080/ops/sources` | admin/operator용 SourceRegistry와 PublishedView 관리 |
-| 계정 관리 | `http://127.0.0.1:8080/ops/users` | admin 전용 사용자 생성/초대/request 승인/비활성화 |
-| 클라이언트 포털 | `http://127.0.0.1:8080/client/live` | viewer/operator/admin용 client shell |
-| 접근 요청 | `http://127.0.0.1:8080/client/request-access` | pending client access request 제출 |
+| 런타임 상태 API | `http://127.0.0.1:8080/lab/runtime/status` | session, stream, analysis tap 상태 JSON API |
 
 실제 host/port는 `./server.sh status` 또는 `./server.sh urls` 출력값을 우선합니다.
 
-UI는 light/dark theme-aware design token을 사용하며, card/button/form/table/badge/debug 영역은 같은 semantic color 규칙을 공유합니다. 기본 화면은 요약과 주요 액션을 먼저 보이게 하고, raw JSON, debugCounters, Developer URL 같은 세부 정보는 낮은 visual weight의 접힘 영역에 둡니다.
+UI는 light/dark theme-aware design token을 사용하며, card/button/form/table/badge/debug 영역은 같은 semantic color 규칙을 공유합니다. 기본 화면은 요약과 주요 액션을 먼저 보이게 합니다. 운영자용 raw JSON/debugCounters/Developer URL 같은 세부 정보는 낮은 visual weight의 접힘 영역에만 두고, client/viewer shell에는 raw JSON, debug, developer/source URL을 노출하지 않습니다.
 
 액션 계층은 다음 기준을 따릅니다.
 
@@ -56,7 +60,7 @@ Login page는 username/password 입력, 실패/lockout 메시지, 로그인 후 
 
 Route 역할:
 
-- `/ops`: admin/operator 전용 운영 shell이며 `ops:read` scope가 필요합니다. Live, Dashboard, Sources, Rules, Events navigation을 제공하고 Sources/Views는 `/ops/sources`, Users는 admin 전용 `/ops/users`, Rules는 기존 `/lab/rules` 호환 화면으로 연결합니다.
+- `/ops`: admin/operator 전용 운영 shell이며 `ops:read` scope가 필요합니다. Live, Dashboard, Sources, Rules, Events navigation을 같은 header/nav 아래에서 제공하고, Users는 admin 전용 관리 route입니다. Dashboard와 Events는 `/lab/runtime/status`, EventRecord/Event POST/storage JSON API를 fetch해 card/table/badge로 렌더링하고 raw JSON은 접힘 영역에만 둡니다. Rules는 `/ops/rules` shell 안에서 기존 Lab Rule Editor를 명시적으로 여는 안내 card를 제공합니다.
 - `/client`: viewer/operator/admin 접근 shell입니다. `/client/api/views` 기준으로 할당된 PublishedView만 표시하며 원본 source URL, debug/developer URL은 노출하지 않습니다.
 - `/lab`: admin/operator 또는 `lab:read` scope용 개발/검증 shell입니다. viewer/client 기본 계정은 접근할 수 없고, 기존 `/lab/rules`와 자동화 bookmark 호환은 auth off 검증 모드에서 유지합니다.
 
@@ -66,7 +70,7 @@ Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify
 
 ## 3. Admin User Management
 
-`/ops/users`는 admin 전용 계정 관리 화면입니다. User list는 username, displayName, role, enabled, scopes count, lastLoginAt, lockedUntil, mustChangePassword, actions를 표시하며 `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`는 UI/API 응답에 노출하지 않습니다.
+`/ops/users`는 admin 전용 계정 관리 MVP 화면입니다. 공통 Ops shell 안에서 create/update form, invite/request form, user table, pending request table을 card/table/form 스타일로 표시합니다. User list는 username, displayName, role, enabled, scopes count, lastLoginAt, lockedUntil, mustChangePassword, actions를 표시하며 `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`는 UI/API 응답에 노출하지 않습니다.
 
 지원 동작:
 
@@ -96,13 +100,13 @@ CLI도 같은 C++ password hash/password policy 경로를 사용합니다. Passw
 
 ## 4. SourceRegistry / PublishedView
 
-`/ops/sources`는 운영자가 실제 source를 한 번 등록하고, 클라이언트에는 PublishedView 단위로 공개하기 위한 MVP 화면입니다. Source form은 `sourceId`, 표시 이름, source 종류, file/RTSP/WebRTC/HTTP locator, tags, owner group, enabled 상태를 저장합니다. 같은 RTSP/HTTP URL은 query 순서가 달라도 canonical key 기준으로 중복 등록이 거부됩니다.
+`/ops/sources`는 운영자가 실제 source를 한 번 등록하고, 클라이언트에는 PublishedView 단위로 공개하기 위한 MVP 화면입니다. 공통 Ops shell 안에서 Source form, PublishedView form, source list, PublishedView list를 card/table/form 스타일로 표시합니다. Source form은 `sourceId`, 표시 이름, source 종류, file/RTSP/WebRTC/HTTP locator, tags, owner group, enabled 상태를 저장합니다. 같은 RTSP/HTTP URL은 query 순서가 달라도 canonical key 기준으로 중복 등록이 거부됩니다.
 
-PublishedView form은 `viewId`, 표시 이름, `sourceId`, `defaultRuleId`, `allowedRuleIds`, overlay mode, dashboard/event/metadata 노출 여부, client group, 최대 tile 수를 저장합니다. `/client/api/views`는 로그인 principal의 `view:read:{viewId}` scope가 있는 view만 반환하며, 원본 source URL이나 file locator는 클라이언트 응답에 포함하지 않습니다.
+PublishedView form은 `viewId`, 표시 이름, `sourceId`, `defaultRuleId`, `allowedRuleIds`, overlay mode, dashboard/event/metadata 노출 여부, client group, 최대 tile 수를 저장합니다. `/client/api/views`는 로그인 principal의 `view:read:{viewId}` scope가 있는 view만 반환하며, 원본 source URL이나 file locator는 클라이언트 응답에 포함하지 않습니다. 운영자용 registry raw JSON은 `/ops/sources`의 접힘 debug 영역에서만 확인합니다.
 
 ### 4.1 Client scoped dashboard
 
-`/client/dashboard`는 viewer가 접근 가능한 PublishedView의 상태 요약만 보여주는 client dashboard입니다. view 목록은 `/client/api/views`의 scoped 결과를 사용하고, 선택된 view의 상세 상태는 `/client/api/views/{viewId}/dashboard`에서 가져옵니다.
+`/client/dashboard`는 viewer가 접근 가능한 PublishedView의 상태 요약만 보여주는 client dashboard MVP입니다. view 목록은 `/client/api/views`의 scoped 결과를 사용하고, 선택된 view의 상세 상태는 `/client/api/views/{viewId}/dashboard`에서 가져옵니다.
 
 표시 범위:
 
@@ -115,7 +119,7 @@ PublishedView form은 `viewId`, 표시 이름, `sourceId`, `defaultRuleId`, `all
 
 ### 4.2 Client Live Monitor
 
-`/client/live`는 viewer가 접근 가능한 PublishedView만 2x2 grid에 배치하는 live monitor입니다. Tile은 최대 4개이며, 각 tile은 `/client/api/views/{viewId}/webrtc/session` wrapper로 WebRTC session을 생성합니다. Client route는 viewId만 받으며 source 원본 URL, file/url/source override, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile 수정 UI는 노출하지 않습니다.
+`/client/live`는 viewer가 접근 가능한 PublishedView만 2x2 grid에 배치하는 live monitor MVP입니다. Tile은 최대 4개이며, 각 tile은 `/client/api/views/{viewId}/webrtc/session` wrapper로 WebRTC session을 생성합니다. Client route는 viewId만 받으며 source 원본 URL, file/url/source override, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile 수정 UI는 노출하지 않습니다.
 
 Tile별 기능:
 
