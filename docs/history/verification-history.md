@@ -2,6 +2,59 @@
 
 이 문서는 과거 상세 검증 이력을 보존합니다. 현재 실행해야 할 검증 기준은 [../stream-verification.md](../stream-verification.md)를 봅니다.
 
+## 2026-05-03 - 문서 UI screenshot 전면 갱신
+
+갱신:
+
+- `docs/assets/ui/analysis-rule-list.png`
+- `docs/assets/ui/analysis-rule-editor-basic.png`
+- `docs/assets/ui/analysis-rule-editor-scenario.png`
+- `docs/assets/ui/analysis-region-canvas.png`
+- `docs/assets/ui/analysis-preview.png`
+- `docs/assets/ui/analysis-developer-url.png`
+- `docs/assets/ui/analysis-runtime-dashboard.png`
+
+확인:
+
+- 문서 대표 이미지는 dark mode 기준으로 캡처
+- 영상/캔버스 이미지는 실제 객체가 있는 `va_four_scene_sample.mp4` 사용
+- 영상 분석 보기와 영역/라인 캔버스는 영상 프레임 하단까지 포함
+- 룰 편집 상단 command card와 `기본 정보` 섹션 이동 버튼 영역은 서로 붙어 보이지 않는 상태로 캡처
+- Runtime Dashboard는 table row 중간에서 잘리지 않도록 전체 panel 경계 기준으로 캡처
+
+## 2026-05-03 - 실패 이슈 재점검
+
+확인:
+
+- git 상태: `main`은 `origin/main`과 동일했고 미푸시 커밋 없음
+- 현재 기본 foreground 서버: HTTP `8081`, RTSP `8555`
+- `8080/8554/8082` 기본 포트는 재점검 시작 시 listener 없음
+
+통과:
+
+- `python3 -m pip install --user --break-system-packages opencv-python`: `opencv-python 4.13.0.92` 설치
+- `python3 -c "import cv2; print(cv2.__version__)"`: `4.13.0`
+- `python3 scripts/examples/va_rtsp_sse_overlay_client.py --help`
+- `./server.sh verify-event-post --mode schema --http-base http://127.0.0.1:8082`: `7/0/0`, Event POST enabled 보정 서버
+- `./server.sh verify-event-post --mode recovery --http-base http://127.0.0.1:8082`: `11/0/1`, EventStorage disabled로 storage injection 세부 검증 skip
+- `./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8081`: `5/0`
+- `./server.sh verify-rtsp-va-overlay-policy --http-base http://127.0.0.1:8081 --rtsp-base rtsp://127.0.0.1:8555/dhseo`: `6/0/0`
+- `python3 scripts/examples/va_rtsp_sse_overlay_client.py --rtsp-url 'rtsp://127.0.0.1:8555/dhseo?file=sample_h264.mp4' --metadata-url 'http://127.0.0.1:8081/lab/analysis/metadata/stream?file=sample_h264.mp4&va=1&intervalMs=500&maxMessageBytes=65536' --max-seconds 2 --headless`: frames `79`, metadataMessages `6`, parse/schema error `0`
+- `git diff --check`
+
+환경 이슈로 분리:
+
+- 기본 `./server.sh verify-event-post --mode schema|recovery`는 현재 8081 서버가 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=0`이라 dispatcher disabled로 실패
+- 기본 `./server.sh verify-va-metadata-sidechannel`은 8080 listener 없음으로 connection refused
+- 기본 `./server.sh verify-rtsp-va-overlay-policy`는 8080/8554 listener 없음으로 실패
+- sandbox 내부 overlay client 직접 실행은 localhost SSE connect가 `Operation not permitted`였고, 권한 상승 재실행에서는 통과
+
+관찰/후속:
+
+- `./server.sh compare-close-object-tracker --file imports/va_tracking_event_1280x720_30fps_h264.mp4 --modes off,diagnostic,enforce`는 command success였지만 `judgement: warning`
+- warning reason: `enforceVsOff idSwitchRiskScore increased by 0.027`
+- event/scenario delta는 `False`; 제품 회귀로 보지는 않지만 close-object guard default-on 근거로 사용하지 않음
+
 ## 2026-04-30 - VA Runtime Console / WebRTC metadata overlay sync 안정화
 
 통과:
