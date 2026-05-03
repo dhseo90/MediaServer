@@ -10,9 +10,10 @@
 | 영상 분석 관리 | `http://127.0.0.1:8080/lab/rules` | 영상 분석 설정/보기/Runtime Dashboard 3탭 관리 |
 | 런타임 상태 | `http://127.0.0.1:8080/lab/runtime/status` | session, stream, analysis tap 상태 확인 |
 | 로그인 | `http://127.0.0.1:8080/login` | session mode에서 계정 로그인과 role별 landing 이동 |
-| 운영 Landing | `http://127.0.0.1:8080/ops` | admin/operator용 임시 운영 화면 |
+| Root entry | `http://127.0.0.1:8080/` | auth mode와 role에 따른 진입점 |
+| 운영 콘솔 | `http://127.0.0.1:8080/ops/live` | admin/operator용 운영 shell |
 | Source/View 관리 | `http://127.0.0.1:8080/ops/sources` | admin/operator용 SourceRegistry와 PublishedView 관리 |
-| 클라이언트 Landing | `http://127.0.0.1:8080/client` | viewer용 임시 클라이언트 화면 |
+| 클라이언트 포털 | `http://127.0.0.1:8080/client/live` | viewer/operator/admin용 client shell |
 
 실제 host/port는 `./server.sh status` 또는 `./server.sh urls` 출력값을 우선합니다.
 
@@ -39,11 +40,17 @@ UI는 light/dark theme-aware design token을 사용하며, card/button/form/tabl
 
 Role별 이동:
 
-- `admin`, `operator`: `/ops`
-- `viewer`: `/client`
+- `admin`, `operator`: `/ops/live`
+- `viewer`: `/client/live`
 - `integrator`: UI landing 없이 metadata/event API 연동용 token 사용을 우선합니다.
 
-Login page는 username/password 입력, 실패 메시지, 로그인 후 현재 사용자/role 표시, logout 버튼만 제공하는 MVP입니다. `/ops`와 `/client`는 후속 route 분리 전까지 임시 landing page이며 실제 live monitor/dashboard 화면은 다음 묶음에서 확장합니다.
+Login page는 username/password 입력, 실패 메시지, 로그인 후 현재 사용자/role 표시, logout 버튼만 제공하는 MVP입니다. `/`는 auth off에서 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/live`, `/client/live`로 이동하고, auth on에서는 admin/operator를 `/ops/live`, viewer를 `/client/live`, 미인증 요청을 `/login`으로 보냅니다.
+
+Route 역할:
+
+- `/ops`: admin/operator 전용 운영 shell입니다. Live, Dashboard, Sources, Rules, Events navigation을 제공하고 Sources/Views는 `/ops/sources`, Rules는 기존 `/lab/rules` 호환 화면으로 연결합니다.
+- `/client`: viewer/operator/admin 접근 shell입니다. `/client/api/views` 기준으로 할당된 PublishedView만 표시하며 원본 source URL, debug/developer URL은 노출하지 않습니다.
+- `/lab`: admin/operator 또는 `lab:read` scope용 개발/검증 shell입니다. 기존 `/lab/rules`와 자동화 bookmark 호환을 유지합니다.
 
 ## 3. SourceRegistry / PublishedView
 

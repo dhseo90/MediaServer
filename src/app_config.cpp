@@ -31,6 +31,10 @@ constexpr const char* kEnvAuthUsersFile = "MEDIA_SERVER_AUTH_USERS_FILE";
 constexpr const char* kEnvAuthSessionTtlSeconds = "MEDIA_SERVER_AUTH_SESSION_TTL_SECONDS";
 constexpr const char* kEnvAuthCookieName = "MEDIA_SERVER_AUTH_COOKIE_NAME";
 constexpr const char* kEnvAuthCookieSecure = "MEDIA_SERVER_AUTH_COOKIE_SECURE";
+constexpr const char* kEnvUiDefaultHome = "MEDIA_SERVER_UI_DEFAULT_HOME";
+constexpr const char* kEnvEnableLab = "MEDIA_SERVER_ENABLE_LAB";
+constexpr const char* kEnvEnableOps = "MEDIA_SERVER_ENABLE_OPS";
+constexpr const char* kEnvEnableClient = "MEDIA_SERVER_ENABLE_CLIENT";
 constexpr const char* kEnvFileRoot = "MEDIA_SERVER_FILE_ROOT";
 constexpr const char* kEnvDefaultFile = "MEDIA_SERVER_DEFAULT_FILE";
 constexpr const char* kEnvWebRtcVaMetadataChannelEnabled =
@@ -401,6 +405,13 @@ bool ReadBoolEnv(const char* name, bool fallback) {
     return fallback;
 }
 
+std::string ToLower(std::string value) {
+    std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    return value;
+}
+
 // class label처럼 내부 공백이 의미 있는 값을 위해 token 양끝 공백만 정리한다.
 std::string TrimToken(std::string value) {
     while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front())) != 0) {
@@ -545,6 +556,10 @@ app::AppConfig LoadAppConfig() {
         ReadIntEnv(kEnvAuthSessionTtlSeconds, config.auth_session_ttl_seconds);
     config.auth_cookie_name = ReadStringEnv(kEnvAuthCookieName, config.auth_cookie_name);
     config.auth_cookie_secure = ReadBoolEnv(kEnvAuthCookieSecure, config.auth_cookie_secure);
+    config.ui_default_home = ToLower(ReadStringEnv(kEnvUiDefaultHome, config.ui_default_home));
+    config.enable_lab = ReadBoolEnv(kEnvEnableLab, config.enable_lab);
+    config.enable_ops = ReadBoolEnv(kEnvEnableOps, config.enable_ops);
+    config.enable_client = ReadBoolEnv(kEnvEnableClient, config.enable_client);
     config.file_root_path = ReadStringEnv(kEnvFileRoot, config.file_root_path);
     config.default_file_path = ReadStringEnv(kEnvDefaultFile, config.default_file_path);
     config.webrtc_va_metadata_channel_enabled =
@@ -1556,6 +1571,11 @@ app::AppConfig LoadAppConfig() {
     if (!IsSafeCookieName(config.auth_cookie_name)) {
         std::cerr << "[env] auth cookie name must use letters, digits, '_' or '-', fallback media_server_session\n";
         config.auth_cookie_name = "media_server_session";
+    }
+    if (config.ui_default_home != "lab" && config.ui_default_home != "ops" &&
+        config.ui_default_home != "client") {
+        std::cerr << "[env] MEDIA_SERVER_UI_DEFAULT_HOME must be lab, ops, or client, fallback lab\n";
+        config.ui_default_home = "lab";
     }
     config.auth_users_file = ResolveRuntimePath(config.auth_users_file);
     return config;

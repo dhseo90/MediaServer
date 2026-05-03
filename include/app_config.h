@@ -35,6 +35,10 @@ struct AppConfig {
     int auth_session_ttl_seconds{86400};
     std::string auth_cookie_name{"media_server_session"};
     bool auth_cookie_secure{false};
+    std::string ui_default_home{"lab"};
+    bool enable_lab{true};
+    bool enable_ops{true};
+    bool enable_client{true};
     std::string file_root_path{app_config::kFileRootPath};
     std::string default_file_path{app_config::kDefaultFilePath};
     bool webrtc_va_metadata_channel_enabled{app_config::kDefaultWebRtcVaMetadataChannelEnabled};

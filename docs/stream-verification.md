@@ -78,6 +78,28 @@ curl -fsS -b /tmp/media-server.cookies -X POST 'http://127.0.0.1:8080/logout'
 
 확인 기준은 auth off에서 dev admin principal이 반환되고, token mode에서 admin/operator/viewer/integrator token별 role과 scope가 반환되며, 누락/invalid token은 `401`을 반환하는 것입니다. Session mode에서는 `/login` 렌더링, 로그인 성공 후 `/auth/whoami` principal 반환, logout 후 cookie principal 제거, 잘못된 로그인 `401` 또는 실패 메시지를 확인합니다. `?token=` query는 개발 smoke용으로만 사용하고 운영 검증에서는 Bearer header를 우선합니다.
 
+Route smoke:
+
+```bash
+MEDIA_SERVER_AUTH_MODE=off MEDIA_SERVER_UI_DEFAULT_HOME=lab ./server.sh foreground
+curl -fsS -D - -o /tmp/root.out 'http://127.0.0.1:8080/'
+
+MEDIA_SERVER_AUTH_MODE=off MEDIA_SERVER_UI_DEFAULT_HOME=client ./server.sh foreground
+curl -fsS -D - -o /tmp/root.out 'http://127.0.0.1:8080/'
+
+MEDIA_SERVER_AUTH_MODE=token \
+MEDIA_SERVER_AUTH_ADMIN_TOKEN=admin-token \
+MEDIA_SERVER_AUTH_OPERATOR_TOKEN=operator-token \
+MEDIA_SERVER_AUTH_VIEWER_TOKEN=viewer-token \
+  ./server.sh foreground
+curl -fsS -D - -o /tmp/root-admin.out -H 'Authorization: Bearer admin-token' 'http://127.0.0.1:8080/'
+curl -fsS -D - -o /tmp/root-viewer.out -H 'Authorization: Bearer viewer-token' 'http://127.0.0.1:8080/'
+curl -fsS -D - -o /tmp/root-unauth.out 'http://127.0.0.1:8080/'
+curl -fsS -i -H 'Authorization: Bearer viewer-token' 'http://127.0.0.1:8080/ops'
+```
+
+확인 기준은 auth off + `lab` home에서 `/ -> /lab`, auth off + `client` home에서 `/ -> /client/live`, admin/operator token에서 `/ -> /ops/live`, viewer token에서 `/ -> /client/live`, 미인증 auth-on 요청에서 `/ -> /login`, viewer의 `/ops` 접근에서 `403`입니다. `/lab/rules`, `/webrtc/session`, `/whep`, RTSP route는 기존 검증 명령으로 계속 확인합니다.
+
 ## 장기 테스트 명령
 
 30분 이상 사전 안정성 검증:

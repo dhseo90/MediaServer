@@ -79,6 +79,9 @@ YOLO Detection
 
 | 용도 | 예시 |
 | --- | --- |
+| Root entry | `http://127.0.0.1:8080/` |
+| 운영 콘솔 | `http://127.0.0.1:8080/ops/live` |
+| 클라이언트 포털 | `http://127.0.0.1:8080/client/live` |
 | Lab | `http://127.0.0.1:8080/lab` |
 | 영상 분석 관리 | `http://127.0.0.1:8080/lab/rules` |
 | RTSP | `rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4` |
