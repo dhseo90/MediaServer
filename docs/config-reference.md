@@ -304,6 +304,11 @@ close-object guard는 lightweight direction-based tracker 내부의 opt-in 진�
 | `MEDIA_SERVER_ANALYSIS_RE_ENTRY_TARGET_CLASSES` | scenario default |
 | `MEDIA_SERVER_ANALYSIS_RE_ENTRY_TARGET_ZONE_IDS` | scenario default |
 
+ReEntry 상태:
+
+- 룰 편집 UI에서 선택 가능
+- Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직 변경 없음
+
 ### WrongDirection
 
 | 환경변수 | 기본값 |
@@ -334,6 +339,12 @@ WrongDirection 상태:
 | `MEDIA_SERVER_ANALYSIS_INTRUSION_AFTER_LINE_CROSSING_TARGET_LINE_IDS` | scenario default |
 | `MEDIA_SERVER_ANALYSIS_INTRUSION_AFTER_LINE_CROSSING_TARGET_ZONE_IDS` | scenario default |
 
+IntrusionAfterLineCrossing 상태:
+
+- 룰 편집 UI에서 선택 가능
+- 기존 `line-crossing` 기본 이벤트 유지
+- Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직 변경 없음
+
 ### Loitering
 
 | 환경변수 | 기본값 |
@@ -346,6 +357,11 @@ WrongDirection 상태:
 | `MEDIA_SERVER_ANALYSIS_LOITERING_TARGET_CLASSES` | scenario default |
 | `MEDIA_SERVER_ANALYSIS_LOITERING_TARGET_ZONE_IDS` | scenario default |
 | `MEDIA_SERVER_ANALYSIS_LOITERING_USE_GROUND_PLANE` | `0` |
+
+Loitering 상태:
+
+- engine/replay 기준은 존재하지만 전용 룰 편집 UI 템플릿은 다음 작업
+- ZoneOccupancyScenario 신규 구현도 다음 작업으로 분리
 
 ## Event POST env
 

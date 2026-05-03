@@ -103,6 +103,14 @@ YOLO Detection
 
 RTSP 일반 viewer는 WebRTC DataChannel metadata를 표시하지 않습니다. custom client가 metadata를 따로 소비해야 할 때는 RTSP raw stream과 SSE/WS metadata side-channel을 별도로 조합합니다. 자세한 정책은 [docs/ui-guide.md](docs/ui-guide.md)와 [docs/video-analysis.md](docs/video-analysis.md)를 봅니다.
 
+## 시나리오 로드맵 상태
+
+- 완료: Runtime Dashboard trend/stale/cleanup warning 1차, scenario rule payload의 runtime per-rule 설정 연결, ReEntry와 IntrusionAfterLineCrossing의 룰 편집 UI 선택/저장 템플릿.
+- 다음 작업: Loitering UI 템플릿과 ZoneOccupancyScenario 신규 구현.
+- 후속 Phase: Auth / Role / Scope, SourceRegistry / PublishedView, `/ops` / `/client` / `/lab` route 분리, client/operator live portal, client scoped dashboard, analysis tap reuse / source+profile 공유 정책.
+
+이 로드맵 정리는 기존 Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema, Scenario 판단 로직 변경을 의미하지 않습니다. snapshot/clip hook은 marker 중심의 후속 연결점이며 VMS/NVR 녹화 기능이 아닙니다.
+
 ## 테스트 요약
 
 기본 회귀:

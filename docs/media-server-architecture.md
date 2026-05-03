@@ -323,6 +323,7 @@ GET /lab/analysis/event-storage/status
 | WebRTC DataChannel | opt-in | runtime metadata frame을 기존 WebRTC schema로 직렬화해 video stream과 별도로 전달 |
 | Runtime Metadata Side-Channel | SSE/WebSocket 최소 구현 | custom client가 RTSP video와 별도 metadata stream을 함께 소비 |
 | 런타임 대시보드 | 구현 완료 | active session/stream/tap, VA metrics, state dump, tracking issue report를 Lab에서 확인 |
+| Scenario UI | 일부 완료, 일부 다음 작업 | ReEntry/IntrusionAfterLineCrossing은 룰 편집 UI에서 선택 가능. Loitering UI와 ZoneOccupancyScenario는 다음 작업 |
 | Re-ID hook | 기본 NoOp, 실험용 extractor hook | appearance profile과 reacquire/low confidence association 보조 |
 | Homography | optional config | image point를 ground-plane point로 변환해 distance/speed/radius 계산 보조 |
 | Snapshot/Clip hook | marker hook 중심 | EventRecord와 snapshot/clip path 연결. 실제 recorder는 후속 |

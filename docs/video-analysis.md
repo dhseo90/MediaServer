@@ -248,10 +248,11 @@ Scenario는 여러 frame에 걸친 상태 전이와 시간 조건을 평가합�
 | 시나리오 | 상태 | 이벤트 타입 |
 | --- | --- | --- |
 | IntrusionDwell | 구현됨, UI 템플릿 제공 | `intrusion-dwell` |
-| ReEntry | 구현됨, UI 템플릿 제공 | `re-entry` |
+| ReEntry | 구현됨, 룰 편집 UI에서 선택 가능 | `re-entry` |
 | WrongDirection | 구현됨, UI 템플릿 제공 | `wrong-direction` |
-| IntrusionAfterLineCrossing | 구현됨, UI 템플릿 제공 | `intrusion-after-line-crossing` |
-| Loitering | 구현됨, 전용 UI 템플릿 후속 | `loitering` |
+| IntrusionAfterLineCrossing | 구현됨, 룰 편집 UI에서 선택 가능 | `intrusion-after-line-crossing` |
+| Loitering | 구현됨, 전용 UI 템플릿 다음 작업 | `loitering` |
+| ZoneOccupancyScenario | 다음 작업, 신규 구현 예정 | `zone-occupancy` |
 
 ### IntrusionDwell
 
@@ -340,6 +341,12 @@ Idle -> LineCrossed -> ZoneEntered -> Observing -> Confirmed -> Cooldown -> Ende
 ### Loitering
 
 target zone 내부 dwell time과 downsampled trajectory movement radius를 조합해 배회 상황을 판단합니다. 복잡한 행동 인식 모델 없이 trajectory 기반 최소 구현입니다.
+
+전용 룰 편집 UI 템플릿은 다음 작업입니다. 현재 재개 범위는 UI 템플릿과 fixture/threshold 검증이며, Event POST payload, WebRTC/SSE/WS metadata schema, 기존 Scenario 판단 로직 변경으로 표현하지 않습니다.
+
+### ZoneOccupancyScenario
+
+특정 zone 내부 동시 track 수가 threshold 이상일 때 occupancy/crowd 계열 scenario event를 내는 신규 scenario 후보입니다. Loitering UI 템플릿 이후 다음 작업으로 재개하며, 기존 Intrusion/LineCrossing/IntrusionDwell/ReEntry/WrongDirection/IntrusionAfterLineCrossing 판단 흐름을 바꾸는 작업으로 다루지 않습니다.
 
 ## 7. TrackState / TrackHealth
 
