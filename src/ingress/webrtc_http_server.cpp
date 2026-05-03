@@ -12785,6 +12785,22 @@ std::string BuildLabRuleEditorPageHtml() {
 	      return String(value || '').trim().replace(/\\/g, '/').replace(/\/+/g, '/').replace(/\/+$/, '');
 	    }
 
+	    function dashboardSourceDisplay(value) {
+	      const raw = String(value || '').trim();
+	      if (!raw) return '-';
+	      const normalized = raw.replace(/\\/g, '/');
+	      const filePrefix = normalized.startsWith('file::') ? 'file::' : (normalized.startsWith('file:') ? 'file:' : '');
+	      if (filePrefix) {
+	        const filePath = normalized.slice(filePrefix.length);
+	        const videoIndex = filePath.indexOf('/video/');
+	        const displayPath = videoIndex >= 0
+	          ? filePath.slice(videoIndex + '/video/'.length)
+	          : filePath.split('/').filter(Boolean).pop();
+	        return `file=${displayPath || '<file>'}`;
+	      }
+	      return normalized;
+	    }
+
 	    function dashboardTapMatchesRuleSource(tap, rule) {
 	      if (!tap || !rule) return false;
 	      const source = rule.source || {};
@@ -13767,7 +13783,7 @@ std::string BuildLabRuleEditorPageHtml() {
           ? `마지막 갱신 ${new Date().toLocaleTimeString('ko-KR')} · tap ${dashboardLastTapId || '-'}`
           : `보기 탭에서 보기 시작 후 표시됩니다 · 마지막 갱신 ${new Date().toLocaleTimeString('ko-KR')}`
       );
-      dashboardSet('dashboardOverviewSummary', selectedTap ? `${selectedTap.tapId || '-'} · ${selectedTap.streamKey || '-'}` : '표시할 tap 없음 · 영상 분석 보기에서 보기 시작 후 표시됩니다');
+      dashboardSet('dashboardOverviewSummary', selectedTap ? `${selectedTap.tapId || '-'} · ${dashboardSourceDisplay(selectedTap.streamKey || '-')}` : '표시할 tap 없음 · 영상 분석 보기에서 보기 시작 후 표시됩니다');
 	      renderDashboardEvents(tapEvents, tapMetrics, stateDump, dashboardLastTapId);
 	      renderDashboardVaRuleDebug({ selectedTap, tapMetrics, stateDump });
 	      renderDashboardTracks(stateDump, tapMetrics);
