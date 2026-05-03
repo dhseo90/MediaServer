@@ -51,7 +51,7 @@ Ops/Client shell 변경은 아직 전용 자동 검증 명령이 없으므로, a
 ```bash
 BASE=http://127.0.0.1:8080
 for path in \
-  /ops /ops/live /ops/dashboard /ops/sources /ops/rules /ops/events /ops/users \
+  /ops /ops/home /ops/live /ops/dashboard /ops/sources /ops/rules /ops/events /ops/users \
   /client /client/live /client/dashboard /client/events /lab /lab/rules
 do
   curl -fsS -D "/tmp/media-server-ui${path//\//_}.headers" \
@@ -68,7 +68,7 @@ fi
 
 확인 기준:
 
-- `/ops`, `/ops/live`, `/ops/dashboard`, `/ops/events`, `/ops/sources`, `/ops/rules`, `/ops/users`는 HTML을 반환하고 공통 Ops Console header/nav를 유지합니다.
+- `/ops`, `/ops/home`, `/ops/live`, `/ops/dashboard`, `/ops/events`, `/ops/sources`, `/ops/rules`, `/ops/users`는 HTML을 반환하고 공통 Ops Console header/nav를 유지합니다. Primary nav는 Home, Dashboard, Sources, Rules, Events, Users이며 `/ops/live`는 후속 Operator Live Monitor 안내 route로 남깁니다.
 - `/ops/dashboard`와 `/ops/events`의 nav/action은 `/lab/runtime/status`, `/lab/analysis/event-post/status`, `/lab/analysis/events/records` 같은 JSON endpoint로 직접 이동하지 않습니다. 필요한 JSON은 fetch 후 card/table/badge로 표시하고 raw JSON은 접힘 debug 영역에만 둡니다.
 - `/ops/sources`는 SourceRegistry/PublishedView form과 list table을 보여주며 source 원본 URL은 ops 화면에만 표시합니다.
 - `/ops/users`는 form/table/action UI를 보여주며 `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`를 노출하지 않습니다.
@@ -125,7 +125,7 @@ MEDIA_SERVER_AUTH_USERS_FILE=/path/to/users.json \
   ./server.sh auth-user list
 ```
 
-확인 기준은 auto mode에서 users file이 없거나 admin passwordHash가 없으면 `/setup`으로 이동하고 `/auth/whoami`가 `setupRequired=true`를 반환하는 것입니다. Auth off에서는 dev admin principal이 반환되고, token mode에서 admin/operator/viewer/integrator token별 role과 scope가 반환되며, 누락/invalid token은 `401`을 반환합니다. Session/auto setup 완료 후에는 `/login` 렌더링, 로그인 성공 후 `/auth/whoami` principal 반환, logout 후 cookie principal 제거, 잘못된 로그인 `401` 또는 실패 메시지를 확인합니다. Password policy smoke는 약한 비밀번호/username 포함 비밀번호 거부, 3종류 8자 이상 허용, 2종류 10자 이상 허용, password history 재사용 거부를 확인합니다. Lockout smoke는 실패 N회 후 lockout 메시지와 `lockedUntil` 저장, lockout 만료 후 정상 로그인, TTL/idle timeout 만료 후 `/auth/whoami` 401을 확인합니다. Admin user smoke는 admin만 `/ops/users`와 `/ops/api/users`에 접근 가능하고, viewer는 `403`, viewer 생성/로그인, reset-password 후 mustChangePassword flow, disabled user 로그인 거부, CLI add/list/reset/disable 동작을 확인합니다. Invite/request smoke는 invite token 원문이 생성 응답에서 한 번만 표시되고 hash만 저장되는지, pending access request가 admin approve 전에는 login/view 접근을 만들지 않는지 확인합니다. `?token=` query는 개발 smoke용으로만 사용하고 운영 검증에서는 Bearer header를 우선합니다.
+확인 기준은 auto mode에서 users file이 없거나 admin passwordHash가 없으면 `/setup`으로 이동하고 `/auth/whoami`가 `setupRequired=true`를 반환하는 것입니다. Auth off에서는 dev admin principal이 반환되고, token mode에서 admin/operator/viewer/integrator token별 role과 scope가 반환되며, 누락/invalid token은 `401`을 반환합니다. Session/auto setup 완료 후에는 `/login` 렌더링, 로그인 성공 후 `/auth/whoami` principal 반환, logout 후 cookie principal 제거, 잘못된 로그인 `401` 또는 실패 메시지를 확인합니다. Password policy smoke는 약한 비밀번호/username 포함 비밀번호 거부, 3종류 8자 이상 허용, 2종류 10자 이상 허용, password history 재사용 거부를 확인합니다. Lockout smoke는 실패 N회 후 lockout 메시지와 `lockedUntil` 저장, lockout 만료 후 정상 로그인, TTL/idle timeout 만료 후 `/auth/whoami` 401을 확인합니다. Admin user smoke는 admin만 `/ops/users`와 `/ops/api/users`에 접근 가능하고, viewer는 `403`, low-level CLI add/list/reset/disable 동작을 확인합니다. Product UI smoke는 `/ops/users`가 임시 비밀번호 입력 없이 setup invite를 발급하고 사용자가 `/invite/setup`에서 직접 비밀번호를 설정하는지 확인합니다. Invite/request smoke는 invite token 원문이 생성 응답에서 한 번만 표시되고 hash만 저장되는지, pending access request가 admin approve 전에는 login/view 접근을 만들지 않는지 확인합니다. `?token=` query는 개발 smoke용으로만 사용하고 운영 검증에서는 Bearer header를 우선합니다.
 
 Route smoke:
 
@@ -147,7 +147,7 @@ curl -fsS -D - -o /tmp/root-unauth.out 'http://127.0.0.1:8080/'
 curl -fsS -i -H 'Authorization: Bearer viewer-token' 'http://127.0.0.1:8080/ops'
 ```
 
-확인 기준은 auth off + `lab` home에서 `/ -> /lab`, auth off + `client` home에서 `/ -> /client/live`, admin/operator token에서 `/ -> /ops/live`, viewer token에서 `/ -> /client/live`, 미인증 auth-on 요청에서 `/ -> /login`, viewer의 `/ops` 접근에서 `403`, viewer의 `/lab` 접근에서 `403`입니다. `/ops`는 admin/operator role과 `ops:read` scope를 함께 요구하고, `/lab`은 admin/operator 또는 `lab:read` scope를 요구합니다. `/lab/rules`, `/webrtc/session`, `/whep`, RTSP route는 기존 검증 명령으로 계속 확인합니다.
+확인 기준은 auth off + `lab` home에서 `/ -> /lab`, auth off + `client` home에서 `/ -> /client/live`, admin/operator token에서 `/ -> /ops/home`, viewer token에서 `/ -> /client/live`, 미인증 auth-on 요청에서 `/ -> /login`, viewer의 `/ops` 접근에서 `403`, viewer의 `/lab` 접근에서 `403`입니다. `/ops`는 admin/operator role과 `ops:read` scope를 함께 요구하고, `/lab`은 admin/operator 또는 `lab:read` scope를 요구합니다. `/lab/rules`, `/webrtc/session`, `/whep`, RTSP route는 기존 검증 명령으로 계속 확인합니다.
 
 ## 장기 테스트 명령
 

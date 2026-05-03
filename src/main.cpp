@@ -102,7 +102,7 @@ std::string ReadPasswordForCli(const std::vector<std::string>& args, bool confir
         std::getline(std::cin, value);
         return value;
     }
-    const std::string password = ReadSecretLine("Temporary password: ");
+    const std::string password = ReadSecretLine("Password to set: ");
     if (confirm) {
         const std::string again = ReadSecretLine("Confirm password: ");
         if (password != again) {

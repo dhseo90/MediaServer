@@ -150,7 +150,7 @@ login_admin() {
   landing="$(curl -sS -c "${ADMIN_COOKIE}" -o /dev/null -D - \
     -X POST -d 'username=admin&password=Strong!91' "${BASE}/login" |
     tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
-  expect_eq "${landing}" "302:/ops/live" "admin login landing"
+  expect_eq "${landing}" "302:/ops/home" "admin login landing"
   whoami="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/auth/whoami")"
   case "${whoami}" in
     *'"role":"admin"'*) pass "admin whoami role" ;;
@@ -263,14 +263,14 @@ run_routes() {
   setup_admin
   expect_eq "$(header_status_location "${BASE}/")" "302:/login" "logout root"
   login_admin
-  expect_eq "$(header_status_location -b "${ADMIN_COOKIE}" "${BASE}/")" "302:/ops/live" "admin root"
+  expect_eq "$(header_status_location -b "${ADMIN_COOKIE}" "${BASE}/")" "302:/ops/home" "admin root"
   create_user '{"username":"operator-smoke","displayName":"Operator Smoke","role":"operator","password":"Operator!91","enabled":true,"mustChangePassword":false}' >/dev/null
   create_user '{"username":"viewer-smoke","displayName":"Viewer Smoke","role":"viewer","viewId":"view-a","password":"Viewer!91","enabled":true,"mustChangePassword":false}' >/dev/null
   local op_landing viewer_landing
   op_landing="$(curl -sS -c "${OP_COOKIE}" -o /dev/null -D - \
     -X POST -d 'username=operator-smoke&password=Operator!91' "${BASE}/login" |
     tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
-  expect_eq "${op_landing}" "302:/ops/live" "operator login route"
+  expect_eq "${op_landing}" "302:/ops/home" "operator login route"
   viewer_landing="$(curl -sS -c "${VIEWER_COOKIE}" -o /dev/null -D - \
     -X POST -d 'username=viewer-smoke&password=Viewer!91' "${BASE}/login" |
     tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"

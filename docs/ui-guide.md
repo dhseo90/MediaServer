@@ -9,7 +9,7 @@
 | Root entry | `http://127.0.0.1:8080/` | auth mode와 role에 따른 진입점 |
 | 최초 관리자 설정 | `http://127.0.0.1:8080/setup` | setup required 상태에서 admin password bootstrap |
 | 로그인 | `http://127.0.0.1:8080/login` | session mode에서 계정 로그인과 role별 landing 이동 |
-| 운영 콘솔 | `http://127.0.0.1:8080/ops` 또는 `/ops/live` | admin/operator용 운영 shell과 운영 홈 summary MVP |
+| 운영 콘솔 | `http://127.0.0.1:8080/ops` 또는 `/ops/home` | admin/operator용 운영 shell과 운영 홈 summary MVP |
 | 운영 Dashboard | `http://127.0.0.1:8080/ops/dashboard` | runtime status를 card/detail UI로 표시 |
 | 운영 Events | `http://127.0.0.1:8080/ops/events` | EventRecord/Event POST/storage 상태를 card/table UI로 표시 |
 | Source/View 관리 | `http://127.0.0.1:8080/ops/sources` | admin/operator용 SourceRegistry와 PublishedView 관리 MVP |
@@ -50,36 +50,36 @@ Password policy 기본값은 `kr-privacy`입니다. `/setup`과 `/password/chang
 
 Role별 이동:
 
-- `admin`, `operator`: `/ops/live`
+- `admin`, `operator`: `/ops/home`
 - `viewer`: `/client/live`
 - `integrator`: UI landing 없이 metadata/event API 연동용 token 사용을 우선합니다.
 
-Login page는 username/password 입력, 실패/lockout 메시지, 로그인 후 현재 사용자/role 표시, logout 버튼만 제공하는 MVP입니다. `/`는 setup required 상태에서 `/setup`, auth off에서 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/live`, `/client/live`, auth on에서 admin/operator를 `/ops/live`, viewer를 `/client/live`, 미인증 요청을 `/login`으로 보냅니다. 비밀번호 변경 성공 시 기존 session은 폐기되고 `/login`에서 다시 로그인합니다.
+Login page는 username/password 입력, 실패/lockout 메시지, 로그인 후 현재 사용자/role 표시, logout 버튼만 제공하는 MVP입니다. `/`는 setup required 상태에서 `/setup`, auth off에서 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/home`, `/client/live`, auth on에서 admin/operator를 `/ops/home`, viewer를 `/client/live`, 미인증 요청을 `/login`으로 보냅니다. 비밀번호 변경 성공 시 기존 session은 폐기되고 `/login`에서 다시 로그인합니다.
 
-클라이언트 계정의 1차 정책은 admin 수동 생성입니다. admin은 `/ops/users` 또는 `./server.sh auth-user` CLI에서 `viewer` role 계정을 만들고, `/ops/users`에서 password setup invite를 발급할 수 있습니다. Self-signup 자동 승인은 제공하지 않습니다. `/client/request-access`는 pending request만 저장하며, admin 승인 전에는 계정 생성, session login, view 접근이 허용되지 않습니다. PublishedView 단위 접근은 `view:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`, `dashboard:read:{viewId}` scope로 제한합니다.
+클라이언트 계정의 1차 정책은 admin 수동 승인과 setup invite입니다. admin은 `/ops/users`에서 role/scope metadata를 입력해 password setup invite를 발급하고, 실제 비밀번호는 사용자가 `/invite/setup`에서 직접 입력합니다. Self-signup 자동 승인은 제공하지 않습니다. `/client/request-access`는 pending request만 저장하며, admin 승인 전에는 계정 생성, session login, view 접근이 허용되지 않습니다. PublishedView 단위 접근은 `view:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`, `dashboard:read:{viewId}` scope로 제한합니다.
 
 Route 역할:
 
-- `/ops`: admin/operator 전용 운영 shell이며 `ops:read` scope가 필요합니다. Live, Dashboard, Sources, Rules, Events navigation을 같은 header/nav 아래에서 제공하고, Users는 admin 전용 관리 route입니다. Dashboard와 Events는 `/lab/runtime/status`, EventRecord/Event POST/storage JSON API를 fetch해 card/table/badge로 렌더링하고 raw JSON은 접힘 영역에만 둡니다. Rules는 `/ops/rules` shell 안에서 기존 Lab Rule Editor를 명시적으로 여는 안내 card를 제공합니다.
+- `/ops`: admin/operator 전용 운영 shell이며 `ops:read` scope가 필요합니다. Home, Dashboard, Sources, Rules, Events navigation을 같은 header/nav 아래에서 제공하고, Users는 admin 전용 관리 route입니다. `/ops/home`은 운영 overview이고 `/ops/live`는 후속 Operator Live Monitor 안내 route입니다. Dashboard와 Events는 `/lab/runtime/status`, EventRecord/Event POST/storage JSON API를 fetch해 card/table/badge로 렌더링하고 raw JSON은 접힘 영역에만 둡니다. Rules는 `/ops/rules` shell 안에서 기존 Lab Rule Editor를 명시적으로 여는 안내 card를 제공합니다.
 - `/client`: viewer/operator/admin 접근 shell입니다. `/client/api/views` 기준으로 할당된 PublishedView만 표시하며 원본 source URL, debug/developer URL은 노출하지 않습니다.
 - `/lab`: admin/operator 또는 `lab:read` scope용 개발/검증 shell입니다. viewer/client 기본 계정은 접근할 수 없고, 기존 `/lab/rules`와 자동화 bookmark 호환은 auth off 검증 모드에서 유지합니다.
 
-Shell navigation은 server-side principal로 1차 렌더링하고 `/auth/whoami` 응답으로 admin-only, ops, lab menu를 다시 숨김 처리합니다. Guard 실패 시 browser shell route는 login 또는 forbidden page를 보여주고, API route는 JSON `401`/`403`을 반환합니다.
+Shell navigation은 server-side principal로 1차 렌더링하고 `/auth/whoami` 응답으로 admin-only menu를 다시 숨김 처리합니다. Client shell의 primary nav는 viewer용 Live/Dashboard/Events만 유지하며 admin/operator preview는 별도 preview banner와 Back to Ops 액션으로 구분합니다. Guard 실패 시 browser shell route는 login 또는 forbidden page를 보여주고, API route는 JSON `401`/`403`을 반환합니다.
 
 Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`로 확인합니다. 기존 Lab 자동화는 명시적인 auth off 검증 모드에서 계속 `/lab/rules` 3탭 구조를 기준으로 동작합니다.
 
 ## 3. Admin User Management
 
-`/ops/users`는 admin 전용 계정 관리 MVP 화면입니다. 공통 Ops shell 안에서 create/update form, invite/request form, user table, pending request table을 card/table/form 스타일로 표시합니다. User list는 username, displayName, role, enabled, scopes count, lastLoginAt, lockedUntil, mustChangePassword, actions를 표시하며 `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`는 UI/API 응답에 노출하지 않습니다.
+`/ops/users`는 admin 전용 계정 관리 MVP 화면입니다. 공통 Ops shell 안에서 invite/update form, user table, pending request table을 card/table/form 스타일로 표시합니다. User list는 username, displayName, role, enabled, scopes count, lastLoginAt, lockedUntil, mustChangePassword, actions를 표시하며 `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`는 UI/API 응답에 노출하지 않습니다.
 
 지원 동작:
 
-- 계정 생성: username, displayName, role, viewId 또는 직접 scopes, temporary password, enabled, mustChangePassword를 저장합니다.
+- 계정 생성: admin이 username, displayName, role, viewId 또는 직접 scopes를 입력해 setup invite를 발급합니다. 비밀번호는 invite를 받은 사용자가 `/invite/setup`에서 직접 입력합니다.
 - 계정 수정: displayName, role, scopes, enabled, mustChangePassword를 변경합니다.
-- 비밀번호 초기화: admin이 임시 비밀번호를 설정하고 `mustChangePassword=true`로 전환합니다.
+- 비밀번호 초기화: Ops UI에서는 비밀번호를 대신 지정하지 않고 setup invite를 재발급합니다.
 - enable/disable: hard delete 대신 disable을 사용합니다. 마지막 활성 admin 계정은 비활성화하거나 다른 role로 변경할 수 없습니다.
 - viewer UX: `role=viewer` 또는 `integrator` 선택 시 view/scope assignment 영역을 보여줍니다. PublishedView가 아직 연결되지 않은 환경에서는 `viewId` 또는 `view:read:{viewId}` 같은 문자열 scope를 직접 입력합니다. viewer에는 debug/lab/ops/source/rule 관리 scope를 부여하지 않습니다.
-- invite: admin이 viewer invite token을 발급하면 원문 token은 생성 응답에서 한 번만 표시됩니다. 저장소에는 `tokenHash`, 만료 시각, 사용 여부만 남고, `/invite/setup`에서 비밀번호 설정이 끝나면 token hash는 폐기됩니다.
+- invite: admin이 setup invite token을 발급하면 원문 token은 생성 응답에서 한 번만 표시됩니다. 저장소에는 `tokenHash`, 만료 시각, 사용 여부만 남고, `/invite/setup`에서 비밀번호 설정이 끝나면 token hash는 폐기됩니다.
 - request: `/client/request-access` 또는 `POST /client/api/access-requests`로 들어온 요청은 `pending`으로 저장됩니다. `/ops/users` pending list에서 admin이 approve하면 viewer 계정과 password setup invite가 만들어지고, reject하면 계정이나 session은 생성하지 않습니다.
 
 Role별 scope template:
