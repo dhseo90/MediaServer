@@ -192,7 +192,8 @@ Scenario는 여러 frame에 걸친 시간 조건과 상태 전이를 판단하�
 | ReEntry | 구현됨 | 룰 편집 UI에서 선택 가능 |
 | WrongDirection | 구현됨 | 룰 편집 UI에서 선택 가능 |
 | IntrusionAfterLineCrossing | 구현됨 | 룰 편집 UI에서 선택 가능 |
-| Loitering | 구현됨 | 전용 UI 템플릿은 후속 작업 |
+| Loitering | 구현됨 | 전용 UI 템플릿은 다음 작업 |
+| ZoneOccupancyScenario | 다음 작업 | 신규 scenario/UI 구현 예정 |
 
 현재 UI가 제공하는 시나리오 템플릿:
 

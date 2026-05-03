@@ -7,6 +7,8 @@
 - `예정`: 아직 구현하지 않은 작업
 - `진행`: 현재 정리 또는 검토 중인 작업
 - `실험`: 기본 비활성 또는 제한된 조건에서만 확인한 작업
+- `다음 작업`: 현재 재개할 작업 묶음의 다음 구현 대상
+- `후속 Phase`: 현재 재개 묶음 뒤에 별도 phase로 관리할 작업
 - `보류`: 외부 credential, 모델, 운영 정책 등 선행 조건이 필요한 작업
 - `완료`: 구현/검증 완료. 상세 이력은 history 문서에 보관
 
@@ -17,15 +19,17 @@
 - 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage/query/search UI, EventRecord rotation/retention/recovery 1차, snapshot/clip hook, WebRTC VA metadata DataChannel 출력 구조.
 - 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, client-side Trend/Stale/Cleanup warning 1차, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, IntrusionDwell/ReEntry/WrongDirection/IntrusionAfterLineCrossing scenario UI 템플릿, 자동/longrun 검증 명령.
 - 구현 완료: Auth / Role / Scope, account login/session MVP, SourceRegistry / PublishedView MVP, client scoped view API 1차, Client scoped dashboard MVP, Client Live Monitor 2x2 MVP.
+- 기존 Scenario UI 로드맵 1~4번 완료: Runtime Dashboard trend/stale/cleanup warning 1차, Scenario rule payload -> runtime per-rule 설정 연결, ReEntry Scenario UI 템플릿, IntrusionAfterLineCrossing Scenario UI 템플릿.
+- ReEntry와 IntrusionAfterLineCrossing은 룰 편집 UI에서 선택 가능하며 저장/round-trip 검증 대상입니다.
+- 다음 작업: 기존 Scenario UI 5~6번인 Loitering UI 템플릿과 ZoneOccupancyScenario 신규 구현을 재개합니다.
+- 후속 Phase: Auth / Role / Scope, SourceRegistry / PublishedView, `/ops` / `/client` / `/lab` route 분리, Client scoped dashboard, Client Live Monitor, Operator Live Monitor, Analysis tap reuse / source+profile 공유 정책은 아래 운영/클라이언트 분리 phase에서 별도로 관리합니다.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
-- 실험/제약: snapshot/clip은 hook/marker 중심이며 실제 제품용 frame extraction/clip recorder는 후속 구현입니다.
-- 신규 우선순위: Auth / Role / Scope, SourceRegistry / PublishedView, `/ops` / `/client` / `/lab` route 분리, Client scoped dashboard, Client Live Monitor, Operator Live Monitor, Analysis tap reuse / fanout 검증입니다.
-- 후속/보류: 기존 Scenario UI 5~6번인 Loitering UI 템플릿과 ZoneOccupancyScenario는 신규 운영/클라이언트 분리 로드맵 이후 재개합니다.
+- 실험/제약: snapshot/clip은 hook/marker 중심이며 실제 제품용 frame extraction/clip recorder는 후속 구현입니다. VMS/NVR 녹화 기능으로 표현하지 않습니다.
 - 남은 후속: EventRecord archive query/compaction, 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화(sparkline/장기 baseline), WS metadata filter/subscription/control, 실제 현장 샘플 기반 튜닝입니다.
 
-## 신규 우선순위 - 운영/클라이언트 분리
+## 후속 Phase - 운영/클라이언트/권한 분리
 
-이 섹션은 기존 Scenario UI 로드맵 1~4번 완료 이후의 다음 작업 순서입니다. Loitering UI 템플릿과 ZoneOccupancyScenario는 아래 운영/클라이언트 분리 기준이 잡힌 뒤 후속으로 재개합니다.
+이 섹션은 시나리오 확장 재개 묶음과 분리해 관리하는 운영/클라이언트/권한 계열 phase입니다. 현재 문서 기준의 다음 작업은 Loitering UI 템플릿과 ZoneOccupancyScenario이며, 아래 항목은 별도 후속 Phase의 기반/고도화 목록으로 유지합니다.
 
 ### O1. Auth / Role / Scope
 
@@ -435,12 +439,13 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 ./server.sh verify-va-replay
 ```
 
-- 후속/보류: Loitering 전용 UI 템플릿과 scenario 현장 fixture는 신규 운영/클라이언트 분리 로드맵 이후 재개합니다.
+- 다음 작업: Loitering 전용 UI 템플릿과 scenario 현장 fixture를 기존 Scenario UI 5번 묶음으로 재개합니다.
 
 ### P4-2. ReEntry Scenario UI 템플릿
 
 - 상태: 완료
 - 목적: 룰 편집 UI에서 ReEntry scenario를 선택하고 저장할 수 있게 합니다.
+- 문서 상태: 룰 편집 UI에서 선택 가능
 - 완료 범위:
   - Scenario template 목록에 ReEntry 추가
   - 재진입 window, cooldown, target zone, re-entry zone, unstable track exclude 설정
@@ -463,6 +468,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 - 상태: 완료
 - 목적: 룰 편집 UI에서 line crossing 이후 target zone dwell 조합 scenario를 선택하고 저장할 수 있게 합니다.
+- 문서 상태: 룰 편집 UI에서 선택 가능
 - 완료 범위:
   - Scenario template 목록에 IntrusionAfterLineCrossing 추가
   - trigger line id/direction/좌표와 target zone polygon 저장
@@ -485,9 +491,9 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ### P4-4. Loitering UI 템플릿 / 실제 샘플 튜닝
 
-- 상태: 보류
-- 목적: Loitering 전용 UI 템플릿과 실제 CCTV 샘플 기반 dwell time, movement radius, trajectory point 기준 튜닝을 후속으로 정리합니다.
-- 보류 이유: Auth / Role / Scope, SourceRegistry / PublishedView, `/ops` / `/client` / `/lab` route 분리, live monitor scope가 먼저 확정되어야 scenario template 노출 정책을 안정적으로 정할 수 있습니다.
+- 상태: 다음 작업
+- 목적: Loitering 전용 UI 템플릿과 실제 CCTV 샘플 기반 dwell time, movement radius, trajectory point 기준 튜닝을 재개합니다.
+- 재개 메모: 기존 Event POST payload, WebRTC/SSE/WS metadata schema, Scenario 판단 로직 변경 없이 UI 템플릿과 fixture/threshold 검증부터 진행합니다.
 - 관련 파일: `src/analysis/loitering_scenario.cpp`, `test/fixtures/va_replay/loitering_metadata.json`, `docs/video-analysis.md`
 - 재개 시 검증 명령:
 
@@ -502,9 +508,9 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ### P4-5. ZoneOccupancyScenario
 
-- 상태: 보류
+- 상태: 다음 작업
 - 목적: 특정 zone 내부 동시 track 수가 threshold 이상일 때 crowd/occupancy 이벤트를 발생시킵니다.
-- 보류 이유: 신규 운영/클라이언트 분리 로드맵에서 source/view scope와 live monitor 노출 정책을 먼저 정리한 뒤 scenario 추가 여부를 판단합니다.
+- 재개 메모: Loitering UI 템플릿 이후 신규 ScenarioEngine 확장 후보로 진행합니다. 기존 Event POST payload, WebRTC/SSE/WS metadata schema, 기존 scenario 판단 로직을 바꾸는 작업으로 표현하지 않습니다.
 - 관련 파일: `src/analysis/scenario_engine.cpp`, `src/analysis/scene_context_builder.cpp`, `include/analysis/scenario_engine.h`, `test/fixtures/va_replay/`
 - 재개 시 검증 명령:
 
