@@ -15815,6 +15815,40 @@ std::string PrincipalJson(const auth::Principal& principal) {
     return out.str();
 }
 
+std::string WhoamiJson(const auth::AuthResult& result,
+                       const auth::BootstrapState& bootstrap_state,
+                       const app::AppConfig& config) {
+    std::ostringstream out;
+    const bool authenticated = result.ok && result.principal.is_authenticated;
+    out << "{"
+        << "\"setupRequired\":" << (bootstrap_state.setup_required ? "true" : "false") << ","
+        << "\"setupReason\":\"" << JsonEscape(bootstrap_state.reason) << "\","
+        << "\"authMode\":\"" << JsonEscape(auth::AuthModeName(config.auth_mode)) << "\","
+        << "\"authenticated\":" << (authenticated ? "true" : "false") << ","
+        << "\"isAuthenticated\":" << (authenticated ? "true" : "false") << ","
+        << "\"passwordChangeRequired\":"
+        << (bootstrap_state.password_change_required ? "true" : "false") << ",";
+    if (authenticated) {
+        out << "\"role\":\"" << JsonEscape(result.principal.role) << "\","
+            << "\"displayName\":\"" << JsonEscape(result.principal.display_name) << "\","
+            << "\"scopes\":[";
+        for (std::size_t i = 0; i < result.principal.scopes.size(); ++i) {
+            if (i != 0) {
+                out << ",";
+            }
+            out << "\"" << JsonEscape(result.principal.scopes[i]) << "\"";
+        }
+        out << "]";
+    } else {
+        out << "\"role\":\"\","
+            << "\"displayName\":\"\","
+            << "\"scopes\":[],"
+            << "\"error\":\"" << JsonEscape(result.error) << "\"";
+    }
+    out << "}";
+    return out.str();
+}
+
 std::string HtmlEscape(const std::string& value) {
     std::string out;
     out.reserve(value.size() + 8);
@@ -15953,6 +15987,91 @@ std::string LoginPageHtml(const std::string& message, bool failed) {
         <input name="password" type="password" autocomplete="current-password" required />
       </label>
       <button type="submit">Login</button>
+    </form>
+  </main>
+</body>
+</html>)";
+    return out.str();
+}
+
+std::optional<std::string> SetupPasswordPolicyError(const std::string& username,
+                                                    const std::string& password,
+                                                    const std::string& confirm) {
+    if (password != confirm) {
+        return "비밀번호 확인이 일치하지 않습니다.";
+    }
+    if (password.size() < 12) {
+        return "비밀번호는 12자 이상이어야 합니다.";
+    }
+    if (password.find(username) != std::string::npos) {
+        return "비밀번호에 username을 그대로 포함할 수 없습니다.";
+    }
+    int classes = 0;
+    bool has_lower = false;
+    bool has_upper = false;
+    bool has_digit = false;
+    bool has_symbol = false;
+    for (const unsigned char ch : password) {
+        has_lower = has_lower || std::islower(ch) != 0;
+        has_upper = has_upper || std::isupper(ch) != 0;
+        has_digit = has_digit || std::isdigit(ch) != 0;
+        has_symbol = has_symbol || (!std::isalnum(ch) && !std::isspace(ch));
+    }
+    classes += has_lower ? 1 : 0;
+    classes += has_upper ? 1 : 0;
+    classes += has_digit ? 1 : 0;
+    classes += has_symbol ? 1 : 0;
+    if (classes < 3) {
+        return "비밀번호는 대문자, 소문자, 숫자, 특수문자 중 3종류 이상을 포함해야 합니다.";
+    }
+    return std::nullopt;
+}
+
+std::string SetupPageHtml(const std::string& message, bool failed) {
+    std::ostringstream out;
+    out << R"(<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MediaServer Setup</title>
+  <style>
+    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #111827; color: #f8fafc; }
+    main { width: min(460px, calc(100vw - 32px)); display: grid; gap: 16px; }
+    form { display: grid; gap: 12px; padding: 22px; border: 1px solid rgba(148,163,184,.35); border-radius: 8px; background: #0f172a; }
+    h1 { margin: 0; font-size: 24px; }
+    p { margin: 0; color: #cbd5e1; line-height: 1.5; }
+    label { display: grid; gap: 6px; color: #e2e8f0; font-weight: 700; }
+    input { min-height: 42px; border-radius: 6px; border: 1px solid #475569; padding: 0 12px; background: #020617; color: #f8fafc; font: inherit; }
+    input[readonly] { color: #cbd5e1; background: #111827; }
+    button { min-height: 44px; border: 0; border-radius: 6px; background: #38bdf8; color: #082f49; font-weight: 900; cursor: pointer; }
+    .message { padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #dbeafe; }
+    .message.error { border-color: #f87171; background: #451a1a; color: #fecaca; }
+    .hint { font-size: 13px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <main>
+    <form method="post" action="/setup">
+      <h1>Initial Admin Setup</h1>
+      <p>기본 admin 계정에는 비밀번호가 없습니다. 처음 한 번 강한 비밀번호를 설정한 뒤 로그인합니다.</p>
+)";
+    if (!message.empty()) {
+        out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
+            << HtmlEscape(message) << "</div>\n";
+    }
+    out << R"(      <label>Username
+        <input name="username" value="admin" readonly />
+      </label>
+      <label>Password
+        <input name="password" type="password" autocomplete="new-password" required />
+      </label>
+      <label>Confirm password
+        <input name="confirm" type="password" autocomplete="new-password" required />
+      </label>
+      <p class="hint">12자 이상, 대문자/소문자/숫자/특수문자 중 3종류 이상을 사용합니다.</p>
+      <button type="submit">Set admin password</button>
     </form>
   </main>
 </body>
@@ -20591,6 +20710,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                         const auto query = ParseQueryString(request.query);
                         const auto& config = app::GetAppConfig();
+                        const bool session_auth_mode = config.auth_mode == app::AuthMode::Session ||
+                                                       config.auth_mode == app::AuthMode::Auto;
+                        const bool setup_flow_enabled = session_auth_mode;
+                        const auth::BootstrapState bootstrap_state =
+                            setup_flow_enabled ? auth::InspectBootstrapState(config)
+                                               : auth::BootstrapState{};
                         auto cleanup_expired_auth_sessions = [&]() {
                             const auto now = std::chrono::system_clock::now();
                             for (auto it = impl_->auth_sessions.begin(); it != impl_->auth_sessions.end();) {
@@ -20618,7 +20743,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         auto build_request_principal = [&]() -> auth::AuthResult {
                             auth::AuthResult result =
                                 auth::BuildPrincipalFromRequest(config, request.headers, query);
-                            if (result.ok || config.auth_mode != app::AuthMode::Session) {
+                            if (result.ok || !session_auth_mode) {
                                 return result;
                             }
                             const auto session_principal = principal_from_session_cookie();
@@ -20817,8 +20942,83 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return ok;
                         }
 
+                        if (request.path == "/setup") {
+                            if (!setup_flow_enabled) {
+                                return JsonResponse(404,
+                                                    "Not Found",
+                                                    "{\"error\":\"setup is not enabled for this auth mode\"}");
+                            }
+                            if (!bootstrap_state.setup_required) {
+                                return RedirectResponse("/login");
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok;
+                                ok.content_type = "text/html; charset=utf-8";
+                                ok.headers["Cache-Control"] = "no-store";
+                                ok.body = SetupPageHtml(bootstrap_state.reason, false);
+                                return ok;
+                            }
+                            if (request.method == "POST") {
+                                if (!auth::PasswordHashingAvailable()) {
+                                    return JsonResponse(
+                                        503,
+                                        "Service Unavailable",
+                                        "{\"error\":\"safe password hashing is unavailable; build with libsodium\"}");
+                                }
+                                const auto form = ParseQueryString(request.body);
+                                const std::string username =
+                                    form.count("username") != 0 ? form.at("username") : std::string();
+                                const std::string password =
+                                    form.count("password") != 0 ? form.at("password") : std::string();
+                                const std::string confirm =
+                                    form.count("confirm") != 0 ? form.at("confirm") : std::string();
+                                auto policy_error = username == "admin"
+                                                        ? SetupPasswordPolicyError(username, password, confirm)
+                                                        : std::optional<std::string>(
+                                                              "최초 setup username은 admin이어야 합니다.");
+                                if (policy_error.has_value()) {
+                                    HttpResponse failed;
+                                    failed.status = 400;
+                                    failed.status_text = "Bad Request";
+                                    failed.content_type = "text/html; charset=utf-8";
+                                    failed.headers["Cache-Control"] = "no-store";
+                                    failed.body = SetupPageHtml(*policy_error, true);
+                                    return failed;
+                                }
+                                std::string setup_error;
+                                if (!auth::SaveBootstrapAdmin(config, password, &setup_error)) {
+                                    return JsonResponse(500,
+                                                        "Internal Server Error",
+                                                        "{\"error\":\"" + JsonEscape(setup_error) + "\"}");
+                                }
+                                return RedirectResponse("/login");
+                            }
+                            return JsonResponse(405,
+                                                "Method Not Allowed",
+                                                "{\"error\":\"method not allowed\"}");
+                        }
+
+                        if (setup_flow_enabled && bootstrap_state.setup_required) {
+                            if (request.path == "/auth/whoami") {
+                                HttpResponse ok =
+                                    JsonResponse(200, "OK", WhoamiJson(principal_result, bootstrap_state, config));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                            if (request.method == "GET" || request.method == "HEAD") {
+                                HttpResponse redirect = RedirectResponse("/setup");
+                                if (request.method == "HEAD") {
+                                    redirect.body.clear();
+                                }
+                                return redirect;
+                            }
+                            return JsonResponse(403,
+                                                "Forbidden",
+                                                "{\"error\":\"admin setup is required\"}");
+                        }
+
                         if (request.method == "GET" && request.path == "/login") {
-                            if (config.auth_mode == app::AuthMode::Session && principal_result.ok) {
+                            if (session_auth_mode && principal_result.ok) {
                                 return RedirectResponse(RoleLandingPath(principal_result.principal, config));
                             }
                             HttpResponse ok;
@@ -20831,7 +21031,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if (request.method == "POST" && request.path == "/login") {
-                            if (config.auth_mode != app::AuthMode::Session) {
+                            if (!session_auth_mode) {
                                 return JsonResponse(400,
                                                     "Bad Request",
                                                     "{\"error\":\"login requires MEDIA_SERVER_AUTH_MODE=session\"}");
@@ -20873,9 +21073,14 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                         if (request.method == "GET" && request.path == "/auth/whoami") {
                             if (!principal_result.ok) {
-                                return AuthErrorResponse(principal_result.error);
+                                HttpResponse failed = JsonResponse(
+                                    401, "Unauthorized", WhoamiJson(principal_result, bootstrap_state, config));
+                                failed.headers["WWW-Authenticate"] = "Bearer";
+                                failed.headers["Cache-Control"] = "no-store";
+                                return failed;
                             }
-                            HttpResponse ok = JsonResponse(200, "OK", PrincipalJson(principal_result.principal));
+                            HttpResponse ok =
+                                JsonResponse(200, "OK", WhoamiJson(principal_result, bootstrap_state, config));
                             ok.headers["Cache-Control"] = "no-store";
                             return ok;
                         }
@@ -21101,8 +21306,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             (request.path == "/ops" || request.path == "/ops/live" ||
                              request.path == "/ops/dashboard" || request.path == "/ops/events")) {
                             if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
-                                if (!principal_result.ok && config.auth_mode == app::AuthMode::Session &&
-                                    config.enable_ops) {
+                                if (!principal_result.ok && session_auth_mode && config.enable_ops) {
                                     return RedirectResponse("/login");
                                 }
                                 return *auth_response;
@@ -21124,8 +21328,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             (request.path == "/client" || request.path == "/client/live" ||
                              request.path == "/client/dashboard" || request.path == "/client/events")) {
                             if (const auto auth_response = require_client_principal(); auth_response.has_value()) {
-                                if (!principal_result.ok && config.auth_mode == app::AuthMode::Session &&
-                                    config.enable_client) {
+                                if (!principal_result.ok && session_auth_mode && config.enable_client) {
                                     return RedirectResponse("/login");
                                 }
                                 return *auth_response;
@@ -21167,8 +21370,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                         if (request.path == "/lab" || request.path.rfind("/lab/", 0) == 0) {
                             if (const auto auth_response = require_lab_principal(); auth_response.has_value()) {
-                                if (!principal_result.ok && config.auth_mode == app::AuthMode::Session &&
-                                    config.enable_lab) {
+                                if (!principal_result.ok && session_auth_mode && config.enable_lab) {
                                     return RedirectResponse("/login");
                                 }
                                 return *auth_response;

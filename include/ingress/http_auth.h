@@ -34,6 +34,20 @@ struct UserRecord {
     std::string password_hash;
     std::string token_hash;
     bool enabled{true};
+    bool must_change_password{false};
+    std::string created_at;
+    std::string password_updated_at;
+};
+
+struct BootstrapState {
+    bool setup_required{false};
+    bool users_file_exists{false};
+    bool users_empty{true};
+    bool admin_exists{false};
+    bool admin_enabled{false};
+    bool admin_has_password{false};
+    bool password_change_required{false};
+    std::string reason;
 };
 
 using HeaderMap = std::unordered_map<std::string, std::string>;
@@ -57,6 +71,10 @@ bool PasswordHashingAvailable();
 const char* PasswordHashingScheme();
 std::optional<std::string> GeneratePasswordHash(const std::string& password,
                                                 std::string* error_message);
+BootstrapState InspectBootstrapState(const app::AppConfig& config);
+bool SaveBootstrapAdmin(const app::AppConfig& config,
+                        const std::string& password,
+                        std::string* error_message);
 std::optional<std::string> GenerateSessionId(std::string* error_message);
 std::optional<std::string> ExtractSessionCookie(const HeaderMap& headers,
                                                 const std::string& cookie_name);

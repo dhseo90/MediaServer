@@ -57,6 +57,12 @@ WebRTC/stream 변경:
 Auth 변경:
 
 ```bash
+MEDIA_SERVER_AUTH_MODE=auto \
+MEDIA_SERVER_AUTH_USERS_FILE=/tmp/media-server-bootstrap-users.json \
+  ./server.sh foreground
+curl -fsS -D - -o /tmp/root-setup.out 'http://127.0.0.1:8080/'
+curl -fsS 'http://127.0.0.1:8080/auth/whoami'
+
 MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground
 curl -fsS 'http://127.0.0.1:8080/auth/whoami'
 
@@ -76,7 +82,7 @@ curl -fsS -b /tmp/media-server.cookies 'http://127.0.0.1:8080/auth/whoami'
 curl -fsS -b /tmp/media-server.cookies -X POST 'http://127.0.0.1:8080/logout'
 ```
 
-확인 기준은 auth off에서 dev admin principal이 반환되고, token mode에서 admin/operator/viewer/integrator token별 role과 scope가 반환되며, 누락/invalid token은 `401`을 반환하는 것입니다. Session mode에서는 `/login` 렌더링, 로그인 성공 후 `/auth/whoami` principal 반환, logout 후 cookie principal 제거, 잘못된 로그인 `401` 또는 실패 메시지를 확인합니다. `?token=` query는 개발 smoke용으로만 사용하고 운영 검증에서는 Bearer header를 우선합니다.
+확인 기준은 auto mode에서 users file이 없거나 admin passwordHash가 없으면 `/setup`으로 이동하고 `/auth/whoami`가 `setupRequired=true`를 반환하는 것입니다. Auth off에서는 dev admin principal이 반환되고, token mode에서 admin/operator/viewer/integrator token별 role과 scope가 반환되며, 누락/invalid token은 `401`을 반환합니다. Session/auto setup 완료 후에는 `/login` 렌더링, 로그인 성공 후 `/auth/whoami` principal 반환, logout 후 cookie principal 제거, 잘못된 로그인 `401` 또는 실패 메시지를 확인합니다. `?token=` query는 개발 smoke용으로만 사용하고 운영 검증에서는 Bearer header를 우선합니다.
 
 Route smoke:
 
