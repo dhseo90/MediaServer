@@ -470,7 +470,7 @@ VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보
 표시 항목:
 
 - Health Summary: sessions, streams, analysis taps, SSE/WS clients, RTSP consumers, cleanup warning, metadata stale, guard mode
-- Warnings: dashboard sample, runtime delta, cleanup watch, stale metadata를 badge 중심으로 표시
+- Warnings: dashboard sample, runtime delta, cleanup watch, stale metadata/backpressure를 badge 중심으로 표시
 - Metadata / Backpressure: WebRTC sent/drop/fail, SSE/WS client/message, metadata JSON build/payload size, DataChannel bufferedAmount
 - Tracking / Scenario: Tracks, Tracking Issues, Scenarios, Scenario Timeline
 - Event Records: 자동 polling 없이 검색 버튼으로만 조회하는 저장 event metadata table
@@ -494,8 +494,20 @@ drill-down 사용법:
 | Events | 선택 tap의 `/events` buffer | 선택 rule이 있으면 해당 rule recent event만 반영 |
 | Event Records | EventRecord 수동 검색과 detail JSON | 영상 재생, snapshot 추출, clip recorder 없음 |
 | Metadata / Backpressure | DataChannel, SSE/WS client, queue, payload size, RTSP lifecycle | 불균형, cleanup 잔여, failure는 warning badge |
-| Trend / Stale / Cleanup | 최근 60개 dashboard sample의 age/delta/잔류 상태 | 새 backend endpoint 없이 client buffer만 사용 |
+| Trend / Stale / Cleanup | 최근 60개 dashboard sample의 count/age/delta/min/max/잔류 상태 | 새 backend endpoint 없이 client buffer만 사용 |
 | RSS 표시 | live 보조 관찰 | longrun report를 대체하지 않음 |
+
+Trend / Stale / Cleanup 1차 기준:
+
+| 범주 | 표시 대상 | warning 기준 |
+| --- | --- | --- |
+| Runtime trend | activeSessions, activeStreams, activeAnalysisTaps, SSE/WS clients, RTSP consumers | 최근 60개 sample window에서 증가/감소/유지, min/max 표시 |
+| Metadata trend | WebRTC sent/drop/fail, metadataJsonBuildCount, payload avg/max, DataChannel bufferedAmount | drop/fail 증가, bufferedAmount가 session limit의 80% 초과 |
+| Analysis/Event trend | tracking issue count, close-object risk count, events emitted/deduped, Event POST/EventRecord sent/stored/fail/drop | issue/risk 양수, Event POST/EventRecord fail/drop 관찰 |
+| Stale | metadata receive age, last video frame age, overlay draw age, tap metrics progress | DataChannel open 상태에서 metadata 미수신/3초 초과, video/draw 3초 초과, tap metrics가 3개 이상 sample과 10초 이상 정체 |
+| Cleanup | 보기 중지 또는 dashboard 비활성 후 active session/stream/tap/SSE/WS/RTSP 잔류 | 10초 grace 이후 잔류가 있으면 badge 표시 |
+
+Trend detail은 기본 접힘 영역입니다. 값이 endpoint에 없으면 `미제공`으로 표시하며, Runtime Dashboard polling interval, WebRTC DataChannel/SSE/WS metadata schema, Event POST payload schema는 변경하지 않습니다.
 
 Event Records 검색 filter:
 

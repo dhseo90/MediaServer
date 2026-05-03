@@ -436,9 +436,13 @@ VA Runtime Console 자동 검증:
 - Runtime Dashboard drill-down UI가 lab layout을 깨뜨리지 않는지 확인
 - state-dump 기반 Tracks/Scenarios/Tracking Issues 표시와 vaRule Runtime Debug가 기존 endpoint만 재사용하는지 확인
 - Runtime Dashboard의 Trend / Stale / Cleanup section이 최근 sample 수, delta/min/max, warning badge를 표시하는지 확인
+- Trend detail이 activeSessions/activeStreams/activeAnalysisTaps, SSE/WS clients, RTSP consumers, WebRTC metadata sent/drop/fail, metadata payload avg/max, DataChannel bufferedAmount, tracking issue/close-object risk, Event POST/EventRecord count를 기존 endpoint 값으로 표시하는지 확인
+- 값이 없는 항목은 `미제공`으로 표시하고 새 대형 backend endpoint나 WebRTC/SSE/WS/Event POST payload schema 변경이 없는지 확인
 - dashboard tab을 벗어난 뒤 polling과 trend sample 증가가 멈추는지 확인
 - active tap이 있는데 `/metrics` progress가 3개 이상 sample 동안 정체되면 tap metrics stale warning이 표시되는지 확인
+- DataChannel open 상태에서 metadata 미수신 또는 3초 초과 stale, video frame/overlay draw age 3초 초과, SSE/WS client active 상태의 metadata build 정체가 warning badge로 보이는지 확인
 - WebRTC metadata viewer 중지 후 activeSessions/activeStreams/activeAnalysisTaps/SSE/WS/RTSP 잔류가 있으면 cleanup warning으로 표시되는지 확인
+- cleanup warning은 보기 중지/dashboard 비활성 후 짧은 grace period 이후 판단하며 longrun report를 대체하지 않는 live observation 보조 지표로 해석
 - `/lab/analysis/taps/{tapId}/metrics`의 `tapState`, `trackState`, `metricsReport` 확인
 - `/lab/analysis/taps/{tapId}/state-dump` JSON 확인
 - `/lab/analysis/taps/{tapId}/events` 접근과 recent event buffer 확인

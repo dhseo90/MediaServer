@@ -15,10 +15,10 @@
 - 구현 완료: RTSP/WebRTC relay, File/RTSP/WebRTC/HTTP-HLS source, YOLO/ONNX VA overlay, Rule/Profile UI, `vaRule=<id>` 호출, 기존 Intrusion/LineCrossing 이벤트 회귀 구조.
 - 구현 완료: TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, TrackHealth, cleanup 정책.
 - 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage/query/search UI, EventRecord rotation/retention/recovery 1차, snapshot/clip hook, WebRTC VA metadata DataChannel 출력 구조.
-- 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, 자동/longrun 검증 명령.
+- 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, client-side Trend/Stale/Cleanup warning 1차, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, 자동/longrun 검증 명령.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
 - 실험/제약: snapshot/clip은 hook/marker 중심이며 실제 제품용 frame extraction/clip recorder는 후속 구현입니다.
-- 남은 핵심: EventRecord archive query/compaction, 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화, WS metadata filter/subscription/control, 실제 현장 샘플 기반 튜닝입니다.
+- 남은 핵심: EventRecord archive query/compaction, 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화(sparkline/장기 baseline), WS metadata filter/subscription/control, 실제 현장 샘플 기반 튜닝입니다.
 
 ## P0 - 문서/UI 정리
 
@@ -339,7 +339,8 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 ### P3-5. Runtime Dashboard 고도화
 
 - 상태: 진행
-- 목적: Overview, Tracks, Scenarios, Events, Metadata, Tracking Issues, vaRule Runtime Debug, Trend / Stale / Cleanup warning 1차 drill-down은 구현했습니다. 남은 작업은 trend sparkline, 장기 baseline 비교, phase entered time/cooldown remaining을 포함한 정밀 scenario timeline 고도화입니다.
+- 목적: Overview, Tracks, Scenarios, Events, Metadata, Tracking Issues, vaRule Runtime Debug, client-side bounded Trend / Stale / Cleanup warning 1차 drill-down은 구현했습니다. 남은 작업은 trend sparkline, 장기 baseline 비교, phase entered time/cooldown remaining을 포함한 정밀 scenario timeline 고도화입니다.
+- 구현 완료 범위: 최근 60개 dashboard sample ring buffer, runtime/metadata/event counter delta/min/max, DataChannel bufferedAmount high badge, metadata/video/overlay/tap metrics stale badge, 보기 중지/dashboard 비활성 후 cleanup residual badge입니다.
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/verify_va_runtime_console_longrun.py`, `docs/ui-guide.md`
 - 검증 명령:
 
