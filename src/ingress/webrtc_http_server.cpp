@@ -3256,7 +3256,9 @@ std::string BuildLabRuleEditorPageHtml() {
 	      --color-bg: #f6f8fb;
 	      --color-bg-elevated: #ffffff;
 	      --color-surface: #ffffff;
+	      --color-surface-raised: #ffffff;
 	      --color-surface-muted: #f1f5f9;
+	      --color-surface-subtle: #f8fafc;
 	      --color-surface-hover: #e8f3f2;
 	      --color-border: #d8e0e8;
 	      --color-border-strong: #b7c4d1;
@@ -3266,9 +3268,13 @@ std::string BuildLabRuleEditorPageHtml() {
 	      --color-link: #0f766e;
 	      --color-primary: #0f766e;
 	      --color-primary-hover: #0b5f59;
+	      --color-primary-weak-bg: #e0f2f1;
+	      --color-primary-weak-text: #0f766e;
 	      --color-success: #15803d;
 	      --color-warning: #b45309;
 	      --color-danger: #dc2626;
+	      --color-danger-hover: #b91c1c;
+	      --color-danger-weak-bg: #fff1f1;
 	      --color-info: #2563eb;
 	      --color-neutral: #64748b;
 	      --color-on-primary: #ffffff;
@@ -3281,6 +3287,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	      --color-input-bg: #ffffff;
 	      --color-input-border: #cbd5e1;
 	      --color-input-focus: #14b8a6;
+	      --color-focus-ring: rgba(20, 184, 166, 0.28);
 	      --color-input-disabled-bg: #eef2f6;
 	      --color-placeholder: #94a3b8;
 	      --color-table-header-bg: #f1f5f9;
@@ -3291,6 +3298,17 @@ std::string BuildLabRuleEditorPageHtml() {
 	      --color-code-text: #e5edf5;
 	      --color-debug-bg: #f8fafc;
 	      --color-debug-border: #cbd5e1;
+	      --color-media-bg: #0b1120;
+	      --color-action-fill-bg: var(--color-primary);
+	      --color-action-fill-hover: var(--color-primary-hover);
+	      --color-action-fill-text: var(--color-on-primary);
+	      --color-action-weak-bg: var(--color-bg-elevated);
+	      --color-action-weak-hover: var(--color-surface-hover);
+	      --color-action-weak-text: var(--color-text);
+	      --color-action-ghost-text: var(--color-link);
+	      --color-action-danger-bg: var(--color-danger);
+	      --color-action-danger-hover: var(--color-danger-hover);
+	      --color-action-danger-text: var(--color-on-danger);
 	      --overlay-box-track: #34d399;
 	      --overlay-box-detector: #f472b6;
 	      --overlay-box-selected: #facc15;
@@ -3306,11 +3324,11 @@ std::string BuildLabRuleEditorPageHtml() {
 	      --overlay-line: #facc15;
 	      --overlay-point-fill: #facc15;
 	      --overlay-point-text: #12120d;
-	      --radius-sm: 8px;
-	      --radius-md: 12px;
-	      --radius-lg: 16px;
-	      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
-	      --shadow-md: 0 12px 32px rgba(15, 23, 42, 0.12);
+	      --radius-sm: 4px;
+	      --radius-md: 6px;
+	      --radius-lg: 8px;
+	      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+	      --shadow-md: 0 8px 18px rgba(15, 23, 42, 0.10);
 	      --space-1: 4px;
 	      --space-2: 8px;
 	      --space-3: 12px;
@@ -3340,7 +3358,9 @@ std::string BuildLabRuleEditorPageHtml() {
 	      --color-bg: #111827;
 	      --color-bg-elevated: #17212f;
 	      --color-surface: #1f2937;
+	      --color-surface-raised: #243042;
 	      --color-surface-muted: #263241;
+	      --color-surface-subtle: #151f2e;
 	      --color-surface-hover: #203f3d;
 	      --color-border: #405163;
 	      --color-border-strong: #64748b;
@@ -3350,9 +3370,13 @@ std::string BuildLabRuleEditorPageHtml() {
 	      --color-link: #5eead4;
 	      --color-primary: #2dd4bf;
 	      --color-primary-hover: #5eead4;
+	      --color-primary-weak-bg: rgba(45, 212, 191, 0.14);
+	      --color-primary-weak-text: #99f6e4;
 	      --color-success: #4ade80;
 	      --color-warning: #fbbf24;
 	      --color-danger: #f87171;
+	      --color-danger-hover: #fb7185;
+	      --color-danger-weak-bg: rgba(248, 113, 113, 0.14);
 	      --color-info: #60a5fa;
 	      --color-neutral: #cbd5e1;
 	      --color-on-primary: #06231f;
@@ -3365,6 +3389,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	      --color-input-bg: #111827;
 	      --color-input-border: #4b5f73;
 	      --color-input-focus: #5eead4;
+	      --color-focus-ring: rgba(94, 234, 212, 0.28);
 	      --color-input-disabled-bg: #202938;
 	      --color-placeholder: #7f8fa3;
 	      --color-table-header-bg: #263241;
@@ -3375,9 +3400,10 @@ std::string BuildLabRuleEditorPageHtml() {
 	      --color-code-text: #e5edf5;
 	      --color-debug-bg: #151f2e;
 	      --color-debug-border: #4b5f73;
+	      --color-media-bg: #020617;
 	      --overlay-label-bg: rgba(2, 6, 23, 0.86);
-	      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
-	      --shadow-md: 0 16px 38px rgba(0, 0, 0, 0.34);
+	      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.22);
+	      --shadow-md: 0 10px 24px rgba(0, 0, 0, 0.28);
 	    }
 	    * { box-sizing: border-box; }
 	    [hidden] { display: none !important; }
@@ -3448,10 +3474,10 @@ std::string BuildLabRuleEditorPageHtml() {
 	    }
 	    .section-card,
 	    .card {
-	      background: var(--color-surface);
+	      background: var(--color-surface-raised);
 	      border: 1px solid var(--color-border);
 	      border-radius: var(--radius-lg);
-	      box-shadow: var(--shadow-md);
+	      box-shadow: var(--shadow-sm);
 	      overflow: hidden;
 	    }
 	    .section-card-muted,
@@ -3500,30 +3526,46 @@ std::string BuildLabRuleEditorPageHtml() {
 	      font: inherit;
 	      font-weight: 800;
 	      cursor: pointer;
-	      background: var(--color-primary);
-	      color: var(--color-on-primary);
+	      background: var(--color-action-fill-bg);
+	      color: var(--color-action-fill-text);
 	      box-shadow: var(--shadow-sm);
+	      transition: background 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 	    }
 	    .button:hover,
 	    button:hover {
-	      background: var(--color-primary-hover);
+	      background: var(--color-action-fill-hover);
 	    }
-	    .button-primary {
-	      background: var(--color-primary);
-	      color: var(--color-on-primary);
+	    .button:active,
+	    button:active {
+	      transform: translateY(1px);
 	    }
+	    .button-fill,
+	    .button-primary,
+	    button.primary {
+	      background: var(--color-action-fill-bg);
+	      color: var(--color-action-fill-text);
+	      border-color: transparent;
+	      box-shadow: var(--shadow-sm);
+	    }
+	    .button-fill:hover,
+	    .button-primary:hover,
+	    button.primary:hover {
+	      background: var(--color-action-fill-hover);
+	    }
+	    .button-weak,
 	    .button-secondary,
 	    button.secondary,
 	    .theme-toggle {
-	      color: var(--color-text);
+	      color: var(--color-action-weak-text);
 	      border-color: var(--color-border);
-	      background: var(--color-bg-elevated);
+	      background: var(--color-action-weak-bg);
 	      box-shadow: none;
 	    }
+	    .button-weak:hover,
 	    .button-secondary:hover,
 	    button.secondary:hover,
 	    .theme-toggle:hover {
-	      background: var(--color-surface-hover);
+	      background: var(--color-action-weak-hover);
 	      border-color: var(--color-border-strong);
 	    }
 	    .topbar .theme-toggle {
@@ -3536,7 +3578,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	      justify-self: end;
 	    }
 	    .button-ghost {
-	      color: var(--color-link);
+	      color: var(--color-action-ghost-text);
 	      border-color: var(--color-border);
 	      background: transparent;
 	      box-shadow: none;
@@ -3546,14 +3588,13 @@ std::string BuildLabRuleEditorPageHtml() {
 	    }
 	    .button-danger,
 	    button.danger {
-	      color: var(--color-on-danger);
-	      background: var(--color-danger);
+	      color: var(--color-action-danger-text);
+	      background: var(--color-action-danger-bg);
 	      box-shadow: none;
 	    }
 	    .button-danger:hover,
 	    button.danger:hover {
-	      background: var(--color-danger);
-	      filter: brightness(0.96);
+	      background: var(--color-action-danger-hover);
 	    }
 	    .button-icon {
 	      width: 38px;
@@ -3580,6 +3621,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	      border-color: var(--color-border);
 	      opacity: 1;
 	      box-shadow: none;
+	      transform: none;
 	    }
 	    input:focus-visible,
 	    select:focus-visible,
@@ -3587,7 +3629,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	    button:focus-visible,
 	    summary:focus-visible,
 	    .event-record-id-button:focus-visible {
-	      outline: 3px solid var(--color-input-focus);
+	      outline: 3px solid var(--color-focus-ring);
 	      outline-offset: 2px;
 	    }
 	    .badge,
@@ -3614,6 +3656,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	    .status-chip.is-phase-ended {
 	      color: var(--color-neutral);
 	      background: var(--color-neutral-bg);
+	      border-color: color-mix(in srgb, var(--color-neutral) 28%, var(--color-border));
 	    }
 	    .badge-success,
 	    .status-chip.is-active,
@@ -3636,15 +3679,24 @@ std::string BuildLabRuleEditorPageHtml() {
 	      border-color: color-mix(in srgb, var(--color-danger) 42%, var(--color-border));
 	    }
 	    .badge-info,
+	    .status-chip.is-info,
 	    .status-chip.is-phase-candidate,
 	    .status-chip.is-phase-observing {
 	      color: var(--color-info);
 	      background: var(--color-info-bg);
 	      border-color: color-mix(in srgb, var(--color-info) 42%, var(--color-border));
 	    }
+	    .status-chip.is-danger,
+	    .status-chip.is-error,
+	    .status-chip.is-stale {
+	      color: var(--color-danger);
+	      background: var(--color-danger-bg);
+	      border-color: color-mix(in srgb, var(--color-danger) 42%, var(--color-border));
+	    }
 	    .badge-muted {
 	      color: var(--color-text-subtle);
 	      background: var(--color-surface-muted);
+	      border-color: var(--color-border);
 	    }
 	    .form-grid,
 	    .rule-list-controls,
@@ -3659,7 +3711,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	      padding: var(--space-4);
 	      border: 1px solid var(--color-border);
 	      border-radius: var(--radius-lg);
-	      background: var(--color-surface-muted);
+	      background: var(--color-surface-subtle);
 	    }
 	    .field,
 	    label {
@@ -3699,6 +3751,13 @@ std::string BuildLabRuleEditorPageHtml() {
 	      color: var(--color-text);
 	      padding: 11px 13px;
 	      font: inherit;
+	      transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+	    }
+	    input:focus,
+	    select:focus,
+	    textarea:focus {
+	      border-color: var(--color-input-focus);
+	      box-shadow: 0 0 0 3px var(--color-focus-ring);
 	    }
 	    input::placeholder,
 	    textarea::placeholder {
@@ -3726,6 +3785,21 @@ std::string BuildLabRuleEditorPageHtml() {
 	      border-collapse: collapse;
 	      color: var(--color-text);
 	      font-size: 12px;
+	    }
+	    .data-table th,
+	    .data-table td {
+	      padding: 9px 10px;
+	      border-bottom: 1px solid var(--color-table-border);
+	      text-align: left;
+	      vertical-align: top;
+	    }
+	    .data-table th {
+	      color: var(--color-text-muted);
+	      background: var(--color-table-header-bg);
+	      font-weight: 900;
+	    }
+	    .data-table tbody tr:hover td {
+	      background: var(--color-table-row-hover);
 	    }
 	    .data-table-compact,
 	    .dashboard-table .status-chip {
@@ -3772,7 +3846,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	    .profile-summary-item {
 	      border: 1px solid var(--color-border);
 	      border-radius: var(--radius-md);
-	      background: var(--color-surface-muted);
+	      background: var(--color-surface-subtle);
 	    }
 	    .debug-panel,
 	    .debug-drawer,
@@ -3782,6 +3856,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	      border-radius: var(--radius-lg);
 	      background: var(--color-debug-bg);
 	      overflow: hidden;
+	      box-shadow: none;
 	    }
 	    .raw-json-panel,
 	    pre,
@@ -3807,7 +3882,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	      display: block;
 	      border-radius: var(--radius-lg);
 	      border: 1px solid var(--color-border);
-	      background: var(--color-code-bg);
+	      background: var(--color-media-bg);
 	    }
 	    .video-overlay,
 	    .metadata-overlay-canvas {
@@ -4037,6 +4112,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	    .status-chip.is-muted {
 	      color: var(--color-neutral);
 	      background: var(--color-neutral-bg);
+	      border-color: color-mix(in srgb, var(--color-neutral) 28%, var(--color-border));
 	    }
 	    .status-chip.is-active {
 	      color: var(--color-success);
@@ -4052,6 +4128,18 @@ std::string BuildLabRuleEditorPageHtml() {
 	      color: var(--color-warning);
 	      background: var(--color-warning-bg);
 	      border-color: color-mix(in srgb, var(--color-warning) 42%, var(--color-border));
+	    }
+	    .status-chip.is-danger,
+	    .status-chip.is-error,
+	    .status-chip.is-stale {
+	      color: var(--color-danger);
+	      background: var(--color-danger-bg);
+	      border-color: color-mix(in srgb, var(--color-danger) 42%, var(--color-border));
+	    }
+	    .status-chip.is-info {
+	      color: var(--color-info);
+	      background: var(--color-info-bg);
+	      border-color: color-mix(in srgb, var(--color-info) 42%, var(--color-border));
 	    }
 	    .status-chip.is-phase-candidate {
 	      color: var(--color-info);
@@ -4550,10 +4638,10 @@ std::string BuildLabRuleEditorPageHtml() {
       color: var(--color-danger);
     }
 	    .card {
-	      background: var(--color-surface);
+	      background: var(--color-surface-raised);
 	      border: 1px solid var(--color-border);
 	      border-radius: var(--radius-lg);
-	      box-shadow: var(--shadow-md);
+	      box-shadow: var(--shadow-sm);
 	      overflow: hidden;
 	    }
     :root[data-embed="1"] .card {
@@ -4582,10 +4670,10 @@ std::string BuildLabRuleEditorPageHtml() {
 	    textarea { min-height: 190px; resize: vertical; }
 	    button {
 	      border: 1px solid transparent;
-	      color: var(--color-on-primary);
+	      color: var(--color-action-fill-text);
 	      font-weight: 800;
 	      cursor: pointer;
-	      background: var(--color-primary);
+	      background: var(--color-action-fill-bg);
 	    }
 	    button:disabled {
 	      cursor: not-allowed;
@@ -4596,9 +4684,9 @@ std::string BuildLabRuleEditorPageHtml() {
 	      box-shadow: none;
 	    }
 	    button.secondary {
-	      color: var(--color-text);
+	      color: var(--color-action-weak-text);
 	      border: 1px solid var(--color-border);
-	      background: var(--color-bg-elevated);
+	      background: var(--color-action-weak-bg);
 	    }
 	    .page-header.topbar .theme-toggle,
 	    .topbar > .theme-toggle {
@@ -4612,18 +4700,18 @@ std::string BuildLabRuleEditorPageHtml() {
 	      justify-self: end;
 	    }
 	    button.danger {
-	      color: var(--color-on-danger);
-	      background: var(--color-danger);
+	      color: var(--color-action-danger-text);
+	      background: var(--color-action-danger-bg);
 	    }
 	    .hero {
 	      display: grid;
 	      gap: 10px;
 	      margin-bottom: 0;
 	      padding: var(--space-6);
-	      background: var(--color-surface);
+	      background: var(--color-surface-raised);
 	      border: 1px solid var(--color-border);
 	      border-radius: var(--radius-lg);
-	      box-shadow: var(--shadow-md);
+	      box-shadow: var(--shadow-sm);
 	      overflow: hidden;
 	    }
     :root[data-embed="1"] .hero {
@@ -5070,6 +5158,10 @@ std::string BuildLabRuleEditorPageHtml() {
       grid-template-columns: 1.2fr 1.2fr 1fr auto;
       gap: 10px;
       align-items: end;
+      padding: 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-subtle);
     }
     .dashboard-health-grid {
       display: grid;
@@ -5082,7 +5174,7 @@ std::string BuildLabRuleEditorPageHtml() {
       padding: 12px 14px;
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
-      background: var(--color-surface);
+      background: var(--color-surface-raised);
       display: grid;
       gap: 5px;
       align-content: center;
@@ -5100,6 +5192,22 @@ std::string BuildLabRuleEditorPageHtml() {
       font-size: 14px;
       overflow-wrap: anywhere;
     }
+    .dashboard-health-card.is-primary-metric {
+      min-height: 88px;
+      background: var(--color-primary-weak-bg);
+      border-color: color-mix(in srgb, var(--color-primary) 32%, var(--color-border));
+    }
+    .dashboard-health-card.is-primary-metric span {
+      color: var(--color-primary-weak-text);
+    }
+    .dashboard-health-card.is-primary-metric strong {
+      color: var(--color-text);
+      font-size: 24px;
+      line-height: 1.1;
+    }
+    .dashboard-health-card.is-secondary-metric {
+      background: var(--color-surface-subtle);
+    }
     .dashboard-health-card.is-warning strong {
       color: var(--color-warning);
     }
@@ -5107,7 +5215,7 @@ std::string BuildLabRuleEditorPageHtml() {
       color: var(--color-danger);
     }
     .dashboard-card-grid.dashboard-card-grid-compact {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
     .dashboard-card-grid {
       display: grid;
@@ -5120,6 +5228,10 @@ std::string BuildLabRuleEditorPageHtml() {
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
+      padding: 8px;
+      border: 1px dashed var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-subtle);
     }
     .dashboard-warning-strip .status-chip {
       min-height: 26px;
@@ -5226,6 +5338,15 @@ std::string BuildLabRuleEditorPageHtml() {
 	      border-radius: var(--radius-lg);
 	      background: var(--color-surface-muted);
 	      box-shadow: none;
+    }
+    .dashboard-summary-section {
+      gap: 12px;
+      background: var(--color-surface-subtle);
+      border-color: var(--color-border-strong);
+    }
+    .dashboard-warning-section {
+      background: var(--color-debug-bg);
+      border-color: var(--color-debug-border);
     }
     .dashboard-section-header {
       display: flex;
@@ -5587,6 +5708,7 @@ std::string BuildLabRuleEditorPageHtml() {
       white-space: pre;
       overflow: auto;
       resize: vertical;
+      background: var(--color-surface-subtle);
     }
     .url-section {
       display: grid;
@@ -5594,7 +5716,7 @@ std::string BuildLabRuleEditorPageHtml() {
       padding: 14px;
       border: 1px solid var(--color-border);
       border-radius: var(--radius-lg);
-      background: var(--color-surface-muted);
+      background: var(--color-surface-raised);
     }
     .url-section-header {
       display: flex;
@@ -5615,7 +5737,7 @@ std::string BuildLabRuleEditorPageHtml() {
       line-height: 1.45;
     }
     .url-section.is-custom {
-      background: var(--color-info-bg);
+      background: color-mix(in srgb, var(--color-info-bg) 62%, var(--color-surface-raised));
       border-color: color-mix(in srgb, var(--color-info) 28%, var(--color-border));
     }
     .output-policy-grid {
@@ -5674,6 +5796,25 @@ std::string BuildLabRuleEditorPageHtml() {
 	    .developer-url-details > .pad {
 	      border-top: 1px solid var(--color-debug-border);
     }
+	    .debug-drawer.developer-url-details > summary {
+	      display: flex;
+	      align-items: center;
+	      justify-content: space-between;
+	      gap: var(--space-3);
+	      padding: 14px 16px;
+	      color: var(--color-text);
+	      font-weight: 900;
+	      cursor: pointer;
+	      list-style-position: inside;
+	    }
+	    .debug-drawer.developer-url-details > summary small {
+	      color: var(--color-text-muted);
+	      font-size: 12px;
+	      font-weight: 800;
+	    }
+	    .debug-drawer.developer-url-details[open] > summary {
+	      border-bottom: 1px solid var(--color-debug-border);
+	    }
     .url-field {
       display: grid;
       gap: 8px;
@@ -6929,7 +7070,7 @@ std::string BuildLabRuleEditorPageHtml() {
         </div>
       </div>
       <details class="debug-panel developer-panel debug-drawer developer-url-details">
-        <summary>개발자 요청 URL</summary>
+        <summary><span>개발자 요청 URL</span><small>일반 확인용 / custom client용</small></summary>
         <div class="pad stack">
           <p class="hint">외부 클라이언트나 자동화에서 직접 호출할 때만 펼쳐서 확인합니다. WebRTC 메타데이터와 RTSP 오버레이는 동작 방식이 다릅니다.</p>
 	          <div class="row">
@@ -7035,23 +7176,23 @@ std::string BuildLabRuleEditorPageHtml() {
             </label>
           </div>
           <div class="dashboard-drilldown">
-            <section class="dashboard-drilldown-section" aria-labelledby="dashboardOverviewTitle">
+            <section class="dashboard-drilldown-section dashboard-summary-section" aria-labelledby="dashboardOverviewTitle">
               <div class="dashboard-section-header">
                 <h3 id="dashboardOverviewTitle">Health Summary</h3>
                 <p id="dashboardOverviewSummary" class="dashboard-section-summary">선택된 tap 없음</p>
               </div>
               <div class="dashboard-health-grid" aria-label="Runtime Dashboard health summary">
-                <div class="dashboard-health-card"><span>sessions</span><strong id="dashboardActiveSessions">0</strong></div>
-                <div class="dashboard-health-card"><span>streams</span><strong id="dashboardActiveStreams">0</strong></div>
-                <div class="dashboard-health-card"><span>analysis taps</span><strong id="dashboardActiveTaps">0</strong></div>
-                <div class="dashboard-health-card"><span>SSE/WS clients</span><strong id="dashboardHealthSideClients">0/0</strong></div>
+                <div class="dashboard-health-card is-primary-metric"><span>sessions</span><strong id="dashboardActiveSessions">0</strong></div>
+                <div class="dashboard-health-card is-primary-metric"><span>streams</span><strong id="dashboardActiveStreams">0</strong></div>
+                <div class="dashboard-health-card is-primary-metric"><span>analysis taps</span><strong id="dashboardActiveTaps">0</strong></div>
+                <div class="dashboard-health-card is-secondary-metric"><span>SSE/WS clients</span><strong id="dashboardHealthSideClients">0/0</strong></div>
                 <div class="dashboard-health-card"><span>RTSP consumers</span><strong id="dashboardHealthRtspConsumers">미제공</strong></div>
                 <div class="dashboard-health-card"><span>cleanup warning</span><strong id="dashboardHealthCleanupWarning">미제공</strong></div>
                 <div class="dashboard-health-card"><span>metadata stale</span><strong id="dashboardHealthMetadataStaleWarning">미제공</strong></div>
                 <div class="dashboard-health-card"><span>guard mode</span><strong id="dashboardHealthGuardMode">guard off</strong></div>
               </div>
             </section>
-            <section class="dashboard-drilldown-section" aria-labelledby="dashboardTrendTitle">
+            <section class="dashboard-drilldown-section dashboard-warning-section" aria-labelledby="dashboardTrendTitle">
               <div class="dashboard-section-header">
                 <h3 id="dashboardTrendTitle">Warnings</h3>
                 <p id="dashboardTrendSummary" class="dashboard-section-summary">trend sample 대기 중</p>
