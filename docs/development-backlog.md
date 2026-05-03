@@ -45,8 +45,10 @@
 
 ### O3. `/ops` / `/client` / `/lab` route 분리
 
-- 상태: 예정
+- 상태: 완료: MVP
 - 목적: 운영 화면, 클라이언트 화면, 개발/lab 화면의 URL과 역할을 분리합니다.
+- 완료 범위: `MEDIA_SERVER_UI_DEFAULT_HOME`, `MEDIA_SERVER_ENABLE_LAB`, `MEDIA_SERVER_ENABLE_OPS`, `MEDIA_SERVER_ENABLE_CLIENT`, role-aware `/` redirect, `/ops/live` shell, `/client/live` shell, `/ops/rules` alias, `/lab` guard와 기존 `/lab/rules` 호환 유지입니다.
+- 후속: 실제 live monitor와 dashboard content를 PublishedView/source runtime 데이터에 연결합니다.
 - 우선순위 이유: 현재 lab 중심 UI에서 운영/고객 화면으로 확장할 때 권한과 탐색 구조가 명확해야 합니다.
 
 ### O4. Client scoped dashboard

@@ -15806,12 +15806,40 @@ std::string HtmlEscape(const std::string& value) {
     return out;
 }
 
-std::string RoleLandingPath(const auth::Principal& principal) {
+std::string DefaultHomePath(const app::AppConfig& config) {
+    auto by_name = [&](const std::string& name) -> std::string {
+        if (name == "ops" && config.enable_ops) {
+            return "/ops/live";
+        }
+        if (name == "client" && config.enable_client) {
+            return "/client/live";
+        }
+        if (name == "lab" && config.enable_lab) {
+            return "/lab";
+        }
+        return std::string();
+    };
+    if (const std::string configured = by_name(config.ui_default_home); !configured.empty()) {
+        return configured;
+    }
+    if (config.enable_lab) {
+        return "/lab";
+    }
+    if (config.enable_ops) {
+        return "/ops/live";
+    }
+    if (config.enable_client) {
+        return "/client/live";
+    }
+    return "/login";
+}
+
+std::string RoleLandingPath(const auth::Principal& principal, const app::AppConfig& config) {
     if (principal.role == "viewer") {
-        return "/client";
+        return config.enable_client ? "/client/live" : "/login";
     }
     if (principal.role == "admin" || principal.role == "operator") {
-        return "/ops";
+        return config.enable_ops ? "/ops/live" : DefaultHomePath(config);
     }
     return "/login";
 }
@@ -15950,6 +15978,184 @@ std::string AuthLandingPageHtml(const auth::Principal& principal,
     }
     out << R"(
   </main>
+</body>
+</html>)";
+    return out.str();
+}
+
+std::string OpsShellPageHtml(const auth::Principal& principal, const std::string& active) {
+    std::ostringstream out;
+    auto nav_class = [&](const std::string& key) {
+        return active == key ? "nav active" : "nav";
+    };
+    out << R"(<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ops Console</title>
+  <style>
+    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; background: #f8fafc; color: #0f172a; }
+    main { max-width: 1180px; margin: 0 auto; padding: 28px 18px 40px; display: grid; gap: 18px; }
+    header { display: flex; justify-content: space-between; align-items: start; gap: 14px; flex-wrap: wrap; }
+    h1, h2 { margin: 0; }
+    h1 { font-size: 28px; }
+    h2 { font-size: 18px; }
+    p { margin: 0; color: #475569; line-height: 1.5; }
+    nav { display: flex; gap: 8px; flex-wrap: wrap; }
+    a.nav { min-height: 36px; display: inline-flex; align-items: center; border-radius: 6px; padding: 0 12px; background: #e2e8f0; color: #0f172a; text-decoration: none; font-weight: 900; }
+    a.nav.active { background: #0f172a; color: #fff; }
+    .panel { display: grid; gap: 12px; padding: 16px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+    .action { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; background: #0369a1; color: #fff; text-decoration: none; font-weight: 900; padding: 0 12px; }
+    .chip { padding: 6px 9px; border-radius: 999px; background: #e0f2fe; color: #075985; font-size: 13px; font-weight: 800; }
+    button { min-height: 38px; border: 0; border-radius: 6px; background: #0f172a; color: #fff; padding: 0 14px; font-weight: 800; cursor: pointer; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #020617; color: #f8fafc; }
+      p { color: #cbd5e1; }
+      .panel { background: #0f172a; border-color: #334155; }
+      a.nav { background: #334155; color: #f8fafc; }
+      a.nav.active { background: #38bdf8; color: #082f49; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Ops Console</h1>
+        <p>)" << HtmlEscape(principal.display_name) << R"( · )" << HtmlEscape(principal.role) << R"(</p>
+      </div>
+      <form method="post" action="/logout"><button type="submit">Logout</button></form>
+    </header>
+    <nav>
+      <a class=")" << nav_class("live") << R"(" href="/ops/live">Live</a>
+      <a class=")" << nav_class("dashboard") << R"(" href="/ops/dashboard">Dashboard</a>
+      <a class=")" << nav_class("sources") << R"(" href="/ops/sources">Sources</a>
+      <a class=")" << nav_class("rules") << R"(" href="/ops/rules">Rules</a>
+      <a class=")" << nav_class("events") << R"(" href="/ops/events">Events</a>
+    </nav>
+    <section class="panel">
+)";
+    if (active == "dashboard") {
+        out << R"(      <h2>Dashboard</h2>
+      <div class="grid">
+        <a class="action" href="/lab/runtime/status">Runtime Status</a>
+        <a class="action" href="/lab/analysis/taps">Analysis Taps</a>
+        <a class="action" href="/lab/analysis/event-storage/status">Event Storage</a>
+      </div>
+)";
+    } else if (active == "events") {
+        out << R"(      <h2>Events</h2>
+      <div class="grid">
+        <a class="action" href="/lab/analysis/events/records">Event Records</a>
+        <a class="action" href="/lab/analysis/event-post/status">Event POST Status</a>
+      </div>
+)";
+    } else {
+        out << R"(      <h2>Live</h2>
+      <div class="grid">
+        <a class="action" href="/ops/sources">Sources / Views</a>
+        <a class="action" href="/ops/rules">Rules</a>
+        <a class="action" href="/lab">Lab Monitor</a>
+      </div>
+)";
+    }
+    out << R"(    </section>
+  </main>
+</body>
+</html>)";
+    return out.str();
+}
+
+std::string ClientShellPageHtml(const auth::Principal& principal, const std::string& active) {
+    const std::string views_json = SourceViewRegistry::Instance().ClientViewsJson(principal);
+    auto nav_class = [&](const std::string& key) {
+        return active == key ? "nav active" : "nav";
+    };
+    std::ostringstream out;
+    out << R"(<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Client Portal</title>
+  <style>
+    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; background: #f8fafc; color: #0f172a; }
+    main { max-width: 1120px; margin: 0 auto; padding: 28px 18px 40px; display: grid; gap: 18px; }
+    header { display: flex; justify-content: space-between; align-items: start; gap: 14px; flex-wrap: wrap; }
+    h1, h2, h3 { margin: 0; }
+    h1 { font-size: 28px; }
+    h2 { font-size: 18px; }
+    h3 { font-size: 16px; }
+    p { margin: 0; color: #475569; line-height: 1.5; }
+    nav { display: flex; gap: 8px; flex-wrap: wrap; }
+    a.nav { min-height: 36px; display: inline-flex; align-items: center; border-radius: 6px; padding: 0 12px; background: #e2e8f0; color: #0f172a; text-decoration: none; font-weight: 900; }
+    a.nav.active { background: #0f172a; color: #fff; }
+    .panel { display: grid; gap: 12px; padding: 16px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; }
+    .views { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    .view { display: grid; gap: 8px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; background: #f8fafc; }
+    .meta { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip { padding: 5px 8px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 12px; font-weight: 900; }
+    button { min-height: 38px; border: 0; border-radius: 6px; background: #0f172a; color: #fff; padding: 0 14px; font-weight: 800; cursor: pointer; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #020617; color: #f8fafc; }
+      p { color: #cbd5e1; }
+      .panel { background: #0f172a; border-color: #334155; }
+      .view { background: #020617; border-color: #334155; }
+      a.nav { background: #334155; color: #f8fafc; }
+      a.nav.active { background: #38bdf8; color: #082f49; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Client Portal</h1>
+        <p>)" << HtmlEscape(principal.display_name) << R"( · )" << HtmlEscape(principal.role) << R"(</p>
+      </div>
+      <form method="post" action="/logout"><button type="submit">Logout</button></form>
+    </header>
+    <nav>
+      <a class=")" << nav_class("live") << R"(" href="/client/live">Live</a>
+      <a class=")" << nav_class("dashboard") << R"(" href="/client/dashboard">Dashboard</a>
+      <a class=")" << nav_class("events") << R"(" href="/client/events">Events</a>
+    </nav>
+    <section class="panel">
+      <h2>)" << (active == "dashboard" ? "Dashboard" : (active == "events" ? "Events" : "Live")) << R"(</h2>
+      <div id="views" class="views"></div>
+    </section>
+  </main>
+  <script type="application/json" id="views-data">)" << HtmlEscape(views_json) << R"(</script>
+  <script>
+    const payload = JSON.parse(document.querySelector('#views-data').textContent || '{"views":[]}');
+    const host = document.querySelector('#views');
+    const views = Array.isArray(payload.views) ? payload.views : [];
+    const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[ch]);
+    if (views.length === 0) {
+      host.innerHTML = '<p>No assigned views.</p>';
+    } else {
+      host.innerHTML = views.map(view => `
+        <article class="view">
+          <h3>${escapeHtml(view.displayName || view.viewId)}</h3>
+          <div class="meta">
+            <span class="chip">${escapeHtml(view.viewId)}</span>
+            <span class="chip">${escapeHtml(view.sourceKind || 'source')}</span>
+            ${(view.allowedRuleIds || []).map(rule => `<span class="chip">rule ${escapeHtml(rule)}</span>`).join('')}
+          </div>
+        </article>
+      `).join('');
+    }
+  </script>
 </body>
 </html>)";
     return out.str();
@@ -19163,7 +19369,15 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             return HttpResponse{};
                         };
+                        auto route_disabled_response = [](const std::string& route) {
+                            return JsonResponse(404,
+                                                "Not Found",
+                                                "{\"error\":\"" + JsonEscape(route) + " route disabled\"}");
+                        };
                         auto require_ops_principal = [&]() -> std::optional<HttpResponse> {
+                            if (!config.enable_ops) {
+                                return route_disabled_response("ops");
+                            }
                             if (!principal_result.ok) {
                                 return AuthErrorResponse(principal_result.error);
                             }
@@ -19173,8 +19387,27 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return std::nullopt;
                         };
                         auto require_client_principal = [&]() -> std::optional<HttpResponse> {
+                            if (!config.enable_client) {
+                                return route_disabled_response("client");
+                            }
                             if (!principal_result.ok) {
                                 return AuthErrorResponse(principal_result.error);
+                            }
+                            if (!auth::RequireRole(principal_result.principal, {"viewer", "operator"})) {
+                                return JsonResponse(403, "Forbidden", "{\"error\":\"viewer role required\"}");
+                            }
+                            return std::nullopt;
+                        };
+                        auto require_lab_principal = [&]() -> std::optional<HttpResponse> {
+                            if (!config.enable_lab) {
+                                return route_disabled_response("lab");
+                            }
+                            if (!principal_result.ok) {
+                                return AuthErrorResponse(principal_result.error);
+                            }
+                            if (!auth::RequireRole(principal_result.principal, {"operator"}) &&
+                                !auth::RequireScope(principal_result.principal, "lab:read")) {
+                                return JsonResponse(403, "Forbidden", "{\"error\":\"lab scope required\"}");
                             }
                             return std::nullopt;
                         };
@@ -19188,7 +19421,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                         if (request.method == "GET" && request.path == "/login") {
                             if (config.auth_mode == app::AuthMode::Session && principal_result.ok) {
-                                return RedirectResponse(RoleLandingPath(principal_result.principal));
+                                return RedirectResponse(RoleLandingPath(principal_result.principal, config));
                             }
                             HttpResponse ok;
                             ok.content_type = "text/html; charset=utf-8";
@@ -19227,7 +19460,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "Service Unavailable",
                                                     "{\"error\":\"" + JsonEscape(session_error) + "\"}");
                             }
-                            HttpResponse redirect = RedirectResponse(RoleLandingPath(login.principal));
+                            HttpResponse redirect = RedirectResponse(RoleLandingPath(login.principal, config));
                             redirect.headers["Set-Cookie"] =
                                 AuthCookieHeader(config, *session_id, config.auth_session_ttl_seconds);
                             return redirect;
@@ -19250,39 +19483,44 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if ((request.method == "GET" || request.method == "HEAD") && request.path == "/") {
-                            if (config.auth_mode == app::AuthMode::Session) {
-                                if (!principal_result.ok) {
-                                    return RedirectResponse("/login");
+                            if (config.auth_mode == app::AuthMode::Off) {
+                                HttpResponse redirect = RedirectResponse(DefaultHomePath(config));
+                                if (request.method == "HEAD") {
+                                    redirect.body.clear();
                                 }
-                                return RedirectResponse(RoleLandingPath(principal_result.principal));
+                                return redirect;
                             }
-                            HttpResponse redirect;
-                            redirect.status = 302;
-                            redirect.status_text = "Found";
-                            redirect.content_type = "text/plain; charset=utf-8";
-                            redirect.headers["Cache-Control"] = "no-store";
-                            redirect.headers["Location"] = "/lab/rules";
-                            if (request.method == "GET") {
-                                redirect.body = "Redirecting to /lab/rules\n";
+                            if (!principal_result.ok) {
+                                HttpResponse redirect = RedirectResponse("/login");
+                                if (request.method == "HEAD") {
+                                    redirect.body.clear();
+                                }
+                                return redirect;
+                            }
+                            HttpResponse redirect =
+                                RedirectResponse(RoleLandingPath(principal_result.principal, config));
+                            if (request.method == "HEAD") {
+                                redirect.body.clear();
                             }
                             return redirect;
                         }
 
                         if (request.method == "GET" && request.path == "/ops/sources") {
-                            if (!principal_result.ok) {
-                                if (config.auth_mode == app::AuthMode::Session) {
-                                    return RedirectResponse("/login");
-                                }
-                                return AuthErrorResponse(principal_result.error);
-                            }
-                            if (!auth::RequireRole(principal_result.principal, {"operator"})) {
-                                return JsonResponse(403, "Forbidden", "{\"error\":\"operator role required\"}");
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
                             }
                             HttpResponse ok;
                             ok.content_type = "text/html; charset=utf-8";
                             ok.headers["Cache-Control"] = "no-store";
                             ok.body = BuildOpsSourcesPageHtml();
                             return ok;
+                        }
+
+                        if (request.method == "GET" && request.path == "/ops/rules") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            return RedirectResponse("/lab/rules");
                         }
 
                         if (request.path == "/ops/api/sources") {
@@ -19368,49 +19606,49 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                         }
 
-                        if (request.method == "GET" && request.path == "/ops") {
-                            if (config.auth_mode == app::AuthMode::Session &&
-                                !auth::RequireRole(principal_result.principal, {"operator"})) {
-                                if (!principal_result.ok) {
+                        if (request.method == "GET" &&
+                            (request.path == "/ops" || request.path == "/ops/live" ||
+                             request.path == "/ops/dashboard" || request.path == "/ops/events")) {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                if (!principal_result.ok && config.auth_mode == app::AuthMode::Session &&
+                                    config.enable_ops) {
                                     return RedirectResponse("/login");
                                 }
-                                return JsonResponse(403, "Forbidden", "{\"error\":\"operator role required\"}");
+                                return *auth_response;
                             }
                             HttpResponse ok;
                             ok.content_type = "text/html; charset=utf-8";
                             ok.headers["Cache-Control"] = "no-store";
-                            ok.body = AuthLandingPageHtml(
-                                principal_result.ok
-                                    ? principal_result.principal
-                                    : auth::MakePrincipalForRole("operator",
-                                                                 auth::DefaultScopesForRole("operator"),
-                                                                 "Operator",
-                                                                 config.auth_mode),
-                                "Operator Workspace",
-                                "운영 live monitor와 rule/runtime 화면이 들어올 임시 landing page입니다.");
+                            std::string active = "live";
+                            if (request.path == "/ops/dashboard") {
+                                active = "dashboard";
+                            } else if (request.path == "/ops/events") {
+                                active = "events";
+                            }
+                            ok.body = OpsShellPageHtml(principal_result.principal, active);
                             return ok;
                         }
 
-                        if (request.method == "GET" && request.path == "/client") {
-                            if (config.auth_mode == app::AuthMode::Session &&
-                                !auth::RequireRole(principal_result.principal, {"viewer", "operator"})) {
-                                if (!principal_result.ok) {
+                        if (request.method == "GET" &&
+                            (request.path == "/client" || request.path == "/client/live" ||
+                             request.path == "/client/dashboard" || request.path == "/client/events")) {
+                            if (const auto auth_response = require_client_principal(); auth_response.has_value()) {
+                                if (!principal_result.ok && config.auth_mode == app::AuthMode::Session &&
+                                    config.enable_client) {
                                     return RedirectResponse("/login");
                                 }
-                                return JsonResponse(403, "Forbidden", "{\"error\":\"viewer role required\"}");
+                                return *auth_response;
                             }
                             HttpResponse ok;
                             ok.content_type = "text/html; charset=utf-8";
                             ok.headers["Cache-Control"] = "no-store";
-                            ok.body = AuthLandingPageHtml(
-                                principal_result.ok
-                                    ? principal_result.principal
-                                    : auth::MakePrincipalForRole("viewer",
-                                                                 auth::DefaultScopesForRole("viewer"),
-                                                                 "Viewer",
-                                                                 config.auth_mode),
-                                "Client Workspace",
-                                "할당된 live view와 제한 dashboard가 들어올 임시 landing page입니다.");
+                            std::string active = "live";
+                            if (request.path == "/client/dashboard") {
+                                active = "dashboard";
+                            } else if (request.path == "/client/events") {
+                                active = "events";
+                            }
+                            ok.body = ClientShellPageHtml(principal_result.principal, active);
                             return ok;
                         }
 
@@ -19434,6 +19672,16 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             HttpResponse ok = JsonResponse(200, "OK", WebRtcBrowserConfigJson());
                             ok.headers["Cache-Control"] = "no-store";
                             return ok;
+                        }
+
+                        if (request.path == "/lab" || request.path.rfind("/lab/", 0) == 0) {
+                            if (const auto auth_response = require_lab_principal(); auth_response.has_value()) {
+                                if (!principal_result.ok && config.auth_mode == app::AuthMode::Session &&
+                                    config.enable_lab) {
+                                    return RedirectResponse("/login");
+                                }
+                                return *auth_response;
+                            }
                         }
 
                         if (request.method == "GET" && request.path == "/lab") {

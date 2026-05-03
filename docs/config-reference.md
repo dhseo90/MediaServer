@@ -30,6 +30,10 @@
 | `MEDIA_SERVER_AUTH_SESSION_TTL_SECONDS` | `86400` | session cookie 만료 시간 |
 | `MEDIA_SERVER_AUTH_COOKIE_NAME` | `media_server_session` | session cookie 이름 |
 | `MEDIA_SERVER_AUTH_COOKIE_SECURE` | `0` | `1`이면 session cookie에 `Secure` attribute 추가 |
+| `MEDIA_SERVER_UI_DEFAULT_HOME` | `lab` | auth off에서 `/`가 이동할 home. `lab`, `ops`, `client` |
+| `MEDIA_SERVER_ENABLE_LAB` | `1` | `/lab` 개발/검증 route 노출 |
+| `MEDIA_SERVER_ENABLE_OPS` | `1` | `/ops` 운영 shell/API route 노출 |
+| `MEDIA_SERVER_ENABLE_CLIENT` | `1` | `/client` client shell/API route 노출 |
 | `MEDIA_SERVER_SUBSCRIBER_QUEUE_SIZE` | `256` | subscriber queue 상한 |
 | `MEDIA_SERVER_MAX_SESSIONS` | `2048` | session 상한 |
 | `MEDIA_SERVER_MAX_STREAMS` | `512` | stream registry 상한 |
@@ -39,7 +43,7 @@
 
 ### HTTP auth MVP
 
-`MEDIA_SERVER_AUTH_MODE=off`가 기본값이며 기존 `/lab/rules`, WebRTC, RTSP 검증 흐름을 그대로 유지합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 `/auth/whoami`가 `Authorization: Bearer <token>` 또는 개발용 `?token=<token>` query를 읽어 role/scope principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=session`에서는 같은 token auth를 유지하면서 `/login` 계정 로그인과 HttpOnly session cookie 인증을 추가합니다. Query token은 브라우저 주소, proxy log, referrer에 남을 수 있으므로 운영 환경에서는 권장하지 않습니다.
+`MEDIA_SERVER_AUTH_MODE=off`가 기본값이며 기존 `/lab/rules`, WebRTC, RTSP 검증 흐름을 그대로 유지합니다. Auth off에서 `/`는 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/live`, `/client/live` 중 하나로 이동합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 `/auth/whoami`가 `Authorization: Bearer <token>` 또는 개발용 `?token=<token>` query를 읽어 role/scope principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=session`에서는 같은 token auth를 유지하면서 `/login` 계정 로그인과 HttpOnly session cookie 인증을 추가합니다. Query token은 브라우저 주소, proxy log, referrer에 남을 수 있으므로 운영 환경에서는 권장하지 않습니다.
 
 Session login은 `libsodium crypto_pwhash_str` password hash를 사용합니다. 안전한 password hashing dependency가 없는 build에서는 password login을 사용할 수 없으며 plaintext password나 단순 SHA 계열 저장을 지원하지 않습니다.
 
