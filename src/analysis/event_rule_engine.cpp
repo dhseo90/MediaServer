@@ -668,6 +668,13 @@ std::vector<std::string> ScenarioLineIds(const std::string& document, const Even
         if (!values.empty()) {
             return values;
         }
+        if (const auto trigger_line = ExtractObjectField(*scenario, "triggerLine");
+            trigger_line.has_value()) {
+            const std::string line_id = Trim(ParseStringField(*trigger_line, "id").value_or(""));
+            if (!line_id.empty()) {
+                return {line_id};
+            }
+        }
         if (rule.region_type == "line" && !rule.id.empty()) {
             return {rule.id};
         }
