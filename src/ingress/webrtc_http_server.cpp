@@ -16053,6 +16053,569 @@ HttpResponse ForbiddenPageResponse(const std::string& message) {
                               "Go Home");
 }
 
+std::string ProductThemeBootScript() {
+    return R"THEME(  <script>
+    (() => {
+      const saved = localStorage.getItem('mediaServerTheme');
+      const preferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = saved === 'dark' || saved === 'light' ? saved : preferred;
+    })();
+  </script>
+)THEME";
+}
+
+std::string ProductUiCss() {
+    return R"CSS(  <style>
+    :root {
+      --color-bg: #f6f8fb;
+      --color-bg-elevated: #ffffff;
+      --color-surface: #ffffff;
+      --color-surface-raised: #ffffff;
+      --color-surface-muted: #f1f5f9;
+      --color-surface-subtle: #f8fafc;
+      --color-surface-hover: #e8f3f2;
+      --color-border: #d8e0e8;
+      --color-border-strong: #b7c4d1;
+      --color-text: #172026;
+      --color-text-muted: #5f6f7a;
+      --color-text-subtle: #84919c;
+      --color-link: #0f766e;
+      --color-primary: #0f766e;
+      --color-primary-hover: #0b5f59;
+      --color-primary-weak-bg: #e0f2f1;
+      --color-primary-weak-text: #0f766e;
+      --color-success: #15803d;
+      --color-warning: #b45309;
+      --color-danger: #dc2626;
+      --color-danger-hover: #b91c1c;
+      --color-info: #2563eb;
+      --color-neutral: #64748b;
+      --color-on-primary: #ffffff;
+      --color-success-bg: #dcfce7;
+      --color-warning-bg: #fff4d6;
+      --color-danger-bg: #fee7e7;
+      --color-info-bg: #dbeafe;
+      --color-neutral-bg: #e2e8f0;
+      --color-input-bg: #ffffff;
+      --color-input-border: #cbd5e1;
+      --color-input-focus: #14b8a6;
+      --color-focus-ring: rgba(20, 184, 166, 0.28);
+      --color-placeholder: #94a3b8;
+      --color-table-header-bg: #f1f5f9;
+      --color-table-row-hover: #edf7f6;
+      --color-table-border: #e2e8f0;
+      --color-code-bg: #111827;
+      --color-code-text: #e5edf5;
+      --color-debug-bg: #f8fafc;
+      --color-debug-border: #cbd5e1;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+      --shadow-md: 0 8px 18px rgba(15, 23, 42, 0.10);
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      color-scheme: light;
+    }
+    :root[data-theme="dark"] {
+      --color-bg: #111827;
+      --color-bg-elevated: #17212f;
+      --color-surface: #1f2937;
+      --color-surface-raised: #243042;
+      --color-surface-muted: #263241;
+      --color-surface-subtle: #151f2e;
+      --color-surface-hover: #203f3d;
+      --color-border: #405163;
+      --color-border-strong: #64748b;
+      --color-text: #f8fafc;
+      --color-text-muted: #cbd5e1;
+      --color-text-subtle: #94a3b8;
+      --color-link: #5eead4;
+      --color-primary: #2dd4bf;
+      --color-primary-hover: #5eead4;
+      --color-primary-weak-bg: rgba(45, 212, 191, 0.14);
+      --color-primary-weak-text: #99f6e4;
+      --color-success: #4ade80;
+      --color-warning: #fbbf24;
+      --color-danger: #f87171;
+      --color-danger-hover: #fb7185;
+      --color-info: #60a5fa;
+      --color-neutral: #cbd5e1;
+      --color-on-primary: #06231f;
+      --color-success-bg: rgba(34, 197, 94, 0.18);
+      --color-warning-bg: rgba(245, 158, 11, 0.17);
+      --color-danger-bg: rgba(239, 68, 68, 0.16);
+      --color-info-bg: rgba(59, 130, 246, 0.20);
+      --color-neutral-bg: rgba(148, 163, 184, 0.18);
+      --color-input-bg: #111827;
+      --color-input-border: #4b5f73;
+      --color-input-focus: #5eead4;
+      --color-focus-ring: rgba(94, 234, 212, 0.28);
+      --color-placeholder: #7f8fa3;
+      --color-table-header-bg: #263241;
+      --color-table-row-hover: #1f3938;
+      --color-table-border: #53677a;
+      --color-code-bg: #0b1120;
+      --color-code-text: #e5edf5;
+      --color-debug-bg: #151f2e;
+      --color-debug-border: #4b5f73;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.22);
+      --shadow-md: 0 10px 24px rgba(0, 0, 0, 0.28);
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body.product-shell,
+    body.auth-shell {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Avenir Next", "Pretendard", "Noto Sans KR", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--color-text);
+      background: var(--color-bg);
+    }
+    a { color: var(--color-link); text-decoration: none; font-weight: 800; }
+    a:hover { text-decoration: underline; }
+    .product-page {
+      width: min(1280px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: var(--space-8) 0 56px;
+      display: grid;
+      gap: var(--space-5);
+    }
+    .app-header,
+    .auth-card,
+    .card,
+    .panel,
+    .section-card {
+      background: var(--color-surface-raised);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+    .app-header {
+      display: grid;
+      gap: var(--space-4);
+      padding: var(--space-5);
+    }
+    .app-header-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+    }
+    .app-title-block { display: grid; gap: var(--space-1); }
+    h1, h2, h3 { margin: 0; letter-spacing: 0; }
+    h1 { font-size: clamp(26px, 3vw, 36px); line-height: 1.08; }
+    h2 { font-size: 20px; }
+    h3 { font-size: 16px; }
+    p { margin: 0; color: var(--color-text-muted); line-height: 1.55; }
+    .eyebrow {
+      margin: 0;
+      color: var(--color-primary);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .muted { color: var(--color-text-muted); }
+    .breadcrumbs {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      color: var(--color-text-muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .nav-tabs {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+    }
+    .nav,
+    .button,
+    button {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 9px 13px;
+      background: var(--color-bg-elevated);
+      color: var(--color-text);
+      font: inherit;
+      font-weight: 850;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: none;
+    }
+    .nav:hover,
+    .button:hover,
+    button:hover {
+      background: var(--color-surface-hover);
+      border-color: var(--color-border-strong);
+      text-decoration: none;
+    }
+    .nav.active,
+    .button-primary,
+    button.primary {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: var(--color-on-primary);
+    }
+    .button-danger,
+    button.danger {
+      background: var(--color-danger);
+      border-color: var(--color-danger);
+      color: #ffffff;
+    }
+    .button-secondary,
+    button.secondary,
+    .ghost,
+    .theme-toggle {
+      background: var(--color-bg-elevated);
+      color: var(--color-text);
+      border-color: var(--color-border);
+    }
+    .button-link {
+      min-height: auto;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--color-link);
+      box-shadow: none;
+    }
+    .theme-toggle {
+      width: auto;
+      min-height: 32px;
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+    .panel,
+    .section-card,
+    .card {
+      display: grid;
+      gap: var(--space-4);
+      padding: var(--space-5);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: var(--space-4);
+    }
+    .split-grid {
+      display: grid;
+      grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
+      gap: var(--space-4);
+      align-items: start;
+    }
+    .metric-card {
+      min-height: 94px;
+      display: grid;
+      align-content: center;
+      gap: var(--space-1);
+      padding: var(--space-4);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-muted);
+    }
+    .metric-card span {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+    .metric-card strong {
+      color: var(--color-text);
+      font-size: 24px;
+      font-variant-numeric: tabular-nums;
+    }
+    .toolbar,
+    .actions {
+      display: flex;
+      gap: var(--space-2);
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .actions { justify-content: flex-start; }
+    .badge-row,
+    .meta {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .chip,
+    .badge,
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--color-primary-weak-bg);
+      color: var(--color-primary-weak-text);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .chip.warn,
+    .badge.warn { background: var(--color-warning-bg); color: var(--color-warning); }
+    .chip.bad,
+    .badge.bad { background: var(--color-danger-bg); color: var(--color-danger); }
+    .chip.info,
+    .badge.info { background: var(--color-info-bg); color: var(--color-info); }
+    form,
+    .form-grid {
+      display: grid;
+      gap: var(--space-3);
+    }
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--color-text-muted);
+      font-size: 13px;
+      font-weight: 850;
+    }
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--color-input-border);
+      border-radius: var(--radius-md);
+      padding: 8px 10px;
+      background: var(--color-input-bg);
+      color: var(--color-text);
+      font: inherit;
+    }
+    textarea { min-height: 82px; resize: vertical; }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 3px solid var(--color-focus-ring);
+      border-color: var(--color-input-focus);
+    }
+    .row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: var(--space-3);
+    }
+    .checks {
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+    .checks label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .checks input {
+      width: auto;
+      min-height: auto;
+    }
+    .hint,
+    .form-note {
+      color: var(--color-text-muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .status,
+    .message {
+      min-height: 24px;
+      color: var(--color-info);
+      font-size: 13px;
+      font-weight: 850;
+    }
+    .status.error,
+    .message.error { color: var(--color-danger); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th,
+    td {
+      border-bottom: 1px solid var(--color-table-border);
+      padding: 9px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: var(--color-table-header-bg);
+      color: var(--color-text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    tr:hover td { background: var(--color-table-row-hover); }
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+    }
+    .table-wrap table th:first-child { border-top-left-radius: var(--radius-lg); }
+    .table-wrap table th:last-child { border-top-right-radius: var(--radius-lg); }
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 0;
+      padding: var(--space-4);
+      border: 1px solid var(--color-debug-border);
+      border-radius: var(--radius-md);
+      background: var(--color-code-bg);
+      color: var(--color-code-text);
+      font-size: 12px;
+      line-height: 1.45;
+      max-height: 420px;
+      overflow: auto;
+    }
+    .debug-drawer {
+      border: 1px solid var(--color-debug-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-debug-bg);
+      overflow: hidden;
+    }
+    .debug-drawer > summary {
+      cursor: pointer;
+      padding: var(--space-4);
+      color: var(--color-text);
+      font-weight: 900;
+    }
+    .debug-drawer[open] > summary {
+      border-bottom: 1px solid var(--color-debug-border);
+    }
+    .debug-drawer-body {
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-4);
+    }
+    .empty {
+      min-height: 86px;
+      display: grid;
+      align-content: center;
+      color: var(--color-text-muted);
+    }
+    .auth-shell {
+      display: grid;
+      place-items: center;
+      padding: var(--space-5);
+    }
+    .auth-card {
+      width: min(460px, 100%);
+      display: grid;
+      gap: var(--space-4);
+      padding: var(--space-5);
+    }
+    .auth-form { display: grid; gap: var(--space-3); }
+    .auth-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+    }
+    .token {
+      overflow-wrap: anywhere;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    @media (max-width: 860px) {
+      .product-page { width: min(100% - 20px, 760px); padding-top: var(--space-5); }
+      .split-grid { grid-template-columns: 1fr; }
+      .app-header-row { align-items: stretch; }
+      .nav-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .nav { width: 100%; }
+    }
+  </style>
+)CSS";
+}
+
+void AppendProductThemeScript(std::ostringstream& out) {
+    out << R"SCRIPT(    <script>
+      (() => {
+        const button = document.getElementById('themeToggleBtn');
+        const sync = () => {
+          const theme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+          if (button) button.textContent = theme === 'dark' ? '라이트 모드' : '다크 모드';
+        };
+        sync();
+        if (button) {
+          button.addEventListener('click', () => {
+            const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+            document.documentElement.dataset.theme = next;
+            localStorage.setItem('mediaServerTheme', next);
+            sync();
+          });
+        }
+      })();
+    </script>
+)SCRIPT";
+}
+
+void AppendOpsShellStart(std::ostringstream& out,
+                         const auth::Principal& principal,
+                         const std::string& active,
+                         const std::string& subtitle) {
+    auto nav_class = [&](const std::string& key) {
+        return active == key ? "nav active" : "nav";
+    };
+    out << R"(<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ops Console</title>
+)" << ProductThemeBootScript() << ProductUiCss() << R"(</head>
+<body class="product-shell">
+  <main class="product-page">
+    <header class="app-header">
+      <div class="app-header-row">
+        <div class="app-title-block">
+          <p class="eyebrow">Operations</p>
+          <h1>Ops Console</h1>
+          <p>)" << HtmlEscape(subtitle) << R"(</p>
+          <div class="badge-row">
+            <span class="chip">)" << HtmlEscape(principal.display_name) << R"(</span>
+            <span class="chip info">role: )" << HtmlEscape(principal.role) << R"(</span>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="themeToggleBtn" class="theme-toggle" type="button">다크 모드</button>
+          <form method="post" action="/logout"><button class="button-secondary" type="submit">Logout</button></form>
+        </div>
+      </div>
+      <nav class="nav-tabs" aria-label="Ops navigation">
+        <a class=")" << nav_class("live") << R"(" href="/ops/live">Live</a>
+        <a class=")" << nav_class("dashboard") << R"(" href="/ops/dashboard">Dashboard</a>
+        <a class=")" << nav_class("sources") << R"(" href="/ops/sources">Sources</a>
+        <a class=")" << nav_class("rules") << R"(" href="/ops/rules">Rules</a>
+        <a class=")" << nav_class("events") << R"(" href="/ops/events">Events</a>
+)";
+    if (auth::IsAdmin(principal)) {
+        out << R"(        <a class=")" << nav_class("users") << R"(" href="/ops/users" data-admin-only>Users</a>
+)";
+    }
+    out << R"(      </nav>
+      <div class="breadcrumbs"><a href="/ops/live">Ops</a><span>/</span><span>)"
+        << HtmlEscape(active.empty() ? "live" : active) << R"(</span></div>
+    </header>
+)";
+}
+
+void AppendOpsShellEnd(std::ostringstream& out) {
+    AppendProductThemeScript(out);
+    out << R"(  </main>
+</body>
+</html>)";
+}
+
 std::string LoginPageHtml(const std::string& message, bool failed) {
     std::ostringstream out;
     out << R"(<!doctype html>
@@ -16061,25 +16624,17 @@ std::string LoginPageHtml(const std::string& message, bool failed) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MediaServer Login</title>
-  <style>
-    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #111827; color: #f8fafc; }
-    main { width: min(420px, calc(100vw - 32px)); display: grid; gap: 16px; }
-    form { display: grid; gap: 12px; padding: 22px; border: 1px solid rgba(148,163,184,.35); border-radius: 8px; background: #0f172a; }
-    h1 { margin: 0; font-size: 24px; }
-    p { margin: 0; color: #cbd5e1; line-height: 1.5; }
-    label { display: grid; gap: 6px; color: #e2e8f0; font-weight: 700; }
-    input { min-height: 42px; border-radius: 6px; border: 1px solid #475569; padding: 0 12px; background: #020617; color: #f8fafc; font: inherit; }
-    button { min-height: 44px; border: 0; border-radius: 6px; background: #38bdf8; color: #082f49; font-weight: 900; cursor: pointer; }
-    .message { padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #dbeafe; }
-    .message.error { border-color: #f87171; background: #451a1a; color: #fecaca; }
-  </style>
+)" << ProductThemeBootScript() << ProductUiCss() << R"(
 </head>
-<body>
-  <main>
-    <form method="post" action="/login">
-      <h1>MediaServer Login</h1>
-      <p>계정으로 로그인하면 역할과 scope에 맞는 화면으로 이동합니다.</p>
+<body class="auth-shell">
+  <main class="auth-card">
+    <div class="auth-actions">
+      <p class="eyebrow">MediaServer</p>
+      <button id="themeToggleBtn" class="theme-toggle" type="button">다크 모드</button>
+    </div>
+    <form class="auth-form" method="post" action="/login">
+      <h1>Login</h1>
+      <p>계정으로 로그인하면 역할과 scope에 맞는 Ops 또는 Client 화면으로 이동합니다.</p>
 )";
     if (!message.empty()) {
         out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
@@ -16091,8 +16646,11 @@ std::string LoginPageHtml(const std::string& message, bool failed) {
       <label>Password
         <input name="password" type="password" autocomplete="current-password" required />
       </label>
-      <button type="submit">Login</button>
+      <button class="primary" type="submit">Login</button>
     </form>
+)";
+    AppendProductThemeScript(out);
+    out << R"(
   </main>
 </body>
 </html>)";
@@ -16111,27 +16669,17 @@ std::string SetupPageHtml(const std::string& message, bool failed) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MediaServer Setup</title>
-  <style>
-    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #111827; color: #f8fafc; }
-    main { width: min(460px, calc(100vw - 32px)); display: grid; gap: 16px; }
-    form { display: grid; gap: 12px; padding: 22px; border: 1px solid rgba(148,163,184,.35); border-radius: 8px; background: #0f172a; }
-    h1 { margin: 0; font-size: 24px; }
-    p { margin: 0; color: #cbd5e1; line-height: 1.5; }
-    label { display: grid; gap: 6px; color: #e2e8f0; font-weight: 700; }
-    input { min-height: 42px; border-radius: 6px; border: 1px solid #475569; padding: 0 12px; background: #020617; color: #f8fafc; font: inherit; }
-    input[readonly] { color: #cbd5e1; background: #111827; }
-    button { min-height: 44px; border: 0; border-radius: 6px; background: #38bdf8; color: #082f49; font-weight: 900; cursor: pointer; }
-    .message { padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #dbeafe; }
-    .message.error { border-color: #f87171; background: #451a1a; color: #fecaca; }
-    .hint { font-size: 13px; color: #94a3b8; }
-  </style>
+)" << ProductThemeBootScript() << ProductUiCss() << R"(
 </head>
-<body>
-  <main>
-    <form method="post" action="/setup">
-      <h1>Initial Admin Setup</h1>
-      <p>기본 admin 계정에는 비밀번호가 없습니다. 처음 한 번 강한 비밀번호를 설정한 뒤 로그인합니다.</p>
+<body class="auth-shell">
+  <main class="auth-card">
+    <div class="auth-actions">
+      <p class="eyebrow">Initial Setup</p>
+      <button id="themeToggleBtn" class="theme-toggle" type="button">다크 모드</button>
+    </div>
+    <form class="auth-form" method="post" action="/setup">
+      <h1>Admin Setup</h1>
+      <p>기본 admin 계정에 강한 비밀번호를 설정한 뒤 제품 화면으로 이동합니다.</p>
 )";
     if (!message.empty()) {
         out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
@@ -16147,8 +16695,11 @@ std::string SetupPageHtml(const std::string& message, bool failed) {
         <input name="confirm" type="password" autocomplete="new-password" required />
       </label>
       )" << PasswordPolicyHintHtml() << R"(
-      <button type="submit">Set admin password</button>
+      <button class="primary" type="submit">Set admin password</button>
     </form>
+)";
+    AppendProductThemeScript(out);
+    out << R"(
   </main>
 </body>
 </html>)";
@@ -16395,111 +16946,386 @@ std::string AuthLandingPageHtml(const auth::Principal& principal,
 
 std::string OpsShellPageHtml(const auth::Principal& principal, const std::string& active) {
     std::ostringstream out;
-    auto nav_class = [&](const std::string& key) {
-        return active == key ? "nav active" : "nav";
-    };
-    out << R"(<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ops Console</title>
-  <style>
-    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { margin: 0; background: #f8fafc; color: #0f172a; }
-    main { max-width: 1180px; margin: 0 auto; padding: 28px 18px 40px; display: grid; gap: 18px; }
-    header { display: flex; justify-content: space-between; align-items: start; gap: 14px; flex-wrap: wrap; }
-    h1, h2 { margin: 0; }
-    h1 { font-size: 28px; }
-    h2 { font-size: 18px; }
-    p { margin: 0; color: #475569; line-height: 1.5; }
-    nav { display: flex; gap: 8px; flex-wrap: wrap; }
-    a.nav { min-height: 36px; display: inline-flex; align-items: center; border-radius: 6px; padding: 0 12px; background: #e2e8f0; color: #0f172a; text-decoration: none; font-weight: 900; }
-    a.nav.active { background: #0f172a; color: #fff; }
-    .panel { display: grid; gap: 12px; padding: 16px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
-    .action { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; background: #0369a1; color: #fff; text-decoration: none; font-weight: 900; padding: 0 12px; }
-    .chip { padding: 6px 9px; border-radius: 999px; background: #e0f2fe; color: #075985; font-size: 13px; font-weight: 800; }
-    button { min-height: 38px; border: 0; border-radius: 6px; background: #0f172a; color: #fff; padding: 0 14px; font-weight: 800; cursor: pointer; }
-    @media (prefers-color-scheme: dark) {
-      body { background: #020617; color: #f8fafc; }
-      p { color: #cbd5e1; }
-      .panel { background: #0f172a; border-color: #334155; }
-      a.nav { background: #334155; color: #f8fafc; }
-      a.nav.active { background: #38bdf8; color: #082f49; }
-    }
-  </style>
-</head>
-<body>
-  <main>
-    <header>
-      <div>
-        <h1>Ops Console</h1>
-        <p>)" << HtmlEscape(principal.display_name) << R"( · )" << HtmlEscape(principal.role) << R"(</p>
-      </div>
-      <form method="post" action="/logout"><button type="submit">Logout</button></form>
-    </header>
-    <nav>
-      <a class=")" << nav_class("live") << R"(" href="/ops/live">Live</a>
-      <a class=")" << nav_class("dashboard") << R"(" href="/ops/dashboard">Dashboard</a>
-      <a class=")" << nav_class("sources") << R"(" href="/ops/sources">Sources</a>
-      <a class=")" << nav_class("rules") << R"(" href="/ops/rules">Rules</a>
-      <a class=")" << nav_class("events") << R"(" href="/ops/events">Events</a>
-)";
-    if (auth::IsAdmin(principal)) {
-        out << R"(      <a class=")" << nav_class("users") << R"(" href="/ops/users" data-admin-only>Users</a>
-)";
-    }
-    out << R"(    </nav>
-    <section class="panel">
-)";
+    AppendOpsShellStart(out,
+                        principal,
+                        active,
+                        "운영 상태, source/view, rule, event, 계정 관리를 같은 제품 shell에서 확인합니다.");
     if (active == "dashboard") {
-        out << R"(      <h2>Dashboard</h2>
-      <div class="grid">
-        <a class="action" href="/lab/runtime/status">Runtime Status</a>
-        <a class="action" href="/lab/analysis/taps">Analysis Taps</a>
-        <a class="action" href="/lab/analysis/event-storage/status">Event Storage</a>
+        out << R"(    <section class="panel" data-ops-panel="dashboard">
+      <div class="toolbar">
+        <div>
+          <h2>Runtime Dashboard</h2>
+          <p>Lab runtime API를 같은 화면에서 요약해 표시합니다.</p>
+        </div>
+        <button id="opsDashboardRefresh" class="button-secondary" type="button">Refresh</button>
       </div>
+      <div class="grid">
+        <div class="metric-card"><span>Active sessions</span><strong id="dashActiveSessions">-</strong></div>
+        <div class="metric-card"><span>Active streams</span><strong id="dashActiveStreams">-</strong></div>
+        <div class="metric-card"><span>Analysis taps</span><strong id="dashActiveTaps">-</strong></div>
+        <div class="metric-card"><span>Publish sources</span><strong id="dashPublishSources">-</strong></div>
+      </div>
+      <div class="grid">
+        <section class="section-card">
+          <h3>Health Summary</h3>
+          <div id="dashHealthBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+          <p id="dashHealthText">Runtime status를 불러오는 중입니다.</p>
+        </section>
+        <section class="section-card">
+          <h3>Runtime</h3>
+          <div id="dashRuntimeRows" class="badge-row"></div>
+          <p id="dashRuntimeText">미제공</p>
+        </section>
+        <section class="section-card">
+          <h3>Backpressure</h3>
+          <div id="dashBackpressureRows" class="badge-row"></div>
+          <p id="dashBackpressureText">미제공</p>
+        </section>
+        <section class="section-card">
+          <h3>Cleanup</h3>
+          <div id="dashCleanupRows" class="badge-row"></div>
+          <p id="dashCleanupText">미제공</p>
+        </section>
+      </div>
+      <details class="debug-drawer">
+        <summary>Runtime raw JSON</summary>
+        <div class="debug-drawer-body">
+          <label class="checks"><span><input id="opsDashboardPretty" type="checkbox" checked /> pretty print</span></label>
+          <pre id="opsDashboardRaw">runtime status 없음</pre>
+        </div>
+      </details>
+    </section>
 )";
     } else if (active == "events") {
-        out << R"(      <h2>Events</h2>
-      <div class="grid">
-        <a class="action" href="/lab/analysis/events/records">Event Records</a>
-        <a class="action" href="/lab/analysis/event-post/status">Event POST Status</a>
+        out << R"(    <section class="panel" data-ops-panel="events">
+      <div class="toolbar">
+        <div>
+          <h2>Events</h2>
+          <p>Event storage, Event POST worker, 최근 event record를 카드와 표로 표시합니다.</p>
+        </div>
+        <button id="opsEventsRefresh" class="button-secondary" type="button">Refresh</button>
       </div>
+      <div class="grid">
+        <section class="section-card">
+          <h3>Event Storage</h3>
+          <div id="eventStorageBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+          <p id="eventStorageText">미제공</p>
+        </section>
+        <section class="section-card">
+          <h3>Event POST</h3>
+          <div id="eventPostBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+          <p id="eventPostText">미제공</p>
+        </section>
+      </div>
+      <section class="section-card">
+        <div class="toolbar">
+          <div>
+            <h3>Recent Event Records</h3>
+            <p id="eventRecordSummary">최근 25개 record를 조회합니다.</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Status</th>
+                <th>Stream</th>
+                <th>Track</th>
+                <th>Scenario</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody id="eventRecordRows"><tr><td colspan="6">로딩 중</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+      <details class="debug-drawer">
+        <summary>Event raw JSON</summary>
+        <div class="debug-drawer-body">
+          <label class="checks"><span><input id="opsEventsPretty" type="checkbox" checked /> pretty print</span></label>
+          <pre id="opsEventsRaw">event status 없음</pre>
+        </div>
+      </details>
+    </section>
+)";
+    } else if (active == "rules") {
+        out << R"(    <section class="panel" data-ops-panel="rules">
+      <div class="toolbar">
+        <div>
+          <h2>Rules</h2>
+          <p>운영 shell은 유지하고, 기존 Lab Rule Editor를 명시적인 액션으로 엽니다.</p>
+        </div>
+      </div>
+      <div class="grid">
+        <section class="section-card">
+          <h3>Lab Rule Editor</h3>
+          <p>영상 분석 profile/rule/vaRule 저장 구조는 기존 `/lab/rules` 화면을 그대로 사용합니다. Ops shell에서는 이동 목적을 명확히 표시합니다.</p>
+          <div class="actions">
+            <a class="button button-primary" href="/lab/rules">Lab Rule Editor 열기</a>
+            <a class="button button-secondary" href="/ops/live">Ops Live로 돌아가기</a>
+          </div>
+        </section>
+        <section class="section-card">
+          <h3>Scope</h3>
+          <div class="badge-row">
+            <span class="chip">profile</span>
+            <span class="chip">rule</span>
+            <span class="chip">vaRule</span>
+          </div>
+          <p>API schema, Event POST payload, metadata side-channel, scenario 판단 로직은 이 shell 변경에서 수정하지 않습니다.</p>
+        </section>
+      </div>
+    </section>
 )";
     } else {
-        out << R"(      <h2>Live</h2>
+        out << R"(    <section class="panel" data-ops-panel="live">
+      <div class="toolbar">
+        <div>
+          <h2>Operations Home</h2>
+          <p>Live Monitor MVP는 준비 중이며, 현재는 운영 상태와 빠른 작업을 요약합니다.</p>
+        </div>
+        <button id="opsLiveRefresh" class="button-secondary" type="button">Refresh</button>
+      </div>
       <div class="grid">
-        <a class="action" href="/ops/sources">Sources / Views</a>
-        <a class="action" href="/ops/rules">Rules</a>
-        <a class="action" href="/lab">Lab Monitor</a>
+        <div class="metric-card"><span>Sources</span><strong id="liveSourceCount">-</strong></div>
+        <div class="metric-card"><span>Published views</span><strong id="liveViewCount">-</strong></div>
+        <div class="metric-card"><span>Active streams</span><strong id="liveStreamCount">-</strong></div>
+        <div class="metric-card"><span>Analysis taps</span><strong id="liveTapCount">-</strong></div>
+      </div>
+      <div class="grid">
+        <section class="section-card">
+          <h3>Live Monitor</h3>
+          <p>Live Monitor MVP 준비 중입니다. 현재 release에서는 source/view 상태와 client live route를 함께 확인합니다.</p>
+          <div class="actions">
+            <a class="button button-primary" href="/client/live">Client Live 열기</a>
+            <a class="button button-secondary" href="/ops/sources">Sources / Views</a>
+          </div>
+        </section>
+        <section class="section-card">
+          <h3>Recent Events</h3>
+          <div id="liveEventBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+          <p id="liveEventText">최근 event 요약을 불러오는 중입니다.</p>
+        </section>
+        <section class="section-card">
+          <h3>Warning / Stale</h3>
+          <div id="liveWarningBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+          <p id="liveWarningText">미제공</p>
+        </section>
+        <section class="section-card">
+          <h3>Quick Actions</h3>
+          <div class="actions">
+            <a class="button button-secondary" href="/ops/dashboard">Dashboard</a>
+            <a class="button button-secondary" href="/ops/events">Events</a>
+            <a class="button button-secondary" href="/ops/rules">Rules</a>
 )";
         if (auth::IsAdmin(principal)) {
-            out << R"(        <a class="action" href="/ops/users" data-admin-only>Users</a>
+            out << R"(            <a class="button button-secondary" href="/ops/users" data-admin-only>Users</a>
 )";
         }
-        out << R"(
+        out << R"(          </div>
+        </section>
       </div>
+      <details class="debug-drawer">
+        <summary>Operations raw JSON</summary>
+        <div class="debug-drawer-body">
+          <label class="checks"><span><input id="opsLivePretty" type="checkbox" checked /> pretty print</span></label>
+          <pre id="opsLiveRaw">operations summary 없음</pre>
+        </div>
+      </details>
+    </section>
 )";
     }
-    out << R"(    </section>
-    <script>
+    out << R"OPS(    <script>
+      const activeOpsPage = ')OPS" << HtmlEscape(active) << R"OPS(';
+      const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[ch]);
+      const display = value => value === null || value === undefined || value === '' ? '미제공' : String(value);
+      const numberValue = value => Number.isFinite(Number(value)) ? Number(value) : 0;
+      const setText = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = display(value);
+      };
+      const badge = (text, tone = '') => `<span class="chip${tone ? ' ' + tone : ''}">${escapeHtml(display(text))}</span>`;
+      const renderBadges = (id, items) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = items.length > 0 ? items.map(item => badge(item.text, item.tone)).join('') : badge('미제공', 'bad');
+      };
+      const renderRaw = (preId, checkboxId, payload) => {
+        const pre = document.getElementById(preId);
+        const checkbox = document.getElementById(checkboxId);
+        if (!pre) return;
+        const pretty = !checkbox || checkbox.checked;
+        pre.textContent = JSON.stringify(payload, null, pretty ? 2 : 0);
+      };
+      async function requestJson(url) {
+        const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
+        const text = await response.text();
+        let json = {};
+        try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
+        if (!response.ok) throw new Error(json.error || `${response.status} ${response.statusText}`);
+        return json;
+      }
+      const runtimeCounts = runtime => {
+        const session = runtime?.sessionManager || {};
+        const webrtc = runtime?.webrtcHttp || {};
+        const matching = runtime?.analysisMatching || {};
+        return {
+          sessions: numberValue(session.activeSessions),
+          streams: numberValue(session.registryActiveStreams || session.resourceActiveStreams),
+          taps: numberValue(session.activeAnalysisTaps || matching.activeTapCount),
+          egress: numberValue(webrtc.egressSessions),
+          publish: numberValue(webrtc.publishSessions),
+          publishSources: Array.isArray(webrtc.publishSources) ? webrtc.publishSources.length : 0,
+          activeTaps: Array.isArray(matching.activeTaps) ? matching.activeTaps : [],
+          debugCounters: runtime?.debugCounters || {}
+        };
+      };
+      const eventTime = record => record.updateTime ?? record.startTime ?? record.timestamp ?? record.endTime ?? '';
+      const formatTime = value => {
+        if (value === null || value === undefined || value === '') return '미제공';
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) return String(value);
+        return numeric > 1000000000000 ? new Date(numeric).toLocaleString() : `${Math.round(numeric)}ms`;
+      };
+      function renderEventRows(records) {
+        const body = document.getElementById('eventRecordRows');
+        if (!body) return;
+        if (!Array.isArray(records) || records.length === 0) {
+          body.innerHTML = '<tr><td colspan="6">Event record가 없습니다.</td></tr>';
+          return;
+        }
+        body.innerHTML = records.slice(0, 25).map(record => `
+          <tr>
+            <td>${escapeHtml(record.eventType || record.eventId || 'event')}</td>
+            <td>${badge(record.status || '미제공', String(record.status || '').toLowerCase() === 'active' ? 'warn' : '')}</td>
+            <td>${escapeHtml(record.streamId || record.channelId || '미제공')}</td>
+            <td>${escapeHtml(record.trackId ?? '미제공')}</td>
+            <td>${escapeHtml(record.scenarioName || record.scenarioPhase || record.zoneId || '미제공')}</td>
+            <td>${escapeHtml(formatTime(eventTime(record)))}</td>
+          </tr>
+        `).join('');
+      }
+      async function refreshLive() {
+        const [sources, views, runtime, storage, records] = await Promise.all([
+          requestJson('/ops/api/sources'),
+          requestJson('/ops/api/views'),
+          requestJson('/lab/runtime/status'),
+          requestJson('/lab/analysis/event-storage/status'),
+          requestJson('/lab/analysis/events/records?limit=5').catch(error => ({ error: error.message, records: [] }))
+        ]);
+        const sourceItems = Array.isArray(sources.sources) ? sources.sources : [];
+        const viewItems = Array.isArray(views.views) ? views.views : [];
+        const counts = runtimeCounts(runtime);
+        setText('liveSourceCount', sourceItems.length);
+        setText('liveViewCount', viewItems.length);
+        setText('liveStreamCount', counts.streams);
+        setText('liveTapCount', counts.taps);
+        const eventItems = Array.isArray(records.records) ? records.records : [];
+        renderBadges('liveEventBadges', [
+          { text: `records ${eventItems.length}` },
+          { text: storage.enabled ? 'storage on' : 'storage off', tone: storage.enabled ? '' : 'warn' },
+          { text: records.hasMore ? 'has more' : 'latest window' }
+        ]);
+        setText('liveEventText', eventItems.length > 0 ? `${eventItems[0].eventType || 'event'} · ${formatTime(eventTime(eventItems[0]))}` : '최근 event record가 없습니다.');
+        const warningItems = [];
+        if (numberValue(storage.failedCount) > 0 || numberValue(storage.writeFailedCount) > 0) warningItems.push({ text: 'storage failure', tone: 'bad' });
+        if (numberValue(storage.droppedCount) > 0) warningItems.push({ text: 'storage dropped', tone: 'warn' });
+        if (counts.activeTaps.some(tap => numberValue(tap.lastUsedAgeMs) > 5000)) warningItems.push({ text: 'stale tap', tone: 'warn' });
+        if (warningItems.length === 0) warningItems.push({ text: 'normal' });
+        renderBadges('liveWarningBadges', warningItems);
+        setText('liveWarningText', `egress ${counts.egress} · publish ${counts.publish} · cleanup counters ${Object.keys(counts.debugCounters).length}`);
+        renderRaw('opsLiveRaw', 'opsLivePretty', { sources, views, runtime, storage, records });
+      }
+      async function refreshDashboard() {
+        const runtime = await requestJson('/lab/runtime/status');
+        const counts = runtimeCounts(runtime);
+        setText('dashActiveSessions', counts.sessions);
+        setText('dashActiveStreams', counts.streams);
+        setText('dashActiveTaps', counts.taps);
+        setText('dashPublishSources', counts.publishSources);
+        renderBadges('dashHealthBadges', [
+          { text: counts.streams > 0 ? 'streams active' : 'streams idle', tone: counts.streams > 0 ? '' : 'info' },
+          { text: counts.taps > 0 ? 'analysis active' : 'analysis idle', tone: counts.taps > 0 ? '' : 'info' },
+          { text: counts.egress > 0 ? 'egress active' : 'egress idle', tone: counts.egress > 0 ? '' : 'info' }
+        ]);
+        setText('dashHealthText', `sessions ${counts.sessions} · streams ${counts.streams} · taps ${counts.taps}`);
+        renderBadges('dashRuntimeRows', [
+          { text: `egress ${counts.egress}` },
+          { text: `publish ${counts.publish}` },
+          { text: `reuse groups ${runtime?.analysisMatching?.reuseGroupCount ?? 0}` }
+        ]);
+        setText('dashRuntimeText', `profile documents ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · rule documents ${runtime?.analysisMatching?.ruleDocumentCount ?? 0}`);
+        const metadata = runtime?.webrtcHttp?.metadataDataChannel || {};
+        renderBadges('dashBackpressureRows', [
+          { text: `metadata channels ${Array.isArray(metadata.channels) ? metadata.channels.length : 0}` },
+          { text: `sse ${runtime?.webrtcHttp?.metadataSideChannel?.activeSseClients ?? 0}` },
+          { text: `ws ${runtime?.webrtcHttp?.metadataSideChannel?.activeWebSocketClients ?? 0}` }
+        ]);
+        setText('dashBackpressureText', 'DataChannel/SSE/WS 상태는 raw JSON 접힘 영역에서 세부 counter를 확인합니다.');
+        const debugKeys = Object.keys(counts.debugCounters);
+        renderBadges('dashCleanupRows', debugKeys.slice(0, 4).map(key => ({ text: key })));
+        setText('dashCleanupText', debugKeys.length > 0 ? `${debugKeys.length} cleanup/debug counter groups available` : 'cleanup counter 미제공');
+        renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
+      }
+      async function refreshEvents() {
+        const [storage, post, records] = await Promise.all([
+          requestJson('/lab/analysis/event-storage/status'),
+          requestJson('/lab/analysis/event-post/status'),
+          requestJson('/lab/analysis/events/records?limit=25').catch(error => ({ error: error.message, records: [] }))
+        ]);
+        renderBadges('eventStorageBadges', [
+          { text: storage.enabled ? 'enabled' : 'disabled', tone: storage.enabled ? '' : 'warn' },
+          { text: `stored ${storage.storedCount ?? 0}` },
+          { text: `failed ${storage.failedCount ?? 0}`, tone: numberValue(storage.failedCount) > 0 ? 'bad' : '' },
+          { text: `dropped ${storage.droppedCount ?? 0}`, tone: numberValue(storage.droppedCount) > 0 ? 'warn' : '' }
+        ]);
+        setText('eventStorageText', `queue ${storage.queueSize ?? 0}/${storage.maxQueueSize ?? 0} · file ${(storage.activeFileSizeBytes ?? 0)} bytes · recovery ${storage.lastRecoveryStatus || '미제공'}`);
+        renderBadges('eventPostBadges', [
+          { text: post.enabled ? 'enabled' : 'disabled', tone: post.enabled ? '' : 'warn' },
+          { text: `sent ${post.sentCount ?? 0}` },
+          { text: `failed ${post.failedCount ?? 0}`, tone: numberValue(post.failedCount) > 0 ? 'bad' : '' },
+          { text: `suppressed ${post.suppressedCount ?? 0}` }
+        ]);
+        setText('eventPostText', post.lastError ? `last error: ${post.lastError}` : `queue ${post.queueSize ?? 0}/${post.maxQueueSize ?? 0}`);
+        const eventItems = Array.isArray(records.records) ? records.records : [];
+        setText('eventRecordSummary', records.error ? `조회 실패: ${records.error}` : `records ${eventItems.length} · hasMore ${records.hasMore ? 'yes' : 'no'}`);
+        renderEventRows(eventItems);
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, records });
+      }
+      function wireOpsRefresh() {
+        document.getElementById('opsLiveRefresh')?.addEventListener('click', () => refreshLive().catch(error => setText('liveWarningText', error.message)));
+        document.getElementById('opsDashboardRefresh')?.addEventListener('click', () => refreshDashboard().catch(error => setText('dashHealthText', error.message)));
+        document.getElementById('opsEventsRefresh')?.addEventListener('click', () => refreshEvents().catch(error => setText('eventRecordSummary', error.message)));
+        document.getElementById('opsLivePretty')?.addEventListener('change', () => refreshLive().catch(() => {}));
+        document.getElementById('opsDashboardPretty')?.addEventListener('change', () => refreshDashboard().catch(() => {}));
+        document.getElementById('opsEventsPretty')?.addEventListener('change', () => refreshEvents().catch(() => {}));
+      }
       fetch('/auth/whoami', { credentials: 'same-origin' })
         .then(response => response.ok ? response.json() : null)
         .then(who => {
           if (!who) return;
-          const scopes = Array.isArray(who.scopes) ? who.scopes : [];
           const isAdmin = who.role === 'admin';
-          const hasOps = isAdmin || scopes.includes('*') || scopes.includes('ops:read');
           document.querySelectorAll('[data-admin-only]').forEach(el => { el.hidden = !isAdmin; });
-          document.querySelectorAll('[data-ops-scope]').forEach(el => { el.hidden = !hasOps; });
         })
         .catch(() => {});
+      wireOpsRefresh();
+      if (activeOpsPage === 'dashboard') {
+        refreshDashboard().catch(error => setText('dashHealthText', error.message));
+      } else if (activeOpsPage === 'events') {
+        refreshEvents().catch(error => setText('eventRecordSummary', error.message));
+      } else if (activeOpsPage === 'live') {
+        refreshLive().catch(error => setText('liveWarningText', error.message));
+      }
     </script>
-  </main>
-</body>
-</html>)";
+)OPS";
+    AppendOpsShellEnd(out);
     return out.str();
 }
 
@@ -17110,21 +17936,22 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Client Portal</title>
+)" << ProductThemeBootScript() << ProductUiCss() << R"(
   <style>
     :root {
       color-scheme: light dark;
-      --bg: #f8fafc;
-      --panel: #ffffff;
-      --panel-soft: #eef2f7;
-      --line: #cbd5e1;
-      --text: #0f172a;
-      --muted: #475569;
-      --accent: #0f766e;
-      --accent-soft: #ccfbf1;
-      --warn: #b45309;
-      --warn-soft: #fef3c7;
-      --bad: #b91c1c;
-      --bad-soft: #fee2e2;
+      --bg: var(--color-bg);
+      --panel: var(--color-surface-raised);
+      --panel-soft: var(--color-surface-muted);
+      --line: var(--color-border);
+      --text: var(--color-text);
+      --muted: var(--color-text-muted);
+      --accent: var(--color-primary);
+      --accent-soft: var(--color-primary-weak-bg);
+      --warn: var(--color-warning);
+      --warn-soft: var(--color-warning-bg);
+      --bad: var(--color-danger);
+      --bad-soft: var(--color-danger-bg);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     body { margin: 0; background: var(--bg); color: var(--text); }
@@ -17174,37 +18001,40 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     .tile-status .metric strong { font-size: 15px; }
     .detail-box { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 12px; }
     select { width: 100%; min-height: 36px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--text); padding: 0 8px; font: inherit; font-weight: 700; }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #020617;
-        --panel: #0f172a;
-        --panel-soft: #1e293b;
-        --line: #334155;
-        --text: #f8fafc;
-        --muted: #cbd5e1;
-        --accent-soft: #134e4a;
-        --warn-soft: #451a03;
-        --bad-soft: #450a0a;
-      }
-      .chip { color: #99f6e4; }
-      .chip.warn { color: #fcd34d; }
-      .chip.bad { color: #fca5a5; }
-      a.nav.active { background: #38bdf8; color: #082f49; }
+    :root[data-theme="dark"] {
+      --bg: var(--color-bg);
+      --panel: var(--color-surface-raised);
+      --panel-soft: var(--color-surface-muted);
+      --line: var(--color-border);
+      --text: var(--color-text);
+      --muted: var(--color-text-muted);
+      --accent-soft: var(--color-primary-weak-bg);
+      --warn-soft: var(--color-warning-bg);
+      --bad-soft: var(--color-danger-bg);
     }
+    :root[data-theme="dark"] .chip { color: #99f6e4; }
+    :root[data-theme="dark"] .chip.warn { color: #fcd34d; }
+    :root[data-theme="dark"] .chip.bad { color: #fca5a5; }
+    :root[data-theme="dark"] a.nav.active { background: var(--color-primary); color: var(--color-on-primary); }
     @media (max-width: 900px) { .live-grid { grid-template-columns: 1fr; } }
     @media (max-width: 780px) { .workspace { grid-template-columns: 1fr; } }
   </style>
 </head>
-<body>
-  <main>
-    <header>
-      <div>
-        <h1>Client Portal</h1>
-        <p>)" << HtmlEscape(principal.display_name) << R"( · )" << HtmlEscape(principal.role) << R"(</p>
+<body class="product-shell">
+  <main class="product-page">
+    <header class="app-header">
+      <div class="app-header-row">
+        <div class="app-title-block">
+          <p class="eyebrow">Client</p>
+          <h1>Client Portal</h1>
+          <p>)" << HtmlEscape(principal.display_name) << R"( · )" << HtmlEscape(principal.role) << R"(</p>
+        </div>
+        <div class="actions">
+          <button id="themeToggleBtn" class="theme-toggle" type="button">다크 모드</button>
+          <form method="post" action="/logout"><button class="button-secondary" type="submit">Logout</button></form>
+        </div>
       </div>
-      <form method="post" action="/logout"><button type="submit">Logout</button></form>
-    </header>
-    <nav>
+    <nav class="nav-tabs">
       <a class=")" << nav_class("live") << R"(" href="/client/live">Live</a>
       <a class=")" << nav_class("dashboard") << R"(" href="/client/dashboard">Dashboard</a>
       <a class=")" << nav_class("events") << R"(" href="/client/events">Events</a>
@@ -17218,6 +18048,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
 )";
     }
     out << R"(    </nav>
+    </header>
     <section class="workspace">
       <div class="panel">
         <div class="toolbar">
@@ -17838,65 +18669,33 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       loadDetail();
     }
   </script>
+)";
+    AppendProductThemeScript(out);
+    out << R"(
 </body>
 </html>)";
     return out.str();
 }
 
-std::string BuildOpsSourcesPageHtml() {
-    return R"OPS(<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Source Registry</title>
-  <style>
-    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { margin: 0; background: #f8fafc; color: #0f172a; }
-    main { max-width: 1180px; margin: 0 auto; padding: 28px 18px 40px; display: grid; gap: 18px; }
-    header { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-    h1, h2 { margin: 0; }
-    h1 { font-size: 26px; }
-    h2 { font-size: 18px; }
-    a { color: #0369a1; font-weight: 800; text-decoration: none; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; align-items: start; }
-    section { display: grid; gap: 12px; padding: 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; }
-    form { display: grid; gap: 10px; }
-    label { display: grid; gap: 5px; font-size: 13px; font-weight: 800; color: #334155; }
-    input, select, textarea { width: 100%; box-sizing: border-box; border: 1px solid #94a3b8; border-radius: 6px; min-height: 36px; padding: 7px 9px; font: inherit; background: #fff; color: #0f172a; }
-    textarea { min-height: 72px; resize: vertical; }
-    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-    .checks { display: flex; gap: 12px; flex-wrap: wrap; }
-    .checks label { display: flex; align-items: center; gap: 6px; }
-    .checks input { width: auto; min-height: auto; }
-    button { min-height: 36px; border: 0; border-radius: 6px; background: #0f172a; color: #fff; padding: 0 12px; font-weight: 900; cursor: pointer; }
-    button.secondary { background: #e2e8f0; color: #0f172a; }
-    button.danger { background: #b91c1c; }
-    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .status { min-height: 22px; font-size: 13px; color: #0369a1; font-weight: 800; }
-    .status.error { color: #b91c1c; }
-    pre { margin: 0; max-height: 420px; overflow: auto; padding: 12px; border-radius: 8px; background: #0f172a; color: #e2e8f0; font-size: 12px; line-height: 1.45; white-space: pre-wrap; }
-    @media (prefers-color-scheme: dark) {
-      body { background: #020617; color: #f8fafc; }
-      section { background: #0f172a; border-color: #334155; }
-      label { color: #cbd5e1; }
-      input, select, textarea { background: #020617; color: #f8fafc; border-color: #475569; }
-      a { color: #7dd3fc; }
-      button.secondary { background: #334155; color: #f8fafc; }
-    }
-  </style>
-</head>
-<body>
-  <main>
-    <header>
-      <div>
-        <h1>Source Registry / Published View</h1>
+std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
+    std::ostringstream out;
+    AppendOpsShellStart(out,
+                        principal,
+                        "sources",
+                        "운영 source 원본과 client에 공개할 PublishedView를 관리합니다.");
+    out << R"OPS(    <section class="panel">
+      <div class="toolbar">
+        <div>
+          <h2>Source Registry / Published View</h2>
+          <p>원본 source URL은 ops 화면에서만 표시하고, client에는 PublishedView 공개 필드만 전달합니다.</p>
+        </div>
+        <div class="actions">
+          <button id="refresh" class="button-secondary" type="button">Refresh</button>
+          <span id="status" class="status"></span>
+        </div>
       </div>
-      <a href="/ops">Ops</a>
-    </header>
-
-    <div class="grid">
-      <section>
+      <div class="split-grid">
+        <section class="section-card">
         <h2>Source</h2>
         <form id="source-form">
           <div class="row">
@@ -17921,13 +18720,14 @@ std::string BuildOpsSourcesPageHtml() {
           </div>
           <div class="checks"><label><input name="enabled" type="checkbox" checked /> enabled</label></div>
           <div class="actions">
-            <button type="submit">Save Source</button>
+            <button class="primary" type="submit">Save Source</button>
             <button id="disable-source" class="danger" type="button">Disable Source</button>
           </div>
+          <p id="source-validation" class="hint"></p>
         </form>
       </section>
 
-      <section>
+      <section class="section-card">
         <h2>Published View</h2>
         <form id="view-form">
           <div class="row">
@@ -17951,32 +18751,59 @@ std::string BuildOpsSourcesPageHtml() {
             <label><input name="enabled" type="checkbox" checked /> enabled</label>
           </div>
           <div class="actions">
-            <button type="submit">Save View</button>
+            <button class="primary" type="submit">Save View</button>
             <button id="disable-view" class="danger" type="button">Disable View</button>
           </div>
+          <p id="view-validation" class="hint"></p>
         </form>
       </section>
-    </div>
-
-    <section>
-      <div class="actions">
-        <button id="refresh" class="secondary" type="button">Refresh</button>
-        <span id="status" class="status"></span>
       </div>
       <div class="grid">
-        <pre id="sources-json">{}</pre>
-        <pre id="views-json">{}</pre>
-        <pre id="client-views-json">{}</pre>
+        <section class="section-card">
+          <h3>Sources</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Kind</th><th>Name</th><th>Enabled</th><th>Locator</th></tr></thead>
+              <tbody id="sources-body"><tr><td colspan="5">로딩 중</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="section-card">
+          <h3>Published Views</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Source</th><th>Dashboard</th><th>Events</th><th>Overlay</th></tr></thead>
+              <tbody id="views-body"><tr><td colspan="5">로딩 중</td></tr></tbody>
+            </table>
+          </div>
+        </section>
       </div>
+      <details class="debug-drawer">
+        <summary>Registry raw JSON</summary>
+        <div class="debug-drawer-body">
+          <pre id="sources-json">{}</pre>
+          <pre id="views-json">{}</pre>
+          <pre id="client-views-json">{}</pre>
+        </div>
+      </details>
     </section>
-  </main>
   <script>
     const statusEl = document.querySelector('#status');
+    const sourceValidation = document.querySelector('#source-validation');
+    const viewValidation = document.querySelector('#view-validation');
     const splitList = value => value.split(',').map(v => v.trim()).filter(Boolean);
     const setStatus = (message, failed = false) => {
       statusEl.textContent = message;
       statusEl.classList.toggle('error', failed);
     };
+    const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[ch]);
+    const locatorForSource = source => source.file || source.rtspUrl || source.webrtcSourceId || source.httpUrl || '미제공';
     async function requestJson(url, options = {}) {
       const res = await fetch(url, { credentials: 'same-origin', ...options });
       const text = await res.text();
@@ -17985,12 +18812,61 @@ std::string BuildOpsSourcesPageHtml() {
       if (!res.ok) throw new Error(json.error || `${res.status} ${res.statusText}`);
       return json;
     }
+    function renderSources(items) {
+      const body = document.querySelector('#sources-body');
+      if (!body) return;
+      if (!Array.isArray(items) || items.length === 0) {
+        body.innerHTML = '<tr><td colspan="5">등록된 source가 없습니다.</td></tr>';
+        return;
+      }
+      body.innerHTML = items.map(source => `
+        <tr>
+          <td>${escapeHtml(source.sourceId)}</td>
+          <td>${escapeHtml(source.kind)}</td>
+          <td>${escapeHtml(source.displayName || '')}</td>
+          <td>${source.enabled ? '<span class="chip">enabled</span>' : '<span class="chip warn">disabled</span>'}</td>
+          <td class="token">${escapeHtml(locatorForSource(source))}</td>
+        </tr>
+      `).join('');
+    }
+    function renderViews(items) {
+      const body = document.querySelector('#views-body');
+      if (!body) return;
+      if (!Array.isArray(items) || items.length === 0) {
+        body.innerHTML = '<tr><td colspan="5">등록된 PublishedView가 없습니다.</td></tr>';
+        return;
+      }
+      body.innerHTML = items.map(view => `
+        <tr>
+          <td>${escapeHtml(view.viewId)}</td>
+          <td>${escapeHtml(view.sourceId)}</td>
+          <td>${view.showDashboard ? '<span class="chip">on</span>' : '<span class="chip warn">off</span>'}</td>
+          <td>${view.showEvents ? '<span class="chip">on</span>' : '<span class="chip warn">off</span>'}</td>
+          <td>${escapeHtml((view.allowedOverlayModes || []).join(', ') || '미제공')}</td>
+        </tr>
+      `).join('');
+    }
+    function validateSourceForm(form) {
+      const data = Object.fromEntries(new FormData(form).entries());
+      const locators = ['file', 'rtspUrl', 'webrtcSourceId', 'httpUrl'].filter(key => (data[key] || '').trim());
+      if (!data.sourceId.trim()) return 'Source ID가 필요합니다.';
+      if (locators.length !== 1) return 'file, RTSP URL, WebRTC Source ID, HTTP URL 중 하나만 입력하세요.';
+      return '';
+    }
+    function validateViewForm(form) {
+      const data = Object.fromEntries(new FormData(form).entries());
+      if (!data.viewId.trim()) return 'View ID가 필요합니다.';
+      if (!data.sourceId.trim()) return 'Source ID가 필요합니다.';
+      return '';
+    }
     async function loadAll() {
       const [sources, views, clientViews] = await Promise.all([
         requestJson('/ops/api/sources'),
         requestJson('/ops/api/views'),
         requestJson('/client/api/views')
       ]);
+      renderSources(sources.sources || []);
+      renderViews(views.views || []);
       document.querySelector('#sources-json').textContent = JSON.stringify(sources, null, 2);
       document.querySelector('#views-json').textContent = JSON.stringify(views, null, 2);
       document.querySelector('#client-views-json').textContent = JSON.stringify(clientViews, null, 2);
@@ -18000,6 +18876,10 @@ std::string BuildOpsSourcesPageHtml() {
       event.preventDefault();
       const form = event.currentTarget;
       const data = Object.fromEntries(new FormData(form).entries());
+      const validation = validateSourceForm(form);
+      sourceValidation.textContent = validation;
+      sourceValidation.classList.toggle('error', Boolean(validation));
+      if (validation) return;
       const payload = {
         sourceId: data.sourceId,
         displayName: data.displayName,
@@ -18027,6 +18907,10 @@ std::string BuildOpsSourcesPageHtml() {
       event.preventDefault();
       const form = event.currentTarget;
       const data = Object.fromEntries(new FormData(form).entries());
+      const validation = validateViewForm(form);
+      viewValidation.textContent = validation;
+      viewValidation.classList.toggle('error', Boolean(validation));
+      if (validation) return;
       const payload = {
         viewId: data.viewId,
         displayName: data.displayName,
@@ -18076,75 +18960,30 @@ std::string BuildOpsSourcesPageHtml() {
     document.querySelector('#refresh').addEventListener('click', () => loadAll().catch(error => setStatus(error.message, true)));
     loadAll().catch(error => setStatus(error.message, true));
   </script>
-</body>
-</html>)OPS";
+ )OPS";
+    AppendOpsShellEnd(out);
+    return out.str();
 }
 
-std::string BuildOpsUsersPageHtml() {
-    return R"USERS(<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>User Management</title>
-  <style>
-    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { margin: 0; background: #f8fafc; color: #0f172a; }
-    main { max-width: 1180px; margin: 0 auto; padding: 28px 18px 40px; display: grid; gap: 18px; }
-    header { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-    h1, h2 { margin: 0; }
-    h1 { font-size: 26px; }
-    h2 { font-size: 18px; }
-    p { margin: 0; color: #475569; line-height: 1.5; }
-    a { color: #0369a1; font-weight: 800; text-decoration: none; }
-    section { display: grid; gap: 12px; padding: 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; }
-    form { display: grid; gap: 10px; }
-    label { display: grid; gap: 5px; font-size: 13px; font-weight: 800; color: #334155; }
-    input, select, textarea { width: 100%; box-sizing: border-box; border: 1px solid #94a3b8; border-radius: 6px; min-height: 36px; padding: 7px 9px; font: inherit; background: #fff; color: #0f172a; }
-    textarea { min-height: 78px; resize: vertical; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { border-bottom: 1px solid #e2e8f0; padding: 8px; text-align: left; vertical-align: top; }
-    th { color: #475569; font-size: 12px; text-transform: uppercase; }
-    .grid { display: grid; grid-template-columns: minmax(300px, 420px) minmax(0, 1fr); gap: 14px; align-items: start; }
-    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-    .checks { display: flex; gap: 12px; flex-wrap: wrap; }
-    .checks label { display: flex; align-items: center; gap: 6px; }
-    .checks input { width: auto; min-height: auto; }
-    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    button { min-height: 34px; border: 0; border-radius: 6px; background: #0f172a; color: #fff; padding: 0 10px; font-weight: 900; cursor: pointer; }
-    button.secondary { background: #e2e8f0; color: #0f172a; }
-    button.danger { background: #b91c1c; }
-    .status { min-height: 22px; font-size: 13px; color: #0369a1; font-weight: 800; }
-    .status.error { color: #b91c1c; }
-    .hint { font-size: 12px; color: #64748b; font-weight: 600; }
-    .pill { display: inline-flex; align-items: center; min-height: 24px; padding: 0 8px; border-radius: 999px; background: #e0f2fe; color: #075985; font-weight: 900; }
-    .token { overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } table { min-width: 900px; } .table-wrap { overflow-x: auto; } }
-    @media (prefers-color-scheme: dark) {
-      body { background: #020617; color: #f8fafc; }
-      p { color: #cbd5e1; }
-      section { background: #0f172a; border-color: #334155; }
-      label, th { color: #cbd5e1; }
-      input, select, textarea { background: #020617; color: #f8fafc; border-color: #475569; }
-      td, th { border-bottom-color: #334155; }
-      a { color: #7dd3fc; }
-      button.secondary { background: #334155; color: #f8fafc; }
-      .hint { color: #94a3b8; }
-    }
-  </style>
-</head>
-<body>
-  <main>
-    <header>
-      <div>
-        <h1>User Management</h1>
-        <p>관리자가 operator, viewer, integrator 계정을 만들고 비활성화하거나 임시 비밀번호를 재설정합니다.</p>
+std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
+    std::ostringstream out;
+    AppendOpsShellStart(out,
+                        principal,
+                        "users",
+                        "관리자가 operator, viewer, integrator 계정을 만들고 계정 상태를 관리합니다.");
+    out << R"USERS(    <section class="panel">
+      <div class="toolbar">
+        <div>
+          <h2>User Management</h2>
+          <p>passwordHash/tokenHash는 API와 UI에 노출하지 않습니다. viewer/integrator는 view scope만 할당합니다.</p>
+        </div>
+        <div class="actions">
+          <button id="refresh-btn" class="button-secondary" type="button">Refresh</button>
+          <span id="status" class="status"></span>
+        </div>
       </div>
-      <a href="/ops">Ops</a>
-    </header>
-
-    <div class="grid">
-      <section>
+      <div class="split-grid">
+        <section class="section-card">
         <h2>Create / Update</h2>
         <form id="user-form">
           <div class="row">
@@ -18163,7 +19002,7 @@ std::string BuildOpsUsersPageHtml() {
           </div>
           <div id="view-assignment">
             <label>View ID<input name="viewId" placeholder="view-a" /></label>
-            <p class="hint">PublishedView 연동 전까지는 viewId 또는 view:read:{viewId} 형식의 scope를 직접 입력합니다. viewer 계정에는 debug/lab/ops/source/rule 관리 scope를 부여하지 않습니다.</p>
+            <p class="hint">viewer/integrator 계정에는 `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}` 같은 view scope만 부여하세요. debug/lab/ops/source/rule 관리 scope는 허용하지 않습니다.</p>
           </div>
           <label>Scopes<textarea name="scopes" placeholder="비워두면 role/viewId template 사용"></textarea></label>
           <label>Temporary Password<input name="password" type="password" autocomplete="new-password" /></label>
@@ -18172,7 +19011,7 @@ std::string BuildOpsUsersPageHtml() {
             <label><input name="mustChangePassword" type="checkbox" checked /> must change password</label>
           </div>
           <div class="actions">
-            <button id="create-btn" type="submit">Create User</button>
+            <button id="create-btn" class="primary" type="submit">Create User</button>
             <button id="update-btn" class="secondary" type="button">Update Profile</button>
             <button id="reset-btn" class="secondary" type="button">Reset Password</button>
             <button id="invite-btn" class="secondary" type="button">Create Invite</button>
@@ -18180,11 +19019,8 @@ std::string BuildOpsUsersPageHtml() {
         </form>
       </section>
 
-      <section>
-        <div class="actions">
-          <button id="refresh-btn" class="secondary" type="button">Refresh</button>
-          <span id="status" class="status"></span>
-        </div>
+      <section class="section-card">
+        <h2>Users</h2>
         <div class="table-wrap">
           <table>
             <thead>
@@ -18206,7 +19042,7 @@ std::string BuildOpsUsersPageHtml() {
       </section>
     </div>
 
-    <section>
+    <section class="section-card">
       <h2>Pending Client Requests</h2>
       <p>자가 가입은 자동 승인하지 않습니다. pending request는 admin 승인 후 viewer 계정과 password setup invite로 전환됩니다.</p>
       <div class="table-wrap">
@@ -18227,7 +19063,7 @@ std::string BuildOpsUsersPageHtml() {
         </table>
       </div>
     </section>
-  </main>
+    </section>
   <script>
     const statusEl = document.querySelector('#status');
     const usersBody = document.querySelector('#users-body');
@@ -18372,6 +19208,9 @@ std::string BuildOpsUsersPageHtml() {
     }
     async function setEnabled(username, enabled) {
       try {
+        if (!enabled && username === 'admin') {
+          setStatus('마지막 활성 admin이면 서버가 비활성화를 거부합니다.', true);
+        }
         await requestJson(`/ops/api/users/${encodeURIComponent(username)}/${enabled ? 'enable' : 'disable'}`, { method: 'POST' });
         await loadAll();
       } catch (error) {
@@ -18477,8 +19316,9 @@ std::string BuildOpsUsersPageHtml() {
     updateAssignmentVisibility();
     loadAll().catch(error => setStatus(error.message, true));
   </script>
-</body>
-</html>)USERS";
+ )USERS";
+    AppendOpsShellEnd(out);
+    return out.str();
 }
 
 media::IngressRequest BuildHttpIngressRequest(const std::string& path,
@@ -22023,7 +22863,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             HttpResponse ok;
                             ok.content_type = "text/html; charset=utf-8";
                             ok.headers["Cache-Control"] = "no-store";
-                            ok.body = BuildOpsSourcesPageHtml();
+                            ok.body = BuildOpsSourcesPageHtml(principal_result.principal);
                             return ok;
                         }
 
@@ -22043,7 +22883,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             HttpResponse ok;
                             ok.content_type = "text/html; charset=utf-8";
                             ok.headers["Cache-Control"] = "no-store";
-                            ok.body = BuildOpsUsersPageHtml();
+                            ok.body = BuildOpsUsersPageHtml(principal_result.principal);
                             return ok;
                         }
 
@@ -22060,7 +22900,11 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 }
                                 return *auth_response;
                             }
-                            return RedirectResponse("/lab/rules");
+                            HttpResponse ok;
+                            ok.content_type = "text/html; charset=utf-8";
+                            ok.headers["Cache-Control"] = "no-store";
+                            ok.body = OpsShellPageHtml(principal_result.principal, "rules");
+                            return ok;
                         }
 
                         if (request.path == "/ops/api/users") {
