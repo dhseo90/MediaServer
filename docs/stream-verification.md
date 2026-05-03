@@ -628,6 +628,9 @@ ffprobe -rtsp_transport tcp \
 - `vaRule=<number>`가 저장된 rule/profile/source를 사용
 - rule에 연결된 source가 있는 경우 URL의 source override와 충돌하지 않음
 - 기존 rule payload 구조와 외부 이벤트 출력 형식 유지
+- ReEntry scenario를 룰 편집 UI에서 선택하고 `reEntryWindowMs`, `cooldownMs`, target zone, re-entry zone을 저장할 수 있음
+- 저장된 ReEntry rule은 `event.type=scenario.type=re-entry`와 `targetZoneIds`/`reEntryZoneIds`를 유지함
+- IntrusionDwell/WrongDirection UI와 기존 Event POST payload, WebRTC/SSE/WS metadata schema는 변경되지 않음
 - 숫자 ID 범위와 자동 할당 정책이 UI에서 깨지지 않음
 
 ## Event POST 검증

@@ -327,6 +327,55 @@ try {
           throw new Error('scenario timing validation mismatch: ' + scenarioWarning);
         }
         setValue('scenarioDwellMs', '10000');
+        setValue('scenarioType', 're-entry');
+        setValue('scenarioZoneIds', 'lobby');
+        setValue('scenarioReEntryWindowMs', '9000');
+        setValue('scenarioReEntryMode', 'specified-zone');
+        setValue('scenarioReEntryZoneIds', 'lobby');
+        setValue('scenarioCooldownMs', '4000');
+        if ($('scenarioReEntryRow').hidden ||
+            !$('scenarioDwellTimingRow').hidden ||
+            !$('scenarioWrongDirectionRow').hidden ||
+            $('scenarioZoneIdsLabel').hidden ||
+            $('scenarioReEntryZoneIdsLabel').hidden) {
+          throw new Error('re-entry scenario panel visibility mismatch');
+        }
+        const reEntryPayload = window.ruleJson();
+        if (reEntryPayload.ruleKind !== 'scenario' ||
+            reEntryPayload.event?.type !== 're-entry' ||
+            reEntryPayload.scenario?.type !== 're-entry') {
+          throw new Error('re-entry payload type mismatch: ' + JSON.stringify(reEntryPayload));
+        }
+        if (reEntryPayload.event?.region?.type !== 'polygon' ||
+            !Array.isArray(reEntryPayload.event?.region?.points) ||
+            reEntryPayload.event.region.points.length < 3) {
+          throw new Error('re-entry polygon payload mismatch: ' + JSON.stringify(reEntryPayload.event?.region));
+        }
+        if (reEntryPayload.scenario?.reEntryWindowMs !== 9000 ||
+            reEntryPayload.scenario?.cooldownMs !== 4000 ||
+            reEntryPayload.scenario?.reEntryMode !== 'specified-zone') {
+          throw new Error('re-entry timing/mode payload mismatch: ' + JSON.stringify(reEntryPayload.scenario));
+        }
+        expectList('re-entry target zones', reEntryPayload.scenario?.targetZoneIds || [], ['lobby']);
+        expectList('re-entry zones', reEntryPayload.scenario?.reEntryZoneIds || [], ['lobby']);
+        if (!$('scenarioSummaryText').textContent.includes('re-entry 이벤트') ||
+            !$('scenarioReadinessTiming').textContent.includes('window 9,000 ms') ||
+            !$('scenarioReadinessEmit').textContent.includes('re-entry')) {
+          throw new Error('re-entry summary/readiness mismatch');
+        }
+        const reEntryPhaseText = $('scenarioPhaseStrip').textContent;
+        for (const expected of ['Inside', 'Exited', 'ReEntryCandidate', 'Confirmed', 'Cooldown', 'Ended']) {
+          if (!reEntryPhaseText.includes(expected)) {
+            throw new Error('re-entry phase preview missing: ' + expected);
+          }
+        }
+        const reEntryPreview = JSON.parse($('eventPayloadPreview').value);
+        if (reEntryPreview.rule?.type !== 're-entry' ||
+            reEntryPreview.region?.type !== 'polygon' ||
+            reEntryPreview.scenario?.reEntryWindowMs !== 9000 ||
+            reEntryPreview.scenario?.cooldownMs !== 4000) {
+          throw new Error('re-entry event payload preview mismatch: ' + JSON.stringify(reEntryPreview));
+        }
         setValue('scenarioType', 'wrong-direction');
         setValue('scenarioLineDirection', 'reverse');
         setValue('scenarioCooldownMs', '6000');
@@ -418,6 +467,7 @@ try {
         const savedProfileId = smokeId + '-profile';
         const savedRuleId = smokeId + '-rule';
         const savedScenarioRuleId = smokeId + '-scenario-rule';
+        const savedReEntryRuleId = smokeId + '-re-entry-rule';
         let savedVaRuleId = '';
         try {
           setValue('profileId', savedProfileId);
@@ -470,6 +520,29 @@ try {
           }
           expectList('saved scenario zones', savedScenarioRule.rule?.scenario?.restrictedZoneIds || [], ['lobby']);
 
+          setValue('ruleId', savedReEntryRuleId);
+          setValue('scenarioType', 're-entry');
+          setValue('scenarioReEntryWindowMs', '11000');
+          setValue('scenarioCooldownMs', '3000');
+          setValue('scenarioZoneIds', 'lobby');
+          setValue('scenarioReEntryMode', 'specified-zone');
+          setValue('scenarioReEntryZoneIds', 'lobby');
+          click('selectCoreClassesBtn');
+          await ruleApi.saveRule();
+          const savedReEntryRule = await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedReEntryRuleId));
+          if (savedReEntryRule.rule?.ruleKind !== 'scenario' ||
+              savedReEntryRule.rule?.event?.type !== 're-entry' ||
+              savedReEntryRule.rule?.scenario?.type !== 're-entry') {
+            throw new Error('saved re-entry rule type mismatch: ' + JSON.stringify(savedReEntryRule.rule));
+          }
+          if (savedReEntryRule.rule?.scenario?.reEntryWindowMs !== 11000 ||
+              savedReEntryRule.rule?.scenario?.cooldownMs !== 3000 ||
+              savedReEntryRule.rule?.scenario?.reEntryMode !== 'specified-zone') {
+            throw new Error('saved re-entry timing/mode mismatch: ' + JSON.stringify(savedReEntryRule.rule?.scenario));
+          }
+          expectList('saved re-entry target zones', savedReEntryRule.rule?.scenario?.targetZoneIds || [], ['lobby']);
+          expectList('saved re-entry zones', savedReEntryRule.rule?.scenario?.reEntryZoneIds || [], ['lobby']);
+
           if (!$('vaRuleEditorPanel').hidden) {
             click('cancelVaRuleEditBtn');
           }
@@ -481,6 +554,7 @@ try {
           setValue('vaRuleSourceKind', 'file');
           setValue('vaRuleFileSelect', $('previewFileSelect').value || 'sample_h264.mp4');
           scenarioRadio.click();
+          setValue('scenarioType', 'intrusion-dwell');
           setValue('scenarioCandidateMs', '2000');
           setValue('scenarioDwellMs', '10000');
           setValue('scenarioCooldownMs', '5000');
@@ -517,6 +591,7 @@ try {
           }
         } finally {
           await apiJson('/lab/analysis/va-rules/' + encodeURIComponent(savedVaRuleId), { method: 'DELETE' }).catch(() => {});
+          await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedReEntryRuleId), { method: 'DELETE' }).catch(() => {});
           await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedScenarioRuleId), { method: 'DELETE' }).catch(() => {});
           await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedRuleId), { method: 'DELETE' }).catch(() => {});
           await apiJson('/lab/analysis/profiles/' + encodeURIComponent(savedProfileId), { method: 'DELETE' }).catch(() => {});
@@ -538,6 +613,7 @@ try {
             profileId: savedProfileId,
             ruleId: savedRuleId,
             scenarioRuleId: savedScenarioRuleId,
+            reEntryRuleId: savedReEntryRuleId,
             vaRuleId: savedVaRuleId,
             savedProfileTrackingClasses: requiredCategoryValues,
             savedRuleClasses: ['person', 'vehicle'],

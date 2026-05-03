@@ -248,7 +248,7 @@ Scenario는 여러 frame에 걸친 상태 전이와 시간 조건을 평가합�
 | 시나리오 | 상태 | 이벤트 타입 |
 | --- | --- | --- |
 | IntrusionDwell | 구현됨, UI 템플릿 제공 | `intrusion-dwell` |
-| ReEntry | 구현됨, 전용 UI 템플릿 후속 | `re-entry` |
+| ReEntry | 구현됨, UI 템플릿 제공 | `re-entry` |
 | WrongDirection | 구현됨, UI 템플릿 제공 | `wrong-direction` |
 | IntrusionAfterLineCrossing | 구현됨, 전용 UI 템플릿 후속 | `intrusion-after-line-crossing` |
 | Loitering | 구현됨, 전용 UI 템플릿 후속 | `loitering` |
@@ -273,7 +273,26 @@ Idle -> Candidate -> Observing -> Confirmed -> Cooldown -> Ended
 
 ### ReEntry
 
-같은 track이 target zone을 이탈한 뒤 설정 window 안에 같은 zone 또는 지정 zone으로 재진입하면 `re-entry` 이벤트를 1회 발생시킵니다.
+같은 track이 target zone을 이탈한 뒤 설정 window 안에 같은 zone으로 재진입하면 `re-entry` 이벤트를 1회 발생시킵니다.
+
+흐름:
+
+```text
+Inside -> Exited -> ReEntryCandidate -> Confirmed -> Cooldown -> Ended
+```
+
+룰 편집 UI 설정 항목:
+
+| 항목 | 설명 |
+| --- | --- |
+| target | class/category |
+| geometry | polygon zone |
+| reEntryWindowMs | 이탈 후 재진입으로 볼 시간 window |
+| re-entry zone | 같은 zone 또는 지정 zone 목록 |
+| cooldown | same track/zone 중복 억제 |
+| unstable track exclude | 불안정 track 후보 제외 |
+
+`지정 zone`은 저장 payload의 `targetZoneIds`/`reEntryZoneIds`에 대상 zone 목록을 명시합니다. 현재 1차 UI는 같은-zone 재진입 대상을 명시하는 범위이며, cross-zone A→B 재진입 판단은 후속 ScenarioEngine 확장입니다. 기존 Event POST payload schema, WebRTC/SSE/WS metadata schema, scenario event type은 변경하지 않습니다.
 
 ### WrongDirection
 
