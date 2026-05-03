@@ -110,7 +110,7 @@ curl -fsS -D - -o /tmp/root-unauth.out 'http://127.0.0.1:8080/'
 curl -fsS -i -H 'Authorization: Bearer viewer-token' 'http://127.0.0.1:8080/ops'
 ```
 
-확인 기준은 auth off + `lab` home에서 `/ -> /lab`, auth off + `client` home에서 `/ -> /client/live`, admin/operator token에서 `/ -> /ops/live`, viewer token에서 `/ -> /client/live`, 미인증 auth-on 요청에서 `/ -> /login`, viewer의 `/ops` 접근에서 `403`입니다. `/lab/rules`, `/webrtc/session`, `/whep`, RTSP route는 기존 검증 명령으로 계속 확인합니다.
+확인 기준은 auth off + `lab` home에서 `/ -> /lab`, auth off + `client` home에서 `/ -> /client/live`, admin/operator token에서 `/ -> /ops/live`, viewer token에서 `/ -> /client/live`, 미인증 auth-on 요청에서 `/ -> /login`, viewer의 `/ops` 접근에서 `403`, viewer의 `/lab` 접근에서 `403`입니다. `/ops`는 admin/operator role과 `ops:read` scope를 함께 요구하고, `/lab`은 admin/operator 또는 `lab:read` scope를 요구합니다. `/lab/rules`, `/webrtc/session`, `/whep`, RTSP route는 기존 검증 명령으로 계속 확인합니다.
 
 ## 장기 테스트 명령
 
