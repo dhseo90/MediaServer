@@ -29,6 +29,14 @@ constexpr const char* kEnvAuthViewerToken = "MEDIA_SERVER_AUTH_VIEWER_TOKEN";
 constexpr const char* kEnvAuthIntegratorToken = "MEDIA_SERVER_AUTH_INTEGRATOR_TOKEN";
 constexpr const char* kEnvAuthUsersFile = "MEDIA_SERVER_AUTH_USERS_FILE";
 constexpr const char* kEnvAuthSessionTtlSeconds = "MEDIA_SERVER_AUTH_SESSION_TTL_SECONDS";
+constexpr const char* kEnvAuthSessionIdleTimeoutSeconds =
+    "MEDIA_SERVER_AUTH_SESSION_IDLE_TIMEOUT_SECONDS";
+constexpr const char* kEnvAuthPasswordPolicy = "MEDIA_SERVER_AUTH_PASSWORD_POLICY";
+constexpr const char* kEnvAuthPasswordMinLength = "MEDIA_SERVER_AUTH_PASSWORD_MIN_LENGTH";
+constexpr const char* kEnvAuthPasswordHistoryCount = "MEDIA_SERVER_AUTH_PASSWORD_HISTORY_COUNT";
+constexpr const char* kEnvAuthPasswordMaxAgeDays = "MEDIA_SERVER_AUTH_PASSWORD_MAX_AGE_DAYS";
+constexpr const char* kEnvAuthLoginMaxFailures = "MEDIA_SERVER_AUTH_LOGIN_MAX_FAILURES";
+constexpr const char* kEnvAuthLoginLockoutSeconds = "MEDIA_SERVER_AUTH_LOGIN_LOCKOUT_SECONDS";
 constexpr const char* kEnvAuthCookieName = "MEDIA_SERVER_AUTH_COOKIE_NAME";
 constexpr const char* kEnvAuthCookieSecure = "MEDIA_SERVER_AUTH_COOKIE_SECURE";
 constexpr const char* kEnvUiDefaultHome = "MEDIA_SERVER_UI_DEFAULT_HOME";
@@ -513,6 +521,10 @@ bool IsSafeCookieName(const std::string& value) {
            });
 }
 
+bool IsAllowedPasswordPolicy(const std::string& value) {
+    return value == "kr-privacy" || value == "strict" || value == "custom";
+}
+
 void ValidatePositiveInt(int* value, int fallback, const char* description) {
     if (value == nullptr || *value > 0) {
         return;
@@ -561,6 +573,20 @@ app::AppConfig LoadAppConfig() {
     config.auth_users_file = ReadStringEnv(kEnvAuthUsersFile, config.auth_users_file);
     config.auth_session_ttl_seconds =
         ReadIntEnv(kEnvAuthSessionTtlSeconds, config.auth_session_ttl_seconds);
+    config.auth_session_idle_timeout_seconds =
+        ReadIntEnv(kEnvAuthSessionIdleTimeoutSeconds, config.auth_session_idle_timeout_seconds);
+    config.auth_password_policy =
+        ToLower(ReadStringEnv(kEnvAuthPasswordPolicy, config.auth_password_policy));
+    config.auth_password_min_length =
+        ReadIntEnv(kEnvAuthPasswordMinLength, config.auth_password_min_length);
+    config.auth_password_history_count =
+        ReadIntEnv(kEnvAuthPasswordHistoryCount, config.auth_password_history_count);
+    config.auth_password_max_age_days =
+        ReadIntEnv(kEnvAuthPasswordMaxAgeDays, config.auth_password_max_age_days);
+    config.auth_login_max_failures =
+        ReadIntEnv(kEnvAuthLoginMaxFailures, config.auth_login_max_failures);
+    config.auth_login_lockout_seconds =
+        ReadIntEnv(kEnvAuthLoginLockoutSeconds, config.auth_login_lockout_seconds);
     config.auth_cookie_name = ReadStringEnv(kEnvAuthCookieName, config.auth_cookie_name);
     config.auth_cookie_secure = ReadBoolEnv(kEnvAuthCookieSecure, config.auth_cookie_secure);
     config.ui_default_home = ToLower(ReadStringEnv(kEnvUiDefaultHome, config.ui_default_home));
@@ -1580,6 +1606,34 @@ app::AppConfig LoadAppConfig() {
     if (config.auth_session_ttl_seconds <= 0) {
         std::cerr << "[env] auth session TTL must be positive, fallback 86400\n";
         config.auth_session_ttl_seconds = 86400;
+    }
+    if (config.auth_session_idle_timeout_seconds < 0) {
+        std::cerr << "[env] auth session idle timeout must be zero or positive, fallback 3600\n";
+        config.auth_session_idle_timeout_seconds = 3600;
+    }
+    if (!IsAllowedPasswordPolicy(config.auth_password_policy)) {
+        std::cerr << "[env] MEDIA_SERVER_AUTH_PASSWORD_POLICY must be kr-privacy, strict, or custom, fallback kr-privacy\n";
+        config.auth_password_policy = "kr-privacy";
+    }
+    if (config.auth_password_min_length < 0) {
+        std::cerr << "[env] auth password min length must be zero or positive, fallback 0\n";
+        config.auth_password_min_length = 0;
+    }
+    if (config.auth_password_history_count < 0) {
+        std::cerr << "[env] auth password history count must be zero or positive, fallback 5\n";
+        config.auth_password_history_count = 5;
+    }
+    if (config.auth_password_max_age_days < 0) {
+        std::cerr << "[env] auth password max age days must be zero or positive, fallback 0\n";
+        config.auth_password_max_age_days = 0;
+    }
+    if (config.auth_login_max_failures < 0) {
+        std::cerr << "[env] auth login max failures must be zero or positive, fallback 5\n";
+        config.auth_login_max_failures = 5;
+    }
+    if (config.auth_login_lockout_seconds < 0) {
+        std::cerr << "[env] auth login lockout seconds must be zero or positive, fallback 300\n";
+        config.auth_login_lockout_seconds = 300;
     }
     if (!IsSafeCookieName(config.auth_cookie_name)) {
         std::cerr << "[env] auth cookie name must use letters, digits, '_' or '-', fallback media_server_session\n";

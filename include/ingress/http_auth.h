@@ -13,11 +13,13 @@
 namespace ingress::auth {
 
 struct Principal {
+    std::string username;
     std::string role;
     std::vector<std::string> scopes;
     std::string display_name;
     std::string auth_mode;
     bool is_authenticated{false};
+    bool password_change_required{false};
 };
 
 struct AuthResult {
@@ -32,11 +34,24 @@ struct UserRecord {
     std::string role;
     std::vector<std::string> scopes;
     std::string password_hash;
+    std::vector<std::string> password_history;
     std::string token_hash;
     bool enabled{true};
     bool must_change_password{false};
+    int failed_login_count{0};
+    std::string locked_until;
+    std::string last_failed_login_at;
     std::string created_at;
     std::string password_updated_at;
+    std::string last_login_at;
+    std::string last_login_ip;
+    std::string disabled_at;
+};
+
+struct PasswordPolicyResult {
+    bool ok{false};
+    std::vector<std::string> errors;
+    std::string message;
 };
 
 struct BootstrapState {
@@ -58,14 +73,30 @@ std::vector<std::string> DefaultScopesForRole(const std::string& role);
 Principal MakePrincipalForRole(const std::string& role,
                                const std::vector<std::string>& scopes,
                                const std::string& display_name,
-                               app::AuthMode auth_mode);
+                               app::AuthMode auth_mode,
+                               const std::string& username = "",
+                               bool password_change_required = false);
 
 AuthResult BuildPrincipalFromRequest(const app::AppConfig& config,
                                      const HeaderMap& headers,
                                      const QueryMap& query);
 AuthResult AuthenticateUserPassword(const app::AppConfig& config,
                                     const std::string& username,
-                                    const std::string& password);
+                                    const std::string& password,
+                                    const std::string& remote_ip = "");
+
+PasswordPolicyResult ValidatePasswordPolicy(const app::AppConfig& config,
+                                            const std::string& username,
+                                            const std::string& password,
+                                            const std::string& confirm,
+                                            const UserRecord* existing_user);
+bool ChangeUserPassword(const app::AppConfig& config,
+                        const std::string& username,
+                        const std::string& current_password,
+                        const std::string& new_password,
+                        const std::string& confirm,
+                        bool require_current_password,
+                        std::string* error_message);
 
 bool PasswordHashingAvailable();
 const char* PasswordHashingScheme();

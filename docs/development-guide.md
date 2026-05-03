@@ -262,9 +262,12 @@ MEDIA_SERVER_AUTH_USERS_FILE=/tmp/media-server-bootstrap-users.json \
 
 - users file이 없으면 `/`가 `/setup`으로 이동
 - 약한 비밀번호는 `/setup`에서 거부
-- 강한 비밀번호 설정 후 users file에 `admin`과 `passwordHash`만 저장
+- username 포함 비밀번호, 반복 문자, 연속 숫자, 키보드 배열, 흔한 비밀번호는 거부
+- 강한 비밀번호 설정 후 users file에 `admin`, `passwordHash`, password history/audit/lockout field가 저장
 - setup 완료 후 `/setup`은 `/login`으로 이동
 - `/login`에서 admin 로그인 후 `/auth/whoami`에 `role=admin`, `setupRequired=false`
+- 로그인 실패가 `MEDIA_SERVER_AUTH_LOGIN_MAX_FAILURES`에 도달하면 lockout 메시지가 표시되고 만료 전 정상 비밀번호도 거부
+- `/password/change`에서 이전 비밀번호 재사용은 거부되고, 성공 후 기존 session은 폐기
 - logout 후 `/ops`, `/client`, `/lab` 보호 route는 `/login` 요구
 
 기존 Lab 레이아웃/자동화 검증은 명시적으로 auth off 서버에서 실행합니다.

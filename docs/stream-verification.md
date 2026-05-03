@@ -73,6 +73,8 @@ curl -fsS -H 'Authorization: Bearer admin-token' 'http://127.0.0.1:8080/auth/who
 
 MEDIA_SERVER_AUTH_MODE=session \
 MEDIA_SERVER_AUTH_USERS_FILE=/path/to/users.json \
+MEDIA_SERVER_AUTH_LOGIN_MAX_FAILURES=5 \
+MEDIA_SERVER_AUTH_LOGIN_LOCKOUT_SECONDS=300 \
   ./server.sh foreground
 curl -fsS 'http://127.0.0.1:8080/login'
 curl -fsS -c /tmp/media-server.cookies \
@@ -82,7 +84,7 @@ curl -fsS -b /tmp/media-server.cookies 'http://127.0.0.1:8080/auth/whoami'
 curl -fsS -b /tmp/media-server.cookies -X POST 'http://127.0.0.1:8080/logout'
 ```
 
-확인 기준은 auto mode에서 users file이 없거나 admin passwordHash가 없으면 `/setup`으로 이동하고 `/auth/whoami`가 `setupRequired=true`를 반환하는 것입니다. Auth off에서는 dev admin principal이 반환되고, token mode에서 admin/operator/viewer/integrator token별 role과 scope가 반환되며, 누락/invalid token은 `401`을 반환합니다. Session/auto setup 완료 후에는 `/login` 렌더링, 로그인 성공 후 `/auth/whoami` principal 반환, logout 후 cookie principal 제거, 잘못된 로그인 `401` 또는 실패 메시지를 확인합니다. `?token=` query는 개발 smoke용으로만 사용하고 운영 검증에서는 Bearer header를 우선합니다.
+확인 기준은 auto mode에서 users file이 없거나 admin passwordHash가 없으면 `/setup`으로 이동하고 `/auth/whoami`가 `setupRequired=true`를 반환하는 것입니다. Auth off에서는 dev admin principal이 반환되고, token mode에서 admin/operator/viewer/integrator token별 role과 scope가 반환되며, 누락/invalid token은 `401`을 반환합니다. Session/auto setup 완료 후에는 `/login` 렌더링, 로그인 성공 후 `/auth/whoami` principal 반환, logout 후 cookie principal 제거, 잘못된 로그인 `401` 또는 실패 메시지를 확인합니다. Password policy smoke는 약한 비밀번호/username 포함 비밀번호 거부, 3종류 8자 이상 허용, 2종류 10자 이상 허용, password history 재사용 거부를 확인합니다. Lockout smoke는 실패 N회 후 lockout 메시지와 `lockedUntil` 저장, lockout 만료 후 정상 로그인, TTL/idle timeout 만료 후 `/auth/whoami` 401을 확인합니다. `?token=` query는 개발 smoke용으로만 사용하고 운영 검증에서는 Bearer header를 우선합니다.
 
 Route smoke:
 

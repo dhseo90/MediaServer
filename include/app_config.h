@@ -34,6 +34,13 @@ struct AppConfig {
     std::string auth_integrator_token;
     std::string auth_users_file{".media_server.users.json"};
     int auth_session_ttl_seconds{86400};
+    int auth_session_idle_timeout_seconds{3600};
+    std::string auth_password_policy{"kr-privacy"};
+    int auth_password_min_length{0};
+    int auth_password_history_count{5};
+    int auth_password_max_age_days{0};
+    int auth_login_max_failures{5};
+    int auth_login_lockout_seconds{300};
     std::string auth_cookie_name{"media_server_session"};
     bool auth_cookie_secure{false};
     std::string ui_default_home{"lab"};

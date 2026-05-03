@@ -18,11 +18,11 @@
 - 구현 완료: TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, TrackHealth, cleanup 정책.
 - 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage/query/search UI, EventRecord rotation/retention/recovery 1차, snapshot/clip hook, WebRTC VA metadata DataChannel 출력 구조.
 - 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, client-side Trend/Stale/Cleanup warning 1차, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, IntrusionDwell/ReEntry/WrongDirection/IntrusionAfterLineCrossing scenario UI 템플릿, 자동/longrun 검증 명령.
-- 구현 완료: Auth / Role / Scope, account login/session MVP, Auth Bootstrap + 기본 로그인 강제, SourceRegistry / PublishedView MVP, client scoped view API 1차, Client scoped dashboard MVP, Client Live Monitor 2x2 MVP.
+- 구현 완료: Auth / Role / Scope, account login/session MVP, Auth Bootstrap + 기본 로그인 강제, Password Policy + Lockout + Session Hardening, SourceRegistry / PublishedView MVP, client scoped view API 1차, Client scoped dashboard MVP, Client Live Monitor 2x2 MVP.
 - 기존 Scenario UI 로드맵 1~4번 완료: Runtime Dashboard trend/stale/cleanup warning 1차, Scenario rule payload -> runtime per-rule 설정 연결, ReEntry Scenario UI 템플릿, IntrusionAfterLineCrossing Scenario UI 템플릿.
 - ReEntry와 IntrusionAfterLineCrossing은 룰 편집 UI에서 선택 가능하며 저장/round-trip 검증 대상입니다.
-- 현재 우선순위: 운영/클라이언트 분리의 제품 진입점 정합성을 위해 Auth Bootstrap + 기본 로그인 강제를 먼저 완료했습니다.
-- 다음 작업: Loitering UI 템플릿과 ZoneOccupancyScenario 신규 구현은 Auth Bootstrap 정리 뒤 재개합니다.
+- 현재 우선순위: 운영/클라이언트 분리의 제품 진입점 정합성을 위해 Auth Bootstrap과 password policy/lockout/session hardening을 먼저 완료했습니다.
+- 다음 작업: Loitering UI 템플릿과 ZoneOccupancyScenario 신규 구현은 auth hardening 정리 뒤 재개합니다.
 - 후속 Phase: SourceRegistry / PublishedView 고도화, `/ops` / `/client` / `/lab` route 세부 분리, Client scoped dashboard, Client Live Monitor, Operator Live Monitor, Analysis tap reuse / source+profile 공유 정책은 아래 운영/클라이언트 분리 phase에서 별도로 관리합니다.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
 - 실험/제약: snapshot/clip은 hook/marker 중심이며 실제 제품용 frame extraction/clip recorder는 후속 구현입니다. VMS/NVR 녹화 기능으로 표현하지 않습니다.
@@ -32,11 +32,11 @@
 
 이 섹션은 시나리오 확장 재개 묶음과 분리해 관리하는 운영/클라이언트/권한 계열 phase입니다. 현재 문서 기준의 다음 작업은 Loitering UI 템플릿과 ZoneOccupancyScenario이며, 아래 항목은 별도 후속 Phase의 기반/고도화 목록으로 유지합니다.
 
-### O1. Auth / Role / Scope / Bootstrap
+### O1. Auth / Role / Scope / Bootstrap / Hardening
 
-- 상태: 완료: token auth + account session MVP + 최초 admin setup
+- 상태: 완료: token auth + account session MVP + 최초 admin setup + password policy/lockout/session hardening
 - 목적: 운영자, 클라이언트, lab 사용자 권한과 요청 scope 기준을 먼저 정의합니다.
-- 완료 범위: `MEDIA_SERVER_AUTH_MODE=auto|off|token|session`, role별 token env, users file, libsodium passwordHash 검증, 최초 `/setup` admin password bootstrap, HttpOnly session cookie, Principal 구조, Bearer/query token 해석, `RequireRole`/`RequireScope` guard helper, `/login`, `/logout`, `/auth/whoami`, 임시 `/ops`/`/client` landing 1차입니다.
+- 완료 범위: `MEDIA_SERVER_AUTH_MODE=auto|off|token|session`, role별 token env, users file, libsodium passwordHash 검증, 최초 `/setup` admin password bootstrap, `kr-privacy|strict|custom` password policy, password history hash 저장, login failure lockout, audit field, TTL/idle timeout 기반 HttpOnly session cookie, password change flow, Principal 구조, Bearer/query token 해석, `RequireRole`/`RequireScope` guard helper, `/login`, `/logout`, `/auth/whoami`, 임시 `/ops`/`/client` landing 1차입니다.
 - 후속: route별 상세 guard 적용과 `/ops` / `/client` / `/lab` 화면 분리는 다음 묶음에서 진행합니다.
 - 우선순위 이유: route, source/view 노출, dashboard/live monitor 접근 정책의 공통 전제가 됩니다.
 
