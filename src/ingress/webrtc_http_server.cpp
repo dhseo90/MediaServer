@@ -1266,6 +1266,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
       document.documentElement.dataset.theme = saved === 'dark' ? 'dark' : 'light';
       const params = new URLSearchParams(window.location.search);
       document.documentElement.dataset.embed = params.get('embed') === '1' ? '1' : '0';
+      document.documentElement.dataset.embedPanel = params.get('panel') || '';
     })();
   </script>
   <style>
@@ -1361,17 +1362,25 @@ std::string BuildTestPageHtml(bool lab_mode) {
       letter-spacing: -0.02em;
     }
     .theme-toggle {
-      width: auto;
-      min-width: 86px;
-      min-height: 32px;
-      padding: 6px 10px;
+      width: 40px;
+      min-width: 40px;
+      min-height: 40px;
+      height: 40px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0;
       border-radius: 999px;
-      font-size: 12px;
+      font-size: 0;
       background: var(--secondary-bg);
       color: var(--ink);
       border: 1px solid var(--line);
       box-shadow: none;
     }
+    .theme-toggle svg { width: 20px; height: 20px; display: block; }
+    .theme-toggle .theme-icon-moon { display: block !important; }
+    .theme-toggle .theme-icon-sun { display: none !important; }
+    :root[data-theme="dark"] .theme-toggle .theme-icon-moon { display: none !important; }
+    :root[data-theme="dark"] .theme-toggle .theme-icon-sun { display: block !important; }
     .hero {
       display: grid;
       grid-template-columns: minmax(0, 680px) minmax(320px, 380px);
@@ -1775,7 +1784,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
   <main>
     <div class="topbar">
       <strong>MediaServer</strong>
-      <button id="themeToggleBtn" class="theme-toggle" type="button">다크 모드</button>
+      <button id="themeToggleBtn" class="theme-toggle" type="button" aria-label="다크 모드로 전환" title="다크 모드로 전환"><svg class="theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 14.5A7.8 7.8 0 0 1 9.5 3a8.8 8.8 0 1 0 11.5 11.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><svg class="theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.8v2.3M12 18.9v2.3M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.8 12h2.3M18.9 12h2.3M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     </div>
     <section id="stream-test" class="card">
       <div class="hero">
@@ -1793,7 +1802,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
               <option value="url">RTSP URL</option>
               <option value="http">HTTP 미디어 URL</option>
               <option value="hls">HLS 미디어 URL</option>
-)" + youtube_option + R"(              <option value="webrtc">발행된 WebRTC source id</option>
+)" + youtube_option + R"(              <option value="webrtc" hidden>발행된 WebRTC source id</option>
             </select>
           </label>
           <label class="source-field" data-source-field="file">파일 선택
@@ -3097,7 +3106,9 @@ va_four_scene_sample.mp4</textarea>
       localStorage.setItem('mediaServerTheme', nextTheme);
       const themeButton = document.getElementById('themeToggleBtn');
       if (themeButton) {
-        themeButton.textContent = nextTheme === 'dark' ? '라이트 모드' : '다크 모드';
+        const label = nextTheme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환';
+        themeButton.setAttribute('aria-label', label);
+        themeButton.setAttribute('title', label);
       }
     }
     function notifyEmbeddedSourceChanged() {
@@ -3288,6 +3299,7 @@ std::string BuildLabRuleEditorPageHtml() {
       document.documentElement.dataset.theme = saved === 'dark' ? 'dark' : 'light';
       const params = new URLSearchParams(window.location.search);
       document.documentElement.dataset.embed = params.get('embed') === '1' ? '1' : '0';
+      document.documentElement.dataset.embedPanel = params.get('panel') || '';
     })();
   </script>
 	<style>
@@ -3460,6 +3472,12 @@ std::string BuildLabRuleEditorPageHtml() {
       background: transparent;
       min-height: auto;
     }
+    :root[data-embed="1"][data-embed-panel="dashboard"],
+    :root[data-embed="1"][data-embed-panel="dashboard"] body,
+    :root[data-embed="1"][data-embed-panel="settings"],
+    :root[data-embed="1"][data-embed-panel="settings"] body {
+      background: var(--color-bg);
+    }
 	    main,
 	    .page-shell {
 	      max-width: 1280px;
@@ -3471,6 +3489,12 @@ std::string BuildLabRuleEditorPageHtml() {
     :root[data-embed="1"] main {
       max-width: none;
       padding: 0;
+    }
+    :root[data-embed="1"][data-embed-panel="dashboard"] .hero,
+    :root[data-embed="1"][data-embed-panel="dashboard"] .primary-tabs,
+    :root[data-embed="1"][data-embed-panel="settings"] .hero,
+    :root[data-embed="1"][data-embed-panel="settings"] .primary-tabs {
+      display: none;
     }
 	    .page-header,
 	    .topbar {
@@ -3485,17 +3509,25 @@ std::string BuildLabRuleEditorPageHtml() {
 	    .topbar strong { color: var(--color-text); }
     .standalone-nav { display: none; }
     .theme-toggle {
-      width: auto;
-      min-width: 86px;
-      min-height: 32px;
-      padding: 6px 10px;
+      width: 40px;
+      min-width: 40px;
+      min-height: 40px;
+      height: 40px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0;
       border-radius: 999px;
-      font-size: 12px;
+      font-size: 0;
       background: var(--secondary-bg);
       color: var(--ink);
       border: 1px solid var(--line);
       box-shadow: none;
     }
+    .theme-toggle svg { width: 20px; height: 20px; display: block; }
+    .theme-toggle .theme-icon-moon { display: block !important; }
+    .theme-toggle .theme-icon-sun { display: none !important; }
+    :root[data-theme="dark"] .theme-toggle .theme-icon-moon { display: none !important; }
+    :root[data-theme="dark"] .theme-toggle .theme-icon-sun { display: block !important; }
     :root[data-embed="1"] .topbar {
       display: none;
     }
@@ -3609,11 +3641,11 @@ std::string BuildLabRuleEditorPageHtml() {
 	    }
 	    .topbar .theme-toggle {
 	      flex: 0 0 auto;
-	      width: auto;
-	      min-width: 86px;
-	      min-height: 32px;
-	      padding: 6px 10px;
-	      font-size: 12px;
+	      width: 40px;
+	      min-width: 40px;
+	      min-height: 40px;
+	      padding: 0;
+	      font-size: 0;
 	      justify-self: end;
 	    }
 	    .button-ghost {
@@ -4107,6 +4139,9 @@ std::string BuildLabRuleEditorPageHtml() {
 	      border-color: var(--color-primary);
 	      box-shadow: inset 0 0 0 1px var(--color-primary);
     }
+	    .rule-row.has-url-copy {
+	      grid-template-columns: 56px minmax(138px, 0.92fr) minmax(130px, 0.78fr) minmax(150px, 0.86fr) minmax(118px, 0.62fr) minmax(138px, 0.58fr) minmax(146px, 0.62fr);
+	    }
     .rule-main {
       display: grid;
       gap: 4px;
@@ -4204,21 +4239,28 @@ std::string BuildLabRuleEditorPageHtml() {
 	      color: var(--color-neutral);
 	      background: var(--color-neutral-bg);
     }
-	    .row-actions {
-	      display: flex;
-	      flex-wrap: wrap;
-	      justify-content: flex-end;
-	      align-items: center;
+	    .row-actions,
+	    .rule-url-actions {
+	      display: grid;
 	      gap: 6px;
 	    }
-	    .row-actions button {
-	      flex: 0 0 auto;
-	      width: auto;
-	      min-width: 48px;
+	    .row-actions {
+	      grid-template-columns: repeat(2, minmax(0, 1fr));
+	      align-items: start;
+	    }
+	    .rule-url-actions {
+	      grid-template-columns: 1fr;
+	      align-content: start;
+	    }
+	    .row-actions button,
+	    .rule-url-actions button {
+	      width: 100%;
+	      min-width: 0;
 	      min-height: 32px;
 	      padding: 6px 9px;
 	      border-radius: var(--radius-sm);
 	      font-size: 12px;
+	      white-space: nowrap;
 	    }
 	    .rule-cell-stack button {
 	      width: fit-content;
@@ -6249,7 +6291,12 @@ std::string BuildLabRuleEditorPageHtml() {
         grid-template-columns: 72px minmax(0, 1fr);
       }
       .rule-row.is-header { display: none; }
-      .rule-row .rule-cell, .rule-row .row-actions {
+      .rule-row.has-url-copy {
+        grid-template-columns: 72px minmax(0, 1fr);
+      }
+      .rule-row .rule-cell,
+      .rule-row .rule-url-actions,
+      .rule-row .row-actions {
         grid-column: 1 / -1;
       }
     }
@@ -6273,6 +6320,9 @@ std::string BuildLabRuleEditorPageHtml() {
 	      .profile-draft-actions {
 	        grid-template-columns: 1fr 1fr;
 	      }
+	      .row-actions {
+	        grid-template-columns: 1fr;
+	      }
 	      .segmented.view-mode { grid-template-columns: 1fr; }
 	      .management-toolbar .toolbar-actions { justify-content: stretch; }
 	      .management-toolbar .toolbar-actions button { width: 100%; }
@@ -6295,7 +6345,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	  <main class="page-shell">
 	    <div class="page-header topbar">
 	      <strong>MediaServer</strong>
-	      <button id="themeToggleBtn" class="button button-secondary theme-toggle" type="button">다크 모드</button>
+	      <button id="themeToggleBtn" class="button button-secondary theme-toggle" type="button" aria-label="다크 모드로 전환" title="다크 모드로 전환"><svg class="theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 14.5A7.8 7.8 0 0 1 9.5 3a8.8 8.8 0 1 0 11.5 11.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><svg class="theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.8v2.3M12 18.9v2.3M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.8 12h2.3M18.9 12h2.3M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
 	    </div>
 	    <section class="section-card hero">
 	      <p class="standalone-nav" style="margin:0;"><a href="/lab">실험실로 돌아가기</a> · <a href="/webrtc/test">안정 테스트 페이지</a></p>
@@ -6448,16 +6498,25 @@ std::string BuildLabRuleEditorPageHtml() {
             <span>2</span>
             <div>
               <h2>영상 소스</h2>
-              <p class="hint">이 Rule이 묶을 영상 소스와 적용 route를 확인합니다.</p>
+              <p class="hint">Ops에서는 채널 탭에 등록된 채널 중 하나를 선택해 룰에 묶습니다.</p>
             </div>
           </div>
-          <div class="row">
+          <div id="opsRuleChannelPicker" class="stack" hidden>
+            <label>채널
+              <select id="opsRuleChannelSelect">
+                <option value="">채널 로딩 중</option>
+              </select>
+              <span id="opsRuleChannelHelp" class="form-note">채널 탭에 등록된 채널만 룰 소스로 사용할 수 있습니다.</span>
+            </label>
+            <p id="opsRuleChannelSummary" class="source-lock">선택된 채널 없음</p>
+          </div>
+          <div id="directVaRuleSourceFields" class="row">
             <label>분석할 영상 종류
               <select id="vaRuleSourceKind">
                 <option value="file" selected>서버 파일</option>
                 <option value="rtsp">RTSP URL</option>
                 <option value="http">HTTP/HLS URL</option>
-                <option value="webrtc">WebRTC Source ID</option>
+                <option value="webrtc" hidden>WHIP Source ID</option>
               </select>
             </label>
             <label id="vaRuleFileField">분석할 영상 파일
@@ -6466,18 +6525,18 @@ std::string BuildLabRuleEditorPageHtml() {
               </select>
             </label>
             <label id="vaRuleUrlField" hidden>
-              <span id="vaRuleUrlLabelText">분석할 영상 URL 또는 Source ID</span>
+              <span id="vaRuleUrlLabelText">분석할 영상 URL 또는 WHIP Source ID</span>
               <input id="vaRuleUrlInput" placeholder="rtsp://camera.local/stream 또는 published-source-id" />
-              <span id="vaRuleUrlHelp" class="form-note">RTSP/HTTP/HLS는 URL, WebRTC는 publish Source ID를 입력합니다.</span>
+              <span id="vaRuleUrlHelp" class="form-note">RTSP/HTTP/HLS는 URL, WHIP source는 publish Source ID를 입력합니다. 외부 WHEP/WebRTC URL pull은 아직 지원하지 않습니다.</span>
             </label>
           </div>
-          <div class="row">
+          <div id="directRuleMatchFields" class="row">
             <label>대상 소스
               <select id="ruleSourceKind">
                 <option value="*">전체</option>
                 <option value="file" selected>파일</option>
                 <option value="rtsp">RTSP</option>
-                <option value="webrtc">WebRTC</option>
+                <option value="webrtc" hidden>WHIP source</option>
                 <option value="http">HTTP</option>
                 <option value="hls">HLS</option>
               </select>
@@ -6486,7 +6545,7 @@ std::string BuildLabRuleEditorPageHtml() {
               <select id="ruleRoute">
                 <option value="*" selected>전체</option>
                 <option value="rtsp">RTSP</option>
-                <option value="webrtc">WebRTC</option>
+                <option value="webrtc" hidden>WHIP Source ID</option>
               </select>
             </label>
           </div>
@@ -7018,7 +7077,7 @@ std::string BuildLabRuleEditorPageHtml() {
                 <option value="file" selected>서버 파일</option>
                 <option value="rtsp">RTSP URL</option>
                 <option value="http">HTTP/HLS URL</option>
-                <option value="webrtc">WebRTC Source ID</option>
+                <option value="webrtc" hidden>WHIP Source ID</option>
               </select>
             </label>
             <label id="viewFileField">보기 영상 파일
@@ -7026,7 +7085,7 @@ std::string BuildLabRuleEditorPageHtml() {
                 <option value="sample_h264.mp4" selected>sample_h264.mp4</option>
               </select>
             </label>
-            <label id="viewUrlField" hidden>보기 영상 URL 또는 Source ID
+            <label id="viewUrlField" hidden>보기 영상 URL 또는 WHIP Source ID
               <input id="viewUrlInput" placeholder="rtsp://camera.local/stream 또는 published-source-id" />
             </label>
           </div>
@@ -7599,6 +7658,8 @@ std::string BuildLabRuleEditorPageHtml() {
 	      rtspPort: __MEDIA_SERVER_RTSP_PORT__,
 	      streamRoute: "__MEDIA_SERVER_STREAM_ROUTE__"
 	    };
+    const opsRuleChannelMode = document.documentElement.dataset.embed === '1' &&
+      document.documentElement.dataset.embedPanel === 'settings';
 	    function themeToken(name) {
 	      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 	    }
@@ -7614,6 +7675,7 @@ std::string BuildLabRuleEditorPageHtml() {
     let vaRuleEditorMode = 'closed';
     let vaRuleEditorBaseline = '';
     let vaRuleDirty = false;
+    let opsRuleChannels = [];
     let previewTapId = '';
     let previewTimer = null;
     let previewImage = null;
@@ -7811,11 +7873,20 @@ std::string BuildLabRuleEditorPageHtml() {
       return { kind, url };
     }
 
-    function sourceLabel(source) {
+    function rawSourceLabel(source) {
       const kind = normalizedSourceKind(source?.kind || 'file');
       if (kind === 'file') return `file=${source?.file || 'sample_h264.mp4'}`;
       if (kind === 'webrtc') return `webrtc source=${source?.url || '(입력 필요)'}`;
       return `${kind}=${source?.url || '(입력 필요)'}`;
+    }
+
+    function sourceLabel(source) {
+      const channel = opsRuleChannelMode ? findOpsRuleChannelForSource(source) : null;
+      if (channel) {
+        const name = channel.view?.displayName || channel.source?.displayName || '';
+        return `channel #${channel.id || '-'}${name ? ` · ${name}` : ''}`;
+      }
+      return rawSourceLabel(source);
     }
 
     function paramsFromSourceJson(source) {
@@ -7841,6 +7912,212 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function currentVaRuleSourceJson() {
       return sourceJsonFromControls('vaRule');
+    }
+
+    function numericSortValue(value) {
+      const text = String(value || '');
+      return /^[0-9]+$/.test(text) ? Number(text) : Number.MAX_SAFE_INTEGER;
+    }
+
+    function sourceFromOpsChannel(channel) {
+      const source = channel?.source || {};
+      if (source.file) return { kind: 'file', file: source.file };
+      if (source.rtspUrl) return { kind: 'rtsp', url: source.rtspUrl };
+      if (source.httpUrl) return { kind: 'http', url: source.httpUrl };
+      if (source.webrtcSourceId) return { kind: 'webrtc', url: source.webrtcSourceId };
+      return null;
+    }
+
+    function sourceMatchKey(source) {
+      const kind = normalizedSourceKind(source?.kind || 'file');
+      if (kind === 'file') return `file:${String(source?.file || '').trim()}`;
+      const value = String(source?.url || '').trim();
+      return `${kind}:${value}`;
+    }
+
+    function opsChannelRowsFromRegistry(sources, views) {
+      const rows = [];
+      const claimedSources = new Set();
+      const sourceList = Array.isArray(sources) ? sources : [];
+      const viewList = Array.isArray(views) ? views : [];
+      for (const view of viewList) {
+        const source = sourceList.find(item => item.sourceId === view.sourceId) ||
+          sourceList.find(item => item.sourceId === view.viewId) ||
+          null;
+        if (source) claimedSources.add(source.sourceId);
+        rows.push({ id: view.viewId || view.sourceId, source, view });
+      }
+      for (const source of sourceList) {
+        if (!claimedSources.has(source.sourceId)) rows.push({ id: source.sourceId, source, view: null });
+      }
+      return rows
+        .filter(row => row.id && row.source && sourceFromOpsChannel(row))
+        .sort((left, right) => {
+          const leftNumeric = numericSortValue(left.id);
+          const rightNumeric = numericSortValue(right.id);
+          if (leftNumeric !== rightNumeric) return leftNumeric - rightNumeric;
+          return String(left.id || '').localeCompare(String(right.id || ''));
+        });
+    }
+
+    function opsChannelLabel(channel) {
+      const name = channel?.view?.displayName || channel?.source?.displayName || '';
+      const source = sourceFromOpsChannel(channel);
+      const enabled = channel?.source?.enabled !== false && channel?.view?.enabled !== false;
+      return `#${channel?.id || '-'}${name ? ` · ${name}` : ''} · ${rawSourceLabel(source)}${enabled ? '' : ' · 비활성'}`;
+    }
+
+    function setOpsRuleChannelSummary(text, tone = '') {
+      const summary = $('opsRuleChannelSummary');
+      if (!summary) return;
+      summary.textContent = text;
+      summary.classList.toggle('is-ok', tone === 'ok');
+      summary.classList.toggle('is-error', tone === 'error');
+    }
+
+    function findOpsRuleChannelForSource(source) {
+      const key = sourceMatchKey(source);
+      return opsRuleChannels.find(channel => sourceMatchKey(sourceFromOpsChannel(channel)) === key) || null;
+    }
+
+    function applyOpsRuleChannel(channel, options = {}) {
+      if (!channel) return false;
+      const source = sourceFromOpsChannel(channel);
+      if (!source) return false;
+      const kind = normalizedSourceKind(source.kind);
+      if ($('vaRuleSourceKind')) $('vaRuleSourceKind').value = kind;
+      if (kind === 'file') {
+        if ($('vaRuleFileSelect')) $('vaRuleFileSelect').value = source.file || 'sample_h264.mp4';
+        if ($('vaRuleUrlInput')) $('vaRuleUrlInput').value = '';
+      } else {
+        if ($('vaRuleUrlInput')) $('vaRuleUrlInput').value = source.url || '';
+      }
+      if ($('ruleSourceKind')) $('ruleSourceKind').value = ['file', 'rtsp', 'http', 'hls', 'webrtc'].includes(kind) ? kind : '*';
+      if ($('ruleRoute')) $('ruleRoute').value = '*';
+      setOpsRuleChannelSummary(`선택된 채널: ${opsChannelLabel(channel)}`, 'ok');
+      updateVaRuleSourceUi();
+      updateViewModeUi();
+      updatePreviews();
+      if (options.dirty !== false) refreshVaRuleDirtyState();
+      notifyEmbedHeight();
+      return true;
+    }
+
+    function syncOpsRuleChannelSelectionFromSource(options = {}) {
+      if (!opsRuleChannelMode) return;
+      const select = $('opsRuleChannelSelect');
+      if (!select) return;
+      const source = currentVaRuleSourceJson();
+      const matched = findOpsRuleChannelForSource(source);
+      if (matched) {
+        select.value = String(matched.id || '');
+        setOpsRuleChannelSummary(`선택된 채널: ${opsChannelLabel(matched)}`, 'ok');
+        return;
+      }
+      if (options.preferFirst && opsRuleChannels.length > 0) {
+        select.value = String(opsRuleChannels[0].id || '');
+        applyOpsRuleChannel(opsRuleChannels[0], { dirty: options.dirty !== false });
+        return;
+      }
+      select.value = '';
+      setOpsRuleChannelSummary('현재 룰 source와 일치하는 채널이 없습니다. 채널 탭에 등록된 채널 중 하나를 선택하세요.', 'error');
+    }
+
+    function renderOpsRuleChannelSelect() {
+      if (!opsRuleChannelMode) return;
+      const select = $('opsRuleChannelSelect');
+      if (!select) return;
+      select.textContent = '';
+      if (opsRuleChannels.length === 0) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = '등록된 channel 없음';
+        select.appendChild(option);
+        setOpsRuleChannelSummary('채널 탭에서 먼저 채널을 추가해야 룰을 만들 수 있습니다.', 'error');
+        return;
+      }
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = '채널 선택';
+      select.appendChild(placeholder);
+      for (const channel of opsRuleChannels) {
+        const option = document.createElement('option');
+        option.value = String(channel.id || '');
+        option.textContent = opsChannelLabel(channel);
+        select.appendChild(option);
+      }
+      syncOpsRuleChannelSelectionFromSource({ preferFirst: !currentVaRuleId(), dirty: false });
+    }
+
+    async function loadOpsRuleChannels() {
+      if (!opsRuleChannelMode) return;
+      const [sourcesPayload, viewsPayload] = await Promise.all([
+        requestJson('/ops/api/sources'),
+        requestJson('/ops/api/views')
+      ]);
+      opsRuleChannels = opsChannelRowsFromRegistry(sourcesPayload.sources || [], viewsPayload.views || []);
+      renderOpsRuleChannelSelect();
+      renderVaRuleLibrary();
+      updatePreviews();
+      updateViewModeUi();
+    }
+
+    function setupOpsRuleChannelMode() {
+      if (!opsRuleChannelMode) return;
+      const picker = $('opsRuleChannelPicker');
+      if (picker) picker.hidden = false;
+      const directSource = $('directVaRuleSourceFields');
+      if (directSource) directSource.hidden = true;
+      const directMatch = $('directRuleMatchFields');
+      if (directMatch) directMatch.hidden = true;
+      const select = $('opsRuleChannelSelect');
+      if (select) {
+        select.addEventListener('change', () => {
+          const channel = opsRuleChannels.find(item => String(item.id || '') === String(select.value || ''));
+          if (channel) {
+            applyOpsRuleChannel(channel);
+          } else {
+            setOpsRuleChannelSummary('채널 탭에 등록된 채널 중 하나를 선택하세요.', 'error');
+            refreshVaRuleDirtyState();
+          }
+        });
+      }
+      const flow = [
+        ['ruleSourceSection', '1', '채널', '채널'],
+        ['ruleBasicSection', '2', '룰', '룰'],
+        ['profileSection', '3', '분석', '분석'],
+        ['ruleScenarioSection', '4', 'Condition', '조건'],
+        ['ruleObjectsSection', '5', 'Objects', '객체'],
+        ['geometryLabel', '6', 'Geometry', '영역/라인'],
+        ['ruleOutputSection', '7', 'Output', '출력'],
+        ['ruleReviewSection', '8', 'Review', '검토']
+      ];
+      const editor = $('vaRuleEditorPanel');
+      const basic = $('ruleBasicSection');
+      const source = $('ruleSourceSection');
+      if (editor && basic && source) editor.insertBefore(source, basic);
+      const nav = document.querySelector('.edit-step-nav');
+      const stepSelect = $('editStepSelect');
+      for (const [target, number, title, label] of flow) {
+        const section = $(target);
+        if (section) {
+          const numberEl = section.querySelector('.step-title span');
+          const titleEl = section.querySelector('.step-title h2');
+          if (numberEl) numberEl.textContent = number;
+          if (titleEl) titleEl.textContent = title;
+          if (!titleEl && target === 'geometryLabel') section.textContent = title;
+        }
+        const navButton = document.querySelector(`[data-rule-section-target="${target}"]`);
+        if (navButton) {
+          navButton.textContent = label;
+          if (nav) nav.appendChild(navButton);
+        }
+        const option = stepSelect?.querySelector(`option[value="${target}"]`);
+        if (option) {
+          option.textContent = label;
+          stepSelect.appendChild(option);
+        }
+      }
     }
 
     function currentVaRuleId() {
@@ -8286,8 +8563,11 @@ std::string BuildLabRuleEditorPageHtml() {
       }
 
       const header = document.createElement('div');
-      header.className = 'rule-row is-header';
-      ['ID', '룰 이름', '연결 영상', '이벤트', '상태', '작업'].forEach((text) => {
+      header.className = `rule-row is-header${opsRuleChannelMode ? ' has-url-copy' : ''}`;
+      const headerLabels = opsRuleChannelMode
+        ? ['ID', '룰 이름', '연결 영상', '이벤트', '상태', 'VA 룰 URL', '작업']
+        : ['ID', '룰 이름', '연결 영상', '이벤트', '상태', '작업'];
+      headerLabels.forEach((text) => {
         const cell = document.createElement('div');
         cell.textContent = text;
         header.appendChild(cell);
@@ -8296,7 +8576,7 @@ std::string BuildLabRuleEditorPageHtml() {
 
       for (const item of items) {
         const row = document.createElement('div');
-        row.className = `rule-row${String(item.id) === selectedVaRuleId ? ' is-selected' : ''}`;
+        row.className = `rule-row${opsRuleChannelMode ? ' has-url-copy' : ''}${String(item.id) === selectedVaRuleId ? ' is-selected' : ''}`;
         row.tabIndex = 0;
         row.addEventListener('click', () => selectVaRule(item.id));
         row.addEventListener('keydown', (event) => {
@@ -8369,6 +8649,38 @@ std::string BuildLabRuleEditorPageHtml() {
         stateCell.appendChild(scenarioText);
         stateCell.appendChild(toggle);
         row.appendChild(stateCell);
+
+        if (opsRuleChannelMode) {
+          const urlActions = document.createElement('div');
+          urlActions.className = 'rule-url-actions';
+          const rtspCopy = document.createElement('button');
+          rtspCopy.type = 'button';
+          rtspCopy.className = 'secondary button-compact';
+          rtspCopy.textContent = 'RTSP';
+          rtspCopy.title = 'VA 룰 URL RTSP 복사';
+          rtspCopy.setAttribute('aria-label', `룰 #${item.id} VA 룰 URL RTSP 복사`);
+          rtspCopy.addEventListener('click', (event) => {
+            event.stopPropagation();
+            copyRuleUrl(item, 'rtsp', rtspCopy).catch((error) => {
+              showFeedback(`VA 룰 URL RTSP 복사 실패: ${error.message}`, 'error');
+            });
+          });
+          const webRtcCopy = document.createElement('button');
+          webRtcCopy.type = 'button';
+          webRtcCopy.className = 'secondary button-compact';
+          webRtcCopy.textContent = 'WebRTC';
+          webRtcCopy.title = 'VA 룰 URL WebRTC 복사';
+          webRtcCopy.setAttribute('aria-label', `룰 #${item.id} VA 룰 URL WebRTC 복사`);
+          webRtcCopy.addEventListener('click', (event) => {
+            event.stopPropagation();
+            copyRuleUrl(item, 'webrtc', webRtcCopy).catch((error) => {
+              showFeedback(`VA 룰 URL WebRTC 복사 실패: ${error.message}`, 'error');
+            });
+          });
+          urlActions.appendChild(rtspCopy);
+          urlActions.appendChild(webRtcCopy);
+          row.appendChild(urlActions);
+        }
 
         const actions = document.createElement('div');
         actions.className = 'row-actions';
@@ -8444,12 +8756,12 @@ std::string BuildLabRuleEditorPageHtml() {
       if (urlField) urlField.hidden = source.kind === 'file';
       if ($('vaRuleUrlLabelText')) {
         $('vaRuleUrlLabelText').textContent = source.kind === 'webrtc'
-          ? 'WebRTC Source ID'
+          ? 'WHIP Source ID'
           : '분석할 영상 URL';
       }
       if ($('vaRuleUrlHelp')) {
         $('vaRuleUrlHelp').textContent = source.kind === 'webrtc'
-          ? 'WHIP/WebRTC publish로 등록된 sourceId를 입력합니다.'
+          ? 'WHIP publish로 등록된 내부 sourceId를 입력합니다. 외부 WHEP/WebRTC URL pull은 아직 지원하지 않습니다.'
           : 'RTSP 또는 HTTP/HLS 전체 URL을 입력합니다.';
       }
       if ($('vaRuleSourceHelp')) {
@@ -9684,6 +9996,9 @@ std::string BuildLabRuleEditorPageHtml() {
 
       const source = payload?.source || {};
       const kind = normalizedSourceKind(source.kind);
+      if (opsRuleChannelMode && $('opsRuleChannelSelect') && !$('opsRuleChannelSelect').value) {
+        addValidationError(errors, '영상 소스', '룰 탭에서는 채널에 등록된 채널 중 하나를 선택해야 합니다.');
+      }
       if (kind === 'file') {
         if (!source.file) {
           addValidationError(errors, '영상 소스', '영상 분석 설정에 연결할 영상 파일을 선택하세요.');
@@ -9694,7 +10009,7 @@ std::string BuildLabRuleEditorPageHtml() {
           addValidationError(errors, '영상 소스', '영상 분석 설정에 연결할 URL 또는 Source ID를 입력하세요.');
         } else if (!validateSourceUrl(kind, sourceValue)) {
           addValidationError(errors, '영상 소스', kind === 'webrtc'
-            ? 'WebRTC Source ID를 입력하세요.'
+            ? 'WHIP publish Source ID를 입력하세요.'
             : '선택한 영상 종류에 맞는 URL 형식을 입력하세요.');
         }
       }
@@ -10111,6 +10426,7 @@ std::string BuildLabRuleEditorPageHtml() {
           }
         });
         updateVaRuleSourceUi();
+        syncOpsRuleChannelSelectionFromSource({ preferFirst: true, dirty: false });
         updateViewModeUi();
         updateVaRuleIdDisplay();
         if ($('deleteVaRuleBtn')) $('deleteVaRuleBtn').hidden = true;
@@ -10129,6 +10445,7 @@ std::string BuildLabRuleEditorPageHtml() {
       }
       loadRule(item);
       updateVaRuleSourceUi();
+      syncOpsRuleChannelSelectionFromSource({ preferFirst: false, dirty: false });
       updateViewModeUi();
       updateVaRuleIdDisplay();
       if ($('deleteVaRuleBtn')) $('deleteVaRuleBtn').hidden = false;
@@ -14279,6 +14596,52 @@ std::string BuildLabRuleEditorPageHtml() {
       }
     }
 
+    async function writeTextToClipboard(value) {
+      const text = String(value || '');
+      if (!text) throw new Error('empty clipboard value');
+      let clipboardError = null;
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return;
+        } catch (error) {
+          clipboardError = error;
+        }
+      }
+      const activeElement = document.activeElement;
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.setAttribute('aria-hidden', 'true');
+      textarea.style.position = 'fixed';
+      textarea.style.top = '0';
+      textarea.style.left = '0';
+      textarea.style.width = '1px';
+      textarea.style.height = '1px';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      try {
+        try {
+          textarea.focus({ preventScroll: true });
+        } catch (_) {
+          textarea.focus();
+        }
+        textarea.select();
+        textarea.setSelectionRange(0, textarea.value.length);
+        if (document.execCommand('copy')) return;
+      } finally {
+        textarea.remove();
+        if (activeElement && typeof activeElement.focus === 'function') {
+          try {
+            activeElement.focus({ preventScroll: true });
+          } catch (_) {
+            activeElement.focus();
+          }
+        }
+      }
+      throw clipboardError || new Error('clipboard fallback failed');
+    }
+
     async function copyGeneratedUrl(targetId, button = null) {
       const field = $(targetId);
       const value = String(field?.value || '').trim();
@@ -14287,15 +14650,7 @@ std::string BuildLabRuleEditorPageHtml() {
         return;
       }
       try {
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(value);
-        } else {
-          field.focus();
-          field.select();
-          if (!document.execCommand('copy')) {
-            throw new Error('clipboard fallback failed');
-          }
-        }
+        await writeTextToClipboard(value);
         showFeedback('요청 URL을 복사했습니다.');
         if (button) {
           const previous = button.textContent;
@@ -14304,6 +14659,60 @@ std::string BuildLabRuleEditorPageHtml() {
         }
       } catch (error) {
         showFeedback('브라우저가 클립보드 복사를 막았습니다. URL을 직접 선택해 복사하세요.', 'error');
+      }
+    }
+
+    function urlHttpOrigin() {
+      const fallback = window.location.origin;
+      const input = $('viewServerBaseUrl');
+      return String(input?.value || fallback).replace(/\/+$/, '') || fallback;
+    }
+
+    function urlRtspAuthority() {
+      const fallback = `${window.location.hostname || '127.0.0.1'}:${serverDefaults.rtspPort || 8554}`;
+      return String($('viewRtspAuthority')?.value || fallback)
+        .replace(/^rtsp:\/\//, '')
+        .replace(/\/+$/, '') || fallback;
+    }
+
+    function ruleCopyUrl(item, type) {
+      const id = String(item?.id || '').trim();
+      if (!id) return '';
+      const params = new URLSearchParams();
+      params.set('vaRule', id);
+      if (type === 'rtsp') {
+        const route = String(serverDefaults.streamRoute || 'dhseo').replace(/^\/+/, '');
+        return `rtsp://${urlRtspAuthority()}/${route}?${params.toString()}`;
+      }
+      if (type === 'webrtc') {
+        try {
+          const url = new URL('/whep', urlHttpOrigin());
+          url.search = params.toString();
+          return url.toString();
+        } catch (_) {
+          return `${window.location.origin}/whep?${params.toString()}`;
+        }
+      }
+      return '';
+    }
+
+    async function copyRuleUrl(item, type, button = null) {
+      const value = ruleCopyUrl(item, type);
+      const label = type === 'rtsp' ? 'VA 룰 URL RTSP' : 'VA 룰 URL WebRTC';
+      if (!value) {
+        showFeedback('복사할 VA 룰 URL이 없습니다.', 'error');
+        return;
+      }
+      try {
+        await writeTextToClipboard(value);
+        showFeedback(`${label}을 복사했습니다.`);
+        if (button) {
+          const previous = button.textContent;
+          button.textContent = '복사됨';
+          setTimeout(() => { button.textContent = previous || label; }, 1200);
+        }
+      } catch (_) {
+        showFeedback('브라우저가 VA 룰 URL 클립보드 복사를 막았습니다.', 'error');
       }
     }
 
@@ -15218,13 +15627,23 @@ std::string BuildLabRuleEditorPageHtml() {
       bindObjectCategorySelectorEvents();
       bindRuleInputEvents();
     }
+    function activateInitialPrimaryTabFromQuery() {
+      const tabName = new URLSearchParams(window.location.search).get('tab');
+      if (!['settings', 'viewer', 'dashboard'].includes(tabName)) return;
+      const button = document.querySelector(`[data-primary-tab="${tabName}"]`);
+      if (button) button.click();
+    }
 
     function applyTheme(theme) {
       const nextTheme = theme === 'dark' ? 'dark' : 'light';
       document.documentElement.dataset.theme = nextTheme;
       localStorage.setItem('mediaServerTheme', nextTheme);
       const themeButton = $('themeToggleBtn');
-      if (themeButton) themeButton.textContent = nextTheme === 'dark' ? '라이트 모드' : '다크 모드';
+      if (themeButton) {
+        const label = nextTheme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환';
+        themeButton.setAttribute('aria-label', label);
+        themeButton.setAttribute('title', label);
+      }
     }
     function notifyEmbedHeight() {
       if (document.documentElement.dataset.embed !== '1') return;
@@ -15257,16 +15676,19 @@ std::string BuildLabRuleEditorPageHtml() {
 
     renderClassChecks();
     bindVaUiComponents();
+    activateInitialPrimaryTabFromQuery();
     applyMetadataViewerQueryDefaults();
     installMetadataSyncVerificationDebugHook();
     setRulePreviewUi(false);
     setViewPreviewUi(false);
     setViewConnectionState('idle', '보기 시작을 누르면 분석 tap을 만들고 프레임을 표시합니다.');
+    setupOpsRuleChannelMode();
     setVaRuleEditorVisible(false);
     updateVaRuleSourceUi();
     updateViewModeUi();
     updatePreviews();
     loadPreviewFileOptions();
+    loadOpsRuleChannels().catch((error) => setOpsRuleChannelSummary(`채널 목록 로드 실패: ${error.message}`, 'error'));
     refreshRegistry().catch((error) => status(`목록 로드 실패: ${error.message}`));
     window.addEventListener('beforeunload', () => {
       stopRulePreview({ silent: true });
@@ -15403,17 +15825,25 @@ std::string BuildLabImportPageHtml() {
     .topbar strong { color: var(--ink); }
     .standalone-nav { display: none; }
     .theme-toggle {
-      width: auto;
-      min-width: 86px;
-      min-height: 32px;
-      padding: 6px 10px;
+      width: 40px;
+      min-width: 40px;
+      min-height: 40px;
+      height: 40px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0;
       border-radius: 999px;
-      font-size: 12px;
+      font-size: 0;
       background: var(--secondary-bg);
       color: var(--ink);
       border: 1px solid var(--line);
       box-shadow: none;
     }
+    .theme-toggle svg { width: 20px; height: 20px; display: block; }
+    .theme-toggle .theme-icon-moon { display: block !important; }
+    .theme-toggle .theme-icon-sun { display: none !important; }
+    :root[data-theme="dark"] .theme-toggle .theme-icon-moon { display: none !important; }
+    :root[data-theme="dark"] .theme-toggle .theme-icon-sun { display: block !important; }
     :root[data-embed="1"] .topbar {
       display: none;
     }
@@ -15532,7 +15962,7 @@ std::string BuildLabImportPageHtml() {
   <main>
     <div class="topbar">
       <strong>MediaServer</strong>
-      <button id="themeToggleBtn" class="theme-toggle" type="button">다크 모드</button>
+      <button id="themeToggleBtn" class="theme-toggle" type="button" aria-label="다크 모드로 전환" title="다크 모드로 전환"><svg class="theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 14.5A7.8 7.8 0 0 1 9.5 3a8.8 8.8 0 1 0 11.5 11.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><svg class="theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.8v2.3M12 18.9v2.3M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.8 12h2.3M18.9 12h2.3M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     </div>
     <section class="card">
       <div class="hero">
@@ -15690,7 +16120,11 @@ std::string BuildLabImportPageHtml() {
       document.documentElement.dataset.theme = nextTheme;
       localStorage.setItem('mediaServerTheme', nextTheme);
       const themeButton = document.getElementById('themeToggleBtn');
-      if (themeButton) themeButton.textContent = nextTheme === 'dark' ? '라이트 모드' : '다크 모드';
+      if (themeButton) {
+        const label = nextTheme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환';
+        themeButton.setAttribute('aria-label', label);
+        themeButton.setAttribute('title', label);
+      }
     }
     function notifyEmbedHeight() {
       if (document.documentElement.dataset.embed !== '1') return;
@@ -16196,7 +16630,7 @@ std::string ProductUiCss() {
     .product-page {
       width: min(1280px, calc(100% - 32px));
       margin: 0 auto;
-      padding: var(--space-8) 0 56px;
+      padding: var(--space-3) 0 56px;
       display: grid;
       gap: var(--space-5);
     }
@@ -16212,17 +16646,133 @@ std::string ProductUiCss() {
     }
     .app-header {
       display: grid;
-      gap: var(--space-4);
-      padding: var(--space-5);
+      gap: var(--space-3);
+      padding: var(--space-4);
     }
-    .app-header-row {
+    .app-chrome {
+      position: sticky;
+      top: var(--space-2);
+      z-index: 20;
+      display: grid;
+      gap: var(--space-2);
+      padding: 0;
+      background: var(--color-bg);
+      border: 0;
+      border-radius: 0;
+      box-shadow:
+        0 calc(-1 * var(--space-2)) 0 var(--space-2) var(--color-bg),
+        0 0 0 100vmax var(--color-bg);
+      clip-path: inset(calc(-1 * var(--space-2)) -100vmax 0 -100vmax);
+    }
+    .route-header {
+      gap: var(--space-2);
+    }
+    .app-header-top {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+      gap: var(--space-4);
+    }
+    .shell-summary-row {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: var(--space-4);
       flex-wrap: wrap;
     }
+    .shell-summary-row {
+      align-items: center;
+    }
     .app-title-block { display: grid; gap: var(--space-1); }
+    .shell-title-block h1 { font-size: clamp(22px, 2.2vw, 28px); }
+    .shell-title-block p:not(.eyebrow) { max-width: 760px; }
+    .header-utilities {
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-end;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+    .image-nav-tabs {
+      flex: 1 1 0;
+      width: 100%;
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+      gap: var(--space-2);
+      align-items: stretch;
+    }
+    .image-nav {
+      min-height: 84px;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 6px;
+      padding: 8px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-bg-elevated);
+      color: var(--color-text);
+      text-align: center;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .image-nav:hover {
+      background: var(--color-surface-hover);
+      border-color: var(--color-border-strong);
+      text-decoration: none;
+    }
+    .image-nav.active {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: var(--color-on-primary);
+    }
+    .image-nav svg {
+      width: 34px;
+      height: 34px;
+      display: block;
+      color: currentColor;
+    }
+    .image-nav span {
+      overflow-wrap: anywhere;
+      line-height: 1.12;
+    }
+    .account-menu {
+      flex: 0 0 auto;
+      min-height: 84px;
+      min-width: 210px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: var(--space-3);
+      padding: 8px 10px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-bg-elevated);
+    }
+    .account-avatar {
+      width: 44px;
+      height: 44px;
+      flex: 0 0 auto;
+      color: var(--color-primary);
+    }
+    .account-copy {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+    .account-name {
+      color: var(--color-text);
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+    .account-meta {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
     h1, h2, h3 { margin: 0; letter-spacing: 0; }
     h1 { font-size: clamp(26px, 3vw, 36px); line-height: 1.08; }
     h2 { font-size: 20px; }
@@ -16307,10 +16857,31 @@ std::string ProductUiCss() {
       box-shadow: none;
     }
     .theme-toggle {
-      width: auto;
-      min-height: 32px;
-      padding: 6px 10px;
-      font-size: 12px;
+      width: 40px;
+      min-width: 40px;
+      min-height: 40px;
+      height: 40px;
+      display: inline-grid;
+      place-items: center;
+      flex: 0 0 auto;
+      padding: 0;
+      border-radius: 999px;
+      font-size: 0;
+    }
+    .theme-toggle svg {
+      width: 20px;
+      height: 20px;
+      display: block;
+    }
+    .theme-toggle .theme-icon-moon { display: block !important; }
+    .theme-toggle .theme-icon-sun { display: none !important; }
+    :root[data-theme="dark"] .theme-toggle .theme-icon-moon { display: none !important; }
+    :root[data-theme="dark"] .theme-toggle .theme-icon-sun { display: block !important; }
+    .auth-theme-control {
+      position: fixed;
+      top: var(--space-4);
+      right: var(--space-4);
+      z-index: 30;
     }
     .panel,
     .section-card,
@@ -16348,6 +16919,35 @@ std::string ProductUiCss() {
     .metric-card strong {
       color: var(--color-text);
       font-size: 24px;
+      font-variant-numeric: tabular-nums;
+    }
+    .compact-card {
+      gap: var(--space-3);
+      padding: var(--space-4);
+    }
+    .status-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-3);
+    }
+    .status-stat {
+      min-height: 62px;
+      display: grid;
+      align-content: center;
+      gap: 3px;
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-muted);
+    }
+    .status-stat span {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+    .status-stat strong {
+      color: var(--color-text);
+      font-size: 18px;
       font-variant-numeric: tabular-nums;
     }
     .toolbar,
@@ -16520,6 +17120,125 @@ std::string ProductUiCss() {
       gap: var(--space-2);
       color: var(--color-text-muted);
     }
+    .embedded-frame {
+      width: 100%;
+      min-height: min(1120px, calc(100vh - 220px));
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-bg-elevated);
+    }
+    .dashboard-embedded-frame {
+      height: 1280px;
+      min-height: 980px;
+    }
+    .ops-dashboard-direct-frame {
+      border: 0;
+      border-radius: 0;
+      background: var(--color-bg);
+    }
+    .ops-rules-direct-frame {
+      min-height: 1280px;
+      border: 0;
+      border-radius: 0;
+      background: var(--color-bg);
+    }
+    .collapsed-editor {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-raised);
+      overflow: hidden;
+    }
+    .collapsed-editor > summary {
+      cursor: pointer;
+      padding: var(--space-4);
+      color: var(--color-text);
+      font-weight: 900;
+    }
+    .collapsed-editor[open] > summary {
+      border-bottom: 1px solid var(--color-border);
+    }
+    .collapsed-editor-body {
+      display: grid;
+      gap: var(--space-4);
+      padding: var(--space-5);
+    }
+    .table-actions {
+      display: flex;
+      gap: var(--space-2);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .channel-table {
+      table-layout: fixed;
+    }
+    .channel-col-id { width: 58px; }
+    .channel-col-name { width: 16%; }
+    .channel-col-kind { width: 118px; }
+    .channel-col-status { width: 118px; }
+    .channel-col-input { width: auto; }
+    .channel-col-live-url,
+    .channel-col-va-url { width: 104px; }
+    .channel-col-actions { width: 164px; }
+    .channel-input-cell {
+      max-width: 280px;
+      white-space: normal;
+      word-break: break-word;
+    }
+    .channel-status-actions {
+      display: grid;
+      justify-items: start;
+      gap: var(--space-2);
+    }
+    .channel-stream-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-2);
+    }
+    .channel-stream-rule {
+      margin-top: var(--space-2);
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 850;
+    }
+    .channel-row-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-2);
+    }
+    .channel-row-actions button {
+      width: 100%;
+      min-width: 0;
+    }
+    .user-row-actions,
+    .user-status-actions {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .user-row-actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .user-row-actions button,
+    .user-status-actions button {
+      width: 100%;
+      min-width: 0;
+      min-height: 32px;
+      padding: 6px 9px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .user-scope-cell {
+      max-width: 220px;
+      white-space: normal;
+      word-break: break-word;
+    }
+    .channel-stream-actions button,
+    .channel-status-actions button,
+    .channel-row-actions button {
+      min-height: 32px;
+      padding: 6px 9px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
     .auth-shell {
       display: grid;
       place-items: center;
@@ -16545,12 +17264,76 @@ std::string ProductUiCss() {
     @media (max-width: 860px) {
       .product-page { width: min(100% - 20px, 760px); padding-top: var(--space-5); }
       .split-grid { grid-template-columns: 1fr; }
-      .app-header-row { align-items: stretch; }
+      .shell-summary-row { align-items: stretch; }
+      .app-header-top { grid-template-columns: 1fr; }
+      .header-utilities { justify-content: flex-start; }
+      .account-menu { justify-content: flex-start; width: 100%; }
+      .image-nav-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .nav-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .nav { width: 100%; }
     }
+    @media (max-width: 1040px) {
+      .channel-table,
+      .channel-table tbody,
+      .channel-table tr,
+      .channel-table td {
+        display: block;
+        width: 100%;
+      }
+      .channel-table {
+        table-layout: auto;
+      }
+      .channel-table colgroup,
+      .channel-table thead {
+        display: none;
+      }
+      .channel-table tr {
+        padding: var(--space-2) 0;
+        border-bottom: 1px solid var(--color-table-border);
+      }
+      .channel-table tr:last-child {
+        border-bottom: 0;
+      }
+      .channel-table td {
+        min-height: 42px;
+        display: grid;
+        grid-template-columns: minmax(108px, 28%) minmax(0, 1fr);
+        gap: var(--space-3);
+        align-items: start;
+        border-bottom: 0;
+        padding: 8px var(--space-3);
+      }
+      .channel-table td::before {
+        content: attr(data-label);
+        color: var(--color-text-muted);
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      .channel-input-cell {
+        max-width: none;
+      }
+      .channel-status-actions,
+      .channel-stream-actions,
+      .channel-row-actions {
+        min-width: 0;
+      }
+    }
+    @media (max-width: 560px) {
+      .channel-table td {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+      .channel-row-actions {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 )CSS";
+}
+
+std::string ProductThemeToggleButtonHtml() {
+    return R"(<button id="themeToggleBtn" class="theme-toggle" type="button" aria-label="다크 모드로 전환" title="다크 모드로 전환"><svg class="theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 14.5A7.8 7.8 0 0 1 9.5 3a8.8 8.8 0 1 0 11.5 11.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><svg class="theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.8v2.3M12 18.9v2.3M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.8 12h2.3M18.9 12h2.3M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>)";
 }
 
 void AppendProductThemeScript(std::ostringstream& out) {
@@ -16559,7 +17342,11 @@ void AppendProductThemeScript(std::ostringstream& out) {
         const button = document.getElementById('themeToggleBtn');
         const sync = () => {
           const theme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
-          if (button) button.textContent = theme === 'dark' ? '라이트 모드' : '다크 모드';
+          const label = theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환';
+          if (button) {
+            button.setAttribute('aria-label', label);
+            button.setAttribute('title', label);
+          }
         };
         sync();
         if (button) {
@@ -16567,6 +17354,11 @@ void AppendProductThemeScript(std::ostringstream& out) {
             const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
             document.documentElement.dataset.theme = next;
             localStorage.setItem('mediaServerTheme', next);
+            document.querySelectorAll('iframe').forEach(frame => {
+              try {
+                frame.contentWindow?.postMessage({ type: 'mediaServer.theme', theme: next }, window.location.origin);
+              } catch {}
+            });
             sync();
           });
         }
@@ -16575,52 +17367,89 @@ void AppendProductThemeScript(std::ostringstream& out) {
 )SCRIPT";
 }
 
+std::string ProductNavIconSvg(const std::string& key) {
+    if (key == "home") {
+        return R"(<svg viewBox="0 0 48 48" role="img" aria-hidden="true" focusable="false"><path d="M8 23 24 10l16 13v16a3 3 0 0 1-3 3h-8V29H19v13h-8a3 3 0 0 1-3-3V23Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/></svg>)";
+    }
+    if (key == "dashboard") {
+        return R"(<svg viewBox="0 0 48 48" role="img" aria-hidden="true" focusable="false"><path d="M9 32a15 15 0 1 1 30 0" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M24 31 33 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M14 36h20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>)";
+    }
+    if (key == "channels") {
+        return R"(<svg viewBox="0 0 48 48" role="img" aria-hidden="true" focusable="false"><rect x="8" y="12" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="3"/><rect x="26" y="12" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="3"/><rect x="8" y="28" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="3"/><rect x="26" y="28" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="3"/></svg>)";
+    }
+    if (key == "rules") {
+        return R"(<svg viewBox="0 0 48 48" role="img" aria-hidden="true" focusable="false"><path d="M13 14h22M13 24h22M13 34h22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="18" cy="14" r="4" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="30" cy="24" r="4" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="23" cy="34" r="4" fill="none" stroke="currentColor" stroke-width="3"/></svg>)";
+    }
+    if (key == "events") {
+        return R"(<svg viewBox="0 0 48 48" role="img" aria-hidden="true" focusable="false"><path d="M24 8 11 30h11l-2 10 17-24H26l-2-8Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/></svg>)";
+    }
+    if (key == "client") {
+        return R"(<svg viewBox="0 0 48 48" role="img" aria-hidden="true" focusable="false"><rect x="8" y="11" width="32" height="22" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><path d="M19 40h10M24 33v7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>)";
+    }
+    if (key == "users") {
+        return R"(<svg viewBox="0 0 48 48" role="img" aria-hidden="true" focusable="false"><circle cx="19" cy="18" r="7" fill="none" stroke="currentColor" stroke-width="3"/><path d="M8 39c2-8 7-12 11-12s9 4 11 12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="33" cy="20" r="5" fill="none" stroke="currentColor" stroke-width="3"/><path d="M30 30c5 1 8 4 10 9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>)";
+    }
+    if (key == "live") {
+        return R"(<svg viewBox="0 0 48 48" role="img" aria-hidden="true" focusable="false"><rect x="8" y="11" width="32" height="26" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><path d="m21 18 11 6-11 6V18Z" fill="currentColor"/></svg>)";
+    }
+    return R"(<svg viewBox="0 0 48 48" role="img" aria-hidden="true" focusable="false"><circle cx="24" cy="24" r="15" fill="none" stroke="currentColor" stroke-width="3"/><path d="M17 25h14M24 18v14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>)";
+}
+
+std::string ProductAccountAvatarSvg() {
+    return R"(<svg class="account-avatar" viewBox="0 0 48 48" role="img" aria-label="Account"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="24" cy="19" r="7" fill="none" stroke="currentColor" stroke-width="3"/><path d="M12 38c3-8 8-12 12-12s9 4 12 12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>)";
+}
+
+void AppendImageNavLink(std::ostringstream& out,
+                        const std::string& href,
+                        const std::string& key,
+                        const std::string& label,
+                        bool active,
+                        const std::string& extra_attributes = "") {
+    out << "        <a class=\"image-nav" << (active ? " active" : "") << "\" href=\""
+        << HtmlEscape(href) << "\"";
+    if (!extra_attributes.empty()) {
+        out << " " << extra_attributes;
+    }
+    out << ">" << ProductNavIconSvg(key) << "<span>" << HtmlEscape(label) << "</span></a>\n";
+}
+
 void AppendOpsShellStart(std::ostringstream& out,
                          const auth::Principal& principal,
                          const std::string& active,
                          const std::string& subtitle) {
-    auto nav_class = [&](const std::string& key) {
-        return active == key ? "nav active" : "nav";
-    };
+    (void)subtitle;
     out << R"(<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ops Console</title>
+  <title>운영 콘솔</title>
 )" << ProductThemeBootScript() << ProductUiCss() << R"(</head>
 <body class="product-shell">
   <main class="product-page">
-    <header class="app-header">
-      <div class="app-header-row">
-        <div class="app-title-block">
-          <p class="eyebrow">Operations</p>
-          <h1>Ops Console</h1>
-          <p>)" << HtmlEscape(subtitle) << R"(</p>
-          <div class="badge-row">
-            <span class="chip">)" << HtmlEscape(principal.display_name) << R"(</span>
-            <span class="chip info">role: )" << HtmlEscape(principal.role) << R"(</span>
+    <header class="app-chrome">
+      <div class="app-header-top">
+        <nav class="image-nav-tabs" aria-label="운영 메뉴">
+)";
+    AppendImageNavLink(out, "/ops/home", "home", "홈", active == "home");
+    AppendImageNavLink(out, "/ops/dashboard", "dashboard", "대시보드", active == "dashboard");
+    AppendImageNavLink(out, "/ops/sources", "channels", "채널", active == "sources");
+    AppendImageNavLink(out, "/ops/rules", "rules", "룰", active == "rules");
+    if (auth::IsAdmin(principal)) {
+        AppendImageNavLink(out, "/ops/users", "users", "사용자", active == "users", "data-admin-only");
+    }
+    AppendImageNavLink(out, "/client/live", "client", "클라이언트 미리보기", false);
+    out << R"(        </nav>
+        <div class="account-menu" aria-label="현재 계정">
+          )" << ProductThemeToggleButtonHtml() << R"(
+          )" << ProductAccountAvatarSvg() << R"(
+          <div class="account-copy">
+            <div class="account-name">)" << HtmlEscape(principal.display_name) << R"(</div>
+            <div class="account-meta">권한: )" << HtmlEscape(principal.role) << R"(</div>
           </div>
-        </div>
-        <div class="actions">
-          <button id="themeToggleBtn" class="theme-toggle" type="button">다크 모드</button>
-          <form method="post" action="/logout"><button class="button-secondary" type="submit">Logout</button></form>
+          <form method="post" action="/logout"><button class="button-secondary" type="submit">로그아웃</button></form>
         </div>
       </div>
-      <nav class="nav-tabs" aria-label="Ops navigation">
-        <a class=")" << nav_class("home") << R"(" href="/ops/home">Home</a>
-        <a class=")" << nav_class("dashboard") << R"(" href="/ops/dashboard">Dashboard</a>
-        <a class=")" << nav_class("sources") << R"(" href="/ops/sources">Sources</a>
-        <a class=")" << nav_class("rules") << R"(" href="/ops/rules">Rules</a>
-        <a class=")" << nav_class("events") << R"(" href="/ops/events">Events</a>
-)";
-    if (auth::IsAdmin(principal)) {
-        out << R"(        <a class=")" << nav_class("users") << R"(" href="/ops/users" data-admin-only>Users</a>
-)";
-    }
-    out << R"(      </nav>
-      <div class="breadcrumbs"><a href="/ops/home">Ops</a><span>/</span><span>)"
-        << HtmlEscape(active.empty() ? "home" : active) << R"(</span></div>
     </header>
 )";
 }
@@ -16643,26 +17472,25 @@ std::string LoginPageHtml(const std::string& message, bool failed) {
 )" << ProductThemeBootScript() << ProductUiCss() << R"(
 </head>
 <body class="auth-shell">
+  <div class="auth-theme-control">)" << ProductThemeToggleButtonHtml() << R"(</div>
   <main class="auth-card">
     <div class="auth-actions">
       <p class="eyebrow">MediaServer</p>
-      <button id="themeToggleBtn" class="theme-toggle" type="button">다크 모드</button>
     </div>
     <form class="auth-form" method="post" action="/login">
-      <h1>Login</h1>
-      <p>계정으로 로그인하면 역할과 scope에 맞는 Ops 또는 Client 화면으로 이동합니다.</p>
+      <h1>로그인</h1>
 )";
     if (!message.empty()) {
         out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
             << HtmlEscape(message) << "</div>\n";
     }
-    out << R"(      <label>Username
+    out << R"(      <label>계정명
         <input name="username" autocomplete="username" required />
       </label>
-      <label>Password
+      <label>비밀번호
         <input name="password" type="password" autocomplete="current-password" required />
       </label>
-      <button class="primary" type="submit">Login</button>
+      <button class="primary" type="submit">로그인</button>
     </form>
 )";
     AppendProductThemeScript(out);
@@ -16688,30 +17516,30 @@ std::string SetupPageHtml(const std::string& message, bool failed) {
 )" << ProductThemeBootScript() << ProductUiCss() << R"(
 </head>
 <body class="auth-shell">
+  <div class="auth-theme-control">)" << ProductThemeToggleButtonHtml() << R"(</div>
   <main class="auth-card">
     <div class="auth-actions">
       <p class="eyebrow">Initial Setup</p>
-      <button id="themeToggleBtn" class="theme-toggle" type="button">다크 모드</button>
     </div>
     <form class="auth-form" method="post" action="/setup">
-      <h1>Admin Setup</h1>
+      <h1>관리자 설정</h1>
       <p>기본 admin 계정에 강한 비밀번호를 설정한 뒤 제품 화면으로 이동합니다.</p>
 )";
     if (!message.empty()) {
         out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
             << HtmlEscape(message) << "</div>\n";
     }
-    out << R"(      <label>Username
+    out << R"(      <label>계정명
         <input name="username" value="admin" readonly />
       </label>
-      <label>Password
+      <label>비밀번호
         <input name="password" type="password" autocomplete="new-password" required />
       </label>
-      <label>Confirm password
+      <label>비밀번호 확인
         <input name="confirm" type="password" autocomplete="new-password" required />
       </label>
       )" << PasswordPolicyHintHtml() << R"(
-      <button class="primary" type="submit">Set admin password</button>
+      <button class="primary" type="submit">관리자 비밀번호 설정</button>
     </form>
 )";
     AppendProductThemeScript(out);
@@ -16731,7 +17559,7 @@ std::string InviteSetupPageHtml(const std::string& token,
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Invite Setup</title>
+  <title>초대 설정</title>
   <style>
     :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
     body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #111827; color: #f8fafc; }
@@ -16750,24 +17578,24 @@ std::string InviteSetupPageHtml(const std::string& token,
 <body>
   <main>
     <form method="post" action="/invite/setup">
-      <h1>Account Invite Setup</h1>
+      <h1>초대 계정 설정</h1>
       <p>관리자가 발급한 초대 토큰으로 비밀번호를 설정합니다.</p>
 )";
     if (!message.empty()) {
         out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
             << HtmlEscape(message) << "</div>\n";
     }
-    out << R"(      <label>Invite token
+    out << R"(      <label>초대 토큰
         <input name="token" value=")" << HtmlEscape(token) << R"(" autocomplete="off" required />
       </label>
-      <label>Password
+      <label>비밀번호
         <input name="password" type="password" autocomplete="new-password" required />
       </label>
-      <label>Confirm password
+      <label>비밀번호 확인
         <input name="confirm" type="password" autocomplete="new-password" required />
       </label>
       )" << PasswordPolicyHintHtml() << R"(
-      <button type="submit">Set password</button>
+      <button type="submit">비밀번호 설정</button>
     </form>
   </main>
 </body>
@@ -16781,7 +17609,7 @@ std::string ClientAccessRequestPageHtml() {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Request Access</title>
+  <title>접근 요청</title>
   <style>
     :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
     body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #111827; color: #f8fafc; }
@@ -16800,15 +17628,15 @@ std::string ClientAccessRequestPageHtml() {
 <body>
   <main>
     <form id="request-form">
-      <h1>Request Access</h1>
+      <h1>접근 요청</h1>
       <p>요청은 pending 상태로 저장되며 admin 승인 전에는 로그인이나 view 접근이 허용되지 않습니다.</p>
       <div id="message" class="message" hidden></div>
-      <label>Username<input name="username" autocomplete="username" required /></label>
-      <label>Display Name<input name="displayName" /></label>
-      <label>Contact<input name="contact" autocomplete="email" /></label>
-      <label>Requested View ID<input name="viewId" placeholder="optional" /></label>
-      <label>Reason<textarea name="reason" required></textarea></label>
-      <button type="submit">Submit Request</button>
+      <label>계정명<input name="username" autocomplete="username" required /></label>
+      <label>표시 이름<input name="displayName" /></label>
+      <label>연락처<input name="contact" autocomplete="email" /></label>
+      <label>요청 채널 ID<input name="viewId" placeholder="선택 사항" /></label>
+      <label>사유<textarea name="reason" required></textarea></label>
+      <button type="submit">요청 제출</button>
     </form>
   </main>
   <script>
@@ -16856,7 +17684,7 @@ std::string PasswordChangePageHtml(const auth::Principal& principal,
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Change Password</title>
+  <title>비밀번호 변경</title>
   <style>
     :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
     body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #111827; color: #f8fafc; }
@@ -16875,24 +17703,24 @@ std::string PasswordChangePageHtml(const auth::Principal& principal,
 <body>
   <main>
     <form method="post" action="/password/change">
-      <h1>Password Change</h1>
+      <h1>비밀번호 변경</h1>
       <p>)" << HtmlEscape(principal.display_name) << R"( 계정의 비밀번호를 새 정책에 맞게 변경합니다.</p>
 )";
     if (!message.empty()) {
         out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
             << HtmlEscape(message) << "</div>\n";
     }
-    out << R"(      <label>Current password
+    out << R"(      <label>현재 비밀번호
         <input name="currentPassword" type="password" autocomplete="current-password" required />
       </label>
-      <label>New password
+      <label>새 비밀번호
         <input name="password" type="password" autocomplete="new-password" required />
       </label>
-      <label>Confirm new password
+      <label>새 비밀번호 확인
         <input name="confirm" type="password" autocomplete="new-password" required />
       </label>
       )" << PasswordPolicyHintHtml() << R"(
-      <button type="submit">Change password</button>
+      <button type="submit">비밀번호 변경</button>
     </form>
   </main>
 </body>
@@ -16931,13 +17759,13 @@ std::string AuthLandingPageHtml(const auth::Principal& principal,
         <h1>)" << HtmlEscape(title) << R"(</h1>
         <p>)" << HtmlEscape(body) << R"(</p>
       </div>
-      <form method="post" action="/logout"><button type="submit">Logout</button></form>
+      <form method="post" action="/logout"><button type="submit">로그아웃</button></form>
     </header>
     <section class="panel">
       <strong>)" << HtmlEscape(principal.display_name) << R"(</strong>
       <div class="meta">
-        <span class="chip">role: )" << HtmlEscape(principal.role) << R"(</span>
-        <span class="chip">auth: )" << HtmlEscape(principal.auth_mode) << R"(</span>
+        <span class="chip">권한: )" << HtmlEscape(principal.role) << R"(</span>
+        <span class="chip">인증: )" << HtmlEscape(principal.auth_mode) << R"(</span>
       </div>
       <p>)";
     for (std::size_t i = 0; i < principal.scopes.size(); ++i) {
@@ -16950,7 +17778,7 @@ std::string AuthLandingPageHtml(const auth::Principal& principal,
     </section>
 )";
     if (auth::RequireRole(principal, {"operator"})) {
-        out << R"(    <section class="panel"><a class="action" href="/ops/sources">Source Registry / Published View</a></section>
+        out << R"(    <section class="panel"><a class="action" href="/ops/sources">채널 관리</a></section>
 )";
     }
     out << R"(
@@ -16965,67 +17793,34 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
     AppendOpsShellStart(out,
                         principal,
                         active,
-                        "운영 상태, source/view, rule, event, 계정 관리를 같은 제품 shell에서 확인합니다.");
+                        "운영 상태, channel, rule, event, 계정 관리를 같은 제품 shell에서 확인합니다.");
     if (active == "dashboard") {
-        out << R"(    <section class="panel" data-ops-panel="dashboard">
-      <div class="toolbar">
-        <div>
-          <h2>Runtime Dashboard</h2>
-          <p>Lab runtime API를 같은 화면에서 요약해 표시합니다.</p>
-        </div>
-        <button id="opsDashboardRefresh" class="button-secondary" type="button">Refresh</button>
-      </div>
-      <div class="grid">
-        <div class="metric-card"><span>Active sessions</span><strong id="dashActiveSessions">-</strong></div>
-        <div class="metric-card"><span>Active streams</span><strong id="dashActiveStreams">-</strong></div>
-        <div class="metric-card"><span>Analysis taps</span><strong id="dashActiveTaps">-</strong></div>
-        <div class="metric-card"><span>Publish sources</span><strong id="dashPublishSources">-</strong></div>
-      </div>
-      <div class="grid">
-        <section class="section-card">
-          <h3>Health Summary</h3>
-          <div id="dashHealthBadges" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="dashHealthText">Runtime status를 불러오는 중입니다.</p>
-        </section>
-        <section class="section-card">
-          <h3>Runtime</h3>
-          <div id="dashRuntimeRows" class="badge-row"></div>
-          <p id="dashRuntimeText">Runtime 상세 상태를 불러오는 중입니다.</p>
-        </section>
-        <section class="section-card">
-          <h3>Backpressure</h3>
-          <div id="dashBackpressureRows" class="badge-row"></div>
-          <p id="dashBackpressureText">Backpressure 상태를 불러오는 중입니다.</p>
-        </section>
-        <section class="section-card">
-          <h3>Cleanup</h3>
-          <div id="dashCleanupRows" class="badge-row"></div>
-          <p id="dashCleanupText">Cleanup 상태를 불러오는 중입니다.</p>
-        </section>
-      </div>
-      <details class="debug-drawer">
-        <summary>Runtime raw JSON</summary>
-        <div class="debug-drawer-body">
-          <label class="checks"><span><input id="opsDashboardPretty" type="checkbox" checked /> pretty print</span></label>
-          <pre id="opsDashboardRaw">runtime status 없음</pre>
-        </div>
-      </details>
+        out << R"(    <section data-ops-panel="dashboard">
+      <iframe id="opsDashboardFrame" class="embedded-frame dashboard-embedded-frame ops-dashboard-direct-frame" title="VA Runtime Dashboard" src="/lab/rules?embed=1&tab=dashboard&panel=dashboard"></iframe>
     </section>
 )";
     } else if (active == "events") {
         out << R"(    <section class="panel" data-ops-panel="events">
       <div class="toolbar">
         <div>
-          <h2>Events</h2>
-          <p>Event storage, Event POST worker, 최근 event record를 카드와 표로 표시합니다.</p>
+          <h2>이벤트 상태</h2>
+          <p>이 화면은 주 메뉴에서 숨긴 후속 상태 화면입니다. 녹화/이력 화면이 아니며, 룰 실행 결과와 이벤트 전달 상태가 필요할 때만 직접 확인합니다.</p>
         </div>
-        <button id="opsEventsRefresh" class="button-secondary" type="button">Refresh</button>
+        <div class="actions">
+          <a class="button button-secondary" href="/ops/dashboard">대시보드</a>
+          <a class="button button-secondary" href="/ops/rules">룰</a>
+          <button id="opsEventsRefresh" class="button-secondary" type="button">새로고침</button>
+        </div>
       </div>
+      <section class="section-card">
+        <h3>숨김 상태</h3>
+        <p>이벤트는 독립 제품 탭으로 노출하지 않습니다. 이벤트 조건은 룰에서 설정하고, 운영 요약은 대시보드에서 확인합니다. 아래 영역은 기존 event storage/post 진단을 보존하기 위한 직접 URL 전용 화면입니다.</p>
+      </section>
       <div class="grid">
         <section class="section-card">
-          <h3>Event Storage</h3>
+          <h3>이벤트 저장소</h3>
           <div id="eventStorageBadges" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="eventStorageText">Event storage 상태를 불러오는 중입니다.</p>
+          <p id="eventStorageText">이벤트 저장소 상태를 불러오는 중입니다.</p>
         </section>
         <section class="section-card">
           <h3>Event POST</h3>
@@ -17036,20 +17831,20 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
       <section class="section-card">
         <div class="toolbar">
           <div>
-            <h3>Recent Event Records</h3>
-            <p id="eventRecordSummary">최근 25개 record를 조회합니다.</p>
+            <h3>최근 이벤트 기록</h3>
+            <p id="eventRecordSummary">최근 25개 기록을 조회합니다.</p>
           </div>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Event</th>
-                <th>Status</th>
-                <th>Stream</th>
-                <th>Track</th>
-                <th>Scenario</th>
-                <th>Updated</th>
+                <th>이벤트</th>
+                <th>상태</th>
+                <th>스트림</th>
+                <th>트랙</th>
+                <th>시나리오</th>
+                <th>수정 시각</th>
               </tr>
             </thead>
             <tbody id="eventRecordRows"><tr><td colspan="6">로딩 중</td></tr></tbody>
@@ -17057,69 +17852,45 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         </div>
       </section>
       <details class="debug-drawer">
-        <summary>Event raw JSON</summary>
+        <summary>이벤트 raw JSON</summary>
         <div class="debug-drawer-body">
-          <label class="checks"><span><input id="opsEventsPretty" type="checkbox" checked /> pretty print</span></label>
+          <label class="checks"><span><input id="opsEventsPretty" type="checkbox" checked /> 보기 좋게 표시</span></label>
           <pre id="opsEventsRaw">event status 없음</pre>
         </div>
       </details>
     </section>
 )";
     } else if (active == "rules") {
-        out << R"(    <section class="panel" data-ops-panel="rules">
-      <div class="toolbar">
-        <div>
-          <h2>Rules</h2>
-          <p>운영 shell은 유지하고, 기존 Lab Rule Editor를 명시적인 액션으로 엽니다.</p>
-        </div>
-      </div>
-      <div class="grid">
-        <section class="section-card">
-          <h3>Lab Rule Editor</h3>
-          <p>영상 분석 profile/rule/vaRule 저장 구조는 기존 `/lab/rules` 화면을 그대로 사용합니다. Ops shell에서는 이동 목적을 명확히 표시합니다.</p>
-          <div class="actions">
-            <a class="button button-primary" href="/lab/rules">Lab Rule Editor 열기</a>
-            <a class="button button-secondary" href="/ops/home">Ops Home으로 돌아가기</a>
-          </div>
-        </section>
-        <section class="section-card">
-          <h3>Scope</h3>
-          <div class="badge-row">
-            <span class="chip">profile</span>
-            <span class="chip">rule</span>
-            <span class="chip">vaRule</span>
-          </div>
-          <p>API schema, Event POST payload, metadata side-channel, scenario 판단 로직은 이 shell 변경에서 수정하지 않습니다.</p>
-        </section>
-      </div>
+        out << R"(    <section data-ops-panel="rules">
+      <iframe id="opsRulesFrame" class="embedded-frame ops-rules-direct-frame" title="영상 분석 설정" src="/lab/rules?embed=1&tab=settings&panel=settings" data-embed-resize="1"></iframe>
     </section>
 )";
     } else if (active == "live") {
         out << R"(    <section class="panel" data-ops-panel="live">
       <div class="toolbar">
         <div>
-          <h2>Operator Live Monitor</h2>
-          <p>운영자용 live monitor는 후속 구현 항목입니다. 현재 운영 시작 화면은 Home에서 source/view/runtime/event 상태를 요약합니다.</p>
+          <h2>운영자 라이브 모니터</h2>
+          <p>운영자용 라이브 모니터는 후속 구현 항목입니다. 현재 운영 시작 화면은 홈에서 채널/runtime/event 상태를 요약합니다.</p>
         </div>
-        <a class="button button-primary" href="/ops/home">Ops Home으로 이동</a>
+        <a class="button button-primary" href="/ops/home">운영 홈으로 이동</a>
       </div>
       <div class="grid">
         <section class="section-card">
-          <h3>Future Scope</h3>
-          <p>이 route는 실제 operator live monitor가 준비될 때 source tile, session health, stale warning, event overlay 상태를 제품 UI로 표시합니다.</p>
+          <h3>후속 범위</h3>
+          <p>이 route는 실제 운영자 라이브 모니터가 준비될 때 채널 타일, 세션 health, stale warning, 이벤트 overlay 상태를 제품 UI로 표시합니다.</p>
           <div class="badge-row">
-            <span class="chip info">planned</span>
-            <span class="chip">same shell</span>
-            <span class="chip">no raw body</span>
+            <span class="chip info">후속</span>
+            <span class="chip">같은 shell</span>
+            <span class="chip">raw 본문 없음</span>
           </div>
         </section>
         <section class="section-card">
-          <h3>Current Actions</h3>
-          <p>지금은 Home, Dashboard, Sources에서 운영 상태와 PublishedView를 확인하세요.</p>
+          <h3>현재 확인 화면</h3>
+          <p>지금은 홈, 대시보드, 채널에서 운영 상태와 공개 채널을 확인하세요.</p>
           <div class="actions">
-            <a class="button button-secondary" href="/ops/home">Home</a>
-            <a class="button button-secondary" href="/ops/dashboard">Dashboard</a>
-            <a class="button button-secondary" href="/ops/sources">Sources</a>
+            <a class="button button-secondary" href="/ops/home">홈</a>
+            <a class="button button-secondary" href="/ops/dashboard">대시보드</a>
+            <a class="button button-secondary" href="/ops/sources">채널</a>
           </div>
         </section>
       </div>
@@ -17129,54 +17900,37 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         out << R"(    <section class="panel" data-ops-panel="home">
       <div class="toolbar">
         <div>
-          <h2>Operations Overview</h2>
-          <p>운영 홈에서 source/view, runtime, event, warning 상태를 먼저 확인합니다.</p>
+          <h2>운영 홈</h2>
+          <p>운영 홈은 등록/설정 수치와 현재 runtime 상태만 요약합니다. 녹화나 이벤트 record 기능은 표시하지 않습니다.</p>
         </div>
-        <button id="opsLiveRefresh" class="button-secondary" type="button">Refresh</button>
+        <button id="opsLiveRefresh" class="button-secondary" type="button">새로고침</button>
       </div>
       <div class="grid">
-        <div class="metric-card"><span>Sources</span><strong id="liveSourceCount">-</strong></div>
-        <div class="metric-card"><span>Published views</span><strong id="liveViewCount">-</strong></div>
-        <div class="metric-card"><span>Active streams</span><strong id="liveStreamCount">-</strong></div>
-        <div class="metric-card"><span>Analysis taps</span><strong id="liveTapCount">-</strong></div>
+        <div class="metric-card"><span>등록 채널</span><strong id="homeChannelCount">-</strong></div>
+        <div class="metric-card"><span>VA 룰</span><strong id="homeVaRuleCount">-</strong></div>
+        <div class="metric-card"><span>이벤트 룰</span><strong id="homeEventRuleCount">-</strong></div>
+        <div class="metric-card"><span>사용자</span><strong id="homeUserCount">-</strong></div>
       </div>
-      <div class="grid">
-        <section class="section-card">
-          <h3>Operator Live Monitor</h3>
-          <p>실시간 operator tile monitor는 후속 구현입니다. 현재 release에서는 Home summary와 client preview로 PublishedView 동작을 확인합니다.</p>
-          <div class="actions">
-            <a class="button button-primary" href="/client/live">Client Portal Preview</a>
-            <a class="button button-secondary" href="/ops/sources">Sources / Views</a>
+      <section class="section-card compact-card">
+        <div class="toolbar">
+          <div>
+            <h3>런타임 상태</h3>
+            <p>현재 세션, 스트림, analysis tap 상태만 표시합니다.</p>
           </div>
-        </section>
-        <section class="section-card">
-          <h3>Recent Events</h3>
-          <div id="liveEventBadges" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="liveEventText">최근 event 요약을 불러오는 중입니다.</p>
-        </section>
-        <section class="section-card">
-          <h3>Warning / Stale</h3>
-          <div id="liveWarningBadges" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="liveWarningText">Warning 상태를 불러오는 중입니다.</p>
-        </section>
-        <section class="section-card">
-          <h3>Quick Actions</h3>
-          <div class="actions">
-            <a class="button button-secondary" href="/ops/dashboard">Dashboard</a>
-            <a class="button button-secondary" href="/ops/events">Events</a>
-            <a class="button button-secondary" href="/ops/rules">Rules</a>
-)";
-        if (auth::IsAdmin(principal)) {
-            out << R"(            <a class="button button-secondary" href="/ops/users" data-admin-only>Users</a>
-)";
-        }
-        out << R"(          </div>
-        </section>
-      </div>
+          <div id="homeRuntimeState" class="badge-row"><span class="chip">로딩 중</span></div>
+        </div>
+        <div class="status-stat-grid">
+          <div class="status-stat"><span>세션</span><strong id="homeActiveSessions">-</strong></div>
+          <div class="status-stat"><span>스트림</span><strong id="homeActiveStreams">-</strong></div>
+          <div class="status-stat"><span>분석 탭</span><strong id="homeAnalysisTaps">-</strong></div>
+          <div class="status-stat"><span>지연 탭</span><strong id="homeStaleTaps">-</strong></div>
+        </div>
+        <p id="homeRuntimeText">런타임 상태를 불러오는 중입니다.</p>
+      </section>
       <details class="debug-drawer">
-        <summary>Operations raw JSON</summary>
+        <summary>운영 debug JSON</summary>
         <div class="debug-drawer-body">
-          <label class="checks"><span><input id="opsLivePretty" type="checkbox" checked /> pretty print</span></label>
+          <label class="checks"><span><input id="opsLivePretty" type="checkbox" checked /> 보기 좋게 표시</span></label>
           <pre id="opsLiveRaw">operations summary 없음</pre>
         </div>
       </details>
@@ -17219,6 +17973,17 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         if (!response.ok) throw new Error(json.error || `${response.status} ${response.statusText}`);
         return json;
       }
+      window.addEventListener('message', event => {
+        if (event.origin !== window.location.origin) return;
+        const data = event.data || {};
+        if (data.type !== 'mediaServer.embedHeight') return;
+        const frames = Array.from(document.querySelectorAll('[data-embed-resize="1"], #opsDashboardFrame'));
+        const frame = frames.find(candidate => candidate.contentWindow === event.source) || document.getElementById('opsDashboardFrame');
+        if (!frame) return;
+        const minimum = frame.id === 'opsRulesFrame' ? 1280 : 980;
+        const height = Math.max(minimum, Math.min(numberValue(data.height), 4200));
+        frame.style.height = `${height}px`;
+      });
       const runtimeCounts = runtime => {
         const session = runtime?.sessionManager || {};
         const webrtc = runtime?.webrtcHttp || {};
@@ -17260,35 +18025,35 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         `).join('');
       }
       async function refreshLive() {
-        const [sources, views, runtime, storage, records] = await Promise.all([
+        const [sources, rules, vaRules, runtime, users] = await Promise.all([
           requestJson('/ops/api/sources'),
-          requestJson('/ops/api/views'),
+          requestJson('/lab/analysis/rules'),
+          requestJson('/lab/analysis/va-rules'),
           requestJson('/lab/runtime/status'),
-          requestJson('/lab/analysis/event-storage/status'),
-          requestJson('/lab/analysis/events/records?limit=5').catch(error => ({ error: error.message, records: [] }))
+          requestJson('/ops/api/users').catch(error => ({ error: error.message, users: [] }))
         ]);
         const sourceItems = Array.isArray(sources.sources) ? sources.sources : [];
-        const viewItems = Array.isArray(views.views) ? views.views : [];
+        const eventRuleItems = Array.isArray(rules.rules) ? rules.rules : [];
+        const vaRuleItems = Array.isArray(vaRules.vaRules) ? vaRules.vaRules : [];
+        const userItems = Array.isArray(users.users) ? users.users : [];
         const counts = runtimeCounts(runtime);
-        setText('liveSourceCount', sourceItems.length);
-        setText('liveViewCount', viewItems.length);
-        setText('liveStreamCount', counts.streams);
-        setText('liveTapCount', counts.taps);
-        const eventItems = Array.isArray(records.records) ? records.records : [];
-        renderBadges('liveEventBadges', [
-          { text: `records ${eventItems.length}` },
-          { text: storage.enabled ? 'storage on' : 'storage off', tone: storage.enabled ? '' : 'warn' },
-          { text: records.hasMore ? 'has more' : 'latest window' }
+        const staleTapCount = counts.activeTaps.filter(tap => numberValue(tap.lastUsedAgeMs) > 5000).length;
+        setText('homeChannelCount', sourceItems.length);
+        setText('homeVaRuleCount', vaRuleItems.length);
+        setText('homeEventRuleCount', eventRuleItems.length);
+        setText('homeUserCount', users.error ? '권한 없음' : userItems.length);
+        setText('homeActiveSessions', counts.sessions);
+        setText('homeActiveStreams', counts.streams);
+        setText('homeAnalysisTaps', counts.taps);
+        setText('homeStaleTaps', staleTapCount);
+        renderBadges('homeRuntimeState', [
+          { text: staleTapCount > 0 ? '확인 필요' : '정상', tone: staleTapCount > 0 ? 'warn' : '' },
+          { text: counts.streams > 0 ? '활성' : '대기', tone: counts.streams > 0 ? '' : 'info' }
         ]);
-        setText('liveEventText', eventItems.length > 0 ? `${eventItems[0].eventType || 'event'} · ${formatTime(eventTime(eventItems[0]))}` : '최근 event record가 없습니다.');
-        const warningItems = [];
-        if (numberValue(storage.failedCount) > 0 || numberValue(storage.writeFailedCount) > 0) warningItems.push({ text: 'storage failure', tone: 'bad' });
-        if (numberValue(storage.droppedCount) > 0) warningItems.push({ text: 'storage dropped', tone: 'warn' });
-        if (counts.activeTaps.some(tap => numberValue(tap.lastUsedAgeMs) > 5000)) warningItems.push({ text: 'stale tap', tone: 'warn' });
-        if (warningItems.length === 0) warningItems.push({ text: 'normal' });
-        renderBadges('liveWarningBadges', warningItems);
-        setText('liveWarningText', `egress ${counts.egress} · publish ${counts.publish} · cleanup counters ${Object.keys(counts.debugCounters).length}`);
-        renderRaw('opsLiveRaw', 'opsLivePretty', { sources, views, runtime, storage, records });
+        setText('homeRuntimeText', staleTapCount > 0
+          ? `${staleTapCount}개 분석 탭이 지연 상태입니다. 대시보드에서 런타임 상세를 확인하세요.`
+          : '현재 지연 탭 경고는 없습니다.');
+        renderRaw('opsLiveRaw', 'opsLivePretty', { sources, rules, vaRules, runtime, users });
       }
       async function refreshDashboard() {
         const runtime = await requestJson('/lab/runtime/status');
@@ -17298,27 +18063,27 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         setText('dashActiveTaps', counts.taps);
         setText('dashPublishSources', counts.publishSources);
         renderBadges('dashHealthBadges', [
-          { text: counts.streams > 0 ? 'streams active' : 'streams idle', tone: counts.streams > 0 ? '' : 'info' },
-          { text: counts.taps > 0 ? 'analysis active' : 'analysis idle', tone: counts.taps > 0 ? '' : 'info' },
-          { text: counts.egress > 0 ? 'egress active' : 'egress idle', tone: counts.egress > 0 ? '' : 'info' }
+          { text: counts.streams > 0 ? '스트림 활성' : '스트림 대기', tone: counts.streams > 0 ? '' : 'info' },
+          { text: counts.taps > 0 ? '분석 활성' : '분석 대기', tone: counts.taps > 0 ? '' : 'info' },
+          { text: counts.egress > 0 ? '송출 활성' : '송출 대기', tone: counts.egress > 0 ? '' : 'info' }
         ]);
-        setText('dashHealthText', `sessions ${counts.sessions} · streams ${counts.streams} · taps ${counts.taps}`);
+        setText('dashHealthText', `세션 ${counts.sessions} · 스트림 ${counts.streams} · 분석 탭 ${counts.taps}`);
         renderBadges('dashRuntimeRows', [
-          { text: `egress ${counts.egress}` },
-          { text: `publish ${counts.publish}` },
-          { text: `reuse groups ${runtime?.analysisMatching?.reuseGroupCount ?? 0}` }
+          { text: `송출 ${counts.egress}` },
+          { text: `발행 ${counts.publish}` },
+          { text: `재사용 그룹 ${runtime?.analysisMatching?.reuseGroupCount ?? 0}` }
         ]);
-        setText('dashRuntimeText', `profile documents ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · rule documents ${runtime?.analysisMatching?.ruleDocumentCount ?? 0}`);
+        setText('dashRuntimeText', `프로파일 문서 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 문서 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0}`);
         const metadata = runtime?.webrtcHttp?.metadataDataChannel || {};
         renderBadges('dashBackpressureRows', [
-          { text: `metadata channels ${Array.isArray(metadata.channels) ? metadata.channels.length : 0}` },
+          { text: `메타데이터 채널 ${Array.isArray(metadata.channels) ? metadata.channels.length : 0}` },
           { text: `sse ${runtime?.webrtcHttp?.metadataSideChannel?.activeSseClients ?? 0}` },
           { text: `ws ${runtime?.webrtcHttp?.metadataSideChannel?.activeWebSocketClients ?? 0}` }
         ]);
-        setText('dashBackpressureText', 'DataChannel/SSE/WS 상태는 raw JSON 접힘 영역에서 세부 counter를 확인합니다.');
+        setText('dashBackpressureText', 'DataChannel/SSE/WS 상태는 raw JSON 접힘 영역에서 세부 카운터를 확인합니다.');
         const debugKeys = Object.keys(counts.debugCounters);
         renderBadges('dashCleanupRows', debugKeys.slice(0, 4).map(key => ({ text: key })));
-        setText('dashCleanupText', debugKeys.length > 0 ? `${debugKeys.length} cleanup/debug counter groups available` : 'cleanup counter가 아직 수집되지 않았습니다.');
+        setText('dashCleanupText', debugKeys.length > 0 ? `${debugKeys.length}개 cleanup/debug counter group 사용 가능` : 'cleanup counter가 아직 수집되지 않았습니다.');
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
       }
       async function refreshEvents() {
@@ -17328,26 +18093,26 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
           requestJson('/lab/analysis/events/records?limit=25').catch(error => ({ error: error.message, records: [] }))
         ]);
         renderBadges('eventStorageBadges', [
-          { text: storage.enabled ? 'enabled' : 'disabled', tone: storage.enabled ? '' : 'warn' },
-          { text: `stored ${storage.storedCount ?? 0}` },
-          { text: `failed ${storage.failedCount ?? 0}`, tone: numberValue(storage.failedCount) > 0 ? 'bad' : '' },
-          { text: `dropped ${storage.droppedCount ?? 0}`, tone: numberValue(storage.droppedCount) > 0 ? 'warn' : '' }
+          { text: storage.enabled ? '활성' : '비활성', tone: storage.enabled ? '' : 'warn' },
+          { text: `저장 ${storage.storedCount ?? 0}` },
+          { text: `실패 ${storage.failedCount ?? 0}`, tone: numberValue(storage.failedCount) > 0 ? 'bad' : '' },
+          { text: `드롭 ${storage.droppedCount ?? 0}`, tone: numberValue(storage.droppedCount) > 0 ? 'warn' : '' }
         ]);
-        setText('eventStorageText', `queue ${storage.queueSize ?? 0}/${storage.maxQueueSize ?? 0} · file ${(storage.activeFileSizeBytes ?? 0)} bytes · recovery ${storage.lastRecoveryStatus || '미제공'}`);
+        setText('eventStorageText', `큐 ${storage.queueSize ?? 0}/${storage.maxQueueSize ?? 0} · 파일 ${(storage.activeFileSizeBytes ?? 0)} bytes · 복구 ${storage.lastRecoveryStatus || '미제공'}`);
         renderBadges('eventPostBadges', [
-          { text: post.enabled ? 'enabled' : 'disabled', tone: post.enabled ? '' : 'warn' },
-          { text: `sent ${post.sentCount ?? 0}` },
-          { text: `failed ${post.failedCount ?? 0}`, tone: numberValue(post.failedCount) > 0 ? 'bad' : '' },
-          { text: `suppressed ${post.suppressedCount ?? 0}` }
+          { text: post.enabled ? '활성' : '비활성', tone: post.enabled ? '' : 'warn' },
+          { text: `전송 ${post.sentCount ?? 0}` },
+          { text: `실패 ${post.failedCount ?? 0}`, tone: numberValue(post.failedCount) > 0 ? 'bad' : '' },
+          { text: `억제 ${post.suppressedCount ?? 0}` }
         ]);
-        setText('eventPostText', post.lastError ? `last error: ${post.lastError}` : `queue ${post.queueSize ?? 0}/${post.maxQueueSize ?? 0}`);
+        setText('eventPostText', post.lastError ? `마지막 오류: ${post.lastError}` : `큐 ${post.queueSize ?? 0}/${post.maxQueueSize ?? 0}`);
         const eventItems = Array.isArray(records.records) ? records.records : [];
         setText('eventRecordSummary', records.error ? `조회 실패: ${records.error}` : `records ${eventItems.length} · hasMore ${records.hasMore ? 'yes' : 'no'}`);
         renderEventRows(eventItems);
         renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, records });
       }
       function wireOpsRefresh() {
-        document.getElementById('opsLiveRefresh')?.addEventListener('click', () => refreshLive().catch(error => setText('liveWarningText', error.message)));
+        document.getElementById('opsLiveRefresh')?.addEventListener('click', () => refreshLive().catch(error => setText('homeRuntimeText', error.message)));
         document.getElementById('opsDashboardRefresh')?.addEventListener('click', () => refreshDashboard().catch(error => setText('dashHealthText', error.message)));
         document.getElementById('opsEventsRefresh')?.addEventListener('click', () => refreshEvents().catch(error => setText('eventRecordSummary', error.message)));
         document.getElementById('opsLivePretty')?.addEventListener('change', () => refreshLive().catch(() => {}));
@@ -17368,7 +18133,7 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
       } else if (activeOpsPage === 'events') {
         refreshEvents().catch(error => setText('eventRecordSummary', error.message));
       } else if (activeOpsPage === 'home') {
-        refreshLive().catch(error => setText('liveWarningText', error.message));
+        refreshLive().catch(error => setText('homeRuntimeText', error.message));
       }
     </script>
 )OPS";
@@ -17976,16 +18741,13 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     const bool preview_mode =
         (auth::IsAdmin(principal) || auth::IsOperator(principal)) &&
         auth::RequireScope(principal, "ops:read");
-    auto nav_class = [&](const std::string& key) {
-        return active == key ? "nav active" : "nav";
-    };
     std::ostringstream out;
     out << R"(<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Client Portal</title>
+      <title>클라이언트 포털</title>
 )" << ProductThemeBootScript() << ProductUiCss() << R"(
   <style>
     :root {
@@ -18006,15 +18768,42 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     }
     body { margin: 0; background: var(--bg); color: var(--text); }
     main { max-width: 1180px; margin: 0 auto; padding: 28px 18px 40px; display: grid; gap: 18px; }
-    header { display: flex; justify-content: space-between; align-items: start; gap: 14px; flex-wrap: wrap; }
     h1, h2, h3 { margin: 0; }
     h1 { font-size: 28px; }
     h2 { font-size: 18px; }
     h3 { font-size: 16px; }
     p { margin: 0; color: var(--muted); line-height: 1.5; }
-    nav { display: flex; gap: 8px; flex-wrap: wrap; }
+    header.app-chrome {
+      display: grid;
+      gap: var(--space-2);
+      align-items: stretch;
+    }
+    header.app-chrome .app-header-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      width: 100%;
+      align-items: start;
+      gap: var(--space-4);
+    }
+    header.app-chrome .image-nav-tabs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+      width: 100%;
+      min-width: 0;
+      gap: var(--space-2);
+    }
+    .client-image-nav-tabs {
+      flex: 1 1 320px;
+      min-width: min(320px, 100%);
+      grid-template-columns: repeat(2, minmax(92px, 1fr));
+    }
+    .client-preview-return {
+      display: flex;
+      justify-content: flex-start;
+      margin-top: var(--space-2);
+    }
     a.nav { min-height: 36px; display: inline-flex; align-items: center; border-radius: 6px; padding: 0 12px; background: var(--panel-soft); color: var(--text); text-decoration: none; font-weight: 900; }
-    a.nav.active { background: var(--text); color: var(--panel); }
+    a.nav.active { background: var(--color-primary); color: var(--color-on-primary); }
     .workspace { display: grid; grid-template-columns: minmax(260px, 360px) minmax(0, 1fr); gap: 14px; align-items: start; }
     .panel { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
     .views { display: grid; gap: 10px; }
@@ -18031,8 +18820,9 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     .events { display: grid; gap: 8px; }
     .event { display: grid; gap: 5px; border-top: 1px solid var(--line); padding-top: 10px; }
     .event:first-child { border-top: 0; padding-top: 0; }
-    button { min-height: 38px; border: 0; border-radius: 6px; background: var(--text); color: var(--panel); padding: 0 14px; font-weight: 800; cursor: pointer; }
-    .ghost { background: var(--panel-soft); color: var(--text); }
+    button { min-height: 38px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg-elevated); color: var(--color-text); padding: 0 14px; font-weight: 850; cursor: pointer; }
+    button:hover { background: var(--color-surface-hover); border-color: var(--color-border-strong); }
+    .ghost { background: var(--color-bg-elevated); color: var(--color-text); }
     .empty { min-height: 80px; display: grid; align-content: center; gap: 8px; }
     .toolbar { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
     .live-monitor { display: grid; gap: 12px; }
@@ -18067,53 +18857,52 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     :root[data-theme="dark"] .chip.bad { color: #fca5a5; }
     :root[data-theme="dark"] a.nav.active { background: var(--color-primary); color: var(--color-on-primary); }
     @media (max-width: 900px) { .live-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 860px) {
+      header.app-chrome .app-header-top { grid-template-columns: 1fr; }
+      header.app-chrome .image-nav-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .client-image-nav-tabs { min-width: 0; }
+    }
     @media (max-width: 780px) { .workspace { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body class="product-shell" data-client-preview=")" << (preview_mode ? "true" : "false") << R"(">
   <main class="product-page">
-    <header class="app-header">
-      <div class="app-header-row">
-        <div class="app-title-block">
-          <p class="eyebrow">Client</p>
-          <h1>Client Portal</h1>
-          <p>)" << HtmlEscape(principal.display_name) << R"( · )" << HtmlEscape(principal.role) << R"(</p>
-        </div>
-        <div class="actions">
-          <button id="themeToggleBtn" class="theme-toggle" type="button">다크 모드</button>
-          <form method="post" action="/logout"><button class="button-secondary" type="submit">Logout</button></form>
+    <header class="app-chrome">
+      <div class="app-header-top">
+        <nav class="image-nav-tabs client-image-nav-tabs" aria-label="클라이언트 메뉴">
+)";
+    AppendImageNavLink(out, "/client/live", "live", "라이브", active == "live");
+    AppendImageNavLink(out, "/client/dashboard", "dashboard", "대시보드", active == "dashboard");
+    out << R"(        </nav>
+        <div class="account-menu" aria-label="현재 계정">
+          )" << ProductThemeToggleButtonHtml() << R"(
+          )" << ProductAccountAvatarSvg() << R"(
+          <div class="account-copy">
+            <div class="account-name">)" << HtmlEscape(principal.display_name) << R"(</div>
+            <div class="account-meta">권한: )" << HtmlEscape(principal.role) << R"(</div>
+          </div>
+          <form method="post" action="/logout"><button class="button-secondary" type="submit">로그아웃</button></form>
         </div>
       </div>
-    <nav class="nav-tabs">
-      <a class=")" << nav_class("live") << R"(" href="/client/live">Live</a>
-      <a class=")" << nav_class("dashboard") << R"(" href="/client/dashboard">Dashboard</a>
-      <a class=")" << nav_class("events") << R"(" href="/client/events">Events</a>
-    </nav>
     </header>
 )";
-    if (preview_mode) {
-        out << R"(    <section class="section-card">
-      <div class="toolbar">
-        <div>
-          <div class="badge-row"><span class="chip info">Client Portal Preview</span><span class="chip">)" << HtmlEscape(principal.role) << R"(</span></div>
-          <p>admin/operator preview입니다. Viewer에게는 Client nav만 보이며 Ops/Lab link, source locator, 내부 진단 정보는 노출하지 않습니다.</p>
-        </div>
-        <a class="button button-secondary" href="/ops/home">Back to Ops</a>
-      </div>
-    </section>
+    if (auth::IsAdmin(principal)) {
+        out << R"(    <div class="client-preview-return">
+      <a class="button button-secondary" href="/ops/home">Ops로 돌아가기</a>
+    </div>
 )";
     }
     out << R"(
     <section class="workspace">
       <div class="panel">
         <div class="toolbar">
-          <h2>Views</h2>
-          <button id="refresh" class="ghost" type="button">Refresh</button>
+          <h2>할당 채널</h2>
+          <button id="refresh" class="ghost" type="button">새로고침</button>
         </div>
         <div id="views" class="views"></div>
       </div>
       <div class="panel" id="detail">
-        <div class="empty"><h3>PublishedView를 선택하세요</h3><p>허용된 view를 선택하면 이 영역에 상태가 표시됩니다.</p></div>
+        <div class="empty"><h3>채널을 선택하세요</h3><p>허용된 채널을 선택하면 이 영역에 상태가 표시됩니다.</p></div>
       </div>
     </section>
   </main>
@@ -18152,8 +18941,34 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       const text = display(value);
       const cls = ['stale', 'offline', 'disconnected', 'warning'].includes(String(value)) ? ' warn' :
         ['unavailable'].includes(String(value)) ? ' bad' : '';
-      return `<span class="chip${cls}">${escapeHtml(text)}</span>`;
+      const label = ({
+        warning: '경고',
+        normal: '정상',
+        stale: '지연',
+        offline: '오프라인',
+        disconnected: '연결 끊김',
+        unavailable: '미제공',
+        connected: '연결됨',
+        connecting: '연결 중',
+        live: '라이브',
+        metadata: '메타데이터'
+      })[String(value)] || text;
+      return `<span class="chip${cls}">${escapeHtml(label)}</span>`;
     };
+    const clientStatusLabel = value => ({
+      offline: '오프라인',
+      connecting: '연결 중',
+      connected: '연결됨',
+      completed: '연결됨',
+      live: '라이브',
+      metadata: '메타데이터',
+      disconnected: '연결 끊김',
+      failed: '실패',
+      error: '오류',
+      closed: '닫힘',
+      stale: '지연',
+      fresh: '정상'
+    })[String(value)] || display(value);
     const emptyState = (title, message, actionHref = '', actionLabel = '') => `
       <div class="empty">
         <h3>${escapeHtml(title)}</h3>
@@ -18190,7 +19005,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       return '';
     };
     const overlayLabel = mode => ({
-      raw: 'raw',
+      raw: '원본',
       'va-overlay': 'va-overlay',
       'va-rule': 'va-rule'
     })[mode] || mode || '미제공';
@@ -18212,10 +19027,10 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
         host.innerHTML = emptyState(
           '할당된 PublishedView가 없습니다',
           isPreviewMode
-            ? 'Client preview에 표시할 view가 없습니다. Ops에서 PublishedView와 계정 scope를 확인하세요.'
-            : '이 계정에 허용된 view가 없습니다. 관리자에게 PublishedView 접근 권한을 요청하세요.',
+            ? '미리보기에 표시할 채널이 없습니다. Ops에서 채널과 계정 권한을 확인하세요.'
+            : '이 계정에 허용된 채널이 없습니다. 관리자에게 채널 접근 권한을 요청하세요.',
           isPreviewMode ? '/ops/sources' : '',
-          isPreviewMode ? 'PublishedView 관리' : ''
+          isPreviewMode ? '채널 관리' : ''
         );
         return;
       }
@@ -18223,9 +19038,8 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
         <button class="view${view.viewId === selectedViewId ? ' active' : ''}" type="button" data-view-id="${escapeHtml(view.viewId)}">
           <h3>${escapeHtml(view.displayName || view.viewId)}</h3>
           <div class="meta">
-            <span class="chip">${escapeHtml(view.sourceKind || 'source')}</span>
-            ${view.showDashboard ? '<span class="chip">dashboard</span>' : ''}
-            ${view.showEvents ? '<span class="chip">events</span>' : ''}
+            <span class="chip">${escapeHtml(view.sourceKind || '소스')}</span>
+            ${view.showDashboard ? '<span class="chip">대시보드</span>' : ''}
           </div>
         </button>
       `).join('');
@@ -18254,29 +19068,29 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       detail.innerHTML = `
         <div class="toolbar">
           <div>
-            <h2>${escapeHtml(view.displayName || view.viewId || 'Dashboard')}</h2>
+            <h2>${escapeHtml(view.displayName || view.viewId || '대시보드')}</h2>
             <p>${escapeHtml(view.sourceDisplayName || '미제공')}</p>
           </div>
           <div class="meta">
             ${statusChip(health.status)}
             ${statusChip(health.metadataStatus)}
-            ${events.warning ? '<span class="chip warn">warning</span>' : ''}
+            ${events.warning ? '<span class="chip warn">경고</span>' : ''}
           </div>
         </div>
         <div class="summary">
-          <div class="metric"><span>View health</span><strong>${escapeHtml(display(health.connectionStatus))}</strong></div>
-          <div class="metric"><span>Video frame</span><strong>${escapeHtml(display(health.videoFrameStatus))}</strong></div>
-          <div class="metric"><span>Metadata age</span><strong>${escapeHtml(ms(health.metadataAgeMs))}</strong></div>
-          <div class="metric"><span>Last frame</span><strong>${escapeHtml(ms(connection.lastFrameAgeMs))}</strong></div>
-          <div class="metric"><span>Tracks</span><strong>${escapeHtml(display(analysis.trackCount))}</strong></div>
-          <div class="metric"><span>Active events</span><strong>${escapeHtml(display(analysis.activeEventCount))}</strong></div>
-          <div class="metric"><span>Scenarios</span><strong>${escapeHtml(display(analysis.scenarioCount))}</strong></div>
-          <div class="metric"><span>Latest event</span><strong>${escapeHtml(formatTime(analysis.latestEventTime))}</strong></div>
+          <div class="metric"><span>연결 상태</span><strong>${escapeHtml(display(health.connectionStatus))}</strong></div>
+          <div class="metric"><span>영상 프레임</span><strong>${escapeHtml(display(health.videoFrameStatus))}</strong></div>
+          <div class="metric"><span>메타데이터 지연</span><strong>${escapeHtml(ms(health.metadataAgeMs))}</strong></div>
+          <div class="metric"><span>마지막 프레임</span><strong>${escapeHtml(ms(connection.lastFrameAgeMs))}</strong></div>
+          <div class="metric"><span>트랙</span><strong>${escapeHtml(display(analysis.trackCount))}</strong></div>
+          <div class="metric"><span>활성 이벤트</span><strong>${escapeHtml(display(analysis.activeEventCount))}</strong></div>
+          <div class="metric"><span>시나리오</span><strong>${escapeHtml(display(analysis.scenarioCount))}</strong></div>
+          <div class="metric"><span>최근 이벤트</span><strong>${escapeHtml(formatTime(analysis.latestEventTime))}</strong></div>
         </div>
         <section class="events">
-          <h3>Event summary</h3>
+          <h3>이벤트 요약</h3>
           <div class="meta">
-            ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || 'event')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">event 없음</span>'}
+            ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
           </div>
           ${renderEvents(events.recent || [])}
         </section>
@@ -18284,7 +19098,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     }
     function renderEvents(items) {
       if (!Array.isArray(items) || items.length === 0) {
-        return emptyState('최근 event가 없습니다', '선택한 view에서 표시할 event가 아직 없거나 event 표시가 꺼져 있습니다.');
+        return emptyState('최근 이벤트가 없습니다', '선택한 채널에서 표시할 이벤트가 아직 없거나 이벤트 표시가 꺼져 있습니다.');
       }
       return items.map(item => `
         <article class="event">
@@ -18292,7 +19106,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
             <span class="chip">${escapeHtml(item.eventType || 'event')}</span>
             ${statusChip(item.status || '미제공')}
           </div>
-          <h3>${escapeHtml(item.scenarioName || item.className || item.eventId || 'Event')}</h3>
+          <h3>${escapeHtml(item.scenarioName || item.className || item.eventId || '이벤트')}</h3>
           <p>${escapeHtml(formatTime(item.updateTime || item.startTime))}</p>
         </article>
       `).join('');
@@ -18303,13 +19117,13 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       detail.innerHTML = `
         <div class="toolbar">
           <div>
-            <h2>${escapeHtml(view.displayName || view.viewId || 'Events')}</h2>
-            <p>${events.provided ? 'Recent events' : '이 view는 event 표시가 꺼져 있거나 event 권한이 없습니다.'}</p>
+            <h2>${escapeHtml(view.displayName || view.viewId || '이벤트')}</h2>
+            <p>${events.provided ? '최근 이벤트' : '이 채널은 이벤트 표시가 꺼져 있거나 이벤트 권한이 없습니다.'}</p>
           </div>
-          <div class="meta">${events.warning ? '<span class="chip warn">warning</span>' : statusChip(events.warningBadge)}</div>
+          <div class="meta">${events.warning ? '<span class="chip warn">경고</span>' : statusChip(events.warningBadge)}</div>
         </div>
         <div class="meta">
-          ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || 'event')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">event 없음</span>'}
+          ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
         </div>
         <section class="events">${renderEvents(events.recent || [])}</section>
       `;
@@ -18355,12 +19169,17 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       const status = tile.status || 'offline';
       const stale = tile.lastMetadataAt && Date.now() - tile.lastMetadataAt > 5000;
       tile.stale = Boolean(stale);
-      root.querySelector('[data-role="status"]').textContent = stale ? 'stale' : status;
+      root.querySelector('[data-role="status"]').textContent = stale ? '지연' : ({
+        offline: '오프라인',
+        connecting: '연결 중',
+        live: '라이브',
+        error: '오류'
+      })[String(status)] || status;
       root.querySelector('[data-role="status"]').className = `chip${tileStatusClass(stale ? 'stale' : status)}`;
-      root.querySelector('[data-role="connection"]').textContent = display(tile.connectionStatus);
+      root.querySelector('[data-role="connection"]').textContent = clientStatusLabel(tile.connectionStatus);
       root.querySelector('[data-role="tracks"]').textContent = display(tile.trackCount);
       root.querySelector('[data-role="events"]').textContent = display(tile.eventCount);
-      root.querySelector('[data-role="stale"]').textContent = stale ? 'stale' : (tile.sessionId ? 'fresh' : '미제공');
+      root.querySelector('[data-role="stale"]').textContent = stale ? '지연' : (tile.sessionId ? '정상' : '미제공');
       root.querySelector('[data-role="placeholder"]').hidden = Boolean(tile.sessionId);
       const startBtn = root.querySelector('[data-action="start"]');
       const stopBtn = root.querySelector('[data-action="stop"]');
@@ -18404,10 +19223,10 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
         detail.innerHTML = emptyState(
           'Live view가 없습니다',
           isPreviewMode
-            ? 'Preview할 PublishedView가 없습니다. Ops에서 view를 만들고 계정 scope를 연결하세요.'
-            : 'Live를 보려면 관리자에게 PublishedView 접근 권한을 받아야 합니다.',
+            ? '미리보기할 채널이 없습니다. Ops에서 채널을 만들고 계정 권한을 연결하세요.'
+            : '라이브를 보려면 관리자에게 채널 접근 권한을 받아야 합니다.',
           isPreviewMode ? '/ops/sources' : '',
-          isPreviewMode ? 'Sources / Views' : ''
+          isPreviewMode ? '채널 관리' : ''
         );
         return;
       }
@@ -18415,44 +19234,44 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
         <div class="live-monitor">
           <div class="toolbar">
             <div>
-              <h2>Live Monitor</h2>
+              <h2>라이브</h2>
             </div>
-            <button id="liveAllStop" class="ghost" type="button">All Stop</button>
+            <button id="liveAllStop" class="ghost" type="button">전체 정지</button>
           </div>
           <div class="live-grid">
             ${liveTiles.map(tile => `
               <article class="tile${selectedLiveTile === tile.index ? ' selected' : ''}" data-tile="${tile.index}">
                 <div class="tile-head">
                   <div class="tile-title">
-                    <h3>Tile ${tile.index + 1}</h3>
+                    <h3>타일 ${tile.index + 1}</h3>
                     <span class="chip" data-role="status">offline</span>
                   </div>
                   <div class="tile-controls">
-                    <select data-role="view" aria-label="view">
+                    <select data-role="view" aria-label="채널">
                       ${views.map(view => `<option value="${escapeHtml(view.viewId)}">${escapeHtml(view.displayName || view.viewId)}</option>`).join('')}
                     </select>
-                    <select data-role="mode" aria-label="overlay"></select>
+                    <select data-role="mode" aria-label="보기 방식"></select>
                   </div>
                   <div class="tile-actions">
-                    <button type="button" data-action="select" class="ghost">Select</button>
-                    <button type="button" data-action="start">Start</button>
-                    <button type="button" data-action="stop" class="ghost" disabled>Stop</button>
+                    <button type="button" data-action="select" class="ghost">선택</button>
+                    <button type="button" data-action="start">시작</button>
+                    <button type="button" data-action="stop" class="ghost" disabled>정지</button>
                   </div>
                 </div>
                 <div class="tile-stage">
                   <video playsinline muted autoplay></video>
-                  <span data-role="placeholder">offline</span>
+                  <span data-role="placeholder">오프라인</span>
                 </div>
                 <div class="tile-status">
-                  <div class="metric"><span>connection</span><strong data-role="connection">offline</strong></div>
-                  <div class="metric"><span>tracks</span><strong data-role="tracks">미제공</strong></div>
-                  <div class="metric"><span>events</span><strong data-role="events">미제공</strong></div>
-                  <div class="metric"><span>stale</span><strong data-role="stale">미제공</strong></div>
+                  <div class="metric"><span>연결</span><strong data-role="connection">offline</strong></div>
+                  <div class="metric"><span>트랙</span><strong data-role="tracks">미제공</strong></div>
+                  <div class="metric"><span>이벤트</span><strong data-role="events">미제공</strong></div>
+                  <div class="metric"><span>상태</span><strong data-role="stale">미제공</strong></div>
                 </div>
               </article>
             `).join('')}
           </div>
-          <section class="detail-box" id="liveSelectedDetail">${emptyState('Tile을 선택하세요', '선택한 tile의 connection, metadata, event 상태가 여기에 표시됩니다.')}</section>
+          <section class="detail-box" id="liveSelectedDetail">${emptyState('타일을 선택하세요', '선택한 타일의 연결, 메타데이터, 이벤트 상태가 여기에 표시됩니다.')}</section>
         </div>
       `;
       for (const tile of liveTiles) {
@@ -18507,7 +19326,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       const tile = selectedLiveTile === null ? null : liveTiles[selectedLiveTile];
       const el = document.querySelector('#liveSelectedDetail [data-selected-stale]');
       if (el && tile) {
-        el.textContent = tile.stale ? 'stale' : 'fresh';
+        el.textContent = tile.stale ? '지연' : '정상';
       }
     }
     function parseTileMetadata(tile, raw) {
@@ -18679,7 +19498,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       const tile = selectedLiveTile === null ? null : liveTiles[selectedLiveTile];
       const view = tileView(tile);
       if (!container || !tile || !view) {
-        if (container) container.innerHTML = emptyState('선택된 live tile이 없습니다', 'view 권한이 생기면 tile을 선택해 상태를 확인할 수 있습니다.');
+        if (container) container.innerHTML = emptyState('선택된 라이브 타일이 없습니다', '채널 권한이 생기면 타일을 선택해 상태를 확인할 수 있습니다.');
         return;
       }
       try {
@@ -18693,23 +19512,23 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
           <div class="toolbar">
             <div>
               <h2>${escapeHtml(view.displayName || view.viewId)}</h2>
-              <p>Tile ${tile.index + 1} · ${escapeHtml(overlayLabel(tile.overlayMode || defaultOverlayModeForView(view)))}</p>
+              <p>타일 ${tile.index + 1} · ${escapeHtml(overlayLabel(tile.overlayMode || defaultOverlayModeForView(view)))}</p>
             </div>
             <div class="meta">
               ${statusChip(tile.status)}
               ${statusChip(health.metadataStatus)}
-              <span class="chip${tileStatusClass(tile.stale ? 'stale' : 'fresh')}" data-selected-stale>${tile.stale ? 'stale' : 'fresh'}</span>
+              <span class="chip${tileStatusClass(tile.stale ? 'stale' : 'fresh')}" data-selected-stale>${tile.stale ? '지연' : '정상'}</span>
             </div>
           </div>
           <div class="summary">
-            <div class="metric"><span>connection</span><strong>${escapeHtml(display(tile.connectionStatus))}</strong></div>
-            <div class="metric"><span>live</span><strong>${escapeHtml(display(health.status || tile.status))}</strong></div>
-            <div class="metric"><span>tracks</span><strong>${escapeHtml(display(tile.trackCount ?? analysis.trackCount))}</strong></div>
-            <div class="metric"><span>events</span><strong>${escapeHtml(display(tile.eventCount ?? analysis.activeEventCount))}</strong></div>
-            <div class="metric"><span>metadata age</span><strong>${escapeHtml(ms(health.metadataAgeMs))}</strong></div>
-            <div class="metric"><span>last frame</span><strong>${escapeHtml(ms(health.lastFrameAgeMs))}</strong></div>
-            <div class="metric"><span>scenarios</span><strong>${escapeHtml(display(analysis.scenarioCount))}</strong></div>
-            <div class="metric"><span>warning</span><strong>${events.warning ? 'warning' : 'normal'}</strong></div>
+            <div class="metric"><span>연결</span><strong>${escapeHtml(clientStatusLabel(tile.connectionStatus))}</strong></div>
+            <div class="metric"><span>라이브</span><strong>${escapeHtml(clientStatusLabel(health.status || tile.status))}</strong></div>
+            <div class="metric"><span>트랙</span><strong>${escapeHtml(display(tile.trackCount ?? analysis.trackCount))}</strong></div>
+            <div class="metric"><span>이벤트</span><strong>${escapeHtml(display(tile.eventCount ?? analysis.activeEventCount))}</strong></div>
+            <div class="metric"><span>메타데이터 지연</span><strong>${escapeHtml(ms(health.metadataAgeMs))}</strong></div>
+            <div class="metric"><span>마지막 프레임</span><strong>${escapeHtml(ms(health.lastFrameAgeMs))}</strong></div>
+            <div class="metric"><span>시나리오</span><strong>${escapeHtml(display(analysis.scenarioCount))}</strong></div>
+            <div class="metric"><span>경고</span><strong>${events.warning ? '경고' : '정상'}</strong></div>
           </div>
         `;
         updateTileDom(tile);
@@ -18719,14 +19538,14 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     }
     async function loadDetail() {
       if (!selectedViewId) {
-        const title = activePage === 'events' ? 'Event view가 없습니다' : 'Dashboard view가 없습니다';
+        const title = activePage === 'events' ? '이벤트 채널이 없습니다' : '대시보드 채널이 없습니다';
         const message = activePage === 'events'
-          ? 'Events를 보려면 event 권한이 있는 PublishedView가 필요합니다.'
-          : 'Dashboard를 보려면 dashboard 권한이 있는 PublishedView가 필요합니다.';
-        detail.innerHTML = emptyState(title, message, isPreviewMode ? '/ops/sources' : '', isPreviewMode ? 'Sources / Views' : '');
+          ? '이벤트를 보려면 이벤트 권한이 있는 채널이 필요합니다.'
+          : '대시보드를 보려면 대시보드 권한이 있는 채널이 필요합니다.';
+        detail.innerHTML = emptyState(title, message, isPreviewMode ? '/ops/sources' : '', isPreviewMode ? '채널 관리' : '');
         return;
       }
-      detail.innerHTML = emptyState('불러오는 중', '선택한 view의 상태를 조회하고 있습니다.');
+      detail.innerHTML = emptyState('불러오는 중', '선택한 채널의 상태를 조회하고 있습니다.');
       try {
         if (activePage === 'events') {
           renderEventPage(await requestJson(`/client/api/views/${encodeURIComponent(selectedViewId)}/events?limit=20`));
@@ -18775,102 +19594,97 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
     AppendOpsShellStart(out,
                         principal,
                         "sources",
-                        "운영 source 원본과 client에 공개할 PublishedView를 관리합니다.");
+                        "운영 채널을 관리합니다. 내부 SourceRegistry/PublishedView API schema는 변경하지 않습니다.");
     out << R"OPS(    <section class="panel">
       <div class="toolbar">
         <div>
-          <h2>Source Registry / Published View</h2>
-          <p>원본 source URL은 ops 화면에서만 표시하고, client에는 PublishedView 공개 필드만 전달합니다.</p>
-        </div>
-        <div class="actions">
-          <button id="refresh" class="button-secondary" type="button">Refresh</button>
-          <span id="status" class="status"></span>
+          <h2>채널</h2>
+          <p>채널은 서버가 pull하는 file/RTSP/HTTP 입력 또는 WHIP publish로 먼저 등록된 WebRTC sourceId입니다.</p>
         </div>
       </div>
-      <div class="split-grid">
-        <section class="section-card">
-        <h2>Source</h2>
-        <form id="source-form">
+      <section class="section-card">
+        <div class="toolbar">
+          <div>
+            <h3>채널 목록</h3>
+            <p>저장된 채널을 먼저 보여주고, 필요한 항목만 보기/수정/복제/삭제합니다.</p>
+          </div>
+          <div class="actions">
+            <button id="add-channel" class="button-primary" type="button">채널 추가</button>
+            <button id="refresh" class="button-secondary" type="button">새로고침</button>
+            <span id="status" class="status" aria-live="polite" hidden></span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="channel-table">
+            <colgroup>
+              <col class="channel-col-id" />
+              <col class="channel-col-name" />
+              <col class="channel-col-kind" />
+              <col class="channel-col-status" />
+              <col class="channel-col-input" />
+              <col class="channel-col-live-url" />
+              <col class="channel-col-va-url" />
+              <col class="channel-col-actions" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>번호</th>
+                <th>이름</th>
+                <th>종류</th>
+                <th>상태</th>
+                <th>입력</th>
+                <th>라이브 URL</th>
+                <th>VA URL</th>
+                <th>작업</th>
+              </tr>
+            </thead>
+            <tbody id="channels-body"><tr><td colspan="8">로딩 중</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="channel-detail-panel" class="section-card" hidden>
+        <div class="toolbar">
+          <div>
+            <div class="badge-row"><span id="channel-editor-mode" class="chip info">보기</span><span id="channel-editor-id" class="chip">#-</span></div>
+            <h3 id="channel-editor-title">채널 상세</h3>
+            <p id="channel-editor-help">선택한 채널의 SourceRegistry/PublishedView 연결 상태입니다.</p>
+          </div>
+          <div class="actions">
+            <button id="channel-edit-selected" class="button-secondary" type="button">수정</button>
+            <button id="channel-copy-selected" class="button-secondary" type="button">복제</button>
+            <button id="channel-close" class="button-secondary" type="button">목록으로</button>
+          </div>
+        </div>
+          <form id="channel-form">
           <div class="row">
-            <label>Source ID<input name="sourceId" value="camera-1" required /></label>
-            <label>Name<input name="displayName" value="Camera 1" /></label>
-            <label>Kind
+            <label>채널 ID<input name="channelId" type="number" min="1" step="1" inputmode="numeric" placeholder="1" required /></label>
+            <label>이름<input name="displayName" /></label>
+            <label>종류
               <select name="kind">
                 <option value="file">file</option>
                 <option value="rtsp">rtsp</option>
-                <option value="webrtc">webrtc</option>
+                <option value="webrtc" hidden>WHIP Published Source ID</option>
                 <option value="http">http</option>
               </select>
             </label>
           </div>
-          <label>File<input name="file" value="sample_h264.mp4" /></label>
-          <label>RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live?b=2&a=1" /></label>
-          <label>WebRTC Source ID<input name="webrtcSourceId" /></label>
-          <label>HTTP URL<input name="httpUrl" /></label>
-          <div class="row">
-            <label>Tags<input name="tags" placeholder="site-a, entrance" /></label>
-            <label>Owner Group<input name="ownerGroup" placeholder="client-a" /></label>
-          </div>
-          <div class="checks"><label><input name="enabled" type="checkbox" checked /> enabled</label></div>
+          <label data-source-kind="file">파일
+            <select name="file" id="channel-file-select">
+              <option value="sample_h264.mp4">sample_h264.mp4</option>
+            </select>
+          </label>
+          <label data-source-kind="rtsp">RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live" /></label>
+          <label data-source-kind="webrtc">WHIP Published Source ID<input name="webrtcSourceId" placeholder="published-source-id" /></label>
+          <p data-source-kind="webrtc" class="hint">외부 WebRTC/WHEP URL pull이 아니라, 이 서버의 WHIP publish endpoint로 이미 등록된 sourceId를 소비합니다.</p>
+          <label data-source-kind="http">HTTP URL<input name="httpUrl" /></label>
           <div class="actions">
-            <button class="primary" type="submit">Save Source</button>
-            <button id="disable-source" class="danger" type="button">Disable Source</button>
+            <button id="save-channel" class="primary" type="submit">저장</button>
+            <button id="delete-channel" class="danger" type="button">삭제</button>
           </div>
-          <p id="source-validation" class="hint"></p>
+          <p id="channel-validation" class="hint"></p>
         </form>
       </section>
-
-      <section class="section-card">
-        <h2>Published View</h2>
-        <form id="view-form">
-          <div class="row">
-            <label>View ID<input name="viewId" value="lobby-live" required /></label>
-            <label>Name<input name="displayName" value="Lobby Live" /></label>
-            <label>Source ID<input name="sourceId" value="camera-1" required /></label>
-          </div>
-          <div class="row">
-            <label>Default Rule ID<input name="defaultRuleId" placeholder="1" /></label>
-            <label>Allowed Rule IDs<input name="allowedRuleIds" placeholder="1, 2" /></label>
-            <label>Overlay Modes<input name="allowedOverlayModes" value="metadata, server-overlay" /></label>
-          </div>
-          <div class="row">
-            <label>Client Groups<input name="clientGroups" placeholder="client-a" /></label>
-            <label>Max Tiles<input name="maxTiles" type="number" min="1" max="64" value="1" /></label>
-          </div>
-          <div class="checks">
-            <label><input name="showDashboard" type="checkbox" checked /> dashboard</label>
-            <label><input name="showEvents" type="checkbox" checked /> events</label>
-            <label><input name="showMetadataSummary" type="checkbox" checked /> metadata</label>
-            <label><input name="enabled" type="checkbox" checked /> enabled</label>
-          </div>
-          <div class="actions">
-            <button class="primary" type="submit">Save View</button>
-            <button id="disable-view" class="danger" type="button">Disable View</button>
-          </div>
-          <p id="view-validation" class="hint"></p>
-        </form>
-      </section>
-      </div>
-      <div class="grid">
-        <section class="section-card">
-          <h3>Sources</h3>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>ID</th><th>Kind</th><th>Name</th><th>Enabled</th><th>Locator</th></tr></thead>
-              <tbody id="sources-body"><tr><td colspan="5">로딩 중</td></tr></tbody>
-            </table>
-          </div>
-        </section>
-        <section class="section-card">
-          <h3>Published Views</h3>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>ID</th><th>Source</th><th>Dashboard</th><th>Events</th><th>Overlay</th></tr></thead>
-              <tbody id="views-body"><tr><td colspan="5">로딩 중</td></tr></tbody>
-            </table>
-          </div>
-        </section>
-      </div>
       <details class="debug-drawer">
         <summary>Registry raw JSON</summary>
         <div class="debug-drawer-body">
@@ -18882,12 +19696,29 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
     </section>
   <script>
     const statusEl = document.querySelector('#status');
-    const sourceValidation = document.querySelector('#source-validation');
-    const viewValidation = document.querySelector('#view-validation');
-    const splitList = value => value.split(',').map(v => v.trim()).filter(Boolean);
+    const channelBody = document.querySelector('#channels-body');
+    const channelForm = document.querySelector('#channel-form');
+    const channelPanel = document.querySelector('#channel-detail-panel');
+    const channelValidation = document.querySelector('#channel-validation');
+    const channelMode = document.querySelector('#channel-editor-mode');
+    const channelIdBadge = document.querySelector('#channel-editor-id');
+    const channelTitle = document.querySelector('#channel-editor-title');
+    const channelHelp = document.querySelector('#channel-editor-help');
+    const saveButton = document.querySelector('#save-channel');
+    const deleteButton = document.querySelector('#delete-channel');
+    const editSelectedButton = document.querySelector('#channel-edit-selected');
+    const copySelectedButton = document.querySelector('#channel-copy-selected');
+    const streamRoute = ')OPS" << JsonEscape(app::GetAppConfig().stream_route) << R"OPS(';
+    const rtspPort = )OPS" << app::GetAppConfig().rtsp_listen_port << R"OPS(;
+    let loadedSources = [];
+    let loadedViews = [];
+    let currentChannelId = '';
+    let editorMode = 'view';
+    let currentChannelEnabled = true;
     const setStatus = (message, failed = false) => {
       statusEl.textContent = message;
       statusEl.classList.toggle('error', failed);
+      statusEl.hidden = !message;
     };
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
       '&': '&amp;',
@@ -18896,7 +19727,152 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
       '"': '&quot;',
       "'": '&#39;'
     })[ch]);
-    const locatorForSource = source => source.file || source.rtspUrl || source.webrtcSourceId || source.httpUrl || '미제공';
+    const kindLabel = kind => ({
+      file: 'file',
+      rtsp: 'RTSP URL',
+      webrtc: 'WHIP sourceId',
+      http: 'HTTP/HLS URL'
+    })[kind] || kind || '미제공';
+    const locatorForSource = source => {
+      if (source.webrtcSourceId) return `WHIP sourceId: ${source.webrtcSourceId}`;
+      return source.file || source.rtspUrl || source.httpUrl || '미제공';
+    };
+    const streamTransportLabel = type => ({
+      rtsp: 'RTSP',
+      whep: 'WebRTC'
+    })[type] || type;
+    const streamModeLabel = mode => mode === 'va' ? 'VA' : '라이브';
+    const streamCopyLabel = (type, mode) => `${streamTransportLabel(type)} ${streamModeLabel(mode)}`;
+    function sourceStreamParams(source) {
+      if (!source || !source.sourceId) return null;
+      const params = new URLSearchParams();
+      if (source.file) {
+        params.set('file', source.file);
+        return params;
+      }
+      if (source.rtspUrl) {
+        params.set('source', 'rtsp');
+        params.set('url', source.rtspUrl);
+        return params;
+      }
+      if (source.httpUrl) {
+        params.set('source', source.kind === 'hls' ? 'hls' : 'http');
+        params.set('url', source.httpUrl);
+        return params;
+      }
+      return null;
+    }
+    function rtspHostForBrowser() {
+      let host = window.location.hostname || '127.0.0.1';
+      if (host === 'localhost') host = '127.0.0.1';
+      return host.includes(':') && !host.startsWith('[') ? `[${host}]` : host;
+    }
+    function channelStreamParams(source, view, mode) {
+      const params = sourceStreamParams(source);
+      if (!params) return null;
+      if (mode === 'va') {
+        params.set('va', '1');
+        params.set('drawLabels', '1');
+        params.set('trackIds', '1');
+      }
+      return params;
+    }
+    function streamUrlForChannel(channelId, type, mode) {
+      const source = findSource(channelId);
+      const view = findView(channelId);
+      const params = channelStreamParams(source, view, mode || 'raw');
+      if (!params) return '';
+      if (type === 'rtsp') {
+        return `rtsp://${rtspHostForBrowser()}:${rtspPort}/${encodeURIComponent(streamRoute)}?${params.toString()}`;
+      }
+      if (type === 'whep') {
+        const url = new URL('/whep', window.location.origin);
+        url.search = params.toString();
+        return url.toString();
+      }
+      return '';
+    }
+    function streamButtonsForChannel(source, mode) {
+      if (!sourceStreamParams(source)) {
+        return '<span class="hint">미지원</span>';
+      }
+      const id = escapeHtml(source.sourceId || '');
+      const label = mode === 'va' ? 'VA URL' : '라이브 URL';
+      const copyMode = mode === 'va' ? 'va' : 'raw';
+      return `
+        <div class="channel-stream-actions">
+          <button type="button" class="secondary" data-copy-stream-type="rtsp" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${label} RTSP 복사" aria-label="${label} RTSP 복사">RTSP</button>
+          <button type="button" class="secondary" data-copy-stream-type="whep" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${label} WebRTC 복사" aria-label="${label} WebRTC 복사">WebRTC</button>
+        </div>
+      `;
+    }
+    async function copyTextToClipboard(value) {
+      const text = String(value || '');
+      if (!text) throw new Error('empty clipboard value');
+      let clipboardError = null;
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return;
+        } catch (error) {
+          clipboardError = error;
+        }
+      }
+      const activeElement = document.activeElement;
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.setAttribute('aria-hidden', 'true');
+      textarea.style.position = 'fixed';
+      textarea.style.top = '0';
+      textarea.style.left = '0';
+      textarea.style.width = '1px';
+      textarea.style.height = '1px';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      try {
+        try {
+          textarea.focus({ preventScroll: true });
+        } catch (_) {
+          textarea.focus();
+        }
+        textarea.select();
+        textarea.setSelectionRange(0, textarea.value.length);
+        if (document.execCommand('copy')) return;
+      } finally {
+        textarea.remove();
+        if (activeElement && typeof activeElement.focus === 'function') {
+          try {
+            activeElement.focus({ preventScroll: true });
+          } catch (_) {
+            activeElement.focus();
+          }
+        }
+      }
+      throw clipboardError || new Error('clipboard copy failed');
+    }
+    async function copyChannelStreamUrl(channelId, type, mode, button) {
+      const url = streamUrlForChannel(channelId, type, mode || 'raw');
+      if (!url) {
+        setStatus(`채널 #${channelId}의 ${streamCopyLabel(type, mode)} URL을 만들 수 없습니다.`, true);
+        return;
+      }
+      try {
+        await copyTextToClipboard(url);
+        setStatus(`${streamCopyLabel(type, mode)} URL 복사 완료`);
+        if (button) {
+          const previous = button.textContent;
+          button.textContent = '복사됨';
+          button.disabled = true;
+          setTimeout(() => {
+            button.textContent = previous || streamCopyLabel(type, mode);
+            button.disabled = false;
+          }, 1200);
+        }
+      } catch (error) {
+        setStatus('브라우저 권한 때문에 자동 복사가 막혔습니다.', true);
+      }
+    }
     async function requestJson(url, options = {}) {
       const res = await fetch(url, { credentials: 'same-origin', ...options });
       const text = await res.text();
@@ -18905,51 +19881,233 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
       if (!res.ok) throw new Error(json.error || `${res.status} ${res.statusText}`);
       return json;
     }
-    function renderSources(items) {
-      const body = document.querySelector('#sources-body');
-      if (!body) return;
-      if (!Array.isArray(items) || items.length === 0) {
-        body.innerHTML = '<tr><td colspan="5">등록된 source가 없습니다.</td></tr>';
+    const chip = (text, tone = '') => `<span class="chip${tone ? ' ' + tone : ''}">${escapeHtml(text)}</span>`;
+    const findSource = id => loadedSources.find(source => source.sourceId === id) || null;
+    const findView = id => loadedViews.find(view => view.viewId === id || view.sourceId === id) || null;
+    const isNumericChannelId = value => /^[1-9]\d*$/.test(String(value || '').trim());
+    function nextChannelId(except = '') {
+      const used = new Set(channelRows(loadedSources, loadedViews)
+        .map(row => String(row.id || ''))
+        .filter(id => isNumericChannelId(id) && id !== String(except || '')));
+      let next = 1;
+      while (used.has(String(next))) next += 1;
+      return String(next);
+    }
+    function channelRows(sources, views) {
+      const rows = [];
+      const claimedSources = new Set();
+      for (const view of views) {
+        const source = sources.find(item => item.sourceId === view.sourceId) || sources.find(item => item.sourceId === view.viewId) || null;
+        if (source) claimedSources.add(source.sourceId);
+        rows.push({ id: view.viewId || view.sourceId, source, view });
+      }
+      for (const source of sources) {
+        if (!claimedSources.has(source.sourceId)) rows.push({ id: source.sourceId, source, view: null });
+      }
+      rows.sort((a, b) => {
+        const aId = String(a.id || '');
+        const bId = String(b.id || '');
+        if (isNumericChannelId(aId) && isNumericChannelId(bId)) return Number(aId) - Number(bId);
+        return aId.localeCompare(bId);
+      });
+      return rows;
+    }
+    function setFormDisabled(disabled) {
+      for (const element of Array.from(channelForm.elements)) {
+        if (element.id === 'delete-channel') continue;
+        element.disabled = disabled;
+      }
+      saveButton.hidden = disabled;
+      deleteButton.hidden = editorMode === 'new' || editorMode === 'clone';
+      editSelectedButton.hidden = !disabled || !currentChannelId;
+      copySelectedButton.hidden = !currentChannelId;
+    }
+    function updateKindFields() {
+      const kind = channelForm.elements.kind.value || 'file';
+      document.querySelectorAll('[data-source-kind]').forEach(field => {
+        field.hidden = field.dataset.sourceKind !== kind;
+      });
+    }
+    function syncEditorChrome(mode, id) {
+      editorMode = mode;
+      currentChannelId = id || '';
+      const isView = mode === 'view';
+      const isNew = mode === 'new';
+      const isClone = mode === 'clone';
+      channelMode.textContent = isNew ? '새 채널' : (isClone ? '복제' : (isView ? '보기' : '수정'));
+      const visibleId = channelForm.elements.channelId.value || id || currentChannelId;
+      channelIdBadge.textContent = visibleId ? `#${visibleId}` : '#-';
+      channelTitle.textContent = isNew
+        ? '채널 추가'
+        : (isClone ? '채널 복제' : `채널 #${channelForm.elements.channelId.value || id}`);
+      channelHelp.textContent = isView
+        ? '선택한 채널의 저장 상태입니다. 수정하려면 수정 버튼을 누르세요.'
+        : '채널 이름, 종류, 입력값, 활성 상태만 저장합니다.';
+      setFormDisabled(isView);
+    }
+    function renderChannels(sources, views) {
+      const rows = channelRows(sources, views);
+      if (rows.length === 0) {
+        channelBody.innerHTML = '<tr><td colspan="8">등록된 채널이 없습니다. 채널 추가로 첫 카메라/소스를 등록하세요.</td></tr>';
         return;
       }
-      body.innerHTML = items.map(source => `
+      channelBody.innerHTML = rows.map(row => {
+        const source = row.source || {};
+        const view = row.view || {};
+        const enabled = source.enabled !== false && view.enabled !== false;
+        const numericId = isNumericChannelId(row.id);
+        const liveButtons = source.sourceId ? streamButtonsForChannel(source, 'raw') : '<span class="hint">소스 미등록</span>';
+        const vaButtons = source.sourceId ? streamButtonsForChannel(source, 'va') : '<span class="hint">소스 미등록</span>';
+        return `
         <tr>
-          <td>${escapeHtml(source.sourceId)}</td>
-          <td>${escapeHtml(source.kind)}</td>
-          <td>${escapeHtml(source.displayName || '')}</td>
-          <td>${source.enabled ? '<span class="chip">enabled</span>' : '<span class="chip warn">disabled</span>'}</td>
-          <td class="token">${escapeHtml(locatorForSource(source))}</td>
+          <td data-label="번호"><div class="badge-row"><span>${escapeHtml(row.id || '')}</span>${numericId ? '' : chip('기존 문자열 ID', 'warn')}</div></td>
+          <td data-label="이름">${escapeHtml(view.displayName || source.displayName || '')}</td>
+          <td data-label="종류">${escapeHtml(kindLabel(source.kind))}</td>
+          <td data-label="상태">
+            <div class="channel-status-actions">
+              ${enabled ? chip('적용 중') : chip('비활성', 'warn')}
+              <button type="button" class="secondary" data-toggle-channel="${escapeHtml(row.id || '')}">${enabled ? '비활성화' : '적용'}</button>
+            </div>
+          </td>
+          <td data-label="입력" class="token channel-input-cell">${escapeHtml(source.sourceId ? locatorForSource(source) : '소스 미등록')}</td>
+          <td data-label="라이브 URL">${liveButtons}</td>
+          <td data-label="VA URL">${vaButtons}</td>
+          <td data-label="작업">
+            <div class="channel-row-actions">
+              <button type="button" class="secondary" data-view-channel="${escapeHtml(row.id || '')}">보기</button>
+              <button type="button" class="secondary" data-edit-channel="${escapeHtml(row.id || '')}">수정</button>
+              <button type="button" class="secondary" data-copy-channel="${escapeHtml(row.id || '')}">복제</button>
+              <button type="button" class="danger" data-delete-channel="${escapeHtml(row.id || '')}">삭제</button>
+            </div>
+          </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
+      document.querySelectorAll('[data-view-channel]').forEach(button => {
+        button.addEventListener('click', () => openChannel(button.dataset.viewChannel || '', 'view'));
+      });
+      document.querySelectorAll('[data-edit-channel]').forEach(button => {
+        button.addEventListener('click', () => openChannel(button.dataset.editChannel || '', 'edit'));
+      });
+      document.querySelectorAll('[data-copy-channel]').forEach(button => {
+        button.addEventListener('click', () => openChannel(button.dataset.copyChannel || '', 'clone'));
+      });
+      document.querySelectorAll('[data-toggle-channel]').forEach(button => {
+        button.addEventListener('click', () => toggleChannelEnabled(button.dataset.toggleChannel || ''));
+      });
+      document.querySelectorAll('[data-copy-stream-channel]').forEach(button => {
+        button.addEventListener('click', () => copyChannelStreamUrl(
+          button.dataset.copyStreamChannel || '',
+          button.dataset.copyStreamType || '',
+          button.dataset.copyStreamMode || 'raw',
+          button
+        ));
+      });
+      document.querySelectorAll('[data-delete-channel]').forEach(button => {
+        button.addEventListener('click', () => deleteChannel(button.dataset.deleteChannel || ''));
+      });
     }
-    function renderViews(items) {
-      const body = document.querySelector('#views-body');
-      if (!body) return;
-      if (!Array.isArray(items) || items.length === 0) {
-        body.innerHTML = '<tr><td colspan="5">등록된 PublishedView가 없습니다.</td></tr>';
-        return;
+    async function loadFileOptions(selected = '') {
+      const select = channelForm.elements.file;
+      try {
+        const payload = await requestJson('/lab/files');
+        const files = Array.isArray(payload.files) ? payload.files : [];
+        if (files.length === 0) return;
+        const previous = selected || select.value || payload.defaultFile || files[0];
+        select.innerHTML = files.map(file => `<option value="${escapeHtml(file)}">${escapeHtml(file)}</option>`).join('');
+        select.value = files.includes(previous) ? previous : files[0];
+      } catch (error) {
+        setStatus(`파일 목록 로드 실패: ${error.message}`, true);
       }
-      body.innerHTML = items.map(view => `
-        <tr>
-          <td>${escapeHtml(view.viewId)}</td>
-          <td>${escapeHtml(view.sourceId)}</td>
-          <td>${view.showDashboard ? '<span class="chip">on</span>' : '<span class="chip warn">off</span>'}</td>
-          <td>${view.showEvents ? '<span class="chip">on</span>' : '<span class="chip warn">off</span>'}</td>
-          <td>${escapeHtml((view.allowedOverlayModes || []).join(', ') || '미제공')}</td>
-        </tr>
-      `).join('');
     }
-    function validateSourceForm(form) {
-      const data = Object.fromEntries(new FormData(form).entries());
-      const locators = ['file', 'rtspUrl', 'webrtcSourceId', 'httpUrl'].filter(key => (data[key] || '').trim());
-      if (!data.sourceId.trim()) return 'Source ID가 필요합니다.';
-      if (locators.length !== 1) return 'file, RTSP URL, WebRTC Source ID, HTTP URL 중 하나만 입력하세요.';
-      return '';
+    function sourcePayloadFromRecord(source, enabled) {
+      const payload = {
+        sourceId: source.sourceId,
+        displayName: source.displayName || source.sourceId,
+        kind: source.kind || 'file',
+        enabled,
+        tags: Array.isArray(source.tags) ? source.tags : [],
+        ownerGroup: source.ownerGroup || ''
+      };
+      if (source.file) payload.file = source.file;
+      if (source.rtspUrl) payload.rtspUrl = source.rtspUrl;
+      if (source.webrtcSourceId) payload.webrtcSourceId = source.webrtcSourceId;
+      if (source.httpUrl) payload.httpUrl = source.httpUrl;
+      return payload;
     }
-    function validateViewForm(form) {
+    function viewPayloadFromRecord(view, source, enabled) {
+      const id = view.viewId || source.sourceId;
+      return {
+        viewId: id,
+        displayName: view.displayName || source.displayName || id,
+        sourceId: view.sourceId || source.sourceId,
+        defaultRuleId: view.defaultRuleId || '',
+        allowedRuleIds: Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds : [],
+        allowedOverlayModes: Array.isArray(view.allowedOverlayModes) && view.allowedOverlayModes.length > 0 ? view.allowedOverlayModes : ['raw'],
+        showDashboard: view.showDashboard !== false,
+        showEvents: view.showEvents !== false,
+        showMetadataSummary: view.showMetadataSummary !== false,
+        clientGroups: Array.isArray(view.clientGroups) ? view.clientGroups : [],
+        maxTiles: Number(view.maxTiles || 1),
+        enabled
+      };
+    }
+    function resetChannelForm(mode = 'new') {
+      channelForm.reset();
+      channelForm.elements.channelId.value = nextChannelId();
+      currentChannelEnabled = true;
+      channelValidation.textContent = '';
+      channelValidation.classList.remove('error');
+      updateKindFields();
+      loadFileOptions();
+      channelPanel.hidden = false;
+      syncEditorChrome(mode, '');
+      channelPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      channelForm.elements.channelId.focus();
+    }
+    function fillChannel(id, mode = 'view') {
+      const source = findSource(id) || {};
+      const view = findView(id) || {};
+      const isClone = mode === 'clone';
+      channelForm.elements.channelId.value = isClone ? nextChannelId(id) : (isNumericChannelId(id) ? id : '');
+      channelForm.elements.displayName.value = view.displayName || source.displayName || '';
+      channelForm.elements.kind.value = source.kind || 'file';
+      loadFileOptions(source.file || '');
+      channelForm.elements.rtspUrl.value = source.rtspUrl || '';
+      channelForm.elements.webrtcSourceId.value = source.webrtcSourceId || '';
+      channelForm.elements.httpUrl.value = source.httpUrl || '';
+      currentChannelEnabled = isClone ? false : (source.enabled !== false && view.enabled !== false);
+      if (isClone && channelForm.elements.displayName.value) {
+        channelForm.elements.displayName.value = `${channelForm.elements.displayName.value} 복제`;
+      }
+      updateKindFields();
+      const legacyIdMessage = !isClone && id && !isNumericChannelId(id)
+        ? `기존 문자열 ID "${id}"는 legacy 데이터입니다. 새 저장은 숫자 채널 ID로만 가능합니다.`
+        : '';
+      channelValidation.textContent = legacyIdMessage;
+      channelValidation.classList.toggle('error', Boolean(legacyIdMessage));
+      channelPanel.hidden = false;
+      syncEditorChrome(mode, isClone ? '' : id);
+      channelPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function openChannel(id, mode = 'view') {
+      if (!id) return;
+      fillChannel(id, mode);
+    }
+    function validateChannelForm(form) {
       const data = Object.fromEntries(new FormData(form).entries());
-      if (!data.viewId.trim()) return 'View ID가 필요합니다.';
-      if (!data.sourceId.trim()) return 'Source ID가 필요합니다.';
+      if (!isNumericChannelId(data.channelId)) return '채널 ID는 1 이상의 숫자만 사용할 수 있습니다.';
+      const kind = data.kind || 'file';
+      const locatorByKind = {
+        file: data.file,
+        rtsp: data.rtspUrl,
+        webrtc: data.webrtcSourceId,
+        http: data.httpUrl
+      };
+      if (!(locatorByKind[kind] || '').trim()) {
+        if (kind === 'webrtc') return 'WHIP publish로 등록된 Source ID가 필요합니다. 외부 WebRTC/WHEP URL pull은 아직 지원하지 않습니다.';
+        return `${kindLabel(kind)} 입력값이 필요합니다.`;
+      }
       return '';
     }
     async function loadAll() {
@@ -18958,98 +20116,120 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
         requestJson('/ops/api/views'),
         requestJson('/client/api/views')
       ]);
-      renderSources(sources.sources || []);
-      renderViews(views.views || []);
+      loadedSources = sources.sources || [];
+      loadedViews = views.views || [];
+      renderChannels(loadedSources, loadedViews);
       document.querySelector('#sources-json').textContent = JSON.stringify(sources, null, 2);
       document.querySelector('#views-json').textContent = JSON.stringify(views, null, 2);
       document.querySelector('#client-views-json').textContent = JSON.stringify(clientViews, null, 2);
-      setStatus('Loaded');
+      setStatus('');
     }
-    document.querySelector('#source-form').addEventListener('submit', async event => {
+    channelForm.addEventListener('submit', async event => {
       event.preventDefault();
       const form = event.currentTarget;
       const data = Object.fromEntries(new FormData(form).entries());
-      const validation = validateSourceForm(form);
-      sourceValidation.textContent = validation;
-      sourceValidation.classList.toggle('error', Boolean(validation));
+      const validation = validateChannelForm(form);
+      channelValidation.textContent = validation;
+      channelValidation.classList.toggle('error', Boolean(validation));
       if (validation) return;
+      const channelId = data.channelId.trim();
       const payload = {
-        sourceId: data.sourceId,
+        sourceId: channelId,
         displayName: data.displayName,
         kind: data.kind,
-        enabled: form.elements.enabled.checked,
-        tags: splitList(data.tags || ''),
-        ownerGroup: data.ownerGroup || ''
+        enabled: currentChannelEnabled,
+        tags: [],
+        ownerGroup: ''
       };
-      ['file', 'rtspUrl', 'webrtcSourceId', 'httpUrl'].forEach(key => {
-        if ((data[key] || '').trim()) payload[key] = data[key].trim();
-      });
-      try {
-        const saved = await requestJson(`/ops/api/sources/${encodeURIComponent(data.sourceId)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        setStatus(`Source ${saved.status}`);
-        await loadAll();
-      } catch (error) {
-        setStatus(error.message, true);
-      }
-    });
-    document.querySelector('#view-form').addEventListener('submit', async event => {
-      event.preventDefault();
-      const form = event.currentTarget;
-      const data = Object.fromEntries(new FormData(form).entries());
-      const validation = validateViewForm(form);
-      viewValidation.textContent = validation;
-      viewValidation.classList.toggle('error', Boolean(validation));
-      if (validation) return;
-      const payload = {
-        viewId: data.viewId,
+      if (data.kind === 'file') payload.file = (data.file || '').trim();
+      if (data.kind === 'rtsp') payload.rtspUrl = (data.rtspUrl || '').trim();
+      if (data.kind === 'webrtc') payload.webrtcSourceId = (data.webrtcSourceId || '').trim();
+      if (data.kind === 'http') payload.httpUrl = (data.httpUrl || '').trim();
+      const viewPayload = {
+        viewId: channelId,
         displayName: data.displayName,
-        sourceId: data.sourceId,
-        defaultRuleId: data.defaultRuleId || '',
-        allowedRuleIds: splitList(data.allowedRuleIds || ''),
-        allowedOverlayModes: splitList(data.allowedOverlayModes || ''),
-        showDashboard: form.elements.showDashboard.checked,
-        showEvents: form.elements.showEvents.checked,
-        showMetadataSummary: form.elements.showMetadataSummary.checked,
-        clientGroups: splitList(data.clientGroups || ''),
-        maxTiles: Number(data.maxTiles || 1),
-        enabled: form.elements.enabled.checked
+        sourceId: channelId,
+        defaultRuleId: '',
+        allowedRuleIds: [],
+        allowedOverlayModes: ['raw'],
+        showDashboard: true,
+        showEvents: true,
+        showMetadataSummary: true,
+        clientGroups: [],
+        maxTiles: 1,
+        enabled: currentChannelEnabled
       };
       try {
-        const saved = await requestJson(`/ops/api/views/${encodeURIComponent(data.viewId)}`, {
+        await requestJson(`/ops/api/sources/${encodeURIComponent(channelId)}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        setStatus(`View ${saved.status}`);
+        await requestJson(`/ops/api/views/${encodeURIComponent(channelId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(viewPayload)
+        });
         await loadAll();
+        setStatus('채널 저장 완료');
+        fillChannel(channelId, 'view');
       } catch (error) {
         setStatus(error.message, true);
       }
     });
-    document.querySelector('#disable-source').addEventListener('click', async () => {
-      const id = document.querySelector('#source-form [name="sourceId"]').value.trim();
+    async function toggleChannelEnabled(id) {
       if (!id) return;
-      try {
-        await requestJson(`/ops/api/sources/${encodeURIComponent(id)}`, { method: 'DELETE' });
-        await loadAll();
-      } catch (error) {
-        setStatus(error.message, true);
+      const source = findSource(id);
+      if (!source) {
+        setStatus(`채널 #${id} source를 찾을 수 없습니다.`, true);
+        return;
       }
-    });
-    document.querySelector('#disable-view').addEventListener('click', async () => {
-      const id = document.querySelector('#view-form [name="viewId"]').value.trim();
+      const view = findView(id) || { viewId: id, sourceId: source.sourceId };
+      const enabled = !(source.enabled !== false && view.enabled !== false);
+      try {
+        await requestJson(`/ops/api/sources/${encodeURIComponent(source.sourceId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(sourcePayloadFromRecord(source, enabled))
+        });
+        await requestJson(`/ops/api/views/${encodeURIComponent(view.viewId || id)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(viewPayloadFromRecord(view, source, enabled))
+        });
+        await loadAll();
+        currentChannelEnabled = enabled;
+        setStatus(`채널 #${id} 상태 변경 완료: ${enabled ? '적용 중' : '비활성'}`);
+      } catch (error) {
+        setStatus(`채널 상태 변경 실패: ${error.message}`, true);
+      }
+    }
+    async function deleteChannel(id) {
+      if (!id) id = channelForm.elements.channelId.value.trim();
       if (!id) return;
+      if (!window.confirm(`채널 #${id}을 삭제할까요? 현재 API는 source/view를 비활성화합니다.`)) return;
       try {
-        await requestJson(`/ops/api/views/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        const results = await Promise.allSettled([
+          requestJson(`/ops/api/views/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+          requestJson(`/ops/api/sources/${encodeURIComponent(id)}`, { method: 'DELETE' })
+        ]);
+        const failed = results.filter(result => result.status === 'rejected');
         await loadAll();
+        setStatus(failed.length ? `채널 삭제 일부 실패: ${failed[0].reason?.message || 'unknown'}` : '채널 삭제 완료', failed.length > 0);
+        if (currentChannelId === id) channelPanel.hidden = true;
       } catch (error) {
         setStatus(error.message, true);
       }
+    }
+    document.querySelector('#add-channel').addEventListener('click', () => resetChannelForm('new'));
+    document.querySelector('#delete-channel').addEventListener('click', () => deleteChannel(''));
+    document.querySelector('#channel-close').addEventListener('click', () => {
+      channelPanel.hidden = true;
+      document.querySelector('[data-ops-panel], .panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+    editSelectedButton.addEventListener('click', () => currentChannelId && fillChannel(currentChannelId, 'edit'));
+    copySelectedButton.addEventListener('click', () => currentChannelId && fillChannel(currentChannelId, 'clone'));
+    channelForm.elements.kind.addEventListener('change', updateKindFields);
     document.querySelector('#refresh').addEventListener('click', () => loadAll().catch(error => setStatus(error.message, true)));
     loadAll().catch(error => setStatus(error.message, true));
   </script>
@@ -19067,86 +20247,87 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
     out << R"USERS(    <section class="panel">
       <div class="toolbar">
         <div>
-          <h2>User Management</h2>
-          <p>Ops UI는 임시 비밀번호를 받지 않습니다. setup invite를 발급하고 사용자가 `/invite/setup`에서 직접 비밀번호를 입력합니다.</p>
+          <h2>사용자 관리</h2>
+          <p>임시 비밀번호는 입력하지 않습니다. 초대 토큰을 발급하고 사용자가 직접 비밀번호를 설정합니다.</p>
         </div>
         <div class="actions">
-          <button id="refresh-btn" class="button-secondary" type="button">Refresh</button>
+          <button id="add-user-btn" class="button-primary" type="button">사용자 추가</button>
+          <button id="refresh-btn" class="button-secondary" type="button">새로고침</button>
           <span id="status" class="status"></span>
         </div>
       </div>
-      <div class="split-grid">
-        <section class="section-card">
-        <h2>Invite / Update</h2>
-        <form id="user-form">
-          <div class="row">
-            <label>Username<input name="username" required /></label>
-            <label>Display Name<input name="displayName" /></label>
-          </div>
-          <div class="row">
-            <label>Role
-              <select name="role">
-                <option value="viewer">viewer</option>
-                <option value="operator">operator</option>
-                <option value="integrator">integrator</option>
-                <option value="admin">admin</option>
-              </select>
-            </label>
-          </div>
-          <div id="view-assignment">
-            <label>View ID<input name="viewId" placeholder="view-a" /></label>
-            <p class="hint">viewer/integrator 계정에는 `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}` 같은 view scope만 부여하세요. debug/lab/ops/source/rule 관리 scope는 허용하지 않습니다.</p>
-          </div>
-          <label>Scopes<textarea name="scopes" placeholder="비워두면 role/viewId template 사용"></textarea></label>
-          <div class="checks">
-            <label><input name="enabled" type="checkbox" checked /> enabled</label>
-            <label><input name="mustChangePassword" type="checkbox" checked /> must change password</label>
-          </div>
-          <div class="actions">
-            <button id="create-btn" class="primary" type="submit">Create Setup Invite</button>
-            <button id="update-btn" class="secondary" type="button">Update Profile</button>
-          </div>
-        </form>
-      </section>
-
       <section class="section-card">
-        <h2>Users</h2>
+        <h2>사용자 목록</h2>
         <div class="table-wrap">
-          <table>
+          <table class="user-table">
             <thead>
               <tr>
-                <th>Username</th>
-                <th>Name</th>
-                <th>Role</th>
-                <th>Enabled</th>
-                <th>Scopes</th>
-                <th>Last Login</th>
-                <th>Locked Until</th>
-                <th>Must Change</th>
-                <th>Actions</th>
+                <th>계정명</th>
+                <th>이름</th>
+                <th>권한</th>
+                <th>상태</th>
+                <th>권한 범위</th>
+                <th>마지막 로그인</th>
+                <th>잠금 만료</th>
+                <th>비밀번호 변경</th>
+                <th>작업</th>
               </tr>
             </thead>
             <tbody id="users-body"></tbody>
           </table>
         </div>
       </section>
-    </div>
+
+      <details id="user-editor" class="collapsed-editor">
+        <summary id="user-editor-title">사용자 편집</summary>
+        <div class="collapsed-editor-body">
+          <form id="user-form">
+            <div class="row">
+              <label>계정명<input name="username" required /></label>
+              <label>표시 이름<input name="displayName" /></label>
+            </div>
+            <div class="row">
+              <label>권한
+                <select name="role">
+                  <option value="viewer">시청자</option>
+                  <option value="operator">운영자</option>
+                  <option value="integrator">연동</option>
+                  <option value="admin">관리자</option>
+                </select>
+              </label>
+            </div>
+            <div id="view-assignment">
+              <label>채널 ID<input name="viewId" placeholder="1" /></label>
+              <p class="hint">시청자/연동 계정에는 선택한 채널 조회 권한만 부여합니다. debug/lab/ops/source/rule 관리 권한은 허용하지 않습니다.</p>
+            </div>
+            <label>권한 범위<textarea name="scopes" placeholder="비워두면 권한/채널 기준 템플릿 사용"></textarea></label>
+            <div class="checks">
+              <label><input name="enabled" type="checkbox" checked /> 활성화</label>
+              <label><input name="mustChangePassword" type="checkbox" checked /> 다음 로그인 시 비밀번호 변경</label>
+            </div>
+            <div class="actions">
+              <button id="create-btn" class="primary" type="submit">설정 초대 생성</button>
+              <button id="update-btn" class="secondary" type="button">사용자 수정</button>
+            </div>
+          </form>
+        </div>
+      </details>
 
     <section class="section-card">
-      <h2>Pending Client Requests</h2>
-      <p>자가 가입은 자동 승인하지 않습니다. pending request는 admin 승인 후 viewer 계정과 password setup invite로 전환됩니다.</p>
+      <h2>클라이언트 요청 목록</h2>
+      <p>자가 가입은 자동 승인하지 않습니다. 대기 요청은 admin 승인 후 viewer 계정과 비밀번호 설정 초대로 전환됩니다.</p>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Request</th>
-              <th>Username</th>
-              <th>Name</th>
-              <th>Contact</th>
-              <th>View</th>
-              <th>Status</th>
-              <th>Reason</th>
-              <th>Actions</th>
+              <th>요청</th>
+              <th>계정명</th>
+              <th>이름</th>
+              <th>연락처</th>
+              <th>채널</th>
+              <th>상태</th>
+              <th>사유</th>
+              <th>작업</th>
             </tr>
           </thead>
           <tbody id="requests-body"></tbody>
@@ -19159,6 +20340,10 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
     const usersBody = document.querySelector('#users-body');
     const requestsBody = document.querySelector('#requests-body');
     const form = document.querySelector('#user-form');
+    const userEditor = document.querySelector('#user-editor');
+    const userEditorTitle = document.querySelector('#user-editor-title');
+    const createButton = document.querySelector('#create-btn');
+    const updateButton = document.querySelector('#update-btn');
     const assignment = document.querySelector('#view-assignment');
     const splitScopes = value => value.split(/[\n,]/).map(v => v.trim()).filter(Boolean);
     const setStatus = (message, failed = false) => {
@@ -19189,7 +20374,19 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         mustChangePassword: form.elements.mustChangePassword.checked
       };
     }
+    function roleLabel(role) {
+      return ({
+        admin: '관리자',
+        operator: '운영자',
+        integrator: '연동',
+        viewer: '시청자'
+      })[role] || role || '미제공';
+    }
+    function yesNo(value) {
+      return value ? '예' : '아니오';
+    }
     function fillForm(user) {
+      userEditorTitle.textContent = `사용자 수정 · ${user.username}`;
       form.elements.username.value = user.username;
       form.elements.displayName.value = user.displayName || '';
       form.elements.role.value = user.role || 'viewer';
@@ -19197,40 +20394,70 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
       form.elements.scopes.value = (user.scopes || []).join('\n');
       form.elements.enabled.checked = Boolean(user.enabled);
       form.elements.mustChangePassword.checked = Boolean(user.mustChangePassword);
+      createButton.hidden = true;
+      updateButton.hidden = false;
       updateAssignmentVisibility();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      userEditor.open = true;
+      userEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function resetUserForm() {
+      form.reset();
+      userEditorTitle.textContent = '사용자 설정 초대 생성';
+      form.elements.role.value = 'viewer';
+      form.elements.enabled.checked = true;
+      form.elements.mustChangePassword.checked = true;
+      createButton.hidden = false;
+      updateButton.hidden = true;
+      updateAssignmentVisibility();
+      userEditor.open = true;
+      form.elements.username.focus();
     }
     function renderUsers(users) {
       usersBody.textContent = '';
+      if (!Array.isArray(users) || users.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 9;
+        td.textContent = '등록된 사용자가 없습니다. 사용자 추가로 설정 초대를 발급하세요.';
+        tr.appendChild(td);
+        usersBody.appendChild(tr);
+        return;
+      }
       for (const user of users) {
         const tr = document.createElement('tr');
         const cells = [
           user.username,
           user.displayName || '',
-          user.role || '',
-          user.enabled ? 'yes' : 'no',
+          roleLabel(user.role),
+          user.enabled ? '활성' : '비활성',
           String(user.scopesCount ?? (user.scopes || []).length),
-          user.lastLoginAt || '',
-          user.lockedUntil || '',
-          user.mustChangePassword ? 'yes' : 'no'
+          user.lastLoginAt || '미제공',
+          user.lockedUntil || '없음',
+          yesNo(user.mustChangePassword)
         ];
-        for (const value of cells) {
+        cells.forEach((value, index) => {
           const td = document.createElement('td');
           td.textContent = value;
+          if (index === 3) {
+            td.innerHTML = `<div class="user-status-actions"><span class="chip${user.enabled ? '' : ' warn'}">${value}</span></div>`;
+          }
+          if (index === 4) {
+            td.className = 'user-scope-cell';
+          }
           tr.appendChild(td);
-        }
+        });
         const actionTd = document.createElement('td');
         const actions = document.createElement('div');
-        actions.className = 'actions';
+        actions.className = 'user-row-actions';
         const edit = document.createElement('button');
         edit.type = 'button';
         edit.className = 'secondary';
-        edit.textContent = 'Edit';
+        edit.textContent = '수정';
         edit.onclick = () => fillForm(user);
         const toggle = document.createElement('button');
         toggle.type = 'button';
         toggle.className = user.enabled ? 'danger' : 'secondary';
-        toggle.textContent = user.enabled ? 'Disable' : 'Enable';
+        toggle.textContent = user.enabled ? '비활성화' : '활성화';
         toggle.onclick = () => setEnabled(user.username, !user.enabled);
         actions.append(edit, toggle);
         actionTd.appendChild(actions);
@@ -19240,6 +20467,15 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
     }
     function renderRequests(requests) {
       requestsBody.textContent = '';
+      if (!Array.isArray(requests) || requests.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 8;
+        td.textContent = '대기 중인 클라이언트 요청이 없습니다.';
+        tr.appendChild(td);
+        requestsBody.appendChild(tr);
+        return;
+      }
       for (const request of requests) {
         const tr = document.createElement('tr');
         const cells = [
@@ -19262,18 +20498,18 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         if (request.status === 'pending') {
           const approve = document.createElement('button');
           approve.type = 'button';
-          approve.textContent = 'Approve';
+          approve.textContent = '승인';
           approve.onclick = () => approveRequest(request.requestId);
           const reject = document.createElement('button');
           reject.type = 'button';
           reject.className = 'danger';
-          reject.textContent = 'Reject';
+          reject.textContent = '거절';
           reject.onclick = () => rejectRequest(request.requestId);
           actions.append(approve, reject);
         } else {
           const done = document.createElement('span');
           done.className = 'pill';
-          done.textContent = request.status || 'done';
+          done.textContent = request.status || '완료';
           actions.appendChild(done);
         }
         actionTd.appendChild(actions);
@@ -19284,7 +20520,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
     async function loadUsers() {
       const json = await requestJson('/ops/api/users');
       renderUsers(json.users || []);
-      setStatus('Loaded');
+      setStatus('');
     }
     async function loadRequests() {
       const json = await requestJson('/ops/api/access-requests');
@@ -19317,7 +20553,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         });
         const token = json.invite?.token || '';
         await loadAll();
-        setStatus(token ? `Approved. Invite token (shown once): ${token}` : 'Approved');
+        setStatus(token ? `승인 완료. 설정 초대 토큰: ${token}` : '승인 완료');
       } catch (error) {
         setStatus(error.message, true);
       }
@@ -19345,9 +20581,12 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         form.reset();
         form.elements.enabled.checked = true;
         form.elements.mustChangePassword.checked = true;
+        createButton.hidden = false;
+        updateButton.hidden = true;
+        userEditor.open = false;
         updateAssignmentVisibility();
         await loadAll();
-        setStatus(token ? `Setup invite token (shown once): ${token}` : 'Setup invite created');
+        setStatus(token ? `설정 초대 토큰: ${token}` : '설정 초대 생성 완료');
       } catch (error) {
         setStatus(error.message, true);
       }
@@ -19366,8 +20605,10 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         setStatus(error.message, true);
       }
     };
+    document.querySelector('#add-user-btn').onclick = resetUserForm;
     form.elements.role.addEventListener('change', updateAssignmentVisibility);
     document.querySelector('#refresh-btn').onclick = () => loadAll().catch(error => setStatus(error.message, true));
+    updateButton.hidden = true;
     updateAssignmentVisibility();
     loadAll().catch(error => setStatus(error.message, true));
   </script>
@@ -23286,7 +24527,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.path == "/client/dashboard") {
                                 active = "dashboard";
                             } else if (request.path == "/client/events") {
-                                active = "events";
+                                active = "dashboard";
                             }
                             ok.body = ClientShellPageHtml(principal_result.principal, active);
                             return ok;

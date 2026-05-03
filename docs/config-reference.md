@@ -245,7 +245,7 @@ Admin user management API:
 | `MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_PROFILES_PER_SOURCE` | `8` | source 하나에서 동시에 허용할 active analysis profile 수. `0`은 제한 비활성 |
 | `MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_TAPS_PER_SOURCE` | `8` | source 하나에서 동시에 허용할 active analysis tap 수. `0`은 제한 비활성 |
 
-SourceRegistry는 운영자 API `/ops/api/sources`에서 관리하며 `sourceId`, `displayName`, `kind`, `canonicalSourceKey`, source locator, `enabled`, `tags`, `ownerGroup`을 저장합니다. PublishedView는 `/ops/api/views`에서 관리하며 `viewId`, `sourceId`, `defaultRuleId`, `allowedRuleIds`, `allowedOverlayModes`, dashboard/event/metadata 노출 정책, `clientGroups`, `maxTiles`를 저장합니다. Client API `/client/api/views`는 `view:read:{viewId}` scope로 필터링한 공개 필드만 반환하고 원본 URL/file locator는 숨깁니다.
+SourceRegistry는 운영자 API `/ops/api/sources`에서 관리하며 `sourceId`, `displayName`, `kind`, `canonicalSourceKey`, source input, `enabled`, `tags`, `ownerGroup`을 저장합니다. 제품 UI에서는 이를 숫자 채널로 묶어 `/ops/sources`에 표시합니다. Registry가 비어 있으면 기본 file/VA file/공개 RTSP/HLS 채널을 seed합니다. `kind=webrtc`의 `webrtcSourceId`는 외부 WebRTC/WHEP URL이 아니라 `/whip/publish`로 먼저 등록된 내부 sourceId입니다. PublishedView는 `/ops/api/views`에서 관리하며 `viewId`, `sourceId`, `defaultRuleId`, `allowedRuleIds`, `allowedOverlayModes`, dashboard/event/metadata 노출 정책, `clientGroups`, `maxTiles`를 저장합니다. Client API `/client/api/views`는 `view:read:{viewId}` scope로 필터링한 공개 필드만 반환하고 원본 URL/file/sourceId input은 숨깁니다.
 
 ### Adaptive inference
 
