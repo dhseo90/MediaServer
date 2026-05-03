@@ -79,7 +79,13 @@ UI는 light/dark theme-aware design token을 사용하며, card/button/form/tabl
 
 ## 4. 분석 Profile
 
-룰 편집 화면에서는 profile 선택과 요약을 먼저 보여주고, 새 profile이 필요할 때만 `새 Profile 설정`을 시작합니다. 세부 설정은 `고급 Profile 설정` 접힘 영역에서 다루며, 룰 작성 흐름에서는 새 profile을 `Profile 저장`하거나 `닫기`로 닫는 동작만 노출합니다. 기존 profile 삭제 같은 관리 동작은 룰 작성의 기본 흐름에 노출하지 않습니다.
+룰 편집 화면의 profile 흐름:
+
+- 먼저 profile 선택과 요약을 보여줍니다.
+- 새 profile이 필요할 때만 `새 Profile 설정`을 시작합니다.
+- 세부 설정은 `고급 Profile 설정` 접힘 영역에서 다룹니다.
+- 룰 작성 흐름에서는 `Profile 저장`과 `닫기`만 노출합니다.
+- 기존 profile 삭제 같은 관리 동작은 기본 작성 흐름에 노출하지 않습니다.
 
 Profile 항목:
 
@@ -132,7 +138,20 @@ Scenario는 여러 frame에 걸친 시간 조건과 상태 전이를 판단하�
 | IntrusionAfterLineCrossing | 구현됨 | 전용 UI 템플릿은 후속 작업 |
 | Loitering | 구현됨 | 전용 UI 템플릿은 후속 작업 |
 
-현재 UI의 시나리오 템플릿은 `Intrusion Dwell · 제한구역 체류`와 `WrongDirection · 금지 방향 통과`를 제공합니다. WrongDirection은 line 2점 geometry와 `forward`/`reverse` 허용 방향, `cooldownMs`를 설정하며, `any` 방향은 위반 방향을 정의할 수 없으므로 사용하지 않습니다. 저장 전 검토와 Payload preview는 기존 `line-crossing` 기본 이벤트와 별도 `wrong-direction` scenario event가 발생한다는 점을 함께 보여줍니다. 이 UI는 Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직을 변경하지 않습니다.
+현재 UI가 제공하는 시나리오 템플릿:
+
+| 템플릿 | 설정 항목 | event |
+| --- | --- | --- |
+| Intrusion Dwell · 제한구역 체류 | zone, 후보 시간, 체류 시간, cooldown | scenario event |
+| WrongDirection · 금지 방향 통과 | line 2점 geometry, 허용 방향, cooldown | `wrong-direction` |
+
+WrongDirection UI 정책:
+
+- 허용 방향은 `forward` 또는 `reverse`를 사용합니다.
+- `any`는 위반 방향을 정의할 수 없으므로 WrongDirection 템플릿에서 사용하지 않습니다.
+- 기존 `line-crossing` 기본 이벤트는 유지합니다.
+- WrongDirection은 별도 `wrong-direction` scenario event로 발생합니다.
+- Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직은 변경하지 않습니다.
 
 Intrusion Dwell UI 항목:
 
@@ -202,24 +221,107 @@ EventRecord/snapshot/clip hook:
 
 `영상 + VA 룰` 모드에서는 source를 따로 선택하지 않습니다. 선택한 rule ID에 저장된 source가 자동으로 고정됩니다.
 
-영상 영역 아래에는 compact status row와 영상 spec row를 표시합니다. 변하지 않는 값인 source/codec은 왼쪽 그룹, 재생 중 갱신될 수 있는 resolution/fps는 오른쪽 그룹에 둡니다. FPS는 반올림한 정수만 보여주며, 재생 중 일시적으로 새 값이 없을 때는 마지막 유효 FPS를 유지해 값이 깜빡이지 않게 합니다.
+영상 영역 아래에는 두 줄의 보조 정보를 표시합니다.
 
-`WebRTC 메타데이터` 모드는 DataChannel 상태, 최신 metadata JSON, browser client-side overlay를 확인하는 테스트 화면입니다.
-기본 label은 `va-metadata`이며 상태는 `비활성`, `연결 중`, `열림`, `수신 중`, `지연`, `닫힘`, `오류`로 표시됩니다.
-DataChannel이 열리지 않거나 JSON parse에 실패해도 영상 재생 자체는 별도 상태로 유지되어야 합니다.
-overlay는 WebRTC browser viewer 전용이며 RTSP 일반 viewer에는 적용되지 않습니다. 이 모드의 video track은 서버가 bbox를 합성하지 않은 원본 영상이고, 브라우저 canvas가 현재 관측 중인 track만 그립니다. 표시 옵션은 박스, 라벨, Track ID, 시나리오, 이벤트 highlight, TrackHealth, 현재 Zone, 체류 시간을 개별로 켜고 끌 수 있습니다.
-metadata가 일정 시간 갱신되지 않으면 stale 상태로 표시하고 overlay를 흐리게 보여줍니다.
-overlay는 DataChannel 수신 즉시 그리지 않고 현재 표시 중인 video frame 기준으로 가장 가까운 metadata를 선택합니다. DataChannel은 정상 수신 중이지만 현재 frame에 맞는 metadata가 없으면 `프레임 매칭 실패`로 분리해 표시하며, 짧은 grace window 동안 마지막 overlay를 유지해 불필요한 깜빡임을 줄입니다.
-WebRTC 메타데이터 모드의 기본 client overlay는 `fallback-latest` payload를 받지 않고 `missing` 상태로 처리합니다. 파일 loop 경계처럼 video frame과 분석 결과 PTS가 크게 벌어진 경우 오래된 bbox가 실제 객체와 다른 위치에 그려지는 것을 막기 위한 정책입니다. fallback 확인이 필요하면 `fallback metadata 표시(opt-in)`을 켭니다.
-파일 loop로 metadata timestamp가 되감기면 client overlay buffer와 PTS 보정을 초기화해 새 loop의 bbox를 현재 video frame에 다시 맞춥니다.
-파일 loop 경계에서는 analysis tap의 tracker/track-state도 새 playback cycle로 정리해 이전 loop의 track ID와 lifecycle 상태가 Runtime Dashboard에 누적되지 않게 합니다.
-`BBox 진단 갱신`은 자동 polling 없이 기존 tap을 찾은 뒤 `/lab/analysis/taps/<tapId>/bbox-diagnostics?ptsMs=...`를 한 번 조회해 WebRTC DataChannel track bbox와 near-PTS detector 원본/tracker 보정 bbox를 비교합니다. `Detector 원본 bbox` 표시를 켜면 현재 metadata frame과 가까운 snapshot일 때 tracker smoothing 전 box를 점선으로 겹쳐 볼 수 있습니다.
-진단 table은 `DC selected`, `detector raw`, `track` bbox를 분리해서 보여줍니다. `det↔DC`, `track↔DC`는 IoU와 center distance를 함께 표시하며, `continuity`와 `TrackHealth` 열은 center jump, 가까운 같은 class track, association confidence, overlapRisk, missed count, lost/reacquired 상태를 확인하는 용도입니다.
-`close-object guard` 열은 같은 class 객체가 가까운 구간의 tracker association 진단값을 보여줍니다. `closeObjectRisk`, `nearestSameClassTrackId`, best/second score, `scoreMargin`, `centerJump`, direction conflict, would-penalize/hold-reacquire, `guardMode`, `guardDecision`은 진단용이며 `diagnostic-only` 모드에서는 tracking 결과를 바꾸지 않습니다. 기본 정책은 `guard off`이고 기존 동작을 유지합니다. `diagnostic-only`는 score 변경 없는 관찰, `enforce`는 실험적 opt-in score 보정 skeleton 적용 상태를 뜻하며 default on 전환은 보류합니다.
-`closeObjectGuardApplied`가 `false`이면 `enforce` 모드라도 해당 row의 ranking score는 보정되지 않은 상태입니다. 값이 없으면 `미제공` 또는 `guard off`로 표시해 direct tap/source tap과 실제 tracker 진단 부재를 구분합니다.
-초 단위로 overlay가 늦게 따라오면 metadata selector 또는 PTS sync 문제를 먼저 봅니다. `det↔DC`와 `track↔DC`가 높고 center distance가 작지만 ID만 흔들리면 bbox 좌표 문제가 아니라 tracker association/ID continuity 문제로 봅니다. `detector raw`부터 실제 객체와 어긋나면 detector 후처리, model box format, coordinate transform 쪽을 분리해서 확인합니다.
-상태 패널의 `Metadata 수신`, `Metadata buffer`, `Metadata drop`, `프레임 매칭 실패`, `표시 video frame`, `Overlay draw`, `마지막 video frame`, `마지막 metadata`, `영상 멈춤` 값을 함께 보면 metadata 수신과 실제 overlay draw가 분리되어 동작하는지 확인할 수 있습니다.
-영상 frame callback이 멈춘 상태에서는 DataChannel이 계속 열려 있어도 overlay는 갱신하지 않고 stale 상태로 정리합니다.
+| Row | 내용 | 표시 정책 |
+| --- | --- | --- |
+| compact status row | 재생/연결 상태 | 짧은 상태 문구 중심 |
+| 영상 spec row | source, codec, resolution, fps | 고정 값과 갱신 값을 분리 |
+
+source/codec은 왼쪽 그룹에 두고, 재생 중 갱신될 수 있는 resolution/fps는 오른쪽 그룹에 둡니다. FPS는 반올림한 정수만 표시하며, 일시적으로 새 값이 없을 때는 마지막 유효 FPS를 유지합니다.
+
+`WebRTC 메타데이터` 모드는 WebRTC video와 `vaMetadata=1` DataChannel을 함께 점검하는 화면입니다.
+
+한눈에 보는 구성:
+
+| 영역 | 확인하는 것 | 해석 |
+| --- | --- | --- |
+| DataChannel 상태 | `va-metadata` 연결과 수신 상태 | metadata 경로가 열렸는지 확인 |
+| Latest JSON | 마지막 metadata payload | schema, track/event/scenario count 확인 |
+| Client overlay | 브라우저 canvas bbox/label | WebRTC 전용 client-side overlay 확인 |
+| BBox 진단 | DataChannel, detector, tracker bbox 비교 | 좌표 문제와 tracker ID 문제를 분리 |
+| 상태 패널 | buffer/drop/frame matching/stale 값 | 수신과 실제 draw가 분리되어 동작하는지 확인 |
+
+DataChannel 상태:
+
+| 상태 | 의미 |
+| --- | --- |
+| `비활성` | metadata channel을 요청하지 않음 |
+| `연결 중` | WebRTC session 또는 channel 연결 대기 |
+| `열림` | channel은 열렸지만 아직 metadata 수신 전 |
+| `수신 중` | metadata JSON을 정상 수신 중 |
+| `지연` | 수신 age가 커져 overlay stale 가능성이 있음 |
+| `닫힘` | session 종료 또는 channel close |
+| `오류` | channel 생성, 수신, JSON parse 중 오류 |
+
+영상 재생과 metadata channel은 별도 상태로 봅니다. DataChannel이 열리지 않거나 JSON parse에 실패해도 video track 재생 자체가 곧바로 실패로 전파되면 안 됩니다.
+
+Overlay 정책:
+
+| 항목 | 정책 |
+| --- | --- |
+| 적용 범위 | WebRTC browser viewer 전용. RTSP 일반 viewer에는 적용되지 않음 |
+| 영상 입력 | 서버가 bbox를 합성하지 않은 원본 video track |
+| 그리기 방식 | 브라우저 canvas가 현재 관측 중인 track만 그림 |
+| 표시 옵션 | 박스, 라벨, Track ID, 시나리오, 이벤트 highlight, TrackHealth, 현재 Zone, 체류 시간 |
+| stale 처리 | metadata가 일정 시간 갱신되지 않으면 stale 표시와 흐린 overlay 적용 |
+| video stall | video frame callback이 멈추면 DataChannel이 열려 있어도 overlay를 갱신하지 않음 |
+
+Frame sync 정책:
+
+| 상황 | 동작 |
+| --- | --- |
+| metadata 수신 | 즉시 그리지 않고 현재 video frame에 가장 가까운 metadata를 선택 |
+| frame에 맞는 metadata 없음 | `프레임 매칭 실패`로 분리 표시 |
+| 짧은 mismatch | grace window 동안 마지막 overlay를 유지해 깜빡임 완화 |
+| `fallback-latest` payload | 기본 overlay에서는 `missing`으로 처리 |
+| fallback 확인 필요 | `fallback metadata 표시(opt-in)`을 켜서 별도 확인 |
+| 파일 loop timestamp 되감김 | overlay buffer와 PTS 보정을 초기화 |
+| 파일 loop 경계 | tap의 tracker/track-state도 새 playback cycle로 정리 |
+
+`fallback-latest`를 기본 표시하지 않는 이유는 오래된 bbox가 새 loop의 실제 객체와 다른 위치에 그려지는 일을 막기 위해서입니다.
+
+`BBox 진단 갱신`은 자동 polling 없이 한 번만 조회합니다.
+
+- 기존 tap을 찾은 뒤 `/lab/analysis/taps/<tapId>/bbox-diagnostics?ptsMs=...`를 호출합니다.
+- WebRTC DataChannel track bbox와 near-PTS detector/tracker bbox를 비교합니다.
+- `Detector 원본 bbox`를 켜면 tracker smoothing 전 box를 점선으로 겹쳐 봅니다.
+
+진단 table 읽는 법:
+
+| 열 | 의미 |
+| --- | --- |
+| `DC selected` | DataChannel overlay가 선택한 bbox |
+| `detector raw` | detector 원본 bbox |
+| `track` | tracker 보정 bbox |
+| `det↔DC`, `track↔DC` | IoU와 center distance 비교 |
+| `continuity` | center jump와 같은 class 근접 후보 확인 |
+| `TrackHealth` | association confidence, overlapRisk, missed/lost/reacquired 확인 |
+| `close-object guard` | 가까운 같은 class 객체 구간의 association 진단 |
+
+`close-object guard` 해석:
+
+| 값 | 해석 |
+| --- | --- |
+| `guard off` | 기본 정책. 기존 tracking 동작 유지 |
+| `diagnostic-only` | score 변경 없이 후보 진단만 수집 |
+| `enforce` | 실험적 opt-in score 보정 skeleton 적용 가능 |
+| `closeObjectGuardApplied=false` | `enforce`여도 해당 row ranking score는 보정되지 않음 |
+| `미제공` | direct tap/source tap 또는 실제 tracker 진단 없음 |
+
+진단값은 `closeObjectRisk`, `nearestSameClassTrackId`, best/second score, `scoreMargin`, `centerJump`, direction conflict, would-penalize/hold-reacquire, `guardMode`, `guardDecision`을 포함할 수 있습니다. default on 전환은 보류 상태입니다.
+
+문제 판단 팁:
+
+| 증상 | 먼저 볼 후보 |
+| --- | --- |
+| overlay가 초 단위로 늦게 따라옴 | metadata selector 또는 PTS sync |
+| bbox는 맞는데 ID만 흔들림 | tracker association 또는 ID continuity |
+| `det↔DC`, `track↔DC`가 높음 | 좌표 변환보다 tracker continuity 쪽 |
+| `detector raw`부터 어긋남 | detector 후처리, model box format, coordinate transform |
+| DataChannel은 수신 중인데 화면이 멈춤 | video frame callback stall 또는 stale clear |
+
+상태 패널에서는 `Metadata 수신`, `Metadata buffer`, `Metadata drop`, `프레임 매칭 실패`, `표시 video frame`, `Overlay draw`, `마지막 video frame`, `마지막 metadata`, `영상 멈춤` 값을 함께 봅니다.
 
 WebRTC 메타데이터 뷰어 사용 순서:
 
@@ -277,8 +379,24 @@ Custom client 영역은 custom client가 같이 사용해야 하는 값을 한 �
 - 기존 active tap: `/lab/analysis/taps/{tapId}/metadata/stream`
 - rule 기반 임시 tap: `/lab/analysis/metadata/stream?vaRule=<id>`
 
-SSE와 WebSocket은 일반 RTSP viewer 기능이 아니라 custom client/dashboard 연동용입니다. Lab URL 패널은 기본적으로 SSE URL을 보여주며, WebSocket은 `/ws/va-metadata?tapId=<id>` 또는 `/ws/va-metadata?vaRule=<id>`로 직접 사용할 수 있습니다.
-SSE 수신만 확인하는 최소 custom client 예제는 `scripts/examples/va_metadata_sse_client.py`입니다. 이 예제는 RTSP player를 구현하지 않고, metadata event를 받아 JSON schema, `streamId/channelId`, `tracks/events/scenarios` count, last timestamp만 출력합니다.
+Side-channel endpoint 구분:
+
+| Endpoint | 주 용도 | 비고 |
+| --- | --- | --- |
+| SSE metadata | Lab URL 패널에서 기본 표시 | custom client/dashboard 연동 |
+| WebSocket metadata | 직접 URL로 사용 | `/ws/va-metadata?tapId=<id>` 또는 `?vaRule=<id>` |
+| 일반 RTSP viewer | side-channel 미지원 | VLC/ffplay/IINA가 자동 overlay하지 않음 |
+
+SSE 수신만 확인하는 최소 custom client 예제는 `scripts/examples/va_metadata_sse_client.py`입니다.
+
+| 확인 항목 | 설명 |
+| --- | --- |
+| metadata event | `event: metadata` 수신 |
+| schema | `media-server.va.runtime-metadata.v1` 확인 |
+| context | `streamId/channelId` 출력 |
+| count | `tracks/events/scenarios` count 출력 |
+| freshness | latest timestamp와 message count 출력 |
+| 제외 범위 | RTSP player와 overlay renderer는 포함하지 않음 |
 
 ```bash
 python3 scripts/examples/va_metadata_sse_client.py \
@@ -287,13 +405,19 @@ python3 scripts/examples/va_metadata_sse_client.py \
   --timeout-seconds 15
 ```
 
-예제 출력은 connected 상태, message count, schema, `streamId/channelId`, `tracks/events/scenarios` count, last timestamp를 보여줍니다. payload 본문까지 확인하려면 `--print-json`을 추가합니다. RTSP 영상은 별도 player로 확인합니다. 일반 VLC/ffplay/IINA는 위 SSE metadata를 자동 overlay하지 않습니다.
+payload 본문까지 확인하려면 `--print-json`을 추가합니다. RTSP 영상은 별도 player로 확인합니다.
 
 ```bash
 ffplay -rtsp_transport tcp 'rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4'
 ```
 
-RTSP 원본 스트림과 SSE 메타데이터 스트림을 함께 조합해 client-side bbox를 직접 그리고 싶으면 optional OpenCV 예제 `scripts/examples/va_rtsp_sse_overlay_client.py`를 사용합니다. 이 예제는 Developer URL panel의 `RTSP 원본 스트림`과 `SSE 메타데이터 스트림` 값을 그대로 받습니다.
+RTSP 원본 스트림과 SSE metadata를 직접 조합하려면 optional OpenCV 예제 `scripts/examples/va_rtsp_sse_overlay_client.py`를 사용합니다.
+
+| 입력 | 역할 |
+| --- | --- |
+| `--rtsp-url` | Developer URL panel의 `RTSP 원본 스트림` |
+| `--metadata-url` | Developer URL panel의 `SSE 메타데이터 스트림` |
+| OpenCV window/headless | bbox, trackId, className client-side draw 또는 smoke 확인 |
 
 ```bash
 python3 scripts/examples/va_rtsp_sse_overlay_client.py \
@@ -303,9 +427,14 @@ python3 scripts/examples/va_rtsp_sse_overlay_client.py \
   --headless
 ```
 
-RTSP 서버 오버레이는 서버가 bbox/label을 영상에 합성하므로 일반 RTSP viewer에서 바로 보입니다. Custom client overlay는 RTSP raw frame과 SSE metadata JSON을 client가 별도로 받아 조합하는 예제이므로, 일반 VLC/ffplay/IINA에서 자동으로 표시되지 않습니다.
+RTSP overlay 방식 차이:
 
-OpenCV dependency는 예제 실행 전 `python3 -c "import cv2; print(cv2.__version__)"`로 확인합니다. 로컬 서버가 `8081/8555`처럼 기본 예시와 다른 포트로 떠 있으면 Developer URL panel에 표시된 RTSP/SSE URL을 그대로 CLI에 넣어 smoke 확인합니다.
+| 방식 | 일반 RTSP viewer 표시 | 설명 |
+| --- | --- | --- |
+| RTSP 서버 오버레이 | 가능 | 서버가 bbox/label을 영상에 합성 |
+| Custom client overlay | 불가 | client가 RTSP raw frame과 SSE JSON을 직접 조합 |
+
+OpenCV dependency는 예제 실행 전 `python3 -c "import cv2; print(cv2.__version__)"`로 확인합니다. 로컬 서버가 `8081/8555`처럼 보정 포트로 떠 있으면 Developer URL panel에 표시된 RTSP/SSE URL을 그대로 CLI에 넣습니다.
 
 현재 상태:
 
@@ -327,7 +456,14 @@ OpenCV dependency는 예제 실행 전 `python3 -c "import cv2; print(cv2.__vers
 
 ## 10. VA 런타임 대시보드
 
-VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보는 운영용 탭입니다. 화면은 Health Summary, Warnings, Metadata / Backpressure, Tracking / Scenario, Event Records, Debug 순서로 읽도록 정리되어 있습니다. 영상 분석 보기가 활성화되어 active tap이 생기기 전에는 대시보드 본문이 비활성 상태처럼 낮은 visual weight로 표시되고, 보기 탭에서 먼저 보기를 시작하라는 안내를 보여줍니다.
+VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보는 운영용 탭입니다.
+
+| 상태 | 화면 동작 |
+| --- | --- |
+| active tap 있음 | Health Summary부터 Debug까지 현재 runtime 상태 표시 |
+| active tap 없음 | 본문을 낮은 visual weight로 표시하고 보기 시작 안내 |
+| Dashboard tab 닫힘 | polling 중지 |
+| 자동 갱신 사용 | 최소 2초 이상 간격으로 제한 |
 
 ![VA 런타임 대시보드](assets/ui/analysis-runtime-dashboard.png)
 
@@ -348,19 +484,30 @@ VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보
 
 drill-down 사용법:
 
-- Overview는 session/stream/tap 수, FPS, queue, inference latency, event POST/storage 상태를 빠르게 확인하는 영역입니다.
-- vaRule Runtime Debug는 선택 rule과 active tap의 관계를 `rule matched`, `source 기반 tap · rule 매칭 없음`, `rule 미연결 분석 tap`, `rule mismatch`, `active tap 없음`으로 구분하고, source/profile/event/scenario/region, event lifecycle, recent event를 요약합니다. `rule mismatch`는 선택 ruleId와 active tap ruleId가 실제로 다를 때만 표시하며, ruleId가 없는 direct file/source 기반 tap은 mismatch로 표시하지 않습니다.
-- Tracks는 state-dump의 debug track을 표로 보여주며, trackId/class/lifecycle/currentZone/dwellTimeMs/TrackHealth를 확인합니다.
-- Scenarios는 현재 state-dump에 노출된 scenarioName/scenarioPhase/zone/line/elapsed/cooldown 값을 list 형태로 보여줍니다. scenario instance가 없거나 zone/dwell 값이 비어 있으면 `조건을 만족한 track 없음`, `rule 매칭 없음`, `zone 조건 미충족`, `현재 track이 zone 내부에 없음`, `zone context 없음` 같은 짧은 empty reason을 표시합니다. phase entered time과 cooldown remaining의 정확한 timestamp는 아직 별도 UI로 표시하지 않습니다.
-- Scenario Timeline은 같은 state-dump와 `/events` buffer를 조합해 active scenario instance를 시간 흐름 점검용 table로 표시합니다. Candidate/Observing/Confirmed/Cooldown/Ended phase는 chip으로 구분하고, row별 event emitted 여부, dedup count, 연결 가능한 recent event의 eventId/eventType/status를 함께 보여줍니다. 표시할 timeline이 없을 때도 Scenarios와 같은 empty reason을 사용합니다.
-- Events는 선택 tap의 `/events` buffer를 받아 최근 event를 표시합니다. 선택 rule이 있으면 해당 rule의 recent event만 vaRule Runtime Debug 카드에 반영합니다.
-- Event Records는 저장된 EventRecord metadata를 수동 검색하는 접힘 섹션입니다. `eventType`, `streamId`, `channelId`, `trackId`, `scenarioName`, `status`, `startTimeMs`, `endTimeMs`, `limit` filter를 입력하고 검색 버튼을 눌렀을 때만 `/lab/analysis/events/records`를 호출합니다. 결과 table은 eventId, eventType, startTime/status, stream/channel, track/class, zone/line, scenario/phase, snapshot/clip 저장 문자열을 보여주며, eventId를 선택하면 detail 영역에서 원본 JSON을 확인합니다. 영상 재생, snapshot 추출, clip recorder 제어는 제공하지 않습니다.
-- Metadata / Backpressure는 WebRTC DataChannel sent/dropped/skipped/failure, max buffered amount, SSE/WS client count, 선택 tap의 analytics queue pending/capacity/peak/drop, `debugCounters`의 metadata JSON build/payload size, RTSP lifecycle/pending queue/appsrc/flow return/fanout balance를 읽기 전용으로 요약합니다. count 불균형, cleanup 잔여, failure가 관찰되면 warning badge로 표시합니다. 현재 endpoint가 제공하지 않는 SSE/WS sent/drop/failure 누적값, 서버 dashboard polling count, live RSS는 `미제공` 또는 `longrun report에서 확인`으로 표시합니다.
-- Trend / Stale / Cleanup은 새 backend endpoint 없이 Dashboard가 이미 polling한 payload를 브라우저 client-side bounded buffer 60개에 저장해 최근 변화만 보여줍니다. metadata 수신 age, video frame age, overlay draw age, DataChannel open 상태, SSE/WS client 존재 여부, tap metrics progress 정체, 보기 중지 후 activeSessions/activeStreams/activeAnalysisTaps/SSE/WS/RTSP 잔류를 warning badge로 표시합니다. Dashboard tab이 비활성화되면 sample도 더 이상 추가되지 않습니다.
-- Runtime Dashboard의 RSS 표시는 장시간 검증 결과나 longrun report를 대체하지 않습니다. Runtime Console은 stable 승격 가능 상태로 정리하되 active 구간 high-water 관찰 메모는 유지합니다. live dashboard 패널은 RTSP/GStreamer egress 또는 Full fanout 후보를 좁히기 위한 운영 관찰 보조 화면입니다.
+| 영역 | 주요 확인 항목 | 주의 |
+| --- | --- | --- |
+| Overview | session/stream/tap 수, FPS, queue, inference latency, event POST/storage | 빠른 상태 요약 |
+| vaRule Runtime Debug | 선택 rule과 active tap 관계, source/profile/event/scenario/region, recent event | `rule mismatch`는 실제 ruleId가 다를 때만 표시 |
+| Tracks | trackId, class, lifecycle, currentZone, dwellTimeMs, TrackHealth | state-dump debug track 기반 |
+| Scenarios | scenarioName, phase, zone, line, elapsed, cooldown | 값이 없으면 짧은 empty reason 표시 |
+| Scenario Timeline | phase chip, event emitted, dedup count, recent event 연결 | 판단 로직 변경 없이 읽기 전용 |
+| Events | 선택 tap의 `/events` buffer | 선택 rule이 있으면 해당 rule recent event만 반영 |
+| Event Records | EventRecord 수동 검색과 detail JSON | 영상 재생, snapshot 추출, clip recorder 없음 |
+| Metadata / Backpressure | DataChannel, SSE/WS client, queue, payload size, RTSP lifecycle | 불균형, cleanup 잔여, failure는 warning badge |
+| Trend / Stale / Cleanup | 최근 60개 dashboard sample의 age/delta/잔류 상태 | 새 backend endpoint 없이 client buffer만 사용 |
+| RSS 표시 | live 보조 관찰 | longrun report를 대체하지 않음 |
 
-대시보드 탭이 닫혀 있을 때는 polling하지 않습니다. 자동 갱신은 최소 2초 이상 간격으로 동작해 다채널 분석 성능에 부담을 주지 않도록 제한합니다.
-vaRule Runtime Debug와 Scenario Timeline은 새 backend API 없이 선택된 rule과 active tap의 ruleId를 대조하고, 기존 metrics/state-dump/event buffer에서 확인 가능한 track/scenario/event 상태를 표시합니다. phase entered time 같은 세부 시각 값은 현재 state-dump에 노출된 값이 있을 때만 표시하며, 원본 JSON은 `상태 덤프 / tracking issue report` 접힘 영역에서 확인할 수 있습니다.
+Event Records 검색 filter:
+
+- `eventType`, `streamId`, `channelId`, `trackId`
+- `scenarioName`, `status`
+- `startTimeMs`, `endTimeMs`, `limit`
+
+Event Records 결과 table은 eventId, eventType, startTime/status, stream/channel, track/class, zone/line, scenario/phase, snapshot/clip 저장 문자열을 보여줍니다.
+
+Runtime Dashboard의 RSS 표시는 장시간 검증 결과나 longrun report를 대체하지 않습니다. Runtime Console은 stable 승격 가능 상태로 정리하되 active 구간 high-water 관찰 메모는 유지합니다.
+
+vaRule Runtime Debug와 Scenario Timeline은 새 backend API 없이 기존 metrics/state-dump/event buffer를 사용합니다. phase entered time 같은 세부 시각 값은 현재 state-dump에 노출된 값이 있을 때만 표시합니다. 원본 JSON은 `상태 덤프 / tracking issue report` 접힘 영역에서 확인할 수 있습니다.
 
 VA 런타임 대시보드 사용 순서:
 
@@ -410,6 +557,20 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-storage/status'
 
 ## Screenshot 자산
 
-README와 이 문서에서 사용하는 screenshot은 `docs/assets/ui/` 아래 역할 기반 파일명으로 보관합니다. 기본 문서 이미지는 dark mode 대표 화면을 유지합니다. 새 이미지가 없으면 문서에 broken link를 만들지 않고 “이미지 추가 예정” 문구만 둡니다. 2026-05-03 기준 대표 이미지는 light/dark theme-aware design system 1차 정리 후 다시 캡처했습니다.
+Screenshot 관리 정책:
 
-문서용 screenshot은 화면 상단/하단에서 버튼, 입력, 카드 제목, table row가 어색하게 반쯤 잘리지 않도록 section 경계 또는 대표 상태가 보이는 지점에서 자릅니다. 영상이 나오는 화면은 실제 객체가 보이는 `va_four_scene_sample.mp4` 기준으로 캡처하고, 영상 프레임 하단이 온전히 보이도록 합니다. 긴 화면은 한 장에 모든 내용을 넣기보다 핵심 section을 온전히 보여주는 대표 screenshot을 우선합니다.
+| 항목 | 정책 |
+| --- | --- |
+| 보관 위치 | `docs/assets/ui/` |
+| 파일명 | 역할 기반 이름 사용 |
+| 기본 theme | dark mode 대표 화면 |
+| 링크 정책 | 새 이미지가 없으면 broken link 대신 “이미지 추가 예정” 문구 사용 |
+| 현재 대표 이미지 | 2026-05-03 light/dark theme-aware design system 정리 후 재캡처 |
+
+문서용 screenshot 촬영 기준:
+
+- 버튼, 입력, 카드 제목, table row가 화면 경계에서 반쯤 잘리지 않게 자릅니다.
+- section 경계 또는 대표 상태가 온전히 보이는 지점을 사용합니다.
+- 영상 화면은 실제 객체가 보이는 `va_four_scene_sample.mp4` 기준으로 캡처합니다.
+- 영상 프레임 하단이 온전히 보이도록 합니다.
+- 긴 화면은 한 장에 모두 넣지 않고 핵심 section 대표 screenshot을 우선합니다.

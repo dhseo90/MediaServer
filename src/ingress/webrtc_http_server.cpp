@@ -18189,6 +18189,19 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return ok;
                         }
 
+                        if ((request.method == "GET" || request.method == "HEAD") && request.path == "/") {
+                            HttpResponse redirect;
+                            redirect.status = 302;
+                            redirect.status_text = "Found";
+                            redirect.content_type = "text/plain; charset=utf-8";
+                            redirect.headers["Cache-Control"] = "no-store";
+                            redirect.headers["Location"] = "/lab/rules";
+                            if (request.method == "GET") {
+                                redirect.body = "Redirecting to /lab/rules\n";
+                            }
+                            return redirect;
+                        }
+
                         if (request.method == "GET" && request.path == "/favicon.ico") {
                             HttpResponse no_content;
                             no_content.status = 204;

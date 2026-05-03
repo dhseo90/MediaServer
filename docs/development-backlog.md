@@ -40,7 +40,14 @@ git diff --check -- README.md docs
 - 상태: 완료
 - 목적: README와 UI guide의 대표 화면이 실제 `/lab/rules` UI와 일치하도록 스크린샷을 갱신합니다.
 - 관련 파일: `docs/assets/ui/`, `README.md`, `docs/ui-guide.md`, `scripts/internal/verify_lab_layout.mjs`
-- 완료 범위: dark mode 기준으로 `analysis-rule-list`, `analysis-rule-editor-basic`, `analysis-rule-editor-scenario`, `analysis-region-canvas`, `analysis-preview`, `analysis-developer-url`, `analysis-runtime-dashboard`를 갱신했습니다. 영상 화면은 실제 객체가 보이는 `va_four_scene_sample.mp4`를 사용했고, 영상/캔버스 하단이 반쯤 잘리지 않도록 section 경계 기준으로 다시 캡처했습니다. Runtime Dashboard는 전체 긴 화면 대신 Health Summary, Warnings, Metadata/Backpressure 대표 crop으로 교체했고 이미지 내부 개인 절대경로를 제거했습니다.
+- 완료 범위:
+  - dark mode 기준 대표 screenshot 갱신
+  - `analysis-rule-list`, `analysis-rule-editor-basic`, `analysis-rule-editor-scenario`
+  - `analysis-region-canvas`, `analysis-preview`, `analysis-developer-url`, `analysis-runtime-dashboard`
+  - 영상 화면은 실제 객체가 보이는 `va_four_scene_sample.mp4` 기준으로 캡처
+  - 영상/캔버스 하단이 잘리지 않도록 section 경계 기준으로 재캡처
+  - Runtime Dashboard는 Health Summary, Warnings, Metadata/Backpressure 대표 crop으로 교체
+  - 이미지 내부 개인 절대경로 제거
 - 검증 명령:
 
 ```bash
@@ -112,8 +119,12 @@ git diff --check -- README.md docs
 - 관련 파일: `scripts/internal/verify_va_runtime_console_longrun.py`, `scripts/internal/verify_va_runtime_console_cycles.py`, `src/ingress/gstreamer_rtsp_server.cpp`, `src/ingress/rtsp_egress_session.cpp`, `src/core/shared_stream.cpp`, `src/analysis/va_runtime_metadata.cpp`, `src/ingress/webrtc_http_server.cpp`, `docs/stream-verification.md`
 - 확인 결과:
   - 최종 판정: RSS WARNING 해제 가능입니다. 단, active 구간 RSS plateau는 뚜렷하지 않아 allocator high-water 또는 GStreamer/WebRTC buffer pool retention 관찰 메모는 유지합니다.
-  - RTSP-only 5-cycle: `PASS`. Summary는 `/tmp/media_server_va-runtime-cycles-1777636885-89479_summary.json`입니다. `monotonicIdleRssIncrease=false`, cleanup 정상, port cleanup 정상입니다. RTSP lifecycle counter는 균형이고 pending queue stop/destroy 잔여는 `0`, `appsrcPushAfterStopCount=0`, flow return은 FLUSHING 중심이며 `ERROR` / `NOT_LINKED` / `NOT_NEGOTIATED` / `OTHER`는 없습니다.
-  - Full 20-cycle: `PASS`. Summary는 `/tmp/media_server_va-runtime-cycles-1777639240-94883_summary.json`입니다. `monotonicIdleRssIncrease=false`, cleanup 정상, port cleanup 정상입니다. RTSP lifecycle/probe/bus watch counter는 균형이고 pending queue stop/destroy 잔여는 `0`, flow return은 전부 FLUSHING이며 metadata/DataChannel/SSE cleanup failure는 없습니다.
+  - RTSP-only 5-cycle: `PASS`. Summary는 `/tmp/media_server_va-runtime-cycles-1777636885-89479_summary.json`입니다.
+  - RTSP-only 세부: `monotonicIdleRssIncrease=false`, cleanup/port cleanup 정상, lifecycle counter 균형, pending queue 잔여 `0`, `appsrcPushAfterStopCount=0`입니다.
+  - RTSP-only flow return은 FLUSHING 중심이며 `ERROR` / `NOT_LINKED` / `NOT_NEGOTIATED` / `OTHER`는 없습니다.
+  - Full 20-cycle: `PASS`. Summary는 `/tmp/media_server_va-runtime-cycles-1777639240-94883_summary.json`입니다.
+  - Full 20-cycle 세부: idle RSS 단조 증가 없음, cleanup/port cleanup 정상, RTSP lifecycle/probe/bus watch counter 균형입니다.
+  - Full 20-cycle cleanup failure: pending queue stop/destroy 잔여 `0`, metadata/DataChannel/SSE cleanup failure 없음.
   - 120m full + 30m idle-after-cleanup: `PASS`. Summary는 `/tmp/media_server_va-runtime-longrun-1777648583-19035_summary.json`입니다. active last-30m는 `+51.77MiB`, `+1.726MiB/min`로 plateau가 뚜렷하지 않았습니다. cleanup 후 30분 idle RSS는 `642.97MiB -> 642.67MiB`로 유지/하락했습니다.
   - 30분 predev 회귀 검증: `PASS`. Summary는 `/tmp/media_server_predev-1777679318-64004_summary.json`, report는 `/tmp/media_server_predev-1777679318-64004_report.md`입니다. 결과는 `pass=69`, `fail=0`, `skip=1`이며 port cleanup과 runtime idle cleanup이 정상입니다.
   - 기능 실패, crash, child process 실패, cleanup 실패, port cleanup 실패, DataChannel failure는 없습니다.
@@ -576,7 +587,11 @@ MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER='turn://user:pass@example.local:
 ### P7-4. Custom RTSP + metadata client 예제
 
 - 상태: 완료
-- 목적: SSE metadata side-channel 수신 예제 `scripts/examples/va_metadata_sse_client.py`와 Python OpenCV 기반 Custom RTSP + SSE overlay optional client example `scripts/examples/va_rtsp_sse_overlay_client.py`를 구현했습니다. 서버 core 기능이 아니며, RTSP raw stream과 SSE runtime metadata를 custom client가 직접 조합해 client-side overlay renderer를 그리는 별도 예제입니다. 일반 VLC/ffplay/IINA에 metadata UI가 생기는 기능은 아닙니다.
+- 목적:
+  - SSE metadata side-channel 수신 예제 `scripts/examples/va_metadata_sse_client.py` 구현
+  - Python OpenCV 기반 Custom RTSP + SSE overlay 예제 `scripts/examples/va_rtsp_sse_overlay_client.py` 구현
+  - RTSP raw stream과 SSE runtime metadata를 custom client가 직접 조합하는 예제 제공
+  - 서버 core 기능, 일반 VLC/ffplay/IINA metadata UI 기능은 아님
 - 관련 파일: `scripts/examples/va_metadata_sse_client.py`, `scripts/examples/va_rtsp_sse_overlay_client.py`, `scripts/internal/va_metadata_stream_smoke.py`, `docs/video-analysis.md`, `docs/ui-guide.md`, `docs/stream-verification.md`
 - 검증 명령:
 

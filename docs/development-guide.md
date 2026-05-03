@@ -241,7 +241,12 @@ gst-inspect-1.0 uridecodebin
 
 장시간 또는 다채널 검증 기준은 [stream-verification.md](./stream-verification.md)에 유지합니다.
 
-VA Metadata Runtime Console 계열 검증은 선택 검증입니다. 기본 `./server.sh test`에는 포함하지 않고, WebRTC DataChannel, SSE side-channel, dashboard/state endpoint, RTSP overlay 정책을 수정했을 때 별도로 실행합니다. 단기 명령은 summary JSON 경로를 출력하고, `verify-va-runtime-console-longrun`은 summary JSON과 Markdown report를 함께 생성합니다.
+VA Metadata Runtime Console 계열 검증은 선택 검증입니다.
+
+- 기본 `./server.sh test`에는 포함하지 않습니다.
+- WebRTC DataChannel, SSE side-channel, dashboard/state endpoint, RTSP overlay 정책을 수정했을 때 별도로 실행합니다.
+- 단기 명령은 summary JSON 경로를 출력합니다.
+- `verify-va-runtime-console-longrun`은 summary JSON과 Markdown report를 함께 생성합니다.
 
 ## UI 개발 시 검증 명령
 
