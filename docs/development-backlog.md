@@ -16,6 +16,7 @@
 - 구현 완료: TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, TrackHealth, cleanup 정책.
 - 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage/query/search UI, EventRecord rotation/retention/recovery 1차, snapshot/clip hook, WebRTC VA metadata DataChannel 출력 구조.
 - 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, client-side Trend/Stale/Cleanup warning 1차, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, IntrusionDwell/ReEntry/WrongDirection/IntrusionAfterLineCrossing scenario UI 템플릿, 자동/longrun 검증 명령.
+- 구현 완료: Auth / Role / Scope, account login/session MVP, SourceRegistry / PublishedView MVP, client scoped view API 1차.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
 - 실험/제약: snapshot/clip은 hook/marker 중심이며 실제 제품용 frame extraction/clip recorder는 후속 구현입니다.
 - 신규 우선순위: Auth / Role / Scope, SourceRegistry / PublishedView, `/ops` / `/client` / `/lab` route 분리, Client scoped dashboard, Client Live Monitor, Operator Live Monitor, Analysis tap reuse / fanout 검증입니다.
@@ -31,13 +32,15 @@
 - 상태: 완료: token auth + account session MVP
 - 목적: 운영자, 클라이언트, lab 사용자 권한과 요청 scope 기준을 먼저 정의합니다.
 - 완료 범위: `MEDIA_SERVER_AUTH_MODE=off|token|session`, role별 token env, users file, libsodium passwordHash 검증, HttpOnly session cookie, Principal 구조, Bearer/query token 해석, `RequireRole`/`RequireScope` guard helper, `/login`, `/logout`, `/auth/whoami`, 임시 `/ops`/`/client` landing 1차입니다.
-- 후속: route별 상세 guard 적용, SourceRegistry/PublishedView 기반 ID scope 축소는 다음 묶음에서 진행합니다.
+- 후속: route별 상세 guard 적용과 `/ops` / `/client` / `/lab` 화면 분리는 다음 묶음에서 진행합니다.
 - 우선순위 이유: route, source/view 노출, dashboard/live monitor 접근 정책의 공통 전제가 됩니다.
 
 ### O2. SourceRegistry / PublishedView
 
-- 상태: 예정
+- 상태: 완료: MVP
 - 목적: 내부 source 관리와 클라이언트에 공개되는 view 모델을 분리합니다.
+- 완료 범위: `.media_server.sources.json`, `.media_server.views.json`, `MEDIA_SERVER_SOURCE_REGISTRY`, `MEDIA_SERVER_PUBLISHED_VIEWS`, `/ops/api/sources`, `/ops/api/views`, `/client/api/views`, `/client/api/views/{viewId}`, canonical source 중복 차단, `/ops/sources` JSON/form MVP입니다.
+- 후속: PublishedView 기반 client dashboard/live monitor, route별 세부 guard, source lifecycle와 live monitor 연결은 다음 묶음에서 진행합니다.
 - 우선순위 이유: source 원본 설정, 운영자 제어, 클라이언트 노출 범위를 한 모델로 섞지 않기 위한 선행 작업입니다.
 
 ### O3. `/ops` / `/client` / `/lab` route 분리

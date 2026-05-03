@@ -114,6 +114,8 @@ constexpr const char* kEnvDefaultAnalysisAdaptiveHighLatencyRatio =
 constexpr const char* kEnvDefaultAnalysisAdaptiveLowLatencyRatio =
     "MEDIA_SERVER_ANALYSIS_ADAPTIVE_LOW_LATENCY_RATIO";
 constexpr const char* kEnvAnalysisRegistryPath = "MEDIA_SERVER_ANALYSIS_REGISTRY";
+constexpr const char* kEnvSourceRegistryPath = "MEDIA_SERVER_SOURCE_REGISTRY";
+constexpr const char* kEnvPublishedViewsPath = "MEDIA_SERVER_PUBLISHED_VIEWS";
 constexpr const char* kEnvAnalysisEventPostEnabled = "MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED";
 constexpr const char* kEnvAnalysisEventPostTimeoutMs = "MEDIA_SERVER_ANALYSIS_EVENT_POST_TIMEOUT_MS";
 constexpr const char* kEnvAnalysisEventPostMaxQueue = "MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE";
@@ -671,6 +673,8 @@ app::AppConfig LoadAppConfig() {
         ReadFloatEnv(kEnvDefaultAnalysisAdaptiveLowLatencyRatio,
                      config.default_analysis_adaptive_low_latency_ratio);
     config.analysis_registry_path = ReadStringEnv(kEnvAnalysisRegistryPath, config.analysis_registry_path);
+    config.source_registry_path = ReadStringEnv(kEnvSourceRegistryPath, config.source_registry_path);
+    config.published_views_path = ReadStringEnv(kEnvPublishedViewsPath, config.published_views_path);
     config.analysis_event_post_enabled =
         ReadBoolEnv(kEnvAnalysisEventPostEnabled, config.analysis_event_post_enabled);
     config.analysis_event_post_timeout_ms =
@@ -900,6 +904,8 @@ app::AppConfig LoadAppConfig() {
     config.default_analysis_model_path = ResolveRuntimePath(config.default_analysis_model_path);
     config.default_analysis_labels_path = ResolveRuntimePath(config.default_analysis_labels_path);
     config.analysis_registry_path = ResolveRuntimePath(config.analysis_registry_path);
+    config.source_registry_path = ResolveRuntimePath(config.source_registry_path);
+    config.published_views_path = ResolveRuntimePath(config.published_views_path);
     config.analysis_appearance_model_path = ResolveRuntimePath(config.analysis_appearance_model_path);
     config.force_rtsp_tcp = ReadBoolEnv(kEnvForceTcpOnly, config.force_rtsp_tcp);
     config.session_trace = ReadBoolEnv(kEnvSessionTrace, config.session_trace);

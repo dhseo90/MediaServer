@@ -108,6 +108,8 @@ struct AppConfig {
     float default_analysis_adaptive_high_latency_ratio{app_config::kDefaultAnalysisAdaptiveHighLatencyRatio};
     float default_analysis_adaptive_low_latency_ratio{app_config::kDefaultAnalysisAdaptiveLowLatencyRatio};
     std::string analysis_registry_path{app_config::kDefaultAnalysisRegistryPath};
+    std::string source_registry_path{app_config::kDefaultSourceRegistryPath};
+    std::string published_views_path{app_config::kDefaultPublishedViewsPath};
     bool analysis_event_post_enabled{app_config::kDefaultAnalysisEventPostEnabled};
     int analysis_event_post_timeout_ms{app_config::kDefaultAnalysisEventPostTimeoutMs};
     std::size_t analysis_event_post_max_queue{app_config::kDefaultAnalysisEventPostMaxQueue};

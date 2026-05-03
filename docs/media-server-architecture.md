@@ -82,6 +82,27 @@ HTTP request
 - `viewer`: 할당된 live view, 제한된 dashboard, 최근 event 요약
 - `integrator`: 허용된 metadata/event API 접근
 
+### SourceRegistry / PublishedView MVP
+
+운영자가 등록하는 실제 source와 클라이언트가 접근하는 공개 view를 분리합니다. SourceRegistry는 source 원본 설정을 보관하고, PublishedView는 client scope에 노출할 live view 정책만 보관합니다.
+
+```text
+Operator
+  -> /ops/api/sources
+  -> SourceRegistry{sourceId, kind, canonicalSourceKey, file/rtspUrl/webrtcSourceId/httpUrl}
+  -> /ops/api/views
+  -> PublishedView{viewId, sourceId, defaultRuleId, allowedRuleIds, clientGroups}
+
+Viewer
+  -> Principal scope view:read:{viewId}
+  -> /client/api/views
+  -> PublishedView public fields only
+```
+
+SourceRegistry는 `.media_server.sources.json`, PublishedView는 `.media_server.views.json`을 기본 저장소로 사용합니다. `canonicalSourceKey`는 file token 또는 URL을 정규화해 중복 등록을 막는 내부 운영 키이며, RTSP/HTTP URL query 순서 차이는 같은 source로 취급합니다.
+
+클라이언트 API는 `view:read:{viewId}` scope가 있는 view만 반환하고, `file`, `rtspUrl`, `httpUrl`, `webrtcSourceId`, `canonicalSourceKey` 같은 원본 locator는 반환하지 않습니다. PublishedView의 `defaultRuleId`와 `allowedRuleIds`는 기존 `vaRule` ID를 참조하지만, 기존 `vaRule` 저장 구조와 `vaRule=<id>` 호출 방식은 그대로 유지합니다.
+
 ## 4. Source 종류
 
 | Source | 요청 예 | 상태 |
