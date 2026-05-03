@@ -15986,6 +15986,73 @@ HttpResponse RedirectResponse(const std::string& location) {
     return redirect;
 }
 
+std::string StatusPageHtml(const std::string& title,
+                           const std::string& message,
+                           const std::string& action_href,
+                           const std::string& action_label) {
+    std::ostringstream out;
+    out << R"(<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>)" << HtmlEscape(title) << R"(</title>
+  <style>
+    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #111827; color: #f8fafc; }
+    main { width: min(460px, calc(100vw - 32px)); display: grid; gap: 14px; }
+    section { display: grid; gap: 12px; padding: 22px; border: 1px solid rgba(148,163,184,.35); border-radius: 8px; background: #0f172a; }
+    h1 { margin: 0; font-size: 24px; }
+    p { margin: 0; color: #cbd5e1; line-height: 1.5; }
+    a { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; background: #38bdf8; color: #082f49; font-weight: 900; text-decoration: none; padding: 0 12px; }
+  </style>
+</head>
+<body>
+  <main>
+    <section>
+      <h1>)" << HtmlEscape(title) << R"(</h1>
+      <p>)" << HtmlEscape(message) << R"(</p>
+      <a href=")" << HtmlEscape(action_href) << R"(">)" << HtmlEscape(action_label) << R"(</a>
+    </section>
+  </main>
+</body>
+</html>)";
+    return out.str();
+}
+
+HttpResponse StatusPageResponse(int status,
+                                const std::string& status_text,
+                                const std::string& title,
+                                const std::string& message,
+                                const std::string& action_href,
+                                const std::string& action_label) {
+    HttpResponse response;
+    response.status = status;
+    response.status_text = status_text;
+    response.content_type = "text/html; charset=utf-8";
+    response.headers["Cache-Control"] = "no-store";
+    response.body = StatusPageHtml(title, message, action_href, action_label);
+    return response;
+}
+
+HttpResponse UnauthorizedPageResponse() {
+    return StatusPageResponse(401,
+                              "Unauthorized",
+                              "Login Required",
+                              "계정으로 로그인한 뒤 다시 접근하세요.",
+                              "/login",
+                              "Go to Login");
+}
+
+HttpResponse ForbiddenPageResponse(const std::string& message) {
+    return StatusPageResponse(403,
+                              "Forbidden",
+                              "Access Denied",
+                              message,
+                              "/",
+                              "Go Home");
+}
+
 std::string LoginPageHtml(const std::string& message, bool failed) {
     std::ostringstream out;
     out << R"(<!doctype html>
@@ -16380,7 +16447,7 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
       <a class=")" << nav_class("events") << R"(" href="/ops/events">Events</a>
 )";
     if (auth::IsAdmin(principal)) {
-        out << R"(      <a class=")" << nav_class("users") << R"(" href="/ops/users">Users</a>
+        out << R"(      <a class=")" << nav_class("users") << R"(" href="/ops/users" data-admin-only>Users</a>
 )";
     }
     out << R"(    </nav>
@@ -16409,7 +16476,7 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         <a class="action" href="/lab">Lab Monitor</a>
 )";
         if (auth::IsAdmin(principal)) {
-            out << R"(        <a class="action" href="/ops/users">Users</a>
+            out << R"(        <a class="action" href="/ops/users" data-admin-only>Users</a>
 )";
         }
         out << R"(
@@ -16417,6 +16484,19 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
 )";
     }
     out << R"(    </section>
+    <script>
+      fetch('/auth/whoami', { credentials: 'same-origin' })
+        .then(response => response.ok ? response.json() : null)
+        .then(who => {
+          if (!who) return;
+          const scopes = Array.isArray(who.scopes) ? who.scopes : [];
+          const isAdmin = who.role === 'admin';
+          const hasOps = isAdmin || scopes.includes('*') || scopes.includes('ops:read');
+          document.querySelectorAll('[data-admin-only]').forEach(el => { el.hidden = !isAdmin; });
+          document.querySelectorAll('[data-ops-scope]').forEach(el => { el.hidden = !hasOps; });
+        })
+        .catch(() => {});
+    </script>
   </main>
 </body>
 </html>)";
@@ -17128,7 +17208,16 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       <a class=")" << nav_class("live") << R"(" href="/client/live">Live</a>
       <a class=")" << nav_class("dashboard") << R"(" href="/client/dashboard">Dashboard</a>
       <a class=")" << nav_class("events") << R"(" href="/client/events">Events</a>
-    </nav>
+)";
+    if (auth::RequireRole(principal, {"operator"}) && auth::RequireScope(principal, "ops:read")) {
+        out << R"(      <a class="nav" href="/ops/live" data-ops-scope>Ops</a>
+)";
+    }
+    if (auth::RequireRole(principal, {"operator"}) || auth::RequireScope(principal, "lab:read")) {
+        out << R"(      <a class="nav" href="/lab" data-lab-scope>Lab</a>
+)";
+    }
+    out << R"(    </nav>
     <section class="workspace">
       <div class="panel">
         <div class="toolbar">
@@ -17181,6 +17270,19 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       if (!res.ok) throw new Error(json.error || `${res.status} ${res.statusText}`);
       return json;
     }
+    fetch('/auth/whoami', { credentials: 'same-origin' })
+      .then(response => response.ok ? response.json() : null)
+      .then(who => {
+        if (!who) return;
+        const scopes = Array.isArray(who.scopes) ? who.scopes : [];
+        const isAdmin = who.role === 'admin';
+        const isOperator = who.role === 'operator';
+        const hasOps = isAdmin || scopes.includes('*') || scopes.includes('ops:read');
+        const hasLab = isAdmin || isOperator || scopes.includes('*') || scopes.includes('lab:read');
+        document.querySelectorAll('[data-ops-scope]').forEach(el => { el.hidden = !hasOps; });
+        document.querySelectorAll('[data-lab-scope]').forEach(el => { el.hidden = !hasLab; });
+      })
+      .catch(() => {});
     const normalizeOverlayMode = mode => {
       const raw = String(mode || '').trim().toLowerCase();
       if (!raw || ['raw', 'none', 'video', 'live'].includes(raw)) return 'raw';
@@ -21543,8 +21645,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (!principal_result.ok) {
                                 return AuthErrorResponse(principal_result.error);
                             }
-                            if (!auth::RequireRole(principal_result.principal, {"operator"})) {
-                                return JsonResponse(403, "Forbidden", "{\"error\":\"operator role required\"}");
+                            if (!auth::RequireRole(principal_result.principal, {"operator"}) ||
+                                !auth::RequireScope(principal_result.principal, "ops:read")) {
+                                return JsonResponse(
+                                    403,
+                                    "Forbidden",
+                                    "{\"error\":\"operator role and ops:read scope required\"}");
                             }
                             return std::nullopt;
                         };
@@ -21903,6 +22009,15 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                         if (request.method == "GET" && request.path == "/ops/sources") {
                             if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                if (!principal_result.ok && session_auth_mode && config.enable_ops) {
+                                    return RedirectResponse("/login");
+                                }
+                                if (!principal_result.ok) {
+                                    return UnauthorizedPageResponse();
+                                }
+                                if (auth_response->status == 403) {
+                                    return ForbiddenPageResponse("운영 콘솔은 admin/operator role과 ops:read scope가 필요합니다.");
+                                }
                                 return *auth_response;
                             }
                             HttpResponse ok;
@@ -21917,6 +22032,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 if (!principal_result.ok && session_auth_mode && config.enable_ops) {
                                     return RedirectResponse("/login");
                                 }
+                                if (!principal_result.ok) {
+                                    return UnauthorizedPageResponse();
+                                }
+                                if (auth_response->status == 403) {
+                                    return ForbiddenPageResponse("계정 관리는 admin 계정만 접근할 수 있습니다.");
+                                }
                                 return *auth_response;
                             }
                             HttpResponse ok;
@@ -21928,6 +22049,15 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                         if (request.method == "GET" && request.path == "/ops/rules") {
                             if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                if (!principal_result.ok && session_auth_mode && config.enable_ops) {
+                                    return RedirectResponse("/login");
+                                }
+                                if (!principal_result.ok) {
+                                    return UnauthorizedPageResponse();
+                                }
+                                if (auth_response->status == 403) {
+                                    return ForbiddenPageResponse("운영 콘솔은 admin/operator role과 ops:read scope가 필요합니다.");
+                                }
                                 return *auth_response;
                             }
                             return RedirectResponse("/lab/rules");
@@ -22209,6 +22339,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 if (!principal_result.ok && session_auth_mode && config.enable_ops) {
                                     return RedirectResponse("/login");
                                 }
+                                if (!principal_result.ok) {
+                                    return UnauthorizedPageResponse();
+                                }
+                                if (auth_response->status == 403) {
+                                    return ForbiddenPageResponse("운영 콘솔은 admin/operator role과 ops:read scope가 필요합니다.");
+                                }
                                 return *auth_response;
                             }
                             HttpResponse ok;
@@ -22232,6 +22368,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (const auto auth_response = require_client_principal(); auth_response.has_value()) {
                                 if (!principal_result.ok && session_auth_mode && config.enable_client) {
                                     return RedirectResponse("/login");
+                                }
+                                if (!principal_result.ok) {
+                                    return UnauthorizedPageResponse();
+                                }
+                                if (auth_response->status == 403) {
+                                    return ForbiddenPageResponse("클라이언트 포털은 viewer/operator/admin 계정만 접근할 수 있습니다.");
                                 }
                                 return *auth_response;
                             }
@@ -22274,6 +22416,16 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (const auto auth_response = require_lab_principal(); auth_response.has_value()) {
                                 if (!principal_result.ok && session_auth_mode && config.enable_lab) {
                                     return RedirectResponse("/login");
+                                }
+                                const bool lab_page_get =
+                                    request.method == "GET" &&
+                                    (request.path == "/lab" || request.path == "/lab/rules" ||
+                                     request.path == "/lab/import");
+                                if (lab_page_get && !principal_result.ok) {
+                                    return UnauthorizedPageResponse();
+                                }
+                                if (lab_page_get && auth_response->status == 403) {
+                                    return ForbiddenPageResponse("Lab은 admin/operator 또는 lab:read scope가 필요합니다.");
                                 }
                                 return *auth_response;
                             }

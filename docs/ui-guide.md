@@ -56,9 +56,11 @@ Login page는 username/password 입력, 실패/lockout 메시지, 로그인 후 
 
 Route 역할:
 
-- `/ops`: admin/operator 전용 운영 shell입니다. Live, Dashboard, Sources, Rules, Events navigation을 제공하고 Sources/Views는 `/ops/sources`, Users는 admin 전용 `/ops/users`, Rules는 기존 `/lab/rules` 호환 화면으로 연결합니다.
+- `/ops`: admin/operator 전용 운영 shell이며 `ops:read` scope가 필요합니다. Live, Dashboard, Sources, Rules, Events navigation을 제공하고 Sources/Views는 `/ops/sources`, Users는 admin 전용 `/ops/users`, Rules는 기존 `/lab/rules` 호환 화면으로 연결합니다.
 - `/client`: viewer/operator/admin 접근 shell입니다. `/client/api/views` 기준으로 할당된 PublishedView만 표시하며 원본 source URL, debug/developer URL은 노출하지 않습니다.
-- `/lab`: admin/operator 또는 `lab:read` scope용 개발/검증 shell입니다. 기존 `/lab/rules`와 자동화 bookmark 호환을 유지합니다.
+- `/lab`: admin/operator 또는 `lab:read` scope용 개발/검증 shell입니다. viewer/client 기본 계정은 접근할 수 없고, 기존 `/lab/rules`와 자동화 bookmark 호환은 auth off 검증 모드에서 유지합니다.
+
+Shell navigation은 server-side principal로 1차 렌더링하고 `/auth/whoami` 응답으로 admin-only, ops, lab menu를 다시 숨김 처리합니다. Guard 실패 시 browser shell route는 login 또는 forbidden page를 보여주고, API route는 JSON `401`/`403`을 반환합니다.
 
 ## 3. Admin User Management
 
