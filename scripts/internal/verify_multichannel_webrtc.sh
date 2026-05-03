@@ -221,8 +221,10 @@ while text:
         text = text[:-1]
 for tap in ((payload.get("analysisMatching") or {}).get("activeTaps") or []):
     tap_id = str(tap.get("tapId") or "").strip()
+    ref_count = int(tap.get("refCount") or 1)
     if tap_id:
-        print(tap_id)
+        for _ in range(max(1, ref_count)):
+            print(tap_id)
 PY
     [[ -n "${tap_id}" ]] || continue
     log_info "남은 analysis tap 정리: ${tap_id}"
@@ -553,7 +555,7 @@ run_multichannel_case() {
   local final_status_file="/tmp/media_server_${RUN_ID}_${safe_label}_${iteration}_final.json"
 
   if [[ "${va_enabled}" == "1" ]]; then
-    expected_analysis_taps="${expected_sessions}"
+    expected_analysis_taps="${expected_streams}"
   fi
 
   wait_for_idle_runtime || {

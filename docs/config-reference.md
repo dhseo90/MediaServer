@@ -159,6 +159,8 @@ Users file 예시:
 | `MEDIA_SERVER_ANALYSIS_REGISTRY` | `.media_server.analysis_registry.json` | Lab profile/rule registry |
 | `MEDIA_SERVER_SOURCE_REGISTRY` | `.media_server.sources.json` | 운영 SourceRegistry 저장 파일 |
 | `MEDIA_SERVER_PUBLISHED_VIEWS` | `.media_server.views.json` | client PublishedView 저장 파일 |
+| `MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_PROFILES_PER_SOURCE` | `8` | source 하나에서 동시에 허용할 active analysis profile 수. `0`은 제한 비활성 |
+| `MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_TAPS_PER_SOURCE` | `8` | source 하나에서 동시에 허용할 active analysis tap 수. `0`은 제한 비활성 |
 
 SourceRegistry는 운영자 API `/ops/api/sources`에서 관리하며 `sourceId`, `displayName`, `kind`, `canonicalSourceKey`, source locator, `enabled`, `tags`, `ownerGroup`을 저장합니다. PublishedView는 `/ops/api/views`에서 관리하며 `viewId`, `sourceId`, `defaultRuleId`, `allowedRuleIds`, `allowedOverlayModes`, dashboard/event/metadata 노출 정책, `clientGroups`, `maxTiles`를 저장합니다. Client API `/client/api/views`는 `view:read:{viewId}` scope로 필터링한 공개 필드만 반환하고 원본 URL/file locator는 숨깁니다.
 

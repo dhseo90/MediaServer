@@ -71,8 +71,10 @@
 
 ### O7. Analysis tap reuse / fanout 검증
 
-- 상태: 예정
-- 목적: Client/Operator monitor 분리 후 analysis tap 재사용, metadata fanout, cleanup lifecycle이 안정적인지 검증합니다.
+- 상태: 완료: source+profile reuse MVP
+- 목적: source+analysis profile 기준으로 analysis tap을 재사용하고 metadata fanout, rule/scenario evaluation, cleanup lifecycle이 안정적인지 검증합니다.
+- 완료 범위: source/profile reuse key, logical refcount, per-source active profile/tap cap, `analysisTapCreated/Reused/Rejected/RefCount/ReuseKey` debug counter, Runtime Dashboard reuse summary, `verify-multichannel --include-va`의 dedup tap 기대값 반영입니다.
+- 후속: Client/Operator Live Monitor에서 PublishedView별 overlay 정책과 operator debug profile 선택을 연결할 때, profile fanout UI와 cap 초과 안내를 더 촘촘히 다듬습니다.
 - 우선순위 이유: live monitor가 여러 화면으로 분리되면 tap 중복 생성과 fanout 부하가 streaming 안정성에 직접 영향을 줍니다.
 
 ## P0 - 문서/UI 정리

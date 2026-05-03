@@ -63,6 +63,34 @@ std::optional<AnalysisResult> FindResultNearPtsLocked(const std::deque<AnalysisR
     return best;
 }
 
+std::string BuildFallbackReuseKey(const core::StreamKey& stream_key, const AnalysisProfile& profile) {
+    return "source=" + stream_key + "|profile=" + BuildProfileKey(profile);
+}
+
+bool ContainsRuleId(const std::vector<std::string>& rule_ids, const std::string& rule_id) {
+    return std::find(rule_ids.begin(), rule_ids.end(), rule_id) != rule_ids.end();
+}
+
+void AddRuleIdIfMissing(AnalysisContext* context, const std::string& rule_id) {
+    if (context == nullptr || rule_id.empty() || ContainsRuleId(context->va_rule_ids, rule_id)) {
+        return;
+    }
+    context->va_rule_ids.push_back(rule_id);
+}
+
+void MergeReusableContext(AnalysisContext* target, const AnalysisContext& incoming) {
+    if (target == nullptr) {
+        return;
+    }
+    if (target->va_rule_id.empty() && !incoming.va_rule_id.empty()) {
+        target->va_rule_id = incoming.va_rule_id;
+    }
+    AddRuleIdIfMissing(target, incoming.va_rule_id);
+    for (const auto& rule_id : incoming.va_rule_ids) {
+        AddRuleIdIfMissing(target, rule_id);
+    }
+}
+
 // profile의 tracking class 정책을 ObjectTracker 생성 옵션으로 변환한다.
 ObjectTrackerOptions BuildTrackerOptions(const AnalysisProfile& profile) {
     const auto& config = app::GetAppConfig();
@@ -97,7 +125,8 @@ AnalysisManager::~AnalysisManager() {
 AnalysisManager::AttachResult AnalysisManager::AttachStream(const core::StreamKey& stream_key,
                                                             const std::shared_ptr<core::SharedStream>& stream,
                                                             AnalysisProfile profile,
-                                                            AnalysisContext context) {
+                                                            AnalysisContext context,
+                                                            std::string reuse_key) {
     if (stream == nullptr) {
         return {false, "missing shared stream", ""};
     }
@@ -148,7 +177,34 @@ AnalysisManager::AttachResult AnalysisManager::AttachStream(const core::StreamKe
         tap->profile.adaptive_low_latency_ratio = tap->profile.adaptive_high_latency_ratio * 0.5F;
     }
     tap->profile_key = BuildProfileKey(tap->profile);
+    tap->reuse_key = reuse_key.empty() ? BuildFallbackReuseKey(stream_key, tap->profile) : std::move(reuse_key);
     tap->attached_at = std::chrono::steady_clock::now();
+    tap->last_used_at = tap->attached_at;
+
+    AttachResult raced_reuse;
+    bool has_raced_reuse = false;
+    {
+        std::lock_guard lock(mu_);
+        const auto reuse_it = reuse_key_to_tap_id_.find(tap->reuse_key);
+        if (reuse_it != reuse_key_to_tap_id_.end()) {
+            const auto tap_it = taps_.find(reuse_it->second);
+            if (tap_it != taps_.end() && tap_it->second != nullptr) {
+                auto existing = tap_it->second;
+                std::size_t ref_count = 0;
+                {
+                    std::lock_guard tap_lock(existing->mu);
+                    MergeReusableContext(&existing->context, tap->context);
+                    ++existing->ref_count;
+                    ++existing->reuse_attach_count;
+                    existing->last_used_at = std::chrono::steady_clock::now();
+                    ref_count = existing->ref_count;
+                }
+                return {true, "reused", existing->tap_id, true, existing->reuse_key, ref_count};
+            }
+            reuse_key_to_tap_id_.erase(reuse_it);
+        }
+    }
+
     tap->detector = CreateDetector(tap->profile);
     tap->track_state_manager = TrackStateManager(
         BuildTrackStateManagerOptionsFromConfig(app::GetAppConfig()),
@@ -174,21 +230,65 @@ AnalysisManager::AttachResult AnalysisManager::AttachStream(const core::StreamKe
 
     {
         std::lock_guard lock(mu_);
-        taps_.emplace(tap->tap_id, tap);
+        const auto reuse_it = reuse_key_to_tap_id_.find(tap->reuse_key);
+        if (reuse_it != reuse_key_to_tap_id_.end()) {
+            const auto tap_it = taps_.find(reuse_it->second);
+            if (tap_it != taps_.end() && tap_it->second != nullptr) {
+                auto existing = tap_it->second;
+                std::size_t ref_count = 0;
+                {
+                    std::lock_guard tap_lock(existing->mu);
+                    MergeReusableContext(&existing->context, tap->context);
+                    ++existing->ref_count;
+                    ++existing->reuse_attach_count;
+                    existing->last_used_at = std::chrono::steady_clock::now();
+                    ref_count = existing->ref_count;
+                }
+                raced_reuse = {true, "reused", existing->tap_id, true, existing->reuse_key, ref_count};
+                has_raced_reuse = true;
+            } else {
+                reuse_key_to_tap_id_.erase(reuse_it);
+            }
+        }
+        if (!has_raced_reuse) {
+            reuse_key_to_tap_id_[tap->reuse_key] = tap->tap_id;
+            taps_.emplace(tap->tap_id, tap);
+        }
+    }
+    if (has_raced_reuse) {
+        stream->RemoveSubscriber(tap->tap_id);
+        StopTapRuntime(tap);
+        if (tap->detector != nullptr) {
+            tap->detector->Stop();
+        }
+        return raced_reuse;
     }
 
-    return {true, "attached", tap->tap_id};
+    return {true, "attached", tap->tap_id, false, tap->reuse_key, tap->ref_count};
 }
 
-bool AnalysisManager::Detach(const std::string& tap_id) {
+AnalysisManager::DetachResult AnalysisManager::Detach(const std::string& tap_id) {
     std::shared_ptr<AnalysisTap> tap;
     {
         std::lock_guard lock(mu_);
         const auto it = taps_.find(tap_id);
         if (it == taps_.end()) {
-            return false;
+            return {.ok = false, .tap_id = tap_id};
         }
         tap = it->second;
+        {
+            std::lock_guard tap_lock(tap->mu);
+            if (tap->ref_count > 1) {
+                --tap->ref_count;
+                tap->last_used_at = std::chrono::steady_clock::now();
+                return {.ok = true,
+                        .removed = false,
+                        .tap_id = tap_id,
+                        .reuse_key = tap->reuse_key,
+                        .ref_count = tap->ref_count};
+            }
+        }
+        reuse_key_to_tap_id_.erase(tap->reuse_key);
         taps_.erase(it);
     }
 
@@ -200,7 +300,7 @@ bool AnalysisManager::Detach(const std::string& tap_id) {
     if (tap->detector != nullptr) {
         tap->detector->Stop();
     }
-    return true;
+    return {.ok = true, .removed = true, .tap_id = tap_id, .reuse_key = tap->reuse_key, .ref_count = 0};
 }
 
 void AnalysisManager::DetachAll() {
@@ -212,6 +312,7 @@ void AnalysisManager::DetachAll() {
             taps.push_back(tap);
         }
         taps_.clear();
+        reuse_key_to_tap_id_.clear();
     }
 
     for (const auto& tap : taps) {
@@ -702,6 +803,13 @@ AnalysisManager::TapSnapshot AnalysisManager::BuildSnapshotLocked(const std::sha
         .tap_id = tap->tap_id,
         .stream_key = tap->stream_key,
         .profile_key = tap->profile_key,
+        .reuse_key = tap->reuse_key,
+        .ref_count = tap->ref_count,
+        .reuse_attach_count = tap->reuse_attach_count,
+        .last_used_age_ms =
+            tap->last_used_at.time_since_epoch().count() > 0
+                ? std::chrono::duration_cast<std::chrono::milliseconds>(now - tap->last_used_at).count()
+                : 0,
         .context = tap->context,
         .profile_selection_source = tap->profile.profile_selection_source,
         .selected_by_rule_id = tap->profile.selected_by_rule_id,

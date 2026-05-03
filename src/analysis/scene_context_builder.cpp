@@ -406,6 +406,10 @@ bool MatchesRuleContext(const std::string& document, const AnalysisContext& cont
     }
     const std::string va_rule_id = ParseStringField(*match, "vaRule").value_or(
         ParseStringField(*match, "vaRuleId").value_or(""));
+    if (!context.va_rule_ids.empty()) {
+        return std::find(context.va_rule_ids.begin(), context.va_rule_ids.end(), va_rule_id) !=
+               context.va_rule_ids.end();
+    }
     if (!context.va_rule_id.empty()) {
         return va_rule_id == context.va_rule_id;
     }

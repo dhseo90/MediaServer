@@ -29,6 +29,17 @@ public:
         std::string tap_id;
         StreamKey stream_key;
         bool stream_created{false};
+        bool reused{false};
+        std::string reuse_key;
+        std::size_t ref_count{0};
+    };
+
+    struct AnalysisTapDetachResult {
+        bool ok{false};
+        bool removed{false};
+        std::string tap_id;
+        std::string reuse_key;
+        std::size_t ref_count{0};
     };
 
     struct RuntimeStateSnapshot {
@@ -48,6 +59,7 @@ public:
     // 다채널 검증에서 session 수와 dedup stream 수가 기대대로 움직이는지 확인한다.
     RuntimeStateSnapshot GetRuntimeStateSnapshot() const;
     AnalysisTapResult AttachAnalysisTap(const media::IngressRequest& request, analysis::AnalysisProfile profile);
+    AnalysisTapDetachResult DetachAnalysisTapRef(const std::string& tap_id);
     bool DetachAnalysisTap(const std::string& tap_id);
     std::optional<analysis::AnalysisManager::TapSnapshot> AnalysisTapSnapshot(const std::string& tap_id) const;
     std::vector<analysis::AnalysisManager::TapSnapshot> AnalysisTapSnapshots() const;
@@ -72,6 +84,8 @@ private:
     struct AnalysisTapEntry {
         StreamKey stream_key;
         media::SourceSpec::Kind source_kind{media::SourceSpec::Kind::File};
+        std::string reuse_key;
+        std::size_t ref_count{0};
     };
 
     void ScheduleIdleCleanup(StreamKey stream_key) const;
