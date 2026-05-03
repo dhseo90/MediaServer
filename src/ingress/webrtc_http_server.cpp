@@ -16553,6 +16553,154 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     return out.str();
 }
 
+std::string NormalizeClientOverlayMode(std::string mode) {
+    mode = Trim(mode);
+    std::transform(mode.begin(), mode.end(), mode.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    if (mode.empty() || mode == "raw" || mode == "none" || mode == "video" || mode == "live") {
+        return "raw";
+    }
+    if (mode == "va-overlay" || mode == "va" || mode == "overlay" || mode == "metadata" ||
+        mode == "server-overlay") {
+        return "va-overlay";
+    }
+    if (mode == "va-rule" || mode == "rule" || mode == "varule") {
+        return "va-rule";
+    }
+    return std::string();
+}
+
+std::vector<std::string> ClientAllowedOverlayModes(
+    const SourceViewRegistry::PublishedViewRecord& view) {
+    std::vector<std::string> modes;
+    for (const auto& mode : view.allowed_overlay_modes) {
+        AddUniqueString(&modes, NormalizeClientOverlayMode(mode));
+    }
+    modes.erase(std::remove(modes.begin(), modes.end(), std::string()), modes.end());
+    return modes;
+}
+
+bool ClientViewAllowsOverlayMode(const SourceViewRegistry::PublishedViewRecord& view,
+                                 const std::string& mode) {
+    const auto allowed = ClientAllowedOverlayModes(view);
+    return std::find(allowed.begin(), allowed.end(), mode) != allowed.end();
+}
+
+std::string ClientDefaultOverlayMode(const SourceViewRegistry::PublishedViewRecord& view) {
+    const auto allowed = ClientAllowedOverlayModes(view);
+    if (allowed.empty()) {
+        return std::string();
+    }
+    if (std::find(allowed.begin(), allowed.end(), "raw") != allowed.end()) {
+        return "raw";
+    }
+    return allowed.front();
+}
+
+bool AddClientSourceQuery(const SourceViewRegistry::SourceRecord& source,
+                          std::unordered_map<std::string, std::string>* query,
+                          std::string* error_message) {
+    if (query == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "query output is required";
+        }
+        return false;
+    }
+    if (!source.file.empty()) {
+        (*query)["file"] = source.file;
+        return true;
+    }
+    if (!source.rtsp_url.empty()) {
+        (*query)["url"] = source.rtsp_url;
+        (*query)["source"] = "rtsp";
+        return true;
+    }
+    if (!source.webrtc_source_id.empty()) {
+        (*query)["url"] = source.webrtc_source_id;
+        (*query)["source"] = "webrtc";
+        return true;
+    }
+    if (!source.http_url.empty()) {
+        (*query)["url"] = source.http_url;
+        (*query)["source"] = source.kind.empty() ? "http" : source.kind;
+        return true;
+    }
+    if (error_message != nullptr) {
+        *error_message = "PublishedView source has no playable locator";
+    }
+    return false;
+}
+
+bool ClientLiveRequestHasSourceOverride(const std::string& body,
+                                        const std::unordered_map<std::string, std::string>& query) {
+    static const std::vector<std::string> kBlockedKeys = {
+        "file", "url", "source", "sourceId", "rtspUrl", "httpUrl", "webrtcSourceId"};
+    for (const auto& key : kBlockedKeys) {
+        if (query.find(key) != query.end() || ParseStringField(body, key).has_value()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool BuildClientLiveWebRtcQuery(const SourceViewRegistry::ClientViewAccess& access,
+                                const std::string& raw_overlay_mode,
+                                const std::string& requested_rule_id,
+                                std::unordered_map<std::string, std::string>* query,
+                                std::string* error_message) {
+    if (query == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "query output is required";
+        }
+        return false;
+    }
+    query->clear();
+    std::string mode = NormalizeClientOverlayMode(raw_overlay_mode);
+    if (mode.empty()) {
+        mode = ClientDefaultOverlayMode(access.view);
+    }
+    if (mode.empty() || !ClientViewAllowsOverlayMode(access.view, mode)) {
+        if (error_message != nullptr) {
+            *error_message = "overlay mode is not allowed for this view";
+        }
+        return false;
+    }
+
+    if (mode == "va-rule") {
+        std::string rule_id = Trim(requested_rule_id);
+        if (rule_id.empty()) {
+            rule_id = !access.view.default_rule_id.empty()
+                          ? access.view.default_rule_id
+                          : (access.view.allowed_rule_ids.empty() ? std::string()
+                                                                  : access.view.allowed_rule_ids.front());
+        }
+        if (rule_id.empty() ||
+            std::find(access.view.allowed_rule_ids.begin(),
+                      access.view.allowed_rule_ids.end(),
+                      rule_id) == access.view.allowed_rule_ids.end()) {
+            if (error_message != nullptr) {
+                *error_message = "allowed vaRule is required for va-rule mode";
+            }
+            return false;
+        }
+        (*query)["vaRule"] = rule_id;
+        (*query)["metadataChannel"] = "1";
+        (*query)["renderVideoOverlay"] = "1";
+        return true;
+    }
+
+    if (!AddClientSourceQuery(access.source, query, error_message)) {
+        return false;
+    }
+    if (mode == "va-overlay") {
+        (*query)["va"] = "1";
+        (*query)["metadataChannel"] = "1";
+        (*query)["renderVideoOverlay"] = "1";
+    }
+    return true;
+}
+
 std::string ClientShellPageHtml(const auth::Principal& principal, const std::string& active) {
     const std::string views_json = SourceViewRegistry::Instance().ClientViewsJson(principal);
     auto nav_class = [&](const std::string& key) {
@@ -16613,6 +16761,22 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     .ghost { background: var(--panel-soft); color: var(--text); }
     .empty { min-height: 80px; display: grid; align-content: center; }
     .toolbar { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+    .live-monitor { display: grid; gap: 12px; }
+    .live-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .tile { min-height: 280px; display: grid; grid-template-rows: auto minmax(140px, 1fr) auto; gap: 10px; border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--bg); }
+    .tile.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.16); }
+    .tile-head { display: grid; gap: 8px; }
+    .tile-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .tile-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, 150px); gap: 8px; }
+    .tile-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tile-stage { position: relative; min-height: 150px; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: #111827; display: grid; place-items: center; color: #cbd5e1; }
+    .tile-stage video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+    .tile-stage span { position: absolute; inset: auto 10px 10px 10px; font-size: 12px; font-weight: 800; color: #cbd5e1; }
+    .tile-status { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+    .tile-status .metric { min-height: 54px; padding: 8px; }
+    .tile-status .metric strong { font-size: 15px; }
+    .detail-box { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 12px; }
+    select { width: 100%; min-height: 36px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--text); padding: 0 8px; font: inherit; font-weight: 700; }
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #020617;
@@ -16630,6 +16794,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       .chip.bad { color: #fca5a5; }
       a.nav.active { background: #38bdf8; color: #082f49; }
     }
+    @media (max-width: 900px) { .live-grid { grid-template-columns: 1fr; } }
     @media (max-width: 780px) { .workspace { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -16699,9 +16864,36 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       if (!res.ok) throw new Error(json.error || `${res.status} ${res.statusText}`);
       return json;
     }
-    if (views.length === 0) {
-      host.innerHTML = '<div class="empty"><p>미제공</p></div>';
-    } else {
+    const normalizeOverlayMode = mode => {
+      const raw = String(mode || '').trim().toLowerCase();
+      if (!raw || ['raw', 'none', 'video', 'live'].includes(raw)) return 'raw';
+      if (['va-overlay', 'va', 'overlay', 'metadata', 'server-overlay'].includes(raw)) return 'va-overlay';
+      if (['va-rule', 'rule', 'varule'].includes(raw)) return 'va-rule';
+      return '';
+    };
+    const overlayLabel = mode => ({
+      raw: 'raw',
+      'va-overlay': 'va-overlay',
+      'va-rule': 'va-rule'
+    })[mode] || mode || '미제공';
+    const allowedOverlayModes = view => {
+      const seen = new Set();
+      const out = [];
+      for (const value of view?.allowedOverlayModes || []) {
+        const mode = normalizeOverlayMode(value);
+        if (mode && !seen.has(mode)) {
+          seen.add(mode);
+          out.push(mode);
+        }
+      }
+      return out;
+    };
+    const viewById = id => views.find(view => String(view.viewId) === String(id)) || null;
+    function renderAssignedViews() {
+      if (views.length === 0) {
+        host.innerHTML = '<div class="empty"><p>미제공</p></div>';
+        return;
+      }
       host.innerHTML = views.map(view => `
         <button class="view${view.viewId === selectedViewId ? ' active' : ''}" type="button" data-view-id="${escapeHtml(view.viewId)}">
           <h3>${escapeHtml(view.displayName || view.viewId)}</h3>
@@ -16718,7 +16910,11 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       host.querySelectorAll('.view').forEach(node => {
         node.classList.toggle('active', node.dataset.viewId === viewId);
       });
-      loadDetail();
+      if (activePage === 'live' && selectedLiveTile !== null) {
+        setTileView(selectedLiveTile, viewId);
+      } else {
+        loadDetail();
+      }
     }
     host.addEventListener('click', event => {
       const button = event.target.closest('.view');
@@ -16793,6 +16989,398 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
         <section class="events">${renderEvents(events.recent || [])}</section>
       `;
     }
+    const liveTiles = Array.from({ length: 4 }, (_, index) => ({
+      index,
+      viewId: views[index]?.viewId || views[0]?.viewId || '',
+      overlayMode: '',
+      sessionId: '',
+      pc: null,
+      dataChannel: null,
+      iceTimer: null,
+      status: 'offline',
+      connectionStatus: 'offline',
+      trackCount: null,
+      eventCount: null,
+      lastMetadataAt: 0,
+      stale: false
+    }));
+    let selectedLiveTile = views.length > 0 ? 0 : null;
+    let liveStatusTimer = null;
+    let liveDashboardTimer = null;
+    function tileView(tile) {
+      return viewById(tile?.viewId || '');
+    }
+    function defaultOverlayModeForView(view) {
+      const modes = allowedOverlayModes(view);
+      return modes.includes('raw') ? 'raw' : (modes[0] || '');
+    }
+    function tileRuleId(view) {
+      return view?.defaultRuleId || (Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds[0] : '') || '';
+    }
+    function tileStatusClass(value) {
+      if (['offline', 'disconnected', 'stale', 'failed', 'error'].includes(String(value))) return ' warn';
+      if (['unavailable', '미제공'].includes(String(value))) return ' bad';
+      return '';
+    }
+    function updateTileDom(tile) {
+      const root = document.querySelector(`[data-tile="${tile.index}"]`);
+      if (!root) return;
+      root.classList.toggle('selected', selectedLiveTile === tile.index);
+      const view = tileView(tile);
+      const status = tile.status || 'offline';
+      const stale = tile.lastMetadataAt && Date.now() - tile.lastMetadataAt > 5000;
+      tile.stale = Boolean(stale);
+      root.querySelector('[data-role="status"]').textContent = stale ? 'stale' : status;
+      root.querySelector('[data-role="status"]').className = `chip${tileStatusClass(stale ? 'stale' : status)}`;
+      root.querySelector('[data-role="connection"]').textContent = display(tile.connectionStatus);
+      root.querySelector('[data-role="tracks"]').textContent = display(tile.trackCount);
+      root.querySelector('[data-role="events"]').textContent = display(tile.eventCount);
+      root.querySelector('[data-role="stale"]').textContent = stale ? 'stale' : (tile.sessionId ? 'fresh' : '미제공');
+      root.querySelector('[data-role="placeholder"]').hidden = Boolean(tile.sessionId);
+      const startBtn = root.querySelector('[data-action="start"]');
+      const stopBtn = root.querySelector('[data-action="stop"]');
+      if (startBtn) startBtn.disabled = !view || Boolean(tile.sessionId);
+      if (stopBtn) stopBtn.disabled = !tile.sessionId;
+    }
+    function updateAllTileDom() {
+      for (const tile of liveTiles) updateTileDom(tile);
+    }
+    function applyTileModeOptions(tile) {
+      const root = document.querySelector(`[data-tile="${tile.index}"]`);
+      if (!root) return;
+      const view = tileView(tile);
+      const modes = allowedOverlayModes(view);
+      if (!modes.includes(tile.overlayMode)) {
+        tile.overlayMode = defaultOverlayModeForView(view);
+      }
+      const select = root.querySelector('[data-role="mode"]');
+      if (select) {
+        select.innerHTML = modes.map(mode => `<option value="${escapeHtml(mode)}">${escapeHtml(overlayLabel(mode))}</option>`).join('');
+        select.value = tile.overlayMode || '';
+        select.disabled = Boolean(tile.sessionId) || modes.length === 0;
+      }
+    }
+    function setTileView(index, viewId) {
+      const tile = liveTiles[index];
+      if (!tile || tile.sessionId) return;
+      tile.viewId = viewId || '';
+      const root = document.querySelector(`[data-tile="${index}"]`);
+      if (root) {
+        const viewSelect = root.querySelector('[data-role="view"]');
+        if (viewSelect) viewSelect.value = tile.viewId;
+      }
+      applyTileModeOptions(tile);
+      updateTileDom(tile);
+      refreshSelectedTileDetail();
+    }
+    function renderLiveMonitor() {
+      renderAssignedViews();
+      detail.innerHTML = `
+        <div class="live-monitor">
+          <div class="toolbar">
+            <div>
+              <h2>Live Monitor</h2>
+            </div>
+            <button id="liveAllStop" class="ghost" type="button">All Stop</button>
+          </div>
+          <div class="live-grid">
+            ${liveTiles.map(tile => `
+              <article class="tile${selectedLiveTile === tile.index ? ' selected' : ''}" data-tile="${tile.index}">
+                <div class="tile-head">
+                  <div class="tile-title">
+                    <h3>Tile ${tile.index + 1}</h3>
+                    <span class="chip" data-role="status">offline</span>
+                  </div>
+                  <div class="tile-controls">
+                    <select data-role="view" aria-label="view">
+                      ${views.map(view => `<option value="${escapeHtml(view.viewId)}">${escapeHtml(view.displayName || view.viewId)}</option>`).join('')}
+                    </select>
+                    <select data-role="mode" aria-label="overlay"></select>
+                  </div>
+                  <div class="tile-actions">
+                    <button type="button" data-action="select" class="ghost">Select</button>
+                    <button type="button" data-action="start">Start</button>
+                    <button type="button" data-action="stop" class="ghost" disabled>Stop</button>
+                  </div>
+                </div>
+                <div class="tile-stage">
+                  <video playsinline muted autoplay></video>
+                  <span data-role="placeholder">offline</span>
+                </div>
+                <div class="tile-status">
+                  <div class="metric"><span>connection</span><strong data-role="connection">offline</strong></div>
+                  <div class="metric"><span>tracks</span><strong data-role="tracks">미제공</strong></div>
+                  <div class="metric"><span>events</span><strong data-role="events">미제공</strong></div>
+                  <div class="metric"><span>stale</span><strong data-role="stale">미제공</strong></div>
+                </div>
+              </article>
+            `).join('')}
+          </div>
+          <section class="detail-box" id="liveSelectedDetail"><div class="empty"><p>미제공</p></div></section>
+        </div>
+      `;
+      for (const tile of liveTiles) {
+        const root = document.querySelector(`[data-tile="${tile.index}"]`);
+        if (!root) continue;
+        const viewSelect = root.querySelector('[data-role="view"]');
+        if (viewSelect) {
+          viewSelect.value = tile.viewId;
+          viewSelect.disabled = Boolean(tile.sessionId);
+          viewSelect.addEventListener('change', () => setTileView(tile.index, viewSelect.value));
+        }
+        const modeSelect = root.querySelector('[data-role="mode"]');
+        if (modeSelect) {
+          modeSelect.addEventListener('change', () => {
+            if (!tile.sessionId) tile.overlayMode = modeSelect.value;
+          });
+        }
+        root.querySelector('[data-action="select"]')?.addEventListener('click', () => selectLiveTile(tile.index));
+        root.querySelector('[data-action="start"]')?.addEventListener('click', () => startLiveTile(tile.index));
+        root.querySelector('[data-action="stop"]')?.addEventListener('click', () => stopLiveTile(tile.index));
+        root.addEventListener('click', event => {
+          if (!event.target.closest('button') && !event.target.closest('select')) {
+            selectLiveTile(tile.index);
+          }
+        });
+        applyTileModeOptions(tile);
+        updateTileDom(tile);
+      }
+      document.querySelector('#liveAllStop')?.addEventListener('click', () => stopAllLiveTiles());
+      if (!liveStatusTimer) {
+        liveStatusTimer = setInterval(() => {
+          updateAllTileDom();
+          updateSelectedTileStatusText();
+        }, 1000);
+      }
+      if (!liveDashboardTimer) {
+        liveDashboardTimer = setInterval(() => refreshSelectedTileDetail(), 3000);
+      }
+      refreshSelectedTileDetail();
+    }
+    function selectLiveTile(index) {
+      selectedLiveTile = index;
+      const tile = liveTiles[index];
+      selectedViewId = tile?.viewId || selectedViewId;
+      host.querySelectorAll('.view').forEach(node => {
+        node.classList.toggle('active', node.dataset.viewId === selectedViewId);
+      });
+      updateAllTileDom();
+      refreshSelectedTileDetail();
+    }
+    function updateSelectedTileStatusText() {
+      const tile = selectedLiveTile === null ? null : liveTiles[selectedLiveTile];
+      const el = document.querySelector('#liveSelectedDetail [data-selected-stale]');
+      if (el && tile) {
+        el.textContent = tile.stale ? 'stale' : 'fresh';
+      }
+    }
+    function parseTileMetadata(tile, raw) {
+      let payload = null;
+      try { payload = JSON.parse(raw); } catch { return; }
+      tile.lastMetadataAt = Date.now();
+      const result = payload?.result || payload?.metadata || payload?.analysis || payload;
+      const metrics = result?.metricsReport || payload?.metricsReport || {};
+      const tracks = Array.isArray(result?.tracks) ? result.tracks : (Array.isArray(payload?.tracks) ? payload.tracks : []);
+      const events = Array.isArray(payload?.events) ? payload.events : (Array.isArray(result?.events) ? result.events : []);
+      tile.trackCount = metrics.totalTrackCount ?? metrics.activeTrackCount ?? tracks.length ?? tile.trackCount;
+      tile.eventCount = metrics.activeEventStateCount ?? events.length ?? tile.eventCount;
+      updateTileDom(tile);
+      if (selectedLiveTile === tile.index) refreshSelectedTileDetail();
+    }
+    function attachTileDataChannel(tile, channel) {
+      tile.dataChannel = channel;
+      channel.onopen = () => {
+        tile.connectionStatus = 'metadata';
+        updateTileDom(tile);
+      };
+      channel.onmessage = event => parseTileMetadata(tile, event.data);
+      channel.onclose = () => {
+        if (tile.dataChannel === channel) tile.dataChannel = null;
+        updateTileDom(tile);
+      };
+      channel.onerror = () => {
+        tile.connectionStatus = 'metadata-error';
+        updateTileDom(tile);
+      };
+    }
+    async function pollTileIce(tile) {
+      if (!tile.sessionId || !tile.pc) return;
+      const response = await fetch(`/webrtc/session/${encodeURIComponent(tile.sessionId)}/ice`).catch(() => null);
+      if (!response || !response.ok) return;
+      const payload = await response.json().catch(() => ({}));
+      for (const item of payload.candidates || []) {
+        try { await tile.pc.addIceCandidate(item); } catch {}
+      }
+    }
+    async function startLiveTile(index) {
+      const tile = liveTiles[index];
+      const view = tileView(tile);
+      if (!tile || !view || tile.sessionId) return;
+      const mode = tile.overlayMode || defaultOverlayModeForView(view);
+      if (!mode) {
+        tile.status = 'error';
+        tile.connectionStatus = '미제공';
+        updateTileDom(tile);
+        return;
+      }
+      selectLiveTile(index);
+      tile.status = 'connecting';
+      tile.connectionStatus = 'connecting';
+      tile.trackCount = null;
+      tile.eventCount = null;
+      tile.lastMetadataAt = 0;
+      updateTileDom(tile);
+      try {
+        const pc = new RTCPeerConnection({ iceServers: [] });
+        tile.pc = pc;
+        pc.onconnectionstatechange = () => {
+          tile.connectionStatus = pc.connectionState || 'connecting';
+          if (['connected', 'completed'].includes(tile.connectionStatus)) tile.status = 'live';
+          if (['failed', 'disconnected', 'closed'].includes(tile.connectionStatus)) tile.status = 'offline';
+          updateTileDom(tile);
+        };
+        pc.oniceconnectionstatechange = () => {
+          tile.connectionStatus = pc.iceConnectionState || tile.connectionStatus;
+          updateTileDom(tile);
+        };
+        pc.ondatachannel = event => attachTileDataChannel(tile, event.channel);
+        pc.ontrack = event => {
+          const root = document.querySelector(`[data-tile="${tile.index}"]`);
+          const video = root?.querySelector('video');
+          if (!video) return;
+          video.srcObject = event.streams[0];
+          video.muted = true;
+          const play = video.play();
+          if (play && typeof play.catch === 'function') play.catch(() => {});
+          tile.status = 'live';
+          updateTileDom(tile);
+        };
+        pc.onicecandidate = event => {
+          if (!tile.sessionId || !event.candidate) return;
+          fetch(`/webrtc/session/${encodeURIComponent(tile.sessionId)}/ice`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sdpMLineIndex: event.candidate.sdpMLineIndex,
+              candidate: event.candidate.candidate
+            })
+          }).catch(() => {});
+        };
+        const body = { overlayMode: mode };
+        const ruleId = tileRuleId(view);
+        if (mode === 'va-rule' && ruleId) body.ruleId = ruleId;
+        const response = await fetch(`/client/api/views/${encodeURIComponent(view.viewId)}/webrtc/session`, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
+        tile.sessionId = payload.sessionId || '';
+        if (!tile.sessionId || !payload.offer) throw new Error('session offer missing');
+        await pc.setRemoteDescription({ type: 'offer', sdp: payload.offer });
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        await fetch(`/webrtc/session/${encodeURIComponent(tile.sessionId)}/answer`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/sdp' },
+          body: answer.sdp
+        });
+        tile.iceTimer = setInterval(() => pollTileIce(tile).catch(() => {}), 1000);
+        updateTileDom(tile);
+        refreshSelectedTileDetail();
+      } catch (error) {
+        tile.status = 'error';
+        tile.connectionStatus = error.message || 'error';
+        await stopLiveTile(index, { keepError: true });
+        updateTileDom(tile);
+      }
+    }
+    async function stopLiveTile(index, options = {}) {
+      const tile = liveTiles[index];
+      if (!tile) return;
+      if (tile.iceTimer) {
+        clearInterval(tile.iceTimer);
+        tile.iceTimer = null;
+      }
+      if (tile.dataChannel) {
+        try { tile.dataChannel.close(); } catch {}
+      }
+      tile.dataChannel = null;
+      if (tile.pc) {
+        try { tile.pc.close(); } catch {}
+      }
+      tile.pc = null;
+      const root = document.querySelector(`[data-tile="${tile.index}"]`);
+      const video = root?.querySelector('video');
+      if (video?.srcObject) {
+        for (const track of video.srcObject.getTracks()) track.stop();
+        video.srcObject = null;
+      }
+      const sessionId = tile.sessionId;
+      tile.sessionId = '';
+      if (sessionId) {
+        await fetch(`/webrtc/session/${encodeURIComponent(sessionId)}`, { method: 'DELETE' }).catch(() => {});
+      }
+      if (!options.keepError) {
+        tile.status = 'offline';
+        tile.connectionStatus = 'offline';
+      }
+      tile.trackCount = null;
+      tile.eventCount = null;
+      tile.lastMetadataAt = 0;
+      applyTileModeOptions(tile);
+      updateTileDom(tile);
+      refreshSelectedTileDetail();
+    }
+    async function stopAllLiveTiles() {
+      await Promise.all(liveTiles.map(tile => stopLiveTile(tile.index)));
+    }
+    async function refreshSelectedTileDetail() {
+      if (activePage !== 'live') return;
+      const container = document.querySelector('#liveSelectedDetail');
+      const tile = selectedLiveTile === null ? null : liveTiles[selectedLiveTile];
+      const view = tileView(tile);
+      if (!container || !tile || !view) {
+        if (container) container.innerHTML = '<div class="empty"><p>미제공</p></div>';
+        return;
+      }
+      try {
+        const payload = await requestJson(`/client/api/views/${encodeURIComponent(view.viewId)}/dashboard`);
+        const health = payload.health || {};
+        const analysis = payload.analysis || {};
+        const events = payload.events || {};
+        tile.trackCount = tile.trackCount ?? analysis.trackCount;
+        tile.eventCount = tile.eventCount ?? analysis.activeEventCount;
+        container.innerHTML = `
+          <div class="toolbar">
+            <div>
+              <h2>${escapeHtml(view.displayName || view.viewId)}</h2>
+              <p>Tile ${tile.index + 1} · ${escapeHtml(overlayLabel(tile.overlayMode || defaultOverlayModeForView(view)))}</p>
+            </div>
+            <div class="meta">
+              ${statusChip(tile.status)}
+              ${statusChip(health.metadataStatus)}
+              <span class="chip${tileStatusClass(tile.stale ? 'stale' : 'fresh')}" data-selected-stale>${tile.stale ? 'stale' : 'fresh'}</span>
+            </div>
+          </div>
+          <div class="summary">
+            <div class="metric"><span>connection</span><strong>${escapeHtml(display(tile.connectionStatus))}</strong></div>
+            <div class="metric"><span>live</span><strong>${escapeHtml(display(health.status || tile.status))}</strong></div>
+            <div class="metric"><span>tracks</span><strong>${escapeHtml(display(tile.trackCount ?? analysis.trackCount))}</strong></div>
+            <div class="metric"><span>events</span><strong>${escapeHtml(display(tile.eventCount ?? analysis.activeEventCount))}</strong></div>
+            <div class="metric"><span>metadata age</span><strong>${escapeHtml(ms(health.metadataAgeMs))}</strong></div>
+            <div class="metric"><span>last frame</span><strong>${escapeHtml(ms(health.lastFrameAgeMs))}</strong></div>
+            <div class="metric"><span>scenarios</span><strong>${escapeHtml(display(analysis.scenarioCount))}</strong></div>
+            <div class="metric"><span>warning</span><strong>${events.warning ? 'warning' : 'normal'}</strong></div>
+          </div>
+        `;
+        updateTileDom(tile);
+      } catch (error) {
+        container.innerHTML = `<div class="empty"><p>${escapeHtml(error.message || '미제공')}</p></div>`;
+      }
+    }
     async function loadDetail() {
       if (!selectedViewId) return;
       detail.innerHTML = '<div class="empty"><p>미제공</p></div>';
@@ -16806,8 +17394,30 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
         detail.innerHTML = `<div class="empty"><p>${escapeHtml(error.message || '미제공')}</p></div>`;
       }
     }
-    refresh.addEventListener('click', loadDetail);
-    loadDetail();
+    refresh.addEventListener('click', () => {
+      if (activePage === 'live') {
+        refreshSelectedTileDetail();
+      } else {
+        loadDetail();
+      }
+    });
+    if (activePage === 'live') {
+      renderLiveMonitor();
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) stopAllLiveTiles().catch(() => {});
+      });
+      window.addEventListener('pagehide', () => stopAllLiveTiles());
+      window.addEventListener('beforeunload', () => {
+        for (const tile of liveTiles) {
+          if (tile.sessionId) {
+            fetch(`/webrtc/session/${encodeURIComponent(tile.sessionId)}`, { method: 'DELETE', keepalive: true }).catch(() => {});
+          }
+        }
+      });
+    } else {
+      renderAssignedViews();
+      loadDetail();
+    }
   </script>
 </body>
 </html>)";
@@ -20081,6 +20691,82 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             return HttpResponse{};
                         };
+                        auto create_webrtc_session_response =
+                            [&](std::unordered_map<std::string, std::string> session_query,
+                                const std::string& session_prefix) -> HttpResponse {
+                            // simple signaling: 서버가 offer를 만들고 브라우저/테스트 클라이언트가 answer를 돌려준다.
+                            const std::string session_id =
+                                session_prefix + "-" + std::to_string(impl_->next_session_id.fetch_add(1));
+                            const std::string ingress_client_id = session_id + "-ingress";
+                            media::IngressRequest ingress_request =
+                                BuildHttpIngressRequest(route_path, session_query, ingress_client_id);
+                            std::string va_rule_error;
+                            if (!ApplyVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
+                            }
+                            auto bridge = std::make_shared<WebRtcEgressSession>();
+                            std::string analysis_tap_id;
+                            std::string error_message;
+                            if (!AttachWebRtcAnalysisOverlay(
+                                    impl_->session_manager,
+                                    ingress_request,
+                                    ingress_request.query,
+                                    bridge,
+                                    &analysis_tap_id,
+                                    &error_message)) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            }
+                            auto create_result = impl_->session_manager.CreateSession(
+                                ingress_request,
+                                [bridge](const media::Packet& packet) { bridge->HandleSample(packet); });
+                            if (!create_result.ok) {
+                                if (!analysis_tap_id.empty()) {
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
+                                }
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(create_result.message) + "\"}");
+                            }
+
+                            if (!bridge->Start(session_id, create_result.stream, &error_message)) {
+                                if (!analysis_tap_id.empty()) {
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
+                                }
+                                impl_->session_manager.CloseSession(ingress_client_id);
+                                return JsonResponse(500,
+                                                    "Internal Server Error",
+                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            }
+
+                            std::string offer;
+                            if (!bridge->CreateOffer(&offer, &error_message)) {
+                                bridge->Stop();
+                                if (!analysis_tap_id.empty()) {
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
+                                }
+                                impl_->session_manager.CloseSession(ingress_client_id);
+                                return JsonResponse(500,
+                                                    "Internal Server Error",
+                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            }
+
+                            {
+                                std::lock_guard lock(impl_->mu);
+                                impl_->sessions.emplace(session_id,
+                                                        Impl::SessionEntry{
+                                                            .session_id = session_id,
+                                                            .ingress_client_id = ingress_client_id,
+                                                            .analysis_tap_id = analysis_tap_id,
+                                                            .request = std::move(ingress_request),
+                                                            .bridge = bridge,
+                                                        });
+                            }
+                            return JsonResponse(200, "OK", SessionJson(session_id, offer));
+                        };
                         auto route_disabled_response = [](const std::string& route) {
                             return JsonResponse(404,
                                                 "Not Found",
@@ -20316,6 +21002,45 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 UrlDecode(slash == std::string::npos ? suffix : suffix.substr(0, slash));
                             const std::string subresource =
                                 slash == std::string::npos ? std::string() : suffix.substr(slash + 1);
+                            if (request.method == "POST" && subresource == "webrtc/session") {
+                                if (ClientLiveRequestHasSourceOverride(request.body, query)) {
+                                    return JsonResponse(400,
+                                                        "Bad Request",
+                                                        "{\"error\":\"client live accepts viewId only; source override is not allowed\"}");
+                                }
+                                SourceViewRegistry::ClientViewAccess access;
+                                const auto access_result =
+                                    SourceViewRegistry::Instance().ResolveClientViewAccess(
+                                        view_id,
+                                        principal_result.principal,
+                                        "view:read",
+                                        &access);
+                                if (access_result.status != 200) {
+                                    return RegistryHttpResponse(access_result);
+                                }
+                                const std::string overlay_mode =
+                                    ParseStringField(request.body, "overlayMode")
+                                        .value_or(ParseStringField(request.body, "mode")
+                                                      .value_or(query.count("overlayMode") != 0
+                                                                    ? query.at("overlayMode")
+                                                                    : (query.count("mode") != 0 ? query.at("mode")
+                                                                                                : "")));
+                                const std::string rule_id =
+                                    ParseStringField(request.body, "ruleId")
+                                        .value_or(query.count("ruleId") != 0 ? query.at("ruleId") : "");
+                                std::unordered_map<std::string, std::string> session_query;
+                                std::string error_message;
+                                if (!BuildClientLiveWebRtcQuery(access,
+                                                                overlay_mode,
+                                                                rule_id,
+                                                                &session_query,
+                                                                &error_message)) {
+                                    return JsonResponse(400,
+                                                        "Bad Request",
+                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                }
+                                return create_webrtc_session_response(std::move(session_query), "client-live");
+                            }
                             if (request.method == "GET") {
                                 if (subresource == "dashboard") {
                                     SourceViewRegistry::ClientViewAccess access;
@@ -21137,71 +21862,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if (request.method == "POST" && request.path == "/webrtc/session") {
-                            // simple signaling: 서버가 offer를 만들고 브라우저/테스트 클라이언트가 answer를 돌려준다.
-                            const std::string session_id = "webrtc-http-" + std::to_string(impl_->next_session_id.fetch_add(1));
-                            const std::string ingress_client_id = session_id + "-ingress";
-                            media::IngressRequest ingress_request = BuildHttpIngressRequest(route_path, query, ingress_client_id);
-                            std::string va_rule_error;
-                            if (!ApplyVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
-                                return JsonResponse(400, "Bad Request",
-                                                    "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
-                            }
-                            auto bridge = std::make_shared<WebRtcEgressSession>();
-                            std::string analysis_tap_id;
-                            std::string error_message;
-                            if (!AttachWebRtcAnalysisOverlay(
-                                    impl_->session_manager,
-                                    ingress_request,
-                                    ingress_request.query,
-                                    bridge,
-                                    &analysis_tap_id,
-                                    &error_message)) {
-                                return JsonResponse(400, "Bad Request",
-                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
-                            }
-                            auto create_result = impl_->session_manager.CreateSession(
-                                ingress_request,
-                                [bridge](const media::Packet& packet) { bridge->HandleSample(packet); });
-                            if (!create_result.ok) {
-                                if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
-                                }
-                                return JsonResponse(400, "Bad Request",
-                                                    "{\"error\":\"" + JsonEscape(create_result.message) + "\"}");
-                            }
-
-                            if (!bridge->Start(session_id, create_result.stream, &error_message)) {
-                                if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
-                                }
-                                impl_->session_manager.CloseSession(ingress_client_id);
-                                return JsonResponse(500, "Internal Server Error",
-                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
-                            }
-
-                            std::string offer;
-                            if (!bridge->CreateOffer(&offer, &error_message)) {
-                                bridge->Stop();
-                                if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
-                                }
-                                impl_->session_manager.CloseSession(ingress_client_id);
-                                return JsonResponse(500, "Internal Server Error",
-                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
-                            }
-
-                            {
-                                std::lock_guard lock(impl_->mu);
-                                impl_->sessions.emplace(session_id,
-                                                        Impl::SessionEntry{
-                                                            .session_id = session_id,
-                                                            .ingress_client_id = ingress_client_id,
-                                                            .analysis_tap_id = analysis_tap_id,
-                                                            .request = std::move(ingress_request),
-                                                            .bridge = bridge,
-                                                        });
-                            }
-                            return JsonResponse(200, "OK", SessionJson(session_id, offer));
+                            return create_webrtc_session_response(query, "webrtc-http");
                         }
 
                         if (request.method == "POST" && request.path == "/whep") {

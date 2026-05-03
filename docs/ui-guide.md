@@ -71,6 +71,20 @@ PublishedView form은 `viewId`, 표시 이름, `sourceId`, `defaultRuleId`, `all
 
 값이 없거나 아직 수집되지 않은 항목은 UI에서 `미제공`으로 표시합니다. Client dashboard와 `/client/api/views/{viewId}/events?limit=...`는 source 원본 URL, Developer URL, raw JSON, `debugCounters`, `analysisTapId`, internal session id, rule/profile editor, Event POST 설정, SSE/WS 전체 endpoint를 노출하지 않습니다. 운영자용 세부 runtime/debug 확인은 `/lab/rules` Runtime Dashboard 또는 `/lab/runtime/status`에서만 수행합니다.
 
+### 3.2 Client Live Monitor
+
+`/client/live`는 viewer가 접근 가능한 PublishedView만 2x2 grid에 배치하는 live monitor입니다. Tile은 최대 4개이며, 각 tile은 `/client/api/views/{viewId}/webrtc/session` wrapper로 WebRTC session을 생성합니다. Client route는 viewId만 받으며 source 원본 URL, file/url/source override, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile 수정 UI는 노출하지 않습니다.
+
+Tile별 기능:
+
+- assigned view 선택
+- PublishedView의 `allowedOverlayModes` 안에서 `raw`, `va-overlay`, `va-rule` 선택
+- tile start / tile stop / all stop
+- live/offline, stale, track count, event count, connection status 표시
+- 선택된 tile만 dashboard/detail을 갱신
+
+Hidden tab, route leave, tile stop 시 PeerConnection, DataChannel, server WebRTC session을 정리합니다. 모든 tile에 BBox diagnostics를 켜는 동작은 제공하지 않습니다.
+
 ## 4. 영상 분석 룰 목록
 
 룰 목록은 저장된 `vaRule` 설정을 관리하는 첫 화면입니다. `vaRule`은 숫자 ID이며, 영상 source, 분석 profile, event/scenario, 영역/라인, event action을 하나로 묶습니다.

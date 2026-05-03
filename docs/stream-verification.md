@@ -661,6 +661,29 @@ curl -fsS 'http://127.0.0.1:8080/client/api/views/{viewId}/events?limit=20'
 - client dashboard 응답과 화면에 source 원본 URL, Developer URL, raw JSON, `debugCounters`, `analysisTapId`, internal session id, rule/profile editor, Event POST 설정, SSE/WS 전체 endpoint가 노출되지 않아야 합니다.
 - Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema는 변경하지 않습니다.
 
+Client Live Monitor smoke 기준:
+
+```bash
+curl -fsS 'http://127.0.0.1:8080/client/api/views'
+curl -fsS -X POST \
+  -H 'Content-Type: application/json' \
+  -d '{"overlayMode":"raw"}' \
+  'http://127.0.0.1:8080/client/api/views/{viewId}/webrtc/session'
+```
+
+확인 기준:
+
+- `/client/live`는 2x2 grid, 최대 4 tile만 표시합니다.
+- viewer는 assigned PublishedView만 tile에 선택할 수 있습니다.
+- client WebRTC wrapper는 viewId만 허용하고 `file`, `url`, `source`, `rtspUrl`, `httpUrl`, `webrtcSourceId` override 요청을 400으로 거부합니다.
+- `overlayMode`는 PublishedView의 `allowedOverlayModes` 안에서 `raw`, `va-overlay`, `va-rule`로 정규화됩니다.
+- `va-rule` mode는 PublishedView의 `allowedRuleIds`/`defaultRuleId` 안의 rule만 사용할 수 있습니다.
+- tile stop은 PeerConnection/DataChannel을 닫고 `/webrtc/session/{sessionId}` DELETE를 호출합니다.
+- all stop 또는 hidden tab/route leave 후 `activeSessions`가 감소하고 media stream track이 정리됩니다.
+- tile status는 live/offline, stale, track count, event count, connection status를 표시합니다.
+- client 화면에 source URL, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile 수정 UI가 노출되지 않아야 합니다.
+- 기존 `/webrtc/session?file=...` 개발용 경로와 WebRTC DataChannel schema, Event POST payload는 변경하지 않습니다.
+
 ## VA overlay 검증
 
 기본 YOLO/ONNX overlay:

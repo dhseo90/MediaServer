@@ -368,7 +368,7 @@ SessionManager::AnalysisTapResult SessionManager::AttachAnalysisTap(const media:
 
 SessionManager::AnalysisTapDetachResult SessionManager::DetachAnalysisTapRef(const std::string& tap_id) {
     AnalysisTapEntry entry;
-    bool remove_entry = false;
+    bool had_entry = false;
     {
         std::lock_guard lock(mu_);
         const auto it = analysis_taps_.find(tap_id);
@@ -376,13 +376,11 @@ SessionManager::AnalysisTapDetachResult SessionManager::DetachAnalysisTapRef(con
             return {.ok = false, .tap_id = tap_id};
         }
         entry = it->second;
+        had_entry = true;
         if (it->second.ref_count > 1) {
             --it->second.ref_count;
-            entry = it->second;
         } else {
-            remove_entry = true;
             analysis_taps_.erase(it);
-            entry.ref_count = 0;
         }
     }
 
@@ -392,12 +390,31 @@ SessionManager::AnalysisTapDetachResult SessionManager::DetachAnalysisTapRef(con
     const std::string counter_reuse_key =
         !detach_result.reuse_key.empty() ? detach_result.reuse_key : entry.reuse_key;
     runtime_debug::RecordAnalysisTapRefCount(counter_reuse_key, ref_count);
-    if (!remove_entry || !detach_result.removed) {
+    if (!detach_result.ok) {
+        if (had_entry) {
+            std::lock_guard lock(mu_);
+            analysis_taps_[tap_id] = entry;
+        }
+        return {.ok = false,
+                .removed = false,
+                .tap_id = tap_id,
+                .reuse_key = counter_reuse_key,
+                .ref_count = ref_count};
+    }
+    if (!detach_result.removed) {
+        AnalysisTapEntry restored = entry;
+        restored.ref_count = ref_count == 0 ? 1 : ref_count;
+        std::lock_guard lock(mu_);
+        analysis_taps_[tap_id] = restored;
         return {.ok = detach_result.ok,
                 .removed = false,
                 .tap_id = tap_id,
                 .reuse_key = counter_reuse_key,
                 .ref_count = ref_count};
+    }
+    {
+        std::lock_guard lock(mu_);
+        analysis_taps_.erase(tap_id);
     }
     if (entry.source_kind != media::SourceSpec::Kind::File) {
         if (registry_.TryRemoveIfIdle(entry.stream_key)) {
