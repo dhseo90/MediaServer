@@ -18,7 +18,55 @@
 - 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, client-side Trend/Stale/Cleanup warning 1차, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, IntrusionDwell/ReEntry/WrongDirection/IntrusionAfterLineCrossing scenario UI 템플릿, 자동/longrun 검증 명령.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
 - 실험/제약: snapshot/clip은 hook/marker 중심이며 실제 제품용 frame extraction/clip recorder는 후속 구현입니다.
-- 남은 핵심: EventRecord archive query/compaction, Loitering UI 템플릿, 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화(sparkline/장기 baseline), WS metadata filter/subscription/control, 실제 현장 샘플 기반 튜닝입니다.
+- 신규 우선순위: Auth / Role / Scope, SourceRegistry / PublishedView, `/ops` / `/client` / `/lab` route 분리, Client scoped dashboard, Client Live Monitor, Operator Live Monitor, Analysis tap reuse / fanout 검증입니다.
+- 후속/보류: 기존 Scenario UI 5~6번인 Loitering UI 템플릿과 ZoneOccupancyScenario는 신규 운영/클라이언트 분리 로드맵 이후 재개합니다.
+- 남은 후속: EventRecord archive query/compaction, 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화(sparkline/장기 baseline), WS metadata filter/subscription/control, 실제 현장 샘플 기반 튜닝입니다.
+
+## 신규 우선순위 - 운영/클라이언트 분리
+
+이 섹션은 기존 Scenario UI 로드맵 1~4번 완료 이후의 다음 작업 순서입니다. Loitering UI 템플릿과 ZoneOccupancyScenario는 아래 운영/클라이언트 분리 기준이 잡힌 뒤 후속으로 재개합니다.
+
+### O1. Auth / Role / Scope
+
+- 상태: 예정
+- 목적: 운영자, 클라이언트, lab 사용자 권한과 요청 scope 기준을 먼저 정의합니다.
+- 우선순위 이유: route, source/view 노출, dashboard/live monitor 접근 정책의 공통 전제가 됩니다.
+
+### O2. SourceRegistry / PublishedView
+
+- 상태: 예정
+- 목적: 내부 source 관리와 클라이언트에 공개되는 view 모델을 분리합니다.
+- 우선순위 이유: source 원본 설정, 운영자 제어, 클라이언트 노출 범위를 한 모델로 섞지 않기 위한 선행 작업입니다.
+
+### O3. `/ops` / `/client` / `/lab` route 분리
+
+- 상태: 예정
+- 목적: 운영 화면, 클라이언트 화면, 개발/lab 화면의 URL과 역할을 분리합니다.
+- 우선순위 이유: 현재 lab 중심 UI에서 운영/고객 화면으로 확장할 때 권한과 탐색 구조가 명확해야 합니다.
+
+### O4. Client scoped dashboard
+
+- 상태: 예정
+- 목적: 클라이언트 scope에 맞는 source/view/event 요약 dashboard를 구성합니다.
+- 우선순위 이유: 운영자용 runtime/debug 정보와 클라이언트용 상태 요약을 분리해야 합니다.
+
+### O5. Client Live Monitor
+
+- 상태: 예정
+- 목적: PublishedView 기반 클라이언트용 live monitor 화면을 정의합니다.
+- 우선순위 이유: 클라이언트 화면은 허용된 view와 이벤트만 노출해야 하므로 SourceRegistry/PublishedView 이후에 진행합니다.
+
+### O6. Operator Live Monitor
+
+- 상태: 예정
+- 목적: 운영자가 source, runtime 상태, event, analysis tap 상태를 함께 볼 수 있는 live monitor를 정의합니다.
+- 우선순위 이유: 운영 화면은 장애 대응과 source 제어가 핵심이라 클라이언트 화면과 다른 정보 밀도가 필요합니다.
+
+### O7. Analysis tap reuse / fanout 검증
+
+- 상태: 예정
+- 목적: Client/Operator monitor 분리 후 analysis tap 재사용, metadata fanout, cleanup lifecycle이 안정적인지 검증합니다.
+- 우선순위 이유: live monitor가 여러 화면으로 분리되면 tap 중복 생성과 fanout 부하가 streaming 안정성에 직접 영향을 줍니다.
 
 ## P0 - 문서/UI 정리
 
@@ -374,7 +422,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 ./server.sh verify-va-replay
 ```
 
-- 후속: Loitering 전용 UI 템플릿과 scenario 현장 fixture를 추가합니다.
+- 후속/보류: Loitering 전용 UI 템플릿과 scenario 현장 fixture는 신규 운영/클라이언트 분리 로드맵 이후 재개합니다.
 
 ### P4-2. ReEntry Scenario UI 템플릿
 
@@ -422,14 +470,17 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 - 후속: 실제 현장 샘플에서 line/zone 위치와 timeout/dwell 기본값을 튜닝합니다.
 
-### P4-4. Loitering 실제 샘플 튜닝
+### P4-4. Loitering UI 템플릿 / 실제 샘플 튜닝
 
-- 상태: 예정
-- 목적: 실제 CCTV 샘플에서 dwell time, movement radius, trajectory point 기준을 조정합니다.
+- 상태: 보류
+- 목적: Loitering 전용 UI 템플릿과 실제 CCTV 샘플 기반 dwell time, movement radius, trajectory point 기준 튜닝을 후속으로 정리합니다.
+- 보류 이유: Auth / Role / Scope, SourceRegistry / PublishedView, `/ops` / `/client` / `/lab` route 분리, live monitor scope가 먼저 확정되어야 scenario template 노출 정책을 안정적으로 정할 수 있습니다.
 - 관련 파일: `src/analysis/loitering_scenario.cpp`, `test/fixtures/va_replay/loitering_metadata.json`, `docs/video-analysis.md`
-- 검증 명령:
+- 재개 시 검증 명령:
 
 ```bash
+./server.sh verify-rule-ui
+./server.sh verify-lab-layout
 ./server.sh verify-va-replay
 ./server.sh verify-va-events --long
 ```
@@ -438,10 +489,11 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ### P4-5. ZoneOccupancyScenario
 
-- 상태: 예정
+- 상태: 보류
 - 목적: 특정 zone 내부 동시 track 수가 threshold 이상일 때 crowd/occupancy 이벤트를 발생시킵니다.
+- 보류 이유: 신규 운영/클라이언트 분리 로드맵에서 source/view scope와 live monitor 노출 정책을 먼저 정리한 뒤 scenario 추가 여부를 판단합니다.
 - 관련 파일: `src/analysis/scenario_engine.cpp`, `src/analysis/scene_context_builder.cpp`, `include/analysis/scenario_engine.h`, `test/fixtures/va_replay/`
-- 검증 명령:
+- 재개 시 검증 명령:
 
 ```bash
 ./server.sh verify-va-replay
