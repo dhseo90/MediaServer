@@ -15789,6 +15789,10 @@ HttpResponse RegistryHttpResponse(const RegistryResult& result) {
     return JsonResponse(result.status, result.status_text, result.body);
 }
 
+HttpResponse AuthUserHttpResponse(const auth::AuthUserResult& result) {
+    return JsonResponse(result.status, result.status_text, result.body);
+}
+
 HttpResponse AuthErrorResponse(const std::string& error) {
     HttpResponse response = JsonResponse(401,
                                          "Unauthorized",
@@ -16249,7 +16253,12 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
       <a class=")" << nav_class("sources") << R"(" href="/ops/sources">Sources</a>
       <a class=")" << nav_class("rules") << R"(" href="/ops/rules">Rules</a>
       <a class=")" << nav_class("events") << R"(" href="/ops/events">Events</a>
-    </nav>
+)";
+    if (auth::IsAdmin(principal)) {
+        out << R"(      <a class=")" << nav_class("users") << R"(" href="/ops/users">Users</a>
+)";
+    }
+    out << R"(    </nav>
     <section class="panel">
 )";
     if (active == "dashboard") {
@@ -16273,6 +16282,12 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         <a class="action" href="/ops/sources">Sources / Views</a>
         <a class="action" href="/ops/rules">Rules</a>
         <a class="action" href="/lab">Lab Monitor</a>
+)";
+        if (auth::IsAdmin(principal)) {
+            out << R"(        <a class="action" href="/ops/users">Users</a>
+)";
+        }
+        out << R"(
       </div>
 )";
     }
@@ -17836,6 +17851,273 @@ std::string BuildOpsSourcesPageHtml() {
   </script>
 </body>
 </html>)OPS";
+}
+
+std::string BuildOpsUsersPageHtml() {
+    return R"USERS(<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>User Management</title>
+  <style>
+    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; background: #f8fafc; color: #0f172a; }
+    main { max-width: 1180px; margin: 0 auto; padding: 28px 18px 40px; display: grid; gap: 18px; }
+    header { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    h1, h2 { margin: 0; }
+    h1 { font-size: 26px; }
+    h2 { font-size: 18px; }
+    p { margin: 0; color: #475569; line-height: 1.5; }
+    a { color: #0369a1; font-weight: 800; text-decoration: none; }
+    section { display: grid; gap: 12px; padding: 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; }
+    form { display: grid; gap: 10px; }
+    label { display: grid; gap: 5px; font-size: 13px; font-weight: 800; color: #334155; }
+    input, select, textarea { width: 100%; box-sizing: border-box; border: 1px solid #94a3b8; border-radius: 6px; min-height: 36px; padding: 7px 9px; font: inherit; background: #fff; color: #0f172a; }
+    textarea { min-height: 78px; resize: vertical; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { border-bottom: 1px solid #e2e8f0; padding: 8px; text-align: left; vertical-align: top; }
+    th { color: #475569; font-size: 12px; text-transform: uppercase; }
+    .grid { display: grid; grid-template-columns: minmax(300px, 420px) minmax(0, 1fr); gap: 14px; align-items: start; }
+    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .checks { display: flex; gap: 12px; flex-wrap: wrap; }
+    .checks label { display: flex; align-items: center; gap: 6px; }
+    .checks input { width: auto; min-height: auto; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    button { min-height: 34px; border: 0; border-radius: 6px; background: #0f172a; color: #fff; padding: 0 10px; font-weight: 900; cursor: pointer; }
+    button.secondary { background: #e2e8f0; color: #0f172a; }
+    button.danger { background: #b91c1c; }
+    .status { min-height: 22px; font-size: 13px; color: #0369a1; font-weight: 800; }
+    .status.error { color: #b91c1c; }
+    .pill { display: inline-flex; align-items: center; min-height: 24px; padding: 0 8px; border-radius: 999px; background: #e0f2fe; color: #075985; font-weight: 900; }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } table { min-width: 900px; } .table-wrap { overflow-x: auto; } }
+    @media (prefers-color-scheme: dark) {
+      body { background: #020617; color: #f8fafc; }
+      p { color: #cbd5e1; }
+      section { background: #0f172a; border-color: #334155; }
+      label, th { color: #cbd5e1; }
+      input, select, textarea { background: #020617; color: #f8fafc; border-color: #475569; }
+      td, th { border-bottom-color: #334155; }
+      a { color: #7dd3fc; }
+      button.secondary { background: #334155; color: #f8fafc; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>User Management</h1>
+        <p>관리자가 operator, viewer, integrator 계정을 만들고 비활성화하거나 임시 비밀번호를 재설정합니다.</p>
+      </div>
+      <a href="/ops">Ops</a>
+    </header>
+
+    <div class="grid">
+      <section>
+        <h2>Create / Update</h2>
+        <form id="user-form">
+          <div class="row">
+            <label>Username<input name="username" required /></label>
+            <label>Display Name<input name="displayName" /></label>
+          </div>
+          <div class="row">
+            <label>Role
+              <select name="role">
+                <option value="viewer">viewer</option>
+                <option value="operator">operator</option>
+                <option value="integrator">integrator</option>
+                <option value="admin">admin</option>
+              </select>
+            </label>
+            <label>View ID<input name="viewId" placeholder="view-a" /></label>
+          </div>
+          <label>Scopes<textarea name="scopes" placeholder="비워두면 role/viewId template 사용"></textarea></label>
+          <label>Temporary Password<input name="password" type="password" autocomplete="new-password" /></label>
+          <div class="checks">
+            <label><input name="enabled" type="checkbox" checked /> enabled</label>
+            <label><input name="mustChangePassword" type="checkbox" checked /> must change password</label>
+          </div>
+          <div class="actions">
+            <button id="create-btn" type="submit">Create User</button>
+            <button id="update-btn" class="secondary" type="button">Update Profile</button>
+            <button id="reset-btn" class="secondary" type="button">Reset Password</button>
+          </div>
+        </form>
+      </section>
+
+      <section>
+        <div class="actions">
+          <button id="refresh-btn" class="secondary" type="button">Refresh</button>
+          <span id="status" class="status"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Enabled</th>
+                <th>Scopes</th>
+                <th>Last Login</th>
+                <th>Locked Until</th>
+                <th>Must Change</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script>
+    const statusEl = document.querySelector('#status');
+    const usersBody = document.querySelector('#users-body');
+    const form = document.querySelector('#user-form');
+    const splitScopes = value => value.split(/[\n,]/).map(v => v.trim()).filter(Boolean);
+    const setStatus = (message, failed = false) => {
+      statusEl.textContent = message;
+      statusEl.classList.toggle('error', failed);
+    };
+    async function requestJson(url, options = {}) {
+      const res = await fetch(url, { credentials: 'same-origin', ...options });
+      const text = await res.text();
+      let json;
+      try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
+      if (!res.ok) throw new Error(json.error || `${res.status} ${res.statusText}`);
+      return json;
+    }
+    function formPayload(includePassword) {
+      const data = Object.fromEntries(new FormData(form).entries());
+      const payload = {
+        username: data.username.trim(),
+        displayName: data.displayName.trim(),
+        role: data.role,
+        viewId: data.viewId.trim(),
+        scopes: splitScopes(data.scopes || ''),
+        enabled: form.elements.enabled.checked,
+        mustChangePassword: form.elements.mustChangePassword.checked
+      };
+      if (includePassword) payload.password = data.password || '';
+      return payload;
+    }
+    function fillForm(user) {
+      form.elements.username.value = user.username;
+      form.elements.displayName.value = user.displayName || '';
+      form.elements.role.value = user.role || 'viewer';
+      form.elements.viewId.value = '';
+      form.elements.scopes.value = (user.scopes || []).join('\n');
+      form.elements.enabled.checked = Boolean(user.enabled);
+      form.elements.mustChangePassword.checked = Boolean(user.mustChangePassword);
+      form.elements.password.value = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function renderUsers(users) {
+      usersBody.textContent = '';
+      for (const user of users) {
+        const tr = document.createElement('tr');
+        const cells = [
+          user.username,
+          user.displayName || '',
+          user.role || '',
+          user.enabled ? 'yes' : 'no',
+          String(user.scopesCount ?? (user.scopes || []).length),
+          user.lastLoginAt || '',
+          user.lockedUntil || '',
+          user.mustChangePassword ? 'yes' : 'no'
+        ];
+        for (const value of cells) {
+          const td = document.createElement('td');
+          td.textContent = value;
+          tr.appendChild(td);
+        }
+        const actionTd = document.createElement('td');
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.className = 'secondary';
+        edit.textContent = 'Edit';
+        edit.onclick = () => fillForm(user);
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = user.enabled ? 'danger' : 'secondary';
+        toggle.textContent = user.enabled ? 'Disable' : 'Enable';
+        toggle.onclick = () => setEnabled(user.username, !user.enabled);
+        actions.append(edit, toggle);
+        actionTd.appendChild(actions);
+        tr.appendChild(actionTd);
+        usersBody.appendChild(tr);
+      }
+    }
+    async function loadUsers() {
+      const json = await requestJson('/ops/api/users');
+      renderUsers(json.users || []);
+      setStatus('Loaded');
+    }
+    async function setEnabled(username, enabled) {
+      try {
+        await requestJson(`/ops/api/users/${encodeURIComponent(username)}/${enabled ? 'enable' : 'disable'}`, { method: 'POST' });
+        await loadUsers();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      try {
+        await requestJson('/ops/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formPayload(true))
+        });
+        form.reset();
+        form.elements.enabled.checked = true;
+        form.elements.mustChangePassword.checked = true;
+        await loadUsers();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+    document.querySelector('#update-btn').onclick = async () => {
+      const payload = formPayload(false);
+      if (!payload.username) return;
+      try {
+        await requestJson(`/ops/api/users/${encodeURIComponent(payload.username)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        await loadUsers();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    };
+    document.querySelector('#reset-btn').onclick = async () => {
+      const payload = formPayload(true);
+      if (!payload.username || !payload.password) {
+        setStatus('Temporary password is required', true);
+        return;
+      }
+      try {
+        await requestJson(`/ops/api/users/${encodeURIComponent(payload.username)}/reset-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: payload.password })
+        });
+        form.elements.password.value = '';
+        await loadUsers();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    };
+    document.querySelector('#refresh-btn').onclick = () => loadUsers().catch(error => setStatus(error.message, true));
+    loadUsers().catch(error => setStatus(error.message, true));
+  </script>
+</body>
+</html>)USERS";
 }
 
 media::IngressRequest BuildHttpIngressRequest(const std::string& path,
@@ -20797,14 +21079,32 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (!session_id.has_value()) {
                                 return std::nullopt;
                             }
-                            std::lock_guard lock(impl_->auth_mu);
-                            cleanup_expired_auth_sessions();
-                            const auto it = impl_->auth_sessions.find(*session_id);
-                            if (it == impl_->auth_sessions.end()) {
+                            auth::Principal session_principal;
+                            {
+                                std::lock_guard lock(impl_->auth_mu);
+                                cleanup_expired_auth_sessions();
+                                const auto it = impl_->auth_sessions.find(*session_id);
+                                if (it == impl_->auth_sessions.end()) {
+                                    return std::nullopt;
+                                }
+                                it->second.last_seen_at = std::chrono::system_clock::now();
+                                session_principal = it->second.principal;
+                            }
+                            auth::AuthResult refreshed =
+                                auth::RefreshPrincipalFromUser(config, session_principal);
+                            if (!refreshed.ok) {
+                                std::lock_guard lock(impl_->auth_mu);
+                                impl_->auth_sessions.erase(*session_id);
                                 return std::nullopt;
                             }
-                            it->second.last_seen_at = std::chrono::system_clock::now();
-                            return it->second.principal;
+                            {
+                                std::lock_guard lock(impl_->auth_mu);
+                                const auto it = impl_->auth_sessions.find(*session_id);
+                                if (it != impl_->auth_sessions.end()) {
+                                    it->second.principal = refreshed.principal;
+                                }
+                            }
+                            return refreshed.principal;
                         };
                         auto build_request_principal = [&]() -> auth::AuthResult {
                             auth::AuthResult result =
@@ -20848,6 +21148,19 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             std::lock_guard lock(impl_->auth_mu);
                             impl_->auth_sessions.erase(*session_id);
+                        };
+                        auto revoke_auth_sessions_for = [&](const std::string& username) {
+                            if (username.empty()) {
+                                return;
+                            }
+                            std::lock_guard lock(impl_->auth_mu);
+                            for (auto it = impl_->auth_sessions.begin(); it != impl_->auth_sessions.end();) {
+                                if (it->second.principal.username == username) {
+                                    it = impl_->auth_sessions.erase(it);
+                                } else {
+                                    ++it;
+                                }
+                            }
                         };
                         auto stream_metadata_sse_response = [&](const std::string& tap_id,
                                                                 bool detach_on_close) -> HttpResponse {
@@ -20973,6 +21286,18 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (!auth::RequireRole(principal_result.principal, {"operator"})) {
                                 return JsonResponse(403, "Forbidden", "{\"error\":\"operator role required\"}");
+                            }
+                            return std::nullopt;
+                        };
+                        auto require_admin_principal = [&]() -> std::optional<HttpResponse> {
+                            if (!config.enable_ops) {
+                                return route_disabled_response("ops");
+                            }
+                            if (!principal_result.ok) {
+                                return AuthErrorResponse(principal_result.error);
+                            }
+                            if (!auth::IsAdmin(principal_result.principal)) {
+                                return JsonResponse(403, "Forbidden", "{\"error\":\"admin role required\"}");
                             }
                             return std::nullopt;
                         };
@@ -21264,11 +21589,70 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return ok;
                         }
 
+                        if (request.method == "GET" && request.path == "/ops/users") {
+                            if (const auto auth_response = require_admin_principal(); auth_response.has_value()) {
+                                if (!principal_result.ok && session_auth_mode && config.enable_ops) {
+                                    return RedirectResponse("/login");
+                                }
+                                return *auth_response;
+                            }
+                            HttpResponse ok;
+                            ok.content_type = "text/html; charset=utf-8";
+                            ok.headers["Cache-Control"] = "no-store";
+                            ok.body = BuildOpsUsersPageHtml();
+                            return ok;
+                        }
+
                         if (request.method == "GET" && request.path == "/ops/rules") {
                             if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
                                 return *auth_response;
                             }
                             return RedirectResponse("/lab/rules");
+                        }
+
+                        if (request.path == "/ops/api/users") {
+                            if (const auto auth_response = require_admin_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                return AuthUserHttpResponse(auth::ListAuthUsers(config));
+                            }
+                            if (request.method == "POST") {
+                                const auth::AuthUserResult result =
+                                    auth::CreateAuthUserFromJson(config, request.body);
+                                return AuthUserHttpResponse(result);
+                            }
+                        }
+
+                        if (request.path.rfind("/ops/api/users/", 0) == 0) {
+                            if (const auto auth_response = require_admin_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            const std::string suffix =
+                                request.path.substr(std::string("/ops/api/users/").size());
+                            const std::size_t slash = suffix.find('/');
+                            const std::string username =
+                                UrlDecode(slash == std::string::npos ? suffix : suffix.substr(0, slash));
+                            const std::string action =
+                                slash == std::string::npos ? std::string() : suffix.substr(slash + 1);
+                            auth::AuthUserResult result;
+                            if (request.method == "PUT" && action.empty()) {
+                                result = auth::UpdateAuthUserFromJson(config, username, request.body);
+                            } else if (request.method == "POST" && action == "reset-password") {
+                                result = auth::ResetAuthUserPasswordFromJson(config, username, request.body);
+                            } else if (request.method == "POST" && action == "disable") {
+                                result = auth::SetAuthUserEnabled(config, username, false);
+                            } else if (request.method == "POST" && action == "enable") {
+                                result = auth::SetAuthUserEnabled(config, username, true);
+                            } else {
+                                return JsonResponse(404,
+                                                    "Not Found",
+                                                    "{\"error\":\"user resource not found\"}");
+                            }
+                            if (result.status >= 200 && result.status < 300 && !result.username.empty()) {
+                                revoke_auth_sessions_for(result.username);
+                            }
+                            return AuthUserHttpResponse(result);
                         }
 
                         if (request.path == "/ops/api/sources") {
@@ -21449,7 +21833,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                         if (request.method == "GET" &&
                             (request.path == "/ops" || request.path == "/ops/live" ||
-                             request.path == "/ops/dashboard" || request.path == "/ops/events")) {
+                             request.path == "/ops/dashboard" || request.path == "/ops/events" ||
+                             request.path == "/ops/users")) {
                             if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
                                 if (!principal_result.ok && session_auth_mode && config.enable_ops) {
                                     return RedirectResponse("/login");
@@ -21464,6 +21849,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 active = "dashboard";
                             } else if (request.path == "/ops/events") {
                                 active = "events";
+                            } else if (request.path == "/ops/users") {
+                                active = "users";
                             }
                             ok.body = OpsShellPageHtml(principal_result.principal, active);
                             return ok;

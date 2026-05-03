@@ -28,6 +28,13 @@ struct AuthResult {
     std::string error;
 };
 
+struct AuthUserResult {
+    int status{500};
+    std::string status_text{"Internal Server Error"};
+    std::string body;
+    std::string username;
+};
+
 struct UserRecord {
     std::string username;
     std::string display_name;
@@ -52,6 +59,20 @@ struct PasswordPolicyResult {
     bool ok{false};
     std::vector<std::string> errors;
     std::string message;
+};
+
+struct UserMutation {
+    std::string username;
+    std::string display_name;
+    std::string role;
+    std::string view_id;
+    std::vector<std::string> scopes;
+    std::string password;
+    bool has_password{false};
+    bool enabled{true};
+    bool has_enabled{false};
+    bool must_change_password{true};
+    bool has_must_change_password{false};
 };
 
 struct BootstrapState {
@@ -80,6 +101,8 @@ Principal MakePrincipalForRole(const std::string& role,
 AuthResult BuildPrincipalFromRequest(const app::AppConfig& config,
                                      const HeaderMap& headers,
                                      const QueryMap& query);
+AuthResult RefreshPrincipalFromUser(const app::AppConfig& config,
+                                    const Principal& principal);
 AuthResult AuthenticateUserPassword(const app::AppConfig& config,
                                     const std::string& username,
                                     const std::string& password,
@@ -97,6 +120,28 @@ bool ChangeUserPassword(const app::AppConfig& config,
                         const std::string& confirm,
                         bool require_current_password,
                         std::string* error_message);
+std::vector<std::string> ScopeTemplateForRole(const std::string& role,
+                                              const std::string& view_id);
+AuthUserResult ListAuthUsers(const app::AppConfig& config);
+AuthUserResult CreateAuthUser(const app::AppConfig& config,
+                              const UserMutation& mutation);
+AuthUserResult UpdateAuthUser(const app::AppConfig& config,
+                              const std::string& username,
+                              const UserMutation& mutation);
+AuthUserResult ResetAuthUserPassword(const app::AppConfig& config,
+                                     const std::string& username,
+                                     const std::string& password);
+AuthUserResult SetAuthUserEnabled(const app::AppConfig& config,
+                                  const std::string& username,
+                                  bool enabled);
+AuthUserResult CreateAuthUserFromJson(const app::AppConfig& config,
+                                      const std::string& body);
+AuthUserResult UpdateAuthUserFromJson(const app::AppConfig& config,
+                                      const std::string& username,
+                                      const std::string& body);
+AuthUserResult ResetAuthUserPasswordFromJson(const app::AppConfig& config,
+                                             const std::string& username,
+                                             const std::string& body);
 
 bool PasswordHashingAvailable();
 const char* PasswordHashingScheme();
