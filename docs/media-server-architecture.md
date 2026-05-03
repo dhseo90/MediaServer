@@ -89,11 +89,11 @@ Users file은 `users`, `invites`, `accessRequests` top-level 배열을 보관합
 기본 역할:
 
 - `admin`: 모든 기능
-- `operator`: 운영 live monitor, rule/scenario 관리, runtime dashboard, event 조회
+- `operator`: 운영 콘솔, rule/scenario 관리, runtime dashboard, event 조회
 - `viewer`: 할당된 live view, 제한된 dashboard, 최근 event 요약
 - `integrator`: 허용된 metadata/event API 접근
 
-Viewer 계정은 `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}` 같은 view scope만 갖습니다. PublishedView가 아직 없는 환경에서는 문자열 기반 view scope assignment를 임시로 사용하며, viewer에는 debug/lab/ops/source/rule 관리 scope를 부여하지 않습니다.
+Viewer 계정은 `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}` 같은 view scope만 갖습니다. PublishedView가 비어 있거나 아직 계정 UI와 직접 연결되지 않은 환경에서는 문자열 기반 view scope assignment를 사용할 수 있으며, viewer에는 debug/lab/ops/source/rule 관리 scope를 부여하지 않습니다.
 
 ### SourceRegistry / PublishedView MVP
 
@@ -115,6 +115,14 @@ Viewer
 SourceRegistry는 `.media_server.sources.json`, PublishedView는 `.media_server.views.json`을 기본 저장소로 사용합니다. `canonicalSourceKey`는 file token 또는 URL을 정규화해 중복 등록을 막는 내부 운영 키이며, RTSP/HTTP URL query 순서 차이는 같은 source로 취급합니다.
 
 클라이언트 API는 `view:read:{viewId}` scope가 있는 view만 반환하고, `file`, `rtspUrl`, `httpUrl`, `webrtcSourceId`, `canonicalSourceKey` 같은 원본 locator는 반환하지 않습니다. PublishedView의 `defaultRuleId`와 `allowedRuleIds`는 기존 `vaRule` ID를 참조하지만, 기존 `vaRule` 저장 구조와 `vaRule=<id>` 호출 방식은 그대로 유지합니다.
+
+### Ops / Client / Lab UI shell
+
+HTTP UI는 같은 미디어/API 기능 위에 role별 shell을 얹는 구조입니다. Shell 통합은 browser route와 화면 구성만 다루며 media pipeline, Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema, scenario 판단 로직은 변경하지 않습니다.
+
+- `/ops`: admin/operator용 운영 콘솔입니다. 공통 header/nav 아래에서 Live, Dashboard, Sources, Rules, Events를 렌더링하고, Users는 admin 전용 관리 route로 분리합니다. `/ops/live`는 운영 홈 summary MVP이고, 완성형 operator live monitor는 후속입니다. `/ops/dashboard`와 `/ops/events`는 JSON endpoint로 직접 이동하지 않고 `/lab/runtime/status`, EventRecord/Event POST/storage API를 fetch해 card/table/badge로 표시합니다. raw JSON은 운영자 debug 접힘 영역에만 둡니다.
+- `/client`: viewer/client 포털입니다. `/client/live`는 PublishedView 기반 2x2 live monitor MVP이고, `/client/dashboard`와 `/client/events`는 scoped summary만 표시합니다. client shell과 client API는 source 원본 locator, Developer URL, raw JSON, `debugCounters`, internal session/tap id, rule/profile editor를 노출하지 않습니다.
+- `/lab`: 개발/검증용 shell입니다. 기존 `/lab`와 `/lab/rules` 자동화 호환을 유지하며 Runtime Dashboard, VA metadata viewer, developer/debug detail은 Lab에서 계속 확인합니다. `/ops/rules`는 Lab Rule Editor로 직접 redirect하지 않고 운영 shell 안에서 명시적 link/action을 제공합니다.
 
 ### Source+Profile analysis reuse
 
@@ -335,7 +343,8 @@ GET /lab/analysis/event-storage/status
 | EventStorage | optional JSON Lines | EventRecord 저장과 후속 조회/API 연결 |
 | WebRTC DataChannel | opt-in | runtime metadata frame을 기존 WebRTC schema로 직렬화해 video stream과 별도로 전달 |
 | Runtime Metadata Side-Channel | SSE/WebSocket 최소 구현 | custom client가 RTSP video와 별도 metadata stream을 함께 소비 |
-| 런타임 대시보드 | 구현 완료 | active session/stream/tap, VA metrics, state dump, tracking issue report를 Lab에서 확인 |
+| Ops/Client UI shell | 1차 통합 완료 | `/ops` 운영 콘솔, `/client` 클라이언트 포털, `/lab` 개발/검증 shell 역할 분리 |
+| 런타임 대시보드 | 구현 완료 | active session/stream/tap, VA metrics, state dump, tracking issue report를 Lab에서 확인. Ops dashboard는 runtime status를 운영 card UI로 요약 |
 | Scenario UI | 일부 완료, 일부 다음 작업 | ReEntry/IntrusionAfterLineCrossing은 룰 편집 UI에서 선택 가능. Loitering UI와 ZoneOccupancyScenario는 다음 작업 |
 | Re-ID hook | 기본 NoOp, 실험용 extractor hook | appearance profile과 reacquire/low confidence association 보조 |
 | Homography | optional config | image point를 ground-plane point로 변환해 distance/speed/radius 계산 보조 |
