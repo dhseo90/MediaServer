@@ -47,6 +47,7 @@
 #include "ingress/http_auth.h"
 #include "ingress/request_parser.h"
 #include "ingress/lab_import_manager.h"
+#include "ingress/source_view_registry.h"
 #include "ingress/webrtc_egress_session.h"
 #include "ingress/webrtc_source_registry.h"
 #include "ingress/webrtc_source_session.h"
@@ -15746,6 +15747,10 @@ HttpResponse JsonResponse(int status, const std::string& status_text, const std:
     return response;
 }
 
+HttpResponse RegistryHttpResponse(const RegistryResult& result) {
+    return JsonResponse(result.status, result.status_text, result.body);
+}
+
 HttpResponse AuthErrorResponse(const std::string& error) {
     HttpResponse response = JsonResponse(401,
                                          "Unauthorized",
@@ -15910,6 +15915,7 @@ std::string AuthLandingPageHtml(const auth::Principal& principal,
     .panel { display: grid; gap: 10px; padding: 18px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; }
     .meta { display: flex; gap: 8px; flex-wrap: wrap; }
     .chip { padding: 6px 9px; border-radius: 999px; background: #e0f2fe; color: #075985; font-size: 13px; font-weight: 800; }
+    a.action { color: #0369a1; font-weight: 900; text-decoration: none; }
     button { min-height: 38px; border: 0; border-radius: 6px; background: #0f172a; color: #fff; padding: 0 14px; font-weight: 800; cursor: pointer; }
   </style>
 </head>
@@ -15937,10 +15943,253 @@ std::string AuthLandingPageHtml(const auth::Principal& principal,
     }
     out << R"(</p>
     </section>
+)";
+    if (auth::RequireRole(principal, {"operator"})) {
+        out << R"(    <section class="panel"><a class="action" href="/ops/sources">Source Registry / Published View</a></section>
+)";
+    }
+    out << R"(
   </main>
 </body>
 </html>)";
     return out.str();
+}
+
+std::string BuildOpsSourcesPageHtml() {
+    return R"OPS(<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Source Registry</title>
+  <style>
+    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; background: #f8fafc; color: #0f172a; }
+    main { max-width: 1180px; margin: 0 auto; padding: 28px 18px 40px; display: grid; gap: 18px; }
+    header { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    h1, h2 { margin: 0; }
+    h1 { font-size: 26px; }
+    h2 { font-size: 18px; }
+    a { color: #0369a1; font-weight: 800; text-decoration: none; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; align-items: start; }
+    section { display: grid; gap: 12px; padding: 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; }
+    form { display: grid; gap: 10px; }
+    label { display: grid; gap: 5px; font-size: 13px; font-weight: 800; color: #334155; }
+    input, select, textarea { width: 100%; box-sizing: border-box; border: 1px solid #94a3b8; border-radius: 6px; min-height: 36px; padding: 7px 9px; font: inherit; background: #fff; color: #0f172a; }
+    textarea { min-height: 72px; resize: vertical; }
+    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .checks { display: flex; gap: 12px; flex-wrap: wrap; }
+    .checks label { display: flex; align-items: center; gap: 6px; }
+    .checks input { width: auto; min-height: auto; }
+    button { min-height: 36px; border: 0; border-radius: 6px; background: #0f172a; color: #fff; padding: 0 12px; font-weight: 900; cursor: pointer; }
+    button.secondary { background: #e2e8f0; color: #0f172a; }
+    button.danger { background: #b91c1c; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .status { min-height: 22px; font-size: 13px; color: #0369a1; font-weight: 800; }
+    .status.error { color: #b91c1c; }
+    pre { margin: 0; max-height: 420px; overflow: auto; padding: 12px; border-radius: 8px; background: #0f172a; color: #e2e8f0; font-size: 12px; line-height: 1.45; white-space: pre-wrap; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #020617; color: #f8fafc; }
+      section { background: #0f172a; border-color: #334155; }
+      label { color: #cbd5e1; }
+      input, select, textarea { background: #020617; color: #f8fafc; border-color: #475569; }
+      a { color: #7dd3fc; }
+      button.secondary { background: #334155; color: #f8fafc; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Source Registry / Published View</h1>
+      </div>
+      <a href="/ops">Ops</a>
+    </header>
+
+    <div class="grid">
+      <section>
+        <h2>Source</h2>
+        <form id="source-form">
+          <div class="row">
+            <label>Source ID<input name="sourceId" value="camera-1" required /></label>
+            <label>Name<input name="displayName" value="Camera 1" /></label>
+            <label>Kind
+              <select name="kind">
+                <option value="file">file</option>
+                <option value="rtsp">rtsp</option>
+                <option value="webrtc">webrtc</option>
+                <option value="http">http</option>
+              </select>
+            </label>
+          </div>
+          <label>File<input name="file" value="sample_h264.mp4" /></label>
+          <label>RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live?b=2&a=1" /></label>
+          <label>WebRTC Source ID<input name="webrtcSourceId" /></label>
+          <label>HTTP URL<input name="httpUrl" /></label>
+          <div class="row">
+            <label>Tags<input name="tags" placeholder="site-a, entrance" /></label>
+            <label>Owner Group<input name="ownerGroup" placeholder="client-a" /></label>
+          </div>
+          <div class="checks"><label><input name="enabled" type="checkbox" checked /> enabled</label></div>
+          <div class="actions">
+            <button type="submit">Save Source</button>
+            <button id="disable-source" class="danger" type="button">Disable Source</button>
+          </div>
+        </form>
+      </section>
+
+      <section>
+        <h2>Published View</h2>
+        <form id="view-form">
+          <div class="row">
+            <label>View ID<input name="viewId" value="lobby-live" required /></label>
+            <label>Name<input name="displayName" value="Lobby Live" /></label>
+            <label>Source ID<input name="sourceId" value="camera-1" required /></label>
+          </div>
+          <div class="row">
+            <label>Default Rule ID<input name="defaultRuleId" placeholder="1" /></label>
+            <label>Allowed Rule IDs<input name="allowedRuleIds" placeholder="1, 2" /></label>
+            <label>Overlay Modes<input name="allowedOverlayModes" value="metadata, server-overlay" /></label>
+          </div>
+          <div class="row">
+            <label>Client Groups<input name="clientGroups" placeholder="client-a" /></label>
+            <label>Max Tiles<input name="maxTiles" type="number" min="1" max="64" value="1" /></label>
+          </div>
+          <div class="checks">
+            <label><input name="showDashboard" type="checkbox" checked /> dashboard</label>
+            <label><input name="showEvents" type="checkbox" checked /> events</label>
+            <label><input name="showMetadataSummary" type="checkbox" checked /> metadata</label>
+            <label><input name="enabled" type="checkbox" checked /> enabled</label>
+          </div>
+          <div class="actions">
+            <button type="submit">Save View</button>
+            <button id="disable-view" class="danger" type="button">Disable View</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <section>
+      <div class="actions">
+        <button id="refresh" class="secondary" type="button">Refresh</button>
+        <span id="status" class="status"></span>
+      </div>
+      <div class="grid">
+        <pre id="sources-json">{}</pre>
+        <pre id="views-json">{}</pre>
+        <pre id="client-views-json">{}</pre>
+      </div>
+    </section>
+  </main>
+  <script>
+    const statusEl = document.querySelector('#status');
+    const splitList = value => value.split(',').map(v => v.trim()).filter(Boolean);
+    const setStatus = (message, failed = false) => {
+      statusEl.textContent = message;
+      statusEl.classList.toggle('error', failed);
+    };
+    async function requestJson(url, options = {}) {
+      const res = await fetch(url, { credentials: 'same-origin', ...options });
+      const text = await res.text();
+      let json;
+      try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
+      if (!res.ok) throw new Error(json.error || `${res.status} ${res.statusText}`);
+      return json;
+    }
+    async function loadAll() {
+      const [sources, views, clientViews] = await Promise.all([
+        requestJson('/ops/api/sources'),
+        requestJson('/ops/api/views'),
+        requestJson('/client/api/views')
+      ]);
+      document.querySelector('#sources-json').textContent = JSON.stringify(sources, null, 2);
+      document.querySelector('#views-json').textContent = JSON.stringify(views, null, 2);
+      document.querySelector('#client-views-json').textContent = JSON.stringify(clientViews, null, 2);
+      setStatus('Loaded');
+    }
+    document.querySelector('#source-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const data = Object.fromEntries(new FormData(form).entries());
+      const payload = {
+        sourceId: data.sourceId,
+        displayName: data.displayName,
+        kind: data.kind,
+        enabled: form.elements.enabled.checked,
+        tags: splitList(data.tags || ''),
+        ownerGroup: data.ownerGroup || ''
+      };
+      ['file', 'rtspUrl', 'webrtcSourceId', 'httpUrl'].forEach(key => {
+        if ((data[key] || '').trim()) payload[key] = data[key].trim();
+      });
+      try {
+        const saved = await requestJson(`/ops/api/sources/${encodeURIComponent(data.sourceId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        setStatus(`Source ${saved.status}`);
+        await loadAll();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+    document.querySelector('#view-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const data = Object.fromEntries(new FormData(form).entries());
+      const payload = {
+        viewId: data.viewId,
+        displayName: data.displayName,
+        sourceId: data.sourceId,
+        defaultRuleId: data.defaultRuleId || '',
+        allowedRuleIds: splitList(data.allowedRuleIds || ''),
+        allowedOverlayModes: splitList(data.allowedOverlayModes || ''),
+        showDashboard: form.elements.showDashboard.checked,
+        showEvents: form.elements.showEvents.checked,
+        showMetadataSummary: form.elements.showMetadataSummary.checked,
+        clientGroups: splitList(data.clientGroups || ''),
+        maxTiles: Number(data.maxTiles || 1),
+        enabled: form.elements.enabled.checked
+      };
+      try {
+        const saved = await requestJson(`/ops/api/views/${encodeURIComponent(data.viewId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        setStatus(`View ${saved.status}`);
+        await loadAll();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+    document.querySelector('#disable-source').addEventListener('click', async () => {
+      const id = document.querySelector('#source-form [name="sourceId"]').value.trim();
+      if (!id) return;
+      try {
+        await requestJson(`/ops/api/sources/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        await loadAll();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+    document.querySelector('#disable-view').addEventListener('click', async () => {
+      const id = document.querySelector('#view-form [name="viewId"]').value.trim();
+      if (!id) return;
+      try {
+        await requestJson(`/ops/api/views/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        await loadAll();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+    document.querySelector('#refresh').addEventListener('click', () => loadAll().catch(error => setStatus(error.message, true)));
+    loadAll().catch(error => setStatus(error.message, true));
+  </script>
+</body>
+</html>)OPS";
 }
 
 media::IngressRequest BuildHttpIngressRequest(const std::string& path,
@@ -18914,6 +19163,21 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             return HttpResponse{};
                         };
+                        auto require_ops_principal = [&]() -> std::optional<HttpResponse> {
+                            if (!principal_result.ok) {
+                                return AuthErrorResponse(principal_result.error);
+                            }
+                            if (!auth::RequireRole(principal_result.principal, {"operator"})) {
+                                return JsonResponse(403, "Forbidden", "{\"error\":\"operator role required\"}");
+                            }
+                            return std::nullopt;
+                        };
+                        auto require_client_principal = [&]() -> std::optional<HttpResponse> {
+                            if (!principal_result.ok) {
+                                return AuthErrorResponse(principal_result.error);
+                            }
+                            return std::nullopt;
+                        };
 
                         if (request.method == "GET" && request.path == "/health") {
                             HttpResponse ok;
@@ -19002,6 +19266,106 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 redirect.body = "Redirecting to /lab/rules\n";
                             }
                             return redirect;
+                        }
+
+                        if (request.method == "GET" && request.path == "/ops/sources") {
+                            if (!principal_result.ok) {
+                                if (config.auth_mode == app::AuthMode::Session) {
+                                    return RedirectResponse("/login");
+                                }
+                                return AuthErrorResponse(principal_result.error);
+                            }
+                            if (!auth::RequireRole(principal_result.principal, {"operator"})) {
+                                return JsonResponse(403, "Forbidden", "{\"error\":\"operator role required\"}");
+                            }
+                            HttpResponse ok;
+                            ok.content_type = "text/html; charset=utf-8";
+                            ok.headers["Cache-Control"] = "no-store";
+                            ok.body = BuildOpsSourcesPageHtml();
+                            return ok;
+                        }
+
+                        if (request.path == "/ops/api/sources") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                return JsonResponse(200, "OK", SourceViewRegistry::Instance().SourcesJson());
+                            }
+                            if (request.method == "POST") {
+                                return RegistryHttpResponse(
+                                    SourceViewRegistry::Instance().CreateSource(request.body));
+                            }
+                        }
+
+                        if (request.path.rfind("/ops/api/sources/", 0) == 0) {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            const std::string source_id =
+                                UrlDecode(request.path.substr(std::string("/ops/api/sources/").size()));
+                            if (request.method == "PUT") {
+                                return RegistryHttpResponse(
+                                    SourceViewRegistry::Instance().UpsertSource(source_id, request.body));
+                            }
+                            if (request.method == "DELETE") {
+                                return RegistryHttpResponse(
+                                    SourceViewRegistry::Instance().DisableSource(source_id));
+                            }
+                        }
+
+                        if (request.path == "/ops/api/views") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                return JsonResponse(200, "OK", SourceViewRegistry::Instance().ViewsJson());
+                            }
+                            if (request.method == "POST") {
+                                return RegistryHttpResponse(
+                                    SourceViewRegistry::Instance().CreateView(request.body));
+                            }
+                        }
+
+                        if (request.path.rfind("/ops/api/views/", 0) == 0) {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            const std::string view_id =
+                                UrlDecode(request.path.substr(std::string("/ops/api/views/").size()));
+                            if (request.method == "PUT") {
+                                return RegistryHttpResponse(
+                                    SourceViewRegistry::Instance().UpsertView(view_id, request.body));
+                            }
+                            if (request.method == "DELETE") {
+                                return RegistryHttpResponse(
+                                    SourceViewRegistry::Instance().DisableView(view_id));
+                            }
+                        }
+
+                        if (request.path == "/client/api/views") {
+                            if (const auto auth_response = require_client_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                return JsonResponse(
+                                    200,
+                                    "OK",
+                                    SourceViewRegistry::Instance().ClientViewsJson(principal_result.principal));
+                            }
+                        }
+
+                        if (request.path.rfind("/client/api/views/", 0) == 0) {
+                            if (const auto auth_response = require_client_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            const std::string view_id =
+                                UrlDecode(request.path.substr(std::string("/client/api/views/").size()));
+                            if (request.method == "GET") {
+                                return RegistryHttpResponse(
+                                    SourceViewRegistry::Instance().ClientViewJson(view_id,
+                                                                                  principal_result.principal));
+                            }
                         }
 
                         if (request.method == "GET" && request.path == "/ops") {
