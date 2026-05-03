@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <optional>
@@ -91,17 +92,32 @@ bool LooksLikeJsonObject(const std::string& body) {
     return trimmed.size() >= 2 && trimmed.front() == '{' && trimmed.back() == '}';
 }
 
-std::optional<std::string> ParseStringField(const std::string& body, const std::string& field) {
+std::optional<std::size_t> FindJsonFieldColon(const std::string& body, const std::string& field) {
     const std::string needle = "\"" + field + "\"";
-    std::size_t pos = body.find(needle);
-    if (pos == std::string::npos) {
+    std::size_t search_pos = 0;
+    while (search_pos < body.size()) {
+        const std::size_t pos = body.find(needle, search_pos);
+        if (pos == std::string::npos) {
+            return std::nullopt;
+        }
+        std::size_t after = pos + needle.size();
+        while (after < body.size() && std::isspace(static_cast<unsigned char>(body[after])) != 0) {
+            ++after;
+        }
+        if (after < body.size() && body[after] == ':') {
+            return after;
+        }
+        search_pos = pos + needle.size();
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string> ParseStringField(const std::string& body, const std::string& field) {
+    const auto colon_pos = FindJsonFieldColon(body, field);
+    if (!colon_pos.has_value()) {
         return std::nullopt;
     }
-    pos = body.find(':', pos + needle.size());
-    if (pos == std::string::npos) {
-        return std::nullopt;
-    }
-    pos = body.find('"', pos);
+    std::size_t pos = body.find('"', *colon_pos + 1);
     if (pos == std::string::npos) {
         return std::nullopt;
     }
@@ -141,16 +157,11 @@ std::optional<std::string> ParseStringField(const std::string& body, const std::
 }
 
 std::optional<int> ParseIntField(const std::string& body, const std::string& field) {
-    const std::string needle = "\"" + field + "\"";
-    std::size_t pos = body.find(needle);
-    if (pos == std::string::npos) {
+    const auto colon_pos = FindJsonFieldColon(body, field);
+    if (!colon_pos.has_value()) {
         return std::nullopt;
     }
-    pos = body.find(':', pos + needle.size());
-    if (pos == std::string::npos) {
-        return std::nullopt;
-    }
-    ++pos;
+    std::size_t pos = *colon_pos + 1;
     while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) {
         ++pos;
     }
@@ -172,16 +183,11 @@ std::optional<int> ParseIntField(const std::string& body, const std::string& fie
 }
 
 std::optional<bool> ParseBoolField(const std::string& body, const std::string& field) {
-    const std::string needle = "\"" + field + "\"";
-    std::size_t pos = body.find(needle);
-    if (pos == std::string::npos) {
+    const auto colon_pos = FindJsonFieldColon(body, field);
+    if (!colon_pos.has_value()) {
         return std::nullopt;
     }
-    pos = body.find(':', pos + needle.size());
-    if (pos == std::string::npos) {
-        return std::nullopt;
-    }
-    ++pos;
+    std::size_t pos = *colon_pos + 1;
     while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) {
         ++pos;
     }
@@ -198,12 +204,11 @@ std::optional<std::string> ExtractDelimitedField(const std::string& body,
                                                  const std::string& field,
                                                  char open_ch,
                                                  char close_ch) {
-    const std::string needle = "\"" + field + "\"";
-    std::size_t pos = body.find(needle);
-    if (pos == std::string::npos) {
+    const auto colon_pos = FindJsonFieldColon(body, field);
+    if (!colon_pos.has_value()) {
         return std::nullopt;
     }
-    pos = body.find(open_ch, pos + needle.size());
+    std::size_t pos = body.find(open_ch, *colon_pos + 1);
     if (pos == std::string::npos) {
         return std::nullopt;
     }
@@ -296,12 +301,11 @@ std::vector<std::string> ParseStringArrayField(const std::string& body, const st
 
 std::vector<std::string> ExtractJsonObjectArray(const std::string& body, const std::string& field) {
     std::vector<std::string> objects;
-    const std::string needle = "\"" + field + "\"";
-    std::size_t pos = body.find(needle);
-    if (pos == std::string::npos) {
+    const auto colon_pos = FindJsonFieldColon(body, field);
+    if (!colon_pos.has_value()) {
         return objects;
     }
-    pos = body.find('[', pos + needle.size());
+    std::size_t pos = body.find('[', *colon_pos + 1);
     if (pos == std::string::npos) {
         return objects;
     }
@@ -488,6 +492,58 @@ std::string CanonicalSourceKey(const SourceViewRegistry::SourceRecord& source) {
         return "http:" + CanonicalizeUrl(source.http_url);
     }
     return std::string();
+}
+
+std::vector<SourceViewRegistry::SourceRecord> DefaultSourceRecords() {
+    SourceViewRegistry::SourceRecord file_source;
+    file_source.source_id = "1";
+    file_source.display_name = "Sample H264";
+    file_source.kind = "file";
+    file_source.file = "sample_h264.mp4";
+    file_source.enabled = true;
+    file_source.canonical_source_key = CanonicalSourceKey(file_source);
+
+    SourceViewRegistry::SourceRecord va_source;
+    va_source.source_id = "2";
+    va_source.display_name = "VA Test File";
+    va_source.kind = "file";
+    va_source.file = "va_four_scene_sample.mp4";
+    va_source.enabled = true;
+    va_source.canonical_source_key = CanonicalSourceKey(va_source);
+
+    SourceViewRegistry::SourceRecord rtsp_source;
+    rtsp_source.source_id = "3";
+    rtsp_source.display_name = "Public RTSP Test";
+    rtsp_source.kind = "rtsp";
+    rtsp_source.rtsp_url = "rtsp://9627b0bf2a7b.entrypoint.cloud.wowza.com:1935/app-p5260J38/66abe4b9_stream1";
+    rtsp_source.enabled = true;
+    rtsp_source.canonical_source_key = CanonicalSourceKey(rtsp_source);
+
+    SourceViewRegistry::SourceRecord http_source;
+    http_source.source_id = "4";
+    http_source.display_name = "Public HTTP HLS Test";
+    http_source.kind = "http";
+    http_source.http_url =
+        "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8";
+    http_source.enabled = true;
+    http_source.canonical_source_key = CanonicalSourceKey(http_source);
+
+    return {file_source, va_source, rtsp_source, http_source};
+}
+
+SourceViewRegistry::PublishedViewRecord DefaultPublishedViewRecord(
+    const SourceViewRegistry::SourceRecord& source) {
+    SourceViewRegistry::PublishedViewRecord view;
+    view.view_id = source.source_id.empty() ? "1" : source.source_id;
+    view.display_name = source.display_name.empty() ? "Default Channel" : source.display_name;
+    view.source_id = source.source_id;
+    view.allowed_overlay_modes = {"raw"};
+    view.show_dashboard = true;
+    view.show_events = true;
+    view.show_metadata_summary = true;
+    view.max_tiles = 1;
+    view.enabled = source.enabled;
+    return view;
 }
 
 std::optional<SourceViewRegistry::SourceRecord> ParseSourceRecord(const std::string& body,
@@ -988,6 +1044,8 @@ void SourceViewRegistry::EnsureLoadedLocked() {
     loaded_ = true;
     source_storage_path_ = app::GetAppConfig().source_registry_path;
     views_storage_path_ = app::GetAppConfig().published_views_path;
+    bool sources_seeded = false;
+    bool views_seeded = false;
 
     {
         std::ifstream in(source_storage_path_);
@@ -1002,6 +1060,16 @@ void SourceViewRegistry::EnsureLoadedLocked() {
                     !FindSource(sources_, source->source_id).has_value()) {
                     sources_.push_back(*source);
                 }
+            }
+        }
+    }
+    if (sources_.empty()) {
+        for (auto& source : DefaultSourceRecords()) {
+            if (!source.source_id.empty() && !source.canonical_source_key.empty() &&
+                !FindDuplicateSourceId(sources_, source.canonical_source_key, source.source_id).has_value() &&
+                !FindSource(sources_, source.source_id).has_value()) {
+                sources_.push_back(std::move(source));
+                sources_seeded = true;
             }
         }
     }
@@ -1023,6 +1091,18 @@ void SourceViewRegistry::EnsureLoadedLocked() {
                 }
             }
         }
+    }
+    if (views_.empty()) {
+        for (const auto& source : sources_) {
+            views_.push_back(DefaultPublishedViewRecord(source));
+        }
+        views_seeded = true;
+    }
+    if (sources_seeded) {
+        SaveSourcesLocked();
+    }
+    if (views_seeded) {
+        SaveViewsLocked();
     }
 }
 

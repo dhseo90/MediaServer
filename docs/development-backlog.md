@@ -20,12 +20,12 @@
 - 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, client-side Trend/Stale/Cleanup warning 1차, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, IntrusionDwell/ReEntry/WrongDirection/IntrusionAfterLineCrossing scenario UI 템플릿, 자동/longrun 검증 명령.
 - 구현 완료: Auth / Role / Scope, account login/session API/route MVP, Auth Bootstrap + 기본 로그인 강제, Password Policy + Lockout + Session Hardening, Admin User Management Console + CLI, Client Account Policy / Invite / Request skeleton, Root/Login/Ops/Client/Lab 접근 정책.
 - 구현 완료: SourceRegistry / PublishedView API/route MVP, client scoped view API 1차, Client scoped dashboard API/UI MVP, Client Live Monitor 2x2 MVP.
-- 구현 완료: `/setup`, `/login`, `/ops`, `/client` 제품 UI shell 통합 1차. `/ops/dashboard`와 `/ops/events`는 raw JSON direct navigation 대신 card/table UI를 사용하고, raw JSON은 운영자 debug 접힘 영역에만 둡니다.
+- 구현 완료: `/setup`, `/login`, `/ops`, `/client` 제품 UI shell 통합 1차. Ops primary nav는 홈/대시보드/채널/룰/사용자/클라이언트 미리보기로 정리했고, client primary nav는 라이브/대시보드만 유지합니다. `/ops/dashboard`는 기존 Lab Runtime Dashboard를 shell 안에 표시하며 raw JSON은 운영자 debug 접힘 영역에만 둡니다.
 - 기존 Scenario UI 로드맵 1~4번 완료: Runtime Dashboard trend/stale/cleanup warning 1차, Scenario rule payload -> runtime per-rule 설정 연결, ReEntry Scenario UI 템플릿, IntrusionAfterLineCrossing Scenario UI 템플릿.
 - ReEntry와 IntrusionAfterLineCrossing은 룰 편집 UI에서 선택 가능하며 저장/round-trip 검증 대상입니다.
 - 현재 우선순위: 운영/클라이언트 분리의 제품 진입점 정합성을 위해 Auth Bootstrap, password policy/lockout/session hardening, admin 계정 관리, client invite/request skeleton, role/scope 기반 root/route 접근 정책, Ops/Client shell 통합 1차를 완료했고 문서 상태를 실제 구현 기준으로 닫습니다.
 - 다음 작업: Loitering UI 템플릿과 ZoneOccupancyScenario 신규 구현은 Ops/Client 문서 상태 정리 뒤에도 보류/다음 작업으로 유지합니다.
-- 후속 Phase: 다음 운영/클라이언트 phase의 진입점은 SourceRegistry / PublishedView 기반 고도화입니다. PublishedView 기반 scope picker, Client scoped dashboard polish, Client Live Monitor 상태 표현, Operator Live Monitor 고밀도 화면, Analysis tap reuse / source+profile 공유 정책 UI는 아래 운영/클라이언트 분리 phase에서 별도로 관리합니다.
+- 후속 Phase: 다음 운영/클라이언트 phase의 진입점은 외부 WebRTC/WHEP URL pull 구현과 SourceRegistry/PublishedView 기반 고도화입니다. PublishedView 기반 scope picker, Client scoped dashboard polish, Client Live Monitor 상태 표현, Operator Live Monitor 고밀도 화면, Analysis tap reuse / source+profile 공유 정책 UI는 아래 운영/클라이언트 분리 phase에서 별도로 관리합니다.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
 - 실험/제약: snapshot/clip은 hook/marker 중심이며 실제 제품용 frame extraction/clip recorder는 후속 구현입니다. VMS/NVR 녹화 기능으로 표현하지 않습니다.
 - 남은 후속: EventRecord archive query/compaction, 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화(sparkline/장기 baseline), WS metadata filter/subscription/control, 실제 현장 샘플 기반 튜닝입니다.
@@ -48,15 +48,23 @@
 
 - 상태: 완료: API/route MVP + `/ops/sources` product UI integration 1차
 - 목적: 내부 source 관리와 클라이언트에 공개되는 view 모델을 분리합니다.
-- 완료 범위: `.media_server.sources.json`, `.media_server.views.json`, `MEDIA_SERVER_SOURCE_REGISTRY`, `MEDIA_SERVER_PUBLISHED_VIEWS`, `/ops/api/sources`, `/ops/api/views`, `/client/api/views`, `/client/api/views/{viewId}`, canonical source 중복 차단, `/ops/sources` Source/PublishedView form과 list table, registry raw JSON debug drawer입니다.
+- 완료 범위: `.media_server.sources.json`, `.media_server.views.json`, `MEDIA_SERVER_SOURCE_REGISTRY`, `MEDIA_SERVER_PUBLISHED_VIEWS`, `/ops/api/sources`, `/ops/api/views`, `/client/api/views`, `/client/api/views/{viewId}`, canonical source 중복 차단, `/ops/sources` 숫자 채널 table/list-first UI, 채널 추가/보기/수정/복제/비활성화/삭제 흐름, 기본 file/VA file/공개 RTSP/HLS seed, Live/VA URL의 RTSP/WebRTC 복사 버튼, registry raw JSON debug drawer입니다.
 - 후속: source lifecycle 상태, bulk action, PublishedView 기반 visual scope picker, source health와 operator live monitor 연결은 다음 묶음에서 진행합니다.
 - 우선순위 이유: source 원본 설정, 운영자 제어, 클라이언트 노출 범위를 한 모델로 섞지 않기 위한 선행 작업입니다.
+
+### O2a. External WebRTC/WHEP URL source pull
+
+- 상태: 최우선 후속. UI 정리 후 바로 진행
+- 목적: SourceRegistry에 외부 WebRTC/WHEP playback URL을 등록하고 서버가 해당 remote WebRTC source를 pull해서 기존 RTSP/HTTP/file source와 같은 PublishedView/Rule/Event 대상으로 사용할 수 있게 합니다.
+- 현재 제약: `kind=webrtc`와 `webrtcSourceId`는 외부 URL이 아니라 `/whip/publish`로 먼저 등록된 내부 sourceId를 소비하는 1차 경로입니다. 현재 구현만으로 공개 WebRTC/WHEP URL을 채널 기본값에 넣으면 재생 가능한 source가 아니라 실패하는 source가 됩니다. 이 오해를 막기 위해 WebRTC/WHIP source 선택지는 product UI에서 임시로 숨겨 둡니다.
+- 구현 후보: 외부 WHEP pull용 source kind 또는 locator를 별도로 정의하고, GStreamer `whepsrc` 또는 동등한 WebRTC HTTP egress client path를 검증한 뒤 SourceRegistry/PublishedView, client live wrapper, rule/event source 선택과 연결합니다.
+- 주의: 기존 `webrtcSourceId` schema 의미를 조용히 바꾸지 않습니다. API schema를 바꿔야 한다면 별도 승인 후 migration/compat plan을 둡니다.
 
 ### O3. `/ops` / `/client` / `/lab` route 분리
 
 - 상태: 완료: route MVP + product UI shell integration 1차
 - 목적: 운영 화면, 클라이언트 화면, 개발/lab 화면의 URL과 역할을 분리합니다.
-- 완료 범위: `MEDIA_SERVER_UI_DEFAULT_HOME`, `MEDIA_SERVER_ENABLE_LAB`, `MEDIA_SERVER_ENABLE_OPS`, `MEDIA_SERVER_ENABLE_CLIENT`, role-aware `/` redirect, `/setup`/`/login` auth shell, `/ops` 공통 shell, `/ops/home` 운영 홈 summary MVP, `/ops/live` 후속 Operator Live Monitor 안내 route, `/ops/dashboard` runtime card UI, `/ops/events` EventRecord/Event POST card/table UI, `/ops/rules` shell 안내 card, `/client` 공통 shell, `/client/live` 2x2 MVP, `/lab` guard와 기존 `/lab/rules` 호환 유지입니다.
+- 완료 범위: `MEDIA_SERVER_UI_DEFAULT_HOME`, `MEDIA_SERVER_ENABLE_LAB`, `MEDIA_SERVER_ENABLE_OPS`, `MEDIA_SERVER_ENABLE_CLIENT`, role-aware `/` redirect, `/setup`/`/login` auth shell, `/ops` 공통 shell, `/ops/home` 운영 홈 summary MVP, `/ops/live` 후속 Operator Live Monitor 안내 route, `/ops/dashboard` 기존 Lab Runtime Dashboard embed, `/ops/events` primary nav 숨김/진단 route 보존, `/ops/rules` Lab Rule Editor embed, `/ops/users` list-first 계정 관리 UI, `/client` 공통 shell, `/client/live` 2x2 MVP, `/client/dashboard`, client Events tab 제거, `/lab` guard와 기존 `/lab/rules` 호환 유지입니다.
 - 후속: Operator Live Monitor에서 source/runtime/event 운영 상태를 더 높은 정보 밀도로 연결하고, `/ops` nav별 URL 이동 후에도 동일 shell 정보 위계를 계속 다듬습니다.
 - 우선순위 이유: 현재 lab 중심 UI에서 운영/고객 화면으로 확장할 때 권한과 탐색 구조가 명확해야 합니다.
 
@@ -64,7 +72,7 @@
 
 - 상태: 완료: API/route MVP + client product UI MVP
 - 목적: 클라이언트 scope에 맞는 source/view/event 요약 dashboard를 구성합니다.
-- 완료 범위: `/client/dashboard`, `/client/api/views/{viewId}/dashboard`, `/client/api/views/{viewId}/events?limit=...`, PublishedView `showDashboard`/`showEvents` 플래그, `dashboard:read:{viewId}`/`event:read:{viewId}` scope guard, source/profile tap snapshot 기반 health/stale 요약, sanitized event summary입니다.
+- 완료 범위: `/client/dashboard`, `/client/api/views/{viewId}/dashboard`, `/client/api/views/{viewId}/events?limit=...`, PublishedView `showDashboard`/`showEvents` 플래그, `dashboard:read:{viewId}`/`event:read:{viewId}` scope guard, source/profile tap snapshot 기반 health/stale 요약, sanitized event summary입니다. `/client/events` 화면은 primary nav에서 제거하고 dashboard 맥락으로 통합했습니다.
 - 보안/노출 정책: source 원본 URL, Developer URL, raw JSON, debugCounters, analysisTapId, internal session id, rule/profile editor, Event POST 설정, SSE/WS 전체 endpoint는 client dashboard 응답과 화면에 노출하지 않습니다.
 - 후속: 현장형 empty/error/loading 상태, trend visualization, multi-view 비교, client용 event copy polish를 진행합니다.
 - 우선순위 이유: 운영자용 runtime/debug 정보와 클라이언트용 상태 요약을 분리해야 합니다.

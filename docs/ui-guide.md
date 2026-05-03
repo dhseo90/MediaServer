@@ -11,8 +11,8 @@
 | 로그인 | `http://127.0.0.1:8080/login` | session mode에서 계정 로그인과 role별 landing 이동 |
 | 운영 콘솔 | `http://127.0.0.1:8080/ops` 또는 `/ops/home` | admin/operator용 운영 shell과 운영 홈 summary MVP |
 | 운영 Dashboard | `http://127.0.0.1:8080/ops/dashboard` | runtime status를 card/detail UI로 표시 |
-| 운영 Events | `http://127.0.0.1:8080/ops/events` | EventRecord/Event POST/storage 상태를 card/table UI로 표시 |
-| Source/View 관리 | `http://127.0.0.1:8080/ops/sources` | admin/operator용 SourceRegistry와 PublishedView 관리 MVP |
+| 운영 Events 직접 route | `http://127.0.0.1:8080/ops/events` | primary nav에서 숨긴 후속/진단 route |
+| 채널 관리 | `http://127.0.0.1:8080/ops/sources` | admin/operator용 숫자 채널 목록과 SourceRegistry/PublishedView 연결 관리 |
 | 계정 관리 | `http://127.0.0.1:8080/ops/users` | admin 전용 사용자 생성/초대/request 승인/비활성화 |
 | 클라이언트 포털 | `http://127.0.0.1:8080/client` 또는 `/client/live` | viewer/operator/admin용 client shell과 2x2 live monitor MVP |
 | 클라이언트 Dashboard | `http://127.0.0.1:8080/client/dashboard` | scoped PublishedView 상태 요약 MVP |
@@ -40,6 +40,22 @@ UI는 light/dark theme-aware design token을 사용하며, card/button/form/tabl
 
 ![영상 분석 룰 목록](assets/ui/analysis-rule-list.png)
 
+대표 제품 shell 스크린샷:
+
+![로그인](assets/ui/auth-login.png)
+
+![운영 홈](assets/ui/ops-home.png)
+
+![운영 채널 관리](assets/ui/ops-channels.png)
+
+![운영 룰 관리](assets/ui/ops-rules.png)
+
+![사용자 관리](assets/ui/ops-users.png)
+
+![클라이언트 라이브](assets/ui/client-live.png)
+
+![클라이언트 대시보드](assets/ui/client-dashboard.png)
+
 ## 2. Login / Session
 
 기본 `MEDIA_SERVER_AUTH_MODE=auto`에서는 최초 users file/admin password 상태를 먼저 확인합니다. users file이 없거나 `admin.passwordHash`가 없으면 `/setup`에서 기본 username `admin`의 비밀번호를 처음 설정합니다. admin 기본 비밀번호는 없으며, passwordless admin login은 허용하지 않습니다. setup 완료 후 `/setup`은 `/login`으로 돌아가고, 이후에는 `/login`에서 계정으로 로그인해 role/scope snapshot을 담은 HttpOnly session cookie를 받습니다.
@@ -60,17 +76,17 @@ Login page는 username/password 입력, 실패/lockout 메시지, 로그인 후 
 
 Route 역할:
 
-- `/ops`: admin/operator 전용 운영 shell이며 `ops:read` scope가 필요합니다. Home, Dashboard, Sources, Rules, Events navigation을 같은 header/nav 아래에서 제공하고, Users는 admin 전용 관리 route입니다. `/ops/home`은 운영 overview이고 `/ops/live`는 후속 Operator Live Monitor 안내 route입니다. Dashboard와 Events는 `/lab/runtime/status`, EventRecord/Event POST/storage JSON API를 fetch해 card/table/badge로 렌더링하고 raw JSON은 접힘 영역에만 둡니다. Rules는 `/ops/rules` shell 안에서 기존 Lab Rule Editor를 명시적으로 여는 안내 card를 제공합니다.
+- `/ops`: admin/operator 전용 운영 shell이며 `ops:read` scope가 필요합니다. Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기 순서입니다. `/ops/home`은 운영 overview이고 `/ops/live`는 후속 Operator Live Monitor 안내 route입니다. `/ops/dashboard`는 기존 Lab Runtime Dashboard를 운영 shell 안에 표시합니다. `/ops/events`는 primary nav에서 숨긴 후속/진단 route이며 독립 제품 탭으로 취급하지 않습니다. raw JSON은 접힘 debug 영역에만 둡니다.
 - `/client`: viewer/operator/admin 접근 shell입니다. `/client/api/views` 기준으로 할당된 PublishedView만 표시하며 원본 source URL, debug/developer URL은 노출하지 않습니다.
 - `/lab`: admin/operator 또는 `lab:read` scope용 개발/검증 shell입니다. viewer/client 기본 계정은 접근할 수 없고, 기존 `/lab/rules`와 자동화 bookmark 호환은 auth off 검증 모드에서 유지합니다.
 
-Shell navigation은 server-side principal로 1차 렌더링하고 `/auth/whoami` 응답으로 admin-only menu를 다시 숨김 처리합니다. Client shell의 primary nav는 viewer용 Live/Dashboard/Events만 유지하며 admin/operator preview는 별도 preview banner와 Back to Ops 액션으로 구분합니다. Guard 실패 시 browser shell route는 login 또는 forbidden page를 보여주고, API route는 JSON `401`/`403`을 반환합니다.
+Shell navigation은 server-side principal로 1차 렌더링하고 `/auth/whoami` 응답으로 admin-only menu를 다시 숨김 처리합니다. Client shell의 primary nav는 viewer용 라이브/대시보드만 유지합니다. admin/operator가 client 화면을 열면 메뉴 아래에 `Ops로 돌아가기`를 표시하고, viewer에게는 Ops/Lab nav와 debug/developer URL을 숨깁니다. Guard 실패 시 browser shell route는 login 또는 forbidden page를 보여주고, API route는 JSON `401`/`403`을 반환합니다.
 
 Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`로 확인합니다. 기존 Lab 자동화는 명시적인 auth off 검증 모드에서 계속 `/lab/rules` 3탭 구조를 기준으로 동작합니다.
 
 ## 3. Admin User Management
 
-`/ops/users`는 admin 전용 계정 관리 MVP 화면입니다. 공통 Ops shell 안에서 invite/update form, user table, pending request table을 card/table/form 스타일로 표시합니다. User list는 username, displayName, role, enabled, scopes count, lastLoginAt, lockedUntil, mustChangePassword, actions를 표시하며 `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`는 UI/API 응답에 노출하지 않습니다.
+`/ops/users`는 admin 전용 계정 관리 MVP 화면입니다. 공통 Ops shell 안에서 먼저 사용자 목록 table을 보여주고, 사용자 추가 버튼으로 접힌 editor를 여는 방식입니다. User list는 계정명, 표시 이름, 권한, 상태, 권한 범위 수, 마지막 로그인, 잠금 만료, 비밀번호 변경 여부, 작업을 표시하며 `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`는 UI/API 응답에 노출하지 않습니다.
 
 지원 동작:
 
@@ -100,13 +116,13 @@ CLI도 같은 C++ password hash/password policy 경로를 사용합니다. Passw
 
 ## 4. SourceRegistry / PublishedView
 
-`/ops/sources`는 운영자가 실제 source를 한 번 등록하고, 클라이언트에는 PublishedView 단위로 공개하기 위한 MVP 화면입니다. 공통 Ops shell 안에서 Source form, PublishedView form, source list, PublishedView list를 card/table/form 스타일로 표시합니다. Source form은 `sourceId`, 표시 이름, source 종류, file/RTSP/WebRTC/HTTP locator, tags, owner group, enabled 상태를 저장합니다. 같은 RTSP/HTTP URL은 query 순서가 달라도 canonical key 기준으로 중복 등록이 거부됩니다.
+`/ops/sources`는 운영자가 실제 source를 한 번 등록하고, 클라이언트에는 PublishedView 단위로 공개하기 위한 MVP 화면입니다. 제품 UI에서는 SourceRegistry/PublishedView를 따로 노출하지 않고 `채널` 개념으로 묶어 보여줍니다. 먼저 숫자 채널 목록 table을 표시하고, 채널 추가/보기/수정/복제/비활성화/삭제 흐름은 룰 목록과 같은 패턴을 따릅니다. 기본 registry가 비어 있으면 `sample_h264.mp4`, VA test file, 검증된 공개 RTSP/HLS URL을 숫자 채널로 seed합니다. 내부적으로 `kind=webrtc`와 `webrtcSourceId`는 남아 있지만 외부 WebRTC/WHEP URL pull이 아니라 이 서버의 `/whip/publish` endpoint로 먼저 등록된 sourceId를 소비하는 경로이므로 product UI 선택지는 임시로 숨깁니다. 외부 WebRTC/WHEP URL source pull은 후속 최우선 기능입니다. 같은 RTSP/HTTP URL은 query 순서가 달라도 canonical key 기준으로 중복 등록이 거부됩니다.
 
-PublishedView form은 `viewId`, 표시 이름, `sourceId`, `defaultRuleId`, `allowedRuleIds`, overlay mode, dashboard/event/metadata 노출 여부, client group, 최대 tile 수를 저장합니다. `/client/api/views`는 로그인 principal의 `view:read:{viewId}` scope가 있는 view만 반환하며, 원본 source URL이나 file locator는 클라이언트 응답에 포함하지 않습니다. 운영자용 registry raw JSON은 `/ops/sources`의 접힘 debug 영역에서만 확인합니다.
+채널 테이블은 라이브 URL과 VA URL을 분리해 표시하고, 각 영역에서 RTSP와 WebRTC 복사 버튼을 세로로 배치합니다. 복사한 RTSP URL은 일반 RTSP player에서 원본 또는 VA overlay stream을 확인하는 용도이고, WebRTC 버튼은 이 서버의 WHEP endpoint URL을 복사합니다. PublishedView의 `viewId`, `sourceId`, `defaultRuleId`, `allowedRuleIds`, overlay mode, dashboard/event/metadata 노출 여부는 내부 API schema로 유지합니다. `/client/api/views`는 로그인 principal의 `view:read:{viewId}` scope가 있는 view만 반환하며, 원본 source URL이나 file locator는 클라이언트 응답에 포함하지 않습니다. 운영자용 registry raw JSON은 `/ops/sources`의 접힘 debug 영역에서만 확인합니다.
 
 ### 4.1 Client scoped dashboard
 
-`/client/dashboard`는 viewer가 접근 가능한 PublishedView의 상태 요약만 보여주는 client dashboard MVP입니다. view 목록은 `/client/api/views`의 scoped 결과를 사용하고, 선택된 view의 상세 상태는 `/client/api/views/{viewId}/dashboard`에서 가져옵니다.
+`/client/dashboard`는 viewer가 접근 가능한 PublishedView의 상태 요약만 보여주는 client dashboard MVP입니다. view 목록은 `/client/api/views`의 scoped 결과를 사용하고, 선택된 view의 상세 상태는 `/client/api/views/{viewId}/dashboard`에서 가져옵니다. `/client/events`는 primary nav에서 제거했으며, 이벤트 요약은 client dashboard 안에서 sanitized summary로만 표시합니다.
 
 표시 범위:
 

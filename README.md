@@ -4,18 +4,30 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 
 ## 핵심 요약
 
-- RTSP/WebRTC 미디어 중계: RTSP output, WebRTC signaling/WHEP output, WHIP publish source 1차 경로를 지원합니다.
+- RTSP/WebRTC 미디어 중계: RTSP output, WebRTC signaling/WHEP output, WHIP publish sourceId 소비 1차 경로를 지원합니다. SourceRegistry의 `kind=webrtc`는 외부 WebRTC/WHEP URL pull이 아니라 `/whip/publish`로 먼저 등록된 내부 sourceId를 소비하는 경로입니다.
 - Source: file, RTSP pull, WebRTC publish, HTTP/HLS URI source를 같은 stream/session 구조에서 다룹니다.
 - VA overlay: `va=1`로 YOLO/ONNX detection overlay를 요청할 수 있습니다.
 - 영상 분석 UI: Rule/Profile/Scenario, 객체 category, polygon/line, event action을 `/lab/rules`에서 설정합니다.
 - Auth/account MVP: 최초 `/setup`, `/login`, role/scope principal, admin 계정 관리, viewer invite/request skeleton, role 기반 route guard를 제공합니다.
 - Ops/Client UI shell MVP: `/ops`는 운영 콘솔, `/client`는 viewer/client 포털, `/lab`은 개발/검증용 UI로 분리합니다.
-- SourceRegistry / PublishedView MVP: 운영 source 원본과 client 공개 view를 분리하고 `/ops/sources`와 `/client/*`에서 1차 UI로 관리/조회합니다.
+- 채널 관리 MVP: 운영 source 원본과 client 공개 view는 내부적으로 SourceRegistry/PublishedView API를 유지하지만, 제품 UI에서는 숫자 기반 채널 목록으로 관리합니다. `/ops/sources`는 채널 테이블, 보기/수정/복제/비활성화/삭제 흐름, Live/VA URL 복사 버튼을 제공합니다.
 - 저장 설정 호출: 숫자 ID 기반 `vaRule=<id>`로 저장된 source/profile/rule/scenario를 호출합니다.
 - VA Metadata Runtime Console: WebRTC 메타데이터 뷰어, 브라우저 client-side overlay, drill-down 런타임 대시보드, vaRule debug, SSE/WS side-channel, custom SSE client와 Custom RTSP+SSE overlay 예제를 제공합니다.
 - 이벤트/검증: Event POST, EventRecord JSON Lines 저장, VA metadata replay/baseline 검증 구조를 제공합니다.
 
 ## 대표 UI 미리보기
+
+**로그인**
+
+![로그인](docs/assets/ui/auth-login.png)
+
+**운영 채널 관리**
+
+![운영 채널 관리](docs/assets/ui/ops-channels.png)
+
+**클라이언트 라이브**
+
+![클라이언트 라이브](docs/assets/ui/client-live.png)
 
 **룰 목록과 저장된 vaRule 관리**
 
@@ -86,9 +98,10 @@ YOLO Detection
 | 최초 관리자 설정 | `http://127.0.0.1:8080/setup` |
 | 로그인 | `http://127.0.0.1:8080/login` |
 | 운영 콘솔 shell MVP | `http://127.0.0.1:8080/ops` 또는 `/ops/home` |
-| 운영 Dashboard/Events UI MVP | `http://127.0.0.1:8080/ops/dashboard`, `/ops/events` |
+| 운영 Dashboard UI MVP | `http://127.0.0.1:8080/ops/dashboard` |
+| 운영 채널/룰/사용자 관리 | `http://127.0.0.1:8080/ops/sources`, `/ops/rules`, `/ops/users` |
 | 클라이언트 포털 shell MVP | `http://127.0.0.1:8080/client` 또는 `/client/live` |
-| 클라이언트 Dashboard/Events UI MVP | `http://127.0.0.1:8080/client/dashboard`, `/client/events` |
+| 클라이언트 Dashboard UI MVP | `http://127.0.0.1:8080/client/dashboard` |
 | Lab, 개발/검증용 | `http://127.0.0.1:8080/lab` |
 | Lab Rule Editor | `http://127.0.0.1:8080/lab/rules` |
 | RTSP | `rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4` |
@@ -116,8 +129,9 @@ RTSP 일반 viewer는 WebRTC DataChannel metadata를 표시하지 않습니다. 
 
 - 완료: Runtime Dashboard trend/stale/cleanup warning 1차, scenario rule payload의 runtime per-rule 설정 연결, ReEntry와 IntrusionAfterLineCrossing의 룰 편집 UI 선택/저장 템플릿.
 - 완료: Auth/account API와 route MVP, SourceRegistry / PublishedView API와 route MVP, Client scoped dashboard API MVP, Client Live Monitor 2x2 MVP.
-- 완료: `/setup`, `/login`, `/ops`, `/client`의 제품 UI shell 통합 1차. `/ops/dashboard`와 `/ops/events`는 raw JSON 이동 대신 card/table UI로 표시하고 raw JSON은 debug 접힘 영역에 둡니다.
-- 남은 UI polish: Operator Live Monitor 고밀도 화면, PublishedView 기반 scope picker, Source/User form 세부 UX, Client Live Monitor 현장형 상태 표시 고도화.
+- 완료: `/setup`, `/login`, `/ops`, `/client` 제품 UI shell 통합 1차. Ops 주 메뉴는 홈, 대시보드, 채널, 룰, 사용자, 클라이언트 미리보기 순서이며, client 주 메뉴는 라이브와 대시보드만 노출합니다.
+- 완료: `/ops/dashboard`는 기존 Lab 런타임 대시보드 정보를 shell 안에 표시합니다. `/ops/events`와 `/client/events`는 제품 primary tab에서 숨기고, 이벤트 요약은 룰/대시보드 맥락에서 확인합니다. raw JSON/debug는 운영자 접힘 영역에만 둡니다.
+- 남은 우선 작업: 외부 WebRTC/WHEP URL을 pull source로 등록/소비하는 기능을 최우선으로 구현합니다. Operator Live Monitor 고밀도 화면, PublishedView 기반 scope picker, Client Live Monitor 현장형 상태 표시 고도화는 그 뒤에 정리합니다.
 - 다음 작업: Loitering UI 템플릿과 ZoneOccupancyScenario 신규 구현은 계속 보류/다음 작업으로 유지합니다.
 
 이 로드맵 정리는 기존 Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema, Scenario 판단 로직 변경을 의미하지 않습니다. snapshot/clip hook은 marker 중심의 후속 연결점이며 VMS/NVR 녹화 기능이 아닙니다.

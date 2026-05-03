@@ -52,7 +52,7 @@ Ops/Client shell 변경은 아직 전용 자동 검증 명령이 없으므로, a
 BASE=http://127.0.0.1:8080
 for path in \
   /ops /ops/home /ops/live /ops/dashboard /ops/sources /ops/rules /ops/events /ops/users \
-  /client /client/live /client/dashboard /client/events /lab /lab/rules
+  /client /client/live /client/dashboard /lab /lab/rules
 do
   curl -fsS -D "/tmp/media-server-ui${path//\//_}.headers" \
     -o "/tmp/media-server-ui${path//\//_}.html" \
@@ -68,11 +68,12 @@ fi
 
 확인 기준:
 
-- `/ops`, `/ops/home`, `/ops/live`, `/ops/dashboard`, `/ops/events`, `/ops/sources`, `/ops/rules`, `/ops/users`는 HTML을 반환하고 공통 Ops Console header/nav를 유지합니다. Primary nav는 Home, Dashboard, Sources, Rules, Events, Users이며 `/ops/live`는 후속 Operator Live Monitor 안내 route로 남깁니다.
-- `/ops/dashboard`와 `/ops/events`의 nav/action은 `/lab/runtime/status`, `/lab/analysis/event-post/status`, `/lab/analysis/events/records` 같은 JSON endpoint로 직접 이동하지 않습니다. 필요한 JSON은 fetch 후 card/table/badge로 표시하고 raw JSON은 접힘 debug 영역에만 둡니다.
-- `/ops/sources`는 SourceRegistry/PublishedView form과 list table을 보여주며 source 원본 URL은 ops 화면에만 표시합니다.
-- `/ops/users`는 form/table/action UI를 보여주며 `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`를 노출하지 않습니다.
-- `/client/live`, `/client/dashboard`, `/client/events`는 client shell을 유지하고 source URL, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile editor를 노출하지 않습니다.
+- `/ops`, `/ops/home`, `/ops/live`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`는 HTML을 반환하고 공통 Ops Console header/nav를 유지합니다. Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기 순서이며 `/ops/live`는 후속 Operator Live Monitor 안내 route로 남깁니다.
+- `/ops/events`는 primary nav에서 숨긴 직접/진단 route입니다. 독립 제품 탭으로 취급하지 않고, 이벤트 조건은 룰에서 설정하며 운영 요약은 대시보드에서 확인합니다.
+- `/ops/dashboard`의 nav/action은 `/lab/runtime/status`, `/lab/analysis/event-post/status`, `/lab/analysis/events/records` 같은 JSON endpoint로 직접 이동하지 않습니다. 필요한 JSON은 fetch 후 card/table/badge 또는 embedded dashboard로 표시하고 raw JSON은 접힘 debug 영역에만 둡니다.
+- `/ops/sources`는 숫자 채널 table을 먼저 보여주며, Live URL/VA URL 복사 버튼은 RTSP와 WebRTC 버튼을 실제 클립보드에 복사해야 합니다. source 원본 URL은 ops 화면에만 표시합니다.
+- `/ops/users`는 사용자 목록 table을 먼저 보여주고, 사용자 추가/수정 editor는 접힘 영역으로 열립니다. `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`를 노출하지 않습니다.
+- `/client/live`, `/client/dashboard`는 client shell을 유지하고 source URL, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile editor를 노출하지 않습니다. Client Events tab은 primary nav에서 제거합니다.
 - `/lab`와 `/lab/rules`는 기존 Lab layout과 Rule/Profile UI smoke 기준을 계속 통과해야 합니다.
 
 WebRTC/stream 변경:
