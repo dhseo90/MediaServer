@@ -880,7 +880,7 @@ std::optional<std::string> ValidateUserMutation(const UserMutation& mutation, bo
         return "role은 admin/operator/viewer/integrator 중 하나여야 합니다.";
     }
     if (require_password && (!mutation.has_password || mutation.password.empty())) {
-        return "temporary password is required";
+        return "password is required";
     }
     return std::nullopt;
 }
@@ -1679,7 +1679,7 @@ AuthUserResult ResetAuthUserPassword(const app::AppConfig& config,
         return UserError(503, "Service Unavailable", "safe password hashing is unavailable; build with libsodium");
     }
     if (password.empty()) {
-        return UserError(400, "Bad Request", "temporary password is required");
+        return UserError(400, "Bad Request", "password is required");
     }
     std::string load_error;
     auto users = LoadUsers(config.auth_users_file, &load_error);
@@ -1802,9 +1802,6 @@ AuthUserResult CreateInviteFromJson(const app::AppConfig& config,
     if (mutation.role.empty()) {
         mutation.role = "viewer";
     }
-    if (mutation.role != "viewer") {
-        return UserError(400, "Bad Request", "client invite supports viewer role only");
-    }
     if (const auto validation = ValidateUserMutation(mutation, false); validation.has_value()) {
         return UserError(400, "Bad Request", *validation);
     }
@@ -1823,13 +1820,14 @@ AuthUserResult CreateInviteFromJson(const app::AppConfig& config,
     UserRecord* user = nullptr;
     if (user_index.has_value()) {
         user = &store.users[*user_index];
-        if (user->role != "viewer") {
-            return UserError(409, "Conflict", "existing user is not a viewer account");
+        if (user->enabled && user->role == "admin" && mutation.role != "admin" &&
+            !HasAnotherEnabledAdmin(store.users, user->username)) {
+            return UserError(409, "Conflict", "마지막 활성 admin 계정은 invite로 role을 변경할 수 없습니다.");
         }
         user->display_name =
             mutation.display_name.empty() ? user->display_name : mutation.display_name;
+        user->role = mutation.role;
         user->scopes = scopes;
-        user->enabled = mutation.has_enabled ? mutation.enabled : true;
         if (user->created_at.empty()) {
             user->created_at = now;
         }
@@ -1844,9 +1842,9 @@ AuthUserResult CreateInviteFromJson(const app::AppConfig& config,
         candidate.username = mutation.username;
         candidate.display_name =
             mutation.display_name.empty() ? mutation.username : mutation.display_name;
-        candidate.role = "viewer";
+        candidate.role = mutation.role;
         candidate.scopes = scopes;
-        candidate.enabled = mutation.has_enabled ? mutation.enabled : true;
+        candidate.enabled = false;
         candidate.must_change_password = true;
         candidate.created_at = now;
         if (!candidate.enabled) {
@@ -1870,7 +1868,7 @@ AuthUserResult CreateInviteFromJson(const app::AppConfig& config,
     invite.invite_id = "invite-" + raw_token->substr(0, 16);
     invite.username = mutation.username;
     invite.display_name = user->display_name;
-    invite.role = "viewer";
+    invite.role = mutation.role;
     invite.view_id = mutation.view_id;
     invite.scopes = scopes;
     invite.token_hash = *token_hash;
@@ -1920,19 +1918,20 @@ AuthUserResult CompleteInvitePasswordSetup(const app::AppConfig& config,
         UserRecord* user = nullptr;
         if (index.has_value()) {
             user = &store->users[*index];
-            if (user->role != "viewer") {
-                return UserError(409, "Conflict", "invite user is not a viewer account");
+            if (user->enabled && user->role == "admin" && invite.role != "admin" &&
+                !HasAnotherEnabledAdmin(store->users, user->username)) {
+                return UserError(409, "Conflict", "마지막 활성 admin 계정은 invite로 role을 변경할 수 없습니다.");
             }
         } else {
             UserRecord candidate;
             candidate.username = invite.username;
             candidate.display_name =
                 invite.display_name.empty() ? invite.username : invite.display_name;
-            candidate.role = "viewer";
+            candidate.role = invite.role;
             candidate.scopes = invite.scopes.empty()
-                                   ? ScopeTemplateForRole("viewer", invite.view_id)
+                                   ? ScopeTemplateForRole(invite.role, invite.view_id)
                                    : invite.scopes;
-            candidate.enabled = true;
+            candidate.enabled = false;
             candidate.must_change_password = true;
             candidate.created_at = IsoUtcNow();
             store->users.push_back(candidate);
@@ -1940,9 +1939,9 @@ AuthUserResult CompleteInvitePasswordSetup(const app::AppConfig& config,
         }
 
         user->display_name = invite.display_name.empty() ? user->display_name : invite.display_name;
-        user->role = "viewer";
+        user->role = invite.role;
         user->scopes = invite.scopes.empty()
-                           ? ScopeTemplateForRole("viewer", invite.view_id)
+                           ? ScopeTemplateForRole(invite.role, invite.view_id)
                            : invite.scopes;
         if (const auto scope_error = ValidateScopesForRole(user->role, user->scopes);
             scope_error.has_value()) {

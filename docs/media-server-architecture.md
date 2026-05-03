@@ -120,7 +120,7 @@ SourceRegistry는 `.media_server.sources.json`, PublishedView는 `.media_server.
 
 HTTP UI는 같은 미디어/API 기능 위에 role별 shell을 얹는 구조입니다. Shell 통합은 browser route와 화면 구성만 다루며 media pipeline, Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema, scenario 판단 로직은 변경하지 않습니다.
 
-- `/ops`: admin/operator용 운영 콘솔입니다. 공통 header/nav 아래에서 Live, Dashboard, Sources, Rules, Events를 렌더링하고, Users는 admin 전용 관리 route로 분리합니다. `/ops/live`는 운영 홈 summary MVP이고, 완성형 operator live monitor는 후속입니다. `/ops/dashboard`와 `/ops/events`는 JSON endpoint로 직접 이동하지 않고 `/lab/runtime/status`, EventRecord/Event POST/storage API를 fetch해 card/table/badge로 표시합니다. raw JSON은 운영자 debug 접힘 영역에만 둡니다.
+- `/ops`: admin/operator용 운영 콘솔입니다. 공통 header/nav 아래에서 Home, Dashboard, Sources, Rules, Events를 렌더링하고, Users는 admin 전용 관리 route로 분리합니다. `/ops/home`은 운영 홈 summary MVP이고, `/ops/live`는 완성형 operator live monitor 후속 안내 route입니다. `/ops/dashboard`와 `/ops/events`는 JSON endpoint로 직접 이동하지 않고 `/lab/runtime/status`, EventRecord/Event POST/storage API를 fetch해 card/table/badge로 표시합니다. raw JSON은 운영자 debug 접힘 영역에만 둡니다.
 - `/client`: viewer/client 포털입니다. `/client/live`는 PublishedView 기반 2x2 live monitor MVP이고, `/client/dashboard`와 `/client/events`는 scoped summary만 표시합니다. client shell과 client API는 source 원본 locator, Developer URL, raw JSON, `debugCounters`, internal session/tap id, rule/profile editor를 노출하지 않습니다.
 - `/lab`: 개발/검증용 shell입니다. 기존 `/lab`와 `/lab/rules` 자동화 호환을 유지하며 Runtime Dashboard, VA metadata viewer, developer/debug detail은 Lab에서 계속 확인합니다. `/ops/rules`는 Lab Rule Editor로 직접 redirect하지 않고 운영 shell 안에서 명시적 link/action을 제공합니다.
 

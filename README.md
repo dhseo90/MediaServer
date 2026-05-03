@@ -85,7 +85,7 @@ YOLO Detection
 | Root entry | `http://127.0.0.1:8080/` |
 | 최초 관리자 설정 | `http://127.0.0.1:8080/setup` |
 | 로그인 | `http://127.0.0.1:8080/login` |
-| 운영 콘솔 shell MVP | `http://127.0.0.1:8080/ops` 또는 `/ops/live` |
+| 운영 콘솔 shell MVP | `http://127.0.0.1:8080/ops` 또는 `/ops/home` |
 | 운영 Dashboard/Events UI MVP | `http://127.0.0.1:8080/ops/dashboard`, `/ops/events` |
 | 클라이언트 포털 shell MVP | `http://127.0.0.1:8080/client` 또는 `/client/live` |
 | 클라이언트 Dashboard/Events UI MVP | `http://127.0.0.1:8080/client/dashboard`, `/client/events` |
@@ -97,7 +97,7 @@ YOLO Detection
 | VA overlay | `rtsp://127.0.0.1:8554/dhseo?file=va_four_scene_sample.mp4&va=1` |
 | 저장 VA 룰 | `rtsp://127.0.0.1:8554/dhseo?vaRule=1` |
 
-기본 `MEDIA_SERVER_AUTH_MODE=auto`에서는 users file 또는 admin passwordHash가 없으면 `/`가 `/setup`으로 이동합니다. Setup 완료 후에는 `/login`이 기본 진입점이며 admin/operator는 `/ops/live`, viewer는 `/client/live`로 이동합니다. `/ops`는 운영 콘솔, `/client`는 클라이언트 포털, `/lab`과 `/lab/rules`는 개발/검증용 화면입니다. `/lab`은 auth off 테스트 모드 또는 admin/operator/lab scope로 접근합니다.
+기본 `MEDIA_SERVER_AUTH_MODE=auto`에서는 users file 또는 admin passwordHash가 없으면 `/`가 `/setup`으로 이동합니다. Setup 완료 후에는 `/login`이 기본 진입점이며 admin/operator는 `/ops/home`, viewer는 `/client/live`로 이동합니다. `/ops`는 운영 콘솔, `/client`는 클라이언트 포털, `/lab`과 `/lab/rules`는 개발/검증용 화면입니다. `/lab`은 auth off 테스트 모드 또는 admin/operator/lab scope로 접근합니다.
 
 ## 영상 분석 사용 흐름
 

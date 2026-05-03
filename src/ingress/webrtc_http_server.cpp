@@ -15894,7 +15894,7 @@ std::string HtmlEscape(const std::string& value) {
 std::string DefaultHomePath(const app::AppConfig& config) {
     auto by_name = [&](const std::string& name) -> std::string {
         if (name == "ops" && config.enable_ops) {
-            return "/ops/live";
+            return "/ops/home";
         }
         if (name == "client" && config.enable_client) {
             return "/client/live";
@@ -15911,7 +15911,7 @@ std::string DefaultHomePath(const app::AppConfig& config) {
         return "/lab";
     }
     if (config.enable_ops) {
-        return "/ops/live";
+        return "/ops/home";
     }
     if (config.enable_client) {
         return "/client/live";
@@ -15927,9 +15927,22 @@ std::string RoleLandingPath(const auth::Principal& principal, const app::AppConf
         return config.enable_client ? "/client/live" : "/login";
     }
     if (principal.role == "admin" || principal.role == "operator") {
-        return config.enable_ops ? "/ops/live" : DefaultHomePath(config);
+        return config.enable_ops ? "/ops/home" : DefaultHomePath(config);
     }
     return "/login";
+}
+
+std::string JsonScriptContent(const std::string& json) {
+    std::string out;
+    out.reserve(json.size());
+    for (const char ch : json) {
+        if (ch == '<') {
+            out += "\\u003c";
+        } else {
+            out.push_back(ch);
+        }
+    }
+    return out;
 }
 
 std::string AuthCookieHeader(const app::AppConfig& config,
@@ -16395,6 +16408,8 @@ std::string ProductUiCss() {
       background: var(--color-input-bg);
       color: var(--color-text);
       font: inherit;
+      -webkit-user-select: text;
+      user-select: text;
     }
     textarea { min-height: 82px; resize: vertical; }
     input:focus,
@@ -16502,6 +16517,7 @@ std::string ProductUiCss() {
       min-height: 86px;
       display: grid;
       align-content: center;
+      gap: var(--space-2);
       color: var(--color-text-muted);
     }
     .auth-shell {
@@ -16592,7 +16608,7 @@ void AppendOpsShellStart(std::ostringstream& out,
         </div>
       </div>
       <nav class="nav-tabs" aria-label="Ops navigation">
-        <a class=")" << nav_class("live") << R"(" href="/ops/live">Live</a>
+        <a class=")" << nav_class("home") << R"(" href="/ops/home">Home</a>
         <a class=")" << nav_class("dashboard") << R"(" href="/ops/dashboard">Dashboard</a>
         <a class=")" << nav_class("sources") << R"(" href="/ops/sources">Sources</a>
         <a class=")" << nav_class("rules") << R"(" href="/ops/rules">Rules</a>
@@ -16603,8 +16619,8 @@ void AppendOpsShellStart(std::ostringstream& out,
 )";
     }
     out << R"(      </nav>
-      <div class="breadcrumbs"><a href="/ops/live">Ops</a><span>/</span><span>)"
-        << HtmlEscape(active.empty() ? "live" : active) << R"(</span></div>
+      <div class="breadcrumbs"><a href="/ops/home">Ops</a><span>/</span><span>)"
+        << HtmlEscape(active.empty() ? "home" : active) << R"(</span></div>
     </header>
 )";
 }
@@ -16974,17 +16990,17 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         <section class="section-card">
           <h3>Runtime</h3>
           <div id="dashRuntimeRows" class="badge-row"></div>
-          <p id="dashRuntimeText">미제공</p>
+          <p id="dashRuntimeText">Runtime 상세 상태를 불러오는 중입니다.</p>
         </section>
         <section class="section-card">
           <h3>Backpressure</h3>
           <div id="dashBackpressureRows" class="badge-row"></div>
-          <p id="dashBackpressureText">미제공</p>
+          <p id="dashBackpressureText">Backpressure 상태를 불러오는 중입니다.</p>
         </section>
         <section class="section-card">
           <h3>Cleanup</h3>
           <div id="dashCleanupRows" class="badge-row"></div>
-          <p id="dashCleanupText">미제공</p>
+          <p id="dashCleanupText">Cleanup 상태를 불러오는 중입니다.</p>
         </section>
       </div>
       <details class="debug-drawer">
@@ -17009,12 +17025,12 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         <section class="section-card">
           <h3>Event Storage</h3>
           <div id="eventStorageBadges" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="eventStorageText">미제공</p>
+          <p id="eventStorageText">Event storage 상태를 불러오는 중입니다.</p>
         </section>
         <section class="section-card">
           <h3>Event POST</h3>
           <div id="eventPostBadges" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="eventPostText">미제공</p>
+          <p id="eventPostText">Event POST 상태를 불러오는 중입니다.</p>
         </section>
       </div>
       <section class="section-card">
@@ -17063,7 +17079,7 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
           <p>영상 분석 profile/rule/vaRule 저장 구조는 기존 `/lab/rules` 화면을 그대로 사용합니다. Ops shell에서는 이동 목적을 명확히 표시합니다.</p>
           <div class="actions">
             <a class="button button-primary" href="/lab/rules">Lab Rule Editor 열기</a>
-            <a class="button button-secondary" href="/ops/live">Ops Live로 돌아가기</a>
+            <a class="button button-secondary" href="/ops/home">Ops Home으로 돌아가기</a>
           </div>
         </section>
         <section class="section-card">
@@ -17078,12 +17094,43 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
       </div>
     </section>
 )";
-    } else {
+    } else if (active == "live") {
         out << R"(    <section class="panel" data-ops-panel="live">
       <div class="toolbar">
         <div>
-          <h2>Operations Home</h2>
-          <p>Live Monitor MVP는 준비 중이며, 현재는 운영 상태와 빠른 작업을 요약합니다.</p>
+          <h2>Operator Live Monitor</h2>
+          <p>운영자용 live monitor는 후속 구현 항목입니다. 현재 운영 시작 화면은 Home에서 source/view/runtime/event 상태를 요약합니다.</p>
+        </div>
+        <a class="button button-primary" href="/ops/home">Ops Home으로 이동</a>
+      </div>
+      <div class="grid">
+        <section class="section-card">
+          <h3>Future Scope</h3>
+          <p>이 route는 실제 operator live monitor가 준비될 때 source tile, session health, stale warning, event overlay 상태를 제품 UI로 표시합니다.</p>
+          <div class="badge-row">
+            <span class="chip info">planned</span>
+            <span class="chip">same shell</span>
+            <span class="chip">no raw body</span>
+          </div>
+        </section>
+        <section class="section-card">
+          <h3>Current Actions</h3>
+          <p>지금은 Home, Dashboard, Sources에서 운영 상태와 PublishedView를 확인하세요.</p>
+          <div class="actions">
+            <a class="button button-secondary" href="/ops/home">Home</a>
+            <a class="button button-secondary" href="/ops/dashboard">Dashboard</a>
+            <a class="button button-secondary" href="/ops/sources">Sources</a>
+          </div>
+        </section>
+      </div>
+    </section>
+)";
+    } else {
+        out << R"(    <section class="panel" data-ops-panel="home">
+      <div class="toolbar">
+        <div>
+          <h2>Operations Overview</h2>
+          <p>운영 홈에서 source/view, runtime, event, warning 상태를 먼저 확인합니다.</p>
         </div>
         <button id="opsLiveRefresh" class="button-secondary" type="button">Refresh</button>
       </div>
@@ -17095,10 +17142,10 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
       </div>
       <div class="grid">
         <section class="section-card">
-          <h3>Live Monitor</h3>
-          <p>Live Monitor MVP 준비 중입니다. 현재 release에서는 source/view 상태와 client live route를 함께 확인합니다.</p>
+          <h3>Operator Live Monitor</h3>
+          <p>실시간 operator tile monitor는 후속 구현입니다. 현재 release에서는 Home summary와 client preview로 PublishedView 동작을 확인합니다.</p>
           <div class="actions">
-            <a class="button button-primary" href="/client/live">Client Live 열기</a>
+            <a class="button button-primary" href="/client/live">Client Portal Preview</a>
             <a class="button button-secondary" href="/ops/sources">Sources / Views</a>
           </div>
         </section>
@@ -17110,7 +17157,7 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         <section class="section-card">
           <h3>Warning / Stale</h3>
           <div id="liveWarningBadges" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="liveWarningText">미제공</p>
+          <p id="liveWarningText">Warning 상태를 불러오는 중입니다.</p>
         </section>
         <section class="section-card">
           <h3>Quick Actions</h3>
@@ -17155,7 +17202,7 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
       const renderBadges = (id, items) => {
         const el = document.getElementById(id);
         if (!el) return;
-        el.innerHTML = items.length > 0 ? items.map(item => badge(item.text, item.tone)).join('') : badge('미제공', 'bad');
+        el.innerHTML = items.length > 0 ? items.map(item => badge(item.text, item.tone)).join('') : badge('상태 없음', 'info');
       };
       const renderRaw = (preId, checkboxId, payload) => {
         const pre = document.getElementById(preId);
@@ -17271,7 +17318,7 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         setText('dashBackpressureText', 'DataChannel/SSE/WS 상태는 raw JSON 접힘 영역에서 세부 counter를 확인합니다.');
         const debugKeys = Object.keys(counts.debugCounters);
         renderBadges('dashCleanupRows', debugKeys.slice(0, 4).map(key => ({ text: key })));
-        setText('dashCleanupText', debugKeys.length > 0 ? `${debugKeys.length} cleanup/debug counter groups available` : 'cleanup counter 미제공');
+        setText('dashCleanupText', debugKeys.length > 0 ? `${debugKeys.length} cleanup/debug counter groups available` : 'cleanup counter가 아직 수집되지 않았습니다.');
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
       }
       async function refreshEvents() {
@@ -17320,7 +17367,7 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         refreshDashboard().catch(error => setText('dashHealthText', error.message));
       } else if (activeOpsPage === 'events') {
         refreshEvents().catch(error => setText('eventRecordSummary', error.message));
-      } else if (activeOpsPage === 'live') {
+      } else if (activeOpsPage === 'home') {
         refreshLive().catch(error => setText('liveWarningText', error.message));
       }
     </script>
@@ -17926,6 +17973,9 @@ bool BuildClientLiveWebRtcQuery(const SourceViewRegistry::ClientViewAccess& acce
 
 std::string ClientShellPageHtml(const auth::Principal& principal, const std::string& active) {
     const std::string views_json = SourceViewRegistry::Instance().ClientViewsJson(principal);
+    const bool preview_mode =
+        (auth::IsAdmin(principal) || auth::IsOperator(principal)) &&
+        auth::RequireScope(principal, "ops:read");
     auto nav_class = [&](const std::string& key) {
         return active == key ? "nav active" : "nav";
     };
@@ -17983,7 +18033,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     .event:first-child { border-top: 0; padding-top: 0; }
     button { min-height: 38px; border: 0; border-radius: 6px; background: var(--text); color: var(--panel); padding: 0 14px; font-weight: 800; cursor: pointer; }
     .ghost { background: var(--panel-soft); color: var(--text); }
-    .empty { min-height: 80px; display: grid; align-content: center; }
+    .empty { min-height: 80px; display: grid; align-content: center; gap: 8px; }
     .toolbar { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
     .live-monitor { display: grid; gap: 12px; }
     .live-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -18020,7 +18070,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     @media (max-width: 780px) { .workspace { grid-template-columns: 1fr; } }
   </style>
 </head>
-<body class="product-shell">
+<body class="product-shell" data-client-preview=")" << (preview_mode ? "true" : "false") << R"(">
   <main class="product-page">
     <header class="app-header">
       <div class="app-header-row">
@@ -18038,17 +18088,22 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       <a class=")" << nav_class("live") << R"(" href="/client/live">Live</a>
       <a class=")" << nav_class("dashboard") << R"(" href="/client/dashboard">Dashboard</a>
       <a class=")" << nav_class("events") << R"(" href="/client/events">Events</a>
-)";
-    if (auth::RequireRole(principal, {"operator"}) && auth::RequireScope(principal, "ops:read")) {
-        out << R"(      <a class="nav" href="/ops/live" data-ops-scope>Ops</a>
-)";
-    }
-    if (auth::RequireRole(principal, {"operator"}) || auth::RequireScope(principal, "lab:read")) {
-        out << R"(      <a class="nav" href="/lab" data-lab-scope>Lab</a>
-)";
-    }
-    out << R"(    </nav>
+    </nav>
     </header>
+)";
+    if (preview_mode) {
+        out << R"(    <section class="section-card">
+      <div class="toolbar">
+        <div>
+          <div class="badge-row"><span class="chip info">Client Portal Preview</span><span class="chip">)" << HtmlEscape(principal.role) << R"(</span></div>
+          <p>admin/operator preview입니다. Viewer에게는 Client nav만 보이며 Ops/Lab link, source locator, 내부 진단 정보는 노출하지 않습니다.</p>
+        </div>
+        <a class="button button-secondary" href="/ops/home">Back to Ops</a>
+      </div>
+    </section>
+)";
+    }
+    out << R"(
     <section class="workspace">
       <div class="panel">
         <div class="toolbar">
@@ -18058,19 +18113,25 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
         <div id="views" class="views"></div>
       </div>
       <div class="panel" id="detail">
-        <div class="empty"><p>미제공</p></div>
+        <div class="empty"><h3>PublishedView를 선택하세요</h3><p>허용된 view를 선택하면 이 영역에 상태가 표시됩니다.</p></div>
       </div>
     </section>
   </main>
-  <script type="application/json" id="views-data">)" << HtmlEscape(views_json) << R"(</script>
+  <script type="application/json" id="views-data">)" << JsonScriptContent(views_json) << R"(</script>
   <script>
     const activePage = ')" << HtmlEscape(active) << R"(';
-    const payload = JSON.parse(document.querySelector('#views-data').textContent || '{"views":[]}');
+    let payload = { views: [] };
+    try {
+      payload = JSON.parse(document.querySelector('#views-data')?.textContent || '{"views":[]}');
+    } catch (error) {
+      payload = { views: [], error: error.message || 'view data parse failed' };
+    }
     const host = document.querySelector('#views');
     const detail = document.querySelector('#detail');
     const refresh = document.querySelector('#refresh');
     const views = Array.isArray(payload.views) ? payload.views : [];
     let selectedViewId = views[0]?.viewId || '';
+    const isPreviewMode = document.body.dataset.clientPreview === 'true';
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
       '&': '&amp;',
       '<': '&lt;',
@@ -18093,6 +18154,13 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
         ['unavailable'].includes(String(value)) ? ' bad' : '';
       return `<span class="chip${cls}">${escapeHtml(text)}</span>`;
     };
+    const emptyState = (title, message, actionHref = '', actionLabel = '') => `
+      <div class="empty">
+        <h3>${escapeHtml(title)}</h3>
+        <p>${escapeHtml(message)}</p>
+        ${actionHref ? `<div class="actions"><a class="button button-secondary" href="${escapeHtml(actionHref)}">${escapeHtml(actionLabel)}</a></div>` : ''}
+      </div>
+    `;
     async function requestJson(url) {
       const res = await fetch(url, { credentials: 'same-origin' });
       const text = await res.text();
@@ -18141,7 +18209,14 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     const viewById = id => views.find(view => String(view.viewId) === String(id)) || null;
     function renderAssignedViews() {
       if (views.length === 0) {
-        host.innerHTML = '<div class="empty"><p>미제공</p></div>';
+        host.innerHTML = emptyState(
+          '할당된 PublishedView가 없습니다',
+          isPreviewMode
+            ? 'Client preview에 표시할 view가 없습니다. Ops에서 PublishedView와 계정 scope를 확인하세요.'
+            : '이 계정에 허용된 view가 없습니다. 관리자에게 PublishedView 접근 권한을 요청하세요.',
+          isPreviewMode ? '/ops/sources' : '',
+          isPreviewMode ? 'PublishedView 관리' : ''
+        );
         return;
       }
       host.innerHTML = views.map(view => `
@@ -18201,7 +18276,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
         <section class="events">
           <h3>Event summary</h3>
           <div class="meta">
-            ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || 'event')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip bad">미제공</span>'}
+            ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || 'event')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">event 없음</span>'}
           </div>
           ${renderEvents(events.recent || [])}
         </section>
@@ -18209,7 +18284,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     }
     function renderEvents(items) {
       if (!Array.isArray(items) || items.length === 0) {
-        return '<div class="empty"><p>미제공</p></div>';
+        return emptyState('최근 event가 없습니다', '선택한 view에서 표시할 event가 아직 없거나 event 표시가 꺼져 있습니다.');
       }
       return items.map(item => `
         <article class="event">
@@ -18229,12 +18304,12 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
         <div class="toolbar">
           <div>
             <h2>${escapeHtml(view.displayName || view.viewId || 'Events')}</h2>
-            <p>${events.provided ? 'Recent events' : '미제공'}</p>
+            <p>${events.provided ? 'Recent events' : '이 view는 event 표시가 꺼져 있거나 event 권한이 없습니다.'}</p>
           </div>
           <div class="meta">${events.warning ? '<span class="chip warn">warning</span>' : statusChip(events.warningBadge)}</div>
         </div>
         <div class="meta">
-          ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || 'event')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip bad">미제공</span>'}
+          ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || 'event')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">event 없음</span>'}
         </div>
         <section class="events">${renderEvents(events.recent || [])}</section>
       `;
@@ -18325,6 +18400,17 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     }
     function renderLiveMonitor() {
       renderAssignedViews();
+      if (views.length === 0) {
+        detail.innerHTML = emptyState(
+          'Live view가 없습니다',
+          isPreviewMode
+            ? 'Preview할 PublishedView가 없습니다. Ops에서 view를 만들고 계정 scope를 연결하세요.'
+            : 'Live를 보려면 관리자에게 PublishedView 접근 권한을 받아야 합니다.',
+          isPreviewMode ? '/ops/sources' : '',
+          isPreviewMode ? 'Sources / Views' : ''
+        );
+        return;
+      }
       detail.innerHTML = `
         <div class="live-monitor">
           <div class="toolbar">
@@ -18366,7 +18452,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
               </article>
             `).join('')}
           </div>
-          <section class="detail-box" id="liveSelectedDetail"><div class="empty"><p>미제공</p></div></section>
+          <section class="detail-box" id="liveSelectedDetail">${emptyState('Tile을 선택하세요', '선택한 tile의 connection, metadata, event 상태가 여기에 표시됩니다.')}</section>
         </div>
       `;
       for (const tile of liveTiles) {
@@ -18593,7 +18679,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       const tile = selectedLiveTile === null ? null : liveTiles[selectedLiveTile];
       const view = tileView(tile);
       if (!container || !tile || !view) {
-        if (container) container.innerHTML = '<div class="empty"><p>미제공</p></div>';
+        if (container) container.innerHTML = emptyState('선택된 live tile이 없습니다', 'view 권한이 생기면 tile을 선택해 상태를 확인할 수 있습니다.');
         return;
       }
       try {
@@ -18632,8 +18718,15 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       }
     }
     async function loadDetail() {
-      if (!selectedViewId) return;
-      detail.innerHTML = '<div class="empty"><p>미제공</p></div>';
+      if (!selectedViewId) {
+        const title = activePage === 'events' ? 'Event view가 없습니다' : 'Dashboard view가 없습니다';
+        const message = activePage === 'events'
+          ? 'Events를 보려면 event 권한이 있는 PublishedView가 필요합니다.'
+          : 'Dashboard를 보려면 dashboard 권한이 있는 PublishedView가 필요합니다.';
+        detail.innerHTML = emptyState(title, message, isPreviewMode ? '/ops/sources' : '', isPreviewMode ? 'Sources / Views' : '');
+        return;
+      }
+      detail.innerHTML = emptyState('불러오는 중', '선택한 view의 상태를 조회하고 있습니다.');
       try {
         if (activePage === 'events') {
           renderEventPage(await requestJson(`/client/api/views/${encodeURIComponent(selectedViewId)}/events?limit=20`));
@@ -18970,12 +19063,12 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
     AppendOpsShellStart(out,
                         principal,
                         "users",
-                        "관리자가 operator, viewer, integrator 계정을 만들고 계정 상태를 관리합니다.");
+                        "관리자가 계정 metadata와 setup invite를 관리합니다. 비밀번호는 각 사용자가 직접 설정합니다.");
     out << R"USERS(    <section class="panel">
       <div class="toolbar">
         <div>
           <h2>User Management</h2>
-          <p>passwordHash/tokenHash는 API와 UI에 노출하지 않습니다. viewer/integrator는 view scope만 할당합니다.</p>
+          <p>Ops UI는 임시 비밀번호를 받지 않습니다. setup invite를 발급하고 사용자가 `/invite/setup`에서 직접 비밀번호를 입력합니다.</p>
         </div>
         <div class="actions">
           <button id="refresh-btn" class="button-secondary" type="button">Refresh</button>
@@ -18984,7 +19077,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
       </div>
       <div class="split-grid">
         <section class="section-card">
-        <h2>Create / Update</h2>
+        <h2>Invite / Update</h2>
         <form id="user-form">
           <div class="row">
             <label>Username<input name="username" required /></label>
@@ -19005,16 +19098,13 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
             <p class="hint">viewer/integrator 계정에는 `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}` 같은 view scope만 부여하세요. debug/lab/ops/source/rule 관리 scope는 허용하지 않습니다.</p>
           </div>
           <label>Scopes<textarea name="scopes" placeholder="비워두면 role/viewId template 사용"></textarea></label>
-          <label>Temporary Password<input name="password" type="password" autocomplete="new-password" /></label>
           <div class="checks">
             <label><input name="enabled" type="checkbox" checked /> enabled</label>
             <label><input name="mustChangePassword" type="checkbox" checked /> must change password</label>
           </div>
           <div class="actions">
-            <button id="create-btn" class="primary" type="submit">Create User</button>
+            <button id="create-btn" class="primary" type="submit">Create Setup Invite</button>
             <button id="update-btn" class="secondary" type="button">Update Profile</button>
-            <button id="reset-btn" class="secondary" type="button">Reset Password</button>
-            <button id="invite-btn" class="secondary" type="button">Create Invite</button>
           </div>
         </form>
       </section>
@@ -19087,9 +19177,9 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
       if (!res.ok) throw new Error(json.error || `${res.status} ${res.statusText}`);
       return json;
     }
-    function formPayload(includePassword) {
+    function formPayload() {
       const data = Object.fromEntries(new FormData(form).entries());
-      const payload = {
+      return {
         username: data.username.trim(),
         displayName: data.displayName.trim(),
         role: data.role,
@@ -19098,8 +19188,6 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         enabled: form.elements.enabled.checked,
         mustChangePassword: form.elements.mustChangePassword.checked
       };
-      if (includePassword) payload.password = data.password || '';
-      return payload;
     }
     function fillForm(user) {
       form.elements.username.value = user.username;
@@ -19109,7 +19197,6 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
       form.elements.scopes.value = (user.scopes || []).join('\n');
       form.elements.enabled.checked = Boolean(user.enabled);
       form.elements.mustChangePassword.checked = Boolean(user.mustChangePassword);
-      form.elements.password.value = '';
       updateAssignmentVisibility();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -19229,8 +19316,8 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
           body: JSON.stringify(payload)
         });
         const token = json.invite?.token || '';
-        setStatus(token ? `Approved. Invite token (shown once): ${token}` : 'Approved');
         await loadAll();
+        setStatus(token ? `Approved. Invite token (shown once): ${token}` : 'Approved');
       } catch (error) {
         setStatus(error.message, true);
       }
@@ -19246,22 +19333,27 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
     form.addEventListener('submit', async event => {
       event.preventDefault();
       try {
-        await requestJson('/ops/api/users', {
+        const payload = formPayload();
+        delete payload.enabled;
+        delete payload.mustChangePassword;
+        const json = await requestJson('/ops/api/invites', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formPayload(true))
+          body: JSON.stringify(payload)
         });
+        const token = json.invite?.token || '';
         form.reset();
         form.elements.enabled.checked = true;
         form.elements.mustChangePassword.checked = true;
         updateAssignmentVisibility();
         await loadAll();
+        setStatus(token ? `Setup invite token (shown once): ${token}` : 'Setup invite created');
       } catch (error) {
         setStatus(error.message, true);
       }
     });
     document.querySelector('#update-btn').onclick = async () => {
-      const payload = formPayload(false);
+      const payload = formPayload();
       if (!payload.username) return;
       try {
         await requestJson(`/ops/api/users/${encodeURIComponent(payload.username)}`, {
@@ -19269,43 +19361,6 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        await loadAll();
-      } catch (error) {
-        setStatus(error.message, true);
-      }
-    };
-    document.querySelector('#reset-btn').onclick = async () => {
-      const payload = formPayload(true);
-      if (!payload.username || !payload.password) {
-        setStatus('Temporary password is required', true);
-        return;
-      }
-      try {
-        await requestJson(`/ops/api/users/${encodeURIComponent(payload.username)}/reset-password`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: payload.password })
-        });
-        form.elements.password.value = '';
-        await loadAll();
-      } catch (error) {
-        setStatus(error.message, true);
-      }
-    };
-    document.querySelector('#invite-btn').onclick = async () => {
-      const payload = formPayload(false);
-      if (!payload.username) {
-        setStatus('Username is required', true);
-        return;
-      }
-      try {
-        const json = await requestJson('/ops/api/invites', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const token = json.invite?.token || '';
-        setStatus(token ? `Invite token (shown once): ${token}` : 'Invite created');
         await loadAll();
       } catch (error) {
         setStatus(error.message, true);
@@ -23176,7 +23231,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if (request.method == "GET" &&
-                            (request.path == "/ops" || request.path == "/ops/live" ||
+                            (request.path == "/ops" || request.path == "/ops/home" ||
+                             request.path == "/ops/live" ||
                              request.path == "/ops/dashboard" || request.path == "/ops/events" ||
                              request.path == "/ops/users")) {
                             if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
@@ -23194,8 +23250,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             HttpResponse ok;
                             ok.content_type = "text/html; charset=utf-8";
                             ok.headers["Cache-Control"] = "no-store";
-                            std::string active = "live";
-                            if (request.path == "/ops/dashboard") {
+                            std::string active = "home";
+                            if (request.path == "/ops/live") {
+                                active = "live";
+                            } else if (request.path == "/ops/dashboard") {
                                 active = "dashboard";
                             } else if (request.path == "/ops/events") {
                                 active = "events";

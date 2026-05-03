@@ -50,7 +50,7 @@
 
 ### HTTP auth MVP
 
-`MEDIA_SERVER_AUTH_MODE=auto`가 기본값입니다. Auto mode는 users file이 없거나 admin user/passwordHash가 준비되지 않았으면 `/setup`으로 보내고, setup이 끝나면 `/login` session 인증을 요구합니다. `MEDIA_SERVER_AUTH_MODE=off`는 개발/테스트 호환을 위한 명시 모드이며 제품 기본값으로 사용하지 않습니다. Auth off에서 `/`는 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/live`, `/client/live` 중 하나로 이동합니다. Auth on에서 `/`는 setup required면 `/setup`, 미인증이면 `/login`, admin/operator면 `/ops/live`, viewer면 `/client/live`로 이동합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 `/auth/whoami`가 `Authorization: Bearer <token>` 또는 개발용 `?token=<token>` query를 읽어 role/scope principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=session`은 auto의 setup 감지를 유지하면서 `/login` 계정 로그인과 HttpOnly session cookie 인증을 사용합니다. Query token은 브라우저 주소, proxy log, referrer에 남을 수 있으므로 운영 환경에서는 권장하지 않습니다.
+`MEDIA_SERVER_AUTH_MODE=auto`가 기본값입니다. Auto mode는 users file이 없거나 admin user/passwordHash가 준비되지 않았으면 `/setup`으로 보내고, setup이 끝나면 `/login` session 인증을 요구합니다. `MEDIA_SERVER_AUTH_MODE=off`는 개발/테스트 호환을 위한 명시 모드이며 제품 기본값으로 사용하지 않습니다. Auth off에서 `/`는 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/home`, `/client/live` 중 하나로 이동합니다. Auth on에서 `/`는 setup required면 `/setup`, 미인증이면 `/login`, admin/operator면 `/ops/home`, viewer면 `/client/live`로 이동합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 `/auth/whoami`가 `Authorization: Bearer <token>` 또는 개발용 `?token=<token>` query를 읽어 role/scope principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=session`은 auto의 setup 감지를 유지하면서 `/login` 계정 로그인과 HttpOnly session cookie 인증을 사용합니다. Query token은 브라우저 주소, proxy log, referrer에 남을 수 있으므로 운영 환경에서는 권장하지 않습니다.
 
 Session login은 `libsodium crypto_pwhash_str` password hash를 사용합니다. 안전한 password hashing dependency가 없는 build에서는 password login을 사용할 수 없으며 plaintext password나 단순 SHA 계열 저장을 지원하지 않습니다. Login 성공 시 새 session id를 발급하고, logout은 server-side session을 삭제하며 cookie를 만료시킵니다. Session은 TTL과 idle timeout 중 먼저 도달한 기준으로 만료됩니다.
 
@@ -140,19 +140,19 @@ Users file 예시:
 }
 ```
 
-`passwordHash`와 `passwordHistory`는 libsodium `crypto_pwhash_str` 출력 문자열만 저장합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다. Password hash 값은 `/ops/api/users`, `/ops/users`, CLI list 응답에 노출하지 않습니다. 클라이언트 계정은 `/ops/users` 또는 `./server.sh auth-user add --role viewer --view-id <viewId>`로 추가합니다. Invite/request 전용 env는 별도로 두지 않고 같은 users file에 저장하며, invite 만료 시간은 API 요청의 `ttlSeconds`로 지정하거나 서버 기본값을 사용합니다.
+`passwordHash`와 `passwordHistory`는 libsodium `crypto_pwhash_str` 출력 문자열만 저장합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다. Password hash 값은 `/ops/api/users`, `/ops/users`, CLI list 응답에 노출하지 않습니다. 제품 UI의 계정 생성/초기화는 setup invite를 발급하고, 비밀번호는 사용자가 `/invite/setup`에서 직접 입력합니다. Invite/request 전용 env는 별도로 두지 않고 같은 users file에 저장하며, invite 만료 시간은 API 요청의 `ttlSeconds`로 지정하거나 서버 기본값을 사용합니다.
 
 Admin user management API:
 
 | Route | 권한 | 설명 |
 | --- | --- | --- |
 | `GET /ops/api/users` | admin | hash/token을 제외한 user list |
-| `POST /ops/api/users` | admin | temporary password로 user 생성 |
+| `POST /ops/api/users` | admin | low-level 계정 생성 API. 제품 UI는 비밀번호 직접 지정 대신 setup invite를 사용 |
 | `PUT /ops/api/users/{username}` | admin | displayName/role/scopes/enabled/mustChangePassword 수정 |
-| `POST /ops/api/users/{username}/reset-password` | admin | 임시 비밀번호 설정, `mustChangePassword=true`, server-side session revoke |
+| `POST /ops/api/users/{username}/reset-password` | admin | low-level password 재설정 API. 제품 UI는 setup invite 재발급을 사용 |
 | `POST /ops/api/users/{username}/disable` | admin | hard delete 대신 비활성화 |
 | `POST /ops/api/users/{username}/enable` | admin | 비활성 계정 재활성화 |
-| `POST /ops/api/invites` | admin | viewer/integrator password setup invite 발급. token 원문은 응답에서 한 번만 표시 |
+| `POST /ops/api/invites` | admin | password setup invite 발급. token 원문은 응답에서 한 번만 표시 |
 | `GET /ops/api/access-requests` | admin | pending/rejected/approved client access request 조회 |
 | `POST /ops/api/access-requests/{requestId}/approve` | admin | pending request를 승인하고 password setup invite 발급 |
 | `POST /ops/api/access-requests/{requestId}/reject` | admin | pending request 거절. user/session/view scope는 생성하지 않음 |

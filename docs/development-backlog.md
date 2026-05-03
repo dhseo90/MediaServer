@@ -56,7 +56,7 @@
 
 - 상태: 완료: route MVP + product UI shell integration 1차
 - 목적: 운영 화면, 클라이언트 화면, 개발/lab 화면의 URL과 역할을 분리합니다.
-- 완료 범위: `MEDIA_SERVER_UI_DEFAULT_HOME`, `MEDIA_SERVER_ENABLE_LAB`, `MEDIA_SERVER_ENABLE_OPS`, `MEDIA_SERVER_ENABLE_CLIENT`, role-aware `/` redirect, `/setup`/`/login` auth shell, `/ops` 공통 shell, `/ops/live` 운영 홈 summary MVP, `/ops/dashboard` runtime card UI, `/ops/events` EventRecord/Event POST card/table UI, `/ops/rules` shell 안내 card, `/client` 공통 shell, `/client/live` 2x2 MVP, `/lab` guard와 기존 `/lab/rules` 호환 유지입니다.
+- 완료 범위: `MEDIA_SERVER_UI_DEFAULT_HOME`, `MEDIA_SERVER_ENABLE_LAB`, `MEDIA_SERVER_ENABLE_OPS`, `MEDIA_SERVER_ENABLE_CLIENT`, role-aware `/` redirect, `/setup`/`/login` auth shell, `/ops` 공통 shell, `/ops/home` 운영 홈 summary MVP, `/ops/live` 후속 Operator Live Monitor 안내 route, `/ops/dashboard` runtime card UI, `/ops/events` EventRecord/Event POST card/table UI, `/ops/rules` shell 안내 card, `/client` 공통 shell, `/client/live` 2x2 MVP, `/lab` guard와 기존 `/lab/rules` 호환 유지입니다.
 - 후속: Operator Live Monitor에서 source/runtime/event 운영 상태를 더 높은 정보 밀도로 연결하고, `/ops` nav별 URL 이동 후에도 동일 shell 정보 위계를 계속 다듬습니다.
 - 우선순위 이유: 현재 lab 중심 UI에서 운영/고객 화면으로 확장할 때 권한과 탐색 구조가 명확해야 합니다.
 
@@ -80,9 +80,9 @@
 
 ### O6. Operator Live Monitor
 
-- 상태: 부분 완료: `/ops/live` 운영 홈 summary MVP. 완성형 live monitor는 예정
+- 상태: 부분 완료: `/ops/home` 운영 홈 summary MVP. `/ops/live` 완성형 live monitor는 예정
 - 목적: 운영자가 source, runtime 상태, event, analysis tap 상태를 함께 볼 수 있는 live monitor를 정의합니다.
-- 현재 범위: Source/View summary, active session/stream/tap summary, recent event summary, warning/stale/cleanup summary, quick action card를 표시합니다.
+- 현재 범위: Source/View summary, active session/stream/tap summary, recent event summary, warning/stale/cleanup summary, quick action card를 `/ops/home`에 표시합니다.
 - 후속: 실제 live tiles, source health drill-down, runtime/event timeline, 장애 대응 action을 한 화면에서 연결합니다.
 - 우선순위 이유: 운영 화면은 장애 대응과 source 제어가 핵심이라 클라이언트 화면과 다른 정보 밀도가 필요합니다.
 
