@@ -1137,6 +1137,26 @@ SceneGeometryConfig BuildSceneGeometryConfigFromRuleDocuments(const std::vector<
                 config.lines.push_back(std::move(line));
             }
         }
+
+        if (const auto scenario = ExtractScenarioObject(document); scenario.has_value()) {
+            if (const auto trigger_line = ExtractObjectField(*scenario, "triggerLine");
+                trigger_line.has_value()) {
+                SceneLineDefinition line;
+                line.line_id = Trim(ParseStringField(*trigger_line, "id").value_or(""));
+                if (line.line_id.empty()) {
+                    line.line_id = ScenarioLineIdForDocument(document, rule_id);
+                }
+                line.allowed_direction =
+                    ToLower(ParseStringField(*trigger_line, "direction").value_or("any"));
+                if (line.allowed_direction != "forward" && line.allowed_direction != "reverse") {
+                    line.allowed_direction = "any";
+                }
+                line.points = ParsePoints(*trigger_line);
+                if (!line.line_id.empty() && line.points.size() >= 2) {
+                    config.lines.push_back(std::move(line));
+                }
+            }
+        }
     }
     return config;
 }

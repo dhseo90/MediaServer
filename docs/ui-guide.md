@@ -135,7 +135,7 @@ Scenario는 여러 frame에 걸친 시간 조건과 상태 전이를 판단하�
 | Intrusion Dwell | 구현됨 | 룰 편집 UI에서 선택 가능 |
 | ReEntry | 구현됨 | 룰 편집 UI에서 선택 가능 |
 | WrongDirection | 구현됨 | 룰 편집 UI에서 선택 가능 |
-| IntrusionAfterLineCrossing | 구현됨 | 전용 UI 템플릿은 후속 작업 |
+| IntrusionAfterLineCrossing | 구현됨 | 룰 편집 UI에서 선택 가능 |
 | Loitering | 구현됨 | 전용 UI 템플릿은 후속 작업 |
 
 현재 UI가 제공하는 시나리오 템플릿:
@@ -145,6 +145,7 @@ Scenario는 여러 frame에 걸친 시간 조건과 상태 전이를 판단하�
 | Intrusion Dwell · 제한구역 체류 | zone, 후보 시간, 체류 시간, cooldown | scenario event |
 | ReEntry · 이탈 후 재진입 | polygon zone, 재진입 window, 재진입 zone, cooldown | `re-entry` |
 | WrongDirection · 금지 방향 통과 | line 2점 geometry, 허용 방향, cooldown | `wrong-direction` |
+| IntrusionAfterLineCrossing · line 후 zone 침입 | trigger line, crossing direction, target zone, zone entry timeout, dwell, cooldown | `intrusion-after-line-crossing` |
 
 ReEntry UI 정책:
 
@@ -159,6 +160,14 @@ WrongDirection UI 정책:
 - `any`는 위반 방향을 정의할 수 없으므로 WrongDirection 템플릿에서 사용하지 않습니다.
 - 기존 `line-crossing` 기본 이벤트는 유지합니다.
 - WrongDirection은 별도 `wrong-direction` scenario event로 발생합니다.
+- Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직은 변경하지 않습니다.
+
+IntrusionAfterLineCrossing UI 정책:
+
+- 기존 `line-crossing` 기본 이벤트와 별도 `intrusion-after-line-crossing` scenario event로 발생합니다.
+- target zone은 영역/라인 캔버스의 polygon으로 저장하고, trigger line은 전용 설정 영역의 line id/direction/정규화 좌표로 저장합니다.
+- `any`, `forward`, `reverse` crossing direction을 모두 사용할 수 있습니다. `any`는 WrongDirection과 달리 정상 trigger 방향입니다.
+- UI의 `zoneEntryTimeout(ms)`는 저장 payload의 `maxDelayAfterCrossingMs`로 runtime에 전달합니다.
 - Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직은 변경하지 않습니다.
 
 Intrusion Dwell UI 항목:
@@ -179,6 +188,16 @@ ReEntry UI 항목:
 - 대상 객체
 - 불안정 track 제외
 - Inside → Exited → ReEntryCandidate → Confirmed → Cooldown → Ended 상태 흐름 미리보기
+
+IntrusionAfterLineCrossing UI 항목:
+
+- trigger line 이름과 x1/y1 → x2/y2 좌표
+- crossing direction: any, forward, reverse
+- target zone polygon과 zone 이름
+- zoneEntryTimeout(ms) / dwell 또는 observe time(ms)
+- 재알림 대기 시간(ms)
+- 대상 객체와 불안정 track 제외
+- Idle → LineCrossed → ZoneEntered → Observing → Confirmed → Cooldown → Ended 상태 흐름 미리보기
 
 실제 scenario engine 활성화와 기본값은 서버 설정과 함께 동작합니다. 환경변수는 [config-reference.md](./config-reference.md)를 봅니다.
 

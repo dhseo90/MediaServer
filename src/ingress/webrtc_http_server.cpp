@@ -6620,6 +6620,7 @@ std::string BuildLabRuleEditorPageHtml() {
                 <option value="intrusion-dwell" selected>Intrusion Dwell · 제한구역 체류</option>
                 <option value="re-entry">ReEntry · 이탈 후 재진입</option>
                 <option value="wrong-direction">WrongDirection · 금지 방향 통과</option>
+                <option value="intrusion-after-line-crossing">IntrusionAfterLineCrossing · line 후 zone 침입</option>
               </select>
             </label>
             <div id="scenarioDwellTimingRow" class="row">
@@ -6659,6 +6660,37 @@ std::string BuildLabRuleEditorPageHtml() {
               <label id="scenarioReEntryZoneIdsLabel">지정 zone 이름
                 <input id="scenarioReEntryZoneIds" placeholder="예: 로비, 출입구A · 비우면 영역 이름 사용" />
                 <span class="form-note">cross-zone A→B 재진입 판단은 후속 ScenarioEngine 확장 범위입니다.</span>
+              </label>
+            </div>
+            <div id="scenarioAfterLineRow" class="row" hidden>
+              <label>Trigger line 이름
+                <input id="scenarioAfterLineId" placeholder="예: entry-line · 비우면 ruleId-line" />
+                <span class="form-note">기존 line-crossing 기본 이벤트와 별도 trigger line으로 저장합니다.</span>
+              </label>
+              <label>Crossing direction
+                <select id="scenarioAfterLineDirection">
+                  <option value="any" selected>any · 양방향</option>
+                  <option value="forward">forward · 정방향(-측→+측)</option>
+                  <option value="reverse">reverse · 역방향(+측→-측)</option>
+                </select>
+                <span class="form-note">WrongDirection과 달리 any는 정상 옵션입니다.</span>
+              </label>
+              <label>Trigger line 좌표
+                <span class="range-meta">x1/y1 → x2/y2, 0.0~1.0 정규화 좌표</span>
+                <div class="row" style="grid-template-columns:repeat(4,minmax(90px,1fr));">
+                  <input id="scenarioAfterLineX1" type="number" min="0" max="1" step="0.01" value="0.25" aria-label="trigger line x1" />
+                  <input id="scenarioAfterLineY1" type="number" min="0" max="1" step="0.01" value="0.50" aria-label="trigger line y1" />
+                  <input id="scenarioAfterLineX2" type="number" min="0" max="1" step="0.01" value="0.75" aria-label="trigger line x2" />
+                  <input id="scenarioAfterLineY2" type="number" min="0" max="1" step="0.01" value="0.50" aria-label="trigger line y2" />
+                </div>
+              </label>
+              <label>zoneEntryTimeout(ms): <span id="scenarioAfterLineTimeoutMsValue">10,000 ms</span>
+                <input id="scenarioAfterLineTimeoutMs" type="range" min="1000" max="120000" step="1000" value="10000" />
+                <span class="range-meta">line 통과 후 target zone 진입까지 허용하는 시간입니다. 저장 payload는 maxDelayAfterCrossingMs를 사용합니다.</span>
+              </label>
+              <label>zone dwell/observe(ms): <span id="scenarioAfterLineDwellMsValue">3,000 ms</span>
+                <input id="scenarioAfterLineDwellMs" type="range" min="0" max="120000" step="1000" value="3000" />
+                <span class="range-meta">target zone 안에 머문 시간이 이 값 이상이면 확정합니다.</span>
               </label>
             </div>
             <div class="row">
@@ -7657,7 +7689,7 @@ std::string BuildLabRuleEditorPageHtml() {
         actions: ['setRuleKind', 'updateRuleModeUi', 'ruleJson']
       },
       ScenarioEditor: {
-        selectors: ['scenarioType', 'scenarioCandidateMs', 'scenarioDwellMs', 'scenarioReEntryWindowMs', 'scenarioReEntryMode', 'scenarioReEntryZoneIds', 'scenarioCooldownMs', 'scenarioStableOnly'],
+        selectors: ['scenarioType', 'scenarioCandidateMs', 'scenarioDwellMs', 'scenarioReEntryWindowMs', 'scenarioReEntryMode', 'scenarioReEntryZoneIds', 'scenarioAfterLineId', 'scenarioAfterLineDirection', 'scenarioAfterLineX1', 'scenarioAfterLineY1', 'scenarioAfterLineX2', 'scenarioAfterLineY2', 'scenarioAfterLineTimeoutMs', 'scenarioAfterLineDwellMs', 'scenarioCooldownMs', 'scenarioStableOnly'],
         actions: ['scenarioJson', 'updateRangeLabels']
       },
       ObjectCategorySelector: {
@@ -7966,6 +7998,9 @@ std::string BuildLabRuleEditorPageHtml() {
         if ((scenario.type || item.event?.type) === 're-entry') {
           return `ReEntry · window ${msLabel(scenario.reEntryWindowMs ?? 10000)}`;
         }
+        if ((scenario.type || item.event?.type) === 'intrusion-after-line-crossing') {
+          return `IntrusionAfterLineCrossing · dwell ${msLabel(scenario.dwellTimeMs ?? 3000)}`;
+        }
         return eventTypeLabel(scenario.type || item.event?.type || 'scenario');
       }
       return '기본 이벤트';
@@ -7993,7 +8028,7 @@ std::string BuildLabRuleEditorPageHtml() {
           return `${classText} · 허용 방향 반대`;
         }
         if (scenarioType === 'intrusion-after-line-crossing') {
-          return `${classText} · 라인 통과 후 구역 진입`;
+          return `${classText} · line 후 ${msLabel(scenario.maxDelayAfterCrossingMs ?? 10000)} 안 zone · dwell ${msLabel(scenario.dwellTimeMs ?? 3000)}`;
         }
         if (scenarioType === 'loitering') {
           return `${classText} · 체류/이동 반경`;
@@ -8515,6 +8550,10 @@ std::string BuildLabRuleEditorPageHtml() {
       return isScenarioRule() && selectedScenarioType() === 're-entry';
     }
 
+    function isIntrusionAfterLineScenario() {
+      return isScenarioRule() && selectedScenarioType() === 'intrusion-after-line-crossing';
+    }
+
     function isGeometryLineMode() {
       return isLineRule() || isWrongDirectionScenario();
     }
@@ -8553,12 +8592,56 @@ std::string BuildLabRuleEditorPageHtml() {
       return scenarioZoneIdsValue();
     }
 
+    function sanitizeScenarioId(value, fallback) {
+      const trimmed = String(value || '').trim();
+      if (trimmed) return trimmed;
+      return fallback;
+    }
+
+    function scenarioAfterLineIdValue() {
+      const ruleId = $('ruleId')?.value.trim() || 'file-person-vehicle-area';
+      return sanitizeScenarioId($('scenarioAfterLineId')?.value, `${ruleId}-line`);
+    }
+
+    function scenarioAfterLineDirectionValue() {
+      const value = $('scenarioAfterLineDirection')?.value || 'any';
+      return ['any', 'forward', 'reverse'].includes(value) ? value : 'any';
+    }
+
+    function scenarioAfterLineTargetZoneIdsValue() {
+      const zones = scenarioZoneIdsValue();
+      if (zones.length > 0) return zones;
+      const ruleId = $('ruleId')?.value.trim() || 'file-person-vehicle-area';
+      return [`${ruleId}-zone`];
+    }
+
+    function normalizedNumberInputValue(id, fallback) {
+      const raw = Number($(id)?.value);
+      if (!Number.isFinite(raw)) return fallback;
+      return Math.max(0, Math.min(1, raw));
+    }
+
+    function scenarioAfterLinePointsValue() {
+      return [
+        {
+          x: Number(normalizedNumberInputValue('scenarioAfterLineX1', 0.25).toFixed(4)),
+          y: Number(normalizedNumberInputValue('scenarioAfterLineY1', 0.50).toFixed(4))
+        },
+        {
+          x: Number(normalizedNumberInputValue('scenarioAfterLineX2', 0.75).toFixed(4)),
+          y: Number(normalizedNumberInputValue('scenarioAfterLineY2', 0.50).toFixed(4))
+        }
+      ];
+    }
+
     function scenarioJson() {
       const scenarioType = selectedScenarioType();
       const candidateTimeMs = clampedIntValue('scenarioCandidateMs', 2000, 0, 3600000);
       const dwellTimeMs = clampedIntValue('scenarioDwellMs', 10000, 0, 86400000);
       const cooldownMs = clampedIntValue('scenarioCooldownMs', 5000, 0, 86400000);
       const reEntryWindowMs = clampedIntValue('scenarioReEntryWindowMs', 10000, 1000, 86400000);
+      const afterLineTimeoutMs = clampedIntValue('scenarioAfterLineTimeoutMs', 10000, 1000, 86400000);
+      const afterLineDwellMs = clampedIntValue('scenarioAfterLineDwellMs', 3000, 0, 86400000);
       if (scenarioType === 'wrong-direction') {
         return {
           type: 'wrong-direction',
@@ -8593,6 +8676,33 @@ std::string BuildLabRuleEditorPageHtml() {
           lifecycle: {
             emit: 'confirmed-once',
             duplicateKey: 'stream/channel/scenario/zone/track',
+            endWhen: ['cooldown-ended', 'track-lost-or-terminated']
+          }
+        };
+      }
+      if (scenarioType === 'intrusion-after-line-crossing') {
+        const lineId = scenarioAfterLineIdValue();
+        const targetZoneIds = scenarioAfterLineTargetZoneIdsValue();
+        return {
+          type: 'intrusion-after-line-crossing',
+          enabled: true,
+          maxDelayAfterCrossingMs: afterLineTimeoutMs,
+          dwellTimeMs: afterLineDwellMs,
+          cooldownMs,
+          targetClasses: selectedClasses(),
+          targetLineIds: [lineId],
+          targetZoneIds,
+          triggerLine: {
+            id: lineId,
+            direction: scenarioAfterLineDirectionValue(),
+            points: scenarioAfterLinePointsValue()
+          },
+          trackHealth: {
+            requireStableTrack: $('scenarioStableOnly').checked
+          },
+          lifecycle: {
+            emit: 'confirmed-once',
+            duplicateKey: 'stream/channel/scenario/line/zone/track',
             endWhen: ['cooldown-ended', 'track-lost-or-terminated']
           }
         };
@@ -8786,29 +8896,43 @@ std::string BuildLabRuleEditorPageHtml() {
         }
       };
       if (isScenarioRule()) {
-        payload.scenario = scenarioType === 'wrong-direction'
-          ? {
-              phase: 'Confirmed',
-              lifecycle: 'emit-once',
-              cooldownMs: clampedIntValue('scenarioCooldownMs', 5000, 0, 86400000),
-              trackHealth: $('scenarioStableOnly').checked ? 'stable-only' : 'allow-unstable'
-            }
-          : (scenarioType === 're-entry'
-            ? {
-                phase: 'Confirmed',
-                lifecycle: 'emit-once',
-                reEntryWindowMs: clampedIntValue('scenarioReEntryWindowMs', 10000, 1000, 86400000),
-                cooldownMs: clampedIntValue('scenarioCooldownMs', 5000, 0, 86400000),
-                reEntryMode: scenarioReEntryModeValue(),
-                trackHealth: $('scenarioStableOnly').checked ? 'stable-only' : 'allow-unstable'
-              }
-          : {
-              phase: 'Confirmed',
-              lifecycle: 'emit-once',
-              candidateTimeMs: clampedIntValue('scenarioCandidateMs', 2000, 0, 3600000),
-              dwellTimeMs: clampedIntValue('scenarioDwellMs', 10000, 0, 86400000),
-              trackHealth: $('scenarioStableOnly').checked ? 'stable-only' : 'allow-unstable'
-            });
+        if (scenarioType === 'wrong-direction') {
+          payload.scenario = {
+            phase: 'Confirmed',
+            lifecycle: 'emit-once',
+            cooldownMs: clampedIntValue('scenarioCooldownMs', 5000, 0, 86400000),
+            trackHealth: $('scenarioStableOnly').checked ? 'stable-only' : 'allow-unstable'
+          };
+        } else if (scenarioType === 're-entry') {
+          payload.scenario = {
+            phase: 'Confirmed',
+            lifecycle: 'emit-once',
+            reEntryWindowMs: clampedIntValue('scenarioReEntryWindowMs', 10000, 1000, 86400000),
+            cooldownMs: clampedIntValue('scenarioCooldownMs', 5000, 0, 86400000),
+            reEntryMode: scenarioReEntryModeValue(),
+            trackHealth: $('scenarioStableOnly').checked ? 'stable-only' : 'allow-unstable'
+          };
+        } else if (scenarioType === 'intrusion-after-line-crossing') {
+          payload.scenario = {
+            phase: 'Confirmed',
+            lifecycle: 'emit-once',
+            lineId: scenarioAfterLineIdValue(),
+            zoneId: scenarioAfterLineTargetZoneIdsValue()[0] || '',
+            direction: scenarioAfterLineDirectionValue(),
+            maxDelayAfterCrossingMs: clampedIntValue('scenarioAfterLineTimeoutMs', 10000, 1000, 86400000),
+            dwellTimeMs: clampedIntValue('scenarioAfterLineDwellMs', 3000, 0, 86400000),
+            cooldownMs: clampedIntValue('scenarioCooldownMs', 5000, 0, 86400000),
+            trackHealth: $('scenarioStableOnly').checked ? 'stable-only' : 'allow-unstable'
+          };
+        } else {
+          payload.scenario = {
+            phase: 'Confirmed',
+            lifecycle: 'emit-once',
+            candidateTimeMs: clampedIntValue('scenarioCandidateMs', 2000, 0, 3600000),
+            dwellTimeMs: clampedIntValue('scenarioDwellMs', 10000, 0, 86400000),
+            trackHealth: $('scenarioStableOnly').checked ? 'stable-only' : 'allow-unstable'
+          };
+        }
       }
       return payload;
     }
@@ -8896,34 +9020,47 @@ std::string BuildLabRuleEditorPageHtml() {
       const dwellTimeMs = clampedIntValue('scenarioDwellMs', 10000, 0, 86400000);
       const cooldownMs = clampedIntValue('scenarioCooldownMs', 5000, 0, 86400000);
       const reEntryWindowMs = clampedIntValue('scenarioReEntryWindowMs', 10000, 1000, 86400000);
+      const afterLineTimeoutMs = clampedIntValue('scenarioAfterLineTimeoutMs', 10000, 1000, 86400000);
+      const afterLineDwellMs = clampedIntValue('scenarioAfterLineDwellMs', 3000, 0, 86400000);
       const wrongDirectionMode = isWrongDirectionScenario();
       const reEntryMode = isReEntryScenario();
+      const afterLineMode = isIntrusionAfterLineScenario();
       if ($('scenarioCandidateMsValue')) $('scenarioCandidateMsValue').textContent = msLabel(candidateTimeMs);
       if ($('scenarioDwellMsValue')) $('scenarioDwellMsValue').textContent = msLabel(dwellTimeMs);
       if ($('scenarioReEntryWindowMsValue')) $('scenarioReEntryWindowMsValue').textContent = msLabel(reEntryWindowMs);
+      if ($('scenarioAfterLineTimeoutMsValue')) $('scenarioAfterLineTimeoutMsValue').textContent = msLabel(afterLineTimeoutMs);
+      if ($('scenarioAfterLineDwellMsValue')) $('scenarioAfterLineDwellMsValue').textContent = msLabel(afterLineDwellMs);
       if ($('scenarioCooldownMsValue')) $('scenarioCooldownMsValue').textContent = msLabel(cooldownMs);
       if ($('scenarioSummaryText')) {
         const zones = scenarioZoneIdsValue();
         const reEntryZones = scenarioReEntryZoneIdsValue();
+        const afterLineZones = scenarioAfterLineTargetZoneIdsValue();
         const zoneLabel = zones.length > 0 ? zones.join(', ') : '현재 그린 제한구역';
         const reEntryZoneLabel = reEntryZones.length > 0 ? reEntryZones.join(', ') : zoneLabel;
+        const afterLineZoneLabel = afterLineZones.length > 0 ? afterLineZones.join(', ') : 'target zone';
         const stability = $('scenarioStableOnly').checked ? '안정적인 track만' : '감지된 track';
         $('scenarioSummaryText').textContent = wrongDirectionMode
           ? `${stability}이 line을 통과할 때 실제 방향이 허용 방향(${lineDirectionLabel()})과 다르면 wrong-direction scenario event를 발생시킵니다. 같은 track/line은 ${msLabel(cooldownMs)} 동안 중복 알림을 억제합니다.`
           : (reEntryMode
             ? `${stability}이 ${reEntryZoneLabel}에서 이탈한 뒤 ${msLabel(reEntryWindowMs)} 안에 같은 zone으로 다시 들어오면 re-entry 이벤트를 1회 발생시킵니다. 같은 track/zone은 ${msLabel(cooldownMs)} 동안 중복 알림을 억제합니다.`
-            : `${stability}이 ${zoneLabel} 안에 들어오면 ${msLabel(candidateTimeMs)} 뒤 후보로 보고, ${msLabel(dwellTimeMs)} 이상 머물면 intrusion-dwell 이벤트를 1회 발생시킵니다. 같은 track은 ${msLabel(cooldownMs)} 동안 중복 알림을 억제합니다.`);
+            : (afterLineMode
+              ? `${stability}이 trigger line(${scenarioAfterLineIdValue()}, ${lineDirectionLabel(scenarioAfterLineDirectionValue())})을 통과한 뒤 ${msLabel(afterLineTimeoutMs)} 안에 ${afterLineZoneLabel}에 진입하고 ${msLabel(afterLineDwellMs)} 이상 머물면 intrusion-after-line-crossing scenario event를 1회 발생시킵니다.`
+            : `${stability}이 ${zoneLabel} 안에 들어오면 ${msLabel(candidateTimeMs)} 뒤 후보로 보고, ${msLabel(dwellTimeMs)} 이상 머물면 intrusion-dwell 이벤트를 1회 발생시킵니다. 같은 track은 ${msLabel(cooldownMs)} 동안 중복 알림을 억제합니다.`));
       }
       const zones = scenarioZoneIdsValue();
       const reEntryZones = scenarioReEntryZoneIdsValue();
+      const afterLineZones = scenarioAfterLineTargetZoneIdsValue();
       const zoneLabel = zones.length > 0 ? zones.join(', ') : '현재 그린 제한구역';
       const reEntryZoneLabel = reEntryZones.length > 0 ? reEntryZones.join(', ') : zoneLabel;
+      const afterLineZoneLabel = afterLineZones.length > 0 ? afterLineZones.join(', ') : 'target zone';
       const classes = selectedClasses();
       const classLabel = classes.length > 0 ? classes.join(', ') : '선택 필요';
       if ($('scenarioReadinessZone')) {
         $('scenarioReadinessZone').textContent = wrongDirectionMode
           ? `line ${regionPoints.length}/${lineMaxPoints} · 허용 ${lineDirectionLabel()}`
-          : (reEntryMode ? `${scenarioReEntryModeValue() === 'specified-zone' ? '지정 zone' : 'same zone'} · ${reEntryZoneLabel}` : zoneLabel);
+          : (reEntryMode
+            ? `${scenarioReEntryModeValue() === 'specified-zone' ? '지정 zone' : 'same zone'} · ${reEntryZoneLabel}`
+            : (afterLineMode ? `line ${scenarioAfterLineIdValue()} · zone ${afterLineZoneLabel}` : zoneLabel));
       }
       if ($('scenarioReadinessTarget')) $('scenarioReadinessTarget').textContent = classLabel;
       if ($('scenarioReadinessTiming')) {
@@ -8931,12 +9068,16 @@ std::string BuildLabRuleEditorPageHtml() {
           ? `재알림 ${msLabel(cooldownMs)} · same track/line dedupe`
           : (reEntryMode
             ? `window ${msLabel(reEntryWindowMs)} · 재알림 ${msLabel(cooldownMs)} · same track/zone dedupe`
-            : `후보 ${msLabel(candidateTimeMs)} · 확정 ${msLabel(dwellTimeMs)} · 재알림 ${msLabel(cooldownMs)}`);
+            : (afterLineMode
+              ? `zone entry ${msLabel(afterLineTimeoutMs)} · dwell ${msLabel(afterLineDwellMs)} · 재알림 ${msLabel(cooldownMs)}`
+              : `후보 ${msLabel(candidateTimeMs)} · 확정 ${msLabel(dwellTimeMs)} · 재알림 ${msLabel(cooldownMs)}`));
       }
       if ($('scenarioReadinessEmit')) {
         $('scenarioReadinessEmit').textContent = wrongDirectionMode
           ? 'wrong-direction · line-crossing과 별도 scenario event'
-          : (reEntryMode ? 're-entry · 같은 track/zone 1회' : 'intrusion-dwell · 같은 track/구역 1회');
+          : (reEntryMode
+            ? 're-entry · 같은 track/zone 1회'
+            : (afterLineMode ? 'intrusion-after-line-crossing · line-crossing과 별도 scenario event' : 'intrusion-dwell · 같은 track/구역 1회'));
       }
       if ($('scenarioReadinessHealth')) {
         $('scenarioReadinessHealth').textContent = $('scenarioStableOnly').checked
@@ -8958,7 +9099,9 @@ std::string BuildLabRuleEditorPageHtml() {
           ? 'WrongDirection은 line geometry와 event.region.direction을 사용해 허용 방향을 저장합니다. 기존 line-crossing 기본 이벤트와 Event POST payload schema는 변경하지 않습니다.'
           : (reEntryMode
             ? 'ReEntry는 polygon zone 이탈 후 window 안 같은 zone 재진입을 저장합니다. Event POST payload schema와 metadata schema는 변경하지 않습니다.'
-            : '이 UI는 시나리오 rule payload를 저장하고, runtime은 저장된 per-rule 설정을 우선 적용합니다. 비어 있는 항목만 서버 env 기본값을 fallback으로 사용합니다.');
+            : (afterLineMode
+              ? 'IntrusionAfterLineCrossing은 trigger line 통과 기록과 target zone dwell 조건을 조합해 별도 scenario event를 냅니다. 기존 line-crossing 기본 이벤트와 Event POST payload schema는 변경하지 않습니다.'
+              : '이 UI는 시나리오 rule payload를 저장하고, runtime은 저장된 per-rule 설정을 우선 적용합니다. 비어 있는 항목만 서버 env 기본값을 fallback으로 사용합니다.'));
       }
       setText('geometryRegionNameText', currentGeometryName());
     }
@@ -9099,7 +9242,9 @@ std::string BuildLabRuleEditorPageHtml() {
       const valid = regionPoints.length >= minimumGeometryPoints();
       const mode = regionPoints.length === 0 ? 'none' : (lineMode ? 'line' : 'polygon');
       const regionName = currentGeometryName();
-      $('geometryLabel').textContent = lineMode ? (wrongDirectionMode ? 'WrongDirection 판단 선' : '이벤트 판단 선') : (scenarioMode ? '시나리오 제한구역' : '이벤트 판단 영역');
+      $('geometryLabel').textContent = lineMode
+        ? (wrongDirectionMode ? 'WrongDirection 판단 선' : '이벤트 판단 선')
+        : (isIntrusionAfterLineScenario() ? 'IntrusionAfterLineCrossing target zone' : (scenarioMode ? '시나리오 제한구역' : '이벤트 판단 영역'));
       $('clearRegionBtn').textContent = '전체 영역 초기화';
       $('ruleLineDirection').disabled = !isLineRule();
       $('geometryHint').textContent = lineMode
@@ -9107,7 +9252,9 @@ std::string BuildLabRuleEditorPageHtml() {
         : (scenarioMode
           ? (isReEntryScenario()
             ? `ReEntry는 현재 polygon을 재진입 감지 zone으로 저장합니다. 같은 track이 zone을 나갔다가 window 안에 다시 들어오면 재진입 이벤트를 1회 발생시킵니다.`
-            : `Intrusion Dwell은 현재 polygon을 제한구역 후보로 저장합니다. 3개 이상이면 구역으로 저장되며, 같은 track이 설정 시간 이상 머물면 체류 확정 후보가 됩니다.`)
+            : (isIntrusionAfterLineScenario()
+              ? `현재 polygon은 line 통과 후 진입해야 하는 target zone으로 저장합니다. trigger line은 시나리오 설정 영역의 좌표 입력으로 별도 저장됩니다.`
+              : `Intrusion Dwell은 현재 polygon을 제한구역 후보로 저장합니다. 3개 이상이면 구역으로 저장되며, 같은 track이 설정 시간 이상 머물면 체류 확정 후보가 됩니다.`))
           : `캔버스를 클릭해 다각형 꼭짓점을 추가합니다. 3개 이상이면 영역으로 저장됩니다. 최대 ${polygonMaxPoints}개까지 지정할 수 있습니다. 기존 점 근처를 드래그하면 새 점을 만들지 않고 점 위치를 이동합니다.`);
       const geometrySaveText = valid
         ? `저장 가능: ${lineMode ? 'line' : 'polygon'} ${regionPoints.length}개 점`
@@ -9137,6 +9284,10 @@ std::string BuildLabRuleEditorPageHtml() {
         return 'wrong-direction line';
       }
       if (isScenarioRule()) {
+        if (isIntrusionAfterLineScenario()) {
+          const zones = scenarioAfterLineTargetZoneIdsValue();
+          return zones.length > 0 ? zones.join(', ') : 'target zone';
+        }
         const zones = splitCsvTokens($('scenarioZoneIds')?.value || '');
         return zones.length > 0 ? zones.join(', ') : '현재 제한구역';
       }
@@ -9204,13 +9355,23 @@ std::string BuildLabRuleEditorPageHtml() {
               ['Cooldown', false],
               ['Ended', false],
             ]
+        : (isIntrusionAfterLineScenario()
+          ? [
+              ['Idle', false],
+              ['LineCrossed', false],
+              ['ZoneEntered', false],
+              ['Observing', false],
+              ['Confirmed', true],
+              ['Cooldown', false],
+              ['Ended', false],
+            ]
         : [
             ['대기', false],
             ['진입 후보', false],
             ['관찰 중', false],
             ['체류 확정 1회 알림', true],
             ['종료', false],
-          ]);
+          ]));
       for (const [label, emphasis] of phases) {
         const chip = document.createElement('div');
         chip.className = `phase-chip${emphasis ? ' is-emphasis' : ''}`;
@@ -9241,6 +9402,15 @@ std::string BuildLabRuleEditorPageHtml() {
               ['중복 억제', '같은 track/zone은 cooldown 동안 1회 알림'],
               ['Track 안정성', 'ID 흔들림 진단값과 함께 확인'],
             ]
+        : (isIntrusionAfterLineScenario()
+          ? [
+              ['Trigger line', `${scenarioAfterLineIdValue()} · ${lineDirectionLabel(scenarioAfterLineDirectionValue())}`],
+              ['LineCrossed', '대상 track의 line crossing 기록을 window 동안 유지'],
+              ['Target zone', `${scenarioAfterLineTargetZoneIdsValue().join(', ')} polygon 진입 확인`],
+              ['Observing', 'zone dwell/observe 시간이 충족되는지 확인'],
+              ['Confirmed', 'line 후 zone dwell 조건을 만족하면 1회 알림'],
+              ['기본 이벤트', 'line-crossing 기본 이벤트와 별도 scenario event'],
+            ]
         : [
             ['처음 보인 시각', 'track이 처음 감지된 시간'],
             ['체류 시간', '제한구역 안에 머문 시간'],
@@ -9248,7 +9418,7 @@ std::string BuildLabRuleEditorPageHtml() {
             ['라인 방향', '선을 넘은 방향'],
             ['중복 억제', '같은 track은 확정 알림 1회'],
             ['Track 안정성', 'ID 흔들림 진단값'],
-          ]);
+          ]));
       for (const [titleText, bodyText] of metrics) {
         const tile = document.createElement('div');
         tile.className = 'metric-tile';
@@ -9266,14 +9436,16 @@ std::string BuildLabRuleEditorPageHtml() {
       const scenarioMode = isScenarioRule();
       const wrongDirectionMode = isWrongDirectionScenario();
       const reEntryMode = isReEntryScenario();
+      const afterLineMode = isIntrusionAfterLineScenario();
       const panel = $('scenarioPanel');
       if (panel) panel.hidden = !scenarioMode;
       document.querySelectorAll('.basic-rule-panel').forEach((el) => {
         el.hidden = scenarioMode;
       });
-      if ($('scenarioDwellTimingRow')) $('scenarioDwellTimingRow').hidden = !scenarioMode || wrongDirectionMode || reEntryMode;
+      if ($('scenarioDwellTimingRow')) $('scenarioDwellTimingRow').hidden = !scenarioMode || wrongDirectionMode || reEntryMode || afterLineMode;
       if ($('scenarioWrongDirectionRow')) $('scenarioWrongDirectionRow').hidden = !scenarioMode || !wrongDirectionMode;
       if ($('scenarioReEntryRow')) $('scenarioReEntryRow').hidden = !scenarioMode || !reEntryMode;
+      if ($('scenarioAfterLineRow')) $('scenarioAfterLineRow').hidden = !scenarioMode || !afterLineMode;
       if ($('scenarioStableOnlyLabel')) $('scenarioStableOnlyLabel').hidden = !scenarioMode;
       if ($('scenarioZoneIdsLabel')) $('scenarioZoneIdsLabel').hidden = !scenarioMode || wrongDirectionMode;
     }
@@ -9359,8 +9531,8 @@ std::string BuildLabRuleEditorPageHtml() {
         const scenario = payload.scenario || {};
         if (!scenario.type) {
           addValidationError(errors, '이벤트 방식', '시나리오 템플릿을 선택하세요.');
-        } else if (!['intrusion-dwell', 're-entry', 'wrong-direction'].includes(scenario.type)) {
-          addValidationError(errors, '이벤트 방식', '현재 UI에서 저장 가능한 시나리오는 Intrusion Dwell, ReEntry 또는 WrongDirection입니다.');
+        } else if (!['intrusion-dwell', 're-entry', 'wrong-direction', 'intrusion-after-line-crossing'].includes(scenario.type)) {
+          addValidationError(errors, '이벤트 방식', '현재 UI에서 저장 가능한 시나리오는 Intrusion Dwell, ReEntry, WrongDirection 또는 IntrusionAfterLineCrossing입니다.');
         }
         const cooldownMs = Number(scenario.cooldownMs);
         if (!Number.isFinite(cooldownMs) || cooldownMs < 0) {
@@ -9388,6 +9560,41 @@ std::string BuildLabRuleEditorPageHtml() {
           }
           if (region.type !== 'polygon' || points.length < 3) {
             addValidationError(errors, '영역/라인 설정', 'ReEntry는 polygon zone 좌표 3개 이상이 필요합니다.');
+          }
+        } else if (scenario.type === 'intrusion-after-line-crossing') {
+          const maxDelayAfterCrossingMs = Number(scenario.maxDelayAfterCrossingMs);
+          const dwellTimeMs = Number(scenario.dwellTimeMs);
+          if (!Number.isFinite(maxDelayAfterCrossingMs) || maxDelayAfterCrossingMs <= 0) {
+            addValidationError(errors, '시나리오 시간 조건', 'zoneEntryTimeout(ms)은 0보다 커야 합니다.');
+          }
+          if (!Number.isFinite(dwellTimeMs) || dwellTimeMs < 0) {
+            addValidationError(errors, '시나리오 시간 조건', 'zone dwell/observe(ms)는 0 이상이어야 합니다.');
+          }
+          if (region.type !== 'polygon' || points.length < 3) {
+            addValidationError(errors, 'Target zone', 'IntrusionAfterLineCrossing은 target zone polygon 좌표 3개 이상이 필요합니다.');
+          }
+          const triggerLine = scenario.triggerLine || {};
+          const linePoints = Array.isArray(triggerLine.points) ? triggerLine.points : [];
+          if (!String(triggerLine.id || '').trim()) {
+            addValidationError(errors, 'Trigger line', 'trigger line 이름이 필요합니다.');
+          }
+          if (!['any', 'forward', 'reverse'].includes(String(triggerLine.direction || 'any'))) {
+            addValidationError(errors, 'Trigger line', 'crossing direction은 any, forward 또는 reverse여야 합니다.');
+          }
+          if (linePoints.length !== 2 ||
+              linePoints.some((point) => !Number.isFinite(Number(point?.x)) ||
+                !Number.isFinite(Number(point?.y)) ||
+                Number(point.x) < 0 || Number(point.x) > 1 ||
+                Number(point.y) < 0 || Number(point.y) > 1)) {
+            addValidationError(errors, 'Trigger line', 'trigger line은 0.0~1.0 범위의 좌표 2개가 필요합니다.');
+          }
+          const targetLineIds = Array.isArray(scenario.targetLineIds) ? scenario.targetLineIds : [];
+          const targetZoneIds = Array.isArray(scenario.targetZoneIds) ? scenario.targetZoneIds : [];
+          if (targetLineIds.length === 0) {
+            addValidationError(errors, 'Trigger line', 'targetLineIds가 1개 이상 필요합니다.');
+          }
+          if (targetZoneIds.length === 0) {
+            addValidationError(errors, 'Target zone', 'targetZoneIds가 1개 이상 필요합니다.');
           }
         } else {
           const candidateTimeMs = Number(scenario.candidateTimeMs);
@@ -9771,9 +9978,11 @@ std::string BuildLabRuleEditorPageHtml() {
         item.scenario?.type === 'intrusion-dwell' ||
         item.scenario?.type === 're-entry' ||
         item.scenario?.type === 'wrong-direction' ||
+        item.scenario?.type === 'intrusion-after-line-crossing' ||
         item.event?.type === 'intrusion-dwell' ||
         item.event?.type === 're-entry' ||
-        item.event?.type === 'wrong-direction';
+        item.event?.type === 'wrong-direction' ||
+        item.event?.type === 'intrusion-after-line-crossing';
       setRuleKind(scenarioMode ? 'scenario' : 'basic');
       $('ruleEventType').value = ['presence', 'enter', 'exit', 'line-crossing'].includes(item.event?.type)
         ? item.event.type
@@ -9808,15 +10017,30 @@ std::string BuildLabRuleEditorPageHtml() {
       $('eventFlashMsInput').value = Number(highlight.durationMs || 1200);
       $('eventPostUrlInput').value = typeof post.url === 'string' ? post.url : '';
       const scenario = item.scenario || {};
-      $('scenarioType').value = ['intrusion-dwell', 're-entry', 'wrong-direction'].includes(scenario.type)
+      $('scenarioType').value = ['intrusion-dwell', 're-entry', 'wrong-direction', 'intrusion-after-line-crossing'].includes(scenario.type)
         ? scenario.type
-        : (item.event?.type === 're-entry' ? 're-entry' : (item.event?.type === 'wrong-direction' ? 'wrong-direction' : 'intrusion-dwell'));
+        : (item.event?.type === 'intrusion-after-line-crossing'
+          ? 'intrusion-after-line-crossing'
+          : (item.event?.type === 're-entry' ? 're-entry' : (item.event?.type === 'wrong-direction' ? 'wrong-direction' : 'intrusion-dwell')));
       $('scenarioLineDirection').value = ['forward', 'reverse'].includes(item.event?.region?.direction)
         ? item.event.region.direction
         : 'forward';
       $('scenarioCandidateMs').value = Number(scenario.candidateTimeMs ?? 2000);
       $('scenarioDwellMs').value = Number(scenario.dwellTimeMs ?? 10000);
       $('scenarioReEntryWindowMs').value = Number(scenario.reEntryWindowMs ?? 10000);
+      $('scenarioAfterLineTimeoutMs').value = Number(scenario.maxDelayAfterCrossingMs ?? 10000);
+      $('scenarioAfterLineDwellMs').value = Number(scenario.dwellTimeMs ?? 3000);
+      $('scenarioAfterLineId').value = scenario.triggerLine?.id || (Array.isArray(scenario.targetLineIds) ? scenario.targetLineIds[0] || '' : '');
+      $('scenarioAfterLineDirection').value = ['any', 'forward', 'reverse'].includes(scenario.triggerLine?.direction)
+        ? scenario.triggerLine.direction
+        : 'any';
+      const triggerLinePoints = Array.isArray(scenario.triggerLine?.points) && scenario.triggerLine.points.length >= 2
+        ? scenario.triggerLine.points
+        : defaultLinePoints();
+      $('scenarioAfterLineX1').value = Number(triggerLinePoints[0]?.x ?? 0.25);
+      $('scenarioAfterLineY1').value = Number(triggerLinePoints[0]?.y ?? 0.50);
+      $('scenarioAfterLineX2').value = Number(triggerLinePoints[1]?.x ?? 0.75);
+      $('scenarioAfterLineY2').value = Number(triggerLinePoints[1]?.y ?? 0.50);
       $('scenarioCooldownMs').value = Number(scenario.cooldownMs ?? 5000);
       $('scenarioZoneIds').value = Array.isArray(scenario.restrictedZoneIds)
         ? scenario.restrictedZoneIds.join(', ')
@@ -14915,7 +15139,7 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     function bindRuleInputEvents() {
-      for (const id of ['profileFps', 'profileQueue', 'profileConfidence', 'profileNms', 'profileInputWidth', 'profileInputHeight', 'profileDetector', 'profileAdaptive', 'profileId', 'ruleId', 'ruleEnabled', 'ruleSourceKind', 'ruleRoute', 'ruleProfileId', 'ruleEventType', 'ruleLineDirection', 'ruleConfidence', 'ruleMinDurationMs', 'scenarioType', 'scenarioLineDirection', 'scenarioZoneIds', 'scenarioCandidateMs', 'scenarioDwellMs', 'scenarioReEntryWindowMs', 'scenarioReEntryMode', 'scenarioReEntryZoneIds', 'scenarioCooldownMs', 'scenarioStableOnly', 'eventFlashInput', 'eventFlashMsInput', 'eventPostUrlInput']) {
+      for (const id of ['profileFps', 'profileQueue', 'profileConfidence', 'profileNms', 'profileInputWidth', 'profileInputHeight', 'profileDetector', 'profileAdaptive', 'profileId', 'ruleId', 'ruleEnabled', 'ruleSourceKind', 'ruleRoute', 'ruleProfileId', 'ruleEventType', 'ruleLineDirection', 'ruleConfidence', 'ruleMinDurationMs', 'scenarioType', 'scenarioLineDirection', 'scenarioZoneIds', 'scenarioCandidateMs', 'scenarioDwellMs', 'scenarioReEntryWindowMs', 'scenarioReEntryMode', 'scenarioReEntryZoneIds', 'scenarioAfterLineId', 'scenarioAfterLineDirection', 'scenarioAfterLineX1', 'scenarioAfterLineY1', 'scenarioAfterLineX2', 'scenarioAfterLineY2', 'scenarioAfterLineTimeoutMs', 'scenarioAfterLineDwellMs', 'scenarioCooldownMs', 'scenarioStableOnly', 'eventFlashInput', 'eventFlashMsInput', 'eventPostUrlInput']) {
         const el = $(id);
         if (el) el.addEventListener('input', updatePreviews);
         if (el) el.addEventListener('change', updatePreviews);

@@ -376,6 +376,74 @@ try {
             reEntryPreview.scenario?.cooldownMs !== 4000) {
           throw new Error('re-entry event payload preview mismatch: ' + JSON.stringify(reEntryPreview));
         }
+        setValue('scenarioType', 'intrusion-after-line-crossing');
+        setValue('scenarioZoneIds', 'secure-zone');
+        setValue('scenarioAfterLineId', 'entry-line');
+        setValue('scenarioAfterLineDirection', 'reverse');
+        setValue('scenarioAfterLineX1', '0.20');
+        setValue('scenarioAfterLineY1', '0.10');
+        setValue('scenarioAfterLineX2', '0.20');
+        setValue('scenarioAfterLineY2', '0.90');
+        setValue('scenarioAfterLineTimeoutMs', '12000');
+        setValue('scenarioAfterLineDwellMs', '3000');
+        setValue('scenarioCooldownMs', '7000');
+        if ($('scenarioAfterLineRow').hidden ||
+            !$('scenarioDwellTimingRow').hidden ||
+            !$('scenarioWrongDirectionRow').hidden ||
+            !$('scenarioReEntryRow').hidden ||
+            $('scenarioZoneIdsLabel').hidden) {
+          throw new Error('intrusion-after-line-crossing panel visibility mismatch');
+        }
+        const afterLinePayload = window.ruleJson();
+        if (afterLinePayload.ruleKind !== 'scenario' ||
+            afterLinePayload.event?.type !== 'intrusion-after-line-crossing' ||
+            afterLinePayload.scenario?.type !== 'intrusion-after-line-crossing') {
+          throw new Error('intrusion-after-line-crossing payload type mismatch: ' + JSON.stringify(afterLinePayload));
+        }
+        if (afterLinePayload.event?.region?.type !== 'polygon' ||
+            !Array.isArray(afterLinePayload.event?.region?.points) ||
+            afterLinePayload.event.region.points.length < 3) {
+          throw new Error('intrusion-after-line-crossing target zone mismatch: ' + JSON.stringify(afterLinePayload.event?.region));
+        }
+        if (afterLinePayload.scenario?.maxDelayAfterCrossingMs !== 12000 ||
+            afterLinePayload.scenario?.dwellTimeMs !== 3000 ||
+            afterLinePayload.scenario?.cooldownMs !== 7000 ||
+            afterLinePayload.scenario?.triggerLine?.id !== 'entry-line' ||
+            afterLinePayload.scenario?.triggerLine?.direction !== 'reverse') {
+          throw new Error('intrusion-after-line-crossing timing/line mismatch: ' + JSON.stringify(afterLinePayload.scenario));
+        }
+        expectList('intrusion-after-line-crossing target lines', afterLinePayload.scenario?.targetLineIds || [], ['entry-line']);
+        expectList('intrusion-after-line-crossing target zones', afterLinePayload.scenario?.targetZoneIds || [], ['secure-zone']);
+        if (!Array.isArray(afterLinePayload.scenario?.triggerLine?.points) ||
+            afterLinePayload.scenario.triggerLine.points.length !== 2) {
+          throw new Error('intrusion-after-line-crossing trigger line points mismatch: ' + JSON.stringify(afterLinePayload.scenario?.triggerLine));
+        }
+        if (!$('scenarioSummaryText').textContent.includes('intrusion-after-line-crossing scenario event') ||
+            !$('scenarioReadinessTiming').textContent.includes('zone entry 12,000 ms') ||
+            !$('scenarioReadinessEmit').textContent.includes('line-crossing과 별도')) {
+          throw new Error('intrusion-after-line-crossing summary/readiness mismatch');
+        }
+        const afterLinePhaseText = $('scenarioPhaseStrip').textContent;
+        for (const expected of ['Idle', 'LineCrossed', 'ZoneEntered', 'Observing', 'Confirmed', 'Cooldown', 'Ended']) {
+          if (!afterLinePhaseText.includes(expected)) {
+            throw new Error('intrusion-after-line-crossing phase preview missing: ' + expected);
+          }
+        }
+        const afterLinePreview = JSON.parse($('eventPayloadPreview').value);
+        if (afterLinePreview.rule?.type !== 'intrusion-after-line-crossing' ||
+            afterLinePreview.region?.type !== 'polygon' ||
+            afterLinePreview.scenario?.lineId !== 'entry-line' ||
+            afterLinePreview.scenario?.direction !== 'reverse' ||
+            afterLinePreview.scenario?.maxDelayAfterCrossingMs !== 12000 ||
+            afterLinePreview.scenario?.dwellTimeMs !== 3000) {
+          throw new Error('intrusion-after-line-crossing event payload preview mismatch: ' + JSON.stringify(afterLinePreview));
+        }
+        const afterLineInvalid = JSON.parse(JSON.stringify(afterLinePayload));
+        afterLineInvalid.scenario.triggerLine.points = [];
+        const afterLineWarning = ruleApi.validateRulePayload(afterLineInvalid);
+        if (!afterLineWarning.includes('trigger line')) {
+          throw new Error('intrusion-after-line-crossing validation mismatch: ' + afterLineWarning);
+        }
         setValue('scenarioType', 'wrong-direction');
         setValue('scenarioLineDirection', 'reverse');
         setValue('scenarioCooldownMs', '6000');
@@ -468,6 +536,7 @@ try {
         const savedRuleId = smokeId + '-rule';
         const savedScenarioRuleId = smokeId + '-scenario-rule';
         const savedReEntryRuleId = smokeId + '-re-entry-rule';
+        const savedAfterLineRuleId = smokeId + '-after-line-rule';
         let savedVaRuleId = '';
         try {
           setValue('profileId', savedProfileId);
@@ -543,6 +612,36 @@ try {
           expectList('saved re-entry target zones', savedReEntryRule.rule?.scenario?.targetZoneIds || [], ['lobby']);
           expectList('saved re-entry zones', savedReEntryRule.rule?.scenario?.reEntryZoneIds || [], ['lobby']);
 
+          setValue('ruleId', savedAfterLineRuleId);
+          setValue('scenarioType', 'intrusion-after-line-crossing');
+          setValue('scenarioZoneIds', 'secure-zone');
+          setValue('scenarioAfterLineId', 'entry-line');
+          setValue('scenarioAfterLineDirection', 'forward');
+          setValue('scenarioAfterLineX1', '0.25');
+          setValue('scenarioAfterLineY1', '0.20');
+          setValue('scenarioAfterLineX2', '0.25');
+          setValue('scenarioAfterLineY2', '0.80');
+          setValue('scenarioAfterLineTimeoutMs', '13000');
+          setValue('scenarioAfterLineDwellMs', '4000');
+          setValue('scenarioCooldownMs', '6000');
+          click('selectCoreClassesBtn');
+          await ruleApi.saveRule();
+          const savedAfterLineRule = await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedAfterLineRuleId));
+          if (savedAfterLineRule.rule?.ruleKind !== 'scenario' ||
+              savedAfterLineRule.rule?.event?.type !== 'intrusion-after-line-crossing' ||
+              savedAfterLineRule.rule?.scenario?.type !== 'intrusion-after-line-crossing') {
+            throw new Error('saved intrusion-after-line-crossing rule type mismatch: ' + JSON.stringify(savedAfterLineRule.rule));
+          }
+          if (savedAfterLineRule.rule?.scenario?.maxDelayAfterCrossingMs !== 13000 ||
+              savedAfterLineRule.rule?.scenario?.dwellTimeMs !== 4000 ||
+              savedAfterLineRule.rule?.scenario?.cooldownMs !== 6000 ||
+              savedAfterLineRule.rule?.scenario?.triggerLine?.id !== 'entry-line' ||
+              savedAfterLineRule.rule?.scenario?.triggerLine?.direction !== 'forward') {
+            throw new Error('saved intrusion-after-line-crossing timing/line mismatch: ' + JSON.stringify(savedAfterLineRule.rule?.scenario));
+          }
+          expectList('saved intrusion-after-line-crossing target lines', savedAfterLineRule.rule?.scenario?.targetLineIds || [], ['entry-line']);
+          expectList('saved intrusion-after-line-crossing target zones', savedAfterLineRule.rule?.scenario?.targetZoneIds || [], ['secure-zone']);
+
           if (!$('vaRuleEditorPanel').hidden) {
             click('cancelVaRuleEditBtn');
           }
@@ -591,6 +690,7 @@ try {
           }
         } finally {
           await apiJson('/lab/analysis/va-rules/' + encodeURIComponent(savedVaRuleId), { method: 'DELETE' }).catch(() => {});
+          await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedAfterLineRuleId), { method: 'DELETE' }).catch(() => {});
           await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedReEntryRuleId), { method: 'DELETE' }).catch(() => {});
           await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedScenarioRuleId), { method: 'DELETE' }).catch(() => {});
           await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedRuleId), { method: 'DELETE' }).catch(() => {});
@@ -614,6 +714,7 @@ try {
             ruleId: savedRuleId,
             scenarioRuleId: savedScenarioRuleId,
             reEntryRuleId: savedReEntryRuleId,
+            afterLineRuleId: savedAfterLineRuleId,
             vaRuleId: savedVaRuleId,
             savedProfileTrackingClasses: requiredCategoryValues,
             savedRuleClasses: ['person', 'vehicle'],

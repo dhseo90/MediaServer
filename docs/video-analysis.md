@@ -250,7 +250,7 @@ Scenario는 여러 frame에 걸친 상태 전이와 시간 조건을 평가합�
 | IntrusionDwell | 구현됨, UI 템플릿 제공 | `intrusion-dwell` |
 | ReEntry | 구현됨, UI 템플릿 제공 | `re-entry` |
 | WrongDirection | 구현됨, UI 템플릿 제공 | `wrong-direction` |
-| IntrusionAfterLineCrossing | 구현됨, 전용 UI 템플릿 후속 | `intrusion-after-line-crossing` |
+| IntrusionAfterLineCrossing | 구현됨, UI 템플릿 제공 | `intrusion-after-line-crossing` |
 | Loitering | 구현됨, 전용 UI 템플릿 후속 | `loitering` |
 
 ### IntrusionDwell
@@ -321,6 +321,21 @@ line crossing 이후 target zone에 진입하고 일정 시간 머무는 조합 
 ```text
 Idle -> LineCrossed -> ZoneEntered -> Observing -> Confirmed -> Cooldown -> Ended
 ```
+
+룰 편집 UI 설정 항목:
+
+| 항목 | 설명 |
+| --- | --- |
+| target | class/category |
+| trigger line | line id, x1/y1 → x2/y2 정규화 좌표 |
+| crossing direction | `any`, `forward`, `reverse` |
+| target zone | polygon zone, targetZoneIds |
+| zoneEntryTimeout(ms) | 저장 payload의 `maxDelayAfterCrossingMs`로 runtime에 전달 |
+| dwell/observe | `dwellTimeMs` |
+| cooldown | same track/line/zone 중복 억제 |
+| unstable track exclude | 불안정 track 후보 제외 |
+
+이 UI는 기존 `line-crossing` 기본 이벤트를 끄거나 대체하지 않습니다. IntrusionAfterLineCrossing은 trigger line crossing 기록과 target zone dwell 조건이 모두 충족될 때 별도 `intrusion-after-line-crossing` scenario event를 발생시킵니다. Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직은 변경하지 않습니다.
 
 ### Loitering
 
