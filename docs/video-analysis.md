@@ -686,7 +686,15 @@ python3 scripts/examples/va_metadata_sse_client.py \
 
 이 예제는 metadata 수신, JSON parse, `media-server.va.runtime-metadata.v1` schema 확인, `streamId/channelId`, `tracks/events/scenarios` count, latest timestamp, message count 출력만 담당합니다. payload 본문까지 확인하려면 `--print-json`을 추가합니다. RTSP video player와 overlay renderer는 포함하지 않습니다. 일반 VLC/ffplay/IINA는 SSE/WS metadata side-channel을 자동 overlay하지 않습니다.
 
-Custom RTSP + metadata overlay renderer는 설계 완료 / 구현 예정 상태의 optional client example입니다. 1차 구현 후보는 Python OpenCV로 RTSP raw stream을 열고 별도 SSE metadata stream에서 latest runtime metadata를 받아 bbox, trackId, className, event/scenario label을 client-side로 그리는 예제입니다. 이 예제는 서버 core 기능이 아니며 RTSP server-side overlay 정책, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload를 변경하지 않습니다. 일반 VLC/ffplay/IINA가 SSE/WS metadata를 자동 overlay하는 기능도 아닙니다.
+Custom RTSP + SSE metadata overlay renderer는 optional client example입니다. `scripts/examples/va_rtsp_sse_overlay_client.py`는 Python OpenCV로 RTSP raw stream을 열고 별도 SSE metadata stream의 latest runtime metadata를 받아 bbox, trackId, className을 client-side로 그립니다. 이 예제는 서버 core 기능이 아니며 RTSP server-side overlay 정책, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload를 변경하지 않습니다. 일반 VLC/ffplay/IINA가 SSE/WS metadata를 자동 overlay하는 기능도 아닙니다.
+
+```bash
+python3 scripts/examples/va_rtsp_sse_overlay_client.py \
+  --rtsp-url 'rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4' \
+  --metadata-url 'http://127.0.0.1:8080/lab/analysis/metadata/stream?file=sample_h264.mp4&va=1&intervalMs=500&maxMessageBytes=65536' \
+  --max-seconds 15 \
+  --headless
+```
 
 명시적 side-channel 검증:
 
@@ -732,7 +740,7 @@ VA overlay는 출력 방식에 따라 역할이 다릅니다.
 | WebRTC Server-side Overlay | 구현 완료 | `va=1`/`vaRule=<id>` 요청에서 서버 합성 영상 출력 |
 | WebRTC Client-side Overlay | 구현 완료 | `vaMetadata=1` DataChannel metadata를 브라우저 canvas가 그리는 Lab viewer 전용 표시 |
 | Custom SSE Metadata Client | 구현 완료 | `scripts/examples/va_metadata_sse_client.py`가 side-channel metadata 수신과 schema/count/timestamp 확인을 담당 |
-| Custom RTSP + Side-channel Overlay | 설계 완료 / 구현 예정 | optional client example로 custom client가 RTSP raw video와 SSE/WS runtime metadata를 함께 받아 직접 overlay renderer까지 구현 |
+| Custom RTSP + SSE Side-channel Overlay | 구현 완료 | `scripts/examples/va_rtsp_sse_overlay_client.py`가 RTSP raw video와 SSE runtime metadata를 받아 bbox/trackId/className을 client-side로 표시 |
 
 RTSP 일반 viewer(VLC/ffplay/IINA)는 WebRTC DataChannel을 이해하지 못합니다. RTSP에서 metadata UI가 필요하면 server-side overlay를 사용하거나, custom client가 RTSP raw stream과 SSE/WS side-channel을 별도로 조합해야 합니다.
 

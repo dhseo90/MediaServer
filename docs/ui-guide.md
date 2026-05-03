@@ -286,6 +286,18 @@ python3 scripts/examples/va_metadata_sse_client.py \
 ffplay -rtsp_transport tcp 'rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4'
 ```
 
+RTSP 원본 스트림과 SSE 메타데이터 스트림을 함께 조합해 client-side bbox를 직접 그리고 싶으면 optional OpenCV 예제 `scripts/examples/va_rtsp_sse_overlay_client.py`를 사용합니다. 이 예제는 Developer URL panel의 `RTSP 원본 스트림`과 `SSE 메타데이터 스트림` 값을 그대로 받습니다.
+
+```bash
+python3 scripts/examples/va_rtsp_sse_overlay_client.py \
+  --rtsp-url 'rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4' \
+  --metadata-url 'http://127.0.0.1:8080/lab/analysis/metadata/stream?file=sample_h264.mp4&va=1&intervalMs=500&maxMessageBytes=65536' \
+  --max-seconds 15 \
+  --headless
+```
+
+RTSP 서버 오버레이는 서버가 bbox/label을 영상에 합성하므로 일반 RTSP viewer에서 바로 보입니다. Custom client overlay는 RTSP raw frame과 SSE metadata JSON을 client가 별도로 받아 조합하는 예제이므로, 일반 VLC/ffplay/IINA에서 자동으로 표시되지 않습니다.
+
 현재 상태:
 
 - 구현 완료: WebRTC 메타데이터 뷰어, DataChannel 수신 상태 표시, latest JSON preview, client-side overlay canvas/toggle
@@ -293,7 +305,8 @@ ffplay -rtsp_transport tcp 'rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4'
 - 구현 완료: SSE metadata side-channel과 Lab의 custom pairing URL 표시
 - 구현 완료: WebSocket metadata side-channel 최소 subscribe/stream endpoint
 - 구현 완료: SSE metadata side-channel 수신 중심 custom client 예제
-- 예정: WebSocket command/filter/subscribe-unsubscribe 제어, custom RTSP client overlay renderer
+- 구현 완료: OpenCV 기반 Custom RTSP + SSE metadata overlay renderer 예제
+- 예정: WebSocket command/filter/subscribe-unsubscribe 제어, WS 기반 custom overlay renderer 확장
 
 검증용 smoke:
 
