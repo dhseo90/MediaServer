@@ -11,6 +11,7 @@
 namespace app {
 
 enum class AuthMode {
+    Auto,
     Off,
     Token,
     Session,
@@ -26,7 +27,7 @@ struct AppConfig {
     std::uint16_t rtsp_listen_port{app_config::kRtspListenPort};
     std::string http_listen_address{app_config::kHttpListenAddress};
     std::uint16_t http_listen_port{app_config::kHttpListenPort};
-    AuthMode auth_mode{AuthMode::Off};
+    AuthMode auth_mode{AuthMode::Auto};
     std::string auth_admin_token;
     std::string auth_operator_token;
     std::string auth_viewer_token;

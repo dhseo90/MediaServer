@@ -490,6 +490,9 @@ app::AuthMode ReadAuthModeEnv(const char* name, app::AuthMode fallback) {
         return fallback;
     }
     const std::string parsed = TrimToken(value);
+    if (parsed == "auto" || parsed == "AUTO" || parsed == "Auto") {
+        return app::AuthMode::Auto;
+    }
     if (parsed == "off" || parsed == "OFF" || parsed == "Off") {
         return app::AuthMode::Off;
     }
@@ -499,7 +502,7 @@ app::AuthMode ReadAuthModeEnv(const char* name, app::AuthMode fallback) {
     if (parsed == "session" || parsed == "SESSION" || parsed == "Session") {
         return app::AuthMode::Session;
     }
-    std::cerr << "[env] invalid " << name << "='" << value << "', fallback off\n";
+    std::cerr << "[env] invalid " << name << "='" << value << "', fallback auto\n";
     return fallback;
 }
 

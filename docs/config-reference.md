@@ -21,12 +21,12 @@
 | `MEDIA_SERVER_LISTEN_PORT` | `8554` | RTSP bind port |
 | `MEDIA_SERVER_HTTP_LISTEN_ADDRESS` | `127.0.0.1` | HTTP/WebRTC bind address |
 | `MEDIA_SERVER_HTTP_LISTEN_PORT` | `8080` | HTTP/WebRTC bind port |
-| `MEDIA_SERVER_AUTH_MODE` | `off` | HTTP auth mode. `off`, `token`, `session` |
-| `MEDIA_SERVER_AUTH_ADMIN_TOKEN` | empty | `token`/`session` mode에서 admin principal로 인증할 Bearer/query token |
-| `MEDIA_SERVER_AUTH_OPERATOR_TOKEN` | empty | `token`/`session` mode에서 operator principal로 인증할 Bearer/query token |
-| `MEDIA_SERVER_AUTH_VIEWER_TOKEN` | empty | `token`/`session` mode에서 viewer principal로 인증할 Bearer/query token |
-| `MEDIA_SERVER_AUTH_INTEGRATOR_TOKEN` | empty | `token`/`session` mode에서 integrator principal로 인증할 Bearer/query token |
-| `MEDIA_SERVER_AUTH_USERS_FILE` | `.media_server.users.json` | `session` login 계정 registry JSON |
+| `MEDIA_SERVER_AUTH_MODE` | `auto` | HTTP auth mode. `auto`, `off`, `token`, `session` |
+| `MEDIA_SERVER_AUTH_ADMIN_TOKEN` | empty | `token`/`auto`/`session` mode에서 admin principal로 인증할 Bearer/query token |
+| `MEDIA_SERVER_AUTH_OPERATOR_TOKEN` | empty | `token`/`auto`/`session` mode에서 operator principal로 인증할 Bearer/query token |
+| `MEDIA_SERVER_AUTH_VIEWER_TOKEN` | empty | `token`/`auto`/`session` mode에서 viewer principal로 인증할 Bearer/query token |
+| `MEDIA_SERVER_AUTH_INTEGRATOR_TOKEN` | empty | `token`/`auto`/`session` mode에서 integrator principal로 인증할 Bearer/query token |
+| `MEDIA_SERVER_AUTH_USERS_FILE` | `.media_server.users.json` | `auto`/`session` login 계정 registry JSON |
 | `MEDIA_SERVER_AUTH_SESSION_TTL_SECONDS` | `86400` | session cookie 만료 시간 |
 | `MEDIA_SERVER_AUTH_COOKIE_NAME` | `media_server_session` | session cookie 이름 |
 | `MEDIA_SERVER_AUTH_COOKIE_SECURE` | `0` | `1`이면 session cookie에 `Secure` attribute 추가 |
@@ -43,9 +43,19 @@
 
 ### HTTP auth MVP
 
-`MEDIA_SERVER_AUTH_MODE=off`가 기본값이며 기존 `/lab/rules`, WebRTC, RTSP 검증 흐름을 그대로 유지합니다. Auth off에서 `/`는 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/live`, `/client/live` 중 하나로 이동합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 `/auth/whoami`가 `Authorization: Bearer <token>` 또는 개발용 `?token=<token>` query를 읽어 role/scope principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=session`에서는 같은 token auth를 유지하면서 `/login` 계정 로그인과 HttpOnly session cookie 인증을 추가합니다. Query token은 브라우저 주소, proxy log, referrer에 남을 수 있으므로 운영 환경에서는 권장하지 않습니다.
+`MEDIA_SERVER_AUTH_MODE=auto`가 기본값입니다. Auto mode는 users file이 없거나 admin user/passwordHash가 준비되지 않았으면 `/setup`으로 보내고, setup이 끝나면 `/login` session 인증을 요구합니다. `MEDIA_SERVER_AUTH_MODE=off`는 개발/테스트 호환을 위한 명시 모드이며 제품 기본값으로 사용하지 않습니다. Auth off에서 `/`는 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/live`, `/client/live` 중 하나로 이동합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 `/auth/whoami`가 `Authorization: Bearer <token>` 또는 개발용 `?token=<token>` query를 읽어 role/scope principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=session`은 auto의 setup 감지를 유지하면서 `/login` 계정 로그인과 HttpOnly session cookie 인증을 사용합니다. Query token은 브라우저 주소, proxy log, referrer에 남을 수 있으므로 운영 환경에서는 권장하지 않습니다.
 
 Session login은 `libsodium crypto_pwhash_str` password hash를 사용합니다. 안전한 password hashing dependency가 없는 build에서는 password login을 사용할 수 없으며 plaintext password나 단순 SHA 계열 저장을 지원하지 않습니다.
+
+최초 관리자 bootstrap:
+
+- 기본 admin username은 `admin`입니다.
+- 기본 admin 비밀번호는 없습니다.
+- users file이 없거나 `admin.passwordHash`가 없거나 admin이 disabled이면 setup required 상태입니다.
+- setup required 상태에서 UI 요청은 `/setup`으로 이동합니다.
+- `/setup`은 setup required 상태에서만 접근할 수 있고, 완료 후에는 `/login`으로 이동합니다.
+- 비밀번호는 12자 이상이며 대문자/소문자/숫자/특수문자 중 3종류 이상을 포함해야 합니다.
+- `/auth/whoami`는 `setupRequired`, `setupReason`, `authMode`, `authenticated`, `role`, `scopes`, `passwordChangeRequired`를 반환합니다.
 
 초기 role/scope 모델:
 
@@ -64,10 +74,21 @@ Users file 예시:
 {
   "users": [
     {
-      "username": "operator1",
-      "displayName": "Operator One",
-      "role": "operator",
-      "scopes": ["view:read:*", "source:read:*", "rule:read:*", "event:read:*", "metadata:read:*", "dashboard:read:*", "debug:read", "rule:write", "source:write", "ops:read", "lab:read"],
+      "username": "admin",
+      "displayName": "Admin",
+      "role": "admin",
+      "scopes": ["*"],
+      "passwordHash": "$argon2id$...",
+      "enabled": true,
+      "mustChangePassword": false,
+      "createdAt": "2026-05-03T00:00:00Z",
+      "passwordUpdatedAt": "2026-05-03T00:00:00Z"
+    },
+    {
+      "username": "client-a",
+      "displayName": "Client A",
+      "role": "viewer",
+      "scopes": ["view:read:view-a", "event:read:view-a", "metadata:read:view-a", "dashboard:read:view-a"],
       "passwordHash": "$argon2id$...",
       "enabled": true
     }
@@ -75,7 +96,7 @@ Users file 예시:
 }
 ```
 
-`passwordHash`는 libsodium `crypto_pwhash_str` 출력 문자열만 사용합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다.
+`passwordHash`는 libsodium `crypto_pwhash_str` 출력 문자열만 사용합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다. 클라이언트 계정은 현재 `/ops/users` UI가 아니라 users file의 `viewer` role과 `view:read:{viewId}` 계열 scope로 추가합니다.
 
 ### 개발/script 보조값
 

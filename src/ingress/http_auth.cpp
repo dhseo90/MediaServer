@@ -4,9 +4,12 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cctype>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <optional>
 #include <sstream>
 #include <utility>
@@ -317,12 +320,145 @@ std::optional<std::vector<UserRecord>> LoadUsers(const std::string& path, std::s
         user.password_hash = Trim(ParseStringField(raw, "passwordHash").value_or(""));
         user.token_hash = Trim(ParseStringField(raw, "tokenHash").value_or(""));
         user.enabled = ParseBoolField(raw, "enabled").value_or(true);
+        user.must_change_password = ParseBoolField(raw, "mustChangePassword").value_or(false);
+        user.created_at = Trim(ParseStringField(raw, "createdAt").value_or(""));
+        user.password_updated_at = Trim(ParseStringField(raw, "passwordUpdatedAt").value_or(""));
         if (user.username.empty() || !IsKnownRole(user.role)) {
             continue;
         }
         users.push_back(std::move(user));
     }
     return users;
+}
+
+std::string JsonEscapeLocal(const std::string& value) {
+    std::string out;
+    out.reserve(value.size() + 8);
+    for (const char ch : value) {
+        switch (ch) {
+            case '\\':
+                out += "\\\\";
+                break;
+            case '"':
+                out += "\\\"";
+                break;
+            case '\n':
+                out += "\\n";
+                break;
+            case '\r':
+                out += "\\r";
+                break;
+            case '\t':
+                out += "\\t";
+                break;
+            default:
+                out.push_back(ch);
+                break;
+        }
+    }
+    return out;
+}
+
+std::string IsoUtcNow() {
+    const auto now = std::chrono::system_clock::now();
+    const std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+#if defined(_WIN32)
+    gmtime_s(&tm, &now_time);
+#else
+    gmtime_r(&now_time, &tm);
+#endif
+    std::ostringstream out;
+    out << std::put_time(&tm, "%Y-%m-%dT%H:%M:%SZ");
+    return out.str();
+}
+
+void WriteStringArray(std::ostringstream& out, const std::vector<std::string>& values) {
+    out << "[";
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        if (i != 0) {
+            out << ", ";
+        }
+        out << "\"" << JsonEscapeLocal(values[i]) << "\"";
+    }
+    out << "]";
+}
+
+bool SaveUsersFile(const std::string& path,
+                   const std::vector<UserRecord>& users,
+                   std::string* error_message) {
+    if (path.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "auth users file path is empty";
+        }
+        return false;
+    }
+    const std::filesystem::path file_path(path);
+    std::error_code ec;
+    const auto parent = file_path.parent_path();
+    if (!parent.empty()) {
+        std::filesystem::create_directories(parent, ec);
+        if (ec) {
+            if (error_message != nullptr) {
+                *error_message = "failed to create auth users directory: " + ec.message();
+            }
+            return false;
+        }
+    }
+
+    std::ostringstream body;
+    body << "{\n  \"users\": [\n";
+    for (std::size_t i = 0; i < users.size(); ++i) {
+        const UserRecord& user = users[i];
+        body << "    {\n"
+             << "      \"username\": \"" << JsonEscapeLocal(user.username) << "\",\n"
+             << "      \"displayName\": \"" << JsonEscapeLocal(user.display_name) << "\",\n"
+             << "      \"role\": \"" << JsonEscapeLocal(user.role) << "\",\n"
+             << "      \"scopes\": ";
+        WriteStringArray(body, user.scopes);
+        body << ",\n"
+             << "      \"passwordHash\": \"" << JsonEscapeLocal(user.password_hash) << "\",\n";
+        if (!user.token_hash.empty()) {
+            body << "      \"tokenHash\": \"" << JsonEscapeLocal(user.token_hash) << "\",\n";
+        }
+        body << "      \"enabled\": " << (user.enabled ? "true" : "false") << ",\n"
+             << "      \"mustChangePassword\": " << (user.must_change_password ? "true" : "false") << ",\n"
+             << "      \"createdAt\": \"" << JsonEscapeLocal(user.created_at) << "\",\n"
+             << "      \"passwordUpdatedAt\": \"" << JsonEscapeLocal(user.password_updated_at) << "\"\n"
+             << "    }";
+        if (i + 1 < users.size()) {
+            body << ",";
+        }
+        body << "\n";
+    }
+    body << "  ]\n}\n";
+
+    const std::filesystem::path tmp_path = file_path.string() + ".tmp";
+    {
+        std::ofstream out(tmp_path, std::ios::trunc);
+        if (!out) {
+            if (error_message != nullptr) {
+                *error_message = "failed to open temporary auth users file";
+            }
+            return false;
+        }
+        out << body.str();
+        if (!out) {
+            if (error_message != nullptr) {
+                *error_message = "failed to write auth users file";
+            }
+            return false;
+        }
+    }
+    std::filesystem::rename(tmp_path, file_path, ec);
+    if (ec) {
+        std::filesystem::remove(tmp_path);
+        if (error_message != nullptr) {
+            *error_message = "failed to replace auth users file: " + ec.message();
+        }
+        return false;
+    }
+    return true;
 }
 
 #if MEDIA_SERVER_USE_LIBSODIUM
@@ -387,6 +523,9 @@ std::optional<Principal> PrincipalFromUserToken(const app::AppConfig& config,
 }
 
 bool ScopeMatches(const std::string& granted, const std::string& requested) {
+    if (granted == "*") {
+        return true;
+    }
     if (granted == requested) {
         return true;
     }
@@ -407,6 +546,8 @@ bool ScopeMatches(const std::string& granted, const std::string& requested) {
 
 const char* AuthModeName(app::AuthMode mode) {
     switch (mode) {
+        case app::AuthMode::Auto:
+            return "auto";
         case app::AuthMode::Off:
             return "off";
         case app::AuthMode::Token:
@@ -473,7 +614,8 @@ AuthResult BuildPrincipalFromRequest(const app::AppConfig& config,
 
     const std::optional<std::string> token = ExtractRequestToken(headers, query);
     if (!token.has_value()) {
-        return Unauthorized(config.auth_mode == app::AuthMode::Session
+        return Unauthorized(config.auth_mode == app::AuthMode::Session ||
+                                    config.auth_mode == app::AuthMode::Auto
                                 ? "authentication session is required"
                                 : "authentication token is required");
     }
@@ -571,6 +713,104 @@ std::optional<std::string> GeneratePasswordHash(const std::string& password,
     }
     return std::nullopt;
 #endif
+}
+
+BootstrapState InspectBootstrapState(const app::AppConfig& config) {
+    BootstrapState state;
+    state.users_file_exists = std::filesystem::exists(config.auth_users_file);
+    std::string load_error;
+    const auto users = LoadUsers(config.auth_users_file, &load_error);
+    if (!users.has_value()) {
+        state.setup_required = true;
+        state.reason = state.users_file_exists ? load_error : "auth users file is missing";
+        return state;
+    }
+    state.users_empty = users->empty();
+    if (state.users_empty) {
+        state.setup_required = true;
+        state.reason = "auth users file has no users";
+        return state;
+    }
+    for (const UserRecord& user : *users) {
+        if (user.username != "admin") {
+            continue;
+        }
+        state.admin_exists = true;
+        state.admin_enabled = user.enabled;
+        state.admin_has_password = !user.password_hash.empty();
+        state.password_change_required = user.must_change_password;
+        if (!user.enabled) {
+            state.setup_required = true;
+            state.reason = "admin user is disabled";
+        } else if (user.password_hash.empty()) {
+            state.setup_required = true;
+            state.reason = "admin user has no passwordHash";
+        } else {
+            state.setup_required = false;
+            state.reason = "admin user is ready";
+        }
+        return state;
+    }
+    state.setup_required = true;
+    state.reason = "admin user is missing";
+    return state;
+}
+
+bool SaveBootstrapAdmin(const app::AppConfig& config,
+                        const std::string& password,
+                        std::string* error_message) {
+    auto password_hash = GeneratePasswordHash(password, error_message);
+    if (!password_hash.has_value()) {
+        return false;
+    }
+    std::vector<UserRecord> users;
+    if (std::filesystem::exists(config.auth_users_file)) {
+        std::string load_error;
+        const auto loaded = LoadUsers(config.auth_users_file, &load_error);
+        if (!loaded.has_value()) {
+            if (error_message != nullptr) {
+                *error_message = load_error;
+            }
+            return false;
+        }
+        users = *loaded;
+    }
+
+    const std::string now = IsoUtcNow();
+    bool updated = false;
+    for (UserRecord& user : users) {
+        if (user.username != "admin") {
+            continue;
+        }
+        user.display_name = user.display_name.empty() ? "Admin" : user.display_name;
+        user.role = "admin";
+        user.scopes = {"*"};
+        user.password_hash = *password_hash;
+        user.enabled = true;
+        user.must_change_password = false;
+        if (user.created_at.empty()) {
+            user.created_at = now;
+        }
+        user.password_updated_at = now;
+        updated = true;
+        break;
+    }
+    if (!updated) {
+        users.insert(users.begin(),
+                     UserRecord{
+                         .username = "admin",
+                         .display_name = "Admin",
+                         .role = "admin",
+                         .scopes = {"*"},
+                         .password_hash = *password_hash,
+                         .token_hash = "",
+                         .enabled = true,
+                         .must_change_password = false,
+                         .created_at = now,
+                         .password_updated_at = now,
+                     });
+    }
+    return SaveUsersFile(config.auth_users_file, users, error_message);
 }
 
 std::optional<std::string> GenerateSessionId(std::string* error_message) {

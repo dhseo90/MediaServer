@@ -105,9 +105,9 @@ RTSP 일반 viewer는 WebRTC DataChannel metadata를 표시하지 않습니다. 
 
 ## 시나리오 로드맵 상태
 
-- 완료: Runtime Dashboard trend/stale/cleanup warning 1차, scenario rule payload의 runtime per-rule 설정 연결, ReEntry와 IntrusionAfterLineCrossing의 룰 편집 UI 선택/저장 템플릿.
+- 완료: Runtime Dashboard trend/stale/cleanup warning 1차, scenario rule payload의 runtime per-rule 설정 연결, ReEntry와 IntrusionAfterLineCrossing의 룰 편집 UI 선택/저장 템플릿, Auth Bootstrap과 기본 로그인 강제.
 - 다음 작업: Loitering UI 템플릿과 ZoneOccupancyScenario 신규 구현.
-- 후속 Phase: Auth / Role / Scope, SourceRegistry / PublishedView, `/ops` / `/client` / `/lab` route 분리, client/operator live portal, client scoped dashboard, analysis tap reuse / source+profile 공유 정책.
+- 후속 Phase: SourceRegistry / PublishedView 고도화, `/ops` / `/client` / `/lab` route 세부 분리, client/operator live portal 고도화, client scoped dashboard, analysis tap reuse / source+profile 공유 정책.
 
 이 로드맵 정리는 기존 Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema, Scenario 판단 로직 변경을 의미하지 않습니다. snapshot/clip hook은 marker 중심의 후속 연결점이며 VMS/NVR 녹화 기능이 아닙니다.
 

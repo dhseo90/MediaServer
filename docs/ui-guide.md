@@ -36,7 +36,9 @@ UI는 light/dark theme-aware design token을 사용하며, card/button/form/tabl
 
 ## 2. Login / Session
 
-기본 `MEDIA_SERVER_AUTH_MODE=off`에서는 기존처럼 `/lab`와 `/lab/rules`에 바로 접근합니다. `MEDIA_SERVER_AUTH_MODE=session`에서는 `/login`에서 계정으로 로그인하고, role/scope snapshot을 담은 HttpOnly session cookie를 받아 이동합니다.
+기본 `MEDIA_SERVER_AUTH_MODE=auto`에서는 최초 users file/admin password 상태를 먼저 확인합니다. users file이 없거나 `admin.passwordHash`가 없으면 `/setup`에서 기본 username `admin`의 비밀번호를 처음 설정합니다. admin 기본 비밀번호는 없으며, passwordless admin login은 허용하지 않습니다. setup 완료 후 `/setup`은 `/login`으로 돌아가고, 이후에는 `/login`에서 계정으로 로그인해 role/scope snapshot을 담은 HttpOnly session cookie를 받습니다.
+
+`MEDIA_SERVER_AUTH_MODE=off`는 기존 Lab 검증과 개발 자동화를 위한 명시 모드입니다. 이 모드에서만 `/lab`와 `/lab/rules`에 바로 접근합니다.
 
 Role별 이동:
 
@@ -44,7 +46,9 @@ Role별 이동:
 - `viewer`: `/client/live`
 - `integrator`: UI landing 없이 metadata/event API 연동용 token 사용을 우선합니다.
 
-Login page는 username/password 입력, 실패 메시지, 로그인 후 현재 사용자/role 표시, logout 버튼만 제공하는 MVP입니다. `/`는 auth off에서 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/live`, `/client/live`로 이동하고, auth on에서는 admin/operator를 `/ops/live`, viewer를 `/client/live`, 미인증 요청을 `/login`으로 보냅니다.
+Login page는 username/password 입력, 실패 메시지, 로그인 후 현재 사용자/role 표시, logout 버튼만 제공하는 MVP입니다. `/`는 setup required 상태에서 `/setup`, auth off에서 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/live`, `/client/live`, auth on에서 admin/operator를 `/ops/live`, viewer를 `/client/live`, 미인증 요청을 `/login`으로 보냅니다.
+
+클라이언트 계정은 현재 관리 UI에서 생성하지 않고 users file에 `viewer` role로 추가합니다. PublishedView 단위 접근은 `view:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`, `dashboard:read:{viewId}` scope로 제한합니다.
 
 Route 역할:
 

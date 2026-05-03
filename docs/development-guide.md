@@ -248,6 +248,32 @@ VA Metadata Runtime Console 계열 검증은 선택 검증입니다.
 - 단기 명령은 summary JSON 경로를 출력합니다.
 - `verify-va-runtime-console-longrun`은 summary JSON과 Markdown report를 함께 생성합니다.
 
+## Auth Bootstrap 개발 확인
+
+기본 auth mode는 `auto`입니다. 최초 admin 비밀번호 설정 흐름을 확인할 때는 임시 users file을 사용합니다.
+
+```bash
+MEDIA_SERVER_AUTH_MODE=auto \
+MEDIA_SERVER_AUTH_USERS_FILE=/tmp/media-server-bootstrap-users.json \
+  ./server.sh foreground
+```
+
+확인 항목:
+
+- users file이 없으면 `/`가 `/setup`으로 이동
+- 약한 비밀번호는 `/setup`에서 거부
+- 강한 비밀번호 설정 후 users file에 `admin`과 `passwordHash`만 저장
+- setup 완료 후 `/setup`은 `/login`으로 이동
+- `/login`에서 admin 로그인 후 `/auth/whoami`에 `role=admin`, `setupRequired=false`
+- logout 후 `/ops`, `/client`, `/lab` 보호 route는 `/login` 요구
+
+기존 Lab 레이아웃/자동화 검증은 명시적으로 auth off 서버에서 실행합니다.
+
+```bash
+MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground
+./server.sh verify-lab-layout
+```
+
 ## UI 개발 시 검증 명령
 
 Lab/영상 분석 UI를 수정한 뒤에는 최소한 아래 검증을 실행합니다.
