@@ -62,7 +62,7 @@ WebRTC/stream 변경:
 ./server.sh verify-predev --soak-minutes 30
 ```
 
-120분 predev는 상시 검증이 아니라 장기 gate입니다. release candidate 전, RTSP/GStreamer/WebRTC media path 변경 후, SharedStream/VA metadata/dashboard/SSE/WS fanout 변경 후, 또는 30분 predev에서 active RSS high-water가 이전 기준보다 커졌을 때 실행합니다.
+120분 predev는 상시 검증이 아니라 release candidate 또는 고위험 변경 gate입니다. release candidate 전, RTSP/GStreamer/WebRTC media path 변경 후, SharedStream/VA metadata/dashboard/SSE/WS fanout 변경 후, 또는 30분 predev에서 active RSS high-water가 이전 기준보다 커졌을 때 실행합니다.
 
 ```bash
 ./server.sh verify-predev --soak-minutes 120
@@ -498,7 +498,7 @@ consumer connect/disconnect cycle 이후 idle baseline RSS 누적 증가를 확�
 - `ERROR` / `NOT_LINKED` / `NOT_NEGOTIATED` / `OTHER` flow return은 관찰되지 않았고, port cleanup은 정상입니다. 이 조합이면 RSS WARNING 해제 가능 후보로 봅니다.
 - 후속 30분 predev 회귀 검증도 `PASS`입니다. Summary는 `/tmp/media_server_predev-1777679318-64004_summary.json`, report는 `/tmp/media_server_predev-1777679318-64004_report.md`이며 결과는 `pass=69`, `fail=0`, `skip=1`입니다. Runtime Console은 stable 승격 가능 상태로 판단하되 active 구간 high-water 관찰 메모는 유지합니다.
 
-기본 `./server.sh test`에는 포함하지 않습니다. 30분 이상 실행하는 선택 검증이며, 잠자기 전에는 `--duration-minutes 120`처럼 시간을 늘려 실행합니다. 이 명령은 검증용 subprocess env로 `MEDIA_SERVER_WEBRTC_TRACE=1`을 켜서 DataChannel sent/drop/failure count를 로그에서 집계하며, `scripts/.media_server.env` 같은 영구 설정 파일은 수정하지 않습니다.
+기본 `./server.sh test`에는 포함하지 않습니다. 30분 이상 실행하는 선택 검증이며, 120분 실행은 release candidate 또는 고위험 RTSP/GStreamer/WebRTC/VA fanout 변경 gate로 다룹니다. 이 명령은 검증용 subprocess env로 `MEDIA_SERVER_WEBRTC_TRACE=1`을 켜서 DataChannel sent/drop/failure count를 로그에서 집계하며, `scripts/.media_server.env` 같은 영구 설정 파일은 수정하지 않습니다.
 
 Runtime debug counter는 기존 Event POST/WebRTC/SSE metadata payload schema를 변경하지 않는 내부 진단 값입니다. 기본적으로 counter만 누적하며, lifecycle trace log가 필요할 때만 `MEDIA_SERVER_RUNTIME_DEBUG_COUNTER_TRACE=1`을 서버 실행 환경에 추가합니다.
 
@@ -605,6 +605,7 @@ MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 \
 - POST 실패가 media pipeline 실패로 이어지지 않음
 - queue/dedupe/cooldown counter가 무한 증가하지 않음
 - Event POST payload 검증과 EventRecord storage 정책 검증은 별도입니다. Storage rotation/recovery가 추가되어도 POST payload field는 변경하지 않습니다.
+- EventRecord file storage/query/search UI와 JSON Lines rotation/retention/recovery 1차는 구현 완료 상태입니다.
 - EventRecord 조회 API는 저장된 metadata만 반환하며 영상 검색, snapshot 추출, clip recorder를 수행하지 않음
 - 손상되었거나 partial 상태인 EventRecord JSON Lines 행은 records API 전체 실패가 아니라 skip/count 처리됨
 - `/lab/analysis/event-storage/status`의 `skippedCorruptLines`, `partialLineCount`, `lastRecoveryStatus`로 recovery summary를 확인할 수 있음

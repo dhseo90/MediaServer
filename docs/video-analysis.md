@@ -394,6 +394,8 @@ Replay output의 `events[]`도 같은 핵심 구조를 유지합니다. 내부 T
 
 EventRecord는 운영 조회와 snapshot/clip marker 연결을 위한 내부 metadata 저장 구조입니다. 기본값은 비활성입니다. 이 기능은 영상 녹화, VMS/NVR, frame snapshot 추출, clip recorder가 아니며 Event POST payload, WebRTC DataChannel metadata, SSE/WS metadata schema와 별도로 동작합니다.
 
+현재 1차 구현 범위는 EventRecord file storage, active file records 조회 API, Runtime Dashboard 수동 검색 UI, JSON Lines rotation/retention/recovery summary입니다.
+
 `media-server.va.event-record.v1` 필드:
 
 - eventId
@@ -457,7 +459,8 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records?eventType=presence&
 - 구현 완료: Lab 런타임 대시보드의 Overview/Tracks/Scenarios/Scenario Timeline/Events/Metadata/Tracking Issues drill-down 1차 표시
 - 구현 완료: Runtime Dashboard 내부 vaRule Runtime Debug 1차 패널
 - 구현 완료: SSE metadata side-channel 수신 중심 custom client 예제
-- 예정: phase entered time/cooldown remaining을 포함한 정밀 scenario timeline, WebSocket command/filter/subscribe-unsubscribe 제어, custom client overlay renderer
+- 구현 완료: OpenCV 기반 Custom RTSP + SSE metadata overlay renderer 예제
+- 예정: phase entered time/cooldown remaining을 포함한 정밀 scenario timeline, WebSocket command/filter/subscribe-unsubscribe 제어, WS 기반 custom overlay renderer 확장
 
 내부 schema:
 

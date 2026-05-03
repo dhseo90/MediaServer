@@ -7,7 +7,7 @@
 | 화면 | URL | 용도 |
 | --- | --- | --- |
 | 통합 Lab | `http://127.0.0.1:8080/lab` | 스트림 재생, VA 분석, 영상 분석 설정, 실험실 도구를 한 화면에서 확인 |
-| 영상 분석 관리 | `http://127.0.0.1:8080/lab/rules` | Rule/Profile/Scenario/영역/보기 탭 관리 |
+| 영상 분석 관리 | `http://127.0.0.1:8080/lab/rules` | 영상 분석 설정/보기/Runtime Dashboard 3탭 관리 |
 | 런타임 상태 | `http://127.0.0.1:8080/lab/runtime/status` | session, stream, analysis tap 상태 확인 |
 
 실제 host/port는 `./server.sh status` 또는 `./server.sh urls` 출력값을 우선합니다.
@@ -132,7 +132,7 @@ Scenario는 여러 frame에 걸친 시간 조건과 상태 전이를 판단하�
 | IntrusionAfterLineCrossing | 구현됨 | 전용 UI 템플릿은 후속 작업 |
 | Loitering | 구현됨 | 전용 UI 템플릿은 후속 작업 |
 
-현재 UI의 시나리오 템플릿은 `Intrusion Dwell · 제한구역 체류`와 `WrongDirection · 금지 방향 통과`를 제공합니다. WrongDirection은 line 2점 geometry와 `forward`/`reverse` 허용 방향, `cooldownMs`를 설정하며, `any` 방향은 위반 방향을 정의할 수 없으므로 사용하지 않습니다. 저장 전 검토와 Payload preview는 기존 `line-crossing` 기본 이벤트와 별도 `wrong-direction` scenario event가 발생한다는 점을 함께 보여주며 Event POST payload schema는 유지합니다.
+현재 UI의 시나리오 템플릿은 `Intrusion Dwell · 제한구역 체류`와 `WrongDirection · 금지 방향 통과`를 제공합니다. WrongDirection은 line 2점 geometry와 `forward`/`reverse` 허용 방향, `cooldownMs`를 설정하며, `any` 방향은 위반 방향을 정의할 수 없으므로 사용하지 않습니다. 저장 전 검토와 Payload preview는 기존 `line-crossing` 기본 이벤트와 별도 `wrong-direction` scenario event가 발생한다는 점을 함께 보여줍니다. 이 UI는 Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직을 변경하지 않습니다.
 
 Intrusion Dwell UI 항목:
 
@@ -357,7 +357,7 @@ drill-down 사용법:
 - Event Records는 저장된 EventRecord metadata를 수동 검색하는 접힘 섹션입니다. `eventType`, `streamId`, `channelId`, `trackId`, `scenarioName`, `status`, `startTimeMs`, `endTimeMs`, `limit` filter를 입력하고 검색 버튼을 눌렀을 때만 `/lab/analysis/events/records`를 호출합니다. 결과 table은 eventId, eventType, startTime/status, stream/channel, track/class, zone/line, scenario/phase, snapshot/clip 저장 문자열을 보여주며, eventId를 선택하면 detail 영역에서 원본 JSON을 확인합니다. 영상 재생, snapshot 추출, clip recorder 제어는 제공하지 않습니다.
 - Metadata / Backpressure는 WebRTC DataChannel sent/dropped/skipped/failure, max buffered amount, SSE/WS client count, 선택 tap의 analytics queue pending/capacity/peak/drop, `debugCounters`의 metadata JSON build/payload size, RTSP lifecycle/pending queue/appsrc/flow return/fanout balance를 읽기 전용으로 요약합니다. count 불균형, cleanup 잔여, failure가 관찰되면 warning badge로 표시합니다. 현재 endpoint가 제공하지 않는 SSE/WS sent/drop/failure 누적값, 서버 dashboard polling count, live RSS는 `미제공` 또는 `longrun report에서 확인`으로 표시합니다.
 - Trend / Stale / Cleanup은 새 backend endpoint 없이 Dashboard가 이미 polling한 payload를 브라우저 client-side bounded buffer 60개에 저장해 최근 변화만 보여줍니다. metadata 수신 age, video frame age, overlay draw age, DataChannel open 상태, SSE/WS client 존재 여부, tap metrics progress 정체, 보기 중지 후 activeSessions/activeStreams/activeAnalysisTaps/SSE/WS/RTSP 잔류를 warning badge로 표시합니다. Dashboard tab이 비활성화되면 sample도 더 이상 추가되지 않습니다.
-- Runtime Dashboard의 RSS 표시는 장시간 검증 결과나 longrun report를 대체하지 않습니다. Runtime Console RSS는 해제 가능 후보 상태로 정리했지만 active 구간 high-water 관찰은 유지하며, stable 승격은 verify-predev 30분 이후 별도 판단합니다. live dashboard 패널은 RTSP/GStreamer egress 또는 Full fanout 후보를 좁히기 위한 운영 관찰 보조 화면입니다.
+- Runtime Dashboard의 RSS 표시는 장시간 검증 결과나 longrun report를 대체하지 않습니다. Runtime Console은 stable 승격 가능 상태로 정리하되 active 구간 high-water 관찰 메모는 유지합니다. live dashboard 패널은 RTSP/GStreamer egress 또는 Full fanout 후보를 좁히기 위한 운영 관찰 보조 화면입니다.
 
 대시보드 탭이 닫혀 있을 때는 polling하지 않습니다. 자동 갱신은 최소 2초 이상 간격으로 동작해 다채널 분석 성능에 부담을 주지 않도록 제한합니다.
 vaRule Runtime Debug와 Scenario Timeline은 새 backend API 없이 선택된 rule과 active tap의 ruleId를 대조하고, 기존 metrics/state-dump/event buffer에서 확인 가능한 track/scenario/event 상태를 표시합니다. phase entered time 같은 세부 시각 값은 현재 state-dump에 노출된 값이 있을 때만 표시하며, 원본 JSON은 `상태 덤프 / tracking issue report` 접힘 영역에서 확인할 수 있습니다.
