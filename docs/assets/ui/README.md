@@ -10,7 +10,8 @@
 - 영상이 보이는 화면은 실제 객체가 있는 `va_four_scene_sample.mp4` 기준으로 캡처한다.
 - 영상 프레임과 영역/라인 캔버스는 하단이 잘리지 않도록 section 경계까지 포함한다.
 - Runtime Dashboard는 전체 긴 화면 한 장 대신 active analysis tap 데이터가 있는 구간별 crop을 사용한다.
-- Runtime Dashboard 구간은 Health Summary, Warnings/Trend, Metadata/Backpressure, Runtime Detail/vaRule Debug, Tracks, Scenarios/Events, Event Records/Tracking Issues로 나눈다.
+- Runtime Dashboard 구간은 Health Summary/Controls, Warnings/Trend, Metadata/Backpressure, Runtime Detail/vaRule Debug, Tracks, Scenarios/Events, Event Records, Tracking Issues로 나눈다.
+- Runtime Dashboard 문서에는 각 screenshot 바로 앞에 확인 포인트를 둔다.
 
 파일명 규칙:
 
@@ -40,4 +41,5 @@ UI 가이드 상세 후보:
 - `analysis-runtime-dashboard-runtime.png`
 - `analysis-runtime-dashboard-tracks.png`
 - `analysis-runtime-dashboard-scenarios.png`
-- `analysis-runtime-dashboard-records-issues.png`
+- `analysis-runtime-dashboard-records.png`
+- `analysis-runtime-dashboard-tracking-issues.png`

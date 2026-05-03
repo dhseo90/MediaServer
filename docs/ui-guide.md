@@ -465,31 +465,66 @@ VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보
 | Dashboard tab 닫힘 | polling 중지 |
 | 자동 갱신 사용 | 최소 2초 이상 간격으로 제한 |
 
-문서용 screenshot은 긴 dashboard 전체를 한 장으로 축소하지 않고, active analysis tap 데이터가 들어간 상태에서 구간별로 나눠 캡처합니다.
+문서용 screenshot은 긴 dashboard 전체를 한 장으로 축소하지 않고, active analysis tap 데이터가 들어간 상태에서 구간별로 나눠 캡처합니다. 각 이미지는 바로 위의 확인 포인트와 함께 읽습니다.
 
 | Screenshot | 확인 포인트 |
 | --- | --- |
-| Health Summary | active stream/tap, stale, cleanup, guard 상태 요약 |
+| Health Summary / Controls | active stream/tap, rule, refresh, stale, cleanup, guard 상태 요약 |
 | Warnings / Trend detail | 최근 sample 수, delta/min/max, warning badge |
 | Metadata / Backpressure | WebRTC/SSE/WS metadata, payload, DataChannel buffer |
 | Runtime Detail / vaRule Debug | 선택 tap/rule/source/profile/event/scenario runtime 관계 |
 | Tracks | track lifecycle, zone/dwell, TrackHealth |
 | Scenarios / Events | scenario phase/timeline, recent event buffer |
-| Event Records / Tracking Issues | 수동 EventRecord 검색 UI, tracking issue report |
+| Event Records | 자동 polling 없는 수동 검색 UI와 active JSON Lines 조회 범위 |
+| Tracking Issues | tracking issue report와 close-object diagnostics |
+
+### 10.1. Health Summary / Controls
+
+대시보드 제목, tap/rule 선택, refresh 정책, Health Summary를 함께 봅니다. source는 문서용으로 상대 표시하며 개인 절대경로를 노출하지 않습니다.
 
 ![VA 런타임 대시보드 Health Summary](assets/ui/analysis-runtime-dashboard.png)
 
+### 10.2. Warnings / Trend detail
+
+최근 60개 client-side sample 기준의 delta/min/max와 warning badge를 확인합니다. Runtime Dashboard는 live observation 보조 화면이며 longrun report를 대체하지 않습니다.
+
 ![VA 런타임 대시보드 Warnings Trend](assets/ui/analysis-runtime-dashboard-trend.png)
+
+### 10.3. Metadata / Backpressure
+
+WebRTC DataChannel, SSE/WS side-channel, payload size, queue/drop/fail counter를 확인합니다. 값이 endpoint에서 제공되지 않으면 `미제공`으로 표시합니다.
 
 ![VA 런타임 대시보드 Metadata Backpressure](assets/ui/analysis-runtime-dashboard-metadata.png)
 
+### 10.4. Runtime Detail / vaRule Debug
+
+선택 rule과 active tap의 source/profile/event/scenario/region 관계를 읽기 전용으로 표시합니다. Event POST payload, metadata schema, ScenarioEngine 판단 로직은 변경하지 않습니다.
+
 ![VA 런타임 대시보드 Runtime Detail](assets/ui/analysis-runtime-dashboard-runtime.png)
+
+### 10.5. Tracks
+
+trackId, class, lifecycle, currentZone, dwellTimeMs, TrackHealth를 state-dump 기반으로 확인합니다.
 
 ![VA 런타임 대시보드 Tracks](assets/ui/analysis-runtime-dashboard-tracks.png)
 
+### 10.6. Scenarios / Events
+
+scenario phase, timeline, recent event buffer를 한 구간에서 확인합니다. 이벤트가 없으면 빈 상태 이유를 짧게 표시합니다.
+
 ![VA 런타임 대시보드 Scenarios Events](assets/ui/analysis-runtime-dashboard-scenarios.png)
 
-![VA 런타임 대시보드 Event Records Tracking Issues](assets/ui/analysis-runtime-dashboard-records-issues.png)
+### 10.7. Event Records
+
+Event Records는 자동 polling하지 않습니다. 검색 버튼을 눌렀을 때 active JSON Lines의 metadata만 조회하며 rotated archive는 별도 archive query 후속 범위입니다.
+
+![VA 런타임 대시보드 Event Records](assets/ui/analysis-runtime-dashboard-records.png)
+
+### 10.8. Tracking Issues
+
+tracking issue report와 close-object diagnostics를 분리해 봅니다. 아래 캡처는 table 하단과 diagnostics 접힘 영역이 잘리지 않도록 section 단위로 캡처한 예입니다.
+
+![VA 런타임 대시보드 Tracking Issues](assets/ui/analysis-runtime-dashboard-tracking-issues.png)
 
 표시 항목:
 
