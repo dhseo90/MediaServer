@@ -12284,6 +12284,8 @@ std::string BuildLabRuleEditorPageHtml() {
       const sessionManager = runtime.sessionManager || {};
       const analysisMatching = runtime.analysisMatching || {};
       const tapMetrics = payload?.tapMetrics || {};
+      const eventPost = payload?.eventPost || {};
+      const eventStorage = payload?.eventStorage || {};
       const tapState = tapMetrics.tapState || {};
       const queue = tapState.analyticsQueue || {};
       const sessions = Array.isArray(metadata.sessions) ? metadata.sessions : [];
@@ -12291,6 +12293,15 @@ std::string BuildLabRuleEditorPageHtml() {
       const tapNumber = (value) => {
         const number = Number(value);
         return Number.isFinite(number) ? number : null;
+      };
+      const maxSessionNumber = (field) => {
+        let maxValue = null;
+        for (const session of sessions) {
+          const value = dashboardOptionalNumber(session, field);
+          if (value === null) continue;
+          maxValue = maxValue === null ? value : Math.max(maxValue, value);
+        }
+        return maxValue;
       };
       const metadataBuilds = counter('metadataJsonBuildCount');
       const metadataBytesTotal = counter('metadataJsonBytesTotal');
@@ -12320,10 +12331,23 @@ std::string BuildLabRuleEditorPageHtml() {
       const activeTaps = analysisMatching.activeTapCount ?? payload?.tapsPayload?.activeTaps ?? 0;
       const activeSseClients = sideChannel.activeSseClients ?? 0;
       const activeWsClients = sideChannel.activeWebSocketClients ?? 0;
+      const rtspConsumers = dashboardOptionalNumber(webrtc, 'egressSessions');
       const openDataChannels = sessions.filter((session) => session?.open).length;
       const metadataLastAgeMs = viewMetadataLastMessageAt > 0 ? sampledAtMs - viewMetadataLastMessageAt : null;
       const videoLastAgeMs = viewMetadataLastVideoFrameAt > 0 ? sampledAtMs - viewMetadataLastVideoFrameAt : null;
       const overlayDrawAgeMs = viewMetadataLastDrawAt > 0 ? sampledAtMs - viewMetadataLastDrawAt : null;
+      const trackingIssues = Array.isArray(tapMetrics.trackingIssueReport?.issues)
+        ? tapMetrics.trackingIssueReport.issues.length
+        : (tapMetrics.trackingIssueReport?.retainedIssues ?? tapMetrics.trackingIssueReport?.totalIssues ?? null);
+      const closeObjectRiskCount = Array.isArray(tapMetrics.closeObjectDiagnostics)
+        ? tapMetrics.closeObjectDiagnostics.filter((diagnostic) => {
+            const risk = Number(diagnostic?.closeObjectRisk);
+            return diagnostic?.wouldPenalize === true ||
+              diagnostic?.wouldHoldReacquire === true ||
+              (Number.isFinite(risk) && risk >= 0.25);
+          }).length
+        : null;
+      const eventState = tapMetrics.metricsReport?.eventState || {};
       const tapProgressSignals = [
         tapState.receivedVideoPackets,
         tapState.decodedFrames,
@@ -12343,12 +12367,15 @@ std::string BuildLabRuleEditorPageHtml() {
           activeAnalysisTaps: activeTaps,
           activeSseClients,
           activeWsClients,
+          rtspConsumers,
           openDataChannels,
           metadataSent: dashboardOptionalNumber(metadata, 'sentCount'),
           metadataDropped: dashboardOptionalNumber(metadata, 'droppedCount'),
           metadataFailures: dashboardOptionalNumber(metadata, 'sendFailureCount'),
           metadataBufferedDrop: dashboardOptionalNumber(metadata, 'bufferedDropCount'),
+          metadataLastBuffered: maxSessionNumber('lastBufferedAmount'),
           metadataMaxBuffered: dashboardOptionalNumber(metadata, 'maxBufferedAmount'),
+          metadataMaxBufferedLimit: maxSessionNumber('maxBufferedBytes'),
           metadataJsonBuildCount: metadataBuilds,
           metadataPayloadAvgBytes: metadataBytesAvg,
           metadataPayloadMaxBytes: metadataBytesMax,
@@ -12369,6 +12396,18 @@ std::string BuildLabRuleEditorPageHtml() {
           rtspHardFlowErrors: hardFlowErrors,
           rtspConsumerResidual,
           fanoutResidual,
+          trackingIssueCount: trackingIssues,
+          closeObjectRiskCount,
+          eventsEmitted: dashboardOptionalNumber(eventState, 'eventsEmitted'),
+          eventsDeduped: dashboardOptionalNumber(eventState, 'eventsDeduped'),
+          eventPostSent: dashboardOptionalNumber(eventPost, 'sentCount'),
+          eventPostFailed: dashboardOptionalNumber(eventPost, 'failedCount'),
+          eventPostDropped: dashboardOptionalNumber(eventPost, 'droppedCount'),
+          eventRecordEnqueued: dashboardOptionalNumber(eventStorage, 'enqueuedCount'),
+          eventRecordStored: dashboardOptionalNumber(eventStorage, 'storedCount'),
+          eventRecordFailed: dashboardOptionalNumber(eventStorage, 'failedCount'),
+          eventRecordWriteFailed: dashboardOptionalNumber(eventStorage, 'writeFailedCount'),
+          eventRecordDropped: dashboardOptionalNumber(eventStorage, 'droppedCount'),
           tapMetricsProgress,
           metadataLastAgeMs,
           videoLastAgeMs,
@@ -12393,7 +12432,8 @@ std::string BuildLabRuleEditorPageHtml() {
       const metadataBuildStats = dashboardTrendStats('metadataJsonBuildCount');
       const viewerActive = Boolean(viewTapId || viewWebRtcSessionId ||
         ['playing', 'connecting'].includes(viewConnectionState));
-      const dataChannelOpen = (values.openDataChannels || 0) > 0 || viewMetadataState === 'open';
+      const dataChannelOpen = (values.openDataChannels || 0) > 0 ||
+        ['open', 'receiving', 'stalled'].includes(viewMetadataState);
       if (dataChannelOpen && values.metadataLastAgeMs === null) {
         warnings.push({ label: 'DataChannel open · metadata 미수신', state: 'warning' });
       } else if (dataChannelOpen && values.metadataLastAgeMs > 3000) {
@@ -12418,7 +12458,8 @@ std::string BuildLabRuleEditorPageHtml() {
       }
       const activeResidual = (values.activeSessions || 0) + (values.activeStreams || 0) +
         (values.activeAnalysisTaps || 0) + (values.activeSseClients || 0) +
-        (values.activeWsClients || 0) + (values.rtspConsumerResidual || 0);
+        (values.activeWsClients || 0) + (values.rtspConsumers || 0) +
+        (values.rtspConsumerResidual || 0);
       const sinceViewStopMs = dashboardLastViewStopAt > 0 ? sample.t - dashboardLastViewStopAt : 0;
       if (!viewerActive && sinceViewStopMs > 10000 && activeResidual > 0) {
         warnings.push({ label: `보기 중지 후 active 잔류 ${activeResidual}`, state: 'warning' });
@@ -12436,9 +12477,27 @@ std::string BuildLabRuleEditorPageHtml() {
       if ((values.rtspHardFlowErrors || 0) > 0) {
         warnings.push({ label: `RTSP hard flow ${values.rtspHardFlowErrors}`, state: 'warning' });
       }
+      if ((values.metadataMaxBufferedLimit || 0) > 0 &&
+          (values.metadataLastBuffered || 0) > values.metadataMaxBufferedLimit * 0.8) {
+        warnings.push({ label: 'DataChannel bufferedAmount 높음', state: 'warning' });
+      }
+      if ((values.trackingIssueCount || 0) > 0) {
+        warnings.push({ label: `tracking issue ${values.trackingIssueCount}`, state: 'warning' });
+      }
+      if ((values.closeObjectRiskCount || 0) > 0) {
+        warnings.push({ label: `close-object risk ${values.closeObjectRiskCount}`, state: 'warning' });
+      }
       if ((values.metadataDropped || 0) > 0 || (values.metadataFailures || 0) > 0 ||
           (values.sideChannelDropped || 0) > 0 || (values.sideChannelFailures || 0) > 0) {
         warnings.push({ label: 'metadata drop/failure 관찰', state: 'warning' });
+      }
+      if ((values.eventPostFailed || 0) > 0 || (values.eventPostDropped || 0) > 0) {
+        warnings.push({ label: 'Event POST fail/drop 관찰', state: 'warning' });
+      }
+      if ((values.eventRecordFailed || 0) > 0 ||
+          (values.eventRecordWriteFailed || 0) > 0 ||
+          (values.eventRecordDropped || 0) > 0) {
+        warnings.push({ label: 'EventRecord fail/drop 관찰', state: 'warning' });
       }
       return warnings;
     }
@@ -12455,6 +12514,12 @@ std::string BuildLabRuleEditorPageHtml() {
       if (config.key === 'metadataLastAgeMs' && current > 3000) chips.push({ label: 'stale', state: 'warning' });
       if (config.key === 'videoLastAgeMs' && current > 3000) chips.push({ label: 'video stale', state: 'warning' });
       if (config.key === 'overlayDrawAgeMs' && current > 3000) chips.push({ label: 'draw stale', state: 'warning' });
+      if (config.key === 'metadataLastBuffered') {
+        const limit = dashboardTrendNumber(sample?.values?.metadataMaxBufferedLimit);
+        if (limit !== null && limit > 0 && current > limit * 0.8) {
+          chips.push({ label: 'buffer high', state: 'warning' });
+        }
+      }
       if (config.key === 'tapMetricsProgress') {
         const unchanged = dashboardTrendUnchangedWindow(config.key);
         if (unchanged.count >= 3 && unchanged.durationMs >= 10000) {
@@ -12497,7 +12562,8 @@ std::string BuildLabRuleEditorPageHtml() {
       );
       const cleanupResidual = sample ? (sample.values.activeSessions || 0) + (sample.values.activeStreams || 0) +
         (sample.values.activeAnalysisTaps || 0) + (sample.values.activeSseClients || 0) +
-        (sample.values.activeWsClients || 0) + (sample.values.rtspConsumerResidual || 0) : null;
+        (sample.values.activeWsClients || 0) + (sample.values.rtspConsumers || 0) +
+        (sample.values.rtspConsumerResidual || 0) : null;
       dashboardSetWithWarning(
         'dashboardTrendCleanupStatus',
         cleanupResidual === null ? '미제공' : `active residual ${cleanupResidual}`,
@@ -12510,12 +12576,19 @@ std::string BuildLabRuleEditorPageHtml() {
         { key: 'activeAnalysisTaps', label: 'activeAnalysisTaps', kind: 'count' },
         { key: 'activeSseClients', label: 'SSE clients', kind: 'count' },
         { key: 'activeWsClients', label: 'WS clients', kind: 'count' },
+        { key: 'rtspConsumers', label: 'RTSP consumers', kind: 'count' },
+        { key: 'openDataChannels', label: 'DataChannel open', kind: 'count' },
         { key: 'metadataSent', label: 'WebRTC metadata sent', kind: 'count', counter: true },
         { key: 'metadataDropped', label: 'WebRTC metadata dropped', kind: 'count', counter: true, warnDelta: true },
         { key: 'metadataFailures', label: 'WebRTC metadata failures', kind: 'count', counter: true, warnDelta: true },
+        { key: 'metadataLastBuffered', label: 'DataChannel bufferedAmount', kind: 'bytes' },
+        { key: 'metadataMaxBuffered', label: 'DataChannel max buffered', kind: 'bytes' },
         { key: 'metadataJsonBuildCount', label: 'metadataJsonBuildCount', kind: 'count', counter: true },
         { key: 'metadataPayloadAvgBytes', label: 'metadata payload avg', kind: 'bytes' },
         { key: 'metadataPayloadMaxBytes', label: 'metadata payload max', kind: 'bytes' },
+        { key: 'sideChannelSent', label: 'SSE/WS metadata sent', kind: 'count', counter: true },
+        { key: 'sideChannelDropped', label: 'SSE/WS metadata dropped', kind: 'count', counter: true, warnDelta: true },
+        { key: 'sideChannelFailures', label: 'SSE/WS metadata failures', kind: 'count', counter: true, warnDelta: true },
         { key: 'dashboardLocalPollingCount', label: 'dashboard polling count', kind: 'count', counter: true },
         { key: 'queuePending', label: 'pending queue', kind: 'count' },
         { key: 'queuePeak', label: 'pending queue peak', kind: 'count' },
@@ -12526,6 +12599,18 @@ std::string BuildLabRuleEditorPageHtml() {
         { key: 'rtspHardFlowErrors', label: 'RTSP hard flow errors', kind: 'count', counter: true, warnPositive: true },
         { key: 'rtspConsumerResidual', label: 'RTSP consumer residual', kind: 'count', warnPositive: true },
         { key: 'fanoutResidual', label: 'fanout residual', kind: 'count', warnPositive: true },
+        { key: 'trackingIssueCount', label: 'tracking issue count', kind: 'count', warnPositive: true },
+        { key: 'closeObjectRiskCount', label: 'close-object risk count', kind: 'count', warnPositive: true },
+        { key: 'eventsEmitted', label: 'events emitted', kind: 'count', counter: true },
+        { key: 'eventsDeduped', label: 'events deduped', kind: 'count', counter: true },
+        { key: 'eventPostSent', label: 'Event POST sent', kind: 'count', counter: true },
+        { key: 'eventPostFailed', label: 'Event POST failed', kind: 'count', counter: true, warnDelta: true },
+        { key: 'eventPostDropped', label: 'Event POST dropped', kind: 'count', counter: true, warnDelta: true },
+        { key: 'eventRecordEnqueued', label: 'EventRecord enqueued', kind: 'count', counter: true },
+        { key: 'eventRecordStored', label: 'EventRecord stored', kind: 'count', counter: true },
+        { key: 'eventRecordFailed', label: 'EventRecord failed', kind: 'count', counter: true, warnDelta: true },
+        { key: 'eventRecordWriteFailed', label: 'EventRecord write failed', kind: 'count', counter: true, warnDelta: true },
+        { key: 'eventRecordDropped', label: 'EventRecord dropped', kind: 'count', counter: true, warnDelta: true },
         { key: 'tapMetricsProgress', label: 'tap metrics progress', kind: 'count', counter: true },
         { key: 'metadataLastAgeMs', label: 'metadata receive age', kind: 'ms' },
         { key: 'videoLastAgeMs', label: 'last video frame age', kind: 'ms' },
