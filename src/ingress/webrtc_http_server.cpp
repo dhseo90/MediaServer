@@ -42,6 +42,7 @@
 #include "analysis/snapshot_encoder.h"
 #include "analysis/va_runtime_metadata.h"
 #include "core/runtime_debug_counters.h"
+#include "core/stream_key.h"
 #include "ingress/analysis_query.h"
 #include "ingress/analysis_rule_registry.h"
 #include "ingress/http_auth.h"
@@ -202,6 +203,37 @@ std::optional<int> ParseIntField(const std::string& body, const std::string& fie
         return std::nullopt;
     }
     return std::stoi(body.substr(pos, end - pos));
+}
+
+std::optional<std::int64_t> ParseInt64Field(const std::string& body, const std::string& field) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t pos = body.find(needle);
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    pos = body.find(':', pos + needle.size());
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    ++pos;
+    while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) {
+        ++pos;
+    }
+    std::size_t end = pos;
+    if (end < body.size() && body[end] == '-') {
+        ++end;
+    }
+    while (end < body.size() && std::isdigit(static_cast<unsigned char>(body[end])) != 0) {
+        ++end;
+    }
+    if (end == pos || (end == pos + 1 && body[pos] == '-')) {
+        return std::nullopt;
+    }
+    try {
+        return std::stoll(body.substr(pos, end - pos));
+    } catch (...) {
+        return std::nullopt;
+    }
 }
 
 std::optional<std::string> ParseStringField(const std::string& body, const std::string& field) {
@@ -16074,6 +16106,453 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
     return out.str();
 }
 
+constexpr std::int64_t kClientDashboardStaleMs = 5000;
+
+void AppendNullableInt64(std::ostringstream& out, std::optional<std::int64_t> value) {
+    if (value.has_value()) {
+        out << *value;
+    } else {
+        out << "null";
+    }
+}
+
+void AppendNullableUint64(std::ostringstream& out, std::optional<std::uint64_t> value) {
+    if (value.has_value()) {
+        out << *value;
+    } else {
+        out << "null";
+    }
+}
+
+bool ClientPrincipalCanAccessFeature(const auth::Principal& principal,
+                                     const std::string& view_id,
+                                     const std::string& scope_prefix) {
+    return auth::RequireRole(principal, {"operator"}) ||
+           auth::RequireScope(principal, scope_prefix + ":" + view_id);
+}
+
+std::optional<media::SourceSpec::Kind> SourceKindForClientView(
+    const SourceViewRegistry::SourceRecord& source) {
+    if (source.kind == "file") {
+        return media::SourceSpec::Kind::File;
+    }
+    if (source.kind == "rtsp") {
+        return media::SourceSpec::Kind::Rtsp;
+    }
+    if (source.kind == "webrtc") {
+        return media::SourceSpec::Kind::WebRtc;
+    }
+    if (source.kind == "hls") {
+        return media::SourceSpec::Kind::Hls;
+    }
+    if (source.kind == "youtube") {
+        return media::SourceSpec::Kind::Youtube;
+    }
+    if (source.kind == "http") {
+        return media::SourceSpec::Kind::Http;
+    }
+    return std::nullopt;
+}
+
+std::string SourceLocatorForClientView(const SourceViewRegistry::SourceRecord& source) {
+    if (!source.file.empty()) {
+        return source.file;
+    }
+    if (!source.rtsp_url.empty()) {
+        return source.rtsp_url;
+    }
+    if (!source.webrtc_source_id.empty()) {
+        return source.webrtc_source_id;
+    }
+    if (!source.http_url.empty()) {
+        return source.http_url;
+    }
+    return std::string();
+}
+
+void AddUniqueString(std::vector<std::string>* values, const std::string& value) {
+    if (values == nullptr || value.empty()) {
+        return;
+    }
+    if (std::find(values->begin(), values->end(), value) == values->end()) {
+        values->push_back(value);
+    }
+}
+
+std::vector<std::string> ClientStreamKeyCandidates(const SourceViewRegistry::SourceRecord& source) {
+    std::vector<std::string> candidates;
+    AddUniqueString(&candidates, source.canonical_source_key);
+    const auto kind = SourceKindForClientView(source);
+    const std::string locator = SourceLocatorForClientView(source);
+    if (kind.has_value() && !locator.empty()) {
+        AddUniqueString(&candidates, core::BuildStreamKey(media::SourceSpec{*kind, locator}));
+    }
+    return candidates;
+}
+
+bool ClientTapMatchesSource(const analysis::AnalysisManager::TapSnapshot& tap,
+                            const std::vector<std::string>& stream_key_candidates) {
+    return std::find(stream_key_candidates.begin(), stream_key_candidates.end(), tap.stream_key) !=
+           stream_key_candidates.end();
+}
+
+bool ClientTapMatchesViewRule(const SourceViewRegistry::PublishedViewRecord& view,
+                              const analysis::AnalysisManager::TapSnapshot& tap) {
+    if (tap.selected_by_rule_id.empty() || view.allowed_rule_ids.empty()) {
+        return true;
+    }
+    return std::find(view.allowed_rule_ids.begin(),
+                     view.allowed_rule_ids.end(),
+                     tap.selected_by_rule_id) != view.allowed_rule_ids.end();
+}
+
+const analysis::AnalysisManager::TapSnapshot* SelectClientDashboardTap(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps,
+    const std::vector<std::string>& stream_key_candidates) {
+    const analysis::AnalysisManager::TapSnapshot* fallback = nullptr;
+    for (const auto& tap : taps) {
+        if (!ClientTapMatchesSource(tap, stream_key_candidates)) {
+            continue;
+        }
+        if (fallback == nullptr) {
+            fallback = &tap;
+        }
+        if (!access.view.default_rule_id.empty() &&
+            tap.selected_by_rule_id == access.view.default_rule_id) {
+            return &tap;
+        }
+        if (ClientTapMatchesViewRule(access.view, tap)) {
+            return &tap;
+        }
+    }
+    return fallback;
+}
+
+struct ClientEventItem {
+    std::string event_id;
+    std::string event_type;
+    std::string status;
+    std::string class_name;
+    std::string zone_id;
+    std::string line_id;
+    std::string scenario_name;
+    std::string scenario_phase;
+    std::optional<std::uint64_t> track_id;
+    std::optional<std::int64_t> start_time_ms;
+    std::optional<std::int64_t> update_time_ms;
+    std::optional<std::int64_t> end_time_ms;
+};
+
+struct ClientEventTypeCount {
+    std::string event_type;
+    std::size_t count{0};
+};
+
+struct ClientEventSummary {
+    bool provided{false};
+    bool storage_enabled{false};
+    bool has_more{false};
+    bool warning{false};
+    std::string error;
+    std::vector<ClientEventItem> recent;
+    std::vector<ClientEventTypeCount> counts_by_type;
+    std::optional<std::int64_t> latest_event_time_ms;
+};
+
+bool ClientEventStatusIsActive(const std::string& status) {
+    if (status.empty()) {
+        return false;
+    }
+    std::string normalized = status;
+    std::transform(normalized.begin(), normalized.end(), normalized.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    return normalized != "ended" && normalized != "resolved" && normalized != "closed" &&
+           normalized != "completed" && normalized != "inactive";
+}
+
+ClientEventItem ParseClientEventItem(const std::string& raw) {
+    ClientEventItem item;
+    item.event_id = ParseStringField(raw, "eventId").value_or("");
+    item.event_type = ParseStringField(raw, "eventType").value_or("");
+    item.status = ParseStringField(raw, "status").value_or("");
+    item.class_name = ParseStringField(raw, "className").value_or("");
+    item.zone_id = ParseStringField(raw, "zoneId").value_or("");
+    item.line_id = ParseStringField(raw, "lineId").value_or("");
+    item.scenario_name = ParseStringField(raw, "scenarioName").value_or("");
+    item.scenario_phase = ParseStringField(raw, "scenarioPhase").value_or("");
+    if (const auto track_id = ParseInt64Field(raw, "trackId"); track_id.has_value() && *track_id >= 0) {
+        item.track_id = static_cast<std::uint64_t>(*track_id);
+    }
+    item.start_time_ms = ParseInt64Field(raw, "startTime");
+    item.update_time_ms = ParseInt64Field(raw, "updateTime");
+    item.end_time_ms = ParseInt64Field(raw, "endTime");
+    return item;
+}
+
+std::int64_t ClientEventSortTime(const ClientEventItem& item) {
+    return item.update_time_ms.value_or(item.start_time_ms.value_or(0));
+}
+
+void AddClientEventTypeCount(std::vector<ClientEventTypeCount>* counts, const std::string& event_type) {
+    if (counts == nullptr || event_type.empty()) {
+        return;
+    }
+    for (auto& count : *counts) {
+        if (count.event_type == event_type) {
+            ++count.count;
+            return;
+        }
+    }
+    counts->push_back(ClientEventTypeCount{.event_type = event_type, .count = 1});
+}
+
+ClientEventSummary LoadClientEventSummary(std::vector<std::string> stream_key_candidates,
+                                          int limit) {
+    ClientEventSummary summary;
+    limit = std::max(1, std::min(50, limit));
+    analysis::EventRecordQueryResult selected_result;
+    bool selected = false;
+    for (const auto& stream_key : stream_key_candidates) {
+        if (stream_key.empty()) {
+            continue;
+        }
+        analysis::EventRecordQueryOptions options;
+        options.stream_id = stream_key;
+        options.limit = static_cast<std::size_t>(std::max(200, limit));
+        analysis::EventRecordQueryResult result;
+        std::string error_message;
+        if (!analysis::QueryEventRecords(options, &result, &error_message)) {
+            summary.error = error_message.empty() ? "failed to query event records" : error_message;
+            return summary;
+        }
+        if (!selected || !result.records_json.empty()) {
+            selected_result = std::move(result);
+            selected = true;
+        }
+        if (!selected_result.records_json.empty()) {
+            break;
+        }
+    }
+    if (!selected) {
+        summary.error = "source stream is unavailable";
+        return summary;
+    }
+
+    summary.provided = selected_result.storage.enabled && selected_result.file_exists;
+    summary.storage_enabled = selected_result.storage.enabled;
+    summary.has_more = selected_result.has_more;
+    if (!summary.provided) {
+        return summary;
+    }
+
+    std::vector<ClientEventItem> parsed;
+    parsed.reserve(selected_result.records_json.size());
+    for (const auto& raw : selected_result.records_json) {
+        ClientEventItem item = ParseClientEventItem(raw);
+        if (item.event_id.empty() && item.event_type.empty()) {
+            continue;
+        }
+        AddClientEventTypeCount(&summary.counts_by_type, item.event_type);
+        if (ClientEventStatusIsActive(item.status)) {
+            summary.warning = true;
+        }
+        const std::int64_t item_time = ClientEventSortTime(item);
+        if (item_time > 0 &&
+            (!summary.latest_event_time_ms.has_value() || item_time > *summary.latest_event_time_ms)) {
+            summary.latest_event_time_ms = item_time;
+        }
+        parsed.push_back(std::move(item));
+    }
+    std::stable_sort(parsed.begin(), parsed.end(), [](const auto& lhs, const auto& rhs) {
+        return ClientEventSortTime(lhs) > ClientEventSortTime(rhs);
+    });
+    if (parsed.size() > static_cast<std::size_t>(limit)) {
+        parsed.resize(static_cast<std::size_t>(limit));
+    }
+    summary.recent = std::move(parsed);
+    return summary;
+}
+
+void AppendClientEventItemJson(std::ostringstream& out, const ClientEventItem& item) {
+    out << "{"
+        << "\"eventId\":\"" << JsonEscape(item.event_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(item.event_type) << "\","
+        << "\"status\":\"" << JsonEscape(item.status) << "\","
+        << "\"className\":\"" << JsonEscape(item.class_name) << "\","
+        << "\"trackId\":";
+    AppendNullableUint64(out, item.track_id);
+    out << ",\"startTime\":";
+    AppendNullableInt64(out, item.start_time_ms);
+    out << ",\"updateTime\":";
+    AppendNullableInt64(out, item.update_time_ms);
+    out << ",\"endTime\":";
+    AppendNullableInt64(out, item.end_time_ms);
+    out << ",\"zoneId\":\"" << JsonEscape(item.zone_id) << "\","
+        << "\"lineId\":\"" << JsonEscape(item.line_id) << "\","
+        << "\"scenarioName\":\"" << JsonEscape(item.scenario_name) << "\","
+        << "\"scenarioPhase\":\"" << JsonEscape(item.scenario_phase) << "\""
+        << "}";
+}
+
+void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSummary& summary) {
+    out << "{"
+        << "\"provided\":" << (summary.provided ? "true" : "false") << ","
+        << "\"storageEnabled\":" << (summary.storage_enabled ? "true" : "false") << ","
+        << "\"hasMore\":" << (summary.has_more ? "true" : "false") << ","
+        << "\"warning\":" << (summary.warning ? "true" : "false") << ","
+        << "\"warningBadge\":\"" << (summary.provided ? (summary.warning ? "warning" : "normal")
+                                                       : "unavailable")
+        << "\","
+        << "\"latestEventTime\":";
+    AppendNullableInt64(out, summary.latest_event_time_ms);
+    out << ",\"error\":\"" << JsonEscape(summary.error) << "\","
+        << "\"countsByType\":[";
+    for (std::size_t i = 0; i < summary.counts_by_type.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{\"eventType\":\"" << JsonEscape(summary.counts_by_type[i].event_type)
+            << "\",\"count\":" << summary.counts_by_type[i].count << "}";
+    }
+    out << "],\"recent\":[";
+    for (std::size_t i = 0; i < summary.recent.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendClientEventItemJson(out, summary.recent[i]);
+    }
+    out << "]}";
+}
+
+void AppendClientViewIdentityJson(std::ostringstream& out,
+                                  const SourceViewRegistry::ClientViewAccess& access) {
+    out << "{"
+        << "\"viewId\":\"" << JsonEscape(access.view.view_id) << "\","
+        << "\"displayName\":\"" << JsonEscape(access.view.display_name) << "\","
+        << "\"sourceId\":\"" << JsonEscape(access.view.source_id) << "\","
+        << "\"sourceDisplayName\":\"" << JsonEscape(access.source.display_name) << "\","
+        << "\"sourceKind\":\"" << JsonEscape(access.source.kind) << "\","
+        << "\"showDashboard\":" << (access.view.show_dashboard ? "true" : "false") << ","
+        << "\"showEvents\":" << (access.view.show_events ? "true" : "false") << ","
+        << "\"showMetadataSummary\":" << (access.view.show_metadata_summary ? "true" : "false")
+        << "}";
+}
+
+std::vector<std::string> ClientEventStreamCandidates(
+    const SourceViewRegistry::SourceRecord& source,
+    const analysis::AnalysisManager::TapSnapshot* tap) {
+    std::vector<std::string> candidates;
+    if (tap != nullptr) {
+        AddUniqueString(&candidates, tap->stream_key);
+    }
+    for (const auto& key : ClientStreamKeyCandidates(source)) {
+        AddUniqueString(&candidates, key);
+    }
+    return candidates;
+}
+
+std::string ClientViewEventsJson(const SourceViewRegistry::ClientViewAccess& access, int limit) {
+    const auto summary = LoadClientEventSummary(ClientEventStreamCandidates(access.source, nullptr), limit);
+    std::ostringstream out;
+    out << "{\"ok\":true,\"view\":";
+    AppendClientViewIdentityJson(out, access);
+    out << ",\"events\":";
+    AppendClientEventSummaryJson(out, summary);
+    out << "}";
+    return out.str();
+}
+
+std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& access,
+                                    const auth::Principal& principal,
+                                    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps) {
+    const auto stream_key_candidates = ClientStreamKeyCandidates(access.source);
+    const auto* tap = SelectClientDashboardTap(access, taps, stream_key_candidates);
+    const bool has_tap = tap != nullptr;
+    const bool has_frame = has_tap && tap->has_latest_frame;
+    const bool has_metadata = has_tap && tap->latest_result.has_value();
+    const bool metadata_allowed = access.view.show_metadata_summary;
+    const std::optional<std::int64_t> last_frame_age =
+        has_frame ? std::optional<std::int64_t>(tap->latest_frame_age_ms) : std::nullopt;
+    const std::optional<std::int64_t> metadata_age =
+        has_metadata && metadata_allowed ? std::optional<std::int64_t>(tap->latest_result_age_ms)
+                                         : std::nullopt;
+    const bool frame_stale = last_frame_age.has_value() && *last_frame_age > kClientDashboardStaleMs;
+    const bool metadata_stale = metadata_age.has_value() && *metadata_age > kClientDashboardStaleMs;
+    const bool stale = frame_stale || metadata_stale;
+
+    std::optional<std::int64_t> track_count;
+    std::optional<std::int64_t> active_event_count;
+    std::optional<std::int64_t> scenario_count;
+    if (has_metadata && metadata_allowed) {
+        if (tap->latest_result->metrics_report.has_value()) {
+            const auto& metrics = *tap->latest_result->metrics_report;
+            track_count = static_cast<std::int64_t>(metrics.total_track_count);
+            active_event_count = static_cast<std::int64_t>(metrics.active_event_state_count);
+            scenario_count = static_cast<std::int64_t>(metrics.active_scenario_count);
+        } else {
+            track_count = static_cast<std::int64_t>(tap->latest_result->tracks.size());
+        }
+    }
+
+    ClientEventSummary event_summary;
+    const bool include_events = access.view.show_events &&
+                                ClientPrincipalCanAccessFeature(principal,
+                                                                access.view.view_id,
+                                                                "event:read");
+    if (include_events) {
+        event_summary = LoadClientEventSummary(ClientEventStreamCandidates(access.source, tap), 10);
+    }
+    const std::optional<std::int64_t> latest_event_time =
+        event_summary.latest_event_time_ms.has_value()
+            ? event_summary.latest_event_time_ms
+            : (has_metadata && metadata_allowed && tap->latest_result->metrics_report.has_value()
+                   ? std::optional<std::int64_t>(tap->latest_result->metrics_report->timestamp_ms)
+                   : std::nullopt);
+
+    std::ostringstream out;
+    out << "{\"ok\":true,\"view\":";
+    AppendClientViewIdentityJson(out, access);
+    out << ",\"health\":{"
+        << "\"live\":" << (has_tap && tap->ref_count > 0 ? "true" : "false") << ","
+        << "\"status\":\"" << (has_tap ? "live" : "offline") << "\","
+        << "\"connectionStatus\":\"" << (has_tap ? "connected" : "disconnected") << "\","
+        << "\"videoFrameStatus\":\""
+        << (!has_tap ? "unavailable" : (!has_frame ? "unavailable" : (frame_stale ? "stale" : "receiving")))
+        << "\","
+        << "\"metadataStatus\":\""
+        << (!metadata_allowed ? "unavailable"
+                              : (!has_tap ? "unavailable"
+                                          : (!has_metadata ? "unavailable"
+                                                           : (metadata_stale ? "stale" : "fresh"))))
+        << "\","
+        << "\"stale\":" << (stale ? "true" : "false") << ","
+        << "\"lastFrameAgeMs\":";
+    AppendNullableInt64(out, last_frame_age);
+    out << ",\"metadataAgeMs\":";
+    AppendNullableInt64(out, metadata_age);
+    out << "},\"analysis\":{"
+        << "\"trackCount\":";
+    AppendNullableInt64(out, track_count);
+    out << ",\"activeEventCount\":";
+    AppendNullableInt64(out, active_event_count);
+    out << ",\"scenarioCount\":";
+    AppendNullableInt64(out, scenario_count);
+    out << ",\"latestEventTime\":";
+    AppendNullableInt64(out, latest_event_time);
+    out << "},\"connection\":{"
+        << "\"webrtc\":\"" << (has_tap ? "connected" : "disconnected") << "\","
+        << "\"staleMetadataAgeMs\":";
+    AppendNullableInt64(out, metadata_age);
+    out << ",\"lastFrameAgeMs\":";
+    AppendNullableInt64(out, last_frame_age);
+    out << "},\"events\":";
+    AppendClientEventSummaryJson(out, event_summary);
+    out << "}";
+    return out.str();
+}
+
 std::string ClientShellPageHtml(const auth::Principal& principal, const std::string& active) {
     const std::string views_json = SourceViewRegistry::Instance().ClientViewsJson(principal);
     auto nav_class = [&](const std::string& key) {
@@ -16087,32 +16566,71 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Client Portal</title>
   <style>
-    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { margin: 0; background: #f8fafc; color: #0f172a; }
-    main { max-width: 1120px; margin: 0 auto; padding: 28px 18px 40px; display: grid; gap: 18px; }
+    :root {
+      color-scheme: light dark;
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --panel-soft: #eef2f7;
+      --line: #cbd5e1;
+      --text: #0f172a;
+      --muted: #475569;
+      --accent: #0f766e;
+      --accent-soft: #ccfbf1;
+      --warn: #b45309;
+      --warn-soft: #fef3c7;
+      --bad: #b91c1c;
+      --bad-soft: #fee2e2;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body { margin: 0; background: var(--bg); color: var(--text); }
+    main { max-width: 1180px; margin: 0 auto; padding: 28px 18px 40px; display: grid; gap: 18px; }
     header { display: flex; justify-content: space-between; align-items: start; gap: 14px; flex-wrap: wrap; }
     h1, h2, h3 { margin: 0; }
     h1 { font-size: 28px; }
     h2 { font-size: 18px; }
     h3 { font-size: 16px; }
-    p { margin: 0; color: #475569; line-height: 1.5; }
+    p { margin: 0; color: var(--muted); line-height: 1.5; }
     nav { display: flex; gap: 8px; flex-wrap: wrap; }
-    a.nav { min-height: 36px; display: inline-flex; align-items: center; border-radius: 6px; padding: 0 12px; background: #e2e8f0; color: #0f172a; text-decoration: none; font-weight: 900; }
-    a.nav.active { background: #0f172a; color: #fff; }
-    .panel { display: grid; gap: 12px; padding: 16px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; }
-    .views { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-    .view { display: grid; gap: 8px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; background: #f8fafc; }
+    a.nav { min-height: 36px; display: inline-flex; align-items: center; border-radius: 6px; padding: 0 12px; background: var(--panel-soft); color: var(--text); text-decoration: none; font-weight: 900; }
+    a.nav.active { background: var(--text); color: var(--panel); }
+    .workspace { display: grid; grid-template-columns: minmax(260px, 360px) minmax(0, 1fr); gap: 14px; align-items: start; }
+    .panel { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+    .views { display: grid; gap: 10px; }
+    .view { width: 100%; text-align: left; display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--bg); color: var(--text); cursor: pointer; }
+    .view.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.16); }
     .meta { display: flex; gap: 6px; flex-wrap: wrap; }
-    .chip { padding: 5px 8px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 12px; font-weight: 900; }
-    button { min-height: 38px; border: 0; border-radius: 6px; background: #0f172a; color: #fff; padding: 0 14px; font-weight: 800; cursor: pointer; }
+    .chip { padding: 5px 8px; border-radius: 999px; background: var(--accent-soft); color: #115e59; font-size: 12px; font-weight: 900; }
+    .chip.warn { background: var(--warn-soft); color: var(--warn); }
+    .chip.bad { background: var(--bad-soft); color: var(--bad); }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .metric { min-height: 76px; display: grid; align-content: center; gap: 4px; border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--bg); }
+    .metric span { color: var(--muted); font-size: 12px; font-weight: 800; }
+    .metric strong { font-size: 20px; }
+    .events { display: grid; gap: 8px; }
+    .event { display: grid; gap: 5px; border-top: 1px solid var(--line); padding-top: 10px; }
+    .event:first-child { border-top: 0; padding-top: 0; }
+    button { min-height: 38px; border: 0; border-radius: 6px; background: var(--text); color: var(--panel); padding: 0 14px; font-weight: 800; cursor: pointer; }
+    .ghost { background: var(--panel-soft); color: var(--text); }
+    .empty { min-height: 80px; display: grid; align-content: center; }
+    .toolbar { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
     @media (prefers-color-scheme: dark) {
-      body { background: #020617; color: #f8fafc; }
-      p { color: #cbd5e1; }
-      .panel { background: #0f172a; border-color: #334155; }
-      .view { background: #020617; border-color: #334155; }
-      a.nav { background: #334155; color: #f8fafc; }
+      :root {
+        --bg: #020617;
+        --panel: #0f172a;
+        --panel-soft: #1e293b;
+        --line: #334155;
+        --text: #f8fafc;
+        --muted: #cbd5e1;
+        --accent-soft: #134e4a;
+        --warn-soft: #451a03;
+        --bad-soft: #450a0a;
+      }
+      .chip { color: #99f6e4; }
+      .chip.warn { color: #fcd34d; }
+      .chip.bad { color: #fca5a5; }
       a.nav.active { background: #38bdf8; color: #082f49; }
     }
+    @media (max-width: 780px) { .workspace { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -16129,16 +16647,28 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       <a class=")" << nav_class("dashboard") << R"(" href="/client/dashboard">Dashboard</a>
       <a class=")" << nav_class("events") << R"(" href="/client/events">Events</a>
     </nav>
-    <section class="panel">
-      <h2>)" << (active == "dashboard" ? "Dashboard" : (active == "events" ? "Events" : "Live")) << R"(</h2>
-      <div id="views" class="views"></div>
+    <section class="workspace">
+      <div class="panel">
+        <div class="toolbar">
+          <h2>Views</h2>
+          <button id="refresh" class="ghost" type="button">Refresh</button>
+        </div>
+        <div id="views" class="views"></div>
+      </div>
+      <div class="panel" id="detail">
+        <div class="empty"><p>미제공</p></div>
+      </div>
     </section>
   </main>
   <script type="application/json" id="views-data">)" << HtmlEscape(views_json) << R"(</script>
   <script>
+    const activePage = ')" << HtmlEscape(active) << R"(';
     const payload = JSON.parse(document.querySelector('#views-data').textContent || '{"views":[]}');
     const host = document.querySelector('#views');
+    const detail = document.querySelector('#detail');
+    const refresh = document.querySelector('#refresh');
     const views = Array.isArray(payload.views) ? payload.views : [];
+    let selectedViewId = views[0]?.viewId || '';
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
       '&': '&amp;',
       '<': '&lt;',
@@ -16146,20 +16676,138 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       '"': '&quot;',
       "'": '&#39;'
     })[ch]);
+    const display = value => value === null || value === undefined || value === '' ? '미제공' : String(value);
+    const ms = value => value === null || value === undefined ? '미제공' : `${Math.max(0, Math.round(Number(value)))}ms`;
+    const formatTime = value => {
+      if (value === null || value === undefined || value === '') return '미제공';
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) return '미제공';
+      if (numeric > 1000000000000) return new Date(numeric).toLocaleString();
+      return `${Math.round(numeric)}ms`;
+    };
+    const statusChip = value => {
+      const text = display(value);
+      const cls = ['stale', 'offline', 'disconnected', 'warning'].includes(String(value)) ? ' warn' :
+        ['unavailable'].includes(String(value)) ? ' bad' : '';
+      return `<span class="chip${cls}">${escapeHtml(text)}</span>`;
+    };
+    async function requestJson(url) {
+      const res = await fetch(url, { credentials: 'same-origin' });
+      const text = await res.text();
+      let json;
+      try { json = text ? JSON.parse(text) : {}; } catch { json = {}; }
+      if (!res.ok) throw new Error(json.error || `${res.status} ${res.statusText}`);
+      return json;
+    }
     if (views.length === 0) {
-      host.innerHTML = '<p>No assigned views.</p>';
+      host.innerHTML = '<div class="empty"><p>미제공</p></div>';
     } else {
       host.innerHTML = views.map(view => `
-        <article class="view">
+        <button class="view${view.viewId === selectedViewId ? ' active' : ''}" type="button" data-view-id="${escapeHtml(view.viewId)}">
           <h3>${escapeHtml(view.displayName || view.viewId)}</h3>
           <div class="meta">
-            <span class="chip">${escapeHtml(view.viewId)}</span>
             <span class="chip">${escapeHtml(view.sourceKind || 'source')}</span>
-            ${(view.allowedRuleIds || []).map(rule => `<span class="chip">rule ${escapeHtml(rule)}</span>`).join('')}
+            ${view.showDashboard ? '<span class="chip">dashboard</span>' : ''}
+            ${view.showEvents ? '<span class="chip">events</span>' : ''}
           </div>
+        </button>
+      `).join('');
+    }
+    function setActiveView(viewId) {
+      selectedViewId = viewId;
+      host.querySelectorAll('.view').forEach(node => {
+        node.classList.toggle('active', node.dataset.viewId === viewId);
+      });
+      loadDetail();
+    }
+    host.addEventListener('click', event => {
+      const button = event.target.closest('.view');
+      if (button) setActiveView(button.dataset.viewId);
+    });
+    function renderDashboard(payload) {
+      const view = payload.view || {};
+      const health = payload.health || {};
+      const analysis = payload.analysis || {};
+      const connection = payload.connection || {};
+      const events = payload.events || {};
+      detail.innerHTML = `
+        <div class="toolbar">
+          <div>
+            <h2>${escapeHtml(view.displayName || view.viewId || 'Dashboard')}</h2>
+            <p>${escapeHtml(view.sourceDisplayName || '미제공')}</p>
+          </div>
+          <div class="meta">
+            ${statusChip(health.status)}
+            ${statusChip(health.metadataStatus)}
+            ${events.warning ? '<span class="chip warn">warning</span>' : ''}
+          </div>
+        </div>
+        <div class="summary">
+          <div class="metric"><span>View health</span><strong>${escapeHtml(display(health.connectionStatus))}</strong></div>
+          <div class="metric"><span>Video frame</span><strong>${escapeHtml(display(health.videoFrameStatus))}</strong></div>
+          <div class="metric"><span>Metadata age</span><strong>${escapeHtml(ms(health.metadataAgeMs))}</strong></div>
+          <div class="metric"><span>Last frame</span><strong>${escapeHtml(ms(connection.lastFrameAgeMs))}</strong></div>
+          <div class="metric"><span>Tracks</span><strong>${escapeHtml(display(analysis.trackCount))}</strong></div>
+          <div class="metric"><span>Active events</span><strong>${escapeHtml(display(analysis.activeEventCount))}</strong></div>
+          <div class="metric"><span>Scenarios</span><strong>${escapeHtml(display(analysis.scenarioCount))}</strong></div>
+          <div class="metric"><span>Latest event</span><strong>${escapeHtml(formatTime(analysis.latestEventTime))}</strong></div>
+        </div>
+        <section class="events">
+          <h3>Event summary</h3>
+          <div class="meta">
+            ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || 'event')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip bad">미제공</span>'}
+          </div>
+          ${renderEvents(events.recent || [])}
+        </section>
+      `;
+    }
+    function renderEvents(items) {
+      if (!Array.isArray(items) || items.length === 0) {
+        return '<div class="empty"><p>미제공</p></div>';
+      }
+      return items.map(item => `
+        <article class="event">
+          <div class="meta">
+            <span class="chip">${escapeHtml(item.eventType || 'event')}</span>
+            ${statusChip(item.status || '미제공')}
+          </div>
+          <h3>${escapeHtml(item.scenarioName || item.className || item.eventId || 'Event')}</h3>
+          <p>${escapeHtml(formatTime(item.updateTime || item.startTime))}</p>
         </article>
       `).join('');
     }
+    function renderEventPage(payload) {
+      const view = payload.view || {};
+      const events = payload.events || {};
+      detail.innerHTML = `
+        <div class="toolbar">
+          <div>
+            <h2>${escapeHtml(view.displayName || view.viewId || 'Events')}</h2>
+            <p>${events.provided ? 'Recent events' : '미제공'}</p>
+          </div>
+          <div class="meta">${events.warning ? '<span class="chip warn">warning</span>' : statusChip(events.warningBadge)}</div>
+        </div>
+        <div class="meta">
+          ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || 'event')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip bad">미제공</span>'}
+        </div>
+        <section class="events">${renderEvents(events.recent || [])}</section>
+      `;
+    }
+    async function loadDetail() {
+      if (!selectedViewId) return;
+      detail.innerHTML = '<div class="empty"><p>미제공</p></div>';
+      try {
+        if (activePage === 'events') {
+          renderEventPage(await requestJson(`/client/api/views/${encodeURIComponent(selectedViewId)}/events?limit=20`));
+        } else {
+          renderDashboard(await requestJson(`/client/api/views/${encodeURIComponent(selectedViewId)}/dashboard`));
+        }
+      } catch (error) {
+        detail.innerHTML = `<div class="empty"><p>${escapeHtml(error.message || '미제공')}</p></div>`;
+      }
+    }
+    refresh.addEventListener('click', loadDetail);
+    loadDetail();
   </script>
 </body>
 </html>)";
@@ -19661,9 +20309,63 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (const auto auth_response = require_client_principal(); auth_response.has_value()) {
                                 return *auth_response;
                             }
+                            const std::string suffix =
+                                request.path.substr(std::string("/client/api/views/").size());
+                            const std::size_t slash = suffix.find('/');
                             const std::string view_id =
-                                UrlDecode(request.path.substr(std::string("/client/api/views/").size()));
+                                UrlDecode(slash == std::string::npos ? suffix : suffix.substr(0, slash));
+                            const std::string subresource =
+                                slash == std::string::npos ? std::string() : suffix.substr(slash + 1);
                             if (request.method == "GET") {
+                                if (subresource == "dashboard") {
+                                    SourceViewRegistry::ClientViewAccess access;
+                                    const auto access_result =
+                                        SourceViewRegistry::Instance().ResolveClientViewAccess(
+                                            view_id,
+                                            principal_result.principal,
+                                            "dashboard:read",
+                                            &access);
+                                    if (access_result.status != 200) {
+                                        return RegistryHttpResponse(access_result);
+                                    }
+                                    if (!access.view.show_dashboard) {
+                                        return JsonResponse(403,
+                                                            "Forbidden",
+                                                            "{\"error\":\"dashboard is not enabled for this view\"}");
+                                    }
+                                    return JsonResponse(
+                                        200,
+                                        "OK",
+                                        ClientViewDashboardJson(
+                                            access,
+                                            principal_result.principal,
+                                            impl_->session_manager.AnalysisTapSnapshots()));
+                                }
+                                if (subresource == "events") {
+                                    SourceViewRegistry::ClientViewAccess access;
+                                    const auto access_result =
+                                        SourceViewRegistry::Instance().ResolveClientViewAccess(
+                                            view_id,
+                                            principal_result.principal,
+                                            "event:read",
+                                            &access);
+                                    if (access_result.status != 200) {
+                                        return RegistryHttpResponse(access_result);
+                                    }
+                                    if (!access.view.show_events) {
+                                        return JsonResponse(403,
+                                                            "Forbidden",
+                                                            "{\"error\":\"events are not enabled for this view\"}");
+                                    }
+                                    const auto event_query = ParseQueryString(request.query);
+                                    const int limit = ParseClampedIntQuery(event_query, "limit", 20, 1, 50);
+                                    return JsonResponse(200, "OK", ClientViewEventsJson(access, limit));
+                                }
+                                if (!subresource.empty()) {
+                                    return JsonResponse(404,
+                                                        "Not Found",
+                                                        "{\"error\":\"client view resource not found\"}");
+                                }
                                 return RegistryHttpResponse(
                                     SourceViewRegistry::Instance().ClientViewJson(view_id,
                                                                                   principal_result.principal));

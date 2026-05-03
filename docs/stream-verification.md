@@ -640,6 +640,27 @@ Analysis tap reuse smoke 기준:
 - client별 overlay 표시 옵션만 다른 경우에는 `analysisTapReusedCount`가 증가하고 `analysisTapCreatedCount`는 추가로 증가하지 않아야 합니다.
 - 종료 후 cleanup 상태에서 `activeAnalysisTaps=0`, `analysisMatching.activeTapCount=0`으로 돌아와야 합니다.
 
+## Client scoped dashboard 검증
+
+Client dashboard는 PublishedView scope와 sanitized runtime summary를 확인하는 smoke로 검증합니다.
+
+```bash
+curl -fsS 'http://127.0.0.1:8080/client/api/views'
+curl -fsS 'http://127.0.0.1:8080/client/api/views/{viewId}/dashboard'
+curl -fsS 'http://127.0.0.1:8080/client/api/views/{viewId}/events?limit=20'
+```
+
+확인 기준:
+
+- viewer는 `view:read:{viewId}`가 있는 view만 `/client/api/views`에서 확인합니다.
+- dashboard API는 `dashboard:read:{viewId}`, events API는 `event:read:{viewId}` scope가 필요합니다.
+- admin/operator는 client dashboard에서 전체 PublishedView 상태를 확인할 수 있습니다.
+- `showDashboard=false`인 view는 dashboard API가 403을 반환하고, `showEvents=false`인 view는 events API가 403을 반환합니다.
+- dashboard health는 live/offline, connection status, video frame status, metadata status, stale 여부, stale metadata age, last frame age를 반환합니다.
+- 값이 없으면 UI는 `미제공`을 표시합니다.
+- client dashboard 응답과 화면에 source 원본 URL, Developer URL, raw JSON, `debugCounters`, `analysisTapId`, internal session id, rule/profile editor, Event POST 설정, SSE/WS 전체 endpoint가 노출되지 않아야 합니다.
+- Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema는 변경하지 않습니다.
+
 ## VA overlay 검증
 
 기본 YOLO/ONNX overlay:

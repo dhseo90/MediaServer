@@ -101,6 +101,8 @@ public:
         int latest_frame_width{0};
         int latest_frame_height{0};
         std::int64_t latest_frame_pts{0};
+        std::int64_t latest_frame_age_ms{0};
+        std::int64_t latest_result_age_ms{0};
         std::optional<AnalysisResult> latest_result;
     };
 
@@ -192,6 +194,8 @@ private:
         std::chrono::steady_clock::time_point attached_at{};
         std::chrono::steady_clock::time_point last_used_at{};
         std::chrono::steady_clock::time_point last_sampled_at{};
+        std::chrono::steady_clock::time_point latest_frame_at{};
+        std::chrono::steady_clock::time_point latest_result_at{};
         std::chrono::steady_clock::time_point last_adaptive_tuned_at{};
         std::atomic<std::uint64_t> next_frame_id{1};
         std::uint64_t decoded_frame_sequence{0};

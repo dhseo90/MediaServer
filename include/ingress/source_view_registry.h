@@ -48,12 +48,21 @@ public:
         bool enabled{true};
     };
 
+    struct ClientViewAccess {
+        PublishedViewRecord view;
+        SourceRecord source;
+    };
+
     static SourceViewRegistry& Instance();
 
     std::string SourcesJson();
     std::string ViewsJson();
     std::string ClientViewsJson(const auth::Principal& principal);
     RegistryResult ClientViewJson(const std::string& view_id, const auth::Principal& principal);
+    RegistryResult ResolveClientViewAccess(const std::string& view_id,
+                                           const auth::Principal& principal,
+                                           const std::string& required_scope_prefix,
+                                           ClientViewAccess* access);
 
     RegistryResult CreateSource(const std::string& body);
     RegistryResult UpsertSource(const std::string& source_id, const std::string& body);

@@ -58,6 +58,19 @@ Route 역할:
 
 PublishedView form은 `viewId`, 표시 이름, `sourceId`, `defaultRuleId`, `allowedRuleIds`, overlay mode, dashboard/event/metadata 노출 여부, client group, 최대 tile 수를 저장합니다. `/client/api/views`는 로그인 principal의 `view:read:{viewId}` scope가 있는 view만 반환하며, 원본 source URL이나 file locator는 클라이언트 응답에 포함하지 않습니다.
 
+### 3.1 Client scoped dashboard
+
+`/client/dashboard`는 viewer가 접근 가능한 PublishedView의 상태 요약만 보여주는 client dashboard입니다. view 목록은 `/client/api/views`의 scoped 결과를 사용하고, 선택된 view의 상세 상태는 `/client/api/views/{viewId}/dashboard`에서 가져옵니다.
+
+표시 범위:
+
+- view health: view name, live/offline, connection status, video frame status, metadata status, stale 여부
+- analysis summary: track count, active event count, scenario count, latest event time
+- event summary: 최근 event, event type별 count, warning badge
+- connection: WebRTC connected/disconnected, stale metadata age, last frame age
+
+값이 없거나 아직 수집되지 않은 항목은 UI에서 `미제공`으로 표시합니다. Client dashboard와 `/client/api/views/{viewId}/events?limit=...`는 source 원본 URL, Developer URL, raw JSON, `debugCounters`, `analysisTapId`, internal session id, rule/profile editor, Event POST 설정, SSE/WS 전체 endpoint를 노출하지 않습니다. 운영자용 세부 runtime/debug 확인은 `/lab/rules` Runtime Dashboard 또는 `/lab/runtime/status`에서만 수행합니다.
+
 ## 4. 영상 분석 룰 목록
 
 룰 목록은 저장된 `vaRule` 설정을 관리하는 첫 화면입니다. `vaRule`은 숫자 ID이며, 영상 source, 분석 profile, event/scenario, 영역/라인, event action을 하나로 묶습니다.

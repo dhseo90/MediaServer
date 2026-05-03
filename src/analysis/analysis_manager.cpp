@@ -639,6 +639,7 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
             tap->track_state_manager.Reset();
             std::lock_guard tap_lock(tap->mu);
             tap->latest_result.reset();
+            tap->latest_result_at = {};
             tap->result_history.clear();
         }
         for (auto& detection : result.detections) {
@@ -673,7 +674,9 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
         tap->max_analysis_ms = std::max(tap->max_analysis_ms, elapsed_ms);
         tap->last_result_pts = result.pts;
         tap->latest_frame = std::move(frame);
+        tap->latest_frame_at = analysis_finished_at;
         tap->latest_result = std::move(result);
+        tap->latest_result_at = analysis_finished_at;
         tap->result_history.push_back(*tap->latest_result);
         while (tap->result_history.size() > kMaxResultHistory) {
             tap->result_history.pop_front();
@@ -868,6 +871,14 @@ AnalysisManager::TapSnapshot AnalysisManager::BuildSnapshotLocked(const std::sha
         .latest_frame_width = tap->latest_frame.has_value() ? tap->latest_frame->width : 0,
         .latest_frame_height = tap->latest_frame.has_value() ? tap->latest_frame->height : 0,
         .latest_frame_pts = tap->latest_frame.has_value() ? tap->latest_frame->pts : 0,
+        .latest_frame_age_ms =
+            tap->latest_frame_at.time_since_epoch().count() > 0
+                ? std::chrono::duration_cast<std::chrono::milliseconds>(now - tap->latest_frame_at).count()
+                : 0,
+        .latest_result_age_ms =
+            tap->latest_result_at.time_since_epoch().count() > 0
+                ? std::chrono::duration_cast<std::chrono::milliseconds>(now - tap->latest_result_at).count()
+                : 0,
         .latest_result = tap->latest_result,
     };
 }
