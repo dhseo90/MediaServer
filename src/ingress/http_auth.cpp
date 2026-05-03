@@ -26,6 +26,8 @@ namespace ingress::auth {
 
 namespace {
 
+bool VerifySecretHash(const std::string& secret, const std::string& hash, std::string* error_message);
+
 std::string Trim(std::string value) {
     while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front())) != 0) {
         value.erase(value.begin());
@@ -237,6 +239,37 @@ std::optional<bool> ParseBoolField(const std::string& body, const std::string& f
     return std::nullopt;
 }
 
+std::optional<int> ParseIntField(const std::string& body, const std::string& field) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t pos = body.find(needle);
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    pos = body.find(':', pos + needle.size());
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    ++pos;
+    while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) {
+        ++pos;
+    }
+    const std::size_t start = pos;
+    if (pos < body.size() && body[pos] == '-') {
+        ++pos;
+    }
+    while (pos < body.size() && std::isdigit(static_cast<unsigned char>(body[pos])) != 0) {
+        ++pos;
+    }
+    if (pos == start || (pos == start + 1 && body[start] == '-')) {
+        return std::nullopt;
+    }
+    try {
+        return std::stoi(body.substr(start, pos - start));
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
 std::vector<std::string> ExtractJsonObjectArray(const std::string& body, const std::string& field) {
     std::vector<std::string> objects;
     const std::string needle = "\"" + field + "\"";
@@ -318,11 +351,21 @@ std::optional<std::vector<UserRecord>> LoadUsers(const std::string& path, std::s
             user.scopes = DefaultScopesForRole(user.role);
         }
         user.password_hash = Trim(ParseStringField(raw, "passwordHash").value_or(""));
+        if (const auto password_history = ExtractArrayField(raw, "passwordHistory");
+            password_history.has_value()) {
+            user.password_history = ParseStringArray(*password_history);
+        }
         user.token_hash = Trim(ParseStringField(raw, "tokenHash").value_or(""));
         user.enabled = ParseBoolField(raw, "enabled").value_or(true);
         user.must_change_password = ParseBoolField(raw, "mustChangePassword").value_or(false);
+        user.failed_login_count = ParseIntField(raw, "failedLoginCount").value_or(0);
+        user.locked_until = Trim(ParseStringField(raw, "lockedUntil").value_or(""));
+        user.last_failed_login_at = Trim(ParseStringField(raw, "lastFailedLoginAt").value_or(""));
         user.created_at = Trim(ParseStringField(raw, "createdAt").value_or(""));
         user.password_updated_at = Trim(ParseStringField(raw, "passwordUpdatedAt").value_or(""));
+        user.last_login_at = Trim(ParseStringField(raw, "lastLoginAt").value_or(""));
+        user.last_login_ip = Trim(ParseStringField(raw, "lastLoginIp").value_or(""));
+        user.disabled_at = Trim(ParseStringField(raw, "disabledAt").value_or(""));
         if (user.username.empty() || !IsKnownRole(user.role)) {
             continue;
         }
@@ -373,6 +416,159 @@ std::string IsoUtcNow() {
     return out.str();
 }
 
+std::string IsoUtcAfterSeconds(int seconds) {
+    const auto target = std::chrono::system_clock::now() + std::chrono::seconds(seconds);
+    const std::time_t target_time = std::chrono::system_clock::to_time_t(target);
+    std::tm tm{};
+#if defined(_WIN32)
+    gmtime_s(&tm, &target_time);
+#else
+    gmtime_r(&target_time, &tm);
+#endif
+    std::ostringstream out;
+    out << std::put_time(&tm, "%Y-%m-%dT%H:%M:%SZ");
+    return out.str();
+}
+
+std::string IsoUtcDaysAgo(int days) {
+    const auto target = std::chrono::system_clock::now() - std::chrono::hours(24 * days);
+    const std::time_t target_time = std::chrono::system_clock::to_time_t(target);
+    std::tm tm{};
+#if defined(_WIN32)
+    gmtime_s(&tm, &target_time);
+#else
+    gmtime_r(&target_time, &tm);
+#endif
+    std::ostringstream out;
+    out << std::put_time(&tm, "%Y-%m-%dT%H:%M:%SZ");
+    return out.str();
+}
+
+bool IsoUtcInFuture(const std::string& value) {
+    return !value.empty() && value > IsoUtcNow();
+}
+
+void AddPolicyError(std::vector<std::string>* errors, std::string error) {
+    if (errors == nullptr || error.empty()) {
+        return;
+    }
+    errors->push_back(std::move(error));
+}
+
+int PasswordCharacterClassCount(const std::string& password) {
+    bool has_lower = false;
+    bool has_upper = false;
+    bool has_digit = false;
+    bool has_symbol = false;
+    for (const unsigned char ch : password) {
+        has_lower = has_lower || std::islower(ch) != 0;
+        has_upper = has_upper || std::isupper(ch) != 0;
+        has_digit = has_digit || std::isdigit(ch) != 0;
+        has_symbol = has_symbol || (!std::isalnum(ch) && !std::isspace(ch));
+    }
+    return (has_lower ? 1 : 0) + (has_upper ? 1 : 0) + (has_digit ? 1 : 0) +
+           (has_symbol ? 1 : 0);
+}
+
+bool ContainsRepeatedCharacterRun(const std::string& password) {
+    int run = 0;
+    char previous = '\0';
+    for (const char ch : password) {
+        if (ch == previous) {
+            ++run;
+        } else {
+            previous = ch;
+            run = 1;
+        }
+        if (run >= 3) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ContainsSequentialNumberRun(const std::string& password) {
+    for (std::size_t i = 0; i + 3 < password.size(); ++i) {
+        bool ascending = true;
+        bool descending = true;
+        for (std::size_t j = 0; j < 4; ++j) {
+            if (std::isdigit(static_cast<unsigned char>(password[i + j])) == 0) {
+                ascending = false;
+                descending = false;
+                break;
+            }
+            if (j == 0) {
+                continue;
+            }
+            ascending = ascending && password[i + j] == password[i] + static_cast<char>(j);
+            descending = descending && password[i + j] == password[i] - static_cast<char>(j);
+        }
+        if (ascending || descending) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ContainsKeyboardPattern(const std::string& password) {
+    const std::string lower = ToLower(password);
+    const std::array<std::string, 6> rows = {
+        "qwertyuiop",
+        "poiuytrewq",
+        "asdfghjkl",
+        "lkjhgfdsa",
+        "zxcvbnm",
+        "mnbvcxz",
+    };
+    for (const std::string& row : rows) {
+        for (std::size_t i = 0; i + 3 < row.size(); ++i) {
+            if (lower.find(row.substr(i, 4)) != std::string::npos) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool IsCommonPassword(const std::string& password) {
+    const std::string lower = ToLower(password);
+    static const std::array<std::string, 18> common = {
+        "password",
+        "password1",
+        "password123",
+        "admin",
+        "admin1234",
+        "administrator",
+        "qwer1234",
+        "qwerty123",
+        "12345678",
+        "123456789",
+        "11111111",
+        "00000000",
+        "letmein",
+        "welcome",
+        "iloveyou",
+        "mediaserver",
+        "media1234",
+        "changeme",
+    };
+    return std::find(common.begin(), common.end(), lower) != common.end();
+}
+
+bool PasswordWasUsedBefore(const std::string& password, const UserRecord& user) {
+    std::vector<std::string> hashes;
+    if (!user.password_hash.empty()) {
+        hashes.push_back(user.password_hash);
+    }
+    hashes.insert(hashes.end(), user.password_history.begin(), user.password_history.end());
+    for (const std::string& hash : hashes) {
+        if (!hash.empty() && VerifySecretHash(password, hash, nullptr)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void WriteStringArray(std::ostringstream& out, const std::vector<std::string>& values) {
     out << "[";
     for (std::size_t i = 0; i < values.size(); ++i) {
@@ -418,13 +614,24 @@ bool SaveUsersFile(const std::string& path,
         WriteStringArray(body, user.scopes);
         body << ",\n"
              << "      \"passwordHash\": \"" << JsonEscapeLocal(user.password_hash) << "\",\n";
+        if (!user.password_history.empty()) {
+            body << "      \"passwordHistory\": ";
+            WriteStringArray(body, user.password_history);
+            body << ",\n";
+        }
         if (!user.token_hash.empty()) {
             body << "      \"tokenHash\": \"" << JsonEscapeLocal(user.token_hash) << "\",\n";
         }
         body << "      \"enabled\": " << (user.enabled ? "true" : "false") << ",\n"
              << "      \"mustChangePassword\": " << (user.must_change_password ? "true" : "false") << ",\n"
+             << "      \"failedLoginCount\": " << user.failed_login_count << ",\n"
+             << "      \"lockedUntil\": \"" << JsonEscapeLocal(user.locked_until) << "\",\n"
+             << "      \"lastFailedLoginAt\": \"" << JsonEscapeLocal(user.last_failed_login_at) << "\",\n"
              << "      \"createdAt\": \"" << JsonEscapeLocal(user.created_at) << "\",\n"
-             << "      \"passwordUpdatedAt\": \"" << JsonEscapeLocal(user.password_updated_at) << "\"\n"
+             << "      \"passwordUpdatedAt\": \"" << JsonEscapeLocal(user.password_updated_at) << "\",\n"
+             << "      \"lastLoginAt\": \"" << JsonEscapeLocal(user.last_login_at) << "\",\n"
+             << "      \"lastLoginIp\": \"" << JsonEscapeLocal(user.last_login_ip) << "\",\n"
+             << "      \"disabledAt\": \"" << JsonEscapeLocal(user.disabled_at) << "\"\n"
              << "    }";
         if (i + 1 < users.size()) {
             body << ",";
@@ -516,7 +723,12 @@ std::optional<Principal> PrincipalFromUserToken(const app::AppConfig& config,
             continue;
         }
         if (VerifySecretHash(token, user.token_hash, nullptr)) {
-            return MakePrincipalForRole(user.role, user.scopes, user.display_name, config.auth_mode);
+            return MakePrincipalForRole(user.role,
+                                        user.scopes,
+                                        user.display_name,
+                                        config.auth_mode,
+                                        user.username,
+                                        user.must_change_password);
         }
     }
     return std::nullopt;
@@ -594,13 +806,17 @@ std::vector<std::string> DefaultScopesForRole(const std::string& role) {
 Principal MakePrincipalForRole(const std::string& role,
                                const std::vector<std::string>& scopes,
                                const std::string& display_name,
-                               app::AuthMode auth_mode) {
+                               app::AuthMode auth_mode,
+                               const std::string& username,
+                               bool password_change_required) {
     return Principal{
+        .username = username,
         .role = role,
         .scopes = scopes.empty() ? DefaultScopesForRole(role) : scopes,
         .display_name = display_name.empty() ? role : display_name,
         .auth_mode = AuthModeName(auth_mode),
         .is_authenticated = true,
+        .password_change_required = password_change_required,
     };
 }
 
@@ -641,33 +857,217 @@ AuthResult BuildPrincipalFromRequest(const app::AppConfig& config,
     return Unauthorized("invalid authentication token");
 }
 
+PasswordPolicyResult ValidatePasswordPolicy(const app::AppConfig& config,
+                                            const std::string& username,
+                                            const std::string& password,
+                                            const std::string& confirm,
+                                            const UserRecord* existing_user) {
+    PasswordPolicyResult result;
+    if (password != confirm) {
+        AddPolicyError(&result.errors, "비밀번호 확인이 일치하지 않습니다.");
+    }
+    const std::string policy = ToLower(config.auth_password_policy.empty()
+                                           ? std::string("kr-privacy")
+                                           : config.auth_password_policy);
+    const int classes = PasswordCharacterClassCount(password);
+    int min_length = config.auth_password_min_length > 0 ? config.auth_password_min_length : 0;
+    if (policy == "strict") {
+        min_length = std::max(min_length, 12);
+        if (classes < 3) {
+            AddPolicyError(&result.errors,
+                           "strict 정책은 대문자, 소문자, 숫자, 특수문자 중 3종류 이상을 요구합니다.");
+        }
+    } else if (policy == "custom") {
+        min_length = std::max(min_length, 8);
+    } else {
+        if (classes >= 3) {
+            min_length = std::max(min_length, 8);
+        } else if (classes >= 2) {
+            min_length = std::max(min_length, 10);
+        } else {
+            min_length = std::max(min_length, 10);
+            AddPolicyError(&result.errors,
+                           "비밀번호는 문자 종류를 2종류 이상 조합해야 합니다.");
+        }
+    }
+    if (static_cast<int>(password.size()) < min_length) {
+        AddPolicyError(&result.errors,
+                       "비밀번호 길이가 정책 기준보다 짧습니다.");
+    }
+    if (!username.empty() && ToLower(password).find(ToLower(username)) != std::string::npos) {
+        AddPolicyError(&result.errors, "비밀번호에 username을 포함할 수 없습니다.");
+    }
+    if (ContainsRepeatedCharacterRun(password)) {
+        AddPolicyError(&result.errors, "같은 문자를 3회 이상 연속 사용할 수 없습니다.");
+    }
+    if (ContainsSequentialNumberRun(password)) {
+        AddPolicyError(&result.errors, "4자리 이상 연속된 숫자 배열을 사용할 수 없습니다.");
+    }
+    if (ContainsKeyboardPattern(password)) {
+        AddPolicyError(&result.errors, "키보드 배열과 같은 예측 가능한 패턴을 사용할 수 없습니다.");
+    }
+    if (IsCommonPassword(password)) {
+        AddPolicyError(&result.errors, "흔한 비밀번호는 사용할 수 없습니다.");
+    }
+    if (existing_user != nullptr && config.auth_password_history_count > 0 &&
+        PasswordWasUsedBefore(password, *existing_user)) {
+        AddPolicyError(&result.errors, "이전에 사용한 비밀번호는 재사용할 수 없습니다.");
+    }
+    result.ok = result.errors.empty();
+    if (!result.ok) {
+        std::ostringstream message;
+        for (std::size_t i = 0; i < result.errors.size(); ++i) {
+            if (i != 0) {
+                message << " ";
+            }
+            message << result.errors[i];
+        }
+        result.message = message.str();
+    }
+    return result;
+}
+
 AuthResult AuthenticateUserPassword(const app::AppConfig& config,
                                     const std::string& username,
-                                    const std::string& password) {
+                                    const std::string& password,
+                                    const std::string& remote_ip) {
     if (!PasswordHashingAvailable()) {
         return Unauthorized("safe password hashing is unavailable; build with libsodium");
     }
 
     std::string load_error;
-    const auto users = LoadUsers(config.auth_users_file, &load_error);
+    auto users = LoadUsers(config.auth_users_file, &load_error);
     if (!users.has_value()) {
         return Unauthorized(load_error);
     }
-    for (const UserRecord& user : *users) {
-        if (!user.enabled || user.username != username) {
+    for (UserRecord& user : *users) {
+        if (user.username != username) {
             continue;
         }
-        if (user.password_hash.empty()) {
-            return Unauthorized("user has no passwordHash");
+        if (!user.enabled || user.password_hash.empty()) {
+            return Unauthorized("invalid username or password");
+        }
+        if (IsoUtcInFuture(user.locked_until)) {
+            return Unauthorized("account is temporarily locked");
+        }
+        if (!user.locked_until.empty()) {
+            user.locked_until.clear();
+            user.failed_login_count = 0;
         }
         std::string verify_error;
         if (!VerifySecretHash(password, user.password_hash, &verify_error)) {
-            return Unauthorized(verify_error.empty() ? "invalid username or password" : verify_error);
+            user.failed_login_count += 1;
+            user.last_failed_login_at = IsoUtcNow();
+            if (config.auth_login_max_failures > 0 &&
+                user.failed_login_count >= config.auth_login_max_failures &&
+                config.auth_login_lockout_seconds > 0) {
+                user.locked_until = IsoUtcAfterSeconds(config.auth_login_lockout_seconds);
+            }
+            std::string save_error;
+            (void)SaveUsersFile(config.auth_users_file, *users, &save_error);
+            return Unauthorized(user.locked_until.empty()
+                                    ? "invalid username or password"
+                                    : "account is temporarily locked");
         }
-        return Authenticated(MakePrincipalForRole(
-            user.role, user.scopes, user.display_name, config.auth_mode));
+
+        user.failed_login_count = 0;
+        user.locked_until.clear();
+        user.last_failed_login_at.clear();
+        user.last_login_at = IsoUtcNow();
+        user.last_login_ip = remote_ip;
+        if (config.auth_password_max_age_days > 0 &&
+            !user.password_updated_at.empty() &&
+            user.password_updated_at < IsoUtcDaysAgo(config.auth_password_max_age_days)) {
+            user.must_change_password = true;
+        }
+        std::string save_error;
+        (void)SaveUsersFile(config.auth_users_file, *users, &save_error);
+        return Authenticated(MakePrincipalForRole(user.role,
+                                                  user.scopes,
+                                                  user.display_name,
+                                                  config.auth_mode,
+                                                  user.username,
+                                                  user.must_change_password));
     }
     return Unauthorized("invalid username or password");
+}
+
+bool ChangeUserPassword(const app::AppConfig& config,
+                        const std::string& username,
+                        const std::string& current_password,
+                        const std::string& new_password,
+                        const std::string& confirm,
+                        bool require_current_password,
+                        std::string* error_message) {
+    if (!PasswordHashingAvailable()) {
+        if (error_message != nullptr) {
+            *error_message = "safe password hashing is unavailable; build with libsodium";
+        }
+        return false;
+    }
+    std::string load_error;
+    auto users = LoadUsers(config.auth_users_file, &load_error);
+    if (!users.has_value()) {
+        if (error_message != nullptr) {
+            *error_message = load_error;
+        }
+        return false;
+    }
+    for (UserRecord& user : *users) {
+        if (user.username != username) {
+            continue;
+        }
+        if (!user.enabled || user.password_hash.empty()) {
+            if (error_message != nullptr) {
+                *error_message = "invalid username or password";
+            }
+            return false;
+        }
+        if (require_current_password && !VerifySecretHash(current_password, user.password_hash, nullptr)) {
+            if (error_message != nullptr) {
+                *error_message = "현재 비밀번호가 올바르지 않습니다.";
+            }
+            return false;
+        }
+        const PasswordPolicyResult policy =
+            ValidatePasswordPolicy(config, user.username, new_password, confirm, &user);
+        if (!policy.ok) {
+            if (error_message != nullptr) {
+                *error_message = policy.message;
+            }
+            return false;
+        }
+        auto password_hash = GeneratePasswordHash(new_password, error_message);
+        if (!password_hash.has_value()) {
+            return false;
+        }
+        std::vector<std::string> history;
+        history.push_back(*password_hash);
+        if (!user.password_hash.empty()) {
+            history.push_back(user.password_hash);
+        }
+        for (const std::string& hash : user.password_history) {
+            if (std::find(history.begin(), history.end(), hash) == history.end()) {
+                history.push_back(hash);
+            }
+        }
+        if (config.auth_password_history_count >= 0 &&
+            static_cast<int>(history.size()) > config.auth_password_history_count) {
+            history.resize(static_cast<std::size_t>(config.auth_password_history_count));
+        }
+        user.password_hash = *password_hash;
+        user.password_history = std::move(history);
+        user.must_change_password = false;
+        user.failed_login_count = 0;
+        user.locked_until.clear();
+        user.last_failed_login_at.clear();
+        user.password_updated_at = IsoUtcNow();
+        return SaveUsersFile(config.auth_users_file, *users, error_message);
+    }
+    if (error_message != nullptr) {
+        *error_message = "invalid username or password";
+    }
+    return false;
 }
 
 bool PasswordHashingAvailable() {
@@ -786,12 +1186,17 @@ bool SaveBootstrapAdmin(const app::AppConfig& config,
         user.role = "admin";
         user.scopes = {"*"};
         user.password_hash = *password_hash;
+        user.password_history = {*password_hash};
         user.enabled = true;
         user.must_change_password = false;
+        user.failed_login_count = 0;
+        user.locked_until.clear();
+        user.last_failed_login_at.clear();
         if (user.created_at.empty()) {
             user.created_at = now;
         }
         user.password_updated_at = now;
+        user.disabled_at.clear();
         updated = true;
         break;
     }
@@ -803,11 +1208,18 @@ bool SaveBootstrapAdmin(const app::AppConfig& config,
                          .role = "admin",
                          .scopes = {"*"},
                          .password_hash = *password_hash,
+                         .password_history = {*password_hash},
                          .token_hash = "",
                          .enabled = true,
                          .must_change_password = false,
+                         .failed_login_count = 0,
+                         .locked_until = "",
+                         .last_failed_login_at = "",
                          .created_at = now,
                          .password_updated_at = now,
+                         .last_login_at = "",
+                         .last_login_ip = "",
+                         .disabled_at = "",
                      });
     }
     return SaveUsersFile(config.auth_users_file, users, error_message);

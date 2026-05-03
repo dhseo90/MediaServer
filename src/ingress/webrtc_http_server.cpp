@@ -15746,6 +15746,7 @@ struct WebRtcHttpServer::Impl {
         std::string session_id;
         auth::Principal principal;
         std::chrono::system_clock::time_point expires_at;
+        std::chrono::system_clock::time_point last_seen_at;
     };
 
     explicit Impl(core::SessionManager& manager) : session_manager(manager) {}
@@ -15799,6 +15800,7 @@ HttpResponse AuthErrorResponse(const std::string& error) {
 std::string PrincipalJson(const auth::Principal& principal) {
     std::ostringstream out;
     out << "{"
+        << "\"username\":\"" << JsonEscape(principal.username) << "\","
         << "\"role\":\"" << JsonEscape(principal.role) << "\","
         << "\"scopes\":[";
     for (std::size_t i = 0; i < principal.scopes.size(); ++i) {
@@ -15810,7 +15812,9 @@ std::string PrincipalJson(const auth::Principal& principal) {
     out << "],"
         << "\"displayName\":\"" << JsonEscape(principal.display_name) << "\","
         << "\"authMode\":\"" << JsonEscape(principal.auth_mode) << "\","
-        << "\"isAuthenticated\":" << (principal.is_authenticated ? "true" : "false")
+        << "\"isAuthenticated\":" << (principal.is_authenticated ? "true" : "false") << ","
+        << "\"passwordChangeRequired\":"
+        << (principal.password_change_required ? "true" : "false")
         << "}";
     return out.str();
 }
@@ -15827,9 +15831,14 @@ std::string WhoamiJson(const auth::AuthResult& result,
         << "\"authenticated\":" << (authenticated ? "true" : "false") << ","
         << "\"isAuthenticated\":" << (authenticated ? "true" : "false") << ","
         << "\"passwordChangeRequired\":"
-        << (bootstrap_state.password_change_required ? "true" : "false") << ",";
+        << ((authenticated ? result.principal.password_change_required
+                           : bootstrap_state.password_change_required)
+                ? "true"
+                : "false")
+        << ",";
     if (authenticated) {
-        out << "\"role\":\"" << JsonEscape(result.principal.role) << "\","
+        out << "\"username\":\"" << JsonEscape(result.principal.username) << "\","
+            << "\"role\":\"" << JsonEscape(result.principal.role) << "\","
             << "\"displayName\":\"" << JsonEscape(result.principal.display_name) << "\","
             << "\"scopes\":[";
         for (std::size_t i = 0; i < result.principal.scopes.size(); ++i) {
@@ -15840,7 +15849,8 @@ std::string WhoamiJson(const auth::AuthResult& result,
         }
         out << "]";
     } else {
-        out << "\"role\":\"\","
+        out << "\"username\":\"\","
+            << "\"role\":\"\","
             << "\"displayName\":\"\","
             << "\"scopes\":[],"
             << "\"error\":\"" << JsonEscape(result.error) << "\"";
@@ -15906,6 +15916,9 @@ std::string DefaultHomePath(const app::AppConfig& config) {
 }
 
 std::string RoleLandingPath(const auth::Principal& principal, const app::AppConfig& config) {
+    if (principal.password_change_required) {
+        return "/password/change";
+    }
     if (principal.role == "viewer") {
         return config.enable_client ? "/client/live" : "/login";
     }
@@ -15935,6 +15948,27 @@ std::string ExpiredAuthCookieHeader(const app::AppConfig& config) {
         out << "; Secure";
     }
     return out.str();
+}
+
+std::string PeerAddress(int client_fd) {
+    sockaddr_storage addr{};
+    socklen_t len = sizeof(addr);
+    if (getpeername(client_fd, reinterpret_cast<sockaddr*>(&addr), &len) != 0) {
+        return "";
+    }
+    char host[INET6_ADDRSTRLEN] = {};
+    if (addr.ss_family == AF_INET) {
+        const auto* in = reinterpret_cast<const sockaddr_in*>(&addr);
+        if (inet_ntop(AF_INET, &in->sin_addr, host, sizeof(host)) != nullptr) {
+            return host;
+        }
+    } else if (addr.ss_family == AF_INET6) {
+        const auto* in6 = reinterpret_cast<const sockaddr_in6*>(&addr);
+        if (inet_ntop(AF_INET6, &in6->sin6_addr, host, sizeof(host)) != nullptr) {
+            return host;
+        }
+    }
+    return "";
 }
 
 HttpResponse RedirectResponse(const std::string& location) {
@@ -15994,37 +16028,8 @@ std::string LoginPageHtml(const std::string& message, bool failed) {
     return out.str();
 }
 
-std::optional<std::string> SetupPasswordPolicyError(const std::string& username,
-                                                    const std::string& password,
-                                                    const std::string& confirm) {
-    if (password != confirm) {
-        return "비밀번호 확인이 일치하지 않습니다.";
-    }
-    if (password.size() < 12) {
-        return "비밀번호는 12자 이상이어야 합니다.";
-    }
-    if (password.find(username) != std::string::npos) {
-        return "비밀번호에 username을 그대로 포함할 수 없습니다.";
-    }
-    int classes = 0;
-    bool has_lower = false;
-    bool has_upper = false;
-    bool has_digit = false;
-    bool has_symbol = false;
-    for (const unsigned char ch : password) {
-        has_lower = has_lower || std::islower(ch) != 0;
-        has_upper = has_upper || std::isupper(ch) != 0;
-        has_digit = has_digit || std::isdigit(ch) != 0;
-        has_symbol = has_symbol || (!std::isalnum(ch) && !std::isspace(ch));
-    }
-    classes += has_lower ? 1 : 0;
-    classes += has_upper ? 1 : 0;
-    classes += has_digit ? 1 : 0;
-    classes += has_symbol ? 1 : 0;
-    if (classes < 3) {
-        return "비밀번호는 대문자, 소문자, 숫자, 특수문자 중 3종류 이상을 포함해야 합니다.";
-    }
-    return std::nullopt;
+std::string PasswordPolicyHintHtml() {
+    return R"(<p class="hint">기본 kr-privacy 정책: 대문자/소문자/숫자/특수문자 중 3종류 이상이면 최소 8자, 2종류 조합이면 최소 10자입니다. username, 반복 문자, 연속 숫자, 키보드 배열, 흔한 비밀번호, 이전 비밀번호 재사용은 허용하지 않습니다.</p>)";
 }
 
 std::string SetupPageHtml(const std::string& message, bool failed) {
@@ -16070,8 +16075,61 @@ std::string SetupPageHtml(const std::string& message, bool failed) {
       <label>Confirm password
         <input name="confirm" type="password" autocomplete="new-password" required />
       </label>
-      <p class="hint">12자 이상, 대문자/소문자/숫자/특수문자 중 3종류 이상을 사용합니다.</p>
+      )" << PasswordPolicyHintHtml() << R"(
       <button type="submit">Set admin password</button>
+    </form>
+  </main>
+</body>
+</html>)";
+    return out.str();
+}
+
+std::string PasswordChangePageHtml(const auth::Principal& principal,
+                                   const std::string& message,
+                                   bool failed) {
+    std::ostringstream out;
+    out << R"(<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Change Password</title>
+  <style>
+    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #111827; color: #f8fafc; }
+    main { width: min(460px, calc(100vw - 32px)); display: grid; gap: 16px; }
+    form { display: grid; gap: 12px; padding: 22px; border: 1px solid rgba(148,163,184,.35); border-radius: 8px; background: #0f172a; }
+    h1 { margin: 0; font-size: 24px; }
+    p { margin: 0; color: #cbd5e1; line-height: 1.5; }
+    label { display: grid; gap: 6px; color: #e2e8f0; font-weight: 700; }
+    input { min-height: 42px; border-radius: 6px; border: 1px solid #475569; padding: 0 12px; background: #020617; color: #f8fafc; font: inherit; }
+    button { min-height: 44px; border: 0; border-radius: 6px; background: #38bdf8; color: #082f49; font-weight: 900; cursor: pointer; }
+    .message { padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #dbeafe; }
+    .message.error { border-color: #f87171; background: #451a1a; color: #fecaca; }
+    .hint { font-size: 13px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <main>
+    <form method="post" action="/password/change">
+      <h1>Password Change</h1>
+      <p>)" << HtmlEscape(principal.display_name) << R"( 계정의 비밀번호를 새 정책에 맞게 변경합니다.</p>
+)";
+    if (!message.empty()) {
+        out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
+            << HtmlEscape(message) << "</div>\n";
+    }
+    out << R"(      <label>Current password
+        <input name="currentPassword" type="password" autocomplete="current-password" required />
+      </label>
+      <label>New password
+        <input name="password" type="password" autocomplete="new-password" required />
+      </label>
+      <label>Confirm new password
+        <input name="confirm" type="password" autocomplete="new-password" required />
+      </label>
+      )" << PasswordPolicyHintHtml() << R"(
+      <button type="submit">Change password</button>
     </form>
   </main>
 </body>
@@ -20719,7 +20777,14 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         auto cleanup_expired_auth_sessions = [&]() {
                             const auto now = std::chrono::system_clock::now();
                             for (auto it = impl_->auth_sessions.begin(); it != impl_->auth_sessions.end();) {
-                                if (it->second.expires_at <= now) {
+                                const bool ttl_expired = it->second.expires_at <= now;
+                                const bool idle_expired =
+                                    config.auth_session_idle_timeout_seconds > 0 &&
+                                    it->second.last_seen_at +
+                                            std::chrono::seconds(
+                                                config.auth_session_idle_timeout_seconds) <=
+                                        now;
+                                if (ttl_expired || idle_expired) {
                                     it = impl_->auth_sessions.erase(it);
                                 } else {
                                     ++it;
@@ -20738,6 +20803,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (it == impl_->auth_sessions.end()) {
                                 return std::nullopt;
                             }
+                            it->second.last_seen_at = std::chrono::system_clock::now();
                             return it->second.principal;
                         };
                         auto build_request_principal = [&]() -> auth::AuthResult {
@@ -20770,6 +20836,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     .principal = principal,
                                     .expires_at = std::chrono::system_clock::now() +
                                                   std::chrono::seconds(config.auth_session_ttl_seconds),
+                                    .last_seen_at = std::chrono::system_clock::now(),
                                 };
                             return session_id;
                         };
@@ -20972,17 +21039,25 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     form.count("password") != 0 ? form.at("password") : std::string();
                                 const std::string confirm =
                                     form.count("confirm") != 0 ? form.at("confirm") : std::string();
-                                auto policy_error = username == "admin"
-                                                        ? SetupPasswordPolicyError(username, password, confirm)
-                                                        : std::optional<std::string>(
-                                                              "최초 setup username은 admin이어야 합니다.");
-                                if (policy_error.has_value()) {
+                                if (username != "admin") {
                                     HttpResponse failed;
                                     failed.status = 400;
                                     failed.status_text = "Bad Request";
                                     failed.content_type = "text/html; charset=utf-8";
                                     failed.headers["Cache-Control"] = "no-store";
-                                    failed.body = SetupPageHtml(*policy_error, true);
+                                    failed.body =
+                                        SetupPageHtml("최초 setup username은 admin이어야 합니다.", true);
+                                    return failed;
+                                }
+                                const auth::PasswordPolicyResult policy =
+                                    auth::ValidatePasswordPolicy(config, username, password, confirm, nullptr);
+                                if (!policy.ok) {
+                                    HttpResponse failed;
+                                    failed.status = 400;
+                                    failed.status_text = "Bad Request";
+                                    failed.content_type = "text/html; charset=utf-8";
+                                    failed.headers["Cache-Control"] = "no-store";
+                                    failed.body = SetupPageHtml(policy.message, true);
                                     return failed;
                                 }
                                 std::string setup_error;
@@ -21041,16 +21116,22 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 form.count("username") != 0 ? form.at("username") : std::string();
                             const std::string password =
                                 form.count("password") != 0 ? form.at("password") : std::string();
-                            auth::AuthResult login = auth::AuthenticateUserPassword(config, username, password);
+                            auth::AuthResult login =
+                                auth::AuthenticateUserPassword(config, username, password, PeerAddress(client_fd));
                             if (!login.ok) {
                                 HttpResponse failed;
                                 failed.status = 401;
                                 failed.status_text = "Unauthorized";
                                 failed.content_type = "text/html; charset=utf-8";
                                 failed.headers["Cache-Control"] = "no-store";
-                                failed.body = LoginPageHtml("로그인 정보가 올바르지 않습니다.", true);
+                                const std::string message =
+                                    login.error == "account is temporarily locked"
+                                        ? "로그인 실패가 반복되어 계정이 잠시 잠겼습니다. 잠시 후 다시 시도하세요."
+                                        : "로그인 정보가 올바르지 않습니다.";
+                                failed.body = LoginPageHtml(message, true);
                                 return failed;
                             }
+                            destroy_auth_session();
                             std::string session_error;
                             const auto session_id = create_auth_session(login.principal, &session_error);
                             if (!session_id.has_value()) {
@@ -21061,6 +21142,56 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             HttpResponse redirect = RedirectResponse(RoleLandingPath(login.principal, config));
                             redirect.headers["Set-Cookie"] =
                                 AuthCookieHeader(config, *session_id, config.auth_session_ttl_seconds);
+                            return redirect;
+                        }
+
+                        if ((request.method == "GET" || request.method == "POST") &&
+                            request.path == "/password/change") {
+                            if (!session_auth_mode) {
+                                return JsonResponse(404,
+                                                    "Not Found",
+                                                    "{\"error\":\"password change is not enabled for this auth mode\"}");
+                            }
+                            if (!principal_result.ok) {
+                                if (request.method == "GET") {
+                                    return RedirectResponse("/login");
+                                }
+                                return AuthErrorResponse(principal_result.error);
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok;
+                                ok.content_type = "text/html; charset=utf-8";
+                                ok.headers["Cache-Control"] = "no-store";
+                                ok.body = PasswordChangePageHtml(principal_result.principal, "", false);
+                                return ok;
+                            }
+                            const auto form = ParseQueryString(request.body);
+                            const std::string current_password =
+                                form.count("currentPassword") != 0 ? form.at("currentPassword") : std::string();
+                            const std::string password =
+                                form.count("password") != 0 ? form.at("password") : std::string();
+                            const std::string confirm =
+                                form.count("confirm") != 0 ? form.at("confirm") : std::string();
+                            std::string change_error;
+                            if (!auth::ChangeUserPassword(config,
+                                                          principal_result.principal.username,
+                                                          current_password,
+                                                          password,
+                                                          confirm,
+                                                          true,
+                                                          &change_error)) {
+                                HttpResponse failed;
+                                failed.status = 400;
+                                failed.status_text = "Bad Request";
+                                failed.content_type = "text/html; charset=utf-8";
+                                failed.headers["Cache-Control"] = "no-store";
+                                failed.body = PasswordChangePageHtml(
+                                    principal_result.principal, change_error, true);
+                                return failed;
+                            }
+                            destroy_auth_session();
+                            HttpResponse redirect = RedirectResponse("/login");
+                            redirect.headers["Set-Cookie"] = ExpiredAuthCookieHeader(config);
                             return redirect;
                         }
 
@@ -21083,6 +21214,20 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 JsonResponse(200, "OK", WhoamiJson(principal_result, bootstrap_state, config));
                             ok.headers["Cache-Control"] = "no-store";
                             return ok;
+                        }
+
+                        if (session_auth_mode && principal_result.ok &&
+                            principal_result.principal.password_change_required) {
+                            if (request.method == "GET" || request.method == "HEAD") {
+                                HttpResponse redirect = RedirectResponse("/password/change");
+                                if (request.method == "HEAD") {
+                                    redirect.body.clear();
+                                }
+                                return redirect;
+                            }
+                            return JsonResponse(403,
+                                                "Forbidden",
+                                                "{\"error\":\"password change is required\"}");
                         }
 
                         if ((request.method == "GET" || request.method == "HEAD") && request.path == "/") {

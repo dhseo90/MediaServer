@@ -28,6 +28,13 @@
 | `MEDIA_SERVER_AUTH_INTEGRATOR_TOKEN` | empty | `token`/`auto`/`session` mode에서 integrator principal로 인증할 Bearer/query token |
 | `MEDIA_SERVER_AUTH_USERS_FILE` | `.media_server.users.json` | `auto`/`session` login 계정 registry JSON |
 | `MEDIA_SERVER_AUTH_SESSION_TTL_SECONDS` | `86400` | session cookie 만료 시간 |
+| `MEDIA_SERVER_AUTH_SESSION_IDLE_TIMEOUT_SECONDS` | `3600` | session idle timeout. `0`이면 idle timeout 비활성 |
+| `MEDIA_SERVER_AUTH_PASSWORD_POLICY` | `kr-privacy` | password policy. `kr-privacy`, `strict`, `custom` |
+| `MEDIA_SERVER_AUTH_PASSWORD_MIN_LENGTH` | `0` | policy 기본 최소 길이를 더 높일 때 사용하는 override |
+| `MEDIA_SERVER_AUTH_PASSWORD_HISTORY_COUNT` | `5` | 재사용 금지할 password hash history 개수. `0`이면 history 검사 비활성 |
+| `MEDIA_SERVER_AUTH_PASSWORD_MAX_AGE_DAYS` | `0` | password age 초과 시 `mustChangePassword` 표시. `0`이면 age 검사 비활성 |
+| `MEDIA_SERVER_AUTH_LOGIN_MAX_FAILURES` | `5` | 계정별 연속 로그인 실패 lockout 기준. `0`이면 lockout 비활성 |
+| `MEDIA_SERVER_AUTH_LOGIN_LOCKOUT_SECONDS` | `300` | lockout 유지 시간 |
 | `MEDIA_SERVER_AUTH_COOKIE_NAME` | `media_server_session` | session cookie 이름 |
 | `MEDIA_SERVER_AUTH_COOKIE_SECURE` | `0` | `1`이면 session cookie에 `Secure` attribute 추가 |
 | `MEDIA_SERVER_UI_DEFAULT_HOME` | `lab` | auth off에서 `/`가 이동할 home. `lab`, `ops`, `client` |
@@ -45,7 +52,7 @@
 
 `MEDIA_SERVER_AUTH_MODE=auto`가 기본값입니다. Auto mode는 users file이 없거나 admin user/passwordHash가 준비되지 않았으면 `/setup`으로 보내고, setup이 끝나면 `/login` session 인증을 요구합니다. `MEDIA_SERVER_AUTH_MODE=off`는 개발/테스트 호환을 위한 명시 모드이며 제품 기본값으로 사용하지 않습니다. Auth off에서 `/`는 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/live`, `/client/live` 중 하나로 이동합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 `/auth/whoami`가 `Authorization: Bearer <token>` 또는 개발용 `?token=<token>` query를 읽어 role/scope principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=session`은 auto의 setup 감지를 유지하면서 `/login` 계정 로그인과 HttpOnly session cookie 인증을 사용합니다. Query token은 브라우저 주소, proxy log, referrer에 남을 수 있으므로 운영 환경에서는 권장하지 않습니다.
 
-Session login은 `libsodium crypto_pwhash_str` password hash를 사용합니다. 안전한 password hashing dependency가 없는 build에서는 password login을 사용할 수 없으며 plaintext password나 단순 SHA 계열 저장을 지원하지 않습니다.
+Session login은 `libsodium crypto_pwhash_str` password hash를 사용합니다. 안전한 password hashing dependency가 없는 build에서는 password login을 사용할 수 없으며 plaintext password나 단순 SHA 계열 저장을 지원하지 않습니다. Login 성공 시 새 session id를 발급하고, logout은 server-side session을 삭제하며 cookie를 만료시킵니다. Session은 TTL과 idle timeout 중 먼저 도달한 기준으로 만료됩니다.
 
 최초 관리자 bootstrap:
 
@@ -54,8 +61,11 @@ Session login은 `libsodium crypto_pwhash_str` password hash를 사용합니다.
 - users file이 없거나 `admin.passwordHash`가 없거나 admin이 disabled이면 setup required 상태입니다.
 - setup required 상태에서 UI 요청은 `/setup`으로 이동합니다.
 - `/setup`은 setup required 상태에서만 접근할 수 있고, 완료 후에는 `/login`으로 이동합니다.
-- 비밀번호는 12자 이상이며 대문자/소문자/숫자/특수문자 중 3종류 이상을 포함해야 합니다.
-- `/auth/whoami`는 `setupRequired`, `setupReason`, `authMode`, `authenticated`, `role`, `scopes`, `passwordChangeRequired`를 반환합니다.
+- 기본 password policy는 `kr-privacy`입니다. 대문자/소문자/숫자/특수문자 중 3종류 이상이면 최소 8자, 2종류 조합이면 최소 10자를 요구합니다.
+- username 포함, 3회 이상 반복 문자, 4자리 이상 연속 숫자, 키보드 배열, 흔한 비밀번호, 최근 password history 재사용은 거부합니다.
+- 연속 로그인 실패가 `MEDIA_SERVER_AUTH_LOGIN_MAX_FAILURES`에 도달하면 계정별 `lockedUntil`까지 로그인 시도를 거부합니다.
+- 초기화된 계정은 `mustChangePassword=true`로 저장할 수 있으며, 로그인 후 `/password/change`에서 새 정책을 만족하는 비밀번호로 변경해야 합니다.
+- `/auth/whoami`는 `setupRequired`, `setupReason`, `authMode`, `authenticated`, `username`, `role`, `scopes`, `passwordChangeRequired`를 반환합니다.
 
 초기 role/scope 모델:
 
@@ -79,10 +89,17 @@ Users file 예시:
       "role": "admin",
       "scopes": ["*"],
       "passwordHash": "$argon2id$...",
+      "passwordHistory": ["$argon2id$..."],
       "enabled": true,
       "mustChangePassword": false,
+      "failedLoginCount": 0,
+      "lockedUntil": "",
+      "lastFailedLoginAt": "",
       "createdAt": "2026-05-03T00:00:00Z",
-      "passwordUpdatedAt": "2026-05-03T00:00:00Z"
+      "passwordUpdatedAt": "2026-05-03T00:00:00Z",
+      "lastLoginAt": "",
+      "lastLoginIp": "",
+      "disabledAt": ""
     },
     {
       "username": "client-a",
@@ -90,13 +107,15 @@ Users file 예시:
       "role": "viewer",
       "scopes": ["view:read:view-a", "event:read:view-a", "metadata:read:view-a", "dashboard:read:view-a"],
       "passwordHash": "$argon2id$...",
-      "enabled": true
+      "passwordHistory": ["$argon2id$..."],
+      "enabled": true,
+      "mustChangePassword": true
     }
   ]
 }
 ```
 
-`passwordHash`는 libsodium `crypto_pwhash_str` 출력 문자열만 사용합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다. 클라이언트 계정은 현재 `/ops/users` UI가 아니라 users file의 `viewer` role과 `view:read:{viewId}` 계열 scope로 추가합니다.
+`passwordHash`와 `passwordHistory`는 libsodium `crypto_pwhash_str` 출력 문자열만 저장합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다. Password hash 값은 API/UI 응답에 노출하지 않습니다. 클라이언트 계정은 현재 `/ops/users` UI가 아니라 users file의 `viewer` role과 `view:read:{viewId}` 계열 scope로 추가합니다.
 
 ### 개발/script 보조값
 
