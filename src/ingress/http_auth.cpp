@@ -327,7 +327,115 @@ bool IsKnownRole(const std::string& role) {
     return role == "admin" || role == "operator" || role == "viewer" || role == "integrator";
 }
 
-std::optional<std::vector<UserRecord>> LoadUsers(const std::string& path, std::string* error_message) {
+struct InviteRecord {
+    std::string invite_id;
+    std::string username;
+    std::string display_name;
+    std::string role{"viewer"};
+    std::string view_id;
+    std::vector<std::string> scopes;
+    std::string token_hash;
+    std::string expires_at;
+    bool used{false};
+    std::string used_at;
+    std::string created_at;
+    std::string created_by;
+};
+
+struct AccessRequestRecord {
+    std::string request_id;
+    std::string username;
+    std::string display_name;
+    std::string contact;
+    std::string reason;
+    std::string view_id;
+    std::string status{"pending"};
+    std::string created_at;
+    std::string decided_at;
+    std::string decided_by;
+    std::string invite_id;
+};
+
+struct AuthStore {
+    std::vector<UserRecord> users;
+    std::vector<InviteRecord> invites;
+    std::vector<AccessRequestRecord> access_requests;
+};
+
+std::optional<UserRecord> ParseUserRecord(const std::string& raw) {
+    UserRecord user;
+    user.username = Trim(ParseStringField(raw, "username").value_or(""));
+    user.display_name = Trim(ParseStringField(raw, "displayName").value_or(user.username));
+    user.role = ToLower(Trim(ParseStringField(raw, "role").value_or("viewer")));
+    if (const auto scopes = ExtractArrayField(raw, "scopes"); scopes.has_value()) {
+        user.scopes = ParseStringArray(*scopes);
+    }
+    if (user.scopes.empty()) {
+        user.scopes = ScopeTemplateForRole(user.role, "");
+    }
+    user.password_hash = Trim(ParseStringField(raw, "passwordHash").value_or(""));
+    if (const auto password_history = ExtractArrayField(raw, "passwordHistory");
+        password_history.has_value()) {
+        user.password_history = ParseStringArray(*password_history);
+    }
+    user.token_hash = Trim(ParseStringField(raw, "tokenHash").value_or(""));
+    user.enabled = ParseBoolField(raw, "enabled").value_or(true);
+    user.must_change_password = ParseBoolField(raw, "mustChangePassword").value_or(false);
+    user.failed_login_count = ParseIntField(raw, "failedLoginCount").value_or(0);
+    user.locked_until = Trim(ParseStringField(raw, "lockedUntil").value_or(""));
+    user.last_failed_login_at = Trim(ParseStringField(raw, "lastFailedLoginAt").value_or(""));
+    user.created_at = Trim(ParseStringField(raw, "createdAt").value_or(""));
+    user.password_updated_at = Trim(ParseStringField(raw, "passwordUpdatedAt").value_or(""));
+    user.last_login_at = Trim(ParseStringField(raw, "lastLoginAt").value_or(""));
+    user.last_login_ip = Trim(ParseStringField(raw, "lastLoginIp").value_or(""));
+    user.disabled_at = Trim(ParseStringField(raw, "disabledAt").value_or(""));
+    if (user.username.empty() || !IsKnownRole(user.role)) {
+        return std::nullopt;
+    }
+    return user;
+}
+
+InviteRecord ParseInviteRecord(const std::string& raw) {
+    InviteRecord invite;
+    invite.invite_id = Trim(ParseStringField(raw, "inviteId").value_or(
+        ParseStringField(raw, "id").value_or("")));
+    invite.username = Trim(ParseStringField(raw, "username").value_or(""));
+    invite.display_name = Trim(ParseStringField(raw, "displayName").value_or(invite.username));
+    invite.role = ToLower(Trim(ParseStringField(raw, "role").value_or("viewer")));
+    invite.view_id = Trim(ParseStringField(raw, "viewId").value_or(""));
+    if (const auto scopes = ExtractArrayField(raw, "scopes"); scopes.has_value()) {
+        invite.scopes = ParseStringArray(*scopes);
+    }
+    if (invite.scopes.empty()) {
+        invite.scopes = ScopeTemplateForRole(invite.role, invite.view_id);
+    }
+    invite.token_hash = Trim(ParseStringField(raw, "tokenHash").value_or(""));
+    invite.expires_at = Trim(ParseStringField(raw, "expiresAt").value_or(""));
+    invite.used = ParseBoolField(raw, "used").value_or(false);
+    invite.used_at = Trim(ParseStringField(raw, "usedAt").value_or(""));
+    invite.created_at = Trim(ParseStringField(raw, "createdAt").value_or(""));
+    invite.created_by = Trim(ParseStringField(raw, "createdBy").value_or(""));
+    return invite;
+}
+
+AccessRequestRecord ParseAccessRequestRecord(const std::string& raw) {
+    AccessRequestRecord request;
+    request.request_id = Trim(ParseStringField(raw, "requestId").value_or(
+        ParseStringField(raw, "id").value_or("")));
+    request.username = Trim(ParseStringField(raw, "username").value_or(""));
+    request.display_name = Trim(ParseStringField(raw, "displayName").value_or(request.username));
+    request.contact = Trim(ParseStringField(raw, "contact").value_or(""));
+    request.reason = Trim(ParseStringField(raw, "reason").value_or(""));
+    request.view_id = Trim(ParseStringField(raw, "viewId").value_or(""));
+    request.status = ToLower(Trim(ParseStringField(raw, "status").value_or("pending")));
+    request.created_at = Trim(ParseStringField(raw, "createdAt").value_or(""));
+    request.decided_at = Trim(ParseStringField(raw, "decidedAt").value_or(""));
+    request.decided_by = Trim(ParseStringField(raw, "decidedBy").value_or(""));
+    request.invite_id = Trim(ParseStringField(raw, "inviteId").value_or(""));
+    return request;
+}
+
+std::optional<AuthStore> LoadAuthStore(const std::string& path, std::string* error_message) {
     std::ifstream in(path);
     if (!in) {
         if (error_message != nullptr) {
@@ -338,40 +446,46 @@ std::optional<std::vector<UserRecord>> LoadUsers(const std::string& path, std::s
     std::ostringstream buffer;
     buffer << in.rdbuf();
     const std::string content = buffer.str();
-    std::vector<UserRecord> users;
+
+    AuthStore store;
     for (const std::string& raw : ExtractJsonObjectArray(content, "users")) {
-        UserRecord user;
-        user.username = Trim(ParseStringField(raw, "username").value_or(""));
-        user.display_name = Trim(ParseStringField(raw, "displayName").value_or(user.username));
-        user.role = ToLower(Trim(ParseStringField(raw, "role").value_or("viewer")));
-        if (const auto scopes = ExtractArrayField(raw, "scopes"); scopes.has_value()) {
-            user.scopes = ParseStringArray(*scopes);
+        if (auto user = ParseUserRecord(raw); user.has_value()) {
+            store.users.push_back(std::move(*user));
         }
-        if (user.scopes.empty()) {
-            user.scopes = DefaultScopesForRole(user.role);
-        }
-        user.password_hash = Trim(ParseStringField(raw, "passwordHash").value_or(""));
-        if (const auto password_history = ExtractArrayField(raw, "passwordHistory");
-            password_history.has_value()) {
-            user.password_history = ParseStringArray(*password_history);
-        }
-        user.token_hash = Trim(ParseStringField(raw, "tokenHash").value_or(""));
-        user.enabled = ParseBoolField(raw, "enabled").value_or(true);
-        user.must_change_password = ParseBoolField(raw, "mustChangePassword").value_or(false);
-        user.failed_login_count = ParseIntField(raw, "failedLoginCount").value_or(0);
-        user.locked_until = Trim(ParseStringField(raw, "lockedUntil").value_or(""));
-        user.last_failed_login_at = Trim(ParseStringField(raw, "lastFailedLoginAt").value_or(""));
-        user.created_at = Trim(ParseStringField(raw, "createdAt").value_or(""));
-        user.password_updated_at = Trim(ParseStringField(raw, "passwordUpdatedAt").value_or(""));
-        user.last_login_at = Trim(ParseStringField(raw, "lastLoginAt").value_or(""));
-        user.last_login_ip = Trim(ParseStringField(raw, "lastLoginIp").value_or(""));
-        user.disabled_at = Trim(ParseStringField(raw, "disabledAt").value_or(""));
-        if (user.username.empty() || !IsKnownRole(user.role)) {
-            continue;
-        }
-        users.push_back(std::move(user));
     }
-    return users;
+    for (const std::string& raw : ExtractJsonObjectArray(content, "invites")) {
+        InviteRecord invite = ParseInviteRecord(raw);
+        if (!invite.invite_id.empty() && !invite.username.empty() && IsKnownRole(invite.role)) {
+            store.invites.push_back(std::move(invite));
+        }
+    }
+    for (const std::string& raw : ExtractJsonObjectArray(content, "accessRequests")) {
+        AccessRequestRecord request = ParseAccessRequestRecord(raw);
+        if (!request.request_id.empty() && !request.username.empty()) {
+            store.access_requests.push_back(std::move(request));
+        }
+    }
+    return store;
+}
+
+AuthStore LoadAuthStoreOrEmpty(const std::string& path, std::string* error_message) {
+    if (std::filesystem::exists(path)) {
+        if (auto store = LoadAuthStore(path, error_message); store.has_value()) {
+            return *store;
+        }
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return AuthStore{};
+}
+
+std::optional<std::vector<UserRecord>> LoadUsers(const std::string& path, std::string* error_message) {
+    auto store = LoadAuthStore(path, error_message);
+    if (!store.has_value()) {
+        return std::nullopt;
+    }
+    return store->users;
 }
 
 std::string JsonEscapeLocal(const std::string& value) {
@@ -627,6 +741,46 @@ void AppendPublicUserJson(std::ostringstream& out, const UserRecord& user) {
         << "}";
 }
 
+void AppendPublicInviteJson(std::ostringstream& out,
+                            const InviteRecord& invite,
+                            const std::string& raw_token = "") {
+    out << "{"
+        << "\"inviteId\":\"" << JsonEscapeLocal(invite.invite_id) << "\","
+        << "\"username\":\"" << JsonEscapeLocal(invite.username) << "\","
+        << "\"displayName\":\"" << JsonEscapeLocal(invite.display_name) << "\","
+        << "\"role\":\"" << JsonEscapeLocal(invite.role) << "\","
+        << "\"viewId\":\"" << JsonEscapeLocal(invite.view_id) << "\","
+        << "\"scopes\":";
+    AppendJsonStringArray(out, invite.scopes);
+    out << ","
+        << "\"expiresAt\":\"" << JsonEscapeLocal(invite.expires_at) << "\","
+        << "\"used\":" << (invite.used ? "true" : "false") << ","
+        << "\"usedAt\":\"" << JsonEscapeLocal(invite.used_at) << "\","
+        << "\"createdAt\":\"" << JsonEscapeLocal(invite.created_at) << "\","
+        << "\"createdBy\":\"" << JsonEscapeLocal(invite.created_by) << "\","
+        << "\"setupUrl\":\"/invite/setup?token=" << JsonEscapeLocal(raw_token) << "\"";
+    if (!raw_token.empty()) {
+        out << ",\"token\":\"" << JsonEscapeLocal(raw_token) << "\"";
+    }
+    out << "}";
+}
+
+void AppendPublicAccessRequestJson(std::ostringstream& out, const AccessRequestRecord& request) {
+    out << "{"
+        << "\"requestId\":\"" << JsonEscapeLocal(request.request_id) << "\","
+        << "\"username\":\"" << JsonEscapeLocal(request.username) << "\","
+        << "\"displayName\":\"" << JsonEscapeLocal(request.display_name) << "\","
+        << "\"contact\":\"" << JsonEscapeLocal(request.contact) << "\","
+        << "\"reason\":\"" << JsonEscapeLocal(request.reason) << "\","
+        << "\"viewId\":\"" << JsonEscapeLocal(request.view_id) << "\","
+        << "\"status\":\"" << JsonEscapeLocal(request.status) << "\","
+        << "\"createdAt\":\"" << JsonEscapeLocal(request.created_at) << "\","
+        << "\"decidedAt\":\"" << JsonEscapeLocal(request.decided_at) << "\","
+        << "\"decidedBy\":\"" << JsonEscapeLocal(request.decided_by) << "\","
+        << "\"inviteId\":\"" << JsonEscapeLocal(request.invite_id) << "\""
+        << "}";
+}
+
 std::string UsersJson(const std::vector<UserRecord>& users) {
     std::ostringstream out;
     out << "{\"users\":[";
@@ -635,6 +789,19 @@ std::string UsersJson(const std::vector<UserRecord>& users) {
             out << ",";
         }
         AppendPublicUserJson(out, users[i]);
+    }
+    out << "]}";
+    return out.str();
+}
+
+std::string AccessRequestsJson(const std::vector<AccessRequestRecord>& requests) {
+    std::ostringstream out;
+    out << "{\"accessRequests\":[";
+    for (std::size_t i = 0; i < requests.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendPublicAccessRequestJson(out, requests[i]);
     }
     out << "]}";
     return out.str();
@@ -650,6 +817,16 @@ std::optional<std::size_t> FindUserIndex(const std::vector<UserRecord>& users,
                                          const std::string& username) {
     for (std::size_t i = 0; i < users.size(); ++i) {
         if (users[i].username == username) {
+            return i;
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::size_t> FindAccessRequestIndex(const std::vector<AccessRequestRecord>& requests,
+                                                  const std::string& request_id) {
+    for (std::size_t i = 0; i < requests.size(); ++i) {
+        if (requests[i].request_id == request_id) {
             return i;
         }
     }
@@ -708,6 +885,39 @@ std::optional<std::string> ValidateUserMutation(const UserMutation& mutation, bo
     return std::nullopt;
 }
 
+bool StartsWith(const std::string& value, const std::string& prefix) {
+    return value.size() >= prefix.size() && value.compare(0, prefix.size(), prefix) == 0;
+}
+
+bool ScopeAllowedForRole(const std::string& role, const std::string& scope) {
+    if (scope.empty()) {
+        return false;
+    }
+    if (role == "admin" || role == "operator") {
+        return true;
+    }
+    if (role == "viewer") {
+        return StartsWith(scope, "view:read:") ||
+               StartsWith(scope, "dashboard:read:") ||
+               StartsWith(scope, "event:read:") ||
+               StartsWith(scope, "metadata:read:");
+    }
+    if (role == "integrator") {
+        return StartsWith(scope, "event:read:") || StartsWith(scope, "metadata:read:");
+    }
+    return false;
+}
+
+std::optional<std::string> ValidateScopesForRole(const std::string& role,
+                                                 const std::vector<std::string>& scopes) {
+    for (const std::string& scope : scopes) {
+        if (!ScopeAllowedForRole(role, scope)) {
+            return "role " + role + " cannot be assigned scope: " + scope;
+        }
+    }
+    return std::nullopt;
+}
+
 void WriteStringArray(std::ostringstream& out, const std::vector<std::string>& values) {
     out << "[";
     for (std::size_t i = 0; i < values.size(); ++i) {
@@ -719,9 +929,74 @@ void WriteStringArray(std::ostringstream& out, const std::vector<std::string>& v
     out << "]";
 }
 
-bool SaveUsersFile(const std::string& path,
-                   const std::vector<UserRecord>& users,
-                   std::string* error_message) {
+void WriteUserRecordJson(std::ostringstream& body, const UserRecord& user, const std::string& indent) {
+    body << indent << "{\n"
+         << indent << "  \"username\": \"" << JsonEscapeLocal(user.username) << "\",\n"
+         << indent << "  \"displayName\": \"" << JsonEscapeLocal(user.display_name) << "\",\n"
+         << indent << "  \"role\": \"" << JsonEscapeLocal(user.role) << "\",\n"
+         << indent << "  \"scopes\": ";
+    WriteStringArray(body, user.scopes);
+    body << ",\n"
+         << indent << "  \"passwordHash\": \"" << JsonEscapeLocal(user.password_hash) << "\",\n";
+    if (!user.password_history.empty()) {
+        body << indent << "  \"passwordHistory\": ";
+        WriteStringArray(body, user.password_history);
+        body << ",\n";
+    }
+    if (!user.token_hash.empty()) {
+        body << indent << "  \"tokenHash\": \"" << JsonEscapeLocal(user.token_hash) << "\",\n";
+    }
+    body << indent << "  \"enabled\": " << (user.enabled ? "true" : "false") << ",\n"
+         << indent << "  \"mustChangePassword\": " << (user.must_change_password ? "true" : "false") << ",\n"
+         << indent << "  \"failedLoginCount\": " << user.failed_login_count << ",\n"
+         << indent << "  \"lockedUntil\": \"" << JsonEscapeLocal(user.locked_until) << "\",\n"
+         << indent << "  \"lastFailedLoginAt\": \"" << JsonEscapeLocal(user.last_failed_login_at) << "\",\n"
+         << indent << "  \"createdAt\": \"" << JsonEscapeLocal(user.created_at) << "\",\n"
+         << indent << "  \"passwordUpdatedAt\": \"" << JsonEscapeLocal(user.password_updated_at) << "\",\n"
+         << indent << "  \"lastLoginAt\": \"" << JsonEscapeLocal(user.last_login_at) << "\",\n"
+         << indent << "  \"lastLoginIp\": \"" << JsonEscapeLocal(user.last_login_ip) << "\",\n"
+         << indent << "  \"disabledAt\": \"" << JsonEscapeLocal(user.disabled_at) << "\"\n"
+         << indent << "}";
+}
+
+void WriteInviteRecordJson(std::ostringstream& body, const InviteRecord& invite, const std::string& indent) {
+    body << indent << "{\n"
+         << indent << "  \"inviteId\": \"" << JsonEscapeLocal(invite.invite_id) << "\",\n"
+         << indent << "  \"username\": \"" << JsonEscapeLocal(invite.username) << "\",\n"
+         << indent << "  \"displayName\": \"" << JsonEscapeLocal(invite.display_name) << "\",\n"
+         << indent << "  \"role\": \"" << JsonEscapeLocal(invite.role) << "\",\n"
+         << indent << "  \"viewId\": \"" << JsonEscapeLocal(invite.view_id) << "\",\n"
+         << indent << "  \"scopes\": ";
+    WriteStringArray(body, invite.scopes);
+    body << ",\n"
+         << indent << "  \"tokenHash\": \"" << JsonEscapeLocal(invite.token_hash) << "\",\n"
+         << indent << "  \"expiresAt\": \"" << JsonEscapeLocal(invite.expires_at) << "\",\n"
+         << indent << "  \"used\": " << (invite.used ? "true" : "false") << ",\n"
+         << indent << "  \"usedAt\": \"" << JsonEscapeLocal(invite.used_at) << "\",\n"
+         << indent << "  \"createdAt\": \"" << JsonEscapeLocal(invite.created_at) << "\",\n"
+         << indent << "  \"createdBy\": \"" << JsonEscapeLocal(invite.created_by) << "\"\n"
+         << indent << "}";
+}
+
+void WriteAccessRequestRecordJson(std::ostringstream& body,
+                                  const AccessRequestRecord& request,
+                                  const std::string& indent) {
+    body << indent << "{\n"
+         << indent << "  \"requestId\": \"" << JsonEscapeLocal(request.request_id) << "\",\n"
+         << indent << "  \"username\": \"" << JsonEscapeLocal(request.username) << "\",\n"
+         << indent << "  \"displayName\": \"" << JsonEscapeLocal(request.display_name) << "\",\n"
+         << indent << "  \"contact\": \"" << JsonEscapeLocal(request.contact) << "\",\n"
+         << indent << "  \"reason\": \"" << JsonEscapeLocal(request.reason) << "\",\n"
+         << indent << "  \"viewId\": \"" << JsonEscapeLocal(request.view_id) << "\",\n"
+         << indent << "  \"status\": \"" << JsonEscapeLocal(request.status) << "\",\n"
+         << indent << "  \"createdAt\": \"" << JsonEscapeLocal(request.created_at) << "\",\n"
+         << indent << "  \"decidedAt\": \"" << JsonEscapeLocal(request.decided_at) << "\",\n"
+         << indent << "  \"decidedBy\": \"" << JsonEscapeLocal(request.decided_by) << "\",\n"
+         << indent << "  \"inviteId\": \"" << JsonEscapeLocal(request.invite_id) << "\"\n"
+         << indent << "}";
+}
+
+bool SaveAuthStore(const std::string& path, const AuthStore& store, std::string* error_message) {
     if (path.empty()) {
         if (error_message != nullptr) {
             *error_message = "auth users file path is empty";
@@ -743,36 +1018,25 @@ bool SaveUsersFile(const std::string& path,
 
     std::ostringstream body;
     body << "{\n  \"users\": [\n";
-    for (std::size_t i = 0; i < users.size(); ++i) {
-        const UserRecord& user = users[i];
-        body << "    {\n"
-             << "      \"username\": \"" << JsonEscapeLocal(user.username) << "\",\n"
-             << "      \"displayName\": \"" << JsonEscapeLocal(user.display_name) << "\",\n"
-             << "      \"role\": \"" << JsonEscapeLocal(user.role) << "\",\n"
-             << "      \"scopes\": ";
-        WriteStringArray(body, user.scopes);
-        body << ",\n"
-             << "      \"passwordHash\": \"" << JsonEscapeLocal(user.password_hash) << "\",\n";
-        if (!user.password_history.empty()) {
-            body << "      \"passwordHistory\": ";
-            WriteStringArray(body, user.password_history);
-            body << ",\n";
+    for (std::size_t i = 0; i < store.users.size(); ++i) {
+        WriteUserRecordJson(body, store.users[i], "    ");
+        if (i + 1 < store.users.size()) {
+            body << ",";
         }
-        if (!user.token_hash.empty()) {
-            body << "      \"tokenHash\": \"" << JsonEscapeLocal(user.token_hash) << "\",\n";
+        body << "\n";
+    }
+    body << "  ],\n  \"invites\": [\n";
+    for (std::size_t i = 0; i < store.invites.size(); ++i) {
+        WriteInviteRecordJson(body, store.invites[i], "    ");
+        if (i + 1 < store.invites.size()) {
+            body << ",";
         }
-        body << "      \"enabled\": " << (user.enabled ? "true" : "false") << ",\n"
-             << "      \"mustChangePassword\": " << (user.must_change_password ? "true" : "false") << ",\n"
-             << "      \"failedLoginCount\": " << user.failed_login_count << ",\n"
-             << "      \"lockedUntil\": \"" << JsonEscapeLocal(user.locked_until) << "\",\n"
-             << "      \"lastFailedLoginAt\": \"" << JsonEscapeLocal(user.last_failed_login_at) << "\",\n"
-             << "      \"createdAt\": \"" << JsonEscapeLocal(user.created_at) << "\",\n"
-             << "      \"passwordUpdatedAt\": \"" << JsonEscapeLocal(user.password_updated_at) << "\",\n"
-             << "      \"lastLoginAt\": \"" << JsonEscapeLocal(user.last_login_at) << "\",\n"
-             << "      \"lastLoginIp\": \"" << JsonEscapeLocal(user.last_login_ip) << "\",\n"
-             << "      \"disabledAt\": \"" << JsonEscapeLocal(user.disabled_at) << "\"\n"
-             << "    }";
-        if (i + 1 < users.size()) {
+        body << "\n";
+    }
+    body << "  ],\n  \"accessRequests\": [\n";
+    for (std::size_t i = 0; i < store.access_requests.size(); ++i) {
+        WriteAccessRequestRecordJson(body, store.access_requests[i], "    ");
+        if (i + 1 < store.access_requests.size()) {
             body << ",";
         }
         body << "\n";
@@ -805,6 +1069,14 @@ bool SaveUsersFile(const std::string& path,
         return false;
     }
     return true;
+}
+
+bool SaveUsersFile(const std::string& path,
+                   const std::vector<UserRecord>& users,
+                   std::string* error_message) {
+    AuthStore store = LoadAuthStoreOrEmpty(path, nullptr);
+    store.users = users;
+    return SaveAuthStore(path, store, error_message);
 }
 
 #if MEDIA_SERVER_USE_LIBSODIUM
@@ -1256,13 +1528,16 @@ std::vector<std::string> ScopeTemplateForRole(const std::string& role,
                     "event:read:" + normalized_view,
                     "metadata:read:" + normalized_view};
         }
-        return DefaultScopesForRole("viewer");
+        return {"view:read:__unassigned__",
+                "dashboard:read:__unassigned__",
+                "event:read:__unassigned__",
+                "metadata:read:__unassigned__"};
     }
     if (normalized_role == "integrator") {
         if (!normalized_view.empty()) {
             return {"metadata:read:" + normalized_view, "event:read:" + normalized_view};
         }
-        return DefaultScopesForRole("integrator");
+        return {"metadata:read:__unassigned__", "event:read:__unassigned__"};
     }
     return {};
 }
@@ -1302,6 +1577,10 @@ AuthUserResult CreateAuthUser(const app::AppConfig& config,
         normalized.display_name.empty() ? normalized.username : normalized.display_name;
     candidate.role = normalized.role;
     candidate.scopes = ScopesFromMutation(normalized);
+    if (const auto scope_error = ValidateScopesForRole(candidate.role, candidate.scopes);
+        scope_error.has_value()) {
+        return UserError(400, "Bad Request", *scope_error);
+    }
     candidate.enabled = normalized.has_enabled ? normalized.enabled : true;
     candidate.must_change_password =
         normalized.has_must_change_password ? normalized.must_change_password : true;
@@ -1366,6 +1645,10 @@ AuthUserResult UpdateAuthUser(const app::AppConfig& config,
         user.scopes = ScopesFromMutation(UserMutation{.role = user.role,
                                                       .view_id = mutation.view_id,
                                                       .scopes = mutation.scopes});
+    }
+    if (const auto scope_error = ValidateScopesForRole(user.role, user.scopes);
+        scope_error.has_value()) {
+        return UserError(400, "Bad Request", *scope_error);
     }
     if (mutation.has_must_change_password) {
         user.must_change_password = mutation.must_change_password;
@@ -1508,6 +1791,397 @@ AuthUserResult ResetAuthUserPasswordFromJson(const app::AppConfig& config,
                                              const std::string& body) {
     const std::string password = ParseStringField(body, "password").value_or("");
     return ResetAuthUserPassword(config, username, password);
+}
+
+AuthUserResult CreateInviteFromJson(const app::AppConfig& config,
+                                    const std::string& body) {
+    if (!PasswordHashingAvailable()) {
+        return UserError(503, "Service Unavailable", "safe password hashing is unavailable; build with libsodium");
+    }
+    UserMutation mutation = UserMutationFromJson(body);
+    if (mutation.role.empty()) {
+        mutation.role = "viewer";
+    }
+    if (mutation.role != "viewer") {
+        return UserError(400, "Bad Request", "client invite supports viewer role only");
+    }
+    if (const auto validation = ValidateUserMutation(mutation, false); validation.has_value()) {
+        return UserError(400, "Bad Request", *validation);
+    }
+    std::vector<std::string> scopes = ScopesFromMutation(mutation);
+    if (const auto scope_error = ValidateScopesForRole(mutation.role, scopes); scope_error.has_value()) {
+        return UserError(400, "Bad Request", *scope_error);
+    }
+
+    std::string load_error;
+    AuthStore store = LoadAuthStoreOrEmpty(config.auth_users_file, &load_error);
+    if (!load_error.empty()) {
+        return UserError(500, "Internal Server Error", load_error);
+    }
+    const std::string now = IsoUtcNow();
+    const auto user_index = FindUserIndex(store.users, mutation.username);
+    UserRecord* user = nullptr;
+    if (user_index.has_value()) {
+        user = &store.users[*user_index];
+        if (user->role != "viewer") {
+            return UserError(409, "Conflict", "existing user is not a viewer account");
+        }
+        user->display_name =
+            mutation.display_name.empty() ? user->display_name : mutation.display_name;
+        user->scopes = scopes;
+        user->enabled = mutation.has_enabled ? mutation.enabled : true;
+        if (user->created_at.empty()) {
+            user->created_at = now;
+        }
+        if (user->enabled) {
+            user->disabled_at.clear();
+        } else if (user->disabled_at.empty()) {
+            user->disabled_at = now;
+        }
+        user->must_change_password = true;
+    } else {
+        UserRecord candidate;
+        candidate.username = mutation.username;
+        candidate.display_name =
+            mutation.display_name.empty() ? mutation.username : mutation.display_name;
+        candidate.role = "viewer";
+        candidate.scopes = scopes;
+        candidate.enabled = mutation.has_enabled ? mutation.enabled : true;
+        candidate.must_change_password = true;
+        candidate.created_at = now;
+        if (!candidate.enabled) {
+            candidate.disabled_at = now;
+        }
+        store.users.push_back(candidate);
+        user = &store.users.back();
+    }
+
+    std::string token_error;
+    const auto raw_token = GenerateSessionId(&token_error);
+    if (!raw_token.has_value()) {
+        return UserError(503, "Service Unavailable", token_error);
+    }
+    const auto token_hash = GeneratePasswordHash(*raw_token, &token_error);
+    if (!token_hash.has_value()) {
+        return UserError(500, "Internal Server Error", token_error);
+    }
+    const int ttl_seconds = std::max(60, ParseIntField(body, "ttlSeconds").value_or(86400));
+    InviteRecord invite;
+    invite.invite_id = "invite-" + raw_token->substr(0, 16);
+    invite.username = mutation.username;
+    invite.display_name = user->display_name;
+    invite.role = "viewer";
+    invite.view_id = mutation.view_id;
+    invite.scopes = scopes;
+    invite.token_hash = *token_hash;
+    invite.expires_at = IsoUtcAfterSeconds(ttl_seconds);
+    invite.created_at = now;
+    invite.created_by = "admin";
+    store.invites.push_back(invite);
+
+    std::string save_error;
+    if (!SaveAuthStore(config.auth_users_file, store, &save_error)) {
+        return UserError(500, "Internal Server Error", save_error);
+    }
+    std::ostringstream out;
+    out << "{\"status\":\"inviteCreated\",\"user\":";
+    AppendPublicUserJson(out, *user);
+    out << ",\"invite\":";
+    AppendPublicInviteJson(out, invite, *raw_token);
+    out << "}";
+    return UserJsonResult(201, "Created", out.str(), user->username);
+}
+
+AuthUserResult CompleteInvitePasswordSetup(const app::AppConfig& config,
+                                           const std::string& token,
+                                           const std::string& password,
+                                           const std::string& confirm) {
+    if (!PasswordHashingAvailable()) {
+        return UserError(503, "Service Unavailable", "safe password hashing is unavailable; build with libsodium");
+    }
+    if (Trim(token).empty()) {
+        return UserError(400, "Bad Request", "invite token is required");
+    }
+    std::string load_error;
+    auto store = LoadAuthStore(config.auth_users_file, &load_error);
+    if (!store.has_value()) {
+        return UserError(404, "Not Found", load_error);
+    }
+
+    for (InviteRecord& invite : store->invites) {
+        if (invite.used || invite.token_hash.empty() ||
+            !VerifySecretHash(token, invite.token_hash, nullptr)) {
+            continue;
+        }
+        if (!IsoUtcInFuture(invite.expires_at)) {
+            return UserError(410, "Gone", "invite token expired");
+        }
+        const auto index = FindUserIndex(store->users, invite.username);
+        UserRecord* user = nullptr;
+        if (index.has_value()) {
+            user = &store->users[*index];
+            if (user->role != "viewer") {
+                return UserError(409, "Conflict", "invite user is not a viewer account");
+            }
+        } else {
+            UserRecord candidate;
+            candidate.username = invite.username;
+            candidate.display_name =
+                invite.display_name.empty() ? invite.username : invite.display_name;
+            candidate.role = "viewer";
+            candidate.scopes = invite.scopes.empty()
+                                   ? ScopeTemplateForRole("viewer", invite.view_id)
+                                   : invite.scopes;
+            candidate.enabled = true;
+            candidate.must_change_password = true;
+            candidate.created_at = IsoUtcNow();
+            store->users.push_back(candidate);
+            user = &store->users.back();
+        }
+
+        user->display_name = invite.display_name.empty() ? user->display_name : invite.display_name;
+        user->role = "viewer";
+        user->scopes = invite.scopes.empty()
+                           ? ScopeTemplateForRole("viewer", invite.view_id)
+                           : invite.scopes;
+        if (const auto scope_error = ValidateScopesForRole(user->role, user->scopes);
+            scope_error.has_value()) {
+            return UserError(400, "Bad Request", *scope_error);
+        }
+        const PasswordPolicyResult policy =
+            ValidatePasswordPolicy(config, user->username, password, confirm, user);
+        if (!policy.ok) {
+            return UserError(400, "Bad Request", policy.message);
+        }
+        std::string hash_error;
+        const auto password_hash = GeneratePasswordHash(password, &hash_error);
+        if (!password_hash.has_value()) {
+            return UserError(500, "Internal Server Error", hash_error);
+        }
+        std::vector<std::string> history;
+        history.push_back(*password_hash);
+        if (!user->password_hash.empty()) {
+            history.push_back(user->password_hash);
+        }
+        for (const std::string& hash : user->password_history) {
+            if (std::find(history.begin(), history.end(), hash) == history.end()) {
+                history.push_back(hash);
+            }
+        }
+        if (config.auth_password_history_count >= 0 &&
+            static_cast<int>(history.size()) > config.auth_password_history_count) {
+            history.resize(static_cast<std::size_t>(config.auth_password_history_count));
+        }
+        const std::string now = IsoUtcNow();
+        user->password_hash = *password_hash;
+        user->password_history = std::move(history);
+        user->password_updated_at = now;
+        user->must_change_password = false;
+        user->enabled = true;
+        user->disabled_at.clear();
+        user->failed_login_count = 0;
+        user->locked_until.clear();
+        user->last_failed_login_at.clear();
+        if (user->created_at.empty()) {
+            user->created_at = now;
+        }
+        invite.used = true;
+        invite.used_at = now;
+        invite.token_hash.clear();
+
+        std::string save_error;
+        if (!SaveAuthStore(config.auth_users_file, *store, &save_error)) {
+            return UserError(500, "Internal Server Error", save_error);
+        }
+        std::ostringstream out;
+        out << "{\"status\":\"inviteAccepted\",\"user\":";
+        AppendPublicUserJson(out, *user);
+        out << "}";
+        return UserJsonResult(200, "OK", out.str(), user->username);
+    }
+    return UserError(401, "Unauthorized", "invalid invite token");
+}
+
+AuthUserResult ListAccessRequests(const app::AppConfig& config) {
+    std::string load_error;
+    AuthStore store = LoadAuthStoreOrEmpty(config.auth_users_file, &load_error);
+    if (!load_error.empty()) {
+        return UserError(500, "Internal Server Error", load_error);
+    }
+    return UserJsonResult(200, "OK", AccessRequestsJson(store.access_requests));
+}
+
+AuthUserResult CreateAccessRequestFromJson(const app::AppConfig& config,
+                                           const std::string& body) {
+    AccessRequestRecord request;
+    request.username = Trim(ParseStringField(body, "username").value_or(""));
+    request.display_name = Trim(ParseStringField(body, "displayName").value_or(request.username));
+    request.contact = Trim(ParseStringField(body, "contact").value_or(""));
+    request.reason = Trim(ParseStringField(body, "reason").value_or(""));
+    request.view_id = Trim(ParseStringField(body, "viewId").value_or(""));
+    if (!IsSafeUsername(request.username)) {
+        return UserError(400, "Bad Request", "username은 1~64자의 영문/숫자/._-@ 조합이어야 합니다.");
+    }
+    if (request.contact.empty() && request.reason.empty()) {
+        return UserError(400, "Bad Request", "contact or reason is required");
+    }
+    std::string token_error;
+    const auto request_token = GenerateSessionId(&token_error);
+    if (!request_token.has_value()) {
+        return UserError(503, "Service Unavailable", token_error);
+    }
+    request.request_id = "request-" + request_token->substr(0, 16);
+    request.status = "pending";
+    request.created_at = IsoUtcNow();
+
+    std::string load_error;
+    AuthStore store = LoadAuthStoreOrEmpty(config.auth_users_file, &load_error);
+    if (!load_error.empty()) {
+        return UserError(500, "Internal Server Error", load_error);
+    }
+    store.access_requests.push_back(request);
+    std::string save_error;
+    if (!SaveAuthStore(config.auth_users_file, store, &save_error)) {
+        return UserError(500, "Internal Server Error", save_error);
+    }
+    std::ostringstream out;
+    out << "{\"status\":\"pending\",\"accessRequest\":";
+    AppendPublicAccessRequestJson(out, request);
+    out << "}";
+    return UserJsonResult(201, "Created", out.str());
+}
+
+AuthUserResult ApproveAccessRequestFromJson(const app::AppConfig& config,
+                                            const std::string& request_id,
+                                            const std::string& body) {
+    if (!PasswordHashingAvailable()) {
+        return UserError(503, "Service Unavailable", "safe password hashing is unavailable; build with libsodium");
+    }
+    std::string load_error;
+    auto store = LoadAuthStore(config.auth_users_file, &load_error);
+    if (!store.has_value()) {
+        return UserError(404, "Not Found", load_error);
+    }
+    const auto request_index = FindAccessRequestIndex(store->access_requests, request_id);
+    if (!request_index.has_value()) {
+        return UserError(404, "Not Found", "access request not found");
+    }
+    AccessRequestRecord& request = store->access_requests[*request_index];
+    if (request.status != "pending") {
+        return UserError(409, "Conflict", "access request is not pending");
+    }
+    const std::string view_id =
+        Trim(ParseStringField(body, "viewId").value_or(request.view_id));
+    std::vector<std::string> scopes;
+    if (const auto array = ExtractArrayField(body, "scopes"); array.has_value()) {
+        scopes = ParseStringArray(*array);
+    }
+    if (scopes.empty()) {
+        scopes = ScopeTemplateForRole("viewer", view_id);
+    }
+    if (const auto scope_error = ValidateScopesForRole("viewer", scopes); scope_error.has_value()) {
+        return UserError(400, "Bad Request", *scope_error);
+    }
+
+    const std::string now = IsoUtcNow();
+    UserRecord* user = nullptr;
+    const auto user_index = FindUserIndex(store->users, request.username);
+    if (user_index.has_value()) {
+        user = &store->users[*user_index];
+        if (user->role != "viewer") {
+            return UserError(409, "Conflict", "existing user is not a viewer account");
+        }
+    } else {
+        UserRecord candidate;
+        candidate.username = request.username;
+        candidate.display_name =
+            request.display_name.empty() ? request.username : request.display_name;
+        candidate.role = "viewer";
+        candidate.enabled = true;
+        candidate.must_change_password = true;
+        candidate.created_at = now;
+        store->users.push_back(candidate);
+        user = &store->users.back();
+    }
+    user->display_name = request.display_name.empty() ? user->display_name : request.display_name;
+    user->role = "viewer";
+    user->scopes = scopes;
+    user->enabled = true;
+    user->must_change_password = true;
+    user->disabled_at.clear();
+    if (user->created_at.empty()) {
+        user->created_at = now;
+    }
+
+    std::string token_error;
+    const auto raw_token = GenerateSessionId(&token_error);
+    if (!raw_token.has_value()) {
+        return UserError(503, "Service Unavailable", token_error);
+    }
+    const auto token_hash = GeneratePasswordHash(*raw_token, &token_error);
+    if (!token_hash.has_value()) {
+        return UserError(500, "Internal Server Error", token_error);
+    }
+    const int ttl_seconds = std::max(60, ParseIntField(body, "ttlSeconds").value_or(86400));
+    InviteRecord invite;
+    invite.invite_id = "invite-" + raw_token->substr(0, 16);
+    invite.username = user->username;
+    invite.display_name = user->display_name;
+    invite.role = "viewer";
+    invite.view_id = view_id;
+    invite.scopes = scopes;
+    invite.token_hash = *token_hash;
+    invite.expires_at = IsoUtcAfterSeconds(ttl_seconds);
+    invite.created_at = now;
+    invite.created_by = "admin";
+    store->invites.push_back(invite);
+
+    request.status = "approved";
+    request.decided_at = now;
+    request.decided_by = "admin";
+    request.invite_id = invite.invite_id;
+    std::string save_error;
+    if (!SaveAuthStore(config.auth_users_file, *store, &save_error)) {
+        return UserError(500, "Internal Server Error", save_error);
+    }
+    std::ostringstream out;
+    out << "{\"status\":\"approved\",\"accessRequest\":";
+    AppendPublicAccessRequestJson(out, request);
+    out << ",\"user\":";
+    AppendPublicUserJson(out, *user);
+    out << ",\"invite\":";
+    AppendPublicInviteJson(out, invite, *raw_token);
+    out << "}";
+    return UserJsonResult(200, "OK", out.str(), user->username);
+}
+
+AuthUserResult RejectAccessRequest(const app::AppConfig& config,
+                                   const std::string& request_id) {
+    std::string load_error;
+    auto store = LoadAuthStore(config.auth_users_file, &load_error);
+    if (!store.has_value()) {
+        return UserError(404, "Not Found", load_error);
+    }
+    const auto request_index = FindAccessRequestIndex(store->access_requests, request_id);
+    if (!request_index.has_value()) {
+        return UserError(404, "Not Found", "access request not found");
+    }
+    AccessRequestRecord& request = store->access_requests[*request_index];
+    if (request.status != "pending") {
+        return UserError(409, "Conflict", "access request is not pending");
+    }
+    request.status = "rejected";
+    request.decided_at = IsoUtcNow();
+    request.decided_by = "admin";
+    std::string save_error;
+    if (!SaveAuthStore(config.auth_users_file, *store, &save_error)) {
+        return UserError(500, "Internal Server Error", save_error);
+    }
+    std::ostringstream out;
+    out << "{\"status\":\"rejected\",\"accessRequest\":";
+    AppendPublicAccessRequestJson(out, request);
+    out << "}";
+    return UserJsonResult(200, "OK", out.str());
 }
 
 bool PasswordHashingAvailable() {

@@ -13,8 +13,9 @@
 | Root entry | `http://127.0.0.1:8080/` | auth mode와 role에 따른 진입점 |
 | 운영 콘솔 | `http://127.0.0.1:8080/ops/live` | admin/operator용 운영 shell |
 | Source/View 관리 | `http://127.0.0.1:8080/ops/sources` | admin/operator용 SourceRegistry와 PublishedView 관리 |
-| 계정 관리 | `http://127.0.0.1:8080/ops/users` | admin 전용 사용자 생성/비활성화/비밀번호 초기화 |
+| 계정 관리 | `http://127.0.0.1:8080/ops/users` | admin 전용 사용자 생성/초대/request 승인/비활성화 |
 | 클라이언트 포털 | `http://127.0.0.1:8080/client/live` | viewer/operator/admin용 client shell |
+| 접근 요청 | `http://127.0.0.1:8080/client/request-access` | pending client access request 제출 |
 
 실제 host/port는 `./server.sh status` 또는 `./server.sh urls` 출력값을 우선합니다.
 
@@ -51,7 +52,7 @@ Role별 이동:
 
 Login page는 username/password 입력, 실패/lockout 메시지, 로그인 후 현재 사용자/role 표시, logout 버튼만 제공하는 MVP입니다. `/`는 setup required 상태에서 `/setup`, auth off에서 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/live`, `/client/live`, auth on에서 admin/operator를 `/ops/live`, viewer를 `/client/live`, 미인증 요청을 `/login`으로 보냅니다. 비밀번호 변경 성공 시 기존 session은 폐기되고 `/login`에서 다시 로그인합니다.
 
-클라이언트 계정은 admin이 `/ops/users` 또는 `./server.sh auth-user` CLI에서 `viewer` role로 수동 생성합니다. Self-signup은 제공하지 않습니다. PublishedView 단위 접근은 `view:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`, `dashboard:read:{viewId}` scope로 제한합니다.
+클라이언트 계정의 1차 정책은 admin 수동 생성입니다. admin은 `/ops/users` 또는 `./server.sh auth-user` CLI에서 `viewer` role 계정을 만들고, `/ops/users`에서 password setup invite를 발급할 수 있습니다. Self-signup 자동 승인은 제공하지 않습니다. `/client/request-access`는 pending request만 저장하며, admin 승인 전에는 계정 생성, session login, view 접근이 허용되지 않습니다. PublishedView 단위 접근은 `view:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`, `dashboard:read:{viewId}` scope로 제한합니다.
 
 Route 역할:
 
@@ -61,7 +62,7 @@ Route 역할:
 
 ## 3. Admin User Management
 
-`/ops/users`는 admin 전용 계정 관리 화면입니다. User list는 username, displayName, role, enabled, scopes count, lastLoginAt, lockedUntil, mustChangePassword, actions를 표시하며 `passwordHash`, `passwordHistory`, `tokenHash`는 UI/API 응답에 노출하지 않습니다.
+`/ops/users`는 admin 전용 계정 관리 화면입니다. User list는 username, displayName, role, enabled, scopes count, lastLoginAt, lockedUntil, mustChangePassword, actions를 표시하며 `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`는 UI/API 응답에 노출하지 않습니다.
 
 지원 동작:
 
@@ -69,12 +70,15 @@ Route 역할:
 - 계정 수정: displayName, role, scopes, enabled, mustChangePassword를 변경합니다.
 - 비밀번호 초기화: admin이 임시 비밀번호를 설정하고 `mustChangePassword=true`로 전환합니다.
 - enable/disable: hard delete 대신 disable을 사용합니다. 마지막 활성 admin 계정은 비활성화하거나 다른 role로 변경할 수 없습니다.
+- viewer UX: `role=viewer` 또는 `integrator` 선택 시 view/scope assignment 영역을 보여줍니다. PublishedView가 아직 연결되지 않은 환경에서는 `viewId` 또는 `view:read:{viewId}` 같은 문자열 scope를 직접 입력합니다. viewer에는 debug/lab/ops/source/rule 관리 scope를 부여하지 않습니다.
+- invite: admin이 viewer invite token을 발급하면 원문 token은 생성 응답에서 한 번만 표시됩니다. 저장소에는 `tokenHash`, 만료 시각, 사용 여부만 남고, `/invite/setup`에서 비밀번호 설정이 끝나면 token hash는 폐기됩니다.
+- request: `/client/request-access` 또는 `POST /client/api/access-requests`로 들어온 요청은 `pending`으로 저장됩니다. `/ops/users` pending list에서 admin이 approve하면 viewer 계정과 password setup invite가 만들어지고, reject하면 계정이나 session은 생성하지 않습니다.
 
 Role별 scope template:
 
 - `admin`: `*`
 - `operator`: `ops:read`, `rule:write`, `source:write`, `dashboard:read:*`, `event:read:*`
-- `viewer`: `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`
+- `viewer`: `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`. viewId가 비어 있으면 실제 view 권한을 주지 않는 `__unassigned__` placeholder scope를 사용합니다.
 - `integrator`: `metadata:read:{viewId}`, `event:read:{viewId}`
 
 CLI도 같은 C++ password hash/password policy 경로를 사용합니다. Password는 기본적으로 prompt로 입력하고, 자동 smoke에서는 `--password-stdin`을 사용할 수 있습니다.

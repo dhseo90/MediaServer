@@ -142,6 +142,20 @@ AuthUserResult UpdateAuthUserFromJson(const app::AppConfig& config,
 AuthUserResult ResetAuthUserPasswordFromJson(const app::AppConfig& config,
                                              const std::string& username,
                                              const std::string& body);
+AuthUserResult CreateInviteFromJson(const app::AppConfig& config,
+                                    const std::string& body);
+AuthUserResult CompleteInvitePasswordSetup(const app::AppConfig& config,
+                                           const std::string& token,
+                                           const std::string& password,
+                                           const std::string& confirm);
+AuthUserResult ListAccessRequests(const app::AppConfig& config);
+AuthUserResult CreateAccessRequestFromJson(const app::AppConfig& config,
+                                           const std::string& body);
+AuthUserResult ApproveAccessRequestFromJson(const app::AppConfig& config,
+                                            const std::string& request_id,
+                                            const std::string& body);
+AuthUserResult RejectAccessRequest(const app::AppConfig& config,
+                                   const std::string& request_id);
 
 bool PasswordHashingAvailable();
 const char* PasswordHashingScheme();
