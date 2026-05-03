@@ -2,6 +2,8 @@
 
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 영상 분석 UI 스크린샷을 역할 기준 파일명으로 보관합니다.
 
+현재 대표 이미지는 2026-05-03 light/dark theme-aware design system 1차 정리 후 dark mode 기준으로 다시 캡처했습니다.
+
 기본 기준:
 
 - 문서 대표 이미지는 dark mode로 캡처한다.

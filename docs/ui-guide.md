@@ -12,7 +12,14 @@
 
 실제 host/port는 `./server.sh status` 또는 `./server.sh urls` 출력값을 우선합니다.
 
-UI는 light/dark theme-aware design token을 사용하며, card/button/form/table/badge/debug 영역은 같은 semantic color 규칙을 공유합니다.
+UI는 light/dark theme-aware design token을 사용하며, card/button/form/table/badge/debug 영역은 같은 semantic color 규칙을 공유합니다. 기본 화면은 요약과 주요 액션을 먼저 보이게 하고, raw JSON, debugCounters, Developer URL 같은 세부 정보는 낮은 visual weight의 접힘 영역에 둡니다.
+
+액션 계층은 다음 기준을 따릅니다.
+
+- 저장, 검색, 보기 시작 같은 primary action은 fill 버튼으로 표시합니다.
+- 목록으로, 재시작, 좌표 초기화, 복사 같은 보조 작업은 weak/ghost 버튼으로 표시합니다.
+- 삭제, 중단처럼 되돌리기 어렵거나 위험한 작업에만 danger 버튼을 사용합니다.
+- status badge는 `success`, `warning`, `danger`, `info`, `neutral` 의미를 구분하고 한 줄에 과도하게 늘어놓지 않습니다.
 
 `/lab/rules`는 세 탭으로 나뉩니다.
 
@@ -403,6 +410,6 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-storage/status'
 
 ## Screenshot 자산
 
-README와 이 문서에서 사용하는 screenshot은 `docs/assets/ui/` 아래 역할 기반 파일명으로 보관합니다. 기본 문서 이미지는 dark mode 대표 화면을 유지합니다. 새 이미지가 없으면 문서에 broken link를 만들지 않고 “이미지 추가 예정” 문구만 둡니다.
+README와 이 문서에서 사용하는 screenshot은 `docs/assets/ui/` 아래 역할 기반 파일명으로 보관합니다. 기본 문서 이미지는 dark mode 대표 화면을 유지합니다. 새 이미지가 없으면 문서에 broken link를 만들지 않고 “이미지 추가 예정” 문구만 둡니다. 2026-05-03 기준 대표 이미지는 light/dark theme-aware design system 1차 정리 후 다시 캡처했습니다.
 
 문서용 screenshot은 화면 상단/하단에서 버튼, 입력, 카드 제목, table row가 어색하게 반쯤 잘리지 않도록 section 경계 또는 대표 상태가 보이는 지점에서 자릅니다. 영상이 나오는 화면은 실제 객체가 보이는 `va_four_scene_sample.mp4` 기준으로 캡처하고, 영상 프레임 하단이 온전히 보이도록 합니다. 긴 화면은 한 장에 모든 내용을 넣기보다 핵심 section을 온전히 보여주는 대표 screenshot을 우선합니다.
