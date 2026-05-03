@@ -73,7 +73,11 @@ HTTP request
   -> route별 RequireRole / RequireScope guard
 ```
 
-`MEDIA_SERVER_AUTH_MODE=off`에서는 기존 개발/검증 호환을 위해 dev admin principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 admin/operator/viewer/integrator env token이 `/auth/whoami`에서 principal로 확인됩니다. `MEDIA_SERVER_AUTH_MODE=session`에서는 users file의 `passwordHash`를 libsodium password hashing으로 검증한 뒤 HttpOnly/SameSite=Lax cookie session을 발급합니다. Password policy/lockout/session hardening은 HTTP auth/users file에만 적용되며, media pipeline, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload는 변경하지 않습니다. 이번 MVP는 setup/login/logout/password change, whoami, 임시 `/ops`/`/client` landing, guard helper 중심이며, `/lab`, `/ops`, `/client`, metadata/event API의 세부 차단 정책은 SourceRegistry/PublishedView와 route 분리 단계에서 좁혀갑니다.
+`MEDIA_SERVER_AUTH_MODE=off`에서는 기존 개발/검증 호환을 위해 dev admin principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 admin/operator/viewer/integrator env token이 `/auth/whoami`에서 principal로 확인됩니다. `MEDIA_SERVER_AUTH_MODE=session`에서는 users file의 `passwordHash`를 libsodium password hashing으로 검증한 뒤 HttpOnly/SameSite=Lax cookie session을 발급합니다. Password policy/lockout/session hardening은 HTTP auth/users file에만 적용되며, media pipeline, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload는 변경하지 않습니다. 이번 MVP는 setup/login/logout/password change, whoami, `/ops/users`, 임시 `/ops`/`/client` landing, guard helper 중심이며, `/lab`, `/ops`, `/client`, metadata/event API의 세부 차단 정책은 SourceRegistry/PublishedView와 route 분리 단계에서 좁혀갑니다.
+
+클라이언트 계정의 1차 정책은 admin 수동 생성입니다. 자가 가입은 자동 승인하지 않고, `/client/request-access`와 `POST /client/api/access-requests`는 `pending` request만 users file에 저장합니다. Admin이 `/ops/users`에서 approve하기 전까지 request는 user/password/session/view scope를 만들지 않습니다.
+
+Users file은 `users`, `invites`, `accessRequests` top-level 배열을 보관합니다. `users[].passwordHash`, `passwordHistory`, `tokenHash`, `invites[].tokenHash`는 safe hash만 저장하며 API/UI 응답에는 노출하지 않습니다. Invite token은 viewer password setup 전용이며 원문은 발급 응답에서 한 번만 표시됩니다. `/invite/setup`에서 비밀번호를 설정하면 viewer 계정에 scope snapshot을 저장하고 invite token hash를 폐기합니다.
 
 기본 역할:
 
@@ -81,6 +85,8 @@ HTTP request
 - `operator`: 운영 live monitor, rule/scenario 관리, runtime dashboard, event 조회
 - `viewer`: 할당된 live view, 제한된 dashboard, 최근 event 요약
 - `integrator`: 허용된 metadata/event API 접근
+
+Viewer 계정은 `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}` 같은 view scope만 갖습니다. PublishedView가 아직 없는 환경에서는 문자열 기반 view scope assignment를 임시로 사용하며, viewer에는 debug/lab/ops/source/rule 관리 scope를 부여하지 않습니다.
 
 ### SourceRegistry / PublishedView MVP
 

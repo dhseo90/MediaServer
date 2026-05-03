@@ -16088,6 +16088,131 @@ std::string SetupPageHtml(const std::string& message, bool failed) {
     return out.str();
 }
 
+std::string InviteSetupPageHtml(const std::string& token,
+                                const std::string& message,
+                                bool failed) {
+    std::ostringstream out;
+    out << R"(<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Invite Setup</title>
+  <style>
+    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #111827; color: #f8fafc; }
+    main { width: min(460px, calc(100vw - 32px)); display: grid; gap: 16px; }
+    form { display: grid; gap: 12px; padding: 22px; border: 1px solid rgba(148,163,184,.35); border-radius: 8px; background: #0f172a; }
+    h1 { margin: 0; font-size: 24px; }
+    p { margin: 0; color: #cbd5e1; line-height: 1.5; }
+    label { display: grid; gap: 6px; color: #e2e8f0; font-weight: 700; }
+    input { min-height: 42px; border-radius: 6px; border: 1px solid #475569; padding: 0 12px; background: #020617; color: #f8fafc; font: inherit; }
+    button { min-height: 44px; border: 0; border-radius: 6px; background: #38bdf8; color: #082f49; font-weight: 900; cursor: pointer; }
+    .message { padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #dbeafe; }
+    .message.error { border-color: #f87171; background: #451a1a; color: #fecaca; }
+    .hint { font-size: 13px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <main>
+    <form method="post" action="/invite/setup">
+      <h1>Account Invite Setup</h1>
+      <p>관리자가 발급한 초대 토큰으로 비밀번호를 설정합니다.</p>
+)";
+    if (!message.empty()) {
+        out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
+            << HtmlEscape(message) << "</div>\n";
+    }
+    out << R"(      <label>Invite token
+        <input name="token" value=")" << HtmlEscape(token) << R"(" autocomplete="off" required />
+      </label>
+      <label>Password
+        <input name="password" type="password" autocomplete="new-password" required />
+      </label>
+      <label>Confirm password
+        <input name="confirm" type="password" autocomplete="new-password" required />
+      </label>
+      )" << PasswordPolicyHintHtml() << R"(
+      <button type="submit">Set password</button>
+    </form>
+  </main>
+</body>
+</html>)";
+    return out.str();
+}
+
+std::string ClientAccessRequestPageHtml() {
+    return R"REQUEST(<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Request Access</title>
+  <style>
+    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #111827; color: #f8fafc; }
+    main { width: min(520px, calc(100vw - 32px)); display: grid; gap: 16px; }
+    form { display: grid; gap: 12px; padding: 22px; border: 1px solid rgba(148,163,184,.35); border-radius: 8px; background: #0f172a; }
+    h1 { margin: 0; font-size: 24px; }
+    p { margin: 0; color: #cbd5e1; line-height: 1.5; }
+    label { display: grid; gap: 6px; color: #e2e8f0; font-weight: 700; }
+    input, textarea { border-radius: 6px; border: 1px solid #475569; padding: 10px 12px; background: #020617; color: #f8fafc; font: inherit; }
+    textarea { min-height: 92px; resize: vertical; }
+    button { min-height: 44px; border: 0; border-radius: 6px; background: #38bdf8; color: #082f49; font-weight: 900; cursor: pointer; }
+    .message { padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #dbeafe; }
+    .message.error { border-color: #f87171; background: #451a1a; color: #fecaca; }
+  </style>
+</head>
+<body>
+  <main>
+    <form id="request-form">
+      <h1>Request Access</h1>
+      <p>요청은 pending 상태로 저장되며 admin 승인 전에는 로그인이나 view 접근이 허용되지 않습니다.</p>
+      <div id="message" class="message" hidden></div>
+      <label>Username<input name="username" autocomplete="username" required /></label>
+      <label>Display Name<input name="displayName" /></label>
+      <label>Contact<input name="contact" autocomplete="email" /></label>
+      <label>Requested View ID<input name="viewId" placeholder="optional" /></label>
+      <label>Reason<textarea name="reason" required></textarea></label>
+      <button type="submit">Submit Request</button>
+    </form>
+  </main>
+  <script>
+    const form = document.querySelector('#request-form');
+    const message = document.querySelector('#message');
+    function setMessage(text, failed = false) {
+      message.hidden = false;
+      message.textContent = text;
+      message.classList.toggle('error', failed);
+    }
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(form).entries());
+      try {
+        const res = await fetch('/client/api/access-requests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: data.username.trim(),
+            displayName: data.displayName.trim(),
+            contact: data.contact.trim(),
+            viewId: data.viewId.trim(),
+            reason: data.reason.trim()
+          })
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json.error || `${res.status} ${res.statusText}`);
+        form.reset();
+        setMessage('요청이 pending 상태로 저장되었습니다.');
+      } catch (error) {
+        setMessage(error.message, true);
+      }
+    });
+  </script>
+</body>
+</html>)REQUEST";
+}
+
 std::string PasswordChangePageHtml(const auth::Principal& principal,
                                    const std::string& message,
                                    bool failed) {
@@ -17889,7 +18014,9 @@ std::string BuildOpsUsersPageHtml() {
     button.danger { background: #b91c1c; }
     .status { min-height: 22px; font-size: 13px; color: #0369a1; font-weight: 800; }
     .status.error { color: #b91c1c; }
+    .hint { font-size: 12px; color: #64748b; font-weight: 600; }
     .pill { display: inline-flex; align-items: center; min-height: 24px; padding: 0 8px; border-radius: 999px; background: #e0f2fe; color: #075985; font-weight: 900; }
+    .token { overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
     @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } table { min-width: 900px; } .table-wrap { overflow-x: auto; } }
     @media (prefers-color-scheme: dark) {
       body { background: #020617; color: #f8fafc; }
@@ -17900,6 +18027,7 @@ std::string BuildOpsUsersPageHtml() {
       td, th { border-bottom-color: #334155; }
       a { color: #7dd3fc; }
       button.secondary { background: #334155; color: #f8fafc; }
+      .hint { color: #94a3b8; }
     }
   </style>
 </head>
@@ -17930,7 +18058,10 @@ std::string BuildOpsUsersPageHtml() {
                 <option value="admin">admin</option>
               </select>
             </label>
+          </div>
+          <div id="view-assignment">
             <label>View ID<input name="viewId" placeholder="view-a" /></label>
+            <p class="hint">PublishedView 연동 전까지는 viewId 또는 view:read:{viewId} 형식의 scope를 직접 입력합니다. viewer 계정에는 debug/lab/ops/source/rule 관리 scope를 부여하지 않습니다.</p>
           </div>
           <label>Scopes<textarea name="scopes" placeholder="비워두면 role/viewId template 사용"></textarea></label>
           <label>Temporary Password<input name="password" type="password" autocomplete="new-password" /></label>
@@ -17942,6 +18073,7 @@ std::string BuildOpsUsersPageHtml() {
             <button id="create-btn" type="submit">Create User</button>
             <button id="update-btn" class="secondary" type="button">Update Profile</button>
             <button id="reset-btn" class="secondary" type="button">Reset Password</button>
+            <button id="invite-btn" class="secondary" type="button">Create Invite</button>
           </div>
         </form>
       </section>
@@ -17971,16 +18103,44 @@ std::string BuildOpsUsersPageHtml() {
         </div>
       </section>
     </div>
+
+    <section>
+      <h2>Pending Client Requests</h2>
+      <p>자가 가입은 자동 승인하지 않습니다. pending request는 admin 승인 후 viewer 계정과 password setup invite로 전환됩니다.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Request</th>
+              <th>Username</th>
+              <th>Name</th>
+              <th>Contact</th>
+              <th>View</th>
+              <th>Status</th>
+              <th>Reason</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="requests-body"></tbody>
+        </table>
+      </div>
+    </section>
   </main>
   <script>
     const statusEl = document.querySelector('#status');
     const usersBody = document.querySelector('#users-body');
+    const requestsBody = document.querySelector('#requests-body');
     const form = document.querySelector('#user-form');
+    const assignment = document.querySelector('#view-assignment');
     const splitScopes = value => value.split(/[\n,]/).map(v => v.trim()).filter(Boolean);
     const setStatus = (message, failed = false) => {
       statusEl.textContent = message;
       statusEl.classList.toggle('error', failed);
     };
+    function updateAssignmentVisibility() {
+      const role = form.elements.role.value;
+      assignment.style.display = (role === 'viewer' || role === 'integrator') ? 'grid' : 'none';
+    }
     async function requestJson(url, options = {}) {
       const res = await fetch(url, { credentials: 'same-origin', ...options });
       const text = await res.text();
@@ -18012,6 +18172,7 @@ std::string BuildOpsUsersPageHtml() {
       form.elements.enabled.checked = Boolean(user.enabled);
       form.elements.mustChangePassword.checked = Boolean(user.mustChangePassword);
       form.elements.password.value = '';
+      updateAssignmentVisibility();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     function renderUsers(users) {
@@ -18052,15 +18213,91 @@ std::string BuildOpsUsersPageHtml() {
         usersBody.appendChild(tr);
       }
     }
+    function renderRequests(requests) {
+      requestsBody.textContent = '';
+      for (const request of requests) {
+        const tr = document.createElement('tr');
+        const cells = [
+          request.requestId || '',
+          request.username || '',
+          request.displayName || '',
+          request.contact || '',
+          request.viewId || '',
+          request.status || '',
+          request.reason || ''
+        ];
+        for (const value of cells) {
+          const td = document.createElement('td');
+          td.textContent = value;
+          tr.appendChild(td);
+        }
+        const actionTd = document.createElement('td');
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+        if (request.status === 'pending') {
+          const approve = document.createElement('button');
+          approve.type = 'button';
+          approve.textContent = 'Approve';
+          approve.onclick = () => approveRequest(request.requestId);
+          const reject = document.createElement('button');
+          reject.type = 'button';
+          reject.className = 'danger';
+          reject.textContent = 'Reject';
+          reject.onclick = () => rejectRequest(request.requestId);
+          actions.append(approve, reject);
+        } else {
+          const done = document.createElement('span');
+          done.className = 'pill';
+          done.textContent = request.status || 'done';
+          actions.appendChild(done);
+        }
+        actionTd.appendChild(actions);
+        tr.appendChild(actionTd);
+        requestsBody.appendChild(tr);
+      }
+    }
     async function loadUsers() {
       const json = await requestJson('/ops/api/users');
       renderUsers(json.users || []);
       setStatus('Loaded');
     }
+    async function loadRequests() {
+      const json = await requestJson('/ops/api/access-requests');
+      renderRequests(json.accessRequests || []);
+    }
+    async function loadAll() {
+      await Promise.all([loadUsers(), loadRequests()]);
+    }
     async function setEnabled(username, enabled) {
       try {
         await requestJson(`/ops/api/users/${encodeURIComponent(username)}/${enabled ? 'enable' : 'disable'}`, { method: 'POST' });
-        await loadUsers();
+        await loadAll();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+    async function approveRequest(requestId) {
+      try {
+        const payload = {
+          viewId: form.elements.viewId.value.trim(),
+          scopes: splitScopes(form.elements.scopes.value || '')
+        };
+        const json = await requestJson(`/ops/api/access-requests/${encodeURIComponent(requestId)}/approve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const token = json.invite?.token || '';
+        setStatus(token ? `Approved. Invite token (shown once): ${token}` : 'Approved');
+        await loadAll();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+    async function rejectRequest(requestId) {
+      try {
+        await requestJson(`/ops/api/access-requests/${encodeURIComponent(requestId)}/reject`, { method: 'POST' });
+        await loadAll();
       } catch (error) {
         setStatus(error.message, true);
       }
@@ -18076,7 +18313,8 @@ std::string BuildOpsUsersPageHtml() {
         form.reset();
         form.elements.enabled.checked = true;
         form.elements.mustChangePassword.checked = true;
-        await loadUsers();
+        updateAssignmentVisibility();
+        await loadAll();
       } catch (error) {
         setStatus(error.message, true);
       }
@@ -18090,7 +18328,7 @@ std::string BuildOpsUsersPageHtml() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        await loadUsers();
+        await loadAll();
       } catch (error) {
         setStatus(error.message, true);
       }
@@ -18108,13 +18346,34 @@ std::string BuildOpsUsersPageHtml() {
           body: JSON.stringify({ password: payload.password })
         });
         form.elements.password.value = '';
-        await loadUsers();
+        await loadAll();
       } catch (error) {
         setStatus(error.message, true);
       }
     };
-    document.querySelector('#refresh-btn').onclick = () => loadUsers().catch(error => setStatus(error.message, true));
-    loadUsers().catch(error => setStatus(error.message, true));
+    document.querySelector('#invite-btn').onclick = async () => {
+      const payload = formPayload(false);
+      if (!payload.username) {
+        setStatus('Username is required', true);
+        return;
+      }
+      try {
+        const json = await requestJson('/ops/api/invites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const token = json.invite?.token || '';
+        setStatus(token ? `Invite token (shown once): ${token}` : 'Invite created');
+        await loadAll();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    };
+    form.elements.role.addEventListener('change', updateAssignmentVisibility);
+    document.querySelector('#refresh-btn').onclick = () => loadAll().catch(error => setStatus(error.message, true));
+    updateAssignmentVisibility();
+    loadAll().catch(error => setStatus(error.message, true));
   </script>
 </body>
 </html>)USERS";
@@ -21417,6 +21676,70 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                 "{\"error\":\"admin setup is required\"}");
                         }
 
+                        if (request.method == "GET" && request.path == "/invite/setup") {
+                            if (!session_auth_mode) {
+                                return JsonResponse(404,
+                                                    "Not Found",
+                                                    "{\"error\":\"invite setup is not enabled for this auth mode\"}");
+                            }
+                            HttpResponse ok;
+                            ok.content_type = "text/html; charset=utf-8";
+                            ok.headers["Cache-Control"] = "no-store";
+                            ok.body = InviteSetupPageHtml(
+                                query.count("token") != 0 ? query.at("token") : std::string(),
+                                "",
+                                false);
+                            return ok;
+                        }
+
+                        if (request.method == "POST" && request.path == "/invite/setup") {
+                            if (!session_auth_mode) {
+                                return JsonResponse(404,
+                                                    "Not Found",
+                                                    "{\"error\":\"invite setup is not enabled for this auth mode\"}");
+                            }
+                            const auto form = ParseQueryString(request.body);
+                            const std::string token =
+                                form.count("token") != 0 ? form.at("token") : std::string();
+                            const std::string password =
+                                form.count("password") != 0 ? form.at("password") : std::string();
+                            const std::string confirm =
+                                form.count("confirm") != 0 ? form.at("confirm") : std::string();
+                            const auth::AuthUserResult result =
+                                auth::CompleteInvitePasswordSetup(config, token, password, confirm);
+                            if (result.status >= 200 && result.status < 300 && !result.username.empty()) {
+                                revoke_auth_sessions_for(result.username);
+                                return RedirectResponse("/login");
+                            }
+                            HttpResponse failed;
+                            failed.status = result.status;
+                            failed.status_text = result.status_text;
+                            failed.content_type = "text/html; charset=utf-8";
+                            failed.headers["Cache-Control"] = "no-store";
+                            const std::string message =
+                                ParseStringField(result.body, "error").value_or("invite setup failed");
+                            failed.body = InviteSetupPageHtml(token, message, true);
+                            return failed;
+                        }
+
+                        if (request.method == "GET" && request.path == "/client/request-access") {
+                            if (!config.enable_client) {
+                                return route_disabled_response("client");
+                            }
+                            HttpResponse ok;
+                            ok.content_type = "text/html; charset=utf-8";
+                            ok.headers["Cache-Control"] = "no-store";
+                            ok.body = ClientAccessRequestPageHtml();
+                            return ok;
+                        }
+
+                        if (request.method == "POST" && request.path == "/client/api/access-requests") {
+                            if (!config.enable_client) {
+                                return route_disabled_response("client");
+                            }
+                            return AuthUserHttpResponse(auth::CreateAccessRequestFromJson(config, request.body));
+                        }
+
                         if (request.method == "GET" && request.path == "/login") {
                             if (session_auth_mode && principal_result.ok) {
                                 return RedirectResponse(RoleLandingPath(principal_result.principal, config));
@@ -21622,6 +21945,53 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     auth::CreateAuthUserFromJson(config, request.body);
                                 return AuthUserHttpResponse(result);
                             }
+                        }
+
+                        if (request.path == "/ops/api/invites") {
+                            if (const auto auth_response = require_admin_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "POST") {
+                                const auth::AuthUserResult result =
+                                    auth::CreateInviteFromJson(config, request.body);
+                                return AuthUserHttpResponse(result);
+                            }
+                        }
+
+                        if (request.path == "/ops/api/access-requests") {
+                            if (const auto auth_response = require_admin_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                return AuthUserHttpResponse(auth::ListAccessRequests(config));
+                            }
+                        }
+
+                        if (request.path.rfind("/ops/api/access-requests/", 0) == 0) {
+                            if (const auto auth_response = require_admin_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            const std::string suffix =
+                                request.path.substr(std::string("/ops/api/access-requests/").size());
+                            const std::size_t slash = suffix.find('/');
+                            const std::string request_id =
+                                UrlDecode(slash == std::string::npos ? suffix : suffix.substr(0, slash));
+                            const std::string action =
+                                slash == std::string::npos ? std::string() : suffix.substr(slash + 1);
+                            if (request.method == "POST" && action == "approve") {
+                                const auth::AuthUserResult result =
+                                    auth::ApproveAccessRequestFromJson(config, request_id, request.body);
+                                if (result.status >= 200 && result.status < 300 && !result.username.empty()) {
+                                    revoke_auth_sessions_for(result.username);
+                                }
+                                return AuthUserHttpResponse(result);
+                            }
+                            if (request.method == "POST" && action == "reject") {
+                                return AuthUserHttpResponse(auth::RejectAccessRequest(config, request_id));
+                            }
+                            return JsonResponse(404,
+                                                "Not Found",
+                                                "{\"error\":\"access request resource not found\"}");
                         }
 
                         if (request.path.rfind("/ops/api/users/", 0) == 0) {
