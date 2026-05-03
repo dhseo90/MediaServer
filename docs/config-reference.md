@@ -251,6 +251,8 @@
 | `MEDIA_SERVER_ANALYSIS_WRONG_DIRECTION_TARGET_LINE_IDS` | scenario default |
 | `MEDIA_SERVER_ANALYSIS_WRONG_DIRECTION_ALLOWED_DIRECTIONS` | scenario default |
 
+WrongDirection engine은 구현되어 있고 룰 편집 UI 템플릿에서도 선택할 수 있습니다. 기존 `line-crossing` 기본 이벤트는 유지하며, WrongDirection은 별도 `wrong-direction` scenario event로 발생합니다. Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직은 이 설정으로 변경하지 않습니다.
+
 ### IntrusionAfterLineCrossing
 
 | 환경변수 | 기본값 |
@@ -303,6 +305,8 @@ POST URL 자체는 rule output 설정에서 관리합니다. 외부 이벤트 JS
 EventRecord storage는 metadata JSON Lines만 저장하며 Event POST payload와 EventRecord 저장 schema는 변경하지 않습니다. 기본값은 기존 append 동작을 크게 바꾸지 않도록 rotation/retention 제한을 모두 비활성화합니다. Rotation은 active 파일이 `MAX_FILE_BYTES`를 넘기기 전에 같은 디렉터리에 `<active-stem>.<timestamp-ms>.<sequence><ext>` 형식 archive로 이동합니다. `MAX_ARCHIVES`와 `MAX_TOTAL_BYTES`는 oldest-first로 rotated archive만 삭제하며 active 파일은 삭제하지 않습니다. 1차 records 조회 API는 active file 중심으로 유지하고, rotation/retention/recovery 상태는 `/lab/analysis/event-storage/status`에서 확인합니다.
 
 `MAX_FILE_BYTES`, `MAX_ARCHIVES`, `MAX_TOTAL_BYTES`의 `0`은 해당 제한 비활성화를 의미합니다. `MAX_QUEUE`의 `0`은 유효하지 않으며 기본값 `2048`로 보정합니다. 음수, 숫자가 아닌 값, `size_t` 범위를 넘는 값은 warning log를 남기고 기본값으로 보정합니다. storage path가 빈 문자열이면 `.media_server.va_events.jsonl`로 보정합니다. 현재 corrupt/partial line recovery scan에는 별도 env가 없으며 status/records read path에서 line-by-line으로 skip/count 처리합니다.
+
+EventRecord file storage/query/search UI와 rotation/retention/recovery 1차는 구현 완료 상태입니다. 후속 범위는 rotated archive query, compaction/repair rewrite, archive별 상세 status와 운영 cleanup 도구입니다.
 
 ### Snapshot / clip hook
 

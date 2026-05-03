@@ -9,7 +9,7 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 - VA overlay: `va=1`로 YOLO/ONNX detection overlay를 요청할 수 있습니다.
 - 영상 분석 UI: Rule/Profile/Scenario, 객체 category, polygon/line, event action을 `/lab/rules`에서 설정합니다.
 - 저장 설정 호출: 숫자 ID 기반 `vaRule=<id>`로 저장된 source/profile/rule/scenario를 호출합니다.
-- VA Metadata Runtime Console: WebRTC 메타데이터 뷰어, 브라우저 client-side overlay, drill-down 런타임 대시보드, vaRule debug, SSE/WS side-channel과 custom SSE client 예제를 제공합니다.
+- VA Metadata Runtime Console: WebRTC 메타데이터 뷰어, 브라우저 client-side overlay, drill-down 런타임 대시보드, vaRule debug, SSE/WS side-channel, custom SSE client와 Custom RTSP+SSE overlay 예제를 제공합니다.
 - 이벤트/검증: Event POST, EventRecord JSON Lines 저장, VA metadata replay/baseline 검증 구조를 제공합니다.
 
 ## 대표 UI 미리보기
@@ -94,8 +94,9 @@ YOLO Detection
 3. polygon 제한구역 또는 line crossing 선을 지정합니다.
 4. 저장하면 숫자 기반 `vaRule` ID가 배정됩니다.
 5. 영상 분석 보기 탭에서 실시간 스트리밍, `va=1`, `vaRule=<id>` 모드로 확인합니다.
-6. WebRTC 메타데이터 뷰어에서는 `vaMetadata=1` DataChannel과 browser client-side overlay를 확인합니다.
-7. 외부 RTSP 클라이언트에서는 `?va=1` 또는 `?vaRule=<id>` server-side overlay URL을 사용합니다.
+6. Runtime Dashboard 탭에서 active analysis tap, metadata/backpressure, scenario/event/debug 상태를 확인합니다.
+7. WebRTC 메타데이터 뷰어에서는 `vaMetadata=1` DataChannel과 browser client-side overlay를 확인합니다.
+8. 외부 RTSP 클라이언트에서는 `?va=1` 또는 `?vaRule=<id>` server-side overlay URL을 사용합니다.
 
 RTSP 일반 viewer는 WebRTC DataChannel metadata를 표시하지 않습니다. custom client가 metadata를 따로 소비해야 할 때는 RTSP raw stream과 SSE/WS metadata side-channel을 별도로 조합합니다. 자세한 정책은 [docs/ui-guide.md](docs/ui-guide.md)와 [docs/video-analysis.md](docs/video-analysis.md)를 봅니다.
 
@@ -140,7 +141,7 @@ VA Metadata Runtime Console 검증:
 | 문서 | 역할 |
 | --- | --- |
 | [docs/development-guide.md](docs/development-guide.md) | 빌드, 실행, 디버깅, 테스트 명령 |
-| [docs/ui-guide.md](docs/ui-guide.md) | `/lab`, 영상 분석 설정/보기 UI 사용법 |
+| [docs/ui-guide.md](docs/ui-guide.md) | `/lab`, 영상 분석 설정/보기/Runtime Dashboard UI 사용법 |
 | [docs/config-reference.md](docs/config-reference.md) | 환경변수와 주요 설정 reference |
 | [docs/media-server-architecture.md](docs/media-server-architecture.md) | RTSP/WebRTC pipeline, stream/session, VA layer 배치 |
 | [docs/video-analysis.md](docs/video-analysis.md) | YOLO, tracking, TrackState, scenario, replay, EventRecord |

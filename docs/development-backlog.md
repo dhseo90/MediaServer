@@ -15,16 +15,16 @@
 - 구현 완료: RTSP/WebRTC relay, File/RTSP/WebRTC/HTTP-HLS source, YOLO/ONNX VA overlay, Rule/Profile UI, `vaRule=<id>` 호출, 기존 Intrusion/LineCrossing 이벤트 회귀 구조.
 - 구현 완료: TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, TrackHealth, cleanup 정책.
 - 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage/query/search UI, EventRecord rotation/retention/recovery 1차, snapshot/clip hook, WebRTC VA metadata DataChannel 출력 구조.
-- 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, 자동/longrun 검증 명령.
+- 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, 자동/longrun 검증 명령.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
 - 실험/제약: snapshot/clip은 hook/marker 중심이며 실제 제품용 frame extraction/clip recorder는 후속 구현입니다.
-- 남은 핵심: 실제 30분/2시간 장시간 검증 재실행, EventRecord archive query/compaction, 정밀 scenario timeline, dashboard trend/stale/cleanup warning, custom overlay renderer, 실제 현장 샘플 기반 튜닝입니다.
+- 남은 핵심: EventRecord archive query/compaction, 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화, WS metadata filter/subscription/control, 실제 현장 샘플 기반 튜닝입니다.
 
 ## P0 - 문서/UI 정리
 
 ### P0-1. 문서 구조 최종 QA
 
-- 상태: 진행
+- 상태: 완료
 - 목적: README와 `docs/*.md` 사이의 중복, 깨진 링크, 구현 완료/실험/예정 표현 혼선을 제거합니다.
 - 관련 파일: `README.md`, `docs/ui-guide.md`, `docs/video-analysis.md`, `docs/media-server-architecture.md`, `docs/development-guide.md`, `docs/config-reference.md`, `docs/stream-verification.md`, `docs/development-backlog.md`
 - 검증 명령:
@@ -40,7 +40,7 @@ git diff --check -- README.md docs
 - 상태: 완료
 - 목적: README와 UI guide의 대표 화면이 실제 `/lab/rules` UI와 일치하도록 스크린샷을 갱신합니다.
 - 관련 파일: `docs/assets/ui/`, `README.md`, `docs/ui-guide.md`, `scripts/internal/verify_lab_layout.mjs`
-- 완료 범위: dark mode 기준으로 `analysis-rule-list`, `analysis-rule-editor-basic`, `analysis-rule-editor-scenario`, `analysis-region-canvas`, `analysis-preview`, `analysis-developer-url`, `analysis-runtime-dashboard`를 갱신했습니다. 영상 화면은 실제 객체가 보이는 `va_four_scene_sample.mp4`를 사용했고, 영상/캔버스/dashboard 하단이 반쯤 잘리지 않도록 section 경계 기준으로 다시 캡처했습니다.
+- 완료 범위: dark mode 기준으로 `analysis-rule-list`, `analysis-rule-editor-basic`, `analysis-rule-editor-scenario`, `analysis-region-canvas`, `analysis-preview`, `analysis-developer-url`, `analysis-runtime-dashboard`를 갱신했습니다. 영상 화면은 실제 객체가 보이는 `va_four_scene_sample.mp4`를 사용했고, 영상/캔버스 하단이 반쯤 잘리지 않도록 section 경계 기준으로 다시 캡처했습니다. Runtime Dashboard는 전체 긴 화면 대신 Health Summary, Warnings, Metadata/Backpressure 대표 crop으로 교체했고 이미지 내부 개인 절대경로를 제거했습니다.
 - 검증 명령:
 
 ```bash
@@ -328,7 +328,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 ### P3-5. Runtime Dashboard 고도화
 
 - 상태: 진행
-- 목적: Overview, Tracks, Scenarios, Events, Metadata, Tracking Issues, vaRule Runtime Debug 1차 drill-down은 구현했습니다. 남은 작업은 trend sparkline, stale warning, cleanup warning, 정밀 scenario timeline입니다.
+- 목적: Overview, Tracks, Scenarios, Events, Metadata, Tracking Issues, vaRule Runtime Debug, Trend / Stale / Cleanup warning 1차 drill-down은 구현했습니다. 남은 작업은 trend sparkline, 장기 baseline 비교, phase entered time/cooldown remaining을 포함한 정밀 scenario timeline 고도화입니다.
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/verify_va_runtime_console_longrun.py`, `docs/ui-guide.md`
 - 검증 명령:
 
@@ -575,20 +575,21 @@ MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER='turn://user:pass@example.local:
 
 ### P7-4. Custom RTSP + metadata client 예제
 
-- 상태: 설계 완료 / 구현 예정
-- 목적: SSE metadata side-channel 수신 예제 `scripts/examples/va_metadata_sse_client.py`는 구현했습니다. 다음 1차 구현 후보는 `scripts/examples/rtsp_sse_overlay_viewer.py` 형태의 Python OpenCV RTSP + SSE overlay optional client example입니다. 서버 core 기능이 아니며, RTSP raw stream과 SSE/WS runtime metadata를 custom client가 직접 조합해 client-side overlay renderer까지 그리는 별도 예제입니다. 일반 VLC/ffplay/IINA에 metadata UI가 생기는 기능은 아닙니다.
-- 관련 파일: `scripts/examples/va_metadata_sse_client.py`, `scripts/examples/rtsp_sse_overlay_viewer.py`, `scripts/internal/va_metadata_stream_smoke.py`, `docs/video-analysis.md`, `docs/ui-guide.md`, `docs/stream-verification.md`
+- 상태: 완료
+- 목적: SSE metadata side-channel 수신 예제 `scripts/examples/va_metadata_sse_client.py`와 Python OpenCV 기반 Custom RTSP + SSE overlay optional client example `scripts/examples/va_rtsp_sse_overlay_client.py`를 구현했습니다. 서버 core 기능이 아니며, RTSP raw stream과 SSE runtime metadata를 custom client가 직접 조합해 client-side overlay renderer를 그리는 별도 예제입니다. 일반 VLC/ffplay/IINA에 metadata UI가 생기는 기능은 아닙니다.
+- 관련 파일: `scripts/examples/va_metadata_sse_client.py`, `scripts/examples/va_rtsp_sse_overlay_client.py`, `scripts/internal/va_metadata_stream_smoke.py`, `docs/video-analysis.md`, `docs/ui-guide.md`, `docs/stream-verification.md`
 - 검증 명령:
 
 ```bash
-python3 -m py_compile scripts/examples/va_metadata_sse_client.py
+python3 -m py_compile scripts/examples/va_metadata_sse_client.py scripts/examples/va_rtsp_sse_overlay_client.py
 python3 scripts/examples/va_metadata_sse_client.py --help
+python3 scripts/examples/va_rtsp_sse_overlay_client.py --help
 ./server.sh verify-rtsp-va-overlay-policy
 ./server.sh verify-va-metadata-sidechannel
 ```
 
-- 후속 구현 검증 후보: RTSP raw video 재생 확인과 SSE metadata client smoke를 분리해 먼저 통과시킨 뒤, optional OpenCV overlay 예제는 `--help`, 짧은 timeout 실행, stale metadata 표시, bbox/trackId/className draw 여부를 수동 확인합니다.
-- 우선순위 이유: RTSP 일반 viewer와 custom client의 차이를 실제 예제로 보여줘야 현장 연동 혼선을 줄일 수 있습니다. 서버 core, RTSP server-side overlay 정책, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload는 이 항목에서 변경하지 않습니다.
+- 후속 범위: WS 기반 custom overlay renderer 확장, metadata filter/subscription 제어, 현장 sample별 색상/label/track 표시 옵션 개선, 배포용 dependency 안내 정리입니다.
+- 우선순위 이유: RTSP 일반 viewer와 custom client의 차이를 실제 예제로 보여줘야 현장 연동 혼선을 줄일 수 있습니다. 서버 core, RTSP server-side overlay 정책, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload는 이 항목에서 변경하지 않았습니다.
 
 ### P7-5. Event JSON schema/OpenAPI 분리
 

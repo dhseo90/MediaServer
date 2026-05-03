@@ -20,7 +20,7 @@
 - `analysis-rule-editor-basic.png`는 상단 command card와 섹션 이동 버튼, 기본 정보 card 사이 여백이 분리된 상태로 캡처
 - `analysis-region-canvas.png`와 `analysis-preview.png`는 실제 객체가 있는 `va_four_scene_sample.mp4` 기준이며 영상 프레임 하단까지 포함
 - `analysis-developer-url.png`는 일반 확인용 URL과 custom client용 side-channel URL 그룹을 모두 포함
-- `analysis-runtime-dashboard.png`는 Health Summary, Warnings, Metadata/Backpressure, Runtime Detail, Tracks, Scenario/Event/Tracking Issues 구간이 table row 중간에서 잘리지 않도록 panel 경계 기준으로 캡처
+- `analysis-runtime-dashboard.png`는 문서 대표용으로 Health Summary, Warnings, Metadata/Backpressure 구간만 보이도록 crop하고 개인 절대경로를 제거
 
 ## 2026-05-03 - 문서 UI screenshot 전면 갱신
 
@@ -40,7 +40,7 @@
 - 영상/캔버스 이미지는 실제 객체가 있는 `va_four_scene_sample.mp4` 사용
 - 영상 분석 보기와 영역/라인 캔버스는 영상 프레임 하단까지 포함
 - 룰 편집 상단 command card와 `기본 정보` 섹션 이동 버튼 영역은 서로 붙어 보이지 않는 상태로 캡처
-- Runtime Dashboard는 table row 중간에서 잘리지 않도록 전체 panel 경계 기준으로 캡처
+- Runtime Dashboard는 문서 본문 가독성을 위해 전체 긴 화면 대신 대표 section crop을 사용
 
 ## 2026-05-03 - 실패 이슈 재점검
 
