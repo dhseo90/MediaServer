@@ -12,9 +12,11 @@ namespace analysis {
 
 struct IntrusionDwellScenarioOptions {
     bool enabled{app_config::kDefaultAnalysisIntrusionDwellEnabled};
+    std::string scenario_key;
     int candidate_time_ms{app_config::kDefaultAnalysisIntrusionDwellCandidateMs};
     int dwell_time_ms{app_config::kDefaultAnalysisIntrusionDwellDwellMs};
     int cooldown_ms{app_config::kDefaultAnalysisIntrusionDwellCooldownMs};
+    bool require_stable_track{false};
     std::vector<std::string> target_class_tokens{"person"};
     std::vector<std::string> restricted_zone_ids;
 };
@@ -26,6 +28,7 @@ public:
     explicit IntrusionDwellScenario(IntrusionDwellScenarioOptions options = {});
 
     std::string ScenarioId() const override;
+    std::string ScenarioKey() const override;
     ScenarioUpdate Evaluate(const SceneContext& scene_context,
                             const TrackSceneContext& track_context,
                             const ScenarioInstance* previous_instance) override;

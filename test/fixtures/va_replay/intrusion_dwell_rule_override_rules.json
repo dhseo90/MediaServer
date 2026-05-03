@@ -1,0 +1,39 @@
+[
+  {
+    "id": "dwell-override-rule",
+    "enabled": true,
+    "match": {
+      "sourceKind": "*",
+      "route": "*"
+    },
+    "ruleKind": "scenario",
+    "analysis": {
+      "classes": ["person"]
+    },
+    "event": {
+      "type": "intrusion-dwell",
+      "minConfidence": 0.1,
+      "region": {
+        "type": "polygon",
+        "points": [
+          { "x": 0.1, "y": 0.1 },
+          { "x": 0.5, "y": 0.1 },
+          { "x": 0.5, "y": 0.5 },
+          { "x": 0.1, "y": 0.5 }
+        ]
+      }
+    },
+    "scenario": {
+      "type": "intrusion-dwell",
+      "enabled": true,
+      "candidateTimeMs": 500,
+      "dwellTimeMs": 2000,
+      "cooldownMs": 1000,
+      "targetClasses": ["person"],
+      "restrictedZoneIds": ["override-zone"],
+      "trackHealth": {
+        "requireStableTrack": false
+      }
+    }
+  }
+]

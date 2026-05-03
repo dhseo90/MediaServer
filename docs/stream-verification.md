@@ -711,6 +711,7 @@ baseline fixture 전체 검증:
 - Intrusion
 - LineCrossing
 - IntrusionDwell
+- IntrusionDwell per-rule override: 저장 rule의 `candidateTimeMs`/`dwellTimeMs`/`cooldownMs`와 `restrictedZoneIds`가 env default보다 우선 적용되는지 확인
 - ReEntry
 - WrongDirection
 - IntrusionAfterLineCrossing
@@ -851,7 +852,7 @@ Replay 결과 차이는 누락/초과/불일치 이벤트를 먼저 확인합니
 | TrackStateManager | Active/Lost/Reacquired/Terminated, ring buffer, trajectory cap, cleanup |
 | SceneContextBuilder | ZoneState, dwellTimeMs, LineCrossState, crossing direction 계산 |
 | EventManager | dedupe, cooldown, lifecycle, stale state cleanup |
-| ScenarioEngine | stream/channel별 instance 분리 |
+| ScenarioEngine | stream/channel별 instance 분리, saved scenario payload는 env default보다 우선 |
 | IntrusionDwell | Candidate -> Observing -> Confirmed -> Cooldown -> Ended |
 | 신규 scenarios | ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering replay 통과 |
 | TrackHealth | 진단 metadata만 추가, tracking id 생성 방식 유지 |

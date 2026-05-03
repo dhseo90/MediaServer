@@ -82,6 +82,7 @@ public:
     virtual ~IScenario() = default;
 
     virtual std::string ScenarioId() const = 0;
+    virtual std::string ScenarioKey() const;
     virtual ScenarioUpdate Evaluate(const SceneContext& scene_context,
                                     const TrackSceneContext& track_context,
                                     const ScenarioInstance* previous_instance) = 0;
@@ -94,6 +95,7 @@ public:
     explicit ScenarioEngine(ScenarioEngineOptions options = {});
 
     void RegisterScenario(std::unique_ptr<IScenario> scenario);
+    void ReplaceScenarios(std::vector<std::unique_ptr<IScenario>> scenarios);
     std::vector<AnalysisEvent> Evaluate(const SceneContext& scene_context, EventManager* event_manager);
     std::vector<ScenarioInstance> Snapshot(const std::string& channel_id = {}) const;
     ScenarioEngineMetrics Metrics() const;

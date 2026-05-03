@@ -13,7 +13,9 @@ namespace analysis {
 
 struct WrongDirectionScenarioOptions {
     bool enabled{app_config::kDefaultAnalysisWrongDirectionEnabled};
+    std::string scenario_key;
     int cooldown_ms{app_config::kDefaultAnalysisWrongDirectionCooldownMs};
+    bool require_stable_track{false};
     std::vector<std::string> target_class_tokens{"person"};
     std::vector<std::string> target_line_ids;
     std::vector<std::string> allowed_direction_rules;
@@ -26,6 +28,7 @@ public:
     explicit WrongDirectionScenario(WrongDirectionScenarioOptions options = {});
 
     std::string ScenarioId() const override;
+    std::string ScenarioKey() const override;
     ScenarioUpdate Evaluate(const SceneContext& scene_context,
                             const TrackSceneContext& track_context,
                             const ScenarioInstance* previous_instance) override;

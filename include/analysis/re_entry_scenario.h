@@ -14,8 +14,10 @@ namespace analysis {
 
 struct ReEntryScenarioOptions {
     bool enabled{app_config::kDefaultAnalysisReEntryEnabled};
+    std::string scenario_key;
     int re_entry_window_ms{app_config::kDefaultAnalysisReEntryWindowMs};
     int cooldown_ms{app_config::kDefaultAnalysisReEntryCooldownMs};
+    bool require_stable_track{false};
     std::vector<std::string> target_class_tokens{"person"};
     std::vector<std::string> target_zone_ids;
 };
@@ -27,6 +29,7 @@ public:
     explicit ReEntryScenario(ReEntryScenarioOptions options = {});
 
     std::string ScenarioId() const override;
+    std::string ScenarioKey() const override;
     ScenarioUpdate Evaluate(const SceneContext& scene_context,
                             const TrackSceneContext& track_context,
                             const ScenarioInstance* previous_instance) override;

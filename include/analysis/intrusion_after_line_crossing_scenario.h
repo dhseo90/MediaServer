@@ -14,10 +14,12 @@ namespace analysis {
 
 struct IntrusionAfterLineCrossingScenarioOptions {
     bool enabled{app_config::kDefaultAnalysisIntrusionAfterLineCrossingEnabled};
+    std::string scenario_key;
     int max_delay_after_crossing_ms{
         app_config::kDefaultAnalysisIntrusionAfterLineCrossingMaxDelayMs};
     int dwell_time_ms{app_config::kDefaultAnalysisIntrusionAfterLineCrossingDwellMs};
     int cooldown_ms{app_config::kDefaultAnalysisIntrusionAfterLineCrossingCooldownMs};
+    bool require_stable_track{false};
     std::vector<std::string> target_class_tokens{"person"};
     std::vector<std::string> target_line_ids;
     std::vector<std::string> target_zone_ids;
@@ -32,6 +34,7 @@ public:
         IntrusionAfterLineCrossingScenarioOptions options = {});
 
     std::string ScenarioId() const override;
+    std::string ScenarioKey() const override;
     ScenarioUpdate Evaluate(const SceneContext& scene_context,
                             const TrackSceneContext& track_context,
                             const ScenarioInstance* previous_instance) override;

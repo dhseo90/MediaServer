@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <sstream>
+#include <unordered_set>
 #include <utility>
 
 namespace analysis {
@@ -59,6 +60,10 @@ ScenarioEngineOptions BuildScenarioEngineOptionsFromConfig(const app::AppConfig&
     return options;
 }
 
+std::string IScenario::ScenarioKey() const {
+    return ScenarioId();
+}
+
 EventLifecycleOptions IScenario::EventOptions(const ScenarioInstance& instance,
                                               const ScenarioEngineOptions& engine_options) const {
     (void)instance;
@@ -86,7 +91,46 @@ void ScenarioEngine::RegisterScenario(std::unique_ptr<IScenario> scenario) {
     if (scenario == nullptr || scenario->ScenarioId().empty()) {
         return;
     }
+    options_.enabled = true;
     scenarios_.push_back(std::move(scenario));
+}
+
+void ScenarioEngine::ReplaceScenarios(std::vector<std::unique_ptr<IScenario>> scenarios) {
+    std::vector<std::unique_ptr<IScenario>> valid_scenarios;
+    valid_scenarios.reserve(scenarios.size());
+    std::unordered_set<std::string> active_keys;
+    for (auto& scenario : scenarios) {
+        if (scenario == nullptr || scenario->ScenarioId().empty()) {
+            continue;
+        }
+        const std::string scenario_key = scenario->ScenarioKey();
+        if (scenario_key.empty()) {
+            continue;
+        }
+        active_keys.insert(scenario_key);
+        valid_scenarios.push_back(std::move(scenario));
+    }
+
+    scenarios_ = std::move(valid_scenarios);
+    options_.enabled = !scenarios_.empty();
+    for (auto channel_it = instances_by_channel_.begin(); channel_it != instances_by_channel_.end();) {
+        auto& instances = channel_it->second;
+        for (auto instance_it = instances.begin(); instance_it != instances.end();) {
+            const std::size_t split = instance_it->first.find(":track:");
+            const std::string scenario_key =
+                split == std::string::npos ? instance_it->first : instance_it->first.substr(0, split);
+            if (active_keys.find(scenario_key) == active_keys.end()) {
+                instance_it = instances.erase(instance_it);
+            } else {
+                ++instance_it;
+            }
+        }
+        if (instances.empty()) {
+            channel_it = instances_by_channel_.erase(channel_it);
+        } else {
+            ++channel_it;
+        }
+    }
 }
 
 std::vector<AnalysisEvent> ScenarioEngine::Evaluate(const SceneContext& scene_context,
@@ -104,7 +148,8 @@ std::vector<AnalysisEvent> ScenarioEngine::Evaluate(const SceneContext& scene_co
             continue;
         }
         const std::string scenario_id = scenario->ScenarioId();
-        if (scenario_id.empty()) {
+        const std::string scenario_key = scenario->ScenarioKey();
+        if (scenario_id.empty() || scenario_key.empty()) {
             continue;
         }
         for (const auto& track_context : scene_context.tracks) {
@@ -113,7 +158,7 @@ std::vector<AnalysisEvent> ScenarioEngine::Evaluate(const SceneContext& scene_co
                 continue;
             }
 
-            const std::string instance_key = BuildInstanceKey(scenario_id, track_context.track_id);
+            const std::string instance_key = BuildInstanceKey(scenario_key, track_context.track_id);
             const auto previous_it = instances.find(instance_key);
             const ScenarioInstance* previous =
                 previous_it == instances.end() ? nullptr : &previous_it->second;
@@ -132,7 +177,7 @@ std::vector<AnalysisEvent> ScenarioEngine::Evaluate(const SceneContext& scene_co
                 EventCandidate candidate;
                 candidate.key.stream_id = scene_context.stream_id;
                 candidate.key.channel_id = channel_id;
-                candidate.key.scenario_id = scenario_id;
+                candidate.key.scenario_id = scenario_key;
                 candidate.key.zone_id = instance.zone_id;
                 candidate.key.track_id = track_context.track_id;
                 candidate.key.object_key = instance_key;

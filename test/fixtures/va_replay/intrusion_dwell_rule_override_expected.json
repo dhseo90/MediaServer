@@ -1,0 +1,22 @@
+{
+  "timestampToleranceMs": 250,
+  "events": [
+    {
+      "streamId": "baseline-dwell",
+      "channelId": "baseline-dwell",
+      "frameId": 2,
+      "timestampMs": 3000,
+      "type": "intrusion-dwell",
+      "zoneId": "override-zone",
+      "trackId": 31
+    }
+  ],
+  "frames": [
+    {
+      "streamId": "baseline-dwell",
+      "channelId": "baseline-dwell",
+      "frameId": 2,
+      "eventCount": 1
+    }
+  ]
+}
