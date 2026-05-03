@@ -1,6 +1,13 @@
 # Media Server Architecture
 
-이 문서는 MediaServer의 서버 구조와 VA pipeline 배치를 빠르게 이해하기 위한 문서입니다. 사용 명령은 [development-guide.md](./development-guide.md), 검증 기준은 [stream-verification.md](./stream-verification.md), VA 상세는 [video-analysis.md](./video-analysis.md), YouTube 실험 기능은 [youtube-import.md](./youtube-import.md)를 봅니다.
+이 문서는 MediaServer의 서버 구조와 VA pipeline 배치를 빠르게 이해하기 위한 문서입니다.
+
+관련 문서:
+
+- 사용 명령: [development-guide.md](./development-guide.md)
+- 검증 기준: [stream-verification.md](./stream-verification.md)
+- VA 상세: [video-analysis.md](./video-analysis.md)
+- YouTube 실험 기능: [youtube-import.md](./youtube-import.md)
 
 ## 1. 목표
 

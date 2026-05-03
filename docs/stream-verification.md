@@ -75,7 +75,13 @@ WebRTC/stream 변경:
 ./server.sh verify-tracker-stability --long --overlap-focus
 ```
 
-Close-object guard 검증은 guard off 회귀, diagnostic 회귀, enforce opt-in 비교를 분리합니다. 기본값은 `off`이므로 먼저 일반 회귀가 baseline을 유지하는지 확인하고, `diagnostic` 모드에서 score 변경 없이 metadata/UI 진단만 노출되는지 확인한 뒤, `enforce` 모드에서 같은 fixture를 다시 실행해 ID continuity 지표만 비교합니다.
+Close-object guard 검증은 mode별 목적을 분리합니다.
+
+| 모드 | 확인할 것 | 통과 기준 |
+| --- | --- | --- |
+| `off` | 일반 회귀 baseline | 기존 event/scenario 결과 유지 |
+| `diagnostic` | metadata/UI 진단 노출 | score와 tracking 결과 변경 없음 |
+| `enforce` | opt-in 보정 후보 비교 | ID continuity 지표만 비교 |
 
 기본 비교 리포트는 같은 sample을 `off`, `diagnostic`, `enforce` 순서로 실행하고 mode별 tracker summary JSON과 Markdown report를 `/tmp/media_server_close_object_tracker_*` 아래에 남깁니다.
 
@@ -85,9 +91,32 @@ Close-object guard 검증은 guard off 회귀, diagnostic 회귀, enforce opt-in
   --modes off,diagnostic,enforce
 ```
 
-비교 기준은 associationConfidence 최저값, overlapRisk 최대값, center jump 최대값, lost/reacquired, missed-frame-spike, direction-change-spike, ID switch risk, fragmentation, overlap fragmentation, guardDecision count, closeObjectGuardApplied/rejected count, event/scenario signature delta입니다. `diagnostic`은 score 변경이 없어야 하며 `enforce`는 opt-in 보정 후보로만 봅니다. event/scenario delta가 있거나 replay/event 결과가 흔들리면 close-object guard는 default on 전환 금지입니다. default on 전환은 여러 fixture와 현장 샘플에서 ID continuity 개선과 replay/event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
+비교 기준:
 
-비교 리포트가 command success라도 `judgement: warning`일 수 있습니다. 예를 들어 `event/scenario delta=False`여도 `enforceVsOff idSwitchRiskScore`가 증가하면 제품 회귀로 단정하지는 않지만 default-on 근거로 사용하지 않습니다. 이 경우 close-object guard는 계속 default off로 두고 threshold tuning 또는 추가 fixture 수집 대상으로 남깁니다.
+| 범주 | 지표 |
+| --- | --- |
+| association | associationConfidence 최저값, score margin |
+| overlap/이동 | overlapRisk 최대값, center jump 최대값 |
+| lifecycle | lost/reacquired, missed-frame-spike, direction-change-spike |
+| ID 안정성 | ID switch risk, fragmentation, overlap fragmentation |
+| guard 동작 | guardDecision count, closeObjectGuardApplied/rejected count |
+| 제품 영향 | event/scenario signature delta |
+
+판정 규칙:
+
+- `diagnostic`은 score 변경이 없어야 합니다.
+- `enforce`는 opt-in 보정 후보로만 봅니다.
+- event/scenario delta가 있으면 default on 전환 금지입니다.
+- replay/event 결과가 흔들려도 default on 전환 금지입니다.
+- default on은 여러 fixture와 현장 샘플에서 ID continuity 개선과 event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
+
+비교 리포트 해석:
+
+- command success라도 `judgement: warning`일 수 있습니다.
+- `event/scenario delta=False`여도 `enforceVsOff idSwitchRiskScore`가 증가할 수 있습니다.
+- 이 경우 default-on 근거로 사용하지 않습니다.
+- close-object guard는 계속 default off로 둡니다.
+- 후속은 threshold tuning 또는 추가 fixture 수집입니다.
 
 ```bash
 ./server.sh verify-tracker-stability --long --overlap-focus
@@ -293,9 +322,27 @@ python3 scripts/examples/va_metadata_sse_client.py \
   --timeout-seconds 15
 ```
 
-이 예제는 SSE URL을 입력받아 `event: metadata`를 수신하고, JSON parse/schema 확인, `streamId/channelId`, `tracks/events/scenarios` count, latest timestamp, message count를 출력합니다. payload 본문까지 보고 싶으면 `--print-json`을 추가합니다. RTSP video 재생기나 overlay renderer는 포함하지 않습니다. 영상은 위 ffplay/VLC 같은 일반 RTSP player로 별도 재생해야 하며, 일반 VLC/ffplay/IINA는 SSE/WS metadata side-channel을 자동 overlay하지 않습니다.
+SSE metadata client 검증 범위:
 
-Custom RTSP + SSE metadata overlay renderer는 optional client example입니다. 검증은 RTSP raw video 재생과 SSE metadata 수신을 분리해서 확인한 뒤, OpenCV 예제가 둘을 client-side에서 조합하는지 smoke로 확인합니다. 이 단계에서도 VLC/ffplay/IINA가 SSE/WS metadata를 자동 overlay한다고 판단하지 않습니다.
+| 포함 | 제외 |
+| --- | --- |
+| `event: metadata` 수신 | RTSP video 재생 |
+| JSON parse/schema 확인 | overlay renderer |
+| `streamId/channelId` 확인 | 일반 player 자동 overlay |
+| track/event/scenario count |  |
+| latest timestamp와 message count |  |
+
+payload 본문까지 보고 싶으면 `--print-json`을 추가합니다. 영상은 ffplay/VLC 같은 일반 RTSP player로 별도 재생합니다.
+
+Custom RTSP + SSE metadata overlay renderer는 optional client example입니다. 검증은 세 단계로 나눕니다.
+
+| 단계 | 확인 |
+| --- | --- |
+| RTSP raw video | overlay 없는 영상 재생 |
+| SSE metadata | runtime metadata 수신 |
+| OpenCV client | video와 metadata를 client-side에서 조합 |
+
+이 단계에서도 VLC/ffplay/IINA가 SSE/WS metadata를 자동 overlay한다고 판단하지 않습니다.
 
 Custom RTSP + SSE overlay renderer 예제:
 
@@ -308,7 +355,16 @@ python3 scripts/examples/va_rtsp_sse_overlay_client.py \
   --headless
 ```
 
-OpenCV가 설치된 환경에서는 window mode에서 RTSP raw frame이 표시되는지, SSE latest metadata로 bbox/trackId/className이 그려지는지, metadata가 끊겼을 때 stale 표시가 나오는지 확인합니다. OpenCV가 없는 환경에서는 예제가 설치 안내 메시지와 함께 실패해야 합니다. 이 optional example 검증은 서버 core, RTSP server-side overlay 정책, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload 변경 검증이 아닙니다.
+OpenCV 예제 확인 항목:
+
+| 환경 | 기대 결과 |
+| --- | --- |
+| OpenCV 설치됨 | window mode에서 RTSP raw frame 표시 |
+| metadata 수신 중 | bbox, trackId, className 표시 |
+| metadata 끊김 | stale 표시 |
+| OpenCV 없음 | 설치 안내 메시지와 함께 실패 |
+
+이 optional example 검증은 서버 core, RTSP server-side overlay 정책, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload 변경 검증이 아닙니다.
 
 OpenCV dependency 확인:
 
@@ -496,9 +552,22 @@ consumer connect/disconnect cycle 이후 idle baseline RSS 누적 증가를 확�
 - 120m active 구간은 warmup baseline `679.80MiB`에서 last RSS `881.38MiB`까지 증가했고, last-30m slope는 `+51.77MiB`, `+1.726MiB/min`입니다. active plateau는 뚜렷하지 않으므로 high-water 관찰 메모는 유지합니다.
 - cleanup 후 30분 idle RSS는 `642.97MiB -> 642.67MiB`로 유지/하락했고, idle 중 activeSessions, activeStreams, activeAnalysisTaps, SSE/WS clients, RTSP consumers 재증가는 없었습니다.
 - `ERROR` / `NOT_LINKED` / `NOT_NEGOTIATED` / `OTHER` flow return은 관찰되지 않았고, port cleanup은 정상입니다. 이 조합이면 RSS WARNING 해제 가능 후보로 봅니다.
-- 후속 30분 predev 회귀 검증도 `PASS`입니다. Summary는 `/tmp/media_server_predev-1777679318-64004_summary.json`, report는 `/tmp/media_server_predev-1777679318-64004_report.md`이며 결과는 `pass=69`, `fail=0`, `skip=1`입니다. Runtime Console은 stable 승격 가능 상태로 판단하되 active 구간 high-water 관찰 메모는 유지합니다.
+- 후속 30분 predev 회귀 검증도 `PASS`입니다.
+- Summary는 `/tmp/media_server_predev-1777679318-64004_summary.json`입니다.
+- Report는 `/tmp/media_server_predev-1777679318-64004_report.md`입니다.
+- 결과는 `pass=69`, `fail=0`, `skip=1`입니다.
+- Runtime Console은 stable 승격 가능 상태로 판단하되 active 구간 high-water 관찰 메모는 유지합니다.
 
-기본 `./server.sh test`에는 포함하지 않습니다. 30분 이상 실행하는 선택 검증이며, 120분 실행은 release candidate 또는 고위험 RTSP/GStreamer/WebRTC/VA fanout 변경 gate로 다룹니다. 이 명령은 검증용 subprocess env로 `MEDIA_SERVER_WEBRTC_TRACE=1`을 켜서 DataChannel sent/drop/failure count를 로그에서 집계하며, `scripts/.media_server.env` 같은 영구 설정 파일은 수정하지 않습니다.
+Runtime Console 검증 정책:
+
+| 항목 | 정책 |
+| --- | --- |
+| 기본 test 포함 여부 | `./server.sh test`에는 포함하지 않음 |
+| 실행 성격 | 30분 이상 실행하는 선택 검증 |
+| 120분 실행 | release candidate 또는 고위험 RTSP/GStreamer/WebRTC/VA fanout 변경 gate |
+| trace env | 검증용 subprocess env에서 `MEDIA_SERVER_WEBRTC_TRACE=1` 사용 |
+| 집계 | DataChannel sent/drop/failure count를 로그에서 집계 |
+| 영구 설정 | `scripts/.media_server.env` 같은 파일은 수정하지 않음 |
 
 Runtime debug counter는 기존 Event POST/WebRTC/SSE metadata payload schema를 변경하지 않는 내부 진단 값입니다. 기본적으로 counter만 누적하며, lifecycle trace log가 필요할 때만 `MEDIA_SERVER_RUNTIME_DEBUG_COUNTER_TRACE=1`을 서버 실행 환경에 추가합니다.
 
@@ -596,7 +665,12 @@ MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 \
 ./server.sh verify-event-post --mode recovery --http-base http://127.0.0.1:8082
 ```
 
-이 보정 경로에서 schema/recovery가 통과하면 기본 서버 disabled 실패는 제품 회귀가 아니라 실행 환경 조건으로 기록합니다. EventStorage가 비활성인 보정 서버에서는 recovery mode의 EventStorage corrupt/partial injection 세부 검증이 skip될 수 있으며, 이 경우 Event POST dispatcher recovery 통과와 EventRecord storage recovery 검증을 분리해서 봅니다.
+보정 경로 해석:
+
+- schema/recovery가 통과하면 기본 서버 disabled 실패는 제품 회귀가 아닙니다.
+- 이 경우 실행 환경 조건으로 기록합니다.
+- EventStorage가 비활성인 보정 서버에서는 corrupt/partial injection 세부 검증이 skip될 수 있습니다.
+- Event POST dispatcher recovery와 EventRecord storage recovery 검증은 분리해서 봅니다.
 
 확인 기준:
 

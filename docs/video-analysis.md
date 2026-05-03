@@ -71,9 +71,25 @@ matching score는 다음 요소를 조합합니다.
 
 unmatched track은 제한된 lost buffer에 남고, 짧은 누락 뒤 같은 class/object가 다시 matching되면 `reacquired` 상태로 관측됩니다.
 
-같은 class 객체가 가까워지거나 bbox가 겹치는 구간에서는 현재 direction-based/lightweight tracker의 ID continuity가 불안정할 수 있습니다. 이 경우 bbox 좌표가 틀렸다기보다 association score가 낮아지며 trackId가 흔들리거나 lost/reacquired로 보일 수 있습니다. Kalman Filter, ByteTrack, BoT-SORT, 실제 Re-ID 모델 도입이나 detector 후처리 변경은 이번 진단/보강 범위가 아닙니다.
+같은 class 객체가 가까워지거나 bbox가 겹치는 구간에서는 현재 direction-based/lightweight tracker의 ID continuity가 불안정할 수 있습니다.
 
-Close-object association guard는 이 한계를 관찰하기 위한 opt-in 진단/보정 skeleton입니다. 기본 정책은 `off`이며 기존 scoring, Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema, Scenario 판단 로직을 바꾸지 않습니다. `diagnostic` 모드는 후보와 risk만 남기고 score를 바꾸지 않으며, `enforce` 모드에서만 제한적인 score penalty/boost 후보가 적용됩니다. default-off, diagnostic, enforce opt-in 검증은 replay/event/metadata 경로를 통과했지만 현재 샘플에서 ID continuity 개선 근거는 제한적이므로 default on 전환은 보류합니다.
+| 관찰 증상 | 해석 |
+| --- | --- |
+| bbox 좌표는 맞음 | detector보다 tracker association 후보 |
+| association score 저하 | trackId 흔들림 가능 |
+| lost/reacquired 증가 | 짧은 누락 뒤 재연결된 상태 |
+| detector 후처리 변경 필요 | 이번 진단/보강 범위 아님 |
+| Kalman/ByteTrack/BoT-SORT/Re-ID 도입 | 이번 범위 아님 |
+
+Close-object association guard는 이 한계를 관찰하기 위한 opt-in 진단/보정 skeleton입니다.
+
+| 모드 | 동작 | 변경 없음 |
+| --- | --- | --- |
+| `off` | 기본 정책 | 기존 scoring과 판단 유지 |
+| `diagnostic` | 후보와 risk만 기록 | tracking 결과 변경 없음 |
+| `enforce` | 제한적 score penalty/boost 후보 적용 | 실험적 opt-in |
+
+Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema, Scenario 판단 로직은 바꾸지 않습니다. default-off, diagnostic, enforce opt-in 검증은 replay/event/metadata 경로를 통과했지만 현재 샘플에서 ID continuity 개선 근거는 제한적이므로 default on 전환은 보류합니다.
 
 ### TrackStateManager
 
@@ -257,7 +273,19 @@ Idle -> Candidate -> Observing -> Confirmed -> Cooldown -> Ended
 
 line별 허용 방향과 실제 crossing 방향이 다르면 `wrong-direction` 이벤트를 발생시킵니다. 기존 `line-crossing` 이벤트는 그대로 유지합니다.
 
-룰 편집 UI에서는 WrongDirection 템플릿을 선택한 뒤 target class/category, line 2점 geometry, 허용 방향 `forward` 또는 `reverse`, `cooldownMs`를 설정합니다. `any`는 양방향을 모두 허용해 위반 방향을 정의할 수 없으므로 WrongDirection 템플릿에서는 사용하지 않습니다. 저장 전 검토와 Payload preview는 `wrong-direction` scenario payload, line geometry, 허용 방향, same track/line cooldown 중복 억제를 보여줍니다. 이 UI는 기존 rule/event payload 구조의 `event.region.direction`을 재사용하며 ScenarioEngine 판단 로직, Event POST payload schema, WebRTC/SSE/WS metadata schema를 변경하지 않습니다.
+룰 편집 UI 설정 항목:
+
+| 항목 | 설명 |
+| --- | --- |
+| target | class/category |
+| geometry | line 2점 |
+| 허용 방향 | `forward` 또는 `reverse` |
+| cooldown | same track/line 중복 억제 |
+| 미사용 방향 | `any`, 위반 방향을 정의할 수 없음 |
+
+저장 전 검토와 Payload preview는 `wrong-direction` scenario payload, line geometry, 허용 방향, cooldown 중복 억제를 보여줍니다.
+
+이 UI는 기존 rule/event payload 구조의 `event.region.direction`을 재사용합니다. ScenarioEngine 판단 로직, Event POST payload schema, WebRTC/SSE/WS metadata schema는 변경하지 않습니다.
 
 ### IntrusionAfterLineCrossing
 
@@ -302,11 +330,31 @@ TrackHealth 주요 값:
 
 TrackingIssueReport는 `unstable-track`, `overlap-risk`, `missed-frame-spike`, `direction-change-spike`, `low-association-confidence`, `lost`, `reacquired`를 stream/channel별로 제한 수집합니다. 이 기능은 진단용이며 tracking id 생성 결과를 변경하지 않습니다.
 
-Close-object association 문제를 볼 때는 `TrackHealth.status`, `overlapRisk`, `associationConfidence`, `missedFrameCount`, lost/reacquired count, `missed-frame-spike`, `direction-change-spike`를 함께 봅니다. `overlapRisk`가 높고 `associationConfidence`가 낮아지는 동안 같은 class trackId만 흔들리면 detector보다 tracker association 한계 후보로 분리합니다.
+Close-object association 문제를 볼 때 함께 보는 값:
 
-Close-object diagnostic이 켜진 경우 `closeObjectRisk`, `nearestSameClassTrackId`, `nearestSameClassDistance`, `candidateScore`, `bestScore`, `secondScore`, `scoreMargin`, `centerJump`, `directionConflict`, `wouldPenalize`, `wouldHoldReacquire`, `guardDecision`을 제한된 per-frame/per-track diagnostic으로 남길 수 있습니다. 이 값은 candidate matrix 전체 저장이 아니라 matched/rejected 주요 후보 요약이며 Runtime Dashboard와 WebRTC BBox 진단에서 사람에게 필요한 수준으로만 표시합니다. `guardDecision=observe`는 관찰만, `enforce-penalize`는 opt-in 보정 후보가 실제 ranking에 반영된 상태를 뜻합니다.
+| 범주 | 값 |
+| --- | --- |
+| TrackHealth | status, overlapRisk, associationConfidence |
+| frame 누락 | missedFrameCount, missed-frame-spike |
+| lifecycle | lost/reacquired count |
+| 방향 변화 | direction-change-spike |
 
-Close-object guard의 기본값은 `off`입니다. `compare-close-object-tracker` 리포트는 같은 sample에서 `off`, `diagnostic`, `enforce`를 비교해 threshold tuning과 default-on 검토 근거를 모으는 도구이며, event/scenario 결과가 달라지면 default on 전환 근거로 사용할 수 없습니다. 이 흐름은 현재 direction-based tracker의 한계를 정량화하는 진단/opt-in guard이며 Kalman, ByteTrack, BoT-SORT, Re-ID 같은 대형 tracker 교체가 아닙니다.
+`overlapRisk`가 높고 `associationConfidence`가 낮아지는 동안 같은 class trackId만 흔들리면 detector보다 tracker association 한계 후보로 분리합니다.
+
+Close-object diagnostic 값:
+
+| 값 | 의미 |
+| --- | --- |
+| `closeObjectRisk` | 가까운 같은 class 객체 위험 |
+| `nearestSameClassTrackId` / `nearestSameClassDistance` | 가장 가까운 같은 class track |
+| `candidateScore`, `bestScore`, `secondScore`, `scoreMargin` | association 후보 점수 요약 |
+| `centerJump`, `directionConflict` | 연속성/방향 충돌 진단 |
+| `wouldPenalize`, `wouldHoldReacquire` | enforce 후보 판단 |
+| `guardDecision` | `observe` 또는 `enforce-penalize` 등 |
+
+이 값은 candidate matrix 전체 저장이 아니라 matched/rejected 주요 후보 요약입니다. Runtime Dashboard와 WebRTC BBox 진단에서 사람에게 필요한 수준으로만 표시합니다.
+
+Close-object guard의 기본값은 `off`입니다. `compare-close-object-tracker` 리포트는 같은 sample에서 `off`, `diagnostic`, `enforce`를 비교해 threshold tuning과 default-on 검토 근거를 모으는 도구입니다. event/scenario 결과가 달라지면 default on 전환 근거로 사용할 수 없습니다.
 
 ## 8. Appearance / Re-ID Hook
 
@@ -443,9 +491,29 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-storage/status'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records?eventType=presence&limit=100'
 ```
 
-`/lab/analysis/events/records`는 active EventRecord JSON Lines 파일을 한 줄씩 읽어 `media-server.va.event-record-list.v1` 응답으로 반환합니다. 지원 filter는 `eventId`, `eventType`, `streamId`, `channelId`, `trackId`, `status`, `zoneId`, `lineId`, `scenarioName`, `scenarioPhase`, `startTimeMs`, `endTimeMs`, `limit`입니다. EventStorage가 비활성이거나 파일이 없으면 `records: []`와 storage 상태를 반환합니다. 손상되었거나 partial 상태인 JSON Lines 행은 전체 API 실패로 만들지 않고 `skippedCorruptLines`와 `partialLineCount`에 집계합니다. rotation/retention 상태는 `activeFileSizeBytes`, `archivedFileCount`, `totalArchiveBytes`, `rotatedCount`, `retentionDeletedCount`, `writeFailedCount`로 확인합니다.
+`/lab/analysis/events/records` 조회 API:
 
-`/lab/rules` Runtime Dashboard의 Event Records 접힘 섹션은 이 조회 API를 수동 검색 UI로 노출합니다. 사용자가 검색 버튼을 누를 때만 API를 호출하며, snapshotPath/clipPath는 저장된 문자열 또는 placeholder로만 표시합니다. 영상 검색/재생, snapshot 추출, clip recorder 동작은 포함하지 않습니다.
+| 항목 | 설명 |
+| --- | --- |
+| 응답 schema | `media-server.va.event-record-list.v1` |
+| 읽기 범위 | active EventRecord JSON Lines 파일 |
+| storage 비활성/파일 없음 | `records: []`와 storage 상태 반환 |
+| corrupt/partial line | 전체 API 실패 대신 skip/count 처리 |
+| recovery count | `skippedCorruptLines`, `partialLineCount` |
+| rotation 상태 | `activeFileSizeBytes`, `archivedFileCount`, `totalArchiveBytes` |
+| retention/write 상태 | `rotatedCount`, `retentionDeletedCount`, `writeFailedCount` |
+
+지원 filter:
+
+- `eventId`, `eventType`, `streamId`, `channelId`, `trackId`, `status`
+- `zoneId`, `lineId`, `scenarioName`, `scenarioPhase`
+- `startTimeMs`, `endTimeMs`, `limit`
+
+`/lab/rules` Runtime Dashboard의 Event Records 섹션은 이 API를 수동 검색 UI로 노출합니다.
+
+- 사용자가 검색 버튼을 누를 때만 API를 호출합니다.
+- `snapshotPath`와 `clipPath`는 저장된 문자열 또는 placeholder로만 표시합니다.
+- 영상 검색/재생, snapshot 추출, clip recorder 동작은 포함하지 않습니다.
 
 ## 12. VA Runtime Metadata
 
@@ -687,9 +755,26 @@ python3 scripts/examples/va_metadata_sse_client.py \
   --timeout-seconds 15
 ```
 
-이 예제는 metadata 수신, JSON parse, `media-server.va.runtime-metadata.v1` schema 확인, `streamId/channelId`, `tracks/events/scenarios` count, latest timestamp, message count 출력만 담당합니다. payload 본문까지 확인하려면 `--print-json`을 추가합니다. RTSP video player와 overlay renderer는 포함하지 않습니다. 일반 VLC/ffplay/IINA는 SSE/WS metadata side-channel을 자동 overlay하지 않습니다.
+SSE metadata client 예제의 역할:
 
-Custom RTSP + SSE metadata overlay renderer는 optional client example입니다. `scripts/examples/va_rtsp_sse_overlay_client.py`는 Python OpenCV로 RTSP raw stream을 열고 별도 SSE metadata stream의 latest runtime metadata를 받아 bbox, trackId, className을 client-side로 그립니다. 이 예제는 서버 core 기능이 아니며 RTSP server-side overlay 정책, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload를 변경하지 않습니다. 일반 VLC/ffplay/IINA가 SSE/WS metadata를 자동 overlay하는 기능도 아닙니다.
+| 항목 | 설명 |
+| --- | --- |
+| 포함 | metadata 수신, JSON parse, runtime metadata schema 확인 |
+| 출력 | `streamId/channelId`, track/event/scenario count, latest timestamp, message count |
+| 선택 | `--print-json`으로 payload 본문 출력 |
+| 제외 | RTSP video player와 overlay renderer |
+| 주의 | 일반 VLC/ffplay/IINA는 SSE/WS metadata를 자동 overlay하지 않음 |
+
+Custom RTSP + SSE metadata overlay renderer는 optional client example입니다.
+
+| 항목 | 설명 |
+| --- | --- |
+| 파일 | `scripts/examples/va_rtsp_sse_overlay_client.py` |
+| 영상 입력 | RTSP raw stream |
+| metadata 입력 | SSE latest runtime metadata |
+| 표시 | bbox, trackId, className을 client-side로 그림 |
+| 범위 | 서버 core 기능 아님 |
+| 변경 없음 | RTSP server-side overlay 정책, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload |
 
 ```bash
 python3 -c "import cv2; print(cv2.__version__)"
@@ -792,7 +877,18 @@ Debug 출력은 내부 상태 확인용이며 기존 event JSON/API/POST 형식�
 Lab의 VA 런타임 대시보드는 위 endpoint와 `/lab/runtime/status`, event POST/storage status endpoint를 재사용해 운영 상태를 카드, table, raw JSON으로 표시합니다. 1차 drill-down은 Overview, vaRule Runtime Debug, Tracks, Scenarios, Scenario Timeline, Events, Metadata, Tracking Issues 영역으로 나뉩니다.
 대시보드 탭이 닫혀 있을 때는 polling하지 않으며, 자동 갱신은 최소 2초 이상 간격으로 제한합니다.
 
-Scenario Timeline은 scenario 판단 로직이나 기존 event JSON/API/POST 형식을 바꾸지 않고, 현재 `state-dump`의 track별 `scenarioName`, `scenarioPhase`, zone/line 상태와 `/events` buffer를 조합해 active scenario instance를 디버그용으로 보여줍니다. Candidate/Observing/Confirmed/Cooldown/Ended 같은 phase는 운영자가 상태 전이를 빠르게 구분하기 위한 표시이며, event emitted/dedup 표시는 기존 EventManager metrics와 recent event buffer를 읽기 전용으로 요약합니다. event emit/cooldown 판단 자체는 ScenarioEngine과 EventManager의 기존 로직을 따릅니다.
+Scenario Timeline은 읽기 전용 debug UI입니다.
+
+| 항목 | 설명 |
+| --- | --- |
+| 입력 | `state-dump`의 `scenarioName`, `scenarioPhase`, zone/line 상태 |
+| 보조 입력 | `/events` buffer |
+| 표시 | active scenario instance의 시간 흐름 |
+| phase chip | Candidate, Observing, Confirmed, Cooldown, Ended |
+| event 표시 | emitted/dedup, recent eventId/eventType/status |
+| 변경 없음 | scenario 판단 로직, event JSON/API/POST 형식 |
+
+event emit/cooldown 판단 자체는 ScenarioEngine과 EventManager의 기존 로직을 따릅니다.
 
 현재 vaRule Runtime Debug와 Scenarios/Scenario Timeline table은 state-dump/metrics에 이미 노출된 값만 사용합니다. phase entered time, cooldown remaining 같은 정밀 timeline 필드는 후속 endpoint 또는 state-dump 확장 없이는 표시하지 않습니다.
 
