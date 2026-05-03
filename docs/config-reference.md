@@ -21,12 +21,32 @@
 | `MEDIA_SERVER_LISTEN_PORT` | `8554` | RTSP bind port |
 | `MEDIA_SERVER_HTTP_LISTEN_ADDRESS` | `127.0.0.1` | HTTP/WebRTC bind address |
 | `MEDIA_SERVER_HTTP_LISTEN_PORT` | `8080` | HTTP/WebRTC bind port |
+| `MEDIA_SERVER_AUTH_MODE` | `off` | HTTP auth mode. `off`는 개발/기존 검증 호환, `token`은 role별 token auth MVP |
+| `MEDIA_SERVER_AUTH_ADMIN_TOKEN` | empty | `token` mode에서 admin principal로 인증할 Bearer/query token |
+| `MEDIA_SERVER_AUTH_OPERATOR_TOKEN` | empty | `token` mode에서 operator principal로 인증할 Bearer/query token |
+| `MEDIA_SERVER_AUTH_VIEWER_TOKEN` | empty | `token` mode에서 viewer principal로 인증할 Bearer/query token |
+| `MEDIA_SERVER_AUTH_INTEGRATOR_TOKEN` | empty | `token` mode에서 integrator principal로 인증할 Bearer/query token |
 | `MEDIA_SERVER_SUBSCRIBER_QUEUE_SIZE` | `256` | subscriber queue 상한 |
 | `MEDIA_SERVER_MAX_SESSIONS` | `2048` | session 상한 |
 | `MEDIA_SERVER_MAX_STREAMS` | `512` | stream registry 상한 |
 | `MEDIA_SERVER_IDLE_GRACE_MS` | `10000` | idle cleanup grace |
 | `MEDIA_SERVER_FILE_ROOT` | `video` | file token root |
 | `MEDIA_SERVER_DEFAULT_FILE` | `video/sample_h264.mp4` | 기본 file source |
+
+### HTTP auth MVP
+
+`MEDIA_SERVER_AUTH_MODE=off`가 기본값이며 기존 `/lab/rules`, WebRTC, RTSP 검증 흐름을 그대로 유지합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 `/auth/whoami`가 `Authorization: Bearer <token>` 또는 개발용 `?token=<token>` query를 읽어 role/scope principal을 반환합니다. Query token은 브라우저 주소, proxy log, referrer에 남을 수 있으므로 운영 환경에서는 권장하지 않습니다.
+
+초기 role/scope 모델:
+
+| 역할 | MVP scope |
+| --- | --- |
+| `admin` | 모든 scope. `view:read:*`, `source:read:*`, `rule:read:*`, `event:read:*`, `metadata:read:*`, `dashboard:read:*`, `debug:read`, `rule:write`, `source:write`, `ops:read`, `lab:read` |
+| `operator` | 운영 live monitor, rule/scenario 관리, runtime dashboard, event 조회 scope |
+| `viewer` | 할당 view/read 계열 MVP scope. `view:read:*`, `metadata:read:*`, `dashboard:read:*`, `event:read:*` |
+| `integrator` | 연동 API용 `metadata:read:*`, `event:read:*` |
+
+`*` scope는 MVP의 wildcard 표현입니다. SourceRegistry/PublishedView가 들어오면 `view:read:{viewId}`, `event:read:{viewId}`처럼 구체 ID scope로 좁힐 예정입니다.
 
 ### 개발/script 보조값
 

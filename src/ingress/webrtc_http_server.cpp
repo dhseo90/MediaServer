@@ -44,6 +44,7 @@
 #include "core/runtime_debug_counters.h"
 #include "ingress/analysis_query.h"
 #include "ingress/analysis_rule_registry.h"
+#include "ingress/http_auth.h"
 #include "ingress/request_parser.h"
 #include "ingress/lab_import_manager.h"
 #include "ingress/webrtc_egress_session.h"
@@ -928,7 +929,7 @@ std::string BuildHttpResponse(const HttpResponse& response) {
     out << "Content-Length: " << response.body.size() << "\r\n";
     out << "Connection: close\r\n";
     out << "Access-Control-Allow-Origin: *\r\n";
-    out << "Access-Control-Allow-Headers: Content-Type\r\n";
+    out << "Access-Control-Allow-Headers: Content-Type, Authorization\r\n";
     out << "Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS\r\n";
     for (const auto& [key, value] : response.headers) {
         out << key << ": " << value << "\r\n";
@@ -15737,6 +15738,33 @@ HttpResponse JsonResponse(int status, const std::string& status_text, const std:
     return response;
 }
 
+HttpResponse AuthErrorResponse(const std::string& error) {
+    HttpResponse response = JsonResponse(401,
+                                         "Unauthorized",
+                                         "{\"error\":\"" + JsonEscape(error) + "\"}");
+    response.headers["WWW-Authenticate"] = "Bearer";
+    return response;
+}
+
+std::string PrincipalJson(const auth::Principal& principal) {
+    std::ostringstream out;
+    out << "{"
+        << "\"role\":\"" << JsonEscape(principal.role) << "\","
+        << "\"scopes\":[";
+    for (std::size_t i = 0; i < principal.scopes.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(principal.scopes[i]) << "\"";
+    }
+    out << "],"
+        << "\"displayName\":\"" << JsonEscape(principal.display_name) << "\","
+        << "\"authMode\":\"" << JsonEscape(principal.auth_mode) << "\","
+        << "\"isAuthenticated\":" << (principal.is_authenticated ? "true" : "false")
+        << "}";
+    return out.str();
+}
+
 media::IngressRequest BuildHttpIngressRequest(const std::string& path,
                                               const std::unordered_map<std::string, std::string>& query,
                                               const std::string& client_id) {
@@ -18608,6 +18636,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                         const auto query = ParseQueryString(request.query);
                         const auto& config = app::GetAppConfig();
+                        const auth::AuthResult principal_result =
+                            auth::BuildPrincipalFromRequest(config, request.headers, query);
                         const std::string route_path = "/" + config.stream_route;
                         auto stream_metadata_sse_response = [&](const std::string& tap_id,
                                                                 bool detach_on_close) -> HttpResponse {
@@ -18648,6 +18678,15 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             HttpResponse ok;
                             ok.content_type = "application/json; charset=utf-8";
                             ok.body = "{\"status\":\"ok\"}";
+                            return ok;
+                        }
+
+                        if (request.method == "GET" && request.path == "/auth/whoami") {
+                            if (!principal_result.ok) {
+                                return AuthErrorResponse(principal_result.error);
+                            }
+                            HttpResponse ok = JsonResponse(200, "OK", PrincipalJson(principal_result.principal));
+                            ok.headers["Cache-Control"] = "no-store";
                             return ok;
                         }
 

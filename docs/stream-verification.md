@@ -54,6 +54,20 @@ WebRTC/stream 변경:
 ./server.sh verify-multichannel
 ```
 
+Auth 변경:
+
+```bash
+MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground
+curl -fsS 'http://127.0.0.1:8080/auth/whoami'
+
+MEDIA_SERVER_AUTH_MODE=token \
+MEDIA_SERVER_AUTH_ADMIN_TOKEN=admin-token \
+  ./server.sh foreground
+curl -fsS -H 'Authorization: Bearer admin-token' 'http://127.0.0.1:8080/auth/whoami'
+```
+
+확인 기준은 auth off에서 dev admin principal이 반환되고, token mode에서 admin/operator/viewer/integrator token별 role과 scope가 반환되며, 누락/invalid token은 `401`을 반환하는 것입니다. `?token=` query는 개발 smoke용으로만 사용하고 운영 검증에서는 Bearer header를 우선합니다.
+
 ## 장기 테스트 명령
 
 30분 이상 사전 안정성 검증:

@@ -22,6 +22,11 @@ constexpr const char* kEnvListenAddress = "MEDIA_SERVER_LISTEN_ADDRESS";
 constexpr const char* kEnvListenPort = "MEDIA_SERVER_LISTEN_PORT";
 constexpr const char* kEnvHttpListenAddress = "MEDIA_SERVER_HTTP_LISTEN_ADDRESS";
 constexpr const char* kEnvHttpListenPort = "MEDIA_SERVER_HTTP_LISTEN_PORT";
+constexpr const char* kEnvAuthMode = "MEDIA_SERVER_AUTH_MODE";
+constexpr const char* kEnvAuthAdminToken = "MEDIA_SERVER_AUTH_ADMIN_TOKEN";
+constexpr const char* kEnvAuthOperatorToken = "MEDIA_SERVER_AUTH_OPERATOR_TOKEN";
+constexpr const char* kEnvAuthViewerToken = "MEDIA_SERVER_AUTH_VIEWER_TOKEN";
+constexpr const char* kEnvAuthIntegratorToken = "MEDIA_SERVER_AUTH_INTEGRATOR_TOKEN";
 constexpr const char* kEnvFileRoot = "MEDIA_SERVER_FILE_ROOT";
 constexpr const char* kEnvDefaultFile = "MEDIA_SERVER_DEFAULT_FILE";
 constexpr const char* kEnvWebRtcVaMetadataChannelEnabled =
@@ -458,6 +463,22 @@ bool IsAllowedWebRtcIceTransportPolicy(const std::string& value) {
     return value == "all" || value == "relay";
 }
 
+app::AuthMode ReadAuthModeEnv(const char* name, app::AuthMode fallback) {
+    const char* value = ReadEnv(name);
+    if (value == nullptr) {
+        return fallback;
+    }
+    const std::string parsed = TrimToken(value);
+    if (parsed == "off" || parsed == "OFF" || parsed == "Off") {
+        return app::AuthMode::Off;
+    }
+    if (parsed == "token" || parsed == "TOKEN" || parsed == "Token") {
+        return app::AuthMode::Token;
+    }
+    std::cerr << "[env] invalid " << name << "='" << value << "', fallback off\n";
+    return fallback;
+}
+
 void ValidatePositiveInt(int* value, int fallback, const char* description) {
     if (value == nullptr || *value > 0) {
         return;
@@ -498,6 +519,11 @@ app::AppConfig LoadAppConfig() {
     config.rtsp_listen_port = ReadPortEnv(kEnvListenPort, config.rtsp_listen_port);
     config.http_listen_address = ReadStringEnv(kEnvHttpListenAddress, config.http_listen_address);
     config.http_listen_port = ReadPortEnv(kEnvHttpListenPort, config.http_listen_port);
+    config.auth_mode = ReadAuthModeEnv(kEnvAuthMode, config.auth_mode);
+    config.auth_admin_token = ReadStringEnv(kEnvAuthAdminToken, config.auth_admin_token);
+    config.auth_operator_token = ReadStringEnv(kEnvAuthOperatorToken, config.auth_operator_token);
+    config.auth_viewer_token = ReadStringEnv(kEnvAuthViewerToken, config.auth_viewer_token);
+    config.auth_integrator_token = ReadStringEnv(kEnvAuthIntegratorToken, config.auth_integrator_token);
     config.file_root_path = ReadStringEnv(kEnvFileRoot, config.file_root_path);
     config.default_file_path = ReadStringEnv(kEnvDefaultFile, config.default_file_path);
     config.webrtc_va_metadata_channel_enabled =
