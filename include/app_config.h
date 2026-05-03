@@ -114,6 +114,10 @@ struct AppConfig {
     std::string analysis_registry_path{app_config::kDefaultAnalysisRegistryPath};
     std::string source_registry_path{app_config::kDefaultSourceRegistryPath};
     std::string published_views_path{app_config::kDefaultPublishedViewsPath};
+    std::size_t analysis_max_active_profiles_per_source{
+        app_config::kDefaultAnalysisMaxActiveProfilesPerSource};
+    std::size_t analysis_max_active_taps_per_source{
+        app_config::kDefaultAnalysisMaxActiveTapsPerSource};
     bool analysis_event_post_enabled{app_config::kDefaultAnalysisEventPostEnabled};
     int analysis_event_post_timeout_ms{app_config::kDefaultAnalysisEventPostTimeoutMs};
     std::size_t analysis_event_post_max_queue{app_config::kDefaultAnalysisEventPostMaxQueue};

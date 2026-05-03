@@ -2091,6 +2091,7 @@ va_four_scene_sample.mp4</textarea>
       const analysisMatching = payload.analysisMatching || {};
       const publishSources = Array.isArray(webrtcHttp.publishSources) ? webrtcHttp.publishSources : [];
       const activeTaps = Array.isArray(analysisMatching.activeTaps) ? analysisMatching.activeTaps : [];
+      const reuseGroups = Array.isArray(analysisMatching.reuseGroups) ? analysisMatching.reuseGroups : [];
       const summaryLines = [
         `session ${sessionManager.activeSessions || 0} · stream ${sessionManager.registryActiveStreams || 0} · tap ${sessionManager.activeAnalysisTaps || 0}`,
         `egress ${webrtcHttp.egressSessions || 0} · publish ${webrtcHttp.publishSessions || 0}`
@@ -2099,7 +2100,10 @@ va_four_scene_sample.mp4</textarea>
         `${source.sourceId || '<unknown>'} · video ${runtimeFlag(source.hasVideo)} · audio ${runtimeFlag(source.hasAudio)} · subscriber ${source.subscriberCount || 0}`
       ));
       const matchLines = activeTaps.map((tap) => (
-        `${tap.tapId || '<tap>'} · ${tap.sourceKind || '-'}:${tap.route || '-'} · profile=${tap.profileKey || '-'} · rule=${tap.selectedRuleId || tap.profileSelectionSource || '-'}`
+        `${tap.tapId || '<tap>'} · refs=${tap.refCount ?? 1} · reused=${tap.reuseAttachCount ?? 0} · ${tap.sourceKind || '-'}:${tap.route || '-'} · profile=${tap.profileKey || '-'} · rule=${tap.selectedRuleId || tap.profileSelectionSource || '-'}`
+      ));
+      const reuseLines = reuseGroups.map((group) => (
+        `reuse ${group.tapId || '<tap>'} · refs=${group.refCount ?? 0} · profile=${group.profileKey || '-'}`
       ));
       runtimeStatusPanelEl.children[0].textContent = summaryLines[0];
       runtimeStatusPanelEl.children[1].textContent = summaryLines[1];
@@ -2107,8 +2111,9 @@ va_four_scene_sample.mp4</textarea>
         runtimePublishSourcesEl.textContent = sourceLines.length > 0 ? sourceLines.join('\n') : 'publish source 없음';
       }
       if (runtimeAnalysisMatchesEl) {
-        const header = `profiles ${analysisMatching.profileDocumentCount || 0} · rules ${analysisMatching.ruleDocumentCount || 0}`;
-        runtimeAnalysisMatchesEl.textContent = matchLines.length > 0 ? `${header}\n${matchLines.join('\n')}` : `${header}\nactive tap 없음`;
+        const header = `profiles ${analysisMatching.profileDocumentCount || 0} · rules ${analysisMatching.ruleDocumentCount || 0} · reuseGroups ${analysisMatching.reuseGroupCount || 0}`;
+        const lines = matchLines.concat(reuseLines);
+        runtimeAnalysisMatchesEl.textContent = lines.length > 0 ? `${header}\n${lines.join('\n')}` : `${header}\nactive tap 없음`;
       }
     }
 
@@ -14146,7 +14151,7 @@ std::string BuildLabRuleEditorPageHtml() {
           ? `마지막 갱신 ${new Date().toLocaleTimeString('ko-KR')} · tap ${dashboardLastTapId || '-'}`
           : `보기 탭에서 보기 시작 후 표시됩니다 · 마지막 갱신 ${new Date().toLocaleTimeString('ko-KR')}`
       );
-      dashboardSet('dashboardOverviewSummary', selectedTap ? `${selectedTap.tapId || '-'} · ${dashboardSourceDisplay(selectedTap.streamKey || '-')}` : '표시할 tap 없음 · 영상 분석 보기에서 보기 시작 후 표시됩니다');
+      dashboardSet('dashboardOverviewSummary', selectedTap ? `${selectedTap.tapId || '-'} · refs ${selectedTap.refCount ?? 1} · reused ${selectedTap.reuseAttachCount ?? 0} · ${dashboardSourceDisplay(selectedTap.streamKey || '-')}` : '표시할 tap 없음 · 영상 분석 보기에서 보기 시작 후 표시됩니다');
 	      renderDashboardEvents(tapEvents, tapMetrics, stateDump, dashboardLastTapId);
 	      renderDashboardVaRuleDebug({ selectedTap, tapMetrics, stateDump });
 	      renderDashboardTracks(stateDump, tapMetrics);
@@ -16514,6 +16519,35 @@ std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& 
                               const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps) {
     const auto profile_documents = AnalysisProfileDocumentsSnapshot();
     const auto rule_documents = AnalysisRuleDocumentsSnapshot();
+    struct ReuseGroupSummary {
+        std::string reuse_key;
+        std::string tap_id;
+        std::string stream_key;
+        std::string profile_key;
+        std::size_t ref_count{0};
+        std::size_t reuse_attach_count{0};
+    };
+    std::unordered_map<std::string, ReuseGroupSummary> reuse_groups_by_key;
+    for (const auto& tap : analysis_taps) {
+        const std::string key = tap.reuse_key.empty() ? tap.profile_key : tap.reuse_key;
+        auto& group = reuse_groups_by_key[key];
+        group.reuse_key = key;
+        if (group.tap_id.empty()) {
+            group.tap_id = tap.tap_id;
+            group.stream_key = tap.stream_key;
+            group.profile_key = tap.profile_key;
+        }
+        group.ref_count += tap.ref_count;
+        group.reuse_attach_count += tap.reuse_attach_count;
+    }
+    std::vector<ReuseGroupSummary> reuse_groups;
+    reuse_groups.reserve(reuse_groups_by_key.size());
+    for (auto& [_, group] : reuse_groups_by_key) {
+        reuse_groups.push_back(std::move(group));
+    }
+    std::sort(reuse_groups.begin(), reuse_groups.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.reuse_key < rhs.reuse_key;
+    });
     std::ostringstream out;
     out << "{"
         << "\"ok\":true,"
@@ -16562,6 +16596,10 @@ std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& 
             << "\"tapId\":\"" << JsonEscape(tap.tap_id) << "\","
             << "\"streamKey\":\"" << JsonEscape(tap.stream_key) << "\","
             << "\"profileKey\":\"" << JsonEscape(tap.profile_key) << "\","
+            << "\"reuseKey\":\"" << JsonEscape(tap.reuse_key) << "\","
+            << "\"refCount\":" << tap.ref_count << ","
+            << "\"reuseAttachCount\":" << tap.reuse_attach_count << ","
+            << "\"lastUsedAgeMs\":" << tap.last_used_age_ms << ","
             << "\"sourceKind\":\"" << JsonEscape(tap.context.source_kind) << "\","
             << "\"route\":\"" << JsonEscape(tap.context.route) << "\","
             << "\"clientId\":\"" << JsonEscape(tap.context.client_id) << "\","
@@ -16569,6 +16607,23 @@ std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& 
             << "\"selectedRuleId\":\"" << JsonEscape(tap.selected_by_rule_id) << "\","
             << "\"selectedRulePriority\":" << tap.selected_rule_priority << ","
             << "\"selectedRuleSpecificity\":" << tap.selected_rule_specificity
+            << "}";
+    }
+    out << "],"
+        << "\"reuseGroupCount\":" << reuse_groups.size() << ","
+        << "\"reuseGroups\":[";
+    for (std::size_t i = 0; i < reuse_groups.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        const auto& group = reuse_groups[i];
+        out << "{"
+            << "\"reuseKey\":\"" << JsonEscape(group.reuse_key) << "\","
+            << "\"tapId\":\"" << JsonEscape(group.tap_id) << "\","
+            << "\"streamKey\":\"" << JsonEscape(group.stream_key) << "\","
+            << "\"profileKey\":\"" << JsonEscape(group.profile_key) << "\","
+            << "\"refCount\":" << group.ref_count << ","
+            << "\"reuseAttachCount\":" << group.reuse_attach_count
             << "}";
     }
     out << "]"
@@ -17048,6 +17103,10 @@ std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot
         << "\"tapId\":\"" << JsonEscape(snapshot.tap_id) << "\","
         << "\"streamKey\":\"" << JsonEscape(snapshot.stream_key) << "\","
         << "\"profileKey\":\"" << JsonEscape(snapshot.profile_key) << "\","
+        << "\"reuseKey\":\"" << JsonEscape(snapshot.reuse_key) << "\","
+        << "\"refCount\":" << snapshot.ref_count << ","
+        << "\"reuseAttachCount\":" << snapshot.reuse_attach_count << ","
+        << "\"lastUsedAgeMs\":" << snapshot.last_used_age_ms << ","
         << "\"context\":{"
         << "\"sourceKind\":\"" << JsonEscape(snapshot.context.source_kind) << "\","
         << "\"route\":\"" << JsonEscape(snapshot.context.route) << "\","
@@ -17908,6 +17967,9 @@ std::string AnalysisTapCreatedJson(const core::SessionManager::AnalysisTapResult
         << "\"tapId\":\"" << JsonEscape(result.tap_id) << "\","
         << "\"streamKey\":\"" << JsonEscape(result.stream_key) << "\","
         << "\"streamCreated\":" << (result.stream_created ? "true" : "false") << ","
+        << "\"reused\":" << (result.reused ? "true" : "false") << ","
+        << "\"reuseKey\":\"" << JsonEscape(result.reuse_key) << "\","
+        << "\"refCount\":" << result.ref_count << ","
         << "\"activeTaps\":" << active_taps
         << "}";
     return out.str();
@@ -18277,14 +18339,16 @@ bool DetachAnalysisTapAndReleaseRuntimes(core::SessionManager& session_manager, 
     if (tap_id.empty()) {
         return false;
     }
-    const bool detached = session_manager.DetachAnalysisTap(tap_id);
+    const auto detach_result = session_manager.DetachAnalysisTapRef(tap_id);
     // 이벤트 룰 runtime은 enter/exit/line-crossing 이전 상태를 들고 있으므로 tap 수명과 함께 정리한다.
-    ReleaseEventRuleRuntimeForKey("webrtc-overlay:" + tap_id);
-    ReleaseEventRuleRuntimeForKey("tap-events:" + tap_id);
-    ReleaseEventRuleRuntimeForKey("tap-overlay:" + tap_id);
-    ReleaseEventRuleRuntimeForKey("tap-state-dump:" + tap_id);
-    ReleaseEventRuleRuntimeForKey("tap-metrics:" + tap_id);
-    return detached;
+    if (detach_result.removed) {
+        ReleaseEventRuleRuntimeForKey("webrtc-overlay:" + tap_id);
+        ReleaseEventRuleRuntimeForKey("tap-events:" + tap_id);
+        ReleaseEventRuleRuntimeForKey("tap-overlay:" + tap_id);
+        ReleaseEventRuleRuntimeForKey("tap-state-dump:" + tap_id);
+        ReleaseEventRuleRuntimeForKey("tap-metrics:" + tap_id);
+    }
+    return detach_result.ok;
 }
 
 analysis::EventRuleEvaluation EvaluateStoredEventRules(

@@ -67,6 +67,11 @@ struct CountersSnapshot {
     std::uint64_t shared_stream_subscriber_removed_count{0};
     std::uint64_t analysis_tap_attached_count{0};
     std::uint64_t analysis_tap_detached_count{0};
+    std::uint64_t analysis_tap_created_count{0};
+    std::uint64_t analysis_tap_reused_count{0};
+    std::uint64_t analysis_tap_rejected_count{0};
+    std::uint64_t analysis_tap_ref_count{0};
+    std::string analysis_tap_reuse_key;
     std::uint64_t metadata_json_build_count{0};
     std::uint64_t metadata_json_bytes_total{0};
     std::uint64_t metadata_json_bytes_max{0};
@@ -109,6 +114,12 @@ inline std::atomic<std::uint64_t> g_shared_stream_subscriber_added_count{0};
 inline std::atomic<std::uint64_t> g_shared_stream_subscriber_removed_count{0};
 inline std::atomic<std::uint64_t> g_analysis_tap_attached_count{0};
 inline std::atomic<std::uint64_t> g_analysis_tap_detached_count{0};
+inline std::atomic<std::uint64_t> g_analysis_tap_created_count{0};
+inline std::atomic<std::uint64_t> g_analysis_tap_reused_count{0};
+inline std::atomic<std::uint64_t> g_analysis_tap_rejected_count{0};
+inline std::atomic<std::uint64_t> g_analysis_tap_ref_count{0};
+inline std::mutex g_analysis_tap_reuse_key_mu;
+inline std::string g_analysis_tap_reuse_key;
 inline std::atomic<std::uint64_t> g_metadata_json_build_count{0};
 inline std::atomic<std::uint64_t> g_metadata_json_bytes_total{0};
 inline std::atomic<std::uint64_t> g_metadata_json_bytes_max{0};
@@ -122,6 +133,50 @@ inline void UpdateMax(std::atomic<std::uint64_t>& counter, std::uint64_t value) 
     while (current < value &&
            !counter.compare_exchange_weak(current, value, std::memory_order_relaxed, std::memory_order_relaxed)) {
     }
+}
+
+inline std::string JsonEscape(const std::string& value) {
+    std::ostringstream out;
+    for (const unsigned char ch : value) {
+        switch (ch) {
+            case '"':
+                out << "\\\"";
+                break;
+            case '\\':
+                out << "\\\\";
+                break;
+            case '\b':
+                out << "\\b";
+                break;
+            case '\f':
+                out << "\\f";
+                break;
+            case '\n':
+                out << "\\n";
+                break;
+            case '\r':
+                out << "\\r";
+                break;
+            case '\t':
+                out << "\\t";
+                break;
+            default:
+                if (ch < 0x20) {
+                    out << "\\u";
+                    const char* hex = "0123456789abcdef";
+                    out << "00" << hex[(ch >> 4) & 0x0F] << hex[ch & 0x0F];
+                } else {
+                    out << static_cast<char>(ch);
+                }
+                break;
+        }
+    }
+    return out.str();
+}
+
+inline void StoreAnalysisTapReuseKey(const std::string& reuse_key) {
+    std::lock_guard lock(g_analysis_tap_reuse_key_mu);
+    g_analysis_tap_reuse_key = reuse_key;
 }
 
 inline bool TraceEnabled() {
@@ -315,6 +370,38 @@ inline void RecordAnalysisTapDetached(const std::string& tap_id) {
     TraceLifecycle("analysis.tap.detached tap=" + tap_id);
 }
 
+inline void RecordAnalysisTapCreated(const std::string& tap_id,
+                                     const std::string& reuse_key,
+                                     std::size_t ref_count) {
+    Increment(g_analysis_tap_created_count);
+    g_analysis_tap_ref_count.store(static_cast<std::uint64_t>(ref_count), std::memory_order_relaxed);
+    StoreAnalysisTapReuseKey(reuse_key);
+    TraceLifecycle("analysis.tap.created tap=" + tap_id + " reuseKey=" + reuse_key);
+}
+
+inline void RecordAnalysisTapReused(const std::string& tap_id,
+                                    const std::string& reuse_key,
+                                    std::size_t ref_count) {
+    Increment(g_analysis_tap_reused_count);
+    g_analysis_tap_ref_count.store(static_cast<std::uint64_t>(ref_count), std::memory_order_relaxed);
+    StoreAnalysisTapReuseKey(reuse_key);
+    TraceLifecycle("analysis.tap.reused tap=" + tap_id + " reuseKey=" + reuse_key +
+                   " refCount=" + std::to_string(ref_count));
+}
+
+inline void RecordAnalysisTapRejected(const std::string& reuse_key) {
+    Increment(g_analysis_tap_rejected_count);
+    StoreAnalysisTapReuseKey(reuse_key);
+    TraceLifecycle("analysis.tap.rejected reuseKey=" + reuse_key);
+}
+
+inline void RecordAnalysisTapRefCount(const std::string& reuse_key, std::size_t ref_count) {
+    g_analysis_tap_ref_count.store(static_cast<std::uint64_t>(ref_count), std::memory_order_relaxed);
+    if (!reuse_key.empty()) {
+        StoreAnalysisTapReuseKey(reuse_key);
+    }
+}
+
 inline void RecordMetadataJsonBuild() {
     Increment(g_metadata_json_build_count);
 }
@@ -325,6 +412,11 @@ inline void RecordMetadataJsonBytes(std::uint64_t bytes) {
 }
 
 inline CountersSnapshot Snapshot() {
+    std::string analysis_tap_reuse_key;
+    {
+        std::lock_guard lock(g_analysis_tap_reuse_key_mu);
+        analysis_tap_reuse_key = g_analysis_tap_reuse_key;
+    }
     return CountersSnapshot{
         .rtsp_media_configured_count = g_rtsp_media_configured_count.load(std::memory_order_relaxed),
         .rtsp_media_unprepared_count = g_rtsp_media_unprepared_count.load(std::memory_order_relaxed),
@@ -382,6 +474,11 @@ inline CountersSnapshot Snapshot() {
             g_shared_stream_subscriber_removed_count.load(std::memory_order_relaxed),
         .analysis_tap_attached_count = g_analysis_tap_attached_count.load(std::memory_order_relaxed),
         .analysis_tap_detached_count = g_analysis_tap_detached_count.load(std::memory_order_relaxed),
+        .analysis_tap_created_count = g_analysis_tap_created_count.load(std::memory_order_relaxed),
+        .analysis_tap_reused_count = g_analysis_tap_reused_count.load(std::memory_order_relaxed),
+        .analysis_tap_rejected_count = g_analysis_tap_rejected_count.load(std::memory_order_relaxed),
+        .analysis_tap_ref_count = g_analysis_tap_ref_count.load(std::memory_order_relaxed),
+        .analysis_tap_reuse_key = analysis_tap_reuse_key,
         .metadata_json_build_count = g_metadata_json_build_count.load(std::memory_order_relaxed),
         .metadata_json_bytes_total = g_metadata_json_bytes_total.load(std::memory_order_relaxed),
         .metadata_json_bytes_max = g_metadata_json_bytes_max.load(std::memory_order_relaxed),
@@ -433,6 +530,11 @@ inline std::string SnapshotJson() {
         << "\"sharedStreamSubscriberRemovedCount\":" << snapshot.shared_stream_subscriber_removed_count << ","
         << "\"analysisTapAttachedCount\":" << snapshot.analysis_tap_attached_count << ","
         << "\"analysisTapDetachedCount\":" << snapshot.analysis_tap_detached_count << ","
+        << "\"analysisTapCreatedCount\":" << snapshot.analysis_tap_created_count << ","
+        << "\"analysisTapReusedCount\":" << snapshot.analysis_tap_reused_count << ","
+        << "\"analysisTapRejectedCount\":" << snapshot.analysis_tap_rejected_count << ","
+        << "\"analysisTapRefCount\":" << snapshot.analysis_tap_ref_count << ","
+        << "\"analysisTapReuseKey\":\"" << JsonEscape(snapshot.analysis_tap_reuse_key) << "\","
         << "\"metadataJsonBuildCount\":" << snapshot.metadata_json_build_count << ","
         << "\"metadataJsonBytesTotal\":" << snapshot.metadata_json_bytes_total << ","
         << "\"metadataJsonBytesMax\":" << snapshot.metadata_json_bytes_max

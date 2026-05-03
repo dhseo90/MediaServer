@@ -22,12 +22,27 @@ public:
         bool ok{false};
         std::string message;
         std::string tap_id;
+        bool reused{false};
+        std::string reuse_key;
+        std::size_t ref_count{0};
+    };
+
+    struct DetachResult {
+        bool ok{false};
+        bool removed{false};
+        std::string tap_id;
+        std::string reuse_key;
+        std::size_t ref_count{0};
     };
 
     struct TapSnapshot {
         std::string tap_id;
         core::StreamKey stream_key;
         std::string profile_key;
+        std::string reuse_key;
+        std::size_t ref_count{0};
+        std::size_t reuse_attach_count{0};
+        std::int64_t last_used_age_ms{0};
         AnalysisContext context;
         std::string profile_selection_source;
         std::string selected_by_rule_id;
@@ -103,8 +118,9 @@ public:
     AttachResult AttachStream(const core::StreamKey& stream_key,
                               const std::shared_ptr<core::SharedStream>& stream,
                               AnalysisProfile profile = {},
-                              AnalysisContext context = {});
-    bool Detach(const std::string& tap_id);
+                              AnalysisContext context = {},
+                              std::string reuse_key = {});
+    DetachResult Detach(const std::string& tap_id);
     void DetachAll();
 
     std::optional<AnalysisResult> LatestResult(const std::string& tap_id) const;
@@ -133,6 +149,9 @@ private:
         AnalysisContext context;
         AnalysisProfile profile;
         std::string profile_key;
+        std::string reuse_key;
+        std::size_t ref_count{1};
+        std::size_t reuse_attach_count{0};
         std::weak_ptr<core::SharedStream> stream;
         std::unique_ptr<Detector> detector;
         std::unique_ptr<ObjectTracker> tracker;
@@ -171,6 +190,7 @@ private:
         double max_inference_ms{0.0};
         std::size_t inference_samples{0};
         std::chrono::steady_clock::time_point attached_at{};
+        std::chrono::steady_clock::time_point last_used_at{};
         std::chrono::steady_clock::time_point last_sampled_at{};
         std::chrono::steady_clock::time_point last_adaptive_tuned_at{};
         std::atomic<std::uint64_t> next_frame_id{1};
@@ -200,6 +220,7 @@ private:
 
     mutable std::mutex mu_;
     std::unordered_map<std::string, std::shared_ptr<AnalysisTap>> taps_;
+    std::unordered_map<std::string, std::string> reuse_key_to_tap_id_;
     std::atomic<std::uint64_t> next_tap_id_{1};
 };
 

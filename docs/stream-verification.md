@@ -629,7 +629,16 @@ Runtime debug counter는 기존 Event POST/WebRTC/SSE metadata payload schema를
 - `rtspPendingQueuePeak`, `rtspPendingQueueDroppedCount`
 - `sharedStreamSubscriberAddedCount`, `sharedStreamSubscriberRemovedCount`
 - `analysisTapAttachedCount`, `analysisTapDetachedCount`
+- `analysisTapCreatedCount`, `analysisTapReusedCount`, `analysisTapRejectedCount`
+- `analysisTapRefCount`, `analysisTapReuseKey`
 - `metadataJsonBuildCount`, `metadataJsonBytesTotal`, `metadataJsonBytesMax`
+
+Analysis tap reuse smoke 기준:
+
+- 같은 source와 같은 analysis profile을 여러 client/view에서 요청하면 `sessionManager.registryActiveStreams=1`, `analysisMatching.activeTapCount=1`, 해당 tap의 `refCount`가 client 수만큼 증가합니다.
+- 같은 source라도 detector model, input size, FPS, tracking class, tracker config, preprocessing config가 다른 profile이면 별도 tap이 허용됩니다.
+- client별 overlay 표시 옵션만 다른 경우에는 `analysisTapReusedCount`가 증가하고 `analysisTapCreatedCount`는 추가로 증가하지 않아야 합니다.
+- 종료 후 cleanup 상태에서 `activeAnalysisTaps=0`, `analysisMatching.activeTapCount=0`으로 돌아와야 합니다.
 
 ## VA overlay 검증
 

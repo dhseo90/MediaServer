@@ -103,6 +103,14 @@ SourceRegistry는 `.media_server.sources.json`, PublishedView는 `.media_server.
 
 클라이언트 API는 `view:read:{viewId}` scope가 있는 view만 반환하고, `file`, `rtspUrl`, `httpUrl`, `webrtcSourceId`, `canonicalSourceKey` 같은 원본 locator는 반환하지 않습니다. PublishedView의 `defaultRuleId`와 `allowedRuleIds`는 기존 `vaRule` ID를 참조하지만, 기존 `vaRule` 저장 구조와 `vaRule=<id>` 호출 방식은 그대로 유지합니다.
 
+### Source+Profile analysis reuse
+
+분석 tap은 source identity와 analysis profile을 합친 reuse key로 공유합니다. 같은 source에서 detector model, label path, FPS, input size, sampling, YOLO preprocessing, detection/tracking 설정, tracker association config, debug-state 설정이 같으면 WebRTC overlay viewer, metadata viewer, SSE/WS side-channel, Runtime Dashboard가 같은 `analysis-tap-*`를 재사용합니다. Overlay 표시 옵션, route, client id, 단일 `vaRule` 선택은 reuse key에 넣지 않아 UI 표시 차이만으로 YOLO/ONNX inference를 중복 실행하지 않습니다.
+
+각 attach는 logical refcount만 올리고, 마지막 detach에서만 SharedStream analysis subscriber와 detector worker를 해제합니다. Runtime status의 `analysisMatching.activeTaps[]`는 `reuseKey`, `refCount`, `reuseAttachCount`, `lastUsedAgeMs`를 노출하고, `reuseGroups[]`는 source/profile 기준 공유 상태를 요약합니다. Debug counter는 `analysisTapCreatedCount`, `analysisTapReusedCount`, `analysisTapRejectedCount`, `analysisTapRefCount`, `analysisTapReuseKey`를 추가로 제공합니다.
+
+동일 source에서 동시에 만들 수 있는 서로 다른 profile/tap 수는 `MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_PROFILES_PER_SOURCE`, `MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_TAPS_PER_SOURCE`로 제한할 수 있습니다. 기본값은 각각 `8`이며 `0`은 제한 비활성입니다. 여러 `vaRule`이 같은 source/profile tap을 공유하면 tap context의 rule id 목록에 병합되어 저장된 rule/scenario evaluation은 같은 분석 결과 위에서 fanout됩니다.
+
 ## 4. Source 종류
 
 | Source | 요청 예 | 상태 |

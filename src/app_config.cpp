@@ -120,6 +120,10 @@ constexpr const char* kEnvDefaultAnalysisAdaptiveLowLatencyRatio =
 constexpr const char* kEnvAnalysisRegistryPath = "MEDIA_SERVER_ANALYSIS_REGISTRY";
 constexpr const char* kEnvSourceRegistryPath = "MEDIA_SERVER_SOURCE_REGISTRY";
 constexpr const char* kEnvPublishedViewsPath = "MEDIA_SERVER_PUBLISHED_VIEWS";
+constexpr const char* kEnvAnalysisMaxActiveProfilesPerSource =
+    "MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_PROFILES_PER_SOURCE";
+constexpr const char* kEnvAnalysisMaxActiveTapsPerSource =
+    "MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_TAPS_PER_SOURCE";
 constexpr const char* kEnvAnalysisEventPostEnabled = "MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED";
 constexpr const char* kEnvAnalysisEventPostTimeoutMs = "MEDIA_SERVER_ANALYSIS_EVENT_POST_TIMEOUT_MS";
 constexpr const char* kEnvAnalysisEventPostMaxQueue = "MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE";
@@ -690,6 +694,12 @@ app::AppConfig LoadAppConfig() {
     config.analysis_registry_path = ReadStringEnv(kEnvAnalysisRegistryPath, config.analysis_registry_path);
     config.source_registry_path = ReadStringEnv(kEnvSourceRegistryPath, config.source_registry_path);
     config.published_views_path = ReadStringEnv(kEnvPublishedViewsPath, config.published_views_path);
+    config.analysis_max_active_profiles_per_source =
+        ReadSizeEnv(kEnvAnalysisMaxActiveProfilesPerSource,
+                    config.analysis_max_active_profiles_per_source);
+    config.analysis_max_active_taps_per_source =
+        ReadSizeEnv(kEnvAnalysisMaxActiveTapsPerSource,
+                    config.analysis_max_active_taps_per_source);
     config.analysis_event_post_enabled =
         ReadBoolEnv(kEnvAnalysisEventPostEnabled, config.analysis_event_post_enabled);
     config.analysis_event_post_timeout_ms =

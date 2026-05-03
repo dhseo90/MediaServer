@@ -111,6 +111,7 @@ struct AnalysisContext {
     std::string route{"*"};
     std::string client_id;
     std::string va_rule_id;
+    std::vector<std::string> va_rule_ids;
 };
 
 struct AnalysisProfile {

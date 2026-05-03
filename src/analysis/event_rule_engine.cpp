@@ -487,6 +487,10 @@ bool MatchesToken(const std::string& wanted, const std::string& actual) {
 }
 
 bool MatchesRuleContext(const EventRule& rule, const AnalysisContext& context) {
+    if (!context.va_rule_ids.empty()) {
+        return std::find(context.va_rule_ids.begin(), context.va_rule_ids.end(), rule.match_va_rule_id) !=
+               context.va_rule_ids.end();
+    }
     if (!context.va_rule_id.empty()) {
         return rule.match_va_rule_id == context.va_rule_id;
     }
