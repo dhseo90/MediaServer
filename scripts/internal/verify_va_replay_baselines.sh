@@ -15,6 +15,7 @@ cases=(
   "intrusion|intrusion_metadata.json|intrusion_expected.json||"
   "line-crossing|line_crossing_metadata.json|line_crossing_expected.json||"
   "intrusion-dwell|intrusion_dwell_metadata.json|intrusion_dwell_expected.json||"
+  "intrusion-dwell-rule-override|intrusion_dwell_metadata.json|intrusion_dwell_rule_override_expected.json|intrusion_dwell_rule_override_rules.json|"
   "re-entry|re_entry_metadata.json|re_entry_expected.json|re_entry_rules.json|re-entry"
   "wrong-direction|wrong_direction_metadata.json|wrong_direction_expected.json|wrong_direction_rules.json|wrong-direction"
   "intrusion-after-line-crossing|intrusion_after_line_crossing_metadata.json|intrusion_after_line_crossing_expected.json|intrusion_after_line_crossing_rules.json|intrusion-after-line-crossing"

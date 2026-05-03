@@ -50,6 +50,10 @@ std::string IntrusionDwellScenario::ScenarioId() const {
     return kScenarioId;
 }
 
+std::string IntrusionDwellScenario::ScenarioKey() const {
+    return options_.scenario_key.empty() ? ScenarioId() : options_.scenario_key;
+}
+
 ScenarioUpdate IntrusionDwellScenario::Evaluate(const SceneContext& scene_context,
                                                 const TrackSceneContext& track_context,
                                                 const ScenarioInstance* previous_instance) {
@@ -58,6 +62,7 @@ ScenarioUpdate IntrusionDwellScenario::Evaluate(const SceneContext& scene_contex
     if (!options_.enabled || track_context.track_id == 0 ||
         (track_context.lifecycle_state != TrackLifecycleState::Active &&
          track_context.lifecycle_state != TrackLifecycleState::Reacquired) ||
+        (options_.require_stable_track && track_context.track_health.is_unstable) ||
         !MatchesTargetClass(track_context)) {
         if (previous_instance != nullptr &&
             (previous_instance->phase == ScenarioPhase::Candidate ||

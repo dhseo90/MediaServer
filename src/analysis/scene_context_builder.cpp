@@ -9,6 +9,7 @@
 #include <cctype>
 #include <cmath>
 #include <iostream>
+#include <initializer_list>
 #include <limits>
 #include <optional>
 #include <sstream>
@@ -101,6 +102,74 @@ std::optional<std::string> ExtractObjectField(const std::string& body, const std
     return ExtractDelimitedField(body, field, '{', '}');
 }
 
+std::optional<std::string> ExtractObjectKeyField(const std::string& body, const std::string& field) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t search_pos = 0;
+    while (search_pos < body.size()) {
+        const std::size_t key_pos = body.find(needle, search_pos);
+        if (key_pos == std::string::npos) {
+            return std::nullopt;
+        }
+        search_pos = key_pos + needle.size();
+
+        std::size_t prev = key_pos;
+        while (prev > 0 && std::isspace(static_cast<unsigned char>(body[prev - 1])) != 0) {
+            --prev;
+        }
+        if (prev > 0 && body[prev - 1] != '{' && body[prev - 1] != ',') {
+            continue;
+        }
+
+        std::size_t pos = body.find(':', key_pos + needle.size());
+        if (pos == std::string::npos) {
+            return std::nullopt;
+        }
+        ++pos;
+        while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) {
+            ++pos;
+        }
+        if (pos >= body.size() || body[pos] != '{') {
+            continue;
+        }
+
+        bool in_string = false;
+        bool escaped = false;
+        int depth = 0;
+        const std::size_t start = pos;
+        for (; pos < body.size(); ++pos) {
+            const char ch = body[pos];
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            if (ch == '\\' && in_string) {
+                escaped = true;
+                continue;
+            }
+            if (ch == '"') {
+                in_string = !in_string;
+                continue;
+            }
+            if (in_string) {
+                continue;
+            }
+            if (ch == '{') {
+                ++depth;
+            } else if (ch == '}') {
+                --depth;
+                if (depth == 0) {
+                    return body.substr(start, pos - start + 1);
+                }
+            }
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string> ExtractScenarioObject(const std::string& document) {
+    return ExtractObjectKeyField(document, "scenario");
+}
+
 std::optional<std::string> ExtractArrayField(const std::string& body, const std::string& field) {
     return ExtractDelimitedField(body, field, '[', ']');
 }
@@ -140,6 +209,89 @@ std::optional<std::string> ParseStringField(const std::string& body, const std::
         out.push_back(ch);
     }
     return std::nullopt;
+}
+
+std::vector<std::string> ParseStringArrayField(const std::string& body, const std::string& field) {
+    std::vector<std::string> values;
+    const auto array = ExtractArrayField(body, field);
+    if (!array.has_value()) {
+        return values;
+    }
+
+    bool in_string = false;
+    bool escaped = false;
+    std::string current;
+    for (std::size_t i = 1; i + 1 < array->size(); ++i) {
+        const char ch = (*array)[i];
+        if (!in_string) {
+            if (ch == '"') {
+                in_string = true;
+                current.clear();
+            }
+            continue;
+        }
+        if (escaped) {
+            current.push_back(ch);
+            escaped = false;
+            continue;
+        }
+        if (ch == '\\') {
+            escaped = true;
+            continue;
+        }
+        if (ch == '"') {
+            const std::string trimmed = Trim(current);
+            if (!trimmed.empty()) {
+                values.push_back(trimmed);
+            }
+            in_string = false;
+            continue;
+        }
+        current.push_back(ch);
+    }
+    return values;
+}
+
+std::string FirstStringFromFields(const std::string& body,
+                                  std::initializer_list<const char*> array_fields,
+                                  std::initializer_list<const char*> string_fields) {
+    for (const char* field : array_fields) {
+        const auto values = ParseStringArrayField(body, field);
+        if (!values.empty()) {
+            return values.front();
+        }
+    }
+    for (const char* field : string_fields) {
+        const std::string value = Trim(ParseStringField(body, field).value_or(""));
+        if (!value.empty()) {
+            return value;
+        }
+    }
+    return {};
+}
+
+std::string ScenarioZoneIdForDocument(const std::string& document, const std::string& fallback) {
+    const auto scenario = ExtractScenarioObject(document);
+    if (!scenario.has_value()) {
+        return fallback;
+    }
+    const std::string zone_id = FirstStringFromFields(
+        *scenario,
+        {"restrictedZoneIds", "targetZoneIds", "targetZones", "zoneIds"},
+        {"targetZone", "zoneId"});
+    return zone_id.empty() ? fallback : zone_id;
+}
+
+std::string ScenarioLineIdForDocument(const std::string& document, const std::string& fallback) {
+    const auto scenario = ExtractScenarioObject(document);
+    if (!scenario.has_value()) {
+        return fallback;
+    }
+    const std::string line_id = FirstStringFromFields(
+        *scenario,
+        {"targetLineIds", "targetLines", "lineIds"},
+        {"targetLine", "lineId"});
+    return line_id.empty() ? fallback : line_id;
 }
 
 std::optional<double> ParseNumberField(const std::string& body, const std::string& field) {
@@ -970,7 +1122,7 @@ SceneGeometryConfig BuildSceneGeometryConfigFromRuleDocuments(const std::vector<
         const std::string region_type = ToLower(ParseStringField(*region, "type").value_or("polygon"));
         if (region_type == "polygon") {
             SceneZoneDefinition zone;
-            zone.zone_id = rule_id;
+            zone.zone_id = ScenarioZoneIdForDocument(document, rule_id);
             zone.restricted = true;
             zone.polygon = ParsePoints(*region);
             if (zone.polygon.size() >= 3) {
@@ -978,7 +1130,7 @@ SceneGeometryConfig BuildSceneGeometryConfigFromRuleDocuments(const std::vector<
             }
         } else if (region_type == "line") {
             SceneLineDefinition line;
-            line.line_id = rule_id;
+            line.line_id = ScenarioLineIdForDocument(document, rule_id);
             line.allowed_direction = ToLower(ParseStringField(*region, "direction").value_or("any"));
             line.points = ParsePoints(*region);
             if (line.points.size() >= 2) {

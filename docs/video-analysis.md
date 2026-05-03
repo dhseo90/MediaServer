@@ -129,6 +129,10 @@ trackId가 있으면 TrackState/SceneContext를 사용하고, tracker가 꺼져 
 
 상태 머신 기반 상황 이벤트를 담당합니다. 기존 RuleEventEngine과 별도 계층이며, `IScenario` 구현체를 등록해 확장합니다.
 
+저장된 `vaRule`에 `scenario` payload가 있으면 runtime은 해당 rule의 scenario 설정을 우선 적용합니다. `candidateTimeMs`, `dwellTimeMs`, `cooldownMs`, target class, target zone/line, WrongDirection 허용 방향, stable track 요구 조건은 rule별 ScenarioEngine instance option으로 변환됩니다. 값이 없거나 유효하지 않으면 기존 env default를 fallback으로 사용합니다.
+
+내부 lifecycle/dedupe key는 rule별 scenario key로 분리하지만 외부 event type, Event POST payload schema, WebRTC/SSE/WS metadata schema는 변경하지 않습니다.
+
 대표 phase:
 
 - Idle
@@ -238,6 +242,8 @@ polygon 좌표는 normalized 0~1 비율입니다. line-crossing은 2점짜리 li
 ## 6. 상황 기반 시나리오
 
 Scenario는 여러 frame에 걸친 상태 전이와 시간 조건을 평가합니다. 기존 기본 이벤트와 별도 event type을 사용합니다.
+
+저장 rule의 scenario 설정은 env default보다 우선합니다. env 설정은 저장 payload에 빠진 값의 fallback이거나, 저장 scenario rule 없이 env scenario만 켠 검증 모드에서 사용합니다.
 
 | 시나리오 | 상태 | 이벤트 타입 |
 | --- | --- | --- |
@@ -934,6 +940,7 @@ event emit/cooldown 판단 자체는 ScenarioEngine과 EventManager의 기존 �
 - Intrusion / presence
 - LineCrossing
 - IntrusionDwell
+- IntrusionDwell per-rule dwell/zone override
 - ReEntry
 - WrongDirection
 - IntrusionAfterLineCrossing

@@ -357,9 +357,16 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ### P4-1. Scenario rule payload를 runtime per-rule 설정으로 연결
 
-- 상태: 예정
+- 상태: 완료
 - 목적: UI에서 저장한 scenario rule 조건이 runtime ScenarioEngine의 per-rule 설정으로 일관되게 적용되도록 정리합니다.
-- 관련 파일: `src/ingress/analysis_query.cpp`, `src/analysis/event_rule_engine.cpp`, `src/analysis/scenario_engine.cpp`, `include/analysis/scenario_engine.h`
+- 완료 범위:
+  - 저장된 `scenario` payload를 runtime scenario option으로 변환
+  - IntrusionDwell / WrongDirection per-rule 설정 우선 적용
+  - ReEntry / IntrusionAfterLineCrossing / Loitering payload mapping 기반 준비
+  - rule별 scenario lifecycle key 분리
+  - env default는 저장 payload 누락/invalid field fallback으로 유지
+  - Event POST payload, WebRTC/SSE/WS metadata schema, scenario event type 변경 없음
+- 관련 파일: `src/analysis/event_rule_engine.cpp`, `src/analysis/scenario_engine.cpp`, `include/analysis/scenario_engine.h`, `src/analysis/scene_context_builder.cpp`, `test/fixtures/va_replay/`
 - 검증 명령:
 
 ```bash
@@ -367,7 +374,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 ./server.sh verify-va-replay
 ```
 
-- 우선순위 이유: env 기반 scenario와 저장 rule 기반 scenario가 혼동되면 현장 설정 재현성이 떨어집니다.
+- 후속: ReEntry / IntrusionAfterLineCrossing / Loitering 전용 UI 템플릿과 현장 fixture를 추가합니다.
 
 ### P4-2. Loitering 실제 샘플 튜닝
 

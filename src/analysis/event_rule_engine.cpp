@@ -20,9 +20,11 @@
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
+#include <initializer_list>
 #include <iostream>
 #include <mutex>
 #include <sstream>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 
@@ -37,6 +39,7 @@ struct EventRuleRuntime {
     SceneContextBuilder scenario_scene_context_builder;
     ScenarioEngine scenario_engine;
     EventManager event_manager;
+    std::string scenario_config_signature;
     std::int64_t metrics_log_interval_ns{0};
     std::int64_t last_metrics_log_time_ns{0};
     std::unordered_map<std::string, bool> previous_inside;
@@ -144,6 +147,74 @@ std::optional<std::string> ExtractDelimitedField(const std::string& body,
 
 std::optional<std::string> ExtractObjectField(const std::string& body, const std::string& field) {
     return ExtractDelimitedField(body, field, '{', '}');
+}
+
+std::optional<std::string> ExtractObjectKeyField(const std::string& body, const std::string& field) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t search_pos = 0;
+    while (search_pos < body.size()) {
+        const std::size_t key_pos = body.find(needle, search_pos);
+        if (key_pos == std::string::npos) {
+            return std::nullopt;
+        }
+        search_pos = key_pos + needle.size();
+
+        std::size_t prev = key_pos;
+        while (prev > 0 && std::isspace(static_cast<unsigned char>(body[prev - 1])) != 0) {
+            --prev;
+        }
+        if (prev > 0 && body[prev - 1] != '{' && body[prev - 1] != ',') {
+            continue;
+        }
+
+        std::size_t pos = body.find(':', key_pos + needle.size());
+        if (pos == std::string::npos) {
+            return std::nullopt;
+        }
+        ++pos;
+        while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) {
+            ++pos;
+        }
+        if (pos >= body.size() || body[pos] != '{') {
+            continue;
+        }
+
+        bool in_string = false;
+        bool escaped = false;
+        int depth = 0;
+        const std::size_t start = pos;
+        for (; pos < body.size(); ++pos) {
+            const char ch = body[pos];
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            if (ch == '\\' && in_string) {
+                escaped = true;
+                continue;
+            }
+            if (ch == '"') {
+                in_string = !in_string;
+                continue;
+            }
+            if (in_string) {
+                continue;
+            }
+            if (ch == '{') {
+                ++depth;
+            } else if (ch == '}') {
+                --depth;
+                if (depth == 0) {
+                    return body.substr(start, pos - start + 1);
+                }
+            }
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string> ExtractScenarioObject(const std::string& document) {
+    return ExtractObjectKeyField(document, "scenario");
 }
 
 std::optional<std::string> ExtractArrayField(const std::string& body, const std::string& field) {
@@ -512,6 +583,328 @@ SceneGeometryConfig BuildSceneGeometryConfig(const EventRule& rule) {
         config.lines.push_back(std::move(line));
     }
     return config;
+}
+
+bool IsKnownScenarioType(const std::string& type) {
+    return type == "intrusion-dwell" || type == "re-entry" || type == "wrong-direction" ||
+           type == "intrusion-after-line-crossing" || type == "loitering";
+}
+
+std::string ScenarioTypeFromDocument(const std::string& document, const EventRule& rule) {
+    if (const auto scenario = ExtractScenarioObject(document); scenario.has_value()) {
+        const std::string type = ToLower(ParseStringField(*scenario, "type").value_or(""));
+        if (IsKnownScenarioType(type)) {
+            return type;
+        }
+    }
+    return IsKnownScenarioType(rule.event_type) ? rule.event_type : std::string{};
+}
+
+bool ScenarioDocumentEnabled(const std::string& document) {
+    const auto scenario = ExtractScenarioObject(document);
+    if (!scenario.has_value()) {
+        return true;
+    }
+    return ParseBoolField(*scenario, "enabled").value_or(true);
+}
+
+std::vector<std::string> ParseStringListFromFields(const std::string& body,
+                                                   std::initializer_list<std::string_view> array_fields,
+                                                   std::initializer_list<std::string_view> string_fields) {
+    for (const auto field : array_fields) {
+        std::vector<std::string> values = ParseStringArrayField(body, std::string(field));
+        values.erase(std::remove_if(values.begin(),
+                                    values.end(),
+                                    [](const std::string& value) { return Trim(value).empty(); }),
+                     values.end());
+        if (!values.empty()) {
+            return values;
+        }
+    }
+    for (const auto field : string_fields) {
+        const std::string value = Trim(ParseStringField(body, std::string(field)).value_or(""));
+        if (!value.empty()) {
+            return {value};
+        }
+    }
+    return {};
+}
+
+std::vector<std::string> ScenarioTargetClasses(const std::string& document,
+                                               const EventRule& rule,
+                                               const std::vector<std::string>& fallback) {
+    if (const auto scenario = ExtractScenarioObject(document); scenario.has_value()) {
+        auto values = ParseStringListFromFields(*scenario, {"targetClasses", "classes"}, {"targetClass"});
+        if (!values.empty()) {
+            return values;
+        }
+    }
+    if (!rule.classes.empty()) {
+        return rule.classes;
+    }
+    return fallback;
+}
+
+std::vector<std::string> ScenarioZoneIds(const std::string& document, const EventRule& rule) {
+    if (const auto scenario = ExtractScenarioObject(document); scenario.has_value()) {
+        auto values = ParseStringListFromFields(*scenario,
+                                                {"restrictedZoneIds", "targetZoneIds", "targetZones", "zoneIds"},
+                                                {"targetZone", "zoneId"});
+        if (!values.empty()) {
+            return values;
+        }
+        if (rule.region_type == "polygon" && !rule.id.empty()) {
+            return {rule.id};
+        }
+    }
+    return {};
+}
+
+std::vector<std::string> ScenarioLineIds(const std::string& document, const EventRule& rule) {
+    if (const auto scenario = ExtractScenarioObject(document); scenario.has_value()) {
+        auto values = ParseStringListFromFields(*scenario,
+                                                {"targetLineIds", "targetLines", "lineIds"},
+                                                {"targetLine", "lineId"});
+        if (!values.empty()) {
+            return values;
+        }
+        if (rule.region_type == "line" && !rule.id.empty()) {
+            return {rule.id};
+        }
+    }
+    return {};
+}
+
+bool ScenarioRequiresStableTrack(const std::string& document) {
+    const auto scenario = ExtractScenarioObject(document);
+    if (!scenario.has_value()) {
+        return false;
+    }
+    if (const auto direct = ParseBoolField(*scenario, "requireStableTrack"); direct.has_value()) {
+        return *direct;
+    }
+    if (const auto track_health = ExtractObjectField(*scenario, "trackHealth"); track_health.has_value()) {
+        if (const auto nested = ParseBoolField(*track_health, "requireStableTrack"); nested.has_value()) {
+            return *nested;
+        }
+    }
+    const std::string mode = ToLower(Trim(ParseStringField(*scenario, "trackHealth").value_or("")));
+    return mode == "stable-only" || mode == "stable";
+}
+
+std::optional<int> ParseNonNegativeIntField(const std::string& body, std::string_view field) {
+    const auto value = ParseNumberField(body, std::string(field));
+    if (!value.has_value() || *value < 0.0) {
+        return std::nullopt;
+    }
+    return static_cast<int>(*value);
+}
+
+std::optional<float> ParseNonNegativeFloatField(const std::string& body, std::string_view field) {
+    const auto value = ParseNumberField(body, std::string(field));
+    if (!value.has_value() || *value < 0.0) {
+        return std::nullopt;
+    }
+    return static_cast<float>(*value);
+}
+
+std::optional<std::size_t> ParsePositiveSizeField(const std::string& body, std::string_view field) {
+    const auto value = ParseNumberField(body, std::string(field));
+    if (!value.has_value() || *value < 1.0) {
+        return std::nullopt;
+    }
+    return static_cast<std::size_t>(*value);
+}
+
+std::string ScenarioKeyForRule(const EventRule& rule, const std::string& scenario_type) {
+    return scenario_type + ":rule:" + rule.id;
+}
+
+std::vector<std::unique_ptr<IScenario>> BuildDefaultRuntimeScenarios(const app::AppConfig& config) {
+    std::vector<std::unique_ptr<IScenario>> scenarios;
+    if (config.analysis_intrusion_dwell_enabled) {
+        scenarios.push_back(
+            std::make_unique<IntrusionDwellScenario>(
+                BuildIntrusionDwellScenarioOptionsFromConfig(config)));
+    }
+    if (config.analysis_re_entry_enabled) {
+        scenarios.push_back(
+            std::make_unique<ReEntryScenario>(BuildReEntryScenarioOptionsFromConfig(config)));
+    }
+    if (config.analysis_wrong_direction_enabled) {
+        scenarios.push_back(
+            std::make_unique<WrongDirectionScenario>(
+                BuildWrongDirectionScenarioOptionsFromConfig(config)));
+    }
+    if (config.analysis_intrusion_after_line_crossing_enabled) {
+        scenarios.push_back(
+            std::make_unique<IntrusionAfterLineCrossingScenario>(
+                BuildIntrusionAfterLineCrossingScenarioOptionsFromConfig(config)));
+    }
+    if (config.analysis_loitering_enabled) {
+        scenarios.push_back(
+            std::make_unique<LoiteringScenario>(BuildLoiteringScenarioOptionsFromConfig(config)));
+    }
+    return scenarios;
+}
+
+std::vector<std::unique_ptr<IScenario>> BuildRuleRuntimeScenarios(
+    const std::vector<std::string>& active_rule_documents,
+    const app::AppConfig& config) {
+    std::vector<std::unique_ptr<IScenario>> scenarios;
+    bool saw_scenario_document = false;
+    for (const auto& document : active_rule_documents) {
+        const auto rule = ParseRule(document);
+        if (!rule.has_value() || !rule->enabled) {
+            continue;
+        }
+        const auto scenario_object = ExtractScenarioObject(document);
+        if (!scenario_object.has_value()) {
+            continue;
+        }
+        const std::string scenario_type = ScenarioTypeFromDocument(document, *rule);
+        if (scenario_type.empty()) {
+            continue;
+        }
+        saw_scenario_document = true;
+        if (!ScenarioDocumentEnabled(document)) {
+            continue;
+        }
+        const auto& scenario = *scenario_object;
+        const bool require_stable_track = ScenarioRequiresStableTrack(document);
+        const std::vector<std::string> zone_ids = ScenarioZoneIds(document, *rule);
+        const std::vector<std::string> line_ids = ScenarioLineIds(document, *rule);
+
+        if (scenario_type == "intrusion-dwell") {
+            auto options = BuildIntrusionDwellScenarioOptionsFromConfig(config);
+            options.enabled = true;
+            options.scenario_key = ScenarioKeyForRule(*rule, scenario_type);
+            options.require_stable_track = require_stable_track;
+            options.target_class_tokens = ScenarioTargetClasses(document, *rule, options.target_class_tokens);
+            options.restricted_zone_ids = zone_ids;
+            if (const auto value = ParseNonNegativeIntField(scenario, "candidateTimeMs"); value.has_value()) {
+                options.candidate_time_ms = *value;
+            }
+            if (const auto value = ParseNonNegativeIntField(scenario, "dwellTimeMs"); value.has_value()) {
+                options.dwell_time_ms = *value;
+            }
+            if (const auto value = ParseNonNegativeIntField(scenario, "cooldownMs"); value.has_value()) {
+                options.cooldown_ms = *value;
+            }
+            scenarios.push_back(std::make_unique<IntrusionDwellScenario>(std::move(options)));
+        } else if (scenario_type == "wrong-direction") {
+            auto options = BuildWrongDirectionScenarioOptionsFromConfig(config);
+            options.enabled = true;
+            options.scenario_key = ScenarioKeyForRule(*rule, scenario_type);
+            options.require_stable_track = require_stable_track;
+            options.target_class_tokens = ScenarioTargetClasses(document, *rule, options.target_class_tokens);
+            options.target_line_ids = line_ids;
+            if (const auto value = ParseNonNegativeIntField(scenario, "cooldownMs"); value.has_value()) {
+                options.cooldown_ms = *value;
+            }
+            std::string allowed_direction =
+                ToLower(Trim(ParseStringField(scenario, "allowedDirection").value_or(
+                    ParseStringField(scenario, "lineDirection").value_or(rule->direction))));
+            if (allowed_direction != "forward" && allowed_direction != "reverse") {
+                allowed_direction = ToLower(Trim(rule->direction));
+            }
+            if (allowed_direction == "forward" || allowed_direction == "reverse") {
+                options.allowed_direction_rules.clear();
+                const std::vector<std::string> target_lines =
+                    options.target_line_ids.empty() && rule->region_type == "line"
+                        ? std::vector<std::string>{rule->id}
+                        : options.target_line_ids;
+                for (const auto& line_id : target_lines) {
+                    if (!Trim(line_id).empty()) {
+                        options.allowed_direction_rules.push_back(Trim(line_id) + ":" + allowed_direction);
+                    }
+                }
+            }
+            scenarios.push_back(std::make_unique<WrongDirectionScenario>(std::move(options)));
+        } else if (scenario_type == "re-entry") {
+            auto options = BuildReEntryScenarioOptionsFromConfig(config);
+            options.enabled = true;
+            options.scenario_key = ScenarioKeyForRule(*rule, scenario_type);
+            options.require_stable_track = require_stable_track;
+            options.target_class_tokens = ScenarioTargetClasses(document, *rule, options.target_class_tokens);
+            options.target_zone_ids = zone_ids;
+            if (const auto value = ParseNonNegativeIntField(scenario, "reEntryWindowMs"); value.has_value()) {
+                options.re_entry_window_ms = *value;
+            }
+            if (const auto value = ParseNonNegativeIntField(scenario, "cooldownMs"); value.has_value()) {
+                options.cooldown_ms = *value;
+            }
+            scenarios.push_back(std::make_unique<ReEntryScenario>(std::move(options)));
+        } else if (scenario_type == "intrusion-after-line-crossing") {
+            auto options = BuildIntrusionAfterLineCrossingScenarioOptionsFromConfig(config);
+            options.enabled = true;
+            options.scenario_key = ScenarioKeyForRule(*rule, scenario_type);
+            options.require_stable_track = require_stable_track;
+            options.target_class_tokens = ScenarioTargetClasses(document, *rule, options.target_class_tokens);
+            options.target_line_ids = line_ids;
+            options.target_zone_ids = zone_ids;
+            if (const auto value = ParseNonNegativeIntField(scenario, "maxDelayAfterCrossingMs");
+                value.has_value()) {
+                options.max_delay_after_crossing_ms = *value;
+            }
+            if (const auto value = ParseNonNegativeIntField(scenario, "dwellTimeMs"); value.has_value()) {
+                options.dwell_time_ms = *value;
+            }
+            if (const auto value = ParseNonNegativeIntField(scenario, "cooldownMs"); value.has_value()) {
+                options.cooldown_ms = *value;
+            }
+            scenarios.push_back(
+                std::make_unique<IntrusionAfterLineCrossingScenario>(std::move(options)));
+        } else if (scenario_type == "loitering") {
+            auto options = BuildLoiteringScenarioOptionsFromConfig(config);
+            options.enabled = true;
+            options.scenario_key = ScenarioKeyForRule(*rule, scenario_type);
+            options.require_stable_track = require_stable_track;
+            options.target_class_tokens = ScenarioTargetClasses(document, *rule, options.target_class_tokens);
+            options.target_zone_ids = zone_ids;
+            if (const auto value = ParseNonNegativeIntField(scenario, "minDwellTimeMs"); value.has_value()) {
+                options.min_dwell_time_ms = *value;
+            } else if (const auto value = ParseNonNegativeIntField(scenario, "dwellTimeMs"); value.has_value()) {
+                options.min_dwell_time_ms = *value;
+            }
+            if (const auto value = ParseNonNegativeFloatField(scenario, "maxMovementRadius");
+                value.has_value()) {
+                options.max_movement_radius = *value;
+            } else if (const auto value = ParseNonNegativeFloatField(scenario, "movementRadius");
+                       value.has_value()) {
+                options.max_movement_radius = *value;
+            }
+            if (const auto value = ParsePositiveSizeField(scenario, "minTrajectoryPoints"); value.has_value()) {
+                options.min_trajectory_points = *value;
+            }
+            if (const auto value = ParseNonNegativeIntField(scenario, "cooldownMs"); value.has_value()) {
+                options.cooldown_ms = *value;
+            }
+            options.use_ground_plane_movement_radius =
+                ParseBoolField(scenario, "useGroundPlaneMovementRadius")
+                    .value_or(options.use_ground_plane_movement_radius);
+            scenarios.push_back(std::make_unique<LoiteringScenario>(std::move(options)));
+        }
+    }
+    if (!scenarios.empty()) {
+        return scenarios;
+    }
+    if (saw_scenario_document) {
+        return scenarios;
+    }
+    return BuildDefaultRuntimeScenarios(config);
+}
+
+std::string BuildScenarioConfigSignature(const std::vector<std::string>& active_rule_documents) {
+    if (active_rule_documents.empty()) {
+        return "env-default-scenarios";
+    }
+    std::ostringstream out;
+    out << "rule-scenarios:" << active_rule_documents.size();
+    for (const auto& document : active_rule_documents) {
+        out << "\n---\n" << document;
+    }
+    return out.str();
 }
 
 const TrackRuntimeState* FindTrackState(const std::vector<TrackRuntimeState>& track_states, std::uint64_t track_id) {
@@ -1101,29 +1494,7 @@ EventRuleRuntime::EventRuleRuntime()
       scenario_scene_context_builder(BuildSceneContextBuilderOptionsFromConfig(app::GetAppConfig())),
       scenario_engine(BuildScenarioEngineOptionsFromConfig(app::GetAppConfig())) {
     const auto& config = app::GetAppConfig();
-    if (config.analysis_intrusion_dwell_enabled) {
-        scenario_engine.RegisterScenario(
-            std::make_unique<IntrusionDwellScenario>(
-                BuildIntrusionDwellScenarioOptionsFromConfig(config)));
-    }
-    if (config.analysis_re_entry_enabled) {
-        scenario_engine.RegisterScenario(
-            std::make_unique<ReEntryScenario>(BuildReEntryScenarioOptionsFromConfig(config)));
-    }
-    if (config.analysis_wrong_direction_enabled) {
-        scenario_engine.RegisterScenario(
-            std::make_unique<WrongDirectionScenario>(
-                BuildWrongDirectionScenarioOptionsFromConfig(config)));
-    }
-    if (config.analysis_intrusion_after_line_crossing_enabled) {
-        scenario_engine.RegisterScenario(
-            std::make_unique<IntrusionAfterLineCrossingScenario>(
-                BuildIntrusionAfterLineCrossingScenarioOptionsFromConfig(config)));
-    }
-    if (config.analysis_loitering_enabled) {
-        scenario_engine.RegisterScenario(
-            std::make_unique<LoiteringScenario>(BuildLoiteringScenarioOptionsFromConfig(config)));
-    }
+    scenario_engine.ReplaceScenarios(BuildDefaultRuntimeScenarios(config));
     metrics_log_interval_ns = MsToNs(config.analysis_metrics_log_interval_ms);
 }
 
@@ -1141,7 +1512,9 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
     }
 
     std::vector<EventRule> rules;
+    std::vector<std::string> active_rule_documents;
     rules.reserve(rule_documents.size());
+    active_rule_documents.reserve(rule_documents.size());
     for (const auto& document : rule_documents) {
         const auto rule = ParseRule(document);
         if (!rule.has_value() || !rule->enabled) {
@@ -1157,6 +1530,7 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
         }
         // 여기까지 통과한 rule만 현재 frame/result의 실제 평가 대상이다.
         rules.push_back(*rule);
+        active_rule_documents.push_back(document);
     }
     evaluation.active_rule_count = rules.size();
     if (rules.empty() && !result.debug_state_requested && !result.metrics_report_requested) {
@@ -1165,6 +1539,12 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
 
     const auto safe_runtime = runtime != nullptr ? runtime : CreateEventRuleRuntime();
     std::lock_guard lock(safe_runtime->mu);
+    const std::string scenario_signature = BuildScenarioConfigSignature(active_rule_documents);
+    if (safe_runtime->scenario_config_signature != scenario_signature) {
+        safe_runtime->scenario_engine.ReplaceScenarios(
+            BuildRuleRuntimeScenarios(active_rule_documents, app::GetAppConfig()));
+        safe_runtime->scenario_config_signature = scenario_signature;
+    }
     const std::string channel_id = ResolveRuntimeChannelId(result.source_key);
     safe_runtime->track_state_manager.Update(result.source_key, channel_id, BuildTrackedObjects(result), result.pts);
     const auto track_states = safe_runtime->track_state_manager.Snapshot(channel_id);
@@ -1252,7 +1632,7 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
     }
 
     const SceneGeometryConfig scenario_geometry =
-        BuildSceneGeometryConfigFromRuleDocuments(rule_documents, result.context);
+        BuildSceneGeometryConfigFromRuleDocuments(active_rule_documents, result.context);
     std::optional<SceneContext> scenario_context_for_debug;
     if ((!scenario_geometry.zones.empty() || !scenario_geometry.lines.empty() || result.debug_state_requested) &&
         !track_states.empty()) {

@@ -6682,7 +6682,7 @@ std::string BuildLabRuleEditorPageHtml() {
               <div class="metric-tile"><strong>중복 억제</strong><span>같은 track은 확정 알림 1회</span></div>
               <div class="metric-tile"><strong>Track 안정성</strong><span>ID 흔들림 진단값</span></div>
             </div>
-            <p id="scenarioPanelHint" class="hint">이 UI는 시나리오 rule payload를 저장하고, 현재 polygon을 제한구역 후보로 사용합니다. 실제 engine 활성화는 서버의 scenario 설정값과 함께 동작합니다.</p>
+            <p id="scenarioPanelHint" class="hint">이 UI는 시나리오 rule payload를 저장하고, runtime은 저장된 per-rule 설정을 우선 적용합니다. 비어 있는 항목만 서버 env 기본값을 fallback으로 사용합니다.</p>
           </div>
           <details class="inline-details">
             <summary>고급: standalone Rule 문서</summary>
@@ -8868,7 +8868,7 @@ std::string BuildLabRuleEditorPageHtml() {
       if ($('scenarioPanelHint')) {
         $('scenarioPanelHint').textContent = wrongDirectionMode
           ? 'WrongDirection은 line geometry와 event.region.direction을 사용해 허용 방향을 저장합니다. 기존 line-crossing 기본 이벤트와 Event POST payload schema는 변경하지 않습니다.'
-          : '이 UI는 시나리오 rule payload를 저장하고, 현재 polygon을 제한구역 후보로 사용합니다. 실제 engine 활성화는 서버의 scenario 설정값과 함께 동작합니다.';
+          : '이 UI는 시나리오 rule payload를 저장하고, runtime은 저장된 per-rule 설정을 우선 적용합니다. 비어 있는 항목만 서버 env 기본값을 fallback으로 사용합니다.';
       }
       setText('geometryRegionNameText', currentGeometryName());
     }

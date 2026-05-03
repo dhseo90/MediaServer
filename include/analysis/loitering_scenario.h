@@ -12,11 +12,13 @@ namespace analysis {
 
 struct LoiteringScenarioOptions {
     bool enabled{app_config::kDefaultAnalysisLoiteringEnabled};
+    std::string scenario_key;
     int min_dwell_time_ms{app_config::kDefaultAnalysisLoiteringMinDwellTimeMs};
     float max_movement_radius{app_config::kDefaultAnalysisLoiteringMaxMovementRadius};
     std::size_t min_trajectory_points{app_config::kDefaultAnalysisLoiteringMinTrajectoryPoints};
     int cooldown_ms{app_config::kDefaultAnalysisLoiteringCooldownMs};
     bool use_ground_plane_movement_radius{app_config::kDefaultAnalysisLoiteringUseGroundPlane};
+    bool require_stable_track{false};
     std::vector<std::string> target_class_tokens{"person"};
     std::vector<std::string> target_zone_ids;
 };
@@ -28,6 +30,7 @@ public:
     explicit LoiteringScenario(LoiteringScenarioOptions options = {});
 
     std::string ScenarioId() const override;
+    std::string ScenarioKey() const override;
     ScenarioUpdate Evaluate(const SceneContext& scene_context,
                             const TrackSceneContext& track_context,
                             const ScenarioInstance* previous_instance) override;

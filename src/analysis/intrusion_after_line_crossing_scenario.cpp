@@ -111,6 +111,10 @@ std::string IntrusionAfterLineCrossingScenario::ScenarioId() const {
     return kScenarioId;
 }
 
+std::string IntrusionAfterLineCrossingScenario::ScenarioKey() const {
+    return options_.scenario_key.empty() ? ScenarioId() : options_.scenario_key;
+}
+
 ScenarioUpdate IntrusionAfterLineCrossingScenario::Evaluate(
     const SceneContext& scene_context,
     const TrackSceneContext& track_context,
@@ -121,6 +125,7 @@ ScenarioUpdate IntrusionAfterLineCrossingScenario::Evaluate(
     if (!options_.enabled || track_context.track_id == 0 ||
         (track_context.lifecycle_state != TrackLifecycleState::Active &&
          track_context.lifecycle_state != TrackLifecycleState::Reacquired) ||
+        (options_.require_stable_track && track_context.track_health.is_unstable) ||
         !MatchesTargetClass(track_context)) {
         if (previous_instance != nullptr && IsActiveScenarioPhase(previous_instance->phase)) {
             update.phase = ScenarioPhase::Ended;

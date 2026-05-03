@@ -57,6 +57,10 @@ std::string ReEntryScenario::ScenarioId() const {
     return kScenarioId;
 }
 
+std::string ReEntryScenario::ScenarioKey() const {
+    return options_.scenario_key.empty() ? ScenarioId() : options_.scenario_key;
+}
+
 ScenarioUpdate ReEntryScenario::Evaluate(const SceneContext& scene_context,
                                          const TrackSceneContext& track_context,
                                          const ScenarioInstance* previous_instance) {
@@ -66,6 +70,7 @@ ScenarioUpdate ReEntryScenario::Evaluate(const SceneContext& scene_context,
     if (!options_.enabled || track_context.track_id == 0 ||
         (track_context.lifecycle_state != TrackLifecycleState::Active &&
          track_context.lifecycle_state != TrackLifecycleState::Reacquired) ||
+        (options_.require_stable_track && track_context.track_health.is_unstable) ||
         !MatchesTargetClass(track_context)) {
         if (previous_instance != nullptr && IsActiveScenarioPhase(previous_instance->phase)) {
             update.phase = ScenarioPhase::Ended;
