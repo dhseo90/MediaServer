@@ -43,10 +43,11 @@ git diff --check -- README.md docs
 - 완료 범위:
   - dark mode 기준 대표 screenshot 갱신
   - `analysis-rule-list`, `analysis-rule-editor-basic`, `analysis-rule-editor-scenario`
-  - `analysis-region-canvas`, `analysis-preview`, `analysis-developer-url`, `analysis-runtime-dashboard`
+  - `analysis-region-canvas`, `analysis-preview`, `analysis-developer-url`
+  - Runtime Dashboard section crop: `analysis-runtime-dashboard`, `analysis-runtime-dashboard-trend`, `analysis-runtime-dashboard-metadata`, `analysis-runtime-dashboard-runtime`, `analysis-runtime-dashboard-tracks`, `analysis-runtime-dashboard-scenarios`, `analysis-runtime-dashboard-records-issues`
   - 영상 화면은 실제 객체가 보이는 `va_four_scene_sample.mp4` 기준으로 캡처
   - 영상/캔버스 하단이 잘리지 않도록 section 경계 기준으로 재캡처
-  - Runtime Dashboard는 Health Summary, Warnings, Metadata/Backpressure 대표 crop으로 교체
+  - Runtime Dashboard는 active analysis tap 데이터가 있는 Health Summary, Warnings/Trend, Metadata/Backpressure, Runtime Detail, Tracks, Scenarios/Events, Event Records/Tracking Issues 구간별 crop으로 교체
   - 이미지 내부 개인 절대경로 제거
 - 검증 명령:
 

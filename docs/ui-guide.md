@@ -465,7 +465,31 @@ VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보
 | Dashboard tab 닫힘 | polling 중지 |
 | 자동 갱신 사용 | 최소 2초 이상 간격으로 제한 |
 
-![VA 런타임 대시보드](assets/ui/analysis-runtime-dashboard.png)
+문서용 screenshot은 긴 dashboard 전체를 한 장으로 축소하지 않고, active analysis tap 데이터가 들어간 상태에서 구간별로 나눠 캡처합니다.
+
+| Screenshot | 확인 포인트 |
+| --- | --- |
+| Health Summary | active stream/tap, stale, cleanup, guard 상태 요약 |
+| Warnings / Trend detail | 최근 sample 수, delta/min/max, warning badge |
+| Metadata / Backpressure | WebRTC/SSE/WS metadata, payload, DataChannel buffer |
+| Runtime Detail / vaRule Debug | 선택 tap/rule/source/profile/event/scenario runtime 관계 |
+| Tracks | track lifecycle, zone/dwell, TrackHealth |
+| Scenarios / Events | scenario phase/timeline, recent event buffer |
+| Event Records / Tracking Issues | 수동 EventRecord 검색 UI, tracking issue report |
+
+![VA 런타임 대시보드 Health Summary](assets/ui/analysis-runtime-dashboard.png)
+
+![VA 런타임 대시보드 Warnings Trend](assets/ui/analysis-runtime-dashboard-trend.png)
+
+![VA 런타임 대시보드 Metadata Backpressure](assets/ui/analysis-runtime-dashboard-metadata.png)
+
+![VA 런타임 대시보드 Runtime Detail](assets/ui/analysis-runtime-dashboard-runtime.png)
+
+![VA 런타임 대시보드 Tracks](assets/ui/analysis-runtime-dashboard-tracks.png)
+
+![VA 런타임 대시보드 Scenarios Events](assets/ui/analysis-runtime-dashboard-scenarios.png)
+
+![VA 런타임 대시보드 Event Records Tracking Issues](assets/ui/analysis-runtime-dashboard-records-issues.png)
 
 표시 항목:
 
