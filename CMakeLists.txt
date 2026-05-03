@@ -94,6 +94,16 @@ else()
     target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_PANGOCAIRO=0)
 endif()
 
+if(PkgConfig_FOUND)
+    pkg_check_modules(LIBSODIUM QUIET IMPORTED_TARGET libsodium)
+endif()
+if(LIBSODIUM_FOUND)
+    target_link_libraries(media_server PRIVATE PkgConfig::LIBSODIUM)
+    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_LIBSODIUM=1)
+else()
+    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_LIBSODIUM=0)
+endif()
+
 if(MEDIA_SERVER_USE_ONNXRUNTIME)
     find_path(ONNXRUNTIME_INCLUDE_DIR
         NAMES onnxruntime_cxx_api.h

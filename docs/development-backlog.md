@@ -28,10 +28,10 @@
 
 ### O1. Auth / Role / Scope
 
-- 상태: 완료: token auth MVP
+- 상태: 완료: token auth + account session MVP
 - 목적: 운영자, 클라이언트, lab 사용자 권한과 요청 scope 기준을 먼저 정의합니다.
-- 완료 범위: `MEDIA_SERVER_AUTH_MODE=off|token`, role별 token env, Principal 구조, Bearer/query token 해석, `RequireRole`/`RequireScope` guard helper, `/auth/whoami` API 1차입니다.
-- 후속: password login/session, route별 상세 guard 적용, SourceRegistry/PublishedView 기반 ID scope 축소는 다음 묶음에서 진행합니다.
+- 완료 범위: `MEDIA_SERVER_AUTH_MODE=off|token|session`, role별 token env, users file, libsodium passwordHash 검증, HttpOnly session cookie, Principal 구조, Bearer/query token 해석, `RequireRole`/`RequireScope` guard helper, `/login`, `/logout`, `/auth/whoami`, 임시 `/ops`/`/client` landing 1차입니다.
+- 후속: route별 상세 guard 적용, SourceRegistry/PublishedView 기반 ID scope 축소는 다음 묶음에서 진행합니다.
 - 우선순위 이유: route, source/view 노출, dashboard/live monitor 접근 정책의 공통 전제가 됩니다.
 
 ### O2. SourceRegistry / PublishedView

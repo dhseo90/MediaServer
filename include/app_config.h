@@ -13,6 +13,7 @@ namespace app {
 enum class AuthMode {
     Off,
     Token,
+    Session,
 };
 
 struct AppConfig {
@@ -30,6 +31,10 @@ struct AppConfig {
     std::string auth_operator_token;
     std::string auth_viewer_token;
     std::string auth_integrator_token;
+    std::string auth_users_file{".media_server.users.json"};
+    int auth_session_ttl_seconds{86400};
+    std::string auth_cookie_name{"media_server_session"};
+    bool auth_cookie_secure{false};
     std::string file_root_path{app_config::kFileRootPath};
     std::string default_file_path{app_config::kDefaultFilePath};
     bool webrtc_va_metadata_channel_enabled{app_config::kDefaultWebRtcVaMetadataChannelEnabled};

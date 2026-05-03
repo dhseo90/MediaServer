@@ -21,11 +21,15 @@
 | `MEDIA_SERVER_LISTEN_PORT` | `8554` | RTSP bind port |
 | `MEDIA_SERVER_HTTP_LISTEN_ADDRESS` | `127.0.0.1` | HTTP/WebRTC bind address |
 | `MEDIA_SERVER_HTTP_LISTEN_PORT` | `8080` | HTTP/WebRTC bind port |
-| `MEDIA_SERVER_AUTH_MODE` | `off` | HTTP auth mode. `off`는 개발/기존 검증 호환, `token`은 role별 token auth MVP |
-| `MEDIA_SERVER_AUTH_ADMIN_TOKEN` | empty | `token` mode에서 admin principal로 인증할 Bearer/query token |
-| `MEDIA_SERVER_AUTH_OPERATOR_TOKEN` | empty | `token` mode에서 operator principal로 인증할 Bearer/query token |
-| `MEDIA_SERVER_AUTH_VIEWER_TOKEN` | empty | `token` mode에서 viewer principal로 인증할 Bearer/query token |
-| `MEDIA_SERVER_AUTH_INTEGRATOR_TOKEN` | empty | `token` mode에서 integrator principal로 인증할 Bearer/query token |
+| `MEDIA_SERVER_AUTH_MODE` | `off` | HTTP auth mode. `off`, `token`, `session` |
+| `MEDIA_SERVER_AUTH_ADMIN_TOKEN` | empty | `token`/`session` mode에서 admin principal로 인증할 Bearer/query token |
+| `MEDIA_SERVER_AUTH_OPERATOR_TOKEN` | empty | `token`/`session` mode에서 operator principal로 인증할 Bearer/query token |
+| `MEDIA_SERVER_AUTH_VIEWER_TOKEN` | empty | `token`/`session` mode에서 viewer principal로 인증할 Bearer/query token |
+| `MEDIA_SERVER_AUTH_INTEGRATOR_TOKEN` | empty | `token`/`session` mode에서 integrator principal로 인증할 Bearer/query token |
+| `MEDIA_SERVER_AUTH_USERS_FILE` | `.media_server.users.json` | `session` login 계정 registry JSON |
+| `MEDIA_SERVER_AUTH_SESSION_TTL_SECONDS` | `86400` | session cookie 만료 시간 |
+| `MEDIA_SERVER_AUTH_COOKIE_NAME` | `media_server_session` | session cookie 이름 |
+| `MEDIA_SERVER_AUTH_COOKIE_SECURE` | `0` | `1`이면 session cookie에 `Secure` attribute 추가 |
 | `MEDIA_SERVER_SUBSCRIBER_QUEUE_SIZE` | `256` | subscriber queue 상한 |
 | `MEDIA_SERVER_MAX_SESSIONS` | `2048` | session 상한 |
 | `MEDIA_SERVER_MAX_STREAMS` | `512` | stream registry 상한 |
@@ -35,7 +39,9 @@
 
 ### HTTP auth MVP
 
-`MEDIA_SERVER_AUTH_MODE=off`가 기본값이며 기존 `/lab/rules`, WebRTC, RTSP 검증 흐름을 그대로 유지합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 `/auth/whoami`가 `Authorization: Bearer <token>` 또는 개발용 `?token=<token>` query를 읽어 role/scope principal을 반환합니다. Query token은 브라우저 주소, proxy log, referrer에 남을 수 있으므로 운영 환경에서는 권장하지 않습니다.
+`MEDIA_SERVER_AUTH_MODE=off`가 기본값이며 기존 `/lab/rules`, WebRTC, RTSP 검증 흐름을 그대로 유지합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 `/auth/whoami`가 `Authorization: Bearer <token>` 또는 개발용 `?token=<token>` query를 읽어 role/scope principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=session`에서는 같은 token auth를 유지하면서 `/login` 계정 로그인과 HttpOnly session cookie 인증을 추가합니다. Query token은 브라우저 주소, proxy log, referrer에 남을 수 있으므로 운영 환경에서는 권장하지 않습니다.
+
+Session login은 `libsodium crypto_pwhash_str` password hash를 사용합니다. 안전한 password hashing dependency가 없는 build에서는 password login을 사용할 수 없으며 plaintext password나 단순 SHA 계열 저장을 지원하지 않습니다.
 
 초기 role/scope 모델:
 
@@ -47,6 +53,25 @@
 | `integrator` | 연동 API용 `metadata:read:*`, `event:read:*` |
 
 `*` scope는 MVP의 wildcard 표현입니다. SourceRegistry/PublishedView가 들어오면 `view:read:{viewId}`, `event:read:{viewId}`처럼 구체 ID scope로 좁힐 예정입니다.
+
+Users file 예시:
+
+```json
+{
+  "users": [
+    {
+      "username": "operator1",
+      "displayName": "Operator One",
+      "role": "operator",
+      "scopes": ["view:read:*", "source:read:*", "rule:read:*", "event:read:*", "metadata:read:*", "dashboard:read:*", "debug:read", "rule:write", "source:write", "ops:read", "lab:read"],
+      "passwordHash": "$argon2id$...",
+      "enabled": true
+    }
+  ]
+}
+```
+
+`passwordHash`는 libsodium `crypto_pwhash_str` 출력 문자열만 사용합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다.
 
 ### 개발/script 보조값
 
