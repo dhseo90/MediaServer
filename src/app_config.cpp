@@ -27,6 +27,10 @@ constexpr const char* kEnvAuthAdminToken = "MEDIA_SERVER_AUTH_ADMIN_TOKEN";
 constexpr const char* kEnvAuthOperatorToken = "MEDIA_SERVER_AUTH_OPERATOR_TOKEN";
 constexpr const char* kEnvAuthViewerToken = "MEDIA_SERVER_AUTH_VIEWER_TOKEN";
 constexpr const char* kEnvAuthIntegratorToken = "MEDIA_SERVER_AUTH_INTEGRATOR_TOKEN";
+constexpr const char* kEnvAuthUsersFile = "MEDIA_SERVER_AUTH_USERS_FILE";
+constexpr const char* kEnvAuthSessionTtlSeconds = "MEDIA_SERVER_AUTH_SESSION_TTL_SECONDS";
+constexpr const char* kEnvAuthCookieName = "MEDIA_SERVER_AUTH_COOKIE_NAME";
+constexpr const char* kEnvAuthCookieSecure = "MEDIA_SERVER_AUTH_COOKIE_SECURE";
 constexpr const char* kEnvFileRoot = "MEDIA_SERVER_FILE_ROOT";
 constexpr const char* kEnvDefaultFile = "MEDIA_SERVER_DEFAULT_FILE";
 constexpr const char* kEnvWebRtcVaMetadataChannelEnabled =
@@ -475,8 +479,18 @@ app::AuthMode ReadAuthModeEnv(const char* name, app::AuthMode fallback) {
     if (parsed == "token" || parsed == "TOKEN" || parsed == "Token") {
         return app::AuthMode::Token;
     }
+    if (parsed == "session" || parsed == "SESSION" || parsed == "Session") {
+        return app::AuthMode::Session;
+    }
     std::cerr << "[env] invalid " << name << "='" << value << "', fallback off\n";
     return fallback;
+}
+
+bool IsSafeCookieName(const std::string& value) {
+    return !value.empty() &&
+           std::all_of(value.begin(), value.end(), [](unsigned char ch) {
+               return std::isalnum(ch) != 0 || ch == '_' || ch == '-';
+           });
 }
 
 void ValidatePositiveInt(int* value, int fallback, const char* description) {
@@ -524,6 +538,11 @@ app::AppConfig LoadAppConfig() {
     config.auth_operator_token = ReadStringEnv(kEnvAuthOperatorToken, config.auth_operator_token);
     config.auth_viewer_token = ReadStringEnv(kEnvAuthViewerToken, config.auth_viewer_token);
     config.auth_integrator_token = ReadStringEnv(kEnvAuthIntegratorToken, config.auth_integrator_token);
+    config.auth_users_file = ReadStringEnv(kEnvAuthUsersFile, config.auth_users_file);
+    config.auth_session_ttl_seconds =
+        ReadIntEnv(kEnvAuthSessionTtlSeconds, config.auth_session_ttl_seconds);
+    config.auth_cookie_name = ReadStringEnv(kEnvAuthCookieName, config.auth_cookie_name);
+    config.auth_cookie_secure = ReadBoolEnv(kEnvAuthCookieSecure, config.auth_cookie_secure);
     config.file_root_path = ReadStringEnv(kEnvFileRoot, config.file_root_path);
     config.default_file_path = ReadStringEnv(kEnvDefaultFile, config.default_file_path);
     config.webrtc_va_metadata_channel_enabled =
@@ -1524,6 +1543,15 @@ app::AppConfig LoadAppConfig() {
         std::cerr << "[env] YouTube reconnect delay must be positive, fallback 2000\n";
         config.youtube_reconnect_delay_ms = 2000;
     }
+    if (config.auth_session_ttl_seconds <= 0) {
+        std::cerr << "[env] auth session TTL must be positive, fallback 86400\n";
+        config.auth_session_ttl_seconds = 86400;
+    }
+    if (!IsSafeCookieName(config.auth_cookie_name)) {
+        std::cerr << "[env] auth cookie name must use letters, digits, '_' or '-', fallback media_server_session\n";
+        config.auth_cookie_name = "media_server_session";
+    }
+    config.auth_users_file = ResolveRuntimePath(config.auth_users_file);
     return config;
 }
 

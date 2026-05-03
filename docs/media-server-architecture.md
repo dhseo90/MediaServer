@@ -62,18 +62,18 @@ SharedStream <---- SourceWorker <---- File / RTSP / WebRTC / HTTP-HLS
 
 ### HTTP Auth / Principal MVP
 
-운영 사이트와 클라이언트 사이트는 네트워크 위치가 아니라 HTTP principal의 role/scope로 구분합니다. 초기 구현은 token 기반 MVP이며 password login/session은 후속 묶음입니다.
+운영 사이트와 클라이언트 사이트는 네트워크 위치가 아니라 HTTP principal의 role/scope로 구분합니다. 초기 구현은 token auth와 account login/session MVP를 함께 제공합니다.
 
 요청 인증 흐름:
 
 ```text
 HTTP request
-  -> Authorization: Bearer <token> 또는 개발용 ?token=<token>
+  -> Authorization: Bearer <token> 또는 개발용 ?token=<token> 또는 session cookie
   -> Principal{role, scopes, displayName, authMode, isAuthenticated}
   -> route별 RequireRole / RequireScope guard
 ```
 
-`MEDIA_SERVER_AUTH_MODE=off`에서는 기존 개발/검증 호환을 위해 dev admin principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 admin/operator/viewer/integrator env token이 `/auth/whoami`에서 principal로 확인됩니다. 이번 MVP는 guard helper와 whoami 중심이며, `/lab`, `/ops`, `/client`, metadata/event API의 세부 차단 정책은 SourceRegistry/PublishedView와 route 분리 단계에서 좁혀갑니다.
+`MEDIA_SERVER_AUTH_MODE=off`에서는 기존 개발/검증 호환을 위해 dev admin principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 admin/operator/viewer/integrator env token이 `/auth/whoami`에서 principal로 확인됩니다. `MEDIA_SERVER_AUTH_MODE=session`에서는 users file의 `passwordHash`를 libsodium password hashing으로 검증한 뒤 HttpOnly/SameSite=Lax cookie session을 발급합니다. 이번 MVP는 login/logout, whoami, 임시 `/ops`/`/client` landing, guard helper 중심이며, `/lab`, `/ops`, `/client`, metadata/event API의 세부 차단 정책은 SourceRegistry/PublishedView와 route 분리 단계에서 좁혀갑니다.
 
 기본 역할:
 

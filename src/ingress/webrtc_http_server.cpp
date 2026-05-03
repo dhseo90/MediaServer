@@ -15704,6 +15704,12 @@ struct WebRtcHttpServer::Impl {
         std::shared_ptr<WebRtcSourceSession> bridge;
     };
 
+    struct AuthSessionEntry {
+        std::string session_id;
+        auth::Principal principal;
+        std::chrono::system_clock::time_point expires_at;
+    };
+
     explicit Impl(core::SessionManager& manager) : session_manager(manager) {}
 
     core::SessionManager& session_manager;
@@ -15713,8 +15719,10 @@ struct WebRtcHttpServer::Impl {
     int listen_fd{-1};
     std::thread accept_thread;
     std::mutex mu;
+    std::mutex auth_mu;
     std::unordered_map<std::string, SessionEntry> sessions;
     std::unordered_map<std::string, SourceSessionEntry> source_sessions;
+    std::unordered_map<std::string, AuthSessionEntry> auth_sessions;
     std::atomic<std::uint64_t> next_session_id{1};
     std::atomic<int> active_sse_metadata_clients{0};
     std::atomic<int> active_ws_metadata_clients{0};
@@ -15762,6 +15770,176 @@ std::string PrincipalJson(const auth::Principal& principal) {
         << "\"authMode\":\"" << JsonEscape(principal.auth_mode) << "\","
         << "\"isAuthenticated\":" << (principal.is_authenticated ? "true" : "false")
         << "}";
+    return out.str();
+}
+
+std::string HtmlEscape(const std::string& value) {
+    std::string out;
+    out.reserve(value.size() + 8);
+    for (const char ch : value) {
+        switch (ch) {
+            case '&':
+                out += "&amp;";
+                break;
+            case '<':
+                out += "&lt;";
+                break;
+            case '>':
+                out += "&gt;";
+                break;
+            case '"':
+                out += "&quot;";
+                break;
+            case '\'':
+                out += "&#39;";
+                break;
+            default:
+                out.push_back(ch);
+                break;
+        }
+    }
+    return out;
+}
+
+std::string RoleLandingPath(const auth::Principal& principal) {
+    if (principal.role == "viewer") {
+        return "/client";
+    }
+    if (principal.role == "admin" || principal.role == "operator") {
+        return "/ops";
+    }
+    return "/login";
+}
+
+std::string AuthCookieHeader(const app::AppConfig& config,
+                             const std::string& session_id,
+                             int max_age_seconds) {
+    std::ostringstream out;
+    out << config.auth_cookie_name << "=" << session_id
+        << "; Path=/; HttpOnly; SameSite=Lax; Max-Age=" << max_age_seconds;
+    if (config.auth_cookie_secure) {
+        out << "; Secure";
+    }
+    return out.str();
+}
+
+std::string ExpiredAuthCookieHeader(const app::AppConfig& config) {
+    std::ostringstream out;
+    out << config.auth_cookie_name
+        << "=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0";
+    if (config.auth_cookie_secure) {
+        out << "; Secure";
+    }
+    return out.str();
+}
+
+HttpResponse RedirectResponse(const std::string& location) {
+    HttpResponse redirect;
+    redirect.status = 302;
+    redirect.status_text = "Found";
+    redirect.content_type = "text/plain; charset=utf-8";
+    redirect.headers["Cache-Control"] = "no-store";
+    redirect.headers["Location"] = location;
+    redirect.body = "Redirecting to " + location + "\n";
+    return redirect;
+}
+
+std::string LoginPageHtml(const std::string& message, bool failed) {
+    std::ostringstream out;
+    out << R"(<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MediaServer Login</title>
+  <style>
+    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #111827; color: #f8fafc; }
+    main { width: min(420px, calc(100vw - 32px)); display: grid; gap: 16px; }
+    form { display: grid; gap: 12px; padding: 22px; border: 1px solid rgba(148,163,184,.35); border-radius: 8px; background: #0f172a; }
+    h1 { margin: 0; font-size: 24px; }
+    p { margin: 0; color: #cbd5e1; line-height: 1.5; }
+    label { display: grid; gap: 6px; color: #e2e8f0; font-weight: 700; }
+    input { min-height: 42px; border-radius: 6px; border: 1px solid #475569; padding: 0 12px; background: #020617; color: #f8fafc; font: inherit; }
+    button { min-height: 44px; border: 0; border-radius: 6px; background: #38bdf8; color: #082f49; font-weight: 900; cursor: pointer; }
+    .message { padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #dbeafe; }
+    .message.error { border-color: #f87171; background: #451a1a; color: #fecaca; }
+  </style>
+</head>
+<body>
+  <main>
+    <form method="post" action="/login">
+      <h1>MediaServer Login</h1>
+      <p>계정으로 로그인하면 역할과 scope에 맞는 화면으로 이동합니다.</p>
+)";
+    if (!message.empty()) {
+        out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
+            << HtmlEscape(message) << "</div>\n";
+    }
+    out << R"(      <label>Username
+        <input name="username" autocomplete="username" required />
+      </label>
+      <label>Password
+        <input name="password" type="password" autocomplete="current-password" required />
+      </label>
+      <button type="submit">Login</button>
+    </form>
+  </main>
+</body>
+</html>)";
+    return out.str();
+}
+
+std::string AuthLandingPageHtml(const auth::Principal& principal,
+                                const std::string& title,
+                                const std::string& body) {
+    std::ostringstream out;
+    out << R"(<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>)" << HtmlEscape(title) << R"(</title>
+  <style>
+    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; min-height: 100vh; background: #f8fafc; color: #0f172a; }
+    main { max-width: 860px; margin: 0 auto; padding: 40px 20px; display: grid; gap: 18px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    h1 { margin: 0; font-size: 28px; }
+    p { margin: 0; color: #475569; line-height: 1.55; }
+    .panel { display: grid; gap: 10px; padding: 18px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; }
+    .meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip { padding: 6px 9px; border-radius: 999px; background: #e0f2fe; color: #075985; font-size: 13px; font-weight: 800; }
+    button { min-height: 38px; border: 0; border-radius: 6px; background: #0f172a; color: #fff; padding: 0 14px; font-weight: 800; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>)" << HtmlEscape(title) << R"(</h1>
+        <p>)" << HtmlEscape(body) << R"(</p>
+      </div>
+      <form method="post" action="/logout"><button type="submit">Logout</button></form>
+    </header>
+    <section class="panel">
+      <strong>)" << HtmlEscape(principal.display_name) << R"(</strong>
+      <div class="meta">
+        <span class="chip">role: )" << HtmlEscape(principal.role) << R"(</span>
+        <span class="chip">auth: )" << HtmlEscape(principal.auth_mode) << R"(</span>
+      </div>
+      <p>)";
+    for (std::size_t i = 0; i < principal.scopes.size(); ++i) {
+        if (i != 0) {
+            out << " · ";
+        }
+        out << HtmlEscape(principal.scopes[i]);
+    }
+    out << R"(</p>
+    </section>
+  </main>
+</body>
+</html>)";
     return out.str();
 }
 
@@ -18636,9 +18814,72 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                         const auto query = ParseQueryString(request.query);
                         const auto& config = app::GetAppConfig();
-                        const auth::AuthResult principal_result =
-                            auth::BuildPrincipalFromRequest(config, request.headers, query);
+                        auto cleanup_expired_auth_sessions = [&]() {
+                            const auto now = std::chrono::system_clock::now();
+                            for (auto it = impl_->auth_sessions.begin(); it != impl_->auth_sessions.end();) {
+                                if (it->second.expires_at <= now) {
+                                    it = impl_->auth_sessions.erase(it);
+                                } else {
+                                    ++it;
+                                }
+                            }
+                        };
+                        auto principal_from_session_cookie = [&]() -> std::optional<auth::Principal> {
+                            const auto session_id =
+                                auth::ExtractSessionCookie(request.headers, config.auth_cookie_name);
+                            if (!session_id.has_value()) {
+                                return std::nullopt;
+                            }
+                            std::lock_guard lock(impl_->auth_mu);
+                            cleanup_expired_auth_sessions();
+                            const auto it = impl_->auth_sessions.find(*session_id);
+                            if (it == impl_->auth_sessions.end()) {
+                                return std::nullopt;
+                            }
+                            return it->second.principal;
+                        };
+                        auto build_request_principal = [&]() -> auth::AuthResult {
+                            auth::AuthResult result =
+                                auth::BuildPrincipalFromRequest(config, request.headers, query);
+                            if (result.ok || config.auth_mode != app::AuthMode::Session) {
+                                return result;
+                            }
+                            const auto session_principal = principal_from_session_cookie();
+                            if (session_principal.has_value()) {
+                                return auth::AuthResult{.ok = true,
+                                                        .principal = *session_principal,
+                                                        .error = ""};
+                            }
+                            return result;
+                        };
+                        const auth::AuthResult principal_result = build_request_principal();
                         const std::string route_path = "/" + config.stream_route;
+                        auto create_auth_session = [&](const auth::Principal& principal,
+                                                       std::string* error_message) -> std::optional<std::string> {
+                            auto session_id = auth::GenerateSessionId(error_message);
+                            if (!session_id.has_value()) {
+                                return std::nullopt;
+                            }
+                            std::lock_guard lock(impl_->auth_mu);
+                            cleanup_expired_auth_sessions();
+                            impl_->auth_sessions[*session_id] =
+                                Impl::AuthSessionEntry{
+                                    .session_id = *session_id,
+                                    .principal = principal,
+                                    .expires_at = std::chrono::system_clock::now() +
+                                                  std::chrono::seconds(config.auth_session_ttl_seconds),
+                                };
+                            return session_id;
+                        };
+                        auto destroy_auth_session = [&]() {
+                            const auto session_id =
+                                auth::ExtractSessionCookie(request.headers, config.auth_cookie_name);
+                            if (!session_id.has_value()) {
+                                return;
+                            }
+                            std::lock_guard lock(impl_->auth_mu);
+                            impl_->auth_sessions.erase(*session_id);
+                        };
                         auto stream_metadata_sse_response = [&](const std::string& tap_id,
                                                                 bool detach_on_close) -> HttpResponse {
                             response_sent = true;
@@ -18681,6 +18922,60 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return ok;
                         }
 
+                        if (request.method == "GET" && request.path == "/login") {
+                            if (config.auth_mode == app::AuthMode::Session && principal_result.ok) {
+                                return RedirectResponse(RoleLandingPath(principal_result.principal));
+                            }
+                            HttpResponse ok;
+                            ok.content_type = "text/html; charset=utf-8";
+                            ok.headers["Cache-Control"] = "no-store";
+                            const auto error_it = query.find("error");
+                            ok.body = LoginPageHtml(error_it == query.end() ? std::string() : error_it->second,
+                                                    error_it != query.end());
+                            return ok;
+                        }
+
+                        if (request.method == "POST" && request.path == "/login") {
+                            if (config.auth_mode != app::AuthMode::Session) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"login requires MEDIA_SERVER_AUTH_MODE=session\"}");
+                            }
+                            const auto form = ParseQueryString(request.body);
+                            const std::string username =
+                                form.count("username") != 0 ? form.at("username") : std::string();
+                            const std::string password =
+                                form.count("password") != 0 ? form.at("password") : std::string();
+                            auth::AuthResult login = auth::AuthenticateUserPassword(config, username, password);
+                            if (!login.ok) {
+                                HttpResponse failed;
+                                failed.status = 401;
+                                failed.status_text = "Unauthorized";
+                                failed.content_type = "text/html; charset=utf-8";
+                                failed.headers["Cache-Control"] = "no-store";
+                                failed.body = LoginPageHtml("로그인 정보가 올바르지 않습니다.", true);
+                                return failed;
+                            }
+                            std::string session_error;
+                            const auto session_id = create_auth_session(login.principal, &session_error);
+                            if (!session_id.has_value()) {
+                                return JsonResponse(503,
+                                                    "Service Unavailable",
+                                                    "{\"error\":\"" + JsonEscape(session_error) + "\"}");
+                            }
+                            HttpResponse redirect = RedirectResponse(RoleLandingPath(login.principal));
+                            redirect.headers["Set-Cookie"] =
+                                AuthCookieHeader(config, *session_id, config.auth_session_ttl_seconds);
+                            return redirect;
+                        }
+
+                        if (request.method == "POST" && request.path == "/logout") {
+                            destroy_auth_session();
+                            HttpResponse redirect = RedirectResponse("/login");
+                            redirect.headers["Set-Cookie"] = ExpiredAuthCookieHeader(config);
+                            return redirect;
+                        }
+
                         if (request.method == "GET" && request.path == "/auth/whoami") {
                             if (!principal_result.ok) {
                                 return AuthErrorResponse(principal_result.error);
@@ -18691,6 +18986,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if ((request.method == "GET" || request.method == "HEAD") && request.path == "/") {
+                            if (config.auth_mode == app::AuthMode::Session) {
+                                if (!principal_result.ok) {
+                                    return RedirectResponse("/login");
+                                }
+                                return RedirectResponse(RoleLandingPath(principal_result.principal));
+                            }
                             HttpResponse redirect;
                             redirect.status = 302;
                             redirect.status_text = "Found";
@@ -18701,6 +19002,52 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 redirect.body = "Redirecting to /lab/rules\n";
                             }
                             return redirect;
+                        }
+
+                        if (request.method == "GET" && request.path == "/ops") {
+                            if (config.auth_mode == app::AuthMode::Session &&
+                                !auth::RequireRole(principal_result.principal, {"operator"})) {
+                                if (!principal_result.ok) {
+                                    return RedirectResponse("/login");
+                                }
+                                return JsonResponse(403, "Forbidden", "{\"error\":\"operator role required\"}");
+                            }
+                            HttpResponse ok;
+                            ok.content_type = "text/html; charset=utf-8";
+                            ok.headers["Cache-Control"] = "no-store";
+                            ok.body = AuthLandingPageHtml(
+                                principal_result.ok
+                                    ? principal_result.principal
+                                    : auth::MakePrincipalForRole("operator",
+                                                                 auth::DefaultScopesForRole("operator"),
+                                                                 "Operator",
+                                                                 config.auth_mode),
+                                "Operator Workspace",
+                                "운영 live monitor와 rule/runtime 화면이 들어올 임시 landing page입니다.");
+                            return ok;
+                        }
+
+                        if (request.method == "GET" && request.path == "/client") {
+                            if (config.auth_mode == app::AuthMode::Session &&
+                                !auth::RequireRole(principal_result.principal, {"viewer", "operator"})) {
+                                if (!principal_result.ok) {
+                                    return RedirectResponse("/login");
+                                }
+                                return JsonResponse(403, "Forbidden", "{\"error\":\"viewer role required\"}");
+                            }
+                            HttpResponse ok;
+                            ok.content_type = "text/html; charset=utf-8";
+                            ok.headers["Cache-Control"] = "no-store";
+                            ok.body = AuthLandingPageHtml(
+                                principal_result.ok
+                                    ? principal_result.principal
+                                    : auth::MakePrincipalForRole("viewer",
+                                                                 auth::DefaultScopesForRole("viewer"),
+                                                                 "Viewer",
+                                                                 config.auth_mode),
+                                "Client Workspace",
+                                "할당된 live view와 제한 dashboard가 들어올 임시 landing page입니다.");
+                            return ok;
                         }
 
                         if (request.method == "GET" && request.path == "/favicon.ico") {
