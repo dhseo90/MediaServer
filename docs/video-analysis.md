@@ -689,12 +689,15 @@ python3 scripts/examples/va_metadata_sse_client.py \
 Custom RTSP + SSE metadata overlay renderer는 optional client example입니다. `scripts/examples/va_rtsp_sse_overlay_client.py`는 Python OpenCV로 RTSP raw stream을 열고 별도 SSE metadata stream의 latest runtime metadata를 받아 bbox, trackId, className을 client-side로 그립니다. 이 예제는 서버 core 기능이 아니며 RTSP server-side overlay 정책, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload를 변경하지 않습니다. 일반 VLC/ffplay/IINA가 SSE/WS metadata를 자동 overlay하는 기능도 아닙니다.
 
 ```bash
+python3 -c "import cv2; print(cv2.__version__)"
 python3 scripts/examples/va_rtsp_sse_overlay_client.py \
   --rtsp-url 'rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4' \
   --metadata-url 'http://127.0.0.1:8080/lab/analysis/metadata/stream?file=sample_h264.mp4&va=1&intervalMs=500&maxMessageBytes=65536' \
   --max-seconds 15 \
   --headless
 ```
+
+OpenCV가 없는 환경에서는 예제가 설치 안내와 함께 종료해야 합니다. 로컬 foreground 서버가 `8081/8555` 같은 보정 포트로 떠 있으면 `--rtsp-url`과 `--metadata-url`의 base만 맞춰 짧은 headless smoke를 실행합니다.
 
 명시적 side-channel 검증:
 

@@ -37,9 +37,10 @@ git diff --check -- README.md docs
 
 ### P0-2. UI screenshot 최신화
 
-- 상태: 예정
+- 상태: 완료
 - 목적: README와 UI guide의 대표 화면이 실제 `/lab/rules` UI와 일치하도록 스크린샷을 갱신합니다.
 - 관련 파일: `docs/assets/ui/`, `README.md`, `docs/ui-guide.md`, `scripts/internal/verify_lab_layout.mjs`
+- 완료 범위: dark mode 기준으로 `analysis-rule-list`, `analysis-rule-editor-basic`, `analysis-rule-editor-scenario`, `analysis-region-canvas`, `analysis-preview`, `analysis-developer-url`, `analysis-runtime-dashboard`를 갱신했습니다. 영상 화면은 실제 객체가 보이는 `va_four_scene_sample.mp4`를 사용했고, 영상/캔버스/dashboard 하단이 반쯤 잘리지 않도록 section 경계 기준으로 다시 캡처했습니다.
 - 검증 명령:
 
 ```bash

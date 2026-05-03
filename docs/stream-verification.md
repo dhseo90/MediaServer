@@ -87,6 +87,8 @@ Close-object guard 검증은 guard off 회귀, diagnostic 회귀, enforce opt-in
 
 비교 기준은 associationConfidence 최저값, overlapRisk 최대값, center jump 최대값, lost/reacquired, missed-frame-spike, direction-change-spike, ID switch risk, fragmentation, overlap fragmentation, guardDecision count, closeObjectGuardApplied/rejected count, event/scenario signature delta입니다. `diagnostic`은 score 변경이 없어야 하며 `enforce`는 opt-in 보정 후보로만 봅니다. event/scenario delta가 있거나 replay/event 결과가 흔들리면 close-object guard는 default on 전환 금지입니다. default on 전환은 여러 fixture와 현장 샘플에서 ID continuity 개선과 replay/event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
 
+비교 리포트가 command success라도 `judgement: warning`일 수 있습니다. 예를 들어 `event/scenario delta=False`여도 `enforceVsOff idSwitchRiskScore`가 증가하면 제품 회귀로 단정하지는 않지만 default-on 근거로 사용하지 않습니다. 이 경우 close-object guard는 계속 default off로 두고 threshold tuning 또는 추가 fixture 수집 대상으로 남깁니다.
+
 ```bash
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-replay
@@ -307,6 +309,25 @@ python3 scripts/examples/va_rtsp_sse_overlay_client.py \
 ```
 
 OpenCV가 설치된 환경에서는 window mode에서 RTSP raw frame이 표시되는지, SSE latest metadata로 bbox/trackId/className이 그려지는지, metadata가 끊겼을 때 stale 표시가 나오는지 확인합니다. OpenCV가 없는 환경에서는 예제가 설치 안내 메시지와 함께 실패해야 합니다. 이 optional example 검증은 서버 core, RTSP server-side overlay 정책, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload 변경 검증이 아닙니다.
+
+OpenCV dependency 확인:
+
+```bash
+python3 -c "import cv2; print(cv2.__version__)"
+```
+
+macOS/Homebrew Python이 PEP 668 `externally-managed-environment`로 plain `pip install`을 막는 경우에는 project venv를 만들거나, 사용자 site-packages에만 설치합니다. 최근 재점검에서는 아래 명령으로 `cv2` import와 headless overlay smoke를 확인했습니다.
+
+```bash
+python3 -m pip install --user --break-system-packages opencv-python
+python3 scripts/examples/va_rtsp_sse_overlay_client.py \
+  --rtsp-url 'rtsp://127.0.0.1:8555/dhseo?file=sample_h264.mp4' \
+  --metadata-url 'http://127.0.0.1:8081/lab/analysis/metadata/stream?file=sample_h264.mp4&va=1&intervalMs=500&maxMessageBytes=65536' \
+  --max-seconds 2 \
+  --headless
+```
+
+기본 예시는 `8080/8554`를 사용하지만 local override나 이미 떠 있는 foreground 서버가 `8081/8555`를 쓰는 경우에는 HTTP/RTSP base만 맞춥니다. 기본 포트에 listener가 없어서 생기는 `Connection refused`나 RTSP decode 실패는 보정 포트 검증 결과와 분리해서 기록합니다.
 
 확인할 항목:
 
@@ -558,6 +579,24 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records?limit=5'
 ```
 
 서버가 `8081` 같은 다른 HTTP port로 떠 있으면 port만 맞춰 실행합니다.
+
+`verify-event-post`는 서버가 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1` 상태로 실행되어 있어야 합니다. 기본 서버가 Event POST disabled라서 `event POST dispatcher가 비활성화되어 있습니다`로 실패하면, 같은 build를 Event POST enabled 보정 서버로 띄워 schema/recovery를 재확인합니다.
+
+```bash
+MEDIA_SERVER_SKIP_LOCAL_ENV=1 \
+MEDIA_SERVER_SKIP_BUILD=1 \
+MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 \
+MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 \
+MEDIA_SERVER_LISTEN_PORT=8556 \
+MEDIA_SERVER_HTTP_LISTEN_PORT=8082 \
+MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 \
+./server.sh foreground
+
+./server.sh verify-event-post --mode schema --http-base http://127.0.0.1:8082
+./server.sh verify-event-post --mode recovery --http-base http://127.0.0.1:8082
+```
+
+이 보정 경로에서 schema/recovery가 통과하면 기본 서버 disabled 실패는 제품 회귀가 아니라 실행 환경 조건으로 기록합니다. EventStorage가 비활성인 보정 서버에서는 recovery mode의 EventStorage corrupt/partial injection 세부 검증이 skip될 수 있으며, 이 경우 Event POST dispatcher recovery 통과와 EventRecord storage recovery 검증을 분리해서 봅니다.
 
 확인 기준:
 

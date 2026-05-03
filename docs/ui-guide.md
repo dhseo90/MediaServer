@@ -298,6 +298,8 @@ python3 scripts/examples/va_rtsp_sse_overlay_client.py \
 
 RTSP 서버 오버레이는 서버가 bbox/label을 영상에 합성하므로 일반 RTSP viewer에서 바로 보입니다. Custom client overlay는 RTSP raw frame과 SSE metadata JSON을 client가 별도로 받아 조합하는 예제이므로, 일반 VLC/ffplay/IINA에서 자동으로 표시되지 않습니다.
 
+OpenCV dependency는 예제 실행 전 `python3 -c "import cv2; print(cv2.__version__)"`로 확인합니다. 로컬 서버가 `8081/8555`처럼 기본 예시와 다른 포트로 떠 있으면 Developer URL panel에 표시된 RTSP/SSE URL을 그대로 CLI에 넣어 smoke 확인합니다.
+
 현재 상태:
 
 - 구현 완료: WebRTC 메타데이터 뷰어, DataChannel 수신 상태 표시, latest JSON preview, client-side overlay canvas/toggle
@@ -401,6 +403,6 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-storage/status'
 
 ## Screenshot 자산
 
-README와 이 문서에서 사용하는 screenshot은 `docs/assets/ui/` 아래 역할 기반 파일명으로 보관합니다. 기본 문서 이미지는 light mode 대표 화면을 유지하고, dark mode는 수동 QA 또는 별도 파일명으로만 보강합니다. 새 이미지가 없으면 문서에 broken link를 만들지 않고 “이미지 추가 예정” 문구만 둡니다.
+README와 이 문서에서 사용하는 screenshot은 `docs/assets/ui/` 아래 역할 기반 파일명으로 보관합니다. 기본 문서 이미지는 dark mode 대표 화면을 유지합니다. 새 이미지가 없으면 문서에 broken link를 만들지 않고 “이미지 추가 예정” 문구만 둡니다.
 
-문서용 screenshot은 화면 상단/하단에서 버튼, 입력, 카드 제목이 어색하게 반쯤 잘리지 않도록 section 경계 또는 대표 상태가 보이는 지점에서 자릅니다. 긴 화면은 한 장에 모든 내용을 넣기보다 핵심 section을 온전히 보여주는 대표 screenshot을 우선합니다.
+문서용 screenshot은 화면 상단/하단에서 버튼, 입력, 카드 제목, table row가 어색하게 반쯤 잘리지 않도록 section 경계 또는 대표 상태가 보이는 지점에서 자릅니다. 영상이 나오는 화면은 실제 객체가 보이는 `va_four_scene_sample.mp4` 기준으로 캡처하고, 영상 프레임 하단이 온전히 보이도록 합니다. 긴 화면은 한 장에 모든 내용을 넣기보다 핵심 section을 온전히 보여주는 대표 screenshot을 우선합니다.
