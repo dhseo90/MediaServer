@@ -51,6 +51,7 @@ add_executable(media_server
     src/ingress/gst_pipeline_builder.cpp
     src/ingress/analysis_overlay_probe.cpp
     src/ingress/analysis_query.cpp
+    src/ingress/http_auth.cpp
     src/ingress/rtsp_request_context.cpp
     src/ingress/request_parser.cpp
     src/ingress/rtsp_egress_session.cpp

@@ -10,6 +10,11 @@
 
 namespace app {
 
+enum class AuthMode {
+    Off,
+    Token,
+};
+
 struct AppConfig {
     std::string stream_route{app_config::kStreamRoute};
     std::size_t subscriber_queue_size{app_config::kSubscriberQueueSize};
@@ -20,6 +25,11 @@ struct AppConfig {
     std::uint16_t rtsp_listen_port{app_config::kRtspListenPort};
     std::string http_listen_address{app_config::kHttpListenAddress};
     std::uint16_t http_listen_port{app_config::kHttpListenPort};
+    AuthMode auth_mode{AuthMode::Off};
+    std::string auth_admin_token;
+    std::string auth_operator_token;
+    std::string auth_viewer_token;
+    std::string auth_integrator_token;
     std::string file_root_path{app_config::kFileRootPath};
     std::string default_file_path{app_config::kDefaultFilePath};
     bool webrtc_va_metadata_channel_enabled{app_config::kDefaultWebRtcVaMetadataChannelEnabled};
