@@ -252,6 +252,14 @@ VA Metadata Runtime Console 계열 검증은 선택 검증입니다.
 
 기본 auth mode는 `auto`입니다. 최초 admin 비밀번호 설정 흐름을 확인할 때는 임시 users file을 사용합니다.
 
+자동 smoke는 아래 세 명령을 우선 사용합니다.
+
+```bash
+./server.sh verify-auth-bootstrap
+./server.sh verify-auth-users
+./server.sh verify-auth-routes
+```
+
 ```bash
 MEDIA_SERVER_AUTH_MODE=auto \
 MEDIA_SERVER_AUTH_USERS_FILE=/tmp/media-server-bootstrap-users.json \

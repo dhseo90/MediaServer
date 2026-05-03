@@ -62,6 +62,8 @@ Route 역할:
 
 Shell navigation은 server-side principal로 1차 렌더링하고 `/auth/whoami` 응답으로 admin-only, ops, lab menu를 다시 숨김 처리합니다. Guard 실패 시 browser shell route는 login 또는 forbidden page를 보여주고, API route는 JSON `401`/`403`을 반환합니다.
 
+Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`로 확인합니다. 기존 Lab 자동화는 명시적인 auth off 검증 모드에서 계속 `/lab/rules` 3탭 구조를 기준으로 동작합니다.
+
 ## 3. Admin User Management
 
 `/ops/users`는 admin 전용 계정 관리 화면입니다. User list는 username, displayName, role, enabled, scopes count, lastLoginAt, lockedUntil, mustChangePassword, actions를 표시하며 `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`는 UI/API 응답에 노출하지 않습니다.

@@ -113,11 +113,34 @@ Users file 예시:
       "enabled": true,
       "mustChangePassword": true
     }
+  ],
+  "invites": [
+    {
+      "tokenHash": "$argon2id$...",
+      "username": "client-b",
+      "displayName": "Client B",
+      "role": "viewer",
+      "scopes": ["view:read:view-b", "event:read:view-b", "metadata:read:view-b", "dashboard:read:view-b"],
+      "expiresAt": "2026-05-04T00:00:00Z",
+      "usedAt": ""
+    }
+  ],
+  "accessRequests": [
+    {
+      "requestId": "access-1",
+      "username": "client-c",
+      "displayName": "Client C",
+      "contact": "client@example.test",
+      "reason": "site access",
+      "requestedViewId": "view-c",
+      "status": "pending",
+      "createdAt": "2026-05-03T00:00:00Z"
+    }
   ]
 }
 ```
 
-`passwordHash`와 `passwordHistory`는 libsodium `crypto_pwhash_str` 출력 문자열만 저장합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다. Password hash 값은 `/ops/api/users`, `/ops/users`, CLI list 응답에 노출하지 않습니다. 클라이언트 계정은 `/ops/users` 또는 `./server.sh auth-user add --role viewer --view-id <viewId>`로 추가합니다.
+`passwordHash`와 `passwordHistory`는 libsodium `crypto_pwhash_str` 출력 문자열만 저장합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다. Password hash 값은 `/ops/api/users`, `/ops/users`, CLI list 응답에 노출하지 않습니다. 클라이언트 계정은 `/ops/users` 또는 `./server.sh auth-user add --role viewer --view-id <viewId>`로 추가합니다. Invite/request 전용 env는 별도로 두지 않고 같은 users file에 저장하며, invite 만료 시간은 API 요청의 `ttlSeconds`로 지정하거나 서버 기본값을 사용합니다.
 
 Admin user management API:
 
@@ -129,6 +152,11 @@ Admin user management API:
 | `POST /ops/api/users/{username}/reset-password` | admin | 임시 비밀번호 설정, `mustChangePassword=true`, server-side session revoke |
 | `POST /ops/api/users/{username}/disable` | admin | hard delete 대신 비활성화 |
 | `POST /ops/api/users/{username}/enable` | admin | 비활성 계정 재활성화 |
+| `POST /ops/api/invites` | admin | viewer/integrator password setup invite 발급. token 원문은 응답에서 한 번만 표시 |
+| `GET /ops/api/access-requests` | admin | pending/rejected/approved client access request 조회 |
+| `POST /ops/api/access-requests/{requestId}/approve` | admin | pending request를 승인하고 password setup invite 발급 |
+| `POST /ops/api/access-requests/{requestId}/reject` | admin | pending request 거절. user/session/view scope는 생성하지 않음 |
+| `POST /client/api/access-requests` | public | client access request를 `pending` 상태로 저장 |
 
 마지막 활성 admin 계정은 disable하거나 admin이 아닌 role로 바꿀 수 없습니다.
 

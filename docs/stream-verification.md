@@ -57,6 +57,14 @@ WebRTC/stream 변경:
 Auth 변경:
 
 ```bash
+./server.sh verify-auth-bootstrap
+./server.sh verify-auth-users
+./server.sh verify-auth-routes
+```
+
+위 세 명령은 임시 users file과 격리 포트에서 auth 서버를 띄워 setup/login/session/user/route smoke를 자동으로 확인합니다. 수동으로 세부 상태를 확인할 때는 아래 curl 흐름을 사용합니다.
+
+```bash
 MEDIA_SERVER_AUTH_MODE=auto \
 MEDIA_SERVER_AUTH_USERS_FILE=/tmp/media-server-bootstrap-users.json \
   ./server.sh foreground
@@ -88,7 +96,7 @@ MEDIA_SERVER_AUTH_USERS_FILE=/path/to/users.json \
   ./server.sh auth-user list
 ```
 
-확인 기준은 auto mode에서 users file이 없거나 admin passwordHash가 없으면 `/setup`으로 이동하고 `/auth/whoami`가 `setupRequired=true`를 반환하는 것입니다. Auth off에서는 dev admin principal이 반환되고, token mode에서 admin/operator/viewer/integrator token별 role과 scope가 반환되며, 누락/invalid token은 `401`을 반환합니다. Session/auto setup 완료 후에는 `/login` 렌더링, 로그인 성공 후 `/auth/whoami` principal 반환, logout 후 cookie principal 제거, 잘못된 로그인 `401` 또는 실패 메시지를 확인합니다. Password policy smoke는 약한 비밀번호/username 포함 비밀번호 거부, 3종류 8자 이상 허용, 2종류 10자 이상 허용, password history 재사용 거부를 확인합니다. Lockout smoke는 실패 N회 후 lockout 메시지와 `lockedUntil` 저장, lockout 만료 후 정상 로그인, TTL/idle timeout 만료 후 `/auth/whoami` 401을 확인합니다. Admin user smoke는 admin만 `/ops/users`와 `/ops/api/users`에 접근 가능하고, viewer는 `403`, viewer 생성/로그인, reset-password 후 mustChangePassword flow, disabled user 로그인 거부, CLI add/list/reset/disable 동작을 확인합니다. `?token=` query는 개발 smoke용으로만 사용하고 운영 검증에서는 Bearer header를 우선합니다.
+확인 기준은 auto mode에서 users file이 없거나 admin passwordHash가 없으면 `/setup`으로 이동하고 `/auth/whoami`가 `setupRequired=true`를 반환하는 것입니다. Auth off에서는 dev admin principal이 반환되고, token mode에서 admin/operator/viewer/integrator token별 role과 scope가 반환되며, 누락/invalid token은 `401`을 반환합니다. Session/auto setup 완료 후에는 `/login` 렌더링, 로그인 성공 후 `/auth/whoami` principal 반환, logout 후 cookie principal 제거, 잘못된 로그인 `401` 또는 실패 메시지를 확인합니다. Password policy smoke는 약한 비밀번호/username 포함 비밀번호 거부, 3종류 8자 이상 허용, 2종류 10자 이상 허용, password history 재사용 거부를 확인합니다. Lockout smoke는 실패 N회 후 lockout 메시지와 `lockedUntil` 저장, lockout 만료 후 정상 로그인, TTL/idle timeout 만료 후 `/auth/whoami` 401을 확인합니다. Admin user smoke는 admin만 `/ops/users`와 `/ops/api/users`에 접근 가능하고, viewer는 `403`, viewer 생성/로그인, reset-password 후 mustChangePassword flow, disabled user 로그인 거부, CLI add/list/reset/disable 동작을 확인합니다. Invite/request smoke는 invite token 원문이 생성 응답에서 한 번만 표시되고 hash만 저장되는지, pending access request가 admin approve 전에는 login/view 접근을 만들지 않는지 확인합니다. `?token=` query는 개발 smoke용으로만 사용하고 운영 검증에서는 Bearer header를 우선합니다.
 
 Route smoke:
 

@@ -47,6 +47,12 @@ Usage:
                  실제 RTSP/WebRTC overlay 세션에서 route별 profile/rule matching을 검증합니다.
   verify-rule-ui
                  /lab/rules Rule/Profile 카테고리 버튼과 저장 payload를 검증합니다.
+  verify-auth-bootstrap
+                 최초 setup, admin password policy, login/logout/session을 검증합니다.
+  verify-auth-users
+                 admin 계정 관리, viewer scope 제한, lockout, invite/request를 검증합니다.
+  verify-auth-routes
+                 root/login/ops/client/lab role 기반 route 정책을 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-event-post-longrun
@@ -214,6 +220,18 @@ case "${cmd}" in
   verify-rule-ui)
     require_internal verify_rule_ui_smoke.sh
     exec "${INTERNAL_DIR}/verify_rule_ui_smoke.sh" "$@"
+    ;;
+  verify-auth-bootstrap)
+    require_internal verify_auth_bootstrap.sh
+    exec "${INTERNAL_DIR}/verify_auth_bootstrap.sh" "$@"
+    ;;
+  verify-auth-users)
+    require_internal verify_auth_users.sh
+    exec "${INTERNAL_DIR}/verify_auth_users.sh" "$@"
+    ;;
+  verify-auth-routes)
+    require_internal verify_auth_routes.sh
+    exec "${INTERNAL_DIR}/verify_auth_routes.sh" "$@"
     ;;
   verify-event-post)
     require_internal verify_event_post_dispatch.sh

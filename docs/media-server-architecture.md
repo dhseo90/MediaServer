@@ -73,7 +73,14 @@ HTTP request
   -> route별 RequireRole / RequireScope guard
 ```
 
-`MEDIA_SERVER_AUTH_MODE=off`에서는 기존 개발/검증 호환을 위해 dev admin principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 admin/operator/viewer/integrator env token이 `/auth/whoami`에서 principal로 확인됩니다. `MEDIA_SERVER_AUTH_MODE=session`에서는 users file의 `passwordHash`를 libsodium password hashing으로 검증한 뒤 HttpOnly/SameSite=Lax cookie session을 발급합니다. Password policy/lockout/session hardening은 HTTP auth/users file에만 적용되며, media pipeline, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload는 변경하지 않습니다. 이번 MVP는 setup/login/logout/password change, whoami, `/ops/users`, 임시 `/ops`/`/client` landing, guard helper 중심이며, `/lab`, `/ops`, `/client`, metadata/event API의 세부 차단 정책은 SourceRegistry/PublishedView와 route 분리 단계에서 좁혀갑니다.
+`MEDIA_SERVER_AUTH_MODE=auto`가 제품 기본 모드입니다. Users file이 없거나 admin passwordHash가 없으면 setup required 상태로 보고 `/setup`에서 최초 admin 비밀번호를 설정하게 하며, setup 완료 후에는 session login을 요구합니다. `MEDIA_SERVER_AUTH_MODE=off`에서는 기존 개발/검증 호환을 위해 dev admin principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 admin/operator/viewer/integrator env token이 `/auth/whoami`에서 principal로 확인됩니다. `MEDIA_SERVER_AUTH_MODE=session`에서는 users file의 `passwordHash`를 libsodium password hashing으로 검증한 뒤 HttpOnly/SameSite=Lax cookie session을 발급합니다. Password policy/lockout/session hardening은 HTTP auth/users file에만 적용되며, media pipeline, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload는 변경하지 않습니다.
+
+Auth 구성요소:
+
+- `UserRegistry`: `.media_server.users.json`에 user, invite, access request를 저장하고 password hash/history, lockout, audit field를 관리합니다.
+- `SessionStore`: random session id, expiry, idle timeout, role/scope snapshot을 메모리에 보관하고 login/password change/logout/disable/reset에서 session을 회전 또는 폐기합니다.
+- `Principal`: request마다 Bearer/query token 또는 session cookie에서 생성되며 role, scope, displayName, authMode, authentication 상태를 포함합니다.
+- `AuthGuard`: `RequireRole`, `RequireScope`, `IsAdmin`, `IsOperator`, `IsViewer`, `IsIntegrator` helper로 browser route는 login/forbidden page, API route는 JSON `401`/`403`을 반환합니다.
 
 클라이언트 계정의 1차 정책은 admin 수동 생성입니다. 자가 가입은 자동 승인하지 않고, `/client/request-access`와 `POST /client/api/access-requests`는 `pending` request만 users file에 저장합니다. Admin이 `/ops/users`에서 approve하기 전까지 request는 user/password/session/view scope를 만들지 않습니다.
 
