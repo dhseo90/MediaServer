@@ -569,6 +569,145 @@ bool PasswordWasUsedBefore(const std::string& password, const UserRecord& user) 
     return false;
 }
 
+bool IsSafeUsername(const std::string& username) {
+    if (username.empty() || username.size() > 64) {
+        return false;
+    }
+    return std::all_of(username.begin(), username.end(), [](unsigned char ch) {
+        return std::isalnum(ch) != 0 || ch == '_' || ch == '-' || ch == '.' || ch == '@';
+    });
+}
+
+AuthUserResult UserJsonResult(int status,
+                              std::string status_text,
+                              std::string body,
+                              std::string username = "") {
+    return AuthUserResult{.status = status,
+                          .status_text = std::move(status_text),
+                          .body = std::move(body),
+                          .username = std::move(username)};
+}
+
+AuthUserResult UserError(int status, std::string status_text, std::string error) {
+    return UserJsonResult(status,
+                          std::move(status_text),
+                          "{\"error\":\"" + JsonEscapeLocal(error) + "\"}");
+}
+
+void AppendJsonStringArray(std::ostringstream& out, const std::vector<std::string>& values) {
+    out << "[";
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscapeLocal(values[i]) << "\"";
+    }
+    out << "]";
+}
+
+void AppendPublicUserJson(std::ostringstream& out, const UserRecord& user) {
+    out << "{"
+        << "\"username\":\"" << JsonEscapeLocal(user.username) << "\","
+        << "\"displayName\":\"" << JsonEscapeLocal(user.display_name) << "\","
+        << "\"role\":\"" << JsonEscapeLocal(user.role) << "\","
+        << "\"enabled\":" << (user.enabled ? "true" : "false") << ","
+        << "\"scopesCount\":" << user.scopes.size() << ","
+        << "\"scopes\":";
+    AppendJsonStringArray(out, user.scopes);
+    out << ","
+        << "\"mustChangePassword\":" << (user.must_change_password ? "true" : "false") << ","
+        << "\"failedLoginCount\":" << user.failed_login_count << ","
+        << "\"lockedUntil\":\"" << JsonEscapeLocal(user.locked_until) << "\","
+        << "\"lastFailedLoginAt\":\"" << JsonEscapeLocal(user.last_failed_login_at) << "\","
+        << "\"lastLoginAt\":\"" << JsonEscapeLocal(user.last_login_at) << "\","
+        << "\"lastLoginIp\":\"" << JsonEscapeLocal(user.last_login_ip) << "\","
+        << "\"createdAt\":\"" << JsonEscapeLocal(user.created_at) << "\","
+        << "\"passwordUpdatedAt\":\"" << JsonEscapeLocal(user.password_updated_at) << "\","
+        << "\"disabledAt\":\"" << JsonEscapeLocal(user.disabled_at) << "\""
+        << "}";
+}
+
+std::string UsersJson(const std::vector<UserRecord>& users) {
+    std::ostringstream out;
+    out << "{\"users\":[";
+    for (std::size_t i = 0; i < users.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendPublicUserJson(out, users[i]);
+    }
+    out << "]}";
+    return out.str();
+}
+
+bool HasAnotherEnabledAdmin(const std::vector<UserRecord>& users, const std::string& username) {
+    return std::any_of(users.begin(), users.end(), [&](const UserRecord& user) {
+        return user.username != username && user.enabled && user.role == "admin";
+    });
+}
+
+std::optional<std::size_t> FindUserIndex(const std::vector<UserRecord>& users,
+                                         const std::string& username) {
+    for (std::size_t i = 0; i < users.size(); ++i) {
+        if (users[i].username == username) {
+            return i;
+        }
+    }
+    return std::nullopt;
+}
+
+std::vector<std::string> ScopesFromMutation(const UserMutation& mutation) {
+    if (!mutation.scopes.empty()) {
+        return mutation.scopes;
+    }
+    return ScopeTemplateForRole(mutation.role, mutation.view_id);
+}
+
+UserMutation UserMutationFromJson(const std::string& body) {
+    UserMutation mutation;
+    mutation.username = Trim(ParseStringField(body, "username").value_or(""));
+    mutation.display_name = Trim(ParseStringField(body, "displayName").value_or(""));
+    mutation.role = ToLower(Trim(ParseStringField(body, "role").value_or("")));
+    mutation.view_id = Trim(ParseStringField(body, "viewId").value_or(""));
+    if (const auto scopes = ExtractArrayField(body, "scopes"); scopes.has_value()) {
+        mutation.scopes = ParseStringArray(*scopes);
+    } else if (const auto scopes_csv = ParseStringField(body, "scopes"); scopes_csv.has_value()) {
+        std::stringstream ss(*scopes_csv);
+        std::string token;
+        while (std::getline(ss, token, ',')) {
+            token = Trim(token);
+            if (!token.empty()) {
+                mutation.scopes.push_back(token);
+            }
+        }
+    }
+    mutation.password = ParseStringField(body, "password").value_or("");
+    mutation.has_password = ParseStringField(body, "password").has_value();
+    if (const auto enabled = ParseBoolField(body, "enabled"); enabled.has_value()) {
+        mutation.enabled = *enabled;
+        mutation.has_enabled = true;
+    }
+    if (const auto must_change = ParseBoolField(body, "mustChangePassword");
+        must_change.has_value()) {
+        mutation.must_change_password = *must_change;
+        mutation.has_must_change_password = true;
+    }
+    return mutation;
+}
+
+std::optional<std::string> ValidateUserMutation(const UserMutation& mutation, bool require_password) {
+    if (!IsSafeUsername(mutation.username)) {
+        return "username은 1~64자의 영문/숫자/._-@ 조합이어야 합니다.";
+    }
+    if (!IsKnownRole(mutation.role)) {
+        return "role은 admin/operator/viewer/integrator 중 하나여야 합니다.";
+    }
+    if (require_password && (!mutation.has_password || mutation.password.empty())) {
+        return "temporary password is required";
+    }
+    return std::nullopt;
+}
+
 void WriteStringArray(std::ostringstream& out, const std::vector<std::string>& values) {
     out << "[";
     for (std::size_t i = 0; i < values.size(); ++i) {
@@ -857,6 +996,36 @@ AuthResult BuildPrincipalFromRequest(const app::AppConfig& config,
     return Unauthorized("invalid authentication token");
 }
 
+AuthResult RefreshPrincipalFromUser(const app::AppConfig& config,
+                                    const Principal& principal) {
+    if (!principal.is_authenticated || principal.username.empty()) {
+        return Authenticated(principal);
+    }
+    std::string load_error;
+    const auto users = LoadUsers(config.auth_users_file, &load_error);
+    if (!users.has_value()) {
+        return Unauthorized(load_error);
+    }
+    for (const UserRecord& user : *users) {
+        if (user.username != principal.username) {
+            continue;
+        }
+        if (!user.enabled) {
+            return Unauthorized("user is disabled");
+        }
+        if (user.must_change_password && !principal.password_change_required) {
+            return Unauthorized("password reset requires login");
+        }
+        return Authenticated(MakePrincipalForRole(user.role,
+                                                  user.scopes,
+                                                  user.display_name,
+                                                  config.auth_mode,
+                                                  user.username,
+                                                  user.must_change_password));
+    }
+    return Unauthorized("user not found");
+}
+
 PasswordPolicyResult ValidatePasswordPolicy(const app::AppConfig& config,
                                             const std::string& username,
                                             const std::string& password,
@@ -1068,6 +1237,277 @@ bool ChangeUserPassword(const app::AppConfig& config,
         *error_message = "invalid username or password";
     }
     return false;
+}
+
+std::vector<std::string> ScopeTemplateForRole(const std::string& role,
+                                              const std::string& view_id) {
+    const std::string normalized_role = ToLower(Trim(role));
+    const std::string normalized_view = Trim(view_id);
+    if (normalized_role == "admin") {
+        return {"*"};
+    }
+    if (normalized_role == "operator") {
+        return {"ops:read", "rule:write", "source:write", "dashboard:read:*", "event:read:*"};
+    }
+    if (normalized_role == "viewer") {
+        if (!normalized_view.empty()) {
+            return {"view:read:" + normalized_view,
+                    "dashboard:read:" + normalized_view,
+                    "event:read:" + normalized_view,
+                    "metadata:read:" + normalized_view};
+        }
+        return DefaultScopesForRole("viewer");
+    }
+    if (normalized_role == "integrator") {
+        if (!normalized_view.empty()) {
+            return {"metadata:read:" + normalized_view, "event:read:" + normalized_view};
+        }
+        return DefaultScopesForRole("integrator");
+    }
+    return {};
+}
+
+AuthUserResult ListAuthUsers(const app::AppConfig& config) {
+    std::string load_error;
+    const auto users = LoadUsers(config.auth_users_file, &load_error);
+    if (!users.has_value()) {
+        return UserError(404, "Not Found", load_error);
+    }
+    return UserJsonResult(200, "OK", UsersJson(*users));
+}
+
+AuthUserResult CreateAuthUser(const app::AppConfig& config,
+                              const UserMutation& mutation) {
+    if (!PasswordHashingAvailable()) {
+        return UserError(503, "Service Unavailable", "safe password hashing is unavailable; build with libsodium");
+    }
+    UserMutation normalized = mutation;
+    if (normalized.role.empty()) {
+        normalized.role = "viewer";
+    }
+    if (const auto validation = ValidateUserMutation(normalized, true); validation.has_value()) {
+        return UserError(400, "Bad Request", *validation);
+    }
+    std::string load_error;
+    auto users = LoadUsers(config.auth_users_file, &load_error);
+    if (!users.has_value()) {
+        return UserError(404, "Not Found", load_error);
+    }
+    if (FindUserIndex(*users, normalized.username).has_value()) {
+        return UserError(409, "Conflict", "user already exists");
+    }
+    UserRecord candidate;
+    candidate.username = normalized.username;
+    candidate.display_name =
+        normalized.display_name.empty() ? normalized.username : normalized.display_name;
+    candidate.role = normalized.role;
+    candidate.scopes = ScopesFromMutation(normalized);
+    candidate.enabled = normalized.has_enabled ? normalized.enabled : true;
+    candidate.must_change_password =
+        normalized.has_must_change_password ? normalized.must_change_password : true;
+    const PasswordPolicyResult policy =
+        ValidatePasswordPolicy(config, candidate.username, normalized.password, normalized.password, nullptr);
+    if (!policy.ok) {
+        return UserError(400, "Bad Request", policy.message);
+    }
+    std::string hash_error;
+    auto password_hash = GeneratePasswordHash(normalized.password, &hash_error);
+    if (!password_hash.has_value()) {
+        return UserError(500, "Internal Server Error", hash_error);
+    }
+    const std::string now = IsoUtcNow();
+    candidate.password_hash = *password_hash;
+    candidate.password_history = {*password_hash};
+    candidate.created_at = now;
+    candidate.password_updated_at = now;
+    if (!candidate.enabled) {
+        candidate.disabled_at = now;
+    }
+    users->push_back(candidate);
+    std::string save_error;
+    if (!SaveUsersFile(config.auth_users_file, *users, &save_error)) {
+        return UserError(500, "Internal Server Error", save_error);
+    }
+    std::ostringstream body;
+    body << "{\"status\":\"created\",\"user\":";
+    AppendPublicUserJson(body, candidate);
+    body << "}";
+    return UserJsonResult(201, "Created", body.str(), candidate.username);
+}
+
+AuthUserResult UpdateAuthUser(const app::AppConfig& config,
+                              const std::string& username,
+                              const UserMutation& mutation) {
+    std::string load_error;
+    auto users = LoadUsers(config.auth_users_file, &load_error);
+    if (!users.has_value()) {
+        return UserError(404, "Not Found", load_error);
+    }
+    const auto index = FindUserIndex(*users, username);
+    if (!index.has_value()) {
+        return UserError(404, "Not Found", "user not found");
+    }
+    UserRecord& user = (*users)[*index];
+    const std::string next_role = mutation.role.empty() ? user.role : mutation.role;
+    if (!IsKnownRole(next_role)) {
+        return UserError(400, "Bad Request", "role은 admin/operator/viewer/integrator 중 하나여야 합니다.");
+    }
+    const bool next_enabled = mutation.has_enabled ? mutation.enabled : user.enabled;
+    if (user.enabled && user.role == "admin" &&
+        (!next_enabled || next_role != "admin") &&
+        !HasAnotherEnabledAdmin(*users, user.username)) {
+        return UserError(409, "Conflict", "마지막 활성 admin 계정은 비활성화하거나 role을 변경할 수 없습니다.");
+    }
+    if (!mutation.display_name.empty()) {
+        user.display_name = mutation.display_name;
+    }
+    user.role = next_role;
+    if (!mutation.scopes.empty() || !mutation.view_id.empty() || user.scopes.empty()) {
+        user.scopes = ScopesFromMutation(UserMutation{.role = user.role,
+                                                      .view_id = mutation.view_id,
+                                                      .scopes = mutation.scopes});
+    }
+    if (mutation.has_must_change_password) {
+        user.must_change_password = mutation.must_change_password;
+    }
+    if (mutation.has_enabled) {
+        user.enabled = mutation.enabled;
+        if (user.enabled) {
+            user.disabled_at.clear();
+        } else if (user.disabled_at.empty()) {
+            user.disabled_at = IsoUtcNow();
+        }
+    }
+    std::string save_error;
+    if (!SaveUsersFile(config.auth_users_file, *users, &save_error)) {
+        return UserError(500, "Internal Server Error", save_error);
+    }
+    std::ostringstream body;
+    body << "{\"status\":\"updated\",\"user\":";
+    AppendPublicUserJson(body, user);
+    body << "}";
+    return UserJsonResult(200, "OK", body.str(), user.username);
+}
+
+AuthUserResult ResetAuthUserPassword(const app::AppConfig& config,
+                                     const std::string& username,
+                                     const std::string& password) {
+    if (!PasswordHashingAvailable()) {
+        return UserError(503, "Service Unavailable", "safe password hashing is unavailable; build with libsodium");
+    }
+    if (password.empty()) {
+        return UserError(400, "Bad Request", "temporary password is required");
+    }
+    std::string load_error;
+    auto users = LoadUsers(config.auth_users_file, &load_error);
+    if (!users.has_value()) {
+        return UserError(404, "Not Found", load_error);
+    }
+    const auto index = FindUserIndex(*users, username);
+    if (!index.has_value()) {
+        return UserError(404, "Not Found", "user not found");
+    }
+    UserRecord& user = (*users)[*index];
+    const PasswordPolicyResult policy =
+        ValidatePasswordPolicy(config, user.username, password, password, &user);
+    if (!policy.ok) {
+        return UserError(400, "Bad Request", policy.message);
+    }
+    std::string hash_error;
+    auto password_hash = GeneratePasswordHash(password, &hash_error);
+    if (!password_hash.has_value()) {
+        return UserError(500, "Internal Server Error", hash_error);
+    }
+    std::vector<std::string> history;
+    history.push_back(*password_hash);
+    if (!user.password_hash.empty()) {
+        history.push_back(user.password_hash);
+    }
+    for (const std::string& hash : user.password_history) {
+        if (std::find(history.begin(), history.end(), hash) == history.end()) {
+            history.push_back(hash);
+        }
+    }
+    if (config.auth_password_history_count >= 0 &&
+        static_cast<int>(history.size()) > config.auth_password_history_count) {
+        history.resize(static_cast<std::size_t>(config.auth_password_history_count));
+    }
+    user.password_hash = *password_hash;
+    user.password_history = std::move(history);
+    user.password_updated_at = IsoUtcNow();
+    user.must_change_password = true;
+    user.failed_login_count = 0;
+    user.locked_until.clear();
+    user.last_failed_login_at.clear();
+    std::string save_error;
+    if (!SaveUsersFile(config.auth_users_file, *users, &save_error)) {
+        return UserError(500, "Internal Server Error", save_error);
+    }
+    std::ostringstream body;
+    body << "{\"status\":\"passwordReset\",\"user\":";
+    AppendPublicUserJson(body, user);
+    body << "}";
+    return UserJsonResult(200, "OK", body.str(), user.username);
+}
+
+AuthUserResult SetAuthUserEnabled(const app::AppConfig& config,
+                                  const std::string& username,
+                                  bool enabled) {
+    std::string load_error;
+    auto users = LoadUsers(config.auth_users_file, &load_error);
+    if (!users.has_value()) {
+        return UserError(404, "Not Found", load_error);
+    }
+    const auto index = FindUserIndex(*users, username);
+    if (!index.has_value()) {
+        return UserError(404, "Not Found", "user not found");
+    }
+    UserRecord& user = (*users)[*index];
+    if (!enabled && user.enabled && user.role == "admin" &&
+        !HasAnotherEnabledAdmin(*users, user.username)) {
+        return UserError(409, "Conflict", "마지막 활성 admin 계정은 비활성화할 수 없습니다.");
+    }
+    user.enabled = enabled;
+    if (enabled) {
+        user.disabled_at.clear();
+        user.failed_login_count = 0;
+        user.locked_until.clear();
+        user.last_failed_login_at.clear();
+    } else if (user.disabled_at.empty()) {
+        user.disabled_at = IsoUtcNow();
+    }
+    std::string save_error;
+    if (!SaveUsersFile(config.auth_users_file, *users, &save_error)) {
+        return UserError(500, "Internal Server Error", save_error);
+    }
+    std::ostringstream body;
+    body << "{\"status\":\"" << (enabled ? "enabled" : "disabled") << "\",\"user\":";
+    AppendPublicUserJson(body, user);
+    body << "}";
+    return UserJsonResult(200, "OK", body.str(), user.username);
+}
+
+AuthUserResult CreateAuthUserFromJson(const app::AppConfig& config,
+                                      const std::string& body) {
+    return CreateAuthUser(config, UserMutationFromJson(body));
+}
+
+AuthUserResult UpdateAuthUserFromJson(const app::AppConfig& config,
+                                      const std::string& username,
+                                      const std::string& body) {
+    UserMutation mutation = UserMutationFromJson(body);
+    if (!mutation.username.empty() && mutation.username != username) {
+        return UserError(400, "Bad Request", "path username and body username do not match");
+    }
+    mutation.username = username;
+    return UpdateAuthUser(config, username, mutation);
+}
+
+AuthUserResult ResetAuthUserPasswordFromJson(const app::AppConfig& config,
+                                             const std::string& username,
+                                             const std::string& body) {
+    const std::string password = ParseStringField(body, "password").value_or("");
+    return ResetAuthUserPassword(config, username, password);
 }
 
 bool PasswordHashingAvailable() {

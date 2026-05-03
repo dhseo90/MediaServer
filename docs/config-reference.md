@@ -67,16 +67,18 @@ Session login은 `libsodium crypto_pwhash_str` password hash를 사용합니다.
 - 초기화된 계정은 `mustChangePassword=true`로 저장할 수 있으며, 로그인 후 `/password/change`에서 새 정책을 만족하는 비밀번호로 변경해야 합니다.
 - `/auth/whoami`는 `setupRequired`, `setupReason`, `authMode`, `authenticated`, `username`, `role`, `scopes`, `passwordChangeRequired`를 반환합니다.
 
+계정 관리는 admin 전용 `/ops/users` 또는 `./server.sh auth-user` CLI를 사용합니다. Users file 직접 편집은 복구나 bootstrap 문제 해결 때만 사용하고 운영 절차로 권장하지 않습니다. Self-signup은 제공하지 않으며 viewer/client 계정은 admin이 수동 생성합니다.
+
 초기 role/scope 모델:
 
 | 역할 | MVP scope |
 | --- | --- |
 | `admin` | 모든 scope. `view:read:*`, `source:read:*`, `rule:read:*`, `event:read:*`, `metadata:read:*`, `dashboard:read:*`, `debug:read`, `rule:write`, `source:write`, `ops:read`, `lab:read` |
-| `operator` | 운영 live monitor, rule/scenario 관리, runtime dashboard, event 조회 scope |
-| `viewer` | 할당 view/read 계열 MVP scope. `view:read:*`, `metadata:read:*`, `dashboard:read:*`, `event:read:*` |
-| `integrator` | 연동 API용 `metadata:read:*`, `event:read:*` |
+| `operator` | `ops:read`, `rule:write`, `source:write`, `dashboard:read:*`, `event:read:*` |
+| `viewer` | `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}` |
+| `integrator` | `metadata:read:{viewId}`, `event:read:{viewId}` |
 
-`*` scope는 MVP의 wildcard 표현입니다. SourceRegistry/PublishedView가 들어오면 `view:read:{viewId}`, `event:read:{viewId}`처럼 구체 ID scope로 좁힐 예정입니다.
+`*` scope는 MVP의 wildcard 표현입니다. `/ops/users`와 CLI에서 viewId를 넣으면 viewer/integrator scope template은 `{viewId}` 단위로 생성됩니다.
 
 Users file 예시:
 
@@ -115,7 +117,20 @@ Users file 예시:
 }
 ```
 
-`passwordHash`와 `passwordHistory`는 libsodium `crypto_pwhash_str` 출력 문자열만 저장합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다. Password hash 값은 API/UI 응답에 노출하지 않습니다. 클라이언트 계정은 현재 `/ops/users` UI가 아니라 users file의 `viewer` role과 `view:read:{viewId}` 계열 scope로 추가합니다.
+`passwordHash`와 `passwordHistory`는 libsodium `crypto_pwhash_str` 출력 문자열만 저장합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다. Password hash 값은 `/ops/api/users`, `/ops/users`, CLI list 응답에 노출하지 않습니다. 클라이언트 계정은 `/ops/users` 또는 `./server.sh auth-user add --role viewer --view-id <viewId>`로 추가합니다.
+
+Admin user management API:
+
+| Route | 권한 | 설명 |
+| --- | --- | --- |
+| `GET /ops/api/users` | admin | hash/token을 제외한 user list |
+| `POST /ops/api/users` | admin | temporary password로 user 생성 |
+| `PUT /ops/api/users/{username}` | admin | displayName/role/scopes/enabled/mustChangePassword 수정 |
+| `POST /ops/api/users/{username}/reset-password` | admin | 임시 비밀번호 설정, `mustChangePassword=true`, server-side session revoke |
+| `POST /ops/api/users/{username}/disable` | admin | hard delete 대신 비활성화 |
+| `POST /ops/api/users/{username}/enable` | admin | 비활성 계정 재활성화 |
+
+마지막 활성 admin 계정은 disable하거나 admin이 아닌 role로 바꿀 수 없습니다.
 
 ### 개발/script 보조값
 

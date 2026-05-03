@@ -24,6 +24,7 @@ Usage:
   check          status와 동일한 별칭입니다.
   diagnose       실행환경, 포트 바인딩, 파일/RTSP source 접근성 문제를 자세히 진단합니다.
   urls           같은 LAN의 다른 PC/VLC/IINA/브라우저에서 복사해 쓸 테스트 URL을 출력합니다.
+  auth-user      users file 계정을 list/add/disable/enable/reset-password로 관리합니다.
 
 개발/검증 명령:
   foreground     서버를 foreground로 실행합니다. 개발 중 로그를 바로 볼 때 사용합니다.
@@ -161,6 +162,10 @@ case "${cmd}" in
   urls|external-urls)
     require_internal print_external_test_urls.sh
     exec "${INTERNAL_DIR}/print_external_test_urls.sh" "$@"
+    ;;
+  auth-user)
+    require_internal auth_user_cli.sh
+    exec "${INTERNAL_DIR}/auth_user_cli.sh" "$@"
     ;;
   foreground|run)
     require_internal run_server_foreground.sh

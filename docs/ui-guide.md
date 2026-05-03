@@ -13,6 +13,7 @@
 | Root entry | `http://127.0.0.1:8080/` | auth mode와 role에 따른 진입점 |
 | 운영 콘솔 | `http://127.0.0.1:8080/ops/live` | admin/operator용 운영 shell |
 | Source/View 관리 | `http://127.0.0.1:8080/ops/sources` | admin/operator용 SourceRegistry와 PublishedView 관리 |
+| 계정 관리 | `http://127.0.0.1:8080/ops/users` | admin 전용 사용자 생성/비활성화/비밀번호 초기화 |
 | 클라이언트 포털 | `http://127.0.0.1:8080/client/live` | viewer/operator/admin용 client shell |
 
 실제 host/port는 `./server.sh status` 또는 `./server.sh urls` 출력값을 우선합니다.
@@ -50,21 +51,48 @@ Role별 이동:
 
 Login page는 username/password 입력, 실패/lockout 메시지, 로그인 후 현재 사용자/role 표시, logout 버튼만 제공하는 MVP입니다. `/`는 setup required 상태에서 `/setup`, auth off에서 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/live`, `/client/live`, auth on에서 admin/operator를 `/ops/live`, viewer를 `/client/live`, 미인증 요청을 `/login`으로 보냅니다. 비밀번호 변경 성공 시 기존 session은 폐기되고 `/login`에서 다시 로그인합니다.
 
-클라이언트 계정은 현재 관리 UI에서 생성하지 않고 users file에 `viewer` role로 추가합니다. PublishedView 단위 접근은 `view:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`, `dashboard:read:{viewId}` scope로 제한합니다.
+클라이언트 계정은 admin이 `/ops/users` 또는 `./server.sh auth-user` CLI에서 `viewer` role로 수동 생성합니다. Self-signup은 제공하지 않습니다. PublishedView 단위 접근은 `view:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`, `dashboard:read:{viewId}` scope로 제한합니다.
 
 Route 역할:
 
-- `/ops`: admin/operator 전용 운영 shell입니다. Live, Dashboard, Sources, Rules, Events navigation을 제공하고 Sources/Views는 `/ops/sources`, Rules는 기존 `/lab/rules` 호환 화면으로 연결합니다.
+- `/ops`: admin/operator 전용 운영 shell입니다. Live, Dashboard, Sources, Rules, Events navigation을 제공하고 Sources/Views는 `/ops/sources`, Users는 admin 전용 `/ops/users`, Rules는 기존 `/lab/rules` 호환 화면으로 연결합니다.
 - `/client`: viewer/operator/admin 접근 shell입니다. `/client/api/views` 기준으로 할당된 PublishedView만 표시하며 원본 source URL, debug/developer URL은 노출하지 않습니다.
 - `/lab`: admin/operator 또는 `lab:read` scope용 개발/검증 shell입니다. 기존 `/lab/rules`와 자동화 bookmark 호환을 유지합니다.
 
-## 3. SourceRegistry / PublishedView
+## 3. Admin User Management
+
+`/ops/users`는 admin 전용 계정 관리 화면입니다. User list는 username, displayName, role, enabled, scopes count, lastLoginAt, lockedUntil, mustChangePassword, actions를 표시하며 `passwordHash`, `passwordHistory`, `tokenHash`는 UI/API 응답에 노출하지 않습니다.
+
+지원 동작:
+
+- 계정 생성: username, displayName, role, viewId 또는 직접 scopes, temporary password, enabled, mustChangePassword를 저장합니다.
+- 계정 수정: displayName, role, scopes, enabled, mustChangePassword를 변경합니다.
+- 비밀번호 초기화: admin이 임시 비밀번호를 설정하고 `mustChangePassword=true`로 전환합니다.
+- enable/disable: hard delete 대신 disable을 사용합니다. 마지막 활성 admin 계정은 비활성화하거나 다른 role로 변경할 수 없습니다.
+
+Role별 scope template:
+
+- `admin`: `*`
+- `operator`: `ops:read`, `rule:write`, `source:write`, `dashboard:read:*`, `event:read:*`
+- `viewer`: `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`
+- `integrator`: `metadata:read:{viewId}`, `event:read:{viewId}`
+
+CLI도 같은 C++ password hash/password policy 경로를 사용합니다. Password는 기본적으로 prompt로 입력하고, 자동 smoke에서는 `--password-stdin`을 사용할 수 있습니다.
+
+```bash
+./server.sh auth-user list
+./server.sh auth-user add --username client-a --role viewer --view-id lobby-live
+./server.sh auth-user reset-password --username client-a
+./server.sh auth-user disable --username client-a
+```
+
+## 4. SourceRegistry / PublishedView
 
 `/ops/sources`는 운영자가 실제 source를 한 번 등록하고, 클라이언트에는 PublishedView 단위로 공개하기 위한 MVP 화면입니다. Source form은 `sourceId`, 표시 이름, source 종류, file/RTSP/WebRTC/HTTP locator, tags, owner group, enabled 상태를 저장합니다. 같은 RTSP/HTTP URL은 query 순서가 달라도 canonical key 기준으로 중복 등록이 거부됩니다.
 
 PublishedView form은 `viewId`, 표시 이름, `sourceId`, `defaultRuleId`, `allowedRuleIds`, overlay mode, dashboard/event/metadata 노출 여부, client group, 최대 tile 수를 저장합니다. `/client/api/views`는 로그인 principal의 `view:read:{viewId}` scope가 있는 view만 반환하며, 원본 source URL이나 file locator는 클라이언트 응답에 포함하지 않습니다.
 
-### 3.1 Client scoped dashboard
+### 4.1 Client scoped dashboard
 
 `/client/dashboard`는 viewer가 접근 가능한 PublishedView의 상태 요약만 보여주는 client dashboard입니다. view 목록은 `/client/api/views`의 scoped 결과를 사용하고, 선택된 view의 상세 상태는 `/client/api/views/{viewId}/dashboard`에서 가져옵니다.
 
@@ -77,7 +105,7 @@ PublishedView form은 `viewId`, 표시 이름, `sourceId`, `defaultRuleId`, `all
 
 값이 없거나 아직 수집되지 않은 항목은 UI에서 `미제공`으로 표시합니다. Client dashboard와 `/client/api/views/{viewId}/events?limit=...`는 source 원본 URL, Developer URL, raw JSON, `debugCounters`, `analysisTapId`, internal session id, rule/profile editor, Event POST 설정, SSE/WS 전체 endpoint를 노출하지 않습니다. 운영자용 세부 runtime/debug 확인은 `/lab/rules` Runtime Dashboard 또는 `/lab/runtime/status`에서만 수행합니다.
 
-### 3.2 Client Live Monitor
+### 4.2 Client Live Monitor
 
 `/client/live`는 viewer가 접근 가능한 PublishedView만 2x2 grid에 배치하는 live monitor입니다. Tile은 최대 4개이며, 각 tile은 `/client/api/views/{viewId}/webrtc/session` wrapper로 WebRTC session을 생성합니다. Client route는 viewId만 받으며 source 원본 URL, file/url/source override, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile 수정 UI는 노출하지 않습니다.
 
@@ -91,7 +119,7 @@ Tile별 기능:
 
 Hidden tab, route leave, tile stop 시 PeerConnection, DataChannel, server WebRTC session을 정리합니다. 모든 tile에 BBox diagnostics를 켜는 동작은 제공하지 않습니다.
 
-## 4. 영상 분석 룰 목록
+## 5. 영상 분석 룰 목록
 
 룰 목록은 저장된 `vaRule` 설정을 관리하는 첫 화면입니다. `vaRule`은 숫자 ID이며, 영상 source, 분석 profile, event/scenario, 영역/라인, event action을 하나로 묶습니다.
 
@@ -116,7 +144,7 @@ Hidden tab, route leave, tile stop 시 PeerConnection, DataChannel, server WebRT
 
 사용자가 rule number를 직접 입력하지 않습니다. 서버/UI가 빈 숫자 ID를 자동 배정하고, URL에서는 `vaRule=<숫자>`만 사용합니다.
 
-## 5. 룰 편집 흐름
+## 6. 룰 편집 흐름
 
 룰 추가 또는 수정 시 편집 화면으로 전환됩니다. 저장 완료 후에는 목록으로 돌아가는 흐름을 기본으로 합니다.
 
@@ -139,7 +167,7 @@ Hidden tab, route leave, tile stop 시 PeerConnection, DataChannel, server WebRT
 
 저장하지 않은 변경사항이 있으면 목록 이동, 다른 룰 수정, 영상 분석 보기 이동 전에 확인 경고가 뜹니다. 저장/삭제 성공 또는 실패는 feedback으로 표시됩니다.
 
-## 6. 분석 Profile
+## 7. 분석 Profile
 
 룰 편집 화면의 profile 흐름:
 
@@ -163,7 +191,7 @@ Profile 항목:
 
 Tracking category가 비어 있으면 profile 저장을 막습니다. 전체 추적이 필요하면 UI의 전체 선택 또는 API의 `*` 토큰을 사용합니다.
 
-## 7. 기본 이벤트
+## 8. 기본 이벤트
 
 기본 이벤트는 기존 rule event engine을 사용하며, 외부 event JSON/API/POST 형식을 유지합니다.
 
@@ -184,7 +212,7 @@ Tracking category가 비어 있으면 profile 저장을 막습니다. 전체 추
 
 라인 모드에서는 영역/라인 캔버스의 선 중앙에 현재 설정 방향을 나타내는 작은 화살표를 표시합니다. `any`는 양방향, `forward`/`reverse`는 선택한 한 방향만 표시합니다.
 
-## 8. 시나리오 이벤트
+## 9. 시나리오 이벤트
 
 Scenario는 여러 frame에 걸친 시간 조건과 상태 전이를 판단하는 이벤트입니다. 기존 기본 이벤트를 끄거나 바꾸지 않고 별도 scenario event로 동작합니다.
 
@@ -264,7 +292,7 @@ IntrusionAfterLineCrossing UI 항목:
 
 실제 scenario engine 활성화와 기본값은 서버 설정과 함께 동작합니다. 환경변수는 [config-reference.md](./config-reference.md)를 봅니다.
 
-## 9. 영역/라인 캔버스
+## 10. 영역/라인 캔버스
 
 영역/라인 설정 섹션에서 영상 프레임을 보면서 polygon 또는 line을 지정합니다.
 
@@ -284,7 +312,7 @@ IntrusionAfterLineCrossing UI 항목:
 
 좌표는 기존 payload 구조와 같이 normalized 0~1 비율로 저장됩니다. 캔버스 크기가 바뀌어도 저장 좌표 비율은 유지됩니다.
 
-## 10. 이벤트 발생 시 동작
+## 11. 이벤트 발생 시 동작
 
 이벤트 동작 섹션에서 event 발생 시 후처리를 정합니다.
 
@@ -303,7 +331,7 @@ EventRecord/snapshot/clip hook:
 - snapshot/clip hook은 현재 marker/hook 중심이며 실제 frame/clip recorder는 후속 작업입니다.
 - 상태 확인은 `/lab/analysis/event-storage/status` API와 관련 metrics를 사용합니다.
 
-## 11. 영상 분석 보기 탭
+## 12. 영상 분석 보기 탭
 
 보기 탭은 설정을 검증하는 테스트/미리보기 화면입니다.
 
@@ -553,7 +581,7 @@ OpenCV dependency는 예제 실행 전 `python3 -c "import cv2; print(cv2.__vers
 ./server.sh verify-ws-metadata --http-base http://127.0.0.1:8080
 ```
 
-## 12. VA 런타임 대시보드
+## 13. VA 런타임 대시보드
 
 VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보는 운영용 탭입니다.
 
@@ -713,7 +741,7 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-storage/status'
 
 이 검증은 선택 longrun입니다. 기본 `./server.sh test`에는 포함하지 않습니다.
 
-## 13. 자주 발생하는 오류
+## 14. 자주 발생하는 오류
 
 | 오류 | 원인 | 처리 |
 | --- | --- | --- |
