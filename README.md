@@ -8,6 +8,7 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 - Source: file, RTSP pull, WebRTC publish, HTTP/HLS URI source를 같은 stream/session 구조에서 다룹니다.
 - VA overlay: `va=1`로 YOLO/ONNX detection overlay를 요청할 수 있습니다.
 - 영상 분석 UI: Rule/Profile/Scenario, 객체 category, polygon/line, event action을 `/lab/rules`에서 설정합니다.
+- Auth/account MVP: 최초 `/setup`, `/login`, role/scope principal, admin 계정 관리, viewer invite/request skeleton을 제공합니다.
 - 저장 설정 호출: 숫자 ID 기반 `vaRule=<id>`로 저장된 source/profile/rule/scenario를 호출합니다.
 - VA Metadata Runtime Console: WebRTC 메타데이터 뷰어, 브라우저 client-side overlay, drill-down 런타임 대시보드, vaRule debug, SSE/WS side-channel, custom SSE client와 Custom RTSP+SSE overlay 예제를 제공합니다.
 - 이벤트/검증: Event POST, EventRecord JSON Lines 저장, VA metadata replay/baseline 검증 구조를 제공합니다.
@@ -80,15 +81,19 @@ YOLO Detection
 | 용도 | 예시 |
 | --- | --- |
 | Root entry | `http://127.0.0.1:8080/` |
-| 운영 콘솔 | `http://127.0.0.1:8080/ops/live` |
-| 클라이언트 포털 | `http://127.0.0.1:8080/client/live` |
-| Lab | `http://127.0.0.1:8080/lab` |
+| 최초 관리자 설정 | `http://127.0.0.1:8080/setup` |
+| 로그인 | `http://127.0.0.1:8080/login` |
+| 운영 콘솔 MVP | `http://127.0.0.1:8080/ops/live` |
+| 클라이언트 포털 MVP | `http://127.0.0.1:8080/client/live` |
+| Lab, 개발/검증용 | `http://127.0.0.1:8080/lab` |
 | 영상 분석 관리 | `http://127.0.0.1:8080/lab/rules` |
 | RTSP | `rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4` |
 | WebRTC signaling | `POST http://127.0.0.1:8080/webrtc/session?file=sample_h264.mp4` |
 | WHEP | `POST http://127.0.0.1:8080/whep?file=sample_h264.mp4` |
 | VA overlay | `rtsp://127.0.0.1:8554/dhseo?file=va_four_scene_sample.mp4&va=1` |
 | 저장 VA 룰 | `rtsp://127.0.0.1:8554/dhseo?vaRule=1` |
+
+기본 `MEDIA_SERVER_AUTH_MODE=auto`에서는 users file 또는 admin passwordHash가 없으면 `/`가 `/setup`으로 이동합니다. Setup 완료 후에는 `/login`이 기본 진입점이며 admin/operator는 `/ops/live`, viewer는 `/client/live`로 이동합니다. `/lab`과 `/lab/rules`는 개발/검증용 화면이며 auth off 테스트 모드 또는 admin/operator/lab scope로 접근합니다.
 
 ## 영상 분석 사용 흐름
 
@@ -105,9 +110,9 @@ RTSP 일반 viewer는 WebRTC DataChannel metadata를 표시하지 않습니다. 
 
 ## 시나리오 로드맵 상태
 
-- 완료: Runtime Dashboard trend/stale/cleanup warning 1차, scenario rule payload의 runtime per-rule 설정 연결, ReEntry와 IntrusionAfterLineCrossing의 룰 편집 UI 선택/저장 템플릿, Auth Bootstrap과 기본 로그인 강제.
+- 완료: Runtime Dashboard trend/stale/cleanup warning 1차, scenario rule payload의 runtime per-rule 설정 연결, ReEntry와 IntrusionAfterLineCrossing의 룰 편집 UI 선택/저장 템플릿, Auth Bootstrap, 기본 로그인 강제, 계정 관리, client invite/request skeleton, role 기반 route policy.
 - 다음 작업: Loitering UI 템플릿과 ZoneOccupancyScenario 신규 구현.
-- 후속 Phase: SourceRegistry / PublishedView 고도화, `/ops` / `/client` / `/lab` route 세부 분리, client/operator live portal 고도화, client scoped dashboard, analysis tap reuse / source+profile 공유 정책.
+- 다음 Phase: SourceRegistry / PublishedView 운영/클라이언트 모델을 기준으로 client/operator live portal과 scoped dashboard를 고도화합니다.
 
 이 로드맵 정리는 기존 Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema, Scenario 판단 로직 변경을 의미하지 않습니다. snapshot/clip hook은 marker 중심의 후속 연결점이며 VMS/NVR 녹화 기능이 아닙니다.
 
@@ -138,11 +143,14 @@ VA replay/상태 검증:
 ./server.sh verify-va-replay
 ```
 
-VA Metadata Runtime Console 검증:
+VA/Auth 주요 검증:
 
 ```bash
 ./server.sh verify-webrtc-va-metadata
 ./server.sh verify-va-runtime-console
+./server.sh verify-auth-bootstrap
+./server.sh verify-auth-users
+./server.sh verify-auth-routes
 ```
 
 현재 검증 기준은 [docs/stream-verification.md](docs/stream-verification.md)에 정리되어 있습니다.
