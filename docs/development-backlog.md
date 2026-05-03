@@ -16,7 +16,7 @@
 - 구현 완료: TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, TrackHealth, cleanup 정책.
 - 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage/query/search UI, EventRecord rotation/retention/recovery 1차, snapshot/clip hook, WebRTC VA metadata DataChannel 출력 구조.
 - 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, client-side Trend/Stale/Cleanup warning 1차, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, IntrusionDwell/ReEntry/WrongDirection/IntrusionAfterLineCrossing scenario UI 템플릿, 자동/longrun 검증 명령.
-- 구현 완료: Auth / Role / Scope, account login/session MVP, SourceRegistry / PublishedView MVP, client scoped view API 1차, Client scoped dashboard MVP.
+- 구현 완료: Auth / Role / Scope, account login/session MVP, SourceRegistry / PublishedView MVP, client scoped view API 1차, Client scoped dashboard MVP, Client Live Monitor 2x2 MVP.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
 - 실험/제약: snapshot/clip은 hook/marker 중심이며 실제 제품용 frame extraction/clip recorder는 후속 구현입니다.
 - 신규 우선순위: Auth / Role / Scope, SourceRegistry / PublishedView, `/ops` / `/client` / `/lab` route 분리, Client scoped dashboard, Client Live Monitor, Operator Live Monitor, Analysis tap reuse / fanout 검증입니다.
@@ -48,7 +48,7 @@
 - 상태: 완료: MVP
 - 목적: 운영 화면, 클라이언트 화면, 개발/lab 화면의 URL과 역할을 분리합니다.
 - 완료 범위: `MEDIA_SERVER_UI_DEFAULT_HOME`, `MEDIA_SERVER_ENABLE_LAB`, `MEDIA_SERVER_ENABLE_OPS`, `MEDIA_SERVER_ENABLE_CLIENT`, role-aware `/` redirect, `/ops/live` shell, `/client/live` shell, `/ops/rules` alias, `/lab` guard와 기존 `/lab/rules` 호환 유지입니다.
-- 후속: 실제 live monitor를 PublishedView/source runtime 데이터에 연결합니다.
+- 후속: Operator Live Monitor에서 source/runtime/event 운영 상태를 더 높은 정보 밀도로 연결합니다.
 - 우선순위 이유: 현재 lab 중심 UI에서 운영/고객 화면으로 확장할 때 권한과 탐색 구조가 명확해야 합니다.
 
 ### O4. Client scoped dashboard
@@ -61,8 +61,10 @@
 
 ### O5. Client Live Monitor
 
-- 상태: 예정
+- 상태: 완료: 2x2 MVP
 - 목적: PublishedView 기반 클라이언트용 live monitor 화면을 정의합니다.
+- 완료 범위: `/client/live` 2x2 grid, 최대 4 tile, assigned PublishedView 선택, tile별 WebRTC session, `raw`/`va-overlay`/`va-rule` allowed overlay mode guard, tile start/stop/all stop, selected tile detail/dashboard, tile status 요약입니다.
+- 보안/노출 정책: client route는 viewId만 허용하며 source URL, file/url/source override, Developer URL, BBox diagnostics, raw JSON, debugCounters, rule/profile 수정 UI를 노출하지 않습니다.
 - 우선순위 이유: 클라이언트 화면은 허용된 view와 이벤트만 노출해야 하므로 SourceRegistry/PublishedView 이후에 진행합니다.
 
 ### O6. Operator Live Monitor
