@@ -34,11 +34,14 @@ UI는 light/dark theme-aware design token을 사용하며, card/button/form/tabl
 
 내장 HTTP UI는 아직 C++ 문자열 렌더링 기반이지만, 제품 shell 쪽은 다음 공통 helper를 기준으로 유지합니다.
 
-- `ProductUiCss()`: Auth/Ops/Client가 공유하는 semantic token, card/button/form/table/badge/debug 스타일입니다.
+- `ProductDesignTokensCss()`: Auth/Ops/Client와 `/lab/rules`가 공유하는 light/dark semantic token 원천입니다.
+- `ProductUiCss()`: 제품 shell 공통 card/button/form/table/badge/debug 스타일입니다.
 - `ProductSharedUiScript()`: product route에서 공유하는 `escapeHtml`, `requestJson`, badge/raw JSON 렌더링 helper입니다.
 - `AppendOpsShellStart/End`, `AppendAuthShellStart/End`: 운영 shell과 setup/login auth shell의 공통 document/header/footer를 렌더링합니다.
 - `AppendProductAccountMenu()`: theme toggle, user role, logout 영역을 Ops/Client에서 동일하게 렌더링합니다.
 - `AppendRawJsonDetails()`: 운영자용 raw/debug JSON을 낮은 visual weight의 접힘 영역으로 렌더링합니다.
+- `AppendOpsHomePage()`, `AppendOpsDashboardPage()`, `AppendOpsRulesPage()`, `AppendOpsEventsPage()`: `/ops` shell 내부 page markup을 route별 helper로 분리합니다.
+- `IsOpsOverviewShellRoute()`, `IsClientShellRoute()`: route handler의 shell path 판별을 한 곳에서 관리합니다.
 
 `/lab/rules`는 기존 smoke selector와 3탭 회귀 위험이 높으므로, 대규모 DOM 구조 변경 없이 token과 selector 호환을 우선합니다.
 
@@ -94,7 +97,7 @@ Route 역할:
 
 Shell navigation은 server-side principal로 1차 렌더링하고 `/auth/whoami` 응답으로 admin-only menu를 다시 숨김 처리합니다. Client shell의 primary nav는 viewer용 라이브/대시보드만 유지합니다. admin/operator가 client 화면을 열면 메뉴 아래에 `Ops로 돌아가기`를 표시하고, viewer에게는 Ops/Lab nav와 debug/developer URL을 숨깁니다. Guard 실패 시 browser shell route는 login 또는 forbidden page를 보여주고, API route는 JSON `401`/`403`을 반환합니다.
 
-Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`로 확인합니다. 기존 Lab 자동화는 명시적인 auth off 검증 모드에서 계속 `/lab/rules` 3탭 구조를 기준으로 동작합니다.
+Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`로 확인합니다. Ops/Client shell selector와 client debug/source 비노출은 `./server.sh verify-ops-client-ui`로 확인합니다. 기존 Lab 자동화는 명시적인 auth off 검증 모드에서 계속 `/lab/rules` 3탭 구조를 기준으로 동작합니다.
 
 ## 3. Admin User Management
 
