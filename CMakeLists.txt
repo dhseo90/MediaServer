@@ -54,6 +54,7 @@ add_executable(media_server
     src/ingress/http_auth.cpp
     src/ingress/rtsp_request_context.cpp
     src/ingress/request_parser.cpp
+    src/ingress/product_ui_assets.cpp
     src/ingress/rtsp_egress_session.cpp
     src/ingress/source_view_registry.cpp
     src/ingress/webrtc_egress_session.cpp
