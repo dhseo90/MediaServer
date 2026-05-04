@@ -44,9 +44,10 @@ UI 변경:
 ```bash
 ./server.sh verify-rule-ui
 ./server.sh verify-lab-layout
+./server.sh verify-ops-client-ui
 ```
 
-Ops/Client shell 변경은 아직 전용 자동 검증 명령이 없으므로, auth-off 또는 로그인 cookie/token을 준비한 서버에서 아래 수동 smoke를 함께 확인합니다.
+Ops/Client shell 변경은 전용 smoke로 product shell selector와 client debug/source 비노출을 먼저 확인합니다. 화면 단위 회귀가 의심되거나 nav/table/form 반응형을 직접 봐야 할 때는 auth-off 또는 로그인 cookie/token을 준비한 서버에서 아래 수동 smoke를 함께 확인합니다.
 
 ```bash
 BASE=http://127.0.0.1:8080
