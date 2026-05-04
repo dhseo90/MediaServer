@@ -50,6 +50,7 @@
 #include "ingress/lab_import_manager.h"
 #include "ingress/product_ui_assets.h"
 #include "ingress/product_ui_css.h"
+#include "ingress/product_ui_js.h"
 #include "ingress/source_view_registry.h"
 #include "ingress/webrtc_egress_session.h"
 #include "ingress/webrtc_source_registry.h"
@@ -18170,9 +18171,9 @@ void AppendClientShellScript(std::ostringstream& out, const std::string& active)
         if (wrap) wrap.hidden = modes.length <= 1;
       }
     }
-    function setTileView(index, viewId) {
-      const tile = liveTiles[index];
-      if (!tile || tile.sessionId) return;
+	    function setTileView(index, viewId) {
+	      const tile = liveTiles[index];
+	      if (!tile || tile.sessionId) return;
       tile.viewId = viewId || '';
       const root = document.querySelector(`[data-tile="${index}"]`);
       if (root) {
@@ -18180,12 +18181,118 @@ void AppendClientShellScript(std::ostringstream& out, const std::string& active)
         if (viewSelect) viewSelect.value = tile.viewId;
       }
       applyTileModeOptions(tile);
-      updateTileDom(tile);
-      refreshSelectedTileDetail();
-    }
-    function renderLiveMonitor() {
-      workspace?.classList.add('live-workspace');
-      if (views.length === 0) {
+	      updateTileDom(tile);
+	      refreshSelectedTileDetail();
+	    }
+	    function liveGridOptionLabel(count) {
+	      return count === 1 ? '1개' : count === 2 ? '1x2' : count === 4 ? '2x2' : count === 6 ? '2x3' : '3x3';
+	    }
+	    function liveGridOptionsHtml() {
+	      return [1, 2, 4, 6, 9]
+	        .filter(count => count <= maxLiveTiles)
+	        .map(count => `<option value="${count}"${count === liveTileCount ? ' selected' : ''}>${liveGridOptionLabel(count)}</option>`)
+	        .join('');
+	    }
+	    function liveTileHtml(tile) {
+	      return `
+	        <article class="tile${selectedLiveTile === tile.index ? ' selected' : ''}" data-tile="${tile.index}">
+	          <div class="tile-head">
+	            <div class="tile-title">
+	              <h3>타일 ${tile.index + 1}</h3>
+	              <span class="chip" data-role="status">offline</span>
+	            </div>
+	            <div class="tile-controls">
+	              <label>채널
+	                <select data-role="view" aria-label="채널">
+	                  ${views.map(view => `<option value="${escapeHtml(view.viewId)}">${escapeHtml(view.displayName || view.viewId)}</option>`).join('')}
+	                </select>
+	              </label>
+	              <label data-role="mode-wrap">보기 방식
+	                <select data-role="mode" aria-label="보기 방식"></select>
+	              </label>
+	            </div>
+	            <div class="tile-actions">
+	              <button type="button" data-action="start">시작</button>
+	              <button type="button" data-action="stop" class="ghost" disabled>정지</button>
+	            </div>
+	          </div>
+	          <div class="tile-stage">
+	            <video playsinline muted autoplay></video>
+	            <span data-role="placeholder">오프라인</span>
+	          </div>
+	          <div class="tile-status">
+	            <div class="metric"><span>연결</span><strong data-role="connection">offline</strong></div>
+	            <div class="metric"><span>트랙</span><strong data-role="tracks">미제공</strong></div>
+	            <div class="metric"><span>이벤트</span><strong data-role="events">미제공</strong></div>
+	            <div class="metric"><span>상태</span><strong data-role="stale">미제공</strong></div>
+	          </div>
+	        </article>
+	      `;
+	    }
+	    function liveMonitorHtml() {
+	      return `
+	        <div class="live-monitor">
+	          <div class="live-toolbar">
+	            <div>
+	              <h2>라이브</h2>
+	            </div>
+	            <label>그리드
+	              <select id="liveGridSize">
+	                ${liveGridOptionsHtml()}
+	              </select>
+	            </label>
+	            <button id="liveAllStop" class="ghost" type="button">전체 정지</button>
+	          </div>
+	          <section class="detail-box" id="liveSelectedDetail">${emptyState('타일을 선택하세요', '선택한 타일의 연결, 메타데이터, 이벤트 상태가 여기에 표시됩니다.')}</section>
+	          <div class="live-grid" data-grid-size="${liveTileCount}">
+	            ${liveTiles.slice(0, liveTileCount).map(liveTileHtml).join('')}
+	          </div>
+	        </div>
+	      `;
+	    }
+	    function bindLiveTile(tile) {
+	      const root = document.querySelector(`[data-tile="${tile.index}"]`);
+	      if (!root) return;
+	      const viewSelect = root.querySelector('[data-role="view"]');
+	      if (viewSelect) {
+	        viewSelect.value = tile.viewId;
+	        viewSelect.disabled = Boolean(tile.sessionId);
+	        viewSelect.addEventListener('change', () => setTileView(tile.index, viewSelect.value));
+	      }
+	      const modeSelect = root.querySelector('[data-role="mode"]');
+	      if (modeSelect) {
+	        modeSelect.addEventListener('change', () => {
+	          if (!tile.sessionId) tile.overlayMode = modeSelect.value;
+	        });
+	      }
+	      root.querySelector('[data-action="start"]')?.addEventListener('click', () => startLiveTile(tile.index));
+	      root.querySelector('[data-action="stop"]')?.addEventListener('click', () => stopLiveTile(tile.index));
+	      root.addEventListener('click', event => {
+	        if (!event.target.closest('button') && !event.target.closest('select')) {
+	          selectLiveTile(tile.index);
+	        }
+	      });
+	      applyTileModeOptions(tile);
+	      updateTileDom(tile);
+	    }
+	    function bindLiveGridControls() {
+	      document.querySelector('#liveAllStop')?.addEventListener('click', () => stopAllLiveTiles());
+	      document.querySelector('#liveGridSize')?.addEventListener('change', async event => {
+	        const next = Math.min(maxLiveTiles, Math.max(1, Number(event.target.value || 4)));
+	        for (const tile of liveTiles.slice(next)) {
+	          await stopLiveTile(tile.index);
+	        }
+	        liveTileCount = next;
+	        if (selectedLiveTile !== null && selectedLiveTile >= liveTileCount) {
+	          selectedLiveTile = liveTileCount > 0 ? 0 : null;
+	        }
+	        localStorage.setItem('mediaServerClientLiveGrid', String(liveTileCount));
+	        renderLiveMonitor();
+	      });
+	    }
+	    function renderLiveMonitor() {
+	      workspace?.classList.add('live-workspace');
+	      if (views.length === 0) {
         detail.innerHTML = emptyState(
           'Live view가 없습니다',
           isPreviewMode
@@ -18193,99 +18300,14 @@ void AppendClientShellScript(std::ostringstream& out, const std::string& active)
             : '라이브를 보려면 관리자에게 채널 접근 권한을 받아야 합니다.',
           isPreviewMode ? '/ops/sources' : '',
           isPreviewMode ? '채널 관리' : ''
-        );
-        return;
-      }
-      detail.innerHTML = `
-        <div class="live-monitor">
-          <div class="live-toolbar">
-            <div>
-              <h2>라이브</h2>
-            </div>
-            <label>그리드
-              <select id="liveGridSize">
-                ${[1, 2, 4, 6, 9].filter(count => count <= maxLiveTiles).map(count => `<option value="${count}"${count === liveTileCount ? ' selected' : ''}>${count === 1 ? '1개' : count === 2 ? '1x2' : count === 4 ? '2x2' : count === 6 ? '2x3' : '3x3'}</option>`).join('')}
-              </select>
-            </label>
-            <button id="liveAllStop" class="ghost" type="button">전체 정지</button>
-          </div>
-          <section class="detail-box" id="liveSelectedDetail">${emptyState('타일을 선택하세요', '선택한 타일의 연결, 메타데이터, 이벤트 상태가 여기에 표시됩니다.')}</section>
-          <div class="live-grid" data-grid-size="${liveTileCount}">
-            ${liveTiles.slice(0, liveTileCount).map(tile => `
-              <article class="tile${selectedLiveTile === tile.index ? ' selected' : ''}" data-tile="${tile.index}">
-                <div class="tile-head">
-                  <div class="tile-title">
-                    <h3>타일 ${tile.index + 1}</h3>
-                    <span class="chip" data-role="status">offline</span>
-                  </div>
-                  <div class="tile-controls">
-                    <label>채널
-                      <select data-role="view" aria-label="채널">
-                        ${views.map(view => `<option value="${escapeHtml(view.viewId)}">${escapeHtml(view.displayName || view.viewId)}</option>`).join('')}
-                      </select>
-                    </label>
-                    <label data-role="mode-wrap">보기 방식
-                      <select data-role="mode" aria-label="보기 방식"></select>
-                    </label>
-                  </div>
-                  <div class="tile-actions">
-                    <button type="button" data-action="start">시작</button>
-                    <button type="button" data-action="stop" class="ghost" disabled>정지</button>
-                  </div>
-                </div>
-                <div class="tile-stage">
-                  <video playsinline muted autoplay></video>
-                  <span data-role="placeholder">오프라인</span>
-                </div>
-                <div class="tile-status">
-                  <div class="metric"><span>연결</span><strong data-role="connection">offline</strong></div>
-                  <div class="metric"><span>트랙</span><strong data-role="tracks">미제공</strong></div>
-                  <div class="metric"><span>이벤트</span><strong data-role="events">미제공</strong></div>
-                  <div class="metric"><span>상태</span><strong data-role="stale">미제공</strong></div>
-                </div>
-              </article>
-            `).join('')}
-          </div>
-        </div>
-      `;
-      for (const tile of liveTiles.slice(0, liveTileCount)) {
-        const root = document.querySelector(`[data-tile="${tile.index}"]`);
-        if (!root) continue;
-        const viewSelect = root.querySelector('[data-role="view"]');
-        if (viewSelect) {
-          viewSelect.value = tile.viewId;
-          viewSelect.disabled = Boolean(tile.sessionId);
-          viewSelect.addEventListener('change', () => setTileView(tile.index, viewSelect.value));
-        }
-        const modeSelect = root.querySelector('[data-role="mode"]');
-        if (modeSelect) {
-          modeSelect.addEventListener('change', () => {
-            if (!tile.sessionId) tile.overlayMode = modeSelect.value;
-          });
-        }
-        root.querySelector('[data-action="start"]')?.addEventListener('click', () => startLiveTile(tile.index));
-        root.querySelector('[data-action="stop"]')?.addEventListener('click', () => stopLiveTile(tile.index));
-        root.addEventListener('click', event => {
-          if (!event.target.closest('button') && !event.target.closest('select')) {
-            selectLiveTile(tile.index);
-          }
-        });
-        applyTileModeOptions(tile);
-        updateTileDom(tile);
-      }
-      document.querySelector('#liveAllStop')?.addEventListener('click', () => stopAllLiveTiles());
-      document.querySelector('#liveGridSize')?.addEventListener('change', async event => {
-        const next = Math.min(maxLiveTiles, Math.max(1, Number(event.target.value || 4)));
-        for (const tile of liveTiles.slice(next)) {
-          await stopLiveTile(tile.index);
-        }
-        liveTileCount = next;
-        if (selectedLiveTile !== null && selectedLiveTile >= liveTileCount) {
-          selectedLiveTile = liveTileCount > 0 ? 0 : null;
-        }
-        localStorage.setItem('mediaServerClientLiveGrid', String(liveTileCount));
-        renderLiveMonitor();
-      });
+	        );
+	        return;
+	      }
+	      detail.innerHTML = liveMonitorHtml();
+	      for (const tile of liveTiles.slice(0, liveTileCount)) {
+	        bindLiveTile(tile);
+	      }
+	      bindLiveGridControls();
       if (!liveStatusTimer) {
         liveStatusTimer = setInterval(() => {
           updateAllTileDom();
@@ -18680,10 +18702,13 @@ void AppendOpsSourcesPageScript(std::ostringstream& out) {
     let currentChannelId = '';
     let editorMode = 'view';
     let currentChannelEnabled = true;
-    const { escapeHtml, requestJson, formDataObject, setFeedback } = window.MediaServerUi;
-    const setStatus = (message, failed = false) => {
-      setFeedback(statusEl, message, failed, { collapseEmpty: true });
-    };
+	    const { escapeHtml, requestJson, formDataObject, setFeedback, setTableEmpty } = window.MediaServerUi;
+	    const setStatus = (message, failed = false) => {
+	      setFeedback(statusEl, message, failed, { collapseEmpty: true });
+	    };
+	    const setChannelValidation = message => {
+	      setFeedback(channelValidation, message, Boolean(message));
+	    };
     const kindLabel = kind => ({
       file: '파일',
       rtsp: 'RTSP URL',
@@ -18902,13 +18927,13 @@ void AppendOpsSourcesPageScript(std::ostringstream& out) {
         : '채널 이름, 종류, 입력값, 활성 상태만 저장합니다.';
       setFormDisabled(isView);
     }
-    function renderChannels(sources, views) {
-      const rows = channelRows(sources, views);
-      if (rows.length === 0) {
-        channelBody.innerHTML = '<tr><td colspan="8">등록된 채널이 없습니다. 채널 추가로 첫 카메라/소스를 등록하세요.</td></tr>';
-        return;
-      }
-      channelBody.innerHTML = rows.map(row => {
+	    function renderChannels(sources, views) {
+	      const rows = channelRows(sources, views);
+	      if (rows.length === 0) {
+	        setTableEmpty(channelBody, 8, '등록된 채널이 없습니다. 채널 추가로 첫 카메라/소스를 등록하세요.');
+	        return;
+	      }
+	      channelBody.innerHTML = rows.map(row => {
         const source = row.source || {};
         const view = row.view || {};
         const enabled = source.enabled !== false && view.enabled !== false;
@@ -18937,12 +18962,15 @@ void AppendOpsSourcesPageScript(std::ostringstream& out) {
               <button type="button" class="danger" data-delete-channel="${escapeHtml(row.id || '')}">삭제</button>
             </div>
           </td>
-        </tr>
-      `;
-      }).join('');
-      document.querySelectorAll('[data-view-channel]').forEach(button => {
-        button.addEventListener('click', () => openChannel(button.dataset.viewChannel || '', 'view'));
-      });
+	        </tr>
+	      `;
+	      }).join('');
+	      bindChannelRowActions();
+	    }
+	    function bindChannelRowActions() {
+	      document.querySelectorAll('[data-view-channel]').forEach(button => {
+	        button.addEventListener('click', () => openChannel(button.dataset.viewChannel || '', 'view'));
+	      });
       document.querySelectorAll('[data-edit-channel]').forEach(button => {
         button.addEventListener('click', () => openChannel(button.dataset.editChannel || '', 'edit'));
       });
@@ -18960,10 +18988,15 @@ void AppendOpsSourcesPageScript(std::ostringstream& out) {
           button
         ));
       });
-      document.querySelectorAll('[data-delete-channel]').forEach(button => {
-        button.addEventListener('click', () => deleteChannel(button.dataset.deleteChannel || ''));
-      });
-    }
+	      document.querySelectorAll('[data-delete-channel]').forEach(button => {
+	        button.addEventListener('click', () => deleteChannel(button.dataset.deleteChannel || ''));
+	      });
+	    }
+	    function renderRegistryRaw(sources, views, clientViews) {
+	      document.querySelector('#sources-json').textContent = JSON.stringify(sources, null, 2);
+	      document.querySelector('#views-json').textContent = JSON.stringify(views, null, 2);
+	      document.querySelector('#client-views-json').textContent = JSON.stringify(clientViews, null, 2);
+	    }
     async function loadFileOptions(selected = '') {
       const select = channelForm.elements.file;
       try {
@@ -19009,12 +19042,11 @@ void AppendOpsSourcesPageScript(std::ostringstream& out) {
         enabled
       };
     }
-    function resetChannelForm(mode = 'new') {
-      channelForm.reset();
-      channelForm.elements.channelId.value = nextChannelId();
-      currentChannelEnabled = true;
-      channelValidation.textContent = '';
-      channelValidation.classList.remove('error');
+	    function resetChannelForm(mode = 'new') {
+	      channelForm.reset();
+	      channelForm.elements.channelId.value = nextChannelId();
+	      currentChannelEnabled = true;
+	      setChannelValidation('');
       updateKindFields();
       loadFileOptions();
       channelPanel.hidden = false;
@@ -19038,11 +19070,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out) {
         channelForm.elements.displayName.value = `${channelForm.elements.displayName.value} 복제`;
       }
       updateKindFields();
-      const legacyIdMessage = !isClone && id && !isNumericChannelId(id)
-        ? `기존 문자열 ID "${id}"는 legacy 데이터입니다. 새 저장은 숫자 채널 ID로만 가능합니다.`
-        : '';
-      channelValidation.textContent = legacyIdMessage;
-      channelValidation.classList.toggle('error', Boolean(legacyIdMessage));
+	      const legacyIdMessage = !isClone && id && !isNumericChannelId(id)
+	        ? `기존 문자열 ID "${id}"는 legacy 데이터입니다. 새 저장은 숫자 채널 ID로만 가능합니다.`
+	        : '';
+	      setChannelValidation(legacyIdMessage);
       channelPanel.hidden = false;
       syncEditorChrome(mode, isClone ? '' : id);
       channelPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -19051,8 +19082,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out) {
       if (!id) return;
       fillChannel(id, mode);
     }
-    function validateChannelForm(form) {
-      const data = formDataObject(form);
+	    function validateChannelForm(form) {
+	      const data = formDataObject(form);
       if (!isNumericChannelId(data.channelId)) return '채널 ID는 1 이상의 숫자만 사용할 수 있습니다.';
       const kind = data.kind || 'file';
       const locatorByKind = {
@@ -19065,63 +19096,64 @@ void AppendOpsSourcesPageScript(std::ostringstream& out) {
         if (kind === 'webrtc') return 'WHIP publish로 등록된 Source ID가 필요합니다. 외부 WebRTC/WHEP URL pull은 아직 지원하지 않습니다.';
         return `${kindLabel(kind)} 입력값이 필요합니다.`;
       }
-      return '';
-    }
-    async function loadAll() {
-      const [sources, views, clientViews] = await Promise.all([
-        requestJson('/ops/api/sources'),
+	      return '';
+	    }
+	    function channelPayloadsFromFormData(data) {
+	      const channelId = data.channelId.trim();
+	      const sourcePayload = {
+	        sourceId: channelId,
+	        displayName: data.displayName,
+	        kind: data.kind,
+	        enabled: currentChannelEnabled,
+	        tags: [],
+	        ownerGroup: ''
+	      };
+	      if (data.kind === 'file') sourcePayload.file = (data.file || '').trim();
+	      if (data.kind === 'rtsp') sourcePayload.rtspUrl = (data.rtspUrl || '').trim();
+	      if (data.kind === 'webrtc') sourcePayload.webrtcSourceId = (data.webrtcSourceId || '').trim();
+	      if (data.kind === 'http') sourcePayload.httpUrl = (data.httpUrl || '').trim();
+	      const viewPayload = {
+	        viewId: channelId,
+	        displayName: data.displayName,
+	        sourceId: channelId,
+	        defaultRuleId: '',
+	        allowedRuleIds: [],
+	        allowedOverlayModes: ['raw', 'va-overlay', 'va-rule'],
+	        showDashboard: true,
+	        showEvents: true,
+	        showMetadataSummary: true,
+	        clientGroups: [],
+	        maxTiles: 1,
+	        enabled: currentChannelEnabled
+	      };
+	      return { channelId, sourcePayload, viewPayload };
+	    }
+	    async function loadAll() {
+	      const [sources, views, clientViews] = await Promise.all([
+	        requestJson('/ops/api/sources'),
         requestJson('/ops/api/views'),
         requestJson('/client/api/views')
       ]);
-      loadedSources = sources.sources || [];
-      loadedViews = views.views || [];
-      renderChannels(loadedSources, loadedViews);
-      document.querySelector('#sources-json').textContent = JSON.stringify(sources, null, 2);
-      document.querySelector('#views-json').textContent = JSON.stringify(views, null, 2);
-      document.querySelector('#client-views-json').textContent = JSON.stringify(clientViews, null, 2);
-      setStatus('');
-    }
+	      loadedSources = sources.sources || [];
+	      loadedViews = views.views || [];
+	      renderChannels(loadedSources, loadedViews);
+	      renderRegistryRaw(sources, views, clientViews);
+	      setStatus('');
+	    }
     channelForm.addEventListener('submit', async event => {
       event.preventDefault();
-      const form = event.currentTarget;
-      const data = formDataObject(form);
-      const validation = validateChannelForm(form);
-      channelValidation.textContent = validation;
-      channelValidation.classList.toggle('error', Boolean(validation));
-      if (validation) return;
-      const channelId = data.channelId.trim();
-      const payload = {
-        sourceId: channelId,
-        displayName: data.displayName,
-        kind: data.kind,
-        enabled: currentChannelEnabled,
-        tags: [],
-        ownerGroup: ''
-      };
-      if (data.kind === 'file') payload.file = (data.file || '').trim();
-      if (data.kind === 'rtsp') payload.rtspUrl = (data.rtspUrl || '').trim();
-      if (data.kind === 'webrtc') payload.webrtcSourceId = (data.webrtcSourceId || '').trim();
-      if (data.kind === 'http') payload.httpUrl = (data.httpUrl || '').trim();
-      const viewPayload = {
-        viewId: channelId,
-        displayName: data.displayName,
-        sourceId: channelId,
-        defaultRuleId: '',
-        allowedRuleIds: [],
-        allowedOverlayModes: ['raw', 'va-overlay', 'va-rule'],
-        showDashboard: true,
-        showEvents: true,
-        showMetadataSummary: true,
-        clientGroups: [],
-        maxTiles: 1,
-        enabled: currentChannelEnabled
-      };
-      try {
-        await requestJson(`/ops/api/sources/${encodeURIComponent(channelId)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+	      const form = event.currentTarget;
+	      const data = formDataObject(form);
+	      const validation = validateChannelForm(form);
+	      setChannelValidation(validation);
+	      if (validation) return;
+	      const { channelId, sourcePayload, viewPayload } = channelPayloadsFromFormData(data);
+	      try {
+	        await requestJson(`/ops/api/sources/${encodeURIComponent(channelId)}`, {
+	          method: 'PUT',
+	          headers: { 'Content-Type': 'application/json' },
+	          body: JSON.stringify(sourcePayload)
+	        });
         await requestJson(`/ops/api/views/${encodeURIComponent(channelId)}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -19315,13 +19347,39 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     const updateButton = document.querySelector('#update-btn');
     const assignment = document.querySelector('#view-assignment');
     const passwordFields = document.querySelector('#password-fields');
-    const { requestJson, formDataObject, setFeedback, splitList } = window.MediaServerUi;
-    const setStatus = (message, failed = false) => {
-      setFeedback(statusEl, message, failed);
-    };
-    function updateAssignmentVisibility() {
-      const role = form.elements.role.value;
-      assignment.style.display = (role === 'viewer' || role === 'integrator') ? 'grid' : 'none';
+	    const {
+	      requestJson,
+	      formDataObject,
+	      setFeedback,
+	      splitList,
+	      setHidden,
+	      setRequired,
+	      setTableEmpty
+	    } = window.MediaServerUi;
+	    const setStatus = (message, failed = false) => {
+	      setFeedback(statusEl, message, failed);
+	    };
+	    function hideUserEditor() {
+	      userEditor.open = false;
+	      userEditor.hidden = true;
+	    }
+	    function setPasswordFieldsVisible(visible) {
+	      setHidden(passwordFields, !visible);
+	      setRequired(form.elements.password, visible);
+	      setRequired(form.elements.confirmPassword, visible);
+	    }
+	    function setEditorMode(mode, title) {
+	      userEditor.hidden = false;
+	      userEditorTitle.textContent = title;
+	      setPasswordFieldsVisible(mode === 'create');
+	      createButton.hidden = mode !== 'create';
+	      updateButton.hidden = mode === 'create';
+	      updateAssignmentVisibility();
+	      userEditor.open = true;
+	    }
+	    function updateAssignmentVisibility() {
+	      const role = form.elements.role.value;
+	      assignment.style.display = (role === 'viewer' || role === 'integrator') ? 'grid' : 'none';
     }
     function formPayload() {
       const data = formDataObject(form);
@@ -19348,96 +19406,81 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     function yesNo(value) {
       return value ? '예' : '아니오';
     }
-    function fillForm(user) {
-      userEditor.hidden = false;
-      userEditorTitle.textContent = `사용자 수정 · ${user.username}`;
-      form.elements.username.value = user.username;
-      form.elements.displayName.value = user.displayName || '';
-      form.elements.role.value = user.role || 'viewer';
+	    function fillForm(user) {
+	      form.elements.username.value = user.username;
+	      form.elements.displayName.value = user.displayName || '';
+	      form.elements.role.value = user.role || 'viewer';
       form.elements.viewId.value = '';
       form.elements.scopes.value = (user.scopes || []).join('\n');
       form.elements.password.value = '';
-      form.elements.confirmPassword.value = '';
-      form.elements.enabled.checked = Boolean(user.enabled);
-      form.elements.mustChangePassword.checked = Boolean(user.mustChangePassword);
-      passwordFields.hidden = true;
-      form.elements.password.required = false;
-      form.elements.confirmPassword.required = false;
-      createButton.hidden = true;
-      updateButton.hidden = false;
-      updateAssignmentVisibility();
-      userEditor.open = true;
-      userEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    function resetUserForm() {
-      userEditor.hidden = false;
-      form.reset();
-      userEditorTitle.textContent = '사용자 추가';
-      form.elements.role.value = 'viewer';
-      form.elements.enabled.checked = true;
-      form.elements.mustChangePassword.checked = true;
-      passwordFields.hidden = false;
-      form.elements.password.required = true;
-      form.elements.confirmPassword.required = true;
-      createButton.hidden = false;
-      updateButton.hidden = true;
-      updateAssignmentVisibility();
-      userEditor.open = true;
-      form.elements.username.focus();
-    }
-    function renderUsers(users) {
-      usersBody.textContent = '';
-      if (!Array.isArray(users) || users.length === 0) {
-        const tr = document.createElement('tr');
-        const td = document.createElement('td');
-        td.colSpan = 9;
-        td.textContent = '등록된 사용자가 없습니다. 사용자 추가로 계정을 생성하세요.';
-        tr.appendChild(td);
-        usersBody.appendChild(tr);
-        return;
-      }
-      for (const user of users) {
-        const tr = document.createElement('tr');
-        const cells = [
-          user.username,
-          user.displayName || '',
-          roleLabel(user.role),
-          user.enabled ? '활성' : '비활성',
-          String(user.scopesCount ?? (user.scopes || []).length),
-          user.lastLoginAt || '미제공',
-          user.lockedUntil || '없음',
-          yesNo(user.mustChangePassword)
-        ];
-        cells.forEach((value, index) => {
-          const td = document.createElement('td');
-          td.textContent = value;
-          if (index === 3) {
-            td.innerHTML = `<div class="user-status-actions"><span class="chip${user.enabled ? '' : ' warn'}">${value}</span></div>`;
-          }
-          if (index === 4) {
-            td.className = 'user-scope-cell';
-          }
-          tr.appendChild(td);
-        });
-        const actionTd = document.createElement('td');
-        const actions = document.createElement('div');
-        actions.className = 'user-row-actions';
-        const edit = document.createElement('button');
-        edit.type = 'button';
-        edit.className = 'secondary';
-        edit.textContent = '수정';
-        edit.onclick = () => fillForm(user);
-        const toggle = document.createElement('button');
-        toggle.type = 'button';
-        toggle.className = user.enabled ? 'danger' : 'secondary';
-        toggle.textContent = user.enabled ? '비활성화' : '활성화';
-        toggle.onclick = () => setEnabled(user.username, !user.enabled);
-        actions.append(edit, toggle);
-        actionTd.appendChild(actions);
-        tr.appendChild(actionTd);
-        usersBody.appendChild(tr);
-      }
-    }
+	      form.elements.confirmPassword.value = '';
+	      form.elements.enabled.checked = Boolean(user.enabled);
+	      form.elements.mustChangePassword.checked = Boolean(user.mustChangePassword);
+	      setEditorMode('edit', `사용자 수정 · ${user.username}`);
+	      userEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	    }
+	    function resetUserForm() {
+	      form.reset();
+	      form.elements.role.value = 'viewer';
+	      form.elements.enabled.checked = true;
+	      form.elements.mustChangePassword.checked = true;
+	      setEditorMode('create', '사용자 추가');
+	      form.elements.username.focus();
+	    }
+	    function userRowCells(user) {
+	      return [
+	        user.username,
+	        user.displayName || '',
+	        roleLabel(user.role),
+	        user.enabled ? '활성' : '비활성',
+	        String(user.scopesCount ?? (user.scopes || []).length),
+	        user.lastLoginAt || '미제공',
+	        user.lockedUntil || '없음',
+	        yesNo(user.mustChangePassword)
+	      ];
+	    }
+	    function userActionButton(label, className, onClick) {
+	      const button = document.createElement('button');
+	      button.type = 'button';
+	      button.className = className;
+	      button.textContent = label;
+	      button.onclick = onClick;
+	      return button;
+	    }
+	    function appendUserRow(user) {
+	      const tr = document.createElement('tr');
+	      userRowCells(user).forEach((value, index) => {
+	        const td = document.createElement('td');
+	        td.textContent = value;
+	        if (index === 3) {
+	          td.innerHTML = `<div class="user-status-actions"><span class="chip${user.enabled ? '' : ' warn'}">${value}</span></div>`;
+	        }
+	        if (index === 4) {
+	          td.className = 'user-scope-cell';
+	        }
+	        tr.appendChild(td);
+	      });
+	      const actionTd = document.createElement('td');
+	      const actions = document.createElement('div');
+	      actions.className = 'user-row-actions';
+	      actions.append(
+	        userActionButton('수정', 'secondary', () => fillForm(user)),
+	        userActionButton(user.enabled ? '비활성화' : '활성화', user.enabled ? 'danger' : 'secondary', () => setEnabled(user.username, !user.enabled))
+	      );
+	      actionTd.appendChild(actions);
+	      tr.appendChild(actionTd);
+	      usersBody.appendChild(tr);
+	    }
+	    function renderUsers(users) {
+	      usersBody.textContent = '';
+	      if (!Array.isArray(users) || users.length === 0) {
+	        setTableEmpty(usersBody, 9, '등록된 사용자가 없습니다. 사용자 추가로 계정을 생성하세요.');
+	        return;
+	      }
+	      for (const user of users) {
+	        appendUserRow(user);
+	      }
+	    }
     async function loadUsers() {
       const json = await requestJson('/ops/api/users');
       renderUsers(json.users || []);
@@ -19469,16 +19512,13 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        form.reset();
-        form.elements.enabled.checked = true;
-        form.elements.mustChangePassword.checked = true;
-        createButton.hidden = false;
-        updateButton.hidden = true;
-        userEditor.open = false;
-        userEditor.hidden = true;
-        updateAssignmentVisibility();
-        await loadAll();
-        setStatus('사용자 추가 완료');
+	        form.reset();
+	        form.elements.enabled.checked = true;
+	        form.elements.mustChangePassword.checked = true;
+	        hideUserEditor();
+	        updateAssignmentVisibility();
+	        await loadAll();
+	        setStatus('사용자 추가 완료');
       } catch (error) {
         setStatus(error.message, true);
       }
@@ -19493,18 +19533,16 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
-        });
-        await loadAll();
-        userEditor.open = false;
-        userEditor.hidden = true;
-      } catch (error) {
-        setStatus(error.message, true);
-      }
-    };
-    document.querySelector('#cancel-user-edit-btn').onclick = () => {
-      userEditor.open = false;
-      userEditor.hidden = true;
-    };
+	        });
+	        await loadAll();
+	        hideUserEditor();
+	      } catch (error) {
+	        setStatus(error.message, true);
+	      }
+	    };
+	    document.querySelector('#cancel-user-edit-btn').onclick = () => {
+	      hideUserEditor();
+	    };
     document.querySelector('#add-user-btn').onclick = resetUserForm;
     form.elements.role.addEventListener('change', updateAssignmentVisibility);
     document.querySelector('#refresh-btn').onclick = () => loadAll().catch(error => setStatus(error.message, true));
