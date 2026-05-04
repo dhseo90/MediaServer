@@ -153,6 +153,20 @@ void ReplaceAll(std::string* text, const std::string& needle, const std::string&
     }
 }
 
+std::string RefreshIconSvgHtml() {
+    return R"(<svg class="refresh-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12a9 9 0 1 1-2.64-6.36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M21 3v6h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>)";
+}
+
+std::string RefreshIconButtonHtml(const std::string& id,
+                                  const std::string& classes,
+                                  const std::string& label) {
+    std::ostringstream out;
+    out << "<button id=\"" << id << "\" class=\"" << classes
+        << " refresh-icon-button\" type=\"button\" aria-label=\"" << label
+        << "\" title=\"" << label << "\">" << RefreshIconSvgHtml() << "</button>";
+    return out.str();
+}
+
 bool ParseBoolQuery(const std::unordered_map<std::string, std::string>& query,
                     const std::string& key,
                     bool default_value) {
@@ -1375,9 +1389,25 @@ std::string BuildTestPageHtml(bool lab_mode) {
       color: var(--ink);
       border: 1px solid var(--line);
       box-shadow: none;
-    }
-    .theme-toggle svg { width: 20px; height: 20px; display: block; }
-    .theme-toggle .theme-icon-moon { display: block !important; }
+	    }
+	    .theme-toggle svg { width: 20px; height: 20px; display: block; }
+	    .refresh-icon-button {
+	      width: 40px;
+	      min-width: 40px;
+	      min-height: 40px;
+	      height: 40px;
+	      display: inline-grid;
+	      place-items: center;
+	      padding: 0;
+	      font-size: 0;
+	      border-radius: 999px;
+	    }
+	    .refresh-icon {
+	      width: 20px;
+	      height: 20px;
+	      display: block;
+	    }
+	    .theme-toggle .theme-icon-moon { display: block !important; }
     .theme-toggle .theme-icon-sun { display: none !important; }
     :root[data-theme="dark"] .theme-toggle .theme-icon-moon { display: none !important; }
     :root[data-theme="dark"] .theme-toggle .theme-icon-sun { display: block !important; }
@@ -1843,7 +1873,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
             <summary style="cursor:pointer;font-weight:700;color:var(--ink);">Event POST 설정/상태</summary>
             <div style="display:grid;gap:8px;margin-top:10px;font-size:0.9rem;color:var(--muted);">
               <div id="eventPostStatusPanel" style="white-space:pre-wrap;">event POST 상태 로딩 중</div>
-              <button id="eventPostRefreshBtn" class="secondary" type="button">상태 새로고침</button>
+              )" + RefreshIconButtonHtml("eventPostRefreshBtn", "secondary", "상태 새로고침") + R"(
             </div>
           </details>
           <details style="border:1px solid var(--line);border-radius:14px;padding:10px;background:var(--details-bg);">
@@ -1851,7 +1881,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
             <div style="display:grid;gap:8px;margin-top:10px;">
               <div style="display:grid;grid-template-columns:1fr auto;gap:8px;">
                 <select id="reportSelect"></select>
-                <button id="reportRefreshBtn" class="secondary" type="button">목록</button>
+	                )" + RefreshIconButtonHtml("reportRefreshBtn", "secondary", "리포트 목록 새로고침") + R"(
               </div>
               <button id="reportOpenBtn" class="secondary" type="button">선택 리포트 보기</button>
               <pre id="reportContent" class="compact-pre" style="min-height:120px;max-height:320px;"></pre>
@@ -3522,9 +3552,25 @@ std::string BuildLabRuleEditorPageHtml() {
       color: var(--ink);
       border: 1px solid var(--line);
       box-shadow: none;
-    }
-    .theme-toggle svg { width: 20px; height: 20px; display: block; }
-    .theme-toggle .theme-icon-moon { display: block !important; }
+	    }
+	    .theme-toggle svg { width: 20px; height: 20px; display: block; }
+	    .refresh-icon-button {
+	      width: 40px;
+	      min-width: 40px;
+	      min-height: 40px;
+	      height: 40px;
+	      display: inline-grid;
+	      place-items: center;
+	      padding: 0;
+	      font-size: 0;
+	      border-radius: 999px;
+	    }
+	    .refresh-icon {
+	      width: 20px;
+	      height: 20px;
+	      display: block;
+	    }
+	    .theme-toggle .theme-icon-moon { display: block !important; }
     .theme-toggle .theme-icon-sun { display: none !important; }
     :root[data-theme="dark"] .theme-toggle .theme-icon-moon { display: none !important; }
     :root[data-theme="dark"] .theme-toggle .theme-icon-sun { display: block !important; }
@@ -4004,15 +4050,17 @@ std::string BuildLabRuleEditorPageHtml() {
       justify-content: flex-end;
       gap: 8px;
     }
-    .dashboard-header-actions {
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 6px;
-    }
-    .dashboard-header-actions #dashboardStatusText {
-      max-width: 360px;
-      text-align: right;
-    }
+	    .dashboard-header-actions {
+	      flex-direction: row;
+	      align-items: flex-end;
+	      gap: 8px;
+	    }
+	    .dashboard-status-line {
+	      margin: -4px 0 0;
+	      max-width: 360px;
+	      text-align: right;
+	      justify-self: end;
+	    }
 	    .management-toolbar .toolbar-actions button {
 	      width: auto;
 	      min-width: 120px;
@@ -4598,6 +4646,31 @@ std::string BuildLabRuleEditorPageHtml() {
     }
     .profile-create-actions button {
       flex: 0 0 auto;
+    }
+    .profile-identity-row {
+      grid-template-columns: minmax(180px, 0.75fr) minmax(220px, 1.25fr);
+      align-items: end;
+    }
+    .label-with-help {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--color-text-muted);
+      font-weight: 850;
+    }
+    .help-icon-button {
+      width: 28px;
+      min-width: 28px;
+      min-height: 28px;
+      padding: 0;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .tracking-target-grid {
+      grid-template-columns: repeat(2, minmax(0, 160px));
+      justify-content: start;
     }
     .profile-draft-actions {
       display: grid;
@@ -6286,7 +6359,7 @@ std::string BuildLabRuleEditorPageHtml() {
       .management-toolbar { grid-template-columns: 1fr; }
       .management-toolbar .toolbar-actions { justify-content: flex-start; }
       .dashboard-header-actions { align-items: flex-start; }
-      .dashboard-header-actions #dashboardStatusText { text-align: left; }
+      .dashboard-status-line { justify-self: start; text-align: left; }
       .rule-row {
         grid-template-columns: 72px minmax(0, 1fr);
       }
@@ -6559,36 +6632,36 @@ std::string BuildLabRuleEditorPageHtml() {
           <div class="step-title">
             <span>3</span>
             <div>
-              <h2>분석 Profile</h2>
-              <p class="hint">실제 분석에 사용할 profile을 고르고, 세부 성능값은 필요할 때만 펼칩니다.</p>
+              <h2>분석 프로파일</h2>
+              <p class="hint">실제 분석에 사용할 프로파일을 고르고, 세부 성능값은 필요할 때만 펼칩니다.</p>
             </div>
           </div>
-          <div class="profile-guide-panel" aria-label="Profile 설정 흐름">
+          <div class="profile-guide-panel" aria-label="프로파일 설정 흐름">
             <div class="profile-guide-step">
               <strong>1. 보통은 선택만</strong>
-              <span>`사용할 Profile`에서 기본 profile을 고르면 룰 저장에 충분합니다.</span>
+              <span>`사용할 프로파일`에서 기본 프로파일을 고르면 룰 저장에 충분합니다.</span>
             </div>
             <div class="profile-guide-step">
-              <strong>2. 새 Profile이 필요할 때</strong>
-              <span>아래 `새 Profile 설정`에서 새 입력을 시작한 뒤 세부값을 저장합니다.</span>
+              <strong>2. 새 프로파일이 필요할 때</strong>
+              <span>`프로파일 추가`를 누른 뒤 필요한 세부값만 수정해 저장합니다.</span>
             </div>
             <div class="profile-guide-step">
               <strong>3. 룰에 연결</strong>
-              <span>저장한 Profile은 다시 `사용할 Profile` 목록에서 선택해야 이 룰에 연결됩니다.</span>
+              <span>저장한 프로파일은 다시 `사용할 프로파일` 목록에서 선택해야 이 룰에 연결됩니다.</span>
             </div>
           </div>
-          <label>사용할 Profile
+          <label>사용할 프로파일
             <select id="ruleProfileId"></select>
-            <span class="form-note">대부분은 저장된 Profile을 선택하면 됩니다. 새 분석 FPS/입력 크기가 필요할 때만 `새 Profile 설정`에서 시작합니다.</span>
+            <span class="form-note">대부분은 저장된 프로파일을 선택하면 됩니다. 새 분석 FPS/입력 크기가 필요할 때만 `프로파일 추가`에서 시작합니다.</span>
           </label>
           <div id="profileSummaryText" class="profile-summary-panel" aria-live="polite"></div>
-          <div class="profile-create-panel" aria-label="새 Profile 설정">
+          <div class="profile-create-panel" aria-label="프로파일 추가/수정">
             <div>
-              <strong>새 Profile 설정</strong>
-              <p>새 분석 FPS, 입력 크기, detector 설정이 필요할 때만 시작합니다. 버튼을 누르면 아래 세부 설정이 새 Profile 입력 상태로 전환됩니다.</p>
+              <strong>프로파일 추가/수정</strong>
+              <p>새 분석 FPS, 입력 크기, detector 설정이 필요할 때만 엽니다. 기존 프로파일을 고르면 수정 기준값으로 쓰고, 새로 저장하면 사용할 프로파일 목록에 추가됩니다.</p>
             </div>
             <div class="profile-create-actions">
-              <button id="newProfileBtn" type="button" class="secondary">새 Profile</button>
+              <button id="newProfileBtn" type="button" class="secondary">프로파일 추가</button>
               <button id="cancelNewProfileBtn" type="button" class="button-ghost">닫기</button>
             </div>
           </div>
@@ -6596,22 +6669,24 @@ std::string BuildLabRuleEditorPageHtml() {
             <summary>고급 Profile 설정</summary>
             <div class="stack">
               <div class="section-title-row">
-                <span class="hint">입력값을 저장하면 사용할 Profile 목록에 추가됩니다. 닫으면 현재 선택 Profile로 돌아갑니다.</span>
+                <span class="hint">입력값을 저장하면 사용할 프로파일 목록에 추가됩니다. 닫으면 현재 선택 프로파일로 돌아갑니다.</span>
                 <span id="profileCountBadge" class="count-badge">0개 저장</span>
               </div>
-              <label hidden>저장된 Profile
+              <label hidden>저장된 프로파일
                 <select id="profileSelect"></select>
               </label>
-              <div class="row">
-                <label>Profile ID
+              <div class="row profile-identity-row">
+                <label>프로파일 ID
                   <input id="profileId" value="fast-local" />
                 </label>
-                <label>Detector
+                <label>
+                  <span class="label-with-help">Detector
+                    <button id="detectorHelpBtn" class="help-icon-button" type="button" aria-label="Detector 설명 보기" title="Detector 설명 보기">?</button>
+                  </span>
                   <select id="profileDetector">
                     <option value="yolo">YOLO/ONNX</option>
                     <option value="dummy">개발용 더미(검증용)</option>
                   </select>
-                  <span id="detectorHelp" class="form-note">YOLO/ONNX는 실제 객체 검출입니다. 개발용 더미는 모델 없이 파이프라인과 UI만 확인할 때 쓰며 운영 설정에는 보통 사용하지 않습니다.</span>
                 </label>
               </div>
               <div class="row">
@@ -6656,7 +6731,7 @@ std::string BuildLabRuleEditorPageHtml() {
                 <button id="selectAllTrackingBtn" class="secondary mini-button">전체 선택</button>
                 <button id="clearTrackingBtn" class="secondary mini-button">전체 해제</button>
               </div>
-              <div class="pill-grid">
+              <div class="pill-grid tracking-target-grid">
                 <label class="mini-check"><input data-tracking-category type="checkbox" value="person" checked /> 사람</label>
                 <label class="mini-check"><input data-tracking-category type="checkbox" value="vehicle" checked /> 차량</label>
                 <label class="mini-check"><input data-tracking-category type="checkbox" value="road" /> 도로</label>
@@ -6669,12 +6744,12 @@ std::string BuildLabRuleEditorPageHtml() {
                 <label class="mini-check"><input data-tracking-category type="checkbox" value="object" /> 잡화</label>
               </div>
               <p class="hint">ID/trail과 enter/exit/line-crossing 판정 대상입니다. 세부 객체명은 JSON/API에서만 직접 지정합니다.</p>
-              <p id="profileDeleteWarningText" class="profile-delete-note" hidden>저장 Profile만 삭제할 수 있습니다.</p>
+              <p id="profileDeleteWarningText" class="profile-delete-note" hidden>저장 프로파일만 삭제할 수 있습니다.</p>
               <div class="profile-draft-actions">
-                <button id="saveProfileBtn">Profile 저장</button>
+                <button id="saveProfileBtn">프로파일 저장</button>
                 <button id="closeProfileDetailsBtn" type="button" class="button-ghost">닫기</button>
               </div>
-              <button id="deleteProfileBtn" class="danger" hidden>Profile 삭제</button>
+              <button id="deleteProfileBtn" class="danger" hidden>프로파일 삭제</button>
             </div>
           </details>
         </div>
@@ -6718,7 +6793,7 @@ std::string BuildLabRuleEditorPageHtml() {
                 <option value="intrusion-dwell" selected>Intrusion Dwell · 제한구역 체류</option>
                 <option value="re-entry">ReEntry · 이탈 후 재진입</option>
                 <option value="wrong-direction">WrongDirection · 금지 방향 통과</option>
-                <option value="intrusion-after-line-crossing">IntrusionAfterLineCrossing · line 후 zone 침입</option>
+                <option value="intrusion-after-line-crossing">라인 통과 후 영역 침입</option>
               </select>
             </label>
             <div id="scenarioDwellTimingRow" class="row">
@@ -6765,13 +6840,13 @@ std::string BuildLabRuleEditorPageHtml() {
                 <input id="scenarioAfterLineId" placeholder="예: entry-line · 비우면 ruleId-line" />
                 <span class="form-note">기존 line-crossing 기본 이벤트와 별도 trigger line으로 저장합니다.</span>
               </label>
-              <label>Crossing direction
+              <label>라인 통과 방향
                 <select id="scenarioAfterLineDirection">
                   <option value="any" selected>any · 양방향</option>
                   <option value="forward">forward · 정방향(-측→+측)</option>
                   <option value="reverse">reverse · 역방향(+측→-측)</option>
                 </select>
-                <span class="form-note">WrongDirection과 달리 any는 정상 옵션입니다.</span>
+                <span class="form-note">양방향은 양쪽 화살표로 표시합니다.</span>
               </label>
               <label>Trigger line 좌표
                 <span class="range-meta">x1/y1 → x2/y2, 0.0~1.0 정규화 좌표</span>
@@ -6782,11 +6857,11 @@ std::string BuildLabRuleEditorPageHtml() {
                   <input id="scenarioAfterLineY2" type="number" min="0" max="1" step="0.01" value="0.50" aria-label="trigger line y2" />
                 </div>
               </label>
-              <label>zoneEntryTimeout(ms): <span id="scenarioAfterLineTimeoutMsValue">10,000 ms</span>
+              <label>영역 진입 제한 시간(ms): <span id="scenarioAfterLineTimeoutMsValue">10,000 ms</span>
                 <input id="scenarioAfterLineTimeoutMs" type="range" min="1000" max="120000" step="1000" value="10000" />
                 <span class="range-meta">line 통과 후 target zone 진입까지 허용하는 시간입니다. 저장 payload는 maxDelayAfterCrossingMs를 사용합니다.</span>
               </label>
-              <label>zone dwell/observe(ms): <span id="scenarioAfterLineDwellMsValue">3,000 ms</span>
+              <label>영역 체류/관찰 시간(ms): <span id="scenarioAfterLineDwellMsValue">3,000 ms</span>
                 <input id="scenarioAfterLineDwellMs" type="range" min="0" max="120000" step="1000" value="3000" />
                 <span class="range-meta">target zone 안에 머문 시간이 이 값 이상이면 확정합니다.</span>
               </label>
@@ -7296,31 +7371,20 @@ std::string BuildLabRuleEditorPageHtml() {
           <div class="management-toolbar">
             <div class="stack">
               <h2>VA 런타임 대시보드</h2>
-              <p class="hint">실시간 분석 서버 상태를 보는 운영용 화면입니다. 대시보드 탭이 열려 있을 때만 주기적으로 갱신합니다.</p>
+              <p class="hint">서버 runtime, 외부 클라이언트 세션, stream/tap 상태를 조회합니다.</p>
             </div>
             <div class="toolbar-actions dashboard-header-actions">
-              <button id="dashboardRefreshBtn" type="button" class="secondary">새로고침</button>
-              <p id="dashboardStatusText" class="form-note">대시보드 대기 중</p>
+              <button id="dashboardMonitorToggleBtn" type="button" class="secondary" aria-pressed="true">모니터링 ON</button>
+              <button id="dashboardRefreshBtn" type="button" class="secondary refresh-icon-button" aria-label="새로고침" title="새로고침"><svg class="refresh-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12a9 9 0 1 1-2.64-6.36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M21 3v6h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
             </div>
           </div>
+          <p id="dashboardStatusText" class="form-note dashboard-status-line">대시보드 대기 중</p>
           <div class="dashboard-toolbar">
             <label>분석 Tap
               <select id="dashboardTapSelect"></select>
             </label>
             <label>룰
               <select id="dashboardRuleSelect"></select>
-            </label>
-            <label>갱신 주기
-              <select id="dashboardRefreshInterval">
-                <option value="0">수동</option>
-                <option value="2000">2초</option>
-                <option value="5000" selected>5초</option>
-                <option value="10000">10초</option>
-              </select>
-            </label>
-            <label style="min-height:42px;display:flex;align-items:center;gap:8px;">
-              <input id="dashboardAutoRefreshInput" type="checkbox" checked />
-              자동 갱신
             </label>
           </div>
           <div class="dashboard-drilldown">
@@ -7642,6 +7706,14 @@ std::string BuildLabRuleEditorPageHtml() {
     </form>
   </dialog>
 
+  <dialog id="detectorHelpDialog" class="validation-dialog">
+    <form method="dialog">
+      <h2>Detector 설명</h2>
+      <p>YOLO/ONNX는 실제 객체 검출입니다. 개발용 더미는 모델 없이 파이프라인과 UI만 확인할 때 쓰며 운영 설정에는 보통 사용하지 않습니다.</p>
+      <button value="ok">확인</button>
+    </form>
+  </dialog>
+
   <script>
     const categoryCatalog = __MEDIA_SERVER_CATEGORY_CATALOG__;
     const ruleCategories = categoryCatalog.map((item) => ({
@@ -7734,8 +7806,9 @@ std::string BuildLabRuleEditorPageHtml() {
     let viewMetadataPtsCalibrationCount = 0;
     let viewMetadataPresentationLoopRunning = false;
     let viewMetadataPresentationLoopStartedAt = 0;
-    let dashboardActive = false;
+    let dashboardMonitoringEnabled = true;
     let dashboardTimer = null;
+    const dashboardRefreshIntervalMs = 5000;
     let dashboardLastRefreshAt = 0;
     let dashboardLastPayload = null;
     let dashboardLastTapId = '';
@@ -7875,8 +7948,10 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function rawSourceLabel(source) {
       const kind = normalizedSourceKind(source?.kind || 'file');
-      if (kind === 'file') return `file=${source?.file || 'sample_h264.mp4'}`;
-      if (kind === 'webrtc') return `webrtc source=${source?.url || '(입력 필요)'}`;
+      if (kind === 'file') return `파일=${source?.file || 'sample_h264.mp4'}`;
+      if (kind === 'webrtc') return `WebRTC source=${source?.url || '(입력 필요)'}`;
+      if (kind === 'rtsp') return `RTSP=${source?.url || '(입력 필요)'}`;
+      if (kind === 'http' || kind === 'hls') return `HTTP/HLS=${source?.url || '(입력 필요)'}`;
       return `${kind}=${source?.url || '(입력 필요)'}`;
     }
 
@@ -7884,7 +7959,7 @@ std::string BuildLabRuleEditorPageHtml() {
       const channel = opsRuleChannelMode ? findOpsRuleChannelForSource(source) : null;
       if (channel) {
         const name = channel.view?.displayName || channel.source?.displayName || '';
-        return `channel #${channel.id || '-'}${name ? ` · ${name}` : ''}`;
+        return `채널 #${channel.id || '-'}${name ? ` · ${name}` : ''}`;
       }
       return rawSourceLabel(source);
     }
@@ -8086,11 +8161,11 @@ std::string BuildLabRuleEditorPageHtml() {
         ['ruleSourceSection', '1', '채널', '채널'],
         ['ruleBasicSection', '2', '룰', '룰'],
         ['profileSection', '3', '분석', '분석'],
-        ['ruleScenarioSection', '4', 'Condition', '조건'],
-        ['ruleObjectsSection', '5', 'Objects', '객체'],
-        ['geometryLabel', '6', 'Geometry', '영역/라인'],
-        ['ruleOutputSection', '7', 'Output', '출력'],
-        ['ruleReviewSection', '8', 'Review', '검토']
+        ['ruleScenarioSection', '4', '조건', '조건'],
+        ['ruleObjectsSection', '5', '객체', '객체'],
+        ['geometryLabel', '6', '영역/라인', '영역/라인'],
+        ['ruleOutputSection', '7', '출력', '출력'],
+        ['ruleReviewSection', '8', '검토', '검토']
       ];
       const editor = $('vaRuleEditorPanel');
       const basic = $('ruleBasicSection');
@@ -8241,7 +8316,7 @@ std::string BuildLabRuleEditorPageHtml() {
       if (value === 're-entry') return '재진입';
       if (value === 'wrong-direction') return '금지 방향 통과';
       if (value === 'reverse-line-crossing') return '역방향 통과';
-      if (value === 'intrusion-after-line-crossing') return '라인 후 침입';
+      if (value === 'intrusion-after-line-crossing') return '라인 통과 후 영역 침입';
       if (value === 'loitering') return '배회';
       return '영역 내 감지';
     }
@@ -8259,7 +8334,13 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     function selectedTrackingClassesFromProfile(profile) {
-      return profile?.trackingClasses || profile?.trackClasses || ['person', 'vehicle'];
+      const raw = Array.isArray(profile?.trackingClasses)
+        ? profile.trackingClasses
+        : (Array.isArray(profile?.trackClasses) ? profile.trackClasses : ['person']);
+      const normalized = new Set(raw.map(normalizeTrackingToken).filter(Boolean));
+      const hasAll = normalized.has('*') || normalized.has('all') || normalized.has('any');
+      const allowed = ['person', 'vehicle'].filter((value) => hasAll || normalized.has(value));
+      return allowed.length > 0 ? allowed : ['person'];
     }
 
     function classSummary(classes) {
@@ -8295,13 +8376,13 @@ std::string BuildLabRuleEditorPageHtml() {
       const usedBy = profileUsageItems(id);
       el.classList.toggle('is-warning', isBuiltInProfileId(id) || usedBy.length > 0);
       if (!id) {
-        el.textContent = '삭제할 Profile ID가 없습니다.';
+        el.textContent = '삭제할 프로파일 ID가 없습니다.';
       } else if (isBuiltInProfileId(id)) {
-        el.textContent = `기본 Profile '${id}'는 삭제할 수 없습니다. 복사해서 저장 Profile로 만든 뒤 수정하세요.`;
+        el.textContent = `기본 프로파일 '${id}'는 삭제할 수 없습니다. 복사해서 저장 프로파일로 만든 뒤 수정하세요.`;
       } else if (usedBy.length > 0) {
-        el.textContent = `이 Profile은 ${usedBy.slice(0, 3).join(', ')}${usedBy.length > 3 ? ` 외 ${usedBy.length - 3}개` : ''}에서 사용 중입니다. 삭제 전에 연결을 바꾸는 것을 권장합니다.`;
+        el.textContent = `이 프로파일은 ${usedBy.slice(0, 3).join(', ')}${usedBy.length > 3 ? ` 외 ${usedBy.length - 3}개` : ''}에서 사용 중입니다. 삭제 전에 연결을 바꾸는 것을 권장합니다.`;
       } else {
-        el.textContent = `저장 Profile '${id}'는 현재 사용하는 룰이 없습니다.`;
+        el.textContent = `저장 프로파일 '${id}'는 현재 사용하는 룰이 없습니다.`;
       }
     }
 
@@ -8315,7 +8396,7 @@ std::string BuildLabRuleEditorPageHtml() {
           return `ReEntry · window ${msLabel(scenario.reEntryWindowMs ?? 10000)}`;
         }
         if ((scenario.type || item.event?.type) === 'intrusion-after-line-crossing') {
-          return `IntrusionAfterLineCrossing · dwell ${msLabel(scenario.dwellTimeMs ?? 3000)}`;
+          return `라인 통과 후 영역 침입 · 체류 ${msLabel(scenario.dwellTimeMs ?? 3000)}`;
         }
         return eventTypeLabel(scenario.type || item.event?.type || 'scenario');
       }
@@ -8344,7 +8425,7 @@ std::string BuildLabRuleEditorPageHtml() {
           return `${classText} · 허용 방향 반대`;
         }
         if (scenarioType === 'intrusion-after-line-crossing') {
-          return `${classText} · line 후 ${msLabel(scenario.maxDelayAfterCrossingMs ?? 10000)} 안 zone · dwell ${msLabel(scenario.dwellTimeMs ?? 3000)}`;
+          return `${classText} · 라인 통과 후 ${msLabel(scenario.maxDelayAfterCrossingMs ?? 10000)} 안 영역 진입 · 체류 ${msLabel(scenario.dwellTimeMs ?? 3000)}`;
         }
         if (scenarioType === 'loitering') {
           return `${classText} · 체류/이동 반경`;
@@ -8842,7 +8923,7 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     function setTrackingClasses(values) {
-      const rawValues = Array.isArray(values) && values.length > 0 ? values : ['person', 'vehicle'];
+      const rawValues = Array.isArray(values) && values.length > 0 ? values : ['person'];
       const normalized = new Set(rawValues.map(normalizeTrackingToken).filter(Boolean));
       const hasAll = normalized.has('*') || normalized.has('all') || normalized.has('any');
       document.querySelectorAll('[data-tracking-category]').forEach((el) => {
@@ -9451,7 +9532,7 @@ std::string BuildLabRuleEditorPageHtml() {
           : (reEntryMode
             ? 'ReEntry는 polygon zone 이탈 후 window 안 같은 zone 재진입을 저장합니다. Event POST payload schema와 metadata schema는 변경하지 않습니다.'
             : (afterLineMode
-              ? 'IntrusionAfterLineCrossing은 trigger line 통과 기록과 target zone dwell 조건을 조합해 별도 scenario event를 냅니다. 기존 line-crossing 기본 이벤트와 Event POST payload schema는 변경하지 않습니다.'
+              ? '라인 통과 후 영역 침입은 trigger line 통과 기록과 target zone 체류 조건을 조합해 별도 scenario event를 냅니다. 기존 line-crossing 기본 이벤트와 Event POST payload schema는 변경하지 않습니다.'
               : '이 UI는 시나리오 rule payload를 저장하고, runtime은 저장된 per-rule 설정을 우선 적용합니다. 비어 있는 항목만 서버 env 기본값을 fallback으로 사용합니다.'));
       }
       setText('geometryRegionNameText', currentGeometryName());
@@ -9490,13 +9571,13 @@ std::string BuildLabRuleEditorPageHtml() {
       const nms = Math.round(Number(profile?.nms ?? profile?.nmsThreshold ?? percentValue('profileNms')) * 100);
       const tracking = classSummary(selectedTrackingClassesFromProfile(profile));
       [
-        ['Profile', id],
-        ['Detector', detector],
+        ['프로파일', id],
+        ['검출기', detector],
         ['FPS', `${fps}`],
-        ['Input size', `${width} x ${height}`],
-        ['Confidence', `${confidence}%`],
+        ['입력 크기', `${width} x ${height}`],
+        ['신뢰도', `${confidence}%`],
         ['NMS', `${nms}%`],
-        ['Tracking category', tracking]
+        ['추적 대상', tracking]
       ].forEach(([label, value]) => {
         container.appendChild(profileSummaryItem(label, value));
       });
@@ -9524,7 +9605,7 @@ std::string BuildLabRuleEditorPageHtml() {
       container.innerHTML = '';
       container.appendChild(reviewTile('Rule', `${currentVaRuleId() ? `#${currentVaRuleId()}` : '신규'} · ${payload.name || '이름 없음'} · ${payload.enabled === false ? '저장만 함' : '적용함'}`));
       container.appendChild(reviewTile('영상 소스', sourceLabel(source)));
-      container.appendChild(reviewTile('Profile', $('ruleProfileId')?.value || 'server-default-va'));
+      container.appendChild(reviewTile('프로파일', $('ruleProfileId')?.value || 'server-default-va'));
       container.appendChild(reviewTile('이벤트 방식', scenarioMode ? vaRuleScenarioText(payload) : eventTypeLabel(currentRule?.event?.type)));
       container.appendChild(reviewTile('대상 객체', classSummary(currentRule?.analysis?.classes || [])));
       container.appendChild(reviewTile('영역/라인', `${currentRule?.event?.region?.type || 'polygon'} · 점 ${regionPoints.length}/${maxGeometryPoints()}`));
@@ -9595,7 +9676,7 @@ std::string BuildLabRuleEditorPageHtml() {
       const regionName = currentGeometryName();
       $('geometryLabel').textContent = lineMode
         ? (wrongDirectionMode ? 'WrongDirection 판단 선' : '이벤트 판단 선')
-        : (isIntrusionAfterLineScenario() ? 'IntrusionAfterLineCrossing target zone' : (scenarioMode ? '시나리오 제한구역' : '이벤트 판단 영역'));
+        : (isIntrusionAfterLineScenario() ? '라인 통과 후 영역 침입 target zone' : (scenarioMode ? '시나리오 제한구역' : '이벤트 판단 영역'));
       $('clearRegionBtn').textContent = '전체 영역 초기화';
       $('ruleLineDirection').disabled = !isLineRule();
       $('geometryHint').textContent = lineMode
@@ -9759,7 +9840,7 @@ std::string BuildLabRuleEditorPageHtml() {
               ['LineCrossed', '대상 track의 line crossing 기록을 window 동안 유지'],
               ['Target zone', `${scenarioAfterLineTargetZoneIdsValue().join(', ')} polygon 진입 확인`],
               ['Observing', 'zone dwell/observe 시간이 충족되는지 확인'],
-              ['Confirmed', 'line 후 zone dwell 조건을 만족하면 1회 알림'],
+              ['Confirmed', '라인 통과 후 영역 체류 조건을 만족하면 1회 알림'],
               ['기본 이벤트', 'line-crossing 기본 이벤트와 별도 scenario event'],
             ]
         : [
@@ -9867,7 +9948,7 @@ std::string BuildLabRuleEditorPageHtml() {
 
       const profileId = String(payload?.analysis?.profileId || $('ruleProfileId')?.value || '').trim();
       if (!profileId) {
-        addValidationError(errors, '분석 Profile', '사용할 Profile을 선택하세요.');
+        addValidationError(errors, '분석 프로파일', '사용할 프로파일을 선택하세요.');
       }
 
       const selectedKind = document.querySelector('input[name="ruleKind"]:checked')?.value || '';
@@ -9883,7 +9964,7 @@ std::string BuildLabRuleEditorPageHtml() {
         if (!scenario.type) {
           addValidationError(errors, '이벤트 방식', '시나리오 템플릿을 선택하세요.');
         } else if (!['intrusion-dwell', 're-entry', 'wrong-direction', 'intrusion-after-line-crossing'].includes(scenario.type)) {
-          addValidationError(errors, '이벤트 방식', '현재 UI에서 저장 가능한 시나리오는 Intrusion Dwell, ReEntry, WrongDirection 또는 IntrusionAfterLineCrossing입니다.');
+          addValidationError(errors, '이벤트 방식', '현재 UI에서 저장 가능한 시나리오는 Intrusion Dwell, ReEntry, WrongDirection 또는 라인 통과 후 영역 침입입니다.');
         }
         const cooldownMs = Number(scenario.cooldownMs);
         if (!Number.isFinite(cooldownMs) || cooldownMs < 0) {
@@ -9922,7 +10003,7 @@ std::string BuildLabRuleEditorPageHtml() {
             addValidationError(errors, '시나리오 시간 조건', 'zone dwell/observe(ms)는 0 이상이어야 합니다.');
           }
           if (region.type !== 'polygon' || points.length < 3) {
-            addValidationError(errors, 'Target zone', 'IntrusionAfterLineCrossing은 target zone polygon 좌표 3개 이상이 필요합니다.');
+            addValidationError(errors, 'Target zone', '라인 통과 후 영역 침입은 target zone polygon 좌표 3개 이상이 필요합니다.');
           }
           const triggerLine = scenario.triggerLine || {};
           const linePoints = Array.isArray(triggerLine.points) ? triggerLine.points : [];
@@ -10317,7 +10398,7 @@ std::string BuildLabRuleEditorPageHtml() {
       $('profileInputWidth').value = String(item.inputWidth || item.modelInputWidth || 640);
       $('profileInputHeight').value = String(item.inputHeight || item.modelInputHeight || 640);
       $('profileAdaptive').checked = item.adaptive !== false;
-      setTrackingClasses(item.trackingClasses || item.trackClasses || ['person', 'vehicle']);
+      setTrackingClasses(item.trackingClasses || item.trackClasses || ['person']);
       updateProfileDeleteWarning();
       updatePreviews();
     }
@@ -10464,31 +10545,31 @@ std::string BuildLabRuleEditorPageHtml() {
       });
       await refreshRegistry();
       $('profileSelect').value = `custom:${payload.id}`;
-      status(`Profile 저장 완료: ${payload.id}`, response);
-      showFeedback(`Profile '${payload.id}' 저장 완료`);
+      status(`프로파일 저장 완료: ${payload.id}`, response);
+      showFeedback(`프로파일 '${payload.id}' 저장 완료`);
     }
 
     async function deleteProfile() {
       const id = $('profileId').value.trim();
       if (!id) throw new Error('삭제할 profile id가 없습니다.');
       if (isBuiltInProfileId(id)) {
-        throw new Error(`기본 Profile '${id}'는 삭제할 수 없습니다.`);
+        throw new Error(`기본 프로파일 '${id}'는 삭제할 수 없습니다.`);
       }
       const usedBy = profileUsageItems(id);
       if (usedBy.length > 0) {
-        const message = `Profile '${id}'는 ${usedBy.slice(0, 5).join(', ')}${usedBy.length > 5 ? ` 외 ${usedBy.length - 5}개` : ''}에서 사용 중입니다. 그래도 삭제할까요?`;
+        const message = `프로파일 '${id}'는 ${usedBy.slice(0, 5).join(', ')}${usedBy.length > 5 ? ` 외 ${usedBy.length - 5}개` : ''}에서 사용 중입니다. 그래도 삭제할까요?`;
         if (!window.confirm(message)) {
-          showFeedback('Profile 삭제를 취소했습니다.', 'error');
+          showFeedback('프로파일 삭제를 취소했습니다.', 'error');
           return;
         }
-      } else if (!window.confirm(`저장 Profile '${id}'를 삭제할까요?`)) {
-        showFeedback('Profile 삭제를 취소했습니다.', 'error');
+      } else if (!window.confirm(`저장 프로파일 '${id}'를 삭제할까요?`)) {
+        showFeedback('프로파일 삭제를 취소했습니다.', 'error');
         return;
       }
       const response = await requestJson(`/lab/analysis/profiles/${encodeURIComponent(id)}`, { method: 'DELETE' });
       await refreshRegistry();
-      status(`Profile 삭제 완료: ${id}`, response);
-      showFeedback(`Profile '${id}' 삭제 완료`);
+      status(`프로파일 삭제 완료: ${id}`, response);
+      showFeedback(`프로파일 '${id}' 삭제 완료`);
     }
 
     async function saveRule() {
@@ -10508,6 +10589,43 @@ std::string BuildLabRuleEditorPageHtml() {
       showFeedback(`Rule '${payload.id}' 저장 완료`);
     }
 
+    async function attachVaRuleToSelectedChannel(ruleId) {
+      if (!opsRuleChannelMode || !ruleId) return;
+      const channelId = $('opsRuleChannelSelect')?.value || '';
+      if (!channelId) return;
+      const channel = opsRuleChannels.find((row) => String(row.id) === String(channelId));
+      if (!channel || !channel.source) return;
+      const view = channel.view || { viewId: channelId, sourceId: channel.source.sourceId };
+      const allowedRuleIds = Array.isArray(view.allowedRuleIds) ? [...view.allowedRuleIds] : [];
+      if (!allowedRuleIds.map(String).includes(String(ruleId))) {
+        allowedRuleIds.push(String(ruleId));
+      }
+      const allowedOverlayModes = Array.isArray(view.allowedOverlayModes) && view.allowedOverlayModes.length > 0
+        ? [...view.allowedOverlayModes]
+        : ['raw', 'va-overlay'];
+      if (!allowedOverlayModes.includes('va-rule')) {
+        allowedOverlayModes.push('va-rule');
+      }
+      await requestJson(`/ops/api/views/${encodeURIComponent(view.viewId || channelId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          viewId: view.viewId || channelId,
+          displayName: view.displayName || channel.source.displayName || channelId,
+          sourceId: view.sourceId || channel.source.sourceId,
+          defaultRuleId: view.defaultRuleId || String(ruleId),
+          allowedRuleIds,
+          allowedOverlayModes,
+          showDashboard: view.showDashboard !== false,
+          showEvents: view.showEvents !== false,
+          showMetadataSummary: view.showMetadataSummary !== false,
+          clientGroups: Array.isArray(view.clientGroups) ? view.clientGroups : [],
+          maxTiles: Number(view.maxTiles || 1),
+          enabled: view.enabled !== false
+        })
+      });
+    }
+
     async function saveVaRule() {
       const payload = vaRuleJson();
       const warning = validateVaRulePayload(payload);
@@ -10523,6 +10641,7 @@ std::string BuildLabRuleEditorPageHtml() {
         body: JSON.stringify(payload)
       });
       const savedId = response?.vaRule?.id || id;
+      await attachVaRuleToSelectedChannel(savedId);
       await refreshRegistry();
       if (savedId) {
         selectedVaRuleId = String(savedId);
@@ -13182,8 +13301,8 @@ std::string BuildLabRuleEditorPageHtml() {
         warnings.push({ label: `보기 중지 후 active 잔류 ${activeResidual}`, state: 'warning' });
       }
       const sinceDashboardStopMs = dashboardLastDashboardStopAt > 0 ? sample.t - dashboardLastDashboardStopAt : 0;
-      if (!viewerActive && sinceDashboardStopMs > 10000 && activeResidual > 0) {
-        warnings.push({ label: `Dashboard inactive 후 active 잔류 ${activeResidual}`, state: 'warning' });
+      if (!dashboardMonitoringEnabled && sinceDashboardStopMs > 10000 && activeResidual > 0) {
+        warnings.push({ label: `모니터링 OFF 후 active 잔류 ${activeResidual}`, state: 'warning' });
       }
       if ((values.rtspPendingResidual || 0) > 0) {
         warnings.push({ label: `RTSP pending 잔류 ${values.rtspPendingResidual}`, state: 'warning' });
@@ -14469,11 +14588,11 @@ std::string BuildLabRuleEditorPageHtml() {
       const reportTrackState = metricsReport.trackState || {};
       const scenarioState = metricsReport.scenarioState || {};
       const eventState = metricsReport.eventState || {};
-      const trackHealth = metricsReport.trackHealth || {};
-      const debugCounts = stateDump?.debugState?.counts || {};
-      const dashboardRuntimeActive = Boolean(selectedTap || tapMetrics);
-      const dashboardPanel = $('dashboardPanel');
-      if (dashboardPanel) dashboardPanel.classList.toggle('is-runtime-inactive', !dashboardRuntimeActive);
+	      const trackHealth = metricsReport.trackHealth || {};
+	      const debugCounts = stateDump?.debugState?.counts || {};
+	      const dashboardRuntimeActive = Boolean(selectedTap || tapMetrics);
+	      const dashboardPanel = $('dashboardPanel');
+	      if (dashboardPanel) dashboardPanel.classList.toggle('is-runtime-inactive', !dashboardMonitoringEnabled);
 
       dashboardSet('dashboardSourceKind', selectedTap?.context?.sourceKind || selectedTap?.sourceKind || '-');
       dashboardSet('dashboardActiveSessions', sessionManager.activeSessions || 0);
@@ -14494,13 +14613,13 @@ std::string BuildLabRuleEditorPageHtml() {
       dashboardSet('dashboardOverlapRiskCount', trackHealth.overlapRiskTrackCount ?? 0);
       dashboardSet('dashboardEventPostStatus', dashboardEventPostLabel(payload?.eventPost));
       dashboardSet('dashboardEventStorageStatus', dashboardEventStorageLabel(payload?.eventStorage));
-      dashboardSet(
-        'dashboardStatusText',
-        dashboardRuntimeActive
-          ? `마지막 갱신 ${new Date().toLocaleTimeString('ko-KR')} · tap ${dashboardLastTapId || '-'}`
-          : `보기 탭에서 보기 시작 후 표시됩니다 · 마지막 갱신 ${new Date().toLocaleTimeString('ko-KR')}`
-      );
-      dashboardSet('dashboardOverviewSummary', selectedTap ? `${selectedTap.tapId || '-'} · refs ${selectedTap.refCount ?? 1} · reused ${selectedTap.reuseAttachCount ?? 0} · ${dashboardSourceDisplay(selectedTap.streamKey || '-')}` : '표시할 tap 없음 · 영상 분석 보기에서 보기 시작 후 표시됩니다');
+	      dashboardSet(
+	        'dashboardStatusText',
+	        dashboardRuntimeActive
+	          ? `${dashboardMonitoringEnabled ? '모니터링 ON' : '수동 조회'} · 마지막 갱신 ${new Date().toLocaleTimeString('ko-KR')} · tap ${dashboardLastTapId || '-'}`
+	          : `${dashboardMonitoringEnabled ? '모니터링 ON' : '수동 조회'} · 마지막 갱신 ${new Date().toLocaleTimeString('ko-KR')} · 활성 분석 tap 없음`
+	      );
+	      dashboardSet('dashboardOverviewSummary', selectedTap ? `${selectedTap.tapId || '-'} · refs ${selectedTap.refCount ?? 1} · reused ${selectedTap.reuseAttachCount ?? 0} · ${dashboardSourceDisplay(selectedTap.streamKey || '-')}` : '활성 분석 tap 없음 · 외부 클라이언트가 VA 스트림을 재생하면 stream/tap 상태가 표시됩니다.');
 	      renderDashboardEvents(tapEvents, tapMetrics, stateDump, dashboardLastTapId);
 	      renderDashboardVaRuleDebug({ selectedTap, tapMetrics, stateDump });
 	      renderDashboardTracks(stateDump, tapMetrics);
@@ -14526,20 +14645,19 @@ std::string BuildLabRuleEditorPageHtml() {
           : null;
         issuePre.textContent = dashboardPrettyJson(closeObjectRaw, 'tracking issue report 없음');
       }
-    }
+	    }
 
-    async function refreshDashboard(options = {}) {
-      if (!options.force && !dashboardActive) return;
-      const now = Date.now();
-      if (!options.force && now - dashboardLastRefreshAt < 1000) return;
-      if (dashboardRefreshInFlight) return;
-      dashboardRefreshInFlight = true;
-      dashboardLastRefreshAt = now;
-      dashboardLocalPollingCount += 1;
-      try {
-        dashboardSet('dashboardStatusText', '갱신 중...');
-        const [runtime, tapsPayload, eventPost, eventStorage] = await Promise.all([
-          dashboardFetchJson('/lab/runtime/status'),
+	    async function refreshDashboard(options = {}) {
+	      if (!options.force && !dashboardMonitoringEnabled) return;
+	      const now = Date.now();
+	      if (!options.force && now - dashboardLastRefreshAt < 1000) return;
+	      if (dashboardRefreshInFlight) return;
+	      dashboardRefreshInFlight = true;
+	      dashboardLastRefreshAt = now;
+	      dashboardLocalPollingCount += 1;
+	      try {
+	        const [runtime, tapsPayload, eventPost, eventStorage] = await Promise.all([
+	          dashboardFetchJson('/lab/runtime/status'),
           dashboardFetchJson('/lab/analysis/taps'),
           dashboardFetchJson('/lab/analysis/event-post/status'),
           dashboardFetchJson('/lab/analysis/event-storage/status')
@@ -14569,32 +14687,40 @@ std::string BuildLabRuleEditorPageHtml() {
         dashboardSet('dashboardStatusText', `갱신 실패: ${error.message}`);
       } finally {
         dashboardRefreshInFlight = false;
-      }
-    }
+	      }
+	    }
 
-    function stopDashboardPolling(options = {}) {
-      if (dashboardTimer) {
-        clearInterval(dashboardTimer);
-        dashboardTimer = null;
-      }
+	    function syncDashboardMonitorToggle() {
+	      const button = $('dashboardMonitorToggleBtn');
+	      if (!button) return;
+	      button.textContent = dashboardMonitoringEnabled ? '모니터링 ON' : '모니터링 OFF';
+	      button.setAttribute('aria-pressed', dashboardMonitoringEnabled ? 'true' : 'false');
+	    }
+
+	    function stopDashboardPolling(options = {}) {
+	      if (dashboardTimer) {
+	        clearInterval(dashboardTimer);
+	        dashboardTimer = null;
+	      }
       if (options.recordInactive) {
         dashboardLastDashboardStopAt = Date.now();
       }
     }
 
-    function startDashboardPolling() {
-      stopDashboardPolling();
-      if (!dashboardActive) return;
-      const autoRefresh = $('dashboardAutoRefreshInput')?.checked !== false;
-      const rawIntervalMs = dashboardNumber($('dashboardRefreshInterval')?.value, 5000);
-      const intervalMs = rawIntervalMs <= 0 ? 0 : Math.max(2000, rawIntervalMs);
-      refreshDashboard({ force: true }).catch(() => {});
-      if (autoRefresh && intervalMs > 0) {
-        dashboardTimer = setInterval(() => {
-          refreshDashboard().catch(() => {});
-        }, intervalMs);
-      }
-    }
+	    function startDashboardPolling() {
+	      stopDashboardPolling();
+	      syncDashboardMonitorToggle();
+	      if (!dashboardMonitoringEnabled) {
+	        const dashboardPanel = $('dashboardPanel');
+	        if (dashboardPanel) dashboardPanel.classList.add('is-runtime-inactive');
+	        dashboardSet('dashboardStatusText', '모니터링 OFF · 새로고침은 수동 조회만 실행합니다.');
+	        return;
+	      }
+	      refreshDashboard({ force: true }).catch(() => {});
+	      dashboardTimer = setInterval(() => {
+	        refreshDashboard().catch(() => {});
+	      }, dashboardRefreshIntervalMs);
+	    }
 
     async function writeTextToClipboard(value) {
       const text = String(value || '');
@@ -14608,17 +14734,34 @@ std::string BuildLabRuleEditorPageHtml() {
           clipboardError = error;
         }
       }
+      const copyByEvent = () => {
+        let copied = false;
+        const handler = (event) => {
+          if (!event.clipboardData) return;
+          event.clipboardData.setData('text/plain', text);
+          event.preventDefault();
+          copied = true;
+        };
+        document.addEventListener('copy', handler, true);
+        try {
+          return document.execCommand('copy') && copied;
+        } finally {
+          document.removeEventListener('copy', handler, true);
+        }
+      };
+      if (copyByEvent()) return;
       const activeElement = document.activeElement;
       const textarea = document.createElement('textarea');
       textarea.value = text;
-      textarea.setAttribute('readonly', '');
       textarea.setAttribute('aria-hidden', 'true');
       textarea.style.position = 'fixed';
-      textarea.style.top = '0';
-      textarea.style.left = '0';
-      textarea.style.width = '1px';
-      textarea.style.height = '1px';
-      textarea.style.opacity = '0';
+      textarea.style.top = '10px';
+      textarea.style.left = '10px';
+      textarea.style.width = 'min(90vw, 680px)';
+      textarea.style.height = '36px';
+      textarea.style.opacity = '1';
+      textarea.style.zIndex = '2147483647';
+      textarea.style.pointerEvents = 'none';
       document.body.appendChild(textarea);
       try {
         try {
@@ -14651,14 +14794,8 @@ std::string BuildLabRuleEditorPageHtml() {
       }
       try {
         await writeTextToClipboard(value);
-        showFeedback('요청 URL을 복사했습니다.');
-        if (button) {
-          const previous = button.textContent;
-          button.textContent = '복사됨';
-          setTimeout(() => { button.textContent = previous || '복사'; }, 1200);
-        }
       } catch (error) {
-        showFeedback('브라우저가 클립보드 복사를 막았습니다. URL을 직접 선택해 복사하세요.', 'error');
+        showFeedback('브라우저가 HTTP LAN 페이지의 자동 복사를 막았습니다. localhost 또는 HTTPS에서 복사하세요.', 'error');
       }
     }
 
@@ -14698,21 +14835,14 @@ std::string BuildLabRuleEditorPageHtml() {
 
     async function copyRuleUrl(item, type, button = null) {
       const value = ruleCopyUrl(item, type);
-      const label = type === 'rtsp' ? 'VA 룰 URL RTSP' : 'VA 룰 URL WebRTC';
       if (!value) {
         showFeedback('복사할 VA 룰 URL이 없습니다.', 'error');
         return;
       }
       try {
         await writeTextToClipboard(value);
-        showFeedback(`${label}을 복사했습니다.`);
-        if (button) {
-          const previous = button.textContent;
-          button.textContent = '복사됨';
-          setTimeout(() => { button.textContent = previous || label; }, 1200);
-        }
       } catch (_) {
-        showFeedback('브라우저가 VA 룰 URL 클립보드 복사를 막았습니다.', 'error');
+        showFeedback('브라우저가 HTTP LAN 페이지의 VA 룰 URL 자동 복사를 막았습니다. localhost 또는 HTTPS에서 복사하세요.', 'error');
       }
     }
 
@@ -15073,6 +15203,86 @@ std::string BuildLabRuleEditorPageHtml() {
       }
     }
 
+    function drawScenarioTriggerLine(width, height) {
+      if (!isIntrusionAfterLineScenario()) return;
+      const points = scenarioAfterLinePointsValue();
+      if (!Array.isArray(points) || points.length < 2) return;
+      const start = points[0];
+      const end = points[1];
+      const x1 = start.x * width;
+      const y1 = start.y * height;
+      const x2 = end.x * width;
+      const y2 = end.y * height;
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      if (!Number.isFinite(len) || len < 1) return;
+      let nx = -dy / len;
+      let ny = dx / len;
+      const direction = scenarioAfterLineDirectionValue();
+      const centerX = (x1 + x2) / 2;
+      const centerY = (y1 + y2) / 2;
+      const arrowLength = Math.max(36, Math.min(58, len * 0.22));
+      const drawArrow = (multiplier, label) => {
+        const sx = centerX - nx * multiplier * arrowLength * 0.36;
+        const sy = centerY - ny * multiplier * arrowLength * 0.36;
+        const ex = centerX + nx * multiplier * arrowLength * 0.64;
+        const ey = centerY + ny * multiplier * arrowLength * 0.64;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
+        drawArrowHead(sx, sy, ex, ey, 11);
+        return { x: ex, y: ey, label };
+      };
+      ctx.save();
+      ctx.strokeStyle = themeToken('--overlay-box-selected');
+      ctx.fillStyle = themeToken('--overlay-box-selected');
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.setLineDash([10, 7]);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      let labelPoint = { x: centerX + nx * 18, y: centerY + ny * 18, label: '양방향' };
+      if (direction === 'reverse') {
+        labelPoint = drawArrow(-1, '역방향');
+      } else if (direction === 'forward') {
+        labelPoint = drawArrow(1, '정방향');
+      } else {
+        const sx = centerX - nx * arrowLength * 0.6;
+        const sy = centerY - ny * arrowLength * 0.6;
+        const ex = centerX + nx * arrowLength * 0.6;
+        const ey = centerY + ny * arrowLength * 0.6;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
+        drawArrowHead(sx, sy, ex, ey, 11);
+        drawArrowHead(ex, ey, sx, sy, 11);
+      }
+      const label = `Trigger ${labelPoint.label}`;
+      ctx.fillStyle = themeToken('--overlay-label-bg');
+      ctx.font = 'bold 12px sans-serif';
+      const labelWidth = ctx.measureText(label).width + 14;
+      const labelX = labelPoint.x + nx * 8;
+      const labelY = labelPoint.y + ny * 8;
+      ctx.beginPath();
+      if (typeof ctx.roundRect === 'function') {
+        ctx.roundRect(labelX - labelWidth / 2, labelY - 11, labelWidth, 22, 10);
+      } else {
+        ctx.rect(labelX - labelWidth / 2, labelY - 11, labelWidth, 22);
+      }
+      ctx.fill();
+      ctx.fillStyle = themeToken('--overlay-label-text');
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, labelX, labelY);
+      ctx.restore();
+    }
+
     function drawRegion() {
       const lineMode = isGeometryLineMode();
       const width = canvas.width;
@@ -15121,11 +15331,12 @@ std::string BuildLabRuleEditorPageHtml() {
 	          ctx.fillStyle = themeToken('--overlay-region-fill');
           ctx.fill();
         }
-	        ctx.strokeStyle = lineMode ? themeToken('--overlay-line') : themeToken('--overlay-box-track');
+        ctx.strokeStyle = lineMode ? themeToken('--overlay-line') : themeToken('--overlay-box-track');
         ctx.lineWidth = lineMode ? 5 : 4;
         ctx.stroke();
         drawLineDirectionArrow(width, height);
       }
+      drawScenarioTriggerLine(width, height);
 	      ctx.fillStyle = themeToken('--overlay-canvas-text');
       ctx.font = 'bold 14px sans-serif';
       ctx.textAlign = 'left';
@@ -15244,6 +15455,16 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     function bindProfileSelectorEvents() {
+      if ($('detectorHelpBtn')) {
+        $('detectorHelpBtn').onclick = () => {
+          const dialog = $('detectorHelpDialog');
+          if (dialog && typeof dialog.showModal === 'function') {
+            dialog.showModal();
+          } else {
+            window.alert('YOLO/ONNX는 실제 객체 검출입니다. 개발용 더미는 모델 없이 파이프라인과 UI만 확인할 때 쓰며 운영 설정에는 보통 사용하지 않습니다.');
+          }
+        };
+      }
       $('newProfileBtn').onclick = () => {
         $('profileSelect').value = '';
         loadProfile({ id: 'fast-local', detector: 'yolo', fps: 6, maxQueue: 1, confidence: 0.25, nms: 0.45, inputWidth: 640, inputHeight: 640, adaptive: true, trackingClasses: ['person', 'vehicle'] });
@@ -15258,17 +15479,17 @@ std::string BuildLabRuleEditorPageHtml() {
         if (details) details.open = false;
         const current = selectedProfileDocument();
         if (current) loadProfile(current);
-        status('새 Profile 설정을 닫았습니다.');
+        status('프로파일 추가/수정을 닫았습니다.');
       };
       $('cancelNewProfileBtn').onclick = closeNewProfileSettings;
       $('closeProfileDetailsBtn').onclick = closeNewProfileSettings;
       $('saveProfileBtn').onclick = () => saveProfile().catch((error) => {
-        status(`Profile 저장 실패: ${error.message}`);
-        showFeedback(`Profile 저장 실패: ${error.message}`, 'error');
+        status(`프로파일 저장 실패: ${error.message}`);
+        showFeedback(`프로파일 저장 실패: ${error.message}`, 'error');
       });
       $('deleteProfileBtn').onclick = () => deleteProfile().catch((error) => {
-        status(`Profile 삭제 실패: ${error.message}`);
-        showFeedback(`Profile 삭제 실패: ${error.message}`, 'error');
+        status(`프로파일 삭제 실패: ${error.message}`);
+        showFeedback(`프로파일 삭제 실패: ${error.message}`, 'error');
       });
       $('profileSelect').onchange = () => {
         const value = $('profileSelect').value;
@@ -15496,11 +15717,19 @@ std::string BuildLabRuleEditorPageHtml() {
           });
         });
       }
-      for (const id of ['dashboardRefreshInterval', 'dashboardAutoRefreshInput']) {
-        const el = $(id);
-        if (el) {
-          el.addEventListener('change', startDashboardPolling);
-        }
+      if ($('dashboardMonitorToggleBtn')) {
+        $('dashboardMonitorToggleBtn').addEventListener('click', () => {
+          dashboardMonitoringEnabled = !dashboardMonitoringEnabled;
+          if (dashboardMonitoringEnabled) {
+            startDashboardPolling();
+          } else {
+            stopDashboardPolling({ recordInactive: true });
+            syncDashboardMonitorToggle();
+            const dashboardPanel = $('dashboardPanel');
+            if (dashboardPanel) dashboardPanel.classList.add('is-runtime-inactive');
+            dashboardSet('dashboardStatusText', '모니터링 OFF · 새로고침은 수동 조회만 실행합니다.');
+          }
+        });
       }
       if ($('dashboardRefreshBtn')) {
         $('dashboardRefreshBtn').addEventListener('click', () => refreshDashboard({ force: true }).catch(() => {}));
@@ -15547,9 +15776,11 @@ std::string BuildLabRuleEditorPageHtml() {
           if (tabName === 'viewer') {
             updateViewModeUi();
           }
-          dashboardActive = tabName === 'dashboard';
-          if (dashboardActive) startDashboardPolling();
-          else stopDashboardPolling({ recordInactive: true });
+          if (tabName === 'dashboard') {
+            startDashboardPolling();
+          } else {
+            stopDashboardPolling();
+          }
         });
       });
       document.querySelectorAll('[data-rule-section-target]').forEach((button) => {
@@ -15573,9 +15804,12 @@ std::string BuildLabRuleEditorPageHtml() {
     function bindObjectCategorySelectorEvents() {
       const classFilterInput = $('classFilterInput');
       if (classFilterInput) classFilterInput.addEventListener('change', filterClassChecks);
-      $('selectDefaultTrackingBtn').onclick = () => setTrackingCategoryChecks((value) => value === 'person' || value === 'vehicle');
-      $('selectAllTrackingBtn').onclick = () => setTrackingCategoryChecks(() => true);
-      $('clearTrackingBtn').onclick = () => setTrackingCategoryChecks(() => false);
+      const defaultTrackingBtn = $('selectDefaultTrackingBtn');
+      if (defaultTrackingBtn) defaultTrackingBtn.onclick = () => setTrackingCategoryChecks((value) => value === 'person' || value === 'vehicle');
+      const allTrackingBtn = $('selectAllTrackingBtn');
+      if (allTrackingBtn) allTrackingBtn.onclick = () => setTrackingCategoryChecks(() => true);
+      const clearTrackingBtn = $('clearTrackingBtn');
+      if (clearTrackingBtn) clearTrackingBtn.onclick = () => setTrackingCategoryChecks(() => false);
       $('selectCoreClassesBtn').onclick = () => setCheckedClasses((value) => value === 'person' || value === 'vehicle');
       $('selectAllClassesBtn').onclick = () => setCheckedClasses(() => true);
       $('clearClassesBtn').onclick = () => setCheckedClasses(() => false);
@@ -15674,10 +15908,14 @@ std::string BuildLabRuleEditorPageHtml() {
     };
     applyTheme(document.documentElement.dataset.theme);
 
-    renderClassChecks();
-    bindVaUiComponents();
-    activateInitialPrimaryTabFromQuery();
-    applyMetadataViewerQueryDefaults();
+	    renderClassChecks();
+	    bindVaUiComponents();
+	    activateInitialPrimaryTabFromQuery();
+	    syncDashboardMonitorToggle();
+	    if (!$('dashboardPanel')?.hidden) {
+	      startDashboardPolling();
+	    }
+	    applyMetadataViewerQueryDefaults();
     installMetadataSyncVerificationDebugHook();
     setRulePreviewUi(false);
     setViewPreviewUi(false);
@@ -15840,6 +16078,22 @@ std::string BuildLabImportPageHtml() {
       box-shadow: none;
     }
     .theme-toggle svg { width: 20px; height: 20px; display: block; }
+    .refresh-icon-button {
+      width: 40px;
+      min-width: 40px;
+      min-height: 40px;
+      height: 40px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0;
+      font-size: 0;
+      border-radius: 999px;
+    }
+    .refresh-icon {
+      width: 20px;
+      height: 20px;
+      display: block;
+    }
     .theme-toggle .theme-icon-moon { display: block !important; }
     .theme-toggle .theme-icon-sun { display: none !important; }
     :root[data-theme="dark"] .theme-toggle .theme-icon-moon { display: none !important; }
@@ -16000,7 +16254,7 @@ std::string BuildLabImportPageHtml() {
           </label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <button id="createBtn" )" + button_disabled + R"(>가져오기 작업 생성</button>
-            <button id="refreshBtn" class="secondary">작업 새로고침</button>
+	            <button id="refreshBtn" class="secondary refresh-icon-button" type="button" aria-label="작업 새로고침" title="작업 새로고침"><svg class="refresh-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12a9 9 0 1 1-2.64-6.36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M21 3v6h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           </div>
           <pre id="statusBox">아직 요청한 작업이 없습니다.</pre>
         </div>
@@ -16873,6 +17127,23 @@ std::string ProductUiCss() {
       height: 20px;
       display: block;
     }
+    .refresh-icon-button {
+      width: 40px;
+      min-width: 40px;
+      min-height: 40px;
+      height: 40px;
+      display: inline-grid;
+      place-items: center;
+      flex: 0 0 auto;
+      padding: 0;
+      border-radius: 999px;
+      font-size: 0;
+    }
+    .refresh-icon {
+      width: 20px;
+      height: 20px;
+      display: block;
+    }
     .theme-toggle .theme-icon-moon { display: block !important; }
     .theme-toggle .theme-icon-sun { display: none !important; }
     :root[data-theme="dark"] .theme-toggle .theme-icon-moon { display: none !important; }
@@ -17332,38 +17603,98 @@ std::string ProductUiCss() {
 )CSS";
 }
 
+std::string ProductSharedUiScript() {
+    return R"SCRIPT(  <script>
+    window.MediaServerUi = window.MediaServerUi || (() => {
+      const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[ch]);
+      const display = value => value === null || value === undefined || value === '' ? '미제공' : String(value);
+      const numberValue = value => Number.isFinite(Number(value)) ? Number(value) : 0;
+      const setText = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = display(value);
+      };
+      const chip = (text, tone = '') => `<span class="chip${tone ? ' ' + tone : ''}">${escapeHtml(display(text))}</span>`;
+      const renderBadges = (id, items = []) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = items.length > 0
+          ? items.map(item => chip(item.text, item.tone)).join('')
+          : chip('상태 없음', 'info');
+      };
+      const renderRaw = (preId, checkboxId, payload) => {
+        const pre = document.getElementById(preId);
+        const checkbox = document.getElementById(checkboxId);
+        if (!pre) return;
+        const pretty = !checkbox || checkbox.checked;
+        pre.textContent = JSON.stringify(payload, null, pretty ? 2 : 0);
+      };
+      async function requestJson(url, options = {}) {
+        const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store', ...options });
+        const text = await response.text();
+        let json = {};
+        try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
+        if (!response.ok) throw new Error(json.error || `${response.status} ${response.statusText}`);
+        return json;
+      }
+      return { escapeHtml, display, numberValue, setText, chip, renderBadges, renderRaw, requestJson };
+    })();
+  </script>
+)SCRIPT";
+}
+
 std::string ProductThemeToggleButtonHtml() {
     return R"(<button id="themeToggleBtn" class="theme-toggle" type="button" aria-label="다크 모드로 전환" title="다크 모드로 전환"><svg class="theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 14.5A7.8 7.8 0 0 1 9.5 3a8.8 8.8 0 1 0 11.5 11.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><svg class="theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.8v2.3M12 18.9v2.3M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.8 12h2.3M18.9 12h2.3M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>)";
 }
 
 void AppendProductThemeScript(std::ostringstream& out) {
-    out << R"SCRIPT(    <script>
-      (() => {
-        const button = document.getElementById('themeToggleBtn');
-        const sync = () => {
-          const theme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
-          const label = theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환';
-          if (button) {
-            button.setAttribute('aria-label', label);
-            button.setAttribute('title', label);
-          }
-        };
-        sync();
-        if (button) {
-          button.addEventListener('click', () => {
-            const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-            document.documentElement.dataset.theme = next;
-            localStorage.setItem('mediaServerTheme', next);
-            document.querySelectorAll('iframe').forEach(frame => {
-              try {
-                frame.contentWindow?.postMessage({ type: 'mediaServer.theme', theme: next }, window.location.origin);
-              } catch {}
-            });
-            sync();
-          });
-        }
-      })();
-    </script>
+	    out << R"SCRIPT(    <script>
+	      (() => {
+	        const button = document.getElementById('themeToggleBtn');
+	        const currentTheme = () => document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+	        const syncFrames = (theme = currentTheme()) => {
+	          document.querySelectorAll('iframe').forEach(frame => {
+	            try {
+	              frame.contentWindow?.postMessage({ type: 'mediaServer.theme', theme }, window.location.origin);
+	            } catch {}
+	          });
+	        };
+	        const bindFrameThemeSync = () => {
+	          document.querySelectorAll('iframe').forEach(frame => {
+	            if (frame.dataset.themeSyncBound === '1') return;
+	            frame.dataset.themeSyncBound = '1';
+	            frame.addEventListener('load', () => syncFrames());
+	          });
+	          syncFrames();
+	        };
+	        const sync = () => {
+	          const theme = currentTheme();
+	          const label = theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환';
+	          if (button) {
+	            button.setAttribute('aria-label', label);
+	            button.setAttribute('title', label);
+	          }
+	          bindFrameThemeSync();
+	        };
+	        sync();
+	        if (button) {
+	          button.addEventListener('click', () => {
+	            const next = currentTheme() === 'dark' ? 'light' : 'dark';
+	            document.documentElement.dataset.theme = next;
+	            localStorage.setItem('mediaServerTheme', next);
+	            syncFrames(next);
+	            sync();
+	          });
+	        }
+	        window.addEventListener('load', bindFrameThemeSync);
+	        setTimeout(bindFrameThemeSync, 0);
+	      })();
+	    </script>
 )SCRIPT";
 }
 
@@ -17399,6 +17730,19 @@ std::string ProductAccountAvatarSvg() {
     return R"(<svg class="account-avatar" viewBox="0 0 48 48" role="img" aria-label="Account"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="24" cy="19" r="7" fill="none" stroke="currentColor" stroke-width="3"/><path d="M12 38c3-8 8-12 12-12s9 4 12 12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>)";
 }
 
+void AppendProductAccountMenu(std::ostringstream& out, const auth::Principal& principal) {
+    out << R"(        <div class="account-menu" aria-label="현재 계정">
+          )" << ProductThemeToggleButtonHtml() << R"(
+          )" << ProductAccountAvatarSvg() << R"(
+          <div class="account-copy">
+            <div class="account-name">)" << HtmlEscape(principal.display_name) << R"(</div>
+            <div class="account-meta">권한: )" << HtmlEscape(principal.role) << R"(</div>
+          </div>
+          <form method="post" action="/logout"><button class="button-secondary" type="submit">로그아웃</button></form>
+        </div>
+)";
+}
+
 void AppendImageNavLink(std::ostringstream& out,
                         const std::string& href,
                         const std::string& key,
@@ -17413,6 +17757,22 @@ void AppendImageNavLink(std::ostringstream& out,
     out << ">" << ProductNavIconSvg(key) << "<span>" << HtmlEscape(label) << "</span></a>\n";
 }
 
+void AppendRawJsonDetails(std::ostringstream& out,
+                          const std::string& summary,
+                          const std::string& pre_id,
+                          const std::string& checkbox_id,
+                          const std::string& placeholder) {
+    out << R"(      <details class="debug-drawer">
+        <summary>)" << HtmlEscape(summary) << R"(</summary>
+        <div class="debug-drawer-body">
+          <label class="checks"><span><input id=")" << HtmlEscape(checkbox_id)
+        << R"(" type="checkbox" checked /> 보기 좋게 표시</span></label>
+          <pre id=")" << HtmlEscape(pre_id) << R"(">)" << HtmlEscape(placeholder) << R"(</pre>
+        </div>
+      </details>
+)";
+}
+
 void AppendOpsShellStart(std::ostringstream& out,
                          const auth::Principal& principal,
                          const std::string& active,
@@ -17424,7 +17784,7 @@ void AppendOpsShellStart(std::ostringstream& out,
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>운영 콘솔</title>
-)" << ProductThemeBootScript() << ProductUiCss() << R"(</head>
+)" << ProductThemeBootScript() << ProductUiCss() << ProductSharedUiScript() << R"(</head>
 <body class="product-shell">
   <main class="product-page">
     <header class="app-chrome">
@@ -17438,18 +17798,11 @@ void AppendOpsShellStart(std::ostringstream& out,
     if (auth::IsAdmin(principal)) {
         AppendImageNavLink(out, "/ops/users", "users", "사용자", active == "users", "data-admin-only");
     }
-    AppendImageNavLink(out, "/client/live", "client", "클라이언트 미리보기", false);
+    AppendImageNavLink(out, "/client/live", "client", "클라이언트", false);
     out << R"(        </nav>
-        <div class="account-menu" aria-label="현재 계정">
-          )" << ProductThemeToggleButtonHtml() << R"(
-          )" << ProductAccountAvatarSvg() << R"(
-          <div class="account-copy">
-            <div class="account-name">)" << HtmlEscape(principal.display_name) << R"(</div>
-            <div class="account-meta">권한: )" << HtmlEscape(principal.role) << R"(</div>
-          </div>
-          <form method="post" action="/logout"><button class="button-secondary" type="submit">로그아웃</button></form>
-        </div>
-      </div>
+)";
+    AppendProductAccountMenu(out, principal);
+    out << R"(      </div>
     </header>
 )";
 }
@@ -17461,23 +17814,38 @@ void AppendOpsShellEnd(std::ostringstream& out) {
 </html>)";
 }
 
-std::string LoginPageHtml(const std::string& message, bool failed) {
-    std::ostringstream out;
+void AppendAuthShellStart(std::ostringstream& out,
+                          const std::string& title,
+                          const std::string& eyebrow) {
     out << R"(<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MediaServer Login</title>
+  <title>)" << HtmlEscape(title) << R"(</title>
 )" << ProductThemeBootScript() << ProductUiCss() << R"(
 </head>
 <body class="auth-shell">
   <div class="auth-theme-control">)" << ProductThemeToggleButtonHtml() << R"(</div>
   <main class="auth-card">
     <div class="auth-actions">
-      <p class="eyebrow">MediaServer</p>
+      <p class="eyebrow">)" << HtmlEscape(eyebrow) << R"(</p>
     </div>
-    <form class="auth-form" method="post" action="/login">
+)";
+}
+
+void AppendAuthShellEnd(std::ostringstream& out) {
+    AppendProductThemeScript(out);
+    out << R"(
+  </main>
+</body>
+</html>)";
+}
+
+std::string LoginPageHtml(const std::string& message, bool failed) {
+    std::ostringstream out;
+    AppendAuthShellStart(out, "MediaServer Login", "MediaServer");
+    out << R"(    <form class="auth-form" method="post" action="/login">
       <h1>로그인</h1>
 )";
     if (!message.empty()) {
@@ -17493,11 +17861,7 @@ std::string LoginPageHtml(const std::string& message, bool failed) {
       <button class="primary" type="submit">로그인</button>
     </form>
 )";
-    AppendProductThemeScript(out);
-    out << R"(
-  </main>
-</body>
-</html>)";
+    AppendAuthShellEnd(out);
     return out.str();
 }
 
@@ -17507,21 +17871,8 @@ std::string PasswordPolicyHintHtml() {
 
 std::string SetupPageHtml(const std::string& message, bool failed) {
     std::ostringstream out;
-    out << R"(<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MediaServer Setup</title>
-)" << ProductThemeBootScript() << ProductUiCss() << R"(
-</head>
-<body class="auth-shell">
-  <div class="auth-theme-control">)" << ProductThemeToggleButtonHtml() << R"(</div>
-  <main class="auth-card">
-    <div class="auth-actions">
-      <p class="eyebrow">Initial Setup</p>
-    </div>
-    <form class="auth-form" method="post" action="/setup">
+    AppendAuthShellStart(out, "MediaServer Setup", "Initial Setup");
+    out << R"(    <form class="auth-form" method="post" action="/setup">
       <h1>관리자 설정</h1>
       <p>기본 admin 계정에 강한 비밀번호를 설정한 뒤 제품 화면으로 이동합니다.</p>
 )";
@@ -17542,11 +17893,7 @@ std::string SetupPageHtml(const std::string& message, bool failed) {
       <button class="primary" type="submit">관리자 비밀번호 설정</button>
     </form>
 )";
-    AppendProductThemeScript(out);
-    out << R"(
-  </main>
-</body>
-</html>)";
+    AppendAuthShellEnd(out);
     return out.str();
 }
 
@@ -17809,7 +18156,7 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         <div class="actions">
           <a class="button button-secondary" href="/ops/dashboard">대시보드</a>
           <a class="button button-secondary" href="/ops/rules">룰</a>
-          <button id="opsEventsRefresh" class="button-secondary" type="button">새로고침</button>
+	          )" << RefreshIconButtonHtml("opsEventsRefresh", "button-secondary", "새로고침") << R"(
         </div>
       </div>
       <section class="section-card">
@@ -17851,14 +18198,9 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
           </table>
         </div>
       </section>
-      <details class="debug-drawer">
-        <summary>이벤트 raw JSON</summary>
-        <div class="debug-drawer-body">
-          <label class="checks"><span><input id="opsEventsPretty" type="checkbox" checked /> 보기 좋게 표시</span></label>
-          <pre id="opsEventsRaw">event status 없음</pre>
-        </div>
-      </details>
-    </section>
+)";
+        AppendRawJsonDetails(out, "이벤트 raw JSON", "opsEventsRaw", "opsEventsPretty", "event status 없음");
+        out << R"(    </section>
 )";
     } else if (active == "rules") {
         out << R"(    <section data-ops-panel="rules">
@@ -17903,7 +18245,7 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
           <h2>운영 홈</h2>
           <p>운영 홈은 등록/설정 수치와 현재 runtime 상태만 요약합니다. 녹화나 이벤트 record 기능은 표시하지 않습니다.</p>
         </div>
-        <button id="opsLiveRefresh" class="button-secondary" type="button">새로고침</button>
+	        )" << RefreshIconButtonHtml("opsLiveRefresh", "button-secondary", "새로고침") << R"(
       </div>
       <div class="grid">
         <div class="metric-card"><span>등록 채널</span><strong id="homeChannelCount">-</strong></div>
@@ -17927,52 +18269,23 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         </div>
         <p id="homeRuntimeText">런타임 상태를 불러오는 중입니다.</p>
       </section>
-      <details class="debug-drawer">
-        <summary>운영 debug JSON</summary>
-        <div class="debug-drawer-body">
-          <label class="checks"><span><input id="opsLivePretty" type="checkbox" checked /> 보기 좋게 표시</span></label>
-          <pre id="opsLiveRaw">operations summary 없음</pre>
-        </div>
-      </details>
-    </section>
+)";
+        AppendRawJsonDetails(out, "운영 debug JSON", "opsLiveRaw", "opsLivePretty", "operations summary 없음");
+        out << R"(    </section>
 )";
     }
     out << R"OPS(    <script>
       const activeOpsPage = ')OPS" << HtmlEscape(active) << R"OPS(';
-      const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-      })[ch]);
-      const display = value => value === null || value === undefined || value === '' ? '미제공' : String(value);
-      const numberValue = value => Number.isFinite(Number(value)) ? Number(value) : 0;
-      const setText = (id, value) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = display(value);
-      };
-      const badge = (text, tone = '') => `<span class="chip${tone ? ' ' + tone : ''}">${escapeHtml(display(text))}</span>`;
-      const renderBadges = (id, items) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.innerHTML = items.length > 0 ? items.map(item => badge(item.text, item.tone)).join('') : badge('상태 없음', 'info');
-      };
-      const renderRaw = (preId, checkboxId, payload) => {
-        const pre = document.getElementById(preId);
-        const checkbox = document.getElementById(checkboxId);
-        if (!pre) return;
-        const pretty = !checkbox || checkbox.checked;
-        pre.textContent = JSON.stringify(payload, null, pretty ? 2 : 0);
-      };
-      async function requestJson(url) {
-        const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
-        const text = await response.text();
-        let json = {};
-        try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
-        if (!response.ok) throw new Error(json.error || `${response.status} ${response.statusText}`);
-        return json;
-      }
+      const {
+        escapeHtml,
+        display,
+        numberValue,
+        setText,
+        chip: badge,
+        renderBadges,
+        renderRaw,
+        requestJson
+      } = window.MediaServerUi;
       window.addEventListener('message', event => {
         if (event.origin !== window.location.origin) return;
         const data = event.data || {};
@@ -18747,8 +19060,8 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>클라이언트 포털</title>
-)" << ProductThemeBootScript() << ProductUiCss() << R"(
+  <title>클라이언트 포털</title>
+)" << ProductThemeBootScript() << ProductUiCss() << ProductSharedUiScript() << R"(
   <style>
     :root {
       color-scheme: light dark;
@@ -18805,6 +19118,8 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     a.nav { min-height: 36px; display: inline-flex; align-items: center; border-radius: 6px; padding: 0 12px; background: var(--panel-soft); color: var(--text); text-decoration: none; font-weight: 900; }
     a.nav.active { background: var(--color-primary); color: var(--color-on-primary); }
     .workspace { display: grid; grid-template-columns: minmax(260px, 360px) minmax(0, 1fr); gap: 14px; align-items: start; }
+    .workspace.live-workspace { grid-template-columns: 1fr; }
+    .workspace.live-workspace > .panel:first-child { display: none; }
     .panel { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
     .views { display: grid; gap: 10px; }
     .view { width: 100%; text-align: left; display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--bg); color: var(--text); cursor: pointer; }
@@ -18820,18 +19135,32 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     .events { display: grid; gap: 8px; }
     .event { display: grid; gap: 5px; border-top: 1px solid var(--line); padding-top: 10px; }
     .event:first-child { border-top: 0; padding-top: 0; }
-    button { min-height: 38px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg-elevated); color: var(--color-text); padding: 0 14px; font-weight: 850; cursor: pointer; }
-    button:hover { background: var(--color-surface-hover); border-color: var(--color-border-strong); }
+	    button { min-height: 38px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg-elevated); color: var(--color-text); padding: 0 14px; font-weight: 850; cursor: pointer; }
+	    .refresh-icon-button { width: 40px; min-width: 40px; min-height: 40px; height: 40px; display: inline-grid; place-items: center; padding: 0; border-radius: 999px; font-size: 0; }
+	    .refresh-icon { width: 20px; height: 20px; display: block; }
+	    button:hover { background: var(--color-surface-hover); border-color: var(--color-border-strong); }
     .ghost { background: var(--color-bg-elevated); color: var(--color-text); }
     .empty { min-height: 80px; display: grid; align-content: center; gap: 8px; }
     .toolbar { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
     .live-monitor { display: grid; gap: 12px; }
+    .live-toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 10px;
+      align-items: end;
+    }
     .live-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .live-grid[data-grid-size="1"] { grid-template-columns: 1fr; }
+    .live-grid[data-grid-size="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .live-grid[data-grid-size="4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .live-grid[data-grid-size="6"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .live-grid[data-grid-size="9"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .tile { min-height: 280px; display: grid; grid-template-rows: auto minmax(140px, 1fr) auto; gap: 10px; border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--bg); }
     .tile.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.16); }
     .tile-head { display: grid; gap: 8px; }
     .tile-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .tile-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, 150px); gap: 8px; }
+    .tile-controls label { display: grid; gap: 4px; color: var(--muted); font-size: 12px; font-weight: 800; }
     .tile-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .tile-stage { position: relative; min-height: 150px; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: #111827; display: grid; place-items: center; color: #cbd5e1; }
     .tile-stage video { width: 100%; height: 100%; object-fit: contain; background: #000; }
@@ -18856,13 +19185,14 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     :root[data-theme="dark"] .chip.warn { color: #fcd34d; }
     :root[data-theme="dark"] .chip.bad { color: #fca5a5; }
     :root[data-theme="dark"] a.nav.active { background: var(--color-primary); color: var(--color-on-primary); }
-    @media (max-width: 900px) { .live-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 900px) { .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 860px) {
       header.app-chrome .app-header-top { grid-template-columns: 1fr; }
       header.app-chrome .image-nav-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .client-image-nav-tabs { min-width: 0; }
     }
-    @media (max-width: 780px) { .workspace { grid-template-columns: 1fr; } }
+    @media (max-width: 780px) { .workspace, .live-toolbar { grid-template-columns: 1fr; } }
+    @media (max-width: 560px) { .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body class="product-shell" data-client-preview=")" << (preview_mode ? "true" : "false") << R"(">
@@ -18874,16 +19204,9 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     AppendImageNavLink(out, "/client/live", "live", "라이브", active == "live");
     AppendImageNavLink(out, "/client/dashboard", "dashboard", "대시보드", active == "dashboard");
     out << R"(        </nav>
-        <div class="account-menu" aria-label="현재 계정">
-          )" << ProductThemeToggleButtonHtml() << R"(
-          )" << ProductAccountAvatarSvg() << R"(
-          <div class="account-copy">
-            <div class="account-name">)" << HtmlEscape(principal.display_name) << R"(</div>
-            <div class="account-meta">권한: )" << HtmlEscape(principal.role) << R"(</div>
-          </div>
-          <form method="post" action="/logout"><button class="button-secondary" type="submit">로그아웃</button></form>
-        </div>
-      </div>
+)";
+    AppendProductAccountMenu(out, principal);
+    out << R"(      </div>
     </header>
 )";
     if (auth::IsAdmin(principal)) {
@@ -18897,7 +19220,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       <div class="panel">
         <div class="toolbar">
           <h2>할당 채널</h2>
-          <button id="refresh" class="ghost" type="button">새로고침</button>
+	          )" << RefreshIconButtonHtml("refresh", "ghost", "새로고침") << R"(
         </div>
         <div id="views" class="views"></div>
       </div>
@@ -18918,6 +19241,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     const host = document.querySelector('#views');
     const detail = document.querySelector('#detail');
     const refresh = document.querySelector('#refresh');
+    const workspace = document.querySelector('.workspace');
     const views = Array.isArray(payload.views) ? payload.views : [];
     let selectedViewId = views[0]?.viewId || '';
     const isPreviewMode = document.body.dataset.clientPreview === 'true';
@@ -19006,14 +19330,23 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     };
     const overlayLabel = mode => ({
       raw: '원본',
-      'va-overlay': 'va-overlay',
-      'va-rule': 'va-rule'
+      'va-overlay': 'VA 오버레이',
+      'va-rule': 'VA 룰'
     })[mode] || mode || '미제공';
+    const sourceKindLabel = kind => ({
+      file: '파일',
+      rtsp: 'RTSP',
+      http: 'HTTP/HLS',
+      hls: 'HTTP/HLS',
+      webrtc: 'WebRTC'
+    })[String(kind || '').toLowerCase()] || kind || '소스';
     const allowedOverlayModes = view => {
       const seen = new Set();
       const out = [];
+      const ruleId = tileRuleId(view);
       for (const value of view?.allowedOverlayModes || []) {
         const mode = normalizeOverlayMode(value);
+        if (mode === 'va-rule' && !ruleId) continue;
         if (mode && !seen.has(mode)) {
           seen.add(mode);
           out.push(mode);
@@ -19038,7 +19371,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
         <button class="view${view.viewId === selectedViewId ? ' active' : ''}" type="button" data-view-id="${escapeHtml(view.viewId)}">
           <h3>${escapeHtml(view.displayName || view.viewId)}</h3>
           <div class="meta">
-            <span class="chip">${escapeHtml(view.sourceKind || '소스')}</span>
+            <span class="chip">${escapeHtml(sourceKindLabel(view.sourceKind))}</span>
             ${view.showDashboard ? '<span class="chip">대시보드</span>' : ''}
           </div>
         </button>
@@ -19059,15 +19392,19 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       const button = event.target.closest('.view');
       if (button) setActiveView(button.dataset.viewId);
     });
-    function renderDashboard(payload) {
-      const view = payload.view || {};
-      const health = payload.health || {};
-      const analysis = payload.analysis || {};
-      const connection = payload.connection || {};
-      const events = payload.events || {};
-      detail.innerHTML = `
-        <div class="toolbar">
-          <div>
+	    function renderDashboard(payload) {
+	      const view = payload.view || {};
+	      const health = payload.health || {};
+	      const analysis = payload.analysis || {};
+	      const connection = payload.connection || {};
+	      const events = payload.events || {};
+	      const assignedView = viewById(view.viewId || selectedViewId) || viewById(selectedViewId) || {};
+	      const dashboardModes = allowedOverlayModes(assignedView);
+	      const dashboardModeText = (dashboardModes.length ? dashboardModes : ['raw']).map(overlayLabel).join(', ');
+	      const dashboardRuleId = tileRuleId(assignedView);
+	      detail.innerHTML = `
+	        <div class="toolbar">
+	          <div>
             <h2>${escapeHtml(view.displayName || view.viewId || '대시보드')}</h2>
             <p>${escapeHtml(view.sourceDisplayName || '미제공')}</p>
           </div>
@@ -19084,11 +19421,22 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
           <div class="metric"><span>마지막 프레임</span><strong>${escapeHtml(ms(connection.lastFrameAgeMs))}</strong></div>
           <div class="metric"><span>트랙</span><strong>${escapeHtml(display(analysis.trackCount))}</strong></div>
           <div class="metric"><span>활성 이벤트</span><strong>${escapeHtml(display(analysis.activeEventCount))}</strong></div>
-          <div class="metric"><span>시나리오</span><strong>${escapeHtml(display(analysis.scenarioCount))}</strong></div>
-          <div class="metric"><span>최근 이벤트</span><strong>${escapeHtml(formatTime(analysis.latestEventTime))}</strong></div>
-        </div>
-        <section class="events">
-          <h3>이벤트 요약</h3>
+	          <div class="metric"><span>시나리오</span><strong>${escapeHtml(display(analysis.scenarioCount))}</strong></div>
+	          <div class="metric"><span>최근 이벤트</span><strong>${escapeHtml(formatTime(analysis.latestEventTime))}</strong></div>
+	        </div>
+	        <section class="events">
+	          <h3>클라이언트 범위</h3>
+	          <div class="summary">
+	            <div class="metric"><span>소스 종류</span><strong>${escapeHtml(sourceKindLabel(view.sourceKind))}</strong></div>
+	            <div class="metric"><span>대시보드 권한</span><strong>${view.showDashboard === false ? '꺼짐' : '사용'}</strong></div>
+	            <div class="metric"><span>이벤트 권한</span><strong>${view.showEvents === false ? '꺼짐' : '사용'}</strong></div>
+	            <div class="metric"><span>메타데이터</span><strong>${view.showMetadataSummary === false ? '꺼짐' : '사용'}</strong></div>
+	            <div class="metric"><span>보기 방식</span><strong>${escapeHtml(dashboardModeText)}</strong></div>
+	            <div class="metric"><span>VA 룰</span><strong>${escapeHtml(dashboardRuleId ? `#${dashboardRuleId}` : '연결 없음')}</strong></div>
+	          </div>
+	        </section>
+	        <section class="events">
+	          <h3>이벤트 요약</h3>
           <div class="meta">
             ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
           </div>
@@ -19128,7 +19476,10 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
         <section class="events">${renderEvents(events.recent || [])}</section>
       `;
     }
-    const liveTiles = Array.from({ length: 4 }, (_, index) => ({
+    const maxLiveTiles = isPreviewMode ? 9 : 4;
+    const initialLiveTileCount = Math.min(maxLiveTiles, Math.max(1, Number(localStorage.getItem('mediaServerClientLiveGrid') || 4) || 4));
+    let liveTileCount = initialLiveTileCount;
+    const liveTiles = Array.from({ length: maxLiveTiles }, (_, index) => ({
       index,
       viewId: views[index]?.viewId || views[0]?.viewId || '',
       overlayMode: '',
@@ -19202,6 +19553,8 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
         select.innerHTML = modes.map(mode => `<option value="${escapeHtml(mode)}">${escapeHtml(overlayLabel(mode))}</option>`).join('');
         select.value = tile.overlayMode || '';
         select.disabled = Boolean(tile.sessionId) || modes.length === 0;
+        const wrap = root.querySelector('[data-role="mode-wrap"]');
+        if (wrap) wrap.hidden = modes.length <= 1;
       }
     }
     function setTileView(index, viewId) {
@@ -19218,7 +19571,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       refreshSelectedTileDetail();
     }
     function renderLiveMonitor() {
-      renderAssignedViews();
+      workspace?.classList.add('live-workspace');
       if (views.length === 0) {
         detail.innerHTML = emptyState(
           'Live view가 없습니다',
@@ -19232,14 +19585,20 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       }
       detail.innerHTML = `
         <div class="live-monitor">
-          <div class="toolbar">
+          <div class="live-toolbar">
             <div>
               <h2>라이브</h2>
             </div>
+            <label>그리드
+              <select id="liveGridSize">
+                ${[1, 2, 4, 6, 9].filter(count => count <= maxLiveTiles).map(count => `<option value="${count}"${count === liveTileCount ? ' selected' : ''}>${count === 1 ? '1개' : count === 2 ? '1x2' : count === 4 ? '2x2' : count === 6 ? '2x3' : '3x3'}</option>`).join('')}
+              </select>
+            </label>
             <button id="liveAllStop" class="ghost" type="button">전체 정지</button>
           </div>
-          <div class="live-grid">
-            ${liveTiles.map(tile => `
+          <section class="detail-box" id="liveSelectedDetail">${emptyState('타일을 선택하세요', '선택한 타일의 연결, 메타데이터, 이벤트 상태가 여기에 표시됩니다.')}</section>
+          <div class="live-grid" data-grid-size="${liveTileCount}">
+            ${liveTiles.slice(0, liveTileCount).map(tile => `
               <article class="tile${selectedLiveTile === tile.index ? ' selected' : ''}" data-tile="${tile.index}">
                 <div class="tile-head">
                   <div class="tile-title">
@@ -19247,13 +19606,16 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
                     <span class="chip" data-role="status">offline</span>
                   </div>
                   <div class="tile-controls">
-                    <select data-role="view" aria-label="채널">
-                      ${views.map(view => `<option value="${escapeHtml(view.viewId)}">${escapeHtml(view.displayName || view.viewId)}</option>`).join('')}
-                    </select>
-                    <select data-role="mode" aria-label="보기 방식"></select>
+                    <label>채널
+                      <select data-role="view" aria-label="채널">
+                        ${views.map(view => `<option value="${escapeHtml(view.viewId)}">${escapeHtml(view.displayName || view.viewId)}</option>`).join('')}
+                      </select>
+                    </label>
+                    <label data-role="mode-wrap">보기 방식
+                      <select data-role="mode" aria-label="보기 방식"></select>
+                    </label>
                   </div>
                   <div class="tile-actions">
-                    <button type="button" data-action="select" class="ghost">선택</button>
                     <button type="button" data-action="start">시작</button>
                     <button type="button" data-action="stop" class="ghost" disabled>정지</button>
                   </div>
@@ -19271,10 +19633,9 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
               </article>
             `).join('')}
           </div>
-          <section class="detail-box" id="liveSelectedDetail">${emptyState('타일을 선택하세요', '선택한 타일의 연결, 메타데이터, 이벤트 상태가 여기에 표시됩니다.')}</section>
         </div>
       `;
-      for (const tile of liveTiles) {
+      for (const tile of liveTiles.slice(0, liveTileCount)) {
         const root = document.querySelector(`[data-tile="${tile.index}"]`);
         if (!root) continue;
         const viewSelect = root.querySelector('[data-role="view"]');
@@ -19289,7 +19650,6 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
             if (!tile.sessionId) tile.overlayMode = modeSelect.value;
           });
         }
-        root.querySelector('[data-action="select"]')?.addEventListener('click', () => selectLiveTile(tile.index));
         root.querySelector('[data-action="start"]')?.addEventListener('click', () => startLiveTile(tile.index));
         root.querySelector('[data-action="stop"]')?.addEventListener('click', () => stopLiveTile(tile.index));
         root.addEventListener('click', event => {
@@ -19301,6 +19661,18 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
         updateTileDom(tile);
       }
       document.querySelector('#liveAllStop')?.addEventListener('click', () => stopAllLiveTiles());
+      document.querySelector('#liveGridSize')?.addEventListener('change', async event => {
+        const next = Math.min(maxLiveTiles, Math.max(1, Number(event.target.value || 4)));
+        for (const tile of liveTiles.slice(next)) {
+          await stopLiveTile(tile.index);
+        }
+        liveTileCount = next;
+        if (selectedLiveTile !== null && selectedLiveTile >= liveTileCount) {
+          selectedLiveTile = liveTileCount > 0 ? 0 : null;
+        }
+        localStorage.setItem('mediaServerClientLiveGrid', String(liveTileCount));
+        renderLiveMonitor();
+      });
       if (!liveStatusTimer) {
         liveStatusTimer = setInterval(() => {
           updateAllTileDom();
@@ -19577,6 +19949,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
         }
       });
     } else {
+      workspace?.classList.remove('live-workspace');
       renderAssignedViews();
       loadDetail();
     }
@@ -19599,7 +19972,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
       <div class="toolbar">
         <div>
           <h2>채널</h2>
-          <p>채널은 서버가 pull하는 file/RTSP/HTTP 입력 또는 WHIP publish로 먼저 등록된 WebRTC sourceId입니다.</p>
+          <p>채널은 서버가 pull하는 파일/RTSP/HTTP/HLS 입력 또는 WHIP publish로 먼저 등록된 WebRTC sourceId입니다.</p>
         </div>
       </div>
       <section class="section-card">
@@ -19610,7 +19983,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           </div>
           <div class="actions">
             <button id="add-channel" class="button-primary" type="button">채널 추가</button>
-            <button id="refresh" class="button-secondary" type="button">새로고침</button>
+	            )OPS" << RefreshIconButtonHtml("refresh", "button-secondary", "새로고침") << R"OPS(
             <span id="status" class="status" aria-live="polite" hidden></span>
           </div>
         </div>
@@ -19662,10 +20035,10 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <label>이름<input name="displayName" /></label>
             <label>종류
               <select name="kind">
-                <option value="file">file</option>
-                <option value="rtsp">rtsp</option>
+                <option value="file">파일</option>
+                <option value="rtsp">RTSP</option>
                 <option value="webrtc" hidden>WHIP Published Source ID</option>
-                <option value="http">http</option>
+                <option value="http">HTTP/HLS</option>
               </select>
             </label>
           </div>
@@ -19677,7 +20050,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           <label data-source-kind="rtsp">RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live" /></label>
           <label data-source-kind="webrtc">WHIP Published Source ID<input name="webrtcSourceId" placeholder="published-source-id" /></label>
           <p data-source-kind="webrtc" class="hint">외부 WebRTC/WHEP URL pull이 아니라, 이 서버의 WHIP publish endpoint로 이미 등록된 sourceId를 소비합니다.</p>
-          <label data-source-kind="http">HTTP URL<input name="httpUrl" /></label>
+          <label data-source-kind="http">HTTP/HLS URL<input name="httpUrl" /></label>
           <div class="actions">
             <button id="save-channel" class="primary" type="submit">저장</button>
             <button id="delete-channel" class="danger" type="button">삭제</button>
@@ -19715,20 +20088,14 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
     let currentChannelId = '';
     let editorMode = 'view';
     let currentChannelEnabled = true;
+    const { escapeHtml, requestJson } = window.MediaServerUi;
     const setStatus = (message, failed = false) => {
       statusEl.textContent = message;
       statusEl.classList.toggle('error', failed);
       statusEl.hidden = !message;
     };
-    const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    })[ch]);
     const kindLabel = kind => ({
-      file: 'file',
+      file: '파일',
       rtsp: 'RTSP URL',
       webrtc: 'WHIP sourceId',
       http: 'HTTP/HLS URL'
@@ -19818,17 +20185,34 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           clipboardError = error;
         }
       }
+      const copyByEvent = () => {
+        let copied = false;
+        const handler = (event) => {
+          if (!event.clipboardData) return;
+          event.clipboardData.setData('text/plain', text);
+          event.preventDefault();
+          copied = true;
+        };
+        document.addEventListener('copy', handler, true);
+        try {
+          return document.execCommand('copy') && copied;
+        } finally {
+          document.removeEventListener('copy', handler, true);
+        }
+      };
+      if (copyByEvent()) return;
       const activeElement = document.activeElement;
       const textarea = document.createElement('textarea');
       textarea.value = text;
-      textarea.setAttribute('readonly', '');
       textarea.setAttribute('aria-hidden', 'true');
       textarea.style.position = 'fixed';
-      textarea.style.top = '0';
-      textarea.style.left = '0';
-      textarea.style.width = '1px';
-      textarea.style.height = '1px';
-      textarea.style.opacity = '0';
+      textarea.style.top = '10px';
+      textarea.style.left = '10px';
+      textarea.style.width = 'min(90vw, 680px)';
+      textarea.style.height = '36px';
+      textarea.style.opacity = '1';
+      textarea.style.zIndex = '2147483647';
+      textarea.style.pointerEvents = 'none';
       document.body.appendChild(textarea);
       try {
         try {
@@ -19859,27 +20243,10 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
       }
       try {
         await copyTextToClipboard(url);
-        setStatus(`${streamCopyLabel(type, mode)} URL 복사 완료`);
-        if (button) {
-          const previous = button.textContent;
-          button.textContent = '복사됨';
-          button.disabled = true;
-          setTimeout(() => {
-            button.textContent = previous || streamCopyLabel(type, mode);
-            button.disabled = false;
-          }, 1200);
-        }
+        setStatus('');
       } catch (error) {
-        setStatus('브라우저 권한 때문에 자동 복사가 막혔습니다.', true);
+        setStatus('브라우저가 HTTP LAN 페이지의 자동 복사를 막았습니다. localhost 또는 HTTPS에서 복사하세요.', true);
       }
-    }
-    async function requestJson(url, options = {}) {
-      const res = await fetch(url, { credentials: 'same-origin', ...options });
-      const text = await res.text();
-      let json;
-      try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
-      if (!res.ok) throw new Error(json.error || `${res.status} ${res.statusText}`);
-      return json;
     }
     const chip = (text, tone = '') => `<span class="chip${tone ? ' ' + tone : ''}">${escapeHtml(text)}</span>`;
     const findSource = id => loadedSources.find(source => source.sourceId === id) || null;
@@ -20043,7 +20410,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
         sourceId: view.sourceId || source.sourceId,
         defaultRuleId: view.defaultRuleId || '',
         allowedRuleIds: Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds : [],
-        allowedOverlayModes: Array.isArray(view.allowedOverlayModes) && view.allowedOverlayModes.length > 0 ? view.allowedOverlayModes : ['raw'],
+        allowedOverlayModes: Array.isArray(view.allowedOverlayModes) && view.allowedOverlayModes.length > 0 ? view.allowedOverlayModes : ['raw', 'va-overlay', 'va-rule'],
         showDashboard: view.showDashboard !== false,
         showEvents: view.showEvents !== false,
         showMetadataSummary: view.showMetadataSummary !== false,
@@ -20151,7 +20518,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
         sourceId: channelId,
         defaultRuleId: '',
         allowedRuleIds: [],
-        allowedOverlayModes: ['raw'],
+        allowedOverlayModes: ['raw', 'va-overlay', 'va-rule'],
         showDashboard: true,
         showEvents: true,
         showMetadataSummary: true,
@@ -20243,16 +20610,16 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
     AppendOpsShellStart(out,
                         principal,
                         "users",
-                        "관리자가 계정 metadata와 setup invite를 관리합니다. 비밀번호는 각 사용자가 직접 설정합니다.");
+                        "관리자가 사용자 계정과 접근 범위를 관리합니다.");
     out << R"USERS(    <section class="panel">
       <div class="toolbar">
         <div>
           <h2>사용자 관리</h2>
-          <p>임시 비밀번호는 입력하지 않습니다. 초대 토큰을 발급하고 사용자가 직접 비밀번호를 설정합니다.</p>
+          <p>사용자 추가 시 초기 비밀번호를 입력합니다. 새 사용자는 기본 활성화 상태로 생성됩니다.</p>
         </div>
         <div class="actions">
           <button id="add-user-btn" class="button-primary" type="button">사용자 추가</button>
-          <button id="refresh-btn" class="button-secondary" type="button">새로고침</button>
+	          )USERS" << RefreshIconButtonHtml("refresh-btn", "button-secondary", "새로고침") << R"USERS(
           <span id="status" class="status"></span>
         </div>
       </div>
@@ -20278,13 +20645,17 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         </div>
       </section>
 
-      <details id="user-editor" class="collapsed-editor">
+      <details id="user-editor" class="collapsed-editor" hidden>
         <summary id="user-editor-title">사용자 편집</summary>
         <div class="collapsed-editor-body">
           <form id="user-form">
             <div class="row">
               <label>계정명<input name="username" required /></label>
               <label>표시 이름<input name="displayName" /></label>
+            </div>
+            <div id="password-fields" class="row">
+              <label>초기 비밀번호<input name="password" type="password" autocomplete="new-password" /></label>
+              <label>비밀번호 확인<input name="confirmPassword" type="password" autocomplete="new-password" /></label>
             </div>
             <div class="row">
               <label>권한
@@ -20306,46 +20677,26 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
               <label><input name="mustChangePassword" type="checkbox" checked /> 다음 로그인 시 비밀번호 변경</label>
             </div>
             <div class="actions">
-              <button id="create-btn" class="primary" type="submit">설정 초대 생성</button>
+              <button id="create-btn" class="primary" type="submit">사용자 추가</button>
               <button id="update-btn" class="secondary" type="button">사용자 수정</button>
+              <button id="cancel-user-edit-btn" class="button-secondary" type="button">목록으로</button>
             </div>
           </form>
         </div>
       </details>
-
-    <section class="section-card">
-      <h2>클라이언트 요청 목록</h2>
-      <p>자가 가입은 자동 승인하지 않습니다. 대기 요청은 admin 승인 후 viewer 계정과 비밀번호 설정 초대로 전환됩니다.</p>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>요청</th>
-              <th>계정명</th>
-              <th>이름</th>
-              <th>연락처</th>
-              <th>채널</th>
-              <th>상태</th>
-              <th>사유</th>
-              <th>작업</th>
-            </tr>
-          </thead>
-          <tbody id="requests-body"></tbody>
-        </table>
-      </div>
-    </section>
     </section>
   <script>
     const statusEl = document.querySelector('#status');
     const usersBody = document.querySelector('#users-body');
-    const requestsBody = document.querySelector('#requests-body');
     const form = document.querySelector('#user-form');
     const userEditor = document.querySelector('#user-editor');
     const userEditorTitle = document.querySelector('#user-editor-title');
     const createButton = document.querySelector('#create-btn');
     const updateButton = document.querySelector('#update-btn');
     const assignment = document.querySelector('#view-assignment');
+    const passwordFields = document.querySelector('#password-fields');
     const splitScopes = value => value.split(/[\n,]/).map(v => v.trim()).filter(Boolean);
+    const { requestJson } = window.MediaServerUi;
     const setStatus = (message, failed = false) => {
       statusEl.textContent = message;
       statusEl.classList.toggle('error', failed);
@@ -20353,14 +20704,6 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
     function updateAssignmentVisibility() {
       const role = form.elements.role.value;
       assignment.style.display = (role === 'viewer' || role === 'integrator') ? 'grid' : 'none';
-    }
-    async function requestJson(url, options = {}) {
-      const res = await fetch(url, { credentials: 'same-origin', ...options });
-      const text = await res.text();
-      let json;
-      try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
-      if (!res.ok) throw new Error(json.error || `${res.status} ${res.statusText}`);
-      return json;
     }
     function formPayload() {
       const data = Object.fromEntries(new FormData(form).entries());
@@ -20370,6 +20713,8 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         role: data.role,
         viewId: data.viewId.trim(),
         scopes: splitScopes(data.scopes || ''),
+        password: data.password || '',
+        confirmPassword: data.confirmPassword || '',
         enabled: form.elements.enabled.checked,
         mustChangePassword: form.elements.mustChangePassword.checked
       };
@@ -20386,14 +20731,20 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
       return value ? '예' : '아니오';
     }
     function fillForm(user) {
+      userEditor.hidden = false;
       userEditorTitle.textContent = `사용자 수정 · ${user.username}`;
       form.elements.username.value = user.username;
       form.elements.displayName.value = user.displayName || '';
       form.elements.role.value = user.role || 'viewer';
       form.elements.viewId.value = '';
       form.elements.scopes.value = (user.scopes || []).join('\n');
+      form.elements.password.value = '';
+      form.elements.confirmPassword.value = '';
       form.elements.enabled.checked = Boolean(user.enabled);
       form.elements.mustChangePassword.checked = Boolean(user.mustChangePassword);
+      passwordFields.hidden = true;
+      form.elements.password.required = false;
+      form.elements.confirmPassword.required = false;
       createButton.hidden = true;
       updateButton.hidden = false;
       updateAssignmentVisibility();
@@ -20401,11 +20752,15 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
       userEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     function resetUserForm() {
+      userEditor.hidden = false;
       form.reset();
-      userEditorTitle.textContent = '사용자 설정 초대 생성';
+      userEditorTitle.textContent = '사용자 추가';
       form.elements.role.value = 'viewer';
       form.elements.enabled.checked = true;
       form.elements.mustChangePassword.checked = true;
+      passwordFields.hidden = false;
+      form.elements.password.required = true;
+      form.elements.confirmPassword.required = true;
       createButton.hidden = false;
       updateButton.hidden = true;
       updateAssignmentVisibility();
@@ -20418,7 +20773,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         const tr = document.createElement('tr');
         const td = document.createElement('td');
         td.colSpan = 9;
-        td.textContent = '등록된 사용자가 없습니다. 사용자 추가로 설정 초대를 발급하세요.';
+        td.textContent = '등록된 사용자가 없습니다. 사용자 추가로 계정을 생성하세요.';
         tr.appendChild(td);
         usersBody.appendChild(tr);
         return;
@@ -20465,69 +20820,13 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         usersBody.appendChild(tr);
       }
     }
-    function renderRequests(requests) {
-      requestsBody.textContent = '';
-      if (!Array.isArray(requests) || requests.length === 0) {
-        const tr = document.createElement('tr');
-        const td = document.createElement('td');
-        td.colSpan = 8;
-        td.textContent = '대기 중인 클라이언트 요청이 없습니다.';
-        tr.appendChild(td);
-        requestsBody.appendChild(tr);
-        return;
-      }
-      for (const request of requests) {
-        const tr = document.createElement('tr');
-        const cells = [
-          request.requestId || '',
-          request.username || '',
-          request.displayName || '',
-          request.contact || '',
-          request.viewId || '',
-          request.status || '',
-          request.reason || ''
-        ];
-        for (const value of cells) {
-          const td = document.createElement('td');
-          td.textContent = value;
-          tr.appendChild(td);
-        }
-        const actionTd = document.createElement('td');
-        const actions = document.createElement('div');
-        actions.className = 'actions';
-        if (request.status === 'pending') {
-          const approve = document.createElement('button');
-          approve.type = 'button';
-          approve.textContent = '승인';
-          approve.onclick = () => approveRequest(request.requestId);
-          const reject = document.createElement('button');
-          reject.type = 'button';
-          reject.className = 'danger';
-          reject.textContent = '거절';
-          reject.onclick = () => rejectRequest(request.requestId);
-          actions.append(approve, reject);
-        } else {
-          const done = document.createElement('span');
-          done.className = 'pill';
-          done.textContent = request.status || '완료';
-          actions.appendChild(done);
-        }
-        actionTd.appendChild(actions);
-        tr.appendChild(actionTd);
-        requestsBody.appendChild(tr);
-      }
-    }
     async function loadUsers() {
       const json = await requestJson('/ops/api/users');
       renderUsers(json.users || []);
       setStatus('');
     }
-    async function loadRequests() {
-      const json = await requestJson('/ops/api/access-requests');
-      renderRequests(json.accessRequests || []);
-    }
     async function loadAll() {
-      await Promise.all([loadUsers(), loadRequests()]);
+      await loadUsers();
     }
     async function setEnabled(username, enabled) {
       try {
@@ -20540,53 +20839,28 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         setStatus(error.message, true);
       }
     }
-    async function approveRequest(requestId) {
-      try {
-        const payload = {
-          viewId: form.elements.viewId.value.trim(),
-          scopes: splitScopes(form.elements.scopes.value || '')
-        };
-        const json = await requestJson(`/ops/api/access-requests/${encodeURIComponent(requestId)}/approve`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const token = json.invite?.token || '';
-        await loadAll();
-        setStatus(token ? `승인 완료. 설정 초대 토큰: ${token}` : '승인 완료');
-      } catch (error) {
-        setStatus(error.message, true);
-      }
-    }
-    async function rejectRequest(requestId) {
-      try {
-        await requestJson(`/ops/api/access-requests/${encodeURIComponent(requestId)}/reject`, { method: 'POST' });
-        await loadAll();
-      } catch (error) {
-        setStatus(error.message, true);
-      }
-    }
     form.addEventListener('submit', async event => {
       event.preventDefault();
       try {
         const payload = formPayload();
-        delete payload.enabled;
-        delete payload.mustChangePassword;
-        const json = await requestJson('/ops/api/invites', {
+        if (!payload.password) throw new Error('초기 비밀번호를 입력하세요.');
+        if (payload.password !== payload.confirmPassword) throw new Error('비밀번호 확인이 일치하지 않습니다.');
+        delete payload.confirmPassword;
+        await requestJson('/ops/api/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        const token = json.invite?.token || '';
         form.reset();
         form.elements.enabled.checked = true;
         form.elements.mustChangePassword.checked = true;
         createButton.hidden = false;
         updateButton.hidden = true;
         userEditor.open = false;
+        userEditor.hidden = true;
         updateAssignmentVisibility();
         await loadAll();
-        setStatus(token ? `설정 초대 토큰: ${token}` : '설정 초대 생성 완료');
+        setStatus('사용자 추가 완료');
       } catch (error) {
         setStatus(error.message, true);
       }
@@ -20595,15 +20869,23 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
       const payload = formPayload();
       if (!payload.username) return;
       try {
+        delete payload.password;
+        delete payload.confirmPassword;
         await requestJson(`/ops/api/users/${encodeURIComponent(payload.username)}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
         await loadAll();
+        userEditor.open = false;
+        userEditor.hidden = true;
       } catch (error) {
         setStatus(error.message, true);
       }
+    };
+    document.querySelector('#cancel-user-edit-btn').onclick = () => {
+      userEditor.open = false;
+      userEditor.hidden = true;
     };
     document.querySelector('#add-user-btn').onclick = resetUserForm;
     form.elements.role.addEventListener('change', updateAssignmentVisibility);
