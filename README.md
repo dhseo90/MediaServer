@@ -173,6 +173,8 @@ VA/Auth 주요 검증:
 ./server.sh verify-auth-routes
 ```
 
+로컬 QA나 수동 smoke에서 테스트 계정을 만들거나 초기화할 때는 계정 비밀번호를 `qweasd0-`로 통일합니다. 이 값은 테스트 재현성을 위한 규칙이며, 제품 기본 admin 비밀번호를 의미하지 않습니다.
+
 현재 검증 기준은 [docs/stream-verification.md](docs/stream-verification.md)에 정리되어 있습니다.
 
 ## 문서 지도
