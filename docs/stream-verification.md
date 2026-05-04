@@ -46,9 +46,10 @@ UI 변경:
 ./server.sh verify-lab-layout
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-client-ui --screenshots
+MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap
 ```
 
-Ops/Client shell 변경은 전용 smoke로 product shell selector와 client debug/source 비노출을 먼저 확인합니다. `--screenshots` 옵션은 headless Chrome으로 `/ops/home`, `/ops/dashboard`, `/ops/sources`, `/ops/users`, `/client/live`, `/client/dashboard`를 폭별로 열어 overflow와 screenshot을 남깁니다. 화면 단위 회귀가 의심되거나 nav/table/form 반응형을 직접 봐야 할 때는 auth-off 또는 로그인 cookie/token을 준비한 서버에서 아래 수동 smoke를 함께 확인합니다.
+Ops/Client shell 변경은 전용 smoke로 product shell selector와 client debug/source 비노출을 먼저 확인합니다. `--screenshots` 옵션은 headless Chrome으로 `/ops/home`, `/ops/dashboard`, `/ops/sources`, `/ops/users`, `/client/live`, `/client/dashboard`를 폭별로 열어 overflow와 screenshot을 남깁니다. Auth shell 변경은 기존 auth workflow에 `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1`을 붙여 `/setup`, `/login`, `/client/request-access`, 필요 시 `/password/change`, `/invite/setup` selector를 확인하고, `MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`로 auth screenshot smoke까지 남깁니다. 화면 단위 회귀가 의심되거나 nav/table/form 반응형을 직접 봐야 할 때는 auth-off 또는 로그인 cookie/token을 준비한 서버에서 아래 수동 smoke를 함께 확인합니다.
 
 ```bash
 BASE=http://127.0.0.1:8080
