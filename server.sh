@@ -47,6 +47,8 @@ Usage:
                  실제 RTSP/WebRTC overlay 세션에서 route별 profile/rule matching을 검증합니다.
   verify-rule-ui
                  /lab/rules Rule/Profile 카테고리 버튼과 저장 payload를 검증합니다.
+  verify-ops-client-ui
+                 /ops와 /client shell selector 및 client debug/source 비노출을 검증합니다.
   verify-auth-bootstrap
                  최초 setup, admin password policy, login/logout/session을 검증합니다.
   verify-auth-users
@@ -220,6 +222,10 @@ case "${cmd}" in
   verify-rule-ui)
     require_internal verify_rule_ui_smoke.sh
     exec "${INTERNAL_DIR}/verify_rule_ui_smoke.sh" "$@"
+    ;;
+  verify-ops-client-ui)
+    require_internal verify_ops_client_ui_smoke.mjs
+    exec "${INTERNAL_DIR}/verify_ops_client_ui_smoke.mjs" "$@"
     ;;
   verify-auth-bootstrap)
     require_internal verify_auth_bootstrap.sh

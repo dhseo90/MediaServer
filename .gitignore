@@ -19,6 +19,10 @@
 /.media_server.pid
 /.media_server.port
 /.media_server.analysis_registry.json
+/.media_server.sources.json
+/.media_server.views.json
+/.media_server.users.json
+/.media_server.va_events.jsonl
 /.media_server.test/
 /scripts/.media_server.env
 /video/imports/*
