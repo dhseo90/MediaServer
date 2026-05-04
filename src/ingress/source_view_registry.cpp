@@ -537,7 +537,7 @@ SourceViewRegistry::PublishedViewRecord DefaultPublishedViewRecord(
     view.view_id = source.source_id.empty() ? "1" : source.source_id;
     view.display_name = source.display_name.empty() ? "Default Channel" : source.display_name;
     view.source_id = source.source_id;
-    view.allowed_overlay_modes = {"raw"};
+    view.allowed_overlay_modes = {"raw", "va-overlay", "va-rule"};
     view.show_dashboard = true;
     view.show_events = true;
     view.show_metadata_summary = true;
@@ -668,7 +668,7 @@ std::optional<SourceViewRegistry::PublishedViewRecord> ParsePublishedViewRecord(
     }
     view.allowed_overlay_modes = ParseStringArrayField(body, "allowedOverlayModes");
     if (view.allowed_overlay_modes.empty()) {
-        view.allowed_overlay_modes = {"metadata", "server-overlay"};
+        view.allowed_overlay_modes = {"raw", "va-overlay", "va-rule"};
     }
     view.show_dashboard = ParseBoolField(body, "showDashboard").value_or(true);
     view.show_events = ParseBoolField(body, "showEvents").value_or(true);
