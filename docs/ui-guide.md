@@ -34,9 +34,11 @@ UI는 light/dark theme-aware design token을 사용하며, card/button/form/tabl
 
 내장 HTTP UI는 아직 C++ 문자열 렌더링 기반이지만, 제품 shell 쪽은 다음 공통 helper를 기준으로 유지합니다.
 
+- `include/ingress/product_ui_assets.h`, `src/ingress/product_ui_assets.cpp`: theme boot script, shared UI JS, theme toggle, nav/account SVG asset처럼 route data에 의존하지 않는 product UI asset을 보관합니다.
 - `ProductDesignTokensCss()`: Auth/Ops/Client와 `/lab/rules`가 공유하는 light/dark semantic token 원천입니다.
 - `ProductUiCss()`: 제품 shell 공통 card/button/form/table/badge/debug 스타일입니다.
-- `ProductSharedUiScript()`: product route에서 공유하는 `escapeHtml`, `requestJson`, badge/raw JSON 렌더링 helper입니다.
+- `ProductSharedUiScript()`: product route에서 공유하는 `escapeHtml`, `requestJson`, badge/raw JSON 렌더링, role/scope visibility helper입니다.
+- `ClientShellCss()`: client shell 전용 CSS를 `ClientShellPageHtml()` 밖에서 관리합니다.
 - `AppendOpsShellStart/End`, `AppendAuthShellStart/End`: 운영 shell과 setup/login auth shell의 공통 document/header/footer를 렌더링합니다.
 - `AppendProductAccountMenu()`: theme toggle, user role, logout 영역을 Ops/Client에서 동일하게 렌더링합니다.
 - `AppendRawJsonDetails()`: 운영자용 raw/debug JSON을 낮은 visual weight의 접힘 영역으로 렌더링합니다.
