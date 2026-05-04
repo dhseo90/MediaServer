@@ -37,6 +37,7 @@ UI는 light/dark theme-aware design token을 사용하며, card/button/form/tabl
 - `include/ingress/product_ui_assets.h`, `src/ingress/product_ui_assets.cpp`: theme toggle button, nav/account SVG asset처럼 route data에 의존하지 않는 product UI asset을 보관합니다.
 - `include/ingress/product_ui_css.h`, `src/ingress/product_ui_css.cpp`: Auth/Ops/Client와 `/lab/rules`가 공유하는 design token, 제품 shell CSS, client shell 전용 CSS를 보관합니다.
 - `include/ingress/product_ui_js.h`, `src/ingress/product_ui_js.cpp`: theme boot/apply script와 product route 공통 JS helper를 보관합니다.
+- `include/ingress/product_ui_page_scripts.h`, `src/ingress/product_ui_page_scripts.cpp`: `/client`, `/client/request-access`, `/ops/sources`, `/ops/users`의 route별 page script를 보관합니다.
 - `ProductDesignTokensCss()`: Auth/Ops/Client와 `/lab/rules`가 공유하는 light/dark semantic token 원천입니다.
 - `ProductUiCss()`: 제품 shell 공통 card/button/form/table/badge/debug 스타일입니다.
 - `ProductSharedUiScript()`: product route에서 공유하는 `escapeHtml`, `requestJson`, selector, form-data, feedback, badge/raw JSON 렌더링, role/scope visibility helper입니다.
@@ -45,7 +46,7 @@ UI는 light/dark theme-aware design token을 사용하며, card/button/form/tabl
 - `AppendProductAccountMenu()`: theme toggle, user role, logout 영역을 Ops/Client에서 동일하게 렌더링합니다.
 - `AppendRawJsonDetails()`: 운영자용 raw/debug JSON을 낮은 visual weight의 접힘 영역으로 렌더링합니다.
 - `AppendOpsHomePage()`, `AppendOpsDashboardPage()`, `AppendOpsRulesPage()`, `AppendOpsEventsPage()`: `/ops` shell 내부 page markup을 route별 helper로 분리합니다.
-- `AppendClientShellScript()`, `AppendOpsSourcesPageScript()`, `AppendOpsUsersPageScript()`: page markup과 route별 JS 동작을 분리합니다. API schema와 payload는 기존 endpoint 계약을 그대로 사용합니다.
+- `AppendClientShellScript()`, `AppendOpsSourcesPageScript()`, `AppendOpsUsersPageScript()`: page markup과 route별 JS 동작을 물리적으로 분리합니다. API schema와 payload는 기존 endpoint 계약을 그대로 사용합니다.
 - `HtmlPageResponse()`: browser page route의 `text/html`/`no-store` 응답 포장을 공통화합니다.
 - `IsOpsOverviewShellRoute()`, `IsClientShellRoute()`: route handler의 shell path 판별을 한 곳에서 관리합니다.
 
@@ -56,10 +57,11 @@ UI ownership은 다음 표를 기준으로 봅니다.
 | Product assets | `product_ui_assets.*` | theme toggle button, nav/account SVG | route data나 API fetch를 넣지 않습니다. |
 | Product CSS | `product_ui_css.*` | design token, product shell CSS, client shell CSS | 색상/spacing/radius는 semantic token 우선으로 유지합니다. |
 | Product JS | `product_ui_js.*` | `MediaServerUi` helper, theme persistence, iframe theme sync | API schema나 route별 payload를 넣지 않습니다. |
+| Product page scripts | `product_ui_page_scripts.*` | route별 form/table/live monitor script | backend payload 계약과 selector를 유지합니다. |
 | Auth shell | `AppendAuthShellStart/End` | `/setup`, `/login`, `/password/change`, invite/request shell | password policy와 session 동작은 auth backend 계약을 따릅니다. |
 | Ops shell | `AppendOpsShellStart/End`, `AppendOps*Page*` | admin/operator navigation과 page markup/script | raw/debug JSON은 접힘 영역에만 둡니다. |
 | Client shell | `ClientShellPageHtml`, `AppendClientShellScript` | scoped viewer live/dashboard UI | source URL, debugCounters, Developer URL, rule/profile editor를 노출하지 않습니다. |
-| Smoke | `verify_ops_client_ui_smoke.mjs`, `verify_auth_workflow.sh`, `rule_ui_smoke_check.mjs` | selector, screenshot, auth UI, `/lab/rules` 회귀 확인 | visual text보다 stable selector와 금지 항목 중심으로 유지합니다. |
+| Smoke | `verify_ops_client_ui_smoke.mjs`, `verify_auth_ui_smoke.mjs`, `verify_auth_workflow.sh`, `rule_ui_smoke_check.mjs` | selector, screenshot, auth UI, `/lab/rules` 회귀 확인 | visual text보다 stable selector와 금지 항목 중심으로 유지합니다. |
 
 `/lab/rules`는 기존 smoke selector와 3탭 회귀 위험이 높으므로, 대규모 DOM 구조 변경 없이 token과 selector 호환을 우선합니다.
 
@@ -115,7 +117,7 @@ Route 역할:
 
 Shell navigation은 server-side principal로 1차 렌더링하고 `/auth/whoami` 응답으로 admin-only menu를 다시 숨김 처리합니다. Client shell의 primary nav는 viewer용 라이브/대시보드만 유지합니다. admin/operator가 client 화면을 열면 메뉴 아래에 `Ops로 돌아가기`를 표시하고, viewer에게는 Ops/Lab nav와 debug/developer URL을 숨깁니다. Guard 실패 시 browser shell route는 login 또는 forbidden page를 보여주고, API route는 JSON `401`/`403`을 반환합니다.
 
-Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`로 확인합니다. 이 smoke는 `/setup`, `/login`, `/password/change`, `/invite/setup`, `/client/request-access`의 auth shell과 핵심 form selector를 함께 검사합니다. Ops/Client shell selector와 client debug/source 비노출은 `./server.sh verify-ops-client-ui`로 확인합니다. 화면 회귀 확인이 필요하면 `./server.sh verify-ops-client-ui --screenshots`로 주요 Ops/Client 화면을 headless Chrome에서 열어 overflow와 screenshot을 함께 남깁니다. 기존 Lab 자동화는 명시적인 auth off 검증 모드에서 계속 `/lab/rules` 3탭 구조와 공유 design token 계산값을 기준으로 동작합니다.
+Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`로 확인합니다. 이 smoke는 `/setup`, `/login`, `/password/change`, `/invite/setup`, `/client/request-access`의 auth shell과 핵심 form selector를 함께 검사합니다. Auth shell screenshot smoke가 필요하면 `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`을 붙여 같은 명령을 실행합니다. Ops/Client shell selector와 client debug/source 비노출은 `./server.sh verify-ops-client-ui`로 확인합니다. 화면 회귀 확인이 필요하면 `./server.sh verify-ops-client-ui --screenshots`로 주요 Ops/Client 화면을 headless Chrome에서 열어 overflow와 screenshot을 함께 남깁니다. 기존 Lab 자동화는 명시적인 auth off 검증 모드에서 계속 `/lab/rules` 3탭 구조와 공유 design token 계산값을 기준으로 동작합니다.
 
 ## 3. Admin User Management
 

@@ -161,6 +161,41 @@ expect_cookie_page_contains() {
   pass "${label}"
 }
 
+truthy() {
+  case "${1:-}" in
+    1|true|TRUE|yes|YES|on|ON) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+auth_ui_smoke() {
+  if ! truthy "${MEDIA_SERVER_VERIFY_AUTH_VISUAL:-0}"; then
+    return
+  fi
+  local label="$1"
+  local path="$2"
+  local selector="$3"
+  local cookie="${4:-}"
+  shift 4 || true
+  local page_spec="${label}|${path}|${selector}|${cookie}"
+  local needle
+  for needle in "$@"; do
+    page_spec="${page_spec}|${needle}"
+  done
+  local args=(
+    "${ROOT_DIR}/scripts/internal/verify_auth_ui_smoke.mjs"
+    --http-base "${BASE}"
+    --page "${page_spec}"
+    --visual-widths "${MEDIA_SERVER_VERIFY_AUTH_VISUAL_WIDTHS:-390,760}"
+    --debug-port-base "${MEDIA_SERVER_VERIFY_AUTH_DEBUG_PORT_BASE:-9820}"
+  )
+  if truthy "${MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS:-0}"; then
+    args+=(--screenshots)
+  fi
+  node "${args[@]}"
+  pass "${label} auth visual smoke"
+}
+
 json_string_field() {
   local field="$1"
   sed -n "s/.*\"${field}\":\"\\([^\"]*\\)\".*/\\1/p"
@@ -194,12 +229,15 @@ run_bootstrap() {
   expect_eq "$(header_status_location "${BASE}/")" "302:/setup" "missing users root redirect"
   expect_page_contains "setup auth shell selectors" "${BASE}/setup" \
     'class="auth-shell"' 'id="themeToggleBtn"' 'name="username"' 'name="password"' 'name="confirm"' '기본 kr-privacy 정책'
+  auth_ui_smoke "setup" "/setup" "form.auth-form" "" 'name="confirm"'
   setup_admin
   expect_eq "$(header_status_location "${BASE}/")" "302:/login" "unauthenticated root redirect"
   expect_page_contains "login auth shell selectors" "${BASE}/login" \
     'class="auth-shell"' 'id="themeToggleBtn"' 'name="username"' 'name="password"' 'autocomplete="current-password"'
+  auth_ui_smoke "login" "/login" "form.auth-form" "" 'autocomplete="current-password"'
   expect_page_contains "client access request auth shell selectors" "${BASE}/client/request-access" \
     'class="auth-shell"' 'id="request-form"' 'name="username"' 'name="contact"' 'name="reason"' 'window.MediaServerUi'
+  auth_ui_smoke "client-request-access" "/client/request-access" "#request-form" "" 'name="reason"'
   login_admin
   local logout_code whoami_code
   logout_code="$(http_code -b "${ADMIN_COOKIE}" -c "${ADMIN_COOKIE}" -X POST "${BASE}/logout")"
@@ -249,6 +287,7 @@ run_users() {
   expect_eq "${landing}" "302:/password/change" "mustChangePassword landing"
   expect_cookie_page_contains "password change auth shell selectors" "${VIEWER_COOKIE}" "${BASE}/password/change" \
     'class="auth-shell"' 'id="themeToggleBtn"' 'name="currentPassword"' 'name="password"' 'name="confirm"' '기본 kr-privacy 정책'
+  auth_ui_smoke "password-change" "/password/change" "form.auth-form" "${VIEWER_COOKIE}" 'name="currentPassword"'
   change_reuse_code="$(http_code -b "${VIEWER_COOKIE}" -c "${VIEWER_COOKIE}" \
     -X POST -d 'currentPassword=Reset!91&password=Reset!91&confirm=Reset!91' "${BASE}/password/change")"
   expect_eq "${change_reuse_code}" "400" "password history reuse rejected"
@@ -274,6 +313,7 @@ run_users() {
   pass "invite token issued once"
   expect_page_contains "invite setup auth shell selectors" "${BASE}/invite/setup?token=${invite_token}" \
     'class="auth-shell"' 'id="themeToggleBtn"' 'name="token"' 'name="password"' 'name="confirm"' '기본 kr-privacy 정책'
+  auth_ui_smoke "invite-setup" "/invite/setup?token=${invite_token}" "form.auth-form" "" 'name="token"'
   invite_setup="$(http_code -X POST --data-urlencode "token=${invite_token}" \
     --data-urlencode 'password=Invite!91' --data-urlencode 'confirm=Invite!91' "${BASE}/invite/setup")"
   expect_eq "${invite_setup}" "302" "invite password setup"
