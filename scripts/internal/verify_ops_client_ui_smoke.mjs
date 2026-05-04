@@ -51,6 +51,12 @@ const pageChecks = [
     must: ['data-testid="ops-dashboard-page"', 'id="opsDashboardFrame"', "/lab/rules?embed=1&tab=dashboard&panel=dashboard"],
   },
   {
+    name: "ops-rules",
+    path: "/ops/rules",
+    visualSelector: '[data-testid="ops-rules-page"]',
+    must: ['data-testid="ops-rules-page"', 'id="opsRulesFrame"', "/lab/rules?embed=1&tab=settings&panel=settings"],
+  },
+  {
     name: "ops-sources",
     path: "/ops/sources",
     visualSelector: '[data-testid="ops-sources-page"]',
@@ -108,37 +114,35 @@ for (const check of pageChecks) {
 }
 
 try {
-  const payload = await requestText("/client/api/views");
-  assertJsonKeysOmitted("client-api-views", payload, [
-    "rtspUrl",
-    "httpUrl",
-    "file",
-    "webrtcSourceId",
-    "storagePath",
-    "debugCounters",
-    "passwordHash",
-    "tokenHash",
-  ]);
-  assertOmits("client-api-views", payload, [
-    '"rtspUrl"',
-    '"httpUrl"',
-    '"file":',
-    '"webrtcSourceId"',
-    '"storagePath"',
-    '"debugCounters"',
-    "Developer URL",
-    "BBox diagnostics",
-    "data-copy-stream-channel",
-    "channel-stream-actions",
-    "SourceRegistry",
-  ]);
+  const payload = await assertClientApiContract("client-api-views", "/client/api/views");
   passCount += 1;
   console.log("[pass] client-api-views: sensitive source/debug fields omitted");
+  const views = Array.isArray(payload.views) ? payload.views : [];
+  if (views.length === 0) {
+    passCount += 1;
+    console.log("[pass] client-api-scoped-details: no assigned views to inspect");
+  } else {
+    let inspected = 0;
+    for (const view of views.slice(0, 3)) {
+      const viewId = String(view.viewId || "");
+      if (!viewId) continue;
+      await assertClientApiContract(`client-api-view-${viewId}`, `/client/api/views/${encodeURIComponent(viewId)}`);
+      if (view.showDashboard !== false) {
+        await assertClientApiContract(`client-api-dashboard-${viewId}`, `/client/api/views/${encodeURIComponent(viewId)}/dashboard`);
+      }
+      if (view.showEvents !== false) {
+        await assertClientApiContract(`client-api-events-${viewId}`, `/client/api/views/${encodeURIComponent(viewId)}/events?limit=5`);
+      }
+      inspected += 1;
+    }
+    passCount += 1;
+    console.log(`[pass] client-api-scoped-details: inspected=${inspected}`);
+  }
 } catch (error) {
   failCount += 1;
   const message = error instanceof Error ? error.message : String(error);
-  failures.push(`[client-api-views] ${message}`);
-  console.log(`[fail] client-api-views: ${message}`);
+  failures.push(`[client-api-contract] ${message}`);
+  console.log(`[fail] client-api-contract: ${message}`);
 }
 
 console.log("");
@@ -200,6 +204,38 @@ function clientForbiddenText() {
   ];
 }
 
+function clientForbiddenJsonKeys() {
+  return [
+    "rtspUrl",
+    "httpUrl",
+    "file",
+    "webrtcSourceId",
+    "storagePath",
+    "debugCounters",
+    "passwordHash",
+    "tokenHash",
+  ];
+}
+
+async function assertClientApiContract(label, path) {
+  const payload = await requestText(path);
+  assertJsonKeysOmitted(label, payload, clientForbiddenJsonKeys());
+  assertOmits(label, payload, [
+    '"rtspUrl"',
+    '"httpUrl"',
+    '"file":',
+    '"webrtcSourceId"',
+    '"storagePath"',
+    '"debugCounters"',
+    "Developer URL",
+    "BBox diagnostics",
+    "data-copy-stream-channel",
+    "channel-stream-actions",
+    "SourceRegistry",
+  ]);
+  return parseJson(label, payload);
+}
+
 function assertContains(name, text, needles) {
   for (const needle of needles) {
     if (!text.includes(needle)) {
@@ -218,7 +254,7 @@ function assertOmits(name, text, needles) {
 
 function assertJsonKeysOmitted(name, text, keys) {
   const forbidden = new Set(keys);
-  const payload = JSON.parse(text);
+  const payload = parseJson(name, text);
   const visit = (value, path = "$") => {
     if (Array.isArray(value)) {
       value.forEach((item, index) => visit(item, `${path}[${index}]`));
@@ -234,6 +270,14 @@ function assertJsonKeysOmitted(name, text, keys) {
     }
   };
   visit(payload);
+}
+
+function parseJson(name, text) {
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    throw new Error(`${name}: invalid JSON: ${error.message}`);
+  }
 }
 
 async function requestText(path) {
