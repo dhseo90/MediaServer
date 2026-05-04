@@ -130,6 +130,37 @@ expect_eq() {
   pass "${label}: ${actual}"
 }
 
+expect_page_contains() {
+  local label="$1"
+  local url="$2"
+  shift 2
+  local html
+  html="$(curl -fsS "${url}")"
+  for needle in "$@"; do
+    case "${html}" in
+      *"${needle}"*) ;;
+      *) fail "${label}: missing ${needle}" ;;
+    esac
+  done
+  pass "${label}"
+}
+
+expect_cookie_page_contains() {
+  local label="$1"
+  local cookie="$2"
+  local url="$3"
+  shift 3
+  local html
+  html="$(curl -fsS -b "${cookie}" "${url}")"
+  for needle in "$@"; do
+    case "${html}" in
+      *"${needle}"*) ;;
+      *) fail "${label}: missing ${needle}" ;;
+    esac
+  done
+  pass "${label}"
+}
+
 json_string_field() {
   local field="$1"
   sed -n "s/.*\"${field}\":\"\\([^\"]*\\)\".*/\\1/p"
@@ -161,8 +192,14 @@ login_admin() {
 run_bootstrap() {
   start_server auto lab
   expect_eq "$(header_status_location "${BASE}/")" "302:/setup" "missing users root redirect"
+  expect_page_contains "setup auth shell selectors" "${BASE}/setup" \
+    'class="auth-shell"' 'id="themeToggleBtn"' 'name="username"' 'name="password"' 'name="confirm"' '기본 kr-privacy 정책'
   setup_admin
   expect_eq "$(header_status_location "${BASE}/")" "302:/login" "unauthenticated root redirect"
+  expect_page_contains "login auth shell selectors" "${BASE}/login" \
+    'class="auth-shell"' 'id="themeToggleBtn"' 'name="username"' 'name="password"' 'autocomplete="current-password"'
+  expect_page_contains "client access request auth shell selectors" "${BASE}/client/request-access" \
+    'class="auth-shell"' 'id="request-form"' 'name="username"' 'name="contact"' 'name="reason"' 'window.MediaServerUi'
   login_admin
   local logout_code whoami_code
   logout_code="$(http_code -b "${ADMIN_COOKIE}" -c "${ADMIN_COOKIE}" -X POST "${BASE}/logout")"
@@ -210,6 +247,8 @@ run_users() {
     -X POST -d 'username=viewer-smoke&password=Reset!91' "${BASE}/login" |
     tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
   expect_eq "${landing}" "302:/password/change" "mustChangePassword landing"
+  expect_cookie_page_contains "password change auth shell selectors" "${VIEWER_COOKIE}" "${BASE}/password/change" \
+    'class="auth-shell"' 'id="themeToggleBtn"' 'name="currentPassword"' 'name="password"' 'name="confirm"' '기본 kr-privacy 정책'
   change_reuse_code="$(http_code -b "${VIEWER_COOKIE}" -c "${VIEWER_COOKIE}" \
     -X POST -d 'currentPassword=Reset!91&password=Reset!91&confirm=Reset!91' "${BASE}/password/change")"
   expect_eq "${change_reuse_code}" "400" "password history reuse rejected"
@@ -233,6 +272,8 @@ run_users() {
   invite_token="$(printf '%s' "${invite_json}" | json_string_field token)"
   [[ -n "${invite_token}" ]] || fail "invite token missing: ${invite_json}"
   pass "invite token issued once"
+  expect_page_contains "invite setup auth shell selectors" "${BASE}/invite/setup?token=${invite_token}" \
+    'class="auth-shell"' 'id="themeToggleBtn"' 'name="token"' 'name="password"' 'name="confirm"' '기본 kr-privacy 정책'
   invite_setup="$(http_code -X POST --data-urlencode "token=${invite_token}" \
     --data-urlencode 'password=Invite!91' --data-urlencode 'confirm=Invite!91' "${BASE}/invite/setup")"
   expect_eq "${invite_setup}" "302" "invite password setup"
