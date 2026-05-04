@@ -92,7 +92,7 @@ Auth 변경:
 ./server.sh verify-auth-routes
 ```
 
-위 세 명령은 임시 users file과 격리 포트에서 auth 서버를 띄워 setup/login/session/user/route smoke를 자동으로 확인합니다. 수동으로 세부 상태를 확인할 때는 아래 curl 흐름을 사용합니다.
+위 세 명령은 임시 users file과 격리 포트에서 auth 서버를 띄워 setup/login/session/user/route smoke를 자동으로 확인합니다. 로컬 QA나 수동 smoke에서 테스트 계정을 만들거나 초기화할 때는 계정 비밀번호를 `qweasd0-`로만 사용합니다. 이 규칙은 검증 재현성을 위한 것이며, 제품 기본 admin 비밀번호가 아닙니다. 수동으로 세부 상태를 확인할 때는 아래 curl 흐름을 사용합니다.
 
 ```bash
 MEDIA_SERVER_AUTH_MODE=auto \
@@ -116,7 +116,7 @@ MEDIA_SERVER_AUTH_LOGIN_LOCKOUT_SECONDS=300 \
   ./server.sh foreground
 curl -fsS 'http://127.0.0.1:8080/login'
 curl -fsS -c /tmp/media-server.cookies \
-  -d 'username=operator1&password=correct-password' \
+  -d 'username=operator1&password=qweasd0-' \
   'http://127.0.0.1:8080/login'
 curl -fsS -b /tmp/media-server.cookies 'http://127.0.0.1:8080/auth/whoami'
 curl -fsS -b /tmp/media-server.cookies -X POST 'http://127.0.0.1:8080/logout'
