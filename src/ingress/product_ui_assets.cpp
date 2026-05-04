@@ -27,21 +27,36 @@ std::string ProductSharedUiScript() {
       })[ch]);
       const display = value => value === null || value === undefined || value === '' ? '미제공' : String(value);
       const numberValue = value => Number.isFinite(Number(value)) ? Number(value) : 0;
+      const byId = id => document.getElementById(id);
+      const qs = (selector, root = document) => root.querySelector(selector);
+      const qsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+      const on = (target, event, handler, options) => {
+        if (target) target.addEventListener(event, handler, options);
+        return target;
+      };
       const setText = (id, value) => {
-        const el = document.getElementById(id);
+        const el = byId(id);
         if (el) el.textContent = display(value);
       };
+      const setFeedback = (el, message, failed = false, options = {}) => {
+        if (!el) return;
+        el.textContent = message;
+        el.classList.toggle('error', failed);
+        if (options.collapseEmpty) el.hidden = !message;
+      };
+      const formDataObject = form => Object.fromEntries(new FormData(form).entries());
+      const splitList = value => String(value ?? '').split(/[\n,]/).map(item => item.trim()).filter(Boolean);
       const chip = (text, tone = '') => `<span class="chip${tone ? ' ' + tone : ''}">${escapeHtml(display(text))}</span>`;
       const renderBadges = (id, items = []) => {
-        const el = document.getElementById(id);
+        const el = byId(id);
         if (!el) return;
         el.innerHTML = items.length > 0
           ? items.map(item => chip(item.text, item.tone)).join('')
           : chip('상태 없음', 'info');
       };
       const renderRaw = (preId, checkboxId, payload) => {
-        const pre = document.getElementById(preId);
-        const checkbox = document.getElementById(checkboxId);
+        const pre = byId(preId);
+        const checkbox = byId(checkboxId);
         if (!pre) return;
         const pretty = !checkbox || checkbox.checked;
         pre.textContent = JSON.stringify(payload, null, pretty ? 2 : 0);
@@ -72,7 +87,14 @@ std::string ProductSharedUiScript() {
         escapeHtml,
         display,
         numberValue,
+        byId,
+        qs,
+        qsa,
+        on,
         setText,
+        setFeedback,
+        formDataObject,
+        splitList,
         chip,
         renderBadges,
         renderRaw,

@@ -7,6 +7,25 @@ const args = parseArgs(process.argv.slice(2));
 const httpBase = (args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const timeoutMs = Number(args.timeoutMs || 10000);
 
+const productShellMust = [
+  'class="product-shell"',
+  'id="themeToggleBtn"',
+  'class="account-menu"',
+  "window.MediaServerUi",
+];
+
+const opsShellMust = [
+  'aria-label="운영 메뉴"',
+  'href="/ops/home"',
+  'href="/client/live"',
+];
+
+const clientShellMust = [
+  'aria-label="클라이언트 메뉴"',
+  'id="views-data"',
+  '<script type="application/json" id="views-data">',
+];
+
 const pageChecks = [
   {
     name: "ops-home",
@@ -32,18 +51,21 @@ const pageChecks = [
     name: "client-live",
     path: "/client/live",
     must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"'],
+    shellMust: clientShellMust,
     mustNot: clientForbiddenText(),
   },
   {
     name: "client-dashboard",
     path: "/client/dashboard",
     must: ['data-testid="client-shell-page"', 'data-client-active="dashboard"', 'id="views"', 'id="detail"'],
+    shellMust: clientShellMust,
     mustNot: clientForbiddenText(),
   },
   {
     name: "client-events",
     path: "/client/events",
     must: ['data-testid="client-shell-page"', 'data-client-active="dashboard"', 'id="views"', 'id="detail"'],
+    shellMust: clientShellMust,
     mustNot: clientForbiddenText(),
   },
 ];
@@ -55,7 +77,8 @@ const failures = [];
 for (const check of pageChecks) {
   try {
     const html = await requestText(check.path);
-    assertContains(check.name, html, check.must || []);
+    const shellMust = check.shellMust || opsShellMust;
+    assertContains(check.name, html, [...productShellMust, ...shellMust, ...(check.must || [])]);
     assertOmits(check.name, html, check.mustNot || []);
     passCount += 1;
     console.log(`[pass] ${check.name}: ${check.path}`);
@@ -78,6 +101,9 @@ try {
     '"debugCounters"',
     "Developer URL",
     "BBox diagnostics",
+    "data-copy-stream-channel",
+    "channel-stream-actions",
+    "SourceRegistry",
   ]);
   passCount += 1;
   console.log("[pass] client-api-views: sensitive source/debug fields omitted");
