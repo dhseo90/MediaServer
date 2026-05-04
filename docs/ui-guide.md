@@ -13,7 +13,7 @@
 | 운영 Dashboard | `http://127.0.0.1:8080/ops/dashboard` | runtime status를 card/detail UI로 표시 |
 | 운영 Events 직접 route | `http://127.0.0.1:8080/ops/events` | primary nav에서 숨긴 후속/진단 route |
 | 채널 관리 | `http://127.0.0.1:8080/ops/sources` | admin/operator용 숫자 채널 목록과 SourceRegistry/PublishedView 연결 관리 |
-| 계정 관리 | `http://127.0.0.1:8080/ops/users` | admin 전용 사용자 생성/초대/request 승인/비활성화 |
+| 계정 관리 | `http://127.0.0.1:8080/ops/users` | admin 전용 사용자 생성/수정/비활성화와 scope 관리 |
 | 클라이언트 포털 | `http://127.0.0.1:8080/client` 또는 `/client/live` | viewer/operator/admin용 client shell과 2x2 live monitor MVP |
 | 클라이언트 Dashboard | `http://127.0.0.1:8080/client/dashboard` | scoped PublishedView 상태 요약 MVP |
 | 접근 요청 | `http://127.0.0.1:8080/client/request-access` | pending client access request 제출 |
@@ -31,6 +31,16 @@ UI는 light/dark theme-aware design token을 사용하며, card/button/form/tabl
 - 목록으로, 재시작, 좌표 초기화, 복사 같은 보조 작업은 weak/ghost 버튼으로 표시합니다.
 - 삭제, 중단처럼 되돌리기 어렵거나 위험한 작업에만 danger 버튼을 사용합니다.
 - status badge는 `success`, `warning`, `danger`, `info`, `neutral` 의미를 구분하고 한 줄에 과도하게 늘어놓지 않습니다.
+
+내장 HTTP UI는 아직 C++ 문자열 렌더링 기반이지만, 제품 shell 쪽은 다음 공통 helper를 기준으로 유지합니다.
+
+- `ProductUiCss()`: Auth/Ops/Client가 공유하는 semantic token, card/button/form/table/badge/debug 스타일입니다.
+- `ProductSharedUiScript()`: product route에서 공유하는 `escapeHtml`, `requestJson`, badge/raw JSON 렌더링 helper입니다.
+- `AppendOpsShellStart/End`, `AppendAuthShellStart/End`: 운영 shell과 setup/login auth shell의 공통 document/header/footer를 렌더링합니다.
+- `AppendProductAccountMenu()`: theme toggle, user role, logout 영역을 Ops/Client에서 동일하게 렌더링합니다.
+- `AppendRawJsonDetails()`: 운영자용 raw/debug JSON을 낮은 visual weight의 접힘 영역으로 렌더링합니다.
+
+`/lab/rules`는 기존 smoke selector와 3탭 회귀 위험이 높으므로, 대규모 DOM 구조 변경 없이 token과 selector 호환을 우선합니다.
 
 `/lab/rules`는 세 탭으로 나뉩니다.
 
@@ -74,7 +84,7 @@ Role별 이동:
 
 Login page는 username/password 입력, 실패/lockout 메시지, 로그인 후 현재 사용자/role 표시, logout 버튼만 제공하는 MVP입니다. `/`는 setup required 상태에서 `/setup`, auth off에서 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/home`, `/client/live`, auth on에서 admin/operator를 `/ops/home`, viewer를 `/client/live`, 미인증 요청을 `/login`으로 보냅니다. 비밀번호 변경 성공 시 기존 session은 폐기되고 `/login`에서 다시 로그인합니다.
 
-클라이언트 계정의 1차 정책은 admin 수동 승인과 setup invite입니다. admin은 `/ops/users`에서 role/scope metadata를 입력해 password setup invite를 발급하고, 실제 비밀번호는 사용자가 `/invite/setup`에서 직접 입력합니다. Self-signup 자동 승인은 제공하지 않습니다. `/client/request-access`는 pending request만 저장하며, admin 승인 전에는 계정 생성, session login, view 접근이 허용되지 않습니다. PublishedView 단위 접근은 `view:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`, `dashboard:read:{viewId}` scope로 제한합니다.
+클라이언트 계정의 1차 정책은 admin 수동 생성/승인입니다. admin은 `/ops/users`에서 username, role, viewId 또는 직접 scopes, 초기 비밀번호를 입력해 계정을 생성합니다. Invite/setup API와 CLI는 검증 및 운영 보조 흐름으로 유지하지만, 현재 `/ops/users` 화면의 기본 동작은 직접 계정 생성입니다. Self-signup 자동 승인은 제공하지 않습니다. `/client/request-access`는 pending request만 저장하며, admin 승인 전에는 계정 생성, session login, view 접근이 허용되지 않습니다. PublishedView 단위 접근은 `view:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`, `dashboard:read:{viewId}` scope로 제한합니다.
 
 Route 역할:
 
@@ -92,13 +102,13 @@ Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify
 
 지원 동작:
 
-- 계정 생성: admin이 username, displayName, role, viewId 또는 직접 scopes를 입력해 setup invite를 발급합니다. 비밀번호는 invite를 받은 사용자가 `/invite/setup`에서 직접 입력합니다.
+- 계정 생성: admin이 username, displayName, role, viewId 또는 직접 scopes와 초기 비밀번호를 입력해 사용자를 생성합니다. 새 계정은 기본 활성화 상태이며 `mustChangePassword`를 켤 수 있습니다.
 - 계정 수정: displayName, role, scopes, enabled, mustChangePassword를 변경합니다.
-- 비밀번호 초기화: Ops UI에서는 비밀번호를 대신 지정하지 않고 setup invite를 재발급합니다.
+- 비밀번호 초기화: API/CLI smoke 경로에서 reset-password를 지원합니다. Ops UI 기본 화면은 사용자 생성/수정/활성화 관리에 집중합니다.
 - enable/disable: hard delete 대신 disable을 사용합니다. 마지막 활성 admin 계정은 비활성화하거나 다른 role로 변경할 수 없습니다.
 - viewer UX: `role=viewer` 또는 `integrator` 선택 시 view/scope assignment 영역을 보여줍니다. PublishedView가 아직 연결되지 않은 환경에서는 `viewId` 또는 `view:read:{viewId}` 같은 문자열 scope를 직접 입력합니다. viewer에는 debug/lab/ops/source/rule 관리 scope를 부여하지 않습니다.
-- invite: admin이 setup invite token을 발급하면 원문 token은 생성 응답에서 한 번만 표시됩니다. 저장소에는 `tokenHash`, 만료 시각, 사용 여부만 남고, `/invite/setup`에서 비밀번호 설정이 끝나면 token hash는 폐기됩니다.
-- request: `/client/request-access` 또는 `POST /client/api/access-requests`로 들어온 요청은 `pending`으로 저장됩니다. `/ops/users` pending list에서 admin이 approve하면 viewer 계정과 password setup invite가 만들어지고, reject하면 계정이나 session은 생성하지 않습니다.
+- invite: admin API/CLI가 setup invite token을 발급하면 원문 token은 생성 응답에서 한 번만 표시됩니다. 저장소에는 `tokenHash`, 만료 시각, 사용 여부만 남고, `/invite/setup`에서 비밀번호 설정이 끝나면 token hash는 폐기됩니다.
+- request: `/client/request-access` 또는 `POST /client/api/access-requests`로 들어온 요청은 `pending`으로 저장됩니다. 승인/거절 API는 유지하지만 현재 `/ops/users` 화면에는 request table을 별도 노출하지 않습니다.
 
 Role별 scope template:
 
