@@ -99,7 +99,14 @@ try {
           }
           return payload;
         };
+        const expectCssToken = (name) => {
+          const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+          if (!value) throw new Error('missing shared design token: ' + name);
+        };
 
+        for (const token of ['--color-bg', '--color-text', '--color-primary', '--color-border', '--radius-lg']) {
+          expectCssToken(token);
+        }
         expectText('selectDefaultTrackingBtn', '기본');
         expectText('selectAllTrackingBtn', '전체 선택');
         expectText('clearTrackingBtn', '전체 해제');
