@@ -55,7 +55,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     const views = Array.isArray(payload.views) ? payload.views : [];
     let selectedViewId = views[0]?.viewId || '';
     const isPreviewMode = document.body.dataset.clientPreview === 'true';
-    const { escapeHtml, display, requestJson, applyPrincipalVisibility } = window.MediaServerUi;
+    const { escapeHtml, display, requestJson, applyPrincipalVisibility, setSelectOptions } = window.MediaServerUi;
     const ms = value => value === null || value === undefined ? '미제공' : `${Math.max(0, Math.round(Number(value)))}ms`;
     const formatTime = value => {
       if (value === null || value === undefined || value === '') return '미제공';
@@ -333,7 +333,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       }
       const select = root.querySelector('[data-role="mode"]');
       if (select) {
-        select.innerHTML = modes.map(mode => `<option value="${escapeHtml(mode)}">${escapeHtml(overlayLabel(mode))}</option>`).join('');
+        setSelectOptions(select, modes.map(mode => ({ value: mode, label: overlayLabel(mode) })));
         select.value = tile.overlayMode || '';
         select.disabled = Boolean(tile.sessionId) || modes.length === 0;
         const wrap = root.querySelector('[data-role="mode-wrap"]');
@@ -783,7 +783,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     let currentChannelId = '';
     let editorMode = 'view';
     let currentChannelEnabled = true;
-	    const { escapeHtml, requestJson, formDataObject, setFeedback, setTableEmpty } = window.MediaServerUi;
+	    const { escapeHtml, requestJson, formDataObject, setFeedback, setTableEmpty, setSelectOptions } = window.MediaServerUi;
 	    const setStatus = (message, failed = false) => {
 	      setFeedback(statusEl, message, failed, { collapseEmpty: true });
 	    };
@@ -1085,7 +1085,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         const files = Array.isArray(payload.files) ? payload.files : [];
         if (files.length === 0) return;
         const previous = selected || select.value || payload.defaultFile || files[0];
-        select.innerHTML = files.map(file => `<option value="${escapeHtml(file)}">${escapeHtml(file)}</option>`).join('');
+        setSelectOptions(select, files);
         select.value = files.includes(previous) ? previous : files[0];
       } catch (error) {
         setStatus(`파일 목록 로드 실패: ${error.message}`, true);

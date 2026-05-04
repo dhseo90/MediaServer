@@ -40,7 +40,7 @@ UI는 light/dark theme-aware design token을 사용하며, card/button/form/tabl
 - `include/ingress/product_ui_page_scripts.h`, `src/ingress/product_ui_page_scripts.cpp`: `/client`, `/client/request-access`, `/ops/sources`, `/ops/users`의 route별 page script를 보관합니다.
 - `ProductDesignTokensCss()`: Auth/Ops/Client와 `/lab/rules`가 공유하는 light/dark semantic token 원천입니다.
 - `ProductUiCss()`: 제품 shell 공통 card/button/form/table/badge/debug 스타일입니다.
-- `ProductSharedUiScript()`: product route에서 공유하는 `escapeHtml`, `requestJson`, selector, form-data, feedback, badge/raw JSON 렌더링, role/scope visibility helper입니다.
+- `ProductSharedUiScript()`: product route에서 공유하는 `escapeHtml`, `requestJson`, selector, form-data, feedback, badge/raw JSON 렌더링, select/table DOM helper, role/scope visibility helper입니다.
 - `ClientShellCss()`: client shell 전용 CSS를 `ClientShellPageHtml()` 밖에서 관리합니다.
 - `AppendOpsShellStart/End`, `AppendAuthShellStart/End`: 운영 shell과 setup/login auth shell의 공통 document/header/footer를 렌더링합니다.
 - `AppendProductAccountMenu()`: theme toggle, user role, logout 영역을 Ops/Client에서 동일하게 렌더링합니다.
@@ -117,7 +117,7 @@ Route 역할:
 
 Shell navigation은 server-side principal로 1차 렌더링하고 `/auth/whoami` 응답으로 admin-only menu를 다시 숨김 처리합니다. Client shell의 primary nav는 viewer용 라이브/대시보드만 유지합니다. admin/operator가 client 화면을 열면 메뉴 아래에 `Ops로 돌아가기`를 표시하고, viewer에게는 Ops/Lab nav와 debug/developer URL을 숨깁니다. Guard 실패 시 browser shell route는 login 또는 forbidden page를 보여주고, API route는 JSON `401`/`403`을 반환합니다.
 
-Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`로 확인합니다. 이 smoke는 `/setup`, `/login`, `/password/change`, `/invite/setup`, `/client/request-access`의 auth shell과 핵심 form selector를 함께 검사합니다. Auth shell screenshot smoke가 필요하면 `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`을 붙여 같은 명령을 실행합니다. Ops/Client shell selector와 client debug/source 비노출은 `./server.sh verify-ops-client-ui`로 확인합니다. 화면 회귀 확인이 필요하면 `./server.sh verify-ops-client-ui --screenshots`로 주요 Ops/Client 화면을 headless Chrome에서 열어 overflow와 screenshot을 함께 남깁니다. 기존 Lab 자동화는 명시적인 auth off 검증 모드에서 계속 `/lab/rules` 3탭 구조와 공유 design token 계산값을 기준으로 동작합니다.
+Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`로 확인합니다. 이 smoke는 `/setup`, `/login`, `/password/change`, `/invite/setup`, `/client/request-access`의 auth shell과 핵심 form selector를 함께 검사합니다. Auth shell screenshot smoke가 필요하면 `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`을 붙여 같은 명령을 실행합니다. Ops/Client shell selector와 client debug/source 비노출은 `./server.sh verify-ops-client-ui`로 확인합니다. 이 smoke는 `/client/api/views`, 단일 view, dashboard, events 응답의 민감 key도 재귀적으로 검사합니다. 화면 회귀 확인이 필요하면 `./server.sh verify-ops-client-ui --screenshots`로 주요 Ops/Client 화면을 headless Chrome에서 열어 overflow와 screenshot을 함께 남깁니다. 기존 Lab 자동화는 명시적인 auth off 검증 모드에서 계속 `/lab/rules` 3탭 구조와 공유 design token 계산값을 기준으로 동작합니다.
 
 ## 3. Admin User Management
 

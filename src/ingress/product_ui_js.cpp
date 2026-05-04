@@ -56,15 +56,39 @@ std::string ProductSharedUiScript() {
       const splitList = value => String(value ?? '').split(/[\n,]/).map(item => item.trim()).filter(Boolean);
       const setTableEmpty = (tbody, colspan, message) => {
         if (!tbody) return;
-        tbody.innerHTML = `<tr><td colspan="${Number(colspan) || 1}">${escapeHtml(message)}</td></tr>`;
+        tbody.textContent = '';
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = Number(colspan) || 1;
+        td.textContent = message;
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      };
+      const setSelectOptions = (select, items = [], selected = '') => {
+        if (!select) return;
+        select.textContent = '';
+        for (const item of items) {
+          const option = document.createElement('option');
+          const value = typeof item === 'object' && item !== null ? item.value : item;
+          const label = typeof item === 'object' && item !== null ? item.label : item;
+          option.value = String(value ?? '');
+          option.textContent = display(label);
+          select.appendChild(option);
+        }
+        if (selected !== '') select.value = selected;
       };
       const chip = (text, tone = '') => `<span class="chip${tone ? ' ' + tone : ''}">${escapeHtml(display(text))}</span>`;
       const renderBadges = (id, items = []) => {
         const el = byId(id);
         if (!el) return;
-        el.innerHTML = items.length > 0
-          ? items.map(item => chip(item.text, item.tone)).join('')
-          : chip('상태 없음', 'info');
+        el.textContent = '';
+        const badges = items.length > 0 ? items : [{ text: '상태 없음', tone: 'info' }];
+        for (const item of badges) {
+          const span = document.createElement('span');
+          span.className = `chip${item.tone ? ' ' + item.tone : ''}`;
+          span.textContent = display(item.text);
+          el.appendChild(span);
+        }
       };
       const renderRaw = (preId, checkboxId, payload) => {
         const pre = byId(preId);
@@ -110,6 +134,7 @@ std::string ProductSharedUiScript() {
         formDataObject,
         splitList,
         setTableEmpty,
+        setSelectOptions,
         chip,
         renderBadges,
         renderRaw,
