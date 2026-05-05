@@ -74,7 +74,7 @@ const pageChecks = [
     name: "client-live",
     path: "/client/live",
     visualSelector: '[data-testid="client-shell-page"]',
-    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig'],
+    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles'],
     shellMust: clientShellMust,
     mustNot: [...clientForbiddenText(), 'new RTCPeerConnection({ iceServers: [] })'],
   },

@@ -731,9 +731,10 @@ curl -fsS -X POST \
 
 확인 기준:
 
-- `/client/live`는 2x2 grid, 최대 4 tile만 표시합니다.
+- `/client/live`는 2x2 grid, 최대 4 tile만 표시하며 PublishedView별 `maxTiles`를 UI 채널 배정/시작과 client wrapper API에서 함께 강제합니다.
 - viewer는 assigned PublishedView만 tile에 선택할 수 있습니다.
 - client WebRTC wrapper는 viewId만 허용하고 `file`, `url`, `source`, `rtspUrl`, `httpUrl`, `webrtcSourceId` override 요청을 400으로 거부합니다.
+- 같은 principal+view의 활성 client session이 `maxTiles`에 도달하면 추가 session 생성은 `409`로 거부됩니다.
 - `overlayMode`는 PublishedView의 `allowedOverlayModes` 안에서 `raw`, `va-overlay`, `va-rule`로 정규화됩니다.
 - `va-rule` mode는 PublishedView의 `allowedRuleIds`/`defaultRuleId` 안의 rule만 사용할 수 있습니다.
 - `va-rule` mode는 허용된 rule이라도 저장 source가 PublishedView source와 다르면 400으로 거부합니다.

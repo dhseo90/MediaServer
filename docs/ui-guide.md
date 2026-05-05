@@ -170,13 +170,14 @@ CLI도 같은 C++ password hash/password policy 경로를 사용합니다. Passw
 
 ### 4.2 Client Live Monitor
 
-`/client/live`는 viewer가 접근 가능한 PublishedView만 2x2 grid에 배치하는 live monitor MVP입니다. Tile은 최대 4개이며, 각 tile은 `/client/api/views/{viewId}/webrtc/session` wrapper로 WebRTC session을 생성합니다. Browser PeerConnection은 `/webrtc/config`의 `peerConnectionConfig`를 사용해 운영 STUN/TURN과 relay-only 설정을 그대로 따릅니다. 생성 응답은 client session alias만 반환하고, answer/ICE/delete는 `/client/api/views/{viewId}/webrtc/session/{clientSessionId}` 아래에서만 이어집니다. Client route는 viewId만 받으며 source 원본 URL, file/url/source override, 내부 generic session id/token, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile 수정 UI는 노출하지 않습니다. `va-rule` mode는 PublishedView의 `allowedRuleIds`와 rule source 일치 검증을 모두 통과해야 합니다. Viewer/client 계정은 직접 `/webrtc/session`, `/whep`, `/whip/publish` 생성 route를 호출할 수 없습니다.
+`/client/live`는 viewer가 접근 가능한 PublishedView만 2x2 grid에 배치하는 live monitor MVP입니다. Tile은 최대 4개이며, 각 PublishedView의 `maxTiles`는 UI의 채널 배정/시작 버튼과 `/client/api/views/{viewId}/webrtc/session` wrapper에서 같은 principal+view의 동시 client session 상한으로 강제합니다. Browser PeerConnection은 `/webrtc/config`의 `peerConnectionConfig`를 사용해 운영 STUN/TURN과 relay-only 설정을 그대로 따릅니다. 생성 응답은 client session alias만 반환하고, answer/ICE/delete는 `/client/api/views/{viewId}/webrtc/session/{clientSessionId}` 아래에서만 이어집니다. Client route는 viewId만 받으며 source 원본 URL, file/url/source override, 내부 generic session id/token, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile 수정 UI는 노출하지 않습니다. `va-rule` mode는 PublishedView의 `allowedRuleIds`와 rule source 일치 검증을 모두 통과해야 합니다. Viewer/client 계정은 직접 `/webrtc/session`, `/whep`, `/whip/publish` 생성 route를 호출할 수 없습니다.
 
 Tile별 기능:
 
 - assigned view 선택
 - PublishedView의 `allowedOverlayModes` 안에서 `raw`, `va-overlay`, `va-rule` 선택
 - tile start / tile stop / all stop
+- PublishedView `maxTiles` 초과 시 tile 선택/시작을 막고 wrapper API는 `409`를 반환
 - live/offline, stale, track count, event count, connection status 표시
 - 선택된 tile만 dashboard/detail을 갱신
 
