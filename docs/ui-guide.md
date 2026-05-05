@@ -103,7 +103,7 @@ Role별 이동:
 
 - `admin`, `operator`: `/ops/home`
 - `viewer`: `/client/live`
-- `integrator`: UI landing 없이 metadata/event API 연동용 token 사용을 우선합니다.
+- `integrator`: UI landing 없이 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata` 연동용 token/session 사용을 우선합니다.
 
 Login page는 username/password 입력, 실패/lockout 메시지, 로그인 후 현재 사용자/role 표시, logout 버튼만 제공하는 MVP입니다. `/`는 setup required 상태에서 `/setup`, auth off에서 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/home`, `/client/live`, auth on에서 admin/operator를 `/ops/home`, viewer를 `/client/live`, 미인증 요청을 `/login`으로 보냅니다. 비밀번호 변경 성공 시 기존 session은 폐기되고 `/login`에서 다시 로그인합니다.
 
@@ -111,13 +111,13 @@ Login page는 username/password 입력, 실패/lockout 메시지, 로그인 후 
 
 Route 역할:
 
-- `/ops`: admin/operator 전용 운영 shell이며 `ops:read` scope가 필요합니다. Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기 순서입니다. `/ops/home`은 운영 overview이고 `/ops/live`는 후속 Operator Live Monitor 안내 route입니다. `/ops/dashboard`는 기존 Lab Runtime Dashboard를 운영 shell 안에 표시합니다. `/ops/events`는 primary nav에서 숨긴 후속/진단 route이며 독립 제품 탭으로 취급하지 않습니다. raw JSON은 접힘 debug 영역에만 둡니다.
-- `/client`: viewer/operator/admin 접근 shell입니다. `/client/api/views` 기준으로 할당된 PublishedView만 표시하며 원본 source URL, debug/developer URL은 노출하지 않습니다.
-- `/lab`: admin/operator 또는 `lab:read` scope용 개발/검증 shell입니다. viewer/client 기본 계정은 접근할 수 없고, 기존 `/lab/rules`와 자동화 bookmark 호환은 auth off 검증 모드에서 유지합니다.
+- `/ops`: admin/operator 전용 운영 shell이며 `ops:read` scope가 필요합니다. 채널/PublishedView 변경 API는 `source:write` scope를 추가로 요구합니다. Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기 순서입니다. `/ops/home`은 운영 overview이고 `/ops/live`는 후속 Operator Live Monitor 안내 route입니다. `/ops/dashboard`는 기존 Lab Runtime Dashboard를 운영 shell 안에 표시합니다. `/ops/events`는 primary nav에서 숨긴 후속/진단 route이며 독립 제품 탭으로 취급하지 않습니다. raw JSON은 접힘 debug 영역에만 둡니다.
+- `/client`: viewer/operator/admin 접근 shell입니다. `/client/api/views` 기준으로 할당된 PublishedView만 표시하며 원본 source URL, debug/developer URL은 노출하지 않습니다. Integrator는 shell/live/dashboard UI가 아니라 scoped events/metadata API만 접근합니다.
+- `/lab`: admin/operator 또는 `lab:read` scope용 개발/검증 shell입니다. viewer/client 기본 계정은 접근할 수 없고, rule/profile/vaRule 변경 API는 `rule:write` scope를 추가로 요구합니다. 기존 `/lab/rules`와 자동화 bookmark 호환은 auth off 검증 모드에서 유지합니다.
 
 Shell navigation은 server-side principal로 1차 렌더링하고 `/auth/whoami` 응답으로 admin-only menu를 다시 숨김 처리합니다. Client shell의 primary nav는 viewer용 라이브/대시보드만 유지합니다. admin/operator가 client 화면을 열면 메뉴 아래에 `Ops로 돌아가기`를 표시하고, viewer에게는 Ops/Lab nav와 debug/developer URL을 숨깁니다. Guard 실패 시 browser shell route는 login 또는 forbidden page를 보여주고, API route는 JSON `401`/`403`을 반환합니다.
 
-Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`로 확인합니다. 이 smoke는 `/setup`, `/login`, `/password/change`, `/invite/setup`, `/client/request-access`의 auth shell과 핵심 form selector를 함께 검사합니다. Auth shell screenshot smoke가 필요하면 `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`을 붙여 같은 명령을 실행합니다. Ops/Client shell selector와 client debug/source 비노출은 `./server.sh verify-ops-client-ui`로 확인합니다. 이 smoke는 `/client/api/views`, 단일 view, dashboard, events 응답의 민감 key도 재귀적으로 검사합니다. 화면 회귀 확인이 필요하면 `./server.sh verify-ops-client-ui --screenshots`로 주요 Ops/Client 화면을 headless Chrome에서 열어 overflow와 screenshot을 함께 남깁니다. 기존 Lab 자동화는 명시적인 auth off 검증 모드에서 계속 `/lab/rules` 3탭 구조와 공유 design token 계산값을 기준으로 동작합니다.
+Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`로 확인합니다. 이 smoke는 `/setup`, `/login`, `/password/change`, `/invite/setup`, `/client/request-access`의 auth shell과 핵심 form selector를 함께 검사합니다. Auth shell screenshot smoke가 필요하면 `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`을 붙여 같은 명령을 실행합니다. Ops/Client shell selector와 client debug/source 비노출은 `./server.sh verify-ops-client-ui`로 확인합니다. 이 smoke는 `/client/api/views`, 단일 view, dashboard, events, metadata 응답의 민감 key도 재귀적으로 검사합니다. 화면 회귀 확인이 필요하면 `./server.sh verify-ops-client-ui --screenshots`로 주요 Ops/Client 화면을 headless Chrome에서 열어 overflow와 screenshot을 함께 남깁니다. 기존 Lab 자동화는 명시적인 auth off 검증 모드에서 계속 `/lab/rules` 3탭 구조와 공유 design token 계산값을 기준으로 동작합니다.
 
 ## 3. Admin User Management
 
@@ -138,7 +138,7 @@ Role별 scope template:
 - `admin`: `*`
 - `operator`: `ops:read`, `rule:write`, `source:write`, `dashboard:read:*`, `event:read:*`
 - `viewer`: `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`. viewId가 비어 있으면 실제 view 권한을 주지 않는 `__unassigned__` placeholder scope를 사용합니다.
-- `integrator`: `metadata:read:{viewId}`, `event:read:{viewId}`
+- `integrator`: `metadata:read:{viewId}`, `event:read:{viewId}`. UI shell은 열지 않고 scoped API만 사용합니다.
 
 CLI도 같은 C++ password hash/password policy 경로를 사용합니다. Password는 기본적으로 prompt로 입력하고, 자동 smoke에서는 `--password-stdin`을 사용할 수 있습니다.
 
@@ -157,7 +157,7 @@ CLI도 같은 C++ password hash/password policy 경로를 사용합니다. Passw
 
 ### 4.1 Client scoped dashboard
 
-`/client/dashboard`는 viewer가 접근 가능한 PublishedView의 상태 요약만 보여주는 client dashboard MVP입니다. view 목록은 `/client/api/views`의 scoped 결과를 사용하고, 선택된 view의 상세 상태는 `/client/api/views/{viewId}/dashboard`에서 가져옵니다. `/client/events`는 primary nav에서 제거했으며, 이벤트 요약은 client dashboard 안에서 sanitized summary로만 표시합니다.
+`/client/dashboard`는 viewer가 접근 가능한 PublishedView의 상태 요약만 보여주는 client dashboard MVP입니다. view 목록은 `/client/api/views`의 scoped 결과를 사용하고, 선택된 view의 상세 상태는 `/client/api/views/{viewId}/dashboard`에서 가져옵니다. `/client/events`는 primary nav에서 제거했으며, 이벤트 요약은 client dashboard 안에서 sanitized summary로만 표시합니다. Integrator 연동은 `/client/api/views/{viewId}/events?limit=...`와 `/client/api/views/{viewId}/metadata`를 사용하며 각각 `event:read:{viewId}`, `metadata:read:{viewId}`가 필요합니다.
 
 표시 범위:
 
@@ -166,7 +166,7 @@ CLI도 같은 C++ password hash/password policy 경로를 사용합니다. Passw
 - event summary: 최근 event, event type별 count, warning badge
 - connection: WebRTC connected/disconnected, stale metadata age, last frame age
 
-값이 없거나 아직 수집되지 않은 항목은 UI에서 `미제공`으로 표시합니다. Client dashboard와 `/client/api/views/{viewId}/events?limit=...`는 source 원본 URL, Developer URL, raw JSON, `debugCounters`, `analysisTapId`, internal session id, rule/profile editor, Event POST 설정, SSE/WS 전체 endpoint를 노출하지 않습니다. 운영자용 세부 runtime/debug 확인은 `/lab/rules` Runtime Dashboard 또는 `/lab/runtime/status`에서만 수행합니다.
+값이 없거나 아직 수집되지 않은 항목은 UI에서 `미제공`으로 표시합니다. Client dashboard, `/client/api/views/{viewId}/events?limit=...`, `/client/api/views/{viewId}/metadata`는 source 원본 URL, Developer URL, raw JSON, `debugCounters`, `analysisTapId`, internal session id, rule/profile editor, Event POST 설정, SSE/WS 전체 endpoint를 노출하지 않습니다. 운영자용 세부 runtime/debug 확인은 `/lab/rules` Runtime Dashboard 또는 `/lab/runtime/status`에서만 수행합니다.
 
 ### 4.2 Client Live Monitor
 

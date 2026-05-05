@@ -82,7 +82,7 @@ Session login은 `libsodium crypto_pwhash_str` password hash를 사용합니다.
 | `viewer` | `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}` |
 | `integrator` | `metadata:read:{viewId}`, `event:read:{viewId}` |
 
-`*` scope는 MVP의 wildcard 표현입니다. `/ops/users`와 CLI에서 viewId를 넣으면 viewer/integrator scope template은 `{viewId}` 단위로 생성됩니다.
+`*` scope는 MVP의 wildcard 표현입니다. `/ops/users`와 CLI에서 viewId를 넣으면 viewer/integrator scope template은 `{viewId}` 단위로 생성됩니다. `/ops/api/sources`와 `/ops/api/views`의 변경 작업은 `source:write`, Lab rule/profile/vaRule 변경 작업은 `rule:write`를 추가로 요구합니다. Integrator는 client shell/live/dashboard UI에 진입하지 않고 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata` 같은 scoped API만 사용합니다.
 
 Users file 예시:
 
@@ -249,7 +249,7 @@ Admin user management API:
 | `MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_PROFILES_PER_SOURCE` | `8` | source 하나에서 동시에 허용할 active analysis profile 수. `0`은 제한 비활성 |
 | `MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_TAPS_PER_SOURCE` | `8` | source 하나에서 동시에 허용할 active analysis tap 수. `0`은 제한 비활성 |
 
-SourceRegistry는 운영자 API `/ops/api/sources`에서 관리하며 `sourceId`, `displayName`, `kind`, `canonicalSourceKey`, source input, `enabled`, `tags`, `ownerGroup`을 저장합니다. 제품 UI에서는 이를 숫자 채널로 묶어 `/ops/sources`에 표시합니다. Registry가 비어 있으면 기본 file/VA file/공개 RTSP/HLS 채널을 seed합니다. `kind=webrtc`의 `webrtcSourceId`는 외부 WebRTC/WHEP URL이 아니라 `/whip/publish`로 먼저 등록된 내부 sourceId입니다. PublishedView는 `/ops/api/views`에서 관리하며 `viewId`, `sourceId`, `defaultRuleId`, `allowedRuleIds`, `allowedOverlayModes`, dashboard/event/metadata 노출 정책, `clientGroups`, `maxTiles`를 저장합니다. Client API `/client/api/views`는 `view:read:{viewId}` scope로 필터링한 공개 필드만 반환하고 원본 URL/file/sourceId input은 숨깁니다.
+SourceRegistry는 운영자 API `/ops/api/sources`에서 관리하며 `sourceId`, `displayName`, `kind`, `canonicalSourceKey`, source input, `enabled`, `tags`, `ownerGroup`을 저장합니다. 제품 UI에서는 이를 숫자 채널로 묶어 `/ops/sources`에 표시합니다. Registry가 비어 있으면 기본 file/VA file/공개 RTSP/HLS 채널을 seed합니다. `kind=webrtc`의 `webrtcSourceId`는 외부 WebRTC/WHEP URL이 아니라 `/whip/publish`로 먼저 등록된 내부 sourceId입니다. PublishedView는 `/ops/api/views`에서 관리하며 `viewId`, `sourceId`, `defaultRuleId`, `allowedRuleIds`, `allowedOverlayModes`, dashboard/event/metadata 노출 정책, `clientGroups`, `maxTiles`를 저장합니다. Client API `/client/api/views`는 `view:read:{viewId}` scope로 필터링한 공개 필드만 반환하고 원본 URL/file/sourceId input은 숨깁니다. `/client/api/views/{viewId}/dashboard`, `/events`, `/metadata`는 각각 `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`를 요구합니다.
 
 ### Adaptive inference
 

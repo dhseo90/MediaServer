@@ -133,6 +133,9 @@ try {
       if (view.showEvents !== false) {
         await assertClientApiContract(`client-api-events-${viewId}`, `/client/api/views/${encodeURIComponent(viewId)}/events?limit=5`);
       }
+      if (view.showMetadataSummary !== false) {
+        await assertClientApiContract(`client-api-metadata-${viewId}`, `/client/api/views/${encodeURIComponent(viewId)}/metadata`);
+      }
       inspected += 1;
     }
     passCount += 1;

@@ -14,7 +14,9 @@ TMP_DIR="${TMPDIR:-/tmp}"
 USERS_FILE="${TMP_DIR}/media_server_${RUN_ID}_users.json"
 ADMIN_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_admin.cookie"
 OP_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_operator.cookie"
+OP_READONLY_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_operator_readonly.cookie"
 VIEWER_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_viewer.cookie"
+INTEGRATOR_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_integrator.cookie"
 INVITE_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_invite.cookie"
 REQUEST_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_request.cookie"
 LOG_FILE="${TMP_DIR}/media_server_${RUN_ID}.log"
@@ -29,7 +31,8 @@ cleanup() {
     wait "${SERVER_PID}" >/dev/null 2>&1 || true
   fi
   rm -f "${USERS_FILE}" "${USERS_FILE}.tmp" \
-    "${ADMIN_COOKIE}" "${OP_COOKIE}" "${VIEWER_COOKIE}" \
+    "${ADMIN_COOKIE}" "${OP_COOKIE}" "${OP_READONLY_COOKIE}" \
+    "${VIEWER_COOKIE}" "${INTEGRATOR_COOKIE}" \
     "${INVITE_COOKIE}" "${REQUEST_COOKIE}" "${LOG_FILE}"
 }
 trap cleanup EXIT
@@ -366,7 +369,9 @@ run_routes() {
   login_admin
   expect_eq "$(header_status_location -b "${ADMIN_COOKIE}" "${BASE}/")" "302:/ops/home" "admin root"
   create_user '{"username":"operator-smoke","displayName":"Operator Smoke","role":"operator","password":"Operator!91","enabled":true,"mustChangePassword":false}' >/dev/null
+  create_user '{"username":"operator-readonly","displayName":"Operator Readonly","role":"operator","scopes":["ops:read"],"password":"Operator!92","enabled":true,"mustChangePassword":false}' >/dev/null
   create_user '{"username":"viewer-smoke","displayName":"Viewer Smoke","role":"viewer","viewId":"view-a","password":"Viewer!91","enabled":true,"mustChangePassword":false}' >/dev/null
+  create_user '{"username":"integrator-smoke","displayName":"Integrator Smoke","role":"integrator","viewId":"view-a","password":"Integrator!91","enabled":true,"mustChangePassword":false}' >/dev/null
   local sources_json source_id
   sources_json="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/api/sources")"
   source_id="$(printf '%s' "${sources_json}" | json_string_field sourceId)"
@@ -379,12 +384,31 @@ run_routes() {
     -X POST -d 'username=operator-smoke&password=Operator!91' "${BASE}/login" |
     tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
   expect_eq "${op_landing}" "302:/ops/home" "operator login route"
+  local op_readonly_landing
+  op_readonly_landing="$(curl -sS -c "${OP_READONLY_COOKIE}" -o /dev/null -D - \
+    -X POST -d 'username=operator-readonly&password=Operator!92' "${BASE}/login" |
+    tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
+  expect_eq "${op_readonly_landing}" "302:/ops/home" "readonly operator login route"
   viewer_landing="$(curl -sS -c "${VIEWER_COOKIE}" -o /dev/null -D - \
     -X POST -d 'username=viewer-smoke&password=Viewer!91' "${BASE}/login" |
     tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
   expect_eq "${viewer_landing}" "302:/client/live" "viewer login route"
+  local integrator_landing
+  integrator_landing="$(curl -sS -c "${INTEGRATOR_COOKIE}" -o /dev/null -D - \
+    -X POST -d 'username=integrator-smoke&password=Integrator!91' "${BASE}/login" |
+    tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
+  expect_eq "${integrator_landing}" "302:/login" "integrator login keeps API-only landing"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops")" "403" "viewer ops denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/lab")" "403" "viewer lab denied"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/sources")" "200" "readonly operator ops read allowed"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data '{"viewId":"readonly-denied"}' "${BASE}/ops/api/views")" "403" "source write scope required for view write"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data '{}' "${BASE}/lab/analysis/rules")" "403" "rule write scope required for lab rule write"
+  expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client")" "403" "integrator client shell denied"
+  expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/view-a/events?limit=1")" "200" "integrator event scope allowed"
+  expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/view-a/metadata")" "200" "integrator metadata scope allowed"
+  expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/view-a/dashboard")" "403" "integrator dashboard scope denied"
   expect_eq "$(http_code -X POST "${BASE}/webrtc/session?file=sample_h264.mp4")" "401" "unauth generic WebRTC denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X POST "${BASE}/webrtc/session?file=sample_h264.mp4")" "403" "viewer generic WebRTC denied"
   expect_eq "$(http_code -X POST "${BASE}/whep?file=sample_h264.mp4")" "401" "unauth WHEP denied"

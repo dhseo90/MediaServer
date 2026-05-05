@@ -17741,6 +17741,60 @@ std::string ClientViewEventsJson(const SourceViewRegistry::ClientViewAccess& acc
     return out.str();
 }
 
+std::string ClientViewMetadataJson(const SourceViewRegistry::ClientViewAccess& access,
+                                   const std::vector<analysis::AnalysisManager::TapSnapshot>& taps) {
+    const auto stream_key_candidates = ClientStreamKeyCandidates(access.source);
+    const auto* tap = SelectClientDashboardTap(access, taps, stream_key_candidates);
+    const bool has_tap = tap != nullptr;
+    const bool has_metadata = has_tap && tap->latest_result.has_value();
+    const std::optional<std::int64_t> metadata_age =
+        has_metadata ? std::optional<std::int64_t>(tap->latest_result_age_ms) : std::nullopt;
+    const bool metadata_stale =
+        metadata_age.has_value() && *metadata_age > kClientDashboardStaleMs;
+
+    std::optional<std::int64_t> timestamp_ms;
+    std::optional<std::int64_t> track_count;
+    std::optional<std::int64_t> active_event_count;
+    std::optional<std::int64_t> scenario_count;
+    if (has_metadata) {
+        if (tap->latest_result->metrics_report.has_value()) {
+            const auto& metrics = *tap->latest_result->metrics_report;
+            timestamp_ms = metrics.timestamp_ms;
+            track_count = static_cast<std::int64_t>(metrics.total_track_count);
+            active_event_count = static_cast<std::int64_t>(metrics.active_event_state_count);
+            scenario_count = static_cast<std::int64_t>(metrics.active_scenario_count);
+        } else {
+            timestamp_ms = tap->latest_result->pts / 1000000LL;
+            track_count = static_cast<std::int64_t>(tap->latest_result->tracks.size());
+        }
+    }
+
+    std::ostringstream out;
+    out << "{\"ok\":true,\"view\":";
+    AppendClientViewIdentityJson(out, access);
+    out << ",\"metadata\":{"
+        << "\"provided\":" << (has_metadata ? "true" : "false") << ","
+        << "\"status\":\""
+        << (!access.view.show_metadata_summary ? "disabled"
+                                               : (!has_tap ? "unavailable"
+                                                           : (!has_metadata ? "unavailable"
+                                                                            : (metadata_stale ? "stale" : "fresh"))))
+        << "\","
+        << "\"schema\":\"media-server.client.metadata-summary.v1\","
+        << "\"timestampMs\":";
+    AppendNullableInt64(out, timestamp_ms);
+    out << ",\"ageMs\":";
+    AppendNullableInt64(out, metadata_age);
+    out << ",\"trackCount\":";
+    AppendNullableInt64(out, track_count);
+    out << ",\"activeEventCount\":";
+    AppendNullableInt64(out, active_event_count);
+    out << ",\"scenarioCount\":";
+    AppendNullableInt64(out, scenario_count);
+    out << "}}";
+    return out.str();
+}
+
 std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& access,
                                     const auth::Principal& principal,
                                     const std::vector<analysis::AnalysisManager::TapSnapshot>& taps) {
@@ -17749,7 +17803,9 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     const bool has_tap = tap != nullptr;
     const bool has_frame = has_tap && tap->has_latest_frame;
     const bool has_metadata = has_tap && tap->latest_result.has_value();
-    const bool metadata_allowed = access.view.show_metadata_summary;
+    const bool metadata_allowed =
+        access.view.show_metadata_summary &&
+        ClientPrincipalCanAccessFeature(principal, access.view.view_id, "metadata:read");
     const std::optional<std::int64_t> last_frame_age =
         has_frame ? std::optional<std::int64_t>(tap->latest_frame_age_ms) : std::nullopt;
     const std::optional<std::int64_t> metadata_age =
@@ -21596,7 +21652,23 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             return std::nullopt;
                         };
-                        auto require_client_principal = [&]() -> std::optional<HttpResponse> {
+                        auto require_client_api_principal = [&]() -> std::optional<HttpResponse> {
+                            if (!config.enable_client) {
+                                return route_disabled_response("client");
+                            }
+                            if (!principal_result.ok) {
+                                return AuthErrorResponse(principal_result.error);
+                            }
+                            if (!auth::RequireRole(principal_result.principal, {"viewer", "operator"}) &&
+                                !auth::IsIntegrator(principal_result.principal)) {
+                                return JsonResponse(
+                                    403,
+                                    "Forbidden",
+                                    "{\"error\":\"viewer/operator/integrator role required\"}");
+                            }
+                            return std::nullopt;
+                        };
+                        auto require_client_shell_principal = [&]() -> std::optional<HttpResponse> {
                             if (!config.enable_client) {
                                 return route_disabled_response("client");
                             }
@@ -21604,9 +21676,29 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return AuthErrorResponse(principal_result.error);
                             }
                             if (!auth::RequireRole(principal_result.principal, {"viewer", "operator"})) {
-                                return JsonResponse(403, "Forbidden", "{\"error\":\"viewer role required\"}");
+                                return JsonResponse(403, "Forbidden", "{\"error\":\"viewer/operator role required\"}");
                             }
                             return std::nullopt;
+                        };
+                        auto require_scope_principal =
+                            [&](const std::string& scope,
+                                const std::string& error) -> std::optional<HttpResponse> {
+                                if (!principal_result.ok) {
+                                    return AuthErrorResponse(principal_result.error);
+                                }
+                                if (!auth::RequireScope(principal_result.principal, scope)) {
+                                    return JsonResponse(
+                                        403,
+                                        "Forbidden",
+                                        "{\"error\":\"" + JsonEscape(error) + "\"}");
+                                }
+                                return std::nullopt;
+                            };
+                        auto require_source_write_principal = [&]() -> std::optional<HttpResponse> {
+                            return require_scope_principal("source:write", "source:write scope required");
+                        };
+                        auto require_rule_write_principal = [&]() -> std::optional<HttpResponse> {
+                            return require_scope_principal("rule:write", "rule:write scope required");
                         };
                         auto require_lab_principal = [&]() -> std::optional<HttpResponse> {
                             if (!config.enable_lab) {
@@ -22063,6 +22155,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return JsonResponse(200, "OK", SourceViewRegistry::Instance().SourcesJson());
                             }
                             if (request.method == "POST") {
+                                if (const auto auth_response = require_source_write_principal();
+                                    auth_response.has_value()) {
+                                    return *auth_response;
+                                }
                                 return RegistryHttpResponse(
                                     SourceViewRegistry::Instance().CreateSource(request.body));
                             }
@@ -22075,10 +22171,18 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             const std::string source_id =
                                 UrlDecode(request.path.substr(std::string("/ops/api/sources/").size()));
                             if (request.method == "PUT") {
+                                if (const auto auth_response = require_source_write_principal();
+                                    auth_response.has_value()) {
+                                    return *auth_response;
+                                }
                                 return RegistryHttpResponse(
                                     SourceViewRegistry::Instance().UpsertSource(source_id, request.body));
                             }
                             if (request.method == "DELETE") {
+                                if (const auto auth_response = require_source_write_principal();
+                                    auth_response.has_value()) {
+                                    return *auth_response;
+                                }
                                 return RegistryHttpResponse(
                                     SourceViewRegistry::Instance().DisableSource(source_id));
                             }
@@ -22092,6 +22196,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return JsonResponse(200, "OK", SourceViewRegistry::Instance().ViewsJson());
                             }
                             if (request.method == "POST") {
+                                if (const auto auth_response = require_source_write_principal();
+                                    auth_response.has_value()) {
+                                    return *auth_response;
+                                }
                                 return RegistryHttpResponse(
                                     SourceViewRegistry::Instance().CreateView(request.body));
                             }
@@ -22104,17 +22212,25 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             const std::string view_id =
                                 UrlDecode(request.path.substr(std::string("/ops/api/views/").size()));
                             if (request.method == "PUT") {
+                                if (const auto auth_response = require_source_write_principal();
+                                    auth_response.has_value()) {
+                                    return *auth_response;
+                                }
                                 return RegistryHttpResponse(
                                     SourceViewRegistry::Instance().UpsertView(view_id, request.body));
                             }
                             if (request.method == "DELETE") {
+                                if (const auto auth_response = require_source_write_principal();
+                                    auth_response.has_value()) {
+                                    return *auth_response;
+                                }
                                 return RegistryHttpResponse(
                                     SourceViewRegistry::Instance().DisableView(view_id));
                             }
                         }
 
                         if (request.path == "/client/api/views") {
-                            if (const auto auth_response = require_client_principal(); auth_response.has_value()) {
+                            if (const auto auth_response = require_client_api_principal(); auth_response.has_value()) {
                                 return *auth_response;
                             }
                             if (request.method == "GET") {
@@ -22126,7 +22242,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if (request.path.rfind("/client/api/views/", 0) == 0) {
-                            if (const auto auth_response = require_client_principal(); auth_response.has_value()) {
+                            if (const auto auth_response = require_client_api_principal(); auth_response.has_value()) {
                                 return *auth_response;
                             }
                             const std::string suffix =
@@ -22345,6 +22461,29 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     const int limit = ParseClampedIntQuery(event_query, "limit", 20, 1, 50);
                                     return JsonResponse(200, "OK", ClientViewEventsJson(access, limit));
                                 }
+                                if (subresource == "metadata") {
+                                    SourceViewRegistry::ClientViewAccess access;
+                                    const auto access_result =
+                                        SourceViewRegistry::Instance().ResolveClientViewAccess(
+                                            view_id,
+                                            principal_result.principal,
+                                            "metadata:read",
+                                            &access);
+                                    if (access_result.status != 200) {
+                                        return RegistryHttpResponse(access_result);
+                                    }
+                                    if (!access.view.show_metadata_summary) {
+                                        return JsonResponse(
+                                            403,
+                                            "Forbidden",
+                                            "{\"error\":\"metadata summary is not enabled for this view\"}");
+                                    }
+                                    return JsonResponse(
+                                        200,
+                                        "OK",
+                                        ClientViewMetadataJson(
+                                            access, impl_->session_manager.AnalysisTapSnapshots()));
+                                }
                                 if (!subresource.empty()) {
                                     return JsonResponse(404,
                                                         "Not Found",
@@ -22374,7 +22513,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if (request.method == "GET" && IsClientShellRoute(request.path)) {
-                            if (const auto auth_response = require_client_principal(); auth_response.has_value()) {
+                            if (const auto auth_response = require_client_shell_principal(); auth_response.has_value()) {
                                 if (!principal_result.ok && session_auth_mode && config.enable_client) {
                                     return RedirectResponse("/login");
                                 }
@@ -22559,6 +22698,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if (request.method == "POST" && request.path == "/lab/analysis/profiles") {
+                            if (const auto auth_response = require_rule_write_principal();
+                                auth_response.has_value()) {
+                                return *auth_response;
+                            }
                             std::string response_body;
                             std::string error_message;
                             if (!AnalysisRegistry().CreateProfile(request.body, &response_body, &error_message)) {
@@ -22573,6 +22716,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if (request.method == "POST" && request.path == "/lab/analysis/rules") {
+                            if (const auto auth_response = require_rule_write_principal();
+                                auth_response.has_value()) {
+                                return *auth_response;
+                            }
                             std::string response_body;
                             std::string error_message;
                             if (!AnalysisRegistry().CreateRule(request.body, &response_body, &error_message)) {
@@ -22587,6 +22734,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if (request.method == "POST" && request.path == "/lab/analysis/va-rules") {
+                            if (const auto auth_response = require_rule_write_principal();
+                                auth_response.has_value()) {
+                                return *auth_response;
+                            }
                             std::string response_body;
                             std::string error_message;
                             if (!AnalysisRegistry().CreateVaRule(request.body, &response_body, &error_message)) {
@@ -22613,6 +22764,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "{\"profile\":" + *profile + "}");
                             }
                             if (request.method == "PUT") {
+                                if (const auto auth_response = require_rule_write_principal();
+                                    auth_response.has_value()) {
+                                    return *auth_response;
+                                }
                                 std::string response_body;
                                 std::string error_message;
                                 if (!AnalysisRegistry().UpsertProfile(id, request.body, &response_body, &error_message)) {
@@ -22622,6 +22777,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return JsonResponse(200, "OK", response_body);
                             }
                             if (request.method == "DELETE") {
+                                if (const auto auth_response = require_rule_write_principal();
+                                    auth_response.has_value()) {
+                                    return *auth_response;
+                                }
                                 if (!AnalysisRegistry().DeleteProfile(id)) {
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis profile not found or built-in\"}");
@@ -22648,6 +22807,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "{\"rule\":" + *rule + "}");
                             }
                             if (request.method == "PUT") {
+                                if (const auto auth_response = require_rule_write_principal();
+                                    auth_response.has_value()) {
+                                    return *auth_response;
+                                }
                                 std::string response_body;
                                 std::string error_message;
                                 if (!AnalysisRegistry().UpsertRule(id, request.body, &response_body, &error_message)) {
@@ -22657,6 +22820,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return JsonResponse(200, "OK", response_body);
                             }
                             if (request.method == "DELETE") {
+                                if (const auto auth_response = require_rule_write_principal();
+                                    auth_response.has_value()) {
+                                    return *auth_response;
+                                }
                                 if (!AnalysisRegistry().DeleteRule(id)) {
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis rule not found\"}");
@@ -22683,6 +22850,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "{\"vaRule\":" + *rule + "}");
                             }
                             if (request.method == "PUT") {
+                                if (const auto auth_response = require_rule_write_principal();
+                                    auth_response.has_value()) {
+                                    return *auth_response;
+                                }
                                 std::string response_body;
                                 std::string error_message;
                                 if (!AnalysisRegistry().UpsertVaRule(id, request.body, &response_body, &error_message)) {
@@ -22692,6 +22863,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return JsonResponse(200, "OK", response_body);
                             }
                             if (request.method == "DELETE") {
+                                if (const auto auth_response = require_rule_write_principal();
+                                    auth_response.has_value()) {
+                                    return *auth_response;
+                                }
                                 if (!AnalysisRegistry().DeleteVaRule(id)) {
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"vaRule not found\"}");

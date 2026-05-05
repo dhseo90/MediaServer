@@ -49,7 +49,7 @@ UI 변경:
 MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap
 ```
 
-Ops/Client shell 변경은 전용 smoke로 product shell selector와 client debug/source 비노출을 먼저 확인합니다. 이 smoke는 `/client/api/views`뿐 아니라 단일 view, dashboard, events 응답의 민감 JSON key도 재귀적으로 검사합니다. `--screenshots` 옵션은 headless Chrome으로 `/ops/home`, `/ops/dashboard`, `/ops/rules`, `/ops/sources`, `/ops/users`, `/client/live`, `/client/dashboard`를 폭별로 열어 overflow와 screenshot을 남깁니다. Auth shell 변경은 기존 auth workflow에 `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1`을 붙여 `/setup`, `/login`, `/client/request-access`, 필요 시 `/password/change`, `/invite/setup` selector를 확인하고, `MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`로 auth screenshot smoke까지 남깁니다. 화면 단위 회귀가 의심되거나 nav/table/form 반응형을 직접 봐야 할 때는 auth-off 또는 로그인 cookie/token을 준비한 서버에서 아래 수동 smoke를 함께 확인합니다.
+Ops/Client shell 변경은 전용 smoke로 product shell selector와 client debug/source 비노출을 먼저 확인합니다. 이 smoke는 `/client/api/views`뿐 아니라 단일 view, dashboard, events, metadata 응답의 민감 JSON key도 재귀적으로 검사합니다. `--screenshots` 옵션은 headless Chrome으로 `/ops/home`, `/ops/dashboard`, `/ops/rules`, `/ops/sources`, `/ops/users`, `/client/live`, `/client/dashboard`를 폭별로 열어 overflow와 screenshot을 남깁니다. Auth shell 변경은 기존 auth workflow에 `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1`을 붙여 `/setup`, `/login`, `/client/request-access`, 필요 시 `/password/change`, `/invite/setup` selector를 확인하고, `MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`로 auth screenshot smoke까지 남깁니다. 화면 단위 회귀가 의심되거나 nav/table/form 반응형을 직접 봐야 할 때는 auth-off 또는 로그인 cookie/token을 준비한 서버에서 아래 수동 smoke를 함께 확인합니다.
 
 ```bash
 BASE=http://127.0.0.1:8080
@@ -151,7 +151,7 @@ curl -fsS -D - -o /tmp/root-unauth.out 'http://127.0.0.1:8080/'
 curl -fsS -i -H 'Authorization: Bearer viewer-token' 'http://127.0.0.1:8080/ops'
 ```
 
-확인 기준은 auth off + `lab` home에서 `/ -> /lab`, auth off + `client` home에서 `/ -> /client/live`, admin/operator token에서 `/ -> /ops/home`, viewer token에서 `/ -> /client/live`, 미인증 auth-on 요청에서 `/ -> /login`, viewer의 `/ops` 접근에서 `403`, viewer의 `/lab` 접근에서 `403`입니다. `/ops`는 admin/operator role과 `ops:read` scope를 함께 요구하고, `/lab`은 admin/operator 또는 `lab:read` scope를 요구합니다. Auth on에서 `/webrtc/session`, `/whep`, `/whip/publish` 직접 생성 요청은 미인증 `401`, viewer `403`이어야 하며, `/ws/va-metadata`도 미인증 `401`, viewer `403`으로 막혀야 합니다. Auth off 개발 모드에서는 기존 검증 명령으로 계속 확인합니다.
+확인 기준은 auth off + `lab` home에서 `/ -> /lab`, auth off + `client` home에서 `/ -> /client/live`, admin/operator token에서 `/ -> /ops/home`, viewer token에서 `/ -> /client/live`, 미인증 auth-on 요청에서 `/ -> /login`, viewer의 `/ops` 접근에서 `403`, viewer의 `/lab` 접근에서 `403`입니다. `/ops`는 admin/operator role과 `ops:read` scope를 함께 요구하고, `/ops/api/sources`와 `/ops/api/views` 변경은 `source:write`를 추가로 요구합니다. `/lab`은 admin/operator 또는 `lab:read` scope를 요구하고, Lab rule/profile/vaRule 변경은 `rule:write`를 추가로 요구합니다. Integrator는 `/client` shell이 `403`이어야 하지만 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata`는 각각 scope가 있으면 `200`이어야 합니다. Auth on에서 `/webrtc/session`, `/whep`, `/whip/publish` 직접 생성 요청은 미인증 `401`, viewer `403`이어야 하며, `/ws/va-metadata`도 미인증 `401`, viewer `403`으로 막혀야 합니다. Auth off 개발 모드에서는 기존 검증 명령으로 계속 확인합니다.
 
 ## 장기 테스트 명령
 
@@ -705,12 +705,13 @@ Client dashboard는 PublishedView scope와 sanitized runtime summary를 확인�
 curl -fsS 'http://127.0.0.1:8080/client/api/views'
 curl -fsS 'http://127.0.0.1:8080/client/api/views/{viewId}/dashboard'
 curl -fsS 'http://127.0.0.1:8080/client/api/views/{viewId}/events?limit=20'
+curl -fsS 'http://127.0.0.1:8080/client/api/views/{viewId}/metadata'
 ```
 
 확인 기준:
 
 - viewer는 `view:read:{viewId}`가 있는 view만 `/client/api/views`에서 확인합니다.
-- dashboard API는 `dashboard:read:{viewId}`, events API는 `event:read:{viewId}` scope가 필요합니다.
+- dashboard API는 `dashboard:read:{viewId}`, events API는 `event:read:{viewId}`, metadata summary API는 `metadata:read:{viewId}` scope가 필요합니다.
 - admin/operator는 client dashboard에서 전체 PublishedView 상태를 확인할 수 있습니다.
 - `showDashboard=false`인 view는 dashboard API가 403을 반환하고, `showEvents=false`인 view는 events API가 403을 반환합니다.
 - dashboard health는 live/offline, connection status, video frame status, metadata status, stale 여부, stale metadata age, last frame age를 반환합니다.
