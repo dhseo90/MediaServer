@@ -75,7 +75,7 @@ HTTP request
 
 `MEDIA_SERVER_AUTH_MODE=auto`가 제품 기본 모드입니다. Users file이 없거나 admin passwordHash가 없으면 setup required 상태로 보고 `/setup`에서 최초 admin 비밀번호를 설정하게 하며, setup 완료 후에는 session login을 요구합니다. `MEDIA_SERVER_AUTH_MODE=off`에서는 기존 개발/검증 호환을 위해 dev admin principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 admin/operator/viewer/integrator env token이 `/auth/whoami`에서 principal로 확인됩니다. `MEDIA_SERVER_AUTH_MODE=session`에서는 users file의 `passwordHash`를 libsodium password hashing으로 검증한 뒤 HttpOnly/SameSite=Lax cookie session을 발급합니다. Password policy/lockout/session hardening은 HTTP auth/users file에만 적용되며, media pipeline, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload는 변경하지 않습니다.
 
-Auth on 상태에서 직접 media 생성 endpoint인 `POST /webrtc/session`, `POST /whep`, `POST /whip/publish`는 generic source locator를 받는 개발/Lab/운영자 표면으로 취급합니다. 따라서 admin/operator `ops:read` 또는 `lab:read` scope가 필요합니다. Viewer/client 제품 흐름은 source locator를 받지 않는 `/client/api/views/{viewId}/webrtc/session` wrapper와 같은 prefix의 answer/ICE/delete wrapper만 사용하며, 이 wrapper가 PublishedView scope와 source override 금지를 적용하고 내부 generic session id/session token을 숨깁니다.
+Auth on 상태에서 직접 media 생성 endpoint인 `POST /webrtc/session`, `POST /whep`, `POST /whip/publish`는 generic source locator를 받는 개발/Lab/운영자 표면으로 취급합니다. 따라서 admin/operator `ops:read` 또는 `lab:read` scope가 필요합니다. Viewer/client 제품 흐름은 source locator를 받지 않는 `/client/api/views/{viewId}/webrtc/session` wrapper와 같은 prefix의 answer/ICE/delete wrapper만 사용하며, 이 wrapper가 PublishedView scope, source override 금지, `va-rule` source 일치 검증을 적용하고 내부 generic session id/session token을 숨깁니다.
 
 Auth 구성요소:
 
@@ -116,7 +116,7 @@ Viewer
 
 SourceRegistry는 `.media_server.sources.json`, PublishedView는 `.media_server.views.json`을 기본 저장소로 사용합니다. `canonicalSourceKey`는 file token, RTSP/HTTP URL, 또는 WHIP publish sourceId를 정규화해 중복 등록을 막는 내부 운영 키이며, RTSP/HTTP URL query 순서 차이는 같은 source로 취급합니다. 현재 `kind=webrtc`는 외부 WebRTC/WHEP URL pull이 아니라 `/whip/publish`로 등록된 내부 sourceId 소비 경로입니다.
 
-클라이언트 API는 `view:read:{viewId}` scope가 있는 view만 목록에 반환하고, view별 dashboard/events/metadata API는 각각 `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`를 요구합니다. `file`, `rtspUrl`, `httpUrl`, `webrtcSourceId`, `canonicalSourceKey` 같은 원본 locator는 반환하지 않습니다. PublishedView의 `defaultRuleId`와 `allowedRuleIds`는 기존 `vaRule` ID를 참조하지만, 기존 `vaRule` 저장 구조와 `vaRule=<id>` 호출 방식은 그대로 유지합니다.
+클라이언트 API는 `view:read:{viewId}` scope가 있는 view만 목록에 반환하고, view별 dashboard/events/metadata API는 각각 `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`를 요구합니다. `file`, `rtspUrl`, `httpUrl`, `webrtcSourceId`, `canonicalSourceKey` 같은 원본 locator는 반환하지 않습니다. PublishedView의 `defaultRuleId`와 `allowedRuleIds`는 기존 `vaRule` ID를 참조하지만, Client Live에서 `va-rule` mode를 실행할 때는 해당 rule의 저장 source가 PublishedView source와 일치해야 합니다. 기존 `vaRule` 저장 구조와 `vaRule=<id>` 호출 방식은 그대로 유지합니다.
 
 ### Ops / Client / Lab UI shell
 

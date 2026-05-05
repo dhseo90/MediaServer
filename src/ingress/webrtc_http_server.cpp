@@ -17965,6 +17965,103 @@ bool AddClientSourceQuery(const SourceViewRegistry::SourceRecord& source,
     return false;
 }
 
+std::string ClientSourceQueryValue(const std::unordered_map<std::string, std::string>& query,
+                                   const std::string& key) {
+    const auto it = query.find(key);
+    return it == query.end() ? std::string() : Trim(it->second);
+}
+
+bool AddVaRuleSourceQuery(const std::string& rule_id,
+                          const std::string& source_document,
+                          std::unordered_map<std::string, std::string>* query,
+                          std::string* error_message) {
+    if (query == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "query output is required";
+        }
+        return false;
+    }
+    const std::string source_kind = Trim(ParseStringField(source_document, "kind").value_or(""));
+    if (source_kind.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "vaRule source kind is empty: " + rule_id;
+        }
+        return false;
+    }
+    if (source_kind == "file") {
+        const std::string file = Trim(ParseStringField(source_document, "file").value_or(""));
+        if (file.empty()) {
+            if (error_message != nullptr) {
+                *error_message = "vaRule file source is empty: " + rule_id;
+            }
+            return false;
+        }
+        (*query)["file"] = file;
+        return true;
+    }
+
+    const std::string url = Trim(ParseStringField(source_document, "url").value_or(""));
+    if (url.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "vaRule url source is empty: " + rule_id;
+        }
+        return false;
+    }
+    (*query)["url"] = url;
+    (*query)["source"] = source_kind;
+    return true;
+}
+
+bool ClientSourceQueriesMatch(const std::unordered_map<std::string, std::string>& view_query,
+                              const std::unordered_map<std::string, std::string>& rule_query) {
+    const std::string view_file = ClientSourceQueryValue(view_query, "file");
+    const std::string rule_file = ClientSourceQueryValue(rule_query, "file");
+    if (!view_file.empty() || !rule_file.empty()) {
+        return !view_file.empty() && view_file == rule_file;
+    }
+
+    const std::string view_url = ClientSourceQueryValue(view_query, "url");
+    const std::string rule_url = ClientSourceQueryValue(rule_query, "url");
+    if (view_url.empty() || rule_url.empty() || view_url != rule_url) {
+        return false;
+    }
+    return LowerAscii(ClientSourceQueryValue(view_query, "source")) ==
+           LowerAscii(ClientSourceQueryValue(rule_query, "source"));
+}
+
+bool ClientVaRuleSourceMatchesView(const SourceViewRegistry::ClientViewAccess& access,
+                                   const std::string& rule_id,
+                                   std::string* error_message) {
+    const auto document = AnalysisRegistry().VaRuleJson(rule_id);
+    if (!document.has_value()) {
+        if (error_message != nullptr) {
+            *error_message = "allowed vaRule not found: " + rule_id;
+        }
+        return false;
+    }
+    const auto source = ExtractObjectField(*document, "source");
+    if (!source.has_value()) {
+        if (error_message != nullptr) {
+            *error_message = "vaRule source is missing: " + rule_id;
+        }
+        return false;
+    }
+
+    std::unordered_map<std::string, std::string> view_query;
+    std::unordered_map<std::string, std::string> rule_query;
+    if (!AddClientSourceQuery(access.source, &view_query, error_message) ||
+        !AddVaRuleSourceQuery(rule_id, *source, &rule_query, error_message)) {
+        return false;
+    }
+    if (!ClientSourceQueriesMatch(view_query, rule_query)) {
+        if (error_message != nullptr) {
+            *error_message = "vaRule source must match PublishedView source";
+        }
+        return false;
+    }
+    return true;
+}
+
 bool ClientLiveRequestHasSourceOverride(const std::string& body,
                                         const std::unordered_map<std::string, std::string>& query) {
     static const std::vector<std::string> kBlockedKeys = {
@@ -18015,6 +18112,9 @@ bool BuildClientLiveWebRtcQuery(const SourceViewRegistry::ClientViewAccess& acce
             if (error_message != nullptr) {
                 *error_message = "allowed vaRule is required for va-rule mode";
             }
+            return false;
+        }
+        if (!ClientVaRuleSourceMatchesView(access, rule_id, error_message)) {
             return false;
         }
         (*query)["vaRule"] = rule_id;

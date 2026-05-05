@@ -153,7 +153,7 @@ CLI도 같은 C++ password hash/password policy 경로를 사용합니다. Passw
 
 `/ops/sources`는 운영자가 실제 source를 한 번 등록하고, 클라이언트에는 PublishedView 단위로 공개하기 위한 MVP 화면입니다. 제품 UI에서는 SourceRegistry/PublishedView를 따로 노출하지 않고 `채널` 개념으로 묶어 보여줍니다. 먼저 숫자 채널 목록 table을 표시하고, 채널 추가/보기/수정/복제/비활성화/삭제 흐름은 룰 목록과 같은 패턴을 따릅니다. 기본 registry가 비어 있으면 `sample_h264.mp4`, VA test file, 검증된 공개 RTSP/HLS URL을 숫자 채널로 seed합니다. 내부적으로 `kind=webrtc`와 `webrtcSourceId`는 남아 있지만 외부 WebRTC/WHEP URL pull이 아니라 이 서버의 `/whip/publish` endpoint로 먼저 등록된 sourceId를 소비하는 경로이므로 product UI 선택지는 임시로 숨깁니다. 외부 WebRTC/WHEP URL source pull은 후속 최우선 기능입니다. 같은 RTSP/HTTP URL은 query 순서가 달라도 canonical key 기준으로 중복 등록이 거부됩니다.
 
-채널 테이블은 라이브 URL과 VA URL을 분리해 표시하고, 각 영역에서 RTSP와 WebRTC 복사 버튼을 세로로 배치합니다. 복사한 RTSP URL은 일반 RTSP player에서 원본 또는 VA overlay stream을 확인하는 용도이고, WebRTC 버튼은 이 서버의 WHEP endpoint URL을 복사합니다. 이 WHEP URL은 auth on에서 admin/operator `ops:read` 또는 `lab:read` 권한이 있는 운영/검증 클라이언트용이며, 외부 viewer 공유 URL이 아닙니다. PublishedView의 `viewId`, `sourceId`, `defaultRuleId`, `allowedRuleIds`, overlay mode, dashboard/event/metadata 노출 여부는 내부 API schema로 유지합니다. `/client/api/views`는 로그인 principal의 `view:read:{viewId}` scope가 있는 view만 반환하며, 원본 source URL이나 file locator는 클라이언트 응답에 포함하지 않습니다. 운영자용 registry raw JSON은 `/ops/sources`의 접힘 debug 영역에서만 확인합니다.
+채널 테이블은 라이브 URL과 VA URL을 분리해 표시하고, 각 영역에서 RTSP와 WebRTC 복사 버튼을 세로로 배치합니다. 복사한 RTSP URL은 일반 RTSP player에서 원본 또는 VA overlay stream을 확인하는 용도이고, WebRTC 버튼은 이 서버의 WHEP endpoint URL을 복사합니다. 이 WHEP URL은 auth on에서 admin/operator `ops:read` 또는 `lab:read` 권한이 있는 운영/검증 클라이언트용이며, 외부 viewer 공유 URL이 아닙니다. PublishedView의 `viewId`, `sourceId`, `defaultRuleId`, `allowedRuleIds`, overlay mode, dashboard/event/metadata 노출 여부는 내부 API schema로 유지합니다. Client Live에서 `va-rule` mode를 사용할 때 `allowedRuleIds`는 PublishedView source와 같은 source를 가진 rule에만 유효합니다. `/client/api/views`는 로그인 principal의 `view:read:{viewId}` scope가 있는 view만 반환하며, 원본 source URL이나 file locator는 클라이언트 응답에 포함하지 않습니다. 운영자용 registry raw JSON은 `/ops/sources`의 접힘 debug 영역에서만 확인합니다.
 
 ### 4.1 Client scoped dashboard
 
@@ -170,7 +170,7 @@ CLI도 같은 C++ password hash/password policy 경로를 사용합니다. Passw
 
 ### 4.2 Client Live Monitor
 
-`/client/live`는 viewer가 접근 가능한 PublishedView만 2x2 grid에 배치하는 live monitor MVP입니다. Tile은 최대 4개이며, 각 tile은 `/client/api/views/{viewId}/webrtc/session` wrapper로 WebRTC session을 생성합니다. 생성 응답은 client session alias만 반환하고, answer/ICE/delete는 `/client/api/views/{viewId}/webrtc/session/{clientSessionId}` 아래에서만 이어집니다. Client route는 viewId만 받으며 source 원본 URL, file/url/source override, 내부 generic session id/token, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile 수정 UI는 노출하지 않습니다. Viewer/client 계정은 직접 `/webrtc/session`, `/whep`, `/whip/publish` 생성 route를 호출할 수 없습니다.
+`/client/live`는 viewer가 접근 가능한 PublishedView만 2x2 grid에 배치하는 live monitor MVP입니다. Tile은 최대 4개이며, 각 tile은 `/client/api/views/{viewId}/webrtc/session` wrapper로 WebRTC session을 생성합니다. 생성 응답은 client session alias만 반환하고, answer/ICE/delete는 `/client/api/views/{viewId}/webrtc/session/{clientSessionId}` 아래에서만 이어집니다. Client route는 viewId만 받으며 source 원본 URL, file/url/source override, 내부 generic session id/token, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile 수정 UI는 노출하지 않습니다. `va-rule` mode는 PublishedView의 `allowedRuleIds`와 rule source 일치 검증을 모두 통과해야 합니다. Viewer/client 계정은 직접 `/webrtc/session`, `/whep`, `/whip/publish` 생성 route를 호출할 수 없습니다.
 
 Tile별 기능:
 
