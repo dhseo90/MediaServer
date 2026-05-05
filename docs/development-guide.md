@@ -241,6 +241,8 @@ gst-inspect-1.0 uridecodebin
 ./server.sh verify-predev --quick
 ```
 
+`verify-predev --quick`와 `./server.sh test*` 계열은 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하므로 느립니다. 문서/UI/Auth/권한만 바꾼 경우에는 이 묶음을 실행하지 않고 `build`, `git diff --check`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-lab-layout --no-screenshots`, `verify-analysis-state`로 확인합니다.
+
 장시간 또는 다채널 검증 기준은 [stream-verification.md](./stream-verification.md)에 유지합니다.
 
 VA Metadata Runtime Console 계열 검증은 선택 검증입니다.
