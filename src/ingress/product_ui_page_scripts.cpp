@@ -1649,7 +1649,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
 void AppendOpsUsersPageScript(std::ostringstream& out) {
     out << R"OPSUSERS(  <script>
     const statusEl = document.querySelector('#status');
+    const requestStatusEl = document.querySelector('#request-status');
     const usersBody = document.querySelector('#users-body');
+    const requestsBody = document.querySelector('#access-requests-body');
+    const inviteOutput = document.querySelector('#request-invite-output');
     const form = document.querySelector('#user-form');
     const userEditor = document.querySelector('#user-editor');
     const userEditorTitle = document.querySelector('#user-editor-title');
@@ -1657,39 +1660,42 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     const updateButton = document.querySelector('#update-btn');
     const assignment = document.querySelector('#view-assignment');
     const passwordFields = document.querySelector('#password-fields');
-	    const {
-	      requestJson,
-	      formDataObject,
-	      setFeedback,
-	      splitList,
-	      setHidden,
-	      setRequired,
-	      setTableEmpty
-	    } = window.MediaServerUi;
-	    const setStatus = (message, failed = false) => {
-	      setFeedback(statusEl, message, failed);
-	    };
-	    function hideUserEditor() {
-	      userEditor.open = false;
-	      userEditor.hidden = true;
-	    }
-	    function setPasswordFieldsVisible(visible) {
-	      setHidden(passwordFields, !visible);
-	      setRequired(form.elements.password, visible);
-	      setRequired(form.elements.confirmPassword, visible);
-	    }
-	    function setEditorMode(mode, title) {
-	      userEditor.hidden = false;
-	      userEditorTitle.textContent = title;
-	      setPasswordFieldsVisible(mode === 'create');
-	      createButton.hidden = mode !== 'create';
-	      updateButton.hidden = mode === 'create';
-	      updateAssignmentVisibility();
-	      userEditor.open = true;
-	    }
-	    function updateAssignmentVisibility() {
-	      const role = form.elements.role.value;
-	      assignment.style.display = (role === 'viewer' || role === 'integrator') ? 'grid' : 'none';
+    const {
+      requestJson,
+      formDataObject,
+      setFeedback,
+      splitList,
+      setHidden,
+      setRequired,
+      setTableEmpty
+    } = window.MediaServerUi;
+    const setStatus = (message, failed = false) => setFeedback(statusEl, message, failed);
+    const setRequestStatus = (message, failed = false) => setFeedback(requestStatusEl, message, failed);
+    function hideUserEditor() {
+      userEditor.open = false;
+      userEditor.hidden = true;
+    }
+    function setInviteOutput(text = '') {
+      inviteOutput.textContent = text;
+      inviteOutput.hidden = !text;
+    }
+    function setPasswordFieldsVisible(visible) {
+      setHidden(passwordFields, !visible);
+      setRequired(form.elements.password, visible);
+      setRequired(form.elements.confirmPassword, visible);
+    }
+    function setEditorMode(mode, title) {
+      userEditor.hidden = false;
+      userEditorTitle.textContent = title;
+      setPasswordFieldsVisible(mode === 'create');
+      createButton.hidden = mode !== 'create';
+      updateButton.hidden = mode === 'create';
+      updateAssignmentVisibility();
+      userEditor.open = true;
+    }
+    function updateAssignmentVisibility() {
+      const role = form.elements.role.value;
+      assignment.style.display = (role === 'viewer' || role === 'integrator') ? 'grid' : 'none';
     }
     function formPayload() {
       const data = formDataObject(form);
@@ -1713,101 +1719,171 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         viewer: '시청자'
       })[role] || role || '미제공';
     }
+    function requestStatusLabel(status) {
+      return ({
+        pending: '대기',
+        approved: '승인됨',
+        rejected: '거절됨'
+      })[status] || status || '미제공';
+    }
+    function requestStatusTone(status) {
+      return status === 'pending' ? 'warn' : status === 'rejected' ? 'bad' : '';
+    }
     function yesNo(value) {
       return value ? '예' : '아니오';
     }
-	    function fillForm(user) {
-	      form.elements.username.value = user.username;
-	      form.elements.displayName.value = user.displayName || '';
-	      form.elements.role.value = user.role || 'viewer';
+    function displayValue(value, fallback = '미제공') {
+      return value === null || value === undefined || value === '' ? fallback : String(value);
+    }
+    function fillForm(user) {
+      form.elements.username.value = user.username;
+      form.elements.displayName.value = user.displayName || '';
+      form.elements.role.value = user.role || 'viewer';
       form.elements.viewId.value = '';
       form.elements.scopes.value = (user.scopes || []).join('\n');
       form.elements.password.value = '';
-	      form.elements.confirmPassword.value = '';
-	      form.elements.enabled.checked = Boolean(user.enabled);
-	      form.elements.mustChangePassword.checked = Boolean(user.mustChangePassword);
-	      setEditorMode('edit', `사용자 수정 · ${user.username}`);
-	      userEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-	    }
-	    function resetUserForm() {
-	      form.reset();
-	      form.elements.role.value = 'viewer';
-	      form.elements.enabled.checked = true;
-	      form.elements.mustChangePassword.checked = true;
-	      setEditorMode('create', '사용자 추가');
-	      form.elements.username.focus();
-	    }
-	    function userRowCells(user) {
-	      return [
-	        user.username,
-	        user.displayName || '',
-	        roleLabel(user.role),
-	        user.enabled ? '활성' : '비활성',
-	        String(user.scopesCount ?? (user.scopes || []).length),
-	        user.lastLoginAt || '미제공',
-	        user.lockedUntil || '없음',
-	        yesNo(user.mustChangePassword)
-	      ];
-	    }
-	    function userActionButton(label, className, onClick) {
-	      const button = document.createElement('button');
-	      button.type = 'button';
-	      button.className = className;
-	      button.textContent = label;
-	      button.onclick = onClick;
-	      return button;
-	    }
-	    function chipElement(text, tone = '') {
-	      const span = document.createElement('span');
-	      span.className = `chip${tone ? ` ${tone}` : ''}`;
-	      span.textContent = text;
-	      return span;
-	    }
-	    function appendUserRow(user) {
-	      const tr = document.createElement('tr');
-	      userRowCells(user).forEach((value, index) => {
-	        const td = document.createElement('td');
-	        td.textContent = value;
-	        if (index === 3) {
-	          td.textContent = '';
-	          const wrap = document.createElement('div');
-	          wrap.className = 'user-status-actions';
-	          wrap.appendChild(chipElement(value, user.enabled ? '' : 'warn'));
-	          td.appendChild(wrap);
-	        }
-	        if (index === 4) {
-	          td.className = 'user-scope-cell';
-	        }
-	        tr.appendChild(td);
-	      });
-	      const actionTd = document.createElement('td');
-	      const actions = document.createElement('div');
-	      actions.className = 'user-row-actions';
-	      actions.append(
-	        userActionButton('수정', 'secondary', () => fillForm(user)),
-	        userActionButton(user.enabled ? '비활성화' : '활성화', user.enabled ? 'danger' : 'secondary', () => setEnabled(user.username, !user.enabled))
-	      );
-	      actionTd.appendChild(actions);
-	      tr.appendChild(actionTd);
-	      usersBody.appendChild(tr);
-	    }
-	    function renderUsers(users) {
-	      usersBody.textContent = '';
-	      if (!Array.isArray(users) || users.length === 0) {
-	        setTableEmpty(usersBody, 9, '등록된 사용자가 없습니다. 사용자 추가로 계정을 생성하세요.');
-	        return;
-	      }
-	      for (const user of users) {
-	        appendUserRow(user);
-	      }
-	    }
+      form.elements.confirmPassword.value = '';
+      form.elements.enabled.checked = Boolean(user.enabled);
+      form.elements.mustChangePassword.checked = Boolean(user.mustChangePassword);
+      setEditorMode('edit', `사용자 수정 · ${user.username}`);
+      userEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function resetUserForm() {
+      form.reset();
+      form.elements.role.value = 'viewer';
+      form.elements.enabled.checked = true;
+      form.elements.mustChangePassword.checked = true;
+      setEditorMode('create', '사용자 추가');
+      form.elements.username.focus();
+    }
+    function userRowCells(user) {
+      return [
+        user.username,
+        user.displayName || '',
+        roleLabel(user.role),
+        user.enabled ? '활성' : '비활성',
+        String(user.scopesCount ?? (user.scopes || []).length),
+        user.lastLoginAt || '미제공',
+        user.lockedUntil || '없음',
+        yesNo(user.mustChangePassword)
+      ];
+    }
+    function userActionButton(label, className, onClick) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = className;
+      button.textContent = label;
+      button.onclick = onClick;
+      return button;
+    }
+    function chipElement(text, tone = '') {
+      const span = document.createElement('span');
+      span.className = `chip${tone ? ` ${tone}` : ''}`;
+      span.textContent = text;
+      return span;
+    }
+    function appendTextCell(tr, value, className = '') {
+      const td = document.createElement('td');
+      td.textContent = displayValue(value);
+      if (className) td.className = className;
+      tr.appendChild(td);
+      return td;
+    }
+    function appendUserRow(user) {
+      const tr = document.createElement('tr');
+      userRowCells(user).forEach((value, index) => {
+        const td = document.createElement('td');
+        td.textContent = value;
+        if (index === 3) {
+          td.textContent = '';
+          const wrap = document.createElement('div');
+          wrap.className = 'user-status-actions';
+          wrap.appendChild(chipElement(value, user.enabled ? '' : 'warn'));
+          td.appendChild(wrap);
+        }
+        if (index === 4) {
+          td.className = 'user-scope-cell';
+        }
+        tr.appendChild(td);
+      });
+      const actionTd = document.createElement('td');
+      const actions = document.createElement('div');
+      actions.className = 'user-row-actions';
+      actions.append(
+        userActionButton('수정', 'secondary', () => fillForm(user)),
+        userActionButton(user.enabled ? '비활성화' : '활성화', user.enabled ? 'danger' : 'secondary', () => setEnabled(user.username, !user.enabled))
+      );
+      actionTd.appendChild(actions);
+      tr.appendChild(actionTd);
+      usersBody.appendChild(tr);
+    }
+    function renderUsers(users) {
+      usersBody.textContent = '';
+      if (!Array.isArray(users) || users.length === 0) {
+        setTableEmpty(usersBody, 9, '등록된 사용자가 없습니다. 사용자 추가로 계정을 생성하세요.');
+        return;
+      }
+      for (const user of users) {
+        appendUserRow(user);
+      }
+    }
+    function appendRequestRow(request) {
+      const tr = document.createElement('tr');
+      appendTextCell(tr, request.username);
+      appendTextCell(tr, request.displayName || '');
+      appendTextCell(tr, request.contact || '');
+      appendTextCell(tr, request.viewId || '미지정');
+      appendTextCell(tr, request.reason || '');
+      const statusTd = document.createElement('td');
+      statusTd.appendChild(chipElement(requestStatusLabel(request.status), requestStatusTone(request.status)));
+      tr.appendChild(statusTd);
+      appendTextCell(tr, `${request.createdAt || '미제공'}${request.decidedAt ? `\n${request.decidedAt}` : ''}`);
+      const actionTd = document.createElement('td');
+      if (request.status === 'pending') {
+        const actions = document.createElement('div');
+        actions.className = 'user-row-actions';
+        actions.append(
+          userActionButton('승인', 'primary', () => approveAccessRequest(request)),
+          userActionButton('거절', 'danger', () => rejectAccessRequest(request))
+        );
+        actionTd.appendChild(actions);
+      } else {
+        actionTd.appendChild(chipElement('처리 완료'));
+      }
+      tr.appendChild(actionTd);
+      requestsBody.appendChild(tr);
+    }
+    function renderAccessRequests(requests) {
+      requestsBody.textContent = '';
+      if (!Array.isArray(requests) || requests.length === 0) {
+        setTableEmpty(requestsBody, 8, '대기 중인 접근 요청이 없습니다.');
+        return;
+      }
+      const order = { pending: 0, approved: 1, rejected: 2 };
+      const sorted = requests.slice().sort((a, b) => {
+        const left = order[a.status] ?? 9;
+        const right = order[b.status] ?? 9;
+        if (left !== right) return left - right;
+        return String(b.createdAt || '').localeCompare(String(a.createdAt || ''));
+      });
+      for (const request of sorted) {
+        appendRequestRow(request);
+      }
+    }
     async function loadUsers() {
       const json = await requestJson('/ops/api/users');
       renderUsers(json.users || []);
-      setStatus('');
     }
-    async function loadAll() {
-      await loadUsers();
+    async function loadAccessRequests() {
+      const json = await requestJson('/ops/api/access-requests');
+      renderAccessRequests(json.accessRequests || []);
+    }
+    async function loadAll({ clearMessages = true } = {}) {
+      await Promise.all([loadUsers(), loadAccessRequests()]);
+      if (clearMessages) {
+        setStatus('');
+        setRequestStatus('');
+      }
     }
     async function setEnabled(username, enabled) {
       try {
@@ -1818,6 +1894,42 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         await loadAll();
       } catch (error) {
         setStatus(error.message, true);
+      }
+    }
+    async function approveAccessRequest(request) {
+      const viewId = window.prompt('승인할 채널 ID', request.viewId || '');
+      if (viewId === null) return;
+      try {
+        const payload = {};
+        const normalizedViewId = viewId.trim();
+        if (normalizedViewId) payload.viewId = normalizedViewId;
+        const result = await requestJson(`/ops/api/access-requests/${encodeURIComponent(request.requestId)}/approve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const invite = result.invite || {};
+        const setupUrl = invite.setupUrl || (invite.token ? `/invite/setup?token=${encodeURIComponent(invite.token)}` : '');
+        setInviteOutput([
+          `계정: ${request.username || ''}`,
+          setupUrl ? `초대 링크: ${setupUrl}` : '',
+          invite.token ? `토큰: ${invite.token}` : ''
+        ].filter(Boolean).join('\n'));
+        setRequestStatus('접근 요청 승인 완료');
+        await loadAll({ clearMessages: false });
+      } catch (error) {
+        setRequestStatus(error.message, true);
+      }
+    }
+    async function rejectAccessRequest(request) {
+      if (!window.confirm(`${request.username || request.requestId} 요청을 거절할까요?`)) return;
+      try {
+        await requestJson(`/ops/api/access-requests/${encodeURIComponent(request.requestId)}/reject`, { method: 'POST' });
+        setInviteOutput('');
+        setRequestStatus('접근 요청 거절 완료');
+        await loadAll({ clearMessages: false });
+      } catch (error) {
+        setRequestStatus(error.message, true);
       }
     }
     form.addEventListener('submit', async event => {
@@ -1832,13 +1944,13 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-	        form.reset();
-	        form.elements.enabled.checked = true;
-	        form.elements.mustChangePassword.checked = true;
-	        hideUserEditor();
-	        updateAssignmentVisibility();
-	        await loadAll();
-	        setStatus('사용자 추가 완료');
+        form.reset();
+        form.elements.enabled.checked = true;
+        form.elements.mustChangePassword.checked = true;
+        hideUserEditor();
+        updateAssignmentVisibility();
+        await loadAll();
+        setStatus('사용자 추가 완료');
       } catch (error) {
         setStatus(error.message, true);
       }
@@ -1853,19 +1965,22 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
-	        });
-	        await loadAll();
-	        hideUserEditor();
-	      } catch (error) {
-	        setStatus(error.message, true);
-	      }
-	    };
-	    document.querySelector('#cancel-user-edit-btn').onclick = () => {
-	      hideUserEditor();
-	    };
+        });
+        await loadAll();
+        hideUserEditor();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    };
+    document.querySelector('#cancel-user-edit-btn').onclick = () => {
+      hideUserEditor();
+    };
     document.querySelector('#add-user-btn').onclick = resetUserForm;
     form.elements.role.addEventListener('change', updateAssignmentVisibility);
-    document.querySelector('#refresh-btn').onclick = () => loadAll().catch(error => setStatus(error.message, true));
+    document.querySelector('#refresh-btn').onclick = () => {
+      setInviteOutput('');
+      loadAll().catch(error => setStatus(error.message, true));
+    };
     updateButton.hidden = true;
     updateAssignmentVisibility();
     loadAll().catch(error => setStatus(error.message, true));
