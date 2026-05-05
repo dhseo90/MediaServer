@@ -84,9 +84,9 @@ Auth 구성요소:
 - `Principal`: request마다 Bearer/query token 또는 session cookie에서 생성되며 role, scope, displayName, authMode, authentication 상태를 포함합니다.
 - `AuthGuard`: `RequireRole`, `RequireScope`, `IsAdmin`, `IsOperator`, `IsViewer`, `IsIntegrator` helper로 browser route는 login/forbidden page, API route는 JSON `401`/`403`을 반환합니다.
 
-클라이언트 계정의 1차 정책은 admin 수동 생성입니다. 자가 가입은 자동 승인하지 않고, `/client/request-access`와 `POST /client/api/access-requests`는 `pending` request만 users file에 저장합니다. Admin이 `/ops/users`에서 approve하기 전까지 request는 user/password/session/view scope를 만들지 않습니다.
+클라이언트 계정의 1차 정책은 admin 수동 생성입니다. 자가 가입은 자동 승인하지 않고, `/client/request-access`와 `POST /client/api/access-requests`는 `pending` request만 users file에 저장합니다. Admin approve는 password setup invite만 발급하며, invite가 수락되기 전까지 request는 user/password/session/view scope를 만들지 않습니다.
 
-Users file은 `users`, `invites`, `accessRequests` top-level 배열을 보관합니다. `users[].passwordHash`, `passwordHistory`, `tokenHash`, `invites[].tokenHash`는 safe hash만 저장하며 API/UI 응답에는 노출하지 않습니다. Invite token은 viewer password setup 전용이며 원문은 발급 응답에서 한 번만 표시됩니다. `/invite/setup`에서 비밀번호를 설정하면 viewer 계정에 scope snapshot을 저장하고 invite token hash를 폐기합니다.
+Users file은 `users`, `invites`, `accessRequests` top-level 배열을 보관합니다. `users[].passwordHash`, `passwordHistory`, `tokenHash`, `invites[].tokenHash`는 safe hash만 저장하며 API/UI 응답에는 노출하지 않습니다. Invite token은 password setup 전용이며 원문은 발급 응답에서 한 번만 표시됩니다. `/ops/api/invites`와 access-request approve는 invite의 role/scope snapshot만 저장하고 기존 enabled user를 즉시 변경하지 않습니다. `/invite/setup`에서 비밀번호를 설정하면 그 시점에 user role/scope/password를 갱신하고 invite token hash를 폐기하며 기존 session은 폐기됩니다.
 
 기본 역할:
 

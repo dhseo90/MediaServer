@@ -144,7 +144,7 @@ Users file 예시:
 }
 ```
 
-`passwordHash`와 `passwordHistory`는 libsodium `crypto_pwhash_str` 출력 문자열만 저장합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다. Password hash 값은 `/ops/api/users`, `/ops/users`, CLI list 응답에 노출하지 않습니다. 제품 UI의 기본 계정 생성은 `/ops/users`에서 admin이 초기 비밀번호를 입력하는 직접 생성 흐름입니다. Invite/setup API와 CLI는 검증 및 운영 보조 흐름으로 유지하며, invite 비밀번호는 사용자가 `/invite/setup`에서 직접 입력합니다. Invite/request 전용 env는 별도로 두지 않고 같은 users file에 저장하며, invite 만료 시간은 API 요청의 `ttlSeconds`로 지정하거나 서버 기본값을 사용합니다.
+`passwordHash`와 `passwordHistory`는 libsodium `crypto_pwhash_str` 출력 문자열만 저장합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다. Password hash 값은 `/ops/api/users`, `/ops/users`, CLI list 응답에 노출하지 않습니다. 제품 UI의 기본 계정 생성은 `/ops/users`에서 admin이 초기 비밀번호를 입력하는 직접 생성 흐름입니다. Invite/setup API와 CLI는 검증 및 운영 보조 흐름으로 유지하며, invite 비밀번호는 사용자가 `/invite/setup`에서 직접 입력합니다. Invite 생성과 access-request approve는 invite record만 추가하고 기존 user의 role/scope/enabled/session 상태를 수락 전 즉시 바꾸지 않습니다. Invite/request 전용 env는 별도로 두지 않고 같은 users file에 저장하며, invite 만료 시간은 API 요청의 `ttlSeconds`로 지정하거나 서버 기본값을 사용합니다.
 
 Admin user management API:
 
@@ -156,9 +156,9 @@ Admin user management API:
 | `POST /ops/api/users/{username}/reset-password` | admin | password 재설정 API. 제품 UI 기본 화면은 사용자 생성/수정/활성화 관리에 집중 |
 | `POST /ops/api/users/{username}/disable` | admin | hard delete 대신 비활성화 |
 | `POST /ops/api/users/{username}/enable` | admin | 비활성 계정 재활성화 |
-| `POST /ops/api/invites` | admin | password setup invite 발급. token 원문은 응답에서 한 번만 표시 |
+| `POST /ops/api/invites` | admin | password setup invite 발급. token 원문은 응답에서 한 번만 표시하며 수락 전 user 권한은 변경하지 않음 |
 | `GET /ops/api/access-requests` | admin | pending/rejected/approved client access request 조회 |
-| `POST /ops/api/access-requests/{requestId}/approve` | admin | pending request를 승인하고 password setup invite 발급 |
+| `POST /ops/api/access-requests/{requestId}/approve` | admin | pending request를 승인하고 password setup invite 발급. user 생성/권한 반영은 invite setup 시점에 수행 |
 | `POST /ops/api/access-requests/{requestId}/reject` | admin | pending request 거절. user/session/view scope는 생성하지 않음 |
 | `POST /client/api/access-requests` | public | client access request를 `pending` 상태로 저장 |
 

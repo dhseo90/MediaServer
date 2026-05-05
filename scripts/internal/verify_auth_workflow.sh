@@ -18,6 +18,7 @@ OP_READONLY_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_operator_readonly.cookie"
 VIEWER_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_viewer.cookie"
 INTEGRATOR_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_integrator.cookie"
 INVITE_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_invite.cookie"
+EXISTING_INVITE_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_existing_invite.cookie"
 REQUEST_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_request.cookie"
 LOG_FILE="${TMP_DIR}/media_server_${RUN_ID}.log"
 SERVER_PID=""
@@ -33,7 +34,7 @@ cleanup() {
   rm -f "${USERS_FILE}" "${USERS_FILE}.tmp" \
     "${ADMIN_COOKIE}" "${OP_COOKIE}" "${OP_READONLY_COOKIE}" \
     "${VIEWER_COOKIE}" "${INTEGRATOR_COOKIE}" \
-    "${INVITE_COOKIE}" "${REQUEST_COOKIE}" "${LOG_FILE}"
+    "${INVITE_COOKIE}" "${EXISTING_INVITE_COOKIE}" "${REQUEST_COOKIE}" "${LOG_FILE}"
 }
 trap cleanup EXIT
 
@@ -357,7 +358,41 @@ run_users() {
   invite_login="$(http_code -c "${INVITE_COOKIE}" -X POST -d 'username=invite-smoke&password=Invite!91' "${BASE}/login")"
   expect_eq "${invite_login}" "302" "invited viewer login"
 
-  local request_json request_id pending_login approve_json approve_token request_setup request_login
+  create_user '{"username":"invite-existing","displayName":"Invite Existing","role":"viewer","viewId":"view-a","password":"Existing!91","enabled":true,"mustChangePassword":false}' >/dev/null
+  expect_eq "$(http_code -c "${EXISTING_INVITE_COOKIE}" -X POST -d 'username=invite-existing&password=Existing!91' "${BASE}/login")" "302" "existing invite target baseline login"
+  local existing_before existing_invite_json existing_invite_token existing_after existing_setup existing_relogin existing_final
+  existing_before="$(curl -fsS -b "${EXISTING_INVITE_COOKIE}" "${BASE}/auth/whoami")"
+  case "${existing_before}" in
+    *'"role":"viewer"'*'"view:read:view-a"'*) pass "existing invite baseline scope visible" ;;
+    *) fail "existing invite baseline scope mismatch: ${existing_before}" ;;
+  esac
+  existing_invite_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data '{"username":"invite-existing","displayName":"Invite Existing Integrator","role":"integrator","viewId":"view-b"}' "${BASE}/ops/api/invites")"
+  existing_invite_token="$(printf '%s' "${existing_invite_json}" | json_string_field token)"
+  [[ -n "${existing_invite_token}" ]] || fail "existing user invite token missing: ${existing_invite_json}"
+  expect_eq "$(http_code -b "${EXISTING_INVITE_COOKIE}" "${BASE}/auth/whoami")" "200" "pending invite keeps existing session"
+  existing_after="$(curl -fsS -b "${EXISTING_INVITE_COOKIE}" "${BASE}/auth/whoami")"
+  case "${existing_after}" in
+    *'"role":"viewer"'*'"view:read:view-a"'*) pass "pending invite does not change existing role/scope" ;;
+    *) fail "pending invite changed existing role/scope: ${existing_after}" ;;
+  esac
+  case "${existing_after}" in
+    *'"role":"integrator"'*|*'"metadata:read:view-b"'*) fail "pending invite applied future integrator scope: ${existing_after}" ;;
+    *) pass "pending invite future scope not applied" ;;
+  esac
+  existing_setup="$(http_code -X POST --data-urlencode "token=${existing_invite_token}" \
+    --data-urlencode 'password=ExistingNext!91' --data-urlencode 'confirm=ExistingNext!91' "${BASE}/invite/setup")"
+  expect_eq "${existing_setup}" "302" "existing invite accepted"
+  expect_eq "$(http_code -b "${EXISTING_INVITE_COOKIE}" "${BASE}/auth/whoami")" "401" "accepted invite revokes previous session"
+  existing_relogin="$(http_code -c "${EXISTING_INVITE_COOKIE}" -X POST -d 'username=invite-existing&password=ExistingNext!91' "${BASE}/login")"
+  expect_eq "${existing_relogin}" "302" "existing invite new password login"
+  existing_final="$(curl -fsS -b "${EXISTING_INVITE_COOKIE}" "${BASE}/auth/whoami")"
+  case "${existing_final}" in
+    *'"role":"integrator"'*'"metadata:read:view-b"'*'"event:read:view-b"'*) pass "accepted invite applies role/scope" ;;
+    *) fail "accepted invite did not apply role/scope: ${existing_final}" ;;
+  esac
+
+  local request_json request_id pending_login approve_json approve_token request_user_list request_setup request_login
   request_json="$(curl -fsS -H 'Content-Type: application/json' \
     -X POST --data '{"username":"request-smoke","displayName":"Request Smoke","contact":"client@example.test","viewId":"view-b","reason":"smoke"}' "${BASE}/client/api/access-requests")"
   request_id="$(printf '%s' "${request_json}" | json_string_field requestId)"
@@ -368,6 +403,11 @@ run_users() {
     -X POST --data '{"viewId":"view-b"}' "${BASE}/ops/api/access-requests/${request_id}/approve")"
   approve_token="$(printf '%s' "${approve_json}" | json_string_field token)"
   [[ -n "${approve_token}" ]] || fail "approve invite token missing: ${approve_json}"
+  request_user_list="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/api/users")"
+  case "${request_user_list}" in
+    *'"username":"request-smoke"'*) fail "approved request created user before invite setup: ${request_user_list}" ;;
+    *) pass "approved request keeps user pending until invite setup" ;;
+  esac
   request_setup="$(http_code -X POST --data-urlencode "token=${approve_token}" \
     --data-urlencode 'password=Request!91' --data-urlencode 'confirm=Request!91' "${BASE}/invite/setup")"
   expect_eq "${request_setup}" "302" "approved request password setup"
