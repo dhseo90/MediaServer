@@ -224,6 +224,20 @@ json_string_field() {
   sed -n "s/.*\"${field}\":\"\\([^\"]*\\)\".*/\\1/p"
 }
 
+json_first_source_field() {
+  local field="$1"
+  node -e 'const fs = require("fs");
+const field = process.argv[1];
+const data = JSON.parse(fs.readFileSync(0, "utf8"));
+const source = Array.isArray(data.sources) ? data.sources[0] : null;
+const value = source ? source[field] : "";
+if (value !== undefined && value !== null) process.stdout.write(String(value));' "${field}"
+}
+
+json_quote() {
+  node -e 'process.stdout.write(JSON.stringify(process.argv[1] || ""));' "$1"
+}
+
 setup_admin() {
   local weak_code strong_code after_setup
   weak_code="$(http_code -X POST -d 'username=admin&password=weak&confirm=weak' "${BASE}/setup")"
@@ -372,12 +386,39 @@ run_routes() {
   create_user '{"username":"operator-readonly","displayName":"Operator Readonly","role":"operator","scopes":["ops:read"],"password":"Operator!92","enabled":true,"mustChangePassword":false}' >/dev/null
   create_user '{"username":"viewer-smoke","displayName":"Viewer Smoke","role":"viewer","viewId":"view-a","password":"Viewer!91","enabled":true,"mustChangePassword":false}' >/dev/null
   create_user '{"username":"integrator-smoke","displayName":"Integrator Smoke","role":"integrator","viewId":"view-a","password":"Integrator!91","enabled":true,"mustChangePassword":false}' >/dev/null
-  local sources_json source_id
+  local sources_json source_id source_kind source_file source_rtsp source_webrtc source_http matching_rule_source mismatched_rule_source
   sources_json="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/api/sources")"
-  source_id="$(printf '%s' "${sources_json}" | json_string_field sourceId)"
+  source_id="$(printf '%s' "${sources_json}" | json_first_source_field sourceId)"
   [[ -n "${source_id}" ]] || fail "default source id missing: ${sources_json}"
+  source_kind="$(printf '%s' "${sources_json}" | json_first_source_field kind)"
+  source_file="$(printf '%s' "${sources_json}" | json_first_source_field file)"
+  source_rtsp="$(printf '%s' "${sources_json}" | json_first_source_field rtspUrl)"
+  source_webrtc="$(printf '%s' "${sources_json}" | json_first_source_field webrtcSourceId)"
+  source_http="$(printf '%s' "${sources_json}" | json_first_source_field httpUrl)"
+  if [[ -n "${source_file}" ]]; then
+    matching_rule_source="\"kind\":\"file\",\"file\":$(json_quote "${source_file}")"
+    mismatched_rule_source="\"kind\":\"file\",\"file\":\"__client_live_forbidden_source__.mp4\""
+  elif [[ -n "${source_rtsp}" ]]; then
+    matching_rule_source="\"kind\":\"rtsp\",\"url\":$(json_quote "${source_rtsp}")"
+    mismatched_rule_source="\"kind\":\"rtsp\",\"url\":\"rtsp://127.0.0.1:65530/forbidden\""
+  elif [[ -n "${source_webrtc}" ]]; then
+    matching_rule_source="\"kind\":\"webrtc\",\"url\":$(json_quote "${source_webrtc}")"
+    mismatched_rule_source="\"kind\":\"webrtc\",\"url\":\"forbidden-client-live-source\""
+  elif [[ -n "${source_http}" ]]; then
+    source_kind="${source_kind:-http}"
+    matching_rule_source="\"kind\":$(json_quote "${source_kind}"),\"url\":$(json_quote "${source_http}")"
+    mismatched_rule_source="\"kind\":$(json_quote "${source_kind}"),\"url\":\"http://127.0.0.1:65530/forbidden\""
+  else
+    fail "default source has no playable locator: ${sources_json}"
+  fi
   curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
-    -X PUT --data "{\"viewId\":\"view-a\",\"sourceId\":\"${source_id}\",\"displayName\":\"View A\",\"allowedOverlayModes\":[\"raw\"],\"enabled\":true}" \
+    -X PUT --data "{\"id\":\"9101\",\"source\":{${matching_rule_source}},\"analysis\":{\"classes\":[\"person\"]}}" \
+    "${BASE}/lab/analysis/va-rules/9101" >/dev/null
+  curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X PUT --data "{\"id\":\"9102\",\"source\":{${mismatched_rule_source}},\"analysis\":{\"classes\":[\"person\"]}}" \
+    "${BASE}/lab/analysis/va-rules/9102" >/dev/null
+  curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X PUT --data "{\"viewId\":\"view-a\",\"sourceId\":\"${source_id}\",\"displayName\":\"View A\",\"defaultRuleId\":\"9101\",\"allowedRuleIds\":[\"9101\",\"9102\"],\"allowedOverlayModes\":[\"raw\",\"va-rule\"],\"enabled\":true}" \
     "${BASE}/ops/api/views/view-a" >/dev/null
   local op_landing viewer_landing
   op_landing="$(curl -sS -c "${OP_COOKIE}" -o /dev/null -D - \
@@ -456,6 +497,18 @@ run_routes() {
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/webrtc/session/${client_session_id}/ice")" "404" "client alias rejected on generic session route"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/client/api/views/view-a/webrtc/session/${client_session_id}/ice")" "200" "client wrapper ICE allowed"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X DELETE "${BASE}/client/api/views/view-a/webrtc/session/${client_session_id}")" "200" "client wrapper delete allowed"
+  local client_rule_session_json client_rule_session_id
+  client_rule_session_json="$(curl -fsS -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data '{"overlayMode":"va-rule","ruleId":"9101"}' "${BASE}/client/api/views/view-a/webrtc/session")"
+  client_rule_session_id="$(printf '%s' "${client_rule_session_json}" | json_string_field sessionId)"
+  if printf '%s' "${client_rule_session_id}" | grep -Eq '^client-live-[0-9a-f]{64}$'; then
+    pass "client vaRule matching PublishedView source allowed"
+  else
+    fail "client vaRule matching source failed: ${client_rule_session_json}"
+  fi
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X DELETE "${BASE}/client/api/views/view-a/webrtc/session/${client_rule_session_id}")" "200" "client vaRule wrapper delete allowed"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data '{"overlayMode":"va-rule","ruleId":"9102"}' "${BASE}/client/api/views/view-a/webrtc/session")" "400" "client vaRule source mismatch denied"
   stop_server
   rm -f "${USERS_FILE}" "${USERS_FILE}.tmp"
   start_server off lab
