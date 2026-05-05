@@ -557,6 +557,9 @@ run_routes() {
   curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
     -X PUT --data "{\"viewId\":\"view-a\",\"sourceId\":\"${source_id}\",\"displayName\":\"View A\",\"defaultRuleId\":\"9101\",\"allowedRuleIds\":[\"9101\",\"9102\"],\"allowedOverlayModes\":[\"raw\",\"va-rule\"],\"enabled\":true}" \
     "${BASE}/ops/api/views/view-a" >/dev/null
+  curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X PUT --data "{\"viewId\":\"view-b\",\"sourceId\":\"${source_id}\",\"displayName\":\"View B\",\"allowedOverlayModes\":[\"raw\"],\"enabled\":true}" \
+    "${BASE}/ops/api/views/view-b" >/dev/null
   local op_landing viewer_landing
   op_landing="$(curl -sS -c "${OP_COOKIE}" -o /dev/null -D - \
     -X POST -d 'username=operator-smoke&password=Operator!91' "${BASE}/login" |
@@ -578,15 +581,68 @@ run_routes() {
   expect_eq "${integrator_landing}" "302:/login" "integrator login keeps API-only landing"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops")" "403" "viewer ops denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/lab")" "403" "viewer lab denied"
-	  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/sources")" "200" "readonly operator ops read allowed"
-	  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/runtime/status")" "200" "ops runtime API read allowed"
-	  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/rules/catalog")" "200" "ops rules catalog API read allowed"
-	  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/events/status?limit=1")" "200" "ops events status API read allowed"
-	  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
-	    -X POST --data '{"viewId":"readonly-denied"}' "${BASE}/ops/api/views")" "403" "source write scope required for view write"
+  expect_eq "$(http_code "${BASE}/ops/api/sources")" "401" "unauth ops sources API denied"
+  expect_eq "$(http_code "${BASE}/ops/api/views")" "401" "unauth ops views API denied"
+  expect_eq "$(http_code "${BASE}/ops/api/runtime/status")" "401" "unauth ops runtime API denied"
+  expect_eq "$(http_code "${BASE}/ops/api/rules/catalog")" "401" "unauth ops rules catalog API denied"
+  expect_eq "$(http_code "${BASE}/ops/api/events/status?limit=1")" "401" "unauth ops events API denied"
+  expect_eq "$(http_code "${BASE}/ops/api/users")" "401" "unauth ops users API denied"
+  expect_eq "$(http_code "${BASE}/ops/api/access-requests")" "401" "unauth ops access requests API denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/sources")" "403" "viewer ops sources API denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/views")" "403" "viewer ops views API denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/runtime/status")" "403" "viewer ops runtime API denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/users")" "403" "viewer ops users API denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/access-requests")" "403" "viewer ops access requests API denied"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/sources")" "200" "readonly operator ops read allowed"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/runtime/status")" "200" "ops runtime API read allowed"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/rules/catalog")" "200" "ops rules catalog API read allowed"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/events/status?limit=1")" "200" "ops events status API read allowed"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/users")" "403" "readonly operator admin users API denied"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data '{"username":"readonly-invite","role":"viewer","viewId":"view-a"}' "${BASE}/ops/api/invites")" "403" "readonly operator invite API denied"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/access-requests")" "403" "readonly operator access requests API denied"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data '{"viewId":"readonly-denied"}' "${BASE}/ops/api/views")" "403" "source write scope required for view create"
+  local readonly_view_update_payload readonly_source_update_payload readonly_va_rule_payload
+  readonly_view_update_payload="{\"viewId\":\"view-a\",\"sourceId\":\"${source_id}\",\"displayName\":\"Denied\"}"
+  readonly_source_update_payload="{\"sourceId\":\"${source_id}\",\"displayName\":\"Denied\",\"kind\":\"file\",\"file\":\"sample_h264.mp4\"}"
+  readonly_va_rule_payload="{\"id\":\"readonly-va-denied\",\"source\":{${matching_rule_source}},\"analysis\":{\"classes\":[\"person\"]}}"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
+    -X PUT --data "${readonly_view_update_payload}" "${BASE}/ops/api/views/view-a")" "403" "source write scope required for view update"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
+    -X PUT --data "${readonly_source_update_payload}" "${BASE}/ops/api/sources/${source_id}")" "403" "source write scope required for source update"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data '{}' "${BASE}/lab/analysis/rules")" "403" "rule write scope required for lab rule write"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
+    -X PUT --data "${readonly_va_rule_payload}" "${BASE}/lab/analysis/va-rules/readonly-va-denied")" "403" "rule write scope required for lab vaRule write"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
+    -X PUT --data '{"id":"readonly-profile-denied","trackingClasses":["person"]}' "${BASE}/lab/analysis/profiles/readonly-profile-denied")" "403" "rule write scope required for lab profile write"
   expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client")" "403" "integrator client shell denied"
+  expect_eq "$(http_code "${BASE}/client/api/views")" "401" "unauth client views API denied"
+  expect_eq "$(http_code "${BASE}/client/api/views/view-a/dashboard")" "401" "unauth client dashboard API denied"
+  expect_eq "$(http_code -H 'Content-Type: application/json' \
+    -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/view-a/webrtc/session")" "401" "unauth client WebRTC wrapper denied"
+  local public_request_code client_views_json integrator_views_json
+  public_request_code="$(http_code -H 'Content-Type: application/json' \
+    -X POST --data '{"username":"route-public-request","displayName":"Route Public","contact":"route@example.test","viewId":"view-a","reason":"route smoke"}' "${BASE}/client/api/access-requests")"
+  expect_eq "${public_request_code}" "201" "public access request API remains unauthenticated"
+  client_views_json="$(curl -fsS -b "${VIEWER_COOKIE}" "${BASE}/client/api/views")"
+  case "${client_views_json}" in
+    *'"viewId":"view-a"'*) pass "viewer assigned view visible in client API" ;;
+    *) fail "viewer assigned view missing from client API: ${client_views_json}" ;;
+  esac
+  case "${client_views_json}" in
+    *'"viewId":"view-b"'*) fail "viewer unassigned view leaked in client API: ${client_views_json}" ;;
+    *) pass "viewer unassigned view hidden from client API" ;;
+  esac
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/client/api/views/view-b/dashboard")" "403" "viewer cross-view dashboard denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/view-b/webrtc/session")" "403" "viewer cross-view WebRTC wrapper denied"
+  integrator_views_json="$(curl -fsS -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views")"
+  case "${integrator_views_json}" in
+    *'"viewId":"view-a"'*) fail "integrator live view leaked in client views list: ${integrator_views_json}" ;;
+    *) pass "integrator client views list omits live views" ;;
+  esac
   expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/view-a/events?limit=1")" "200" "integrator event scope allowed"
   expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/view-a/metadata")" "200" "integrator metadata scope allowed"
   expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/view-a/dashboard")" "403" "integrator dashboard scope denied"
@@ -636,14 +692,16 @@ run_routes() {
   else
     fail "client WebRTC wrapper leaked unexpected session id: ${client_session_json}"
   fi
-	  case "${client_session_json}" in
-	    *sessionToken*|*client-live-internal*|*webrtc-http*)
-	      fail "client WebRTC wrapper leaked internal signaling detail: ${client_session_json}" ;;
-	    *) pass "client WebRTC wrapper hides internal signaling detail" ;;
-	  esac
-	  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
-	    -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/view-a/webrtc/session")" "409" "client PublishedView maxTiles enforced"
-	  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/webrtc/session/${client_session_id}/ice")" "404" "client alias rejected on generic session route"
+  case "${client_session_json}" in
+    *sessionToken*|*client-live-internal*|*webrtc-http*)
+      fail "client WebRTC wrapper leaked internal signaling detail: ${client_session_json}" ;;
+    *) pass "client WebRTC wrapper hides internal signaling detail" ;;
+  esac
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/view-a/webrtc/session")" "409" "client PublishedView maxTiles enforced"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data '{"file":"sample_h264.mp4","overlayMode":"raw"}' "${BASE}/client/api/views/view-a/webrtc/session")" "400" "client WebRTC wrapper source override denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/webrtc/session/${client_session_id}/ice")" "404" "client alias rejected on generic session route"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/client/api/views/view-a/webrtc/session/${client_session_id}/ice")" "200" "client wrapper ICE allowed"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X DELETE "${BASE}/client/api/views/view-a/webrtc/session/${client_session_id}")" "200" "client wrapper delete allowed"
   local client_rule_session_json client_rule_session_id
