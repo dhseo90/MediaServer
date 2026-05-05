@@ -23,7 +23,7 @@
 Client <-> RTSP/WebRTC <-> MediaServer <-> Source
 ```
 
-Source는 file, RTSP pull, WebRTC publish, HTTP/HLS URI가 될 수 있습니다. 앞단 protocol과 뒷단 source protocol은 독립입니다.
+Source는 file, RTSP pull, HTTP/HLS URI, 내부 `/whip/publish` sourceId 소비 경로가 될 수 있습니다. 앞단 protocol과 뒷단 source protocol은 독립입니다. 공개 WebRTC/WHEP playback URL pull source는 아직 구현하지 않았습니다.
 
 ```text
 RTSP Client
@@ -38,7 +38,7 @@ SessionManager
 StreamRegistry -- StreamKey dedup
     |
     v
-SharedStream <---- SourceWorker <---- File / RTSP / WebRTC / HTTP-HLS
+SharedStream <---- SourceWorker <---- File / RTSP / HTTP-HLS / WHIP-published sourceId
     |
     +----> RTSP Egress
     |
@@ -55,7 +55,7 @@ SharedStream <---- SourceWorker <---- File / RTSP / WebRTC / HTTP-HLS
 | SessionManager | session 생성/종료, ResourceGuard 확인, SharedStream 구독 연결, analysis tap 생성 |
 | StreamRegistry | StreamKey 기준 SharedStream dedup 저장소 |
 | SharedStream | SourceWorker에서 받은 packet을 여러 client/analysis subscriber에 fan-out |
-| SourceWorker | file, RTSP pull, WebRTC publish, HTTP/HLS URI source를 읽어 SharedStream에 공급 |
+| SourceWorker | file, RTSP pull, HTTP/HLS URI, 내부 WHIP-published sourceId를 읽어 SharedStream에 공급 |
 | RTSP Egress | SharedStream packet을 RTSP route별 output으로 변환 |
 | WebRTC Egress | SharedStream packet을 WebRTC signaling/WHEP client로 전송 |
 | Analysis Tap | SharedStream을 구독해 VA decode/inference/overlay/event 처리를 수행 |
@@ -348,11 +348,11 @@ GET /lab/analysis/event-storage/status
 
 | 확장 포인트 | 현재 상태 | 목적 |
 | --- | --- | --- |
-| EventStorage | optional JSON Lines | EventRecord 저장과 후속 조회/API 연결 |
+| EventStorage | optional JSON Lines | EventRecord 저장, active file 조회/API, archive query/compaction 후속 |
 | WebRTC DataChannel | opt-in | runtime metadata frame을 기존 WebRTC schema로 직렬화해 video stream과 별도로 전달 |
 | Runtime Metadata Side-Channel | SSE/WebSocket 최소 구현 | custom client가 RTSP video와 별도 metadata stream을 함께 소비 |
 | Ops/Client UI shell | 1차 통합 완료 | `/ops` 운영 콘솔, `/client` 클라이언트 포털, `/lab` 개발/검증 shell 역할 분리 |
-| 런타임 대시보드 | 구현 완료 | active session/stream/tap, VA metrics, state dump, tracking issue report를 Lab에서 확인. Ops dashboard는 runtime status를 운영 card UI로 요약 |
+| 런타임 대시보드 | 1차 구현 완료 | active session/stream/tap, VA metrics, state dump, tracking issue report를 Lab에서 확인. Ops dashboard는 runtime status를 운영 card UI로 요약. 장기 baseline/sparkline 고도화는 후속 |
 | Scenario UI | 일부 완료, 일부 다음 작업 | ReEntry/IntrusionAfterLineCrossing은 룰 편집 UI에서 선택 가능. Loitering UI와 ZoneOccupancyScenario는 다음 작업 |
 | Re-ID hook | 기본 NoOp, 실험용 extractor hook | appearance profile과 reacquire/low confidence association 보조 |
 | Homography | optional config | image point를 ground-plane point로 변환해 distance/speed/radius 계산 보조 |
