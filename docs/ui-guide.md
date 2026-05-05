@@ -107,7 +107,7 @@ Role별 이동:
 
 Login page는 username/password 입력, 실패/lockout 메시지, 로그인 후 현재 사용자/role 표시, logout 버튼만 제공하는 MVP입니다. `/`는 setup required 상태에서 `/setup`, auth off에서 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/home`, `/client/live`, auth on에서 admin/operator를 `/ops/home`, viewer를 `/client/live`, 미인증 요청을 `/login`으로 보냅니다. 비밀번호 변경 성공 시 기존 session은 폐기되고 `/login`에서 다시 로그인합니다.
 
-클라이언트 계정의 1차 정책은 admin 수동 생성/승인입니다. admin은 `/ops/users`에서 username, role, viewId 또는 직접 scopes, 초기 비밀번호를 입력해 계정을 생성합니다. Invite/setup API와 CLI는 검증 및 운영 보조 흐름으로 유지하지만, 현재 `/ops/users` 화면의 기본 동작은 직접 계정 생성입니다. Self-signup 자동 승인은 제공하지 않습니다. `/client/request-access`는 pending request만 저장하며, admin 승인 후에도 password setup invite가 수락되기 전에는 계정 생성, session login, view 접근이 허용되지 않습니다. PublishedView 단위 접근은 `view:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`, `dashboard:read:{viewId}` scope로 제한합니다.
+클라이언트 계정의 1차 정책은 admin 수동 생성/승인입니다. admin은 `/ops/users`에서 username, role, viewId 또는 직접 scopes, 초기 비밀번호를 입력해 계정을 생성합니다. Invite/setup API와 CLI는 검증 및 운영 보조 흐름으로 유지하지만, 현재 `/ops/users` 화면의 기본 동작은 직접 계정 생성입니다. Self-signup 자동 승인은 제공하지 않습니다. `/client/request-access`는 pending request만 저장하며, public API는 body/field 길이, viewId 안전 문자, 중복 pending, peer rate-limit을 통과한 요청만 저장합니다. Admin 승인 후에도 password setup invite가 수락되기 전에는 계정 생성, session login, view 접근이 허용되지 않습니다. PublishedView 단위 접근은 `view:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`, `dashboard:read:{viewId}` scope로 제한합니다.
 
 Route 역할:
 

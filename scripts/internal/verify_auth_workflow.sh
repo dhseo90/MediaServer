@@ -23,6 +23,7 @@ INVITE_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_invite.cookie"
 EXISTING_INVITE_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_existing_invite.cookie"
 REQUEST_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_request.cookie"
 LOG_FILE="${TMP_DIR}/media_server_${RUN_ID}.log"
+ACCESS_REQUEST_PAYLOAD="${TMP_DIR}/media_server_${RUN_ID}_access_request_payload.json"
 SERVER_PID=""
 BASE=""
 
@@ -38,7 +39,8 @@ cleanup() {
     "${VIEWS_REGISTRY_FILE}" "${VIEWS_REGISTRY_FILE}".tmp* \
     "${ADMIN_COOKIE}" "${OP_COOKIE}" "${OP_READONLY_COOKIE}" \
     "${VIEWER_COOKIE}" "${INTEGRATOR_COOKIE}" \
-    "${INVITE_COOKIE}" "${EXISTING_INVITE_COOKIE}" "${REQUEST_COOKIE}" "${LOG_FILE}"
+    "${INVITE_COOKIE}" "${EXISTING_INVITE_COOKIE}" "${REQUEST_COOKIE}" \
+    "${LOG_FILE}" "${ACCESS_REQUEST_PAYLOAD}"
 }
 trap cleanup EXIT
 
@@ -458,6 +460,21 @@ run_users() {
     -X POST --data '{"username":"request-smoke","displayName":"Request Smoke","contact":"client@example.test","viewId":"view-b","reason":"smoke"}' "${BASE}/client/api/access-requests")"
   request_id="$(printf '%s' "${request_json}" | json_string_field requestId)"
   [[ -n "${request_id}" ]] || fail "access request id missing: ${request_json}"
+  expect_eq "$(http_code -H 'Content-Type: application/json' \
+    -X POST --data '{"username":"request-smoke","displayName":"Request Smoke","contact":"client@example.test","viewId":"view-b","reason":"duplicate"}' "${BASE}/client/api/access-requests")" "409" "duplicate pending access request rejected"
+  expect_eq "$(http_code -H 'Content-Type: application/json' \
+    -X POST --data '{"username":"request-bad-view","displayName":"Bad View","viewId":"../bad","reason":"bad view"}' "${BASE}/client/api/access-requests")" "400" "access request unsafe viewId rejected"
+  printf '{"username":"request-large","reason":"' >"${ACCESS_REQUEST_PAYLOAD}"
+  printf '%05000d' 0 >>"${ACCESS_REQUEST_PAYLOAD}"
+  printf '"}' >>"${ACCESS_REQUEST_PAYLOAD}"
+  expect_eq "$(http_code -H 'Content-Type: application/json' \
+    -X POST --data-binary @"${ACCESS_REQUEST_PAYLOAD}" "${BASE}/client/api/access-requests")" "413" "oversized access request body rejected"
+  expect_eq "$(http_code -H 'Content-Type: application/json' \
+    -X POST --data '{"username":"request-rate-1","reason":"rate one"}' "${BASE}/client/api/access-requests")" "201" "access request rate budget allows fourth counted attempt"
+  expect_eq "$(http_code -H 'Content-Type: application/json' \
+    -X POST --data '{"username":"request-rate-2","reason":"rate two"}' "${BASE}/client/api/access-requests")" "201" "access request rate budget allows fifth counted attempt"
+  expect_eq "$(http_code -H 'Content-Type: application/json' \
+    -X POST --data '{"username":"request-rate-limit","reason":"rate limit"}' "${BASE}/client/api/access-requests")" "429" "access request per-peer rate limit enforced"
   pending_login="$(http_code -X POST -d 'username=request-smoke&password=Request!91' "${BASE}/login")"
   expect_eq "${pending_login}" "401" "pending request cannot login"
   approve_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \

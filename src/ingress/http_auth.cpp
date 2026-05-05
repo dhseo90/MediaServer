@@ -344,6 +344,13 @@ bool IsKnownAccessRequestStatus(const std::string& status) {
     return status == "pending" || status == "approved" || status == "rejected";
 }
 
+constexpr std::size_t kAccessRequestMaxBodyBytes = 4 * 1024;
+constexpr std::size_t kAccessRequestMaxDisplayNameBytes = 96;
+constexpr std::size_t kAccessRequestMaxContactBytes = 160;
+constexpr std::size_t kAccessRequestMaxReasonBytes = 500;
+constexpr std::size_t kAccessRequestMaxViewIdBytes = 64;
+constexpr std::size_t kAccessRequestMaxPendingRecords = 100;
+
 struct InviteRecord {
     std::string invite_id;
     std::string username;
@@ -747,6 +754,63 @@ bool IsSafeUsername(const std::string& username) {
     return std::all_of(username.begin(), username.end(), [](unsigned char ch) {
         return std::isalnum(ch) != 0 || ch == '_' || ch == '-' || ch == '.' || ch == '@';
     });
+}
+
+bool LooksLikeJsonObject(const std::string& body) {
+    const std::string trimmed = Trim(body);
+    return trimmed.size() >= 2 && trimmed.front() == '{' && trimmed.back() == '}';
+}
+
+bool HasUnsafeTextCharacter(const std::string& value) {
+    return std::any_of(value.begin(), value.end(), [](unsigned char ch) {
+        return ch < 0x20 || ch == 0x7f;
+    });
+}
+
+bool IsSafeAccessRequestViewId(const std::string& view_id) {
+    if (view_id.empty()) {
+        return true;
+    }
+    if (view_id.size() > kAccessRequestMaxViewIdBytes) {
+        return false;
+    }
+    return std::all_of(view_id.begin(), view_id.end(), [](unsigned char ch) {
+        return std::isalnum(ch) != 0 || ch == '_' || ch == '-' || ch == '.';
+    });
+}
+
+bool EqualsCaseInsensitive(const std::string& lhs, const std::string& rhs) {
+    return ToLower(lhs) == ToLower(rhs);
+}
+
+std::optional<std::string> ValidateAccessRequestPayload(const std::string& body,
+                                                        const AccessRequestRecord& request) {
+    if (body.size() > kAccessRequestMaxBodyBytes) {
+        return "access request body is too large";
+    }
+    if (!LooksLikeJsonObject(body)) {
+        return "JSON object body is required";
+    }
+    if (!IsSafeUsername(request.username)) {
+        return "username은 1~64자의 영문/숫자/._-@ 조합이어야 합니다.";
+    }
+    if (request.display_name.size() > kAccessRequestMaxDisplayNameBytes ||
+        request.contact.size() > kAccessRequestMaxContactBytes ||
+        request.reason.size() > kAccessRequestMaxReasonBytes) {
+        return "access request fields exceed length limits";
+    }
+    if (HasUnsafeTextCharacter(request.display_name) ||
+        HasUnsafeTextCharacter(request.contact) ||
+        HasUnsafeTextCharacter(request.reason)) {
+        return "access request fields must not contain control characters";
+    }
+    if (!IsSafeAccessRequestViewId(request.view_id)) {
+        return "viewId must use letters, numbers, '.', '_' or '-'";
+    }
+    if (request.contact.empty() && request.reason.empty()) {
+        return "contact or reason is required";
+    }
+    return std::nullopt;
 }
 
 AuthUserResult UserJsonResult(int status,
@@ -2282,12 +2346,42 @@ AuthUserResult CreateAccessRequestFromJson(const app::AppConfig& config,
     request.contact = Trim(ParseStringField(body, "contact").value_or(""));
     request.reason = Trim(ParseStringField(body, "reason").value_or(""));
     request.view_id = Trim(ParseStringField(body, "viewId").value_or(""));
-    if (!IsSafeUsername(request.username)) {
-        return UserError(400, "Bad Request", "username은 1~64자의 영문/숫자/._-@ 조합이어야 합니다.");
+    if (const auto validation_error = ValidateAccessRequestPayload(body, request);
+        validation_error.has_value()) {
+        const bool oversized = *validation_error == "access request body is too large";
+        return UserError(oversized ? 413 : 400,
+                         oversized ? "Payload Too Large" : "Bad Request",
+                         *validation_error);
     }
-    if (request.contact.empty() && request.reason.empty()) {
-        return UserError(400, "Bad Request", "contact or reason is required");
+
+    std::string load_error;
+    AuthStore store = LoadAuthStoreOrEmpty(config.auth_users_file, &load_error);
+    if (!load_error.empty()) {
+        return UserError(500, "Internal Server Error", load_error);
     }
+    if (std::any_of(store.users.begin(), store.users.end(), [&](const UserRecord& user) {
+            return EqualsCaseInsensitive(user.username, request.username);
+        })) {
+        return UserError(409, "Conflict", "user already exists");
+    }
+    std::size_t pending_count = 0;
+    for (const AccessRequestRecord& existing : store.access_requests) {
+        if (existing.status != "pending") {
+            continue;
+        }
+        ++pending_count;
+        const bool same_username = EqualsCaseInsensitive(existing.username, request.username);
+        const bool same_contact = !request.contact.empty() &&
+                                  !existing.contact.empty() &&
+                                  EqualsCaseInsensitive(existing.contact, request.contact);
+        if (same_username || same_contact) {
+            return UserError(409, "Conflict", "matching access request is already pending");
+        }
+    }
+    if (pending_count >= kAccessRequestMaxPendingRecords) {
+        return UserError(429, "Too Many Requests", "too many pending access requests");
+    }
+
     std::string token_error;
     const auto request_token = GenerateSessionId(&token_error);
     if (!request_token.has_value()) {
@@ -2297,11 +2391,6 @@ AuthUserResult CreateAccessRequestFromJson(const app::AppConfig& config,
     request.status = "pending";
     request.created_at = IsoUtcNow();
 
-    std::string load_error;
-    AuthStore store = LoadAuthStoreOrEmpty(config.auth_users_file, &load_error);
-    if (!load_error.empty()) {
-        return UserError(500, "Internal Server Error", load_error);
-    }
     store.access_requests.push_back(request);
     std::string save_error;
     if (!SaveAuthStore(config.auth_users_file, store, &save_error)) {

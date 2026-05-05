@@ -16504,7 +16504,48 @@ struct WebRtcHttpServer::Impl {
         std::chrono::system_clock::time_point last_seen_at;
     };
 
+    struct PublicAccessRequestRateEntry {
+        std::chrono::steady_clock::time_point window_started_at{};
+        int attempts{0};
+    };
+
     explicit Impl(core::SessionManager& manager) : session_manager(manager) {}
+
+    bool AllowPublicAccessRequestAttempt(const std::string& peer_key,
+                                         int* retry_after_seconds) {
+        static constexpr int kRateLimit = 5;
+        static constexpr int kWindowSeconds = 300;
+        const auto now = std::chrono::steady_clock::now();
+        const auto window = std::chrono::seconds(kWindowSeconds);
+        const std::string key = peer_key.empty() ? "unknown" : peer_key;
+        std::lock_guard lock(public_access_request_rate_mu);
+        for (auto it = public_access_request_rate.begin();
+             it != public_access_request_rate.end();) {
+            if (now - it->second.window_started_at >= window * 2) {
+                it = public_access_request_rate.erase(it);
+            } else {
+                ++it;
+            }
+        }
+        PublicAccessRequestRateEntry& entry = public_access_request_rate[key];
+        if (entry.attempts == 0 || now - entry.window_started_at >= window) {
+            entry.window_started_at = now;
+            entry.attempts = 0;
+        }
+        if (entry.attempts >= kRateLimit) {
+            if (retry_after_seconds != nullptr) {
+                const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                    now - entry.window_started_at);
+                *retry_after_seconds = std::max(1, kWindowSeconds - static_cast<int>(elapsed.count()));
+            }
+            return false;
+        }
+        ++entry.attempts;
+        if (retry_after_seconds != nullptr) {
+            *retry_after_seconds = 0;
+        }
+        return true;
+    }
 
     core::SessionManager& session_manager;
     LabImportManager lab_import_manager;
@@ -16518,6 +16559,8 @@ struct WebRtcHttpServer::Impl {
     std::unordered_map<std::string, SourceSessionEntry> source_sessions;
     std::unordered_map<std::string, ClientSessionEntry> client_sessions;
     std::unordered_map<std::string, AuthSessionEntry> auth_sessions;
+    std::mutex public_access_request_rate_mu;
+    std::unordered_map<std::string, PublicAccessRequestRateEntry> public_access_request_rate;
     std::atomic<std::uint64_t> next_session_id{1};
     std::atomic<int> active_http_connections{0};
     std::atomic<int> active_sse_metadata_clients{0};
@@ -22079,6 +22122,22 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         if (request.method == "POST" && request.path == "/client/api/access-requests") {
                             if (!config.enable_client) {
                                 return route_disabled_response("client");
+                            }
+                            constexpr std::size_t kPublicAccessRequestMaxBodyBytes = 4 * 1024;
+                            if (request.body.size() > kPublicAccessRequestMaxBodyBytes) {
+                                return JsonResponse(413,
+                                                    "Payload Too Large",
+                                                    "{\"error\":\"access request body is too large\"}");
+                            }
+                            int retry_after_seconds = 0;
+                            if (!impl_->AllowPublicAccessRequestAttempt(PeerAddress(client_fd),
+                                                                        &retry_after_seconds)) {
+                                HttpResponse too_many = JsonResponse(
+                                    429,
+                                    "Too Many Requests",
+                                    "{\"error\":\"too many access request attempts\"}");
+                                too_many.headers["Retry-After"] = std::to_string(retry_after_seconds);
+                                return too_many;
                             }
                             return AuthUserHttpResponse(auth::CreateAccessRequestFromJson(config, request.body));
                         }
