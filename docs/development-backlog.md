@@ -61,7 +61,7 @@
 - 후속: source lifecycle 상태, bulk action, PublishedView 기반 visual scope picker, source health와 operator live monitor 연결은 다음 묶음에서 진행합니다.
 - 우선순위 이유: source 원본 설정, 운영자 제어, 클라이언트 노출 범위를 한 모델로 섞지 않기 위한 선행 작업입니다.
 
-### O2a. External WebRTC/WHEP URL source pull
+### O2a. External WHEP URL source pull
 
 - 상태: 완료: 외부 WHEP playback endpoint source 모델 + server pull path 1차
 - 목적: SourceRegistry에 외부 WHEP playback URL을 등록하고 서버가 해당 remote WebRTC source를 pull해서 기존 RTSP/HTTP/file source와 같은 PublishedView/Rule/Event 대상으로 사용할 수 있게 합니다.
@@ -118,7 +118,7 @@
 - 상태: 완료: 문서 구조/상태 taxonomy 1차 정리
 - 목적: README와 `docs/*.md` 사이의 중복, 깨진 링크, 구현 완료/실험/예정 표현 혼선을 제거합니다.
 - 관련 파일: `README.md`, `docs/ui-guide.md`, `docs/video-analysis.md`, `docs/media-server-architecture.md`, `docs/development-guide.md`, `docs/config-reference.md`, `docs/stream-verification.md`, `docs/development-backlog.md`
-- 완료 범위: README와 backlog의 완료 표현을 명시 범위 기준으로 제한하고, 외부 WebRTC/WHEP pull, Loitering UI/ZoneOccupancy, EventRecord archive/recorder, Re-ID/TURN/WS 제어처럼 실제 구현이 아닌 항목을 readiness boundary로 분리합니다.
+- 완료 범위: README와 backlog의 완료 표현을 명시 범위 기준으로 제한하고, 외부 WHEP credential/네트워크 검증, Loitering UI/ZoneOccupancy, EventRecord archive/recorder, Re-ID/TURN/WS 제어처럼 운영 ready 또는 실제 구현 범위가 아닌 항목을 readiness boundary로 분리합니다.
 - 검증 명령:
 
 ```bash

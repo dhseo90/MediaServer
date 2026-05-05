@@ -46,7 +46,7 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 ## 전체 Pipeline
 
 ```text
-File / RTSP Pull / WebRTC Publish / HTTP-HLS URI
+File / RTSP Pull / WHEP Pull / WHIP Publish / HTTP-HLS URI
         -> Media Server
         -> RTSP Output / WebRTC Output
         -> optional VA 오버레이 / 룰 이벤트 / 시나리오 이벤트 / 런타임 메타데이터
@@ -131,8 +131,8 @@ RTSP 일반 viewer는 WebRTC DataChannel metadata를 표시하지 않습니다. 
 - 1차 완료: Auth/account API와 route MVP, SourceRegistry / PublishedView API와 route MVP, Client scoped dashboard API MVP, Client Live Monitor 2x2 MVP.
 - 1차 완료: `/setup`, `/login`, `/ops`, `/client` 제품 UI shell 통합. Ops 주 메뉴는 홈, 대시보드, 채널, 룰, 사용자, 클라이언트 미리보기 순서이며, client 주 메뉴는 라이브와 대시보드만 노출합니다.
 - 1차 완료: `/ops/dashboard`와 `/ops/rules`는 Lab iframe 없이 `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status` 제품 API로 운영 카드와 룰 카탈로그를 표시합니다. `/ops/events`와 `/client/events`는 제품 primary tab에서 숨기고, 이벤트 요약은 룰/대시보드 맥락에서 확인합니다. raw JSON/debug는 운영자 접힘 영역에만 둡니다.
-- 남은 우선 작업: Loitering UI 템플릿, ZoneOccupancyScenario, Operator Live Monitor 고밀도 화면, PublishedView 기반 scope picker, Client Live Monitor 현장형 상태 표시 고도화를 순차 정리합니다.
-- 다음 작업: Loitering UI 템플릿과 ZoneOccupancyScenario 신규 구현은 계속 보류/다음 작업으로 유지합니다.
+- 다음 작업: Loitering UI 템플릿을 먼저 정리하고, 이어서 ZoneOccupancyScenario 신규 구현을 진행합니다.
+- 남은 후속 작업: Operator Live Monitor 고밀도 화면, PublishedView 기반 scope picker, Client Live Monitor 현장형 상태 표시 고도화, EventRecord archive/recorder 고도화를 별도 묶음으로 관리합니다.
 - 제한/미구현: EventRecord archive query/compaction, 실제 snapshot frame extraction/pre-post clip recorder, Re-ID 기본 기능화, 운영 TURN relay/auth, WebSocket command/filter/subscription은 완료 범위가 아닙니다.
 
 이 로드맵 정리는 기존 Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema, Scenario 판단 로직 변경을 의미하지 않습니다. snapshot/clip hook은 marker 중심의 후속 연결점이며 VMS/NVR 녹화 기능이 아닙니다.
@@ -158,6 +158,8 @@ git diff --check -- README.md docs scripts src include
 ./server.sh verify-lab-layout --no-screenshots
 ./server.sh verify-analysis-state
 ```
+
+`verify-auth-routes`는 격리 서버를 직접 띄우지만, `verify-ops-client-ui`, `verify-rule-ui`, `verify-lab-layout`는 실행 중인 HTTP 서버에 붙는 UI smoke입니다. UI만 확인할 때는 별도 터미널에서 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`로 서버를 띄운 뒤 필요하면 `--http-base`를 지정합니다.
 
 로컬 풀 검증:
 

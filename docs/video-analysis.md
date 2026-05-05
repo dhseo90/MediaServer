@@ -10,6 +10,7 @@ VA는 기존 RTSP/WebRTC relay path를 대체하지 않고, 같은 source stream
 
 - file source
 - RTSP pull source
+- 외부 WHEP playback URL pull source
 - WebRTC publish source의 소비 경로
 - HTTP/HLS URI source
 - 정적 이미지 분석 API
@@ -212,7 +213,7 @@ Profile은 detector와 분석 품질/성능 설정입니다.
 
 Rule 구성 요소:
 
-- source: file, RTSP URL, WebRTC source id, HTTP/HLS URI source
+- source: file, RTSP URL, WHEP URL, WebRTC publish source id, HTTP/HLS URI source
 - profile: detector/FPS/threshold/tracking 설정
 - event: 기본 이벤트 또는 scenario event 설정
 - region: polygon 또는 line
