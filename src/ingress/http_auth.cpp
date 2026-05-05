@@ -4,8 +4,10 @@
 
 #include <algorithm>
 #include <array>
+#include <cerrno>
 #include <chrono>
 #include <cctype>
+#include <cstring>
 #include <ctime>
 #include <filesystem>
 #include <fstream>
@@ -22,11 +24,22 @@
 #include <sodium.h>
 #endif
 
+#if !defined(_WIN32)
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
 namespace ingress::auth {
 
 namespace {
 
 bool VerifySecretHash(const std::string& secret, const std::string& hash, std::string* error_message);
+bool HardenExistingAuthStorePermissions(const std::filesystem::path& file_path,
+                                        std::string* error_message);
+bool WriteOwnerOnlyFileAtomically(const std::filesystem::path& file_path,
+                                  const std::string& body,
+                                  std::string* error_message);
 
 std::string Trim(std::string value) {
     while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front())) != 0) {
@@ -436,6 +449,10 @@ AccessRequestRecord ParseAccessRequestRecord(const std::string& raw) {
 }
 
 std::optional<AuthStore> LoadAuthStore(const std::string& path, std::string* error_message) {
+    const std::filesystem::path file_path(path);
+    if (!HardenExistingAuthStorePermissions(file_path, error_message)) {
+        return std::nullopt;
+    }
     std::ifstream in(path);
     if (!in) {
         if (error_message != nullptr) {
@@ -996,6 +1013,230 @@ void WriteAccessRequestRecordJson(std::ostringstream& body,
          << indent << "}";
 }
 
+bool SetError(std::string* error_message, const std::string& message) {
+    if (error_message != nullptr) {
+        *error_message = message;
+    }
+    return false;
+}
+
+#if !defined(_WIN32)
+
+constexpr mode_t kAuthStoreFileMode = S_IRUSR | S_IWUSR;
+
+std::string ErrnoMessage(const std::string& action) {
+    return action + ": " + std::strerror(errno);
+}
+
+bool CloseFdChecked(int fd, const std::string& label, std::string* error_message) {
+    if (::close(fd) != 0) {
+        return SetError(error_message, ErrnoMessage("failed to close " + label));
+    }
+    return true;
+}
+
+bool WriteAll(int fd, const std::string& data, std::string* error_message) {
+    const char* cursor = data.data();
+    std::size_t remaining = data.size();
+    while (remaining > 0) {
+        const ssize_t written = ::write(fd, cursor, remaining);
+        if (written < 0) {
+            if (errno == EINTR) {
+                continue;
+            }
+            return SetError(error_message, ErrnoMessage("failed to write auth users file"));
+        }
+        if (written == 0) {
+            return SetError(error_message, "failed to write auth users file: short write");
+        }
+        cursor += written;
+        remaining -= static_cast<std::size_t>(written);
+    }
+    return true;
+}
+
+bool FsyncFd(int fd, const std::string& label, std::string* error_message) {
+    while (::fsync(fd) != 0) {
+        if (errno == EINTR) {
+            continue;
+        }
+        return SetError(error_message, ErrnoMessage("failed to fsync " + label));
+    }
+    return true;
+}
+
+bool ChmodOwnerOnly(const std::filesystem::path& path, std::string* error_message) {
+    if (::chmod(path.c_str(), kAuthStoreFileMode) != 0) {
+        return SetError(error_message, ErrnoMessage("failed to chmod auth users file"));
+    }
+    return true;
+}
+
+bool FsyncParentDirectory(const std::filesystem::path& file_path, std::string* error_message) {
+    std::filesystem::path parent = file_path.parent_path();
+    if (parent.empty()) {
+        parent = ".";
+    }
+    int flags = O_RDONLY;
+#if defined(O_CLOEXEC)
+    flags |= O_CLOEXEC;
+#endif
+    const int dir_fd = ::open(parent.c_str(), flags);
+    if (dir_fd < 0) {
+        return SetError(error_message, ErrnoMessage("failed to open auth users directory"));
+    }
+    if (!FsyncFd(dir_fd, "auth users directory", error_message)) {
+        (void)::close(dir_fd);
+        return false;
+    }
+    return CloseFdChecked(dir_fd, "auth users directory", error_message);
+}
+
+std::filesystem::path AuthStoreTempPath(const std::filesystem::path& file_path, int attempt) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    std::ostringstream suffix;
+    suffix << ".tmp." << static_cast<long long>(::getpid()) << "." << nonce << "." << attempt;
+    return std::filesystem::path(file_path.string() + suffix.str());
+}
+
+bool WriteOwnerOnlyFileAtomically(const std::filesystem::path& file_path,
+                                  const std::string& body,
+                                  std::string* error_message) {
+    int flags = O_WRONLY | O_CREAT | O_TRUNC;
+#if defined(O_EXCL)
+    flags |= O_EXCL;
+#endif
+#if defined(O_CLOEXEC)
+    flags |= O_CLOEXEC;
+#endif
+#if defined(O_NOFOLLOW)
+    flags |= O_NOFOLLOW;
+#endif
+    std::filesystem::path tmp_path;
+    int fd = -1;
+    for (int attempt = 0; attempt < 100; ++attempt) {
+        tmp_path = AuthStoreTempPath(file_path, attempt);
+        fd = ::open(tmp_path.c_str(), flags, kAuthStoreFileMode);
+        if (fd >= 0) {
+            break;
+        }
+        if (errno == EEXIST) {
+            continue;
+        }
+        return SetError(error_message, ErrnoMessage("failed to open temporary auth users file"));
+    }
+    if (fd < 0) {
+        return SetError(error_message, "failed to open unique temporary auth users file");
+    }
+    auto cleanup_tmp = [&]() {
+        if (fd >= 0) {
+            (void)::close(fd);
+            fd = -1;
+        }
+        std::error_code remove_ec;
+        std::filesystem::remove(tmp_path, remove_ec);
+    };
+    if (::fchmod(fd, kAuthStoreFileMode) != 0) {
+        const std::string message = ErrnoMessage("failed to chmod temporary auth users file");
+        cleanup_tmp();
+        return SetError(error_message, message);
+    }
+    if (!WriteAll(fd, body, error_message)) {
+        cleanup_tmp();
+        return false;
+    }
+    if (!FsyncFd(fd, "temporary auth users file", error_message)) {
+        cleanup_tmp();
+        return false;
+    }
+    if (!CloseFdChecked(fd, "temporary auth users file", error_message)) {
+        fd = -1;
+        std::error_code remove_ec;
+        std::filesystem::remove(tmp_path, remove_ec);
+        return false;
+    }
+    fd = -1;
+    if (::rename(tmp_path.c_str(), file_path.c_str()) != 0) {
+        const std::string message = ErrnoMessage("failed to replace auth users file");
+        std::error_code remove_ec;
+        std::filesystem::remove(tmp_path, remove_ec);
+        return SetError(error_message, message);
+    }
+    if (!ChmodOwnerOnly(file_path, error_message)) {
+        return false;
+    }
+    return FsyncParentDirectory(file_path, error_message);
+}
+
+bool HardenExistingAuthStorePermissions(const std::filesystem::path& file_path,
+                                        std::string* error_message) {
+    std::error_code exists_ec;
+    if (!std::filesystem::exists(file_path, exists_ec)) {
+        return true;
+    }
+    if (exists_ec) {
+        return SetError(error_message, "failed to inspect auth users file: " + exists_ec.message());
+    }
+    return ChmodOwnerOnly(file_path, error_message);
+}
+
+#else
+
+bool WriteOwnerOnlyFileAtomically(const std::filesystem::path& file_path,
+                                  const std::string& body,
+                                  std::string* error_message) {
+    const std::filesystem::path tmp_path = file_path.string() + ".tmp";
+    {
+        std::ofstream out(tmp_path, std::ios::trunc);
+        if (!out) {
+            return SetError(error_message, "failed to open temporary auth users file");
+        }
+        out << body;
+        if (!out) {
+            return SetError(error_message, "failed to write auth users file");
+        }
+    }
+    std::error_code ec;
+    std::filesystem::permissions(tmp_path,
+                                 std::filesystem::perms::owner_read |
+                                     std::filesystem::perms::owner_write,
+                                 std::filesystem::perm_options::replace,
+                                 ec);
+    if (ec) {
+        std::filesystem::remove(tmp_path);
+        return SetError(error_message, "failed to chmod temporary auth users file: " + ec.message());
+    }
+    std::filesystem::rename(tmp_path, file_path, ec);
+    if (ec) {
+        std::filesystem::remove(tmp_path);
+        return SetError(error_message, "failed to replace auth users file: " + ec.message());
+    }
+    return true;
+}
+
+bool HardenExistingAuthStorePermissions(const std::filesystem::path& file_path,
+                                        std::string* error_message) {
+    std::error_code exists_ec;
+    if (!std::filesystem::exists(file_path, exists_ec)) {
+        return true;
+    }
+    if (exists_ec) {
+        return SetError(error_message, "failed to inspect auth users file: " + exists_ec.message());
+    }
+    std::error_code ec;
+    std::filesystem::permissions(file_path,
+                                 std::filesystem::perms::owner_read |
+                                     std::filesystem::perms::owner_write,
+                                 std::filesystem::perm_options::replace,
+                                 ec);
+    if (ec) {
+        return SetError(error_message, "failed to chmod auth users file: " + ec.message());
+    }
+    return true;
+}
+
+#endif
+
 bool SaveAuthStore(const std::string& path, const AuthStore& store, std::string* error_message) {
     if (path.empty()) {
         if (error_message != nullptr) {
@@ -1043,32 +1284,7 @@ bool SaveAuthStore(const std::string& path, const AuthStore& store, std::string*
     }
     body << "  ]\n}\n";
 
-    const std::filesystem::path tmp_path = file_path.string() + ".tmp";
-    {
-        std::ofstream out(tmp_path, std::ios::trunc);
-        if (!out) {
-            if (error_message != nullptr) {
-                *error_message = "failed to open temporary auth users file";
-            }
-            return false;
-        }
-        out << body.str();
-        if (!out) {
-            if (error_message != nullptr) {
-                *error_message = "failed to write auth users file";
-            }
-            return false;
-        }
-    }
-    std::filesystem::rename(tmp_path, file_path, ec);
-    if (ec) {
-        std::filesystem::remove(tmp_path);
-        if (error_message != nullptr) {
-            *error_message = "failed to replace auth users file: " + ec.message();
-        }
-        return false;
-    }
-    return true;
+    return WriteOwnerOnlyFileAtomically(file_path, body.str(), error_message);
 }
 
 bool SaveUsersFile(const std::string& path,

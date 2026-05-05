@@ -154,6 +154,23 @@ expect_eq() {
   pass "${label}: ${actual}"
 }
 
+file_mode() {
+  local path="$1"
+  if stat -f '%Lp' "${path}" >/dev/null 2>&1; then
+    stat -f '%Lp' "${path}"
+  else
+    stat -c '%a' "${path}"
+  fi
+}
+
+expect_auth_store_owner_only() {
+  local label="${1:-auth users file owner-only mode}"
+  [[ -f "${USERS_FILE}" ]] || fail "auth users file missing: ${USERS_FILE}"
+  local mode
+  mode="$(file_mode "${USERS_FILE}")"
+  expect_eq "${mode}" "600" "${label}"
+}
+
 expect_page_contains() {
   local label="$1"
   local url="$2"
@@ -245,6 +262,7 @@ setup_admin() {
   expect_eq "${weak_code}" "400" "weak admin password rejected"
   strong_code="$(http_code -X POST -d 'username=admin&password=Strong!91&confirm=Strong!91' "${BASE}/setup")"
   expect_eq "${strong_code}" "302" "initial admin password setup"
+  expect_auth_store_owner_only
   after_setup="$(header_status_location "${BASE}/setup")"
   expect_eq "${after_setup}" "302:/login" "setup blocked after completion"
 }
@@ -293,7 +311,9 @@ create_user() {
 run_users() {
   start_server auto lab
   setup_admin
+  chmod 644 "${USERS_FILE}" || fail "failed to simulate permissive auth users file"
   login_admin
+  expect_auth_store_owner_only "permissive auth users file re-hardened"
 
   local viewer_json
   viewer_json="$(create_user '{"username":"viewer-smoke","displayName":"Viewer Smoke","role":"viewer","viewId":"view-a","password":"Viewer!91","enabled":true,"mustChangePassword":false}')"
