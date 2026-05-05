@@ -120,6 +120,26 @@ http_code() {
   curl -sS -o /dev/null -w "%{http_code}" "$@"
 }
 
+raw_http_code() {
+  local payload="$1"
+  local base="${BASE#http://}"
+  local host="${base%%:*}"
+  local port_part="${base#*:}"
+  local port="${port_part%%/*}"
+  local line
+  exec 9<>"/dev/tcp/${host}/${port}" || {
+    echo "000"
+    return
+  }
+  printf "%b" "${payload}" >&9
+  if ! IFS= read -r -t 3 line <&9; then
+    line="HTTP/1.1 000"
+  fi
+  exec 9>&-
+  line="${line%$'\r'}"
+  printf '%s\n' "${line}" | awk '{print $2}'
+}
+
 expect_eq() {
   local actual="$1"
   local expected="$2"
@@ -373,6 +393,10 @@ run_routes() {
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X POST --data 'v=0' "${BASE}/whip/publish?sourceId=auth-smoke")" "403" "viewer WHIP publish denied"
   expect_eq "$(http_code "${BASE}/ws/va-metadata?file=sample_h264.mp4")" "401" "unauth metadata websocket denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ws/va-metadata?file=sample_h264.mp4")" "403" "viewer metadata websocket denied"
+  expect_eq "$(raw_http_code $'POST /login HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: abc\r\nConnection: close\r\n\r\n')" "400" "invalid content-length rejected"
+  expect_eq "$(http_code "${BASE}/health")" "200" "server survives invalid content-length"
+  expect_eq "$(raw_http_code $'POST /login HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 2097153\r\nConnection: close\r\n\r\n')" "413" "oversized content-length rejected"
+  expect_eq "$(http_code "${BASE}/health")" "200" "server survives oversized content-length"
   local admin_session_json admin_session_id admin_session_token
   admin_session_json="$(curl -fsS -b "${ADMIN_COOKIE}" -X POST "${BASE}/webrtc/session?file=sample_h264.mp4")"
   admin_session_id="$(printf '%s' "${admin_session_json}" | json_string_field sessionId)"

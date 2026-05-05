@@ -54,6 +54,8 @@
 
 Auth on에서 직접 generic media 생성 route인 `POST /webrtc/session`, `POST /whep`, `POST /whip/publish`는 admin/operator `ops:read` 또는 `lab:read` 권한이 필요합니다. 생성된 WebRTC/WHEP/WHIP session id는 난수 token을 포함하고, 후속 answer/ICE/delete route는 같은 생성 principal 또는 응답의 `sessionToken`/`X-Session-Capability`를 요구합니다. 직접 WebSocket metadata side-channel인 `/ws/va-metadata`는 Lab/custom-client 경로이므로 admin/operator 또는 `lab:read` 권한이 필요합니다. Auth off에서는 기존 개발/자동화 호환을 위해 계속 허용됩니다. Viewer/client 계정은 source locator를 직접 보내지 않고 `/client/api/views/{viewId}/webrtc/session` wrapper를 사용해야 하며, 후속 signaling도 client wrapper alias로만 호출합니다.
 
+내장 HTTP server는 고정 hardening limit을 적용합니다. Header는 64KiB, request body는 2MiB까지 허용하며 malformed `Content-Length`, unsupported transfer encoding, socket read timeout, 동시 active connection 초과는 route handler에 도달하기 전에 오류 응답으로 닫습니다.
+
 Session login은 `libsodium crypto_pwhash_str` password hash를 사용합니다. 안전한 password hashing dependency가 없는 build에서는 password login을 사용할 수 없으며 plaintext password나 단순 SHA 계열 저장을 지원하지 않습니다. Login 성공 시 새 session id를 발급하고, logout은 server-side session을 삭제하며 cookie를 만료시킵니다. Session은 TTL과 idle timeout 중 먼저 도달한 기준으로 만료됩니다.
 
 최초 관리자 bootstrap:

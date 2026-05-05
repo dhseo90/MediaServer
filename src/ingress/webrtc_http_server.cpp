@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 #include <algorithm>
@@ -62,6 +63,11 @@ namespace ingress {
 namespace {
 
 std::atomic<std::uint64_t> g_web_rtc_metadata_sequence{0};
+
+constexpr std::size_t kMaxHttpHeaderBytes = 64 * 1024;
+constexpr std::size_t kMaxHttpBodyBytes = 2 * 1024 * 1024;
+constexpr int kHttpSocketTimeoutSeconds = 5;
+constexpr int kMaxActiveHttpConnections = 128;
 
 std::string Trim(std::string value) {
     while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front())) != 0) {
@@ -974,6 +980,7 @@ struct HttpResponse {
 };
 
 std::string HeaderValue(const HttpRequest& request, const std::string& key);
+std::string LowerAscii(std::string value);
 
 std::string BuildHttpResponse(const HttpResponse& response) {
     std::ostringstream out;
@@ -992,19 +999,82 @@ std::string BuildHttpResponse(const HttpResponse& response) {
     return out.str();
 }
 
-std::optional<HttpRequest> ReadHttpRequest(int client_fd) {
+HttpResponse PlainTextResponse(int status, const std::string& status_text, const std::string& body) {
+    return HttpResponse{status, status_text, "text/plain; charset=utf-8", {}, body};
+}
+
+bool ParseHttpContentLength(std::string value, std::size_t* content_length) {
+    if (content_length == nullptr) {
+        return false;
+    }
+    value = Trim(std::move(value));
+    if (value.empty()) {
+        return false;
+    }
+    std::size_t parsed = 0;
+    for (const char ch : value) {
+        if (std::isdigit(static_cast<unsigned char>(ch)) == 0) {
+            return false;
+        }
+        const std::size_t digit = static_cast<std::size_t>(ch - '0');
+        if (parsed > (std::numeric_limits<std::size_t>::max() - digit) / 10) {
+            return false;
+        }
+        parsed = parsed * 10 + digit;
+    }
+    *content_length = parsed;
+    return true;
+}
+
+ssize_t RecvHttpBytes(int client_fd, char* buffer, std::size_t buffer_size) {
+    for (;;) {
+        const ssize_t read_bytes = recv(client_fd, buffer, buffer_size, 0);
+        if (read_bytes < 0 && errno == EINTR) {
+            continue;
+        }
+        return read_bytes;
+    }
+}
+
+bool IsRecvTimeout() {
+    return errno == EAGAIN || errno == EWOULDBLOCK || errno == ETIMEDOUT;
+}
+
+void SetHttpSocketTimeouts(int client_fd) {
+    timeval timeout{};
+    timeout.tv_sec = kHttpSocketTimeoutSeconds;
+    timeout.tv_usec = 0;
+    (void)setsockopt(client_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+    (void)setsockopt(client_fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+}
+
+std::optional<HttpRequest> ReadHttpRequest(int client_fd, HttpResponse* error_response) {
+    auto fail = [&](int status,
+                    const std::string& status_text,
+                    const std::string& body) -> std::optional<HttpRequest> {
+        if (error_response != nullptr) {
+            *error_response = PlainTextResponse(status, status_text, body);
+        }
+        return std::nullopt;
+    };
+
     std::string raw;
     char buffer[4096];
     std::size_t header_end = std::string::npos;
     while (header_end == std::string::npos) {
-        const ssize_t read_bytes = recv(client_fd, buffer, sizeof(buffer), 0);
-        if (read_bytes <= 0) {
-            return std::nullopt;
+        const ssize_t read_bytes = RecvHttpBytes(client_fd, buffer, sizeof(buffer));
+        if (read_bytes == 0) {
+            return fail(400, "Bad Request", "bad request");
+        }
+        if (read_bytes < 0) {
+            return IsRecvTimeout() ? fail(408, "Request Timeout", "request timeout")
+                                   : fail(400, "Bad Request", "bad request");
         }
         raw.append(buffer, static_cast<std::size_t>(read_bytes));
         header_end = raw.find("\r\n\r\n");
-        if (raw.size() > 1024 * 1024) {
-            return std::nullopt;
+        const std::size_t header_bytes = header_end == std::string::npos ? raw.size() : header_end + 4;
+        if (header_bytes > kMaxHttpHeaderBytes) {
+            return fail(431, "Request Header Fields Too Large", "request headers too large");
         }
     }
 
@@ -1012,7 +1082,7 @@ std::optional<HttpRequest> ReadHttpRequest(int client_fd) {
     std::istringstream header_stream(raw.substr(0, header_end));
     std::string request_line;
     if (!std::getline(header_stream, request_line)) {
-        return std::nullopt;
+        return fail(400, "Bad Request", "bad request");
     }
     if (!request_line.empty() && request_line.back() == '\r') {
         request_line.pop_back();
@@ -1022,7 +1092,7 @@ std::optional<HttpRequest> ReadHttpRequest(int client_fd) {
         request_line_stream >> request.method >> request.target;
     }
     if (request.method.empty() || request.target.empty()) {
-        return std::nullopt;
+        return fail(400, "Bad Request", "bad request");
     }
 
     const std::size_t query_pos = request.target.find('?');
@@ -1044,20 +1114,38 @@ std::optional<HttpRequest> ReadHttpRequest(int client_fd) {
     }
 
     std::size_t content_length = 0;
-    if (const auto it = request.headers.find("Content-Length"); it != request.headers.end()) {
-        content_length = static_cast<std::size_t>(std::stoul(it->second));
+    const std::string transfer_encoding = Trim(HeaderValue(request, "Transfer-Encoding"));
+    if (!transfer_encoding.empty() && LowerAscii(transfer_encoding) != "identity") {
+        return fail(400, "Bad Request", "unsupported transfer encoding");
+    }
+    for (const auto& [header_key, header_value] : request.headers) {
+        if (LowerAscii(header_key) != "content-length") {
+            continue;
+        }
+        if (!ParseHttpContentLength(header_value, &content_length)) {
+            return fail(400, "Bad Request", "invalid content length");
+        }
+        break;
+    }
+    if (content_length > kMaxHttpBodyBytes) {
+        return fail(413, "Payload Too Large", "request body too large");
     }
 
     request.body = raw.substr(header_end + 4);
-    while (request.body.size() < content_length) {
-        const ssize_t read_bytes = recv(client_fd, buffer, sizeof(buffer), 0);
-        if (read_bytes <= 0) {
-            return std::nullopt;
-        }
-        request.body.append(buffer, static_cast<std::size_t>(read_bytes));
-    }
     if (request.body.size() > content_length) {
         request.body.resize(content_length);
+    }
+    while (request.body.size() < content_length) {
+        const std::size_t remaining = content_length - request.body.size();
+        const ssize_t read_bytes = RecvHttpBytes(client_fd, buffer, std::min(sizeof(buffer), remaining));
+        if (read_bytes == 0) {
+            return fail(400, "Bad Request", "truncated request body");
+        }
+        if (read_bytes < 0) {
+            return IsRecvTimeout() ? fail(408, "Request Timeout", "request timeout")
+                                   : fail(400, "Bad Request", "bad request");
+        }
+        request.body.append(buffer, static_cast<std::size_t>(read_bytes));
     }
 
     return request;
@@ -16317,6 +16405,7 @@ struct WebRtcHttpServer::Impl {
     std::unordered_map<std::string, ClientSessionEntry> client_sessions;
     std::unordered_map<std::string, AuthSessionEntry> auth_sessions;
     std::atomic<std::uint64_t> next_session_id{1};
+    std::atomic<int> active_http_connections{0};
     std::atomic<int> active_sse_metadata_clients{0};
     std::atomic<int> active_ws_metadata_clients{0};
 };
@@ -21150,7 +21239,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
     impl_->port = port;
     running_.store(true);
 
-    // 간단한 내장 HTTP 서버다. 연결마다 짧은 thread를 만들어 signaling 요청을 처리한다.
+    // 간단한 내장 HTTP 서버다. 연결마다 thread를 만들되 parser timeout과 동시 연결 상한을 둔다.
     impl_->accept_thread = std::thread([this] {
         while (running_.load()) {
             sockaddr_in client_addr{};
@@ -21163,14 +21252,35 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                 continue;
             }
 
+            const int previous_connections = impl_->active_http_connections.fetch_add(1);
+            if (previous_connections >= kMaxActiveHttpConnections) {
+                impl_->active_http_connections.fetch_sub(1);
+                SetHttpSocketTimeouts(client_fd);
+                SuppressSocketSigPipe(client_fd);
+                (void)SendAll(client_fd,
+                              BuildHttpResponse(PlainTextResponse(503,
+                                                                  "Service Unavailable",
+                                                                  "too many active connections")));
+                close(client_fd);
+                continue;
+            }
+
             std::thread([this, client_fd] {
-                auto request_opt = ReadHttpRequest(client_fd);
+                struct ActiveConnectionGuard {
+                    std::atomic<int>& active_connections;
+                    ~ActiveConnectionGuard() {
+                        active_connections.fetch_sub(1);
+                    }
+                } active_connection_guard{impl_->active_http_connections};
+
+                SetHttpSocketTimeouts(client_fd);
                 HttpResponse response;
+                auto request_opt = ReadHttpRequest(client_fd, &response);
                 bool response_sent = false;
                 if (!request_opt.has_value()) {
-                    response.status = 400;
-                    response.status_text = "Bad Request";
-                    response.body = "bad request";
+                    if (response.body.empty()) {
+                        response = PlainTextResponse(400, "Bad Request", "bad request");
+                    }
                 } else {
                     const HttpRequest& request = *request_opt;
                     response = [&]() -> HttpResponse {
