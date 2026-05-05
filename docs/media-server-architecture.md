@@ -118,7 +118,7 @@ Viewer
 
 SourceRegistry는 `.media_server.sources.json`, PublishedView는 `.media_server.views.json`을 기본 저장소로 사용합니다. `canonicalSourceKey`는 file token, RTSP/HTTP URL, 또는 WHIP publish sourceId를 정규화해 중복 등록을 막는 내부 운영 키이며, RTSP/HTTP URL query 순서 차이는 같은 source로 취급합니다. Registry 저장은 임시 파일 write/fsync/rename 후 parent directory fsync로 반영합니다. 기존 registry file에 invalid source/view record, 중복 id/canonical key, 존재하지 않는 `sourceId` 참조가 있으면 기본 seed나 mutation으로 덮어쓰지 않고 load/write API가 실패합니다. 현재 `kind=webrtc`는 외부 WebRTC/WHEP URL pull이 아니라 `/whip/publish`로 등록된 내부 sourceId 소비 경로입니다.
 
-클라이언트 API는 `view:read:{viewId}` scope가 있는 view만 목록에 반환하고, view별 dashboard/events/metadata API는 각각 `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`를 요구합니다. `file`, `rtspUrl`, `httpUrl`, `webrtcSourceId`, `canonicalSourceKey` 같은 원본 locator는 반환하지 않습니다. PublishedView의 `defaultRuleId`와 `allowedRuleIds`는 기존 `vaRule` ID를 참조하지만, Client Live에서 `va-rule` mode를 실행할 때는 해당 rule의 저장 source가 PublishedView source와 일치해야 합니다. 기존 `vaRule` 저장 구조와 `vaRule=<id>` 호출 방식은 그대로 유지합니다.
+클라이언트 API는 `view:read:{viewId}` scope가 있는 view만 목록에 반환하고, view별 dashboard/events/metadata API는 각각 `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`를 요구합니다. `file`, `rtspUrl`, `httpUrl`, `webrtcSourceId`, `canonicalSourceKey` 같은 원본 locator는 반환하지 않습니다. PublishedView의 `maxTiles`는 Client Live UI 배정과 `/client/api/views/{viewId}/webrtc/session` wrapper에서 같은 principal+view 동시 session 상한으로 적용합니다. PublishedView의 `defaultRuleId`와 `allowedRuleIds`는 기존 `vaRule` ID를 참조하지만, Client Live에서 `va-rule` mode를 실행할 때는 해당 rule의 저장 source가 PublishedView source와 일치해야 합니다. 기존 `vaRule` 저장 구조와 `vaRule=<id>` 호출 방식은 그대로 유지합니다.
 
 ### Ops / Client / Lab UI shell
 
@@ -216,7 +216,7 @@ POST /webrtc/session or /whep
   -> WebRTC offer/answer + ICE
 ```
 
-위 직접 consume endpoint는 auth on에서 admin/operator `ops:read` 또는 `lab:read`가 필요합니다. 생성된 HTTP signaling session id는 난수 token을 포함하며, answer/ICE/delete 후속 route는 생성 principal 또는 session별 `X-Session-Capability`와 일치해야 합니다. Client viewer는 PublishedView wrapper를 통해서만 WebRTC session을 생성하고 후속 signaling도 `/client/api/views/{viewId}/webrtc/session/{clientSessionId}` 아래에서 처리합니다. Client Live의 browser `RTCPeerConnection`은 `/webrtc/config`의 `peerConnectionConfig`를 사용하므로 STUN/TURN과 `iceTransportPolicy=relay` 설정이 제품 client에도 적용됩니다. 내장 HTTP server는 parser 단계에서 header 64KiB, body 2MiB, `Content-Length` 숫자 형식, unsupported transfer encoding, read/write timeout, 동시 active connection 상한을 적용하고 초과 요청은 `400`/`408`/`413`/`431`/`503`으로 연결을 닫습니다.
+위 직접 consume endpoint는 auth on에서 admin/operator `ops:read` 또는 `lab:read`가 필요합니다. 생성된 HTTP signaling session id는 난수 token을 포함하며, answer/ICE/delete 후속 route는 생성 principal 또는 session별 `X-Session-Capability`와 일치해야 합니다. Client viewer는 PublishedView wrapper를 통해서만 WebRTC session을 생성하고 후속 signaling도 `/client/api/views/{viewId}/webrtc/session/{clientSessionId}` 아래에서 처리합니다. Client wrapper는 같은 principal+view의 활성 client session이 PublishedView `maxTiles`에 도달하면 추가 생성을 `409`로 거부합니다. Client Live의 browser `RTCPeerConnection`은 `/webrtc/config`의 `peerConnectionConfig`를 사용하므로 STUN/TURN과 `iceTransportPolicy=relay` 설정이 제품 client에도 적용됩니다. 내장 HTTP server는 parser 단계에서 header 64KiB, body 2MiB, `Content-Length` 숫자 형식, unsupported transfer encoding, read/write timeout, 동시 active connection 상한을 적용하고 초과 요청은 `400`/`408`/`413`/`431`/`503`으로 연결을 닫습니다.
 
 WebRTC publish:
 

@@ -22622,19 +22622,48 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                         .value_or(query.count("ruleId") != 0 ? query.at("ruleId") : "");
                                 std::unordered_map<std::string, std::string> session_query;
                                 std::string error_message;
-                                if (!BuildClientLiveWebRtcQuery(access,
-                                                                overlay_mode,
-                                                                rule_id,
-                                                                &session_query,
-                                                                &error_message)) {
-                                    return JsonResponse(400,
-                                                        "Bad Request",
-                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
-                                }
-                                CreatedWebRtcSession created_session;
-                                HttpResponse created_response =
-                                    create_webrtc_session_response(
-                                        std::move(session_query), "client-live-internal", &created_session);
+	                                if (!BuildClientLiveWebRtcQuery(access,
+	                                                                overlay_mode,
+	                                                                rule_id,
+	                                                                &session_query,
+	                                                                &error_message)) {
+	                                    return JsonResponse(400,
+	                                                        "Bad Request",
+	                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+	                                }
+	                                const int client_view_max_tiles = std::max(1, access.view.max_tiles);
+	                                const auto active_client_view_sessions_locked = [&]() {
+	                                    std::size_t count = 0;
+	                                    for (auto it = impl_->client_sessions.begin();
+	                                         it != impl_->client_sessions.end();) {
+	                                        if (impl_->sessions.find(it->second.session_id) ==
+	                                            impl_->sessions.end()) {
+	                                            it = impl_->client_sessions.erase(it);
+	                                            continue;
+	                                        }
+	                                        if (it->second.view_id == view_id &&
+	                                            SameSessionOwner(it->second.owner_principal,
+	                                                             principal_result.principal)) {
+	                                            ++count;
+	                                        }
+	                                        ++it;
+	                                    }
+	                                    return count;
+	                                };
+	                                {
+	                                    std::lock_guard lock(impl_->mu);
+	                                    if (active_client_view_sessions_locked() >=
+	                                        static_cast<std::size_t>(client_view_max_tiles)) {
+	                                        return JsonResponse(
+	                                            409,
+	                                            "Conflict",
+	                                            "{\"error\":\"PublishedView maxTiles limit reached\"}");
+	                                    }
+	                                }
+	                                CreatedWebRtcSession created_session;
+	                                HttpResponse created_response =
+	                                    create_webrtc_session_response(
+	                                        std::move(session_query), "client-live-internal", &created_session);
                                 if (created_response.status != 200) {
                                     return created_response;
                                 }
@@ -22647,23 +22676,36 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                         503,
                                         "Service Unavailable",
                                         "{\"error\":\"" + JsonEscape(client_session_error) + "\"}");
-                                }
-                                bool client_session_inserted = false;
-                                {
-                                    std::lock_guard lock(impl_->mu);
-                                    const auto [_, inserted] = impl_->client_sessions.emplace(
-                                        *client_session_id,
-                                        Impl::ClientSessionEntry{
-                                            .client_session_id = *client_session_id,
-                                            .view_id = view_id,
-                                            .session_id = created_session.session_id,
-                                            .owner_principal = principal_result.principal,
-                                        });
-                                    client_session_inserted = inserted;
-                                }
-                                if (!client_session_inserted) {
-                                    (void)close_webrtc_session(created_session.session_id);
-                                    return JsonResponse(
+	                                }
+	                                bool client_session_inserted = false;
+	                                bool client_session_limit_reached = false;
+	                                {
+	                                    std::lock_guard lock(impl_->mu);
+	                                    if (active_client_view_sessions_locked() >=
+	                                        static_cast<std::size_t>(client_view_max_tiles)) {
+	                                        client_session_limit_reached = true;
+	                                    } else {
+	                                        const auto [_, inserted] = impl_->client_sessions.emplace(
+	                                            *client_session_id,
+	                                            Impl::ClientSessionEntry{
+	                                                .client_session_id = *client_session_id,
+	                                                .view_id = view_id,
+	                                                .session_id = created_session.session_id,
+	                                                .owner_principal = principal_result.principal,
+	                                            });
+	                                        client_session_inserted = inserted;
+	                                    }
+	                                }
+	                                if (client_session_limit_reached) {
+	                                    (void)close_webrtc_session(created_session.session_id);
+	                                    return JsonResponse(
+	                                        409,
+	                                        "Conflict",
+	                                        "{\"error\":\"PublishedView maxTiles limit reached\"}");
+	                                }
+	                                if (!client_session_inserted) {
+	                                    (void)close_webrtc_session(created_session.session_id);
+	                                    return JsonResponse(
                                         503,
                                         "Service Unavailable",
                                         "{\"error\":\"failed to allocate client session\"}");

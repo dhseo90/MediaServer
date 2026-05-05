@@ -636,12 +636,14 @@ run_routes() {
   else
     fail "client WebRTC wrapper leaked unexpected session id: ${client_session_json}"
   fi
-  case "${client_session_json}" in
-    *sessionToken*|*client-live-internal*|*webrtc-http*)
-      fail "client WebRTC wrapper leaked internal signaling detail: ${client_session_json}" ;;
-    *) pass "client WebRTC wrapper hides internal signaling detail" ;;
-  esac
-  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/webrtc/session/${client_session_id}/ice")" "404" "client alias rejected on generic session route"
+	  case "${client_session_json}" in
+	    *sessionToken*|*client-live-internal*|*webrtc-http*)
+	      fail "client WebRTC wrapper leaked internal signaling detail: ${client_session_json}" ;;
+	    *) pass "client WebRTC wrapper hides internal signaling detail" ;;
+	  esac
+	  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
+	    -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/view-a/webrtc/session")" "409" "client PublishedView maxTiles enforced"
+	  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/webrtc/session/${client_session_id}/ice")" "404" "client alias rejected on generic session route"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/client/api/views/view-a/webrtc/session/${client_session_id}/ice")" "200" "client wrapper ICE allowed"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X DELETE "${BASE}/client/api/views/view-a/webrtc/session/${client_session_id}")" "200" "client wrapper delete allowed"
   local client_rule_session_json client_rule_session_id

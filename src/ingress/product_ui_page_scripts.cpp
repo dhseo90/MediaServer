@@ -170,11 +170,17 @@ void AppendClientShellScript(std::ostringstream& out) {
         }
       }
       return out;
-    };
-    const viewById = id => views.find(view => String(view.viewId) === String(id)) || null;
-    function renderAssignedViews() {
-      if (views.length === 0) {
-        host.innerHTML = emptyState(
+	    };
+	    const viewById = id => views.find(view => String(view.viewId) === String(id)) || null;
+	    const maxLiveTiles = isPreviewMode ? 9 : 4;
+	    function viewMaxTiles(view) {
+	      const parsed = Number(view?.maxTiles);
+	      const limit = Number.isFinite(parsed) ? Math.floor(parsed) : 1;
+	      return Math.max(1, Math.min(maxLiveTiles, limit || 1));
+	    }
+	    function renderAssignedViews() {
+	      if (views.length === 0) {
+	        host.innerHTML = emptyState(
           '할당된 PublishedView가 없습니다',
           isPreviewMode
             ? '미리보기에 표시할 채널이 없습니다. Ops에서 채널과 계정 권한을 확인하세요.'
@@ -187,12 +193,13 @@ void AppendClientShellScript(std::ostringstream& out) {
       host.innerHTML = views.map(view => `
         <button class="view${view.viewId === selectedViewId ? ' active' : ''}" type="button" data-view-id="${escapeHtml(view.viewId)}">
           <h3>${escapeHtml(view.displayName || view.viewId)}</h3>
-          <div class="meta">
-            <span class="chip">${escapeHtml(sourceKindLabel(view.sourceKind))}</span>
-            ${view.showDashboard ? '<span class="chip">대시보드</span>' : ''}
-          </div>
-        </button>
-      `).join('');
+	          <div class="meta">
+	            <span class="chip">${escapeHtml(sourceKindLabel(view.sourceKind))}</span>
+	            ${view.showDashboard ? '<span class="chip">대시보드</span>' : ''}
+	            <span class="chip">최대 ${viewMaxTiles(view)}개</span>
+	          </div>
+	        </button>
+	      `).join('');
     }
     function setActiveView(viewId) {
       selectedViewId = viewId;
@@ -293,14 +300,23 @@ void AppendClientShellScript(std::ostringstream& out) {
         <section class="events">${renderEvents(events.recent || [])}</section>
       `;
     }
-    const maxLiveTiles = isPreviewMode ? 9 : 4;
-    const initialLiveTileCount = Math.min(maxLiveTiles, Math.max(1, Number(localStorage.getItem('mediaServerClientLiveGrid') || 4) || 4));
-    let liveTileCount = initialLiveTileCount;
-    const liveTiles = Array.from({ length: maxLiveTiles }, (_, index) => ({
-      index,
-      viewId: views[index]?.viewId || views[0]?.viewId || '',
-      overlayMode: '',
-      sessionId: '',
+	    function defaultLiveViewIds() {
+	      const ids = [];
+	      for (const view of views) {
+	        for (let index = 0; index < viewMaxTiles(view) && ids.length < maxLiveTiles; index += 1) {
+	          ids.push(view.viewId);
+	        }
+	      }
+	      return ids;
+	    }
+	    const defaultLiveViewIdList = defaultLiveViewIds();
+	    const initialLiveTileCount = Math.min(maxLiveTiles, Math.max(1, Number(localStorage.getItem('mediaServerClientLiveGrid') || 4) || 4));
+	    let liveTileCount = initialLiveTileCount;
+	    const liveTiles = Array.from({ length: maxLiveTiles }, (_, index) => ({
+	      index,
+	      viewId: defaultLiveViewIdList[index] || '',
+	      overlayMode: '',
+	      sessionId: '',
       pc: null,
       dataChannel: null,
       iceTimer: null,
@@ -314,12 +330,54 @@ void AppendClientShellScript(std::ostringstream& out) {
     let selectedLiveTile = views.length > 0 ? 0 : null;
     let liveStatusTimer = null;
     let liveDashboardTimer = null;
-    function tileView(tile) {
-      return viewById(tile?.viewId || '');
-    }
-    function clientSessionUrl(tile, suffix = '') {
-      return `/client/api/views/${encodeURIComponent(tile.viewId || '')}/webrtc/session/${encodeURIComponent(tile.sessionId || '')}${suffix}`;
-    }
+	    function tileView(tile) {
+	      return viewById(tile?.viewId || '');
+	    }
+	    function visibleLiveTiles() {
+	      return liveTiles.slice(0, liveTileCount);
+	    }
+	    function assignedTileCountForView(viewId, excludingIndex = -1) {
+	      if (!viewId) return 0;
+	      return visibleLiveTiles().filter(tile => tile.index !== excludingIndex && tile.viewId === viewId).length;
+	    }
+	    function activeTileCountForView(viewId, excludingIndex = -1) {
+	      if (!viewId) return 0;
+	      return visibleLiveTiles().filter(tile => tile.index !== excludingIndex && tile.viewId === viewId && tile.sessionId).length;
+	    }
+	    function viewAssignmentLimitReached(view, tileIndex) {
+	      return Boolean(view) && assignedTileCountForView(view.viewId, tileIndex) >= viewMaxTiles(view);
+	    }
+	    function viewActiveLimitReached(view, tileIndex) {
+	      return Boolean(view) && activeTileCountForView(view.viewId, tileIndex) >= viewMaxTiles(view);
+	    }
+	    function liveViewOptionsHtml(tile) {
+	      return [
+	        `<option value=""${tile.viewId ? '' : ' selected'}>채널 선택</option>`,
+	        ...views.map(view => {
+	          const selected = tile.viewId === view.viewId;
+	          const disabled = !selected && !tile.sessionId && viewAssignmentLimitReached(view, tile.index);
+	          return `<option value="${escapeHtml(view.viewId)}"${selected ? ' selected' : ''}${disabled ? ' disabled' : ''}>${escapeHtml(view.displayName || view.viewId)} · 최대 ${viewMaxTiles(view)}개</option>`;
+	        })
+	      ].join('');
+	    }
+	    function updateTileViewSelect(tile) {
+	      const root = document.querySelector(`[data-tile="${tile.index}"]`);
+	      const select = root?.querySelector('[data-role="view"]');
+	      if (!select) return;
+	      select.innerHTML = liveViewOptionsHtml(tile);
+	      select.value = tile.viewId || '';
+	      select.disabled = Boolean(tile.sessionId);
+	    }
+	    function updateVisibleLiveTileControls() {
+	      for (const tile of visibleLiveTiles()) {
+	        updateTileViewSelect(tile);
+	        applyTileModeOptions(tile);
+	        updateTileDom(tile);
+	      }
+	    }
+	    function clientSessionUrl(tile, suffix = '') {
+	      return `/client/api/views/${encodeURIComponent(tile.viewId || '')}/webrtc/session/${encodeURIComponent(tile.sessionId || '')}${suffix}`;
+	    }
     function defaultOverlayModeForView(view) {
       const modes = allowedOverlayModes(view);
       return modes.includes('raw') ? 'raw' : (modes[0] || '');
@@ -351,12 +409,16 @@ void AppendClientShellScript(std::ostringstream& out) {
       root.querySelector('[data-role="tracks"]').textContent = display(tile.trackCount);
       root.querySelector('[data-role="events"]').textContent = display(tile.eventCount);
       root.querySelector('[data-role="stale"]').textContent = stale ? '지연' : (tile.sessionId ? '정상' : '미제공');
-      root.querySelector('[data-role="placeholder"]').hidden = Boolean(tile.sessionId);
-      const startBtn = root.querySelector('[data-action="start"]');
-      const stopBtn = root.querySelector('[data-action="stop"]');
-      if (startBtn) startBtn.disabled = !view || Boolean(tile.sessionId);
-      if (stopBtn) stopBtn.disabled = !tile.sessionId;
-    }
+	      root.querySelector('[data-role="placeholder"]').hidden = Boolean(tile.sessionId);
+	      const startBtn = root.querySelector('[data-action="start"]');
+	      const stopBtn = root.querySelector('[data-action="stop"]');
+	      if (startBtn) {
+	        const limitReached = viewActiveLimitReached(view, tile.index);
+	        startBtn.disabled = !view || Boolean(tile.sessionId) || limitReached;
+	        startBtn.title = limitReached ? `이 채널은 최대 ${viewMaxTiles(view)}개 타일까지만 동시에 재생할 수 있습니다.` : '';
+	      }
+	      if (stopBtn) stopBtn.disabled = !tile.sessionId;
+	    }
     function updateAllTileDom() {
       for (const tile of liveTiles) updateTileDom(tile);
     }
@@ -380,14 +442,24 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    function setTileView(index, viewId) {
 	      const tile = liveTiles[index];
 	      if (!tile || tile.sessionId) return;
-      tile.viewId = viewId || '';
-      const root = document.querySelector(`[data-tile="${index}"]`);
-      if (root) {
+	      const nextView = viewById(viewId || '');
+	      if (nextView && viewAssignmentLimitReached(nextView, index)) {
+	        tile.status = 'error';
+	        tile.connectionStatus = `최대 ${viewMaxTiles(nextView)}개`;
+	        updateTileViewSelect(tile);
+	        updateTileDom(tile);
+	        refreshSelectedTileDetail();
+	        return;
+	      }
+	      tile.viewId = viewId || '';
+	      const root = document.querySelector(`[data-tile="${index}"]`);
+	      if (root) {
         const viewSelect = root.querySelector('[data-role="view"]');
         if (viewSelect) viewSelect.value = tile.viewId;
-      }
-      applyTileModeOptions(tile);
+	      }
+	      applyTileModeOptions(tile);
 	      updateTileDom(tile);
+	      updateVisibleLiveTileControls();
 	      refreshSelectedTileDetail();
 	    }
 	    function liveGridOptionLabel(count) {
@@ -409,9 +481,9 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            </div>
 	            <div class="tile-controls">
 	              <label>채널
-	                <select data-role="view" aria-label="채널">
-	                  ${views.map(view => `<option value="${escapeHtml(view.viewId)}">${escapeHtml(view.displayName || view.viewId)}</option>`).join('')}
-	                </select>
+		                <select data-role="view" aria-label="채널">
+		                  ${liveViewOptionsHtml(tile)}
+		                </select>
 	              </label>
 	              <label data-role="mode-wrap">보기 방식
 	                <select data-role="mode" aria-label="보기 방식"></select>
@@ -461,8 +533,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      if (!root) return;
 	      const viewSelect = root.querySelector('[data-role="view"]');
 	      if (viewSelect) {
-	        viewSelect.value = tile.viewId;
-	        viewSelect.disabled = Boolean(tile.sessionId);
+	        updateTileViewSelect(tile);
 	        viewSelect.addEventListener('change', () => setTileView(tile.index, viewSelect.value));
 	      }
 	      const modeSelect = root.querySelector('[data-role="mode"]');
@@ -614,10 +685,17 @@ void AppendClientShellScript(std::ostringstream& out) {
       }
     }
     async function startLiveTile(index) {
-      const tile = liveTiles[index];
-      const view = tileView(tile);
-      if (!tile || !view || tile.sessionId) return;
-      const mode = tile.overlayMode || defaultOverlayModeForView(view);
+	      const tile = liveTiles[index];
+	      const view = tileView(tile);
+	      if (!tile || !view || tile.sessionId) return;
+	      if (viewActiveLimitReached(view, index)) {
+	        tile.status = 'error';
+	        tile.connectionStatus = `최대 ${viewMaxTiles(view)}개`;
+	        updateTileDom(tile);
+	        refreshSelectedTileDetail();
+	        return;
+	      }
+	      const mode = tile.overlayMode || defaultOverlayModeForView(view);
       if (!mode) {
         tile.status = 'error';
         tile.connectionStatus = '미제공';
@@ -712,7 +790,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       if (tile.pc) {
         try { tile.pc.close(); } catch {}
       }
-      tile.pc = null;
+	      tile.pc = null;
       const root = document.querySelector(`[data-tile="${tile.index}"]`);
       const video = root?.querySelector('video');
       if (video?.srcObject) {
@@ -728,13 +806,12 @@ void AppendClientShellScript(std::ostringstream& out) {
         tile.status = 'offline';
         tile.connectionStatus = 'offline';
       }
-      tile.trackCount = null;
-      tile.eventCount = null;
-      tile.lastMetadataAt = 0;
-      applyTileModeOptions(tile);
-      updateTileDom(tile);
-      refreshSelectedTileDetail();
-    }
+	      tile.trackCount = null;
+	      tile.eventCount = null;
+	      tile.lastMetadataAt = 0;
+	      updateVisibleLiveTileControls();
+	      refreshSelectedTileDetail();
+	    }
     async function stopAllLiveTiles() {
       await Promise.all(liveTiles.map(tile => stopLiveTile(tile.index)));
     }
