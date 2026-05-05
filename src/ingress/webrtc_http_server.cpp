@@ -973,6 +973,8 @@ struct HttpResponse {
     std::string body;
 };
 
+std::string HeaderValue(const HttpRequest& request, const std::string& key);
+
 std::string BuildHttpResponse(const HttpResponse& response) {
     std::ostringstream out;
     out << "HTTP/1.1 " << response.status << " " << response.status_text << "\r\n";
@@ -980,7 +982,7 @@ std::string BuildHttpResponse(const HttpResponse& response) {
     out << "Content-Length: " << response.body.size() << "\r\n";
     out << "Connection: close\r\n";
     out << "Access-Control-Allow-Origin: *\r\n";
-    out << "Access-Control-Allow-Headers: Content-Type, Authorization\r\n";
+    out << "Access-Control-Allow-Headers: Content-Type, Authorization, X-Session-Capability\r\n";
     out << "Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS\r\n";
     for (const auto& [key, value] : response.headers) {
         out << key << ": " << value << "\r\n";
@@ -16272,6 +16274,8 @@ struct WebRtcHttpServer::Impl {
         std::string session_id;
         std::string ingress_client_id;
         std::string analysis_tap_id;
+        std::string session_capability;
+        auth::Principal owner_principal;
         media::IngressRequest request;
         std::shared_ptr<WebRtcEgressSession> bridge;
     };
@@ -16279,6 +16283,8 @@ struct WebRtcHttpServer::Impl {
     struct SourceSessionEntry {
         std::string session_id;
         std::string source_id;
+        std::string session_capability;
+        auth::Principal owner_principal;
         std::shared_ptr<WebRtcSourceSession> bridge;
     };
 
@@ -18148,10 +18154,86 @@ media::IngressRequest BuildHttpIngressRequest(const std::string& path,
     return request;
 }
 
-std::string SessionJson(const std::string& session_id, const std::string& offer) {
+struct HttpSessionSecrets {
+    std::string session_id;
+    std::string session_capability;
+};
+
+std::optional<HttpSessionSecrets> GenerateHttpSessionSecrets(const std::string& prefix,
+                                                             std::string* error_message) {
+    const auto session_random = auth::GenerateSessionId(error_message);
+    if (!session_random.has_value()) {
+        return std::nullopt;
+    }
+    const auto capability = auth::GenerateSessionId(error_message);
+    if (!capability.has_value()) {
+        return std::nullopt;
+    }
+    return HttpSessionSecrets{
+        .session_id = prefix + "-" + *session_random,
+        .session_capability = *capability,
+    };
+}
+
+std::string PrincipalOwnerKey(const auth::Principal& principal) {
+    std::ostringstream out;
+    out << principal.auth_mode << ":";
+    if (!principal.username.empty()) {
+        out << "user:" << principal.username;
+    } else {
+        out << "role:" << principal.role << ":" << principal.display_name;
+    }
+    return out.str();
+}
+
+bool SameSessionOwner(const auth::Principal& owner, const auth::Principal& current) {
+    return owner.is_authenticated && current.is_authenticated &&
+           PrincipalOwnerKey(owner) == PrincipalOwnerKey(current);
+}
+
+bool ConstantTimeEquals(const std::string& left, const std::string& right) {
+    if (left.size() != right.size()) {
+        return false;
+    }
+    unsigned char diff = 0;
+    for (std::size_t i = 0; i < left.size(); ++i) {
+        diff |= static_cast<unsigned char>(left[i]) ^ static_cast<unsigned char>(right[i]);
+    }
+    return diff == 0;
+}
+
+std::string RequestSessionCapability(const HttpRequest& request,
+                                     const std::unordered_map<std::string, std::string>& query) {
+    const std::string header_capability = Trim(HeaderValue(request, "X-Session-Capability"));
+    if (!header_capability.empty()) {
+        return header_capability;
+    }
+    for (const char* key : {"sessionCapability", "sessionToken", "capability"}) {
+        const auto it = query.find(key);
+        if (it != query.end()) {
+            const std::string value = Trim(it->second);
+            if (!value.empty()) {
+                return value;
+            }
+        }
+        const auto body_value = ParseStringField(request.body, key);
+        if (body_value.has_value()) {
+            const std::string value = Trim(*body_value);
+            if (!value.empty()) {
+                return value;
+            }
+        }
+    }
+    return {};
+}
+
+std::string SessionJson(const std::string& session_id,
+                        const std::string& offer,
+                        const std::string& session_capability) {
     std::ostringstream out;
     out << "{"
         << "\"sessionId\":\"" << JsonEscape(session_id) << "\","
+        << "\"sessionToken\":\"" << JsonEscape(session_capability) << "\","
         << "\"offer\":\"" << JsonEscape(offer) << "\""
         << "}";
     return out.str();
@@ -18173,11 +18255,15 @@ std::string IceJson(const std::vector<WebRtcIceCandidate>& candidates) {
     return out.str();
 }
 
-std::string SourceJson(const std::string& session_id, const std::string& source_id, const std::string& answer) {
+std::string SourceJson(const std::string& session_id,
+                       const std::string& source_id,
+                       const std::string& answer,
+                       const std::string& session_capability) {
     std::ostringstream out;
     out << "{"
         << "\"sessionId\":\"" << JsonEscape(session_id) << "\","
         << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"sessionToken\":\"" << JsonEscape(session_capability) << "\","
         << "\"answer\":\"" << JsonEscape(answer) << "\""
         << "}";
     return out.str();
@@ -21217,8 +21303,17 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             [&](std::unordered_map<std::string, std::string> session_query,
                                 const std::string& session_prefix) -> HttpResponse {
                             // simple signaling: 서버가 offer를 만들고 브라우저/테스트 클라이언트가 answer를 돌려준다.
-                            const std::string session_id =
-                                session_prefix + "-" + std::to_string(impl_->next_session_id.fetch_add(1));
+                            std::string session_secret_error;
+                            const auto generated_secrets =
+                                GenerateHttpSessionSecrets(session_prefix, &session_secret_error);
+                            if (!generated_secrets.has_value()) {
+                                return JsonResponse(
+                                    503,
+                                    "Service Unavailable",
+                                    "{\"error\":\"" + JsonEscape(session_secret_error) + "\"}");
+                            }
+                            const std::string session_id = generated_secrets->session_id;
+                            const std::string session_capability = generated_secrets->session_capability;
                             const std::string ingress_client_id = session_id + "-ingress";
                             media::IngressRequest ingress_request =
                                 BuildHttpIngressRequest(route_path, session_query, ingress_client_id);
@@ -21283,11 +21378,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                             .session_id = session_id,
                                                             .ingress_client_id = ingress_client_id,
                                                             .analysis_tap_id = analysis_tap_id,
+                                                            .session_capability = session_capability,
+                                                            .owner_principal = principal_result.principal,
                                                             .request = std::move(ingress_request),
                                                             .bridge = bridge,
                                                         });
                             }
-                            return JsonResponse(200, "OK", SessionJson(session_id, offer));
+                            return JsonResponse(200, "OK", SessionJson(session_id, offer, session_capability));
                         };
                         auto route_disabled_response = [](const std::string& route) {
                             return JsonResponse(404,
@@ -22720,7 +22817,17 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return *auth_response;
                             }
                             // WHEP: 클라이언트 offer를 먼저 받고 서버가 answer SDP를 반환하는 consume endpoint다.
-                            const std::string session_id = "whep-" + std::to_string(impl_->next_session_id.fetch_add(1));
+                            std::string session_secret_error;
+                            const auto generated_secrets =
+                                GenerateHttpSessionSecrets("whep", &session_secret_error);
+                            if (!generated_secrets.has_value()) {
+                                return JsonResponse(
+                                    503,
+                                    "Service Unavailable",
+                                    "{\"error\":\"" + JsonEscape(session_secret_error) + "\"}");
+                            }
+                            const std::string session_id = generated_secrets->session_id;
+                            const std::string session_capability = generated_secrets->session_capability;
                             const std::string ingress_client_id = session_id + "-ingress";
                             media::IngressRequest ingress_request = BuildHttpIngressRequest(route_path, query, ingress_client_id);
                             std::string va_rule_error;
@@ -22782,6 +22889,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                             .session_id = session_id,
                                                             .ingress_client_id = ingress_client_id,
                                                             .analysis_tap_id = analysis_tap_id,
+                                                            .session_capability = session_capability,
+                                                            .owner_principal = principal_result.principal,
                                                             .request = std::move(ingress_request),
                                                             .bridge = bridge,
                                                         });
@@ -22792,6 +22901,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             created.status_text = "Created";
                             created.content_type = "application/sdp";
                             created.headers["Location"] = "/whep/session/" + session_id;
+                            created.headers["X-Session-Capability"] = session_capability;
                             created.body = answer;
                             return created;
                         }
@@ -22808,8 +22918,17 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "{\"error\":\"sourceId query parameter is required\"}");
                             }
 
-                            const std::string session_id =
-                                "whip-publish-" + std::to_string(impl_->next_session_id.fetch_add(1));
+                            std::string session_secret_error;
+                            const auto generated_secrets =
+                                GenerateHttpSessionSecrets("whip-publish", &session_secret_error);
+                            if (!generated_secrets.has_value()) {
+                                return JsonResponse(
+                                    503,
+                                    "Service Unavailable",
+                                    "{\"error\":\"" + JsonEscape(session_secret_error) + "\"}");
+                            }
+                            const std::string session_id = generated_secrets->session_id;
+                            const std::string session_capability = generated_secrets->session_capability;
                             auto bridge = std::make_shared<WebRtcSourceSession>();
                             std::string error_message;
                             if (!bridge->Start(session_id, source_id_it->second, &error_message)) {
@@ -22835,6 +22954,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                                Impl::SourceSessionEntry{
                                                                    .session_id = session_id,
                                                                    .source_id = source_id_it->second,
+                                                                   .session_capability = session_capability,
+                                                                   .owner_principal = principal_result.principal,
                                                                    .bridge = bridge,
                                                                });
                             }
@@ -22844,7 +22965,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             created.status_text = "Created";
                             created.content_type = "application/json; charset=utf-8";
                             created.headers["Location"] = "/whip/publish/session/" + session_id;
-                            created.body = SourceJson(session_id, source_id_it->second, answer);
+                            created.headers["X-Session-Capability"] = session_capability;
+                            created.body = SourceJson(session_id, source_id_it->second, answer, session_capability);
                             return created;
                         }
 
@@ -22859,16 +22981,43 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             return {rest.substr(0, slash), rest.substr(slash)};
                         };
+                        auto require_session_owner =
+                            [&](const auth::Principal& owner,
+                                const std::string& expected_capability,
+                                const std::string& provided_capability) -> std::optional<HttpResponse> {
+                            if (config.auth_mode == app::AuthMode::Off) {
+                                return std::nullopt;
+                            }
+                            if (!provided_capability.empty() &&
+                                !expected_capability.empty() &&
+                                ConstantTimeEquals(provided_capability, expected_capability)) {
+                                return std::nullopt;
+                            }
+                            if (!principal_result.ok) {
+                                return AuthErrorResponse(principal_result.error);
+                            }
+                            if (SameSessionOwner(owner, principal_result.principal)) {
+                                return std::nullopt;
+                            }
+                            return JsonResponse(
+                                403,
+                                "Forbidden",
+                                "{\"error\":\"session owner or session capability required\"}");
+                        };
 
                         if (request.path.rfind(prefix, 0) == 0 || request.path.rfind(whep_prefix, 0) == 0) {
                             const bool is_whep = request.path.rfind(whep_prefix, 0) == 0;
                             const auto parsed = with_session(is_whep ? whep_prefix : prefix);
                             const std::string session_id = parsed.first;
                             const std::string suffix = parsed.second;
+                            const std::string provided_capability =
+                                RequestSessionCapability(request, query);
 
                             std::shared_ptr<WebRtcEgressSession> bridge;
                             std::string ingress_client_id;
                             std::string analysis_tap_id;
+                            std::string session_capability;
+                            auth::Principal owner_principal;
                             {
                                 std::lock_guard lock(impl_->mu);
                                 const auto it = impl_->sessions.find(session_id);
@@ -22878,6 +23027,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 bridge = it->second.bridge;
                                 ingress_client_id = it->second.ingress_client_id;
                                 analysis_tap_id = it->second.analysis_tap_id;
+                                session_capability = it->second.session_capability;
+                                owner_principal = it->second.owner_principal;
+                            }
+                            if (const auto auth_response = require_session_owner(
+                                    owner_principal, session_capability, provided_capability);
+                                auth_response.has_value()) {
+                                return *auth_response;
                             }
 
                             if (request.method == "POST" && suffix == "/answer") {
@@ -22922,8 +23078,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             const auto parsed = with_session(whip_publish_prefix);
                             const std::string session_id = parsed.first;
                             const std::string suffix = parsed.second;
+                            const std::string provided_capability =
+                                RequestSessionCapability(request, query);
 
                             std::shared_ptr<WebRtcSourceSession> bridge;
+                            std::string session_capability;
+                            auth::Principal owner_principal;
                             {
                                 std::lock_guard lock(impl_->mu);
                                 const auto it = impl_->source_sessions.find(session_id);
@@ -22931,6 +23091,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "unknown source session"};
                                 }
                                 bridge = it->second.bridge;
+                                session_capability = it->second.session_capability;
+                                owner_principal = it->second.owner_principal;
+                            }
+                            if (const auto auth_response = require_session_owner(
+                                    owner_principal, session_capability, provided_capability);
+                                auth_response.has_value()) {
+                                return *auth_response;
                             }
 
                             if ((request.method == "POST" || request.method == "PATCH") && (suffix.empty() || suffix == "/ice")) {

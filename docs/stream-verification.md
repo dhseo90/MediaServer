@@ -297,12 +297,13 @@ curl -fsS -X POST \
   'http://127.0.0.1:8080/whep?file=sample_h264.mp4'
 ```
 
-위 직접 생성 요청은 auth off 개발 모드 또는 auth on의 admin/operator `ops:read`, `lab:read` 권한에서 확인합니다. Auth route smoke는 미인증과 viewer 요청이 이 generic media 생성 route에서 거부되는지도 함께 확인합니다.
+위 직접 생성 요청은 auth off 개발 모드 또는 auth on의 admin/operator `ops:read`, `lab:read` 권한에서 확인합니다. Auth route smoke는 미인증과 viewer 요청이 이 generic media 생성 route에서 거부되는지, 생성된 session id가 난수 token 형태인지, 후속 ICE/delete가 생성 principal 또는 `X-Session-Capability` 없이는 거부되는지도 함께 확인합니다.
 
 확인 기준:
 
 - SDP offer/answer 생성
 - ICE candidate 수집
+- Auth on 후속 answer/ICE/delete는 생성 principal 또는 session capability와 일치
 - browser/client disconnect 후 session cleanup
 - DataChannel 실패가 audio/video streaming 실패로 전파되지 않음
 - WebRTC 메타데이터 뷰어는 browser client-side overlay이고 RTSP URL과 혼동하지 않음
@@ -734,7 +735,7 @@ curl -fsS -X POST \
 - client WebRTC wrapper는 viewId만 허용하고 `file`, `url`, `source`, `rtspUrl`, `httpUrl`, `webrtcSourceId` override 요청을 400으로 거부합니다.
 - `overlayMode`는 PublishedView의 `allowedOverlayModes` 안에서 `raw`, `va-overlay`, `va-rule`로 정규화됩니다.
 - `va-rule` mode는 PublishedView의 `allowedRuleIds`/`defaultRuleId` 안의 rule만 사용할 수 있습니다.
-- tile stop은 PeerConnection/DataChannel을 닫고 `/webrtc/session/{sessionId}` DELETE를 호출합니다.
+- tile stop은 PeerConnection/DataChannel을 닫고 생성 principal 또는 session capability로 `/webrtc/session/{sessionId}` DELETE를 호출합니다.
 - all stop 또는 hidden tab/route leave 후 `activeSessions`가 감소하고 media stream track이 정리됩니다.
 - tile status는 live/offline, stale, track count, event count, connection status를 표시합니다.
 - client 화면에 source URL, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile 수정 UI가 노출되지 않아야 합니다.

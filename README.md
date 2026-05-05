@@ -110,7 +110,7 @@ YOLO Detection
 | VA overlay | `rtsp://127.0.0.1:8554/dhseo?file=va_four_scene_sample.mp4&va=1` |
 | 저장 VA 룰 | `rtsp://127.0.0.1:8554/dhseo?vaRule=1` |
 
-기본 `MEDIA_SERVER_AUTH_MODE=auto`에서는 users file 또는 admin passwordHash가 없으면 `/`가 `/setup`으로 이동합니다. Setup 완료 후에는 `/login`이 기본 진입점이며 admin/operator는 `/ops/home`, viewer는 `/client/live`로 이동합니다. `/ops`는 운영 콘솔, `/client`는 클라이언트 포털, `/lab`과 `/lab/rules`는 개발/검증용 화면입니다. `/lab`은 auth off 테스트 모드 또는 admin/operator/lab scope로 접근합니다. 직접 `/webrtc/session`, `/whep`, `/whip/publish` 생성 경로는 auth off 개발 모드 또는 admin/operator `ops:read`, `lab:read` 권한이 있는 요청에서만 사용할 수 있으며, viewer 제품 흐름은 `/client/api/views/{viewId}/webrtc/session` wrapper를 사용합니다. 직접 WebSocket metadata side-channel인 `/ws/va-metadata`도 Lab/custom-client 경로로 분류해 auth off 또는 admin/operator `lab:read` 권한에서만 사용합니다.
+기본 `MEDIA_SERVER_AUTH_MODE=auto`에서는 users file 또는 admin passwordHash가 없으면 `/`가 `/setup`으로 이동합니다. Setup 완료 후에는 `/login`이 기본 진입점이며 admin/operator는 `/ops/home`, viewer는 `/client/live`로 이동합니다. `/ops`는 운영 콘솔, `/client`는 클라이언트 포털, `/lab`과 `/lab/rules`는 개발/검증용 화면입니다. `/lab`은 auth off 테스트 모드 또는 admin/operator/lab scope로 접근합니다. 직접 `/webrtc/session`, `/whep`, `/whip/publish` 생성 경로는 auth off 개발 모드 또는 admin/operator `ops:read`, `lab:read` 권한이 있는 요청에서만 사용할 수 있으며, viewer 제품 흐름은 `/client/api/views/{viewId}/webrtc/session` wrapper를 사용합니다. Auth on의 WebRTC/WHEP/WHIP 후속 answer/ICE/delete route는 난수 session id와 생성 principal 또는 `X-Session-Capability`로 보호됩니다. 직접 WebSocket metadata side-channel인 `/ws/va-metadata`도 Lab/custom-client 경로로 분류해 auth off 또는 admin/operator `lab:read` 권한에서만 사용합니다.
 
 ## 영상 분석 사용 흐름
 
