@@ -259,7 +259,7 @@ Metadata 출력 정책:
 
 - WebRTC browser viewer: video/audio stream과 별도로 `vaMetadata=1` DataChannel을 열고, Lab client-side canvas overlay가 metadata를 표시합니다.
 - RTSP 일반 viewer: DataChannel이 없으므로 server-side overlay가 기본 표시 방식입니다.
-- Custom RTSP client: RTSP raw stream과 SSE/WS metadata side-channel을 별도로 연결해 client-side overlay를 직접 구현할 수 있습니다.
+- Custom RTSP client: RTSP raw stream과 SSE/WS metadata side-channel을 별도로 연결해 client-side overlay를 직접 구현할 수 있습니다. Auth on에서는 SSE Lab endpoint와 `/ws/va-metadata`가 admin/operator 또는 `lab:read` 권한을 요구합니다.
 - 런타임 대시보드: `/lab/runtime/status`, `/metrics`, `/state-dump`, event status endpoint를 polling하고 media pipeline을 직접 blocking하지 않습니다.
 
 VA 상세 동작과 API는 [video-analysis.md](./video-analysis.md)에 둡니다.
