@@ -151,7 +151,7 @@ curl -fsS -D - -o /tmp/root-unauth.out 'http://127.0.0.1:8080/'
 curl -fsS -i -H 'Authorization: Bearer viewer-token' 'http://127.0.0.1:8080/ops'
 ```
 
-확인 기준은 auth off + `lab` home에서 `/ -> /lab`, auth off + `client` home에서 `/ -> /client/live`, admin/operator token에서 `/ -> /ops/home`, viewer token에서 `/ -> /client/live`, 미인증 auth-on 요청에서 `/ -> /login`, viewer의 `/ops` 접근에서 `403`, viewer의 `/lab` 접근에서 `403`입니다. `/ops`는 admin/operator role과 `ops:read` scope를 함께 요구하고, `/lab`은 admin/operator 또는 `lab:read` scope를 요구합니다. Auth on에서 `/webrtc/session`, `/whep`, `/whip/publish` 직접 생성 요청은 미인증 `401`, viewer `403`이어야 하며, auth off 개발 모드에서는 기존 검증 명령으로 계속 확인합니다.
+확인 기준은 auth off + `lab` home에서 `/ -> /lab`, auth off + `client` home에서 `/ -> /client/live`, admin/operator token에서 `/ -> /ops/home`, viewer token에서 `/ -> /client/live`, 미인증 auth-on 요청에서 `/ -> /login`, viewer의 `/ops` 접근에서 `403`, viewer의 `/lab` 접근에서 `403`입니다. `/ops`는 admin/operator role과 `ops:read` scope를 함께 요구하고, `/lab`은 admin/operator 또는 `lab:read` scope를 요구합니다. Auth on에서 `/webrtc/session`, `/whep`, `/whip/publish` 직접 생성 요청은 미인증 `401`, viewer `403`이어야 하며, `/ws/va-metadata`도 미인증 `401`, viewer `403`으로 막혀야 합니다. Auth off 개발 모드에서는 기존 검증 명령으로 계속 확인합니다.
 
 ## 장기 테스트 명령
 
@@ -517,7 +517,8 @@ WebSocket metadata side-channel smoke:
 
 확인할 항목:
 
-- `/ws/va-metadata?file=...` handshake가 `101 Switching Protocols`로 완료되는지 확인
+- auth off 또는 admin/operator/`lab:read` 권한에서 `/ws/va-metadata?file=...` handshake가 `101 Switching Protocols`로 완료되는지 확인
+- auth on의 미인증 요청은 `401`, viewer 요청은 `403`으로 거부되는지 확인
 - 첫 text frame의 JSON schema가 `media-server.va.runtime-metadata.v1`인지 확인
 - `tracks`, `events`, `scenarios`, `metrics` 필드가 포함되는지 확인
 - 임시 WebSocket analysis tap이 client disconnect 후 cleanup되는지 확인

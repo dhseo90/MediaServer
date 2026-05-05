@@ -364,6 +364,8 @@ run_routes() {
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X POST "${BASE}/whep?file=sample_h264.mp4")" "403" "viewer WHEP denied"
   expect_eq "$(http_code -X POST --data 'v=0' "${BASE}/whip/publish?sourceId=auth-smoke")" "401" "unauth WHIP publish denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X POST --data 'v=0' "${BASE}/whip/publish?sourceId=auth-smoke")" "403" "viewer WHIP publish denied"
+  expect_eq "$(http_code "${BASE}/ws/va-metadata?file=sample_h264.mp4")" "401" "unauth metadata websocket denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ws/va-metadata?file=sample_h264.mp4")" "403" "viewer metadata websocket denied"
   stop_server
   rm -f "${USERS_FILE}" "${USERS_FILE}.tmp"
   start_server off lab

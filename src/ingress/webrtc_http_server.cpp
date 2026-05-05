@@ -22382,6 +22382,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if (request.path == "/ws/va-metadata") {
+                            if (const auto auth_response = require_lab_principal();
+                                auth_response.has_value()) {
+                                return *auth_response;
+                            }
                             std::string websocket_key;
                             std::string websocket_error;
                             if (!ValidateWebSocketUpgrade(request, &websocket_key, &websocket_error)) {

@@ -852,6 +852,8 @@ WS /ws/va-metadata?vaRule=<id>
 WS /ws/va-metadata?file=sample_h264.mp4
 ```
 
+Auth on에서는 `/ws/va-metadata`가 Lab/custom-client side-channel로 취급되어 admin/operator 또는 `lab:read` scope를 요구합니다. Auth off 개발/검증 모드에서는 기존 자동화 호환을 위해 직접 연결을 허용합니다.
+
 정책:
 
 - message text frame payload는 `media-server.va.runtime-metadata.v1` JSON입니다.

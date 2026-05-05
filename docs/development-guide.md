@@ -134,7 +134,7 @@ curl -fsS -X POST \
   'http://127.0.0.1:8080/whep?file=sample_h264.mp4'
 ```
 
-위 직접 WebRTC/WHEP 생성 요청은 `MEDIA_SERVER_AUTH_MODE=off` 개발 모드 또는 auth on의 admin/operator `ops:read`, `lab:read` 권한에서 사용합니다. Viewer/client 제품 흐름은 `/client/api/views/{viewId}/webrtc/session` wrapper를 사용합니다.
+위 직접 WebRTC/WHEP 생성 요청은 `MEDIA_SERVER_AUTH_MODE=off` 개발 모드 또는 auth on의 admin/operator `ops:read`, `lab:read` 권한에서 사용합니다. `/ws/va-metadata` 직접 WebSocket metadata side-channel도 auth on에서는 admin/operator 또는 `lab:read` 권한에서만 사용합니다. Viewer/client 제품 흐름은 `/client/api/views/{viewId}/webrtc/session` wrapper를 사용합니다.
 
 ## 중지/재시작/status/diagnose
 
