@@ -20,7 +20,7 @@
 - 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, client-side Trend/Stale/Cleanup warning 1차, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, IntrusionDwell/ReEntry/WrongDirection/IntrusionAfterLineCrossing scenario UI 템플릿, 자동/longrun 검증 명령.
 - 구현 완료: Auth / Role / Scope, account login/session API/route MVP, Auth Bootstrap + 기본 로그인 강제, Password Policy + Lockout + Session Hardening, Admin User Management Console + CLI, Client Account Policy / Invite / Request skeleton, Root/Login/Ops/Client/Lab 접근 정책.
 - 구현 완료: SourceRegistry / PublishedView API/route MVP, client scoped view API 1차, Client scoped dashboard API/UI MVP, Client Live Monitor 2x2 MVP.
-- 구현 완료: `/setup`, `/login`, `/ops`, `/client` 제품 UI shell 통합 1차. Ops primary nav는 홈/대시보드/채널/룰/사용자/클라이언트 미리보기로 정리했고, client primary nav는 라이브/대시보드만 유지합니다. `/ops/dashboard`와 `/ops/rules`는 Lab iframe 없이 Ops 전용 API와 제품 컴포넌트로 표시하며 raw JSON은 운영자 debug 접힘 영역에만 둡니다.
+- 구현 완료: `/setup`, `/login`, `/ops`, `/client` 제품 UI shell 통합 1차. Ops primary nav는 홈/대시보드/채널/룰/사용자/클라이언트 미리보기로 정리했고, client primary nav는 라이브/대시보드만 유지합니다. `/ops/dashboard`와 `/ops/rules`는 Lab iframe 없이 Ops 전용 API와 제품 컴포넌트로 표시하며 raw JSON은 운영자 debug 접힘 영역에만 둡니다. Ops shell overview 스크립트는 `product_ui_page_scripts.*`로 분리해 HTTP route/media/auth 모놀리스와 제품 브라우저 동작을 같은 함수에 두지 않습니다.
 - 기존 Scenario UI 로드맵 1~4번 완료: Runtime Dashboard trend/stale/cleanup warning 1차, Scenario rule payload -> runtime per-rule 설정 연결, ReEntry Scenario UI 템플릿, IntrusionAfterLineCrossing Scenario UI 템플릿.
 - ReEntry와 IntrusionAfterLineCrossing은 룰 편집 UI에서 선택 가능하며 저장/round-trip 검증 대상입니다.
 - 현재 우선순위: 운영/클라이언트 분리의 제품 진입점 정합성을 위해 Auth Bootstrap, password policy/lockout/session hardening, admin 계정 관리, client invite/request skeleton, role/scope 기반 root/route 접근 정책, Ops/Client shell 통합 1차를 완료했고 문서 상태를 실제 구현 기준으로 닫습니다.
@@ -64,8 +64,8 @@
 
 - 상태: 완료: route MVP + product UI shell integration 1차
 - 목적: 운영 화면, 클라이언트 화면, 개발/lab 화면의 URL과 역할을 분리합니다.
-- 완료 범위: `MEDIA_SERVER_UI_DEFAULT_HOME`, `MEDIA_SERVER_ENABLE_LAB`, `MEDIA_SERVER_ENABLE_OPS`, `MEDIA_SERVER_ENABLE_CLIENT`, role-aware `/` redirect, `/setup`/`/login` auth shell, `/ops` 공통 shell, `/ops/home` 운영 홈 summary MVP, `/ops/live` 후속 Operator Live Monitor 안내 route, `/ops/dashboard` native runtime cards, `/ops/events` primary nav 숨김/진단 route 보존, `/ops/rules` native rule catalog, `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status`, `/ops/users` list-first 계정 관리 UI, `/client` 공통 shell, `/client/live` 2x2 MVP, `/client/dashboard`, client Events tab 제거, `/lab` guard와 기존 `/lab/rules` 호환 유지입니다.
-- 후속: Operator Live Monitor에서 source/runtime/event 운영 상태를 더 높은 정보 밀도로 연결하고, `/ops` nav별 URL 이동 후에도 동일 shell 정보 위계를 계속 다듬습니다.
+- 완료 범위: `MEDIA_SERVER_UI_DEFAULT_HOME`, `MEDIA_SERVER_ENABLE_LAB`, `MEDIA_SERVER_ENABLE_OPS`, `MEDIA_SERVER_ENABLE_CLIENT`, role-aware `/` redirect, `/setup`/`/login` auth shell, `/ops` 공통 shell, `/ops/home` 운영 홈 summary MVP, `/ops/live` 후속 Operator Live Monitor 안내 route, `/ops/dashboard` native runtime cards, `/ops/events` primary nav 숨김/진단 route 보존, `/ops/rules` native rule catalog, `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status`, `/ops/users` list-first 계정 관리 UI, `/client` 공통 shell, `/client/live` 2x2 MVP, `/client/dashboard`, client Events tab 제거, `/lab` guard와 기존 `/lab/rules` 호환 유지, Ops shell overview 브라우저 스크립트의 `product_ui_page_scripts.*` 분리입니다.
+- 후속: Operator Live Monitor에서 source/runtime/event 운영 상태를 더 높은 정보 밀도로 연결하고, `/ops` nav별 URL 이동 후에도 동일 shell 정보 위계를 계속 다듬습니다. `webrtc_http_server.cpp`에는 route dispatch, media signaling, auth glue가 아직 크게 남아 있으므로 다음 구조 정리는 route handler와 registry/auth persistence 모듈 단위로 진행합니다.
 - 우선순위 이유: 현재 lab 중심 UI에서 운영/고객 화면으로 확장할 때 권한과 탐색 구조가 명확해야 합니다.
 
 ### O4. Client scoped dashboard

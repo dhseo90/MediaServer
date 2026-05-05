@@ -37,7 +37,7 @@ UI는 light/dark theme-aware design token을 사용하며, card/button/form/tabl
 - `include/ingress/product_ui_assets.h`, `src/ingress/product_ui_assets.cpp`: theme toggle button, nav/account SVG asset처럼 route data에 의존하지 않는 product UI asset을 보관합니다.
 - `include/ingress/product_ui_css.h`, `src/ingress/product_ui_css.cpp`: Auth/Ops/Client와 `/lab/rules`가 공유하는 design token, 제품 shell CSS, client shell 전용 CSS를 보관합니다.
 - `include/ingress/product_ui_js.h`, `src/ingress/product_ui_js.cpp`: theme boot/apply script와 product route 공통 JS helper를 보관합니다.
-- `include/ingress/product_ui_page_scripts.h`, `src/ingress/product_ui_page_scripts.cpp`: `/client`, `/client/request-access`, `/ops/sources`, `/ops/users`의 route별 page script를 보관합니다.
+- `include/ingress/product_ui_page_scripts.h`, `src/ingress/product_ui_page_scripts.cpp`: `/client`, `/client/request-access`, `/ops` shell overview pages, `/ops/sources`, `/ops/users`의 route별 page script를 보관합니다.
 - `ProductDesignTokensCss()`: Auth/Ops/Client와 `/lab/rules`가 공유하는 light/dark semantic token 원천입니다.
 - `ProductUiCss()`: 제품 shell 공통 card/button/form/table/badge/debug 스타일입니다.
 - `ProductSharedUiScript()`: product route에서 공유하는 `escapeHtml`, `requestJson`, selector, form-data, feedback, badge/raw JSON 렌더링, select/table DOM helper, role/scope visibility helper입니다.
@@ -46,7 +46,7 @@ UI는 light/dark theme-aware design token을 사용하며, card/button/form/tabl
 - `AppendProductAccountMenu()`: theme toggle, user role, logout 영역을 Ops/Client에서 동일하게 렌더링합니다.
 - `AppendRawJsonDetails()`: 운영자용 raw/debug JSON을 낮은 visual weight의 접힘 영역으로 렌더링합니다.
 - `AppendOpsHomePage()`, `AppendOpsDashboardPage()`, `AppendOpsRulesPage()`, `AppendOpsEventsPage()`: `/ops` shell 내부 page markup을 route별 helper로 분리합니다.
-- `AppendClientShellScript()`, `AppendOpsSourcesPageScript()`, `AppendOpsUsersPageScript()`: page markup과 route별 JS 동작을 물리적으로 분리합니다. API schema와 payload는 기존 endpoint 계약을 그대로 사용합니다.
+- `AppendClientShellScript()`, `AppendOpsShellScript()`, `AppendOpsSourcesPageScript()`, `AppendOpsUsersPageScript()`: page markup과 route별 JS 동작을 물리적으로 분리합니다. API schema와 payload는 기존 endpoint 계약을 그대로 사용합니다.
 - `HtmlPageResponse()`: browser page route의 `text/html`/`no-store` 응답 포장을 공통화합니다.
 - `IsOpsOverviewShellRoute()`, `IsClientShellRoute()`: route handler의 shell path 판별을 한 곳에서 관리합니다.
 
@@ -57,9 +57,9 @@ UI ownership은 다음 표를 기준으로 봅니다.
 | Product assets | `product_ui_assets.*` | theme toggle button, nav/account SVG | route data나 API fetch를 넣지 않습니다. |
 | Product CSS | `product_ui_css.*` | design token, product shell CSS, client shell CSS | 색상/spacing/radius는 semantic token 우선으로 유지합니다. |
 | Product JS | `product_ui_js.*` | `MediaServerUi` helper, theme persistence, iframe theme sync | API schema나 route별 payload를 넣지 않습니다. |
-| Product page scripts | `product_ui_page_scripts.*` | route별 form/table/live monitor script | backend payload 계약과 selector를 유지합니다. |
+| Product page scripts | `product_ui_page_scripts.*` | route별 Ops/Client form/table/live monitor script | backend payload 계약과 selector를 유지합니다. |
 | Auth shell | `AppendAuthShellStart/End` | `/setup`, `/login`, `/password/change`, invite/request shell | password policy와 session 동작은 auth backend 계약을 따릅니다. |
-| Ops shell | `AppendOpsShellStart/End`, `AppendOps*Page*` | admin/operator navigation과 page markup/script | raw/debug JSON은 접힘 영역에만 둡니다. |
+| Ops shell | `AppendOpsShellStart/End`, `AppendOps*Page*`, `AppendOpsShellScript` | admin/operator navigation, page markup, overview script | raw/debug JSON은 접힘 영역에만 둡니다. |
 | Client shell | `ClientShellPageHtml`, `AppendClientShellScript` | scoped viewer live/dashboard UI | source URL, debugCounters, Developer URL, rule/profile editor를 노출하지 않습니다. |
 | Smoke | `verify_ops_client_ui_smoke.mjs`, `verify_auth_ui_smoke.mjs`, `verify_auth_workflow.sh`, `rule_ui_smoke_check.mjs` | selector, screenshot, auth UI, `/lab/rules` 회귀 확인 | visual text보다 stable selector와 금지 항목 중심으로 유지합니다. |
 
