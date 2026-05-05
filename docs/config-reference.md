@@ -501,7 +501,7 @@ EventRecord storage 정책:
 - corrupt/partial line recovery scan에는 별도 env가 없습니다.
 - status/records read path에서 손상 행을 line-by-line으로 skip/count 처리합니다.
 
-EventRecord file storage/query/search UI와 rotation/retention/recovery 1차는 구현 완료 상태입니다. 후속 범위는 rotated archive query, compaction/repair rewrite, archive별 상세 status와 운영 cleanup 도구입니다.
+EventRecord file storage, active file query/search UI와 rotation/retention/recovery 1차는 구현 완료 상태입니다. 후속 범위는 rotated archive query, compaction/repair rewrite, archive별 상세 status와 운영 cleanup 도구입니다.
 
 ### Snapshot / clip hook
 

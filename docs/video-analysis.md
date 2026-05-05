@@ -251,7 +251,7 @@ Scenario는 여러 frame에 걸친 상태 전이와 시간 조건을 평가합�
 | ReEntry | 구현됨, 룰 편집 UI에서 선택 가능 | `re-entry` |
 | WrongDirection | 구현됨, UI 템플릿 제공 | `wrong-direction` |
 | IntrusionAfterLineCrossing | 구현됨, 룰 편집 UI에서 선택 가능 | `intrusion-after-line-crossing` |
-| Loitering | 구현됨, 전용 UI 템플릿 다음 작업 | `loitering` |
+| Loitering | engine/replay 구현, 전용 UI 템플릿 다음 작업 | `loitering` |
 | ZoneOccupancyScenario | 다음 작업, 신규 구현 예정 | `zone-occupancy` |
 
 ### IntrusionDwell
