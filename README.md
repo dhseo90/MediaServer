@@ -130,7 +130,7 @@ RTSP 일반 viewer는 WebRTC DataChannel metadata를 표시하지 않습니다. 
 - 완료: Runtime Dashboard trend/stale/cleanup warning 1차, scenario rule payload의 runtime per-rule 설정 연결, ReEntry와 IntrusionAfterLineCrossing의 룰 편집 UI 선택/저장 템플릿.
 - 완료: Auth/account API와 route MVP, SourceRegistry / PublishedView API와 route MVP, Client scoped dashboard API MVP, Client Live Monitor 2x2 MVP.
 - 완료: `/setup`, `/login`, `/ops`, `/client` 제품 UI shell 통합 1차. Ops 주 메뉴는 홈, 대시보드, 채널, 룰, 사용자, 클라이언트 미리보기 순서이며, client 주 메뉴는 라이브와 대시보드만 노출합니다.
-- 완료: `/ops/dashboard`는 기존 Lab 런타임 대시보드 정보를 shell 안에 표시합니다. `/ops/events`와 `/client/events`는 제품 primary tab에서 숨기고, 이벤트 요약은 룰/대시보드 맥락에서 확인합니다. raw JSON/debug는 운영자 접힘 영역에만 둡니다.
+- 완료: `/ops/dashboard`와 `/ops/rules`는 Lab iframe 없이 `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status` 제품 API로 운영 카드와 룰 카탈로그를 표시합니다. `/ops/events`와 `/client/events`는 제품 primary tab에서 숨기고, 이벤트 요약은 룰/대시보드 맥락에서 확인합니다. raw JSON/debug는 운영자 접힘 영역에만 둡니다.
 - 남은 우선 작업: 외부 WebRTC/WHEP URL을 pull source로 등록/소비하는 기능을 최우선으로 구현합니다. Operator Live Monitor 고밀도 화면, PublishedView 기반 scope picker, Client Live Monitor 현장형 상태 표시 고도화는 그 뒤에 정리합니다.
 - 다음 작업: Loitering UI 템플릿과 ZoneOccupancyScenario 신규 구현은 계속 보류/다음 작업으로 유지합니다.
 

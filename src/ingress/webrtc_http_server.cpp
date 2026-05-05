@@ -17051,15 +17051,131 @@ std::string AuthLandingPageHtml(const auth::Principal& principal,
 }
 
 void AppendOpsDashboardPage(std::ostringstream& out) {
-    out << R"(    <section data-ops-panel="dashboard" data-testid="ops-dashboard-page">
-      <iframe id="opsDashboardFrame" class="embedded-frame dashboard-embedded-frame ops-dashboard-direct-frame" title="VA Runtime Dashboard" src="/lab/rules?embed=1&tab=dashboard&panel=dashboard"></iframe>
-    </section>
+    out << R"(    <section class="panel" data-ops-panel="dashboard" data-testid="ops-dashboard-page">
+      <div class="toolbar">
+        <div>
+          <h2>운영 대시보드</h2>
+          <p>현재 세션, 스트림, 분석 tap, metadata fanout 상태를 운영 카드로 표시합니다.</p>
+        </div>
+        )" << RefreshIconButtonHtml("opsDashboardRefresh", "button-secondary", "새로고침") << R"(
+      </div>
+      <div class="grid">
+        <div class="metric-card"><span>활성 세션</span><strong id="dashActiveSessions">-</strong></div>
+        <div class="metric-card"><span>활성 스트림</span><strong id="dashActiveStreams">-</strong></div>
+        <div class="metric-card"><span>분석 탭</span><strong id="dashActiveTaps">-</strong></div>
+        <div class="metric-card"><span>WHIP 소스</span><strong id="dashPublishSources">-</strong></div>
+      </div>
+      <div class="grid">
+        <section class="section-card">
+          <h3>상태 요약</h3>
+          <div id="dashHealthBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+          <p id="dashHealthText">런타임 상태를 불러오는 중입니다.</p>
+        </section>
+        <section class="section-card">
+          <h3>분석 재사용</h3>
+          <div id="dashRuntimeRows" class="badge-row"><span class="chip">로딩 중</span></div>
+          <p id="dashRuntimeText">분석 재사용 상태를 불러오는 중입니다.</p>
+        </section>
+        <section class="section-card">
+          <h3>메타데이터 전송</h3>
+          <div id="dashBackpressureRows" class="badge-row"><span class="chip">로딩 중</span></div>
+          <p id="dashBackpressureText">메타데이터 fanout 상태를 불러오는 중입니다.</p>
+        </section>
+        <section class="section-card">
+          <h3>정리 상태</h3>
+          <div id="dashCleanupRows" class="badge-row"><span class="chip">로딩 중</span></div>
+          <p id="dashCleanupText">cleanup counter를 불러오는 중입니다.</p>
+        </section>
+      </div>
+)";
+    AppendRawJsonDetails(out, "대시보드 debug JSON", "opsDashboardRaw", "opsDashboardPretty", "runtime status 없음");
+    out << R"(    </section>
 )";
 }
 
 void AppendOpsRulesPage(std::ostringstream& out) {
-    out << R"(    <section data-ops-panel="rules" data-testid="ops-rules-page">
-      <iframe id="opsRulesFrame" class="embedded-frame ops-rules-direct-frame" title="영상 분석 설정" src="/lab/rules?embed=1&tab=settings&panel=settings" data-embed-resize="1"></iframe>
+    out << R"(    <section class="panel" data-ops-panel="rules" data-testid="ops-rules-page">
+      <div class="toolbar">
+        <div>
+          <h2>룰 카탈로그</h2>
+          <p>운영 화면에서는 저장된 VA 룰, 이벤트 룰, 분석 프로파일의 적용 상태를 제품 테이블로 확인합니다.</p>
+        </div>
+        )" << RefreshIconButtonHtml("opsRulesRefresh", "button-secondary", "새로고침") << R"(
+      </div>
+      <div id="opsRulesStatus" class="message" hidden></div>
+      <div class="grid">
+        <div class="metric-card"><span>VA 룰</span><strong id="rulesVaRuleCount">-</strong></div>
+        <div class="metric-card"><span>이벤트 룰</span><strong id="rulesEventRuleCount">-</strong></div>
+        <div class="metric-card"><span>프로파일</span><strong id="rulesProfileCount">-</strong></div>
+        <div class="metric-card"><span>PublishedView 연결</span><strong id="rulesViewBindingCount">-</strong></div>
+      </div>
+      <section class="section-card">
+        <div class="toolbar">
+          <div>
+            <h3>저장 VA 룰</h3>
+            <p id="opsVaRuleSummary">저장된 영상 분석 룰을 불러오는 중입니다.</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>룰</th>
+                <th>소스</th>
+                <th>프로파일</th>
+                <th>이벤트</th>
+                <th>대상</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody id="opsVaRuleRows"><tr><td colspan="6">로딩 중</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+      <section class="section-card">
+        <div class="toolbar">
+          <div>
+            <h3>이벤트 룰</h3>
+            <p id="opsEventRuleSummary">이벤트 룰을 불러오는 중입니다.</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>룰</th>
+                <th>매칭</th>
+                <th>분석</th>
+                <th>출력</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody id="opsEventRuleRows"><tr><td colspan="5">로딩 중</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+      <section class="section-card">
+        <div class="toolbar">
+          <div>
+            <h3>분석 프로파일</h3>
+            <p id="opsProfileSummary">분석 프로파일을 불러오는 중입니다.</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>프로파일</th>
+                <th>검출기</th>
+                <th>FPS</th>
+                <th>대상</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody id="opsProfileRows"><tr><td colspan="5">로딩 중</td></tr></tbody>
+          </table>
+        </div>
+      </section>
     </section>
 )";
 }
@@ -17215,25 +17331,16 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         escapeHtml,
         display,
         numberValue,
-        setText,
-        chip: badge,
-        renderBadges,
-        renderRaw,
-        requestJson,
-        applyPrincipalVisibility
-      } = window.MediaServerUi;
-      window.addEventListener('message', event => {
-        if (event.origin !== window.location.origin) return;
-        const data = event.data || {};
-        if (data.type !== 'mediaServer.embedHeight') return;
-        const frames = Array.from(document.querySelectorAll('[data-embed-resize="1"], #opsDashboardFrame'));
-        const frame = frames.find(candidate => candidate.contentWindow === event.source) || document.getElementById('opsDashboardFrame');
-        if (!frame) return;
-        const minimum = frame.id === 'opsRulesFrame' ? 1280 : 980;
-        const height = Math.max(minimum, Math.min(numberValue(data.height), 4200));
-        frame.style.height = `${height}px`;
-      });
-      const runtimeCounts = runtime => {
+	        setText,
+	        setFeedback,
+	        setTableEmpty,
+	        chip: badge,
+	        renderBadges,
+	        renderRaw,
+	        requestJson,
+	        applyPrincipalVisibility
+	      } = window.MediaServerUi;
+	      const runtimeCounts = runtime => {
         const session = runtime?.sessionManager || {};
         const webrtc = runtime?.webrtcHttp || {};
         const matching = runtime?.analysisMatching || {};
@@ -17272,19 +17379,18 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
             <td>${escapeHtml(formatTime(eventTime(record)))}</td>
           </tr>
         `).join('');
-      }
-      async function refreshLive() {
-        const [sources, rules, vaRules, runtime, users] = await Promise.all([
-          requestJson('/ops/api/sources'),
-          requestJson('/lab/analysis/rules'),
-          requestJson('/lab/analysis/va-rules'),
-          requestJson('/lab/runtime/status'),
-          requestJson('/ops/api/users').catch(error => ({ error: error.message, users: [] }))
-        ]);
-        const sourceItems = Array.isArray(sources.sources) ? sources.sources : [];
-        const eventRuleItems = Array.isArray(rules.rules) ? rules.rules : [];
-        const vaRuleItems = Array.isArray(vaRules.vaRules) ? vaRules.vaRules : [];
-        const userItems = Array.isArray(users.users) ? users.users : [];
+	      }
+	      async function refreshLive() {
+	        const [sources, catalog, runtime, users] = await Promise.all([
+	          requestJson('/ops/api/sources'),
+	          requestJson('/ops/api/rules/catalog'),
+	          requestJson('/ops/api/runtime/status'),
+	          requestJson('/ops/api/users').catch(error => ({ error: error.message, users: [] }))
+	        ]);
+	        const sourceItems = Array.isArray(sources.sources) ? sources.sources : [];
+	        const eventRuleItems = Array.isArray(catalog.rules) ? catalog.rules : [];
+	        const vaRuleItems = Array.isArray(catalog.vaRules) ? catalog.vaRules : [];
+	        const userItems = Array.isArray(users.users) ? users.users : [];
         const counts = runtimeCounts(runtime);
         const staleTapCount = counts.activeTaps.filter(tap => numberValue(tap.lastUsedAgeMs) > 5000).length;
         setText('homeChannelCount', sourceItems.length);
@@ -17302,11 +17408,11 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         setText('homeRuntimeText', staleTapCount > 0
           ? `${staleTapCount}개 분석 탭이 지연 상태입니다. 대시보드에서 런타임 상세를 확인하세요.`
           : '현재 지연 탭 경고는 없습니다.');
-        renderRaw('opsLiveRaw', 'opsLivePretty', { sources, rules, vaRules, runtime, users });
-      }
-      async function refreshDashboard() {
-        const runtime = await requestJson('/lab/runtime/status');
-        const counts = runtimeCounts(runtime);
+	        renderRaw('opsLiveRaw', 'opsLivePretty', { sources, catalog, runtime, users });
+	      }
+	      async function refreshDashboard() {
+	        const runtime = await requestJson('/ops/api/runtime/status');
+	        const counts = runtimeCounts(runtime);
         setText('dashActiveSessions', counts.sessions);
         setText('dashActiveStreams', counts.streams);
         setText('dashActiveTaps', counts.taps);
@@ -17334,14 +17440,13 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         renderBadges('dashCleanupRows', debugKeys.slice(0, 4).map(key => ({ text: key })));
         setText('dashCleanupText', debugKeys.length > 0 ? `${debugKeys.length}개 cleanup/debug counter group 사용 가능` : 'cleanup counter가 아직 수집되지 않았습니다.');
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
-      }
-      async function refreshEvents() {
-        const [storage, post, records] = await Promise.all([
-          requestJson('/lab/analysis/event-storage/status'),
-          requestJson('/lab/analysis/event-post/status'),
-          requestJson('/lab/analysis/events/records?limit=25').catch(error => ({ error: error.message, records: [] }))
-        ]);
-        renderBadges('eventStorageBadges', [
+	      }
+	      async function refreshEvents() {
+	        const payload = await requestJson('/ops/api/events/status?limit=25');
+	        const storage = payload.storage || {};
+	        const post = payload.post || {};
+	        const records = payload.records || { records: [] };
+	        renderBadges('eventStorageBadges', [
           { text: storage.enabled ? '활성' : '비활성', tone: storage.enabled ? '' : 'warn' },
           { text: `저장 ${storage.storedCount ?? 0}` },
           { text: `실패 ${storage.failedCount ?? 0}`, tone: numberValue(storage.failedCount) > 0 ? 'bad' : '' },
@@ -17356,27 +17461,135 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
         ]);
         setText('eventPostText', post.lastError ? `마지막 오류: ${post.lastError}` : `큐 ${post.queueSize ?? 0}/${post.maxQueueSize ?? 0}`);
         const eventItems = Array.isArray(records.records) ? records.records : [];
-        setText('eventRecordSummary', records.error ? `조회 실패: ${records.error}` : `records ${eventItems.length} · hasMore ${records.hasMore ? 'yes' : 'no'}`);
-        renderEventRows(eventItems);
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, records });
-      }
-      function wireOpsRefresh() {
-        document.getElementById('opsLiveRefresh')?.addEventListener('click', () => refreshLive().catch(error => setText('homeRuntimeText', error.message)));
-        document.getElementById('opsDashboardRefresh')?.addEventListener('click', () => refreshDashboard().catch(error => setText('dashHealthText', error.message)));
-        document.getElementById('opsEventsRefresh')?.addEventListener('click', () => refreshEvents().catch(error => setText('eventRecordSummary', error.message)));
-        document.getElementById('opsLivePretty')?.addEventListener('change', () => refreshLive().catch(() => {}));
-        document.getElementById('opsDashboardPretty')?.addEventListener('change', () => refreshDashboard().catch(() => {}));
-        document.getElementById('opsEventsPretty')?.addEventListener('change', () => refreshEvents().catch(() => {}));
+	        setText('eventRecordSummary', records.error ? `조회 실패: ${records.error}` : `records ${eventItems.length} · hasMore ${records.hasMore ? 'yes' : 'no'}`);
+	        renderEventRows(eventItems);
+	        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, records });
+	      }
+	      const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
+	      const listText = value => Array.isArray(value) ? (value.length ? value.join(', ') : '미제공') : display(value);
+	      const sourceText = source => {
+	        if (!source || typeof source !== 'object') return '미제공';
+	        if (source.kind === 'file') return `파일 · ${display(source.file)}`;
+	        if (source.url) return `${display(source.kind)} · ${source.url}`;
+	        return display(source.kind);
+	      };
+	      const matchText = match => {
+	        if (!match || typeof match !== 'object') return '전체';
+	        const parts = [
+	          `source ${display(match.sourceKind || '*')}`,
+	          `route ${display(match.route || '*')}`
+	        ];
+	        if (match.clientId) parts.push(`client ${match.clientId}`);
+	        if (match.vaRule) parts.push(`vaRule ${match.vaRule}`);
+	        return parts.join(' · ');
+	      };
+	      const outputsText = outputs => {
+	        if (!outputs || typeof outputs !== 'object') return '미제공';
+	        return Object.entries(outputs)
+	          .filter(([, value]) => value === true || value === 'true')
+	          .map(([key]) => key)
+	          .join(', ') || '미제공';
+	      };
+	      const statusBadge = item => item?.enabled === false ? badge('비활성', 'warn') : badge('적용 중');
+	      function renderOpsVaRules(items) {
+	        const body = document.getElementById('opsVaRuleRows');
+	        if (!Array.isArray(items) || items.length === 0) {
+	          setTableEmpty(body, 6, '저장된 VA 룰이 없습니다.');
+	          return;
+	        }
+	        body.innerHTML = items.map(item => {
+	          const analysis = item.analysis || {};
+	          const eventName = item.scenario?.type || item.scenario?.name || item.event?.type || item.eventType || (item.outputs?.events ? 'events' : 'metadata');
+	          return `<tr>
+	            <td data-label="룰">#${escapeHtml(itemId(item))}</td>
+	            <td data-label="소스">${escapeHtml(sourceText(item.source))}</td>
+	            <td data-label="프로파일">${escapeHtml(display(analysis.profileId || item.profileId || 'server-default-va'))}</td>
+	            <td data-label="이벤트">${escapeHtml(display(eventName))}</td>
+	            <td data-label="대상">${escapeHtml(listText(analysis.classes || item.classes || analysis.trackingClasses))}</td>
+	            <td data-label="상태">${statusBadge(item)}</td>
+	          </tr>`;
+	        }).join('');
+	      }
+	      function renderOpsEventRules(items) {
+	        const body = document.getElementById('opsEventRuleRows');
+	        if (!Array.isArray(items) || items.length === 0) {
+	          setTableEmpty(body, 5, '저장된 이벤트 룰이 없습니다.');
+	          return;
+	        }
+	        body.innerHTML = items.map(item => {
+	          const analysis = item.analysis || {};
+	          return `<tr>
+	            <td data-label="룰">#${escapeHtml(itemId(item))}</td>
+	            <td data-label="매칭">${escapeHtml(matchText(item.match))}</td>
+	            <td data-label="분석">${escapeHtml(display(analysis.profileId || analysis.detector || '미제공'))}</td>
+	            <td data-label="출력">${escapeHtml(outputsText(item.outputs))}</td>
+	            <td data-label="상태">${statusBadge(item)}</td>
+	          </tr>`;
+	        }).join('');
+	      }
+	      function renderOpsProfiles(items) {
+	        const body = document.getElementById('opsProfileRows');
+	        if (!Array.isArray(items) || items.length === 0) {
+	          setTableEmpty(body, 5, '저장된 분석 프로파일이 없습니다.');
+	          return;
+	        }
+	        body.innerHTML = items.map(item => `<tr>
+	          <td data-label="프로파일">${escapeHtml(itemId(item))}</td>
+	          <td data-label="검출기">${escapeHtml(display(item.detector || item.runtime || '미제공'))}</td>
+	          <td data-label="FPS">${escapeHtml(display(item.fps || item.maxFps || '미제공'))}</td>
+	          <td data-label="대상">${escapeHtml(listText(item.trackingClasses || item.classes))}</td>
+	          <td data-label="상태">${statusBadge(item)}</td>
+	        </tr>`).join('');
+	      }
+	      async function refreshRules() {
+	        const status = document.getElementById('opsRulesStatus');
+	        setFeedback(status, '', false, { collapseEmpty: true });
+	        const [catalog, views] = await Promise.all([
+	          requestJson('/ops/api/rules/catalog'),
+	          requestJson('/ops/api/views')
+	        ]);
+	        const profiles = Array.isArray(catalog.profiles) ? catalog.profiles : [];
+	        const rules = Array.isArray(catalog.rules) ? catalog.rules : [];
+	        const vaRules = Array.isArray(catalog.vaRules) ? catalog.vaRules : [];
+	        const viewItems = Array.isArray(views.views) ? views.views : [];
+	        const boundRuleIds = new Set();
+	        for (const view of viewItems) {
+	          if (view.defaultRuleId) boundRuleIds.add(String(view.defaultRuleId));
+	          if (Array.isArray(view.allowedRuleIds)) {
+	            view.allowedRuleIds.forEach(id => boundRuleIds.add(String(id)));
+	          }
+	        }
+	        setText('rulesVaRuleCount', vaRules.length);
+	        setText('rulesEventRuleCount', rules.length);
+	        setText('rulesProfileCount', profiles.length);
+	        setText('rulesViewBindingCount', boundRuleIds.size);
+	        setText('opsVaRuleSummary', `VA 룰 ${vaRules.length}개 · PublishedView 연결 ${boundRuleIds.size}개`);
+	        setText('opsEventRuleSummary', `이벤트 룰 ${rules.length}개`);
+	        setText('opsProfileSummary', `분석 프로파일 ${profiles.length}개`);
+	        renderOpsVaRules(vaRules);
+	        renderOpsEventRules(rules);
+	        renderOpsProfiles(profiles);
+	      }
+	      function wireOpsRefresh() {
+	        document.getElementById('opsLiveRefresh')?.addEventListener('click', () => refreshLive().catch(error => setText('homeRuntimeText', error.message)));
+	        document.getElementById('opsDashboardRefresh')?.addEventListener('click', () => refreshDashboard().catch(error => setText('dashHealthText', error.message)));
+	        document.getElementById('opsEventsRefresh')?.addEventListener('click', () => refreshEvents().catch(error => setText('eventRecordSummary', error.message)));
+	        document.getElementById('opsRulesRefresh')?.addEventListener('click', () => refreshRules().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+	        document.getElementById('opsLivePretty')?.addEventListener('change', () => refreshLive().catch(() => {}));
+	        document.getElementById('opsDashboardPretty')?.addEventListener('change', () => refreshDashboard().catch(() => {}));
+	        document.getElementById('opsEventsPretty')?.addEventListener('change', () => refreshEvents().catch(() => {}));
       }
       applyPrincipalVisibility().catch(() => {});
       wireOpsRefresh();
-      if (activeOpsPage === 'dashboard') {
-        refreshDashboard().catch(error => setText('dashHealthText', error.message));
-      } else if (activeOpsPage === 'events') {
-        refreshEvents().catch(error => setText('eventRecordSummary', error.message));
-      } else if (activeOpsPage === 'home') {
-        refreshLive().catch(error => setText('homeRuntimeText', error.message));
-      }
+	      if (activeOpsPage === 'dashboard') {
+	        refreshDashboard().catch(error => setText('dashHealthText', error.message));
+	      } else if (activeOpsPage === 'events') {
+	        refreshEvents().catch(error => setText('eventRecordSummary', error.message));
+	      } else if (activeOpsPage === 'rules') {
+	        refreshRules().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true }));
+	      } else if (activeOpsPage === 'home') {
+	        refreshLive().catch(error => setText('homeRuntimeText', error.message));
+	      }
     </script>
 )OPS";
     AppendOpsShellEnd(out);
@@ -20147,6 +20360,32 @@ std::string AnalysisVaRulesJson() {
     return AnalysisRegistry().VaRulesJson();
 }
 
+void AppendJsonDocumentArray(std::ostream& out, const std::vector<std::string>& documents) {
+    out << "[";
+    for (std::size_t i = 0; i < documents.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << documents[i];
+    }
+    out << "]";
+}
+
+std::string OpsRulesCatalogJson() {
+    const auto profiles = AnalysisRegistry().ProfileDocuments();
+    const auto rules = AnalysisRegistry().RuleDocuments();
+    const auto va_rules = AnalysisRegistry().VaRuleDocuments();
+    std::ostringstream out;
+    out << "{\"status\":\"ops-rules-catalog\",\"profiles\":";
+    AppendJsonDocumentArray(out, profiles);
+    out << ",\"rules\":";
+    AppendJsonDocumentArray(out, rules);
+    out << ",\"vaRules\":";
+    AppendJsonDocumentArray(out, va_rules);
+    out << "}";
+    return out.str();
+}
+
 bool IsSupportedImageFile(const std::filesystem::path& path) {
     std::string ext = path.extension().string();
     std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char ch) {
@@ -21830,11 +22069,35 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     403,
                                     "Forbidden",
                                     "{\"error\":\"generic media endpoints require operator ops access or lab scope\"}");
-                            }
-                            return std::nullopt;
-                        };
+	                            }
+	                            return std::nullopt;
+	                        };
+	                        auto runtime_status_body = [&]() {
+	                            std::size_t http_egress_sessions = 0;
+	                            std::size_t whip_publish_sessions = 0;
+	                            std::vector<WebRtcMetadataChannelStats> metadata_channel_stats;
+	                            {
+	                                std::lock_guard lock(impl_->mu);
+	                                http_egress_sessions = impl_->sessions.size();
+	                                whip_publish_sessions = impl_->source_sessions.size();
+	                                metadata_channel_stats.reserve(impl_->sessions.size());
+	                                for (const auto& [_, entry] : impl_->sessions) {
+	                                    if (entry.bridge != nullptr) {
+	                                        metadata_channel_stats.push_back(entry.bridge->MetadataChannelStatsSnapshot());
+	                                    }
+	                                }
+	                            }
+	                            return RuntimeStatusJson(impl_->session_manager.GetRuntimeStateSnapshot(),
+	                                                     http_egress_sessions,
+	                                                     whip_publish_sessions,
+	                                                     metadata_channel_stats,
+	                                                     impl_->active_sse_metadata_clients.load(),
+	                                                     impl_->active_ws_metadata_clients.load(),
+	                                                     WebRtcSourceRegistry::Instance().Snapshots(),
+	                                                     impl_->session_manager.AnalysisTapSnapshots());
+	                        };
 
-                        if (request.method == "GET" && request.path == "/health") {
+	                        if (request.method == "GET" && request.path == "/health") {
                             HttpResponse ok;
                             ok.content_type = "application/json; charset=utf-8";
                             ok.body = "{\"status\":\"ok\"}";
@@ -22155,24 +22418,70 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return HtmlPageResponse(OpsShellPageHtml(principal_result.principal, "rules"));
                         }
 
-                        if (request.path == "/ops/api/users") {
-                            if (const auto auth_response = require_admin_principal(); auth_response.has_value()) {
-                                return *auth_response;
-                            }
+	                        if (request.path == "/ops/api/users") {
+	                            if (const auto auth_response = require_admin_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
                             if (request.method == "GET") {
                                 return AuthUserHttpResponse(auth::ListAuthUsers(config));
                             }
                             if (request.method == "POST") {
                                 const auth::AuthUserResult result =
                                     auth::CreateAuthUserFromJson(config, request.body);
-                                return AuthUserHttpResponse(result);
-                            }
-                        }
+	                                return AuthUserHttpResponse(result);
+	                            }
+	                        }
 
-                        if (request.path == "/ops/api/invites") {
-                            if (const auto auth_response = require_admin_principal(); auth_response.has_value()) {
-                                return *auth_response;
-                            }
+	                        if (request.method == "GET" && request.path == "/ops/api/runtime/status") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            HttpResponse ok = JsonResponse(200, "OK", runtime_status_body());
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
+	                        }
+
+	                        if (request.method == "GET" && request.path == "/ops/api/rules/catalog") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            HttpResponse ok = JsonResponse(200, "OK", OpsRulesCatalogJson());
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
+	                        }
+
+	                        if (request.method == "GET" && request.path == "/ops/api/events/status") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            analysis::EventRecordQueryOptions options;
+	                            std::string error_message;
+	                            if (!BuildEventRecordQueryOptions(query, &options, &error_message)) {
+	                                return JsonResponse(400,
+	                                                    "Bad Request",
+	                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+	                            }
+	                            analysis::EventRecordQueryResult result;
+	                            if (!analysis::QueryEventRecords(options, &result, &error_message)) {
+	                                return JsonResponse(500,
+	                                                    "Internal Server Error",
+	                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+	                            }
+	                            HttpResponse ok = JsonResponse(
+	                                200,
+	                                "OK",
+	                                "{\"status\":\"ops-events\",\"storage\":" +
+	                                    AnalysisEventStorageStatusJson() + ",\"post\":" +
+	                                    AnalysisEventPostStatusJson() + ",\"records\":" +
+	                                    AnalysisEventRecordsJson(result) + "}");
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
+	                        }
+
+	                        if (request.path == "/ops/api/invites") {
+	                            if (const auto auth_response = require_admin_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
                             if (request.method == "POST") {
                                 const auth::AuthUserResult result =
                                     auth::CreateInviteFromJson(config, request.body);
@@ -22737,32 +23046,11 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return JsonResponse(200, "OK", response_body);
                         }
 
-                        if (request.method == "GET" && request.path == "/lab/runtime/status") {
-                            std::size_t http_egress_sessions = 0;
-                            std::size_t whip_publish_sessions = 0;
-                            std::vector<WebRtcMetadataChannelStats> metadata_channel_stats;
-                            {
-                                std::lock_guard lock(impl_->mu);
-                                http_egress_sessions = impl_->sessions.size();
-                                whip_publish_sessions = impl_->source_sessions.size();
-                                metadata_channel_stats.reserve(impl_->sessions.size());
-                                for (const auto& [_, entry] : impl_->sessions) {
-                                    if (entry.bridge != nullptr) {
-                                        metadata_channel_stats.push_back(entry.bridge->MetadataChannelStatsSnapshot());
-                                    }
-                                }
-                            }
-                            return JsonResponse(200,
-                                                "OK",
-                                                RuntimeStatusJson(impl_->session_manager.GetRuntimeStateSnapshot(),
-                                                                  http_egress_sessions,
-                                                                  whip_publish_sessions,
-                                                                  metadata_channel_stats,
-                                                                  impl_->active_sse_metadata_clients.load(),
-                                                                  impl_->active_ws_metadata_clients.load(),
-                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                  impl_->session_manager.AnalysisTapSnapshots()));
-                        }
+	                        if (request.method == "GET" && request.path == "/lab/runtime/status") {
+	                            return JsonResponse(200,
+	                                                "OK",
+	                                                runtime_status_body());
+	                        }
 
                         if (request.method == "GET" && request.path == "/lab/analysis/capabilities") {
                             return JsonResponse(200, "OK", AnalysisCapabilitiesJson());

@@ -48,13 +48,15 @@ const pageChecks = [
     name: "ops-dashboard",
     path: "/ops/dashboard",
     visualSelector: '[data-testid="ops-dashboard-page"]',
-    must: ['data-testid="ops-dashboard-page"', 'id="opsDashboardFrame"', "/lab/rules?embed=1&tab=dashboard&panel=dashboard"],
+    must: ['data-testid="ops-dashboard-page"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', '/ops/api/runtime/status'],
+    mustNot: ['<iframe', 'opsDashboardFrame', '/lab/rules?embed=1', '/lab/runtime/status'],
   },
   {
     name: "ops-rules",
     path: "/ops/rules",
     visualSelector: '[data-testid="ops-rules-page"]',
-    must: ['data-testid="ops-rules-page"', 'id="opsRulesFrame"', "/lab/rules?embed=1&tab=settings&panel=settings"],
+    must: ['data-testid="ops-rules-page"', 'id="opsVaRuleRows"', 'id="opsEventRuleRows"', 'id="opsProfileRows"', '/ops/api/rules/catalog'],
+    mustNot: ['<iframe', 'opsRulesFrame', '/lab/rules?embed=1', '/lab/analysis/rules', '/lab/analysis/va-rules'],
   },
   {
     name: "ops-sources",
@@ -111,6 +113,19 @@ for (const check of pageChecks) {
     failures.push(`[${check.name}] ${message}`);
     console.log(`[fail] ${check.name}: ${message}`);
   }
+}
+
+try {
+  await assertOpsApiContract("ops-api-runtime-status", "/ops/api/runtime/status");
+  await assertOpsApiContract("ops-api-rules-catalog", "/ops/api/rules/catalog");
+  await assertOpsApiContract("ops-api-events-status", "/ops/api/events/status?limit=5");
+  passCount += 1;
+  console.log("[pass] ops-api-contract: runtime/rules/events product endpoints available");
+} catch (error) {
+  failCount += 1;
+  const message = error instanceof Error ? error.message : String(error);
+  failures.push(`[ops-api-contract] ${message}`);
+  console.log(`[fail] ops-api-contract: ${message}`);
 }
 
 try {
@@ -204,7 +219,8 @@ function clientForbiddenText() {
     "/lab/runtime/status",
     "/lab/analysis/event-post",
     "/lab/analysis/taps",
-    "/webrtc/session/",
+    'href="/webrtc/session',
+    "/webrtc/session?file",
     "sessionToken",
   ];
 }
@@ -238,6 +254,17 @@ async function assertClientApiContract(label, path) {
     "data-copy-stream-channel",
     "channel-stream-actions",
     "SourceRegistry",
+  ]);
+  return parseJson(label, payload);
+}
+
+async function assertOpsApiContract(label, path) {
+  const payload = await requestText(path);
+  assertOmits(label, payload, [
+    "/lab/rules?embed=1",
+    "opsDashboardFrame",
+    "opsRulesFrame",
+    "<iframe",
   ]);
   return parseJson(label, payload);
 }
