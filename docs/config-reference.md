@@ -202,7 +202,7 @@ Admin user management API:
 | `MEDIA_SERVER_RTSP_TRACK_SETTLE_QUIET_PERIOD_MS` | code default | RTSP track settle quiet period |
 | `MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS` | code default | RTSP track settle max wait |
 
-`/webrtc/config`는 위 STUN/TURN/ICE policy를 browser `RTCPeerConnection` 옵션으로 직렬화합니다. Lab WebRTC 테스트와 Client Live는 이 endpoint의 `peerConnectionConfig`를 사용하므로 relay-only 운영 배포에서는 client portal도 같은 TURN 설정을 따릅니다.
+`/webrtc/config`는 위 STUN/TURN/ICE policy를 browser `RTCPeerConnection` 옵션으로 직렬화합니다. Lab WebRTC 테스트와 Client Live는 이 endpoint의 `peerConnectionConfig`를 사용하므로 relay-only 운영 배포에서는 client portal도 같은 TURN 설정을 따릅니다. 외부 WHEP pull source의 `whepsrc` 설정도 사용 가능한 경우 같은 STUN/TURN/ICE policy 값을 전달합니다.
 
 ### WebRTC egress video
 
@@ -217,7 +217,7 @@ Admin user management API:
 
 ## Source env
 
-`file=` source의 root와 기본 파일은 `서버 기본 env`의 `MEDIA_SERVER_FILE_ROOT`, `MEDIA_SERVER_DEFAULT_FILE`을 사용합니다. HTTP/HLS URI source와 transcode 관련 값은 아래에서 관리합니다.
+`file=` source의 root와 기본 파일은 `서버 기본 env`의 `MEDIA_SERVER_FILE_ROOT`, `MEDIA_SERVER_DEFAULT_FILE`을 사용합니다. HTTP/HLS URI source와 transcode 관련 값은 아래에서 관리합니다. 외부 WHEP playback URL source는 SourceRegistry의 `kind=whep`/`whepUrl` 또는 직접 query `source=whep&url=...`로 지정하며, WHEP credential 저장/주입은 아직 별도 운영 정책 대상입니다.
 
 | 환경변수 | 기본값 | 설명 |
 | --- | --- | --- |

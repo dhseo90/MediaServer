@@ -134,7 +134,16 @@ curl -fsS -X POST \
   'http://127.0.0.1:8080/whep?file=sample_h264.mp4'
 ```
 
-위 직접 WebRTC/WHEP 생성 요청은 `MEDIA_SERVER_AUTH_MODE=off` 개발 모드 또는 auth on의 admin/operator `ops:read`, `lab:read` 권한에서 사용합니다. Auth on에서 answer/ICE/delete 후속 요청은 같은 생성 principal 또는 응답의 `sessionToken`을 `X-Session-Capability`로 보내야 합니다. `/ws/va-metadata` 직접 WebSocket metadata side-channel도 auth on에서는 admin/operator 또는 `lab:read` 권한에서만 사용합니다. Viewer/client 제품 흐름은 `/client/api/views/{viewId}/webrtc/session` 생성 wrapper와 같은 prefix의 client session answer/ICE/delete wrapper를 사용합니다.
+외부 WHEP playback endpoint를 source로 pull할 때는 기존 `source=webrtc`가 아니라 `source=whep`을 사용합니다. `source=webrtc`는 `/whip/publish`로 등록된 내부 sourceId 소비 경로입니다.
+
+```bash
+curl -fsS -X POST \
+  'http://127.0.0.1:8080/webrtc/session?source=whep&url=https%3A%2F%2Fexample.com%2Fwhep%2Fstream'
+```
+
+위 URL은 placeholder입니다. 실제 WHEP endpoint와 네트워크/ICE/TURN 상태는 환경별로 별도 확인합니다.
+
+위 직접 WebRTC/WHEP 생성 요청은 `MEDIA_SERVER_AUTH_MODE=off` 개발 모드 또는 auth on의 admin/operator `ops:read`, `lab:read` 권한에서 사용합니다. Auth on에서 answer/ICE/delete 후속 요청은 같은 생성 principal 또는 응답의 `sessionToken`을 `X-Session-Capability`로 보내야 합니다. 인증 토큰이 필요한 외부 WHEP endpoint의 credential 저장/주입은 아직 별도 운영 정책 대상입니다. `/ws/va-metadata` 직접 WebSocket metadata side-channel도 auth on에서는 admin/operator 또는 `lab:read` 권한에서만 사용합니다. Viewer/client 제품 흐름은 `/client/api/views/{viewId}/webrtc/session` 생성 wrapper와 같은 prefix의 client session answer/ICE/delete wrapper를 사용합니다.
 
 ## 중지/재시작/status/diagnose
 
@@ -242,6 +251,8 @@ gst-inspect-1.0 uridecodebin
 ```
 
 `verify-predev --quick`와 `./server.sh test*` 계열은 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하므로 느립니다. 문서/UI/Auth/권한만 바꾼 경우에는 이 묶음을 실행하지 않고 `build`, `git diff --check`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-lab-layout --no-screenshots`, `verify-analysis-state`로 확인합니다.
+
+`verify-auth-routes`는 격리 서버를 자동으로 띄웁니다. `verify-ops-client-ui`, `verify-rule-ui`, `verify-lab-layout`는 이미 떠 있는 HTTP 서버를 검사하므로 UI smoke 전에는 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`로 서버를 띄우고, 포트가 다르면 각 명령에 `--http-base`를 지정합니다.
 
 장시간 또는 다채널 검증 기준은 [stream-verification.md](./stream-verification.md)에 유지합니다.
 

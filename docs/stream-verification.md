@@ -17,10 +17,10 @@
 | `./server.sh test` | 기본 smoke. 로컬 file/RTSP/WebRTC/기본 API 중심 |
 | `./server.sh test --basic` | 기본 smoke를 명시적으로 실행 |
 | `./server.sh test --full` | Rule/Profile UI, VA event, image analysis, event POST, multichannel, redaction 포함 |
-| `./server.sh test --external` | `--full` + LAN/external source, WebRTC ICE, 외부 HTTP/HLS URI 선택 검증 |
+| `./server.sh test --external` | `--full` + LAN/external source, WebRTC ICE, 외부 HTTP/HLS URI 선택 검증. 외부 WHEP endpoint는 환경 의존 별도 검증 |
 | `./server.sh test --stable` | 기존 stable 호환 기준 |
 
-외부 RTSP/HLS/HTTP source, 운영 TURN relay/auth, YouTube import/source는 외부 환경 영향을 받으므로 기본 hard gate가 아닙니다.
+외부 RTSP/HLS/HTTP/WHEP source, 운영 TURN relay/auth, YouTube import/source는 외부 환경 영향을 받으므로 기본 hard gate가 아닙니다.
 
 문서/UI/Auth/권한/계정처럼 media pipeline 자체를 바꾸지 않은 변경에서는 `./server.sh test`, `./server.sh test --basic`, `./server.sh test --full`, `./server.sh verify-predev --quick`를 기본으로 실행하지 않습니다. 이 명령들은 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 소비해 느리므로, 해당 변경 범위에서는 아래의 문서/UI/Auth 전용 smoke만 사용합니다. RTSP/WebRTC codec/source 자체를 수정했거나 release candidate gate를 열 때만 명시적으로 실행합니다.
 
@@ -47,6 +47,8 @@ git diff --check -- README.md docs scripts src include
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
 
+`verify-auth-routes`는 임시 users/source/view 파일과 격리 포트로 서버를 직접 띄웁니다. `verify-ops-client-ui`, `verify-rule-ui`, `verify-lab-layout`는 실행 중인 HTTP 서버를 대상으로 하는 attached smoke이므로, UI 전용 검증에서는 별도 터미널에서 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`를 실행하고 포트가 다르면 `--http-base`를 명시합니다.
+
 VA rule/scenario 변경:
 
 ```bash
@@ -65,7 +67,7 @@ UI 변경:
 MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap
 ```
 
-UI 변경 검증에서는 기본 추가 RTSP/WebRTC source 영상이나 codec matrix를 쓰지 않습니다. 화면 selector/API 계약만 확인할 때는 `verify-ops-client-ui`, `verify-rule-ui`, `verify-lab-layout --no-screenshots`를 우선 사용하고, WebRTC/RTSP streaming 동작이 변경된 경우에만 별도 WebRTC/stream 변경 명령을 실행합니다.
+UI 변경 검증에서는 기본 추가 RTSP/WebRTC source 영상이나 codec matrix를 쓰지 않습니다. 화면 selector/API 계약만 확인할 때는 서버를 띄운 뒤 `verify-ops-client-ui`, `verify-rule-ui`, `verify-lab-layout --no-screenshots`를 우선 사용하고, WebRTC/RTSP streaming 동작이 변경된 경우에만 별도 WebRTC/stream 변경 명령을 실행합니다.
 
 Ops/Client shell 변경은 전용 smoke로 product shell selector와 client debug/source 비노출을 먼저 확인합니다. 이 smoke는 `/client/api/views`뿐 아니라 단일 view, dashboard, events, metadata 응답의 민감 JSON key도 재귀적으로 검사합니다. Auth route smoke는 격리된 Source/View registry 파일을 사용해 기본 seed, client wrapper, malformed source/view registry fail-closed, 기존 malformed 파일 비덮어쓰기를 함께 확인합니다. `--screenshots` 옵션은 headless Chrome으로 `/ops/home`, `/ops/dashboard`, `/ops/rules`, `/ops/sources`, `/ops/users`, `/client/live`, `/client/dashboard`를 폭별로 열어 overflow와 screenshot을 남깁니다. Ops shell script처럼 `webrtc_http_server.cpp`에서 `product_ui_page_scripts.*`로 UI 소유권을 옮기는 구조 변경은 `./server.sh build`, `./server.sh verify-auth-routes`, `./server.sh verify-ops-client-ui`를 함께 실행해 route guard와 제품 selector/API 계약을 같이 확인합니다. Auth shell 변경은 기존 auth workflow에 `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1`을 붙여 `/setup`, `/login`, `/client/request-access`, 필요 시 `/password/change`, `/invite/setup` selector를 확인하고, `MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`로 auth screenshot smoke까지 남깁니다. 화면 단위 회귀가 의심되거나 nav/table/form 반응형을 직접 봐야 할 때는 auth-off 또는 로그인 cookie/token을 준비한 서버에서 아래 수동 smoke를 함께 확인합니다.
 
