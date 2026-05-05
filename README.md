@@ -145,6 +145,20 @@ RTSP 일반 viewer는 WebRTC DataChannel metadata를 표시하지 않습니다. 
 ./server.sh test
 ```
 
+`./server.sh test`, `./server.sh test --basic`, `./server.sh test --full`, `./server.sh verify-predev --quick`는 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하므로 느립니다. 문서/UI/Auth/권한처럼 media pipeline 자체를 바꾸지 않은 변경에서는 기본 테스트로 실행하지 말고, 아래 전용 smoke를 사용합니다.
+
+문서/UI/Auth/권한 전용 빠른 검증:
+
+```bash
+./server.sh build
+git diff --check -- README.md docs scripts src include
+./server.sh verify-auth-routes
+./server.sh verify-ops-client-ui
+./server.sh verify-rule-ui
+./server.sh verify-lab-layout --no-screenshots
+./server.sh verify-analysis-state
+```
+
 로컬 풀 검증:
 
 ```bash
