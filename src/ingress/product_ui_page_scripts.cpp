@@ -5,6 +5,39 @@
 
 namespace ingress {
 
+namespace {
+
+std::string JsStringLiteral(const std::string& value) {
+    std::ostringstream out;
+    out << "'";
+    for (const char ch : value) {
+        switch (ch) {
+            case '\\':
+                out << "\\\\";
+                break;
+            case '\'':
+                out << "\\'";
+                break;
+            case '\n':
+                out << "\\n";
+                break;
+            case '\r':
+                out << "\\r";
+                break;
+            case '\t':
+                out << "\\t";
+                break;
+            default:
+                out << ch;
+                break;
+        }
+    }
+    out << "'";
+    return out.str();
+}
+
+}  // namespace
+
 void AppendClientAccessRequestScript(std::ostringstream& out) {
     out << R"REQUESTSCRIPT(  <script>
     const { requestJson, formDataObject, setFeedback } = window.MediaServerUi;
@@ -762,6 +795,276 @@ void AppendClientShellScript(std::ostringstream& out) {
     }
   </script>
 )CLIENTSCRIPT";
+}
+
+void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
+    out << R"OPSSCRIPT(    <script>
+      const activeOpsPage = )OPSSCRIPT" << JsStringLiteral(active) << R"OPSSCRIPT(;
+      const {
+        escapeHtml,
+        display,
+        numberValue,
+        setText,
+        setFeedback,
+        setTableEmpty,
+        chip: badge,
+        renderBadges,
+        renderRaw,
+        requestJson,
+        applyPrincipalVisibility
+      } = window.MediaServerUi;
+      const runtimeCounts = runtime => {
+        const session = runtime?.sessionManager || {};
+        const webrtc = runtime?.webrtcHttp || {};
+        const matching = runtime?.analysisMatching || {};
+        return {
+          sessions: numberValue(session.activeSessions),
+          streams: numberValue(session.registryActiveStreams || session.resourceActiveStreams),
+          taps: numberValue(session.activeAnalysisTaps || matching.activeTapCount),
+          egress: numberValue(webrtc.egressSessions),
+          publish: numberValue(webrtc.publishSessions),
+          publishSources: Array.isArray(webrtc.publishSources) ? webrtc.publishSources.length : 0,
+          activeTaps: Array.isArray(matching.activeTaps) ? matching.activeTaps : [],
+          debugCounters: runtime?.debugCounters || {}
+        };
+      };
+      const eventTime = record => record.updateTime ?? record.startTime ?? record.timestamp ?? record.endTime ?? '';
+      const formatTime = value => {
+        if (value === null || value === undefined || value === '') return '미제공';
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) return String(value);
+        return numeric > 1000000000000 ? new Date(numeric).toLocaleString() : `${Math.round(numeric)}ms`;
+      };
+      function renderEventRows(records) {
+        const body = document.getElementById('eventRecordRows');
+        if (!body) return;
+        if (!Array.isArray(records) || records.length === 0) {
+          body.innerHTML = '<tr><td colspan="6">Event record가 없습니다.</td></tr>';
+          return;
+        }
+        body.innerHTML = records.slice(0, 25).map(record => `
+          <tr>
+            <td>${escapeHtml(record.eventType || record.eventId || 'event')}</td>
+            <td>${badge(record.status || '미제공', String(record.status || '').toLowerCase() === 'active' ? 'warn' : '')}</td>
+            <td>${escapeHtml(record.streamId || record.channelId || '미제공')}</td>
+            <td>${escapeHtml(record.trackId ?? '미제공')}</td>
+            <td>${escapeHtml(record.scenarioName || record.scenarioPhase || record.zoneId || '미제공')}</td>
+            <td>${escapeHtml(formatTime(eventTime(record)))}</td>
+          </tr>
+        `).join('');
+      }
+      async function refreshLive() {
+        const [sources, catalog, runtime, users] = await Promise.all([
+          requestJson('/ops/api/sources'),
+          requestJson('/ops/api/rules/catalog'),
+          requestJson('/ops/api/runtime/status'),
+          requestJson('/ops/api/users').catch(error => ({ error: error.message, users: [] }))
+        ]);
+        const sourceItems = Array.isArray(sources.sources) ? sources.sources : [];
+        const eventRuleItems = Array.isArray(catalog.rules) ? catalog.rules : [];
+        const vaRuleItems = Array.isArray(catalog.vaRules) ? catalog.vaRules : [];
+        const userItems = Array.isArray(users.users) ? users.users : [];
+        const counts = runtimeCounts(runtime);
+        const staleTapCount = counts.activeTaps.filter(tap => numberValue(tap.lastUsedAgeMs) > 5000).length;
+        setText('homeChannelCount', sourceItems.length);
+        setText('homeVaRuleCount', vaRuleItems.length);
+        setText('homeEventRuleCount', eventRuleItems.length);
+        setText('homeUserCount', users.error ? '권한 없음' : userItems.length);
+        setText('homeActiveSessions', counts.sessions);
+        setText('homeActiveStreams', counts.streams);
+        setText('homeAnalysisTaps', counts.taps);
+        setText('homeStaleTaps', staleTapCount);
+        renderBadges('homeRuntimeState', [
+          { text: staleTapCount > 0 ? '확인 필요' : '정상', tone: staleTapCount > 0 ? 'warn' : '' },
+          { text: counts.streams > 0 ? '활성' : '대기', tone: counts.streams > 0 ? '' : 'info' }
+        ]);
+        setText('homeRuntimeText', staleTapCount > 0
+          ? `${staleTapCount}개 분석 탭이 지연 상태입니다. 대시보드에서 런타임 상세를 확인하세요.`
+          : '현재 지연 탭 경고는 없습니다.');
+        renderRaw('opsLiveRaw', 'opsLivePretty', { sources, catalog, runtime, users });
+      }
+      async function refreshDashboard() {
+        const runtime = await requestJson('/ops/api/runtime/status');
+        const counts = runtimeCounts(runtime);
+        setText('dashActiveSessions', counts.sessions);
+        setText('dashActiveStreams', counts.streams);
+        setText('dashActiveTaps', counts.taps);
+        setText('dashPublishSources', counts.publishSources);
+        renderBadges('dashHealthBadges', [
+          { text: counts.streams > 0 ? '스트림 활성' : '스트림 대기', tone: counts.streams > 0 ? '' : 'info' },
+          { text: counts.taps > 0 ? '분석 활성' : '분석 대기', tone: counts.taps > 0 ? '' : 'info' },
+          { text: counts.egress > 0 ? '송출 활성' : '송출 대기', tone: counts.egress > 0 ? '' : 'info' }
+        ]);
+        setText('dashHealthText', `세션 ${counts.sessions} · 스트림 ${counts.streams} · 분석 탭 ${counts.taps}`);
+        renderBadges('dashRuntimeRows', [
+          { text: `송출 ${counts.egress}` },
+          { text: `발행 ${counts.publish}` },
+          { text: `재사용 그룹 ${runtime?.analysisMatching?.reuseGroupCount ?? 0}` }
+        ]);
+        setText('dashRuntimeText', `프로파일 문서 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 문서 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0}`);
+        const metadata = runtime?.webrtcHttp?.metadataDataChannel || {};
+        renderBadges('dashBackpressureRows', [
+          { text: `메타데이터 채널 ${Array.isArray(metadata.channels) ? metadata.channels.length : 0}` },
+          { text: `sse ${runtime?.webrtcHttp?.metadataSideChannel?.activeSseClients ?? 0}` },
+          { text: `ws ${runtime?.webrtcHttp?.metadataSideChannel?.activeWebSocketClients ?? 0}` }
+        ]);
+        setText('dashBackpressureText', 'DataChannel/SSE/WS 상태는 raw JSON 접힘 영역에서 세부 카운터를 확인합니다.');
+        const debugKeys = Object.keys(counts.debugCounters);
+        renderBadges('dashCleanupRows', debugKeys.slice(0, 4).map(key => ({ text: key })));
+        setText('dashCleanupText', debugKeys.length > 0 ? `${debugKeys.length}개 cleanup/debug counter group 사용 가능` : 'cleanup counter가 아직 수집되지 않았습니다.');
+        renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
+      }
+      async function refreshEvents() {
+        const payload = await requestJson('/ops/api/events/status?limit=25');
+        const storage = payload.storage || {};
+        const post = payload.post || {};
+        const records = payload.records || { records: [] };
+        renderBadges('eventStorageBadges', [
+          { text: storage.enabled ? '활성' : '비활성', tone: storage.enabled ? '' : 'warn' },
+          { text: `저장 ${storage.storedCount ?? 0}` },
+          { text: `실패 ${storage.failedCount ?? 0}`, tone: numberValue(storage.failedCount) > 0 ? 'bad' : '' },
+          { text: `드롭 ${storage.droppedCount ?? 0}`, tone: numberValue(storage.droppedCount) > 0 ? 'warn' : '' }
+        ]);
+        setText('eventStorageText', `큐 ${storage.queueSize ?? 0}/${storage.maxQueueSize ?? 0} · 파일 ${(storage.activeFileSizeBytes ?? 0)} bytes · 복구 ${storage.lastRecoveryStatus || '미제공'}`);
+        renderBadges('eventPostBadges', [
+          { text: post.enabled ? '활성' : '비활성', tone: post.enabled ? '' : 'warn' },
+          { text: `전송 ${post.sentCount ?? 0}` },
+          { text: `실패 ${post.failedCount ?? 0}`, tone: numberValue(post.failedCount) > 0 ? 'bad' : '' },
+          { text: `억제 ${post.suppressedCount ?? 0}` }
+        ]);
+        setText('eventPostText', post.lastError ? `마지막 오류: ${post.lastError}` : `큐 ${post.queueSize ?? 0}/${post.maxQueueSize ?? 0}`);
+        const eventItems = Array.isArray(records.records) ? records.records : [];
+        setText('eventRecordSummary', records.error ? `조회 실패: ${records.error}` : `records ${eventItems.length} · hasMore ${records.hasMore ? 'yes' : 'no'}`);
+        renderEventRows(eventItems);
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, records });
+      }
+      const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
+      const listText = value => Array.isArray(value) ? (value.length ? value.join(', ') : '미제공') : display(value);
+      const sourceText = source => {
+        if (!source || typeof source !== 'object') return '미제공';
+        if (source.kind === 'file') return `파일 · ${display(source.file)}`;
+        if (source.url) return `${display(source.kind)} · ${source.url}`;
+        return display(source.kind);
+      };
+      const matchText = match => {
+        if (!match || typeof match !== 'object') return '전체';
+        const parts = [
+          `source ${display(match.sourceKind || '*')}`,
+          `route ${display(match.route || '*')}`
+        ];
+        if (match.clientId) parts.push(`client ${match.clientId}`);
+        if (match.vaRule) parts.push(`vaRule ${match.vaRule}`);
+        return parts.join(' · ');
+      };
+      const outputsText = outputs => {
+        if (!outputs || typeof outputs !== 'object') return '미제공';
+        return Object.entries(outputs)
+          .filter(([, value]) => value === true || value === 'true')
+          .map(([key]) => key)
+          .join(', ') || '미제공';
+      };
+      const statusBadge = item => item?.enabled === false ? badge('비활성', 'warn') : badge('적용 중');
+      function renderOpsVaRules(items) {
+        const body = document.getElementById('opsVaRuleRows');
+        if (!Array.isArray(items) || items.length === 0) {
+          setTableEmpty(body, 6, '저장된 VA 룰이 없습니다.');
+          return;
+        }
+        body.innerHTML = items.map(item => {
+          const analysis = item.analysis || {};
+          const eventName = item.scenario?.type || item.scenario?.name || item.event?.type || item.eventType || (item.outputs?.events ? 'events' : 'metadata');
+          return `<tr>
+            <td data-label="룰">#${escapeHtml(itemId(item))}</td>
+            <td data-label="소스">${escapeHtml(sourceText(item.source))}</td>
+            <td data-label="프로파일">${escapeHtml(display(analysis.profileId || item.profileId || 'server-default-va'))}</td>
+            <td data-label="이벤트">${escapeHtml(display(eventName))}</td>
+            <td data-label="대상">${escapeHtml(listText(analysis.classes || item.classes || analysis.trackingClasses))}</td>
+            <td data-label="상태">${statusBadge(item)}</td>
+          </tr>`;
+        }).join('');
+      }
+      function renderOpsEventRules(items) {
+        const body = document.getElementById('opsEventRuleRows');
+        if (!Array.isArray(items) || items.length === 0) {
+          setTableEmpty(body, 5, '저장된 이벤트 룰이 없습니다.');
+          return;
+        }
+        body.innerHTML = items.map(item => {
+          const analysis = item.analysis || {};
+          return `<tr>
+            <td data-label="룰">#${escapeHtml(itemId(item))}</td>
+            <td data-label="매칭">${escapeHtml(matchText(item.match))}</td>
+            <td data-label="분석">${escapeHtml(display(analysis.profileId || analysis.detector || '미제공'))}</td>
+            <td data-label="출력">${escapeHtml(outputsText(item.outputs))}</td>
+            <td data-label="상태">${statusBadge(item)}</td>
+          </tr>`;
+        }).join('');
+      }
+      function renderOpsProfiles(items) {
+        const body = document.getElementById('opsProfileRows');
+        if (!Array.isArray(items) || items.length === 0) {
+          setTableEmpty(body, 5, '저장된 분석 프로파일이 없습니다.');
+          return;
+        }
+        body.innerHTML = items.map(item => `<tr>
+          <td data-label="프로파일">${escapeHtml(itemId(item))}</td>
+          <td data-label="검출기">${escapeHtml(display(item.detector || item.runtime || '미제공'))}</td>
+          <td data-label="FPS">${escapeHtml(display(item.fps || item.maxFps || '미제공'))}</td>
+          <td data-label="대상">${escapeHtml(listText(item.trackingClasses || item.classes))}</td>
+          <td data-label="상태">${statusBadge(item)}</td>
+        </tr>`).join('');
+      }
+      async function refreshRules() {
+        const status = document.getElementById('opsRulesStatus');
+        setFeedback(status, '', false, { collapseEmpty: true });
+        const [catalog, views] = await Promise.all([
+          requestJson('/ops/api/rules/catalog'),
+          requestJson('/ops/api/views')
+        ]);
+        const profiles = Array.isArray(catalog.profiles) ? catalog.profiles : [];
+        const rules = Array.isArray(catalog.rules) ? catalog.rules : [];
+        const vaRules = Array.isArray(catalog.vaRules) ? catalog.vaRules : [];
+        const viewItems = Array.isArray(views.views) ? views.views : [];
+        const boundRuleIds = new Set();
+        for (const view of viewItems) {
+          if (view.defaultRuleId) boundRuleIds.add(String(view.defaultRuleId));
+          if (Array.isArray(view.allowedRuleIds)) {
+            view.allowedRuleIds.forEach(id => boundRuleIds.add(String(id)));
+          }
+        }
+        setText('rulesVaRuleCount', vaRules.length);
+        setText('rulesEventRuleCount', rules.length);
+        setText('rulesProfileCount', profiles.length);
+        setText('rulesViewBindingCount', boundRuleIds.size);
+        setText('opsVaRuleSummary', `VA 룰 ${vaRules.length}개 · PublishedView 연결 ${boundRuleIds.size}개`);
+        setText('opsEventRuleSummary', `이벤트 룰 ${rules.length}개`);
+        setText('opsProfileSummary', `분석 프로파일 ${profiles.length}개`);
+        renderOpsVaRules(vaRules);
+        renderOpsEventRules(rules);
+        renderOpsProfiles(profiles);
+      }
+      function wireOpsRefresh() {
+        document.getElementById('opsLiveRefresh')?.addEventListener('click', () => refreshLive().catch(error => setText('homeRuntimeText', error.message)));
+        document.getElementById('opsDashboardRefresh')?.addEventListener('click', () => refreshDashboard().catch(error => setText('dashHealthText', error.message)));
+        document.getElementById('opsEventsRefresh')?.addEventListener('click', () => refreshEvents().catch(error => setText('eventRecordSummary', error.message)));
+        document.getElementById('opsRulesRefresh')?.addEventListener('click', () => refreshRules().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsLivePretty')?.addEventListener('change', () => refreshLive().catch(() => {}));
+        document.getElementById('opsDashboardPretty')?.addEventListener('change', () => refreshDashboard().catch(() => {}));
+        document.getElementById('opsEventsPretty')?.addEventListener('change', () => refreshEvents().catch(() => {}));
+      }
+      applyPrincipalVisibility().catch(() => {});
+      wireOpsRefresh();
+      if (activeOpsPage === 'dashboard') {
+        refreshDashboard().catch(error => setText('dashHealthText', error.message));
+      } else if (activeOpsPage === 'events') {
+        refreshEvents().catch(error => setText('eventRecordSummary', error.message));
+      } else if (activeOpsPage === 'rules') {
+        refreshRules().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true }));
+      } else if (activeOpsPage === 'home') {
+        refreshLive().catch(error => setText('homeRuntimeText', error.message));
+      }
+    </script>
+)OPSSCRIPT";
 }
 
 void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stream_route_json, int rtsp_port) {
