@@ -283,6 +283,9 @@ void AppendClientShellScript(std::ostringstream& out) {
     function tileView(tile) {
       return viewById(tile?.viewId || '');
     }
+    function clientSessionUrl(tile, suffix = '') {
+      return `/client/api/views/${encodeURIComponent(tile.viewId || '')}/webrtc/session/${encodeURIComponent(tile.sessionId || '')}${suffix}`;
+    }
     function defaultOverlayModeForView(view) {
       const modes = allowedOverlayModes(view);
       return modes.includes('raw') ? 'raw' : (modes[0] || '');
@@ -536,7 +539,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     }
     async function pollTileIce(tile) {
       if (!tile.sessionId || !tile.pc) return;
-      const response = await fetch(`/webrtc/session/${encodeURIComponent(tile.sessionId)}/ice`).catch(() => null);
+      const response = await fetch(clientSessionUrl(tile, '/ice')).catch(() => null);
       if (!response || !response.ok) return;
       const payload = await response.json().catch(() => ({}));
       for (const item of payload.candidates || []) {
@@ -588,7 +591,7 @@ void AppendClientShellScript(std::ostringstream& out) {
         };
         pc.onicecandidate = event => {
           if (!tile.sessionId || !event.candidate) return;
-          fetch(`/webrtc/session/${encodeURIComponent(tile.sessionId)}/ice`, {
+          fetch(clientSessionUrl(tile, '/ice'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -613,7 +616,7 @@ void AppendClientShellScript(std::ostringstream& out) {
         await pc.setRemoteDescription({ type: 'offer', sdp: payload.offer });
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        await fetch(`/webrtc/session/${encodeURIComponent(tile.sessionId)}/answer`, {
+        await fetch(clientSessionUrl(tile, '/answer'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/sdp' },
           body: answer.sdp
@@ -652,7 +655,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       const sessionId = tile.sessionId;
       tile.sessionId = '';
       if (sessionId) {
-        await fetch(`/webrtc/session/${encodeURIComponent(sessionId)}`, { method: 'DELETE' }).catch(() => {});
+        await fetch(`/client/api/views/${encodeURIComponent(tile.viewId || '')}/webrtc/session/${encodeURIComponent(sessionId)}`, { method: 'DELETE' }).catch(() => {});
       }
       if (!options.keepError) {
         tile.status = 'offline';
@@ -748,7 +751,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       window.addEventListener('beforeunload', () => {
         for (const tile of liveTiles) {
           if (tile.sessionId) {
-            fetch(`/webrtc/session/${encodeURIComponent(tile.sessionId)}`, { method: 'DELETE', keepalive: true }).catch(() => {});
+            fetch(clientSessionUrl(tile), { method: 'DELETE', keepalive: true }).catch(() => {});
           }
         }
       });

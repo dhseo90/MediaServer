@@ -75,7 +75,7 @@ HTTP request
 
 `MEDIA_SERVER_AUTH_MODE=auto`가 제품 기본 모드입니다. Users file이 없거나 admin passwordHash가 없으면 setup required 상태로 보고 `/setup`에서 최초 admin 비밀번호를 설정하게 하며, setup 완료 후에는 session login을 요구합니다. `MEDIA_SERVER_AUTH_MODE=off`에서는 기존 개발/검증 호환을 위해 dev admin principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 admin/operator/viewer/integrator env token이 `/auth/whoami`에서 principal로 확인됩니다. `MEDIA_SERVER_AUTH_MODE=session`에서는 users file의 `passwordHash`를 libsodium password hashing으로 검증한 뒤 HttpOnly/SameSite=Lax cookie session을 발급합니다. Password policy/lockout/session hardening은 HTTP auth/users file에만 적용되며, media pipeline, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload는 변경하지 않습니다.
 
-Auth on 상태에서 직접 media 생성 endpoint인 `POST /webrtc/session`, `POST /whep`, `POST /whip/publish`는 generic source locator를 받는 개발/Lab/운영자 표면으로 취급합니다. 따라서 admin/operator `ops:read` 또는 `lab:read` scope가 필요합니다. Viewer/client 제품 흐름은 source locator를 받지 않는 `/client/api/views/{viewId}/webrtc/session` wrapper만 사용하며, 이 wrapper가 PublishedView scope와 source override 금지를 적용합니다.
+Auth on 상태에서 직접 media 생성 endpoint인 `POST /webrtc/session`, `POST /whep`, `POST /whip/publish`는 generic source locator를 받는 개발/Lab/운영자 표면으로 취급합니다. 따라서 admin/operator `ops:read` 또는 `lab:read` scope가 필요합니다. Viewer/client 제품 흐름은 source locator를 받지 않는 `/client/api/views/{viewId}/webrtc/session` wrapper와 같은 prefix의 answer/ICE/delete wrapper만 사용하며, 이 wrapper가 PublishedView scope와 source override 금지를 적용하고 내부 generic session id/session token을 숨깁니다.
 
 Auth 구성요소:
 
@@ -214,7 +214,7 @@ POST /webrtc/session or /whep
   -> WebRTC offer/answer + ICE
 ```
 
-위 직접 consume endpoint는 auth on에서 admin/operator `ops:read` 또는 `lab:read`가 필요합니다. 생성된 HTTP signaling session id는 난수 token을 포함하며, answer/ICE/delete 후속 route는 생성 principal 또는 session별 `X-Session-Capability`와 일치해야 합니다. Client viewer는 PublishedView wrapper를 통해서만 WebRTC session을 생성합니다.
+위 직접 consume endpoint는 auth on에서 admin/operator `ops:read` 또는 `lab:read`가 필요합니다. 생성된 HTTP signaling session id는 난수 token을 포함하며, answer/ICE/delete 후속 route는 생성 principal 또는 session별 `X-Session-Capability`와 일치해야 합니다. Client viewer는 PublishedView wrapper를 통해서만 WebRTC session을 생성하고 후속 signaling도 `/client/api/views/{viewId}/webrtc/session/{clientSessionId}` 아래에서 처리합니다.
 
 WebRTC publish:
 

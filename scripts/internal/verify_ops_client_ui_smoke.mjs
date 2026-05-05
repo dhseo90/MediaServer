@@ -201,6 +201,8 @@ function clientForbiddenText() {
     "/lab/runtime/status",
     "/lab/analysis/event-post",
     "/lab/analysis/taps",
+    "/webrtc/session/",
+    "sessionToken",
   ];
 }
 
@@ -214,6 +216,7 @@ function clientForbiddenJsonKeys() {
     "debugCounters",
     "passwordHash",
     "tokenHash",
+    "sessionToken",
   ];
 }
 

@@ -735,11 +735,13 @@ curl -fsS -X POST \
 - client WebRTC wrapper는 viewId만 허용하고 `file`, `url`, `source`, `rtspUrl`, `httpUrl`, `webrtcSourceId` override 요청을 400으로 거부합니다.
 - `overlayMode`는 PublishedView의 `allowedOverlayModes` 안에서 `raw`, `va-overlay`, `va-rule`로 정규화됩니다.
 - `va-rule` mode는 PublishedView의 `allowedRuleIds`/`defaultRuleId` 안의 rule만 사용할 수 있습니다.
-- tile stop은 PeerConnection/DataChannel을 닫고 생성 principal 또는 session capability로 `/webrtc/session/{sessionId}` DELETE를 호출합니다.
+- client 생성 응답은 `client-live-<random>` alias만 반환하고 `sessionToken` 또는 내부 generic session id를 노출하지 않습니다.
+- client answer/ICE/delete는 `/client/api/views/{viewId}/webrtc/session/{clientSessionId}` wrapper를 사용하며, client alias는 generic `/webrtc/session/{id}` route에서 사용할 수 없어야 합니다.
+- tile stop은 PeerConnection/DataChannel을 닫고 client wrapper DELETE를 호출합니다.
 - all stop 또는 hidden tab/route leave 후 `activeSessions`가 감소하고 media stream track이 정리됩니다.
 - tile status는 live/offline, stale, track count, event count, connection status를 표시합니다.
-- client 화면에 source URL, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile 수정 UI가 노출되지 않아야 합니다.
-- 기존 `/webrtc/session?file=...` 개발용 경로와 WebRTC DataChannel schema, Event POST payload는 변경하지 않습니다. 단, auth on에서는 직접 generic media 생성 route가 admin/operator `ops:read` 또는 `lab:read` 권한을 요구하므로 viewer 제품 흐름은 `/client/api/views/{viewId}/webrtc/session` wrapper를 사용합니다.
+- client 화면에 source URL, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, 내부 session id/token, rule/profile 수정 UI가 노출되지 않아야 합니다.
+- 기존 `/webrtc/session?file=...` 개발용 경로와 WebRTC DataChannel schema, Event POST payload는 변경하지 않습니다. 단, auth on에서는 직접 generic media 생성 route가 admin/operator `ops:read` 또는 `lab:read` 권한을 요구하므로 viewer 제품 흐름은 client wrapper만 사용합니다.
 
 ## VA overlay 검증
 
