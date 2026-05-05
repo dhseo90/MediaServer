@@ -1817,41 +1817,24 @@ AuthUserResult CreateInviteFromJson(const app::AppConfig& config,
     }
     const std::string now = IsoUtcNow();
     const auto user_index = FindUserIndex(store.users, mutation.username);
-    UserRecord* user = nullptr;
+    UserRecord user_preview;
     if (user_index.has_value()) {
-        user = &store.users[*user_index];
-        if (user->enabled && user->role == "admin" && mutation.role != "admin" &&
-            !HasAnotherEnabledAdmin(store.users, user->username)) {
+        const UserRecord& existing_user = store.users[*user_index];
+        if (existing_user.enabled && existing_user.role == "admin" && mutation.role != "admin" &&
+            !HasAnotherEnabledAdmin(store.users, existing_user.username)) {
             return UserError(409, "Conflict", "마지막 활성 admin 계정은 invite로 role을 변경할 수 없습니다.");
         }
-        user->display_name =
-            mutation.display_name.empty() ? user->display_name : mutation.display_name;
-        user->role = mutation.role;
-        user->scopes = scopes;
-        if (user->created_at.empty()) {
-            user->created_at = now;
-        }
-        if (user->enabled) {
-            user->disabled_at.clear();
-        } else if (user->disabled_at.empty()) {
-            user->disabled_at = now;
-        }
-        user->must_change_password = true;
+        user_preview = existing_user;
     } else {
-        UserRecord candidate;
-        candidate.username = mutation.username;
-        candidate.display_name =
+        user_preview.username = mutation.username;
+        user_preview.display_name =
             mutation.display_name.empty() ? mutation.username : mutation.display_name;
-        candidate.role = mutation.role;
-        candidate.scopes = scopes;
-        candidate.enabled = false;
-        candidate.must_change_password = true;
-        candidate.created_at = now;
-        if (!candidate.enabled) {
-            candidate.disabled_at = now;
-        }
-        store.users.push_back(candidate);
-        user = &store.users.back();
+        user_preview.role = mutation.role;
+        user_preview.scopes = scopes;
+        user_preview.enabled = false;
+        user_preview.must_change_password = true;
+        user_preview.created_at = now;
+        user_preview.disabled_at = now;
     }
 
     std::string token_error;
@@ -1867,7 +1850,8 @@ AuthUserResult CreateInviteFromJson(const app::AppConfig& config,
     InviteRecord invite;
     invite.invite_id = "invite-" + raw_token->substr(0, 16);
     invite.username = mutation.username;
-    invite.display_name = user->display_name;
+    invite.display_name =
+        mutation.display_name.empty() ? user_preview.display_name : mutation.display_name;
     invite.role = mutation.role;
     invite.view_id = mutation.view_id;
     invite.scopes = scopes;
@@ -1883,11 +1867,11 @@ AuthUserResult CreateInviteFromJson(const app::AppConfig& config,
     }
     std::ostringstream out;
     out << "{\"status\":\"inviteCreated\",\"user\":";
-    AppendPublicUserJson(out, *user);
+    AppendPublicUserJson(out, user_preview);
     out << ",\"invite\":";
     AppendPublicInviteJson(out, invite, *raw_token);
     out << "}";
-    return UserJsonResult(201, "Created", out.str(), user->username);
+    return UserJsonResult(201, "Created", out.str());
 }
 
 AuthUserResult CompleteInvitePasswordSetup(const app::AppConfig& config,
@@ -2083,33 +2067,24 @@ AuthUserResult ApproveAccessRequestFromJson(const app::AppConfig& config,
     }
 
     const std::string now = IsoUtcNow();
-    UserRecord* user = nullptr;
+    UserRecord user_preview;
     const auto user_index = FindUserIndex(store->users, request.username);
     if (user_index.has_value()) {
-        user = &store->users[*user_index];
-        if (user->role != "viewer") {
+        const UserRecord& existing_user = store->users[*user_index];
+        if (existing_user.role != "viewer") {
             return UserError(409, "Conflict", "existing user is not a viewer account");
         }
+        user_preview = existing_user;
     } else {
-        UserRecord candidate;
-        candidate.username = request.username;
-        candidate.display_name =
+        user_preview.username = request.username;
+        user_preview.display_name =
             request.display_name.empty() ? request.username : request.display_name;
-        candidate.role = "viewer";
-        candidate.enabled = true;
-        candidate.must_change_password = true;
-        candidate.created_at = now;
-        store->users.push_back(candidate);
-        user = &store->users.back();
-    }
-    user->display_name = request.display_name.empty() ? user->display_name : request.display_name;
-    user->role = "viewer";
-    user->scopes = scopes;
-    user->enabled = true;
-    user->must_change_password = true;
-    user->disabled_at.clear();
-    if (user->created_at.empty()) {
-        user->created_at = now;
+        user_preview.role = "viewer";
+        user_preview.scopes = scopes;
+        user_preview.enabled = false;
+        user_preview.must_change_password = true;
+        user_preview.created_at = now;
+        user_preview.disabled_at = now;
     }
 
     std::string token_error;
@@ -2124,8 +2099,9 @@ AuthUserResult ApproveAccessRequestFromJson(const app::AppConfig& config,
     const int ttl_seconds = std::max(60, ParseIntField(body, "ttlSeconds").value_or(86400));
     InviteRecord invite;
     invite.invite_id = "invite-" + raw_token->substr(0, 16);
-    invite.username = user->username;
-    invite.display_name = user->display_name;
+    invite.username = request.username;
+    invite.display_name =
+        request.display_name.empty() ? user_preview.display_name : request.display_name;
     invite.role = "viewer";
     invite.view_id = view_id;
     invite.scopes = scopes;
@@ -2147,11 +2123,11 @@ AuthUserResult ApproveAccessRequestFromJson(const app::AppConfig& config,
     out << "{\"status\":\"approved\",\"accessRequest\":";
     AppendPublicAccessRequestJson(out, request);
     out << ",\"user\":";
-    AppendPublicUserJson(out, *user);
+    AppendPublicUserJson(out, user_preview);
     out << ",\"invite\":";
     AppendPublicInviteJson(out, invite, *raw_token);
     out << "}";
-    return UserJsonResult(200, "OK", out.str(), user->username);
+    return UserJsonResult(200, "OK", out.str());
 }
 
 AuthUserResult RejectAccessRequest(const app::AppConfig& config,

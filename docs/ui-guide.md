@@ -107,7 +107,7 @@ Role별 이동:
 
 Login page는 username/password 입력, 실패/lockout 메시지, 로그인 후 현재 사용자/role 표시, logout 버튼만 제공하는 MVP입니다. `/`는 setup required 상태에서 `/setup`, auth off에서 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/home`, `/client/live`, auth on에서 admin/operator를 `/ops/home`, viewer를 `/client/live`, 미인증 요청을 `/login`으로 보냅니다. 비밀번호 변경 성공 시 기존 session은 폐기되고 `/login`에서 다시 로그인합니다.
 
-클라이언트 계정의 1차 정책은 admin 수동 생성/승인입니다. admin은 `/ops/users`에서 username, role, viewId 또는 직접 scopes, 초기 비밀번호를 입력해 계정을 생성합니다. Invite/setup API와 CLI는 검증 및 운영 보조 흐름으로 유지하지만, 현재 `/ops/users` 화면의 기본 동작은 직접 계정 생성입니다. Self-signup 자동 승인은 제공하지 않습니다. `/client/request-access`는 pending request만 저장하며, admin 승인 전에는 계정 생성, session login, view 접근이 허용되지 않습니다. PublishedView 단위 접근은 `view:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`, `dashboard:read:{viewId}` scope로 제한합니다.
+클라이언트 계정의 1차 정책은 admin 수동 생성/승인입니다. admin은 `/ops/users`에서 username, role, viewId 또는 직접 scopes, 초기 비밀번호를 입력해 계정을 생성합니다. Invite/setup API와 CLI는 검증 및 운영 보조 흐름으로 유지하지만, 현재 `/ops/users` 화면의 기본 동작은 직접 계정 생성입니다. Self-signup 자동 승인은 제공하지 않습니다. `/client/request-access`는 pending request만 저장하며, admin 승인 후에도 password setup invite가 수락되기 전에는 계정 생성, session login, view 접근이 허용되지 않습니다. PublishedView 단위 접근은 `view:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`, `dashboard:read:{viewId}` scope로 제한합니다.
 
 Route 역할:
 
@@ -130,8 +130,8 @@ Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify
 - 비밀번호 초기화: API/CLI smoke 경로에서 reset-password를 지원합니다. Ops UI 기본 화면은 사용자 생성/수정/활성화 관리에 집중합니다.
 - enable/disable: hard delete 대신 disable을 사용합니다. 마지막 활성 admin 계정은 비활성화하거나 다른 role로 변경할 수 없습니다.
 - viewer UX: `role=viewer` 또는 `integrator` 선택 시 view/scope assignment 영역을 보여줍니다. PublishedView가 아직 연결되지 않은 환경에서는 `viewId` 또는 `view:read:{viewId}` 같은 문자열 scope를 직접 입력합니다. viewer에는 debug/lab/ops/source/rule 관리 scope를 부여하지 않습니다.
-- invite: admin API/CLI가 setup invite token을 발급하면 원문 token은 생성 응답에서 한 번만 표시됩니다. 저장소에는 `tokenHash`, 만료 시각, 사용 여부만 남고, `/invite/setup`에서 비밀번호 설정이 끝나면 token hash는 폐기됩니다.
-- request: `/client/request-access` 또는 `POST /client/api/access-requests`로 들어온 요청은 `pending`으로 저장됩니다. 승인/거절 API는 유지하지만 현재 `/ops/users` 화면에는 request table을 별도 노출하지 않습니다.
+- invite: admin API/CLI가 setup invite token을 발급하면 원문 token은 생성 응답에서 한 번만 표시됩니다. 저장소에는 `tokenHash`, 만료 시각, 사용 여부와 수락 시 적용할 role/scope snapshot만 남습니다. 기존 enabled user에 대한 invite도 수락 전에는 현재 role/scope/session을 바꾸지 않고, `/invite/setup`에서 비밀번호 설정이 끝나면 token hash와 이전 session을 폐기합니다.
+- request: `/client/request-access` 또는 `POST /client/api/access-requests`로 들어온 요청은 `pending`으로 저장됩니다. 승인 API는 password setup invite를 발급할 뿐 user row는 수락 시점에 만들거나 갱신합니다. 승인/거절 API는 유지하지만 현재 `/ops/users` 화면에는 request table을 별도 노출하지 않습니다.
 
 Role별 scope template:
 
