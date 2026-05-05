@@ -451,6 +451,68 @@ try {
         if (!afterLineWarning.includes('trigger line')) {
           throw new Error('intrusion-after-line-crossing validation mismatch: ' + afterLineWarning);
         }
+        setValue('scenarioType', 'loitering');
+        setValue('scenarioZoneIds', 'lobby, plaza');
+        setValue('scenarioDwellMs', '30000');
+        setValue('scenarioLoiteringRadius', '0.12');
+        setValue('scenarioLoiteringMinPoints', '6');
+        setValue('scenarioCooldownMs', '9000');
+        $('scenarioLoiteringUseGroundPlane').checked = true;
+        $('scenarioLoiteringUseGroundPlane').dispatchEvent(new Event('change', { bubbles: true }));
+        if ($('scenarioLoiteringRow').hidden ||
+            $('scenarioDwellTimingRow').hidden ||
+            !$('scenarioCandidateMsLabel').hidden ||
+            !$('scenarioWrongDirectionRow').hidden ||
+            !$('scenarioReEntryRow').hidden ||
+            !$('scenarioAfterLineRow').hidden ||
+            $('scenarioZoneIdsLabel').hidden) {
+          throw new Error('loitering scenario panel visibility mismatch');
+        }
+        const loiteringPayload = window.ruleJson();
+        if (loiteringPayload.ruleKind !== 'scenario' ||
+            loiteringPayload.event?.type !== 'loitering' ||
+            loiteringPayload.scenario?.type !== 'loitering') {
+          throw new Error('loitering payload type mismatch: ' + JSON.stringify(loiteringPayload));
+        }
+        if (loiteringPayload.event?.region?.type !== 'polygon' ||
+            !Array.isArray(loiteringPayload.event?.region?.points) ||
+            loiteringPayload.event.region.points.length < 3) {
+          throw new Error('loitering polygon payload mismatch: ' + JSON.stringify(loiteringPayload.event?.region));
+        }
+        if (loiteringPayload.scenario?.minDwellTimeMs !== 30000 ||
+            loiteringPayload.scenario?.maxMovementRadius !== 0.12 ||
+            loiteringPayload.scenario?.minTrajectoryPoints !== 6 ||
+            loiteringPayload.scenario?.cooldownMs !== 9000 ||
+            loiteringPayload.scenario?.useGroundPlaneMovementRadius !== true ||
+            Object.prototype.hasOwnProperty.call(loiteringPayload.scenario || {}, 'candidateTimeMs')) {
+          throw new Error('loitering timing/radius payload mismatch: ' + JSON.stringify(loiteringPayload.scenario));
+        }
+        expectList('loitering target zones', loiteringPayload.scenario?.targetZoneIds || [], ['lobby', 'plaza']);
+        if (!$('scenarioSummaryText').textContent.includes('loitering scenario event') ||
+            !$('scenarioReadinessTiming').textContent.includes('radius 0.12') ||
+            !$('scenarioReadinessEmit').textContent.includes('loitering')) {
+          throw new Error('loitering summary/readiness mismatch');
+        }
+        const loiteringPhaseText = $('scenarioPhaseStrip').textContent;
+        for (const expected of ['Idle', 'InsideZone', 'TrajectoryStable', 'DwellSatisfied', 'Confirmed', 'Cooldown', 'Ended']) {
+          if (!loiteringPhaseText.includes(expected)) {
+            throw new Error('loitering phase preview missing: ' + expected);
+          }
+        }
+        const loiteringPreview = JSON.parse($('eventPayloadPreview').value);
+        if (loiteringPreview.rule?.type !== 'loitering' ||
+            loiteringPreview.region?.type !== 'polygon' ||
+            loiteringPreview.scenario?.minDwellTimeMs !== 30000 ||
+            loiteringPreview.scenario?.maxMovementRadius !== 0.12 ||
+            loiteringPreview.scenario?.minTrajectoryPoints !== 6) {
+          throw new Error('loitering event payload preview mismatch: ' + JSON.stringify(loiteringPreview));
+        }
+        const loiteringInvalid = JSON.parse(JSON.stringify(loiteringPayload));
+        loiteringInvalid.scenario.maxMovementRadius = 0;
+        const loiteringWarning = ruleApi.validateRulePayload(loiteringInvalid);
+        if (!loiteringWarning.includes('이동 반경')) {
+          throw new Error('loitering radius validation mismatch: ' + loiteringWarning);
+        }
         setValue('scenarioType', 'wrong-direction');
         setValue('scenarioLineDirection', 'reverse');
         setValue('scenarioCooldownMs', '6000');
@@ -544,6 +606,7 @@ try {
         const savedScenarioRuleId = smokeId + '-scenario-rule';
         const savedReEntryRuleId = smokeId + '-re-entry-rule';
         const savedAfterLineRuleId = smokeId + '-after-line-rule';
+        const savedLoiteringRuleId = smokeId + '-loitering-rule';
         let savedVaRuleId = '';
         try {
           setValue('profileId', savedProfileId);
@@ -649,6 +712,31 @@ try {
           expectList('saved intrusion-after-line-crossing target lines', savedAfterLineRule.rule?.scenario?.targetLineIds || [], ['entry-line']);
           expectList('saved intrusion-after-line-crossing target zones', savedAfterLineRule.rule?.scenario?.targetZoneIds || [], ['secure-zone']);
 
+          setValue('ruleId', savedLoiteringRuleId);
+          setValue('scenarioType', 'loitering');
+          setValue('scenarioZoneIds', 'platform-zone');
+          setValue('scenarioDwellMs', '45000');
+          setValue('scenarioLoiteringRadius', '0.09');
+          setValue('scenarioLoiteringMinPoints', '8');
+          setValue('scenarioCooldownMs', '10000');
+          $('scenarioLoiteringUseGroundPlane').checked = false;
+          $('scenarioLoiteringUseGroundPlane').dispatchEvent(new Event('change', { bubbles: true }));
+          click('selectCoreClassesBtn');
+          await ruleApi.saveRule();
+          const savedLoiteringRule = await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedLoiteringRuleId));
+          if (savedLoiteringRule.rule?.ruleKind !== 'scenario' ||
+              savedLoiteringRule.rule?.event?.type !== 'loitering' ||
+              savedLoiteringRule.rule?.scenario?.type !== 'loitering') {
+            throw new Error('saved loitering rule type mismatch: ' + JSON.stringify(savedLoiteringRule.rule));
+          }
+          if (savedLoiteringRule.rule?.scenario?.minDwellTimeMs !== 45000 ||
+              savedLoiteringRule.rule?.scenario?.maxMovementRadius !== 0.09 ||
+              savedLoiteringRule.rule?.scenario?.minTrajectoryPoints !== 8 ||
+              savedLoiteringRule.rule?.scenario?.cooldownMs !== 10000) {
+            throw new Error('saved loitering timing/radius mismatch: ' + JSON.stringify(savedLoiteringRule.rule?.scenario));
+          }
+          expectList('saved loitering target zones', savedLoiteringRule.rule?.scenario?.targetZoneIds || [], ['platform-zone']);
+
           if (!$('vaRuleEditorPanel').hidden) {
             click('cancelVaRuleEditBtn');
           }
@@ -697,6 +785,7 @@ try {
           }
         } finally {
           await apiJson('/lab/analysis/va-rules/' + encodeURIComponent(savedVaRuleId), { method: 'DELETE' }).catch(() => {});
+          await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedLoiteringRuleId), { method: 'DELETE' }).catch(() => {});
           await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedAfterLineRuleId), { method: 'DELETE' }).catch(() => {});
           await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedReEntryRuleId), { method: 'DELETE' }).catch(() => {});
           await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedScenarioRuleId), { method: 'DELETE' }).catch(() => {});
@@ -722,6 +811,7 @@ try {
             scenarioRuleId: savedScenarioRuleId,
             reEntryRuleId: savedReEntryRuleId,
             afterLineRuleId: savedAfterLineRuleId,
+            loiteringRuleId: savedLoiteringRuleId,
             vaRuleId: savedVaRuleId,
             savedProfileTrackingClasses: requiredCategoryValues,
             savedRuleClasses: ['person', 'vehicle'],

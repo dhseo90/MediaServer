@@ -252,7 +252,7 @@ Scenario는 여러 frame에 걸친 상태 전이와 시간 조건을 평가합�
 | ReEntry | 구현됨, 룰 편집 UI에서 선택 가능 | `re-entry` |
 | WrongDirection | 구현됨, UI 템플릿 제공 | `wrong-direction` |
 | IntrusionAfterLineCrossing | 구현됨, 룰 편집 UI에서 선택 가능 | `intrusion-after-line-crossing` |
-| Loitering | engine/replay 구현, 전용 UI 템플릿 다음 작업 | `loitering` |
+| Loitering | 구현됨, 룰 편집 UI에서 선택 가능 | `loitering` |
 | ZoneOccupancyScenario | 다음 작업, 신규 구현 예정 | `zone-occupancy` |
 
 ### IntrusionDwell
@@ -343,11 +343,24 @@ Idle -> LineCrossed -> ZoneEntered -> Observing -> Confirmed -> Cooldown -> Ende
 
 target zone 내부 dwell time과 downsampled trajectory movement radius를 조합해 배회 상황을 판단합니다. 복잡한 행동 인식 모델 없이 trajectory 기반 최소 구현입니다.
 
-전용 룰 편집 UI 템플릿은 다음 작업입니다. 현재 재개 범위는 UI 템플릿과 fixture/threshold 검증이며, Event POST payload, WebRTC/SSE/WS metadata schema, 기존 Scenario 판단 로직 변경으로 표현하지 않습니다.
+룰 편집 UI 설정 항목:
+
+| 항목 | 설명 |
+| --- | --- |
+| target | class/category |
+| target zone | polygon zone, targetZoneIds |
+| minimum dwell | 저장 payload의 `minDwellTimeMs`로 runtime에 전달 |
+| movement radius | 저장 payload의 `maxMovementRadius`로 runtime에 전달 |
+| trajectory points | 저장 payload의 `minTrajectoryPoints`로 runtime에 전달 |
+| cooldown | same track/zone 중복 억제 |
+| ground-plane radius | optional `useGroundPlaneMovementRadius` |
+| unstable track exclude | 불안정 track 후보 제외 |
+
+현재 UI 템플릿은 rule payload preview, 저장 전 validation, standalone rule 저장 round-trip을 검증합니다. 실제 CCTV 샘플 기반 dwell/radius/trajectory threshold tuning은 후속입니다. Event POST payload, WebRTC/SSE/WS metadata schema, 기존 Scenario 판단 로직 변경으로 표현하지 않습니다.
 
 ### ZoneOccupancyScenario
 
-특정 zone 내부 동시 track 수가 threshold 이상일 때 occupancy/crowd 계열 scenario event를 내는 신규 scenario 후보입니다. Loitering UI 템플릿 이후 다음 작업으로 재개하며, 기존 Intrusion/LineCrossing/IntrusionDwell/ReEntry/WrongDirection/IntrusionAfterLineCrossing 판단 흐름을 바꾸는 작업으로 다루지 않습니다.
+특정 zone 내부 동시 track 수가 threshold 이상일 때 occupancy/crowd 계열 scenario event를 내는 신규 scenario 후보입니다. 기존 Intrusion/LineCrossing/IntrusionDwell/ReEntry/WrongDirection/IntrusionAfterLineCrossing/Loitering 판단 흐름을 바꾸는 작업으로 다루지 않습니다.
 
 ## 7. TrackState / TrackHealth
 
