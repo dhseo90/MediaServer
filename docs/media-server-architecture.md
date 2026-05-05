@@ -86,7 +86,7 @@ Auth 구성요소:
 
 클라이언트 계정의 1차 정책은 admin 수동 생성입니다. 자가 가입은 자동 승인하지 않고, `/client/request-access`와 `POST /client/api/access-requests`는 `pending` request만 users file에 저장합니다. Admin approve는 password setup invite만 발급하며, invite가 수락되기 전까지 request는 user/password/session/view scope를 만들지 않습니다.
 
-Users file은 `users`, `invites`, `accessRequests` top-level 배열을 보관합니다. `users[].passwordHash`, `passwordHistory`, `tokenHash`, `invites[].tokenHash`는 safe hash만 저장하며 API/UI 응답에는 노출하지 않습니다. Invite token은 password setup 전용이며 원문은 발급 응답에서 한 번만 표시됩니다. `/ops/api/invites`와 access-request approve는 invite의 role/scope snapshot만 저장하고 기존 enabled user를 즉시 변경하지 않습니다. `/invite/setup`에서 비밀번호를 설정하면 그 시점에 user role/scope/password를 갱신하고 invite token hash를 폐기하며 기존 session은 폐기됩니다.
+Users file은 `users`, `invites`, `accessRequests` top-level 배열을 보관합니다. `users[].passwordHash`, `passwordHistory`, `tokenHash`, `invites[].tokenHash`는 safe hash만 저장하며 API/UI 응답에는 노출하지 않습니다. Invite token은 password setup 전용이며 원문은 발급 응답에서 한 번만 표시됩니다. `/ops/api/invites`와 access-request approve는 invite의 role/scope snapshot만 저장하고 기존 enabled user를 즉시 변경하지 않습니다. `/invite/setup`에서 비밀번호를 설정하면 그 시점에 user role/scope/password를 갱신하고 invite token hash를 폐기하며 기존 session은 폐기됩니다. 저장 시에는 임시 파일을 owner-only mode `0600`으로 만들고 write/fsync/rename 후 parent directory를 fsync합니다. 기존 auth store를 읽을 때도 owner-only mode로 보정합니다.
 
 기본 역할:
 
