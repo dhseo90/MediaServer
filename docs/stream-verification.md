@@ -151,7 +151,7 @@ curl -fsS -D - -o /tmp/root-unauth.out 'http://127.0.0.1:8080/'
 curl -fsS -i -H 'Authorization: Bearer viewer-token' 'http://127.0.0.1:8080/ops'
 ```
 
-확인 기준은 auth off + `lab` home에서 `/ -> /lab`, auth off + `client` home에서 `/ -> /client/live`, admin/operator token에서 `/ -> /ops/home`, viewer token에서 `/ -> /client/live`, 미인증 auth-on 요청에서 `/ -> /login`, viewer의 `/ops` 접근에서 `403`, viewer의 `/lab` 접근에서 `403`입니다. `/ops`는 admin/operator role과 `ops:read` scope를 함께 요구하고, `/lab`은 admin/operator 또는 `lab:read` scope를 요구합니다. `/lab/rules`, `/webrtc/session`, `/whep`, RTSP route는 기존 검증 명령으로 계속 확인합니다.
+확인 기준은 auth off + `lab` home에서 `/ -> /lab`, auth off + `client` home에서 `/ -> /client/live`, admin/operator token에서 `/ -> /ops/home`, viewer token에서 `/ -> /client/live`, 미인증 auth-on 요청에서 `/ -> /login`, viewer의 `/ops` 접근에서 `403`, viewer의 `/lab` 접근에서 `403`입니다. `/ops`는 admin/operator role과 `ops:read` scope를 함께 요구하고, `/lab`은 admin/operator 또는 `lab:read` scope를 요구합니다. Auth on에서 `/webrtc/session`, `/whep`, `/whip/publish` 직접 생성 요청은 미인증 `401`, viewer `403`이어야 하며, auth off 개발 모드에서는 기존 검증 명령으로 계속 확인합니다.
 
 ## 장기 테스트 명령
 
@@ -296,6 +296,8 @@ WHEP 수동 요청:
 curl -fsS -X POST \
   'http://127.0.0.1:8080/whep?file=sample_h264.mp4'
 ```
+
+위 직접 생성 요청은 auth off 개발 모드 또는 auth on의 admin/operator `ops:read`, `lab:read` 권한에서 확인합니다. Auth route smoke는 미인증과 viewer 요청이 이 generic media 생성 route에서 거부되는지도 함께 확인합니다.
 
 확인 기준:
 
@@ -735,7 +737,7 @@ curl -fsS -X POST \
 - all stop 또는 hidden tab/route leave 후 `activeSessions`가 감소하고 media stream track이 정리됩니다.
 - tile status는 live/offline, stale, track count, event count, connection status를 표시합니다.
 - client 화면에 source URL, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile 수정 UI가 노출되지 않아야 합니다.
-- 기존 `/webrtc/session?file=...` 개발용 경로와 WebRTC DataChannel schema, Event POST payload는 변경하지 않습니다.
+- 기존 `/webrtc/session?file=...` 개발용 경로와 WebRTC DataChannel schema, Event POST payload는 변경하지 않습니다. 단, auth on에서는 직접 generic media 생성 route가 admin/operator `ops:read` 또는 `lab:read` 권한을 요구하므로 viewer 제품 흐름은 `/client/api/views/{viewId}/webrtc/session` wrapper를 사용합니다.
 
 ## VA overlay 검증
 

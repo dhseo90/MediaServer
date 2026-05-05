@@ -21347,6 +21347,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             return std::nullopt;
                         };
+                        auto require_generic_media_principal = [&]() -> std::optional<HttpResponse> {
+                            if (config.auth_mode == app::AuthMode::Off) {
+                                return std::nullopt;
+                            }
+                            if (!principal_result.ok) {
+                                return AuthErrorResponse(principal_result.error);
+                            }
+                            const bool ops_media_allowed =
+                                auth::RequireRole(principal_result.principal, {"operator"}) &&
+                                auth::RequireScope(principal_result.principal, "ops:read");
+                            const bool lab_media_allowed =
+                                auth::RequireScope(principal_result.principal, "lab:read");
+                            if (!ops_media_allowed && !lab_media_allowed) {
+                                return JsonResponse(
+                                    403,
+                                    "Forbidden",
+                                    "{\"error\":\"generic media endpoints require operator ops access or lab scope\"}");
+                            }
+                            return std::nullopt;
+                        };
 
                         if (request.method == "GET" && request.path == "/health") {
                             HttpResponse ok;
@@ -22683,10 +22703,18 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if (request.method == "POST" && request.path == "/webrtc/session") {
+                            if (const auto auth_response = require_generic_media_principal();
+                                auth_response.has_value()) {
+                                return *auth_response;
+                            }
                             return create_webrtc_session_response(query, "webrtc-http");
                         }
 
                         if (request.method == "POST" && request.path == "/whep") {
+                            if (const auto auth_response = require_generic_media_principal();
+                                auth_response.has_value()) {
+                                return *auth_response;
+                            }
                             // WHEP: 클라이언트 offer를 먼저 받고 서버가 answer SDP를 반환하는 consume endpoint다.
                             const std::string session_id = "whep-" + std::to_string(impl_->next_session_id.fetch_add(1));
                             const std::string ingress_client_id = session_id + "-ingress";
@@ -22765,6 +22793,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if (request.method == "POST" && request.path == "/whip/publish") {
+                            if (const auto auth_response = require_generic_media_principal();
+                                auth_response.has_value()) {
+                                return *auth_response;
+                            }
                             // WHIP publish: 브라우저/테스트 publisher를 sourceId로 등록해 source=webrtc 소비가 가능하게 한다.
                             const auto source_id_it = query.find("sourceId");
                             if (source_id_it == query.end() || source_id_it->second.empty()) {

@@ -358,6 +358,12 @@ run_routes() {
   expect_eq "${viewer_landing}" "302:/client/live" "viewer login route"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops")" "403" "viewer ops denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/lab")" "403" "viewer lab denied"
+  expect_eq "$(http_code -X POST "${BASE}/webrtc/session?file=sample_h264.mp4")" "401" "unauth generic WebRTC denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X POST "${BASE}/webrtc/session?file=sample_h264.mp4")" "403" "viewer generic WebRTC denied"
+  expect_eq "$(http_code -X POST "${BASE}/whep?file=sample_h264.mp4")" "401" "unauth WHEP denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X POST "${BASE}/whep?file=sample_h264.mp4")" "403" "viewer WHEP denied"
+  expect_eq "$(http_code -X POST --data 'v=0' "${BASE}/whip/publish?sourceId=auth-smoke")" "401" "unauth WHIP publish denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X POST --data 'v=0' "${BASE}/whip/publish?sourceId=auth-smoke")" "403" "viewer WHIP publish denied"
   stop_server
   rm -f "${USERS_FILE}" "${USERS_FILE}.tmp"
   start_server off lab
