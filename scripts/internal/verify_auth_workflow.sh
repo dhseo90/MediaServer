@@ -347,6 +347,13 @@ run_routes() {
   expect_eq "$(header_status_location -b "${ADMIN_COOKIE}" "${BASE}/")" "302:/ops/home" "admin root"
   create_user '{"username":"operator-smoke","displayName":"Operator Smoke","role":"operator","password":"Operator!91","enabled":true,"mustChangePassword":false}' >/dev/null
   create_user '{"username":"viewer-smoke","displayName":"Viewer Smoke","role":"viewer","viewId":"view-a","password":"Viewer!91","enabled":true,"mustChangePassword":false}' >/dev/null
+  local sources_json source_id
+  sources_json="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/api/sources")"
+  source_id="$(printf '%s' "${sources_json}" | json_string_field sourceId)"
+  [[ -n "${source_id}" ]] || fail "default source id missing: ${sources_json}"
+  curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X PUT --data "{\"viewId\":\"view-a\",\"sourceId\":\"${source_id}\",\"displayName\":\"View A\",\"allowedOverlayModes\":[\"raw\"],\"enabled\":true}" \
+    "${BASE}/ops/api/views/view-a" >/dev/null
   local op_landing viewer_landing
   op_landing="$(curl -sS -c "${OP_COOKIE}" -o /dev/null -D - \
     -X POST -d 'username=operator-smoke&password=Operator!91' "${BASE}/login" |
@@ -384,6 +391,23 @@ run_routes() {
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/webrtc/session/${admin_session_id}/ice")" "403" "viewer session follow-up denied"
   expect_eq "$(http_code -H "X-Session-Capability: ${admin_session_token}" "${BASE}/webrtc/session/${admin_session_id}/ice")" "200" "session capability follow-up allowed"
   expect_eq "$(http_code -H "X-Session-Capability: ${admin_session_token}" -X DELETE "${BASE}/webrtc/session/${admin_session_id}")" "200" "session capability delete allowed"
+  local client_session_json client_session_id
+  client_session_json="$(curl -fsS -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/view-a/webrtc/session")"
+  client_session_id="$(printf '%s' "${client_session_json}" | json_string_field sessionId)"
+  if printf '%s' "${client_session_id}" | grep -Eq '^client-live-[0-9a-f]{64}$'; then
+    pass "client WebRTC wrapper returns client session alias"
+  else
+    fail "client WebRTC wrapper leaked unexpected session id: ${client_session_json}"
+  fi
+  case "${client_session_json}" in
+    *sessionToken*|*client-live-internal*|*webrtc-http*)
+      fail "client WebRTC wrapper leaked internal signaling detail: ${client_session_json}" ;;
+    *) pass "client WebRTC wrapper hides internal signaling detail" ;;
+  esac
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/webrtc/session/${client_session_id}/ice")" "404" "client alias rejected on generic session route"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/client/api/views/view-a/webrtc/session/${client_session_id}/ice")" "200" "client wrapper ICE allowed"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X DELETE "${BASE}/client/api/views/view-a/webrtc/session/${client_session_id}")" "200" "client wrapper delete allowed"
   stop_server
   rm -f "${USERS_FILE}" "${USERS_FILE}.tmp"
   start_server off lab

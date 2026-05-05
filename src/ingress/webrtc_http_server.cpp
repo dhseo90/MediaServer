@@ -16288,6 +16288,13 @@ struct WebRtcHttpServer::Impl {
         std::shared_ptr<WebRtcSourceSession> bridge;
     };
 
+    struct ClientSessionEntry {
+        std::string client_session_id;
+        std::string view_id;
+        std::string session_id;
+        auth::Principal owner_principal;
+    };
+
     struct AuthSessionEntry {
         std::string session_id;
         auth::Principal principal;
@@ -16307,6 +16314,7 @@ struct WebRtcHttpServer::Impl {
     std::mutex auth_mu;
     std::unordered_map<std::string, SessionEntry> sessions;
     std::unordered_map<std::string, SourceSessionEntry> source_sessions;
+    std::unordered_map<std::string, ClientSessionEntry> client_sessions;
     std::unordered_map<std::string, AuthSessionEntry> auth_sessions;
     std::atomic<std::uint64_t> next_session_id{1};
     std::atomic<int> active_sse_metadata_clients{0};
@@ -18175,6 +18183,15 @@ std::optional<HttpSessionSecrets> GenerateHttpSessionSecrets(const std::string& 
     };
 }
 
+std::optional<std::string> GeneratePrefixedRandomId(const std::string& prefix,
+                                                    std::string* error_message) {
+    const auto random = auth::GenerateSessionId(error_message);
+    if (!random.has_value()) {
+        return std::nullopt;
+    }
+    return prefix + "-" + *random;
+}
+
 std::string PrincipalOwnerKey(const auth::Principal& principal) {
     std::ostringstream out;
     out << principal.auth_mode << ":";
@@ -18234,6 +18251,16 @@ std::string SessionJson(const std::string& session_id,
     out << "{"
         << "\"sessionId\":\"" << JsonEscape(session_id) << "\","
         << "\"sessionToken\":\"" << JsonEscape(session_capability) << "\","
+        << "\"offer\":\"" << JsonEscape(offer) << "\""
+        << "}";
+    return out.str();
+}
+
+std::string ClientSessionJson(const std::string& client_session_id, const std::string& offer) {
+    std::ostringstream out;
+    out << "{"
+        << "\"sessionId\":\"" << JsonEscape(client_session_id) << "\","
+        << "\"clientSessionId\":\"" << JsonEscape(client_session_id) << "\","
         << "\"offer\":\"" << JsonEscape(offer) << "\""
         << "}";
     return out.str();
@@ -21299,9 +21326,42 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             return HttpResponse{};
                         };
+                        struct CreatedWebRtcSession {
+                            std::string session_id;
+                            std::string session_capability;
+                            std::string offer;
+                        };
+                        auto close_webrtc_session = [&](const std::string& session_id) -> bool {
+                            Impl::SessionEntry entry;
+                            {
+                                std::lock_guard lock(impl_->mu);
+                                const auto it = impl_->sessions.find(session_id);
+                                if (it == impl_->sessions.end()) {
+                                    return false;
+                                }
+                                entry = it->second;
+                                impl_->sessions.erase(it);
+                                for (auto client_it = impl_->client_sessions.begin();
+                                     client_it != impl_->client_sessions.end();) {
+                                    if (client_it->second.session_id == session_id) {
+                                        client_it = impl_->client_sessions.erase(client_it);
+                                    } else {
+                                        ++client_it;
+                                    }
+                                }
+                            }
+                            entry.bridge->Stop();
+                            if (!entry.analysis_tap_id.empty()) {
+                                DetachAnalysisTapAndReleaseRuntimes(
+                                    impl_->session_manager, entry.analysis_tap_id);
+                            }
+                            impl_->session_manager.CloseSession(entry.ingress_client_id);
+                            return true;
+                        };
                         auto create_webrtc_session_response =
                             [&](std::unordered_map<std::string, std::string> session_query,
-                                const std::string& session_prefix) -> HttpResponse {
+                                const std::string& session_prefix,
+                                CreatedWebRtcSession* created_session) -> HttpResponse {
                             // simple signaling: 서버가 offer를 만들고 브라우저/테스트 클라이언트가 answer를 돌려준다.
                             std::string session_secret_error;
                             const auto generated_secrets =
@@ -21383,6 +21443,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                             .request = std::move(ingress_request),
                                                             .bridge = bridge,
                                                         });
+                            }
+                            if (created_session != nullptr) {
+                                *created_session = CreatedWebRtcSession{
+                                    .session_id = session_id,
+                                    .session_capability = session_capability,
+                                    .offer = offer,
+                                };
                             }
                             return JsonResponse(200, "OK", SessionJson(session_id, offer, session_capability));
                         };
@@ -21996,7 +22063,132 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                         "Bad Request",
                                                         "{\"error\":\"" + JsonEscape(error_message) + "\"}");
                                 }
-                                return create_webrtc_session_response(std::move(session_query), "client-live");
+                                CreatedWebRtcSession created_session;
+                                HttpResponse created_response =
+                                    create_webrtc_session_response(
+                                        std::move(session_query), "client-live-internal", &created_session);
+                                if (created_response.status != 200) {
+                                    return created_response;
+                                }
+                                std::string client_session_error;
+                                const auto client_session_id =
+                                    GeneratePrefixedRandomId("client-live", &client_session_error);
+                                if (!client_session_id.has_value()) {
+                                    (void)close_webrtc_session(created_session.session_id);
+                                    return JsonResponse(
+                                        503,
+                                        "Service Unavailable",
+                                        "{\"error\":\"" + JsonEscape(client_session_error) + "\"}");
+                                }
+                                bool client_session_inserted = false;
+                                {
+                                    std::lock_guard lock(impl_->mu);
+                                    const auto [_, inserted] = impl_->client_sessions.emplace(
+                                        *client_session_id,
+                                        Impl::ClientSessionEntry{
+                                            .client_session_id = *client_session_id,
+                                            .view_id = view_id,
+                                            .session_id = created_session.session_id,
+                                            .owner_principal = principal_result.principal,
+                                        });
+                                    client_session_inserted = inserted;
+                                }
+                                if (!client_session_inserted) {
+                                    (void)close_webrtc_session(created_session.session_id);
+                                    return JsonResponse(
+                                        503,
+                                        "Service Unavailable",
+                                        "{\"error\":\"failed to allocate client session\"}");
+                                }
+                                return JsonResponse(
+                                    200,
+                                    "OK",
+                                    ClientSessionJson(*client_session_id, created_session.offer));
+                            }
+                            const std::string client_session_prefix = "webrtc/session/";
+                            if (subresource.rfind(client_session_prefix, 0) == 0) {
+                                const std::string rest = subresource.substr(client_session_prefix.size());
+                                const std::size_t session_slash = rest.find('/');
+                                const std::string client_session_id = UrlDecode(
+                                    session_slash == std::string::npos ? rest : rest.substr(0, session_slash));
+                                const std::string session_suffix =
+                                    session_slash == std::string::npos ? std::string() : rest.substr(session_slash);
+                                Impl::ClientSessionEntry client_session;
+                                Impl::SessionEntry session_entry;
+                                {
+                                    std::lock_guard lock(impl_->mu);
+                                    const auto client_it = impl_->client_sessions.find(client_session_id);
+                                    if (client_it == impl_->client_sessions.end() ||
+                                        client_it->second.view_id != view_id) {
+                                        return JsonResponse(
+                                            404,
+                                            "Not Found",
+                                            "{\"error\":\"unknown client WebRTC session\"}");
+                                    }
+                                    client_session = client_it->second;
+                                    const auto session_it =
+                                        impl_->sessions.find(client_session.session_id);
+                                    if (session_it == impl_->sessions.end()) {
+                                        impl_->client_sessions.erase(client_it);
+                                        return JsonResponse(
+                                            404,
+                                            "Not Found",
+                                            "{\"error\":\"unknown client WebRTC session\"}");
+                                    }
+                                    session_entry = session_it->second;
+                                }
+                                if (!SameSessionOwner(client_session.owner_principal,
+                                                      principal_result.principal)) {
+                                    return JsonResponse(
+                                        403,
+                                        "Forbidden",
+                                        "{\"error\":\"client WebRTC session owner required\"}");
+                                }
+                                if (request.method == "POST" && session_suffix == "/answer") {
+                                    std::string error_message;
+                                    if (!session_entry.bridge->SetRemoteAnswer(
+                                            request.body, &error_message)) {
+                                        return JsonResponse(
+                                            400,
+                                            "Bad Request",
+                                            "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                    }
+                                    return JsonResponse(200, "OK", "{\"ok\":true}");
+                                }
+                                if ((request.method == "POST" || request.method == "PATCH") &&
+                                    (session_suffix.empty() || session_suffix == "/ice")) {
+                                    const auto candidate = ParseStringField(request.body, "candidate");
+                                    const auto mline = ParseIntField(request.body, "sdpMLineIndex");
+                                    if (!candidate.has_value() || !mline.has_value()) {
+                                        return JsonResponse(
+                                            400,
+                                            "Bad Request",
+                                            "{\"error\":\"candidate and sdpMLineIndex are required\"}");
+                                    }
+                                    session_entry.bridge->AddRemoteIceCandidate(
+                                        static_cast<std::uint32_t>(*mline), *candidate);
+                                    return JsonResponse(200, "OK", "{\"ok\":true}");
+                                }
+                                if (request.method == "GET" && session_suffix == "/ice") {
+                                    return JsonResponse(
+                                        200,
+                                        "OK",
+                                        IceJson(session_entry.bridge->TakePendingLocalIceCandidates()));
+                                }
+                                if (request.method == "DELETE" &&
+                                    (session_suffix.empty() || session_suffix == "/")) {
+                                    if (!close_webrtc_session(client_session.session_id)) {
+                                        return JsonResponse(
+                                            404,
+                                            "Not Found",
+                                            "{\"error\":\"unknown client WebRTC session\"}");
+                                    }
+                                    return JsonResponse(200, "OK", "{\"ok\":true}");
+                                }
+                                return JsonResponse(
+                                    404,
+                                    "Not Found",
+                                    "{\"error\":\"client WebRTC session resource not found\"}");
                             }
                             if (request.method == "GET") {
                                 if (subresource == "dashboard") {
@@ -22808,7 +23000,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 auth_response.has_value()) {
                                 return *auth_response;
                             }
-                            return create_webrtc_session_response(query, "webrtc-http");
+                            return create_webrtc_session_response(query, "webrtc-http", nullptr);
                         }
 
                         if (request.method == "POST" && request.path == "/whep") {
@@ -23014,8 +23206,6 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 RequestSessionCapability(request, query);
 
                             std::shared_ptr<WebRtcEgressSession> bridge;
-                            std::string ingress_client_id;
-                            std::string analysis_tap_id;
                             std::string session_capability;
                             auth::Principal owner_principal;
                             {
@@ -23025,8 +23215,6 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "unknown session"};
                                 }
                                 bridge = it->second.bridge;
-                                ingress_client_id = it->second.ingress_client_id;
-                                analysis_tap_id = it->second.analysis_tap_id;
                                 session_capability = it->second.session_capability;
                                 owner_principal = it->second.owner_principal;
                             }
@@ -23061,14 +23249,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
 
                             if (request.method == "DELETE" && (suffix.empty() || suffix == "/")) {
-                                bridge->Stop();
-                                if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
-                                }
-                                impl_->session_manager.CloseSession(ingress_client_id);
-                                {
-                                    std::lock_guard lock(impl_->mu);
-                                    impl_->sessions.erase(session_id);
+                                if (!close_webrtc_session(session_id)) {
+                                    return HttpResponse{
+                                        404,
+                                        "Not Found",
+                                        "text/plain; charset=utf-8",
+                                        {},
+                                        "unknown session"};
                                 }
                                 return JsonResponse(200, "OK", "{\"ok\":true}");
                             }
@@ -23164,6 +23351,7 @@ void WebRtcHttpServer::Stop() {
             sessions.push_back(entry);
         }
         impl_->sessions.clear();
+        impl_->client_sessions.clear();
         for (auto& [_, entry] : impl_->source_sessions) {
             source_sessions.push_back(entry);
         }
