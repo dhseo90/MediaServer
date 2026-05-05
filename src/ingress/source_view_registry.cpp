@@ -3,8 +3,11 @@
 #include "ingress/source_view_registry.h"
 
 #include <algorithm>
+#include <cerrno>
 #include <cctype>
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -13,6 +16,12 @@
 #include <utility>
 
 #include "app_config.h"
+
+#if !defined(_WIN32)
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
 
 namespace ingress {
 
@@ -299,23 +308,26 @@ std::vector<std::string> ParseStringArrayField(const std::string& body, const st
     return values;
 }
 
-std::vector<std::string> ExtractJsonObjectArray(const std::string& body, const std::string& field) {
-    std::vector<std::string> objects;
-    const auto colon_pos = FindJsonFieldColon(body, field);
-    if (!colon_pos.has_value()) {
-        return objects;
-    }
-    std::size_t pos = body.find('[', *colon_pos + 1);
-    if (pos == std::string::npos) {
-        return objects;
+std::optional<std::vector<std::string>> ExtractJsonObjectArrayStrict(const std::string& body,
+                                                                     const std::string& field,
+                                                                     std::string* error_message) {
+    const auto array = ExtractDelimitedField(body, field, '[', ']');
+    if (!array.has_value()) {
+        if (error_message != nullptr) {
+            *error_message = "registry file requires array field: " + field;
+        }
+        return std::nullopt;
     }
 
+    std::vector<std::string> objects;
     bool in_string = false;
     bool escaped = false;
     int object_depth = 0;
     std::size_t object_start = std::string::npos;
-    for (; pos < body.size(); ++pos) {
-        const char ch = body[pos];
+    bool expect_value = true;
+    bool saw_value = false;
+    for (std::size_t pos = 1; pos + 1 < array->size(); ++pos) {
+        const char ch = (*array)[pos];
         if (escaped) {
             escaped = false;
             continue;
@@ -332,21 +344,65 @@ std::vector<std::string> ExtractJsonObjectArray(const std::string& body, const s
             continue;
         }
         if (ch == '{') {
+            if (object_depth == 0 && !expect_value) {
+                if (error_message != nullptr) {
+                    *error_message = "registry array is missing comma between objects: " + field;
+                }
+                return std::nullopt;
+            }
             if (object_depth == 0) {
                 object_start = pos;
             }
             ++object_depth;
-        } else if (ch == '}') {
-            if (object_depth > 0) {
-                --object_depth;
-                if (object_depth == 0 && object_start != std::string::npos) {
-                    objects.push_back(body.substr(object_start, pos - object_start + 1));
-                    object_start = std::string::npos;
-                }
-            }
-        } else if (ch == ']' && object_depth == 0) {
-            break;
+            continue;
         }
+        if (ch == '}') {
+            if (object_depth <= 0) {
+                if (error_message != nullptr) {
+                    *error_message = "registry array has unmatched object close: " + field;
+                }
+                return std::nullopt;
+            }
+            --object_depth;
+            if (object_depth == 0 && object_start != std::string::npos) {
+                objects.push_back(array->substr(object_start, pos - object_start + 1));
+                object_start = std::string::npos;
+                saw_value = true;
+                expect_value = false;
+            }
+            continue;
+        }
+        if (object_depth == 0) {
+            if (ch == ',') {
+                if (expect_value) {
+                    if (error_message != nullptr) {
+                        *error_message = "registry array has an unexpected comma: " + field;
+                    }
+                    return std::nullopt;
+                }
+                expect_value = true;
+                continue;
+            }
+            if (std::isspace(static_cast<unsigned char>(ch)) != 0) {
+                continue;
+            }
+            if (error_message != nullptr) {
+                *error_message = "registry array must contain JSON objects only: " + field;
+            }
+            return std::nullopt;
+        }
+    }
+    if (object_depth != 0 || in_string || escaped) {
+        if (error_message != nullptr) {
+            *error_message = "registry array is malformed: " + field;
+        }
+        return std::nullopt;
+    }
+    if (expect_value && saw_value) {
+        if (error_message != nullptr) {
+            *error_message = "registry array has a trailing comma: " + field;
+        }
+        return std::nullopt;
     }
     return objects;
 }
@@ -799,6 +855,313 @@ RegistryResult ErrorResult(int status, const std::string& status_text, const std
                       "{\"ok\":false,\"error\":\"" + JsonEscape(error) + "\"}");
 }
 
+bool SetError(std::string* error_message, const std::string& message) {
+    if (error_message != nullptr) {
+        *error_message = message;
+    }
+    return false;
+}
+
+std::string SourcesDocumentJson(const std::vector<SourceViewRegistry::SourceRecord>& sources) {
+    std::ostringstream out;
+    out << "{\n  \"sources\": [";
+    for (std::size_t i = 0; i < sources.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\n    " << SourceJson(sources[i], true);
+    }
+    if (!sources.empty()) {
+        out << "\n  ";
+    }
+    out << "]\n}\n";
+    return out.str();
+}
+
+std::string ViewsDocumentJson(const std::vector<SourceViewRegistry::PublishedViewRecord>& views) {
+    std::ostringstream out;
+    out << "{\n  \"views\": [";
+    for (std::size_t i = 0; i < views.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\n    " << PublishedViewJson(views[i]);
+    }
+    if (!views.empty()) {
+        out << "\n  ";
+    }
+    out << "]\n}\n";
+    return out.str();
+}
+
+#if !defined(_WIN32)
+
+std::string ErrnoMessage(const std::string& action) {
+    return action + ": " + std::strerror(errno);
+}
+
+bool CloseFdChecked(int fd, const std::string& label, std::string* error_message) {
+    if (::close(fd) != 0) {
+        return SetError(error_message, ErrnoMessage("failed to close " + label));
+    }
+    return true;
+}
+
+bool WriteAll(int fd, const std::string& data, std::string* error_message) {
+    const char* cursor = data.data();
+    std::size_t remaining = data.size();
+    while (remaining > 0) {
+        const ssize_t written = ::write(fd, cursor, remaining);
+        if (written < 0) {
+            if (errno == EINTR) {
+                continue;
+            }
+            return SetError(error_message, ErrnoMessage("failed to write registry file"));
+        }
+        if (written == 0) {
+            return SetError(error_message, "failed to write registry file: short write");
+        }
+        cursor += written;
+        remaining -= static_cast<std::size_t>(written);
+    }
+    return true;
+}
+
+bool FsyncFd(int fd, const std::string& label, std::string* error_message) {
+    while (::fsync(fd) != 0) {
+        if (errno == EINTR) {
+            continue;
+        }
+        return SetError(error_message, ErrnoMessage("failed to fsync " + label));
+    }
+    return true;
+}
+
+bool FsyncParentDirectory(const std::filesystem::path& file_path, std::string* error_message) {
+    const std::filesystem::path parent = file_path.parent_path().empty()
+                                             ? std::filesystem::path(".")
+                                             : file_path.parent_path();
+    const int dir_fd = ::open(parent.c_str(), O_RDONLY | O_DIRECTORY);
+    if (dir_fd < 0) {
+        return SetError(error_message, ErrnoMessage("failed to open registry directory"));
+    }
+    if (!FsyncFd(dir_fd, "registry directory", error_message)) {
+        (void)::close(dir_fd);
+        return false;
+    }
+    return CloseFdChecked(dir_fd, "registry directory", error_message);
+}
+
+bool WriteRegistryFileAtomically(const std::filesystem::path& file_path,
+                                 const std::string& body,
+                                 const std::string& label,
+                                 std::string* error_message) {
+    if (file_path.empty()) {
+        return SetError(error_message, label + " path is empty");
+    }
+    const auto parent = file_path.parent_path();
+    std::error_code ec;
+    if (!parent.empty()) {
+        std::filesystem::create_directories(parent, ec);
+        if (ec) {
+            return SetError(error_message, "failed to create " + label + " directory: " + ec.message());
+        }
+    }
+
+    const std::string base = file_path.string() + ".tmp." + std::to_string(::getpid()) + ".";
+    std::filesystem::path temp_path;
+    int fd = -1;
+    for (int attempt = 0; attempt < 64; ++attempt) {
+        temp_path = base + std::to_string(attempt);
+        fd = ::open(temp_path.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0644);
+        if (fd >= 0) {
+            break;
+        }
+        if (errno != EEXIST) {
+            return SetError(error_message, ErrnoMessage("failed to open temporary " + label + " file"));
+        }
+    }
+    if (fd < 0) {
+        return SetError(error_message, "failed to open unique temporary " + label + " file");
+    }
+
+    bool ok = WriteAll(fd, body, error_message) &&
+              FsyncFd(fd, "temporary " + label + " file", error_message) &&
+              CloseFdChecked(fd, "temporary " + label + " file", error_message);
+    fd = -1;
+    if (!ok) {
+        (void)::unlink(temp_path.c_str());
+        return false;
+    }
+    if (::rename(temp_path.c_str(), file_path.c_str()) != 0) {
+        const std::string message = ErrnoMessage("failed to replace " + label + " file");
+        (void)::unlink(temp_path.c_str());
+        return SetError(error_message, message);
+    }
+    return FsyncParentDirectory(file_path, error_message);
+}
+
+#else
+
+bool WriteRegistryFileAtomically(const std::filesystem::path& file_path,
+                                 const std::string& body,
+                                 const std::string& label,
+                                 std::string* error_message) {
+    if (file_path.empty()) {
+        return SetError(error_message, label + " path is empty");
+    }
+    const auto parent = file_path.parent_path();
+    std::error_code ec;
+    if (!parent.empty()) {
+        std::filesystem::create_directories(parent, ec);
+        if (ec) {
+            return SetError(error_message, "failed to create " + label + " directory: " + ec.message());
+        }
+    }
+    const std::filesystem::path temp_path = file_path.string() + ".tmp";
+    {
+        std::ofstream out(temp_path, std::ios::trunc | std::ios::binary);
+        if (!out) {
+            return SetError(error_message, "failed to open temporary " + label + " file");
+        }
+        out << body;
+        out.flush();
+        if (!out) {
+            return SetError(error_message, "failed to write " + label + " file");
+        }
+    }
+    std::filesystem::rename(temp_path, file_path, ec);
+    if (ec) {
+        std::filesystem::remove(temp_path);
+        return SetError(error_message, "failed to replace " + label + " file: " + ec.message());
+    }
+    return true;
+}
+
+#endif
+
+bool ReadTextFile(const std::filesystem::path& path,
+                  const std::string& label,
+                  std::string* body,
+                  std::string* error_message) {
+    if (body == nullptr) {
+        return SetError(error_message, label + " output is required");
+    }
+    std::ifstream in(path);
+    if (!in) {
+        return SetError(error_message, "failed to open " + label + " file: " + path.string());
+    }
+    std::ostringstream buffer;
+    buffer << in.rdbuf();
+    *body = buffer.str();
+    if (!in.good() && !in.eof()) {
+        return SetError(error_message, "failed to read " + label + " file: " + path.string());
+    }
+    return true;
+}
+
+bool LoadSourcesFromFile(const std::filesystem::path& path,
+                         std::vector<SourceViewRegistry::SourceRecord>* sources,
+                         bool* file_exists,
+                         std::string* error_message) {
+    if (sources == nullptr || file_exists == nullptr) {
+        return SetError(error_message, "source registry load output is required");
+    }
+    sources->clear();
+    std::error_code exists_ec;
+    *file_exists = std::filesystem::exists(path, exists_ec);
+    if (exists_ec) {
+        return SetError(error_message, "failed to inspect source registry file: " + exists_ec.message());
+    }
+    if (!*file_exists) {
+        return true;
+    }
+    std::string body;
+    if (!ReadTextFile(path, "source registry", &body, error_message)) {
+        return false;
+    }
+    if (!LooksLikeJsonObject(body)) {
+        return SetError(error_message, "source registry file must be a JSON object: " + path.string());
+    }
+    std::string array_error;
+    const auto objects = ExtractJsonObjectArrayStrict(body, "sources", &array_error);
+    if (!objects.has_value()) {
+        return SetError(error_message, array_error + ": " + path.string());
+    }
+    for (std::size_t i = 0; i < objects->size(); ++i) {
+        std::string parse_error;
+        const auto source = ParseSourceRecord((*objects)[i], "", &parse_error);
+        if (!source.has_value()) {
+            return SetError(error_message,
+                            "invalid source record at index " + std::to_string(i) + ": " +
+                                parse_error);
+        }
+        if (FindSource(*sources, source->source_id).has_value()) {
+            return SetError(error_message,
+                            "duplicate sourceId in source registry file: " + source->source_id);
+        }
+        if (const auto duplicate =
+                FindDuplicateSourceId(*sources, source->canonical_source_key, source->source_id);
+            duplicate.has_value()) {
+            return SetError(error_message,
+                            "duplicate canonical source in source registry file: " +
+                                source->canonical_source_key);
+        }
+        sources->push_back(*source);
+    }
+    return true;
+}
+
+bool LoadViewsFromFile(const std::filesystem::path& path,
+                       const std::vector<SourceViewRegistry::SourceRecord>& sources,
+                       std::vector<SourceViewRegistry::PublishedViewRecord>* views,
+                       bool* file_exists,
+                       std::string* error_message) {
+    if (views == nullptr || file_exists == nullptr) {
+        return SetError(error_message, "published view registry load output is required");
+    }
+    views->clear();
+    std::error_code exists_ec;
+    *file_exists = std::filesystem::exists(path, exists_ec);
+    if (exists_ec) {
+        return SetError(error_message, "failed to inspect published view registry file: " + exists_ec.message());
+    }
+    if (!*file_exists) {
+        return true;
+    }
+    std::string body;
+    if (!ReadTextFile(path, "published view registry", &body, error_message)) {
+        return false;
+    }
+    if (!LooksLikeJsonObject(body)) {
+        return SetError(error_message,
+                        "published view registry file must be a JSON object: " + path.string());
+    }
+    std::string array_error;
+    const auto objects = ExtractJsonObjectArrayStrict(body, "views", &array_error);
+    if (!objects.has_value()) {
+        return SetError(error_message, array_error + ": " + path.string());
+    }
+    for (std::size_t i = 0; i < objects->size(); ++i) {
+        std::string parse_error;
+        const auto view = ParsePublishedViewRecord((*objects)[i], "", sources, &parse_error);
+        if (!view.has_value()) {
+            return SetError(error_message,
+                            "invalid PublishedView record at index " + std::to_string(i) + ": " +
+                                parse_error);
+        }
+        const auto existing = std::find_if(views->begin(), views->end(), [&](const auto& item) {
+            return item.view_id == view->view_id;
+        });
+        if (existing != views->end()) {
+            return SetError(error_message,
+                            "duplicate viewId in published view registry file: " + view->view_id);
+        }
+        views->push_back(*view);
+    }
+    return true;
+}
+
 }  // namespace
 
 SourceViewRegistry& SourceViewRegistry::Instance() {
@@ -806,9 +1169,12 @@ SourceViewRegistry& SourceViewRegistry::Instance() {
     return registry;
 }
 
-std::string SourceViewRegistry::SourcesJson() {
+RegistryResult SourceViewRegistry::SourcesJson() {
     std::lock_guard lock(mu_);
-    EnsureLoadedLocked();
+    std::string load_error;
+    if (!EnsureLoadedLocked(&load_error)) {
+        return ErrorResult(500, "Internal Server Error", load_error);
+    }
     std::ostringstream out;
     out << "{\"status\":\"registry\",\"storagePath\":\"" << JsonEscape(source_storage_path_.string())
         << "\",\"sources\":[";
@@ -819,12 +1185,15 @@ std::string SourceViewRegistry::SourcesJson() {
         out << SourceJson(sources_[i], true);
     }
     out << "]}";
-    return out.str();
+    return JsonResult(200, "OK", out.str());
 }
 
-std::string SourceViewRegistry::ViewsJson() {
+RegistryResult SourceViewRegistry::ViewsJson() {
     std::lock_guard lock(mu_);
-    EnsureLoadedLocked();
+    std::string load_error;
+    if (!EnsureLoadedLocked(&load_error)) {
+        return ErrorResult(500, "Internal Server Error", load_error);
+    }
     std::ostringstream out;
     out << "{\"status\":\"registry\",\"storagePath\":\"" << JsonEscape(views_storage_path_.string())
         << "\",\"views\":[";
@@ -835,12 +1204,15 @@ std::string SourceViewRegistry::ViewsJson() {
         out << PublishedViewJson(views_[i]);
     }
     out << "]}";
-    return out.str();
+    return JsonResult(200, "OK", out.str());
 }
 
-std::string SourceViewRegistry::ClientViewsJson(const auth::Principal& principal) {
+RegistryResult SourceViewRegistry::ClientViewsJson(const auth::Principal& principal) {
     std::lock_guard lock(mu_);
-    EnsureLoadedLocked();
+    std::string load_error;
+    if (!EnsureLoadedLocked(&load_error)) {
+        return ErrorResult(500, "Internal Server Error", load_error);
+    }
     std::ostringstream out;
     out << "{\"status\":\"clientViews\",\"views\":[";
     bool first = true;
@@ -859,7 +1231,7 @@ std::string SourceViewRegistry::ClientViewsJson(const auth::Principal& principal
         out << ClientPublishedViewJson(view, *source);
     }
     out << "]}";
-    return out.str();
+    return JsonResult(200, "OK", out.str());
 }
 
 RegistryResult SourceViewRegistry::ClientViewJson(const std::string& view_id,
@@ -881,7 +1253,10 @@ RegistryResult SourceViewRegistry::ResolveClientViewAccess(const std::string& vi
         return ErrorResult(500, "Internal Server Error", "ClientViewAccess output is required");
     }
     std::lock_guard lock(mu_);
-    EnsureLoadedLocked();
+    std::string load_error;
+    if (!EnsureLoadedLocked(&load_error)) {
+        return ErrorResult(500, "Internal Server Error", load_error);
+    }
     const auto view_it = std::find_if(views_.begin(), views_.end(), [&](const auto& view) {
         return view.view_id == view_id;
     });
@@ -903,7 +1278,10 @@ RegistryResult SourceViewRegistry::ResolveClientViewAccess(const std::string& vi
 
 RegistryResult SourceViewRegistry::CreateSource(const std::string& body) {
     std::lock_guard lock(mu_);
-    EnsureLoadedLocked();
+    std::string load_error;
+    if (!EnsureLoadedLocked(&load_error)) {
+        return ErrorResult(500, "Internal Server Error", load_error);
+    }
     std::string error;
     const auto source = ParseSourceRecord(body, "", &error);
     if (!source.has_value()) {
@@ -919,15 +1297,23 @@ RegistryResult SourceViewRegistry::CreateSource(const std::string& body) {
                           "{\"ok\":false,\"error\":\"duplicate source\",\"duplicateSourceId\":\"" +
                               JsonEscape(*duplicate) + "\"}");
     }
-    sources_.push_back(*source);
-    SaveSourcesLocked();
+    auto next_sources = sources_;
+    next_sources.push_back(*source);
+    std::string save_error;
+    if (!SaveSourcesLocked(next_sources, &save_error)) {
+        return ErrorResult(500, "Internal Server Error", save_error);
+    }
+    sources_ = std::move(next_sources);
     return JsonResult(201, "Created", "{\"ok\":true,\"status\":\"created\",\"source\":" +
                                           SourceJson(*source, true) + "}");
 }
 
 RegistryResult SourceViewRegistry::UpsertSource(const std::string& source_id, const std::string& body) {
     std::lock_guard lock(mu_);
-    EnsureLoadedLocked();
+    std::string load_error;
+    if (!EnsureLoadedLocked(&load_error)) {
+        return ErrorResult(500, "Internal Server Error", load_error);
+    }
     std::string error;
     const auto source = ParseSourceRecord(body, source_id, &error);
     if (!source.has_value()) {
@@ -942,7 +1328,8 @@ RegistryResult SourceViewRegistry::UpsertSource(const std::string& source_id, co
                               JsonEscape(*duplicate) + "\"}");
     }
     bool updated = false;
-    for (auto& item : sources_) {
+    auto next_sources = sources_;
+    for (auto& item : next_sources) {
         if (item.source_id == source->source_id) {
             item = *source;
             updated = true;
@@ -950,9 +1337,13 @@ RegistryResult SourceViewRegistry::UpsertSource(const std::string& source_id, co
         }
     }
     if (!updated) {
-        sources_.push_back(*source);
+        next_sources.push_back(*source);
     }
-    SaveSourcesLocked();
+    std::string save_error;
+    if (!SaveSourcesLocked(next_sources, &save_error)) {
+        return ErrorResult(500, "Internal Server Error", save_error);
+    }
+    sources_ = std::move(next_sources);
     return JsonResult(updated ? 200 : 201,
                       updated ? "OK" : "Created",
                       "{\"ok\":true,\"status\":\"" + std::string(updated ? "updated" : "created") +
@@ -961,15 +1352,24 @@ RegistryResult SourceViewRegistry::UpsertSource(const std::string& source_id, co
 
 RegistryResult SourceViewRegistry::DisableSource(const std::string& source_id) {
     std::lock_guard lock(mu_);
-    EnsureLoadedLocked();
-    for (auto& source : sources_) {
+    std::string load_error;
+    if (!EnsureLoadedLocked(&load_error)) {
+        return ErrorResult(500, "Internal Server Error", load_error);
+    }
+    auto next_sources = sources_;
+    for (auto& source : next_sources) {
         if (source.source_id == source_id) {
             source.enabled = false;
-            SaveSourcesLocked();
+            const std::string source_json = SourceJson(source, true);
+            std::string save_error;
+            if (!SaveSourcesLocked(next_sources, &save_error)) {
+                return ErrorResult(500, "Internal Server Error", save_error);
+            }
+            sources_ = std::move(next_sources);
             return JsonResult(200,
                               "OK",
                               "{\"ok\":true,\"status\":\"disabled\",\"source\":" +
-                                  SourceJson(source, true) + "}");
+                                  source_json + "}");
         }
     }
     return ErrorResult(404, "Not Found", "Source not found");
@@ -977,7 +1377,10 @@ RegistryResult SourceViewRegistry::DisableSource(const std::string& source_id) {
 
 RegistryResult SourceViewRegistry::CreateView(const std::string& body) {
     std::lock_guard lock(mu_);
-    EnsureLoadedLocked();
+    std::string load_error;
+    if (!EnsureLoadedLocked(&load_error)) {
+        return ErrorResult(500, "Internal Server Error", load_error);
+    }
     std::string error;
     const auto view = ParsePublishedViewRecord(body, "", sources_, &error);
     if (!view.has_value()) {
@@ -989,22 +1392,31 @@ RegistryResult SourceViewRegistry::CreateView(const std::string& body) {
     if (existing != views_.end()) {
         return ErrorResult(409, "Conflict", "viewId already exists");
     }
-    views_.push_back(*view);
-    SaveViewsLocked();
+    auto next_views = views_;
+    next_views.push_back(*view);
+    std::string save_error;
+    if (!SaveViewsLocked(next_views, &save_error)) {
+        return ErrorResult(500, "Internal Server Error", save_error);
+    }
+    views_ = std::move(next_views);
     return JsonResult(201, "Created", "{\"ok\":true,\"status\":\"created\",\"view\":" +
                                           PublishedViewJson(*view) + "}");
 }
 
 RegistryResult SourceViewRegistry::UpsertView(const std::string& view_id, const std::string& body) {
     std::lock_guard lock(mu_);
-    EnsureLoadedLocked();
+    std::string load_error;
+    if (!EnsureLoadedLocked(&load_error)) {
+        return ErrorResult(500, "Internal Server Error", load_error);
+    }
     std::string error;
     const auto view = ParsePublishedViewRecord(body, view_id, sources_, &error);
     if (!view.has_value()) {
         return ErrorResult(400, "Bad Request", error);
     }
     bool updated = false;
-    for (auto& item : views_) {
+    auto next_views = views_;
+    for (auto& item : next_views) {
         if (item.view_id == view->view_id) {
             item = *view;
             updated = true;
@@ -1012,9 +1424,13 @@ RegistryResult SourceViewRegistry::UpsertView(const std::string& view_id, const 
         }
     }
     if (!updated) {
-        views_.push_back(*view);
+        next_views.push_back(*view);
     }
-    SaveViewsLocked();
+    std::string save_error;
+    if (!SaveViewsLocked(next_views, &save_error)) {
+        return ErrorResult(500, "Internal Server Error", save_error);
+    }
+    views_ = std::move(next_views);
     return JsonResult(updated ? 200 : 201,
                       updated ? "OK" : "Created",
                       "{\"ok\":true,\"status\":\"" + std::string(updated ? "updated" : "created") +
@@ -1023,141 +1439,99 @@ RegistryResult SourceViewRegistry::UpsertView(const std::string& view_id, const 
 
 RegistryResult SourceViewRegistry::DisableView(const std::string& view_id) {
     std::lock_guard lock(mu_);
-    EnsureLoadedLocked();
-    for (auto& view : views_) {
+    std::string load_error;
+    if (!EnsureLoadedLocked(&load_error)) {
+        return ErrorResult(500, "Internal Server Error", load_error);
+    }
+    auto next_views = views_;
+    for (auto& view : next_views) {
         if (view.view_id == view_id) {
             view.enabled = false;
-            SaveViewsLocked();
+            const std::string view_json = PublishedViewJson(view);
+            std::string save_error;
+            if (!SaveViewsLocked(next_views, &save_error)) {
+                return ErrorResult(500, "Internal Server Error", save_error);
+            }
+            views_ = std::move(next_views);
             return JsonResult(200,
                               "OK",
                               "{\"ok\":true,\"status\":\"disabled\",\"view\":" +
-                                  PublishedViewJson(view) + "}");
+                                  view_json + "}");
         }
     }
     return ErrorResult(404, "Not Found", "PublishedView not found");
 }
 
-void SourceViewRegistry::EnsureLoadedLocked() {
+bool SourceViewRegistry::EnsureLoadedLocked(std::string* error_message) {
     if (loaded_) {
-        return;
+        return true;
     }
-    loaded_ = true;
     source_storage_path_ = app::GetAppConfig().source_registry_path;
     views_storage_path_ = app::GetAppConfig().published_views_path;
+    std::vector<SourceRecord> loaded_sources;
+    std::vector<PublishedViewRecord> loaded_views;
+    bool source_file_exists = false;
+    bool views_file_exists = false;
     bool sources_seeded = false;
     bool views_seeded = false;
 
-    {
-        std::ifstream in(source_storage_path_);
-        if (in) {
-            std::ostringstream buffer;
-            buffer << in.rdbuf();
-            for (const auto& raw : ExtractJsonObjectArray(buffer.str(), "sources")) {
-                std::string error;
-                const auto source = ParseSourceRecord(raw, "", &error);
-                if (source.has_value() &&
-                    !FindDuplicateSourceId(sources_, source->canonical_source_key, source->source_id).has_value() &&
-                    !FindSource(sources_, source->source_id).has_value()) {
-                    sources_.push_back(*source);
-                }
-            }
-        }
+    if (!LoadSourcesFromFile(source_storage_path_,
+                             &loaded_sources,
+                             &source_file_exists,
+                             error_message)) {
+        return false;
     }
-    if (sources_.empty()) {
+    if (loaded_sources.empty()) {
         for (auto& source : DefaultSourceRecords()) {
             if (!source.source_id.empty() && !source.canonical_source_key.empty() &&
-                !FindDuplicateSourceId(sources_, source.canonical_source_key, source.source_id).has_value() &&
-                !FindSource(sources_, source.source_id).has_value()) {
-                sources_.push_back(std::move(source));
+                !FindDuplicateSourceId(loaded_sources, source.canonical_source_key, source.source_id)
+                     .has_value() &&
+                !FindSource(loaded_sources, source.source_id).has_value()) {
+                loaded_sources.push_back(std::move(source));
                 sources_seeded = true;
             }
         }
     }
-    {
-        std::ifstream in(views_storage_path_);
-        if (in) {
-            std::ostringstream buffer;
-            buffer << in.rdbuf();
-            for (const auto& raw : ExtractJsonObjectArray(buffer.str(), "views")) {
-                std::string error;
-                const auto view = ParsePublishedViewRecord(raw, "", sources_, &error);
-                if (view.has_value()) {
-                    const auto existing = std::find_if(views_.begin(), views_.end(), [&](const auto& item) {
-                        return item.view_id == view->view_id;
-                    });
-                    if (existing == views_.end()) {
-                        views_.push_back(*view);
-                    }
-                }
-            }
-        }
+    if (!LoadViewsFromFile(views_storage_path_,
+                           loaded_sources,
+                           &loaded_views,
+                           &views_file_exists,
+                           error_message)) {
+        return false;
     }
-    if (views_.empty()) {
-        for (const auto& source : sources_) {
-            views_.push_back(DefaultPublishedViewRecord(source));
+    if (loaded_views.empty()) {
+        for (const auto& source : loaded_sources) {
+            loaded_views.push_back(DefaultPublishedViewRecord(source));
         }
         views_seeded = true;
     }
-    if (sources_seeded) {
-        SaveSourcesLocked();
+    if ((sources_seeded || !source_file_exists) &&
+        !SaveSourcesLocked(loaded_sources, error_message)) {
+        return false;
     }
-    if (views_seeded) {
-        SaveViewsLocked();
+    if ((views_seeded || !views_file_exists) && !SaveViewsLocked(loaded_views, error_message)) {
+        return false;
     }
+    sources_ = std::move(loaded_sources);
+    views_ = std::move(loaded_views);
+    loaded_ = true;
+    return true;
 }
 
-void SourceViewRegistry::SaveSourcesLocked() const {
-    if (source_storage_path_.empty()) {
-        return;
-    }
-    const auto parent = source_storage_path_.parent_path();
-    std::error_code ec;
-    if (!parent.empty()) {
-        std::filesystem::create_directories(parent, ec);
-    }
-    std::ofstream out(source_storage_path_, std::ios::trunc);
-    if (!out) {
-        std::cerr << "[source-registry] failed to open " << source_storage_path_ << " for write\n";
-        return;
-    }
-    out << "{\n  \"sources\": [";
-    for (std::size_t i = 0; i < sources_.size(); ++i) {
-        if (i != 0) {
-            out << ",";
-        }
-        out << "\n    " << SourceJson(sources_[i], true);
-    }
-    if (!sources_.empty()) {
-        out << "\n  ";
-    }
-    out << "]\n}\n";
+bool SourceViewRegistry::SaveSourcesLocked(const std::vector<SourceRecord>& sources,
+                                           std::string* error_message) const {
+    return WriteRegistryFileAtomically(source_storage_path_,
+                                       SourcesDocumentJson(sources),
+                                       "source registry",
+                                       error_message);
 }
 
-void SourceViewRegistry::SaveViewsLocked() const {
-    if (views_storage_path_.empty()) {
-        return;
-    }
-    const auto parent = views_storage_path_.parent_path();
-    std::error_code ec;
-    if (!parent.empty()) {
-        std::filesystem::create_directories(parent, ec);
-    }
-    std::ofstream out(views_storage_path_, std::ios::trunc);
-    if (!out) {
-        std::cerr << "[published-view-registry] failed to open " << views_storage_path_ << " for write\n";
-        return;
-    }
-    out << "{\n  \"views\": [";
-    for (std::size_t i = 0; i < views_.size(); ++i) {
-        if (i != 0) {
-            out << ",";
-        }
-        out << "\n    " << PublishedViewJson(views_[i]);
-    }
-    if (!views_.empty()) {
-        out << "\n  ";
-    }
-    out << "]\n}\n";
+bool SourceViewRegistry::SaveViewsLocked(const std::vector<PublishedViewRecord>& views,
+                                         std::string* error_message) const {
+    return WriteRegistryFileAtomically(views_storage_path_,
+                                       ViewsDocumentJson(views),
+                                       "published view registry",
+                                       error_message);
 }
 
 }  // namespace ingress

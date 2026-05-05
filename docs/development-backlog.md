@@ -48,7 +48,7 @@
 
 - 상태: 완료: API/route MVP + `/ops/sources` product UI integration 1차
 - 목적: 내부 source 관리와 클라이언트에 공개되는 view 모델을 분리합니다.
-- 완료 범위: `.media_server.sources.json`, `.media_server.views.json`, `MEDIA_SERVER_SOURCE_REGISTRY`, `MEDIA_SERVER_PUBLISHED_VIEWS`, `/ops/api/sources`, `/ops/api/views`, `/client/api/views`, `/client/api/views/{viewId}`, canonical source 중복 차단, `/ops/sources` 숫자 채널 table/list-first UI, 채널 추가/보기/수정/복제/비활성화/삭제 흐름, 기본 file/VA file/공개 RTSP/HLS seed, Live/VA URL의 RTSP/WebRTC 복사 버튼, registry raw JSON debug drawer입니다.
+- 완료 범위: `.media_server.sources.json`, `.media_server.views.json`, `MEDIA_SERVER_SOURCE_REGISTRY`, `MEDIA_SERVER_PUBLISHED_VIEWS`, Source/View registry strict load와 atomic fsync/rename 저장, `/ops/api/sources`, `/ops/api/views`, `/client/api/views`, `/client/api/views/{viewId}`, canonical source 중복 차단, `/ops/sources` 숫자 채널 table/list-first UI, 채널 추가/보기/수정/복제/비활성화/삭제 흐름, 기본 file/VA file/공개 RTSP/HLS seed, Live/VA URL의 RTSP/WebRTC 복사 버튼, registry raw JSON debug drawer입니다.
 - 후속: source lifecycle 상태, bulk action, PublishedView 기반 visual scope picker, source health와 operator live monitor 연결은 다음 묶음에서 진행합니다.
 - 우선순위 이유: source 원본 설정, 운영자 제어, 클라이언트 노출 범위를 한 모델로 섞지 않기 위한 선행 작업입니다.
 

@@ -12,6 +12,8 @@ fi
 RUN_ID="auth-${MODE}-$(date +%s)-$$"
 TMP_DIR="${TMPDIR:-/tmp}"
 USERS_FILE="${TMP_DIR}/media_server_${RUN_ID}_users.json"
+SOURCE_REGISTRY_FILE="${TMP_DIR}/media_server_${RUN_ID}_sources.json"
+VIEWS_REGISTRY_FILE="${TMP_DIR}/media_server_${RUN_ID}_views.json"
 ADMIN_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_admin.cookie"
 OP_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_operator.cookie"
 OP_READONLY_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_operator_readonly.cookie"
@@ -32,6 +34,8 @@ cleanup() {
     wait "${SERVER_PID}" >/dev/null 2>&1 || true
   fi
   rm -f "${USERS_FILE}" "${USERS_FILE}.tmp" \
+    "${SOURCE_REGISTRY_FILE}" "${SOURCE_REGISTRY_FILE}".tmp* \
+    "${VIEWS_REGISTRY_FILE}" "${VIEWS_REGISTRY_FILE}".tmp* \
     "${ADMIN_COOKIE}" "${OP_COOKIE}" "${OP_READONLY_COOKIE}" \
     "${VIEWER_COOKIE}" "${INTEGRATOR_COOKIE}" \
     "${INVITE_COOKIE}" "${EXISTING_INVITE_COOKIE}" "${REQUEST_COOKIE}" "${LOG_FILE}"
@@ -85,6 +89,8 @@ start_server() {
   MEDIA_SERVER_SKIP_BUILD=1 \
   MEDIA_SERVER_AUTH_MODE="${auth_mode}" \
   MEDIA_SERVER_AUTH_USERS_FILE="${USERS_FILE}" \
+  MEDIA_SERVER_SOURCE_REGISTRY="${SOURCE_REGISTRY_FILE}" \
+  MEDIA_SERVER_PUBLISHED_VIEWS="${VIEWS_REGISTRY_FILE}" \
   MEDIA_SERVER_AUTH_LOGIN_MAX_FAILURES=2 \
   MEDIA_SERVER_AUTH_LOGIN_LOCKOUT_SECONDS=60 \
   MEDIA_SERVER_UI_DEFAULT_HOME="${ui_home}" \
@@ -593,8 +599,35 @@ run_routes() {
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X DELETE "${BASE}/client/api/views/view-a/webrtc/session/${client_rule_session_id}")" "200" "client vaRule wrapper delete allowed"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data '{"overlayMode":"va-rule","ruleId":"9102"}' "${BASE}/client/api/views/view-a/webrtc/session")" "400" "client vaRule source mismatch denied"
+
   stop_server
-  rm -f "${USERS_FILE}" "${USERS_FILE}.tmp"
+  printf '%s\n' '{"sources":[{"sourceId":"broken-source","displayName":"Broken Source","kind":"file","enabled":true}]}' >"${SOURCE_REGISTRY_FILE}"
+  rm -f "${VIEWS_REGISTRY_FILE}" "${VIEWS_REGISTRY_FILE}".tmp*
+  start_server auto lab
+  login_admin
+  expect_eq "$(http_code -b "${ADMIN_COOKIE}" "${BASE}/ops/api/sources")" "500" "malformed source registry fail closed"
+  if grep -Fq '"sourceId":"broken-source"' "${SOURCE_REGISTRY_FILE}"; then
+    pass "malformed source registry not overwritten"
+  else
+    fail "malformed source registry was overwritten"
+  fi
+
+  stop_server
+  printf '%s\n' '{"sources":[{"sourceId":"strict-source","displayName":"Strict Source","kind":"file","file":"sample_h264.mp4","enabled":true}]}' >"${SOURCE_REGISTRY_FILE}"
+  printf '%s\n' '{"views":[{"viewId":"broken-view","displayName":"Broken View","enabled":true}]}' >"${VIEWS_REGISTRY_FILE}"
+  start_server auto lab
+  login_admin
+  expect_eq "$(http_code -b "${ADMIN_COOKIE}" "${BASE}/ops/api/views")" "500" "malformed published view registry fail closed"
+  if grep -Fq '"viewId":"broken-view"' "${VIEWS_REGISTRY_FILE}"; then
+    pass "malformed published view registry not overwritten"
+  else
+    fail "malformed published view registry was overwritten"
+  fi
+
+  stop_server
+  rm -f "${USERS_FILE}" "${USERS_FILE}.tmp" \
+    "${SOURCE_REGISTRY_FILE}" "${SOURCE_REGISTRY_FILE}".tmp* \
+    "${VIEWS_REGISTRY_FILE}" "${VIEWS_REGISTRY_FILE}".tmp*
   start_server off lab
   expect_eq "$(header_status_location "${BASE}/")" "302:/lab" "auth off lab root"
 }
