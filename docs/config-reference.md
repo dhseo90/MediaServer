@@ -73,7 +73,7 @@ Session login은 `libsodium crypto_pwhash_str` password hash를 사용합니다.
 - 초기화된 계정은 `mustChangePassword=true`로 저장할 수 있으며, 로그인 후 `/password/change`에서 새 정책을 만족하는 비밀번호로 변경해야 합니다.
 - `/auth/whoami`는 `setupRequired`, `setupReason`, `authMode`, `authenticated`, `username`, `role`, `scopes`, `passwordChangeRequired`를 반환합니다.
 
-계정 관리는 admin 전용 `/ops/users` 또는 `./server.sh auth-user` CLI를 사용합니다. Users file 직접 편집은 복구나 bootstrap 문제 해결 때만 사용하고 운영 절차로 권장하지 않습니다. Self-signup은 제공하지 않으며 viewer/client 계정은 admin이 수동 생성합니다.
+계정 관리는 admin 전용 `/ops/users` 또는 `./server.sh auth-user` CLI를 사용합니다. Users file 직접 편집은 복구나 bootstrap 문제 해결 때만 사용하고 운영 절차로 권장하지 않습니다. Self-signup 자동 승인은 제공하지 않으며 viewer/client 계정은 admin이 직접 생성하거나 pending access request를 승인해 password setup invite를 발급합니다.
 
 초기 role/scope 모델:
 
@@ -138,7 +138,7 @@ Users file 예시:
       "displayName": "Client C",
       "contact": "client@example.test",
       "reason": "site access",
-      "requestedViewId": "view-c",
+      "viewId": "view-c",
       "status": "pending",
       "createdAt": "2026-05-03T00:00:00Z"
     }
@@ -146,7 +146,7 @@ Users file 예시:
 }
 ```
 
-`passwordHash`와 `passwordHistory`는 libsodium `crypto_pwhash_str` 출력 문자열만 저장합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다. Password hash 값은 `/ops/api/users`, `/ops/users`, CLI list 응답에 노출하지 않습니다. Auth users file은 owner read/write 전용 `0600`으로 생성/보정하며, 저장은 임시 파일 write/fsync 후 rename하고 parent directory도 fsync합니다. User-only 저장 경로는 기존 auth store 전체를 먼저 읽어 `invites`와 `accessRequests`를 보존하며, 읽기 실패 또는 invalid record가 있으면 덮어쓰지 않고 실패합니다. 제품 UI의 기본 계정 생성은 `/ops/users`에서 admin이 초기 비밀번호를 입력하는 직접 생성 흐름입니다. Invite/setup API와 CLI는 검증 및 운영 보조 흐름으로 유지하며, invite 비밀번호는 사용자가 `/invite/setup`에서 직접 입력합니다. Invite 생성과 access-request approve는 invite record만 추가하고 기존 user의 role/scope/enabled/session 상태를 수락 전 즉시 바꾸지 않습니다. Public access request는 4KiB body, displayName 96B, contact 160B, reason 500B, viewId 64B와 안전 문자 제한을 적용하고, 같은 peer의 5회/5분 초과 요청, 기존 user, 중복 pending username/contact, pending 100건 초과를 거부합니다. Invite/request 전용 env는 별도로 두지 않고 같은 users file에 저장하며, invite 만료 시간은 API 요청의 `ttlSeconds`로 지정하거나 서버 기본값을 사용합니다.
+`passwordHash`와 `passwordHistory`는 libsodium `crypto_pwhash_str` 출력 문자열만 저장합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다. Password hash 값은 `/ops/api/users`, `/ops/users`, CLI list 응답에 노출하지 않습니다. Auth users file은 owner read/write 전용 `0600`으로 생성/보정하며, 저장은 임시 파일 write/fsync 후 rename하고 parent directory도 fsync합니다. User-only 저장 경로는 기존 auth store 전체를 먼저 읽어 `invites`와 `accessRequests`를 보존하며, 읽기 실패 또는 invalid record가 있으면 덮어쓰지 않고 실패합니다. 제품 UI의 계정 생성은 `/ops/users`에서 admin이 초기 비밀번호를 입력하는 직접 생성 흐름과 pending access request 승인/거절 table을 함께 제공합니다. 승인 시 password setup invite token/setup URL은 응답에서 한 번만 표시되고, invite 비밀번호는 사용자가 `/invite/setup`에서 직접 입력합니다. Invite 생성과 access-request approve는 invite record만 추가하고 기존 user의 role/scope/enabled/session 상태를 수락 전 즉시 바꾸지 않습니다. Public access request는 4KiB body, displayName 96B, contact 160B, reason 500B, viewId 64B와 안전 문자 제한을 적용하고, 같은 peer의 5회/5분 초과 요청, 기존 user, 중복 pending username/contact, pending 100건 초과를 거부합니다. Invite/request 전용 env는 별도로 두지 않고 같은 users file에 저장하며, invite 만료 시간은 API 요청의 `ttlSeconds`로 지정하거나 서버 기본값을 사용합니다.
 
 Admin user management API:
 
@@ -159,9 +159,9 @@ Admin user management API:
 | `POST /ops/api/users/{username}/disable` | admin | hard delete 대신 비활성화 |
 | `POST /ops/api/users/{username}/enable` | admin | 비활성 계정 재활성화 |
 | `POST /ops/api/invites` | admin | password setup invite 발급. token 원문은 응답에서 한 번만 표시하며 수락 전 user 권한은 변경하지 않음 |
-| `GET /ops/api/access-requests` | admin | pending/rejected/approved client access request 조회 |
-| `POST /ops/api/access-requests/{requestId}/approve` | admin | pending request를 승인하고 password setup invite 발급. user 생성/권한 반영은 invite setup 시점에 수행 |
-| `POST /ops/api/access-requests/{requestId}/reject` | admin | pending request 거절. user/session/view scope는 생성하지 않음 |
+| `GET /ops/api/access-requests` | admin | pending/rejected/approved client access request 조회. `/ops/users` 접근 요청 table이 사용 |
+| `POST /ops/api/access-requests/{requestId}/approve` | admin | pending request를 승인하고 password setup invite 발급. `/ops/users`는 token/setup URL을 한 번 표시하며 user 생성/권한 반영은 invite setup 시점에 수행 |
+| `POST /ops/api/access-requests/{requestId}/reject` | admin | pending request 거절. `/ops/users`는 상태만 갱신하고 user/session/view scope는 생성하지 않음 |
 | `POST /client/api/access-requests` | public | client access request를 `pending` 상태로 저장 |
 
 마지막 활성 admin 계정은 disable하거나 admin이 아닌 role로 바꿀 수 없습니다.

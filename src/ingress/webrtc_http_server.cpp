@@ -18456,6 +18456,24 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         </div>
       </section>
 
+      <section class="section-card">
+        <div class="toolbar">
+          <div>
+            <h2>접근 요청</h2>
+            <p>클라이언트 접근 요청을 검토하고 password setup invite를 발급합니다.</p>
+          </div>
+          <span id="request-status" class="status"></span>
+        </div>
+        <pre id="request-invite-output" hidden></pre>
+        <div class="table-wrap">
+          <table class="user-table">
+)";
+    AppendTableHead(out, {"계정명", "이름", "연락처", "채널", "사유", "상태", "요청/결정", "작업"});
+    out << R"USERS(            <tbody id="access-requests-body"></tbody>
+          </table>
+        </div>
+      </section>
+
       <details id="user-editor" class="collapsed-editor" hidden>
         <summary id="user-editor-title">사용자 편집</summary>
         <div class="collapsed-editor-body">

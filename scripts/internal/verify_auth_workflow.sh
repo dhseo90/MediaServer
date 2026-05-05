@@ -351,6 +351,8 @@ run_users() {
   setup_admin
   chmod 644 "${USERS_FILE}" || fail "failed to simulate permissive auth users file"
   login_admin
+  expect_cookie_page_contains "ops users access request selectors" "${ADMIN_COOKIE}" "${BASE}/ops/users" \
+    'id="access-requests-body"' 'id="request-invite-output"' '/ops/api/access-requests' '접근 요청'
   expect_auth_store_owner_only "permissive auth users file re-hardened"
 
   local viewer_json
@@ -456,6 +458,7 @@ run_users() {
   esac
 
   local request_json request_id pending_login approve_json approve_invite_id approve_token request_user_list request_preserve_reset request_setup request_login
+  local rate_request_json rate_request_id reject_code access_requests_json
   request_json="$(curl -fsS -H 'Content-Type: application/json' \
     -X POST --data '{"username":"request-smoke","displayName":"Request Smoke","contact":"client@example.test","viewId":"view-b","reason":"smoke"}' "${BASE}/client/api/access-requests")"
   request_id="$(printf '%s' "${request_json}" | json_string_field requestId)"
@@ -469,12 +472,22 @@ run_users() {
   printf '"}' >>"${ACCESS_REQUEST_PAYLOAD}"
   expect_eq "$(http_code -H 'Content-Type: application/json' \
     -X POST --data-binary @"${ACCESS_REQUEST_PAYLOAD}" "${BASE}/client/api/access-requests")" "413" "oversized access request body rejected"
-  expect_eq "$(http_code -H 'Content-Type: application/json' \
-    -X POST --data '{"username":"request-rate-1","reason":"rate one"}' "${BASE}/client/api/access-requests")" "201" "access request rate budget allows fourth counted attempt"
+  rate_request_json="$(curl -fsS -H 'Content-Type: application/json' \
+    -X POST --data '{"username":"request-rate-1","reason":"rate one"}' "${BASE}/client/api/access-requests")"
+  rate_request_id="$(printf '%s' "${rate_request_json}" | json_string_field requestId)"
+  [[ -n "${rate_request_id}" ]] || fail "rate access request id missing: ${rate_request_json}"
+  pass "access request rate budget allows fourth counted attempt"
   expect_eq "$(http_code -H 'Content-Type: application/json' \
     -X POST --data '{"username":"request-rate-2","reason":"rate two"}' "${BASE}/client/api/access-requests")" "201" "access request rate budget allows fifth counted attempt"
   expect_eq "$(http_code -H 'Content-Type: application/json' \
     -X POST --data '{"username":"request-rate-limit","reason":"rate limit"}' "${BASE}/client/api/access-requests")" "429" "access request per-peer rate limit enforced"
+  reject_code="$(http_code -b "${ADMIN_COOKIE}" -X POST "${BASE}/ops/api/access-requests/${rate_request_id}/reject")"
+  expect_eq "${reject_code}" "200" "ops users access request reject API"
+  access_requests_json="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/api/access-requests")"
+  case "${access_requests_json}" in
+    *"\"requestId\":\"${rate_request_id}\""*'"status":"rejected"'*) pass "rejected access request visible in ops API" ;;
+    *) fail "rejected access request missing from ops API: ${access_requests_json}" ;;
+  esac
   pending_login="$(http_code -X POST -d 'username=request-smoke&password=Request!91' "${BASE}/login")"
   expect_eq "${pending_login}" "401" "pending request cannot login"
   approve_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \

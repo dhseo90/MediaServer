@@ -68,7 +68,7 @@ const pageChecks = [
     name: "ops-users",
     path: "/ops/users",
     visualSelector: '[data-testid="ops-users-page"]',
-    must: ['data-testid="ops-users-page"', 'id="users-body"', 'id="user-editor"', 'id="view-assignment"'],
+    must: ['data-testid="ops-users-page"', 'id="users-body"', 'id="access-requests-body"', 'id="request-invite-output"', 'id="user-editor"', 'id="view-assignment"', '/ops/api/access-requests'],
   },
   {
     name: "client-live",
