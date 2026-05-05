@@ -737,6 +737,7 @@ curl -fsS -X POST \
 - `overlayMode`는 PublishedView의 `allowedOverlayModes` 안에서 `raw`, `va-overlay`, `va-rule`로 정규화됩니다.
 - `va-rule` mode는 PublishedView의 `allowedRuleIds`/`defaultRuleId` 안의 rule만 사용할 수 있습니다.
 - `va-rule` mode는 허용된 rule이라도 저장 source가 PublishedView source와 다르면 400으로 거부합니다.
+- `/client/live`의 browser `RTCPeerConnection`은 `/webrtc/config`의 `peerConnectionConfig`를 사용하며, 제품 smoke는 빈 `iceServers` 강제 코드가 남아 있지 않은지 확인합니다.
 - client 생성 응답은 `client-live-<random>` alias만 반환하고 `sessionToken` 또는 내부 generic session id를 노출하지 않습니다.
 - client answer/ICE/delete는 `/client/api/views/{viewId}/webrtc/session/{clientSessionId}` wrapper를 사용하며, client alias는 generic `/webrtc/session/{id}` route에서 사용할 수 없어야 합니다.
 - tile stop은 PeerConnection/DataChannel을 닫고 client wrapper DELETE를 호출합니다.

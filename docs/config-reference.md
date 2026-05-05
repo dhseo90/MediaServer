@@ -200,6 +200,8 @@ Admin user management API:
 | `MEDIA_SERVER_RTSP_TRACK_SETTLE_QUIET_PERIOD_MS` | code default | RTSP track settle quiet period |
 | `MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS` | code default | RTSP track settle max wait |
 
+`/webrtc/config`는 위 STUN/TURN/ICE policy를 browser `RTCPeerConnection` 옵션으로 직렬화합니다. Lab WebRTC 테스트와 Client Live는 이 endpoint의 `peerConnectionConfig`를 사용하므로 relay-only 운영 배포에서는 client portal도 같은 TURN 설정을 따릅니다.
+
 ### WebRTC egress video
 
 | 환경변수 | 기본값 | 설명 |

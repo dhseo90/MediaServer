@@ -214,7 +214,7 @@ POST /webrtc/session or /whep
   -> WebRTC offer/answer + ICE
 ```
 
-위 직접 consume endpoint는 auth on에서 admin/operator `ops:read` 또는 `lab:read`가 필요합니다. 생성된 HTTP signaling session id는 난수 token을 포함하며, answer/ICE/delete 후속 route는 생성 principal 또는 session별 `X-Session-Capability`와 일치해야 합니다. Client viewer는 PublishedView wrapper를 통해서만 WebRTC session을 생성하고 후속 signaling도 `/client/api/views/{viewId}/webrtc/session/{clientSessionId}` 아래에서 처리합니다. 내장 HTTP server는 parser 단계에서 header 64KiB, body 2MiB, `Content-Length` 숫자 형식, unsupported transfer encoding, read/write timeout, 동시 active connection 상한을 적용하고 초과 요청은 `400`/`408`/`413`/`431`/`503`으로 연결을 닫습니다.
+위 직접 consume endpoint는 auth on에서 admin/operator `ops:read` 또는 `lab:read`가 필요합니다. 생성된 HTTP signaling session id는 난수 token을 포함하며, answer/ICE/delete 후속 route는 생성 principal 또는 session별 `X-Session-Capability`와 일치해야 합니다. Client viewer는 PublishedView wrapper를 통해서만 WebRTC session을 생성하고 후속 signaling도 `/client/api/views/{viewId}/webrtc/session/{clientSessionId}` 아래에서 처리합니다. Client Live의 browser `RTCPeerConnection`은 `/webrtc/config`의 `peerConnectionConfig`를 사용하므로 STUN/TURN과 `iceTransportPolicy=relay` 설정이 제품 client에도 적용됩니다. 내장 HTTP server는 parser 단계에서 header 64KiB, body 2MiB, `Content-Length` 숫자 형식, unsupported transfer encoding, read/write timeout, 동시 active connection 상한을 적용하고 초과 요청은 `400`/`408`/`413`/`431`/`503`으로 연결을 닫습니다.
 
 WebRTC publish:
 

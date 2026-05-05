@@ -81,7 +81,7 @@
 
 - 상태: 완료: 2x2 MVP + client product UI shell integration 1차
 - 목적: PublishedView 기반 클라이언트용 live monitor 화면을 정의합니다.
-- 완료 범위: `/client/live` 2x2 grid, 최대 4 tile, assigned PublishedView 선택, tile별 WebRTC session, client session alias 기반 answer/ICE/delete wrapper, `raw`/`va-overlay`/`va-rule` allowed overlay mode guard, `va-rule` source-boundary guard, tile start/stop/all stop, selected tile detail/dashboard, tile status 요약입니다.
+- 완료 범위: `/client/live` 2x2 grid, 최대 4 tile, assigned PublishedView 선택, `/webrtc/config` 기반 browser ICE 설정, tile별 WebRTC session, client session alias 기반 answer/ICE/delete wrapper, `raw`/`va-overlay`/`va-rule` allowed overlay mode guard, `va-rule` source-boundary guard, tile start/stop/all stop, selected tile detail/dashboard, tile status 요약입니다.
 - 보안/노출 정책: client route는 viewId만 허용하며 source URL, file/url/source override, 내부 generic session id/token, Developer URL, BBox diagnostics, raw JSON, debugCounters, rule/profile 수정 UI를 노출하지 않습니다.
 - 후속: reconnect UX, tile density, mobile layout, stale/offline copy, view가 없을 때 onboarding 상태를 다듬습니다.
 - 우선순위 이유: 클라이언트 화면은 허용된 view와 이벤트만 노출해야 하므로 SourceRegistry/PublishedView 이후에 진행합니다.

@@ -89,6 +89,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     let selectedViewId = views[0]?.viewId || '';
     const isPreviewMode = document.body.dataset.clientPreview === 'true';
     const { escapeHtml, display, requestJson, applyPrincipalVisibility, setSelectOptions } = window.MediaServerUi;
+    let clientWebRtcConfigPromise = null;
     const ms = value => value === null || value === undefined ? '미제공' : `${Math.max(0, Math.round(Number(value)))}ms`;
     const formatTime = value => {
       if (value === null || value === undefined || value === '') return '미제공';
@@ -579,6 +580,39 @@ void AppendClientShellScript(std::ostringstream& out) {
         try { await tile.pc.addIceCandidate(item); } catch {}
       }
     }
+    async function loadClientWebRtcConfig() {
+      if (!clientWebRtcConfigPromise) {
+        clientWebRtcConfigPromise = fetch('/webrtc/config', {
+          cache: 'no-store',
+          credentials: 'same-origin'
+        }).then(async response => {
+          if (!response.ok) throw new Error(`/webrtc/config HTTP ${response.status}`);
+          return response.json();
+        });
+      }
+      return clientWebRtcConfigPromise;
+    }
+    function peerConnectionConfigFromPayload(payload) {
+      const raw = payload && payload.peerConnectionConfig && typeof payload.peerConnectionConfig === 'object'
+        ? payload.peerConnectionConfig
+        : {};
+      const config = {};
+      if (Array.isArray(raw.iceServers)) {
+        config.iceServers = raw.iceServers;
+      }
+      if (raw.iceTransportPolicy === 'relay' || raw.iceTransportPolicy === 'all') {
+        config.iceTransportPolicy = raw.iceTransportPolicy;
+      }
+      return config;
+    }
+    async function createClientPeerConnection() {
+      try {
+        return new RTCPeerConnection(peerConnectionConfigFromPayload(await loadClientWebRtcConfig()));
+      } catch (error) {
+        console.warn('Client Live ICE config fallback', error);
+        return new RTCPeerConnection();
+      }
+    }
     async function startLiveTile(index) {
       const tile = liveTiles[index];
       const view = tileView(tile);
@@ -598,7 +632,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       tile.lastMetadataAt = 0;
       updateTileDom(tile);
       try {
-        const pc = new RTCPeerConnection({ iceServers: [] });
+        const pc = await createClientPeerConnection();
         tile.pc = pc;
         pc.onconnectionstatechange = () => {
           tile.connectionStatus = pc.connectionState || 'connecting';
