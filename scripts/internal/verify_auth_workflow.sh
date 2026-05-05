@@ -366,6 +366,24 @@ run_routes() {
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X POST --data 'v=0' "${BASE}/whip/publish?sourceId=auth-smoke")" "403" "viewer WHIP publish denied"
   expect_eq "$(http_code "${BASE}/ws/va-metadata?file=sample_h264.mp4")" "401" "unauth metadata websocket denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ws/va-metadata?file=sample_h264.mp4")" "403" "viewer metadata websocket denied"
+  local admin_session_json admin_session_id admin_session_token
+  admin_session_json="$(curl -fsS -b "${ADMIN_COOKIE}" -X POST "${BASE}/webrtc/session?file=sample_h264.mp4")"
+  admin_session_id="$(printf '%s' "${admin_session_json}" | json_string_field sessionId)"
+  admin_session_token="$(printf '%s' "${admin_session_json}" | json_string_field sessionToken)"
+  if printf '%s' "${admin_session_id}" | grep -Eq '^webrtc-http-[0-9a-f]{64}$'; then
+    pass "WebRTC session id uses random token shape"
+  else
+    fail "WebRTC session id is not random-shaped: ${admin_session_id}"
+  fi
+  if printf '%s' "${admin_session_token}" | grep -Eq '^[0-9a-f]{64}$'; then
+    pass "WebRTC session capability issued"
+  else
+    fail "WebRTC session capability missing: ${admin_session_json}"
+  fi
+  expect_eq "$(http_code "${BASE}/webrtc/session/${admin_session_id}/ice")" "401" "unauth session follow-up denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/webrtc/session/${admin_session_id}/ice")" "403" "viewer session follow-up denied"
+  expect_eq "$(http_code -H "X-Session-Capability: ${admin_session_token}" "${BASE}/webrtc/session/${admin_session_id}/ice")" "200" "session capability follow-up allowed"
+  expect_eq "$(http_code -H "X-Session-Capability: ${admin_session_token}" -X DELETE "${BASE}/webrtc/session/${admin_session_id}")" "200" "session capability delete allowed"
   stop_server
   rm -f "${USERS_FILE}" "${USERS_FILE}.tmp"
   start_server off lab

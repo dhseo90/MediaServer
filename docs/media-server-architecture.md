@@ -214,7 +214,7 @@ POST /webrtc/session or /whep
   -> WebRTC offer/answer + ICE
 ```
 
-위 직접 consume endpoint는 auth on에서 admin/operator `ops:read` 또는 `lab:read`가 필요합니다. Client viewer는 PublishedView wrapper를 통해서만 WebRTC session을 생성합니다.
+위 직접 consume endpoint는 auth on에서 admin/operator `ops:read` 또는 `lab:read`가 필요합니다. 생성된 HTTP signaling session id는 난수 token을 포함하며, answer/ICE/delete 후속 route는 생성 principal 또는 session별 `X-Session-Capability`와 일치해야 합니다. Client viewer는 PublishedView wrapper를 통해서만 WebRTC session을 생성합니다.
 
 WebRTC publish:
 
