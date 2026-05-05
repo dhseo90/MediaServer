@@ -91,11 +91,11 @@ Users file은 `users`, `invites`, `accessRequests` top-level 배열을 보관합
 기본 역할:
 
 - `admin`: 모든 기능
-- `operator`: 운영 콘솔, rule/scenario 관리, runtime dashboard, event 조회
+- `operator`: 운영 콘솔, `source:write` 기반 채널/PublishedView 관리, `rule:write` 기반 rule/scenario 관리, runtime dashboard, event 조회
 - `viewer`: 할당된 live view, 제한된 dashboard, 최근 event 요약
-- `integrator`: 허용된 metadata/event API 접근
+- `integrator`: UI shell 없이 허용된 client metadata/event API 접근
 
-Viewer 계정은 `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}` 같은 view scope만 갖습니다. PublishedView가 비어 있거나 아직 계정 UI와 직접 연결되지 않은 환경에서는 문자열 기반 view scope assignment를 사용할 수 있으며, viewer에는 debug/lab/ops/source/rule 관리 scope를 부여하지 않습니다.
+Viewer 계정은 `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}` 같은 view scope만 갖습니다. Integrator 계정은 `event:read:{viewId}`와 `metadata:read:{viewId}`만 갖고 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata`에 접근합니다. PublishedView가 비어 있거나 아직 계정 UI와 직접 연결되지 않은 환경에서는 문자열 기반 view scope assignment를 사용할 수 있으며, viewer/integrator에는 debug/lab/ops/source/rule 관리 scope를 부여하지 않습니다.
 
 ### SourceRegistry / PublishedView MVP
 
@@ -116,14 +116,14 @@ Viewer
 
 SourceRegistry는 `.media_server.sources.json`, PublishedView는 `.media_server.views.json`을 기본 저장소로 사용합니다. `canonicalSourceKey`는 file token, RTSP/HTTP URL, 또는 WHIP publish sourceId를 정규화해 중복 등록을 막는 내부 운영 키이며, RTSP/HTTP URL query 순서 차이는 같은 source로 취급합니다. 현재 `kind=webrtc`는 외부 WebRTC/WHEP URL pull이 아니라 `/whip/publish`로 등록된 내부 sourceId 소비 경로입니다.
 
-클라이언트 API는 `view:read:{viewId}` scope가 있는 view만 반환하고, `file`, `rtspUrl`, `httpUrl`, `webrtcSourceId`, `canonicalSourceKey` 같은 원본 locator는 반환하지 않습니다. PublishedView의 `defaultRuleId`와 `allowedRuleIds`는 기존 `vaRule` ID를 참조하지만, 기존 `vaRule` 저장 구조와 `vaRule=<id>` 호출 방식은 그대로 유지합니다.
+클라이언트 API는 `view:read:{viewId}` scope가 있는 view만 목록에 반환하고, view별 dashboard/events/metadata API는 각각 `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`를 요구합니다. `file`, `rtspUrl`, `httpUrl`, `webrtcSourceId`, `canonicalSourceKey` 같은 원본 locator는 반환하지 않습니다. PublishedView의 `defaultRuleId`와 `allowedRuleIds`는 기존 `vaRule` ID를 참조하지만, 기존 `vaRule` 저장 구조와 `vaRule=<id>` 호출 방식은 그대로 유지합니다.
 
 ### Ops / Client / Lab UI shell
 
 HTTP UI는 같은 미디어/API 기능 위에 role별 shell을 얹는 구조입니다. Shell 통합은 browser route와 화면 구성만 다루며 media pipeline, Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema, scenario 판단 로직은 변경하지 않습니다.
 
 - `/ops`: admin/operator용 운영 콘솔입니다. 공통 header/nav 아래에서 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기를 렌더링합니다. `/ops/home`은 운영 홈 summary MVP이고, `/ops/live`는 완성형 operator live monitor 후속 안내 route입니다. `/ops/dashboard`는 기존 Lab Runtime Dashboard를 운영 shell 안에 embed합니다. `/ops/events`는 primary nav에서 숨긴 직접/진단 route로 보존하며 독립 제품 탭으로 취급하지 않습니다. raw JSON은 운영자 debug 접힘 영역에만 둡니다.
-- `/client`: viewer/client 포털입니다. `/client/live`는 PublishedView 기반 2x2 live monitor MVP이고, `/client/dashboard`는 scoped summary와 sanitized event summary를 표시합니다. Client Events tab은 primary nav에서 제거했습니다. client shell과 client API는 source 원본 locator, Developer URL, raw JSON, `debugCounters`, internal session/tap id, rule/profile editor를 노출하지 않습니다.
+- `/client`: viewer/client 포털입니다. `/client/live`는 PublishedView 기반 2x2 live monitor MVP이고, `/client/dashboard`는 scoped summary와 sanitized event summary를 표시합니다. Client Events tab은 primary nav에서 제거했습니다. client shell과 client API는 source 원본 locator, Developer URL, raw JSON, `debugCounters`, internal session/tap id, rule/profile editor를 노출하지 않습니다. Integrator는 이 shell에 진입하지 않고 scoped client API만 사용합니다.
 - `/lab`: 개발/검증용 shell입니다. 기존 `/lab`와 `/lab/rules` 자동화 호환을 유지하며 Runtime Dashboard, VA metadata viewer, developer/debug detail은 Lab에서 계속 확인합니다. `/ops/rules`는 Lab Rule Editor를 운영 shell 안에 embed하고, 룰 source 선택은 채널 탭에 등록된 숫자 채널을 기준으로 제한합니다.
 
 ### Source+Profile analysis reuse
