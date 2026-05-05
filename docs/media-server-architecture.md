@@ -77,6 +77,8 @@ HTTP request
 
 Auth on 상태에서 직접 media 생성 endpoint인 `POST /webrtc/session`, `POST /whep`, `POST /whip/publish`는 generic source locator를 받는 개발/Lab/운영자 표면으로 취급합니다. 따라서 admin/operator `ops:read` 또는 `lab:read` scope가 필요합니다. Viewer/client 제품 흐름은 source locator를 받지 않는 `/client/api/views/{viewId}/webrtc/session` wrapper와 같은 prefix의 answer/ICE/delete wrapper만 사용하며, 이 wrapper가 PublishedView scope, source override 금지, `va-rule` source 일치 검증을 적용하고 내부 generic session id/session token을 숨깁니다.
 
+내장 HTTP server는 전역 `Access-Control-Allow-Origin: *`를 사용하지 않습니다. `Origin`이 없는 일반 curl/server-to-server 요청에는 CORS 헤더를 붙이지 않고, `Origin`이 있으면 `Host`와 같은 origin인 경우에만 해당 origin을 반사합니다. 다른 origin의 실제 요청과 preflight는 route handler에 들어가기 전에 `403`으로 닫으며, SSE/WS metadata stream handshake도 같은 origin 정책을 따릅니다.
+
 Auth 구성요소:
 
 - `UserRegistry`: `.media_server.users.json`에 user, invite, access request를 저장하고 password hash/history, lockout, audit field를 관리합니다.

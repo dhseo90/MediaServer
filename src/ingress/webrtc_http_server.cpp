@@ -982,20 +982,134 @@ struct HttpResponse {
 std::string HeaderValue(const HttpRequest& request, const std::string& key);
 std::string LowerAscii(std::string value);
 
-std::string BuildHttpResponse(const HttpResponse& response) {
+constexpr const char* kCorsAllowHeaders = "Content-Type, Authorization, X-Session-Capability";
+constexpr const char* kCorsAllowMethods = "GET, POST, PUT, PATCH, DELETE, OPTIONS";
+
+void EraseHeaderCaseInsensitive(std::unordered_map<std::string, std::string>* headers,
+                                const std::string& key) {
+    if (headers == nullptr) {
+        return;
+    }
+    const std::string wanted = LowerAscii(key);
+    for (auto it = headers->begin(); it != headers->end();) {
+        if (LowerAscii(it->first) == wanted) {
+            it = headers->erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+std::string CorsRequestOrigin(const HttpRequest& request) {
+    std::string origin = Trim(HeaderValue(request, "Origin"));
+    if (origin.find('\r') != std::string::npos || origin.find('\n') != std::string::npos) {
+        return "";
+    }
+    return origin;
+}
+
+std::string RequestHostForOriginCheck(const HttpRequest& request) {
+    std::string host = Trim(HeaderValue(request, "Host"));
+    if (host.find('\r') != std::string::npos || host.find('\n') != std::string::npos) {
+        return "";
+    }
+    const auto slash = host.find('/');
+    if (slash != std::string::npos) {
+        host = host.substr(0, slash);
+    }
+    return host;
+}
+
+bool IsCorsOriginAllowed(const HttpRequest& request) {
+    const std::string origin = CorsRequestOrigin(request);
+    const std::string host = RequestHostForOriginCheck(request);
+    if (origin.empty() || host.empty()) {
+        return false;
+    }
+    const std::string normalized_origin = LowerAscii(origin);
+    const std::string normalized_host = LowerAscii(host);
+    return normalized_origin == "http://" + normalized_host ||
+           normalized_origin == "https://" + normalized_host;
+}
+
+bool IsCorsOriginDenied(const HttpRequest& request) {
+    return !CorsRequestOrigin(request).empty() && !IsCorsOriginAllowed(request);
+}
+
+bool VaryHeaderHasOrigin(const std::string& vary) {
+    std::istringstream parts(vary);
+    std::string part;
+    while (std::getline(parts, part, ',')) {
+        if (LowerAscii(Trim(std::move(part))) == "origin") {
+            return true;
+        }
+    }
+    return false;
+}
+
+void AddCorsHeadersForRequest(const HttpRequest* request, HttpResponse* response) {
+    if (response == nullptr) {
+        return;
+    }
+    EraseHeaderCaseInsensitive(&response->headers, "Access-Control-Allow-Origin");
+    EraseHeaderCaseInsensitive(&response->headers, "Access-Control-Allow-Headers");
+    EraseHeaderCaseInsensitive(&response->headers, "Access-Control-Allow-Methods");
+    if (request == nullptr || !IsCorsOriginAllowed(*request)) {
+        return;
+    }
+    const std::string origin = CorsRequestOrigin(*request);
+    response->headers["Access-Control-Allow-Origin"] = origin;
+    response->headers["Access-Control-Allow-Headers"] = kCorsAllowHeaders;
+    response->headers["Access-Control-Allow-Methods"] = kCorsAllowMethods;
+    auto vary_it = response->headers.find("Vary");
+    if (vary_it == response->headers.end() || Trim(vary_it->second).empty()) {
+        response->headers["Vary"] = "Origin";
+    } else if (!VaryHeaderHasOrigin(vary_it->second)) {
+        vary_it->second += ", Origin";
+    }
+}
+
+void AppendCorsHeaderLines(std::ostringstream& out, const HttpRequest& request) {
+    if (!IsCorsOriginAllowed(request)) {
+        return;
+    }
+    const std::string origin = CorsRequestOrigin(request);
+    out << "Access-Control-Allow-Origin: " << origin << "\r\n"
+        << "Access-Control-Allow-Headers: " << kCorsAllowHeaders << "\r\n"
+        << "Access-Control-Allow-Methods: " << kCorsAllowMethods << "\r\n"
+        << "Vary: Origin\r\n";
+}
+
+HttpResponse CorsForbiddenResponse() {
+    return HttpResponse{403,
+                        "Forbidden",
+                        "text/plain; charset=utf-8",
+                        {},
+                        "cross-origin requests are not allowed"};
+}
+
+HttpResponse CorsPreflightResponse(const HttpRequest& request) {
+    if (IsCorsOriginDenied(request)) {
+        return CorsForbiddenResponse();
+    }
+    HttpResponse response{204, "No Content", "text/plain; charset=utf-8", {}, ""};
+    AddCorsHeadersForRequest(&request, &response);
+    return response;
+}
+
+std::string BuildHttpResponse(const HttpResponse& response, const HttpRequest* request = nullptr) {
+    HttpResponse response_for_wire = response;
+    AddCorsHeadersForRequest(request, &response_for_wire);
     std::ostringstream out;
-    out << "HTTP/1.1 " << response.status << " " << response.status_text << "\r\n";
-    out << "Content-Type: " << response.content_type << "\r\n";
-    out << "Content-Length: " << response.body.size() << "\r\n";
+    out << "HTTP/1.1 " << response_for_wire.status << " " << response_for_wire.status_text << "\r\n";
+    out << "Content-Type: " << response_for_wire.content_type << "\r\n";
+    out << "Content-Length: " << response_for_wire.body.size() << "\r\n";
     out << "Connection: close\r\n";
-    out << "Access-Control-Allow-Origin: *\r\n";
-    out << "Access-Control-Allow-Headers: Content-Type, Authorization, X-Session-Capability\r\n";
-    out << "Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS\r\n";
-    for (const auto& [key, value] : response.headers) {
+    for (const auto& [key, value] : response_for_wire.headers) {
         out << key << ": " << value << "\r\n";
     }
     out << "\r\n";
-    out << response.body;
+    out << response_for_wire.body;
     return out.str();
 }
 
@@ -19618,14 +19732,14 @@ bool ValidateWebSocketUpgrade(const HttpRequest& request,
     return true;
 }
 
-bool SendWebSocketHandshake(int fd, const std::string& client_key) {
+bool SendWebSocketHandshake(int fd, const std::string& client_key, const HttpRequest& request) {
     std::ostringstream out;
     out << "HTTP/1.1 101 Switching Protocols\r\n"
         << "Upgrade: websocket\r\n"
         << "Connection: Upgrade\r\n"
-        << "Sec-WebSocket-Accept: " << WebSocketAcceptKey(client_key) << "\r\n"
-        << "Access-Control-Allow-Origin: *\r\n"
-        << "\r\n";
+        << "Sec-WebSocket-Accept: " << WebSocketAcceptKey(client_key) << "\r\n";
+    AppendCorsHeaderLines(out, request);
+    out << "\r\n";
     return SendAll(fd, out.str());
 }
 
@@ -19654,16 +19768,14 @@ bool SendWebSocketCloseFrame(int fd) {
     return SendAll(fd, frame);
 }
 
-bool SendSseHeaders(int fd) {
+bool SendSseHeaders(int fd, const HttpRequest& request) {
     std::ostringstream out;
     out << "HTTP/1.1 200 OK\r\n"
         << "Content-Type: text/event-stream; charset=utf-8\r\n"
         << "Cache-Control: no-cache, no-transform\r\n"
-        << "Connection: close\r\n"
-        << "Access-Control-Allow-Origin: *\r\n"
-        << "Access-Control-Allow-Headers: Content-Type\r\n"
-        << "Access-Control-Allow-Methods: GET, OPTIONS\r\n"
-        << "X-Accel-Buffering: no\r\n"
+        << "Connection: close\r\n";
+    AppendCorsHeaderLines(out, request);
+    out << "X-Accel-Buffering: no\r\n"
         << "\r\n";
     return SendAll(fd, out.str());
 }
@@ -19688,10 +19800,11 @@ bool StreamVaMetadataSse(int client_fd,
                          const std::atomic<bool>& running,
                          core::SessionManager& session_manager,
                          const std::string& tap_id,
-                         const std::unordered_map<std::string, std::string>& query) {
+                         const std::unordered_map<std::string, std::string>& query,
+                         const HttpRequest& request) {
     SuppressSocketSigPipe(client_fd);
     const VaMetadataStreamOptions options = BuildVaMetadataStreamOptions(query);
-    if (!SendSseHeaders(client_fd)) {
+    if (!SendSseHeaders(client_fd, request)) {
         return false;
     }
 
@@ -19788,10 +19901,11 @@ bool StreamVaMetadataWebSocket(int client_fd,
                                core::SessionManager& session_manager,
                                const std::string& tap_id,
                                const std::unordered_map<std::string, std::string>& query,
-                               const std::string& websocket_key) {
+                               const std::string& websocket_key,
+                               const HttpRequest& request) {
     SuppressSocketSigPipe(client_fd);
     const VaMetadataStreamOptions options = BuildVaMetadataStreamOptions(query);
-    if (!SendWebSocketHandshake(client_fd, websocket_key)) {
+    if (!SendWebSocketHandshake(client_fd, websocket_key, request)) {
         return false;
     }
 
@@ -21416,7 +21530,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                     const HttpRequest& request = *request_opt;
                     response = [&]() -> HttpResponse {
                         if (request.method == "OPTIONS") {
-                            return HttpResponse{};
+                            return CorsPreflightResponse(request);
+                        }
+                        if (IsCorsOriginDenied(request)) {
+                            return CorsForbiddenResponse();
                         }
 
                         const auto query = ParseQueryString(request.query);
@@ -21537,7 +21654,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                                 bool detach_on_close) -> HttpResponse {
                             response_sent = true;
                             impl_->active_sse_metadata_clients.fetch_add(1);
-                            (void)StreamVaMetadataSse(client_fd, running_, impl_->session_manager, tap_id, query);
+                            (void)StreamVaMetadataSse(client_fd,
+                                                       running_,
+                                                       impl_->session_manager,
+                                                       tap_id,
+                                                       query,
+                                                       request);
                             impl_->active_sse_metadata_clients.fetch_sub(1);
                             if (detach_on_close) {
                                 (void)DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, tap_id);
@@ -21560,7 +21682,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             response_sent = true;
                             (void)StreamVaMetadataWebSocket(
-                                client_fd, running_, impl_->session_manager, tap_id, query, websocket_key);
+                                client_fd, running_, impl_->session_manager, tap_id, query, websocket_key, request);
                             impl_->active_ws_metadata_clients.fetch_sub(1);
                             if (detach_on_close) {
                                 (void)DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, tap_id);
@@ -23725,7 +23847,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                 if (!response_sent) {
                     SuppressSocketSigPipe(client_fd);
-                    const std::string encoded = BuildHttpResponse(response);
+                    const HttpRequest* request_for_headers =
+                        request_opt.has_value() ? &request_opt.value() : nullptr;
+                    const std::string encoded = BuildHttpResponse(response, request_for_headers);
                     (void)SendAll(client_fd, encoded);
                 }
                 close(client_fd);

@@ -297,7 +297,7 @@ curl -fsS -X POST \
   'http://127.0.0.1:8080/whep?file=sample_h264.mp4'
 ```
 
-위 직접 생성 요청은 auth off 개발 모드 또는 auth on의 admin/operator `ops:read`, `lab:read` 권한에서 확인합니다. Auth route smoke는 미인증과 viewer 요청이 이 generic media 생성 route에서 거부되는지, 생성된 session id가 난수 token 형태인지, 후속 ICE/delete가 생성 principal 또는 `X-Session-Capability` 없이는 거부되는지도 함께 확인합니다. 같은 smoke는 raw HTTP 요청으로 malformed `Content-Length`가 `400`, body limit 초과 선언이 `413`으로 닫히고 이후 `/health`가 계속 `200`인지 확인합니다.
+위 직접 생성 요청은 auth off 개발 모드 또는 auth on의 admin/operator `ops:read`, `lab:read` 권한에서 확인합니다. Auth route smoke는 미인증과 viewer 요청이 이 generic media 생성 route에서 거부되는지, 생성된 session id가 난수 token 형태인지, 후속 ICE/delete가 생성 principal 또는 `X-Session-Capability` 없이는 거부되는지도 함께 확인합니다. 같은 smoke는 raw HTTP 요청으로 malformed `Content-Length`가 `400`, body limit 초과 선언이 `413`으로 닫히고 이후 `/health`가 계속 `200`인지 확인합니다. CORS smoke는 Origin 없는 요청이 CORS 헤더를 내지 않는지, 다른 origin의 실제 요청/preflight가 `403`인지, same-origin preflight만 origin을 반사하는지도 확인합니다.
 
 확인 기준:
 
