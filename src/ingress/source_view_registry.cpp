@@ -514,6 +514,7 @@ std::string InferSourceKind(const std::string& kind,
                             const std::string& file,
                             const std::string& rtsp_url,
                             const std::string& webrtc_source_id,
+                            const std::string& whep_url,
                             const std::string& http_url) {
     const std::string normalized = ToLower(Trim(kind));
     if (!normalized.empty()) {
@@ -528,10 +529,50 @@ std::string InferSourceKind(const std::string& kind,
     if (!webrtc_source_id.empty()) {
         return "webrtc";
     }
+    if (!whep_url.empty()) {
+        return "whep";
+    }
     if (!http_url.empty()) {
         return "http";
     }
     return std::string();
+}
+
+bool IsSupportedSourceKind(const std::string& kind) {
+    return kind == "file" || kind == "rtsp" || kind == "webrtc" || kind == "whep" ||
+           kind == "http" || kind == "hls" || kind == "youtube";
+}
+
+bool HasHttpOrHttpsScheme(const std::string& value) {
+    const std::string lower = ToLower(Trim(value));
+    return lower.rfind("http://", 0) == 0 || lower.rfind("https://", 0) == 0;
+}
+
+int SourceLocatorCount(const SourceViewRegistry::SourceRecord& source) {
+    return (source.file.empty() ? 0 : 1) +
+           (source.rtsp_url.empty() ? 0 : 1) +
+           (source.webrtc_source_id.empty() ? 0 : 1) +
+           (source.whep_url.empty() ? 0 : 1) +
+           (source.http_url.empty() ? 0 : 1);
+}
+
+bool SourceKindMatchesLocator(const SourceViewRegistry::SourceRecord& source) {
+    if (source.kind == "file") {
+        return !source.file.empty();
+    }
+    if (source.kind == "rtsp") {
+        return !source.rtsp_url.empty();
+    }
+    if (source.kind == "webrtc") {
+        return !source.webrtc_source_id.empty();
+    }
+    if (source.kind == "whep") {
+        return !source.whep_url.empty();
+    }
+    if (source.kind == "http" || source.kind == "hls" || source.kind == "youtube") {
+        return !source.http_url.empty();
+    }
+    return false;
 }
 
 std::string CanonicalSourceKey(const SourceViewRegistry::SourceRecord& source) {
@@ -543,6 +584,9 @@ std::string CanonicalSourceKey(const SourceViewRegistry::SourceRecord& source) {
     }
     if (!source.webrtc_source_id.empty()) {
         return "webrtc:" + ToLower(Trim(source.webrtc_source_id));
+    }
+    if (!source.whep_url.empty()) {
+        return "whep:" + CanonicalizeUrl(source.whep_url);
     }
     if (!source.http_url.empty()) {
         return "http:" + CanonicalizeUrl(source.http_url);
@@ -636,14 +680,19 @@ std::optional<SourceViewRegistry::SourceRecord> ParseSourceRecord(const std::str
     source.file = Trim(ParseStringField(body, "file").value_or(""));
     source.rtsp_url = Trim(ParseStringField(body, "rtspUrl").value_or(""));
     source.webrtc_source_id = Trim(ParseStringField(body, "webrtcSourceId").value_or(""));
+    source.whep_url = Trim(ParseStringField(body, "whepUrl").value_or(""));
     source.http_url = Trim(ParseStringField(body, "httpUrl").value_or(""));
     source.kind = InferSourceKind(ParseStringField(body, "kind").value_or(""),
                                   source.file,
                                   source.rtsp_url,
                                   source.webrtc_source_id,
+                                  source.whep_url,
                                   source.http_url);
     if (source.rtsp_url.empty() && source.kind == "rtsp" && !generic_url.empty()) {
         source.rtsp_url = Trim(generic_url);
+    }
+    if (source.whep_url.empty() && source.kind == "whep" && !generic_url.empty()) {
+        source.whep_url = Trim(generic_url);
     }
     if (source.http_url.empty() &&
         (source.kind == "http" || source.kind == "hls" || source.kind == "youtube") &&
@@ -654,14 +703,33 @@ std::optional<SourceViewRegistry::SourceRecord> ParseSourceRecord(const std::str
                                   source.file,
                                   source.rtsp_url,
                                   source.webrtc_source_id,
+                                  source.whep_url,
                                   source.http_url);
+    if (!IsSupportedSourceKind(source.kind)) {
+        if (error_message != nullptr) {
+            *error_message = "unsupported source kind: " + source.kind;
+        }
+        return std::nullopt;
+    }
+    if (SourceLocatorCount(source) != 1 || !SourceKindMatchesLocator(source)) {
+        if (error_message != nullptr) {
+            *error_message = "source kind must match exactly one locator field";
+        }
+        return std::nullopt;
+    }
+    if (source.kind == "whep" && !HasHttpOrHttpsScheme(source.whep_url)) {
+        if (error_message != nullptr) {
+            *error_message = "whepUrl must be an http(s) WHEP endpoint URL";
+        }
+        return std::nullopt;
+    }
     source.enabled = ParseBoolField(body, "enabled").value_or(true);
     source.tags = ParseStringArrayField(body, "tags");
     source.owner_group = Trim(ParseStringField(body, "ownerGroup").value_or(""));
     source.canonical_source_key = CanonicalSourceKey(source);
     if (source.kind.empty() || source.canonical_source_key.empty()) {
         if (error_message != nullptr) {
-            *error_message = "source requires kind plus one locator field: file, rtspUrl, webrtcSourceId or httpUrl";
+            *error_message = "source requires kind plus one locator field: file, rtspUrl, webrtcSourceId, whepUrl or httpUrl";
         }
         return std::nullopt;
     }
@@ -751,6 +819,7 @@ std::string SourceJson(const SourceViewRegistry::SourceRecord& source, bool incl
         AppendOptionalStringField(out, "file", source.file, &first);
         AppendOptionalStringField(out, "rtspUrl", source.rtsp_url, &first);
         AppendOptionalStringField(out, "webrtcSourceId", source.webrtc_source_id, &first);
+        AppendOptionalStringField(out, "whepUrl", source.whep_url, &first);
         AppendOptionalStringField(out, "httpUrl", source.http_url, &first);
     }
     out << "}";

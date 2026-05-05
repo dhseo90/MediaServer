@@ -617,6 +617,22 @@ run_routes() {
     -X PUT --data "${readonly_va_rule_payload}" "${BASE}/lab/analysis/va-rules/readonly-va-denied")" "403" "rule write scope required for lab vaRule write"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
     -X PUT --data '{"id":"readonly-profile-denied","trackingClasses":["person"]}' "${BASE}/lab/analysis/profiles/readonly-profile-denied")" "403" "rule write scope required for lab profile write"
+  local whep_source_json whep_sources_json
+  whep_source_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data '{"sourceId":"whep-smoke","displayName":"WHEP Smoke","kind":"whep","whepUrl":"https://example.test/whep/stream?b=2&a=1","enabled":true}' \
+    "${BASE}/ops/api/sources")"
+  case "${whep_source_json}" in
+    *'"kind":"whep"'*'"whepUrl":"https://example.test/whep/stream?b=2&a=1"'*) pass "WHEP source registry create allowed" ;;
+    *) fail "WHEP source registry create response missing fields: ${whep_source_json}" ;;
+  esac
+  expect_eq "$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data '{"sourceId":"whep-smoke-dup","displayName":"WHEP Smoke Dup","kind":"whep","whepUrl":"https://example.test/whep/stream?a=1&b=2","enabled":true}' \
+    "${BASE}/ops/api/sources")" "409" "WHEP source canonical duplicate denied"
+  whep_sources_json="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/api/sources")"
+  case "${whep_sources_json}" in
+    *'"sourceId":"whep-smoke"'*'"kind":"whep"'*'"whepUrl":"https://example.test/whep/stream?b=2&a=1"'*) pass "WHEP source visible to ops API" ;;
+    *) fail "WHEP source missing from ops API: ${whep_sources_json}" ;;
+  esac
   expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client")" "403" "integrator client shell denied"
   expect_eq "$(http_code "${BASE}/client/api/views")" "401" "unauth client views API denied"
   expect_eq "$(http_code "${BASE}/client/api/views/view-a/dashboard")" "401" "unauth client dashboard API denied"

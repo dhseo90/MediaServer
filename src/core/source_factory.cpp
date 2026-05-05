@@ -186,6 +186,66 @@ void SetBoolPropertyIfPresent(GstElement* element, const char* property, const g
     g_object_set(element, property, value, nullptr);
 }
 
+void SetUintPropertyIfPresent(GstElement* element, const char* property, const guint value) {
+    if (element == nullptr || property == nullptr ||
+        g_object_class_find_property(G_OBJECT_GET_CLASS(element), property) == nullptr) {
+        return;
+    }
+    g_object_set(element, property, value, nullptr);
+}
+
+void SetStringPropertyIfPresent(GstElement* element, const char* property, const std::string& value) {
+    if (element == nullptr || property == nullptr || value.empty() ||
+        g_object_class_find_property(G_OBJECT_GET_CLASS(element), property) == nullptr) {
+        return;
+    }
+    g_object_set(element, property, value.c_str(), nullptr);
+}
+
+void SetObjectArgPropertyIfPresent(GstElement* element, const char* property, const std::string& value) {
+    if (element == nullptr || property == nullptr || value.empty() ||
+        g_object_class_find_property(G_OBJECT_GET_CLASS(element), property) == nullptr) {
+        return;
+    }
+    gst_util_set_object_arg(G_OBJECT(element), property, value.c_str());
+}
+
+void SetCapsPropertyIfPresent(GstElement* element, const char* property, const std::string& caps_text) {
+    if (element == nullptr || property == nullptr || caps_text.empty() ||
+        g_object_class_find_property(G_OBJECT_GET_CLASS(element), property) == nullptr) {
+        return;
+    }
+    GstCaps* caps = gst_caps_from_string(caps_text.c_str());
+    if (caps == nullptr) {
+        return;
+    }
+    g_object_set(element, property, caps, nullptr);
+    gst_caps_unref(caps);
+}
+
+std::string WhepSupportedVideoCaps() {
+    return "application/x-rtp,media=(string)video,encoding-name=(string)H264,payload=(int)103,clock-rate=(int)90000;"
+           "application/x-rtp,media=(string)video,encoding-name=(string)VP8,payload=(int)101,clock-rate=(int)90000;"
+           "application/x-rtp,media=(string)video,encoding-name=(string)H265,payload=(int)104,clock-rate=(int)90000";
+}
+
+std::string WhepSupportedAudioCaps() {
+    return "application/x-rtp,media=(string)audio,encoding-name=(string)OPUS,payload=(int)96,clock-rate=(int)48000";
+}
+
+void ConfigureWhepSourceElement(GstElement* source, const std::string& endpoint) {
+    g_object_set(source, "whep-endpoint", endpoint.c_str(), nullptr);
+    const auto& config = app::GetAppConfig();
+    SetStringPropertyIfPresent(source, "stun-server", config.webrtc_stun_server);
+    SetStringPropertyIfPresent(source, "turn-server", config.webrtc_turn_server);
+    SetObjectArgPropertyIfPresent(source, "ice-transport-policy", config.webrtc_ice_transport_policy);
+    SetBoolPropertyIfPresent(source, "use-link-headers", TRUE);
+    const int timeout_s = std::max(1, config.rtsp_source_start_timeout_ms / 1000);
+    SetUintPropertyIfPresent(source, "timeout", static_cast<guint>(timeout_s));
+    SetCapsPropertyIfPresent(source, "video-caps", WhepSupportedVideoCaps());
+    SetCapsPropertyIfPresent(source, "audio-caps", WhepSupportedAudioCaps());
+}
+
 std::string BuildUriRawVideoCaps() {
     const auto& config = app::GetAppConfig();
     std::ostringstream caps;
@@ -891,16 +951,23 @@ public:
 #if MEDIA_SERVER_USE_GSTREAMER
         gst_init(nullptr, nullptr);
 
+        const bool is_whep = source_spec_.kind == SourceSpec::Kind::Whep;
+        const char* source_name = is_whep ? "WHEP" : "RTSP";
+        const char* source_log = is_whep ? "[whep-source]" : "[rtsp-source]";
+
         // 외부 RTSP는 source pipeline 시작 전에 host:port 도달성을 먼저 확인해 원인 분리를 쉽게 한다.
-        if (!PreflightRtspSource(source_spec_.uri, error_message)) {
+        if (!is_whep && !PreflightRtspSource(source_spec_.uri, error_message)) {
             return false;
         }
 
         pipeline_ = gst_pipeline_new(nullptr);
-        source_ = gst_element_factory_make("rtspsrc", "rtsp_source");
+        source_ = gst_element_factory_make(is_whep ? "whepsrc" : "rtspsrc",
+                                           is_whep ? "whep_source" : "rtsp_source");
         if (pipeline_ == nullptr || source_ == nullptr) {
             if (error_message != nullptr) {
-                *error_message = "failed to create RTSP source pipeline";
+                *error_message = std::string("failed to create ") + source_name +
+                                 " source pipeline" +
+                                 (is_whep ? "; install gst-plugin-webrtchttp for whepsrc support" : "");
             }
             Stop();
             return false;
@@ -912,9 +979,13 @@ public:
         source_error_.clear();
 
         gst_bin_add(GST_BIN(pipeline_), source_);
-        g_object_set(source_, "location", source_spec_.uri.c_str(), "latency", 100, nullptr);
-        if (app::GetAppConfig().force_rtsp_tcp) {
-            g_object_set(source_, "protocols", GST_RTSP_LOWER_TRANS_TCP, nullptr);
+        if (is_whep) {
+            ConfigureWhepSourceElement(source_, source_spec_.uri);
+        } else {
+            g_object_set(source_, "location", source_spec_.uri.c_str(), "latency", 100, nullptr);
+            if (app::GetAppConfig().force_rtsp_tcp) {
+                g_object_set(source_, "protocols", GST_RTSP_LOWER_TRANS_TCP, nullptr);
+            }
         }
         g_signal_connect(source_, "pad-added", G_CALLBACK(&RtspSourceWorker::OnPadAdded), this);
 
@@ -923,23 +994,27 @@ public:
 
         if (gst_element_set_state(pipeline_, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
             if (error_message != nullptr) {
-                *error_message = "failed to start RTSP source pipeline";
+                *error_message = std::string("failed to start ") + source_name + " source pipeline";
             }
             Stop();
             return false;
         }
 
+        const int start_timeout_ms = is_whep ? std::max(app::GetAppConfig().rtsp_source_start_timeout_ms, 15000)
+                                             : app::GetAppConfig().rtsp_source_start_timeout_ms;
         std::unique_lock lock(mu_);
         // SDP pad 생성만으로는 부족하고, 실제 첫 sample까지 확인해야 downstream descriptor가 신뢰 가능하다.
         const bool ready = cv_.wait_for(
             lock,
-            std::chrono::milliseconds(app::GetAppConfig().rtsp_source_start_timeout_ms),
+            std::chrono::milliseconds(start_timeout_ms),
             [this] {
             return !running_.load() || ready_sample_count_ > 0 || !source_error_.empty();
         });
         if (!ready || descriptor_.tracks.empty() || ready_sample_count_ == 0) {
             if (error_message != nullptr) {
-                *error_message = source_error_.empty() ? "timed out waiting for RTSP source samples" : source_error_;
+                *error_message = source_error_.empty()
+                                     ? std::string("timed out waiting for ") + source_name + " source samples"
+                                     : source_error_;
             }
             lock.unlock();
             Stop();
@@ -966,7 +1041,7 @@ public:
             }
         }
 
-        std::cerr << "[rtsp-source] source ready uri=" << source_spec_.uri
+        std::cerr << source_log << " source ready uri=" << RedactUriForLog(source_spec_.uri)
                   << " tracks=" << descriptor_.tracks.size() << "\n";
         stream->SetDescriptor(descriptor_);
         return true;
@@ -1013,6 +1088,14 @@ public:
 
 private:
 #if MEDIA_SERVER_USE_GSTREAMER
+    const char* SourceName() const {
+        return source_spec_.kind == SourceSpec::Kind::Whep ? "WHEP" : "RTSP";
+    }
+
+    const char* LogPrefix() const {
+        return source_spec_.kind == SourceSpec::Kind::Whep ? "[whep-source]" : "[rtsp-source]";
+    }
+
     struct SinkBranch {
         TrackInfo track;
         GstElement* queue{nullptr};
@@ -1062,7 +1145,7 @@ private:
 
         auto branch = CreateBranch(track);
         if (branch == nullptr) {
-            std::cerr << "[rtsp-source] unsupported RTP track encoding=" << encoding_name << "\n";
+            std::cerr << LogPrefix() << " unsupported RTP track encoding=" << encoding_name << "\n";
             gst_caps_unref(caps);
             return;
         }
@@ -1098,7 +1181,7 @@ private:
             if (branch->queue != nullptr) {
                 gst_bin_remove(GST_BIN(pipeline_), branch->queue);
             }
-            std::cerr << "[rtsp-source] failed to link track kind=" << media::ToString(track.kind)
+            std::cerr << LogPrefix() << " failed to link track kind=" << media::ToString(track.kind)
                       << " codec=" << media::ToString(track.codec) << "\n";
             gst_caps_unref(caps);
             return;
@@ -1122,7 +1205,7 @@ private:
             if (stream != nullptr) {
                 stream->SetDescriptor(descriptor_);
             }
-            std::cerr << "[rtsp-source] track ready kind=" << media::ToString(branch->track.kind)
+            std::cerr << LogPrefix() << " track ready kind=" << media::ToString(branch->track.kind)
                       << " codec=" << media::ToString(branch->track.codec)
                       << " caps=" << branch->track.caps_string << "\n";
             ++descriptor_version_;
@@ -1226,7 +1309,7 @@ private:
                 }
 
                 branch->announced_ready = true;
-                std::cerr << "[rtsp-source] sample ready kind=" << media::ToString(branch->track.kind)
+                std::cerr << LogPrefix() << " sample ready kind=" << media::ToString(branch->track.kind)
                           << " codec=" << media::ToString(branch->track.codec)
                           << " caps=" << branch->track.caps_string << "\n";
             }
@@ -1263,12 +1346,21 @@ private:
                     source_error_ = err != nullptr ? err->message : "RTSP source pipeline error";
                     cv_.notify_all();
                 }
-                std::cerr << "[rtsp-source] pipeline error: " << source_error_ << "\n";
+                std::cerr << LogPrefix() << " pipeline error: " << source_error_ << "\n";
                 if (err != nullptr) {
                     g_error_free(err);
                 }
                 if (dbg != nullptr) {
                     g_free(dbg);
+                }
+                running_.store(false);
+            } else if (GST_MESSAGE_TYPE(message) == GST_MESSAGE_EOS) {
+                {
+                    std::lock_guard lock(mu_);
+                    if (ready_sample_count_ == 0) {
+                        source_error_ = std::string(SourceName()) + " source reached EOS before samples";
+                    }
+                    cv_.notify_all();
                 }
                 running_.store(false);
             }
@@ -2127,6 +2219,8 @@ std::unique_ptr<SourceWorker> CreateSourceWorker(const media::SourceSpec& source
             return std::make_unique<RtspSourceWorker>(source_spec);
         case media::SourceSpec::Kind::WebRtc:
             return std::make_unique<WebRtcSourceWorker>(source_spec);
+        case media::SourceSpec::Kind::Whep:
+            return std::make_unique<RtspSourceWorker>(source_spec);
         case media::SourceSpec::Kind::Hls:
         case media::SourceSpec::Kind::Http:
             return std::make_unique<UriSourceWorker>(source_spec);

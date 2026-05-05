@@ -513,7 +513,7 @@ public:
             << "\"scope\":\"저장된 rule은 va=1 overlay와 /lab/analysis/taps/{id}/events에서 런타임 판정에 사용한다. "
                "sourceKind/route/clientId match 조건이 있으면 해당 분석 결과에만 적용한다.\","
             << "\"plannedRuleShape\":{\"id\":\"string\",\"enabled\":\"bool\",\"priority\":\"number\","
-            << "\"match\":{\"sourceKind\":\"file|rtsp|webrtc|http|hls|youtube|*\",\"route\":\"http|rtsp|webrtc|*\","
+            << "\"match\":{\"sourceKind\":\"file|rtsp|webrtc|whep|http|hls|youtube|*\",\"route\":\"http|rtsp|webrtc|*\","
             << "\"clientId\":\"optional\"},\"analysis\":{\"profileId\":\"string\",\"detector\":\"dummy|yolo\","
             << "\"fps\":\"number\",\"maxQueue\":\"number\",\"frameSampleInterval\":\"number\","
             << "\"maxFrameAgeMs\":\"number\"},\"outputs\":{\"metadata\":\"bool\","
@@ -6644,6 +6644,7 @@ std::string BuildLabRuleEditorPageHtml() {
               <select id="vaRuleSourceKind">
                 <option value="file" selected>서버 파일</option>
                 <option value="rtsp">RTSP URL</option>
+                <option value="whep">WHEP URL</option>
                 <option value="http">HTTP/HLS URL</option>
                 <option value="webrtc" hidden>WHIP Source ID</option>
               </select>
@@ -6656,7 +6657,7 @@ std::string BuildLabRuleEditorPageHtml() {
             <label id="vaRuleUrlField" hidden>
               <span id="vaRuleUrlLabelText">분석할 영상 URL 또는 WHIP Source ID</span>
               <input id="vaRuleUrlInput" placeholder="rtsp://camera.local/stream 또는 published-source-id" />
-              <span id="vaRuleUrlHelp" class="form-note">RTSP/HTTP/HLS는 URL, WHIP source는 publish Source ID를 입력합니다. 외부 WHEP/WebRTC URL pull은 아직 지원하지 않습니다.</span>
+              <span id="vaRuleUrlHelp" class="form-note">RTSP/HTTP/HLS/WHEP는 URL, WHIP source는 publish Source ID를 입력합니다.</span>
             </label>
           </div>
           <div id="directRuleMatchFields" class="row">
@@ -6665,6 +6666,7 @@ std::string BuildLabRuleEditorPageHtml() {
                 <option value="*">전체</option>
                 <option value="file" selected>파일</option>
                 <option value="rtsp">RTSP</option>
+                <option value="whep">WHEP</option>
                 <option value="webrtc" hidden>WHIP source</option>
                 <option value="http">HTTP</option>
                 <option value="hls">HLS</option>
@@ -6678,7 +6680,7 @@ std::string BuildLabRuleEditorPageHtml() {
               </select>
             </label>
           </div>
-          <p id="vaRuleSourceHelp" class="form-note">서버 파일은 아래 파일 목록만 선택하면 됩니다. URL 또는 Source ID 입력칸은 RTSP/HTTP/HLS/WebRTC 소스를 고를 때만 표시됩니다.</p>
+          <p id="vaRuleSourceHelp" class="form-note">서버 파일은 아래 파일 목록만 선택하면 됩니다. URL 또는 Source ID 입력칸은 RTSP/HTTP/HLS/WHEP/WebRTC 소스를 고를 때만 표시됩니다.</p>
           <p id="vaRuleSourceSummary" class="source-lock">현재 설정 소스: file=sample_h264.mp4</p>
         </div>
       </section>
@@ -7207,6 +7209,7 @@ std::string BuildLabRuleEditorPageHtml() {
               <select id="viewSourceKind">
                 <option value="file" selected>서버 파일</option>
                 <option value="rtsp">RTSP URL</option>
+                <option value="whep">WHEP URL</option>
                 <option value="http">HTTP/HLS URL</option>
                 <option value="webrtc" hidden>WHIP Source ID</option>
               </select>
@@ -7986,7 +7989,7 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function normalizedSourceKind(kind) {
       const value = String(kind || 'file').toLowerCase();
-      if (['file', 'rtsp', 'http', 'hls', 'webrtc'].includes(value)) return value;
+      if (['file', 'rtsp', 'http', 'hls', 'webrtc', 'whep'].includes(value)) return value;
       return 'file';
     }
 
@@ -8006,6 +8009,7 @@ std::string BuildLabRuleEditorPageHtml() {
       const kind = normalizedSourceKind(source?.kind || 'file');
       if (kind === 'file') return `파일=${source?.file || 'sample_h264.mp4'}`;
       if (kind === 'webrtc') return `WebRTC source=${source?.url || '(입력 필요)'}`;
+      if (kind === 'whep') return `WHEP=${source?.url || '(입력 필요)'}`;
       if (kind === 'rtsp') return `RTSP=${source?.url || '(입력 필요)'}`;
       if (kind === 'http' || kind === 'hls') return `HTTP/HLS=${source?.url || '(입력 필요)'}`;
       return `${kind}=${source?.url || '(입력 필요)'}`;
@@ -8054,6 +8058,7 @@ std::string BuildLabRuleEditorPageHtml() {
       const source = channel?.source || {};
       if (source.file) return { kind: 'file', file: source.file };
       if (source.rtspUrl) return { kind: 'rtsp', url: source.rtspUrl };
+      if (source.whepUrl) return { kind: 'whep', url: source.whepUrl };
       if (source.httpUrl) return { kind: 'http', url: source.httpUrl };
       if (source.webrtcSourceId) return { kind: 'webrtc', url: source.webrtcSourceId };
       return null;
@@ -8123,7 +8128,7 @@ std::string BuildLabRuleEditorPageHtml() {
       } else {
         if ($('vaRuleUrlInput')) $('vaRuleUrlInput').value = source.url || '';
       }
-      if ($('ruleSourceKind')) $('ruleSourceKind').value = ['file', 'rtsp', 'http', 'hls', 'webrtc'].includes(kind) ? kind : '*';
+      if ($('ruleSourceKind')) $('ruleSourceKind').value = ['file', 'rtsp', 'http', 'hls', 'webrtc', 'whep'].includes(kind) ? kind : '*';
       if ($('ruleRoute')) $('ruleRoute').value = '*';
       setOpsRuleChannelSummary(`선택된 채널: ${opsChannelLabel(channel)}`, 'ok');
       updateVaRuleSourceUi();
@@ -8894,16 +8899,16 @@ std::string BuildLabRuleEditorPageHtml() {
       if ($('vaRuleUrlLabelText')) {
         $('vaRuleUrlLabelText').textContent = source.kind === 'webrtc'
           ? 'WHIP Source ID'
-          : '분석할 영상 URL';
+          : (source.kind === 'whep' ? 'WHEP URL' : '분석할 영상 URL');
       }
       if ($('vaRuleUrlHelp')) {
         $('vaRuleUrlHelp').textContent = source.kind === 'webrtc'
-          ? 'WHIP publish로 등록된 내부 sourceId를 입력합니다. 외부 WHEP/WebRTC URL pull은 아직 지원하지 않습니다.'
-          : 'RTSP 또는 HTTP/HLS 전체 URL을 입력합니다.';
+          ? 'WHIP publish로 등록된 내부 sourceId를 입력합니다.'
+          : (source.kind === 'whep' ? '외부 WHEP playback endpoint 전체 URL을 입력합니다.' : 'RTSP 또는 HTTP/HLS 전체 URL을 입력합니다.');
       }
       if ($('vaRuleSourceHelp')) {
         $('vaRuleSourceHelp').textContent = source.kind === 'file'
-          ? '서버 파일은 파일 목록만 선택하면 됩니다. URL 또는 Source ID 입력칸은 RTSP/HTTP/HLS/WebRTC 소스를 고를 때만 표시됩니다.'
+          ? '서버 파일은 파일 목록만 선택하면 됩니다. URL 또는 Source ID 입력칸은 RTSP/HTTP/HLS/WHEP/WebRTC 소스를 고를 때만 표시됩니다.'
           : '외부/게시 소스를 분석 설정에 묶는 모드입니다. 이 값은 vaRule URL 요청 시 자동으로 재사용됩니다.';
       }
       if ($('vaRuleSourceSummary')) {
@@ -17523,6 +17528,9 @@ std::optional<media::SourceSpec::Kind> SourceKindForClientView(
     if (source.kind == "webrtc") {
         return media::SourceSpec::Kind::WebRtc;
     }
+    if (source.kind == "whep") {
+        return media::SourceSpec::Kind::Whep;
+    }
     if (source.kind == "hls") {
         return media::SourceSpec::Kind::Hls;
     }
@@ -17544,6 +17552,9 @@ std::string SourceLocatorForClientView(const SourceViewRegistry::SourceRecord& s
     }
     if (!source.webrtc_source_id.empty()) {
         return source.webrtc_source_id;
+    }
+    if (!source.whep_url.empty()) {
+        return source.whep_url;
     }
     if (!source.http_url.empty()) {
         return source.http_url;
@@ -18058,6 +18069,11 @@ bool AddClientSourceQuery(const SourceViewRegistry::SourceRecord& source,
         (*query)["source"] = "webrtc";
         return true;
     }
+    if (!source.whep_url.empty()) {
+        (*query)["url"] = source.whep_url;
+        (*query)["source"] = "whep";
+        return true;
+    }
     if (!source.http_url.empty()) {
         (*query)["url"] = source.http_url;
         (*query)["source"] = source.kind.empty() ? "http" : source.kind;
@@ -18169,7 +18185,7 @@ bool ClientVaRuleSourceMatchesView(const SourceViewRegistry::ClientViewAccess& a
 bool ClientLiveRequestHasSourceOverride(const std::string& body,
                                         const std::unordered_map<std::string, std::string>& query) {
     static const std::vector<std::string> kBlockedKeys = {
-        "file", "url", "source", "sourceId", "rtspUrl", "httpUrl", "webrtcSourceId"};
+        "file", "url", "source", "sourceId", "rtspUrl", "httpUrl", "webrtcSourceId", "whepUrl"};
     for (const auto& key : kBlockedKeys) {
         if (query.find(key) != query.end() || ParseStringField(body, key).has_value()) {
             return true;
@@ -18338,7 +18354,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
       <div class="toolbar">
         <div>
           <h2>채널</h2>
-          <p>채널은 서버가 pull하는 파일/RTSP/HTTP/HLS 입력 또는 WHIP publish로 먼저 등록된 WebRTC sourceId입니다.</p>
+          <p>채널은 서버가 pull하는 파일/RTSP/HTTP/HLS/WHEP 입력 또는 WHIP publish로 먼저 등록된 WebRTC sourceId입니다.</p>
         </div>
       </div>
       <section class="section-card">
@@ -18393,6 +18409,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
               <select name="kind">
                 <option value="file">파일</option>
                 <option value="rtsp">RTSP</option>
+                <option value="whep">WHEP</option>
                 <option value="webrtc" hidden>WHIP Published Source ID</option>
                 <option value="http">HTTP/HLS</option>
               </select>
@@ -18404,6 +18421,8 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             </select>
           </label>
           <label data-source-kind="rtsp">RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live" /></label>
+          <label data-source-kind="whep">WHEP URL<input name="whepUrl" placeholder="https://example.com/whep/stream" /></label>
+          <p data-source-kind="whep" class="hint">외부 WebRTC/WHEP playback endpoint를 서버가 pull source로 연결합니다. 인증 토큰이 필요한 endpoint는 별도 credential 연결 전까지 사용할 수 없습니다.</p>
           <label data-source-kind="webrtc">WHIP Published Source ID<input name="webrtcSourceId" placeholder="published-source-id" /></label>
           <p data-source-kind="webrtc" class="hint">외부 WebRTC/WHEP URL pull이 아니라, 이 서버의 WHIP publish endpoint로 이미 등록된 sourceId를 소비합니다.</p>
           <label data-source-kind="http">HTTP/HLS URL<input name="httpUrl" /></label>

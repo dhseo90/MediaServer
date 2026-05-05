@@ -4,8 +4,8 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 
 ## 핵심 요약
 
-- RTSP/WebRTC 미디어 중계: RTSP output, WebRTC signaling/WHEP output, WHIP publish sourceId 소비 1차 경로를 지원합니다. SourceRegistry의 `kind=webrtc`는 외부 WebRTC/WHEP URL pull이 아니라 `/whip/publish`로 먼저 등록된 내부 sourceId를 소비하는 경로입니다.
-- Source: file, RTSP pull, HTTP/HLS URI, 내부 WHIP publish sourceId를 같은 stream/session 구조에서 다룹니다. 공개 WebRTC/WHEP playback URL pull source는 후속 작업입니다.
+- RTSP/WebRTC 미디어 중계: RTSP output, WebRTC signaling/WHEP output, 외부 WHEP playback URL pull, WHIP publish sourceId 소비 1차 경로를 지원합니다. SourceRegistry의 `kind=webrtc`는 외부 WebRTC/WHEP URL pull이 아니라 `/whip/publish`로 먼저 등록된 내부 sourceId를 소비하는 경로입니다.
+- Source: file, RTSP pull, HTTP/HLS URI, 외부 WHEP playback URL, 내부 WHIP publish sourceId를 같은 stream/session 구조에서 다룹니다. 외부 WHEP pull은 `kind=whep`/`whepUrl` 또는 `?source=whep&url={endpoint}`로 등록/소비합니다.
 - VA overlay: `va=1`로 YOLO/ONNX detection overlay를 요청할 수 있습니다.
 - 영상 분석 UI: Rule/Profile/Scenario, 객체 category, polygon/line, event action을 `/lab/rules`에서 설정합니다.
 - Auth/account MVP: 최초 `/setup`, `/login`, role/scope principal, admin 계정 관리, viewer invite/request 승인 흐름, role 기반 route guard를 제공합니다.
@@ -131,7 +131,7 @@ RTSP 일반 viewer는 WebRTC DataChannel metadata를 표시하지 않습니다. 
 - 1차 완료: Auth/account API와 route MVP, SourceRegistry / PublishedView API와 route MVP, Client scoped dashboard API MVP, Client Live Monitor 2x2 MVP.
 - 1차 완료: `/setup`, `/login`, `/ops`, `/client` 제품 UI shell 통합. Ops 주 메뉴는 홈, 대시보드, 채널, 룰, 사용자, 클라이언트 미리보기 순서이며, client 주 메뉴는 라이브와 대시보드만 노출합니다.
 - 1차 완료: `/ops/dashboard`와 `/ops/rules`는 Lab iframe 없이 `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status` 제품 API로 운영 카드와 룰 카탈로그를 표시합니다. `/ops/events`와 `/client/events`는 제품 primary tab에서 숨기고, 이벤트 요약은 룰/대시보드 맥락에서 확인합니다. raw JSON/debug는 운영자 접힘 영역에만 둡니다.
-- 남은 우선 작업: 외부 WebRTC/WHEP URL을 pull source로 등록/소비하는 기능을 최우선으로 구현합니다. Operator Live Monitor 고밀도 화면, PublishedView 기반 scope picker, Client Live Monitor 현장형 상태 표시 고도화는 그 뒤에 정리합니다.
+- 남은 우선 작업: Loitering UI 템플릿, ZoneOccupancyScenario, Operator Live Monitor 고밀도 화면, PublishedView 기반 scope picker, Client Live Monitor 현장형 상태 표시 고도화를 순차 정리합니다.
 - 다음 작업: Loitering UI 템플릿과 ZoneOccupancyScenario 신규 구현은 계속 보류/다음 작업으로 유지합니다.
 - 제한/미구현: EventRecord archive query/compaction, 실제 snapshot frame extraction/pre-post clip recorder, Re-ID 기본 기능화, 운영 TURN relay/auth, WebSocket command/filter/subscription은 완료 범위가 아닙니다.
 
@@ -212,4 +212,4 @@ VA/Auth 주요 검증:
 - YOLO model, label, 외부 영상 source는 각 라이선스와 사용 권한을 별도로 확인해야 합니다.
 - YouTube source/import는 실험실 기능이며 운영 기본 기능이 아닙니다.
 - EventRecord는 active file 조회/검색과 marker hook 중심입니다. 실제 snapshot/clip recorder, Re-ID/appearance 기본 기능화는 개인정보와 보관 정책 검토가 필요합니다.
-- 외부 HTTP/HLS URI, 외부 WebRTC/WHEP URL pull source, 운영 TURN relay/auth는 네트워크와 credential 상태에 따라 별도 검증이 필요합니다.
+- 외부 HTTP/HLS URI, 외부 WHEP URL pull source, 운영 TURN relay/auth는 네트워크와 credential 상태에 따라 별도 검증이 필요합니다. 인증 토큰이 필요한 WHEP endpoint credential 보관/주입은 아직 별도 운영 정책 대상입니다.

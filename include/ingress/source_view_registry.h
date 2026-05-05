@@ -27,6 +27,7 @@ public:
         std::string file;
         std::string rtsp_url;
         std::string webrtc_source_id;
+        std::string whep_url;
         std::string http_url;
         bool enabled{true};
         std::vector<std::string> tags;

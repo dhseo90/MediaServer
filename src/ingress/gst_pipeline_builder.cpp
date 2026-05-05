@@ -70,6 +70,7 @@ std::string BuildFactoryLaunch(VideoCodec video_codec, media::CodecId audio_code
 std::string BuildSourceUriForDecodeBin(const media::SourceSpec& spec) {
     if (spec.kind == media::SourceSpec::Kind::Rtsp ||
         spec.kind == media::SourceSpec::Kind::WebRtc ||
+        spec.kind == media::SourceSpec::Kind::Whep ||
         spec.kind == media::SourceSpec::Kind::Hls ||
         spec.kind == media::SourceSpec::Kind::Http ||
         spec.kind == media::SourceSpec::Kind::Youtube) {
