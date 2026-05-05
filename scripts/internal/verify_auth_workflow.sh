@@ -171,6 +171,16 @@ expect_auth_store_owner_only() {
   expect_eq "${mode}" "600" "${label}"
 }
 
+expect_auth_store_contains() {
+  local label="$1"
+  local needle="$2"
+  if grep -Fq "${needle}" "${USERS_FILE}"; then
+    pass "${label}"
+  else
+    fail "${label}: missing ${needle}"
+  fi
+}
+
 expect_page_contains() {
   local label="$1"
   local url="$2"
@@ -363,12 +373,17 @@ run_users() {
     fail "login lockout was not stored"
   fi
 
-  local invite_json invite_token invite_setup invite_login
+  local invite_json invite_id invite_token preserve_reset invite_setup invite_login
   invite_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data '{"username":"invite-smoke","displayName":"Invite Smoke","role":"viewer","viewId":"view-a"}' "${BASE}/ops/api/invites")"
+  invite_id="$(printf '%s' "${invite_json}" | json_string_field inviteId)"
   invite_token="$(printf '%s' "${invite_json}" | json_string_field token)"
   [[ -n "${invite_token}" ]] || fail "invite token missing: ${invite_json}"
   pass "invite token issued once"
+  preserve_reset="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data '{"password":"LockoutNext!91"}' "${BASE}/ops/api/users/lockout-smoke/reset-password")"
+  expect_eq "${preserve_reset}" "200" "users-only save after pending invite"
+  expect_auth_store_contains "pending invite preserved across users save" "\"inviteId\": \"${invite_id}\""
   expect_page_contains "invite setup auth shell selectors" "${BASE}/invite/setup?token=${invite_token}" \
     'class="auth-shell"' 'id="themeToggleBtn"' 'name="token"' 'name="password"' 'name="confirm"' '기본 kr-privacy 정책'
   auth_ui_smoke "invite-setup" "/invite/setup?token=${invite_token}" "form.auth-form" "" 'name="token"'
@@ -412,7 +427,7 @@ run_users() {
     *) fail "accepted invite did not apply role/scope: ${existing_final}" ;;
   esac
 
-  local request_json request_id pending_login approve_json approve_token request_user_list request_setup request_login
+  local request_json request_id pending_login approve_json approve_invite_id approve_token request_user_list request_preserve_reset request_setup request_login
   request_json="$(curl -fsS -H 'Content-Type: application/json' \
     -X POST --data '{"username":"request-smoke","displayName":"Request Smoke","contact":"client@example.test","viewId":"view-b","reason":"smoke"}' "${BASE}/client/api/access-requests")"
   request_id="$(printf '%s' "${request_json}" | json_string_field requestId)"
@@ -421,6 +436,7 @@ run_users() {
   expect_eq "${pending_login}" "401" "pending request cannot login"
   approve_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data '{"viewId":"view-b"}' "${BASE}/ops/api/access-requests/${request_id}/approve")"
+  approve_invite_id="$(printf '%s' "${approve_json}" | json_string_field inviteId)"
   approve_token="$(printf '%s' "${approve_json}" | json_string_field token)"
   [[ -n "${approve_token}" ]] || fail "approve invite token missing: ${approve_json}"
   request_user_list="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/api/users")"
@@ -428,6 +444,11 @@ run_users() {
     *'"username":"request-smoke"'*) fail "approved request created user before invite setup: ${request_user_list}" ;;
     *) pass "approved request keeps user pending until invite setup" ;;
   esac
+  request_preserve_reset="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data '{"password":"LockoutNext!92"}' "${BASE}/ops/api/users/lockout-smoke/reset-password")"
+  expect_eq "${request_preserve_reset}" "200" "users-only save after approved request"
+  expect_auth_store_contains "approved request preserved across users save" "\"requestId\": \"${request_id}\""
+  expect_auth_store_contains "approved request invite preserved across users save" "\"inviteId\": \"${approve_invite_id}\""
   request_setup="$(http_code -X POST --data-urlencode "token=${approve_token}" \
     --data-urlencode 'password=Request!91' --data-urlencode 'confirm=Request!91' "${BASE}/invite/setup")"
   expect_eq "${request_setup}" "302" "approved request password setup"

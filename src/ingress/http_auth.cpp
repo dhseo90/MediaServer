@@ -340,6 +340,10 @@ bool IsKnownRole(const std::string& role) {
     return role == "admin" || role == "operator" || role == "viewer" || role == "integrator";
 }
 
+bool IsKnownAccessRequestStatus(const std::string& status) {
+    return status == "pending" || status == "approved" || status == "rejected";
+}
+
 struct InviteRecord {
     std::string invite_id;
     std::string username;
@@ -408,7 +412,7 @@ std::optional<UserRecord> ParseUserRecord(const std::string& raw) {
     return user;
 }
 
-InviteRecord ParseInviteRecord(const std::string& raw) {
+std::optional<InviteRecord> ParseInviteRecord(const std::string& raw) {
     InviteRecord invite;
     invite.invite_id = Trim(ParseStringField(raw, "inviteId").value_or(
         ParseStringField(raw, "id").value_or("")));
@@ -428,10 +432,13 @@ InviteRecord ParseInviteRecord(const std::string& raw) {
     invite.used_at = Trim(ParseStringField(raw, "usedAt").value_or(""));
     invite.created_at = Trim(ParseStringField(raw, "createdAt").value_or(""));
     invite.created_by = Trim(ParseStringField(raw, "createdBy").value_or(""));
+    if (invite.invite_id.empty() || invite.username.empty() || !IsKnownRole(invite.role)) {
+        return std::nullopt;
+    }
     return invite;
 }
 
-AccessRequestRecord ParseAccessRequestRecord(const std::string& raw) {
+std::optional<AccessRequestRecord> ParseAccessRequestRecord(const std::string& raw) {
     AccessRequestRecord request;
     request.request_id = Trim(ParseStringField(raw, "requestId").value_or(
         ParseStringField(raw, "id").value_or("")));
@@ -445,6 +452,10 @@ AccessRequestRecord ParseAccessRequestRecord(const std::string& raw) {
     request.decided_at = Trim(ParseStringField(raw, "decidedAt").value_or(""));
     request.decided_by = Trim(ParseStringField(raw, "decidedBy").value_or(""));
     request.invite_id = Trim(ParseStringField(raw, "inviteId").value_or(""));
+    if (request.request_id.empty() || request.username.empty() ||
+        !IsKnownAccessRequestStatus(request.status)) {
+        return std::nullopt;
+    }
     return request;
 }
 
@@ -465,31 +476,60 @@ std::optional<AuthStore> LoadAuthStore(const std::string& path, std::string* err
     const std::string content = buffer.str();
 
     AuthStore store;
-    for (const std::string& raw : ExtractJsonObjectArray(content, "users")) {
-        if (auto user = ParseUserRecord(raw); user.has_value()) {
+    const std::vector<std::string> raw_users = ExtractJsonObjectArray(content, "users");
+    for (std::size_t i = 0; i < raw_users.size(); ++i) {
+        if (auto user = ParseUserRecord(raw_users[i]); user.has_value()) {
             store.users.push_back(std::move(*user));
+        } else {
+            if (error_message != nullptr) {
+                *error_message = "invalid user record in auth users file at index " +
+                                 std::to_string(i) + ": " + path;
+            }
+            return std::nullopt;
         }
     }
-    for (const std::string& raw : ExtractJsonObjectArray(content, "invites")) {
-        InviteRecord invite = ParseInviteRecord(raw);
-        if (!invite.invite_id.empty() && !invite.username.empty() && IsKnownRole(invite.role)) {
-            store.invites.push_back(std::move(invite));
+    const std::vector<std::string> raw_invites = ExtractJsonObjectArray(content, "invites");
+    for (std::size_t i = 0; i < raw_invites.size(); ++i) {
+        if (auto invite = ParseInviteRecord(raw_invites[i]); invite.has_value()) {
+            store.invites.push_back(std::move(*invite));
+        } else {
+            if (error_message != nullptr) {
+                *error_message = "invalid invite record in auth users file at index " +
+                                 std::to_string(i) + ": " + path;
+            }
+            return std::nullopt;
         }
     }
-    for (const std::string& raw : ExtractJsonObjectArray(content, "accessRequests")) {
-        AccessRequestRecord request = ParseAccessRequestRecord(raw);
-        if (!request.request_id.empty() && !request.username.empty()) {
-            store.access_requests.push_back(std::move(request));
+    const std::vector<std::string> raw_requests =
+        ExtractJsonObjectArray(content, "accessRequests");
+    for (std::size_t i = 0; i < raw_requests.size(); ++i) {
+        if (auto request = ParseAccessRequestRecord(raw_requests[i]); request.has_value()) {
+            store.access_requests.push_back(std::move(*request));
+        } else {
+            if (error_message != nullptr) {
+                *error_message = "invalid access request record in auth users file at index " +
+                                 std::to_string(i) + ": " + path;
+            }
+            return std::nullopt;
         }
     }
     return store;
 }
 
 AuthStore LoadAuthStoreOrEmpty(const std::string& path, std::string* error_message) {
-    if (std::filesystem::exists(path)) {
+    std::error_code exists_ec;
+    const bool exists = std::filesystem::exists(path, exists_ec);
+    if (exists_ec) {
+        if (error_message != nullptr) {
+            *error_message = "failed to inspect auth users file: " + exists_ec.message();
+        }
+        return AuthStore{};
+    }
+    if (exists) {
         if (auto store = LoadAuthStore(path, error_message); store.has_value()) {
             return *store;
         }
+        return AuthStore{};
     }
     if (error_message != nullptr) {
         error_message->clear();
@@ -1290,7 +1330,31 @@ bool SaveAuthStore(const std::string& path, const AuthStore& store, std::string*
 bool SaveUsersFile(const std::string& path,
                    const std::vector<UserRecord>& users,
                    std::string* error_message) {
-    AuthStore store = LoadAuthStoreOrEmpty(path, nullptr);
+    std::error_code exists_ec;
+    const bool exists = std::filesystem::exists(path, exists_ec);
+    if (exists_ec) {
+        if (error_message != nullptr) {
+            *error_message = "failed to inspect auth users file: " + exists_ec.message();
+        }
+        return false;
+    }
+    if (!exists) {
+        if (error_message != nullptr) {
+            *error_message = "auth users file disappeared before preserving invite/request state: " + path;
+        }
+        return false;
+    }
+    std::string load_error;
+    auto loaded = LoadAuthStore(path, &load_error);
+    if (!loaded.has_value()) {
+        if (error_message != nullptr) {
+            *error_message = load_error.empty()
+                                 ? "failed to load auth users file before preserving invite/request state"
+                                 : load_error;
+        }
+        return false;
+    }
+    AuthStore store = std::move(*loaded);
     store.users = users;
     return SaveAuthStore(path, store, error_message);
 }
@@ -2468,22 +2532,30 @@ bool SaveBootstrapAdmin(const app::AppConfig& config,
     if (!password_hash.has_value()) {
         return false;
     }
-    std::vector<UserRecord> users;
-    if (std::filesystem::exists(config.auth_users_file)) {
+    AuthStore store;
+    std::error_code exists_ec;
+    const bool exists = std::filesystem::exists(config.auth_users_file, exists_ec);
+    if (exists_ec) {
+        if (error_message != nullptr) {
+            *error_message = "failed to inspect auth users file: " + exists_ec.message();
+        }
+        return false;
+    }
+    if (exists) {
         std::string load_error;
-        const auto loaded = LoadUsers(config.auth_users_file, &load_error);
+        const auto loaded = LoadAuthStore(config.auth_users_file, &load_error);
         if (!loaded.has_value()) {
             if (error_message != nullptr) {
                 *error_message = load_error;
             }
             return false;
         }
-        users = *loaded;
+        store = *loaded;
     }
 
     const std::string now = IsoUtcNow();
     bool updated = false;
-    for (UserRecord& user : users) {
+    for (UserRecord& user : store.users) {
         if (user.username != "admin") {
             continue;
         }
@@ -2506,28 +2578,28 @@ bool SaveBootstrapAdmin(const app::AppConfig& config,
         break;
     }
     if (!updated) {
-        users.insert(users.begin(),
-                     UserRecord{
-                         .username = "admin",
-                         .display_name = "Admin",
-                         .role = "admin",
-                         .scopes = {"*"},
-                         .password_hash = *password_hash,
-                         .password_history = {*password_hash},
-                         .token_hash = "",
-                         .enabled = true,
-                         .must_change_password = false,
-                         .failed_login_count = 0,
-                         .locked_until = "",
-                         .last_failed_login_at = "",
-                         .created_at = now,
-                         .password_updated_at = now,
-                         .last_login_at = "",
-                         .last_login_ip = "",
-                         .disabled_at = "",
-                     });
+        store.users.insert(store.users.begin(),
+                           UserRecord{
+                               .username = "admin",
+                               .display_name = "Admin",
+                               .role = "admin",
+                               .scopes = {"*"},
+                               .password_hash = *password_hash,
+                               .password_history = {*password_hash},
+                               .token_hash = "",
+                               .enabled = true,
+                               .must_change_password = false,
+                               .failed_login_count = 0,
+                               .locked_until = "",
+                               .last_failed_login_at = "",
+                               .created_at = now,
+                               .password_updated_at = now,
+                               .last_login_at = "",
+                               .last_login_ip = "",
+                               .disabled_at = "",
+                           });
     }
-    return SaveUsersFile(config.auth_users_file, users, error_message);
+    return SaveAuthStore(config.auth_users_file, store, error_message);
 }
 
 std::optional<std::string> GenerateSessionId(std::string* error_message) {
