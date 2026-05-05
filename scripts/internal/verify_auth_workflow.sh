@@ -126,6 +126,26 @@ header_status_location() {
     awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}'
 }
 
+response_header_value() {
+  local header="$1"
+  shift
+  local wanted
+  wanted="$(printf '%s' "${header}" | tr '[:upper:]' '[:lower:]')"
+  curl -sS -o /dev/null -D - "$@" | tr -d '\r' |
+    awk -v wanted="${wanted}" '
+      BEGIN { value = "" }
+      {
+        line = $0
+        split(line, parts, ":")
+        if (tolower(parts[1]) == wanted) {
+          sub(/^[^:]*:[ \t]*/, "", line)
+          value = line
+        }
+      }
+      END { print value }
+    '
+}
+
 http_code() {
   curl -sS -o /dev/null -w "%{http_code}" "$@"
 }
@@ -548,6 +568,13 @@ run_routes() {
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X POST --data 'v=0' "${BASE}/whip/publish?sourceId=auth-smoke")" "403" "viewer WHIP publish denied"
   expect_eq "$(http_code "${BASE}/ws/va-metadata?file=sample_h264.mp4")" "401" "unauth metadata websocket denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ws/va-metadata?file=sample_h264.mp4")" "403" "viewer metadata websocket denied"
+  expect_eq "$(response_header_value access-control-allow-origin "${BASE}/auth/whoami")" "" "plain request omits CORS allow origin"
+  expect_eq "$(http_code -H 'Origin: http://evil.example' "${BASE}/auth/whoami")" "403" "cross-origin actual request denied"
+  expect_eq "$(response_header_value access-control-allow-origin -H 'Origin: http://evil.example' "${BASE}/auth/whoami")" "" "cross-origin response omits CORS allow origin"
+  expect_eq "$(response_header_value access-control-allow-origin -H "Origin: ${BASE}" "${BASE}/auth/whoami")" "${BASE}" "same-origin actual reflects origin"
+  expect_eq "$(http_code -X OPTIONS -H 'Origin: http://evil.example' -H 'Access-Control-Request-Method: GET' "${BASE}/auth/whoami")" "403" "cross-origin preflight denied"
+  expect_eq "$(http_code -X OPTIONS -H "Origin: ${BASE}" -H 'Access-Control-Request-Method: GET' "${BASE}/auth/whoami")" "204" "same-origin preflight allowed"
+  expect_eq "$(response_header_value access-control-allow-origin -X OPTIONS -H "Origin: ${BASE}" -H 'Access-Control-Request-Method: GET' "${BASE}/auth/whoami")" "${BASE}" "same-origin preflight reflects origin"
   expect_eq "$(raw_http_code $'POST /login HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: abc\r\nConnection: close\r\n\r\n')" "400" "invalid content-length rejected"
   expect_eq "$(http_code "${BASE}/health")" "200" "server survives invalid content-length"
   expect_eq "$(raw_http_code $'POST /login HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 2097153\r\nConnection: close\r\n\r\n')" "413" "oversized content-length rejected"

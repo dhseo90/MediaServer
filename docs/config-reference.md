@@ -56,6 +56,8 @@ Auth on에서 직접 generic media 생성 route인 `POST /webrtc/session`, `POST
 
 내장 HTTP server는 고정 hardening limit을 적용합니다. Header는 64KiB, request body는 2MiB까지 허용하며 malformed `Content-Length`, unsupported transfer encoding, socket read timeout, 동시 active connection 초과는 route handler에 도달하기 전에 오류 응답으로 닫습니다.
 
+CORS는 별도 env 없이 same-origin 고정 정책입니다. 일반 요청에 `Origin`이 없으면 `Access-Control-Allow-Origin`을 내지 않고, `Origin`이 있으면 요청 `Host`와 같은 `http://` 또는 `https://` origin만 반사합니다. 다른 origin의 실제 요청과 preflight는 `403`으로 거부하며, wildcard origin과 credential 허용 헤더는 사용하지 않습니다.
+
 Session login은 `libsodium crypto_pwhash_str` password hash를 사용합니다. 안전한 password hashing dependency가 없는 build에서는 password login을 사용할 수 없으며 plaintext password나 단순 SHA 계열 저장을 지원하지 않습니다. Login 성공 시 새 session id를 발급하고, logout은 server-side session을 삭제하며 cookie를 만료시킵니다. Session은 TTL과 idle timeout 중 먼저 도달한 기준으로 만료됩니다.
 
 최초 관리자 bootstrap:
