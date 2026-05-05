@@ -55,9 +55,9 @@ public:
 
     static SourceViewRegistry& Instance();
 
-    std::string SourcesJson();
-    std::string ViewsJson();
-    std::string ClientViewsJson(const auth::Principal& principal);
+    RegistryResult SourcesJson();
+    RegistryResult ViewsJson();
+    RegistryResult ClientViewsJson(const auth::Principal& principal);
     RegistryResult ClientViewJson(const std::string& view_id, const auth::Principal& principal);
     RegistryResult ResolveClientViewAccess(const std::string& view_id,
                                            const auth::Principal& principal,
@@ -73,9 +73,11 @@ public:
     RegistryResult DisableView(const std::string& view_id);
 
 private:
-    void EnsureLoadedLocked();
-    void SaveSourcesLocked() const;
-    void SaveViewsLocked() const;
+    bool EnsureLoadedLocked(std::string* error_message);
+    bool SaveSourcesLocked(const std::vector<SourceRecord>& sources,
+                           std::string* error_message) const;
+    bool SaveViewsLocked(const std::vector<PublishedViewRecord>& views,
+                         std::string* error_message) const;
 
     mutable std::mutex mu_;
     bool loaded_{false};

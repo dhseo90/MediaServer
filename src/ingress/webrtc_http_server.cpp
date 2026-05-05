@@ -18082,7 +18082,9 @@ bool BuildClientLiveWebRtcQuery(const SourceViewRegistry::ClientViewAccess& acce
 }
 
 std::string ClientShellPageHtml(const auth::Principal& principal, const std::string& active) {
-    const std::string views_json = SourceViewRegistry::Instance().ClientViewsJson(principal);
+    const RegistryResult views_result = SourceViewRegistry::Instance().ClientViewsJson(principal);
+    const std::string views_json =
+        views_result.status == 200 ? views_result.body : "{\"status\":\"clientViews\",\"views\":[]}";
     const bool preview_mode =
         (auth::IsAdmin(principal) || auth::IsOperator(principal)) &&
         auth::RequireScope(principal, "ops:read");
@@ -22295,7 +22297,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return *auth_response;
                             }
                             if (request.method == "GET") {
-                                return JsonResponse(200, "OK", SourceViewRegistry::Instance().SourcesJson());
+                                return RegistryHttpResponse(SourceViewRegistry::Instance().SourcesJson());
                             }
                             if (request.method == "POST") {
                                 if (const auto auth_response = require_source_write_principal();
@@ -22336,7 +22338,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return *auth_response;
                             }
                             if (request.method == "GET") {
-                                return JsonResponse(200, "OK", SourceViewRegistry::Instance().ViewsJson());
+                                return RegistryHttpResponse(SourceViewRegistry::Instance().ViewsJson());
                             }
                             if (request.method == "POST") {
                                 if (const auto auth_response = require_source_write_principal();
@@ -22377,10 +22379,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return *auth_response;
                             }
                             if (request.method == "GET") {
-                                return JsonResponse(
-                                    200,
-                                    "OK",
-                                    SourceViewRegistry::Instance().ClientViewsJson(principal_result.principal));
+                                return RegistryHttpResponse(SourceViewRegistry::Instance().ClientViewsJson(
+                                    principal_result.principal));
                             }
                         }
 
