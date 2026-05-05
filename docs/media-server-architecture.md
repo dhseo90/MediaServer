@@ -23,7 +23,7 @@
 Client <-> RTSP/WebRTC <-> MediaServer <-> Source
 ```
 
-Source는 file, RTSP pull, HTTP/HLS URI, 내부 `/whip/publish` sourceId 소비 경로가 될 수 있습니다. 앞단 protocol과 뒷단 source protocol은 독립입니다. 공개 WebRTC/WHEP playback URL pull source는 아직 구현하지 않았습니다.
+Source는 file, RTSP pull, HTTP/HLS URI, 외부 WHEP playback URL pull, 내부 `/whip/publish` sourceId 소비 경로가 될 수 있습니다. 앞단 protocol과 뒷단 source protocol은 독립입니다. `kind=webrtc`는 내부 WHIP publish sourceId, `kind=whep`은 외부 WHEP endpoint URL입니다.
 
 ```text
 RTSP Client
@@ -38,7 +38,7 @@ SessionManager
 StreamRegistry -- StreamKey dedup
     |
     v
-SharedStream <---- SourceWorker <---- File / RTSP / HTTP-HLS / WHIP-published sourceId
+SharedStream <---- SourceWorker <---- File / RTSP / HTTP-HLS / WHEP / WHIP-published sourceId
     |
     +----> RTSP Egress
     |
@@ -55,7 +55,7 @@ SharedStream <---- SourceWorker <---- File / RTSP / HTTP-HLS / WHIP-published so
 | SessionManager | session 생성/종료, ResourceGuard 확인, SharedStream 구독 연결, analysis tap 생성 |
 | StreamRegistry | StreamKey 기준 SharedStream dedup 저장소 |
 | SharedStream | SourceWorker에서 받은 packet을 여러 client/analysis subscriber에 fan-out |
-| SourceWorker | file, RTSP pull, HTTP/HLS URI, 내부 WHIP-published sourceId를 읽어 SharedStream에 공급 |
+| SourceWorker | file, RTSP pull, HTTP/HLS URI, 외부 WHEP playback URL, 내부 WHIP-published sourceId를 읽어 SharedStream에 공급 |
 | RTSP Egress | SharedStream packet을 RTSP route별 output으로 변환 |
 | WebRTC Egress | SharedStream packet을 WebRTC signaling/WHEP client로 전송 |
 | Analysis Tap | SharedStream을 구독해 VA decode/inference/overlay/event 처리를 수행 |
@@ -106,7 +106,7 @@ Viewer 계정은 `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{v
 ```text
 Operator
   -> /ops/api/sources
-  -> SourceRegistry{sourceId, kind, canonicalSourceKey, file/rtspUrl/webrtcSourceId/httpUrl}
+  -> SourceRegistry{sourceId, kind, canonicalSourceKey, file/rtspUrl/webrtcSourceId/whepUrl/httpUrl}
   -> /ops/api/views
   -> PublishedView{viewId, sourceId, defaultRuleId, allowedRuleIds, clientGroups}
 
@@ -116,9 +116,9 @@ Viewer
   -> PublishedView public fields only
 ```
 
-SourceRegistry는 `.media_server.sources.json`, PublishedView는 `.media_server.views.json`을 기본 저장소로 사용합니다. `canonicalSourceKey`는 file token, RTSP/HTTP URL, 또는 WHIP publish sourceId를 정규화해 중복 등록을 막는 내부 운영 키이며, RTSP/HTTP URL query 순서 차이는 같은 source로 취급합니다. Registry 저장은 임시 파일 write/fsync/rename 후 parent directory fsync로 반영합니다. 기존 registry file에 invalid source/view record, 중복 id/canonical key, 존재하지 않는 `sourceId` 참조가 있으면 기본 seed나 mutation으로 덮어쓰지 않고 load/write API가 실패합니다. 현재 `kind=webrtc`는 외부 WebRTC/WHEP URL pull이 아니라 `/whip/publish`로 등록된 내부 sourceId 소비 경로입니다.
+SourceRegistry는 `.media_server.sources.json`, PublishedView는 `.media_server.views.json`을 기본 저장소로 사용합니다. `canonicalSourceKey`는 file token, RTSP/HTTP/WHEP URL, 또는 WHIP publish sourceId를 정규화해 중복 등록을 막는 내부 운영 키이며, RTSP/HTTP/WHEP URL query 순서 차이는 같은 source로 취급합니다. Registry 저장은 임시 파일 write/fsync/rename 후 parent directory fsync로 반영합니다. 기존 registry file에 invalid source/view record, 중복 id/canonical key, 존재하지 않는 `sourceId` 참조가 있으면 기본 seed나 mutation으로 덮어쓰지 않고 load/write API가 실패합니다. 현재 `kind=webrtc`는 `/whip/publish`로 등록된 내부 sourceId 소비 경로이고, 외부 WebRTC/WHEP playback URL은 `kind=whep`과 `whepUrl`로 분리합니다.
 
-클라이언트 API는 `view:read:{viewId}` scope가 있는 view만 목록에 반환하고, view별 dashboard/events/metadata API는 각각 `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`를 요구합니다. `file`, `rtspUrl`, `httpUrl`, `webrtcSourceId`, `canonicalSourceKey` 같은 원본 locator는 반환하지 않습니다. PublishedView의 `maxTiles`는 Client Live UI 배정과 `/client/api/views/{viewId}/webrtc/session` wrapper에서 같은 principal+view 동시 session 상한으로 적용합니다. PublishedView의 `defaultRuleId`와 `allowedRuleIds`는 기존 `vaRule` ID를 참조하지만, Client Live에서 `va-rule` mode를 실행할 때는 해당 rule의 저장 source가 PublishedView source와 일치해야 합니다. 기존 `vaRule` 저장 구조와 `vaRule=<id>` 호출 방식은 그대로 유지합니다.
+클라이언트 API는 `view:read:{viewId}` scope가 있는 view만 목록에 반환하고, view별 dashboard/events/metadata API는 각각 `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`를 요구합니다. `file`, `rtspUrl`, `httpUrl`, `webrtcSourceId`, `whepUrl`, `canonicalSourceKey` 같은 원본 locator는 반환하지 않습니다. PublishedView의 `maxTiles`는 Client Live UI 배정과 `/client/api/views/{viewId}/webrtc/session` wrapper에서 같은 principal+view 동시 session 상한으로 적용합니다. PublishedView의 `defaultRuleId`와 `allowedRuleIds`는 기존 `vaRule` ID를 참조하지만, Client Live에서 `va-rule` mode를 실행할 때는 해당 rule의 저장 source가 PublishedView source와 일치해야 합니다. 기존 `vaRule` 저장 구조와 `vaRule=<id>` 호출 방식은 그대로 유지합니다.
 
 ### Ops / Client / Lab UI shell
 
@@ -142,7 +142,8 @@ HTTP UI는 같은 미디어/API 기능 위에 role별 shell을 얹는 구조입�
 | --- | --- | --- |
 | file | `?file=sample_h264.mp4` | 기본 경로 |
 | RTSP pull | `?url=rtsp%3A%2F%2Fcamera%2Flive` | 기본 경로 |
-| WebRTC publish source | `?source=webrtc&url={sourceId}` | `/whip/publish`로 등록된 내부 sourceId 소비. 외부 WebRTC/WHEP URL pull은 미구현 |
+| WHEP pull | `?source=whep&url={encodedWhepEndpoint}` | 외부 WHEP playback endpoint를 서버가 pull해 SharedStream으로 fan-out |
+| WebRTC publish source | `?source=webrtc&url={sourceId}` | `/whip/publish`로 등록된 내부 sourceId 소비 |
 | HTTP/HLS URI | `?source=http&url={encodedUrl}` | 로컬 HTTP MP4 기본 검증, HLS/외부 URI는 선택 검증 |
 | YouTube experimental | `source=youtube` | 실험 기능. 상세는 [youtube-import.md](./youtube-import.md) |
 

@@ -17,7 +17,7 @@ struct IngressRequest {
 
 struct SourceSpec {
     // MediaServer가 원본 소스를 어떤 방식으로 읽을지 결정하는 뒷단 프로토콜 정보다.
-    enum class Kind { Rtsp, File, WebRtc, Hls, Http, Youtube };
+    enum class Kind { Rtsp, File, WebRtc, Whep, Hls, Http, Youtube };
     Kind kind;
     std::string uri;
 };
@@ -76,6 +76,8 @@ inline std::string ToString(SourceSpec::Kind kind) {
             return "file";
         case SourceSpec::Kind::WebRtc:
             return "webrtc";
+        case SourceSpec::Kind::Whep:
+            return "whep";
         case SourceSpec::Kind::Hls:
             return "hls";
         case SourceSpec::Kind::Http:

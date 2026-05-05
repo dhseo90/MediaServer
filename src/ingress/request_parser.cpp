@@ -3,6 +3,8 @@
 // 동작 요약: route별 codec 선택과 source kind를 SessionManager 입력 형태로 정규화한다.
 #include "ingress/request_parser.h"
 
+#include <algorithm>
+#include <cctype>
 #include <filesystem>
 
 #include "app_config.h"
@@ -15,6 +17,18 @@ void SetError(std::string* error_message, std::string message) {
     if (error_message != nullptr) {
         *error_message = std::move(message);
     }
+}
+
+std::string LowerAscii(std::string value) {
+    std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    return value;
+}
+
+bool HasHttpOrHttpsScheme(const std::string& value) {
+    const std::string lower = LowerAscii(value);
+    return lower.rfind("http://", 0) == 0 || lower.rfind("https://", 0) == 0;
 }
 
 }  // namespace
@@ -120,6 +134,12 @@ std::optional<media::SourceSpec> ParseSourceSpec(const media::IngressRequest& re
         // source 파라미터는 MediaServer -> Original Source 구간의 프로토콜을 명시한다.
         if (source_it->second == "webrtc") {
             kind = media::SourceSpec::Kind::WebRtc;
+        } else if (source_it->second == "whep") {
+            if (!HasHttpOrHttpsScheme(url_it->second)) {
+                SetError(error_message, "source=whep requires an http(s) WHEP endpoint URL");
+                return std::nullopt;
+            }
+            kind = media::SourceSpec::Kind::Whep;
         } else if (source_it->second == "rtsp") {
             kind = media::SourceSpec::Kind::Rtsp;
         } else if (source_it->second == "hls") {

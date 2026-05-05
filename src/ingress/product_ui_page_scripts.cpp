@@ -153,6 +153,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     const sourceKindLabel = kind => ({
       file: '파일',
       rtsp: 'RTSP',
+      whep: 'WHEP',
       http: 'HTTP/HLS',
       hls: 'HTTP/HLS',
       webrtc: 'WebRTC'
@@ -1210,11 +1211,13 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const kindLabel = kind => ({
       file: '파일',
       rtsp: 'RTSP URL',
+      whep: 'WHEP URL',
       webrtc: 'WHIP sourceId',
       http: 'HTTP/HLS URL'
     })[kind] || kind || '미제공';
     const locatorForSource = source => {
       if (source.webrtcSourceId) return `WHIP sourceId: ${source.webrtcSourceId}`;
+      if (source.whepUrl) return `WHEP URL: ${source.whepUrl}`;
       return source.file || source.rtspUrl || source.httpUrl || '미제공';
     };
     const streamTransportLabel = type => ({
@@ -1233,6 +1236,11 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       if (source.rtspUrl) {
         params.set('source', 'rtsp');
         params.set('url', source.rtspUrl);
+        return params;
+      }
+      if (source.whepUrl) {
+        params.set('source', 'whep');
+        params.set('url', source.whepUrl);
         return params;
       }
       if (source.httpUrl) {
@@ -1520,6 +1528,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       if (source.file) payload.file = source.file;
       if (source.rtspUrl) payload.rtspUrl = source.rtspUrl;
       if (source.webrtcSourceId) payload.webrtcSourceId = source.webrtcSourceId;
+      if (source.whepUrl) payload.whepUrl = source.whepUrl;
       if (source.httpUrl) payload.httpUrl = source.httpUrl;
       return payload;
     }
@@ -1540,11 +1549,11 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         enabled
       };
     }
-	    function resetChannelForm(mode = 'new') {
-	      channelForm.reset();
-	      channelForm.elements.channelId.value = nextChannelId();
-	      currentChannelEnabled = true;
-	      setChannelValidation('');
+    function resetChannelForm(mode = 'new') {
+      channelForm.reset();
+      channelForm.elements.channelId.value = nextChannelId();
+      currentChannelEnabled = true;
+      setChannelValidation('');
       updateKindFields();
       loadFileOptions();
       channelPanel.hidden = false;
@@ -1562,16 +1571,17 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       loadFileOptions(source.file || '');
       channelForm.elements.rtspUrl.value = source.rtspUrl || '';
       channelForm.elements.webrtcSourceId.value = source.webrtcSourceId || '';
+      channelForm.elements.whepUrl.value = source.whepUrl || '';
       channelForm.elements.httpUrl.value = source.httpUrl || '';
       currentChannelEnabled = isClone ? false : (source.enabled !== false && view.enabled !== false);
       if (isClone && channelForm.elements.displayName.value) {
         channelForm.elements.displayName.value = `${channelForm.elements.displayName.value} 복제`;
       }
       updateKindFields();
-	      const legacyIdMessage = !isClone && id && !isNumericChannelId(id)
-	        ? `기존 문자열 ID "${id}"는 legacy 데이터입니다. 새 저장은 숫자 채널 ID로만 가능합니다.`
-	        : '';
-	      setChannelValidation(legacyIdMessage);
+      const legacyIdMessage = !isClone && id && !isNumericChannelId(id)
+        ? `기존 문자열 ID "${id}"는 legacy 데이터입니다. 새 저장은 숫자 채널 ID로만 가능합니다.`
+        : '';
+      setChannelValidation(legacyIdMessage);
       channelPanel.hidden = false;
       syncEditorChrome(mode, isClone ? '' : id);
       channelPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1580,78 +1590,81 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       if (!id) return;
       fillChannel(id, mode);
     }
-	    function validateChannelForm(form) {
-	      const data = formDataObject(form);
+    function validateChannelForm(form) {
+      const data = formDataObject(form);
       if (!isNumericChannelId(data.channelId)) return '채널 ID는 1 이상의 숫자만 사용할 수 있습니다.';
       const kind = data.kind || 'file';
       const locatorByKind = {
         file: data.file,
         rtsp: data.rtspUrl,
         webrtc: data.webrtcSourceId,
+        whep: data.whepUrl,
         http: data.httpUrl
       };
       if (!(locatorByKind[kind] || '').trim()) {
-        if (kind === 'webrtc') return 'WHIP publish로 등록된 Source ID가 필요합니다. 외부 WebRTC/WHEP URL pull은 아직 지원하지 않습니다.';
+        if (kind === 'webrtc') return 'WHIP publish로 등록된 Source ID가 필요합니다.';
+        if (kind === 'whep') return '외부 WHEP playback endpoint URL이 필요합니다.';
         return `${kindLabel(kind)} 입력값이 필요합니다.`;
       }
-	      return '';
-	    }
-	    function channelPayloadsFromFormData(data) {
-	      const channelId = data.channelId.trim();
-	      const sourcePayload = {
-	        sourceId: channelId,
-	        displayName: data.displayName,
-	        kind: data.kind,
-	        enabled: currentChannelEnabled,
-	        tags: [],
-	        ownerGroup: ''
-	      };
-	      if (data.kind === 'file') sourcePayload.file = (data.file || '').trim();
-	      if (data.kind === 'rtsp') sourcePayload.rtspUrl = (data.rtspUrl || '').trim();
-	      if (data.kind === 'webrtc') sourcePayload.webrtcSourceId = (data.webrtcSourceId || '').trim();
-	      if (data.kind === 'http') sourcePayload.httpUrl = (data.httpUrl || '').trim();
-	      const viewPayload = {
-	        viewId: channelId,
-	        displayName: data.displayName,
-	        sourceId: channelId,
-	        defaultRuleId: '',
-	        allowedRuleIds: [],
-	        allowedOverlayModes: ['raw', 'va-overlay', 'va-rule'],
-	        showDashboard: true,
-	        showEvents: true,
-	        showMetadataSummary: true,
-	        clientGroups: [],
-	        maxTiles: 1,
-	        enabled: currentChannelEnabled
-	      };
-	      return { channelId, sourcePayload, viewPayload };
-	    }
-	    async function loadAll() {
-	      const [sources, views, clientViews] = await Promise.all([
-	        requestJson('/ops/api/sources'),
+      return '';
+    }
+    function channelPayloadsFromFormData(data) {
+      const channelId = data.channelId.trim();
+      const sourcePayload = {
+        sourceId: channelId,
+        displayName: data.displayName,
+        kind: data.kind,
+        enabled: currentChannelEnabled,
+        tags: [],
+        ownerGroup: ''
+      };
+      if (data.kind === 'file') sourcePayload.file = (data.file || '').trim();
+      if (data.kind === 'rtsp') sourcePayload.rtspUrl = (data.rtspUrl || '').trim();
+      if (data.kind === 'webrtc') sourcePayload.webrtcSourceId = (data.webrtcSourceId || '').trim();
+      if (data.kind === 'whep') sourcePayload.whepUrl = (data.whepUrl || '').trim();
+      if (data.kind === 'http') sourcePayload.httpUrl = (data.httpUrl || '').trim();
+      const viewPayload = {
+        viewId: channelId,
+        displayName: data.displayName,
+        sourceId: channelId,
+        defaultRuleId: '',
+        allowedRuleIds: [],
+        allowedOverlayModes: ['raw', 'va-overlay', 'va-rule'],
+        showDashboard: true,
+        showEvents: true,
+        showMetadataSummary: true,
+        clientGroups: [],
+        maxTiles: 1,
+        enabled: currentChannelEnabled
+      };
+      return { channelId, sourcePayload, viewPayload };
+    }
+    async function loadAll() {
+      const [sources, views, clientViews] = await Promise.all([
+        requestJson('/ops/api/sources'),
         requestJson('/ops/api/views'),
         requestJson('/client/api/views')
       ]);
-	      loadedSources = sources.sources || [];
-	      loadedViews = views.views || [];
-	      renderChannels(loadedSources, loadedViews);
-	      renderRegistryRaw(sources, views, clientViews);
-	      setStatus('');
-	    }
+      loadedSources = sources.sources || [];
+      loadedViews = views.views || [];
+      renderChannels(loadedSources, loadedViews);
+      renderRegistryRaw(sources, views, clientViews);
+      setStatus('');
+    }
     channelForm.addEventListener('submit', async event => {
       event.preventDefault();
-	      const form = event.currentTarget;
-	      const data = formDataObject(form);
-	      const validation = validateChannelForm(form);
-	      setChannelValidation(validation);
-	      if (validation) return;
-	      const { channelId, sourcePayload, viewPayload } = channelPayloadsFromFormData(data);
-	      try {
-	        await requestJson(`/ops/api/sources/${encodeURIComponent(channelId)}`, {
-	          method: 'PUT',
-	          headers: { 'Content-Type': 'application/json' },
-	          body: JSON.stringify(sourcePayload)
-	        });
+      const form = event.currentTarget;
+      const data = formDataObject(form);
+      const validation = validateChannelForm(form);
+      setChannelValidation(validation);
+      if (validation) return;
+      const { channelId, sourcePayload, viewPayload } = channelPayloadsFromFormData(data);
+      try {
+        await requestJson(`/ops/api/sources/${encodeURIComponent(channelId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(sourcePayload)
+        });
         await requestJson(`/ops/api/views/${encodeURIComponent(channelId)}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
