@@ -122,9 +122,9 @@ SourceRegistry는 `.media_server.sources.json`, PublishedView는 `.media_server.
 
 HTTP UI는 같은 미디어/API 기능 위에 role별 shell을 얹는 구조입니다. Shell 통합은 browser route와 화면 구성만 다루며 media pipeline, Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema, scenario 판단 로직은 변경하지 않습니다.
 
-- `/ops`: admin/operator용 운영 콘솔입니다. 공통 header/nav 아래에서 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기를 렌더링합니다. `/ops/home`은 운영 홈 summary MVP이고, `/ops/live`는 완성형 operator live monitor 후속 안내 route입니다. `/ops/dashboard`는 기존 Lab Runtime Dashboard를 운영 shell 안에 embed합니다. `/ops/events`는 primary nav에서 숨긴 직접/진단 route로 보존하며 독립 제품 탭으로 취급하지 않습니다. raw JSON은 운영자 debug 접힘 영역에만 둡니다.
+- `/ops`: admin/operator용 운영 콘솔입니다. 공통 header/nav 아래에서 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기를 렌더링합니다. `/ops/home`은 운영 홈 summary MVP이고, `/ops/live`는 완성형 operator live monitor 후속 안내 route입니다. `/ops/dashboard`는 `/ops/api/runtime/status` 기반 운영 카드, `/ops/rules`는 `/ops/api/rules/catalog` 기반 룰 카탈로그를 표시하며 Lab iframe을 사용하지 않습니다. `/ops/events`는 primary nav에서 숨긴 직접/진단 route로 보존하며 독립 제품 탭으로 취급하지 않습니다. raw JSON은 운영자 debug 접힘 영역에만 둡니다.
 - `/client`: viewer/client 포털입니다. `/client/live`는 PublishedView 기반 2x2 live monitor MVP이고, `/client/dashboard`는 scoped summary와 sanitized event summary를 표시합니다. Client Events tab은 primary nav에서 제거했습니다. client shell과 client API는 source 원본 locator, Developer URL, raw JSON, `debugCounters`, internal session/tap id, rule/profile editor를 노출하지 않습니다. Integrator는 이 shell에 진입하지 않고 scoped client API만 사용합니다.
-- `/lab`: 개발/검증용 shell입니다. 기존 `/lab`와 `/lab/rules` 자동화 호환을 유지하며 Runtime Dashboard, VA metadata viewer, developer/debug detail은 Lab에서 계속 확인합니다. `/ops/rules`는 Lab Rule Editor를 운영 shell 안에 embed하고, 룰 source 선택은 채널 탭에 등록된 숫자 채널을 기준으로 제한합니다.
+- `/lab`: 개발/검증용 shell입니다. 기존 `/lab`와 `/lab/rules` 자동화 호환을 유지하며 Runtime Dashboard, VA metadata viewer, developer/debug detail은 Lab에서 계속 확인합니다. 운영 화면은 Lab editor를 embed하지 않고, 채널/룰 상태를 Ops 전용 API와 제품 컴포넌트로 표시합니다.
 
 ### Source+Profile analysis reuse
 
