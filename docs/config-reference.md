@@ -451,7 +451,9 @@ IntrusionAfterLineCrossing 상태:
 
 Loitering 상태:
 
-- engine/replay 기준은 존재하지만 전용 룰 편집 UI 템플릿은 다음 작업
+- engine/replay와 전용 룰 편집 UI 템플릿은 구현됨
+- 룰 편집 UI는 `minDwellTimeMs`, `maxMovementRadius`, `minTrajectoryPoints`, `cooldownMs`, `targetZoneIds`, `useGroundPlaneMovementRadius`를 저장함
+- 실제 현장 샘플 기반 threshold tuning은 후속
 - ZoneOccupancyScenario 신규 구현도 다음 작업으로 분리
 
 ## Event POST env

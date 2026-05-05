@@ -290,7 +290,7 @@ Scenario는 여러 frame에 걸친 시간 조건과 상태 전이를 판단하�
 | ReEntry | 구현됨 | 룰 편집 UI에서 선택 가능 |
 | WrongDirection | 구현됨 | 룰 편집 UI에서 선택 가능 |
 | IntrusionAfterLineCrossing | 구현됨 | 룰 편집 UI에서 선택 가능 |
-| Loitering | engine/replay 구현 | 전용 UI 템플릿은 다음 작업 |
+| Loitering | 구현됨 | 룰 편집 UI에서 선택 가능 |
 | ZoneOccupancyScenario | 다음 작업 | 신규 scenario/UI 구현 예정 |
 
 현재 UI가 제공하는 시나리오 템플릿:
@@ -301,6 +301,7 @@ Scenario는 여러 frame에 걸친 시간 조건과 상태 전이를 판단하�
 | ReEntry · 이탈 후 재진입 | polygon zone, 재진입 window, 재진입 zone, cooldown | `re-entry` |
 | WrongDirection · 금지 방향 통과 | line 2점 geometry, 허용 방향, cooldown | `wrong-direction` |
 | IntrusionAfterLineCrossing · line 후 zone 침입 | trigger line, crossing direction, target zone, zone entry timeout, dwell, cooldown | `intrusion-after-line-crossing` |
+| Loitering · 배회 감지 | target zone, minimum dwell, movement radius, trajectory points, cooldown | `loitering` |
 
 ReEntry UI 정책:
 
@@ -323,6 +324,14 @@ IntrusionAfterLineCrossing UI 정책:
 - target zone은 영역/라인 캔버스의 polygon으로 저장하고, trigger line은 전용 설정 영역의 line id/direction/정규화 좌표로 저장합니다.
 - `any`, `forward`, `reverse` crossing direction을 모두 사용할 수 있습니다. `any`는 WrongDirection과 달리 정상 trigger 방향입니다.
 - UI의 `zoneEntryTimeout(ms)`는 저장 payload의 `maxDelayAfterCrossingMs`로 runtime에 전달합니다.
+- Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직은 변경하지 않습니다.
+
+Loitering UI 정책:
+
+- target zone은 영역/라인 캔버스의 polygon으로 저장하고, zone 이름은 `targetZoneIds`에 저장합니다.
+- `최소 체류 시간(ms)`은 저장 payload의 `minDwellTimeMs`로 runtime에 전달합니다.
+- `최대 이동 반경`과 `최소 trajectory point`는 각각 `maxMovementRadius`, `minTrajectoryPoints`로 저장합니다.
+- optional ground-plane 이동 반경 사용 여부는 `useGroundPlaneMovementRadius`로 저장합니다.
 - Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직은 변경하지 않습니다.
 
 Intrusion Dwell UI 항목:
@@ -353,6 +362,17 @@ IntrusionAfterLineCrossing UI 항목:
 - 재알림 대기 시간(ms)
 - 대상 객체와 불안정 track 제외
 - Idle → LineCrossed → ZoneEntered → Observing → Confirmed → Cooldown → Ended 상태 흐름 미리보기
+
+Loitering UI 항목:
+
+- target zone polygon과 zone 이름
+- 최소 체류 시간(ms)
+- 최대 이동 반경
+- 최소 trajectory point
+- ground-plane 이동 반경 사용 여부
+- 재알림 대기 시간(ms)
+- 대상 객체와 불안정 track 제외
+- Idle → InsideZone → TrajectoryStable → DwellSatisfied → Confirmed → Cooldown → Ended 상태 흐름 미리보기
 
 실제 scenario engine 활성화와 기본값은 서버 설정과 함께 동작합니다. 환경변수는 [config-reference.md](./config-reference.md)를 봅니다.
 
