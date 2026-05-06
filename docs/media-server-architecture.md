@@ -349,7 +349,7 @@ GET /lab/analysis/event-storage/status
 
 | 확장 포인트 | 현재 상태 | 목적 |
 | --- | --- | --- |
-| EventStorage | optional JSON Lines | EventRecord 저장, active/archive 조회/API, 비파괴 compaction snapshot |
+| EventStorage | optional JSON Lines | EventRecord 저장, active/archive 조회/API, 비파괴 compaction snapshot 생성/목록/다운로드/삭제 |
 | WebRTC DataChannel | opt-in | runtime metadata frame을 기존 WebRTC schema로 직렬화해 video stream과 별도로 전달 |
 | Runtime Metadata Side-Channel | SSE/WebSocket 최소 구현 | custom client가 RTSP video와 별도 metadata stream을 함께 소비 |
 | Ops/Client UI shell | 1차 통합 완료 | `/ops` 운영 콘솔, `/client` 클라이언트 포털, `/lab` 개발/검증 shell 역할 분리 |

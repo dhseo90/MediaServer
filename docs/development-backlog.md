@@ -17,7 +17,7 @@
 
 - 구현 완료: RTSP/WebRTC relay, File/RTSP/HTTP-HLS source, 외부 WHEP URL pull source, 내부 WHIP publish sourceId 소비, YOLO/ONNX VA overlay, Rule/Profile UI, `vaRule=<id>` 호출, 기존 Intrusion/LineCrossing 이벤트 회귀 구조.
 - 구현 완료: TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, ZoneOccupancy engine/replay/UI 템플릿, TrackHealth, cleanup 정책.
-- 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage와 active/archive query/search UI, EventRecord rotation/retention/recovery 1차, 비파괴 compaction snapshot, snapshot media 저장과 pre/post frame bundle recorder, WebRTC VA metadata DataChannel 출력 구조.
+- 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage와 active/archive query/search UI, EventRecord rotation/retention/recovery 1차, 비파괴 compaction snapshot 생성/목록/다운로드/삭제, snapshot media 저장과 pre/post frame bundle recorder, WebRTC VA metadata DataChannel 출력 구조.
 - 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, client-side Trend/Stale/Cleanup warning 1차, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, IntrusionDwell/ReEntry/WrongDirection/IntrusionAfterLineCrossing/Loitering scenario UI 템플릿, 자동/longrun 검증 명령.
 - 구현 완료: Auth / Role / Scope, account login/session API/route MVP, Auth Bootstrap + 기본 로그인 강제, Password Policy + Lockout + Session Hardening, Admin User Management Console + CLI, Client Account Policy / Invite / Request MVP, Root/Login/Ops/Client/Lab 접근 정책.
 - 구현 완료: SourceRegistry / PublishedView API/route MVP, client scoped view API 1차, Client scoped dashboard API/UI MVP, Client Live Monitor grid/density/reconnect 상태 1차.
@@ -25,7 +25,7 @@
 - 기존 Scenario UI 로드맵 1~4번 완료: Runtime Dashboard trend/stale/cleanup warning 1차, Scenario rule payload -> runtime per-rule 설정 연결, ReEntry Scenario UI 템플릿, IntrusionAfterLineCrossing Scenario UI 템플릿.
 - ReEntry와 IntrusionAfterLineCrossing은 룰 편집 UI에서 선택 가능하며 저장/round-trip 검증 대상입니다.
 - 현재 우선순위: 운영/클라이언트 분리의 제품 진입점 정합성을 위해 Auth Bootstrap, password policy/lockout/session hardening, admin 계정 관리, client invite/request MVP, role/scope 기반 root/route 접근 정책, Ops/Client shell 통합 1차를 완료했고 문서 상태를 실제 구현 기준으로 닫았습니다.
-- 다음 작업: archive cleanup/compact 관리 고도화와 metadata subscription filter/control을 후속으로 둡니다.
+- 다음 작업: metadata subscription filter/control과 archive cleanup policy 고도화를 후속으로 둡니다.
 - 후속 Phase: 다음 운영/클라이언트 phase의 진입점은 SourceRegistry/PublishedView 기반 고도화입니다. PublishedView 기반 scope picker, Client scoped dashboard polish, Analysis tap reuse / source+profile 공유 정책 UI는 아래 운영/클라이언트 분리 phase에서 별도로 관리합니다.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
 - 실험/제약: snapshot/clip은 짧은 EventRecord evidence frame 저장용이며 MP4/VMS/NVR 장기 녹화 기능으로 표현하지 않습니다.
@@ -35,7 +35,7 @@
 
 - `완료`로 표시된 항목은 각 항목의 “완료 범위”와 검증 명령에 한정된 1차 구현 상태입니다. 운영 배포 승격은 장기 soak, TURN/외부 네트워크, credential, 개인정보/보관 정책 검토를 별도 gate로 통과해야 합니다.
 - WebRTC source 관련 완료 범위는 WebRTC egress/WHEP output, 내부 `/whip/publish` sourceId 소비, 외부 WHEP playback endpoint를 `kind=whep`/`whepUrl`로 pull하는 SourceRegistry 경로입니다. 인증 토큰이 필요한 외부 WHEP endpoint credential 보관/주입은 별도 운영 정책 gate로 둡니다.
-- EventRecord 완료 범위는 JSON Lines 저장, active/archive 조회/search UI, rotation/retention/recovery 1차, 비파괴 compaction snapshot, snapshot media/pre-post frame bundle recorder입니다. Archive cleanup 운영 도구와 MP4/VMS/NVR형 recorder는 후속입니다.
+- EventRecord 완료 범위는 JSON Lines 저장, active/archive 조회/search UI, rotation/retention/recovery 1차, 비파괴 compaction snapshot 생성/목록/다운로드/삭제, snapshot media/pre-post frame bundle recorder입니다. Archive cleanup policy와 MP4/VMS/NVR형 recorder는 후속입니다.
 - Loitering은 engine/replay와 전용 룰 편집 UI 템플릿, 현장 샘플 프리셋 기준 완료입니다. ZoneOccupancyScenario는 engine/replay/UI 1차 완료입니다.
 - Re-ID/appearance, YouTube import/source, 외부 TURN relay/auth, WS command/filter/subscription은 실험/보류 범위이며 운영 기본 기능으로 표현하지 않습니다.
 
@@ -329,7 +329,7 @@ git diff --check -- README.md docs
   - rotated archive query 옵션과 UI 필터
   - storage compaction 또는 repair rewrite
   - archive별 상세 status와 운영 cleanup 도구
-  - compacted snapshot 목록/삭제/다운로드 UI
+  - compacted snapshot 목록/삭제/다운로드 UI 완료
 - 검증 명령:
 
 ```bash
@@ -419,7 +419,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 - 목적: 이벤트 목록, 필터, EventRecord detail, snapshot/clip evidence path를 Lab에서 확인합니다.
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/analysis/event_storage.cpp`, `docs/ui-guide.md`
 - 구현 완료 범위: Runtime Dashboard의 수동 검색 UI, active/archive records 조회, storage status summary, corrupt/partial count 표시, snapshotPath/clipPath 표시입니다.
-- 후속 범위: 대량 archive paging, compacted snapshot 관리, snapshot/clip preview 연결입니다. 현재 UI는 영상 재생을 수행하지 않습니다.
+- 후속 범위: 대량 archive paging, archive cleanup policy, snapshot/clip preview 연결입니다. 현재 UI는 영상 재생을 수행하지 않습니다.
 - 검증 명령:
 
 ```bash

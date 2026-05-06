@@ -518,7 +518,7 @@ EventRecord storage 정책:
 - corrupt/partial line recovery scan에는 별도 env가 없습니다.
 - status/records read path에서 손상 행을 line-by-line으로 skip/count 처리합니다.
 
-EventRecord file storage, active/archive query/search UI와 rotation/retention/recovery 1차는 구현 완료 상태입니다. Compaction은 기존 파일을 rewrite/delete하지 않는 snapshot 생성 API로 제공합니다. Snapshot/clip hook은 분석 raw frame rolling buffer를 사용해 snapshot media file과 짧은 pre/post frame bundle manifest를 생성합니다. 후속 범위는 archive별 상세 status, 운영 cleanup 도구, MP4/VMS/NVR형 recorder입니다.
+EventRecord file storage, active/archive query/search UI와 rotation/retention/recovery 1차는 구현 완료 상태입니다. Compaction은 기존 파일을 rewrite/delete하지 않는 snapshot 생성 API로 제공하며 compacted snapshot 목록/다운로드/삭제 API도 제공합니다. Snapshot/clip hook은 분석 raw frame rolling buffer를 사용해 snapshot media file과 짧은 pre/post frame bundle manifest를 생성합니다. 후속 범위는 archive cleanup policy와 MP4/VMS/NVR형 recorder입니다.
 
 ### Snapshot / clip hook
 

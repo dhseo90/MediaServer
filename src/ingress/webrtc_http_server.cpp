@@ -7727,6 +7727,7 @@ std::string BuildLabRuleEditorPageHtml() {
                   <div class="event-record-actions">
                     <button id="eventRecordSearchBtn" type="button">검색</button>
                     <button id="eventRecordCompactBtn" type="button" class="secondary">compaction snapshot</button>
+                    <button id="eventRecordCompactionListBtn" type="button" class="secondary">snapshot 목록</button>
                     <p id="eventRecordStateText" class="event-record-state">자동 갱신 없음 · active JSON Lines metadata 조회 · archive는 선택 시 포함</p>
                   </div>
                   <div class="dashboard-table-wrap">
@@ -7738,6 +7739,15 @@ std::string BuildLabRuleEditorPageHtml() {
                   <details id="eventRecordDetailDrawer" class="event-record-detail-drawer">
                     <summary>EventRecord detail</summary>
 	                    <pre id="eventRecordDetailJson" class="raw-json-panel">eventId를 선택하면 원본 EventRecord JSON이 표시됩니다.</pre>
+                  </details>
+                  <details id="eventRecordCompactionDrawer" class="event-record-detail-drawer">
+                    <summary>Compaction snapshots</summary>
+                    <div class="dashboard-table-wrap">
+                      <table class="data-table data-table-compact dashboard-table" aria-label="EventRecord compaction snapshots">
+                        <thead><tr><th>file</th><th>size</th><th>modified</th><th>actions</th></tr></thead>
+                        <tbody id="eventRecordCompactionRows"><tr><td class="dashboard-empty-cell" colspan="4">snapshot 목록을 불러오지 않았습니다.</td></tr></tbody>
+                      </table>
+                    </div>
                   </details>
                 </div>
               </details>
@@ -14518,11 +14528,69 @@ std::string BuildLabRuleEditorPageHtml() {
           'eventRecordStateText',
           `compacted ${payload.retainedRecords ?? 0} records · active ${payload.activeRecordsScanned ?? 0} · archive ${payload.archiveFilesScanned ?? 0}/${payload.archiveRecordsScanned ?? 0} · ${payload.compactedPath || 'path 없음'}`
         );
+        loadEventRecordCompactions().catch(() => {});
       } catch (error) {
         dashboardSet('eventRecordStateText', `compaction 실패 · ${error.message}`);
       } finally {
         if (compactButton) compactButton.disabled = false;
       }
+    }
+
+    function renderEventRecordCompactionRows(files) {
+      const tbody = dashboardRowsStart('eventRecordCompactionRows');
+      if (!tbody) return;
+      if (!Array.isArray(files) || files.length === 0) {
+        dashboardSetEmptyRows('eventRecordCompactionRows', 4, 'compaction snapshot이 없습니다.');
+        return;
+      }
+      for (const file of files) {
+        const actions = document.createElement('div');
+        actions.className = 'event-record-actions';
+        const download = document.createElement('a');
+        download.className = 'button-compact';
+        download.href = `/lab/analysis/events/records/compactions/${encodeURIComponent(file.fileName || '')}`;
+        download.textContent = 'download';
+        actions.appendChild(download);
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'danger button-compact';
+        remove.textContent = 'delete';
+        remove.addEventListener('click', async () => {
+          if (!window.confirm(`${file.fileName || 'snapshot'} 삭제?`)) return;
+          const response = await fetch(`/lab/analysis/events/records/compactions/${encodeURIComponent(file.fileName || '')}`, {
+            method: 'DELETE',
+            cache: 'no-store'
+          });
+          const text = await response.text();
+          if (!response.ok) {
+            dashboardSet('eventRecordStateText', `compaction 삭제 실패 · ${text || response.status}`);
+            return;
+          }
+          dashboardSet('eventRecordStateText', `compaction 삭제 완료 · ${file.fileName || ''}`);
+          loadEventRecordCompactions().catch(() => {});
+        });
+        actions.appendChild(remove);
+        dashboardAppendRow('eventRecordCompactionRows', [
+          dashboardEllipsisNode(file.fileName || '-'),
+          dashboardBytes(file.sizeBytes),
+          dashboardTimestamp(file.modifiedTimeMs),
+          actions
+        ]);
+      }
+    }
+
+    async function loadEventRecordCompactions() {
+      dashboardSet('eventRecordStateText', 'EventRecord compaction snapshot 목록 조회 중...');
+      const response = await fetch('/lab/analysis/events/records/compactions', { cache: 'no-store' });
+      const text = await response.text();
+      if (!response.ok) {
+        dashboardSetEmptyRows('eventRecordCompactionRows', 4, text || `HTTP ${response.status}`, 'error');
+        dashboardSet('eventRecordStateText', `compaction 목록 실패 · ${text || response.status}`);
+        return;
+      }
+      const payload = JSON.parse(text);
+      renderEventRecordCompactionRows(payload.files || []);
+      dashboardSet('eventRecordStateText', `compaction snapshots ${Array.isArray(payload.files) ? payload.files.length : 0}개`);
     }
 
     function renderDashboardMetadata(runtime, tapMetrics, tapsPayload) {
@@ -16109,6 +16177,11 @@ std::string BuildLabRuleEditorPageHtml() {
       if ($('eventRecordCompactBtn')) {
         $('eventRecordCompactBtn').addEventListener('click', () => {
           compactEventRecords().catch(() => {});
+        });
+      }
+      if ($('eventRecordCompactionListBtn')) {
+        $('eventRecordCompactionListBtn').addEventListener('click', () => {
+          loadEventRecordCompactions().catch(() => {});
         });
       }
     }
@@ -21395,6 +21468,50 @@ std::string AnalysisEventRecordCompactionJson(
     return out.str();
 }
 
+std::string AnalysisEventRecordCompactedFilesJson(
+    const analysis::EventRecordCompactedFileListResult& result) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.va.event-record-compacted-list.v1\","
+        << "\"files\":[";
+    for (std::size_t i = 0; i < result.files.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        const auto& file = result.files[i];
+        out << "{"
+            << "\"fileName\":\"" << JsonEscape(file.file_name) << "\","
+            << "\"path\":\"" << JsonEscape(file.path) << "\","
+            << "\"sizeBytes\":" << file.size_bytes << ","
+            << "\"modifiedTimeMs\":" << file.modified_time_ms
+            << "}";
+    }
+    out << "],"
+        << "\"storage\":{"
+        << "\"enabled\":" << (result.storage.enabled ? "true" : "false") << ","
+        << "\"path\":\"" << JsonEscape(result.storage.path) << "\","
+        << "\"activePath\":\"" << JsonEscape(result.storage.active_path.empty()
+                                                  ? result.storage.path
+                                                  : result.storage.active_path)
+        << "\"}"
+        << "}";
+    return out.str();
+}
+
+std::string AnalysisEventRecordCompactedFileDeletedJson(
+    const analysis::EventRecordCompactedFileInfo& file) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.va.event-record-compacted-delete.v1\","
+        << "\"deleted\":true,"
+        << "\"fileName\":\"" << JsonEscape(file.file_name) << "\","
+        << "\"path\":\"" << JsonEscape(file.path) << "\","
+        << "\"sizeBytes\":" << file.size_bytes << ","
+        << "\"modifiedTimeMs\":" << file.modified_time_ms
+        << "}";
+    return out.str();
+}
+
 // Lab 리포트 뷰어가 노출할 수 있는 검증 산출물 확장자만 허용한다.
 bool IsLabReportExtension(const std::filesystem::path& path) {
     std::string ext = path.extension().string();
@@ -23470,6 +23587,72 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "{\"error\":\"" + JsonEscape(error_message) + "\"}");
                             }
                             return JsonResponse(200, "OK", AnalysisEventRecordCompactionJson(result));
+                        }
+
+                        if (request.method == "GET" &&
+                            request.path == "/lab/analysis/events/records/compactions") {
+                            analysis::EventRecordCompactedFileListResult result;
+                            std::string error_message;
+                            if (!analysis::ListCompactedEventRecordFiles(&result, &error_message)) {
+                                return JsonResponse(500,
+                                                    "Internal Server Error",
+                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            }
+                            return JsonResponse(200, "OK", AnalysisEventRecordCompactedFilesJson(result));
+                        }
+
+                        const auto compacted_record_prefix =
+                            std::string("/lab/analysis/events/records/compactions/");
+                        if (request.path.rfind(compacted_record_prefix, 0) == 0) {
+                            const std::string file_name =
+                                UrlDecode(request.path.substr(compacted_record_prefix.size()));
+                            if (file_name.empty()) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"compacted file name is required\"}");
+                            }
+                            if (request.method == "GET") {
+                                analysis::EventRecordCompactedFileInfo file;
+                                std::string error_message;
+                                if (!analysis::ResolveCompactedEventRecordFile(file_name, &file, &error_message)) {
+                                    return JsonResponse(404,
+                                                        "Not Found",
+                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                }
+                                std::ifstream input(file.path, std::ios::in | std::ios::binary);
+                                if (!input.good()) {
+                                    return JsonResponse(500,
+                                                        "Internal Server Error",
+                                                        "{\"error\":\"failed to open compacted event record file\"}");
+                                }
+                                std::ostringstream body;
+                                body << input.rdbuf();
+                                HttpResponse ok;
+                                ok.status = 200;
+                                ok.status_text = "OK";
+                                ok.content_type = "application/x-ndjson; charset=utf-8";
+                                ok.headers["Cache-Control"] = "no-store";
+                                ok.headers["Content-Disposition"] =
+                                    "attachment; filename=\"" + JsonEscape(file.file_name) + "\"";
+                                ok.body = body.str();
+                                return ok;
+                            }
+                            if (request.method == "DELETE") {
+                                if (const auto auth_response = require_rule_write_principal();
+                                    auth_response.has_value()) {
+                                    return *auth_response;
+                                }
+                                analysis::EventRecordCompactedFileInfo file;
+                                std::string error_message;
+                                if (!analysis::DeleteCompactedEventRecordFile(file_name, &file, &error_message)) {
+                                    return JsonResponse(404,
+                                                        "Not Found",
+                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                }
+                                return JsonResponse(200,
+                                                    "OK",
+                                                    AnalysisEventRecordCompactedFileDeletedJson(file));
+                            }
                         }
 
                         if (request.method == "GET" && request.path == "/lab/analysis/profiles") {

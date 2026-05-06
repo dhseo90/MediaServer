@@ -731,7 +731,7 @@ scenario phase, timeline, recent event buffer를 한 구간에서 확인합니�
 
 ### 10.7. Event Records
 
-Event Records는 자동 polling하지 않습니다. 검색 버튼을 눌렀을 때 active JSON Lines의 metadata를 조회하고, `archive 포함`을 켜면 rotated archive까지 조회합니다. `compaction snapshot`은 기존 파일을 수정하지 않는 compacted JSON Lines 사본을 생성합니다.
+Event Records는 자동 polling하지 않습니다. 검색 버튼을 눌렀을 때 active JSON Lines의 metadata를 조회하고, `archive 포함`을 켜면 rotated archive까지 조회합니다. `compaction snapshot`은 기존 파일을 수정하지 않는 compacted JSON Lines 사본을 생성합니다. `snapshot 목록`은 compacted snapshot의 file/size/modified를 표시하고, 각 행에서 download/delete를 수행합니다.
 
 ![VA 런타임 대시보드 Event Records](assets/ui/analysis-runtime-dashboard-records.png)
 
