@@ -5911,6 +5911,60 @@ std::string BuildLabRuleEditorPageHtml() {
       line-height: 1.35;
       overflow-wrap: anywhere;
     }
+    .event-record-evidence-preview {
+      display: grid;
+      grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+      gap: 12px;
+      padding: 0 12px 12px;
+      border-top: 1px solid var(--color-debug-border);
+    }
+    .event-record-evidence-preview[hidden] {
+      display: none;
+    }
+    .event-record-evidence-preview .view-frame {
+      padding: 8px;
+      min-width: 0;
+    }
+    .event-record-evidence-preview .view-frame img {
+      min-height: 180px;
+      object-fit: contain;
+    }
+    .event-record-evidence-preview-panel {
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+      padding-top: 10px;
+    }
+    .event-record-evidence-preview-panel[hidden] {
+      display: none;
+    }
+    .event-record-clip-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .event-record-clip-summary span {
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .event-record-clip-summary strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--color-code-text);
+      font-size: 12px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+    .event-record-evidence-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .event-record-evidence-links a {
+      font-size: 12px;
+      font-weight: 800;
+    }
     .event-record-detail-drawer pre {
       max-height: 320px;
       margin: 0;
@@ -7847,6 +7901,20 @@ std::string BuildLabRuleEditorPageHtml() {
                       <div class="event-record-evidence-item"><span>clip manifest</span><strong id="eventRecordClipPathText">없음</strong></div>
                       <div class="event-record-evidence-item"><span>clip bundle</span><strong id="eventRecordClipBundleText">없음</strong></div>
                     </div>
+                    <div id="eventRecordEvidencePreview" class="event-record-evidence-preview" hidden>
+                      <div id="eventRecordSnapshotPreviewPanel" class="view-frame" hidden>
+                        <img id="eventRecordSnapshotPreviewImage" alt="Event snapshot preview" />
+                      </div>
+                      <div id="eventRecordClipPreviewPanel" class="event-record-evidence-preview-panel" hidden>
+                        <div class="event-record-clip-summary">
+                          <div><span>frame count</span><strong id="eventRecordClipFrameCountText">-</strong></div>
+                          <div><span>capture window</span><strong id="eventRecordClipWindowText">-</strong></div>
+                          <div><span>fallback</span><strong id="eventRecordClipFallbackText">-</strong></div>
+                        </div>
+                        <div id="eventRecordClipFrameLinks" class="event-record-evidence-links"></div>
+                        <pre id="eventRecordClipManifestJson" class="raw-json-panel">clip manifest preview 없음</pre>
+                      </div>
+                    </div>
                     <pre id="eventRecordDetailJson" class="raw-json-panel">eventId를 선택하면 원본 EventRecord JSON이 표시됩니다.</pre>
                   </details>
                   <details id="eventRecordCompactionDrawer" class="event-record-detail-drawer">
@@ -8051,6 +8119,7 @@ std::string BuildLabRuleEditorPageHtml() {
     let eventRecordResults = [];
     let eventRecordSelectedIndex = -1;
     let eventRecordPageOffset = 0;
+    let eventRecordEvidencePreviewToken = 0;
     let regionPoints = [
       { x: 0.20, y: 0.22 },
       { x: 0.80, y: 0.22 },
@@ -14601,6 +14670,84 @@ std::string BuildLabRuleEditorPageHtml() {
       element.title = text || emptyText;
     }
 
+    function eventRecordEvidenceUrl(path) {
+      return `/lab/analysis/events/evidence?path=${encodeURIComponent(String(path || '').trim())}`;
+    }
+
+    function setEventRecordEvidencePanelVisible(hasSnapshot, hasClip) {
+      const preview = $('eventRecordEvidencePreview');
+      if (preview) preview.hidden = !hasSnapshot && !hasClip;
+      const snapshotPanel = $('eventRecordSnapshotPreviewPanel');
+      if (snapshotPanel) snapshotPanel.hidden = !hasSnapshot;
+      const clipPanel = $('eventRecordClipPreviewPanel');
+      if (clipPanel) clipPanel.hidden = !hasClip;
+    }
+
+    function resetEventRecordClipPreview(message = 'clip manifest preview 없음') {
+      setEventRecordEvidenceText('eventRecordClipFrameCountText', '-', '-');
+      setEventRecordEvidenceText('eventRecordClipWindowText', '-', '-');
+      setEventRecordEvidenceText('eventRecordClipFallbackText', '-', '-');
+      const links = $('eventRecordClipFrameLinks');
+      if (links) links.replaceChildren();
+      const manifest = $('eventRecordClipManifestJson');
+      if (manifest) manifest.textContent = message;
+    }
+
+    async function loadEventRecordEvidencePreview(snapshotPath, clipPath) {
+      const token = ++eventRecordEvidencePreviewToken;
+      const hasSnapshot = Boolean(snapshotPath);
+      const hasClip = Boolean(clipPath);
+      setEventRecordEvidencePanelVisible(hasSnapshot, hasClip);
+      const snapshotImage = $('eventRecordSnapshotPreviewImage');
+      if (snapshotImage) {
+        snapshotImage.removeAttribute('src');
+        if (hasSnapshot) {
+          snapshotImage.src = eventRecordEvidenceUrl(snapshotPath);
+        }
+      }
+      resetEventRecordClipPreview();
+      if (!hasClip) return;
+      try {
+        const response = await fetch(eventRecordEvidenceUrl(clipPath), { cache: 'no-store' });
+        const text = await response.text();
+        if (token !== eventRecordEvidencePreviewToken) return;
+        if (!response.ok) {
+          throw new Error(text || `HTTP ${response.status}`);
+        }
+        const manifestJson = JSON.parse(text);
+        const frames = Array.isArray(manifestJson?.frames) ? manifestJson.frames : [];
+        setEventRecordEvidenceText('eventRecordClipFrameCountText', manifestJson?.frameCount ?? frames.length, '-');
+        const captureWindow = manifestJson?.captureWindow || {};
+        const windowText =
+          captureWindow.startMs !== undefined && captureWindow.endMs !== undefined
+            ? `${captureWindow.startMs} - ${captureWindow.endMs} ms`
+            : '-';
+        setEventRecordEvidenceText('eventRecordClipWindowText', windowText, '-');
+        const fallbackText = manifestJson?.fallbackEncoder
+          ? (manifestJson?.fallbackReason || 'fallback')
+          : 'jpeg';
+        setEventRecordEvidenceText('eventRecordClipFallbackText', fallbackText, '-');
+        const links = $('eventRecordClipFrameLinks');
+        if (links) {
+          links.replaceChildren();
+          frames.slice(0, 4).forEach((frame, index) => {
+            if (!frame?.path) return;
+            const link = document.createElement('a');
+            link.href = eventRecordEvidenceUrl(frame.path);
+            link.target = '_blank';
+            link.rel = 'noopener';
+            link.textContent = `frame ${index + 1}`;
+            links.appendChild(link);
+          });
+        }
+        const manifest = $('eventRecordClipManifestJson');
+        if (manifest) manifest.textContent = dashboardPrettyJson(manifestJson, 'clip manifest 표시 실패');
+      } catch (error) {
+        if (token !== eventRecordEvidencePreviewToken) return;
+        resetEventRecordClipPreview(`clip manifest preview 실패 · ${error.message}`);
+      }
+    }
+
     function eventRecordIdButton(record, index) {
       const button = document.createElement('button');
       button.type = 'button';
@@ -14623,10 +14770,16 @@ std::string BuildLabRuleEditorPageHtml() {
         setEventRecordEvidenceText('eventRecordSnapshotPathText', snapshotPath);
         setEventRecordEvidenceText('eventRecordClipPathText', clipPath);
         setEventRecordEvidenceText('eventRecordClipBundleText', eventRecordClipBundlePath(clipPath));
+        loadEventRecordEvidencePreview(snapshotPath, clipPath).catch(() => {});
       } else {
         setEventRecordEvidenceText('eventRecordSnapshotPathText', '');
         setEventRecordEvidenceText('eventRecordClipPathText', '');
         setEventRecordEvidenceText('eventRecordClipBundleText', '');
+        ++eventRecordEvidencePreviewToken;
+        setEventRecordEvidencePanelVisible(false, false);
+        resetEventRecordClipPreview();
+        const snapshotImage = $('eventRecordSnapshotPreviewImage');
+        if (snapshotImage) snapshotImage.removeAttribute('src');
       }
       const drawer = $('eventRecordDetailDrawer');
       if (drawer && record && openDrawer) drawer.open = true;
@@ -22330,6 +22483,67 @@ bool IsSafeLabReportPath(const std::filesystem::path& raw_path, std::filesystem:
     return true;
 }
 
+bool PathStartsWith(const std::filesystem::path& path, const std::filesystem::path& base) {
+    const std::string path_string = path.string();
+    const std::string base_string = base.string();
+    if (base_string.empty()) {
+        return false;
+    }
+    if (path_string == base_string) {
+        return true;
+    }
+    return path_string.size() > base_string.size() &&
+           path_string.rfind(base_string + "/", 0) == 0;
+}
+
+std::string EventEvidenceContentType(const std::filesystem::path& path) {
+    const std::string ext = LowerAscii(path.extension().string());
+    if (ext == ".jpg" || ext == ".jpeg") {
+        return "image/jpeg";
+    }
+    if (ext == ".ppm") {
+        return "image/x-portable-pixmap";
+    }
+    if (ext == ".pgm") {
+        return "image/x-portable-graymap";
+    }
+    if (ext == ".json") {
+        return "application/json; charset=utf-8";
+    }
+    return "";
+}
+
+bool IsSafeEventEvidencePath(const std::filesystem::path& raw_path,
+                             std::filesystem::path* resolved_path,
+                             std::string* content_type) {
+    std::error_code ec;
+    const auto resolved = std::filesystem::weakly_canonical(raw_path, ec);
+    if (ec || resolved.empty() || !std::filesystem::is_regular_file(resolved, ec) || ec) {
+        return false;
+    }
+    const std::string detected_content_type = EventEvidenceContentType(resolved);
+    if (detected_content_type.empty()) {
+        return false;
+    }
+    const auto snapshot_dir =
+        std::filesystem::weakly_canonical(std::filesystem::path(app::GetAppConfig().analysis_event_snapshot_dir), ec);
+    ec.clear();
+    const auto clip_dir =
+        std::filesystem::weakly_canonical(std::filesystem::path(app::GetAppConfig().analysis_event_clip_dir), ec);
+    ec.clear();
+    if ((snapshot_dir.empty() || !PathStartsWith(resolved, snapshot_dir)) &&
+        (clip_dir.empty() || !PathStartsWith(resolved, clip_dir))) {
+        return false;
+    }
+    if (resolved_path != nullptr) {
+        *resolved_path = resolved;
+    }
+    if (content_type != nullptr) {
+        *content_type = detected_content_type;
+    }
+    return true;
+}
+
 // 파일명 규칙으로 검증 리포트 종류를 추정해 UI 필터 없이도 대략적인 맥락을 보여준다.
 std::string LabReportKindFromName(const std::string& name) {
     if (name.find("predev") != std::string::npos) {
@@ -24324,6 +24538,39 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "{\"error\":\"" + JsonEscape(error_message) + "\"}");
                             }
                             return JsonResponse(200, "OK", response_body);
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/analysis/events/evidence") {
+                            const auto path_it = query.find("path");
+                            if (path_it == query.end() || Trim(path_it->second).empty()) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"evidence path is required\"}");
+                            }
+                            std::filesystem::path resolved;
+                            std::string content_type;
+                            if (!IsSafeEventEvidencePath(std::filesystem::path(path_it->second),
+                                                         &resolved,
+                                                         &content_type)) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"invalid event evidence path\"}");
+                            }
+                            std::ifstream input(resolved, std::ios::in | std::ios::binary);
+                            if (!input.good()) {
+                                return JsonResponse(500,
+                                                    "Internal Server Error",
+                                                    "{\"error\":\"failed to open event evidence file\"}");
+                            }
+                            std::ostringstream body;
+                            body << input.rdbuf();
+                            HttpResponse ok;
+                            ok.status = 200;
+                            ok.status_text = "OK";
+                            ok.content_type = content_type;
+                            ok.headers["Cache-Control"] = "no-store";
+                            ok.body = body.str();
+                            return ok;
                         }
 
 	                        if (request.method == "GET" && request.path == "/lab/runtime/status") {
