@@ -25,11 +25,11 @@
 - 기존 Scenario UI 로드맵 1~4번 완료: Runtime Dashboard trend/stale/cleanup warning 1차, Scenario rule payload -> runtime per-rule 설정 연결, ReEntry Scenario UI 템플릿, IntrusionAfterLineCrossing Scenario UI 템플릿.
 - ReEntry와 IntrusionAfterLineCrossing은 룰 편집 UI에서 선택 가능하며 저장/round-trip 검증 대상입니다.
 - 현재 우선순위: 운영/클라이언트 분리의 제품 진입점 정합성을 위해 Auth Bootstrap, password policy/lockout/session hardening, admin 계정 관리, client invite/request MVP, role/scope 기반 root/route 접근 정책, Ops/Client shell 통합 1차를 완료했고 문서 상태를 실제 구현 기준으로 닫았습니다.
-- 다음 작업: metadata subscription filter/control과 archive cleanup policy 고도화를 후속으로 둡니다.
+- 다음 작업: archive cleanup policy 고도화와 metadata filter smoke 확장을 후속으로 둡니다.
 - 후속 Phase: 다음 운영/클라이언트 phase의 진입점은 SourceRegistry/PublishedView 기반 고도화입니다. PublishedView 기반 scope picker, Client scoped dashboard polish, Analysis tap reuse / source+profile 공유 정책 UI는 아래 운영/클라이언트 분리 phase에서 별도로 관리합니다.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
 - 실험/제약: snapshot/clip은 짧은 EventRecord evidence frame 저장용이며 MP4/VMS/NVR 장기 녹화 기능으로 표현하지 않습니다.
-- 남은 후속: 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화(sparkline/장기 baseline), WebRTC DataChannel metadata filter 적용입니다.
+- 남은 후속: 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화(sparkline/장기 baseline), metadata filter smoke 확장입니다.
 
 ### 현재 문서 기준 readiness boundary
 

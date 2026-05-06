@@ -399,11 +399,12 @@ RTSP와 WebRTC는 metadata 표시 방식이 다릅니다.
 1. `/lab/rules`의 `영상 분석 보기` 탭을 연다.
 2. `개발자 요청 URL`을 펼친다.
 3. `WebRTC 메타데이터 뷰어` URL에는 `/webrtc/session`과 `vaMetadata=1`이 포함되는지 확인한다.
-4. `RTSP 서버 오버레이` URL에는 `rtsp://...`와 `va=1` 또는 `vaRule=<id>`가 포함되는지 확인한다.
-5. `RTSP 원본 스트림` URL에는 `va=1`, `vaRule=<id>`, `vaMetadata=1`이 포함되지 않는지 확인한다.
-6. `커스텀 메타데이터 사이드채널` URL이 `/metadata/stream` SSE endpoint를 가리키는지 확인한다.
-7. `커스텀 RTSP + 메타데이터 연결 정보` 영역에 RTSP 원본 스트림과 SSE 메타데이터 스트림이 함께 표시되는지 확인한다.
-8. `커스텀 메타데이터 사이드채널` 설명이 일반 VLC/ffplay에서 metadata UI가 표시되는 것처럼 표현하지 않는지 확인한다.
+4. Metadata subscription filter 입력값을 넣으면 WebRTC metadata viewer URL과 SSE/WS side-channel URL 모두에 `eventType`, `scenarioName`, `trackId`, `zoneId` query가 반영되는지 확인한다.
+5. `RTSP 서버 오버레이` URL에는 `rtsp://...`와 `va=1` 또는 `vaRule=<id>`가 포함되는지 확인한다.
+6. `RTSP 원본 스트림` URL에는 `va=1`, `vaRule=<id>`, `vaMetadata=1`이 포함되지 않는지 확인한다.
+7. `커스텀 메타데이터 사이드채널` URL이 `/metadata/stream` SSE endpoint를 가리키는지 확인한다.
+8. `커스텀 RTSP + 메타데이터 연결 정보` 영역에 RTSP 원본 스트림과 SSE 메타데이터 스트림이 함께 표시되는지 확인한다.
+9. `커스텀 메타데이터 사이드채널` 설명이 일반 VLC/ffplay에서 metadata UI가 표시되는 것처럼 표현하지 않는지 확인한다.
 
 확인 기준:
 
