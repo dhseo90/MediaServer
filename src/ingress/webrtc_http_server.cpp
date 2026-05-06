@@ -18387,6 +18387,37 @@ void AppendOpsLivePage(std::ostringstream& out) {
       <section class="section-card compact-card">
         <div class="toolbar">
           <div>
+            <h3>채널 Drill-down</h3>
+            <p id="opsLiveDrilldownSummary">타일 또는 최근 이벤트를 선택하면 source health, active tap, recent event, evidence 상태를 표시합니다.</p>
+          </div>
+          <div id="opsLiveDrilldownBadges" class="badge-row"><span class="chip">선택 없음</span></div>
+        </div>
+        <div class="status-stat-grid">
+          <div class="status-stat"><span>채널</span><strong id="opsLiveDetailChannelText">-</strong></div>
+          <div class="status-stat"><span>소스</span><strong id="opsLiveDetailSourceText">-</strong></div>
+          <div class="status-stat"><span>PublishedView</span><strong id="opsLiveDetailViewText">-</strong></div>
+          <div class="status-stat"><span>active tap</span><strong id="opsLiveDetailTapText">-</strong></div>
+          <div class="status-stat"><span>최근 이벤트</span><strong id="opsLiveDetailLatestEventText">-</strong></div>
+          <div class="status-stat"><span>evidence</span><strong id="opsLiveDetailEvidenceText">-</strong></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>이벤트</th>
+                <th>상태</th>
+                <th>시각</th>
+                <th>evidence</th>
+              </tr>
+            </thead>
+            <tbody id="opsLiveDetailEventRows"><tr><td colspan="4">채널을 선택하면 최근 event detail을 표시합니다.</td></tr></tbody>
+          </table>
+        </div>
+        <pre id="opsLiveDetailJson" class="raw-json-panel">선택한 채널 detail 없음</pre>
+      </section>
+      <section class="section-card compact-card">
+        <div class="toolbar">
+          <div>
             <h3>최근 이벤트</h3>
             <p id="opsLiveEventSummary">최근 이벤트 상태를 불러오는 중입니다.</p>
           </div>
