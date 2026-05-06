@@ -5,6 +5,7 @@
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -228,6 +229,35 @@ std::optional<int> ParseIntField(const std::string& body, const std::string& fie
         return std::nullopt;
     }
     return std::stoi(body.substr(pos, end - pos));
+}
+
+std::optional<bool> ParseBoolField(const std::string& body, const std::string& field) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t pos = body.find(needle);
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    pos = body.find(':', pos + needle.size());
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    ++pos;
+    while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) {
+        ++pos;
+    }
+    if (body.compare(pos, 4, "true") == 0) {
+        return true;
+    }
+    if (body.compare(pos, 5, "false") == 0) {
+        return false;
+    }
+    if (body.compare(pos, 1, "1") == 0) {
+        return true;
+    }
+    if (body.compare(pos, 1, "0") == 0) {
+        return false;
+    }
+    return std::nullopt;
 }
 
 std::optional<std::int64_t> ParseInt64Field(const std::string& body, const std::string& field) {
@@ -20150,6 +20180,51 @@ analysis::VaMetadataSubscriptionFilter BuildVaMetadataSubscriptionFilter(
     return filter;
 }
 
+void AppendVaMetadataFilterArrayJson(std::ostringstream& out,
+                                     const std::string& key,
+                                     const std::vector<std::string>& values) {
+    out << "\"" << JsonEscape(key) << "\":[";
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(values[i]) << "\"";
+    }
+    out << "]";
+}
+
+std::string VaMetadataSubscriptionFilterJson(const analysis::VaMetadataSubscriptionFilter& filter) {
+    std::ostringstream out;
+    out << "{";
+    AppendVaMetadataFilterArrayJson(out, "eventTypes", filter.event_types);
+    out << ",";
+    AppendVaMetadataFilterArrayJson(out, "ruleIds", filter.rule_ids);
+    out << ",";
+    AppendVaMetadataFilterArrayJson(out, "scenarioNames", filter.scenario_names);
+    out << ",";
+    AppendVaMetadataFilterArrayJson(out, "zoneIds", filter.zone_ids);
+    out << ",";
+    AppendVaMetadataFilterArrayJson(out, "lineIds", filter.line_ids);
+    out << ",";
+    AppendVaMetadataFilterArrayJson(out, "statuses", filter.statuses);
+    out << ",";
+    AppendVaMetadataFilterArrayJson(out, "labels", filter.labels);
+    out << ",\"trackId\":";
+    if (filter.track_id.has_value()) {
+        out << *filter.track_id;
+    } else {
+        out << "null";
+    }
+    out << ",\"classId\":";
+    if (filter.class_id.has_value()) {
+        out << *filter.class_id;
+    } else {
+        out << "null";
+    }
+    out << "}";
+    return out.str();
+}
+
 VaMetadataStreamOptions BuildVaMetadataStreamOptions(const std::unordered_map<std::string, std::string>& query) {
     const auto& config = app::GetAppConfig();
     VaMetadataStreamOptions options;
@@ -20196,6 +20271,118 @@ VaMetadataStreamOptions BuildVaMetadataStreamOptions(const std::unordered_map<st
     options.include_metrics = ParseBoolQuery(query, "includeMetrics", true);
     options.include_tracking_issue_report = ParseBoolQuery(query, "includeTrackingIssueReport", true);
     options.subscription_filter = BuildVaMetadataSubscriptionFilter(query);
+    return options;
+}
+
+std::string VaMetadataSubscriptionControlJson(const std::string& action,
+                                              bool subscribed,
+                                              const VaMetadataStreamOptions& options,
+                                              const std::string& error_message = {}) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.va.metadata-control.v1\","
+        << "\"action\":\"" << JsonEscape(action) << "\","
+        << "\"subscribed\":" << (subscribed ? "true" : "false") << ","
+        << "\"intervalMs\":" << options.interval_ms << ","
+        << "\"maxMessageBytes\":" << options.max_message_bytes << ","
+        << "\"maxTracks\":" << options.max_tracks << ","
+        << "\"maxEvents\":" << options.max_events << ","
+        << "\"includeSource\":" << (options.include_source ? "true" : "false") << ","
+        << "\"includeScenarios\":" << (options.include_scenarios ? "true" : "false") << ","
+        << "\"includeMetrics\":" << (options.include_metrics ? "true" : "false") << ","
+        << "\"includeTrackingIssueReport\":"
+        << (options.include_tracking_issue_report ? "true" : "false") << ","
+        << "\"filter\":" << VaMetadataSubscriptionFilterJson(options.subscription_filter);
+    if (!error_message.empty()) {
+        out << ",\"error\":\"" << JsonEscape(error_message) << "\"";
+    }
+    out << "}";
+    return out.str();
+}
+
+void ApplyVaMetadataCommandStringField(const std::string& body,
+                                       const std::string& field,
+                                       const std::string& query_key,
+                                       std::unordered_map<std::string, std::string>* query) {
+    if (query == nullptr) {
+        return;
+    }
+    if (const auto value = ParseStringField(body, field); value.has_value()) {
+        (*query)[query_key] = *value;
+    }
+}
+
+void ApplyVaMetadataCommandIntField(const std::string& body,
+                                    const std::string& field,
+                                    const std::string& query_key,
+                                    std::unordered_map<std::string, std::string>* query) {
+    if (query == nullptr) {
+        return;
+    }
+    if (const auto value = ParseIntField(body, field); value.has_value()) {
+        (*query)[query_key] = std::to_string(*value);
+    }
+}
+
+int ClampedMetadataCommandInt(const std::string& body,
+                              const std::string& field,
+                              int current_value,
+                              int min_value,
+                              int max_value) {
+    const auto parsed = ParseIntField(body, field);
+    if (!parsed.has_value()) {
+        return current_value;
+    }
+    return std::max(min_value, std::min(max_value, *parsed));
+}
+
+VaMetadataStreamOptions ApplyVaMetadataSubscribeCommand(const std::string& body,
+                                                        VaMetadataStreamOptions options) {
+    std::unordered_map<std::string, std::string> control_query;
+    ApplyVaMetadataCommandStringField(body, "eventType", "eventType", &control_query);
+    ApplyVaMetadataCommandStringField(body, "eventTypes", "eventTypes", &control_query);
+    ApplyVaMetadataCommandStringField(body, "ruleId", "ruleId", &control_query);
+    ApplyVaMetadataCommandStringField(body, "ruleIds", "ruleIds", &control_query);
+    ApplyVaMetadataCommandStringField(body, "metadataRuleId", "metadataRuleId", &control_query);
+    ApplyVaMetadataCommandStringField(body, "scenario", "scenario", &control_query);
+    ApplyVaMetadataCommandStringField(body, "scenarioName", "scenarioName", &control_query);
+    ApplyVaMetadataCommandStringField(body, "scenarioNames", "scenarioNames", &control_query);
+    ApplyVaMetadataCommandStringField(body, "zoneId", "zoneId", &control_query);
+    ApplyVaMetadataCommandStringField(body, "zoneIds", "zoneIds", &control_query);
+    ApplyVaMetadataCommandStringField(body, "lineId", "lineId", &control_query);
+    ApplyVaMetadataCommandStringField(body, "lineIds", "lineIds", &control_query);
+    ApplyVaMetadataCommandStringField(body, "status", "status", &control_query);
+    ApplyVaMetadataCommandStringField(body, "statuses", "statuses", &control_query);
+    ApplyVaMetadataCommandStringField(body, "label", "label", &control_query);
+    ApplyVaMetadataCommandStringField(body, "labels", "labels", &control_query);
+    ApplyVaMetadataCommandStringField(body, "className", "className", &control_query);
+    ApplyVaMetadataCommandStringField(body, "classNames", "classNames", &control_query);
+    ApplyVaMetadataCommandIntField(body, "trackId", "trackId", &control_query);
+    ApplyVaMetadataCommandIntField(body, "classId", "classId", &control_query);
+
+    options.subscription_filter = BuildVaMetadataSubscriptionFilter(control_query);
+    options.interval_ms = ClampedMetadataCommandInt(body, "intervalMs", options.interval_ms, 100, 60000);
+    options.max_message_bytes = static_cast<std::size_t>(
+        ClampedMetadataCommandInt(
+            body, "maxMessageBytes", static_cast<int>(options.max_message_bytes), 256, 1048576));
+    options.max_tracks = static_cast<std::size_t>(
+        ClampedMetadataCommandInt(body, "maxTracks", static_cast<int>(options.max_tracks), 1, 10000));
+    options.max_events = static_cast<std::size_t>(
+        ClampedMetadataCommandInt(body, "maxEvents", static_cast<int>(options.max_events), 1, 10000));
+    if (const auto include_source = ParseBoolField(body, "includeSource"); include_source.has_value()) {
+        options.include_source = *include_source;
+    }
+    if (const auto include_scenarios = ParseBoolField(body, "includeScenarios");
+        include_scenarios.has_value()) {
+        options.include_scenarios = *include_scenarios;
+    }
+    if (const auto include_metrics = ParseBoolField(body, "includeMetrics"); include_metrics.has_value()) {
+        options.include_metrics = *include_metrics;
+    }
+    if (const auto include_issues = ParseBoolField(body, "includeTrackingIssueReport");
+        include_issues.has_value()) {
+        options.include_tracking_issue_report = *include_issues;
+    }
     return options;
 }
 
@@ -20426,9 +20613,9 @@ bool SendWebSocketHandshake(int fd, const std::string& client_key, const HttpReq
     return SendAll(fd, out.str());
 }
 
-bool SendWebSocketTextFrame(int fd, const std::string& payload) {
+bool SendWebSocketServerFrame(int fd, unsigned char opcode, const std::string& payload) {
     std::string frame;
-    frame.push_back(static_cast<char>(0x81U));
+    frame.push_back(static_cast<char>(0x80U | (opcode & 0x0FU)));
     const std::uint64_t size = static_cast<std::uint64_t>(payload.size());
     if (size <= 125U) {
         frame.push_back(static_cast<char>(size));
@@ -20446,9 +20633,124 @@ bool SendWebSocketTextFrame(int fd, const std::string& payload) {
     return SendAll(fd, frame);
 }
 
+bool SendWebSocketTextFrame(int fd, const std::string& payload) {
+    return SendWebSocketServerFrame(fd, 0x1U, payload);
+}
+
+bool SendWebSocketPongFrame(int fd, const std::string& payload) {
+    return SendWebSocketServerFrame(fd, 0xAU, payload);
+}
+
 bool SendWebSocketCloseFrame(int fd) {
-    const std::string frame{static_cast<char>(0x88), static_cast<char>(0x00)};
-    return SendAll(fd, frame);
+    return SendWebSocketServerFrame(fd, 0x8U, {});
+}
+
+struct WebSocketReadResult {
+    bool has_frame{false};
+    bool close_requested{false};
+    bool protocol_error{false};
+    unsigned char opcode{0};
+    std::string payload;
+    std::string error_message;
+};
+
+WebSocketReadResult TryReadWebSocketClientFrame(int fd) {
+    WebSocketReadResult result;
+    int available = 0;
+    if (ioctl(fd, FIONREAD, &available) != 0 || available <= 0) {
+        return result;
+    }
+    if (available < 2) {
+        return result;
+    }
+
+    unsigned char header[2]{};
+    const ssize_t peeked = recv(fd, header, sizeof(header), MSG_PEEK);
+    if (peeked <= 0) {
+        result.close_requested = true;
+        return result;
+    }
+    if (peeked < static_cast<ssize_t>(sizeof(header))) {
+        return result;
+    }
+
+    const bool masked = (header[1] & 0x80U) != 0;
+    std::uint64_t payload_size = header[1] & 0x7FU;
+    std::size_t header_size = 2;
+    if (payload_size == 126U) {
+        header_size += 2;
+    } else if (payload_size == 127U) {
+        header_size += 8;
+    }
+    if (masked) {
+        header_size += 4;
+    }
+    constexpr std::uint64_t kMaxControlPayload = 4096;
+    if (payload_size == 127U || payload_size > kMaxControlPayload) {
+        result.protocol_error = true;
+        result.error_message = "WebSocket control frame too large";
+        return result;
+    }
+    if (available < static_cast<int>(header_size)) {
+        return result;
+    }
+
+    std::vector<unsigned char> frame_header(header_size);
+    const ssize_t header_peeked = recv(fd, frame_header.data(), frame_header.size(), MSG_PEEK);
+    if (header_peeked < static_cast<ssize_t>(frame_header.size())) {
+        return result;
+    }
+    std::size_t offset = 2;
+    if ((frame_header[1] & 0x7FU) == 126U) {
+        payload_size = (static_cast<std::uint64_t>(frame_header[2]) << 8U) |
+                       static_cast<std::uint64_t>(frame_header[3]);
+        offset = 4;
+    } else {
+        payload_size = frame_header[1] & 0x7FU;
+    }
+    if (payload_size > kMaxControlPayload) {
+        result.protocol_error = true;
+        result.error_message = "WebSocket control frame too large";
+        return result;
+    }
+    const std::size_t mask_offset = offset;
+    if (masked) {
+        offset += 4;
+    }
+    const std::size_t total_size = offset + static_cast<std::size_t>(payload_size);
+    if (available < static_cast<int>(total_size)) {
+        return result;
+    }
+
+    std::vector<unsigned char> frame(total_size);
+    const ssize_t consumed = recv(fd, frame.data(), frame.size(), 0);
+    if (consumed <= 0) {
+        result.close_requested = true;
+        return result;
+    }
+    if (consumed < static_cast<ssize_t>(frame.size())) {
+        result.protocol_error = true;
+        result.error_message = "partial WebSocket control frame";
+        return result;
+    }
+
+    result.has_frame = true;
+    result.opcode = frame[0] & 0x0FU;
+    if (result.opcode == 0x8U) {
+        result.close_requested = true;
+        return result;
+    }
+    if (!masked) {
+        result.protocol_error = true;
+        result.error_message = "client WebSocket frames must be masked";
+        return result;
+    }
+    result.payload.resize(static_cast<std::size_t>(payload_size));
+    for (std::size_t i = 0; i < static_cast<std::size_t>(payload_size); ++i) {
+        result.payload[i] = static_cast<char>(
+            frame[offset + i] ^ frame[mask_offset + (i % 4U)]);
+    }
+    return result;
 }
 
 bool SendSseHeaders(int fd, const HttpRequest& request) {
@@ -20587,7 +20889,9 @@ bool StreamVaMetadataWebSocket(int client_fd,
                                const std::string& websocket_key,
                                const HttpRequest& request) {
     SuppressSocketSigPipe(client_fd);
-    const VaMetadataStreamOptions options = BuildVaMetadataStreamOptions(query);
+    const VaMetadataStreamOptions base_options = BuildVaMetadataStreamOptions(query);
+    VaMetadataStreamOptions options = base_options;
+    bool subscribed = true;
     if (!SendWebSocketHandshake(client_fd, websocket_key, request)) {
         return false;
     }
@@ -20603,6 +20907,94 @@ bool StreamVaMetadataWebSocket(int client_fd,
         if (options.stream_max_duration_ms > 0 &&
             now - started_at >= std::chrono::milliseconds(options.stream_max_duration_ms)) {
             break;
+        }
+
+        for (int frame_reads = 0; frame_reads < 8; ++frame_reads) {
+            const auto control = TryReadWebSocketClientFrame(client_fd);
+            if (!control.has_frame) {
+                if (control.close_requested) {
+                    return true;
+                }
+                if (control.protocol_error) {
+                    (void)SendWebSocketTextFrame(
+                        client_fd,
+                        VaMetadataSubscriptionControlJson("error", subscribed, options, control.error_message));
+                    return false;
+                }
+                break;
+            }
+            if (control.close_requested) {
+                return true;
+            }
+            if (control.protocol_error) {
+                (void)SendWebSocketTextFrame(
+                    client_fd,
+                    VaMetadataSubscriptionControlJson("error", subscribed, options, control.error_message));
+                return false;
+            }
+            if (control.opcode == 0x9U) {
+                if (!SendWebSocketPongFrame(client_fd, control.payload)) {
+                    return false;
+                }
+                continue;
+            }
+            if (control.opcode != 0x1U) {
+                continue;
+            }
+
+            std::string action = ParseStringField(control.payload, "type").value_or("");
+            if (action.empty()) {
+                action = ParseStringField(control.payload, "command").value_or("");
+            }
+            if (action.empty()) {
+                action = ParseStringField(control.payload, "action").value_or("subscribe");
+            }
+            action = LowerAscii(Trim(std::move(action)));
+            if (action == "subscribe" || action == "filter") {
+                options = ApplyVaMetadataSubscribeCommand(control.payload, options);
+                subscribed = true;
+                last_frame_id = 0;
+                last_pts = std::numeric_limits<std::int64_t>::min();
+                if (!SendWebSocketTextFrame(
+                        client_fd, VaMetadataSubscriptionControlJson("subscribe", subscribed, options))) {
+                    return false;
+                }
+            } else if (action == "unsubscribe" || action == "pause") {
+                subscribed = false;
+                last_frame_id = 0;
+                last_pts = std::numeric_limits<std::int64_t>::min();
+                if (!SendWebSocketTextFrame(
+                        client_fd, VaMetadataSubscriptionControlJson("unsubscribe", subscribed, options))) {
+                    return false;
+                }
+            } else if (action == "resume") {
+                subscribed = true;
+                last_frame_id = 0;
+                last_pts = std::numeric_limits<std::int64_t>::min();
+                if (!SendWebSocketTextFrame(
+                        client_fd, VaMetadataSubscriptionControlJson("resume", subscribed, options))) {
+                    return false;
+                }
+            } else if (action == "reset") {
+                options = base_options;
+                subscribed = true;
+                last_frame_id = 0;
+                last_pts = std::numeric_limits<std::int64_t>::min();
+                if (!SendWebSocketTextFrame(
+                        client_fd, VaMetadataSubscriptionControlJson("reset", subscribed, options))) {
+                    return false;
+                }
+            } else if (!SendWebSocketTextFrame(
+                           client_fd,
+                           VaMetadataSubscriptionControlJson(
+                               "error", subscribed, options, "unknown metadata control action: " + action))) {
+                return false;
+            }
+        }
+
+        if (!subscribed) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(options.interval_ms));
+            continue;
         }
 
         const auto snapshot = session_manager.AnalysisTapSnapshot(tap_id);

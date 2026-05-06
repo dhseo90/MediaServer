@@ -612,7 +612,8 @@ curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/events/records/compactio
 - 구현 완료: Runtime Dashboard 내부 vaRule Runtime Debug 1차 패널
 - 구현 완료: SSE metadata side-channel 수신 중심 custom client 예제
 - 구현 완료: OpenCV 기반 Custom RTSP + SSE metadata overlay renderer 예제
-- 예정: phase entered time/cooldown remaining을 포함한 정밀 scenario timeline, WebSocket command/filter/subscribe-unsubscribe 제어, WS 기반 custom overlay renderer 확장
+- 구현 완료: WebSocket command/filter/subscribe-unsubscribe control
+- 예정: phase entered time/cooldown remaining을 포함한 정밀 scenario timeline, WS 기반 custom overlay renderer 확장
 
 내부 schema:
 
@@ -879,7 +880,7 @@ OpenCV가 없는 환경에서는 예제가 설치 안내와 함께 종료해야 
 
 ## 15. WebSocket Metadata Side-Channel
 
-WebSocket side-channel은 SSE와 같은 runtime metadata payload를 text frame으로 전달합니다. 현재 구현은 metadata subscribe 중심의 최소 구현이며, SSE와 같은 query filter/include flag를 적용합니다. 연결 중 command 기반 subscribe-unsubscribe 제어는 후속 확장입니다.
+WebSocket side-channel은 SSE와 같은 runtime metadata payload를 text frame으로 전달합니다. query filter/include flag를 초기 구독값으로 적용하고, 연결 중에는 client text frame command로 subscribe/unsubscribe/resume/reset을 제어할 수 있습니다.
 
 Endpoint:
 
@@ -895,6 +896,7 @@ Auth on에서는 `/ws/va-metadata`가 Lab/custom-client side-channel로 취급�
 
 - message text frame payload는 `media-server.va.runtime-metadata.v1` JSON입니다.
 - `intervalMs`, `maxMessageBytes`, `maxTracks`, `maxEvents`, `maxMessages`, `streamMaxDurationMs` query를 지원합니다.
+- client text frame command는 `{"type":"subscribe","eventType":"loitering","includeMetrics":false}`처럼 보냅니다. `subscribe`는 filter/include/limit를 갱신하고 즉시 `media-server.va.metadata-control.v1` ack를 돌려줍니다. `unsubscribe`/`pause`는 연결은 유지하되 metadata publish를 멈추고, `resume`은 기존 filter로 재개, `reset`은 최초 query 구독값으로 되돌립니다.
 - `maxClients` query를 통해 동시 metadata WebSocket client 수를 제한합니다. 기본값은 16입니다.
 - `tapId=<id>`는 기존 active tap을 재사용합니다.
 - `vaRule=<id>` 또는 source query는 연결 수명 동안 임시 analysis tap을 만들고 disconnect 후 cleanup합니다.
