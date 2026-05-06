@@ -1310,11 +1310,32 @@ void VerifyEventStorageArchiveCompaction() {
                post_compact_query_result.archive_files_scanned == 1,
            "EventStorage query must not treat compacted snapshots as rotated archives");
 
+    EventRecordCompactedFileListResult compacted_files;
+    Expect(ListCompactedEventRecordFiles(&compacted_files, &error_message),
+           "EventStorage compacted list must succeed: " + error_message);
+    Expect(!compacted_files.files.empty() &&
+               compacted_files.files[0].path == compact_result.compacted_path,
+           "EventStorage compacted list must include generated snapshot");
+
+    EventRecordCompactedFileInfo resolved_file;
+    Expect(ResolveCompactedEventRecordFile(compacted_files.files[0].file_name,
+                                           &resolved_file,
+                                           &error_message),
+           "EventStorage compacted resolve must succeed: " + error_message);
+    Expect(resolved_file.path == compact_result.compacted_path,
+           "EventStorage compacted resolve must stay within compacted snapshot set");
+
+    EventRecordCompactedFileInfo deleted_file;
+    Expect(DeleteCompactedEventRecordFile(compacted_files.files[0].file_name,
+                                          &deleted_file,
+                                          &error_message),
+           "EventStorage compacted delete must succeed: " + error_message);
+    Expect(!std::filesystem::exists(compact_result.compacted_path),
+           "EventStorage compacted delete must remove only the requested snapshot");
+
     std::filesystem::remove(active_path, ec);
     ec.clear();
     std::filesystem::remove(archive_path, ec);
-    ec.clear();
-    std::filesystem::remove(compact_result.compacted_path, ec);
 
     Pass("EventStorage archive query/compaction");
 }

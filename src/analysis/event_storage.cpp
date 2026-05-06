@@ -529,6 +529,24 @@ bool IsEventStorageArchivePath(const std::filesystem::path& active_path,
     return active_ext.empty() || candidate.extension().string() == active_ext;
 }
 
+bool IsEventStorageCompactedPath(const std::filesystem::path& active_path,
+                                 const std::filesystem::path& candidate) {
+    if (candidate == active_path || candidate.filename() == active_path.filename()) {
+        return false;
+    }
+    const std::string active_stem = active_path.stem().string();
+    const std::string active_ext = active_path.extension().string();
+    const std::string name = candidate.filename().string();
+    if (active_stem.empty() || name.rfind(active_stem + ".compact.", 0) != 0) {
+        return false;
+    }
+    return active_ext.empty() || candidate.extension().string() == active_ext;
+}
+
+std::int64_t FileTimeMs(std::filesystem::file_time_type value) {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(value.time_since_epoch()).count();
+}
+
 std::vector<ArchiveFileInfo> ListEventStorageArchives(const std::filesystem::path& active_path,
                                                       std::string* error_message) {
     std::vector<ArchiveFileInfo> archives;
@@ -2192,6 +2210,132 @@ bool CompactEventRecords(const EventRecordQueryOptions& options,
         return false;
     }
     result->compacted_path = compacted_path.string();
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+bool ListCompactedEventRecordFiles(EventRecordCompactedFileListResult* result,
+                                   std::string* error_message) {
+    if (result == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "result is required";
+        }
+        return false;
+    }
+    *result = EventRecordCompactedFileListResult{};
+    result->storage = GetEventStorageSnapshot();
+    const std::filesystem::path active_path(result->storage.active_path.empty()
+                                                ? result->storage.path
+                                                : result->storage.active_path);
+    if (active_path.empty()) {
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
+    }
+    const std::filesystem::path parent = active_path.parent_path().empty()
+                                             ? std::filesystem::path(".")
+                                             : active_path.parent_path();
+    std::error_code ec;
+    if (!std::filesystem::exists(parent, ec)) {
+        if (error_message != nullptr) {
+            *error_message = ec ? ec.message() : "";
+        }
+        return !ec;
+    }
+    for (const auto& entry : std::filesystem::directory_iterator(parent, ec)) {
+        if (ec) {
+            if (error_message != nullptr) {
+                *error_message = ec.message();
+            }
+            return false;
+        }
+        if (!entry.is_regular_file(ec) || ec || !IsEventStorageCompactedPath(active_path, entry.path())) {
+            ec.clear();
+            continue;
+        }
+        EventRecordCompactedFileInfo info;
+        info.file_name = entry.path().filename().string();
+        info.path = entry.path().string();
+        info.size_bytes = static_cast<std::uint64_t>(entry.file_size(ec));
+        if (ec) {
+            info.size_bytes = 0;
+            ec.clear();
+        }
+        info.modified_time_ms = FileTimeMs(entry.last_write_time(ec));
+        if (ec) {
+            info.modified_time_ms = 0;
+            ec.clear();
+        }
+        result->files.push_back(std::move(info));
+    }
+    std::sort(result->files.begin(), result->files.end(), [](const auto& lhs, const auto& rhs) {
+        if (lhs.modified_time_ms == rhs.modified_time_ms) {
+            return lhs.file_name > rhs.file_name;
+        }
+        return lhs.modified_time_ms > rhs.modified_time_ms;
+    });
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+bool ResolveCompactedEventRecordFile(const std::string& file_name,
+                                     EventRecordCompactedFileInfo* result,
+                                     std::string* error_message) {
+    if (result == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "result is required";
+        }
+        return false;
+    }
+    const std::filesystem::path requested(file_name);
+    if (file_name.empty() || requested.filename().string() != file_name) {
+        if (error_message != nullptr) {
+            *error_message = "invalid compacted file name";
+        }
+        return false;
+    }
+    EventRecordCompactedFileListResult list;
+    if (!ListCompactedEventRecordFiles(&list, error_message)) {
+        return false;
+    }
+    for (const auto& file : list.files) {
+        if (file.file_name == file_name) {
+            *result = file;
+            if (error_message != nullptr) {
+                error_message->clear();
+            }
+            return true;
+        }
+    }
+    if (error_message != nullptr) {
+        *error_message = "compacted event record file not found";
+    }
+    return false;
+}
+
+bool DeleteCompactedEventRecordFile(const std::string& file_name,
+                                    EventRecordCompactedFileInfo* result,
+                                    std::string* error_message) {
+    EventRecordCompactedFileInfo file;
+    if (!ResolveCompactedEventRecordFile(file_name, &file, error_message)) {
+        return false;
+    }
+    std::error_code ec;
+    std::filesystem::remove(file.path, ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = ec.message();
+        }
+        return false;
+    }
+    if (result != nullptr) {
+        *result = file;
+    }
     if (error_message != nullptr) {
         error_message->clear();
     }

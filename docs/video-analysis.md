@@ -509,7 +509,7 @@ Replay output의 `events[]`도 같은 핵심 구조를 유지합니다. 내부 T
 
 EventRecord는 운영 조회와 snapshot/clip evidence 연결을 위한 내부 metadata 저장 구조입니다. 기본값은 비활성입니다. 이 기능은 짧은 이벤트 근거 frame 저장용이며, 장기 영상 녹화나 VMS/NVR은 아닙니다. Event POST payload, WebRTC DataChannel metadata, SSE/WS metadata schema와 별도로 동작합니다.
 
-현재 1차 구현 범위는 EventRecord file storage, active/archive records 조회 API, Runtime Dashboard 수동 검색 UI, 비파괴 compaction snapshot, JSON Lines rotation/retention/recovery summary입니다.
+현재 1차 구현 범위는 EventRecord file storage, active/archive records 조회 API, Runtime Dashboard 수동 검색 UI, 비파괴 compaction snapshot 생성/목록/다운로드/삭제, JSON Lines rotation/retention/recovery summary입니다.
 
 `media-server.va.event-record.v1` 필드:
 
@@ -583,9 +583,13 @@ Compaction snapshot API:
 
 ```bash
 curl -fsS -X POST 'http://127.0.0.1:8080/lab/analysis/events/records/compact?includeArchives=1'
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records/compactions'
+curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records/compactions/{fileName}'
+curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/events/records/compactions/{fileName}'
 ```
 
 이 API는 matching record를 새 compacted JSON Lines 파일로 쓰는 비파괴 snapshot입니다. 기존 active/archive 파일을 삭제하거나 rewrite하지 않습니다.
+`compactions` API는 active storage 파일과 같은 디렉터리의 compacted snapshot 파일만 대상으로 목록/다운로드/삭제를 허용하며, rotated archive 조회 대상에는 compacted snapshot을 포함하지 않습니다.
 
 `/lab/rules` Runtime Dashboard의 Event Records 섹션은 이 API를 수동 검색 UI로 노출합니다.
 

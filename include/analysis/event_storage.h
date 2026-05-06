@@ -175,6 +175,18 @@ struct EventRecordCompactionResult {
     std::uint64_t partial_line_count{0};
 };
 
+struct EventRecordCompactedFileInfo {
+    std::string file_name;
+    std::string path;
+    std::uint64_t size_bytes{0};
+    std::int64_t modified_time_ms{0};
+};
+
+struct EventRecordCompactedFileListResult {
+    EventStorageSnapshot storage;
+    std::vector<EventRecordCompactedFileInfo> files;
+};
+
 void DispatchEventRecords(const AnalysisResult& result, const std::vector<AnalysisEvent>& events);
 EventStorageSnapshot GetEventStorageSnapshot();
 bool QueryEventRecords(const EventRecordQueryOptions& options,
@@ -183,6 +195,14 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
 bool CompactEventRecords(const EventRecordQueryOptions& options,
                          EventRecordCompactionResult* result,
                          std::string* error_message);
+bool ListCompactedEventRecordFiles(EventRecordCompactedFileListResult* result,
+                                   std::string* error_message);
+bool ResolveCompactedEventRecordFile(const std::string& file_name,
+                                     EventRecordCompactedFileInfo* result,
+                                     std::string* error_message);
+bool DeleteCompactedEventRecordFile(const std::string& file_name,
+                                    EventRecordCompactedFileInfo* result,
+                                    std::string* error_message);
 void RecordEventFrame(const std::string& stream_id,
                       const std::string& channel_id,
                       const RawVideoFrame& frame);
