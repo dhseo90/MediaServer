@@ -1060,11 +1060,22 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           </tr>
         `).join('');
       }
-      function renderOpsLiveTiles(sources, views, counts, runtime) {
+      function renderOpsLiveTiles(sources, views, counts, runtime, eventRecords) {
         const grid = document.getElementById('opsLiveTileGrid');
         if (!grid) return;
         const density = document.getElementById('opsLiveDensity')?.value || 'compact';
+        const focus = document.getElementById('opsLiveFocus')?.value || 'all';
+        const search = String(document.getElementById('opsLiveFilterInput')?.value || '').trim().toLowerCase();
         const sourceById = new Map((Array.isArray(sources) ? sources : []).map(source => [String(source.sourceId || ''), source]));
+        const eventCountByKey = new Map();
+        for (const record of Array.isArray(eventRecords) ? eventRecords : []) {
+          const streamId = String(record?.streamId || '').trim();
+          const channelId = String(record?.channelId || '').trim();
+          for (const key of [streamId, channelId]) {
+            if (!key) continue;
+            eventCountByKey.set(key, (eventCountByKey.get(key) || 0) + 1);
+          }
+        }
         const rows = [];
         for (const view of Array.isArray(views) ? views : []) {
           const source = sourceById.get(String(view.sourceId || view.viewId || '')) || null;
@@ -1080,28 +1091,65 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           return;
         }
         const tapCount = counts.activeTaps.length;
-        grid.classList.toggle('dashboard-card-grid-compact', density !== 'comfortable');
-        grid.innerHTML = rows.slice(0, density === 'comfortable' ? 12 : 24).map(row => {
+        const describedRows = rows.map(row => {
           const view = row.view || {};
           const source = row.source || {};
+          const sourceId = String(source.sourceId || '');
+          const viewId = String(view.viewId || '');
           const enabled = source.enabled !== false && view.enabled !== false;
+          const hasView = Boolean(viewId);
+          const recentEventCount = (eventCountByKey.get(sourceId) || 0) + (eventCountByKey.get(viewId) || 0);
+          const attention = !enabled || !hasView || recentEventCount > 0;
+          const searchable = [row.id, view.displayName, view.viewId, source.displayName, source.sourceId, source.kind]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+          return { ...row, enabled, hasView, recentEventCount, attention, searchable };
+        });
+        const filteredRows = describedRows.filter(row => {
+          if (focus === 'attention' && !row.attention) return false;
+          if (focus === 'published' && !row.hasView) return false;
+          if (focus === 'unassigned' && row.hasView) return false;
+          if (search && !row.searchable.includes(search)) return false;
+          return true;
+        });
+        const attentionCount = describedRows.filter(row => row.attention).length;
+        const unassignedCount = describedRows.filter(row => !row.hasView).length;
+        grid.classList.toggle('dashboard-card-grid-compact', density !== 'comfortable');
+        if (filteredRows.length === 0) {
+          grid.innerHTML = '<div class="empty">현재 필터에 맞는 채널이 없습니다.</div>';
+        } else {
+          grid.innerHTML = filteredRows.slice(0, density === 'comfortable' ? 12 : 24).map(row => {
+          const view = row.view || {};
+          const source = row.source || {};
           const overlays = Array.isArray(view.allowedOverlayModes) ? view.allowedOverlayModes.join(', ') : 'raw';
           const rules = [view.defaultRuleId, ...(Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds : [])].filter(Boolean);
           return `
             <div class="metric-card">
-              <span>#${escapeHtml(row.id)} · ${escapeHtml(enabled ? 'enabled' : 'disabled')}</span>
+              <span>#${escapeHtml(row.id)} · ${escapeHtml(row.enabled ? 'enabled' : 'disabled')}</span>
               <strong>${escapeHtml(view.displayName || source.displayName || source.sourceId || row.id)}</strong>
               <small>${escapeHtml(sourceText(source))}</small>
               <small>overlay ${escapeHtml(overlays || 'raw')} · rule ${escapeHtml(rules.join(', ') || '없음')}</small>
+              <div class="badge-row">
+                ${badge(row.hasView ? 'published' : 'unassigned', row.hasView ? '' : 'warn')}
+                ${badge(row.enabled ? 'enabled' : 'disabled', row.enabled ? '' : 'warn')}
+                ${badge(`event ${row.recentEventCount}`, row.recentEventCount > 0 ? 'warn' : 'info')}
+              </div>
             </div>
           `;
-        }).join('');
-        setText('opsLiveSummary', `tiles ${rows.length} · active taps ${tapCount} · sessions ${counts.sessions}`);
+          }).join('');
+        }
+        setText('opsLiveSummary', `tiles ${filteredRows.length}/${rows.length} · active taps ${tapCount} · sessions ${counts.sessions} · attention ${attentionCount}`);
         renderBadges('opsLiveBadges', [
+          { text: `focus ${focus}` },
+          { text: search ? `search ${search}` : 'search 없음', tone: search ? '' : 'info' },
           { text: counts.streams > 0 ? '스트림 활성' : '스트림 대기', tone: counts.streams > 0 ? '' : 'info' },
           { text: counts.taps > 0 ? '분석 활성' : '분석 대기', tone: counts.taps > 0 ? '' : 'info' },
+          { text: `attention ${attentionCount}`, tone: attentionCount > 0 ? 'warn' : '' },
           { text: `reuse ${runtime?.analysisMatching?.reuseGroupCount ?? 0}` }
         ]);
+        setText('opsLiveAttentionCount', attentionCount);
+        setText('opsLiveUnassignedCount', unassignedCount);
       }
       async function refreshLive() {
         const [sources, views, catalog, runtime, events, users] = await Promise.all([
@@ -1138,8 +1186,8 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         setText('homeRuntimeText', staleTapCount > 0
           ? `${staleTapCount}개 분석 탭이 지연 상태입니다. 대시보드에서 런타임 상세를 확인하세요.`
           : '현재 지연 탭 경고는 없습니다.');
-        renderOpsLiveTiles(sourceItems, viewItems, counts, runtime);
         const eventItems = Array.isArray(events.records?.records) ? events.records.records : [];
+        renderOpsLiveTiles(sourceItems, viewItems, counts, runtime, eventItems);
         setText('opsLiveEventSummary', events.error ? `조회 실패: ${events.error}` : `records ${eventItems.length}`);
         renderOpsLiveEventRows(eventItems);
         renderRaw('opsLiveRaw', 'opsLivePretty', { sources, views, catalog, runtime, events, users });
@@ -1307,6 +1355,8 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       function wireOpsRefresh() {
         document.getElementById('opsLiveRefresh')?.addEventListener('click', () => refreshLive().catch(error => setText('homeRuntimeText', error.message)));
         document.getElementById('opsLiveDensity')?.addEventListener('change', () => refreshLive().catch(error => setText('opsLiveSummary', error.message)));
+        document.getElementById('opsLiveFocus')?.addEventListener('change', () => refreshLive().catch(error => setText('opsLiveSummary', error.message)));
+        document.getElementById('opsLiveFilterInput')?.addEventListener('input', () => refreshLive().catch(error => setText('opsLiveSummary', error.message)));
         document.getElementById('opsDashboardRefresh')?.addEventListener('click', () => refreshDashboard().catch(error => setText('dashHealthText', error.message)));
         document.getElementById('opsEventsRefresh')?.addEventListener('click', () => refreshEvents().catch(error => setText('eventRecordSummary', error.message)));
         document.getElementById('opsRulesRefresh')?.addEventListener('click', () => refreshRules().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));

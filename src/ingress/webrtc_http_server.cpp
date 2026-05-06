@@ -18147,6 +18147,13 @@ void AppendOpsLivePage(std::ostringstream& out) {
           <p>등록 채널과 PublishedView를 고밀도 운영 타일로 확인합니다. 이 화면은 세션을 자동으로 열지 않고 runtime/event 상태만 빠르게 스캔합니다.</p>
         </div>
         <div class="actions">
+          <select id="opsLiveFocus" aria-label="라이브 모니터 필터">
+            <option value="all" selected>all</option>
+            <option value="attention">attention</option>
+            <option value="published">published</option>
+            <option value="unassigned">unassigned</option>
+          </select>
+          <input id="opsLiveFilterInput" type="search" placeholder="view/source 검색" aria-label="라이브 모니터 검색" />
           <select id="opsLiveDensity" aria-label="라이브 모니터 밀도">
             <option value="compact" selected>compact</option>
             <option value="comfortable">comfortable</option>
@@ -18159,6 +18166,8 @@ void AppendOpsLivePage(std::ostringstream& out) {
         <div class="metric-card"><span>PublishedView</span><strong id="opsLiveViewCount">-</strong></div>
         <div class="metric-card"><span>활성 스트림</span><strong id="opsLiveActiveStreams">-</strong></div>
         <div class="metric-card"><span>지연 탭</span><strong id="opsLiveStaleTaps">-</strong></div>
+        <div class="metric-card"><span>attention</span><strong id="opsLiveAttentionCount">-</strong></div>
+        <div class="metric-card"><span>미배정 채널</span><strong id="opsLiveUnassignedCount">-</strong></div>
       </div>
       <section class="section-card compact-card">
         <div class="toolbar">
