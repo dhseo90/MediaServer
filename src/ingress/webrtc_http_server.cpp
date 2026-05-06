@@ -7828,6 +7828,8 @@ std::string BuildLabRuleEditorPageHtml() {
                   </div>
                   <div class="event-record-actions">
                     <button id="eventRecordSearchBtn" type="button">검색</button>
+                    <button id="eventRecordPrevPageBtn" type="button" class="secondary">이전 페이지</button>
+                    <button id="eventRecordNextPageBtn" type="button" class="secondary">다음 페이지</button>
                     <button id="eventRecordCompactBtn" type="button" class="secondary">compaction snapshot</button>
                     <button id="eventRecordCompactionListBtn" type="button" class="secondary">snapshot 목록</button>
                     <p id="eventRecordStateText" class="event-record-state">자동 갱신 없음 · active JSON Lines metadata 조회 · archive는 선택 시 포함</p>
@@ -7849,6 +7851,12 @@ std::string BuildLabRuleEditorPageHtml() {
                   </details>
                   <details id="eventRecordCompactionDrawer" class="event-record-detail-drawer">
                     <summary>Compaction snapshots</summary>
+                    <div class="event-record-actions" style="padding:0 12px 12px;">
+                      <label>keepNewest
+                        <input id="eventRecordCompactionKeepNewestInput" type="number" min="0" step="1" value="10" placeholder="10" />
+                      </label>
+                      <button id="eventRecordCompactionCleanupBtn" type="button" class="secondary">오래된 snapshot 정리</button>
+                    </div>
                     <div class="dashboard-table-wrap">
                       <table class="data-table data-table-compact dashboard-table" aria-label="EventRecord compaction snapshots">
                         <thead><tr><th>file</th><th>size</th><th>modified</th><th>actions</th></tr></thead>
@@ -8042,6 +8050,7 @@ std::string BuildLabRuleEditorPageHtml() {
     let eventRecordSearchInFlight = false;
     let eventRecordResults = [];
     let eventRecordSelectedIndex = -1;
+    let eventRecordPageOffset = 0;
     let regionPoints = [
       { x: 0.20, y: 0.22 },
       { x: 0.80, y: 0.22 },
@@ -14508,7 +14517,7 @@ std::string BuildLabRuleEditorPageHtml() {
       return String($(id)?.value || '').trim();
     }
 
-    function eventRecordBuildQuery() {
+    function eventRecordBuildQuery(includePaging = true) {
       const params = new URLSearchParams();
       const mappings = [
         ['eventRecordEventTypeFilter', 'eventType'],
@@ -14526,10 +14535,20 @@ std::string BuildLabRuleEditorPageHtml() {
         if (value) params.set(key, value);
       }
       params.set('limit', eventRecordFilterValue('eventRecordLimitFilter') || '100');
+      if (includePaging && eventRecordPageOffset > 0) {
+        params.set('offset', String(eventRecordPageOffset));
+      }
       if ($('eventRecordIncludeArchivesFilter')?.checked) {
         params.set('includeArchives', '1');
       }
       return params;
+    }
+
+    function updateEventRecordPagingButtons(payload) {
+      const prevButton = $('eventRecordPrevPageBtn');
+      const nextButton = $('eventRecordNextPageBtn');
+      if (prevButton) prevButton.disabled = eventRecordSearchInFlight || eventRecordPageOffset === 0;
+      if (nextButton) nextButton.disabled = eventRecordSearchInFlight || !payload?.hasMore;
     }
 
     function eventRecordValue(record, ...keys) {
@@ -14636,8 +14655,9 @@ std::string BuildLabRuleEditorPageHtml() {
       const storageText = `${storage.enabled ? 'storage on' : 'storage off'} · ${storage.exists ? 'file 있음' : 'file 없음'}`;
       const snapshotCount = records.filter((record) => Boolean(eventRecordValue(record, 'snapshotPath'))).length;
       const clipCount = records.filter((record) => Boolean(eventRecordValue(record, 'clipPath'))).length;
-      dashboardSet('dashboardEventRecordsSummary', `records ${records.length} · snapshot ${snapshotCount} · clip ${clipCount} · ${hasMoreText}`);
-      dashboardSet('eventRecordStateText', `${storageText} · limit ${payload?.limit ?? '-'} · ${$('eventRecordIncludeArchivesFilter')?.checked ? 'archive 포함' : 'active only'} · ${activeSizeText} · ${archiveText} · ${archiveScanText} · ${deletedText} · ${corruptText} · ${partialText}${payload?.truncated ? ' · truncated' : ''}`);
+      dashboardSet('dashboardEventRecordsSummary', `offset ${payload?.offset ?? 0} · records ${records.length} · snapshot ${snapshotCount} · clip ${clipCount} · ${hasMoreText}`);
+      dashboardSet('eventRecordStateText', `${storageText} · offset ${payload?.offset ?? 0} · limit ${payload?.limit ?? '-'} · matched ${payload?.matchedRecords ?? 0} · ${$('eventRecordIncludeArchivesFilter')?.checked ? 'archive 포함' : 'active only'} · ${activeSizeText} · ${archiveText} · ${archiveScanText} · ${deletedText} · ${corruptText} · ${partialText}${payload?.truncated ? ' · truncated' : ''}`);
+      updateEventRecordPagingButtons(payload);
       const tbody = dashboardRowsStart('eventRecordRows');
       if (!tbody || records.length === 0) {
         dashboardSetEmptyRows('eventRecordRows', 11, eventRecordEmptyMessage(payload));
@@ -14662,23 +14682,26 @@ std::string BuildLabRuleEditorPageHtml() {
       selectEventRecordDetail(-1);
     }
 
-    async function searchEventRecords() {
+    async function searchEventRecords(resetOffset = false) {
       if (eventRecordSearchInFlight) return;
+      if (resetOffset) eventRecordPageOffset = 0;
       eventRecordSearchInFlight = true;
       const searchButton = $('eventRecordSearchBtn');
       if (searchButton) searchButton.disabled = true;
+      updateEventRecordPagingButtons(null);
       const details = $('dashboardEventRecordsDetails');
       if (details) details.open = true;
       dashboardSet('dashboardEventRecordsSummary', '조회 중');
       dashboardSet('eventRecordStateText', 'EventRecord metadata 조회 중...');
       try {
-        const params = eventRecordBuildQuery();
+        const params = eventRecordBuildQuery(true);
         const response = await fetch(`/lab/analysis/events/records?${params.toString()}`, { cache: 'no-store' });
         const text = await response.text();
         if (!response.ok) {
           throw new Error(text || `HTTP ${response.status}`);
         }
         const payload = JSON.parse(text);
+        eventRecordPageOffset = Number(payload?.offset ?? eventRecordPageOffset) || 0;
         renderEventRecordResults(payload);
       } catch (error) {
         eventRecordResults = [];
@@ -14686,9 +14709,12 @@ std::string BuildLabRuleEditorPageHtml() {
         dashboardSet('eventRecordStateText', `조회 실패 · ${error.message}`);
         dashboardSetEmptyRows('eventRecordRows', 11, 'EventRecord 조회 API 응답을 확인하세요.', 'error');
         selectEventRecordDetail(-1);
+        updateEventRecordPagingButtons(null);
       } finally {
         eventRecordSearchInFlight = false;
         if (searchButton) searchButton.disabled = false;
+        const prevButton = $('eventRecordPrevPageBtn');
+        if (prevButton) prevButton.disabled = eventRecordPageOffset === 0;
       }
     }
 
@@ -14697,7 +14723,7 @@ std::string BuildLabRuleEditorPageHtml() {
       if (compactButton) compactButton.disabled = true;
       dashboardSet('eventRecordStateText', 'EventRecord compaction snapshot 생성 중...');
       try {
-        const params = eventRecordBuildQuery();
+        const params = eventRecordBuildQuery(false);
         const response = await fetch(`/lab/analysis/events/records/compact?${params.toString()}`, {
           method: 'POST',
           cache: 'no-store'
@@ -14774,6 +14800,35 @@ std::string BuildLabRuleEditorPageHtml() {
       const payload = JSON.parse(text);
       renderEventRecordCompactionRows(payload.files || []);
       dashboardSet('eventRecordStateText', `compaction snapshots ${Array.isArray(payload.files) ? payload.files.length : 0}개`);
+    }
+
+    async function cleanupEventRecordCompactions() {
+      const keepNewestRaw = eventRecordFilterValue('eventRecordCompactionKeepNewestInput');
+      const keepNewest = keepNewestRaw ? Number(keepNewestRaw) : 10;
+      if (!Number.isFinite(keepNewest) || keepNewest < 0) {
+        dashboardSet('eventRecordStateText', 'compaction cleanup 실패 · keepNewest는 0 이상의 정수여야 합니다.');
+        return;
+      }
+      const cleanupButton = $('eventRecordCompactionCleanupBtn');
+      if (cleanupButton) cleanupButton.disabled = true;
+      dashboardSet('eventRecordStateText', `compaction cleanup 실행 중 · keepNewest ${keepNewest}`);
+      try {
+        const response = await fetch(`/lab/analysis/events/records/compactions/cleanup?keepNewest=${encodeURIComponent(String(Math.floor(keepNewest)))}`, {
+          method: 'POST',
+          cache: 'no-store'
+        });
+        const text = await response.text();
+        if (!response.ok) {
+          throw new Error(text || `HTTP ${response.status}`);
+        }
+        const payload = JSON.parse(text);
+        dashboardSet('eventRecordStateText', `compaction cleanup 완료 · deleted ${payload.deletedCount ?? 0} · kept ${payload.keptCount ?? 0} · ${dashboardBytes(payload.deletedBytes ?? 0)}`);
+        await loadEventRecordCompactions();
+      } catch (error) {
+        dashboardSet('eventRecordStateText', `compaction cleanup 실패 · ${error.message}`);
+      } finally {
+        if (cleanupButton) cleanupButton.disabled = false;
+      }
     }
 
     function renderDashboardMetadata(runtime, tapMetrics, tapsPayload) {
@@ -16354,7 +16409,21 @@ std::string BuildLabRuleEditorPageHtml() {
       }
       if ($('eventRecordSearchBtn')) {
         $('eventRecordSearchBtn').addEventListener('click', () => {
-          searchEventRecords().catch(() => {});
+          searchEventRecords(true).catch(() => {});
+        });
+      }
+      if ($('eventRecordPrevPageBtn')) {
+        $('eventRecordPrevPageBtn').addEventListener('click', () => {
+          const limit = Number(eventRecordFilterValue('eventRecordLimitFilter') || '100');
+          eventRecordPageOffset = Math.max(0, eventRecordPageOffset - (Number.isFinite(limit) && limit > 0 ? limit : 100));
+          searchEventRecords(false).catch(() => {});
+        });
+      }
+      if ($('eventRecordNextPageBtn')) {
+        $('eventRecordNextPageBtn').addEventListener('click', () => {
+          const limit = Number(eventRecordFilterValue('eventRecordLimitFilter') || '100');
+          eventRecordPageOffset += Number.isFinite(limit) && limit > 0 ? limit : 100;
+          searchEventRecords(false).catch(() => {});
         });
       }
       if ($('eventRecordCompactBtn')) {
@@ -16365,6 +16434,11 @@ std::string BuildLabRuleEditorPageHtml() {
       if ($('eventRecordCompactionListBtn')) {
         $('eventRecordCompactionListBtn').addEventListener('click', () => {
           loadEventRecordCompactions().catch(() => {});
+        });
+      }
+      if ($('eventRecordCompactionCleanupBtn')) {
+        $('eventRecordCompactionCleanupBtn').addEventListener('click', () => {
+          cleanupEventRecordCompactions().catch(() => {});
         });
       }
     }
@@ -22040,6 +22114,17 @@ bool BuildEventRecordQueryOptions(const std::unordered_map<std::string, std::str
         return false;
     }
 
+    if (const auto it = query.find("offset"); it != query.end() && !Trim(it->second).empty()) {
+        std::uint64_t parsed = 0;
+        if (!ParseStrictUint64(Trim(it->second), &parsed)) {
+            if (error_message != nullptr) {
+                *error_message = "offset must be a non-negative integer";
+            }
+            return false;
+        }
+        options->offset = static_cast<std::size_t>(parsed);
+    }
+
     const auto include_archives_value = query.find("includeArchives");
     const auto archive_value = query.find("archive");
     const std::string include_archives_raw =
@@ -22083,7 +22168,10 @@ std::string AnalysisEventRecordsJson(const analysis::EventRecordQueryResult& res
         out << result.records_json[i];
     }
     out << "],"
+        << "\"offset\":" << result.offset << ","
         << "\"limit\":" << result.limit << ","
+        << "\"nextOffset\":" << result.next_offset << ","
+        << "\"matchedRecords\":" << result.matched_records << ","
         << "\"hasMore\":" << (result.has_more ? "true" : "false") << ","
         << "\"truncated\":" << (result.truncated ? "true" : "false") << ","
         << "\"skippedCorruptLines\":" << result.skipped_corrupt_lines << ","
@@ -22187,6 +22275,25 @@ std::string AnalysisEventRecordCompactedFileDeletedJson(
         << "\"path\":\"" << JsonEscape(file.path) << "\","
         << "\"sizeBytes\":" << file.size_bytes << ","
         << "\"modifiedTimeMs\":" << file.modified_time_ms
+        << "}";
+    return out.str();
+}
+
+std::string AnalysisEventRecordCompactedFileCleanupJson(
+    const analysis::EventRecordCompactedFileCleanupResult& result) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.va.event-record-compacted-cleanup.v1\","
+        << "\"deletedCount\":" << result.deleted_count << ","
+        << "\"deletedBytes\":" << result.deleted_bytes << ","
+        << "\"keptCount\":" << result.kept_count << ","
+        << "\"storage\":{"
+        << "\"enabled\":" << (result.storage.enabled ? "true" : "false") << ","
+        << "\"path\":\"" << JsonEscape(result.storage.path) << "\","
+        << "\"activePath\":\"" << JsonEscape(result.storage.active_path.empty()
+                                                  ? result.storage.path
+                                                  : result.storage.active_path)
+        << "\"}"
         << "}";
     return out.str();
 }
@@ -24286,6 +24393,37 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "{\"error\":\"" + JsonEscape(error_message) + "\"}");
                             }
                             return JsonResponse(200, "OK", AnalysisEventRecordCompactedFilesJson(result));
+                        }
+
+                        if (request.method == "POST" &&
+                            request.path == "/lab/analysis/events/records/compactions/cleanup") {
+                            if (const auto auth_response = require_rule_write_principal();
+                                auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            std::size_t keep_newest = 10;
+                            if (const auto it = query.find("keepNewest");
+                                it != query.end() && !Trim(it->second).empty()) {
+                                std::uint64_t parsed = 0;
+                                if (!ParseStrictUint64(Trim(it->second), &parsed)) {
+                                    return JsonResponse(400,
+                                                        "Bad Request",
+                                                        "{\"error\":\"keepNewest must be a non-negative integer\"}");
+                                }
+                                keep_newest = static_cast<std::size_t>(parsed);
+                            }
+                            analysis::EventRecordCompactedFileCleanupResult result;
+                            std::string error_message;
+                            if (!analysis::CleanupCompactedEventRecordFiles(keep_newest,
+                                                                           &result,
+                                                                           &error_message)) {
+                                return JsonResponse(500,
+                                                    "Internal Server Error",
+                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            }
+                            return JsonResponse(200,
+                                                "OK",
+                                                AnalysisEventRecordCompactedFileCleanupJson(result));
                         }
 
                         const auto compacted_record_prefix =

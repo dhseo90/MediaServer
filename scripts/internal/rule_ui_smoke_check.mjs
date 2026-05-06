@@ -132,11 +132,14 @@ try {
         for (const id of ['addVaRuleBtn', 'vaRuleList', 'vaRuleTotalMetric', 'vaRuleNextIdMetric']) {
           if (!$(id)) throw new Error('missing vaRule management control: ' + id);
         }
-        for (const id of ['dashboardEventRecordsDetails', 'eventRecordEvidenceFilter', 'eventRecordEvidenceSummary', 'eventRecordSnapshotPathText', 'eventRecordClipPathText', 'eventRecordClipBundleText']) {
+        for (const id of ['dashboardEventRecordsDetails', 'eventRecordEvidenceFilter', 'eventRecordEvidenceSummary', 'eventRecordSnapshotPathText', 'eventRecordClipPathText', 'eventRecordClipBundleText', 'eventRecordPrevPageBtn', 'eventRecordNextPageBtn', 'eventRecordCompactionKeepNewestInput', 'eventRecordCompactionCleanupBtn']) {
           if (!$(id)) throw new Error('missing EventRecord evidence UI control: ' + id);
         }
         const evidenceValues = Array.from($('eventRecordEvidenceFilter').options).map((option) => option.value);
         expectList('EventRecord evidence filter values', evidenceValues, ['', 'snapshot', 'clip', 'any', 'both', 'missing']);
+        if ($('eventRecordCompactionKeepNewestInput').value !== '10') {
+          throw new Error('EventRecord compaction keepNewest default mismatch: ' + $('eventRecordCompactionKeepNewestInput').value);
+        }
         for (const id of ['editSelectedVaRuleBtn', 'duplicateSelectedVaRuleBtn', 'deleteSelectedVaRuleBtn']) {
           if ($(id)) throw new Error('selected-rule toolbar action should be removed: ' + id);
         }

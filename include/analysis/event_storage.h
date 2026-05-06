@@ -147,6 +147,7 @@ struct EventRecordQueryOptions {
     std::int64_t start_time_ms{0};
     bool has_end_time_ms{false};
     std::int64_t end_time_ms{0};
+    std::size_t offset{0};
     std::size_t limit{100};
     bool include_archives{false};
 };
@@ -155,13 +156,16 @@ struct EventRecordQueryResult {
     EventStorageSnapshot storage;
     bool file_exists{false};
     std::vector<std::string> records_json;
+    std::size_t offset{0};
     std::size_t limit{100};
+    std::size_t next_offset{0};
     bool has_more{false};
     bool truncated{false};
     std::uint64_t skipped_corrupt_lines{0};
     std::uint64_t partial_line_count{0};
     std::uint64_t archive_files_scanned{0};
     std::uint64_t archive_records_scanned{0};
+    std::uint64_t matched_records{0};
 };
 
 struct EventRecordCompactionResult {
@@ -188,6 +192,13 @@ struct EventRecordCompactedFileListResult {
     std::vector<EventRecordCompactedFileInfo> files;
 };
 
+struct EventRecordCompactedFileCleanupResult {
+    EventStorageSnapshot storage;
+    std::uint64_t deleted_count{0};
+    std::uint64_t deleted_bytes{0};
+    std::uint64_t kept_count{0};
+};
+
 void DispatchEventRecords(const AnalysisResult& result, const std::vector<AnalysisEvent>& events);
 EventStorageSnapshot GetEventStorageSnapshot();
 bool QueryEventRecords(const EventRecordQueryOptions& options,
@@ -204,6 +215,9 @@ bool ResolveCompactedEventRecordFile(const std::string& file_name,
 bool DeleteCompactedEventRecordFile(const std::string& file_name,
                                     EventRecordCompactedFileInfo* result,
                                     std::string* error_message);
+bool CleanupCompactedEventRecordFiles(std::size_t keep_newest,
+                                      EventRecordCompactedFileCleanupResult* result,
+                                      std::string* error_message);
 void RecordEventFrame(const std::string& stream_id,
                       const std::string& channel_id,
                       const RawVideoFrame& frame);
