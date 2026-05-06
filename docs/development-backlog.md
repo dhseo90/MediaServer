@@ -523,13 +523,14 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 - 완료 범위:
   - Scenario template 목록에 Loitering 추가
   - 로비/승강장/주차장 현장 샘플 시작 프리셋 추가
+  - retail/lobby/platform/doorway/parking 기준 threshold baseline 문서화
   - target zone, `minDwellTimeMs`, `maxMovementRadius`, `minTrajectoryPoints`, `cooldownMs`, unstable track exclude 설정
   - optional `useGroundPlaneMovementRadius` 저장
   - Idle → InsideZone → TrajectoryStable → DwellSatisfied → Confirmed → Cooldown → Ended 상태 흐름 미리보기
   - rule payload preview와 저장 전 validation
   - 저장된 Loitering rule의 `event.type=scenario.type=loitering`과 target zone/radius/trajectory/cooldown round-trip 검증
 - 남은 작업: 실제 CCTV 샘플로 프리셋 값을 보정하는 장기 field fixture 추가
-- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/rule_ui_smoke_check.mjs`, `src/analysis/loitering_scenario.cpp`, `test/fixtures/va_replay/loitering_metadata.json`, `docs/video-analysis.md`
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/rule_ui_smoke_check.mjs`, `src/analysis/loitering_scenario.cpp`, `test/fixtures/va_replay/loitering_metadata.json`, `docs/video-analysis.md`, `docs/analysis-threshold-baselines.md`
 - 검증 명령:
 
 ```bash

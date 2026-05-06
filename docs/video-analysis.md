@@ -356,13 +356,13 @@ target zone 내부 dwell time과 downsampled trajectory movement radius를 조�
 | ground-plane radius | optional `useGroundPlaneMovementRadius` |
 | unstable track exclude | 불안정 track 후보 제외 |
 
-현재 UI 템플릿은 rule payload preview, 저장 전 validation, standalone rule 저장 round-trip을 검증합니다. 실제 CCTV 샘플 기반 dwell/radius/trajectory threshold tuning은 후속입니다. Event POST payload, WebRTC/SSE/WS metadata schema, 기존 Scenario 판단 로직 변경으로 표현하지 않습니다.
+현재 UI 템플릿은 rule payload preview, 저장 전 validation, standalone rule 저장 round-trip을 검증합니다. 현장 시작 threshold는 [Analysis Threshold Baselines](analysis-threshold-baselines.md)에 정리합니다. Event POST payload, WebRTC/SSE/WS metadata schema, 기존 Scenario 판단 로직 변경으로 표현하지 않습니다.
 
 ### ZoneOccupancyScenario
 
 특정 zone 내부 동시 track 수가 threshold 이상이고 각 track의 zone dwell이 최소 조건을 만족할 때 `zone-occupancy` scenario event를 1회 발생시킵니다. per-track ScenarioEngine 구조 위에서 같은 zone의 대표 track만 event를 emit해 중복을 억제합니다.
 
-룰 편집 UI는 대기열, 로비 혼잡, 승강장 혼잡, 출입구 정체 preset을 제공합니다. Preset은 `occupancyThreshold`, `minDwellTimeMs`, `cooldownMs` 시작값만 채우며 저장 payload에는 preset 이름 대신 숫자 조건만 남습니다.
+룰 편집 UI는 대기열, 로비 혼잡, 승강장 혼잡, 출입구 정체 preset을 제공합니다. Preset은 `occupancyThreshold`, `minDwellTimeMs`, `cooldownMs` 시작값만 채우며 저장 payload에는 preset 이름 대신 숫자 조건만 남습니다. 현장별 시작값과 조정 순서는 [Analysis Threshold Baselines](analysis-threshold-baselines.md)를 기준으로 삼습니다.
 
 저장 payload 주요 필드:
 
