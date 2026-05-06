@@ -1018,6 +1018,10 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           debugCounters: runtime?.debugCounters || {}
         };
       };
+      let opsLiveState = {
+        rows: [],
+        selectedRowId: ''
+      };
       const eventTime = record => record.updateTime ?? record.startTime ?? record.timestamp ?? record.endTime ?? '';
       const formatTime = value => {
         if (value === null || value === undefined || value === '') return '미제공';
@@ -1025,6 +1029,109 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         if (!Number.isFinite(numeric)) return String(value);
         return numeric > 1000000000000 ? new Date(numeric).toLocaleString() : `${Math.round(numeric)}ms`;
       };
+      const liveRowKeys = row => {
+        const source = row?.source || {};
+        const view = row?.view || {};
+        return [source.sourceId, view.viewId, source.canonicalSourceKey]
+          .map(value => String(value || '').trim())
+          .filter(Boolean);
+      };
+      const recordEvidenceText = record => {
+        const snapshot = String(record?.snapshotPath || '').trim();
+        const clip = String(record?.clipPath || '').trim();
+        if (snapshot && clip) return 'snapshot + clip';
+        if (snapshot) return 'snapshot';
+        if (clip) return 'clip';
+        return '없음';
+      };
+      const liveTapForRow = (row, activeTaps) => {
+        const keys = new Set(liveRowKeys(row));
+        const taps = (Array.isArray(activeTaps) ? activeTaps : [])
+          .filter(tap => keys.has(String(tap?.streamKey || '').trim()))
+          .sort((left, right) => numberValue(left?.lastUsedAgeMs) - numberValue(right?.lastUsedAgeMs));
+        return taps[0] || null;
+      };
+      const liveRecordsForRow = (row, eventRecords) => {
+        const keys = new Set(liveRowKeys(row));
+        return (Array.isArray(eventRecords) ? eventRecords : [])
+          .filter(record => keys.has(String(record?.streamId || '').trim()) ||
+            keys.has(String(record?.channelId || '').trim()))
+          .sort((left, right) => numberValue(eventTime(right)) - numberValue(eventTime(left)));
+      };
+      function renderOpsLiveDrilldown(row) {
+        const recordsBody = document.getElementById('opsLiveDetailEventRows');
+        if (!row) {
+          setText('opsLiveDrilldownSummary', '타일 또는 최근 이벤트를 선택하면 source health, active tap, recent event, evidence 상태를 표시합니다.');
+          renderBadges('opsLiveDrilldownBadges', [{ text: '선택 없음', tone: 'info' }]);
+          setText('opsLiveDetailChannelText', '-');
+          setText('opsLiveDetailSourceText', '-');
+          setText('opsLiveDetailViewText', '-');
+          setText('opsLiveDetailTapText', '-');
+          setText('opsLiveDetailLatestEventText', '-');
+          setText('opsLiveDetailEvidenceText', '-');
+          setTableEmpty(recordsBody, 4, '채널을 선택하면 최근 event detail을 표시합니다.');
+          const detail = document.getElementById('opsLiveDetailJson');
+          if (detail) detail.textContent = '선택한 채널 detail 없음';
+          return;
+        }
+        const view = row.view || {};
+        const source = row.source || {};
+        const latestEvent = Array.isArray(row.eventRecords) && row.eventRecords.length > 0 ? row.eventRecords[0] : null;
+        const tap = row.tap || null;
+        const snapshotCount = row.eventRecords.filter(record => Boolean(record?.snapshotPath)).length;
+        const clipCount = row.eventRecords.filter(record => Boolean(record?.clipPath)).length;
+        setText('opsLiveDrilldownSummary',
+          `${view.displayName || source.displayName || row.id} · ${sourceText(source)} · event ${row.recentEventCount}`);
+        renderBadges('opsLiveDrilldownBadges', [
+          { text: row.hasView ? 'published' : 'unassigned', tone: row.hasView ? '' : 'warn' },
+          { text: row.enabled ? 'enabled' : 'disabled', tone: row.enabled ? '' : 'warn' },
+          { text: tap ? `tap ${tap.tapId || '-'}` : 'tap 없음', tone: tap ? (row.staleTap ? 'warn' : '') : 'info' },
+          { text: `event ${row.recentEventCount}`, tone: row.recentEventCount > 0 ? 'warn' : 'info' },
+          { text: `snapshot ${snapshotCount}`, tone: snapshotCount > 0 ? '' : 'info' },
+          { text: `clip ${clipCount}`, tone: clipCount > 0 ? '' : 'info' }
+        ]);
+        setText('opsLiveDetailChannelText', `#${row.id}`);
+        setText('opsLiveDetailSourceText', sourceText(source));
+        setText('opsLiveDetailViewText', view.viewId ? `${view.viewId}${view.defaultRuleId ? ` · rule ${view.defaultRuleId}` : ''}` : '미배정');
+        setText('opsLiveDetailTapText', tap ? `${tap.tapId || '-'} · age ${formatTime(tap.lastUsedAgeMs)}` : 'active tap 없음');
+        setText('opsLiveDetailLatestEventText', latestEvent ? `${latestEvent.eventType || latestEvent.eventId || 'event'} · ${formatTime(eventTime(latestEvent))}` : '최근 이벤트 없음');
+        setText('opsLiveDetailEvidenceText', `snapshot ${snapshotCount} · clip ${clipCount}`);
+        if (!Array.isArray(row.eventRecords) || row.eventRecords.length === 0) {
+          setTableEmpty(recordsBody, 4, '선택한 채널의 최근 EventRecord가 없습니다.');
+        } else {
+          recordsBody.innerHTML = row.eventRecords.slice(0, 8).map(record => `
+            <tr>
+              <td>${escapeHtml(record.eventType || record.eventId || 'event')}</td>
+              <td>${badge(record.status || '미제공', String(record.status || '').toLowerCase() === 'active' ? 'warn' : '')}</td>
+              <td>${escapeHtml(formatTime(eventTime(record)))}</td>
+              <td>${escapeHtml(recordEvidenceText(record))}</td>
+            </tr>
+          `).join('');
+        }
+        const detail = document.getElementById('opsLiveDetailJson');
+        if (detail) {
+          detail.textContent = JSON.stringify({
+            id: row.id,
+            enabled: row.enabled,
+            hasView: row.hasView,
+            attention: row.attention,
+            staleTap: row.staleTap,
+            source,
+            view,
+            tap,
+            latestEvent,
+            recentEventCount: row.recentEventCount,
+            eventRecords: row.eventRecords.slice(0, 8)
+          }, null, 2);
+        }
+      }
+      function selectOpsLiveRow(rowId) {
+        opsLiveState.selectedRowId = String(rowId || '');
+        renderOpsLiveDrilldown(opsLiveState.rows.find(row => String(row.id) === opsLiveState.selectedRowId) || null);
+        document.querySelectorAll('[data-live-row-id]').forEach(node => {
+          node.classList.toggle('is-selected', String(node.dataset.liveRowId || '') === opsLiveState.selectedRowId);
+        });
+      }
       function renderEventRows(records) {
         const body = document.getElementById('eventRecordRows');
         if (!body) return;
@@ -1050,15 +1157,25 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           setTableEmpty(body, 5, '최근 EventRecord가 없습니다.');
           return;
         }
-        body.innerHTML = records.slice(0, 12).map(record => `
-          <tr>
+        body.innerHTML = records.slice(0, 12).map(record => {
+          const matchedRow = opsLiveState.rows.find(row =>
+            row.eventRecords.some(item => String(item.eventId || '') === String(record.eventId || '')));
+          const rowId = matchedRow ? String(matchedRow.id) : '';
+          return `
+          <tr data-live-row-id="${escapeHtml(rowId)}">
             <td>${escapeHtml(record.eventType || record.eventId || 'event')}</td>
             <td>${badge(record.status || '미제공', String(record.status || '').toLowerCase() === 'active' ? 'warn' : '')}</td>
             <td>${escapeHtml(record.streamId || record.channelId || '미제공')}</td>
             <td>${escapeHtml(record.trackId ?? '미제공')}</td>
             <td>${escapeHtml(record.scenarioName || record.scenarioPhase || record.zoneId || '미제공')}</td>
           </tr>
-        `).join('');
+        `;
+        }).join('');
+        body.querySelectorAll('tr[data-live-row-id]').forEach(node => {
+          node.addEventListener('click', () => {
+            if (node.dataset.liveRowId) selectOpsLiveRow(node.dataset.liveRowId);
+          });
+        });
       }
       function renderOpsLiveTiles(sources, views, counts, runtime, eventRecords) {
         const grid = document.getElementById('opsLiveTileGrid');
@@ -1096,15 +1213,20 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           const source = row.source || {};
           const sourceId = String(source.sourceId || '');
           const viewId = String(view.viewId || '');
+          const tap = liveTapForRow(row, counts.activeTaps);
+          const rowEventRecords = liveRecordsForRow(row, eventRecords);
+          const staleTap = numberValue(tap?.lastUsedAgeMs) > 5000;
           const enabled = source.enabled !== false && view.enabled !== false;
           const hasView = Boolean(viewId);
-          const recentEventCount = (eventCountByKey.get(sourceId) || 0) + (eventCountByKey.get(viewId) || 0);
-          const attention = !enabled || !hasView || recentEventCount > 0;
-          const searchable = [row.id, view.displayName, view.viewId, source.displayName, source.sourceId, source.kind]
+          const recentEventCount = rowEventRecords.length > 0
+            ? rowEventRecords.length
+            : ((eventCountByKey.get(sourceId) || 0) + (eventCountByKey.get(viewId) || 0));
+          const attention = !enabled || !hasView || recentEventCount > 0 || staleTap;
+          const searchable = [row.id, view.displayName, view.viewId, source.displayName, source.sourceId, source.kind, tap?.selectedRuleId]
             .filter(Boolean)
             .join(' ')
             .toLowerCase();
-          return { ...row, enabled, hasView, recentEventCount, attention, searchable };
+          return { ...row, enabled, hasView, recentEventCount, attention, searchable, tap, staleTap, eventRecords: rowEventRecords };
         });
         const filteredRows = describedRows.filter(row => {
           if (focus === 'attention' && !row.attention) return false;
@@ -1119,26 +1241,37 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         if (filteredRows.length === 0) {
           grid.innerHTML = '<div class="empty">현재 필터에 맞는 채널이 없습니다.</div>';
         } else {
+          const selectedRowId = String(opsLiveState.selectedRowId || '');
           grid.innerHTML = filteredRows.slice(0, density === 'comfortable' ? 12 : 24).map(row => {
           const view = row.view || {};
           const source = row.source || {};
           const overlays = Array.isArray(view.allowedOverlayModes) ? view.allowedOverlayModes.join(', ') : 'raw';
           const rules = [view.defaultRuleId, ...(Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds : [])].filter(Boolean);
           return `
-            <div class="metric-card">
+            <button type="button" class="metric-card${selectedRowId === String(row.id) ? ' is-selected' : ''}" data-live-row-id="${escapeHtml(String(row.id || ''))}">
               <span>#${escapeHtml(row.id)} · ${escapeHtml(row.enabled ? 'enabled' : 'disabled')}</span>
               <strong>${escapeHtml(view.displayName || source.displayName || source.sourceId || row.id)}</strong>
               <small>${escapeHtml(sourceText(source))}</small>
               <small>overlay ${escapeHtml(overlays || 'raw')} · rule ${escapeHtml(rules.join(', ') || '없음')}</small>
+              <small>${escapeHtml(row.tap ? `tap ${row.tap.tapId || '-'} · age ${formatTime(row.tap.lastUsedAgeMs)}` : 'tap 없음')}</small>
               <div class="badge-row">
                 ${badge(row.hasView ? 'published' : 'unassigned', row.hasView ? '' : 'warn')}
                 ${badge(row.enabled ? 'enabled' : 'disabled', row.enabled ? '' : 'warn')}
                 ${badge(`event ${row.recentEventCount}`, row.recentEventCount > 0 ? 'warn' : 'info')}
+                ${badge(row.staleTap ? 'stale tap' : 'tap ok', row.staleTap ? 'warn' : 'info')}
               </div>
-            </div>
+            </button>
           `;
           }).join('');
+          grid.querySelectorAll('[data-live-row-id]').forEach(node => {
+            node.addEventListener('click', () => selectOpsLiveRow(node.dataset.liveRowId));
+          });
         }
+        opsLiveState.rows = describedRows;
+        if (!describedRows.some(row => String(row.id) === String(opsLiveState.selectedRowId || ''))) {
+          opsLiveState.selectedRowId = filteredRows[0] ? String(filteredRows[0].id) : '';
+        }
+        renderOpsLiveDrilldown(describedRows.find(row => String(row.id) === String(opsLiveState.selectedRowId || '')) || null);
         setText('opsLiveSummary', `tiles ${filteredRows.length}/${rows.length} · active taps ${tapCount} · sessions ${counts.sessions} · attention ${attentionCount}`);
         renderBadges('opsLiveBadges', [
           { text: `focus ${focus}` },

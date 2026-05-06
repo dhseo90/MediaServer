@@ -91,7 +91,7 @@ fi
 
 확인 기준:
 
-- `/ops`, `/ops/home`, `/ops/live`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`는 HTML을 반환하고 공통 Ops Console header/nav를 유지합니다. Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기 순서이며 `/ops/live`는 자동 media session을 열지 않는 고밀도 source/runtime/event 상태 타일을 표시합니다. Ops Live smoke는 focus selector, search input, attention count, unassigned count selector가 제품 shell에 남아 있는지도 함께 확인합니다.
+- `/ops`, `/ops/home`, `/ops/live`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`는 HTML을 반환하고 공통 Ops Console header/nav를 유지합니다. Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기 순서이며 `/ops/live`는 자동 media session을 열지 않는 고밀도 source/runtime/event 상태 타일을 표시합니다. Ops Live smoke는 focus selector, search input, attention count, unassigned count selector뿐 아니라 drill-down summary, detail event rows, detail JSON selector가 제품 shell에 남아 있는지도 함께 확인합니다.
 - `/ops/events`는 primary nav에서 숨긴 직접/진단 route입니다. 독립 제품 탭으로 취급하지 않고, 이벤트 조건은 룰에서 설정하며 운영 요약은 대시보드에서 확인합니다.
 - `/ops/dashboard`와 `/ops/rules`는 Lab iframe이나 `/lab/rules?embed=1`을 포함하지 않습니다. 대시보드는 `/ops/api/runtime/status`, 룰 카탈로그는 `/ops/api/rules/catalog`, 숨김 이벤트 상태는 `/ops/api/events/status`를 사용합니다. raw JSON은 접힘 debug 영역에만 둡니다.
 - `/ops/sources`는 숫자 채널 table을 먼저 보여주며, Live URL/VA URL 복사 버튼은 RTSP와 WebRTC 버튼을 실제 클립보드에 복사해야 합니다. source 원본 URL은 ops 화면에만 표시합니다.
