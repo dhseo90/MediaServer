@@ -1365,6 +1365,76 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         }
         updateOpsLivePreviewUi();
       }
+      function opsLiveSourcePayloadFromRow(row, enabled) {
+        const source = row?.source || {};
+        return {
+          sourceId: source.sourceId || row?.id || '',
+          displayName: source.displayName || source.sourceId || row?.id || '',
+          kind: source.kind || 'file',
+          file: source.file || '',
+          rtspUrl: source.rtspUrl || '',
+          webrtcSourceId: source.webrtcSourceId || '',
+          whepUrl: source.whepUrl || '',
+          httpUrl: source.httpUrl || '',
+          enabled,
+          tags: Array.isArray(source.tags) ? source.tags : [],
+          ownerGroup: source.ownerGroup || ''
+        };
+      }
+      function opsLiveViewPayloadFromRow(row, enabled) {
+        const view = row?.view || {};
+        return {
+          viewId: view.viewId || row?.id || '',
+          displayName: view.displayName || view.viewId || row?.id || '',
+          sourceId: view.sourceId || row?.source?.sourceId || row?.id || '',
+          defaultRuleId: view.defaultRuleId || '',
+          allowedRuleIds: Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds : [],
+          allowedOverlayModes: Array.isArray(view.allowedOverlayModes) && view.allowedOverlayModes.length > 0
+            ? view.allowedOverlayModes
+            : ['raw'],
+          showDashboard: view.showDashboard !== false,
+          showEvents: view.showEvents !== false,
+          showMetadataSummary: view.showMetadataSummary !== false,
+          clientGroups: Array.isArray(view.clientGroups) ? view.clientGroups : [],
+          maxTiles: Number.isFinite(Number(view.maxTiles)) ? Number(view.maxTiles) : 1,
+          enabled
+        };
+      }
+      async function opsLiveToggleChannel(row = selectedOpsLiveRow()) {
+        if (!row?.source?.sourceId || !row?.view?.viewId) return;
+        const nextEnabled = row.enabled === false;
+        await requestJson(`/ops/api/sources/${encodeURIComponent(row.source.sourceId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(opsLiveSourcePayloadFromRow(row, nextEnabled))
+        });
+        await requestJson(`/ops/api/views/${encodeURIComponent(row.view.viewId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(opsLiveViewPayloadFromRow(row, nextEnabled))
+        });
+        if (!nextEnabled) {
+          for (const slot of opsPreviewSlots) {
+            const state = opsPreviewStateFor(slot.key);
+            if (String(state.rowId || '') === String(row.id || '')) {
+              await stopOpsLivePreview(slot.key, { preserveRow: false }).catch(() => {});
+            }
+          }
+        }
+        await refreshLive();
+        setText('opsLiveActionSummary', `${row.id} 채널을 ${nextEnabled ? '활성' : '비활성'} 상태로 변경했습니다.`);
+      }
+      async function opsLiveStopSelectedPreviews(row = selectedOpsLiveRow()) {
+        if (!row) return;
+        for (const slot of opsPreviewSlots) {
+          const state = opsPreviewStateFor(slot.key);
+          if (String(state.rowId || '') === String(row.id || '')) {
+            await stopOpsLivePreview(slot.key, { preserveRow: true }).catch(() => {});
+          }
+        }
+        updateOpsLivePreviewUi(row);
+        setText('opsLiveActionSummary', `${row.id} 채널 preview를 정지했습니다.`);
+      }
       async function pollOpsLivePreviewIce(slotKey = opsPreviewTarget) {
         const state = opsPreviewStateFor(slotKey);
         if (!state.sessionId || !state.pc) return;
@@ -1481,6 +1551,8 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       }
       const opsLiveActionLink = (href, label) =>
         `<a class="button button-secondary" href="${escapeHtml(href)}">${escapeHtml(label)}</a>`;
+      const opsLiveActionButton = (action, label) =>
+        `<button type="button" class="button button-secondary" data-ops-live-action="${escapeHtml(action)}">${escapeHtml(label)}</button>`;
       function renderOpsLiveActions(row) {
         const container = document.getElementById('opsLiveActionButtons');
         if (!container) return;
@@ -1503,11 +1575,28 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         if (ruleId) {
           links.push(opsLiveActionLink(`/ops/rules#q=${encodeURIComponent(ruleId)}`, '룰 카탈로그'));
         }
+        if (row.hasView) {
+          links.push(opsLiveActionButton('stop-preview', 'preview 정지'));
+          links.push(opsLiveActionButton('toggle-channel', row.enabled ? '채널 비활성' : '채널 활성'));
+        }
         setText(
           'opsLiveActionSummary',
           `${view.displayName || source.displayName || row.id} 기준 이동 · ${tap?.tapId ? `tap ${tap.tapId} ` : ''}${ruleId ? `rule ${ruleId}` : 'rule 없음'}`
         );
         container.innerHTML = links.join('');
+        container.querySelectorAll('[data-ops-live-action]').forEach(button => {
+          button.addEventListener('click', async () => {
+            try {
+              if (button.dataset.opsLiveAction === 'toggle-channel') {
+                await opsLiveToggleChannel(selectedOpsLiveRow());
+              } else if (button.dataset.opsLiveAction === 'stop-preview') {
+                await opsLiveStopSelectedPreviews(selectedOpsLiveRow());
+              }
+            } catch (error) {
+              setText('opsLiveActionSummary', error.message || 'action failed');
+            }
+          });
+        });
       }
       function buildOpsLiveTimeline(row) {
         if (!row) return [];

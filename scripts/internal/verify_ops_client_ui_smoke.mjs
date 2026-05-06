@@ -397,7 +397,7 @@ async function assertOpsLivePreviewInteractionSmoke() {
   try {
     const result = await browser.evaluate(buildOpsLivePreviewInteractionExpression(), timeoutMs);
     if (!result?.ok) {
-      throw new Error(result?.error || JSON.stringify(result));
+      throw new Error(`${result?.error || "interaction smoke failed"} :: ${JSON.stringify(result)}`);
     }
   } finally {
     await browser.close();
@@ -503,6 +503,7 @@ function buildOpsLivePreviewInteractionExpression() {
       const sessionBodies = [];
       const answerBodies = [];
       const deleteCalls = [];
+      const writeBodies = [];
       const activeSessions = new Map();
       let sessionSeq = 0;
       const originalFetch = window.fetch.bind(window);
@@ -557,6 +558,18 @@ function buildOpsLivePreviewInteractionExpression() {
         if (path === '/ops/api/runtime/status') return new FakeResponse(sampleRuntime);
         if (path.startsWith('/ops/api/events/status')) return new FakeResponse(sampleEvents);
         if (path === '/ops/api/users') return new FakeResponse({ users: [] });
+        if (path === '/ops/api/sources/cam-01' && (init.method || 'GET').toUpperCase() === 'PUT') {
+          const body = JSON.parse(String(init.body || '{}'));
+          writeBodies.push({ kind: 'source', body });
+          sampleSources.sources[0].enabled = body.enabled !== false;
+          return new FakeResponse({ ok: true });
+        }
+        if (path === '/ops/api/views/view-lobby' && (init.method || 'GET').toUpperCase() === 'PUT') {
+          const body = JSON.parse(String(init.body || '{}'));
+          writeBodies.push({ kind: 'view', body });
+          sampleViews.views[0].enabled = body.enabled !== false;
+          return new FakeResponse({ ok: true });
+        }
         if (path === '/webrtc/config') return new FakeResponse({ peerConnectionConfig: { iceServers: [] } });
         if (path === '/client/api/views/view-lobby/dashboard') return new FakeResponse(sampleDashboard);
         if (path === '/client/api/views/view-lobby/webrtc/session' && (init.method || 'GET').toUpperCase() === 'POST') {
@@ -625,6 +638,20 @@ function buildOpsLivePreviewInteractionExpression() {
         document.getElementById('opsLivePreviewStop').click();
         await wait(60);
         assertOk(deleteCalls.length >= 3, 'preview stop did not cleanup prior sessions');
+        const stopPreviewButton = Array.from(document.querySelectorAll('#opsLiveActionButtons [data-ops-live-action]'))
+          .find(node => node.dataset.opsLiveAction === 'stop-preview');
+        assertOk(Boolean(stopPreviewButton), 'stop-preview action button missing');
+        stopPreviewButton.click();
+        await wait(40);
+        const toggleButton = Array.from(document.querySelectorAll('#opsLiveActionButtons [data-ops-live-action]'))
+          .find(node => node.dataset.opsLiveAction === 'toggle-channel');
+        assertOk(Boolean(toggleButton), 'toggle-channel action button missing');
+        const activeRow = selectedOpsLiveRow() || (Array.isArray(opsLiveState.rows) ? opsLiveState.rows[0] : null);
+        assertOk(Boolean(activeRow), 'selected row missing before toggle action');
+        await opsLiveToggleChannel(activeRow);
+        await wait(40);
+        assertOk(writeBodies.some(item => item.kind === 'source' && item.body.enabled === false), 'source disable write missing');
+        assertOk(writeBodies.some(item => item.kind === 'view' && item.body.enabled === false), 'view disable write missing');
         const badgeText = document.getElementById('opsLivePreviewPrimaryHealthBadges').textContent || '';
         assertOk(badgeText.includes('ice') && badgeText.includes('meta') && badgeText.includes('frame'), 'health badges missing after preview refresh');
         return {
@@ -632,10 +659,11 @@ function buildOpsLivePreviewInteractionExpression() {
           sessionBodies,
           answerCount: answerBodies.length,
           deleteCount: deleteCalls.length,
+          writeCount: writeBodies.length,
           requestCount: requestLog.length
         };
       } catch (error) {
-        return { ok: false, error: error && error.message ? error.message : String(error), sessionBodies, answerBodies, deleteCalls, requestLog };
+        return { ok: false, error: error && error.message ? error.message : String(error), sessionBodies, answerBodies, deleteCalls, writeBodies, requestLog };
       } finally {
         window.fetch = originalFetch;
         window.RTCPeerConnection = originalPc;
