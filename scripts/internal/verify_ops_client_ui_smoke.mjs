@@ -492,7 +492,12 @@ function buildOpsLivePreviewInteractionExpression() {
       const sampleDashboard = {
         health: { metadataAgeMs: 800, lastFrameAgeMs: 600 },
         connection: { lastFrameAgeMs: 600 },
-        analysis: { trackCount: 2, activeEventCount: 1 }
+        analysis: { trackCount: 2, activeEventCount: 1, scenarioCount: 1, latestEventTime: Date.now() },
+        events: {
+          warning: true,
+          latestEventTime: Date.now(),
+          countsByType: [{ eventType: 'loitering', count: 1 }]
+        }
       };
       const requestLog = [];
       const sessionBodies = [];
@@ -593,6 +598,7 @@ function buildOpsLivePreviewInteractionExpression() {
         assertOk(sessionBodies.length >= 1, 'primary preview session was not created');
         assertOk(sessionBodies[0].overlayMode === 'raw', 'raw preview payload mismatch');
         assertOk(answerBodies.length >= 1, 'primary preview answer was not posted');
+        assertOk((document.getElementById('opsLiveTimelineRows').textContent || '').includes('track 2'), 'timeline runtime summary missing');
         assertOk(document.getElementById('opsLivePreviewPrimarySummary').textContent.includes('연결 중')
           || document.getElementById('opsLivePreviewPrimarySummary').textContent.includes('view-lobby'),
           'primary preview summary not updated');

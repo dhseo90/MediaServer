@@ -1053,6 +1053,9 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         rows: [],
         selectedRowId: ''
       };
+      const opsLiveDashboardCache = new Map();
+      const opsLiveDashboardPromiseCache = new Map();
+      const opsLiveDashboardLoadedAt = new Map();
       let opsPreviewConfigPromise = null;
       const opsPreviewSlots = [
         { key: 'primary', label: '슬롯 A', prefix: 'Primary' },
@@ -1137,6 +1140,40 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       }
       function opsPreviewStateFor(key = opsPreviewTarget) {
         return opsPreviewStates[key] || opsPreviewStates.primary;
+      }
+      function opsLiveDashboardForRow(row = selectedOpsLiveRow()) {
+        const viewId = String(row?.view?.viewId || '').trim();
+        return viewId ? (opsLiveDashboardCache.get(viewId) || null) : null;
+      }
+      async function refreshOpsLiveRowDashboard(row = selectedOpsLiveRow(), options = {}) {
+        const viewId = String(row?.view?.viewId || '').trim();
+        if (!viewId) return null;
+        const loadedAt = Number(opsLiveDashboardLoadedAt.get(viewId) || 0);
+        if (!options.force && opsLiveDashboardCache.has(viewId) && Date.now() - loadedAt < 5000) {
+          return opsLiveDashboardCache.get(viewId) || null;
+        }
+        if (!options.force && opsLiveDashboardPromiseCache.has(viewId)) {
+          return opsLiveDashboardPromiseCache.get(viewId);
+        }
+        const request = requestJson(`/client/api/views/${encodeURIComponent(viewId)}/dashboard`)
+          .then(payload => {
+            opsLiveDashboardCache.set(viewId, payload || null);
+            opsLiveDashboardLoadedAt.set(viewId, Date.now());
+            return payload || null;
+          })
+          .catch(() => {
+            opsLiveDashboardCache.delete(viewId);
+            opsLiveDashboardLoadedAt.delete(viewId);
+            return null;
+          })
+          .finally(() => {
+            opsLiveDashboardPromiseCache.delete(viewId);
+            if (String(opsLiveState.selectedRowId || '') === String(row?.id || '')) {
+              renderOpsLiveTimeline(selectedOpsLiveRow());
+            }
+          });
+        opsLiveDashboardPromiseCache.set(viewId, request);
+        return request;
       }
       function opsLivePreviewRuleId(row = selectedOpsLiveRow()) {
         const view = row?.view || {};
@@ -1477,6 +1514,10 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         const view = row.view || {};
         const source = row.source || {};
         const tap = row.tap || null;
+        const dashboard = opsLiveDashboardForRow(row);
+        const dashboardHealth = dashboard?.health || {};
+        const dashboardAnalysis = dashboard?.analysis || {};
+        const dashboardEvents = dashboard?.events || {};
         const entries = [];
         entries.push({
           time: '',
@@ -1498,15 +1539,40 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
             note: `${tap.tapId || '-'} · age ${formatTime(tap.lastUsedAgeMs)}${tap.selectedRuleId ? ` · rule ${tap.selectedRuleId}` : ''}`
           });
         }
+        if (dashboard) {
+          entries.push({
+            time: formatTime(dashboardAnalysis.latestEventTime),
+            kind: 'runtime',
+            state: dashboardHealth.stale ? 'stale' : (dashboardHealth.status || 'live'),
+            note: [
+              `track ${display(dashboardAnalysis.trackCount)}`,
+              `scenario ${display(dashboardAnalysis.scenarioCount)}`,
+              `active event ${display(dashboardAnalysis.activeEventCount)}`,
+              `frame ${ms(dashboardHealth.lastFrameAgeMs)}`,
+              `meta ${ms(dashboardHealth.metadataAgeMs)}`
+            ].join(' · ')
+          });
+          if (Array.isArray(dashboardEvents.countsByType) && dashboardEvents.countsByType.length > 0) {
+            entries.push({
+              time: formatTime(dashboardEvents.latestEventTime),
+              kind: 'event-summary',
+              state: dashboardEvents.warning ? 'warning' : 'normal',
+              note: dashboardEvents.countsByType.slice(0, 4).map(item =>
+                `${item.eventType || 'event'} ${item.count || 0}`).join(' · ')
+            });
+          }
+        }
         for (const record of (Array.isArray(row.eventRecords) ? row.eventRecords : []).slice(0, 8)) {
           const evidence = recordEvidenceText(record);
+          const route = [record.zoneId, record.lineId].filter(Boolean).join(' / ');
           entries.push({
             time: formatTime(eventTime(record)),
             kind: 'event',
             state: record.status || record.scenarioPhase || 'recorded',
             note: [
               record.eventType || record.eventId || 'event',
-              record.scenarioName || record.zoneId || record.lineId || '',
+              record.scenarioName || record.scenarioPhase || '',
+              route,
               evidence !== '없음' ? `${evidence} captured` : 'evidence 없음'
             ].filter(Boolean).join(' · ')
           });
@@ -1588,6 +1654,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         renderOpsLiveTimeline(row);
         renderOpsLiveActions(row);
         updateOpsLivePreviewUi(row);
+        refreshOpsLiveRowDashboard(row).catch(() => {});
         const detail = document.getElementById('opsLiveDetailJson');
         if (detail) {
           detail.textContent = JSON.stringify({
