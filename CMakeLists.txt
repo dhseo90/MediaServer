@@ -37,6 +37,7 @@ add_executable(media_server
     src/analysis/tracked_object_metadata.cpp
     src/analysis/va_runtime_metadata.cpp
     src/analysis/wrong_direction_scenario.cpp
+    src/analysis/zone_occupancy_scenario.cpp
     src/analysis/yolo_onnx_detector.cpp
     src/app_config.cpp
     src/main.cpp

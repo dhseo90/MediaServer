@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 파일 용도: VA metadata replay baseline fixture들을 expected JSON과 비교 검증한다.
-# 동작 요약: 실제 영상/RTSP/WebRTC 없이 Intrusion, LineCrossing, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, cleanup, 다채널 baseline을 replay한다.
+# 동작 요약: 실제 영상/RTSP/WebRTC 없이 Intrusion, LineCrossing, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, ZoneOccupancy, cleanup, 다채널 baseline을 replay한다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,6 +20,7 @@ cases=(
   "wrong-direction|wrong_direction_metadata.json|wrong_direction_expected.json|wrong_direction_rules.json|wrong-direction"
   "intrusion-after-line-crossing|intrusion_after_line_crossing_metadata.json|intrusion_after_line_crossing_expected.json|intrusion_after_line_crossing_rules.json|intrusion-after-line-crossing"
   "loitering|loitering_metadata.json|loitering_expected.json|loitering_rules.json|loitering"
+  "zone-occupancy|zone_occupancy_metadata.json|zone_occupancy_expected.json|zone_occupancy_rules.json|zone-occupancy"
   "cleanup|cleanup_metadata.json|cleanup_expected.json||"
   "reacquire|reacquire_metadata.json|reacquire_expected.json||"
   "multichannel|multichannel_metadata.json|multichannel_expected.json||"
@@ -60,6 +61,12 @@ for case in "${cases[@]}"; do
     MEDIA_SERVER_ANALYSIS_LOITERING_MIN_TRAJECTORY_POINTS=3 \
     MEDIA_SERVER_ANALYSIS_LOITERING_COOLDOWN_MS=1000 \
     "${SCRIPT_DIR}/replay_va_metadata.sh" --no-intrusion-dwell --enable-loitering "${args[@]}"
+  elif [[ "${mode}" == "zone-occupancy" ]]; then
+    MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_ENABLED=1 \
+    MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_THRESHOLD=2 \
+    MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_MIN_DWELL_TIME_MS=1000 \
+    MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_COOLDOWN_MS=1000 \
+    "${SCRIPT_DIR}/replay_va_metadata.sh" --no-intrusion-dwell --enable-zone-occupancy "${args[@]}"
   else
     "${SCRIPT_DIR}/replay_va_metadata.sh" "${args[@]}"
   fi

@@ -252,8 +252,8 @@ Scenario는 여러 frame에 걸친 상태 전이와 시간 조건을 평가합�
 | ReEntry | 구현됨, 룰 편집 UI에서 선택 가능 | `re-entry` |
 | WrongDirection | 구현됨, UI 템플릿 제공 | `wrong-direction` |
 | IntrusionAfterLineCrossing | 구현됨, 룰 편집 UI에서 선택 가능 | `intrusion-after-line-crossing` |
-| Loitering | 구현됨, 룰 편집 UI에서 선택 가능 | `loitering` |
-| ZoneOccupancyScenario | 다음 작업, 신규 구현 예정 | `zone-occupancy` |
+| Loitering | 구현됨, 룰 편집 UI에서 선택 가능. 현장 샘플 프리셋 제공 | `loitering` |
+| ZoneOccupancyScenario | 구현됨, 룰 편집 UI에서 선택 가능 | `zone-occupancy` |
 
 ### IntrusionDwell
 
@@ -360,7 +360,13 @@ target zone 내부 dwell time과 downsampled trajectory movement radius를 조�
 
 ### ZoneOccupancyScenario
 
-특정 zone 내부 동시 track 수가 threshold 이상일 때 occupancy/crowd 계열 scenario event를 내는 신규 scenario 후보입니다. 기존 Intrusion/LineCrossing/IntrusionDwell/ReEntry/WrongDirection/IntrusionAfterLineCrossing/Loitering 판단 흐름을 바꾸는 작업으로 다루지 않습니다.
+특정 zone 내부 동시 track 수가 threshold 이상이고 각 track의 zone dwell이 최소 조건을 만족할 때 `zone-occupancy` scenario event를 1회 발생시킵니다. per-track ScenarioEngine 구조 위에서 같은 zone의 대표 track만 event를 emit해 중복을 억제합니다.
+
+저장 payload 주요 필드:
+
+- `occupancyThreshold`: 같은 target zone에서 동시에 조건을 만족해야 하는 대상 수
+- `minDwellTimeMs`: 각 대상 track이 zone 안에서 머문 최소 시간
+- `targetZoneIds`, `targetClasses`, `cooldownMs`, `trackHealth.requireStableTrack`
 
 ## 7. TrackState / TrackHealth
 
@@ -503,7 +509,7 @@ Replay output의 `events[]`도 같은 핵심 구조를 유지합니다. 내부 T
 
 EventRecord는 운영 조회와 snapshot/clip marker 연결을 위한 내부 metadata 저장 구조입니다. 기본값은 비활성입니다. 이 기능은 영상 녹화, VMS/NVR, frame snapshot 추출, clip recorder가 아니며 Event POST payload, WebRTC DataChannel metadata, SSE/WS metadata schema와 별도로 동작합니다.
 
-현재 1차 구현 범위는 EventRecord file storage, active file records 조회 API, Runtime Dashboard 수동 검색 UI, JSON Lines rotation/retention/recovery summary입니다.
+현재 1차 구현 범위는 EventRecord file storage, active/archive records 조회 API, Runtime Dashboard 수동 검색 UI, 비파괴 compaction snapshot, JSON Lines rotation/retention/recovery summary입니다.
 
 `media-server.va.event-record.v1` 필드:
 
@@ -531,7 +537,7 @@ EventRecord는 운영 조회와 snapshot/clip marker 연결을 위한 내부 met
 - `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_ARCHIVES`와 `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_TOTAL_BYTES`는 rotated archive만 oldest-first로 삭제합니다. active 파일은 retention 대상에서 제외합니다.
 - corrupt JSON line, 지나치게 긴 line, partial final line은 records API 전체 실패로 만들지 않고 skip/count 처리합니다.
 - recovery summary는 `/lab/analysis/event-storage/status`와 records API의 `skippedCorruptLines`, `partialLineCount`, `lastRecoveryTime`, `lastRecoveryStatus`에서 확인합니다.
-- 현재 records API 1차 범위는 active file 조회입니다. rotated archive query는 후속 확장입니다.
+- records API는 기본 active file을 조회하며 `includeArchives=1`을 주면 rotated archive도 최신순으로 포함합니다.
 
 Snapshot/clip hook 상태:
 
@@ -557,18 +563,28 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records?eventType=presence&
 | 항목 | 설명 |
 | --- | --- |
 | 응답 schema | `media-server.va.event-record-list.v1` |
-| 읽기 범위 | active EventRecord JSON Lines 파일 |
+| 읽기 범위 | 기본 active EventRecord JSON Lines 파일, `includeArchives=1`일 때 rotated archive 포함 |
 | storage 비활성/파일 없음 | `records: []`와 storage 상태 반환 |
 | corrupt/partial line | 전체 API 실패 대신 skip/count 처리 |
 | recovery count | `skippedCorruptLines`, `partialLineCount` |
 | rotation 상태 | `activeFileSizeBytes`, `archivedFileCount`, `totalArchiveBytes` |
 | retention/write 상태 | `rotatedCount`, `retentionDeletedCount`, `writeFailedCount` |
+| archive scan | `archiveFilesScanned`, `archiveRecordsScanned` |
 
 지원 filter:
 
 - `eventId`, `eventType`, `streamId`, `channelId`, `trackId`, `status`
 - `zoneId`, `lineId`, `scenarioName`, `scenarioPhase`
 - `startTimeMs`, `endTimeMs`, `limit`
+- `includeArchives=1`
+
+Compaction snapshot API:
+
+```bash
+curl -fsS -X POST 'http://127.0.0.1:8080/lab/analysis/events/records/compact?includeArchives=1'
+```
+
+이 API는 matching record를 새 compacted JSON Lines 파일로 쓰는 비파괴 snapshot입니다. 기존 active/archive 파일을 삭제하거나 rewrite하지 않습니다.
 
 `/lab/rules` Runtime Dashboard의 Event Records 섹션은 이 API를 수동 검색 UI로 노출합니다.
 
@@ -1002,6 +1018,7 @@ event emit/cooldown 판단 자체는 ScenarioEngine과 EventManager의 기존 �
 - WrongDirection
 - IntrusionAfterLineCrossing
 - Loitering
+- ZoneOccupancyScenario
 - cleanup
 - lost/reacquired
 - 동일 trackId 다채널 분리

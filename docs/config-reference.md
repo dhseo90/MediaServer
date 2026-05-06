@@ -453,8 +453,23 @@ Loitering 상태:
 
 - engine/replay와 전용 룰 편집 UI 템플릿은 구현됨
 - 룰 편집 UI는 `minDwellTimeMs`, `maxMovementRadius`, `minTrajectoryPoints`, `cooldownMs`, `targetZoneIds`, `useGroundPlaneMovementRadius`를 저장함
-- 실제 현장 샘플 기반 threshold tuning은 후속
-- ZoneOccupancyScenario 신규 구현도 다음 작업으로 분리
+- 실제 현장 샘플 tuning 시작값으로 로비/승강장/주차장 프리셋을 제공함
+
+### Zone Occupancy
+
+| 환경변수 | 기본값 |
+| --- | --- |
+| `MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_ENABLED` | `0` |
+| `MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_THRESHOLD` | `3` |
+| `MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_MIN_DWELL_TIME_MS` | `5000` |
+| `MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_COOLDOWN_MS` | `10000` |
+| `MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_TARGET_CLASSES` | scenario default |
+| `MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_TARGET_ZONE_IDS` | scenario default |
+
+Zone Occupancy 상태:
+
+- engine/replay와 룰 편집 UI 템플릿 구현됨
+- per-rule payload의 `occupancyThreshold`, `minDwellTimeMs`, `targetZoneIds`, `targetClasses`, `cooldownMs`가 env default보다 우선함
 
 ## Event POST env
 
@@ -503,7 +518,7 @@ EventRecord storage 정책:
 - corrupt/partial line recovery scan에는 별도 env가 없습니다.
 - status/records read path에서 손상 행을 line-by-line으로 skip/count 처리합니다.
 
-EventRecord file storage, active file query/search UI와 rotation/retention/recovery 1차는 구현 완료 상태입니다. 후속 범위는 rotated archive query, compaction/repair rewrite, archive별 상세 status와 운영 cleanup 도구입니다.
+EventRecord file storage, active/archive query/search UI와 rotation/retention/recovery 1차는 구현 완료 상태입니다. Compaction은 기존 파일을 rewrite/delete하지 않는 snapshot 생성 API로 제공합니다. 후속 범위는 archive별 상세 status, 운영 cleanup 도구, 실제 media recorder입니다.
 
 ### Snapshot / clip hook
 

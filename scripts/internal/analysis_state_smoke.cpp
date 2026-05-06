@@ -3,6 +3,7 @@
 // Appearance hook, cleanup 정책을 mock metadata로 직접 검증한다.
 #include "analysis/appearance_extractor.h"
 #include "analysis/event_manager.h"
+#include "analysis/event_storage.h"
 #include "analysis/intrusion_after_line_crossing_scenario.h"
 #include "analysis/intrusion_dwell_scenario.h"
 #include "analysis/loitering_scenario.h"
@@ -13,11 +14,14 @@
 #include "analysis/track_state_manager.h"
 #include "analysis/va_runtime_metadata.h"
 #include "analysis/wrong_direction_scenario.h"
+#include "analysis/zone_occupancy_scenario.h"
 #include "app_config.h"
 
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -121,6 +125,57 @@ TrackRuntimeState MakeTrackState(std::uint64_t track_id,
     state.last_seen_time_ms = object.timestamp_ms;
     state.lifecycle_state = TrackLifecycleState::Active;
     return state;
+}
+
+std::filesystem::path MakeEventStorageSmokePath() {
+    const auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+    return std::filesystem::temp_directory_path() /
+           ("media-server-analysis-state-events-" + std::to_string(now) + ".jsonl");
+}
+
+std::filesystem::path ArchivePathFor(const std::filesystem::path& active_path) {
+    const std::filesystem::path parent = active_path.parent_path();
+    const std::string name = active_path.stem().string() + ".archive-smoke" +
+                             active_path.extension().string();
+    return parent.empty() ? std::filesystem::path(name) : parent / name;
+}
+
+void ConfigureEventStorageSmokeEnv() {
+    static const std::filesystem::path storage_path = MakeEventStorageSmokePath();
+    const std::string path = storage_path.string();
+    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED", "1", 1);
+    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH", path.c_str(), 1);
+    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_QUEUE", "16", 1);
+    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_FILE_BYTES", "0", 1);
+    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_ARCHIVES", "0", 1);
+    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_TOTAL_BYTES", "0", 1);
+}
+
+EventRecord MakeEventRecord(const std::string& event_id,
+                            const std::string& event_type,
+                            const std::string& scenario_name,
+                            const std::string& scenario_phase,
+                            const std::string& zone_id,
+                            std::uint64_t track_id,
+                            std::int64_t timestamp_ms) {
+    EventRecord record;
+    record.event_id = event_id;
+    record.event_type = event_type;
+    record.stream_id = "stream-a";
+    record.channel_id = "channel-a";
+    record.track_id = track_id;
+    record.class_id = 0;
+    record.class_name = "person";
+    record.start_time_ms = timestamp_ms;
+    record.update_time_ms = timestamp_ms + 100;
+    record.end_time_ms = timestamp_ms + 200;
+    record.status = "confirmed";
+    record.zone_id = zone_id;
+    record.scenario_name = scenario_name;
+    record.scenario_phase = scenario_phase;
+    record.confidence = 0.91F;
+    record.metadata_json = "{\"smoke\":true}";
+    return record;
 }
 
 const TrackRuntimeState* FindTrack(const std::vector<TrackRuntimeState>& states,
@@ -1088,6 +1143,145 @@ void VerifyLoiteringScenario() {
     Pass("LoiteringScenario dwell/trajectory/radius/dedup/exit");
 }
 
+void VerifyZoneOccupancyScenario() {
+    ScenarioEngineOptions engine_options;
+    engine_options.enabled = true;
+    engine_options.default_cooldown_ms = 1000;
+    engine_options.default_update_interval_ms = 0;
+    engine_options.ended_retention_ms = 500;
+    engine_options.cleanup_interval_ms = 0;
+    engine_options.max_instances_per_channel = 32;
+
+    ZoneOccupancyScenarioOptions options;
+    options.enabled = true;
+    options.occupancy_threshold = 2;
+    options.min_dwell_time_ms = 1000;
+    options.cooldown_ms = 1000;
+    options.target_class_tokens = {"person"};
+    options.target_zone_ids = {"queue-zone"};
+
+    ScenarioEngine engine(engine_options);
+    engine.RegisterScenario(std::make_unique<ZoneOccupancyScenario>(options));
+    EventManager event_manager;
+
+    auto first = MakeTrackContext(50, 1000, true, 1000, "queue-zone");
+    auto events = engine.Evaluate(MakeSceneContext(1000, {first}), &event_manager);
+    Expect(events.empty(), "ZoneOccupancy must not emit below occupancy threshold");
+
+    auto first_confirmed = MakeTrackContext(50, 2000, true, 2000, "queue-zone");
+    auto second_confirmed = MakeTrackContext(51, 2000, true, 1000, "queue-zone");
+    events = engine.Evaluate(MakeSceneContext(2000, {first_confirmed, second_confirmed}),
+                             &event_manager);
+    Expect(events.size() == 1 && events[0].event_type == "zone-occupancy" &&
+               events[0].zone_id == "queue-zone" && events[0].track_id == 50 &&
+               events[0].metadata_json.find("\"occupancyCount\":2") != std::string::npos,
+           "ZoneOccupancy must emit once from the representative track when threshold is met");
+
+    events = engine.Evaluate(MakeSceneContext(2100, {first_confirmed, second_confirmed}),
+                             &event_manager);
+    Expect(events.empty(), "ZoneOccupancy must suppress duplicates while occupancy remains above threshold");
+
+    auto third_short = MakeTrackContext(52, 2500, true, 200, "queue-zone");
+    events = engine.Evaluate(MakeSceneContext(2500, {first_confirmed, third_short}), &event_manager);
+    Expect(events.empty(),
+           "ZoneOccupancy must require each counted occupant to satisfy the dwell threshold");
+
+    auto wrong_zone = MakeTrackContext(53, 3000, true, 3000, "other-zone");
+    events = engine.Evaluate(MakeSceneContext(3000, {first_confirmed, wrong_zone}), &event_manager);
+    Expect(events.empty(), "ZoneOccupancy must respect targetZoneIds");
+
+    Pass("ZoneOccupancyScenario occupancy/dwell/representative/dedup/zone-filter");
+}
+
+void VerifyEventStorageArchiveCompaction() {
+    const std::filesystem::path active_path(app::GetAppConfig().analysis_event_storage_path);
+    const std::filesystem::path archive_path = ArchivePathFor(active_path);
+    std::error_code ec;
+    std::filesystem::remove(active_path, ec);
+    ec.clear();
+    std::filesystem::remove(archive_path, ec);
+
+    FileEventStorage active_storage(active_path.string());
+    FileEventStorage archive_storage(archive_path.string());
+    std::string error_message;
+    Expect(active_storage.Store(MakeEventRecord("evt-active",
+                                                "zone-occupancy",
+                                                "zone-occupancy",
+                                                "confirmed",
+                                                "queue-zone",
+                                                50,
+                                                2000),
+                                &error_message),
+           "EventStorage smoke must write active records: " + error_message);
+    Expect(archive_storage.Store(MakeEventRecord("evt-archive",
+                                                 "loitering",
+                                                 "loitering",
+                                                 "confirmed",
+                                                 "queue-zone",
+                                                 51,
+                                                 1000),
+                                 &error_message),
+           "EventStorage smoke must write archive records: " + error_message);
+
+    EventRecordQueryOptions active_query;
+    active_query.event_type = "zone-occupancy";
+    active_query.limit = 4;
+    EventRecordQueryResult active_result;
+    Expect(QueryEventRecords(active_query, &active_result, &error_message),
+           "EventStorage active query must succeed: " + error_message);
+    Expect(active_result.records_json.size() == 1 &&
+               active_result.records_json[0].find("evt-active") != std::string::npos &&
+               active_result.archive_records_scanned == 0,
+           "EventStorage active query must not scan archives by default");
+
+    EventRecordQueryOptions archive_query;
+    archive_query.event_type = "loitering";
+    archive_query.include_archives = true;
+    archive_query.limit = 4;
+    EventRecordQueryResult archive_result;
+    Expect(QueryEventRecords(archive_query, &archive_result, &error_message),
+           "EventStorage archive query must succeed: " + error_message);
+    Expect(archive_result.records_json.size() == 1 &&
+               archive_result.records_json[0].find("evt-archive") != std::string::npos &&
+               archive_result.archive_files_scanned >= 1 &&
+               archive_result.archive_records_scanned >= 1,
+           "EventStorage archive query must scan rotated files when requested");
+
+    EventRecordQueryOptions compact_query;
+    compact_query.zone_id = "queue-zone";
+    compact_query.include_archives = true;
+    EventRecordCompactionResult compact_result;
+    Expect(CompactEventRecords(compact_query, &compact_result, &error_message),
+           "EventStorage compaction must succeed: " + error_message);
+    Expect(compact_result.retained_records == 2 &&
+               compact_result.active_records_scanned == 1 &&
+               compact_result.archive_records_scanned >= 1 &&
+               !compact_result.compacted_path.empty(),
+           "EventStorage compaction must retain matching active/archive records");
+
+    std::ifstream compacted(compact_result.compacted_path);
+    std::string compacted_body((std::istreambuf_iterator<char>(compacted)),
+                               std::istreambuf_iterator<char>());
+    Expect(compacted_body.find("evt-active") != std::string::npos &&
+               compacted_body.find("evt-archive") != std::string::npos,
+           "EventStorage compaction output must include retained records");
+
+    EventRecordQueryResult post_compact_query_result;
+    Expect(QueryEventRecords(compact_query, &post_compact_query_result, &error_message),
+           "EventStorage query after compaction must succeed: " + error_message);
+    Expect(post_compact_query_result.records_json.size() == 2 &&
+               post_compact_query_result.archive_files_scanned == 1,
+           "EventStorage query must not treat compacted snapshots as rotated archives");
+
+    std::filesystem::remove(active_path, ec);
+    ec.clear();
+    std::filesystem::remove(archive_path, ec);
+    ec.clear();
+    std::filesystem::remove(compact_result.compacted_path, ec);
+
+    Pass("EventStorage archive query/compaction");
+}
+
 void VerifyVaRuntimeMetadataBuilder() {
     AnalysisResult result;
     result.source_key = "file:sample_h264.mp4";
@@ -1218,6 +1412,7 @@ void VerifyVaRuntimeMetadataBuilder() {
 
 int main() {
     try {
+        ConfigureEventStorageSmokeEnv();
         VerifyObjectTrackerAssociationScoring();
         VerifyTrackStateManagerAndHealth();
         VerifySceneContextBuilder();
@@ -1227,10 +1422,14 @@ int main() {
         VerifyWrongDirectionScenario();
         VerifyIntrusionAfterLineCrossingScenario();
         VerifyLoiteringScenario();
+        VerifyZoneOccupancyScenario();
+        VerifyEventStorageArchiveCompaction();
         VerifyVaRuntimeMetadataBuilder();
+        StopEventStorage();
         std::cout << "[summary] pass=" << g_pass_count << " fail=0\n";
         return EXIT_SUCCESS;
     } catch (const std::exception& ex) {
+        StopEventStorage();
         std::cerr << "[fail] " << ex.what() << "\n";
         std::cerr << "[summary] pass=" << g_pass_count << " fail=1\n";
         return EXIT_FAILURE;

@@ -16,8 +16,8 @@
 ## 현재 상태 요약
 
 - 구현 완료: RTSP/WebRTC relay, File/RTSP/HTTP-HLS source, 외부 WHEP URL pull source, 내부 WHIP publish sourceId 소비, YOLO/ONNX VA overlay, Rule/Profile UI, `vaRule=<id>` 호출, 기존 Intrusion/LineCrossing 이벤트 회귀 구조.
-- 구현 완료: TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering engine/replay/UI 템플릿, TrackHealth, cleanup 정책. ZoneOccupancyScenario는 아직 다음 작업입니다.
-- 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage와 active-file query/search UI, EventRecord rotation/retention/recovery 1차, snapshot/clip marker hook, WebRTC VA metadata DataChannel 출력 구조. Rotated archive query/compaction과 실제 snapshot frame extraction/pre-post clip recorder는 후속입니다.
+- 구현 완료: TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, ZoneOccupancy engine/replay/UI 템플릿, TrackHealth, cleanup 정책.
+- 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage와 active/archive query/search UI, EventRecord rotation/retention/recovery 1차, 비파괴 compaction snapshot, snapshot/clip marker/manifest hook, WebRTC VA metadata DataChannel 출력 구조. 실제 snapshot frame extraction/pre-post clip media recorder는 후속입니다.
 - 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, client-side Trend/Stale/Cleanup warning 1차, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, IntrusionDwell/ReEntry/WrongDirection/IntrusionAfterLineCrossing/Loitering scenario UI 템플릿, 자동/longrun 검증 명령.
 - 구현 완료: Auth / Role / Scope, account login/session API/route MVP, Auth Bootstrap + 기본 로그인 강제, Password Policy + Lockout + Session Hardening, Admin User Management Console + CLI, Client Account Policy / Invite / Request MVP, Root/Login/Ops/Client/Lab 접근 정책.
 - 구현 완료: SourceRegistry / PublishedView API/route MVP, client scoped view API 1차, Client scoped dashboard API/UI MVP, Client Live Monitor 2x2 MVP.
@@ -25,23 +25,23 @@
 - 기존 Scenario UI 로드맵 1~4번 완료: Runtime Dashboard trend/stale/cleanup warning 1차, Scenario rule payload -> runtime per-rule 설정 연결, ReEntry Scenario UI 템플릿, IntrusionAfterLineCrossing Scenario UI 템플릿.
 - ReEntry와 IntrusionAfterLineCrossing은 룰 편집 UI에서 선택 가능하며 저장/round-trip 검증 대상입니다.
 - 현재 우선순위: 운영/클라이언트 분리의 제품 진입점 정합성을 위해 Auth Bootstrap, password policy/lockout/session hardening, admin 계정 관리, client invite/request MVP, role/scope 기반 root/route 접근 정책, Ops/Client shell 통합 1차를 완료했고 문서 상태를 실제 구현 기준으로 닫았습니다.
-- 다음 작업: ZoneOccupancyScenario 신규 구현은 보류/다음 작업으로 유지하고, Loitering은 실제 현장 샘플 기반 threshold 튜닝만 후속으로 둡니다.
-- 후속 Phase: 다음 운영/클라이언트 phase의 진입점은 SourceRegistry/PublishedView 기반 고도화입니다. PublishedView 기반 scope picker, Client scoped dashboard polish, Client Live Monitor 상태 표현, Operator Live Monitor 고밀도 화면, Analysis tap reuse / source+profile 공유 정책 UI는 아래 운영/클라이언트 분리 phase에서 별도로 관리합니다.
+- 다음 작업: 실제 media snapshot/clip recorder와 Client Live Monitor 현장형 상태 고도화는 후속으로 둡니다.
+- 후속 Phase: 다음 운영/클라이언트 phase의 진입점은 SourceRegistry/PublishedView 기반 고도화입니다. PublishedView 기반 scope picker, Client scoped dashboard polish, Client Live Monitor 상태 표현, Analysis tap reuse / source+profile 공유 정책 UI는 아래 운영/클라이언트 분리 phase에서 별도로 관리합니다.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
-- 실험/제약: snapshot/clip은 hook/marker 중심이며 실제 제품용 frame extraction/clip recorder는 후속 구현입니다. VMS/NVR 녹화 기능으로 표현하지 않습니다.
-- 남은 후속: EventRecord archive query/compaction, 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화(sparkline/장기 baseline), WS metadata filter/subscription/control, 실제 현장 샘플 기반 튜닝입니다.
+- 실험/제약: snapshot/clip은 hook/marker/manifest 중심이며 실제 제품용 frame extraction/clip recorder는 후속 구현입니다. VMS/NVR 녹화 기능으로 표현하지 않습니다.
+- 남은 후속: 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화(sparkline/장기 baseline), WS metadata filter/subscription/control, 실제 media snapshot/clip recorder입니다.
 
 ### 현재 문서 기준 readiness boundary
 
 - `완료`로 표시된 항목은 각 항목의 “완료 범위”와 검증 명령에 한정된 1차 구현 상태입니다. 운영 배포 승격은 장기 soak, TURN/외부 네트워크, credential, 개인정보/보관 정책 검토를 별도 gate로 통과해야 합니다.
 - WebRTC source 관련 완료 범위는 WebRTC egress/WHEP output, 내부 `/whip/publish` sourceId 소비, 외부 WHEP playback endpoint를 `kind=whep`/`whepUrl`로 pull하는 SourceRegistry 경로입니다. 인증 토큰이 필요한 외부 WHEP endpoint credential 보관/주입은 별도 운영 정책 gate로 둡니다.
-- EventRecord 완료 범위는 JSON Lines 저장, active file 조회/search UI, rotation/retention/recovery 1차입니다. Archive query UI, compaction/repair, archive cleanup 운영 도구, 실제 snapshot/clip media recorder는 후속입니다.
-- Loitering은 engine/replay와 전용 룰 편집 UI 템플릿 기준 완료이며 실제 현장 threshold tuning은 후속입니다. ZoneOccupancyScenario는 신규 구현 예정입니다.
+- EventRecord 완료 범위는 JSON Lines 저장, active/archive 조회/search UI, rotation/retention/recovery 1차, 비파괴 compaction snapshot입니다. Archive cleanup 운영 도구와 실제 snapshot/clip media recorder는 후속입니다.
+- Loitering은 engine/replay와 전용 룰 편집 UI 템플릿, 현장 샘플 프리셋 기준 완료입니다. ZoneOccupancyScenario는 engine/replay/UI 1차 완료입니다.
 - Re-ID/appearance, YouTube import/source, 외부 TURN relay/auth, WS command/filter/subscription은 실험/보류 범위이며 운영 기본 기능으로 표현하지 않습니다.
 
 ## 후속 Phase - 운영/클라이언트/권한 분리
 
-이 섹션은 시나리오 확장 재개 묶음과 분리해 관리하는 운영/클라이언트/권한 계열 phase입니다. 현재 문서 기준의 다음 작업은 ZoneOccupancyScenario와 Loitering 현장 threshold tuning이며, 아래 항목은 별도 후속 Phase의 기반/고도화 목록으로 유지합니다.
+이 섹션은 시나리오 확장 재개 묶음과 분리해 관리하는 운영/클라이언트/권한 계열 phase입니다. 현재 문서 기준의 다음 작업은 실제 media snapshot/clip recorder와 Client Live Monitor 현장형 상태 고도화이며, 아래 항목은 별도 후속 Phase의 기반/고도화 목록으로 유지합니다.
 
 ### O1. Auth / Role / Scope / Bootstrap / Hardening / Client Account Policy
 
@@ -73,8 +73,8 @@
 
 - 상태: 완료: route MVP + product UI shell integration 1차
 - 목적: 운영 화면, 클라이언트 화면, 개발/lab 화면의 URL과 역할을 분리합니다.
-- 완료 범위: `MEDIA_SERVER_UI_DEFAULT_HOME`, `MEDIA_SERVER_ENABLE_LAB`, `MEDIA_SERVER_ENABLE_OPS`, `MEDIA_SERVER_ENABLE_CLIENT`, role-aware `/` redirect, `/setup`/`/login` auth shell, `/ops` 공통 shell, `/ops/home` 운영 홈 summary MVP, `/ops/live` 후속 Operator Live Monitor 안내 route, `/ops/dashboard` native runtime cards, `/ops/events` primary nav 숨김/진단 route 보존, `/ops/rules` native rule catalog, `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status`, `/ops/users` list-first 계정 관리 UI와 접근 요청 처리 UI, `/client` 공통 shell, `/client/live` 2x2 MVP, `/client/dashboard`, client Events tab 제거, `/lab` guard와 기존 `/lab/rules` 호환 유지, Ops shell overview 브라우저 스크립트의 `product_ui_page_scripts.*` 분리입니다.
-- 후속: Operator Live Monitor에서 source/runtime/event 운영 상태를 더 높은 정보 밀도로 연결하고, `/ops` nav별 URL 이동 후에도 동일 shell 정보 위계를 계속 다듬습니다. `webrtc_http_server.cpp`에는 route dispatch, media signaling, auth glue가 아직 크게 남아 있으므로 다음 구조 정리는 route handler와 registry/auth persistence 모듈 단위로 진행합니다.
+- 완료 범위: `MEDIA_SERVER_UI_DEFAULT_HOME`, `MEDIA_SERVER_ENABLE_LAB`, `MEDIA_SERVER_ENABLE_OPS`, `MEDIA_SERVER_ENABLE_CLIENT`, role-aware `/` redirect, `/setup`/`/login` auth shell, `/ops` 공통 shell, `/ops/home` 운영 홈 summary MVP, `/ops/live` 고밀도 source/runtime/event 상태 타일, `/ops/dashboard` native runtime cards, `/ops/events` primary nav 숨김/진단 route 보존, `/ops/rules` native rule catalog, `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status`, `/ops/users` list-first 계정 관리 UI와 접근 요청 처리 UI, `/client` 공통 shell, `/client/live` 2x2 MVP, `/client/dashboard`, client Events tab 제거, `/lab` guard와 기존 `/lab/rules` 호환 유지, Ops shell overview 브라우저 스크립트의 `product_ui_page_scripts.*` 분리입니다.
+- 후속: `/ops` nav별 URL 이동 후에도 동일 shell 정보 위계를 계속 다듬습니다. `webrtc_http_server.cpp`에는 route dispatch, media signaling, auth glue가 아직 크게 남아 있으므로 다음 구조 정리는 route handler와 registry/auth persistence 모듈 단위로 진행합니다.
 - 우선순위 이유: 현재 lab 중심 UI에서 운영/고객 화면으로 확장할 때 권한과 탐색 구조가 명확해야 합니다.
 
 ### O4. Client scoped dashboard
@@ -97,10 +97,10 @@
 
 ### O6. Operator Live Monitor
 
-- 상태: 부분 완료: `/ops/home` 운영 홈 summary MVP. `/ops/live` 완성형 live monitor는 예정
+- 상태: 1차 완료: `/ops/home` 운영 홈 summary MVP + `/ops/live` 고밀도 운영 상태 타일
 - 목적: 운영자가 source, runtime 상태, event, analysis tap 상태를 함께 볼 수 있는 live monitor를 정의합니다.
-- 현재 범위: Source/View summary, active session/stream/tap summary, recent event summary, warning/stale/cleanup summary, quick action card를 `/ops/home`에 표시합니다.
-- 후속: 실제 live tiles, source health drill-down, runtime/event timeline, 장애 대응 action을 한 화면에서 연결합니다.
+- 현재 범위: Source/View summary, active session/stream/tap summary, recent event summary, warning/stale summary, 고밀도 source/view tile을 `/ops/home`과 `/ops/live`에 표시합니다. `/ops/live`는 자동 media session을 열지 않습니다.
+- 후속: 실제 media preview tile, source health drill-down, runtime/event timeline, 장애 대응 action을 한 화면에서 연결합니다.
 - 우선순위 이유: 운영 화면은 장애 대응과 source 제어가 핵심이라 클라이언트 화면과 다른 정보 밀도가 필요합니다.
 
 ### O7. Analysis tap reuse / fanout 검증
@@ -118,7 +118,7 @@
 - 상태: 완료: 문서 구조/상태 taxonomy 1차 정리
 - 목적: README와 `docs/*.md` 사이의 중복, 깨진 링크, 구현 완료/실험/예정 표현 혼선을 제거합니다.
 - 관련 파일: `README.md`, `docs/ui-guide.md`, `docs/video-analysis.md`, `docs/media-server-architecture.md`, `docs/development-guide.md`, `docs/config-reference.md`, `docs/stream-verification.md`, `docs/development-backlog.md`
-- 완료 범위: README와 backlog의 완료 표현을 명시 범위 기준으로 제한하고, 외부 WHEP credential/네트워크 검증, Loitering 현장 threshold tuning/ZoneOccupancy, EventRecord archive/recorder, Re-ID/TURN/WS 제어처럼 운영 ready 또는 실제 구현 범위가 아닌 항목을 readiness boundary로 분리합니다.
+- 완료 범위: README와 backlog의 완료 표현을 명시 범위 기준으로 제한하고, 외부 WHEP credential/네트워크 검증, 실제 media recorder, Re-ID/TURN/WS 제어처럼 운영 ready 또는 실제 구현 범위가 아닌 항목을 readiness boundary로 분리합니다.
 - 검증 명령:
 
 ```bash
@@ -466,7 +466,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 ./server.sh verify-va-replay
 ```
 
-- 다음 작업: Loitering 현장 fixture/threshold tuning과 ZoneOccupancyScenario를 후속 묶음으로 재개합니다.
+- 다음 작업: 실제 media snapshot/clip recorder와 Client Live Monitor 현장형 상태 고도화를 후속 묶음으로 재개합니다.
 
 ### P4-2. ReEntry Scenario UI 템플릿
 
@@ -518,16 +518,17 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ### P4-4. Loitering UI 템플릿 / 실제 샘플 튜닝
 
-- 상태: 제한적 완료
+- 상태: 1차 완료
 - 목적: Loitering 전용 UI 템플릿과 실제 CCTV 샘플 기반 dwell time, movement radius, trajectory point 기준 튜닝을 재개합니다.
 - 완료 범위:
   - Scenario template 목록에 Loitering 추가
+  - 로비/승강장/주차장 현장 샘플 시작 프리셋 추가
   - target zone, `minDwellTimeMs`, `maxMovementRadius`, `minTrajectoryPoints`, `cooldownMs`, unstable track exclude 설정
   - optional `useGroundPlaneMovementRadius` 저장
   - Idle → InsideZone → TrajectoryStable → DwellSatisfied → Confirmed → Cooldown → Ended 상태 흐름 미리보기
   - rule payload preview와 저장 전 validation
   - 저장된 Loitering rule의 `event.type=scenario.type=loitering`과 target zone/radius/trajectory/cooldown round-trip 검증
-- 남은 작업: 실제 CCTV 샘플 기반 dwell/radius/trajectory threshold tuning과 field fixture 추가
+- 남은 작업: 실제 CCTV 샘플로 프리셋 값을 보정하는 장기 field fixture 추가
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/rule_ui_smoke_check.mjs`, `src/analysis/loitering_scenario.cpp`, `test/fixtures/va_replay/loitering_metadata.json`, `docs/video-analysis.md`
 - 검증 명령:
 
@@ -541,11 +542,11 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ### P4-5. ZoneOccupancyScenario
 
-- 상태: 다음 작업
+- 상태: 1차 완료
 - 목적: 특정 zone 내부 동시 track 수가 threshold 이상일 때 crowd/occupancy 이벤트를 발생시킵니다.
-- 재개 메모: 신규 ScenarioEngine 확장 후보로 진행합니다. 기존 Event POST payload, WebRTC/SSE/WS metadata schema, 기존 scenario 판단 로직을 바꾸는 작업으로 표현하지 않습니다.
-- 관련 파일: `src/analysis/scenario_engine.cpp`, `src/analysis/scene_context_builder.cpp`, `include/analysis/scenario_engine.h`, `test/fixtures/va_replay/`
-- 재개 시 검증 명령:
+- 완료 범위: `ZoneOccupancyScenario`, env/per-rule 옵션, 룰 편집 UI 템플릿, replay fixture, analysis-state smoke를 구현했습니다. 기존 Event POST payload, WebRTC/SSE/WS metadata schema는 변경하지 않습니다.
+- 관련 파일: `src/analysis/zone_occupancy_scenario.cpp`, `include/analysis/zone_occupancy_scenario.h`, `src/analysis/event_rule_engine.cpp`, `test/fixtures/va_replay/zone_occupancy_*`
+- 검증 명령:
 
 ```bash
 ./server.sh verify-va-replay

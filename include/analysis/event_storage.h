@@ -147,6 +147,7 @@ struct EventRecordQueryOptions {
     bool has_end_time_ms{false};
     std::int64_t end_time_ms{0};
     std::size_t limit{100};
+    bool include_archives{false};
 };
 
 struct EventRecordQueryResult {
@@ -158,6 +159,20 @@ struct EventRecordQueryResult {
     bool truncated{false};
     std::uint64_t skipped_corrupt_lines{0};
     std::uint64_t partial_line_count{0};
+    std::uint64_t archive_files_scanned{0};
+    std::uint64_t archive_records_scanned{0};
+};
+
+struct EventRecordCompactionResult {
+    EventStorageSnapshot storage;
+    bool active_file_exists{false};
+    std::string compacted_path;
+    std::uint64_t active_records_scanned{0};
+    std::uint64_t archive_files_scanned{0};
+    std::uint64_t archive_records_scanned{0};
+    std::uint64_t retained_records{0};
+    std::uint64_t skipped_corrupt_lines{0};
+    std::uint64_t partial_line_count{0};
 };
 
 void DispatchEventRecords(const AnalysisResult& result, const std::vector<AnalysisEvent>& events);
@@ -165,6 +180,9 @@ EventStorageSnapshot GetEventStorageSnapshot();
 bool QueryEventRecords(const EventRecordQueryOptions& options,
                        EventRecordQueryResult* result,
                        std::string* error_message);
+bool CompactEventRecords(const EventRecordQueryOptions& options,
+                         EventRecordCompactionResult* result,
+                         std::string* error_message);
 void StopEventStorage();
 
 }  // namespace analysis

@@ -28,6 +28,7 @@ echo "[replay] build VA metadata replay tool: ${BUILD_DIR}"
   "${ROOT_DIR}/src/analysis/track_state_manager.cpp" \
   "${ROOT_DIR}/src/analysis/tracked_object_metadata.cpp" \
   "${ROOT_DIR}/src/analysis/wrong_direction_scenario.cpp" \
+  "${ROOT_DIR}/src/analysis/zone_occupancy_scenario.cpp" \
   -o "${BUILD_DIR}/va_metadata_replay"
 
 "${BUILD_DIR}/va_metadata_replay" "$@"

@@ -111,7 +111,7 @@ Login page는 username/password 입력, 실패/lockout 메시지, 로그인 후 
 
 Route 역할:
 
-- `/ops`: admin/operator 전용 운영 shell이며 `ops:read` scope가 필요합니다. 채널/PublishedView 변경 API는 `source:write` scope를 추가로 요구합니다. Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기 순서입니다. `/ops/home`은 운영 overview이고 `/ops/live`는 후속 Operator Live Monitor 안내 route입니다. `/ops/dashboard`는 `/ops/api/runtime/status`로 운영 카드/상태를 표시하고, `/ops/rules`는 `/ops/api/rules/catalog`로 VA 룰, 이벤트 룰, 분석 프로파일 카탈로그를 표시합니다. 두 화면은 Lab iframe 또는 `/lab/rules?embed=1`에 의존하지 않습니다. `/ops/events`는 primary nav에서 숨긴 후속/진단 route이며 독립 제품 탭으로 취급하지 않습니다. raw JSON은 접힘 debug 영역에만 둡니다.
+- `/ops`: admin/operator 전용 운영 shell이며 `ops:read` scope가 필요합니다. 채널/PublishedView 변경 API는 `source:write` scope를 추가로 요구합니다. Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기 순서입니다. `/ops/home`은 운영 overview이고 `/ops/live`는 자동 media session을 열지 않는 고밀도 source/runtime/event 상태 타일입니다. `/ops/dashboard`는 `/ops/api/runtime/status`로 운영 카드/상태를 표시하고, `/ops/rules`는 `/ops/api/rules/catalog`로 VA 룰, 이벤트 룰, 분석 프로파일 카탈로그를 표시합니다. 두 화면은 Lab iframe 또는 `/lab/rules?embed=1`에 의존하지 않습니다. `/ops/events`는 primary nav에서 숨긴 후속/진단 route이며 독립 제품 탭으로 취급하지 않습니다. raw JSON은 접힘 debug 영역에만 둡니다.
 - `/client`: viewer/operator/admin 접근 shell입니다. `/client/api/views` 기준으로 할당된 PublishedView만 표시하며 원본 source URL, debug/developer URL은 노출하지 않습니다. Integrator는 shell/live/dashboard UI가 아니라 scoped events/metadata API만 접근합니다.
 - `/lab`: admin/operator 또는 `lab:read` scope용 개발/검증 shell입니다. viewer/client 기본 계정은 접근할 수 없고, rule/profile/vaRule 변경 API는 `rule:write` scope를 추가로 요구합니다. 기존 `/lab/rules`와 자동화 bookmark 호환은 auth off 검증 모드에서 유지합니다.
 
@@ -291,7 +291,7 @@ Scenario는 여러 frame에 걸친 시간 조건과 상태 전이를 판단하�
 | WrongDirection | 구현됨 | 룰 편집 UI에서 선택 가능 |
 | IntrusionAfterLineCrossing | 구현됨 | 룰 편집 UI에서 선택 가능 |
 | Loitering | 구현됨 | 룰 편집 UI에서 선택 가능 |
-| ZoneOccupancyScenario | 다음 작업 | 신규 scenario/UI 구현 예정 |
+| ZoneOccupancyScenario | 구현됨 | 룰 편집 UI에서 선택 가능 |
 
 현재 UI가 제공하는 시나리오 템플릿:
 
@@ -301,7 +301,8 @@ Scenario는 여러 frame에 걸친 시간 조건과 상태 전이를 판단하�
 | ReEntry · 이탈 후 재진입 | polygon zone, 재진입 window, 재진입 zone, cooldown | `re-entry` |
 | WrongDirection · 금지 방향 통과 | line 2점 geometry, 허용 방향, cooldown | `wrong-direction` |
 | IntrusionAfterLineCrossing · line 후 zone 침입 | trigger line, crossing direction, target zone, zone entry timeout, dwell, cooldown | `intrusion-after-line-crossing` |
-| Loitering · 배회 감지 | target zone, minimum dwell, movement radius, trajectory points, cooldown | `loitering` |
+| Loitering · 배회 감지 | target zone, 현장 프리셋, minimum dwell, movement radius, trajectory points, cooldown | `loitering` |
+| Zone Occupancy · 구역 점유 수 | target zone, occupancy threshold, minimum dwell, cooldown | `zone-occupancy` |
 
 ReEntry UI 정책:
 
@@ -729,7 +730,7 @@ scenario phase, timeline, recent event buffer를 한 구간에서 확인합니�
 
 ### 10.7. Event Records
 
-Event Records는 자동 polling하지 않습니다. 검색 버튼을 눌렀을 때 active JSON Lines의 metadata만 조회하며 rotated archive는 별도 archive query 후속 범위입니다.
+Event Records는 자동 polling하지 않습니다. 검색 버튼을 눌렀을 때 active JSON Lines의 metadata를 조회하고, `archive 포함`을 켜면 rotated archive까지 조회합니다. `compaction snapshot`은 기존 파일을 수정하지 않는 compacted JSON Lines 사본을 생성합니다.
 
 ![VA 런타임 대시보드 Event Records](assets/ui/analysis-runtime-dashboard-records.png)
 

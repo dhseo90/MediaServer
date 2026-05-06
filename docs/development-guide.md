@@ -321,7 +321,7 @@ Lab/영상 분석 UI를 수정한 뒤에는 최소한 아래 검증을 실행합
 
 - 영상 분석 설정 탭: 룰 목록, 룰 추가/수정/삭제, 저장 전 검증
 - 룰 편집 화면: 기본 정보, 영상 소스, Profile, 이벤트 방식, 영역/라인, 이벤트 동작
-- 시나리오 템플릿: ReEntry, IntrusionAfterLineCrossing, Loitering은 룰 편집 UI에서 선택 가능, ZoneOccupancyScenario는 다음 작업
+- 시나리오 템플릿: ReEntry, IntrusionAfterLineCrossing, Loitering, ZoneOccupancyScenario는 룰 편집 UI에서 선택 가능
 - 영상 분석 보기 탭: 실시간 스트리밍, VA 오버레이, VA 룰, 개발자 요청 URL 접힘 영역
 - Runtime Dashboard 탭: active analysis tap, metadata/backpressure, scenario/event/debug 상태, EventRecord 수동 검색
 

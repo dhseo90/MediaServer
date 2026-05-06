@@ -16,6 +16,7 @@ echo "[verify] build analysis state smoke: ${BUILD_DIR}"
   "${ROOT_DIR}/src/analysis/appearance_extractor.cpp" \
   "${ROOT_DIR}/src/analysis/category_tokens.cpp" \
   "${ROOT_DIR}/src/analysis/event_manager.cpp" \
+  "${ROOT_DIR}/src/analysis/event_storage.cpp" \
   "${ROOT_DIR}/src/analysis/intrusion_after_line_crossing_scenario.cpp" \
   "${ROOT_DIR}/src/analysis/intrusion_dwell_scenario.cpp" \
   "${ROOT_DIR}/src/analysis/loitering_scenario.cpp" \
@@ -26,6 +27,8 @@ echo "[verify] build analysis state smoke: ${BUILD_DIR}"
   "${ROOT_DIR}/src/analysis/track_state_manager.cpp" \
   "${ROOT_DIR}/src/analysis/va_runtime_metadata.cpp" \
   "${ROOT_DIR}/src/analysis/wrong_direction_scenario.cpp" \
+  "${ROOT_DIR}/src/analysis/zone_occupancy_scenario.cpp" \
+  "${ROOT_DIR}/src/app_config.cpp" \
   -o "${BUILD_DIR}/analysis_state_smoke"
 
 echo "[verify] check no TensorRT/OpenVINO dependency was added for appearance hooks"

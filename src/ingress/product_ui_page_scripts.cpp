@@ -965,14 +965,77 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           </tr>
         `).join('');
       }
+      function renderOpsLiveEventRows(records) {
+        const body = document.getElementById('opsLiveEventRows');
+        if (!body) return;
+        if (!Array.isArray(records) || records.length === 0) {
+          setTableEmpty(body, 5, '최근 EventRecord가 없습니다.');
+          return;
+        }
+        body.innerHTML = records.slice(0, 12).map(record => `
+          <tr>
+            <td>${escapeHtml(record.eventType || record.eventId || 'event')}</td>
+            <td>${badge(record.status || '미제공', String(record.status || '').toLowerCase() === 'active' ? 'warn' : '')}</td>
+            <td>${escapeHtml(record.streamId || record.channelId || '미제공')}</td>
+            <td>${escapeHtml(record.trackId ?? '미제공')}</td>
+            <td>${escapeHtml(record.scenarioName || record.scenarioPhase || record.zoneId || '미제공')}</td>
+          </tr>
+        `).join('');
+      }
+      function renderOpsLiveTiles(sources, views, counts, runtime) {
+        const grid = document.getElementById('opsLiveTileGrid');
+        if (!grid) return;
+        const density = document.getElementById('opsLiveDensity')?.value || 'compact';
+        const sourceById = new Map((Array.isArray(sources) ? sources : []).map(source => [String(source.sourceId || ''), source]));
+        const rows = [];
+        for (const view of Array.isArray(views) ? views : []) {
+          const source = sourceById.get(String(view.sourceId || view.viewId || '')) || null;
+          rows.push({ id: view.viewId || view.sourceId || '-', view, source });
+        }
+        for (const source of Array.isArray(sources) ? sources : []) {
+          const claimed = rows.some(row => row.source === source);
+          if (!claimed) rows.push({ id: source.sourceId || '-', view: null, source });
+        }
+        rows.sort((lhs, rhs) => String(lhs.id).localeCompare(String(rhs.id), undefined, { numeric: true }));
+        if (rows.length === 0) {
+          grid.innerHTML = '<div class="empty">등록된 채널이 없습니다.</div>';
+          return;
+        }
+        const tapCount = counts.activeTaps.length;
+        grid.classList.toggle('dashboard-card-grid-compact', density !== 'comfortable');
+        grid.innerHTML = rows.slice(0, density === 'comfortable' ? 12 : 24).map(row => {
+          const view = row.view || {};
+          const source = row.source || {};
+          const enabled = source.enabled !== false && view.enabled !== false;
+          const overlays = Array.isArray(view.allowedOverlayModes) ? view.allowedOverlayModes.join(', ') : 'raw';
+          const rules = [view.defaultRuleId, ...(Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds : [])].filter(Boolean);
+          return `
+            <div class="metric-card">
+              <span>#${escapeHtml(row.id)} · ${escapeHtml(enabled ? 'enabled' : 'disabled')}</span>
+              <strong>${escapeHtml(view.displayName || source.displayName || source.sourceId || row.id)}</strong>
+              <small>${escapeHtml(sourceText(source))}</small>
+              <small>overlay ${escapeHtml(overlays || 'raw')} · rule ${escapeHtml(rules.join(', ') || '없음')}</small>
+            </div>
+          `;
+        }).join('');
+        setText('opsLiveSummary', `tiles ${rows.length} · active taps ${tapCount} · sessions ${counts.sessions}`);
+        renderBadges('opsLiveBadges', [
+          { text: counts.streams > 0 ? '스트림 활성' : '스트림 대기', tone: counts.streams > 0 ? '' : 'info' },
+          { text: counts.taps > 0 ? '분석 활성' : '분석 대기', tone: counts.taps > 0 ? '' : 'info' },
+          { text: `reuse ${runtime?.analysisMatching?.reuseGroupCount ?? 0}` }
+        ]);
+      }
       async function refreshLive() {
-        const [sources, catalog, runtime, users] = await Promise.all([
+        const [sources, views, catalog, runtime, events, users] = await Promise.all([
           requestJson('/ops/api/sources'),
+          requestJson('/ops/api/views'),
           requestJson('/ops/api/rules/catalog'),
           requestJson('/ops/api/runtime/status'),
+          requestJson('/ops/api/events/status?limit=12').catch(error => ({ error: error.message, records: { records: [] } })),
           requestJson('/ops/api/users').catch(error => ({ error: error.message, users: [] }))
         ]);
         const sourceItems = Array.isArray(sources.sources) ? sources.sources : [];
+        const viewItems = Array.isArray(views.views) ? views.views : [];
         const eventRuleItems = Array.isArray(catalog.rules) ? catalog.rules : [];
         const vaRuleItems = Array.isArray(catalog.vaRules) ? catalog.vaRules : [];
         const userItems = Array.isArray(users.users) ? users.users : [];
@@ -986,6 +1049,10 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         setText('homeActiveStreams', counts.streams);
         setText('homeAnalysisTaps', counts.taps);
         setText('homeStaleTaps', staleTapCount);
+        setText('opsLiveChannelCount', sourceItems.length);
+        setText('opsLiveViewCount', viewItems.length);
+        setText('opsLiveActiveStreams', counts.streams);
+        setText('opsLiveStaleTaps', staleTapCount);
         renderBadges('homeRuntimeState', [
           { text: staleTapCount > 0 ? '확인 필요' : '정상', tone: staleTapCount > 0 ? 'warn' : '' },
           { text: counts.streams > 0 ? '활성' : '대기', tone: counts.streams > 0 ? '' : 'info' }
@@ -993,7 +1060,11 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         setText('homeRuntimeText', staleTapCount > 0
           ? `${staleTapCount}개 분석 탭이 지연 상태입니다. 대시보드에서 런타임 상세를 확인하세요.`
           : '현재 지연 탭 경고는 없습니다.');
-        renderRaw('opsLiveRaw', 'opsLivePretty', { sources, catalog, runtime, users });
+        renderOpsLiveTiles(sourceItems, viewItems, counts, runtime);
+        const eventItems = Array.isArray(events.records?.records) ? events.records.records : [];
+        setText('opsLiveEventSummary', events.error ? `조회 실패: ${events.error}` : `records ${eventItems.length}`);
+        renderOpsLiveEventRows(eventItems);
+        renderRaw('opsLiveRaw', 'opsLivePretty', { sources, views, catalog, runtime, events, users });
       }
       async function refreshDashboard() {
         const runtime = await requestJson('/ops/api/runtime/status');
@@ -1157,6 +1228,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       }
       function wireOpsRefresh() {
         document.getElementById('opsLiveRefresh')?.addEventListener('click', () => refreshLive().catch(error => setText('homeRuntimeText', error.message)));
+        document.getElementById('opsLiveDensity')?.addEventListener('change', () => refreshLive().catch(error => setText('opsLiveSummary', error.message)));
         document.getElementById('opsDashboardRefresh')?.addEventListener('click', () => refreshDashboard().catch(error => setText('dashHealthText', error.message)));
         document.getElementById('opsEventsRefresh')?.addEventListener('click', () => refreshEvents().catch(error => setText('eventRecordSummary', error.message)));
         document.getElementById('opsRulesRefresh')?.addEventListener('click', () => refreshRules().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
@@ -1174,6 +1246,8 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         refreshRules().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true }));
       } else if (activeOpsPage === 'home') {
         refreshLive().catch(error => setText('homeRuntimeText', error.message));
+      } else if (activeOpsPage === 'live') {
+        refreshLive().catch(error => setText('opsLiveSummary', error.message));
       }
     </script>
 )OPSSCRIPT";
