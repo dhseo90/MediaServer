@@ -1025,7 +1025,15 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         selectedRowId: ''
       };
       let opsPreviewConfigPromise = null;
-      const opsPreviewState = {
+      const opsPreviewSlots = [
+        { key: 'primary', label: '슬롯 A', prefix: 'Primary' },
+        { key: 'secondary', label: '슬롯 B', prefix: 'Secondary' }
+      ];
+      let opsPreviewTarget = 'primary';
+      const opsPreviewStates = Object.fromEntries(opsPreviewSlots.map(slot => [slot.key, {
+        key: slot.key,
+        label: slot.label,
+        prefix: slot.prefix,
         rowId: '',
         viewId: '',
         overlayMode: 'raw',
@@ -1035,7 +1043,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         status: 'offline',
         connectionStatus: 'offline',
         lastError: ''
-      };
+      }]));
       const opsHashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
       const eventTime = record => record.updateTime ?? record.startTime ?? record.timestamp ?? record.endTime ?? '';
       const formatTime = value => {
@@ -1094,6 +1102,9 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       function selectedOpsLiveRow() {
         return opsLiveState.rows.find(row => String(row.id) === String(opsLiveState.selectedRowId || '')) || null;
       }
+      function opsPreviewStateFor(key = opsPreviewTarget) {
+        return opsPreviewStates[key] || opsPreviewStates.primary;
+      }
       function opsLivePreviewRuleId(row = selectedOpsLiveRow()) {
         const view = row?.view || {};
         const tap = row?.tap || null;
@@ -1107,18 +1118,19 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       function syncOpsLivePreviewModeSelect(row = selectedOpsLiveRow()) {
         const select = document.getElementById('opsLivePreviewMode');
         if (!select) return;
+        const state = opsPreviewStateFor();
         const modes = opsLivePreviewAllowedModes(row);
-        if (!modes.includes(opsPreviewState.overlayMode)) {
-          opsPreviewState.overlayMode = modes.includes('raw') ? 'raw' : modes[0];
+        if (!modes.includes(state.overlayMode)) {
+          state.overlayMode = modes.includes('raw') ? 'raw' : modes[0];
         }
         select.innerHTML = modes.map(mode =>
           `<option value="${escapeHtml(mode)}">${escapeHtml(overlayLabel(mode))}</option>`
         ).join('');
-        select.value = opsPreviewState.overlayMode;
-        select.disabled = !row?.view?.viewId || row?.enabled === false || Boolean(opsPreviewState.sessionId);
+        select.value = state.overlayMode;
+        select.disabled = !row?.view?.viewId || row?.enabled === false || Boolean(state.sessionId);
       }
-      function opsLivePreviewSessionUrl(suffix = '') {
-        return `/client/api/views/${encodeURIComponent(opsPreviewState.viewId || '')}/webrtc/session/${encodeURIComponent(opsPreviewState.sessionId || '')}${suffix}`;
+      function opsLivePreviewSessionUrl(state, suffix = '') {
+        return `/client/api/views/${encodeURIComponent(state.viewId || '')}/webrtc/session/${encodeURIComponent(state.sessionId || '')}${suffix}`;
       }
       async function loadOpsLiveWebRtcConfig() {
         if (!opsPreviewConfigPromise) {
@@ -1151,108 +1163,116 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           return new RTCPeerConnection();
         }
       }
+      function activePreviewSlotCount() {
+        return opsPreviewSlots.filter(slot => Boolean(opsPreviewStateFor(slot.key).sessionId)).length;
+      }
       function updateOpsLivePreviewUi(row = selectedOpsLiveRow()) {
         const startBtn = document.getElementById('opsLivePreviewStart');
         const restartBtn = document.getElementById('opsLivePreviewRestart');
         const stopBtn = document.getElementById('opsLivePreviewStop');
-        const placeholder = document.getElementById('opsLivePreviewPlaceholder');
-        const video = document.getElementById('opsLivePreviewVideo');
+        const targetSelect = document.getElementById('opsLivePreviewTarget');
+        const state = opsPreviewStateFor();
         const hasView = Boolean(row?.view?.viewId);
         const enabled = row?.enabled !== false;
-        const activeForRow = Boolean(row) && String(opsPreviewState.rowId || '') === String(row.id || '');
-        const previewMode = opsPreviewState.overlayMode || 'raw';
+        const activeForRow = Boolean(row) && String(state.rowId || '') === String(row.id || '');
+        const previewMode = state.overlayMode || 'raw';
         const previewRuleId = opsLivePreviewRuleId(row);
         const ruleRequired = previewMode === 'va-rule';
-        setText('opsLivePreviewViewText', hasView ? String(row.view.viewId) : '-');
-        setText('opsLivePreviewStatusText', opsPreviewStatusLabel(opsPreviewState.status));
-        setText('opsLivePreviewConnectionText', opsPreviewStatusLabel(opsPreviewState.connectionStatus));
-        setText('opsLivePreviewModeText', overlayLabel(previewMode));
+        if (targetSelect) targetSelect.value = opsPreviewTarget;
         syncOpsLivePreviewModeSelect(row);
-        if (!row) {
-          setText('opsLivePreviewSummary', '선택한 PublishedView만 수동으로 미리보기합니다. 자동 세션은 열지 않습니다.');
-          if (placeholder) {
-            placeholder.hidden = false;
-            placeholder.textContent = '선택한 채널의 미리보기를 시작하세요.';
+        for (const slot of opsPreviewSlots) {
+          const slotState = opsPreviewStateFor(slot.key);
+          const placeholder = document.getElementById(`opsLivePreview${slot.prefix}Placeholder`);
+          const video = document.getElementById(`opsLivePreview${slot.prefix}Video`);
+          setText(`opsLivePreview${slot.prefix}StatusText`, opsPreviewStatusLabel(slotState.status));
+          setText(`opsLivePreview${slot.prefix}ConnectionText`, opsPreviewStatusLabel(slotState.connectionStatus));
+          setText(`opsLivePreview${slot.prefix}ViewText`, slotState.viewId || '-');
+          setText(`opsLivePreview${slot.prefix}ModeText`, overlayLabel(slotState.overlayMode || 'raw'));
+          if (video) video.muted = true;
+          if (!slotState.viewId) {
+            setText(`opsLivePreview${slot.prefix}Summary`, `${slot.label} 비어 있음`);
+            if (placeholder) {
+              placeholder.hidden = false;
+              placeholder.textContent = `${slot.label}는 비어 있습니다.`;
+            }
+          } else if (slotState.sessionId) {
+            setText(`opsLivePreview${slot.prefix}Summary`, `${slotState.viewId} · ${overlayLabel(slotState.overlayMode || 'raw')} 연결 중`);
+            if (placeholder) placeholder.hidden = true;
+          } else {
+            setText(`opsLivePreview${slot.prefix}Summary`, `${slotState.viewId} · ${overlayLabel(slotState.overlayMode || 'raw')} 대기`);
+            if (placeholder) {
+              placeholder.hidden = false;
+              placeholder.textContent = slotState.lastError || `${slot.label}는 시작 대기 중입니다.`;
+            }
           }
+        }
+        if (!row) {
+          setText('opsLivePreviewSummary', `선택한 PublishedView를 최대 2개 슬롯에 수동으로 미리보기합니다. 활성 슬롯 ${activePreviewSlotCount()}개.`);
         } else if (!hasView) {
           setText('opsLivePreviewSummary', 'PublishedView가 없는 채널은 제품 미리보기를 열 수 없습니다.');
-          if (placeholder) {
-            placeholder.hidden = false;
-            placeholder.textContent = 'PublishedView 미배정 채널입니다.';
-          }
         } else if (!enabled) {
           setText('opsLivePreviewSummary', `${row.view.viewId} 미리보기는 채널이 비활성 상태라 시작할 수 없습니다.`);
-          if (placeholder) {
-            placeholder.hidden = false;
-            placeholder.textContent = '비활성 채널입니다.';
-          }
         } else if (ruleRequired && !previewRuleId) {
           setText('opsLivePreviewSummary', `${row.view.viewId}는 VA 룰 모드가 허용되지 않거나 연결된 rule이 없습니다.`);
-          if (placeholder) {
-            placeholder.hidden = false;
-            placeholder.textContent = 'VA 룰 연결 없음';
-          }
-        } else if (activeForRow && opsPreviewState.sessionId) {
-          setText('opsLivePreviewSummary', `${row.view.viewId} ${overlayLabel(previewMode)} read-only preview 연결 중 · 자동 세션은 열지 않습니다.`);
-          if (placeholder) placeholder.hidden = true;
+        } else if (activeForRow && state.sessionId) {
+          setText('opsLivePreviewSummary', `${row.view.viewId} ${overlayLabel(previewMode)} preview가 ${state.label}에 연결되어 있습니다. 활성 슬롯 ${activePreviewSlotCount()}개.`);
         } else {
           const ruleHint = ruleRequired && previewRuleId ? ` · rule ${previewRuleId}` : '';
-          setText('opsLivePreviewSummary', `${row.view.viewId} ${overlayLabel(previewMode)} 미리보기는 시작 버튼을 눌렀을 때만 연결합니다.${ruleHint}`);
-          if (placeholder) {
-            placeholder.hidden = false;
-            placeholder.textContent = opsPreviewState.lastError || '선택한 채널의 미리보기를 시작하세요.';
-          }
+          setText('opsLivePreviewSummary', `${row.view.viewId} ${overlayLabel(previewMode)} 미리보기를 ${state.label}에 열 수 있습니다.${ruleHint} 활성 슬롯 ${activePreviewSlotCount()}개.`);
         }
-        if (video) video.muted = true;
-        if (startBtn) startBtn.disabled = !row || !hasView || !enabled || (ruleRequired && !previewRuleId) || (activeForRow && Boolean(opsPreviewState.sessionId));
+        if (startBtn) startBtn.disabled = !row || !hasView || !enabled || (ruleRequired && !previewRuleId) || (activeForRow && Boolean(state.sessionId));
         if (restartBtn) restartBtn.disabled = !row || !hasView || !enabled || (ruleRequired && !previewRuleId);
-        if (stopBtn) stopBtn.disabled = !Boolean(opsPreviewState.sessionId);
+        if (stopBtn) stopBtn.disabled = !Boolean(state.sessionId);
       }
-      async function stopOpsLivePreview(options = {}) {
-        if (opsPreviewState.iceTimer) {
-          clearInterval(opsPreviewState.iceTimer);
-          opsPreviewState.iceTimer = null;
+      async function stopOpsLivePreview(slotKey = opsPreviewTarget, options = {}) {
+        const state = opsPreviewStateFor(slotKey);
+        if (state.iceTimer) {
+          clearInterval(state.iceTimer);
+          state.iceTimer = null;
         }
-        if (opsPreviewState.pc) {
-          try { opsPreviewState.pc.close(); } catch {}
+        if (state.pc) {
+          try { state.pc.close(); } catch {}
         }
-        opsPreviewState.pc = null;
-        const video = document.getElementById('opsLivePreviewVideo');
+        state.pc = null;
+        const prefix = state.prefix;
+        const video = document.getElementById(`opsLivePreview${prefix}Video`);
         if (video?.srcObject) {
           for (const track of video.srcObject.getTracks()) track.stop();
           video.srcObject = null;
         }
-        const sessionId = opsPreviewState.sessionId;
-        const viewId = opsPreviewState.viewId;
-        opsPreviewState.sessionId = '';
+        const sessionId = state.sessionId;
+        const viewId = state.viewId;
+        state.sessionId = '';
         if (sessionId && viewId) {
           await fetch(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session/${encodeURIComponent(sessionId)}`, {
             method: 'DELETE',
             keepalive: Boolean(options.keepalive)
           }).catch(() => {});
         }
-        if (!options.keepError) opsPreviewState.lastError = '';
-        opsPreviewState.status = 'offline';
-        opsPreviewState.connectionStatus = 'offline';
+        if (!options.keepError) state.lastError = '';
+        state.status = 'offline';
+        state.connectionStatus = 'offline';
         if (!options.preserveRow) {
-          opsPreviewState.rowId = '';
-          opsPreviewState.viewId = '';
+          state.rowId = '';
+          state.viewId = '';
         }
         updateOpsLivePreviewUi();
       }
-      async function pollOpsLivePreviewIce() {
-        if (!opsPreviewState.sessionId || !opsPreviewState.pc) return;
-        const response = await fetch(opsLivePreviewSessionUrl('/ice')).catch(() => null);
+      async function pollOpsLivePreviewIce(slotKey = opsPreviewTarget) {
+        const state = opsPreviewStateFor(slotKey);
+        if (!state.sessionId || !state.pc) return;
+        const response = await fetch(opsLivePreviewSessionUrl(state, '/ice')).catch(() => null);
         if (!response || !response.ok) return;
         const payload = await response.json().catch(() => ({}));
         for (const item of payload.candidates || []) {
-          try { await opsPreviewState.pc.addIceCandidate(item); } catch {}
+          try { await state.pc.addIceCandidate(item); } catch {}
         }
       }
       async function startOpsLivePreview(options = {}) {
+        const state = opsPreviewStateFor();
         const row = selectedOpsLiveRow();
         const viewId = String(row?.view?.viewId || '').trim();
-        const overlayMode = opsPreviewState.overlayMode || 'raw';
+        const overlayMode = state.overlayMode || 'raw';
         const ruleId = opsLivePreviewRuleId(row);
         if (!row || !viewId || row.enabled === false) {
           updateOpsLivePreviewUi(row);
@@ -1262,36 +1282,43 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           updateOpsLivePreviewUi(row);
           return;
         }
-        if (opsPreviewState.sessionId && String(opsPreviewState.rowId || '') !== String(row.id || '')) {
-          await stopOpsLivePreview({ preserveRow: false });
-        } else if (opsPreviewState.sessionId) {
-          await stopOpsLivePreview({ preserveRow: true });
+        for (const slot of opsPreviewSlots) {
+          if (slot.key === state.key) continue;
+          const other = opsPreviewStateFor(slot.key);
+          if (other.sessionId && String(other.rowId || '') === String(row.id || '')) {
+            await stopOpsLivePreview(slot.key, { preserveRow: false });
+          }
         }
-        opsPreviewState.rowId = String(row.id || '');
-        opsPreviewState.viewId = viewId;
-        opsPreviewState.status = options.restart ? 'reconnecting' : 'connecting';
-        opsPreviewState.connectionStatus = 'connecting';
-        opsPreviewState.lastError = '';
+        if (state.sessionId && String(state.rowId || '') !== String(row.id || '')) {
+          await stopOpsLivePreview(state.key, { preserveRow: false });
+        } else if (state.sessionId) {
+          await stopOpsLivePreview(state.key, { preserveRow: true });
+        }
+        state.rowId = String(row.id || '');
+        state.viewId = viewId;
+        state.status = options.restart ? 'reconnecting' : 'connecting';
+        state.connectionStatus = 'connecting';
+        state.lastError = '';
         updateOpsLivePreviewUi(row);
         try {
           const pc = await createOpsLivePeerConnection();
-          opsPreviewState.pc = pc;
+          state.pc = pc;
           pc.onconnectionstatechange = () => {
-            opsPreviewState.connectionStatus = pc.connectionState || 'connecting';
-            if (['connected', 'completed'].includes(pc.connectionState)) opsPreviewState.status = 'live';
+            state.connectionStatus = pc.connectionState || 'connecting';
+            if (['connected', 'completed'].includes(pc.connectionState)) state.status = 'live';
             if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) {
-              opsPreviewState.status = pc.connectionState === 'failed' ? 'error' : 'offline';
-              opsPreviewState.lastError = opsPreviewStatusLabel(pc.connectionState);
+              state.status = pc.connectionState === 'failed' ? 'error' : 'offline';
+              state.lastError = opsPreviewStatusLabel(pc.connectionState);
             }
             updateOpsLivePreviewUi();
           };
           pc.oniceconnectionstatechange = () => {
-            opsPreviewState.connectionStatus = pc.iceConnectionState || opsPreviewState.connectionStatus;
+            state.connectionStatus = pc.iceConnectionState || state.connectionStatus;
             updateOpsLivePreviewUi();
           };
           pc.ontrack = event => {
-            const video = document.getElementById('opsLivePreviewVideo');
-            const placeholder = document.getElementById('opsLivePreviewPlaceholder');
+            const video = document.getElementById(`opsLivePreview${state.prefix}Video`);
+            const placeholder = document.getElementById(`opsLivePreview${state.prefix}Placeholder`);
             if (video) {
               video.srcObject = event.streams[0];
               video.muted = true;
@@ -1299,12 +1326,12 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
               if (play && typeof play.catch === 'function') play.catch(() => {});
             }
             if (placeholder) placeholder.hidden = true;
-            opsPreviewState.status = 'live';
+            state.status = 'live';
             updateOpsLivePreviewUi();
           };
           pc.onicecandidate = event => {
-            if (!opsPreviewState.sessionId || !event.candidate) return;
-            fetch(opsLivePreviewSessionUrl('/ice'), {
+            if (!state.sessionId || !event.candidate) return;
+            fetch(opsLivePreviewSessionUrl(state, '/ice'), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -1324,23 +1351,23 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           });
           const payload = await response.json().catch(() => ({}));
           if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
-          opsPreviewState.sessionId = payload.sessionId || '';
-          if (!opsPreviewState.sessionId || !payload.offer) throw new Error('session offer missing');
+          state.sessionId = payload.sessionId || '';
+          if (!state.sessionId || !payload.offer) throw new Error('session offer missing');
           await pc.setRemoteDescription({ type: 'offer', sdp: payload.offer });
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
-          await fetch(opsLivePreviewSessionUrl('/answer'), {
+          await fetch(opsLivePreviewSessionUrl(state, '/answer'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/sdp' },
             body: answer.sdp
           });
-          opsPreviewState.iceTimer = setInterval(() => pollOpsLivePreviewIce().catch(() => {}), 1000);
+          state.iceTimer = setInterval(() => pollOpsLivePreviewIce(state.key).catch(() => {}), 1000);
           updateOpsLivePreviewUi();
         } catch (error) {
-          opsPreviewState.status = 'error';
-          opsPreviewState.connectionStatus = error.message || 'error';
-          opsPreviewState.lastError = error.message || 'error';
-          await stopOpsLivePreview({ keepError: true, preserveRow: true });
+          state.status = 'error';
+          state.connectionStatus = error.message || 'error';
+          state.lastError = error.message || 'error';
+          await stopOpsLivePreview(state.key, { keepError: true, preserveRow: true });
           updateOpsLivePreviewUi(row);
         }
       }
@@ -1436,9 +1463,6 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       }
       function renderOpsLiveDrilldown(row) {
         const recordsBody = document.getElementById('opsLiveDetailEventRows');
-        if (row && opsPreviewState.sessionId && String(opsPreviewState.rowId || '') !== String(row.id || '')) {
-          stopOpsLivePreview({ preserveRow: false, keepError: false }).catch(() => {});
-        }
         if (!row) {
           setText('opsLiveDrilldownSummary', '타일 또는 최근 이벤트를 선택하면 source health, active tap, recent event, evidence 상태를 표시합니다.');
           renderBadges('opsLiveDrilldownBadges', [{ text: '선택 없음', tone: 'info' }]);
@@ -1920,19 +1944,23 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         document.getElementById('opsLiveDensity')?.addEventListener('change', () => refreshLive().catch(error => setText('opsLiveSummary', error.message)));
         document.getElementById('opsLiveFocus')?.addEventListener('change', () => refreshLive().catch(error => setText('opsLiveSummary', error.message)));
         document.getElementById('opsLiveFilterInput')?.addEventListener('input', () => refreshLive().catch(error => setText('opsLiveSummary', error.message)));
+        document.getElementById('opsLivePreviewTarget')?.addEventListener('change', event => {
+          opsPreviewTarget = String(event.target.value || 'primary');
+          updateOpsLivePreviewUi();
+        });
         document.getElementById('opsLivePreviewStart')?.addEventListener('click', () => startOpsLivePreview().catch(error => {
-          opsPreviewState.lastError = error.message || 'preview start failed';
+          opsPreviewStateFor().lastError = error.message || 'preview start failed';
           updateOpsLivePreviewUi();
         }));
         document.getElementById('opsLivePreviewMode')?.addEventListener('change', event => {
-          opsPreviewState.overlayMode = normalizeOverlayMode(event.target.value) || 'raw';
+          opsPreviewStateFor().overlayMode = normalizeOverlayMode(event.target.value) || 'raw';
           updateOpsLivePreviewUi();
         });
         document.getElementById('opsLivePreviewRestart')?.addEventListener('click', () => startOpsLivePreview({ restart: true }).catch(error => {
-          opsPreviewState.lastError = error.message || 'preview restart failed';
+          opsPreviewStateFor().lastError = error.message || 'preview restart failed';
           updateOpsLivePreviewUi();
         }));
-        document.getElementById('opsLivePreviewStop')?.addEventListener('click', () => stopOpsLivePreview({ preserveRow: true }).catch(() => {}));
+        document.getElementById('opsLivePreviewStop')?.addEventListener('click', () => stopOpsLivePreview(opsPreviewTarget, { preserveRow: true }).catch(() => {}));
         document.getElementById('opsRulesFilterInput')?.addEventListener('input', () => refreshRules().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsDashboardRefresh')?.addEventListener('click', () => refreshDashboard().catch(error => setText('dashHealthText', error.message)));
         document.getElementById('opsEventsRefresh')?.addEventListener('click', () => refreshEvents().catch(error => setText('eventRecordSummary', error.message)));
@@ -1954,15 +1982,18 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       } else if (activeOpsPage === 'live') {
         refreshLive().catch(error => setText('opsLiveSummary', error.message));
         document.addEventListener('visibilitychange', () => {
-          if (document.hidden) stopOpsLivePreview({ preserveRow: true }).catch(() => {});
+          if (document.hidden) Promise.all(opsPreviewSlots.map(slot => stopOpsLivePreview(slot.key, { preserveRow: true }))).catch(() => {});
         });
-        window.addEventListener('pagehide', () => stopOpsLivePreview({ keepalive: true }).catch(() => {}));
+        window.addEventListener('pagehide', () => Promise.all(opsPreviewSlots.map(slot => stopOpsLivePreview(slot.key, { keepalive: true }))).catch(() => {}));
         window.addEventListener('beforeunload', () => {
-          if (opsPreviewState.sessionId && opsPreviewState.viewId) {
-            fetch(`/client/api/views/${encodeURIComponent(opsPreviewState.viewId)}/webrtc/session/${encodeURIComponent(opsPreviewState.sessionId)}`, {
-              method: 'DELETE',
-              keepalive: true
-            }).catch(() => {});
+          for (const slot of opsPreviewSlots) {
+            const state = opsPreviewStateFor(slot.key);
+            if (state.sessionId && state.viewId) {
+              fetch(`/client/api/views/${encodeURIComponent(state.viewId)}/webrtc/session/${encodeURIComponent(state.sessionId)}`, {
+                method: 'DELETE',
+                keepalive: true
+              }).catch(() => {});
+            }
           }
         });
       }

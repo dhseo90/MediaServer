@@ -18419,9 +18419,13 @@ void AppendOpsLivePage(std::ostringstream& out) {
         <div class="toolbar" style="margin-top:12px;">
           <div>
             <h3 style="margin:0;font-size:1rem;">Preview</h3>
-            <p id="opsLivePreviewSummary" class="form-note">선택한 PublishedView만 수동으로 미리보기합니다. 자동 세션은 열지 않습니다.</p>
+            <p id="opsLivePreviewSummary" class="form-note">선택한 PublishedView를 최대 2개 슬롯에 수동으로 미리보기합니다. 자동 세션은 열지 않습니다.</p>
           </div>
           <div class="actions">
+            <select id="opsLivePreviewTarget" aria-label="미리보기 슬롯">
+              <option value="primary" selected>슬롯 A</option>
+              <option value="secondary">슬롯 B</option>
+            </select>
             <select id="opsLivePreviewMode" aria-label="미리보기 모드">
               <option value="raw" selected>원본</option>
             </select>
@@ -18430,16 +18434,42 @@ void AppendOpsLivePage(std::ostringstream& out) {
             <button id="opsLivePreviewStop" type="button" class="button-secondary">정지</button>
           </div>
         </div>
-        <div class="section-card" style="padding:12px;">
-          <div class="status-stat-grid" style="margin-bottom:10px;">
-            <div class="status-stat"><span>미리보기 상태</span><strong id="opsLivePreviewStatusText">offline</strong></div>
-            <div class="status-stat"><span>연결</span><strong id="opsLivePreviewConnectionText">offline</strong></div>
-            <div class="status-stat"><span>채널</span><strong id="opsLivePreviewViewText">-</strong></div>
-            <div class="status-stat"><span>모드</span><strong id="opsLivePreviewModeText">원본</strong></div>
+        <div class="dashboard-card-grid dashboard-card-grid-compact" style="margin-top:12px;">
+          <div class="section-card" style="padding:12px;">
+            <div class="toolbar" style="margin-bottom:10px;">
+              <div>
+                <h3 style="margin:0;font-size:1rem;">슬롯 A</h3>
+                <p id="opsLivePreviewPrimarySummary" class="form-note">비어 있음</p>
+              </div>
+            </div>
+            <div class="status-stat-grid" style="margin-bottom:10px;">
+              <div class="status-stat"><span>상태</span><strong id="opsLivePreviewPrimaryStatusText">offline</strong></div>
+              <div class="status-stat"><span>연결</span><strong id="opsLivePreviewPrimaryConnectionText">offline</strong></div>
+              <div class="status-stat"><span>채널</span><strong id="opsLivePreviewPrimaryViewText">-</strong></div>
+              <div class="status-stat"><span>모드</span><strong id="opsLivePreviewPrimaryModeText">원본</strong></div>
+            </div>
+            <div id="opsLivePreviewPrimaryStage" class="tile-stage" style="min-height:220px;">
+              <video id="opsLivePreviewPrimaryVideo" playsinline muted autoplay></video>
+              <span id="opsLivePreviewPrimaryPlaceholder">슬롯 A는 비어 있습니다.</span>
+            </div>
           </div>
-          <div id="opsLivePreviewStage" class="tile-stage" style="min-height:220px;">
-            <video id="opsLivePreviewVideo" playsinline muted autoplay></video>
-            <span id="opsLivePreviewPlaceholder">선택한 채널의 미리보기를 시작하세요.</span>
+          <div class="section-card" style="padding:12px;">
+            <div class="toolbar" style="margin-bottom:10px;">
+              <div>
+                <h3 style="margin:0;font-size:1rem;">슬롯 B</h3>
+                <p id="opsLivePreviewSecondarySummary" class="form-note">비어 있음</p>
+              </div>
+            </div>
+            <div class="status-stat-grid" style="margin-bottom:10px;">
+              <div class="status-stat"><span>상태</span><strong id="opsLivePreviewSecondaryStatusText">offline</strong></div>
+              <div class="status-stat"><span>연결</span><strong id="opsLivePreviewSecondaryConnectionText">offline</strong></div>
+              <div class="status-stat"><span>채널</span><strong id="opsLivePreviewSecondaryViewText">-</strong></div>
+              <div class="status-stat"><span>모드</span><strong id="opsLivePreviewSecondaryModeText">원본</strong></div>
+            </div>
+            <div id="opsLivePreviewSecondaryStage" class="tile-stage" style="min-height:220px;">
+              <video id="opsLivePreviewSecondaryVideo" playsinline muted autoplay></video>
+              <span id="opsLivePreviewSecondaryPlaceholder">슬롯 B는 비어 있습니다.</span>
+            </div>
           </div>
         </div>
         <div class="toolbar" style="margin-top:12px;">
