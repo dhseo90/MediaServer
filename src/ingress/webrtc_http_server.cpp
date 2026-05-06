@@ -18277,6 +18277,9 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             <h3>저장 VA 룰</h3>
             <p id="opsVaRuleSummary">저장된 영상 분석 룰을 불러오는 중입니다.</p>
           </div>
+          <div class="actions">
+            <input id="opsRulesFilterInput" type="search" placeholder="rule/profile/source 검색" aria-label="룰 카탈로그 검색" />
+          </div>
         </div>
         <div class="table-wrap">
           <table>
@@ -18431,6 +18434,15 @@ void AppendOpsLivePage(std::ostringstream& out) {
             </thead>
             <tbody id="opsLiveTimelineRows"><tr><td colspan="4">채널을 선택하면 timeline을 표시합니다.</td></tr></tbody>
           </table>
+        </div>
+        <div class="toolbar" style="margin-top:12px;">
+          <div>
+            <h3 style="margin:0;font-size:1rem;">운영 Action</h3>
+            <p id="opsLiveActionSummary" class="form-note">선택한 채널 기준으로 채널, 이벤트, 클라이언트, 룰 화면으로 이동합니다.</p>
+          </div>
+        </div>
+        <div id="opsLiveActionButtons" class="actions">
+          <span class="chip info">선택 없음</span>
         </div>
         <pre id="opsLiveDetailJson" class="raw-json-panel">선택한 채널 detail 없음</pre>
       </section>

@@ -86,7 +86,8 @@ void AppendClientShellScript(std::ostringstream& out) {
     const refresh = document.querySelector('#refresh');
     const workspace = document.querySelector('.workspace');
     const views = Array.isArray(payload.views) ? payload.views : [];
-    let selectedViewId = views[0]?.viewId || '';
+    const clientHashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
+    let selectedViewId = clientHashParams().get('view') || views[0]?.viewId || '';
     const isPreviewMode = document.body.dataset.clientPreview === 'true';
     const { escapeHtml, display, requestJson, applyPrincipalVisibility, setSelectOptions } = window.MediaServerUi;
     let clientWebRtcConfigPromise = null;
@@ -173,6 +174,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       return out;
 	    };
 	    const viewById = id => views.find(view => String(view.viewId) === String(id)) || null;
+	    if (!viewById(selectedViewId)) selectedViewId = views[0]?.viewId || '';
 	    const maxLiveTiles = isPreviewMode ? 9 : 4;
 	    function viewMaxTiles(view) {
 	      const parsed = Number(view?.maxTiles);
@@ -1022,6 +1024,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         rows: [],
         selectedRowId: ''
       };
+      const opsHashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
       const eventTime = record => record.updateTime ?? record.startTime ?? record.timestamp ?? record.endTime ?? '';
       const formatTime = value => {
         if (value === null || value === undefined || value === '') return '미제공';
@@ -1064,6 +1067,36 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         if (text.includes('published') || text.includes('fresh') || text.includes('ok') || text.includes('captured')) return '';
         return 'info';
       };
+      const opsLiveActionLink = (href, label) =>
+        `<a class="button button-secondary" href="${escapeHtml(href)}">${escapeHtml(label)}</a>`;
+      function renderOpsLiveActions(row) {
+        const container = document.getElementById('opsLiveActionButtons');
+        if (!container) return;
+        if (!row) {
+          setText('opsLiveActionSummary', '선택한 채널 기준으로 채널, 이벤트, 클라이언트, 룰 화면으로 이동합니다.');
+          container.innerHTML = '<span class="chip info">선택 없음</span>';
+          return;
+        }
+        const view = row.view || {};
+        const tap = row.tap || null;
+        const source = row.source || {};
+        const ruleId = String(view.defaultRuleId || tap?.selectedRuleId || (Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds[0] : '') || '').trim();
+        const links = [
+          opsLiveActionLink(`/ops/sources#channel=${encodeURIComponent(String(row.id || ''))}`, '채널 관리'),
+          opsLiveActionLink(`/ops/events#channel=${encodeURIComponent(String(row.id || ''))}`, '이벤트 상태')
+        ];
+        if (view.viewId) {
+          links.push(opsLiveActionLink(`/client/live#view=${encodeURIComponent(String(view.viewId))}`, '클라이언트 미리보기'));
+        }
+        if (ruleId) {
+          links.push(opsLiveActionLink(`/ops/rules#q=${encodeURIComponent(ruleId)}`, '룰 카탈로그'));
+        }
+        setText(
+          'opsLiveActionSummary',
+          `${view.displayName || source.displayName || row.id} 기준 이동 · ${tap?.tapId ? `tap ${tap.tapId} ` : ''}${ruleId ? `rule ${ruleId}` : 'rule 없음'}`
+        );
+        container.innerHTML = links.join('');
+      }
       function buildOpsLiveTimeline(row) {
         if (!row) return [];
         const view = row.view || {};
@@ -1137,6 +1170,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           setText('opsLiveDetailEvidenceText', '-');
           setTableEmpty(recordsBody, 4, '채널을 선택하면 최근 event detail을 표시합니다.');
           renderOpsLiveTimeline(null);
+          renderOpsLiveActions(null);
           const detail = document.getElementById('opsLiveDetailJson');
           if (detail) detail.textContent = '선택한 채널 detail 없음';
           return;
@@ -1176,6 +1210,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           `).join('');
         }
         renderOpsLiveTimeline(row);
+        renderOpsLiveActions(row);
         const detail = document.getElementById('opsLiveDetailJson');
         if (detail) {
           detail.textContent = JSON.stringify({
@@ -1425,7 +1460,10 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
       }
       async function refreshEvents() {
-        const payload = await requestJson('/ops/api/events/status?limit=25');
+        const eventParams = new URLSearchParams({ limit: '25' });
+        const channelFilter = String(opsHashParams().get('channel') || '').trim();
+        if (channelFilter) eventParams.set('channelId', channelFilter);
+        const payload = await requestJson(`/ops/api/events/status?${eventParams.toString()}`);
         const storage = payload.storage || {};
         const post = payload.post || {};
         const records = payload.records || { records: [] };
@@ -1444,7 +1482,12 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         ]);
         setText('eventPostText', post.lastError ? `마지막 오류: ${post.lastError}` : `큐 ${post.queueSize ?? 0}/${post.maxQueueSize ?? 0}`);
         const eventItems = Array.isArray(records.records) ? records.records : [];
-        setText('eventRecordSummary', records.error ? `조회 실패: ${records.error}` : `records ${eventItems.length} · hasMore ${records.hasMore ? 'yes' : 'no'}`);
+        setText(
+          'eventRecordSummary',
+          records.error
+            ? `조회 실패: ${records.error}`
+            : `records ${eventItems.length} · hasMore ${records.hasMore ? 'yes' : 'no'}${channelFilter ? ` · channel ${channelFilter}` : ''}`
+        );
         renderEventRows(eventItems);
         renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, records });
       }
@@ -1472,6 +1515,34 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           .filter(([, value]) => value === true || value === 'true')
           .map(([key]) => key)
           .join(', ') || '미제공';
+      };
+      const opsRulesSearchTerm = () => {
+        const inputValue = String(document.getElementById('opsRulesFilterInput')?.value || '').trim();
+        const hashValue = String(opsHashParams().get('q') || '').trim();
+        return (inputValue || hashValue).toLowerCase();
+      };
+      const opsRuleSearchableText = item => {
+        const analysis = item?.analysis || {};
+        const source = item?.source || {};
+        const eventName = item?.scenario?.type || item?.scenario?.name || item?.event?.type || item?.eventType || '';
+        return [
+          item?.id,
+          item?.ruleId,
+          item?.profileId,
+          item?.name,
+          source?.sourceId,
+          source?.displayName,
+          source?.file,
+          source?.url,
+          source?.rtspUrl,
+          source?.whepUrl,
+          source?.httpUrl,
+          analysis?.profileId,
+          analysis?.detector,
+          eventName,
+          ...(Array.isArray(analysis?.classes) ? analysis.classes : []),
+          ...(Array.isArray(item?.trackingClasses) ? item.trackingClasses : [])
+        ].filter(Boolean).join(' ').toLowerCase();
       };
       const statusBadge = item => item?.enabled === false ? badge('비활성', 'warn') : badge('적용 중');
       function renderOpsVaRules(items) {
@@ -1542,22 +1613,32 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
             view.allowedRuleIds.forEach(id => boundRuleIds.add(String(id)));
           }
         }
+        const filterInput = document.getElementById('opsRulesFilterInput');
+        const hashQuery = String(opsHashParams().get('q') || '').trim();
+        if (filterInput && hashQuery && !String(filterInput.value || '').trim()) {
+          filterInput.value = hashQuery;
+        }
+        const searchTerm = opsRulesSearchTerm();
+        const filteredVaRules = searchTerm ? vaRules.filter(item => opsRuleSearchableText(item).includes(searchTerm)) : vaRules;
+        const filteredRules = searchTerm ? rules.filter(item => opsRuleSearchableText(item).includes(searchTerm)) : rules;
+        const filteredProfiles = searchTerm ? profiles.filter(item => opsRuleSearchableText(item).includes(searchTerm)) : profiles;
         setText('rulesVaRuleCount', vaRules.length);
         setText('rulesEventRuleCount', rules.length);
         setText('rulesProfileCount', profiles.length);
         setText('rulesViewBindingCount', boundRuleIds.size);
-        setText('opsVaRuleSummary', `VA 룰 ${vaRules.length}개 · PublishedView 연결 ${boundRuleIds.size}개`);
-        setText('opsEventRuleSummary', `이벤트 룰 ${rules.length}개`);
-        setText('opsProfileSummary', `분석 프로파일 ${profiles.length}개`);
-        renderOpsVaRules(vaRules);
-        renderOpsEventRules(rules);
-        renderOpsProfiles(profiles);
+        setText('opsVaRuleSummary', `VA 룰 ${filteredVaRules.length}/${vaRules.length}개 · PublishedView 연결 ${boundRuleIds.size}개`);
+        setText('opsEventRuleSummary', `이벤트 룰 ${filteredRules.length}/${rules.length}개`);
+        setText('opsProfileSummary', `분석 프로파일 ${filteredProfiles.length}/${profiles.length}개`);
+        renderOpsVaRules(filteredVaRules);
+        renderOpsEventRules(filteredRules);
+        renderOpsProfiles(filteredProfiles);
       }
       function wireOpsRefresh() {
         document.getElementById('opsLiveRefresh')?.addEventListener('click', () => refreshLive().catch(error => setText('homeRuntimeText', error.message)));
         document.getElementById('opsLiveDensity')?.addEventListener('change', () => refreshLive().catch(error => setText('opsLiveSummary', error.message)));
         document.getElementById('opsLiveFocus')?.addEventListener('change', () => refreshLive().catch(error => setText('opsLiveSummary', error.message)));
         document.getElementById('opsLiveFilterInput')?.addEventListener('input', () => refreshLive().catch(error => setText('opsLiveSummary', error.message)));
+        document.getElementById('opsRulesFilterInput')?.addEventListener('input', () => refreshRules().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsDashboardRefresh')?.addEventListener('click', () => refreshDashboard().catch(error => setText('dashHealthText', error.message)));
         document.getElementById('opsEventsRefresh')?.addEventListener('click', () => refreshEvents().catch(error => setText('eventRecordSummary', error.message)));
         document.getElementById('opsRulesRefresh')?.addEventListener('click', () => refreshRules().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
@@ -1604,7 +1685,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     let currentChannelId = '';
     let editorMode = 'view';
     let currentChannelEnabled = true;
+    let initializedHashChannel = false;
 	    const { escapeHtml, requestJson, formDataObject, setFeedback, setTableEmpty, setSelectOptions } = window.MediaServerUi;
+	    const hashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
 	    const setStatus = (message, failed = false) => {
 	      setFeedback(statusEl, message, failed, { collapseEmpty: true });
 	    };
@@ -2052,6 +2135,13 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       loadedViews = views.views || [];
       renderChannels(loadedSources, loadedViews);
       renderRegistryRaw(sources, views, clientViews);
+      if (!initializedHashChannel) {
+        initializedHashChannel = true;
+        const channelId = String(hashParams().get('channel') || '').trim();
+        if (channelId && (findSource(channelId) || findView(channelId))) {
+          openChannel(channelId, 'view');
+        }
+      }
       setStatus('');
     }
     channelForm.addEventListener('submit', async event => {

@@ -55,14 +55,14 @@ const pageChecks = [
     name: "ops-live",
     path: "/ops/live",
     visualSelector: '[data-testid="ops-live-page"]',
-    must: ['data-testid="ops-live-page"', 'id="opsLiveTileGrid"', 'id="opsLiveDensity"', 'id="opsLiveFocus"', 'id="opsLiveFilterInput"', 'id="opsLiveAttentionCount"', 'id="opsLiveUnassignedCount"', 'id="opsLiveDrilldownSummary"', 'id="opsLiveDetailEventRows"', 'id="opsLiveTimelineSummary"', 'id="opsLiveTimelineRows"', 'id="opsLiveDetailJson"', 'id="opsLiveEventRows"', '/ops/api/sources', '/ops/api/views'],
+    must: ['data-testid="ops-live-page"', 'id="opsLiveTileGrid"', 'id="opsLiveDensity"', 'id="opsLiveFocus"', 'id="opsLiveFilterInput"', 'id="opsLiveAttentionCount"', 'id="opsLiveUnassignedCount"', 'id="opsLiveDrilldownSummary"', 'id="opsLiveDetailEventRows"', 'id="opsLiveTimelineSummary"', 'id="opsLiveTimelineRows"', 'id="opsLiveActionSummary"', 'id="opsLiveActionButtons"', 'id="opsLiveDetailJson"', 'id="opsLiveEventRows"', '/ops/api/sources', '/ops/api/views'],
     mustNot: ['후속 구현 항목입니다', '<iframe', '/lab/rules?embed=1'],
   },
   {
     name: "ops-rules",
     path: "/ops/rules",
     visualSelector: '[data-testid="ops-rules-page"]',
-    must: ['data-testid="ops-rules-page"', 'id="opsVaRuleRows"', 'id="opsEventRuleRows"', 'id="opsProfileRows"', '/ops/api/rules/catalog'],
+    must: ['data-testid="ops-rules-page"', 'id="opsRulesFilterInput"', 'id="opsVaRuleRows"', 'id="opsEventRuleRows"', 'id="opsProfileRows"', '/ops/api/rules/catalog'],
     mustNot: ['<iframe', 'opsRulesFrame', '/lab/rules?embed=1', '/lab/analysis/rules', '/lab/analysis/va-rules'],
   },
   {
