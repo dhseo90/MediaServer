@@ -1,0 +1,46 @@
+{
+  "timestampToleranceMs": 250,
+  "events": [
+    {
+      "streamId": "baseline-zone-occupancy-delayed-trigger",
+      "channelId": "baseline-zone-occupancy-delayed-trigger",
+      "frameId": 4,
+      "timestampMs": 3000,
+      "type": "zone-occupancy",
+      "zoneId": "queue-zone",
+      "trackId": 211
+    }
+  ],
+  "frames": [
+    {
+      "streamId": "baseline-zone-occupancy-delayed-trigger",
+      "channelId": "baseline-zone-occupancy-delayed-trigger",
+      "frameId": 2,
+      "eventCount": 0,
+      "activeRuleCount": 1,
+      "trackState": { "total": 2, "active": 2, "lost": 0, "terminated": 0 },
+      "scenarioState": { "instances": 1, "active": 1 },
+      "eventManager": { "states": 0 }
+    },
+    {
+      "streamId": "baseline-zone-occupancy-delayed-trigger",
+      "channelId": "baseline-zone-occupancy-delayed-trigger",
+      "frameId": 3,
+      "eventCount": 0,
+      "activeRuleCount": 1,
+      "trackState": { "total": 2, "active": 2, "lost": 0, "terminated": 0 },
+      "scenarioState": { "instances": 1, "active": 1 },
+      "eventManager": { "states": 0 }
+    },
+    {
+      "streamId": "baseline-zone-occupancy-delayed-trigger",
+      "channelId": "baseline-zone-occupancy-delayed-trigger",
+      "frameId": 4,
+      "eventCount": 1,
+      "activeRuleCount": 1,
+      "trackState": { "total": 2, "active": 2, "lost": 0, "terminated": 0 },
+      "scenarioState": { "instances": 1, "active": 1 },
+      "eventManager": { "states": 1 }
+    }
+  ]
+}

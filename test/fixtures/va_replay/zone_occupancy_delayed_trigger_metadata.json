@@ -1,0 +1,99 @@
+{
+  "frames": [
+    {
+      "streamId": "baseline-zone-occupancy-delayed-trigger",
+      "channelId": "baseline-zone-occupancy-delayed-trigger",
+      "frameId": 1,
+      "timestampMs": 1000,
+      "objects": [
+        {
+          "trackId": 211,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.95,
+          "bbox": { "x": 0.15, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.2, "y": 0.2 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-zone-occupancy-delayed-trigger",
+      "channelId": "baseline-zone-occupancy-delayed-trigger",
+      "frameId": 2,
+      "timestampMs": 1900,
+      "objects": [
+        {
+          "trackId": 211,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.95,
+          "bbox": { "x": 0.16, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.21, "y": 0.2 },
+          "direction": "right"
+        },
+        {
+          "trackId": 212,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.94,
+          "bbox": { "x": 0.34, "y": 0.18, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.39, "y": 0.23 },
+          "direction": "left"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-zone-occupancy-delayed-trigger",
+      "channelId": "baseline-zone-occupancy-delayed-trigger",
+      "frameId": 3,
+      "timestampMs": 2500,
+      "objects": [
+        {
+          "trackId": 211,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.95,
+          "bbox": { "x": 0.17, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.22, "y": 0.2 },
+          "direction": "right"
+        },
+        {
+          "trackId": 212,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.94,
+          "bbox": { "x": 0.35, "y": 0.19, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.4, "y": 0.24 },
+          "direction": "left"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-zone-occupancy-delayed-trigger",
+      "channelId": "baseline-zone-occupancy-delayed-trigger",
+      "frameId": 4,
+      "timestampMs": 3000,
+      "objects": [
+        {
+          "trackId": 211,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.95,
+          "bbox": { "x": 0.18, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.23, "y": 0.2 },
+          "direction": "right"
+        },
+        {
+          "trackId": 212,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.94,
+          "bbox": { "x": 0.35, "y": 0.19, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.4, "y": 0.24 },
+          "direction": "left"
+        }
+      ]
+    }
+  ]
+}

@@ -530,7 +530,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
   - Idle → InsideZone → TrajectoryStable → DwellSatisfied → Confirmed → Cooldown → Ended 상태 흐름 미리보기
   - rule payload preview와 저장 전 validation
   - 저장된 Loitering rule의 `event.type=scenario.type=loitering`과 target zone/radius/trajectory/cooldown round-trip 검증
-- 남은 작업: 실제 CCTV 샘플로 프리셋 값을 보정하는 장기 field fixture 추가
+- 남은 작업: 실제 CCTV 샘플로 프리셋 값을 보정하는 장기 field fixture 추가. replay baseline에는 under-threshold no-event 경계 fixture를 유지합니다.
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/rule_ui_smoke_check.mjs`, `src/analysis/loitering_scenario.cpp`, `test/fixtures/va_replay/loitering_metadata.json`, `docs/video-analysis.md`, `docs/analysis-threshold-baselines.md`
 - 검증 명령:
 
@@ -546,7 +546,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 - 상태: 1차 완료
 - 목적: 특정 zone 내부 동시 track 수가 threshold 이상일 때 crowd/occupancy 이벤트를 발생시킵니다.
-- 완료 범위: `ZoneOccupancyScenario`, env/per-rule 옵션, 룰 편집 UI 템플릿, 대기열/로비/승강장/출입구/승강기 홀 tuning preset, replay fixture, analysis-state smoke를 구현했습니다. 기존 Event POST payload, WebRTC/SSE/WS metadata schema는 변경하지 않습니다.
+- 완료 범위: `ZoneOccupancyScenario`, env/per-rule 옵션, 룰 편집 UI 템플릿, 대기열/로비/승강장/출입구/승강기 홀 tuning preset, replay fixture, analysis-state smoke를 구현했습니다. replay baseline에는 delayed-trigger boundary fixture를 포함합니다. 기존 Event POST payload, WebRTC/SSE/WS metadata schema는 변경하지 않습니다.
 - 관련 파일: `src/analysis/zone_occupancy_scenario.cpp`, `include/analysis/zone_occupancy_scenario.h`, `src/analysis/event_rule_engine.cpp`, `test/fixtures/va_replay/zone_occupancy_*`
 - 검증 명령:
 
