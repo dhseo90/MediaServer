@@ -992,7 +992,7 @@ std::string ClientShellCss() {
     .live-monitor { display: grid; gap: 12px; }
     .live-toolbar {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto auto;
+      grid-template-columns: minmax(0, 1fr) auto auto auto auto;
       gap: 10px;
       align-items: end;
     }
@@ -1002,7 +1002,9 @@ std::string ClientShellCss() {
     .live-grid[data-grid-size="4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .live-grid[data-grid-size="6"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .live-grid[data-grid-size="9"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .live-grid[data-density="compact"] { gap: 8px; }
     .tile { min-height: 280px; display: grid; grid-template-rows: auto minmax(140px, 1fr) auto; gap: 10px; border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--bg); }
+    .live-grid[data-density="compact"] .tile { min-height: 224px; grid-template-rows: auto minmax(108px, 1fr) auto; gap: 8px; padding: 8px; }
     .tile.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.16); }
     .tile-head { display: grid; gap: 8px; }
     .tile-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -1010,10 +1012,13 @@ std::string ClientShellCss() {
     .tile-controls label { display: grid; gap: 4px; color: var(--muted); font-size: 12px; font-weight: 800; }
     .tile-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .tile-stage { position: relative; min-height: 150px; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: #111827; display: grid; place-items: center; color: #cbd5e1; }
+    .live-grid[data-density="compact"] .tile-stage { min-height: 108px; }
     .tile-stage video { width: 100%; height: 100%; object-fit: contain; background: #000; }
     .tile-stage span { position: absolute; inset: auto 10px 10px 10px; font-size: 12px; font-weight: 800; color: #cbd5e1; }
     .tile-status { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+    .live-grid[data-density="compact"] .tile-status { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .tile-status .metric { min-height: 54px; padding: 8px; }
+    .live-grid[data-density="compact"] .tile-status .metric { min-height: 44px; padding: 6px; }
     .tile-status .metric strong { font-size: 15px; }
     .detail-box { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 12px; }
     select { width: 100%; min-height: 36px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--text); padding: 0 8px; font: inherit; font-weight: 700; }
