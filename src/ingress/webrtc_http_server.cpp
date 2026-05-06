@@ -18413,6 +18413,25 @@ void AppendOpsLivePage(std::ostringstream& out) {
             <tbody id="opsLiveDetailEventRows"><tr><td colspan="4">채널을 선택하면 최근 event detail을 표시합니다.</td></tr></tbody>
           </table>
         </div>
+        <div class="toolbar" style="margin-top:12px;">
+          <div>
+            <h3 style="margin:0;font-size:1rem;">Runtime / Event Timeline</h3>
+            <p id="opsLiveTimelineSummary" class="form-note">선택한 채널의 최근 상태 변화 순서를 표시합니다.</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>시각</th>
+                <th>구분</th>
+                <th>상태</th>
+                <th>메모</th>
+              </tr>
+            </thead>
+            <tbody id="opsLiveTimelineRows"><tr><td colspan="4">채널을 선택하면 timeline을 표시합니다.</td></tr></tbody>
+          </table>
+        </div>
         <pre id="opsLiveDetailJson" class="raw-json-panel">선택한 채널 detail 없음</pre>
       </section>
       <section class="section-card compact-card">

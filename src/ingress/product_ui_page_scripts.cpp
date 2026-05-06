@@ -1058,6 +1058,72 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
             keys.has(String(record?.channelId || '').trim()))
           .sort((left, right) => numberValue(eventTime(right)) - numberValue(eventTime(left)));
       };
+      const timelineTone = value => {
+        const text = String(value || '').toLowerCase();
+        if (text.includes('stale') || text.includes('disabled') || text.includes('unassigned') || text.includes('active')) return 'warn';
+        if (text.includes('published') || text.includes('fresh') || text.includes('ok') || text.includes('captured')) return '';
+        return 'info';
+      };
+      function buildOpsLiveTimeline(row) {
+        if (!row) return [];
+        const view = row.view || {};
+        const source = row.source || {};
+        const tap = row.tap || null;
+        const entries = [];
+        entries.push({
+          time: '',
+          kind: 'channel',
+          state: row.enabled ? 'enabled' : 'disabled',
+          note: `${view.displayName || source.displayName || row.id} · ${sourceText(source)}`
+        });
+        entries.push({
+          time: '',
+          kind: 'view',
+          state: row.hasView ? 'published' : 'unassigned',
+          note: row.hasView ? `${view.viewId || row.id}${view.defaultRuleId ? ` · rule ${view.defaultRuleId}` : ''}` : 'PublishedView 미배정'
+        });
+        if (tap) {
+          entries.push({
+            time: '',
+            kind: 'tap',
+            state: row.staleTap ? 'stale' : 'fresh',
+            note: `${tap.tapId || '-'} · age ${formatTime(tap.lastUsedAgeMs)}${tap.selectedRuleId ? ` · rule ${tap.selectedRuleId}` : ''}`
+          });
+        }
+        for (const record of (Array.isArray(row.eventRecords) ? row.eventRecords : []).slice(0, 8)) {
+          const evidence = recordEvidenceText(record);
+          entries.push({
+            time: formatTime(eventTime(record)),
+            kind: 'event',
+            state: record.status || record.scenarioPhase || 'recorded',
+            note: [
+              record.eventType || record.eventId || 'event',
+              record.scenarioName || record.zoneId || record.lineId || '',
+              evidence !== '없음' ? `${evidence} captured` : 'evidence 없음'
+            ].filter(Boolean).join(' · ')
+          });
+        }
+        return entries;
+      }
+      function renderOpsLiveTimeline(row) {
+        const body = document.getElementById('opsLiveTimelineRows');
+        if (!body) return;
+        if (!row) {
+          setText('opsLiveTimelineSummary', '선택한 채널의 최근 상태 변화 순서를 표시합니다.');
+          setTableEmpty(body, 4, '채널을 선택하면 timeline을 표시합니다.');
+          return;
+        }
+        const entries = buildOpsLiveTimeline(row);
+        setText('opsLiveTimelineSummary', `최근 ${entries.length}개 상태 변화를 표시합니다.`);
+        body.innerHTML = entries.map(entry => `
+          <tr>
+            <td>${escapeHtml(entry.time || '현재')}</td>
+            <td>${escapeHtml(entry.kind)}</td>
+            <td>${badge(entry.state || '-', timelineTone(entry.state))}</td>
+            <td>${escapeHtml(entry.note || '-')}</td>
+          </tr>
+        `).join('');
+      }
       function renderOpsLiveDrilldown(row) {
         const recordsBody = document.getElementById('opsLiveDetailEventRows');
         if (!row) {
@@ -1070,6 +1136,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           setText('opsLiveDetailLatestEventText', '-');
           setText('opsLiveDetailEvidenceText', '-');
           setTableEmpty(recordsBody, 4, '채널을 선택하면 최근 event detail을 표시합니다.');
+          renderOpsLiveTimeline(null);
           const detail = document.getElementById('opsLiveDetailJson');
           if (detail) detail.textContent = '선택한 채널 detail 없음';
           return;
@@ -1108,6 +1175,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
             </tr>
           `).join('');
         }
+        renderOpsLiveTimeline(row);
         const detail = document.getElementById('opsLiveDetailJson');
         if (detail) {
           detail.textContent = JSON.stringify({
