@@ -204,6 +204,7 @@ VA/Auth 주요 검증:
 | [docs/config-reference.md](docs/config-reference.md) | 환경변수와 주요 설정 reference |
 | [docs/media-server-architecture.md](docs/media-server-architecture.md) | RTSP/WebRTC pipeline, stream/session, VA layer 배치 |
 | [docs/video-analysis.md](docs/video-analysis.md) | YOLO, tracking, TrackState, scenario, replay, EventRecord |
+| [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) | Loitering/ZoneOccupancy 현장 시작 threshold |
 | [docs/stream-verification.md](docs/stream-verification.md) | 현재 검증 기준과 실행 명령 |
 | [docs/development-backlog.md](docs/development-backlog.md) | 현재 남은 작업과 후속 로드맵 |
 | [docs/history/development-history.md](docs/history/development-history.md) | 완료된 개발 이력 |
