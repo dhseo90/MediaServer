@@ -29,7 +29,7 @@
 - 후속 Phase: 다음 운영/클라이언트 phase의 진입점은 SourceRegistry/PublishedView 기반 고도화입니다. PublishedView 기반 scope picker, Client scoped dashboard polish, Analysis tap reuse / source+profile 공유 정책 UI는 아래 운영/클라이언트 분리 phase에서 별도로 관리합니다.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
 - 실험/제약: snapshot/clip은 짧은 EventRecord evidence frame 저장용이며 MP4/VMS/NVR 장기 녹화 기능으로 표현하지 않습니다.
-- 남은 후속: 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화(sparkline/장기 baseline), WS metadata filter/subscription/control입니다.
+- 남은 후속: 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화(sparkline/장기 baseline), WebRTC DataChannel metadata filter 적용입니다.
 
 ### 현재 문서 기준 readiness boundary
 
@@ -730,10 +730,10 @@ MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER='turn://user:pass@example.local:
 
 - 우선순위 이유: 영상과 별도 metadata를 UI에서 쓰려면 message contract가 명확해야 합니다.
 
-### P7-3. WebSocket metadata 제어 기능 검토
+### P7-3. WebSocket metadata 제어 기능
 
-- 상태: 보류
-- 목적: 현재 WebSocket은 SSE와 같은 단방향 metadata stream 최소 구현입니다. client command, filter, subscribe/unsubscribe 제어가 실제로 필요한지 운영 UI 요구와 함께 검토합니다.
+- 상태: 완료
+- 목적: WebSocket side-channel은 query 기반 초기 filter/include flag에 더해 client text frame command로 subscribe/unsubscribe/resume/reset을 제어합니다. `media-server.va.metadata-control.v1` ack로 현재 filter/include 상태를 확인합니다.
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/verify_ws_va_metadata.mjs`, `docs/video-analysis.md`
 - 검증 명령:
 
@@ -741,7 +741,7 @@ MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER='turn://user:pass@example.local:
 ./server.sh verify-ws-metadata
 ```
 
-- 우선순위 이유: 단순 수신은 SSE로 충분하므로 WebSocket 제어 기능은 custom client 요구가 명확해진 뒤 확장해야 합니다.
+- 우선순위 이유: custom client가 연결을 유지한 채 관심 event/scenario를 바꿀 수 있어야 RTSP raw stream과 metadata side-channel을 재연결 없이 운용할 수 있습니다.
 
 ### P7-4. Custom RTSP + metadata client 예제
 

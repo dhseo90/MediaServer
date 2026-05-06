@@ -87,7 +87,28 @@ function tryParseFrame(buffer) {
   };
 }
 
-async function readWebSocketMetadata(pathname) {
+function clientTextFrame(payload) {
+  const body = Buffer.from(payload, "utf8");
+  const mask = crypto.randomBytes(4);
+  let header = null;
+  if (body.length <= 125) {
+    header = Buffer.from([0x81, 0x80 | body.length]);
+  } else if (body.length <= 65535) {
+    header = Buffer.alloc(4);
+    header[0] = 0x81;
+    header[1] = 0x80 | 126;
+    header.writeUInt16BE(body.length, 2);
+  } else {
+    throw new Error("client WebSocket payload too large");
+  }
+  const masked = Buffer.alloc(body.length);
+  for (let i = 0; i < body.length; i += 1) {
+    masked[i] = body[i] ^ mask[i % 4];
+  }
+  return Buffer.concat([header, mask, masked]);
+}
+
+async function readWebSocketMetadata(pathname, options = {}) {
   return await new Promise((resolve, reject) => {
     const key = crypto.randomBytes(16).toString("base64");
     const expectedAccept = crypto
@@ -100,6 +121,7 @@ async function readWebSocketMetadata(pathname) {
     });
     let buffer = Buffer.alloc(0);
     let handshaken = false;
+    let controlPayload = null;
     const timer = setTimeout(() => {
       socket.destroy();
       reject(new Error("WebSocket metadata smoke timed out"));
@@ -140,16 +162,27 @@ async function readWebSocketMetadata(pathname) {
         handshaken = true;
         logPass("WebSocket handshake 101/Sec-WebSocket-Accept 확인");
         buffer = buffer.subarray(headerEnd + 4);
+        if (options.command) {
+          socket.write(clientTextFrame(JSON.stringify(options.command)));
+        }
       }
 
-      const frame = tryParseFrame(buffer);
-      if (!frame) return;
-      if (frame.opcode !== 1) {
-        return;
+      while (true) {
+        const frame = tryParseFrame(buffer);
+        if (!frame) return;
+        buffer = frame.rest;
+        if (frame.opcode !== 1) {
+          continue;
+        }
+        const payload = JSON.parse(frame.payload);
+        if (payload.schema === "media-server.va.metadata-control.v1") {
+          controlPayload = payload;
+          continue;
+        }
+        clearTimeout(timer);
+        socket.end();
+        resolve(options.expectControl ? { metadata: payload, control: controlPayload } : payload);
       }
-      clearTimeout(timer);
-      socket.end();
-      resolve(JSON.parse(frame.payload));
     });
     socket.on("error", (error) => {
       clearTimeout(timer);
@@ -195,7 +228,38 @@ const tapPayload = await readWebSocketMetadata(
 assertRuntimeMetadata(tapPayload, "tapId WebSocket");
 logPass("WebSocket tapId 재사용 metadata schema 확인");
 
+const controlled = await readWebSocketMetadata(
+  `/ws/va-metadata?tapId=${encodeURIComponent(tapId)}&intervalMs=100&maxMessages=1&streamMaxDurationMs=${Math.max(timeoutMs - 1000, 1000)}`,
+  {
+    command: {
+      type: "subscribe",
+      eventType: "loitering",
+      includeMetrics: false,
+      maxEvents: 3,
+    },
+    expectControl: true,
+  }
+);
+if (!controlled.control || controlled.control.action !== "subscribe" || controlled.control.subscribed !== true) {
+  fail("WebSocket subscribe control ack missing");
+}
+if (!Array.isArray(controlled.control.filter?.eventTypes) ||
+    controlled.control.filter.eventTypes[0] !== "loitering" ||
+    controlled.control.includeMetrics !== false) {
+  fail(`WebSocket subscribe ack filter mismatch: ${JSON.stringify(controlled.control)}`);
+}
+if (controlled.metadata.schema !== "media-server.va.runtime-metadata.v1" ||
+    !Array.isArray(controlled.metadata.tracks) ||
+    !Array.isArray(controlled.metadata.events) ||
+    !Array.isArray(controlled.metadata.scenarios)) {
+  fail("WebSocket controlled metadata payload missing runtime arrays");
+}
+if (Object.prototype.hasOwnProperty.call(controlled.metadata, "metrics")) {
+  fail("WebSocket includeMetrics=false control must omit metrics");
+}
+logPass("WebSocket subscribe command filter/include ack 및 metadata payload 확인");
+
 await fetchJson(`/lab/analysis/taps/${encodeURIComponent(tapId)}`, { method: "DELETE" });
 logPass("WebSocket smoke용 명시적 analysis tap 삭제 확인");
 
-console.log("[summary] pass=5 fail=0");
+console.log("[summary] pass=6 fail=0");

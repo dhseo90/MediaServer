@@ -544,6 +544,7 @@ WebSocket metadata side-channel smoke:
 - auth on의 미인증 요청은 `401`, viewer 요청은 `403`으로 거부되는지 확인
 - 첫 text frame의 JSON schema가 `media-server.va.runtime-metadata.v1`인지 확인
 - `tracks`, `events`, `scenarios`, `metrics` 필드가 포함되는지 확인
+- `{"type":"subscribe","eventType":"loitering","includeMetrics":false}` 같은 client text command 후 `media-server.va.metadata-control.v1` ack가 오고, 이후 metadata payload가 갱신된 filter/include flag를 따르는지 확인
 - 임시 WebSocket analysis tap이 client disconnect 후 cleanup되는지 확인
 - WebSocket 실패가 RTSP/WebRTC video/audio 흐름으로 전파되지 않는지 확인
 
