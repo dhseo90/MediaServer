@@ -1242,23 +1242,26 @@ void VerifyEventStorageArchiveCompaction() {
     FileEventStorage active_storage(active_path.string());
     FileEventStorage archive_storage(archive_path.string());
     std::string error_message;
-    Expect(active_storage.Store(MakeEventRecord("evt-active",
+    EventRecord active_record = MakeEventRecord("evt-active",
                                                 "zone-occupancy",
                                                 "zone-occupancy",
                                                 "confirmed",
                                                 "queue-zone",
                                                 50,
-                                                2000),
-                                &error_message),
-           "EventStorage smoke must write active records: " + error_message);
-    Expect(archive_storage.Store(MakeEventRecord("evt-archive",
+                                                2000);
+    active_record.snapshot_path = "/tmp/event-records/evt-active/snapshot.jpg";
+    active_record.clip_path = "/tmp/event-records/evt-active.clip/manifest.json";
+    EventRecord archive_record = MakeEventRecord("evt-archive",
                                                  "loitering",
                                                  "loitering",
                                                  "confirmed",
                                                  "queue-zone",
                                                  51,
-                                                 1000),
-                                 &error_message),
+                                                 1000);
+    archive_record.snapshot_path = "/tmp/event-records/evt-archive/snapshot.jpg";
+    Expect(active_storage.Store(active_record, &error_message),
+           "EventStorage smoke must write active records: " + error_message);
+    Expect(archive_storage.Store(archive_record, &error_message),
            "EventStorage smoke must write archive records: " + error_message);
 
     EventRecordQueryOptions active_query;
@@ -1284,6 +1287,28 @@ void VerifyEventStorageArchiveCompaction() {
                archive_result.archive_files_scanned >= 1 &&
                archive_result.archive_records_scanned >= 1,
            "EventStorage archive query must scan rotated files when requested");
+
+    EventRecordQueryOptions clip_query;
+    clip_query.evidence = "clip";
+    clip_query.include_archives = true;
+    clip_query.limit = 4;
+    EventRecordQueryResult clip_result;
+    Expect(QueryEventRecords(clip_query, &clip_result, &error_message),
+           "EventStorage evidence query must succeed: " + error_message);
+    Expect(clip_result.records_json.size() == 1 &&
+               clip_result.records_json[0].find("evt-active") != std::string::npos &&
+               clip_result.records_json[0].find("manifest.json") != std::string::npos,
+           "EventStorage evidence=clip query must retain clip-backed records only");
+
+    EventRecordQueryOptions missing_evidence_query;
+    missing_evidence_query.evidence = "missing";
+    missing_evidence_query.include_archives = true;
+    missing_evidence_query.limit = 4;
+    EventRecordQueryResult missing_evidence_result;
+    Expect(QueryEventRecords(missing_evidence_query, &missing_evidence_result, &error_message),
+           "EventStorage missing evidence query must succeed: " + error_message);
+    Expect(missing_evidence_result.records_json.empty(),
+           "EventStorage evidence=missing query must exclude records with snapshot or clip evidence");
 
     EventRecordQueryOptions compact_query;
     compact_query.zone_id = "queue-zone";

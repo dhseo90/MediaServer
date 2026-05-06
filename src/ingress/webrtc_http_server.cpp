@@ -5869,6 +5869,9 @@ std::string BuildLabRuleEditorPageHtml() {
 	      color: var(--color-text-muted);
 	      font-weight: 900;
     }
+    .event-record-path.has-evidence {
+      color: var(--color-success);
+    }
 	    .event-record-detail-drawer {
 	      border: 1px solid var(--color-debug-border);
 	      border-radius: var(--radius-md);
@@ -5879,6 +5882,34 @@ std::string BuildLabRuleEditorPageHtml() {
       padding: 10px 12px;
 	      color: var(--color-text);
       font-weight: 900;
+    }
+    .event-record-evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      padding: 0 12px 12px;
+    }
+    .event-record-evidence-grid[hidden] {
+      display: none;
+    }
+    .event-record-evidence-item {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      padding-top: 8px;
+      border-top: 1px solid var(--color-debug-border);
+    }
+    .event-record-evidence-item span {
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .event-record-evidence-item strong {
+      min-width: 0;
+      color: var(--color-code-text);
+      font-size: 12px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
     }
     .event-record-detail-drawer pre {
       max-height: 320px;
@@ -7730,7 +7761,7 @@ std::string BuildLabRuleEditorPageHtml() {
               <details id="dashboardEventRecordsDetails" class="event-records-details">
                 <summary><span id="dashboardEventRecordsTitle">Event Records</span><small id="dashboardEventRecordsSummary" class="dashboard-section-summary">검색 전</small></summary>
                 <div class="event-records-panel">
-                  <p class="event-records-note"><span class="badge badge-muted">수동 조회</span><span>이 영역은 자동 polling하지 않습니다. 검색 버튼을 눌렀을 때 active JSON Lines의 EventRecord metadata만 조회하며 rotated archive는 검색하지 않습니다.</span></p>
+                  <p class="event-records-note"><span class="badge badge-muted">수동 조회</span><span>이 영역은 자동 polling하지 않습니다. 검색 버튼을 눌렀을 때 기본 active JSON Lines를 조회하고, archive 포함을 켜면 rotated archive도 함께 조회합니다.</span></p>
                   <div class="event-record-filter-grid" aria-label="EventRecord 검색 필터">
                     <label>eventType
                       <select id="eventRecordEventTypeFilter">
@@ -7763,6 +7794,16 @@ std::string BuildLabRuleEditorPageHtml() {
                         <option value="candidate">candidate</option>
                         <option value="cooldown">cooldown</option>
                         <option value="ended">ended</option>
+                      </select>
+                    </label>
+                    <label>evidence
+                      <select id="eventRecordEvidenceFilter">
+                        <option value="">전체</option>
+                        <option value="snapshot">snapshot 있음</option>
+                        <option value="clip">clip 있음</option>
+                        <option value="any">snapshot 또는 clip</option>
+                        <option value="both">snapshot + clip</option>
+                        <option value="missing">evidence 없음</option>
                       </select>
                     </label>
                     <label>startTimeMs
@@ -7799,7 +7840,12 @@ std::string BuildLabRuleEditorPageHtml() {
                   </div>
                   <details id="eventRecordDetailDrawer" class="event-record-detail-drawer">
                     <summary>EventRecord detail</summary>
-	                    <pre id="eventRecordDetailJson" class="raw-json-panel">eventId를 선택하면 원본 EventRecord JSON이 표시됩니다.</pre>
+                    <div id="eventRecordEvidenceSummary" class="event-record-evidence-grid" hidden>
+                      <div class="event-record-evidence-item"><span>snapshot</span><strong id="eventRecordSnapshotPathText">없음</strong></div>
+                      <div class="event-record-evidence-item"><span>clip manifest</span><strong id="eventRecordClipPathText">없음</strong></div>
+                      <div class="event-record-evidence-item"><span>clip bundle</span><strong id="eventRecordClipBundleText">없음</strong></div>
+                    </div>
+                    <pre id="eventRecordDetailJson" class="raw-json-panel">eventId를 선택하면 원본 EventRecord JSON이 표시됩니다.</pre>
                   </details>
                   <details id="eventRecordCompactionDrawer" class="event-record-detail-drawer">
                     <summary>Compaction snapshots</summary>
@@ -14471,6 +14517,7 @@ std::string BuildLabRuleEditorPageHtml() {
         ['eventRecordTrackIdFilter', 'trackId'],
         ['eventRecordScenarioNameFilter', 'scenarioName'],
         ['eventRecordStatusFilter', 'status'],
+        ['eventRecordEvidenceFilter', 'evidence'],
         ['eventRecordStartTimeFilter', 'startTimeMs'],
         ['eventRecordEndTimeFilter', 'endTimeMs'],
       ];
@@ -14515,9 +14562,24 @@ std::string BuildLabRuleEditorPageHtml() {
       const value = String(path || '').trim();
       const node = document.createElement('span');
       node.className = 'event-record-path';
+      if (value) node.classList.add('has-evidence');
       node.textContent = value ? '저장됨' : '없음';
       node.title = value || '저장된 경로 없음';
       return node;
+    }
+
+    function eventRecordClipBundlePath(path) {
+      const value = String(path || '').trim();
+      if (!value) return '';
+      return value.endsWith('/manifest.json') ? value.slice(0, -'/manifest.json'.length) : value;
+    }
+
+    function setEventRecordEvidenceText(id, value, emptyText = '없음') {
+      const element = $(id);
+      if (!element) return;
+      const text = String(value || '').trim();
+      element.textContent = text || emptyText;
+      element.title = text || emptyText;
     }
 
     function eventRecordIdButton(record, index) {
@@ -14534,6 +14596,19 @@ std::string BuildLabRuleEditorPageHtml() {
       const record = eventRecordResults[index] || null;
       const pre = $('eventRecordDetailJson');
       if (pre) pre.textContent = record ? dashboardPrettyJson(record, 'EventRecord JSON 표시 실패') : 'eventId를 선택하면 원본 EventRecord JSON이 표시됩니다.';
+      const evidenceSummary = $('eventRecordEvidenceSummary');
+      if (evidenceSummary) evidenceSummary.hidden = !record;
+      if (record) {
+        const snapshotPath = eventRecordValue(record, 'snapshotPath');
+        const clipPath = eventRecordValue(record, 'clipPath');
+        setEventRecordEvidenceText('eventRecordSnapshotPathText', snapshotPath);
+        setEventRecordEvidenceText('eventRecordClipPathText', clipPath);
+        setEventRecordEvidenceText('eventRecordClipBundleText', eventRecordClipBundlePath(clipPath));
+      } else {
+        setEventRecordEvidenceText('eventRecordSnapshotPathText', '');
+        setEventRecordEvidenceText('eventRecordClipPathText', '');
+        setEventRecordEvidenceText('eventRecordClipBundleText', '');
+      }
       const drawer = $('eventRecordDetailDrawer');
       if (drawer && record && openDrawer) drawer.open = true;
       if (drawer && !record) drawer.open = false;
@@ -14559,8 +14634,10 @@ std::string BuildLabRuleEditorPageHtml() {
       const archiveScanText = `arch scan ${payload?.archiveFilesScanned ?? 0}/${payload?.archiveRecordsScanned ?? 0}`;
       const deletedText = `deleted ${storage.retentionDeletedCount ?? 0}`;
       const storageText = `${storage.enabled ? 'storage on' : 'storage off'} · ${storage.exists ? 'file 있음' : 'file 없음'}`;
-      dashboardSet('dashboardEventRecordsSummary', `records ${records.length} · limit ${payload?.limit ?? '-'} · ${hasMoreText}`);
-      dashboardSet('eventRecordStateText', `${storageText} · ${$('eventRecordIncludeArchivesFilter')?.checked ? 'archive 포함' : 'active only'} · ${activeSizeText} · ${archiveText} · ${archiveScanText} · ${deletedText} · ${corruptText} · ${partialText}${payload?.truncated ? ' · truncated' : ''}`);
+      const snapshotCount = records.filter((record) => Boolean(eventRecordValue(record, 'snapshotPath'))).length;
+      const clipCount = records.filter((record) => Boolean(eventRecordValue(record, 'clipPath'))).length;
+      dashboardSet('dashboardEventRecordsSummary', `records ${records.length} · snapshot ${snapshotCount} · clip ${clipCount} · ${hasMoreText}`);
+      dashboardSet('eventRecordStateText', `${storageText} · limit ${payload?.limit ?? '-'} · ${$('eventRecordIncludeArchivesFilter')?.checked ? 'archive 포함' : 'active only'} · ${activeSizeText} · ${archiveText} · ${archiveScanText} · ${deletedText} · ${corruptText} · ${partialText}${payload?.truncated ? ' · truncated' : ''}`);
       const tbody = dashboardRowsStart('eventRecordRows');
       if (!tbody || records.length === 0) {
         dashboardSetEmptyRows('eventRecordRows', 11, eventRecordEmptyMessage(payload));
@@ -21906,6 +21983,18 @@ bool BuildEventRecordQueryOptions(const std::unordered_map<std::string, std::str
     ApplyStringEventRecordFilter(query, "lineId", &options->line_id);
     ApplyStringEventRecordFilter(query, "scenarioName", &options->scenario_name);
     ApplyStringEventRecordFilter(query, "scenarioPhase", &options->scenario_phase);
+
+    if (const auto it = query.find("evidence"); it != query.end() && !Trim(it->second).empty()) {
+        const std::string evidence = LowerAscii(Trim(it->second));
+        if (evidence != "snapshot" && evidence != "clip" && evidence != "any" &&
+            evidence != "both" && evidence != "missing") {
+            if (error_message != nullptr) {
+                *error_message = "evidence must be snapshot, clip, any, both, or missing";
+            }
+            return false;
+        }
+        options->evidence = evidence;
+    }
 
     if (const auto it = query.find("trackId"); it != query.end() && !Trim(it->second).empty()) {
         std::uint64_t parsed = 0;

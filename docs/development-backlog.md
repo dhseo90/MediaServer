@@ -417,8 +417,8 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 - 상태: 완료 (1차)
 - 목적: 이벤트 목록, 필터, EventRecord detail, snapshot/clip evidence path를 Lab에서 확인합니다.
-- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/analysis/event_storage.cpp`, `docs/ui-guide.md`
-- 구현 완료 범위: Runtime Dashboard의 수동 검색 UI, active/archive records 조회, storage status summary, corrupt/partial count 표시, snapshotPath/clipPath 표시입니다.
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/analysis/event_storage.cpp`, `include/analysis/event_storage.h`, `docs/ui-guide.md`
+- 구현 완료 범위: Runtime Dashboard의 수동 검색 UI, active/archive records 조회, evidence snapshot/clip filter, detail evidence summary, storage status summary, corrupt/partial count 표시, snapshotPath/clipPath 표시입니다.
 - 후속 범위: 대량 archive paging, archive cleanup policy, snapshot/clip preview 연결입니다. 현재 UI는 영상 재생을 수행하지 않습니다.
 - 검증 명령:
 

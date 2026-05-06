@@ -578,6 +578,7 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records?eventType=presence&
 
 - `eventId`, `eventType`, `streamId`, `channelId`, `trackId`, `status`
 - `zoneId`, `lineId`, `scenarioName`, `scenarioPhase`
+- `evidence=snapshot|clip|any|both|missing`
 - `startTimeMs`, `endTimeMs`, `limit`
 - `includeArchives=1`
 
@@ -596,7 +597,8 @@ curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/events/records/compactio
 `/lab/rules` Runtime Dashboard의 Event Records 섹션은 이 API를 수동 검색 UI로 노출합니다.
 
 - 사용자가 검색 버튼을 누를 때만 API를 호출합니다.
-- `snapshotPath`와 `clipPath`는 저장된 문자열 또는 placeholder로만 표시합니다.
+- `snapshotPath`와 `clipPath`는 table badge, detail evidence summary, 원본 JSON에서 확인합니다.
+- evidence filter는 snapshot만 있는 record, clip manifest가 있는 record, 둘 다 있는 record, 둘 다 없는 record를 active/archive/compaction query에서 같은 조건으로 거릅니다.
 - 영상 검색/재생, 장기 녹화, MP4 muxing은 포함하지 않습니다. snapshot/clip hook은 EventRecord용 짧은 frame evidence만 저장합니다.
 
 ## 12. VA Runtime Metadata

@@ -885,6 +885,7 @@ MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 \
 - EventRecord file storage, active/archive query/search UI와 JSON Lines rotation/retention/recovery 1차는 구현 완료 상태입니다.
 - EventRecord 조회 API는 저장된 metadata와 recorder output path만 반환하며 영상 검색/재생을 수행하지 않음
 - snapshot/clip hook 활성화 시 analysis frame buffer에서 snapshot media와 pre/post frame bundle manifest를 생성함. MP4/VMS/NVR 장기 녹화는 검증 범위가 아님
+- records API와 Runtime Dashboard Event Records UI는 `evidence=snapshot|clip|any|both|missing` 조건으로 snapshot/clip-backed record를 검색하고, detail에서 snapshot path, clip manifest path, clip bundle directory를 분리해 표시함
 - `includeArchives=1`은 rotated archive를 조회에 포함하고, compaction snapshot API는 기존 파일을 수정하지 않음
 - compaction snapshot 목록/다운로드/삭제 API는 compacted file pattern만 허용하고 active/archive 파일을 삭제하지 않음
 - 손상되었거나 partial 상태인 EventRecord JSON Lines 행은 records API 전체 실패가 아니라 skip/count 처리됨
