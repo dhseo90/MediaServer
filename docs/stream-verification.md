@@ -814,9 +814,9 @@ ffprobe -rtsp_transport tcp \
 - 저장된 ReEntry rule은 `event.type=scenario.type=re-entry`와 `targetZoneIds`/`reEntryZoneIds`를 유지함
 - IntrusionAfterLineCrossing scenario를 룰 편집 UI에서 선택하고 trigger line, crossing direction, target zone, `maxDelayAfterCrossingMs`, `dwellTimeMs`, `cooldownMs`를 저장할 수 있음
 - 저장된 IntrusionAfterLineCrossing rule은 기존 `line-crossing` 기본 이벤트와 분리된 `event.type=scenario.type=intrusion-after-line-crossing`을 유지함
-- Loitering scenario를 룰 편집 UI에서 선택하고 target zone, field preset, `minDwellTimeMs`, `maxMovementRadius`, `minTrajectoryPoints`, `cooldownMs`를 저장할 수 있음
+- Loitering scenario를 룰 편집 UI에서 선택하고 target zone, field preset(로비/매장 통로/승강장/주차장), `minDwellTimeMs`, `maxMovementRadius`, `minTrajectoryPoints`, `cooldownMs`를 저장할 수 있음
 - 저장된 Loitering rule은 `event.type=scenario.type=loitering`과 `targetZoneIds`/movement radius/trajectory point를 유지함
-- ZoneOccupancyScenario를 룰 편집 UI에서 선택하고 `occupancyThreshold`, `minDwellTimeMs`, target zone, cooldown을 저장할 수 있음
+- ZoneOccupancyScenario를 룰 편집 UI에서 선택하고 field preset(대기열/로비/승강장/출입구), `occupancyThreshold`, `minDwellTimeMs`, target zone, cooldown을 저장할 수 있음
 - IntrusionDwell/WrongDirection UI와 기존 Event POST payload, WebRTC/SSE/WS metadata schema는 변경되지 않음
 - 숫자 ID 범위와 자동 할당 정책이 UI에서 깨지지 않음
 

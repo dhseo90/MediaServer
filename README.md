@@ -127,7 +127,7 @@ RTSP 일반 viewer는 WebRTC DataChannel metadata를 표시하지 않습니다. 
 
 ## 시나리오 로드맵 상태
 
-- 1차 완료: Runtime Dashboard trend/stale/cleanup warning, scenario rule payload의 runtime per-rule 설정 연결, ReEntry, IntrusionAfterLineCrossing, Loitering, ZoneOccupancy의 룰 편집 UI 선택/저장 템플릿.
+- 1차 완료: Runtime Dashboard trend/stale/cleanup warning, scenario rule payload의 runtime per-rule 설정 연결, ReEntry, IntrusionAfterLineCrossing, Loitering, ZoneOccupancy의 룰 편집 UI 선택/저장 템플릿과 현장형 tuning preset.
 - 1차 완료: Auth/account API와 route MVP, SourceRegistry / PublishedView API와 route MVP, Client scoped dashboard API MVP, Client Live Monitor 2x2 MVP.
 - 1차 완료: `/setup`, `/login`, `/ops`, `/client` 제품 UI shell 통합. Ops 주 메뉴는 홈, 대시보드, 채널, 룰, 사용자, 클라이언트 미리보기 순서이며, client 주 메뉴는 라이브와 대시보드만 노출합니다.
 - 1차 완료: `/ops/dashboard`와 `/ops/rules`는 Lab iframe 없이 `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status` 제품 API로 운영 카드와 룰 카탈로그를 표시합니다. `/ops/events`와 `/client/events`는 제품 primary tab에서 숨기고, 이벤트 요약은 룰/대시보드 맥락에서 확인합니다. raw JSON/debug는 운영자 접힘 영역에만 둡니다.

@@ -253,7 +253,7 @@ Scenario는 여러 frame에 걸친 상태 전이와 시간 조건을 평가합�
 | WrongDirection | 구현됨, UI 템플릿 제공 | `wrong-direction` |
 | IntrusionAfterLineCrossing | 구현됨, 룰 편집 UI에서 선택 가능 | `intrusion-after-line-crossing` |
 | Loitering | 구현됨, 룰 편집 UI에서 선택 가능. 현장 샘플 프리셋 제공 | `loitering` |
-| ZoneOccupancyScenario | 구현됨, 룰 편집 UI에서 선택 가능 | `zone-occupancy` |
+| ZoneOccupancyScenario | 구현됨, 룰 편집 UI에서 선택 가능. 현장 tuning preset 제공 | `zone-occupancy` |
 
 ### IntrusionDwell
 
@@ -361,6 +361,8 @@ target zone 내부 dwell time과 downsampled trajectory movement radius를 조�
 ### ZoneOccupancyScenario
 
 특정 zone 내부 동시 track 수가 threshold 이상이고 각 track의 zone dwell이 최소 조건을 만족할 때 `zone-occupancy` scenario event를 1회 발생시킵니다. per-track ScenarioEngine 구조 위에서 같은 zone의 대표 track만 event를 emit해 중복을 억제합니다.
+
+룰 편집 UI는 대기열, 로비 혼잡, 승강장 혼잡, 출입구 정체 preset을 제공합니다. Preset은 `occupancyThreshold`, `minDwellTimeMs`, `cooldownMs` 시작값만 채우며 저장 payload에는 preset 이름 대신 숫자 조건만 남습니다.
 
 저장 payload 주요 필드:
 
