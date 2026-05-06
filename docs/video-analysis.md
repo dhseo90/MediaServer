@@ -1037,7 +1037,9 @@ event emit/cooldown 판단 자체는 ScenarioEngine과 EventManager의 기존 �
 - WrongDirection
 - IntrusionAfterLineCrossing
 - Loitering
+- Loitering under-threshold no-event
 - ZoneOccupancyScenario
+- ZoneOccupancy delayed-trigger boundary
 - cleanup
 - lost/reacquired
 - 동일 trackId 다채널 분리

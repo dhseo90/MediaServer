@@ -922,6 +922,9 @@ baseline fixture 전체 검증:
 - WrongDirection
 - IntrusionAfterLineCrossing
 - Loitering
+- Loitering under-threshold no-event boundary
+- ZoneOccupancy delayed-trigger boundary
+- ZoneOccupancy
 - cleanup
 - lost/reacquired
 - multichannel separation

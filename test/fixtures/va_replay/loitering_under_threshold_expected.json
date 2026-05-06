@@ -1,0 +1,26 @@
+{
+  "timestampToleranceMs": 250,
+  "events": [],
+  "frames": [
+    {
+      "streamId": "baseline-loitering-under-threshold",
+      "channelId": "baseline-loitering-under-threshold",
+      "frameId": 2,
+      "eventCount": 0,
+      "activeRuleCount": 1,
+      "trackState": { "total": 1, "active": 1, "lost": 0, "terminated": 0 },
+      "scenarioState": { "instances": 1, "active": 1 },
+      "eventManager": { "states": 0 }
+    },
+    {
+      "streamId": "baseline-loitering-under-threshold",
+      "channelId": "baseline-loitering-under-threshold",
+      "frameId": 3,
+      "eventCount": 0,
+      "activeRuleCount": 1,
+      "trackState": { "total": 1, "active": 1, "lost": 0, "terminated": 0 },
+      "scenarioState": { "instances": 1, "active": 1 },
+      "eventManager": { "states": 0 }
+    }
+  ]
+}
