@@ -507,7 +507,7 @@ Replay output의 `events[]`도 같은 핵심 구조를 유지합니다. 내부 T
 
 ## 11. EventRecord / Snapshot / Clip Hook
 
-EventRecord는 운영 조회와 snapshot/clip marker 연결을 위한 내부 metadata 저장 구조입니다. 기본값은 비활성입니다. 이 기능은 영상 녹화, VMS/NVR, frame snapshot 추출, clip recorder가 아니며 Event POST payload, WebRTC DataChannel metadata, SSE/WS metadata schema와 별도로 동작합니다.
+EventRecord는 운영 조회와 snapshot/clip evidence 연결을 위한 내부 metadata 저장 구조입니다. 기본값은 비활성입니다. 이 기능은 짧은 이벤트 근거 frame 저장용이며, 장기 영상 녹화나 VMS/NVR은 아닙니다. Event POST payload, WebRTC DataChannel metadata, SSE/WS metadata schema와 별도로 동작합니다.
 
 현재 1차 구현 범위는 EventRecord file storage, active/archive records 조회 API, Runtime Dashboard 수동 검색 UI, 비파괴 compaction snapshot, JSON Lines rotation/retention/recovery summary입니다.
 
@@ -542,9 +542,10 @@ EventRecord는 운영 조회와 snapshot/clip marker 연결을 위한 내부 met
 Snapshot/clip hook 상태:
 
 - 기본 NoOp
-- 활성화 시 현재 구현은 EventRecord와 연결 가능한 marker JSON을 생성
-- 실제 frame bytes snapshot 저장과 pre/post clip recorder는 후속 작업
-- pre/post buffer는 config로 제한
+- 활성화 시 분석 raw frame rolling buffer에서 snapshot media file과 pre/post frame bundle을 생성
+- snapshot은 JPEG를 우선 사용하고 encoder 사용 불가 시 PPM/PGM evidence file로 fallback
+- clip은 MP4가 아니라 frame bundle directory와 `manifest.json` 구조
+- pre/post buffer는 config와 내부 stream/frame 상한으로 제한
 
 상태 API:
 
@@ -590,7 +591,7 @@ curl -fsS -X POST 'http://127.0.0.1:8080/lab/analysis/events/records/compact?inc
 
 - 사용자가 검색 버튼을 누를 때만 API를 호출합니다.
 - `snapshotPath`와 `clipPath`는 저장된 문자열 또는 placeholder로만 표시합니다.
-- 영상 검색/재생, snapshot 추출, clip recorder 동작은 포함하지 않습니다.
+- 영상 검색/재생, 장기 녹화, MP4 muxing은 포함하지 않습니다. snapshot/clip hook은 EventRecord용 짧은 frame evidence만 저장합니다.
 
 ## 12. VA Runtime Metadata
 
@@ -1030,7 +1031,7 @@ event emit/cooldown 판단 자체는 ScenarioEngine과 EventManager의 기존 �
 - Tracker는 여전히 direction-based/lightweight tracker입니다. Kalman Filter, BoT-SORT, ByteTrack은 도입하지 않았습니다.
 - 실제 Re-ID/attribute 분석은 기본 비활성입니다. 실험용 ONNX Re-ID extractor hook은 있지만 운영 feature로 보려면 모델, 성능, 개인정보 정책 검증이 필요합니다.
 - EventRecord 저장은 기본 비활성입니다.
-- snapshot/clip hook은 현재 marker/hook 중심입니다. 실제 snapshot frame extraction과 pre/post clip recorder는 후속 작업입니다.
+- snapshot/clip hook은 짧은 EventRecord evidence frame 저장용입니다. 장기 녹화, MP4 muxing, VMS/NVR 기능은 포함하지 않습니다.
 - Homography는 optional입니다. 설정이 없거나 실패하면 image 좌표 fallback을 사용합니다.
 - ScenarioEngine은 기존 RuleEventEngine과 별도입니다. 기존 Intrusion/LineCrossing event를 끄거나 바꾸지 않습니다.
 - UI 상세 사용법은 [ui-guide.md](./ui-guide.md)에 있습니다. 이 문서는 UI 조작법을 길게 다루지 않습니다.

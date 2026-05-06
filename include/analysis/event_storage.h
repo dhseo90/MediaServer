@@ -183,6 +183,9 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
 bool CompactEventRecords(const EventRecordQueryOptions& options,
                          EventRecordCompactionResult* result,
                          std::string* error_message);
+void RecordEventFrame(const std::string& stream_id,
+                      const std::string& channel_id,
+                      const RawVideoFrame& frame);
 void StopEventStorage();
 
 }  // namespace analysis

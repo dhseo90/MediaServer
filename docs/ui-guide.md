@@ -413,7 +413,8 @@ POST URL은 형식 검증을 거칩니다. 실제 외부 전송은 서버가 `ME
 EventRecord/snapshot/clip hook:
 
 - EventRecord 저장은 서버 설정으로 켜는 기능이며, 룰 편집 UI의 기본 입력 항목은 아닙니다.
-- snapshot/clip hook은 현재 marker/hook 중심이며 실제 frame/clip recorder는 후속 작업입니다.
+- snapshot/clip hook은 이벤트 시점 snapshot media와 짧은 pre/post frame bundle manifest를 EventRecord의 `snapshotPath`/`clipPath`에 연결합니다.
+- clip bundle은 운영 evidence용 frame 묶음이며 장기 녹화/MP4 플레이어 기능은 아닙니다.
 - 상태 확인은 `/lab/analysis/event-storage/status` API와 관련 metrics를 사용합니다.
 
 ## 12. 영상 분석 보기 탭

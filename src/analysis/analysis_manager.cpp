@@ -3,6 +3,7 @@
 // 동작 요약: route/profile/rule matching과 adaptive tuner 상태를 tap별로 노출한다.
 #include "analysis/analysis_manager.h"
 
+#include "analysis/event_storage.h"
 #include "analysis/tracked_object_metadata.h"
 #include "app_config.h"
 
@@ -662,6 +663,7 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
         result.context = tap->context;
         result.debug_state_requested = tap->profile.enable_debug_state;
         result.debug_state_log_enabled = tap->profile.enable_debug_state;
+        RecordEventFrame(result.source_key, result.source_key, frame);
 
         std::lock_guard tap_lock(tap->mu);
         ++tap->analyzed_packets;

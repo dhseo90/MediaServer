@@ -518,19 +518,25 @@ EventRecord storage 정책:
 - corrupt/partial line recovery scan에는 별도 env가 없습니다.
 - status/records read path에서 손상 행을 line-by-line으로 skip/count 처리합니다.
 
-EventRecord file storage, active/archive query/search UI와 rotation/retention/recovery 1차는 구현 완료 상태입니다. Compaction은 기존 파일을 rewrite/delete하지 않는 snapshot 생성 API로 제공합니다. 후속 범위는 archive별 상세 status, 운영 cleanup 도구, 실제 media recorder입니다.
+EventRecord file storage, active/archive query/search UI와 rotation/retention/recovery 1차는 구현 완료 상태입니다. Compaction은 기존 파일을 rewrite/delete하지 않는 snapshot 생성 API로 제공합니다. Snapshot/clip hook은 분석 raw frame rolling buffer를 사용해 snapshot media file과 짧은 pre/post frame bundle manifest를 생성합니다. 후속 범위는 archive별 상세 status, 운영 cleanup 도구, MP4/VMS/NVR형 recorder입니다.
 
 ### Snapshot / clip hook
 
 | 환경변수 | 기본값 | 설명 |
 | --- | --- | --- |
 | `MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED` | `0` | snapshot hook |
-| `MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR` | `.media_server.va_snapshots` | snapshot marker/output dir |
+| `MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR` | `.media_server.va_snapshots` | snapshot media/manifest output dir |
 | `MEDIA_SERVER_ANALYSIS_EVENT_CLIP_HOOK_ENABLED` | `0` | clip hook |
-| `MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR` | `.media_server.va_clips` | clip marker/output dir |
+| `MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR` | `.media_server.va_clips` | pre/post frame bundle output dir |
 | `MEDIA_SERVER_ANALYSIS_EVENT_PRE_EVENT_MS` | `5000` | pre-event window |
 | `MEDIA_SERVER_ANALYSIS_EVENT_POST_EVENT_MS` | `5000` | post-event window |
 | `MEDIA_SERVER_ANALYSIS_EVENT_CLIP_BUFFER_MS` | `15000` | clip buffer limit |
+
+Recorder 동작:
+
+- snapshot hook은 이벤트 시점과 가장 가까운 분석 frame을 JPEG로 저장하고, JPEG encoder를 사용할 수 없으면 RGB/BGR/Gray frame을 PPM/PGM evidence file로 저장합니다.
+- clip hook은 같은 stream/channel rolling buffer에서 `PRE_EVENT_MS`부터 `POST_EVENT_MS`까지의 frame을 짧은 bundle directory와 `manifest.json`으로 저장합니다.
+- frame buffer는 `CLIP_BUFFER_MS`와 내부 frame/stream 상한으로 제한됩니다. 장기 녹화, MP4 muxing, VMS/NVR retention은 이 hook의 범위가 아닙니다.
 
 ## WebRTC metadata env
 

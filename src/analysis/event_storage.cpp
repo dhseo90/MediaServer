@@ -3,6 +3,7 @@
 // 동작 요약: 저장 실패는 counter와 로그에 남기고 서버 실행은 계속 유지한다.
 #include "analysis/event_storage.h"
 
+#include "analysis/snapshot_encoder.h"
 #include "app_config.h"
 
 #include <algorithm>
@@ -12,6 +13,7 @@
 #include <deque>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <mutex>
@@ -19,6 +21,7 @@
 #include <sstream>
 #include <thread>
 #include <utility>
+#include <unordered_map>
 
 namespace analysis {
 
@@ -954,6 +957,295 @@ std::string SanitizePathToken(const std::string& value) {
     return out.empty() ? "event" : out;
 }
 
+std::string FrameBufferKey(const std::string& stream_id, const std::string& channel_id) {
+    return (stream_id.empty() ? "*" : stream_id) + "\n" +
+           (channel_id.empty() ? (stream_id.empty() ? "*" : stream_id) : channel_id);
+}
+
+std::int64_t FrameTimestampMs(const RawVideoFrame& frame) {
+    if (frame.pts >= 0) {
+        return frame.pts / 1000000LL;
+    }
+    return static_cast<std::int64_t>(NowMs());
+}
+
+struct BufferedEventFrame {
+    RawVideoFrame frame;
+    std::int64_t timestamp_ms{0};
+    std::uint64_t sequence{0};
+};
+
+struct EncodedRecorderFrame {
+    std::string extension;
+    std::string content_type;
+    std::vector<unsigned char> data;
+    bool fallback_encoder{false};
+    std::string fallback_reason;
+};
+
+constexpr std::size_t kMaxBufferedRecorderStreams = 32;
+constexpr std::size_t kMaxBufferedFramesPerStream = 180;
+constexpr std::size_t kMaxClipOutputFrames = 120;
+
+bool EncodePortablePixmap(const RawVideoFrame& frame,
+                          EncodedRecorderFrame* output,
+                          std::string* error_message) {
+    if (output == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "missing recorder frame output";
+        }
+        return false;
+    }
+    if (frame.width <= 0 || frame.height <= 0 || frame.data.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "missing raw frame data";
+        }
+        return false;
+    }
+    const std::size_t pixel_count =
+        static_cast<std::size_t>(frame.width) * static_cast<std::size_t>(frame.height);
+    std::ostringstream header;
+    if (frame.format == PixelFormat::Gray8) {
+        if (frame.data.size() < pixel_count) {
+            if (error_message != nullptr) {
+                *error_message = "gray recorder frame is smaller than expected";
+            }
+            return false;
+        }
+        header << "P5\n" << frame.width << " " << frame.height << "\n255\n";
+        const std::string header_text = header.str();
+        output->data.assign(header_text.begin(), header_text.end());
+        output->data.insert(output->data.end(), frame.data.begin(), frame.data.begin() + pixel_count);
+        output->extension = ".pgm";
+        output->content_type = "image/x-portable-graymap";
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
+    }
+    if (frame.format != PixelFormat::RGB && frame.format != PixelFormat::BGR) {
+        if (error_message != nullptr) {
+            *error_message = "recorder fallback supports RGB/BGR/Gray8 frames only";
+        }
+        return false;
+    }
+    const std::size_t expected_size = pixel_count * 3U;
+    if (frame.data.size() < expected_size) {
+        if (error_message != nullptr) {
+            *error_message = "rgb recorder frame is smaller than expected";
+        }
+        return false;
+    }
+    header << "P6\n" << frame.width << " " << frame.height << "\n255\n";
+    const std::string header_text = header.str();
+    output->data.assign(header_text.begin(), header_text.end());
+    output->data.reserve(output->data.size() + expected_size);
+    if (frame.format == PixelFormat::RGB) {
+        output->data.insert(output->data.end(), frame.data.begin(), frame.data.begin() + expected_size);
+    } else {
+        for (std::size_t index = 0; index + 2 < expected_size; index += 3) {
+            output->data.push_back(frame.data[index + 2]);
+            output->data.push_back(frame.data[index + 1]);
+            output->data.push_back(frame.data[index]);
+        }
+    }
+    output->extension = ".ppm";
+    output->content_type = "image/x-portable-pixmap";
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+bool EncodeRecorderFrame(const RawVideoFrame& frame,
+                         int quality,
+                         EncodedRecorderFrame* output,
+                         std::string* error_message) {
+    if (output == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "missing recorder frame output";
+        }
+        return false;
+    }
+    *output = EncodedRecorderFrame{};
+    EncodedImage jpeg;
+    std::string jpeg_error;
+    if (EncodeJpeg(frame, quality, &jpeg, &jpeg_error)) {
+        output->extension = ".jpg";
+        output->content_type = jpeg.content_type.empty() ? "image/jpeg" : jpeg.content_type;
+        output->data = std::move(jpeg.data);
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
+    }
+    std::string fallback_error;
+    if (!EncodePortablePixmap(frame, output, &fallback_error)) {
+        if (error_message != nullptr) {
+            *error_message = jpeg_error.empty() ? fallback_error : jpeg_error + "; " + fallback_error;
+        }
+        return false;
+    }
+    output->fallback_encoder = true;
+    output->fallback_reason = jpeg_error;
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+bool WriteBinaryFile(const std::filesystem::path& path,
+                     const std::vector<unsigned char>& data,
+                     std::string* error_message) {
+    if (!EnsureParentDirectory(path, error_message)) {
+        return false;
+    }
+    std::ofstream output(path, std::ios::out | std::ios::binary | std::ios::trunc);
+    if (!output.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open recorder media output";
+        }
+        return false;
+    }
+    output.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(data.size()));
+    if (!output.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to write recorder media output";
+        }
+        return false;
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+class EventFrameBuffer {
+public:
+    void Record(const std::string& stream_id, const std::string& channel_id, const RawVideoFrame& frame) {
+        const auto& config = app::GetAppConfig();
+        if (!config.analysis_event_snapshot_hook_enabled && !config.analysis_event_clip_hook_enabled) {
+            return;
+        }
+        if (frame.width <= 0 || frame.height <= 0 || frame.data.empty()) {
+            return;
+        }
+        const std::string key = FrameBufferKey(stream_id, channel_id);
+        const std::int64_t timestamp_ms = FrameTimestampMs(frame);
+        const std::int64_t buffer_ms = std::max<std::int64_t>(
+            1000,
+            std::max<std::int64_t>(
+                config.analysis_event_clip_buffer_ms,
+                static_cast<std::int64_t>(config.analysis_event_pre_event_ms) +
+                    static_cast<std::int64_t>(config.analysis_event_post_event_ms) + 1000));
+        std::lock_guard lock(mu_);
+        if (buffers_.find(key) == buffers_.end() && buffers_.size() >= kMaxBufferedRecorderStreams) {
+            buffers_.erase(buffers_.begin());
+        }
+        auto& frames = buffers_[key];
+        frames.push_back(BufferedEventFrame{frame, timestamp_ms, NextSequence()});
+        while (!frames.empty() &&
+               (frames.front().timestamp_ms + buffer_ms < timestamp_ms ||
+                frames.size() > kMaxBufferedFramesPerStream)) {
+            frames.pop_front();
+        }
+        cv_.notify_all();
+    }
+
+    std::optional<BufferedEventFrame> ClosestFrame(const EventRecord& record) {
+        std::lock_guard lock(mu_);
+        auto* frames = FramesLocked(record);
+        if (frames == nullptr || frames->empty()) {
+            return std::nullopt;
+        }
+        const std::int64_t event_ms = record.update_time_ms;
+        auto best = frames->begin();
+        auto best_delta = std::llabs(best->timestamp_ms - event_ms);
+        for (auto it = frames->begin(); it != frames->end(); ++it) {
+            const auto delta = std::llabs(it->timestamp_ms - event_ms);
+            if (delta < best_delta || (delta == best_delta && it->timestamp_ms <= event_ms)) {
+                best = it;
+                best_delta = delta;
+            }
+        }
+        return *best;
+    }
+
+    std::vector<BufferedEventFrame> FramesForClip(const EventRecord& record,
+                                                  const EventMediaHookOptions& options) {
+        const std::int64_t event_ms = record.update_time_ms;
+        const std::int64_t start_ms = std::max<std::int64_t>(0, event_ms - options.pre_event_ms);
+        const std::int64_t end_ms = std::max<std::int64_t>(event_ms, event_ms + options.post_event_ms);
+        const auto wait_ms = std::chrono::milliseconds(
+            std::max(0, std::min(options.post_event_ms, options.clip_buffer_ms)));
+        const auto deadline = std::chrono::steady_clock::now() + wait_ms;
+
+        std::unique_lock lock(mu_);
+        cv_.wait_until(lock, deadline, [&] {
+            const auto* frames = FramesLocked(record);
+            return frames != nullptr && !frames->empty() && frames->back().timestamp_ms >= end_ms;
+        });
+        const auto* frames = FramesLocked(record);
+        if (frames == nullptr || frames->empty()) {
+            return {};
+        }
+        std::vector<BufferedEventFrame> selected;
+        for (const auto& frame : *frames) {
+            if (frame.timestamp_ms < start_ms || frame.timestamp_ms > end_ms) {
+                continue;
+            }
+            selected.push_back(frame);
+        }
+        if (selected.empty()) {
+            auto best = frames->begin();
+            auto best_delta = std::llabs(best->timestamp_ms - event_ms);
+            for (auto it = frames->begin(); it != frames->end(); ++it) {
+                const auto delta = std::llabs(it->timestamp_ms - event_ms);
+                if (delta < best_delta) {
+                    best = it;
+                    best_delta = delta;
+                }
+            }
+            selected.push_back(*best);
+        }
+        if (selected.size() > kMaxClipOutputFrames) {
+            const std::size_t step =
+                std::max<std::size_t>(1, selected.size() / kMaxClipOutputFrames);
+            std::vector<BufferedEventFrame> downsampled;
+            downsampled.reserve(kMaxClipOutputFrames);
+            for (std::size_t index = 0; index < selected.size() &&
+                                        downsampled.size() < kMaxClipOutputFrames;
+                 index += step) {
+                downsampled.push_back(selected[index]);
+            }
+            selected = std::move(downsampled);
+        }
+        return selected;
+    }
+
+private:
+    const std::deque<BufferedEventFrame>* FramesLocked(const EventRecord& record) const {
+        auto it = buffers_.find(FrameBufferKey(record.stream_id, record.channel_id));
+        if (it != buffers_.end()) {
+            return &it->second;
+        }
+        it = buffers_.find(FrameBufferKey(record.stream_id, record.stream_id));
+        if (it != buffers_.end()) {
+            return &it->second;
+        }
+        return nullptr;
+    }
+
+    mutable std::mutex mu_;
+    std::condition_variable cv_;
+    std::unordered_map<std::string, std::deque<BufferedEventFrame>> buffers_;
+};
+
+EventFrameBuffer& RecorderFrameBuffer() {
+    static EventFrameBuffer buffer;
+    return buffer;
+}
+
 bool WriteHookMarker(const EventRecord& record,
                      const EventMediaHookOptions& options,
                      const std::string& kind,
@@ -1027,13 +1319,205 @@ bool WriteHookMarker(const EventRecord& record,
     return true;
 }
 
+bool WriteSnapshotMedia(const EventRecord& record,
+                        const EventMediaHookOptions& options,
+                        std::string* snapshot_path,
+                        std::string* error_message) {
+    if (!options.enabled) {
+        if (snapshot_path != nullptr) {
+            snapshot_path->clear();
+        }
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
+    }
+    const auto frame = RecorderFrameBuffer().ClosestFrame(record);
+    if (!frame.has_value()) {
+        return WriteHookMarker(record, options, "snapshot", snapshot_path, error_message);
+    }
+    EncodedRecorderFrame encoded;
+    if (!EncodeRecorderFrame(frame->frame, 85, &encoded, error_message)) {
+        return false;
+    }
+    const std::filesystem::path dir(options.directory.empty() ? "." : options.directory);
+    const std::string token = SanitizePathToken(record.event_id) + ".snapshot";
+    const std::filesystem::path media_path = dir / (token + encoded.extension);
+    if (!WriteBinaryFile(media_path, encoded.data, error_message)) {
+        return false;
+    }
+
+    const std::filesystem::path manifest_path = dir / (token + ".json");
+    if (!EnsureParentDirectory(manifest_path, error_message)) {
+        return false;
+    }
+    std::ofstream manifest(manifest_path, std::ios::out | std::ios::trunc);
+    if (!manifest.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open snapshot recorder manifest";
+        }
+        return false;
+    }
+    manifest << "{"
+             << "\"schema\":\"media-server.va.event-snapshot-hook.v1\","
+             << "\"captureStatus\":\"recorded\","
+             << "\"recorded\":true,"
+             << "\"eventId\":\"" << JsonEscape(record.event_id) << "\","
+             << "\"eventType\":\"" << JsonEscape(record.event_type) << "\","
+             << "\"streamId\":\"" << JsonEscape(record.stream_id) << "\","
+             << "\"channelId\":\"" << JsonEscape(record.channel_id) << "\","
+             << "\"trackId\":" << record.track_id << ","
+             << "\"timestampMs\":" << record.update_time_ms << ","
+             << "\"framePtsMs\":" << frame->timestamp_ms << ","
+             << "\"mediaPath\":\"" << JsonEscape(media_path.string()) << "\","
+             << "\"contentType\":\"" << JsonEscape(encoded.content_type) << "\","
+             << "\"byteSize\":" << encoded.data.size() << ","
+             << "\"fallbackEncoder\":" << (encoded.fallback_encoder ? "true" : "false") << ","
+             << "\"fallbackReason\":\"" << JsonEscape(encoded.fallback_reason) << "\","
+             << "\"captureWindow\":{"
+             << "\"startMs\":" << std::max<std::int64_t>(0, record.update_time_ms - options.pre_event_ms)
+             << ",\"eventMs\":" << record.update_time_ms
+             << ",\"endMs\":" << std::max<std::int64_t>(0, record.update_time_ms + options.post_event_ms)
+             << "},"
+             << "\"eventStatus\":\"" << JsonEscape(record.status) << "\","
+             << "\"zoneId\":\"" << JsonEscape(record.zone_id) << "\","
+             << "\"lineId\":\"" << JsonEscape(record.line_id) << "\","
+             << "\"scenarioName\":\"" << JsonEscape(record.scenario_name) << "\","
+             << "\"scenarioPhase\":\"" << JsonEscape(record.scenario_phase) << "\""
+             << "}\n";
+    if (!manifest.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to write snapshot recorder manifest";
+        }
+        return false;
+    }
+    if (snapshot_path != nullptr) {
+        *snapshot_path = media_path.string();
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+bool WriteClipMedia(const EventRecord& record,
+                    const EventMediaHookOptions& options,
+                    std::string* clip_path,
+                    std::string* error_message) {
+    if (!options.enabled) {
+        if (clip_path != nullptr) {
+            clip_path->clear();
+        }
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
+    }
+    const auto frames = RecorderFrameBuffer().FramesForClip(record, options);
+    if (frames.empty()) {
+        return WriteHookMarker(record, options, "clip", clip_path, error_message);
+    }
+
+    const std::filesystem::path dir(options.directory.empty() ? "." : options.directory);
+    const std::filesystem::path clip_dir = dir / (SanitizePathToken(record.event_id) + ".clip");
+    if (!EnsureParentDirectory(clip_dir / "manifest.json", error_message)) {
+        return false;
+    }
+    std::vector<std::pair<BufferedEventFrame, std::filesystem::path>> written_frames;
+    written_frames.reserve(frames.size());
+    bool used_fallback = false;
+    std::string last_fallback_reason;
+    for (std::size_t index = 0; index < frames.size(); ++index) {
+        EncodedRecorderFrame encoded;
+        if (!EncodeRecorderFrame(frames[index].frame, 80, &encoded, error_message)) {
+            return false;
+        }
+        used_fallback = used_fallback || encoded.fallback_encoder;
+        if (!encoded.fallback_reason.empty()) {
+            last_fallback_reason = encoded.fallback_reason;
+        }
+        std::ostringstream name;
+        name << "frame-" << std::setw(4) << std::setfill('0') << (index + 1)
+             << encoded.extension;
+        const std::filesystem::path frame_path = clip_dir / name.str();
+        if (!WriteBinaryFile(frame_path, encoded.data, error_message)) {
+            return false;
+        }
+        written_frames.push_back({frames[index], frame_path});
+    }
+
+    const std::filesystem::path manifest_path = clip_dir / "manifest.json";
+    std::ofstream manifest(manifest_path, std::ios::out | std::ios::trunc);
+    if (!manifest.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open clip recorder manifest";
+        }
+        return false;
+    }
+    const std::int64_t start_ms = std::max<std::int64_t>(0, record.update_time_ms - options.pre_event_ms);
+    const std::int64_t end_ms = std::max<std::int64_t>(record.update_time_ms,
+                                                       record.update_time_ms + options.post_event_ms);
+    manifest << "{"
+             << "\"schema\":\"media-server.va.event-clip-hook.v1\","
+             << "\"captureStatus\":\"recorded\","
+             << "\"recorded\":true,"
+             << "\"eventId\":\"" << JsonEscape(record.event_id) << "\","
+             << "\"eventType\":\"" << JsonEscape(record.event_type) << "\","
+             << "\"streamId\":\"" << JsonEscape(record.stream_id) << "\","
+             << "\"channelId\":\"" << JsonEscape(record.channel_id) << "\","
+             << "\"trackId\":" << record.track_id << ","
+             << "\"timestampMs\":" << record.update_time_ms << ","
+             << "\"preEventMs\":" << options.pre_event_ms << ","
+             << "\"postEventMs\":" << options.post_event_ms << ","
+             << "\"clipBufferMs\":" << options.clip_buffer_ms << ","
+             << "\"captureWindow\":{"
+             << "\"startMs\":" << start_ms
+             << ",\"eventMs\":" << record.update_time_ms
+             << ",\"endMs\":" << end_ms
+             << "},"
+             << "\"frameCount\":" << written_frames.size() << ","
+             << "\"fallbackEncoder\":" << (used_fallback ? "true" : "false") << ","
+             << "\"fallbackReason\":\"" << JsonEscape(last_fallback_reason) << "\","
+             << "\"frames\":[";
+    for (std::size_t index = 0; index < written_frames.size(); ++index) {
+        if (index != 0) {
+            manifest << ",";
+        }
+        manifest << "{"
+                 << "\"index\":" << index << ","
+                 << "\"ptsMs\":" << written_frames[index].first.timestamp_ms << ","
+                 << "\"path\":\"" << JsonEscape(written_frames[index].second.string()) << "\""
+                 << "}";
+    }
+    manifest << "],"
+             << "\"eventStatus\":\"" << JsonEscape(record.status) << "\","
+             << "\"zoneId\":\"" << JsonEscape(record.zone_id) << "\","
+             << "\"lineId\":\"" << JsonEscape(record.line_id) << "\","
+             << "\"scenarioName\":\"" << JsonEscape(record.scenario_name) << "\","
+             << "\"scenarioPhase\":\"" << JsonEscape(record.scenario_phase) << "\""
+             << "}\n";
+    if (!manifest.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to write clip recorder manifest";
+        }
+        return false;
+    }
+    if (clip_path != nullptr) {
+        *clip_path = manifest_path.string();
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
 class FileEventSnapshotHook final : public EventSnapshotHook {
 public:
     bool CaptureSnapshot(const EventRecord& record,
                          const EventMediaHookOptions& options,
                          std::string* snapshot_path,
                          std::string* error_message) override {
-        return WriteHookMarker(record, options, "snapshot", snapshot_path, error_message);
+        return WriteSnapshotMedia(record, options, snapshot_path, error_message);
     }
 };
 
@@ -1043,7 +1527,7 @@ public:
                      const EventMediaHookOptions& options,
                      std::string* clip_path,
                      std::string* error_message) override {
-        return WriteHookMarker(record, options, "clip", clip_path, error_message);
+        return WriteClipMedia(record, options, clip_path, error_message);
     }
 };
 
@@ -1407,6 +1891,12 @@ void DispatchEventRecords(const AnalysisResult& result, const std::vector<Analys
     for (const auto& event : events) {
         Dispatcher().Enqueue(BuildEventRecord(result, event));
     }
+}
+
+void RecordEventFrame(const std::string& stream_id,
+                      const std::string& channel_id,
+                      const RawVideoFrame& frame) {
+    RecorderFrameBuffer().Record(stream_id, channel_id, frame);
 }
 
 EventStorageSnapshot GetEventStorageSnapshot() {
