@@ -20603,6 +20603,9 @@ std::string VaMetadataSubscriptionControlJson(const std::string& action,
         << "\"action\":\"" << JsonEscape(action) << "\","
         << "\"subscribed\":" << (subscribed ? "true" : "false") << ","
         << "\"intervalMs\":" << options.interval_ms << ","
+        << "\"staleAfterMs\":" << options.stale_after_ms << ","
+        << "\"maxMessages\":" << options.stream_max_messages << ","
+        << "\"streamMaxDurationMs\":" << options.stream_max_duration_ms << ","
         << "\"maxMessageBytes\":" << options.max_message_bytes << ","
         << "\"maxTracks\":" << options.max_tracks << ","
         << "\"maxEvents\":" << options.max_events << ","
@@ -20681,6 +20684,20 @@ VaMetadataStreamOptions ApplyVaMetadataSubscribeCommand(const std::string& body,
 
     options.subscription_filter = BuildVaMetadataSubscriptionFilter(control_query);
     options.interval_ms = ClampedMetadataCommandInt(body, "intervalMs", options.interval_ms, 100, 60000);
+    options.stale_after_ms =
+        ClampedMetadataCommandInt(body,
+                                  "staleAfterMs",
+                                  options.stale_after_ms,
+                                  options.interval_ms,
+                                  600000);
+    options.stream_max_messages =
+        ClampedMetadataCommandInt(body, "maxMessages", options.stream_max_messages, 0, 1000000);
+    options.stream_max_duration_ms =
+        ClampedMetadataCommandInt(body,
+                                  "streamMaxDurationMs",
+                                  options.stream_max_duration_ms,
+                                  0,
+                                  24 * 60 * 60 * 1000);
     options.max_message_bytes = static_cast<std::size_t>(
         ClampedMetadataCommandInt(
             body, "maxMessageBytes", static_cast<int>(options.max_message_bytes), 256, 1048576));
@@ -21292,6 +21309,11 @@ bool StreamVaMetadataWebSocket(int client_fd,
                 last_pts = std::numeric_limits<std::int64_t>::min();
                 if (!SendWebSocketTextFrame(
                         client_fd, VaMetadataSubscriptionControlJson("resume", subscribed, options))) {
+                    return false;
+                }
+            } else if (action == "status") {
+                if (!SendWebSocketTextFrame(
+                        client_fd, VaMetadataSubscriptionControlJson("status", subscribed, options))) {
                     return false;
                 }
             } else if (action == "reset") {
