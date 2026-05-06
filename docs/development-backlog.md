@@ -20,13 +20,13 @@
 - 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage와 active/archive query/search UI, EventRecord rotation/retention/recovery 1차, 비파괴 compaction snapshot, snapshot media 저장과 pre/post frame bundle recorder, WebRTC VA metadata DataChannel 출력 구조.
 - 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, client-side Trend/Stale/Cleanup warning 1차, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, IntrusionDwell/ReEntry/WrongDirection/IntrusionAfterLineCrossing/Loitering scenario UI 템플릿, 자동/longrun 검증 명령.
 - 구현 완료: Auth / Role / Scope, account login/session API/route MVP, Auth Bootstrap + 기본 로그인 강제, Password Policy + Lockout + Session Hardening, Admin User Management Console + CLI, Client Account Policy / Invite / Request MVP, Root/Login/Ops/Client/Lab 접근 정책.
-- 구현 완료: SourceRegistry / PublishedView API/route MVP, client scoped view API 1차, Client scoped dashboard API/UI MVP, Client Live Monitor 2x2 MVP.
+- 구현 완료: SourceRegistry / PublishedView API/route MVP, client scoped view API 1차, Client scoped dashboard API/UI MVP, Client Live Monitor grid/density/reconnect 상태 1차.
 - 구현 완료: `/setup`, `/login`, `/ops`, `/client` 제품 UI shell 통합 1차. Ops primary nav는 홈/대시보드/채널/룰/사용자/클라이언트 미리보기로 정리했고, client primary nav는 라이브/대시보드만 유지합니다. `/ops/dashboard`와 `/ops/rules`는 Lab iframe 없이 Ops 전용 API와 제품 컴포넌트로 표시하며 raw JSON은 운영자 debug 접힘 영역에만 둡니다. Ops shell overview 스크립트는 `product_ui_page_scripts.*`로 분리해 HTTP route/media/auth 모놀리스와 제품 브라우저 동작을 같은 함수에 두지 않습니다.
 - 기존 Scenario UI 로드맵 1~4번 완료: Runtime Dashboard trend/stale/cleanup warning 1차, Scenario rule payload -> runtime per-rule 설정 연결, ReEntry Scenario UI 템플릿, IntrusionAfterLineCrossing Scenario UI 템플릿.
 - ReEntry와 IntrusionAfterLineCrossing은 룰 편집 UI에서 선택 가능하며 저장/round-trip 검증 대상입니다.
 - 현재 우선순위: 운영/클라이언트 분리의 제품 진입점 정합성을 위해 Auth Bootstrap, password policy/lockout/session hardening, admin 계정 관리, client invite/request MVP, role/scope 기반 root/route 접근 정책, Ops/Client shell 통합 1차를 완료했고 문서 상태를 실제 구현 기준으로 닫았습니다.
-- 다음 작업: Client Live Monitor 현장형 상태 고도화와 archive cleanup/compact 관리 고도화를 후속으로 둡니다.
-- 후속 Phase: 다음 운영/클라이언트 phase의 진입점은 SourceRegistry/PublishedView 기반 고도화입니다. PublishedView 기반 scope picker, Client scoped dashboard polish, Client Live Monitor 상태 표현, Analysis tap reuse / source+profile 공유 정책 UI는 아래 운영/클라이언트 분리 phase에서 별도로 관리합니다.
+- 다음 작업: archive cleanup/compact 관리 고도화와 metadata subscription filter/control을 후속으로 둡니다.
+- 후속 Phase: 다음 운영/클라이언트 phase의 진입점은 SourceRegistry/PublishedView 기반 고도화입니다. PublishedView 기반 scope picker, Client scoped dashboard polish, Analysis tap reuse / source+profile 공유 정책 UI는 아래 운영/클라이언트 분리 phase에서 별도로 관리합니다.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
 - 실험/제약: snapshot/clip은 짧은 EventRecord evidence frame 저장용이며 MP4/VMS/NVR 장기 녹화 기능으로 표현하지 않습니다.
 - 남은 후속: 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화(sparkline/장기 baseline), WS metadata filter/subscription/control입니다.
@@ -88,11 +88,11 @@
 
 ### O5. Client Live Monitor
 
-- 상태: 완료: 2x2 MVP + client product UI shell integration 1차
+- 상태: 완료: grid/density/reconnect + client product UI shell integration 1차
 - 목적: PublishedView 기반 클라이언트용 live monitor 화면을 정의합니다.
-- 완료 범위: `/client/live` 2x2 grid, 최대 4 tile, assigned PublishedView 선택, PublishedView `maxTiles` UI/API 동시 session 상한, `/webrtc/config` 기반 browser ICE 설정, tile별 WebRTC session, client session alias 기반 answer/ICE/delete wrapper, `raw`/`va-overlay`/`va-rule` allowed overlay mode guard, `va-rule` source-boundary guard, tile start/stop/all stop, selected tile detail/dashboard, tile status 요약입니다.
+- 완료 범위: `/client/live` grid, viewer 최대 4 tile/Ops preview 최대 9 tile, 표준/고밀도 density, live/connecting/stale/offline summary, assigned PublishedView 선택, PublishedView `maxTiles` UI/API 동시 session 상한, `/webrtc/config` 기반 browser ICE 설정, tile별 WebRTC session, client session alias 기반 answer/ICE/delete wrapper, `raw`/`va-overlay`/`va-rule` allowed overlay mode guard, `va-rule` source-boundary guard, tile start/stop/restart/all stop/all restart, selected tile detail/dashboard, tile status 요약입니다.
 - 보안/노출 정책: client route는 viewId만 허용하며 source URL, file/url/source override, 내부 generic session id/token, Developer URL, BBox diagnostics, raw JSON, debugCounters, rule/profile 수정 UI를 노출하지 않습니다.
-- 후속: reconnect UX, tile density, mobile layout, stale/offline copy, view가 없을 때 onboarding 상태를 다듬습니다.
+- 후속: 장기 reconnect cycle baseline, mobile screenshot polish, tile sort/filter와 현장 문구를 다듬습니다.
 - 우선순위 이유: 클라이언트 화면은 허용된 view와 이벤트만 노출해야 하므로 SourceRegistry/PublishedView 이후에 진행합니다.
 
 ### O6. Operator Live Monitor

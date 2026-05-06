@@ -313,6 +313,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    const defaultLiveViewIdList = defaultLiveViewIds();
 	    const initialLiveTileCount = Math.min(maxLiveTiles, Math.max(1, Number(localStorage.getItem('mediaServerClientLiveGrid') || 4) || 4));
 	    let liveTileCount = initialLiveTileCount;
+	    let liveDensity = localStorage.getItem('mediaServerClientLiveDensity') === 'compact' ? 'compact' : 'comfortable';
 	    const liveTiles = Array.from({ length: maxLiveTiles }, (_, index) => ({
 	      index,
 	      viewId: defaultLiveViewIdList[index] || '',
@@ -326,6 +327,8 @@ void AppendClientShellScript(std::ostringstream& out) {
       trackCount: null,
       eventCount: null,
       lastMetadataAt: 0,
+      lastError: '',
+      restartCount: 0,
       stale: false
     }));
     let selectedLiveTile = views.length > 0 ? 0 : null;
@@ -410,15 +413,22 @@ void AppendClientShellScript(std::ostringstream& out) {
       root.querySelector('[data-role="tracks"]').textContent = display(tile.trackCount);
       root.querySelector('[data-role="events"]').textContent = display(tile.eventCount);
       root.querySelector('[data-role="stale"]').textContent = stale ? '지연' : (tile.sessionId ? '정상' : '미제공');
+      const restarts = root.querySelector('[data-role="restarts"]');
+      if (restarts) restarts.textContent = String(tile.restartCount || 0);
+      const placeholder = root.querySelector('[data-role="placeholder"]');
+      if (placeholder) placeholder.textContent = tile.lastError || clientStatusLabel(tile.connectionStatus || status);
 	      root.querySelector('[data-role="placeholder"]').hidden = Boolean(tile.sessionId);
 	      const startBtn = root.querySelector('[data-action="start"]');
 	      const stopBtn = root.querySelector('[data-action="stop"]');
+	      const restartBtn = root.querySelector('[data-action="restart"]');
 	      if (startBtn) {
 	        const limitReached = viewActiveLimitReached(view, tile.index);
 	        startBtn.disabled = !view || Boolean(tile.sessionId) || limitReached;
 	        startBtn.title = limitReached ? `이 채널은 최대 ${viewMaxTiles(view)}개 타일까지만 동시에 재생할 수 있습니다.` : '';
 	      }
 	      if (stopBtn) stopBtn.disabled = !tile.sessionId;
+	      if (restartBtn) restartBtn.disabled = !view;
+	      updateLiveSummary();
 	    }
     function updateAllTileDom() {
       for (const tile of liveTiles) updateTileDom(tile);
@@ -472,6 +482,30 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        .map(count => `<option value="${count}"${count === liveTileCount ? ' selected' : ''}>${liveGridOptionLabel(count)}</option>`)
 	        .join('');
 	    }
+	    function liveSummaryCounts() {
+	      const tiles = visibleLiveTiles();
+	      return {
+	        total: tiles.length,
+	        live: tiles.filter(tile => tile.sessionId && tile.status === 'live').length,
+	        connecting: tiles.filter(tile => tile.status === 'connecting').length,
+	        stale: tiles.filter(tile => tile.stale).length,
+	        offline: tiles.filter(tile => !tile.sessionId).length
+	      };
+	    }
+	    function updateLiveSummary() {
+	      const summary = document.querySelector('#liveSummary');
+	      if (!summary) return;
+	      const counts = liveSummaryCounts();
+	      const set = (role, value) => {
+	        const el = summary.querySelector(`[data-summary="${role}"]`);
+	        if (el) el.textContent = String(value);
+	      };
+	      set('total', counts.total);
+	      set('live', counts.live);
+	      set('connecting', counts.connecting);
+	      set('stale', counts.stale);
+	      set('offline', counts.offline);
+	    }
 	    function liveTileHtml(tile) {
 	      return `
 	        <article class="tile${selectedLiveTile === tile.index ? ' selected' : ''}" data-tile="${tile.index}">
@@ -492,6 +526,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            </div>
 	            <div class="tile-actions">
 	              <button type="button" data-action="start">시작</button>
+	              <button type="button" data-action="restart" class="ghost">재연결</button>
 	              <button type="button" data-action="stop" class="ghost" disabled>정지</button>
 	            </div>
 	          </div>
@@ -504,6 +539,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            <div class="metric"><span>트랙</span><strong data-role="tracks">미제공</strong></div>
 	            <div class="metric"><span>이벤트</span><strong data-role="events">미제공</strong></div>
 	            <div class="metric"><span>상태</span><strong data-role="stale">미제공</strong></div>
+	            <div class="metric"><span>재시도</span><strong data-role="restarts">0</strong></div>
 	          </div>
 	        </article>
 	      `;
@@ -520,10 +556,24 @@ void AppendClientShellScript(std::ostringstream& out) {
 	                ${liveGridOptionsHtml()}
 	              </select>
 	            </label>
+	            <label>밀도
+	              <select id="liveDensity">
+	                <option value="comfortable"${liveDensity === 'comfortable' ? ' selected' : ''}>표준</option>
+	                <option value="compact"${liveDensity === 'compact' ? ' selected' : ''}>고밀도</option>
+	              </select>
+	            </label>
+	            <button id="liveAllRestart" class="ghost" type="button">전체 재연결</button>
 	            <button id="liveAllStop" class="ghost" type="button">전체 정지</button>
 	          </div>
+	          <div class="summary" id="liveSummary">
+	            <div class="metric"><span>타일</span><strong data-summary="total">0</strong></div>
+	            <div class="metric"><span>라이브</span><strong data-summary="live">0</strong></div>
+	            <div class="metric"><span>연결 중</span><strong data-summary="connecting">0</strong></div>
+	            <div class="metric"><span>지연</span><strong data-summary="stale">0</strong></div>
+	            <div class="metric"><span>오프라인</span><strong data-summary="offline">0</strong></div>
+	          </div>
 	          <section class="detail-box" id="liveSelectedDetail">${emptyState('타일을 선택하세요', '선택한 타일의 연결, 메타데이터, 이벤트 상태가 여기에 표시됩니다.')}</section>
-	          <div class="live-grid" data-grid-size="${liveTileCount}">
+	          <div class="live-grid" data-grid-size="${liveTileCount}" data-density="${escapeHtml(liveDensity)}">
 	            ${liveTiles.slice(0, liveTileCount).map(liveTileHtml).join('')}
 	          </div>
 	        </div>
@@ -544,6 +594,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        });
 	      }
 	      root.querySelector('[data-action="start"]')?.addEventListener('click', () => startLiveTile(tile.index));
+	      root.querySelector('[data-action="restart"]')?.addEventListener('click', () => restartLiveTile(tile.index));
 	      root.querySelector('[data-action="stop"]')?.addEventListener('click', () => stopLiveTile(tile.index));
 	      root.addEventListener('click', event => {
 	        if (!event.target.closest('button') && !event.target.closest('select')) {
@@ -555,6 +606,13 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    }
 	    function bindLiveGridControls() {
 	      document.querySelector('#liveAllStop')?.addEventListener('click', () => stopAllLiveTiles());
+	      document.querySelector('#liveAllRestart')?.addEventListener('click', () => restartAllLiveTiles());
+	      document.querySelector('#liveDensity')?.addEventListener('change', event => {
+	        liveDensity = event.target.value === 'compact' ? 'compact' : 'comfortable';
+	        localStorage.setItem('mediaServerClientLiveDensity', liveDensity);
+	        const grid = document.querySelector('.live-grid');
+	        if (grid) grid.dataset.density = liveDensity;
+	      });
 	      document.querySelector('#liveGridSize')?.addEventListener('change', async event => {
 	        const next = Math.min(maxLiveTiles, Math.max(1, Number(event.target.value || 4)));
 	        for (const tile of liveTiles.slice(next)) {
@@ -709,6 +767,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       tile.trackCount = null;
       tile.eventCount = null;
       tile.lastMetadataAt = 0;
+      tile.lastError = '';
       updateTileDom(tile);
       try {
         const pc = await createClientPeerConnection();
@@ -716,7 +775,10 @@ void AppendClientShellScript(std::ostringstream& out) {
         pc.onconnectionstatechange = () => {
           tile.connectionStatus = pc.connectionState || 'connecting';
           if (['connected', 'completed'].includes(tile.connectionStatus)) tile.status = 'live';
-          if (['failed', 'disconnected', 'closed'].includes(tile.connectionStatus)) tile.status = 'offline';
+          if (['failed', 'disconnected', 'closed'].includes(tile.connectionStatus)) {
+            tile.status = pc.connectionState === 'failed' ? 'error' : 'offline';
+            tile.lastError = clientStatusLabel(pc.connectionState);
+          }
           updateTileDom(tile);
         };
         pc.oniceconnectionstatechange = () => {
@@ -773,9 +835,21 @@ void AppendClientShellScript(std::ostringstream& out) {
       } catch (error) {
         tile.status = 'error';
         tile.connectionStatus = error.message || 'error';
+        tile.lastError = error.message || 'error';
         await stopLiveTile(index, { keepError: true });
         updateTileDom(tile);
       }
+    }
+    async function restartLiveTile(index) {
+      const tile = liveTiles[index];
+      if (!tile || !tile.viewId) return;
+      tile.restartCount = (tile.restartCount || 0) + 1;
+      await stopLiveTile(index, { keepError: true });
+      tile.status = 'connecting';
+      tile.connectionStatus = 'reconnecting';
+      tile.lastError = '';
+      updateTileDom(tile);
+      await startLiveTile(index);
     }
     async function stopLiveTile(index, options = {}) {
       const tile = liveTiles[index];
@@ -806,6 +880,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       if (!options.keepError) {
         tile.status = 'offline';
         tile.connectionStatus = 'offline';
+        tile.lastError = '';
       }
 	      tile.trackCount = null;
 	      tile.eventCount = null;
@@ -815,6 +890,9 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    }
     async function stopAllLiveTiles() {
       await Promise.all(liveTiles.map(tile => stopLiveTile(tile.index)));
+    }
+    async function restartAllLiveTiles() {
+      await Promise.all(visibleLiveTiles().map(tile => restartLiveTile(tile.index)));
     }
     async function refreshSelectedTileDetail() {
       if (activePage !== 'live') return;
