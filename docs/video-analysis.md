@@ -600,7 +600,7 @@ curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/events/records/compactio
 - 사용자가 검색 버튼을 누를 때만 API를 호출합니다.
 - `offset`과 `limit`으로 active/archive 합산 결과를 페이지 단위로 넘길 수 있고, UI는 이전/다음 페이지 버튼으로 이 값을 사용합니다.
 - `snapshotPath`와 `clipPath`는 table badge, detail evidence summary, 원본 JSON, preview route에서 확인합니다.
-- evidence filter는 snapshot만 있는 record, clip manifest가 있는 record, 둘 다 있는 record, 둘 다 없는 record를 active/archive/compaction query에서 같은 조건으로 거릅니다.
+- evidence filter는 snapshot만 있는 record, clip manifest가 있는 record, 둘 다 있는 record, 둘 다 없는 record를 active/archive/compaction query에서 같은 조건으로 거릅니다. Runtime Dashboard detail은 snapshot/clip preview 상태를 별도 문구로 표시하고, clip frame preview link를 파일명 기준으로 정렬된 일부 샘플로 보여줍니다.
 - compaction snapshot cleanup은 `keepNewest=N` 기준으로 오래된 compacted snapshot만 삭제하며 active file과 rotated archive는 건드리지 않습니다.
 - preview route는 configured snapshot/clip 디렉터리 아래의 `.jpg/.jpeg/.ppm/.pgm/.json` evidence만 허용합니다. snapshot은 inline image preview, clip은 manifest JSON과 frame file link를 제공합니다.
 - 영상 검색/재생, 장기 녹화, MP4 muxing은 포함하지 않습니다. snapshot/clip hook은 EventRecord용 짧은 frame evidence만 저장합니다.

@@ -133,7 +133,7 @@ try {
         for (const id of ['addVaRuleBtn', 'vaRuleList', 'vaRuleTotalMetric', 'vaRuleNextIdMetric']) {
           if (!$(id)) throw new Error('missing vaRule management control: ' + id);
         }
-        for (const id of ['dashboardEventRecordsDetails', 'eventRecordEvidenceFilter', 'eventRecordEvidenceSummary', 'eventRecordSnapshotPathText', 'eventRecordClipPathText', 'eventRecordClipBundleText', 'eventRecordPrevPageBtn', 'eventRecordNextPageBtn', 'eventRecordCompactionKeepNewestInput', 'eventRecordCompactionCleanupBtn', 'eventRecordEvidencePreview', 'eventRecordSnapshotPreviewImage', 'eventRecordClipManifestJson', 'eventRecordClipFrameLinks']) {
+        for (const id of ['dashboardEventRecordsDetails', 'eventRecordEvidenceFilter', 'eventRecordEvidenceSummary', 'eventRecordSnapshotPathText', 'eventRecordClipPathText', 'eventRecordClipBundleText', 'eventRecordPrevPageBtn', 'eventRecordNextPageBtn', 'eventRecordCompactionKeepNewestInput', 'eventRecordCompactionCleanupBtn', 'eventRecordEvidencePreview', 'eventRecordEvidencePreviewStatusText', 'eventRecordSnapshotPreviewImage', 'eventRecordClipManifestJson', 'eventRecordClipFrameLinks', 'eventRecordClipFrameSummaryText']) {
           if (!$(id)) throw new Error('missing EventRecord evidence UI control: ' + id);
         }
         const evidenceValues = Array.from($('eventRecordEvidenceFilter').options).map((option) => option.value);

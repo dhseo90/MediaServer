@@ -888,7 +888,7 @@ MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 \
 - snapshot/clip hook 활성화 시 analysis frame buffer에서 snapshot media와 pre/post frame bundle manifest를 생성함. MP4/VMS/NVR 장기 녹화는 검증 범위가 아님
 - records API와 Runtime Dashboard Event Records UI는 `evidence=snapshot|clip|any|both|missing` 조건으로 snapshot/clip-backed record를 검색하고, detail에서 snapshot path, clip manifest path, clip bundle directory를 분리해 표시함
 - records API는 `offset`/`limit` paging으로 active/archive 합산 결과를 넘기고, compaction snapshot cleanup API는 `keepNewest` 기준으로 compacted snapshot만 정리함
-- `/lab/analysis/events/evidence?path=...` preview route는 configured snapshot/clip 디렉터리 아래의 safe evidence만 열고, snapshot inline preview와 clip manifest/frame link의 backing route로 사용함
+- `/lab/analysis/events/evidence?path=...` preview route는 configured snapshot/clip 디렉터리 아래의 safe evidence만 열고, snapshot inline preview와 clip manifest/frame link의 backing route로 사용함. UI는 preview 상태 문구와 clip frame summary를 함께 표시해야 함
 - `includeArchives=1`은 rotated archive를 조회에 포함하고, compaction snapshot API는 기존 파일을 수정하지 않음
 - compaction snapshot 목록/다운로드/삭제 API는 compacted file pattern만 허용하고 active/archive 파일을 삭제하지 않음
 - 손상되었거나 partial 상태인 EventRecord JSON Lines 행은 records API 전체 실패가 아니라 skip/count 처리됨

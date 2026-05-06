@@ -7916,6 +7916,7 @@ std::string BuildLabRuleEditorPageHtml() {
                       <div class="event-record-evidence-item"><span>clip bundle</span><strong id="eventRecordClipBundleText">없음</strong></div>
                     </div>
                     <div id="eventRecordEvidencePreview" class="event-record-evidence-preview" hidden>
+                      <p id="eventRecordEvidencePreviewStatusText" class="form-note">preview 대기 중</p>
                       <div id="eventRecordSnapshotPreviewPanel" class="view-frame" hidden>
                         <img id="eventRecordSnapshotPreviewImage" alt="Event snapshot preview" />
                       </div>
@@ -7925,6 +7926,7 @@ std::string BuildLabRuleEditorPageHtml() {
                           <div><span>capture window</span><strong id="eventRecordClipWindowText">-</strong></div>
                           <div><span>fallback</span><strong id="eventRecordClipFallbackText">-</strong></div>
                         </div>
+                        <p id="eventRecordClipFrameSummaryText" class="form-note">clip frame preview 대기 중</p>
                         <div id="eventRecordClipFrameLinks" class="event-record-evidence-links"></div>
                         <pre id="eventRecordClipManifestJson" class="raw-json-panel">clip manifest preview 없음</pre>
                       </div>
@@ -14834,10 +14836,22 @@ std::string BuildLabRuleEditorPageHtml() {
       setEventRecordEvidenceText('eventRecordClipFrameCountText', '-', '-');
       setEventRecordEvidenceText('eventRecordClipWindowText', '-', '-');
       setEventRecordEvidenceText('eventRecordClipFallbackText', '-', '-');
+      setText('eventRecordClipFrameSummaryText', message);
       const links = $('eventRecordClipFrameLinks');
       if (links) links.replaceChildren();
       const manifest = $('eventRecordClipManifestJson');
       if (manifest) manifest.textContent = message;
+    }
+
+    function setEventRecordEvidencePreviewStatus(message) {
+      setText('eventRecordEvidencePreviewStatusText', message || 'preview 대기 중');
+    }
+
+    function eventRecordFrameSortKey(frame, index) {
+      const path = String(frame?.path || '');
+      const match = path.match(/(\d+)(?!.*\d)/);
+      if (match) return Number(match[1]);
+      return index;
     }
 
     async function loadEventRecordEvidencePreview(snapshotPath, clipPath) {
@@ -14845,6 +14859,12 @@ std::string BuildLabRuleEditorPageHtml() {
       const hasSnapshot = Boolean(snapshotPath);
       const hasClip = Boolean(clipPath);
       setEventRecordEvidencePanelVisible(hasSnapshot, hasClip);
+      if (!hasSnapshot && !hasClip) {
+        setEventRecordEvidencePreviewStatus('evidence preview 없음');
+        resetEventRecordClipPreview('clip manifest preview 없음');
+        return;
+      }
+      setEventRecordEvidencePreviewStatus(`preview 로드 중 · ${hasSnapshot ? 'snapshot' : ''}${hasSnapshot && hasClip ? ' + ' : ''}${hasClip ? 'clip' : ''}`);
       const snapshotImage = $('eventRecordSnapshotPreviewImage');
       if (snapshotImage) {
         snapshotImage.removeAttribute('src');
@@ -14862,7 +14882,10 @@ std::string BuildLabRuleEditorPageHtml() {
           throw new Error(text || `HTTP ${response.status}`);
         }
         const manifestJson = JSON.parse(text);
-        const frames = Array.isArray(manifestJson?.frames) ? manifestJson.frames : [];
+        const frames = (Array.isArray(manifestJson?.frames) ? manifestJson.frames : [])
+          .map((frame, index) => ({ frame, index }))
+          .sort((left, right) => eventRecordFrameSortKey(left.frame, left.index) - eventRecordFrameSortKey(right.frame, right.index))
+          .map((entry) => entry.frame);
         setEventRecordEvidenceText('eventRecordClipFrameCountText', manifestJson?.frameCount ?? frames.length, '-');
         const captureWindow = manifestJson?.captureWindow || {};
         const windowText =
@@ -14872,25 +14895,37 @@ std::string BuildLabRuleEditorPageHtml() {
         setEventRecordEvidenceText('eventRecordClipWindowText', windowText, '-');
         const fallbackText = manifestJson?.fallbackEncoder
           ? (manifestJson?.fallbackReason || 'fallback')
-          : 'jpeg';
+          : 'jpeg sequence';
         setEventRecordEvidenceText('eventRecordClipFallbackText', fallbackText, '-');
         const links = $('eventRecordClipFrameLinks');
         if (links) {
           links.replaceChildren();
-          frames.slice(0, 4).forEach((frame, index) => {
+          const previewFrames = frames.slice(0, 6);
+          previewFrames.forEach((frame, index) => {
             if (!frame?.path) return;
             const link = document.createElement('a');
             link.href = eventRecordEvidenceUrl(frame.path);
             link.target = '_blank';
             link.rel = 'noopener';
-            link.textContent = `frame ${index + 1}`;
+            const fileName = String(frame.path).split('/').pop() || `frame ${index + 1}`;
+            link.textContent = fileName;
+            link.title = String(frame.path);
             links.appendChild(link);
           });
         }
+        setText('eventRecordClipFrameSummaryText',
+          frames.length > 0
+            ? `clip frames ${Math.min(frames.length, 6)}/${frames.length} 표시`
+            : 'clip frame 없음');
         const manifest = $('eventRecordClipManifestJson');
         if (manifest) manifest.textContent = dashboardPrettyJson(manifestJson, 'clip manifest 표시 실패');
+        setEventRecordEvidencePreviewStatus(
+          hasSnapshot && hasClip
+            ? 'snapshot + clip preview 준비됨'
+            : (hasSnapshot ? 'snapshot preview 준비됨' : 'clip preview 준비됨'));
       } catch (error) {
         if (token !== eventRecordEvidencePreviewToken) return;
+        setEventRecordEvidencePreviewStatus(`clip preview 실패 · ${error.message}`);
         resetEventRecordClipPreview(`clip manifest preview 실패 · ${error.message}`);
       }
     }
@@ -14922,6 +14957,7 @@ std::string BuildLabRuleEditorPageHtml() {
         setEventRecordEvidenceText('eventRecordSnapshotPathText', '');
         setEventRecordEvidenceText('eventRecordClipPathText', '');
         setEventRecordEvidenceText('eventRecordClipBundleText', '');
+        setEventRecordEvidencePreviewStatus('event를 선택하면 evidence preview를 표시합니다.');
         ++eventRecordEvidencePreviewToken;
         setEventRecordEvidencePanelVisible(false, false);
         resetEventRecordClipPreview();

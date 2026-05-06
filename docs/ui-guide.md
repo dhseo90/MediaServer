@@ -736,7 +736,7 @@ scenario phase, timeline, recent event buffer를 한 구간에서 확인합니�
 
 ### 10.7. Event Records
 
-Event Records는 자동 polling하지 않습니다. 검색 버튼을 눌렀을 때 active JSON Lines의 metadata를 조회하고, `archive 포함`을 켜면 rotated archive까지 조회합니다. `evidence` 필터는 snapshot, clip manifest, snapshot+clip, evidence 없음 조건을 같은 records API query에 넣습니다. `offset` 기반 이전/다음 페이지 버튼으로 archive가 많은 경우에도 현재 filter를 유지한 채 탐색합니다. EventRecord detail은 raw JSON 위에 snapshot path, clip manifest path, clip bundle directory를 분리해 표시하고, 안전한 preview route를 통해 snapshot inline preview와 clip manifest/frame link를 보여줍니다. `compaction snapshot`은 기존 파일을 수정하지 않는 compacted JSON Lines 사본을 생성하며 현재 검색 필터와 evidence 조건을 그대로 사용합니다. `snapshot 목록`은 compacted snapshot의 file/size/modified를 표시하고, `keepNewest` cleanup으로 오래된 compacted snapshot만 정리합니다.
+Event Records는 자동 polling하지 않습니다. 검색 버튼을 눌렀을 때 active JSON Lines의 metadata를 조회하고, `archive 포함`을 켜면 rotated archive까지 조회합니다. `evidence` 필터는 snapshot, clip manifest, snapshot+clip, evidence 없음 조건을 같은 records API query에 넣습니다. `offset` 기반 이전/다음 페이지 버튼으로 archive가 많은 경우에도 현재 filter를 유지한 채 탐색합니다. EventRecord detail은 raw JSON 위에 snapshot path, clip manifest path, clip bundle directory를 분리해 표시하고, 안전한 preview route를 통해 snapshot inline preview와 clip manifest/frame link를 보여줍니다. preview 상태 문구는 snapshot/clip 준비 상태와 실패를 분리해서 표시하며, clip frame link는 파일명 기준으로 정렬된 앞부분만 보여줍니다. `compaction snapshot`은 기존 파일을 수정하지 않는 compacted JSON Lines 사본을 생성하며 현재 검색 필터와 evidence 조건을 그대로 사용합니다. `snapshot 목록`은 compacted snapshot의 file/size/modified를 표시하고, `keepNewest` cleanup으로 오래된 compacted snapshot만 정리합니다.
 
 ![VA 런타임 대시보드 Event Records](assets/ui/analysis-runtime-dashboard-records.png)
 
