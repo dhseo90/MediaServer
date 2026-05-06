@@ -646,7 +646,7 @@ curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/events/records/compactio
 
 기존 외부 event JSON/API/POST 형식은 이 내부 frame이나 dashboard/debug UI 때문에 바뀌지 않습니다. Event POST와 `/lab/analysis/taps/{tapId}/events`는 기존 payload 호환성을 유지합니다.
 
-WebRTC DataChannel은 기존 외부 schema인 `media-server.webrtc.va-metadata.v1`을 유지합니다. 내부 builder가 만든 frame을 WebRTC 호환 serializer로 투영하며, `source`, `scenarios`, `metrics`, `trackingIssueReport` 같은 dashboard 전용 필드는 DataChannel 기존 schema에 추가하지 않습니다. WebRTC metadata viewer URL도 SSE/WS와 같은 `eventType`, `scenarioName`, `trackId`, `zoneId` filter를 받을 수 있으며, 필터는 schema 변경 없이 `tracks`/`events` 배열 범위에만 적용됩니다.
+WebRTC DataChannel은 기존 외부 schema인 `media-server.webrtc.va-metadata.v1`을 유지합니다. 내부 builder가 만든 frame을 WebRTC 호환 serializer로 투영하며, `source`, `scenarios`, `metrics`, `trackingIssueReport` 같은 dashboard 전용 필드는 DataChannel 기존 schema에 추가하지 않습니다. WebRTC metadata viewer URL도 SSE/WS와 같은 `eventType`, `scenarioName`, `trackId`, `zoneId` filter를 받을 수 있으며, 필터는 schema 변경 없이 `tracks`/`events` 배열 범위에만 적용됩니다. `/lab/rules` Custom client URL 패널은 이 filter/include 조합을 preset으로 저장해 같은 query를 WebRTC metadata viewer, SSE, WS URL에 다시 적용할 수 있습니다.
 
 message size 보호는 두 단계로 둡니다.
 

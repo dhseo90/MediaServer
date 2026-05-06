@@ -7577,6 +7577,18 @@ std::string BuildLabRuleEditorPageHtml() {
 	                <input id="metadataFilterZoneId" placeholder="queue-a" />
 	              </label>
 	            </div>
+	            <div class="row metadata-subscription-controls" aria-label="metadata side-channel preset">
+	              <label>filter preset
+	                <select id="metadataSubscriptionPresetSelect">
+	                  <option value="custom" selected>custom</option>
+	                </select>
+	              </label>
+	              <div class="toolbar-actions">
+	                <button id="metadataSubscriptionPresetSaveBtn" type="button" class="secondary">저장</button>
+	                <button id="metadataSubscriptionPresetDeleteBtn" type="button" class="secondary">삭제</button>
+	              </div>
+	              <span id="metadataSubscriptionPresetStatusText" class="form-note">preset 없음</span>
+	            </div>
 	            <div class="metadata-overlay-controls metadata-subscription-flags" aria-label="metadata side-channel payload controls">
 	              <label><input id="metadataIncludeSourceInput" type="checkbox" checked /> source</label>
 	              <label><input id="metadataIncludeScenariosInput" type="checkbox" checked /> scenarios</label>
@@ -13199,7 +13211,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	      if (value) params.set(key, value);
 	    }
 
-	    function applyMetadataSubscriptionParams(params) {
+    function applyMetadataSubscriptionParams(params) {
 	      appendTrimmedMetadataParam(params, 'eventType', 'metadataFilterEventType');
 	      appendTrimmedMetadataParam(params, 'scenarioName', 'metadataFilterScenarioName');
 	      appendTrimmedMetadataParam(params, 'trackId', 'metadataFilterTrackId');
@@ -13209,6 +13221,136 @@ std::string BuildLabRuleEditorPageHtml() {
 	      if ($('metadataIncludeMetricsInput')?.checked === false) params.set('includeMetrics', '0');
 	      if ($('metadataIncludeTrackingIssueInput')?.checked === false) params.set('includeTrackingIssueReport', '0');
 	    }
+
+      const metadataSubscriptionPresetStorageKey = 'mediaServerMetadataSubscriptionPresets.v1';
+      const metadataSubscriptionPresetSelectionKey = 'mediaServerMetadataSubscriptionPreset.selected.v1';
+
+      function metadataSubscriptionPresetPayload() {
+        return {
+          eventType: String($('metadataFilterEventType')?.value || '').trim(),
+          scenarioName: String($('metadataFilterScenarioName')?.value || '').trim(),
+          trackId: String($('metadataFilterTrackId')?.value || '').trim(),
+          zoneId: String($('metadataFilterZoneId')?.value || '').trim(),
+          includeSource: $('metadataIncludeSourceInput')?.checked !== false,
+          includeScenarios: $('metadataIncludeScenariosInput')?.checked !== false,
+          includeMetrics: $('metadataIncludeMetricsInput')?.checked !== false,
+          includeTrackingIssueReport: $('metadataIncludeTrackingIssueInput')?.checked !== false,
+        };
+      }
+
+      function loadMetadataSubscriptionPresets() {
+        try {
+          const raw = localStorage.getItem(metadataSubscriptionPresetStorageKey);
+          if (!raw) return {};
+          const parsed = JSON.parse(raw);
+          if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+          const normalized = {};
+          for (const [name, value] of Object.entries(parsed)) {
+            if (!name || !value || typeof value !== 'object' || Array.isArray(value)) continue;
+            normalized[String(name)] = {
+              eventType: String(value.eventType || '').trim(),
+              scenarioName: String(value.scenarioName || '').trim(),
+              trackId: String(value.trackId || '').trim(),
+              zoneId: String(value.zoneId || '').trim(),
+              includeSource: value.includeSource !== false,
+              includeScenarios: value.includeScenarios !== false,
+              includeMetrics: value.includeMetrics !== false,
+              includeTrackingIssueReport: value.includeTrackingIssueReport !== false,
+            };
+          }
+          return normalized;
+        } catch (_) {
+          return {};
+        }
+      }
+
+      function saveMetadataSubscriptionPresets(presets) {
+        localStorage.setItem(metadataSubscriptionPresetStorageKey, JSON.stringify(presets || {}));
+      }
+
+      function selectedMetadataSubscriptionPresetName() {
+        const select = $('metadataSubscriptionPresetSelect');
+        return String(select?.value || 'custom');
+      }
+
+      function setMetadataSubscriptionPresetStatus(message) {
+        setText('metadataSubscriptionPresetStatusText', message || 'preset 없음');
+      }
+
+      function refreshMetadataSubscriptionPresetSelect(selected = selectedMetadataSubscriptionPresetName()) {
+        const select = $('metadataSubscriptionPresetSelect');
+        if (!select) return;
+        const presets = loadMetadataSubscriptionPresets();
+        const names = Object.keys(presets).sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
+        const wanted = selected && (selected === 'custom' || Object.prototype.hasOwnProperty.call(presets, selected))
+          ? selected
+          : 'custom';
+        select.innerHTML = '';
+        addOption(select, 'custom', 'custom');
+        for (const name of names) {
+          addOption(select, name, name);
+        }
+        select.value = wanted;
+        localStorage.setItem(metadataSubscriptionPresetSelectionKey, wanted);
+        setMetadataSubscriptionPresetStatus(wanted === 'custom'
+          ? (names.length > 0 ? `preset ${names.length}개` : 'preset 없음')
+          : `preset ${wanted}`);
+      }
+
+      function applyMetadataSubscriptionPreset(name) {
+        const presets = loadMetadataSubscriptionPresets();
+        const payload = presets[String(name || '')];
+        if (!payload) {
+          refreshMetadataSubscriptionPresetSelect('custom');
+          updateGeneratedUrls();
+          return;
+        }
+        if ($('metadataFilterEventType')) $('metadataFilterEventType').value = payload.eventType || '';
+        if ($('metadataFilterScenarioName')) $('metadataFilterScenarioName').value = payload.scenarioName || '';
+        if ($('metadataFilterTrackId')) $('metadataFilterTrackId').value = payload.trackId || '';
+        if ($('metadataFilterZoneId')) $('metadataFilterZoneId').value = payload.zoneId || '';
+        if ($('metadataIncludeSourceInput')) $('metadataIncludeSourceInput').checked = payload.includeSource !== false;
+        if ($('metadataIncludeScenariosInput')) $('metadataIncludeScenariosInput').checked = payload.includeScenarios !== false;
+        if ($('metadataIncludeMetricsInput')) $('metadataIncludeMetricsInput').checked = payload.includeMetrics !== false;
+        if ($('metadataIncludeTrackingIssueInput')) $('metadataIncludeTrackingIssueInput').checked = payload.includeTrackingIssueReport !== false;
+        refreshMetadataSubscriptionPresetSelect(String(name || 'custom'));
+        updateGeneratedUrls();
+        scheduleMetadataOverlayFrame();
+      }
+
+      function saveCurrentMetadataSubscriptionPreset() {
+        const name = String(window.prompt('metadata filter preset 이름', selectedMetadataSubscriptionPresetName() === 'custom'
+          ? 'loitering-default'
+          : selectedMetadataSubscriptionPresetName()) || '').trim();
+        if (!name) {
+          setMetadataSubscriptionPresetStatus('preset 저장 취소');
+          return;
+        }
+        const presets = loadMetadataSubscriptionPresets();
+        presets[name] = metadataSubscriptionPresetPayload();
+        saveMetadataSubscriptionPresets(presets);
+        refreshMetadataSubscriptionPresetSelect(name);
+      }
+
+      function deleteSelectedMetadataSubscriptionPreset() {
+        const name = selectedMetadataSubscriptionPresetName();
+        if (!name || name === 'custom') {
+          setMetadataSubscriptionPresetStatus('삭제할 preset 선택 필요');
+          return;
+        }
+        const presets = loadMetadataSubscriptionPresets();
+        delete presets[name];
+        saveMetadataSubscriptionPresets(presets);
+        refreshMetadataSubscriptionPresetSelect('custom');
+      }
+
+      function initializeMetadataSubscriptionPresets() {
+        refreshMetadataSubscriptionPresetSelect(localStorage.getItem(metadataSubscriptionPresetSelectionKey) || 'custom');
+        const selected = selectedMetadataSubscriptionPresetName();
+        if (selected && selected !== 'custom') {
+          applyMetadataSubscriptionPreset(selected);
+        }
+      }
 
 	    function buildMetadataTapSideChannelParams() {
 	      const params = new URLSearchParams();
@@ -16511,18 +16653,42 @@ std::string BuildLabRuleEditorPageHtml() {
       for (const id of ['viewSourceKind', 'viewFileSelect', 'viewUrlInput', 'viewServerBaseUrl', 'viewRtspAuthority', 'metadataFilterEventType', 'metadataFilterScenarioName', 'metadataFilterTrackId', 'metadataFilterZoneId']) {
         const el = $(id);
         if (el) {
-          el.addEventListener('input', updateViewModeUi);
-          el.addEventListener('change', updateViewModeUi);
+          el.addEventListener('input', () => {
+            refreshMetadataSubscriptionPresetSelect('custom');
+            updateViewModeUi();
+          });
+          el.addEventListener('change', () => {
+            refreshMetadataSubscriptionPresetSelect('custom');
+            updateViewModeUi();
+          });
         }
       }
       for (const id of ['metadataOverlayBboxInput', 'metadataOverlayLabelInput', 'metadataOverlayTrackIdInput', 'metadataOverlayScenarioInput', 'metadataOverlayEventInput', 'metadataOverlayHealthInput', 'metadataOverlayZoneInput', 'metadataOverlayDwellInput', 'metadataOverlayDetectionInput', 'metadataOverlayFallbackInput', 'metadataIncludeSourceInput', 'metadataIncludeScenariosInput', 'metadataIncludeMetricsInput', 'metadataIncludeTrackingIssueInput']) {
         const el = $(id);
         if (el) {
           el.addEventListener('change', () => {
+            if (id.startsWith('metadataInclude')) refreshMetadataSubscriptionPresetSelect('custom');
             updateGeneratedUrls();
             scheduleMetadataOverlayFrame();
           });
         }
+      }
+      if ($('metadataSubscriptionPresetSelect')) {
+        $('metadataSubscriptionPresetSelect').addEventListener('change', () => {
+          const name = selectedMetadataSubscriptionPresetName();
+          if (name === 'custom') {
+            refreshMetadataSubscriptionPresetSelect('custom');
+            updateGeneratedUrls();
+            return;
+          }
+          applyMetadataSubscriptionPreset(name);
+        });
+      }
+      if ($('metadataSubscriptionPresetSaveBtn')) {
+        $('metadataSubscriptionPresetSaveBtn').addEventListener('click', saveCurrentMetadataSubscriptionPreset);
+      }
+      if ($('metadataSubscriptionPresetDeleteBtn')) {
+        $('metadataSubscriptionPresetDeleteBtn').addEventListener('click', deleteSelectedMetadataSubscriptionPreset);
       }
       if ($('metadataBboxDiagnosticsBtn')) {
         $('metadataBboxDiagnosticsBtn').addEventListener('click', () => {
@@ -16774,6 +16940,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	      startDashboardPolling();
 	    }
 	    applyMetadataViewerQueryDefaults();
+    initializeMetadataSubscriptionPresets();
     installMetadataSyncVerificationDebugHook();
     setRulePreviewUi(false);
     setViewPreviewUi(false);

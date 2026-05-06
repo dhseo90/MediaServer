@@ -551,6 +551,7 @@ WebSocket metadata side-channel smoke:
 - 첫 text frame의 JSON schema가 `media-server.va.runtime-metadata.v1`인지 확인
 - `tracks`, `events`, `scenarios`, `metrics` 필드가 포함되는지 확인
 - `{"type":"subscribe","eventType":"loitering","includeMetrics":false}` 같은 client text command 후 `media-server.va.metadata-control.v1` ack가 오고, 이어서 `unsubscribe`, `status`, `resume`, `reset` ack 순서와 subscribed/filter/include 상태가 기대값과 맞는지 확인
+- `/lab/rules` Custom client URL 패널에서 metadata filter preset 저장/재적용 후에도 WebRTC metadata viewer, SSE, WS URL query가 같은 filter/include 값을 유지하는지 확인
 - 임시 WebSocket analysis tap이 client disconnect 후 cleanup되는지 확인
 - WebSocket 실패가 RTSP/WebRTC video/audio 흐름으로 전파되지 않는지 확인
 
