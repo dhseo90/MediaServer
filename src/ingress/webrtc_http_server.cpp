@@ -18448,6 +18448,7 @@ void AppendOpsLivePage(std::ostringstream& out) {
               <div class="status-stat"><span>채널</span><strong id="opsLivePreviewPrimaryViewText">-</strong></div>
               <div class="status-stat"><span>모드</span><strong id="opsLivePreviewPrimaryModeText">원본</strong></div>
             </div>
+            <div id="opsLivePreviewPrimaryHealthBadges" class="badge-row" style="margin-bottom:10px;"><span class="chip info">health 대기</span></div>
             <div id="opsLivePreviewPrimaryStage" class="tile-stage" style="min-height:220px;">
               <video id="opsLivePreviewPrimaryVideo" playsinline muted autoplay></video>
               <span id="opsLivePreviewPrimaryPlaceholder">슬롯 A는 비어 있습니다.</span>
@@ -18466,6 +18467,7 @@ void AppendOpsLivePage(std::ostringstream& out) {
               <div class="status-stat"><span>채널</span><strong id="opsLivePreviewSecondaryViewText">-</strong></div>
               <div class="status-stat"><span>모드</span><strong id="opsLivePreviewSecondaryModeText">원본</strong></div>
             </div>
+            <div id="opsLivePreviewSecondaryHealthBadges" class="badge-row" style="margin-bottom:10px;"><span class="chip info">health 대기</span></div>
             <div id="opsLivePreviewSecondaryStage" class="tile-stage" style="min-height:220px;">
               <video id="opsLivePreviewSecondaryVideo" playsinline muted autoplay></video>
               <span id="opsLivePreviewSecondaryPlaceholder">슬롯 B는 비어 있습니다.</span>
