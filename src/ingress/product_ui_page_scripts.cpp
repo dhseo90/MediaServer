@@ -1005,6 +1005,35 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         requestJson,
         applyPrincipalVisibility
       } = window.MediaServerUi;
+      const opsViewRuleId = view =>
+        String(view?.defaultRuleId || (Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds[0] : '') || '').trim();
+      const normalizeOverlayMode = mode => {
+        const raw = String(mode || '').trim().toLowerCase();
+        if (!raw || ['raw', 'none', 'video', 'live'].includes(raw)) return 'raw';
+        if (['va-overlay', 'va', 'overlay', 'metadata', 'server-overlay'].includes(raw)) return 'va-overlay';
+        if (['va-rule', 'rule', 'varule'].includes(raw)) return 'va-rule';
+        return '';
+      };
+      const overlayLabel = mode => ({
+        raw: '원본',
+        'va-overlay': 'VA 오버레이',
+        'va-rule': 'VA 룰'
+      })[mode] || mode || '미제공';
+      const allowedOverlayModes = view => {
+        const seen = new Set();
+        const out = [];
+        const ruleId = opsViewRuleId(view);
+        for (const value of view?.allowedOverlayModes || []) {
+          const overlayMode = normalizeOverlayMode(value);
+          if (overlayMode === 'va-rule' && !ruleId) continue;
+          if (overlayMode && !seen.has(overlayMode)) {
+            seen.add(overlayMode);
+            out.push(overlayMode);
+          }
+        }
+        return out;
+      };
+      const ms = value => value === null || value === undefined ? '미제공' : `${Math.max(0, Math.round(Number(value)))}ms`;
       const runtimeCounts = runtime => {
         const session = runtime?.sessionManager || {};
         const webrtc = runtime?.webrtcHttp || {};

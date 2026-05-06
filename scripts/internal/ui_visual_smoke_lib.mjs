@@ -108,6 +108,33 @@ export function cookieHeaderFromNetscapeFile(cookieFile) {
   return pairs.join("; ");
 }
 
+export async function openBrowserPage({
+  httpBase,
+  pagePath,
+  timeoutMs,
+  chromePath,
+  debugPort,
+  width = 1280,
+  height = 900,
+  outputDir = "",
+  verbose = false,
+  cookieHeader = "",
+}) {
+  if (!chromePath) {
+    throw new Error("Chrome executable not found");
+  }
+  const url = new URL(pagePath, `${httpBase}/`).toString();
+  return launchBrowser(debugPort, width, height, url, {
+    httpBase,
+    timeoutMs,
+    chromePath,
+    visualHeight: height,
+    outputDir,
+    verbose,
+    cookieHeader,
+  });
+}
+
 async function runVisualPageCheck(check, width, debugPort, label, options) {
   const url = new URL(check.path, `${options.httpBase}/`).toString();
   const browser = await launchBrowser(debugPort, width, options.visualHeight, url, options);
