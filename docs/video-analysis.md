@@ -645,7 +645,7 @@ message size 보호는 두 단계로 둡니다.
 
 - builder: track/event count budget을 적용할 수 있는 구조
 - publisher: `vaMetadataMaxMessageBytes`, `vaMetadataMaxBufferedBytes`, `vaMetadataIntervalMs`로 최종 전송 제한
-- SSE/WebSocket side-channel: `intervalMs`, `maxMessageBytes`, `maxTracks`, `maxEvents` query로 전송량 제한
+- SSE/WebSocket side-channel: `intervalMs`, `maxMessageBytes`, `maxTracks`, `maxEvents` query로 전송량 제한. `eventType`, `scenarioName`, `trackId`, `zoneId`, `lineId`, `classId`, `className`, `ruleId`, `status` 구독 필터와 `includeSource`/`includeScenarios`/`includeMetrics`/`includeTrackingIssueReport` include flag를 지원합니다.
 
 WebRTC DataChannel 송신 backpressure 정책:
 
@@ -879,7 +879,7 @@ OpenCV가 없는 환경에서는 예제가 설치 안내와 함께 종료해야 
 
 ## 15. WebSocket Metadata Side-Channel
 
-WebSocket side-channel은 SSE와 같은 runtime metadata payload를 text frame으로 전달합니다. 현재 구현은 metadata subscribe 중심의 최소 구현이며, client command/filter/subscribe-unsubscribe 제어는 후속 확장입니다.
+WebSocket side-channel은 SSE와 같은 runtime metadata payload를 text frame으로 전달합니다. 현재 구현은 metadata subscribe 중심의 최소 구현이며, SSE와 같은 query filter/include flag를 적용합니다. 연결 중 command 기반 subscribe-unsubscribe 제어는 후속 확장입니다.
 
 Endpoint:
 

@@ -20,6 +20,7 @@ echo "[verify] build analysis state smoke: ${BUILD_DIR}"
   "${ROOT_DIR}/src/analysis/intrusion_after_line_crossing_scenario.cpp" \
   "${ROOT_DIR}/src/analysis/intrusion_dwell_scenario.cpp" \
   "${ROOT_DIR}/src/analysis/loitering_scenario.cpp" \
+  "${ROOT_DIR}/src/analysis/metadata_subscription_filter.cpp" \
   "${ROOT_DIR}/src/analysis/object_tracker.cpp" \
   "${ROOT_DIR}/src/analysis/re_entry_scenario.cpp" \
   "${ROOT_DIR}/src/analysis/scenario_engine.cpp" \
