@@ -6931,6 +6931,7 @@ std::string BuildLabRuleEditorPageHtml() {
                 <select id="scenarioLoiteringPreset">
                   <option value="custom" selected>custom</option>
                   <option value="lobby">로비/대기열 · 30s · radius 0.08</option>
+                  <option value="retail">매장 통로 · 20s · radius 0.06</option>
                   <option value="platform">승강장 · 45s · radius 0.10</option>
                   <option value="parking">주차장 보행자 · 60s · radius 0.12</option>
                 </select>
@@ -6950,6 +6951,15 @@ std::string BuildLabRuleEditorPageHtml() {
               </label>
             </div>
             <div id="scenarioZoneOccupancyRow" class="row" hidden>
+              <label>현장 프리셋
+                <select id="scenarioZoneOccupancyPreset">
+                  <option value="custom">직접 설정</option>
+                  <option value="queue">대기열 · 4명 · 7s</option>
+                  <option value="lobby">로비 혼잡 · 6명 · 10s</option>
+                  <option value="platform">승강장 혼잡 · 8명 · 5s</option>
+                  <option value="doorway">출입구 정체 · 3명 · 3s</option>
+                </select>
+              </label>
               <label>점유 임계값: <span id="scenarioZoneOccupancyThresholdValue">3</span>
                 <input id="scenarioZoneOccupancyThreshold" type="range" min="1" max="50" step="1" value="3" />
                 <span class="range-meta">같은 target zone 안에서 동시에 조건을 만족해야 하는 대상 수입니다.</span>
@@ -7974,7 +7984,7 @@ std::string BuildLabRuleEditorPageHtml() {
         actions: ['setRuleKind', 'updateRuleModeUi', 'ruleJson']
       },
       ScenarioEditor: {
-        selectors: ['scenarioType', 'scenarioCandidateMs', 'scenarioDwellMs', 'scenarioReEntryWindowMs', 'scenarioReEntryMode', 'scenarioReEntryZoneIds', 'scenarioAfterLineId', 'scenarioAfterLineDirection', 'scenarioAfterLineX1', 'scenarioAfterLineY1', 'scenarioAfterLineX2', 'scenarioAfterLineY2', 'scenarioAfterLineTimeoutMs', 'scenarioAfterLineDwellMs', 'scenarioLoiteringRadius', 'scenarioLoiteringMinPoints', 'scenarioLoiteringUseGroundPlane', 'scenarioCooldownMs', 'scenarioStableOnly'],
+        selectors: ['scenarioType', 'scenarioCandidateMs', 'scenarioDwellMs', 'scenarioReEntryWindowMs', 'scenarioReEntryMode', 'scenarioReEntryZoneIds', 'scenarioAfterLineId', 'scenarioAfterLineDirection', 'scenarioAfterLineX1', 'scenarioAfterLineY1', 'scenarioAfterLineX2', 'scenarioAfterLineY2', 'scenarioAfterLineTimeoutMs', 'scenarioAfterLineDwellMs', 'scenarioLoiteringRadius', 'scenarioLoiteringMinPoints', 'scenarioLoiteringUseGroundPlane', 'scenarioZoneOccupancyPreset', 'scenarioCooldownMs', 'scenarioStableOnly'],
         actions: ['scenarioJson', 'updateRangeLabels']
       },
       ObjectCategorySelector: {
@@ -9210,6 +9220,7 @@ std::string BuildLabRuleEditorPageHtml() {
       const preset = String(value || 'custom');
       const presets = {
         lobby: { dwellMs: 30000, radius: 0.08, points: 4 },
+        retail: { dwellMs: 20000, radius: 0.06, points: 4 },
         platform: { dwellMs: 45000, radius: 0.10, points: 5 },
         parking: { dwellMs: 60000, radius: 0.12, points: 6 }
       };
@@ -9218,6 +9229,21 @@ std::string BuildLabRuleEditorPageHtml() {
       if ($('scenarioDwellMs')) $('scenarioDwellMs').value = String(selected.dwellMs);
       if ($('scenarioLoiteringRadius')) $('scenarioLoiteringRadius').value = String(selected.radius);
       if ($('scenarioLoiteringMinPoints')) $('scenarioLoiteringMinPoints').value = String(selected.points);
+    }
+
+    function applyZoneOccupancyPreset(value) {
+      const preset = String(value || 'custom');
+      const presets = {
+        queue: { threshold: 4, dwellMs: 7000, cooldownMs: 12000 },
+        lobby: { threshold: 6, dwellMs: 10000, cooldownMs: 15000 },
+        platform: { threshold: 8, dwellMs: 5000, cooldownMs: 10000 },
+        doorway: { threshold: 3, dwellMs: 3000, cooldownMs: 8000 }
+      };
+      const selected = presets[preset];
+      if (!selected) return;
+      if ($('scenarioZoneOccupancyThreshold')) $('scenarioZoneOccupancyThreshold').value = String(selected.threshold);
+      if ($('scenarioZoneOccupancyMinDwellMs')) $('scenarioZoneOccupancyMinDwellMs').value = String(selected.dwellMs);
+      if ($('scenarioCooldownMs')) $('scenarioCooldownMs').value = String(selected.cooldownMs);
     }
 
     function scenarioZoneOccupancyThresholdValue() {
@@ -10803,6 +10829,7 @@ std::string BuildLabRuleEditorPageHtml() {
       $('scenarioAfterLineY2').value = Number(triggerLinePoints[1]?.y ?? 0.50);
       $('scenarioCooldownMs').value = Number(scenario.cooldownMs ?? ($('scenarioType').value === 'loitering' ? 10000 : 5000));
       if ($('scenarioLoiteringPreset')) $('scenarioLoiteringPreset').value = 'custom';
+      if ($('scenarioZoneOccupancyPreset')) $('scenarioZoneOccupancyPreset').value = 'custom';
       $('scenarioLoiteringRadius').value = Number(scenario.maxMovementRadius ?? scenario.movementRadius ?? 0.08);
       $('scenarioLoiteringMinPoints').value = Number(scenario.minTrajectoryPoints ?? 4);
       $('scenarioLoiteringUseGroundPlane').checked = scenario.useGroundPlaneMovementRadius === true;
@@ -16250,11 +16277,12 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     function bindRuleInputEvents() {
-      for (const id of ['profileFps', 'profileQueue', 'profileConfidence', 'profileNms', 'profileInputWidth', 'profileInputHeight', 'profileDetector', 'profileAdaptive', 'profileId', 'ruleId', 'ruleEnabled', 'ruleSourceKind', 'ruleRoute', 'ruleProfileId', 'ruleEventType', 'ruleLineDirection', 'ruleConfidence', 'ruleMinDurationMs', 'scenarioType', 'scenarioLineDirection', 'scenarioZoneIds', 'scenarioCandidateMs', 'scenarioDwellMs', 'scenarioReEntryWindowMs', 'scenarioReEntryMode', 'scenarioReEntryZoneIds', 'scenarioAfterLineId', 'scenarioAfterLineDirection', 'scenarioAfterLineX1', 'scenarioAfterLineY1', 'scenarioAfterLineX2', 'scenarioAfterLineY2', 'scenarioAfterLineTimeoutMs', 'scenarioAfterLineDwellMs', 'scenarioLoiteringPreset', 'scenarioLoiteringRadius', 'scenarioLoiteringMinPoints', 'scenarioLoiteringUseGroundPlane', 'scenarioZoneOccupancyThreshold', 'scenarioZoneOccupancyMinDwellMs', 'scenarioCooldownMs', 'scenarioStableOnly', 'eventFlashInput', 'eventFlashMsInput', 'eventPostUrlInput']) {
+      for (const id of ['profileFps', 'profileQueue', 'profileConfidence', 'profileNms', 'profileInputWidth', 'profileInputHeight', 'profileDetector', 'profileAdaptive', 'profileId', 'ruleId', 'ruleEnabled', 'ruleSourceKind', 'ruleRoute', 'ruleProfileId', 'ruleEventType', 'ruleLineDirection', 'ruleConfidence', 'ruleMinDurationMs', 'scenarioType', 'scenarioLineDirection', 'scenarioZoneIds', 'scenarioCandidateMs', 'scenarioDwellMs', 'scenarioReEntryWindowMs', 'scenarioReEntryMode', 'scenarioReEntryZoneIds', 'scenarioAfterLineId', 'scenarioAfterLineDirection', 'scenarioAfterLineX1', 'scenarioAfterLineY1', 'scenarioAfterLineX2', 'scenarioAfterLineY2', 'scenarioAfterLineTimeoutMs', 'scenarioAfterLineDwellMs', 'scenarioLoiteringPreset', 'scenarioLoiteringRadius', 'scenarioLoiteringMinPoints', 'scenarioLoiteringUseGroundPlane', 'scenarioZoneOccupancyPreset', 'scenarioZoneOccupancyThreshold', 'scenarioZoneOccupancyMinDwellMs', 'scenarioCooldownMs', 'scenarioStableOnly', 'eventFlashInput', 'eventFlashMsInput', 'eventPostUrlInput']) {
         const el = $(id);
         if (el) el.addEventListener('input', updatePreviews);
         if (el) el.addEventListener('change', () => {
           if (id === 'scenarioLoiteringPreset') applyLoiteringPreset(el.value);
+          if (id === 'scenarioZoneOccupancyPreset') applyZoneOccupancyPreset(el.value);
           updatePreviews();
         });
       }

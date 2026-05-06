@@ -36,7 +36,7 @@
 - `완료`로 표시된 항목은 각 항목의 “완료 범위”와 검증 명령에 한정된 1차 구현 상태입니다. 운영 배포 승격은 장기 soak, TURN/외부 네트워크, credential, 개인정보/보관 정책 검토를 별도 gate로 통과해야 합니다.
 - WebRTC source 관련 완료 범위는 WebRTC egress/WHEP output, 내부 `/whip/publish` sourceId 소비, 외부 WHEP playback endpoint를 `kind=whep`/`whepUrl`로 pull하는 SourceRegistry 경로입니다. 인증 토큰이 필요한 외부 WHEP endpoint credential 보관/주입은 별도 운영 정책 gate로 둡니다.
 - EventRecord 완료 범위는 JSON Lines 저장, active/archive 조회/search UI, rotation/retention/recovery 1차, 비파괴 compaction snapshot 생성/목록/다운로드/삭제, snapshot media/pre-post frame bundle recorder입니다. Archive cleanup policy와 MP4/VMS/NVR형 recorder는 후속입니다.
-- Loitering은 engine/replay와 전용 룰 편집 UI 템플릿, 현장 샘플 프리셋 기준 완료입니다. ZoneOccupancyScenario는 engine/replay/UI 1차 완료입니다.
+- Loitering은 engine/replay와 전용 룰 편집 UI 템플릿, 현장 샘플 프리셋 기준 완료입니다. ZoneOccupancyScenario는 engine/replay/UI와 대기열/로비/승강장/출입구 tuning preset 기준 완료입니다.
 - Re-ID/appearance, YouTube import/source, 외부 TURN relay/auth, WS command/filter/subscription은 실험/보류 범위이며 운영 기본 기능으로 표현하지 않습니다.
 
 ## 후속 Phase - 운영/클라이언트/권한 분리
@@ -544,7 +544,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 - 상태: 1차 완료
 - 목적: 특정 zone 내부 동시 track 수가 threshold 이상일 때 crowd/occupancy 이벤트를 발생시킵니다.
-- 완료 범위: `ZoneOccupancyScenario`, env/per-rule 옵션, 룰 편집 UI 템플릿, replay fixture, analysis-state smoke를 구현했습니다. 기존 Event POST payload, WebRTC/SSE/WS metadata schema는 변경하지 않습니다.
+- 완료 범위: `ZoneOccupancyScenario`, env/per-rule 옵션, 룰 편집 UI 템플릿, 대기열/로비/승강장/출입구 tuning preset, replay fixture, analysis-state smoke를 구현했습니다. 기존 Event POST payload, WebRTC/SSE/WS metadata schema는 변경하지 않습니다.
 - 관련 파일: `src/analysis/zone_occupancy_scenario.cpp`, `include/analysis/zone_occupancy_scenario.h`, `src/analysis/event_rule_engine.cpp`, `test/fixtures/va_replay/zone_occupancy_*`
 - 검증 명령:
 
