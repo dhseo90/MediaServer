@@ -1,0 +1,36 @@
+[
+  {
+    "id": "queue-zone",
+    "enabled": true,
+    "match": {
+      "sourceKind": "*",
+      "route": "*"
+    },
+    "ruleKind": "scenario",
+    "analysis": {
+      "classes": ["person"]
+    },
+    "event": {
+      "type": "zone-occupancy",
+      "minConfidence": 0.1,
+      "region": {
+        "type": "polygon",
+        "points": [
+          { "x": 0.1, "y": 0.1 },
+          { "x": 0.6, "y": 0.1 },
+          { "x": 0.6, "y": 0.6 },
+          { "x": 0.1, "y": 0.6 }
+        ]
+      }
+    },
+    "scenario": {
+      "type": "zone-occupancy",
+      "enabled": true,
+      "occupancyThreshold": 2,
+      "minDwellTimeMs": 1000,
+      "cooldownMs": 1000,
+      "targetClasses": ["person"],
+      "targetZoneIds": ["queue-zone"]
+    }
+  }
+]

@@ -91,7 +91,7 @@ fi
 
 확인 기준:
 
-- `/ops`, `/ops/home`, `/ops/live`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`는 HTML을 반환하고 공통 Ops Console header/nav를 유지합니다. Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기 순서이며 `/ops/live`는 후속 Operator Live Monitor 안내 route로 남깁니다.
+- `/ops`, `/ops/home`, `/ops/live`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`는 HTML을 반환하고 공통 Ops Console header/nav를 유지합니다. Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기 순서이며 `/ops/live`는 자동 media session을 열지 않는 고밀도 source/runtime/event 상태 타일을 표시합니다.
 - `/ops/events`는 primary nav에서 숨긴 직접/진단 route입니다. 독립 제품 탭으로 취급하지 않고, 이벤트 조건은 룰에서 설정하며 운영 요약은 대시보드에서 확인합니다.
 - `/ops/dashboard`와 `/ops/rules`는 Lab iframe이나 `/lab/rules?embed=1`을 포함하지 않습니다. 대시보드는 `/ops/api/runtime/status`, 룰 카탈로그는 `/ops/api/rules/catalog`, 숨김 이벤트 상태는 `/ops/api/events/status`를 사용합니다. raw JSON은 접힘 debug 영역에만 둡니다.
 - `/ops/sources`는 숫자 채널 table을 먼저 보여주며, Live URL/VA URL 복사 버튼은 RTSP와 WebRTC 버튼을 실제 클립보드에 복사해야 합니다. source 원본 URL은 ops 화면에만 표시합니다.
@@ -814,9 +814,9 @@ ffprobe -rtsp_transport tcp \
 - 저장된 ReEntry rule은 `event.type=scenario.type=re-entry`와 `targetZoneIds`/`reEntryZoneIds`를 유지함
 - IntrusionAfterLineCrossing scenario를 룰 편집 UI에서 선택하고 trigger line, crossing direction, target zone, `maxDelayAfterCrossingMs`, `dwellTimeMs`, `cooldownMs`를 저장할 수 있음
 - 저장된 IntrusionAfterLineCrossing rule은 기존 `line-crossing` 기본 이벤트와 분리된 `event.type=scenario.type=intrusion-after-line-crossing`을 유지함
-- Loitering scenario를 룰 편집 UI에서 선택하고 target zone, `minDwellTimeMs`, `maxMovementRadius`, `minTrajectoryPoints`, `cooldownMs`를 저장할 수 있음
+- Loitering scenario를 룰 편집 UI에서 선택하고 target zone, field preset, `minDwellTimeMs`, `maxMovementRadius`, `minTrajectoryPoints`, `cooldownMs`를 저장할 수 있음
 - 저장된 Loitering rule은 `event.type=scenario.type=loitering`과 `targetZoneIds`/movement radius/trajectory point를 유지함
-- ZoneOccupancyScenario는 다음 작업으로 남아 있음
+- ZoneOccupancyScenario를 룰 편집 UI에서 선택하고 `occupancyThreshold`, `minDwellTimeMs`, target zone, cooldown을 저장할 수 있음
 - IntrusionDwell/WrongDirection UI와 기존 Event POST payload, WebRTC/SSE/WS metadata schema는 변경되지 않음
 - 숫자 ID 범위와 자동 할당 정책이 UI에서 깨지지 않음
 
@@ -873,8 +873,9 @@ MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 \
 - POST 실패가 media pipeline 실패로 이어지지 않음
 - queue/dedupe/cooldown counter가 무한 증가하지 않음
 - Event POST payload 검증과 EventRecord storage 정책 검증은 별도입니다. Storage rotation/recovery가 추가되어도 POST payload field는 변경하지 않습니다.
-- EventRecord file storage, active file query/search UI와 JSON Lines rotation/retention/recovery 1차는 구현 완료 상태입니다.
+- EventRecord file storage, active/archive query/search UI와 JSON Lines rotation/retention/recovery 1차는 구현 완료 상태입니다.
 - EventRecord 조회 API는 저장된 metadata만 반환하며 영상 검색, snapshot 추출, clip recorder를 수행하지 않음
+- `includeArchives=1`은 rotated archive를 조회에 포함하고, compaction snapshot API는 기존 파일을 수정하지 않음
 - 손상되었거나 partial 상태인 EventRecord JSON Lines 행은 records API 전체 실패가 아니라 skip/count 처리됨
 - `/lab/analysis/event-storage/status`의 `skippedCorruptLines`, `partialLineCount`, `lastRecoveryStatus`로 recovery summary를 확인할 수 있음
 - `verify-event-post --mode recovery`는 EventStorage가 활성화되어 있고 안전한 `/tmp/media_server_*` path를 사용할 때 valid/corrupt/partial JSON Lines를 주입해 records API와 status recovery count를 확인함
@@ -1044,10 +1045,10 @@ Replay 결과 차이는 누락/초과/불일치 이벤트를 먼저 확인합니
 | EventManager | dedupe, cooldown, lifecycle, stale state cleanup |
 | ScenarioEngine | stream/channel별 instance 분리, saved scenario payload는 env default보다 우선 |
 | IntrusionDwell | Candidate -> Observing -> Confirmed -> Cooldown -> Ended |
-| 신규 scenarios | ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering replay 통과 |
+| 신규 scenarios | ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, ZoneOccupancy replay 통과 |
 | TrackHealth | 진단 metadata만 추가, tracking id 생성 방식 유지 |
 | Appearance hook | 기본 NoOp, 실제 모델 호출 없음 |
-| EventRecord/hook | JSON Lines active-file query/rotation/recovery, snapshot/clip marker hook 실패가 event emit을 막지 않음 |
+| EventRecord/hook | JSON Lines active/archive query/rotation/recovery, 비파괴 compaction snapshot, snapshot/clip marker hook 실패가 event emit을 막지 않음 |
 | Cleanup | active track/scenario/event를 잘못 삭제하지 않음 |
 | 다채널 | 같은 trackId가 다른 channel에서 충돌하지 않음 |
 

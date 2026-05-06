@@ -13,6 +13,7 @@
 #include "analysis/scenario_engine.h"
 #include "analysis/tracked_object_metadata.h"
 #include "analysis/wrong_direction_scenario.h"
+#include "analysis/zone_occupancy_scenario.h"
 
 #include "app_config.h"
 
@@ -591,7 +592,8 @@ SceneGeometryConfig BuildSceneGeometryConfig(const EventRule& rule) {
 
 bool IsKnownScenarioType(const std::string& type) {
     return type == "intrusion-dwell" || type == "re-entry" || type == "wrong-direction" ||
-           type == "intrusion-after-line-crossing" || type == "loitering";
+           type == "intrusion-after-line-crossing" || type == "loitering" ||
+           type == "zone-occupancy";
 }
 
 std::string ScenarioTypeFromDocument(const std::string& document, const EventRule& rule) {
@@ -756,6 +758,10 @@ std::vector<std::unique_ptr<IScenario>> BuildDefaultRuntimeScenarios(const app::
         scenarios.push_back(
             std::make_unique<LoiteringScenario>(BuildLoiteringScenarioOptionsFromConfig(config)));
     }
+    if (config.analysis_zone_occupancy_enabled) {
+        scenarios.push_back(std::make_unique<ZoneOccupancyScenario>(
+            BuildZoneOccupancyScenarioOptionsFromConfig(config)));
+    }
     return scenarios;
 }
 
@@ -895,6 +901,31 @@ std::vector<std::unique_ptr<IScenario>> BuildRuleRuntimeScenarios(
                 ParseBoolField(scenario, "useGroundPlaneMovementRadius")
                     .value_or(options.use_ground_plane_movement_radius);
             scenarios.push_back(std::make_unique<LoiteringScenario>(std::move(options)));
+        } else if (scenario_type == "zone-occupancy") {
+            auto options = BuildZoneOccupancyScenarioOptionsFromConfig(config);
+            options.enabled = true;
+            options.scenario_key = ScenarioKeyForRule(*rule, scenario_type);
+            options.require_stable_track = require_stable_track;
+            options.target_class_tokens = ScenarioTargetClasses(document, *rule, options.target_class_tokens);
+            options.target_zone_ids = zone_ids;
+            if (const auto value = ParsePositiveSizeField(scenario, "occupancyThreshold"); value.has_value()) {
+                options.occupancy_threshold = *value;
+            } else if (const auto value = ParsePositiveSizeField(scenario, "minOccupancy"); value.has_value()) {
+                options.occupancy_threshold = *value;
+            } else if (const auto value = ParsePositiveSizeField(scenario, "threshold"); value.has_value()) {
+                options.occupancy_threshold = *value;
+            }
+            if (const auto value = ParseNonNegativeIntField(scenario, "minDwellTimeMs"); value.has_value()) {
+                options.min_dwell_time_ms = *value;
+            } else if (const auto value = ParseNonNegativeIntField(scenario, "dwellTimeMs"); value.has_value()) {
+                options.min_dwell_time_ms = *value;
+            } else if (const auto value = ParseNonNegativeIntField(scenario, "windowMs"); value.has_value()) {
+                options.min_dwell_time_ms = *value;
+            }
+            if (const auto value = ParseNonNegativeIntField(scenario, "cooldownMs"); value.has_value()) {
+                options.cooldown_ms = *value;
+            }
+            scenarios.push_back(std::make_unique<ZoneOccupancyScenario>(std::move(options)));
         }
     }
     if (!scenarios.empty()) {

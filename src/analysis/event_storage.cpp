@@ -517,6 +517,9 @@ bool IsEventStorageArchivePath(const std::filesystem::path& active_path,
     if (active_stem.empty()) {
         return false;
     }
+    if (name.rfind(active_stem + ".compact.", 0) == 0) {
+        return false;
+    }
     if (name.rfind(active_stem + ".", 0) != 0) {
         return false;
     }
@@ -585,6 +588,19 @@ void SortEventStorageArchivesOldestFirst(std::vector<ArchiveFileInfo>* archives)
             return lhs.path.filename().string() < rhs.path.filename().string();
         }
         return lhs.modified_time < rhs.modified_time;
+    });
+}
+
+void SortEventStorageArchivesNewestFirst(std::vector<ArchiveFileInfo>* archives) {
+    if (archives == nullptr) {
+        return;
+    }
+    std::sort(archives->begin(), archives->end(), [](const ArchiveFileInfo& lhs,
+                                                     const ArchiveFileInfo& rhs) {
+        if (lhs.modified_time == rhs.modified_time) {
+            return lhs.path.filename().string() > rhs.path.filename().string();
+        }
+        return lhs.modified_time > rhs.modified_time;
     });
 }
 
@@ -973,16 +989,28 @@ bool WriteHookMarker(const EventRecord& record,
     }
     output << "{"
            << "\"schema\":\"media-server.va.event-" << kind << "-hook.v1\","
+           << "\"captureStatus\":\"manifest-only\","
+           << "\"recorded\":false,"
            << "\"eventId\":\"" << JsonEscape(record.event_id) << "\","
            << "\"eventType\":\"" << JsonEscape(record.event_type) << "\","
            << "\"streamId\":\"" << JsonEscape(record.stream_id) << "\","
            << "\"channelId\":\"" << JsonEscape(record.channel_id) << "\","
            << "\"trackId\":" << record.track_id << ","
            << "\"timestampMs\":" << record.update_time_ms << ","
+           << "\"captureWindow\":{"
+           << "\"startMs\":" << std::max<std::int64_t>(0, record.update_time_ms - options.pre_event_ms)
+           << ",\"eventMs\":" << record.update_time_ms
+           << ",\"endMs\":" << std::max<std::int64_t>(0, record.update_time_ms + options.post_event_ms)
+           << "},"
            << "\"preEventMs\":" << options.pre_event_ms << ","
            << "\"postEventMs\":" << options.post_event_ms << ","
            << "\"clipBufferMs\":" << options.clip_buffer_ms << ","
-           << "\"note\":\"hook marker only; media bytes are not captured in this implementation\""
+           << "\"eventStatus\":\"" << JsonEscape(record.status) << "\","
+           << "\"zoneId\":\"" << JsonEscape(record.zone_id) << "\","
+           << "\"lineId\":\"" << JsonEscape(record.line_id) << "\","
+           << "\"scenarioName\":\"" << JsonEscape(record.scenario_name) << "\","
+           << "\"scenarioPhase\":\"" << JsonEscape(record.scenario_phase) << "\","
+           << "\"note\":\"recorder manifest only; media bytes are not captured by this file hook\""
            << "}\n";
     if (!output.good()) {
         if (error_message != nullptr) {
@@ -1385,36 +1413,12 @@ EventStorageSnapshot GetEventStorageSnapshot() {
     return Dispatcher().Snapshot();
 }
 
-bool QueryEventRecords(const EventRecordQueryOptions& options,
-                       EventRecordQueryResult* result,
-                       std::string* error_message) {
-    if (result == nullptr) {
-        if (error_message != nullptr) {
-            *error_message = "result is required";
-        }
-        return false;
-    }
-    *result = EventRecordQueryResult{};
-    result->storage = GetEventStorageSnapshot();
-    const std::size_t limit = std::max<std::size_t>(1, options.limit);
-    result->limit = limit;
-
-    const std::filesystem::path path(result->storage.path);
-    std::error_code ec;
-    result->file_exists = !path.empty() && std::filesystem::exists(path, ec);
-    if (ec) {
-        if (error_message != nullptr) {
-            *error_message = ec.message();
-        }
-        return false;
-    }
-    if (!result->storage.enabled || path.empty() || !result->file_exists) {
-        if (error_message != nullptr) {
-            error_message->clear();
-        }
-        return true;
-    }
-
+bool QueryEventRecordPath(const std::filesystem::path& path,
+                          const EventRecordQueryOptions& options,
+                          std::size_t limit,
+                          bool archive_file,
+                          EventRecordQueryResult* result,
+                          std::string* error_message) {
     std::ifstream input(path);
     if (!input.good()) {
         if (error_message != nullptr) {
@@ -1424,7 +1428,6 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
     }
 
     std::string line;
-    std::uint64_t partial_line_count = 0;
     while (true) {
         const BoundedLineRead read = ReadBoundedJsonLine(input, &line);
         if (read.status == BoundedLineStatus::kEnd) {
@@ -1440,7 +1443,6 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
             ++result->skipped_corrupt_lines;
             if (!read.had_newline) {
                 ++result->partial_line_count;
-                ++partial_line_count;
             }
             continue;
         }
@@ -1455,9 +1457,11 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
             ++result->skipped_corrupt_lines;
             if (!read.had_newline) {
                 ++result->partial_line_count;
-                ++partial_line_count;
             }
             continue;
+        }
+        if (archive_file) {
+            ++result->archive_records_scanned;
         }
         if (!EventRecordMatchesQuery(parsed, options)) {
             continue;
@@ -1469,12 +1473,235 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
         }
         result->records_json.push_back(std::move(line));
     }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+bool QueryEventRecords(const EventRecordQueryOptions& options,
+                       EventRecordQueryResult* result,
+                       std::string* error_message) {
+    if (result == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "result is required";
+        }
+        return false;
+    }
+    *result = EventRecordQueryResult{};
+    result->storage = GetEventStorageSnapshot();
+    const std::size_t limit = std::max<std::size_t>(1, options.limit);
+    result->limit = limit;
+
+    const std::filesystem::path path(result->storage.active_path.empty() ? result->storage.path
+                                                                         : result->storage.active_path);
+    std::error_code ec;
+    result->file_exists = !path.empty() && std::filesystem::exists(path, ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = ec.message();
+        }
+        return false;
+    }
+    if (!result->storage.enabled || path.empty()) {
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
+    }
+
+    if (result->file_exists &&
+        !QueryEventRecordPath(path, options, limit, false, result, error_message)) {
+        return false;
+    }
+
+    if (options.include_archives && !result->has_more) {
+        std::string archive_error;
+        std::vector<ArchiveFileInfo> archives = ListEventStorageArchives(path, &archive_error);
+        if (!archive_error.empty()) {
+            if (error_message != nullptr) {
+                *error_message = archive_error;
+            }
+            return false;
+        }
+        SortEventStorageArchivesNewestFirst(&archives);
+        result->archive_files_scanned = static_cast<std::uint64_t>(archives.size());
+        result->file_exists = result->file_exists || !archives.empty();
+        for (const auto& archive : archives) {
+            if (result->has_more) {
+                break;
+            }
+            if (!QueryEventRecordPath(archive.path, options, limit, true, result, error_message)) {
+                return false;
+            }
+        }
+    }
     result->storage.skipped_corrupt_lines = result->skipped_corrupt_lines;
-    result->storage.partial_line_count = partial_line_count;
+    result->storage.partial_line_count = result->partial_line_count;
     result->storage.last_recovery_time_ms = NowMs();
     result->storage.last_recovery_status =
         RecoveryStatusForCounts(result->skipped_corrupt_lines, result->partial_line_count);
 
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+std::filesystem::path BuildCompactedEventStoragePath(const std::filesystem::path& active_path) {
+    const std::filesystem::path parent = active_path.parent_path();
+    const std::string stem = active_path.stem().string();
+    const std::string ext = active_path.extension().string().empty()
+                                ? std::string{".jsonl"}
+                                : active_path.extension().string();
+    const std::string name = stem + ".compact." + std::to_string(NowMs()) + "." +
+                             std::to_string(NextSequence()) + ext;
+    return parent.empty() ? std::filesystem::path(name) : parent / name;
+}
+
+bool CompactEventRecordPath(const std::filesystem::path& path,
+                            const EventRecordQueryOptions& options,
+                            bool archive_file,
+                            std::ofstream* output,
+                            EventRecordCompactionResult* result,
+                            std::string* error_message) {
+    std::ifstream input(path);
+    if (!input.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open event storage file";
+        }
+        return false;
+    }
+    std::string line;
+    while (true) {
+        const BoundedLineRead read = ReadBoundedJsonLine(input, &line);
+        if (read.status == BoundedLineStatus::kEnd) {
+            break;
+        }
+        if (read.status == BoundedLineStatus::kReadError) {
+            if (error_message != nullptr) {
+                *error_message = "failed to read event storage file";
+            }
+            return false;
+        }
+        if (read.status == BoundedLineStatus::kTooLong) {
+            ++result->skipped_corrupt_lines;
+            if (!read.had_newline) {
+                ++result->partial_line_count;
+            }
+            continue;
+        }
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
+        }
+        if (TrimCopy(line).empty()) {
+            continue;
+        }
+        ParsedEventRecordLine parsed;
+        if (!ParseEventRecordLine(line, &parsed)) {
+            ++result->skipped_corrupt_lines;
+            if (!read.had_newline) {
+                ++result->partial_line_count;
+            }
+            continue;
+        }
+        if (archive_file) {
+            ++result->archive_records_scanned;
+        } else {
+            ++result->active_records_scanned;
+        }
+        if (!EventRecordMatchesQuery(parsed, options)) {
+            continue;
+        }
+        *output << line << "\n";
+        if (!output->good()) {
+            if (error_message != nullptr) {
+                *error_message = "failed to write compacted event records";
+            }
+            return false;
+        }
+        ++result->retained_records;
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+bool CompactEventRecords(const EventRecordQueryOptions& options,
+                         EventRecordCompactionResult* result,
+                         std::string* error_message) {
+    if (result == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "result is required";
+        }
+        return false;
+    }
+    *result = EventRecordCompactionResult{};
+    result->storage = GetEventStorageSnapshot();
+    const std::filesystem::path active_path(result->storage.active_path.empty()
+                                                ? result->storage.path
+                                                : result->storage.active_path);
+    if (!result->storage.enabled || active_path.empty()) {
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
+    }
+    std::error_code ec;
+    result->active_file_exists = std::filesystem::exists(active_path, ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = ec.message();
+        }
+        return false;
+    }
+    const std::filesystem::path compacted_path = BuildCompactedEventStoragePath(active_path);
+    if (!EnsureParentDirectory(compacted_path, error_message)) {
+        return false;
+    }
+    std::ofstream output(compacted_path, std::ios::out | std::ios::trunc);
+    if (!output.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to create compacted event storage file";
+        }
+        return false;
+    }
+    if (result->active_file_exists &&
+        !CompactEventRecordPath(active_path, options, false, &output, result, error_message)) {
+        return false;
+    }
+    if (options.include_archives) {
+        std::string archive_error;
+        std::vector<ArchiveFileInfo> archives = ListEventStorageArchives(active_path, &archive_error);
+        if (!archive_error.empty()) {
+            if (error_message != nullptr) {
+                *error_message = archive_error;
+            }
+            return false;
+        }
+        archives.erase(std::remove_if(archives.begin(),
+                                      archives.end(),
+                                      [&](const ArchiveFileInfo& archive) {
+                                          return archive.path == compacted_path;
+                                      }),
+                       archives.end());
+        SortEventStorageArchivesOldestFirst(&archives);
+        result->archive_files_scanned = static_cast<std::uint64_t>(archives.size());
+        for (const auto& archive : archives) {
+            if (!CompactEventRecordPath(archive.path, options, true, &output, result, error_message)) {
+                return false;
+            }
+        }
+    }
+    output.close();
+    if (!output.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to finalize compacted event storage file";
+        }
+        return false;
+    }
+    result->compacted_path = compacted_path.string();
     if (error_message != nullptr) {
         error_message->clear();
     }

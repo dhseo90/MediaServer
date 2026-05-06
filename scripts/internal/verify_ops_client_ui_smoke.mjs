@@ -52,6 +52,13 @@ const pageChecks = [
     mustNot: ['<iframe', 'opsDashboardFrame', '/lab/rules?embed=1', '/lab/runtime/status'],
   },
   {
+    name: "ops-live",
+    path: "/ops/live",
+    visualSelector: '[data-testid="ops-live-page"]',
+    must: ['data-testid="ops-live-page"', 'id="opsLiveTileGrid"', 'id="opsLiveDensity"', 'id="opsLiveEventRows"', '/ops/api/sources', '/ops/api/views'],
+    mustNot: ['후속 구현 항목입니다', '<iframe', '/lab/rules?embed=1'],
+  },
+  {
     name: "ops-rules",
     path: "/ops/rules",
     visualSelector: '[data-testid="ops-rules-page"]',

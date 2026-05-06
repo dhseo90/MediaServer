@@ -13,6 +13,7 @@
 #include "analysis/track_state_manager.h"
 #include "analysis/tracked_object_metadata.h"
 #include "analysis/wrong_direction_scenario.h"
+#include "analysis/zone_occupancy_scenario.h"
 
 #include "app_config.h"
 
@@ -141,6 +142,7 @@ struct ReplayOptions {
     bool enable_wrong_direction{false};
     bool enable_intrusion_after_line_crossing{false};
     bool enable_loitering{false};
+    bool enable_zone_occupancy{false};
     bool include_frames{true};
 };
 
@@ -1302,7 +1304,8 @@ std::string ReplayToJson(const ReplayOptions& options,
                                options.enable_re_entry ||
                                options.enable_wrong_direction ||
                                options.enable_intrusion_after_line_crossing ||
-                               options.enable_loitering;
+                               options.enable_loitering ||
+                               options.enable_zone_occupancy;
     scenario_options.default_cooldown_ms = app_config::kDefaultAnalysisScenarioCooldownMs;
     scenario_options.default_update_interval_ms = app_config::kDefaultAnalysisScenarioUpdateIntervalMs;
     scenario_options.ended_retention_ms = app_config::kDefaultAnalysisScenarioRetentionMs;
@@ -1334,6 +1337,13 @@ std::string ReplayToJson(const ReplayOptions& options,
             BuildLoiteringScenarioOptionsFromConfig(app::GetAppConfig());
         loitering_options.enabled = true;
         scenario_engine.RegisterScenario(std::make_unique<LoiteringScenario>(loitering_options));
+    }
+    if (options.enable_zone_occupancy) {
+        ZoneOccupancyScenarioOptions zone_occupancy_options =
+            BuildZoneOccupancyScenarioOptionsFromConfig(app::GetAppConfig());
+        zone_occupancy_options.enabled = true;
+        scenario_engine.RegisterScenario(
+            std::make_unique<ZoneOccupancyScenario>(zone_occupancy_options));
     }
     EventManager event_manager;
     const auto rule_runtime = CreateEventRuleRuntime();
@@ -1439,6 +1449,7 @@ void PrintUsage() {
               << "  --enable-intrusion-after-line-crossing\n"
               << "                                  register IntrusionAfterLineCrossingScenario for direct scenario metrics\n"
               << "  --enable-loitering             register LoiteringScenario for direct scenario metrics\n"
+              << "  --enable-zone-occupancy        register ZoneOccupancyScenario for direct scenario metrics\n"
               << "  --no-frames                    omit per-frame state summaries\n";
 }
 
@@ -1480,6 +1491,8 @@ ReplayOptions ParseArgs(int argc, char** argv) {
             options.enable_intrusion_after_line_crossing = true;
         } else if (arg == "--enable-loitering") {
             options.enable_loitering = true;
+        } else if (arg == "--enable-zone-occupancy") {
+            options.enable_zone_occupancy = true;
         } else if (arg == "--no-frames") {
             options.include_frames = false;
         } else if (arg == "-h" || arg == "--help") {
@@ -1511,6 +1524,10 @@ int main(int argc, char** argv) {
         if (options.enable_loitering) {
             setenv("MEDIA_SERVER_ANALYSIS_SCENARIO_ENABLED", "1", 0);
             setenv("MEDIA_SERVER_ANALYSIS_LOITERING_ENABLED", "1", 0);
+        }
+        if (options.enable_zone_occupancy) {
+            setenv("MEDIA_SERVER_ANALYSIS_SCENARIO_ENABLED", "1", 0);
+            setenv("MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_ENABLED", "1", 0);
         }
         setenv("MEDIA_SERVER_ANALYSIS_TRACKING_ISSUE_LOG_ENABLED", "0", 0);
         const auto frames = ParseReplayInput(options);

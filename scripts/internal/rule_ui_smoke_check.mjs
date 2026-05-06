@@ -513,6 +513,61 @@ try {
         if (!loiteringWarning.includes('이동 반경')) {
           throw new Error('loitering radius validation mismatch: ' + loiteringWarning);
         }
+        setValue('scenarioLoiteringPreset', 'platform');
+        if (Number($('scenarioDwellMs').value) !== 45000 ||
+            Number($('scenarioLoiteringRadius').value) !== 0.10 ||
+            Number($('scenarioLoiteringMinPoints').value) !== 5) {
+          throw new Error('loitering field preset mismatch');
+        }
+        setValue('scenarioType', 'zone-occupancy');
+        setValue('scenarioZoneIds', 'queue-zone');
+        setValue('scenarioZoneOccupancyThreshold', '3');
+        setValue('scenarioZoneOccupancyMinDwellMs', '7000');
+        setValue('scenarioCooldownMs', '11000');
+        if ($('scenarioZoneOccupancyRow').hidden ||
+            !$('scenarioDwellTimingRow').hidden ||
+            !$('scenarioLoiteringRow').hidden ||
+            !$('scenarioWrongDirectionRow').hidden ||
+            $('scenarioZoneIdsLabel').hidden) {
+          throw new Error('zone-occupancy scenario panel visibility mismatch');
+        }
+        const occupancyPayload = window.ruleJson();
+        if (occupancyPayload.ruleKind !== 'scenario' ||
+            occupancyPayload.event?.type !== 'zone-occupancy' ||
+            occupancyPayload.scenario?.type !== 'zone-occupancy') {
+          throw new Error('zone-occupancy payload type mismatch: ' + JSON.stringify(occupancyPayload));
+        }
+        if (occupancyPayload.scenario?.occupancyThreshold !== 3 ||
+            occupancyPayload.scenario?.minDwellTimeMs !== 7000 ||
+            occupancyPayload.scenario?.cooldownMs !== 11000 ||
+            Object.prototype.hasOwnProperty.call(occupancyPayload.scenario || {}, 'candidateTimeMs')) {
+          throw new Error('zone-occupancy timing payload mismatch: ' + JSON.stringify(occupancyPayload.scenario));
+        }
+        expectList('zone-occupancy target zones', occupancyPayload.scenario?.targetZoneIds || [], ['queue-zone']);
+        if (!$('scenarioSummaryText').textContent.includes('zone-occupancy scenario event') ||
+            !$('scenarioReadinessTiming').textContent.includes('occupancy 3') ||
+            !$('scenarioReadinessEmit').textContent.includes('zone-occupancy')) {
+          throw new Error('zone-occupancy summary/readiness mismatch');
+        }
+        const occupancyPhaseText = $('scenarioPhaseStrip').textContent;
+        for (const expected of ['Idle', 'Counting', 'DwellQualified', 'ThresholdReached', 'Confirmed', 'Cooldown', 'Ended']) {
+          if (!occupancyPhaseText.includes(expected)) {
+            throw new Error('zone-occupancy phase preview missing: ' + expected);
+          }
+        }
+        const occupancyPreview = JSON.parse($('eventPayloadPreview').value);
+        if (occupancyPreview.rule?.type !== 'zone-occupancy' ||
+            occupancyPreview.region?.type !== 'polygon' ||
+            occupancyPreview.scenario?.occupancyThreshold !== 3 ||
+            occupancyPreview.scenario?.minDwellTimeMs !== 7000) {
+          throw new Error('zone-occupancy event payload preview mismatch: ' + JSON.stringify(occupancyPreview));
+        }
+        const occupancyInvalid = JSON.parse(JSON.stringify(occupancyPayload));
+        occupancyInvalid.scenario.occupancyThreshold = 0;
+        const occupancyWarning = ruleApi.validateRulePayload(occupancyInvalid);
+        if (!occupancyWarning.includes('점유 임계값')) {
+          throw new Error('zone-occupancy validation mismatch: ' + occupancyWarning);
+        }
         setValue('scenarioType', 'wrong-direction');
         setValue('scenarioLineDirection', 'reverse');
         setValue('scenarioCooldownMs', '6000');
@@ -607,6 +662,7 @@ try {
         const savedReEntryRuleId = smokeId + '-re-entry-rule';
         const savedAfterLineRuleId = smokeId + '-after-line-rule';
         const savedLoiteringRuleId = smokeId + '-loitering-rule';
+        const savedZoneOccupancyRuleId = smokeId + '-zone-occupancy-rule';
         let savedVaRuleId = '';
         try {
           setValue('profileId', savedProfileId);
@@ -737,6 +793,26 @@ try {
           }
           expectList('saved loitering target zones', savedLoiteringRule.rule?.scenario?.targetZoneIds || [], ['platform-zone']);
 
+          setValue('ruleId', savedZoneOccupancyRuleId);
+          setValue('scenarioType', 'zone-occupancy');
+          setValue('scenarioZoneIds', 'queue-zone');
+          setValue('scenarioZoneOccupancyThreshold', '4');
+          setValue('scenarioZoneOccupancyMinDwellMs', '9000');
+          setValue('scenarioCooldownMs', '12000');
+          await ruleApi.saveRule();
+          const savedZoneOccupancyRule = await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedZoneOccupancyRuleId));
+          if (savedZoneOccupancyRule.rule?.ruleKind !== 'scenario' ||
+              savedZoneOccupancyRule.rule?.event?.type !== 'zone-occupancy' ||
+              savedZoneOccupancyRule.rule?.scenario?.type !== 'zone-occupancy') {
+            throw new Error('saved zone-occupancy rule type mismatch: ' + JSON.stringify(savedZoneOccupancyRule.rule));
+          }
+          if (savedZoneOccupancyRule.rule?.scenario?.occupancyThreshold !== 4 ||
+              savedZoneOccupancyRule.rule?.scenario?.minDwellTimeMs !== 9000 ||
+              savedZoneOccupancyRule.rule?.scenario?.cooldownMs !== 12000) {
+            throw new Error('saved zone-occupancy timing mismatch: ' + JSON.stringify(savedZoneOccupancyRule.rule?.scenario));
+          }
+          expectList('saved zone-occupancy target zones', savedZoneOccupancyRule.rule?.scenario?.targetZoneIds || [], ['queue-zone']);
+
           if (!$('vaRuleEditorPanel').hidden) {
             click('cancelVaRuleEditBtn');
           }
@@ -785,6 +861,7 @@ try {
           }
         } finally {
           await apiJson('/lab/analysis/va-rules/' + encodeURIComponent(savedVaRuleId), { method: 'DELETE' }).catch(() => {});
+          await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedZoneOccupancyRuleId), { method: 'DELETE' }).catch(() => {});
           await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedLoiteringRuleId), { method: 'DELETE' }).catch(() => {});
           await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedAfterLineRuleId), { method: 'DELETE' }).catch(() => {});
           await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedReEntryRuleId), { method: 'DELETE' }).catch(() => {});
@@ -812,6 +889,7 @@ try {
             reEntryRuleId: savedReEntryRuleId,
             afterLineRuleId: savedAfterLineRuleId,
             loiteringRuleId: savedLoiteringRuleId,
+            zoneOccupancyRuleId: savedZoneOccupancyRuleId,
             vaRuleId: savedVaRuleId,
             savedProfileTrackingClasses: requiredCategoryValues,
             savedRuleClasses: ['person', 'vehicle'],

@@ -51,7 +51,8 @@ ScenarioEngineOptions BuildScenarioEngineOptionsFromConfig(const app::AppConfig&
                       config.analysis_re_entry_enabled ||
                       config.analysis_wrong_direction_enabled ||
                       config.analysis_intrusion_after_line_crossing_enabled ||
-                      config.analysis_loitering_enabled;
+                      config.analysis_loitering_enabled ||
+                      config.analysis_zone_occupancy_enabled;
     options.max_instances_per_channel = config.analysis_scenario_max_instances_per_channel;
     options.default_cooldown_ms = config.analysis_scenario_cooldown_ms;
     options.default_update_interval_ms = config.analysis_scenario_update_interval_ms;

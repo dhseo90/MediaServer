@@ -204,6 +204,15 @@ struct AppConfig {
     std::vector<std::string> analysis_loitering_target_classes{"person"};
     std::vector<std::string> analysis_loitering_target_zone_ids;
     bool analysis_loitering_use_ground_plane{app_config::kDefaultAnalysisLoiteringUseGroundPlane};
+    bool analysis_zone_occupancy_enabled{app_config::kDefaultAnalysisZoneOccupancyEnabled};
+    std::size_t analysis_zone_occupancy_threshold{
+        app_config::kDefaultAnalysisZoneOccupancyThreshold};
+    int analysis_zone_occupancy_min_dwell_time_ms{
+        app_config::kDefaultAnalysisZoneOccupancyMinDwellTimeMs};
+    int analysis_zone_occupancy_cooldown_ms{
+        app_config::kDefaultAnalysisZoneOccupancyCooldownMs};
+    std::vector<std::string> analysis_zone_occupancy_target_classes{"person"};
+    std::vector<std::string> analysis_zone_occupancy_target_zone_ids;
     bool analysis_tracking_issue_report_enabled{
         app_config::kDefaultAnalysisTrackingIssueReportEnabled};
     bool analysis_tracking_issue_log_enabled{

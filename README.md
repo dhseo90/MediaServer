@@ -127,15 +127,16 @@ RTSP 일반 viewer는 WebRTC DataChannel metadata를 표시하지 않습니다. 
 
 ## 시나리오 로드맵 상태
 
-- 1차 완료: Runtime Dashboard trend/stale/cleanup warning, scenario rule payload의 runtime per-rule 설정 연결, ReEntry, IntrusionAfterLineCrossing, Loitering의 룰 편집 UI 선택/저장 템플릿.
+- 1차 완료: Runtime Dashboard trend/stale/cleanup warning, scenario rule payload의 runtime per-rule 설정 연결, ReEntry, IntrusionAfterLineCrossing, Loitering, ZoneOccupancy의 룰 편집 UI 선택/저장 템플릿.
 - 1차 완료: Auth/account API와 route MVP, SourceRegistry / PublishedView API와 route MVP, Client scoped dashboard API MVP, Client Live Monitor 2x2 MVP.
 - 1차 완료: `/setup`, `/login`, `/ops`, `/client` 제품 UI shell 통합. Ops 주 메뉴는 홈, 대시보드, 채널, 룰, 사용자, 클라이언트 미리보기 순서이며, client 주 메뉴는 라이브와 대시보드만 노출합니다.
 - 1차 완료: `/ops/dashboard`와 `/ops/rules`는 Lab iframe 없이 `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status` 제품 API로 운영 카드와 룰 카탈로그를 표시합니다. `/ops/events`와 `/client/events`는 제품 primary tab에서 숨기고, 이벤트 요약은 룰/대시보드 맥락에서 확인합니다. raw JSON/debug는 운영자 접힘 영역에만 둡니다.
-- 다음 작업: ZoneOccupancyScenario 신규 구현을 진행하고, Loitering은 실제 현장 샘플 기반 threshold 튜닝을 후속으로 둡니다.
-- 남은 후속 작업: Operator Live Monitor 고밀도 화면, PublishedView 기반 scope picker, Client Live Monitor 현장형 상태 표시 고도화, EventRecord archive/recorder 고도화를 별도 묶음으로 관리합니다.
-- 제한/미구현: EventRecord archive query/compaction, 실제 snapshot frame extraction/pre-post clip recorder, Re-ID 기본 기능화, 운영 TURN relay/auth, WebSocket command/filter/subscription은 완료 범위가 아닙니다.
+- 1차 완료: `/ops/live`는 자동 media session을 열지 않는 고밀도 운영 상태 타일로 source/runtime/event를 표시합니다.
+- 1차 완료: EventRecord archive 포함 조회와 비파괴 compaction snapshot API/UI, snapshot/clip recorder manifest schema를 제공합니다.
+- 남은 후속 작업: PublishedView 기반 scope picker, Client Live Monitor 현장형 상태 표시 고도화, 실제 snapshot frame extraction/pre-post clip media recorder를 별도 묶음으로 관리합니다.
+- 제한/미구현: 실제 snapshot frame extraction/pre-post clip media bytes recorder, Re-ID 기본 기능화, 운영 TURN relay/auth, WebSocket command/filter/subscription은 완료 범위가 아닙니다.
 
-이 로드맵 정리는 기존 Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema, Scenario 판단 로직 변경을 의미하지 않습니다. snapshot/clip hook은 marker 중심의 후속 연결점이며 VMS/NVR 녹화 기능이 아닙니다.
+이 로드맵 정리는 기존 Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema 변경을 의미하지 않습니다. snapshot/clip hook은 marker/manifest 중심의 연결점이며 VMS/NVR 녹화 기능이 아닙니다.
 
 ## 테스트 요약
 
@@ -213,5 +214,5 @@ VA/Auth 주요 검증:
 
 - YOLO model, label, 외부 영상 source는 각 라이선스와 사용 권한을 별도로 확인해야 합니다.
 - YouTube source/import는 실험실 기능이며 운영 기본 기능이 아닙니다.
-- EventRecord는 active file 조회/검색과 marker hook 중심입니다. 실제 snapshot/clip recorder, Re-ID/appearance 기본 기능화는 개인정보와 보관 정책 검토가 필요합니다.
+- EventRecord는 active/archive 조회, compaction snapshot, marker/manifest hook 중심입니다. 실제 snapshot/clip media bytes recorder, Re-ID/appearance 기본 기능화는 개인정보와 보관 정책 검토가 필요합니다.
 - 외부 HTTP/HLS URI, 외부 WHEP URL pull source, 운영 TURN relay/auth는 네트워크와 credential 상태에 따라 별도 검증이 필요합니다. 인증 토큰이 필요한 WHEP endpoint credential 보관/주입은 아직 별도 운영 정책 대상입니다.

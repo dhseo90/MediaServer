@@ -237,6 +237,18 @@ constexpr const char* kEnvAnalysisLoiteringTargetZoneIds =
     "MEDIA_SERVER_ANALYSIS_LOITERING_TARGET_ZONE_IDS";
 constexpr const char* kEnvAnalysisLoiteringUseGroundPlane =
     "MEDIA_SERVER_ANALYSIS_LOITERING_USE_GROUND_PLANE";
+constexpr const char* kEnvAnalysisZoneOccupancyEnabled =
+    "MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_ENABLED";
+constexpr const char* kEnvAnalysisZoneOccupancyThreshold =
+    "MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_THRESHOLD";
+constexpr const char* kEnvAnalysisZoneOccupancyMinDwellTimeMs =
+    "MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_MIN_DWELL_TIME_MS";
+constexpr const char* kEnvAnalysisZoneOccupancyCooldownMs =
+    "MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_COOLDOWN_MS";
+constexpr const char* kEnvAnalysisZoneOccupancyTargetClasses =
+    "MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_TARGET_CLASSES";
+constexpr const char* kEnvAnalysisZoneOccupancyTargetZoneIds =
+    "MEDIA_SERVER_ANALYSIS_ZONE_OCCUPANCY_TARGET_ZONE_IDS";
 constexpr const char* kEnvAnalysisTrackingIssueReportEnabled =
     "MEDIA_SERVER_ANALYSIS_TRACKING_ISSUE_REPORT_ENABLED";
 constexpr const char* kEnvAnalysisTrackingIssueLogEnabled =
@@ -886,6 +898,24 @@ app::AppConfig LoadAppConfig() {
     config.analysis_loitering_use_ground_plane =
         ReadBoolEnv(kEnvAnalysisLoiteringUseGroundPlane,
                     config.analysis_loitering_use_ground_plane);
+    config.analysis_zone_occupancy_enabled =
+        ReadBoolEnv(kEnvAnalysisZoneOccupancyEnabled,
+                    config.analysis_zone_occupancy_enabled);
+    config.analysis_zone_occupancy_threshold =
+        ReadSizeEnv(kEnvAnalysisZoneOccupancyThreshold,
+                    config.analysis_zone_occupancy_threshold);
+    config.analysis_zone_occupancy_min_dwell_time_ms =
+        ReadIntEnv(kEnvAnalysisZoneOccupancyMinDwellTimeMs,
+                   config.analysis_zone_occupancy_min_dwell_time_ms);
+    config.analysis_zone_occupancy_cooldown_ms =
+        ReadIntEnv(kEnvAnalysisZoneOccupancyCooldownMs,
+                   config.analysis_zone_occupancy_cooldown_ms);
+    config.analysis_zone_occupancy_target_classes =
+        ReadStringListEnv(kEnvAnalysisZoneOccupancyTargetClasses,
+                          config.analysis_zone_occupancy_target_classes);
+    config.analysis_zone_occupancy_target_zone_ids =
+        ReadOptionalStringListEnv(kEnvAnalysisZoneOccupancyTargetZoneIds,
+                                  config.analysis_zone_occupancy_target_zone_ids);
     config.analysis_tracking_issue_report_enabled =
         ReadBoolEnv(kEnvAnalysisTrackingIssueReportEnabled,
                     config.analysis_tracking_issue_report_enabled);
@@ -1452,6 +1482,24 @@ app::AppConfig LoadAppConfig() {
                   << app_config::kDefaultAnalysisLoiteringCooldownMs << "\n";
         config.analysis_loitering_cooldown_ms =
             app_config::kDefaultAnalysisLoiteringCooldownMs;
+    }
+    if (config.analysis_zone_occupancy_threshold == 0) {
+        std::cerr << "[env] zone occupancy threshold cannot be 0, fallback "
+                  << app_config::kDefaultAnalysisZoneOccupancyThreshold << "\n";
+        config.analysis_zone_occupancy_threshold =
+            app_config::kDefaultAnalysisZoneOccupancyThreshold;
+    }
+    if (config.analysis_zone_occupancy_min_dwell_time_ms < 0) {
+        std::cerr << "[env] zone occupancy min dwell time ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisZoneOccupancyMinDwellTimeMs << "\n";
+        config.analysis_zone_occupancy_min_dwell_time_ms =
+            app_config::kDefaultAnalysisZoneOccupancyMinDwellTimeMs;
+    }
+    if (config.analysis_zone_occupancy_cooldown_ms < 0) {
+        std::cerr << "[env] zone occupancy cooldown ms cannot be negative, fallback "
+                  << app_config::kDefaultAnalysisZoneOccupancyCooldownMs << "\n";
+        config.analysis_zone_occupancy_cooldown_ms =
+            app_config::kDefaultAnalysisZoneOccupancyCooldownMs;
     }
     if (config.analysis_tracking_issue_max_entries == 0) {
         std::cerr << "[env] tracking issue max entries cannot be 0, fallback "
