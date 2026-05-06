@@ -13043,6 +13043,7 @@ std::string BuildLabRuleEditorPageHtml() {
       params.set('trackTrails', '0');
       params.set('vaMetadata', '1');
       applyClientOverlayFallbackParam(params);
+      applyMetadataSubscriptionParams(params);
       return params;
     }
 
@@ -21744,7 +21745,10 @@ analysis::VaRuntimeSyncInfo BuildWebRtcVaMetadataSyncInfo(std::int64_t video_fra
 
 std::string WebRtcVaMetadataMessageJson(const analysis::AnalysisResult& result,
                                         const std::vector<analysis::AnalysisEvent>& events,
-                                        const analysis::VaRuntimeSyncInfo& sync_info) {
+                                        const analysis::VaRuntimeSyncInfo& sync_info,
+                                        const analysis::VaMetadataSubscriptionFilter& subscription_filter) {
+    const auto filtered_result = analysis::FilterVaMetadataResult(result, subscription_filter);
+    const auto filtered_events = analysis::FilterVaMetadataEvents(events, subscription_filter);
     analysis::VaRuntimeMetadataBuildOptions options;
     options.schema = analysis::kWebRtcVaMetadataSchema;
     options.include_source = false;
@@ -21754,7 +21758,7 @@ std::string WebRtcVaMetadataMessageJson(const analysis::AnalysisResult& result,
     options.include_missed_tracks = false;
     options.sync = sync_info;
     return analysis::SerializeVaRuntimeMetadataFrameForWebRtcJson(
-        analysis::BuildVaRuntimeMetadataFrame(result, events, options));
+        analysis::BuildVaRuntimeMetadataFrame(filtered_result, filtered_events, options));
 }
 
 std::string WebRtcVaMetadataMissingMessageJson(const std::string& stream_id,
@@ -22359,6 +22363,7 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
     overlay_config.wait_timeout_ms = timing_options.wait_timeout_ms;
     const auto metadata_channel_config = BuildWebRtcMetadataChannelConfigFromQuery(query);
     const bool metadata_channel_enabled = metadata_channel_config.enabled;
+    const auto metadata_subscription_filter = BuildVaMetadataSubscriptionFilter(query);
     const bool metadata_fallback_payload_enabled =
         overlay_config.render_video_overlay ||
         ParseBoolQuery(query, "clientOverlayFallback", ParseBoolQuery(query, "vaMetadataDrawFallback", false));
@@ -22370,6 +22375,7 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
          weak_bridge,
          event_runtime,
          metadata_channel_enabled,
+         metadata_subscription_filter,
          metadata_fallback_payload_enabled,
          debug_overlay = overlay_config.render_options.draw_debug_overlay,
          tolerance_ns = overlay_config.sync_tolerance_ns,
@@ -22397,7 +22403,10 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
                         evaluation.annotated_result.frame_width,
                         evaluation.annotated_result.frame_height);
                     bridge_lock->PublishAnalysisMetadata(
-                        WebRtcVaMetadataMessageJson(evaluation.annotated_result, evaluation.events, sync_info));
+                        WebRtcVaMetadataMessageJson(evaluation.annotated_result,
+                                                    evaluation.events,
+                                                    sync_info,
+                                                    metadata_subscription_filter));
                 }
                 return evaluation.annotated_result;
             }
@@ -22426,7 +22435,10 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
                                                                          evaluation.annotated_result.frame_width,
                                                                          evaluation.annotated_result.frame_height);
                     bridge_lock->PublishAnalysisMetadata(
-                        WebRtcVaMetadataMessageJson(evaluation.annotated_result, evaluation.events, sync_info));
+                        WebRtcVaMetadataMessageJson(evaluation.annotated_result,
+                                                    evaluation.events,
+                                                    sync_info,
+                                                    metadata_subscription_filter));
                 } else {
                     bridge_lock->PublishAnalysisMetadata(
                         WebRtcVaMetadataMissingMessageJson(tap_id, source_pts, tolerance_ns));

@@ -195,9 +195,10 @@ try {
         setChecked('metadataIncludeMetricsInput', false);
         const sseUrl = $('viewMetadataSideChannelUrl').value;
         const wsUrl = $('viewWebSocketSideChannelUrl').value;
+        const webRtcMetadataUrl = $('viewWebRtcMetadataUrl').value;
         for (const required of ['eventType=loitering', 'scenarioName=loitering', 'trackId=7', 'zoneId=queue-a', 'includeMetrics=0']) {
-          if (!sseUrl.includes(required) || !wsUrl.includes(required)) {
-            throw new Error('metadata subscription URL missing ' + required + ': ' + sseUrl + ' / ' + wsUrl);
+          if (!sseUrl.includes(required) || !wsUrl.includes(required) || !webRtcMetadataUrl.includes(required)) {
+            throw new Error('metadata subscription URL missing ' + required + ': ' + sseUrl + ' / ' + wsUrl + ' / ' + webRtcMetadataUrl);
           }
         }
         click('analysisSettingsTabBtn');
