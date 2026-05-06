@@ -29,6 +29,7 @@ try {
         const requiredCategoryValues = ['person', 'vehicle', 'road', 'animal', 'sports', 'tableware', 'food', 'furniture', 'device', 'object'];
         const koWords = ['사람', '차량', '도로', '동물', '운동', '식기', '음식', '가구', '기기', '잡화'];
         window.confirm = () => true;
+        window.prompt = () => 'loitering-default';
         const expectedDetailWordsByCategory = {
           person: ['사람'],
           vehicle: ['자전거', '자동차', '보트'],
@@ -193,7 +194,7 @@ try {
         if (!$('viewWebRtcUrl').value.includes('/webrtc/session?file=')) {
           throw new Error('viewer live URL mismatch: ' + $('viewWebRtcUrl').value);
         }
-        for (const id of ['metadataFilterEventType', 'metadataFilterScenarioName', 'metadataFilterTrackId', 'metadataFilterZoneId', 'metadataIncludeSourceInput', 'metadataIncludeScenariosInput', 'metadataIncludeMetricsInput', 'metadataIncludeTrackingIssueInput']) {
+        for (const id of ['metadataFilterEventType', 'metadataFilterScenarioName', 'metadataFilterTrackId', 'metadataFilterZoneId', 'metadataIncludeSourceInput', 'metadataIncludeScenariosInput', 'metadataIncludeMetricsInput', 'metadataIncludeTrackingIssueInput', 'metadataSubscriptionPresetSelect', 'metadataSubscriptionPresetSaveBtn', 'metadataSubscriptionPresetDeleteBtn', 'metadataSubscriptionPresetStatusText']) {
           if (!$(id)) throw new Error('missing metadata subscription control: ' + id);
         }
         setValue('metadataFilterEventType', 'loitering');
@@ -201,6 +202,19 @@ try {
         setValue('metadataFilterTrackId', '7');
         setValue('metadataFilterZoneId', 'queue-a');
         setChecked('metadataIncludeMetricsInput', false);
+        click('metadataSubscriptionPresetSaveBtn');
+        if ($('metadataSubscriptionPresetSelect').value !== 'loitering-default') {
+          throw new Error('metadata preset save selection mismatch: ' + $('metadataSubscriptionPresetSelect').value);
+        }
+        setValue('metadataFilterEventType', 'zone-occupancy');
+        setValue('metadataFilterTrackId', '99');
+        setChecked('metadataIncludeMetricsInput', true);
+        setValue('metadataSubscriptionPresetSelect', 'loitering-default');
+        if ($('metadataFilterEventType').value !== 'loitering' ||
+            $('metadataFilterTrackId').value !== '7' ||
+            $('metadataIncludeMetricsInput').checked !== false) {
+          throw new Error('metadata preset load mismatch');
+        }
         const sseUrl = $('viewMetadataSideChannelUrl').value;
         const wsUrl = $('viewWebSocketSideChannelUrl').value;
         const webRtcMetadataUrl = $('viewWebRtcMetadataUrl').value;
@@ -208,6 +222,10 @@ try {
           if (!sseUrl.includes(required) || !wsUrl.includes(required) || !webRtcMetadataUrl.includes(required)) {
             throw new Error('metadata subscription URL missing ' + required + ': ' + sseUrl + ' / ' + wsUrl + ' / ' + webRtcMetadataUrl);
           }
+        }
+        click('metadataSubscriptionPresetDeleteBtn');
+        if ($('metadataSubscriptionPresetSelect').value !== 'custom') {
+          throw new Error('metadata preset delete selection mismatch: ' + $('metadataSubscriptionPresetSelect').value);
         }
         click('analysisSettingsTabBtn');
         if ($('settingsPanel').hidden || !$('viewerPanel').hidden) {

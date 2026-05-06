@@ -604,7 +604,7 @@ Side-channel endpoint 구분:
 
 `/ws/va-metadata`는 `/lab` prefix가 없지만 Lab/custom-client 권한 경계를 따릅니다. Auth on에서는 admin/operator 또는 `lab:read` scope가 필요하고, viewer/client 제품 계정은 `/client` wrapper와 WebRTC DataChannel 흐름을 사용합니다.
 
-SSE/WS side-channel은 구독 query로 payload 범위를 줄일 수 있습니다. `eventType`, `scenarioName`, `trackId`, `zoneId`, `lineId`, `classId`, `className`, `ruleId`, `status`를 쉼표/세미콜론 목록으로 받을 수 있고, `includeSource=0`, `includeScenarios=0`, `includeMetrics=0`, `includeTrackingIssueReport=0`으로 큰 진단 필드를 끌 수 있습니다. `/lab/rules`의 Custom client URL 패널은 이 query를 직접 생성합니다. WebRTC metadata viewer URL도 같은 filter query를 전달해 DataChannel `tracks`/`events` 범위를 줄입니다. WebSocket client는 연결 후 `subscribe`/`unsubscribe`/`resume`/`status`/`reset` text command로 같은 filter를 재설정하거나 현재 구독 상태를 확인할 수 있습니다.
+SSE/WS side-channel은 구독 query로 payload 범위를 줄일 수 있습니다. `eventType`, `scenarioName`, `trackId`, `zoneId`, `lineId`, `classId`, `className`, `ruleId`, `status`를 쉼표/세미콜론 목록으로 받을 수 있고, `includeSource=0`, `includeScenarios=0`, `includeMetrics=0`, `includeTrackingIssueReport=0`으로 큰 진단 필드를 끌 수 있습니다. `/lab/rules`의 Custom client URL 패널은 이 query를 직접 생성합니다. WebRTC metadata viewer URL도 같은 filter query를 전달해 DataChannel `tracks`/`events` 범위를 줄입니다. 같은 패널에서 metadata filter preset을 `localStorage`에 저장/재적용할 수 있어 반복 테스트나 custom client 샘플 URL을 빠르게 재구성할 수 있습니다. WebSocket client는 연결 후 `subscribe`/`unsubscribe`/`resume`/`status`/`reset` text command로 같은 filter를 재설정하거나 현재 구독 상태를 확인할 수 있습니다.
 
 SSE 수신만 확인하는 최소 custom client 예제는 `scripts/examples/va_metadata_sse_client.py`입니다.
 

@@ -745,6 +745,12 @@ MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER='turn://user:pass@example.local:
 
 - 우선순위 이유: custom client가 연결을 유지한 채 관심 event/scenario를 바꿀 수 있어야 RTSP raw stream과 metadata side-channel을 재연결 없이 운용할 수 있습니다.
 
+### P7-3a. Metadata filter preset 저장
+
+- 상태: 완료
+- 목적: `/lab/rules` Custom client URL 패널에서 metadata filter/include 조합을 preset으로 저장하고, WebRTC metadata viewer/SSE/WS URL에 같은 query를 다시 적용할 수 있어야 합니다.
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/rule_ui_smoke_check.mjs`, `docs/ui-guide.md`, `docs/video-analysis.md`, `docs/stream-verification.md`
+
 ### P7-4. Custom RTSP + metadata client 예제
 
 - 상태: 완료
