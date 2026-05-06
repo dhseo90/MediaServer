@@ -291,7 +291,7 @@ Scenario는 여러 frame에 걸친 시간 조건과 상태 전이를 판단하�
 | WrongDirection | 구현됨 | 룰 편집 UI에서 선택 가능 |
 | IntrusionAfterLineCrossing | 구현됨 | 룰 편집 UI에서 선택 가능 |
 | Loitering | 구현됨 | 룰 편집 UI에서 선택 가능 |
-| ZoneOccupancyScenario | 구현됨 | 룰 편집 UI에서 선택 가능, 대기열/로비/승강장/출입구 tuning preset 제공 |
+| ZoneOccupancyScenario | 구현됨 | 룰 편집 UI에서 선택 가능, 대기열/로비/승강장/출입구/승강기 홀 tuning preset 제공 |
 
 현재 UI가 제공하는 시나리오 템플릿:
 
