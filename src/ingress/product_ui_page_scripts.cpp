@@ -1042,7 +1042,11 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         iceTimer: null,
         status: 'offline',
         connectionStatus: 'offline',
-        lastError: ''
+        lastError: '',
+        metadataAgeMs: null,
+        lastFrameAgeMs: null,
+        trackCount: null,
+        eventCount: null
       }]));
       const opsHashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
       const eventTime = record => record.updateTime ?? record.startTime ?? record.timestamp ?? record.endTime ?? '';
@@ -1166,6 +1170,32 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       function activePreviewSlotCount() {
         return opsPreviewSlots.filter(slot => Boolean(opsPreviewStateFor(slot.key).sessionId)).length;
       }
+      const opsAgeTone = value => {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) return 'info';
+        if (numeric > 3000) return 'warn';
+        return '';
+      };
+      async function refreshOpsLivePreviewHealth() {
+        await Promise.all(opsPreviewSlots.map(async slot => {
+          const state = opsPreviewStateFor(slot.key);
+          if (!state.viewId || !state.sessionId) return;
+          try {
+            const payload = await requestJson(`/client/api/views/${encodeURIComponent(state.viewId)}/dashboard`);
+            const health = payload.health || {};
+            const connection = payload.connection || {};
+            const analysis = payload.analysis || {};
+            state.metadataAgeMs = health.metadataAgeMs ?? null;
+            state.lastFrameAgeMs = health.lastFrameAgeMs ?? connection.lastFrameAgeMs ?? null;
+            state.trackCount = analysis.trackCount ?? null;
+            state.eventCount = analysis.activeEventCount ?? null;
+          } catch (_) {
+            state.metadataAgeMs = null;
+            state.lastFrameAgeMs = null;
+          }
+        }));
+        updateOpsLivePreviewUi();
+      }
       function updateOpsLivePreviewUi(row = selectedOpsLiveRow()) {
         const startBtn = document.getElementById('opsLivePreviewStart');
         const restartBtn = document.getElementById('opsLivePreviewRestart');
@@ -1184,6 +1214,13 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           const slotState = opsPreviewStateFor(slot.key);
           const placeholder = document.getElementById(`opsLivePreview${slot.prefix}Placeholder`);
           const video = document.getElementById(`opsLivePreview${slot.prefix}Video`);
+          renderBadges(`opsLivePreview${slot.prefix}HealthBadges`, [
+            { text: `ice ${opsPreviewStatusLabel(slotState.connectionStatus)}`, tone: ['failed', 'disconnected', 'error'].includes(String(slotState.connectionStatus)) ? 'warn' : 'info' },
+            { text: `meta ${ms(slotState.metadataAgeMs)}`, tone: opsAgeTone(slotState.metadataAgeMs) },
+            { text: `frame ${ms(slotState.lastFrameAgeMs)}`, tone: opsAgeTone(slotState.lastFrameAgeMs) },
+            { text: `track ${display(slotState.trackCount)}`, tone: 'info' },
+            { text: `event ${display(slotState.eventCount)}`, tone: Number(slotState.eventCount || 0) > 0 ? 'warn' : 'info' }
+          ]);
           setText(`opsLivePreview${slot.prefix}StatusText`, opsPreviewStatusLabel(slotState.status));
           setText(`opsLivePreview${slot.prefix}ConnectionText`, opsPreviewStatusLabel(slotState.connectionStatus));
           setText(`opsLivePreview${slot.prefix}ViewText`, slotState.viewId || '-');
@@ -1243,6 +1280,10 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         const sessionId = state.sessionId;
         const viewId = state.viewId;
         state.sessionId = '';
+        state.metadataAgeMs = null;
+        state.lastFrameAgeMs = null;
+        state.trackCount = null;
+        state.eventCount = null;
         if (sessionId && viewId) {
           await fetch(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session/${encodeURIComponent(sessionId)}`, {
             method: 'DELETE',
@@ -1362,6 +1403,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
             body: answer.sdp
           });
           state.iceTimer = setInterval(() => pollOpsLivePreviewIce(state.key).catch(() => {}), 1000);
+          refreshOpsLivePreviewHealth().catch(() => {});
           updateOpsLivePreviewUi();
         } catch (error) {
           state.status = 'error';
@@ -1981,6 +2023,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         refreshLive().catch(error => setText('homeRuntimeText', error.message));
       } else if (activeOpsPage === 'live') {
         refreshLive().catch(error => setText('opsLiveSummary', error.message));
+        setInterval(() => refreshOpsLivePreviewHealth().catch(() => {}), 3000);
         document.addEventListener('visibilitychange', () => {
           if (document.hidden) Promise.all(opsPreviewSlots.map(slot => stopOpsLivePreview(slot.key, { preserveRow: true }))).catch(() => {});
         });
