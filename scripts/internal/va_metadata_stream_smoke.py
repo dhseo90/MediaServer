@@ -31,6 +31,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-messages", type=int, default=1)
     parser.add_argument("--stream-max-duration-ms", type=int, default=0)
     parser.add_argument("--max-message-bytes", type=int, default=65536)
+    parser.add_argument("--metadata-event-type", default="")
+    parser.add_argument("--metadata-scenario-name", default="")
+    parser.add_argument("--metadata-track-id", default="")
+    parser.add_argument("--metadata-zone-id", default="")
+    parser.add_argument("--omit-metrics", action="store_true")
+    parser.add_argument("--omit-source", action="store_true")
+    parser.add_argument("--omit-scenarios", action="store_true")
+    parser.add_argument("--omit-tracking-issue-report", action="store_true")
     parser.add_argument("--skip-cleanup-count-check", action="store_true")
     parser.add_argument(
         "--summary-file",
@@ -82,6 +90,22 @@ def build_stream_path(args: argparse.Namespace) -> str:
         "maxMessageBytes": str(args.max_message_bytes),
         "streamMaxDurationMs": str(max_duration_ms),
     }
+    if args.metadata_event_type:
+        common["eventType"] = args.metadata_event_type
+    if args.metadata_scenario_name:
+        common["scenarioName"] = args.metadata_scenario_name
+    if args.metadata_track_id:
+        common["trackId"] = args.metadata_track_id
+    if args.metadata_zone_id:
+        common["zoneId"] = args.metadata_zone_id
+    if args.omit_metrics:
+        common["includeMetrics"] = "0"
+    if args.omit_source:
+        common["includeSource"] = "0"
+    if args.omit_scenarios:
+        common["includeScenarios"] = "0"
+    if args.omit_tracking_issue_report:
+        common["includeTrackingIssueReport"] = "0"
     if args.tap_id:
         query = urlencode(common)
         return f"/lab/analysis/taps/{args.tap_id}/metadata/stream?{query}"
@@ -146,14 +170,52 @@ def read_sse_metadata(base: str, path: str, timeout_s: float, max_messages: int)
         conn.close()
 
 
-def assert_metadata(payload: dict[str, Any]) -> None:
+def assert_metadata(payload: dict[str, Any], args: argparse.Namespace) -> None:
     if payload.get("schema") != SCHEMA:
         fail(f"unexpected schema: {payload.get('schema')}")
-    for field in ("tracks", "events", "scenarios"):
+    required_arrays = ["tracks", "events"]
+    if not args.omit_scenarios:
+        required_arrays.append("scenarios")
+    for field in required_arrays:
         if not isinstance(payload.get(field), list):
             fail(f"missing array field: {field}")
-    if not isinstance(payload.get("metrics"), dict):
+    if args.omit_scenarios and "scenarios" in payload:
+        fail("scenarios field must be omitted when includeScenarios=0")
+    if args.omit_metrics and "metrics" in payload:
+        fail("metrics field must be omitted when includeMetrics=0")
+    if not args.omit_metrics and not isinstance(payload.get("metrics"), dict):
         fail("missing metrics object")
+    if args.omit_source and "source" in payload:
+        fail("source field must be omitted when includeSource=0")
+    if args.omit_tracking_issue_report and "trackingIssueReport" in payload:
+        fail("trackingIssueReport field must be omitted when includeTrackingIssueReport=0")
+    expected_event_type = args.metadata_event_type.strip()
+    if expected_event_type:
+        for event in payload.get("events") or []:
+            if str(event.get("eventType") or "") != expected_event_type:
+                fail(f"eventType filter mismatch: {event}")
+    expected_scenario = args.metadata_scenario_name.strip()
+    if expected_scenario:
+        for event in payload.get("events") or []:
+            if str(event.get("scenarioName") or "") != expected_scenario:
+                fail(f"scenarioName event filter mismatch: {event}")
+        for track in payload.get("tracks") or []:
+            scenario_name = str(track.get("scenarioName") or "")
+            if scenario_name and scenario_name != expected_scenario:
+                fail(f"scenarioName track filter mismatch: {track}")
+    expected_track_id = args.metadata_track_id.strip()
+    if expected_track_id:
+        for event in payload.get("events") or []:
+            if str(event.get("trackId") or "") != expected_track_id:
+                fail(f"trackId event filter mismatch: {event}")
+        for track in payload.get("tracks") or []:
+            if str(track.get("trackId") or "") != expected_track_id:
+                fail(f"trackId track filter mismatch: {track}")
+    expected_zone_id = args.metadata_zone_id.strip()
+    if expected_zone_id:
+        for event in payload.get("events") or []:
+            if str(event.get("zoneId") or "") != expected_zone_id:
+                fail(f"zoneId event filter mismatch: {event}")
 
 
 def write_summary(path: str, summary: dict[str, Any]) -> None:
@@ -178,15 +240,30 @@ def run(args: argparse.Namespace, summary: dict[str, Any]) -> None:
     summary["streamPath"] = stream_path
     sse_result = read_sse_metadata(args.http_base, stream_path, timeout_s, args.max_messages)
     payload = sse_result["latest"]
-    assert_metadata(payload)
+    assert_metadata(payload, args)
     summary["schema"] = payload.get("schema", "")
     summary["trackCount"] = len(payload.get("tracks") or [])
     summary["eventCount"] = len(payload.get("events") or [])
     summary["scenarioCount"] = len(payload.get("scenarios") or [])
+    summary["hasMetrics"] = isinstance(payload.get("metrics"), dict)
+    summary["subscriptionFilter"] = {
+        "eventType": args.metadata_event_type,
+        "scenarioName": args.metadata_scenario_name,
+        "trackId": args.metadata_track_id,
+        "zoneId": args.metadata_zone_id,
+        "omitMetrics": args.omit_metrics,
+        "omitSource": args.omit_source,
+        "omitScenarios": args.omit_scenarios,
+        "omitTrackingIssueReport": args.omit_tracking_issue_report,
+    }
     summary["metadataMessageCount"] = sse_result["messageCount"]
     summary["sseCommentCount"] = sse_result["commentCount"]
     summary["streamDurationMs"] = sse_result["durationMs"]
-    log_pass("SSE metadata schema/tracks/events/scenarios/metrics 확인")
+    if args.omit_metrics or args.omit_source or args.omit_scenarios or args.omit_tracking_issue_report:
+        log_pass("SSE metadata include flag payload 제어 확인")
+    if args.metadata_event_type or args.metadata_scenario_name or args.metadata_track_id or args.metadata_zone_id:
+        log_pass("SSE metadata subscription filter payload 확인")
+    log_pass("SSE metadata schema/tracks/events/scenarios 확인")
 
     after_taps: dict[str, Any] = {}
     after_active_taps = before_active_taps
@@ -211,6 +288,18 @@ def run(args: argparse.Namespace, summary: dict[str, Any]) -> None:
 
 def main() -> int:
     args = parse_args()
+    checks = [
+        "health",
+        "sseContentType",
+        "metadataSchema",
+        "tracksEventsScenariosMetrics",
+        "disconnectCleanup",
+    ]
+    if args.metadata_event_type or args.metadata_scenario_name or args.metadata_track_id or args.metadata_zone_id:
+        checks.append("metadataSubscriptionFilterPayload")
+    if args.omit_metrics or args.omit_source or args.omit_scenarios or args.omit_tracking_issue_report:
+        checks.append("metadataIncludeControlPayload")
+
     summary: dict[str, Any] = {
         "ok": False,
         "kind": "va-metadata-sidechannel",
@@ -221,21 +310,25 @@ def main() -> int:
         "intervalMs": args.interval_ms,
         "maxMessages": args.max_messages,
         "streamMaxDurationMs": args.stream_max_duration_ms,
-        "checks": [
-            "health",
-            "sseContentType",
-            "metadataSchema",
-            "tracksEventsScenariosMetrics",
-            "disconnectCleanup",
-        ],
+        "metadataFilter": {
+            "eventType": args.metadata_event_type,
+            "scenarioName": args.metadata_scenario_name,
+            "trackId": args.metadata_track_id,
+            "zoneId": args.metadata_zone_id,
+            "omitMetrics": args.omit_metrics,
+            "omitSource": args.omit_source,
+            "omitScenarios": args.omit_scenarios,
+            "omitTrackingIssueReport": args.omit_tracking_issue_report,
+        },
+        "checks": checks,
         "skipCleanupCountCheck": args.skip_cleanup_count_check,
     }
     try:
         run(args, summary)
         summary["ok"] = True
-        summary["pass"] = 5
+        summary["pass"] = len(checks)
         summary["fail"] = 0
-        print("[summary] pass=5 fail=0")
+        print(f"[summary] pass={len(checks)} fail=0")
         return 0
     except Exception as exc:  # noqa: BLE001
         summary["error"] = str(exc)
