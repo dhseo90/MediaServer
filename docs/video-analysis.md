@@ -907,6 +907,10 @@ Smoke:
 
 ```bash
 ./server.sh verify-ws-metadata --http-base http://127.0.0.1:8080
+./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8080 \
+  --metadata-event-type loitering \
+  --metadata-scenario-name loitering \
+  --omit-metrics
 ```
 
 ## 16. Client-side Overlay / Server-side Overlay 정책

@@ -522,6 +522,10 @@ SSE metadata side-channel smoke:
 ```bash
 ./server.sh verify-sse-metadata --http-base http://127.0.0.1:8080
 ./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8080
+./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8080 \
+  --metadata-event-type loitering \
+  --metadata-scenario-name loitering \
+  --omit-metrics
 ```
 
 확인할 항목:
@@ -530,6 +534,7 @@ SSE metadata side-channel smoke:
 - 첫 `event: metadata`의 JSON schema가 `media-server.va.runtime-metadata.v1`인지 확인
 - `tracks`, `events`, `scenarios`, `metrics` 필드가 포함되는지 확인
 - `eventType`, `scenarioName`, `trackId`, `zoneId` 같은 subscription filter가 metadata `events`/debug `tracks` 범위를 줄이고, `includeMetrics=0` 같은 include flag가 지정 필드를 생략하는지 확인
+- filter/include smoke는 metadata payload 본문을 직접 검사합니다. matching event가 없는 샘플에서는 count가 0일 수 있으나, 존재하는 `events`/`tracks` 항목은 요청 filter와 맞아야 하고 `--omit-metrics`에서는 `metrics` field가 없어야 합니다.
 - 임시 SSE analysis tap이 client disconnect 후 cleanup되는지 확인
 - `verify-va-metadata-sidechannel`은 같은 검증을 수행하면서 summary JSON을 출력하는 명시적 alias
 
