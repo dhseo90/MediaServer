@@ -357,7 +357,7 @@ GET /lab/analysis/event-storage/status
 | Scenario UI | 1차 구현 완료 | ReEntry/IntrusionAfterLineCrossing/Loitering/ZoneOccupancy는 룰 편집 UI에서 선택 가능 |
 | Re-ID hook | 기본 NoOp, 실험용 extractor hook | appearance profile과 reacquire/low confidence association 보조 |
 | Homography | optional config | image point를 ground-plane point로 변환해 distance/speed/radius 계산 보조 |
-| Snapshot/Clip hook | marker/manifest hook 중심 | EventRecord와 snapshot/clip path 연결. 실제 media bytes recorder는 후속 |
+| Snapshot/Clip hook | 짧은 frame evidence recorder | EventRecord와 snapshot media/pre-post frame bundle manifest path 연결. 장기 녹화/MP4 recorder는 후속 |
 
 확장 원칙:
 

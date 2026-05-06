@@ -874,7 +874,8 @@ MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 \
 - queue/dedupe/cooldown counter가 무한 증가하지 않음
 - Event POST payload 검증과 EventRecord storage 정책 검증은 별도입니다. Storage rotation/recovery가 추가되어도 POST payload field는 변경하지 않습니다.
 - EventRecord file storage, active/archive query/search UI와 JSON Lines rotation/retention/recovery 1차는 구현 완료 상태입니다.
-- EventRecord 조회 API는 저장된 metadata만 반환하며 영상 검색, snapshot 추출, clip recorder를 수행하지 않음
+- EventRecord 조회 API는 저장된 metadata와 recorder output path만 반환하며 영상 검색/재생을 수행하지 않음
+- snapshot/clip hook 활성화 시 analysis frame buffer에서 snapshot media와 pre/post frame bundle manifest를 생성함. MP4/VMS/NVR 장기 녹화는 검증 범위가 아님
 - `includeArchives=1`은 rotated archive를 조회에 포함하고, compaction snapshot API는 기존 파일을 수정하지 않음
 - 손상되었거나 partial 상태인 EventRecord JSON Lines 행은 records API 전체 실패가 아니라 skip/count 처리됨
 - `/lab/analysis/event-storage/status`의 `skippedCorruptLines`, `partialLineCount`, `lastRecoveryStatus`로 recovery summary를 확인할 수 있음
@@ -1048,7 +1049,7 @@ Replay 결과 차이는 누락/초과/불일치 이벤트를 먼저 확인합니
 | 신규 scenarios | ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, ZoneOccupancy replay 통과 |
 | TrackHealth | 진단 metadata만 추가, tracking id 생성 방식 유지 |
 | Appearance hook | 기본 NoOp, 실제 모델 호출 없음 |
-| EventRecord/hook | JSON Lines active/archive query/rotation/recovery, 비파괴 compaction snapshot, snapshot/clip marker hook 실패가 event emit을 막지 않음 |
+| EventRecord/hook | JSON Lines active/archive query/rotation/recovery, 비파괴 compaction snapshot, snapshot/clip frame evidence recorder 실패가 event emit을 막지 않음 |
 | Cleanup | active track/scenario/event를 잘못 삭제하지 않음 |
 | 다채널 | 같은 trackId가 다른 channel에서 충돌하지 않음 |
 

@@ -143,12 +143,21 @@ std::filesystem::path ArchivePathFor(const std::filesystem::path& active_path) {
 void ConfigureEventStorageSmokeEnv() {
     static const std::filesystem::path storage_path = MakeEventStorageSmokePath();
     const std::string path = storage_path.string();
+    const std::string snapshot_dir = (storage_path.parent_path() / (storage_path.stem().string() + "-snapshots")).string();
+    const std::string clip_dir = (storage_path.parent_path() / (storage_path.stem().string() + "-clips")).string();
     ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED", "1", 1);
     ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH", path.c_str(), 1);
     ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_QUEUE", "16", 1);
     ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_FILE_BYTES", "0", 1);
     ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_ARCHIVES", "0", 1);
     ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_TOTAL_BYTES", "0", 1);
+    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED", "1", 1);
+    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR", snapshot_dir.c_str(), 1);
+    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_CLIP_HOOK_ENABLED", "1", 1);
+    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR", clip_dir.c_str(), 1);
+    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_PRE_EVENT_MS", "200", 1);
+    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_POST_EVENT_MS", "0", 1);
+    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_CLIP_BUFFER_MS", "1000", 1);
 }
 
 EventRecord MakeEventRecord(const std::string& event_id,
@@ -176,6 +185,34 @@ EventRecord MakeEventRecord(const std::string& event_id,
     record.confidence = 0.91F;
     record.metadata_json = "{\"smoke\":true}";
     return record;
+}
+
+RawVideoFrame MakeRecorderFrame(std::int64_t timestamp_ms, unsigned char base) {
+    RawVideoFrame frame;
+    frame.source_key = "stream-a";
+    frame.track_id = "track-a";
+    frame.width = 4;
+    frame.height = 4;
+    frame.format = PixelFormat::RGB;
+    frame.pts = Ms(timestamp_ms);
+    frame.data.resize(static_cast<std::size_t>(frame.width * frame.height * 3));
+    for (std::size_t index = 0; index < frame.data.size(); index += 3) {
+        frame.data[index] = base;
+        frame.data[index + 1] = static_cast<unsigned char>(base / 2U);
+        frame.data[index + 2] = static_cast<unsigned char>(255U - base);
+    }
+    return frame;
+}
+
+bool WaitStoredCountAtLeast(std::uint64_t expected, int timeout_ms) {
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout_ms);
+    while (std::chrono::steady_clock::now() < deadline) {
+        if (GetEventStorageSnapshot().stored_count >= expected) {
+            return true;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
+    return GetEventStorageSnapshot().stored_count >= expected;
 }
 
 const TrackRuntimeState* FindTrack(const std::vector<TrackRuntimeState>& states,
@@ -1282,6 +1319,90 @@ void VerifyEventStorageArchiveCompaction() {
     Pass("EventStorage archive query/compaction");
 }
 
+void VerifyEventRecorderMediaHooks() {
+    const auto snapshot = GetEventStorageSnapshot();
+    const std::filesystem::path active_path(snapshot.active_path.empty() ? snapshot.path
+                                                                         : snapshot.active_path);
+    std::error_code ec;
+    std::filesystem::remove(active_path, ec);
+    ec.clear();
+    std::filesystem::remove_all(snapshot.snapshot_dir, ec);
+    ec.clear();
+    std::filesystem::remove_all(snapshot.clip_dir, ec);
+
+    RecordEventFrame("stream-a", "stream-a", MakeRecorderFrame(900, 64));
+    RecordEventFrame("stream-a", "stream-a", MakeRecorderFrame(1000, 128));
+    RecordEventFrame("stream-a", "stream-a", MakeRecorderFrame(1100, 192));
+
+    AnalysisResult result;
+    result.source_key = "stream-a";
+    result.profile_key = "recorder-smoke";
+    result.frame_id = 9;
+    result.pts = Ms(1000);
+    result.frame_width = 4;
+    result.frame_height = 4;
+
+    AnalysisEvent event;
+    event.event_id = "evt-recorder-smoke";
+    event.event_type = "zone-occupancy";
+    event.status = "confirmed";
+    event.track_id = 42;
+    event.class_id = 0;
+    event.label = "person";
+    event.score = 0.93F;
+    event.zone_id = "queue-zone";
+    event.scenario_name = "zone-occupancy";
+    event.scenario_phase = "confirmed";
+    event.update_time_ms = 1000;
+    DispatchEventRecords(result, {event});
+
+    Expect(WaitStoredCountAtLeast(snapshot.stored_count + 1, 2000),
+           "Event recorder worker must store dispatched records");
+
+    EventRecordQueryOptions query;
+    query.event_id = event.event_id;
+    query.limit = 1;
+    EventRecordQueryResult query_result;
+    std::string error_message;
+    Expect(QueryEventRecords(query, &query_result, &error_message),
+           "Event recorder query must succeed: " + error_message);
+    Expect(query_result.records_json.size() == 1, "Event recorder must write one record");
+    const std::string record_json = query_result.records_json[0];
+    Expect(record_json.find("\"snapshotPath\":\"") != std::string::npos &&
+               record_json.find("\"clipPath\":\"") != std::string::npos,
+           "Event recorder must fill snapshotPath and clipPath");
+    Expect(record_json.find(".snapshot.") != std::string::npos,
+           "Event recorder snapshot path must point to actual media bytes");
+    Expect(record_json.find(".clip/manifest.json") != std::string::npos,
+           "Event recorder clip path must point to clip manifest");
+
+    bool found_snapshot_media = false;
+    if (std::filesystem::exists(snapshot.snapshot_dir, ec) && !ec) {
+        for (const auto& entry : std::filesystem::directory_iterator(snapshot.snapshot_dir)) {
+            const auto ext = entry.path().extension().string();
+            found_snapshot_media = found_snapshot_media || ext == ".jpg" || ext == ".ppm" || ext == ".pgm";
+        }
+    }
+    Expect(found_snapshot_media, "Event recorder must write snapshot media bytes");
+
+    const std::filesystem::path clip_manifest =
+        std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" / "manifest.json";
+    std::ifstream input(clip_manifest);
+    std::string manifest((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
+    Expect(manifest.find("\"recorded\":true") != std::string::npos &&
+               manifest.find("\"frameCount\":") != std::string::npos &&
+               manifest.find("frame-0001") != std::string::npos,
+           "Event recorder must write clip manifest and frame bytes");
+
+    std::filesystem::remove(active_path, ec);
+    ec.clear();
+    std::filesystem::remove_all(snapshot.snapshot_dir, ec);
+    ec.clear();
+    std::filesystem::remove_all(snapshot.clip_dir, ec);
+
+    Pass("Event recorder snapshot/clip media hooks");
+}
+
 void VerifyVaRuntimeMetadataBuilder() {
     AnalysisResult result;
     result.source_key = "file:sample_h264.mp4";
@@ -1424,6 +1545,7 @@ int main() {
         VerifyLoiteringScenario();
         VerifyZoneOccupancyScenario();
         VerifyEventStorageArchiveCompaction();
+        VerifyEventRecorderMediaHooks();
         VerifyVaRuntimeMetadataBuilder();
         StopEventStorage();
         std::cout << "[summary] pass=" << g_pass_count << " fail=0\n";
