@@ -55,7 +55,7 @@ const pageChecks = [
     name: "ops-live",
     path: "/ops/live",
     visualSelector: '[data-testid="ops-live-page"]',
-    must: ['data-testid="ops-live-page"', 'id="opsLiveTileGrid"', 'id="opsLiveDensity"', 'id="opsLiveFocus"', 'id="opsLiveFilterInput"', 'id="opsLiveAttentionCount"', 'id="opsLiveUnassignedCount"', 'id="opsLiveDrilldownSummary"', 'id="opsLiveDetailEventRows"', 'id="opsLivePreviewSummary"', 'id="opsLivePreviewStart"', 'id="opsLivePreviewStop"', 'id="opsLivePreviewVideo"', 'id="opsLiveTimelineSummary"', 'id="opsLiveTimelineRows"', 'id="opsLiveActionSummary"', 'id="opsLiveActionButtons"', 'id="opsLiveDetailJson"', 'id="opsLiveEventRows"', '/ops/api/sources', '/ops/api/views', '/webrtc/config', 'RTCPeerConnection'],
+    must: ['data-testid="ops-live-page"', 'id="opsLiveTileGrid"', 'id="opsLiveDensity"', 'id="opsLiveFocus"', 'id="opsLiveFilterInput"', 'id="opsLiveAttentionCount"', 'id="opsLiveUnassignedCount"', 'id="opsLiveDrilldownSummary"', 'id="opsLiveDetailEventRows"', 'id="opsLivePreviewSummary"', 'id="opsLivePreviewMode"', 'id="opsLivePreviewModeText"', 'id="opsLivePreviewStart"', 'id="opsLivePreviewStop"', 'id="opsLivePreviewVideo"', 'id="opsLiveTimelineSummary"', 'id="opsLiveTimelineRows"', 'id="opsLiveActionSummary"', 'id="opsLiveActionButtons"', 'id="opsLiveDetailJson"', 'id="opsLiveEventRows"', '/ops/api/sources', '/ops/api/views', '/webrtc/config', 'RTCPeerConnection'],
     mustNot: ['후속 구현 항목입니다', '<iframe', '/lab/rules?embed=1'],
   },
   {

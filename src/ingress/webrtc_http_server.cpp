@@ -18422,6 +18422,9 @@ void AppendOpsLivePage(std::ostringstream& out) {
             <p id="opsLivePreviewSummary" class="form-note">선택한 PublishedView만 수동으로 미리보기합니다. 자동 세션은 열지 않습니다.</p>
           </div>
           <div class="actions">
+            <select id="opsLivePreviewMode" aria-label="미리보기 모드">
+              <option value="raw" selected>원본</option>
+            </select>
             <button id="opsLivePreviewStart" type="button" class="button-secondary">시작</button>
             <button id="opsLivePreviewRestart" type="button" class="button-secondary">재연결</button>
             <button id="opsLivePreviewStop" type="button" class="button-secondary">정지</button>
@@ -18432,6 +18435,7 @@ void AppendOpsLivePage(std::ostringstream& out) {
             <div class="status-stat"><span>미리보기 상태</span><strong id="opsLivePreviewStatusText">offline</strong></div>
             <div class="status-stat"><span>연결</span><strong id="opsLivePreviewConnectionText">offline</strong></div>
             <div class="status-stat"><span>채널</span><strong id="opsLivePreviewViewText">-</strong></div>
+            <div class="status-stat"><span>모드</span><strong id="opsLivePreviewModeText">원본</strong></div>
           </div>
           <div id="opsLivePreviewStage" class="tile-stage" style="min-height:220px;">
             <video id="opsLivePreviewVideo" playsinline muted autoplay></video>
