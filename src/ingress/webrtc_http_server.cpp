@@ -18418,6 +18418,28 @@ void AppendOpsLivePage(std::ostringstream& out) {
         </div>
         <div class="toolbar" style="margin-top:12px;">
           <div>
+            <h3 style="margin:0;font-size:1rem;">Preview</h3>
+            <p id="opsLivePreviewSummary" class="form-note">선택한 PublishedView만 수동으로 미리보기합니다. 자동 세션은 열지 않습니다.</p>
+          </div>
+          <div class="actions">
+            <button id="opsLivePreviewStart" type="button" class="button-secondary">시작</button>
+            <button id="opsLivePreviewRestart" type="button" class="button-secondary">재연결</button>
+            <button id="opsLivePreviewStop" type="button" class="button-secondary">정지</button>
+          </div>
+        </div>
+        <div class="section-card" style="padding:12px;">
+          <div class="status-stat-grid" style="margin-bottom:10px;">
+            <div class="status-stat"><span>미리보기 상태</span><strong id="opsLivePreviewStatusText">offline</strong></div>
+            <div class="status-stat"><span>연결</span><strong id="opsLivePreviewConnectionText">offline</strong></div>
+            <div class="status-stat"><span>채널</span><strong id="opsLivePreviewViewText">-</strong></div>
+          </div>
+          <div id="opsLivePreviewStage" class="tile-stage" style="min-height:220px;">
+            <video id="opsLivePreviewVideo" playsinline muted autoplay></video>
+            <span id="opsLivePreviewPlaceholder">선택한 채널의 미리보기를 시작하세요.</span>
+          </div>
+        </div>
+        <div class="toolbar" style="margin-top:12px;">
+          <div>
             <h3 style="margin:0;font-size:1rem;">Runtime / Event Timeline</h3>
             <p id="opsLiveTimelineSummary" class="form-note">선택한 채널의 최근 상태 변화 순서를 표시합니다.</p>
           </div>
