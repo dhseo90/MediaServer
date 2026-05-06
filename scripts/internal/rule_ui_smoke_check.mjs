@@ -552,6 +552,8 @@ try {
         setValue('scenarioType', 'zone-occupancy');
         setValue('scenarioZoneIds', 'queue-zone');
         setValue('scenarioZoneOccupancyPreset', 'queue');
+        const zoneOccupancyPresetValues = Array.from($('scenarioZoneOccupancyPreset').options).map((option) => option.value);
+        expectList('zone-occupancy preset values', zoneOccupancyPresetValues, ['custom', 'queue', 'lobby', 'platform', 'doorway', 'elevator-hall']);
         if (Number($('scenarioZoneOccupancyThreshold').value) !== 4 ||
             Number($('scenarioZoneOccupancyMinDwellMs').value) !== 7000 ||
             Number($('scenarioCooldownMs').value) !== 12000) {
@@ -832,7 +834,7 @@ try {
           setValue('ruleId', savedZoneOccupancyRuleId);
           setValue('scenarioType', 'zone-occupancy');
           setValue('scenarioZoneIds', 'queue-zone');
-          setValue('scenarioZoneOccupancyPreset', 'lobby');
+          setValue('scenarioZoneOccupancyPreset', 'elevator-hall');
           await ruleApi.saveRule();
           const savedZoneOccupancyRule = await apiJson('/lab/analysis/rules/' + encodeURIComponent(savedZoneOccupancyRuleId));
           if (savedZoneOccupancyRule.rule?.ruleKind !== 'scenario' ||
@@ -840,9 +842,9 @@ try {
               savedZoneOccupancyRule.rule?.scenario?.type !== 'zone-occupancy') {
             throw new Error('saved zone-occupancy rule type mismatch: ' + JSON.stringify(savedZoneOccupancyRule.rule));
           }
-          if (savedZoneOccupancyRule.rule?.scenario?.occupancyThreshold !== 6 ||
-              savedZoneOccupancyRule.rule?.scenario?.minDwellTimeMs !== 10000 ||
-              savedZoneOccupancyRule.rule?.scenario?.cooldownMs !== 15000) {
+          if (savedZoneOccupancyRule.rule?.scenario?.occupancyThreshold !== 5 ||
+              savedZoneOccupancyRule.rule?.scenario?.minDwellTimeMs !== 8000 ||
+              savedZoneOccupancyRule.rule?.scenario?.cooldownMs !== 12000) {
             throw new Error('saved zone-occupancy timing mismatch: ' + JSON.stringify(savedZoneOccupancyRule.rule?.scenario));
           }
           expectList('saved zone-occupancy target zones', savedZoneOccupancyRule.rule?.scenario?.targetZoneIds || [], ['queue-zone']);

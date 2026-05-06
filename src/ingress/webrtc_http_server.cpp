@@ -7074,6 +7074,7 @@ std::string BuildLabRuleEditorPageHtml() {
                   <option value="lobby">로비 혼잡 · 6명 · 10s</option>
                   <option value="platform">승강장 혼잡 · 8명 · 5s</option>
                   <option value="doorway">출입구 정체 · 3명 · 3s</option>
+                  <option value="elevator-hall">승강기 홀 · 5명 · 8s</option>
                 </select>
               </label>
               <label>점유 임계값: <span id="scenarioZoneOccupancyThresholdValue">3</span>
@@ -9412,7 +9413,8 @@ std::string BuildLabRuleEditorPageHtml() {
         queue: { threshold: 4, dwellMs: 7000, cooldownMs: 12000 },
         lobby: { threshold: 6, dwellMs: 10000, cooldownMs: 15000 },
         platform: { threshold: 8, dwellMs: 5000, cooldownMs: 10000 },
-        doorway: { threshold: 3, dwellMs: 3000, cooldownMs: 8000 }
+        doorway: { threshold: 3, dwellMs: 3000, cooldownMs: 8000 },
+        'elevator-hall': { threshold: 5, dwellMs: 8000, cooldownMs: 12000 }
       };
       const selected = presets[preset];
       if (!selected) return;
