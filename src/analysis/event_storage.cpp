@@ -453,6 +453,8 @@ struct ParsedEventRecordLine {
     std::string line_id;
     std::string scenario_name;
     std::string scenario_phase;
+    std::string snapshot_path;
+    std::string clip_path;
     std::int64_t start_time_ms{0};
     std::int64_t update_time_ms{0};
     std::int64_t end_time_ms{0};
@@ -789,6 +791,8 @@ bool ParseEventRecordLine(const std::string& line, ParsedEventRecordLine* record
     record->line_id = ExtractTopLevelString(line, "lineId").value_or("");
     record->scenario_name = ExtractTopLevelString(line, "scenarioName").value_or("");
     record->scenario_phase = ExtractTopLevelString(line, "scenarioPhase").value_or("");
+    record->snapshot_path = ExtractTopLevelString(line, "snapshotPath").value_or("");
+    record->clip_path = ExtractTopLevelString(line, "clipPath").value_or("");
     record->start_time_ms = *start_time;
     record->update_time_ms = *update_time;
     record->end_time_ms = *end_time;
@@ -937,6 +941,17 @@ bool EventRecordMatchesQuery(const ParsedEventRecordLine& record,
     }
     if (options.has_track_id && record.track_id != options.track_id) {
         return false;
+    }
+    if (!options.evidence.empty()) {
+        const bool has_snapshot = !record.snapshot_path.empty();
+        const bool has_clip = !record.clip_path.empty();
+        if ((options.evidence == "snapshot" && !has_snapshot) ||
+            (options.evidence == "clip" && !has_clip) ||
+            (options.evidence == "any" && !has_snapshot && !has_clip) ||
+            (options.evidence == "both" && (!has_snapshot || !has_clip)) ||
+            (options.evidence == "missing" && (has_snapshot || has_clip))) {
+            return false;
+        }
     }
     const std::int64_t record_end = record.end_time_ms > 0
                                         ? record.end_time_ms

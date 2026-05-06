@@ -142,6 +142,7 @@ struct EventRecordQueryOptions {
     std::string line_id;
     std::string scenario_name;
     std::string scenario_phase;
+    std::string evidence;
     bool has_start_time_ms{false};
     std::int64_t start_time_ms{0};
     bool has_end_time_ms{false};
