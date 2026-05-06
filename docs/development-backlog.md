@@ -524,6 +524,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
   - Scenario template 목록에 Loitering 추가
   - 로비/승강장/주차장 현장 샘플 시작 프리셋 추가
   - retail/lobby/platform/doorway/parking 기준 threshold baseline 문서화
+  - doorway preset과 preset별 cooldown 시작값 반영
   - target zone, `minDwellTimeMs`, `maxMovementRadius`, `minTrajectoryPoints`, `cooldownMs`, unstable track exclude 설정
   - optional `useGroundPlaneMovementRadius` 저장
   - Idle → InsideZone → TrajectoryStable → DwellSatisfied → Confirmed → Cooldown → Ended 상태 흐름 미리보기

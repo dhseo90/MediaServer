@@ -7048,6 +7048,7 @@ std::string BuildLabRuleEditorPageHtml() {
                   <option value="custom" selected>custom</option>
                   <option value="lobby">로비/대기열 · 30s · radius 0.08</option>
                   <option value="retail">매장 통로 · 20s · radius 0.06</option>
+                  <option value="doorway">출입구 · 15s · radius 0.05</option>
                   <option value="platform">승강장 · 45s · radius 0.10</option>
                   <option value="parking">주차장 보행자 · 60s · radius 0.12</option>
                 </select>
@@ -9395,16 +9396,18 @@ std::string BuildLabRuleEditorPageHtml() {
     function applyLoiteringPreset(value) {
       const preset = String(value || 'custom');
       const presets = {
-        lobby: { dwellMs: 30000, radius: 0.08, points: 4 },
-        retail: { dwellMs: 20000, radius: 0.06, points: 4 },
-        platform: { dwellMs: 45000, radius: 0.10, points: 5 },
-        parking: { dwellMs: 60000, radius: 0.12, points: 6 }
+        lobby: { dwellMs: 30000, radius: 0.08, points: 4, cooldownMs: 12000 },
+        retail: { dwellMs: 20000, radius: 0.06, points: 4, cooldownMs: 10000 },
+        doorway: { dwellMs: 15000, radius: 0.05, points: 3, cooldownMs: 8000 },
+        platform: { dwellMs: 45000, radius: 0.10, points: 5, cooldownMs: 15000 },
+        parking: { dwellMs: 60000, radius: 0.12, points: 5, cooldownMs: 20000 }
       };
       const selected = presets[preset];
       if (!selected) return;
       if ($('scenarioDwellMs')) $('scenarioDwellMs').value = String(selected.dwellMs);
       if ($('scenarioLoiteringRadius')) $('scenarioLoiteringRadius').value = String(selected.radius);
       if ($('scenarioLoiteringMinPoints')) $('scenarioLoiteringMinPoints').value = String(selected.points);
+      if ($('scenarioCooldownMs')) $('scenarioCooldownMs').value = String(selected.cooldownMs);
     }
 
     function applyZoneOccupancyPreset(value) {

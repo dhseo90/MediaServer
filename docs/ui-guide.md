@@ -333,7 +333,7 @@ Loitering UI 정책:
 - `최소 체류 시간(ms)`은 저장 payload의 `minDwellTimeMs`로 runtime에 전달합니다.
 - `최대 이동 반경`과 `최소 trajectory point`는 각각 `maxMovementRadius`, `minTrajectoryPoints`로 저장합니다.
 - optional ground-plane 이동 반경 사용 여부는 `useGroundPlaneMovementRadius`로 저장합니다.
-- 현장 시작 threshold는 [Analysis Threshold Baselines](analysis-threshold-baselines.md)의 retail/lobby/platform/doorway/parking 기준값에서 고릅니다.
+- 현장 시작 threshold는 [Analysis Threshold Baselines](analysis-threshold-baselines.md)의 retail/lobby/platform/doorway/parking 기준값에서 고르고, preset은 dwell/radius/trajectory뿐 아니라 cooldown 시작값도 함께 채웁니다.
 - Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직은 변경하지 않습니다.
 
 Intrusion Dwell UI 항목:

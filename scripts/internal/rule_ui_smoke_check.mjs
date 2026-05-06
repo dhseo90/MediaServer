@@ -544,9 +544,12 @@ try {
           throw new Error('loitering radius validation mismatch: ' + loiteringWarning);
         }
         setValue('scenarioLoiteringPreset', 'platform');
+        const loiteringPresetValues = Array.from($('scenarioLoiteringPreset').options).map((option) => option.value);
+        expectList('loitering preset values', loiteringPresetValues, ['custom', 'lobby', 'retail', 'doorway', 'platform', 'parking']);
         if (Number($('scenarioDwellMs').value) !== 45000 ||
             Number($('scenarioLoiteringRadius').value) !== 0.10 ||
-            Number($('scenarioLoiteringMinPoints').value) !== 5) {
+            Number($('scenarioLoiteringMinPoints').value) !== 5 ||
+            Number($('scenarioCooldownMs').value) !== 15000) {
           throw new Error('loitering field preset mismatch');
         }
         setValue('scenarioType', 'zone-occupancy');

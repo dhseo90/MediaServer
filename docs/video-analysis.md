@@ -356,7 +356,7 @@ target zone 내부 dwell time과 downsampled trajectory movement radius를 조�
 | ground-plane radius | optional `useGroundPlaneMovementRadius` |
 | unstable track exclude | 불안정 track 후보 제외 |
 
-현재 UI 템플릿은 rule payload preview, 저장 전 validation, standalone rule 저장 round-trip을 검증합니다. 현장 시작 threshold는 [Analysis Threshold Baselines](analysis-threshold-baselines.md)에 정리합니다. Event POST payload, WebRTC/SSE/WS metadata schema, 기존 Scenario 판단 로직 변경으로 표현하지 않습니다.
+현재 UI 템플릿은 rule payload preview, 저장 전 validation, standalone rule 저장 round-trip을 검증합니다. 현장 시작 threshold는 [Analysis Threshold Baselines](analysis-threshold-baselines.md)에 정리하며, preset은 dwell/radius/trajectory point와 함께 cooldown 시작값도 채웁니다. Event POST payload, WebRTC/SSE/WS metadata schema, 기존 Scenario 판단 로직 변경으로 표현하지 않습니다.
 
 ### ZoneOccupancyScenario
 
