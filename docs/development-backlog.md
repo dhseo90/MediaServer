@@ -97,9 +97,9 @@
 
 ### O6. Operator Live Monitor
 
-- 상태: 1차 완료: `/ops/home` 운영 홈 summary MVP + `/ops/live` 고밀도 운영 상태 타일
+- 상태: 완료: `/ops/home` 운영 홈 summary + `/ops/live` 고밀도 운영 상태 타일/필터
 - 목적: 운영자가 source, runtime 상태, event, analysis tap 상태를 함께 볼 수 있는 live monitor를 정의합니다.
-- 현재 범위: Source/View summary, active session/stream/tap summary, recent event summary, warning/stale summary, 고밀도 source/view tile을 `/ops/home`과 `/ops/live`에 표시합니다. `/ops/live`는 자동 media session을 열지 않습니다.
+- 완료 범위: Source/View summary, active session/stream/tap summary, recent event summary, warning/stale summary, 고밀도 source/view tile, `all/attention/published/unassigned` focus, `view/source` 검색, attention/미배정 카운터를 `/ops/home`과 `/ops/live`에 표시합니다. `/ops/live`는 자동 media session을 열지 않습니다.
 - 후속: 실제 media preview tile, source health drill-down, runtime/event timeline, 장애 대응 action을 한 화면에서 연결합니다.
 - 우선순위 이유: 운영 화면은 장애 대응과 source 제어가 핵심이라 클라이언트 화면과 다른 정보 밀도가 필요합니다.
 
