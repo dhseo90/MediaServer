@@ -1989,6 +1989,10 @@ bool QueryEventRecordPath(const std::filesystem::path& path,
         if (!EventRecordMatchesQuery(parsed, options)) {
             continue;
         }
+        const std::uint64_t match_index = result->matched_records++;
+        if (match_index < options.offset) {
+            continue;
+        }
         if (result->records_json.size() >= limit) {
             result->has_more = true;
             result->truncated = true;
@@ -2014,6 +2018,7 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
     *result = EventRecordQueryResult{};
     result->storage = GetEventStorageSnapshot();
     const std::size_t limit = std::max<std::size_t>(1, options.limit);
+    result->offset = options.offset;
     result->limit = limit;
 
     const std::filesystem::path path(result->storage.active_path.empty() ? result->storage.path
@@ -2064,6 +2069,7 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
     result->storage.last_recovery_time_ms = NowMs();
     result->storage.last_recovery_status =
         RecoveryStatusForCounts(result->skipped_corrupt_lines, result->partial_line_count);
+    result->next_offset = result->has_more ? options.offset + result->records_json.size() : options.offset;
 
     if (error_message != nullptr) {
         error_message->clear();
@@ -2350,6 +2356,38 @@ bool DeleteCompactedEventRecordFile(const std::string& file_name,
     }
     if (result != nullptr) {
         *result = file;
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+bool CleanupCompactedEventRecordFiles(std::size_t keep_newest,
+                                      EventRecordCompactedFileCleanupResult* result,
+                                      std::string* error_message) {
+    if (result == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "result is required";
+        }
+        return false;
+    }
+    *result = EventRecordCompactedFileCleanupResult{};
+    result->storage = GetEventStorageSnapshot();
+    EventRecordCompactedFileListResult list;
+    if (!ListCompactedEventRecordFiles(&list, error_message)) {
+        return false;
+    }
+    result->storage = list.storage;
+    result->kept_count =
+        static_cast<std::uint64_t>(std::min<std::size_t>(keep_newest, list.files.size()));
+    for (std::size_t index = keep_newest; index < list.files.size(); ++index) {
+        EventRecordCompactedFileInfo deleted;
+        if (!DeleteCompactedEventRecordFile(list.files[index].file_name, &deleted, error_message)) {
+            return false;
+        }
+        ++result->deleted_count;
+        result->deleted_bytes += deleted.size_bytes;
     }
     if (error_message != nullptr) {
         error_message->clear();

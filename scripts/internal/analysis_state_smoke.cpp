@@ -1336,6 +1336,18 @@ void VerifyEventStorageArchiveCompaction() {
                post_compact_query_result.archive_files_scanned == 1,
            "EventStorage query must not treat compacted snapshots as rotated archives");
 
+    EventRecordQueryOptions paged_query = compact_query;
+    paged_query.limit = 1;
+    paged_query.offset = 1;
+    EventRecordQueryResult paged_result;
+    Expect(QueryEventRecords(paged_query, &paged_result, &error_message),
+           "EventStorage paged query must succeed: " + error_message);
+    Expect(paged_result.offset == 1 &&
+               paged_result.records_json.size() == 1 &&
+               paged_result.records_json[0].find("evt-archive") != std::string::npos &&
+               !paged_result.has_more,
+           "EventStorage paged query must page archive-backed records after the active match");
+
     EventRecordCompactedFileListResult compacted_files;
     Expect(ListCompactedEventRecordFiles(&compacted_files, &error_message),
            "EventStorage compacted list must succeed: " + error_message);
@@ -1358,6 +1370,17 @@ void VerifyEventStorageArchiveCompaction() {
            "EventStorage compacted delete must succeed: " + error_message);
     Expect(!std::filesystem::exists(compact_result.compacted_path),
            "EventStorage compacted delete must remove only the requested snapshot");
+
+    EventRecordCompactionResult extra_compact_result;
+    Expect(CompactEventRecords(compact_query, &extra_compact_result, &error_message),
+           "EventStorage second compaction must succeed: " + error_message);
+    Expect(CompactEventRecords(compact_query, &extra_compact_result, &error_message),
+           "EventStorage third compaction must succeed: " + error_message);
+    EventRecordCompactedFileCleanupResult cleanup_result;
+    Expect(CleanupCompactedEventRecordFiles(1, &cleanup_result, &error_message),
+           "EventStorage compacted cleanup must succeed: " + error_message);
+    Expect(cleanup_result.deleted_count >= 1 && cleanup_result.kept_count == 1,
+           "EventStorage compacted cleanup must retain only the newest snapshot");
 
     std::filesystem::remove(active_path, ec);
     ec.clear();

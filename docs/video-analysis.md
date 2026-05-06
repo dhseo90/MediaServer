@@ -579,7 +579,7 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records?eventType=presence&
 - `eventId`, `eventType`, `streamId`, `channelId`, `trackId`, `status`
 - `zoneId`, `lineId`, `scenarioName`, `scenarioPhase`
 - `evidence=snapshot|clip|any|both|missing`
-- `startTimeMs`, `endTimeMs`, `limit`
+- `startTimeMs`, `endTimeMs`, `offset`, `limit`
 - `includeArchives=1`
 
 Compaction snapshot API:
@@ -587,6 +587,7 @@ Compaction snapshot API:
 ```bash
 curl -fsS -X POST 'http://127.0.0.1:8080/lab/analysis/events/records/compact?includeArchives=1'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records/compactions'
+curl -fsS -X POST 'http://127.0.0.1:8080/lab/analysis/events/records/compactions/cleanup?keepNewest=10'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records/compactions/{fileName}'
 curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/events/records/compactions/{fileName}'
 ```
@@ -597,8 +598,10 @@ curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/events/records/compactio
 `/lab/rules` Runtime Dashboard의 Event Records 섹션은 이 API를 수동 검색 UI로 노출합니다.
 
 - 사용자가 검색 버튼을 누를 때만 API를 호출합니다.
+- `offset`과 `limit`으로 active/archive 합산 결과를 페이지 단위로 넘길 수 있고, UI는 이전/다음 페이지 버튼으로 이 값을 사용합니다.
 - `snapshotPath`와 `clipPath`는 table badge, detail evidence summary, 원본 JSON에서 확인합니다.
 - evidence filter는 snapshot만 있는 record, clip manifest가 있는 record, 둘 다 있는 record, 둘 다 없는 record를 active/archive/compaction query에서 같은 조건으로 거릅니다.
+- compaction snapshot cleanup은 `keepNewest=N` 기준으로 오래된 compacted snapshot만 삭제하며 active file과 rotated archive는 건드리지 않습니다.
 - 영상 검색/재생, 장기 녹화, MP4 muxing은 포함하지 않습니다. snapshot/clip hook은 EventRecord용 짧은 frame evidence만 저장합니다.
 
 ## 12. VA Runtime Metadata
