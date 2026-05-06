@@ -1028,6 +1028,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       const opsPreviewState = {
         rowId: '',
         viewId: '',
+        overlayMode: 'raw',
         sessionId: '',
         pc: null,
         iceTimer: null,
@@ -1093,6 +1094,29 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       function selectedOpsLiveRow() {
         return opsLiveState.rows.find(row => String(row.id) === String(opsLiveState.selectedRowId || '')) || null;
       }
+      function opsLivePreviewRuleId(row = selectedOpsLiveRow()) {
+        const view = row?.view || {};
+        const tap = row?.tap || null;
+        return String(view.defaultRuleId || tap?.selectedRuleId || (Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds[0] : '') || '').trim();
+      }
+      function opsLivePreviewAllowedModes(row = selectedOpsLiveRow()) {
+        const view = row?.view || {};
+        const modes = allowedOverlayModes(view);
+        return modes.length > 0 ? modes : ['raw'];
+      }
+      function syncOpsLivePreviewModeSelect(row = selectedOpsLiveRow()) {
+        const select = document.getElementById('opsLivePreviewMode');
+        if (!select) return;
+        const modes = opsLivePreviewAllowedModes(row);
+        if (!modes.includes(opsPreviewState.overlayMode)) {
+          opsPreviewState.overlayMode = modes.includes('raw') ? 'raw' : modes[0];
+        }
+        select.innerHTML = modes.map(mode =>
+          `<option value="${escapeHtml(mode)}">${escapeHtml(overlayLabel(mode))}</option>`
+        ).join('');
+        select.value = opsPreviewState.overlayMode;
+        select.disabled = !row?.view?.viewId || row?.enabled === false || Boolean(opsPreviewState.sessionId);
+      }
       function opsLivePreviewSessionUrl(suffix = '') {
         return `/client/api/views/${encodeURIComponent(opsPreviewState.viewId || '')}/webrtc/session/${encodeURIComponent(opsPreviewState.sessionId || '')}${suffix}`;
       }
@@ -1136,9 +1160,14 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         const hasView = Boolean(row?.view?.viewId);
         const enabled = row?.enabled !== false;
         const activeForRow = Boolean(row) && String(opsPreviewState.rowId || '') === String(row.id || '');
+        const previewMode = opsPreviewState.overlayMode || 'raw';
+        const previewRuleId = opsLivePreviewRuleId(row);
+        const ruleRequired = previewMode === 'va-rule';
         setText('opsLivePreviewViewText', hasView ? String(row.view.viewId) : '-');
         setText('opsLivePreviewStatusText', opsPreviewStatusLabel(opsPreviewState.status));
         setText('opsLivePreviewConnectionText', opsPreviewStatusLabel(opsPreviewState.connectionStatus));
+        setText('opsLivePreviewModeText', overlayLabel(previewMode));
+        syncOpsLivePreviewModeSelect(row);
         if (!row) {
           setText('opsLivePreviewSummary', '선택한 PublishedView만 수동으로 미리보기합니다. 자동 세션은 열지 않습니다.');
           if (placeholder) {
@@ -1157,19 +1186,26 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
             placeholder.hidden = false;
             placeholder.textContent = '비활성 채널입니다.';
           }
+        } else if (ruleRequired && !previewRuleId) {
+          setText('opsLivePreviewSummary', `${row.view.viewId}는 VA 룰 모드가 허용되지 않거나 연결된 rule이 없습니다.`);
+          if (placeholder) {
+            placeholder.hidden = false;
+            placeholder.textContent = 'VA 룰 연결 없음';
+          }
         } else if (activeForRow && opsPreviewState.sessionId) {
-          setText('opsLivePreviewSummary', `${row.view.viewId} read-only preview 연결 중 · 자동 세션은 열지 않습니다.`);
+          setText('opsLivePreviewSummary', `${row.view.viewId} ${overlayLabel(previewMode)} read-only preview 연결 중 · 자동 세션은 열지 않습니다.`);
           if (placeholder) placeholder.hidden = true;
         } else {
-          setText('opsLivePreviewSummary', `${row.view.viewId} 미리보기는 시작 버튼을 눌렀을 때만 연결합니다.`);
+          const ruleHint = ruleRequired && previewRuleId ? ` · rule ${previewRuleId}` : '';
+          setText('opsLivePreviewSummary', `${row.view.viewId} ${overlayLabel(previewMode)} 미리보기는 시작 버튼을 눌렀을 때만 연결합니다.${ruleHint}`);
           if (placeholder) {
             placeholder.hidden = false;
             placeholder.textContent = opsPreviewState.lastError || '선택한 채널의 미리보기를 시작하세요.';
           }
         }
         if (video) video.muted = true;
-        if (startBtn) startBtn.disabled = !row || !hasView || !enabled || (activeForRow && Boolean(opsPreviewState.sessionId));
-        if (restartBtn) restartBtn.disabled = !row || !hasView || !enabled;
+        if (startBtn) startBtn.disabled = !row || !hasView || !enabled || (ruleRequired && !previewRuleId) || (activeForRow && Boolean(opsPreviewState.sessionId));
+        if (restartBtn) restartBtn.disabled = !row || !hasView || !enabled || (ruleRequired && !previewRuleId);
         if (stopBtn) stopBtn.disabled = !Boolean(opsPreviewState.sessionId);
       }
       async function stopOpsLivePreview(options = {}) {
@@ -1216,7 +1252,13 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       async function startOpsLivePreview(options = {}) {
         const row = selectedOpsLiveRow();
         const viewId = String(row?.view?.viewId || '').trim();
+        const overlayMode = opsPreviewState.overlayMode || 'raw';
+        const ruleId = opsLivePreviewRuleId(row);
         if (!row || !viewId || row.enabled === false) {
+          updateOpsLivePreviewUi(row);
+          return;
+        }
+        if (overlayMode === 'va-rule' && !ruleId) {
           updateOpsLivePreviewUi(row);
           return;
         }
@@ -1275,7 +1317,10 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ overlayMode: 'raw' })
+            body: JSON.stringify({
+              overlayMode,
+              ...(overlayMode === 'va-rule' && ruleId ? { ruleId } : {})
+            })
           });
           const payload = await response.json().catch(() => ({}));
           if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
@@ -1879,6 +1924,10 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           opsPreviewState.lastError = error.message || 'preview start failed';
           updateOpsLivePreviewUi();
         }));
+        document.getElementById('opsLivePreviewMode')?.addEventListener('change', event => {
+          opsPreviewState.overlayMode = normalizeOverlayMode(event.target.value) || 'raw';
+          updateOpsLivePreviewUi();
+        });
         document.getElementById('opsLivePreviewRestart')?.addEventListener('click', () => startOpsLivePreview({ restart: true }).catch(error => {
           opsPreviewState.lastError = error.message || 'preview restart failed';
           updateOpsLivePreviewUi();
