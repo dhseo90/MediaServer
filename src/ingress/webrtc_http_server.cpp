@@ -38,6 +38,7 @@
 #include "analysis/event_rule_engine.h"
 #include "analysis/event_storage.h"
 #include "analysis/image_frame_loader.h"
+#include "analysis/metadata_subscription_filter.h"
 #include "analysis/object_tracker.h"
 #include "analysis/overlay_renderer.h"
 #include "analysis/snapshot_encoder.h"
@@ -7445,6 +7446,26 @@ std::string BuildLabRuleEditorPageHtml() {
 	              </div>
 	              <span class="badge badge-info">side-channel</span>
 	            </div>
+	            <div class="row metadata-subscription-controls" aria-label="metadata side-channel 구독 필터">
+	              <label>eventType filter
+	                <input id="metadataFilterEventType" placeholder="loitering,zone-occupancy" />
+	              </label>
+	              <label>scenario filter
+	                <input id="metadataFilterScenarioName" placeholder="loitering" />
+	              </label>
+	              <label>trackId filter
+	                <input id="metadataFilterTrackId" inputmode="numeric" placeholder="7" />
+	              </label>
+	              <label>zoneId filter
+	                <input id="metadataFilterZoneId" placeholder="queue-a" />
+	              </label>
+	            </div>
+	            <div class="metadata-overlay-controls metadata-subscription-flags" aria-label="metadata side-channel payload controls">
+	              <label><input id="metadataIncludeSourceInput" type="checkbox" checked /> source</label>
+	              <label><input id="metadataIncludeScenariosInput" type="checkbox" checked /> scenarios</label>
+	              <label><input id="metadataIncludeMetricsInput" type="checkbox" checked /> metrics</label>
+	              <label><input id="metadataIncludeTrackingIssueInput" type="checkbox" checked /> tracking issue</label>
+	            </div>
 	            <div class="url-grid">
 	              <label class="url-field">
 	                <span class="url-title-row"><span>RTSP raw stream</span><button type="button" class="secondary copy-url-btn" data-copy-url-target="viewRtspRawUrl">복사</button></span>
@@ -13002,12 +13023,38 @@ std::string BuildLabRuleEditorPageHtml() {
 	        if (id) params.set('vaRule', id);
 	        params.set('intervalMs', '500');
 	        params.set('maxMessageBytes', '65536');
+	        applyMetadataSubscriptionParams(params);
 	        return params;
 	      }
 	      const params = buildRawViewParams();
 	      params.set('va', '1');
 	      params.set('intervalMs', '500');
 	      params.set('maxMessageBytes', '65536');
+	      applyMetadataSubscriptionParams(params);
+	      return params;
+	    }
+
+	    function appendTrimmedMetadataParam(params, key, inputId) {
+	      const value = String($(inputId)?.value || '').trim();
+	      if (value) params.set(key, value);
+	    }
+
+	    function applyMetadataSubscriptionParams(params) {
+	      appendTrimmedMetadataParam(params, 'eventType', 'metadataFilterEventType');
+	      appendTrimmedMetadataParam(params, 'scenarioName', 'metadataFilterScenarioName');
+	      appendTrimmedMetadataParam(params, 'trackId', 'metadataFilterTrackId');
+	      appendTrimmedMetadataParam(params, 'zoneId', 'metadataFilterZoneId');
+	      if ($('metadataIncludeSourceInput')?.checked === false) params.set('includeSource', '0');
+	      if ($('metadataIncludeScenariosInput')?.checked === false) params.set('includeScenarios', '0');
+	      if ($('metadataIncludeMetricsInput')?.checked === false) params.set('includeMetrics', '0');
+	      if ($('metadataIncludeTrackingIssueInput')?.checked === false) params.set('includeTrackingIssueReport', '0');
+	    }
+
+	    function buildMetadataTapSideChannelParams() {
+	      const params = new URLSearchParams();
+	      params.set('intervalMs', '500');
+	      params.set('maxMessageBytes', '65536');
+	      applyMetadataSubscriptionParams(params);
 	      return params;
 	    }
 
@@ -13075,6 +13122,7 @@ std::string BuildLabRuleEditorPageHtml() {
       const rtspOverlayQuery = buildRtspOverlayParams().toString();
       const metadataQuery = buildWebRtcMetadataParams().toString();
       const sideChannelQuery = buildMetadataSideChannelParams().toString();
+      const tapSideChannelQuery = buildMetadataTapSideChannelParams().toString();
       const fallbackOrigin = window.location.origin;
       const baseInput = $('viewServerBaseUrl');
       const rtspInput = $('viewRtspAuthority');
@@ -13092,10 +13140,10 @@ std::string BuildLabRuleEditorPageHtml() {
       const rtspOverlayQuerySuffix = rtspOverlayQuery ? `?${rtspOverlayQuery}` : '';
 	      const metadataQuerySuffix = metadataQuery ? `?${metadataQuery}` : '';
 	      const metadataSideChannelUrl = viewTapId
-	        ? `${origin}/lab/analysis/taps/${encodeURIComponent(viewTapId)}/metadata/stream?intervalMs=500&maxMessageBytes=65536`
+	        ? `${origin}/lab/analysis/taps/${encodeURIComponent(viewTapId)}/metadata/stream?${tapSideChannelQuery}`
 	        : `${origin}/lab/analysis/metadata/stream${sideChannelQuery ? `?${sideChannelQuery}` : ''}`;
 	      const wsSideChannelQuery = viewTapId
-	        ? `tapId=${encodeURIComponent(viewTapId)}&intervalMs=500&maxMessageBytes=65536`
+	        ? `tapId=${encodeURIComponent(viewTapId)}&${tapSideChannelQuery}`
 	        : sideChannelQuery;
 	      const webSocketSideChannelUrl = `${websocketOriginFromHttpOrigin(origin)}/ws/va-metadata${wsSideChannelQuery ? `?${wsSideChannelQuery}` : ''}`;
 	      const rtspOverlayUrl = `rtsp://${rtspAuthority}/${route}${rtspOverlayQuerySuffix}`;
@@ -16139,14 +16187,14 @@ std::string BuildLabRuleEditorPageHtml() {
           copyGeneratedUrl(button.dataset.copyUrlTarget || '', button);
         });
       });
-      for (const id of ['viewSourceKind', 'viewFileSelect', 'viewUrlInput', 'viewServerBaseUrl', 'viewRtspAuthority']) {
+      for (const id of ['viewSourceKind', 'viewFileSelect', 'viewUrlInput', 'viewServerBaseUrl', 'viewRtspAuthority', 'metadataFilterEventType', 'metadataFilterScenarioName', 'metadataFilterTrackId', 'metadataFilterZoneId']) {
         const el = $(id);
         if (el) {
           el.addEventListener('input', updateViewModeUi);
           el.addEventListener('change', updateViewModeUi);
         }
       }
-      for (const id of ['metadataOverlayBboxInput', 'metadataOverlayLabelInput', 'metadataOverlayTrackIdInput', 'metadataOverlayScenarioInput', 'metadataOverlayEventInput', 'metadataOverlayHealthInput', 'metadataOverlayZoneInput', 'metadataOverlayDwellInput', 'metadataOverlayDetectionInput', 'metadataOverlayFallbackInput']) {
+      for (const id of ['metadataOverlayBboxInput', 'metadataOverlayLabelInput', 'metadataOverlayTrackIdInput', 'metadataOverlayScenarioInput', 'metadataOverlayEventInput', 'metadataOverlayHealthInput', 'metadataOverlayZoneInput', 'metadataOverlayDwellInput', 'metadataOverlayDetectionInput', 'metadataOverlayFallbackInput', 'metadataIncludeSourceInput', 'metadataIncludeScenariosInput', 'metadataIncludeMetricsInput', 'metadataIncludeTrackingIssueInput']) {
         const el = $(id);
         if (el) {
           el.addEventListener('change', () => {
@@ -19992,7 +20040,115 @@ struct VaMetadataStreamOptions {
     std::size_t max_message_bytes{app::GetAppConfig().webrtc_va_metadata_max_message_bytes};
     std::size_t max_tracks{128};
     std::size_t max_events{64};
+    bool include_source{true};
+    bool include_scenarios{true};
+    bool include_metrics{true};
+    bool include_tracking_issue_report{true};
+    analysis::VaMetadataSubscriptionFilter subscription_filter;
 };
+
+std::vector<std::string> ParseVaMetadataStringList(std::string value) {
+    std::vector<std::string> values;
+    std::string current;
+    for (const char ch : value) {
+        if (ch == ',' || ch == ';') {
+            current = Trim(std::move(current));
+            if (!current.empty() &&
+                std::find(values.begin(), values.end(), current) == values.end()) {
+                values.push_back(std::move(current));
+            }
+            current.clear();
+            continue;
+        }
+        current.push_back(ch);
+    }
+    current = Trim(std::move(current));
+    if (!current.empty() && std::find(values.begin(), values.end(), current) == values.end()) {
+        values.push_back(std::move(current));
+    }
+    return values;
+}
+
+void AppendVaMetadataQueryList(const std::unordered_map<std::string, std::string>& query,
+                               std::initializer_list<const char*> keys,
+                               std::vector<std::string>* values) {
+    if (values == nullptr) {
+        return;
+    }
+    for (const char* key : keys) {
+        const auto it = query.find(key);
+        if (it == query.end()) {
+            continue;
+        }
+        for (auto value : ParseVaMetadataStringList(it->second)) {
+            if (std::find(values->begin(), values->end(), value) == values->end()) {
+                values->push_back(std::move(value));
+            }
+        }
+    }
+}
+
+std::optional<std::uint64_t> ParseVaMetadataUint64Query(
+    const std::unordered_map<std::string, std::string>& query,
+    std::initializer_list<const char*> keys) {
+    for (const char* key : keys) {
+        const auto it = query.find(key);
+        if (it == query.end()) {
+            continue;
+        }
+        const std::string raw = Trim(it->second);
+        if (raw.empty() || raw.front() == '-') {
+            continue;
+        }
+        std::size_t consumed = 0;
+        try {
+            const unsigned long long parsed = std::stoull(raw, &consumed, 10);
+            if (consumed == raw.size()) {
+                return static_cast<std::uint64_t>(parsed);
+            }
+        } catch (...) {
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<int> ParseVaMetadataIntQuery(const std::unordered_map<std::string, std::string>& query,
+                                           std::initializer_list<const char*> keys) {
+    for (const char* key : keys) {
+        const auto it = query.find(key);
+        if (it == query.end()) {
+            continue;
+        }
+        const std::string raw = Trim(it->second);
+        if (raw.empty()) {
+            continue;
+        }
+        std::size_t consumed = 0;
+        try {
+            const int parsed = std::stoi(raw, &consumed, 10);
+            if (consumed == raw.size()) {
+                return parsed;
+            }
+        } catch (...) {
+        }
+    }
+    return std::nullopt;
+}
+
+analysis::VaMetadataSubscriptionFilter BuildVaMetadataSubscriptionFilter(
+    const std::unordered_map<std::string, std::string>& query) {
+    analysis::VaMetadataSubscriptionFilter filter;
+    AppendVaMetadataQueryList(query, {"eventType", "eventTypes"}, &filter.event_types);
+    AppendVaMetadataQueryList(query, {"ruleId", "ruleIds", "metadataRuleId", "metadataRuleIds"}, &filter.rule_ids);
+    AppendVaMetadataQueryList(query, {"scenario", "scenarioName", "scenarioNames"}, &filter.scenario_names);
+    AppendVaMetadataQueryList(query, {"zoneId", "zoneIds"}, &filter.zone_ids);
+    AppendVaMetadataQueryList(query, {"lineId", "lineIds"}, &filter.line_ids);
+    AppendVaMetadataQueryList(query, {"status", "statuses", "eventStatus"}, &filter.statuses);
+    AppendVaMetadataQueryList(query, {"label", "labels", "className", "classNames"}, &filter.labels);
+    filter.track_id = ParseVaMetadataUint64Query(query, {"trackId"});
+    filter.class_id = ParseVaMetadataIntQuery(query, {"classId"});
+    return filter;
+}
 
 VaMetadataStreamOptions BuildVaMetadataStreamOptions(const std::unordered_map<std::string, std::string>& query) {
     const auto& config = app::GetAppConfig();
@@ -20035,6 +20191,11 @@ VaMetadataStreamOptions BuildVaMetadataStreamOptions(const std::unordered_map<st
         ParseClampedIntQuery(query, "maxTracks", 128, 1, 10000));
     options.max_events = static_cast<std::size_t>(
         ParseClampedIntQuery(query, "maxEvents", 64, 1, 10000));
+    options.include_source = ParseBoolQuery(query, "includeSource", true);
+    options.include_scenarios = ParseBoolQuery(query, "includeScenarios", true);
+    options.include_metrics = ParseBoolQuery(query, "includeMetrics", true);
+    options.include_tracking_issue_report = ParseBoolQuery(query, "includeTrackingIssueReport", true);
+    options.subscription_filter = BuildVaMetadataSubscriptionFilter(query);
     return options;
 }
 
@@ -20042,19 +20203,24 @@ std::string BuildVaRuntimeMetadataJsonWithinBudget(const analysis::AnalysisResul
                                                    const std::vector<analysis::AnalysisEvent>& events,
                                                    const std::string& tracking_issue_report_json,
                                                    const VaMetadataStreamOptions& stream_options) {
+    const auto filtered_result =
+        analysis::FilterVaMetadataResult(result, stream_options.subscription_filter);
+    const auto filtered_events =
+        analysis::FilterVaMetadataEvents(events, stream_options.subscription_filter);
     analysis::VaRuntimeMetadataBuildOptions options;
     options.schema = analysis::kVaRuntimeMetadataSchema;
-    options.include_source = true;
-    options.include_scenarios = true;
-    options.include_metrics = true;
-    options.include_tracking_issue_report = true;
+    options.include_source = stream_options.include_source;
+    options.include_scenarios = stream_options.include_scenarios;
+    options.include_metrics = stream_options.include_metrics;
+    options.include_tracking_issue_report = stream_options.include_tracking_issue_report;
     options.max_tracks = stream_options.max_tracks;
     options.max_events = stream_options.max_events;
 
     std::string serialized;
     for (int attempt = 0; attempt < 16; ++attempt) {
         serialized = analysis::SerializeVaRuntimeMetadataFrameJson(
-            analysis::BuildVaRuntimeMetadataFrame(result, events, options, tracking_issue_report_json));
+            analysis::BuildVaRuntimeMetadataFrame(
+                filtered_result, filtered_events, options, tracking_issue_report_json));
         if (serialized.size() <= stream_options.max_message_bytes) {
             return serialized;
         }

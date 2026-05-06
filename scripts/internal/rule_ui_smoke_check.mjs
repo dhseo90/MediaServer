@@ -85,6 +85,12 @@ try {
           el.dispatchEvent(new Event('input', { bubbles: true }));
           el.dispatchEvent(new Event('change', { bubbles: true }));
         };
+        const setChecked = (id, checked) => {
+          const el = $(id);
+          if (!el) throw new Error('missing checkbox: ' + id);
+          el.checked = Boolean(checked);
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        };
         const apiJson = async (url, options = {}) => {
           const response = await fetch(url, options);
           const text = await response.text();
@@ -178,6 +184,21 @@ try {
         }
         if (!$('viewWebRtcUrl').value.includes('/webrtc/session?file=')) {
           throw new Error('viewer live URL mismatch: ' + $('viewWebRtcUrl').value);
+        }
+        for (const id of ['metadataFilterEventType', 'metadataFilterScenarioName', 'metadataFilterTrackId', 'metadataFilterZoneId', 'metadataIncludeSourceInput', 'metadataIncludeScenariosInput', 'metadataIncludeMetricsInput', 'metadataIncludeTrackingIssueInput']) {
+          if (!$(id)) throw new Error('missing metadata subscription control: ' + id);
+        }
+        setValue('metadataFilterEventType', 'loitering');
+        setValue('metadataFilterScenarioName', 'loitering');
+        setValue('metadataFilterTrackId', '7');
+        setValue('metadataFilterZoneId', 'queue-a');
+        setChecked('metadataIncludeMetricsInput', false);
+        const sseUrl = $('viewMetadataSideChannelUrl').value;
+        const wsUrl = $('viewWebSocketSideChannelUrl').value;
+        for (const required of ['eventType=loitering', 'scenarioName=loitering', 'trackId=7', 'zoneId=queue-a', 'includeMetrics=0']) {
+          if (!sseUrl.includes(required) || !wsUrl.includes(required)) {
+            throw new Error('metadata subscription URL missing ' + required + ': ' + sseUrl + ' / ' + wsUrl);
+          }
         }
         click('analysisSettingsTabBtn');
         if ($('settingsPanel').hidden || !$('viewerPanel').hidden) {

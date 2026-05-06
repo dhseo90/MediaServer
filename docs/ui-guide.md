@@ -602,6 +602,8 @@ Side-channel endpoint 구분:
 
 `/ws/va-metadata`는 `/lab` prefix가 없지만 Lab/custom-client 권한 경계를 따릅니다. Auth on에서는 admin/operator 또는 `lab:read` scope가 필요하고, viewer/client 제품 계정은 `/client` wrapper와 WebRTC DataChannel 흐름을 사용합니다.
 
+SSE/WS side-channel은 구독 query로 payload 범위를 줄일 수 있습니다. `eventType`, `scenarioName`, `trackId`, `zoneId`, `lineId`, `classId`, `className`, `ruleId`, `status`를 쉼표/세미콜론 목록으로 받을 수 있고, `includeSource=0`, `includeScenarios=0`, `includeMetrics=0`, `includeTrackingIssueReport=0`으로 큰 진단 필드를 끌 수 있습니다. `/lab/rules`의 Custom client URL 패널은 이 query를 직접 생성합니다.
+
 SSE 수신만 확인하는 최소 custom client 예제는 `scripts/examples/va_metadata_sse_client.py`입니다.
 
 | 확인 항목 | 설명 |

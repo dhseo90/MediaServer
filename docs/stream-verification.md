@@ -427,6 +427,7 @@ SSE metadata side-channel 수동 확인:
 
 ```bash
 curl -N 'http://127.0.0.1:8080/lab/analysis/metadata/stream?vaRule=1&intervalMs=500&maxMessageBytes=65536'
+curl -N 'http://127.0.0.1:8080/lab/analysis/metadata/stream?vaRule=1&eventType=loitering&scenarioName=loitering&includeMetrics=0&intervalMs=500&maxMessageBytes=65536'
 ```
 
 이미 생성된 analysis tap을 재사용할 때:
@@ -527,6 +528,7 @@ SSE metadata side-channel smoke:
 - `/lab/analysis/metadata/stream?file=...` 응답이 `text/event-stream`인지 확인
 - 첫 `event: metadata`의 JSON schema가 `media-server.va.runtime-metadata.v1`인지 확인
 - `tracks`, `events`, `scenarios`, `metrics` 필드가 포함되는지 확인
+- `eventType`, `scenarioName`, `trackId`, `zoneId` 같은 subscription filter가 metadata `events`/debug `tracks` 범위를 줄이고, `includeMetrics=0` 같은 include flag가 지정 필드를 생략하는지 확인
 - 임시 SSE analysis tap이 client disconnect 후 cleanup되는지 확인
 - `verify-va-metadata-sidechannel`은 같은 검증을 수행하면서 summary JSON을 출력하는 명시적 alias
 

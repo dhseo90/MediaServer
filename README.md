@@ -12,7 +12,7 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 - Ops/Client UI shell MVP: `/ops`는 운영 콘솔, `/client`는 viewer/client 포털, `/lab`은 개발/검증용 UI로 분리합니다.
 - 채널 관리 MVP: 운영 source 원본과 client 공개 view는 내부적으로 SourceRegistry/PublishedView API를 유지하지만, 제품 UI에서는 숫자 기반 채널 목록으로 관리합니다. `/ops/sources`는 채널 테이블, 보기/수정/복제/비활성화/삭제 흐름, Live/VA URL 복사 버튼을 제공합니다.
 - 저장 설정 호출: 숫자 ID 기반 `vaRule=<id>`로 저장된 source/profile/rule/scenario를 호출합니다.
-- VA Metadata Runtime Console: WebRTC 메타데이터 뷰어, 브라우저 client-side overlay, drill-down 런타임 대시보드, vaRule debug, SSE/WS side-channel, custom SSE client와 Custom RTSP+SSE overlay 예제를 제공합니다.
+- VA Metadata Runtime Console: WebRTC 메타데이터 뷰어, 브라우저 client-side overlay, drill-down 런타임 대시보드, vaRule debug, SSE/WS side-channel, side-channel subscription filter/control, custom SSE client와 Custom RTSP+SSE overlay 예제를 제공합니다.
 - 이벤트/검증: Event POST, EventRecord JSON Lines 저장, VA metadata replay/baseline 검증 구조를 제공합니다.
 
 ## 대표 UI 미리보기

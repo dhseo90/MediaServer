@@ -18,7 +18,7 @@
 - 구현 완료: RTSP/WebRTC relay, File/RTSP/HTTP-HLS source, 외부 WHEP URL pull source, 내부 WHIP publish sourceId 소비, YOLO/ONNX VA overlay, Rule/Profile UI, `vaRule=<id>` 호출, 기존 Intrusion/LineCrossing 이벤트 회귀 구조.
 - 구현 완료: TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, IntrusionDwell, ReEntry, WrongDirection, IntrusionAfterLineCrossing, Loitering, ZoneOccupancy engine/replay/UI 템플릿, TrackHealth, cleanup 정책.
 - 구현 완료: VA metadata replay, baseline fixture 비교, debug overlay/state dump, metrics, EventRecord file storage와 active/archive query/search UI, EventRecord rotation/retention/recovery 1차, 비파괴 compaction snapshot 생성/목록/다운로드/삭제, snapshot media 저장과 pre/post frame bundle recorder, WebRTC VA metadata DataChannel 출력 구조.
-- 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, client-side Trend/Stale/Cleanup warning 1차, vaRule Runtime Debug 1차, SSE/WS metadata side-channel, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, IntrusionDwell/ReEntry/WrongDirection/IntrusionAfterLineCrossing/Loitering scenario UI 템플릿, 자동/longrun 검증 명령.
+- 구현 완료: VA Metadata Runtime Console 1차. WebRTC Metadata Viewer, browser client-side overlay, Runtime Dashboard drill-down, client-side Trend/Stale/Cleanup warning 1차, vaRule Runtime Debug 1차, SSE/WS metadata side-channel과 subscription filter/control, RTSP overlay 정책 UI, custom SSE metadata client 예제, Custom RTSP+SSE overlay renderer 예제, IntrusionDwell/ReEntry/WrongDirection/IntrusionAfterLineCrossing/Loitering scenario UI 템플릿, 자동/longrun 검증 명령.
 - 구현 완료: Auth / Role / Scope, account login/session API/route MVP, Auth Bootstrap + 기본 로그인 강제, Password Policy + Lockout + Session Hardening, Admin User Management Console + CLI, Client Account Policy / Invite / Request MVP, Root/Login/Ops/Client/Lab 접근 정책.
 - 구현 완료: SourceRegistry / PublishedView API/route MVP, client scoped view API 1차, Client scoped dashboard API/UI MVP, Client Live Monitor grid/density/reconnect 상태 1차.
 - 구현 완료: `/setup`, `/login`, `/ops`, `/client` 제품 UI shell 통합 1차. Ops primary nav는 홈/대시보드/채널/룰/사용자/클라이언트 미리보기로 정리했고, client primary nav는 라이브/대시보드만 유지합니다. `/ops/dashboard`와 `/ops/rules`는 Lab iframe 없이 Ops 전용 API와 제품 컴포넌트로 표시하며 raw JSON은 운영자 debug 접힘 영역에만 둡니다. Ops shell overview 스크립트는 `product_ui_page_scripts.*`로 분리해 HTTP route/media/auth 모놀리스와 제품 브라우저 동작을 같은 함수에 두지 않습니다.
@@ -762,7 +762,7 @@ python3 scripts/examples/va_rtsp_sse_overlay_client.py --help
 ./server.sh verify-va-metadata-sidechannel
 ```
 
-- 후속 범위: WS 기반 custom overlay renderer 확장, metadata filter/subscription 제어, 현장 sample별 색상/label/track 표시 옵션 개선, 배포용 dependency 안내 정리입니다.
+- 후속 범위: WS 기반 custom overlay renderer 확장, 현장 sample별 색상/label/track 표시 옵션 개선, 배포용 dependency 안내 정리입니다. `eventType`/`scenarioName`/`trackId`/`zoneId` filter와 `includeSource`/`includeScenarios`/`includeMetrics`/`includeTrackingIssueReport` 제어는 SSE/WS side-channel 1차 범위로 완료했습니다.
 - 우선순위 이유: RTSP 일반 viewer와 custom client의 차이를 실제 예제로 보여줘야 현장 연동 혼선을 줄일 수 있습니다. 서버 core, RTSP server-side overlay 정책, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload는 이 항목에서 변경하지 않았습니다.
 
 ### P7-5. Event JSON schema/OpenAPI 분리

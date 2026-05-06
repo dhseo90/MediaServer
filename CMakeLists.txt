@@ -26,6 +26,7 @@ add_executable(media_server
     src/analysis/intrusion_after_line_crossing_scenario.cpp
     src/analysis/intrusion_dwell_scenario.cpp
     src/analysis/loitering_scenario.cpp
+    src/analysis/metadata_subscription_filter.cpp
     src/analysis/object_tracker.cpp
     src/analysis/overlay_renderer.cpp
     src/analysis/raw_video_decoder.cpp

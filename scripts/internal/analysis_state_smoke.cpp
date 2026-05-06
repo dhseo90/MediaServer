@@ -7,6 +7,7 @@
 #include "analysis/intrusion_after_line_crossing_scenario.h"
 #include "analysis/intrusion_dwell_scenario.h"
 #include "analysis/loitering_scenario.h"
+#include "analysis/metadata_subscription_filter.h"
 #include "analysis/object_tracker.h"
 #include "analysis/re_entry_scenario.h"
 #include "analysis/scenario_engine.h"
@@ -1550,6 +1551,129 @@ void VerifyVaRuntimeMetadataBuilder() {
     Pass("VaRuntimeMetadata builder/schema/WebRTC compatibility");
 }
 
+void VerifyVaMetadataSubscriptionFilter() {
+    AnalysisResult result;
+    result.source_key = "stream-a";
+    result.profile_key = "profile-a";
+    result.frame_id = 31;
+    result.pts = Ms(3100);
+    result.frame_width = 1280;
+    result.frame_height = 720;
+
+    Detection loitering_detection;
+    loitering_detection.class_id = 0;
+    loitering_detection.label = "person";
+    loitering_detection.track_id = 7;
+    loitering_detection.score = 0.92F;
+    loitering_detection.event_triggered = true;
+    loitering_detection.event_rule_id = "rule-loitering";
+    loitering_detection.event_type = "loitering";
+
+    Detection occupancy_detection;
+    occupancy_detection.class_id = 2;
+    occupancy_detection.label = "car";
+    occupancy_detection.track_id = 8;
+    occupancy_detection.score = 0.81F;
+    occupancy_detection.event_triggered = true;
+    occupancy_detection.event_rule_id = "rule-occupancy";
+    occupancy_detection.event_type = "zone-occupancy";
+    result.detections = {loitering_detection, occupancy_detection};
+
+    AnalysisDebugTrackState loitering_track;
+    loitering_track.track_id = 7;
+    loitering_track.class_id = 0;
+    loitering_track.class_name = "person";
+    loitering_track.confidence = 0.92F;
+    loitering_track.lifecycle_state = "Active";
+    loitering_track.current_zone = "queue-a";
+    loitering_track.scenario_name = "loitering";
+    loitering_track.scenario_phase = "Confirmed";
+
+    AnalysisDebugTrackState occupancy_track;
+    occupancy_track.track_id = 8;
+    occupancy_track.class_id = 2;
+    occupancy_track.class_name = "car";
+    occupancy_track.confidence = 0.81F;
+    occupancy_track.lifecycle_state = "Lost";
+    occupancy_track.current_zone = "parking-a";
+    occupancy_track.scenario_name = "zone-occupancy";
+    occupancy_track.scenario_phase = "Observing";
+
+    AnalysisDebugState debug_state;
+    debug_state.enabled = true;
+    debug_state.tracks = {loitering_track, occupancy_track};
+    debug_state.track_count = debug_state.tracks.size();
+    result.debug_state = debug_state;
+
+    AnalysisEvent loitering_event;
+    loitering_event.event_id = "evt-loitering";
+    loitering_event.event_type = "loitering";
+    loitering_event.rule_id = "rule-loitering";
+    loitering_event.track_id = 7;
+    loitering_event.class_id = 0;
+    loitering_event.label = "person";
+    loitering_event.status = "confirmed";
+    loitering_event.zone_id = "queue-a";
+    loitering_event.scenario_name = "loitering";
+    loitering_event.scenario_phase = "Confirmed";
+
+    AnalysisEvent occupancy_event = loitering_event;
+    occupancy_event.event_id = "evt-occupancy";
+    occupancy_event.event_type = "zone-occupancy";
+    occupancy_event.rule_id = "rule-occupancy";
+    occupancy_event.track_id = 8;
+    occupancy_event.class_id = 2;
+    occupancy_event.label = "car";
+    occupancy_event.zone_id = "parking-a";
+    occupancy_event.scenario_name = "zone-occupancy";
+    occupancy_event.scenario_phase = "Observing";
+    const std::vector<AnalysisEvent> events = {loitering_event, occupancy_event};
+
+    VaMetadataSubscriptionFilter event_filter;
+    event_filter.event_types = {"loitering"};
+    const auto event_filtered_events = FilterVaMetadataEvents(events, event_filter);
+    const auto event_filtered_result = FilterVaMetadataResult(result, event_filter);
+    Expect(event_filtered_events.size() == 1 &&
+               event_filtered_events[0].event_id == "evt-loitering",
+           "metadata eventType filter must narrow event payloads");
+    Expect(event_filtered_result.debug_state.has_value() &&
+               event_filtered_result.debug_state->tracks.size() == 2,
+           "metadata event-only filter must keep debug tracks for overlay context");
+    Expect(event_filtered_result.detections.size() == 1 &&
+               event_filtered_result.detections[0].track_id == 7,
+           "metadata event-only filter must narrow raw detections when event markers are present");
+
+    VaMetadataSubscriptionFilter scenario_filter;
+    scenario_filter.scenario_names = {"loitering"};
+    const auto scenario_filtered_events = FilterVaMetadataEvents(events, scenario_filter);
+    const auto scenario_filtered_result = FilterVaMetadataResult(result, scenario_filter);
+    Expect(scenario_filtered_events.size() == 1 &&
+               scenario_filtered_events[0].scenario_name == "loitering",
+           "metadata scenario filter must narrow events");
+    Expect(scenario_filtered_result.debug_state.has_value() &&
+               scenario_filtered_result.debug_state->tracks.size() == 1 &&
+               scenario_filtered_result.debug_state->tracks[0].track_id == 7 &&
+               scenario_filtered_result.debug_state->track_count == 1 &&
+               scenario_filtered_result.debug_state->active_track_count == 1,
+           "metadata scenario filter must narrow debug tracks and recompute counters");
+
+    VaMetadataSubscriptionFilter track_filter;
+    track_filter.track_id = 8;
+    track_filter.labels = {"CAR"};
+    const auto track_filtered_events = FilterVaMetadataEvents(events, track_filter);
+    const auto track_filtered_result = FilterVaMetadataResult(result, track_filter);
+    Expect(track_filtered_events.size() == 1 &&
+               track_filtered_events[0].track_id == 8,
+           "metadata trackId/label filter must narrow events");
+    Expect(track_filtered_result.debug_state.has_value() &&
+               track_filtered_result.debug_state->tracks.size() == 1 &&
+               track_filtered_result.debug_state->tracks[0].class_name == "car" &&
+               track_filtered_result.debug_state->lost_track_count == 1,
+           "metadata trackId/label filter must narrow tracks case-insensitively");
+
+    Pass("VaMetadata subscription filters");
+}
+
 }  // namespace
 
 int main() {
@@ -1568,6 +1692,7 @@ int main() {
         VerifyEventStorageArchiveCompaction();
         VerifyEventRecorderMediaHooks();
         VerifyVaRuntimeMetadataBuilder();
+        VerifyVaMetadataSubscriptionFilter();
         StopEventStorage();
         std::cout << "[summary] pass=" << g_pass_count << " fail=0\n";
         return EXIT_SUCCESS;

@@ -351,7 +351,7 @@ GET /lab/analysis/event-storage/status
 | --- | --- | --- |
 | EventStorage | optional JSON Lines | EventRecord 저장, active/archive 조회/API, 비파괴 compaction snapshot 생성/목록/다운로드/삭제 |
 | WebRTC DataChannel | opt-in | runtime metadata frame을 기존 WebRTC schema로 직렬화해 video stream과 별도로 전달 |
-| Runtime Metadata Side-Channel | SSE/WebSocket 최소 구현 | custom client가 RTSP video와 별도 metadata stream을 함께 소비 |
+| Runtime Metadata Side-Channel | SSE/WebSocket + subscription filter/control | custom client가 RTSP video와 별도 metadata stream을 함께 소비. `eventType`, `scenarioName`, `trackId`, `zoneId` 등으로 payload 범위를 줄이고 `includeMetrics=0` 같은 include flag로 source/scenario/metrics/trackingIssueReport 필드를 제어 |
 | Ops/Client UI shell | 1차 통합 완료 | `/ops` 운영 콘솔, `/client` 클라이언트 포털, `/lab` 개발/검증 shell 역할 분리 |
 | 런타임 대시보드 | 1차 구현 완료 | active session/stream/tap, VA metrics, state dump, tracking issue report를 Lab에서 확인. Ops dashboard는 runtime status를 운영 card UI로 요약. 장기 baseline/sparkline 고도화는 후속 |
 | Scenario UI | 1차 구현 완료 | ReEntry/IntrusionAfterLineCrossing/Loitering/ZoneOccupancy는 룰 편집 UI에서 선택 가능 |
