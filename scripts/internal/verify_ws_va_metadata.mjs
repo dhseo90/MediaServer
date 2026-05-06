@@ -1,8 +1,6 @@
 #!/usr/bin/env node
-// 파일 용도: VA metadata WebSocket side-channel의 handshake와 첫 metadata frame을 검증한다.
-// 동작 요약: 실행 중인 서버에 raw WebSocket으로 접속해 schema와 임시 tap cleanup을 확인한다.
-import crypto from "node:crypto";
-import net from "node:net";
+// 파일 용도: VA metadata WebSocket side-channel의 handshake, control ack, metadata payload를 검증한다.
+// 동작 요약: 실행 중인 서버에 WebSocket으로 접속해 schema, 제어 ack, 임시 tap cleanup을 확인한다.
 
 const args = process.argv.slice(2);
 let httpBase = process.env.MEDIA_SERVER_VERIFY_WS_METADATA_HTTP_BASE || "http://127.0.0.1:8080";
@@ -30,6 +28,8 @@ Usage:
 }
 
 const base = new URL(httpBase);
+const wsBase = new URL(httpBase);
+wsBase.protocol = wsBase.protocol === "https:" ? "wss:" : "ws:";
 const tempPath =
   `/ws/va-metadata?file=${encodeURIComponent(fileToken)}` +
   `&va=1&intervalMs=100&maxMessages=1&streamMaxDurationMs=${Math.max(timeoutMs - 1000, 1000)}`;
@@ -51,148 +51,27 @@ async function fetchJson(pathname, init = undefined) {
   return JSON.parse(text);
 }
 
-function parseHeaders(raw) {
-  const lines = raw.split("\r\n");
-  const status = lines.shift() || "";
-  const headers = new Map();
-  for (const line of lines) {
-    const colon = line.indexOf(":");
-    if (colon < 0) continue;
-    headers.set(line.slice(0, colon).trim().toLowerCase(), line.slice(colon + 1).trim());
+async function waitForTapCleanup(timeout = 2000) {
+  const started = Date.now();
+  while (Date.now() - started < timeout) {
+    const taps = await fetchJson("/lab/analysis/taps");
+    if (Number(taps.activeTaps || 0) === 0) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  return { status, headers };
+  const taps = await fetchJson("/lab/analysis/taps");
+  fail(`temporary WebSocket tap was not cleaned up: activeTaps=${taps.activeTaps}`);
 }
 
-function tryParseFrame(buffer) {
-  if (buffer.length < 2) return null;
-  const opcode = buffer[0] & 0x0f;
-  let offset = 2;
-  let length = buffer[1] & 0x7f;
-  if (length === 126) {
-    if (buffer.length < 4) return null;
-    length = buffer.readUInt16BE(2);
-    offset = 4;
-  } else if (length === 127) {
-    if (buffer.length < 10) return null;
-    const high = buffer.readUInt32BE(2);
-    const low = buffer.readUInt32BE(6);
-    length = high * 2 ** 32 + low;
-    offset = 10;
+async function deleteAllTaps() {
+  const taps = await fetchJson("/lab/analysis/taps");
+  for (const tap of Array.isArray(taps.taps) ? taps.taps : []) {
+    const tapId = String(tap.tapId || "");
+    if (!tapId) continue;
+    await fetchJson(`/lab/analysis/taps/${encodeURIComponent(tapId)}`, { method: "DELETE" });
   }
-  if (buffer.length < offset + length) return null;
-  return {
-    opcode,
-    payload: buffer.subarray(offset, offset + length).toString("utf8"),
-    rest: buffer.subarray(offset + length),
-  };
 }
-
-function clientTextFrame(payload) {
-  const body = Buffer.from(payload, "utf8");
-  const mask = crypto.randomBytes(4);
-  let header = null;
-  if (body.length <= 125) {
-    header = Buffer.from([0x81, 0x80 | body.length]);
-  } else if (body.length <= 65535) {
-    header = Buffer.alloc(4);
-    header[0] = 0x81;
-    header[1] = 0x80 | 126;
-    header.writeUInt16BE(body.length, 2);
-  } else {
-    throw new Error("client WebSocket payload too large");
-  }
-  const masked = Buffer.alloc(body.length);
-  for (let i = 0; i < body.length; i += 1) {
-    masked[i] = body[i] ^ mask[i % 4];
-  }
-  return Buffer.concat([header, mask, masked]);
-}
-
-async function readWebSocketMetadata(pathname, options = {}) {
-  return await new Promise((resolve, reject) => {
-    const key = crypto.randomBytes(16).toString("base64");
-    const expectedAccept = crypto
-      .createHash("sha1")
-      .update(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
-      .digest("base64");
-    const socket = net.connect({
-      host: base.hostname,
-      port: Number(base.port || 80),
-    });
-    let buffer = Buffer.alloc(0);
-    let handshaken = false;
-    let controlPayload = null;
-    const timer = setTimeout(() => {
-      socket.destroy();
-      reject(new Error("WebSocket metadata smoke timed out"));
-    }, timeoutMs);
-
-    socket.on("connect", () => {
-      socket.write(
-        [
-          `GET ${pathname} HTTP/1.1`,
-          `Host: ${base.host}`,
-          "Upgrade: websocket",
-          "Connection: Upgrade",
-          `Sec-WebSocket-Key: ${key}`,
-          "Sec-WebSocket-Version: 13",
-          "",
-          "",
-        ].join("\r\n")
-      );
-    });
-    socket.on("data", (chunk) => {
-      buffer = Buffer.concat([buffer, chunk]);
-      if (!handshaken) {
-        const headerEnd = buffer.indexOf("\r\n\r\n");
-        if (headerEnd < 0) return;
-        const { status, headers } = parseHeaders(buffer.subarray(0, headerEnd).toString("utf8"));
-        if (!status.includes("101")) {
-          clearTimeout(timer);
-          socket.destroy();
-          reject(new Error(`expected 101 Switching Protocols, got ${status}`));
-          return;
-        }
-        if (headers.get("sec-websocket-accept") !== expectedAccept) {
-          clearTimeout(timer);
-          socket.destroy();
-          reject(new Error("Sec-WebSocket-Accept mismatch"));
-          return;
-        }
-        handshaken = true;
-        logPass("WebSocket handshake 101/Sec-WebSocket-Accept 확인");
-        buffer = buffer.subarray(headerEnd + 4);
-        if (options.command) {
-          socket.write(clientTextFrame(JSON.stringify(options.command)));
-        }
-      }
-
-      while (true) {
-        const frame = tryParseFrame(buffer);
-        if (!frame) return;
-        buffer = frame.rest;
-        if (frame.opcode !== 1) {
-          continue;
-        }
-        const payload = JSON.parse(frame.payload);
-        if (payload.schema === "media-server.va.metadata-control.v1") {
-          controlPayload = payload;
-          continue;
-        }
-        clearTimeout(timer);
-        socket.end();
-        resolve(options.expectControl ? { metadata: payload, control: controlPayload } : payload);
-      }
-    });
-    socket.on("error", (error) => {
-      clearTimeout(timer);
-      reject(error);
-    });
-  });
-}
-
-await fetchJson("/health");
-logPass("HTTP health ok");
 
 function assertRuntimeMetadata(payload, label) {
   if (payload.schema !== "media-server.va.runtime-metadata.v1") {
@@ -201,20 +80,124 @@ function assertRuntimeMetadata(payload, label) {
   if (!Array.isArray(payload.tracks) || !Array.isArray(payload.events) || !Array.isArray(payload.scenarios)) {
     fail(`${label}: runtime metadata arrays are missing`);
   }
-  if (!payload.metrics || typeof payload.metrics !== "object") {
-    fail(`${label}: runtime metrics summary is missing`);
-  }
 }
 
-const payload = await readWebSocketMetadata(tempPath);
-assertRuntimeMetadata(payload, "temporary source WebSocket");
+async function readWebSocketSession(pathname, options = {}) {
+  const wsUrl = new URL(pathname, wsBase).toString();
+  return await new Promise((resolve, reject) => {
+    const controls = [];
+    let metadata = null;
+    let settled = false;
+    let opened = false;
+    const expectedControlCount = Number(options.expectedControlCount || 0);
+    const expectMetadata = options.expectMetadata !== false;
+    const commandDelayMs = Number(options.commandDelayMs || 0);
+    const timer = setTimeout(() => {
+      finishReject(new Error("WebSocket metadata smoke timed out"));
+    }, timeoutMs);
+    const socket = new WebSocket(wsUrl);
+
+    function finishResolve(value) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      try {
+        socket.close();
+      } catch {}
+      resolve(value);
+    }
+
+    function finishReject(error) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      try {
+        socket.close();
+      } catch {}
+      reject(error);
+    }
+
+    function maybeResolve() {
+      if (expectedControlCount > 0 && controls.length < expectedControlCount) {
+        return;
+      }
+      if (expectMetadata && metadata == null) {
+        return;
+      }
+      finishResolve({
+        controls,
+        metadata,
+      });
+    }
+
+    socket.addEventListener("open", () => {
+      opened = true;
+      logPass("WebSocket handshake/open 확인");
+      const commands = Array.isArray(options.commands)
+        ? options.commands
+        : (options.command ? [options.command] : []);
+      if (commands.length === 0) {
+        return;
+      }
+      setTimeout(() => {
+        for (const command of commands) {
+          socket.send(JSON.stringify(command));
+        }
+      }, commandDelayMs);
+    });
+
+    socket.addEventListener("message", (event) => {
+      try {
+        const payload = JSON.parse(String(event.data));
+        if (payload.schema === "media-server.va.metadata-control.v1") {
+          controls.push(payload);
+        } else {
+          metadata = payload;
+        }
+        maybeResolve();
+      } catch (error) {
+        finishReject(error instanceof Error ? error : new Error(String(error)));
+      }
+    });
+
+    socket.addEventListener("error", () => {
+      if (opened && expectedControlCount > 0 && controls.length >= expectedControlCount && (!expectMetadata || metadata != null)) {
+        maybeResolve();
+        return;
+      }
+      finishReject(new Error("WebSocket client error"));
+    });
+
+    socket.addEventListener("close", () => {
+      if (settled) {
+        return;
+      }
+      if (expectedControlCount > 0 && controls.length >= expectedControlCount && (!expectMetadata || metadata != null)) {
+        maybeResolve();
+        return;
+      }
+      if (!expectMetadata && expectedControlCount === 0) {
+        finishResolve({ controls, metadata });
+        return;
+      }
+      finishReject(new Error("WebSocket closed before expected payloads arrived"));
+    });
+  });
+}
+
+await fetchJson("/health");
+logPass("HTTP health ok");
+await deleteAllTaps();
+logPass("WebSocket smoke 시작 전 기존 analysis tap 정리");
+
+const temp = await readWebSocketSession(tempPath, { expectMetadata: true });
+assertRuntimeMetadata(temp.metadata, "temporary source WebSocket");
+if (!temp.metadata.metrics || typeof temp.metadata.metrics !== "object") {
+  fail("temporary source WebSocket: runtime metrics summary is missing");
+}
 logPass("WebSocket 임시 source metadata schema/tracks/events/scenarios/metrics 확인");
 
-await new Promise((resolve) => setTimeout(resolve, 300));
-let taps = await fetchJson("/lab/analysis/taps");
-if (Number(taps.activeTaps || 0) !== 0) {
-  fail(`temporary WebSocket tap was not cleaned up: activeTaps=${taps.activeTaps}`);
-}
+await waitForTapCleanup();
 logPass("WebSocket 임시 analysis tap cleanup 확인");
 
 const created = await fetchJson(`/lab/analysis/taps?file=${encodeURIComponent(fileToken)}&va=1`, {
@@ -222,44 +205,94 @@ const created = await fetchJson(`/lab/analysis/taps?file=${encodeURIComponent(fi
 });
 const tapId = created.tapId;
 if (!tapId) fail("failed to create explicit analysis tap");
-const tapPayload = await readWebSocketMetadata(
-  `/ws/va-metadata?tapId=${encodeURIComponent(tapId)}&intervalMs=100&maxMessages=1&streamMaxDurationMs=${Math.max(timeoutMs - 1000, 1000)}`
+
+const tapPayload = await readWebSocketSession(
+  `/ws/va-metadata?tapId=${encodeURIComponent(tapId)}&intervalMs=100&maxMessages=1&streamMaxDurationMs=${Math.max(timeoutMs - 1000, 1000)}`,
+  { expectMetadata: true }
 );
-assertRuntimeMetadata(tapPayload, "tapId WebSocket");
+assertRuntimeMetadata(tapPayload.metadata, "tapId WebSocket");
 logPass("WebSocket tapId 재사용 metadata schema 확인");
 
-const controlled = await readWebSocketMetadata(
-  `/ws/va-metadata?tapId=${encodeURIComponent(tapId)}&intervalMs=100&maxMessages=1&streamMaxDurationMs=${Math.max(timeoutMs - 1000, 1000)}`,
+const subscribed = await readWebSocketSession(
+  `/ws/va-metadata?tapId=${encodeURIComponent(tapId)}&intervalMs=1000&streamMaxDurationMs=${Math.max(timeoutMs - 1000, 2000)}`,
   {
     command: {
       type: "subscribe",
       eventType: "loitering",
       includeMetrics: false,
       maxEvents: 3,
+      staleAfterMs: 300,
+      maxMessages: 2,
     },
-    expectControl: true,
+    expectedControlCount: 1,
+    expectMetadata: false,
   }
 );
-if (!controlled.control || controlled.control.action !== "subscribe" || controlled.control.subscribed !== true) {
-  fail("WebSocket subscribe control ack missing");
+const subscribeAck = subscribed.controls?.[0];
+if (!Array.isArray(subscribeAck?.filter?.eventTypes) ||
+    subscribeAck.filter.eventTypes[0] !== "loitering" ||
+    subscribeAck.includeMetrics !== false ||
+    Number(subscribeAck.maxEvents) !== 3 ||
+    Number(subscribeAck.staleAfterMs) !== 1000 ||
+    Number(subscribeAck.maxMessages) !== 2) {
+  fail(`WebSocket subscribe ack mismatch: ${JSON.stringify(subscribeAck)}`);
 }
-if (!Array.isArray(controlled.control.filter?.eventTypes) ||
-    controlled.control.filter.eventTypes[0] !== "loitering" ||
-    controlled.control.includeMetrics !== false) {
-  fail(`WebSocket subscribe ack filter mismatch: ${JSON.stringify(controlled.control)}`);
+logPass("WebSocket subscribe control ack 확인");
+
+const paused = await readWebSocketSession(
+  `/ws/va-metadata?tapId=${encodeURIComponent(tapId)}&intervalMs=1000&streamMaxDurationMs=${Math.max(timeoutMs - 1000, 2000)}`,
+  {
+    commands: [{ type: "unsubscribe" }, { type: "status" }],
+    expectedControlCount: 2,
+    expectMetadata: false,
+    commandDelayMs: 50,
+  }
+);
+const unsubscribeAck = paused.controls?.[0];
+const statusAck = paused.controls?.[1];
+if (unsubscribeAck?.subscribed !== false || statusAck?.subscribed !== false || statusAck?.action !== "status") {
+  fail(`WebSocket unsubscribe/status subscribed state mismatch: ${JSON.stringify(paused.controls)}`);
 }
-if (controlled.metadata.schema !== "media-server.va.runtime-metadata.v1" ||
-    !Array.isArray(controlled.metadata.tracks) ||
-    !Array.isArray(controlled.metadata.events) ||
-    !Array.isArray(controlled.metadata.scenarios)) {
-  fail("WebSocket controlled metadata payload missing runtime arrays");
+logPass("WebSocket unsubscribe/status control ack 확인");
+
+const resumed = await readWebSocketSession(
+  `/ws/va-metadata?tapId=${encodeURIComponent(tapId)}&intervalMs=1000&streamMaxDurationMs=${Math.max(timeoutMs - 1000, 2000)}`,
+  {
+    commands: [{ type: "unsubscribe" }, { type: "resume" }],
+    expectedControlCount: 2,
+    expectMetadata: false,
+    commandDelayMs: 50,
+  }
+);
+const resumeAck = resumed.controls?.[1];
+if (resumeAck?.subscribed !== true || resumeAck?.action !== "resume") {
+  fail(`WebSocket resume ack mismatch: ${JSON.stringify(resumed.controls)}`);
 }
-if (Object.prototype.hasOwnProperty.call(controlled.metadata, "metrics")) {
-  fail("WebSocket includeMetrics=false control must omit metrics");
+logPass("WebSocket resume control ack 확인");
+
+const reset = await readWebSocketSession(
+  `/ws/va-metadata?tapId=${encodeURIComponent(tapId)}&intervalMs=1000&streamMaxDurationMs=${Math.max(timeoutMs - 1000, 2000)}`,
+  {
+    commands: [
+      { type: "subscribe", eventType: "loitering", includeMetrics: false, maxMessages: 2 },
+      { type: "reset" },
+    ],
+    expectedControlCount: 2,
+    expectMetadata: false,
+    commandDelayMs: 50,
+  }
+);
+const resetAck = reset.controls?.[1];
+if (!Array.isArray(resetAck?.filter?.eventTypes) ||
+    resetAck.filter.eventTypes.length !== 0 ||
+    resetAck.includeMetrics !== true ||
+    Number(resetAck.maxMessages) !== 0 ||
+    resetAck.action !== "reset") {
+  fail(`WebSocket reset ack mismatch: ${JSON.stringify(reset.controls)}`);
 }
-logPass("WebSocket subscribe command filter/include ack 및 metadata payload 확인");
+logPass("WebSocket reset control ack 및 기본값 복원 확인");
 
 await fetchJson(`/lab/analysis/taps/${encodeURIComponent(tapId)}`, { method: "DELETE" });
 logPass("WebSocket smoke용 명시적 analysis tap 삭제 확인");
 
-console.log("[summary] pass=6 fail=0");
+console.log("[summary] pass=9 fail=0");

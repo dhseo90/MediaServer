@@ -902,7 +902,7 @@ Auth on에서는 `/ws/va-metadata`가 Lab/custom-client side-channel로 취급�
 
 - message text frame payload는 `media-server.va.runtime-metadata.v1` JSON입니다.
 - `intervalMs`, `maxMessageBytes`, `maxTracks`, `maxEvents`, `maxMessages`, `streamMaxDurationMs` query를 지원합니다.
-- client text frame command는 `{"type":"subscribe","eventType":"loitering","includeMetrics":false}`처럼 보냅니다. `subscribe`는 filter/include/limit를 갱신하고 즉시 `media-server.va.metadata-control.v1` ack를 돌려줍니다. `unsubscribe`/`pause`는 연결은 유지하되 metadata publish를 멈추고, `resume`은 기존 filter로 재개, `reset`은 최초 query 구독값으로 되돌립니다.
+- client text frame command는 `{"type":"subscribe","eventType":"loitering","includeMetrics":false}`처럼 보냅니다. `subscribe`는 filter/include/limit를 갱신하고 즉시 `media-server.va.metadata-control.v1` ack를 돌려줍니다. Ack에는 `intervalMs`, `staleAfterMs`, `maxMessages`, `streamMaxDurationMs`, `maxMessageBytes`, `maxTracks`, `maxEvents`, include flag, filter snapshot이 함께 들어갑니다. `unsubscribe`/`pause`는 연결은 유지하되 metadata publish를 멈추고, `resume`은 기존 filter로 재개, `status`는 현재 subscribed/filter/include 상태를 조회하고, `reset`은 최초 query 구독값으로 되돌립니다.
 - `maxClients` query를 통해 동시 metadata WebSocket client 수를 제한합니다. 기본값은 16입니다.
 - `tapId=<id>`는 기존 active tap을 재사용합니다.
 - `vaRule=<id>` 또는 source query는 연결 수명 동안 임시 analysis tap을 만들고 disconnect 후 cleanup합니다.

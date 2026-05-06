@@ -735,7 +735,7 @@ MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER='turn://user:pass@example.local:
 ### P7-3. WebSocket metadata 제어 기능
 
 - 상태: 완료
-- 목적: WebSocket side-channel은 query 기반 초기 filter/include flag에 더해 client text frame command로 subscribe/unsubscribe/resume/reset을 제어합니다. `media-server.va.metadata-control.v1` ack로 현재 filter/include 상태를 확인합니다.
+- 목적: WebSocket side-channel은 query 기반 초기 filter/include flag에 더해 client text frame command로 subscribe/unsubscribe/resume/status/reset을 제어합니다. `media-server.va.metadata-control.v1` ack로 현재 filter/include/limit 상태를 확인합니다.
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/verify_ws_va_metadata.mjs`, `docs/video-analysis.md`
 - 검증 명령:
 
