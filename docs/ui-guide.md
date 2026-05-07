@@ -702,45 +702,39 @@ VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보
 
 ![VA 런타임 대시보드 Health Summary](assets/ui/analysis-runtime-dashboard.png)
 
-### 10.2. Warnings / Trend detail
-
-최근 60개 client-side sample 기준의 delta/min/max와 warning badge를 확인합니다. Runtime Dashboard는 live observation 보조 화면이며 longrun report를 대체하지 않습니다.
-
-![VA 런타임 대시보드 Warnings Trend](assets/ui/analysis-runtime-dashboard-trend.png)
-
-### 10.3. Metadata / Backpressure
+### 10.2. Metadata / Backpressure
 
 WebRTC DataChannel, SSE/WS side-channel, payload size, queue/drop/fail counter를 확인합니다. 값이 endpoint에서 제공되지 않으면 `미제공`으로 표시합니다.
 
 ![VA 런타임 대시보드 Metadata Backpressure](assets/ui/analysis-runtime-dashboard-metadata.png)
 
-### 10.4. Runtime Detail / vaRule Debug
+### 10.3. Runtime Detail / vaRule Debug
 
 선택 rule과 active tap의 source/profile/event/scenario/region 관계를 읽기 전용으로 표시합니다. Event POST payload, metadata schema, ScenarioEngine 판단 로직은 변경하지 않습니다.
 
 ![VA 런타임 대시보드 Runtime Detail](assets/ui/analysis-runtime-dashboard-runtime.png)
 
-### 10.5. Tracks
+### 10.4. Tracks
 
 trackId, class, lifecycle, currentZone, dwellTimeMs, TrackHealth를 state-dump 기반으로 확인합니다.
 
 ![VA 런타임 대시보드 Tracks](assets/ui/analysis-runtime-dashboard-tracks.png)
 
-### 10.6. Scenarios / Events
+### 10.5. Scenarios / Events
 
 scenario phase, timeline, recent event buffer를 한 구간에서 확인합니다. 이벤트가 없으면 빈 상태 이유를 짧게 표시합니다.
 
 ![VA 런타임 대시보드 Scenarios Events](assets/ui/analysis-runtime-dashboard-scenarios.png)
 
-### 10.7. Event Records
+### 10.6. Event Records
 
 Event Records는 자동 polling하지 않습니다. 검색 버튼을 눌렀을 때 active JSON Lines의 metadata를 조회하고, `archive 포함`을 켜면 rotated archive까지 조회합니다. `evidence` 필터는 snapshot, clip manifest, snapshot+clip, evidence 없음 조건을 같은 records API query에 넣습니다. `offset` 기반 이전/다음 페이지 버튼으로 archive가 많은 경우에도 현재 filter를 유지한 채 탐색합니다. EventRecord detail은 raw JSON 위에 snapshot path, clip manifest path, clip bundle directory를 분리해 표시하고, 안전한 preview route를 통해 snapshot inline preview와 clip manifest/frame link를 보여줍니다. preview 상태 문구는 snapshot/clip 준비 상태와 실패를 분리해서 표시하며, clip frame link는 파일명 기준으로 정렬된 앞부분만 보여줍니다. `compaction snapshot`은 기존 파일을 수정하지 않는 compacted JSON Lines 사본을 생성하며 현재 검색 필터와 evidence 조건을 그대로 사용합니다. `snapshot 목록`은 compacted snapshot의 file/size/modified를 표시하고, `keepNewest` cleanup으로 오래된 compacted snapshot만 정리합니다.
 
 ![VA 런타임 대시보드 Event Records](assets/ui/analysis-runtime-dashboard-records.png)
 
-### 10.8. Tracking Issues
+### 10.7. Tracking Issues
 
-tracking issue report와 close-object diagnostics를 분리해 봅니다. 아래 캡처는 table 하단과 diagnostics 접힘 영역이 잘리지 않도록 section 단위로 캡처한 예입니다.
+tracking issue report와 close-object diagnostics를 분리해 봅니다. 이 영역은 진단 비중이 높아 대표 제품 화면보다는 운영/분석 보조 자료에 가깝습니다.
 
 ![VA 런타임 대시보드 Tracking Issues](assets/ui/analysis-runtime-dashboard-tracking-issues.png)
 
