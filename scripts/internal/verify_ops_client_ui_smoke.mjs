@@ -55,8 +55,8 @@ const pageChecks = [
     name: "ops-live",
     path: "/ops/live",
     visualSelector: '[data-testid="ops-live-page"]',
-    must: ['data-testid="ops-live-page"', 'id="opsLiveTileGrid"', 'id="opsLiveDensity"', 'id="opsLiveFocus"', 'id="opsLiveFilterInput"', 'id="opsLiveAttentionCount"', 'id="opsLiveUnassignedCount"', 'id="opsLiveDrilldownSummary"', 'id="opsLiveDetailEventRows"', 'id="opsLivePreviewSummary"', 'id="opsLivePreviewTarget"', 'id="opsLivePreviewMode"', 'id="opsLivePreviewPrimaryVideo"', 'id="opsLivePreviewSecondaryVideo"', 'id="opsLivePreviewPrimarySummary"', 'id="opsLivePreviewSecondarySummary"', 'id="opsLivePreviewPrimaryHealthBadges"', 'id="opsLivePreviewSecondaryHealthBadges"', 'id="opsLivePreviewStart"', 'id="opsLivePreviewStop"', 'id="opsLiveTimelineSummary"', 'id="opsLiveTimelineRows"', 'id="opsLiveActionSummary"', 'id="opsLiveActionButtons"', 'id="opsLiveDetailJson"', 'id="opsLiveEventRows"', '/ops/api/sources', '/ops/api/views', '/webrtc/config', 'RTCPeerConnection'],
-    mustNot: ['후속 구현 항목입니다', '<iframe', '/lab/rules?embed=1'],
+    must: ['data-testid="ops-live-page"', 'id="opsLiveTileGrid"', 'id="opsLiveDensity"', 'id="opsLiveFocus"', 'id="opsLiveFilterInput"', 'id="opsLiveAttentionCount"', 'id="opsLiveUnassignedCount"', 'id="opsLiveDrilldownSummary"', 'id="opsLiveDetailEventRows"', 'id="opsLivePreviewSummary"', 'id="opsLivePreviewTarget"', 'id="opsLivePreviewMode"', 'id="opsLivePreviewPrimaryVideo"', 'id="opsLivePreviewSecondaryVideo"', 'id="opsLivePreviewPrimarySummary"', 'id="opsLivePreviewSecondarySummary"', 'id="opsLivePreviewPrimaryHealthBadges"', 'id="opsLivePreviewSecondaryHealthBadges"', 'id="opsLivePreviewStart"', 'id="opsLivePreviewStop"', 'id="opsLiveTimelineSummary"', 'id="opsLiveTimelineRows"', 'id="opsLiveActionSummary"', 'id="opsLiveActionButtons"', 'id="opsLiveDetailJson"', '선택 채널 raw JSON', 'id="opsLiveEventRows"', '/ops/api/sources', '/ops/api/views', '/webrtc/config', 'RTCPeerConnection'],
+    mustNot: ['후속 구현 항목입니다', '<iframe', '/lab/rules?embed=1', '/ops/events#channel='],
   },
   {
     name: "ops-rules",
