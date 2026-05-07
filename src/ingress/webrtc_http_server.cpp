@@ -18496,13 +18496,18 @@ void AppendOpsLivePage(std::ostringstream& out) {
         <div class="toolbar" style="margin-top:12px;">
           <div>
             <h3 style="margin:0;font-size:1rem;">운영 Action</h3>
-            <p id="opsLiveActionSummary" class="form-note">선택한 채널 기준으로 채널, 이벤트, 클라이언트, 룰 화면으로 이동합니다.</p>
+            <p id="opsLiveActionSummary" class="form-note">선택한 채널 기준으로 채널, 클라이언트, 룰 화면으로 이동하거나 preview/control 작업을 실행합니다.</p>
           </div>
         </div>
         <div id="opsLiveActionButtons" class="actions">
           <span class="chip info">선택 없음</span>
         </div>
-        <pre id="opsLiveDetailJson" class="raw-json-panel">선택한 채널 detail 없음</pre>
+        <details class="debug-drawer" style="margin-top:12px;">
+          <summary>선택 채널 raw JSON</summary>
+          <div class="debug-drawer-body">
+            <pre id="opsLiveDetailJson" class="raw-json-panel">선택한 채널 detail 없음</pre>
+          </div>
+        </details>
       </section>
       <section class="section-card compact-card">
         <div class="toolbar">
@@ -18527,7 +18532,6 @@ void AppendOpsLivePage(std::ostringstream& out) {
         </div>
       </section>
 )";
-    AppendRawJsonDetails(out, "라이브 모니터 raw JSON", "opsLiveRaw", "opsLivePretty", "live monitor status 없음");
     out << R"(    </section>
 )";
 }
