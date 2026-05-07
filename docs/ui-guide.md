@@ -71,11 +71,13 @@ UI ownership은 다음 표를 기준으로 봅니다.
 - 영상 분석 보기: 실시간 스트리밍, VA 오버레이, VA 룰 미리보기
 - Runtime Dashboard: active analysis tap의 runtime metadata, backpressure, scenario/event/debug 상태
 
-![영상 분석 룰 목록](assets/ui/analysis-rule-list.png)
+대표 제품 shell 예시는 핵심 화면만 유지합니다.
 
-대표 제품 shell 스크린샷:
+- Login
 
 ![로그인](assets/ui/auth-login.png)
+
+- Ops Home / Sources / Rules
 
 ![운영 홈](assets/ui/ops-home.png)
 
@@ -83,11 +85,9 @@ UI ownership은 다음 표를 기준으로 봅니다.
 
 ![운영 룰 관리](assets/ui/ops-rules.png)
 
-![사용자 관리](assets/ui/ops-users.png)
+- Client Live
 
 ![클라이언트 라이브](assets/ui/client-live.png)
-
-![클라이언트 대시보드](assets/ui/client-dashboard.png)
 
 ## 2. Login / Session
 
@@ -111,13 +111,13 @@ Login page는 username/password 입력, 실패/lockout 메시지, 로그인 후 
 
 Route 역할:
 
-- `/ops`: admin/operator 전용 운영 shell이며 `ops:read` scope가 필요합니다. 채널/PublishedView 변경 API는 `source:write` scope를 추가로 요구합니다. Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기 순서입니다. `/ops/home`은 운영 overview이고 `/ops/live`는 자동 media session을 열지 않는 고밀도 source/runtime/event 상태 타일입니다. `/ops/live`는 `all/attention/published/unassigned` focus, `view/source` 검색, attention/미배정 카운터를 제공해 운영자가 event 발생 채널과 PublishedView 미배정 채널을 빠르게 분리해서 볼 수 있습니다. 타일이나 최근 이벤트를 누르면 source health, active tap age, recent EventRecord, snapshot/clip evidence 요약, 수동 read-only preview, runtime/event timeline, 그리고 채널/이벤트/클라이언트/룰 화면으로 바로 이동하는 action 버튼을 같은 화면 drill-down으로 확인합니다. timeline은 채널/view/tap 상태뿐 아니라 selected PublishedView dashboard 요약을 함께 읽어 `track/scenario/active event` 수, `frame/meta age`, event type count, EventRecord별 `scenarioPhase`, `zone/line`, evidence 여부를 한 줄씩 이어서 보여줍니다. action 영역은 읽기 링크만이 아니라 현재 선택 채널의 preview 정지와 channel enable/disable 토글도 직접 실행할 수 있습니다. 이 쓰기 액션은 기존 `/ops/api/sources/{id}`, `/ops/api/views/{id}`를 그대로 사용하고, 채널을 비활성화하면 해당 채널에 열린 preview 세션도 함께 정리합니다. preview는 슬롯 `A/B` 최대 2개까지 유지하며, 선택한 PublishedView에 대해서만 `raw / va-overlay / va-rule` 허용 모드 중 하나를 골라 `시작/재연결/정지` 버튼으로 엽니다. 각 슬롯은 `ice`, `metadata age`, `last frame age`, `track/event` badge를 함께 보여줘 운영자가 “보이는지”뿐 아니라 “정상인지”를 바로 판단할 수 있습니다. 같은 채널을 두 슬롯에 중복으로 열면 기존 슬롯을 정리하고, `va-rule`은 연결된 rule이 있을 때만 활성화됩니다. 자동 세션은 만들지 않습니다. `/ops/dashboard`는 `/ops/api/runtime/status`로 운영 카드/상태를 표시하고, `/ops/rules`는 `/ops/api/rules/catalog`로 VA 룰, 이벤트 룰, 분석 프로파일 카탈로그를 표시하며 `rule/profile/source` 검색 입력과 `#q=` hash를 지원합니다. 두 화면은 Lab iframe 또는 `/lab/rules?embed=1`에 의존하지 않습니다. `/ops/events`는 primary nav에서 숨긴 후속/진단 route이며 `#channel=` hash가 있으면 해당 채널 EventRecord로 바로 좁혀서 엽니다. `/ops/sources`는 `#channel=` hash가 있으면 해당 채널 detail을 바로 펼치고, `/client/live`는 `#view=` hash가 있으면 해당 PublishedView를 우선 선택합니다. raw JSON은 접힘 debug 영역에만 둡니다.
+- `/ops`: admin/operator 전용 운영 shell이며 `ops:read` scope가 필요합니다. 채널/PublishedView 변경 API는 `source:write` scope를 추가로 요구합니다. Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기 순서입니다. `/ops/home`은 운영 overview이고 `/ops/live`는 자동 media session을 열지 않는 고밀도 source/runtime/event 상태 타일입니다. `/ops/live`는 `all/attention/published/unassigned` focus, `view/source` 검색, attention/미배정 카운터를 제공해 운영자가 event 발생 채널과 PublishedView 미배정 채널을 빠르게 분리해서 볼 수 있습니다. 타일이나 최근 이벤트를 누르면 source health, active tap age, recent EventRecord, snapshot/clip evidence 요약, 수동 read-only preview, runtime/event timeline, 그리고 채널/클라이언트/룰 화면으로 바로 이동하는 action 버튼을 같은 화면 drill-down으로 확인합니다. timeline은 채널/view/tap 상태뿐 아니라 selected PublishedView dashboard 요약을 함께 읽어 `track/scenario/active event` 수, `frame/meta age`, event type count, EventRecord별 `scenarioPhase`, `zone/line`, evidence 여부를 한 줄씩 이어서 보여줍니다. action 영역은 읽기 링크만이 아니라 현재 선택 채널의 preview 정지와 channel enable/disable 토글도 직접 실행할 수 있습니다. 이 쓰기 액션은 기존 `/ops/api/sources/{id}`, `/ops/api/views/{id}`를 그대로 사용하고, 채널을 비활성화하면 해당 채널에 열린 preview 세션도 함께 정리합니다. preview는 슬롯 `A/B` 최대 2개까지 유지하며, 선택한 PublishedView에 대해서만 `raw / va-overlay / va-rule` 허용 모드 중 하나를 골라 `시작/재연결/정지` 버튼으로 엽니다. 각 슬롯은 `ice`, `metadata age`, `last frame age`, `track/event` badge를 함께 보여줘 운영자가 “보이는지”뿐 아니라 “정상인지”를 바로 판단할 수 있습니다. 같은 채널을 두 슬롯에 중복으로 열면 기존 슬롯을 정리하고, `va-rule`은 연결된 rule이 있을 때만 활성화됩니다. 자동 세션은 만들지 않습니다. `/ops/dashboard`는 `/ops/api/runtime/status`로 운영 카드/상태를 표시하고, `/ops/rules`는 `/ops/api/rules/catalog`로 VA 룰, 이벤트 룰, 분석 프로파일 카탈로그를 표시하며 `rule/profile/source` 검색 입력과 `#q=` hash를 지원합니다. 두 화면은 Lab iframe 또는 `/lab/rules?embed=1`에 의존하지 않습니다. `/ops/sources`는 `#channel=` hash가 있으면 해당 채널 detail을 바로 펼치고, `/client/live`는 `#view=` hash가 있으면 해당 PublishedView를 우선 선택합니다. raw JSON은 접힘 debug 영역에만 둡니다.
 - `/client`: viewer/operator/admin 접근 shell입니다. `/client/api/views` 기준으로 할당된 PublishedView만 표시하며 원본 source URL, debug/developer URL은 노출하지 않습니다. Integrator는 shell/live/dashboard UI가 아니라 scoped events/metadata API만 접근합니다.
 - `/lab`: admin/operator 또는 `lab:read` scope용 개발/검증 shell입니다. viewer/client 기본 계정은 접근할 수 없고, rule/profile/vaRule 변경 API는 `rule:write` scope를 추가로 요구합니다. 기존 `/lab/rules`와 자동화 bookmark 호환은 auth off 검증 모드에서 유지합니다.
 
 Shell navigation은 server-side principal로 1차 렌더링하고 `/auth/whoami` 응답으로 admin-only menu를 다시 숨김 처리합니다. Client shell의 primary nav는 viewer용 라이브/대시보드만 유지합니다. admin/operator가 client 화면을 열면 메뉴 아래에 `Ops로 돌아가기`를 표시하고, viewer에게는 Ops/Lab nav와 debug/developer URL을 숨깁니다. Guard 실패 시 browser shell route는 login 또는 forbidden page를 보여주고, API route는 JSON `401`/`403`을 반환합니다.
 
-Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`로 확인합니다. 이 smoke는 `/setup`, `/login`, `/password/change`, `/invite/setup`, `/client/request-access`의 auth shell과 핵심 form selector를 함께 검사하고, route smoke에서는 unauth/viewer/readonly-operator/integrator/public access request matrix로 Ops/Client/Lab API guard를 확인합니다. Auth shell screenshot smoke가 필요하면 `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`을 붙여 같은 명령을 실행합니다. Ops/Client shell selector와 client debug/source 비노출은 실행 중인 auth-off 또는 로그인 준비 서버에 `./server.sh verify-ops-client-ui`를 붙여 확인합니다. 이 smoke는 `/ops/dashboard`와 `/ops/rules`의 Lab iframe 비의존, `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status` 계약, `/client/api/views`, 단일 view, dashboard, events, metadata 응답의 민감 key를 검사합니다. `/ops/live`는 여기에 더해 headless Chrome 상호작용 smoke로 preview `start/stop/restart`, `raw/va-overlay/va-rule` payload, dual-slot cleanup까지 짧게 확인합니다. 화면 회귀 확인이 필요하면 `./server.sh verify-ops-client-ui --screenshots`로 주요 Ops/Client 화면을 headless Chrome에서 열어 overflow와 screenshot을 함께 남깁니다. 기존 Lab 자동화는 명시적인 auth off 검증 모드에서 계속 `/lab/rules` 3탭 구조와 공유 design token 계산값을 기준으로 동작합니다.
+Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`로 확인합니다. 이 smoke는 `/setup`, `/login`, `/password/change`, `/invite/setup`, `/client/request-access`의 auth shell과 핵심 form selector를 함께 검사하고, route smoke에서는 unauth/viewer/readonly-operator/integrator/public access request matrix로 Ops/Client/Lab API guard를 확인합니다. Auth shell screenshot smoke가 필요하면 `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`을 붙여 같은 명령을 실행합니다. Ops/Client shell selector와 client debug/source 비노출은 실행 중인 auth-off 또는 로그인 준비 서버에 `./server.sh verify-ops-client-ui`를 붙여 확인합니다. 이 smoke는 `/ops/dashboard`와 `/ops/rules`의 Lab iframe 비의존, `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status` 계약, `/client/api/views`, 단일 view, dashboard, events, metadata 응답의 민감 key를 검사합니다. `/ops/live`는 여기에 더해 headless Chrome 상호작용 smoke로 preview `start/stop/restart`, `raw/va-overlay/va-rule` payload, dual-slot cleanup, quick action write path를 짧게 확인합니다. 화면 회귀 확인이 필요하면 `./server.sh verify-ops-client-ui --screenshots`로 주요 Ops/Client 화면을 headless Chrome에서 열어 overflow와 screenshot을 함께 남깁니다. 기존 Lab 자동화는 명시적인 auth off 검증 모드에서 계속 `/lab/rules` 3탭 구조와 공유 design token 계산값을 기준으로 동작합니다.
 
 ## 3. Admin User Management
 
@@ -557,9 +557,7 @@ WebRTC 메타데이터 뷰어 사용 순서:
 - 중지됨
 - 오류
 
-요청 URL은 일반 화면에 크게 노출하지 않고 `개발자 요청 URL` 접힘 영역에 둡니다. 이 패널은 기본적으로 접혀 있으며, 일반 확인용 URL과 custom client용 side-channel URL을 분리해 보여줍니다.
-
-![개발자 요청 URL](assets/ui/analysis-developer-url.png)
+요청 URL은 일반 화면에 크게 노출하지 않고 개발/검증용 접힘 영역에 둡니다. 이 패널은 일반 사용자 문서의 핵심 제품 화면으로 취급하지 않으며, custom client 점검이 필요한 경우에만 별도로 확인합니다.
 
 URL 규칙:
 

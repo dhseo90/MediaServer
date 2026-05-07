@@ -1566,8 +1566,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         const source = row.source || {};
         const ruleId = String(view.defaultRuleId || tap?.selectedRuleId || (Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds[0] : '') || '').trim();
         const links = [
-          opsLiveActionLink(`/ops/sources#channel=${encodeURIComponent(String(row.id || ''))}`, '채널 관리'),
-          opsLiveActionLink(`/ops/events#channel=${encodeURIComponent(String(row.id || ''))}`, '이벤트 상태')
+          opsLiveActionLink(`/ops/sources#channel=${encodeURIComponent(String(row.id || ''))}`, '채널 관리')
         ];
         if (view.viewId) {
           links.push(opsLiveActionLink(`/client/live#view=${encodeURIComponent(String(view.viewId))}`, '클라이언트 미리보기'));
@@ -1581,7 +1580,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         }
         setText(
           'opsLiveActionSummary',
-          `${view.displayName || source.displayName || row.id} 기준 이동 · ${tap?.tapId ? `tap ${tap.tapId} ` : ''}${ruleId ? `rule ${ruleId}` : 'rule 없음'}`
+          `${view.displayName || source.displayName || row.id} 기준 작업 · ${tap?.tapId ? `tap ${tap.tapId} · ` : ''}${ruleId ? `rule ${ruleId}` : 'rule 없음'}`
         );
         container.innerHTML = links.join('');
         container.querySelectorAll('[data-ops-live-action]').forEach(button => {
