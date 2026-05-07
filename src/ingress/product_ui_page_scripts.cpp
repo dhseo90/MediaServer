@@ -154,10 +154,10 @@ void AppendClientShellScript(std::ostringstream& out) {
     const sourceKindLabel = kind => ({
       file: '파일',
       rtsp: 'RTSP',
-      whep: 'WHEP',
+      whep: '외부 WHEP',
       http: 'HTTP/HLS',
       hls: 'HTTP/HLS',
-      webrtc: 'WebRTC'
+      webrtc: 'Published WebRTC'
     })[String(kind || '').toLowerCase()] || kind || '소스';
     const allowedOverlayModes = view => {
       const seen = new Set();
@@ -1947,22 +1947,32 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         setText('opsLiveViewCount', viewItems.length);
         setText('opsLiveActiveStreams', counts.streams);
         setText('opsLiveStaleTaps', staleTapCount);
+        renderBadges('homeConfigState', [
+          { text: `${sourceItems.length} 채널` },
+          { text: `${vaRuleItems.length} VA 룰` },
+          { text: users.error ? '사용자 비공개' : `${userItems.length} 사용자`, tone: users.error ? 'info' : '' }
+        ]);
+        setText('homeConfigText', users.error
+          ? '사용자 수는 현재 권한으로 숨김입니다.'
+          : '등록된 구성을 보여줍니다.');
         renderBadges('homeRuntimeState', [
           { text: staleTapCount > 0 ? '확인 필요' : '정상', tone: staleTapCount > 0 ? 'warn' : '' },
           { text: counts.streams > 0 ? '활성' : '대기', tone: counts.streams > 0 ? '' : 'info' }
         ]);
         setText('homeRuntimeText', staleTapCount > 0
-          ? `${staleTapCount}개 분석 탭이 지연 상태입니다. 대시보드에서 런타임 상세를 확인하세요.`
-          : '현재 지연 탭 경고는 없습니다.');
+          ? `지연 탭 ${staleTapCount}개`
+          : '지연 탭 없음');
         const eventItems = Array.isArray(events.records?.records) ? events.records.records : [];
         renderOpsLiveTiles(sourceItems, viewItems, counts, runtime, eventItems);
         setText('opsLiveEventSummary', events.error ? `조회 실패: ${events.error}` : `records ${eventItems.length}`);
         renderOpsLiveEventRows(eventItems);
-        renderRaw('opsLiveRaw', 'opsLivePretty', { sources, views, catalog, runtime, events, users });
+        renderRaw('opsHomeRaw', 'opsHomePretty', { sources, views, catalog, runtime, events, users });
       }
       async function refreshDashboard() {
         const runtime = await requestJson('/ops/api/runtime/status');
         const counts = runtimeCounts(runtime);
+        const metadata = runtime?.webrtcHttp?.metadataDataChannel || {};
+        const sideChannel = runtime?.webrtcHttp?.metadataSideChannel || {};
         setText('dashActiveSessions', counts.sessions);
         setText('dashActiveStreams', counts.streams);
         setText('dashActiveTaps', counts.taps);
@@ -1972,23 +1982,34 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           { text: counts.taps > 0 ? '분석 활성' : '분석 대기', tone: counts.taps > 0 ? '' : 'info' },
           { text: counts.egress > 0 ? '송출 활성' : '송출 대기', tone: counts.egress > 0 ? '' : 'info' }
         ]);
-        setText('dashHealthText', `세션 ${counts.sessions} · 스트림 ${counts.streams} · 분석 탭 ${counts.taps}`);
+        setText('dashHealthText', `세션 ${counts.sessions} · 스트림 ${counts.streams} · 분석 ${counts.taps}`);
         renderBadges('dashRuntimeRows', [
           { text: `송출 ${counts.egress}` },
           { text: `발행 ${counts.publish}` },
           { text: `재사용 그룹 ${runtime?.analysisMatching?.reuseGroupCount ?? 0}` }
         ]);
-        setText('dashRuntimeText', `프로파일 문서 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 문서 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0}`);
-        const metadata = runtime?.webrtcHttp?.metadataDataChannel || {};
+        setText('dashRuntimeText', `프로파일 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0}`);
         renderBadges('dashBackpressureRows', [
           { text: `메타데이터 채널 ${Array.isArray(metadata.channels) ? metadata.channels.length : 0}` },
-          { text: `sse ${runtime?.webrtcHttp?.metadataSideChannel?.activeSseClients ?? 0}` },
-          { text: `ws ${runtime?.webrtcHttp?.metadataSideChannel?.activeWebSocketClients ?? 0}` }
+          { text: `sse ${sideChannel.activeSseClients ?? 0}` },
+          { text: `ws ${sideChannel.activeWebSocketClients ?? 0}` }
         ]);
-        setText('dashBackpressureText', 'DataChannel/SSE/WS 상태는 raw JSON 접힘 영역에서 세부 카운터를 확인합니다.');
+        setText('dashBackpressureText', 'DataChannel/SSE/WS 상태입니다.');
         const debugKeys = Object.keys(counts.debugCounters);
-        renderBadges('dashCleanupRows', debugKeys.slice(0, 4).map(key => ({ text: key })));
-        setText('dashCleanupText', debugKeys.length > 0 ? `${debugKeys.length}개 cleanup/debug counter group 사용 가능` : 'cleanup counter가 아직 수집되지 않았습니다.');
+        renderBadges('dashCleanupRows', [
+          { text: `debug 그룹 ${debugKeys.length}` },
+          { text: counts.debugCounters.cleanupRequests != null ? `cleanup 요청 ${counts.debugCounters.cleanupRequests}` : 'cleanup 요청 미제공', tone: counts.debugCounters.cleanupRequests != null ? '' : 'info' },
+          { text: counts.debugCounters.cleanupCompleted != null ? `cleanup 완료 ${counts.debugCounters.cleanupCompleted}` : 'cleanup 완료 미제공', tone: counts.debugCounters.cleanupCompleted != null ? '' : 'info' }
+        ]);
+        setText('dashCleanupText', debugKeys.length > 0 ? 'cleanup/debug 상태입니다.' : 'cleanup counter 없음');
+        setText('dashEgressCount', counts.egress);
+        setText('dashPublishCount', counts.publish);
+        setText('dashReuseGroupCount', runtime?.analysisMatching?.reuseGroupCount ?? 0);
+        setText('dashMetadataChannelCount', Array.isArray(metadata.channels) ? metadata.channels.length : 0);
+        setText('dashSseClientCount', sideChannel.activeSseClients ?? 0);
+        setText('dashWsClientCount', sideChannel.activeWebSocketClients ?? 0);
+        setText('dashDetailText',
+          `프로파일 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0} · 발행 ${counts.publish} · 송출 ${counts.egress}`);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
       }
       async function refreshEvents() {
@@ -2028,6 +2049,8 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       const sourceText = source => {
         if (!source || typeof source !== 'object') return '미제공';
         if (source.kind === 'file') return `파일 · ${display(source.file)}`;
+        if (source.kind === 'webrtc') return `Published WebRTC · ${display(source.webrtcSourceId || source.sourceId)}`;
+        if (source.kind === 'whep') return `외부 WHEP · ${display(source.whepUrl || source.url)}`;
         if (source.url) return `${display(source.kind)} · ${source.url}`;
         return display(source.kind);
       };
@@ -2048,10 +2071,777 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           .map(([key]) => key)
           .join(', ') || '미제공';
       };
+      function opsRulesEditorStatus(message, failed = false) {
+        setFeedback(document.getElementById('opsRulesStatus'), message, failed, { collapseEmpty: true });
+      }
+      let opsCatalogEventTemplates = [];
+      let opsCatalogProfiles = [];
+      let opsCatalogVaRules = [];
+      let opsRulesActiveMode = 'va-rule';
+      let opsRulesDetailMode = 'closed';
+      let opsRulesDetailRecordId = '';
+      let opsVaRuleStartMode = 'direct';
+      let opsVaRuleTemplateId = '';
+      const opsLabAnalysisBase = ['/lab', 'analysis'].join('/');
+      const opsLabProfilesPath = `${opsLabAnalysisBase}/profiles`;
+      const opsLabRulesPath = `${opsLabAnalysisBase}/rules`;
+      const opsLabVaRulesPath = `${opsLabAnalysisBase}/va-rules`;
+      const opsRulesDefaultSummary = '채널 설정을 먼저 관리합니다.';
+      const opsRulesModeConfigs = {
+        'va-rule': {
+          label: '채널 분석 설정',
+          summary: '채널에 붙는 설정입니다.',
+          composerTitle: '채널 분석 설정',
+          composerHint: '채널에 붙는 최종 설정입니다.',
+          saveText: '저장',
+          saveProxyId: 'saveVaRuleBtn',
+          steps: [
+            { sectionId: 'ruleBasicSection', title: '설정 정보', hint: '설정 이름과 적용 상태를 정합니다.' },
+            { sectionId: 'ruleSourceSection', title: '채널 선택', hint: '운영 채널 하나를 골라 이 설정에 바로 연결합니다.' },
+            { sectionId: 'profileSection', title: '프로파일 선택', hint: '이미 저장된 프로파일 중 이 설정에 연결할 것만 선택합니다.' },
+            { sectionId: 'ruleScenarioSection', title: '이벤트 방식', hint: '기본 이벤트 또는 시나리오를 고릅니다.' },
+            { sectionId: 'ruleObjectsSection', title: '대상 객체', hint: '어떤 객체를 감지하고 판정할지 정합니다.' },
+            { sectionId: 'ruleGeometrySection', title: '영역/라인', hint: '이 설정에서 사용할 영역 또는 라인을 지정합니다.' },
+            { sectionId: 'ruleOutputSection', title: '출력 동작', hint: '오버레이 강조와 이벤트 POST 동작을 정합니다.' },
+            { sectionId: 'ruleReviewSection', title: '저장 전 검토', hint: '최종 요약을 확인한 뒤 저장합니다.' }
+          ]
+        },
+        'event-rule': {
+          label: '이벤트 템플릿',
+          summary: '채널 설정에서 불러오는 보조 템플릿입니다.',
+          composerTitle: '이벤트 템플릿',
+          composerHint: '채널 설정에서 불러와 시작합니다.',
+          saveText: '저장',
+          saveProxyId: 'saveRuleBtn',
+          steps: [
+            { sectionId: 'ruleBasicSection', title: '템플릿 정보', hint: '재사용할 템플릿 ID와 적용 상태를 정합니다.' },
+            { sectionId: 'ruleSourceSection', title: '템플릿 적용 범위', hint: '특정 채널 하나가 아니라 어떤 소스 종류와 송출 경로에 공통 적용할지 정합니다.' },
+            { sectionId: 'profileSection', title: '프로파일 선택', hint: '이미 저장된 프로파일 중 이 조건이 사용할 것만 선택합니다.' },
+            { sectionId: 'ruleScenarioSection', title: '이벤트 방식', hint: '기본 이벤트 또는 시나리오 템플릿을 선택합니다.' },
+            { sectionId: 'ruleObjectsSection', title: '대상 객체', hint: '이 조건이 판정할 객체 범위를 정합니다.' },
+            { sectionId: 'ruleGeometrySection', title: '영역/라인', hint: '조건에 필요한 영역 또는 라인을 지정합니다.' },
+            { sectionId: 'ruleOutputSection', title: '출력 동작', hint: '오버레이 강조와 이벤트 POST 동작을 정합니다.' }
+          ]
+        },
+        profile: {
+          label: '분석 프로파일',
+          summary: '채널 설정과 템플릿에서 고르는 보조 프로파일입니다.',
+          composerTitle: '분석 프로파일',
+          composerHint: '채널 설정이나 템플릿에서 선택합니다.',
+          saveText: '저장',
+          saveProxyId: 'saveProfileBtn',
+          steps: [
+            { sectionId: 'profileSection', title: '프로파일 설정', hint: 'detector, FPS, 입력 크기와 추적 대상만 설정합니다.' }
+          ]
+        }
+      };
+      function opsRulesModeConfig(mode) {
+        return opsRulesModeConfigs[mode] || null;
+      }
+      function opsRulesDetailLabel(mode, detailMode) {
+        const config = opsRulesModeConfig(mode);
+        const label = config?.label || '항목';
+        if (detailMode === 'view') return `${label} 상세`;
+        if (detailMode === 'edit') return `${label} 수정`;
+        if (detailMode === 'new') return `${label} 추가`;
+        return label;
+      }
+      function setOpsRulesEditorModeButtons(mode) {
+        const buttons = [
+          ['va-rule', document.getElementById('opsAddVaRuleBtn')],
+          ['event-rule', document.getElementById('opsAddEventRuleBtn')],
+          ['profile', document.getElementById('opsAddProfileBtn')]
+        ];
+        for (const [buttonMode, button] of buttons) {
+          if (!button) continue;
+          const active = mode === buttonMode;
+          button.classList.toggle('button-primary', active);
+          button.classList.toggle('button-secondary', !active);
+          button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        }
+      }
+      function setOpsRulesCatalogVisibility(mode) {
+        const sections = {
+          'va-rule': document.getElementById('opsVaRulesSection'),
+          'event-rule': document.getElementById('opsEventRulesSection'),
+          profile: document.getElementById('opsProfileRulesSection')
+        };
+        const activeMode = mode && sections[mode] ? mode : 'va-rule';
+        opsRulesActiveMode = activeMode;
+        const summary = document.getElementById('opsRulesEditorSummary');
+        const config = opsRulesModeConfig(activeMode);
+        if (summary) summary.textContent = config?.summary || opsRulesDefaultSummary;
+        for (const [sectionMode, section] of Object.entries(sections)) {
+          if (!section) continue;
+          section.hidden = sectionMode !== activeMode;
+        }
+      }
+      function setOpsRulesDetailChrome(mode, detailMode = 'closed', recordId = '') {
+        const panel = document.getElementById('opsRulesDetailPanel');
+        const host = document.getElementById('opsRulesEditorComponent');
+        const title = document.getElementById('opsRulesComposerTitle');
+        const hint = document.getElementById('opsRulesComposerHint');
+        const badge = document.getElementById('opsRulesDetailMode');
+        const idBadge = document.getElementById('opsRulesDetailId');
+        const edit = document.getElementById('opsRulesComposerEdit');
+        const save = document.getElementById('opsRulesComposerSave');
+        const config = opsRulesModeConfig(mode);
+        opsRulesDetailMode = detailMode;
+        opsRulesDetailRecordId = String(recordId || '');
+        if (!config || detailMode === 'closed') {
+          if (panel) panel.hidden = true;
+          if (host) {
+            host.hidden = true;
+            host.dataset.mode = '';
+          }
+          return;
+        }
+        if (panel) panel.hidden = false;
+        if (host) {
+          host.hidden = false;
+          host.dataset.mode = mode;
+        }
+        if (badge) badge.textContent = detailMode === 'view' ? '상세' : (detailMode === 'edit' ? '수정' : '추가');
+        if (idBadge) {
+          idBadge.hidden = !opsRulesDetailRecordId;
+          idBadge.textContent = opsRulesDetailRecordId ? `#${opsRulesDetailRecordId}` : '#-';
+        }
+        if (title) title.textContent = opsRulesDetailLabel(mode, detailMode);
+        if (hint) {
+          hint.textContent = detailMode === 'view'
+            ? '저장된 내용입니다.'
+            : (detailMode === 'edit' ? '값을 바꾼 뒤 저장합니다.' : '값을 입력한 뒤 저장합니다.');
+        }
+        if (edit) edit.hidden = detailMode !== 'view';
+        if (save) {
+          save.hidden = detailMode === 'view';
+          save.textContent = '저장';
+        }
+      }
+      function opsVaRuleStartMeta(item) {
+        const templateRuleId = String(item?.templateStart?.ruleId || '').trim();
+        return {
+          mode: templateRuleId ? 'template' : 'direct',
+          templateRuleId
+        };
+      }
+      function opsVaRuleStartLabel(item) {
+        const meta = opsVaRuleStartMeta(item);
+        return meta.mode === 'template'
+          ? `템플릿 적용 · ${display(meta.templateRuleId)}`
+          : '개별 설정';
+      }
+      function syncEmbeddedVaRuleStartFields(root) {
+        const startModeInput = root?.getElementById('vaRuleStartMode');
+        const templateInput = root?.getElementById('vaRuleTemplateRuleId');
+        if (startModeInput) startModeInput.value = opsVaRuleStartMode;
+        if (templateInput) templateInput.value = opsVaRuleTemplateId;
+      }
+      function refreshOpsVaTemplateAssistOptions() {
+        const select = document.getElementById('opsVaRuleTemplateSelect');
+        if (!select) return;
+        const current = String(select.value || opsVaRuleTemplateId || '').trim();
+        select.innerHTML = [`<option value="">템플릿을 고르세요</option>`].concat(
+          opsCatalogEventTemplates.map((item) => {
+            const id = String(item?.id || '').trim();
+            const type = item?.scenario?.type || item?.event?.type || item?.eventType || 'event';
+            return `<option value="${escapeHtml(id)}">${escapeHtml(`${id} · ${opsRuleEventTypeLabel(type)}`)}</option>`;
+          })
+        ).join('');
+        select.value = current;
+      }
+      async function applyOpsVaTemplateSelection(templateId) {
+        const root = await ensureOpsRulesEditorReady();
+        const api = window.__mediaServerRuleEditorApi;
+        const normalizedId = String(templateId || '').trim();
+        if (!root || !api) return;
+        if (!normalizedId) {
+          opsVaRuleStartMode = 'direct';
+          opsVaRuleTemplateId = '';
+          syncEmbeddedVaRuleStartFields(root);
+          updateOpsVaTemplateAssistUi();
+          return;
+        }
+        const item = findOpsEventTemplateById(normalizedId);
+        if (!item || typeof api.loadRule !== 'function') return;
+        opsVaRuleStartMode = 'template';
+        opsVaRuleTemplateId = normalizedId;
+        api.loadRule(JSON.parse(JSON.stringify(item)));
+        syncEmbeddedVaRuleStartFields(root);
+        updateOpsVaTemplateAssistUi();
+      }
+      function updateOpsVaTemplateAssistUi() {
+        const panel = document.getElementById('opsVaRuleTemplateAssist');
+        const actions = document.getElementById('opsVaRuleTemplateAssistActions');
+        const hint = document.getElementById('opsVaRuleTemplateAssistHint');
+        const state = document.getElementById('opsVaRuleTemplateAssistState');
+        const selectField = document.getElementById('opsVaRuleTemplateSelectField');
+        const directButton = document.getElementById('opsVaRuleStartDirect');
+        const templateButton = document.getElementById('opsVaRuleStartTemplate');
+        const select = document.getElementById('opsVaRuleTemplateSelect');
+        const show = opsRulesActiveMode === 'va-rule' && opsRulesDetailMode !== 'closed';
+        const viewMode = opsRulesDetailMode === 'view';
+        if (panel) panel.hidden = !show;
+        if (!show) return;
+        if (directButton) {
+          const active = opsVaRuleStartMode !== 'template';
+          directButton.classList.toggle('button-primary', active);
+          directButton.classList.toggle('button-secondary', !active);
+          directButton.setAttribute('aria-pressed', active ? 'true' : 'false');
+        }
+        if (templateButton) {
+          const active = opsVaRuleStartMode === 'template';
+          templateButton.classList.toggle('button-primary', active);
+          templateButton.classList.toggle('button-secondary', !active);
+          templateButton.setAttribute('aria-pressed', active ? 'true' : 'false');
+        }
+        if (actions) actions.hidden = viewMode;
+        if (selectField) selectField.hidden = viewMode || opsVaRuleStartMode !== 'template';
+        if (select) select.value = opsVaRuleTemplateId;
+        if (hint) {
+          hint.textContent = viewMode
+            ? (opsVaRuleStartMode === 'template'
+              ? `이 설정은 템플릿 ${display(opsVaRuleTemplateId)}에서 시작했습니다.`
+              : '이 설정은 개별 설정으로 시작했습니다.')
+            : (opsVaRuleStartMode === 'template'
+              ? '선택한 템플릿 값으로 현재 채널 설정 입력을 먼저 채웁니다.'
+              : '채널에 붙는 설정을 바로 작성합니다.');
+        }
+        if (state) {
+          state.hidden = !viewMode;
+          state.textContent = opsVaRuleStartMode === 'template'
+            ? `설정 방식: 템플릿 적용 · ${display(opsVaRuleTemplateId)}`
+            : '설정 방식: 개별 설정';
+        }
+      }
+      function syncOpsVaTemplateAssist(mode) {
+        if (mode !== 'va-rule') {
+          const panel = document.getElementById('opsVaRuleTemplateAssist');
+          if (panel) panel.hidden = true;
+          return;
+        }
+        refreshOpsVaTemplateAssistOptions();
+        updateOpsVaTemplateAssistUi();
+      }
+      function setOpsRulesComposer(mode, detailMode = opsRulesDetailMode, recordId = opsRulesDetailRecordId) {
+        const config = opsRulesModeConfig(mode);
+        const steps = document.getElementById('opsRulesComposerSteps');
+        setOpsRulesDetailChrome(mode, detailMode, recordId);
+        if (!config || detailMode === 'closed') {
+          if (steps) {
+            steps.innerHTML = '';
+            steps.hidden = true;
+          }
+          opsVaRuleStartMode = 'direct';
+          opsVaRuleTemplateId = '';
+          syncOpsVaTemplateAssist('');
+          return;
+        }
+        if (steps) {
+          steps.innerHTML = '';
+          steps.hidden = true;
+        }
+        syncOpsVaTemplateAssist(mode);
+      }
+      function transformEmbeddedComponentScript(text) {
+        return text
+          .replaceAll('document.getElementById(', 'root.getElementById(')
+          .replaceAll('document.querySelector(', 'root.querySelector(')
+          .replaceAll('document.querySelectorAll(', 'root.querySelectorAll(')
+          .replaceAll('document.documentElement.dataset.embedPanel', '__MEDIA_SERVER_EMBED_PANEL__')
+          .replaceAll('document.documentElement.dataset.embed', '__MEDIA_SERVER_EMBED__')
+          .replaceAll('__MEDIA_SERVER_EMBED_PANEL__', "(root.host?.dataset?.embedPanel || document.documentElement.dataset.embedPanel)")
+          .replaceAll('__MEDIA_SERVER_EMBED__', "(root.host?.dataset?.embed || document.documentElement.dataset.embed)")
+          .replaceAll("root.getElementById('themeToggleBtn').onclick = () => {", "const __themeToggleBtn = root.getElementById('themeToggleBtn'); if (__themeToggleBtn) __themeToggleBtn.onclick = () => {")
+          .replaceAll("$('themeToggleBtn').onclick = () => {", "if ($('themeToggleBtn')) $('themeToggleBtn').onclick = () => {");
+      }
+      function isEmbeddedComponentBootScript(text) {
+        const compact = text.replace(/\s+/g, ' ');
+        return compact.includes(`const saved = localStorage.getItem('mediaServerTheme')`)
+          && compact.includes(`document.documentElement.dataset.embed = params.get('embed') === '1' ? '1' : '0'`);
+      }
+      async function hydrateEmbeddedComponent(host) {
+        if (!host) return null;
+        if (host.dataset.loaded === '1' && host.shadowRoot) return host.shadowRoot;
+        const url = host.dataset.componentUrl;
+        if (!url) return null;
+        try {
+          const parsed = new URL(url, window.location.origin);
+          host.dataset.embed = parsed.searchParams.get('embed') === '1' ? '1' : '0';
+          host.dataset.embedPanel = parsed.searchParams.get('panel') || '';
+        } catch {
+          host.dataset.embed = host.dataset.embed || '0';
+          host.dataset.embedPanel = host.dataset.embedPanel || '';
+        }
+        const response = await fetch(url, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`${url} HTTP ${response.status}`);
+        const html = await response.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const shadow = host.shadowRoot || host.attachShadow({ mode: 'open' });
+        shadow.innerHTML = '';
+        const baseStyle = document.createElement('style');
+        baseStyle.textContent = `
+          :host {
+            display: block;
+            color: var(--ink);
+            font-family: "Avenir Next", "Pretendard", "Noto Sans KR", sans-serif;
+          }
+          .topbar, .standalone-nav { display: none !important; }
+          .component-main {
+            width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: grid !important;
+            gap: 18px !important;
+          }
+          .component-main > .hero,
+          .component-main > .card,
+          .component-main .card {
+            box-shadow: none !important;
+          }
+        `;
+        shadow.appendChild(baseStyle);
+        for (const style of doc.querySelectorAll('style')) {
+          const clonedStyle = document.createElement('style');
+          clonedStyle.textContent = style.textContent || '';
+          shadow.appendChild(clonedStyle);
+        }
+        const main = doc.querySelector('main');
+        if (main) {
+          const componentMain = document.createElement('main');
+          componentMain.className = 'component-main';
+          for (const child of Array.from(main.children)) {
+            if (child.classList && (child.classList.contains('topbar') || child.classList.contains('standalone-nav'))) continue;
+            componentMain.appendChild(document.importNode(child, true));
+          }
+          shadow.appendChild(componentMain);
+        }
+        for (const dialog of doc.querySelectorAll('body > dialog')) {
+          shadow.appendChild(document.importNode(dialog, true));
+        }
+        for (const script of doc.querySelectorAll('script')) {
+          const scriptText = script.textContent || '';
+          if (!scriptText.trim()) continue;
+          if (isEmbeddedComponentBootScript(scriptText)) continue;
+          new Function('root', transformEmbeddedComponentScript(scriptText))(shadow);
+        }
+        stripEmbeddedLegacyOpsPanels(shadow);
+        host.dataset.loaded = '1';
+        host.classList.add('is-loaded');
+        return shadow;
+      }
+      async function ensureOpsRulesEditorReady() {
+        const host = document.getElementById('opsRulesEditorComponent');
+        return hydrateEmbeddedComponent(host);
+      }
+      function setEmbeddedVisibility(root, id, visible) {
+        const element = root?.getElementById(id);
+        if (element) element.hidden = !visible;
+        return element;
+      }
+      function setEmbeddedSectionMeta(root, sectionId, index, title, hint) {
+        const section = root?.getElementById(sectionId);
+        if (!section) return;
+        const stepTitle = section.querySelector('.step-title');
+        const numberEl = stepTitle?.querySelector('span');
+        const titleEl = stepTitle?.querySelector('h2');
+        const hintEl = stepTitle?.querySelector('p.hint');
+        if (numberEl) {
+          numberEl.hidden = true;
+          numberEl.textContent = '';
+        }
+        if (titleEl) titleEl.textContent = title;
+        if (hintEl && hint) hintEl.textContent = hint;
+      }
+      function setEmbeddedFieldLabel(root, fieldId, text) {
+        const field = root?.getElementById(fieldId);
+        const label = field?.querySelector('.field-label');
+        if (label) label.textContent = text;
+      }
+      function setEmbeddedFormDisabled(root, disabled) {
+        if (!root) return;
+        const fields = root.querySelectorAll('input, select, textarea, button');
+        for (const field of fields) {
+          if (field.id === 'themeToggleBtn') continue;
+          field.disabled = disabled;
+        }
+      }
+      function setEmbeddedEditorHeading(root, title, note = '') {
+        const heading = root?.getElementById('vaRuleEditorTitle');
+        if (heading) heading.textContent = title;
+        const hint = root?.querySelector('.rule-editor-identity .hint');
+        if (hint) hint.textContent = note;
+      }
+      function reorderEmbeddedSections(root, orderedSectionIds = []) {
+        const main = root?.querySelector('.component-main');
+        if (!main) return;
+        for (const sectionId of orderedSectionIds) {
+          const section = root.getElementById(sectionId);
+          if (section && section.parentElement === main) {
+            main.appendChild(section);
+          }
+        }
+      }
+      function nextEmbeddedRuleId(root) {
+        const select = root?.getElementById('ruleSelect');
+        let maxId = 0;
+        for (const option of Array.from(select?.options || [])) {
+          const value = String(option.value || '').replace(/^custom:/, '');
+          if (/^[0-9]+$/.test(value)) {
+            maxId = Math.max(maxId, Number(value));
+          }
+        }
+        return String(maxId + 1 || 1);
+      }
+      function nextEmbeddedProfileId(root) {
+        const used = new Set();
+        for (const option of Array.from(root?.getElementById('profileSelect')?.options || [])) {
+          const value = String(option.value || '').replace(/^(builtin|custom):/, '');
+          if (value) used.add(value);
+        }
+        let index = 1;
+        while (used.has(`profile-${index}`)) index += 1;
+        return `profile-${index}`;
+      }
+      function ensureOpsRulesModeStyles(root) {
+        if (!root) return null;
+        let style = root.querySelector('style[data-ops-rules-mode-style="1"]');
+        if (style) return style;
+        style = document.createElement('style');
+        style.dataset.opsRulesModeStyle = '1';
+        style.textContent = `
+          .component-main > .hero,
+          .component-main > .primary-tabs,
+          #rulePreviewSection,
+          #viewerPanel,
+          #dashboardPanel,
+          #vaRuleLibraryCard,
+          .editor-save-actions,
+          .editor-sticky-stack,
+          .edit-step-nav,
+          .edit-step-select,
+          .debug-panel {
+            display: none !important;
+          }
+          :host([data-ops-rules-mode="none"]) #vaRuleLibraryCard,
+          :host([data-ops-rules-mode="none"]) #vaRuleEditorPanel {
+            display: none !important;
+          }
+          :host([data-ops-rules-mode]) #ruleDocumentPanel,
+          :host([data-ops-rules-mode]) #profileGuidePanel,
+          :host([data-ops-rules-mode]) #profileCreatePanel,
+          :host([data-ops-rules-mode]) #profileDraftActions,
+          :host([data-ops-rules-mode]) #ruleDocumentActions,
+          :host([data-ops-rules-mode]) #vaRuleReviewActions {
+            display: none !important;
+          }
+          :host([data-ops-rules-mode]) #rulePreviewSection,
+          :host([data-ops-rules-mode]) #viewerPanel,
+          :host([data-ops-rules-mode]) #dashboardPanel {
+            display: none !important;
+          }
+          :host([data-ops-rules-mode="profile"]) #profileDetailsPanel > summary {
+            display: none !important;
+          }
+        `;
+        root.appendChild(style);
+        return style;
+      }
+      function stripEmbeddedLegacyOpsPanels(root) {
+        if (!root) return;
+        for (const buttonId of ['analysisViewerTabBtn', 'analysisDashboardTabBtn']) {
+          root.getElementById(buttonId)?.remove();
+        }
+        const previewSection = root.getElementById('rulePreviewSection');
+        if (previewSection) previewSection.hidden = true;
+        for (const panelId of ['viewerPanel', 'dashboardPanel']) {
+          const panel = root.getElementById(panelId);
+          if (!panel) continue;
+          panel.hidden = true;
+          panel.replaceChildren();
+        }
+      }
+      function focusEmbeddedModeHost(root, mode) {
+        const config = opsRulesModeConfig(mode);
+        focusEmbeddedRuleSection(root, config?.steps?.[0]?.sectionId || 'ruleBasicSection');
+      }
+      function applyEmbeddedModeSections(root, mode) {
+        const config = opsRulesModeConfig(mode);
+        const visible = new Set((config?.steps || []).map((step) => step.sectionId));
+        const allSections = [
+          'ruleBasicSection',
+          'ruleSourceSection',
+          'profileSection',
+          'ruleScenarioSection',
+          'ruleObjectsSection',
+          'ruleGeometrySection',
+          'ruleOutputSection',
+          'ruleReviewSection'
+        ];
+        for (const sectionId of allSections) {
+          setEmbeddedVisibility(root, sectionId, visible.has(sectionId));
+        }
+        (config?.steps || []).forEach((step, index) => {
+          setEmbeddedSectionMeta(root, step.sectionId, index + 1, step.title, step.hint);
+        });
+        reorderEmbeddedSections(root, (config?.steps || []).map((step) => step.sectionId));
+      }
+      function applyEmbeddedSharedChrome(root) {
+        const editorPanel = root?.getElementById('vaRuleEditorPanel');
+        const launchButton = root?.getElementById('addVaRuleBtn');
+        if (editorPanel?.hidden && launchButton) {
+          launchButton.click();
+        } else if (editorPanel) {
+          editorPanel.hidden = false;
+        }
+        setEmbeddedVisibility(root, 'ruleDocumentPanel', false);
+        setEmbeddedVisibility(root, 'profileGuidePanel', false);
+        setEmbeddedVisibility(root, 'profileCreatePanel', false);
+        setEmbeddedVisibility(root, 'profileDraftActions', false);
+        setEmbeddedVisibility(root, 'vaRuleReviewActions', false);
+        const deleteProfileButton = root?.getElementById('deleteProfileBtn');
+        if (deleteProfileButton) deleteProfileButton.hidden = true;
+        const profileDetails = root?.getElementById('profileDetailsPanel');
+        if (profileDetails) profileDetails.open = false;
+        const profileSummary = root?.querySelector('#profileDetailsPanel > summary');
+        if (profileSummary) profileSummary.hidden = false;
+      }
+      function applyVaRuleMode(root) {
+        setEmbeddedEditorHeading(root, '채널 분석 설정', '선택한 채널에 바로 붙는 최종 설정을 편집합니다.');
+        setEmbeddedFieldLabel(root, 'ruleBasicIdField', '설정 번호');
+        setEmbeddedFieldLabel(root, 'vaRuleNameField', '설정 이름');
+        setEmbeddedFieldLabel(root, 'ruleProfileSelectField', '연결할 프로파일');
+        const ruleIdInput = root?.getElementById('ruleId');
+        if (ruleIdInput) ruleIdInput.type = 'hidden';
+        const ruleIdDisplay = root?.getElementById('vaRuleIdDisplay');
+        if (ruleIdDisplay) ruleIdDisplay.hidden = false;
+        const ruleIdNote = root?.getElementById('ruleBasicIdNote');
+        if (ruleIdNote) ruleIdNote.textContent = '저장하면 번호가 붙고, 선택 채널에 연결됩니다.';
+        setEmbeddedVisibility(root, 'vaRuleNameField', true);
+        setEmbeddedVisibility(root, 'ruleEnabledField', true);
+        setEmbeddedVisibility(root, 'opsRuleChannelPicker', true);
+        setEmbeddedVisibility(root, 'directVaRuleSourceFields', false);
+        setEmbeddedVisibility(root, 'directRuleMatchFields', false);
+        setEmbeddedVisibility(root, 'ruleProfileSelectField', true);
+        setEmbeddedVisibility(root, 'profileSummaryText', true);
+        setEmbeddedVisibility(root, 'profileDetailsPanel', false);
+        setEmbeddedVisibility(root, 'ruleDocumentPanel', false);
+        const profileSelectNote = root?.querySelector('#ruleProfileSelectField .form-note');
+        if (profileSelectNote) profileSelectNote.textContent = '저장된 프로파일 하나를 골라 연결합니다.';
+        const sourceHint = root?.getElementById('vaRuleSourceHelp');
+        if (sourceHint) sourceHint.textContent = '채널 하나를 고르면 이 설정이 바로 연결됩니다.';
+        const sourceSummary = root?.getElementById('vaRuleSourceSummary');
+        if (sourceSummary) sourceSummary.hidden = false;
+        const vaRuleSelect = root?.getElementById('vaRuleSelect');
+        if (vaRuleSelect) {
+          vaRuleSelect.value = '';
+          vaRuleSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        syncEmbeddedVaRuleStartFields(root);
+      }
+      function applyEventRuleMode(root) {
+        setEmbeddedEditorHeading(root, '이벤트 템플릿', '채널 분석 설정에서 불러와 쓰는 보조 템플릿입니다.');
+        setEmbeddedFieldLabel(root, 'ruleBasicIdField', '템플릿 ID');
+        setEmbeddedFieldLabel(root, 'ruleProfileSelectField', '사용할 프로파일');
+        const ruleIdInput = root?.getElementById('ruleId');
+        if (ruleIdInput) {
+          ruleIdInput.type = 'text';
+          if (!/^[0-9]+$/.test(String(ruleIdInput.value || '')) || String(ruleIdInput.value || '').trim() === 'file-person-vehicle-area') {
+            ruleIdInput.value = nextEmbeddedRuleId(root);
+          }
+        }
+        const ruleIdDisplay = root?.getElementById('vaRuleIdDisplay');
+        if (ruleIdDisplay) ruleIdDisplay.hidden = true;
+        const ruleIdNote = root?.getElementById('ruleBasicIdNote');
+        if (ruleIdNote) ruleIdNote.textContent = '다른 채널 분석 설정에서 다시 쓸 템플릿 ID입니다.';
+        setEmbeddedVisibility(root, 'vaRuleNameField', false);
+        setEmbeddedVisibility(root, 'ruleEnabledField', true);
+        setEmbeddedVisibility(root, 'opsRuleChannelPicker', false);
+        setEmbeddedVisibility(root, 'directVaRuleSourceFields', false);
+        setEmbeddedVisibility(root, 'directRuleMatchFields', true);
+        setEmbeddedVisibility(root, 'ruleProfileSelectField', true);
+        setEmbeddedVisibility(root, 'profileSummaryText', true);
+        setEmbeddedVisibility(root, 'profileDetailsPanel', false);
+        const profileSelectNote = root?.querySelector('#ruleProfileSelectField .form-note');
+        if (profileSelectNote) profileSelectNote.textContent = '저장된 프로파일 하나를 골라 연결합니다.';
+        const sourceHint = root?.getElementById('vaRuleSourceHelp');
+        if (sourceHint) sourceHint.textContent = '채널에 바로 붙지 않고, 채널 분석 설정에서 불러와 씁니다.';
+        const sourceSummary = root?.getElementById('vaRuleSourceSummary');
+        if (sourceSummary) sourceSummary.hidden = true;
+        const ruleSourceKind = root?.getElementById('ruleSourceKind');
+        if (ruleSourceKind) ruleSourceKind.value = '*';
+        const ruleRoute = root?.getElementById('ruleRoute');
+        if (ruleRoute) ruleRoute.value = '*';
+        const ruleKindBasic = root?.querySelector('input[name="ruleKind"][value="basic"]');
+        if (ruleKindBasic) {
+          ruleKindBasic.checked = true;
+          ruleKindBasic.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        const ruleSelect = root?.getElementById('ruleSelect');
+        if (ruleSelect) {
+          ruleSelect.value = '';
+          ruleSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+      function applyProfileMode(root) {
+        setEmbeddedEditorHeading(root, '분석 프로파일', '채널 분석 설정과 이벤트 템플릿에서 고르는 보조 프로파일입니다.');
+        setEmbeddedVisibility(root, 'ruleProfileSelectField', false);
+        setEmbeddedVisibility(root, 'profileSummaryText', false);
+        setEmbeddedVisibility(root, 'profileDetailsPanel', true);
+        const newProfileButton = root?.getElementById('newProfileBtn');
+        if (newProfileButton) newProfileButton.click();
+        const profileDetails = root?.getElementById('profileDetailsPanel');
+        if (profileDetails) profileDetails.open = true;
+        const profileSummary = root?.querySelector('#profileDetailsPanel > summary');
+        if (profileSummary) profileSummary.hidden = true;
+        const profileId = root?.getElementById('profileId');
+        if (profileId && (!String(profileId.value || '').trim() || String(profileId.value) === 'fast-local')) {
+          profileId.value = nextEmbeddedProfileId(root);
+        }
+      }
+      function configureEmbeddedEditorForMode(root, mode) {
+        if (!root?.host) return;
+        ensureOpsRulesModeStyles(root);
+        root.host.dataset.opsRulesMode = mode || 'none';
+        applyEmbeddedSharedChrome(root);
+        applyEmbeddedModeSections(root, mode);
+        if (mode === 'profile') applyProfileMode(root);
+        else if (mode === 'event-rule') applyEventRuleMode(root);
+        else applyVaRuleMode(root);
+        focusEmbeddedModeHost(root, mode);
+      }
+      function focusEmbeddedRuleSection(root, targetId) {
+        const target = root?.getElementById(targetId);
+        if (target && typeof target.scrollIntoView === 'function') {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+      function loadOpsRulesRecordIntoEditor(mode, recordId) {
+        const api = window.__mediaServerRuleEditorApi;
+        const id = String(recordId || '');
+        if (!api || !id) return false;
+        if (mode === 'va-rule' && typeof api.loadVaRule === 'function') {
+          const item = findOpsVaRuleById(id);
+          if (!item) return false;
+          const startMeta = opsVaRuleStartMeta(item);
+          opsVaRuleStartMode = startMeta.mode;
+          opsVaRuleTemplateId = startMeta.templateRuleId;
+          api.loadVaRule(JSON.parse(JSON.stringify(item)));
+          return true;
+        }
+        if (mode === 'event-rule' && typeof api.loadRule === 'function') {
+          const item = findOpsEventTemplateById(id);
+          if (!item) return false;
+          api.loadRule(JSON.parse(JSON.stringify(item)));
+          return true;
+        }
+        if (mode === 'profile' && typeof api.loadProfile === 'function') {
+          const item = findOpsProfileById(id);
+          if (!item) return false;
+          api.loadProfile(JSON.parse(JSON.stringify(item)));
+          return true;
+        }
+        return false;
+      }
+      async function openOpsRulesEditor(mode, detailMode = 'new', recordId = '') {
+        try {
+          setOpsRulesCatalogVisibility(mode);
+          setOpsRulesEditorModeButtons(mode);
+          setOpsRulesComposer(mode, detailMode, recordId);
+          const root = await ensureOpsRulesEditorReady();
+          if (!root) return;
+          configureEmbeddedEditorForMode(root, mode);
+          if (mode === 'va-rule' && detailMode === 'new') {
+            opsVaRuleStartMode = 'direct';
+            opsVaRuleTemplateId = '';
+            syncEmbeddedVaRuleStartFields(root);
+          }
+          if (recordId && !loadOpsRulesRecordIntoEditor(mode, recordId)) {
+            throw new Error('선택한 항목을 불러오지 못했습니다.');
+          }
+          if (mode === 'va-rule') {
+            syncEmbeddedVaRuleStartFields(root);
+          }
+          setEmbeddedFormDisabled(root, detailMode === 'view');
+          syncOpsVaTemplateAssist(mode);
+          opsRulesEditorStatus('', false);
+        } catch (error) {
+          setOpsRulesComposer('', 'closed');
+          opsRulesEditorStatus(`룰 편집기 로드 실패: ${error.message}`, true);
+        }
+      }
+      async function selectOpsRulesMode(mode) {
+        const nextMode = opsRulesModeConfig(mode) ? mode : 'va-rule';
+        if (opsRulesDetailMode !== 'closed' && opsRulesActiveMode !== nextMode) {
+          await closeOpsRulesEditor();
+        }
+        setOpsRulesCatalogVisibility(nextMode);
+        setOpsRulesEditorModeButtons(nextMode);
+      }
+      async function closeOpsRulesEditor() {
+        const host = document.getElementById('opsRulesEditorComponent');
+        opsVaRuleStartMode = 'direct';
+        opsVaRuleTemplateId = '';
+        syncEmbeddedVaRuleStartFields(host?.shadowRoot || null);
+        if (host) {
+          host.hidden = true;
+          host.dataset.mode = '';
+          if (host.shadowRoot?.host) host.shadowRoot.host.dataset.opsRulesMode = 'none';
+        }
+        setOpsRulesComposer('', 'closed');
+        setOpsRulesEditorModeButtons(opsRulesActiveMode);
+        opsRulesEditorStatus('', false);
+      }
+      async function editCurrentOpsRulesRecord() {
+        const mode = opsRulesActiveMode;
+        const recordId = opsRulesDetailRecordId;
+        await openOpsRulesEditor(mode, 'edit', recordId);
+      }
+      async function triggerOpsRulesSave() {
+        const host = document.getElementById('opsRulesEditorComponent');
+        const mode = String(host?.dataset.mode || '');
+        const config = opsRulesModeConfig(mode);
+        if (!config) return;
+        const root = await ensureOpsRulesEditorReady();
+        const button = root?.getElementById(config.saveProxyId);
+        if (!button) {
+          opsRulesEditorStatus('저장 버튼을 찾지 못했습니다.', true);
+          return;
+        }
+        button.click();
+        window.setTimeout(async () => {
+          try {
+            await refreshRules();
+            const savedId = mode === 'profile'
+              ? String(host.shadowRoot?.getElementById('profileId')?.value || '')
+              : (mode === 'event-rule'
+                ? String(host.shadowRoot?.getElementById('ruleId')?.value || '')
+                : String(host.shadowRoot?.getElementById('vaRuleId')?.value || ''));
+            await openOpsRulesEditor(mode, 'view', savedId);
+          } catch (error) {
+            setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true });
+          }
+        }, 350);
+      }
       const opsRulesSearchTerm = () => {
         const inputValue = String(document.getElementById('opsRulesFilterInput')?.value || '').trim();
         const hashValue = String(opsHashParams().get('q') || '').trim();
         return (inputValue || hashValue).toLowerCase();
+      };
+      const opsRuleEventTypeLabel = (value) => {
+        const type = String(value || '').trim();
+        if (type === 'intrusion-dwell') return 'Intrusion Dwell';
+        if (type === 're-entry') return 'Re-Entry';
+        if (type === 'wrong-direction') return 'Wrong Direction';
+        if (type === 'intrusion-after-line-crossing') return '라인 통과 후 영역 침입';
+        if (type === 'loitering') return 'Loitering';
+        if (type === 'zone-occupancy') return 'Zone Occupancy';
+        if (type === 'presence') return 'Presence';
+        if (type === 'enter') return 'Enter';
+        if (type === 'exit') return 'Exit';
+        if (type === 'line-crossing') return 'Line Crossing';
+        return type || 'event';
       };
       const opsRuleSearchableText = item => {
         const analysis = item?.analysis || {};
@@ -2069,6 +2859,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           source?.rtspUrl,
           source?.whepUrl,
           source?.httpUrl,
+          item?.templateStart?.ruleId,
           analysis?.profileId,
           analysis?.detector,
           eventName,
@@ -2076,56 +2867,300 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           ...(Array.isArray(item?.trackingClasses) ? item.trackingClasses : [])
         ].filter(Boolean).join(' ').toLowerCase();
       };
-      const statusBadge = item => item?.enabled === false ? badge('비활성', 'warn') : badge('적용 중');
+      function opsRulesStatusBadge(enabled) {
+        const tone = enabled === false ? ' warn' : '';
+        const text = enabled === false ? '비활성' : '활성';
+        return `<span class="chip ops-rules-status-chip${tone}" style="display:inline-block;min-width:64px;padding:4px 12px;white-space:nowrap;word-break:keep-all;overflow-wrap:normal;text-align:center;">${escapeHtml(text)}</span>`;
+      }
+      function opsRuleActionButton(label, action, id, tone = 'secondary') {
+        const classes = tone === 'danger'
+          ? 'danger button-compact'
+          : 'button-secondary button-compact';
+        return `<button type="button" class="${classes}" data-ops-rule-action="${escapeHtml(action)}" data-ops-rule-id="${escapeHtml(String(id || ''))}">${escapeHtml(label)}</button>`;
+      }
+      function opsRuleActionButtons(actions) {
+        return `<div class="ops-rule-row-actions">${actions.join('')}</div>`;
+      }
+      function opsVaRuleStartModeHtml(item) {
+        const meta = opsVaRuleStartMeta(item);
+        if (meta.mode === 'template') {
+          return `<div class="ops-rule-value-stack"><strong>템플릿 적용</strong><span class="ops-rule-note">${escapeHtml(meta.templateRuleId)}</span></div>`;
+        }
+        return `<div class="ops-rule-value-stack"><strong>개별 설정</strong></div>`;
+      }
+      function opsRuleSourceHtml(source) {
+        if (!source || typeof source !== 'object') {
+          return `<div class="ops-rule-value-stack"><strong>미제공</strong></div>`;
+        }
+        if (source.kind === 'file') {
+          return `<div class="ops-rule-value-stack"><strong>파일</strong><span class="ops-rule-note">${escapeHtml(display(source.file))}</span></div>`;
+        }
+        if (source.kind === 'webrtc') {
+          return `<div class="ops-rule-value-stack"><strong>Published WebRTC</strong><span class="ops-rule-note">${escapeHtml(display(source.webrtcSourceId || source.sourceId))}</span></div>`;
+        }
+        if (source.kind === 'whep') {
+          return `<div class="ops-rule-value-stack"><strong>외부 WHEP</strong><span class="ops-rule-note">${escapeHtml(display(source.whepUrl || source.url))}</span></div>`;
+        }
+        if (source.url) {
+          return `<div class="ops-rule-value-stack"><strong>${escapeHtml(display(source.kind))}</strong><span class="ops-rule-note">${escapeHtml(display(source.url))}</span></div>`;
+        }
+        return `<div class="ops-rule-value-stack"><strong>${escapeHtml(display(source.kind))}</strong></div>`;
+      }
       function renderOpsVaRules(items) {
         const body = document.getElementById('opsVaRuleRows');
         if (!Array.isArray(items) || items.length === 0) {
-          setTableEmpty(body, 6, '저장된 VA 룰이 없습니다.');
+          setTableEmpty(body, 8, '저장된 채널 분석 설정이 없습니다.');
           return;
         }
         body.innerHTML = items.map(item => {
           const analysis = item.analysis || {};
           const eventName = item.scenario?.type || item.scenario?.name || item.event?.type || item.eventType || (item.outputs?.events ? 'events' : 'metadata');
+          const id = String(item?.id || '');
+          const startModeText = opsVaRuleStartLabel(item);
+          const statusHtml = opsRulesStatusBadge(item?.enabled !== false);
+          const actionsHtml = opsRuleActionButtons([
+            opsRuleActionButton('상세', 'view-va', id),
+            opsRuleActionButton('삭제', 'delete-va', id, 'danger')
+          ]);
           return `<tr>
-            <td data-label="룰">#${escapeHtml(itemId(item))}</td>
-            <td data-label="소스">${escapeHtml(sourceText(item.source))}</td>
-            <td data-label="프로파일">${escapeHtml(display(analysis.profileId || item.profileId || 'server-default-va'))}</td>
-            <td data-label="이벤트">${escapeHtml(display(eventName))}</td>
-            <td data-label="대상">${escapeHtml(listText(analysis.classes || item.classes || analysis.trackingClasses))}</td>
-            <td data-label="상태">${statusBadge(item)}</td>
+            <td data-label="룰">
+              <div class="ops-rule-id-cell">
+                <strong>#${escapeHtml(itemId(item))}</strong>
+              </div>
+            </td>
+            <td data-label="소스">${opsRuleSourceHtml(item.source)}</td>
+            <td data-label="프로파일">
+              <div class="ops-rule-value-stack">
+                <strong>${escapeHtml(display(analysis.profileId || item.profileId || 'server-default-va'))}</strong>
+              </div>
+            </td>
+            <td data-label="설정 방식">${opsVaRuleStartModeHtml(item)}</td>
+            <td data-label="이벤트">
+              <div class="ops-rule-value-stack">
+                <strong>${escapeHtml(opsRuleEventTypeLabel(display(eventName)))}</strong>
+              </div>
+            </td>
+            <td data-label="대상">
+              <div class="ops-rule-value-stack">
+                <strong>${escapeHtml(listText(analysis.classes || item.classes || analysis.trackingClasses))}</strong>
+              </div>
+            </td>
+            <td class="table-cell-nowrap table-cell-status" data-label="상태">
+              <div class="ops-rule-status-actions">${statusHtml}</div>
+            </td>
+            <td class="table-cell-actions" data-label="작업">${actionsHtml}</td>
           </tr>`;
         }).join('');
       }
       function renderOpsEventRules(items) {
         const body = document.getElementById('opsEventRuleRows');
         if (!Array.isArray(items) || items.length === 0) {
-          setTableEmpty(body, 5, '저장된 이벤트 룰이 없습니다.');
+          setTableEmpty(body, 6, '저장된 이벤트 템플릿이 없습니다.');
           return;
         }
         body.innerHTML = items.map(item => {
           const analysis = item.analysis || {};
+          const type = item.scenario?.type || item.event?.type || item.eventType || 'event';
+          const stateText = opsRulesStatusBadge(item?.enabled !== false);
+          const id = String(item?.id || '');
+          const actionsHtml = opsRuleActionButtons([
+            opsRuleActionButton('상세', 'view-event-template', id),
+            opsRuleActionButton('삭제', 'delete-event-template', id, 'danger')
+          ]);
           return `<tr>
-            <td data-label="룰">#${escapeHtml(itemId(item))}</td>
-            <td data-label="매칭">${escapeHtml(matchText(item.match))}</td>
-            <td data-label="분석">${escapeHtml(display(analysis.profileId || analysis.detector || '미제공'))}</td>
-            <td data-label="출력">${escapeHtml(outputsText(item.outputs))}</td>
-            <td data-label="상태">${statusBadge(item)}</td>
+            <td data-label="룰">
+              <div class="ops-rule-id-cell">
+                <strong>#${escapeHtml(itemId(item))}</strong>
+              </div>
+            </td>
+            <td data-label="매칭">
+              <div class="ops-rule-value-stack">
+                <strong>${escapeHtml(matchText(item.match))}</strong>
+              </div>
+            </td>
+            <td data-label="분석">
+              <div class="ops-rule-value-stack">
+                <strong>${escapeHtml(display(analysis.profileId || analysis.detector || '미제공'))}</strong>
+              </div>
+            </td>
+            <td data-label="출력">
+              <div class="ops-rule-value-stack">
+                <strong>${escapeHtml(`${opsRuleEventTypeLabel(type)} · ${outputsText(item.outputs)}`)}</strong>
+              </div>
+            </td>
+            <td class="table-cell-nowrap table-cell-status" data-label="상태">
+              <div class="ops-rule-status-actions">${stateText}</div>
+            </td>
+            <td class="table-cell-actions" data-label="작업">${actionsHtml}</td>
           </tr>`;
         }).join('');
+      }
+      function opsProfileUsageSummary(profileId) {
+        const profileText = String(profileId || '').trim();
+        if (!profileText) return '없음';
+        let vaRuleCount = 0;
+        let templateCount = 0;
+        for (const item of opsCatalogVaRules) {
+          if (String(item?.analysis?.profileId || '').trim() === profileText) vaRuleCount += 1;
+        }
+        for (const item of opsCatalogEventTemplates) {
+          if (String(item?.analysis?.profileId || '').trim() === profileText) templateCount += 1;
+        }
+        if (vaRuleCount === 0 && templateCount === 0) return '없음';
+        return `채널 ${vaRuleCount} / 템플릿 ${templateCount}`;
       }
       function renderOpsProfiles(items) {
         const body = document.getElementById('opsProfileRows');
         if (!Array.isArray(items) || items.length === 0) {
-          setTableEmpty(body, 5, '저장된 분석 프로파일이 없습니다.');
+          setTableEmpty(body, 6, '저장된 분석 프로파일이 없습니다.');
           return;
         }
-        body.innerHTML = items.map(item => `<tr>
-          <td data-label="프로파일">${escapeHtml(itemId(item))}</td>
-          <td data-label="검출기">${escapeHtml(display(item.detector || item.runtime || '미제공'))}</td>
-          <td data-label="FPS">${escapeHtml(display(item.fps || item.maxFps || '미제공'))}</td>
-          <td data-label="대상">${escapeHtml(listText(item.trackingClasses || item.classes))}</td>
-          <td data-label="상태">${statusBadge(item)}</td>
-        </tr>`).join('');
+        body.innerHTML = items.map(item => {
+          const id = String(item?.id || item?.profileId || '');
+          const actionsHtml = opsRuleActionButtons([
+            opsRuleActionButton('상세', 'view-profile', id),
+            opsRuleActionButton('삭제', 'delete-profile', id, 'danger')
+          ]);
+          return `<tr>
+            <td data-label="프로파일">
+              <div class="ops-rule-id-cell">
+                <strong>${escapeHtml(itemId(item))}</strong>
+              </div>
+            </td>
+            <td data-label="검출기">
+              <div class="ops-rule-value-stack">
+                <strong>${escapeHtml(display(item.detector || item.runtime || '미제공'))}</strong>
+              </div>
+            </td>
+            <td data-label="FPS">
+              <div class="ops-rule-value-stack">
+                <strong>${escapeHtml(display(item.fps || item.maxFps || '미제공'))}</strong>
+              </div>
+            </td>
+            <td data-label="대상">
+              <div class="ops-rule-value-stack">
+                <strong>${escapeHtml(listText(item.trackingClasses || item.classes))}</strong>
+              </div>
+            </td>
+            <td data-label="사용처">
+              <div class="ops-rule-value-stack">
+                <strong>${escapeHtml(opsProfileUsageSummary(id))}</strong>
+              </div>
+            </td>
+            <td class="table-cell-actions" data-label="작업">${actionsHtml}</td>
+          </tr>`;
+        }).join('');
+      }
+      function findOpsVaRuleById(id) {
+        return opsCatalogVaRules.find((item) => String(item?.id || '') === String(id || ''));
+      }
+      function findOpsEventTemplateById(id) {
+        return opsCatalogEventTemplates.find((item) => String(item?.id || '') === String(id || ''));
+      }
+      function findOpsProfileById(id) {
+        return opsCatalogProfiles.find((item) => String(item?.id || item?.profileId || '') === String(id || ''));
+      }
+      async function openOpsVaRuleRecord(id, detailMode = 'view') {
+        if (!findOpsVaRuleById(id)) {
+          opsRulesEditorStatus('선택한 채널 분석 설정을 불러오지 못했습니다.', true);
+          return;
+        }
+        await openOpsRulesEditor('va-rule', detailMode, id);
+        opsRulesEditorStatus(`채널 분석 설정 #${id}을 불러왔습니다.`, false);
+      }
+      async function openOpsEventTemplateRecord(id, detailMode = 'view') {
+        if (!findOpsEventTemplateById(id)) {
+          opsRulesEditorStatus('선택한 이벤트 템플릿을 불러오지 못했습니다.', true);
+          return;
+        }
+        await openOpsRulesEditor('event-rule', detailMode, id);
+        opsRulesEditorStatus(`이벤트 템플릿 #${id}을 불러왔습니다.`, false);
+      }
+      async function openOpsProfileRecord(id, detailMode = 'view') {
+        if (!findOpsProfileById(id)) {
+          opsRulesEditorStatus('선택한 분석 프로파일을 불러오지 못했습니다.', true);
+          return;
+        }
+        await openOpsRulesEditor('profile', detailMode, id);
+        opsRulesEditorStatus(`분석 프로파일 '${id}'를 불러왔습니다.`, false);
+      }
+      async function deleteOpsVaRuleRecord(id) {
+        const item = findOpsVaRuleById(id);
+        if (!item) {
+          opsRulesEditorStatus('삭제할 채널 분석 설정을 찾지 못했습니다.', true);
+          return;
+        }
+        const name = item?.name ? ` '${item.name}'` : '';
+        if (!window.confirm(`채널 분석 설정 #${id}${name}을 삭제할까요?`)) return;
+        await requestJson(`${opsLabVaRulesPath}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        const root = await ensureOpsRulesEditorReady();
+        if (String(root?.getElementById('vaRuleId')?.value || '') === String(id)) {
+          await closeOpsRulesEditor();
+        }
+        await refreshRules();
+        opsRulesEditorStatus(`채널 분석 설정 #${id}를 삭제했습니다.`, false);
+      }
+      async function deleteOpsEventTemplateRecord(id) {
+        const item = findOpsEventTemplateById(id);
+        if (!item) {
+          opsRulesEditorStatus('삭제할 이벤트 템플릿을 찾지 못했습니다.', true);
+          return;
+        }
+        if (!window.confirm(`이벤트 템플릿 '${id}'를 삭제할까요?`)) return;
+        await requestJson(`${opsLabRulesPath}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        const root = await ensureOpsRulesEditorReady();
+        if (String(root?.getElementById('ruleId')?.value || '') === String(id)) {
+          await closeOpsRulesEditor();
+        }
+        await refreshRules();
+        opsRulesEditorStatus(`이벤트 템플릿 '${id}'를 삭제했습니다.`, false);
+      }
+      async function deleteOpsProfileRecord(id) {
+        const item = findOpsProfileById(id);
+        if (!item) {
+          opsRulesEditorStatus('삭제할 분석 프로파일을 찾지 못했습니다.', true);
+          return;
+        }
+        const usage = opsProfileUsageSummary(id);
+        const usagePrompt = usage === '없음' ? '' : `\n현재 사용처: ${usage}`;
+        if (!window.confirm(`분석 프로파일 '${id}'를 삭제할까요?${usagePrompt}`)) return;
+        await requestJson(`${opsLabProfilesPath}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        const root = await ensureOpsRulesEditorReady();
+        if (String(root?.getElementById('profileId')?.value || '') === String(id)) {
+          await closeOpsRulesEditor();
+        }
+        await refreshRules();
+        opsRulesEditorStatus(`분석 프로파일 '${id}'를 삭제했습니다.`, false);
+      }
+      function wireOpsRuleTableActions() {
+        const bodies = [
+          document.getElementById('opsVaRuleRows'),
+          document.getElementById('opsEventRuleRows'),
+          document.getElementById('opsProfileRows')
+        ];
+        for (const body of bodies) {
+          if (!body || body.dataset.opsRuleWired === '1') continue;
+          body.dataset.opsRuleWired = '1';
+          body.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-ops-rule-action]');
+            if (!button) return;
+            const action = String(button.dataset.opsRuleAction || '');
+            const id = String(button.dataset.opsRuleId || '');
+            if (!id) return;
+            const task = ({
+              'view-va': () => openOpsVaRuleRecord(id, 'view'),
+              'delete-va': () => deleteOpsVaRuleRecord(id),
+              'view-event-template': () => openOpsEventTemplateRecord(id, 'view'),
+              'delete-event-template': () => deleteOpsEventTemplateRecord(id),
+              'view-profile': () => openOpsProfileRecord(id, 'view'),
+              'delete-profile': () => deleteOpsProfileRecord(id)
+            })[action];
+            if (!task) return;
+            task().catch((error) => {
+              opsRulesEditorStatus(error.message || '룰 작업 처리 실패', true);
+            });
+          });
+        }
       }
       async function refreshRules() {
         const status = document.getElementById('opsRulesStatus');
@@ -2137,6 +3172,9 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         const profiles = Array.isArray(catalog.profiles) ? catalog.profiles : [];
         const rules = Array.isArray(catalog.rules) ? catalog.rules : [];
         const vaRules = Array.isArray(catalog.vaRules) ? catalog.vaRules : [];
+        opsCatalogProfiles = profiles;
+        opsCatalogEventTemplates = rules;
+        opsCatalogVaRules = vaRules;
         const viewItems = Array.isArray(views.views) ? views.views : [];
         const boundRuleIds = new Set();
         for (const view of viewItems) {
@@ -2158,15 +3196,18 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         setText('rulesEventRuleCount', rules.length);
         setText('rulesProfileCount', profiles.length);
         setText('rulesViewBindingCount', boundRuleIds.size);
-        setText('opsVaRuleSummary', `VA 룰 ${filteredVaRules.length}/${vaRules.length}개 · PublishedView 연결 ${boundRuleIds.size}개`);
-        setText('opsEventRuleSummary', `이벤트 룰 ${filteredRules.length}/${rules.length}개`);
-        setText('opsProfileSummary', `분석 프로파일 ${filteredProfiles.length}/${profiles.length}개`);
+        setText('opsVaRuleSummary', `총 ${filteredVaRules.length}/${vaRules.length}개 · 연결 ${boundRuleIds.size}개`);
+        setText('opsEventRuleSummary', `총 ${filteredRules.length}/${rules.length}개`);
+        setText('opsProfileSummary', `총 ${filteredProfiles.length}/${profiles.length}개`);
+        refreshOpsVaTemplateAssistOptions();
         renderOpsVaRules(filteredVaRules);
         renderOpsEventRules(filteredRules);
         renderOpsProfiles(filteredProfiles);
+        wireOpsRuleTableActions();
       }
       function wireOpsRefresh() {
-        document.getElementById('opsLiveRefresh')?.addEventListener('click', () => refreshLive().catch(error => setText('homeRuntimeText', error.message)));
+        document.getElementById('opsHomeRefresh')?.addEventListener('click', () => refreshLive().catch(error => setText('homeRuntimeText', error.message)));
+        document.getElementById('opsLiveRefresh')?.addEventListener('click', () => refreshLive().catch(error => setText('opsLiveSummary', error.message)));
         document.getElementById('opsLiveDensity')?.addEventListener('change', () => refreshLive().catch(error => setText('opsLiveSummary', error.message)));
         document.getElementById('opsLiveFocus')?.addEventListener('change', () => refreshLive().catch(error => setText('opsLiveSummary', error.message)));
         document.getElementById('opsLiveFilterInput')?.addEventListener('input', () => refreshLive().catch(error => setText('opsLiveSummary', error.message)));
@@ -2188,6 +3229,40 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         }));
         document.getElementById('opsLivePreviewStop')?.addEventListener('click', () => stopOpsLivePreview(opsPreviewTarget, { preserveRow: true }).catch(() => {}));
         document.getElementById('opsRulesFilterInput')?.addEventListener('input', () => refreshRules().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsAddVaRuleBtn')?.addEventListener('click', () => selectOpsRulesMode('va-rule').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsAddEventRuleBtn')?.addEventListener('click', () => selectOpsRulesMode('event-rule').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsAddProfileBtn')?.addEventListener('click', () => selectOpsRulesMode('profile').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsCreateVaRuleBtn')?.addEventListener('click', () => openOpsRulesEditor('va-rule', 'new').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsCreateEventRuleBtn')?.addEventListener('click', () => openOpsRulesEditor('event-rule', 'new').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsCreateProfileBtn')?.addEventListener('click', () => openOpsRulesEditor('profile', 'new').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsVaRuleStartDirect')?.addEventListener('click', () => {
+          ensureOpsRulesEditorReady().then((root) => {
+            opsVaRuleStartMode = 'direct';
+            opsVaRuleTemplateId = '';
+            syncEmbeddedVaRuleStartFields(root);
+            updateOpsVaTemplateAssistUi();
+          }).catch((error) => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true }));
+        });
+        document.getElementById('opsVaRuleStartTemplate')?.addEventListener('click', () => {
+          opsVaRuleStartMode = 'template';
+          updateOpsVaTemplateAssistUi();
+          const selectedId = String(document.getElementById('opsVaRuleTemplateSelect')?.value || '').trim();
+          ensureOpsRulesEditorReady().then((root) => {
+            if (selectedId) {
+              return applyOpsVaTemplateSelection(selectedId);
+            }
+            syncEmbeddedVaRuleStartFields(root);
+            return null;
+          }).catch((error) => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true }));
+        });
+        document.getElementById('opsVaRuleTemplateSelect')?.addEventListener('change', (event) => {
+          applyOpsVaTemplateSelection(String(event.target.value || '')).catch((error) => {
+            opsRulesEditorStatus(error.message || '템플릿을 불러오지 못했습니다.', true);
+          });
+        });
+        document.getElementById('opsRulesComposerEdit')?.addEventListener('click', () => editCurrentOpsRulesRecord().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsRulesComposerClose')?.addEventListener('click', () => closeOpsRulesEditor().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsRulesComposerSave')?.addEventListener('click', () => triggerOpsRulesSave().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsDashboardRefresh')?.addEventListener('click', () => refreshDashboard().catch(error => setText('dashHealthText', error.message)));
         document.getElementById('opsEventsRefresh')?.addEventListener('click', () => refreshEvents().catch(error => setText('eventRecordSummary', error.message)));
         document.getElementById('opsRulesRefresh')?.addEventListener('click', () => refreshRules().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
@@ -2203,6 +3278,9 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         refreshEvents().catch(error => setText('eventRecordSummary', error.message));
       } else if (activeOpsPage === 'rules') {
         refreshRules().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true }));
+        setOpsRulesCatalogVisibility('va-rule');
+        setOpsRulesEditorModeButtons('va-rule');
+        setOpsRulesComposer('', 'closed');
       } else if (activeOpsPage === 'home') {
         refreshLive().catch(error => setText('homeRuntimeText', error.message));
       } else if (activeOpsPage === 'live') {
@@ -2239,10 +3317,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const channelIdBadge = document.querySelector('#channel-editor-id');
     const channelTitle = document.querySelector('#channel-editor-title');
     const channelHelp = document.querySelector('#channel-editor-help');
-    const saveButton = document.querySelector('#save-channel');
-    const deleteButton = document.querySelector('#delete-channel');
+    const saveButton = document.querySelector('#channel-save-selected');
     const editSelectedButton = document.querySelector('#channel-edit-selected');
-    const copySelectedButton = document.querySelector('#channel-copy-selected');
+    const closeChannelButton = document.querySelector('#channel-close');
     const streamRoute = ")OPSSOURCES" << stream_route_json << R"OPSSOURCES(";
     const rtspPort = )OPSSOURCES" << rtsp_port << R"OPSSOURCES(;
     let loadedSources = [];
@@ -2261,19 +3338,28 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
 	    };
     const kindLabel = kind => ({
       file: '파일',
-      rtsp: 'RTSP URL',
-      whep: 'WHEP URL',
-      webrtc: 'WHIP sourceId',
-      http: 'HTTP/HLS URL'
+      rtsp: 'RTSP pull',
+      whep: '외부 WHEP pull',
+      webrtc: 'Published WebRTC',
+      http: 'HTTP/HLS pull'
     })[kind] || kind || '미제공';
+    const kindHelpText = source => {
+      const kind = String(source?.kind || '').toLowerCase();
+      if (kind === 'webrtc') return 'WHIP publish로 이미 등록된 sourceId를 연결합니다.';
+      if (kind === 'whep') return '외부 WHEP playback URL을 서버가 pull합니다.';
+      if (kind === 'rtsp') return '카메라/게이트웨이 RTSP 주소를 서버가 pull합니다.';
+      if (kind === 'http') return 'HTTP/HLS URL을 서버가 pull합니다.';
+      if (kind === 'file') return '서버 로컬 파일 기반 채널입니다.';
+      return '입력 종류를 확인하세요.';
+    };
     const locatorForSource = source => {
-      if (source.webrtcSourceId) return `WHIP sourceId: ${source.webrtcSourceId}`;
-      if (source.whepUrl) return `WHEP URL: ${source.whepUrl}`;
+      if (source.webrtcSourceId) return `Published sourceId: ${source.webrtcSourceId}`;
+      if (source.whepUrl) return `외부 WHEP URL: ${source.whepUrl}`;
       return source.file || source.rtspUrl || source.httpUrl || '미제공';
     };
     const streamTransportLabel = type => ({
       rtsp: 'RTSP',
-      whep: 'WebRTC'
+      whep: 'WHEP'
     })[type] || type;
     const streamModeLabel = mode => mode === 'va' ? 'VA' : '라이브';
     const streamCopyLabel = (type, mode) => `${streamTransportLabel(type)} ${streamModeLabel(mode)}`;
@@ -2341,7 +3427,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       return `
         <div class="channel-stream-actions">
           <button type="button" class="secondary" data-copy-stream-type="rtsp" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${label} RTSP 복사" aria-label="${label} RTSP 복사">RTSP</button>
-          <button type="button" class="secondary" data-copy-stream-type="whep" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${label} WebRTC 복사" aria-label="${label} WebRTC 복사">WebRTC</button>
+          <button type="button" class="secondary" data-copy-stream-type="whep" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${label} WHEP 복사" aria-label="${label} WHEP 복사">WHEP</button>
         </div>
       `;
     }
@@ -2420,9 +3506,27 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         setStatus('브라우저가 HTTP LAN 페이지의 자동 복사를 막았습니다. localhost 또는 HTTPS에서 복사하세요.', true);
       }
     }
+    function openClientLiveForChannel(channelId) {
+      const view = findChannelView(channelId);
+      const viewId = String(view?.viewId || view?.sourceId || channelId || '').trim();
+      if (!viewId) {
+        setStatus(`채널 #${channelId}에 연결된 PublishedView가 없습니다.`, true);
+        return;
+      }
+      window.location.href = `/client/live#view=${encodeURIComponent(viewId)}`;
+    }
     const chip = (text, tone = '') => `<span class="chip${tone ? ' ' + tone : ''}">${escapeHtml(text)}</span>`;
     const findSource = id => loadedSources.find(source => source.sourceId === id) || null;
-    const findView = id => loadedViews.find(view => view.viewId === id || view.sourceId === id) || null;
+    function findView(id) {
+      const exact = loadedViews.find(view => view.viewId === id) || null;
+      if (exact) return exact;
+      return loadedViews.find(view => view.sourceId === id) || null;
+    }
+    function findChannelView(id) {
+      const exact = loadedViews.find(view => view.viewId === id && view.sourceId === id) || null;
+      if (exact) return exact;
+      return loadedViews.find(view => view.sourceId === id) || null;
+    }
     const isNumericChannelId = value => /^[1-9]\d*$/.test(String(value || '').trim());
     function nextChannelId(except = '') {
       const used = new Set(channelRows(loadedSources, loadedViews)
@@ -2433,16 +3537,13 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       return String(next);
     }
     function channelRows(sources, views) {
-      const rows = [];
-      const claimedSources = new Set();
-      for (const view of views) {
-        const source = sources.find(item => item.sourceId === view.sourceId) || sources.find(item => item.sourceId === view.viewId) || null;
-        if (source) claimedSources.add(source.sourceId);
-        rows.push({ id: view.viewId || view.sourceId, source, view });
-      }
-      for (const source of sources) {
-        if (!claimedSources.has(source.sourceId)) rows.push({ id: source.sourceId, source, view: null });
-      }
+      const rows = sources.map(source => ({
+        id: source.sourceId,
+        source,
+        view: views.find(view => view.viewId === source.sourceId && view.sourceId === source.sourceId) ||
+          views.find(view => view.sourceId === source.sourceId) ||
+          null
+      }));
       rows.sort((a, b) => {
         const aId = String(a.id || '');
         const bId = String(b.id || '');
@@ -2453,13 +3554,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     }
     function setFormDisabled(disabled) {
       for (const element of Array.from(channelForm.elements)) {
-        if (element.id === 'delete-channel') continue;
         element.disabled = disabled;
       }
       saveButton.hidden = disabled;
-      deleteButton.hidden = editorMode === 'new' || editorMode === 'clone';
       editSelectedButton.hidden = !disabled || !currentChannelId;
-      copySelectedButton.hidden = !currentChannelId;
     }
     function updateKindFields() {
       const kind = channelForm.elements.kind.value || 'file';
@@ -2472,16 +3570,18 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       currentChannelId = id || '';
       const isView = mode === 'view';
       const isNew = mode === 'new';
-      const isClone = mode === 'clone';
-      channelMode.textContent = isNew ? '새 채널' : (isClone ? '복제' : (isView ? '보기' : '수정'));
+      channelMode.textContent = isNew ? '새 채널' : (isView ? '상세' : '수정 중');
       const visibleId = channelForm.elements.channelId.value || id || currentChannelId;
       channelIdBadge.textContent = visibleId ? `#${visibleId}` : '#-';
       channelTitle.textContent = isNew
         ? '채널 추가'
-        : (isClone ? '채널 복제' : `채널 #${channelForm.elements.channelId.value || id}`);
+        : `채널 #${channelForm.elements.channelId.value || id}`;
       channelHelp.textContent = isView
-        ? '선택한 채널의 저장 상태입니다. 수정하려면 수정 버튼을 누르세요.'
-        : '채널 이름, 종류, 입력값, 활성 상태만 저장합니다.';
+        ? '저장된 내용입니다.'
+        : '값을 바꾼 뒤 저장합니다.';
+      editSelectedButton.textContent = '수정';
+      closeChannelButton.textContent = '닫기';
+      saveButton.textContent = '저장';
       setFormDisabled(isView);
     }
 	    function renderChannels(sources, views) {
@@ -2494,28 +3594,42 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         const source = row.source || {};
         const view = row.view || {};
         const enabled = source.enabled !== false && view.enabled !== false;
-        const numericId = isNumericChannelId(row.id);
         const liveButtons = source.sourceId ? streamButtonsForChannel(source, 'raw') : '<span class="hint">소스 미등록</span>';
         const vaButtons = source.sourceId ? streamButtonsForChannel(source, 'va') : '<span class="hint">소스 미등록</span>';
+        const channelName = view.displayName || source.displayName || '';
+        const inputText = source.sourceId ? locatorForSource(source) : '소스 미등록';
         return `
         <tr>
-          <td data-label="번호"><div class="badge-row"><span>${escapeHtml(row.id || '')}</span>${numericId ? '' : chip('기존 문자열 ID', 'warn')}</div></td>
-          <td data-label="이름">${escapeHtml(view.displayName || source.displayName || '')}</td>
-          <td data-label="종류">${escapeHtml(kindLabel(source.kind))}</td>
+          <td data-label="번호">
+            <div class="channel-id-cell">
+              <strong>${escapeHtml(row.id || '')}</strong>
+            </div>
+          </td>
+          <td data-label="이름">${escapeHtml(channelName)}</td>
+          <td data-label="종류">
+            <div class="channel-kind-cell">
+              <strong>${escapeHtml(kindLabel(source.kind))}</strong>
+              <span class="channel-kind-note">${escapeHtml(kindHelpText(source))}</span>
+            </div>
+          </td>
           <td data-label="상태">
             <div class="channel-status-actions">
-              ${enabled ? chip('적용 중') : chip('비활성', 'warn')}
+              ${enabled ? chip('활성') : chip('비활성', 'warn')}
               <button type="button" class="secondary" data-toggle-channel="${escapeHtml(row.id || '')}">${enabled ? '비활성화' : '적용'}</button>
             </div>
           </td>
-          <td data-label="입력" class="token channel-input-cell">${escapeHtml(source.sourceId ? locatorForSource(source) : '소스 미등록')}</td>
+          <td data-label="입력">
+            <div class="channel-input-stack">
+              <span class="token">${escapeHtml(inputText)}</span>
+              <span class="channel-source-note">${escapeHtml(source.sourceId ? `sourceId ${source.sourceId}` : 'PublishedView 연결 전')}</span>
+            </div>
+          </td>
           <td data-label="라이브 URL">${liveButtons}</td>
           <td data-label="VA URL">${vaButtons}</td>
           <td data-label="작업">
             <div class="channel-row-actions">
-              <button type="button" class="secondary" data-view-channel="${escapeHtml(row.id || '')}">보기</button>
-              <button type="button" class="secondary" data-edit-channel="${escapeHtml(row.id || '')}">수정</button>
-              <button type="button" class="secondary" data-copy-channel="${escapeHtml(row.id || '')}">복제</button>
+              <button type="button" class="secondary" data-view-channel="${escapeHtml(row.id || '')}">상세</button>
+              <button type="button" class="secondary" data-open-client-live="${escapeHtml(row.id || '')}" ${view?.enabled === false ? 'disabled' : ''}>라이브 보기</button>
               <button type="button" class="danger" data-delete-channel="${escapeHtml(row.id || '')}">삭제</button>
             </div>
           </td>
@@ -2528,12 +3642,6 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
 	      document.querySelectorAll('[data-view-channel]').forEach(button => {
 	        button.addEventListener('click', () => openChannel(button.dataset.viewChannel || '', 'view'));
 	      });
-      document.querySelectorAll('[data-edit-channel]').forEach(button => {
-        button.addEventListener('click', () => openChannel(button.dataset.editChannel || '', 'edit'));
-      });
-      document.querySelectorAll('[data-copy-channel]').forEach(button => {
-        button.addEventListener('click', () => openChannel(button.dataset.copyChannel || '', 'clone'));
-      });
       document.querySelectorAll('[data-toggle-channel]').forEach(button => {
         button.addEventListener('click', () => toggleChannelEnabled(button.dataset.toggleChannel || ''));
       });
@@ -2544,6 +3652,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
           button.dataset.copyStreamMode || 'raw',
           button
         ));
+      });
+      document.querySelectorAll('[data-open-client-live]').forEach(button => {
+        button.addEventListener('click', () => openClientLiveForChannel(button.dataset.openClientLive || ''));
       });
 	      document.querySelectorAll('[data-delete-channel]').forEach(button => {
 	        button.addEventListener('click', () => deleteChannel(button.dataset.deleteChannel || ''));
@@ -2614,9 +3725,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     }
     function fillChannel(id, mode = 'view') {
       const source = findSource(id) || {};
-      const view = findView(id) || {};
+      const view = findChannelView(id) || {};
       const isClone = mode === 'clone';
-      channelForm.elements.channelId.value = isClone ? nextChannelId(id) : (isNumericChannelId(id) ? id : '');
+      channelForm.elements.channelId.value = isClone ? nextChannelId(id) : id;
       channelForm.elements.displayName.value = view.displayName || source.displayName || '';
       channelForm.elements.kind.value = source.kind || 'file';
       loadFileOptions(source.file || '');
@@ -2629,10 +3740,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         channelForm.elements.displayName.value = `${channelForm.elements.displayName.value} 복제`;
       }
       updateKindFields();
-      const legacyIdMessage = !isClone && id && !isNumericChannelId(id)
-        ? `기존 문자열 ID "${id}"는 legacy 데이터입니다. 새 저장은 숫자 채널 ID로만 가능합니다.`
-        : '';
-      setChannelValidation(legacyIdMessage);
+      setChannelValidation('');
       channelPanel.hidden = false;
       syncEditorChrome(mode, isClone ? '' : id);
       channelPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2703,7 +3811,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       if (!initializedHashChannel) {
         initializedHashChannel = true;
         const channelId = String(hashParams().get('channel') || '').trim();
-        if (channelId && (findSource(channelId) || findView(channelId))) {
+        if (channelId && findSource(channelId)) {
           openChannel(channelId, 'view');
         }
       }
@@ -2742,7 +3850,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         setStatus(`채널 #${id} source를 찾을 수 없습니다.`, true);
         return;
       }
-      const view = findView(id) || { viewId: id, sourceId: source.sourceId };
+      const view = findChannelView(id) || { viewId: id, sourceId: source.sourceId };
       const enabled = !(source.enabled !== false && view.enabled !== false);
       try {
         await requestJson(`/ops/api/sources/${encodeURIComponent(source.sourceId)}`, {
@@ -2757,7 +3865,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         });
         await loadAll();
         currentChannelEnabled = enabled;
-        setStatus(`채널 #${id} 상태 변경 완료: ${enabled ? '적용 중' : '비활성'}`);
+        setStatus(`채널 #${id} 상태 변경 완료: ${enabled ? '활성' : '비활성'}`);
       } catch (error) {
         setStatus(`채널 상태 변경 실패: ${error.message}`, true);
       }
@@ -2780,13 +3888,11 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       }
     }
     document.querySelector('#add-channel').addEventListener('click', () => resetChannelForm('new'));
-    document.querySelector('#delete-channel').addEventListener('click', () => deleteChannel(''));
-    document.querySelector('#channel-close').addEventListener('click', () => {
+    closeChannelButton.addEventListener('click', () => {
       channelPanel.hidden = true;
       document.querySelector('[data-ops-panel], .panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
     editSelectedButton.addEventListener('click', () => currentChannelId && fillChannel(currentChannelId, 'edit'));
-    copySelectedButton.addEventListener('click', () => currentChannelId && fillChannel(currentChannelId, 'clone'));
     channelForm.elements.kind.addEventListener('change', updateKindFields);
     document.querySelector('#refresh').addEventListener('click', () => loadAll().catch(error => setStatus(error.message, true)));
     loadAll().catch(error => setStatus(error.message, true));
@@ -2802,13 +3908,21 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     const requestsBody = document.querySelector('#access-requests-body');
     const inviteOutput = document.querySelector('#request-invite-output');
     const form = document.querySelector('#user-form');
-    const userEditor = document.querySelector('#user-editor');
+    const userDetailPanel = document.querySelector('#user-detail-panel');
     const userEditorTitle = document.querySelector('#user-editor-title');
-    const createButton = document.querySelector('#create-btn');
-    const updateButton = document.querySelector('#update-btn');
+    const userEditorMode = document.querySelector('#user-editor-mode');
+    const userEditorId = document.querySelector('#user-editor-id');
+    const userEditorHelp = document.querySelector('#user-editor-help');
+    const editSelectedButton = document.querySelector('#user-edit-selected');
+    const saveSelectedButton = document.querySelector('#user-save-selected');
+    const closeUserButton = document.querySelector('#user-close');
     const assignment = document.querySelector('#view-assignment');
     const passwordFields = document.querySelector('#password-fields');
+    let loadedUsers = [];
+    let loadedRequests = [];
+    let editorMode = 'view';
     const {
+      escapeHtml,
       requestJson,
       formDataObject,
       setFeedback,
@@ -2820,8 +3934,8 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     const setStatus = (message, failed = false) => setFeedback(statusEl, message, failed);
     const setRequestStatus = (message, failed = false) => setFeedback(requestStatusEl, message, failed);
     function hideUserEditor() {
-      userEditor.open = false;
-      userEditor.hidden = true;
+      userDetailPanel.hidden = true;
+      editorMode = 'view';
     }
     function setInviteOutput(text = '') {
       inviteOutput.textContent = text;
@@ -2832,14 +3946,31 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       setRequired(form.elements.password, visible);
       setRequired(form.elements.confirmPassword, visible);
     }
-    function setEditorMode(mode, title) {
-      userEditor.hidden = false;
+    function setFormDisabled(disabled) {
+      for (const element of Array.from(form.elements)) {
+        element.disabled = disabled;
+      }
+      saveSelectedButton.hidden = disabled;
+      editSelectedButton.hidden = !disabled;
+    }
+    function setUsernameLocked(locked) {
+      form.elements.username.readOnly = locked;
+      form.elements.username.disabled = locked;
+    }
+    function setEditorMode(mode, title, username = '') {
+      editorMode = mode;
+      userDetailPanel.hidden = false;
       userEditorTitle.textContent = title;
-      setPasswordFieldsVisible(mode === 'create');
-      createButton.hidden = mode !== 'create';
-      updateButton.hidden = mode === 'create';
+      userEditorMode.textContent = mode === 'new' ? '새 사용자' : (mode === 'view' ? '상세' : '수정 중');
+      userEditorId.textContent = username ? `@${username}` : '@-';
+      userEditorHelp.textContent = mode === 'view' ? '저장된 내용입니다.' : '값을 바꾼 뒤 저장합니다.';
+      setPasswordFieldsVisible(mode === 'new');
+      editSelectedButton.textContent = '수정';
+      saveSelectedButton.textContent = '저장';
+      closeUserButton.textContent = '닫기';
+      setFormDisabled(mode === 'view');
+      setUsernameLocked(mode !== 'new');
       updateAssignmentVisibility();
-      userEditor.open = true;
     }
     function updateAssignmentVisibility() {
       const role = form.elements.role.value;
@@ -2893,15 +4024,15 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       form.elements.confirmPassword.value = '';
       form.elements.enabled.checked = Boolean(user.enabled);
       form.elements.mustChangePassword.checked = Boolean(user.mustChangePassword);
-      setEditorMode('edit', `사용자 수정 · ${user.username}`);
-      userEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setEditorMode('view', `사용자 @${user.username}`, user.username);
+      userDetailPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     function resetUserForm() {
       form.reset();
       form.elements.role.value = 'viewer';
       form.elements.enabled.checked = true;
       form.elements.mustChangePassword.checked = true;
-      setEditorMode('create', '사용자 추가');
+      setEditorMode('new', '사용자 추가');
       form.elements.username.focus();
     }
     function userRowCells(user) {
@@ -2930,41 +4061,59 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       span.textContent = text;
       return span;
     }
-    function appendTextCell(tr, value, className = '') {
-      const td = document.createElement('td');
-      td.textContent = displayValue(value);
-      if (className) td.className = className;
-      tr.appendChild(td);
-      return td;
-    }
-    function appendUserRow(user) {
-      const tr = document.createElement('tr');
-      userRowCells(user).forEach((value, index) => {
+      function chip(text, tone = '') {
+        return `<span class="chip${tone ? ` ${tone}` : ''}">${escapeHtml(displayValue(text, ''))}</span>`;
+      }
+      function appendTextCell(tr, value, className = '') {
         const td = document.createElement('td');
-        td.textContent = value;
-        if (index === 3) {
-          td.textContent = '';
-          const wrap = document.createElement('div');
-          wrap.className = 'user-status-actions';
-          wrap.appendChild(chipElement(value, user.enabled ? '' : 'warn'));
-          td.appendChild(wrap);
-        }
-        if (index === 4) {
-          td.className = 'user-scope-cell';
-        }
+        td.textContent = displayValue(value);
+        if (className) td.className = className;
         tr.appendChild(td);
-      });
-      const actionTd = document.createElement('td');
-      const actions = document.createElement('div');
-      actions.className = 'user-row-actions';
-      actions.append(
-        userActionButton('수정', 'secondary', () => fillForm(user)),
-        userActionButton(user.enabled ? '비활성화' : '활성화', user.enabled ? 'danger' : 'secondary', () => setEnabled(user.username, !user.enabled))
-      );
-      actionTd.appendChild(actions);
-      tr.appendChild(actionTd);
-      usersBody.appendChild(tr);
-    }
+        return td;
+      }
+      function appendLabeledCell(tr, label, html, className = '') {
+        const td = document.createElement('td');
+        td.setAttribute('data-label', label);
+        if (className) td.className = className;
+        td.innerHTML = html;
+        tr.appendChild(td);
+        return td;
+      }
+      function userValueHtml(primary, note = '') {
+        return `<div class="user-value-stack"><strong>${escapeHtml(displayValue(primary))}</strong>${note ? `<span class="user-note">${escapeHtml(displayValue(note, ''))}</span>` : ''}</div>`;
+      }
+      function userScopeHtml(scopes) {
+        const items = Array.isArray(scopes)
+          ? scopes.map(item => displayValue(item, '')).filter(Boolean)
+          : [];
+        if (items.includes('*')) {
+          return userValueHtml('모든 범위');
+        }
+        if (items.length === 0) {
+          return userValueHtml('범위 없음');
+        }
+        if (items.length <= 2) {
+          return userValueHtml(items.join(' · '));
+        }
+        return userValueHtml(items.slice(0, 2).join(' · '), `외 ${items.length - 2}개`);
+      }
+      function appendUserRow(user) {
+        const tr = document.createElement('tr');
+        appendLabeledCell(tr, '계정명', `<div class="user-id-cell"><strong>${escapeHtml(displayValue(user.username))}</strong></div>`);
+        appendLabeledCell(tr, '이름', userValueHtml(user.displayName || '미제공'));
+        appendLabeledCell(tr, '권한', userValueHtml(roleLabel(user.role)));
+        appendLabeledCell(tr, '상태', `<div class="user-status-actions">${chip(user.enabled ? '활성' : '비활성', user.enabled ? '' : 'warn')}</div>`, 'table-cell-status');
+        appendLabeledCell(tr, '권한 범위', userScopeHtml(user.scopes), 'user-scope-cell');
+        appendLabeledCell(tr, '마지막 로그인', userValueHtml(user.lastLoginAt || '미제공'));
+        appendLabeledCell(tr, '잠금 만료', userValueHtml(user.lockedUntil || '없음'));
+        appendLabeledCell(tr, '비밀번호 변경', userValueHtml(yesNo(user.mustChangePassword)));
+        const actionsHtml = `
+          <div class="user-row-actions">
+            <button type="button" class="secondary" data-user-view="${escapeHtml(displayValue(user.username))}">상세</button>
+          </div>`;
+        appendLabeledCell(tr, '작업', actionsHtml, 'table-cell-actions');
+        usersBody.appendChild(tr);
+      }
     function renderUsers(users) {
       usersBody.textContent = '';
       if (!Array.isArray(users) || users.length === 0) {
@@ -2975,32 +4124,24 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         appendUserRow(user);
       }
     }
-    function appendRequestRow(request) {
-      const tr = document.createElement('tr');
-      appendTextCell(tr, request.username);
-      appendTextCell(tr, request.displayName || '');
-      appendTextCell(tr, request.contact || '');
-      appendTextCell(tr, request.viewId || '미지정');
-      appendTextCell(tr, request.reason || '');
-      const statusTd = document.createElement('td');
-      statusTd.appendChild(chipElement(requestStatusLabel(request.status), requestStatusTone(request.status)));
-      tr.appendChild(statusTd);
-      appendTextCell(tr, `${request.createdAt || '미제공'}${request.decidedAt ? `\n${request.decidedAt}` : ''}`);
-      const actionTd = document.createElement('td');
-      if (request.status === 'pending') {
-        const actions = document.createElement('div');
-        actions.className = 'user-row-actions';
-        actions.append(
-          userActionButton('승인', 'primary', () => approveAccessRequest(request)),
-          userActionButton('거절', 'danger', () => rejectAccessRequest(request))
-        );
-        actionTd.appendChild(actions);
-      } else {
-        actionTd.appendChild(chipElement('처리 완료'));
+      function appendRequestRow(request) {
+        const tr = document.createElement('tr');
+        appendLabeledCell(tr, '계정명', `<div class="user-id-cell"><strong>${escapeHtml(displayValue(request.username))}</strong></div>`);
+        appendLabeledCell(tr, '이름', userValueHtml(request.displayName || '미제공'));
+        appendLabeledCell(tr, '연락처', userValueHtml(request.contact || '미제공'));
+        appendLabeledCell(tr, '채널', userValueHtml(request.viewId || '미지정'));
+        appendLabeledCell(tr, '사유', userValueHtml(request.reason || '미제공'));
+        appendLabeledCell(tr, '상태', `<div class="user-status-actions">${chip(requestStatusLabel(request.status), requestStatusTone(request.status))}</div>`, 'table-cell-status');
+        appendLabeledCell(tr, '요청/결정', userValueHtml(request.createdAt || '미제공', request.decidedAt || ''));
+        const actionsHtml = request.status === 'pending'
+          ? `<div class="user-row-actions">
+              <button type="button" class="primary" data-request-approve="${escapeHtml(displayValue(request.requestId))}">승인</button>
+              <button type="button" class="danger" data-request-reject="${escapeHtml(displayValue(request.requestId))}">거절</button>
+            </div>`
+          : chip('처리 완료');
+        appendLabeledCell(tr, '작업', actionsHtml, 'table-cell-actions');
+        requestsBody.appendChild(tr);
       }
-      tr.appendChild(actionTd);
-      requestsBody.appendChild(tr);
-    }
     function renderAccessRequests(requests) {
       requestsBody.textContent = '';
       if (!Array.isArray(requests) || requests.length === 0) {
@@ -3020,13 +4161,15 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     }
     async function loadUsers() {
       const json = await requestJson('/ops/api/users');
-      renderUsers(json.users || []);
+      loadedUsers = Array.isArray(json.users) ? json.users : [];
+      renderUsers(loadedUsers);
     }
     async function loadAccessRequests() {
       const json = await requestJson('/ops/api/access-requests');
-      renderAccessRequests(json.accessRequests || []);
+      loadedRequests = Array.isArray(json.accessRequests) ? json.accessRequests : [];
+      renderAccessRequests(loadedRequests);
     }
-    async function loadAll({ clearMessages = true } = {}) {
+      async function loadAll({ clearMessages = true } = {}) {
       await Promise.all([loadUsers(), loadAccessRequests()]);
       if (clearMessages) {
         setStatus('');
@@ -3084,29 +4227,25 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       event.preventDefault();
       try {
         const payload = formPayload();
-        if (!payload.password) throw new Error('초기 비밀번호를 입력하세요.');
-        if (payload.password !== payload.confirmPassword) throw new Error('비밀번호 확인이 일치하지 않습니다.');
-        delete payload.confirmPassword;
-        await requestJson('/ops/api/users', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        form.reset();
-        form.elements.enabled.checked = true;
-        form.elements.mustChangePassword.checked = true;
-        hideUserEditor();
-        updateAssignmentVisibility();
-        await loadAll();
-        setStatus('사용자 추가 완료');
-      } catch (error) {
-        setStatus(error.message, true);
-      }
-    });
-    document.querySelector('#update-btn').onclick = async () => {
-      const payload = formPayload();
-      if (!payload.username) return;
-      try {
+        if (editorMode === 'new') {
+          if (!payload.password) throw new Error('초기 비밀번호를 입력하세요.');
+          if (payload.password !== payload.confirmPassword) throw new Error('비밀번호 확인이 일치하지 않습니다.');
+          delete payload.confirmPassword;
+          await requestJson('/ops/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          form.reset();
+          form.elements.enabled.checked = true;
+          form.elements.mustChangePassword.checked = true;
+          hideUserEditor();
+          updateAssignmentVisibility();
+          await loadAll();
+          setStatus('사용자 추가 완료');
+          return;
+        }
+        if (!payload.username) return;
         delete payload.password;
         delete payload.confirmPassword;
         await requestJson(`/ops/api/users/${encodeURIComponent(payload.username)}`, {
@@ -3116,20 +4255,44 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         });
         await loadAll();
         hideUserEditor();
+        setStatus('사용자 저장 완료');
       } catch (error) {
         setStatus(error.message, true);
       }
+    });
+    editSelectedButton.onclick = () => {
+      const username = String(form.elements.username.value || '').trim();
+      if (!username) return;
+      setEditorMode('edit', `사용자 @${username}`, username);
     };
-    document.querySelector('#cancel-user-edit-btn').onclick = () => {
+    closeUserButton.onclick = () => {
       hideUserEditor();
     };
+    document.addEventListener('click', event => {
+      const viewButton = event.target.closest('[data-user-view]');
+      if (viewButton) {
+        const user = (loadedUsers || []).find(item => String(item.username || '') === String(viewButton.dataset.userView || ''));
+        if (user) fillForm(user);
+        return;
+      }
+      const approveButton = event.target.closest('[data-request-approve]');
+      if (approveButton) {
+        const request = (loadedRequests || []).find(item => String(item.requestId || '') === String(approveButton.dataset.requestApprove || ''));
+        if (request) approveAccessRequest(request);
+        return;
+      }
+      const rejectButton = event.target.closest('[data-request-reject]');
+      if (rejectButton) {
+        const request = (loadedRequests || []).find(item => String(item.requestId || '') === String(rejectButton.dataset.requestReject || ''));
+        if (request) rejectAccessRequest(request);
+      }
+    });
     document.querySelector('#add-user-btn').onclick = resetUserForm;
     form.elements.role.addEventListener('change', updateAssignmentVisibility);
     document.querySelector('#refresh-btn').onclick = () => {
       setInviteOutput('');
       loadAll().catch(error => setStatus(error.message, true));
     };
-    updateButton.hidden = true;
     updateAssignmentVisibility();
     loadAll().catch(error => setStatus(error.message, true));
   </script>

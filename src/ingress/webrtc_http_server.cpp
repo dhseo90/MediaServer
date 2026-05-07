@@ -1507,12 +1507,12 @@ std::string BuildTestPageHtml(bool lab_mode) {
     </section>
 )"
                                       : std::string();
-    return R"(<!DOCTYPE html>
+    std::string html = R"TESTPAGE(<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>)" + page_title + R"(</title>
+  <title>__PAGE_TITLE__</title>
   <script>
     (() => {
       const saved = localStorage.getItem('mediaServerTheme');
@@ -2058,8 +2058,8 @@ std::string BuildTestPageHtml(bool lab_mode) {
     <section id="stream-test" class="card">
       <div class="hero">
         <div class="stream-panel">
-          <h1>)" + hero_title + R"(</h1>
-)" + page_link + R"(          <p>)" + hero_body + R"(</p>
+          <h1>__HERO_TITLE__</h1>
+__PAGE_LINK__          <p>__HERO_BODY__</p>
           <div class="video-frame">
             <video id="video" autoplay playsinline controls></video>
           </div>
@@ -2071,7 +2071,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
               <option value="url">RTSP URL</option>
               <option value="http">HTTP 미디어 URL</option>
               <option value="hls">HLS 미디어 URL</option>
-)" + youtube_option + R"(              <option value="webrtc" hidden>발행된 WebRTC source id</option>
+__YOUTUBE_OPTION__              <option value="webrtc" hidden>발행된 WebRTC source id</option>
             </select>
           </label>
           <label class="source-field" data-source-field="file">파일 선택
@@ -2112,7 +2112,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
             <summary style="cursor:pointer;font-weight:700;color:var(--ink);">Event POST 설정/상태</summary>
             <div style="display:grid;gap:8px;margin-top:10px;font-size:0.9rem;color:var(--muted);">
               <div id="eventPostStatusPanel" style="white-space:pre-wrap;">event POST 상태 로딩 중</div>
-              )" + RefreshIconButtonHtml("eventPostRefreshBtn", "secondary", "상태 새로고침") + R"(
+              __EVENT_POST_REFRESH_BUTTON__
             </div>
           </details>
           <details style="border:1px solid var(--line);border-radius:14px;padding:10px;background:var(--details-bg);">
@@ -2120,7 +2120,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
             <div style="display:grid;gap:8px;margin-top:10px;">
               <div style="display:grid;grid-template-columns:1fr auto;gap:8px;">
                 <select id="reportSelect"></select>
-	                )" + RefreshIconButtonHtml("reportRefreshBtn", "secondary", "리포트 목록 새로고침") + R"(
+	                __REPORT_REFRESH_BUTTON__
               </div>
               <button id="reportOpenBtn" class="secondary" type="button">선택 리포트 보기</button>
               <pre id="reportContent" class="compact-pre" style="min-height:120px;max-height:320px;"></pre>
@@ -2157,8 +2157,8 @@ va_four_scene_sample.mp4</textarea>
               <pre id="multiStatusLog" class="compact-pre" style="min-height:90px;"></pre>
             </div>
           </details>
-)" + analysis_controls + R"(
-)" + experimental_note + R"(        </div>
+__ANALYSIS_CONTROLS__
+__EXPERIMENTAL_NOTE__        </div>
       </div>
       <details class="utility-drawer">
         <summary>개발자 정보: 세션 로그 / 원격 SDP</summary>
@@ -2201,7 +2201,7 @@ va_four_scene_sample.mp4</textarea>
         </div>
       </details>
     </section>
-)" + lab_panel + R"(  </main>
+__LAB_PANEL__  </main>
   <script>
     const logEl = document.getElementById('log');
     const videoEl = document.getElementById('video');
@@ -3550,7 +3550,20 @@ va_four_scene_sample.mp4</textarea>
     });
   </script>
 </body>
-</html>)";
+</html>)TESTPAGE";
+    ReplaceAll(&html, "__PAGE_TITLE__", page_title);
+    ReplaceAll(&html, "__HERO_TITLE__", hero_title);
+    ReplaceAll(&html, "__HERO_BODY__", hero_body);
+    ReplaceAll(&html, "__PAGE_LINK__", page_link);
+    ReplaceAll(&html, "__YOUTUBE_OPTION__", youtube_option);
+    ReplaceAll(&html, "__EVENT_POST_REFRESH_BUTTON__",
+               RefreshIconButtonHtml("eventPostRefreshBtn", "secondary", "상태 새로고침"));
+    ReplaceAll(&html, "__REPORT_REFRESH_BUTTON__",
+               RefreshIconButtonHtml("reportRefreshBtn", "secondary", "리포트 목록 새로고침"));
+    ReplaceAll(&html, "__ANALYSIS_CONTROLS__", analysis_controls);
+    ReplaceAll(&html, "__EXPERIMENTAL_NOTE__", experimental_note);
+    ReplaceAll(&html, "__LAB_PANEL__", lab_panel);
+    return html;
 }
 
 std::string AnalysisCategoryCatalogJson();
@@ -3836,10 +3849,17 @@ std::string BuildLabRuleEditorPageHtml() {
 	      outline: 3px solid var(--color-focus-ring);
 	      outline-offset: 2px;
 	    }
+	    .badge-row {
+	      display: flex;
+	      flex-wrap: wrap;
+	      gap: 6px;
+	      align-items: center;
+	    }
 	    .badge,
 	    .count-badge,
 	    .rule-id-badge,
-	    .status-chip {
+	    .status-chip,
+	    .chip {
 	      display: inline-flex;
 	      align-items: center;
 	      justify-content: center;
@@ -3871,31 +3891,30 @@ std::string BuildLabRuleEditorPageHtml() {
 	      border-color: color-mix(in srgb, var(--color-success) 42%, var(--color-border));
 	    }
 	    .badge-warning,
+	    .chip.warn,
 	    .status-chip.is-warning,
 	    .status-chip.is-phase-cooldown {
 	      color: var(--color-warning);
 	      background: var(--color-warning-bg);
 	      border-color: color-mix(in srgb, var(--color-warning) 42%, var(--color-border));
 	    }
-	    .badge-danger {
-	      color: var(--color-danger);
-	      background: var(--color-danger-bg);
-	      border-color: color-mix(in srgb, var(--color-danger) 42%, var(--color-border));
-	    }
-	    .badge-info,
-	    .status-chip.is-info,
-	    .status-chip.is-phase-candidate,
-	    .status-chip.is-phase-observing {
-	      color: var(--color-info);
-	      background: var(--color-info-bg);
-	      border-color: color-mix(in srgb, var(--color-info) 42%, var(--color-border));
-	    }
+	    .badge-danger,
+	    .chip.bad,
 	    .status-chip.is-danger,
 	    .status-chip.is-error,
 	    .status-chip.is-stale {
 	      color: var(--color-danger);
 	      background: var(--color-danger-bg);
 	      border-color: color-mix(in srgb, var(--color-danger) 42%, var(--color-border));
+	    }
+	    .badge-info,
+	    .chip.info,
+	    .status-chip.is-info,
+	    .status-chip.is-phase-candidate,
+	    .status-chip.is-phase-observing {
+	      color: var(--color-info);
+	      background: var(--color-info-bg);
+	      border-color: color-mix(in srgb, var(--color-info) 42%, var(--color-border));
 	    }
 	    .badge-muted {
 	      color: var(--color-text-subtle);
@@ -4029,6 +4048,277 @@ std::string BuildLabRuleEditorPageHtml() {
 	    .dashboard-table .dashboard-empty-cell {
 	      text-align: center;
 	      white-space: normal;
+	    }
+	    .table-cell-nowrap,
+	    .table-cell-status,
+	    .table-cell-actions {
+	      white-space: nowrap;
+	    }
+	    .table-cell-status,
+	    .table-cell-actions {
+	      width: 1%;
+	    }
+	    .table-cell-status {
+	      min-width: 96px;
+	      text-align: center;
+	    }
+	    .table-cell-status .badge,
+	    .table-cell-status .chip,
+	    .table-cell-status .status-chip {
+	      display: inline-block;
+	      min-width: 64px;
+	      width: max-content;
+	      max-width: none;
+	      padding-inline: 12px;
+	      white-space: nowrap;
+	      word-break: keep-all;
+	      overflow-wrap: normal;
+	      line-break: strict;
+	      text-align: center;
+	    }
+	    .ops-rules-table {
+	      width: 100%;
+	      min-width: 980px;
+	      table-layout: fixed;
+	      border-collapse: collapse;
+	    }
+	    .ops-rules-table th:nth-child(1),
+	    .ops-rules-table td:nth-child(1) { width: 110px; }
+	    .ops-rules-va-table th:nth-child(2),
+	    .ops-rules-va-table td:nth-child(2) { width: 150px; }
+	    .ops-rules-va-table th:nth-child(3),
+	    .ops-rules-va-table td:nth-child(3) { width: 130px; }
+	    .ops-rules-va-table th:nth-child(4),
+	    .ops-rules-va-table td:nth-child(4) { width: 138px; }
+	    .ops-rules-va-table th:nth-child(5),
+	    .ops-rules-va-table td:nth-child(5) { width: 150px; }
+	    .ops-rules-va-table th:nth-child(6),
+	    .ops-rules-va-table td:nth-child(6) { width: 132px; }
+	    .ops-rules-va-table th:nth-child(7),
+	    .ops-rules-va-table td:nth-child(7) { width: 104px; }
+	    .ops-rules-va-table th:nth-child(8),
+	    .ops-rules-va-table td:nth-child(8) { width: 168px; }
+	    .ops-rules-event-table th:nth-child(2),
+	    .ops-rules-event-table td:nth-child(2) { width: 150px; }
+	    .ops-rules-event-table th:nth-child(3),
+	    .ops-rules-event-table td:nth-child(3) { width: 140px; }
+	    .ops-rules-event-table th:nth-child(5),
+	    .ops-rules-event-table td:nth-child(5) { width: 104px; }
+	    .ops-rules-event-table th:nth-child(6),
+	    .ops-rules-event-table td:nth-child(6) { width: 168px; }
+	    .ops-rules-profile-table th:nth-child(2),
+	    .ops-rules-profile-table td:nth-child(2) { width: 120px; }
+	    .ops-rules-profile-table th:nth-child(3),
+	    .ops-rules-profile-table td:nth-child(3) { width: 72px; }
+	    .ops-rules-profile-table th:nth-child(5),
+	    .ops-rules-profile-table td:nth-child(5) { width: 126px; }
+	    .ops-rules-profile-table th:nth-child(6),
+	    .ops-rules-profile-table td:nth-child(6) { width: 168px; }
+	    .ops-rules-table .table-actions {
+	      flex-wrap: nowrap;
+	      justify-content: flex-start;
+	    }
+	    .grid.rules-metrics-grid {
+	      grid-template-columns: repeat(4, minmax(0, 1fr));
+	    }
+	    @media (max-width: 900px) {
+	      .grid.rules-metrics-grid {
+	        grid-template-columns: repeat(2, minmax(0, 1fr));
+	      }
+	    }
+	    @media (max-width: 560px) {
+	      .grid.rules-metrics-grid {
+	        grid-template-columns: 1fr;
+	      }
+	    }
+	    @media (max-width: 980px) {
+	      .ops-rules-table,
+	      .ops-rules-table tbody,
+	      .ops-rules-table tr,
+	      .ops-rules-table td {
+	        display: block;
+	        width: 100%;
+	      }
+	      .ops-rules-table {
+	        min-width: 0;
+	        table-layout: auto;
+	      }
+	      .ops-rules-table colgroup,
+	      .ops-rules-table thead {
+	        display: none;
+	      }
+	      .ops-rules-table tr {
+	        padding: var(--space-2) 0;
+	        border-bottom: 1px solid var(--color-table-border);
+	      }
+	      .ops-rules-table tr:last-child {
+	        border-bottom: 0;
+	      }
+	      .ops-rules-table td {
+	        min-height: 42px;
+	        display: grid;
+	        grid-template-columns: minmax(108px, 28%) minmax(0, 1fr);
+	        gap: var(--space-3);
+	        align-items: start;
+	        border: 0;
+	        padding: 8px var(--space-3);
+	        white-space: normal !important;
+	      }
+	      .ops-rules-table td::before {
+	        content: attr(data-label);
+	        color: var(--color-text-muted);
+	        font-size: 12px;
+	        font-weight: 900;
+	        text-transform: uppercase;
+	      }
+	      .ops-rules-table .table-cell-status,
+	      .ops-rules-table .table-cell-actions {
+	        min-width: 0;
+	        width: auto;
+	      }
+	      .ops-rules-table .table-actions {
+	        justify-content: flex-start;
+	      }
+	    }
+	    @media (max-width: 560px) {
+	      .ops-rules-table td {
+	        grid-template-columns: 1fr;
+	        gap: 4px;
+	      }
+	      .ops-rules-table .table-actions {
+	        display: grid;
+	        grid-template-columns: 1fr;
+	      }
+	    }
+	    .ops-va-template-assist {
+	      display: grid;
+	      gap: 12px;
+	      margin-bottom: 14px;
+	    }
+	    #opsVaRuleTemplateAssistActions.actions {
+	      display: flex;
+	      gap: 8px;
+	      flex-wrap: wrap;
+	    }
+	    #opsVaRuleTemplateAssistState {
+	      margin: 0;
+	    }
+	    .ops-rule-id-cell,
+	    .ops-rule-value-stack,
+	    .ops-rule-status-actions,
+	    .ops-rule-row-actions {
+	      display: grid;
+	      gap: 6px;
+	      min-width: 0;
+	    }
+	    .ops-rule-id-cell > strong,
+	    .ops-rule-value-stack > strong {
+	      font-size: 13px;
+	      color: var(--color-text);
+	    }
+	    .ops-rule-note {
+	      color: var(--color-text-muted);
+	      font-size: 12px;
+	      line-height: 1.4;
+	      overflow-wrap: anywhere;
+	    }
+	    .ops-rule-status-actions {
+	      justify-items: start;
+	    }
+	    .ops-rule-row-actions {
+	      justify-items: start;
+	    }
+	    .channel-kind-guide {
+	      display: grid;
+	      grid-template-columns: repeat(5, minmax(0, 1fr));
+	      gap: 10px;
+	    }
+	    .channel-kind-guide-item {
+	      border: 1px solid var(--color-border);
+	      border-radius: var(--radius-md);
+	      background: var(--color-surface-subtle);
+	      padding: 12px;
+	      display: grid;
+	      gap: 6px;
+	    }
+	    .channel-kind-guide-item strong {
+	      font-size: 13px;
+	      color: var(--color-text);
+	    }
+	    .channel-kind-guide-item p,
+	    .channel-editor-intro p {
+	      margin: 0;
+	      color: var(--color-text-muted);
+	      font-size: 12px;
+	      line-height: 1.45;
+	    }
+	    .channel-table {
+	      width: 100%;
+	      min-width: 1180px;
+	      table-layout: fixed;
+	      border-collapse: collapse;
+	    }
+	    .channel-table th,
+	    .channel-table td {
+	      padding: 10px 12px;
+	      border-bottom: 1px solid var(--color-table-border);
+	      text-align: left;
+	      vertical-align: top;
+	      white-space: normal;
+	    }
+	    .channel-table th {
+	      color: var(--color-text-muted);
+	      background: var(--color-table-header-bg);
+	      font-size: 12px;
+	      font-weight: 900;
+	    }
+	    .channel-table tbody tr:hover td {
+	      background: var(--color-table-row-hover);
+	    }
+	    .channel-id-cell,
+	    .channel-kind-cell,
+	    .channel-input-stack {
+	      display: grid;
+	      gap: 6px;
+	      min-width: 0;
+	    }
+	    .channel-id-cell > strong,
+	    .channel-kind-cell > strong {
+	      font-size: 13px;
+	      color: var(--color-text);
+	    }
+	    .channel-kind-note,
+	    .channel-source-note {
+	      color: var(--color-text-muted);
+	      font-size: 12px;
+	      line-height: 1.4;
+	      overflow-wrap: anywhere;
+	    }
+	    .channel-input-stack code,
+	    .channel-input-stack .token {
+	      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	      font-size: 12px;
+	      line-height: 1.4;
+	      overflow-wrap: anywhere;
+	    }
+	    .channel-status-actions,
+	    .channel-row-actions,
+	    .channel-stream-actions {
+	      display: flex;
+	      flex-wrap: wrap;
+	      gap: 8px;
+	      align-items: center;
+	    }
+	    .channel-stream-actions button,
+	    .channel-row-actions button,
+	    .channel-status-actions button {
+	      width: auto;
+	      min-width: 78px;
+	    }
+	    .channel-editor-intro {
+	      display: grid;
+	      gap: 6px;
+	      margin-bottom: 14px;
 	    }
 	    .status-card,
 	    .viewer-status-card,
@@ -4167,6 +4457,83 @@ std::string BuildLabRuleEditorPageHtml() {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
+    }
+    .rule-mode-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .rule-mode-toolbar {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .rule-mode-support {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+    .rule-mode-support > span {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .rule-mode-button {
+      min-width: 140px;
+      min-height: 40px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .rule-composer {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-muted);
+      display: grid;
+      gap: 12px;
+    }
+    .rule-step-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .rule-assist-panel {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-elevated);
+    }
+    .rule-assist-toggle {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .rule-assist-toggle button {
+      flex: 1 1 180px;
+      min-height: 40px;
+      font-weight: 800;
+    }
+    .rule-step-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 30px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      border: 1px solid var(--color-border);
+      background: var(--color-bg-elevated);
+      color: var(--color-text-muted);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .rule-step-chip strong {
+      color: var(--color-text);
+      font-size: 12px;
     }
     .summary-tile {
       min-height: 76px;
@@ -6459,7 +6826,7 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 	    .hint { margin: 0; font-size: 0.9rem; color: var(--color-text-muted); }
     @media (max-width: 980px) {
-      .grid, .row { grid-template-columns: 1fr; }
+      .grid, .row, .channel-kind-guide { grid-template-columns: 1fr; }
       .check-grid { grid-template-columns: 1fr 1fr; }
       .class-filter-row { grid-template-columns: 1fr; }
       .phase-strip, .metric-grid, .scenario-readiness, .rule-tabs, .url-grid, .output-policy-grid, .summary-grid, .geometry-status-grid, .viewer-status-grid, .metadata-status-grid, .metadata-primary-grid, .metadata-overlay-controls, .dashboard-toolbar, .dashboard-health-grid, .dashboard-card-grid, .dashboard-card-grid.dashboard-card-grid-compact, .dashboard-json-grid, .event-record-filter-grid, .rule-list-controls, .profile-guide-panel, .profile-create-panel, .viewer-input-grid, .viewer-media-spec-row { grid-template-columns: 1fr 1fr; }
@@ -6572,6 +6939,17 @@ std::string BuildLabRuleEditorPageHtml() {
 	      .management-toolbar .toolbar-actions { justify-content: stretch; }
 	      .management-toolbar .toolbar-actions button { width: 100%; }
 	      .row-actions { justify-content: flex-start; }
+	      .channel-stream-actions,
+	      .channel-row-actions,
+	      .channel-status-actions {
+	        flex-direction: column;
+	        align-items: stretch;
+	      }
+	      .channel-stream-actions button,
+	      .channel-row-actions button,
+	      .channel-status-actions button {
+	        width: 100%;
+	      }
 	    }
     @media (max-width: 560px) {
       .edit-step-nav {
@@ -6717,17 +7095,19 @@ std::string BuildLabRuleEditorPageHtml() {
             </div>
           </div>
           <div class="row">
-            <label>Rule ID
+            <label id="ruleBasicIdField"><span class="field-label">Rule ID</span>
               <input id="vaRuleId" type="hidden" inputmode="numeric" pattern="[0-9]*" />
               <input id="ruleId" type="hidden" value="file-person-vehicle-area" />
+              <input id="vaRuleStartMode" type="hidden" value="direct" />
+              <input id="vaRuleTemplateRuleId" type="hidden" value="" />
               <div id="vaRuleIdDisplay" class="readonly-id">저장 시 자동 지정</div>
-              <span class="form-note">새 룰 번호는 기존 서버 규칙대로 저장 시 다음 숫자로 자동 지정됩니다.</span>
+              <span id="ruleBasicIdNote" class="form-note">새 룰 번호는 기존 서버 규칙대로 저장 시 다음 숫자로 자동 지정됩니다.</span>
             </label>
-            <label>Rule 이름
+            <label id="vaRuleNameField"><span class="field-label">Rule 이름</span>
               <input id="vaRuleName" value="샘플 파일 분석 설정" />
             </label>
           </div>
-          <label>적용 상태
+          <label id="ruleEnabledField">적용 상태
             <select id="ruleEnabled">
               <option value="true" selected>적용함</option>
               <option value="false">저장만 하고 적용 안 함</option>
@@ -6810,7 +7190,7 @@ std::string BuildLabRuleEditorPageHtml() {
               <p class="hint">실제 분석에 사용할 프로파일을 고르고, 세부 성능값은 필요할 때만 펼칩니다.</p>
             </div>
           </div>
-          <div class="profile-guide-panel" aria-label="프로파일 설정 흐름">
+          <div id="profileGuidePanel" class="profile-guide-panel" aria-label="프로파일 설정 흐름">
             <div class="profile-guide-step">
               <strong>1. 보통은 선택만</strong>
               <span>`사용할 프로파일`에서 기본 프로파일을 고르면 룰 저장에 충분합니다.</span>
@@ -6824,12 +7204,12 @@ std::string BuildLabRuleEditorPageHtml() {
               <span>저장한 프로파일은 다시 `사용할 프로파일` 목록에서 선택해야 이 룰에 연결됩니다.</span>
             </div>
           </div>
-          <label>사용할 프로파일
+          <label id="ruleProfileSelectField"><span class="field-label">사용할 프로파일</span>
             <select id="ruleProfileId"></select>
             <span class="form-note">대부분은 저장된 프로파일을 선택하면 됩니다. 새 분석 FPS/입력 크기가 필요할 때만 `프로파일 추가`에서 시작합니다.</span>
           </label>
           <div id="profileSummaryText" class="profile-summary-panel" aria-live="polite"></div>
-          <div class="profile-create-panel" aria-label="프로파일 추가/수정">
+          <div id="profileCreatePanel" class="profile-create-panel" aria-label="프로파일 추가/수정">
             <div>
               <strong>프로파일 추가/수정</strong>
               <p>새 분석 FPS, 입력 크기, detector 설정이 필요할 때만 엽니다. 기존 프로파일을 고르면 수정 기준값으로 쓰고, 새로 저장하면 사용할 프로파일 목록에 추가됩니다.</p>
@@ -6919,7 +7299,7 @@ std::string BuildLabRuleEditorPageHtml() {
               </div>
               <p class="hint">ID/trail과 enter/exit/line-crossing 판정 대상입니다. 세부 객체명은 JSON/API에서만 직접 지정합니다.</p>
               <p id="profileDeleteWarningText" class="profile-delete-note" hidden>저장 프로파일만 삭제할 수 있습니다.</p>
-              <div class="profile-draft-actions">
+              <div id="profileDraftActions" class="profile-draft-actions">
                 <button id="saveProfileBtn">프로파일 저장</button>
                 <button id="closeProfileDetailsBtn" type="button" class="button-ghost">닫기</button>
               </div>
@@ -7128,7 +7508,7 @@ std::string BuildLabRuleEditorPageHtml() {
             </div>
             <p id="scenarioPanelHint" class="hint">이 UI는 시나리오 rule payload를 저장하고, runtime은 저장된 per-rule 설정을 우선 적용합니다. 비어 있는 항목만 서버 env 기본값을 fallback으로 사용합니다.</p>
           </div>
-          <details class="inline-details">
+          <details id="ruleDocumentPanel" class="inline-details">
             <summary>고급: standalone Rule 문서</summary>
             <div class="stack">
               <div class="section-title-row">
@@ -7138,7 +7518,7 @@ std::string BuildLabRuleEditorPageHtml() {
               <label>저장된 Rule
                 <select id="ruleSelect"></select>
               </label>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div id="ruleDocumentActions" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                 <button id="saveRuleBtn">Rule 저장</button>
                 <button id="deleteRuleBtn" class="danger">Rule 삭제</button>
               </div>
@@ -7180,7 +7560,7 @@ std::string BuildLabRuleEditorPageHtml() {
         </div>
       </section>
 
-      <section class="section-card card edit-step-card section-anchor">
+      <section id="ruleGeometrySection" class="section-card card edit-step-card section-anchor">
         <div class="pad stack">
           <div class="step-title">
             <span>6</span>
@@ -7298,7 +7678,7 @@ std::string BuildLabRuleEditorPageHtml() {
           <p id="ruleSaveReadiness" class="source-lock">저장 가능 여부를 계산 중입니다.</p>
           <div id="ruleValidationSummary" class="validation-summary" aria-live="polite"></div>
           <p id="ruleDirtyState" class="dirty-state">변경 상태를 계산 중입니다.</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+          <div id="vaRuleReviewActions" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
             <button id="newVaRuleBtn" type="button" class="secondary" hidden>새 설정</button>
             <button id="saveVaRuleBtn" type="button">영상 분석 설정 저장</button>
             <button id="cancelVaRuleEditBtnBottom" type="button" class="secondary">목록으로</button>
@@ -8325,7 +8705,7 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 
     function opsChannelRowsFromRegistry(sources, views) {
-      const rows = [];
+      const rowsById = new Map();
       const claimedSources = new Set();
       const sourceList = Array.isArray(sources) ? sources : [];
       const viewList = Array.isArray(views) ? views : [];
@@ -8334,12 +8714,22 @@ std::string BuildLabRuleEditorPageHtml() {
           sourceList.find(item => item.sourceId === view.viewId) ||
           null;
         if (source) claimedSources.add(source.sourceId);
-        rows.push({ id: view.viewId || view.sourceId, source, view });
+        const rowId = source?.sourceId || view.sourceId || view.viewId;
+        if (!rowId) continue;
+        const existing = rowsById.get(rowId);
+        if (existing) {
+          if (!existing.source && source) existing.source = source;
+          if (!existing.view && view) existing.view = view;
+        } else {
+          rowsById.set(rowId, { id: rowId, source, view });
+        }
       }
       for (const source of sourceList) {
-        if (!claimedSources.has(source.sourceId)) rows.push({ id: source.sourceId, source, view: null });
+        if (!claimedSources.has(source.sourceId)) {
+          rowsById.set(source.sourceId, { id: source.sourceId, source, view: null });
+        }
       }
-      return rows
+      return Array.from(rowsById.values())
         .filter(row => row.id && row.source && sourceFromOpsChannel(row))
         .sort((left, right) => {
           const leftNumeric = numericSortValue(left.id);
@@ -8453,14 +8843,9 @@ std::string BuildLabRuleEditorPageHtml() {
 
     function setupOpsRuleChannelMode() {
       if (!opsRuleChannelMode) return;
-      const picker = $('opsRuleChannelPicker');
-      if (picker) picker.hidden = false;
-      const directSource = $('directVaRuleSourceFields');
-      if (directSource) directSource.hidden = true;
-      const directMatch = $('directRuleMatchFields');
-      if (directMatch) directMatch.hidden = true;
       const select = $('opsRuleChannelSelect');
-      if (select) {
+      if (select && select.dataset.opsBound !== '1') {
+        select.dataset.opsBound = '1';
         select.addEventListener('change', () => {
           const channel = opsRuleChannels.find(item => String(item.id || '') === String(select.value || ''));
           if (channel) {
@@ -8470,42 +8855,6 @@ std::string BuildLabRuleEditorPageHtml() {
             refreshVaRuleDirtyState();
           }
         });
-      }
-      const flow = [
-        ['ruleSourceSection', '1', '채널', '채널'],
-        ['ruleBasicSection', '2', '룰', '룰'],
-        ['profileSection', '3', '분석', '분석'],
-        ['ruleScenarioSection', '4', '조건', '조건'],
-        ['ruleObjectsSection', '5', '객체', '객체'],
-        ['geometryLabel', '6', '영역/라인', '영역/라인'],
-        ['ruleOutputSection', '7', '출력', '출력'],
-        ['ruleReviewSection', '8', '검토', '검토']
-      ];
-      const editor = $('vaRuleEditorPanel');
-      const basic = $('ruleBasicSection');
-      const source = $('ruleSourceSection');
-      if (editor && basic && source) editor.insertBefore(source, basic);
-      const nav = document.querySelector('.edit-step-nav');
-      const stepSelect = $('editStepSelect');
-      for (const [target, number, title, label] of flow) {
-        const section = $(target);
-        if (section) {
-          const numberEl = section.querySelector('.step-title span');
-          const titleEl = section.querySelector('.step-title h2');
-          if (numberEl) numberEl.textContent = number;
-          if (titleEl) titleEl.textContent = title;
-          if (!titleEl && target === 'geometryLabel') section.textContent = title;
-        }
-        const navButton = document.querySelector(`[data-rule-section-target="${target}"]`);
-        if (navButton) {
-          navButton.textContent = label;
-          if (nav) nav.appendChild(navButton);
-        }
-        const option = stepSelect?.querySelector(`option[value="${target}"]`);
-        if (option) {
-          option.textContent = label;
-          stepSelect.appendChild(option);
-        }
       }
     }
 
@@ -9862,6 +10211,7 @@ std::string BuildLabRuleEditorPageHtml() {
     function vaRuleJson() {
       const payload = ruleJson();
       const id = currentVaRuleId();
+      const templateRuleId = $('vaRuleTemplateRuleId')?.value.trim() || '';
       if (id) {
         payload.id = id;
         payload.match = {
@@ -9880,6 +10230,11 @@ std::string BuildLabRuleEditorPageHtml() {
         sourceLocked: true,
         sourceOverrideAllowed: false
       };
+      if (templateRuleId) {
+        payload.templateStart = { ruleId: templateRuleId };
+      } else {
+        delete payload.templateStart;
+      }
       return payload;
     }
 
@@ -11044,6 +11399,8 @@ std::string BuildLabRuleEditorPageHtml() {
       if (!item) {
         $('vaRuleId').value = '';
         $('vaRuleName').value = '샘플 파일 분석 설정';
+        $('vaRuleStartMode').value = 'direct';
+        $('vaRuleTemplateRuleId').value = '';
         $('vaRuleSourceKind').value = 'file';
         $('vaRuleFileSelect').value = $('vaRuleFileSelect').value || 'sample_h264.mp4';
         $('vaRuleUrlInput').value = '';
@@ -11067,6 +11424,8 @@ std::string BuildLabRuleEditorPageHtml() {
       }
       $('vaRuleId').value = item.id || '';
       $('vaRuleName').value = item.name || `영상 분석 설정 ${item.id || ''}`;
+      $('vaRuleStartMode').value = item.templateStart?.ruleId ? 'template' : 'direct';
+      $('vaRuleTemplateRuleId').value = item.templateStart?.ruleId || '';
       const source = item.source || {};
       const sourceKind = normalizedSourceKind(source.kind || 'file');
       $('vaRuleSourceKind').value = sourceKind;
@@ -11202,7 +11561,9 @@ std::string BuildLabRuleEditorPageHtml() {
       }
       renderVaRuleLibrary();
       resetVaRuleDirtyBaseline();
-      closeVaRuleEditor({ skipDirtyCheck: true });
+      if (!opsRuleChannelMode) {
+        closeVaRuleEditor({ skipDirtyCheck: true });
+      }
       status(`영상 분석 설정 저장 완료: ${savedId || '(auto)'}`, response);
       showFeedback(`영상 분석 설정 #${savedId || '(auto)'} 저장 완료`);
       return response;
@@ -11214,9 +11575,15 @@ std::string BuildLabRuleEditorPageHtml() {
       ruleJson,
       scenarioJson,
       vaRuleJson,
+      loadProfile,
+      loadRule,
+      loadVaRule,
       validateProfilePayload,
       validateRulePayload,
       validateVaRulePayload,
+      deleteProfile,
+      deleteRule,
+      deleteVaRuleById,
       saveProfile,
       saveRule,
       saveVaRule
@@ -16514,7 +16881,7 @@ std::string BuildLabRuleEditorPageHtml() {
             enabled: true,
             match: { sourceKind: 'file', route: '*' },
             analysis: { profileId: $('ruleProfileId').value, classes: ['person', 'vehicle'] },
-            event: { type: 'presence', minConfidence: 0.25, minDurationMs: 0, region: { type: 'polygon', points: regionPoints } },
+            event: { type: 'presence', minConfidence: 0.25, minDurationMs: 0, region: { type: 'polygon', points: defaultPolygonPoints() } },
             eventActions: {
               highlight: { enabled: true, mode: 'blink', target: 'matched-object', durationMs: 1200, color: '#ff0000' },
               post: { enabled: false, method: 'POST', url: '', contentType: 'application/json', payloadFormat: 'media-server.va.event.v1' }
@@ -18217,7 +18584,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
       <div class="toolbar">
         <div>
           <h2>운영 대시보드</h2>
-          <p>현재 세션, 스트림, 분석 tap, metadata fanout 상태를 운영 카드로 표시합니다.</p>
+          <p>현재 상태를 한눈에 봅니다.</p>
         </div>
         )" << RefreshIconButtonHtml("opsDashboardRefresh", "button-secondary", "새로고침") << R"(
       </div>
@@ -18231,24 +18598,41 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
         <section class="section-card">
           <h3>상태 요약</h3>
           <div id="dashHealthBadges" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="dashHealthText">런타임 상태를 불러오는 중입니다.</p>
+          <p id="dashHealthText">불러오는 중</p>
         </section>
         <section class="section-card">
           <h3>분석 재사용</h3>
           <div id="dashRuntimeRows" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="dashRuntimeText">분석 재사용 상태를 불러오는 중입니다.</p>
+          <p id="dashRuntimeText">불러오는 중</p>
         </section>
         <section class="section-card">
           <h3>메타데이터 전송</h3>
           <div id="dashBackpressureRows" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="dashBackpressureText">메타데이터 fanout 상태를 불러오는 중입니다.</p>
+          <p id="dashBackpressureText">불러오는 중</p>
         </section>
         <section class="section-card">
           <h3>정리 상태</h3>
           <div id="dashCleanupRows" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="dashCleanupText">cleanup counter를 불러오는 중입니다.</p>
+          <p id="dashCleanupText">불러오는 중</p>
         </section>
       </div>
+      <section class="section-card">
+        <div class="toolbar">
+          <div>
+            <h3>운영 상세</h3>
+            <p>핵심 수치를 바로 봅니다.</p>
+          </div>
+        </div>
+        <div class="status-stat-grid">
+          <div class="status-stat"><span>송출</span><strong id="dashEgressCount">-</strong></div>
+          <div class="status-stat"><span>발행</span><strong id="dashPublishCount">-</strong></div>
+          <div class="status-stat"><span>재사용 그룹</span><strong id="dashReuseGroupCount">-</strong></div>
+          <div class="status-stat"><span>메타데이터 채널</span><strong id="dashMetadataChannelCount">-</strong></div>
+          <div class="status-stat"><span>SSE</span><strong id="dashSseClientCount">-</strong></div>
+          <div class="status-stat"><span>WS</span><strong id="dashWsClientCount">-</strong></div>
+        </div>
+        <p id="dashDetailText">불러오는 중</p>
+      </section>
 )";
     AppendRawJsonDetails(out, "대시보드 debug JSON", "opsDashboardRaw", "opsDashboardPretty", "runtime status 없음");
     out << R"(    </section>
@@ -18259,87 +18643,174 @@ void AppendOpsRulesPage(std::ostringstream& out) {
     out << R"(    <section class="panel" data-ops-panel="rules" data-testid="ops-rules-page">
       <div class="toolbar">
         <div>
-          <h2>룰 카탈로그</h2>
-          <p>운영 화면에서는 저장된 VA 룰, 이벤트 룰, 분석 프로파일의 적용 상태를 제품 테이블로 확인합니다.</p>
+          <h2>룰 설정</h2>
+          <p>종류를 고르고 목록을 관리합니다.</p>
         </div>
         )" << RefreshIconButtonHtml("opsRulesRefresh", "button-secondary", "새로고침") << R"(
       </div>
       <div id="opsRulesStatus" class="message" hidden></div>
-      <div class="grid">
-        <div class="metric-card"><span>VA 룰</span><strong id="rulesVaRuleCount">-</strong></div>
-        <div class="metric-card"><span>이벤트 룰</span><strong id="rulesEventRuleCount">-</strong></div>
+      <div class="grid rules-metrics-grid">
+        <div class="metric-card"><span>채널 분석 설정</span><strong id="rulesVaRuleCount">-</strong></div>
+        <div class="metric-card"><span>이벤트 템플릿</span><strong id="rulesEventRuleCount">-</strong></div>
         <div class="metric-card"><span>프로파일</span><strong id="rulesProfileCount">-</strong></div>
-        <div class="metric-card"><span>PublishedView 연결</span><strong id="rulesViewBindingCount">-</strong></div>
+        <div class="metric-card"><span>채널 연결</span><strong id="rulesViewBindingCount">-</strong></div>
       </div>
       <section class="section-card">
         <div class="toolbar">
           <div>
-            <h3>저장 VA 룰</h3>
-            <p id="opsVaRuleSummary">저장된 영상 분석 룰을 불러오는 중입니다.</p>
+            <h3>설정 종류</h3>
+            <p id="opsRulesEditorSummary">채널 설정을 먼저 관리합니다.</p>
           </div>
           <div class="actions">
-            <input id="opsRulesFilterInput" type="search" placeholder="rule/profile/source 검색" aria-label="룰 카탈로그 검색" />
+            <input id="opsRulesFilterInput" type="search" placeholder="이름, ID 검색" aria-label="룰 카탈로그 검색" />
+          </div>
+        </div>
+        <div class="rule-mode-grid" role="group" aria-label="룰 설정 종류">
+          <button id="opsAddVaRuleBtn" class="button-secondary rule-mode-button" type="button" aria-pressed="false">채널 분석 설정</button>
+          <button id="opsAddEventRuleBtn" class="button-secondary rule-mode-button" type="button" aria-pressed="false">이벤트 템플릿</button>
+          <button id="opsAddProfileBtn" class="button-secondary rule-mode-button" type="button" aria-pressed="false">분석 프로파일</button>
+        </div>
+      </section>
+      <section id="opsVaRulesSection" class="section-card">
+        <div class="toolbar">
+          <div>
+            <h3>채널 분석 설정</h3>
+            <p id="opsVaRuleSummary">저장된 항목입니다.</p>
+          </div>
+          <div class="actions">
+            <button id="opsCreateVaRuleBtn" class="button-primary" type="button">채널 분석 설정 추가</button>
           </div>
         </div>
         <div class="table-wrap">
-          <table>
+          <table class="ops-rules-table ops-rules-va-table">
+            <colgroup>
+              <col class="ops-rules-col-id" />
+              <col class="ops-rules-col-source" />
+              <col class="ops-rules-col-profile" />
+              <col class="ops-rules-col-mode" />
+              <col class="ops-rules-col-event" />
+              <col class="ops-rules-col-target" />
+              <col class="ops-rules-col-status" />
+              <col class="ops-rules-col-actions" />
+            </colgroup>
             <thead>
               <tr>
                 <th>룰</th>
                 <th>소스</th>
                 <th>프로파일</th>
+                <th>설정 방식</th>
                 <th>이벤트</th>
                 <th>대상</th>
                 <th>상태</th>
+                <th>작업</th>
               </tr>
             </thead>
-            <tbody id="opsVaRuleRows"><tr><td colspan="6">로딩 중</td></tr></tbody>
+            <tbody id="opsVaRuleRows"><tr><td colspan="8">로딩 중</td></tr></tbody>
           </table>
         </div>
       </section>
-      <section class="section-card">
+      <section id="opsEventRulesSection" class="section-card">
         <div class="toolbar">
           <div>
-            <h3>이벤트 룰</h3>
-            <p id="opsEventRuleSummary">이벤트 룰을 불러오는 중입니다.</p>
+            <h3>이벤트 템플릿</h3>
+            <p id="opsEventRuleSummary">저장된 항목입니다.</p>
+          </div>
+          <div class="actions">
+            <button id="opsCreateEventRuleBtn" class="button-primary" type="button">이벤트 템플릿 추가</button>
           </div>
         </div>
         <div class="table-wrap">
-          <table>
+          <table class="ops-rules-table ops-rules-event-table">
+            <colgroup>
+              <col class="ops-event-col-id" />
+              <col class="ops-event-col-match" />
+              <col class="ops-event-col-analysis" />
+              <col class="ops-event-col-output" />
+              <col class="ops-event-col-status" />
+              <col class="ops-event-col-actions" />
+            </colgroup>
             <thead>
               <tr>
-                <th>룰</th>
+                <th>템플릿</th>
                 <th>매칭</th>
                 <th>분석</th>
                 <th>출력</th>
                 <th>상태</th>
+                <th>작업</th>
               </tr>
             </thead>
-            <tbody id="opsEventRuleRows"><tr><td colspan="5">로딩 중</td></tr></tbody>
+            <tbody id="opsEventRuleRows"><tr><td colspan="6">로딩 중</td></tr></tbody>
           </table>
         </div>
       </section>
-      <section class="section-card">
+      <section id="opsProfileRulesSection" class="section-card">
         <div class="toolbar">
           <div>
             <h3>분석 프로파일</h3>
-            <p id="opsProfileSummary">분석 프로파일을 불러오는 중입니다.</p>
+            <p id="opsProfileSummary">저장된 항목입니다.</p>
+          </div>
+          <div class="actions">
+            <button id="opsCreateProfileBtn" class="button-primary" type="button">분석 프로파일 추가</button>
           </div>
         </div>
         <div class="table-wrap">
-          <table>
+          <table class="ops-rules-table ops-rules-profile-table">
+            <colgroup>
+              <col class="ops-profile-col-id" />
+              <col class="ops-profile-col-detector" />
+              <col class="ops-profile-col-fps" />
+              <col class="ops-profile-col-target" />
+              <col class="ops-profile-col-usage" />
+              <col class="ops-profile-col-actions" />
+            </colgroup>
             <thead>
               <tr>
                 <th>프로파일</th>
                 <th>검출기</th>
                 <th>FPS</th>
                 <th>대상</th>
-                <th>상태</th>
+                <th>사용처</th>
+                <th>작업</th>
               </tr>
             </thead>
-            <tbody id="opsProfileRows"><tr><td colspan="5">로딩 중</td></tr></tbody>
+            <tbody id="opsProfileRows"><tr><td colspan="6">로딩 중</td></tr></tbody>
           </table>
         </div>
+      </section>
+      <section id="opsRulesDetailPanel" class="section-card" hidden>
+        <div class="toolbar">
+          <div>
+            <div class="badge-row"><span id="opsRulesDetailMode" class="chip info">상세</span><span id="opsRulesDetailId" class="chip">#-</span></div>
+            <h3 id="opsRulesComposerTitle">상세</h3>
+            <p id="opsRulesComposerHint" class="form-note">저장된 내용입니다.</p>
+          </div>
+          <div class="actions">
+            <button id="opsRulesComposerEdit" class="button-secondary" type="button">수정</button>
+            <button id="opsRulesComposerSave" class="button-primary" type="button">저장</button>
+            <button id="opsRulesComposerClose" class="button-secondary" type="button">닫기</button>
+          </div>
+        </div>
+        <div id="opsRulesComposerSteps" class="rule-step-strip" aria-label="현재 작성 단계"></div>
+        <section id="opsVaRuleTemplateAssist" class="section-card compact-card ops-va-template-assist" hidden>
+          <div class="toolbar">
+            <div>
+              <h4 style="margin:0;">설정 시작</h4>
+              <p id="opsVaRuleTemplateAssistHint" class="form-note">개별 설정으로 바로 작성합니다.</p>
+            </div>
+          </div>
+          <div id="opsVaRuleTemplateAssistActions" class="actions">
+            <button id="opsVaRuleStartDirect" class="button-primary" type="button" aria-pressed="true">개별 설정</button>
+            <button id="opsVaRuleStartTemplate" class="button-secondary" type="button" aria-pressed="false">템플릿 적용</button>
+          </div>
+          <label id="opsVaRuleTemplateSelectField" hidden>이벤트 템플릿
+            <select id="opsVaRuleTemplateSelect">
+              <option value="">템플릿을 고르세요</option>
+            </select>
+            <span class="form-note">고른 템플릿 값으로 현재 채널 분석 설정 입력을 채웁니다.</span>
+          </label>
+          <div id="opsVaRuleTemplateAssistState" class="source-lock" hidden>개별 설정</div>
+        </section>
+        <div id="opsRulesEditorComponent" class="embedded-component" data-component-url="/lab/rules?embed=1&panel=settings" hidden>룰 편집기를 불러오는 중입니다.</div>
       </section>
     </section>
 )";
@@ -18350,7 +18821,7 @@ void AppendOpsLivePage(std::ostringstream& out) {
       <div class="toolbar">
         <div>
           <h2>운영자 라이브 모니터</h2>
-          <p>등록 채널과 PublishedView를 고밀도 운영 타일로 확인합니다. 이 화면은 세션을 자동으로 열지 않고 runtime/event 상태만 빠르게 스캔합니다.</p>
+          <p>채널 상태와 최근 이벤트를 봅니다.</p>
         </div>
         <div class="actions">
           <select id="opsLiveFocus" aria-label="라이브 모니터 필터">
@@ -18379,19 +18850,19 @@ void AppendOpsLivePage(std::ostringstream& out) {
         <div class="toolbar">
           <div>
             <h3>라이브 타일</h3>
-            <p id="opsLiveSummary">채널 상태를 불러오는 중입니다.</p>
+            <p id="opsLiveSummary">불러오는 중</p>
           </div>
           <div id="opsLiveBadges" class="badge-row"><span class="chip">로딩 중</span></div>
         </div>
         <div id="opsLiveTileGrid" class="dashboard-card-grid dashboard-card-grid-compact" aria-label="Operator live channel tiles">
-          <div class="empty">라이브 타일을 불러오는 중입니다.</div>
+          <div class="empty">불러오는 중</div>
         </div>
       </section>
       <section class="section-card compact-card">
         <div class="toolbar">
           <div>
             <h3>채널 Drill-down</h3>
-            <p id="opsLiveDrilldownSummary">타일 또는 최근 이벤트를 선택하면 source health, active tap, recent event, evidence 상태를 표시합니다.</p>
+            <p id="opsLiveDrilldownSummary">선택한 채널 상세입니다.</p>
           </div>
           <div id="opsLiveDrilldownBadges" class="badge-row"><span class="chip">선택 없음</span></div>
         </div>
@@ -18419,7 +18890,7 @@ void AppendOpsLivePage(std::ostringstream& out) {
         <div class="toolbar" style="margin-top:12px;">
           <div>
             <h3 style="margin:0;font-size:1rem;">Preview</h3>
-            <p id="opsLivePreviewSummary" class="form-note">선택한 PublishedView를 최대 2개 슬롯에 수동으로 미리보기합니다. 자동 세션은 열지 않습니다.</p>
+            <p id="opsLivePreviewSummary" class="form-note">선택 채널을 최대 2개까지 봅니다.</p>
           </div>
           <div class="actions">
             <select id="opsLivePreviewTarget" aria-label="미리보기 슬롯">
@@ -18477,7 +18948,7 @@ void AppendOpsLivePage(std::ostringstream& out) {
         <div class="toolbar" style="margin-top:12px;">
           <div>
             <h3 style="margin:0;font-size:1rem;">Runtime / Event Timeline</h3>
-            <p id="opsLiveTimelineSummary" class="form-note">선택한 채널의 최근 상태 변화 순서를 표시합니다.</p>
+            <p id="opsLiveTimelineSummary" class="form-note">최근 변화를 시간순으로 봅니다.</p>
           </div>
         </div>
         <div class="table-wrap">
@@ -18496,7 +18967,7 @@ void AppendOpsLivePage(std::ostringstream& out) {
         <div class="toolbar" style="margin-top:12px;">
           <div>
             <h3 style="margin:0;font-size:1rem;">운영 Action</h3>
-            <p id="opsLiveActionSummary" class="form-note">선택한 채널 기준으로 채널, 클라이언트, 룰 화면으로 이동하거나 preview/control 작업을 실행합니다.</p>
+            <p id="opsLiveActionSummary" class="form-note">바로 이동하거나 제어합니다.</p>
           </div>
         </div>
         <div id="opsLiveActionButtons" class="actions">
@@ -18513,7 +18984,7 @@ void AppendOpsLivePage(std::ostringstream& out) {
         <div class="toolbar">
           <div>
             <h3>최근 이벤트</h3>
-            <p id="opsLiveEventSummary">최근 이벤트 상태를 불러오는 중입니다.</p>
+            <p id="opsLiveEventSummary">불러오는 중</p>
           </div>
         </div>
         <div class="table-wrap">
@@ -18551,18 +19022,18 @@ void AppendOpsEventsPage(std::ostringstream& out) {
       </div>
       <section class="section-card">
         <h3>숨김 상태</h3>
-        <p>이벤트는 독립 제품 탭으로 노출하지 않습니다. 이벤트 조건은 룰에서 설정하고, 운영 요약은 대시보드에서 확인합니다. 아래 영역은 기존 event storage/post 진단을 보존하기 위한 직접 URL 전용 화면입니다.</p>
+        <p>이 화면은 직접 확인이 필요할 때만 사용합니다.</p>
       </section>
       <div class="grid">
         <section class="section-card">
           <h3>이벤트 저장소</h3>
           <div id="eventStorageBadges" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="eventStorageText">이벤트 저장소 상태를 불러오는 중입니다.</p>
+          <p id="eventStorageText">불러오는 중</p>
         </section>
         <section class="section-card">
           <h3>Event POST</h3>
           <div id="eventPostBadges" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="eventPostText">Event POST 상태를 불러오는 중입니다.</p>
+          <p id="eventPostText">불러오는 중</p>
         </section>
       </div>
       <section class="section-card">
@@ -18599,21 +19070,31 @@ void AppendOpsHomePage(std::ostringstream& out) {
       <div class="toolbar">
         <div>
           <h2>운영 홈</h2>
-          <p>운영 홈은 등록/설정 수치와 현재 runtime 상태만 요약합니다. 녹화나 이벤트 record 기능은 표시하지 않습니다.</p>
+          <p>운영 구성과 현재 상태를 함께 봅니다.</p>
         </div>
-        )" << RefreshIconButtonHtml("opsLiveRefresh", "button-secondary", "새로고침") << R"(
-      </div>
-      <div class="grid">
-        <div class="metric-card"><span>등록 채널</span><strong id="homeChannelCount">-</strong></div>
-        <div class="metric-card"><span>VA 룰</span><strong id="homeVaRuleCount">-</strong></div>
-        <div class="metric-card"><span>이벤트 룰</span><strong id="homeEventRuleCount">-</strong></div>
-        <div class="metric-card"><span>사용자</span><strong id="homeUserCount">-</strong></div>
+        )" << RefreshIconButtonHtml("opsHomeRefresh", "button-secondary", "새로고침") << R"(
       </div>
       <section class="section-card compact-card">
         <div class="toolbar">
           <div>
-            <h3>런타임 상태</h3>
-            <p>현재 세션, 스트림, analysis tap 상태만 표시합니다.</p>
+            <h3>운영 구성</h3>
+            <p>등록된 구성입니다.</p>
+          </div>
+          <div id="homeConfigState" class="badge-row"><span class="chip">로딩 중</span></div>
+        </div>
+        <div class="grid">
+          <div class="metric-card"><span>등록 채널</span><strong id="homeChannelCount">-</strong></div>
+          <div class="metric-card"><span>VA 룰</span><strong id="homeVaRuleCount">-</strong></div>
+          <div class="metric-card"><span>이벤트 룰</span><strong id="homeEventRuleCount">-</strong></div>
+          <div class="metric-card"><span>사용자</span><strong id="homeUserCount">-</strong></div>
+        </div>
+        <p id="homeConfigText">불러오는 중</p>
+      </section>
+      <section class="section-card compact-card">
+        <div class="toolbar">
+          <div>
+            <h3>실시간 상태</h3>
+            <p>현재 상태입니다.</p>
           </div>
           <div id="homeRuntimeState" class="badge-row"><span class="chip">로딩 중</span></div>
         </div>
@@ -18623,10 +19104,10 @@ void AppendOpsHomePage(std::ostringstream& out) {
           <div class="status-stat"><span>분석 탭</span><strong id="homeAnalysisTaps">-</strong></div>
           <div class="status-stat"><span>지연 탭</span><strong id="homeStaleTaps">-</strong></div>
         </div>
-        <p id="homeRuntimeText">런타임 상태를 불러오는 중입니다.</p>
+        <p id="homeRuntimeText">불러오는 중</p>
       </section>
 )";
-    AppendRawJsonDetails(out, "운영 debug JSON", "opsLiveRaw", "opsLivePretty", "operations summary 없음");
+    AppendRawJsonDetails(out, "운영 debug JSON", "opsHomeRaw", "opsHomePretty", "operations summary 없음");
     out << R"(    </section>
 )";
 }
@@ -19510,19 +19991,43 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
     AppendOpsShellStart(out,
                         principal,
                         "sources",
-                        "운영 채널을 관리합니다. 내부 SourceRegistry/PublishedView API schema는 변경하지 않습니다.");
+                        "운영 채널을 관리합니다.");
     out << R"OPS(    <section class="panel" data-testid="ops-sources-page">
       <div class="toolbar">
         <div>
           <h2>채널</h2>
-          <p>채널은 서버가 pull하는 파일/RTSP/HTTP/HLS/WHEP 입력 또는 WHIP publish로 먼저 등록된 WebRTC sourceId입니다.</p>
+          <p>채널과 PublishedView를 관리합니다.</p>
         </div>
       </div>
+      <section class="section-card">
+        <div class="channel-kind-guide" aria-label="채널 입력 종류 안내">
+          <div class="channel-kind-guide-item">
+            <strong>파일</strong>
+            <p>로컬 파일을 채널로 등록합니다.</p>
+          </div>
+          <div class="channel-kind-guide-item">
+            <strong>RTSP pull</strong>
+            <p>RTSP 주소를 서버가 pull합니다.</p>
+          </div>
+          <div class="channel-kind-guide-item">
+            <strong>외부 WHEP</strong>
+            <p>외부 WHEP URL을 pull source로 연결합니다.</p>
+          </div>
+          <div class="channel-kind-guide-item">
+            <strong>Published WebRTC</strong>
+            <p>이미 publish된 sourceId를 채널에 연결합니다.</p>
+          </div>
+          <div class="channel-kind-guide-item">
+            <strong>HTTP/HLS</strong>
+            <p>HTTP/HLS URL을 pull합니다.</p>
+          </div>
+        </div>
+      </section>
       <section class="section-card">
         <div class="toolbar">
           <div>
             <h3>채널 목록</h3>
-            <p>저장된 채널을 먼저 보여주고, 필요한 항목만 보기/수정/복제/삭제합니다.</p>
+            <p>목록을 보고 상세/삭제를 진행합니다.</p>
           </div>
           <div class="actions">
             <button id="add-channel" class="button-primary" type="button">채널 추가</button>
@@ -19542,11 +20047,12 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
               <col class="channel-col-va-url" />
               <col class="channel-col-actions" />
             </colgroup>
-)";
+)OPS";
     AppendTableHead(out, {"번호", "이름", "종류", "상태", "입력", "라이브 URL", "VA URL", "작업"});
     out << R"OPS(            <tbody id="channels-body"><tr><td colspan="8">로딩 중</td></tr></tbody>
           </table>
         </div>
+        <p class="hint" style="margin-top:12px;">RTSP/WHEP는 운영 확인용입니다. 브라우저 재생은 <code>/client/live</code> 또는 <code>/ops/live</code>에서 확인합니다.</p>
       </section>
 
       <section id="channel-detail-panel" class="section-card" hidden>
@@ -19554,25 +20060,29 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           <div>
             <div class="badge-row"><span id="channel-editor-mode" class="chip info">보기</span><span id="channel-editor-id" class="chip">#-</span></div>
             <h3 id="channel-editor-title">채널 상세</h3>
-            <p id="channel-editor-help">선택한 채널의 SourceRegistry/PublishedView 연결 상태입니다.</p>
+            <p id="channel-editor-help">저장된 내용입니다.</p>
           </div>
           <div class="actions">
             <button id="channel-edit-selected" class="button-secondary" type="button">수정</button>
-            <button id="channel-copy-selected" class="button-secondary" type="button">복제</button>
-            <button id="channel-close" class="button-secondary" type="button">목록으로</button>
+            <button id="channel-save-selected" class="button-primary" type="submit" form="channel-form">저장</button>
+            <button id="channel-close" class="button-secondary" type="button">닫기</button>
           </div>
         </div>
           <form id="channel-form">
+          <div class="channel-editor-intro">
+            <p>입력 source와 PublishedView를 함께 관리합니다.</p>
+            <p><strong>외부 WHEP</strong>는 URL 입력, <strong>Published WebRTC</strong>는 저장된 <code>sourceId</code> 연결입니다.</p>
+          </div>
           <div class="row">
             <label>채널 ID<input name="channelId" type="number" min="1" step="1" inputmode="numeric" placeholder="1" required /></label>
             <label>이름<input name="displayName" /></label>
             <label>종류
               <select name="kind">
                 <option value="file">파일</option>
-                <option value="rtsp">RTSP</option>
-                <option value="whep">WHEP</option>
-                <option value="webrtc" hidden>WHIP Published Source ID</option>
-                <option value="http">HTTP/HLS</option>
+                <option value="rtsp">RTSP pull</option>
+                <option value="whep">외부 WHEP pull</option>
+                <option value="webrtc">Published WebRTC source</option>
+                <option value="http">HTTP/HLS pull</option>
               </select>
             </label>
           </div>
@@ -19582,15 +20092,11 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             </select>
           </label>
           <label data-source-kind="rtsp">RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live" /></label>
-          <label data-source-kind="whep">WHEP URL<input name="whepUrl" placeholder="https://example.com/whep/stream" /></label>
-          <p data-source-kind="whep" class="hint">외부 WebRTC/WHEP playback endpoint를 서버가 pull source로 연결합니다. 인증 토큰이 필요한 endpoint는 별도 credential 연결 전까지 사용할 수 없습니다.</p>
-          <label data-source-kind="webrtc">WHIP Published Source ID<input name="webrtcSourceId" placeholder="published-source-id" /></label>
-          <p data-source-kind="webrtc" class="hint">외부 WebRTC/WHEP URL pull이 아니라, 이 서버의 WHIP publish endpoint로 이미 등록된 sourceId를 소비합니다.</p>
+          <label data-source-kind="whep">외부 WHEP URL<input name="whepUrl" placeholder="https://example.com/whep/stream" /></label>
+          <p data-source-kind="whep" class="hint">외부 WebRTC playback endpoint를 서버가 WHEP pull source로 연결합니다. URL 자체가 입력값입니다.</p>
+          <label data-source-kind="webrtc">Published sourceId<input name="webrtcSourceId" placeholder="published-source-id" /></label>
+          <p data-source-kind="webrtc" class="hint">외부 URL을 넣는 항목이 아닙니다. 이 서버의 WHIP publish endpoint로 이미 등록된 sourceId를 연결합니다.</p>
           <label data-source-kind="http">HTTP/HLS URL<input name="httpUrl" /></label>
-          <div class="actions">
-            <button id="save-channel" class="primary" type="submit">저장</button>
-            <button id="delete-channel" class="danger" type="button">삭제</button>
-          </div>
           <p id="channel-validation" class="hint"></p>
         </form>
       </section>
@@ -19617,7 +20123,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
       <div class="toolbar">
         <div>
           <h2>사용자 관리</h2>
-          <p>사용자 추가 시 초기 비밀번호를 입력합니다. 새 사용자는 기본 활성화 상태로 생성됩니다.</p>
+          <p>사용자와 권한 범위를 관리합니다.</p>
         </div>
         <div class="actions">
           <button id="add-user-btn" class="button-primary" type="button">사용자 추가</button>
@@ -19629,8 +20135,20 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         <h2>사용자 목록</h2>
         <div class="table-wrap">
           <table class="user-table">
-)";
-    AppendTableHead(out, {"계정명", "이름", "권한", "상태", "권한 범위", "마지막 로그인", "잠금 만료", "비밀번호 변경", "작업"});
+            <colgroup>
+              <col class="user-col-username" />
+              <col class="user-col-name" />
+              <col class="user-col-role" />
+              <col class="user-col-status" />
+              <col class="user-col-scopes" />
+              <col class="user-col-last-login" />
+              <col class="user-col-locked-until" />
+              <col class="user-col-password" />
+              <col class="user-col-actions" />
+            </colgroup>
+)USERS";
+    AppendTableHead(out,
+                    {"계정명", "이름", "권한", "상태", "권한 범위", "마지막 로그인", "잠금 만료", "비밀번호 변경", "작업"});
     out << R"USERS(            <tbody id="users-body"></tbody>
           </table>
         </div>
@@ -19640,24 +20158,44 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         <div class="toolbar">
           <div>
             <h2>접근 요청</h2>
-            <p>클라이언트 접근 요청을 검토하고 password setup invite를 발급합니다.</p>
+            <p>요청을 검토하고 초대 링크를 발급합니다.</p>
           </div>
           <span id="request-status" class="status"></span>
         </div>
         <pre id="request-invite-output" hidden></pre>
         <div class="table-wrap">
           <table class="user-table">
-)";
+            <colgroup>
+              <col class="request-col-username" />
+              <col class="request-col-name" />
+              <col class="request-col-contact" />
+              <col class="request-col-channel" />
+              <col class="request-col-reason" />
+              <col class="request-col-status" />
+              <col class="request-col-decision" />
+              <col class="request-col-actions" />
+            </colgroup>
+)USERS";
     AppendTableHead(out, {"계정명", "이름", "연락처", "채널", "사유", "상태", "요청/결정", "작업"});
     out << R"USERS(            <tbody id="access-requests-body"></tbody>
           </table>
         </div>
       </section>
 
-      <details id="user-editor" class="collapsed-editor" hidden>
-        <summary id="user-editor-title">사용자 편집</summary>
-        <div class="collapsed-editor-body">
-          <form id="user-form">
+      <section id="user-detail-panel" class="section-card" hidden>
+        <div class="toolbar">
+          <div>
+            <div class="badge-row"><span id="user-editor-mode" class="chip info">상세</span><span id="user-editor-id" class="chip">@-</span></div>
+            <h3 id="user-editor-title">사용자 상세</h3>
+            <p id="user-editor-help">저장된 내용입니다.</p>
+          </div>
+          <div class="actions">
+            <button id="user-edit-selected" class="button-secondary" type="button">수정</button>
+            <button id="user-save-selected" class="button-primary" type="submit" form="user-form">저장</button>
+            <button id="user-close" class="button-secondary" type="button">닫기</button>
+          </div>
+        </div>
+        <form id="user-form">
             <div class="row">
               <label>계정명<input name="username" required /></label>
               <label>표시 이름<input name="displayName" /></label>
@@ -19685,14 +20223,8 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
               <label><input name="enabled" type="checkbox" checked /> 활성화</label>
               <label><input name="mustChangePassword" type="checkbox" checked /> 다음 로그인 시 비밀번호 변경</label>
             </div>
-            <div class="actions">
-              <button id="create-btn" class="primary" type="submit">사용자 추가</button>
-              <button id="update-btn" class="secondary" type="button">사용자 수정</button>
-              <button id="cancel-user-edit-btn" class="button-secondary" type="button">목록으로</button>
-            </div>
-          </form>
-        </div>
-      </details>
+        </form>
+      </section>
     </section>
 )USERS";
     AppendOpsUsersPageScript(out);
