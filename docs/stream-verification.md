@@ -22,7 +22,13 @@
 
 외부 RTSP/HLS/HTTP/WHEP source, 운영 TURN relay/auth, YouTube import/source는 외부 환경 영향을 받으므로 기본 hard gate가 아닙니다.
 
-문서/UI/Auth/권한/계정처럼 media pipeline 자체를 바꾸지 않은 변경에서는 `./server.sh test`, `./server.sh test --basic`, `./server.sh test --full`, `./server.sh verify-predev --quick`를 기본으로 실행하지 않습니다. 이 명령들은 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 소비해 느리므로, 해당 변경 범위에서는 아래의 문서/UI/Auth 전용 smoke만 사용합니다. RTSP/WebRTC codec/source 자체를 수정했거나 release candidate gate를 열 때만 명시적으로 실행합니다.
+문서/UI/Auth/권한/계정처럼 media pipeline 자체를 바꾸지 않은 변경에서는
+`./server.sh test`, `./server.sh test --basic`, `./server.sh test --full`,
+`./server.sh verify-predev --quick`를 기본으로 실행하지 않습니다.
+이 명령들은 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하므로 느립니다.
+해당 변경 범위에서는 아래의 문서/UI/Auth 전용 smoke만 사용합니다.
+RTSP/WebRTC codec/source 자체를 수정했거나
+release candidate gate를 열 때만 명시적으로 실행합니다.
 
 ## 단기 테스트 명령
 
@@ -47,7 +53,12 @@ git diff --check -- README.md docs scripts src include
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
 
-`verify-auth-routes`는 임시 users/source/view 파일과 격리 포트로 서버를 직접 띄웁니다. `verify-ops-client-ui`, `verify-rule-ui`, `verify-lab-layout`는 실행 중인 HTTP 서버를 대상으로 하는 attached smoke이므로, UI 전용 검증에서는 별도 터미널에서 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`를 실행하고 포트가 다르면 `--http-base`를 명시합니다.
+`verify-auth-routes`는 임시 users/source/view 파일과 격리 포트로 서버를 직접 띄웁니다.
+`verify-ops-client-ui`, `verify-rule-ui`, `verify-lab-layout`는
+실행 중인 HTTP 서버를 대상으로 하는 attached smoke입니다.
+UI 전용 검증에서는 별도 터미널에서
+`MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`를 실행하고,
+포트가 다르면 `--http-base`를 명시합니다.
 
 VA rule/scenario 변경:
 
@@ -67,9 +78,40 @@ UI 변경:
 MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap
 ```
 
-UI 변경 검증에서는 기본 추가 RTSP/WebRTC source 영상이나 codec matrix를 쓰지 않습니다. 화면 selector/API 계약만 확인할 때는 서버를 띄운 뒤 `verify-ops-client-ui`, `verify-rule-ui`, `verify-lab-layout --no-screenshots`를 우선 사용하고, WebRTC/RTSP streaming 동작이 변경된 경우에만 별도 WebRTC/stream 변경 명령을 실행합니다.
+UI 변경 검증에서는 기본 추가 RTSP/WebRTC source 영상이나 codec matrix를 쓰지 않습니다.
+화면 selector/API 계약만 확인할 때는 서버를 띄운 뒤 아래 순서로 확인합니다.
 
-Ops/Client shell 변경은 전용 smoke로 product shell selector와 client debug/source 비노출을 먼저 확인합니다. 이 smoke는 `/client/api/views`뿐 아니라 단일 view, dashboard, events, metadata 응답의 민감 JSON key도 재귀적으로 검사합니다. `/ops/live`에 대해서는 headless Chrome 상호작용 smoke를 추가로 수행해 preview `start/stop/restart`, `raw/va-overlay/va-rule` payload, dual-slot cleanup, quick action write path(`preview 정지`, channel enable/disable toggle)까지 짧게 확인합니다. 또한 `/ops/live` raw/detail 정보가 전면 패널이 아니라 debug drawer 안에 머무는지도 같이 확인합니다. Auth route smoke는 격리된 Source/View registry 파일을 사용해 기본 seed, client wrapper, malformed source/view registry fail-closed, 기존 malformed 파일 비덮어쓰기를 함께 확인합니다. `--screenshots` 옵션은 headless Chrome으로 `/ops/home`, `/ops/dashboard`, `/ops/rules`, `/ops/sources`, `/ops/users`, `/client/live`, `/client/dashboard`를 폭별로 열어 overflow와 screenshot을 남깁니다. Ops shell script처럼 `webrtc_http_server.cpp`에서 `product_ui_page_scripts.*`로 UI 소유권을 옮기는 구조 변경은 `./server.sh build`, `./server.sh verify-auth-routes`, `./server.sh verify-ops-client-ui`를 함께 실행해 route guard와 제품 selector/API 계약을 같이 확인합니다. Auth shell 변경은 기존 auth workflow에 `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1`을 붙여 `/setup`, `/login`, `/client/request-access`, 필요 시 `/password/change`, `/invite/setup` selector를 확인하고, `MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`로 auth screenshot smoke까지 남깁니다. 화면 단위 회귀가 의심되거나 nav/table/form 반응형을 직접 봐야 할 때는 auth-off 또는 로그인 cookie/token을 준비한 서버에서 아래 수동 smoke를 함께 확인합니다.
+- `verify-ops-client-ui`
+- `verify-rule-ui`
+- `verify-lab-layout --no-screenshots`
+
+WebRTC/RTSP streaming 동작이 바뀐 경우에만
+별도 WebRTC/stream 변경 명령을 실행합니다.
+
+Ops/Client shell 변경 확인 포인트:
+
+- product shell selector 유지
+- client debug/source 비노출
+- `/client/api/views`, 단일 view, dashboard, events, metadata 응답의 민감 key 비노출
+- `/ops/live` preview `start/stop/restart`
+- `raw/va-overlay/va-rule` payload
+- dual-slot cleanup
+- quick action write path(`preview 정지`, channel enable/disable toggle)
+- `/ops/live` raw/detail 정보가 debug drawer 안에 머무는지 여부
+
+추가 참고:
+
+- Auth route smoke는 격리된 Source/View registry 파일을 사용합니다.
+- `--screenshots` 옵션은 `/ops/home`, `/ops/dashboard`, `/ops/rules`,
+  `/ops/sources`, `/ops/users`, `/client/live`, `/client/dashboard`를
+  폭별로 열어 overflow와 screenshot을 남깁니다.
+- `webrtc_http_server.cpp`에서 `product_ui_page_scripts.*`로 UI 소유권을 옮기는
+  구조 변경은 `./server.sh build`,
+  `./server.sh verify-auth-routes`,
+  `./server.sh verify-ops-client-ui`를 함께 실행합니다.
+- Auth shell 변경은 기존 auth workflow에
+  `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1`,
+  필요하면 `MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`을 붙여 확인합니다.
 
 ```bash
 BASE=http://127.0.0.1:8080
@@ -91,10 +133,40 @@ fi
 
 확인 기준:
 
-- `/ops`, `/ops/home`, `/ops/live`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`는 HTML을 반환하고 공통 Ops Console header/nav를 유지합니다. Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기 순서이며 `/ops/live`는 자동 media session을 열지 않는 고밀도 source/runtime/event 상태 타일을 표시합니다. Ops Live smoke는 focus selector, search input, attention count, unassigned count selector뿐 아니라 drill-down summary, detail event rows, preview target/mode/start-stop, primary/secondary preview slot selector, 슬롯별 health badge selector, timeline summary/rows, action summary/buttons, detail JSON selector가 제품 shell에 남아 있는지도 함께 확인합니다. 상호작용 smoke는 timeline에 runtime summary가 실제로 그려지는지, preview restart 후에도 same row timeline이 유지되는지, raw/detail 정보가 debug drawer 구조 안에 있는지도 같이 봅니다.
+- `/ops`, `/ops/home`, `/ops/live`, `/ops/dashboard`, `/ops/sources`,
+  `/ops/rules`, `/ops/users`는 HTML을 반환하고
+  공통 Ops Console header/nav를 유지합니다.
+  Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin),
+  클라이언트 미리보기 순서입니다.
+  `/ops/live`는 자동 media session을 열지 않는 고밀도 상태 타일을 표시합니다.
+
+  Ops Live smoke는 다음을 함께 확인합니다.
+
+  - focus selector
+  - search input
+  - attention/unassigned count
+  - drill-down summary
+  - detail event rows
+  - preview target/mode/start-stop
+  - primary/secondary preview slot
+  - 슬롯별 health badge
+  - timeline summary/rows
+  - action summary/buttons
+  - detail JSON selector
 - `/ops/events`는 primary nav에서 숨긴 직접/진단 route입니다. 독립 제품 탭으로 취급하지 않고, 이벤트 조건은 룰에서 설정하며 운영 요약은 대시보드에서 확인합니다.
-- `/ops/dashboard`와 `/ops/rules`는 Lab iframe이나 `/lab/rules?embed=1`을 포함하지 않습니다. 대시보드는 `/ops/api/runtime/status`, 룰 카탈로그는 `/ops/api/rules/catalog`, 숨김 이벤트 상태는 `/ops/api/events/status`를 사용합니다. `/ops/rules`는 `rule/profile/source` 검색 입력과 `#q=` hash로 같은 필터를 적용하고, `/ops/events`는 `#channel=` hash를 `channelId` query로 변환해 특정 채널 EventRecord를 바로 조회합니다. raw JSON은 접힘 debug 영역에만 둡니다.
-- `/ops/sources`는 숫자 채널 table을 먼저 보여주며, Live URL/VA URL 복사 버튼은 RTSP와 WebRTC 버튼을 실제 클립보드에 복사해야 합니다. source 원본 URL은 ops 화면에만 표시합니다.
+- `/ops/dashboard`와 `/ops/rules`는 Lab iframe이나
+  `/lab/rules?embed=1`을 포함하지 않습니다.
+  대시보드는 `/ops/api/runtime/status`,
+  룰 화면은 `/ops/api/rules/catalog`,
+  숨김 이벤트 상태는 `/ops/api/events/status`를 사용합니다.
+  `/ops/rules`는 `rule/profile/source` 검색 입력과 `#q=` hash를 지원합니다.
+  raw JSON은 접힘 debug 영역에만 둡니다.
+- `/ops/sources`는 숫자 채널 table을 먼저 보여줍니다.
+  상단 안내 카드와 detail form에서
+  `외부 WHEP pull`과 `Published WebRTC source` 차이를 설명해야 합니다.
+  Live URL/VA URL 복사 버튼은 RTSP/WHEP 값을 실제 클립보드에 복사해야 합니다.
+  rendered HTML에 `AppendTableHead(` 같은 템플릿 문자열이 새면 안 됩니다.
+  source 원본 URL은 ops 화면에만 표시합니다.
 - `/ops/users`는 사용자 목록 table과 접근 요청 table을 보여주고, 사용자 추가/수정 editor는 접힘 영역으로 열립니다. Access request 승인 UI는 password setup invite token/setup URL을 승인 응답에서 한 번만 표시하며, 거절은 request 상태만 바꿉니다. `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`를 노출하지 않습니다.
 - `/client/live`, `/client/dashboard`는 client shell을 유지하고 source URL, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile editor를 노출하지 않습니다. Client Events tab은 primary nav에서 제거합니다.
 - `/lab`와 `/lab/rules`는 기존 Lab layout과 Rule/Profile UI smoke 기준을 계속 통과해야 합니다.

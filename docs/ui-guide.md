@@ -13,7 +13,7 @@
 | 운영 Dashboard | `http://127.0.0.1:8080/ops/dashboard` | runtime status를 card/detail UI로 표시 |
 | 운영 Events 직접 route | `http://127.0.0.1:8080/ops/events` | primary nav에서 숨긴 후속/진단 route |
 | 채널 관리 | `http://127.0.0.1:8080/ops/sources` | admin/operator용 숫자 채널 목록과 SourceRegistry/PublishedView 연결 관리 |
-| 계정 관리 | `http://127.0.0.1:8080/ops/users` | admin 전용 사용자 생성/수정/비활성화와 scope 관리 |
+| 계정 관리 | `http://127.0.0.1:8080/ops/users` | admin 전용 사용자 목록, 상세, 상태 관리 |
 | 클라이언트 포털 | `http://127.0.0.1:8080/client` 또는 `/client/live` | viewer/operator/admin용 client shell과 2x2 live monitor MVP |
 | 클라이언트 Dashboard | `http://127.0.0.1:8080/client/dashboard` | scoped PublishedView 상태 요약 MVP |
 | 접근 요청 | `http://127.0.0.1:8080/client/request-access` | pending client access request 제출 |
@@ -23,7 +23,12 @@
 
 실제 host/port는 `./server.sh status` 또는 `./server.sh urls` 출력값을 우선합니다.
 
-UI는 light/dark theme-aware design token을 사용하며, card/button/form/table/badge/debug 영역은 같은 semantic color 규칙을 공유합니다. 기본 화면은 요약과 주요 액션을 먼저 보이게 합니다. 운영자용 raw JSON/debugCounters/Developer URL 같은 세부 정보는 낮은 visual weight의 접힘 영역에만 두고, client/viewer shell에는 raw JSON, debug, developer/source URL을 노출하지 않습니다.
+UI는 light/dark theme-aware design token을 사용합니다.
+card, button, form, table, badge, debug 영역은 같은 semantic color 규칙을 공유합니다.
+기본 화면은 요약과 주요 액션을 먼저 보여주고,
+운영자용 raw JSON/debugCounters/Developer URL 같은 세부 정보는
+낮은 visual weight의 접힘 영역에만 둡니다.
+client/viewer shell에는 raw JSON, debug, developer/source URL을 노출하지 않습니다.
 
 액션 계층은 다음 기준을 따릅니다.
 
@@ -37,16 +42,25 @@ UI는 light/dark theme-aware design token을 사용하며, card/button/form/tabl
 - `include/ingress/product_ui_assets.h`, `src/ingress/product_ui_assets.cpp`: theme toggle button, nav/account SVG asset처럼 route data에 의존하지 않는 product UI asset을 보관합니다.
 - `include/ingress/product_ui_css.h`, `src/ingress/product_ui_css.cpp`: Auth/Ops/Client와 `/lab/rules`가 공유하는 design token, 제품 shell CSS, client shell 전용 CSS를 보관합니다.
 - `include/ingress/product_ui_js.h`, `src/ingress/product_ui_js.cpp`: theme boot/apply script와 product route 공통 JS helper를 보관합니다.
-- `include/ingress/product_ui_page_scripts.h`, `src/ingress/product_ui_page_scripts.cpp`: `/client`, `/client/request-access`, `/ops` shell overview pages, `/ops/sources`, `/ops/users`의 route별 page script를 보관합니다.
+- `include/ingress/product_ui_page_scripts.h`,
+  `src/ingress/product_ui_page_scripts.cpp`:
+  `/client`, `/client/request-access`, `/ops` shell overview pages,
+  `/ops/sources`, `/ops/users`의 route별 page script를 보관합니다.
 - `ProductDesignTokensCss()`: Auth/Ops/Client와 `/lab/rules`가 공유하는 light/dark semantic token 원천입니다.
 - `ProductUiCss()`: 제품 shell 공통 card/button/form/table/badge/debug 스타일입니다.
-- `ProductSharedUiScript()`: product route에서 공유하는 `escapeHtml`, `requestJson`, selector, form-data, feedback, badge/raw JSON 렌더링, select/table DOM helper, role/scope visibility helper입니다.
+- `ProductSharedUiScript()`:
+  product route에서 공유하는 `escapeHtml`, `requestJson`, selector,
+  form-data, feedback, badge/raw JSON 렌더링,
+  select/table DOM helper, role/scope visibility helper입니다.
 - `ClientShellCss()`: client shell 전용 CSS를 `ClientShellPageHtml()` 밖에서 관리합니다.
 - `AppendOpsShellStart/End`, `AppendAuthShellStart/End`: 운영 shell과 setup/login auth shell의 공통 document/header/footer를 렌더링합니다.
 - `AppendProductAccountMenu()`: theme toggle, user role, logout 영역을 Ops/Client에서 동일하게 렌더링합니다.
 - `AppendRawJsonDetails()`: 운영자용 raw/debug JSON을 낮은 visual weight의 접힘 영역으로 렌더링합니다.
 - `AppendOpsHomePage()`, `AppendOpsDashboardPage()`, `AppendOpsRulesPage()`, `AppendOpsEventsPage()`: `/ops` shell 내부 page markup을 route별 helper로 분리합니다.
-- `AppendClientShellScript()`, `AppendOpsShellScript()`, `AppendOpsSourcesPageScript()`, `AppendOpsUsersPageScript()`: page markup과 route별 JS 동작을 물리적으로 분리합니다. API schema와 payload는 기존 endpoint 계약을 그대로 사용합니다.
+- `AppendClientShellScript()`, `AppendOpsShellScript()`,
+  `AppendOpsSourcesPageScript()`, `AppendOpsUsersPageScript()`:
+  page markup과 route별 JS 동작을 물리적으로 분리합니다.
+  API schema와 payload는 기존 endpoint 계약을 그대로 사용합니다.
 - `HtmlPageResponse()`: browser page route의 `text/html`/`no-store` 응답 포장을 공통화합니다.
 - `IsOpsOverviewShellRoute()`, `IsClientShellRoute()`: route handler의 shell path 판별을 한 곳에서 관리합니다.
 
@@ -61,7 +75,7 @@ UI ownership은 다음 표를 기준으로 봅니다.
 | Auth shell | `AppendAuthShellStart/End` | `/setup`, `/login`, `/password/change`, invite/request shell | password policy와 session 동작은 auth backend 계약을 따릅니다. |
 | Ops shell | `AppendOpsShellStart/End`, `AppendOps*Page*`, `AppendOpsShellScript` | admin/operator navigation, page markup, overview script | raw/debug JSON은 접힘 영역에만 둡니다. |
 | Client shell | `ClientShellPageHtml`, `AppendClientShellScript` | scoped viewer live/dashboard UI | source URL, debugCounters, Developer URL, rule/profile editor를 노출하지 않습니다. |
-| Smoke | `verify_ops_client_ui_smoke.mjs`, `verify_auth_ui_smoke.mjs`, `verify_auth_workflow.sh`, `rule_ui_smoke_check.mjs` | selector, screenshot, auth UI, `/lab/rules` 회귀 확인 | visual text보다 stable selector와 금지 항목 중심으로 유지합니다. |
+| Smoke | `verify_ops_client_ui_smoke.mjs`, `verify_auth_ui_smoke.mjs`, `verify_auth_workflow.sh`, `rule_ui_smoke_check.mjs` | selector, screenshot, auth UI, `/lab/rules` 회귀 확인 | visible text보다 stable selector와 금지 항목 중심으로 유지합니다. |
 
 `/lab/rules`는 기존 smoke selector와 3탭 회귀 위험이 높으므로, 대규모 DOM 구조 변경 없이 token과 selector 호환을 우선합니다.
 
@@ -71,17 +85,21 @@ UI ownership은 다음 표를 기준으로 봅니다.
 - 영상 분석 보기: 실시간 스트리밍, VA 오버레이, VA 룰 미리보기
 - Runtime Dashboard: active analysis tap의 runtime metadata, backpressure, scenario/event/debug 상태
 
-대표 제품 shell 예시는 핵심 화면만 유지합니다.
+대표 제품 화면:
 
-- Login
-
-![로그인](assets/ui/auth-login.png)
-
-- Ops Home / Sources / Rules
+- Ops Home
 
 ![운영 홈](assets/ui/ops-home.png)
 
+- Ops Live
+
+![운영자 라이브 모니터](assets/ui/ops-live.png)
+
+- Ops Sources
+
 ![운영 채널 관리](assets/ui/ops-channels.png)
+
+- Ops Rules
 
 ![운영 룰 관리](assets/ui/ops-rules.png)
 
@@ -89,13 +107,32 @@ UI ownership은 다음 표를 기준으로 봅니다.
 
 ![클라이언트 라이브](assets/ui/client-live.png)
 
+운영/개발 진단 화면은 아래 상세 섹션에서 따로 다룹니다.
+
 ## 2. Login / Session
 
-기본 `MEDIA_SERVER_AUTH_MODE=auto`에서는 최초 users file/admin password 상태를 먼저 확인합니다. users file이 없거나 `admin.passwordHash`가 없으면 `/setup`에서 기본 username `admin`의 비밀번호를 처음 설정합니다. admin 기본 비밀번호는 없으며, passwordless admin login은 허용하지 않습니다. setup 완료 후 `/setup`은 `/login`으로 돌아가고, 이후에는 `/login`에서 계정으로 로그인해 role/scope snapshot을 담은 HttpOnly session cookie를 받습니다.
+기본 `MEDIA_SERVER_AUTH_MODE=auto`에서는
+최초 users file/admin password 상태를 먼저 확인합니다.
+users file이 없거나 `admin.passwordHash`가 없으면
+`/setup`에서 기본 username `admin`의 비밀번호를 처음 설정합니다.
+admin 기본 비밀번호는 없고, passwordless admin login도 허용하지 않습니다.
+setup 완료 후 `/setup`은 `/login`으로 돌아가며,
+이후에는 `/login`에서 계정으로 로그인해
+role/scope snapshot을 담은 HttpOnly session cookie를 받습니다.
 
 로컬 QA와 수동 smoke에서는 테스트 계정을 만들거나 초기화할 때 비밀번호를 `qweasd0-`로 통일합니다. 이는 검증 중 계정 상태를 일관되게 맞추기 위한 테스트 규칙이며, 운영 배포나 제품 기본 비밀번호로 사용하지 않습니다.
 
-Password policy 기본값은 `kr-privacy`입니다. `/setup`과 `/password/change`는 동일한 정책을 적용하며 3종류 조합 최소 8자, 2종류 조합 최소 10자, username 포함 금지, 반복 문자/연속 숫자/키보드 배열/흔한 비밀번호/history 재사용 금지를 안내합니다. 로그인 실패가 반복되면 계정별 lockout 메시지를 표시하고, `mustChangePassword=true` 계정은 로그인 후 `/password/change`로 이동합니다.
+Password policy 기본값은 `kr-privacy`입니다.
+`/setup`과 `/password/change`는 동일한 정책을 적용합니다.
+
+- 3종류 조합 최소 8자
+- 2종류 조합 최소 10자
+- username 포함 금지
+- 반복 문자, 연속 숫자, 키보드 배열 금지
+- 흔한 비밀번호와 history 재사용 금지
+
+로그인 실패가 반복되면 계정별 lockout 메시지를 표시합니다.
+`mustChangePassword=true` 계정은 로그인 후 `/password/change`로 이동합니다.
 
 `MEDIA_SERVER_AUTH_MODE=off`는 기존 Lab 검증과 개발 자동화를 위한 명시 모드입니다. 이 모드에서만 `/lab`와 `/lab/rules`에 바로 접근합니다.
 
@@ -105,23 +142,122 @@ Role별 이동:
 - `viewer`: `/client/live`
 - `integrator`: UI landing 없이 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata` 연동용 token/session 사용을 우선합니다.
 
-Login page는 username/password 입력, 실패/lockout 메시지, 로그인 후 현재 사용자/role 표시, logout 버튼만 제공하는 MVP입니다. `/`는 setup required 상태에서 `/setup`, auth off에서 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/home`, `/client/live`, auth on에서 admin/operator를 `/ops/home`, viewer를 `/client/live`, 미인증 요청을 `/login`으로 보냅니다. 비밀번호 변경 성공 시 기존 session은 폐기되고 `/login`에서 다시 로그인합니다.
+Login page는 username/password 입력,
+실패/lockout 메시지,
+현재 사용자/role 표시,
+logout 버튼만 제공하는 MVP입니다.
 
-클라이언트 계정의 1차 정책은 admin 수동 생성/승인입니다. admin은 `/ops/users`에서 username, role, viewId 또는 직접 scopes, 초기 비밀번호를 입력해 계정을 생성하거나 pending access request를 승인/거절합니다. Invite/setup API와 CLI는 검증 및 운영 보조 흐름으로 유지합니다. Self-signup 자동 승인은 제공하지 않습니다. `/client/request-access`는 pending request만 저장하며, public API는 body/field 길이, viewId 안전 문자, 중복 pending, peer rate-limit을 통과한 요청만 저장합니다. Admin 승인 후에도 password setup invite가 수락되기 전에는 계정 생성, session login, view 접근이 허용되지 않습니다. PublishedView 단위 접근은 `view:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`, `dashboard:read:{viewId}` scope로 제한합니다.
+`/` 이동 규칙:
+
+- setup required 상태: `/setup`
+- auth off: `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/home`, `/client/live`
+- auth on + admin/operator: `/ops/home`
+- auth on + viewer: `/client/live`
+- 미인증 요청: `/login`
+
+비밀번호 변경에 성공하면 기존 session은 폐기되고,
+`/login`에서 다시 로그인합니다.
+
+클라이언트 계정의 1차 정책은 admin 수동 생성/승인입니다.
+
+- admin은 `/ops/users`에서 username, role, viewId 또는 직접 scopes,
+  초기 비밀번호를 입력해 계정을 만듭니다.
+- pending access request도 같은 화면에서 승인/거절합니다.
+- invite/setup API와 CLI는 검증 및 운영 보조 흐름으로 유지합니다.
+- self-signup 자동 승인은 제공하지 않습니다.
+- `/client/request-access`는 pending request만 저장합니다.
+- public API는 body/field 길이, viewId 안전 문자, 중복 pending,
+  peer rate-limit을 통과한 요청만 저장합니다.
+- admin 승인 후에도 password setup invite가 수락되기 전에는
+  계정 생성, session login, view 접근을 허용하지 않습니다.
+
+PublishedView 단위 접근은 다음 scope로 제한합니다.
+
+- `view:read:{viewId}`
+- `event:read:{viewId}`
+- `metadata:read:{viewId}`
+- `dashboard:read:{viewId}`
 
 Route 역할:
 
-- `/ops`: admin/operator 전용 운영 shell이며 `ops:read` scope가 필요합니다. 채널/PublishedView 변경 API는 `source:write` scope를 추가로 요구합니다. Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기 순서입니다. `/ops/home`은 운영 overview이고 `/ops/live`는 자동 media session을 열지 않는 고밀도 source/runtime/event 상태 타일입니다. `/ops/live`는 `all/attention/published/unassigned` focus, `view/source` 검색, attention/미배정 카운터를 제공해 운영자가 event 발생 채널과 PublishedView 미배정 채널을 빠르게 분리해서 볼 수 있습니다. 타일이나 최근 이벤트를 누르면 source health, active tap age, recent EventRecord, snapshot/clip evidence 요약, 수동 read-only preview, runtime/event timeline, 그리고 채널/클라이언트/룰 화면으로 바로 이동하는 action 버튼을 같은 화면 drill-down으로 확인합니다. timeline은 채널/view/tap 상태뿐 아니라 selected PublishedView dashboard 요약을 함께 읽어 `track/scenario/active event` 수, `frame/meta age`, event type count, EventRecord별 `scenarioPhase`, `zone/line`, evidence 여부를 한 줄씩 이어서 보여줍니다. action 영역은 읽기 링크만이 아니라 현재 선택 채널의 preview 정지와 channel enable/disable 토글도 직접 실행할 수 있습니다. 이 쓰기 액션은 기존 `/ops/api/sources/{id}`, `/ops/api/views/{id}`를 그대로 사용하고, 채널을 비활성화하면 해당 채널에 열린 preview 세션도 함께 정리합니다. preview는 슬롯 `A/B` 최대 2개까지 유지하며, 선택한 PublishedView에 대해서만 `raw / va-overlay / va-rule` 허용 모드 중 하나를 골라 `시작/재연결/정지` 버튼으로 엽니다. 각 슬롯은 `ice`, `metadata age`, `last frame age`, `track/event` badge를 함께 보여줘 운영자가 “보이는지”뿐 아니라 “정상인지”를 바로 판단할 수 있습니다. 같은 채널을 두 슬롯에 중복으로 열면 기존 슬롯을 정리하고, `va-rule`은 연결된 rule이 있을 때만 활성화됩니다. 자동 세션은 만들지 않습니다. `/ops/dashboard`는 `/ops/api/runtime/status`로 운영 카드/상태를 표시하고, `/ops/rules`는 `/ops/api/rules/catalog`로 VA 룰, 이벤트 룰, 분석 프로파일 카탈로그를 표시하며 `rule/profile/source` 검색 입력과 `#q=` hash를 지원합니다. 두 화면은 Lab iframe 또는 `/lab/rules?embed=1`에 의존하지 않습니다. `/ops/sources`는 `#channel=` hash가 있으면 해당 채널 detail을 바로 펼치고, `/client/live`는 `#view=` hash가 있으면 해당 PublishedView를 우선 선택합니다. raw JSON은 접힘 debug 영역에만 둡니다.
-- `/client`: viewer/operator/admin 접근 shell입니다. `/client/api/views` 기준으로 할당된 PublishedView만 표시하며 원본 source URL, debug/developer URL은 노출하지 않습니다. Integrator는 shell/live/dashboard UI가 아니라 scoped events/metadata API만 접근합니다.
-- `/lab`: admin/operator 또는 `lab:read` scope용 개발/검증 shell입니다. viewer/client 기본 계정은 접근할 수 없고, rule/profile/vaRule 변경 API는 `rule:write` scope를 추가로 요구합니다. 기존 `/lab/rules`와 자동화 bookmark 호환은 auth off 검증 모드에서 유지합니다.
+- `/ops`:
+  admin/operator 전용 운영 shell이며 `ops:read` scope가 필요합니다.
+  채널/PublishedView 변경 API는 `source:write`를 추가로 요구합니다.
+  Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin),
+  클라이언트 미리보기 순서입니다.
 
-Shell navigation은 server-side principal로 1차 렌더링하고 `/auth/whoami` 응답으로 admin-only menu를 다시 숨김 처리합니다. Client shell의 primary nav는 viewer용 라이브/대시보드만 유지합니다. admin/operator가 client 화면을 열면 메뉴 아래에 `Ops로 돌아가기`를 표시하고, viewer에게는 Ops/Lab nav와 debug/developer URL을 숨깁니다. Guard 실패 시 browser shell route는 login 또는 forbidden page를 보여주고, API route는 JSON `401`/`403`을 반환합니다.
+  - `/ops/home`: 운영 overview
+  - `/ops/dashboard`: `/ops/api/runtime/status` 기반 운영 카드/상태
+  - `/ops/sources`: 숫자 채널 목록과 상세 패널
+  - `/ops/rules`: 채널 분석 설정, 이벤트 템플릿, 분석 프로파일 목록
+  - `/ops/live`: 자동 media session을 열지 않는 고밀도 상태 타일
 
-Auth UI/route 회귀는 `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`로 확인합니다. 이 smoke는 `/setup`, `/login`, `/password/change`, `/invite/setup`, `/client/request-access`의 auth shell과 핵심 form selector를 함께 검사하고, route smoke에서는 unauth/viewer/readonly-operator/integrator/public access request matrix로 Ops/Client/Lab API guard를 확인합니다. Auth shell screenshot smoke가 필요하면 `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`을 붙여 같은 명령을 실행합니다. Ops/Client shell selector와 client debug/source 비노출은 실행 중인 auth-off 또는 로그인 준비 서버에 `./server.sh verify-ops-client-ui`를 붙여 확인합니다. 이 smoke는 `/ops/dashboard`와 `/ops/rules`의 Lab iframe 비의존, `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status` 계약, `/client/api/views`, 단일 view, dashboard, events, metadata 응답의 민감 key를 검사합니다. `/ops/live`는 여기에 더해 headless Chrome 상호작용 smoke로 preview `start/stop/restart`, `raw/va-overlay/va-rule` payload, dual-slot cleanup, quick action write path를 짧게 확인합니다. 화면 회귀 확인이 필요하면 `./server.sh verify-ops-client-ui --screenshots`로 주요 Ops/Client 화면을 headless Chrome에서 열어 overflow와 screenshot을 함께 남깁니다. 기존 Lab 자동화는 명시적인 auth off 검증 모드에서 계속 `/lab/rules` 3탭 구조와 공유 design token 계산값을 기준으로 동작합니다.
+  `/ops/live`는 `all/attention/published/unassigned` focus,
+  `view/source` 검색, attention/미배정 카운터를 제공합니다.
+  타일이나 최근 이벤트를 누르면 source health, active tap age,
+  recent EventRecord, snapshot/clip evidence, read-only preview,
+  runtime/event timeline, 관련 화면 이동 action을 같은 drill-down에서 확인합니다.
+
+  preview는 슬롯 `A/B` 최대 2개까지 유지합니다.
+  선택한 PublishedView에 대해 `raw / va-overlay / va-rule` 허용 모드만 열 수 있고,
+  `시작/재연결/정지` 버튼으로 제어합니다.
+  각 슬롯은 `ice`, `metadata age`, `last frame age`, `track/event` badge를 표시합니다.
+  같은 채널을 두 슬롯에 중복으로 열면 기존 슬롯을 정리합니다.
+  `va-rule`은 연결된 rule이 있을 때만 활성화됩니다.
+  raw JSON은 접힘 debug 영역에만 둡니다.
+- `/client`:
+  viewer/operator/admin 접근 shell입니다.
+  `/client/api/views` 기준으로 할당된 PublishedView만 표시하며
+  원본 source URL, debug/developer URL은 노출하지 않습니다.
+  integrator는 shell/live/dashboard UI가 아니라
+  scoped events/metadata API만 접근합니다.
+- `/lab`:
+  admin/operator 또는 `lab:read` scope용 개발/검증 shell입니다.
+  viewer/client 기본 계정은 접근할 수 없고,
+  rule/profile/vaRule 변경 API는 `rule:write` scope를 추가로 요구합니다.
+  기존 `/lab/rules`와 자동화 bookmark 호환은
+  auth off 검증 모드에서 유지합니다.
+
+Shell navigation은 server-side principal로 1차 렌더링하고,
+`/auth/whoami` 응답으로 admin-only menu를 다시 숨깁니다.
+Client shell의 primary nav는 viewer용 라이브/대시보드만 유지합니다.
+admin/operator가 client 화면을 열면 메뉴 아래에 `Ops로 돌아가기`를 표시하고,
+viewer에게는 Ops/Lab nav와 debug/developer URL을 숨깁니다.
+Guard 실패 시 browser shell route는 login 또는 forbidden page를 보여주고,
+API route는 JSON `401`/`403`을 반환합니다.
+
+Auth UI/route 회귀는 다음 명령으로 확인합니다.
+
+- `./server.sh verify-auth-bootstrap`
+- `./server.sh verify-auth-users`
+- `./server.sh verify-auth-routes`
+
+이 smoke는 `/setup`, `/login`, `/password/change`, `/invite/setup`,
+`/client/request-access`의 auth shell과 핵심 form selector를 검사합니다.
+route smoke에서는
+unauth/viewer/readonly-operator/integrator/public access request matrix로
+Ops/Client/Lab API guard를 확인합니다.
+
+추가 확인:
+
+- auth shell screenshot이 필요하면
+  `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`
+  을 붙입니다.
+- Ops/Client selector와 client debug/source 비노출은
+  `./server.sh verify-ops-client-ui`로 확인합니다.
+- `/ops/live`는 preview `start/stop/restart`,
+  `raw/va-overlay/va-rule` payload, dual-slot cleanup,
+  quick action write path를 짧게 확인합니다.
+- 화면 회귀까지 보려면
+  `./server.sh verify-ops-client-ui --screenshots`를 사용합니다.
 
 ## 3. Admin User Management
 
-`/ops/users`는 admin 전용 계정 관리 MVP 화면입니다. 공통 Ops shell 안에서 먼저 사용자 목록 table과 접근 요청 table을 보여주고, 사용자 추가 버튼으로 접힌 editor를 여는 방식입니다. User list는 계정명, 표시 이름, 권한, 상태, 권한 범위 수, 마지막 로그인, 잠금 만료, 비밀번호 변경 여부, 작업을 표시하며 `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`는 UI/API 응답에 노출하지 않습니다.
+`/ops/users`는 admin 전용 계정 관리 MVP 화면입니다.
+공통 Ops shell 안에서 사용자 목록 table과 접근 요청 table을 먼저 보여주고,
+필요한 계정을 상세 패널로 열어 확인하거나 수정합니다.
+`passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`는
+UI/API 응답에 노출하지 않습니다.
 
 지원 동작:
 
@@ -151,13 +287,55 @@ CLI도 같은 C++ password hash/password policy 경로를 사용합니다. Passw
 
 ## 4. SourceRegistry / PublishedView
 
-`/ops/sources`는 운영자가 실제 source를 한 번 등록하고, 클라이언트에는 PublishedView 단위로 공개하기 위한 MVP 화면입니다. 제품 UI에서는 SourceRegistry/PublishedView를 따로 노출하지 않고 `채널` 개념으로 묶어 보여줍니다. 먼저 숫자 채널 목록 table을 표시하고, 채널 추가/보기/수정/복제/비활성화/삭제 흐름은 룰 목록과 같은 패턴을 따릅니다. 기본 registry가 비어 있으면 `sample_h264.mp4`, VA test file, 검증된 공개 RTSP/HLS URL을 숫자 채널로 seed합니다. 기존 registry 파일에 malformed record나 깨진 PublishedView source 참조가 있으면 운영 화면/API는 조용히 누락하거나 seed로 덮지 않고 오류를 반환합니다. `kind=whep`과 `whepUrl`은 외부 WHEP playback endpoint를 서버 pull source로 등록하는 경로이며, 내부 `kind=webrtc`와 `webrtcSourceId`는 계속 이 서버의 `/whip/publish` endpoint로 먼저 등록된 sourceId를 소비하는 경로입니다. 같은 RTSP/HTTP/WHEP URL은 query 순서가 달라도 canonical key 기준으로 중복 등록이 거부됩니다.
+`/ops/sources`는 운영자가 실제 source를 등록하고,
+클라이언트에는 PublishedView 단위로 공개하기 위한 MVP 화면입니다.
+제품 UI에서는 SourceRegistry/PublishedView를 따로 노출하지 않고
+`채널` 개념으로 묶어 보여줍니다.
 
-채널 테이블은 라이브 URL과 VA URL을 분리해 표시하고, 각 영역에서 RTSP와 WebRTC 복사 버튼을 세로로 배치합니다. 복사한 RTSP URL은 일반 RTSP player에서 원본 또는 VA overlay stream을 확인하는 용도이고, WebRTC 버튼은 이 서버의 WHEP endpoint URL을 복사합니다. 이 WHEP URL은 auth on에서 admin/operator `ops:read` 또는 `lab:read` 권한이 있는 운영/검증 클라이언트용이며, 외부 viewer 공유 URL이 아닙니다. PublishedView의 `viewId`, `sourceId`, `defaultRuleId`, `allowedRuleIds`, overlay mode, dashboard/event/metadata 노출 여부는 내부 API schema로 유지합니다. Client Live에서 `va-rule` mode를 사용할 때 `allowedRuleIds`는 PublishedView source와 같은 source를 가진 rule에만 유효합니다. `/client/api/views`는 로그인 principal의 `view:read:{viewId}` scope가 있는 view만 반환하며, 원본 source URL, WHEP endpoint, file locator는 클라이언트 응답에 포함하지 않습니다. 운영자용 registry raw JSON은 `/ops/sources`의 접힘 debug 영역에서만 확인합니다.
+화면 구성:
+
+- 상단 입력 종류 안내 카드:
+  `파일`, `RTSP pull`, `외부 WHEP`, `Published WebRTC`, `HTTP/HLS`
+- 하단 숫자 채널 목록:
+  저장 상태와 PublishedView 연결 상태를 함께 표시
+
+채널 액션:
+
+- 목록 상단: `채널 추가`
+- 행 액션: `상세`, `라이브 보기`, `삭제`
+- 상세 패널 읽기 상태: `수정`, `닫기`
+- 상세 패널 편집 상태: `저장`, `닫기`
+
+기본 registry가 비어 있으면 `sample_h264.mp4`,
+VA test file, 검증된 공개 RTSP/HLS URL을 숫자 채널로 seed합니다.
+기존 registry 파일에 malformed record나 깨진 PublishedView source 참조가 있으면
+운영 화면/API는 조용히 누락하거나 seed로 덮지 않고 오류를 반환합니다.
+
+입력 종류 차이:
+
+- `kind=whep`, `whepUrl`:
+  외부 WHEP playback endpoint를 서버 pull source로 등록
+- `kind=webrtc`, `webrtcSourceId`:
+  외부 URL이 아니라 `/whip/publish`로 먼저 등록된 sourceId를 연결
+
+채널 테이블은 라이브 URL과 VA URL을 분리해 표시하고,
+각 영역에서 RTSP/WHEP 복사 버튼을 제공합니다.
+브라우저 재생은 `/client/live` 또는 `/ops/live` preview에서 확인합니다.
+운영자용 registry raw JSON은 `/ops/sources`의 접힘 debug 영역에서만 확인합니다.
 
 ### 4.1 Client scoped dashboard
 
-`/client/dashboard`는 viewer가 접근 가능한 PublishedView의 상태 요약만 보여주는 client dashboard MVP입니다. view 목록은 `/client/api/views`의 scoped 결과를 사용하고, 선택된 view의 상세 상태는 `/client/api/views/{viewId}/dashboard`에서 가져옵니다. `/client/events`는 primary nav에서 제거했으며, 이벤트 요약은 client dashboard 안에서 sanitized summary로만 표시합니다. Integrator 연동은 `/client/api/views/{viewId}/events?limit=...`와 `/client/api/views/{viewId}/metadata`를 사용하며 각각 `event:read:{viewId}`, `metadata:read:{viewId}`가 필요합니다.
+`/client/dashboard`는 viewer가 접근 가능한 PublishedView의 상태 요약만
+보여주는 client dashboard MVP입니다.
+view 목록은 `/client/api/views`의 scoped 결과를 사용하고,
+선택된 view의 상세 상태는
+`/client/api/views/{viewId}/dashboard`에서 가져옵니다.
+`/client/events`는 primary nav에서 제거했고,
+이벤트 요약은 dashboard 안에서 sanitized summary로만 표시합니다.
+Integrator 연동은
+`/client/api/views/{viewId}/events?limit=...`,
+`/client/api/views/{viewId}/metadata`를 사용하며
+각각 `event:read:{viewId}`, `metadata:read:{viewId}`가 필요합니다.
 
 표시 범위:
 
@@ -166,11 +344,41 @@ CLI도 같은 C++ password hash/password policy 경로를 사용합니다. Passw
 - event summary: 최근 event, event type별 count, warning badge
 - connection: WebRTC connected/disconnected, stale metadata age, last frame age
 
-값이 없거나 아직 수집되지 않은 항목은 UI에서 `미제공`으로 표시합니다. Client dashboard, `/client/api/views/{viewId}/events?limit=...`, `/client/api/views/{viewId}/metadata`는 source 원본 URL, Developer URL, raw JSON, `debugCounters`, `analysisTapId`, internal session id, rule/profile editor, Event POST 설정, SSE/WS 전체 endpoint를 노출하지 않습니다. 운영자용 세부 runtime/debug 확인은 `/lab/rules` Runtime Dashboard 또는 `/lab/runtime/status`에서만 수행합니다.
+값이 없거나 아직 수집되지 않은 항목은 UI에서 `미제공`으로 표시합니다.
+Client dashboard,
+`/client/api/views/{viewId}/events?limit=...`,
+`/client/api/views/{viewId}/metadata`는
+source 원본 URL, Developer URL, raw JSON, `debugCounters`,
+`analysisTapId`, internal session id, rule/profile editor,
+Event POST 설정, SSE/WS 전체 endpoint를 노출하지 않습니다.
+운영자용 세부 runtime/debug 확인은
+`/lab/rules` Runtime Dashboard 또는 `/lab/runtime/status`에서만 수행합니다.
 
 ### 4.2 Client Live Monitor
 
-`/client/live`는 viewer가 접근 가능한 PublishedView만 live monitor grid에 배치합니다. Tile은 viewer 기본 최대 4개, Ops preview 최대 9개이며, 표준/고밀도 density와 live/connecting/stale/offline summary, 타일별 재연결/전체 재연결 control을 제공합니다. 각 PublishedView의 `maxTiles`는 UI의 채널 배정/시작 버튼과 `/client/api/views/{viewId}/webrtc/session` wrapper에서 같은 principal+view의 동시 client session 상한으로 강제합니다. Browser PeerConnection은 `/webrtc/config`의 `peerConnectionConfig`를 사용해 운영 STUN/TURN과 relay-only 설정을 그대로 따릅니다. 생성 응답은 client session alias만 반환하고, answer/ICE/delete는 `/client/api/views/{viewId}/webrtc/session/{clientSessionId}` 아래에서만 이어집니다. Client route는 viewId만 받으며 source 원본 URL, file/url/source override, 내부 generic session id/token, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile 수정 UI는 노출하지 않습니다. `va-rule` mode는 PublishedView의 `allowedRuleIds`와 rule source 일치 검증을 모두 통과해야 합니다. Viewer/client 계정은 직접 `/webrtc/session`, `/whep`, `/whip/publish` 생성 route를 호출할 수 없습니다.
+`/client/live`는 viewer가 접근 가능한 PublishedView만
+live monitor grid에 배치합니다.
+Tile은 viewer 기본 최대 4개, Ops preview 최대 9개이며,
+표준/고밀도 density와 live/connecting/stale/offline summary,
+타일별 재연결/전체 재연결 control을 제공합니다.
+
+각 PublishedView의 `maxTiles`는
+UI의 채널 배정/시작 버튼과
+`/client/api/views/{viewId}/webrtc/session` wrapper에서
+같은 principal+view의 동시 client session 상한으로 강제합니다.
+Browser PeerConnection은 `/webrtc/config`의 `peerConnectionConfig`를 사용합니다.
+생성 응답은 client session alias만 반환하고,
+answer/ICE/delete는
+`/client/api/views/{viewId}/webrtc/session/{clientSessionId}` 아래에서만 이어집니다.
+
+Client route는 viewId만 받습니다.
+source 원본 URL, file/url/source override,
+내부 generic session id/token, Developer URL, BBox diagnostics,
+raw JSON, `debugCounters`, rule/profile 수정 UI는 노출하지 않습니다.
+`va-rule` mode는 PublishedView의 `allowedRuleIds`와
+rule source 일치 검증을 모두 통과해야 합니다.
+viewer/client 계정은 직접 `/webrtc/session`, `/whep`, `/whip/publish`
+생성 route를 호출할 수 없습니다.
 
 Tile별 기능:
 
@@ -184,6 +392,9 @@ Tile별 기능:
 Hidden tab, route leave, tile stop 시 PeerConnection, DataChannel, server WebRTC session을 정리합니다. 모든 tile에 BBox diagnostics를 켜는 동작은 제공하지 않습니다.
 
 ## 5. 영상 분석 룰 목록
+
+이 장부터는 `/lab/rules` 기준 설명입니다.
+`/ops/rules`의 운영용 목록과는 역할이 다릅니다.
 
 룰 목록은 저장된 `vaRule` 설정을 관리하는 첫 화면입니다. `vaRule`은 숫자 ID이며, 영상 source, 분석 profile, event/scenario, 영역/라인, event action을 하나로 묶습니다.
 

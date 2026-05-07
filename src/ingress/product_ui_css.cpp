@@ -741,6 +741,186 @@ std::string ProductUiCss() {
       align-items: center;
       flex-wrap: wrap;
     }
+    .table-cell-muted,
+    .table-empty {
+      color: var(--color-text-muted);
+    }
+    .table-cell-code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      overflow-wrap: anywhere;
+    }
+    .table-empty {
+      text-align: center;
+      white-space: normal;
+    }
+    .table-cell-nowrap {
+      white-space: nowrap;
+    }
+    .table-cell-status,
+    .table-cell-actions {
+      white-space: normal;
+    }
+    .table-cell-status {
+      min-width: 84px;
+      text-align: left;
+    }
+    .table-cell-actions {
+      min-width: 148px;
+    }
+    .table-cell-status .badge,
+    .table-cell-status .chip,
+    .table-cell-status .status-chip {
+      display: inline-block;
+      min-width: 64px;
+      width: max-content;
+      max-width: none;
+      padding-inline: 12px;
+      white-space: nowrap;
+      word-break: keep-all;
+      overflow-wrap: normal;
+      line-break: strict;
+      text-align: center;
+      margin-inline-end: auto;
+    }
+    .grid.rules-metrics-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .rule-mode-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .rule-mode-button {
+      min-width: 140px;
+      min-height: 40px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .ops-rules-table,
+    .user-table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+      min-width: 0;
+    }
+    .ops-rules-col-id { width: 96px; }
+    .ops-rules-col-source { width: auto; }
+    .ops-rules-col-profile { width: 120px; }
+    .ops-rules-col-mode { width: 112px; }
+    .ops-rules-col-event { width: 110px; }
+    .ops-rules-col-target { width: 148px; }
+    .ops-rules-col-status { width: 84px; }
+    .ops-rules-col-actions { width: 148px; }
+    .ops-event-col-id { width: 104px; }
+    .ops-event-col-match { width: auto; }
+    .ops-event-col-analysis { width: 136px; }
+    .ops-event-col-output { width: auto; }
+    .ops-event-col-status { width: 84px; }
+    .ops-event-col-actions { width: 148px; }
+    .ops-profile-col-id { width: 128px; }
+    .ops-profile-col-detector { width: 132px; }
+    .ops-profile-col-fps { width: 80px; }
+    .ops-profile-col-target { width: auto; }
+    .ops-profile-col-usage { width: 120px; }
+    .ops-profile-col-actions { width: 148px; }
+    .user-col-username { width: 136px; }
+    .user-col-name { width: 118px; }
+    .user-col-role { width: 96px; }
+    .user-col-status { width: 84px; }
+    .user-col-scopes { width: auto; }
+    .user-col-last-login { width: 132px; }
+    .user-col-locked-until { width: 108px; }
+    .user-col-password { width: 84px; }
+    .user-col-actions { width: 148px; }
+    .request-col-username { width: 136px; }
+    .request-col-name { width: 124px; }
+    .request-col-contact { width: 136px; }
+    .request-col-channel { width: 104px; }
+    .request-col-reason { width: auto; }
+    .request-col-status { width: 84px; }
+    .request-col-decision { width: 132px; }
+    .request-col-actions { width: 148px; }
+    .user-table th,
+    .user-table td,
+    .ops-rules-table th,
+    .ops-rules-table td {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .ops-rules-table .table-actions {
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+    }
+    .ops-va-template-assist {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    #opsVaRuleTemplateAssistActions.actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    #opsVaRuleTemplateAssistState {
+      margin: 0;
+    }
+    .ops-rule-id-cell,
+    .ops-rule-value-stack,
+    .user-id-cell,
+    .user-value-stack {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+    .ops-rule-id-cell > strong,
+    .ops-rule-value-stack > strong,
+    .user-id-cell > strong,
+    .user-value-stack > strong {
+      display: block;
+      font-size: 13px;
+      color: var(--color-text);
+      line-height: 1.45;
+      white-space: normal;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+    .ops-rule-note,
+    .user-note {
+      display: block;
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.4;
+      overflow-wrap: break-word;
+      word-break: normal;
+    }
+    .ops-rule-status-actions,
+    .user-status-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-start;
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .ops-rule-row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .ops-rule-row-actions button,
+    .user-row-actions button,
+    .user-status-actions button {
+      width: auto;
+      min-width: 78px;
+      min-height: 32px;
+      padding: 6px 9px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
     .channel-table {
       table-layout: fixed;
     }
@@ -782,22 +962,12 @@ std::string ProductUiCss() {
       width: 100%;
       min-width: 0;
     }
-    .user-row-actions,
-    .user-status-actions {
-      display: grid;
-      gap: var(--space-2);
-    }
     .user-row-actions {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .user-row-actions button,
-    .user-status-actions button {
-      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-2);
       min-width: 0;
-      min-height: 32px;
-      padding: 6px 9px;
-      font-size: 11px;
-      white-space: nowrap;
     }
     .user-scope-cell {
       max-width: 220px;
@@ -811,6 +981,11 @@ std::string ProductUiCss() {
       padding: 6px 9px;
       font-size: 11px;
       white-space: nowrap;
+    }
+    .channel-input-stack .token,
+    .channel-source-note {
+      overflow-wrap: break-word;
+      word-break: normal;
     }
     .auth-shell {
       display: grid;
@@ -847,6 +1022,48 @@ std::string ProductUiCss() {
       .image-nav-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .nav-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .nav { width: 100%; }
+      .grid.rules-metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 1180px) and (min-width: 861px) {
+      .app-header-top {
+        grid-template-columns: minmax(0, 1fr) minmax(268px, 320px);
+        align-items: stretch;
+      }
+      .app-header-top > .image-nav-tabs:not(.client-image-nav-tabs) {
+        grid-template-columns: repeat(3, minmax(92px, 1fr));
+      }
+      .account-menu {
+        min-height: 176px;
+        display: grid;
+        grid-template-columns: auto auto minmax(0, 1fr);
+        grid-template-areas:
+          "theme avatar copy"
+          "logout logout logout";
+        align-items: center;
+        align-content: start;
+        justify-content: stretch;
+        gap: var(--space-3);
+        padding: 10px 12px;
+      }
+      .account-menu > .theme-toggle {
+        grid-area: theme;
+      }
+      .account-menu > .account-avatar {
+        grid-area: avatar;
+      }
+      .account-menu > .account-copy {
+        grid-area: copy;
+      }
+      .account-menu > form {
+        grid-area: logout;
+        width: 100%;
+        margin: 0;
+      }
+      .account-menu > form > button {
+        width: 100%;
+      }
     }
     @media (max-width: 1040px) {
       .channel-table,
@@ -895,12 +1112,96 @@ std::string ProductUiCss() {
         min-width: 0;
       }
     }
+    @media (max-width: 1040px) {
+      .ops-rules-table,
+      .ops-rules-table tbody,
+      .ops-rules-table tr,
+      .ops-rules-table td,
+      .user-table,
+      .user-table tbody,
+      .user-table tr,
+      .user-table td {
+        display: block;
+        width: 100%;
+      }
+      .ops-rules-table,
+      .user-table {
+        min-width: 0;
+        table-layout: auto;
+      }
+      .ops-rules-table colgroup,
+      .ops-rules-table thead,
+      .user-table colgroup,
+      .user-table thead {
+        display: none;
+      }
+      .ops-rules-table tr,
+      .user-table tr {
+        padding: var(--space-2) 0;
+        border-bottom: 1px solid var(--color-table-border);
+      }
+      .ops-rules-table tr:last-child,
+      .user-table tr:last-child {
+        border-bottom: 0;
+      }
+      .ops-rules-table th,
+      .ops-rules-table td,
+      .user-table th,
+      .user-table td {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+      }
+      .ops-rules-table td,
+      .user-table td {
+        min-height: 42px;
+        display: grid;
+        grid-template-columns: minmax(108px, 132px) minmax(0, 1fr);
+        gap: var(--space-3);
+        align-items: start;
+        border-bottom: 0;
+        padding: 8px var(--space-3);
+        white-space: normal;
+      }
+      .ops-rules-table td::before,
+      .user-table td::before {
+        content: attr(data-label);
+        color: var(--color-text-muted);
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      .ops-rules-table .table-cell-status,
+      .ops-rules-table .table-cell-actions,
+      .user-table .table-cell-status,
+      .user-table .table-cell-actions {
+        min-width: 0;
+        width: auto;
+      }
+      .ops-rules-table .table-actions {
+        justify-content: flex-start;
+      }
+    }
     @media (max-width: 560px) {
+      .grid.rules-metrics-grid {
+        grid-template-columns: 1fr;
+      }
       .channel-table td {
         grid-template-columns: 1fr;
         gap: 4px;
       }
       .channel-row-actions {
+        grid-template-columns: 1fr;
+      }
+      .ops-rules-table td,
+      .user-table td {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+      .ops-rules-table .table-actions,
+      .ops-rule-row-actions,
+      .user-row-actions {
+        display: grid;
         grid-template-columns: 1fr;
       }
     }

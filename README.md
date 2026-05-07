@@ -4,44 +4,54 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 
 ## 핵심 요약
 
-- RTSP/WebRTC 미디어 중계: RTSP output, WebRTC signaling/WHEP output, 외부 WHEP playback URL pull, WHIP publish sourceId 소비 1차 경로를 지원합니다. SourceRegistry의 `kind=webrtc`는 외부 WebRTC/WHEP URL pull이 아니라 `/whip/publish`로 먼저 등록된 내부 sourceId를 소비하는 경로입니다.
-- Source: file, RTSP pull, HTTP/HLS URI, 외부 WHEP playback URL, 내부 WHIP publish sourceId를 같은 stream/session 구조에서 다룹니다. 외부 WHEP pull은 `kind=whep`/`whepUrl` 또는 `?source=whep&url={endpoint}`로 등록/소비합니다.
+- RTSP/WebRTC 미디어 중계:
+  RTSP output, WebRTC signaling/WHEP output, 외부 WHEP pull, 내부 WHIP publish sourceId 소비 경로를 지원합니다.
+- Source 모델:
+  file, RTSP pull, HTTP/HLS URI, 외부 WHEP playback URL, 내부 WHIP publish sourceId를 같은 stream/session 구조에서 다룹니다.
 - VA overlay: `va=1`로 YOLO/ONNX detection overlay를 요청할 수 있습니다.
 - 영상 분석 UI: Rule/Profile/Scenario, 객체 category, polygon/line, event action을 `/lab/rules`에서 설정합니다.
-- Auth/account MVP: 최초 `/setup`, `/login`, role/scope principal, admin 계정 관리, viewer invite/request 승인 흐름, role 기반 route guard를 제공합니다.
-- Ops/Client UI shell MVP: `/ops`는 운영 콘솔, `/client`는 viewer/client 포털, `/lab`은 개발/검증용 UI로 분리합니다.
-- 채널 관리 MVP: 운영 source 원본과 client 공개 view는 내부적으로 SourceRegistry/PublishedView API를 유지하지만, 제품 UI에서는 숫자 기반 채널 목록으로 관리합니다. `/ops/sources`는 채널 테이블, 보기/수정/복제/비활성화/삭제 흐름, Live/VA URL 복사 버튼을 제공합니다.
+- Auth/account MVP:
+  최초 `/setup`, `/login`, role/scope principal, admin 계정 관리, viewer invite/request 승인 흐름, role 기반 route guard를 제공합니다.
+- Ops/Client shell:
+  `/ops`는 운영 콘솔, `/client`는 viewer/client 포털, `/lab`은 개발/검증용 UI로 분리합니다.
+- 채널 관리 MVP:
+  제품 UI에서는 숫자 기반 채널 목록으로 source와 PublishedView 연결 상태를 함께 관리합니다.
 - 저장 설정 호출: 숫자 ID 기반 `vaRule=<id>`로 저장된 source/profile/rule/scenario를 호출합니다.
-- VA Metadata Runtime Console: WebRTC 메타데이터 뷰어, 브라우저 client-side overlay, drill-down 런타임 대시보드, vaRule debug, SSE/WS side-channel, side-channel subscription filter/control, custom SSE client와 Custom RTSP+SSE overlay 예제를 제공합니다.
+- VA Metadata Runtime Console:
+  WebRTC 메타데이터 뷰어, browser client-side overlay, runtime drill-down, SSE/WS side-channel, subscription filter/control을 제공합니다.
 - 이벤트/검증: Event POST, EventRecord JSON Lines 저장, VA metadata replay/baseline 검증 구조를 제공합니다.
 
 ## 대표 UI 미리보기
 
-**로그인**
+대표 제품 화면:
 
-![로그인](docs/assets/ui/auth-login.png)
+**Ops Home**
+
+![운영 홈](docs/assets/ui/ops-home.png)
+
+**Ops Live**
+
+![운영자 라이브 모니터](docs/assets/ui/ops-live.png)
 
 **운영 채널 관리**
 
 ![운영 채널 관리](docs/assets/ui/ops-channels.png)
 
+**운영 룰 관리**
+
+![운영 룰 관리](docs/assets/ui/ops-rules.png)
+
 **클라이언트 라이브**
 
 ![클라이언트 라이브](docs/assets/ui/client-live.png)
 
-**룰 목록과 저장된 vaRule 관리**
+운영/개발 진단 화면과 분석 설정 상세는
+[docs/ui-guide.md](docs/ui-guide.md)에서 따로 정리합니다.
 
-![영상 분석 룰 목록](docs/assets/ui/analysis-rule-list.png)
+채널 화면에서는 다음 두 입력을 구분해 설명합니다.
 
-**영상 프레임을 보며 영역/라인 설정**
-
-![영상 분석 영역 캔버스](docs/assets/ui/analysis-region-canvas.png)
-
-**영상 분석 테스트/미리보기**
-
-![영상 분석 보기](docs/assets/ui/analysis-preview.png)
-
-상세 화면 설명은 [docs/ui-guide.md](docs/ui-guide.md)를 봅니다.
+- `외부 WHEP pull`: 외부 playback endpoint를 서버 pull source로 등록
+- `Published WebRTC source`: 외부 URL이 아니라 내부 `/whip/publish`로 먼저 등록된 `sourceId` 연결
 
 ## 전체 Pipeline
 
@@ -110,7 +120,43 @@ YOLO Detection
 | VA overlay | `rtsp://127.0.0.1:8554/dhseo?file=va_four_scene_sample.mp4&va=1` |
 | 저장 VA 룰 | `rtsp://127.0.0.1:8554/dhseo?vaRule=1` |
 
-기본 `MEDIA_SERVER_AUTH_MODE=auto`에서는 users file 또는 admin passwordHash가 없으면 `/`가 `/setup`으로 이동합니다. Setup 완료 후에는 `/login`이 기본 진입점이며 admin/operator는 `/ops/home`, viewer는 `/client/live`로 이동합니다. `/ops`는 운영 콘솔, `/client`는 클라이언트 포털, `/lab`과 `/lab/rules`는 개발/검증용 화면입니다. `/ops` 변경 API는 `source:write`, `/lab` rule/profile 변경 API는 `rule:write`를 추가로 요구합니다. `/lab`은 auth off 테스트 모드 또는 admin/operator/lab scope로 접근합니다. Integrator는 UI shell 대신 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata` scoped API를 사용합니다. 직접 `/webrtc/session`, `/whep`, `/whip/publish` 생성 경로는 auth off 개발 모드 또는 admin/operator `ops:read`, `lab:read` 권한이 있는 요청에서만 사용할 수 있습니다. Auth on의 WebRTC/WHEP/WHIP 후속 answer/ICE/delete route는 난수 session id와 생성 principal 또는 `X-Session-Capability`로 보호됩니다. Viewer 제품 흐름은 `/client/api/views/{viewId}/webrtc/session` wrapper와 같은 prefix의 answer/ICE/delete wrapper만 사용하며 내부 generic session id와 session token을 노출하지 않습니다. Client Live의 `va-rule` mode는 `allowedRuleIds`에 포함된 rule이라도 rule source가 PublishedView source와 같을 때만 허용합니다. 직접 WebSocket metadata side-channel인 `/ws/va-metadata`도 Lab/custom-client 경로로 분류해 auth off 또는 admin/operator `lab:read` 권한에서만 사용합니다. 내장 HTTP parser는 header/body 크기, `Content-Length` 형식, socket read timeout, 동시 연결 상한을 적용해 malformed/oversized 요청이 process를 종료하거나 무기한 자원을 점유하지 않도록 합니다.
+기본 `MEDIA_SERVER_AUTH_MODE=auto`에서는 users file 또는
+`admin.passwordHash`가 없으면 `/`가 `/setup`으로 이동합니다.
+
+접근 흐름:
+
+- setup 완료 전: `/ -> /setup`
+- setup 완료 후 기본 진입점: `/login`
+- admin/operator landing: `/ops/home`
+- viewer landing: `/client/live`
+
+권한 기준:
+
+- `/ops`는 운영 콘솔입니다.
+- `/client`는 클라이언트 포털입니다.
+- `/lab`, `/lab/rules`는 개발/검증용 화면입니다.
+- `/ops` 변경 API는 `source:write`가 필요합니다.
+- `/lab` rule/profile 변경 API는 `rule:write`가 필요합니다.
+- integrator는 UI shell 대신
+  `/client/api/views/{viewId}/events`,
+  `/client/api/views/{viewId}/metadata` 같은 scoped API를 사용합니다.
+
+직접 media 생성 route:
+
+- `/webrtc/session`, `/whep`, `/whip/publish`는 auth off 개발 모드 또는
+  admin/operator `ops:read`, `lab:read` 권한이 있는 요청에서만 사용합니다.
+- Auth on의 WebRTC/WHEP/WHIP 후속 answer/ICE/delete route는
+  난수 session id와 생성 principal 또는 `X-Session-Capability`로 보호합니다.
+- viewer 제품 흐름은
+  `/client/api/views/{viewId}/webrtc/session` wrapper와 같은 prefix의
+  answer/ICE/delete wrapper만 사용합니다.
+
+추가 제약:
+
+- Client Live의 `va-rule` mode는 rule source와 PublishedView source가 같을 때만 허용합니다.
+- `/ws/va-metadata`는 Lab/custom-client 경로로 분류합니다.
+- 내장 HTTP parser는 header/body 크기, `Content-Length` 형식,
+  socket read timeout, 동시 연결 상한을 적용합니다.
 
 ## 영상 분석 사용 흐름
 
@@ -123,18 +169,31 @@ YOLO Detection
 7. WebRTC 메타데이터 뷰어에서는 `vaMetadata=1` DataChannel과 browser client-side overlay를 확인합니다.
 8. 외부 RTSP 클라이언트에서는 `?va=1` 또는 `?vaRule=<id>` server-side overlay URL을 사용합니다.
 
-RTSP 일반 viewer는 WebRTC DataChannel metadata를 표시하지 않습니다. custom client가 metadata를 따로 소비해야 할 때는 RTSP raw stream과 SSE/WS metadata side-channel을 별도로 조합합니다. 자세한 정책은 [docs/ui-guide.md](docs/ui-guide.md)와 [docs/video-analysis.md](docs/video-analysis.md)를 봅니다.
+RTSP 일반 viewer는 WebRTC DataChannel metadata를 표시하지 않습니다.
+custom client가 metadata를 따로 소비해야 할 때는
+RTSP raw stream과 SSE/WS metadata side-channel을 별도로 조합합니다.
+자세한 정책은 [docs/ui-guide.md](docs/ui-guide.md)와
+[docs/video-analysis.md](docs/video-analysis.md)를 봅니다.
 
 ## 시나리오 로드맵 상태
 
-- 1차 완료: Runtime Dashboard trend/stale/cleanup warning, scenario rule payload의 runtime per-rule 설정 연결, ReEntry, IntrusionAfterLineCrossing, Loitering, ZoneOccupancy의 룰 편집 UI 선택/저장 템플릿과 현장형 tuning preset.
+- 1차 완료: Runtime Dashboard trend/stale/cleanup warning,
+  scenario rule payload의 runtime per-rule 설정 연결,
+  ReEntry, IntrusionAfterLineCrossing, Loitering, ZoneOccupancy의
+  룰 편집 UI 선택/저장 템플릿과 현장형 tuning preset.
 - 1차 완료: Auth/account API와 route MVP, SourceRegistry / PublishedView API와 route MVP, Client scoped dashboard API MVP, Client Live Monitor 2x2 MVP.
 - 1차 완료: `/setup`, `/login`, `/ops`, `/client` 제품 UI shell 통합. Ops 주 메뉴는 홈, 대시보드, 채널, 룰, 사용자, 클라이언트 미리보기 순서이며, client 주 메뉴는 라이브와 대시보드만 노출합니다.
-- 1차 완료: `/ops/dashboard`와 `/ops/rules`는 Lab iframe 없이 `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status` 제품 API로 운영 카드와 룰 카탈로그를 표시합니다. `/ops/events`와 `/client/events`는 제품 primary tab에서 숨기고, 이벤트 요약은 룰/대시보드 맥락에서 확인합니다. raw JSON/debug는 운영자 접힘 영역에만 둡니다.
+- 1차 완료: `/ops/dashboard`와 `/ops/rules`는 Lab iframe 없이
+  `/ops/api/runtime/status`, `/ops/api/rules/catalog`,
+  `/ops/api/events/status` 제품 API로 운영 카드와 룰 화면을 표시합니다.
+  `/ops/events`, `/client/events`는 제품 primary tab에서 숨기고,
+  이벤트 요약은 룰/대시보드 맥락에서 확인합니다.
 - 1차 완료: `/ops/live`는 자동 media session을 열지 않는 고밀도 운영 상태 타일로 source/runtime/event를 표시합니다.
 - 1차 완료: EventRecord archive 포함 조회와 비파괴 compaction snapshot 생성/목록/다운로드/삭제 API/UI, snapshot frame 저장과 pre/post frame bundle recorder manifest를 제공합니다.
-- 남은 후속 작업: PublishedView 기반 scope picker, metadata subscription filter/control, archive cleanup policy 고도화를 별도 묶음으로 관리합니다.
-- 제한/미구현: MP4/VMS/NVR형 장기 녹화, Re-ID 기본 기능화, 운영 TURN relay/auth, WebSocket command/filter/subscription은 완료 범위가 아닙니다.
+- 남은 후속 작업: PublishedView 기반 scope picker,
+  archive cleanup policy 고도화를 별도 묶음으로 관리합니다.
+- 제한/미구현: MP4/VMS/NVR형 장기 녹화, Re-ID 기본 기능화,
+  운영 TURN relay/auth, 외부 WHEP credential 정책은 별도 운영 범위입니다.
 
 이 로드맵 정리는 기존 Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema 변경을 의미하지 않습니다. snapshot/clip hook은 EventRecord용 짧은 frame evidence recorder이며 VMS/NVR 녹화 기능이 아닙니다.
 
@@ -146,7 +205,12 @@ RTSP 일반 viewer는 WebRTC DataChannel metadata를 표시하지 않습니다. 
 ./server.sh test
 ```
 
-`./server.sh test`, `./server.sh test --basic`, `./server.sh test --full`, `./server.sh verify-predev --quick`는 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하므로 느립니다. 문서/UI/Auth/권한처럼 media pipeline 자체를 바꾸지 않은 변경에서는 기본 테스트로 실행하지 말고, 아래 전용 smoke를 사용합니다.
+`./server.sh test`, `./server.sh test --basic`,
+`./server.sh test --full`, `./server.sh verify-predev --quick`는
+기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하므로 느립니다.
+
+문서/UI/Auth/권한처럼 media pipeline 자체를 바꾸지 않은 변경에서는
+위 명령을 기본으로 돌리지 않고, 아래 전용 smoke를 사용합니다.
 
 문서/UI/Auth/권한 전용 빠른 검증:
 
@@ -160,7 +224,13 @@ git diff --check -- README.md docs scripts src include
 ./server.sh verify-analysis-state
 ```
 
-`verify-auth-routes`는 격리 서버를 직접 띄우지만, `verify-ops-client-ui`, `verify-rule-ui`, `verify-lab-layout`는 실행 중인 HTTP 서버에 붙는 UI smoke입니다. UI만 확인할 때는 별도 터미널에서 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`로 서버를 띄운 뒤 필요하면 `--http-base`를 지정합니다.
+`verify-auth-routes`는 격리 서버를 직접 띄웁니다.
+`verify-ops-client-ui`, `verify-rule-ui`, `verify-lab-layout`는
+실행 중인 HTTP 서버에 붙는 UI smoke입니다.
+
+UI만 확인할 때는 별도 터미널에서
+`MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`로 서버를 띄운 뒤
+필요하면 `--http-base`를 지정합니다.
 
 로컬 풀 검증:
 

@@ -37,7 +37,8 @@
 - WebRTC source 관련 완료 범위는 WebRTC egress/WHEP output, 내부 `/whip/publish` sourceId 소비, 외부 WHEP playback endpoint를 `kind=whep`/`whepUrl`로 pull하는 SourceRegistry 경로입니다. 인증 토큰이 필요한 외부 WHEP endpoint credential 보관/주입은 별도 운영 정책 gate로 둡니다.
 - EventRecord 완료 범위는 JSON Lines 저장, active/archive 조회/search UI, rotation/retention/recovery 1차, 비파괴 compaction snapshot 생성/목록/다운로드/삭제, snapshot media/pre-post frame bundle recorder입니다. Archive cleanup policy와 MP4/VMS/NVR형 recorder는 후속입니다.
 - Loitering은 engine/replay와 전용 룰 편집 UI 템플릿, 현장 샘플 프리셋 기준 완료입니다. ZoneOccupancyScenario는 engine/replay/UI와 대기열/로비/승강장/출입구/승강기 홀 tuning preset 기준 완료입니다.
-- Re-ID/appearance, YouTube import/source, 외부 TURN relay/auth, WS command/filter/subscription은 실험/보류 범위이며 운영 기본 기능으로 표현하지 않습니다.
+- Re-ID/appearance, YouTube import/source, 외부 TURN relay/auth는
+  실험/보류 범위이며 운영 기본 기능으로 표현하지 않습니다.
 
 ## 후속 Phase - 운영/클라이언트/권한 분리
 
@@ -57,7 +58,18 @@
 
 - 상태: 완료: API/route MVP + `/ops/sources` product UI integration 1차
 - 목적: 내부 source 관리와 클라이언트에 공개되는 view 모델을 분리합니다.
-- 완료 범위: `.media_server.sources.json`, `.media_server.views.json`, `MEDIA_SERVER_SOURCE_REGISTRY`, `MEDIA_SERVER_PUBLISHED_VIEWS`, Source/View registry strict load와 atomic fsync/rename 저장, `/ops/api/sources`, `/ops/api/views`, `/client/api/views`, `/client/api/views/{viewId}`, canonical source 중복 차단, file/RTSP/HTTP-HLS/WHEP/내부 WHIP sourceId source 모델, `/ops/sources` 숫자 채널 table/list-first UI, 채널 추가/보기/수정/복제/비활성화/삭제 흐름, 기본 file/VA file/공개 RTSP/HLS seed, Live/VA URL의 RTSP/WebRTC 복사 버튼, registry raw JSON debug drawer입니다.
+- 완료 범위: `.media_server.sources.json`, `.media_server.views.json`,
+  `MEDIA_SERVER_SOURCE_REGISTRY`, `MEDIA_SERVER_PUBLISHED_VIEWS`,
+  Source/View registry strict load와 atomic fsync/rename 저장,
+  `/ops/api/sources`, `/ops/api/views`, `/client/api/views`,
+  `/client/api/views/{viewId}`, canonical source 중복 차단,
+  file/RTSP/HTTP-HLS/WHEP/내부 WHIP sourceId source 모델,
+  `/ops/sources` 숫자 채널 table/list-first UI,
+  `채널 추가 -> 상세 -> 수정/저장` 흐름,
+  입력 종류 안내 카드,
+  기본 file/VA file/공개 RTSP/HLS seed,
+  Live/VA URL의 RTSP/WHEP 복사 버튼,
+  registry raw JSON debug drawer입니다.
 - 후속: source lifecycle 상태, bulk action, PublishedView 기반 visual scope picker, source health와 operator live monitor 연결은 다음 묶음에서 진행합니다.
 - 우선순위 이유: source 원본 설정, 운영자 제어, 클라이언트 노출 범위를 한 모델로 섞지 않기 위한 선행 작업입니다.
 
