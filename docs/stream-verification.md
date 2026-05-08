@@ -93,11 +93,8 @@ Ops/Client shell 변경 확인 포인트:
 - product shell selector 유지
 - client debug/source 비노출
 - `/client/api/views`, 단일 view, dashboard, events, metadata 응답의 민감 key 비노출
-- `/ops/live` preview `start/stop/restart`
-- `raw/va-overlay/va-rule` payload
-- dual-slot cleanup
-- quick action write path(`preview 정지`, channel enable/disable toggle)
-- `/ops/live` raw/detail 정보가 debug drawer 안에 머무는지 여부
+- `/client/live`와 `/ops/rules` 미리보기의 `raw/va-overlay/va-rule` payload
+- channel/rule URL 복사 버튼의 selector와 출력 URL 생성
 
 추가 참고:
 
@@ -116,8 +113,8 @@ Ops/Client shell 변경 확인 포인트:
 ```bash
 BASE=http://127.0.0.1:8080
 for path in \
-  /ops /ops/home /ops/live /ops/dashboard /ops/sources /ops/rules /ops/events /ops/users \
-  /client /client/live /client/dashboard /lab /lab/rules
+  /ops /ops/home /ops/dashboard /ops/sources /ops/rules /ops/events /ops/users \
+  /client /client/live /client/dashboard
 do
   curl -fsS -D "/tmp/media-server-ui${path//\//_}.headers" \
     -o "/tmp/media-server-ui${path//\//_}.html" \
@@ -126,33 +123,18 @@ done
 
 if grep -E 'href="/(lab/runtime/status|lab/analysis/event-post/status|lab/analysis/events/records|ops/api|client/api)' /tmp/media-server-ui_ops*.html
 then
-  echo "[fail] ops shell exposes raw JSON/API href"
+  echo "[fail] ops shell exposes internal JSON/API href"
   exit 1
 fi
 ```
 
 확인 기준:
 
-- `/ops`, `/ops/home`, `/ops/live`, `/ops/dashboard`, `/ops/sources`,
+- `/ops`, `/ops/home`, `/ops/dashboard`, `/ops/sources`,
   `/ops/rules`, `/ops/users`는 HTML을 반환하고
   공통 Ops Console header/nav를 유지합니다.
   Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin),
   클라이언트 미리보기 순서입니다.
-  `/ops/live`는 자동 media session을 열지 않는 고밀도 상태 타일을 표시합니다.
-
-  Ops Live smoke는 다음을 함께 확인합니다.
-
-  - focus selector
-  - search input
-  - attention/unassigned count
-  - drill-down summary
-  - detail event rows
-  - preview target/mode/start-stop
-  - primary/secondary preview slot
-  - 슬롯별 health badge
-  - timeline summary/rows
-  - action summary/buttons
-  - detail JSON selector
 - `/ops/events`는 primary nav에서 숨긴 직접/진단 route입니다. 독립 제품 탭으로 취급하지 않고, 이벤트 조건은 룰에서 설정하며 운영 요약은 대시보드에서 확인합니다.
 - `/ops/dashboard`와 `/ops/rules`는 Lab iframe이나
   `/lab/rules?embed=1`을 포함하지 않습니다.
@@ -162,7 +144,7 @@ fi
   `/ops/rules` detail panel은 `opsVaRuleForm`,
   `opsEventRuleForm`, `opsProfileForm` 네이티브 폼으로 열립니다.
   `/ops/rules`는 `rule/profile/source` 검색 입력과 `#q=` hash를 지원합니다.
-  raw JSON은 접힘 debug 영역에만 둡니다.
+  내부 진단 JSON은 제품 화면에 직접 노출하지 않고 API/검증 명령에서만 확인합니다.
 - `/ops/sources`는 숫자 채널 table을 먼저 보여줍니다.
   상단 안내 카드와 detail form에서
   `외부 WHEP pull`과 `Published WebRTC source` 차이를 설명해야 합니다.
@@ -170,16 +152,19 @@ fi
   rendered HTML에 `AppendTableHead(` 같은 템플릿 문자열이 새면 안 됩니다.
   source 원본 URL은 ops 화면에만 표시합니다.
 - `/ops/users`는 사용자 목록 table과 접근 요청 table을 보여주고, 사용자 추가/수정 editor는 접힘 영역으로 열립니다. Access request 승인 UI는 password setup invite token/setup URL을 승인 응답에서 한 번만 표시하며, 거절은 request 상태만 바꿉니다. `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`를 노출하지 않습니다.
-- `/client/live`, `/client/dashboard`는 client shell을 유지하고 source URL, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile editor를 노출하지 않습니다. Client Events tab은 primary nav에서 제거합니다.
-- `/lab`, `/lab/rules`, `/lab/import` 화면 route는 제품 화면으로 redirect하고, 개발/검증 API는 `/lab/analysis/*`에서만 유지합니다.
+- `/client/live`, `/client/dashboard`는 client shell을 유지하고 source URL, Developer URL, BBox diagnostics, 내부 진단 JSON, rule/profile editor를 노출하지 않습니다. Client Events tab은 primary nav에서 제거합니다.
+- `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫고, 개발/검증 API는 `/lab/analysis/*`에서만 유지합니다.
 
 WebRTC/stream 변경:
 
 ```bash
 ./server.sh verify-codecs
 ./server.sh verify-webrtc-ice
-./server.sh verify-multichannel
 ```
+
+초기 `/webrtc/test` 화면에 의존하던 다채널 브라우저 harness는 제품 UI 정리 후
+실행하지 않습니다. 긴 RTSP/WebRTC 다채널 재생 검증은 별도 제품 UI harness가
+준비될 때까지 기본 안정성 테스트에서 제외합니다.
 
 Auth 변경:
 
@@ -245,7 +230,7 @@ curl -fsS -D - -o /tmp/root-unauth.out 'http://127.0.0.1:8080/'
 curl -fsS -i -H 'Authorization: Bearer viewer-token' 'http://127.0.0.1:8080/ops'
 ```
 
-확인 기준은 auth off + `lab` home에서 `/ -> /lab`, auth off + `client` home에서 `/ -> /client/live`, admin/operator token에서 `/ -> /ops/home`, viewer token에서 `/ -> /client/live`, 미인증 auth-on 요청에서 `/ -> /login`, viewer의 `/ops` 접근에서 `403`, viewer의 `/lab` 접근에서 `403`입니다. `/ops`는 admin/operator role과 `ops:read` scope를 함께 요구하며, unauth 요청은 주요 `/ops/api/*` read route에서 `401`, viewer 요청은 `403`이어야 합니다. Readonly operator는 `/ops/api/sources`, `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status`를 읽을 수 있지만 `/ops/api/users`, invite, access request review, source/view 변경은 `403`이어야 합니다. `/ops/api/sources`와 `/ops/api/views` 변경은 `source:write`, `/lab` rule/profile/vaRule 변경은 `rule:write`를 추가로 요구합니다. `/client/api/views`는 viewer에게 할당된 PublishedView만 반환하고 다른 view의 dashboard/WebRTC wrapper는 `403`이어야 합니다. Integrator는 `/client` shell이 `403`이고 `/client/api/views` 목록에 live view가 노출되지 않지만 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata`는 각각 scope가 있으면 `200`이어야 합니다. `POST /client/api/access-requests`는 public route로 남아야 하지만 abuse guard를 통과해야 합니다. Auth on에서 `/webrtc/session`, `/whep`, `/whip/publish` 직접 생성 요청은 미인증 `401`, viewer `403`이어야 하며, `/ws/va-metadata`도 미인증 `401`, viewer `403`으로 막혀야 합니다. Auth off 개발 모드에서는 기존 검증 명령으로 계속 확인합니다.
+확인 기준은 auth off 기본 home에서 `/ -> /ops/home`, auth off + `client` home에서 `/ -> /client/live`, admin/operator token에서 `/ -> /ops/home`, viewer token에서 `/ -> /client/live`, 미인증 auth-on 요청에서 `/ -> /login`, viewer의 `/ops` 접근에서 `403`, `/lab` 화면 route에서 `404`입니다. `/ops`는 admin/operator role과 `ops:read` scope를 함께 요구하며, unauth 요청은 주요 `/ops/api/*` read route에서 `401`, viewer 요청은 `403`이어야 합니다. Readonly operator는 `/ops/api/sources`, `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status`를 읽을 수 있지만 `/ops/api/users`, invite, access request review, source/view 변경은 `403`이어야 합니다. `/ops/api/sources`와 `/ops/api/views` 변경은 `source:write`, `/lab/analysis/*` rule/profile/vaRule 변경은 `rule:write`를 추가로 요구합니다. `/client/api/views`는 viewer에게 할당된 PublishedView만 반환하고 다른 view의 dashboard/WebRTC wrapper는 `403`이어야 합니다. Integrator는 `/client` shell이 `403`이고 `/client/api/views` 목록에 live view가 노출되지 않지만 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata`는 각각 scope가 있으면 `200`이어야 합니다. `POST /client/api/access-requests`는 public route로 남아야 하지만 abuse guard를 통과해야 합니다. Auth on에서 `/webrtc/session`, `/whep`, `/whip/publish` 직접 생성 요청은 미인증 `401`, viewer `403`이어야 하며, `/ws/va-metadata`도 미인증 `401`, viewer `403`으로 막혀야 합니다. Auth off 개발 모드에서는 기존 검증 명령으로 계속 확인합니다.
 
 ## 장기 테스트 명령
 
@@ -329,11 +314,8 @@ MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verif
 
 수동 mode별 명령은 비교 리포트의 원인 분석이나 특정 mode 재현이 필요할 때 사용합니다. report judgement가 `hold`이면 event/scenario delta 또는 주요 회귀가 있다는 뜻이므로 default on 검토를 중단하고 fixture와 summary log를 먼저 확인합니다.
 
-반복 다채널 VA 검증:
-
-```bash
-./server.sh verify-multichannel --include-va --repeat 3
-```
+반복 다채널 VA 브라우저 검증은 제거된 초기 harness가 아니라 별도 제품 UI
+harness가 준비된 뒤 장기 테스트로만 실행합니다.
 
 외부 source 장시간 검증은 사용할 source가 준비된 경우에만 실행합니다.
 
@@ -405,7 +387,7 @@ curl -fsS -X POST \
 WebRTC VA 메타데이터 수동 확인:
 
 1. `/ops/rules`에서 저장된 채널 분석 설정과 `vaRule` ID를 확인한다.
-2. `/ops/live` 또는 custom client에서 해당 `vaRule`을 선택한다.
+2. `/client/live` 또는 custom client에서 해당 `vaRule`을 선택한다.
 3. 개발 검증은 `verify-webrtc-va-metadata --http-base ...`로 수행한다.
 4. WebRTC simple signaling query에 `vaMetadata=1`이 포함되는지 확인한다.
 5. DataChannel label이 기본값 `va-metadata`로 표시되는지 확인한다.
@@ -470,7 +452,7 @@ RTSP와 WebRTC는 metadata 표시 방식이 다릅니다.
 수동 확인:
 
 1. `/ops/rules`에서 채널 분석 설정의 출력 URL을 확인한다.
-2. `/ops/live` 또는 custom client에서 WebRTC metadata URL을 확인한다.
+2. `/client/live` 또는 custom client에서 WebRTC metadata URL을 확인한다.
 3. `WebRTC 메타데이터 뷰어` URL에는 `/webrtc/session`과 `vaMetadata=1`이 포함되는지 확인한다.
 4. Metadata subscription filter 입력값을 넣으면 WebRTC metadata viewer URL과 SSE/WS side-channel URL 모두에 `eventType`, `scenarioName`, `trackId`, `zoneId` query가 반영되는지 확인한다.
 5. `RTSP 서버 오버레이` URL에는 `rtsp://...`와 `va=1` 또는 `vaRule=<id>`가 포함되는지 확인한다.
@@ -819,7 +801,7 @@ curl -fsS 'http://127.0.0.1:8080/client/api/views/{viewId}/metadata'
 - `showDashboard=false`인 view는 dashboard API가 403을 반환하고, `showEvents=false`인 view는 events API가 403을 반환합니다.
 - dashboard health는 live/offline, connection status, video frame status, metadata status, stale 여부, stale metadata age, last frame age를 반환합니다.
 - 값이 없으면 UI는 `미제공`을 표시합니다.
-- client dashboard 응답과 화면에 source 원본 URL, Developer URL, raw JSON, `debugCounters`, `analysisTapId`, internal session id, rule/profile editor, Event POST 설정, SSE/WS 전체 endpoint가 노출되지 않아야 합니다.
+- client dashboard 응답과 화면에 source 원본 URL, Developer URL, 내부 진단 JSON, `analysisTapId`, internal session id, rule/profile editor, Event POST 설정, SSE/WS 전체 endpoint가 노출되지 않아야 합니다.
 - Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema는 변경하지 않습니다.
 
 Client Live Monitor smoke 기준:
@@ -847,7 +829,7 @@ curl -fsS -X POST \
 - tile stop은 PeerConnection/DataChannel을 닫고 client wrapper DELETE를 호출합니다.
 - all stop 또는 hidden tab/route leave 후 `activeSessions`가 감소하고 media stream track이 정리됩니다.
 - tile status는 live/offline, stale, track count, event count, connection status를 표시합니다.
-- client 화면에 source URL, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, 내부 session id/token, rule/profile 수정 UI가 노출되지 않아야 합니다.
+- client 화면에 source URL, Developer URL, BBox diagnostics, 내부 진단 JSON, 내부 session id/token, rule/profile 수정 UI가 노출되지 않아야 합니다.
 - 기존 `/webrtc/session?file=...` 개발용 경로와 WebRTC DataChannel schema, Event POST payload는 변경하지 않습니다. 단, auth on에서는 직접 generic media 생성 route가 admin/operator `ops:read` 또는 `lab:read` 권한을 요구하므로 viewer 제품 흐름은 client wrapper만 사용합니다.
 
 ## VA overlay 검증
@@ -1004,17 +986,9 @@ baseline fixture 전체 검증:
 
 ## 다채널 검증
 
-기본 다채널:
-
-```bash
-./server.sh verify-multichannel
-```
-
-VA 포함 다채널:
-
-```bash
-./server.sh verify-multichannel --include-va --repeat 2
-```
+초기 `/webrtc/test` 기반 다채널 브라우저 harness는 제거되었습니다.
+현재 quick 안정성 범위에서는 느린 RTSP/WebRTC 다채널 재생을 실행하지 않고,
+제품 UI smoke, rule UI round-trip, route 404 smoke, API 계약 검증으로 대체합니다.
 
 단계별 수동 기준:
 

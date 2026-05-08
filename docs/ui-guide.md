@@ -1,6 +1,6 @@
 # UI Guide
 
-이 문서는 Auth, Ops, Client 제품 UI의 현재 shell 구조와 MVP 범위를 설명합니다. 서버 실행/검증 명령은 [development-guide.md](./development-guide.md), VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다. `/lab` 화면 route는 제품 UI에서 제거했고 개발/검증 API만 유지합니다.
+이 문서는 Auth, Ops, Client 제품 UI의 현재 화면 구조와 운영 기준을 설명합니다. 서버 실행/검증 명령은 [development-guide.md](./development-guide.md), VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다. `/lab` 화면 route는 제품 UI에서 제거했고 개발/검증 API만 유지합니다.
 
 ## 1. UI 개요
 
@@ -9,13 +9,13 @@
 | Root entry | `http://127.0.0.1:8080/` | auth mode와 role에 따른 진입점 |
 | 최초 관리자 설정 | `http://127.0.0.1:8080/setup` | setup required 상태에서 admin password bootstrap |
 | 로그인 | `http://127.0.0.1:8080/login` | session mode에서 계정 로그인과 role별 landing 이동 |
-| 운영 콘솔 | `http://127.0.0.1:8080/ops` 또는 `/ops/home` | admin/operator용 운영 shell과 운영 홈 summary MVP |
+| 운영 콘솔 | `http://127.0.0.1:8080/ops` 또는 `/ops/home` | admin/operator용 운영 화면과 운영 홈 요약 |
 | 운영 Dashboard | `http://127.0.0.1:8080/ops/dashboard` | runtime status를 card/detail UI로 표시 |
 | 운영 Events 직접 route | `http://127.0.0.1:8080/ops/events` | primary nav에서 숨긴 후속/진단 route |
 | 채널 관리 | `http://127.0.0.1:8080/ops/sources` | admin/operator용 숫자 채널 목록과 SourceRegistry/PublishedView 연결 관리 |
 | 계정 관리 | `http://127.0.0.1:8080/ops/users` | admin 전용 사용자 목록, 상세, 상태 관리 |
-| 클라이언트 포털 | `http://127.0.0.1:8080/client` 또는 `/client/live` | viewer/operator/admin용 client shell과 2x2 live monitor MVP |
-| 클라이언트 Dashboard | `http://127.0.0.1:8080/client/dashboard` | scoped PublishedView 상태 요약 MVP |
+| 클라이언트 포털 | `http://127.0.0.1:8080/client` 또는 `/client/live` | viewer/operator/admin용 client 화면과 2x2 live monitor |
+| 클라이언트 Dashboard | `http://127.0.0.1:8080/client/dashboard` | scoped PublishedView 상태 요약 |
 | 접근 요청 | `http://127.0.0.1:8080/client/request-access` | pending client access request 제출 |
 | 룰 관리 | `http://127.0.0.1:8080/ops/rules` | 채널 분석 설정, 이벤트 템플릿, 분석 프로파일 관리 |
 | 개발/검증 API | `http://127.0.0.1:8080/lab/analysis/*` | session, stream, analysis tap, event storage JSON API |
@@ -23,11 +23,11 @@
 실제 host/port는 `./server.sh status` 또는 `./server.sh urls` 출력값을 우선합니다.
 
 UI는 light/dark theme-aware design token을 사용합니다.
-card, button, form, table, badge, debug 영역은 같은 semantic color 규칙을 공유합니다.
+card, button, form, table, badge는 같은 semantic color 규칙을 공유합니다.
 기본 화면은 요약과 주요 액션을 먼저 보여주고,
-운영자용 raw JSON/debugCounters/Developer URL 같은 세부 정보는
-낮은 visual weight의 접힘 영역에만 둡니다.
-client/viewer shell에는 raw JSON, debug, developer/source URL을 노출하지 않습니다.
+운영자용 내부 진단 응답과 개발자용 URL 같은 세부 정보는
+제품 shell에 직접 노출하지 않고 API와 검증 명령에서 확인합니다.
+client/viewer shell에는 내부 진단 응답, debug 정보, developer/source URL을 노출하지 않습니다.
 
 액션 계층은 다음 기준을 따릅니다.
 
@@ -46,15 +46,14 @@ client/viewer shell에는 raw JSON, debug, developer/source URL을 노출하지 
   `/client`, `/client/request-access`, `/ops` shell overview pages,
   `/ops/sources`, `/ops/users`의 route별 page script를 보관합니다.
 - `ProductDesignTokensCss()`: Auth/Ops/Client가 공유하는 light/dark semantic token 원천입니다.
-- `ProductUiCss()`: 제품 shell 공통 card/button/form/table/badge/debug 스타일입니다.
+- `ProductUiCss()`: 제품 shell 공통 card/button/form/table/badge 스타일입니다.
 - `ProductSharedUiScript()`:
   product route에서 공유하는 `escapeHtml`, `requestJson`, selector,
-  form-data, feedback, badge/raw JSON 렌더링,
+  form-data, feedback, badge 렌더링,
   select/table DOM helper, role/scope visibility helper입니다.
 - `ClientShellCss()`: client shell 전용 CSS를 `ClientShellPageHtml()` 밖에서 관리합니다.
 - `AppendOpsShellStart/End`, `AppendAuthShellStart/End`: 운영 shell과 setup/login auth shell의 공통 document/header/footer를 렌더링합니다.
 - `AppendProductAccountMenu()`: theme toggle, user role, logout 영역을 Ops/Client에서 동일하게 렌더링합니다.
-- `AppendRawJsonDetails()`: 운영자용 raw/debug JSON을 낮은 visual weight의 접힘 영역으로 렌더링합니다.
 - `AppendOpsHomePage()`, `AppendOpsDashboardPage()`, `AppendOpsRulesPage()`, `AppendOpsEventsPage()`: `/ops` shell 내부 page markup을 route별 helper로 분리합니다.
 - `AppendClientShellScript()`, `AppendOpsShellScript()`,
   `AppendOpsSourcesPageScript()`, `AppendOpsUsersPageScript()`:
@@ -72,16 +71,16 @@ UI ownership은 다음 표를 기준으로 봅니다.
 | Product JS | `product_ui_js.*` | `MediaServerUi` helper, theme persistence, iframe theme sync | API schema나 route별 payload를 넣지 않습니다. |
 | Product page scripts | `product_ui_page_scripts.*` | route별 Ops/Client form/table/live monitor script | backend payload 계약과 selector를 유지합니다. |
 | Auth shell | `AppendAuthShellStart/End` | `/setup`, `/login`, `/password/change`, invite/request shell | password policy와 session 동작은 auth backend 계약을 따릅니다. |
-| Ops shell | `AppendOpsShellStart/End`, `AppendOps*Page*`, `AppendOpsShellScript` | admin/operator navigation, page markup, overview script | raw/debug JSON은 접힘 영역에만 둡니다. |
-| Client shell | `ClientShellPageHtml`, `AppendClientShellScript` | scoped viewer live/dashboard UI | source URL, debugCounters, Developer URL, rule/profile editor를 노출하지 않습니다. |
+| Ops shell | `AppendOpsShellStart/End`, `AppendOps*Page*`, `AppendOpsShellScript` | admin/operator navigation, page markup, overview script | 제품 화면에 내부 진단 JSON을 노출하지 않습니다. |
+| Client shell | `ClientShellPageHtml`, `AppendClientShellScript` | scoped viewer live/dashboard UI | source URL, 내부 counter, Developer URL, rule/profile editor를 노출하지 않습니다. |
 | Smoke | `verify_ops_client_ui_smoke.mjs`, `verify_ops_rules_embed_smoke.mjs`, `verify_auth_ui_smoke.mjs`, `verify_auth_workflow.sh`, `verify_ops_rules_roundtrip.mjs` | selector, screenshot, auth UI, `/ops/rules` 회귀와 이벤트 템플릿 round-trip 확인 | visible text보다 stable selector와 금지 항목 중심으로 유지합니다. |
 
-`/ops/rules`는 채널 분석 설정, 이벤트 템플릿, 분석 프로파일을 제품 운영 화면에서 직접 관리합니다. `/lab/rules` iframe이나 legacy Lab 3탭을 embed하지 않습니다.
+`/ops/rules`는 채널 분석 설정, 이벤트 템플릿, 분석 프로파일을 제품 운영 화면에서 직접 관리합니다. `/lab/rules` iframe이나 이전 Lab 3탭을 embed하지 않습니다.
 
 대표 제품 화면:
 
 README에는 첫 인상용으로 가장 읽기 쉬운 overview 화면만 둡니다.
-운영자 라이브 모니터와 분석 상세 화면은 이 가이드에서 따로 봅니다.
+분석 상세 화면은 이 가이드에서 따로 봅니다.
 
 - Ops Home
 
@@ -94,6 +93,10 @@ README에는 첫 인상용으로 가장 읽기 쉬운 overview 화면만 둡니�
 - Ops Rules
 
 ![운영 룰 관리](assets/ui/ops-rules.png)
+
+- Ops Rules Preview
+
+![룰 영상/영역 편집](assets/ui/ops-rules-preview.png)
 
 - Ops Users
 
@@ -130,7 +133,7 @@ Password policy 기본값은 `kr-privacy`입니다.
 로그인 실패가 반복되면 계정별 lockout 메시지를 표시합니다.
 `mustChangePassword=true` 계정은 로그인 후 `/password/change`로 이동합니다.
 
-`MEDIA_SERVER_AUTH_MODE=off`는 기존 개발 자동화를 위한 명시 모드입니다. 이 모드에서도 `/lab`, `/lab/rules`, `/lab/import` 화면 route는 제품 화면으로 redirect하고, 개발/검증 API만 `/lab/analysis/*` 아래에서 유지합니다.
+`MEDIA_SERVER_AUTH_MODE=off`는 기존 개발 자동화를 위한 명시 모드입니다. 이 모드에서도 `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫고, 개발/검증 API만 `/lab/analysis/*` 아래에서 유지합니다.
 
 Role별 이동:
 
@@ -141,12 +144,12 @@ Role별 이동:
 Login page는 username/password 입력,
 실패/lockout 메시지,
 현재 사용자/role 표시,
-logout 버튼만 제공하는 MVP입니다.
+logout 버튼만 제공하는 인증 화면입니다.
 
 `/` 이동 규칙:
 
 - setup required 상태: `/setup`
-- auth off: `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/home`, `/client/live`
+- auth off: `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/ops/home` 또는 `/client/live`
 - auth on + admin/operator: `/ops/home`
 - auth on + viewer: `/client/live`
 - 미인증 요청: `/login`
@@ -162,7 +165,7 @@ logout 버튼만 제공하는 MVP입니다.
 - invite/setup API와 CLI는 검증 및 운영 보조 흐름으로 유지합니다.
 - self-signup 자동 승인은 제공하지 않습니다.
 - `/client/request-access`는 pending request만 저장합니다.
-- public API는 body/field 길이, viewId 안전 문자, 중복 pending,
+- public API는 body/field 길이, 숫자 viewId, 중복 pending,
   peer rate-limit을 통과한 요청만 저장합니다.
 - admin 승인 후에도 password setup invite가 수락되기 전에는
   계정 생성, session login, view 접근을 허용하지 않습니다.
@@ -186,21 +189,9 @@ Route 역할:
   - `/ops/dashboard`: `/ops/api/runtime/status` 기반 운영 카드/상태
   - `/ops/sources`: 숫자 채널 목록과 상세 패널
   - `/ops/rules`: 채널 분석 설정, 이벤트 템플릿, 분석 프로파일 목록
-  - `/ops/live`: 자동 media session을 열지 않는 고밀도 상태 타일
 
-  `/ops/live`는 `all/attention/published/unassigned` focus,
-  `view/source` 검색, attention/미배정 카운터를 제공합니다.
-  타일이나 최근 이벤트를 누르면 source health, active tap age,
-  recent EventRecord, snapshot/clip evidence, read-only preview,
-  runtime/event timeline, 관련 화면 이동 action을 같은 drill-down에서 확인합니다.
-
-  preview는 슬롯 `A/B` 최대 2개까지 유지합니다.
-  선택한 PublishedView에 대해 `raw / va-overlay / va-rule` 허용 모드만 열 수 있고,
-  `시작/재연결/정지` 버튼으로 제어합니다.
-  각 슬롯은 `ice`, `metadata age`, `last frame age`, `track/event` badge를 표시합니다.
-  같은 채널을 두 슬롯에 중복으로 열면 기존 슬롯을 정리합니다.
-  `va-rule`은 연결된 rule이 있을 때만 활성화됩니다.
-  raw JSON은 접힘 debug 영역에만 둡니다.
+  룰 편집 미리보기는 선택한 PublishedView에 대해 `va-overlay` 우선으로 열고,
+  `재생/재연결/정지` 버튼으로 제어합니다. 내부 진단 JSON은 제품 화면에 직접 노출하지 않습니다.
 - `/client`:
   viewer/operator/admin 접근 shell입니다.
   `/client/api/views` 기준으로 할당된 PublishedView만 표시하며
@@ -211,7 +202,9 @@ Route 역할:
   admin/operator 또는 `lab:read` scope용 개발/검증 API입니다.
   viewer/client 기본 계정은 접근할 수 없고,
   rule/profile/vaRule 변경 API는 `rule:write` scope를 추가로 요구합니다.
-  `/lab`, `/lab/rules`, `/lab/import` 화면 route는 제품 화면으로 redirect합니다.
+  `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫습니다.
+- `/webrtc/test`:
+  초기 브라우저 테스트 화면은 404로 닫고 제품 UI 진입점으로 사용하지 않습니다.
 
 Shell navigation은 server-side principal로 1차 렌더링하고,
 `/auth/whoami` 응답으로 admin-only menu를 다시 숨깁니다.
@@ -240,15 +233,12 @@ Ops/Client/Lab API guard를 확인합니다.
   을 붙입니다.
 - Ops/Client selector와 client debug/source 비노출은
   `./server.sh verify-ops-client-ui`로 확인합니다.
-- `/ops/live`는 preview `start/stop/restart`,
-  `raw/va-overlay/va-rule` payload, dual-slot cleanup,
-  quick action write path를 짧게 확인합니다.
 - 화면 회귀까지 보려면
   `./server.sh verify-ops-client-ui --screenshots`를 사용합니다.
 
 ## 3. Admin User Management
 
-`/ops/users`는 admin 전용 계정 관리 MVP 화면입니다.
+`/ops/users`는 admin 전용 계정 관리 화면입니다.
 공통 Ops shell 안에서 사용자 목록 table과 접근 요청 table을 먼저 보여주고,
 필요한 계정을 상세 패널로 열어 확인하거나 수정합니다.
 `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`는
@@ -275,7 +265,7 @@ CLI도 같은 C++ password hash/password policy 경로를 사용합니다. Passw
 
 ```bash
 ./server.sh auth-user list
-./server.sh auth-user add --username client-a --role viewer --view-id lobby-live
+./server.sh auth-user add --username client-a --role viewer --view-id 1
 ./server.sh auth-user reset-password --username client-a
 ./server.sh auth-user disable --username client-a
 ```
@@ -283,16 +273,16 @@ CLI도 같은 C++ password hash/password policy 경로를 사용합니다. Passw
 ## 4. SourceRegistry / PublishedView
 
 `/ops/sources`는 운영자가 실제 source를 등록하고,
-클라이언트에는 PublishedView 단위로 공개하기 위한 MVP 화면입니다.
+클라이언트에는 PublishedView 단위로 공개하기 위한 운영 화면입니다.
 제품 UI에서는 SourceRegistry/PublishedView를 따로 노출하지 않고
 `채널` 개념으로 묶어 보여줍니다.
 
 화면 구성:
 
-- 상단 입력 종류 안내 카드:
-  `파일`, `RTSP pull`, `외부 WHEP`, `Published WebRTC`, `HTTP/HLS`
-- 하단 숫자 채널 목록:
-  저장 상태와 PublishedView 연결 상태를 함께 표시
+- 숫자 ID 기반 채널 목록:
+  저장 상태와 PublishedView 연결 상태를 함께 표시합니다.
+- 채널 추가/상세 패널:
+  입력 형식은 추가 또는 수정 화면 안에서만 선택합니다.
 
 채널 액션:
 
@@ -306,7 +296,7 @@ VA test file, 검증된 공개 RTSP/HLS URL을 숫자 채널로 seed합니다.
 기존 registry 파일에 malformed record나 깨진 PublishedView source 참조가 있으면
 운영 화면/API는 조용히 누락하거나 seed로 덮지 않고 오류를 반환합니다.
 
-입력 종류 차이:
+추가/수정 화면의 입력 종류 차이:
 
 - `kind=whep`, `whepUrl`:
   외부 WHEP playback endpoint를 서버 pull source로 등록
@@ -315,13 +305,13 @@ VA test file, 검증된 공개 RTSP/HLS URL을 숫자 채널로 seed합니다.
 
 채널 테이블은 라이브 URL과 VA URL을 분리해 표시하고,
 각 영역에서 RTSP/WHEP 복사 버튼을 제공합니다.
-브라우저 재생은 `/client/live` 또는 `/ops/live` preview에서 확인합니다.
-운영자용 registry raw JSON은 `/ops/sources`의 접힘 debug 영역에서만 확인합니다.
+브라우저 재생은 `/client/live`에서 확인합니다.
+운영자용 registry 원문은 제품 화면에 노출하지 않고 `/ops/api/sources`, `/ops/api/views` 같은 API 응답과 검증 명령에서 확인합니다.
 
 ### 4.1 Client scoped dashboard
 
 `/client/dashboard`는 viewer가 접근 가능한 PublishedView의 상태 요약만
-보여주는 client dashboard MVP입니다.
+보여주는 client dashboard입니다.
 view 목록은 `/client/api/views`의 scoped 결과를 사용하고,
 선택된 view의 상세 상태는
 `/client/api/views/{viewId}/dashboard`에서 가져옵니다.
@@ -343,7 +333,7 @@ Integrator 연동은
 Client dashboard,
 `/client/api/views/{viewId}/events?limit=...`,
 `/client/api/views/{viewId}/metadata`는
-source 원본 URL, Developer URL, raw JSON, `debugCounters`,
+source 원본 URL, Developer URL, 내부 진단 응답,
 `analysisTapId`, internal session id, rule/profile editor,
 Event POST 설정, SSE/WS 전체 endpoint를 노출하지 않습니다.
 운영자용 세부 runtime/debug 확인은
@@ -369,7 +359,7 @@ answer/ICE/delete는
 Client route는 viewId만 받습니다.
 source 원본 URL, file/url/source override,
 내부 generic session id/token, Developer URL, BBox diagnostics,
-raw JSON, `debugCounters`, rule/profile 수정 UI는 노출하지 않습니다.
+내부 진단 응답, rule/profile 수정 UI는 노출하지 않습니다.
 `va-rule` mode는 PublishedView의 `allowedRuleIds`와
 rule source 일치 검증을 모두 통과해야 합니다.
 viewer/client 계정은 직접 `/webrtc/session`, `/whep`, `/whip/publish`
@@ -415,8 +405,6 @@ Hidden tab, route leave, tile stop 시 PeerConnection, DataChannel, server WebRT
 ## 6. 채널 분석 설정 흐름
 
 채널 분석 설정 추가 또는 수정 시 같은 페이지 안의 편집 panel을 사용합니다. 저장 완료 후에는 상세 상태로 돌아가는 흐름을 기본으로 합니다.
-
-![룰 편집 기본 정보](assets/ui/analysis-rule-editor-basic.png)
 
 편집 화면은 5개 섹션입니다.
 
@@ -480,8 +468,6 @@ Tracking category가 비어 있으면 profile 저장을 막습니다. 전체 추
 ## 9. 시나리오 이벤트
 
 Scenario는 여러 frame에 걸친 시간 조건과 상태 전이를 판단하는 이벤트입니다. 기존 기본 이벤트를 끄거나 바꾸지 않고 별도 scenario event로 동작합니다.
-
-![시나리오 설정](assets/ui/analysis-rule-editor-scenario.png)
 
 현재 상태:
 
@@ -584,8 +570,6 @@ ZoneOccupancy 현장 시작 threshold도 [Analysis Threshold Baselines](analysis
 
 영역/라인 설정 섹션에서 영상 프레임을 보면서 polygon 또는 line을 지정합니다.
 
-![영역/라인 캔버스](assets/ui/analysis-region-canvas.png)
-
 캔버스 규칙:
 
 - polygon은 최소 3점이 필요합니다.
@@ -622,9 +606,7 @@ EventRecord/snapshot/clip hook:
 
 ## 12. 미리보기와 메타데이터 확인
 
-운영 화면에서는 `/ops/live`와 `/ops/rules`의 채널 미리보기로 설정을 확인합니다. 개발/검증용 metadata 확인은 `/lab/analysis/*` API와 전용 검증 명령으로 수행합니다.
-
-![미리보기와 메타데이터 확인](assets/ui/analysis-preview.png)
+운영 화면에서는 `/ops/rules`의 채널 미리보기와 `/client/live`로 설정을 확인합니다. 개발/검증용 metadata 확인은 `/lab/analysis/*` API와 전용 검증 명령으로 수행합니다.
 
 보기 모드:
 
@@ -742,7 +724,7 @@ Frame sync 정책:
 WebRTC 메타데이터 확인 순서:
 
 1. `/ops/rules`에서 저장된 채널 분석 설정을 확인합니다.
-2. `/ops/live` 또는 `/client/live`에서 `va-rule` 모드로 영상을 엽니다.
+2. `/client/live`에서 `va-rule` 모드로 영상을 엽니다.
 3. 개발 검증은 `./server.sh verify-webrtc-va-metadata --http-base ...`로 `vaMetadata=1` DataChannel 수신을 확인합니다.
 4. 필요하면 `/lab/analysis/taps/{tapId}/metadata/stream` 또는 `/lab/analysis/metadata/stream?vaRule=<id>` SSE API를 사용합니다.
 8. `보기 중지`를 누르면 WebRTC session과 metadata channel이 닫히고 overlay canvas가 정리됩니다.
@@ -830,8 +812,8 @@ RTSP 원본 스트림과 SSE metadata를 직접 조합하려면 optional OpenCV 
 
 | 입력 | 역할 |
 | --- | --- |
-| `--rtsp-url` | Developer URL panel의 `RTSP 원본 스트림` |
-| `--metadata-url` | Developer URL panel의 `SSE 메타데이터 스트림` |
+| `--rtsp-url` | 서버 실행 출력 또는 `./server.sh urls`의 RTSP 주소 |
+| `--metadata-url` | `/lab/analysis/metadata/stream` SSE 주소 |
 | OpenCV window/headless | bbox, trackId, className client-side draw 또는 smoke 확인 |
 
 ```bash
@@ -849,7 +831,7 @@ RTSP overlay 방식 차이:
 | RTSP 서버 오버레이 | 가능 | 서버가 bbox/label을 영상에 합성 |
 | Custom client overlay | 불가 | client가 RTSP raw frame과 SSE JSON을 직접 조합 |
 
-OpenCV dependency는 예제 실행 전 `python3 -c "import cv2; print(cv2.__version__)"`로 확인합니다. 로컬 서버가 `8081/8555`처럼 보정 포트로 떠 있으면 Developer URL panel에 표시된 RTSP/SSE URL을 그대로 CLI에 넣습니다.
+OpenCV dependency는 예제 실행 전 `python3 -c "import cv2; print(cv2.__version__)"`로 확인합니다. 로컬 서버가 `8081/8555`처럼 보정 포트로 떠 있으면 `./server.sh status` 또는 `./server.sh urls`의 실제 host/port를 CLI에 넣습니다.
 
 현재 상태:
 
@@ -898,43 +880,29 @@ VA 런타임 대시보드는 현재 분석 서버 상태를 한 화면에서 보
 
 대시보드 제목, tap/rule 선택, refresh 정책, Health Summary를 함께 봅니다. source는 문서용으로 상대 표시하며 개인 절대경로를 노출하지 않습니다.
 
-![VA 런타임 대시보드 Health Summary](assets/ui/analysis-runtime-dashboard.png)
-
 ### 10.2. Metadata / Backpressure
 
 WebRTC DataChannel, SSE/WS side-channel, payload size, queue/drop/fail counter를 확인합니다. 값이 endpoint에서 제공되지 않으면 `미제공`으로 표시합니다.
-
-![VA 런타임 대시보드 Metadata Backpressure](assets/ui/analysis-runtime-dashboard-metadata.png)
 
 ### 10.3. Runtime Detail / vaRule Debug
 
 선택 rule과 active tap의 source/profile/event/scenario/region 관계를 읽기 전용으로 표시합니다. Event POST payload, metadata schema, ScenarioEngine 판단 로직은 변경하지 않습니다.
 
-![VA 런타임 대시보드 Runtime Detail](assets/ui/analysis-runtime-dashboard-runtime.png)
-
 ### 10.4. Tracks
 
 trackId, class, lifecycle, currentZone, dwellTimeMs, TrackHealth를 state-dump 기반으로 확인합니다.
-
-![VA 런타임 대시보드 Tracks](assets/ui/analysis-runtime-dashboard-tracks.png)
 
 ### 10.5. Scenarios / Events
 
 scenario phase, timeline, recent event buffer를 한 구간에서 확인합니다. 이벤트가 없으면 빈 상태 이유를 짧게 표시합니다.
 
-![VA 런타임 대시보드 Scenarios Events](assets/ui/analysis-runtime-dashboard-scenarios.png)
-
 ### 10.6. Event Records
 
-Event Records는 자동 polling하지 않습니다. 검색 버튼을 눌렀을 때 active JSON Lines의 metadata를 조회하고, `archive 포함`을 켜면 rotated archive까지 조회합니다. `evidence` 필터는 snapshot, clip manifest, snapshot+clip, evidence 없음 조건을 같은 records API query에 넣습니다. `offset` 기반 이전/다음 페이지 버튼으로 archive가 많은 경우에도 현재 filter를 유지한 채 탐색합니다. EventRecord detail은 raw JSON 위에 snapshot path, clip manifest path, clip bundle directory를 분리해 표시하고, 안전한 preview route를 통해 snapshot inline preview와 clip manifest/frame link를 보여줍니다. preview 상태 문구는 snapshot/clip 준비 상태와 실패를 분리해서 표시하며, clip frame link는 파일명 기준으로 정렬된 앞부분만 보여줍니다. `compaction snapshot`은 기존 파일을 수정하지 않는 compacted JSON Lines 사본을 생성하며 현재 검색 필터와 evidence 조건을 그대로 사용합니다. `snapshot 목록`은 compacted snapshot의 file/size/modified를 표시하고, `keepNewest` cleanup으로 오래된 compacted snapshot만 정리합니다.
-
-![VA 런타임 대시보드 Event Records](assets/ui/analysis-runtime-dashboard-records.png)
+Event Records는 자동 polling하지 않습니다. 검색 버튼을 눌렀을 때 active JSON Lines의 metadata를 조회하고, `archive 포함`을 켜면 rotated archive까지 조회합니다. `evidence` 필터는 snapshot, clip manifest, snapshot+clip, evidence 없음 조건을 같은 records API query에 넣습니다. `offset` 기반 이전/다음 페이지 버튼으로 archive가 많은 경우에도 현재 filter를 유지한 채 탐색합니다. EventRecord detail은 snapshot path, clip manifest path, clip bundle directory를 분리해 표시하고, 안전한 preview route를 통해 snapshot inline preview와 clip manifest/frame link를 보여줍니다. preview 상태 문구는 snapshot/clip 준비 상태와 실패를 분리해서 표시하며, clip frame link는 파일명 기준으로 정렬된 앞부분만 보여줍니다. `compaction snapshot`은 기존 파일을 수정하지 않는 compacted JSON Lines 사본을 생성하며 현재 검색 필터와 evidence 조건을 그대로 사용합니다. `snapshot 목록`은 compacted snapshot의 file/size/modified를 표시하고, `keepNewest` cleanup으로 오래된 compacted snapshot만 정리합니다.
 
 ### 10.7. Tracking Issues
 
 tracking issue report와 close-object diagnostics를 분리해 봅니다. 이 영역은 진단 비중이 높아 대표 제품 화면보다는 운영/분석 보조 자료에 가깝습니다.
-
-![VA 런타임 대시보드 Tracking Issues](assets/ui/analysis-runtime-dashboard-tracking-issues.png)
 
 표시 항목:
 
@@ -943,7 +911,7 @@ tracking issue report와 close-object diagnostics를 분리해 봅니다. 이 �
 - Metadata / Backpressure: WebRTC sent/drop/fail, SSE/WS client/message, metadata JSON build/payload size, DataChannel bufferedAmount
 - Tracking / Scenario: Tracks, Tracking Issues, Scenarios, Scenario Timeline
 - Event Records: 자동 polling 없이 검색 버튼으로만 조회하는 저장 event metadata table
-- Debug: vaRule Runtime Debug, raw JSON, debugCounters, tracking issue detail
+- 진단: vaRule runtime 상태, tracking issue detail, API 원문 확인
 
 선택 UI:
 
@@ -993,7 +961,7 @@ vaRule Runtime Debug와 Scenario Timeline은 새 backend API 없이 기존 metri
 VA 런타임 확인 순서:
 
 1. 서버 실행 후 `/ops/dashboard`에서 runtime 요약을 확인합니다.
-2. `/ops/live` 또는 `/ops/rules` 미리보기로 analysis tap을 만들거나 저장 rule을 선택합니다.
+2. `/ops/rules` 미리보기 또는 `/client/live`로 analysis tap을 만들거나 저장 rule을 선택합니다.
 3. 세부 확인은 `/lab/runtime/status`, `/metrics`, `/state-dump`, `/events` API를 조회합니다.
 4. UI polling은 제품 화면 요약에 한정하고, 긴 진단은 검증 명령과 API로 수행합니다.
 
@@ -1045,12 +1013,13 @@ Screenshot 관리 정책:
 | 파일명 | 역할 기반 이름 사용 |
 | 기본 theme | dark mode 대표 화면 |
 | 링크 정책 | 새 이미지가 없으면 broken link 대신 “이미지 추가 예정” 문구 사용 |
-| 현재 대표 이미지 | 2026-05-03 light/dark theme-aware design system 정리 후 재캡처 |
+| 현재 대표 이미지 | 2026-05-09 dark mode 제품 UI 기준 재캡처 |
 
 문서용 screenshot 촬영 기준:
 
 - 버튼, 입력, 카드 제목, table row가 화면 경계에서 반쯤 잘리지 않게 자릅니다.
 - section 경계 또는 대표 상태가 온전히 보이는 지점을 사용합니다.
-- 영상 화면은 실제 객체가 보이는 `va_four_scene_sample.mp4` 기준으로 캡처합니다.
-- 영상 프레임 하단이 온전히 보이도록 합니다.
+- 영상 화면은 실제 객체가 보이는 `va_four_scene_sample.mp4` 4신 영상 기준으로 캡처합니다.
+- VA overlay가 가능한 화면은 객체 bbox/label이 표출된 상태로 캡처합니다.
+- 영상 프레임 하단이 온전히 보이도록 하며, 상하좌우 공백이 과하게 크거나 한쪽으로 치우친 컷은 다시 촬영합니다.
 - 긴 화면은 한 장에 모두 넣지 않고 핵심 section 대표 screenshot을 우선합니다.

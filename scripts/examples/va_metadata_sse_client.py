@@ -30,7 +30,7 @@ def parse_args() -> argparse.Namespace:
         description="Receive VA runtime metadata from an SSE side-channel."
     )
     parser.add_argument(
-        "legacy_url",
+        "positional_url",
         nargs="?",
         help=argparse.SUPPRESS,
     )
@@ -48,7 +48,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--print-json", action="store_true", help="Print each metadata payload.")
     args = parser.parse_args()
-    args.url = args.url or args.legacy_url or DEFAULT_SSE_URL
+    args.url = args.url or args.positional_url or DEFAULT_SSE_URL
     return args
 
 

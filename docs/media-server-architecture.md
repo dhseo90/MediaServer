@@ -60,9 +60,9 @@ SharedStream <---- SourceWorker <---- File / RTSP / HTTP-HLS / WHEP / WHIP-publi
 | WebRTC Egress | SharedStream packet을 WebRTC signaling/WHEP client로 전송 |
 | Analysis Tap | SharedStream을 구독해 VA decode/inference/overlay/event 처리를 수행 |
 
-### HTTP Auth / Principal MVP
+### HTTP Auth / Principal
 
-운영 사이트와 클라이언트 사이트는 네트워크 위치가 아니라 HTTP principal의 role/scope로 구분합니다. 초기 구현은 token auth와 account login/session MVP를 함께 제공합니다.
+운영 사이트와 클라이언트 사이트는 네트워크 위치가 아니라 HTTP principal의 role/scope로 구분합니다. 현재 구현은 token auth와 account login/session을 함께 제공합니다.
 
 요청 인증 흐름:
 
@@ -99,7 +99,7 @@ Users file은 `users`, `invites`, `accessRequests` top-level 배열을 보관합
 
 Viewer 계정은 `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}` 같은 view scope만 갖습니다. Integrator 계정은 `event:read:{viewId}`와 `metadata:read:{viewId}`만 갖고 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata`에 접근합니다. PublishedView가 비어 있거나 아직 계정 UI와 직접 연결되지 않은 환경에서는 문자열 기반 view scope assignment를 사용할 수 있으며, viewer/integrator에는 debug/lab/ops/source/rule 관리 scope를 부여하지 않습니다.
 
-### SourceRegistry / PublishedView MVP
+### SourceRegistry / PublishedView
 
 운영자가 등록하는 실제 source와 클라이언트가 접근하는 공개 view를 분리합니다. SourceRegistry는 source 원본 설정을 보관하고, PublishedView는 client scope에 노출할 live view 정책만 보관합니다.
 
@@ -124,9 +124,9 @@ SourceRegistry는 `.media_server.sources.json`, PublishedView는 `.media_server.
 
 HTTP UI는 같은 미디어/API 기능 위에 role별 shell을 얹는 구조입니다. Shell 통합은 browser route와 화면 구성만 다루며 media pipeline, Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema, scenario 판단 로직은 변경하지 않습니다. `webrtc_http_server.cpp`는 여전히 HTTP route dispatch와 media/auth glue를 많이 보유하지만, 제품 shell의 route별 브라우저 스크립트는 `product_ui_page_scripts.*`로 분리해 Ops/Client 화면 동작을 media signaling 구현과 물리적으로 섞지 않습니다.
 
-- `/ops`: admin/operator용 운영 콘솔입니다. 공통 header/nav 아래에서 홈, 라이브, 대시보드, 채널, 룰, 사용자(admin), 클라이언트를 렌더링합니다. `/ops/home`은 운영 홈 summary MVP이고, `/ops/live`는 자동 media session을 열지 않는 고밀도 source/runtime/event 상태 타일입니다. `/ops/dashboard`는 `/ops/api/runtime/status` 기반 운영 카드, `/ops/rules`는 채널 분석 설정, 이벤트 템플릿, 분석 프로파일을 Lab iframe 없이 제품 컴포넌트로 표시합니다. `/ops/events`는 primary nav에서 숨긴 직접/진단 route로 보존하며 독립 제품 탭으로 취급하지 않습니다. raw JSON은 운영자 debug 접힘 영역에만 둡니다.
-- `/client`: viewer/client 포털입니다. `/client/live`는 PublishedView 기반 2x2 live monitor MVP이고, `/client/dashboard`는 scoped summary와 sanitized event summary를 표시합니다. Client Events tab은 primary nav에서 제거했습니다. client shell과 client API는 source 원본 locator, Developer URL, raw JSON, `debugCounters`, internal session/tap id, rule/profile editor를 노출하지 않습니다. Integrator는 이 shell에 진입하지 않고 scoped client API만 사용합니다.
-- `/lab/analysis/*`: 개발/검증 API입니다. `/lab`, `/lab/rules`, `/lab/import` 화면 route는 제품 화면으로 redirect하고, Runtime/metadata/event storage API만 권한 gate 뒤에 유지합니다. 운영 화면은 Lab editor를 embed하지 않고, 채널/룰 상태를 Ops 전용 API와 제품 컴포넌트로 표시합니다.
+- `/ops`: admin/operator용 운영 콘솔입니다. 공통 header/nav 아래에서 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기를 렌더링합니다. `/ops/home`은 운영 홈 요약입니다. `/ops/dashboard`는 `/ops/api/runtime/status` 기반 운영 카드, `/ops/rules`는 채널 분석 설정, 이벤트 템플릿, 분석 프로파일을 Lab iframe 없이 제품 컴포넌트로 표시합니다. `/ops/events`는 primary nav에서 숨긴 직접/진단 route로 보존하며 독립 제품 탭으로 취급하지 않습니다. 내부 진단 JSON은 제품 화면에 직접 노출하지 않고 API/검증 명령에서 확인합니다.
+- `/client`: viewer/client 포털입니다. `/client/live`는 PublishedView 기반 2x2 live monitor이고, `/client/dashboard`는 scoped summary와 sanitized event summary를 표시합니다. Client Events tab은 primary nav에서 제거했습니다. client shell과 client API는 source 원본 locator, Developer URL, 내부 진단 JSON, internal session/tap id, rule/profile editor를 노출하지 않습니다. Integrator는 이 shell에 진입하지 않고 scoped client API만 사용합니다.
+- `/lab/analysis/*`: 개발/검증 API입니다. `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫고, Runtime/metadata/event storage API만 권한 gate 뒤에 유지합니다. 운영 화면은 Lab editor를 embed하지 않고, 채널/룰 상태를 Ops 전용 API와 제품 컴포넌트로 표시합니다.
 
 ### Source+Profile analysis reuse
 

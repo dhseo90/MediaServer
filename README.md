@@ -18,7 +18,7 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 ## 대표 UI 미리보기
 
 README에는 전체 흐름이 바로 읽히는 대표 제품 화면만 배치합니다.
-운영자 라이브 모니터, 개발 진단, 분석 편집 상세는 [docs/ui-guide.md](docs/ui-guide.md)에서 따로 다룹니다.
+개발 진단과 분석 편집 상세는 [docs/ui-guide.md](docs/ui-guide.md)에서 따로 다룹니다.
 
 **Ops Home**
 
@@ -31,6 +31,10 @@ README에는 전체 흐름이 바로 읽히는 대표 제품 화면만 배치합
 **운영 룰 관리**
 
 ![운영 룰 관리](docs/assets/ui/ops-rules.png)
+
+**룰 영상/영역 편집**
+
+![룰 영상/영역 편집](docs/assets/ui/ops-rules-preview.png)
 
 **운영 사용자 관리**
 
@@ -106,11 +110,11 @@ YOLO Detection
 | Root entry | `http://127.0.0.1:8080/` |
 | 최초 관리자 설정 | `http://127.0.0.1:8080/setup` |
 | 로그인 | `http://127.0.0.1:8080/login` |
-| 운영 콘솔 shell MVP | `http://127.0.0.1:8080/ops` 또는 `/ops/home` |
-| 운영 Dashboard UI MVP | `http://127.0.0.1:8080/ops/dashboard` |
+| 운영 콘솔 | `http://127.0.0.1:8080/ops` 또는 `/ops/home` |
+| 운영 Dashboard UI | `http://127.0.0.1:8080/ops/dashboard` |
 | 운영 채널/룰/사용자 관리 | `http://127.0.0.1:8080/ops/sources`, `/ops/rules`, `/ops/users` |
-| 클라이언트 포털 shell MVP | `http://127.0.0.1:8080/client` 또는 `/client/live` |
-| 클라이언트 Dashboard UI MVP | `http://127.0.0.1:8080/client/dashboard` |
+| 클라이언트 포털 | `http://127.0.0.1:8080/client` 또는 `/client/live` |
+| 클라이언트 Dashboard UI | `http://127.0.0.1:8080/client/dashboard` |
 | 개발/검증 API | `/lab/analysis/*`, `/lab/files`, `/lab/reports` |
 | RTSP | `rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4` |
 | WebRTC signaling | `POST http://127.0.0.1:8080/webrtc/session?file=sample_h264.mp4` |
@@ -132,7 +136,8 @@ YOLO Detection
 
 - `/ops`는 운영 콘솔입니다.
 - `/client`는 클라이언트 포털입니다.
-- `/lab`, `/lab/rules`, `/lab/import` 화면 route는 제품 화면으로 redirect합니다.
+- `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫고 제품 화면에서는 노출하지 않습니다.
+- `/webrtc/test` 초기 브라우저 테스트 화면도 404로 닫고 제품 화면에서는 노출하지 않습니다.
 - `/ops` 변경 API는 `source:write`가 필요합니다.
 - `/lab/analysis/*` rule/profile 변경 API는 `rule:write`가 필요합니다.
 - integrator는 UI shell 대신
@@ -162,8 +167,8 @@ YOLO Detection
 2. 채널 분석 설정을 추가하고 채널, 이벤트 템플릿, 분석 프로파일을 선택합니다.
 3. 선택한 채널 미리보기 위에서 polygon 제한구역 또는 line crossing 선을 지정합니다.
 4. 저장하면 숫자 기반 `vaRule` ID가 배정됩니다.
-5. `/ops/live` 또는 `/client/live`에서 실시간 스트리밍, `va=1`, `vaRule=<id>` 모드로 확인합니다.
-6. `/ops/dashboard`에서 runtime 요약을 보고, 세부 metadata/backpressure/scenario/event/debug 상태는 `/lab/analysis/*` API로 확인합니다.
+5. `/client/live`에서 실시간 스트리밍, `va=1`, `vaRule=<id>` 모드로 확인합니다.
+6. `/ops/dashboard`에서 runtime 요약을 보고, 세부 metadata/backpressure/scenario/event 진단 상태는 `/lab/analysis/*` API로 확인합니다.
 7. WebRTC 메타데이터는 `verify-webrtc-va-metadata` 또는 custom client에서 `vaMetadata=1` DataChannel로 확인합니다.
 8. 외부 RTSP 클라이언트에서는 `?va=1` 또는 `?vaRule=<id>` server-side overlay URL을 사용합니다.
 
@@ -179,14 +184,13 @@ RTSP raw stream과 SSE/WS metadata side-channel을 별도로 조합합니다.
   scenario rule payload의 runtime per-rule 설정 연결,
   ReEntry, IntrusionAfterLineCrossing, Loitering, ZoneOccupancy의
   룰 편집 UI 선택/저장 템플릿과 현장형 tuning preset.
-- 1차 완료: Auth/account API와 route MVP, SourceRegistry / PublishedView API와 route MVP, Client scoped dashboard API MVP, Client Live Monitor 2x2 MVP.
+- 완료: Auth/account API와 route, SourceRegistry/PublishedView API와 route, Client scoped dashboard API, Client Live Monitor 2x2 화면.
 - 1차 완료: `/setup`, `/login`, `/ops`, `/client` 제품 UI shell 통합. Ops 주 메뉴는 홈, 대시보드, 채널, 룰, 사용자, 클라이언트 미리보기 순서이며, client 주 메뉴는 라이브와 대시보드만 노출합니다.
 - 1차 완료: `/ops/dashboard`와 `/ops/rules`는 Lab iframe 없이
   `/ops/api/runtime/status`, `/ops/api/rules/catalog`,
   `/ops/api/events/status` 제품 API로 운영 카드와 룰 화면을 표시합니다.
   `/ops/events`, `/client/events`는 제품 primary tab에서 숨기고,
   이벤트 요약은 룰/대시보드 맥락에서 확인합니다.
-- 1차 완료: `/ops/live`는 자동 media session을 열지 않는 고밀도 운영 상태 타일로 source/runtime/event를 표시합니다.
 - 1차 완료: EventRecord archive 포함 조회와 비파괴 compaction snapshot 생성/목록/다운로드/삭제 API/UI, snapshot frame 저장과 pre/post frame bundle recorder manifest를 제공합니다.
 - 남은 후속 작업: PublishedView 기반 scope picker,
   archive cleanup policy 고도화를 별도 묶음으로 관리합니다.
@@ -268,7 +272,7 @@ VA/Auth 주요 검증:
 | 문서 | 역할 |
 | --- | --- |
 | [docs/development-guide.md](docs/development-guide.md) | 빌드, 실행, 디버깅, 테스트 명령 |
-| [docs/ui-guide.md](docs/ui-guide.md) | Auth/Ops/Client UI 사용법과 현재 MVP 범위 |
+| [docs/ui-guide.md](docs/ui-guide.md) | Auth/Ops/Client UI 사용법과 현재 화면 기준 |
 | [docs/config-reference.md](docs/config-reference.md) | 환경변수와 주요 설정 reference |
 | [docs/media-server-architecture.md](docs/media-server-architecture.md) | RTSP/WebRTC pipeline, stream/session, VA layer 배치 |
 | [docs/video-analysis.md](docs/video-analysis.md) | YOLO, tracking, TrackState, scenario, replay, EventRecord |

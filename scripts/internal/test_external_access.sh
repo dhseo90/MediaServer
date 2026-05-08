@@ -130,12 +130,12 @@ if ! curl -fsS --max-time 5 "http://${HOST}:${HTTP_PORT}/health" >/dev/null; the
 fi
 echo "[통과] LAN IP HTTP health ok"
 
-if ! curl -fsS --max-time 5 "http://${HOST}:${HTTP_PORT}/lab" >/dev/null; then
-  echo "[실패] LAN IP 기준 lab page 접근 실패: http://${HOST}:${HTTP_PORT}/lab"
-  echo "[원인] HTTP 서버는 열렸지만 lab route가 응답하지 않습니다."
+if ! curl -fsS --max-time 5 "http://${HOST}:${HTTP_PORT}/ops/home" >/dev/null; then
+  echo "[실패] LAN IP 기준 ops home 접근 실패: http://${HOST}:${HTTP_PORT}/ops/home"
+  echo "[원인] HTTP 서버는 열렸지만 ops route가 응답하지 않습니다."
   exit 1
 fi
-echo "[통과] LAN IP lab page ok"
+echo "[통과] LAN IP ops home ok"
 
 if ! command -v ffprobe >/dev/null 2>&1; then
   echo "[실패] ffprobe가 없어 LAN IP RTSP probe를 수행할 수 없습니다."
@@ -158,7 +158,7 @@ sed -n '1,8p' /tmp/media_server_external_rtsp_probe.txt | sed 's/^/  /'
 cat <<EOF
 [완료] 외부 클라이언트 접근성 서버 측 검증 통과
   HTTP health: http://${HOST}:${HTTP_PORT}/health
-  Lab page:    http://${HOST}:${HTTP_PORT}/lab
+  Ops home:    http://${HOST}:${HTTP_PORT}/ops/home
   RTSP sample: ${RTSP_URL}
 
 [주의] 이 검증은 서버가 LAN IP로 응답하는지 확인합니다.

@@ -251,7 +251,7 @@ media_server_is_tcp_bind_forbidden() {
 media_server_http_healthcheck() {
   local addr="$1"
   local port="$2"
-  local path="${3:-/webrtc/test}"
+  local path="${3:-/health}"
 
   if ! media_server_has_cmd curl; then
     return 1

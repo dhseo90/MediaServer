@@ -1,6 +1,12 @@
 # Development History
 
-이 문서는 완료된 개발 이력을 보존합니다. 현재 남은 작업은 [../development-backlog.md](../development-backlog.md), 현재 실행/검증 기준은 [../stream-verification.md](../stream-verification.md)를 봅니다.
+이 문서는 완료된 개발 이력을 보존합니다. 아래 항목은 당시 기준의 기록이며 현재 제품 진입점이 아닙니다. 현재 남은 작업은 [../development-backlog.md](../development-backlog.md), 현재 실행/검증 기준은 [../stream-verification.md](../stream-verification.md)를 봅니다.
+
+현재 기준:
+
+- 제품 UI는 `/ops`와 `/client`입니다.
+- `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫혔습니다.
+- `/webrtc/test` 같은 초기 브라우저 테스트 화면은 제품 문서와 UI 진입점에서 제거합니다.
 
 ## 1차 - Rule/Profile 안정화
 
@@ -8,7 +14,7 @@
 
 - 60개 작업 추적용 체크리스트 추가
 - 검증 명령별 pass/fail 기준 정리
-- `/lab/rules` 저장 payload schema 문서화
+- 당시 `/lab/rules` 저장 payload schema 문서화. 현재 화면 route는 404이며 제품 룰 관리는 `/ops/rules`에서 합니다.
 - Rule/Profile category API 응답 예시 추가
 - 빈 category validation 테스트 보강
 - Rule UI category 표시와 payload/API round-trip smoke 추가
@@ -62,17 +68,17 @@
 - HTTP/HLS URI longrun 후보 검증
 - URI source EOS/reconnect 로그 정리
 
-## 5차 - YouTube/import와 Lab 통합
+## 5차 - YouTube/import와 당시 Lab 통합
 
 완료:
 
 - YouTube import 실험 기능 상태를 [../youtube-import.md](../youtube-import.md)로 분리
 - YouTube resolver 실패 타입 분류
-- `/lab/import` job 상태 UI 검증
+- 당시 `/lab/import` job 상태 UI 검증. 현재 화면 route는 404이며 채널 관리는 `/ops/sources`에서 합니다.
 - source/session lifecycle trace 옵션 정리
 - StreamRegistry idle cleanup 검증
-- `/lab` 통합 진입점 정리
-- `/webrtc/test`, `/lab/rules`, `/lab/import` 호환 route 유지
+- 당시 `/lab` 통합 진입점 정리
+- 당시 `/webrtc/test`, `/lab/rules`, `/lab/import` 호환 route 유지. 현재는 제품 UI에서 제거된 이전 화면입니다.
 
 ## 6차 - 다채널/리포트/Predev 안정화
 

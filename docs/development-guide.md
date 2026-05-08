@@ -107,7 +107,7 @@ MEDIA_SERVER_START_MODE=launchd ./server.sh start
 운영 콘솔:
 http://127.0.0.1:8080/ops/home
 
-영상 분석 관리:
+룰 설정:
 http://127.0.0.1:8080/ops/rules
 
 RTSP:
@@ -228,8 +228,6 @@ gst-inspect-1.0 uridecodebin
 ```bash
 ./server.sh verify-codecs
 ./server.sh verify-webrtc-ice
-./server.sh verify-multichannel
-./server.sh verify-multichannel --include-va --repeat 2
 ./server.sh verify-uri-longrun
 ./server.sh verify-va
 ./server.sh verify-va-events
@@ -249,6 +247,8 @@ gst-inspect-1.0 uridecodebin
 ./server.sh verify-image-analysis
 ./server.sh verify-predev --quick
 ```
+
+초기 WebRTC 브라우저 테스트 화면에 의존하던 `verify-multichannel`은 현재 제품 UI 기준에서 skip됩니다. 느린 RTSP/WebRTC 다채널 재생 검증은 별도 제품 UI harness가 준비될 때 장기 검증으로만 다룹니다.
 
 `verify-predev --quick`와 `./server.sh test*` 계열은 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하므로 느립니다. 문서/UI/Auth/권한만 바꾼 경우에는 이 묶음을 실행하지 않고 `build`, `git diff --check`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-analysis-state`로 확인합니다.
 
@@ -291,11 +291,11 @@ MEDIA_SERVER_AUTH_USERS_FILE=/tmp/media-server-bootstrap-users.json \
 - `/login`에서 admin 로그인 후 `/auth/whoami`에 `role=admin`, `setupRequired=false`
 - 로그인 실패가 `MEDIA_SERVER_AUTH_LOGIN_MAX_FAILURES`에 도달하면 lockout 메시지가 표시되고 만료 전 정상 비밀번호도 거부
 - `/password/change`에서 이전 비밀번호 재사용은 거부되고, 성공 후 기존 session은 폐기
-- logout 후 `/ops`, `/client`, `/lab` 보호 route는 `/login` 요구
+- logout 후 `/ops`, `/client`, `/lab/analysis/*` 보호 route는 `/login` 요구
 - admin 로그인 후 `/ops/users`에서 viewer/operator/integrator 계정을 생성/수정/비활성화하고, pending 접근 요청을 승인해 password setup invite를 발급하거나 거절합니다. Integrator는 UI shell 대신 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata`를 scope 기반으로 사용합니다.
 - CLI는 `./server.sh auth-user list`, `add`, `reset-password`, `disable`, `enable`을 사용하고 비밀번호는 기본 prompt로 입력
 
-제품 UI 검증은 명시적으로 auth off 서버에서 실행합니다. `/lab`, `/lab/rules`, `/lab/import` 화면 route는 운영 화면으로 redirect되므로 새 검증은 Ops 화면을 기준으로 합니다.
+제품 UI 검증은 명시적으로 auth off 서버에서 실행합니다. `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫히므로 새 검증은 Ops 화면을 기준으로 합니다.
 
 ```bash
 MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground
@@ -324,7 +324,7 @@ Ops/영상 분석 UI를 수정한 뒤에는 최소한 아래 검증을 실행합
 - 채널 분석 설정: 채널, 이벤트 템플릿, 분석 프로파일, 영역/라인, 활성 상태, 출력 URL 복사
 - 이벤트 템플릿: 기본 이벤트와 시나리오를 구분해 추가/수정/삭제
 - 분석 프로파일: detector, fps, queue, 입력 해상도 저장과 채널 분석 설정의 선택 가능 여부
-- 운영 미리보기: `/ops/live`의 실시간 스트리밍, VA 오버레이, VA 룰 URL 복사/보기 동작
+- 운영 미리보기: `/client/live`의 실시간 스트리밍, VA 오버레이, VA 룰 URL 복사/보기 동작
 - Runtime Dashboard 탭: active analysis tap, metadata/backpressure, scenario/event/debug 상태, EventRecord 수동 검색
 
 UI 사용 흐름은 [ui-guide.md](./ui-guide.md)에 별도로 유지합니다.

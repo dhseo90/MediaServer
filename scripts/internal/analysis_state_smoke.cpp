@@ -57,7 +57,7 @@ TrackedObjectMetadata MakeObject(std::uint64_t track_id,
                                  float center_x,
                                  float center_y,
                                  const std::string& direction = "right",
-                                 const std::string& channel_id = "channel-a",
+                                 const std::string& channel_id = "1",
                                  const std::string& stream_id = "stream-a") {
     TrackedObjectMetadata object;
     object.stream_id = stream_id;
@@ -107,7 +107,7 @@ TrackRuntimeState MakeTrackState(std::uint64_t track_id,
                                  std::int64_t timestamp_ms,
                                  float center_x,
                                  float center_y,
-                                 const std::string& channel_id = "channel-a",
+                                 const std::string& channel_id = "1",
                                  const std::string& stream_id = "stream-a") {
     const auto object = MakeObject(track_id, 1, timestamp_ms, center_x, center_y, "right", channel_id, stream_id);
     TrackRuntimeState state;
@@ -172,7 +172,7 @@ EventRecord MakeEventRecord(const std::string& event_id,
     record.event_id = event_id;
     record.event_type = event_type;
     record.stream_id = "stream-a";
-    record.channel_id = "channel-a";
+    record.channel_id = "1";
     record.track_id = track_id;
     record.class_id = 0;
     record.class_name = "person";
@@ -338,9 +338,9 @@ void VerifyObjectTrackerAssociationScoring() {
     object1.association_confidence = 1.0F;
     auto object2 = MakeObject(90, 2, 1100, 0.22F, 0.2F);
     object2.association_confidence = 0.42F;
-    manager.Update("stream-a", "channel-a", {object1}, Ms(1000));
-    manager.Update("stream-a", "channel-a", {object2}, Ms(1100));
-    const auto states = manager.Snapshot("channel-a");
+    manager.Update("stream-a", "1", {object1}, Ms(1000));
+    manager.Update("stream-a", "1", {object2}, Ms(1100));
+    const auto states = manager.Snapshot("1");
     const auto* track = FindTrack(states, 90);
     Expect(track != nullptr && std::fabs(track->health.association_confidence - 0.42F) < 0.001F,
            "TrackHealth must use tracker associationConfidence when metadata provides it");
@@ -349,7 +349,7 @@ void VerifyObjectTrackerAssociationScoring() {
 }
 
 SceneZoneDefinition MakeZone(const std::string& zone_id = "restricted-a",
-                             const std::string& channel_id = "channel-a") {
+                             const std::string& channel_id = "1") {
     SceneZoneDefinition zone;
     zone.zone_id = zone_id;
     zone.channel_id = channel_id;
@@ -364,7 +364,7 @@ SceneZoneDefinition MakeZone(const std::string& zone_id = "restricted-a",
 }
 
 SceneLineDefinition MakeLine(const std::string& line_id = "line-a",
-                             const std::string& channel_id = "channel-a") {
+                             const std::string& channel_id = "1") {
     SceneLineDefinition line;
     line.line_id = line_id;
     line.channel_id = channel_id;
@@ -383,7 +383,7 @@ TrackSceneContext MakeTrackContext(std::uint64_t track_id,
                                    const std::string& zone_id = "restricted-a") {
     TrackSceneContext context;
     context.stream_id = "stream-a";
-    context.channel_id = "channel-a";
+    context.channel_id = "1";
     context.track_id = track_id;
     context.class_id = 0;
     context.class_name = "person";
@@ -409,7 +409,7 @@ SceneContext MakeSceneContext(std::int64_t timestamp_ms,
                               const std::vector<TrackSceneContext>& tracks) {
     SceneContext context;
     context.stream_id = "stream-a";
-    context.channel_id = "channel-a";
+    context.channel_id = "1";
     context.timestamp_ns = Ms(timestamp_ms);
     context.timestamp_ms = timestamp_ms;
     context.tracks = tracks;
@@ -440,11 +440,11 @@ EventCandidate MakeCandidate(std::uint64_t track_id,
                              const std::string& zone_id = "zone-a") {
     EventCandidate candidate;
     candidate.key.stream_id = "stream-a";
-    candidate.key.channel_id = "channel-a";
+    candidate.key.channel_id = "1";
     candidate.key.scenario_id = "scenario-a";
     candidate.key.zone_id = zone_id;
     candidate.key.track_id = track_id;
-    candidate.event.rule_id = "rule-a";
+    candidate.event.rule_id = "1";
     candidate.event.event_type = "intrusion-dwell";
     candidate.event.track_id = track_id;
     candidate.event.class_id = 0;
@@ -477,14 +477,14 @@ void VerifyTrackStateManagerAndHealth() {
     options.tracking_issue_direction_change_jump_threshold = 1;
     TrackStateManager manager(options);
 
-    manager.Update("stream-a", "channel-a", {MakeObject(1, 1, 1000, 0.2F, 0.2F)}, Ms(1000));
-    manager.Update("stream-a", "channel-a", {MakeObject(1, 2, 1100, 0.22F, 0.2F)}, Ms(1100));
-    manager.Update("stream-a", "channel-a", {MakeObject(1, 3, 1200, 0.24F, 0.2F)}, Ms(1200));
-    manager.Update("stream-a", "channel-a", {MakeObject(1, 4, 1300, 0.26F, 0.2F)}, Ms(1300));
-    manager.Update("stream-b", "channel-b", {MakeObject(1, 1, 1000, 0.7F, 0.7F, "right", "channel-b", "stream-b")}, Ms(1000));
+    manager.Update("stream-a", "1", {MakeObject(1, 1, 1000, 0.2F, 0.2F)}, Ms(1000));
+    manager.Update("stream-a", "1", {MakeObject(1, 2, 1100, 0.22F, 0.2F)}, Ms(1100));
+    manager.Update("stream-a", "1", {MakeObject(1, 3, 1200, 0.24F, 0.2F)}, Ms(1200));
+    manager.Update("stream-a", "1", {MakeObject(1, 4, 1300, 0.26F, 0.2F)}, Ms(1300));
+    manager.Update("stream-b", "2", {MakeObject(1, 1, 1000, 0.7F, 0.7F, "right", "2", "stream-b")}, Ms(1000));
 
-    auto channel_a = manager.Snapshot("channel-a");
-    auto channel_b = manager.Snapshot("channel-b");
+    auto channel_a = manager.Snapshot("1");
+    auto channel_b = manager.Snapshot("2");
     const auto* track_a = FindTrack(channel_a, 1);
     const auto* track_b = FindTrack(channel_b, 1);
     Expect(track_a != nullptr && track_b != nullptr, "same numeric track id must exist per channel");
@@ -495,28 +495,28 @@ void VerifyTrackStateManagerAndHealth() {
     Expect(track_a->first_seen_time_ms == 1000 && track_a->last_seen_time_ms == 1300,
            "firstSeen/lastSeen timestamps must be retained");
 
-    manager.Update("stream-a", "channel-a", {}, Ms(2300));
-    channel_a = manager.Snapshot("channel-a");
+    manager.Update("stream-a", "1", {}, Ms(2300));
+    channel_a = manager.Snapshot("1");
     track_a = FindTrack(channel_a, 1);
     Expect(track_a != nullptr && track_a->lifecycle_state == TrackLifecycleState::Lost,
            "track must transition Active -> Lost");
     Expect(track_a->lost_since_time_ms == 2300, "lostSince must be calculated from lastSeen+timeout");
     Expect(track_a->health.missed_frame_count > 0 && track_a->health.last_health_event == "lost",
            "TrackHealth must record missed/lost state");
-    auto issue_report = manager.TrackingIssueSnapshot("channel-a");
+    auto issue_report = manager.TrackingIssueSnapshot("1");
     Expect(HasTrackingIssue(issue_report, "missed-frame-spike", 1) &&
                HasTrackingIssue(issue_report, "lost", 1),
            "Tracking issue report must record missed-frame and lost issues");
 
-    manager.Update("stream-a", "channel-a", {}, Ms(3300));
-    channel_a = manager.Snapshot("channel-a");
+    manager.Update("stream-a", "1", {}, Ms(3300));
+    channel_a = manager.Snapshot("1");
     track_a = FindTrack(channel_a, 1);
     Expect(track_a != nullptr && track_a->lifecycle_state == TrackLifecycleState::Terminated,
            "track must transition Lost -> Terminated");
 
-    manager.Update("stream-a", "channel-a", {}, Ms(3900));
-    Expect(manager.Snapshot("channel-a").empty(), "expired terminated tracks must be cleaned");
-    Expect(!manager.Snapshot("channel-b").empty(), "cleanup must not remove active tracks in another channel");
+    manager.Update("stream-a", "1", {}, Ms(3900));
+    Expect(manager.Snapshot("1").empty(), "expired terminated tracks must be cleaned");
+    Expect(!manager.Snapshot("2").empty(), "cleanup must not remove active tracks in another channel");
 
     TrackStateManager limited_manager([&] {
         TrackStateManagerOptions limited = options;
@@ -525,7 +525,7 @@ void VerifyTrackStateManagerAndHealth() {
         return limited;
     }());
     limited_manager.Update("stream-a",
-                           "channel-a",
+                           "1",
                            {MakeObject(10, 1, 1000, 0.2F, 0.2F),
                             MakeObject(11, 1, 1000, 0.7F, 0.7F)},
                            Ms(1000));
@@ -534,42 +534,42 @@ void VerifyTrackStateManagerAndHealth() {
 
     TrackStateManager health_manager(options);
     health_manager.Update("stream-a",
-                          "channel-a",
+                          "1",
                           {MakeObject(20, 1, 1000, 0.3F, 0.3F),
                            MakeObject(21, 1, 1000, 0.31F, 0.31F)},
                           Ms(1000));
-    auto health_states = health_manager.Snapshot("channel-a");
+    auto health_states = health_manager.Snapshot("1");
     const auto* health_track = FindTrack(health_states, 20);
     Expect(health_track != nullptr && health_track->health.overlap_risk > 0.0F &&
                health_track->health.is_unstable,
            "TrackHealth must flag overlap risk as unstable");
-    issue_report = health_manager.TrackingIssueSnapshot("channel-a");
+    issue_report = health_manager.TrackingIssueSnapshot("1");
     Expect(HasTrackingIssue(issue_report, "overlap-risk", 20),
            "Tracking issue report must record high overlap risk");
 
-    health_manager.Update("stream-a", "channel-a", {MakeObject(20, 2, 1100, 0.9F, 0.9F, "left")}, Ms(1100));
-    health_manager.Update("stream-a", "channel-a", {MakeObject(20, 3, 1200, 0.2F, 0.2F, "right")}, Ms(1200));
-    health_states = health_manager.Snapshot("channel-a");
+    health_manager.Update("stream-a", "1", {MakeObject(20, 2, 1100, 0.9F, 0.9F, "left")}, Ms(1100));
+    health_manager.Update("stream-a", "1", {MakeObject(20, 3, 1200, 0.2F, 0.2F, "right")}, Ms(1200));
+    health_states = health_manager.Snapshot("1");
     health_track = FindTrack(health_states, 20);
     Expect(health_track != nullptr &&
                (health_track->health.direction_change_count > 0 ||
                 health_track->health.association_confidence < options.low_association_confidence_threshold),
            "TrackHealth must record direction changes or low association confidence");
-    issue_report = health_manager.TrackingIssueSnapshot("channel-a");
+    issue_report = health_manager.TrackingIssueSnapshot("1");
     Expect(HasTrackingIssue(issue_report, "direction-change-spike", 20) ||
                HasTrackingIssue(issue_report, "low-association-confidence", 20),
            "Tracking issue report must record direction or association instability");
 
-    health_manager.Update("stream-a", "channel-a", {}, Ms(2300));
-    health_manager.Update("stream-a", "channel-a", {MakeObject(20, 4, 2400, 0.21F, 0.2F, "right")}, Ms(2400));
-    health_states = health_manager.Snapshot("channel-a");
+    health_manager.Update("stream-a", "1", {}, Ms(2300));
+    health_manager.Update("stream-a", "1", {MakeObject(20, 4, 2400, 0.21F, 0.2F, "right")}, Ms(2400));
+    health_states = health_manager.Snapshot("1");
     health_track = FindTrack(health_states, 20);
     Expect(health_track != nullptr && health_track->lifecycle_state == TrackLifecycleState::Reacquired,
            "TrackStateManager must expose Lost -> Reacquired as a lifecycle state");
     Expect(health_manager.Metrics().reacquired_tracks == 1 &&
                health_manager.Metrics().active_tracks >= 1,
            "TrackStateManager metrics must count reacquired tracks as active-like");
-    issue_report = health_manager.TrackingIssueSnapshot("channel-a");
+    issue_report = health_manager.TrackingIssueSnapshot("1");
     Expect(HasTrackingIssue(issue_report, "reacquired", 20),
            "Tracking issue report must record lost to reacquired transitions");
     const std::string issue_json = TrackingIssueReportToJson(issue_report);
@@ -584,8 +584,8 @@ void VerifyTrackStateManagerAndHealth() {
         appearance_options.appearance_update_policy.on_low_confidence_association = true;
         return appearance_options;
     }());
-    appearance_manager.Update("stream-a", "channel-a", {MakeObject(30, 1, 1000, 0.2F, 0.2F)}, Ms(1000));
-    const auto appearance_states = appearance_manager.Snapshot("channel-a");
+    appearance_manager.Update("stream-a", "1", {MakeObject(30, 1, 1000, 0.2F, 0.2F)}, Ms(1000));
+    const auto appearance_states = appearance_manager.Snapshot("1");
     const auto* appearance_track = FindTrack(appearance_states, 30);
     Expect(appearance_track != nullptr && !appearance_track->appearance_profile.has_value(),
            "NoOpAppearanceExtractor must not attach an appearance profile");
@@ -610,13 +610,13 @@ void VerifyTrackStateManagerAndHealth() {
     crop_frame.pts = Ms(1000);
     crop_frame.data.assign(static_cast<std::size_t>(crop_frame.width * crop_frame.height * 3), 127U);
     crop_manager.Update("stream-a",
-                        "channel-a",
+                        "1",
                         {MakeObject(31, 1, 1000, 0.5F, 0.5F)},
                         Ms(1000),
                         &crop_frame);
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
-    crop_manager.Update("stream-a", "channel-a", {}, Ms(1010));
-    const auto crop_states = crop_manager.Snapshot("channel-a");
+    crop_manager.Update("stream-a", "1", {}, Ms(1010));
+    const auto crop_states = crop_manager.Snapshot("1");
     const auto* crop_track = FindTrack(crop_states, 31);
     Expect(crop_track != nullptr && crop_track->appearance_profile.has_value() &&
                crop_track->appearance_profile->embedding.size() == 3 &&
@@ -635,7 +635,7 @@ void VerifyTrackStateManagerAndHealth() {
         return budget_options;
     }(), budget_extractor);
     budget_manager.Update("stream-a",
-                          "channel-a",
+                          "1",
                           {MakeObject(32, 1, 2000, 0.4F, 0.4F),
                            MakeObject(33, 1, 2000, 0.6F, 0.6F)},
                           Ms(2000),
@@ -660,9 +660,9 @@ void VerifyTrackStateManagerAndHealth() {
     speed_object1.ground_point = GroundPointF{0.0, 0.0, true, false, "meters"};
     auto speed_object2 = MakeObject(50, 2, 2000, 0.3F, 0.2F);
     speed_object2.ground_point = GroundPointF{3.0, 4.0, true, false, "meters"};
-    speed_manager.Update("stream-a", "channel-a", {speed_object1}, Ms(1000));
-    speed_manager.Update("stream-a", "channel-a", {speed_object2}, Ms(2000));
-    const auto speed_states = speed_manager.Snapshot("channel-a");
+    speed_manager.Update("stream-a", "1", {speed_object1}, Ms(1000));
+    speed_manager.Update("stream-a", "1", {speed_object2}, Ms(2000));
+    const auto speed_states = speed_manager.Snapshot("1");
     const auto* speed_track = FindTrack(speed_states, 50);
     Expect(speed_track != nullptr && speed_track->latest_ground_point.has_value() &&
                speed_track->latest_speed_uses_ground_plane &&
@@ -679,7 +679,7 @@ void VerifySceneContextBuilder() {
     const auto line = MakeLine();
 
     auto state = MakeTrackState(1, 1000, 0.2F, 0.2F);
-    auto context = builder.Build("stream-a", "channel-a", {state}, {zone}, {line}, Ms(1000));
+    auto context = builder.Build("stream-a", "1", {state}, {zone}, {line}, Ms(1000));
     Expect(context.tracks.size() == 1, "scene context must include active track");
     Expect(context.tracks[0].zone_state.current_zone == "restricted-a",
            "ZoneState currentZone must be calculated");
@@ -687,7 +687,7 @@ void VerifySceneContextBuilder() {
            "ZoneState must detect restricted zone membership");
 
     state = MakeTrackState(1, 3000, 0.25F, 0.2F);
-    context = builder.Build("stream-a", "channel-a", {state}, {zone}, {line}, Ms(3000));
+    context = builder.Build("stream-a", "1", {state}, {zone}, {line}, Ms(3000));
     Expect(context.tracks[0].zone_state.dwell_time_ms == 2000,
            "ZoneState dwellTimeMs must be calculated from enteredAt");
 
@@ -696,7 +696,7 @@ void VerifySceneContextBuilder() {
     calibrated_geometry.lines = {line};
     HomographyConfig homography;
     homography.calibration_id = "calibration-a";
-    homography.channel_id = "channel-a";
+    homography.channel_id = "1";
     homography.enabled = true;
     homography.image_to_ground = {2.0, 0.0, 0.0,
                                   0.0, 3.0, 0.0,
@@ -711,7 +711,7 @@ void VerifySceneContextBuilder() {
     SceneContextBuilderOptions calibrated_builder_options;
     calibrated_builder_options.use_ground_plane_for_speed = true;
     SceneContextBuilder calibrated_builder(calibrated_builder_options);
-    context = calibrated_builder.Build("stream-a", "channel-a", {state}, calibrated_geometry, Ms(3000));
+    context = calibrated_builder.Build("stream-a", "1", {state}, calibrated_geometry, Ms(3000));
     Expect(!context.tracks.empty() && std::fabs(context.tracks[0].foot_point.x - 0.25F) < 0.0001F &&
                std::fabs(context.tracks[0].foot_point.y - 0.25F) < 0.0001F,
            "SceneContextBuilder must use bbox bottom center as the image foot point");
@@ -732,36 +732,36 @@ void VerifySceneContextBuilder() {
 
     SceneGeometryConfig fallback_geometry;
     fallback_geometry.zones = {zone};
-    context = builder.Build("stream-a", "channel-a", {state}, fallback_geometry, Ms(3100));
+    context = builder.Build("stream-a", "1", {state}, fallback_geometry, Ms(3100));
     Expect(!context.tracks.empty() && !context.tracks[0].ground_point.valid &&
                context.tracks[0].ground_point.fallback_to_image &&
                context.tracks[0].ground_point.units == "image",
            "SceneContextBuilder must fallback to image coordinates when homography is unset");
 
     state = MakeTrackState(1, 4000, 0.6F, 0.2F);
-    context = builder.Build("stream-a", "channel-a", {state}, {zone}, {line}, Ms(4000));
+    context = builder.Build("stream-a", "1", {state}, {zone}, {line}, Ms(4000));
     Expect(!context.tracks[0].line_states.empty(), "LineCrossState must be present");
     Expect(context.tracks[0].line_states[0].crossed, "LineCrossState must detect crossing");
     Expect(context.tracks[0].line_states[0].direction == "reverse",
            "LineCrossState must calculate crossing direction");
 
-    const auto other_channel_state = MakeTrackState(2, 1000, 0.2F, 0.2F, "channel-b", "stream-b");
-    context = builder.Build("stream-b", "channel-b", {other_channel_state}, {zone}, {line}, Ms(1000));
+    const auto other_channel_state = MakeTrackState(2, 1000, 0.2F, 0.2F, "2", "stream-b");
+    context = builder.Build("stream-b", "2", {other_channel_state}, {zone}, {line}, Ms(1000));
     Expect(context.tracks.size() == 1 && context.tracks[0].zone_state.current_zone.empty(),
            "scene geometry must stay channel scoped");
 
     const std::string normal_rule =
-        R"({"id":"normal-zone","enabled":true,"match":{"sourceKind":"*","route":"*"},"event":{"region":{"type":"polygon","points":[{"x":0.1,"y":0.1},{"x":0.4,"y":0.1},{"x":0.4,"y":0.4}]}}})";
+        R"({"id":"1","enabled":true,"match":{"sourceKind":"*","route":"*"},"event":{"region":{"type":"polygon","points":[{"x":0.1,"y":0.1},{"x":0.4,"y":0.1},{"x":0.4,"y":0.4}]}}})";
     const std::string va_rule =
-        R"({"id":"va-zone","enabled":true,"match":{"vaRule":"7"},"event":{"region":{"type":"polygon","points":[{"x":0.2,"y":0.2},{"x":0.5,"y":0.2},{"x":0.5,"y":0.5}]}}})";
+        R"({"id":"7","enabled":true,"match":{"vaRule":"7"},"event":{"region":{"type":"polygon","points":[{"x":0.2,"y":0.2},{"x":0.5,"y":0.2},{"x":0.5,"y":0.5}]}}})";
     AnalysisContext default_context;
     auto default_geometry = BuildSceneGeometryConfigFromRuleDocuments({normal_rule, va_rule}, default_context);
-    Expect(default_geometry.zones.size() == 1 && default_geometry.zones[0].zone_id == "normal-zone",
+    Expect(default_geometry.zones.size() == 1 && default_geometry.zones[0].zone_id == "1",
            "default va=1 context must ignore vaRule scoped geometry");
     AnalysisContext va_context;
     va_context.va_rule_id = "7";
     auto scoped_geometry = BuildSceneGeometryConfigFromRuleDocuments({normal_rule, va_rule}, va_context);
-    Expect(scoped_geometry.zones.size() == 1 && scoped_geometry.zones[0].zone_id == "va-zone",
+    Expect(scoped_geometry.zones.size() == 1 && scoped_geometry.zones[0].zone_id == "7",
            "vaRule context must use only matching vaRule geometry");
 
     Pass("SceneContextBuilder zone/line/dwell/channel/vaRule scoping");
@@ -834,32 +834,32 @@ void VerifyScenarioEngineAndIntrusionDwell() {
 
     auto events = engine.Evaluate(MakeSceneContext(1000, {MakeTrackContext(1, 1000, true, 0)}), &event_manager);
     Expect(events.empty(), "IntrusionDwell must not emit before dwell threshold");
-    Expect(engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Candidate,
+    Expect(engine.Snapshot("1")[0].phase == ScenarioPhase::Candidate,
            "IntrusionDwell must enter Candidate on restricted zone entry");
 
     events = engine.Evaluate(MakeSceneContext(2999, {MakeTrackContext(1, 2999, true, 1999)}), &event_manager);
-    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Candidate,
+    Expect(events.empty() && engine.Snapshot("1")[0].phase == ScenarioPhase::Candidate,
            "IntrusionDwell must not observe before candidateTimeMs");
 
     events = engine.Evaluate(MakeSceneContext(3000, {MakeTrackContext(1, 3000, true, 2000)}), &event_manager);
-    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Observing,
+    Expect(events.empty() && engine.Snapshot("1")[0].phase == ScenarioPhase::Observing,
            "IntrusionDwell must enter Observing after candidateTimeMs");
 
     events = engine.Evaluate(MakeSceneContext(11000, {MakeTrackContext(1, 11000, true, 10000)}), &event_manager);
     Expect(events.size() == 1 && events[0].event_type == "intrusion-dwell" && events[0].track_id == 1,
            "IntrusionDwell must emit one confirmed event after dwellTimeMs");
-    Expect(engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Confirmed,
+    Expect(engine.Snapshot("1")[0].phase == ScenarioPhase::Confirmed,
            "IntrusionDwell must enter Confirmed phase");
 
     events = engine.Evaluate(MakeSceneContext(12000, {MakeTrackContext(1, 12000, true, 11000)}), &event_manager);
     Expect(events.empty(), "IntrusionDwell must not duplicate event for same track inside zone");
 
     events = engine.Evaluate(MakeSceneContext(13000, {MakeTrackContext(1, 13000, false, 0)}), &event_manager);
-    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Ended,
+    Expect(events.empty() && engine.Snapshot("1")[0].phase == ScenarioPhase::Ended,
            "IntrusionDwell must end when track exits zone");
 
     events = engine.Evaluate(MakeSceneContext(14500, {MakeTrackContext(1, 14500, true, 0)}), &event_manager);
-    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Candidate,
+    Expect(events.empty() && engine.Snapshot("1")[0].phase == ScenarioPhase::Candidate,
            "IntrusionDwell must allow same track to start a new instance after re-entry");
     events = engine.Evaluate(MakeSceneContext(24500, {MakeTrackContext(1, 24500, true, 10000)}), &event_manager);
     Expect(events.size() == 1 && events[0].track_id == 1,
@@ -1046,17 +1046,17 @@ void VerifyIntrusionAfterLineCrossingScenario() {
     auto line_crossed = MakeTrackContext(30, 1000, false, 0, "target-zone");
     line_crossed.line_states.push_back(MakeLineState("entry-line", "any", "forward"));
     auto events = engine.Evaluate(MakeSceneContext(1000, {line_crossed}), &event_manager);
-    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::LineCrossed,
+    Expect(events.empty() && engine.Snapshot("1")[0].phase == ScenarioPhase::LineCrossed,
            "IntrusionAfterLineCrossing must record line crossing before zone entry");
 
     events = engine.Evaluate(MakeSceneContext(1500, {MakeTrackContext(30, 1500, true, 0, "target-zone")}),
                              &event_manager);
-    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::ZoneEntered,
+    Expect(events.empty() && engine.Snapshot("1")[0].phase == ScenarioPhase::ZoneEntered,
            "IntrusionAfterLineCrossing must enter ZoneEntered on target zone entry");
 
     events = engine.Evaluate(MakeSceneContext(2500, {MakeTrackContext(30, 2500, true, 1000, "target-zone")}),
                              &event_manager);
-    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Observing,
+    Expect(events.empty() && engine.Snapshot("1")[0].phase == ScenarioPhase::Observing,
            "IntrusionAfterLineCrossing must observe until dwellTimeMs");
 
     events = engine.Evaluate(MakeSceneContext(3500, {MakeTrackContext(30, 3500, true, 2000, "target-zone")}),
@@ -1066,7 +1066,7 @@ void VerifyIntrusionAfterLineCrossingScenario() {
                events[0].line_id == "entry-line" &&
                events[0].zone_id == "target-zone",
            "IntrusionAfterLineCrossing must emit after line crossing, zone entry, and dwell");
-    Expect(engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Confirmed,
+    Expect(engine.Snapshot("1")[0].phase == ScenarioPhase::Confirmed,
            "IntrusionAfterLineCrossing must enter Confirmed phase");
 
     events = engine.Evaluate(MakeSceneContext(3600, {MakeTrackContext(30, 3600, true, 2100, "target-zone")}),
@@ -1075,7 +1075,7 @@ void VerifyIntrusionAfterLineCrossingScenario() {
 
     events = engine.Evaluate(MakeSceneContext(3700, {MakeTrackContext(30, 3700, false, 0, "target-zone")}),
                              &event_manager);
-    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Ended,
+    Expect(events.empty() && engine.Snapshot("1")[0].phase == ScenarioPhase::Ended,
            "IntrusionAfterLineCrossing must end when track exits the target zone");
 
     auto late_crossed = MakeTrackContext(31, 10000, false, 0, "target-zone");
@@ -1113,7 +1113,7 @@ void VerifyLoiteringScenario() {
     auto candidate = MakeTrackContext(40, 1000, true, 0, "loiter-zone");
     candidate.trajectory = MakeTrajectory(1000, {NormalizedPointF{0.2F, 0.2F}});
     auto events = engine.Evaluate(MakeSceneContext(1000, {candidate}), &event_manager);
-    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Candidate,
+    Expect(events.empty() && engine.Snapshot("1")[0].phase == ScenarioPhase::Candidate,
            "Loitering must start as Candidate inside target zone");
 
     auto observing = MakeTrackContext(40, 2500, true, 1500, "loiter-zone");
@@ -1121,7 +1121,7 @@ void VerifyLoiteringScenario() {
                                           {NormalizedPointF{0.2F, 0.2F},
                                            NormalizedPointF{0.22F, 0.2F}});
     events = engine.Evaluate(MakeSceneContext(2500, {observing}), &event_manager);
-    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Observing,
+    Expect(events.empty() && engine.Snapshot("1")[0].phase == ScenarioPhase::Observing,
            "Loitering must observe until dwell and trajectory thresholds are met");
 
     auto confirmed = MakeTrackContext(40, 4000, true, 3000, "loiter-zone");
@@ -1134,7 +1134,7 @@ void VerifyLoiteringScenario() {
     Expect(events.size() == 1 && events[0].event_type == "loitering" &&
                events[0].zone_id == "loiter-zone" && events[0].track_id == 40,
            "Loitering must emit after dwell and small movement radius conditions are met");
-    Expect(engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Confirmed,
+    Expect(engine.Snapshot("1")[0].phase == ScenarioPhase::Confirmed,
            "Loitering must enter Confirmed phase");
 
     events = engine.Evaluate(MakeSceneContext(4100, {confirmed}), &event_manager);
@@ -1142,7 +1142,7 @@ void VerifyLoiteringScenario() {
 
     auto exited = MakeTrackContext(40, 4200, false, 0, "loiter-zone");
     events = engine.Evaluate(MakeSceneContext(4200, {exited}), &event_manager);
-    Expect(events.empty() && engine.Snapshot("channel-a")[0].phase == ScenarioPhase::Ended,
+    Expect(events.empty() && engine.Snapshot("1")[0].phase == ScenarioPhase::Ended,
            "Loitering must end when the track exits the target zone");
 
     ScenarioEngine moving_engine(engine_options);
@@ -1476,7 +1476,7 @@ void VerifyEventRecorderMediaHooks() {
 void VerifyVaRuntimeMetadataBuilder() {
     AnalysisResult result;
     result.source_key = "file:sample_h264.mp4";
-    result.profile_key = "server-default-va";
+    result.profile_key = "1";
     result.context.source_kind = "file";
     result.context.route = "webrtc";
     result.context.client_id = "browser-1";
@@ -1532,7 +1532,7 @@ void VerifyVaRuntimeMetadataBuilder() {
     event.event_id = "evt-1";
     event.event_type = "intrusion-dwell";
     event.status = "confirmed";
-    event.rule_id = "scenario:intrusion-dwell";
+    event.rule_id = "3";
     event.track_id = 7;
     event.class_id = 0;
     event.label = "person";
@@ -1614,7 +1614,7 @@ void VerifyVaMetadataSubscriptionFilter() {
     loitering_detection.track_id = 7;
     loitering_detection.score = 0.92F;
     loitering_detection.event_triggered = true;
-    loitering_detection.event_rule_id = "rule-loitering";
+    loitering_detection.event_rule_id = "4";
     loitering_detection.event_type = "loitering";
 
     Detection occupancy_detection;
@@ -1623,7 +1623,7 @@ void VerifyVaMetadataSubscriptionFilter() {
     occupancy_detection.track_id = 8;
     occupancy_detection.score = 0.81F;
     occupancy_detection.event_triggered = true;
-    occupancy_detection.event_rule_id = "rule-occupancy";
+    occupancy_detection.event_rule_id = "5";
     occupancy_detection.event_type = "zone-occupancy";
     result.detections = {loitering_detection, occupancy_detection};
 
@@ -1656,7 +1656,7 @@ void VerifyVaMetadataSubscriptionFilter() {
     AnalysisEvent loitering_event;
     loitering_event.event_id = "evt-loitering";
     loitering_event.event_type = "loitering";
-    loitering_event.rule_id = "rule-loitering";
+    loitering_event.rule_id = "4";
     loitering_event.track_id = 7;
     loitering_event.class_id = 0;
     loitering_event.label = "person";
@@ -1668,7 +1668,7 @@ void VerifyVaMetadataSubscriptionFilter() {
     AnalysisEvent occupancy_event = loitering_event;
     occupancy_event.event_id = "evt-occupancy";
     occupancy_event.event_type = "zone-occupancy";
-    occupancy_event.rule_id = "rule-occupancy";
+    occupancy_event.rule_id = "5";
     occupancy_event.track_id = 8;
     occupancy_event.class_id = 2;
     occupancy_event.label = "car";

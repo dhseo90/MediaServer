@@ -413,6 +413,12 @@ bool IsSafeRegistryId(const std::string& id) {
     });
 }
 
+bool IsNumericRegistryId(const std::string& id) {
+    return !id.empty() && std::all_of(id.begin(), id.end(), [](unsigned char ch) {
+        return std::isdigit(ch) != 0;
+    });
+}
+
 bool ContainsString(const std::vector<std::string>& values, const std::string& wanted) {
     return std::find(values.begin(), values.end(), wanted) != values.end();
 }
@@ -637,7 +643,7 @@ SourceViewRegistry::PublishedViewRecord DefaultPublishedViewRecord(
     view.view_id = source.source_id.empty() ? "1" : source.source_id;
     view.display_name = source.display_name.empty() ? "Default Channel" : source.display_name;
     view.source_id = source.source_id;
-    view.allowed_overlay_modes = {"raw", "va-overlay", "va-rule"};
+    view.allowed_overlay_modes = {"raw", "va-overlay"};
     view.show_dashboard = true;
     view.show_events = true;
     view.show_metadata_summary = true;
@@ -668,9 +674,9 @@ std::optional<SourceViewRegistry::SourceRecord> ParseSourceRecord(const std::str
     if (source.source_id.empty()) {
         source.source_id = path_id;
     }
-    if (!IsSafeRegistryId(source.source_id)) {
+    if (!IsNumericRegistryId(source.source_id)) {
         if (error_message != nullptr) {
-            *error_message = "sourceId must use letters, numbers, '.', '_' or '-'";
+            *error_message = "sourceId must be numeric";
         }
         return std::nullopt;
     }
@@ -760,18 +766,18 @@ std::optional<SourceViewRegistry::PublishedViewRecord> ParsePublishedViewRecord(
     if (view.view_id.empty()) {
         view.view_id = path_id;
     }
-    if (!IsSafeRegistryId(view.view_id)) {
+    if (!IsNumericRegistryId(view.view_id)) {
         if (error_message != nullptr) {
-            *error_message = "viewId must use letters, numbers, '.', '_' or '-'";
+            *error_message = "viewId must be numeric";
         }
         return std::nullopt;
     }
 
     view.display_name = Trim(ParseStringField(body, "displayName").value_or(view.view_id));
     view.source_id = Trim(ParseStringField(body, "sourceId").value_or(""));
-    if (!IsSafeRegistryId(view.source_id)) {
+    if (!IsNumericRegistryId(view.source_id)) {
         if (error_message != nullptr) {
-            *error_message = "PublishedView requires sourceId";
+            *error_message = "PublishedView requires numeric sourceId";
         }
         return std::nullopt;
     }
@@ -792,7 +798,7 @@ std::optional<SourceViewRegistry::PublishedViewRecord> ParsePublishedViewRecord(
     }
     view.allowed_overlay_modes = ParseStringArrayField(body, "allowedOverlayModes");
     if (view.allowed_overlay_modes.empty()) {
-        view.allowed_overlay_modes = {"raw", "va-overlay", "va-rule"};
+        view.allowed_overlay_modes = {"raw", "va-overlay"};
     }
     view.show_dashboard = ParseBoolField(body, "showDashboard").value_or(true);
     view.show_events = ParseBoolField(body, "showEvents").value_or(true);

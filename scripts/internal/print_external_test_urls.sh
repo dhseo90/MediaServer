@@ -93,9 +93,8 @@ cat <<EOF
 Detected host: ${HOST}
 Detected LAN IP candidates: ${DETECTED_IPS[*]:-(none)}
 RTSP base: rtsp://${HOST}:${RTSP_PORT}/${ROUTE}
-WebRTC test page: http://${HOST}:${HTTP_PORT}/webrtc/test
-Lab page: http://${HOST}:${HTTP_PORT}/lab
-Lab import page: http://${HOST}:${HTTP_PORT}/lab/import
+Ops page: http://${HOST}:${HTTP_PORT}/ops/home
+Client page: http://${HOST}:${HTTP_PORT}/client/live
 
 ## MacBook server start command
 
@@ -104,9 +103,8 @@ Lab import page: http://${HOST}:${HTTP_PORT}/lab/import
 ## Desktop first checks
 
 http://${HOST}:${HTTP_PORT}/health
-http://${HOST}:${HTTP_PORT}/webrtc/test
-http://${HOST}:${HTTP_PORT}/lab
-http://${HOST}:${HTTP_PORT}/lab/import
+http://${HOST}:${HTTP_PORT}/ops/home
+http://${HOST}:${HTTP_PORT}/client/live
 EOF
 
 print_rtsp_routes "RTSP file sample_h264.mp4" \
@@ -137,45 +135,26 @@ fi
 
 cat <<EOF
 
-## WebRTC manual cases
+## Product UI manual cases
 
-Open this page from the desktop:
-http://${HOST}:${HTTP_PORT}/webrtc/test
+Open these pages from the desktop:
+http://${HOST}:${HTTP_PORT}/ops/home
+http://${HOST}:${HTTP_PORT}/ops/sources
+http://${HOST}:${HTTP_PORT}/ops/rules
+http://${HOST}:${HTTP_PORT}/client/live
 
-Development-only lab page:
-http://${HOST}:${HTTP_PORT}/lab
-http://${HOST}:${HTTP_PORT}/lab/import
-
-Run each case with both "simple" and "WHEP" buttons.
-
-sourceType=file
-file=sample_h264.mp4
-
-sourceType=file
-file=sample_h265.mp4
-
-sourceType=file
-file=sample_h264_video_only.mp4
-
-sourceType=file
-file=va_four_scene_sample.mp4
-va=1
+Client Live should use the configured PublishedView list. Video screenshots and VA overlay checks use the 4-scene `VA Test File` channel.
 
 ## WebRTC publish -> consume manual case
 
-1. On the WebRTC test page, set publishSourceId=desktop-publisher-1.
-2. Click publish/start publisher.
-3. In another browser tab or another desktop browser, set:
-   sourceType=webrtc
-   webrtcSourceId=desktop-publisher-1
-4. Run both simple and WHEP consume.
+The old browser test page is removed. Use `/whip/publish` for publisher ingest and `/ops/sources` to register the resulting Published WebRTC sourceId, then verify playback from `/client/live`.
 
 ## Notes
 
 - If /health does not open from the desktop, check macOS firewall, bind address, or router WiFi/LAN isolation first.
 - VLC/IINA RTSP tests should prefer RTSP over TCP.
-- Lab import is shown by default as a development file-download tool. Set
-  MEDIA_SERVER_ENABLE_LAB_YOUTUBE_IMPORT=0 only if you want to hide/disable it.
+- YouTube import is not part of the product UI. Keep it disabled unless a
+  dedicated experimental import flow is being reviewed.
 EOF
 
 if [[ "${EXPERIMENTAL_YOUTUBE_ENABLED}" == "1" ]]; then

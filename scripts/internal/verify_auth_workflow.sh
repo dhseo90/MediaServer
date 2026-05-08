@@ -14,6 +14,7 @@ TMP_DIR="${TMPDIR:-/tmp}"
 USERS_FILE="${TMP_DIR}/media_server_${RUN_ID}_users.json"
 SOURCE_REGISTRY_FILE="${TMP_DIR}/media_server_${RUN_ID}_sources.json"
 VIEWS_REGISTRY_FILE="${TMP_DIR}/media_server_${RUN_ID}_views.json"
+ANALYSIS_REGISTRY_FILE="${TMP_DIR}/media_server_${RUN_ID}_analysis_registry.json"
 ADMIN_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_admin.cookie"
 OP_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_operator.cookie"
 OP_READONLY_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_operator_readonly.cookie"
@@ -37,6 +38,7 @@ cleanup() {
   rm -f "${USERS_FILE}" "${USERS_FILE}.tmp" \
     "${SOURCE_REGISTRY_FILE}" "${SOURCE_REGISTRY_FILE}".tmp* \
     "${VIEWS_REGISTRY_FILE}" "${VIEWS_REGISTRY_FILE}".tmp* \
+    "${ANALYSIS_REGISTRY_FILE}" "${ANALYSIS_REGISTRY_FILE}".tmp* \
     "${ADMIN_COOKIE}" "${OP_COOKIE}" "${OP_READONLY_COOKIE}" \
     "${VIEWER_COOKIE}" "${INTEGRATOR_COOKIE}" \
     "${INVITE_COOKIE}" "${EXISTING_INVITE_COOKIE}" "${REQUEST_COOKIE}" \
@@ -93,6 +95,7 @@ start_server() {
   MEDIA_SERVER_AUTH_USERS_FILE="${USERS_FILE}" \
   MEDIA_SERVER_SOURCE_REGISTRY="${SOURCE_REGISTRY_FILE}" \
   MEDIA_SERVER_PUBLISHED_VIEWS="${VIEWS_REGISTRY_FILE}" \
+  MEDIA_SERVER_ANALYSIS_REGISTRY="${ANALYSIS_REGISTRY_FILE}" \
   MEDIA_SERVER_AUTH_LOGIN_MAX_FAILURES=2 \
   MEDIA_SERVER_AUTH_LOGIN_LOCKOUT_SECONDS=60 \
   MEDIA_SERVER_UI_DEFAULT_HOME="${ui_home}" \
@@ -356,9 +359,9 @@ run_users() {
   expect_auth_store_owner_only "permissive auth users file re-hardened"
 
   local viewer_json
-  viewer_json="$(create_user '{"username":"viewer-smoke","displayName":"Viewer Smoke","role":"viewer","viewId":"view-a","password":"Viewer!91","enabled":true,"mustChangePassword":false}')"
+  viewer_json="$(create_user '{"username":"viewer-smoke","displayName":"Viewer Smoke","role":"viewer","viewId":"1","password":"Viewer!91","enabled":true,"mustChangePassword":false}')"
   case "${viewer_json}" in
-    *'view:read:view-a'*) pass "viewer view scope assigned" ;;
+    *'view:read:1'*) pass "viewer view scope assigned" ;;
     *) fail "viewer view scope missing: ${viewer_json}" ;;
   esac
   case "${viewer_json}" in
@@ -373,7 +376,7 @@ run_users() {
 
   expect_eq "$(http_code -c "${VIEWER_COOKIE}" -X POST -d 'username=viewer-smoke&password=Viewer!91' "${BASE}/login")" "302" "viewer login"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops")" "403" "viewer ops forbidden"
-  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/lab")" "403" "viewer lab forbidden"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/lab")" "404" "retired lab page hidden from viewer"
 
   local reset_code landing change_reuse_code disable_code disabled_login
   reset_code="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
@@ -394,7 +397,7 @@ run_users() {
   disabled_login="$(http_code -X POST -d 'username=viewer-smoke&password=Reset!91' "${BASE}/login")"
   expect_eq "${disabled_login}" "401" "disabled user login rejected"
 
-  create_user '{"username":"lockout-smoke","displayName":"Lockout Smoke","role":"viewer","viewId":"view-a","password":"Lockout!91","enabled":true,"mustChangePassword":false}' >/dev/null
+  create_user '{"username":"lockout-smoke","displayName":"Lockout Smoke","role":"viewer","viewId":"1","password":"Lockout!91","enabled":true,"mustChangePassword":false}' >/dev/null
   http_code -X POST -d 'username=lockout-smoke&password=Wrong!91' "${BASE}/login" >/dev/null || true
   http_code -X POST -d 'username=lockout-smoke&password=Wrong!92' "${BASE}/login" >/dev/null || true
   if grep -q '"lockedUntil": "[^"]' "${USERS_FILE}"; then
@@ -405,7 +408,7 @@ run_users() {
 
   local invite_json invite_id invite_token preserve_reset invite_setup invite_login
   invite_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"username":"invite-smoke","displayName":"Invite Smoke","role":"viewer","viewId":"view-a"}' "${BASE}/ops/api/invites")"
+    -X POST --data '{"username":"invite-smoke","displayName":"Invite Smoke","role":"viewer","viewId":"1"}' "${BASE}/ops/api/invites")"
   invite_id="$(printf '%s' "${invite_json}" | json_string_field inviteId)"
   invite_token="$(printf '%s' "${invite_json}" | json_string_field token)"
   [[ -n "${invite_token}" ]] || fail "invite token missing: ${invite_json}"
@@ -423,26 +426,26 @@ run_users() {
   invite_login="$(http_code -c "${INVITE_COOKIE}" -X POST -d 'username=invite-smoke&password=Invite!91' "${BASE}/login")"
   expect_eq "${invite_login}" "302" "invited viewer login"
 
-  create_user '{"username":"invite-existing","displayName":"Invite Existing","role":"viewer","viewId":"view-a","password":"Existing!91","enabled":true,"mustChangePassword":false}' >/dev/null
+  create_user '{"username":"invite-existing","displayName":"Invite Existing","role":"viewer","viewId":"1","password":"Existing!91","enabled":true,"mustChangePassword":false}' >/dev/null
   expect_eq "$(http_code -c "${EXISTING_INVITE_COOKIE}" -X POST -d 'username=invite-existing&password=Existing!91' "${BASE}/login")" "302" "existing invite target baseline login"
   local existing_before existing_invite_json existing_invite_token existing_after existing_setup existing_relogin existing_final
   existing_before="$(curl -fsS -b "${EXISTING_INVITE_COOKIE}" "${BASE}/auth/whoami")"
   case "${existing_before}" in
-    *'"role":"viewer"'*'"view:read:view-a"'*) pass "existing invite baseline scope visible" ;;
+    *'"role":"viewer"'*'"view:read:1"'*) pass "existing invite baseline scope visible" ;;
     *) fail "existing invite baseline scope mismatch: ${existing_before}" ;;
   esac
   existing_invite_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"username":"invite-existing","displayName":"Invite Existing Integrator","role":"integrator","viewId":"view-b"}' "${BASE}/ops/api/invites")"
+    -X POST --data '{"username":"invite-existing","displayName":"Invite Existing Integrator","role":"integrator","viewId":"2"}' "${BASE}/ops/api/invites")"
   existing_invite_token="$(printf '%s' "${existing_invite_json}" | json_string_field token)"
   [[ -n "${existing_invite_token}" ]] || fail "existing user invite token missing: ${existing_invite_json}"
   expect_eq "$(http_code -b "${EXISTING_INVITE_COOKIE}" "${BASE}/auth/whoami")" "200" "pending invite keeps existing session"
   existing_after="$(curl -fsS -b "${EXISTING_INVITE_COOKIE}" "${BASE}/auth/whoami")"
   case "${existing_after}" in
-    *'"role":"viewer"'*'"view:read:view-a"'*) pass "pending invite does not change existing role/scope" ;;
+    *'"role":"viewer"'*'"view:read:1"'*) pass "pending invite does not change existing role/scope" ;;
     *) fail "pending invite changed existing role/scope: ${existing_after}" ;;
   esac
   case "${existing_after}" in
-    *'"role":"integrator"'*|*'"metadata:read:view-b"'*) fail "pending invite applied future integrator scope: ${existing_after}" ;;
+    *'"role":"integrator"'*|*'"metadata:read:2"'*) fail "pending invite applied future integrator scope: ${existing_after}" ;;
     *) pass "pending invite future scope not applied" ;;
   esac
   existing_setup="$(http_code -X POST --data-urlencode "token=${existing_invite_token}" \
@@ -453,18 +456,18 @@ run_users() {
   expect_eq "${existing_relogin}" "302" "existing invite new password login"
   existing_final="$(curl -fsS -b "${EXISTING_INVITE_COOKIE}" "${BASE}/auth/whoami")"
   case "${existing_final}" in
-    *'"role":"integrator"'*'"metadata:read:view-b"'*'"event:read:view-b"'*) pass "accepted invite applies role/scope" ;;
+    *'"role":"integrator"'*'"metadata:read:2"'*'"event:read:2"'*) pass "accepted invite applies role/scope" ;;
     *) fail "accepted invite did not apply role/scope: ${existing_final}" ;;
   esac
 
   local request_json request_id pending_login approve_json approve_invite_id approve_token request_user_list request_preserve_reset request_setup request_login
   local rate_request_json rate_request_id reject_code access_requests_json
   request_json="$(curl -fsS -H 'Content-Type: application/json' \
-    -X POST --data '{"username":"request-smoke","displayName":"Request Smoke","contact":"client@example.test","viewId":"view-b","reason":"smoke"}' "${BASE}/client/api/access-requests")"
+    -X POST --data '{"username":"request-smoke","displayName":"Request Smoke","contact":"client@example.test","viewId":"2","reason":"smoke"}' "${BASE}/client/api/access-requests")"
   request_id="$(printf '%s' "${request_json}" | json_string_field requestId)"
   [[ -n "${request_id}" ]] || fail "access request id missing: ${request_json}"
   expect_eq "$(http_code -H 'Content-Type: application/json' \
-    -X POST --data '{"username":"request-smoke","displayName":"Request Smoke","contact":"client@example.test","viewId":"view-b","reason":"duplicate"}' "${BASE}/client/api/access-requests")" "409" "duplicate pending access request rejected"
+    -X POST --data '{"username":"request-smoke","displayName":"Request Smoke","contact":"client@example.test","viewId":"2","reason":"duplicate"}' "${BASE}/client/api/access-requests")" "409" "duplicate pending access request rejected"
   expect_eq "$(http_code -H 'Content-Type: application/json' \
     -X POST --data '{"username":"request-bad-view","displayName":"Bad View","viewId":"../bad","reason":"bad view"}' "${BASE}/client/api/access-requests")" "400" "access request unsafe viewId rejected"
   printf '{"username":"request-large","reason":"' >"${ACCESS_REQUEST_PAYLOAD}"
@@ -491,7 +494,7 @@ run_users() {
   pending_login="$(http_code -X POST -d 'username=request-smoke&password=Request!91' "${BASE}/login")"
   expect_eq "${pending_login}" "401" "pending request cannot login"
   approve_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"viewId":"view-b"}' "${BASE}/ops/api/access-requests/${request_id}/approve")"
+    -X POST --data '{"viewId":"2"}' "${BASE}/ops/api/access-requests/${request_id}/approve")"
   approve_invite_id="$(printf '%s' "${approve_json}" | json_string_field inviteId)"
   approve_token="$(printf '%s' "${approve_json}" | json_string_field token)"
   [[ -n "${approve_token}" ]] || fail "approve invite token missing: ${approve_json}"
@@ -521,8 +524,8 @@ run_routes() {
   expect_eq "$(header_status_location -b "${ADMIN_COOKIE}" "${BASE}/")" "302:/ops/home" "admin root"
   create_user '{"username":"operator-smoke","displayName":"Operator Smoke","role":"operator","password":"Operator!91","enabled":true,"mustChangePassword":false}' >/dev/null
   create_user '{"username":"operator-readonly","displayName":"Operator Readonly","role":"operator","scopes":["ops:read"],"password":"Operator!92","enabled":true,"mustChangePassword":false}' >/dev/null
-  create_user '{"username":"viewer-smoke","displayName":"Viewer Smoke","role":"viewer","viewId":"view-a","password":"Viewer!91","enabled":true,"mustChangePassword":false}' >/dev/null
-  create_user '{"username":"integrator-smoke","displayName":"Integrator Smoke","role":"integrator","viewId":"view-a","password":"Integrator!91","enabled":true,"mustChangePassword":false}' >/dev/null
+  create_user '{"username":"viewer-smoke","displayName":"Viewer Smoke","role":"viewer","viewId":"1","password":"Viewer!91","enabled":true,"mustChangePassword":false}' >/dev/null
+  create_user '{"username":"integrator-smoke","displayName":"Integrator Smoke","role":"integrator","viewId":"1","password":"Integrator!91","enabled":true,"mustChangePassword":false}' >/dev/null
   local sources_json source_id source_kind source_file source_rtsp source_webrtc source_http matching_rule_source mismatched_rule_source
   sources_json="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/api/sources")"
   source_id="$(printf '%s' "${sources_json}" | json_first_source_field sourceId)"
@@ -534,7 +537,7 @@ run_routes() {
   source_http="$(printf '%s' "${sources_json}" | json_first_source_field httpUrl)"
   if [[ -n "${source_file}" ]]; then
     matching_rule_source="\"kind\":\"file\",\"file\":$(json_quote "${source_file}")"
-    mismatched_rule_source="\"kind\":\"file\",\"file\":\"__client_live_forbidden_source__.mp4\""
+    mismatched_rule_source="\"kind\":\"file\",\"file\":\"va_four_scene_sample.mp4\""
   elif [[ -n "${source_rtsp}" ]]; then
     matching_rule_source="\"kind\":\"rtsp\",\"url\":$(json_quote "${source_rtsp}")"
     mismatched_rule_source="\"kind\":\"rtsp\",\"url\":\"rtsp://127.0.0.1:65530/forbidden\""
@@ -549,17 +552,20 @@ run_routes() {
     fail "default source has no playable locator: ${sources_json}"
   fi
   curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
-    -X PUT --data "{\"id\":\"9101\",\"source\":{${matching_rule_source}},\"analysis\":{\"classes\":[\"person\"]}}" \
-    "${BASE}/lab/analysis/va-rules/9101" >/dev/null
+    -X PUT --data '{"id":"11","enabled":true,"analysis":{"classes":["person"]},"event":{"type":"intrusion-dwell","region":{"type":"polygon","points":[{"x":0.1,"y":0.1},{"x":0.9,"y":0.1},{"x":0.9,"y":0.9},{"x":0.1,"y":0.9}]},"minConfidence":0.25,"minDurationMs":0},"ruleKind":"scenario","scenario":{"type":"intrusion-dwell","enabled":true,"candidateTimeMs":1000,"dwellTimeMs":3000,"cooldownMs":5000,"targetClasses":["person"],"restrictedZoneIds":[]}}' \
+    "${BASE}/lab/analysis/rules/11" >/dev/null
   curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
-    -X PUT --data "{\"id\":\"9102\",\"source\":{${mismatched_rule_source}},\"analysis\":{\"classes\":[\"person\"]}}" \
-    "${BASE}/lab/analysis/va-rules/9102" >/dev/null
+    -X PUT --data "{\"id\":\"12\",\"source\":{${matching_rule_source}},\"analysis\":{\"classes\":[\"person\"],\"profileId\":\"1\"},\"templateStart\":{\"ruleId\":\"11\"},\"event\":{\"type\":\"intrusion-dwell\",\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.1,\"y\":0.1},{\"x\":0.9,\"y\":0.1},{\"x\":0.9,\"y\":0.9},{\"x\":0.1,\"y\":0.9}]},\"minConfidence\":0.25,\"minDurationMs\":0}}" \
+    "${BASE}/lab/analysis/va-rules/12" >/dev/null
   curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
-    -X PUT --data "{\"viewId\":\"view-a\",\"sourceId\":\"${source_id}\",\"displayName\":\"View A\",\"defaultRuleId\":\"9101\",\"allowedRuleIds\":[\"9101\",\"9102\"],\"allowedOverlayModes\":[\"raw\",\"va-rule\"],\"enabled\":true}" \
-    "${BASE}/ops/api/views/view-a" >/dev/null
+    -X PUT --data "{\"id\":\"13\",\"source\":{${mismatched_rule_source}},\"analysis\":{\"classes\":[\"person\"],\"profileId\":\"1\"},\"templateStart\":{\"ruleId\":\"11\"},\"event\":{\"type\":\"intrusion-dwell\",\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.1,\"y\":0.1},{\"x\":0.9,\"y\":0.1},{\"x\":0.9,\"y\":0.9},{\"x\":0.1,\"y\":0.9}]},\"minConfidence\":0.25,\"minDurationMs\":0}}" \
+    "${BASE}/lab/analysis/va-rules/13" >/dev/null
   curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
-    -X PUT --data "{\"viewId\":\"view-b\",\"sourceId\":\"${source_id}\",\"displayName\":\"View B\",\"allowedOverlayModes\":[\"raw\"],\"enabled\":true}" \
-    "${BASE}/ops/api/views/view-b" >/dev/null
+    -X PUT --data "{\"viewId\":\"1\",\"sourceId\":\"${source_id}\",\"displayName\":\"View 1\",\"defaultRuleId\":\"12\",\"allowedRuleIds\":[\"12\",\"13\"],\"allowedOverlayModes\":[\"raw\",\"va-rule\"],\"enabled\":true}" \
+    "${BASE}/ops/api/views/1" >/dev/null
+  curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X PUT --data "{\"viewId\":\"2\",\"sourceId\":\"${source_id}\",\"displayName\":\"View 2\",\"allowedOverlayModes\":[\"raw\"],\"enabled\":true}" \
+    "${BASE}/ops/api/views/2" >/dev/null
   local op_landing viewer_landing
   op_landing="$(curl -sS -c "${OP_COOKIE}" -o /dev/null -D - \
     -X POST -d 'username=operator-smoke&password=Operator!91' "${BASE}/login" |
@@ -580,7 +586,7 @@ run_routes() {
     tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
   expect_eq "${integrator_landing}" "302:/login" "integrator login keeps API-only landing"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops")" "403" "viewer ops denied"
-  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/lab")" "403" "viewer lab denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/lab")" "404" "retired lab page hidden from viewer"
   expect_eq "$(http_code "${BASE}/ops/api/sources")" "401" "unauth ops sources API denied"
   expect_eq "$(http_code "${BASE}/ops/api/views")" "401" "unauth ops views API denied"
   expect_eq "$(http_code "${BASE}/ops/api/runtime/status")" "401" "unauth ops runtime API denied"
@@ -599,75 +605,75 @@ run_routes() {
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/events/status?limit=1")" "200" "ops events status API read allowed"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/users")" "403" "readonly operator admin users API denied"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"username":"readonly-invite","role":"viewer","viewId":"view-a"}' "${BASE}/ops/api/invites")" "403" "readonly operator invite API denied"
+    -X POST --data '{"username":"readonly-invite","role":"viewer","viewId":"1"}' "${BASE}/ops/api/invites")" "403" "readonly operator invite API denied"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/access-requests")" "403" "readonly operator access requests API denied"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"viewId":"readonly-denied"}' "${BASE}/ops/api/views")" "403" "source write scope required for view create"
+    -X POST --data '{"viewId":"99"}' "${BASE}/ops/api/views")" "403" "source write scope required for view create"
   local readonly_view_update_payload readonly_source_update_payload readonly_va_rule_payload
-  readonly_view_update_payload="{\"viewId\":\"view-a\",\"sourceId\":\"${source_id}\",\"displayName\":\"Denied\"}"
+  readonly_view_update_payload="{\"viewId\":\"1\",\"sourceId\":\"${source_id}\",\"displayName\":\"Denied\"}"
   readonly_source_update_payload="{\"sourceId\":\"${source_id}\",\"displayName\":\"Denied\",\"kind\":\"file\",\"file\":\"sample_h264.mp4\"}"
-  readonly_va_rule_payload="{\"id\":\"readonly-va-denied\",\"source\":{${matching_rule_source}},\"analysis\":{\"classes\":[\"person\"]}}"
+  readonly_va_rule_payload="{\"id\":\"14\",\"source\":{${matching_rule_source}},\"analysis\":{\"classes\":[\"person\"]},\"templateStart\":{\"ruleId\":\"11\"}}"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
-    -X PUT --data "${readonly_view_update_payload}" "${BASE}/ops/api/views/view-a")" "403" "source write scope required for view update"
+    -X PUT --data "${readonly_view_update_payload}" "${BASE}/ops/api/views/1")" "403" "source write scope required for view update"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
     -X PUT --data "${readonly_source_update_payload}" "${BASE}/ops/api/sources/${source_id}")" "403" "source write scope required for source update"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data '{}' "${BASE}/lab/analysis/rules")" "403" "rule write scope required for lab rule write"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
-    -X PUT --data "${readonly_va_rule_payload}" "${BASE}/lab/analysis/va-rules/readonly-va-denied")" "403" "rule write scope required for lab vaRule write"
+    -X PUT --data "${readonly_va_rule_payload}" "${BASE}/lab/analysis/va-rules/14")" "403" "rule write scope required for lab vaRule write"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
-    -X PUT --data '{"id":"readonly-profile-denied","trackingClasses":["person"]}' "${BASE}/lab/analysis/profiles/readonly-profile-denied")" "403" "rule write scope required for lab profile write"
+    -X PUT --data '{"id":"99","trackingClasses":["person"]}' "${BASE}/lab/analysis/profiles/99")" "403" "rule write scope required for lab profile write"
   local whep_source_json whep_sources_json
   whep_source_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"sourceId":"whep-smoke","displayName":"WHEP Smoke","kind":"whep","whepUrl":"https://example.test/whep/stream?b=2&a=1","enabled":true}' \
+    -X POST --data '{"sourceId":"31","displayName":"WHEP Smoke","kind":"whep","whepUrl":"https://example.test/whep/stream?b=2&a=1","enabled":true}' \
     "${BASE}/ops/api/sources")"
   case "${whep_source_json}" in
     *'"kind":"whep"'*'"whepUrl":"https://example.test/whep/stream?b=2&a=1"'*) pass "WHEP source registry create allowed" ;;
     *) fail "WHEP source registry create response missing fields: ${whep_source_json}" ;;
   esac
   expect_eq "$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"sourceId":"whep-smoke-dup","displayName":"WHEP Smoke Dup","kind":"whep","whepUrl":"https://example.test/whep/stream?a=1&b=2","enabled":true}' \
+    -X POST --data '{"sourceId":"32","displayName":"WHEP Smoke Dup","kind":"whep","whepUrl":"https://example.test/whep/stream?a=1&b=2","enabled":true}' \
     "${BASE}/ops/api/sources")" "409" "WHEP source canonical duplicate denied"
   whep_sources_json="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/api/sources")"
   case "${whep_sources_json}" in
-    *'"sourceId":"whep-smoke"'*'"kind":"whep"'*'"whepUrl":"https://example.test/whep/stream?b=2&a=1"'*) pass "WHEP source visible to ops API" ;;
+    *'"sourceId":"31"'*'"kind":"whep"'*'"whepUrl":"https://example.test/whep/stream?b=2&a=1"'*) pass "WHEP source visible to ops API" ;;
     *) fail "WHEP source missing from ops API: ${whep_sources_json}" ;;
   esac
   expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client")" "403" "integrator client shell denied"
   expect_eq "$(http_code "${BASE}/client/api/views")" "401" "unauth client views API denied"
-  expect_eq "$(http_code "${BASE}/client/api/views/view-a/dashboard")" "401" "unauth client dashboard API denied"
+  expect_eq "$(http_code "${BASE}/client/api/views/1/dashboard")" "401" "unauth client dashboard API denied"
   expect_eq "$(http_code -H 'Content-Type: application/json' \
-    -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/view-a/webrtc/session")" "401" "unauth client WebRTC wrapper denied"
+    -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/1/webrtc/session")" "401" "unauth client WebRTC wrapper denied"
   local public_request_code client_views_json integrator_views_json
   public_request_code="$(http_code -H 'Content-Type: application/json' \
-    -X POST --data '{"username":"route-public-request","displayName":"Route Public","contact":"route@example.test","viewId":"view-a","reason":"route smoke"}' "${BASE}/client/api/access-requests")"
+    -X POST --data '{"username":"route-public-request","displayName":"Route Public","contact":"route@example.test","viewId":"1","reason":"route smoke"}' "${BASE}/client/api/access-requests")"
   expect_eq "${public_request_code}" "201" "public access request API remains unauthenticated"
   client_views_json="$(curl -fsS -b "${VIEWER_COOKIE}" "${BASE}/client/api/views")"
   case "${client_views_json}" in
-    *'"viewId":"view-a"'*) pass "viewer assigned view visible in client API" ;;
+    *'"viewId":"1"'*) pass "viewer assigned view visible in client API" ;;
     *) fail "viewer assigned view missing from client API: ${client_views_json}" ;;
   esac
   case "${client_views_json}" in
-    *'"viewId":"view-b"'*) fail "viewer unassigned view leaked in client API: ${client_views_json}" ;;
+    *'"viewId":"2"'*) fail "viewer unassigned view leaked in client API: ${client_views_json}" ;;
     *) pass "viewer unassigned view hidden from client API" ;;
   esac
-  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/client/api/views/view-b/dashboard")" "403" "viewer cross-view dashboard denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/client/api/views/2/dashboard")" "403" "viewer cross-view dashboard denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/view-b/webrtc/session")" "403" "viewer cross-view WebRTC wrapper denied"
+    -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/2/webrtc/session")" "403" "viewer cross-view WebRTC wrapper denied"
   integrator_views_json="$(curl -fsS -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views")"
   case "${integrator_views_json}" in
-    *'"viewId":"view-a"'*) fail "integrator live view leaked in client views list: ${integrator_views_json}" ;;
+    *'"viewId":"1"'*) fail "integrator live view leaked in client views list: ${integrator_views_json}" ;;
     *) pass "integrator client views list omits live views" ;;
   esac
-  expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/view-a/events?limit=1")" "200" "integrator event scope allowed"
-  expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/view-a/metadata")" "200" "integrator metadata scope allowed"
-  expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/view-a/dashboard")" "403" "integrator dashboard scope denied"
+  expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/1/events?limit=1")" "200" "integrator event scope allowed"
+  expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/1/metadata")" "200" "integrator metadata scope allowed"
+  expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/1/dashboard")" "403" "integrator dashboard scope denied"
   expect_eq "$(http_code -X POST "${BASE}/webrtc/session?file=sample_h264.mp4")" "401" "unauth generic WebRTC denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X POST "${BASE}/webrtc/session?file=sample_h264.mp4")" "403" "viewer generic WebRTC denied"
   expect_eq "$(http_code -X POST "${BASE}/whep?file=sample_h264.mp4")" "401" "unauth WHEP denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X POST "${BASE}/whep?file=sample_h264.mp4")" "403" "viewer WHEP denied"
-  expect_eq "$(http_code -X POST --data 'v=0' "${BASE}/whip/publish?sourceId=auth-smoke")" "401" "unauth WHIP publish denied"
-  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X POST --data 'v=0' "${BASE}/whip/publish?sourceId=auth-smoke")" "403" "viewer WHIP publish denied"
+  expect_eq "$(http_code -X POST --data 'v=0' "${BASE}/whip/publish?sourceId=91")" "401" "unauth WHIP publish denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X POST --data 'v=0' "${BASE}/whip/publish?sourceId=91")" "403" "viewer WHIP publish denied"
   expect_eq "$(http_code "${BASE}/ws/va-metadata?file=sample_h264.mp4")" "401" "unauth metadata websocket denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ws/va-metadata?file=sample_h264.mp4")" "403" "viewer metadata websocket denied"
   expect_eq "$(response_header_value access-control-allow-origin "${BASE}/auth/whoami")" "" "plain request omits CORS allow origin"
@@ -701,7 +707,7 @@ run_routes() {
   expect_eq "$(http_code -H "X-Session-Capability: ${admin_session_token}" -X DELETE "${BASE}/webrtc/session/${admin_session_id}")" "200" "session capability delete allowed"
   local client_session_json client_session_id
   client_session_json="$(curl -fsS -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/view-a/webrtc/session")"
+    -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/1/webrtc/session")"
   client_session_id="$(printf '%s' "${client_session_json}" | json_string_field sessionId)"
   if printf '%s' "${client_session_id}" | grep -Eq '^client-live-[0-9a-f]{64}$'; then
     pass "client WebRTC wrapper returns client session alias"
@@ -714,44 +720,44 @@ run_routes() {
     *) pass "client WebRTC wrapper hides internal signaling detail" ;;
   esac
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/view-a/webrtc/session")" "409" "client PublishedView maxTiles enforced"
+    -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/1/webrtc/session")" "409" "client PublishedView maxTiles enforced"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"file":"sample_h264.mp4","overlayMode":"raw"}' "${BASE}/client/api/views/view-a/webrtc/session")" "400" "client WebRTC wrapper source override denied"
+    -X POST --data '{"file":"sample_h264.mp4","overlayMode":"raw"}' "${BASE}/client/api/views/1/webrtc/session")" "400" "client WebRTC wrapper source override denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/webrtc/session/${client_session_id}/ice")" "404" "client alias rejected on generic session route"
-  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/client/api/views/view-a/webrtc/session/${client_session_id}/ice")" "200" "client wrapper ICE allowed"
-  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X DELETE "${BASE}/client/api/views/view-a/webrtc/session/${client_session_id}")" "200" "client wrapper delete allowed"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/client/api/views/1/webrtc/session/${client_session_id}/ice")" "200" "client wrapper ICE allowed"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X DELETE "${BASE}/client/api/views/1/webrtc/session/${client_session_id}")" "200" "client wrapper delete allowed"
   local client_rule_session_json client_rule_session_id
   client_rule_session_json="$(curl -fsS -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"overlayMode":"va-rule","ruleId":"9101"}' "${BASE}/client/api/views/view-a/webrtc/session")"
+    -X POST --data '{"overlayMode":"va-rule","ruleId":"12"}' "${BASE}/client/api/views/1/webrtc/session")"
   client_rule_session_id="$(printf '%s' "${client_rule_session_json}" | json_string_field sessionId)"
   if printf '%s' "${client_rule_session_id}" | grep -Eq '^client-live-[0-9a-f]{64}$'; then
     pass "client vaRule matching PublishedView source allowed"
   else
     fail "client vaRule matching source failed: ${client_rule_session_json}"
   fi
-  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X DELETE "${BASE}/client/api/views/view-a/webrtc/session/${client_rule_session_id}")" "200" "client vaRule wrapper delete allowed"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -X DELETE "${BASE}/client/api/views/1/webrtc/session/${client_rule_session_id}")" "200" "client vaRule wrapper delete allowed"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"overlayMode":"va-rule","ruleId":"9102"}' "${BASE}/client/api/views/view-a/webrtc/session")" "400" "client vaRule source mismatch denied"
+    -X POST --data '{"overlayMode":"va-rule","ruleId":"13"}' "${BASE}/client/api/views/1/webrtc/session")" "400" "client vaRule source mismatch denied"
 
   stop_server
-  printf '%s\n' '{"sources":[{"sourceId":"broken-source","displayName":"Broken Source","kind":"file","enabled":true}]}' >"${SOURCE_REGISTRY_FILE}"
+  printf '%s\n' '{"sources":[{"sourceId":"98","displayName":"Broken Source","kind":"file","enabled":true}]}' >"${SOURCE_REGISTRY_FILE}"
   rm -f "${VIEWS_REGISTRY_FILE}" "${VIEWS_REGISTRY_FILE}".tmp*
   start_server auto lab
   login_admin
   expect_eq "$(http_code -b "${ADMIN_COOKIE}" "${BASE}/ops/api/sources")" "500" "malformed source registry fail closed"
-  if grep -Fq '"sourceId":"broken-source"' "${SOURCE_REGISTRY_FILE}"; then
+  if grep -Fq '"sourceId":"98"' "${SOURCE_REGISTRY_FILE}"; then
     pass "malformed source registry not overwritten"
   else
     fail "malformed source registry was overwritten"
   fi
 
   stop_server
-  printf '%s\n' '{"sources":[{"sourceId":"strict-source","displayName":"Strict Source","kind":"file","file":"sample_h264.mp4","enabled":true}]}' >"${SOURCE_REGISTRY_FILE}"
-  printf '%s\n' '{"views":[{"viewId":"broken-view","displayName":"Broken View","enabled":true}]}' >"${VIEWS_REGISTRY_FILE}"
+  printf '%s\n' '{"sources":[{"sourceId":"97","displayName":"Strict Source","kind":"file","file":"sample_h264.mp4","enabled":true}]}' >"${SOURCE_REGISTRY_FILE}"
+  printf '%s\n' '{"views":[{"viewId":"96","displayName":"Broken View","enabled":true}]}' >"${VIEWS_REGISTRY_FILE}"
   start_server auto lab
   login_admin
   expect_eq "$(http_code -b "${ADMIN_COOKIE}" "${BASE}/ops/api/views")" "500" "malformed published view registry fail closed"
-  if grep -Fq '"viewId":"broken-view"' "${VIEWS_REGISTRY_FILE}"; then
+  if grep -Fq '"viewId":"96"' "${VIEWS_REGISTRY_FILE}"; then
     pass "malformed published view registry not overwritten"
   else
     fail "malformed published view registry was overwritten"
@@ -762,7 +768,7 @@ run_routes() {
     "${SOURCE_REGISTRY_FILE}" "${SOURCE_REGISTRY_FILE}".tmp* \
     "${VIEWS_REGISTRY_FILE}" "${VIEWS_REGISTRY_FILE}".tmp*
   start_server off lab
-  expect_eq "$(header_status_location "${BASE}/")" "302:/lab" "auth off lab root"
+  expect_eq "$(header_status_location "${BASE}/")" "302:/ops/home" "auth off retired lab home falls back to ops"
 }
 
 case "${MODE}" in

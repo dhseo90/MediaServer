@@ -33,7 +33,7 @@ Usage:
   verify-webrtc-ice
                  WebRTC STUN/TURN/ICE policy와 candidate 수집 상태를 검증합니다.
   verify-multichannel
-                 같은 영상/여러 영상을 다중 WebRTC client가 동시에 소비하는 fan-out을 검증합니다.
+                 제거된 초기 브라우저 harness 대신 현재는 명시적으로 skip합니다. 제품 UI smoke를 사용하세요.
   verify-uri-longrun
                  HTTP/HLS URI source의 로컬 반복 검증과 선택 외부 URL 반복 검증을 수행합니다.
   verify-va      YOLO/VA overlay의 lab, RTSP, WebRTC 검증을 수행합니다.

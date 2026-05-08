@@ -43,7 +43,7 @@ struct AppConfig {
     int auth_login_lockout_seconds{300};
     std::string auth_cookie_name{"media_server_session"};
     bool auth_cookie_secure{false};
-    std::string ui_default_home{"lab"};
+    std::string ui_default_home{"ops"};
     bool enable_lab{true};
     bool enable_ops{true};
     bool enable_client{true};

@@ -187,7 +187,7 @@ Profile은 detector와 분석 품질/성능 설정입니다.
     "file": "sample_h264.mp4"
   },
   "analysis": {
-    "profileId": "server-default-va",
+    "profileId": "1",
     "classes": ["person", "vehicle"]
   },
   "event": {
@@ -467,14 +467,14 @@ Homography는 camera별 image point를 ground-plane point로 변환하는 option
   "timestampMs": 1710000000000,
   "source": {
     "key": "file:sample_h264.mp4",
-    "profileKey": "server-default-va",
+    "profileKey": "1",
     "sourceKind": "file",
     "route": "dhseo",
     "clientId": "",
     "pts": 123456789
   },
   "rule": {
-    "id": "rule-1",
+    "id": "1",
     "type": "presence"
   },
   "object": {
@@ -595,7 +595,7 @@ curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/events/records/compactio
 이 API는 matching record를 새 compacted JSON Lines 파일로 쓰는 비파괴 snapshot입니다. 기존 active/archive 파일을 삭제하거나 rewrite하지 않습니다.
 `compactions` API는 active storage 파일과 같은 디렉터리의 compacted snapshot 파일만 대상으로 목록/다운로드/삭제를 허용하며, rotated archive 조회 대상에는 compacted snapshot을 포함하지 않습니다.
 
-`/lab/rules` Runtime Dashboard의 Event Records 섹션은 이 API를 수동 검색 UI로 노출합니다.
+개발/검증 API와 운영 대시보드 세부 확인 흐름은 이 API를 수동 검색 UI 또는 custom client에서 사용할 수 있게 노출합니다.
 
 - 사용자가 검색 버튼을 누를 때만 API를 호출합니다.
 - `offset`과 `limit`으로 active/archive 합산 결과를 페이지 단위로 넘길 수 있고, UI는 이전/다음 페이지 버튼으로 이 값을 사용합니다.
@@ -607,14 +607,14 @@ curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/events/records/compactio
 
 ## 12. VA Runtime Metadata
 
-`VaRuntimeMetadataBuilder`는 WebRTC DataChannel, Lab runtime dashboard, SSE/WebSocket side-channel이 공통으로 쓸 내부 frame 구조를 만듭니다.
+`VaRuntimeMetadataBuilder`는 WebRTC DataChannel, runtime dashboard, SSE/WebSocket side-channel이 공통으로 쓸 내부 frame 구조를 만듭니다.
 
 현재 구현 상태:
 
 - 구현 완료: 내부 `VaRuntimeMetadataFrame` 구조와 builder
 - 구현 완료: WebRTC DataChannel 호환 serializer
 - 구현 완료: SSE/WebSocket side-channel용 runtime metadata JSON 직렬화
-- 구현 완료: Lab 런타임 대시보드의 Overview/Tracks/Scenarios/Scenario Timeline/Events/Metadata/Tracking Issues drill-down 1차 표시
+- 구현 완료: runtime dashboard의 Overview/Tracks/Scenarios/Scenario Timeline/Events/Metadata/Tracking Issues drill-down 1차 표시
 - 구현 완료: Runtime Dashboard 내부 vaRule Runtime Debug 1차 패널
 - 구현 완료: SSE metadata side-channel 수신 중심 custom client 예제
 - 구현 완료: OpenCV 기반 Custom RTSP + SSE metadata overlay renderer 예제
@@ -642,11 +642,11 @@ curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/events/records/compactio
 - `metrics`
 - `trackingIssueReport`
 
-`tracks[]`는 trackId, className, confidence, bbox, currentZone, dwellTimeMs, scenarioPhase, TrackHealth를 포함합니다. `events[]`는 eventId, eventType, status, zoneId, lineId, scenarioName, scenarioPhase를 포함합니다. Lab Runtime Dashboard는 이 값과 `/metrics`, `/state-dump`, `/events`를 재사용해 drill-down UI를 구성합니다.
+`tracks[]`는 trackId, className, confidence, bbox, currentZone, dwellTimeMs, scenarioPhase, TrackHealth를 포함합니다. `events[]`는 eventId, eventType, status, zoneId, lineId, scenarioName, scenarioPhase를 포함합니다. Runtime dashboard는 이 값과 `/metrics`, `/state-dump`, `/events`를 재사용해 drill-down UI를 구성합니다.
 
 기존 외부 event JSON/API/POST 형식은 이 내부 frame이나 dashboard/debug UI 때문에 바뀌지 않습니다. Event POST와 `/lab/analysis/taps/{tapId}/events`는 기존 payload 호환성을 유지합니다.
 
-WebRTC DataChannel은 기존 외부 schema인 `media-server.webrtc.va-metadata.v1`을 유지합니다. 내부 builder가 만든 frame을 WebRTC 호환 serializer로 투영하며, `source`, `scenarios`, `metrics`, `trackingIssueReport` 같은 dashboard 전용 필드는 DataChannel 기존 schema에 추가하지 않습니다. WebRTC metadata viewer URL도 SSE/WS와 같은 `eventType`, `scenarioName`, `trackId`, `zoneId` filter를 받을 수 있으며, 필터는 schema 변경 없이 `tracks`/`events` 배열 범위에만 적용됩니다. `/lab/rules` Custom client URL 패널은 이 filter/include 조합을 preset으로 저장해 같은 query를 WebRTC metadata viewer, SSE, WS URL에 다시 적용할 수 있습니다.
+WebRTC DataChannel은 기존 외부 schema인 `media-server.webrtc.va-metadata.v1`을 유지합니다. 내부 builder가 만든 frame을 WebRTC 호환 serializer로 투영하며, `source`, `scenarios`, `metrics`, `trackingIssueReport` 같은 dashboard 전용 필드는 DataChannel 기존 schema에 추가하지 않습니다. WebRTC metadata viewer URL도 SSE/WS와 같은 `eventType`, `scenarioName`, `trackId`, `zoneId` filter를 받을 수 있으며, 필터는 schema 변경 없이 `tracks`/`events` 배열 범위에만 적용됩니다. Custom client는 이 filter/include 조합을 preset으로 저장해 같은 query를 WebRTC metadata viewer, SSE, WS URL에 다시 적용할 수 있습니다.
 
 message size 보호는 두 단계로 둡니다.
 
@@ -698,7 +698,7 @@ WebRTC VA metadata DataChannel은 기본 off입니다. `vaMetadata=1` query 또�
   "schema": "media-server.webrtc.va-metadata.v1",
   "streamId": "file:sample_h264.mp4",
   "channelId": "client-1",
-  "profileKey": "server-default-va",
+  "profileKey": "1",
   "frameId": 123,
   "pts": 123456789,
   "timestampMs": 123456,
@@ -741,7 +741,7 @@ WebRTC VA metadata DataChannel은 기본 off입니다. `vaMetadata=1` query 또�
       "eventId": "evt_1",
       "eventType": "intrusion-dwell",
       "status": "confirmed",
-      "ruleId": "scenario:intrusion-dwell",
+      "ruleId": "1",
       "trackId": 7,
       "classId": 0,
       "className": "person",
@@ -971,8 +971,8 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/taps/{tapId}/overlay.jpg?debugOver
 
 Debug 출력은 내부 상태 확인용이며 기존 event JSON/API/POST 형식을 바꾸지 않습니다.
 
-Lab의 VA 런타임 대시보드는 위 endpoint와 `/lab/runtime/status`, event POST/storage status endpoint를 재사용해 운영 상태를 카드, table, raw JSON으로 표시합니다. 1차 drill-down은 Overview, vaRule Runtime Debug, Tracks, Scenarios, Scenario Timeline, Events, Metadata, Tracking Issues 영역으로 나뉩니다.
-대시보드 탭이 닫혀 있을 때는 polling하지 않으며, 자동 갱신은 최소 2초 이상 간격으로 제한합니다.
+현재 제품 화면에서는 `/ops/dashboard`가 `/ops/api/runtime/status`를 운영 카드로 요약합니다. 세부 분석 상태는 `/lab/runtime/status`, event POST/storage status, tap/state-dump API를 개발/검증용으로 직접 조회합니다. 화면에 노출하는 값은 Overview, vaRule runtime 상태, Tracks, Scenarios, Scenario Timeline, Events, Metadata, Tracking Issues 성격으로 구분합니다.
+대시보드가 열려 있지 않을 때는 polling하지 않으며, 자동 갱신은 최소 2초 이상 간격으로 제한합니다.
 
 Scenario Timeline은 읽기 전용 debug UI입니다.
 

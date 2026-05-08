@@ -42,7 +42,8 @@ const pageChecks = [
     name: "ops-home",
     path: "/ops/home",
     visualSelector: '[data-testid="ops-home-page"]',
-    must: ['data-testid="ops-home-page"', 'data-ops-panel="home"', 'id="homeChannelCount"', 'class="debug-drawer"'],
+    must: ['data-testid="ops-home-page"', 'data-ops-panel="home"', 'id="homeChannelCount"'],
+    mustNot: ['class="debug-drawer"', '운영 raw JSON', 'raw JSON'],
   },
   {
     name: "ops-dashboard",
@@ -50,13 +51,6 @@ const pageChecks = [
     visualSelector: '[data-testid="ops-dashboard-page"]',
     must: ['data-testid="ops-dashboard-page"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', '/ops/api/runtime/status'],
     mustNot: ['<iframe', 'opsDashboardFrame', '/lab/rules?embed=1', '/lab/runtime/status'],
-  },
-  {
-    name: "ops-live",
-    path: "/ops/live",
-    visualSelector: '[data-testid="ops-live-page"]',
-    must: ['data-testid="ops-live-page"', 'id="opsLiveTileGrid"', 'id="opsLiveDensity"', 'id="opsLiveFocus"', 'id="opsLiveFilterInput"', 'id="opsLiveAttentionCount"', 'id="opsLiveUnassignedCount"', 'id="opsLiveDrilldownSummary"', 'id="opsLiveDetailEventRows"', 'id="opsLivePreviewSummary"', 'id="opsLivePreviewTarget"', 'id="opsLivePreviewMode"', 'id="opsLivePreviewPrimaryVideo"', 'id="opsLivePreviewSecondaryVideo"', 'id="opsLivePreviewPrimarySummary"', 'id="opsLivePreviewSecondarySummary"', 'id="opsLivePreviewPrimaryHealthBadges"', 'id="opsLivePreviewSecondaryHealthBadges"', 'id="opsLivePreviewStart"', 'id="opsLivePreviewStop"', 'id="opsLiveTimelineSummary"', 'id="opsLiveTimelineRows"', 'id="opsLiveActionSummary"', 'id="opsLiveActionButtons"', 'id="opsLiveDetailJson"', '선택 채널 raw JSON', 'id="opsLiveEventRows"', '/ops/api/sources', '/ops/api/views', '/webrtc/config', 'RTCPeerConnection'],
-    mustNot: ['후속 구현 항목입니다', '<iframe', '/lab/rules?embed=1', '/ops/events#channel='],
   },
   {
     name: "ops-rules",
@@ -69,8 +63,8 @@ const pageChecks = [
     name: "ops-sources",
     path: "/ops/sources",
     visualSelector: '[data-testid="ops-sources-page"]',
-    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', "Registry raw JSON", 'name="whepUrl"', "외부 WHEP URL", "Published WebRTC", "Published sourceId"],
-    mustNot: ['AppendTableHead(', 'R"OPS(', 'WHIP Published Source ID'],
+    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'name="whepUrl"', "외부 WHEP URL", "Published WebRTC", "Published sourceId"],
+    mustNot: ['AppendTableHead(', 'R"OPS(', 'WHIP Published Source ID', "Registry raw JSON", 'sources-json', 'views-json', 'client-views-json'],
   },
   {
     name: "ops-users",
@@ -171,17 +165,18 @@ try {
   console.log(`[fail] client-api-contract: ${message}`);
 }
 
-if (chromePath) {
-  try {
-    await assertOpsLivePreviewInteractionSmoke();
-    passCount += 1;
-    console.log("[pass] ops-live-preview-interaction: start/stop/mode/dual-slot smoke ok");
-  } catch (error) {
-    failCount += 1;
-    const message = error instanceof Error ? error.message : String(error);
-    failures.push(`[ops-live-preview-interaction] ${message}`);
-    console.log(`[fail] ops-live-preview-interaction: ${message}`);
-  }
+try {
+  await assertHttpStatus("removed-lab-home", "/lab", 404);
+  await assertHttpStatus("removed-lab-rules", "/lab/rules", 404);
+  await assertHttpStatus("removed-lab-import", "/lab/import", 404);
+  await assertHttpStatus("removed-webrtc-test-page", "/webrtc/test", 404);
+  passCount += 1;
+  console.log("[pass] removed-ui-routes: lab/import/rules/webrtc-test are closed");
+} catch (error) {
+  failCount += 1;
+  const message = error instanceof Error ? error.message : String(error);
+  failures.push(`[removed-ui-routes] ${message}`);
+  console.log(`[fail] removed-ui-routes: ${message}`);
 }
 
 console.log("");
@@ -229,7 +224,6 @@ function clientForbiddenText() {
     "Developer URL",
     "BBox diagnostics",
     "developer-url-details",
-    "opsLiveRaw",
     "opsEventsRaw",
     "sources-json",
     "views-json",
@@ -356,6 +350,25 @@ async function requestText(path) {
   }
 }
 
+async function assertHttpStatus(label, path, expectedStatus) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const url = new URL(path, `${httpBase}/`);
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: { Accept: "text/html,application/json" },
+      credentials: "same-origin",
+    });
+    await response.text();
+    if (response.status !== expectedStatus) {
+      throw new Error(`${label}: expected HTTP ${expectedStatus}, got ${response.status}`);
+    }
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function parseArgs(argv) {
   const result = {};
   for (let index = 0; index < argv.length; index += 1) {
@@ -382,294 +395,4 @@ function parseArgs(argv) {
 
 function toCamel(value) {
   return value.replace(/-([a-z])/g, (_match, chr) => chr.toUpperCase());
-}
-
-async function assertOpsLivePreviewInteractionSmoke() {
-  const browser = await openBrowserPage({
-    httpBase,
-    pagePath: "/ops/live",
-    timeoutMs,
-    chromePath,
-    debugPort: debugPortBase + 500,
-    width: 1280,
-    height: visualHeight,
-    outputDir,
-  });
-  try {
-    const result = await browser.evaluate(buildOpsLivePreviewInteractionExpression(), timeoutMs);
-    if (!result?.ok) {
-      throw new Error(`${result?.error || "interaction smoke failed"} :: ${JSON.stringify(result)}`);
-    }
-  } finally {
-    await browser.close();
-  }
-}
-
-function buildOpsLivePreviewInteractionExpression() {
-  return `
-    (async () => {
-      const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-      const assertOk = (condition, message) => {
-        if (!condition) throw new Error(message);
-      };
-      const FakeResponse = class {
-        constructor(body, init = {}) {
-          this._body = body;
-          this.status = init.status || 200;
-          this.ok = this.status >= 200 && this.status < 300;
-          this.headers = new Headers(init.headers || { 'Content-Type': 'application/json' });
-        }
-        async text() {
-          return typeof this._body === 'string' ? this._body : JSON.stringify(this._body);
-        }
-        async json() {
-          return typeof this._body === 'string' ? JSON.parse(this._body || '{}') : this._body;
-        }
-      };
-      const sampleSources = {
-        sources: [{
-          sourceId: 'cam-01',
-          displayName: 'Lobby Cam',
-          kind: 'file',
-          file: 'sample_h264.mp4',
-          enabled: true
-        }]
-      };
-      const sampleViews = {
-        views: [{
-          viewId: 'view-lobby',
-          sourceId: 'cam-01',
-          displayName: 'Lobby View',
-          enabled: true,
-          defaultRuleId: 'rule-loitering',
-          allowedRuleIds: ['rule-loitering'],
-          allowedOverlayModes: ['raw', 'va-overlay', 'va-rule']
-        }]
-      };
-      const sampleCatalog = {
-        rules: [],
-        profiles: [],
-        vaRules: [{
-          id: 'rule-loitering',
-          ruleId: 'rule-loitering',
-          enabled: true,
-          source: { sourceId: 'cam-01', kind: 'file', file: 'sample_h264.mp4' },
-          analysis: { profileId: 'server-default-va', classes: ['person'] },
-          scenario: { type: 'loitering' }
-        }]
-      };
-      const sampleRuntime = {
-        sessionManager: { activeSessions: 1, registryActiveStreams: 1, activeAnalysisTaps: 1 },
-        analysisMatching: {
-          reuseGroupCount: 1,
-          activeTapCount: 1,
-          activeTaps: [{ tapId: 'tap-1', streamKey: 'cam-01', selectedRuleId: 'rule-loitering', lastUsedAgeMs: 900 }]
-        },
-        webrtcHttp: {
-          egressSessions: 0,
-          publishSessions: 0,
-          publishSources: [],
-          metadataDataChannel: { channels: [] },
-          metadataSideChannel: { activeSseClients: 0, activeWebSocketClients: 0 }
-        },
-        debugCounters: {}
-      };
-      const sampleEvents = {
-        records: {
-          records: [{
-            eventId: 'evt-1',
-            eventType: 'loitering',
-            status: 'active',
-            streamId: 'cam-01',
-            channelId: 'cam-01',
-            trackId: 'track-7',
-            scenarioName: 'loitering',
-            updateTime: Date.now(),
-            snapshotPath: '/tmp/snap-1.jpg',
-            clipPath: '/tmp/clip-1'
-          }]
-        }
-      };
-      const sampleDashboard = {
-        health: { metadataAgeMs: 800, lastFrameAgeMs: 600 },
-        connection: { lastFrameAgeMs: 600 },
-        analysis: { trackCount: 2, activeEventCount: 1, scenarioCount: 1, latestEventTime: Date.now() },
-        events: {
-          warning: true,
-          latestEventTime: Date.now(),
-          countsByType: [{ eventType: 'loitering', count: 1 }]
-        }
-      };
-      const requestLog = [];
-      const sessionBodies = [];
-      const answerBodies = [];
-      const deleteCalls = [];
-      const writeBodies = [];
-      const activeSessions = new Map();
-      let sessionSeq = 0;
-      const originalFetch = window.fetch.bind(window);
-      const originalPc = window.RTCPeerConnection;
-      const originalPlay = HTMLMediaElement.prototype.play;
-      HTMLMediaElement.prototype.play = function() { return Promise.resolve(); };
-      const fakeStream = { getTracks: () => [{ stop() {} }] };
-      class FakeRTCPeerConnection {
-        constructor() {
-          this.connectionState = 'new';
-          this.iceConnectionState = 'new';
-          this.localDescription = null;
-          this.remoteDescription = null;
-          this.onconnectionstatechange = null;
-          this.oniceconnectionstatechange = null;
-          this.ontrack = null;
-          this.onicecandidate = null;
-        }
-        async setRemoteDescription(description) {
-          this.remoteDescription = description;
-        }
-        async createAnswer() {
-          return { type: 'answer', sdp: 'fake-answer-sdp' };
-        }
-        async setLocalDescription(description) {
-          this.localDescription = description;
-          this.connectionState = 'connected';
-          this.iceConnectionState = 'connected';
-          setTimeout(() => {
-            this.onconnectionstatechange?.();
-            this.oniceconnectionstatechange?.();
-            this.ontrack?.({ track: { kind: 'video' }, streams: [fakeStream] });
-            this.onicecandidate?.({ candidate: null });
-          }, 10);
-        }
-        async addIceCandidate() {}
-        close() {
-          this.connectionState = 'closed';
-          this.iceConnectionState = 'closed';
-          this.onconnectionstatechange?.();
-          this.oniceconnectionstatechange?.();
-        }
-      }
-      window.RTCPeerConnection = FakeRTCPeerConnection;
-      window.fetch = async (input, init = {}) => {
-        const url = new URL(typeof input === 'string' ? input : input.url, window.location.origin);
-        const path = url.pathname + url.search;
-        requestLog.push({ method: (init.method || 'GET').toUpperCase(), path });
-        if (path === '/ops/api/sources') return new FakeResponse(sampleSources);
-        if (path === '/ops/api/views') return new FakeResponse(sampleViews);
-        if (path === '/ops/api/rules/catalog') return new FakeResponse(sampleCatalog);
-        if (path === '/ops/api/runtime/status') return new FakeResponse(sampleRuntime);
-        if (path.startsWith('/ops/api/events/status')) return new FakeResponse(sampleEvents);
-        if (path === '/ops/api/users') return new FakeResponse({ users: [] });
-        if (path === '/ops/api/sources/cam-01' && (init.method || 'GET').toUpperCase() === 'PUT') {
-          const body = JSON.parse(String(init.body || '{}'));
-          writeBodies.push({ kind: 'source', body });
-          sampleSources.sources[0].enabled = body.enabled !== false;
-          return new FakeResponse({ ok: true });
-        }
-        if (path === '/ops/api/views/view-lobby' && (init.method || 'GET').toUpperCase() === 'PUT') {
-          const body = JSON.parse(String(init.body || '{}'));
-          writeBodies.push({ kind: 'view', body });
-          sampleViews.views[0].enabled = body.enabled !== false;
-          return new FakeResponse({ ok: true });
-        }
-        if (path === '/webrtc/config') return new FakeResponse({ peerConnectionConfig: { iceServers: [] } });
-        if (path === '/client/api/views/view-lobby/dashboard') return new FakeResponse(sampleDashboard);
-        if (path === '/client/api/views/view-lobby/webrtc/session' && (init.method || 'GET').toUpperCase() === 'POST') {
-          const body = JSON.parse(String(init.body || '{}'));
-          sessionBodies.push(body);
-          sessionSeq += 1;
-          const sessionId = 'session-' + sessionSeq;
-          activeSessions.set(sessionId, body);
-          return new FakeResponse({ sessionId, offer: 'fake-offer-sdp' });
-        }
-        if (path.startsWith('/client/api/views/view-lobby/webrtc/session/session-') && path.endsWith('/answer')) {
-          answerBodies.push(String(init.body || ''));
-          return new FakeResponse({}, { status: 204 });
-        }
-        if (path.startsWith('/client/api/views/view-lobby/webrtc/session/session-') && path.endsWith('/ice')) {
-          if ((init.method || 'GET').toUpperCase() === 'GET') return new FakeResponse({ candidates: [] });
-          return new FakeResponse({}, { status: 204 });
-        }
-        if (path.startsWith('/client/api/views/view-lobby/webrtc/session/session-') && (init.method || 'GET').toUpperCase() === 'DELETE') {
-          deleteCalls.push(path);
-          activeSessions.delete(path.split('/').slice(-1)[0]);
-          return new FakeResponse({}, { status: 204 });
-        }
-        return originalFetch(input, init);
-      };
-      try {
-        await refreshLive();
-        await wait(50);
-        const tiles = Array.from(document.querySelectorAll('#opsLiveTileGrid [data-live-row-id]'));
-        assertOk(tiles.length > 0, 'ops live tile rows missing after refresh');
-        tiles[0].click();
-        await wait(20);
-        document.getElementById('opsLivePreviewMode').value = 'raw';
-        document.getElementById('opsLivePreviewMode').dispatchEvent(new Event('change', { bubbles: true }));
-        document.getElementById('opsLivePreviewTarget').value = 'primary';
-        document.getElementById('opsLivePreviewTarget').dispatchEvent(new Event('change', { bubbles: true }));
-        document.getElementById('opsLivePreviewStart').click();
-        await wait(80);
-        assertOk(sessionBodies.length >= 1, 'primary preview session was not created');
-        assertOk(sessionBodies[0].overlayMode === 'raw', 'raw preview payload mismatch');
-        assertOk(answerBodies.length >= 1, 'primary preview answer was not posted');
-        assertOk((document.getElementById('opsLiveTimelineRows').textContent || '').includes('track 2'), 'timeline runtime summary missing');
-        assertOk(document.getElementById('opsLivePreviewPrimarySummary').textContent.includes('연결 중')
-          || document.getElementById('opsLivePreviewPrimarySummary').textContent.includes('view-lobby'),
-          'primary preview summary not updated');
-        document.getElementById('opsLivePreviewMode').value = 'va-overlay';
-        document.getElementById('opsLivePreviewMode').dispatchEvent(new Event('change', { bubbles: true }));
-        document.getElementById('opsLivePreviewRestart').click();
-        await wait(80);
-        assertOk(sessionBodies.some(item => item.overlayMode === 'va-overlay'), 'va-overlay restart payload missing');
-        document.getElementById('opsLivePreviewMode').value = 'va-rule';
-        document.getElementById('opsLivePreviewMode').dispatchEvent(new Event('change', { bubbles: true }));
-        document.getElementById('opsLivePreviewRestart').click();
-        await wait(80);
-        assertOk(sessionBodies.some(item => item.overlayMode === 'va-rule' && item.ruleId === 'rule-loitering'), 'va-rule restart payload missing ruleId');
-        document.getElementById('opsLivePreviewTarget').value = 'secondary';
-        document.getElementById('opsLivePreviewTarget').dispatchEvent(new Event('change', { bubbles: true }));
-        document.getElementById('opsLivePreviewMode').value = 'raw';
-        document.getElementById('opsLivePreviewMode').dispatchEvent(new Event('change', { bubbles: true }));
-        document.getElementById('opsLivePreviewStart').click();
-        await wait(80);
-        assertOk(sessionBodies.length >= 4, 'secondary slot preview session was not created');
-        assertOk(document.getElementById('opsLivePreviewSecondarySummary').textContent.includes('view-lobby'), 'secondary preview summary not updated');
-        document.getElementById('opsLivePreviewTarget').value = 'primary';
-        document.getElementById('opsLivePreviewTarget').dispatchEvent(new Event('change', { bubbles: true }));
-        document.getElementById('opsLivePreviewStop').click();
-        await wait(60);
-        assertOk(deleteCalls.length >= 3, 'preview stop did not cleanup prior sessions');
-        const stopPreviewButton = Array.from(document.querySelectorAll('#opsLiveActionButtons [data-ops-live-action]'))
-          .find(node => node.dataset.opsLiveAction === 'stop-preview');
-        assertOk(Boolean(stopPreviewButton), 'stop-preview action button missing');
-        stopPreviewButton.click();
-        await wait(40);
-        const toggleButton = Array.from(document.querySelectorAll('#opsLiveActionButtons [data-ops-live-action]'))
-          .find(node => node.dataset.opsLiveAction === 'toggle-channel');
-        assertOk(Boolean(toggleButton), 'toggle-channel action button missing');
-        const activeRow = selectedOpsLiveRow() || (Array.isArray(opsLiveState.rows) ? opsLiveState.rows[0] : null);
-        assertOk(Boolean(activeRow), 'selected row missing before toggle action');
-        await opsLiveToggleChannel(activeRow);
-        await wait(40);
-        assertOk(writeBodies.some(item => item.kind === 'source' && item.body.enabled === false), 'source disable write missing');
-        assertOk(writeBodies.some(item => item.kind === 'view' && item.body.enabled === false), 'view disable write missing');
-        const badgeText = document.getElementById('opsLivePreviewPrimaryHealthBadges').textContent || '';
-        assertOk(badgeText.includes('ice') && badgeText.includes('meta') && badgeText.includes('frame'), 'health badges missing after preview refresh');
-        return {
-          ok: true,
-          sessionBodies,
-          answerCount: answerBodies.length,
-          deleteCount: deleteCalls.length,
-          writeCount: writeBodies.length,
-          requestCount: requestLog.length
-        };
-      } catch (error) {
-        return { ok: false, error: error && error.message ? error.message : String(error), sessionBodies, answerBodies, deleteCalls, writeBodies, requestLog };
-      } finally {
-        window.fetch = originalFetch;
-        window.RTCPeerConnection = originalPc;
-        HTMLMediaElement.prototype.play = originalPlay;
-      }
-    })()
-  `;
 }

@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# 파일 용도: WebRTC 다채널 client가 같은 source와 여러 source를 동시에 소비할 때 fan-out/dedup 상태를 검증한다.
-# 동작 요약: headless Chrome playback, runtime session/stream/tap count, 반복 실행 summary를 함께 남긴다.
+# 파일 용도: 과거 /webrtc/test 브라우저 harness 기반 다채널 fan-out 검증 entrypoint.
+# 동작 요약: 초기 테스트 UI가 제품 route에서 제거되어 현재는 실행하지 않고 명시적으로 skip한다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 HTTP_BASE="${MEDIA_SERVER_VERIFY_MULTICHANNEL_HTTP_BASE:-http://127.0.0.1:8081}"
-PAGE_PATH="${MEDIA_SERVER_VERIFY_MULTICHANNEL_PAGE_PATH:-/webrtc/test}"
-VA_PAGE_PATH="${MEDIA_SERVER_VERIFY_MULTICHANNEL_VA_PAGE_PATH:-/lab}"
+PAGE_PATH="${MEDIA_SERVER_VERIFY_MULTICHANNEL_PAGE_PATH:-}"
+VA_PAGE_PATH="${MEDIA_SERVER_VERIFY_MULTICHANNEL_VA_PAGE_PATH:-}"
 SINGLE_SOURCE="${MEDIA_SERVER_VERIFY_MULTICHANNEL_SINGLE_SOURCE:-sample_h264.mp4}"
 MULTI_SOURCES_CSV="${MEDIA_SERVER_VERIFY_MULTICHANNEL_SOURCES:-sample_h264.mp4,va_four_scene_sample.mp4}"
 VA_SINGLE_SOURCE="${MEDIA_SERVER_VERIFY_MULTICHANNEL_VA_SINGLE_SOURCE:-va_four_scene_sample.mp4}"
@@ -672,6 +672,10 @@ PY
 # 입력 검증, 단일 source fan-out, 다중 source fan-out, VA overlay 조합을 순서대로 실행한다.
 main() {
   parse_args "$@"
+  echo "[skip] /webrtc/test 기반 다채널 브라우저 harness는 제품 UI 정리로 제거되었습니다."
+  echo "[skip] 현재 quick 안정성 검증은 verify-ops-client-ui, verify-rule-ui, API round-trip, route 404 smoke로 수행합니다."
+  echo "[skip] 긴 RTSP/WebRTC 다채널 재생 검증은 별도 제품 UI harness가 생길 때까지 기본/문서 이미지 검증에 포함하지 않습니다."
+  exit 0
   : > "${CASES_FILE}"
   require_cmd curl
   require_cmd node

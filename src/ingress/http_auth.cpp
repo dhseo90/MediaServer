@@ -1,4 +1,4 @@
-// 파일 요약: HTTP auth MVP의 principal 생성, account password 검증, guard helper를 구현한다.
+// 파일 요약: HTTP auth principal 생성, account password 검증, guard helper를 구현한다.
 // 동작 요약: auth off는 dev admin principal, token/session mode는 env token 또는 users file account를 사용한다.
 #include "ingress/http_auth.h"
 
@@ -767,7 +767,7 @@ bool HasUnsafeTextCharacter(const std::string& value) {
     });
 }
 
-bool IsSafeAccessRequestViewId(const std::string& view_id) {
+bool IsNumericViewId(const std::string& view_id) {
     if (view_id.empty()) {
         return true;
     }
@@ -775,7 +775,7 @@ bool IsSafeAccessRequestViewId(const std::string& view_id) {
         return false;
     }
     return std::all_of(view_id.begin(), view_id.end(), [](unsigned char ch) {
-        return std::isalnum(ch) != 0 || ch == '_' || ch == '-' || ch == '.';
+        return std::isdigit(ch) != 0;
     });
 }
 
@@ -804,8 +804,8 @@ std::optional<std::string> ValidateAccessRequestPayload(const std::string& body,
         HasUnsafeTextCharacter(request.reason)) {
         return "access request fields must not contain control characters";
     }
-    if (!IsSafeAccessRequestViewId(request.view_id)) {
-        return "viewId must use letters, numbers, '.', '_' or '-'";
+    if (!IsNumericViewId(request.view_id)) {
+        return "viewId must be numeric";
     }
     if (request.contact.empty() && request.reason.empty()) {
         return "contact or reason is required";
@@ -999,6 +999,9 @@ std::optional<std::string> ValidateUserMutation(const UserMutation& mutation, bo
     }
     if (!IsKnownRole(mutation.role)) {
         return "role은 admin/operator/viewer/integrator 중 하나여야 합니다.";
+    }
+    if (!IsNumericViewId(mutation.view_id)) {
+        return "viewId must be numeric";
     }
     if (require_password && (!mutation.has_password || mutation.password.empty())) {
         return "password is required";

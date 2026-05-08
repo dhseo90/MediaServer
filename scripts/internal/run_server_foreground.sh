@@ -92,7 +92,8 @@ FILE_TOKEN="$(basename "${DEFAULT_FILE}")"
 
 echo "run mode: foreground"
 echo "listen: rtsp://${RTSP_ADDRESS}:${RTSP_PORT}/${ROUTE}"
-echo "http: http://${HTTP_ADDRESS}:${HTTP_PORT}/webrtc/test"
+echo "ops: http://${HTTP_ADDRESS}:${HTTP_PORT}/ops/home"
+echo "client: http://${HTTP_ADDRESS}:${HTTP_PORT}/client/live"
 if [[ -n "${FILE_ROOT}" ]]; then
   echo "file root: ${FILE_ROOT}"
 fi
