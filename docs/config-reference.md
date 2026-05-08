@@ -37,8 +37,8 @@
 | `MEDIA_SERVER_AUTH_LOGIN_LOCKOUT_SECONDS` | `300` | lockout 유지 시간 |
 | `MEDIA_SERVER_AUTH_COOKIE_NAME` | `media_server_session` | session cookie 이름 |
 | `MEDIA_SERVER_AUTH_COOKIE_SECURE` | `0` | `1`이면 session cookie에 `Secure` attribute 추가 |
-| `MEDIA_SERVER_UI_DEFAULT_HOME` | `lab` | auth off에서 `/`가 이동할 home. `lab`, `ops`, `client` |
-| `MEDIA_SERVER_ENABLE_LAB` | `1` | `/lab` 개발/검증 route 노출 |
+| `MEDIA_SERVER_UI_DEFAULT_HOME` | `ops` | auth off에서 `/`가 이동할 home. `ops`, `client`; `lab`은 이전 설정 호환값이며 `/ops/home`으로 fallback |
+| `MEDIA_SERVER_ENABLE_LAB` | `1` | `/lab/analysis/*`, `/lab/runtime/status` 같은 개발/검증 API 노출. `/lab` 화면 route는 열지 않음 |
 | `MEDIA_SERVER_ENABLE_OPS` | `1` | `/ops` 운영 shell/API route 노출 |
 | `MEDIA_SERVER_ENABLE_CLIENT` | `1` | `/client` client shell/API route 노출 |
 | `MEDIA_SERVER_SUBSCRIBER_QUEUE_SIZE` | `256` | subscriber queue 상한 |
@@ -48,9 +48,9 @@
 | `MEDIA_SERVER_FILE_ROOT` | `video` | file token root |
 | `MEDIA_SERVER_DEFAULT_FILE` | `video/sample_h264.mp4` | 기본 file source |
 
-### HTTP auth MVP
+### HTTP auth
 
-`MEDIA_SERVER_AUTH_MODE=auto`가 기본값입니다. Auto mode는 users file이 없거나 admin user/passwordHash가 준비되지 않았으면 `/setup`으로 보내고, setup이 끝나면 `/login` session 인증을 요구합니다. `MEDIA_SERVER_AUTH_MODE=off`는 개발/테스트 호환을 위한 명시 모드이며 제품 기본값으로 사용하지 않습니다. Auth off에서 `/`는 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/lab`, `/ops/home`, `/client/live` 중 하나로 이동합니다. Auth on에서 `/`는 setup required면 `/setup`, 미인증이면 `/login`, admin/operator면 `/ops/home`, viewer면 `/client/live`로 이동합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 `/auth/whoami`가 `Authorization: Bearer <token>` 또는 개발용 `?token=<token>` query를 읽어 role/scope principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=session`은 auto의 setup 감지를 유지하면서 `/login` 계정 로그인과 HttpOnly session cookie 인증을 사용합니다. Query token은 브라우저 주소, proxy log, referrer에 남을 수 있으므로 운영 환경에서는 권장하지 않습니다.
+`MEDIA_SERVER_AUTH_MODE=auto`가 기본값입니다. Auto mode는 users file이 없거나 admin user/passwordHash가 준비되지 않았으면 `/setup`으로 보내고, setup이 끝나면 `/login` session 인증을 요구합니다. `MEDIA_SERVER_AUTH_MODE=off`는 개발/테스트 호환을 위한 명시 모드이며 제품 기본값으로 사용하지 않습니다. Auth off에서 `/`는 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/ops/home` 또는 `/client/live`로 이동합니다. `lab` 값은 화면 route를 열지 않고 `/ops/home`으로 fallback합니다. Auth on에서 `/`는 setup required면 `/setup`, 미인증이면 `/login`, admin/operator면 `/ops/home`, viewer면 `/client/live`로 이동합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 `/auth/whoami`가 `Authorization: Bearer <token>` 또는 개발용 `?token=<token>` query를 읽어 role/scope principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=session`은 auto의 setup 감지를 유지하면서 `/login` 계정 로그인과 HttpOnly session cookie 인증을 사용합니다. Query token은 브라우저 주소, proxy log, referrer에 남을 수 있으므로 운영 환경에서는 권장하지 않습니다.
 
 Auth on에서 직접 generic media 생성 route인 `POST /webrtc/session`, `POST /whep`, `POST /whip/publish`는 admin/operator `ops:read` 또는 `lab:read` 권한이 필요합니다. 생성된 WebRTC/WHEP/WHIP session id는 난수 token을 포함하고, 후속 answer/ICE/delete route는 같은 생성 principal 또는 응답의 `sessionToken`/`X-Session-Capability`를 요구합니다. 직접 WebSocket metadata side-channel인 `/ws/va-metadata`는 Lab/custom-client 경로이므로 admin/operator 또는 `lab:read` 권한이 필요합니다. Auth off에서는 기존 개발/자동화 호환을 위해 계속 허용됩니다. Viewer/client 계정은 source locator를 직접 보내지 않고 `/client/api/views/{viewId}/webrtc/session` wrapper를 사용해야 하며, 후속 signaling도 client wrapper alias로만 호출합니다.
 
@@ -75,16 +75,16 @@ Session login은 `libsodium crypto_pwhash_str` password hash를 사용합니다.
 
 계정 관리는 admin 전용 `/ops/users` 또는 `./server.sh auth-user` CLI를 사용합니다. Users file 직접 편집은 복구나 bootstrap 문제 해결 때만 사용하고 운영 절차로 권장하지 않습니다. Self-signup 자동 승인은 제공하지 않으며 viewer/client 계정은 admin이 직접 생성하거나 pending access request를 승인해 password setup invite를 발급합니다.
 
-초기 role/scope 모델:
+현재 role/scope 모델:
 
-| 역할 | MVP scope |
+| 역할 | Scope |
 | --- | --- |
 | `admin` | 모든 scope. `view:read:*`, `source:read:*`, `rule:read:*`, `event:read:*`, `metadata:read:*`, `dashboard:read:*`, `debug:read`, `rule:write`, `source:write`, `ops:read`, `lab:read` |
 | `operator` | `ops:read`, `rule:write`, `source:write`, `dashboard:read:*`, `event:read:*` |
 | `viewer` | `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}` |
 | `integrator` | `metadata:read:{viewId}`, `event:read:{viewId}` |
 
-`*` scope는 MVP의 wildcard 표현입니다. `/ops/users`와 CLI에서 viewId를 넣으면 viewer/integrator scope template은 `{viewId}` 단위로 생성됩니다. `/ops/api/sources`와 `/ops/api/views`의 변경 작업은 `source:write`, Lab rule/profile/vaRule 변경 작업은 `rule:write`를 추가로 요구합니다. Integrator는 client shell/live/dashboard UI에 진입하지 않고 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata` 같은 scoped API만 사용합니다.
+`*` scope는 wildcard 표현입니다. `/ops/users`와 CLI에서 viewId를 넣으면 viewer/integrator scope template은 `{viewId}` 단위로 생성됩니다. `/ops/api/sources`와 `/ops/api/views`의 변경 작업은 `source:write`, Lab rule/profile/vaRule 변경 작업은 `rule:write`를 추가로 요구합니다. Integrator는 client shell/live/dashboard UI에 진입하지 않고 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata` 같은 scoped API만 사용합니다.
 
 Users file 예시:
 
@@ -113,7 +113,7 @@ Users file 예시:
       "username": "client-a",
       "displayName": "Client A",
       "role": "viewer",
-      "scopes": ["view:read:view-a", "event:read:view-a", "metadata:read:view-a", "dashboard:read:view-a"],
+      "scopes": ["view:read:1", "event:read:1", "metadata:read:1", "dashboard:read:1"],
       "passwordHash": "$argon2id$...",
       "passwordHistory": ["$argon2id$..."],
       "enabled": true,
@@ -126,7 +126,7 @@ Users file 예시:
       "username": "client-b",
       "displayName": "Client B",
       "role": "viewer",
-      "scopes": ["view:read:view-b", "event:read:view-b", "metadata:read:view-b", "dashboard:read:view-b"],
+      "scopes": ["view:read:2", "event:read:2", "metadata:read:2", "dashboard:read:2"],
       "expiresAt": "2026-05-04T00:00:00Z",
       "usedAt": ""
     }
@@ -138,7 +138,7 @@ Users file 예시:
       "displayName": "Client C",
       "contact": "client@example.test",
       "reason": "site access",
-      "viewId": "view-c",
+      "viewId": "3",
       "status": "pending",
       "createdAt": "2026-05-03T00:00:00Z"
     }
@@ -146,7 +146,7 @@ Users file 예시:
 }
 ```
 
-`passwordHash`와 `passwordHistory`는 libsodium `crypto_pwhash_str` 출력 문자열만 저장합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다. Password hash 값은 `/ops/api/users`, `/ops/users`, CLI list 응답에 노출하지 않습니다. Auth users file은 owner read/write 전용 `0600`으로 생성/보정하며, 저장은 임시 파일 write/fsync 후 rename하고 parent directory도 fsync합니다. User-only 저장 경로는 기존 auth store 전체를 먼저 읽어 `invites`와 `accessRequests`를 보존하며, 읽기 실패 또는 invalid record가 있으면 덮어쓰지 않고 실패합니다. 제품 UI의 계정 생성은 `/ops/users`에서 admin이 초기 비밀번호를 입력하는 직접 생성 흐름과 pending access request 승인/거절 table을 함께 제공합니다. 승인 시 password setup invite token/setup URL은 응답에서 한 번만 표시되고, invite 비밀번호는 사용자가 `/invite/setup`에서 직접 입력합니다. Invite 생성과 access-request approve는 invite record만 추가하고 기존 user의 role/scope/enabled/session 상태를 수락 전 즉시 바꾸지 않습니다. Public access request는 4KiB body, displayName 96B, contact 160B, reason 500B, viewId 64B와 안전 문자 제한을 적용하고, 같은 peer의 5회/5분 초과 요청, 기존 user, 중복 pending username/contact, pending 100건 초과를 거부합니다. Invite/request 전용 env는 별도로 두지 않고 같은 users file에 저장하며, invite 만료 시간은 API 요청의 `ttlSeconds`로 지정하거나 서버 기본값을 사용합니다.
+`passwordHash`와 `passwordHistory`는 libsodium `crypto_pwhash_str` 출력 문자열만 저장합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다. Password hash 값은 `/ops/api/users`, `/ops/users`, CLI list 응답에 노출하지 않습니다. Auth users file은 owner read/write 전용 `0600`으로 생성/보정하며, 저장은 임시 파일 write/fsync 후 rename하고 parent directory도 fsync합니다. User-only 저장 경로는 기존 auth store 전체를 먼저 읽어 `invites`와 `accessRequests`를 보존하며, 읽기 실패 또는 invalid record가 있으면 덮어쓰지 않고 실패합니다. 제품 UI의 계정 생성은 `/ops/users`에서 admin이 초기 비밀번호를 입력하는 직접 생성 흐름과 pending access request 승인/거절 table을 함께 제공합니다. 승인 시 password setup invite token/setup URL은 응답에서 한 번만 표시되고, invite 비밀번호는 사용자가 `/invite/setup`에서 직접 입력합니다. Invite 생성과 access-request approve는 invite record만 추가하고 기존 user의 role/scope/enabled/session 상태를 수락 전 즉시 바꾸지 않습니다. Public access request는 4KiB body, displayName 96B, contact 160B, reason 500B, 숫자 viewId 64B 제한을 적용하고, 같은 peer의 5회/5분 초과 요청, 기존 user, 중복 pending username/contact, pending 100건 초과를 거부합니다. Invite/request 전용 env는 별도로 두지 않고 같은 users file에 저장하며, invite 만료 시간은 API 요청의 `ttlSeconds`로 지정하거나 서버 기본값을 사용합니다.
 
 Admin user management API:
 
@@ -580,7 +580,7 @@ Recorder 동작:
 | 환경변수 | 기본값 | 설명 |
 | --- | --- | --- |
 | `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE` | `0` | `source=youtube` 직접 표출 노출 |
-| `MEDIA_SERVER_ENABLE_LAB_YOUTUBE_IMPORT` | `1` | `/lab/import` 노출 |
+| `MEDIA_SERVER_ENABLE_LAB_YOUTUBE_IMPORT` | `1` | 이전 import API opt-in. 제품 화면은 `/ops/sources`에서 관리 |
 | `MEDIA_SERVER_YOUTUBE_RESOLVER_BIN` | `yt-dlp` | resolver binary |
 | `MEDIA_SERVER_YOUTUBE_FORMAT` | resolver default | yt-dlp format |
 | `MEDIA_SERVER_YOUTUBE_RESOLVE_TIMEOUT_MS` | code default | resolve timeout |

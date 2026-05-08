@@ -224,7 +224,8 @@ int main(int argc, char** argv) {
     std::cout << "gstreamer rtsp server started: yes\n";
     std::cout << "webrtc http server started: yes\n";
     std::cout << "listen: rtsp://" << rtsp_address << ":" << rtsp_port << "/" << config.stream_route << "\n";
-    std::cout << "http signaling: http://" << http_address << ":" << http_port << "/webrtc/test\n";
+    std::cout << "ops console: http://" << http_address << ":" << http_port << "/ops/home\n";
+    std::cout << "client live: http://" << http_address << ":" << http_port << "/client/live\n";
     std::cout << "file test url: rtsp://" << rtsp_address << ":" << rtsp_port << "/" << config.stream_route
               << "?file=" << default_file_token << "\n";
     std::cout << "running... (SIGINT/SIGTERM to stop)\n";

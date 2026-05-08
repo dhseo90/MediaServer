@@ -18,7 +18,7 @@ elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
   echo "[env] skipped local override: ${ENV_FILE}"
 fi
 
-# Basic/full regression suites exercise the legacy Lab/WebRTC development
+# Basic/full regression suites exercise the Lab/WebRTC development
 # surfaces. Keep them explicitly in auth-off mode unless the caller is
 # intentionally testing another auth configuration.
 export MEDIA_SERVER_AUTH_MODE="${MEDIA_SERVER_AUTH_MODE:-off}"
@@ -78,7 +78,7 @@ Options:
   --full              로컬 풀 테스트. basic에 Rule/VA event/event POST/multichannel/redaction 검증 추가
   --external          외부 의존 테스트. full에 LAN/외부 RTSP/WebRTC ICE/외부 URI 검증 추가
   --include-rules     선택 검증: profile/rule registry API smoke test를 추가
-  --include-rule-ui   선택 검증: /lab/rules Rule/Profile 카테고리 UI smoke test를 추가
+  --include-rule-ui   선택 검증: /ops/rules 채널 분석/템플릿/Profile UI smoke test를 추가
   --include-va-events 선택 검증: 이동 영상 기반 tracker 이벤트 검증을 추가
   --include-image-analysis
                        선택 검증: 정적 이미지 metadata/snapshot/overlay API를 추가
@@ -586,7 +586,7 @@ if [[ "${INCLUDE_RULE_UI}" == "1" ]]; then
     run_step \
       "rule-ui-smoke" \
       "선택 검증: Rule/Profile 카테고리 UI" \
-      "Rule/Profile UI 검증 실패입니다. /lab/rules DOM, 버튼 동작, 카테고리 payload를 확인하세요." \
+      "Rule/Profile UI 검증 실패입니다. /ops/rules DOM, 탭 이동, 카테고리 payload를 확인하세요." \
       "./server.sh verify-rule-ui" || true
   fi
 else

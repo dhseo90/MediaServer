@@ -1,4 +1,4 @@
-// 파일 요약: HTTP auth MVP의 principal, role, scope, account helper를 선언한다.
+// 파일 요약: HTTP auth principal, role, scope, account helper를 선언한다.
 // 동작 요약: Bearer/query token과 account password hash를 Principal로 변환하고 guard helper가 role/scope를 판정한다.
 #pragma once
 

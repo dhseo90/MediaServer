@@ -1689,8 +1689,8 @@ app::AppConfig LoadAppConfig() {
     }
     if (config.ui_default_home != "lab" && config.ui_default_home != "ops" &&
         config.ui_default_home != "client") {
-        std::cerr << "[env] MEDIA_SERVER_UI_DEFAULT_HOME must be lab, ops, or client, fallback lab\n";
-        config.ui_default_home = "lab";
+        std::cerr << "[env] MEDIA_SERVER_UI_DEFAULT_HOME must be lab, ops, or client, fallback ops\n";
+        config.ui_default_home = "ops";
     }
     config.auth_users_file = ResolveRuntimePath(config.auth_users_file);
     return config;

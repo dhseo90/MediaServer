@@ -1,5 +1,5 @@
 // 파일 요약: 내장 HTTP/WebRTC API 서버를 선언한다.
-// 동작 요약: simple signaling, WHEP, WHIP, Lab UI, analysis API를 한 서버에서 제공한다.
+// 동작 요약: simple signaling, WHEP, WHIP, 제품 UI, analysis API를 한 서버에서 제공한다.
 // 동작 요약: SessionManager와 WebRtcSourceRegistry를 HTTP handler로 연결한다.
 #pragma once
 

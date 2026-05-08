@@ -52,6 +52,30 @@ std::string ProductSharedUiScript() {
         el.classList.toggle('error', failed);
         if (options.collapseEmpty) el.hidden = !message;
       };
+      const showToast = (message, failed = false) => {
+        const text = display(message);
+        if (!text || text === '미제공') return;
+        let stack = document.querySelector('.toast-stack');
+        if (!stack) {
+          stack = document.createElement('div');
+          stack.className = 'toast-stack';
+          stack.setAttribute('aria-live', 'polite');
+          stack.setAttribute('aria-atomic', 'false');
+          document.body.appendChild(stack);
+        }
+        const toast = document.createElement('div');
+        toast.className = `toast${failed ? ' error' : ''}`;
+        toast.setAttribute('role', failed ? 'alert' : 'status');
+        toast.textContent = text;
+        stack.appendChild(toast);
+        window.setTimeout(() => {
+          toast.classList.add('leaving');
+          window.setTimeout(() => {
+            toast.remove();
+            if (!stack.children.length) stack.remove();
+          }, 220);
+        }, failed ? 3200 : 1600);
+      };
       const formDataObject = form => Object.fromEntries(new FormData(form).entries());
       const splitList = value => String(value ?? '').split(/[\n,]/).map(item => item.trim()).filter(Boolean);
       const setTableEmpty = (tbody, colspan, message) => {
@@ -131,6 +155,7 @@ std::string ProductSharedUiScript() {
         setHidden,
         setRequired,
         setFeedback,
+        showToast,
         formDataObject,
         splitList,
         setTableEmpty,

@@ -734,6 +734,40 @@ std::string ProductUiCss() {
       gap: var(--space-3);
       align-items: start;
     }
+    .ops-geometry-status-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--space-2);
+    }
+    .ops-geometry-status-card {
+      min-width: 0;
+      padding: 10px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      display: grid;
+      gap: 3px;
+    }
+    .ops-geometry-status-card span {
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+    .ops-geometry-status-card strong {
+      color: var(--color-text);
+      font-size: 14px;
+      line-height: 1.25;
+      min-width: 0;
+      overflow-wrap: normal;
+      white-space: nowrap;
+    }
+    .ops-geometry-status-card strong[data-state="ready"] {
+      color: var(--color-success);
+    }
+    .ops-geometry-status-card strong[data-state="warn"] {
+      color: var(--color-warning);
+    }
     .ops-rule-preview-stage {
       position: relative;
       aspect-ratio: 16 / 9;
@@ -744,6 +778,14 @@ std::string ProductUiCss() {
       background: color-mix(in srgb, var(--color-surface) 84%, black 16%);
       display: grid;
       place-items: center;
+    }
+    .ops-rule-preview-stage::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 -36px 72px rgba(0, 0, 0, 0.24);
+      z-index: 1;
     }
     .ops-rule-preview-stage video {
       position: absolute;
@@ -774,6 +816,93 @@ std::string ProductUiCss() {
       color: var(--color-info);
       z-index: 2;
       cursor: crosshair;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .ops-geometry-overlay .ops-geometry-frame-dim {
+      fill: var(--overlay-frame-dim);
+      pointer-events: none;
+    }
+    .ops-geometry-overlay .ops-geometry-grid {
+      stroke: var(--overlay-debug-line);
+      stroke-width: 0.35;
+      vector-effect: non-scaling-stroke;
+      pointer-events: none;
+    }
+    .ops-geometry-overlay .ops-geometry-polygon {
+      fill: var(--overlay-region-fill);
+      stroke: var(--overlay-box-track);
+      stroke-width: 0.75;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+      pointer-events: none;
+    }
+    .ops-geometry-overlay .ops-geometry-incomplete {
+      fill: none;
+      stroke: var(--overlay-box-track);
+      stroke-width: 0.75;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 4 3;
+      vector-effect: non-scaling-stroke;
+      pointer-events: none;
+    }
+    .ops-geometry-overlay .ops-geometry-line {
+      fill: none;
+      stroke: var(--overlay-line);
+      stroke-width: 0.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+      pointer-events: none;
+    }
+    .ops-geometry-overlay .ops-geometry-direction,
+    .ops-geometry-overlay .ops-geometry-direction-head {
+      stroke: var(--overlay-box-selected);
+      fill: var(--overlay-box-selected);
+      stroke-width: 0.55;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+      pointer-events: none;
+    }
+    .ops-geometry-overlay .ops-geometry-point {
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+      cursor: grab;
+      pointer-events: auto;
+    }
+    .ops-geometry-overlay .ops-geometry-point.is-active {
+      cursor: grabbing;
+    }
+    .ops-geometry-overlay .ops-geometry-point circle {
+      fill: var(--overlay-point-fill);
+      stroke: var(--overlay-point-text);
+      stroke-width: 0.4;
+      vector-effect: non-scaling-stroke;
+    }
+    .ops-geometry-overlay .ops-geometry-point.is-active circle {
+      fill: var(--overlay-box-selected);
+      stroke-width: 0.6;
+    }
+    .ops-geometry-overlay .ops-geometry-point text {
+      fill: var(--overlay-point-text);
+      font-size: 1.45px;
+      font-weight: 900;
+      pointer-events: none;
+    }
+    .ops-geometry-overlay .ops-geometry-badge rect {
+      fill: var(--overlay-label-bg);
+      stroke: rgba(255, 255, 255, 0.18);
+      stroke-width: 0.25;
+      vector-effect: non-scaling-stroke;
+      pointer-events: none;
+    }
+    .ops-geometry-overlay .ops-geometry-badge text {
+      fill: var(--overlay-label-text);
+      font-size: 1.45px;
+      font-weight: 850;
+      pointer-events: none;
     }
     .ops-geometry-toolbar {
       align-items: center;
@@ -794,6 +923,38 @@ std::string ProductUiCss() {
     }
     .status.error,
     .message.error { color: var(--color-danger); }
+    .toast-stack {
+      position: fixed;
+      right: clamp(16px, 3vw, 32px);
+      bottom: clamp(16px, 3vw, 32px);
+      display: grid;
+      gap: var(--space-2);
+      z-index: 2147483600;
+      pointer-events: none;
+    }
+    .toast {
+      max-width: min(360px, calc(100vw - 32px));
+      padding: 10px 14px;
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-raised);
+      color: var(--color-text);
+      box-shadow: var(--shadow-md);
+      font-size: 13px;
+      font-weight: 850;
+      line-height: 1.35;
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+    .toast.error {
+      border-color: color-mix(in srgb, var(--color-danger) 60%, var(--color-border));
+      color: var(--color-danger);
+    }
+    .toast.leaving {
+      opacity: 0;
+      transform: translateY(8px);
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -834,26 +995,6 @@ std::string ProductUiCss() {
       line-height: 1.45;
       max-height: 420px;
       overflow: auto;
-    }
-    .debug-drawer {
-      border: 1px solid var(--color-debug-border);
-      border-radius: var(--radius-lg);
-      background: var(--color-debug-bg);
-      overflow: hidden;
-    }
-    .debug-drawer > summary {
-      cursor: pointer;
-      padding: var(--space-4);
-      color: var(--color-text);
-      font-weight: 900;
-    }
-    .debug-drawer[open] > summary {
-      border-bottom: 1px solid var(--color-debug-border);
-    }
-    .debug-drawer-body {
-      display: grid;
-      gap: var(--space-3);
-      padding: var(--space-4);
     }
     .empty {
       min-height: 86px;
@@ -1263,6 +1404,9 @@ std::string ProductUiCss() {
       .grid.rules-metrics-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+      .ops-geometry-status-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
     @media (max-width: 1180px) and (min-width: 861px) {
       .app-header-top {
@@ -1438,6 +1582,9 @@ std::string ProductUiCss() {
         grid-template-columns: 1fr;
       }
       .ops-va-stage-grid {
+        grid-template-columns: 1fr;
+      }
+      .ops-geometry-status-grid {
         grid-template-columns: 1fr;
       }
       .channel-table td {

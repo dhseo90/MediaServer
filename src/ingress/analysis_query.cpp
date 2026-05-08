@@ -394,8 +394,7 @@ bool ContextClientMatches(const std::string& expected, const std::string& actual
 }
 
 bool IsBuiltInAnalysisProfileId(const std::string& id) {
-    return id == "server-default-va" || id == "debug-dummy" || id == "yolo-fast" ||
-           id == "yolo-balanced" || id == "yolo-quality";
+    return id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
 }
 
 std::string NormalizeYoloOutputLayout(std::string value) {
@@ -439,10 +438,10 @@ void ApplyBuiltInProfile(const std::string& id, analysis::AnalysisProfile* profi
         return;
     }
     profile->profile_id = id;
-    if (id == "server-default-va") {
+    if (id == "1") {
         return;
     }
-    if (id == "debug-dummy") {
+    if (id == "2") {
         profile->detector_type = "dummy";
         profile->target_fps = 5;
         profile->max_queue_size = 2;
@@ -451,11 +450,11 @@ void ApplyBuiltInProfile(const std::string& id, analysis::AnalysisProfile* profi
     profile->detector_type = "yolo";
     profile->yolo_preprocess_mode = "letterbox";
     profile->adaptive_tuning_enabled = true;
-    profile->model_input_width = id == "yolo-quality" ? 960 : 640;
-    profile->model_input_height = id == "yolo-quality" ? 960 : 640;
-    profile->target_fps = id == "yolo-fast" ? 8 : (id == "yolo-quality" ? 3 : 5);
-    profile->max_queue_size = id == "yolo-fast" ? 1U : 2U;
-    profile->confidence_threshold = id == "yolo-fast" ? 0.25F : 0.35F;
+    profile->model_input_width = id == "5" ? 960 : 640;
+    profile->model_input_height = id == "5" ? 960 : 640;
+    profile->target_fps = id == "3" ? 8 : (id == "5" ? 3 : 5);
+    profile->max_queue_size = id == "3" ? 1U : 2U;
+    profile->confidence_threshold = id == "3" ? 0.25F : 0.35F;
     profile->nms_threshold = 0.45F;
 }
 

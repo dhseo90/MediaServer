@@ -170,10 +170,10 @@ collect_net_state() {
 
   if media_server_is_tcp_listening "${HTTP_PORT}"; then
     print_line "PASS" "HTTP ${HTTP_PORT} is listening"
-    if media_server_http_healthcheck "${HTTP_CLIENT_HOST}" "${HTTP_PORT}" "/webrtc/test"; then
-      print_line "PASS" "HTTP health check passed (/webrtc/test)"
+    if media_server_http_healthcheck "${HTTP_CLIENT_HOST}" "${HTTP_PORT}" "/health"; then
+      print_line "PASS" "HTTP health check passed (/health)"
     else
-      print_line "FAIL" "HTTP health check failed (/webrtc/test)"
+      print_line "FAIL" "HTTP health check failed (/health)"
       OVERALL=1
     fi
   else

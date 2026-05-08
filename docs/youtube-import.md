@@ -10,7 +10,7 @@
 
 ## 현재 상태
 
-- `/lab/import` 화면은 제품 UI에서 제거했습니다. route는 `/ops/sources`로 redirect합니다.
+- `/lab/import` 화면은 제품 UI에서 제거했습니다. route는 404로 닫고 `/ops/sources`에서 채널을 관리합니다.
 - YouTube import/source는 현재 운영 기본 기능이 아니며 자동 smoke gate에도 포함하지 않습니다.
 - `source=youtube` 직접 표출 실험은 기본 비활성입니다. 다시 살릴 경우 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1` 같은 명시 opt-in과 별도 설계 검토가 필요합니다.
 - import/source 모두 core RTSP/WebRTC relay 안정성 기준과 분리해서 봅니다.
@@ -62,7 +62,7 @@ Linux에서는 배포판 패키지 또는 프로젝트 운영 기준에 맞는 �
 
 검증 기준:
 
-- `/lab/import`가 `/ops/sources`로 redirect됨
+- `/lab/import`는 404로 닫히고 `/ops/sources`에서 채널을 관리함
 - import job UI/API가 제품 화면에 노출되지 않음
 - 실험 기능이 꺼져 있을 때 core `/ops`, `/client`, RTSP/WebRTC 경로에 영향이 없음
 

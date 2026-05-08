@@ -39,7 +39,7 @@ const tasks = [
     name: "client-live",
     file: "client-live.png",
     pagePath: "/client/live",
-    viewport: { width: 1680, height: 1540 },
+    viewport: { width: 1680, height: 1800 },
     setup: setupClientLive,
     clip: {
       selectors: [
@@ -48,54 +48,8 @@ const tasks = [
         '[data-tile="0"]'
       ],
       fitMainWidth: true,
-      margin: 24,
-      maxHeight: 1320
-    },
-  },
-  {
-    name: "ops-live",
-    file: "ops-live.png",
-    pagePath: "/ops/live",
-    viewport: { width: 1680, height: 1520 },
-    setup: async (browser) => {
-      await applyDarkTheme(browser);
-      await delay(500);
-      await evaluate(browser, `(() => {
-        const preferred =
-          document.querySelector('#opsLiveTileGrid [data-live-row-id="1"]') ||
-          document.querySelector('#opsLiveTileGrid [data-live-row-id]');
-        if (preferred) preferred.click();
-        return !!preferred;
-      })()`);
-      await delay(600);
-      await evaluate(browser, `(() => {
-        const target = document.getElementById('opsLivePreviewTarget');
-        if (target) {
-          target.value = 'primary';
-          target.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        const mode = document.getElementById('opsLivePreviewMode');
-        if (mode) {
-          const canRaw = Array.from(mode.options || []).some((option) => option.value === 'raw');
-          mode.value = canRaw ? 'raw' : (mode.options[0]?.value || 'raw');
-          mode.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        const start = document.getElementById('opsLivePreviewStart');
-        if (start && !start.disabled) start.click();
-        return !!start && !start.disabled;
-      })()`, 8000);
-      await delay(6000);
-    },
-    clip: {
-      selectors: [
-        'header',
-        '[data-testid="ops-live-page"] h2',
-        '#opsLiveDrilldownSummary',
-        '#opsLivePreviewPrimaryStage'
-      ],
-      fitMainWidth: true,
-      margin: 24,
-      maxHeight: 1260
+      margin: 18,
+      maxHeight: 1680
     },
   },
   {
@@ -109,8 +63,26 @@ const tasks = [
     name: "ops-rules",
     file: "ops-rules.png",
     pagePath: "/ops/rules",
-    viewport: { width: 1680, height: 1250 },
-    clip: { selectors: ['header', '[data-testid="ops-rules-page"]'], fitMainWidth: true, margin: 18, maxHeight: 1080 },
+    viewport: { width: 1680, height: 1500 },
+    setup: setupOpsRulesOverview,
+    clip: {
+      selectors: [
+        'header',
+        '[data-testid="ops-rules-page"] .rules-metrics-grid',
+        '#opsVaRulesSection'
+      ],
+      fitMainWidth: true,
+      margin: 18,
+      maxHeight: 1420
+    },
+  },
+  {
+    name: "ops-rules-preview",
+    file: "ops-rules-preview.png",
+    pagePath: "/ops/rules",
+    viewport: { width: 1680, height: 1600 },
+    setup: setupOpsRules,
+    clip: { selectors: ['.ops-va-stage-settings'], fitMainWidth: true, margin: 18 },
   },
   {
     name: "ops-users",
@@ -146,197 +118,7 @@ const tasks = [
     },
     clip: { selectors: [".auth-card"], margin: 30, minWidth: 760, minHeight: 460, maxHeight: 520 },
     optional: true,
-  },
-  {
-    name: "analysis-rule-list",
-    file: "analysis-rule-list.png",
-    pagePath: "/lab/rules",
-    viewport: { width: 1680, height: 1280 },
-    setup: async (browser) => {
-      await applyDarkTheme(browser);
-      await delay(600);
-      await click(browser, "analysisSettingsTabBtn");
-      await delay(500);
-    },
-    clip: { selectors: ['#vaRuleLibraryCard'], margin: 18, maxHeight: 980 },
-  },
-  {
-    name: "analysis-rule-editor-basic",
-    file: "analysis-rule-editor-basic.png",
-    pagePath: "/lab/rules",
-    viewport: { width: 1680, height: 1320 },
-    setup: async (browser) => {
-      await openLabRuleEditor(browser, "1");
-      await scrollIntoView(browser, "#ruleBasicSection");
-    },
-    clip: { selectors: ['#vaRuleEditorPanel', '#ruleBasicSection'], margin: 18, maxHeight: 980 },
-  },
-  {
-    name: "analysis-rule-editor-scenario",
-    file: "analysis-rule-editor-scenario.png",
-    pagePath: "/lab/rules",
-    viewport: { width: 1680, height: 1440 },
-    setup: async (browser) => {
-      await openLabRuleEditor(browser, "1");
-      await evaluate(browser, `(() => {
-        const scenario = document.querySelector('input[name="ruleKind"][value="scenario"]');
-        if (scenario) {
-          scenario.click();
-          scenario.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        const type = document.getElementById('scenarioType');
-        if (type) {
-          type.value = 'loitering';
-          type.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        return true;
-      })()`);
-      await delay(500);
-      await scrollIntoView(browser, "#ruleScenarioSection");
-    },
-    clip: { selectors: ['#ruleScenarioSection'], margin: 18, maxHeight: 1120 },
-  },
-  {
-    name: "analysis-region-canvas",
-    file: "analysis-region-canvas.png",
-    pagePath: "/lab/rules",
-    viewport: { width: 1680, height: 1560 },
-    setup: async (browser) => {
-      await openLabRuleEditor(browser, "1");
-      await startRulePreviewForCanvas(browser);
-      await scrollIntoView(browser, "#ruleGeometrySection");
-    },
-    clip: { selectors: ['#ruleGeometrySection'], margin: 18, maxHeight: 1320 },
-  },
-  {
-    name: "analysis-preview",
-    file: "analysis-preview.png",
-    pagePath: "/lab/rules",
-    viewport: { width: 1680, height: 1480 },
-    setup: async (browser) => {
-      await openLabViewer(browser, { mode: "overlay", file: "va_four_scene_sample.mp4" });
-      await scrollIntoView(browser, "#viewerPanel");
-    },
-    clip: { selectors: ['#viewerPanel'], margin: 18, maxHeight: 1220 },
-  },
-  {
-    name: "analysis-developer-url",
-    file: "analysis-developer-url.png",
-    pagePath: "/lab/rules",
-    viewport: { width: 1680, height: 1600 },
-    setup: async (browser) => {
-      await openLabViewer(browser, { mode: "overlay", file: "va_four_scene_sample.mp4" });
-      await evaluate(browser, `(() => {
-        const details = document.querySelector('.developer-url-details');
-        if (details) details.open = true;
-        return true;
-      })()`);
-      await delay(500);
-      await scrollIntoView(browser, ".developer-url-details");
-    },
-    clip: { selectors: ['.developer-url-details'], margin: 18, maxHeight: 1380 },
-  },
-  {
-    name: "analysis-runtime-dashboard",
-    file: "analysis-runtime-dashboard.png",
-    pagePath: "/lab/rules",
-    viewport: { width: 1680, height: 1580 },
-    setup: async (browser) => {
-      await prepareRuntimeDashboard(browser);
-      await scrollIntoView(browser, "#dashboardPanel");
-    },
-    clip: { selectors: ['#dashboardPanel', '#dashboardTrendSummary', '#dashboardMetadataTitle'], margin: 18, maxHeight: 1020 },
-  },
-  {
-    name: "analysis-runtime-dashboard-trend",
-    file: "analysis-runtime-dashboard-trend.png",
-    pagePath: "/lab/rules",
-    viewport: { width: 1680, height: 1700 },
-    setup: async (browser) => {
-      await prepareRuntimeDashboard(browser);
-      await scrollIntoView(browser, "#dashboardTrendSummary");
-    },
-    clip: { selectors: ['#dashboardTrendSummary', '#dashboardTrendRows'], margin: 18, maxHeight: 1320 },
-  },
-  {
-    name: "analysis-runtime-dashboard-metadata",
-    file: "analysis-runtime-dashboard-metadata.png",
-    pagePath: "/lab/rules",
-    viewport: { width: 1680, height: 1700 },
-    setup: async (browser) => {
-      await prepareRuntimeDashboard(browser);
-      await scrollIntoView(browser, "#dashboardMetadataTitle");
-    },
-    clip: { selectors: ['#dashboardMetadataTitle', '#dashboardMetadataTitle + p', '#dashboardMetadataTitle'], margin: 18, maxHeight: 1320, extraSelectors: ['[aria-labelledby="dashboardMetadataTitle"]'] },
-  },
-  {
-    name: "analysis-runtime-dashboard-runtime",
-    file: "analysis-runtime-dashboard-runtime.png",
-    pagePath: "/lab/rules",
-    viewport: { width: 1680, height: 1700 },
-    setup: async (browser) => {
-      await prepareRuntimeDashboard(browser);
-      await scrollIntoView(browser, "#dashboardRuntimeDetailTitle");
-    },
-    clip: { selectors: ['[aria-labelledby="dashboardRuntimeDetailTitle"]', '[aria-labelledby="dashboardVaRuleDebugTitle"]'], margin: 18, maxHeight: 1320 },
-  },
-  {
-    name: "analysis-runtime-dashboard-tracks",
-    file: "analysis-runtime-dashboard-tracks.png",
-    pagePath: "/lab/rules",
-    viewport: { width: 1680, height: 1520 },
-    setup: async (browser) => {
-      await prepareRuntimeDashboard(browser);
-      await scrollIntoView(browser, "#dashboardTracksTitle");
-    },
-    clip: { selectors: ['[aria-labelledby="dashboardTracksTitle"]'], margin: 18, maxHeight: 1180 },
-  },
-  {
-    name: "analysis-runtime-dashboard-scenarios",
-    file: "analysis-runtime-dashboard-scenarios.png",
-    pagePath: "/lab/rules",
-    viewport: { width: 1680, height: 1660 },
-    setup: async (browser) => {
-      await prepareRuntimeDashboard(browser);
-      await scrollIntoView(browser, "#dashboardScenariosTitle");
-    },
-    clip: { selectors: ['[aria-labelledby="dashboardScenariosTitle"]', '[aria-labelledby="dashboardScenarioTimelineTitle"]'], margin: 18, maxHeight: 1320 },
-  },
-  {
-    name: "analysis-runtime-dashboard-records",
-    file: "analysis-runtime-dashboard-records.png",
-    pagePath: "/lab/rules",
-    viewport: { width: 1680, height: 1820 },
-    setup: async (browser) => {
-      await prepareRuntimeDashboard(browser);
-      await openEventRecordResults(browser);
-      await scrollIntoView(browser, "#dashboardEventRecordsDetails");
-    },
-    clip: { selectors: ['#dashboardEventRecordsDetails'], margin: 18, maxHeight: 1460 },
-  },
-  {
-    name: "analysis-runtime-dashboard-tracking-issues",
-    file: "analysis-runtime-dashboard-tracking-issues.png",
-    pagePath: "/lab/rules",
-    viewport: { width: 1680, height: 1700 },
-    setup: async (browser) => {
-      await prepareRuntimeDashboard(browser);
-      await scrollIntoView(browser, "#dashboardIssuesTitle");
-    },
-    clip: { selectors: ['[aria-labelledby="dashboardIssuesTitle"]'], margin: 18, maxHeight: 1320 },
-  },
-  {
-    name: "analysis-runtime-dashboard-records-issues",
-    file: "analysis-runtime-dashboard-records-issues.png",
-    pagePath: "/lab/rules",
-    viewport: { width: 1680, height: 1900 },
-    setup: async (browser) => {
-      await prepareRuntimeDashboard(browser);
-      await openEventRecordResults(browser);
-      await scrollIntoView(browser, "#dashboardEventRecordsDetails");
-    },
-    clip: { selectors: ['#dashboardEventRecordsDetails', '[aria-labelledby="dashboardIssuesTitle"]'], margin: 18, maxHeight: 1540 },
-  },
+  }
 ];
 
 let passCount = 0;
@@ -458,7 +240,9 @@ async function setupClientLive(browser) {
       const view = tile.querySelector('[data-role="view"]');
       if (!view) continue;
       if (index === 0) {
-        const sample = Array.from(view.options || []).find((option) => option.textContent.includes('Sample H264'));
+        const sample = Array.from(view.options || []).find((option) =>
+          option.textContent.includes('VA Test File') ||
+          option.textContent.includes('va_four_scene_sample'));
         if (sample) {
           view.value = sample.value;
           view.dispatchEvent(new Event('change', { bubbles: true }));
@@ -494,6 +278,63 @@ async function setupClientLive(browser) {
     const placeholder = root?.querySelector('[data-role="placeholder"]');
     return Boolean(video && video.readyState >= 2 && status.includes('라이브') && placeholder?.hidden);
   })()`, 15000);
+  await delay(3500);
+}
+
+async function setupOpsRules(browser) {
+  await setupOpsRulesOverview(browser);
+  await evaluate(browser, `(() => {
+    const action = Array.from(document.querySelectorAll('[data-ops-rule-action="view-va"]'))
+      .find((button) => button.closest('tr')?.textContent.includes('VA Test File')) ||
+      document.querySelector('[data-ops-rule-action="view-va"]');
+    if (!action) return false;
+    action.click();
+    return true;
+  })()`);
+  await waitFor(browser, `(() => {
+    const panel = document.getElementById('opsRulesDetailPanel');
+    return Boolean(panel && !panel.hidden && panel.textContent.includes('채널 미리보기와 영역/라인 설정'));
+  })()`, 8000);
+  await evaluate(browser, `(() => {
+    document.getElementById('opsRulesComposerEdit')?.click();
+    return true;
+  })()`);
+  await waitFor(browser, `(() => {
+    const channel = document.getElementById('opsVaRuleChannelSelect');
+    return Boolean(channel && !channel.disabled);
+  })()`, 8000);
+  await evaluate(browser, `(() => {
+    const selectByText = (select, matcher) => {
+      if (!select) return false;
+      const option = Array.from(select.options || []).find((item) => matcher(item.textContent.trim()));
+      if (!option) return false;
+      select.value = option.value;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    };
+    selectByText(document.getElementById('opsVaRuleChannelSelect'), (text) =>
+      text.includes('VA Test File') || text.includes('va_four_scene_sample'));
+    selectByText(document.getElementById('opsVaRuleTemplateSeedSelect'), (text) =>
+      text.includes('침입 후 체류') || text.includes('2 ·'));
+    const start = document.getElementById('opsVaRulePreviewStartBtn');
+    if (start && !start.disabled) start.click();
+    return true;
+  })()`);
+  await waitFor(browser, `(() => {
+    const video = document.getElementById('opsVaRulePreviewVideo');
+    const placeholder = document.getElementById('opsVaRulePreviewPlaceholder');
+    const summary = document.getElementById('opsVaRulePreviewSummary')?.textContent || '';
+    return Boolean(video && video.readyState >= 2 && placeholder?.hidden && summary.includes('미리보기'));
+  })()`, 18000);
+  await delay(3500);
+}
+
+async function setupOpsRulesOverview(browser) {
+  await applyDarkTheme(browser);
+  await waitFor(browser, `(() => {
+    const row = document.querySelector('#opsVaRuleRows tr');
+    return Boolean(row && !row.textContent.includes('로딩 중'));
+  })()`, 12000);
 }
 
 async function setupClientDashboard(browser) {
@@ -504,141 +345,6 @@ async function setupClientDashboard(browser) {
     return !!viewButton;
   })()`);
   await delay(1000);
-}
-
-async function openLabRuleEditor(browser, ruleId) {
-  await applyDarkTheme(browser);
-  await click(browser, "analysisSettingsTabBtn");
-  await delay(400);
-  await evaluate(browser, `(() => {
-    if (typeof openVaRuleEditorForEdit === 'function') {
-      openVaRuleEditorForEdit(${JSON.stringify(ruleId)});
-      return true;
-    }
-    throw new Error('openVaRuleEditorForEdit unavailable');
-  })()`, 8000);
-  await delay(700);
-}
-
-async function startRulePreviewForCanvas(browser) {
-  await evaluate(browser, `(() => {
-    const mode = document.getElementById('previewSourceMode');
-    const file = document.getElementById('previewFileSelect');
-    const overlay = document.getElementById('previewOverlayInput');
-    const auto = document.getElementById('autoPreviewInput');
-    if (mode) {
-      mode.value = 'file';
-      mode.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-    if (file) {
-      file.value = 'va_four_scene_sample.mp4';
-      file.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-    if (overlay && !overlay.checked) overlay.click();
-    if (auto && !auto.checked) auto.click();
-    return true;
-  })()`);
-  await delay(500);
-  await evaluate(browser, `(async () => {
-    if (typeof startRulePreview !== 'function') throw new Error('startRulePreview unavailable');
-    await startRulePreview();
-    return true;
-  })()`, 20000);
-  await delay(3000);
-}
-
-async function openLabViewer(browser, { mode = "overlay", file = "va_four_scene_sample.mp4" } = {}) {
-  await applyDarkTheme(browser);
-  await click(browser, "analysisViewerTabBtn");
-  await delay(500);
-  await evaluate(browser, `(() => {
-    const radio = document.querySelector('input[name="viewMode"][value=${JSON.stringify(mode)}]');
-    if (radio) radio.click();
-    const sourceKind = document.getElementById('viewSourceKind');
-    const fileSelect = document.getElementById('viewFileSelect');
-    if (sourceKind) {
-      sourceKind.value = 'file';
-      sourceKind.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-    if (fileSelect) {
-      fileSelect.value = ${JSON.stringify(file)};
-      fileSelect.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-    return true;
-  })()`);
-  await delay(500);
-  await evaluate(browser, `(async () => {
-    if (typeof startViewPreview !== 'function') throw new Error('startViewPreview unavailable');
-    await startViewPreview();
-    return true;
-  })()`, 25000);
-  await delay(5000);
-}
-
-async function prepareRuntimeDashboard(browser) {
-  await openLabViewer(browser, { mode: "rule", file: "va_four_scene_sample.mp4" });
-  await evaluate(browser, `(() => {
-    const select = document.getElementById('viewVaRuleSelect');
-    if (select) {
-      select.value = '2';
-      select.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-    return true;
-  })()`);
-  await delay(500);
-  await evaluate(browser, `(async () => {
-    if (typeof startViewPreview !== 'function') throw new Error('startViewPreview unavailable');
-    await startViewPreview();
-    return true;
-  })()`, 25000);
-  await delay(8000);
-  await click(browser, "analysisDashboardTabBtn");
-  await delay(2500);
-  await evaluate(browser, `(() => {
-    const tapSelect = document.getElementById('dashboardTapSelect');
-    if (tapSelect && tapSelect.options.length > 1) {
-      const next = Array.from(tapSelect.options).find((option) => option.value);
-      if (next) {
-        tapSelect.value = next.value;
-        tapSelect.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-    }
-    const details = document.getElementById('dashboardEventRecordsDetails');
-    if (details) details.open = true;
-    return tapSelect ? tapSelect.value : '';
-  })()`, 10000);
-  await delay(2500);
-}
-
-async function openEventRecordResults(browser) {
-  await evaluate(browser, `(() => {
-    const details = document.getElementById('dashboardEventRecordsDetails');
-    if (details) details.open = true;
-    return true;
-  })()`);
-  await delay(300);
-  await click(browser, "eventRecordSearchBtn");
-  await delay(2500);
-}
-
-async function click(browser, id) {
-  await evaluate(browser, `(() => {
-    const button = document.getElementById(${JSON.stringify(id)});
-    if (!button) throw new Error('missing element: ' + ${JSON.stringify(id)});
-    button.click();
-    return true;
-  })()`, 8000);
-}
-
-async function scrollIntoView(browser, selector) {
-  await evaluate(browser, `(() => {
-    const node = document.querySelector(${JSON.stringify(selector)});
-    if (node && typeof node.scrollIntoView === 'function') {
-      node.scrollIntoView({ block: 'start', behavior: 'instant' });
-    }
-    return !!node;
-  })()`);
-  await delay(350);
 }
 
 async function computeClip(browser, clipSpec) {
