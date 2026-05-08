@@ -2793,6 +2793,18 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         setOpsRulesEditorModeButtons(opsRulesActiveMode);
         opsRulesEditorStatus('', false);
       }
+      function wireOpsRulesShellClose() {
+        if (activeOpsPage !== 'rules') return;
+        const nav = document.querySelector('.image-nav-tabs[aria-label="운영 메뉴"]');
+        if (!nav || nav.dataset.opsRulesCloseWired === '1') return;
+        nav.dataset.opsRulesCloseWired = '1';
+        nav.addEventListener('click', (event) => {
+          const link = event.target.closest('a[href]');
+          if (!link) return;
+          if (opsRulesDetailMode === 'closed') return;
+          closeOpsRulesEditor().catch(() => {});
+        });
+      }
       async function editCurrentOpsRulesRecord() {
         const mode = opsRulesActiveMode;
         const recordId = opsRulesDetailRecordId;
@@ -3272,6 +3284,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       }
       applyPrincipalVisibility().catch(() => {});
       wireOpsRefresh();
+      wireOpsRulesShellClose();
       if (activeOpsPage === 'dashboard') {
         refreshDashboard().catch(error => setText('dashHealthText', error.message));
       } else if (activeOpsPage === 'events') {
@@ -4082,6 +4095,30 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       function userValueHtml(primary, note = '') {
         return `<div class="user-value-stack"><strong>${escapeHtml(displayValue(primary))}</strong>${note ? `<span class="user-note">${escapeHtml(displayValue(note, ''))}</span>` : ''}</div>`;
       }
+      function parseUserScope(scope) {
+        const value = displayValue(scope, '').trim();
+        if (!value) return null;
+        if (value === '*') return { label: '모든 범위' };
+        if (value === 'ops:read') return { label: '운영 콘솔' };
+        if (value === 'rule:write') return { label: '룰 관리' };
+        if (value === 'source:write') return { label: '채널 관리' };
+        if (value === 'lab:read') return { label: 'Lab 보기' };
+        const scopedMatch = value.match(/^(view|dashboard|event|metadata):read:(.+)$/);
+        if (!scopedMatch) return { label: value };
+        const featureLabel = ({
+          view: '라이브',
+          dashboard: '대시보드',
+          event: '이벤트',
+          metadata: '메타데이터'
+        })[scopedMatch[1]] || scopedMatch[1];
+        const target = scopedMatch[2] || '';
+        const targetLabel = target === '*'
+          ? '전체'
+          : target === '__unassigned__'
+            ? '미배정 채널'
+            : `채널 ${target}`;
+        return { label: featureLabel, target: targetLabel };
+      }
       function userScopeHtml(scopes) {
         const items = Array.isArray(scopes)
           ? scopes.map(item => displayValue(item, '')).filter(Boolean)
@@ -4092,10 +4129,24 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         if (items.length === 0) {
           return userValueHtml('범위 없음');
         }
-        if (items.length <= 2) {
-          return userValueHtml(items.join(' · '));
+        const parsed = items.map(parseUserScope).filter(Boolean);
+        if (parsed.length === 0) {
+          return userValueHtml('범위 없음');
         }
-        return userValueHtml(items.slice(0, 2).join(' · '), `외 ${items.length - 2}개`);
+        const targets = Array.from(new Set(parsed.map(item => item.target).filter(Boolean)));
+        const labels = Array.from(new Set(parsed.map(item => item.label).filter(Boolean)));
+        if (targets.length === 1 && labels.length > 0) {
+          const primary = labels.length <= 2 ? labels.join(' · ') : `${labels.length}개 범위`;
+          const note = labels.length <= 2
+            ? targets[0]
+            : `${labels.join(' · ')} · ${targets[0]}`;
+          return userValueHtml(primary, note);
+        }
+        if (labels.length <= 2) {
+          return userValueHtml(labels.join(' · '));
+        }
+        const preview = labels.slice(0, 3).join(' · ');
+        return userValueHtml(`${labels.length}개 범위`, labels.length > 3 ? `${preview} 외 ${labels.length - 3}개` : preview);
       }
       function appendUserRow(user) {
         const tr = document.createElement('tr');

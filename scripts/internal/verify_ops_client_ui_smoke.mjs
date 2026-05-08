@@ -19,7 +19,7 @@ const runId = `ops-client-ui-${Date.now()}-${process.pid}`;
 const outputDir = args.outputDir || path.join(os.tmpdir(), `media_server_${runId}`);
 
 const productShellMust = [
-  'class="product-shell"',
+  'class="product-shell',
   'id="themeToggleBtn"',
   'class="account-menu"',
   "window.MediaServerUi",

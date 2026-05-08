@@ -2,36 +2,27 @@
 
 RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 분석 overlay와 Rule/Scenario 이벤트를 붙이는 C++17 미디어 서버입니다.
 
-## 핵심 요약
+## 한눈에 보기
 
-- RTSP/WebRTC 미디어 중계:
-  RTSP output, WebRTC signaling/WHEP output, 외부 WHEP pull, 내부 WHIP publish sourceId 소비 경로를 지원합니다.
-- Source 모델:
-  file, RTSP pull, HTTP/HLS URI, 외부 WHEP playback URL, 내부 WHIP publish sourceId를 같은 stream/session 구조에서 다룹니다.
-- VA overlay: `va=1`로 YOLO/ONNX detection overlay를 요청할 수 있습니다.
-- 영상 분석 UI: Rule/Profile/Scenario, 객체 category, polygon/line, event action을 `/lab/rules`에서 설정합니다.
-- Auth/account MVP:
-  최초 `/setup`, `/login`, role/scope principal, admin 계정 관리, viewer invite/request 승인 흐름, role 기반 route guard를 제공합니다.
-- Ops/Client shell:
-  `/ops`는 운영 콘솔, `/client`는 viewer/client 포털, `/lab`은 개발/검증용 UI로 분리합니다.
-- 채널 관리 MVP:
-  제품 UI에서는 숫자 기반 채널 목록으로 source와 PublishedView 연결 상태를 함께 관리합니다.
-- 저장 설정 호출: 숫자 ID 기반 `vaRule=<id>`로 저장된 source/profile/rule/scenario를 호출합니다.
-- VA Metadata Runtime Console:
-  WebRTC 메타데이터 뷰어, browser client-side overlay, runtime drill-down, SSE/WS side-channel, subscription filter/control을 제공합니다.
-- 이벤트/검증: Event POST, EventRecord JSON Lines 저장, VA metadata replay/baseline 검증 구조를 제공합니다.
+- **스트리밍**:
+  RTSP output, WebRTC signaling/WHEP output, 외부 WHEP pull, 내부 WHIP publish sourceId 소비 경로를 같은 서버에서 다룹니다.
+- **영상 분석**:
+  `va=1` overlay, `vaRule=<id>` 호출, Rule/Profile/Scenario, 객체/영역/라인 설정, Event POST와 EventRecord 저장을 제공합니다.
+- **제품 화면**:
+  `/ops`는 운영 콘솔, `/client`는 viewer 포털, `/lab`은 개발/검증 화면으로 분리합니다.
+- **권한과 계정**:
+  `/setup`, `/login`, role/scope principal, admin 계정 관리, viewer invite/request 승인 흐름을 포함합니다.
+- **검증 구조**:
+  UI/Auth smoke, VA metadata replay, baseline fixture, runtime state 검증 명령을 함께 제공합니다.
 
 ## 대표 UI 미리보기
 
-대표 제품 화면:
+README에는 전체 흐름이 바로 읽히는 대표 제품 화면만 배치합니다.
+운영자 라이브 모니터, 개발 진단, 분석 편집 상세는 [docs/ui-guide.md](docs/ui-guide.md)에서 따로 다룹니다.
 
 **Ops Home**
 
 ![운영 홈](docs/assets/ui/ops-home.png)
-
-**Ops Live**
-
-![운영자 라이브 모니터](docs/assets/ui/ops-live.png)
 
 **운영 채널 관리**
 
@@ -41,17 +32,25 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 
 ![운영 룰 관리](docs/assets/ui/ops-rules.png)
 
+**운영 사용자 관리**
+
+![운영 사용자 관리](docs/assets/ui/ops-users.png)
+
 **클라이언트 라이브**
 
 ![클라이언트 라이브](docs/assets/ui/client-live.png)
 
-운영/개발 진단 화면과 분석 설정 상세는
-[docs/ui-guide.md](docs/ui-guide.md)에서 따로 정리합니다.
-
-채널 화면에서는 다음 두 입력을 구분해 설명합니다.
+채널 화면에서는 아래 두 입력을 분리해 설명합니다.
 
 - `외부 WHEP pull`: 외부 playback endpoint를 서버 pull source로 등록
 - `Published WebRTC source`: 외부 URL이 아니라 내부 `/whip/publish`로 먼저 등록된 `sourceId` 연결
+
+문서 길잡이:
+
+- 제품 화면과 동작 설명: [docs/ui-guide.md](docs/ui-guide.md)
+- 영상 분석 구조와 런타임: [docs/video-analysis.md](docs/video-analysis.md)
+- 개발/빌드/검증 명령: [docs/development-guide.md](docs/development-guide.md)
+- 스트림 검증 명령 모음: [docs/stream-verification.md](docs/stream-verification.md)
 
 ## 전체 Pipeline
 
@@ -284,6 +283,6 @@ VA/Auth 주요 검증:
 ## 라이선스/배포 주의
 
 - YOLO model, label, 외부 영상 source는 각 라이선스와 사용 권한을 별도로 확인해야 합니다.
-- YouTube source/import는 실험실 기능이며 운영 기본 기능이 아닙니다.
+- YouTube source/import는 개발/검증용 기능이며 운영 기본 기능이 아닙니다.
 - EventRecord는 active/archive 조회, compaction snapshot 관리, 짧은 snapshot/clip frame evidence recorder 중심입니다. MP4/VMS/NVR형 장기 녹화, Re-ID/appearance 기본 기능화는 개인정보와 보관 정책 검토가 필요합니다.
 - 외부 HTTP/HLS URI, 외부 WHEP URL pull source, 운영 TURN relay/auth는 네트워크와 credential 상태에 따라 별도 검증이 필요합니다. 인증 토큰이 필요한 WHEP endpoint credential 보관/주입은 아직 별도 운영 정책 대상입니다.

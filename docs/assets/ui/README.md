@@ -25,10 +25,12 @@
 README 대표 후보:
 
 - `ops-home.png`
-- `ops-live.png`
 - `ops-channels.png`
 - `ops-rules.png`
+- `ops-users.png`
 - `client-live.png`
+
+`ops-live.png`는 overview보다는 운영자 라이브 모니터 설명용 상세 컷으로 사용합니다.
 
 UI 가이드 상세 후보:
 
