@@ -17,7 +17,7 @@
 | 클라이언트 포털 | `http://127.0.0.1:8080/client` 또는 `/client/live` | viewer/operator/admin용 client shell과 2x2 live monitor MVP |
 | 클라이언트 Dashboard | `http://127.0.0.1:8080/client/dashboard` | scoped PublishedView 상태 요약 MVP |
 | 접근 요청 | `http://127.0.0.1:8080/client/request-access` | pending client access request 제출 |
-| 통합 Lab | `http://127.0.0.1:8080/lab` | 스트림 재생, VA 분석, 영상 분석 설정, 실험실 도구를 한 화면에서 확인 |
+| 통합 Lab | `http://127.0.0.1:8080/lab` | 스트림 재생, VA 분석, 영상 분석 설정, 개발/검증 도구를 한 화면에서 확인 |
 | 영상 분석 관리 | `http://127.0.0.1:8080/lab/rules` | 영상 분석 설정/보기/Runtime Dashboard 3탭 관리 |
 | 런타임 상태 API | `http://127.0.0.1:8080/lab/runtime/status` | session, stream, analysis tap 상태 JSON API |
 
@@ -87,13 +87,12 @@ UI ownership은 다음 표를 기준으로 봅니다.
 
 대표 제품 화면:
 
+README에는 첫 인상용으로 가장 읽기 쉬운 overview 화면만 둡니다.
+운영자 라이브 모니터와 분석 상세 화면은 이 가이드에서 따로 봅니다.
+
 - Ops Home
 
 ![운영 홈](assets/ui/ops-home.png)
-
-- Ops Live
-
-![운영자 라이브 모니터](assets/ui/ops-live.png)
 
 - Ops Sources
 
@@ -102,6 +101,10 @@ UI ownership은 다음 표를 기준으로 봅니다.
 - Ops Rules
 
 ![운영 룰 관리](assets/ui/ops-rules.png)
+
+- Ops Users
+
+![운영 사용자 관리](assets/ui/ops-users.png)
 
 - Client Live
 
