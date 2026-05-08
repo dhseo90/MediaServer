@@ -36,21 +36,67 @@ const tasks = [
     clip: { selectors: ['header', '[data-testid="ops-home-page"]'], fitMainWidth: true, margin: 18, maxHeight: 1020 },
   },
   {
+    name: "client-live",
+    file: "client-live.png",
+    pagePath: "/client/live",
+    viewport: { width: 1680, height: 1540 },
+    setup: setupClientLive,
+    clip: {
+      selectors: [
+        'header',
+        '[data-testid="client-shell-page"] h2',
+        '[data-tile="0"]'
+      ],
+      fitMainWidth: true,
+      margin: 24,
+      maxHeight: 1320
+    },
+  },
+  {
     name: "ops-live",
     file: "ops-live.png",
     pagePath: "/ops/live",
-    viewport: { width: 1680, height: 1220 },
+    viewport: { width: 1680, height: 1520 },
     setup: async (browser) => {
       await applyDarkTheme(browser);
       await delay(500);
       await evaluate(browser, `(() => {
-        const first = document.querySelector('[data-live-row-id]');
-        if (first) first.click();
-        return !!first;
+        const preferred =
+          document.querySelector('#opsLiveTileGrid [data-live-row-id="1"]') ||
+          document.querySelector('#opsLiveTileGrid [data-live-row-id]');
+        if (preferred) preferred.click();
+        return !!preferred;
       })()`);
       await delay(600);
+      await evaluate(browser, `(() => {
+        const target = document.getElementById('opsLivePreviewTarget');
+        if (target) {
+          target.value = 'primary';
+          target.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        const mode = document.getElementById('opsLivePreviewMode');
+        if (mode) {
+          const canRaw = Array.from(mode.options || []).some((option) => option.value === 'raw');
+          mode.value = canRaw ? 'raw' : (mode.options[0]?.value || 'raw');
+          mode.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        const start = document.getElementById('opsLivePreviewStart');
+        if (start && !start.disabled) start.click();
+        return !!start && !start.disabled;
+      })()`, 8000);
+      await delay(6000);
     },
-    clip: { selectors: ['header', '[data-testid="ops-live-page"]'], fitMainWidth: true, margin: 18, maxHeight: 1050 },
+    clip: {
+      selectors: [
+        'header',
+        '[data-testid="ops-live-page"] h2',
+        '#opsLiveDrilldownSummary',
+        '#opsLivePreviewPrimaryStage'
+      ],
+      fitMainWidth: true,
+      margin: 24,
+      maxHeight: 1260
+    },
   },
   {
     name: "ops-channels",
@@ -81,14 +127,6 @@ const tasks = [
     clip: { selectors: ['header', '[data-testid="ops-dashboard-page"]'], fitMainWidth: true, margin: 18, maxHeight: 1040 },
   },
   {
-    name: "client-live",
-    file: "client-live.png",
-    pagePath: "/client/live",
-    viewport: { width: 1680, height: 1220 },
-    setup: setupClientLive,
-    clip: { selectors: ['header', '[data-testid="client-shell-page"]'], fitMainWidth: true, margin: 18, maxHeight: 1040 },
-  },
-  {
     name: "client-dashboard",
     file: "client-dashboard.png",
     pagePath: "/client/dashboard",
@@ -106,7 +144,7 @@ const tasks = [
       await applyDarkTheme(browser);
       await delay(500);
     },
-    clip: { selectors: ["main"], margin: 24, minWidth: 920, minHeight: 620, maxHeight: 620 },
+    clip: { selectors: [".auth-card"], margin: 30, minWidth: 760, minHeight: 460, maxHeight: 520 },
     optional: true,
   },
   {
@@ -383,39 +421,79 @@ async function applyDarkTheme(browser) {
 
 async function setupClientLive(browser) {
   await applyDarkTheme(browser);
-  await evaluate(browser, `(() => {
-    const viewButton = document.querySelector('#views .view[data-view-id="2"]') || document.querySelector('#views .view');
-    if (viewButton) viewButton.click();
-    return !!viewButton;
-  })()`);
-  await delay(500);
-  await evaluate(browser, `(() => {
-    const density = document.getElementById('liveDensity');
+  await waitFor(browser, `(() => {
     const grid = document.getElementById('liveGridSize');
-    if (density) {
-      density.value = 'comfortable';
-      density.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-    if (grid) {
-      grid.value = '1';
-      grid.dispatchEvent(new Event('change', { bubbles: true }));
+    const view = document.querySelector('[data-tile="0"] [data-role="view"]');
+    return Boolean(grid && view && (view.options?.length || 0) > 1);
+  })()`, 12000);
+  await evaluate(browser, `(() => {
+    document.querySelector('#liveAllStop')?.click();
+    return true;
+  })()`);
+  await delay(1800);
+  await evaluate(browser, `(() => {
+    const selectByLabel = (select, label) => {
+      if (!select) return false;
+      const option = Array.from(select.options || []).find((item) => item.textContent.trim() === label);
+      if (!option) return false;
+      select.value = option.value;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    };
+    const grid = document.getElementById('liveGridSize');
+    selectByLabel(grid, '1개');
+    const density = document.getElementById('liveDensity');
+    selectByLabel(density, '표준');
+    return true;
+  })()`);
+  await delay(700);
+  await waitFor(browser, `(() => {
+    const tiles = Array.from(document.querySelectorAll('[data-tile]'));
+    const view = document.querySelector('[data-tile="0"] [data-role="view"]');
+    return tiles.length === 1 && Boolean(view) && (view.options?.length || 0) > 1;
+  })()`, 8000);
+  await evaluate(browser, `(() => {
+    const tiles = Array.from(document.querySelectorAll('[data-tile]'));
+    for (const [index, tile] of tiles.entries()) {
+      const view = tile.querySelector('[data-role="view"]');
+      if (!view) continue;
+      if (index === 0) {
+        const sample = Array.from(view.options || []).find((option) => option.textContent.includes('Sample H264'));
+        if (sample) {
+          view.value = sample.value;
+          view.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      } else {
+        view.value = '';
+        view.dispatchEvent(new Event('change', { bubbles: true }));
+      }
     }
     return true;
   })()`);
   await delay(700);
+  await waitFor(browser, `(() => {
+    const mode = document.querySelector('[data-tile="0"] [data-role="mode"]');
+    return Boolean(mode) && (mode.options?.length || 0) > 1;
+  })()`, 8000);
   await evaluate(browser, `(() => {
-    if (typeof setTileView === 'function') setTileView(0, '2');
     const tile = document.querySelector('[data-tile="0"]');
     const mode = tile?.querySelector('[data-role="mode"]');
     if (mode) {
-      mode.value = 'raw';
+      const canOverlay = Array.from(mode.options || []).some((option) => option.value === 'va-overlay');
+      mode.value = canOverlay ? 'va-overlay' : 'raw';
       mode.dispatchEvent(new Event('change', { bubbles: true }));
     }
     const start = document.querySelector('[data-action="start"]');
     if (start) start.click();
     return !!start;
   })()`, 8000);
-  await delay(6500);
+  await waitFor(browser, `(() => {
+    const root = document.querySelector('[data-tile="0"]');
+    const video = root?.querySelector('video');
+    const status = root?.querySelector('[data-role="status"]')?.textContent || '';
+    const placeholder = root?.querySelector('[data-role="placeholder"]');
+    return Boolean(video && video.readyState >= 2 && status.includes('라이브') && placeholder?.hidden);
+  })()`, 15000);
 }
 
 async function setupClientDashboard(browser) {
@@ -625,6 +703,16 @@ async function saveClip(browser, outputFile, clip) {
 
 async function evaluate(browser, expression, timeoutMs = 5000) {
   return browser.evaluate(expression, timeoutMs);
+}
+
+async function waitFor(browser, expression, timeoutMs = 8000, intervalMs = 250) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const result = await evaluate(browser, expression, Math.max(2000, intervalMs * 4));
+    if (result) return result;
+    await delay(intervalMs);
+  }
+  throw new Error(`timed out waiting for condition: ${expression}`);
 }
 
 function parseArgs(argv) {
