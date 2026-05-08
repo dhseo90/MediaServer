@@ -146,6 +146,8 @@ void AppendClientShellScript(std::ostringstream& out) {
       if (['va-rule', 'rule', 'varule'].includes(raw)) return 'va-rule';
       return '';
     };
+    let requestedClientOverlayMode = normalizeOverlayMode(clientHashParams().get('mode') || '');
+    let requestedClientRuleId = String(clientHashParams().get('rule') || '').trim();
     const overlayLabel = mode => ({
       raw: '원본',
       'va-overlay': 'VA 오버레이',
@@ -159,10 +161,15 @@ void AppendClientShellScript(std::ostringstream& out) {
       hls: 'HTTP/HLS',
       webrtc: 'Published WebRTC'
     })[String(kind || '').toLowerCase()] || kind || '소스';
+    const defaultTileRuleId = view => view?.defaultRuleId || (Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds[0] : '') || '';
+    const requestedRuleIdForView = view =>
+      (requestedClientRuleId && String(view?.viewId || '') === String(selectedViewId || ''))
+        ? requestedClientRuleId
+        : defaultTileRuleId(view);
     const allowedOverlayModes = view => {
       const seen = new Set();
       const out = [];
-      const ruleId = tileRuleId(view);
+      const ruleId = requestedRuleIdForView(view);
       for (const value of view?.allowedOverlayModes || []) {
         const mode = normalizeOverlayMode(value);
         if (mode === 'va-rule' && !ruleId) continue;
@@ -386,10 +393,13 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    }
     function defaultOverlayModeForView(view) {
       const modes = allowedOverlayModes(view);
+      if (requestedClientOverlayMode && String(view?.viewId || '') === String(selectedViewId || '') && modes.includes(requestedClientOverlayMode)) {
+        return requestedClientOverlayMode;
+      }
       return modes.includes('raw') ? 'raw' : (modes[0] || '');
     }
     function tileRuleId(view) {
-      return view?.defaultRuleId || (Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds[0] : '') || '';
+      return requestedRuleIdForView(view);
     }
     function tileStatusClass(value) {
       if (['offline', 'disconnected', 'stale', 'failed', 'error'].includes(String(value))) return ' warn';
@@ -989,9 +999,14 @@ void AppendClientShellScript(std::ostringstream& out) {
 )CLIENTSCRIPT";
 }
 
-void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
+void AppendOpsShellScript(std::ostringstream& out,
+                          const std::string& active,
+                          const std::string& stream_route,
+                          int rtsp_port) {
     out << R"OPSSCRIPT(    <script>
       const activeOpsPage = )OPSSCRIPT" << JsStringLiteral(active) << R"OPSSCRIPT(;
+      const opsStreamRoute = )OPSSCRIPT" << JsStringLiteral(stream_route) << R"OPSSCRIPT(;
+      const opsRtspPort = )OPSSCRIPT" << rtsp_port << R"OPSSCRIPT(;
       const {
         escapeHtml,
         display,
@@ -1003,7 +1018,8 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         renderBadges,
         renderRaw,
         requestJson,
-        applyPrincipalVisibility
+        applyPrincipalVisibility,
+        setSelectOptions
       } = window.MediaServerUi;
       const opsViewRuleId = view =>
         String(view?.defaultRuleId || (Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds[0] : '') || '').trim();
@@ -2045,6 +2061,18 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, records });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
+      const opsRulesIdText = value => {
+        const text = String(value ?? '').trim();
+        return text || '-';
+      };
+      function opsRulesIdentityBadgeHtml(kind, value, note = '') {
+        const text = String(value ?? '').trim();
+        const label = text || '-';
+        return `<div class="ops-rule-value-stack">
+          <span class="table-identity-pill table-identity-${escapeHtml(kind)}">${escapeHtml(label)}</span>
+          ${note ? `<span class="ops-rule-note">${escapeHtml(note)}</span>` : ''}
+        </div>`;
+      }
       const listText = value => Array.isArray(value) ? (value.length ? value.join(', ') : '미제공') : display(value);
       const sourceText = source => {
         if (!source || typeof source !== 'object') return '미제공';
@@ -2076,62 +2104,77 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       }
       let opsCatalogEventTemplates = [];
       let opsCatalogProfiles = [];
+      let opsCatalogBuiltInProfiles = [];
       let opsCatalogVaRules = [];
+      let opsRulesSources = [];
+      let opsRulesViews = [];
+      let opsRulesChannels = [];
+      let opsRuleCategoryCatalog = [];
       let opsRulesActiveMode = 'va-rule';
       let opsRulesDetailMode = 'closed';
       let opsRulesDetailRecordId = '';
-      let opsVaRuleStartMode = 'direct';
       let opsVaRuleTemplateId = '';
+      let opsRulesCurrentRecord = null;
+      const opsVaRulePreviewState = {
+        viewId: '',
+        sessionId: '',
+        pc: null,
+        iceTimer: null,
+        status: 'idle',
+        connectionStatus: 'idle',
+        lastError: ''
+      };
       const opsLabAnalysisBase = ['/lab', 'analysis'].join('/');
       const opsLabProfilesPath = `${opsLabAnalysisBase}/profiles`;
       const opsLabRulesPath = `${opsLabAnalysisBase}/rules`;
       const opsLabVaRulesPath = `${opsLabAnalysisBase}/va-rules`;
+      const opsRuleDefaultCategories = ['person', 'vehicle'];
+      const OPS_RULES_MAX_NUMERIC_ID = 9999;
       const opsRulesDefaultSummary = '채널 설정을 먼저 관리합니다.';
+      const opsRulesFieldOwnership = {
+        profile: ['detector', 'fps', 'maxQueue', 'confidence', 'nms', 'inputWidth', 'inputHeight', 'adaptive'],
+        eventTemplate: ['event.type', 'event.region.direction', 'event.minConfidence', 'event.minDurationMs', 'analysis.classes', 'scenario.*'],
+        vaRule: ['source', 'binding', 'analysis.profileId', 'templateStart.ruleId', 'event.region.points', 'name', 'enabled']
+      };
       const opsRulesModeConfigs = {
         'va-rule': {
           label: '채널 분석 설정',
-          summary: '채널에 붙는 설정입니다.',
+          summary: '채널에 이벤트 템플릿과 분석 프로파일을 연결하는 최종 조립 단계입니다.',
           composerTitle: '채널 분석 설정',
-          composerHint: '채널에 붙는 최종 설정입니다.',
+          composerHint: '채널, 이벤트 템플릿, 분석 프로파일, 영역/라인을 연결하는 최종 설정입니다.',
           saveText: '저장',
           saveProxyId: 'saveVaRuleBtn',
           steps: [
-            { sectionId: 'ruleBasicSection', title: '설정 정보', hint: '설정 이름과 적용 상태를 정합니다.' },
-            { sectionId: 'ruleSourceSection', title: '채널 선택', hint: '운영 채널 하나를 골라 이 설정에 바로 연결합니다.' },
-            { sectionId: 'profileSection', title: '프로파일 선택', hint: '이미 저장된 프로파일 중 이 설정에 연결할 것만 선택합니다.' },
-            { sectionId: 'ruleScenarioSection', title: '이벤트 방식', hint: '기본 이벤트 또는 시나리오를 고릅니다.' },
-            { sectionId: 'ruleObjectsSection', title: '대상 객체', hint: '어떤 객체를 감지하고 판정할지 정합니다.' },
-            { sectionId: 'ruleGeometrySection', title: '영역/라인', hint: '이 설정에서 사용할 영역 또는 라인을 지정합니다.' },
-            { sectionId: 'ruleOutputSection', title: '출력 동작', hint: '오버레이 강조와 이벤트 POST 동작을 정합니다.' },
-            { sectionId: 'ruleReviewSection', title: '저장 전 검토', hint: '최종 요약을 확인한 뒤 저장합니다.' }
+            { sectionId: 'ruleBasicSection', title: '설정 정보', hint: '이름과 활성 상태를 정합니다.' },
+            { sectionId: 'ruleScenarioSection', title: '템플릿 선택', hint: '시나리오와 대상 객체는 이벤트 템플릿에서 가져옵니다.' },
+            { sectionId: 'profileSection', title: '프로파일 선택', hint: '분석 엔진 설정은 프로파일에서 가져옵니다.' },
+            { sectionId: 'ruleSourceSection', title: '채널 선택', hint: '어느 채널에 붙일지 고릅니다.' },
+            { sectionId: 'ruleGeometrySection', title: '영역/라인', hint: '채널별 geometry는 여기서 연결합니다.' }
           ]
         },
         'event-rule': {
           label: '이벤트 템플릿',
-          summary: '채널 설정에서 불러오는 보조 템플릿입니다.',
+          summary: '시나리오 조건과 대상 객체를 재사용하는 이벤트 템플릿입니다.',
           composerTitle: '이벤트 템플릿',
-          composerHint: '채널 설정에서 불러와 시작합니다.',
+          composerHint: '채널 분석 설정에서 선택하는 공통 이벤트 규칙입니다.',
           saveText: '저장',
           saveProxyId: 'saveRuleBtn',
           steps: [
-            { sectionId: 'ruleBasicSection', title: '템플릿 정보', hint: '재사용할 템플릿 ID와 적용 상태를 정합니다.' },
-            { sectionId: 'ruleSourceSection', title: '템플릿 적용 범위', hint: '특정 채널 하나가 아니라 어떤 소스 종류와 송출 경로에 공통 적용할지 정합니다.' },
-            { sectionId: 'profileSection', title: '프로파일 선택', hint: '이미 저장된 프로파일 중 이 조건이 사용할 것만 선택합니다.' },
-            { sectionId: 'ruleScenarioSection', title: '이벤트 방식', hint: '기본 이벤트 또는 시나리오 템플릿을 선택합니다.' },
+            { sectionId: 'ruleBasicSection', title: '템플릿 정보', hint: '재사용할 템플릿 ID를 확인합니다.' },
+            { sectionId: 'ruleScenarioSection', title: '시나리오', hint: '기본 이벤트 또는 시나리오 템플릿을 선택합니다.' },
             { sectionId: 'ruleObjectsSection', title: '대상 객체', hint: '이 조건이 판정할 객체 범위를 정합니다.' },
-            { sectionId: 'ruleGeometrySection', title: '영역/라인', hint: '조건에 필요한 영역 또는 라인을 지정합니다.' },
-            { sectionId: 'ruleOutputSection', title: '출력 동작', hint: '오버레이 강조와 이벤트 POST 동작을 정합니다.' }
+            { sectionId: 'ruleOutputSection', title: '조건 값', hint: '체류, cooldown, 점유 조건을 정합니다.' }
           ]
         },
         profile: {
           label: '분석 프로파일',
-          summary: '채널 설정과 템플릿에서 고르는 보조 프로파일입니다.',
+          summary: '검출기, FPS, confidence 같은 분석 엔진 설정을 모아 둡니다.',
           composerTitle: '분석 프로파일',
           composerHint: '채널 설정이나 템플릿에서 선택합니다.',
           saveText: '저장',
           saveProxyId: 'saveProfileBtn',
           steps: [
-            { sectionId: 'profileSection', title: '프로파일 설정', hint: 'detector, FPS, 입력 크기와 추적 대상만 설정합니다.' }
+            { sectionId: 'profileSection', title: '프로파일 설정', hint: 'detector, FPS, confidence, 입력 크기만 설정합니다.' }
           ]
         }
       };
@@ -2178,7 +2221,6 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       }
       function setOpsRulesDetailChrome(mode, detailMode = 'closed', recordId = '') {
         const panel = document.getElementById('opsRulesDetailPanel');
-        const host = document.getElementById('opsRulesEditorComponent');
         const title = document.getElementById('opsRulesComposerTitle');
         const hint = document.getElementById('opsRulesComposerHint');
         const badge = document.getElementById('opsRulesDetailMode');
@@ -2190,21 +2232,13 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         opsRulesDetailRecordId = String(recordId || '');
         if (!config || detailMode === 'closed') {
           if (panel) panel.hidden = true;
-          if (host) {
-            host.hidden = true;
-            host.dataset.mode = '';
-          }
           return;
         }
         if (panel) panel.hidden = false;
-        if (host) {
-          host.hidden = false;
-          host.dataset.mode = mode;
-        }
         if (badge) badge.textContent = detailMode === 'view' ? '상세' : (detailMode === 'edit' ? '수정' : '추가');
         if (idBadge) {
           idBadge.hidden = !opsRulesDetailRecordId;
-          idBadge.textContent = opsRulesDetailRecordId ? `#${opsRulesDetailRecordId}` : '#-';
+          idBadge.textContent = opsRulesIdText(opsRulesDetailRecordId);
         }
         if (title) title.textContent = opsRulesDetailLabel(mode, detailMode);
         if (hint) {
@@ -2219,109 +2253,859 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         }
       }
       function opsVaRuleStartMeta(item) {
-        const templateRuleId = String(item?.templateStart?.ruleId || '').trim();
+        const inferred = opsRulesInferTemplateForVaRule(item);
         return {
-          mode: templateRuleId ? 'template' : 'direct',
-          templateRuleId
+          templateRuleId: inferred.templateId,
+          inferred: inferred.inferred && !String(item?.templateStart?.ruleId || '').trim(),
+          template: inferred.template
         };
       }
-      function opsVaRuleStartLabel(item) {
-        const meta = opsVaRuleStartMeta(item);
-        return meta.mode === 'template'
-          ? `템플릿 적용 · ${display(meta.templateRuleId)}`
-          : '개별 설정';
+      const opsScenarioTypes = new Set([
+        'intrusion-dwell',
+        're-entry',
+        'wrong-direction',
+        'intrusion-after-line-crossing',
+        'loitering',
+        'zone-occupancy'
+      ]);
+      const opsBasicEventTypes = ['presence', 'enter', 'exit', 'line-crossing'];
+      const opsScenarioEventTypes = [
+        'intrusion-dwell',
+        're-entry',
+        'wrong-direction',
+        'intrusion-after-line-crossing',
+        'loitering',
+        'zone-occupancy'
+      ];
+      const opsLineEventTypes = new Set(['line-crossing', 'wrong-direction']);
+      const opsRulesEventTypes = [
+        'presence',
+        'enter',
+        'exit',
+        'line-crossing',
+        'intrusion-dwell',
+        're-entry',
+        'wrong-direction',
+        'intrusion-after-line-crossing',
+        'loitering',
+        'zone-occupancy'
+      ];
+      function opsEventRuleModeForType(type) {
+        return opsRulesIsScenarioType(type) ? 'scenario' : 'event';
       }
-      function syncEmbeddedVaRuleStartFields(root) {
-        const startModeInput = root?.getElementById('vaRuleStartMode');
-        const templateInput = root?.getElementById('vaRuleTemplateRuleId');
-        if (startModeInput) startModeInput.value = opsVaRuleStartMode;
-        if (templateInput) templateInput.value = opsVaRuleTemplateId;
+      function opsRulesClone(value) {
+        return JSON.parse(JSON.stringify(value ?? {}));
+      }
+      function opsRulesSplitList(value) {
+        return String(value ?? '')
+          .split(/[\n,]/)
+          .map(item => item.trim())
+          .filter(Boolean);
+      }
+      function opsRulesIsScenarioType(type) {
+        return opsScenarioTypes.has(String(type || '').trim());
+      }
+      function opsRulesIsLineEventType(type) {
+        return opsLineEventTypes.has(String(type || '').trim());
+      }
+      function opsRulesEventTypeForItem(item = {}) {
+        return String(item?.scenario?.type || item?.event?.type || item?.eventType || '').trim();
+      }
+      function opsRulesStringArray(value = []) {
+        return Array.isArray(value)
+          ? value.map(item => String(item || '').trim()).filter(Boolean)
+          : [];
+      }
+      function opsRulesSetEqual(left = [], right = []) {
+        const leftItems = opsRulesStringArray(left);
+        const rightItems = opsRulesStringArray(right);
+        if (leftItems.length !== rightItems.length) return false;
+        const rightSet = new Set(rightItems);
+        return leftItems.every(item => rightSet.has(item));
+      }
+      function opsRulesTemplateClasses(item = {}) {
+        return opsRulesStringArray(item?.analysis?.classes || item?.scenario?.targetClasses || []);
+      }
+      function opsRulesInferTemplateForVaRule(item = {}) {
+        const explicitId = String(item?.templateStart?.ruleId || '').trim();
+        if (explicitId) {
+          return { templateId: explicitId, inferred: false, template: findOpsEventTemplateById(explicitId) || null };
+        }
+        const type = opsRulesEventTypeForItem(item);
+        if (!type) return { templateId: '', inferred: false, template: null };
+        const candidates = opsCatalogEventTemplates.filter(template => opsRulesEventTypeForItem(template) === type);
+        if (candidates.length === 0) return { templateId: '', inferred: false, template: null };
+        const itemClasses = opsRulesTemplateClasses(item);
+        const exact = candidates.find(template => opsRulesSetEqual(opsRulesTemplateClasses(template), itemClasses));
+        const template = exact || (candidates.length === 1 ? candidates[0] : null);
+        const templateId = String(template?.id || '').trim();
+        return { templateId, inferred: Boolean(templateId), template };
+      }
+      function opsRulesDefaultPolygonPoints() {
+        return [
+          { x: 0.2, y: 0.22 },
+          { x: 0.8, y: 0.22 },
+          { x: 0.8, y: 0.78 },
+          { x: 0.2, y: 0.78 }
+        ];
+      }
+      function opsRulesDefaultLinePoints() {
+        return [
+          { x: 0.25, y: 0.5 },
+          { x: 0.75, y: 0.5 }
+        ];
+      }
+      function opsRulesNextNumericId(items = [], start = 1) {
+        const normalizedStart = Math.max(1, Number(start) || 1);
+        const used = new Set();
+        for (const item of items) {
+          const value = String(item?.id || item?.profileId || '').trim();
+          if (/^[0-9]+$/.test(value)) {
+            const numeric = Number(value);
+            if (numeric >= 1 && numeric <= OPS_RULES_MAX_NUMERIC_ID) {
+              used.add(numeric);
+            }
+          }
+        }
+        for (let candidate = normalizedStart; candidate <= OPS_RULES_MAX_NUMERIC_ID; candidate += 1) {
+          if (!used.has(candidate)) return String(candidate);
+        }
+        for (let candidate = 1; candidate < normalizedStart; candidate += 1) {
+          if (!used.has(candidate)) return String(candidate);
+        }
+        throw new Error(`ID 사용량이 한도(${OPS_RULES_MAX_NUMERIC_ID})에 도달했습니다.`);
+      }
+      function opsRulesNextProfileId() {
+        return opsRulesNextNumericId(opsCatalogProfiles, 1);
+      }
+      function opsRulesPreferredProfileId() {
+        return String(
+          opsCatalogProfiles[0]?.id
+          || opsCatalogBuiltInProfiles[0]?.id
+          || 'server-default-va'
+        );
+      }
+      function opsRulesSourcePayload(source = {}) {
+        const kind = String(source.kind || 'file').trim() || 'file';
+        if (kind === 'file') return { kind: 'file', file: source.file || 'sample_h264.mp4' };
+        if (kind === 'rtsp') return { kind: 'rtsp', url: source.rtspUrl || source.url || '' };
+        if (kind === 'whep') return { kind: 'whep', url: source.whepUrl || source.url || '' };
+        if (kind === 'http' || kind === 'hls') return { kind: 'http', url: source.httpUrl || source.url || '' };
+        if (kind === 'webrtc') return { kind: 'webrtc', url: source.webrtcSourceId || source.sourceId || source.url || '' };
+        return { kind, url: source.url || '' };
+      }
+      function opsRulesSourceMatches(left = {}, right = {}) {
+        const leftPayload = opsRulesSourcePayload(left);
+        const rightPayload = opsRulesSourcePayload(right);
+        return leftPayload.kind === rightPayload.kind
+          && String(leftPayload.file || leftPayload.url || '') === String(rightPayload.file || rightPayload.url || '');
+      }
+      function opsRulesBuildChannels() {
+        const viewsBySource = new Map();
+        for (const view of opsRulesViews) {
+          const sourceId = String(view?.sourceId || '').trim();
+          if (!sourceId) continue;
+          if (!viewsBySource.has(sourceId)) viewsBySource.set(sourceId, []);
+          viewsBySource.get(sourceId).push(view);
+        }
+        opsRulesChannels = opsRulesSources.map((source) => {
+          const sourceId = String(source?.sourceId || '').trim();
+          const views = viewsBySource.get(sourceId) || [];
+          const primaryView = views.find(view => String(view?.viewId || '') === sourceId) || views[0] || null;
+          return {
+            id: sourceId,
+            sourceId,
+            displayName: source?.displayName || primaryView?.displayName || `채널 ${sourceId}`,
+            source,
+            view: primaryView,
+            views
+          };
+        });
+      }
+      function opsRulesChannelOptionLabel(channel) {
+        const kind = channel?.source?.kind ? opsRulesSourceKindLabel(channel.source.kind) : '입력';
+        return `${display(channel.displayName)} · ${kind}`;
+      }
+      function opsRulesSourceDetailLabel(source) {
+        if (!source || typeof source !== 'object') return '';
+        if (source.kind === 'file') return display(source.file || '');
+        if (source.kind === 'rtsp') return display(source.url || source.rtspUrl || '');
+        if (source.kind === 'whep') return display(source.whepUrl || source.url || '');
+        if (source.kind === 'webrtc') return display(source.webrtcSourceId || source.sourceId || '');
+        if (source.kind === 'http' || source.kind === 'hls') return display(source.url || '');
+        return display(source.url || source.file || '');
+      }
+      function opsRulesFindChannelById(channelId) {
+        return opsRulesChannels.find((channel) => String(channel?.id || '') === String(channelId || '')) || null;
+      }
+      function opsRulesFindChannelForVaRule(item = {}) {
+        const itemId = String(item?.id || '').trim();
+        if (itemId) {
+          for (const channel of opsRulesChannels) {
+            const view = channel?.view;
+            const allowed = Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds.map(String) : [];
+            if (String(view?.defaultRuleId || '') === itemId || allowed.includes(itemId)) {
+              return channel;
+            }
+          }
+        }
+        const source = item?.source || {};
+        return opsRulesChannels.find(channel => opsRulesSourceMatches(channel?.source, source)) || null;
+      }
+      function opsRulesRuleBasePayload(type, existingEvent = {}, classes = ['person']) {
+        const lineMode = opsRulesIsLineEventType(type);
+        const region = opsRulesClone(existingEvent.region || {});
+        if (region.type !== (lineMode ? 'line' : 'polygon')) {
+          region.type = lineMode ? 'line' : 'polygon';
+        }
+        if (!Array.isArray(region.points) || region.points.length < (lineMode ? 2 : 3)) {
+          region.points = lineMode ? opsRulesDefaultLinePoints() : opsRulesDefaultPolygonPoints();
+        }
+        if (lineMode && !region.direction) region.direction = 'any';
+        const event = {
+          ...existingEvent,
+          type,
+          region,
+          minConfidence: Number(existingEvent.minConfidence ?? 0.25),
+          minDurationMs: Number(existingEvent.minDurationMs ?? 0)
+        };
+        const scenario = existingEvent.scenario || {};
+        if (type === 'intrusion-dwell') {
+          return {
+            ruleKind: 'scenario',
+            event,
+            scenario: {
+              ...scenario,
+              type,
+              enabled: scenario.enabled !== false,
+              candidateTimeMs: Number(scenario.candidateTimeMs ?? 2000),
+              dwellTimeMs: Number(scenario.dwellTimeMs ?? 10000),
+              cooldownMs: Number(scenario.cooldownMs ?? 5000),
+              targetClasses: Array.isArray(scenario.targetClasses) && scenario.targetClasses.length > 0 ? scenario.targetClasses : classes,
+              restrictedZoneIds: Array.isArray(scenario.restrictedZoneIds) ? scenario.restrictedZoneIds : []
+            }
+          };
+        }
+        if (type === 're-entry') {
+          return {
+            ruleKind: 'scenario',
+            event,
+            scenario: {
+              ...scenario,
+              type,
+              enabled: scenario.enabled !== false,
+              reEntryWindowMs: Number(scenario.reEntryWindowMs ?? 10000),
+              cooldownMs: Number(scenario.cooldownMs ?? 5000),
+              targetClasses: Array.isArray(scenario.targetClasses) && scenario.targetClasses.length > 0 ? scenario.targetClasses : classes,
+              reEntryMode: scenario.reEntryMode || 'same-zone',
+              reEntryZoneIds: Array.isArray(scenario.reEntryZoneIds) ? scenario.reEntryZoneIds : [],
+              restrictedZoneIds: Array.isArray(scenario.restrictedZoneIds) ? scenario.restrictedZoneIds : []
+            }
+          };
+        }
+        if (type === 'wrong-direction') {
+          return {
+            ruleKind: 'scenario',
+            event,
+            scenario: {
+              ...scenario,
+              type,
+              enabled: scenario.enabled !== false,
+              cooldownMs: Number(scenario.cooldownMs ?? 5000),
+              targetClasses: Array.isArray(scenario.targetClasses) && scenario.targetClasses.length > 0 ? scenario.targetClasses : classes
+            }
+          };
+        }
+        if (type === 'intrusion-after-line-crossing') {
+          return {
+            ruleKind: 'scenario',
+            event,
+            scenario: {
+              ...scenario,
+              type,
+              enabled: scenario.enabled !== false,
+              maxDelayAfterCrossingMs: Number(scenario.maxDelayAfterCrossingMs ?? 10000),
+              dwellTimeMs: Number(scenario.dwellTimeMs ?? 3000),
+              cooldownMs: Number(scenario.cooldownMs ?? 5000),
+              targetZoneIds: Array.isArray(scenario.targetZoneIds) ? scenario.targetZoneIds : [],
+              triggerLine: {
+                id: scenario.triggerLine?.id || 'line-1',
+                direction: scenario.triggerLine?.direction || 'any',
+                points: Array.isArray(scenario.triggerLine?.points) && scenario.triggerLine.points.length >= 2
+                  ? scenario.triggerLine.points
+                  : opsRulesDefaultLinePoints()
+              }
+            }
+          };
+        }
+        if (type === 'loitering') {
+          return {
+            ruleKind: 'scenario',
+            event,
+            scenario: {
+              ...scenario,
+              type,
+              enabled: scenario.enabled !== false,
+              minDwellTimeMs: Number(scenario.minDwellTimeMs ?? scenario.dwellTimeMs ?? 30000),
+              maxMovementRadius: Number(scenario.maxMovementRadius ?? 0.08),
+              minTrajectoryPoints: Number(scenario.minTrajectoryPoints ?? 4),
+              cooldownMs: Number(scenario.cooldownMs ?? 10000),
+              targetClasses: Array.isArray(scenario.targetClasses) && scenario.targetClasses.length > 0 ? scenario.targetClasses : classes,
+              restrictedZoneIds: Array.isArray(scenario.restrictedZoneIds) ? scenario.restrictedZoneIds : []
+            }
+          };
+        }
+        if (type === 'zone-occupancy') {
+          return {
+            ruleKind: 'scenario',
+            event,
+            scenario: {
+              ...scenario,
+              type,
+              enabled: scenario.enabled !== false,
+              occupancyThreshold: Number(scenario.occupancyThreshold ?? 3),
+              minDwellTimeMs: Number(scenario.minDwellTimeMs ?? 5000),
+              cooldownMs: Number(scenario.cooldownMs ?? 10000),
+              targetClasses: Array.isArray(scenario.targetClasses) && scenario.targetClasses.length > 0 ? scenario.targetClasses : classes,
+              restrictedZoneIds: Array.isArray(scenario.restrictedZoneIds) ? scenario.restrictedZoneIds : []
+            }
+          };
+        }
+        return { ruleKind: 'basic', event, scenario: null };
+      }
+      function opsRulesDefaultOutputs(existing = {}) {
+        return {
+          overlay: existing.overlay !== false,
+          metadata: existing.metadata !== false,
+          events: existing.events !== false
+        };
+      }
+      function opsRulesDefaultEventActions(existing = {}) {
+        return {
+          highlight: {
+            enabled: existing?.highlight?.enabled !== false,
+            mode: existing?.highlight?.mode || 'blink',
+            target: existing?.highlight?.target || 'matched-object',
+            durationMs: Number(existing?.highlight?.durationMs ?? 1200),
+            color: existing?.highlight?.color || '#ff0000'
+          },
+          post: {
+            enabled: existing?.post?.enabled === true,
+            method: existing?.post?.method || 'POST',
+            url: existing?.post?.url || '',
+            contentType: existing?.post?.contentType || 'application/json',
+            payloadFormat: existing?.post?.payloadFormat || 'media-server.va.event.v1'
+          }
+        };
+      }
+      function opsRulesEventTemplateSkeleton(id = opsRulesNextNumericId(opsCatalogEventTemplates, 1)) {
+        const type = 'intrusion-dwell';
+        const classes = ['person', 'vehicle'];
+        const base = opsRulesRuleBasePayload(type, {}, classes);
+        return {
+          id,
+          enabled: true,
+          analysis: { classes },
+          event: base.event,
+          ruleKind: base.ruleKind,
+          scenario: base.scenario
+        };
+      }
+      function opsRulesVaRuleSkeleton(id = opsRulesNextNumericId(opsCatalogVaRules, 1)) {
+        const channel = opsRulesChannels[0] || null;
+        const template = opsCatalogEventTemplates[0] ? opsRulesClone(opsCatalogEventTemplates[0]) : null;
+        const templateId = String(template?.id || '').trim();
+        const base = template || opsRulesEventTemplateSkeleton(id);
+        return {
+          ...base,
+          id,
+          name: `채널 분석 설정 ${id}`,
+          source: channel ? opsRulesSourcePayload(channel.source) : { kind: 'file', file: 'sample_h264.mp4' },
+          analysis: {
+            ...(base.analysis || {}),
+            profileId: opsRulesPreferredProfileId()
+          },
+          match: { sourceKind: '*', route: '*', vaRule: String(id) },
+          binding: {
+            urlMode: `vaRule=${id}`,
+            sourceLocked: true,
+            sourceOverrideAllowed: false
+          },
+          templateStart: templateId ? { ruleId: templateId } : undefined
+        };
+      }
+      function opsRulesProfileSkeleton(id = opsRulesNextProfileId()) {
+        return {
+          id,
+          detector: 'yolo',
+          fps: 6,
+          maxQueue: 1,
+          confidence: 0.25,
+          nms: 0.45,
+          inputWidth: 640,
+          inputHeight: 640,
+          adaptive: true
+        };
       }
       function refreshOpsVaTemplateAssistOptions() {
-        const select = document.getElementById('opsVaRuleTemplateSelect');
+        const select = document.getElementById('opsVaRuleTemplateSeedSelect');
         if (!select) return;
         const current = String(select.value || opsVaRuleTemplateId || '').trim();
-        select.innerHTML = [`<option value="">템플릿을 고르세요</option>`].concat(
-          opsCatalogEventTemplates.map((item) => {
-            const id = String(item?.id || '').trim();
-            const type = item?.scenario?.type || item?.event?.type || item?.eventType || 'event';
-            return `<option value="${escapeHtml(id)}">${escapeHtml(`${id} · ${opsRuleEventTypeLabel(type)}`)}</option>`;
-          })
-        ).join('');
-        select.value = current;
+        setSelectOptions(
+          select,
+          [{ value: '', label: '템플릿 선택' }].concat(
+            opsCatalogEventTemplates.map((item) => {
+              const id = String(item?.id || '').trim();
+              const type = item?.scenario?.type || item?.event?.type || item?.eventType || 'event';
+              return { value: id, label: `${id} · ${opsRuleEventTypeLabel(type)}` };
+            })
+          ),
+          current
+        );
       }
-      async function applyOpsVaTemplateSelection(templateId) {
-        const root = await ensureOpsRulesEditorReady();
-        const api = window.__mediaServerRuleEditorApi;
-        const normalizedId = String(templateId || '').trim();
-        if (!root || !api) return;
-        if (!normalizedId) {
-          opsVaRuleStartMode = 'direct';
+      function opsRulesCategoryConfigs() {
+        return [
+          { prefix: 'opsEventRuleClasses', containerId: 'opsEventRuleClassChecks', summaryId: 'opsEventRuleClassesSummary', emptyText: '객체를 선택하세요.' }
+        ];
+      }
+      function opsRulesCategoryConfig(prefix) {
+        return opsRulesCategoryConfigs().find(item => item.prefix === prefix) || null;
+      }
+      function opsRulesCategoryItems() {
+        if (Array.isArray(opsRuleCategoryCatalog) && opsRuleCategoryCatalog.length > 0) {
+          return opsRuleCategoryCatalog;
+        }
+        return [
+          { value: 'person', label: '사람', displayLabels: ['사람'] },
+          { value: 'vehicle', label: '차량', displayLabels: ['차량'] }
+        ];
+      }
+      function opsRulesNormalizeCategories(values) {
+        const items = opsRulesCategoryItems();
+        const allValues = items.map(item => String(item.value || ''));
+        const raw = Array.isArray(values) ? values.map(value => String(value || '').trim()).filter(Boolean) : [];
+        if (raw.includes('*')) return allValues;
+        const seen = new Set();
+        const normalized = [];
+        for (const value of raw) {
+          if (seen.has(value)) continue;
+          seen.add(value);
+          normalized.push(value);
+        }
+        return normalized;
+      }
+      function opsRulesCategorySummaryText(values, emptyText = '선택 없음') {
+        const selected = opsRulesNormalizeCategories(values);
+        if (selected.length === 0) return emptyText;
+        const items = opsRulesCategoryItems();
+        return selected.map((value) => {
+          const found = items.find(item => String(item.value || '') === value);
+          if (!found) return value;
+          return String(found.label || found.value || value);
+        }).join(', ');
+      }
+      function opsRulesCompactCategoryText(values, maxItems = 2, emptyText = '미설정') {
+        const selected = opsRulesNormalizeCategories(values);
+        if (selected.length === 0) return emptyText;
+        const labels = opsRulesCategorySummaryText(selected, emptyText).split(',').map(item => item.trim()).filter(Boolean);
+        if (labels.length <= maxItems) return labels.join(', ');
+        return `${labels.slice(0, maxItems).join(', ')} 외 ${labels.length - maxItems}개`;
+      }
+      function opsRulesSelectedCategories(containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return [];
+        return Array.from(container.querySelectorAll('input[type="checkbox"]:checked'))
+          .map(input => String(input.value || '').trim())
+          .filter(Boolean);
+      }
+      function opsRulesUpdateCategorySummary(containerId, summaryId, emptyText) {
+        const summary = document.getElementById(summaryId);
+        if (!summary) return;
+        summary.textContent = opsRulesCategorySummaryText(opsRulesSelectedCategories(containerId), emptyText);
+      }
+      function opsRulesSetSelectedCategories(containerId, values, summaryId = '', emptyText = '선택 없음') {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const selected = new Set(opsRulesNormalizeCategories(values));
+        for (const input of container.querySelectorAll('input[type="checkbox"]')) {
+          input.checked = selected.has(String(input.value || ''));
+        }
+        if (summaryId) {
+          opsRulesUpdateCategorySummary(containerId, summaryId, emptyText);
+        }
+      }
+      function opsRulesApplyCategoryPreset(prefix, preset) {
+        const config = opsRulesCategoryConfig(prefix);
+        if (!config) return;
+        const items = opsRulesCategoryItems();
+        if (preset === 'default') {
+          opsRulesSetSelectedCategories(config.containerId, opsRuleDefaultCategories, config.summaryId, config.emptyText);
+          return;
+        }
+        if (preset === 'all') {
+          opsRulesSetSelectedCategories(config.containerId, items.map(item => item.value), config.summaryId, config.emptyText);
+          return;
+        }
+        opsRulesSetSelectedCategories(config.containerId, [], config.summaryId, config.emptyText);
+      }
+      function opsRulesWireCategoryButtons(prefix) {
+        const config = opsRulesCategoryConfig(prefix);
+        if (!config) return;
+        const actions = [
+          ['DefaultBtn', 'default'],
+          ['AllBtn', 'all'],
+          ['ClearBtn', 'clear']
+        ];
+        actions.forEach(([suffix, preset]) => {
+          const button = document.getElementById(`${prefix}${suffix}`);
+          if (!button) return;
+          button.onclick = (event) => {
+            event.preventDefault();
+            opsRulesApplyCategoryPreset(prefix, preset);
+          };
+        });
+      }
+      function opsRulesRenderCategorySelector(prefix, values = opsRuleDefaultCategories) {
+        const config = opsRulesCategoryConfig(prefix);
+        if (!config) return;
+        const container = document.getElementById(config.containerId);
+        if (!container) return;
+        const items = opsRulesCategoryItems();
+        container.innerHTML = items.map((item) => {
+          const labels = Array.isArray(item.displayLabels) && item.displayLabels.length > 0
+            ? item.displayLabels.join(', ')
+            : display(item.label || item.value);
+          return `<label class="ops-category-check">
+            <input type="checkbox" value="${escapeHtml(String(item.value || ''))}" />
+            <span class="ops-category-copy">
+              <span class="ops-category-title">${escapeHtml(display(item.label || item.value))}</span>
+              <span class="ops-category-detail">${escapeHtml(labels)}</span>
+            </span>
+          </label>`;
+        }).join('');
+        for (const input of container.querySelectorAll('input[type="checkbox"]')) {
+          input.addEventListener('change', () => opsRulesUpdateCategorySummary(config.containerId, config.summaryId, config.emptyText));
+        }
+        opsRulesWireCategoryButtons(prefix);
+        opsRulesSetSelectedCategories(config.containerId, values, config.summaryId, config.emptyText);
+      }
+      function opsRulesRefreshCategorySelectors() {
+        for (const config of opsRulesCategoryConfigs()) {
+          const currentValues = opsRulesSelectedCategories(config.containerId);
+          opsRulesRenderCategorySelector(config.prefix, currentValues.length > 0 ? currentValues : opsRuleDefaultCategories);
+        }
+      }
+      function opsRulesApplyVaRuleTemplateSeed(templateId) {
+        const id = String(templateId || '').trim();
+        if (!id) {
           opsVaRuleTemplateId = '';
-          syncEmbeddedVaRuleStartFields(root);
-          updateOpsVaTemplateAssistUi();
+          opsRulesUpdateVaRuleFormSummary();
+          opsRulesRefreshVaGeometryUi(true);
           return;
         }
-        const item = findOpsEventTemplateById(normalizedId);
-        if (!item || typeof api.loadRule !== 'function') return;
-        opsVaRuleStartMode = 'template';
-        opsVaRuleTemplateId = normalizedId;
-        api.loadRule(JSON.parse(JSON.stringify(item)));
-        syncEmbeddedVaRuleStartFields(root);
-        updateOpsVaTemplateAssistUi();
-      }
-      function updateOpsVaTemplateAssistUi() {
-        const panel = document.getElementById('opsVaRuleTemplateAssist');
-        const actions = document.getElementById('opsVaRuleTemplateAssistActions');
-        const hint = document.getElementById('opsVaRuleTemplateAssistHint');
-        const state = document.getElementById('opsVaRuleTemplateAssistState');
-        const selectField = document.getElementById('opsVaRuleTemplateSelectField');
-        const directButton = document.getElementById('opsVaRuleStartDirect');
-        const templateButton = document.getElementById('opsVaRuleStartTemplate');
-        const select = document.getElementById('opsVaRuleTemplateSelect');
-        const show = opsRulesActiveMode === 'va-rule' && opsRulesDetailMode !== 'closed';
-        const viewMode = opsRulesDetailMode === 'view';
-        if (panel) panel.hidden = !show;
-        if (!show) return;
-        if (directButton) {
-          const active = opsVaRuleStartMode !== 'template';
-          directButton.classList.toggle('button-primary', active);
-          directButton.classList.toggle('button-secondary', !active);
-          directButton.setAttribute('aria-pressed', active ? 'true' : 'false');
-        }
-        if (templateButton) {
-          const active = opsVaRuleStartMode === 'template';
-          templateButton.classList.toggle('button-primary', active);
-          templateButton.classList.toggle('button-secondary', !active);
-          templateButton.setAttribute('aria-pressed', active ? 'true' : 'false');
-        }
-        if (actions) actions.hidden = viewMode;
-        if (selectField) selectField.hidden = viewMode || opsVaRuleStartMode !== 'template';
-        if (select) select.value = opsVaRuleTemplateId;
-        if (hint) {
-          hint.textContent = viewMode
-            ? (opsVaRuleStartMode === 'template'
-              ? `이 설정은 템플릿 ${display(opsVaRuleTemplateId)}에서 시작했습니다.`
-              : '이 설정은 개별 설정으로 시작했습니다.')
-            : (opsVaRuleStartMode === 'template'
-              ? '선택한 템플릿 값으로 현재 채널 설정 입력을 먼저 채웁니다.'
-              : '채널에 붙는 설정을 바로 작성합니다.');
-        }
-        if (state) {
-          state.hidden = !viewMode;
-          state.textContent = opsVaRuleStartMode === 'template'
-            ? `설정 방식: 템플릿 적용 · ${display(opsVaRuleTemplateId)}`
-            : '설정 방식: 개별 설정';
-        }
-      }
-      function syncOpsVaTemplateAssist(mode) {
-        if (mode !== 'va-rule') {
-          const panel = document.getElementById('opsVaRuleTemplateAssist');
-          if (panel) panel.hidden = true;
+        const template = findOpsEventTemplateById(id);
+        if (!template) {
+          opsRulesUpdateVaRuleFormSummary();
           return;
         }
+        opsVaRuleTemplateId = id;
+        opsRulesUpdateVaRuleFormSummary();
+        opsRulesRefreshVaGeometryUi(true);
+      }
+      function opsEventRuleToggleField(fieldId, visible) {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+        field.hidden = !visible;
+      }
+      function opsEventRuleRefreshTypeOptions(preferred = '') {
+        const mode = String(document.getElementById('opsEventRuleModeSelect')?.value || 'scenario');
+        const select = document.getElementById('opsEventRuleTypeSelect');
+        if (!select) return;
+        const options = (mode === 'scenario' ? opsScenarioEventTypes : opsBasicEventTypes)
+          .map(value => ({ value, label: opsRuleEventTypeLabel(value) }));
+        setSelectOptions(select, options);
+        const candidate = String(preferred || '').trim();
+        const fallback = options[0]?.value || 'presence';
+        select.value = options.some(option => option.value === candidate) ? candidate : fallback;
+      }
+      function opsEventRuleUpdateModeUi() {
+        const mode = String(document.getElementById('opsEventRuleModeSelect')?.value || 'scenario');
+        const type = String(document.getElementById('opsEventRuleTypeSelect')?.value || 'intrusion-dwell');
+        const lineMode = opsRulesIsLineEventType(type);
+        const dwellMode = type === 'intrusion-dwell';
+        const reEntryMode = type === 're-entry';
+        const lineAfterMode = type === 'intrusion-after-line-crossing';
+        const loiteringMode = type === 'loitering';
+        const zoneOccupancyMode = type === 'zone-occupancy';
+        const settingsHeading = document.getElementById('opsEventRuleSettingsHeading');
+        const formNote = document.getElementById('opsEventRuleFormNote');
+        if (settingsHeading) settingsHeading.textContent = mode === 'scenario' ? '시나리오 조건' : '이벤트 조건';
+        if (formNote) {
+          formNote.textContent = mode === 'scenario'
+            ? '여러 채널 분석 설정에서 다시 고를 수 있는 공통 시나리오 템플릿입니다.'
+            : '여러 채널 분석 설정에서 다시 고를 수 있는 기본 이벤트 템플릿입니다.';
+        }
+        opsEventRuleToggleField('opsEventRuleLineDirectionField', lineMode);
+        opsEventRuleToggleField('opsEventRuleCandidateField', dwellMode);
+        opsEventRuleToggleField('opsEventRuleDwellField', dwellMode || lineAfterMode || loiteringMode || zoneOccupancyMode);
+        opsEventRuleToggleField('opsEventRuleReEntryWindowField', reEntryMode);
+        opsEventRuleToggleField('opsEventRuleReEntryModeField', reEntryMode);
+        opsEventRuleToggleField('opsEventRuleLineDelayField', lineAfterMode);
+        opsEventRuleToggleField('opsEventRuleTriggerDirectionField', lineAfterMode);
+        opsEventRuleToggleField('opsEventRuleLoiteringRadiusField', loiteringMode);
+        opsEventRuleToggleField('opsEventRuleLoiteringPointsField', loiteringMode);
+        opsEventRuleToggleField('opsEventRuleZoneThresholdField', zoneOccupancyMode);
+        opsEventRuleToggleField('opsEventRuleZoneDwellField', zoneOccupancyMode);
+      }
+      function opsRulesCurrentForm(mode) {
+        return ({
+          'va-rule': document.getElementById('opsVaRuleForm'),
+          'event-rule': document.getElementById('opsEventRuleForm'),
+          profile: document.getElementById('opsProfileForm')
+        })[mode] || null;
+      }
+      function opsRulesShowNativeForm(mode) {
+        ['va-rule', 'event-rule', 'profile'].forEach((entryMode) => {
+          const form = opsRulesCurrentForm(entryMode);
+          if (form) form.hidden = entryMode !== mode;
+        });
+      }
+      function opsRulesSetFormDisabled(mode, disabled) {
+        const form = opsRulesCurrentForm(mode);
+        if (!form) return;
+        for (const field of form.querySelectorAll('input, select, textarea, button')) {
+          field.disabled = Boolean(disabled);
+        }
+      }
+      function opsRulesNativeRecord(mode, detailMode, recordId) {
+        if (mode === 'va-rule') {
+          if (detailMode === 'new') return opsRulesVaRuleSkeleton();
+          return findOpsVaRuleById(recordId);
+        }
+        if (mode === 'event-rule') {
+          if (detailMode === 'new') return opsRulesEventTemplateSkeleton();
+          return findOpsEventTemplateById(recordId);
+        }
+        if (mode === 'profile') {
+          if (detailMode === 'new') return opsRulesProfileSkeleton();
+          return findOpsProfileById(recordId);
+        }
+        return null;
+      }
+      function opsRulesProfileOptions() {
+        return [
+          ...opsCatalogBuiltInProfiles.map(item => ({ value: item.id, label: `[기본] ${item.id}` })),
+          ...opsCatalogProfiles.map(item => ({ value: item.id || item.profileId, label: `[저장] ${item.id || item.profileId}` }))
+        ];
+      }
+      function opsRulesPopulateFormOptions() {
+        setSelectOptions(
+          document.getElementById('opsVaRuleChannelSelect'),
+          [{ value: '', label: '채널 선택' }].concat(
+            opsRulesChannels.map(channel => ({ value: channel.id, label: opsRulesChannelOptionLabel(channel) }))
+          )
+        );
+        const profileOptions = opsRulesProfileOptions();
+        setSelectOptions(document.getElementById('opsVaRuleProfileSelect'), profileOptions);
+        opsEventRuleRefreshTypeOptions(document.getElementById('opsEventRuleTypeSelect')?.value || '');
         refreshOpsVaTemplateAssistOptions();
-        updateOpsVaTemplateAssistUi();
+      }
+      function opsRulesUpdateVaRuleFormSummary() {
+        const channel = opsRulesFindChannelById(document.getElementById('opsVaRuleChannelSelect')?.value || '');
+        const templateId = String(document.getElementById('opsVaRuleTemplateSeedSelect')?.value || '').trim();
+        const template = templateId ? findOpsEventTemplateById(templateId) : null;
+        const currentMeta = opsVaRuleStartMeta(opsRulesCurrentRecord?.item || {});
+        const bindingSummary = document.getElementById('opsVaRuleBindingSummary');
+        const templateSummary = document.getElementById('opsVaRuleTemplateSummary');
+        if (bindingSummary) {
+          bindingSummary.textContent = channel
+            ? `${display(channel.displayName)} · ${opsRulesSourceKindLabel(channel?.source?.kind)} 채널의 source와 기본 PublishedView에 연결합니다.`
+            : '이벤트 템플릿과 분석 프로파일을 고른 뒤 채널을 선택하세요.';
+        }
+        if (templateSummary) {
+          if (!templateId) {
+            templateSummary.textContent = '이벤트 템플릿을 먼저 고르세요. 시나리오와 대상 객체는 템플릿에서 가져옵니다.';
+          } else if (!template) {
+            templateSummary.textContent = `선택 템플릿: ${display(templateId)}`;
+          } else {
+            const eventType = template?.scenario?.type || template?.event?.type || 'event';
+            const classes = listText(template?.analysis?.classes || template?.scenario?.targetClasses || []);
+            const prefix = currentMeta.inferred && currentMeta.templateRuleId === templateId
+              ? '기존 설정에서 추정한 템플릿'
+              : '선택 템플릿';
+            templateSummary.textContent = `${prefix} ${display(templateId)} · ${opsRuleEventTypeLabel(eventType)} · ${classes}`;
+          }
+        }
+      }
+      function opsRulesVaGeometryTypeFromItem(item = {}) {
+        const templateId = String(document.getElementById('opsVaRuleTemplateSeedSelect')?.value || item?.templateStart?.ruleId || '').trim();
+        const template = templateId ? findOpsEventTemplateById(templateId) : null;
+        const templateType = template?.event?.region?.type || (opsRulesIsLineEventType(template?.scenario?.type || template?.event?.type) ? 'line' : '');
+        const currentType = String(item?.event?.region?.type || '').trim();
+        return templateType || currentType || 'polygon';
+      }
+      function opsRulesFormatGeometryPoints(points = []) {
+        return (Array.isArray(points) ? points : [])
+          .filter(point => point && Number.isFinite(Number(point.x)) && Number.isFinite(Number(point.y)))
+          .map(point => `${Number(point.x).toFixed(2)},${Number(point.y).toFixed(2)}`)
+          .join('\n');
+      }
+      function opsRulesParseGeometryPoints(text) {
+        return String(text || '')
+          .split('\n')
+          .map(line => line.trim())
+          .filter(Boolean)
+          .map((line) => {
+            const [xText, yText] = line.split(',').map(part => String(part || '').trim());
+            const x = Number(xText);
+            const y = Number(yText);
+            if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+            return { x: Math.max(0, Math.min(1, x)), y: Math.max(0, Math.min(1, y)) };
+          })
+          .filter(Boolean);
+      }
+      function opsRulesRenderVaGeometryPreview() {
+        const svg = document.getElementById('opsVaRuleGeometryPreview');
+        const input = document.getElementById('opsVaRuleGeometryPointsInput');
+        const summary = document.getElementById('opsVaRuleGeometrySummary');
+        const kind = String(document.getElementById('opsVaRuleGeometryKindText')?.value || '영역');
+        if (!svg || !input) return;
+        const points = opsRulesParseGeometryPoints(input.value);
+        const path = points.map(point => `${Math.round(point.x * 100)},${Math.round(point.y * 100)}`).join(' ');
+        const dots = points.map((point, index) =>
+          `<circle cx="${escapeHtml(String(Math.round(point.x * 100)))}" cy="${escapeHtml(String(Math.round(point.y * 100)))}" r="2.4"></circle>
+           <text x="${escapeHtml(String(Math.round(point.x * 100) + 3))}" y="${escapeHtml(String(Math.round(point.y * 100) - 3))}" font-size="4">${index + 1}</text>`
+        ).join('');
+        if (kind === '라인') {
+          svg.innerHTML = path
+            ? `<polyline points="${escapeHtml(path)}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>${dots}`
+            : '';
+        } else {
+          svg.innerHTML = path
+            ? `<polygon points="${escapeHtml(path)}" fill="rgba(56,189,248,0.18)" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></polygon>${dots}`
+            : '';
+        }
+        if (summary) {
+          summary.textContent = points.length === 0
+            ? '미리보기 영역을 눌러 점을 추가합니다.'
+            : `${kind} 점 ${points.length}개`;
+        }
+      }
+      function opsRulesSetGeometryPoints(points = []) {
+        const input = document.getElementById('opsVaRuleGeometryPointsInput');
+        if (!input) return;
+        input.value = opsRulesFormatGeometryPoints(points);
+        opsRulesRenderVaGeometryPreview();
+      }
+      function opsRulesAppendGeometryPointFromClick(event) {
+        const svg = document.getElementById('opsVaRuleGeometryPreview');
+        const input = document.getElementById('opsVaRuleGeometryPointsInput');
+        if (!svg || !input) return;
+        if (input.disabled) return;
+        const rect = svg.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const isLine = String(document.getElementById('opsVaRuleGeometryKindText')?.value || '영역') === '라인';
+        const maxPoints = isLine ? 2 : 12;
+        const nextPoint = {
+          x: Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)),
+          y: Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height))
+        };
+        const points = opsRulesParseGeometryPoints(input.value);
+        const trimmed = points.slice(0, maxPoints - 1);
+        trimmed.push(nextPoint);
+        opsRulesSetGeometryPoints(trimmed);
+      }
+      function opsRulesRemoveLastGeometryPoint() {
+        const input = document.getElementById('opsVaRuleGeometryPointsInput');
+        if (!input) return;
+        if (input.disabled) return;
+        const points = opsRulesParseGeometryPoints(input.value);
+        points.pop();
+        opsRulesSetGeometryPoints(points);
+      }
+      function opsRulesRefreshVaGeometryUi(resetPoints = false) {
+        const kindInput = document.getElementById('opsVaRuleGeometryKindText');
+        const pointsInput = document.getElementById('opsVaRuleGeometryPointsInput');
+        if (!kindInput || !pointsInput) return;
+        const templateId = String(document.getElementById('opsVaRuleTemplateSeedSelect')?.value || '').trim();
+        const template = templateId ? findOpsEventTemplateById(templateId) : null;
+        const type = opsRulesVaGeometryTypeFromItem(template || opsRulesCurrentRecord?.item || {});
+        const isLine = type === 'line';
+        kindInput.value = isLine ? '라인' : '영역';
+        const currentPoints = opsRulesParseGeometryPoints(pointsInput.value);
+        const minimum = isLine ? 2 : 3;
+        if (resetPoints || currentPoints.length < minimum) {
+          const defaults = isLine ? opsRulesDefaultLinePoints() : opsRulesDefaultPolygonPoints();
+          pointsInput.value = opsRulesFormatGeometryPoints(defaults);
+        }
+        opsRulesRenderVaGeometryPreview();
+      }
+      function opsRulesFillVaGeometryForm(item = {}) {
+        const kindInput = document.getElementById('opsVaRuleGeometryKindText');
+        const pointsInput = document.getElementById('opsVaRuleGeometryPointsInput');
+        if (!kindInput || !pointsInput) return;
+        const type = opsRulesVaGeometryTypeFromItem(item);
+        const isLine = type === 'line';
+        const points = Array.isArray(item?.event?.region?.points) && item.event.region.points.length > 0
+          ? item.event.region.points
+          : (isLine ? opsRulesDefaultLinePoints() : opsRulesDefaultPolygonPoints());
+        kindInput.value = isLine ? '라인' : '영역';
+        pointsInput.value = opsRulesFormatGeometryPoints(points);
+        opsRulesRenderVaGeometryPreview();
+      }
+      function opsRulesPrereqState() {
+        const channelCount = opsRulesChannels.length;
+        const profileCount = opsCatalogBuiltInProfiles.length + opsCatalogProfiles.length;
+        const templateCount = opsCatalogEventTemplates.length;
+        return {
+          channelCount,
+          profileCount,
+          templateCount,
+          vaRuleCount: opsCatalogVaRules.length,
+          channelsReady: channelCount > 0,
+          profilesReady: profileCount > 0,
+          templatesReady: templateCount > 0
+        };
+      }
+      function opsRulesSetPrereqChip(id, ready, readyLabel = '준비됨', pendingLabel = '필요') {
+        const chip = document.getElementById(id);
+        if (!chip) return;
+        chip.textContent = ready ? readyLabel : pendingLabel;
+        chip.classList.toggle('warn', !ready);
+        chip.classList.toggle('info', ready);
+      }
+      function opsRulesRefreshPrereqUi() {
+        const state = opsRulesPrereqState();
+        setText('opsRulesPrereqChannelsCount', `${state.channelCount}개`);
+        setText('opsRulesPrereqProfilesCount', `${state.profileCount}개`);
+        setText('opsRulesPrereqTemplatesCount', `${state.templateCount}개`);
+        setText('opsRulesPrereqVaRulesCount', `${state.vaRuleCount}개`);
+        opsRulesSetPrereqChip('opsRulesPrereqChannelsState', state.channelsReady);
+        opsRulesSetPrereqChip('opsRulesPrereqProfilesState', state.profilesReady);
+        opsRulesSetPrereqChip('opsRulesPrereqTemplatesState', state.templatesReady);
+        const readyForVaRule = state.channelsReady && state.profilesReady && state.templatesReady;
+        opsRulesSetPrereqChip('opsRulesPrereqVaRulesState', readyForVaRule, '시작 가능', '준비 필요');
+        const summary = document.getElementById('opsRulesPrereqSummary');
+        if (summary) {
+          if (readyForVaRule) {
+            summary.textContent = '채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다.';
+          } else {
+            const missing = [];
+            if (!state.channelsReady) missing.push('채널');
+            if (!state.profilesReady) missing.push('분석 프로파일');
+            if (!state.templatesReady) missing.push('이벤트 템플릿');
+            summary.textContent = `${missing.join(', ')}을(를) 먼저 준비한 뒤 채널 분석 설정을 만듭니다.`;
+          }
+        }
+        const createVaButtons = [
+          document.getElementById('opsCreateVaRuleBtn'),
+          document.getElementById('opsRulesPrereqVaRulesAction')
+        ];
+        createVaButtons.forEach((button) => {
+          if (!button) return;
+          button.disabled = !readyForVaRule;
+          button.title = readyForVaRule ? '' : '채널, 프로파일, 이벤트 템플릿이 먼저 필요합니다.';
+        });
       }
       function setOpsRulesComposer(mode, detailMode = opsRulesDetailMode, recordId = opsRulesDetailRecordId) {
         const config = opsRulesModeConfig(mode);
@@ -2332,442 +3116,324 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
             steps.innerHTML = '';
             steps.hidden = true;
           }
-          opsVaRuleStartMode = 'direct';
           opsVaRuleTemplateId = '';
-          syncOpsVaTemplateAssist('');
           return;
         }
         if (steps) {
           steps.innerHTML = '';
           steps.hidden = true;
         }
-        syncOpsVaTemplateAssist(mode);
-      }
-      function transformEmbeddedComponentScript(text) {
-        return text
-          .replaceAll('document.getElementById(', 'root.getElementById(')
-          .replaceAll('document.querySelector(', 'root.querySelector(')
-          .replaceAll('document.querySelectorAll(', 'root.querySelectorAll(')
-          .replaceAll('document.documentElement.dataset.embedPanel', '__MEDIA_SERVER_EMBED_PANEL__')
-          .replaceAll('document.documentElement.dataset.embed', '__MEDIA_SERVER_EMBED__')
-          .replaceAll('__MEDIA_SERVER_EMBED_PANEL__', "(root.host?.dataset?.embedPanel || document.documentElement.dataset.embedPanel)")
-          .replaceAll('__MEDIA_SERVER_EMBED__', "(root.host?.dataset?.embed || document.documentElement.dataset.embed)")
-          .replaceAll("root.getElementById('themeToggleBtn').onclick = () => {", "const __themeToggleBtn = root.getElementById('themeToggleBtn'); if (__themeToggleBtn) __themeToggleBtn.onclick = () => {")
-          .replaceAll("$('themeToggleBtn').onclick = () => {", "if ($('themeToggleBtn')) $('themeToggleBtn').onclick = () => {");
-      }
-      function isEmbeddedComponentBootScript(text) {
-        const compact = text.replace(/\s+/g, ' ');
-        return compact.includes(`const saved = localStorage.getItem('mediaServerTheme')`)
-          && compact.includes(`document.documentElement.dataset.embed = params.get('embed') === '1' ? '1' : '0'`);
-      }
-      async function hydrateEmbeddedComponent(host) {
-        if (!host) return null;
-        if (host.dataset.loaded === '1' && host.shadowRoot) return host.shadowRoot;
-        const url = host.dataset.componentUrl;
-        if (!url) return null;
-        try {
-          const parsed = new URL(url, window.location.origin);
-          host.dataset.embed = parsed.searchParams.get('embed') === '1' ? '1' : '0';
-          host.dataset.embedPanel = parsed.searchParams.get('panel') || '';
-        } catch {
-          host.dataset.embed = host.dataset.embed || '0';
-          host.dataset.embedPanel = host.dataset.embedPanel || '';
-        }
-        const response = await fetch(url, { cache: 'no-store' });
-        if (!response.ok) throw new Error(`${url} HTTP ${response.status}`);
-        const html = await response.text();
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        const shadow = host.shadowRoot || host.attachShadow({ mode: 'open' });
-        shadow.innerHTML = '';
-        const baseStyle = document.createElement('style');
-        baseStyle.textContent = `
-          :host {
-            display: block;
-            color: var(--ink);
-            font-family: "Avenir Next", "Pretendard", "Noto Sans KR", sans-serif;
-          }
-          .topbar, .standalone-nav { display: none !important; }
-          .component-main {
-            width: 100% !important;
-            max-width: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            display: grid !important;
-            gap: 18px !important;
-          }
-          .component-main > .hero,
-          .component-main > .card,
-          .component-main .card {
-            box-shadow: none !important;
-          }
-        `;
-        shadow.appendChild(baseStyle);
-        for (const style of doc.querySelectorAll('style')) {
-          const clonedStyle = document.createElement('style');
-          clonedStyle.textContent = style.textContent || '';
-          shadow.appendChild(clonedStyle);
-        }
-        const main = doc.querySelector('main');
-        if (main) {
-          const componentMain = document.createElement('main');
-          componentMain.className = 'component-main';
-          for (const child of Array.from(main.children)) {
-            if (child.classList && (child.classList.contains('topbar') || child.classList.contains('standalone-nav'))) continue;
-            componentMain.appendChild(document.importNode(child, true));
-          }
-          shadow.appendChild(componentMain);
-        }
-        for (const dialog of doc.querySelectorAll('body > dialog')) {
-          shadow.appendChild(document.importNode(dialog, true));
-        }
-        for (const script of doc.querySelectorAll('script')) {
-          const scriptText = script.textContent || '';
-          if (!scriptText.trim()) continue;
-          if (isEmbeddedComponentBootScript(scriptText)) continue;
-          new Function('root', transformEmbeddedComponentScript(scriptText))(shadow);
-        }
-        stripEmbeddedLegacyOpsPanels(shadow);
-        host.dataset.loaded = '1';
-        host.classList.add('is-loaded');
-        return shadow;
-      }
-      async function ensureOpsRulesEditorReady() {
-        const host = document.getElementById('opsRulesEditorComponent');
-        return hydrateEmbeddedComponent(host);
-      }
-      function setEmbeddedVisibility(root, id, visible) {
-        const element = root?.getElementById(id);
-        if (element) element.hidden = !visible;
-        return element;
-      }
-      function setEmbeddedSectionMeta(root, sectionId, index, title, hint) {
-        const section = root?.getElementById(sectionId);
-        if (!section) return;
-        const stepTitle = section.querySelector('.step-title');
-        const numberEl = stepTitle?.querySelector('span');
-        const titleEl = stepTitle?.querySelector('h2');
-        const hintEl = stepTitle?.querySelector('p.hint');
-        if (numberEl) {
-          numberEl.hidden = true;
-          numberEl.textContent = '';
-        }
-        if (titleEl) titleEl.textContent = title;
-        if (hintEl && hint) hintEl.textContent = hint;
-      }
-      function setEmbeddedFieldLabel(root, fieldId, text) {
-        const field = root?.getElementById(fieldId);
-        const label = field?.querySelector('.field-label');
-        if (label) label.textContent = text;
-      }
-      function setEmbeddedFormDisabled(root, disabled) {
-        if (!root) return;
-        const fields = root.querySelectorAll('input, select, textarea, button');
-        for (const field of fields) {
-          if (field.id === 'themeToggleBtn') continue;
-          field.disabled = disabled;
+        if (mode === 'va-rule') {
+          opsRulesUpdateVaRuleFormSummary();
+          updateOpsVaRulePreviewUi();
         }
       }
-      function setEmbeddedEditorHeading(root, title, note = '') {
-        const heading = root?.getElementById('vaRuleEditorTitle');
-        if (heading) heading.textContent = title;
-        const hint = root?.querySelector('.rule-editor-identity .hint');
-        if (hint) hint.textContent = note;
+      function opsRulesFillVaRuleForm(item, detailMode) {
+        const form = document.getElementById('opsVaRuleForm');
+        if (!form) return;
+        const analysis = item?.analysis || {};
+        const channel = opsRulesFindChannelForVaRule(item);
+        const templateMeta = opsVaRuleStartMeta(item);
+        const templateRuleId = templateMeta.templateRuleId;
+        document.getElementById('opsVaRuleIdInput').value = String(item?.id || '');
+        document.getElementById('opsVaRuleNameInput').value = String(item?.name || `채널 분석 설정 ${item?.id || ''}`).trim();
+        document.getElementById('opsVaRuleEnabledInput').value = item?.enabled === false ? 'false' : 'true';
+        document.getElementById('opsVaRuleChannelSelect').value = channel?.id || '';
+        document.getElementById('opsVaRuleProfileSelect').value = String(analysis.profileId || item?.profileId || opsRulesPreferredProfileId());
+        document.getElementById('opsVaRuleTemplateSeedSelect').value = templateRuleId;
+        opsVaRuleTemplateId = templateRuleId;
+        opsRulesSetFormDisabled('va-rule', detailMode === 'view');
+        opsRulesUpdateVaRuleFormSummary();
+        opsRulesFillVaGeometryForm(item);
+        updateOpsVaRulePreviewUi();
       }
-      function reorderEmbeddedSections(root, orderedSectionIds = []) {
-        const main = root?.querySelector('.component-main');
-        if (!main) return;
-        for (const sectionId of orderedSectionIds) {
-          const section = root.getElementById(sectionId);
-          if (section && section.parentElement === main) {
-            main.appendChild(section);
+      function opsRulesFillEventRuleForm(item, detailMode) {
+        const analysis = item?.analysis || {};
+        const eventType = item?.scenario?.type || item?.event?.type || 'intrusion-dwell';
+        const event = item?.event || {};
+        const scenario = item?.scenario || {};
+        const modeSelect = document.getElementById('opsEventRuleModeSelect');
+        if (modeSelect) {
+          modeSelect.value = opsEventRuleModeForType(eventType);
+        }
+        opsEventRuleRefreshTypeOptions(eventType);
+        document.getElementById('opsEventRuleIdInput').value = String(item?.id || '');
+        document.getElementById('opsEventRuleTypeSelect').value = eventType;
+        document.getElementById('opsEventRuleConfidenceInput').value = String(event?.minConfidence ?? 0.25);
+        document.getElementById('opsEventRuleMinDurationInput').value = String(event?.minDurationMs ?? 0);
+        opsRulesRenderCategorySelector('opsEventRuleClasses', Array.isArray(analysis.classes) && analysis.classes.length > 0 ? analysis.classes : opsRuleDefaultCategories);
+        document.getElementById('opsEventRuleLineDirectionSelect').value = String(event?.region?.direction || 'any');
+        document.getElementById('opsEventRuleCandidateInput').value = String(scenario?.candidateTimeMs ?? 2000);
+        document.getElementById('opsEventRuleDwellInput').value = String(scenario?.dwellTimeMs ?? scenario?.minDwellTimeMs ?? 10000);
+        document.getElementById('opsEventRuleReEntryWindowInput').value = String(scenario?.reEntryWindowMs ?? 10000);
+        document.getElementById('opsEventRuleReEntryModeSelect').value = String(scenario?.reEntryMode || 'same-zone');
+        document.getElementById('opsEventRuleLineDelayInput').value = String(scenario?.maxDelayAfterCrossingMs ?? 10000);
+        document.getElementById('opsEventRuleTriggerDirectionSelect').value = String(scenario?.triggerLine?.direction || 'any');
+        document.getElementById('opsEventRuleLoiteringRadiusInput').value = String(scenario?.maxMovementRadius ?? 0.08);
+        document.getElementById('opsEventRuleLoiteringPointsInput').value = String(scenario?.minTrajectoryPoints ?? 4);
+        document.getElementById('opsEventRuleZoneThresholdInput').value = String(scenario?.occupancyThreshold ?? 3);
+        document.getElementById('opsEventRuleZoneDwellInput').value = String(scenario?.minDwellTimeMs ?? 5000);
+        document.getElementById('opsEventRuleCooldownInput').value = String(scenario?.cooldownMs ?? 5000);
+        opsRulesSetFormDisabled('event-rule', detailMode === 'view');
+        opsEventRuleUpdateModeUi();
+      }
+      function opsRulesFillProfileForm(item, detailMode) {
+        document.getElementById('opsProfileIdInput').value = String(item?.id || item?.profileId || '');
+        document.getElementById('opsProfileDetectorSelect').value = String(item?.detector || 'yolo');
+        document.getElementById('opsProfileFpsInput').value = String(item?.fps ?? 6);
+        document.getElementById('opsProfileQueueInput').value = String(item?.maxQueue ?? 1);
+        document.getElementById('opsProfileConfidenceInput').value = String(item?.confidence ?? 0.25);
+        document.getElementById('opsProfileNmsInput').value = String(item?.nms ?? 0.45);
+        document.getElementById('opsProfileInputWidthInput').value = String(item?.inputWidth ?? 640);
+        document.getElementById('opsProfileInputHeightInput').value = String(item?.inputHeight ?? 640);
+        document.getElementById('opsProfileAdaptiveToggle').checked = item?.adaptive !== false;
+        opsRulesSetFormDisabled('profile', detailMode === 'view');
+      }
+      function opsRulesFillNativeForm(mode, item, detailMode) {
+        if (mode === 'va-rule') {
+          opsRulesFillVaRuleForm(item, detailMode);
+          return;
+        }
+        if (mode === 'event-rule') {
+          opsRulesFillEventRuleForm(item, detailMode);
+          return;
+        }
+        if (mode === 'profile') {
+          opsRulesFillProfileForm(item, detailMode);
+        }
+      }
+      function opsRulesReadEventTemplateForm(baseRecord = {}, forcedId = '') {
+        const classes = opsRulesSelectedCategories('opsEventRuleClassChecks');
+        const type = String(document.getElementById('opsEventRuleTypeSelect')?.value || 'intrusion-dwell');
+        const base = opsRulesClone(baseRecord);
+        const defaults = opsRulesRuleBasePayload(type, base.event || {}, classes.length > 0 ? classes : ['person', 'vehicle']);
+        const event = {
+          ...(base.event || {}),
+          ...defaults.event,
+          minConfidence: Number(document.getElementById('opsEventRuleConfidenceInput')?.value || 0.25),
+          minDurationMs: Number(document.getElementById('opsEventRuleMinDurationInput')?.value || 0)
+        };
+        if (opsRulesIsLineEventType(type)) {
+          event.region = {
+            ...(event.region || {}),
+            direction: String(document.getElementById('opsEventRuleLineDirectionSelect')?.value || 'any')
+          };
+        }
+        const scenario = defaults.scenario ? {
+          ...defaults.scenario
+        } : null;
+        if (scenario) {
+          scenario.cooldownMs = Number(document.getElementById('opsEventRuleCooldownInput')?.value || scenario.cooldownMs || 5000);
+          if (type === 'intrusion-dwell') {
+            scenario.candidateTimeMs = Number(document.getElementById('opsEventRuleCandidateInput')?.value || scenario.candidateTimeMs || 2000);
+            scenario.dwellTimeMs = Number(document.getElementById('opsEventRuleDwellInput')?.value || scenario.dwellTimeMs || 10000);
+          } else if (type === 're-entry') {
+            scenario.reEntryWindowMs = Number(document.getElementById('opsEventRuleReEntryWindowInput')?.value || scenario.reEntryWindowMs || 10000);
+            scenario.reEntryMode = String(document.getElementById('opsEventRuleReEntryModeSelect')?.value || scenario.reEntryMode || 'same-zone');
+          } else if (type === 'intrusion-after-line-crossing') {
+            scenario.maxDelayAfterCrossingMs = Number(document.getElementById('opsEventRuleLineDelayInput')?.value || scenario.maxDelayAfterCrossingMs || 10000);
+            scenario.dwellTimeMs = Number(document.getElementById('opsEventRuleDwellInput')?.value || scenario.dwellTimeMs || 3000);
+            scenario.triggerLine = {
+              ...(scenario.triggerLine || {}),
+              direction: String(document.getElementById('opsEventRuleTriggerDirectionSelect')?.value || scenario.triggerLine?.direction || 'any')
+            };
+          } else if (type === 'loitering') {
+            scenario.minDwellTimeMs = Number(document.getElementById('opsEventRuleDwellInput')?.value || scenario.minDwellTimeMs || 30000);
+            scenario.maxMovementRadius = Number(document.getElementById('opsEventRuleLoiteringRadiusInput')?.value || scenario.maxMovementRadius || 0.08);
+            scenario.minTrajectoryPoints = Number(document.getElementById('opsEventRuleLoiteringPointsInput')?.value || scenario.minTrajectoryPoints || 4);
+          } else if (type === 'zone-occupancy') {
+            scenario.occupancyThreshold = Number(document.getElementById('opsEventRuleZoneThresholdInput')?.value || scenario.occupancyThreshold || 3);
+            scenario.minDwellTimeMs = Number(document.getElementById('opsEventRuleZoneDwellInput')?.value || scenario.minDwellTimeMs || 5000);
           }
         }
+        const payload = {
+          ...base,
+          id: String(forcedId || document.getElementById('opsEventRuleIdInput')?.value || '').trim(),
+          enabled: true,
+          analysis: {
+            ...(base.analysis || {}),
+            classes: classes.length > 0 ? classes : ['person', 'vehicle']
+          },
+          event
+        };
+        delete payload.match;
+        delete payload.outputs;
+        delete payload.eventActions;
+        delete payload.analysis.profileId;
+        payload.ruleKind = defaults.ruleKind;
+        if (scenario) payload.scenario = scenario;
+        else delete payload.scenario;
+        return payload;
       }
-      function nextEmbeddedRuleId(root) {
-        const select = root?.getElementById('ruleSelect');
-        let maxId = 0;
-        for (const option of Array.from(select?.options || [])) {
-          const value = String(option.value || '').replace(/^custom:/, '');
-          if (/^[0-9]+$/.test(value)) {
-            maxId = Math.max(maxId, Number(value));
+      function opsRulesReadVaRuleForm(baseRecord = {}, forcedId = '') {
+        const selectedTemplateId = String(document.getElementById('opsVaRuleTemplateSeedSelect')?.value || '').trim();
+        const templateBase = selectedTemplateId ? opsRulesClone(findOpsEventTemplateById(selectedTemplateId)) : null;
+        const base = templateBase || opsRulesClone(baseRecord);
+        const id = String(forcedId || document.getElementById('opsVaRuleIdInput')?.value || '').trim();
+        const channel = opsRulesFindChannelById(document.getElementById('opsVaRuleChannelSelect')?.value || '');
+        const geometryType = String(document.getElementById('opsVaRuleGeometryKindText')?.value || '영역') === '라인' ? 'line' : 'polygon';
+        const points = opsRulesParseGeometryPoints(document.getElementById('opsVaRuleGeometryPointsInput')?.value || '');
+        const payload = {
+          ...base,
+          id,
+          name: String(document.getElementById('opsVaRuleNameInput')?.value || '').trim() || `채널 분석 설정 ${id}`,
+          enabled: String(document.getElementById('opsVaRuleEnabledInput')?.value || 'true') !== 'false',
+          source: channel ? opsRulesSourcePayload(channel.source) : opsRulesClone(base.source || opsRulesVaRuleSkeleton(id).source),
+          analysis: {
+            ...(base.analysis || {}),
+            profileId: String(document.getElementById('opsVaRuleProfileSelect')?.value || opsRulesPreferredProfileId())
+          },
+          binding: {
+            ...(base.binding || {}),
+            urlMode: `vaRule=${id}`,
+            sourceLocked: true,
+            sourceOverrideAllowed: false
+          },
+          match: {
+            sourceKind: '*',
+            route: '*',
+            vaRule: id
           }
+        };
+        payload.templateStart = { ruleId: selectedTemplateId };
+        payload.event = {
+          ...(base.event || {}),
+          region: {
+            ...(base.event?.region || {}),
+            type: geometryType,
+            points
+          }
+        };
+        return { payload, channel };
+      }
+      function opsRulesReadProfileForm(baseRecord = {}) {
+        const base = opsRulesClone(baseRecord);
+        return {
+          ...base,
+          id: String(document.getElementById('opsProfileIdInput')?.value || '').trim(),
+          detector: String(document.getElementById('opsProfileDetectorSelect')?.value || 'yolo'),
+          fps: Number(document.getElementById('opsProfileFpsInput')?.value || 6),
+          maxQueue: Number(document.getElementById('opsProfileQueueInput')?.value || 1),
+          confidence: Number(document.getElementById('opsProfileConfidenceInput')?.value || 0.25),
+          nms: Number(document.getElementById('opsProfileNmsInput')?.value || 0.45),
+          inputWidth: Number(document.getElementById('opsProfileInputWidthInput')?.value || 640),
+          inputHeight: Number(document.getElementById('opsProfileInputHeightInput')?.value || 640),
+          adaptive: document.getElementById('opsProfileAdaptiveToggle')?.checked !== false
+        };
+      }
+      async function opsRulesAttachVaRuleToSelectedChannel(ruleId, channel) {
+        if (!ruleId || !channel?.view) return;
+        const view = channel.view;
+        const allowedRuleIds = Array.isArray(view.allowedRuleIds) ? [...view.allowedRuleIds].map(String) : [];
+        if (!allowedRuleIds.includes(String(ruleId))) {
+          allowedRuleIds.push(String(ruleId));
         }
-        return String(maxId + 1 || 1);
-      }
-      function nextEmbeddedProfileId(root) {
-        const used = new Set();
-        for (const option of Array.from(root?.getElementById('profileSelect')?.options || [])) {
-          const value = String(option.value || '').replace(/^(builtin|custom):/, '');
-          if (value) used.add(value);
+        const allowedOverlayModes = Array.isArray(view.allowedOverlayModes) && view.allowedOverlayModes.length > 0
+          ? [...view.allowedOverlayModes]
+          : ['raw', 'va-overlay'];
+        if (!allowedOverlayModes.includes('va-rule')) {
+          allowedOverlayModes.push('va-rule');
         }
-        let index = 1;
-        while (used.has(`profile-${index}`)) index += 1;
-        return `profile-${index}`;
-      }
-      function ensureOpsRulesModeStyles(root) {
-        if (!root) return null;
-        let style = root.querySelector('style[data-ops-rules-mode-style="1"]');
-        if (style) return style;
-        style = document.createElement('style');
-        style.dataset.opsRulesModeStyle = '1';
-        style.textContent = `
-          .component-main > .hero,
-          .component-main > .primary-tabs,
-          #rulePreviewSection,
-          #viewerPanel,
-          #dashboardPanel,
-          #vaRuleLibraryCard,
-          .editor-save-actions,
-          .editor-sticky-stack,
-          .edit-step-nav,
-          .edit-step-select,
-          .debug-panel {
-            display: none !important;
-          }
-          :host([data-ops-rules-mode="none"]) #vaRuleLibraryCard,
-          :host([data-ops-rules-mode="none"]) #vaRuleEditorPanel {
-            display: none !important;
-          }
-          :host([data-ops-rules-mode]) #ruleDocumentPanel,
-          :host([data-ops-rules-mode]) #profileGuidePanel,
-          :host([data-ops-rules-mode]) #profileCreatePanel,
-          :host([data-ops-rules-mode]) #profileDraftActions,
-          :host([data-ops-rules-mode]) #ruleDocumentActions,
-          :host([data-ops-rules-mode]) #vaRuleReviewActions {
-            display: none !important;
-          }
-          :host([data-ops-rules-mode]) #rulePreviewSection,
-          :host([data-ops-rules-mode]) #viewerPanel,
-          :host([data-ops-rules-mode]) #dashboardPanel {
-            display: none !important;
-          }
-          :host([data-ops-rules-mode="profile"]) #profileDetailsPanel > summary {
-            display: none !important;
-          }
-        `;
-        root.appendChild(style);
-        return style;
-      }
-      function stripEmbeddedLegacyOpsPanels(root) {
-        if (!root) return;
-        for (const buttonId of ['analysisViewerTabBtn', 'analysisDashboardTabBtn']) {
-          root.getElementById(buttonId)?.remove();
-        }
-        const previewSection = root.getElementById('rulePreviewSection');
-        if (previewSection) previewSection.hidden = true;
-        for (const panelId of ['viewerPanel', 'dashboardPanel']) {
-          const panel = root.getElementById(panelId);
-          if (!panel) continue;
-          panel.hidden = true;
-          panel.replaceChildren();
-        }
-      }
-      function focusEmbeddedModeHost(root, mode) {
-        const config = opsRulesModeConfig(mode);
-        focusEmbeddedRuleSection(root, config?.steps?.[0]?.sectionId || 'ruleBasicSection');
-      }
-      function applyEmbeddedModeSections(root, mode) {
-        const config = opsRulesModeConfig(mode);
-        const visible = new Set((config?.steps || []).map((step) => step.sectionId));
-        const allSections = [
-          'ruleBasicSection',
-          'ruleSourceSection',
-          'profileSection',
-          'ruleScenarioSection',
-          'ruleObjectsSection',
-          'ruleGeometrySection',
-          'ruleOutputSection',
-          'ruleReviewSection'
-        ];
-        for (const sectionId of allSections) {
-          setEmbeddedVisibility(root, sectionId, visible.has(sectionId));
-        }
-        (config?.steps || []).forEach((step, index) => {
-          setEmbeddedSectionMeta(root, step.sectionId, index + 1, step.title, step.hint);
+        await requestJson(`/ops/api/views/${encodeURIComponent(view.viewId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            viewId: view.viewId,
+            displayName: view.displayName || channel.displayName,
+            sourceId: view.sourceId || channel.sourceId,
+            defaultRuleId: view.defaultRuleId || String(ruleId),
+            allowedRuleIds,
+            allowedOverlayModes,
+            showDashboard: view.showDashboard !== false,
+            showEvents: view.showEvents !== false,
+            showMetadataSummary: view.showMetadataSummary !== false,
+            clientGroups: Array.isArray(view.clientGroups) ? view.clientGroups : [],
+            maxTiles: Number(view.maxTiles || 1),
+            enabled: view.enabled !== false
+          })
         });
-        reorderEmbeddedSections(root, (config?.steps || []).map((step) => step.sectionId));
       }
-      function applyEmbeddedSharedChrome(root) {
-        const editorPanel = root?.getElementById('vaRuleEditorPanel');
-        const launchButton = root?.getElementById('addVaRuleBtn');
-        if (editorPanel?.hidden && launchButton) {
-          launchButton.click();
-        } else if (editorPanel) {
-          editorPanel.hidden = false;
-        }
-        setEmbeddedVisibility(root, 'ruleDocumentPanel', false);
-        setEmbeddedVisibility(root, 'profileGuidePanel', false);
-        setEmbeddedVisibility(root, 'profileCreatePanel', false);
-        setEmbeddedVisibility(root, 'profileDraftActions', false);
-        setEmbeddedVisibility(root, 'vaRuleReviewActions', false);
-        const deleteProfileButton = root?.getElementById('deleteProfileBtn');
-        if (deleteProfileButton) deleteProfileButton.hidden = true;
-        const profileDetails = root?.getElementById('profileDetailsPanel');
-        if (profileDetails) profileDetails.open = false;
-        const profileSummary = root?.querySelector('#profileDetailsPanel > summary');
-        if (profileSummary) profileSummary.hidden = false;
-      }
-      function applyVaRuleMode(root) {
-        setEmbeddedEditorHeading(root, '채널 분석 설정', '선택한 채널에 바로 붙는 최종 설정을 편집합니다.');
-        setEmbeddedFieldLabel(root, 'ruleBasicIdField', '설정 번호');
-        setEmbeddedFieldLabel(root, 'vaRuleNameField', '설정 이름');
-        setEmbeddedFieldLabel(root, 'ruleProfileSelectField', '연결할 프로파일');
-        const ruleIdInput = root?.getElementById('ruleId');
-        if (ruleIdInput) ruleIdInput.type = 'hidden';
-        const ruleIdDisplay = root?.getElementById('vaRuleIdDisplay');
-        if (ruleIdDisplay) ruleIdDisplay.hidden = false;
-        const ruleIdNote = root?.getElementById('ruleBasicIdNote');
-        if (ruleIdNote) ruleIdNote.textContent = '저장하면 번호가 붙고, 선택 채널에 연결됩니다.';
-        setEmbeddedVisibility(root, 'vaRuleNameField', true);
-        setEmbeddedVisibility(root, 'ruleEnabledField', true);
-        setEmbeddedVisibility(root, 'opsRuleChannelPicker', true);
-        setEmbeddedVisibility(root, 'directVaRuleSourceFields', false);
-        setEmbeddedVisibility(root, 'directRuleMatchFields', false);
-        setEmbeddedVisibility(root, 'ruleProfileSelectField', true);
-        setEmbeddedVisibility(root, 'profileSummaryText', true);
-        setEmbeddedVisibility(root, 'profileDetailsPanel', false);
-        setEmbeddedVisibility(root, 'ruleDocumentPanel', false);
-        const profileSelectNote = root?.querySelector('#ruleProfileSelectField .form-note');
-        if (profileSelectNote) profileSelectNote.textContent = '저장된 프로파일 하나를 골라 연결합니다.';
-        const sourceHint = root?.getElementById('vaRuleSourceHelp');
-        if (sourceHint) sourceHint.textContent = '채널 하나를 고르면 이 설정이 바로 연결됩니다.';
-        const sourceSummary = root?.getElementById('vaRuleSourceSummary');
-        if (sourceSummary) sourceSummary.hidden = false;
-        const vaRuleSelect = root?.getElementById('vaRuleSelect');
-        if (vaRuleSelect) {
-          vaRuleSelect.value = '';
-          vaRuleSelect.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        syncEmbeddedVaRuleStartFields(root);
-      }
-      function applyEventRuleMode(root) {
-        setEmbeddedEditorHeading(root, '이벤트 템플릿', '채널 분석 설정에서 불러와 쓰는 보조 템플릿입니다.');
-        setEmbeddedFieldLabel(root, 'ruleBasicIdField', '템플릿 ID');
-        setEmbeddedFieldLabel(root, 'ruleProfileSelectField', '사용할 프로파일');
-        const ruleIdInput = root?.getElementById('ruleId');
-        if (ruleIdInput) {
-          ruleIdInput.type = 'text';
-          if (!/^[0-9]+$/.test(String(ruleIdInput.value || '')) || String(ruleIdInput.value || '').trim() === 'file-person-vehicle-area') {
-            ruleIdInput.value = nextEmbeddedRuleId(root);
+      async function opsRulesSaveNativeRecord(mode) {
+        const current = opsRulesCurrentRecord?.item || {};
+        if (mode === 'va-rule') {
+          const forcedId = String(document.getElementById('opsVaRuleIdInput')?.value || '').trim() || opsRulesNextNumericId(opsCatalogVaRules, 1);
+          document.getElementById('opsVaRuleIdInput').value = forcedId;
+          const { payload, channel } = opsRulesReadVaRuleForm(current, forcedId);
+          const payloadTemplateId = String(payload?.templateStart?.ruleId || '').trim();
+          const geometryPoints = Array.isArray(payload?.event?.region?.points) ? payload.event.region.points : [];
+          const isLine = String(payload?.event?.region?.type || '') === 'line';
+          if (!payload.id) throw new Error('채널 분석 설정 ID가 필요합니다.');
+          if (!String(payload.name || '').trim()) throw new Error('채널 분석 설정 이름을 입력하세요.');
+          if (!channel) throw new Error('채널을 선택하세요.');
+          if (!channel.view) throw new Error('선택한 채널에 PublishedView가 없어 저장할 수 없습니다. 채널 탭에서 채널을 다시 저장하세요.');
+          if (!String(payload.analysis?.profileId || '').trim()) throw new Error('분석 프로파일을 선택하세요.');
+          if (!payloadTemplateId) {
+            throw new Error('이벤트 템플릿을 선택하세요.');
           }
+          if (geometryPoints.length < (isLine ? 2 : 3)) {
+            throw new Error(isLine ? '라인 좌표는 2점 이상 필요합니다.' : '영역 좌표는 3점 이상 필요합니다.');
+          }
+          const response = await requestJson(`${opsLabVaRulesPath}/${encodeURIComponent(payload.id)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          await opsRulesAttachVaRuleToSelectedChannel(payload.id, channel);
+          return String(response?.vaRule?.id || payload.id);
         }
-        const ruleIdDisplay = root?.getElementById('vaRuleIdDisplay');
-        if (ruleIdDisplay) ruleIdDisplay.hidden = true;
-        const ruleIdNote = root?.getElementById('ruleBasicIdNote');
-        if (ruleIdNote) ruleIdNote.textContent = '다른 채널 분석 설정에서 다시 쓸 템플릿 ID입니다.';
-        setEmbeddedVisibility(root, 'vaRuleNameField', false);
-        setEmbeddedVisibility(root, 'ruleEnabledField', true);
-        setEmbeddedVisibility(root, 'opsRuleChannelPicker', false);
-        setEmbeddedVisibility(root, 'directVaRuleSourceFields', false);
-        setEmbeddedVisibility(root, 'directRuleMatchFields', true);
-        setEmbeddedVisibility(root, 'ruleProfileSelectField', true);
-        setEmbeddedVisibility(root, 'profileSummaryText', true);
-        setEmbeddedVisibility(root, 'profileDetailsPanel', false);
-        const profileSelectNote = root?.querySelector('#ruleProfileSelectField .form-note');
-        if (profileSelectNote) profileSelectNote.textContent = '저장된 프로파일 하나를 골라 연결합니다.';
-        const sourceHint = root?.getElementById('vaRuleSourceHelp');
-        if (sourceHint) sourceHint.textContent = '채널에 바로 붙지 않고, 채널 분석 설정에서 불러와 씁니다.';
-        const sourceSummary = root?.getElementById('vaRuleSourceSummary');
-        if (sourceSummary) sourceSummary.hidden = true;
-        const ruleSourceKind = root?.getElementById('ruleSourceKind');
-        if (ruleSourceKind) ruleSourceKind.value = '*';
-        const ruleRoute = root?.getElementById('ruleRoute');
-        if (ruleRoute) ruleRoute.value = '*';
-        const ruleKindBasic = root?.querySelector('input[name="ruleKind"][value="basic"]');
-        if (ruleKindBasic) {
-          ruleKindBasic.checked = true;
-          ruleKindBasic.dispatchEvent(new Event('change', { bubbles: true }));
+        if (mode === 'event-rule') {
+          const forcedId = String(document.getElementById('opsEventRuleIdInput')?.value || '').trim() || opsRulesNextNumericId(opsCatalogEventTemplates, 1);
+          document.getElementById('opsEventRuleIdInput').value = forcedId;
+          const payload = opsRulesReadEventTemplateForm(current, forcedId);
+          if (!payload.id) throw new Error('이벤트 템플릿 ID가 필요합니다.');
+          if (!opsRulesEventTypeForItem(payload)) throw new Error('이벤트/시나리오 종류를 선택하세요.');
+          if (!Array.isArray(payload.analysis?.classes) || payload.analysis.classes.length === 0) {
+            throw new Error('분석 대상을 하나 이상 선택하세요.');
+          }
+          const response = await requestJson(`${opsLabRulesPath}/${encodeURIComponent(payload.id)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          return String(response?.rule?.id || payload.id);
         }
-        const ruleSelect = root?.getElementById('ruleSelect');
-        if (ruleSelect) {
-          ruleSelect.value = '';
-          ruleSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        if (mode === 'profile') {
+          const payload = opsRulesReadProfileForm(current);
+          if (!payload.id) {
+            payload.id = opsRulesNextProfileId();
+            const idInput = document.getElementById('opsProfileIdInput');
+            if (idInput) idInput.value = payload.id;
+          }
+          if (!payload.id) throw new Error('분석 프로파일 ID가 필요합니다.');
+          if (!Number.isFinite(payload.fps) || payload.fps <= 0) throw new Error('분석 FPS는 1 이상이어야 합니다.');
+          if (!Number.isFinite(payload.inputWidth) || !Number.isFinite(payload.inputHeight) || payload.inputWidth <= 0 || payload.inputHeight <= 0) {
+            throw new Error('입력 해상도는 1 이상이어야 합니다.');
+          }
+          const response = await requestJson(`${opsLabProfilesPath}/${encodeURIComponent(payload.id)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          return String(response?.profile?.id || payload.id);
         }
-      }
-      function applyProfileMode(root) {
-        setEmbeddedEditorHeading(root, '분석 프로파일', '채널 분석 설정과 이벤트 템플릿에서 고르는 보조 프로파일입니다.');
-        setEmbeddedVisibility(root, 'ruleProfileSelectField', false);
-        setEmbeddedVisibility(root, 'profileSummaryText', false);
-        setEmbeddedVisibility(root, 'profileDetailsPanel', true);
-        const newProfileButton = root?.getElementById('newProfileBtn');
-        if (newProfileButton) newProfileButton.click();
-        const profileDetails = root?.getElementById('profileDetailsPanel');
-        if (profileDetails) profileDetails.open = true;
-        const profileSummary = root?.querySelector('#profileDetailsPanel > summary');
-        if (profileSummary) profileSummary.hidden = true;
-        const profileId = root?.getElementById('profileId');
-        if (profileId && (!String(profileId.value || '').trim() || String(profileId.value) === 'fast-local')) {
-          profileId.value = nextEmbeddedProfileId(root);
-        }
-      }
-      function configureEmbeddedEditorForMode(root, mode) {
-        if (!root?.host) return;
-        ensureOpsRulesModeStyles(root);
-        root.host.dataset.opsRulesMode = mode || 'none';
-        applyEmbeddedSharedChrome(root);
-        applyEmbeddedModeSections(root, mode);
-        if (mode === 'profile') applyProfileMode(root);
-        else if (mode === 'event-rule') applyEventRuleMode(root);
-        else applyVaRuleMode(root);
-        focusEmbeddedModeHost(root, mode);
-      }
-      function focusEmbeddedRuleSection(root, targetId) {
-        const target = root?.getElementById(targetId);
-        if (target && typeof target.scrollIntoView === 'function') {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }
-      function loadOpsRulesRecordIntoEditor(mode, recordId) {
-        const api = window.__mediaServerRuleEditorApi;
-        const id = String(recordId || '');
-        if (!api || !id) return false;
-        if (mode === 'va-rule' && typeof api.loadVaRule === 'function') {
-          const item = findOpsVaRuleById(id);
-          if (!item) return false;
-          const startMeta = opsVaRuleStartMeta(item);
-          opsVaRuleStartMode = startMeta.mode;
-          opsVaRuleTemplateId = startMeta.templateRuleId;
-          api.loadVaRule(JSON.parse(JSON.stringify(item)));
-          return true;
-        }
-        if (mode === 'event-rule' && typeof api.loadRule === 'function') {
-          const item = findOpsEventTemplateById(id);
-          if (!item) return false;
-          api.loadRule(JSON.parse(JSON.stringify(item)));
-          return true;
-        }
-        if (mode === 'profile' && typeof api.loadProfile === 'function') {
-          const item = findOpsProfileById(id);
-          if (!item) return false;
-          api.loadProfile(JSON.parse(JSON.stringify(item)));
-          return true;
-        }
-        return false;
+        throw new Error('저장할 룰 종류를 찾지 못했습니다.');
       }
       async function openOpsRulesEditor(mode, detailMode = 'new', recordId = '') {
         try {
           setOpsRulesCatalogVisibility(mode);
           setOpsRulesEditorModeButtons(mode);
-          setOpsRulesComposer(mode, detailMode, recordId);
-          const root = await ensureOpsRulesEditorReady();
-          if (!root) return;
-          configureEmbeddedEditorForMode(root, mode);
-          if (mode === 'va-rule' && detailMode === 'new') {
-            opsVaRuleStartMode = 'direct';
-            opsVaRuleTemplateId = '';
-            syncEmbeddedVaRuleStartFields(root);
-          }
-          if (recordId && !loadOpsRulesRecordIntoEditor(mode, recordId)) {
+          const item = opsRulesNativeRecord(mode, detailMode, recordId);
+          if (!item) {
             throw new Error('선택한 항목을 불러오지 못했습니다.');
           }
-          if (mode === 'va-rule') {
-            syncEmbeddedVaRuleStartFields(root);
-          }
-          setEmbeddedFormDisabled(root, detailMode === 'view');
-          syncOpsVaTemplateAssist(mode);
+          opsRulesCurrentRecord = { mode, detailMode, item: opsRulesClone(item) };
+          opsRulesShowNativeForm(mode);
+          opsRulesPopulateFormOptions();
+          opsRulesFillNativeForm(mode, opsRulesCurrentRecord.item, detailMode);
+          setOpsRulesComposer(mode, detailMode, item.id || recordId);
           opsRulesEditorStatus('', false);
         } catch (error) {
-          setOpsRulesComposer('', 'closed');
+          closeOpsRulesEditor();
           opsRulesEditorStatus(`룰 편집기 로드 실패: ${error.message}`, true);
         }
       }
@@ -2779,62 +3445,36 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         setOpsRulesCatalogVisibility(nextMode);
         setOpsRulesEditorModeButtons(nextMode);
       }
-      async function closeOpsRulesEditor() {
-        const host = document.getElementById('opsRulesEditorComponent');
-        opsVaRuleStartMode = 'direct';
+      function resetOpsRulesEditorState() {
+        opsRulesCurrentRecord = null;
         opsVaRuleTemplateId = '';
-        syncEmbeddedVaRuleStartFields(host?.shadowRoot || null);
-        if (host) {
-          host.hidden = true;
-          host.dataset.mode = '';
-          if (host.shadowRoot?.host) host.shadowRoot.host.dataset.opsRulesMode = 'none';
-        }
+        opsRulesShowNativeForm('');
         setOpsRulesComposer('', 'closed');
         setOpsRulesEditorModeButtons(opsRulesActiveMode);
         opsRulesEditorStatus('', false);
       }
+      async function closeOpsRulesEditor() {
+        resetOpsRulesEditorState();
+        await stopOpsVaRulePreview({ preserveView: false }).catch(() => {});
+      }
       function wireOpsRulesShellClose() {
-        if (activeOpsPage !== 'rules') return;
-        const nav = document.querySelector('.image-nav-tabs[aria-label="운영 메뉴"]');
-        if (!nav || nav.dataset.opsRulesCloseWired === '1') return;
-        nav.dataset.opsRulesCloseWired = '1';
-        nav.addEventListener('click', (event) => {
-          const link = event.target.closest('a[href]');
-          if (!link) return;
-          if (opsRulesDetailMode === 'closed') return;
-          closeOpsRulesEditor().catch(() => {});
-        });
+        return;
       }
       async function editCurrentOpsRulesRecord() {
-        const mode = opsRulesActiveMode;
-        const recordId = opsRulesDetailRecordId;
+        const mode = opsRulesCurrentRecord?.mode || opsRulesActiveMode;
+        const recordId = opsRulesDetailRecordId || opsRulesCurrentRecord?.item?.id || '';
         await openOpsRulesEditor(mode, 'edit', recordId);
       }
       async function triggerOpsRulesSave() {
-        const host = document.getElementById('opsRulesEditorComponent');
-        const mode = String(host?.dataset.mode || '');
-        const config = opsRulesModeConfig(mode);
-        if (!config) return;
-        const root = await ensureOpsRulesEditorReady();
-        const button = root?.getElementById(config.saveProxyId);
-        if (!button) {
-          opsRulesEditorStatus('저장 버튼을 찾지 못했습니다.', true);
-          return;
+        const mode = opsRulesCurrentRecord?.mode || opsRulesActiveMode;
+        if (!opsRulesModeConfig(mode)) return;
+        try {
+          const savedId = await opsRulesSaveNativeRecord(mode);
+          await refreshRules();
+          await openOpsRulesEditor(mode, 'view', savedId);
+        } catch (error) {
+          setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true });
         }
-        button.click();
-        window.setTimeout(async () => {
-          try {
-            await refreshRules();
-            const savedId = mode === 'profile'
-              ? String(host.shadowRoot?.getElementById('profileId')?.value || '')
-              : (mode === 'event-rule'
-                ? String(host.shadowRoot?.getElementById('ruleId')?.value || '')
-                : String(host.shadowRoot?.getElementById('vaRuleId')?.value || ''));
-            await openOpsRulesEditor(mode, 'view', savedId);
-          } catch (error) {
-            setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true });
-          }
-        }, 350);
       }
       const opsRulesSearchTerm = () => {
         const inputValue = String(document.getElementById('opsRulesFilterInput')?.value || '').trim();
@@ -2843,17 +3483,17 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       };
       const opsRuleEventTypeLabel = (value) => {
         const type = String(value || '').trim();
-        if (type === 'intrusion-dwell') return 'Intrusion Dwell';
-        if (type === 're-entry') return 'Re-Entry';
-        if (type === 'wrong-direction') return 'Wrong Direction';
+        if (type === 'intrusion-dwell') return '침입 후 체류';
+        if (type === 're-entry') return '재진입';
+        if (type === 'wrong-direction') return '역방향 이동';
         if (type === 'intrusion-after-line-crossing') return '라인 통과 후 영역 침입';
-        if (type === 'loitering') return 'Loitering';
-        if (type === 'zone-occupancy') return 'Zone Occupancy';
-        if (type === 'presence') return 'Presence';
-        if (type === 'enter') return 'Enter';
-        if (type === 'exit') return 'Exit';
-        if (type === 'line-crossing') return 'Line Crossing';
-        return type || 'event';
+        if (type === 'loitering') return '배회';
+        if (type === 'zone-occupancy') return '영역 점유';
+        if (type === 'presence') return '감지';
+        if (type === 'enter') return '진입';
+        if (type === 'exit') return '이탈';
+        if (type === 'line-crossing') return '라인 통과';
+        return type || '이벤트';
       };
       const opsRuleSearchableText = item => {
         const analysis = item?.analysis || {};
@@ -2875,8 +3515,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           analysis?.profileId,
           analysis?.detector,
           eventName,
-          ...(Array.isArray(analysis?.classes) ? analysis.classes : []),
-          ...(Array.isArray(item?.trackingClasses) ? item.trackingClasses : [])
+          ...(Array.isArray(analysis?.classes) ? analysis.classes : [])
         ].filter(Boolean).join(' ').toLowerCase();
       };
       function opsRulesStatusBadge(enabled) {
@@ -2893,12 +3532,262 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       function opsRuleActionButtons(actions) {
         return `<div class="ops-rule-row-actions">${actions.join('')}</div>`;
       }
-      function opsVaRuleStartModeHtml(item) {
-        const meta = opsVaRuleStartMeta(item);
-        if (meta.mode === 'template') {
-          return `<div class="ops-rule-value-stack"><strong>템플릿 적용</strong><span class="ops-rule-note">${escapeHtml(meta.templateRuleId)}</span></div>`;
+      function opsRulesMsLabel(value) {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric) || numeric <= 0) return '';
+        if (numeric % 1000 === 0) {
+          return `${Math.round(numeric / 1000)}초`;
         }
-        return `<div class="ops-rule-value-stack"><strong>개별 설정</strong></div>`;
+        return `${numeric}ms`;
+      }
+      function opsRulesSourceKindLabel(kind) {
+        const value = String(kind || '').trim();
+        if (value === '*' || !value) return '전체 입력';
+        if (value === 'file') return '파일';
+        if (value === 'rtsp') return 'RTSP';
+        if (value === 'whep') return 'WHEP';
+        if (value === 'webrtc') return 'Published WebRTC';
+        if (value === 'http' || value === 'hls') return 'HTTP/HLS';
+        if (value === 'youtube') return 'YouTube';
+        return value;
+      }
+      function opsRulesRtspHost() {
+        let host = window.location.hostname || '127.0.0.1';
+        if (host === 'localhost') host = '127.0.0.1';
+        return host.includes(':') && !host.startsWith('[') ? `[${host}]` : host;
+      }
+      async function opsRulesCopyText(value) {
+        const text = String(value || '').trim();
+        if (!text) throw new Error('복사할 값이 없습니다.');
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          return;
+        }
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.top = '8px';
+        textarea.style.left = '8px';
+        textarea.style.width = '320px';
+        textarea.style.height = '32px';
+        textarea.style.zIndex = '2147483647';
+        document.body.appendChild(textarea);
+        try {
+          textarea.focus();
+          textarea.select();
+          textarea.setSelectionRange(0, textarea.value.length);
+          if (!document.execCommand('copy')) {
+            throw new Error('clipboard copy failed');
+          }
+        } finally {
+          textarea.remove();
+        }
+      }
+      function opsRulesCurrentVaOutputContext() {
+        const channel = opsRulesFindChannelById(document.getElementById('opsVaRuleChannelSelect')?.value || '')
+          || opsRulesFindChannelForVaRule(opsRulesCurrentRecord?.item || {});
+        const ruleId = String(document.getElementById('opsVaRuleIdInput')?.value || opsRulesCurrentRecord?.item?.id || '').trim();
+        const viewId = String(channel?.view?.viewId || channel?.sourceId || '').trim();
+        return { channel, ruleId, viewId };
+      }
+      function opsRulesCurrentVaPreviewViewId() {
+        const { channel } = opsRulesCurrentVaOutputContext();
+        return String(channel?.view?.viewId || '').trim();
+      }
+      function updateOpsVaRulePreviewUi() {
+        const startBtn = document.getElementById('opsVaRulePreviewStartBtn');
+        const restartBtn = document.getElementById('opsVaRulePreviewRestartBtn');
+        const stopBtn = document.getElementById('opsVaRulePreviewStopBtn');
+        const summary = document.getElementById('opsVaRulePreviewSummary');
+        const placeholder = document.getElementById('opsVaRulePreviewPlaceholder');
+        const viewId = opsRulesCurrentVaPreviewViewId();
+        const currentChannel = opsRulesCurrentVaOutputContext().channel;
+        const channelLabel = currentChannel ? opsRulesChannelOptionLabel(currentChannel) : '';
+        const hasSession = Boolean(opsVaRulePreviewState.sessionId);
+        if (summary) {
+          if (!viewId) {
+            summary.textContent = 'PublishedView가 있는 채널을 골라야 미리보기를 열 수 있습니다.';
+          } else if (hasSession) {
+            summary.textContent = `${channelLabel || viewId} 미리보기를 보고 있습니다. 필요할 때 정지하거나 다시 연결할 수 있습니다.`;
+          } else {
+            summary.textContent = `${channelLabel || viewId} 영상을 재생해 영역/라인 기준을 확인할 수 있습니다.`;
+          }
+        }
+        if (placeholder) {
+          placeholder.hidden = hasSession;
+          placeholder.textContent = opsVaRulePreviewState.lastError || (viewId ? '재생 버튼으로 채널 영상을 확인하세요.' : '채널을 먼저 고르세요.');
+        }
+        if (startBtn) startBtn.disabled = !viewId || hasSession;
+        if (restartBtn) restartBtn.disabled = !viewId;
+        if (stopBtn) stopBtn.disabled = !hasSession;
+      }
+      async function stopOpsVaRulePreview(options = {}) {
+        if (opsVaRulePreviewState.iceTimer) {
+          clearInterval(opsVaRulePreviewState.iceTimer);
+          opsVaRulePreviewState.iceTimer = null;
+        }
+        if (opsVaRulePreviewState.pc) {
+          try { opsVaRulePreviewState.pc.close(); } catch {}
+        }
+        opsVaRulePreviewState.pc = null;
+        const video = document.getElementById('opsVaRulePreviewVideo');
+        if (video?.srcObject) {
+          for (const track of video.srcObject.getTracks()) track.stop();
+          video.srcObject = null;
+        }
+        const sessionId = opsVaRulePreviewState.sessionId;
+        const viewId = opsVaRulePreviewState.viewId;
+        opsVaRulePreviewState.sessionId = '';
+        if (sessionId && viewId) {
+          await fetch(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session/${encodeURIComponent(sessionId)}`, {
+            method: 'DELETE',
+            keepalive: Boolean(options.keepalive)
+          }).catch(() => {});
+        }
+        if (!options.keepError) opsVaRulePreviewState.lastError = '';
+        if (!options.preserveView) opsVaRulePreviewState.viewId = '';
+        opsVaRulePreviewState.status = 'idle';
+        opsVaRulePreviewState.connectionStatus = 'idle';
+        updateOpsVaRulePreviewUi();
+      }
+      async function pollOpsVaRulePreviewIce() {
+        if (!opsVaRulePreviewState.viewId || !opsVaRulePreviewState.sessionId || !opsVaRulePreviewState.pc) return;
+        const response = await fetch(`/client/api/views/${encodeURIComponent(opsVaRulePreviewState.viewId)}/webrtc/session/${encodeURIComponent(opsVaRulePreviewState.sessionId)}/ice`).catch(() => null);
+        if (!response || !response.ok) return;
+        const payload = await response.json().catch(() => ({}));
+        for (const item of payload.candidates || []) {
+          try { await opsVaRulePreviewState.pc.addIceCandidate(item); } catch {}
+        }
+      }
+      async function startOpsVaRulePreview(options = {}) {
+        const viewId = opsRulesCurrentVaPreviewViewId();
+        if (!viewId) {
+          updateOpsVaRulePreviewUi();
+          return;
+        }
+        if (opsVaRulePreviewState.sessionId && opsVaRulePreviewState.viewId !== viewId) {
+          await stopOpsVaRulePreview({ preserveView: false });
+        } else if (opsVaRulePreviewState.sessionId) {
+          await stopOpsVaRulePreview({ preserveView: true });
+        }
+        opsVaRulePreviewState.viewId = viewId;
+        opsVaRulePreviewState.lastError = '';
+        opsVaRulePreviewState.status = options.restart ? 'reconnecting' : 'connecting';
+        opsVaRulePreviewState.connectionStatus = 'connecting';
+        updateOpsVaRulePreviewUi();
+        try {
+          const pc = await createOpsLivePeerConnection();
+          opsVaRulePreviewState.pc = pc;
+          pc.onconnectionstatechange = () => {
+            opsVaRulePreviewState.connectionStatus = pc.connectionState || 'connecting';
+            updateOpsVaRulePreviewUi();
+          };
+          pc.oniceconnectionstatechange = () => {
+            opsVaRulePreviewState.connectionStatus = pc.iceConnectionState || opsVaRulePreviewState.connectionStatus;
+            updateOpsVaRulePreviewUi();
+          };
+          pc.ontrack = event => {
+            const video = document.getElementById('opsVaRulePreviewVideo');
+            if (video) {
+              video.srcObject = event.streams[0];
+              video.muted = true;
+              const play = video.play();
+              if (play && typeof play.catch === 'function') play.catch(() => {});
+            }
+            opsVaRulePreviewState.status = 'live';
+            updateOpsVaRulePreviewUi();
+          };
+          pc.onicecandidate = event => {
+            if (!opsVaRulePreviewState.sessionId || !event.candidate) return;
+            fetch(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session/${encodeURIComponent(opsVaRulePreviewState.sessionId)}/ice`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                sdpMLineIndex: event.candidate.sdpMLineIndex,
+                candidate: event.candidate.candidate
+              })
+            }).catch(() => {});
+          };
+          const response = await fetch(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session`, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ overlayMode: 'raw' })
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
+          opsVaRulePreviewState.sessionId = payload.sessionId || '';
+          if (!opsVaRulePreviewState.sessionId || !payload.offer) throw new Error('session offer missing');
+          await pc.setRemoteDescription({ type: 'offer', sdp: payload.offer });
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          await fetch(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session/${encodeURIComponent(opsVaRulePreviewState.sessionId)}/answer`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/sdp' },
+            body: answer.sdp
+          });
+          opsVaRulePreviewState.iceTimer = setInterval(() => pollOpsVaRulePreviewIce().catch(() => {}), 1000);
+          updateOpsVaRulePreviewUi();
+        } catch (error) {
+          opsVaRulePreviewState.lastError = error.message || 'preview start failed';
+          await stopOpsVaRulePreview({ keepError: true, preserveView: true });
+        }
+      }
+      function opsRulesVaOutputUrl(kind, ruleId = '', viewId = '') {
+        if (!ruleId) return '';
+        if (kind === 'rtsp') {
+          return `rtsp://${opsRulesRtspHost()}:${opsRtspPort}/${encodeURIComponent(opsStreamRoute)}?vaRule=${encodeURIComponent(ruleId)}`;
+        }
+        if (kind === 'whep') {
+          const url = new URL('/whep', window.location.origin);
+          url.searchParams.set('vaRule', ruleId);
+          return url.toString();
+        }
+        if (kind === 'client' && viewId) {
+          const hash = new URLSearchParams();
+          hash.set('view', viewId);
+          hash.set('mode', 'va-rule');
+          hash.set('rule', ruleId);
+          return `${window.location.origin}/client/live#${hash.toString()}`;
+        }
+        return '';
+      }
+      async function opsRulesCopyVaOutput(kind, ruleId = '', viewId = '') {
+        const url = opsRulesVaOutputUrl(kind, ruleId, viewId);
+        if (!url) {
+          throw new Error(kind === 'client' ? 'PublishedView가 있어야 WebRTC 경로를 복사할 수 있습니다.' : '채널 분석 설정 ID를 정한 뒤 복사할 수 있습니다.');
+        }
+        await opsRulesCopyText(url);
+        opsRulesEditorStatus(`${kind === 'client' ? 'WebRTC' : kind.toUpperCase()} URL을 복사했습니다.`, false);
+      }
+      function wireOpsRulesNavLinks() {
+        if (document.body?.dataset.opsRulesNavBound === 'true') return;
+        if (document.body) document.body.dataset.opsRulesNavBound = 'true';
+        document.addEventListener('click', (event) => {
+          if (activeOpsPage !== 'rules') return;
+          const target = event.target;
+          if (!(target instanceof Element)) return;
+          const anchor = target.closest('a[href]');
+          if (!(anchor instanceof HTMLAnchorElement)) return;
+          const href = String(anchor.getAttribute('href') || '').trim();
+          if (!href || href.startsWith('#') || anchor.target === '_blank' || anchor.hasAttribute('download')) return;
+          let nextUrl = '';
+          try {
+            const resolved = new URL(anchor.href, window.location.href);
+            if (resolved.origin !== window.location.origin) return;
+            if (resolved.href === window.location.href) return;
+            nextUrl = resolved.href;
+          } catch (_) {
+            return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          resetOpsRulesEditorState();
+          window.setTimeout(() => {
+            stopOpsVaRulePreview({ preserveView: false, keepalive: true }).catch(() => {});
+          }, 0);
+          window.location.assign(nextUrl);
+        }, true);
       }
       function opsRuleSourceHtml(source) {
         if (!source || typeof source !== 'object') {
@@ -2918,6 +3807,129 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         }
         return `<div class="ops-rule-value-stack"><strong>${escapeHtml(display(source.kind))}</strong></div>`;
       }
+      function opsRulesVaRuleChannelHtml(item) {
+        const channel = opsRulesFindChannelForVaRule(item);
+        if (channel) {
+          const kind = channel?.source?.kind ? opsRulesSourceKindLabel(channel.source.kind) : '입력';
+          const detail = opsRulesSourceDetailLabel(channel.source);
+          return `<div class="ops-rule-value-stack">
+            <strong>${escapeHtml(display(channel.displayName))}</strong>
+            <span class="ops-rule-note">${escapeHtml(kind)}</span>
+            ${detail ? `<span class="ops-rule-note">${escapeHtml(detail)}</span>` : ''}
+          </div>`;
+        }
+        return opsRuleSourceHtml(item?.source);
+      }
+      function opsRulesVaRuleTemplateHtml(item) {
+        const meta = opsVaRuleStartMeta(item);
+        if (!meta.templateRuleId) {
+          const eventType = opsRulesEventTypeForItem(item);
+          return `<div class="ops-rule-value-stack">
+            <strong>${escapeHtml(eventType ? opsRuleEventTypeLabel(eventType) : '템플릿 없음')}</strong>
+            <span class="ops-rule-note">${escapeHtml(eventType ? '저장 시 템플릿 연결 필요' : '이벤트 템플릿을 먼저 고르세요.')}</span>
+          </div>`;
+        }
+        const template = findOpsEventTemplateById(meta.templateRuleId);
+        const eventType = template?.scenario?.type || template?.event?.type || item?.scenario?.type || item?.event?.type || 'event';
+        return `<div class="ops-rule-value-stack">
+          <span class="table-identity-pill table-identity-template">${escapeHtml(opsRulesIdText(display(meta.templateRuleId)))}</span>
+          <span class="ops-rule-note">${escapeHtml(`${opsRuleEventTypeLabel(eventType)}${meta.inferred ? ' · 추정' : ''}`)}</span>
+        </div>`;
+      }
+      function opsRulesGeometryHtml(item) {
+        const region = item?.event?.region || {};
+        const points = Array.isArray(region?.points) ? region.points.filter(point => point && Number.isFinite(Number(point.x)) && Number.isFinite(Number(point.y))) : [];
+        const type = String(region?.type || '').trim();
+        if (type === 'line') {
+          const direction = region?.direction === 'forward'
+            ? '정방향'
+            : (region?.direction === 'reverse' ? '역방향' : '양방향');
+          return `<div class="ops-rule-value-stack">
+            <strong>라인</strong>
+            <span class="ops-rule-note">${escapeHtml(`${Math.max(points.length, 2)}점 · ${direction}`)}</span>
+          </div>`;
+        }
+        if (type === 'polygon') {
+          return `<div class="ops-rule-value-stack">
+            <strong>영역</strong>
+            <span class="ops-rule-note">${escapeHtml(`${Math.max(points.length, 3)}점`)}</span>
+          </div>`;
+        }
+        return `<div class="ops-rule-value-stack"><strong>미설정</strong></div>`;
+      }
+      function opsRulesVaOutputButtonsHtml(item) {
+        const channel = opsRulesFindChannelForVaRule(item);
+        const ruleId = String(item?.id || '').trim();
+        const viewId = String(channel?.view?.viewId || '').trim();
+        return `<div class="channel-stream-actions">
+          <button type="button" class="secondary" data-ops-rule-copy-kind="rtsp" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}">RTSP</button>
+          <button type="button" class="secondary" data-ops-rule-copy-kind="whep" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}">WHEP</button>
+          <button type="button" class="secondary" data-ops-rule-copy-kind="client" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}"${viewId ? '' : ' disabled'}>WebRTC</button>
+        </div>`;
+      }
+      function opsRulesEventSummaryHtml(item = {}) {
+        const type = item?.scenario?.type || item?.event?.type || item?.eventType || 'event';
+        return `<div class="ops-rule-value-stack">
+          <strong>${escapeHtml(opsRuleEventTypeLabel(type))}</strong>
+        </div>`;
+      }
+      function opsRulesEventModeHtml(item = {}) {
+        const type = item?.scenario?.type || item?.event?.type || item?.eventType || '';
+        const isScenario = Boolean(item?.scenario) || opsRulesIsScenarioType(type);
+        return `<div class="ops-rule-value-stack">
+          <span class="chip${isScenario ? ' info' : ''}">${isScenario ? '시나리오' : '이벤트'}</span>
+        </div>`;
+      }
+      function opsRulesConditionHtml(item = {}) {
+        const type = item?.scenario?.type || item?.event?.type || item?.eventType || 'event';
+        const scenario = item?.scenario || {};
+        const details = [];
+        if (type === 'intrusion-dwell') {
+          const candidate = opsRulesMsLabel(scenario?.candidateTimeMs);
+          const dwell = opsRulesMsLabel(scenario?.dwellTimeMs);
+          if (candidate) details.push(`후보 ${candidate}`);
+          if (dwell) details.push(`확정 ${dwell}`);
+        } else if (type === 're-entry') {
+          const windowLabel = opsRulesMsLabel(scenario?.reEntryWindowMs);
+          if (windowLabel) details.push(`window ${windowLabel}`);
+          if (scenario?.reEntryMode) {
+            details.push(scenario.reEntryMode === 'configured-zones' ? '지정 영역' : '같은 영역');
+          }
+        } else if (type === 'intrusion-after-line-crossing') {
+          const delay = opsRulesMsLabel(scenario?.maxDelayAfterCrossingMs);
+          const dwell = opsRulesMsLabel(scenario?.dwellTimeMs);
+          const direction = scenario?.triggerLine?.direction || 'any';
+          if (delay) details.push(`라인 후 ${delay}`);
+          if (dwell) details.push(`체류 ${dwell}`);
+          details.push(direction === 'forward' ? '정방향' : (direction === 'reverse' ? '역방향' : '양방향'));
+        } else if (type === 'loitering') {
+          const dwell = opsRulesMsLabel(scenario?.minDwellTimeMs);
+          if (dwell) details.push(`체류 ${dwell}`);
+          if (Number.isFinite(Number(scenario?.maxMovementRadius))) {
+            details.push(`반경 ${Number(scenario.maxMovementRadius).toFixed(2)}`);
+          }
+        } else if (type === 'zone-occupancy') {
+          if (Number.isFinite(Number(scenario?.occupancyThreshold))) {
+            details.push(`임계 ${Number(scenario.occupancyThreshold)}`);
+          }
+          const dwell = opsRulesMsLabel(scenario?.minDwellTimeMs);
+          if (dwell) details.push(`체류 ${dwell}`);
+        } else if (opsRulesIsLineEventType(type)) {
+          const direction = item?.event?.region?.direction || 'any';
+          details.push(direction === 'forward' ? '정방향' : (direction === 'reverse' ? '역방향' : '양방향'));
+        }
+        const cooldown = opsRulesMsLabel(scenario?.cooldownMs);
+        if (cooldown) details.push(`재알림 ${cooldown}`);
+        return `<div class="ops-rule-value-stack">
+          <span class="ops-rule-note">${escapeHtml(details.join(' · ') || '기본 이벤트')}</span>
+        </div>`;
+      }
+      function opsRulesTargetHtml(classes = []) {
+        return `<div class="ops-rule-value-stack">
+          <strong>${escapeHtml(opsRulesCompactCategoryText(classes))}</strong>
+          <span class="ops-rule-note">${escapeHtml(opsRulesCategorySummaryText(classes, '미설정'))}</span>
+        </div>`;
+      }
       function renderOpsVaRules(items) {
         const body = document.getElementById('opsVaRuleRows');
         if (!Array.isArray(items) || items.length === 0) {
@@ -2926,37 +3938,23 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         }
         body.innerHTML = items.map(item => {
           const analysis = item.analysis || {};
-          const eventName = item.scenario?.type || item.scenario?.name || item.event?.type || item.eventType || (item.outputs?.events ? 'events' : 'metadata');
           const id = String(item?.id || '');
-          const startModeText = opsVaRuleStartLabel(item);
           const statusHtml = opsRulesStatusBadge(item?.enabled !== false);
           const actionsHtml = opsRuleActionButtons([
             opsRuleActionButton('상세', 'view-va', id),
             opsRuleActionButton('삭제', 'delete-va', id, 'danger')
           ]);
           return `<tr>
-            <td data-label="룰">
-              <div class="ops-rule-id-cell">
-                <strong>#${escapeHtml(itemId(item))}</strong>
-              </div>
-            </td>
-            <td data-label="소스">${opsRuleSourceHtml(item.source)}</td>
+            <td data-label="ID">${opsRulesIdentityBadgeHtml('id', itemId(item))}</td>
+            <td data-label="채널">${opsRulesVaRuleChannelHtml(item)}</td>
+            <td data-label="이벤트 템플릿">${opsRulesVaRuleTemplateHtml(item)}</td>
             <td data-label="프로파일">
               <div class="ops-rule-value-stack">
-                <strong>${escapeHtml(display(analysis.profileId || item.profileId || 'server-default-va'))}</strong>
+                <span class="table-identity-pill table-identity-profile">${escapeHtml(opsRulesIdText(display(analysis.profileId || item.profileId || 'server-default-va')))}</span>
               </div>
             </td>
-            <td data-label="설정 방식">${opsVaRuleStartModeHtml(item)}</td>
-            <td data-label="이벤트">
-              <div class="ops-rule-value-stack">
-                <strong>${escapeHtml(opsRuleEventTypeLabel(display(eventName)))}</strong>
-              </div>
-            </td>
-            <td data-label="대상">
-              <div class="ops-rule-value-stack">
-                <strong>${escapeHtml(listText(analysis.classes || item.classes || analysis.trackingClasses))}</strong>
-              </div>
-            </td>
+            <td data-label="영역/라인">${opsRulesGeometryHtml(item)}</td>
+            <td data-label="출력">${opsRulesVaOutputButtonsHtml(item)}</td>
             <td class="table-cell-nowrap table-cell-status" data-label="상태">
               <div class="ops-rule-status-actions">${statusHtml}</div>
             </td>
@@ -2971,38 +3969,17 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           return;
         }
         body.innerHTML = items.map(item => {
-          const analysis = item.analysis || {};
-          const type = item.scenario?.type || item.event?.type || item.eventType || 'event';
-          const stateText = opsRulesStatusBadge(item?.enabled !== false);
           const id = String(item?.id || '');
           const actionsHtml = opsRuleActionButtons([
             opsRuleActionButton('상세', 'view-event-template', id),
             opsRuleActionButton('삭제', 'delete-event-template', id, 'danger')
           ]);
           return `<tr>
-            <td data-label="룰">
-              <div class="ops-rule-id-cell">
-                <strong>#${escapeHtml(itemId(item))}</strong>
-              </div>
-            </td>
-            <td data-label="매칭">
-              <div class="ops-rule-value-stack">
-                <strong>${escapeHtml(matchText(item.match))}</strong>
-              </div>
-            </td>
-            <td data-label="분석">
-              <div class="ops-rule-value-stack">
-                <strong>${escapeHtml(display(analysis.profileId || analysis.detector || '미제공'))}</strong>
-              </div>
-            </td>
-            <td data-label="출력">
-              <div class="ops-rule-value-stack">
-                <strong>${escapeHtml(`${opsRuleEventTypeLabel(type)} · ${outputsText(item.outputs)}`)}</strong>
-              </div>
-            </td>
-            <td class="table-cell-nowrap table-cell-status" data-label="상태">
-              <div class="ops-rule-status-actions">${stateText}</div>
-            </td>
+            <td data-label="ID">${opsRulesIdentityBadgeHtml('template', itemId(item))}</td>
+            <td data-label="구분">${opsRulesEventModeHtml(item)}</td>
+            <td data-label="종류">${opsRulesEventSummaryHtml(item)}</td>
+            <td data-label="대상">${opsRulesTargetHtml(item?.analysis?.classes || item?.scenario?.targetClasses || [])}</td>
+            <td data-label="조건">${opsRulesConditionHtml(item)}</td>
             <td class="table-cell-actions" data-label="작업">${actionsHtml}</td>
           </tr>`;
         }).join('');
@@ -3011,15 +3988,11 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         const profileText = String(profileId || '').trim();
         if (!profileText) return '없음';
         let vaRuleCount = 0;
-        let templateCount = 0;
         for (const item of opsCatalogVaRules) {
           if (String(item?.analysis?.profileId || '').trim() === profileText) vaRuleCount += 1;
         }
-        for (const item of opsCatalogEventTemplates) {
-          if (String(item?.analysis?.profileId || '').trim() === profileText) templateCount += 1;
-        }
-        if (vaRuleCount === 0 && templateCount === 0) return '없음';
-        return `채널 ${vaRuleCount} / 템플릿 ${templateCount}`;
+        if (vaRuleCount === 0) return '없음';
+        return `채널 ${vaRuleCount}`;
       }
       function renderOpsProfiles(items) {
         const body = document.getElementById('opsProfileRows');
@@ -3034,11 +4007,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
             opsRuleActionButton('삭제', 'delete-profile', id, 'danger')
           ]);
           return `<tr>
-            <td data-label="프로파일">
-              <div class="ops-rule-id-cell">
-                <strong>${escapeHtml(itemId(item))}</strong>
-              </div>
-            </td>
+            <td data-label="ID">${opsRulesIdentityBadgeHtml('profile', itemId(item))}</td>
             <td data-label="검출기">
               <div class="ops-rule-value-stack">
                 <strong>${escapeHtml(display(item.detector || item.runtime || '미제공'))}</strong>
@@ -3049,9 +4018,10 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
                 <strong>${escapeHtml(display(item.fps || item.maxFps || '미제공'))}</strong>
               </div>
             </td>
-            <td data-label="대상">
+            <td data-label="입력">
               <div class="ops-rule-value-stack">
-                <strong>${escapeHtml(listText(item.trackingClasses || item.classes))}</strong>
+                <strong>${escapeHtml(`${display(item.inputWidth || 640)}x${display(item.inputHeight || 640)}`)}</strong>
+                <span class="ops-rule-note">${escapeHtml(`queue ${display(item.maxQueue ?? 1)} · conf ${display(item.confidence ?? 0.25)} · nms ${display(item.nms ?? 0.45)}`)}</span>
               </div>
             </td>
             <td data-label="사용처">
@@ -3078,7 +4048,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           return;
         }
         await openOpsRulesEditor('va-rule', detailMode, id);
-        opsRulesEditorStatus(`채널 분석 설정 #${id}을 불러왔습니다.`, false);
+        opsRulesEditorStatus(`채널 분석 설정 ${opsRulesIdText(id)}을 불러왔습니다.`, false);
       }
       async function openOpsEventTemplateRecord(id, detailMode = 'view') {
         if (!findOpsEventTemplateById(id)) {
@@ -3086,7 +4056,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           return;
         }
         await openOpsRulesEditor('event-rule', detailMode, id);
-        opsRulesEditorStatus(`이벤트 템플릿 #${id}을 불러왔습니다.`, false);
+        opsRulesEditorStatus(`이벤트 템플릿 ${opsRulesIdText(id)}을 불러왔습니다.`, false);
       }
       async function openOpsProfileRecord(id, detailMode = 'view') {
         if (!findOpsProfileById(id)) {
@@ -3103,14 +4073,13 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           return;
         }
         const name = item?.name ? ` '${item.name}'` : '';
-        if (!window.confirm(`채널 분석 설정 #${id}${name}을 삭제할까요?`)) return;
+        if (!window.confirm(`채널 분석 설정 ${opsRulesIdText(id)}${name}을 삭제할까요?`)) return;
         await requestJson(`${opsLabVaRulesPath}/${encodeURIComponent(id)}`, { method: 'DELETE' });
-        const root = await ensureOpsRulesEditorReady();
-        if (String(root?.getElementById('vaRuleId')?.value || '') === String(id)) {
+        if (String(opsRulesDetailRecordId || '') === String(id)) {
           await closeOpsRulesEditor();
         }
         await refreshRules();
-        opsRulesEditorStatus(`채널 분석 설정 #${id}를 삭제했습니다.`, false);
+        opsRulesEditorStatus(`채널 분석 설정 ${opsRulesIdText(id)}를 삭제했습니다.`, false);
       }
       async function deleteOpsEventTemplateRecord(id) {
         const item = findOpsEventTemplateById(id);
@@ -3120,8 +4089,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         }
         if (!window.confirm(`이벤트 템플릿 '${id}'를 삭제할까요?`)) return;
         await requestJson(`${opsLabRulesPath}/${encodeURIComponent(id)}`, { method: 'DELETE' });
-        const root = await ensureOpsRulesEditorReady();
-        if (String(root?.getElementById('ruleId')?.value || '') === String(id)) {
+        if (String(opsRulesDetailRecordId || '') === String(id)) {
           await closeOpsRulesEditor();
         }
         await refreshRules();
@@ -3137,8 +4105,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         const usagePrompt = usage === '없음' ? '' : `\n현재 사용처: ${usage}`;
         if (!window.confirm(`분석 프로파일 '${id}'를 삭제할까요?${usagePrompt}`)) return;
         await requestJson(`${opsLabProfilesPath}/${encodeURIComponent(id)}`, { method: 'DELETE' });
-        const root = await ensureOpsRulesEditorReady();
-        if (String(root?.getElementById('profileId')?.value || '') === String(id)) {
+        if (String(opsRulesDetailRecordId || '') === String(id)) {
           await closeOpsRulesEditor();
         }
         await refreshRules();
@@ -3154,6 +4121,18 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
           if (!body || body.dataset.opsRuleWired === '1') continue;
           body.dataset.opsRuleWired = '1';
           body.addEventListener('click', (event) => {
+            const copyButton = event.target.closest('[data-ops-rule-copy-kind]');
+            if (copyButton) {
+              event.preventDefault();
+              opsRulesCopyVaOutput(
+                String(copyButton.dataset.opsRuleCopyKind || ''),
+                String(copyButton.dataset.opsRuleCopyId || ''),
+                String(copyButton.dataset.opsRuleCopyView || '')
+              ).catch((error) => {
+                opsRulesEditorStatus(error.message || '출력 경로 복사 실패', true);
+              });
+              return;
+            }
             const button = event.target.closest('[data-ops-rule-action]');
             if (!button) return;
             const action = String(button.dataset.opsRuleAction || '');
@@ -3177,17 +4156,26 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       async function refreshRules() {
         const status = document.getElementById('opsRulesStatus');
         setFeedback(status, '', false, { collapseEmpty: true });
-        const [catalog, views] = await Promise.all([
+        const [catalog, profilesPayload, sourcesPayload, views, capabilities] = await Promise.all([
           requestJson('/ops/api/rules/catalog'),
-          requestJson('/ops/api/views')
+          requestJson('/lab/analysis/profiles'),
+          requestJson('/ops/api/sources'),
+          requestJson('/ops/api/views'),
+          requestJson('/lab/analysis/capabilities').catch(() => ({ trackingCategories: [] }))
         ]);
         const profiles = Array.isArray(catalog.profiles) ? catalog.profiles : [];
         const rules = Array.isArray(catalog.rules) ? catalog.rules : [];
         const vaRules = Array.isArray(catalog.vaRules) ? catalog.vaRules : [];
+        opsCatalogBuiltInProfiles = Array.isArray(profilesPayload.builtInProfiles) ? profilesPayload.builtInProfiles : [];
         opsCatalogProfiles = profiles;
         opsCatalogEventTemplates = rules;
         opsCatalogVaRules = vaRules;
+        opsRulesSources = Array.isArray(sourcesPayload.sources) ? sourcesPayload.sources : [];
         const viewItems = Array.isArray(views.views) ? views.views : [];
+        opsRulesViews = viewItems;
+        opsRuleCategoryCatalog = Array.isArray(capabilities?.trackingCategories) ? capabilities.trackingCategories : [];
+        opsRulesBuildChannels();
+        opsRulesRefreshCategorySelectors();
         const boundRuleIds = new Set();
         for (const view of viewItems) {
           if (view.defaultRuleId) boundRuleIds.add(String(view.defaultRuleId));
@@ -3208,6 +4196,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         setText('rulesEventRuleCount', rules.length);
         setText('rulesProfileCount', profiles.length);
         setText('rulesViewBindingCount', boundRuleIds.size);
+        opsRulesRefreshPrereqUi();
         setText('opsVaRuleSummary', `총 ${filteredVaRules.length}/${vaRules.length}개 · 연결 ${boundRuleIds.size}개`);
         setText('opsEventRuleSummary', `총 ${filteredRules.length}/${rules.length}개`);
         setText('opsProfileSummary', `총 ${filteredProfiles.length}/${profiles.length}개`);
@@ -3247,31 +4236,33 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         document.getElementById('opsCreateVaRuleBtn')?.addEventListener('click', () => openOpsRulesEditor('va-rule', 'new').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsCreateEventRuleBtn')?.addEventListener('click', () => openOpsRulesEditor('event-rule', 'new').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsCreateProfileBtn')?.addEventListener('click', () => openOpsRulesEditor('profile', 'new').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
-        document.getElementById('opsVaRuleStartDirect')?.addEventListener('click', () => {
-          ensureOpsRulesEditorReady().then((root) => {
-            opsVaRuleStartMode = 'direct';
-            opsVaRuleTemplateId = '';
-            syncEmbeddedVaRuleStartFields(root);
-            updateOpsVaTemplateAssistUi();
-          }).catch((error) => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true }));
+        document.getElementById('opsRulesPrereqProfilesAction')?.addEventListener('click', () => selectOpsRulesMode('profile').then(() => openOpsRulesEditor('profile', 'new')).catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsRulesPrereqTemplatesAction')?.addEventListener('click', () => selectOpsRulesMode('event-rule').then(() => openOpsRulesEditor('event-rule', 'new')).catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsRulesPrereqVaRulesAction')?.addEventListener('click', () => selectOpsRulesMode('va-rule').then(() => openOpsRulesEditor('va-rule', 'new')).catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsVaRuleTemplateSeedSelect')?.addEventListener('change', (event) => opsRulesApplyVaRuleTemplateSeed(event.target.value || ''));
+        document.getElementById('opsVaRuleChannelSelect')?.addEventListener('change', () => {
+          opsRulesUpdateVaRuleFormSummary();
+          stopOpsVaRulePreview({ preserveView: false }).catch(() => {});
+          updateOpsVaRulePreviewUi();
         });
-        document.getElementById('opsVaRuleStartTemplate')?.addEventListener('click', () => {
-          opsVaRuleStartMode = 'template';
-          updateOpsVaTemplateAssistUi();
-          const selectedId = String(document.getElementById('opsVaRuleTemplateSelect')?.value || '').trim();
-          ensureOpsRulesEditorReady().then((root) => {
-            if (selectedId) {
-              return applyOpsVaTemplateSelection(selectedId);
-            }
-            syncEmbeddedVaRuleStartFields(root);
-            return null;
-          }).catch((error) => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true }));
+        document.getElementById('opsVaRuleIdInput')?.addEventListener('input', () => {
+          opsRulesUpdateVaRuleFormSummary();
         });
-        document.getElementById('opsVaRuleTemplateSelect')?.addEventListener('change', (event) => {
-          applyOpsVaTemplateSelection(String(event.target.value || '')).catch((error) => {
-            opsRulesEditorStatus(error.message || '템플릿을 불러오지 못했습니다.', true);
-          });
+        document.getElementById('opsVaRuleGeometryPointsInput')?.addEventListener('input', () => opsRulesRenderVaGeometryPreview());
+        document.getElementById('opsVaRuleGeometryDefaultBtn')?.addEventListener('click', () => opsRulesRefreshVaGeometryUi(true));
+        document.getElementById('opsVaRuleGeometryUndoBtn')?.addEventListener('click', () => opsRulesRemoveLastGeometryPoint());
+        document.getElementById('opsVaRuleGeometryClearBtn')?.addEventListener('click', () => {
+          opsRulesSetGeometryPoints([]);
         });
+        document.getElementById('opsVaRuleGeometryPreview')?.addEventListener('click', (event) => opsRulesAppendGeometryPointFromClick(event));
+        document.getElementById('opsVaRulePreviewStartBtn')?.addEventListener('click', () => startOpsVaRulePreview().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsVaRulePreviewRestartBtn')?.addEventListener('click', () => startOpsVaRulePreview({ restart: true }).catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsVaRulePreviewStopBtn')?.addEventListener('click', () => stopOpsVaRulePreview({ preserveView: true }).catch(() => {}));
+        document.getElementById('opsEventRuleModeSelect')?.addEventListener('change', () => {
+          opsEventRuleRefreshTypeOptions('');
+          opsEventRuleUpdateModeUi();
+        });
+        document.getElementById('opsEventRuleTypeSelect')?.addEventListener('change', () => opsEventRuleUpdateModeUi());
         document.getElementById('opsRulesComposerEdit')?.addEventListener('click', () => editCurrentOpsRulesRecord().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsRulesComposerClose')?.addEventListener('click', () => closeOpsRulesEditor().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsRulesComposerSave')?.addEventListener('click', () => triggerOpsRulesSave().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
@@ -3284,6 +4275,7 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
       }
       applyPrincipalVisibility().catch(() => {});
       wireOpsRefresh();
+      wireOpsRulesNavLinks();
       wireOpsRulesShellClose();
       if (activeOpsPage === 'dashboard') {
         refreshDashboard().catch(error => setText('dashHealthText', error.message));
@@ -3294,6 +4286,17 @@ void AppendOpsShellScript(std::ostringstream& out, const std::string& active) {
         setOpsRulesCatalogVisibility('va-rule');
         setOpsRulesEditorModeButtons('va-rule');
         setOpsRulesComposer('', 'closed');
+        window.addEventListener('pageshow', () => {
+          closeOpsRulesEditor().catch(() => {});
+          setOpsRulesCatalogVisibility('va-rule');
+          setOpsRulesEditorModeButtons('va-rule');
+        });
+        window.addEventListener('pagehide', () => {
+          closeOpsRulesEditor().catch(() => {});
+        });
+        window.addEventListener('beforeunload', () => {
+          closeOpsRulesEditor().catch(() => {});
+        });
       } else if (activeOpsPage === 'home') {
         refreshLive().catch(error => setText('homeRuntimeText', error.message));
       } else if (activeOpsPage === 'live') {
@@ -3356,15 +4359,6 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       webrtc: 'Published WebRTC',
       http: 'HTTP/HLS pull'
     })[kind] || kind || '미제공';
-    const kindHelpText = source => {
-      const kind = String(source?.kind || '').toLowerCase();
-      if (kind === 'webrtc') return 'WHIP publish로 이미 등록된 sourceId를 연결합니다.';
-      if (kind === 'whep') return '외부 WHEP playback URL을 서버가 pull합니다.';
-      if (kind === 'rtsp') return '카메라/게이트웨이 RTSP 주소를 서버가 pull합니다.';
-      if (kind === 'http') return 'HTTP/HLS URL을 서버가 pull합니다.';
-      if (kind === 'file') return '서버 로컬 파일 기반 채널입니다.';
-      return '입력 종류를 확인하세요.';
-    };
     const locatorForSource = source => {
       if (source.webrtcSourceId) return `Published sourceId: ${source.webrtcSourceId}`;
       if (source.whepUrl) return `외부 WHEP URL: ${source.whepUrl}`;
@@ -3585,10 +4579,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       const isNew = mode === 'new';
       channelMode.textContent = isNew ? '새 채널' : (isView ? '상세' : '수정 중');
       const visibleId = channelForm.elements.channelId.value || id || currentChannelId;
-      channelIdBadge.textContent = visibleId ? `#${visibleId}` : '#-';
+      channelIdBadge.textContent = visibleId || '-';
       channelTitle.textContent = isNew
         ? '채널 추가'
-        : `채널 #${channelForm.elements.channelId.value || id}`;
+        : `채널 ${channelForm.elements.channelId.value || id}`;
       channelHelp.textContent = isView
         ? '저장된 내용입니다.'
         : '값을 바꾼 뒤 저장합니다.';
@@ -3613,16 +4607,15 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         const inputText = source.sourceId ? locatorForSource(source) : '소스 미등록';
         return `
         <tr>
-          <td data-label="번호">
+          <td data-label="ID">
             <div class="channel-id-cell">
-              <strong>${escapeHtml(row.id || '')}</strong>
+              <span class="table-identity-pill table-identity-id">${escapeHtml(row.id || '-')}</span>
             </div>
           </td>
           <td data-label="이름">${escapeHtml(channelName)}</td>
           <td data-label="종류">
             <div class="channel-kind-cell">
               <strong>${escapeHtml(kindLabel(source.kind))}</strong>
-              <span class="channel-kind-note">${escapeHtml(kindHelpText(source))}</span>
             </div>
           </td>
           <td data-label="상태">
@@ -3634,7 +4627,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
           <td data-label="입력">
             <div class="channel-input-stack">
               <span class="token">${escapeHtml(inputText)}</span>
-              <span class="channel-source-note">${escapeHtml(source.sourceId ? `sourceId ${source.sourceId}` : 'PublishedView 연결 전')}</span>
+              ${source.sourceId ? '' : '<span class="channel-source-note">PublishedView 연결 전</span>'}
             </div>
           </td>
           <td data-label="라이브 URL">${liveButtons}</td>
@@ -4102,7 +5095,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         if (value === 'ops:read') return { label: '운영 콘솔' };
         if (value === 'rule:write') return { label: '룰 관리' };
         if (value === 'source:write') return { label: '채널 관리' };
-        if (value === 'lab:read') return { label: 'Lab 보기' };
+        if (value === 'lab:read') return { label: '개발/검증 API' };
         const scopedMatch = value.match(/^(view|dashboard|event|metadata):read:(.+)$/);
         if (!scopedMatch) return { label: value };
         const featureLabel = ({
@@ -4136,21 +5129,21 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         const targets = Array.from(new Set(parsed.map(item => item.target).filter(Boolean)));
         const labels = Array.from(new Set(parsed.map(item => item.label).filter(Boolean)));
         if (targets.length === 1 && labels.length > 0) {
-          const primary = labels.length <= 2 ? labels.join(' · ') : `${labels.length}개 범위`;
+          const primary = labels.length <= 2 ? labels.join(', ') : `${labels.length}개 범위`;
           const note = labels.length <= 2
             ? targets[0]
-            : `${labels.join(' · ')} · ${targets[0]}`;
+            : `${labels.join(', ')} / ${targets[0]}`;
           return userValueHtml(primary, note);
         }
         if (labels.length <= 2) {
-          return userValueHtml(labels.join(' · '));
+          return userValueHtml(labels.join(', '));
         }
-        const preview = labels.slice(0, 3).join(' · ');
+        const preview = labels.slice(0, 3).join(', ');
         return userValueHtml(`${labels.length}개 범위`, labels.length > 3 ? `${preview} 외 ${labels.length - 3}개` : preview);
       }
       function appendUserRow(user) {
         const tr = document.createElement('tr');
-        appendLabeledCell(tr, '계정명', `<div class="user-id-cell"><strong>${escapeHtml(displayValue(user.username))}</strong></div>`);
+        appendLabeledCell(tr, '계정명', `<div class="user-id-cell"><span class="table-identity-pill table-identity-user">${escapeHtml(displayValue(user.username))}</span></div>`);
         appendLabeledCell(tr, '이름', userValueHtml(user.displayName || '미제공'));
         appendLabeledCell(tr, '권한', userValueHtml(roleLabel(user.role)));
         appendLabeledCell(tr, '상태', `<div class="user-status-actions">${chip(user.enabled ? '활성' : '비활성', user.enabled ? '' : 'warn')}</div>`, 'table-cell-status');
@@ -4177,7 +5170,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     }
       function appendRequestRow(request) {
         const tr = document.createElement('tr');
-        appendLabeledCell(tr, '계정명', `<div class="user-id-cell"><strong>${escapeHtml(displayValue(request.username))}</strong></div>`);
+        appendLabeledCell(tr, '계정명', `<div class="user-id-cell"><span class="table-identity-pill table-identity-user">${escapeHtml(displayValue(request.username))}</span></div>`);
         appendLabeledCell(tr, '이름', userValueHtml(request.displayName || '미제공'));
         appendLabeledCell(tr, '연락처', userValueHtml(request.contact || '미제공'));
         appendLabeledCell(tr, '채널', userValueHtml(request.viewId || '미지정'));

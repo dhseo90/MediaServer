@@ -10,19 +10,13 @@
 
 ## 현재 상태
 
-- `/lab/import`는 YouTube URL을 개발용 샘플 파일로 가져와 `video/imports` 아래에 저장하는 실험 UI/API입니다.
-- import 결과는 가능한 경우 `ffmpeg`로 `h264 + aac stereo + mp4` 형태로 정규화하고, 이후 `file=imports/...` 경로로 재사용합니다.
-- `source=youtube` 직접 표출은 기본 비활성입니다. `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`일 때만 노출합니다.
+- `/lab/import` 화면은 제품 UI에서 제거했습니다. route는 `/ops/sources`로 redirect합니다.
+- YouTube import/source는 현재 운영 기본 기능이 아니며 자동 smoke gate에도 포함하지 않습니다.
+- `source=youtube` 직접 표출 실험은 기본 비활성입니다. 다시 살릴 경우 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1` 같은 명시 opt-in과 별도 설계 검토가 필요합니다.
 - import/source 모두 core RTSP/WebRTC relay 안정성 기준과 분리해서 봅니다.
 - 접근 제한, 공개 범위 제한, 서비스 정책, rate limit, 서명 URL 만료, 네트워크 장애는 정상적인 실패 조건으로 처리합니다.
 
 ## 활성화 방법
-
-Lab import UI를 명시적으로 켜고 실행:
-
-```bash
-MEDIA_SERVER_ENABLE_LAB_YOUTUBE_IMPORT=1 ./server.sh foreground
-```
 
 직접 source 표출 실험을 명시적으로 켜고 실행:
 
@@ -63,21 +57,20 @@ Linux에서는 배포판 패키지 또는 프로젝트 운영 기준에 맞는 �
 기본 UI/API smoke:
 
 ```bash
-./server.sh verify-lab-import-ui
+./server.sh verify-ops-client-ui
 ```
 
 검증 기준:
 
-- `/lab/import` 화면이 렌더링됨
-- import job API가 기본 요청/상태 응답을 반환함
-- 실패 메시지가 서버 crash 없이 UI/API에 전달됨
-- import 기능이 꺼져 있을 때 core `/lab`, `/lab/rules`, RTSP/WebRTC 경로에 영향이 없음
+- `/lab/import`가 `/ops/sources`로 redirect됨
+- import job UI/API가 제품 화면에 노출되지 않음
+- 실험 기능이 꺼져 있을 때 core `/ops`, `/client`, RTSP/WebRTC 경로에 영향이 없음
 
 실제 다운로드 성공 검증은 사용 권한과 공개 범위가 명확한 URL, 고정된 resolver 버전, 충분한 네트워크 조건이 있을 때만 별도로 수행합니다. 공개 외부 URL 성공은 문서나 자동 테스트에서 보장하지 않습니다.
 
 ## 운영 전환 전 조건
 
-- 기능을 운영 기본 기능으로 승격할지, Lab 실험 기능으로만 유지할지 결정
+- 기능을 운영 기본 기능으로 승격할지, 별도 실험 기능으로만 유지할지 결정
 - 사용 가능한 테스트 URL과 사용 범위에 대한 내부 정책 확정
 - resolver 설치 방식과 버전 고정 전략 확정
 - 장시간 import job의 timeout, cancel, retry, cleanup 정책 확정

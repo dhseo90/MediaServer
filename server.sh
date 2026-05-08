@@ -46,9 +46,11 @@ Usage:
   verify-route-profiles
                  실제 RTSP/WebRTC overlay 세션에서 route별 profile/rule matching을 검증합니다.
   verify-rule-ui
-                 /lab/rules Rule/Profile 카테고리 버튼과 저장 payload를 검증합니다.
+                 /ops/rules Rule/Profile 카테고리 버튼과 저장 payload를 검증합니다.
   verify-ops-client-ui
                  /ops와 /client shell selector 및 client debug/source 비노출을 검증합니다.
+  verify-ops-rules-roundtrip
+                 /ops/rules 이벤트 템플릿 저장/조회 round-trip을 영상 재생 없이 검증합니다.
   verify-auth-bootstrap
                  최초 setup, admin password policy, login/logout/session을 검증합니다.
   verify-auth-users
@@ -59,10 +61,6 @@ Usage:
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-event-post-longrun
                  event POST schema/recovery/선택 queue 검증을 반복 실행합니다.
-  verify-lab-import-ui
-                 /lab/import 실험실 import UI와 jobs API를 검증합니다.
-  verify-lab-layout
-                 /lab 주요 화면의 반응형 레이아웃과 가로 overflow를 폭별로 검증합니다.
   verify-tracker-stability
                  이동 영상에서 track ID 유지/분절 통계를 수집합니다.
   compare-close-object-tracker
@@ -81,8 +79,6 @@ Usage:
                  VA metadata SSE side-channel schema/cleanup을 summary JSON과 함께 검증합니다.
   verify-webrtc-va-metadata
                  WebRTC vaMetadata=1 DataChannel의 video/ICE/schema 수신을 브라우저로 검증합니다.
-  verify-webrtc-va-metadata-sync
-                 Lab WebRTC metadata viewer의 video frame / overlay sync 정책을 브라우저로 검증합니다.
   verify-va-runtime-console
                  VA Runtime Dashboard용 metrics/state/status endpoint를 검증합니다.
   verify-va-runtime-console-longrun
@@ -220,12 +216,16 @@ case "${cmd}" in
     exec "${INTERNAL_DIR}/verify_route_profile_matching.sh" "$@"
     ;;
   verify-rule-ui)
-    require_internal verify_rule_ui_smoke.sh
-    exec "${INTERNAL_DIR}/verify_rule_ui_smoke.sh" "$@"
+    require_internal verify_ops_rules_embed_smoke.mjs
+    exec "${INTERNAL_DIR}/verify_ops_rules_embed_smoke.mjs" "$@"
     ;;
   verify-ops-client-ui)
     require_internal verify_ops_client_ui_smoke.mjs
     exec "${INTERNAL_DIR}/verify_ops_client_ui_smoke.mjs" "$@"
+    ;;
+  verify-ops-rules-roundtrip)
+    require_internal verify_ops_rules_roundtrip.mjs
+    exec "${INTERNAL_DIR}/verify_ops_rules_roundtrip.mjs" "$@"
     ;;
   verify-auth-bootstrap)
     require_internal verify_auth_bootstrap.sh
@@ -246,14 +246,6 @@ case "${cmd}" in
   verify-event-post-longrun)
     require_internal verify_event_post_longrun.sh
     exec "${INTERNAL_DIR}/verify_event_post_longrun.sh" "$@"
-    ;;
-  verify-lab-import-ui)
-    require_internal verify_lab_import_ui.sh
-    exec "${INTERNAL_DIR}/verify_lab_import_ui.sh" "$@"
-    ;;
-  verify-lab-layout)
-    require_internal verify_lab_layout.mjs
-    exec "${INTERNAL_DIR}/verify_lab_layout.mjs" "$@"
     ;;
   verify-tracker-stability)
     require_internal verify_tracker_stability.sh
@@ -290,10 +282,6 @@ case "${cmd}" in
   verify-webrtc-va-metadata)
     require_internal verify_webrtc_va_metadata.mjs
     exec "${INTERNAL_DIR}/verify_webrtc_va_metadata.mjs" "$@"
-    ;;
-  verify-webrtc-va-metadata-sync)
-    require_internal verify_webrtc_va_metadata_sync.mjs
-    exec "${INTERNAL_DIR}/verify_webrtc_va_metadata_sync.mjs" "$@"
     ;;
   verify-va-runtime-console)
     require_internal verify_va_runtime_console.py

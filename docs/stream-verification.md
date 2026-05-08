@@ -47,15 +47,15 @@ git diff --check -- README.md docs scripts src include
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-rule-ui
-./server.sh verify-lab-layout --no-screenshots
+./server.sh verify-ops-rules-roundtrip
 ./server.sh verify-analysis-state
 ```
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
 
 `verify-auth-routes`는 임시 users/source/view 파일과 격리 포트로 서버를 직접 띄웁니다.
-`verify-ops-client-ui`, `verify-rule-ui`, `verify-lab-layout`는
-실행 중인 HTTP 서버를 대상으로 하는 attached smoke입니다.
+`verify-ops-client-ui`, `verify-rule-ui`는 실행 중인 HTTP 서버를 대상으로 하는 attached UI smoke입니다.
+`verify-ops-rules-roundtrip`은 같은 서버의 이벤트 템플릿 API round-trip을 영상 재생 없이 확인합니다.
 UI 전용 검증에서는 별도 터미널에서
 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`를 실행하고,
 포트가 다르면 `--http-base`를 명시합니다.
@@ -72,7 +72,7 @@ UI 변경:
 
 ```bash
 ./server.sh verify-rule-ui
-./server.sh verify-lab-layout
+./server.sh verify-ops-rules-roundtrip
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-client-ui --screenshots
 MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap
@@ -83,7 +83,7 @@ UI 변경 검증에서는 기본 추가 RTSP/WebRTC source 영상이나 codec ma
 
 - `verify-ops-client-ui`
 - `verify-rule-ui`
-- `verify-lab-layout --no-screenshots`
+- `verify-ops-rules-roundtrip`
 
 WebRTC/RTSP streaming 동작이 바뀐 경우에만
 별도 WebRTC/stream 변경 명령을 실행합니다.
@@ -159,6 +159,8 @@ fi
   대시보드는 `/ops/api/runtime/status`,
   룰 화면은 `/ops/api/rules/catalog`,
   숨김 이벤트 상태는 `/ops/api/events/status`를 사용합니다.
+  `/ops/rules` detail panel은 `opsVaRuleForm`,
+  `opsEventRuleForm`, `opsProfileForm` 네이티브 폼으로 열립니다.
   `/ops/rules`는 `rule/profile/source` 검색 입력과 `#q=` hash를 지원합니다.
   raw JSON은 접힘 debug 영역에만 둡니다.
 - `/ops/sources`는 숫자 채널 table을 먼저 보여줍니다.
@@ -169,7 +171,7 @@ fi
   source 원본 URL은 ops 화면에만 표시합니다.
 - `/ops/users`는 사용자 목록 table과 접근 요청 table을 보여주고, 사용자 추가/수정 editor는 접힘 영역으로 열립니다. Access request 승인 UI는 password setup invite token/setup URL을 승인 응답에서 한 번만 표시하며, 거절은 request 상태만 바꿉니다. `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`를 노출하지 않습니다.
 - `/client/live`, `/client/dashboard`는 client shell을 유지하고 source URL, Developer URL, BBox diagnostics, raw JSON, `debugCounters`, rule/profile editor를 노출하지 않습니다. Client Events tab은 primary nav에서 제거합니다.
-- `/lab`와 `/lab/rules`는 기존 Lab layout과 Rule/Profile UI smoke 기준을 계속 통과해야 합니다.
+- `/lab`, `/lab/rules`, `/lab/import` 화면 route는 제품 화면으로 redirect하고, 개발/검증 API는 `/lab/analysis/*`에서만 유지합니다.
 
 WebRTC/stream 변경:
 
@@ -317,7 +319,7 @@ Close-object guard 검증은 mode별 목적을 분리합니다.
 MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=diagnostic ./server.sh verify-analysis-state
 MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=diagnostic ./server.sh verify-va-replay
 MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=diagnostic ./server.sh verify-va-events
-MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=diagnostic ./server.sh verify-webrtc-va-metadata-sync --file imports/va_tracking_event_1280x720_30fps_h264.mp4
+MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=diagnostic ./server.sh verify-webrtc-va-metadata --file imports/va_tracking_event_1280x720_30fps_h264.mp4
 MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=diagnostic ./server.sh verify-va-runtime-console
 
 MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verify-tracker-stability --long --overlap-focus
@@ -400,16 +402,15 @@ curl -fsS -X POST \
 - DataChannel 실패가 audio/video streaming 실패로 전파되지 않음
 - WebRTC 메타데이터 뷰어는 browser client-side overlay이고 RTSP URL과 혼동하지 않음
 
-WebRTC VA 메타데이터 뷰어 수동 확인:
+WebRTC VA 메타데이터 수동 확인:
 
-1. 서버 실행 후 브라우저에서 `/lab/rules`를 연다.
-2. `영상 분석 보기` 탭으로 이동한다.
-3. 보기 모드를 `WebRTC 메타데이터`로 선택한다.
-4. 서버 파일 또는 URL source를 선택하고 `보기 시작`을 누른다.
-5. 개발자 요청 URL의 WebRTC simple signaling query에 `vaMetadata=1`이 포함되는지 확인한다.
-6. DataChannel label이 기본값 `va-metadata`로 표시되는지 확인한다.
-7. 상태가 `연결 중`에서 `열림` 또는 `수신 중`으로 전환되고 message count, Track/이벤트/시나리오 count, latest JSON preview가 갱신되는지 확인한다.
-8. DataChannel이 `지연` 또는 `오류`가 되어도 영상 재생 상태가 별도로 유지되는지 확인한다.
+1. `/ops/rules`에서 저장된 채널 분석 설정과 `vaRule` ID를 확인한다.
+2. `/ops/live` 또는 custom client에서 해당 `vaRule`을 선택한다.
+3. 개발 검증은 `verify-webrtc-va-metadata --http-base ...`로 수행한다.
+4. WebRTC simple signaling query에 `vaMetadata=1`이 포함되는지 확인한다.
+5. DataChannel label이 기본값 `va-metadata`로 표시되는지 확인한다.
+6. 상태가 `연결 중`에서 `열림` 또는 `수신 중`으로 전환되고 message count, Track/이벤트/시나리오 count, latest JSON preview가 갱신되는지 확인한다.
+7. DataChannel이 `지연` 또는 `오류`가 되어도 영상 재생 상태가 별도로 유지되는지 확인한다.
 
 WebRTC VA metadata overlay sync 수동 판단 기준:
 
@@ -443,12 +444,12 @@ WebRTC VA metadata 자동 검증:
 WebRTC VA metadata overlay sync 자동 검증:
 
 ```bash
-./server.sh verify-webrtc-va-metadata-sync --http-base http://127.0.0.1:8080
+./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8080
 ```
 
 확인할 항목:
 
-- 실제 `/lab/rules` UI에서 `영상 분석 보기` → `WebRTC 메타데이터` 모드를 시작
+- `/ops/rules`에서 선택한 `vaRule` 또는 custom client의 `vaMetadata=1` 세션을 시작
 - WebRTC session 생성, video `ontrack`, ICE 연결, `va-metadata` DataChannel 수신 확인
 - `requestVideoFrameCallback` 기반 video frame count가 증가하는지 확인
 - metadata payload에 sync 진단 필드가 포함되는지 확인
@@ -468,8 +469,8 @@ RTSP와 WebRTC는 metadata 표시 방식이 다릅니다.
 
 수동 확인:
 
-1. `/lab/rules`의 `영상 분석 보기` 탭을 연다.
-2. `개발자 요청 URL`을 펼친다.
+1. `/ops/rules`에서 채널 분석 설정의 출력 URL을 확인한다.
+2. `/ops/live` 또는 custom client에서 WebRTC metadata URL을 확인한다.
 3. `WebRTC 메타데이터 뷰어` URL에는 `/webrtc/session`과 `vaMetadata=1`이 포함되는지 확인한다.
 4. Metadata subscription filter 입력값을 넣으면 WebRTC metadata viewer URL과 SSE/WS side-channel URL 모두에 `eventType`, `scenarioName`, `trackId`, `zoneId` query가 반영되는지 확인한다.
 5. `RTSP 서버 오버레이` URL에는 `rtsp://...`와 `va=1` 또는 `vaRule=<id>`가 포함되는지 확인한다.
@@ -623,14 +624,14 @@ WebSocket metadata side-channel smoke:
 - 첫 text frame의 JSON schema가 `media-server.va.runtime-metadata.v1`인지 확인
 - `tracks`, `events`, `scenarios`, `metrics` 필드가 포함되는지 확인
 - `{"type":"subscribe","eventType":"loitering","includeMetrics":false}` 같은 client text command 후 `media-server.va.metadata-control.v1` ack가 오고, 이어서 `unsubscribe`, `status`, `resume`, `reset` ack 순서와 subscribed/filter/include 상태가 기대값과 맞는지 확인
-- `/lab/rules` Custom client URL 패널에서 metadata filter preset 저장/재적용 후에도 WebRTC metadata viewer, SSE, WS URL query가 같은 filter/include 값을 유지하는지 확인
+- custom client metadata filter preset 저장/재적용 후에도 WebRTC metadata viewer, SSE, WS URL query가 같은 filter/include 값을 유지하는지 확인
 - 임시 WebSocket analysis tap이 client disconnect 후 cleanup되는지 확인
 - WebSocket 실패가 RTSP/WebRTC video/audio 흐름으로 전파되지 않는지 확인
 
 VA Runtime Console 자동 검증:
 
 ```bash
-./server.sh verify-lab-layout
+./server.sh verify-ops-client-ui
 ./server.sh verify-analysis-state
 ./server.sh verify-va-runtime-console --http-base http://127.0.0.1:8080
 ```
@@ -877,7 +878,7 @@ Rule/Profile UI와 저장 rule 호출:
 
 ```bash
 ./server.sh verify-rule-ui
-./server.sh verify-lab-layout
+./server.sh verify-ops-rules-roundtrip
 ```
 
 저장 rule 수동 URL:

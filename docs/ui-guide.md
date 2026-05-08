@@ -1,6 +1,6 @@
 # UI Guide
 
-이 문서는 Auth, Ops, Client, Lab UI의 현재 shell 구조와 MVP 범위를 설명합니다. 서버 실행/검증 명령은 [development-guide.md](./development-guide.md), VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다.
+이 문서는 Auth, Ops, Client 제품 UI의 현재 shell 구조와 MVP 범위를 설명합니다. 서버 실행/검증 명령은 [development-guide.md](./development-guide.md), VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다. `/lab` 화면 route는 제품 UI에서 제거했고 개발/검증 API만 유지합니다.
 
 ## 1. UI 개요
 
@@ -17,9 +17,8 @@
 | 클라이언트 포털 | `http://127.0.0.1:8080/client` 또는 `/client/live` | viewer/operator/admin용 client shell과 2x2 live monitor MVP |
 | 클라이언트 Dashboard | `http://127.0.0.1:8080/client/dashboard` | scoped PublishedView 상태 요약 MVP |
 | 접근 요청 | `http://127.0.0.1:8080/client/request-access` | pending client access request 제출 |
-| 통합 Lab | `http://127.0.0.1:8080/lab` | 스트림 재생, VA 분석, 영상 분석 설정, 개발/검증 도구를 한 화면에서 확인 |
-| 영상 분석 관리 | `http://127.0.0.1:8080/lab/rules` | 영상 분석 설정/보기/Runtime Dashboard 3탭 관리 |
-| 런타임 상태 API | `http://127.0.0.1:8080/lab/runtime/status` | session, stream, analysis tap 상태 JSON API |
+| 룰 관리 | `http://127.0.0.1:8080/ops/rules` | 채널 분석 설정, 이벤트 템플릿, 분석 프로파일 관리 |
+| 개발/검증 API | `http://127.0.0.1:8080/lab/analysis/*` | session, stream, analysis tap, event storage JSON API |
 
 실제 host/port는 `./server.sh status` 또는 `./server.sh urls` 출력값을 우선합니다.
 
@@ -40,13 +39,13 @@ client/viewer shell에는 raw JSON, debug, developer/source URL을 노출하지 
 내장 HTTP UI는 아직 C++ 문자열 렌더링 기반이지만, 제품 shell 쪽은 다음 공통 helper를 기준으로 유지합니다.
 
 - `include/ingress/product_ui_assets.h`, `src/ingress/product_ui_assets.cpp`: theme toggle button, nav/account SVG asset처럼 route data에 의존하지 않는 product UI asset을 보관합니다.
-- `include/ingress/product_ui_css.h`, `src/ingress/product_ui_css.cpp`: Auth/Ops/Client와 `/lab/rules`가 공유하는 design token, 제품 shell CSS, client shell 전용 CSS를 보관합니다.
+- `include/ingress/product_ui_css.h`, `src/ingress/product_ui_css.cpp`: Auth/Ops/Client가 공유하는 design token, 제품 shell CSS, client shell 전용 CSS를 보관합니다.
 - `include/ingress/product_ui_js.h`, `src/ingress/product_ui_js.cpp`: theme boot/apply script와 product route 공통 JS helper를 보관합니다.
 - `include/ingress/product_ui_page_scripts.h`,
   `src/ingress/product_ui_page_scripts.cpp`:
   `/client`, `/client/request-access`, `/ops` shell overview pages,
   `/ops/sources`, `/ops/users`의 route별 page script를 보관합니다.
-- `ProductDesignTokensCss()`: Auth/Ops/Client와 `/lab/rules`가 공유하는 light/dark semantic token 원천입니다.
+- `ProductDesignTokensCss()`: Auth/Ops/Client가 공유하는 light/dark semantic token 원천입니다.
 - `ProductUiCss()`: 제품 shell 공통 card/button/form/table/badge/debug 스타일입니다.
 - `ProductSharedUiScript()`:
   product route에서 공유하는 `escapeHtml`, `requestJson`, selector,
@@ -75,15 +74,9 @@ UI ownership은 다음 표를 기준으로 봅니다.
 | Auth shell | `AppendAuthShellStart/End` | `/setup`, `/login`, `/password/change`, invite/request shell | password policy와 session 동작은 auth backend 계약을 따릅니다. |
 | Ops shell | `AppendOpsShellStart/End`, `AppendOps*Page*`, `AppendOpsShellScript` | admin/operator navigation, page markup, overview script | raw/debug JSON은 접힘 영역에만 둡니다. |
 | Client shell | `ClientShellPageHtml`, `AppendClientShellScript` | scoped viewer live/dashboard UI | source URL, debugCounters, Developer URL, rule/profile editor를 노출하지 않습니다. |
-| Smoke | `verify_ops_client_ui_smoke.mjs`, `verify_auth_ui_smoke.mjs`, `verify_auth_workflow.sh`, `rule_ui_smoke_check.mjs` | selector, screenshot, auth UI, `/lab/rules` 회귀 확인 | visible text보다 stable selector와 금지 항목 중심으로 유지합니다. |
+| Smoke | `verify_ops_client_ui_smoke.mjs`, `verify_ops_rules_embed_smoke.mjs`, `verify_auth_ui_smoke.mjs`, `verify_auth_workflow.sh`, `verify_ops_rules_roundtrip.mjs` | selector, screenshot, auth UI, `/ops/rules` 회귀와 이벤트 템플릿 round-trip 확인 | visible text보다 stable selector와 금지 항목 중심으로 유지합니다. |
 
-`/lab/rules`는 기존 smoke selector와 3탭 회귀 위험이 높으므로, 대규모 DOM 구조 변경 없이 token과 selector 호환을 우선합니다.
-
-`/lab/rules`는 세 탭으로 나뉩니다.
-
-- 영상 분석 설정: 저장된 영상 분석 룰 목록과 룰 편집 화면
-- 영상 분석 보기: 실시간 스트리밍, VA 오버레이, VA 룰 미리보기
-- Runtime Dashboard: active analysis tap의 runtime metadata, backpressure, scenario/event/debug 상태
+`/ops/rules`는 채널 분석 설정, 이벤트 템플릿, 분석 프로파일을 제품 운영 화면에서 직접 관리합니다. `/lab/rules` iframe이나 legacy Lab 3탭을 embed하지 않습니다.
 
 대표 제품 화면:
 
@@ -137,7 +130,7 @@ Password policy 기본값은 `kr-privacy`입니다.
 로그인 실패가 반복되면 계정별 lockout 메시지를 표시합니다.
 `mustChangePassword=true` 계정은 로그인 후 `/password/change`로 이동합니다.
 
-`MEDIA_SERVER_AUTH_MODE=off`는 기존 Lab 검증과 개발 자동화를 위한 명시 모드입니다. 이 모드에서만 `/lab`와 `/lab/rules`에 바로 접근합니다.
+`MEDIA_SERVER_AUTH_MODE=off`는 기존 개발 자동화를 위한 명시 모드입니다. 이 모드에서도 `/lab`, `/lab/rules`, `/lab/import` 화면 route는 제품 화면으로 redirect하고, 개발/검증 API만 `/lab/analysis/*` 아래에서 유지합니다.
 
 Role별 이동:
 
@@ -214,12 +207,11 @@ Route 역할:
   원본 source URL, debug/developer URL은 노출하지 않습니다.
   integrator는 shell/live/dashboard UI가 아니라
   scoped events/metadata API만 접근합니다.
-- `/lab`:
-  admin/operator 또는 `lab:read` scope용 개발/검증 shell입니다.
+- `/lab/analysis/*`:
+  admin/operator 또는 `lab:read` scope용 개발/검증 API입니다.
   viewer/client 기본 계정은 접근할 수 없고,
   rule/profile/vaRule 변경 API는 `rule:write` scope를 추가로 요구합니다.
-  기존 `/lab/rules`와 자동화 bookmark 호환은
-  auth off 검증 모드에서 유지합니다.
+  `/lab`, `/lab/rules`, `/lab/import` 화면 route는 제품 화면으로 redirect합니다.
 
 Shell navigation은 server-side principal로 1차 렌더링하고,
 `/auth/whoami` 응답으로 admin-only menu를 다시 숨깁니다.
@@ -355,7 +347,7 @@ source 원본 URL, Developer URL, raw JSON, `debugCounters`,
 `analysisTapId`, internal session id, rule/profile editor,
 Event POST 설정, SSE/WS 전체 endpoint를 노출하지 않습니다.
 운영자용 세부 runtime/debug 확인은
-`/lab/rules` Runtime Dashboard 또는 `/lab/runtime/status`에서만 수행합니다.
+`/ops/dashboard` 요약과 `/lab/runtime/status` API에서 수행합니다.
 
 ### 4.2 Client Live Monitor
 
@@ -394,56 +386,51 @@ Tile별 기능:
 
 Hidden tab, route leave, tile stop 시 PeerConnection, DataChannel, server WebRTC session을 정리합니다. 모든 tile에 BBox diagnostics를 켜는 동작은 제공하지 않습니다.
 
-## 5. 영상 분석 룰 목록
+## 5. 룰 관리 목록
 
-이 장부터는 `/lab/rules` 기준 설명입니다.
-`/ops/rules`의 운영용 목록과는 역할이 다릅니다.
+이 장부터는 `/ops/rules` 기준 설명입니다.
 
-룰 목록은 저장된 `vaRule` 설정을 관리하는 첫 화면입니다. `vaRule`은 숫자 ID이며, 영상 source, 분석 profile, event/scenario, 영역/라인, event action을 하나로 묶습니다.
+룰 관리는 세 가지 목록을 같은 운영 화면에서 관리합니다. 채널 분석 설정은 실제 채널에 적용되는 `vaRule`이고, 이벤트 템플릿과 분석 프로파일은 채널 분석 설정을 만들기 위한 선수 항목입니다. `vaRule`은 숫자 ID이며, 사용자가 직접 ID를 입력하지 않습니다.
 
 목록에서 확인하는 정보:
 
-- 전체 룰 수
-- 적용 중 룰 수
-- 시나리오 룰 수
+- 채널 분석 설정 수
+- 이벤트 템플릿 수
+- 분석 프로파일 수
 - 다음 자동 번호
-- 각 룰의 ID, 이름, source, event 방식, 적용 상태
+- 각 항목의 ID, 적용 채널/종류/프로파일, 영역/라인, 출력 URL, 상태
 
 주요 동작:
 
-- 룰 추가: 목록 상단의 단일 버튼으로 제공하며, 기본값이 채워진 새 룰 편집 화면으로 이동합니다.
-- 룰 수정: 각 룰 행의 수정 버튼으로 저장 데이터를 편집 화면에 불러옵니다.
-- 룰 삭제: 각 룰 행의 삭제 버튼을 누른 뒤 룰 ID와 이름을 확인하는 dialog 후 삭제합니다.
-- 룰 보기/테스트: 영상 분석 보기 탭에서 해당 룰을 선택해 확인합니다.
-- 적용 상태: 목록에서 적용/비활성 상태를 확인하고 토글할 수 있습니다.
-- 룰 복제: 각 룰 행의 복제 버튼을 사용합니다. 새 숫자 ID를 사용하며, 복제 룰은 실수 적용을 막기 위해 비활성 상태를 기본으로 둡니다.
+- 이벤트 템플릿 추가: 기본 이벤트 또는 시나리오 종류와 판단 조건을 저장합니다.
+- 분석 프로파일 추가: detector, fps, queue, 입력 해상도 같은 분석 실행 값을 저장합니다.
+- 채널 분석 설정 추가: 채널, 이벤트 템플릿, 분석 프로파일을 고르고 영역/라인을 지정합니다.
+- 상세/수정/삭제: 각 행의 작업 버튼에서만 제공합니다.
+- 적용 상태: 채널 분석 설정에만 존재하며 이벤트 템플릿과 분석 프로파일에는 활성/비활성이 없습니다.
 
-목록은 다중 선택 기반 toolbar를 사용하지 않습니다. 보기/수정/복제/삭제는 각 룰 행의 작업 버튼에만 노출하고, 필터 결과 수는 `표시 중` 요약 배지로 작게 표시합니다.
+목록은 다중 선택 기반 toolbar를 사용하지 않습니다. 보기/수정/삭제는 각 행의 작업 버튼에만 노출하고, 필터 결과 수는 요약 배지로 작게 표시합니다.
 
 사용자가 rule number를 직접 입력하지 않습니다. 서버/UI가 빈 숫자 ID를 자동 배정하고, URL에서는 `vaRule=<숫자>`만 사용합니다.
 
-## 6. 룰 편집 흐름
+## 6. 채널 분석 설정 흐름
 
-룰 추가 또는 수정 시 편집 화면으로 전환됩니다. 저장 완료 후에는 목록으로 돌아가는 흐름을 기본으로 합니다.
+채널 분석 설정 추가 또는 수정 시 같은 페이지 안의 편집 panel을 사용합니다. 저장 완료 후에는 상세 상태로 돌아가는 흐름을 기본으로 합니다.
 
 ![룰 편집 기본 정보](assets/ui/analysis-rule-editor-basic.png)
 
-편집 화면은 8개 섹션입니다.
+편집 화면은 5개 섹션입니다.
 
 | 섹션 | 설명 |
 | --- | --- |
-| 기본 정보 | Rule ID, Rule 이름, 적용 상태 |
-| 영상 소스 | 대상 source, 송출 경로, 현재 연결된 source 요약 |
-| 분석 Profile | 사용할 profile 선택, profile 요약, 고급 Profile 설정 |
-| 이벤트 방식 | 기본 이벤트 또는 시나리오 선택 |
-| 대상 객체 | 객체 category, 최소 신뢰도, 최소 지속 시간, 불안정 track 제외 옵션 |
-| 영역/라인 설정 | 영상 프레임 보기, polygon/line 캔버스, 영역 이름 |
-| 이벤트 동작 | overlay blink, blink 시간, POST URL, payload preview |
-| 저장 전 검토 | 현재 설정 요약, validation 결과, 저장 버튼 |
+| 기본 정보 | 이름, 적용 상태 |
+| 채널/템플릿/Profile | 채널, 이벤트 템플릿, 분석 프로파일 선택 |
+| 채널 미리보기와 영역/라인 | 선택 채널 영상 위에 polygon/line 지정 |
+| 출력 | 테이블에서 RTSP/WHEP 라이브와 VA URL 복사 |
+| 저장 전 검토 | 현재 설정 요약과 validation 결과 |
 
 편집 화면 상단의 룰 이름, 저장 상태, 저장/목록 버튼, 섹션 이동 영역은 스크롤 중에도 따라다닙니다. 일반 폭에서는 섹션 이동을 버튼 탭으로 표시하고, 버튼 텍스트를 읽기 어려운 매우 좁은 폭에서는 드롭다운으로 전환합니다.
 
-저장하지 않은 변경사항이 있으면 목록 이동, 다른 룰 수정, 영상 분석 보기 이동 전에 확인 경고가 뜹니다. 저장/삭제 성공 또는 실패는 feedback으로 표시됩니다.
+저장하지 않은 변경사항이 있더라도 탭 이동은 막지 않습니다. 채널/사용자 탭과 동일하게 편집 panel은 닫기 동작으로 정리되고, 저장/삭제 성공 또는 실패는 feedback으로 표시됩니다.
 
 ## 7. 분석 Profile
 
@@ -633,11 +620,11 @@ EventRecord/snapshot/clip hook:
 - clip bundle은 운영 evidence용 frame 묶음이며 장기 녹화/MP4 플레이어 기능은 아닙니다.
 - 상태 확인은 `/lab/analysis/event-storage/status` API와 관련 metrics를 사용합니다.
 
-## 12. 영상 분석 보기 탭
+## 12. 미리보기와 메타데이터 확인
 
-보기 탭은 설정을 검증하는 테스트/미리보기 화면입니다.
+운영 화면에서는 `/ops/live`와 `/ops/rules`의 채널 미리보기로 설정을 확인합니다. 개발/검증용 metadata 확인은 `/lab/analysis/*` API와 전용 검증 명령으로 수행합니다.
 
-![영상 분석 보기](assets/ui/analysis-preview.png)
+![미리보기와 메타데이터 확인](assets/ui/analysis-preview.png)
 
 보기 모드:
 
@@ -752,15 +739,12 @@ Frame sync 정책:
 
 상태 패널에서는 `Metadata 수신`, `Metadata buffer`, `Metadata drop`, `프레임 매칭 실패`, `표시 video frame`, `Overlay draw`, `마지막 video frame`, `마지막 metadata`, `영상 멈춤` 값을 함께 봅니다.
 
-WebRTC 메타데이터 뷰어 사용 순서:
+WebRTC 메타데이터 확인 순서:
 
-1. `영상 분석 보기` 탭에서 `WebRTC 메타데이터` 모드를 선택합니다.
-2. 서버 파일, URL source, 또는 저장 rule 기반 source를 선택합니다.
-3. `보기 시작`을 누르면 `/webrtc/session?...&vaMetadata=1` 세션을 생성합니다.
-4. 영상은 WebRTC video track으로 재생되고 metadata는 `va-metadata` DataChannel로 수신됩니다.
-5. JSON preview와 Track/이벤트/시나리오 count를 확인합니다.
-6. client-side overlay toggle로 박스/라벨/Track ID/시나리오/이벤트/TrackHealth 표시를 조정합니다.
-7. bbox 위치가 의심되면 `BBox 진단 갱신`을 눌러 DataChannel/detector/track box의 IoU와 판단 문구를 확인합니다.
+1. `/ops/rules`에서 저장된 채널 분석 설정을 확인합니다.
+2. `/ops/live` 또는 `/client/live`에서 `va-rule` 모드로 영상을 엽니다.
+3. 개발 검증은 `./server.sh verify-webrtc-va-metadata --http-base ...`로 `vaMetadata=1` DataChannel 수신을 확인합니다.
+4. 필요하면 `/lab/analysis/taps/{tapId}/metadata/stream` 또는 `/lab/analysis/metadata/stream?vaRule=<id>` SSE API를 사용합니다.
 8. `보기 중지`를 누르면 WebRTC session과 metadata channel이 닫히고 overlay canvas가 정리됩니다.
 
 연결 상태:
@@ -816,7 +800,7 @@ Side-channel endpoint 구분:
 
 `/ws/va-metadata`는 `/lab` prefix가 없지만 Lab/custom-client 권한 경계를 따릅니다. Auth on에서는 admin/operator 또는 `lab:read` scope가 필요하고, viewer/client 제품 계정은 `/client` wrapper와 WebRTC DataChannel 흐름을 사용합니다.
 
-SSE/WS side-channel은 구독 query로 payload 범위를 줄일 수 있습니다. `eventType`, `scenarioName`, `trackId`, `zoneId`, `lineId`, `classId`, `className`, `ruleId`, `status`를 쉼표/세미콜론 목록으로 받을 수 있고, `includeSource=0`, `includeScenarios=0`, `includeMetrics=0`, `includeTrackingIssueReport=0`으로 큰 진단 필드를 끌 수 있습니다. `/lab/rules`의 Custom client URL 패널은 이 query를 직접 생성합니다. WebRTC metadata viewer URL도 같은 filter query를 전달해 DataChannel `tracks`/`events` 범위를 줄입니다. 같은 패널에서 metadata filter preset을 `localStorage`에 저장/재적용할 수 있어 반복 테스트나 custom client 샘플 URL을 빠르게 재구성할 수 있습니다. WebSocket client는 연결 후 `subscribe`/`unsubscribe`/`resume`/`status`/`reset` text command로 같은 filter를 재설정하거나 현재 구독 상태를 확인할 수 있습니다.
+SSE/WS side-channel은 구독 query로 payload 범위를 줄일 수 있습니다. `eventType`, `scenarioName`, `trackId`, `zoneId`, `lineId`, `classId`, `className`, `ruleId`, `status`를 쉼표/세미콜론 목록으로 받을 수 있고, `includeSource=0`, `includeScenarios=0`, `includeMetrics=0`, `includeTrackingIssueReport=0`으로 큰 진단 필드를 끌 수 있습니다. WebRTC metadata viewer URL도 같은 filter query를 전달해 DataChannel `tracks`/`events` 범위를 줄입니다. WebSocket client는 연결 후 `subscribe`/`unsubscribe`/`resume`/`status`/`reset` text command로 같은 filter를 재설정하거나 현재 구독 상태를 확인할 수 있습니다.
 
 SSE 수신만 확인하는 최소 custom client 예제는 `scripts/examples/va_metadata_sse_client.py`입니다.
 
@@ -1006,13 +990,12 @@ Runtime Dashboard의 RSS 표시는 장시간 검증 결과나 longrun report를 
 
 vaRule Runtime Debug와 Scenario Timeline은 새 backend API 없이 기존 metrics/state-dump/event buffer를 사용합니다. phase entered time 같은 세부 시각 값은 현재 state-dump에 노출된 값이 있을 때만 표시합니다. 원본 JSON은 `상태 덤프 / tracking issue report` 접힘 영역에서 확인할 수 있습니다.
 
-VA 런타임 대시보드 사용 순서:
+VA 런타임 확인 순서:
 
-1. 서버 실행 후 `/lab/rules`의 `영상 분석 보기` 탭을 엽니다.
-2. preview 또는 metadata viewer로 analysis tap을 만들거나 저장 rule을 선택합니다.
-3. VA 런타임 대시보드 영역에서 tap/rule을 선택합니다.
-4. 갱신 주기를 선택하면 `/lab/runtime/status`, `/metrics`, `/state-dump`, `/events`를 polling합니다.
-5. dashboard를 접거나 refresh를 끄면 polling을 중단합니다.
+1. 서버 실행 후 `/ops/dashboard`에서 runtime 요약을 확인합니다.
+2. `/ops/live` 또는 `/ops/rules` 미리보기로 analysis tap을 만들거나 저장 rule을 선택합니다.
+3. 세부 확인은 `/lab/runtime/status`, `/metrics`, `/state-dump`, `/events` API를 조회합니다.
+4. UI polling은 제품 화면 요약에 한정하고, 긴 진단은 검증 명령과 API로 수행합니다.
 
 재사용 endpoint:
 

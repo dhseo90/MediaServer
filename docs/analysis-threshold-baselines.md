@@ -43,7 +43,7 @@
 빠른 검증:
 
 ```bash
-node --check scripts/internal/rule_ui_smoke_check.mjs
+node --check scripts/internal/verify_ops_rules_embed_smoke.mjs
 ./server.sh verify-analysis-state
 ./server.sh build
 ```

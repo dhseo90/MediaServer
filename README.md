@@ -9,7 +9,7 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 - **영상 분석**:
   `va=1` overlay, `vaRule=<id>` 호출, Rule/Profile/Scenario, 객체/영역/라인 설정, Event POST와 EventRecord 저장을 제공합니다.
 - **제품 화면**:
-  `/ops`는 운영 콘솔, `/client`는 viewer 포털, `/lab`은 개발/검증 화면으로 분리합니다.
+  `/ops`는 운영 콘솔, `/client`는 viewer 포털입니다. `/lab` 화면은 제품 노출에서 제거했고 개발/검증 API만 유지합니다.
 - **권한과 계정**:
   `/setup`, `/login`, role/scope principal, admin 계정 관리, viewer invite/request 승인 흐름을 포함합니다.
 - **검증 구조**:
@@ -111,8 +111,7 @@ YOLO Detection
 | 운영 채널/룰/사용자 관리 | `http://127.0.0.1:8080/ops/sources`, `/ops/rules`, `/ops/users` |
 | 클라이언트 포털 shell MVP | `http://127.0.0.1:8080/client` 또는 `/client/live` |
 | 클라이언트 Dashboard UI MVP | `http://127.0.0.1:8080/client/dashboard` |
-| Lab, 개발/검증용 | `http://127.0.0.1:8080/lab` |
-| Lab Rule Editor | `http://127.0.0.1:8080/lab/rules` |
+| 개발/검증 API | `/lab/analysis/*`, `/lab/files`, `/lab/reports` |
 | RTSP | `rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4` |
 | WebRTC signaling | `POST http://127.0.0.1:8080/webrtc/session?file=sample_h264.mp4` |
 | WHEP | `POST http://127.0.0.1:8080/whep?file=sample_h264.mp4` |
@@ -133,9 +132,9 @@ YOLO Detection
 
 - `/ops`는 운영 콘솔입니다.
 - `/client`는 클라이언트 포털입니다.
-- `/lab`, `/lab/rules`는 개발/검증용 화면입니다.
+- `/lab`, `/lab/rules`, `/lab/import` 화면 route는 제품 화면으로 redirect합니다.
 - `/ops` 변경 API는 `source:write`가 필요합니다.
-- `/lab` rule/profile 변경 API는 `rule:write`가 필요합니다.
+- `/lab/analysis/*` rule/profile 변경 API는 `rule:write`가 필요합니다.
 - integrator는 UI shell 대신
   `/client/api/views/{viewId}/events`,
   `/client/api/views/{viewId}/metadata` 같은 scoped API를 사용합니다.
@@ -159,13 +158,13 @@ YOLO Detection
 
 ## 영상 분석 사용 흐름
 
-1. `/lab/rules`에서 영상 분석 설정 탭을 엽니다.
-2. 룰을 추가하고 source, profile, 기본 event 또는 scenario를 선택합니다.
-3. polygon 제한구역 또는 line crossing 선을 지정합니다.
+1. `/ops/rules`에서 분석 프로파일과 이벤트 템플릿을 먼저 준비합니다.
+2. 채널 분석 설정을 추가하고 채널, 이벤트 템플릿, 분석 프로파일을 선택합니다.
+3. 선택한 채널 미리보기 위에서 polygon 제한구역 또는 line crossing 선을 지정합니다.
 4. 저장하면 숫자 기반 `vaRule` ID가 배정됩니다.
-5. 영상 분석 보기 탭에서 실시간 스트리밍, `va=1`, `vaRule=<id>` 모드로 확인합니다.
-6. Runtime Dashboard 탭에서 active analysis tap, metadata/backpressure, scenario/event/debug 상태를 확인합니다.
-7. WebRTC 메타데이터 뷰어에서는 `vaMetadata=1` DataChannel과 browser client-side overlay를 확인합니다.
+5. `/ops/live` 또는 `/client/live`에서 실시간 스트리밍, `va=1`, `vaRule=<id>` 모드로 확인합니다.
+6. `/ops/dashboard`에서 runtime 요약을 보고, 세부 metadata/backpressure/scenario/event/debug 상태는 `/lab/analysis/*` API로 확인합니다.
+7. WebRTC 메타데이터는 `verify-webrtc-va-metadata` 또는 custom client에서 `vaMetadata=1` DataChannel로 확인합니다.
 8. 외부 RTSP 클라이언트에서는 `?va=1` 또는 `?vaRule=<id>` server-side overlay URL을 사용합니다.
 
 RTSP 일반 viewer는 WebRTC DataChannel metadata를 표시하지 않습니다.
@@ -219,13 +218,13 @@ git diff --check -- README.md docs scripts src include
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-rule-ui
-./server.sh verify-lab-layout --no-screenshots
+./server.sh verify-ops-rules-roundtrip
 ./server.sh verify-analysis-state
 ```
 
 `verify-auth-routes`는 격리 서버를 직접 띄웁니다.
-`verify-ops-client-ui`, `verify-rule-ui`, `verify-lab-layout`는
-실행 중인 HTTP 서버에 붙는 UI smoke입니다.
+`verify-ops-client-ui`, `verify-rule-ui`는 실행 중인 HTTP 서버에 붙는 UI smoke이고,
+`verify-ops-rules-roundtrip`은 같은 서버에 붙는 API round-trip smoke입니다.
 
 UI만 확인할 때는 별도 터미널에서
 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`로 서버를 띄운 뒤
@@ -269,7 +268,7 @@ VA/Auth 주요 검증:
 | 문서 | 역할 |
 | --- | --- |
 | [docs/development-guide.md](docs/development-guide.md) | 빌드, 실행, 디버깅, 테스트 명령 |
-| [docs/ui-guide.md](docs/ui-guide.md) | Auth/Ops/Client/Lab UI 사용법과 현재 MVP 범위 |
+| [docs/ui-guide.md](docs/ui-guide.md) | Auth/Ops/Client UI 사용법과 현재 MVP 범위 |
 | [docs/config-reference.md](docs/config-reference.md) | 환경변수와 주요 설정 reference |
 | [docs/media-server-architecture.md](docs/media-server-architecture.md) | RTSP/WebRTC pipeline, stream/session, VA layer 배치 |
 | [docs/video-analysis.md](docs/video-analysis.md) | YOLO, tracking, TrackState, scenario, replay, EventRecord |
