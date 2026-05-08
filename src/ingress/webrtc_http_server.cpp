@@ -1298,21 +1298,21 @@ std::optional<HttpRequest> ReadHttpRequest(int client_fd, HttpResponse* error_re
 
 std::string BuildTestPageHtml(bool lab_mode) {
     const bool youtube_enabled = lab_mode && app::GetAppConfig().enable_experimental_youtube_source;
-    const std::string page_title = lab_mode ? "미디어 서버 실험실" : "미디어 서버 WebRTC 테스트";
-    const std::string hero_title = lab_mode ? "미디어 서버 실험실" : "WebRTC 수신 테스트";
+    const std::string page_title = lab_mode ? "영상 분석 관리" : "미디어 서버 WebRTC 테스트";
+    const std::string hero_title = lab_mode ? "영상 분석 관리" : "WebRTC 수신 테스트";
     const std::string hero_body = lab_mode
-                                      ? "실험용 소스 검증, URL 가져오기 도구, simple signaling/WHEP/WHIP 확인을 한 곳에 모아둔 화면입니다."
+                                      ? "소스 검증, URL 가져오기 도구, simple signaling/WHEP/WHIP 확인을 한 곳에 모아둔 화면입니다."
                                       : "simple signaling, WHEP 재생, WHIP 스타일 publish를 같은 미디어 서버에서 확인하는 화면입니다.";
     const std::string page_link = lab_mode
                                       ? std::string()
-                                      : "          <p style=\"margin:0 0 14px;\"><a href=\"/lab\">실험실 페이지로 이동</a></p>\n";
+                                      : "          <p style=\"margin:0 0 14px;\"><a href=\"/lab\">개발 도구 페이지로 이동</a></p>\n";
     const std::string youtube_option =
-        youtube_enabled ? "              <option value=\"youtube\">YouTube watch/live URL (실험실)</option>\n"
+        youtube_enabled ? "              <option value=\"youtube\">YouTube watch/live URL (개발 도구)</option>\n"
                         : std::string();
     const std::string experimental_note =
         lab_mode
             ? (youtube_enabled
-                   ? "          <p style=\"margin:0;color:var(--muted);font-size:0.9rem;\">이 서버에서는 실험실 YouTube 소스가 켜져 있습니다. `yt-dlp`를 사용하며 로그인, 지역 제한, bot check에 따라 실패할 수 있습니다.</p>\n"
+                   ? "          <p style=\"margin:0;color:var(--muted);font-size:0.9rem;\">이 서버에서는 YouTube 소스 가져오기가 켜져 있습니다. `yt-dlp`를 사용하며 로그인, 지역 제한, bot check에 따라 실패할 수 있습니다.</p>\n"
                    : std::string())
             : "          <p style=\"margin:0;color:var(--muted);font-size:0.9rem;\">이 화면은 안정 테스트용입니다. 개발 전용 옵션은 `/lab`에서 확인하세요.</p>\n";
     const std::string analysis_controls = lab_mode
@@ -1402,8 +1402,8 @@ std::string BuildTestPageHtml(bool lab_mode) {
       <div class="section-pad">
         <div class="section-heading">
           <p class="eyebrow">Unified Lab</p>
-          <h2>통합 테스트/실험실</h2>
-          <p>`/lab` 하나에서 스트림 재생, VA 분석, 영상 분석 설정, 실험실 도구를 접고 펼치며 확인합니다. 다른 route는 자동화와 기존 링크 호환을 위해서만 유지합니다.</p>
+          <h2>통합 테스트/개발 도구</h2>
+          <p>`/lab` 하나에서 스트림 재생, VA 분석, 영상 분석 설정, 가져오기 도구를 접고 펼치며 확인합니다. 다른 route는 자동화와 기존 링크 호환을 위해서만 유지합니다.</p>
         </div>
         <div class="lab-mode-grid">
           <div class="lab-mode-card"><strong>스트림 테스트</strong><span>file, RTSP, HTTP/HLS, WebRTC source를 같은 플레이어로 확인합니다.</span></div>
@@ -1499,7 +1499,7 @@ std::string BuildTestPageHtml(bool lab_mode) {
           <div id="ruleEditorComponent" class="embedded-component" data-component-url="/lab/rules?embed=1">영상 분석 설정 화면을 불러오는 중입니다.</div>
         </details>
         <details id="lab-import" class="lab-details">
-          <summary style="cursor:pointer;font-weight:800;color:var(--ink);">실험실 가져오기</summary>
+          <summary style="cursor:pointer;font-weight:800;color:var(--ink);">소스 가져오기</summary>
           <p class="lab-detail-note">YouTube 직접 표출과 파일 다운로드를 분리합니다. 다운로드는 개발용 샘플 생성 도구로 기본 표시하고, 직접 표출은 서버 opt-in이 필요합니다.</p>
           <div id="labImportComponent" class="embedded-component" data-component-url="/lab/import?embed=1">가져오기 도구를 불러오는 중입니다.</div>
         </details>
@@ -3610,7 +3610,7 @@ std::string BuildLabRuleEditorPageHtml() {
     }
 	    main,
 	    .page-shell {
-	      max-width: 1280px;
+	      max-width: 1440px;
 	      margin: 0 auto;
 	      padding: var(--space-8) var(--space-5) 56px;
 	      display: grid;
@@ -4233,19 +4233,31 @@ std::string BuildLabRuleEditorPageHtml() {
 	      grid-template-columns: repeat(5, minmax(0, 1fr));
 	      gap: 10px;
 	    }
+	    .channel-kind-summary {
+	      margin: 0;
+	      max-width: 520px;
+	      color: var(--color-text-muted);
+	      font-size: 12px;
+	      line-height: 1.45;
+	      text-align: right;
+	    }
+	    .channel-kind-summary strong {
+	      color: var(--color-text);
+	    }
 	    .channel-kind-guide-item {
 	      border: 1px solid var(--color-border);
 	      border-radius: var(--radius-md);
 	      background: var(--color-surface-subtle);
-	      padding: 12px;
+	      padding: 10px 12px;
 	      display: grid;
-	      gap: 6px;
+	      gap: 4px;
+	      align-content: start;
 	    }
 	    .channel-kind-guide-item strong {
 	      font-size: 13px;
 	      color: var(--color-text);
 	    }
-	    .channel-kind-guide-item p,
+	    .channel-kind-guide-item span,
 	    .channel-editor-intro p {
 	      margin: 0;
 	      color: var(--color-text-muted);
@@ -6827,6 +6839,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	    .hint { margin: 0; font-size: 0.9rem; color: var(--color-text-muted); }
     @media (max-width: 980px) {
       .grid, .row, .channel-kind-guide { grid-template-columns: 1fr; }
+      .channel-kind-summary { max-width: none; text-align: left; }
       .check-grid { grid-template-columns: 1fr 1fr; }
       .class-filter-row { grid-template-columns: 1fr; }
       .phase-strip, .metric-grid, .scenario-readiness, .rule-tabs, .url-grid, .output-policy-grid, .summary-grid, .geometry-status-grid, .viewer-status-grid, .metadata-status-grid, .metadata-primary-grid, .metadata-overlay-controls, .dashboard-toolbar, .dashboard-health-grid, .dashboard-card-grid, .dashboard-card-grid.dashboard-card-grid-compact, .dashboard-json-grid, .event-record-filter-grid, .rule-list-controls, .profile-guide-panel, .profile-create-panel, .viewer-input-grid, .viewer-media-spec-row { grid-template-columns: 1fr 1fr; }
@@ -6971,7 +6984,7 @@ std::string BuildLabRuleEditorPageHtml() {
 	      <button id="themeToggleBtn" class="button button-secondary theme-toggle" type="button" aria-label="다크 모드로 전환" title="다크 모드로 전환"><svg class="theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 14.5A7.8 7.8 0 0 1 9.5 3a8.8 8.8 0 1 0 11.5 11.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><svg class="theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.8v2.3M12 18.9v2.3M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.8 12h2.3M18.9 12h2.3M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
 	    </div>
 	    <section class="section-card hero">
-	      <p class="standalone-nav" style="margin:0;"><a href="/lab">실험실로 돌아가기</a> · <a href="/webrtc/test">안정 테스트 페이지</a></p>
+	      <p class="standalone-nav" style="margin:0;"><a href="/lab">개발 도구로 돌아가기</a> · <a href="/webrtc/test">안정 테스트 페이지</a></p>
 	      <h1 class="page-title">영상 분석 관리</h1>
 	      <p class="page-subtitle" style="margin:0;">영상 분석 설정은 소스, profile, 이벤트, 시나리오, 영역을 하나의 숫자 ID로 묶습니다. 보기 탭에서는 실시간 영상/오버레이/메타데이터를 확인하고, 대시보드 탭에서는 현재 VA 런타임 상태를 확인합니다.</p>
 	    </section>
@@ -17392,7 +17405,7 @@ std::string BuildLabImportPageHtml() {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>미디어 서버 실험실 가져오기</title>
+  <title>미디어 서버 소스 가져오기</title>
   <script>
     (() => {
       const saved = localStorage.getItem('mediaServerTheme');
@@ -17649,8 +17662,8 @@ std::string BuildLabImportPageHtml() {
     <section class="card">
       <div class="hero">
         <div>
-          <h1>실험실 가져오기</h1>
-          <p class="standalone-nav"><a href="/lab">실험실 메인으로 이동</a> · <a href="/webrtc/test">안정 테스트 페이지로 이동</a></p>
+          <h1>소스 가져오기</h1>
+          <p class="standalone-nav"><a href="/lab">개발 도구 메인으로 이동</a> · <a href="/webrtc/test">안정 테스트 페이지로 이동</a></p>
           <p>)" + import_note + R"(</p>
           <div class="mode-grid">
             <div class="mode-card">
@@ -17671,7 +17684,7 @@ std::string BuildLabImportPageHtml() {
         <div class="controls">
           <label>Provider
             <select id="providerInput">
-              <option value="youtube">YouTube (실험실)</option>
+              <option value="youtube">YouTube (개발 도구)</option>
             </select>
           </label>
           <label>소스 URL
@@ -18244,13 +18257,28 @@ HttpResponse ForbiddenPageResponse(const std::string& message) {
                               "Go Home");
 }
 
-void AppendProductAccountMenu(std::ostringstream& out, const auth::Principal& principal) {
+void AppendProductAccountMenu(std::ostringstream& out,
+                             const auth::Principal& principal,
+                             const std::string& secondary_action_href = std::string(),
+                             const std::string& secondary_action_label = std::string()) {
     out << R"(        <div class="account-menu" aria-label="현재 계정">
-          )" << ProductThemeToggleButtonHtml() << R"(
-          )" << ProductAccountAvatarSvg() << R"(
-          <div class="account-copy">
-            <div class="account-name">)" << HtmlEscape(principal.display_name) << R"(</div>
-            <div class="account-meta">권한: )" << HtmlEscape(principal.role) << R"(</div>
+          <div class="account-menu-top">
+            )" << ProductThemeToggleButtonHtml() << R"(
+)";
+    if (!secondary_action_href.empty() && !secondary_action_label.empty()) {
+        out << R"(            <a class="button button-secondary account-shortcut" href=")"
+            << HtmlEscape(secondary_action_href) << R"(">)"
+            << HtmlEscape(secondary_action_label) << R"(</a>
+)";
+    }
+    out << R"(
+            <div class="account-identity">
+              )" << ProductAccountAvatarSvg() << R"(
+              <div class="account-copy">
+                <div class="account-name">)" << HtmlEscape(principal.display_name) << R"(</div>
+                <div class="account-meta">권한: )" << HtmlEscape(principal.role) << R"(</div>
+              </div>
+            </div>
           </div>
           <form method="post" action="/logout"><button class="button-secondary" type="submit">로그아웃</button></form>
         </div>
@@ -19912,7 +19940,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
   <title>클라이언트 포털</title>
 )" << ProductThemeBootScript() << ProductUiCss() << ProductSharedUiScript() << ClientShellCss() << R"(
 </head>
-<body class="product-shell" data-client-preview=")" << (preview_mode ? "true" : "false") << R"(" data-client-active=")" << HtmlEscape(active) << R"(">
+<body class="product-shell client-shell" data-client-preview=")" << (preview_mode ? "true" : "false") << R"(" data-client-active=")" << HtmlEscape(active) << R"(">
   <main class="product-page">
     <header class="app-chrome">
       <div class="app-header-top">
@@ -19922,16 +19950,14 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     AppendImageNavLink(out, "/client/dashboard", "dashboard", "대시보드", active == "dashboard");
     out << R"(        </nav>
 )";
-    AppendProductAccountMenu(out, principal);
+    AppendProductAccountMenu(out,
+                             principal,
+                             auth::IsAdmin(principal) ? "/ops/home" : std::string(),
+                             auth::IsAdmin(principal) ? "Ops" : std::string());
     out << R"(      </div>
     </header>
 )";
-    if (auth::IsAdmin(principal)) {
-        out << R"(    <div class="client-preview-return">
-      <a class="button button-secondary" href="/ops/home">Ops로 돌아가기</a>
-    </div>
-)";
-    }
+
     out << R"(
     <section class="workspace" data-testid="client-shell-page">
       <div class="panel">
@@ -19999,27 +20025,34 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           <p>채널과 PublishedView를 관리합니다.</p>
         </div>
       </div>
-      <section class="section-card">
+      <section class="section-card compact-card">
+        <div class="toolbar">
+          <div>
+            <h3>입력 종류</h3>
+            <p>채널 입력 방식입니다.</p>
+          </div>
+          <p class="channel-kind-summary"><strong>외부 WHEP</strong>는 URL 입력, <strong>Published WebRTC</strong>는 저장된 <code>sourceId</code> 연결입니다.</p>
+        </div>
         <div class="channel-kind-guide" aria-label="채널 입력 종류 안내">
           <div class="channel-kind-guide-item">
             <strong>파일</strong>
-            <p>로컬 파일을 채널로 등록합니다.</p>
+            <span>로컬 파일</span>
           </div>
           <div class="channel-kind-guide-item">
             <strong>RTSP pull</strong>
-            <p>RTSP 주소를 서버가 pull합니다.</p>
+            <span>RTSP 주소 pull</span>
           </div>
           <div class="channel-kind-guide-item">
             <strong>외부 WHEP</strong>
-            <p>외부 WHEP URL을 pull source로 연결합니다.</p>
+            <span>WHEP URL pull</span>
           </div>
           <div class="channel-kind-guide-item">
             <strong>Published WebRTC</strong>
-            <p>이미 publish된 sourceId를 채널에 연결합니다.</p>
+            <span>저장된 sourceId 연결</span>
           </div>
           <div class="channel-kind-guide-item">
             <strong>HTTP/HLS</strong>
-            <p>HTTP/HLS URL을 pull합니다.</p>
+            <span>HTTP/HLS pull</span>
           </div>
         </div>
       </section>
@@ -20070,7 +20103,6 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
         </div>
           <form id="channel-form">
           <div class="channel-editor-intro">
-            <p>입력 source와 PublishedView를 함께 관리합니다.</p>
             <p><strong>외부 WHEP</strong>는 URL 입력, <strong>Published WebRTC</strong>는 저장된 <code>sourceId</code> 연결입니다.</p>
           </div>
           <div class="row">

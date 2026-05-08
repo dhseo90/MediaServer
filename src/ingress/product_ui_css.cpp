@@ -299,14 +299,35 @@ std::string ProductUiCss() {
       flex: 0 0 auto;
       min-height: 84px;
       min-width: 210px;
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
       align-items: center;
-      justify-content: flex-end;
+      justify-items: stretch;
       gap: var(--space-3);
       padding: 8px 10px;
       border: 1px solid var(--color-border);
       border-radius: var(--radius-lg);
       background: var(--color-bg-elevated);
+    }
+    .account-menu-top {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: var(--space-3);
+      min-width: 0;
+    }
+    .account-shortcut {
+      width: auto;
+      min-width: 84px;
+      white-space: nowrap;
+      flex: 0 0 auto;
+    }
+    .account-identity {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: var(--space-3);
     }
     .account-avatar {
       width: 44px;
@@ -328,6 +349,13 @@ std::string ProductUiCss() {
       color: var(--color-text-muted);
       font-size: 12px;
       font-weight: 850;
+    }
+    .account-menu > form {
+      width: 100%;
+      margin: 0;
+    }
+    .account-menu > form > button {
+      width: 100%;
     }
     h1, h2, h3 { margin: 0; letter-spacing: 0; }
     h1 { font-size: clamp(26px, 3vw, 36px); line-height: 1.08; }
@@ -828,7 +856,7 @@ std::string ProductUiCss() {
     .user-col-name { width: 118px; }
     .user-col-role { width: 96px; }
     .user-col-status { width: 84px; }
-    .user-col-scopes { width: auto; }
+    .user-col-scopes { width: 180px; }
     .user-col-last-login { width: 132px; }
     .user-col-locked-until { width: 108px; }
     .user-col-password { width: 84px; }
@@ -970,9 +998,20 @@ std::string ProductUiCss() {
       min-width: 0;
     }
     .user-scope-cell {
-      max-width: 220px;
+      max-width: 180px;
       white-space: normal;
-      word-break: break-word;
+      word-break: normal;
+      overflow-wrap: anywhere;
+    }
+    .user-scope-cell .user-value-stack > strong {
+      white-space: normal;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+    .user-scope-cell .user-note {
+      white-space: normal;
+      word-break: keep-all;
+      overflow-wrap: break-word;
     }
     .channel-stream-actions button,
     .channel-status-actions button,
@@ -1018,7 +1057,8 @@ std::string ProductUiCss() {
       .shell-summary-row { align-items: stretch; }
       .app-header-top { grid-template-columns: 1fr; }
       .header-utilities { justify-content: flex-start; }
-      .account-menu { justify-content: flex-start; width: 100%; }
+      .account-menu { width: 100%; }
+      .account-menu-top { justify-content: flex-start; }
       .image-nav-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .nav-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .nav { width: 100%; }
@@ -1028,7 +1068,7 @@ std::string ProductUiCss() {
     }
     @media (max-width: 1180px) and (min-width: 861px) {
       .app-header-top {
-        grid-template-columns: minmax(0, 1fr) minmax(268px, 320px);
+        grid-template-columns: minmax(0, 1fr) minmax(252px, 296px);
         align-items: stretch;
       }
       .app-header-top > .image-nav-tabs:not(.client-image-nav-tabs) {
@@ -1036,33 +1076,46 @@ std::string ProductUiCss() {
       }
       .account-menu {
         min-height: 176px;
-        display: grid;
-        grid-template-columns: auto auto minmax(0, 1fr);
-        grid-template-areas:
-          "theme avatar copy"
-          "logout logout logout";
+        grid-template-rows: minmax(0, 1fr) auto;
+        align-content: stretch;
+        gap: var(--space-4);
+        padding: 12px 14px;
+      }
+      .account-menu-top {
+        height: 100%;
+        justify-content: flex-start;
         align-items: center;
-        align-content: start;
-        justify-content: stretch;
+      }
+      .account-identity {
+        align-items: center;
+      }
+      body.client-shell .app-header-top {
+        grid-template-columns: minmax(0, 1fr) minmax(232px, 272px);
+        align-items: start;
+      }
+      body.client-shell .account-menu {
+        min-height: 84px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         gap: var(--space-3);
         padding: 10px 12px;
       }
-      .account-menu > .theme-toggle {
-        grid-area: theme;
+      body.client-shell .account-menu-top {
+        flex: 1 1 auto;
+        min-width: 0;
+        justify-content: flex-start;
       }
-      .account-menu > .account-avatar {
-        grid-area: avatar;
+      body.client-shell .account-identity {
+        min-width: 0;
       }
-      .account-menu > .account-copy {
-        grid-area: copy;
+      body.client-shell .account-menu > form {
+        width: auto;
+        flex: 0 0 auto;
       }
-      .account-menu > form {
-        grid-area: logout;
-        width: 100%;
-        margin: 0;
-      }
-      .account-menu > form > button {
-        width: 100%;
+      body.client-shell .account-menu > form > button {
+        width: auto;
+        min-width: 96px;
       }
     }
     @media (max-width: 1040px) {
@@ -1257,11 +1310,6 @@ std::string ClientShellCss() {
       flex: 1 1 320px;
       min-width: min(320px, 100%);
       grid-template-columns: repeat(2, minmax(92px, 1fr));
-    }
-    .client-preview-return {
-      display: flex;
-      justify-content: flex-start;
-      margin-top: var(--space-2);
     }
     a.nav { min-height: 36px; display: inline-flex; align-items: center; border-radius: 6px; padding: 0 12px; background: var(--panel-soft); color: var(--text); text-decoration: none; font-weight: 900; }
     a.nav.active { background: var(--color-primary); color: var(--color-on-primary); }
