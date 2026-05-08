@@ -104,11 +104,11 @@ MEDIA_SERVER_START_MODE=launchd ./server.sh start
 대표 접속 URL은 실제 `./server.sh status` 또는 `./server.sh urls` 결과를 우선합니다.
 
 ```text
-Lab:
-http://127.0.0.1:8080/lab
+운영 콘솔:
+http://127.0.0.1:8080/ops/home
 
 영상 분석 관리:
-http://127.0.0.1:8080/lab/rules
+http://127.0.0.1:8080/ops/rules
 
 RTSP:
 rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4
@@ -250,9 +250,9 @@ gst-inspect-1.0 uridecodebin
 ./server.sh verify-predev --quick
 ```
 
-`verify-predev --quick`와 `./server.sh test*` 계열은 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하므로 느립니다. 문서/UI/Auth/권한만 바꾼 경우에는 이 묶음을 실행하지 않고 `build`, `git diff --check`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-lab-layout --no-screenshots`, `verify-analysis-state`로 확인합니다.
+`verify-predev --quick`와 `./server.sh test*` 계열은 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하므로 느립니다. 문서/UI/Auth/권한만 바꾼 경우에는 이 묶음을 실행하지 않고 `build`, `git diff --check`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-analysis-state`로 확인합니다.
 
-`verify-auth-routes`는 격리 서버를 자동으로 띄웁니다. `verify-ops-client-ui`, `verify-rule-ui`, `verify-lab-layout`는 이미 떠 있는 HTTP 서버를 검사하므로 UI smoke 전에는 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`로 서버를 띄우고, 포트가 다르면 각 명령에 `--http-base`를 지정합니다.
+`verify-auth-routes`는 격리 서버를 자동으로 띄웁니다. `verify-ops-client-ui`, `verify-rule-ui`, `verify-ops-rules-roundtrip`은 이미 떠 있는 HTTP 서버를 검사하므로 UI/API smoke 전에는 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`로 서버를 띄우고, 포트가 다르면 각 명령에 `--http-base`를 지정합니다.
 
 장시간 또는 다채널 검증 기준은 [stream-verification.md](./stream-verification.md)에 유지합니다.
 
@@ -295,20 +295,22 @@ MEDIA_SERVER_AUTH_USERS_FILE=/tmp/media-server-bootstrap-users.json \
 - admin 로그인 후 `/ops/users`에서 viewer/operator/integrator 계정을 생성/수정/비활성화하고, pending 접근 요청을 승인해 password setup invite를 발급하거나 거절합니다. Integrator는 UI shell 대신 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata`를 scope 기반으로 사용합니다.
 - CLI는 `./server.sh auth-user list`, `add`, `reset-password`, `disable`, `enable`을 사용하고 비밀번호는 기본 prompt로 입력
 
-기존 Lab 레이아웃/자동화 검증은 명시적으로 auth off 서버에서 실행합니다.
+제품 UI 검증은 명시적으로 auth off 서버에서 실행합니다. `/lab`, `/lab/rules`, `/lab/import` 화면 route는 운영 화면으로 redirect되므로 새 검증은 Ops 화면을 기준으로 합니다.
 
 ```bash
 MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground
-./server.sh verify-lab-layout
+./server.sh verify-ops-client-ui
+./server.sh verify-ops-rules-roundtrip
 ```
 
 ## UI 개발 시 검증 명령
 
-Lab/영상 분석 UI를 수정한 뒤에는 최소한 아래 검증을 실행합니다.
+Ops/영상 분석 UI를 수정한 뒤에는 최소한 아래 검증을 실행합니다.
 
 ```bash
 ./server.sh verify-rule-ui
-./server.sh verify-lab-layout
+./server.sh verify-ops-rules-roundtrip
+./server.sh verify-ops-client-ui
 ```
 
 이벤트 POST나 rule preview URL이 영향을 받으면:
@@ -317,12 +319,12 @@ Lab/영상 분석 UI를 수정한 뒤에는 최소한 아래 검증을 실행합
 ./server.sh verify-event-post
 ```
 
-브라우저로 직접 확인할 때는 서버를 foreground로 띄운 뒤 `/lab/rules`에서 다음을 확인합니다.
+브라우저로 직접 확인할 때는 서버를 foreground로 띄운 뒤 `/ops/rules`에서 다음을 확인합니다.
 
-- 영상 분석 설정 탭: 룰 목록, 룰 추가/수정/삭제, 저장 전 검증
-- 룰 편집 화면: 기본 정보, 영상 소스, Profile, 이벤트 방식, 영역/라인, 이벤트 동작
-- 시나리오 템플릿: ReEntry, IntrusionAfterLineCrossing, Loitering, ZoneOccupancyScenario는 룰 편집 UI에서 선택 가능
-- 영상 분석 보기 탭: 실시간 스트리밍, VA 오버레이, VA 룰, 개발자 요청 URL 접힘 영역
+- 채널 분석 설정: 채널, 이벤트 템플릿, 분석 프로파일, 영역/라인, 활성 상태, 출력 URL 복사
+- 이벤트 템플릿: 기본 이벤트와 시나리오를 구분해 추가/수정/삭제
+- 분석 프로파일: detector, fps, queue, 입력 해상도 저장과 채널 분석 설정의 선택 가능 여부
+- 운영 미리보기: `/ops/live`의 실시간 스트리밍, VA 오버레이, VA 룰 URL 복사/보기 동작
 - Runtime Dashboard 탭: active analysis tap, metadata/backpressure, scenario/event/debug 상태, EventRecord 수동 검색
 
 UI 사용 흐름은 [ui-guide.md](./ui-guide.md)에 별도로 유지합니다.

@@ -156,7 +156,7 @@ git diff --check -- README.md docs
 - 검증 명령:
 
 ```bash
-./server.sh verify-lab-layout
+./server.sh verify-ops-client-ui
 ```
 
 - 우선순위 이유: UI 개편 후 문서의 첫인상과 실제 화면이 어긋나면 사용자 검수 비용이 커집니다.
@@ -165,12 +165,12 @@ git diff --check -- README.md docs
 
 - 상태: 예정
 - 목적: 룰 목록/편집/보기 탭에서 저장 피드백, 삭제 확인, source 매핑 안내, 개발자 URL 접힘 영역 같은 UX를 최종 점검합니다.
-- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/rule_ui_smoke_check.mjs`, `docs/ui-guide.md`
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/verify_ops_rules_embed_smoke.mjs`, `docs/ui-guide.md`
 - 검증 명령:
 
 ```bash
 ./server.sh verify-rule-ui
-./server.sh verify-lab-layout
+./server.sh verify-ops-client-ui
 ```
 
 - 우선순위 이유: 현재 가장 자주 만지는 화면이며 rule 설정 오류가 VA 검증 오류로 이어질 수 있습니다.
@@ -361,7 +361,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ```bash
 ./server.sh verify-analysis-state
-./server.sh verify-lab-layout
+./server.sh verify-ops-client-ui
 ```
 
 - 우선순위 이유: 장시간 테스트 중 내부 상태가 무한 증가하는지 UI/API로 바로 봐야 합니다.
@@ -392,7 +392,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ```bash
 ./server.sh verify-rule-ui
-./server.sh verify-lab-layout
+./server.sh verify-ops-client-ui
 ```
 
 - 우선순위 이유: 상황 기반 이벤트는 내부 상태가 보이지 않으면 오탐/미탐 원인 분석이 어렵습니다.
@@ -406,7 +406,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ```bash
 ./server.sh verify-analysis-state
-./server.sh verify-lab-layout
+./server.sh verify-ops-client-ui
 ./server.sh verify-va-runtime-console
 ```
 
@@ -435,7 +435,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 - 검증 명령:
 
 ```bash
-./server.sh verify-lab-layout
+./server.sh verify-ops-client-ui
 ./server.sh verify-event-post --mode schema
 ```
 
@@ -450,7 +450,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 - 검증 명령:
 
 ```bash
-./server.sh verify-lab-layout
+./server.sh verify-ops-client-ui
 ./server.sh verify-va-runtime-console
 ./server.sh verify-va-runtime-console-longrun --duration-minutes 30 --clients 1 --include-sidechannel --include-dashboard
 ```
@@ -492,12 +492,12 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
   - rule payload preview와 저장 전 validation
   - 저장된 `reEntryWindowMs`, `cooldownMs`, `targetZoneIds`, `reEntryZoneIds` round-trip 검증
   - Event POST payload, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직 변경 없음
-- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/rule_ui_smoke_check.mjs`, `docs/ui-guide.md`, `docs/video-analysis.md`, `docs/stream-verification.md`
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/verify_ops_rules_embed_smoke.mjs`, `docs/ui-guide.md`, `docs/video-analysis.md`, `docs/stream-verification.md`
 - 검증 명령:
 
 ```bash
 ./server.sh verify-rule-ui
-./server.sh verify-lab-layout
+./server.sh verify-ops-client-ui
 ./server.sh verify-analysis-state
 ```
 
@@ -517,12 +517,12 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
   - rule payload preview와 저장 전 validation
   - 저장된 `targetLineIds`, `targetZoneIds`, `triggerLine`, `maxDelayAfterCrossingMs`, `dwellTimeMs`, `cooldownMs` round-trip 검증
   - 기존 line-crossing 기본 이벤트, Event POST payload, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직 변경 없음
-- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/analysis/scene_context_builder.cpp`, `src/analysis/event_rule_engine.cpp`, `scripts/internal/rule_ui_smoke_check.mjs`, `docs/ui-guide.md`, `docs/video-analysis.md`, `docs/stream-verification.md`
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/analysis/scene_context_builder.cpp`, `src/analysis/event_rule_engine.cpp`, `scripts/internal/verify_ops_rules_embed_smoke.mjs`, `docs/ui-guide.md`, `docs/video-analysis.md`, `docs/stream-verification.md`
 - 검증 명령:
 
 ```bash
 ./server.sh verify-rule-ui
-./server.sh verify-lab-layout
+./server.sh verify-ops-client-ui
 ./server.sh verify-analysis-state
 ```
 
@@ -543,12 +543,12 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
   - rule payload preview와 저장 전 validation
   - 저장된 Loitering rule의 `event.type=scenario.type=loitering`과 target zone/radius/trajectory/cooldown round-trip 검증
 - 남은 작업: 실제 CCTV 샘플로 프리셋 값을 보정하는 장기 field fixture 추가. replay baseline에는 under-threshold no-event 경계 fixture를 유지합니다.
-- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/rule_ui_smoke_check.mjs`, `src/analysis/loitering_scenario.cpp`, `test/fixtures/va_replay/loitering_metadata.json`, `docs/video-analysis.md`, `docs/analysis-threshold-baselines.md`
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/verify_ops_rules_embed_smoke.mjs`, `src/analysis/loitering_scenario.cpp`, `test/fixtures/va_replay/loitering_metadata.json`, `docs/video-analysis.md`, `docs/analysis-threshold-baselines.md`
 - 검증 명령:
 
 ```bash
 ./server.sh verify-rule-ui
-./server.sh verify-lab-layout
+./server.sh verify-ops-client-ui
 ./server.sh verify-va-replay
 ```
 
@@ -710,7 +710,7 @@ git diff --check -- docs
 
 ```bash
 ./server.sh verify-analysis-state
-./server.sh verify-lab-layout
+./server.sh verify-ops-client-ui
 ```
 
 - 우선순위 이유: 파일 저장 기능은 디스크를 무제한 사용하지 않도록 운영 보호가 필요합니다.
@@ -761,7 +761,7 @@ MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER='turn://user:pass@example.local:
 
 - 상태: 완료
 - 목적: `/lab/rules` Custom client URL 패널에서 metadata filter/include 조합을 preset으로 저장하고, WebRTC metadata viewer/SSE/WS URL에 같은 query를 다시 적용할 수 있어야 합니다.
-- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/rule_ui_smoke_check.mjs`, `docs/ui-guide.md`, `docs/video-analysis.md`, `docs/stream-verification.md`
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/verify_ops_rules_embed_smoke.mjs`, `docs/ui-guide.md`, `docs/video-analysis.md`, `docs/stream-verification.md`
 
 ### P7-4. Custom RTSP + metadata client 예제
 
@@ -806,7 +806,7 @@ python3 scripts/examples/va_rtsp_sse_overlay_client.py --help
 - 검증 명령:
 
 ```bash
-./server.sh verify-lab-import-ui
+./server.sh verify-ops-client-ui
 ```
 
 - 우선순위 이유: 외부 서비스 정책/권한 영향이 있어 core streaming 안정화와 분리해 판단해야 합니다.

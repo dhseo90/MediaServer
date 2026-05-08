@@ -120,13 +120,13 @@ SourceRegistry는 `.media_server.sources.json`, PublishedView는 `.media_server.
 
 클라이언트 API는 `view:read:{viewId}` scope가 있는 view만 목록에 반환하고, view별 dashboard/events/metadata API는 각각 `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`를 요구합니다. `file`, `rtspUrl`, `httpUrl`, `webrtcSourceId`, `whepUrl`, `canonicalSourceKey` 같은 원본 locator는 반환하지 않습니다. PublishedView의 `maxTiles`는 Client Live UI 배정과 `/client/api/views/{viewId}/webrtc/session` wrapper에서 같은 principal+view 동시 session 상한으로 적용합니다. PublishedView의 `defaultRuleId`와 `allowedRuleIds`는 기존 `vaRule` ID를 참조하지만, Client Live에서 `va-rule` mode를 실행할 때는 해당 rule의 저장 source가 PublishedView source와 일치해야 합니다. 기존 `vaRule` 저장 구조와 `vaRule=<id>` 호출 방식은 그대로 유지합니다.
 
-### Ops / Client / Lab UI shell
+### Ops / Client UI shell and Lab APIs
 
 HTTP UI는 같은 미디어/API 기능 위에 role별 shell을 얹는 구조입니다. Shell 통합은 browser route와 화면 구성만 다루며 media pipeline, Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema, scenario 판단 로직은 변경하지 않습니다. `webrtc_http_server.cpp`는 여전히 HTTP route dispatch와 media/auth glue를 많이 보유하지만, 제품 shell의 route별 브라우저 스크립트는 `product_ui_page_scripts.*`로 분리해 Ops/Client 화면 동작을 media signaling 구현과 물리적으로 섞지 않습니다.
 
-- `/ops`: admin/operator용 운영 콘솔입니다. 공통 header/nav 아래에서 홈, 라이브, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기를 렌더링합니다. `/ops/home`은 운영 홈 summary MVP이고, `/ops/live`는 자동 media session을 열지 않는 고밀도 source/runtime/event 상태 타일입니다. `/ops/dashboard`는 `/ops/api/runtime/status` 기반 운영 카드, `/ops/rules`는 `/ops/api/rules/catalog` 기반 룰 카탈로그를 표시하며 Lab iframe을 사용하지 않습니다. `/ops/events`는 primary nav에서 숨긴 직접/진단 route로 보존하며 독립 제품 탭으로 취급하지 않습니다. raw JSON은 운영자 debug 접힘 영역에만 둡니다.
+- `/ops`: admin/operator용 운영 콘솔입니다. 공통 header/nav 아래에서 홈, 라이브, 대시보드, 채널, 룰, 사용자(admin), 클라이언트를 렌더링합니다. `/ops/home`은 운영 홈 summary MVP이고, `/ops/live`는 자동 media session을 열지 않는 고밀도 source/runtime/event 상태 타일입니다. `/ops/dashboard`는 `/ops/api/runtime/status` 기반 운영 카드, `/ops/rules`는 채널 분석 설정, 이벤트 템플릿, 분석 프로파일을 Lab iframe 없이 제품 컴포넌트로 표시합니다. `/ops/events`는 primary nav에서 숨긴 직접/진단 route로 보존하며 독립 제품 탭으로 취급하지 않습니다. raw JSON은 운영자 debug 접힘 영역에만 둡니다.
 - `/client`: viewer/client 포털입니다. `/client/live`는 PublishedView 기반 2x2 live monitor MVP이고, `/client/dashboard`는 scoped summary와 sanitized event summary를 표시합니다. Client Events tab은 primary nav에서 제거했습니다. client shell과 client API는 source 원본 locator, Developer URL, raw JSON, `debugCounters`, internal session/tap id, rule/profile editor를 노출하지 않습니다. Integrator는 이 shell에 진입하지 않고 scoped client API만 사용합니다.
-- `/lab`: 개발/검증용 shell입니다. 기존 `/lab`와 `/lab/rules` 자동화 호환을 유지하며 Runtime Dashboard, VA metadata viewer, developer/debug detail은 Lab에서 계속 확인합니다. 운영 화면은 Lab editor를 embed하지 않고, 채널/룰 상태를 Ops 전용 API와 제품 컴포넌트로 표시합니다.
+- `/lab/analysis/*`: 개발/검증 API입니다. `/lab`, `/lab/rules`, `/lab/import` 화면 route는 제품 화면으로 redirect하고, Runtime/metadata/event storage API만 권한 gate 뒤에 유지합니다. 운영 화면은 Lab editor를 embed하지 않고, 채널/룰 상태를 Ops 전용 API와 제품 컴포넌트로 표시합니다.
 
 ### Source+Profile analysis reuse
 
@@ -352,7 +352,7 @@ GET /lab/analysis/event-storage/status
 | EventStorage | optional JSON Lines | EventRecord 저장, active/archive 조회/API, 비파괴 compaction snapshot 생성/목록/다운로드/삭제 |
 | WebRTC DataChannel | opt-in | runtime metadata frame을 기존 WebRTC schema로 직렬화해 video stream과 별도로 전달 |
 | Runtime Metadata Side-Channel | SSE/WebSocket + subscription filter/control | custom client가 RTSP video와 별도 metadata stream을 함께 소비. `eventType`, `scenarioName`, `trackId`, `zoneId` 등으로 payload 범위를 줄이고 `includeMetrics=0` 같은 include flag로 source/scenario/metrics/trackingIssueReport 필드를 제어 |
-| Ops/Client UI shell | 1차 통합 완료 | `/ops` 운영 콘솔, `/client` 클라이언트 포털, `/lab` 개발/검증 shell 역할 분리 |
+| Ops/Client UI shell | 1차 통합 완료 | `/ops` 운영 콘솔, `/client` 클라이언트 포털, `/lab/analysis/*` 개발/검증 API 역할 분리 |
 | 런타임 대시보드 | 1차 구현 완료 | active session/stream/tap, VA metrics, state dump, tracking issue report를 Lab에서 확인. Ops dashboard는 runtime status를 운영 card UI로 요약. 장기 baseline/sparkline 고도화는 후속 |
 | Scenario UI | 1차 구현 완료 | ReEntry/IntrusionAfterLineCrossing/Loitering/ZoneOccupancy는 룰 편집 UI에서 선택 가능 |
 | Re-ID hook | 기본 NoOp, 실험용 extractor hook | appearance profile과 reacquire/low confidence association 보조 |

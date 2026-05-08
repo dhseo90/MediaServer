@@ -62,8 +62,8 @@ const pageChecks = [
     name: "ops-rules",
     path: "/ops/rules",
     visualSelector: '[data-testid="ops-rules-page"]',
-    must: ['data-testid="ops-rules-page"', 'id="opsRulesFilterInput"', 'id="opsVaRuleRows"', 'id="opsEventRuleRows"', 'id="opsProfileRows"', 'id="opsAddVaRuleBtn"', 'id="opsAddEventRuleBtn"', 'id="opsAddProfileBtn"', 'id="opsRulesEditorComponent"', '/ops/api/rules/catalog', '/lab/rules?embed=1'],
-    mustNot: ['<iframe', 'opsRulesFrame', '/lab/analysis/rules', '/lab/analysis/va-rules'],
+    must: ['data-testid="ops-rules-page"', 'id="opsRulesFilterInput"', 'id="opsVaRuleRows"', 'id="opsEventRuleRows"', 'id="opsProfileRows"', 'id="opsAddVaRuleBtn"', 'id="opsAddEventRuleBtn"', 'id="opsAddProfileBtn"', 'id="opsRulesDetailPanel"', 'id="opsVaRuleForm"', 'id="opsEventRuleForm"', 'id="opsProfileForm"', 'id="opsVaRulePreviewVideo"', 'id="opsVaRuleGeometryPreview"', 'id="opsVaRuleTemplateSeedSelect"', 'id="opsVaRuleProfileSelect"', 'id="opsVaRuleChannelSelect"', '/ops/api/rules/catalog'],
+    mustNot: ['<iframe', 'opsRulesFrame', 'id="opsRulesEditorComponent"', '/lab/rules?embed=1'],
   },
   {
     name: "ops-sources",

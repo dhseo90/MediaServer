@@ -791,19 +791,18 @@ Client-side overlay draw / memory guard:
 - DataChannel message 수신 시점에는 overlay를 즉시 그리지 않고 bounded metadata buffer에 저장합니다.
 - overlay draw는 `requestVideoFrameCallback`의 현재 video presentation frame 기준으로 수행합니다. 지원하지 않는 브라우저는 `requestAnimationFrame + video.currentTime` fallback을 사용하되, video time이 전진한 경우에만 다시 그립니다.
 - browser `video.currentTime`과 backend PTS가 같은 기준이라고 가정하지 않고, 수신된 exact/near metadata로 offset을 보정한 뒤 가장 가까운 metadata를 선택합니다.
-- metadata buffer는 entry 수, 보관 시간, metadata age 기준으로 제한하며, 초과분은 오래된 항목부터 drop합니다. Lab UI에서는 `Metadata buffer`, `Metadata drop`, `표시 video frame`, `Overlay draw`, `영상 멈춤` 지표로 상태를 확인합니다.
+- metadata buffer는 entry 수, 보관 시간, metadata age 기준으로 제한하며, 초과분은 오래된 항목부터 drop합니다. 검증 UI/custom client에서는 `Metadata buffer`, `Metadata drop`, `표시 video frame`, `Overlay draw`, `영상 멈춤` 지표로 상태를 확인합니다.
 - 일정 시간 video frame callback이 없으면 `videoStalled=true`로 표시하고 overlay를 stale clear합니다. 이 상태에서도 DataChannel 수신은 유지하지만 bbox overlay는 새 metadata 기준으로 움직이지 않습니다.
-- 검증용 query(`verify-webrtc-va-metadata-sync`)에서만 synthetic metadata를 주입해 buffer 상한과 drop counter를 자동 확인합니다. 일반 viewer 동작에는 노출하지 않습니다.
+- 검증용 query(`verify-webrtc-va-metadata`)에서만 synthetic metadata를 주입해 buffer 상한과 drop counter를 자동 확인합니다. 일반 viewer 동작에는 노출하지 않습니다.
 
 검증:
 
 ```bash
 ./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8080
-./server.sh verify-webrtc-va-metadata-sync --http-base http://127.0.0.1:8080
 ```
 
 이 검증은 browser `RTCPeerConnection`으로 video track, ICE connected, `va-metadata` DataChannel open, 최소 1개 metadata message 수신을 확인합니다.
-`verify-webrtc-va-metadata-sync`는 Lab UI에서 WebRTC metadata viewer를 직접 열고, requestVideoFrameCallback frame 증가, fallback-latest 기본 숨김, metadata buffer 상한, stale clear, video stall 중 overlay draw 중단을 함께 검증합니다.
+`verify-webrtc-va-metadata`는 WebRTC metadata viewer를 열고, requestVideoFrameCallback frame 증가, fallback-latest 기본 숨김, metadata buffer 상한, stale clear, video stall 중 overlay draw 중단을 함께 검증합니다.
 
 ## 14. SSE Metadata Side-Channel
 

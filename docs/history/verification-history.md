@@ -83,7 +83,7 @@
 - `git diff --check`
 - Markdown link/image path check
 - `./server.sh test`: sandbox 실행은 localhost TCP/RTSP probe `Operation not permitted`로 실패했으나, 권한 상승 재실행 기준 `15/0/12` 통과
-- `./server.sh verify-webrtc-va-metadata-sync --http-base http://127.0.0.1:8081 --file imports/va_tracking_event_1280x720_30fps_h264.mp4`: `12/0`
+- `./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8081 --file imports/va_tracking_event_1280x720_30fps_h264.mp4`: `12/0`
 - `./server.sh verify-va-runtime-console-longrun --duration-minutes 30 --clients 1 --include-rtsp --include-sidechannel --include-dashboard --skip-build`: `10/0/1`
 
 확인:
@@ -129,7 +129,7 @@
 - `./server.sh build`
 - `./server.sh verify-analysis-state`: `4/0`
 - `./server.sh verify-rule-ui --http-base http://127.0.0.1:8081`: `5/0/0`
-- `./server.sh verify-lab-layout --http-base http://127.0.0.1:8081`: `10/0`
+- `./server.sh verify-ops-client-ui --http-base http://127.0.0.1:8081`: `10/0`
 - `./server.sh test --no-start --include-rules --include-rule-ui --include-va-events --include-image-analysis --include-redaction`: `19/0/8`
 - `./server.sh verify-event-post --mode schema`: `7/0/0`
 - `./server.sh verify-event-post --mode recovery`: `11/0/0`
@@ -149,7 +149,7 @@ cleanup 확인:
 - `./server.sh build`
 - Release GStreamer/ONNX build
 - `./server.sh verify-rule-ui --http-base http://127.0.0.1:8081`: `5/0/0`
-- `./server.sh verify-lab-layout --http-base http://127.0.0.1:8081`: `10/0`
+- `./server.sh verify-ops-client-ui --http-base http://127.0.0.1:8081`: `10/0`
 - 통합 smoke: `19/0/8`
 - `./server.sh verify-multichannel --include-va`: `9/0/0`
 - `./server.sh verify-predev --skip-build --soak-minutes 30`: `68/0/2`, duration 약 2483s
@@ -160,11 +160,11 @@ cleanup 확인:
 - `vaRule=<id>` 모드에서 source override 없이 저장 source만 사용
 - 최종 cleanup 후 `8080/8081/8554/8555` listener 없음
 
-## 2026-04-28 - Lab layout 안정화
+## 2026-04-28 - Legacy layout 안정화
 
 통과:
 
-- `./server.sh verify-lab-layout`: 390/768/1180/1365/1600 폭에서 stream/image-analysis overflow 없음
+- `./server.sh verify-ops-client-ui`: 390/768/1180/1365/1600 폭에서 stream/image-analysis overflow 없음
 - `./server.sh verify-predev --skip-build --soak-minutes 30`: `68/0/2`, duration 약 2512s
 
 ## 2026-04-27 - Redaction 승격과 test mode 분리

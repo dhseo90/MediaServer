@@ -1,6 +1,6 @@
-// 파일 요약: HTTP API와 Lab UI를 제공하는 내장 웹 서버 구현이다.
+// 파일 요약: HTTP API와 제품 UI를 제공하는 내장 웹 서버 구현이다.
 // 동작 요약: WebRTC simple signaling, WHEP, WHIP, /webrtc/config, analysis tap/rule/profile API를 처리한다.
-// 동작 요약: Lab/Rule/Import HTML을 생성하고, 정적 이미지 분석과 이벤트 POST 상태 응답도 이 파일에서 묶는다.
+// 동작 요약: Ops/Client/Auth HTML과 개발/검증 API, 정적 이미지 분석과 이벤트 POST 상태 응답도 이 파일에서 묶는다.
 #include "ingress/webrtc_http_server.h"
 
 #include <arpa/inet.h>
@@ -50,7 +50,6 @@
 #include "ingress/analysis_rule_registry.h"
 #include "ingress/http_auth.h"
 #include "ingress/request_parser.h"
-#include "ingress/lab_import_manager.h"
 #include "ingress/product_ui_assets.h"
 #include "ingress/product_ui_css.h"
 #include "ingress/product_ui_js.h"
@@ -17933,7 +17932,6 @@ struct WebRtcHttpServer::Impl {
     }
 
     core::SessionManager& session_manager;
-    LabImportManager lab_import_manager;
     std::string listen_address;
     std::uint16_t port{0};
     int listen_fd{-1};
@@ -18084,16 +18082,19 @@ std::string DefaultHomePath(const app::AppConfig& config) {
         if (name == "client" && config.enable_client) {
             return "/client/live";
         }
-        if (name == "lab" && config.enable_lab) {
-            return "/lab";
+        if (name == "lab") {
+            if (config.enable_ops) {
+                return "/ops/home";
+            }
+            if (config.enable_client) {
+                return "/client/live";
+            }
+            return std::string();
         }
         return std::string();
     };
     if (const std::string configured = by_name(config.ui_default_home); !configured.empty()) {
         return configured;
-    }
-    if (config.enable_lab) {
-        return "/lab";
     }
     if (config.enable_ops) {
         return "/ops/home";
@@ -18686,8 +18687,62 @@ void AppendOpsRulesPage(std::ostringstream& out) {
       <section class="section-card">
         <div class="toolbar">
           <div>
+            <h3>먼저 준비할 항목</h3>
+            <p id="opsRulesPrereqSummary">채널 분석 설정은 채널, 프로파일, 이벤트 템플릿을 준비한 뒤 만듭니다.</p>
+          </div>
+        </div>
+        <div class="rules-prereq-grid">
+          <article class="rules-prereq-card">
+            <div class="badge-row">
+              <span class="chip info">채널</span>
+              <span id="opsRulesPrereqChannelsState" class="chip">확인 중</span>
+            </div>
+            <strong id="opsRulesPrereqChannelsCount">0개</strong>
+            <p>채널 탭에서 입력 소스와 PublishedView를 먼저 준비합니다.</p>
+            <div class="actions">
+              <a class="button-secondary" href="/ops/sources">채널 열기</a>
+            </div>
+          </article>
+          <article class="rules-prereq-card">
+            <div class="badge-row">
+              <span class="chip info">분석 프로파일</span>
+              <span id="opsRulesPrereqProfilesState" class="chip">확인 중</span>
+            </div>
+            <strong id="opsRulesPrereqProfilesCount">0개</strong>
+            <p>검출기, FPS, confidence, adaptive 같은 분석 엔진 설정을 먼저 만듭니다.</p>
+            <div class="actions">
+              <button id="opsRulesPrereqProfilesAction" class="button-secondary" type="button">프로파일 추가</button>
+            </div>
+          </article>
+          <article class="rules-prereq-card">
+            <div class="badge-row">
+              <span class="chip info">이벤트 템플릿</span>
+              <span id="opsRulesPrereqTemplatesState" class="chip">확인 중</span>
+            </div>
+            <strong id="opsRulesPrereqTemplatesCount">0개</strong>
+            <p>이벤트 방식, 시나리오, 대상 객체, 조건값을 템플릿으로 먼저 정리합니다.</p>
+            <div class="actions">
+              <button id="opsRulesPrereqTemplatesAction" class="button-secondary" type="button">템플릿 추가</button>
+            </div>
+          </article>
+          <article class="rules-prereq-card">
+            <div class="badge-row">
+              <span class="chip info">채널 분석 설정</span>
+              <span id="opsRulesPrereqVaRulesState" class="chip">대기</span>
+            </div>
+            <strong id="opsRulesPrereqVaRulesCount">0개</strong>
+            <p>채널에 이벤트 템플릿과 프로파일을 연결하고 영역/라인만 정하는 최종 조립 단계입니다.</p>
+            <div class="actions">
+              <button id="opsRulesPrereqVaRulesAction" class="button-primary" type="button">채널 분석 설정 추가</button>
+            </div>
+          </article>
+        </div>
+      </section>
+      <section class="section-card">
+        <div class="toolbar">
+          <div>
             <h3>설정 종류</h3>
-            <p id="opsRulesEditorSummary">채널 설정을 먼저 관리합니다.</p>
+            <p id="opsRulesEditorSummary">무엇을 관리할지 고르고 같은 패턴으로 목록과 상세를 관리합니다.</p>
           </div>
           <div class="actions">
             <input id="opsRulesFilterInput" type="search" placeholder="이름, ID 검색" aria-label="룰 카탈로그 검색" />
@@ -18714,21 +18769,21 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             <colgroup>
               <col class="ops-rules-col-id" />
               <col class="ops-rules-col-source" />
+              <col class="ops-rules-col-template" />
               <col class="ops-rules-col-profile" />
-              <col class="ops-rules-col-mode" />
-              <col class="ops-rules-col-event" />
-              <col class="ops-rules-col-target" />
+              <col class="ops-rules-col-geometry" />
+              <col class="ops-rules-col-output" />
               <col class="ops-rules-col-status" />
               <col class="ops-rules-col-actions" />
             </colgroup>
             <thead>
               <tr>
-                <th>룰</th>
-                <th>소스</th>
-                <th>프로파일</th>
-                <th>설정 방식</th>
-                <th>이벤트</th>
-                <th>대상</th>
+                <th>ID</th>
+                <th>채널</th>
+                <th>이벤트 템플릿</th>
+                <th>분석 프로파일</th>
+                <th>영역/라인</th>
+                <th>출력</th>
                 <th>상태</th>
                 <th>작업</th>
               </tr>
@@ -18751,19 +18806,19 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           <table class="ops-rules-table ops-rules-event-table">
             <colgroup>
               <col class="ops-event-col-id" />
-              <col class="ops-event-col-match" />
+              <col class="ops-event-col-mode" />
               <col class="ops-event-col-analysis" />
-              <col class="ops-event-col-output" />
-              <col class="ops-event-col-status" />
+              <col class="ops-event-col-target" />
+              <col class="ops-event-col-condition" />
               <col class="ops-event-col-actions" />
             </colgroup>
             <thead>
               <tr>
-                <th>템플릿</th>
-                <th>매칭</th>
-                <th>분석</th>
-                <th>출력</th>
-                <th>상태</th>
+                <th>ID</th>
+                <th>구분</th>
+                <th>종류</th>
+                <th>대상</th>
+                <th>조건</th>
                 <th>작업</th>
               </tr>
             </thead>
@@ -18787,16 +18842,16 @@ void AppendOpsRulesPage(std::ostringstream& out) {
               <col class="ops-profile-col-id" />
               <col class="ops-profile-col-detector" />
               <col class="ops-profile-col-fps" />
-              <col class="ops-profile-col-target" />
+              <col class="ops-profile-col-input" />
               <col class="ops-profile-col-usage" />
               <col class="ops-profile-col-actions" />
             </colgroup>
             <thead>
               <tr>
-                <th>프로파일</th>
+                <th>ID</th>
                 <th>검출기</th>
                 <th>FPS</th>
-                <th>대상</th>
+                <th>입력</th>
                 <th>사용처</th>
                 <th>작업</th>
               </tr>
@@ -18808,7 +18863,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
       <section id="opsRulesDetailPanel" class="section-card" hidden>
         <div class="toolbar">
           <div>
-            <div class="badge-row"><span id="opsRulesDetailMode" class="chip info">상세</span><span id="opsRulesDetailId" class="chip">#-</span></div>
+            <div class="badge-row"><span id="opsRulesDetailMode" class="chip info">상세</span><span id="opsRulesDetailId" class="chip">-</span></div>
             <h3 id="opsRulesComposerTitle">상세</h3>
             <p id="opsRulesComposerHint" class="form-note">저장된 내용입니다.</p>
           </div>
@@ -18818,27 +18873,210 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             <button id="opsRulesComposerClose" class="button-secondary" type="button">닫기</button>
           </div>
         </div>
-        <div id="opsRulesComposerSteps" class="rule-step-strip" aria-label="현재 작성 단계"></div>
-        <section id="opsVaRuleTemplateAssist" class="section-card compact-card ops-va-template-assist" hidden>
-          <div class="toolbar">
+        <div id="opsRulesComposerSteps" class="rule-step-strip" aria-label="현재 작성 단계" hidden></div>
+        <form id="opsVaRuleForm" hidden>
+          <div class="row">
+            <label>ID<input id="opsVaRuleIdInput" type="text" inputmode="numeric" readonly /></label>
+            <label>이름<input id="opsVaRuleNameInput" type="text" placeholder="채널 분석 설정 이름" /></label>
+            <label>상태
+              <select id="opsVaRuleEnabledInput">
+                <option value="true">활성</option>
+                <option value="false">비활성</option>
+              </select>
+            </label>
+          </div>
+          <div class="row">
+            <label>채널
+              <select id="opsVaRuleChannelSelect"></select>
+            </label>
+            <label>이벤트 템플릿
+              <select id="opsVaRuleTemplateSeedSelect"></select>
+            </label>
+            <label>분석 프로파일
+              <select id="opsVaRuleProfileSelect"></select>
+            </label>
+          </div>
+          <p id="opsVaRuleBindingSummary" class="form-note">이벤트 템플릿과 프로파일을 고른 뒤 선택한 채널의 source와 PublishedView에 연결합니다.</p>
+          <section class="ops-selection-review" aria-labelledby="opsVaRuleTemplateSummaryHeading">
             <div>
-              <h4 style="margin:0;">설정 시작</h4>
-              <p id="opsVaRuleTemplateAssistHint" class="form-note">개별 설정으로 바로 작성합니다.</p>
+              <strong id="opsVaRuleTemplateSummaryHeading">선택한 템플릿 요약</strong>
+              <p id="opsVaRuleTemplateSummary" class="form-note">이벤트 템플릿을 고르면 시나리오와 대상 객체를 그대로 따릅니다.</p>
             </div>
+          </section>
+          <section class="ops-template-settings ops-va-stage-settings" aria-labelledby="opsVaRuleGeometryHeading">
+            <div>
+              <strong id="opsVaRuleGeometryHeading">채널 미리보기와 영역/라인 설정</strong>
+              <p class="form-note">선택한 채널 영상을 보면서 같은 영역에서 영역/라인을 정합니다. 개발자용 좌표는 필요할 때만 아래에서 펼쳐 봅니다.</p>
+            </div>
+            <div class="ops-va-stage-grid ops-va-stage-grid-single">
+              <section class="ops-va-stage-panel" aria-labelledby="opsVaRulePreviewHeading">
+                <div class="toolbar compact-toolbar">
+                  <div>
+                    <strong id="opsVaRulePreviewHeading">영상 위 영역/라인 편집</strong>
+                    <p id="opsVaRulePreviewSummary" class="form-note">채널을 고른 뒤 재생하고 같은 화면 위에 영역/라인을 그립니다.</p>
+                  </div>
+                  <div class="actions">
+                    <button id="opsVaRulePreviewStartBtn" class="button-secondary" type="button">재생</button>
+                    <button id="opsVaRulePreviewRestartBtn" class="button-secondary" type="button">재연결</button>
+                    <button id="opsVaRulePreviewStopBtn" class="button-secondary" type="button">정지</button>
+                  </div>
+                </div>
+                <div class="ops-rule-preview-stage">
+                  <video id="opsVaRulePreviewVideo" playsinline muted></video>
+                  <svg id="opsVaRuleGeometryPreview" class="ops-geometry-overlay" viewBox="0 0 100 100" aria-label="영역 미리보기"></svg>
+                  <span id="opsVaRulePreviewPlaceholder">채널을 고른 뒤 재생하세요.</span>
+                </div>
+                <div class="toolbar compact-toolbar ops-geometry-toolbar">
+                  <div>
+                    <strong id="opsVaRuleGeometryCanvasHeading">영역/라인</strong>
+                    <p id="opsVaRuleGeometrySummary" class="form-note">미리보기 영역을 눌러 점을 추가합니다. 라인은 2점, 영역은 3점 이상이 필요합니다.</p>
+                  </div>
+                  <div class="actions">
+                    <button id="opsVaRuleGeometryDefaultBtn" class="button-secondary" type="button">기본 좌표</button>
+                    <button id="opsVaRuleGeometryUndoBtn" class="button-secondary" type="button">마지막 점 삭제</button>
+                    <button id="opsVaRuleGeometryClearBtn" class="button-secondary" type="button">비우기</button>
+                  </div>
+                </div>
+              </section>
+            </div>
+            <details class="inline-details">
+              <summary>개발자용 좌표 보기</summary>
+              <div class="row">
+                <label>형태
+                  <input id="opsVaRuleGeometryKindText" type="text" readonly />
+                </label>
+                <label>좌표
+                  <textarea id="opsVaRuleGeometryPointsInput" rows="5" placeholder="0.20,0.22&#10;0.80,0.22&#10;0.80,0.78&#10;0.20,0.78"></textarea>
+                </label>
+              </div>
+            </details>
+          </section>
+        </form>
+        <form id="opsEventRuleForm" hidden>
+          <div class="row">
+            <label>ID<input id="opsEventRuleIdInput" type="text" inputmode="numeric" readonly /></label>
           </div>
-          <div id="opsVaRuleTemplateAssistActions" class="actions">
-            <button id="opsVaRuleStartDirect" class="button-primary" type="button" aria-pressed="true">개별 설정</button>
-            <button id="opsVaRuleStartTemplate" class="button-secondary" type="button" aria-pressed="false">템플릿 적용</button>
+          <div class="row">
+            <label>구성
+              <select id="opsEventRuleModeSelect">
+                <option value="event">이벤트</option>
+                <option value="scenario">시나리오</option>
+              </select>
+            </label>
+            <label>종류
+              <select id="opsEventRuleTypeSelect"></select>
+            </label>
+            <label>최소 신뢰도
+              <input id="opsEventRuleConfidenceInput" type="number" min="0" max="1" step="0.01" placeholder="0.25" />
+            </label>
+            <label>최소 지속 시간(ms)
+              <input id="opsEventRuleMinDurationInput" type="number" min="0" step="100" placeholder="0" />
+            </label>
           </div>
-          <label id="opsVaRuleTemplateSelectField" hidden>이벤트 템플릿
-            <select id="opsVaRuleTemplateSelect">
-              <option value="">템플릿을 고르세요</option>
-            </select>
-            <span class="form-note">고른 템플릿 값으로 현재 채널 분석 설정 입력을 채웁니다.</span>
-          </label>
-          <div id="opsVaRuleTemplateAssistState" class="source-lock" hidden>개별 설정</div>
-        </section>
-        <div id="opsRulesEditorComponent" class="embedded-component" data-component-url="/lab/rules?embed=1&panel=settings" hidden>룰 편집기를 불러오는 중입니다.</div>
+          <section class="ops-category-section" aria-labelledby="opsEventRuleClassesHeading">
+            <div class="ops-category-header">
+              <div>
+                <strong id="opsEventRuleClassesHeading">대상 객체</strong>
+                <p class="form-note">템플릿에서 기본으로 제안할 객체를 고릅니다.</p>
+              </div>
+              <div class="ops-category-actions">
+                <button id="opsEventRuleClassesDefaultBtn" class="button-secondary" type="button">기본</button>
+                <button id="opsEventRuleClassesAllBtn" class="button-secondary" type="button">전체 선택</button>
+                <button id="opsEventRuleClassesClearBtn" class="button-secondary" type="button">전체 해제</button>
+              </div>
+            </div>
+            <div id="opsEventRuleClassChecks" class="ops-category-grid"></div>
+            <p id="opsEventRuleClassesSummary" class="form-note">사람, 차량</p>
+          </section>
+          <section class="ops-template-settings" aria-labelledby="opsEventRuleSettingsHeading">
+            <div>
+              <strong id="opsEventRuleSettingsHeading">이벤트 조건</strong>
+              <p class="form-note">템플릿이 담당하는 판단 조건과 재알림 규칙입니다.</p>
+            </div>
+            <div class="row">
+              <label id="opsEventRuleLineDirectionField" hidden>라인 방향
+                <select id="opsEventRuleLineDirectionSelect">
+                  <option value="any">양방향</option>
+                  <option value="forward">정방향</option>
+                  <option value="reverse">역방향</option>
+                </select>
+              </label>
+              <label id="opsEventRuleCandidateField" hidden>후보 판단 시간(ms)
+                <input id="opsEventRuleCandidateInput" type="number" min="0" step="500" placeholder="2000" />
+              </label>
+              <label id="opsEventRuleDwellField" hidden>확정/체류 시간(ms)
+                <input id="opsEventRuleDwellInput" type="number" min="0" step="500" placeholder="10000" />
+              </label>
+            </div>
+            <div class="row">
+              <label id="opsEventRuleReEntryWindowField" hidden>재진입 허용 시간(ms)
+                <input id="opsEventRuleReEntryWindowInput" type="number" min="0" step="1000" placeholder="10000" />
+              </label>
+              <label id="opsEventRuleReEntryModeField" hidden>재진입 기준
+                <select id="opsEventRuleReEntryModeSelect">
+                  <option value="same-zone">같은 영역</option>
+                  <option value="configured-zones">지정 영역</option>
+                </select>
+              </label>
+              <label id="opsEventRuleLineDelayField" hidden>라인 후 최대 지연(ms)
+                <input id="opsEventRuleLineDelayInput" type="number" min="0" step="1000" placeholder="10000" />
+              </label>
+            </div>
+            <div class="row">
+              <label id="opsEventRuleTriggerDirectionField" hidden>트리거 라인 방향
+                <select id="opsEventRuleTriggerDirectionSelect">
+                  <option value="any">양방향</option>
+                  <option value="forward">정방향</option>
+                  <option value="reverse">역방향</option>
+                </select>
+              </label>
+              <label id="opsEventRuleLoiteringRadiusField" hidden>최대 이동 반경
+                <input id="opsEventRuleLoiteringRadiusInput" type="number" min="0.01" max="1" step="0.01" placeholder="0.08" />
+              </label>
+              <label id="opsEventRuleLoiteringPointsField" hidden>최소 이동 경로 점수
+                <input id="opsEventRuleLoiteringPointsInput" type="number" min="2" step="1" placeholder="4" />
+              </label>
+            </div>
+            <div class="row">
+              <label id="opsEventRuleZoneThresholdField" hidden>점유 임계값
+                <input id="opsEventRuleZoneThresholdInput" type="number" min="1" step="1" placeholder="3" />
+              </label>
+              <label id="opsEventRuleZoneDwellField" hidden>최소 점유 체류(ms)
+                <input id="opsEventRuleZoneDwellInput" type="number" min="0" step="1000" placeholder="5000" />
+              </label>
+              <label id="opsEventRuleCooldownField">재알림 대기(ms)
+                <input id="opsEventRuleCooldownInput" type="number" min="0" step="1000" placeholder="5000" />
+              </label>
+            </div>
+          </section>
+          <p id="opsEventRuleFormNote" class="form-note">여러 채널 분석 설정에서 다시 고를 수 있는 공통 이벤트 템플릿입니다.</p>
+        </form>
+        <form id="opsProfileForm" hidden>
+          <div class="row">
+            <label>ID<input id="opsProfileIdInput" type="text" inputmode="numeric" readonly /></label>
+            <label>검출기
+              <select id="opsProfileDetectorSelect">
+                <option value="yolo">yolo</option>
+                <option value="dummy">dummy</option>
+                <option value="server-config">server-config</option>
+              </select>
+            </label>
+            <label>FPS<input id="opsProfileFpsInput" type="number" min="1" step="1" placeholder="6" /></label>
+          </div>
+          <div class="row">
+            <label>Queue<input id="opsProfileQueueInput" type="number" min="1" step="1" placeholder="1" /></label>
+            <label>Confidence<input id="opsProfileConfidenceInput" type="number" min="0" max="1" step="0.01" placeholder="0.25" /></label>
+            <label>NMS<input id="opsProfileNmsInput" type="number" min="0" max="1" step="0.01" placeholder="0.45" /></label>
+          </div>
+          <div class="row">
+            <label>입력 폭<input id="opsProfileInputWidthInput" type="number" min="1" step="1" placeholder="640" /></label>
+            <label>입력 높이<input id="opsProfileInputHeightInput" type="number" min="1" step="1" placeholder="640" /></label>
+          </div>
+          <div class="checks">
+            <label><input id="opsProfileAdaptiveToggle" type="checkbox" checked /> adaptive</label>
+          </div>
+          <p id="opsProfileSummaryText" class="form-note">검출기, FPS, confidence, 입력 크기 같은 분석 엔진 설정만 정의합니다.</p>
+        </form>
       </section>
     </section>
 )";
@@ -19140,7 +19378,9 @@ void AppendOpsHomePage(std::ostringstream& out) {
 )";
 }
 
-std::string OpsShellPageHtml(const auth::Principal& principal, const std::string& active) {
+std::string OpsShellPageHtml(const app::AppConfig& config,
+                             const auth::Principal& principal,
+                             const std::string& active) {
     std::ostringstream out;
     AppendOpsShellStart(out,
                         principal,
@@ -19157,7 +19397,7 @@ std::string OpsShellPageHtml(const auth::Principal& principal, const std::string
     } else {
         AppendOpsHomePage(out);
     }
-    AppendOpsShellScript(out, active);
+    AppendOpsShellScript(out, active, config.stream_route, config.rtsp_listen_port);
     AppendOpsShellEnd(out);
     return out.str();
 }
@@ -20025,37 +20265,6 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           <p>채널과 PublishedView를 관리합니다.</p>
         </div>
       </div>
-      <section class="section-card compact-card">
-        <div class="toolbar">
-          <div>
-            <h3>입력 종류</h3>
-            <p>채널 입력 방식입니다.</p>
-          </div>
-          <p class="channel-kind-summary"><strong>외부 WHEP</strong>는 URL 입력, <strong>Published WebRTC</strong>는 저장된 <code>sourceId</code> 연결입니다.</p>
-        </div>
-        <div class="channel-kind-guide" aria-label="채널 입력 종류 안내">
-          <div class="channel-kind-guide-item">
-            <strong>파일</strong>
-            <span>로컬 파일</span>
-          </div>
-          <div class="channel-kind-guide-item">
-            <strong>RTSP pull</strong>
-            <span>RTSP 주소 pull</span>
-          </div>
-          <div class="channel-kind-guide-item">
-            <strong>외부 WHEP</strong>
-            <span>WHEP URL pull</span>
-          </div>
-          <div class="channel-kind-guide-item">
-            <strong>Published WebRTC</strong>
-            <span>저장된 sourceId 연결</span>
-          </div>
-          <div class="channel-kind-guide-item">
-            <strong>HTTP/HLS</strong>
-            <span>HTTP/HLS pull</span>
-          </div>
-        </div>
-      </section>
       <section class="section-card">
         <div class="toolbar">
           <div>
@@ -20081,7 +20290,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
               <col class="channel-col-actions" />
             </colgroup>
 )OPS";
-    AppendTableHead(out, {"번호", "이름", "종류", "상태", "입력", "라이브 URL", "VA URL", "작업"});
+    AppendTableHead(out, {"ID", "이름", "종류", "상태", "입력", "라이브 URL", "VA URL", "작업"});
     out << R"OPS(            <tbody id="channels-body"><tr><td colspan="8">로딩 중</td></tr></tbody>
           </table>
         </div>
@@ -20091,7 +20300,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
       <section id="channel-detail-panel" class="section-card" hidden>
         <div class="toolbar">
           <div>
-            <div class="badge-row"><span id="channel-editor-mode" class="chip info">보기</span><span id="channel-editor-id" class="chip">#-</span></div>
+            <div class="badge-row"><span id="channel-editor-mode" class="chip info">보기</span><span id="channel-editor-id" class="chip">-</span></div>
             <h3 id="channel-editor-title">채널 상세</h3>
             <p id="channel-editor-help">저장된 내용입니다.</p>
           </div>
@@ -23500,7 +23709,7 @@ std::string LabReportKindFromName(const std::string& name) {
     return "artifact";
 }
 
-// /tmp에 남은 최신 검증 산출물을 Lab UI에서 선택할 수 있는 JSON 목록으로 만든다.
+// /tmp에 남은 최신 검증 산출물을 개발/검증 API에서 선택할 수 있는 JSON 목록으로 만든다.
 std::string LabReportsJson() {
     std::vector<std::filesystem::path> reports;
     std::error_code ec;
@@ -23791,39 +24000,6 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
         error_message->clear();
     }
     return true;
-}
-
-std::string LabImportJobJson(const LabImportJobSnapshot& job) {
-    std::ostringstream out;
-    out << "{"
-        << "\"jobId\":\"" << JsonEscape(job.job_id) << "\","
-        << "\"provider\":\"" << JsonEscape(job.provider) << "\","
-        << "\"sourceUrl\":\"" << JsonEscape(job.source_url) << "\","
-        << "\"requestedFileName\":\"" << JsonEscape(job.requested_file_name) << "\","
-        << "\"storedFileToken\":\"" << JsonEscape(job.stored_file_token) << "\","
-        << "\"status\":\"" << JsonEscape(job.status) << "\","
-        << "\"error\":\"" << JsonEscape(job.error_message) << "\","
-        << "\"log\":\"" << JsonEscape(job.log_excerpt) << "\","
-        << "\"exitCode\":" << job.exit_code << ","
-        << "\"createdAtMs\":" << job.created_at_ms << ","
-        << "\"updatedAtMs\":" << job.updated_at_ms << ","
-        << "\"startedAtMs\":" << job.started_at_ms << ","
-        << "\"finishedAtMs\":" << job.finished_at_ms
-        << "}";
-    return out.str();
-}
-
-std::string LabImportJobsJson(const std::vector<LabImportJobSnapshot>& jobs) {
-    std::ostringstream out;
-    out << "{\"jobs\":[";
-    for (std::size_t i = 0; i < jobs.size(); ++i) {
-        if (i != 0) {
-            out << ",";
-        }
-        out << LabImportJobJson(jobs[i]);
-    }
-    out << "]}";
-    return out.str();
 }
 
 bool SendAll(int fd, const std::string& data) {
@@ -24796,7 +24972,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 }
                                 return *auth_response;
                             }
-                            return HtmlPageResponse(OpsShellPageHtml(principal_result.principal, "rules"));
+                            return HtmlPageResponse(OpsShellPageHtml(config, principal_result.principal, "rules"));
                         }
 
 	                        if (request.path == "/ops/api/users") {
@@ -25338,7 +25514,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 }
                                 return *auth_response;
                             }
-                            return HtmlPageResponse(OpsShellPageHtml(principal_result.principal,
+                            return HtmlPageResponse(OpsShellPageHtml(config,
+                                                                     principal_result.principal,
                                                                      OpsOverviewActiveForPath(request.path)));
                         }
 
@@ -25377,6 +25554,18 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return ok;
                         }
 
+                        if (request.method == "GET" && request.path == "/lab") {
+                            return RedirectResponse(config.enable_ops ? "/ops/home" : DefaultHomePath(config));
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/rules") {
+                            return RedirectResponse(config.enable_ops ? "/ops/rules" : DefaultHomePath(config));
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/import") {
+                            return RedirectResponse(config.enable_ops ? "/ops/sources" : DefaultHomePath(config));
+                        }
+
                         if (request.path == "/lab" || request.path.rfind("/lab/", 0) == 0) {
                             if (const auto auth_response = require_lab_principal(); auth_response.has_value()) {
                                 if (!principal_result.ok && session_auth_mode && config.enable_lab) {
@@ -25384,8 +25573,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 }
                                 const bool lab_page_get =
                                     request.method == "GET" &&
-                                    (request.path == "/lab" || request.path == "/lab/rules" ||
-                                     request.path == "/lab/import");
+                                    false;
                                 if (lab_page_get && !principal_result.ok) {
                                     return UnauthorizedPageResponse();
                                 }
@@ -25394,53 +25582,6 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 }
                                 return *auth_response;
                             }
-                        }
-
-                        if (request.method == "GET" && request.path == "/lab") {
-                            return HtmlPageResponse(BuildTestPageHtml(true));
-                        }
-
-                        if (request.method == "GET" && request.path == "/lab/rules") {
-                            return HtmlPageResponse(BuildLabRuleEditorPageHtml());
-                        }
-
-                        if (request.method == "GET" && request.path == "/lab/import") {
-                            return HtmlPageResponse(BuildLabImportPageHtml());
-                        }
-
-                        if (request.method == "GET" && request.path == "/lab/import/jobs") {
-                            return JsonResponse(200, "OK",
-                                                LabImportJobsJson(impl_->lab_import_manager.ListJobs()));
-                        }
-
-                        if (request.method == "POST" && request.path == "/lab/import/jobs") {
-                            LabImportJobRequest import_request;
-                            import_request.provider =
-                                ParseStringField(request.body, "provider").value_or("youtube");
-                            import_request.url = ParseStringField(request.body, "url").value_or("");
-                            import_request.target_file_name =
-                                ParseStringField(request.body, "targetFileName").value_or("");
-                            std::string error_message;
-                            const LabImportJobSnapshot job =
-                                impl_->lab_import_manager.CreateJob(import_request, &error_message);
-                            if (!error_message.empty()) {
-                                return JsonResponse(400, "Bad Request",
-                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
-                            }
-                            return JsonResponse(200, "OK",
-                                                "{\"job\":" + LabImportJobJson(job) + "}");
-                        }
-
-                        if (request.method == "GET" &&
-                            request.path.rfind("/lab/import/jobs/", 0) == 0) {
-                            const std::string job_id = request.path.substr(std::string("/lab/import/jobs/").size());
-                            const auto job = impl_->lab_import_manager.GetJob(job_id);
-                            if (!job.has_value()) {
-                                return JsonResponse(404, "Not Found",
-                                                    "{\"error\":\"import job not found\"}");
-                            }
-                            return JsonResponse(200, "OK",
-                                                "{\"job\":" + LabImportJobJson(*job) + "}");
                         }
 
                         if (request.method == "GET" && request.path == "/lab/files") {

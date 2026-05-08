@@ -10,7 +10,7 @@ const httpBase = String(args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/
 const timeoutMs = Number(args.timeoutMs || 12000);
 const chromePath = args.chromePath || findChrome();
 const debugPort = Number(args.debugPort || 9899);
-const outputDir = args.outputDir || path.join("/tmp", `media_server_ops_rules_embed_${Date.now()}_${process.pid}`);
+const outputDir = args.outputDir || path.join("/tmp", `media_server_ops_rules_native_${Date.now()}_${process.pid}`);
 
 if (!chromePath) {
   console.error("[fail] Chrome executable not found");
@@ -29,12 +29,28 @@ const browser = await openBrowserPage({
 });
 
 try {
-  const result = await browser.evaluate(buildExpression(), timeoutMs);
+  const result = await browser.evaluate(buildRulesOpenExpression(), timeoutMs);
   if (!result?.ok) {
     throw new Error(JSON.stringify(result));
   }
-  console.log("[pass] ops-rules-embed-smoke");
-  console.log(JSON.stringify(result, null, 2));
+  const usersNav = await clickNavAndWait(browser, "/ops/users");
+  if (!usersNav?.ok) {
+    throw new Error(JSON.stringify(usersNav));
+  }
+  const rulesNav = await clickNavAndWait(browser, "/ops/rules");
+  if (!rulesNav?.ok) {
+    throw new Error(JSON.stringify(rulesNav));
+  }
+  const returned = await browser.evaluate(buildReturnedRulesExpression(), timeoutMs);
+  if (!returned?.ok) {
+    throw new Error(JSON.stringify(returned));
+  }
+  const sourcesNav = await clickNavAndWait(browser, "/ops/sources");
+  if (!sourcesNav?.ok) {
+    throw new Error(JSON.stringify(sourcesNav));
+  }
+  console.log("[pass] ops-rules-native-smoke");
+  console.log(JSON.stringify({ ...result, returned, usersNav, rulesNav, sourcesNav }, null, 2));
 } finally {
   await browser.close();
 }
@@ -65,7 +81,35 @@ function toCamel(value) {
   return value.replace(/-([a-z])/g, (_match, chr) => chr.toUpperCase());
 }
 
-function buildExpression() {
+async function clickNavAndWait(browser, path) {
+  const clicked = await browser.evaluate(`
+    (() => {
+      const visible = (node) => Boolean(node) && !node.hidden && getComputedStyle(node).display !== 'none';
+      const link = Array.from(document.querySelectorAll('a[href="${path}"]')).find(node => visible(node));
+      if (!link) return { ok: false, message: 'missing visible nav link', path: ${JSON.stringify(path)} };
+      setTimeout(() => link.click(), 0);
+      return { ok: true, href: link.getAttribute('href') || '' };
+    })()
+  `, timeoutMs);
+  if (!clicked?.ok) return clicked;
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const state = await browser.evaluate(`
+      (() => ({
+        readyState: document.readyState,
+        pathname: window.location.pathname,
+        title: document.title
+      }))()
+    `, 3000).catch((error) => ({ error: error.message }));
+    if (state.readyState === "complete" && String(state.pathname || "").endsWith(path)) {
+      return { ok: true, path, title: state.title || "" };
+    }
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  }
+  return { ok: false, message: "navigation timeout", path };
+}
+
+function buildRulesOpenExpression() {
   return `
     (async () => {
       const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -92,20 +136,13 @@ function buildExpression() {
       }
 
       click('opsCreateVaRuleBtn');
-      await wait(2200);
-      const host = document.getElementById('opsRulesEditorComponent');
-      const shadow = host?.shadowRoot;
-      if (!shadow || !visible(detailPanel)) {
+      await wait(400);
+      const vaForm = document.getElementById('opsVaRuleForm');
+      const vaChannelSelect = document.getElementById('opsVaRuleChannelSelect');
+      if (!visible(detailPanel) || !visible(vaForm)) {
         return fail('detail panel did not open after create va rule', {
-          hostHidden: host?.hidden ?? null,
           detailHidden: detailPanel?.hidden ?? null,
-          statusText: status?.textContent || ''
-        });
-      }
-      const vaChannelPicker = shadow.getElementById('opsRuleChannelPicker');
-      const vaChannelSelect = shadow.getElementById('opsRuleChannelSelect');
-      if (!visible(vaChannelPicker)) {
-        return fail('channel picker hidden in va create mode', {
+          vaFormHidden: vaForm?.hidden ?? null,
           statusText: status?.textContent || ''
         });
       }
@@ -125,29 +162,42 @@ function buildExpression() {
       }
 
       click('opsCreateEventRuleBtn');
-      await wait(2200);
-      const eventShadow = document.getElementById('opsRulesEditorComponent')?.shadowRoot;
-      if (!eventShadow || !visible(detailPanel)) {
+      await wait(400);
+      const eventForm = document.getElementById('opsEventRuleForm');
+      if (!eventForm || !visible(detailPanel)) {
         return fail('detail panel did not open after create event template', {
           detailHidden: detailPanel?.hidden ?? null,
           statusText: status?.textContent || ''
         });
       }
-      const eventChannelPicker = eventShadow.getElementById('opsRuleChannelPicker');
-      if (visible(eventChannelPicker)) {
-        return fail('channel picker should be hidden in event template mode');
-      }
-
-      const usersLink = Array.from(document.querySelectorAll('a[href="/ops/users"]')).find(node => visible(node));
-      if (!usersLink) {
-        return fail('missing visible users nav link');
+      const eventChannelSelect = document.getElementById('opsVaRuleChannelSelect');
+      if (visible(eventChannelSelect) && !document.getElementById('opsVaRuleForm')?.hidden) {
+        return fail('va rule form should stay hidden in event template mode');
       }
 
       return {
         ok: true,
         optionTexts,
-        navHref: usersLink.getAttribute('href') || '',
+        navHref: Array.from(document.querySelectorAll('a[href="/ops/users"]')).find(node => visible(node))?.getAttribute('href') || '',
         statusText: status?.textContent || ''
+      };
+    })()
+  `;
+}
+
+function buildReturnedRulesExpression() {
+  return `
+    (() => {
+      const visible = (node) => Boolean(node) && !node.hidden && getComputedStyle(node).display !== 'none';
+      const detailPanel = document.getElementById('opsRulesDetailPanel');
+      const eventSection = document.getElementById('opsEventRulesSection');
+      const channelLink = Array.from(document.querySelectorAll('a[href="/ops/sources"]')).find(node => visible(node));
+      if (!channelLink) return { ok: false, message: 'missing visible sources nav link after returning to rules' };
+      if (visible(detailPanel)) return { ok: false, message: 'rules detail panel remained open after returning from users tab' };
+      return {
+        ok: true,
+        eventVisible: visible(eventSection),
+        detailVisible: visible(detailPanel)
       };
     })()
   `;

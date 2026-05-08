@@ -66,7 +66,6 @@ add_executable(media_server
     src/ingress/webrtc_gst_utils.cpp
     src/ingress/webrtc_source_registry.cpp
     src/ingress/webrtc_source_session.cpp
-    src/ingress/lab_import_manager.cpp
     src/ingress/webrtc_http_server.cpp
     src/ingress/rtsp_adapter.cpp
     src/ingress/gstreamer_rtsp_server.cpp
