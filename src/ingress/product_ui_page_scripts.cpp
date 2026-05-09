@@ -1777,8 +1777,44 @@ void AppendOpsShellScript(std::ostringstream& out,
         const rightSet = new Set(rightItems);
         return leftItems.every(item => rightSet.has(item));
       }
+      function opsRulesSetIncludesAll(left = [], right = []) {
+        const leftSet = new Set(opsRulesStringArray(left));
+        return opsRulesStringArray(right).every(item => leftSet.has(item));
+      }
       function opsRulesTemplateClasses(item = {}) {
         return opsRulesStringArray(item?.analysis?.classes || item?.scenario?.targetClasses || []);
+      }
+      function opsRulesProfileClasses(item = {}) {
+        return opsRulesStringArray(item?.analysis?.classes || item?.classes || item?.targetClasses || []);
+      }
+      function opsRulesAllowedOverlayModes(view = {}) {
+        const modes = opsRulesStringArray(view?.allowedOverlayModes || []);
+        return modes.length > 0 ? modes : ['raw', 'va-overlay'];
+      }
+      function opsRulesViewAllowsVaRuleMode(view = {}) {
+        return opsRulesAllowedOverlayModes(view).includes('va-rule');
+      }
+      function opsRulesViewAllowsRuleId(view = {}, ruleId = '') {
+        const id = String(ruleId || '').trim();
+        if (!id) return false;
+        const allowed = new Set([
+          String(view?.defaultRuleId || '').trim(),
+          ...opsRulesStringArray(view?.allowedRuleIds || [])
+        ].filter(Boolean));
+        return allowed.has(id);
+      }
+      function opsRulesClassConflictMessages(rule = {}, template = null, profile = null) {
+        const messages = [];
+        const ruleClasses = opsRulesTemplateClasses(rule);
+        const templateClasses = opsRulesTemplateClasses(template || {});
+        const profileClasses = opsRulesProfileClasses(profile || {});
+        if (template && templateClasses.length > 0 && !opsRulesSetIncludesAll(ruleClasses, templateClasses)) {
+          messages.push(`룰 대상(${opsRulesCategorySummaryText(ruleClasses, '없음')})이 템플릿 대상(${opsRulesCategorySummaryText(templateClasses, '없음')})을 모두 포함하지 않습니다.`);
+        }
+        if (profileClasses.length > 0 && templateClasses.length > 0 && !opsRulesSetIncludesAll(profileClasses, templateClasses)) {
+          messages.push(`프로파일 대상(${opsRulesCategorySummaryText(profileClasses, '없음')})이 템플릿 대상(${opsRulesCategorySummaryText(templateClasses, '없음')})과 맞지 않습니다.`);
+        }
+        return messages;
       }
       function opsRulesInferTemplateForVaRule(item = {}) {
         const explicitId = String(item?.templateStart?.ruleId || '').trim();
@@ -3980,20 +4016,37 @@ void AppendOpsShellScript(std::ostringstream& out,
           const profileId = String(rule?.analysis?.profileId || '').trim();
           const templateId = String(rule?.templateStart?.ruleId || '').trim();
           const channel = opsRulesFindChannelForVaRule(rule);
+          const profile = profileId ? findOpsProfileById(profileId) : null;
+          const template = templateId ? findOpsEventTemplateById(templateId) : null;
           if (!profileId) {
             issues.push(opsRulesIssue('missing-profile', `va-rule:${id}`, `채널 분석 설정 ${id}에 프로파일이 없습니다.`, '분석 프로파일을 선택해야 저장/운영할 수 있습니다.'));
-          } else if (!findOpsProfileById(profileId)) {
+          } else if (!profile) {
             issues.push(opsRulesIssue('missing-profile', `va-rule:${id}`, `채널 분석 설정 ${id}의 프로파일 ${profileId}을 찾을 수 없습니다.`, '삭제됐거나 아직 생성되지 않은 프로파일입니다.'));
           }
           if (!templateId) {
             issues.push(opsRulesIssue('missing-template', `va-rule:${id}`, `채널 분석 설정 ${id}에 이벤트 템플릿이 없습니다.`, '이벤트 템플릿을 먼저 선택하세요.'));
-          } else if (!findOpsEventTemplateById(templateId)) {
+          } else if (!template) {
             issues.push(opsRulesIssue('missing-template', `va-rule:${id}`, `채널 분석 설정 ${id}의 템플릿 ${templateId}을 찾을 수 없습니다.`, '삭제됐거나 아직 생성되지 않은 템플릿입니다.'));
           }
           if (!channel) {
             issues.push(opsRulesIssue('missing-source', `va-rule:${id}`, `채널 분석 설정 ${id}의 source가 채널 목록에 없습니다.`, '채널 탭에서 source와 PublishedView를 다시 저장하세요.'));
           } else if (channel.view && !opsRulesSourceMatches(channel.source, rule.source || {})) {
             issues.push(opsRulesIssue('source-mismatch', `va-rule:${id}`, `채널 분석 설정 ${id}의 source가 PublishedView source와 다릅니다.`, `${channel.displayName || channel.id} 채널의 source와 룰 source를 맞추세요.`));
+          }
+          if (channel?.source?.enabled === false) {
+            issues.push(opsRulesIssue('inactive-channel', `va-rule:${id}`, `채널 분석 설정 ${id}가 비활성 채널에 연결되어 있습니다.`, `${channel.displayName || channel.id} 채널을 활성화하거나 다른 채널로 연결하세요.`));
+          }
+          if (channel?.view?.enabled === false) {
+            issues.push(opsRulesIssue('inactive-view', `va-rule:${id}`, `채널 분석 설정 ${id}가 비활성 PublishedView에 연결되어 있습니다.`, '채널 탭에서 PublishedView를 활성화한 뒤 저장하세요.'));
+          }
+          if (channel?.view && !opsRulesViewAllowsVaRuleMode(channel.view)) {
+            issues.push(opsRulesIssue('view-mode-not-allowed', `va-rule:${id}`, `PublishedView가 va-rule 모드를 허용하지 않습니다.`, '채널 탭에서 보기 방식에 va-rule을 추가해야 Client Live에서 사용할 수 있습니다.'));
+          }
+          if (channel?.view && id !== '(미지정)' && !opsRulesViewAllowsRuleId(channel.view, id)) {
+            issues.push(opsRulesIssue('view-rule-not-allowed', `va-rule:${id}`, `PublishedView 허용 룰 목록에 ${id}가 없습니다.`, '채널 탭에서 defaultRuleId/allowedRuleIds를 맞추거나 룰을 다시 연결하세요.'));
+          }
+          for (const message of opsRulesClassConflictMessages(rule, template, profile)) {
+            issues.push(opsRulesIssue('template-profile-conflict', `va-rule:${id}`, `채널 분석 설정 ${id}의 대상 클래스가 충돌합니다.`, message));
           }
         }
         for (const view of opsRulesViews) {
@@ -4008,6 +4061,9 @@ void AppendOpsShellScript(std::ostringstream& out,
               issues.push(opsRulesIssue('missing-rule', `view:${viewId}`, `PublishedView ${viewId}가 없는 룰 ${ruleId}을 참조합니다.`, '채널 탭에서 허용 룰 목록을 다시 저장하세요.'));
             }
           }
+          if (ruleIds.size > 0 && !opsRulesViewAllowsVaRuleMode(view)) {
+            issues.push(opsRulesIssue('view-mode-not-allowed', `view:${viewId}`, `PublishedView ${viewId}가 룰을 참조하지만 va-rule 모드를 허용하지 않습니다.`, '보기 방식과 허용 룰 목록을 함께 저장하세요.'));
+          }
         }
         return issues;
       }
@@ -4018,7 +4074,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         list.textContent = '';
         if (!issues.length) {
           summary.textContent = '저장 전 차단 항목이 없습니다.';
-          list.innerHTML = '<div class="empty">source mismatch, 중복 ID, 누락된 프로파일/템플릿이 없습니다.</div>';
+          list.innerHTML = '<div class="empty">source mismatch, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, view 권한 충돌이 없습니다.</div>';
           return;
         }
         summary.textContent = `저장 전 확인이 필요한 항목 ${issues.length}개`;
@@ -4043,9 +4099,20 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (existing && id !== currentId) issues.push(`채널 분석 설정 ID ${id}는 이미 사용 중입니다.`);
           const profileId = String(payload?.analysis?.profileId || '').trim();
           const templateId = String(payload?.templateStart?.ruleId || '').trim();
-          if (!profileId || !findOpsProfileById(profileId)) issues.push(`분석 프로파일 ${profileId || '(비어 있음)'}을 찾을 수 없습니다.`);
-          if (!templateId || !findOpsEventTemplateById(templateId)) issues.push(`이벤트 템플릿 ${templateId || '(비어 있음)'}을 찾을 수 없습니다.`);
+          const profile = profileId ? findOpsProfileById(profileId) : null;
+          const template = templateId ? findOpsEventTemplateById(templateId) : null;
+          if (!profileId || !profile) issues.push(`분석 프로파일 ${profileId || '(비어 있음)'}을 찾을 수 없습니다.`);
+          if (!templateId || !template) issues.push(`이벤트 템플릿 ${templateId || '(비어 있음)'}을 찾을 수 없습니다.`);
           if (!channel?.view) issues.push('선택한 채널에 PublishedView가 없습니다.');
+          if (channel?.source?.enabled === false) issues.push('비활성 채널에는 룰을 연결할 수 없습니다.');
+          if (channel?.view?.enabled === false) issues.push('비활성 PublishedView에는 룰을 연결할 수 없습니다.');
+          if (channel?.view && !opsRulesViewAllowsVaRuleMode(channel.view)) {
+            issues.push('선택한 PublishedView가 va-rule 모드를 허용하지 않습니다.');
+          }
+          if (channel?.view && currentId && !opsRulesViewAllowsRuleId(channel.view, id)) {
+            issues.push(`선택한 PublishedView의 허용 룰 목록에 ${id}가 없습니다.`);
+          }
+          issues.push(...opsRulesClassConflictMessages(payload, template, profile));
           if (channel?.source && payload?.source && !opsRulesSourceMatches(channel.source, payload.source)) {
             issues.push('선택한 채널 source와 룰 source가 일치하지 않습니다.');
           }

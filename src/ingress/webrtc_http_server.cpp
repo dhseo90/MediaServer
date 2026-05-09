@@ -526,6 +526,72 @@ bool StringArrayHasNonEmptyValue(const std::string& array_body) {
     return false;
 }
 
+std::vector<std::string> StringArrayValues(const std::string& array_body) {
+    std::vector<std::string> values;
+    bool in_string = false;
+    bool escaped = false;
+    std::string current;
+    for (std::size_t pos = 1; pos + 1 < array_body.size(); ++pos) {
+        const char ch = array_body[pos];
+        if (!in_string) {
+            if (ch == '"') {
+                in_string = true;
+                current.clear();
+            }
+            continue;
+        }
+        if (escaped) {
+            current.push_back(ch);
+            escaped = false;
+            continue;
+        }
+        if (ch == '\\') {
+            escaped = true;
+            continue;
+        }
+        if (ch == '"') {
+            const std::string value = Trim(current);
+            if (!value.empty()) {
+                values.push_back(value);
+            }
+            in_string = false;
+            continue;
+        }
+        current.push_back(ch);
+    }
+    return values;
+}
+
+std::vector<std::string> StringArrayFieldValues(const std::string& body, const std::string& field) {
+    const auto array = ExtractArrayField(body, field);
+    return array.has_value() ? StringArrayValues(*array) : std::vector<std::string>{};
+}
+
+bool StringArrayIncludesAll(const std::vector<std::string>& source,
+                            const std::vector<std::string>& required) {
+    std::set<std::string> source_set(source.begin(), source.end());
+    return std::all_of(required.begin(), required.end(), [&](const std::string& value) {
+        return source_set.find(value) != source_set.end();
+    });
+}
+
+std::vector<std::string> AnalysisClassesFromDocument(const std::string& body) {
+    if (const auto analysis = ExtractObjectField(body, "analysis"); analysis.has_value()) {
+        if (auto values = StringArrayFieldValues(*analysis, "classes"); !values.empty()) {
+            return values;
+        }
+    }
+    if (const auto scenario = ExtractObjectField(body, "scenario"); scenario.has_value()) {
+        if (auto values = StringArrayFieldValues(*scenario, "targetClasses"); !values.empty()) {
+            return values;
+        }
+    }
+    if (auto values = StringArrayFieldValues(body, "classes"); !values.empty()) {
+        return values;
+    }
+    return {};
+}
+
 // object 본문 안의 string array field가 비어 있지 않은지 확인한다.
 bool HasNonEmptyStringArrayField(const std::string& body, const std::string& field) {
     const auto array = ExtractArrayField(body, field);
@@ -996,6 +1062,7 @@ private:
             SetRegistryError(error_message, "vaRule analysis.classes must include at least one category");
             return std::nullopt;
         }
+        const std::vector<std::string> va_rule_classes = StringArrayFieldValues(*analysis, "classes");
         const std::string profile_id = Trim(ParseStringField(*analysis, "profileId").value_or(""));
         if (profile_id.empty()) {
             SetRegistryError(error_message, "vaRule analysis.profileId is required");
@@ -1013,9 +1080,26 @@ private:
             SetRegistryError(error_message, "vaRule requires templateStart.ruleId");
             return std::nullopt;
         }
-        if (!FindDocumentLocked(rules_, template_rule_id).has_value()) {
+        const auto template_document = FindDocumentLocked(rules_, template_rule_id);
+        if (!template_document.has_value()) {
             SetRegistryError(error_message, "vaRule templateStart.ruleId does not exist");
             return std::nullopt;
+        }
+        const std::vector<std::string> template_classes = AnalysisClassesFromDocument(*template_document);
+        if (!template_classes.empty() && !StringArrayIncludesAll(va_rule_classes, template_classes)) {
+            SetRegistryError(error_message,
+                             "vaRule analysis.classes must include template analysis.classes");
+            return std::nullopt;
+        }
+        if (const auto profile_document = FindDocumentLocked(profiles_, profile_id);
+            profile_document.has_value()) {
+            const std::vector<std::string> profile_classes = AnalysisClassesFromDocument(*profile_document);
+            if (!profile_classes.empty() &&
+                !StringArrayIncludesAll(profile_classes, template_classes)) {
+                SetRegistryError(error_message,
+                                 "vaRule profile classes must include template analysis.classes");
+                return std::nullopt;
+            }
         }
         std::string normalized = Trim(body);
         if (!ParseStringField(normalized, "id").has_value()) {
