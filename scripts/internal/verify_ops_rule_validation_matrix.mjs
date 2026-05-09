@@ -1,0 +1,165 @@
+#!/usr/bin/env node
+// 파일 용도: Ops rule 저장 전/서버 validation 시나리오를 fixture matrix로 고정한다.
+
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.resolve(scriptDir, "../..");
+const checks = [];
+
+const ruleValidationMatrixFixtures = [
+  {
+    id: "inactive-profile",
+    owner: "server-ui",
+    fixture: {
+      profile: { id: "profile-inactive", enabled: false, analysis: { classes: ["person"] } },
+      vaRule: { analysis: { profileId: "profile-inactive", classes: ["person"] } },
+    },
+    uiSnippets: ["inactive-profile"],
+    serverSnippets: ["vaRule analysis.profileId is inactive"],
+    docSnippets: ["inactive profile/template"],
+  },
+  {
+    id: "inactive-template",
+    owner: "server-ui",
+    fixture: {
+      template: { id: "template-inactive", enabled: false, analysis: { classes: ["person"] } },
+      vaRule: { templateStart: { ruleId: "template-inactive" } },
+    },
+    uiSnippets: ["inactive-template"],
+    serverSnippets: ["vaRule templateStart.ruleId is inactive"],
+    docSnippets: ["inactive profile/template"],
+  },
+  {
+    id: "priority-conflict",
+    owner: "server-ui",
+    fixture: {
+      existing: { id: "10", priority: 20, source: { kind: "file", file: "sample_h264.mp4" } },
+      candidate: { id: "11", priority: 20, source: { kind: "file", file: "sample_h264.mp4" } },
+    },
+    uiSnippets: ["priority-conflict"],
+    serverSnippets: ["vaRule priority conflicts with existing rule on same source"],
+    docSnippets: ["priority conflict"],
+  },
+  {
+    id: "unauthorized-view",
+    owner: "ui",
+    fixture: {
+      view: { viewId: "1", allowedOverlayModes: ["raw", "va-overlay"], allowedRuleIds: [] },
+      vaRule: { id: "10", source: { kind: "file", file: "sample_h264.mp4" } },
+    },
+    uiSnippets: ["unauthorized-view", "view-mode-not-allowed", "view-rule-not-allowed"],
+    serverSnippets: [],
+    docSnippets: ["unauthorized view"],
+  },
+  {
+    id: "template-class-mismatch",
+    owner: "server-ui",
+    fixture: {
+      template: { id: "template-person", analysis: { classes: ["person"] } },
+      vaRule: { analysis: { classes: ["vehicle"], profileId: "1" } },
+    },
+    uiSnippets: ["template-profile-conflict", "opsRulesClassConflictMessages"],
+    serverSnippets: ["vaRule analysis.classes must include template analysis.classes"],
+    docSnippets: ["VA class mismatch"],
+  },
+  {
+    id: "profile-template-class-mismatch",
+    owner: "server-ui",
+    fixture: {
+      profile: { id: "profile-vehicle", analysis: { classes: ["vehicle"] } },
+      template: { id: "template-person", analysis: { classes: ["person"] } },
+    },
+    uiSnippets: ["template-profile-conflict", "opsRulesClassConflictMessages"],
+    serverSnippets: ["vaRule profile classes must include template analysis.classes"],
+    docSnippets: ["VA class mismatch"],
+  },
+  {
+    id: "source-mismatch",
+    owner: "ui",
+    fixture: {
+      view: { viewId: "1", sourceId: "1" },
+      vaRule: { id: "10", source: { kind: "file", file: "other.mp4" } },
+    },
+    uiSnippets: ["source-mismatch"],
+    serverSnippets: [],
+    docSnippets: ["source mismatch"],
+  },
+];
+
+check("rule validation matrix has required fixtures", () => {
+  const ids = new Set();
+  for (const fixture of ruleValidationMatrixFixtures) {
+    assert(fixture.id && !ids.has(fixture.id), `duplicate or empty fixture id: ${fixture.id}`);
+    ids.add(fixture.id);
+    assert(fixture.owner, `fixture ${fixture.id} is missing owner`);
+    assert(fixture.fixture && Object.keys(fixture.fixture).length > 0, `fixture ${fixture.id} has no payload`);
+    assert(Array.isArray(fixture.uiSnippets), `fixture ${fixture.id} has no uiSnippets`);
+    assert(Array.isArray(fixture.serverSnippets), `fixture ${fixture.id} has no serverSnippets`);
+  }
+  for (const required of ["inactive-profile", "inactive-template", "priority-conflict", "unauthorized-view", "template-class-mismatch", "profile-template-class-mismatch"]) {
+    assert(ids.has(required), `required fixture missing: ${required}`);
+  }
+});
+
+check("UI validation covers every matrix fixture", () => {
+  const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  for (const fixture of ruleValidationMatrixFixtures) {
+    for (const snippet of fixture.uiSnippets) {
+      assert(script.includes(snippet), `UI validation missing ${fixture.id} snippet: ${snippet}`);
+    }
+  }
+});
+
+check("server validation covers server-owned fixtures", () => {
+  const server = readText("src/ingress/webrtc_http_server.cpp");
+  for (const fixture of ruleValidationMatrixFixtures.filter(item => item.owner.includes("server"))) {
+    for (const snippet of fixture.serverSnippets) {
+      assert(server.includes(snippet), `server validation missing ${fixture.id} snippet: ${snippet}`);
+    }
+  }
+});
+
+check("docs list rule validation matrix scenarios", () => {
+  const docs = readText("docs/ui-guide.md");
+  for (const fixture of ruleValidationMatrixFixtures) {
+    for (const snippet of fixture.docSnippets) {
+      assert(docs.includes(snippet), `docs missing ${fixture.id} snippet: ${snippet}`);
+    }
+  }
+});
+
+let failCount = 0;
+for (const item of checks) {
+  try {
+    item.run();
+    console.log(`[pass] ${item.name}`);
+  } catch (error) {
+    failCount += 1;
+    const message = error instanceof Error ? error.message : String(error);
+    console.log(`[fail] ${item.name}: ${message}`);
+  }
+}
+
+console.log("");
+console.log("== Ops rule validation matrix summary ==");
+console.log(`- fixtures: ${ruleValidationMatrixFixtures.length}`);
+console.log(`- pass: ${checks.length - failCount}`);
+console.log(`- fail: ${failCount}`);
+
+if (failCount > 0) process.exit(1);
+
+function check(name, run) {
+  checks.push({ name, run });
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
+function readText(relativePath) {
+  return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
