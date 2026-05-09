@@ -45,6 +45,7 @@
 ```bash
 node --check scripts/internal/verify_ops_rules_embed_smoke.mjs
 ./server.sh verify-analysis-state
+./server.sh verify-ops-rule-validation-matrix
 ./server.sh build
 ```
 

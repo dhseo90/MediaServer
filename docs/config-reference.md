@@ -191,7 +191,7 @@ Ops audit trail:
 | --- | --- | --- |
 | `MEDIA_SERVER_OPS_AUDIT_RETENTION_DAYS` | `180` | `.media_server.ops_audit.jsonl` 보존 기간. `0` 이하는 정리를 비활성화하며, 조회/저장 시 오래된 `receivedAtMs` 기록을 정리합니다. |
 
-`GET /ops/api/audit`는 `area`, `actor`, `user`, `target`, `action`, `q`, `offset`, `limit` 필터를 지원합니다. `format=json|csv|diff-json`과 `download=1`을 함께 사용하면 운영 감사 기록 또는 전/후 diff 중심 export를 받을 수 있습니다.
+`GET /ops/api/audit`는 `area`, `actor`, `user`, `target`, `action`, `q`, `fromMs`, `toMs`, `offset`, `limit` 필터를 지원합니다. 기간 필터는 `receivedAtMs` 기준입니다. Interactive 조회 limit은 작게 제한하고, `format=json|csv|diff-json` 또는 `download=1` export 경로는 더 큰 `exportLimitMax` 범위를 허용합니다. CSV에는 `receivedAtMs`가 포함되며, Diff JSON export는 전/후 변경값 중심으로 내려줍니다.
 
 ### 개발/script 보조값
 
@@ -203,6 +203,15 @@ Ops audit trail:
 | `MEDIA_SERVER_ONNXRUNTIME_ROOT` | script default | ONNX Runtime install root |
 | `MEDIA_SERVER_SKIP_BUILD` | unset | foreground/test script에서 build 생략 |
 | `MEDIA_SERVER_SKIP_LOCAL_ENV` | unset | `scripts/.media_server.env` source 생략 |
+
+운영 보조 명령:
+
+| 명령 | 용도 |
+| --- | --- |
+| `./server.sh ops-bundle --http-base ...` | health/runtime/diagnose/log/config 요약을 redacted bundle로 수집 |
+| `./server.sh verify-ops-backup-restore-dry-run` | 임시 runtime 기반 백업/복구 리허설과 checksum/권한 검증 |
+| `./server.sh ops-evidence-cleanup --max-age-days N` | snapshot/clip/compaction 만료 정리 dry-run 또는 `--apply` 실행 |
+| `./server.sh rc-artifact-archive --source-dir ... --destination-dir ...` | RC gate artifact를 외부 보관소 directory로 복사하고 checksum/index 생성 |
 | `MEDIA_SERVER_PORT_CANDIDATES` | script default | 대체 RTSP port 목록 |
 | `MEDIA_SERVER_START_MODE` | `nohup` | `nohup` 또는 macOS `launchd` 실행 방식 |
 | `MEDIA_SERVER_SKIP_ENV_CHECK` | unset | pkg-config 등 환경 점검 생략 |

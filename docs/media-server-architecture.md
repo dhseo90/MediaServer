@@ -124,7 +124,7 @@ SourceRegistry는 `.media_server.sources.json`, PublishedView는 `.media_server.
 
 HTTP UI는 같은 미디어/API 기능 위에 role별 shell을 얹는 구조입니다. Shell 통합은 browser route와 화면 구성만 다루며 media pipeline, Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema, scenario 판단 로직은 변경하지 않습니다. `webrtc_http_server.cpp`는 여전히 HTTP route dispatch와 media/auth glue를 많이 보유하지만, 제품 shell의 route별 브라우저 스크립트는 `product_ui_page_scripts.*`로 분리해 Ops/Client 화면 동작을 media signaling 구현과 물리적으로 섞지 않습니다.
 
-- `/ops`: admin/operator용 운영 콘솔입니다. 공통 header/nav 아래에서 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기를 렌더링합니다. `/ops/home`은 운영 홈 요약입니다. `/ops/dashboard`는 `/ops/api/runtime/status` 기반 운영 카드, `/ops/rules`는 채널 분석 설정, 이벤트 템플릿, 분석 프로파일을 Lab iframe 없이 제품 컴포넌트로 표시합니다. `/ops/events`는 primary nav에서 숨긴 직접/진단 route로 보존하며 독립 제품 탭으로 취급하지 않습니다. 내부 진단 JSON은 제품 화면에 직접 노출하지 않고 API/검증 명령에서 확인합니다.
+- `/ops`: admin/operator용 운영 콘솔입니다. 공통 header/nav 아래에서 홈, 대시보드, 채널, 룰, 사용자(admin), 클라이언트 미리보기를 렌더링합니다. `/ops/home`은 운영 홈 요약입니다. `/ops/dashboard`는 `/ops/api/runtime/status` 기반 운영 카드와 source lifecycle/stale/reconnect/auth-config 문제 원인 패널을 표시하고, 다음 조치 버튼으로 source 재검증, registry diff, Event/evidence 진단, auth/config 확인, log correlation 필터를 실행합니다. `/ops/rules`는 채널 분석 설정, 이벤트 템플릿, 분석 프로파일을 Lab iframe 없이 제품 컴포넌트로 표시합니다. `/ops/events`는 primary nav에서 숨긴 직접/진단 route로 보존하며 독립 제품 탭으로 취급하지 않습니다. 내부 진단 JSON은 제품 화면에 직접 노출하지 않고 API/검증 명령에서 확인합니다.
 - `/client`: viewer/client 포털입니다. `/client/live`는 PublishedView 기반 2x2 live monitor이고, `/client/dashboard`는 scoped summary와 sanitized event summary를 표시합니다. Client Events tab은 primary nav에서 제거했습니다. client shell과 client API는 source 원본 locator, Developer URL, 내부 진단 JSON, internal session/tap id, rule/profile editor를 노출하지 않습니다. Integrator는 이 shell에 진입하지 않고 scoped client API만 사용합니다.
 - `/lab/analysis/*`: 개발/검증 API입니다. `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫고, Runtime/metadata/event storage API만 권한 gate 뒤에 유지합니다. 운영 화면은 Lab editor를 embed하지 않고, 채널/룰 상태를 Ops 전용 API와 제품 컴포넌트로 표시합니다.
 
@@ -359,7 +359,8 @@ GET /lab/analysis/event-storage/status
 | Scenario UI | 1차 구현 완료 | ReEntry/IntrusionAfterLineCrossing/Loitering/ZoneOccupancy는 룰 편집 UI에서 선택 가능 |
 | Re-ID hook | 기본 NoOp, 실험용 extractor hook | appearance profile과 reacquire/low confidence association 보조 |
 | Homography | optional config | image point를 ground-plane point로 변환해 distance/speed/radius 계산 보조 |
-| Snapshot/Clip hook | 짧은 frame evidence recorder | EventRecord와 snapshot media/pre-post frame bundle manifest path 연결. 장기 녹화/MP4 recorder는 후속 |
+| Snapshot/Clip hook | 짧은 frame evidence recorder | EventRecord와 snapshot media/pre-post frame bundle manifest path 연결. Evidence retention cleanup job은 운영 명령으로 분리하며, 장기 녹화/MP4 recorder는 후속 |
+| Ops audit/backup | 운영 변경 이력과 복구 리허설 | `/ops/api/audit` 서버 저장/검색/export, `ops-bundle`, backup/restore dry-run, RC artifact archive를 운영 보조 도구로 유지 |
 
 확장 원칙:
 

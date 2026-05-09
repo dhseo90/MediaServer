@@ -2,6 +2,29 @@
 
 이 문서는 과거 상세 검증 이력을 보존합니다. 현재 실행해야 할 검증 기준은 [../stream-verification.md](../stream-verification.md)를 봅니다.
 
+## 2026-05-09 - 운영 제품화 안정화 순차 검증
+
+통과:
+
+- `./server.sh verify-ops-backup-restore-dry-run`
+- `./server.sh verify-ops-evidence-retention-cleanup`
+- `./server.sh verify-ops-audit-persistence`
+- `./server.sh verify-rc-release-gate`
+- `./server.sh verify-ops-root-cause-panel`
+- `./server.sh verify-ops-tables-layout --http-base http://127.0.0.1:8081 --widths 1180,900,560,390,760,1180`: 18/0
+- `./server.sh verify-ops-client-ui --http-base http://127.0.0.1:8081 --visual-widths 390,1180 --screenshots=1`: route/API 12/0, screenshot 14/0
+- `./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8081 --widths 390,1180`: 2/0
+- `./server.sh build`
+- `git diff --check`
+
+확인:
+
+- 백업/복구 dry-run은 임시 runtime에서 checksum, manifest, auth store `0600` 권한을 검증했습니다.
+- Evidence cleanup job은 기본 dry-run, `--apply` 명시 삭제, Ops audit `retention-cleanup` 기록 경로를 검증했습니다.
+- Audit trail은 `receivedAtMs` 기간 필터와 CSV/JSON/Diff export 경로를 확인했습니다.
+- Ops 문제 원인 다음 조치 버튼은 source 재검증, registry diff, Event/evidence 진단, auth/config 확인 결과 영역을 실제 클릭 E2E에 포함했습니다.
+- 채널/룰/사용자 table은 모바일 390px과 desktop resize에서 cell/action overflow가 없음을 확인했습니다.
+
 ## 2026-05-03 - 이전 analysis screenshot 갱신 이력
 
 이 당시에는 analysis 전용 화면 이미지를 문서 대표 컷으로 사용했습니다. 현재 제품 문서에서는 Ops/Client 대표 화면만 사용하며, 해당 이전 `analysis-*.png` 자산은 제거했습니다. 현재 이미지 기준은 `docs/assets/ui/README.md`와 [../ui-guide.md](../ui-guide.md)를 봅니다.

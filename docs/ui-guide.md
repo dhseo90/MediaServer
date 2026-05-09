@@ -239,6 +239,9 @@ Ops/Client/Lab API guard를 확인합니다.
   을 붙입니다.
 - Ops/Client selector와 client debug/source 비노출은
   `./server.sh verify-ops-client-ui`로 확인합니다.
+- 실제 클릭 흐름과 채널/룰/사용자 테이블 반응형 침범 검증은
+  `./server.sh verify-ops-click-e2e`,
+  `./server.sh verify-ops-tables-layout`로 확인합니다.
 - 화면 회귀까지 보려면
   `./server.sh verify-ops-client-ui --screenshots`를 사용합니다.
 

@@ -641,6 +641,12 @@ Ops audit에 `retention-cleanup` action을 남기며, HTTP audit이 어려운 �
 만들지 않는 signed token 방식이므로 만료 bundle cleanup은 계속
 `token-expiry-no-server-file` 정책입니다.
 
+전용 검증:
+
+```bash
+./server.sh verify-ops-evidence-retention-cleanup
+```
+
 ## 12. VA Runtime Metadata
 
 `VaRuntimeMetadataBuilder`는 WebRTC DataChannel, runtime dashboard, SSE/WebSocket side-channel이 공통으로 쓸 내부 frame 구조를 만듭니다.
