@@ -1003,6 +1003,49 @@ std::string ProductUiCss() {
       gap: var(--space-2);
       color: var(--color-text-muted);
     }
+    .audit-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .audit-entry {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-raised);
+    }
+    .audit-entry-head,
+    .audit-entry-meta,
+    .audit-diff-grid {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .audit-entry-head {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
+    .audit-entry-head span,
+    .audit-entry-meta {
+      color: var(--color-text-muted);
+      font-size: 12px;
+    }
+    .audit-entry-meta {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .audit-entry-meta span {
+      overflow-wrap: anywhere;
+    }
+    .audit-entry details summary {
+      cursor: pointer;
+      color: var(--color-text-muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+    .audit-diff-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-top: var(--space-2);
+    }
     .embedded-frame {
       width: 100%;
       min-height: min(1120px, calc(100vh - 220px));
@@ -1680,6 +1723,9 @@ std::string ProductUiCss() {
       .event-record-controls,
       .scope-template-actions,
       .ops-rule-row-actions,
+      .audit-entry-head,
+      .audit-entry-meta,
+      .audit-diff-grid,
       .user-row-actions {
         display: grid;
         grid-template-columns: 1fr;

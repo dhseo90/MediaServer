@@ -2545,6 +2545,16 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           <p id="opsProfileSummaryText" class="form-note">검출기, FPS, confidence, 입력 크기 같은 분석 엔진 설정만 정의합니다.</p>
         </form>
       </section>
+      <section class="section-card ops-audit-panel">
+        <div class="toolbar">
+          <div>
+            <h3>변경 이력</h3>
+            <p>이 브라우저에서 수행한 룰 변경의 작업자, 전/후 값, 시각을 확인합니다.</p>
+          </div>
+          <button id="opsRulesAuditRefresh" class="button-secondary" type="button">새로고침</button>
+        </div>
+        <div id="ops-rules-audit-list" class="audit-list" data-audit-area="rules"></div>
+      </section>
     </section>
 )";
 }
@@ -3631,6 +3641,16 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           <p id="channel-validation" class="hint"></p>
         </form>
       </section>
+      <section class="section-card ops-audit-panel">
+        <div class="toolbar">
+          <div>
+            <h3>변경 이력</h3>
+            <p>이 브라우저에서 수행한 채널 변경의 작업자, 전/후 값, 시각을 확인합니다.</p>
+          </div>
+          <button id="channel-audit-refresh" class="button-secondary" type="button">새로고침</button>
+        </div>
+        <div id="channel-audit-list" class="audit-list" data-audit-area="channels"></div>
+      </section>
 )OPS";
     out << R"OPS(    </section>
 )OPS";
@@ -3756,6 +3776,16 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
               <label><input name="mustChangePassword" type="checkbox" checked /> 다음 로그인 시 비밀번호 변경</label>
             </div>
         </form>
+      </section>
+      <section class="section-card ops-audit-panel">
+        <div class="toolbar">
+          <div>
+            <h2>변경 이력</h2>
+            <p>이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인합니다.</p>
+          </div>
+          <button id="user-audit-refresh" class="button-secondary" type="button">새로고침</button>
+        </div>
+        <div id="user-audit-list" class="audit-list" data-audit-area="users"></div>
       </section>
     </section>
 )USERS";
