@@ -2450,7 +2450,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </div>
         </div>
         <div class="table-wrap">
-          <table class="ops-data-table ops-rules-table ops-rules-va-table">
+          <table class="ops-data-table ops-responsive-table ops-rules-table ops-rules-va-table">
             <colgroup>
               <col class="ops-rules-col-id" />
               <col class="ops-rules-col-source" />
@@ -2488,7 +2488,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </div>
         </div>
         <div class="table-wrap">
-          <table class="ops-data-table ops-rules-table ops-rules-event-table">
+          <table class="ops-data-table ops-responsive-table ops-rules-table ops-rules-event-table">
             <colgroup>
               <col class="ops-event-col-id" />
               <col class="ops-event-col-mode" />
@@ -2522,7 +2522,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </div>
         </div>
         <div class="table-wrap">
-          <table class="ops-data-table ops-rules-table ops-rules-profile-table">
+          <table class="ops-data-table ops-responsive-table ops-rules-table ops-rules-profile-table">
             <colgroup>
               <col class="ops-profile-col-id" />
               <col class="ops-profile-col-detector" />
@@ -2545,7 +2545,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section id="opsRulesDetailPanel" class="section-card" hidden>
+      <section id="opsRulesDetailPanel" class="section-card ops-detail-panel" hidden>
         <div class="toolbar">
           <div>
             <div class="badge-row"><span id="opsRulesDetailMode" class="chip info">상세</span><span id="opsRulesDetailId" class="chip">-</span></div>
@@ -3862,7 +3862,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           </div>
         </div>
         <div class="table-wrap">
-          <table class="ops-data-table channel-table">
+          <table class="ops-data-table ops-responsive-table channel-table">
             <colgroup>
               <col class="channel-col-select" />
               <col class="channel-col-id" />
@@ -3882,7 +3882,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
         <p class="hint" style="margin-top:12px;">RTSP/WHEP는 운영 확인용입니다. 브라우저 재생은 <code>/client/live</code>에서 확인합니다.</p>
       </section>
 
-      <section id="channel-detail-panel" class="section-card" hidden>
+      <section id="channel-detail-panel" class="section-card ops-detail-panel" hidden>
         <div class="toolbar">
           <div>
             <div class="badge-row"><span id="channel-editor-mode" class="chip info">보기</span><span id="channel-editor-id" class="chip">-</span></div>
@@ -3965,7 +3965,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
       <section class="section-card">
         <h2>사용자 목록</h2>
         <div class="table-wrap">
-          <table class="ops-data-table user-table">
+          <table class="ops-data-table ops-responsive-table user-table">
             <colgroup>
               <col class="user-col-username" />
               <col class="user-col-name" />
@@ -3995,7 +3995,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         </div>
         <pre id="request-invite-output" hidden></pre>
         <div class="table-wrap">
-          <table class="ops-data-table user-table">
+          <table class="ops-data-table ops-responsive-table user-table">
             <colgroup>
               <col class="request-col-username" />
               <col class="request-col-name" />
@@ -4013,7 +4013,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         </div>
       </section>
 
-      <section id="user-detail-panel" class="section-card" hidden>
+      <section id="user-detail-panel" class="section-card ops-detail-panel" hidden>
         <div class="toolbar">
           <div>
             <div class="badge-row"><span id="user-editor-mode" class="chip info">상세</span><span id="user-editor-id" class="chip">@-</span></div>

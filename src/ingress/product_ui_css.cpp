@@ -1340,6 +1340,7 @@ std::string ProductUiCss() {
       white-space: nowrap;
     }
     .ops-data-table,
+    .ops-responsive-table,
     .ops-rules-table,
     .user-table {
       width: 100%;
@@ -1409,6 +1410,7 @@ std::string ProductUiCss() {
       min-width: 0;
     }
     .ops-data-table .table-actions,
+    .ops-data-table .ops-row-actions,
     .ops-data-table .ops-rule-row-actions,
     .ops-data-table .user-row-actions,
     .ops-data-table .channel-status-actions,
@@ -1419,6 +1421,24 @@ std::string ProductUiCss() {
     }
     .ops-data-table button {
       max-width: 100%;
+    }
+    .ops-row-actions {
+      max-width: 100%;
+      min-width: 0;
+    }
+    .ops-status-actions,
+    .ops-stream-actions {
+      display: grid;
+      justify-items: start;
+      gap: var(--space-2);
+    }
+    .ops-detail-panel > .toolbar {
+      align-items: flex-start;
+    }
+    .ops-detail-panel > .toolbar .actions {
+      min-width: 0;
+      flex-wrap: wrap;
+      justify-content: flex-start;
     }
     .ops-rules-va-table {
       min-width: 0;
@@ -1750,6 +1770,59 @@ std::string ProductUiCss() {
       }
     }
     @media (max-width: 1040px) {
+      .ops-responsive-table,
+      .ops-responsive-table tbody,
+      .ops-responsive-table tr,
+      .ops-responsive-table td {
+        display: block;
+        width: 100%;
+      }
+      .ops-responsive-table {
+        min-width: 0;
+        table-layout: auto;
+      }
+      .ops-responsive-table colgroup,
+      .ops-responsive-table thead {
+        display: none;
+      }
+      .ops-responsive-table tr {
+        padding: var(--space-2) 0;
+        border-bottom: 1px solid var(--color-table-border);
+      }
+      .ops-responsive-table tr:last-child {
+        border-bottom: 0;
+      }
+      .ops-responsive-table th,
+      .ops-responsive-table td {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+      }
+      .ops-responsive-table td {
+        min-height: 42px;
+        display: grid;
+        grid-template-columns: minmax(108px, 132px) minmax(0, 1fr);
+        gap: var(--space-3);
+        align-items: start;
+        border-bottom: 0;
+        padding: 8px var(--space-3);
+        white-space: normal;
+      }
+      .ops-responsive-table td::before {
+        content: attr(data-label);
+        color: var(--color-text-muted);
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      .ops-responsive-table .table-cell-status,
+      .ops-responsive-table .table-cell-actions {
+        min-width: 0;
+        width: auto;
+      }
+      .ops-responsive-table .table-actions {
+        justify-content: flex-start;
+      }
       .channel-table,
       .channel-table tbody,
       .channel-table tr,
@@ -1772,20 +1845,7 @@ std::string ProductUiCss() {
         border-bottom: 0;
       }
       .channel-table td {
-        min-height: 42px;
-        display: grid;
         grid-template-columns: minmax(108px, 28%) minmax(0, 1fr);
-        gap: var(--space-3);
-        align-items: start;
-        border-bottom: 0;
-        padding: 8px var(--space-3);
-      }
-      .channel-table td::before {
-        content: attr(data-label);
-        color: var(--color-text-muted);
-        font-size: 12px;
-        font-weight: 900;
-        text-transform: uppercase;
       }
       .channel-bulk-panel .toolbar,
       .channel-status-actions,
@@ -1893,6 +1953,10 @@ std::string ProductUiCss() {
         grid-template-columns: 1fr;
       }
       .channel-table td {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+      .ops-responsive-table td {
         grid-template-columns: 1fr;
         gap: 4px;
       }

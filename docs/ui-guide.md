@@ -51,6 +51,10 @@ client/viewer shell에는 내부 진단 응답, debug 정보, developer/source U
   product route에서 공유하는 `escapeHtml`, `requestJson`, selector,
   form-data, feedback, badge 렌더링,
   select/table DOM helper, role/scope visibility helper입니다.
+- 채널/룰/사용자 목록은 `ops-responsive-table`, `ops-row-actions`,
+  `ops-detail-panel` 공통 class를 사용합니다. 모바일에서는 같은 카드형
+  row 규칙으로 전환되며, 셀 내용과 action 버튼은 자기 칸 밖으로
+  밀려나지 않아야 합니다.
 - `ClientShellCss()`: client shell 전용 CSS를 `ClientShellPageHtml()` 밖에서 관리합니다.
 - `AppendOpsShellStart/End`, `AppendAuthShellStart/End`: 운영 shell과 setup/login auth shell의 공통 document/header/footer를 렌더링합니다.
 - `AppendProductAccountMenu()`: theme toggle, user role, logout 영역을 Ops/Client에서 동일하게 렌더링합니다.
@@ -73,7 +77,7 @@ UI ownership은 다음 표를 기준으로 봅니다.
 | Auth shell | `AppendAuthShellStart/End` | `/setup`, `/login`, `/password/change`, invite/request shell | password policy와 session 동작은 auth backend 계약을 따릅니다. |
 | Ops shell | `AppendOpsShellStart/End`, `AppendOps*Page*`, `AppendOpsShellScript` | admin/operator navigation, page markup, overview script | 제품 화면에 내부 진단 JSON을 노출하지 않습니다. |
 | Client shell | `ClientShellPageHtml`, `AppendClientShellScript` | scoped viewer live/dashboard UI | source URL, 내부 counter, Developer URL, rule/profile editor를 노출하지 않습니다. |
-| Smoke | `verify_ops_client_ui_smoke.mjs`, `verify_ops_rules_embed_smoke.mjs`, `verify_auth_ui_smoke.mjs`, `verify_auth_workflow.sh`, `verify_ops_rules_roundtrip.mjs` | selector, screenshot, auth UI, `/ops/rules` 회귀와 이벤트 템플릿 round-trip 확인 | visible text보다 stable selector와 금지 항목 중심으로 유지합니다. |
+| Smoke | `verify_ops_client_ui_smoke.mjs`, `verify_ops_tables_layout.mjs`, `verify_ops_rules_embed_smoke.mjs`, `verify_auth_ui_smoke.mjs`, `verify_auth_workflow.sh`, `verify_ops_rules_roundtrip.mjs` | selector, screenshot, auth UI, 채널/룰/사용자 테이블 layout, `/ops/rules` 회귀와 이벤트 템플릿 round-trip 확인 | visible text보다 stable selector와 금지 항목 중심으로 유지합니다. |
 
 `/ops/rules`는 채널 분석 설정, 이벤트 템플릿, 분석 프로파일을 제품 운영 화면에서 직접 관리합니다. `/lab/rules` iframe이나 이전 Lab 3탭을 embed하지 않습니다.
 룰 화면의 저장 전 검증 패널은 source mismatch, 중복 ID, 누락된 프로파일/이벤트 템플릿/PublishedView 룰 참조를 표시합니다. 저장 버튼도 같은 기준으로 draft payload를 확인해 잘못된 source 연결이나 빈 프로파일을 서버 요청 전에 차단합니다.
