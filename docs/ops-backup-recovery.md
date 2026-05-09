@@ -22,6 +22,19 @@
 진단 bundle입니다. Auth users file 본문과 plaintext secret은 넣지 않으므로,
 복구용 백업과 진단 bundle을 혼동하지 않습니다.
 
+임시 디렉터리 기반 dry-run 리허설은 다음 명령으로 수행합니다.
+
+```bash
+./server.sh verify-ops-backup-restore-dry-run
+```
+
+이 명령은 fixture runtime을 만들고 auth store, source/view/analysis registry,
+audit JSON Lines, EventRecord active/archive, snapshot/clip evidence,
+sample/model/label asset, redacted env summary를 백업한 뒤 다른 runtime
+디렉터리에 복원합니다. `manifest.json`, `SHA256SUMS`,
+`restore-validation-plan.md`를 생성하고 checksum과 auth store `0600` 권한이
+유지되는지 확인합니다.
+
 ## 백업 절차
 
 1. 유지보수 창을 잡고 운영 UI에서 대량 작업, 룰 저장, 사용자 변경을 멈춥니다.
@@ -79,6 +92,7 @@ backup-YYYYMMDD-HHMM/
 ./server.sh verify-ops-event-records-scope --http-base http://127.0.0.1:8080
 ./server.sh verify-ops-audit-persistence
 ./server.sh verify-ops-diagnostics-bundle
+./server.sh verify-ops-backup-restore-dry-run
 ```
 
 EventRecord storage나 snapshot/clip hook을 운영에서 꺼 둔 환경은

@@ -27,8 +27,12 @@ check("backup recovery guide covers required operational assets", () => {
     "MEDIA_SERVER_ANALYSIS_MODEL",
     "MEDIA_SERVER_ANALYSIS_LABELS",
     "shasum -a 256",
+    "manifest.json",
+    "SHA256SUMS",
+    "restore-validation-plan.md",
     "0600",
     "signed token",
+    "./server.sh verify-ops-backup-restore-dry-run",
   ];
   for (const snippet of required) {
     assert(doc.includes(snippet), `backup guide missing snippet: ${snippet}`);
@@ -49,6 +53,7 @@ check("backup recovery guide defines restore validation commands", () => {
     "./server.sh verify-ops-event-records-scope",
     "./server.sh verify-ops-audit-persistence",
     "./server.sh verify-ops-diagnostics-bundle",
+    "./server.sh verify-ops-backup-restore-dry-run",
     "verify-ops-client-ui",
     "verify-ops-click-e2e",
     "verify-ops-tables-layout",
@@ -69,6 +74,8 @@ check("server exposes backup recovery guide verification", () => {
   const server = readText("server.sh");
   assert(server.includes("verify-ops-backup-recovery-guide"), "server.sh is missing verify-ops-backup-recovery-guide");
   assert(server.includes("verify_ops_backup_recovery_guide.mjs"), "server.sh does not dispatch verify_ops_backup_recovery_guide.mjs");
+  assert(server.includes("verify-ops-backup-restore-dry-run"), "server.sh is missing verify-ops-backup-restore-dry-run");
+  assert(server.includes("verify_ops_backup_restore_dry_run.mjs"), "server.sh does not dispatch verify_ops_backup_restore_dry_run.mjs");
 });
 
 let failCount = 0;
