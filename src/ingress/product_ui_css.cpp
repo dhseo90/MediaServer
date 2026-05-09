@@ -2015,6 +2015,28 @@ std::string ClientShellCss() {
       font-size: 12px;
       font-weight: 850;
     }
+    .client-preset-config {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--bg);
+    }
+    .client-preset-config summary {
+      cursor: pointer;
+      font-weight: 900;
+    }
+    .client-preset-config textarea {
+      width: 100%;
+      min-height: 120px;
+      box-sizing: border-box;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      line-height: 1.45;
+    }
     .client-compare-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
