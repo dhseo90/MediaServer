@@ -503,6 +503,9 @@ WebRTC DataChannel은 이 frame을 기존
 `media-server.webrtc.va-metadata.v1` schema로 투영해 외부 호환성을 유지합니다.
 dashboard와 SSE/WS side-channel은
 `media-server.va.runtime-metadata.v1` 내부 schema를 사용합니다.
+Event POST, WebRTC DataChannel, SSE, WebSocket의 live contract 경계는
+[Live Event and Metadata Contracts](./live-event-metadata-contracts.md)에
+분리해 관리합니다.
 
 Metadata 출력 정책:
 

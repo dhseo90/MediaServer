@@ -5,6 +5,9 @@ API, event payload를 설명합니다.
 UI 화면 사용법은 [ui-guide.md](./ui-guide.md),
 환경변수 전체 목록은 [config-reference.md](./config-reference.md),
 검증 이력은 [history/verification-history.md](./history/verification-history.md)를 봅니다.
+Event POST, WebRTC DataChannel, SSE, WebSocket live metadata contract는
+[live-event-metadata-contracts.md](./live-event-metadata-contracts.md)에
+분리해 관리합니다.
 
 ## 1. VA 개요
 
