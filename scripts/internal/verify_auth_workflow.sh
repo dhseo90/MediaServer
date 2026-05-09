@@ -284,6 +284,19 @@ auth_ui_smoke() {
   pass "${label} auth visual smoke"
 }
 
+auth_scope_picker_smoke() {
+  local enabled="${MEDIA_SERVER_VERIFY_AUTH_SCOPE_PICKER:-${MEDIA_SERVER_VERIFY_AUTH_VISUAL:-0}}"
+  if ! truthy "${enabled}"; then
+    return
+  fi
+  node "${ROOT_DIR}/scripts/internal/verify_auth_scope_picker.mjs" \
+    --http-base "${BASE}" \
+    --cookie-file "${ADMIN_COOKIE}" \
+    --visual-width "${MEDIA_SERVER_VERIFY_AUTH_SCOPE_PICKER_WIDTH:-390}" \
+    --debug-port "${MEDIA_SERVER_VERIFY_AUTH_SCOPE_PICKER_DEBUG_PORT:-9920}"
+  pass "ops users scope picker browser smoke"
+}
+
 json_string_field() {
   local field="$1"
   sed -n "s/.*\"${field}\":\"\\([^\"]*\\)\".*/\\1/p"
@@ -361,7 +374,9 @@ run_users() {
   chmod 644 "${USERS_FILE}" || fail "failed to simulate permissive auth users file"
   login_admin
   expect_cookie_page_contains "ops users access request selectors" "${ADMIN_COOKIE}" "${BASE}/ops/users" \
-    'id="access-requests-body"' 'id="request-invite-output"' '/ops/api/access-requests' '접근 요청'
+    'id="access-requests-body"' 'id="request-invite-output"' '/ops/api/access-requests' '접근 요청' \
+    'id="apply-view-scope-template"' 'id="scope-template-preview"' 'id="user-scopes-input"'
+  auth_scope_picker_smoke
   expect_auth_store_owner_only "permissive auth users file re-hardened"
 
   local viewer_json
@@ -379,6 +394,13 @@ run_users() {
     *'passwordHash'*|*'tokenHash'*) fail "hash leaked in user API: ${viewer_json}" ;;
     *) pass "user API hash redaction" ;;
   esac
+  local bad_viewer_scope_code bad_integrator_scope_code
+  bad_viewer_scope_code="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data "{\"username\":\"viewer-bad-scope\",\"displayName\":\"Bad Scope\",\"role\":\"viewer\",\"scopes\":[\"ops:read\"],\"password\":\"${TEST_PASSWORD}\"}" "${BASE}/ops/api/users")"
+  bad_integrator_scope_code="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data "{\"username\":\"integrator-bad-scope\",\"displayName\":\"Bad Scope\",\"role\":\"integrator\",\"scopes\":[\"view:read:1\"],\"password\":\"${TEST_PASSWORD}\"}" "${BASE}/ops/api/users")"
+  expect_eq "${bad_viewer_scope_code}" "400" "viewer custom privileged scope rejected"
+  expect_eq "${bad_integrator_scope_code}" "400" "integrator live view scope rejected"
 
   expect_eq "$(http_code -c "${VIEWER_COOKIE}" -X POST -d "username=viewer-smoke&password=${PREVIOUS_PASSWORD}" "${BASE}/login")" "302" "viewer login"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops")" "403" "viewer ops forbidden"
