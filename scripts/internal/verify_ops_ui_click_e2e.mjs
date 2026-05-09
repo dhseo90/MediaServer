@@ -79,10 +79,20 @@ async function runOpsClickFlow(browser, context) {
 
   await clickSelector(browser, "#channel-close", "채널 패널 닫기");
   await assertHidden(browser, "#channel-detail-panel", "채널 패널 닫힘");
+  await clickSelector(browser, "#channel-bulk-validate", "채널 대량 검증");
+  await assertVisible(browser, "#channelBulkDiagnostics", "채널 대량 진단");
+  await clickSelector(browser, "[data-select-channel]", "채널 대량 선택");
+  await assertEnabled(browser, "#channel-bulk-clone", "선택 복제 버튼");
+  await assertEnabled(browser, "#channel-bulk-disable", "선택 비활성화 버튼");
+  steps.push("sources:bulk");
+
   await clickSelector(browser, "[data-view-channel]", "채널 상세");
   await assertVisible(browser, "#channel-detail-panel", "채널 상세 패널");
   await assertText(browser, "#channel-editor-title", "채널", "채널 상세 제목");
   await clickSelector(browser, "#channel-close", "채널 상세 닫기");
+  await clickSelector(browser, "[data-clone-channel]", "채널 복제");
+  await assertText(browser, "#channel-editor-title", "채널 복제", "채널 복제 제목");
+  await clickSelector(browser, "#channel-close", "채널 복제 닫기");
   steps.push("sources:detail");
 
   await clickSelector(browser, 'a[href="/ops/rules"]', "룰 탭");
@@ -254,6 +264,21 @@ async function waitForScrollIdle(browser) {
 async function assertReady(browser, path, selector) {
   await waitForPath(browser, path);
   await assertVisible(browser, selector, `${path} root`);
+}
+
+async function assertEnabled(browser, selector, description) {
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const node = document.querySelector(${JSON.stringify(selector)});
+        if (!node) return { ok: false, message: 'missing element' };
+        return { ok: node.disabled !== true, disabled: node.disabled === true };
+      })()
+    `,
+    result => result?.ok === true,
+    `${description} enabled`,
+  );
 }
 
 async function waitForPath(browser, path) {

@@ -4277,6 +4277,12 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const saveButton = document.querySelector('#channel-save-selected');
     const editSelectedButton = document.querySelector('#channel-edit-selected');
     const closeChannelButton = document.querySelector('#channel-close');
+    const bulkSelectAll = document.querySelector('#channel-bulk-select-all');
+    const bulkValidateButton = document.querySelector('#channel-bulk-validate');
+    const bulkCloneButton = document.querySelector('#channel-bulk-clone');
+    const bulkDisableButton = document.querySelector('#channel-bulk-disable');
+    const bulkSummary = document.querySelector('#channelBulkSummary');
+    const bulkDiagnostics = document.querySelector('#channelBulkDiagnostics');
     const streamRoute = ")OPSSOURCES" << stream_route_json << R"OPSSOURCES(";
     const rtspPort = )OPSSOURCES" << rtsp_port << R"OPSSOURCES(;
     let loadedSources = [];
@@ -4285,6 +4291,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     let editorMode = 'view';
     let currentChannelEnabled = true;
     let initializedHashChannel = false;
+    const selectedChannelIds = new Set();
 	    const { escapeHtml, requestJson, formDataObject, setFeedback, showToast, setTableEmpty, tableCellHtml, setSelectOptions, recordOpsAudit, renderOpsAuditTrail } = window.MediaServerUi;
 	    const hashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
 	    const setStatus = (message, failed = false) => {
@@ -4491,6 +4498,12 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       while (used.has(String(next))) next += 1;
       return String(next);
     }
+    function nextChannelIdFromUsed(used) {
+      let next = 1;
+      while (used.has(String(next))) next += 1;
+      used.add(String(next));
+      return String(next);
+    }
     function channelRows(sources, views) {
       const rows = sources.map(source => ({
         id: source.sourceId,
@@ -4506,6 +4519,91 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         return aId.localeCompare(bId);
       });
       return rows;
+    }
+    const selectedChannelRows = () => channelRows(loadedSources, loadedViews)
+      .filter(row => selectedChannelIds.has(String(row.id || '')));
+    const sourceLocatorKey = source => {
+      if (!source || !source.kind) return '';
+      if (source.kind === 'file') return `file:${source.file || ''}`;
+      if (source.kind === 'rtsp') return `rtsp:${source.rtspUrl || source.url || ''}`;
+      if (source.kind === 'whep') return `whep:${source.whepUrl || source.url || ''}`;
+      if (source.kind === 'webrtc') return `webrtc:${source.webrtcSourceId || source.sourceId || ''}`;
+      if (source.kind === 'http' || source.kind === 'hls') return `${source.kind}:${source.httpUrl || source.url || ''}`;
+      return `${source.kind}:${source.url || source.file || ''}`;
+    };
+    function channelBulkIssues(rows) {
+      const issues = [];
+      const locatorMap = new Map();
+      let disabledCount = 0;
+      let noViewCount = 0;
+      let noStreamUrlCount = 0;
+      for (const row of rows) {
+        const id = String(row.id || '');
+        const source = row.source || {};
+        const view = row.view || null;
+        if (!view) {
+          noViewCount += 1;
+          issues.push({ level: 'warn', title: `채널 #${id} PublishedView 없음`, detail: 'client/live와 dashboard 노출 전 view 연결이 필요합니다.' });
+        } else if (String(view.sourceId || '') !== id) {
+          issues.push({ level: 'warn', title: `채널 #${id} sourceId 불일치`, detail: `view.sourceId=${view.sourceId || '미제공'} · sourceId=${id}` });
+        }
+        if (source.enabled === false || view?.enabled === false) disabledCount += 1;
+        if (!sourceStreamParams(source)) {
+          noStreamUrlCount += 1;
+          issues.push({ level: 'bad', title: `채널 #${id} 입력 미완성`, detail: `${kindLabel(source.kind)} locator가 없어 RTSP/WHEP URL을 만들 수 없습니다.` });
+        }
+        const locatorKey = sourceLocatorKey(source);
+        if (locatorKey && !locatorKey.endsWith(':')) {
+          if (!locatorMap.has(locatorKey)) locatorMap.set(locatorKey, []);
+          locatorMap.get(locatorKey).push(id);
+        }
+      }
+      for (const [locator, ids] of locatorMap.entries()) {
+        if (ids.length > 1) {
+          issues.push({ level: 'warn', title: `중복 입력 ${ids.join(', ')}`, detail: locator });
+        }
+      }
+      return { issues, disabledCount, noViewCount, noStreamUrlCount };
+    }
+    function renderChannelBulkDiagnostics(forceOpen = false) {
+      const rows = channelRows(loadedSources, loadedViews);
+      const selectedCount = selectedChannelIds.size;
+      const { issues, disabledCount, noViewCount, noStreamUrlCount } = channelBulkIssues(rows);
+      if (bulkSummary) {
+        bulkSummary.innerHTML = [
+          chip(`전체 ${rows.length}`),
+          chip(`선택 ${selectedCount}`, selectedCount > 0 ? '' : 'info'),
+          chip(`비활성 ${disabledCount}`, disabledCount > 0 ? 'warn' : 'info'),
+          chip(`view 누락 ${noViewCount}`, noViewCount > 0 ? 'warn' : 'info'),
+          chip(`입력 미완성 ${noStreamUrlCount}`, noStreamUrlCount > 0 ? 'bad' : 'info')
+        ].join('');
+      }
+      if (bulkValidateButton) bulkValidateButton.disabled = rows.length === 0;
+      if (bulkCloneButton) bulkCloneButton.disabled = selectedCount === 0;
+      if (bulkDisableButton) bulkDisableButton.disabled = selectedCount === 0;
+      if (bulkSelectAll) {
+        bulkSelectAll.checked = rows.length > 0 && selectedCount === rows.length;
+        bulkSelectAll.indeterminate = selectedCount > 0 && selectedCount < rows.length;
+      }
+      if (!bulkDiagnostics) return;
+      if (issues.length === 0 && !forceOpen) {
+        bulkDiagnostics.innerHTML = '<div class="empty">source/view 연결, 중복 입력, 비활성 상태가 정상 범위입니다.</div>';
+        return;
+      }
+      bulkDiagnostics.innerHTML = issues.length === 0
+        ? '<div class="empty">검증 결과: 대량 작업 전 차단할 문제가 없습니다.</div>'
+        : issues.map(issue => `<div class="validation-item ${escapeHtml(issue.level)}">
+            ${chip(issue.level === 'bad' ? '오류' : '확인', issue.level)}
+            <div><strong>${escapeHtml(issue.title)}</strong><p>${escapeHtml(issue.detail)}</p></div>
+          </div>`).join('');
+    }
+    function syncBulkSelectionFromDom() {
+      selectedChannelIds.clear();
+      document.querySelectorAll('[data-select-channel]:checked').forEach(input => {
+        const id = String(input.dataset.selectChannel || '').trim();
+        if (id) selectedChannelIds.add(id);
+      });
+      renderChannelBulkDiagnostics(false);
     }
     function setFormDisabled(disabled) {
       for (const element of Array.from(channelForm.elements)) {
@@ -4524,16 +4622,17 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       editorMode = mode;
       currentChannelId = id || '';
       const isView = mode === 'view';
-      const isNew = mode === 'new';
-      channelMode.textContent = isNew ? '새 채널' : (isView ? '상세' : '수정 중');
+      const isClone = mode === 'clone';
+      const isNew = mode === 'new' || isClone;
+      channelMode.textContent = isClone ? '복제' : (isNew ? '새 채널' : (isView ? '상세' : '수정 중'));
       const visibleId = channelForm.elements.channelId.value || id || currentChannelId;
       channelIdBadge.textContent = visibleId || '-';
       channelTitle.textContent = isNew
-        ? '채널 추가'
+        ? (isClone ? '채널 복제' : '채널 추가')
         : `채널 ${channelForm.elements.channelId.value || id}`;
       channelHelp.textContent = isView
         ? '저장된 내용입니다.'
-        : '값을 바꾼 뒤 저장합니다.';
+        : (isClone ? '복제본은 기본 비활성 상태로 저장됩니다.' : '값을 바꾼 뒤 저장합니다.');
       editSelectedButton.textContent = '수정';
       closeChannelButton.textContent = '닫기';
       saveButton.textContent = '저장';
@@ -4542,9 +4641,14 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
 	    function renderChannels(sources, views) {
 	      const rows = channelRows(sources, views);
 	      if (rows.length === 0) {
-	        setTableEmpty(channelBody, 8, '등록된 채널이 없습니다. 채널 추가로 첫 카메라/소스를 등록하세요.');
+	        setTableEmpty(channelBody, 9, '등록된 채널이 없습니다. 채널 추가로 첫 카메라/소스를 등록하세요.');
+          renderChannelBulkDiagnostics(false);
 	        return;
 	      }
+        const validIds = new Set(rows.map(row => String(row.id || '')));
+        for (const id of Array.from(selectedChannelIds)) {
+          if (!validIds.has(id)) selectedChannelIds.delete(id);
+        }
 	      channelBody.innerHTML = rows.map(row => {
         const source = row.source || {};
         const view = row.view || {};
@@ -4553,6 +4657,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         const vaButtons = source.sourceId ? streamButtonsForChannel(source, 'va') : '<span class="hint">소스 미등록</span>';
         const channelName = view.displayName || source.displayName || '';
         const inputText = source.sourceId ? locatorForSource(source) : '소스 미등록';
+        const checked = selectedChannelIds.has(String(row.id || '')) ? ' checked' : '';
+        const selectCellHtml = `<input type="checkbox" data-select-channel="${escapeHtml(row.id || '')}" aria-label="채널 ${escapeHtml(row.id || '')} 선택"${checked} />`;
         const idCellHtml = `<div class="channel-id-cell">
           <span class="table-identity-pill table-identity-id">${escapeHtml(row.id || '-')}</span>
         </div>`;
@@ -4569,11 +4675,13 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         </div>`;
         const actionsCellHtml = `<div class="table-actions channel-row-actions">
           <button type="button" class="secondary" data-view-channel="${escapeHtml(row.id || '')}">상세</button>
+          <button type="button" class="secondary" data-clone-channel="${escapeHtml(row.id || '')}">복제</button>
           <button type="button" class="secondary" data-open-client-live="${escapeHtml(row.id || '')}" ${view?.enabled === false ? 'disabled' : ''}>라이브 보기</button>
           <button type="button" class="danger" data-delete-channel="${escapeHtml(row.id || '')}">삭제</button>
         </div>`;
         return `
         <tr>
+          ${tableCellHtml('선택', selectCellHtml, 'table-cell-status')}
           ${tableCellHtml('ID', idCellHtml)}
           ${tableCellHtml('이름', escapeHtml(channelName))}
           ${tableCellHtml('종류', kindCellHtml)}
@@ -4585,12 +4693,19 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
 	        </tr>
 	      `;
 	      }).join('');
+        renderChannelBulkDiagnostics(false);
 	      bindChannelRowActions();
 	    }
 	    function bindChannelRowActions() {
+        document.querySelectorAll('[data-select-channel]').forEach(input => {
+          input.addEventListener('change', syncBulkSelectionFromDom);
+        });
 	      document.querySelectorAll('[data-view-channel]').forEach(button => {
 	        button.addEventListener('click', () => openChannel(button.dataset.viewChannel || '', 'view'));
 	      });
+      document.querySelectorAll('[data-clone-channel]').forEach(button => {
+        button.addEventListener('click', () => openChannel(button.dataset.cloneChannel || '', 'clone'));
+      });
       document.querySelectorAll('[data-toggle-channel]').forEach(button => {
         button.addEventListener('click', () => toggleChannelEnabled(button.dataset.toggleChannel || ''));
       });
@@ -4836,6 +4951,98 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         setStatus(`채널 상태 변경 실패: ${error.message}`, true);
       }
     }
+    async function bulkDisableSelectedChannels() {
+      const rows = selectedChannelRows();
+      if (rows.length === 0) {
+        setStatus('비활성화할 채널을 선택하세요.', true);
+        return;
+      }
+      let changed = 0;
+      try {
+        for (const row of rows) {
+          const source = row.source;
+          if (!source) continue;
+          const view = row.view || { viewId: row.id, sourceId: source.sourceId };
+          const before = { source, view };
+          await requestJson(`/ops/api/sources/${encodeURIComponent(source.sourceId)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(sourcePayloadFromRecord(source, false))
+          });
+          await requestJson(`/ops/api/views/${encodeURIComponent(view.viewId || row.id)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(viewPayloadFromRecord(view, source, false))
+          });
+          changed += 1;
+          await recordOpsAudit({
+            area: 'channels',
+            action: 'bulk-disable',
+            target: `channel:${row.id}`,
+            before,
+            after: {
+              source: sourcePayloadFromRecord(source, false),
+              view: viewPayloadFromRecord(view, source, false)
+            }
+          });
+        }
+        selectedChannelIds.clear();
+        await loadAll();
+        renderOpsAuditTrail('channel-audit-list', 'channels');
+        setStatus(`선택 채널 ${changed}개 비활성화 완료`);
+      } catch (error) {
+        setStatus(`선택 비활성화 실패: ${error.message}`, true);
+      }
+    }
+    async function bulkCloneSelectedChannels() {
+      const rows = selectedChannelRows();
+      if (rows.length === 0) {
+        setStatus('복제할 채널을 선택하세요.', true);
+        return;
+      }
+      const usedIds = new Set(channelRows(loadedSources, loadedViews).map(row => String(row.id || '')).filter(Boolean));
+      const created = [];
+      try {
+        for (const row of rows) {
+          const source = row.source;
+          if (!source) continue;
+          const newId = nextChannelIdFromUsed(usedIds);
+          const displayName = `${row.view?.displayName || source.displayName || `채널 ${row.id}`} 복제`;
+          const sourcePayload = sourcePayloadFromRecord({ ...source, sourceId: newId, displayName }, false);
+          const viewPayload = {
+            ...viewPayloadFromRecord(row.view || {}, source, false),
+            viewId: newId,
+            sourceId: newId,
+            displayName,
+            enabled: false
+          };
+          await requestJson(`/ops/api/sources/${encodeURIComponent(newId)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(sourcePayload)
+          });
+          await requestJson(`/ops/api/views/${encodeURIComponent(newId)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(viewPayload)
+          });
+          created.push(newId);
+          await recordOpsAudit({
+            area: 'channels',
+            action: 'bulk-clone',
+            target: `channel:${newId}`,
+            before: { source, view: row.view || null },
+            after: { source: sourcePayload, view: viewPayload }
+          });
+        }
+        selectedChannelIds.clear();
+        await loadAll();
+        renderOpsAuditTrail('channel-audit-list', 'channels');
+        setStatus(`복제 채널 생성 완료: ${created.join(', ')}`);
+      } catch (error) {
+        setStatus(`선택 복제 실패: ${error.message}`, true);
+      }
+    }
     async function deleteChannel(id) {
       if (!id) id = channelForm.elements.channelId.value.trim();
       if (!id) return;
@@ -4866,6 +5073,19 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     editSelectedButton.addEventListener('click', () => currentChannelId && fillChannel(currentChannelId, 'edit'));
     channelForm.elements.kind.addEventListener('change', updateKindFields);
     document.querySelector('#refresh').addEventListener('click', () => loadAll().catch(error => setStatus(error.message, true)));
+    bulkSelectAll?.addEventListener('change', () => {
+      const rows = channelRows(loadedSources, loadedViews);
+      selectedChannelIds.clear();
+      if (bulkSelectAll.checked) {
+        for (const row of rows) {
+          if (row.id) selectedChannelIds.add(String(row.id));
+        }
+      }
+      renderChannels(loadedSources, loadedViews);
+    });
+    bulkValidateButton?.addEventListener('click', () => renderChannelBulkDiagnostics(true));
+    bulkCloneButton?.addEventListener('click', () => bulkCloneSelectedChannels());
+    bulkDisableButton?.addEventListener('click', () => bulkDisableSelectedChannels());
     document.querySelector('#channel-audit-refresh')?.addEventListener('click', () => renderOpsAuditTrail('channel-audit-list', 'channels'));
     renderOpsAuditTrail('channel-audit-list', 'channels');
     loadAll().catch(error => setStatus(error.message, true));

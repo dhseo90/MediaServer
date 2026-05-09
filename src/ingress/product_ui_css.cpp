@@ -638,6 +638,16 @@ std::string ProductUiCss() {
       width: auto;
       min-height: auto;
     }
+    .check-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 38px;
+    }
+    .check-inline input {
+      width: auto;
+      min-height: auto;
+    }
     .ops-category-section {
       display: grid;
       gap: var(--space-3);
@@ -1451,12 +1461,25 @@ std::string ProductUiCss() {
     .channel-table {
       table-layout: fixed;
     }
+    .channel-bulk-panel {
+      display: grid;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+      padding: var(--space-4);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-raised);
+    }
+    .channel-bulk-diagnostics {
+      min-width: 0;
+    }
     .channel-table th,
     .channel-table td {
       white-space: normal;
       overflow-wrap: anywhere;
       word-break: break-word;
     }
+    .channel-col-select { width: 52px; }
     .channel-col-id { width: 58px; }
     .channel-col-name { width: 16%; }
     .channel-col-kind { width: 118px; }
@@ -1674,6 +1697,7 @@ std::string ProductUiCss() {
         font-weight: 900;
         text-transform: uppercase;
       }
+      .channel-bulk-panel .toolbar,
       .channel-status-actions,
       .channel-stream-actions,
       .channel-row-actions {
