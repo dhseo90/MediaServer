@@ -1921,6 +1921,20 @@ std::string ClientShellCss() {
     .client-dashboard-compare {
       min-width: 0;
     }
+    .client-compare-toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: end;
+    }
+    .client-compare-toolbar label {
+      display: grid;
+      gap: 4px;
+      min-width: min(180px, 100%);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
     .client-compare-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -1946,6 +1960,12 @@ std::string ClientShellCss() {
     .client-compare-head strong,
     .client-compare-card p {
       overflow-wrap: anywhere;
+    }
+    .client-compare-preset {
+      margin: 0;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 850;
     }
     .client-compare-metrics {
       display: grid;

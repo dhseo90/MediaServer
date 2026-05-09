@@ -150,6 +150,8 @@ async function runOpsClickFlow(browser, context) {
   await installErrorCollector(browser);
   await assertReady(browser, "/client/dashboard", '[data-testid="client-shell-page"]');
   await assertVisible(browser, '[data-testid="client-dashboard-compare"]', "클라이언트 채널 비교");
+  await setSelectValue(browser, "#clientDashboardCompareFilter", "warnings", "클라이언트 비교 필터");
+  await setSelectValue(browser, "#clientDashboardCompareSort", "events", "클라이언트 비교 정렬");
   await clickSelector(browser, ".view", "클라이언트 대시보드 채널 선택");
   await assertVisible(browser, '[data-testid="client-dashboard-field-summary"]', "클라이언트 현장 요약");
   await assertNoOverflow(browser, `${context.label}:client-dashboard`);
@@ -308,6 +310,21 @@ async function waitForPath(browser, path) {
     result => result?.ok === true,
     `path ${path}`,
   );
+}
+
+async function setSelectValue(browser, selector, value, description) {
+  const result = await browser.evaluate(`
+    (() => {
+      const node = document.querySelector(${JSON.stringify(selector)});
+      if (!node) return { ok: false, message: 'missing select' };
+      node.value = ${JSON.stringify(value)};
+      node.dispatchEvent(new Event('change', { bubbles: true }));
+      return { ok: node.value === ${JSON.stringify(value)}, value: node.value };
+    })()
+  `, 3000);
+  if (!result?.ok) {
+    throw new Error(`${description} 선택 실패: ${JSON.stringify(result)}`);
+  }
 }
 
 async function assertVisible(browser, selector, description) {

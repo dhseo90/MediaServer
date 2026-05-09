@@ -318,6 +318,9 @@ view 목록은 `/client/api/views`의 scoped 결과를 사용하고,
 선택된 view의 상세 상태와 접근 가능한 view들의 비교 요약은
 `/client/api/views/{viewId}/dashboard`에서 가져옵니다. 화면은 현장 상태,
 영상 신호, 데이터 지연, 이벤트 확인 필요 여부를 viewer 문구로 표시합니다.
+채널 비교는 전체/확인 필요/이벤트 있음/라이브 필터와
+경고 우선/이벤트 많은 순/이름순 정렬을 제공하며,
+각 카드에 현장 preset 문구와 우선순위 점수를 함께 표시합니다.
 `/client/events`는 primary nav에서 제거했고,
 이벤트 요약은 dashboard 안에서 sanitized summary로만 표시합니다.
 Integrator 연동은

@@ -89,7 +89,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     const clientHashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
     let selectedViewId = clientHashParams().get('view') || views[0]?.viewId || '';
     const isPreviewMode = document.body.dataset.clientPreview === 'true';
-    const { escapeHtml, display, requestJson, applyPrincipalVisibility, setSelectOptions } = window.MediaServerUi;
+    const { escapeHtml, display, numberValue, requestJson, applyPrincipalVisibility, setSelectOptions } = window.MediaServerUi;
     let clientWebRtcConfigPromise = null;
     const ms = value => value === null || value === undefined ? '미제공' : `${Math.max(0, Math.round(Number(value)))}ms`;
     const formatTime = value => {
@@ -233,12 +233,70 @@ void AppendClientShellScript(std::ostringstream& out) {
       if (String(health.status || '') === 'unavailable') return { text: '신호 미제공', tone: 'bad' };
       return { text: '정상 관제 중', tone: '' };
     };
+    let clientDashboardCompareFilter = localStorage.getItem('mediaServerClientDashboardCompareFilter') || 'all';
+    let clientDashboardCompareSort = localStorage.getItem('mediaServerClientDashboardCompareSort') || 'priority';
+    const clientDashboardComparePriority = item => {
+      if (!item?.ok) return 1000;
+      const payload = item.payload || {};
+      const fieldState = dashboardFieldState(payload.health || {}, payload.events || {});
+      const events = payload.events || {};
+      const analysis = payload.analysis || {};
+      const health = payload.health || {};
+      let score = fieldState.tone === 'bad' ? 900 : (fieldState.tone === 'warn' ? 700 : 100);
+      score += numberValue(analysis.activeEventCount) * 20;
+      score += events.warning ? 120 : 0;
+      score += ['stale', 'warning'].includes(String(health.metadataStatus || '')) ? 80 : 0;
+      return score;
+    };
+    const clientDashboardComparePreset = item => {
+      if (!item?.ok) return '상태 조회 실패';
+      const payload = item.payload || {};
+      const events = payload.events || {};
+      const analysis = payload.analysis || {};
+      const topEvent = Array.isArray(events.countsByType) && events.countsByType[0]?.eventType
+        ? String(events.countsByType[0].eventType)
+        : '';
+      if (events.warning || numberValue(analysis.activeEventCount) > 0) {
+        return topEvent ? `${topEvent} 우선 확인` : '활성 이벤트 우선 확인';
+      }
+      if (numberValue(analysis.scenarioCount) > 0) return '시나리오 관제 중';
+      return '기본 현장 모니터링';
+    };
+    const clientDashboardCompareVisibleItems = (items = []) => {
+      const filtered = items.filter(item => {
+        if (clientDashboardCompareFilter === 'warnings') {
+          return !item.ok || dashboardFieldState(item.payload?.health || {}, item.payload?.events || {}).tone;
+        }
+        if (clientDashboardCompareFilter === 'events') {
+          return item.ok && numberValue(item.payload?.analysis?.activeEventCount) > 0;
+        }
+        if (clientDashboardCompareFilter === 'live') {
+          return item.ok && String(item.payload?.health?.status || '') === 'live';
+        }
+        return true;
+      });
+      return filtered.sort((left, right) => {
+        if (clientDashboardCompareSort === 'name') {
+          const leftName = String(left.payload?.view?.displayName || left.view?.displayName || left.view?.viewId || '');
+          const rightName = String(right.payload?.view?.displayName || right.view?.displayName || right.view?.viewId || '');
+          return leftName.localeCompare(rightName);
+        }
+        if (clientDashboardCompareSort === 'events') {
+          return numberValue(right.payload?.analysis?.activeEventCount) - numberValue(left.payload?.analysis?.activeEventCount);
+        }
+        return clientDashboardComparePriority(right) - clientDashboardComparePriority(left);
+      });
+    };
     function renderDashboardCompare(items = []) {
       if (!Array.isArray(items) || items.length === 0) {
         return emptyState('비교할 채널이 없습니다', '대시보드 권한이 있는 채널이 추가되면 한 화면에서 상태를 비교할 수 있습니다.');
       }
+      const visibleItems = clientDashboardCompareVisibleItems(items);
+      if (visibleItems.length === 0) {
+        return emptyState('필터에 맞는 채널이 없습니다', '다른 필터를 선택하면 접근 가능한 채널 상태를 다시 볼 수 있습니다.');
+      }
       return `<div class="client-compare-grid">
-        ${items.map(item => {
+        ${visibleItems.map(item => {
           if (!item.ok) {
             return `<article class="client-compare-card warn">
               <div class="client-compare-head">
@@ -246,6 +304,7 @@ void AppendClientShellScript(std::ostringstream& out) {
                 <span class="chip warn">조회 실패</span>
               </div>
               <p>${escapeHtml(item.error || '상태를 불러오지 못했습니다.')}</p>
+              <p class="client-compare-preset">${escapeHtml(clientDashboardComparePreset(item))}</p>
             </article>`;
           }
           const payload = item.payload || {};
@@ -259,7 +318,9 @@ void AppendClientShellScript(std::ostringstream& out) {
               <strong>${escapeHtml(view.displayName || view.viewId || item.view?.viewId || '채널')}</strong>
               <span class="chip${fieldState.tone ? ` ${fieldState.tone}` : ''}">${escapeHtml(fieldState.text)}</span>
             </div>
+            <p class="client-compare-preset">${escapeHtml(clientDashboardComparePreset(item))}</p>
             <div class="client-compare-metrics">
+              <span>우선순위 ${escapeHtml(display(clientDashboardComparePriority(item)))}</span>
               <span>연결 ${escapeHtml(display(health.connectionStatus || health.status))}</span>
               <span>지연 ${escapeHtml(ms(health.metadataAgeMs))}</span>
               <span>트랙 ${escapeHtml(display(analysis.trackCount))}</span>
@@ -337,6 +398,23 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        </section>
         <section class="events client-dashboard-compare" data-testid="client-dashboard-compare">
           <h3>채널 비교</h3>
+          <div class="client-compare-toolbar">
+            <label>필터
+              <select id="clientDashboardCompareFilter">
+                <option value="all">전체</option>
+                <option value="warnings">확인 필요</option>
+                <option value="events">이벤트 있음</option>
+                <option value="live">라이브</option>
+              </select>
+            </label>
+            <label>정렬
+              <select id="clientDashboardCompareSort">
+                <option value="priority">경고 우선</option>
+                <option value="events">이벤트 많은 순</option>
+                <option value="name">이름순</option>
+              </select>
+            </label>
+          </div>
           ${renderDashboardCompare(compareItems)}
         </section>
 	        <section class="events">
@@ -347,6 +425,24 @@ void AppendClientShellScript(std::ostringstream& out) {
           ${renderEvents(events.recent || [])}
         </section>
       `;
+      const filterSelect = document.getElementById('clientDashboardCompareFilter');
+      const sortSelect = document.getElementById('clientDashboardCompareSort');
+      if (filterSelect) {
+        filterSelect.value = clientDashboardCompareFilter;
+        filterSelect.addEventListener('change', () => {
+          clientDashboardCompareFilter = filterSelect.value || 'all';
+          localStorage.setItem('mediaServerClientDashboardCompareFilter', clientDashboardCompareFilter);
+          renderDashboard(payload, compareItems);
+        });
+      }
+      if (sortSelect) {
+        sortSelect.value = clientDashboardCompareSort;
+        sortSelect.addEventListener('change', () => {
+          clientDashboardCompareSort = sortSelect.value || 'priority';
+          localStorage.setItem('mediaServerClientDashboardCompareSort', clientDashboardCompareSort);
+          renderDashboard(payload, compareItems);
+        });
+      }
     }
     function renderEvents(items) {
       if (!Array.isArray(items) || items.length === 0) {
