@@ -120,6 +120,8 @@ Usage:
                  RC gate artifact를 외부 마운트/S3/NAS 보관소로 checksum manifest와 함께 복사합니다.
   write-dependency-notice
                  third-party attribution inventory에서 배포용 notice 문서를 생성하거나 검증합니다.
+  dependency-snapshot
+                 현재 설치된 dependency 버전, 모델 hash, linked library snapshot을 생성합니다.
   verify-tracker-stability
                  이동 영상에서 track ID 유지/분절 통계를 수집합니다.
   compare-close-object-tracker
@@ -425,6 +427,10 @@ case "${cmd}" in
   write-dependency-notice)
     require_internal write_dependency_notice.mjs
     exec "${INTERNAL_DIR}/write_dependency_notice.mjs" "$@"
+    ;;
+  dependency-snapshot)
+    require_internal write_dependency_snapshot.mjs
+    exec "${INTERNAL_DIR}/write_dependency_snapshot.mjs" "$@"
     ;;
   verify-tracker-stability)
     require_internal verify_tracker_stability.sh

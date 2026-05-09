@@ -49,3 +49,8 @@ jobs:
         shell: bash
         run: |
           ./server.sh write-dependency-notice --check
+
+      - name: Dependency snapshot smoke
+        shell: bash
+        run: |
+          ./server.sh dependency-snapshot --output /tmp/media_server_dependency_snapshot.md --json-output /tmp/media_server_dependency_snapshot.json --no-linked-libs

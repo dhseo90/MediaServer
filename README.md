@@ -22,6 +22,9 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 | 보조 도구 | Node.js, Python 3, ffmpeg/ffprobe, curl |
 | 기본 route/file root | RTSP route `dhseo`, file root `video/` |
 
+정확한 설치 버전과 모델 hash는 [DEPENDENCY_SNAPSHOT.md](DEPENDENCY_SNAPSHOT.md)에 기록합니다.
+release 또는 binary bundle 전에는 `./server.sh dependency-snapshot`으로 다시 생성합니다.
+
 권장 준비 명령:
 
 ```bash
@@ -171,12 +174,13 @@ YOLO Detection
 
 ```bash
 ./server.sh build
-git diff --check -- README.md NOTICE .github docs scripts src include
+git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.md .github config docs scripts src include
 ./server.sh verify-script-inventory
 ./server.sh verify-code-comments
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh write-dependency-notice --check
+./server.sh dependency-snapshot --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-click-e2e
@@ -241,3 +245,4 @@ VA/Auth 주요 검증:
 이 저장소의 원본 코드와 문서는 [Apache License 2.0](LICENSE)을 따릅니다.
 third-party runtime, plugin, model, tool attribution은 [NOTICE](NOTICE)에 정리합니다.
 자동 생성되는 상세 목록은 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)를 확인합니다.
+현재 개발 환경에서 감지한 버전과 linked library snapshot은 [DEPENDENCY_SNAPSHOT.md](DEPENDENCY_SNAPSHOT.md)를 확인합니다.

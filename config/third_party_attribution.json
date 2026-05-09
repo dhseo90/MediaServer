@@ -1,6 +1,7 @@
 {
-  "schema": "media-server.third-party-attribution.v1",
+  "schema": "media-server.third-party-attribution.v2",
   "generatedFile": "THIRD_PARTY_NOTICES.md",
+  "generatedSnapshotFile": "DEPENDENCY_SNAPSHOT.md",
   "dependencies": [
     {
       "id": "gstreamer",
@@ -9,7 +10,17 @@
       "usage": "RTSP/RTP/WebRTC 파이프라인, 디코딩, 인코딩, appsrc/appsink, RTSP 서버 연동",
       "source": "Homebrew, apt, dnf, pacman 같은 시스템 패키지 관리자",
       "distribution": "외부 runtime/development dependency이며 이 저장소에 vendoring하지 않음",
-      "bundlePolicy": "binary bundle에 GStreamer library/plugin을 포함하면 upstream license text와 plugin notice를 함께 포함합니다."
+      "versionPolicy": "GStreamer 1.0 API 계열을 사용하며, 실제 설치 버전은 pkg-config 결과를 release snapshot에 기록합니다.",
+      "minimumVersion": "미고정. CMake는 pkg-config에서 필요한 GStreamer 1.0 module 존재 여부를 확인합니다.",
+      "bundlePolicy": "binary bundle에 GStreamer library/plugin을 포함하면 upstream license text와 plugin notice를 함께 포함합니다.",
+      "detectors": [
+        { "label": "gstreamer-1.0", "command": "pkg-config", "args": ["--modversion", "gstreamer-1.0"], "versionPattern": "^(.+)$" },
+        { "label": "gstreamer-rtsp-server-1.0", "command": "pkg-config", "args": ["--modversion", "gstreamer-rtsp-server-1.0"], "versionPattern": "^(.+)$" },
+        { "label": "gstreamer-pbutils-1.0", "command": "pkg-config", "args": ["--modversion", "gstreamer-pbutils-1.0"], "versionPattern": "^(.+)$" },
+        { "label": "gstreamer-app-1.0", "command": "pkg-config", "args": ["--modversion", "gstreamer-app-1.0"], "versionPattern": "^(.+)$" },
+        { "label": "gstreamer-webrtc-1.0", "command": "pkg-config", "args": ["--modversion", "gstreamer-webrtc-1.0"], "versionPattern": "^(.+)$" },
+        { "label": "gstreamer-sdp-1.0", "command": "pkg-config", "args": ["--modversion", "gstreamer-sdp-1.0"], "versionPattern": "^(.+)$" }
+      ]
     },
     {
       "id": "libnice",
@@ -18,7 +29,12 @@
       "usage": "GStreamer WebRTC의 ICE transport 지원",
       "source": "시스템 패키지 관리자",
       "distribution": "외부 runtime dependency이며 이 저장소에 vendoring하지 않음",
-      "bundlePolicy": "번들에 포함하면 libnice license text와 upstream attribution을 유지합니다."
+      "versionPolicy": "GStreamer WebRTC ICE 기능에 필요한 libnice 설치 버전을 release snapshot에 기록합니다.",
+      "minimumVersion": "미고정. 설치 패키지와 GStreamer plugin 호환성을 우선합니다.",
+      "bundlePolicy": "번들에 포함하면 libnice license text와 upstream attribution을 유지합니다.",
+      "detectors": [
+        { "label": "nice", "command": "pkg-config", "args": ["--modversion", "nice"], "versionPattern": "^(.+)$" }
+      ]
     },
     {
       "id": "cairo-pango",
@@ -27,7 +43,14 @@
       "usage": "선택 overlay text rendering과 glyph 지원",
       "source": "시스템 패키지 관리자",
       "distribution": "외부 runtime/development dependency이며 이 저장소에 vendoring하지 않음",
-      "bundlePolicy": "번들에 포함하면 Cairo, Pango, 전이 runtime library의 upstream license text를 함께 포함합니다."
+      "versionPolicy": "PangoCairo가 발견되면 overlay text rendering에 사용하고, 설치 버전은 release snapshot에 기록합니다.",
+      "minimumVersion": "미고정. 없으면 MEDIA_SERVER_USE_PANGOCAIRO=0으로 빌드합니다.",
+      "bundlePolicy": "번들에 포함하면 Cairo, Pango, 전이 runtime library의 upstream license text를 함께 포함합니다.",
+      "detectors": [
+        { "label": "pangocairo", "command": "pkg-config", "args": ["--modversion", "pangocairo"], "versionPattern": "^(.+)$" },
+        { "label": "cairo", "command": "pkg-config", "args": ["--modversion", "cairo"], "versionPattern": "^(.+)$" },
+        { "label": "pango", "command": "pkg-config", "args": ["--modversion", "pango"], "versionPattern": "^(.+)$" }
+      ]
     },
     {
       "id": "onnxruntime",
@@ -36,7 +59,12 @@
       "usage": "선택 YOLO detector runtime과 실험적 Re-ID hook",
       "source": "Microsoft ONNX Runtime release archive 또는 시스템 패키지 관리자",
       "distribution": "Linux에서 ./server.sh install 실행 시 third_party/onnxruntime로 다운로드될 수 있음",
-      "bundlePolicy": "번들에 포함하면 ONNX Runtime MIT license와 다운로드한 release package 안의 notice 파일을 함께 포함합니다."
+      "versionPolicy": "Linux 자동 설치 기본값은 1.20.1입니다. Homebrew/수동 설치 환경은 감지된 버전을 snapshot에 기록합니다.",
+      "minimumVersion": "1.20.1 기본 설치 기준. 최신 시스템 패키지도 허용합니다.",
+      "bundlePolicy": "번들에 포함하면 ONNX Runtime MIT license와 다운로드한 release package 안의 notice 파일을 함께 포함합니다.",
+      "detectors": [
+        { "label": "libonnxruntime", "command": "pkg-config", "args": ["--modversion", "libonnxruntime"], "versionPattern": "^(.+)$" }
+      ]
     },
     {
       "id": "libsodium",
@@ -45,7 +73,12 @@
       "usage": "환경에 있을 때 선택 password hashing과 crypto 지원",
       "source": "시스템 패키지 관리자",
       "distribution": "외부 optional dependency이며 이 저장소에 vendoring하지 않음",
-      "bundlePolicy": "번들에 포함하면 libsodium ISC license text를 함께 포함합니다."
+      "versionPolicy": "발견되면 MEDIA_SERVER_USE_LIBSODIUM=1로 빌드하고, 설치 버전은 snapshot에 기록합니다.",
+      "minimumVersion": "미고정. 없으면 fallback password hashing 경로를 사용합니다.",
+      "bundlePolicy": "번들에 포함하면 libsodium ISC license text를 함께 포함합니다.",
+      "detectors": [
+        { "label": "libsodium", "command": "pkg-config", "args": ["--modversion", "libsodium"], "versionPattern": "^(.+)$" }
+      ]
     },
     {
       "id": "ffmpeg",
@@ -54,7 +87,13 @@
       "usage": "검증 스크립트, sample probing, media diagnostics, 선택 helper workflow",
       "source": "시스템 패키지 관리자",
       "distribution": "외부 command-line dependency이며 이 저장소에 vendoring하지 않음",
-      "bundlePolicy": "FFmpeg는 Apache-2.0 적용 대상으로 보지 않습니다. 번들 FFmpeg build가 GPL component를 켰는지 확인합니다."
+      "versionPolicy": "패키지 관리자 설치 버전을 사용합니다. release snapshot은 ffmpeg/ffprobe version과 GPL build flag 포함 여부를 기록합니다.",
+      "minimumVersion": "미고정. 검증 스크립트는 ffmpeg/ffprobe command 존재 여부와 실제 probe 성공 여부를 기준으로 판단합니다.",
+      "bundlePolicy": "FFmpeg는 Apache-2.0 적용 대상으로 보지 않습니다. 번들 FFmpeg build가 GPL component를 켰는지 확인합니다.",
+      "detectors": [
+        { "label": "ffmpeg", "command": "ffmpeg", "args": ["-version"], "versionPattern": "^ffmpeg version\\s+([^\\s]+)" },
+        { "label": "ffprobe", "command": "ffprobe", "args": ["-version"], "versionPattern": "^ffprobe version\\s+([^\\s]+)" }
+      ]
     },
     {
       "id": "ultralytics-yolo-model",
@@ -63,7 +102,48 @@
       "usage": "./server.sh install이 다운로드하는 기본 선택 object detection model",
       "source": "Ultralytics GitHub release assets",
       "distribution": "다운로드 asset이며 이 저장소에 commit하지 않음",
-      "bundlePolicy": "재배포하거나 상업적으로 사용하기 전에 모델 제공자 license를 이 저장소 license와 별도로 확인합니다."
+      "versionPolicy": "기본 다운로드 URL은 Ultralytics assets v8.4.0의 yolo11n.onnx입니다. 실제 파일 hash는 snapshot에 기록합니다.",
+      "minimumVersion": "기본 모델 파일명 기준 yolo11n.onnx. URL은 MEDIA_SERVER_YOLO_MODEL_URL로 바꿀 수 있습니다.",
+      "bundlePolicy": "재배포하거나 상업적으로 사용하기 전에 모델 제공자 license를 이 저장소 license와 별도로 확인합니다.",
+      "assets": [
+        {
+          "label": "models/yolo11n.onnx",
+          "path": "models/yolo11n.onnx",
+          "expectedVersion": "Ultralytics assets v8.4.0",
+          "source": "https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo11n.onnx",
+          "sha256": true,
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "optional-yolo-layout-models",
+      "name": "Optional YOLO layout verification model assets",
+      "license": "Provider-specific model terms; not relicensed by this repository",
+      "usage": "verify-yolo-layouts 선택 검증에서 output layout/box/score 조합을 확인하는 추가 ONNX 모델",
+      "source": "Ultralytics YOLOv5 release asset과 별도 YOLOv8 end-to-end ONNX sample URL",
+      "distribution": "선택 검증 중 다운로드될 수 있는 asset이며 이 저장소에 commit하지 않음",
+      "versionPolicy": "기본 검증 URL은 스크립트에 고정되어 있고 실제 파일 hash는 snapshot에 기록합니다.",
+      "minimumVersion": "선택 검증 전용이라 제품 실행 필수 조건이 아닙니다.",
+      "bundlePolicy": "검증 모델을 배포물에 포함하지 않는 것을 기본으로 합니다. 포함 시 provider license를 별도 확인합니다.",
+      "assets": [
+        {
+          "label": "models/yolov5n.onnx",
+          "path": "models/yolov5n.onnx",
+          "expectedVersion": "Ultralytics YOLOv5 v7.0 release asset",
+          "source": "https://github.com/ultralytics/yolov5/releases/download/v7.0/yolov5n.onnx",
+          "sha256": true,
+          "optional": true
+        },
+        {
+          "label": "models/yolov8n-640x640-end2end.onnx",
+          "path": "models/yolov8n-640x640-end2end.onnx",
+          "expectedVersion": "YOLOv8 end-to-end ONNX sample",
+          "source": "https://github.com/namas191297/yolov8-segmentation-end2end-onnxruntime/raw/main/models/yolov8n-640x640-end2end.onnx",
+          "sha256": true,
+          "optional": true
+        }
+      ]
     },
     {
       "id": "coco-labels",
@@ -72,7 +152,55 @@
       "usage": "object detection 표시 이름에 사용하는 models/coco.names label",
       "source": "install script가 표준 COCO class name에서 생성",
       "distribution": "생성되는 로컬 파일이며 dataset 자체에 Apache-2.0을 부여하는 것이 아님",
-      "bundlePolicy": "번들에 포함하면 dataset/label attribution을 유지하고 프로젝트 원본 콘텐츠처럼 표시하지 않습니다."
+      "versionPolicy": "80개 COCO class label 목록을 생성합니다. snapshot에는 줄 수와 hash를 기록합니다.",
+      "minimumVersion": "고정 파일명 models/coco.names",
+      "bundlePolicy": "번들에 포함하면 dataset/label attribution을 유지하고 프로젝트 원본 콘텐츠처럼 표시하지 않습니다.",
+      "assets": [
+        { "label": "models/coco.names", "path": "models/coco.names", "sha256": true, "lineCount": true, "optional": true }
+      ]
+    },
+    {
+      "id": "opencv-python",
+      "name": "OpenCV Python",
+      "license": "Apache-2.0 upstream project terms",
+      "usage": "선택 예제 client-side RTSP/SSE overlay 표시",
+      "source": "Python package manager 또는 시스템 패키지 관리자",
+      "distribution": "예제 실행용 optional dependency이며 이 저장소에 vendoring하지 않음",
+      "versionPolicy": "예제 client를 실행하는 환경에서 cv2 import version을 snapshot에 기록합니다.",
+      "minimumVersion": "미고정. 예제 client가 import 실패 시 설치 안내를 출력합니다.",
+      "bundlePolicy": "예제와 함께 Python package를 bundle하면 OpenCV license와 transitive dependency notice를 포함합니다.",
+      "detectors": [
+        { "label": "cv2", "command": "python3", "args": ["-c", "import cv2; print(cv2.__version__)"], "versionPattern": "^(.+)$" }
+      ]
+    },
+    {
+      "id": "transitive-linked-libraries",
+      "name": "Transitive linked libraries from media/runtime packages",
+      "license": "Upstream project terms by each linked library",
+      "usage": "GStreamer, Pango/Cairo, ONNX Runtime, libsodium, system C++ runtime이 끌어오는 GLib, GObject, HarfBuzz, gettext/libintl, libc++/libSystem 같은 실제 linked library",
+      "source": "시스템 패키지 관리자 또는 OS SDK",
+      "distribution": "직접 소스 의존성은 아니지만 binary bundle에 복사되면 배포 의무가 생길 수 있음",
+      "versionPolicy": "정확한 파일 경로와 current version은 `./server.sh dependency-snapshot`의 linked library section에 기록합니다.",
+      "minimumVersion": "직접 고정하지 않음. 상위 media/runtime package와 OS SDK가 결정합니다.",
+      "bundlePolicy": "binary bundle에 dylib/so를 포함하면 snapshot의 linked library 목록을 기준으로 각 upstream license text와 attribution을 추가합니다."
+    },
+    {
+      "id": "build-and-script-tools",
+      "name": "CMake, pkg-config, Node.js, Python 3, curl",
+      "license": "Upstream project terms",
+      "usage": "빌드, 문서/검증 스크립트, HTTP smoke, dependency download helper",
+      "source": "시스템 패키지 관리자 또는 OS 기본 제공 도구",
+      "distribution": "외부 build/test tool이며 이 저장소에 vendoring하지 않음",
+      "versionPolicy": "CMake 최소 요구 버전은 3.16입니다. 나머지 tool의 실제 버전은 snapshot에 기록합니다.",
+      "minimumVersion": "CMake 3.16+, C++17 compiler, Node.js/Python 3/curl/pkg-config command 필요",
+      "bundlePolicy": "배포물에 도구 runtime을 포함하지 않는 것을 기본으로 합니다. 포함하면 각 upstream license를 함께 포함합니다.",
+      "detectors": [
+        { "label": "cmake", "command": "cmake", "args": ["--version"], "versionPattern": "^cmake version\\s+(.+)$" },
+        { "label": "pkg-config", "command": "pkg-config", "args": ["--version"], "versionPattern": "^(.+)$" },
+        { "label": "node", "command": "node", "args": ["--version"], "versionPattern": "^v?(.+)$" },
+        { "label": "python3", "command": "python3", "args": ["--version"], "versionPattern": "^Python\\s+(.+)$" },
+        { "label": "curl", "command": "curl", "args": ["--version"], "versionPattern": "^curl\\s+([^\\s]+)" }
+      ]
     },
     {
       "id": "yt-dlp-deno",
@@ -81,7 +209,13 @@
       "usage": "선택 실험 기능인 YouTube import helper path",
       "source": "시스템 패키지 관리자",
       "distribution": "외부 optional tool이며 이 저장소에 vendoring하지 않음",
-      "bundlePolicy": "번들에 포함하면 각 tool의 upstream license를 포함하고 YouTube import는 실험 기능으로 유지합니다."
+      "versionPolicy": "YouTube import/source 실험 기능을 켠 환경에서만 필요하며 snapshot에 버전을 기록합니다.",
+      "minimumVersion": "제품 핵심 실행 필수 조건이 아닙니다.",
+      "bundlePolicy": "번들에 포함하면 각 tool의 upstream license를 포함하고 YouTube import는 실험 기능으로 유지합니다.",
+      "detectors": [
+        { "label": "yt-dlp", "command": "yt-dlp", "args": ["--version"], "versionPattern": "^(.+)$" },
+        { "label": "deno", "command": "deno", "args": ["--version"], "versionPattern": "^deno\\s+([^\\s]+)" }
+      ]
     }
   ]
 }
