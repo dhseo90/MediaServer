@@ -3718,7 +3718,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         return `<button type="button" class="${classes}" data-ops-rule-action="${escapeHtml(action)}" data-ops-rule-id="${escapeHtml(String(id || ''))}">${escapeHtml(label)}</button>`;
       }
       function opsRuleActionButtons(actions) {
-        return `<div class="table-actions ops-rule-row-actions">${actions.join('')}</div>`;
+        return `<div class="table-actions ops-row-actions ops-rule-row-actions">${actions.join('')}</div>`;
       }
       function opsRulesMsLabel(value) {
         const numeric = Number(value);
@@ -4116,7 +4116,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const channel = opsRulesFindChannelForVaRule(item);
         const ruleId = String(item?.id || '').trim();
         const viewId = String(channel?.view?.viewId || '').trim();
-        return `<div class="channel-stream-actions">
+        return `<div class="table-actions ops-row-actions ops-stream-actions channel-stream-actions">
           <button type="button" class="secondary" data-ops-rule-copy-kind="rtsp" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="이 채널 분석 설정의 RTSP URL 복사" aria-label="이 채널 분석 설정의 RTSP URL 복사">RTSP 복사</button>
           <button type="button" class="secondary" data-ops-rule-copy-kind="whep" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="이 채널 분석 설정의 WHEP URL 복사" aria-label="이 채널 분석 설정의 WHEP URL 복사">WHEP 복사</button>
           <button type="button" class="secondary" data-ops-rule-copy-kind="client" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="이 채널 분석 설정의 WebRTC 링크 복사" aria-label="이 채널 분석 설정의 WebRTC 링크 복사"${viewId ? '' : ' disabled'}>WebRTC 복사</button>
@@ -4869,7 +4869,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       const label = mode === 'va' ? 'VA URL' : '라이브 URL';
       const copyMode = mode === 'va' ? 'va' : 'raw';
       return `
-        <div class="table-actions channel-stream-actions">
+        <div class="table-actions ops-row-actions ops-stream-actions channel-stream-actions">
           <button type="button" class="secondary" data-copy-stream-type="rtsp" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${label} RTSP 복사" aria-label="${label} RTSP 복사">RTSP</button>
           <button type="button" class="secondary" data-copy-stream-type="whep" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${label} WHEP 복사" aria-label="${label} WHEP 복사">WHEP</button>
         </div>
@@ -5238,7 +5238,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         const kindCellHtml = `<div class="channel-kind-cell">
           <strong>${escapeHtml(kindLabel(source.kind))}</strong>
         </div>`;
-        const statusCellHtml = `<div class="table-actions channel-status-actions">
+        const statusCellHtml = `<div class="table-actions ops-row-actions ops-status-actions channel-status-actions">
           ${enabled ? chip('활성') : chip('비활성', 'warn')}
           <button type="button" class="secondary" data-toggle-channel="${escapeHtml(row.id || '')}">${enabled ? '비활성화' : '적용'}</button>
         </div>`;
@@ -5246,7 +5246,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
           <span class="token">${escapeHtml(inputText)}</span>
           ${source.sourceId ? '' : '<span class="channel-source-note">PublishedView 연결 전</span>'}
         </div>`;
-        const actionsCellHtml = `<div class="table-actions channel-row-actions">
+        const actionsCellHtml = `<div class="table-actions ops-row-actions channel-row-actions">
           <button type="button" class="secondary" data-view-channel="${escapeHtml(row.id || '')}">상세</button>
           <button type="button" class="secondary" data-clone-channel="${escapeHtml(row.id || '')}">복제</button>
           <button type="button" class="secondary" data-open-client-live="${escapeHtml(row.id || '')}" ${view?.enabled === false ? 'disabled' : ''}>라이브 보기</button>
@@ -5978,13 +5978,13 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         appendLabeledCell(tr, '계정명', `<div class="user-id-cell"><span class="table-identity-pill table-identity-user">${escapeHtml(displayValue(user.username))}</span></div>`);
         appendLabeledCell(tr, '이름', userValueHtml(user.displayName || '미제공'));
         appendLabeledCell(tr, '권한', userValueHtml(roleLabel(user.role)));
-        appendLabeledCell(tr, '상태', `<div class="user-status-actions">${chip(user.enabled ? '활성' : '비활성', user.enabled ? '' : 'warn')}</div>`, 'table-cell-status');
+        appendLabeledCell(tr, '상태', `<div class="table-actions ops-row-actions ops-status-actions user-status-actions">${chip(user.enabled ? '활성' : '비활성', user.enabled ? '' : 'warn')}</div>`, 'table-cell-status');
         appendLabeledCell(tr, '권한 범위', userScopeHtml(user.scopes), 'user-scope-cell');
         appendLabeledCell(tr, '마지막 로그인', userValueHtml(user.lastLoginAt || '미제공'));
         appendLabeledCell(tr, '잠금 만료', userValueHtml(user.lockedUntil || '없음'));
         appendLabeledCell(tr, '비밀번호 변경', userValueHtml(yesNo(user.mustChangePassword)));
         const actionsHtml = `
-          <div class="table-actions user-row-actions">
+          <div class="table-actions ops-row-actions user-row-actions">
             <button type="button" class="secondary" data-user-view="${escapeHtml(displayValue(user.username))}">상세</button>
           </div>`;
         appendLabeledCell(tr, '작업', actionsHtml, 'table-cell-actions');
@@ -6007,10 +6007,10 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         appendLabeledCell(tr, '연락처', userValueHtml(request.contact || '미제공'));
         appendLabeledCell(tr, '채널', userValueHtml(request.viewId || '미지정'));
         appendLabeledCell(tr, '사유', userValueHtml(request.reason || '미제공'));
-        appendLabeledCell(tr, '상태', `<div class="user-status-actions">${chip(requestStatusLabel(request.status), requestStatusTone(request.status))}</div>`, 'table-cell-status');
+        appendLabeledCell(tr, '상태', `<div class="table-actions ops-row-actions ops-status-actions user-status-actions">${chip(requestStatusLabel(request.status), requestStatusTone(request.status))}</div>`, 'table-cell-status');
         appendLabeledCell(tr, '요청/결정', userValueHtml(request.createdAt || '미제공', request.decidedAt || ''));
         const actionsHtml = request.status === 'pending'
-          ? `<div class="table-actions user-row-actions">
+          ? `<div class="table-actions ops-row-actions user-row-actions">
               <button type="button" class="primary" data-request-approve="${escapeHtml(displayValue(request.requestId))}">승인</button>
               <button type="button" class="danger" data-request-reject="${escapeHtml(displayValue(request.requestId))}">거절</button>
             </div>`

@@ -23,21 +23,24 @@ const checks = [
     path: "/ops/sources",
     root: '[data-testid="ops-sources-page"]',
     readySelectors: ["#channels-body"],
-    tableSelectors: [".channel-table"],
+    tableSelectors: [".channel-table.ops-responsive-table"],
+    detailSelectors: ["#channel-detail-panel.ops-detail-panel"],
   },
   {
     name: "rules",
     path: "/ops/rules",
     root: '[data-testid="ops-rules-page"]',
     readySelectors: ["#opsVaRuleRows", "#opsEventRuleRows", "#opsProfileRows"],
-    tableSelectors: [".ops-rules-table"],
+    tableSelectors: [".ops-rules-table.ops-responsive-table"],
+    detailSelectors: ["#opsRulesDetailPanel.ops-detail-panel"],
   },
   {
     name: "users",
     path: "/ops/users",
     root: '[data-testid="ops-users-page"]',
     readySelectors: ["#users-body", "#access-requests-body"],
-    tableSelectors: [".user-table"],
+    tableSelectors: [".user-table.ops-responsive-table"],
+    detailSelectors: ["#user-detail-panel.ops-detail-panel"],
   },
 ];
 
@@ -161,6 +164,12 @@ function layoutCheckExpression(check) {
       if (tables.length === 0) {
         issue('missing target table: ' + tableSelectors.join(','));
       }
+      const detailSelectors = ${JSON.stringify(check.detailSelectors || [])};
+      for (const selector of detailSelectors) {
+        if (!document.querySelector(selector)) {
+          issue('missing shared detail panel selector ' + selector);
+        }
+      }
       const targetTables = new Set(tables);
       for (const wrap of Array.from(document.querySelectorAll('.table-wrap'))) {
         const table = wrap.querySelector('table');
@@ -173,6 +182,9 @@ function layoutCheckExpression(check) {
       for (const table of tables) {
         if (!isVisible(table)) continue;
         const tableLabel = labelFor(table);
+        if (!table.classList.contains('ops-responsive-table')) {
+          issue(tableLabel + ' missing ops-responsive-table class');
+        }
         for (const cell of Array.from(table.querySelectorAll('th, td'))) {
           if (!isVisible(cell)) continue;
           const cellLabel = tableLabel + ' ' + (cell.getAttribute('data-label') || cell.textContent || cell.tagName).trim().slice(0, 42);
@@ -192,6 +204,9 @@ function layoutCheckExpression(check) {
         }
         for (const group of Array.from(table.querySelectorAll('.table-actions, .ops-rule-row-actions, .user-row-actions, .channel-row-actions, .channel-stream-actions'))) {
           if (!isVisible(group)) continue;
+          if (!group.classList.contains('ops-row-actions')) {
+            issue(tableLabel + ' action group missing ops-row-actions');
+          }
           const overflow = Math.max(0, group.scrollWidth - Math.ceil(group.clientWidth));
           if (overflow > 2) {
             issue(tableLabel + ' action group overflow ' + overflow + 'px');
