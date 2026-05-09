@@ -19,6 +19,13 @@ check("server exposes persistent ops audit API", () => {
     "AppendOpsAuditRecord",
     "OpsAuditEntriesJson",
     "OpsAuditEntriesCsv",
+    "OpsAuditEntriesDiffJson",
+    "OpsAuditRetentionDays",
+    "MEDIA_SERVER_OPS_AUDIT_RETENTION_DAYS",
+    "searchIndex",
+    "\"target\"",
+    "\"user\"",
+    "ops-audit-diff.json",
     "\"offset\"",
     "\\\"hasMore\\\"",
     "RedactAuditJsonFragment",
@@ -39,6 +46,9 @@ check("shared UI writes audit records to server and falls back locally", () => {
     "auditQueryParams",
     "opsAuditViewStates",
     "openOpsAuditDetail",
+    "data-audit-export=\"diff-json\"",
+    "-audit-user",
+    "-audit-target",
     "requestJson('/ops/api/audit'",
     "server audit unavailable",
     "서버 감사 로그",
@@ -62,6 +72,8 @@ check("docs describe persistent audit scope", () => {
   const docs = readText("docs/ui-guide.md");
   assert(docs.includes("서버 감사 로그"), "ui-guide is missing server audit log wording");
   assert(docs.includes("JSON/CSV export"), "ui-guide is missing audit export wording");
+  assert(docs.includes("Diff JSON export"), "ui-guide is missing audit diff export wording");
+  assert(docs.includes("MEDIA_SERVER_OPS_AUDIT_RETENTION_DAYS"), "ui-guide is missing audit retention env wording");
 });
 
 let failCount = 0;

@@ -184,6 +184,14 @@ Admin user management API:
 
 마지막 활성 admin 계정은 disable하거나 admin이 아닌 role로 바꿀 수 없습니다.
 
+Ops audit trail:
+
+| 환경변수 | 기본값 | 설명 |
+| --- | --- | --- |
+| `MEDIA_SERVER_OPS_AUDIT_RETENTION_DAYS` | `180` | `.media_server.ops_audit.jsonl` 보존 기간. `0` 이하는 정리를 비활성화하며, 조회/저장 시 오래된 `receivedAtMs` 기록을 정리합니다. |
+
+`GET /ops/api/audit`는 `area`, `actor`, `user`, `target`, `action`, `q`, `offset`, `limit` 필터를 지원합니다. `format=json|csv|diff-json`과 `download=1`을 함께 사용하면 운영 감사 기록 또는 전/후 diff 중심 export를 받을 수 있습니다.
+
 ### 개발/script 보조값
 
 | 환경변수 | 기본값 | 설명 |
