@@ -53,6 +53,7 @@ check("stream verification docs keep short and long gates separated", () => {
     "./server.sh verify-va-runtime-console-longrun",
     "./server.sh verify-va-runtime-console-cycles",
     "./server.sh verify-longrun-separation",
+    "./server.sh verify-rc-release-gate",
   ];
   for (const snippet of requiredSnippets) {
     assert(docs.includes(snippet), `docs/stream-verification.md is missing: ${snippet}`);

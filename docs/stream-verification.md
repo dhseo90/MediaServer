@@ -239,6 +239,25 @@ curl -fsS -i -H 'Authorization: Bearer viewer-token' 'http://127.0.0.1:8080/ops'
 
 ## 장기 테스트 명령
 
+### RC 전용 Release Gate
+
+아래 두 검증은 상시 실행하지 않습니다. release candidate 전,
+RTSP/GStreamer/WebRTC media path 변경 후,
+SharedStream/VA metadata/dashboard/SSE/WS fanout 변경 후,
+또는 30분 predev에서 active RSS high-water가 이전 기준보다 커졌을 때만
+명시적으로 실행합니다.
+
+```bash
+./server.sh verify-predev --soak-minutes 120
+./server.sh verify-va-runtime-console-longrun --duration-minutes 120 --clients 1 --include-sidechannel --include-dashboard --include-rtsp --idle-after-cleanup-minutes 30
+```
+
+RC 전용 gate가 기본 smoke에 섞이지 않았는지는 다음 명령으로 확인합니다.
+
+```bash
+./server.sh verify-rc-release-gate
+```
+
 event POST 반복 안정성:
 
 ```bash
