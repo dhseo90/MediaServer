@@ -3,6 +3,8 @@
 
 import process from "node:process";
 
+import { nextNumericIds } from "./numeric_id_helpers.mjs";
+
 const args = parseArgs(process.argv.slice(2));
 const httpBase = String(args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 
@@ -11,7 +13,7 @@ const usedIds = new Set([
   ...(Array.isArray(catalog.rules) ? catalog.rules : []).map((item) => String(item?.id || "")),
   ...(Array.isArray(catalog.vaRules) ? catalog.vaRules : []).map((item) => String(item?.id || "")),
 ]);
-const ids = nextIds(usedIds, 3);
+const ids = nextNumericIds(usedIds, { count: 3, start: 9801, end: 9999, label: "ops rules roundtrip id" });
 
 const fixtures = [
   {
@@ -140,18 +142,6 @@ function assertEqual(actual, expected, label) {
   if (actual !== expected) {
     throw new Error(`${label} mismatch: ${actual} !== ${expected}`);
   }
-}
-
-function nextIds(usedIds, count) {
-  const ids = [];
-  for (let candidate = 9801; candidate <= 9999 && ids.length < count; candidate += 1) {
-    const text = String(candidate);
-    if (!usedIds.has(text)) ids.push(text);
-  }
-  if (ids.length < count) {
-    throw new Error("not enough temporary rule ids available");
-  }
-  return ids;
 }
 
 async function requestJson(path, options = {}) {

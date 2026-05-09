@@ -6,6 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPTS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 source "${SCRIPT_DIR}/env_common.sh"
+source "${SCRIPT_DIR}/numeric_id_helpers.sh"
 media_server_apply_homebrew_gst_env
 
 ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
@@ -135,7 +136,10 @@ MIN_EXIT="${MEDIA_SERVER_VERIFY_VA_EVENTS_MIN_EXIT:-1}"
 MIN_LINE="${MEDIA_SERVER_VERIFY_VA_EVENTS_MIN_LINE:-2}"
 MIN_UNIQUE_TRACKS="${MEDIA_SERVER_VERIFY_VA_EVENTS_MIN_TRACKS:-3}"
 RUN_ID="vaevt-$(date +%s)-$$"
-RULE_ID_BASE="${MEDIA_SERVER_VERIFY_VA_EVENTS_RULE_ID_BASE:-$((9400 + ($$ % 30) * 12))}"
+RULE_ID_BASE="$(media_server_numeric_id_base \
+  "VA events rule id base" \
+  "${MEDIA_SERVER_VERIFY_VA_EVENTS_RULE_ID_BASE:-}" \
+  "$((9400 + ($$ % 30) * 12))")"
 RULE_ID_COUNTER=0
 NEXT_RULE_ID=""
 RULE_MAP_FILE="/tmp/media_server_${RUN_ID}_rules.tsv"
@@ -218,7 +222,7 @@ log_pass "HTTP health ok"
 
 next_rule_id() {
   RULE_ID_COUNTER=$((RULE_ID_COUNTER + 1))
-  NEXT_RULE_ID="$((RULE_ID_BASE + RULE_ID_COUNTER))"
+  NEXT_RULE_ID="$(media_server_numeric_id_at "VA events rule id" "${RULE_ID_BASE}" "${RULE_ID_COUNTER}")"
 }
 
 create_rule() {

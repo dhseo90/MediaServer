@@ -6,6 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPTS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 source "${SCRIPT_DIR}/env_common.sh"
+source "${SCRIPT_DIR}/numeric_id_helpers.sh"
 media_server_apply_homebrew_gst_env
 
 ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
@@ -45,11 +46,14 @@ HTTP_ADDRESS="${MEDIA_SERVER_HTTP_LISTEN_ADDRESS:-$(media_server_read_const_char
 HTTP_HOST="$(client_host "${MEDIA_SERVER_TEST_HTTP_HOST:-${HTTP_ADDRESS}}")"
 HTTP_BASE="${MEDIA_SERVER_TEST_HTTP_BASE:-http://${HTTP_HOST}:${HTTP_PORT}}"
 
-BASE_ID=$(( (($(date +%s) % 1000000) * 1000) + ($$ % 1000) ))
-PROFILE_ID="$((BASE_ID + 11))"
-ALT_PROFILE_ID="$((BASE_ID + 12))"
-RULE_ID="$((BASE_ID + 21))"
-ALT_RULE_ID="$((BASE_ID + 22))"
+BASE_ID="$(media_server_numeric_id_base \
+  "rule registry id base" \
+  "${MEDIA_SERVER_VERIFY_RULE_REGISTRY_ID_BASE:-}" \
+  "$(( (($(date +%s) % 1000000) * 1000) + ($$ % 1000) ))")"
+PROFILE_ID="$(media_server_numeric_id_at "rule registry profile id" "${BASE_ID}" 11)"
+ALT_PROFILE_ID="$(media_server_numeric_id_at "rule registry alt profile id" "${BASE_ID}" 12)"
+RULE_ID="$(media_server_numeric_id_at "rule registry rule id" "${BASE_ID}" 21)"
+ALT_RULE_ID="$(media_server_numeric_id_at "rule registry alt rule id" "${BASE_ID}" 22)"
 AUTO_TAP_ID=""
 VA_FILE="${MEDIA_SERVER_VERIFY_VA_FILE:-va_four_scene_sample.mp4}"
 
