@@ -4611,6 +4611,12 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     const closeUserButton = document.querySelector('#user-close');
     const assignment = document.querySelector('#view-assignment');
     const passwordFields = document.querySelector('#password-fields');
+    const scopePreview = document.querySelector('#scope-template-preview');
+    const scopeTemplateButtons = [
+      document.querySelector('#apply-view-scope-template'),
+      document.querySelector('#apply-role-default-scope-template'),
+      document.querySelector('#clear-custom-scopes')
+    ];
     let loadedUsers = [];
     let loadedRequests = [];
     let editorMode = 'view';
@@ -4644,6 +4650,9 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       for (const element of Array.from(form.elements)) {
         element.disabled = disabled;
       }
+      for (const button of scopeTemplateButtons) {
+        if (button) button.disabled = disabled;
+      }
       saveSelectedButton.hidden = disabled;
       editSelectedButton.hidden = !disabled;
     }
@@ -4669,6 +4678,53 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     function updateAssignmentVisibility() {
       const role = form.elements.role.value;
       assignment.style.display = (role === 'viewer' || role === 'integrator') ? 'grid' : 'none';
+      updateScopeTemplatePreview();
+    }
+    const scopedRoleTarget = viewId => String(viewId || '').trim() || '__unassigned__';
+    function scopeTemplateForRole(role, viewId = '') {
+      const normalizedRole = String(role || '').trim().toLowerCase();
+      const target = scopedRoleTarget(viewId);
+      if (normalizedRole === 'admin') return ['*'];
+      if (normalizedRole === 'operator') {
+        return ['ops:read', 'rule:write', 'source:write', 'dashboard:read:*', 'event:read:*'];
+      }
+      if (normalizedRole === 'viewer') {
+        return [`view:read:${target}`, `dashboard:read:${target}`, `event:read:${target}`, `metadata:read:${target}`];
+      }
+      if (normalizedRole === 'integrator') {
+        return [`metadata:read:${target}`, `event:read:${target}`];
+      }
+      return [];
+    }
+    function viewIdFromScopes(scopes) {
+      const targets = new Set();
+      for (const scope of Array.isArray(scopes) ? scopes : []) {
+        const match = String(scope || '').trim().match(/^(view|dashboard|event|metadata):read:(.+)$/);
+        if (match && match[2] && match[2] !== '*' && match[2] !== '__unassigned__') {
+          targets.add(match[2]);
+        }
+      }
+      return targets.size === 1 ? Array.from(targets)[0] : '';
+    }
+    function updateScopeTemplatePreview() {
+      if (!scopePreview) return;
+      const role = form.elements.role.value;
+      const viewId = String(form.elements.viewId.value || '').trim();
+      const scopes = scopeTemplateForRole(role, viewId);
+      const scopedRole = role === 'viewer' || role === 'integrator';
+      const suffix = scopedRole && !viewId
+        ? '채널 ID가 비어 있어 미배정 범위로 계산됩니다.'
+        : `적용 예정 ${scopes.length}개`;
+      scopePreview.textContent = scopes.length
+        ? `${suffix}: ${scopes.join(', ')}`
+        : '이 역할에는 적용할 권한 템플릿이 없습니다.';
+    }
+    function applyScopeTemplate(useRoleDefault = false) {
+      const role = form.elements.role.value;
+      const viewId = useRoleDefault ? '' : form.elements.viewId.value;
+      const scopes = scopeTemplateForRole(role, viewId);
+      form.elements.scopes.value = scopes.join('\n');
+      updateScopeTemplatePreview();
     }
     function formPayload() {
       const data = formDataObject(form);
@@ -4712,7 +4768,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       form.elements.username.value = user.username;
       form.elements.displayName.value = user.displayName || '';
       form.elements.role.value = user.role || 'viewer';
-      form.elements.viewId.value = '';
+      form.elements.viewId.value = viewIdFromScopes(user.scopes || []);
       form.elements.scopes.value = (user.scopes || []).join('\n');
       form.elements.password.value = '';
       form.elements.confirmPassword.value = '';
@@ -5016,6 +5072,14 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     });
     document.querySelector('#add-user-btn').onclick = resetUserForm;
     form.elements.role.addEventListener('change', updateAssignmentVisibility);
+    form.elements.viewId.addEventListener('input', updateScopeTemplatePreview);
+    form.elements.scopes.addEventListener('input', updateScopeTemplatePreview);
+    document.querySelector('#apply-view-scope-template').onclick = () => applyScopeTemplate(false);
+    document.querySelector('#apply-role-default-scope-template').onclick = () => applyScopeTemplate(true);
+    document.querySelector('#clear-custom-scopes').onclick = () => {
+      form.elements.scopes.value = '';
+      updateScopeTemplatePreview();
+    };
     document.querySelector('#refresh-btn').onclick = () => {
       setInviteOutput('');
       loadAll().catch(error => setStatus(error.message, true));

@@ -3744,7 +3744,13 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
               <label>채널 ID<input name="viewId" placeholder="1" /></label>
               <p class="hint">시청자/연동 계정에는 선택한 채널 조회 권한만 부여합니다. debug/lab/ops/source/rule 관리 권한은 허용하지 않습니다.</p>
             </div>
-            <label>권한 범위<textarea name="scopes" placeholder="비워두면 권한/채널 기준 템플릿 사용"></textarea></label>
+            <div class="scope-template-actions">
+              <button id="apply-view-scope-template" class="button-secondary" type="button">채널 범위 적용</button>
+              <button id="apply-role-default-scope-template" class="button-secondary" type="button">역할 기본 적용</button>
+              <button id="clear-custom-scopes" class="button-secondary" type="button">직접 입력 비우기</button>
+            </div>
+            <p id="scope-template-preview" class="hint">역할과 채널 ID를 기준으로 권한 범위를 미리 계산합니다.</p>
+            <label>권한 범위<textarea id="user-scopes-input" name="scopes" placeholder="비워두면 권한/채널 기준 템플릿 사용"></textarea></label>
             <div class="checks">
               <label><input name="enabled" type="checkbox" checked /> 활성화</label>
               <label><input name="mustChangePassword" type="checkbox" checked /> 다음 로그인 시 비밀번호 변경</label>

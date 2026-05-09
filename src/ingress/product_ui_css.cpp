@@ -1230,6 +1230,15 @@ std::string ProductUiCss() {
       display: grid;
       gap: 4px;
     }
+    .scope-template-actions {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .scope-template-actions button {
+      max-width: 100%;
+    }
     .ops-va-template-assist {
       display: grid;
       gap: 12px;
@@ -1669,6 +1678,7 @@ std::string ProductUiCss() {
       }
       .ops-rules-table .table-actions,
       .event-record-controls,
+      .scope-template-actions,
       .ops-rule-row-actions,
       .user-row-actions {
         display: grid;
