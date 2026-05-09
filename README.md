@@ -4,16 +4,96 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 
 ## 한눈에 보기
 
-- **스트리밍**:
-  RTSP output, WebRTC signaling/WHEP output, 외부 WHEP pull, 내부 WHIP publish sourceId 소비 경로를 같은 서버에서 다룹니다.
-- **영상 분석**:
-  `va=1` overlay, `vaRule=<id>` 호출, Rule/Profile/Scenario, 객체/영역/라인 설정, Event POST와 EventRecord 저장을 제공합니다.
-- **제품 화면**:
-  `/ops`는 운영 콘솔, `/client`는 viewer 포털입니다. `/lab` 화면은 제품 노출에서 제거했고 개발/검증 API만 유지합니다.
-- **권한과 계정**:
-  `/setup`, `/login`, role/scope principal, admin 계정 관리, viewer invite/request 승인 흐름을 포함합니다.
-- **검증 구조**:
-  UI/Auth smoke, VA metadata replay, baseline fixture, runtime state, 운영 백업/복구 리허설, RC gate artifact 검증 명령을 함께 제공합니다.
+| 주제 | 요약 |
+| --- | --- |
+| 스트리밍 | file, RTSP pull, WHEP pull, WHIP publish, HTTP/HLS source를 RTSP와 WebRTC/WHEP로 내보냅니다. |
+| 영상 분석 | `va=1` overlay, 저장 룰 `vaRule=<id>`, Rule/Profile/Scenario, Event POST, EventRecord와 짧은 snapshot/clip evidence를 제공합니다. |
+| 제품 화면 | `/ops`는 운영 콘솔, `/client`는 viewer 포털입니다. `/lab` 화면 route는 닫고 `/lab/analysis/*` API만 검증/연동용으로 유지합니다. |
+| 계정/권한 | `/setup` 최초 관리자 설정, `/login` session 로그인, role/scope, admin 사용자 관리, viewer invite/request 승인 흐름을 사용합니다. |
+| 검증 | UI/Auth smoke, VA replay, runtime state, 백업/복구 리허설, RC gate artifact 검증 명령을 `./server.sh`에서 제공합니다. |
+
+| 영역 | 주요 진입점 |
+| --- | --- |
+| 운영 설정 | `/ops/home`, `/ops/sources`, `/ops/rules`, `/ops/users` |
+| 운영 진단 | `/ops/dashboard`, `/ops/events` 직접 route |
+| Viewer 화면 | `/client/live`, `/client/dashboard` |
+| 개발/검증 API | `/lab/analysis/*`, `/lab/files`, `/lab/reports` |
+| 스트리밍 출력 | `rtsp://.../dhseo?...`, `POST /webrtc/session`, `POST /whep` |
+
+## 실행 환경
+
+| 구분 | 기준 |
+| --- | --- |
+| OS | macOS 또는 Linux |
+| 언어/빌드 | C++17, CMake 3.16+ |
+| 미디어 런타임 | GStreamer 1.0, gst-rtsp-server, WebRTC 관련 GStreamer plugin |
+| 선택 AI | ONNX Runtime, YOLO ONNX model, label file |
+| 보조 도구 | Node.js, Python 3, ffmpeg/ffprobe, curl |
+| 기본 포트 | HTTP/WebRTC `8080`, RTSP `8554` |
+| 기본 route/file root | RTSP route `dhseo`, file root `video/` |
+
+권장 준비 명령:
+
+```bash
+./server.sh install
+./server.sh build
+```
+
+`./server.sh install`은 로컬 의존성, ONNX Runtime, YOLO 모델/라벨,
+로컬 env 파일을 준비합니다. 패키지별 수동 설치 명령은
+[docs/development-guide.md](docs/development-guide.md)의 요구 환경을 봅니다.
+AI 없이 스트리밍 경로만 빌드하려면 다음처럼 실행합니다.
+
+```bash
+MEDIA_SERVER_ENABLE_AI=0 ./server.sh build
+```
+
+기본 인증 모드는 `MEDIA_SERVER_AUTH_MODE=auto`입니다.
+users file 또는 `admin.passwordHash`가 없으면 첫 접속 시 `/setup`으로 이동해
+관리자 비밀번호를 직접 설정합니다. 제품 기본 admin 비밀번호는 없습니다.
+
+## 빠른 시작
+
+```bash
+./server.sh install
+./server.sh build
+./server.sh start
+./server.sh status
+./server.sh urls
+```
+
+종료:
+
+```bash
+./server.sh stop
+```
+
+개발 중 로그를 바로 보려면:
+
+```bash
+./server.sh foreground
+```
+
+설치/빌드/디버깅 상세는 [docs/development-guide.md](docs/development-guide.md)를 봅니다.
+
+## 문서 로드맵
+
+| 먼저 보고 싶은 것 | 문서 |
+| --- | --- |
+| 실행 환경, 설치, 빌드, foreground/background 실행 | [docs/development-guide.md](docs/development-guide.md) |
+| Auth/Ops/Client 화면 구조와 사용 흐름 | [docs/ui-guide.md](docs/ui-guide.md) |
+| 환경변수, auth mode, port, registry, 운영 preset | [docs/config-reference.md](docs/config-reference.md) |
+| RTSP/WebRTC pipeline, source/session, VA layer 배치 | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
+| YOLO, tracking, scenario, EventRecord, evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
+| 현재 검증 기준과 실행 명령 | [docs/stream-verification.md](docs/stream-verification.md) |
+| 운영 백업/복구 대상과 복구 후 검증 | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
+| Loitering/ZoneOccupancy 현장 시작 threshold | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
+| 남은 작업과 후속 로드맵 | [docs/development-backlog.md](docs/development-backlog.md) |
+| 완료된 개발/검증 이력 | [docs/history/development-history.md](docs/history/development-history.md), [docs/history/verification-history.md](docs/history/verification-history.md) |
+| YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
+
+README는 제품 경계와 실행 흐름만 유지합니다.
+세부 구현 상태와 후속 로드맵은 위 문서에서 나눠 봅니다.
 
 ## 대표 UI 미리보기
 
@@ -48,58 +128,6 @@ README에는 전체 흐름이 바로 읽히는 대표 제품 화면만 배치합
 
 - `외부 WHEP pull`: 외부 playback endpoint를 서버 pull source로 등록
 - `Published WebRTC source`: 외부 URL이 아니라 내부 `/whip/publish`로 먼저 등록된 `sourceId` 연결
-
-문서 길잡이:
-
-- 제품 화면과 동작 설명: [docs/ui-guide.md](docs/ui-guide.md)
-- 영상 분석 구조와 런타임: [docs/video-analysis.md](docs/video-analysis.md)
-- 개발/빌드/검증 명령: [docs/development-guide.md](docs/development-guide.md)
-- 스트림 검증 명령 모음: [docs/stream-verification.md](docs/stream-verification.md)
-
-## 전체 Pipeline
-
-```text
-File / RTSP Pull / WHEP Pull / WHIP Publish / HTTP-HLS URI
-        -> Media Server
-        -> RTSP Output / WebRTC Output
-        -> optional VA 오버레이 / 룰 이벤트 / 시나리오 이벤트 / 런타임 메타데이터
-```
-
-VA 내부 흐름:
-
-```text
-YOLO Detection
-  -> Direction-Based Tracker
-  -> TrackStateManager
-  -> SceneContextBuilder
-  -> RuleEventEngine / ScenarioEngine
-  -> EventManager
-  -> Overlay / Runtime Metadata / Event POST / EventRecord
-```
-
-## 빠른 시작
-
-```bash
-./server.sh install
-./server.sh build
-./server.sh start
-./server.sh status
-./server.sh urls
-```
-
-종료:
-
-```bash
-./server.sh stop
-```
-
-개발 중 로그를 바로 보려면:
-
-```bash
-./server.sh foreground
-```
-
-설치/빌드/디버깅 상세는 [docs/development-guide.md](docs/development-guide.md)를 봅니다.
 
 ## 대표 접속 URL
 
@@ -161,6 +189,27 @@ YOLO Detection
 - 내장 HTTP parser는 header/body 크기, `Content-Length` 형식,
   socket read timeout, 동시 연결 상한을 적용합니다.
 
+## 전체 Pipeline
+
+```text
+File / RTSP Pull / WHEP Pull / WHIP Publish / HTTP-HLS URI
+        -> Media Server
+        -> RTSP Output / WebRTC Output
+        -> optional VA 오버레이 / 룰 이벤트 / 시나리오 이벤트 / 런타임 메타데이터
+```
+
+VA 내부 흐름:
+
+```text
+YOLO Detection
+  -> Direction-Based Tracker
+  -> TrackStateManager
+  -> SceneContextBuilder
+  -> RuleEventEngine / ScenarioEngine
+  -> EventManager
+  -> Overlay / Runtime Metadata / Event POST / EventRecord
+```
+
 ## 영상 분석 사용 흐름
 
 1. `/ops/rules`에서 분석 프로파일과 이벤트 템플릿을 먼저 준비합니다.
@@ -178,26 +227,15 @@ RTSP raw stream과 SSE/WS metadata side-channel을 별도로 조합합니다.
 자세한 정책은 [docs/ui-guide.md](docs/ui-guide.md)와
 [docs/video-analysis.md](docs/video-analysis.md)를 봅니다.
 
-## 시나리오 로드맵 상태
+## 현재 제품 경계
 
-- 1차 완료: Runtime Dashboard trend/stale/cleanup warning,
-  scenario rule payload의 runtime per-rule 설정 연결,
-  ReEntry, IntrusionAfterLineCrossing, Loitering, ZoneOccupancy의
-  룰 편집 UI 선택/저장 템플릿과 현장형 tuning preset.
-- 완료: Auth/account API와 route, SourceRegistry/PublishedView API와 route, Client scoped dashboard API, Client Live Monitor 2x2 화면.
-- 1차 완료: `/setup`, `/login`, `/ops`, `/client` 제품 UI shell 통합. Ops 주 메뉴는 홈, 대시보드, 채널, 룰, 사용자, 클라이언트 미리보기 순서이며, client 주 메뉴는 라이브와 대시보드만 노출합니다.
-- 1차 완료: `/ops/dashboard`와 `/ops/rules`는 Lab iframe 없이
-  `/ops/api/runtime/status`, `/ops/api/rules/catalog`,
-  `/ops/api/events/status` 제품 API로 운영 카드와 룰 화면을 표시합니다.
-  `/ops/events`, `/client/events`는 제품 primary tab에서 숨기고,
-  이벤트 요약은 룰/대시보드 맥락에서 확인합니다.
-- 1차 완료: EventRecord archive 포함 조회와 비파괴 compaction snapshot 생성/목록/다운로드/삭제 API/UI, snapshot frame 저장과 pre/post frame bundle recorder manifest, signed evidence bundle export, evidence retention cleanup job을 제공합니다.
-- 1차 완료: 운영 백업/복구 dry-run 리허설, audit trail 기간/사용자/대상 검색과 export, RC gate artifact 외부 보관 helper, Ops 문제 원인 다음 조치 버튼, 채널/룰/사용자 공통 테이블 helper를 제공합니다.
-- 남은 후속 작업: account lifecycle 정책, 외부 보관 credential/preset, 장기 soak/부하 검증을 별도 묶음으로 관리합니다.
-- 제한/미구현: MP4/VMS/NVR형 장기 녹화, Re-ID 기본 기능화,
-  운영 TURN relay/auth, 외부 WHEP credential 정책은 별도 운영 범위입니다.
+- 운영자는 `/ops`에서 채널, 룰, 사용자, 대시보드 진단을 관리합니다.
+- Viewer는 `/client`에서 할당된 PublishedView만 봅니다. source 원본 URL, 내부 진단 JSON, rule/profile editor는 노출하지 않습니다.
+- EventRecord와 snapshot/clip은 이벤트 기반 짧은 증거 기록 범위입니다. MP4/VMS/NVR형 장기 녹화가 아닙니다.
+- `/lab/analysis/*`는 API/검증용으로 유지하지만 `/lab`, `/lab/rules`, `/lab/import` 화면 route는 제품 UI에서 닫습니다.
+- Re-ID 기본 기능화, 운영 TURN relay/auth, 외부 WHEP credential 저장 정책, 장기 soak/부하 검증은 별도 후속 범위입니다.
 
-이 로드맵 정리는 기존 Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema 변경을 의미하지 않습니다. snapshot/clip hook은 EventRecord용 짧은 frame evidence recorder이며 VMS/NVR 녹화 기능이 아닙니다.
+세부 구현 상태와 남은 작업은 [docs/development-backlog.md](docs/development-backlog.md)에서 관리합니다.
 
 ## 테스트 요약
 
@@ -272,23 +310,6 @@ VA/Auth 주요 검증:
 로컬 QA, 수동 smoke, 자동 auth smoke의 표준 테스트 계정 비밀번호는 `qweasd0-`로 통일합니다. 이 값은 테스트 재현성을 위한 규칙이며, 제품 기본 admin 비밀번호를 의미하지 않습니다.
 
 현재 검증 기준은 [docs/stream-verification.md](docs/stream-verification.md)에 정리되어 있습니다.
-
-## 문서 지도
-
-| 문서 | 역할 |
-| --- | --- |
-| [docs/development-guide.md](docs/development-guide.md) | 빌드, 실행, 디버깅, 테스트 명령 |
-| [docs/ui-guide.md](docs/ui-guide.md) | Auth/Ops/Client UI 사용법과 현재 화면 기준 |
-| [docs/config-reference.md](docs/config-reference.md) | 환경변수와 주요 설정 reference |
-| [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) | 운영 백업/복구 대상과 복구 후 검증 절차 |
-| [docs/media-server-architecture.md](docs/media-server-architecture.md) | RTSP/WebRTC pipeline, stream/session, VA layer 배치 |
-| [docs/video-analysis.md](docs/video-analysis.md) | YOLO, tracking, TrackState, scenario, replay, EventRecord |
-| [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) | Loitering/ZoneOccupancy 현장 시작 threshold |
-| [docs/stream-verification.md](docs/stream-verification.md) | 현재 검증 기준과 실행 명령 |
-| [docs/development-backlog.md](docs/development-backlog.md) | 현재 남은 작업과 후속 로드맵 |
-| [docs/history/development-history.md](docs/history/development-history.md) | 완료된 개발 이력 |
-| [docs/history/verification-history.md](docs/history/verification-history.md) | 과거 상세 검증 이력 |
-| [docs/youtube-import.md](docs/youtube-import.md) | YouTube import/source 실험 기능 |
 
 ## 라이선스/배포 주의
 
