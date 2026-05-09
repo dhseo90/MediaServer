@@ -1186,6 +1186,15 @@ std::string ProductUiCss() {
       color: var(--color-text);
       font-weight: 600;
     }
+    .root-cause-log {
+      grid-column: 1 / -1;
+      padding: 8px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-code-bg);
+      color: var(--color-code-text);
+      font-family: var(--font-mono);
+    }
     .root-cause-next-action {
       justify-self: start;
       grid-column: 1 / -1;

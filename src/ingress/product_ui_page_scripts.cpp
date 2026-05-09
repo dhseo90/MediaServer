@@ -1240,7 +1240,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           debugCounters: runtime?.debugCounters || {}
         };
       };
-      const dashboardRootCauseItems = (runtime, principal, eventsStatus = {}, browserConfig = {}) => {
+      const dashboardRootCauseItems = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}) => {
         const counts = runtimeCounts(runtime);
         const lifecycle = runtime?.sourceLifecycle || {};
         const matching = runtime?.analysisMatching || {};
@@ -1266,12 +1266,19 @@ void AppendOpsShellScript(std::ostringstream& out,
         const recentSummary = recentEvents.length > 0
           ? recentEvents.slice(0, 2).map(item => `${item.eventType || 'event'}:${item.status || 'status'}`).join(' · ')
           : '최근 EventRecord 없음';
+        const logLines = Array.isArray(diagnosticLog?.lines) ? diagnosticLog.lines : [];
+        const logEvidence = patterns => {
+          const regex = new RegExp(patterns, 'i');
+          const match = [...logLines].reverse().find(line => regex.test(String(line || '')));
+          return match ? String(match).slice(0, 220) : (diagnosticLog?.available === false ? '최근 로그 없음' : '로그 미제공');
+        };
         return [
           {
             level: stalledResources ? 'warn' : 'info',
             title: stalledResources ? 'Source lifecycle 정리 확인 필요' : 'Source lifecycle',
             detail: sourceSummary,
             evidence: `cleanup ${cleanupCompleted}/${cleanupRequests} · ${recentSummary}`,
+            log: logEvidence('cleanup|source lifecycle|resourceActive|activeAnalysisTaps'),
             action: stalledResources ? '종료된 세션 뒤에 resource stream/tap이 남았는지 cleanup 로그와 채널 상태를 확인합니다.' : 'idle 또는 활성 수치가 일치합니다.',
             actionHref: '/ops/sources',
             actionLabel: '채널 상태'
@@ -1285,6 +1292,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             evidence: staleTaps.length > 0
               ? staleTaps.slice(0, 2).map(tap => `${tap.streamKey || 'stream'} / ${tap.selectedRuleId || 'rule 없음'}`).join(' · ')
               : `active tap ${activeTaps.length}`,
+            log: logEvidence('stale|metadata skipped|lastUsedAge|tapId'),
             action: staleTaps.length > 0 ? 'viewer 종료, route 이동, 탭 재사용 해제 흐름을 점검합니다.' : '분석 탭 age가 정상 범위입니다.',
             actionHref: '/ops/rules',
             actionLabel: '룰 연결'
@@ -1298,6 +1306,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             evidence: post.lastError || storage.lastError
               ? `최근 오류 ${post.lastError || storage.lastError}`
               : `EventRecord 저장 ${storage.storedCount ?? 0} · POST 전송 ${post.sentCount ?? 0}`,
+            log: logEvidence('reconnect|cleanup|WHIP|publisher|failed to create|event post|event storage'),
             action: inactivePublishSources.length > 0
               ? 'WHIP publisher 재접속과 video track 생성 여부를 확인합니다.'
               : (cleanupBacklog ? 'cleanup completed가 requests를 따라가지 못하는지 로그를 확인합니다.' : 'reconnect/cleanup 지표가 정상 범위입니다.'),
@@ -1311,14 +1320,15 @@ void AppendOpsShellScript(std::ostringstream& out,
               ? `role ${principal.role || '미제공'} · auth ${principal.authMode || '미제공'} · ops:read ${hasOpsRead ? '사용' : '없음'}`
               : 'whoami 응답을 확인하지 못했습니다.',
             evidence: relayFallback ? `${iceText} · relay fallback` : iceText,
+            log: logEvidence('auth|login|session|scope|ICE|TURN|relay'),
             action: principal && hasOpsRead && !relayFallback ? '운영 대시보드 접근 권한과 ICE 설정이 정상 범위입니다.' : '세션, role/scope, auth mode, TURN/ICE 설정을 확인합니다.',
             actionHref: '/ops/users',
             actionLabel: '권한 확인'
           }
         ];
       };
-      const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}) => {
-        const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig);
+      const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}) => {
+        const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig, diagnosticLog);
         const warnCount = items.filter(item => item.level === 'warn' || item.level === 'bad').length;
         renderBadges('dashRootCauseBadges', [
           { text: warnCount > 0 ? `${warnCount}개 확인 필요` : '즉시 조치 없음', tone: warnCount > 0 ? 'warn' : '' },
@@ -1339,18 +1349,20 @@ void AppendOpsShellScript(std::ostringstream& out,
           </div>
           <span class="chip${item.level === 'warn' ? ' warn' : (item.level === 'bad' ? ' bad' : '')}">${item.level === 'info' ? '정상' : '확인'}</span>
           ${item.evidence ? `<p class="root-cause-evidence">${escapeHtml(item.evidence)}</p>` : ''}
+          ${item.log ? `<p class="root-cause-log">${escapeHtml(item.log)}</p>` : ''}
           <p class="root-cause-action">${escapeHtml(item.action)}</p>
           ${item.actionHref ? `<a class="button button-secondary button-compact root-cause-next-action" href="${escapeHtml(item.actionHref)}">${escapeHtml(item.actionLabel || '다음 조치')}</a>` : ''}
         </article>`).join('');
       };
       async function refreshLive() {
-        const [sources, views, catalog, runtime, events, users] = await Promise.all([
+        const [sources, views, catalog, runtime, events, users, diagnosticLog] = await Promise.all([
           requestJson('/ops/api/sources'),
           requestJson('/ops/api/views'),
           requestJson('/ops/api/rules/catalog'),
           requestJson('/ops/api/runtime/status'),
           requestJson('/ops/api/events/status?limit=12').catch(error => ({ error: error.message, records: { records: [] } })),
-          requestJson('/ops/api/users').catch(error => ({ error: error.message, users: [] }))
+          requestJson('/ops/api/users').catch(error => ({ error: error.message, users: [] })),
+          requestJson('/ops/api/diagnostics/log-tail?limit=80').catch(error => ({ error: error.message, available: false, lines: [] }))
         ]);
         const sourceItems = Array.isArray(sources.sources) ? sources.sources : [];
         const viewItems = Array.isArray(views.views) ? views.views : [];
@@ -1431,7 +1443,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('dashWsClientCount', sideChannel.activeWebSocketClients ?? 0);
         setText('dashDetailText',
           `프로파일 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0} · 발행 ${counts.publish} · 송출 ${counts.egress}`);
-        renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig);
+        renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig, diagnosticLog);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
       }
       const OPS_EVENT_RECORD_LIMIT = 25;

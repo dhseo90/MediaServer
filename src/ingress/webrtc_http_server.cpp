@@ -7059,6 +7059,34 @@ std::string OpsAuditEntriesCsv(const app::AppConfig& config,
     return out.str();
 }
 
+std::string OpsDiagnosticLogTailJson(const std::unordered_map<std::string, std::string>& query) {
+    const int limit = ParseClampedIntQuery(query, "limit", 80, 1, 500);
+    const std::filesystem::path path = std::filesystem::current_path() / ".media_server.log";
+    std::ifstream in(path);
+    std::vector<std::string> lines;
+    std::string line;
+    while (std::getline(in, line)) {
+        if (static_cast<int>(lines.size()) >= limit) {
+            lines.erase(lines.begin());
+        }
+        lines.push_back(Trim(line));
+    }
+    std::ostringstream out;
+    out << "{\"status\":\"ops-diagnostic-log-tail\","
+        << "\"available\":" << (in.bad() ? "false" : (lines.empty() ? "false" : "true")) << ","
+        << "\"logPath\":\"" << JsonEscape(path.string()) << "\","
+        << "\"limit\":" << limit << ","
+        << "\"lines\":[";
+    for (std::size_t i = 0; i < lines.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(lines[i]) << "\"";
+    }
+    out << "]}";
+    return out.str();
+}
+
 std::string JsonStringArrayOrDefault(const std::string& body,
                                      const std::string& field,
                                      const std::string& fallback) {
@@ -9514,6 +9542,15 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                return *auth_response;
 	                            }
 	                            HttpResponse ok = JsonResponse(200, "OK", runtime_status_body());
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
+	                        }
+
+	                        if (request.method == "GET" && request.path == "/ops/api/diagnostics/log-tail") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            HttpResponse ok = JsonResponse(200, "OK", OpsDiagnosticLogTailJson(query));
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
 	                        }
