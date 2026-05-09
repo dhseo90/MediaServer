@@ -135,6 +135,10 @@ MIN_EXIT="${MEDIA_SERVER_VERIFY_VA_EVENTS_MIN_EXIT:-1}"
 MIN_LINE="${MEDIA_SERVER_VERIFY_VA_EVENTS_MIN_LINE:-2}"
 MIN_UNIQUE_TRACKS="${MEDIA_SERVER_VERIFY_VA_EVENTS_MIN_TRACKS:-3}"
 RUN_ID="vaevt-$(date +%s)-$$"
+RULE_ID_BASE="${MEDIA_SERVER_VERIFY_VA_EVENTS_RULE_ID_BASE:-$((9400 + ($$ % 30) * 12))}"
+RULE_ID_COUNTER=0
+NEXT_RULE_ID=""
+RULE_MAP_FILE="/tmp/media_server_${RUN_ID}_rules.tsv"
 EVENTS_FILE="/tmp/media_server_${RUN_ID}_events.ndjson"
 SNAPSHOT_FILE="/tmp/media_server_${RUN_ID}_snapshot.json"
 TAPS_FILE="/tmp/media_server_${RUN_ID}_taps.json"
@@ -212,10 +216,17 @@ if ! curl -fsS --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
 fi
 log_pass "HTTP health ok"
 
+next_rule_id() {
+  RULE_ID_COUNTER=$((RULE_ID_COUNTER + 1))
+  NEXT_RULE_ID="$((RULE_ID_BASE + RULE_ID_COUNTER))"
+}
+
 create_rule() {
   local rule_id="$1"
   local body="$2"
+  local alias="${3:-${rule_id}}"
   RULE_IDS+=("${rule_id}")
+  printf '%s\t%s\n' "${alias}" "${rule_id}" >> "${RULE_MAP_FILE}"
   printf '%s' "${body}" > "/tmp/media_server_${RUN_ID}_${rule_id}.json"
   curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/rules/${rule_id}" \
     -H 'Content-Type: application/json' \
@@ -228,19 +239,31 @@ create_line_rule() {
   local suffix="$1"
   local direction="$2"
   local x="$3"
-  local rule_id="${RUN_ID}-${suffix}"
+  local rule_id
+  next_rule_id
+  rule_id="${NEXT_RULE_ID}"
   create_rule "${rule_id}" \
-"{\"id\":\"${rule_id}\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"line-crossing\",\"minConfidence\":0.25,\"region\":{\"type\":\"line\",\"direction\":\"${direction}\",\"points\":[{\"x\":${x},\"y\":0.05},{\"x\":${x},\"y\":0.98}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
+"{\"id\":\"${rule_id}\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"line-crossing\",\"minConfidence\":0.25,\"region\":{\"type\":\"line\",\"direction\":\"${direction}\",\"points\":[{\"x\":${x},\"y\":0.05},{\"x\":${x},\"y\":0.98}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}" \
+    "${suffix}"
 }
 
-create_rule "${RUN_ID}-presence" \
-"{\"id\":\"${RUN_ID}-presence\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.25,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#00ff00\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
+next_rule_id
+presence_rule_id="${NEXT_RULE_ID}"
+create_rule "${presence_rule_id}" \
+"{\"id\":\"${presence_rule_id}\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.25,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#00ff00\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}" \
+  "presence"
 
-create_rule "${RUN_ID}-presence-500ms" \
-"{\"id\":\"${RUN_ID}-presence-500ms\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.25,\"minDurationMs\":500,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
+next_rule_id
+presence_duration_rule_id="${NEXT_RULE_ID}"
+create_rule "${presence_duration_rule_id}" \
+"{\"id\":\"${presence_duration_rule_id}\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.25,\"minDurationMs\":500,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}" \
+  "presence-500ms"
 
-create_rule "${RUN_ID}-multi-category-presence" \
-"{\"id\":\"${RUN_ID}-multi-category-presence\",\"priority\":95,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\",\"vehicle\",\"road\",\"animal\",\"sports\",\"tableware\",\"food\",\"furniture\",\"device\",\"object\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.25,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
+next_rule_id
+multi_category_rule_id="${NEXT_RULE_ID}"
+create_rule "${multi_category_rule_id}" \
+"{\"id\":\"${multi_category_rule_id}\",\"priority\":95,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\",\"vehicle\",\"road\",\"animal\",\"sports\",\"tableware\",\"food\",\"furniture\",\"device\",\"object\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.25,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}" \
+  "multi-category-presence"
 
 create_line_rule "line-left" "any" "0.25"
 create_line_rule "line-left-forward" "forward" "0.25"
@@ -249,11 +272,17 @@ create_line_rule "line-right" "any" "0.75"
 create_line_rule "line-right-forward" "forward" "0.75"
 create_line_rule "line-right-reverse" "reverse" "0.75"
 
-create_rule "${RUN_ID}-enter-center" \
-"{\"id\":\"${RUN_ID}-enter-center\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"enter\",\"minConfidence\":0.25,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.35,\"y\":0.25},{\"x\":0.65,\"y\":0.25},{\"x\":0.65,\"y\":0.98},{\"x\":0.35,\"y\":0.98}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
+next_rule_id
+enter_rule_id="${NEXT_RULE_ID}"
+create_rule "${enter_rule_id}" \
+"{\"id\":\"${enter_rule_id}\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"enter\",\"minConfidence\":0.25,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.35,\"y\":0.25},{\"x\":0.65,\"y\":0.25},{\"x\":0.65,\"y\":0.98},{\"x\":0.35,\"y\":0.98}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}" \
+  "enter-center"
 
-create_rule "${RUN_ID}-exit-center" \
-"{\"id\":\"${RUN_ID}-exit-center\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"exit\",\"minConfidence\":0.25,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.35,\"y\":0.25},{\"x\":0.65,\"y\":0.25},{\"x\":0.65,\"y\":0.98},{\"x\":0.35,\"y\":0.98}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
+next_rule_id
+exit_rule_id="${NEXT_RULE_ID}"
+create_rule "${exit_rule_id}" \
+"{\"id\":\"${exit_rule_id}\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"exit\",\"minConfidence\":0.25,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.35,\"y\":0.25},{\"x\":0.65,\"y\":0.25},{\"x\":0.65,\"y\":0.98},{\"x\":0.35,\"y\":0.98}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":1500,\"color\":\"#ff0000\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}" \
+  "exit-center"
 
 ENCODED_FILE="$(urlencode_file_token "${FILE_TOKEN}")"
 TAP_RESPONSE="$(curl -fsS -X POST "${HTTP_BASE}/lab/analysis/taps?file=${ENCODED_FILE}&va=1&fps=8&maxQueue=1&trackIds=1&trackTrails=1")"
@@ -282,6 +311,7 @@ python3 - \
   "${TAPS_FILE}" \
   "${TAP_ID}" \
   "${RUN_ID}" \
+  "${RULE_MAP_FILE}" \
   "${MIN_PRESENCE}" \
   "${MIN_ENTER}" \
   "${MIN_EXIT}" \
@@ -297,11 +327,30 @@ snapshot_file = pathlib.Path(sys.argv[2])
 taps_file = pathlib.Path(sys.argv[3])
 tap_id = sys.argv[4]
 run_id = sys.argv[5]
-min_presence = int(sys.argv[6])
-min_enter = int(sys.argv[7])
-min_exit = int(sys.argv[8])
-min_line = int(sys.argv[9])
-min_tracks = int(sys.argv[10])
+rule_map_file = pathlib.Path(sys.argv[6])
+min_presence = int(sys.argv[7])
+min_enter = int(sys.argv[8])
+min_exit = int(sys.argv[9])
+min_line = int(sys.argv[10])
+min_tracks = int(sys.argv[11])
+
+rule_id_by_alias = {}
+rule_alias_by_id = {}
+for line in rule_map_file.read_text().splitlines():
+    if not line.strip():
+        continue
+    alias, rule_id = line.split("\t", 1)
+    rule_id_by_alias[alias] = rule_id
+    rule_alias_by_id[rule_id] = alias
+
+def rule_count(alias):
+    return counts.get(rule_id_by_alias.get(alias, ""), 0)
+
+def rule_colors(alias):
+    return highlight_colors_by_rule.get(rule_id_by_alias.get(alias, ""), set())
+
+def rule_durations(alias):
+    return highlight_durations_by_rule.get(rule_id_by_alias.get(alias, ""), set())
 
 counts = collections.Counter()
 tracks_by_type = collections.defaultdict(set)
@@ -315,7 +364,7 @@ for line in events_file.read_text().splitlines():
     payload = json.loads(line)
     for event in payload.get("events", []):
         rule_id = event.get("ruleId", "")
-        if not rule_id.startswith(run_id):
+        if rule_id not in rule_alias_by_id:
             continue
         event_type = event.get("type", "")
         obj = event.get("object") or {}
@@ -334,7 +383,8 @@ for line in events_file.read_text().splitlines():
             highlight_durations_by_rule[rule_id].add(duration_ms)
         if len(samples) < 12:
             samples.append({
-                "rule": rule_id,
+                "rule": rule_alias_by_id.get(rule_id, rule_id),
+                "ruleId": rule_id,
                 "type": event_type,
                 "track": track_id,
                 "score": round(float(obj.get("score", 0.0)), 3),
@@ -365,10 +415,10 @@ print("analyzed=", snapshot.get("analyzedPackets", 0), "avgMs=", snapshot.get("a
 errors = []
 if counts.get("presence", 0) < min_presence:
     errors.append(f"presence 이벤트 부족: {counts.get('presence', 0)} < {min_presence}")
-if counts.get(f"{run_id}-presence-500ms", 0) < min_presence:
-    errors.append(f"minDuration presence 이벤트 부족: {counts.get(f'{run_id}-presence-500ms', 0)} < {min_presence}")
-if counts.get(f"{run_id}-multi-category-presence", 0) < min_presence:
-    errors.append(f"다중 카테고리 presence 이벤트 부족: {counts.get(f'{run_id}-multi-category-presence', 0)} < {min_presence}")
+if rule_count("presence-500ms") < min_presence:
+    errors.append(f"minDuration presence 이벤트 부족: {rule_count('presence-500ms')} < {min_presence}")
+if rule_count("multi-category-presence") < min_presence:
+    errors.append(f"다중 카테고리 presence 이벤트 부족: {rule_count('multi-category-presence')} < {min_presence}")
 if counts.get("enter", 0) < min_enter:
     errors.append(f"enter 이벤트 부족: {counts.get('enter', 0)} < {min_enter}")
 if counts.get("exit", 0) < min_exit:
@@ -376,17 +426,13 @@ if counts.get("exit", 0) < min_exit:
 if counts.get("line-crossing", 0) < min_line:
     errors.append(f"line-crossing 이벤트 부족: {counts.get('line-crossing', 0)} < {min_line}")
 for rule_suffix in ("enter-center", "exit-center", "line-left", "line-right"):
-    rule_id = f"{run_id}-{rule_suffix}"
-    if counts.get(rule_id, 0) <= 0:
+    if rule_count(rule_suffix) <= 0:
         errors.append(f"{rule_suffix} rule 이벤트가 없습니다")
 directed_line_total = 0
 for side in ("left", "right"):
-    any_rule = f"{run_id}-line-{side}"
-    forward_rule = f"{run_id}-line-{side}-forward"
-    reverse_rule = f"{run_id}-line-{side}-reverse"
-    any_count = counts.get(any_rule, 0)
-    forward_count = counts.get(forward_rule, 0)
-    reverse_count = counts.get(reverse_rule, 0)
+    any_count = rule_count(f"line-{side}")
+    forward_count = rule_count(f"line-{side}-forward")
+    reverse_count = rule_count(f"line-{side}-reverse")
     directed_line_total += forward_count + reverse_count
     if any_count > 0 and forward_count + reverse_count != any_count:
         errors.append(
@@ -413,9 +459,9 @@ for rule_id, durations in highlight_durations_by_rule.items():
     unexpected = {duration for duration in durations if duration != 1500}
     if unexpected:
         errors.append(f"{rule_id} highlight durationMs가 1500으로 유지되지 않음: {sorted(unexpected)}")
-if "#ff0000" not in highlight_colors_by_rule.get(f"{run_id}-presence", set()):
+if "#ff0000" not in rule_colors("presence"):
     errors.append("커스텀 highlight 입력을 빨간색으로 고정한 이벤트가 없습니다")
-if 1500 not in highlight_durations_by_rule.get(f"{run_id}-presence", set()):
+if 1500 not in rule_durations("presence"):
     errors.append("presence rule blink durationMs=1500 이벤트가 없습니다")
 
 if errors:
