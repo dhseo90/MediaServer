@@ -242,6 +242,12 @@ Route 역할:
   - `/ops/sources`:
     숫자 채널 목록, 상세 패널,
     `/ops/api/channels/bulk` 기반 대량 복제/비활성화/상태 진단을 제공합니다.
+    v1.1.0 live source health 초안은
+    [live-source-health.md](./live-source-health.md)를 기준으로 하며,
+    row/detail에서 live/connecting/stale/offline/unknown badge,
+    last frame age, reconnect count, codec summary를 operator용으로 표시합니다.
+    client/viewer에는 같은 상태 의미를 sanitized dashboard summary로만 노출하고
+    원본 source URL, ONVIF endpoint, raw diagnostic JSON은 숨깁니다.
     대량 작업은 dry-run, partial failure 리포트, 실패 항목 재시도,
     성공 항목 롤백을 UI에서 처리합니다.
     Bulk 결과에는 audit action/target metadata와 diff preview policy가 포함됩니다.

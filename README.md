@@ -112,6 +112,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | YOLO, tracking, scenario, live event, short evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
 | v1.1.0 live-only 목표와 ONVIF/VA 로드맵 | [docs/v1.1.0-roadmap.md](docs/v1.1.0-roadmap.md) |
 | ONVIF live source import 설계와 stub fixture | [docs/onvif-live-import.md](docs/onvif-live-import.md) |
+| Live source health 상태 모델과 `/ops/sources` 표시 초안 | [docs/live-source-health.md](docs/live-source-health.md) |
 | 현재 검증 기준과 실행 명령 | [docs/stream-verification.md](docs/stream-verification.md) |
 | 배포 bundle, container image, third-party runtime 포함 정책 | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | release asset 범위와 RC 기준 | [docs/release-policy.md](docs/release-policy.md) |

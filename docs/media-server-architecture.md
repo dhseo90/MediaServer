@@ -335,6 +335,12 @@ Debug counter는 `analysisTapCreatedCount`, `analysisTapReusedCount`,
 session DELETE 후 `idle=true` 복귀를 확인합니다.
 RTSP/WHEP/WHIP 외부 네트워크 장기 안정성은 별도 longrun harness에서 다룹니다.
 
+v1.1.0의 live source health 표시는
+[Live Source Health](./live-source-health.md)의 상태 모델을 기준으로 설계합니다.
+`/ops/sources`와 `/ops/dashboard`는 source reachability, last frame age,
+reconnect, stale/offline reason을 operator용으로 표시하고,
+client dashboard는 같은 상태 의미를 sanitized summary로만 노출합니다.
+
 동일 source에서 동시에 만들 수 있는 서로 다른 profile/tap 수는
 `MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_PROFILES_PER_SOURCE`,
 `MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_TAPS_PER_SOURCE`로 제한할 수 있습니다.
