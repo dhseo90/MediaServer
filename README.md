@@ -24,6 +24,8 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 
 정확한 설치 버전과 모델 hash는 [DEPENDENCY_SNAPSHOT.md](DEPENDENCY_SNAPSHOT.md)에 기록합니다.
 release 또는 binary bundle 전에는 `./server.sh dependency-snapshot`으로 다시 생성합니다.
+기본 binary bundle에는 FFmpeg/libav/x264/x265/GStreamer GPL-risk plugin 바이너리를 포함하지 않습니다.
+배포 bundle은 `./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir>`로 검사합니다.
 
 권장 준비 명령:
 
@@ -181,6 +183,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-docs-ui-assets
 ./server.sh write-dependency-notice --check
 ./server.sh dependency-snapshot --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
+./server.sh verify-bundle-policy
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-click-e2e

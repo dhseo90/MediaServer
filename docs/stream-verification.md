@@ -52,6 +52,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-docs-ui-assets
 ./server.sh write-dependency-notice --check
 ./server.sh dependency-snapshot --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
+./server.sh verify-bundle-policy
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-click-e2e

@@ -16,6 +16,8 @@ sample media, package의 라이선스를 이 저장소가 다시 부여하지 �
 THIRD_PARTY_NOTICES.md를 갱신합니다.
 현재 개발/배포 환경의 실제 설치 버전, 모델 hash, linked library 목록은
 `./server.sh dependency-snapshot` 명령으로 DEPENDENCY_SNAPSHOT.md에 기록합니다.
+기본 배포 bundle 정책은 config/bundle_distribution_policy.json에 관리하며
+`./server.sh verify-bundle-policy` 명령으로 검사합니다.
 
 Core build/runtime dependency
 -----------------------------
@@ -43,6 +45,11 @@ Core build/runtime dependency
   재라이선스하지 않습니다. 실제 의무는 사용자가 설치한 FFmpeg build가 GPL
   component를 포함하는지에 따라 달라집니다.
 
+- GStreamer GPL-risk plugin:
+  서버 pipeline은 x264/x265 encoder, libav decoder/encoder 같은 GStreamer
+  plugin element를 사용할 수 있습니다. 기본 배포물에는 FFmpeg/libav/x264/x265
+  또는 gst-libav/gst-plugins-ugly 계열 바이너리를 포함하지 않습니다.
+
 Optional tool/asset
 -------------------
 
@@ -68,3 +75,6 @@ local Homebrew/apt/dnf/pacman package, 다운로드 model file은 이 저장소�
 Apache-2.0과 별개 의무를 추가할 수 있습니다.
 FFmpeg snapshot에 GPL build flag가 감지되면 FFmpeg를 bundle하지 않는 배포와
 bundle하는 배포의 의무를 별도로 검토해야 합니다.
+binary bundle, app bundle, container image, offline package를 만들 때는
+`./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir>`를 실행해
+FFmpeg/libav/x264/x265/GStreamer GPL-risk plugin 포함 여부를 확인해야 합니다.

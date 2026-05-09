@@ -3,7 +3,7 @@
 <!-- 이 파일은 ./server.sh dependency-snapshot 명령으로 생성합니다. -->
 
 - schema: media-server.dependency-snapshot.v1
-- generatedAt: 2026-05-09T12:57:05.756Z
+- generatedAt: 2026-05-09T13:06:28.828Z
 - inventory: config/third_party_attribution.json
 - platform: Darwin 25.4.0 arm64
 - binary: build-gst-onnx/media_server
