@@ -9,6 +9,8 @@ FILE_TOKEN="${MEDIA_SERVER_VERIFY_EVENT_POST_FILE:-imports/va_tracking_event_128
 MODE="schema"
 RECEIVER_PORT="${MEDIA_SERVER_VERIFY_EVENT_POST_PORT:-19091}"
 RUN_ID="evtpost-$(date +%s)-$$"
+RULE_ID_BASE="${MEDIA_SERVER_VERIFY_EVENT_POST_RULE_ID_BASE:-$((9300 + ($$ % 50) * 8))}"
+RULE_ID_COUNTER=0
 RECEIVED_FILE="/tmp/media_server_${RUN_ID}_received.ndjson"
 EVENTS_FILE="/tmp/media_server_${RUN_ID}_events.json"
 STATUS_BEFORE_FILE="/tmp/media_server_${RUN_ID}_status_before.json"
@@ -17,6 +19,7 @@ SUMMARY_FILE="${MEDIA_SERVER_VERIFY_EVENT_POST_SUMMARY_FILE:-/tmp/media_server_$
 RULE_IDS=()
 TAP_ID=""
 RECEIVER_PID=""
+SCHEMA_SUCCESS_RULE_ID=""
 PASS_COUNT=0
 FAIL_COUNT=0
 SKIP_COUNT=0
@@ -159,9 +162,13 @@ create_rule() {
   # event POST를 발생시키는 presence rule을 저장한다.
   local suffix="$1"
   local post_path="$2"
-  local rule_id="${RUN_ID}-${suffix}"
+  RULE_ID_COUNTER=$((RULE_ID_COUNTER + 1))
+  local rule_id="$((RULE_ID_BASE + RULE_ID_COUNTER))"
   local url="http://127.0.0.1:${RECEIVER_PORT}${post_path}"
   RULE_IDS+=("${rule_id}")
+  if [[ "${suffix}" == "success" ]]; then
+    SCHEMA_SUCCESS_RULE_ID="${rule_id}"
+  fi
   curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/rules/${rule_id}" \
     -H 'Content-Type: application/json' \
     --data "{\"id\":\"${rule_id}\",\"priority\":100,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"classes\":[\"person\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.25,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\",\"durationMs\":100,\"color\":\"#ff0000\"},\"post\":{\"enabled\":true,\"method\":\"POST\",\"url\":\"${url}\",\"payloadFormat\":\"media-server.va.event.v1\"}}}" \
@@ -238,7 +245,7 @@ validate_schema_mode() {
   after_json="$(event_post_status)"
   printf '%s' "${after_json}" > "${STATUS_AFTER_FILE}"
 
-  python3 - "${before_enqueued}" "${before_failed}" "${before_suppressed}" "${STATUS_AFTER_FILE}" "${RECEIVED_FILE}" "${RUN_ID}" <<'PY'
+  python3 - "${before_enqueued}" "${before_failed}" "${before_suppressed}" "${STATUS_AFTER_FILE}" "${RECEIVED_FILE}" "${SCHEMA_SUCCESS_RULE_ID}" <<'PY'
 import json
 import pathlib
 import sys
@@ -248,7 +255,7 @@ before_failed = int(sys.argv[2])
 before_suppressed = int(sys.argv[3])
 status = json.loads(pathlib.Path(sys.argv[4]).read_text())
 received_path = pathlib.Path(sys.argv[5])
-run_id = sys.argv[6]
+success_rule_id = sys.argv[6]
 
 errors = []
 if status.get("enqueuedCount", 0) <= before_enqueued:
@@ -279,7 +286,7 @@ else:
     if not isinstance(payload.get("timestampMs"), int):
         errors.append("timestampMs가 정수가 아닙니다")
     rule = payload.get("rule") or {}
-    if not str(rule.get("id", "")).startswith(f"{run_id}-success"):
+    if str(rule.get("id", "")) != success_rule_id:
         errors.append(f"rule.id mismatch: {rule}")
     if rule.get("type") != "presence":
         errors.append(f"rule.type mismatch: {rule.get('type')}")
