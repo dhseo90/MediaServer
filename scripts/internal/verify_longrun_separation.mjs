@@ -46,7 +46,7 @@ check("longrun commands remain explicit server.sh entrypoints", () => {
 check("stream verification docs keep short and long gates separated", () => {
   const docs = readText("docs/stream-verification.md");
   const requiredSnippets = [
-    "`./server.sh test --full` | Rule/Profile UI, VA event, image analysis, event POST smoke, redaction 포함",
+    "`./server.sh test --full` | Product UI smoke, Rule/Profile UI, VA event, image analysis, event POST smoke, redaction 포함",
     "외부 source/TURN/장시간 테스트는 별도 gate로 분리합니다",
     "## 장기 테스트 명령",
     "./server.sh verify-uri-longrun",

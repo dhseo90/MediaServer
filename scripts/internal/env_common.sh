@@ -238,6 +238,39 @@ PY
   return $?
 }
 
+media_server_tcp_bind_error() {
+  local addr="$1"
+  local port="$2"
+
+  if command -v python3 >/dev/null 2>&1; then
+    python3 - "$addr" "$port" <<'PY'
+import socket
+import sys
+
+addr = sys.argv[1]
+port = int(sys.argv[2])
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+try:
+    sock.bind((addr, port))
+except OSError as exc:
+    print(f"{exc.__class__.__name__}: {exc}")
+    sys.exit(0)
+else:
+    sys.exit(1)
+finally:
+    sock.close()
+PY
+    return $?
+  fi
+
+  # 주요 동작: python3가 없으면 bind 실패 세부 원인을 알 수 없으므로 일반 메시지를 반환한다.
+  if media_server_can_bind_tcp_port "${addr}" "${port}"; then
+    return 1
+  fi
+  printf 'bind probe failed'
+  return 0
+}
+
 media_server_is_tcp_bind_forbidden() {
   local addr="$1"
   local port="$2"

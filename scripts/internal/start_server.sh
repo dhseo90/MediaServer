@@ -344,7 +344,14 @@ for port in "${PORT_CANDIDATES[@]}"; do
     continue
   fi
   if media_server_is_tcp_bind_forbidden "${MEDIA_SERVER_LISTEN_ADDRESS}" "${port}"; then
-    echo "[start] cannot bind ${MEDIA_SERVER_LISTEN_ADDRESS}:${port}. trying next."
+    bind_error="$(media_server_tcp_bind_error "${MEDIA_SERVER_LISTEN_ADDRESS}" "${port}" || true)"
+    if [[ "${bind_error}" == *"Operation not permitted"* || "${bind_error}" == *"PermissionError"* ]]; then
+      echo "[start] cannot bind ${MEDIA_SERVER_LISTEN_ADDRESS}:${port}: ${bind_error}"
+      echo "[start] 현재 실행 환경이 local port bind를 차단한 것으로 보입니다. Codex/CI sandbox라면 권한 밖 실행 또는 실제 terminal에서 재시도하세요."
+    else
+      echo "[start] cannot bind ${MEDIA_SERVER_LISTEN_ADDRESS}:${port}: ${bind_error:-unknown bind error}"
+    fi
+    echo "[start] trying next."
     continue
   fi
 

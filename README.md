@@ -171,8 +171,11 @@ YOLO Detection
 
 ```bash
 ./server.sh build
-git diff --check -- README.md docs scripts src include
+git diff --check -- README.md NOTICE .github docs scripts src include
 ./server.sh verify-script-inventory
+./server.sh verify-code-comments
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-click-e2e
@@ -196,6 +199,10 @@ UI만 확인할 때는 별도 터미널에서
 ```bash
 ./server.sh test --full
 ```
+
+`--full`은 release 전 로컬 기준선입니다. 기본 codec/VA 검증에 더해
+Product UI smoke, 실제 클릭 E2E, 테이블 반응형 검증, Rule UI,
+event POST schema/recovery smoke, redaction까지 함께 실행합니다.
 
 기능 개발 전후 안정화 묶음:
 
@@ -227,3 +234,8 @@ VA/Auth 주요 검증:
 이 값은 테스트 재현성을 위한 규칙이며, 제품 기본 admin 비밀번호를 의미하지 않습니다.
 
 현재 검증 기준과 장기 soak/부하 검증 분리 기준은 [docs/stream-verification.md](docs/stream-verification.md)에 정리되어 있습니다.
+
+## 라이선스
+
+이 저장소의 원본 코드와 문서는 [Apache License 2.0](LICENSE)을 따릅니다.
+third-party runtime, plugin, model, tool attribution은 [NOTICE](NOTICE)에 정리합니다.

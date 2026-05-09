@@ -1,0 +1,62 @@
+MediaServer
+Copyright 2026 dhseo90
+
+이 프로젝트의 원본 소스 코드와 문서는 Apache License, Version 2.0을 따릅니다.
+전체 라이선스 전문은 LICENSE 파일을 확인하세요.
+
+Third-party attribution 요약
+===========================
+
+Apache-2.0은 이 저장소의 원본 코드와 문서에 적용됩니다.
+사용자가 별도로 설치하거나 다운로드하는 runtime, tool, model file,
+sample media, package의 라이선스를 이 저장소가 다시 부여하지 않습니다.
+
+Core build/runtime dependency
+-----------------------------
+
+- GStreamer, gst-rtsp-server, gst-plugins-base/good/bad, libnice:
+  RTSP, RTP, WebRTC, decoding, encoding, media pipeline 지원에 사용됩니다.
+  이 구성요소들은 사용자 package manager로 설치되며, 일반적으로 LGPL 계열과
+  plugin별 별도 조건을 포함한 upstream license를 그대로 따릅니다.
+
+- Cairo and Pango:
+  text/overlay rendering 지원에 사용됩니다. 외부 설치 library이며 upstream의
+  LGPL/MPL 계열 조건을 그대로 따릅니다.
+
+- ONNX Runtime:
+  YOLO detector와 실험용 Re-ID hook에서 사용하는 선택 AI runtime입니다.
+  Linux에서는 install script가 third_party/onnxruntime에 다운로드할 수 있습니다.
+  ONNX Runtime은 Microsoft가 MIT license로 배포합니다.
+
+- libsodium:
+  시스템에 있을 때 password hashing/crypto 지원에 사용됩니다.
+  libsodium은 ISC license로 배포됩니다.
+
+- FFmpeg/ffprobe:
+  verification script와 local media check에 사용됩니다. 이 저장소는 FFmpeg를
+  재라이선스하지 않습니다. 실제 의무는 사용자가 설치한 FFmpeg build가 GPL
+  component를 포함하는지에 따라 달라집니다.
+
+Optional tool/asset
+-------------------
+
+- Ultralytics YOLO model assets:
+  ./server.sh install은 Ultralytics release asset에서 yolo11n.onnx를
+  다운로드할 수 있습니다. 다운로드된 model은 이 저장소의 Apache-2.0 권리 부여
+  대상이 아닙니다. model 재배포 또는 상업 사용 전 provider license를 확인해야 합니다.
+
+- COCO class labels:
+  생성되는 models/coco.names 파일은 object detection label에 쓰는 표준 COCO
+  class name을 담습니다. Dataset, annotation, label source는 자체 attribution과
+  license 조건을 유지합니다.
+
+- yt-dlp and Deno:
+  실험용 YouTube import path의 선택 helper tool입니다. 외부 설치 항목이며 각
+  upstream license를 그대로 따릅니다.
+
+배포 참고
+
+binary release 또는 bundle을 공개하기 전에는 bundle 안에 포함된 third-party
+library, plugin, model file을 정확히 확인해야 합니다. Package manager 설치물,
+local Homebrew/apt/dnf/pacman package, 다운로드 model file은 이 저장소의
+Apache-2.0과 별개 의무를 추가할 수 있습니다.

@@ -1,0 +1,46 @@
+name: Preflight
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  static-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Shell syntax
+        shell: bash
+        run: |
+          bash -n server.sh scripts/internal/*.sh
+
+      - name: Node syntax
+        shell: bash
+        run: |
+          for file in scripts/internal/*.mjs; do
+            node --check "$file"
+          done
+
+      - name: Script inventory
+        shell: bash
+        run: |
+          ./server.sh verify-script-inventory
+
+      - name: Code comments
+        shell: bash
+        run: |
+          ./server.sh verify-code-comments
+
+      - name: Docs links
+        shell: bash
+        run: |
+          ./server.sh verify-docs-links
+
+      - name: Docs UI assets
+        shell: bash
+        run: |
+          ./server.sh verify-docs-ui-assets
