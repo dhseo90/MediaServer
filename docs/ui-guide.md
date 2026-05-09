@@ -1014,6 +1014,8 @@ Screenshot 관리 정책:
 | 기본 theme | dark mode 대표 화면 |
 | 링크 정책 | 새 이미지가 없으면 broken link 대신 “이미지 추가 예정” 문구 사용 |
 | 현재 대표 이미지 | 2026-05-09 dark mode 제품 UI 기준 재캡처 |
+| 재캡처 | `node scripts/internal/capture_docs_ui_assets.mjs --http-base http://127.0.0.1:8082` |
+| 기준 검증 | `./server.sh verify-docs-ui-assets` |
 
 문서용 screenshot 촬영 기준:
 
