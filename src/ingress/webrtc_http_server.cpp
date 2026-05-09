@@ -3786,9 +3786,12 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             </div>
             <div class="actions">
               <label class="check-inline"><input id="channel-bulk-select-all" type="checkbox" /> 전체 선택</label>
+              <label class="check-inline"><input id="channel-bulk-dry-run" type="checkbox" checked /> dry-run</label>
               <button id="channel-bulk-validate" class="button-secondary" type="button">검증</button>
               <button id="channel-bulk-clone" class="button-secondary" type="button">선택 복제</button>
               <button id="channel-bulk-disable" class="button-secondary" type="button">선택 비활성화</button>
+              <button id="channel-bulk-retry-failed" class="button-secondary" type="button" disabled>실패 재시도</button>
+              <button id="channel-bulk-rollback" class="button-secondary" type="button" disabled>성공 롤백</button>
             </div>
           </div>
           <div id="channelBulkSummary" class="badge-row"><span class="chip">로딩 중</span></div>
@@ -7138,28 +7141,62 @@ std::string OpsChannelBulkJson(const std::string& body) {
         const std::string source_id =
             Trim(ParseStringField(item, "sourceId").value_or(ParseStringField(source_raw, "sourceId").value_or("")));
         std::string target_id = source_id;
+        const std::string requested_result_id =
+            Trim(ParseStringField(item, "resultSourceId").value_or(ParseStringField(item, "rollbackSourceId").value_or("")));
+        const std::string rollback_mode = Trim(ParseStringField(item, "rollbackMode").value_or("restore"));
         std::string display_name =
             ParseStringField(view_raw, "displayName").value_or(ParseStringField(source_raw, "displayName").value_or(source_id));
         bool item_ok = true;
         std::string message = "validated";
         std::string result_source_id = source_id;
         std::string result_view_id = ParseStringField(view_raw, "viewId").value_or(source_id);
+        bool retryable = false;
         if (source_id.empty()) {
             item_ok = false;
             message = "sourceId is required";
+            retryable = true;
         } else if (!SourceHasPlayableLocator(source_raw)) {
             item_ok = false;
             message = "source locator is missing";
+            retryable = true;
         } else if (operation == "clone") {
             target_id = NextBulkChannelId(&used_ids);
             display_name = display_name.empty() ? target_id : display_name + " 복제";
             result_source_id = target_id;
             result_view_id = target_id;
+        } else if (operation == "rollback") {
+            if (rollback_mode == "disable-created") {
+                target_id = requested_result_id.empty() ? source_id : requested_result_id;
+                result_source_id = target_id;
+                result_view_id = target_id;
+                display_name = display_name.empty() ? target_id : display_name;
+            }
         } else if (operation != "validate" && operation != "disable") {
             item_ok = false;
             message = "unsupported bulk operation";
         }
-        if (item_ok && !dry_run && operation == "disable") {
+        if (item_ok && !dry_run && operation == "rollback") {
+            if (rollback_mode == "disable-created") {
+                const RegistryResult source_result =
+                    SourceViewRegistry::Instance().UpsertSource(
+                        target_id, SourceBulkPayload(source_raw, target_id, display_name, false, true));
+                const RegistryResult view_result =
+                    SourceViewRegistry::Instance().UpsertView(
+                        target_id, ViewBulkPayload(view_raw, source_raw, target_id, target_id, display_name, false));
+                item_ok = source_result.status >= 200 && source_result.status < 300 &&
+                          view_result.status >= 200 && view_result.status < 300;
+                message = item_ok ? "rollback-disabled-created" : "rollback disable-created failed";
+            } else {
+                const RegistryResult source_result =
+                    SourceViewRegistry::Instance().UpsertSource(source_id, source_raw);
+                const RegistryResult view_result =
+                    SourceViewRegistry::Instance().UpsertView(result_view_id, view_raw);
+                item_ok = source_result.status >= 200 && source_result.status < 300 &&
+                          view_result.status >= 200 && view_result.status < 300;
+                message = item_ok ? "rollback-restored" : "rollback restore failed";
+            }
+            retryable = !item_ok;
+        } else if (item_ok && !dry_run && operation == "disable") {
             const RegistryResult source_result =
                 SourceViewRegistry::Instance().UpsertSource(
                     source_id, SourceBulkPayload(source_raw, source_id, display_name, false, true));
@@ -7169,6 +7206,7 @@ std::string OpsChannelBulkJson(const std::string& body) {
             item_ok = source_result.status >= 200 && source_result.status < 300 &&
                       view_result.status >= 200 && view_result.status < 300;
             message = item_ok ? "disabled" : "disable failed";
+            retryable = !item_ok;
         } else if (item_ok && !dry_run && operation == "clone") {
             const RegistryResult source_result =
                 SourceViewRegistry::Instance().UpsertSource(
@@ -7179,6 +7217,9 @@ std::string OpsChannelBulkJson(const std::string& body) {
             item_ok = source_result.status >= 200 && source_result.status < 300 &&
                       view_result.status >= 200 && view_result.status < 300;
             message = item_ok ? "cloned-disabled" : "clone failed";
+            retryable = !item_ok;
+        } else if (item_ok && dry_run && operation == "rollback") {
+            message = rollback_mode == "disable-created" ? "rollback disable-created dry-run" : "rollback restore dry-run";
         }
         if (item_ok) {
             ++ok_count;
@@ -7193,6 +7234,9 @@ std::string OpsChannelBulkJson(const std::string& body) {
                 << "\"resultSourceId\":\"" << JsonEscape(result_source_id) << "\","
                 << "\"resultViewId\":\"" << JsonEscape(result_view_id) << "\","
                 << "\"ok\":" << (item_ok ? "true" : "false") << ","
+                << "\"retryable\":" << (retryable ? "true" : "false") << ","
+                << "\"rollbackMode\":\"" << JsonEscape(rollback_mode) << "\","
+                << "\"rollbackSourceId\":\"" << JsonEscape(result_source_id) << "\","
                 << "\"message\":\"" << JsonEscape(message) << "\""
                 << "}";
     }
@@ -7205,8 +7249,8 @@ std::string OpsChannelBulkJson(const std::string& body) {
         << "\"okCount\":" << ok_count << ","
         << "\"failCount\":" << fail_count << ","
         << "\"partialFailure\":" << (fail_count > 0 && ok_count > 0 ? "true" : "false") << ","
-        << "\"rollbackPolicy\":\"automatic rollback is not applied; successful item ids are returned for manual rollback\","
-        << "\"retryPolicy\":\"retry only failed sourceId items after fixing validation errors\","
+        << "\"rollbackPolicy\":\"use operation=rollback with successful result ids; clone rollback disables created channels and disable rollback restores before snapshots\","
+        << "\"retryPolicy\":\"retry only failed sourceId items after fixing validation errors; retryable flags identify safe retry targets\","
         << "\"results\":" << results.str()
         << "}";
     return out.str();

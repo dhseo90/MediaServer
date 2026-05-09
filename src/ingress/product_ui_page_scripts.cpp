@@ -4554,9 +4554,12 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const editSelectedButton = document.querySelector('#channel-edit-selected');
     const closeChannelButton = document.querySelector('#channel-close');
     const bulkSelectAll = document.querySelector('#channel-bulk-select-all');
+    const bulkDryRun = document.querySelector('#channel-bulk-dry-run');
     const bulkValidateButton = document.querySelector('#channel-bulk-validate');
     const bulkCloneButton = document.querySelector('#channel-bulk-clone');
     const bulkDisableButton = document.querySelector('#channel-bulk-disable');
+    const bulkRetryFailedButton = document.querySelector('#channel-bulk-retry-failed');
+    const bulkRollbackButton = document.querySelector('#channel-bulk-rollback');
     const bulkSummary = document.querySelector('#channelBulkSummary');
     const bulkDiagnostics = document.querySelector('#channelBulkDiagnostics');
     const streamRoute = ")OPSSOURCES" << stream_route_json << R"OPSSOURCES(";
@@ -4567,6 +4570,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     let editorMode = 'view';
     let currentChannelEnabled = true;
     let initializedHashChannel = false;
+    let lastChannelBulkResult = null;
     const selectedChannelIds = new Set();
 	    const { escapeHtml, requestJson, formDataObject, setFeedback, showToast, setTableEmpty, tableCellHtml, setSelectOptions, recordOpsAudit, renderOpsAuditTrail } = window.MediaServerUi;
 	    const hashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
@@ -4792,6 +4796,37 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     }
     const selectedChannelRows = () => channelRows(loadedSources, loadedViews)
       .filter(row => selectedChannelIds.has(String(row.id || '')));
+    const channelBulkItems = rows => rows.map(row => ({
+      sourceId: row.id,
+      source: sourcePayloadFromRecord(row.source || {}, row.source?.enabled !== false),
+      view: viewPayloadFromRecord(row.view || { viewId: row.id, sourceId: row.id }, row.source || {}, row.view?.enabled !== false)
+    }));
+    const channelBulkRollbackItems = bulk => {
+      const operation = bulk?.operation || '';
+      const rows = Array.isArray(bulk?.rows) ? bulk.rows : [];
+      const results = Array.isArray(bulk?.result?.results) ? bulk.result.results : [];
+      return results
+        .map((result, index) => ({ result, row: rows[index] }))
+        .filter(item => item.result?.ok && item.row)
+        .map(({ result, row }) => {
+          if (operation === 'clone') {
+            const resultId = String(result.resultSourceId || result.rollbackSourceId || '').trim();
+            return {
+              sourceId: resultId,
+              resultSourceId: resultId,
+              rollbackMode: 'disable-created',
+              source: sourcePayloadFromRecord(row.source || {}, false),
+              view: viewPayloadFromRecord(row.view || { viewId: resultId, sourceId: resultId }, row.source || {}, false)
+            };
+          }
+          return {
+            sourceId: row.id,
+            rollbackMode: 'restore',
+            source: sourcePayloadFromRecord(row.source || {}, row.source?.enabled !== false),
+            view: viewPayloadFromRecord(row.view || { viewId: row.id, sourceId: row.id }, row.source || {}, row.view?.enabled !== false)
+          };
+        });
+    };
     const sourceLocatorKey = source => {
       if (!source || !source.kind) return '';
       if (source.kind === 'file') return `file:${source.file || ''}`;
@@ -4851,21 +4886,30 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       if (bulkValidateButton) bulkValidateButton.disabled = rows.length === 0;
       if (bulkCloneButton) bulkCloneButton.disabled = selectedCount === 0;
       if (bulkDisableButton) bulkDisableButton.disabled = selectedCount === 0;
+      const failedRetryCount = Array.isArray(lastChannelBulkResult?.failedRows) ? lastChannelBulkResult.failedRows.length : 0;
+      const rollbackCount = channelBulkRollbackItems(lastChannelBulkResult).length;
+      if (bulkRetryFailedButton) bulkRetryFailedButton.disabled = failedRetryCount === 0;
+      if (bulkRollbackButton) bulkRollbackButton.disabled = rollbackCount === 0 || lastChannelBulkResult?.dryRun === true;
       if (bulkSelectAll) {
         bulkSelectAll.checked = rows.length > 0 && selectedCount === rows.length;
         bulkSelectAll.indeterminate = selectedCount > 0 && selectedCount < rows.length;
       }
       if (!bulkDiagnostics) return;
+      const resultPanel = lastChannelBulkResult?.result ? `<div class="validation-item ${lastChannelBulkResult.result.failCount ? 'warn' : 'info'}">
+          ${chip(lastChannelBulkResult.dryRun ? 'dry-run' : 'bulk', lastChannelBulkResult.result.failCount ? 'warn' : 'info')}
+          <div><strong>${escapeHtml(lastChannelBulkResult.operation)} 결과: 성공 ${escapeHtml(display(lastChannelBulkResult.result.okCount))}, 실패 ${escapeHtml(display(lastChannelBulkResult.result.failCount))}</strong>
+          <p>${escapeHtml(lastChannelBulkResult.result.retryPolicy || '실패 항목은 수정 후 재시도할 수 있습니다.')} · ${escapeHtml(lastChannelBulkResult.result.rollbackPolicy || '성공 항목은 필요 시 롤백 정책에 따라 되돌립니다.')}</p></div>
+        </div>` : '';
       if (issues.length === 0 && !forceOpen) {
-        bulkDiagnostics.innerHTML = '<div class="empty">source/view 연결, 중복 입력, 비활성 상태가 정상 범위입니다.</div>';
+        bulkDiagnostics.innerHTML = resultPanel || '<div class="empty">source/view 연결, 중복 입력, 비활성 상태가 정상 범위입니다.</div>';
         return;
       }
-      bulkDiagnostics.innerHTML = issues.length === 0
+      bulkDiagnostics.innerHTML = resultPanel + (issues.length === 0
         ? '<div class="empty">검증 결과: 대량 작업 전 차단할 문제가 없습니다.</div>'
         : issues.map(issue => `<div class="validation-item ${escapeHtml(issue.level)}">
             ${chip(issue.level === 'bad' ? '오류' : '확인', issue.level)}
             <div><strong>${escapeHtml(issue.title)}</strong><p>${escapeHtml(issue.detail)}</p></div>
-          </div>`).join('');
+          </div>`).join(''));
     }
     function syncBulkSelectionFromDom() {
       selectedChannelIds.clear();
@@ -5221,6 +5265,38 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         setStatus(`채널 상태 변경 실패: ${error.message}`, true);
       }
     }
+    async function runChannelBulkOperation(operation, rows, { dryRun = false, rollback = false } = {}) {
+      if (rows.length === 0) {
+        setStatus('대량 작업을 수행할 채널을 선택하세요.', true);
+        return;
+      }
+      const items = rollback ? rows.map(row => row.result || row) : channelBulkItems(rows);
+      const result = await requestJson('/ops/api/channels/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ operation, dryRun, items })
+      });
+      const failedSourceIds = new Set((result.results || []).filter(item => !item.ok && item.retryable !== false).map(item => String(item.sourceId || '')));
+      const failedRows = rows.filter(row => failedSourceIds.has(String(row.id || row.sourceId || '')));
+      lastChannelBulkResult = { operation, rows, result, dryRun, failedRows };
+      if (!dryRun) {
+        selectedChannelIds.clear();
+        await loadAll();
+      } else {
+        renderChannelBulkDiagnostics(true);
+      }
+      await recordOpsAudit({
+        area: 'channels',
+        action: dryRun ? 'bulk-dry-run' : (operation === 'rollback' ? 'bulk-rollback' : `bulk-${operation}`),
+        target: (result.results || []).map(item => `channel:${item.resultSourceId || item.sourceId}`).join(', '),
+        before: rows.map(row => ({ source: row.source || null, view: row.view || null })),
+        after: result
+      });
+      renderOpsAuditTrail('channel-audit-list', 'channels');
+      const failed = Number(result.failCount || 0);
+      setStatus(`${operation} ${dryRun ? 'dry-run ' : ''}완료: 성공 ${result.okCount ?? 0}, 실패 ${failed}`, failed > 0);
+      return result;
+    }
     async function bulkDisableSelectedChannels() {
       const rows = selectedChannelRows();
       if (rows.length === 0) {
@@ -5228,30 +5304,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         return;
       }
       try {
-        const result = await requestJson('/ops/api/channels/bulk', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            operation: 'disable',
-            dryRun: false,
-            items: rows.map(row => ({
-              sourceId: row.id,
-              source: sourcePayloadFromRecord(row.source || {}, row.source?.enabled !== false),
-              view: viewPayloadFromRecord(row.view || { viewId: row.id, sourceId: row.id }, row.source || {}, row.view?.enabled !== false)
-            }))
-          })
-        });
-        selectedChannelIds.clear();
-        await loadAll();
-        await recordOpsAudit({
-          area: 'channels',
-          action: 'bulk-disable',
-          target: rows.map(row => `channel:${row.id}`).join(', '),
-          before: rows.map(row => ({ source: row.source || null, view: row.view || null })),
-          after: result
-        });
-        renderOpsAuditTrail('channel-audit-list', 'channels');
-        setStatus(`선택 채널 비활성화 완료: 성공 ${result.okCount ?? 0}, 실패 ${result.failCount ?? 0}`, Number(result.failCount || 0) > 0);
+        await runChannelBulkOperation('disable', rows, { dryRun: bulkDryRun?.checked === true });
       } catch (error) {
         setStatus(`선택 비활성화 실패: ${error.message}`, true);
       }
@@ -5263,33 +5316,42 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         return;
       }
       try {
-        const result = await requestJson('/ops/api/channels/bulk', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            operation: 'clone',
-            dryRun: false,
-            items: rows.map(row => ({
-              sourceId: row.id,
-              source: sourcePayloadFromRecord(row.source || {}, row.source?.enabled !== false),
-              view: viewPayloadFromRecord(row.view || { viewId: row.id, sourceId: row.id }, row.source || {}, row.view?.enabled !== false)
-            }))
-          })
-        });
-        selectedChannelIds.clear();
-        await loadAll();
-        await recordOpsAudit({
-          area: 'channels',
-          action: 'bulk-clone',
-          target: (result.results || []).map(item => `channel:${item.resultSourceId || item.sourceId}`).join(', '),
-          before: rows.map(row => ({ source: row.source || null, view: row.view || null })),
-          after: result
-        });
-        renderOpsAuditTrail('channel-audit-list', 'channels');
+        const result = await runChannelBulkOperation('clone', rows, { dryRun: bulkDryRun?.checked === true });
         const created = (result.results || []).filter(item => item.ok).map(item => item.resultSourceId).filter(Boolean);
-        setStatus(`복제 채널 생성 완료: ${created.join(', ') || '없음'} · 실패 ${result.failCount ?? 0}`, Number(result.failCount || 0) > 0);
+        setStatus(`${bulkDryRun?.checked ? '복제 dry-run' : '복제 채널 생성'} 완료: ${created.join(', ') || '없음'} · 실패 ${result.failCount ?? 0}`, Number(result.failCount || 0) > 0);
       } catch (error) {
         setStatus(`선택 복제 실패: ${error.message}`, true);
+      }
+    }
+    async function retryFailedChannelBulk() {
+      const rows = Array.isArray(lastChannelBulkResult?.failedRows) ? lastChannelBulkResult.failedRows : [];
+      if (!lastChannelBulkResult || rows.length === 0) {
+        setStatus('재시도할 실패 항목이 없습니다.', true);
+        return;
+      }
+      try {
+        await runChannelBulkOperation(lastChannelBulkResult.operation, rows, { dryRun: false });
+      } catch (error) {
+        setStatus(`실패 항목 재시도 실패: ${error.message}`, true);
+      }
+    }
+    async function rollbackSuccessfulChannelBulk() {
+      const items = channelBulkRollbackItems(lastChannelBulkResult);
+      if (!lastChannelBulkResult || items.length === 0) {
+        setStatus('롤백할 성공 항목이 없습니다.', true);
+        return;
+      }
+      try {
+        const rows = items.map(item => ({
+          id: item.sourceId,
+          sourceId: item.sourceId,
+          source: item.source,
+          view: item.view,
+          result: item
+        }));
+        await runChannelBulkOperation('rollback', rows, { dryRun: false, rollback: true });
+      } catch (error) {
+        setStatus(`성공 항목 롤백 실패: ${error.message}`, true);
       }
     }
     async function deleteChannel(id) {
@@ -5335,6 +5397,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     bulkValidateButton?.addEventListener('click', () => renderChannelBulkDiagnostics(true));
     bulkCloneButton?.addEventListener('click', () => bulkCloneSelectedChannels());
     bulkDisableButton?.addEventListener('click', () => bulkDisableSelectedChannels());
+    bulkRetryFailedButton?.addEventListener('click', () => retryFailedChannelBulk());
+    bulkRollbackButton?.addEventListener('click', () => rollbackSuccessfulChannelBulk());
     document.querySelector('#channel-audit-refresh')?.addEventListener('click', () => renderOpsAuditTrail('channel-audit-list', 'channels'));
     renderOpsAuditTrail('channel-audit-list', 'channels');
     loadAll().catch(error => setStatus(error.message, true));
