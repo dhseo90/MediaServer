@@ -1,6 +1,7 @@
 # Release Policy
 
-이 문서는 public repo 전환 후 release에 무엇을 올릴지 고정합니다.
+이 문서는 release에 무엇을 올릴지 고정합니다.
+버전 의미는 [versioning-policy.md](./versioning-policy.md)에서 함께 관리합니다.
 
 ## 기본 release 범위
 
@@ -33,9 +34,10 @@ runtime을 의도적으로 포함하면 upstream license text, attribution, sour
 
 ## Tag 전략
 
-- 첫 public source-only tag 후보는 `v0.1.0`입니다.
+- 첫 public source-only tag 후보는 `v1.0.0`입니다.
 - public-readiness, bundle policy, Actions status check가 모두 통과한 커밋에만 tag를 붙입니다.
-- route boundary, runtime packaging, 운영 UI 흐름이 안정화되는 동안은 `v0.x`를 유지합니다.
+- `v1.0.0`은 source-only public baseline이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
+- route/API/config/schema migration이 필요한 변경은 `v2.0.0` 후보로 분리합니다.
 - tag release에는 generated sample pack, YOLO model, FFmpeg/GStreamer runtime bundle을 붙이지 않습니다.
 
 ## Actions update 정책
@@ -48,11 +50,11 @@ major update를 적용하려면 workflow 권한, upstream changelog, pin 전략�
 ## Release Note Template
 
 ```markdown
-# Media Server <version>
+# Media Server v1.0.0
 
 ## Scope
 
-- Source/doc release
+- Source/doc release baseline
 - Binary/runtime/model bundle: not included
 
 ## Verification

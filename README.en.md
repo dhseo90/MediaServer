@@ -95,6 +95,7 @@ See [docs/en/sample-fixture-provenance.md](docs/en/sample-fixture-provenance.md)
 | Verification commands and release checks | [docs/en/stream-verification.md](docs/en/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/en/distribution-policy.md](docs/en/distribution-policy.md) |
 | Release scope and tag strategy | [docs/en/release-policy.md](docs/en/release-policy.md) |
+| Version meaning and tag rules | [docs/en/versioning-policy.md](docs/en/versioning-policy.md) |
 | Final private-to-public checklist | [docs/en/public-repo-final-review.md](docs/en/public-repo-final-review.md) |
 | Backup and restore operations | [docs/en/ops-backup-recovery.md](docs/en/ops-backup-recovery.md) |
 | Starting thresholds for field scenarios | [docs/en/analysis-threshold-baselines.md](docs/en/analysis-threshold-baselines.md) |

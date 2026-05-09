@@ -7,10 +7,10 @@ GitHub Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 �
 
 2026-05-10 기준 확인 상태:
 
-- 최신 public readiness commit: `204a5b1 Document public release follow-up setup`
-- Actions 성공 확인:
-  - `Preflight #6`
-  - `Licensing and Artifact Guardrails #3`
+- 최신 public readiness commit: public 전환 직전 `main` HEAD
+- Actions 성공 확인 대상:
+  - 최신 `Preflight`
+  - 최신 `Licensing and Artifact Guardrails`
 - Required status checks:
   - `static-gates`
   - `guardrails`
@@ -21,6 +21,7 @@ GitHub Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 �
   - Description: `RTSP/WebRTC media server with optional YOLO-based video analytics`
   - Topics: `rtsp`, `gstreamer`, `cpp`, `webrtc`, `media-server`, `yolo`, `video-analytics`
 - Visibility: private 유지. public 전환은 owner가 수동으로 판단합니다.
+- 첫 source-only tag 후보: `v1.0.0`
 
 `Restrict deletions`와 `Block force pushes`는 GitHub Actions check가 아니라 ruleset branch rule입니다.
 Required status check에는 추가하지 않고, checkbox enabled 상태만 확인합니다.
@@ -121,8 +122,10 @@ Public 전환 전 UI 리허설:
 - [ ] `git status --short`에 의도하지 않은 파일이 없습니다.
 - [ ] secret, token, password, auth store, 개인 local path가 문서/코드/history에 없습니다.
 - [ ] `verify-public-repo-readiness`가 통과했습니다.
+- [ ] 최신 `main` HEAD의 `Preflight`, `Licensing and Artifact Guardrails`가 통과했습니다.
 - [ ] README 첫 화면이 실행 환경, 접속 주소, 문서 로드맵을 명확히 보여줍니다.
 - [ ] README 영문판과 README-linked 영문 문서가 준비되어 있습니다.
+- [ ] `VERSION`, `CMakeLists.txt`, [versioning-policy.md](./versioning-policy.md)의 기준 버전이 맞습니다.
 - [ ] LICENSE는 Apache-2.0이고 NOTICE/THIRD_PARTY_NOTICES가 최신입니다.
 - [ ] `DEPENDENCY_SNAPSHOT.md`가 현재 release 판단 기준과 맞습니다.
 - [ ] `verify-bundle-policy` 결과에 기본 정책 위반 항목이 없습니다.

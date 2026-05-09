@@ -1,6 +1,7 @@
 # Release Policy
 
 Detailed Korean policy: [../release-policy.md](../release-policy.md)
+Version meaning is tracked in [versioning-policy.md](./versioning-policy.md).
 
 ## Default Release Scope
 
@@ -13,8 +14,9 @@ Detailed Korean policy: [../release-policy.md](../release-policy.md)
 ## Tag Strategy
 
 - Use semantic version tags only after public readiness checks pass.
-- Recommended first public tag: `v0.1.0`.
-- Keep `v0.x` while route boundaries, runtime packaging, and operator workflows are still stabilizing.
+- Recommended first public tag: `v1.0.0`.
+- `v1.0.0` is a source-only public baseline. It does not mean binary/runtime/model bundle operations are complete.
+- Treat route/API/config/schema migrations as `v2.0.0` candidates.
 - Source-only releases must not attach generated sample packs, model files, or runtime bundles.
 
 ## Required Checks
@@ -34,11 +36,11 @@ The repository requires `Preflight / static-gates` and `Licensing and Artifact G
 ## Release Note Template
 
 ```markdown
-# Media Server <version>
+# Media Server v1.0.0
 
 ## Scope
 
-- Source and documentation release
+- Source and documentation release baseline
 - Binary/runtime/model bundle: not included
 
 ## Verification

@@ -22,6 +22,7 @@
 
 | 상태 | 영역 | 요약 |
 | --- | --- | --- |
+| `완료` | v1.0.0 source baseline | source-only public baseline 기준 정리. binary/runtime/model bundle과 public 전환 전후 수동 작업은 제외 |
 | `완료` | Streaming/VA core | RTSP/WebRTC relay, file/RTSP/HTTP-HLS/WHEP/WHIP source, YOLO/ONNX overlay, Rule/Profile UI, `vaRule=<id>` 호출 |
 | `완료` | Scenario engine | TrackState, SceneContext, EventManager, Intrusion/ReEntry/WrongDirection/Loitering/ZoneOccupancy 계열 engine/replay/UI |
 | `완료` | Event/metadata | VA replay, metrics, EventRecord active/archive search, rotation/retention/recovery 1차, snapshot/pre-post frame bundle, WebRTC VA metadata |
@@ -37,6 +38,9 @@
 
 ### 현재 문서 기준 readiness boundary
 
+- 현재 버전 기준은 `v1.0.0` source-only public baseline입니다.
+  이 버전은 소스/문서/검증 체계의 공개 기준이며,
+  binary bundle, container image, model bundle, 장기 운영 SLA 완료를 뜻하지 않습니다.
 - `완료` 항목은 각 항목의 “완료 범위”와 검증 명령에 한정된 1차 구현 상태입니다.
   운영 배포 승격은 장기 soak, TURN/외부 네트워크, credential,
   개인정보/보관 정책 검토를 별도 gate로 통과해야 합니다.
