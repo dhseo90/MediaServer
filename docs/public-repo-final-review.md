@@ -7,10 +7,10 @@ GitHub Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 �
 
 2026-05-10 기준 확인 상태:
 
-- 최신 public readiness commit: `944c218 Add public repo readiness checks`
+- 최신 public readiness commit: `204a5b1 Document public release follow-up setup`
 - Actions 성공 확인:
-  - `Preflight #5`
-  - `Licensing and Artifact Guardrails #2`
+  - `Preflight #6`
+  - `Licensing and Artifact Guardrails #3`
 - Required status checks:
   - `static-gates`
   - `guardrails`
@@ -24,6 +24,18 @@ GitHub Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 �
 
 `Restrict deletions`와 `Block force pushes`는 GitHub Actions check가 아니라 ruleset branch rule입니다.
 Required status check에는 추가하지 않고, checkbox enabled 상태만 확인합니다.
+
+## Dependabot Actions 실패 판단
+
+2026-05-10 Actions 화면에서 아래 실패가 확인됐습니다.
+
+- `Preflight #8`: `ci: bump actions/checkout from 4 to 6`
+- `Preflight #7`: `ci: bump actions/upload-artifact from 4 to 7`
+
+두 실패는 `main` 최신 커밋 실패가 아니라 Dependabot branch에서 발생한 정책 차단입니다.
+현재 `verify-actions-security`는 공식 `actions/*@v4`, SHA pin, local action만 허용합니다.
+따라서 GitHub Actions major update는 자동 병합 대상이 아니며, 보안 정책을 검토한 뒤 수동으로 올립니다.
+반복 실패 알림을 줄이기 위해 `.github/dependabot.yml`은 `actions/checkout`, `actions/upload-artifact`의 semver major update를 무시합니다.
 
 ## 자동 확인
 
@@ -86,8 +98,16 @@ Public 전환 후 확인:
 - Required status checks에 `static-gates`, `guardrails`가 유지되는지 확인합니다.
 - test branch에서 force push/delete가 차단되는지 확인합니다.
 - README badge가 public 화면에서 정상 표시되는지 확인합니다.
+- `README.md`, `README.en.md`, `docs/en/README.md` 링크가 public 화면에서 정상 이동하는지 확인합니다.
+- 대표 UI 이미지가 README에서 깨지지 않는지 확인합니다.
 - `Actions` 탭에서 public 전환 이후 첫 `Preflight`, `Licensing and Artifact Guardrails` run이 성공하는지 확인합니다.
 - 이 확인은 GitHub UI/권한 동작이므로 자동 수정하지 않습니다.
+
+Public 전환 전 UI 리허설:
+
+- Repository 첫 화면에서 badge, 한글/영문 README 링크, 문서 지도, 대표 이미지가 첫 사용자에게 이해 가능한 순서로 보이는지 확인합니다.
+- Repository description과 topics가 실제 지원 범위와 맞는지 확인합니다.
+- `Settings`나 visibility 전환은 owner가 직접 판단합니다.
 
 ## History/Asset 판단
 
@@ -102,6 +122,7 @@ Public 전환 후 확인:
 - [ ] secret, token, password, auth store, 개인 local path가 문서/코드/history에 없습니다.
 - [ ] `verify-public-repo-readiness`가 통과했습니다.
 - [ ] README 첫 화면이 실행 환경, 접속 주소, 문서 로드맵을 명확히 보여줍니다.
+- [ ] README 영문판과 README-linked 영문 문서가 준비되어 있습니다.
 - [ ] LICENSE는 Apache-2.0이고 NOTICE/THIRD_PARTY_NOTICES가 최신입니다.
 - [ ] `DEPENDENCY_SNAPSHOT.md`가 현재 release 판단 기준과 맞습니다.
 - [ ] `verify-bundle-policy` 결과에 기본 정책 위반 항목이 없습니다.

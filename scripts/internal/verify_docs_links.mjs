@@ -19,7 +19,7 @@ Usage:
   ./server.sh verify-docs-links
 
 Checks:
-  - README.md와 docs/**/*.md의 로컬 Markdown 링크가 존재하는 파일을 가리킴
+  - repository root의 *.md와 docs/**/*.md의 로컬 Markdown 링크가 존재하는 파일을 가리킴
   - 로컬 이미지 참조가 존재하고 확장자가 이미지 형식임
   - 로컬 Markdown anchor가 실제 heading anchor와 일치함
   - 외부 URL, mailto 링크는 파일 존재 검사에서 제외
@@ -87,7 +87,10 @@ if (failures.length > 0) process.exit(1);
 
 function collectMarkdownFiles() {
   const result = [];
-  const candidates = [path.join(rootDir, "README.md"), path.join(rootDir, "docs")];
+  const rootMarkdown = fs.readdirSync(rootDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
+    .map((entry) => path.join(rootDir, entry.name));
+  const candidates = [...rootMarkdown, path.join(rootDir, "docs")];
   for (const candidate of candidates) {
     if (!fs.existsSync(candidate)) continue;
     const stat = fs.statSync(candidate);

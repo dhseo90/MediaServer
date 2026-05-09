@@ -5,6 +5,8 @@
 
 RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 분석 overlay와 Rule/Scenario 이벤트를 붙이는 C++17 미디어 서버입니다.
 
+English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
+
 ## 한눈에 보기
 
 - **스트리밍**: file, RTSP pull, WHEP pull, WHIP publish, HTTP/HLS source를 RTSP와 WebRTC/WHEP로 내보냅니다.
@@ -90,12 +92,14 @@ http://127.0.0.1:8081/
 추적되는 `video/*.mp4`와 allowlist된 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4`는
 검증 재현을 위해 생성한 sample fixture입니다. 운영/고객 영상, evidence media, YOLO model binary,
 FFmpeg/GStreamer runtime binary는 public repo 또는 기본 release asset에 포함하지 않습니다.
+fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md)에 기록합니다.
 
 ## 문서 로드맵
 
 | 먼저 보고 싶은 것 | 문서 |
 | --- | --- |
 | 실행 환경, 설치, 빌드, foreground/background 실행 | [docs/development-guide.md](docs/development-guide.md) |
+| 영어 문서 진입점 | [docs/en/README.md](docs/en/README.md) |
 | Auth/Ops/Client 화면 구조와 사용 흐름 | [docs/ui-guide.md](docs/ui-guide.md) |
 | RTSP/WebRTC pipeline, source/session, VA layer 배치 | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenario, EventRecord, evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
@@ -105,6 +109,7 @@ FFmpeg/GStreamer runtime binary는 public repo 또는 기본 release asset에 �
 | public 전환 직전 최종 점검 | [docs/public-repo-final-review.md](docs/public-repo-final-review.md) |
 | 운영 백업/복구 대상과 복구 후 검증 | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
 | Loitering/ZoneOccupancy 현장 시작 threshold | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
+| sample 영상/fixture 출처와 공개 기준 | [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) |
 | 남은 작업과 후속 로드맵 | [docs/development-backlog.md](docs/development-backlog.md) |
 | YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
 
