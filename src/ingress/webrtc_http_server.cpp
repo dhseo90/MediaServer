@@ -3281,6 +3281,15 @@ void AppendClientViewIdentityJson(std::ostringstream& out,
         << "\"sourceId\":\"" << JsonEscape(access.view.source_id) << "\","
         << "\"sourceDisplayName\":\"" << JsonEscape(access.source.display_name) << "\","
         << "\"sourceKind\":\"" << JsonEscape(access.source.kind) << "\","
+        << "\"sourceTags\":[";
+    for (std::size_t i = 0; i < access.source.tags.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(access.source.tags[i]) << "\"";
+    }
+    out << "],"
+        << "\"ownerGroup\":\"" << JsonEscape(access.source.owner_group) << "\","
         << "\"showDashboard\":" << (access.view.show_dashboard ? "true" : "false") << ","
         << "\"showEvents\":" << (access.view.show_events ? "true" : "false") << ","
         << "\"showMetadataSummary\":" << (access.view.show_metadata_summary ? "true" : "false")

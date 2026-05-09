@@ -20,6 +20,10 @@ check("client dashboard script renders field summary and comparison", () => {
     "clientDashboardCompareSort",
     "clientDashboardComparePriority",
     "clientDashboardComparePreset",
+    "clientDashboardPlacePreset",
+    "clientDashboardEventPreset",
+    "sourceTags",
+    "ownerGroup",
     'data-testid="client-dashboard-field-summary"',
     'data-testid="client-dashboard-compare"',
     'id="clientDashboardCompareFilter"',
@@ -28,7 +32,10 @@ check("client dashboard script renders field summary and comparison", () => {
     "채널 비교",
     "경고 우선",
     "이벤트 많은 순",
-    "기본 현장 모니터링",
+    "기본 현장",
+    "모니터링",
+    "라인 통과",
+    "출입구",
     "정상 관제 중",
   ];
   for (const snippet of required) {
@@ -65,6 +72,19 @@ check("client dashboard comparison is responsive", () => {
   ];
   for (const snippet of required) {
     assert(css.includes(snippet), `client dashboard CSS is missing snippet: ${snippet}`);
+  }
+});
+
+check("client dashboard API exposes sanitized field preset inputs", () => {
+  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const required = [
+    "\\\"sourceTags\\\"",
+    "\\\"ownerGroup\\\"",
+    "AppendClientViewIdentityJson",
+    "ClientViewDashboardJson",
+  ];
+  for (const snippet of required) {
+    assert(server.includes(snippet), `client dashboard API is missing snippet: ${snippet}`);
   }
 });
 
