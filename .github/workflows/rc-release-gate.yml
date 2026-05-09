@@ -1,0 +1,80 @@
+name: RC Release Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_predev_120:
+        description: "Run ./server.sh verify-predev --soak-minutes 120"
+        required: true
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+      run_va_runtime_120:
+        description: "Run VA runtime console 120m longrun"
+        required: true
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
+jobs:
+  rc-release-gate:
+    runs-on: macos-latest
+    timeout-minutes: 300
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare artifact paths
+        shell: bash
+        run: |
+          mkdir -p artifacts/rc-gate
+          cat > artifacts/rc-gate/predev-summary.json <<'JSON'
+          {"status":"missing","failCount":0,"passCount":0,"note":"run_predev_120=false"}
+          JSON
+          cat > artifacts/rc-gate/runtime-summary.json <<'JSON'
+          {"status":"missing","failCount":0,"passCount":0,"note":"run_va_runtime_120=false"}
+          JSON
+          printf '# predev\n\nNot run in this workflow invocation.\n' > artifacts/rc-gate/predev-report.md
+          printf '# va runtime\n\nNot run in this workflow invocation.\n' > artifacts/rc-gate/runtime-report.md
+
+      - name: Run predev 120m soak
+        if: ${{ inputs.run_predev_120 == 'true' }}
+        shell: bash
+        run: |
+          ./server.sh verify-predev \
+            --soak-minutes 120 \
+            --summary-file artifacts/rc-gate/predev-summary.json \
+            --report-file artifacts/rc-gate/predev-report.md
+
+      - name: Run VA runtime 120m longrun
+        if: ${{ inputs.run_va_runtime_120 == 'true' }}
+        shell: bash
+        run: |
+          ./server.sh verify-va-runtime-console-longrun \
+            --duration-minutes 120 \
+            --clients 1 \
+            --include-sidechannel \
+            --include-dashboard \
+            --include-rtsp \
+            --idle-after-cleanup-minutes 30 \
+            --summary-file artifacts/rc-gate/runtime-summary.json \
+            --report-file artifacts/rc-gate/runtime-report.md
+
+      - name: Build RC release checklist
+        shell: bash
+        run: |
+          ./server.sh rc-release-checklist \
+            --predev-summary artifacts/rc-gate/predev-summary.json \
+            --predev-report artifacts/rc-gate/predev-report.md \
+            --runtime-summary artifacts/rc-gate/runtime-summary.json \
+            --runtime-report artifacts/rc-gate/runtime-report.md \
+            --output artifacts/rc-gate/rc-release-checklist.md \
+            --html-output artifacts/rc-gate/rc-release-checklist.html \
+            --artifact-name media-server-rc-gate
+
+      - name: Upload RC gate artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: media-server-rc-gate
+          path: artifacts/rc-gate/
+          if-no-files-found: error
