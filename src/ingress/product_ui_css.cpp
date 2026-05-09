@@ -1189,6 +1189,17 @@ std::string ProductUiCss() {
     .root-cause-action {
       grid-column: 1 / -1;
     }
+    .root-cause-correlation {
+      justify-self: end;
+      max-width: 100%;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      background: var(--color-info-bg);
+      color: var(--color-info);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
     .root-cause-evidence {
       grid-column: 1 / -1;
       color: var(--color-text);
