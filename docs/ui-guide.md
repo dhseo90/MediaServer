@@ -187,7 +187,7 @@ Route 역할:
   클라이언트 미리보기 순서입니다.
 
   - `/ops/home`: 운영 overview
-  - `/ops/dashboard`: `/ops/api/runtime/status` 기반 운영 카드/상태
+  - `/ops/dashboard`: `/ops/api/runtime/status` 기반 운영 카드/상태와 문제 원인 패널. source lifecycle, stale tap, reconnect/cleanup, auth/config를 한 화면에서 확인합니다.
   - `/ops/sources`: 숫자 채널 목록과 상세 패널
   - `/ops/rules`: 채널 분석 설정, 이벤트 템플릿, 분석 프로파일 목록
 

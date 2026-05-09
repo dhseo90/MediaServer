@@ -2083,6 +2083,19 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           <p id="dashCleanupText">불러오는 중</p>
         </section>
       </div>
+      <section class="section-card" data-testid="ops-root-cause-panel">
+        <div class="toolbar">
+          <div>
+            <h3>문제 원인</h3>
+            <p>source lifecycle, stale, reconnect, auth/config 상태를 함께 봅니다.</p>
+          </div>
+        </div>
+        <div id="dashRootCauseBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashRootCauseText">불러오는 중</p>
+        <div id="dashRootCauseList" class="root-cause-list">
+          <div class="empty">런타임 상태를 불러오는 중입니다.</div>
+        </div>
+      </section>
       <section class="section-card">
         <div class="toolbar">
           <div>

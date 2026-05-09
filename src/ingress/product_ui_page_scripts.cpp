@@ -1070,6 +1070,83 @@ void AppendOpsShellScript(std::ostringstream& out,
           debugCounters: runtime?.debugCounters || {}
         };
       };
+      const dashboardRootCauseItems = (runtime, principal) => {
+        const counts = runtimeCounts(runtime);
+        const lifecycle = runtime?.sourceLifecycle || {};
+        const matching = runtime?.analysisMatching || {};
+        const publishSources = Array.isArray(runtime?.webrtcHttp?.publishSources) ? runtime.webrtcHttp.publishSources : [];
+        const activeTaps = Array.isArray(matching.activeTaps) ? matching.activeTaps : [];
+        const staleTaps = activeTaps.filter(tap => numberValue(tap.lastUsedAgeMs) > 5000);
+        const stalledResources = numberValue(lifecycle.activeSessions) === 0 &&
+          (numberValue(lifecycle.resourceActiveStreams) > 0 || numberValue(lifecycle.registryActiveStreams) > 0 || numberValue(lifecycle.activeAnalysisTaps) > 0);
+        const inactivePublishSources = publishSources.filter(source => source && (!source.active || !source.hasVideo));
+        const cleanupRequests = numberValue(counts.debugCounters.cleanupRequests);
+        const cleanupCompleted = numberValue(counts.debugCounters.cleanupCompleted);
+        const cleanupBacklog = cleanupRequests > cleanupCompleted;
+        const scopes = Array.isArray(principal?.scopes) ? principal.scopes : [];
+        const hasOpsRead = principal?.role === 'admin' || scopes.includes('*') || scopes.includes('ops:read');
+        const sourceSummary = numberValue(lifecycle.idle ? 1 : 0) === 1
+          ? '모든 source lifecycle 리소스가 idle입니다.'
+          : `세션 ${numberValue(lifecycle.activeSessions)} · stream ${numberValue(lifecycle.resourceActiveStreams)}/${numberValue(lifecycle.registryActiveStreams)} · tap ${numberValue(lifecycle.activeAnalysisTaps)}`;
+        return [
+          {
+            level: stalledResources ? 'warn' : 'info',
+            title: stalledResources ? 'Source lifecycle 정리 확인 필요' : 'Source lifecycle',
+            detail: sourceSummary,
+            action: stalledResources ? '종료된 세션 뒤에 resource stream/tap이 남았는지 cleanup 로그를 확인합니다.' : 'idle 또는 활성 수치가 일치합니다.'
+          },
+          {
+            level: staleTaps.length > 0 ? 'warn' : 'info',
+            title: staleTaps.length > 0 ? 'Stale 분석 탭 감지' : 'Stale detection',
+            detail: staleTaps.length > 0
+              ? staleTaps.slice(0, 3).map(tap => `${tap.tapId || 'tap'} ${Math.round(numberValue(tap.lastUsedAgeMs))}ms`).join(' · ')
+              : '5초 초과 미사용 분석 탭이 없습니다.',
+            action: staleTaps.length > 0 ? 'viewer 종료, route 이동, 탭 재사용 해제 흐름을 점검합니다.' : '분석 탭 age가 정상 범위입니다.'
+          },
+          {
+            level: inactivePublishSources.length > 0 || cleanupBacklog ? 'warn' : 'info',
+            title: inactivePublishSources.length > 0 || cleanupBacklog ? 'Reconnect / cleanup 확인 필요' : 'Reconnect / cleanup',
+            detail: inactivePublishSources.length > 0
+              ? inactivePublishSources.slice(0, 3).map(source => `${source.sourceId || 'source'} video=${source.hasVideo ? 'on' : 'off'}`).join(' · ')
+              : `publish ${counts.publish} · egress ${counts.egress} · cleanup ${cleanupCompleted}/${cleanupRequests}`,
+            action: inactivePublishSources.length > 0
+              ? 'WHIP publisher 재접속과 video track 생성 여부를 확인합니다.'
+              : (cleanupBacklog ? 'cleanup completed가 requests를 따라가지 못하는지 로그를 확인합니다.' : 'reconnect/cleanup 지표가 정상 범위입니다.')
+          },
+          {
+            level: principal && hasOpsRead ? 'info' : 'warn',
+            title: principal && hasOpsRead ? 'Auth / config' : 'Auth / config 확인 필요',
+            detail: principal
+              ? `role ${principal.role || '미제공'} · auth ${principal.authMode || '미제공'} · ops:read ${hasOpsRead ? '사용' : '없음'}`
+              : 'whoami 응답을 확인하지 못했습니다.',
+            action: principal && hasOpsRead ? '운영 대시보드 접근 권한이 정상입니다.' : '세션, role/scope, auth mode 설정을 확인합니다.'
+          }
+        ];
+      };
+      const renderDashboardRootCause = (runtime, principal) => {
+        const items = dashboardRootCauseItems(runtime, principal);
+        const warnCount = items.filter(item => item.level === 'warn' || item.level === 'bad').length;
+        renderBadges('dashRootCauseBadges', [
+          { text: warnCount > 0 ? `${warnCount}개 확인 필요` : '즉시 조치 없음', tone: warnCount > 0 ? 'warn' : '' },
+          { text: 'source lifecycle' },
+          { text: 'stale' },
+          { text: 'reconnect' },
+          { text: 'auth/config' }
+        ]);
+        setText('dashRootCauseText', warnCount > 0
+          ? '아래 항목을 기준으로 원인을 좁혀 확인합니다.'
+          : '운영자가 바로 확인할 source lifecycle, stale, reconnect, auth/config 문제가 없습니다.');
+        const list = document.getElementById('dashRootCauseList');
+        if (!list) return;
+        list.innerHTML = items.map(item => `<article class="root-cause-item ${escapeHtml(item.level)}">
+          <div>
+            <strong>${escapeHtml(item.title)}</strong>
+            <p>${escapeHtml(item.detail)}</p>
+          </div>
+          <span class="chip${item.level === 'warn' ? ' warn' : (item.level === 'bad' ? ' bad' : '')}">${item.level === 'info' ? '정상' : '확인'}</span>
+          <p class="root-cause-action">${escapeHtml(item.action)}</p>
+        </article>`).join('');
+      };
       async function refreshLive() {
         const [sources, views, catalog, runtime, events, users] = await Promise.all([
           requestJson('/ops/api/sources'),
@@ -1112,7 +1189,10 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderRaw('opsHomeRaw', 'opsHomePretty', { sources, views, catalog, runtime, events, users });
       }
       async function refreshDashboard() {
-        const runtime = await requestJson('/ops/api/runtime/status');
+        const [runtime, principal] = await Promise.all([
+          requestJson('/ops/api/runtime/status'),
+          applyPrincipalVisibility().catch(() => null)
+        ]);
         const counts = runtimeCounts(runtime);
         const metadata = runtime?.webrtcHttp?.metadataDataChannel || {};
         const sideChannel = runtime?.webrtcHttp?.metadataSideChannel || {};
@@ -1153,6 +1233,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('dashWsClientCount', sideChannel.activeWebSocketClients ?? 0);
         setText('dashDetailText',
           `프로파일 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0} · 발행 ${counts.publish} · 송출 ${counts.egress}`);
+        renderDashboardRootCause(runtime, principal);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
       }
       const OPS_EVENT_RECORD_LIMIT = 25;

@@ -1082,6 +1082,42 @@ std::string ProductUiCss() {
       flex-wrap: wrap;
       margin-top: var(--space-2);
     }
+    .root-cause-list {
+      display: grid;
+      gap: var(--space-3);
+      margin-top: var(--space-3);
+    }
+    .root-cause-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-2) var(--space-3);
+      align-items: start;
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-raised);
+    }
+    .root-cause-item.warn {
+      border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));
+    }
+    .root-cause-item.bad {
+      border-color: color-mix(in srgb, var(--color-danger) 56%, var(--color-border));
+    }
+    .root-cause-item strong {
+      display: block;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .root-cause-item p {
+      margin: 2px 0 0;
+      color: var(--color-text-muted);
+      font-size: 13px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+    .root-cause-action {
+      grid-column: 1 / -1;
+    }
     .embedded-frame {
       width: 100%;
       min-height: min(1120px, calc(100vh - 220px));
@@ -1764,6 +1800,7 @@ std::string ProductUiCss() {
       .audit-diff-grid,
       .validation-item,
       .event-evidence-actions,
+      .root-cause-item,
       .user-row-actions {
         display: grid;
         grid-template-columns: 1fr;
