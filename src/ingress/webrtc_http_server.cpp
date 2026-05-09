@@ -6900,11 +6900,15 @@ bool AppendOpsAuditRecord(const app::AppConfig& config,
 bool OpsAuditLineMatches(const std::string& line,
                          const std::string& area,
                          const std::string& actor,
+                         const std::string& action,
                          const std::string& query_text) {
     if (!area.empty() && ParseStringField(line, "area").value_or("") != area) {
         return false;
     }
     if (!actor.empty() && ParseStringField(line, "actor").value_or("").find(actor) == std::string::npos) {
+        return false;
+    }
+    if (!action.empty() && ParseStringField(line, "action").value_or("") != action) {
         return false;
     }
     if (!query_text.empty() && line.find(query_text) == std::string::npos) {
@@ -6913,12 +6917,23 @@ bool OpsAuditLineMatches(const std::string& line,
     return true;
 }
 
-std::string OpsAuditEntriesJson(const app::AppConfig& config,
-                                const std::unordered_map<std::string, std::string>& query) {
+struct OpsAuditQueryResult {
+    std::filesystem::path storage_path;
+    std::vector<std::string> entries;
+    int offset{0};
+    int limit{80};
+    int total{0};
+    bool has_more{false};
+};
+
+OpsAuditQueryResult QueryOpsAuditEntries(const app::AppConfig& config,
+                                         const std::unordered_map<std::string, std::string>& query) {
     const std::string area = query.count("area") != 0 ? Trim(query.at("area")) : std::string();
     const std::string actor = query.count("actor") != 0 ? Trim(query.at("actor")) : std::string();
+    const std::string action = query.count("action") != 0 ? Trim(query.at("action")) : std::string();
     const std::string query_text = query.count("q") != 0 ? Trim(query.at("q")) : std::string();
     const int limit = ParseClampedIntQuery(query, "limit", 80, 1, 200);
+    const int offset = ParseClampedIntQuery(query, "offset", 0, 0, 1000000);
     const std::filesystem::path path = OpsAuditStoragePath(config);
     std::vector<std::string> lines;
     {
@@ -6927,22 +6942,79 @@ std::string OpsAuditEntriesJson(const app::AppConfig& config,
         std::string line;
         while (std::getline(in, line)) {
             line = Trim(line);
-            if (!line.empty() && line.front() == '{' && OpsAuditLineMatches(line, area, actor, query_text)) {
+            if (!line.empty() && line.front() == '{' && OpsAuditLineMatches(line, area, actor, action, query_text)) {
                 lines.push_back(line);
             }
         }
     }
+    OpsAuditQueryResult result;
+    result.storage_path = path;
+    result.offset = offset;
+    result.limit = limit;
+    result.total = static_cast<int>(lines.size());
+    int skipped = 0;
+    for (auto it = lines.rbegin(); it != lines.rend() && static_cast<int>(result.entries.size()) < limit; ++it) {
+        if (skipped < offset) {
+            ++skipped;
+            continue;
+        }
+        result.entries.push_back(*it);
+    }
+    result.has_more = offset + static_cast<int>(result.entries.size()) < result.total;
+    return result;
+}
+
+std::string OpsAuditEntriesJson(const app::AppConfig& config,
+                                const std::unordered_map<std::string, std::string>& query) {
+    const OpsAuditQueryResult result = QueryOpsAuditEntries(config, query);
     std::ostringstream out;
     out << "{\"status\":\"ops-audit\",\"persistent\":true,\"storagePath\":\""
-        << JsonEscape(path.string()) << "\",\"entries\":[";
-    int emitted = 0;
-    for (auto it = lines.rbegin(); it != lines.rend() && emitted < limit; ++it, ++emitted) {
-        if (emitted != 0) {
+        << JsonEscape(result.storage_path.string()) << "\",\"offset\":" << result.offset
+        << ",\"limit\":" << result.limit << ",\"total\":" << result.total
+        << ",\"hasMore\":" << (result.has_more ? "true" : "false")
+        << ",\"nextOffset\":" << (result.has_more ? result.offset + static_cast<int>(result.entries.size()) : result.offset)
+        << ",\"entries\":[";
+    for (std::size_t i = 0; i < result.entries.size(); ++i) {
+        if (i != 0) {
             out << ",";
         }
-        out << *it;
+        out << result.entries[i];
     }
     out << "]}";
+    return out.str();
+}
+
+std::string CsvCell(std::string value) {
+    std::string out = "\"";
+    for (const char ch : value) {
+        if (ch == '"') {
+            out += "\"\"";
+        } else {
+            out.push_back(ch);
+        }
+    }
+    out += "\"";
+    return out;
+}
+
+std::string OpsAuditEntriesCsv(const app::AppConfig& config,
+                               const std::unordered_map<std::string, std::string>& query) {
+    OpsAuditQueryResult result = QueryOpsAuditEntries(config, query);
+    std::ostringstream out;
+    out << "id,at,receivedAtMs,actor,role,area,action,target,summary,before,after\n";
+    for (const std::string& entry : result.entries) {
+        out << CsvCell(ParseStringField(entry, "id").value_or("")) << ","
+            << CsvCell(ParseStringField(entry, "at").value_or("")) << ","
+            << CsvCell(ExtractJsonValueField(entry, "receivedAtMs").value_or("")) << ","
+            << CsvCell(ParseStringField(entry, "actor").value_or("")) << ","
+            << CsvCell(ParseStringField(entry, "role").value_or("")) << ","
+            << CsvCell(ParseStringField(entry, "area").value_or("")) << ","
+            << CsvCell(ParseStringField(entry, "action").value_or("")) << ","
+            << CsvCell(ParseStringField(entry, "target").value_or("")) << ","
+            << CsvCell(ParseStringField(entry, "summary").value_or("")) << ","
+            << CsvCell(ExtractJsonValueField(entry, "before").value_or("null")) << ","
+            << CsvCell(ExtractJsonValueField(entry, "after").value_or("null")) << "\n";
+    }
     return out.str();
 }
 
@@ -9375,7 +9447,21 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                return *auth_response;
 	                            }
 	                            if (request.method == "GET") {
-	                                HttpResponse ok = JsonResponse(200, "OK", OpsAuditEntriesJson(config, query));
+	                                const std::string format =
+	                                    query.count("format") != 0 ? Trim(query.at("format")) : std::string();
+	                                HttpResponse ok;
+	                                if (format == "csv") {
+	                                    ok = PlainTextResponse(200, "OK", OpsAuditEntriesCsv(config, query));
+	                                    ok.content_type = "text/csv; charset=utf-8";
+	                                    ok.headers["Content-Disposition"] =
+	                                        "attachment; filename=\"ops-audit.csv\"";
+	                                } else {
+	                                    ok = JsonResponse(200, "OK", OpsAuditEntriesJson(config, query));
+	                                    if (format == "json" || ParseBoolQuery(query, "download", false)) {
+	                                        ok.headers["Content-Disposition"] =
+	                                            "attachment; filename=\"ops-audit.json\"";
+	                                    }
+	                                }
 	                                ok.headers["Cache-Control"] = "no-store";
 	                                return ok;
 	                            }

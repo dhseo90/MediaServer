@@ -18,8 +18,12 @@ check("server exposes persistent ops audit API", () => {
     ".media_server.ops_audit.jsonl",
     "AppendOpsAuditRecord",
     "OpsAuditEntriesJson",
+    "OpsAuditEntriesCsv",
+    "\"offset\"",
+    "\\\"hasMore\\\"",
     "RedactAuditJsonFragment",
     "persistent\\\":true",
+    "Content-Disposition",
   ];
   for (const snippet of required) {
     assert(server.includes(snippet), `server audit persistence is missing snippet: ${snippet}`);
@@ -30,11 +34,17 @@ check("shared UI writes audit records to server and falls back locally", () => {
   const shared = readText("src/ingress/product_ui_js.cpp");
   const required = [
     "persistOpsAuditTrail",
+    "fetchOpsAuditTrailPage",
     "fetchOpsAuditTrail",
+    "auditQueryParams",
+    "opsAuditViewStates",
+    "openOpsAuditDetail",
     "requestJson('/ops/api/audit'",
     "server audit unavailable",
     "서버 감사 로그",
     "브라우저 캐시",
+    "JSON",
+    "CSV",
   ];
   for (const snippet of required) {
     assert(shared.includes(snippet), `shared audit UI is missing snippet: ${snippet}`);
@@ -44,11 +54,14 @@ check("shared UI writes audit records to server and falls back locally", () => {
 check("audit persistence has visible source label styling", () => {
   const css = readText("src/ingress/product_ui_css.cpp");
   assert(css.includes(".audit-source-label"), "audit source label CSS is missing");
+  assert(css.includes(".audit-detail-modal"), "audit detail modal CSS is missing");
+  assert(css.includes(".audit-filter-grid"), "audit filter CSS is missing");
 });
 
 check("docs describe persistent audit scope", () => {
   const docs = readText("docs/ui-guide.md");
   assert(docs.includes("서버 감사 로그"), "ui-guide is missing server audit log wording");
+  assert(docs.includes("JSON/CSV export"), "ui-guide is missing audit export wording");
 });
 
 let failCount = 0;

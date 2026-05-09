@@ -15,6 +15,10 @@ check("shared product UI script provides local audit trail helpers", () => {
     "mediaServerOpsAuditTrail.v1",
     "recordOpsAudit",
     "renderOpsAuditTrail",
+    "opsAuditViewStates",
+    "fetchOpsAuditTrailPage",
+    "openOpsAuditDetail",
+    "data-audit-export",
     "auditKeyRedacted",
     "password|token|hash|secret|capability",
     "before",
@@ -63,7 +67,10 @@ check("audit layout has mobile-safe CSS", () => {
   const css = readText("src/ingress/product_ui_css.cpp");
   const required = [
     ".audit-list",
+    ".audit-controls",
+    ".audit-filter-grid",
     ".audit-entry",
+    ".audit-detail-modal",
     ".audit-diff-grid",
     ".audit-entry-meta",
     "@media (max-width: 560px)",
