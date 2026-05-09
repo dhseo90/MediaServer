@@ -10,7 +10,13 @@ const args = parseArgs(process.argv.slice(2));
 const runId = args.runId || `rc-${Date.now()}-${process.pid}`;
 const output = args.output || path.join(os.tmpdir(), `media_server_${runId}_release_checklist.md`);
 const htmlOutput = args.htmlOutput || output.replace(/\.md$/i, ".html");
+const historyDir = args.historyDir || "";
 const ciContext = buildCiContext(args);
+if (historyDir) {
+  ciContext.historyDir = historyDir;
+  ciContext.historyIndex = path.join(historyDir, "index.md");
+  ciContext.historyHtml = path.join(historyDir, "index.html");
+}
 
 const gates = [
   {
@@ -30,11 +36,19 @@ const gates = [
 ];
 
 const rows = gates.map((gate) => ({ ...gate, result: summarizeSummary(gate.summaryFile) }));
-writeText(output, buildMarkdown(rows, ciContext));
-writeText(htmlOutput, buildHtml(rows, ciContext));
+const markdown = buildMarkdown(rows, ciContext);
+writeText(output, markdown);
+writeText(htmlOutput, buildHtml(markdown));
+if (historyDir) {
+  writeHistory(historyDir, runId, rows, ciContext, { markdown: output, html: htmlOutput });
+}
 
 console.log(`[pass] rc release checklist: ${output}`);
 console.log(`[pass] rc release checklist html: ${htmlOutput}`);
+if (historyDir) {
+  console.log(`[pass] rc soak report history: ${path.join(historyDir, "index.md")}`);
+  console.log(`[pass] rc soak report history html: ${path.join(historyDir, "index.html")}`);
+}
 
 function summarizeSummary(filePath) {
   if (!filePath) {
@@ -77,6 +91,7 @@ function buildCiContext(parsedArgs) {
     ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
     : "";
   return {
+    generatedAt: new Date().toISOString(),
     artifactName: parsedArgs.artifactName || "",
     artifactRetentionDays: parsedArgs.artifactRetentionDays || process.env.RC_ARTIFACT_RETENTION_DAYS || "",
     assetManifest: parsedArgs.assetManifest || "",
@@ -116,20 +131,21 @@ function summarizeAssets(filePath) {
 }
 
 function buildMarkdown(items, context = {}) {
-  const generatedAt = new Date().toISOString();
-  const assetPass = context.assetSummary.status === "pass" || context.assetSummary.status === "missing";
-  const allPass = items.every((item) => item.result.status === "pass") && assetPass;
+  const generatedAt = context.generatedAt || new Date().toISOString();
+  const overall = overallStatus(items, context);
   const lines = [
     "# RC Release Checklist",
     "",
     `- generatedAt: ${generatedAt}`,
-    `- overall: ${allPass ? "PASS" : "CHECK"}`,
+    `- overall: ${overall.label}`,
     "- scope: 120분 predev soak와 120분 VA runtime longrun 결과 연결",
     context.artifactName ? `- ciArtifact: ${context.artifactName}` : "- ciArtifact: (local)",
     context.artifactRetentionDays ? `- artifactRetentionDays: ${context.artifactRetentionDays}` : "- artifactRetentionDays: (local)",
     context.runnerLabel ? `- runner: ${context.runnerLabel}` : "- runner: (local)",
     context.assetManifest ? `- assetManifest: ${context.assetManifest}` : "- assetManifest: (missing)",
     `- assetStatus: ${context.assetSummary.label}${context.assetSummary.detail ? ` (${context.assetSummary.detail})` : ""}`,
+    context.historyIndex ? `- reportHistory: ${context.historyIndex}` : "- reportHistory: (disabled)",
+    context.historyHtml ? `- reportHistoryHtml: ${context.historyHtml}` : "",
     context.runUrl ? `- ciRun: ${context.runUrl}` : "- ciRun: (local)",
     context.repository ? `- repository: ${context.repository}` : "",
     context.refName ? `- ref: ${context.refName}` : "",
@@ -146,7 +162,7 @@ function buildMarkdown(items, context = {}) {
     "",
     "## Release Decision",
     "",
-    allPass
+    overall.ok
       ? "- [x] RC gate 결과가 모두 PASS입니다. 최종 수동 점검 후 release 승격 후보로 볼 수 있습니다."
       : "- [ ] PASS가 아닌 gate가 있습니다. release 승격 전에 실패 로그와 리포트를 확인합니다.",
     "",
@@ -156,13 +172,122 @@ function buildMarkdown(items, context = {}) {
     "- GitHub Actions에서는 `media-server-rc-gate` artifact에 summary, report, Markdown/HTML checklist를 함께 업로드합니다.",
     "- 실제 RC gate는 sample video, YOLO model, labels가 준비된 self-hosted macOS runner에서 실행하는 것을 권장합니다.",
     "- artifact retention은 workflow input과 checklist의 `artifactRetentionDays`로 같이 고정합니다.",
+    "- `--history-dir`을 사용하면 RC artifact 안에 run별 summary/report/checklist 사본과 Markdown/HTML index가 자동으로 축적됩니다.",
     "- 기본 smoke와 RC-only 120분 gate는 분리되어야 합니다.",
   );
   return `${lines.join("\n")}\n`;
 }
 
-function buildHtml(items, context = {}) {
-  const markdown = buildMarkdown(items, context);
+function overallStatus(items, context = {}) {
+  const assetStatus = context.assetSummary?.status || "missing";
+  const assetPass = assetStatus === "pass" || assetStatus === "missing";
+  const ok = items.every((item) => item.result.status === "pass") && assetPass;
+  return { ok, label: ok ? "PASS" : "CHECK" };
+}
+
+function writeHistory(baseDir, runIdValue, items, context, checklistPaths) {
+  const runDir = path.join(baseDir, runIdValue);
+  fs.mkdirSync(runDir, { recursive: true });
+  const files = {
+    checklistMarkdown: copyIfExists(checklistPaths.markdown, path.join(runDir, "rc-release-checklist.md")),
+    checklistHtml: copyIfExists(checklistPaths.html, path.join(runDir, "rc-release-checklist.html")),
+  };
+  for (const item of items) {
+    files[`${item.id}Summary`] = copyIfExists(item.summaryFile, path.join(runDir, `${item.id}-summary.json`));
+    files[`${item.id}Report`] = copyIfExists(item.reportFile, path.join(runDir, `${item.id}-report.md`));
+  }
+  const record = {
+    schema: "media-server.rc-soak-report.v1",
+    runId: runIdValue,
+    generatedAt: context.generatedAt || new Date().toISOString(),
+    overall: overallStatus(items, context).label,
+    artifactName: context.artifactName || "",
+    artifactRetentionDays: context.artifactRetentionDays || "",
+    runner: context.runnerLabel || "",
+    ciRun: context.runUrl || "",
+    repository: context.repository || "",
+    ref: context.refName || "",
+    sha: context.sha || "",
+    gates: items.map((item) => ({
+      id: item.id,
+      title: item.title,
+      command: item.command,
+      status: item.result.label,
+      detail: item.result.detail,
+      summaryFile: files[`${item.id}Summary`] || item.summaryFile || "",
+      reportFile: files[`${item.id}Report`] || item.reportFile || "",
+    })),
+    files,
+  };
+  writeText(path.join(runDir, "record.json"), `${JSON.stringify(record, null, 2)}\n`);
+  const indexJson = path.join(baseDir, "index.json");
+  const previous = readHistoryRecords(indexJson);
+  const byRunId = new Map(previous.map((item) => [String(item.runId || ""), item]));
+  byRunId.set(runIdValue, record);
+  const records = Array.from(byRunId.values())
+    .filter((item) => item.runId)
+    .sort((a, b) => String(b.generatedAt || "").localeCompare(String(a.generatedAt || "")));
+  writeText(indexJson, `${JSON.stringify({
+    schema: "media-server.rc-soak-history.v1",
+    generatedAt: new Date().toISOString(),
+    records,
+  }, null, 2)}\n`);
+  writeText(path.join(baseDir, "index.md"), buildHistoryMarkdown(records));
+  writeText(path.join(baseDir, "index.html"), buildHtml(buildHistoryMarkdown(records)));
+}
+
+function readHistoryRecords(indexJson) {
+  if (!fs.existsSync(indexJson)) return [];
+  try {
+    const payload = JSON.parse(fs.readFileSync(indexJson, "utf8"));
+    return Array.isArray(payload.records) ? payload.records : [];
+  } catch {
+    return [];
+  }
+}
+
+function copyIfExists(source, destination) {
+  if (!source || !fs.existsSync(source)) return "";
+  fs.mkdirSync(path.dirname(destination), { recursive: true });
+  fs.copyFileSync(source, destination);
+  return destination;
+}
+
+function buildHistoryMarkdown(records) {
+  const lines = [
+    "# RC Soak Report History",
+    "",
+    `- generatedAt: ${new Date().toISOString()}`,
+    `- records: ${records.length}`,
+    "",
+    "| Run | Overall | Generated | Runner | CI Run | Checklist | Gates |",
+    "| --- | --- | --- | --- | --- | --- | --- |",
+  ];
+  for (const record of records) {
+    const gates = Array.isArray(record.gates)
+      ? record.gates.map((gate) => `${gate.title}: ${gate.status}`).join("<br>")
+      : "";
+    lines.push([
+      `| ${escapeMarkdown(record.runId || "-")}`,
+      escapeMarkdown(record.overall || "-"),
+      escapeMarkdown(record.generatedAt || "-"),
+      escapeMarkdown(record.runner || "(local)"),
+      record.ciRun ? `[run](${record.ciRun})` : "(local)",
+      markdownPath(record.files?.checklistMarkdown || ""),
+      `${gates} |`,
+    ].join(" | "));
+  }
+  lines.push(
+    "",
+    "## Notes",
+    "",
+    "- 이 index는 `rc-release-checklist --history-dir` 실행 때마다 기존 `index.json`을 읽고 같은 `runId`를 갱신합니다.",
+    "- CI에서는 `artifacts/rc-gate/history/`가 `media-server-rc-gate` artifact에 함께 업로드됩니다.",
+  );
+  return `${lines.join("\n")}\n`;
+}
+
+function buildHtml(markdown) {
   return `<!doctype html>
 <html lang="ko">
 <head><meta charset="utf-8"><title>RC Release Checklist</title>
@@ -174,6 +299,10 @@ function buildHtml(items, context = {}) {
 
 function markdownPath(filePath) {
   return filePath ? `\`${filePath}\`` : "`(missing)`";
+}
+
+function escapeMarkdown(value) {
+  return String(value ?? "").replaceAll("|", "\\|");
 }
 
 function writeText(filePath, text) {

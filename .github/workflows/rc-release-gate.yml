@@ -131,7 +131,8 @@ jobs:
             --artifact-name media-server-rc-gate \
             --asset-manifest artifacts/rc-gate/asset-manifest.json \
             --runner-label "${{ inputs.runner_label }}" \
-            --artifact-retention-days "${{ inputs.artifact_retention_days }}"
+            --artifact-retention-days "${{ inputs.artifact_retention_days }}" \
+            --history-dir artifacts/rc-gate/history
 
       - name: Upload RC gate artifact
         uses: actions/upload-artifact@v4

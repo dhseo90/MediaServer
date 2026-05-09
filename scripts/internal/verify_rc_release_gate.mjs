@@ -27,6 +27,8 @@ check("stream verification guide defines the RC-only release gate", () => {
     "--include-rtsp",
     "--idle-after-cleanup-minutes 30",
     "./server.sh rc-release-checklist",
+    "--history-dir",
+    "index.md",
   ];
   for (const snippet of requiredSnippets) {
     assert(docs.includes(snippet), `docs/stream-verification.md is missing RC gate snippet: ${snippet}`);
@@ -72,6 +74,7 @@ check("GitHub Actions workflow uploads RC gate artifacts", () => {
     "--asset-manifest artifacts/rc-gate/asset-manifest.json",
     "--runner-label",
     "--artifact-retention-days",
+    "--history-dir artifacts/rc-gate/history",
     "--artifact-name media-server-rc-gate",
     "actions/upload-artifact@v4",
     "media-server-rc-gate",
@@ -88,6 +91,7 @@ check("release checklist generator writes Markdown and HTML", () => {
   const predevReport = path.join(workDir, "predev-report.md");
   const runtimeReport = path.join(workDir, "runtime-report.md");
   const assetManifest = path.join(workDir, "asset-manifest.json");
+  const historyDir = path.join(workDir, "history");
   const output = path.join(workDir, "release-checklist.md");
   const htmlOutput = path.join(workDir, "release-checklist.html");
   fs.writeFileSync(predevSummary, JSON.stringify({ status: "pass", passCount: 69, failCount: 0 }), "utf8");
@@ -114,6 +118,7 @@ check("release checklist generator writes Markdown and HTML", () => {
     "--asset-manifest", assetManifest,
     "--runner-label", "self-hosted-macos-va",
     "--artifact-retention-days", "45",
+    "--history-dir", historyDir,
   ], {
     cwd: rootDir,
     stdio: "pipe",
@@ -128,8 +133,12 @@ check("release checklist generator writes Markdown and HTML", () => {
   });
   const markdown = fs.readFileSync(output, "utf8");
   const html = fs.readFileSync(htmlOutput, "utf8");
+  const historyJson = fs.readFileSync(path.join(historyDir, "index.json"), "utf8");
+  const historyMarkdown = fs.readFileSync(path.join(historyDir, "index.md"), "utf8");
+  const historyHtml = fs.readFileSync(path.join(historyDir, "index.html"), "utf8");
   assert(markdown.includes("# RC Release Checklist"), "release checklist missing title");
   assert(markdown.includes("overall: PASS"), "release checklist missing PASS status");
+  assert(markdown.includes("reportHistory:"), "release checklist missing report history link");
   assert(markdown.includes("Predev 120m soak"), "release checklist missing predev row");
   assert(markdown.includes("VA runtime console 120m longrun"), "release checklist missing runtime row");
   assert(markdown.includes("ciArtifact: media-server-rc-gate"), "release checklist missing CI artifact");
@@ -138,6 +147,11 @@ check("release checklist generator writes Markdown and HTML", () => {
   assert(markdown.includes("assetStatus: PASS"), "release checklist missing asset status");
   assert(markdown.includes("https://github.com/example/mediaServer/actions/runs/12345"), "release checklist missing CI run URL");
   assert(html.includes("RC Release Checklist"), "release checklist HTML missing title");
+  assert(historyJson.includes("media-server.rc-soak-history.v1"), "history index JSON missing schema");
+  assert(historyMarkdown.includes("# RC Soak Report History"), "history index Markdown missing title");
+  assert(historyMarkdown.includes("Predev 120m soak: PASS"), "history index missing predev status");
+  assert(historyMarkdown.includes("VA runtime console 120m longrun: PASS"), "history index missing runtime status");
+  assert(historyHtml.includes("RC Soak Report History"), "history index HTML missing title");
 });
 
 check("backlog keeps 120 minute soak as release-candidate or high-risk gate", () => {
