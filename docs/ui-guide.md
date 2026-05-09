@@ -429,6 +429,8 @@ Hidden tab, route leave, tile stop 시 PeerConnection, DataChannel, server WebRT
 
 저장 전 검증은 중복 ID, 누락/비활성 이벤트 템플릿/Profile, source mismatch뿐 아니라 비활성 채널/PublishedView 연결, Client 노출 권한이 없는 PublishedView, `va-rule` 모드가 허용되지 않은 PublishedView, 허용 룰 목록에 없는 기존 연결, 같은 채널/priority의 룰 충돌, 이벤트 템플릿과 룰/Profile 대상 클래스 충돌도 차단합니다. PublishedView가 raw/overlay 전용이면 채널 탭에서 보기 방식과 허용 룰 목록을 먼저 정리한 뒤 룰을 저장합니다.
 
+Rule validation matrix는 inactive profile/template, priority conflict, unauthorized view, VA class mismatch, source mismatch를 fixture 기준으로 고정합니다. 이 matrix는 UI 저장 전 차단과 서버 저장 API 차단 메시지가 따로 흔들리지 않도록 `verify-ops-rule-validation-matrix`에서 검증합니다.
+
 ## 7. 분석 Profile
 
 룰 편집 화면의 profile 흐름:
