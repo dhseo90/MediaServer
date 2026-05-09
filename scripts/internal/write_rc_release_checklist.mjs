@@ -10,6 +10,7 @@ const args = parseArgs(process.argv.slice(2));
 const runId = args.runId || `rc-${Date.now()}-${process.pid}`;
 const output = args.output || path.join(os.tmpdir(), `media_server_${runId}_release_checklist.md`);
 const htmlOutput = args.htmlOutput || output.replace(/\.md$/i, ".html");
+const ciContext = buildCiContext(args);
 
 const gates = [
   {
@@ -29,8 +30,8 @@ const gates = [
 ];
 
 const rows = gates.map((gate) => ({ ...gate, result: summarizeSummary(gate.summaryFile) }));
-writeText(output, buildMarkdown(rows));
-writeText(htmlOutput, buildHtml(rows));
+writeText(output, buildMarkdown(rows, ciContext));
+writeText(htmlOutput, buildHtml(rows, ciContext));
 
 console.log(`[pass] rc release checklist: ${output}`);
 console.log(`[pass] rc release checklist html: ${htmlOutput}`);
@@ -71,7 +72,20 @@ function summarizeSummary(filePath) {
   return { status: "unknown", label: "판정 보류", detail: "summary에 pass/fail 카운트가 없습니다." };
 }
 
-function buildMarkdown(items) {
+function buildCiContext(parsedArgs) {
+  const runUrl = process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID
+    ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
+    : "";
+  return {
+    artifactName: parsedArgs.artifactName || "",
+    runUrl,
+    repository: process.env.GITHUB_REPOSITORY || "",
+    refName: process.env.GITHUB_REF_NAME || "",
+    sha: process.env.GITHUB_SHA || "",
+  };
+}
+
+function buildMarkdown(items, context = {}) {
   const generatedAt = new Date().toISOString();
   const allPass = items.every((item) => item.result.status === "pass");
   const lines = [
@@ -80,10 +94,15 @@ function buildMarkdown(items) {
     `- generatedAt: ${generatedAt}`,
     `- overall: ${allPass ? "PASS" : "CHECK"}`,
     "- scope: 120분 predev soak와 120분 VA runtime longrun 결과 연결",
+    context.artifactName ? `- ciArtifact: ${context.artifactName}` : "- ciArtifact: (local)",
+    context.runUrl ? `- ciRun: ${context.runUrl}` : "- ciRun: (local)",
+    context.repository ? `- repository: ${context.repository}` : "",
+    context.refName ? `- ref: ${context.refName}` : "",
+    context.sha ? `- sha: ${context.sha.slice(0, 12)}` : "",
     "",
     "| Gate | Required command | Status | Summary | Report |",
     "| --- | --- | --- | --- | --- |",
-  ];
+  ].filter(Boolean);
   for (const item of items) {
     const checked = item.result.status === "pass" ? "[x]" : "[ ]";
     lines.push(`| ${checked} ${item.title} | \`${item.command}\` | ${item.result.label} | ${markdownPath(item.summaryFile)} (${item.result.detail}) | ${markdownPath(item.reportFile)} |`);
@@ -99,13 +118,14 @@ function buildMarkdown(items) {
     "## Notes",
     "",
     "- 이 checklist는 장기 검증을 실행하지 않고, 이미 생성된 summary/report를 release 기준 문서로 연결합니다.",
+    "- GitHub Actions에서는 `media-server-rc-gate` artifact에 summary, report, Markdown/HTML checklist를 함께 업로드합니다.",
     "- 기본 smoke와 RC-only 120분 gate는 분리되어야 합니다.",
   );
   return `${lines.join("\n")}\n`;
 }
 
-function buildHtml(items) {
-  const markdown = buildMarkdown(items);
+function buildHtml(items, context = {}) {
+  const markdown = buildMarkdown(items, context);
   return `<!doctype html>
 <html lang="ko">
 <head><meta charset="utf-8"><title>RC Release Checklist</title>

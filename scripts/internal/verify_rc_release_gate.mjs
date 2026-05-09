@@ -54,6 +54,24 @@ check("server exposes RC gate verification without running the longrun", () => {
   assert(server.includes("write_rc_release_checklist.mjs"), "server.sh does not dispatch write_rc_release_checklist.mjs");
 });
 
+check("GitHub Actions workflow uploads RC gate artifacts", () => {
+  const workflow = readText(".github/workflows/rc-release-gate.yml");
+  const requiredSnippets = [
+    "name: RC Release Gate",
+    "workflow_dispatch",
+    "run_predev_120",
+    "run_va_runtime_120",
+    "artifacts/rc-gate",
+    "./server.sh rc-release-checklist",
+    "--artifact-name media-server-rc-gate",
+    "actions/upload-artifact@v4",
+    "media-server-rc-gate",
+  ];
+  for (const snippet of requiredSnippets) {
+    assert(workflow.includes(snippet), `rc-release-gate workflow missing snippet: ${snippet}`);
+  }
+});
+
 check("release checklist generator writes Markdown and HTML", () => {
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-rc-checklist-"));
   const predevSummary = path.join(workDir, "predev-summary.json");
@@ -74,13 +92,27 @@ check("release checklist generator writes Markdown and HTML", () => {
     "--runtime-report", runtimeReport,
     "--output", output,
     "--html-output", htmlOutput,
-  ], { cwd: rootDir, stdio: "pipe" });
+    "--artifact-name", "media-server-rc-gate",
+  ], {
+    cwd: rootDir,
+    stdio: "pipe",
+    env: {
+      ...process.env,
+      GITHUB_SERVER_URL: "https://github.com",
+      GITHUB_REPOSITORY: "example/mediaServer",
+      GITHUB_RUN_ID: "12345",
+      GITHUB_REF_NAME: "main",
+      GITHUB_SHA: "abcdef1234567890",
+    },
+  });
   const markdown = fs.readFileSync(output, "utf8");
   const html = fs.readFileSync(htmlOutput, "utf8");
   assert(markdown.includes("# RC Release Checklist"), "release checklist missing title");
   assert(markdown.includes("overall: PASS"), "release checklist missing PASS status");
   assert(markdown.includes("Predev 120m soak"), "release checklist missing predev row");
   assert(markdown.includes("VA runtime console 120m longrun"), "release checklist missing runtime row");
+  assert(markdown.includes("ciArtifact: media-server-rc-gate"), "release checklist missing CI artifact");
+  assert(markdown.includes("https://github.com/example/mediaServer/actions/runs/12345"), "release checklist missing CI run URL");
   assert(html.includes("RC Release Checklist"), "release checklist HTML missing title");
 });
 

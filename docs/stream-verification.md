@@ -256,8 +256,15 @@ SharedStream/VA metadata/dashboard/SSE/WS fanout 변경 후,
   --runtime-summary /tmp/media_server_va_runtime_summary.json \
   --runtime-report /tmp/media_server_va_runtime_report.md \
   --output /tmp/media_server_rc_release_checklist.md \
-  --html-output /tmp/media_server_rc_release_checklist.html
+  --html-output /tmp/media_server_rc_release_checklist.html \
+  --artifact-name media-server-rc-gate
 ```
+
+CI에서는 `.github/workflows/rc-release-gate.yml`을 수동 실행합니다.
+기본 입력값은 긴 검증을 실행하지 않고 `CHECK` checklist만 생성합니다.
+RC 판정 시 `run_predev_120=true`, `run_va_runtime_120=true`로 실행하면
+`artifacts/rc-gate/` 아래 summary/report/checklist Markdown/HTML을 모아
+`media-server-rc-gate` GitHub Actions artifact로 업로드합니다.
 
 RC 전용 gate가 기본 smoke에 섞이지 않았는지는 다음 명령으로 확인합니다.
 
