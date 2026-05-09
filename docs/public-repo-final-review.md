@@ -3,6 +3,28 @@
 이 문서는 private 저장소를 public으로 바꾸기 직전 마지막 확인 기준입니다.
 GitHub Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 않고 수동 체크로 남깁니다.
 
+## 현재 수동 설정 기록
+
+2026-05-10 기준 확인 상태:
+
+- 최신 public readiness commit: `944c218 Add public repo readiness checks`
+- Actions 성공 확인:
+  - `Preflight #5`
+  - `Licensing and Artifact Guardrails #2`
+- Required status checks:
+  - `static-gates`
+  - `guardrails`
+- Ruleset branch rule:
+  - `Restrict deletions`: enabled
+  - `Block force pushes`: enabled
+- Repository metadata:
+  - Description: `RTSP/WebRTC media server with optional YOLO-based video analytics`
+  - Topics: `rtsp`, `gstreamer`, `cpp`, `webrtc`, `media-server`, `yolo`, `video-analytics`
+- Visibility: private 유지. public 전환은 owner가 수동으로 판단합니다.
+
+`Restrict deletions`와 `Block force pushes`는 GitHub Actions check가 아니라 ruleset branch rule입니다.
+Required status check에는 추가하지 않고, checkbox enabled 상태만 확인합니다.
+
 ## 자동 확인
 
 공개 전 로컬 또는 CI에서 실행합니다.
@@ -63,7 +85,16 @@ Public 전환 후 확인:
 - Rulesets 화면에서 `main` ruleset이 실제 enforced 상태인지 확인합니다.
 - Required status checks에 `static-gates`, `guardrails`가 유지되는지 확인합니다.
 - test branch에서 force push/delete가 차단되는지 확인합니다.
+- README badge가 public 화면에서 정상 표시되는지 확인합니다.
+- `Actions` 탭에서 public 전환 이후 첫 `Preflight`, `Licensing and Artifact Guardrails` run이 성공하는지 확인합니다.
 - 이 확인은 GitHub UI/권한 동작이므로 자동 수정하지 않습니다.
+
+## History/Asset 판단
+
+- 2026-05-10 로컬 점검에서 `.git`은 약 165MB입니다.
+- 현재 추적 중인 가장 큰 public fixture는 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4` 약 16MB입니다.
+- `models/`는 로컬에는 있을 수 있지만 `.gitignore` 대상이며 추적하지 않습니다.
+- public 전환을 위해 history rewrite는 권장하지 않습니다. 현재 asset 범위는 `config/public_repo_policy.json` allowlist와 `verify-public-repo-readiness`로 관리합니다.
 
 ## 공개 전 점검표
 

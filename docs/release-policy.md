@@ -30,3 +30,31 @@ runtime을 의도적으로 포함하면 upstream license text, attribution, sour
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - RC longrun 결과는 `rc-release-checklist` 또는 Actions artifact로 보관합니다.
 - public visibility 전환은 이 문서와 [public-repo-final-review.md](./public-repo-final-review.md) 확인 후 수동으로만 진행합니다.
+
+## Release Note Template
+
+```markdown
+# Media Server <version>
+
+## Scope
+
+- Source/doc release
+- Binary/runtime/model bundle: not included
+
+## Verification
+
+- Preflight: pass
+- Licensing and Artifact Guardrails: pass
+- verify-public-repo-readiness: pass
+- verify-bundle-policy: pass
+
+## Notes
+
+- FFmpeg/GStreamer runtime은 사용자 설치 의존성입니다.
+- YOLO model file은 release asset에 포함하지 않습니다.
+- sample video는 검증 fixture이며 운영/고객 영상이 아닙니다.
+
+## Known Limitations
+
+- 장기 soak/RC 검증은 별도 workflow_dispatch 기준입니다.
+```
