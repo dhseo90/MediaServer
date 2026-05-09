@@ -165,6 +165,7 @@ SKIP_RTSP="${MEDIA_SERVER_VERIFY_VA_SKIP_RTSP:-0}"
 SKIP_WEBRTC="${MEDIA_SERVER_VERIFY_VA_SKIP_WEBRTC:-0}"
 SKIP_WEBRTC_SIMPLE="${MEDIA_SERVER_VERIFY_VA_SKIP_WEBRTC_SIMPLE:-0}"
 SKIP_WEBRTC_WHEP="${MEDIA_SERVER_VERIFY_VA_SKIP_WEBRTC_WHEP:-0}"
+BROWSER_WEBRTC_HARNESS="${SCRIPT_DIR}/browser_webrtc_publish_consume_check.mjs"
 
 log_info "http_base=${HTTP_BASE}"
 log_info "rtsp_base=${RTSP_BASE}"
@@ -185,6 +186,11 @@ if ! curl -fsS --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
   exit 1
 fi
 log_pass "HTTP health ok"
+
+browser_webrtc_harness_available() {
+  [[ -f "${BROWSER_WEBRTC_HARNESS}" ]] || return 1
+  ! grep -Fq "removed: 초기 WebRTC 테스트 페이지" "${BROWSER_WEBRTC_HARNESS}"
+}
 
 run_lab_regression() {
   if [[ "${SKIP_LAB}" == "1" ]]; then
@@ -330,9 +336,13 @@ run_webrtc_mode() {
     log_skip "WebRTC ${mode} VA overlay regression skipped"
     return
   fi
+  if ! browser_webrtc_harness_available; then
+    log_skip "WebRTC ${mode} VA overlay regression skipped: product WebRTC browser harness is not available"
+    return
+  fi
   require_cmd node
 
-  local command=(node "${SCRIPT_DIR}/browser_webrtc_publish_consume_check.mjs"
+  local command=(node "${BROWSER_WEBRTC_HARNESS}"
       --http-base "${HTTP_BASE}" \
       --mode "${mode}" \
       --file "${FILE_TOKEN}" \

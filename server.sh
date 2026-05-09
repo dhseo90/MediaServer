@@ -36,15 +36,15 @@ Usage:
                  제거된 초기 브라우저 harness 대신 현재는 명시적으로 skip합니다. 제품 UI smoke를 사용하세요.
   verify-uri-longrun
                  HTTP/HLS URI source의 로컬 반복 검증과 선택 외부 URL 반복 검증을 수행합니다.
-  verify-va      YOLO/VA overlay의 lab, RTSP, WebRTC 검증을 수행합니다.
+  verify-va      YOLO/VA overlay의 lab/RTSP 검증과 사용 가능한 WebRTC browser harness 검증을 수행합니다.
   verify-redaction
-                 사람 객체 자동 모자이크(redaction)의 image/live/multichannel 검증을 수행합니다.
+                 사람 객체 자동 모자이크(redaction)의 image/live 검증을 수행합니다. multichannel은 현재 skip입니다.
   verify-va-events
                  이동 테스트 영상으로 tracker 기반 presence/enter/exit/line-crossing을 검증합니다.
   verify-va-category-samples
                  실제 영상 샘플에서 VA 카테고리별 presence 이벤트를 검증합니다.
   verify-route-profiles
-                 실제 RTSP/WebRTC overlay 세션에서 route별 profile/rule matching을 검증합니다.
+                 실제 RTSP overlay와 사용 가능한 WebRTC browser harness에서 route별 profile/rule matching을 검증합니다.
   verify-rule-ui
                  /ops/rules Rule/Profile 카테고리 버튼과 저장 payload를 검증합니다.
   verify-ops-client-ui

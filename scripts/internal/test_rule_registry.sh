@@ -45,10 +45,11 @@ HTTP_ADDRESS="${MEDIA_SERVER_HTTP_LISTEN_ADDRESS:-$(media_server_read_const_char
 HTTP_HOST="$(client_host "${MEDIA_SERVER_TEST_HTTP_HOST:-${HTTP_ADDRESS}}")"
 HTTP_BASE="${MEDIA_SERVER_TEST_HTTP_BASE:-http://${HTTP_HOST}:${HTTP_PORT}}"
 
-PROFILE_ID="test-profile-$(date +%s)-$$"
-ALT_PROFILE_ID="${PROFILE_ID}-alt"
-RULE_ID="test-rule-$(date +%s)-$$"
-ALT_RULE_ID="${RULE_ID}-alt"
+BASE_ID=$(( (($(date +%s) % 1000000) * 1000) + ($$ % 1000) ))
+PROFILE_ID="$((BASE_ID + 11))"
+ALT_PROFILE_ID="$((BASE_ID + 12))"
+RULE_ID="$((BASE_ID + 21))"
+ALT_RULE_ID="$((BASE_ID + 22))"
 AUTO_TAP_ID=""
 VA_FILE="${MEDIA_SERVER_VERIFY_VA_FILE:-va_four_scene_sample.mp4}"
 

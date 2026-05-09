@@ -16,7 +16,7 @@
 | --- | --- |
 | `./server.sh test` | 기본 smoke. 로컬 file/RTSP/WebRTC/기본 API 중심 |
 | `./server.sh test --basic` | 기본 smoke를 명시적으로 실행 |
-| `./server.sh test --full` | Rule/Profile UI, VA event, image analysis, event POST, multichannel, redaction 포함 |
+| `./server.sh test --full` | Rule/Profile UI, VA event, image analysis, event POST, redaction 포함 |
 | `./server.sh test --external` | `--full` + LAN/external source, WebRTC ICE, 외부 HTTP/HLS URI 선택 검증. 외부 WHEP endpoint는 환경 의존 별도 검증 |
 | `./server.sh test --stable` | 기존 stable 호환 기준 |
 
@@ -174,7 +174,7 @@ Auth 변경:
 ./server.sh verify-auth-routes
 ```
 
-위 세 명령은 임시 users file과 격리 포트에서 auth 서버를 띄워 setup/login/session/user/route smoke를 자동으로 확인합니다. 로컬 QA나 수동 smoke에서 테스트 계정을 만들거나 초기화할 때는 계정 비밀번호를 `qweasd0-`로만 사용합니다. 이 규칙은 검증 재현성을 위한 것이며, 제품 기본 admin 비밀번호가 아닙니다. 수동으로 세부 상태를 확인할 때는 아래 curl 흐름을 사용합니다.
+위 세 명령은 임시 users file과 격리 포트에서 auth 서버를 띄워 setup/login/session/user/route smoke를 자동으로 확인합니다. 자동 auth smoke, 로컬 QA, 수동 smoke의 표준 테스트 계정 비밀번호는 `qweasd0-`로 통일합니다. 이 규칙은 검증 재현성을 위한 것이며, 제품 기본 admin 비밀번호가 아닙니다. 수동으로 세부 상태를 확인할 때는 아래 curl 흐름을 사용합니다.
 
 ```bash
 MEDIA_SERVER_AUTH_MODE=auto \
@@ -839,6 +839,10 @@ curl -fsS -X POST \
 ```bash
 ./server.sh verify-va
 ```
+
+현재 `verify-va`의 WebRTC browser playback 구간은 초기 `/webrtc/test` harness 제거 후
+별도 제품 UI harness가 준비될 때까지 skip됩니다. 기본 자동 기준은 lab API와 RTSP
+server-side overlay를 확인합니다.
 
 수동 RTSP overlay URL:
 

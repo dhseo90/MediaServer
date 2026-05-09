@@ -27,6 +27,12 @@ LOG_FILE="${TMP_DIR}/media_server_${RUN_ID}.log"
 ACCESS_REQUEST_PAYLOAD="${TMP_DIR}/media_server_${RUN_ID}_access_request_payload.json"
 SERVER_PID=""
 BASE=""
+TEST_PASSWORD="${MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD:-qweasd0-}"
+# 교체/history 검증은 표준 smoke 비밀번호와 다른 이전 비밀번호가 필요하다.
+PREVIOUS_PASSWORD="${MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD:-qweasd0-prev}"
+SECOND_PREVIOUS_PASSWORD="${MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD:-qweasd0-next}"
+WRONG_PASSWORD_ONE="${MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE:-wrong-qweasd0-1}"
+WRONG_PASSWORD_TWO="${MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO:-wrong-qweasd0-2}"
 
 pass_count=0
 
@@ -301,7 +307,7 @@ setup_admin() {
   local weak_code strong_code after_setup
   weak_code="$(http_code -X POST -d 'username=admin&password=weak&confirm=weak' "${BASE}/setup")"
   expect_eq "${weak_code}" "400" "weak admin password rejected"
-  strong_code="$(http_code -X POST -d 'username=admin&password=Strong!91&confirm=Strong!91' "${BASE}/setup")"
+  strong_code="$(http_code -X POST -d "username=admin&password=${TEST_PASSWORD}&confirm=${TEST_PASSWORD}" "${BASE}/setup")"
   expect_eq "${strong_code}" "302" "initial admin password setup"
   expect_auth_store_owner_only
   after_setup="$(header_status_location "${BASE}/setup")"
@@ -311,7 +317,7 @@ setup_admin() {
 login_admin() {
   local landing whoami
   landing="$(curl -sS -c "${ADMIN_COOKIE}" -o /dev/null -D - \
-    -X POST -d 'username=admin&password=Strong!91' "${BASE}/login" |
+    -X POST -d "username=admin&password=${TEST_PASSWORD}" "${BASE}/login" |
     tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
   expect_eq "${landing}" "302:/ops/home" "admin login landing"
   whoami="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/auth/whoami")"
@@ -359,7 +365,7 @@ run_users() {
   expect_auth_store_owner_only "permissive auth users file re-hardened"
 
   local viewer_json
-  viewer_json="$(create_user '{"username":"viewer-smoke","displayName":"Viewer Smoke","role":"viewer","viewId":"1","password":"Viewer!91","enabled":true,"mustChangePassword":false}')"
+  viewer_json="$(create_user "{\"username\":\"viewer-smoke\",\"displayName\":\"Viewer Smoke\",\"role\":\"viewer\",\"viewId\":\"1\",\"password\":\"${PREVIOUS_PASSWORD}\",\"enabled\":true,\"mustChangePassword\":false}")"
   case "${viewer_json}" in
     *'view:read:1'*) pass "viewer view scope assigned" ;;
     *) fail "viewer view scope missing: ${viewer_json}" ;;
@@ -374,32 +380,32 @@ run_users() {
     *) pass "user API hash redaction" ;;
   esac
 
-  expect_eq "$(http_code -c "${VIEWER_COOKIE}" -X POST -d 'username=viewer-smoke&password=Viewer!91' "${BASE}/login")" "302" "viewer login"
+  expect_eq "$(http_code -c "${VIEWER_COOKIE}" -X POST -d "username=viewer-smoke&password=${PREVIOUS_PASSWORD}" "${BASE}/login")" "302" "viewer login"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops")" "403" "viewer ops forbidden"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/lab")" "404" "retired lab page hidden from viewer"
 
   local reset_code landing change_reuse_code disable_code disabled_login
   reset_code="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"password":"Reset!91"}' "${BASE}/ops/api/users/viewer-smoke/reset-password")"
+    -X POST --data "{\"password\":\"${TEST_PASSWORD}\"}" "${BASE}/ops/api/users/viewer-smoke/reset-password")"
   expect_eq "${reset_code}" "200" "admin reset password"
   landing="$(curl -sS -c "${VIEWER_COOKIE}" -o /dev/null -D - \
-    -X POST -d 'username=viewer-smoke&password=Reset!91' "${BASE}/login" |
+    -X POST -d "username=viewer-smoke&password=${TEST_PASSWORD}" "${BASE}/login" |
     tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
   expect_eq "${landing}" "302:/password/change" "mustChangePassword landing"
   expect_cookie_page_contains "password change auth shell selectors" "${VIEWER_COOKIE}" "${BASE}/password/change" \
     'class="auth-shell"' 'id="themeToggleBtn"' 'name="currentPassword"' 'name="password"' 'name="confirm"' '기본 kr-privacy 정책'
   auth_ui_smoke "password-change" "/password/change" "form.auth-form" "${VIEWER_COOKIE}" 'name="currentPassword"'
   change_reuse_code="$(http_code -b "${VIEWER_COOKIE}" -c "${VIEWER_COOKIE}" \
-    -X POST -d 'currentPassword=Reset!91&password=Reset!91&confirm=Reset!91' "${BASE}/password/change")"
+    -X POST -d "currentPassword=${TEST_PASSWORD}&password=${TEST_PASSWORD}&confirm=${TEST_PASSWORD}" "${BASE}/password/change")"
   expect_eq "${change_reuse_code}" "400" "password history reuse rejected"
   disable_code="$(http_code -b "${ADMIN_COOKIE}" -X POST "${BASE}/ops/api/users/viewer-smoke/disable")"
   expect_eq "${disable_code}" "200" "admin disables viewer"
-  disabled_login="$(http_code -X POST -d 'username=viewer-smoke&password=Reset!91' "${BASE}/login")"
+  disabled_login="$(http_code -X POST -d "username=viewer-smoke&password=${TEST_PASSWORD}" "${BASE}/login")"
   expect_eq "${disabled_login}" "401" "disabled user login rejected"
 
-  create_user '{"username":"lockout-smoke","displayName":"Lockout Smoke","role":"viewer","viewId":"1","password":"Lockout!91","enabled":true,"mustChangePassword":false}' >/dev/null
-  http_code -X POST -d 'username=lockout-smoke&password=Wrong!91' "${BASE}/login" >/dev/null || true
-  http_code -X POST -d 'username=lockout-smoke&password=Wrong!92' "${BASE}/login" >/dev/null || true
+  create_user "{\"username\":\"lockout-smoke\",\"displayName\":\"Lockout Smoke\",\"role\":\"viewer\",\"viewId\":\"1\",\"password\":\"${TEST_PASSWORD}\",\"enabled\":true,\"mustChangePassword\":false}" >/dev/null
+  http_code -X POST -d "username=lockout-smoke&password=${WRONG_PASSWORD_ONE}" "${BASE}/login" >/dev/null || true
+  http_code -X POST -d "username=lockout-smoke&password=${WRONG_PASSWORD_TWO}" "${BASE}/login" >/dev/null || true
   if grep -q '"lockedUntil": "[^"]' "${USERS_FILE}"; then
     pass "login lockout stored"
   else
@@ -414,20 +420,20 @@ run_users() {
   [[ -n "${invite_token}" ]] || fail "invite token missing: ${invite_json}"
   pass "invite token issued once"
   preserve_reset="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"password":"LockoutNext!91"}' "${BASE}/ops/api/users/lockout-smoke/reset-password")"
+    -X POST --data "{\"password\":\"${PREVIOUS_PASSWORD}\"}" "${BASE}/ops/api/users/lockout-smoke/reset-password")"
   expect_eq "${preserve_reset}" "200" "users-only save after pending invite"
   expect_auth_store_contains "pending invite preserved across users save" "\"inviteId\": \"${invite_id}\""
   expect_page_contains "invite setup auth shell selectors" "${BASE}/invite/setup?token=${invite_token}" \
     'class="auth-shell"' 'id="themeToggleBtn"' 'name="token"' 'name="password"' 'name="confirm"' '기본 kr-privacy 정책'
   auth_ui_smoke "invite-setup" "/invite/setup?token=${invite_token}" "form.auth-form" "" 'name="token"'
   invite_setup="$(http_code -X POST --data-urlencode "token=${invite_token}" \
-    --data-urlencode 'password=Invite!91' --data-urlencode 'confirm=Invite!91' "${BASE}/invite/setup")"
+    --data-urlencode "password=${TEST_PASSWORD}" --data-urlencode "confirm=${TEST_PASSWORD}" "${BASE}/invite/setup")"
   expect_eq "${invite_setup}" "302" "invite password setup"
-  invite_login="$(http_code -c "${INVITE_COOKIE}" -X POST -d 'username=invite-smoke&password=Invite!91' "${BASE}/login")"
+  invite_login="$(http_code -c "${INVITE_COOKIE}" -X POST -d "username=invite-smoke&password=${TEST_PASSWORD}" "${BASE}/login")"
   expect_eq "${invite_login}" "302" "invited viewer login"
 
-  create_user '{"username":"invite-existing","displayName":"Invite Existing","role":"viewer","viewId":"1","password":"Existing!91","enabled":true,"mustChangePassword":false}' >/dev/null
-  expect_eq "$(http_code -c "${EXISTING_INVITE_COOKIE}" -X POST -d 'username=invite-existing&password=Existing!91' "${BASE}/login")" "302" "existing invite target baseline login"
+  create_user "{\"username\":\"invite-existing\",\"displayName\":\"Invite Existing\",\"role\":\"viewer\",\"viewId\":\"1\",\"password\":\"${PREVIOUS_PASSWORD}\",\"enabled\":true,\"mustChangePassword\":false}" >/dev/null
+  expect_eq "$(http_code -c "${EXISTING_INVITE_COOKIE}" -X POST -d "username=invite-existing&password=${PREVIOUS_PASSWORD}" "${BASE}/login")" "302" "existing invite target baseline login"
   local existing_before existing_invite_json existing_invite_token existing_after existing_setup existing_relogin existing_final
   existing_before="$(curl -fsS -b "${EXISTING_INVITE_COOKIE}" "${BASE}/auth/whoami")"
   case "${existing_before}" in
@@ -449,10 +455,10 @@ run_users() {
     *) pass "pending invite future scope not applied" ;;
   esac
   existing_setup="$(http_code -X POST --data-urlencode "token=${existing_invite_token}" \
-    --data-urlencode 'password=ExistingNext!91' --data-urlencode 'confirm=ExistingNext!91' "${BASE}/invite/setup")"
+    --data-urlencode "password=${TEST_PASSWORD}" --data-urlencode "confirm=${TEST_PASSWORD}" "${BASE}/invite/setup")"
   expect_eq "${existing_setup}" "302" "existing invite accepted"
   expect_eq "$(http_code -b "${EXISTING_INVITE_COOKIE}" "${BASE}/auth/whoami")" "401" "accepted invite revokes previous session"
-  existing_relogin="$(http_code -c "${EXISTING_INVITE_COOKIE}" -X POST -d 'username=invite-existing&password=ExistingNext!91' "${BASE}/login")"
+  existing_relogin="$(http_code -c "${EXISTING_INVITE_COOKIE}" -X POST -d "username=invite-existing&password=${TEST_PASSWORD}" "${BASE}/login")"
   expect_eq "${existing_relogin}" "302" "existing invite new password login"
   existing_final="$(curl -fsS -b "${EXISTING_INVITE_COOKIE}" "${BASE}/auth/whoami")"
   case "${existing_final}" in
@@ -491,7 +497,7 @@ run_users() {
     *"\"requestId\":\"${rate_request_id}\""*'"status":"rejected"'*) pass "rejected access request visible in ops API" ;;
     *) fail "rejected access request missing from ops API: ${access_requests_json}" ;;
   esac
-  pending_login="$(http_code -X POST -d 'username=request-smoke&password=Request!91' "${BASE}/login")"
+  pending_login="$(http_code -X POST -d "username=request-smoke&password=${TEST_PASSWORD}" "${BASE}/login")"
   expect_eq "${pending_login}" "401" "pending request cannot login"
   approve_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data '{"viewId":"2"}' "${BASE}/ops/api/access-requests/${request_id}/approve")"
@@ -504,14 +510,14 @@ run_users() {
     *) pass "approved request keeps user pending until invite setup" ;;
   esac
   request_preserve_reset="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"password":"LockoutNext!92"}' "${BASE}/ops/api/users/lockout-smoke/reset-password")"
+    -X POST --data "{\"password\":\"${SECOND_PREVIOUS_PASSWORD}\"}" "${BASE}/ops/api/users/lockout-smoke/reset-password")"
   expect_eq "${request_preserve_reset}" "200" "users-only save after approved request"
   expect_auth_store_contains "approved request preserved across users save" "\"requestId\": \"${request_id}\""
   expect_auth_store_contains "approved request invite preserved across users save" "\"inviteId\": \"${approve_invite_id}\""
   request_setup="$(http_code -X POST --data-urlencode "token=${approve_token}" \
-    --data-urlencode 'password=Request!91' --data-urlencode 'confirm=Request!91' "${BASE}/invite/setup")"
+    --data-urlencode "password=${TEST_PASSWORD}" --data-urlencode "confirm=${TEST_PASSWORD}" "${BASE}/invite/setup")"
   expect_eq "${request_setup}" "302" "approved request password setup"
-  request_login="$(http_code -c "${REQUEST_COOKIE}" -X POST -d 'username=request-smoke&password=Request!91' "${BASE}/login")"
+  request_login="$(http_code -c "${REQUEST_COOKIE}" -X POST -d "username=request-smoke&password=${TEST_PASSWORD}" "${BASE}/login")"
   expect_eq "${request_login}" "302" "approved request viewer login"
 }
 
@@ -522,10 +528,10 @@ run_routes() {
   expect_eq "$(header_status_location "${BASE}/")" "302:/login" "logout root"
   login_admin
   expect_eq "$(header_status_location -b "${ADMIN_COOKIE}" "${BASE}/")" "302:/ops/home" "admin root"
-  create_user '{"username":"operator-smoke","displayName":"Operator Smoke","role":"operator","password":"Operator!91","enabled":true,"mustChangePassword":false}' >/dev/null
-  create_user '{"username":"operator-readonly","displayName":"Operator Readonly","role":"operator","scopes":["ops:read"],"password":"Operator!92","enabled":true,"mustChangePassword":false}' >/dev/null
-  create_user '{"username":"viewer-smoke","displayName":"Viewer Smoke","role":"viewer","viewId":"1","password":"Viewer!91","enabled":true,"mustChangePassword":false}' >/dev/null
-  create_user '{"username":"integrator-smoke","displayName":"Integrator Smoke","role":"integrator","viewId":"1","password":"Integrator!91","enabled":true,"mustChangePassword":false}' >/dev/null
+  create_user "{\"username\":\"operator-smoke\",\"displayName\":\"Operator Smoke\",\"role\":\"operator\",\"password\":\"${TEST_PASSWORD}\",\"enabled\":true,\"mustChangePassword\":false}" >/dev/null
+  create_user "{\"username\":\"operator-readonly\",\"displayName\":\"Operator Readonly\",\"role\":\"operator\",\"scopes\":[\"ops:read\"],\"password\":\"${TEST_PASSWORD}\",\"enabled\":true,\"mustChangePassword\":false}" >/dev/null
+  create_user "{\"username\":\"viewer-smoke\",\"displayName\":\"Viewer Smoke\",\"role\":\"viewer\",\"viewId\":\"1\",\"password\":\"${TEST_PASSWORD}\",\"enabled\":true,\"mustChangePassword\":false}" >/dev/null
+  create_user "{\"username\":\"integrator-smoke\",\"displayName\":\"Integrator Smoke\",\"role\":\"integrator\",\"viewId\":\"1\",\"password\":\"${TEST_PASSWORD}\",\"enabled\":true,\"mustChangePassword\":false}" >/dev/null
   local sources_json source_id source_kind source_file source_rtsp source_webrtc source_http matching_rule_source mismatched_rule_source
   sources_json="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/api/sources")"
   source_id="$(printf '%s' "${sources_json}" | json_first_source_field sourceId)"
@@ -568,21 +574,21 @@ run_routes() {
     "${BASE}/ops/api/views/2" >/dev/null
   local op_landing viewer_landing
   op_landing="$(curl -sS -c "${OP_COOKIE}" -o /dev/null -D - \
-    -X POST -d 'username=operator-smoke&password=Operator!91' "${BASE}/login" |
+    -X POST -d "username=operator-smoke&password=${TEST_PASSWORD}" "${BASE}/login" |
     tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
   expect_eq "${op_landing}" "302:/ops/home" "operator login route"
   local op_readonly_landing
   op_readonly_landing="$(curl -sS -c "${OP_READONLY_COOKIE}" -o /dev/null -D - \
-    -X POST -d 'username=operator-readonly&password=Operator!92' "${BASE}/login" |
+    -X POST -d "username=operator-readonly&password=${TEST_PASSWORD}" "${BASE}/login" |
     tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
   expect_eq "${op_readonly_landing}" "302:/ops/home" "readonly operator login route"
   viewer_landing="$(curl -sS -c "${VIEWER_COOKIE}" -o /dev/null -D - \
-    -X POST -d 'username=viewer-smoke&password=Viewer!91' "${BASE}/login" |
+    -X POST -d "username=viewer-smoke&password=${TEST_PASSWORD}" "${BASE}/login" |
     tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
   expect_eq "${viewer_landing}" "302:/client/live" "viewer login route"
   local integrator_landing
   integrator_landing="$(curl -sS -c "${INTEGRATOR_COOKIE}" -o /dev/null -D - \
-    -X POST -d 'username=integrator-smoke&password=Integrator!91' "${BASE}/login" |
+    -X POST -d "username=integrator-smoke&password=${TEST_PASSWORD}" "${BASE}/login" |
     tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
   expect_eq "${integrator_landing}" "302:/login" "integrator login keeps API-only landing"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops")" "403" "viewer ops denied"

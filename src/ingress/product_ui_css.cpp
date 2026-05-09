@@ -1014,17 +1014,6 @@ std::string ProductUiCss() {
       height: 1280px;
       min-height: 980px;
     }
-    .ops-dashboard-direct-frame {
-      border: 0;
-      border-radius: 0;
-      background: var(--color-bg);
-    }
-    .ops-rules-direct-frame {
-      min-height: 1280px;
-      border: 0;
-      border-radius: 0;
-      background: var(--color-bg);
-    }
     .collapsed-editor {
       border: 1px solid var(--color-border);
       border-radius: var(--radius-lg);
@@ -1292,6 +1281,12 @@ std::string ProductUiCss() {
     .channel-table {
       table-layout: fixed;
     }
+    .channel-table th,
+    .channel-table td {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
     .channel-col-id { width: 58px; }
     .channel-col-name { width: 16%; }
     .channel-col-kind { width: 118px; }
@@ -1300,9 +1295,12 @@ std::string ProductUiCss() {
     .channel-col-live-url,
     .channel-col-va-url { width: 104px; }
     .channel-col-actions { width: 164px; }
-    .channel-input-cell {
-      max-width: 280px;
-      white-space: normal;
+    .channel-id-cell,
+    .channel-kind-cell,
+    .channel-input-stack {
+      min-width: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
       word-break: break-word;
     }
     .channel-status-actions {
@@ -1362,8 +1360,10 @@ std::string ProductUiCss() {
     }
     .channel-input-stack .token,
     .channel-source-note {
-      overflow-wrap: break-word;
-      word-break: normal;
+      min-width: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
     .auth-shell {
       display: grid;
@@ -1497,9 +1497,6 @@ std::string ProductUiCss() {
         font-size: 12px;
         font-weight: 900;
         text-transform: uppercase;
-      }
-      .channel-input-cell {
-        max-width: none;
       }
       .channel-status-actions,
       .channel-stream-actions,

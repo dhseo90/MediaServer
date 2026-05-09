@@ -26,6 +26,7 @@ SESSION_JSON="/tmp/media_server_${RUN_ID}_session.json"
 CONFIG_JSON="/tmp/media_server_${RUN_ID}_webrtc_config.json"
 BROWSER_LOG="/tmp/media_server_${RUN_ID}_browser.json"
 SUMMARY_FILE="/tmp/media_server_${RUN_ID}_summary.json"
+BROWSER_WEBRTC_HARNESS="${SCRIPT_DIR}/browser_webrtc_publish_consume_check.mjs"
 SESSION_ID=""
 REQUIRE_RELAY=0
 EXTERNAL_TURN_MODE=0
@@ -46,6 +47,11 @@ log_pass() { echo "[pass] $*"; PASS_COUNT=$((PASS_COUNT + 1)); }
 log_fail() { echo "[fail] $*"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
 # 환경 의존으로 생략한 항목을 누적하고 이유를 출력한다.
 log_skip() { echo "[skip] $*"; SKIP_COUNT=$((SKIP_COUNT + 1)); }
+
+browser_webrtc_harness_available() {
+  [[ -f "${BROWSER_WEBRTC_HARNESS}" ]] || return 1
+  ! grep -Fq "removed: 초기 WebRTC 테스트 페이지" "${BROWSER_WEBRTC_HARNESS}"
+}
 
 # verify-webrtc-ice 명령의 사용법과 관련 환경 변수를 출력한다.
 usage() {
@@ -477,8 +483,8 @@ fi
 
 if [[ "${SKIP_BROWSER}" == "1" ]]; then
   log_skip "브라우저 WebRTC playback 검증 생략"
-elif [[ -x "${SCRIPT_DIR}/browser_webrtc_publish_consume_check.mjs" || -f "${SCRIPT_DIR}/browser_webrtc_publish_consume_check.mjs" ]]; then
-  if node "${SCRIPT_DIR}/browser_webrtc_publish_consume_check.mjs" \
+elif browser_webrtc_harness_available; then
+  if node "${BROWSER_WEBRTC_HARNESS}" \
       --http-base "${HTTP_BASE}" \
       --mode simple \
       --file "${FILE_TOKEN}" \
@@ -492,7 +498,7 @@ elif [[ -x "${SCRIPT_DIR}/browser_webrtc_publish_consume_check.mjs" || -f "${SCR
     print_browser_failure_hints
   fi
 else
-  log_skip "browser_webrtc_publish_consume_check.mjs 없음"
+  log_skip "브라우저 WebRTC playback 검증 생략: product WebRTC browser harness is not available"
 fi
 
 if [[ "${SKIP_WHIP}" == "1" ]]; then
