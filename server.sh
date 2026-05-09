@@ -84,6 +84,8 @@ Usage:
                  event POST schema/recovery/선택 queue 검증을 반복 실행합니다.
   verify-longrun-separation
                  기본 smoke와 장기 soak/longrun harness 분리 기준을 검증합니다.
+  verify-rc-release-gate
+                 120분 soak/VA runtime longrun이 RC 전용 기준으로 분리됐는지 검증합니다.
   verify-tracker-stability
                  이동 영상에서 track ID 유지/분절 통계를 수집합니다.
   compare-close-object-tracker
@@ -317,6 +319,10 @@ case "${cmd}" in
   verify-longrun-separation)
     require_internal verify_longrun_separation.mjs
     exec "${INTERNAL_DIR}/verify_longrun_separation.mjs" "$@"
+    ;;
+  verify-rc-release-gate)
+    require_internal verify_rc_release_gate.mjs
+    exec "${INTERNAL_DIR}/verify_rc_release_gate.mjs" "$@"
     ;;
   verify-tracker-stability)
     require_internal verify_tracker_stability.sh
