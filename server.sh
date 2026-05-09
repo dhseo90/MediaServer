@@ -49,6 +49,8 @@ Usage:
                  /ops/rules Rule/Profile 카테고리 버튼과 저장 payload를 검증합니다.
   verify-ops-client-ui
                  /ops와 /client shell selector 및 client debug/source 비노출을 검증합니다.
+  verify-ops-click-e2e
+                 /ops 채널/룰/사용자 주요 패널과 탭 이동을 실제 브라우저 클릭으로 검증합니다.
   verify-ops-rules-roundtrip
                  /ops/rules 이벤트 템플릿 저장/조회 round-trip을 영상 재생 없이 검증합니다.
   verify-auth-bootstrap
@@ -222,6 +224,10 @@ case "${cmd}" in
   verify-ops-client-ui)
     require_internal verify_ops_client_ui_smoke.mjs
     exec "${INTERNAL_DIR}/verify_ops_client_ui_smoke.mjs" "$@"
+    ;;
+  verify-ops-click-e2e)
+    require_internal verify_ops_ui_click_e2e.mjs
+    exec "${INTERNAL_DIR}/verify_ops_ui_click_e2e.mjs" "$@"
     ;;
   verify-ops-rules-roundtrip)
     require_internal verify_ops_rules_roundtrip.mjs
