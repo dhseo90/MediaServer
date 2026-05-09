@@ -71,6 +71,19 @@ async function runOpsClickFlow(browser, context) {
   await assertReady(browser, "/ops/sources", '[data-testid="ops-sources-page"]');
   await assertNoOverflow(browser, `${context.label}:sources-initial`);
 
+  await clickSelector(browser, 'a[href="/ops/dashboard"]', "운영 대시보드");
+  await waitForPath(browser, "/ops/dashboard");
+  await installErrorCollector(browser);
+  await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
+  await clickSelector(browser, "[data-root-cause-kind]", "문제 원인 다음 조치");
+  await assertVisible(browser, "#dashRootCauseActionOutput", "문제 원인 조치 결과");
+  await assertNoOverflow(browser, `${context.label}:dashboard-root-cause-action`);
+  await clickSelector(browser, 'a[href="/ops/sources"]', "채널 탭");
+  await waitForPath(browser, "/ops/sources");
+  await installErrorCollector(browser);
+  await assertReady(browser, "/ops/sources", '[data-testid="ops-sources-page"]');
+  steps.push("dashboard:root-cause-action");
+
   await clickSelector(browser, "#add-channel", "채널 추가");
   await assertVisible(browser, "#channel-detail-panel", "채널 추가 패널");
   await assertText(browser, "#channel-editor-title", "채널 추가", "채널 추가 제목");

@@ -1406,7 +1406,9 @@ void AppendOpsShellScript(std::ostringstream& out,
             correlationId: sourceLog.correlationId,
             action: stalledResources ? '종료된 세션 뒤에 resource stream/tap이 남았는지 cleanup 로그와 채널 상태를 확인합니다.' : 'idle 또는 활성 수치가 일치합니다.',
             actionHref: '/ops/sources',
-            actionLabel: '채널 상태'
+            actionLabel: '채널 상태',
+            actionKind: 'source-diagnostics',
+            actionPatterns: 'cleanup|source lifecycle|resourceActive|activeAnalysisTaps'
           },
           {
             level: staleTaps.length > 0 ? 'warn' : 'info',
@@ -1421,7 +1423,9 @@ void AppendOpsShellScript(std::ostringstream& out,
             correlationId: staleLog.correlationId,
             action: staleTaps.length > 0 ? 'viewer 종료, route 이동, 탭 재사용 해제 흐름을 점검합니다.' : '분석 탭 age가 정상 범위입니다.',
             actionHref: '/ops/rules',
-            actionLabel: '룰 연결'
+            actionLabel: '룰 연결',
+            actionKind: 'registry-diff',
+            actionPatterns: 'stale|metadata skipped|lastUsedAge|tapId'
           },
           {
             level: inactivePublishSources.length > 0 || cleanupBacklog ? 'warn' : 'info',
@@ -1438,7 +1442,9 @@ void AppendOpsShellScript(std::ostringstream& out,
               ? 'WHIP publisher 재접속과 video track 생성 여부를 확인합니다.'
               : (cleanupBacklog ? 'cleanup completed가 requests를 따라가지 못하는지 로그를 확인합니다.' : 'reconnect/cleanup 지표가 정상 범위입니다.'),
             actionHref: '/ops/events',
-            actionLabel: '이벤트 기록'
+            actionLabel: '이벤트 기록',
+            actionKind: 'event-diagnostics',
+            actionPatterns: 'reconnect|cleanup|WHIP|publisher|failed to create|event post|event storage'
           },
           {
             level: principal && hasOpsRead && !relayFallback ? 'info' : 'warn',
@@ -1451,9 +1457,89 @@ void AppendOpsShellScript(std::ostringstream& out,
             correlationId: authLog.correlationId,
             action: principal && hasOpsRead && !relayFallback ? '운영 대시보드 접근 권한과 ICE 설정이 정상 범위입니다.' : '세션, role/scope, auth mode, TURN/ICE 설정을 확인합니다.',
             actionHref: '/ops/users',
-            actionLabel: '권한 확인'
+            actionLabel: '권한 확인',
+            actionKind: 'auth-config',
+            actionPatterns: 'auth|login|session|scope|ICE|TURN|relay'
           }
         ];
+      };
+      const rootCauseLogFilter = (lines = [], correlationId = '', patterns = '') => {
+        const regex = patterns ? new RegExp(patterns, 'i') : null;
+        return (Array.isArray(lines) ? lines : [])
+          .map(line => String(line || ''))
+          .filter(line => (correlationId && line.includes(correlationId)) || (regex && regex.test(line)))
+          .slice(-6);
+      };
+      const renderRootCauseActionOutput = (title, rows = [], logs = []) => {
+        const output = document.getElementById('dashRootCauseActionOutput');
+        if (!output) return;
+        output.hidden = false;
+        output.innerHTML = `<strong>${escapeHtml(title)}</strong>
+          <ul>${rows.map(row => `<li>${escapeHtml(row)}</li>`).join('')}</ul>
+          ${logs.length > 0 ? `<pre>${escapeHtml(logs.join('\n'))}</pre>` : '<p class="hint">일치하는 최근 로그가 없습니다.</p>'}`;
+      };
+      const runRootCauseAction = async item => {
+        const [logTail, sources, views, catalog, eventsStatus, principal, browserConfig] = await Promise.all([
+          requestJson('/ops/api/diagnostics/log-tail?limit=120').catch(error => ({ error: error.message, lines: [] })),
+          requestJson('/ops/api/sources').catch(error => ({ error: error.message, sources: [] })),
+          requestJson('/ops/api/views').catch(error => ({ error: error.message, views: [] })),
+          requestJson('/ops/api/rules/catalog').catch(error => ({ error: error.message, rules: [], vaRules: [], profiles: [] })),
+          requestJson('/ops/api/events/status?limit=8&includeArchives=1').catch(error => ({ error: error.message, records: { records: [] } })),
+          applyPrincipalVisibility().catch(() => null),
+          requestJson('/webrtc/config').catch(error => ({ error: error.message }))
+        ]);
+        const logs = rootCauseLogFilter(logTail.lines, item.correlationId, item.actionPatterns);
+        if (item.actionKind === 'source-diagnostics') {
+          const sourceItems = Array.isArray(sources.sources) ? sources.sources : [];
+          const viewItems = Array.isArray(views.views) ? views.views : [];
+          const missingViews = sourceItems.filter(source => !viewItems.some(view => view.sourceId === source.sourceId));
+          const disabled = sourceItems.filter(source => source.enabled === false);
+          renderRootCauseActionOutput('채널 상태 재검증', [
+            `source ${sourceItems.length}개 · view ${viewItems.length}개`,
+            `view 누락 ${missingViews.length}개`,
+            `비활성 source ${disabled.length}개`,
+            '상세 조치는 /ops/sources에서 수행합니다.'
+          ], logs);
+          return;
+        }
+        if (item.actionKind === 'registry-diff') {
+          const vaRules = Array.isArray(catalog.vaRules) ? catalog.vaRules : [];
+          const rules = Array.isArray(catalog.rules) ? catalog.rules : [];
+          const profiles = Array.isArray(catalog.profiles) ? catalog.profiles : [];
+          const sourceItems = Array.isArray(sources.sources) ? sources.sources : [];
+          const mismatches = vaRules.filter(rule => {
+            const sourceId = String(rule.sourceId || rule.source?.sourceId || '');
+            const profileId = String(rule.profileId || rule.analysis?.profileId || '');
+            const eventRuleId = String(rule.eventRuleId || rule.templateRuleId || rule.templateStart?.ruleId || '');
+            return (sourceId && !sourceItems.some(source => String(source.sourceId) === sourceId)) ||
+              (profileId && !profiles.some(profile => String(profile.profileId || profile.id) === profileId)) ||
+              (eventRuleId && !rules.some(eventRule => String(eventRule.ruleId || eventRule.id) === eventRuleId));
+          });
+          renderRootCauseActionOutput('Registry diff 확인', [
+            `VA rule ${vaRules.length}개 · event template ${rules.length}개 · profile ${profiles.length}개`,
+            `참조 mismatch ${mismatches.length}개`,
+            '상세 조치는 /ops/rules에서 수행합니다.'
+          ], logs);
+          return;
+        }
+        if (item.actionKind === 'event-diagnostics') {
+          const records = Array.isArray(eventsStatus?.records?.records) ? eventsStatus.records.records : [];
+          const storage = eventsStatus.storage || {};
+          const post = eventsStatus.post || {};
+          renderRootCauseActionOutput('Event/evidence 상태 확인', [
+            `최근 EventRecord ${records.length}개`,
+            `storage stored=${storage.storedCount ?? 0} failed=${storage.failedCount ?? 0}`,
+            `event POST sent=${post.sentCount ?? 0} failed=${post.failedCount ?? 0}`,
+            '상세 조치는 /ops/events에서 수행합니다.'
+          ], logs);
+          return;
+        }
+        renderRootCauseActionOutput('Auth/config 상태 확인', [
+          `role ${principal?.role || '미제공'} · auth ${principal?.authMode || '미제공'}`,
+          `ICE ${browserConfig?.iceTransportPolicy || '미제공'} · STUN ${browserConfig?.hasStun ? 'on' : 'off'} · TURN ${browserConfig?.hasTurn ? 'on' : 'off'}`,
+          `relay fallback ${browserConfig?.relayPolicyFallback ? 'on' : 'off'}`,
+          '상세 조치는 /ops/users와 TURN/ICE 설정에서 수행합니다.'
+        ], logs);
       };
       const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}) => {
         const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig, diagnosticLog);
@@ -1470,7 +1556,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           : '운영자가 바로 확인할 source lifecycle, stale, reconnect, auth/config 문제가 없습니다.');
         const list = document.getElementById('dashRootCauseList');
         if (!list) return;
-        list.innerHTML = items.map(item => `<article class="root-cause-item ${escapeHtml(item.level)}">
+        list.innerHTML = items.map((item, index) => `<article class="root-cause-item ${escapeHtml(item.level)}">
           <div>
             <strong>${escapeHtml(item.title)}</strong>
             <p>${escapeHtml(item.detail)}</p>
@@ -1480,8 +1566,14 @@ void AppendOpsShellScript(std::ostringstream& out,
           ${item.evidence ? `<p class="root-cause-evidence">${escapeHtml(item.evidence)}</p>` : ''}
           ${item.log ? `<p class="root-cause-log">${escapeHtml(item.log)}</p>` : ''}
           <p class="root-cause-action">${escapeHtml(item.action)}</p>
-          ${item.actionHref ? `<a class="button button-secondary button-compact root-cause-next-action" data-root-cause-action="${escapeHtml(item.title)}" data-correlation-id="${escapeHtml(item.correlationId || '')}" href="${escapeHtml(item.actionHref)}">${escapeHtml(item.actionLabel || '다음 조치')}</a>` : ''}
+          ${item.actionHref ? `<button type="button" class="button button-secondary button-compact root-cause-next-action" data-root-cause-index="${index}" data-root-cause-kind="${escapeHtml(item.actionKind || '')}" data-root-cause-action="${escapeHtml(item.title)}" data-correlation-id="${escapeHtml(item.correlationId || '')}">${escapeHtml(item.actionLabel || '다음 조치')}</button> <a class="btn small" href="${escapeHtml(item.actionHref)}">이동</a>` : ''}
         </article>`).join('');
+        list.querySelectorAll('[data-root-cause-index]').forEach(button => {
+          button.addEventListener('click', () => {
+            const item = items[Number(button.dataset.rootCauseIndex || 0)];
+            if (item) runRootCauseAction(item).catch(error => renderRootCauseActionOutput('다음 조치 실패', [error.message || String(error)], []));
+          });
+        });
       };
       async function refreshLive() {
         const [sources, views, catalog, runtime, events, users, diagnosticLog] = await Promise.all([
@@ -1526,11 +1618,12 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderRaw('opsHomeRaw', 'opsHomePretty', { sources, views, catalog, runtime, events, users });
       }
       async function refreshDashboard() {
-        const [runtime, principal, eventsStatus, browserConfig] = await Promise.all([
+        const [runtime, principal, eventsStatus, browserConfig, diagnosticLog] = await Promise.all([
           requestJson('/ops/api/runtime/status'),
           applyPrincipalVisibility().catch(() => null),
           requestJson('/ops/api/events/status?limit=5&includeArchives=1').catch(error => ({ error: error.message, records: { records: [] } })),
-          requestJson('/webrtc/config').catch(error => ({ error: error.message }))
+          requestJson('/webrtc/config').catch(error => ({ error: error.message })),
+          requestJson('/ops/api/diagnostics/log-tail?limit=80').catch(error => ({ error: error.message, available: false, lines: [] }))
         ]);
         const counts = runtimeCounts(runtime);
         const metadata = runtime?.webrtcHttp?.metadataDataChannel || {};
