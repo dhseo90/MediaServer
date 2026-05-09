@@ -18,7 +18,7 @@
 | --- | --- |
 | `./server.sh test` | 기본 smoke. 로컬 file/RTSP/WebRTC/기본 API 중심 |
 | `./server.sh test --basic` | 기본 smoke를 명시적으로 실행 |
-| `./server.sh test --full` | Rule/Profile UI, VA event, image analysis, event POST smoke, redaction 포함 |
+| `./server.sh test --full` | Product UI smoke, Rule/Profile UI, VA event, image analysis, event POST smoke, redaction 포함 |
 | `./server.sh test --external` | `--full` + LAN/external source, WebRTC ICE, 외부 HTTP/HLS URI 선택 검증. 외부 WHEP endpoint는 환경 의존 별도 검증 |
 | `./server.sh test --stable` | 기존 stable 호환 기준 |
 
@@ -45,7 +45,11 @@ release candidate gate를 열 때만 명시적으로 실행합니다.
 
 ```bash
 ./server.sh build
-git diff --check -- README.md docs scripts src include
+git diff --check -- README.md NOTICE .github docs scripts src include
+./server.sh verify-script-inventory
+./server.sh verify-code-comments
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-click-e2e
@@ -1363,6 +1367,11 @@ Redaction은 개인정보 보호/모자이크 경로의 선택 검증입니다.
 ```bash
 ./server.sh test --full
 ```
+
+`--full`은 release 전 로컬 기준선입니다. `--basic` 범위에 더해
+`verify-ops-client-ui`, `verify-ops-click-e2e`,
+`verify-ops-tables-layout`, `verify-ops-rules-roundtrip`,
+`verify-rule-ui`, event POST schema/recovery, redaction을 함께 실행합니다.
 
 확인 기준:
 

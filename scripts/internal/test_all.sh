@@ -36,6 +36,7 @@ INCLUDE_IMAGE_ANALYSIS=0
 INCLUDE_WEBRTC_ICE=0
 INCLUDE_URI_LONGRUN=0
 INCLUDE_EVENT_POST=0
+INCLUDE_PRODUCT_UI_SMOKE=0
 INCLUDE_MULTICHANNEL=0
 INCLUDE_REDACTION=0
 INCLUDE_REPORT_SUMMARY=0
@@ -52,7 +53,7 @@ Usage:
 
 테스트 모드:
   --basic     기본값입니다. 외부망/LAN 접근성 없이 로컬 hard gate만 실행합니다. 커밋 전 기본 확인용입니다.
-  --full      basic + Rule UI, VA event, image analysis, event POST smoke, redaction, report summary를 실행합니다.
+  --full      basic + Product UI smoke, Rule UI, VA event, image analysis, event POST smoke, redaction, report summary를 실행합니다.
   --external  full + LAN IP 접근성, 외부 RTSP advisory, WebRTC ICE, 외부 URI longrun을 실행합니다.
   --stable    기존 stable 기준입니다. 안정화된 로컬 스트리밍 + LAN IP 접근성 + 외부 RTSP advisory를 실행합니다.
 
@@ -68,7 +69,7 @@ basic 기준:
   - YouTube source/import: 실험실 기능
   - LAN IP 외부 클라이언트 접근성, 제3자 RTSP upstream, WebRTC ICE, 외부 TURN relay
   - adaptive tuner 장시간 검증
-  - Rule/Profile UI, 룰/이벤트/POST smoke, 정적 이미지 분석 API는 full 또는 선택 검증으로 실행
+  - Product UI smoke, 룰/이벤트/POST smoke, 정적 이미지 분석 API는 full 또는 선택 검증으로 실행
   - event POST longrun과 runtime longrun/cycle은 별도 verify-*longrun 명령으로만 실행
   - 다채널 fan-out은 초기 브라우저 harness 제거 후 별도 제품 UI harness 준비 전까지 skip
 
@@ -88,6 +89,8 @@ Options:
   --include-uri-longrun
                        선택 검증: HTTP/HLS URI source 장기 검증을 추가
   --include-event-post 선택 검증: event POST schema/recovery smoke test를 추가
+  --include-product-ui-smoke
+                       선택 검증: /ops와 /client shell, 실제 클릭, 테이블, rules round-trip smoke를 추가
   --include-multichannel
                        현재 skip: 초기 브라우저 harness 제거 후 별도 제품 UI harness 필요
   --include-redaction 선택 검증: 사람 객체 자동 모자이크 image/live 검증을 추가
@@ -146,6 +149,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     --include-event-post)
       INCLUDE_EVENT_POST=1
+      ;;
+    --include-product-ui-smoke)
+      INCLUDE_PRODUCT_UI_SMOKE=1
       ;;
     --include-multichannel)
       INCLUDE_MULTICHANNEL=1
@@ -212,6 +218,7 @@ if [[ "${MODE}" == "full" ]]; then
   INCLUDE_VA_EVENTS=1
   INCLUDE_IMAGE_ANALYSIS=1
   INCLUDE_EVENT_POST=1
+  INCLUDE_PRODUCT_UI_SMOKE=1
   INCLUDE_REDACTION=1
   INCLUDE_REPORT_SUMMARY=1
 fi
@@ -224,6 +231,7 @@ if [[ "${MODE}" == "external" ]]; then
   INCLUDE_WEBRTC_ICE=1
   INCLUDE_URI_LONGRUN=1
   INCLUDE_EVENT_POST=1
+  INCLUDE_PRODUCT_UI_SMOKE=1
   INCLUDE_REDACTION=1
   INCLUDE_REPORT_SUMMARY=1
   URI_LONGRUN_EXTERNAL=1
@@ -251,7 +259,7 @@ MediaServer 통합 테스트 시작
   4. stable/external 모드는 LAN IP 외부 클라이언트 접근성과 제3자 RTSP upstream advisory를 확인함
   5. basic/stable/full/external 모드는 안정화된 로컬 source(file/RTSP/WebRTC publish/HTTP URI)를 RTSP/WebRTC 기본 경로로 소비해야 함
   6. basic/stable/full/external 모드는 기본 설치 범위인 YOLO/VA overlay가 lab API와 RTSP에서 동작해야 함
-  7. full/external 모드는 Rule UI, VA event, image analysis, event POST smoke, redaction까지 확인함
+  7. full/external 모드는 Product UI smoke, VA event, image analysis, event POST smoke, redaction까지 확인함
 - 제외:
   YouTube, adaptive tuner, 외부 TURN relay
   룰 registry는 --include-rules, Rule UI는 --include-rule-ui, 이동 이벤트는 --include-va-events,
@@ -280,7 +288,9 @@ infer_reason() {
     echo "ONNX Runtime 개발 파일을 찾지 못했습니다. ./server.sh install 또는 MEDIA_SERVER_ONNXRUNTIME_ROOT 설정이 필요합니다."
   elif grep -Eiq "AI assets missing|missing YOLO model|missing YOLO labels|No such file.*yolo|No such file.*coco" "${log_file}"; then
     echo "YOLO 모델 또는 label 파일이 없습니다. ./server.sh install로 models/yolo11n.onnx와 models/coco.names를 준비하세요."
-  elif grep -Eiq "Operation not permitted|cannot bind TCP|Error binding to address|Address already in use|not listening" "${log_file}"; then
+  elif grep -Eiq "Operation not permitted|PermissionError|local port bind를 차단|sandbox" "${log_file}"; then
+    echo "현재 실행 환경이 local port bind를 차단했습니다. Codex/CI sandbox에서는 서버 시작 테스트가 실패할 수 있으므로 권한 밖 실행 또는 실제 터미널에서 재시도하세요."
+  elif grep -Eiq "cannot bind TCP|Error binding to address|Address already in use|not listening" "${log_file}"; then
     echo "포트 바인딩 또는 리슨 상태 문제입니다. 포트 충돌, 샌드박스 권한, 방화벽/보안 정책을 확인하세요."
   elif grep -Eiq "HTTP health check failed|health failed|/health|Connection refused|Failed to connect" "${log_file}"; then
     echo "HTTP 서버가 준비되지 않았거나 접근할 수 없습니다. 서버 로그와 HTTP 포트를 확인하세요."
@@ -383,6 +393,24 @@ run_step \
   "스크립트 문법 검사" \
   "쉘 스크립트 문법 오류입니다. 최근 수정한 server.sh 또는 scripts/internal/*.sh를 확인하세요." \
   "bash -n server.sh scripts/internal/*.sh" || true
+
+run_step \
+  "script-inventory" \
+  "server.sh 명령/script inventory 검사" \
+  "server.sh dispatch, 문서 명령 참조, JS 옵션 검증 범위가 어긋났습니다." \
+  "./server.sh verify-script-inventory" || true
+
+run_step \
+  "code-comments" \
+  "코드 주석 정책 검사" \
+  "파일 상단 용도 주석 또는 한글 설명 주석 정책이 깨졌습니다." \
+  "./server.sh verify-code-comments" || true
+
+run_step \
+  "docs-links" \
+  "문서 링크/이미지 참조 검사" \
+  "README/docs의 로컬 링크 또는 이미지 참조가 깨졌습니다." \
+  "./server.sh verify-docs-links" || true
 
 run_step \
   "config-json" \
@@ -589,9 +617,40 @@ else
   skip_step "Rule/Profile UI 선택 검증" "브라우저 자동화가 필요한 항목이라 기본 테스트에서 제외합니다. 필요하면 --include-rule-ui를 사용하세요."
 fi
 
+if [[ "${INCLUDE_PRODUCT_UI_SMOKE}" == "1" ]]; then
+  if [[ ${DEPENDENCY_FAILED} -ne 0 ]]; then
+    skip_step "Product UI smoke 선택 검증" "서버 readiness가 실패해 Product UI smoke를 생략합니다."
+  else
+    run_step \
+      "ops-client-ui-smoke" \
+      "선택 검증: /ops와 /client shell smoke" \
+      "/ops와 /client shell selector, client debug/source 비노출 기준이 깨졌습니다." \
+      "./server.sh verify-ops-client-ui" || true
+    run_step \
+      "ops-click-e2e" \
+      "선택 검증: /ops 실제 클릭 E2E" \
+      "/ops 채널/룰/사용자 주요 패널 또는 탭 이동 실제 클릭 검증이 실패했습니다." \
+      "./server.sh verify-ops-click-e2e" || true
+    run_step \
+      "ops-tables-layout" \
+      "선택 검증: /ops 테이블 반응형 layout" \
+      "채널/룰/사용자 테이블의 셀 침범 또는 동적 리사이즈 안정성 검증이 실패했습니다." \
+      "./server.sh verify-ops-tables-layout" || true
+    run_step \
+      "ops-rules-roundtrip" \
+      "선택 검증: /ops/rules round-trip" \
+      "이벤트 템플릿 저장/조회 round-trip smoke가 실패했습니다." \
+      "./server.sh verify-ops-rules-roundtrip" || true
+  fi
+else
+  skip_step "Product UI smoke 선택 검증" "release 전 UI smoke 기준입니다. full/external 또는 --include-product-ui-smoke에서 실행합니다."
+fi
+
 if [[ "${INCLUDE_VA_EVENTS}" == "1" ]]; then
   if [[ ${DEPENDENCY_FAILED} -ne 0 ]]; then
     skip_step "VA tracking 이벤트 선택 검증" "서버 readiness가 실패해 tracker 이벤트 검증을 생략합니다."
+  elif [[ "${SKIP_VA}" == "1" ]]; then
+    skip_step "VA tracking 이벤트 선택 검증" "--skip-va 옵션으로 YOLO 기반 tracker 이벤트 검증을 생략합니다."
   else
     run_step \
       "va-tracking-events" \

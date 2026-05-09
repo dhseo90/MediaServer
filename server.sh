@@ -92,6 +92,10 @@ Usage:
                  /client/dashboard 다중 view 비교와 로딩/빈/오류 상태 문구를 검증합니다.
   verify-docs-ui-assets
                  README/UI guide screenshot 자산과 자동 캡처 기준을 검증합니다.
+  verify-docs-links
+                 README/docs Markdown 링크와 이미지 파일 참조를 검증합니다.
+  verify-code-comments
+                 코드/스크립트 상단 용도 주석과 한글 주석 정책을 검증합니다.
   verify-script-inventory
                  server.sh 명령, 문서 명령 참조, JS 옵션 검증 적용 범위를 점검합니다.
   verify-server-start-modes
@@ -363,6 +367,14 @@ case "${cmd}" in
   verify-docs-ui-assets)
     require_internal verify_docs_ui_assets.mjs
     exec "${INTERNAL_DIR}/verify_docs_ui_assets.mjs" "$@"
+    ;;
+  verify-docs-links)
+    require_internal verify_docs_links.mjs
+    exec "${INTERNAL_DIR}/verify_docs_links.mjs" "$@"
+    ;;
+  verify-code-comments)
+    require_internal verify_code_comments.mjs
+    exec "${INTERNAL_DIR}/verify_code_comments.mjs" "$@"
     ;;
   verify-script-inventory)
     require_internal verify_script_inventory.mjs
