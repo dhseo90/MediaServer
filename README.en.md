@@ -2,10 +2,12 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
+[![Latest Release](https://img.shields.io/github/v/release/dhseo90/MediaServer?label=release)](https://github.com/dhseo90/MediaServer/releases/latest)
 
 Media Server is a C++17 RTSP/WebRTC relay with optional YOLO/ONNX video analytics overlays, rule/scenario events, and short evidence artifacts.
 
 Korean documentation: [README.md](README.md)
+Latest source-only release: [v1.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.0.0)
 
 ## At a Glance
 
@@ -106,27 +108,27 @@ See [docs/en/sample-fixture-provenance.md](docs/en/sample-fixture-provenance.md)
 
 **Ops Home**
 
-![Ops home](docs/assets/ui/ops-home.png)
+![Ops home](docs/assets/ui/en/ops-home.png)
 
 **Ops Channels**
 
-![Ops channels](docs/assets/ui/ops-channels.png)
+![Ops channels](docs/assets/ui/en/ops-channels.png)
 
 **Ops Rules**
 
-![Ops rules](docs/assets/ui/ops-rules.png)
+![Ops rules](docs/assets/ui/en/ops-rules.png)
 
 **Rule Preview Editor**
 
-![Rule preview editor](docs/assets/ui/ops-rules-preview.png)
+![Rule preview editor](docs/assets/ui/en/ops-rules-preview.png)
 
 **Ops Users**
 
-![Ops users](docs/assets/ui/ops-users.png)
+![Ops users](docs/assets/ui/en/ops-users.png)
 
 **Client Live**
 
-![Client live](docs/assets/ui/client-live.png)
+![Client live](docs/assets/ui/en/client-live.png)
 
 ## Account Views
 

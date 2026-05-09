@@ -454,6 +454,29 @@ std::string ProductUiCss() {
       border-radius: 999px;
       font-size: 0;
     }
+    .language-control {
+      width: auto;
+      min-width: 112px;
+      flex: 0 0 auto;
+      display: grid;
+      gap: 3px;
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .language-control span {
+      line-height: 1;
+    }
+    .language-select {
+      width: 100%;
+      min-height: 36px;
+      height: 36px;
+      padding: 5px 8px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      font-weight: 900;
+    }
     .theme-toggle svg {
       width: 20px;
       height: 20px;
@@ -485,6 +508,9 @@ std::string ProductUiCss() {
       top: var(--space-4);
       right: var(--space-4);
       z-index: 30;
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
     }
     .panel,
     .section-card,

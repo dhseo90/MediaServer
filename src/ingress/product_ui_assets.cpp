@@ -8,6 +8,11 @@ std::string ProductThemeToggleButtonHtml() {
     return R"(<button id="themeToggleBtn" class="theme-toggle" type="button" aria-label="다크 모드로 전환" title="다크 모드로 전환"><svg class="theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 14.5A7.8 7.8 0 0 1 9.5 3a8.8 8.8 0 1 0 11.5 11.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><svg class="theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.8v2.3M12 18.9v2.3M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.8 12h2.3M18.9 12h2.3M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>)";
 }
 
+// 주요 동작: 제품 UI 언어를 한국어/영어 중 선택하고 브라우저에 저장할 select를 제공한다.
+std::string ProductLanguageSelectHtml() {
+    return R"(<label class="language-control"><span>언어</span><select class="language-select" aria-label="언어 선택" title="언어 선택"><option value="ko">한국어</option><option value="en">English</option></select></label>)";
+}
+
 // 주요 동작: 네비게이션 key에 맞는 inline SVG를 반환하고, 알 수 없는 key는 기본 아이콘으로 대체한다.
 std::string ProductNavIconSvg(const std::string& key) {
     if (key == "home") {
