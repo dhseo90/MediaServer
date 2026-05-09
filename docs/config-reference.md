@@ -27,6 +27,7 @@
 ```
 
 bundle에는 `/health`, runtime status, `check_server`, `diagnose`, log tail, registry/auth store 파일 metadata, redacted env 요약이 포함됩니다. Auth users file 내용과 plaintext secret은 포함하지 않습니다.
+복구용 백업 대상과 복구 후 검증 절차는 [docs/ops-backup-recovery.md](ops-backup-recovery.md)에 둡니다.
 
 ## 서버 기본 env
 

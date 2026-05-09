@@ -78,6 +78,8 @@ Usage:
                  /ops/api/audit 서버 영속 감사 로그와 UI fallback hook을 검증합니다.
   verify-ops-diagnostics-bundle
                  운영 diagnostics bundle 생성물과 config preset 기준을 검증합니다.
+  verify-ops-backup-recovery-guide
+                 운영 백업/복구 가이드와 복구 후 검증 절차를 정적 검증합니다.
   verify-ops-root-cause-panel
                  /ops/dashboard 문제 원인 패널과 source/stale/reconnect/auth 해석 hook을 검증합니다.
   verify-client-dashboard-polish
@@ -323,6 +325,10 @@ case "${cmd}" in
   verify-ops-diagnostics-bundle)
     require_internal verify_ops_diagnostics_bundle.sh
     exec "${INTERNAL_DIR}/verify_ops_diagnostics_bundle.sh" "$@"
+    ;;
+  verify-ops-backup-recovery-guide)
+    require_internal verify_ops_backup_recovery_guide.mjs
+    exec "${INTERNAL_DIR}/verify_ops_backup_recovery_guide.mjs" "$@"
     ;;
   verify-ops-root-cause-panel)
     require_internal verify_ops_root_cause_panel.mjs
