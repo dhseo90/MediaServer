@@ -48,7 +48,8 @@ live VA event 품질을 다루고, 장기 녹화/VMS/NVR/playback/Profile G는 �
 
 ### v1.1.0-alpha.1 Live-only 제품 경계 확정
 
-- **상태**: `진행` - roadmap 우선 기준 정리 후 README/backlog 문구 동기화 중
+- **상태**: `완료` - roadmap 우선 기준, README/backlog, 영어 문서,
+  recording/VMS/NVR 가드레일 정리 완료
 - 목적:
   v1.1.0의 첫 단계를 구현 기능 추가가 아니라 제품 경계 확정으로 닫습니다.
   이후 ONVIF import나 source health 작업이 장기 녹화/VMS/NVR 방향으로

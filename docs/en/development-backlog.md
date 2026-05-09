@@ -20,7 +20,7 @@ Detailed Korean backlog: [../development-backlog.md](../development-backlog.md)
 | Runtime distribution policy | Done | Source-first policy and bundle guardrails are in place |
 | Ops UI stability | Done | Channels/Rules/Users responsive table checks exist |
 | v1.1.0 live operations | Next | ONVIF live onboarding, live source health, and live VA event quality |
-| v1.1.0-alpha.1 live-only boundary | In progress | Roadmap, README, backlog, and guardrail wording are being aligned |
+| v1.1.0-alpha.1 live-only boundary | Done | Roadmap, README, backlog, English docs, and recording/VMS/NVR guardrails are aligned |
 | Audit trail operations | In progress | Server persistence exists; search/export can improve |
 | Short event evidence | Supporting | EventRecord/snapshot/clip cleanup exists, but it is not the main v1.1.0 product direction |
 | RC gate operations | In progress | Longrun gate exists; artifact retention can improve |
