@@ -27,6 +27,9 @@ Options:
   --json-output <path>  생성할 JSON snapshot입니다.
   --binary <path>       linked library를 확인할 media_server binary입니다. 기본 build-gst-onnx/media_server.
   --no-linked-libs      binary linked library snapshot을 건너뜁니다.
+  --no-gstreamer-elements
+                       GStreamer element/plugin snapshot을 건너뜁니다.
+  --stable              generatedAt을 고정해 CI diff를 안정화합니다.
   --timeout-ms <n>      각 감지 command timeout입니다. 기본 5000.
   -h, --help            도움말 출력
 `);
@@ -37,6 +40,8 @@ assertKnownOptions(rawArgs, [
   "json-output",
   "binary",
   "no-linked-libs",
+  "no-gstreamer-elements",
+  "stable",
   "timeout-ms",
   "h",
   "help",
@@ -53,7 +58,9 @@ const snapshot = buildSnapshot(inventory, {
   inventoryPath,
   timeoutMs,
   binaryPath,
+  stable: args.stable === true,
   includeLinkedLibraries: !args.noLinkedLibs,
+  includeGStreamerElements: !args.noGstreamerElements,
 });
 
 writeText(outputPath, buildMarkdown(snapshot));
@@ -78,11 +85,12 @@ function buildSnapshot(inventoryPayload, context) {
   }));
   return {
     schema: "media-server.dependency-snapshot.v1",
-    generatedAt: new Date().toISOString(),
+    generatedAt: context.stable ? "stable" : new Date().toISOString(),
     inventory: path.relative(rootDir, context.inventoryPath).replaceAll(path.sep, "/"),
     platform: `${os.type()} ${os.release()} ${os.arch()}`,
     binary: path.relative(rootDir, context.binaryPath).replaceAll(path.sep, "/"),
     dependencies,
+    gstreamerElements: context.includeGStreamerElements ? inspectGStreamerElements(inventoryPayload.gstreamerElements || [], context.timeoutMs) : null,
     linkedLibraries: context.includeLinkedLibraries ? inspectLinkedLibraries(context.binaryPath, context.timeoutMs) : null,
   };
 }
@@ -149,6 +157,43 @@ function inspectLinkedLibraries(binaryPath, timeoutMsValue) {
   };
 }
 
+function inspectGStreamerElements(elements, timeoutMsValue) {
+  return elements.map((element) => {
+    const result = runCommand("gst-inspect-1.0", [element.name], timeoutMsValue);
+    const details = result.ok ? parseGstInspect(result.output) : {};
+    return {
+      name: element.name,
+      usage: element.usage || "",
+      risk: element.risk || "",
+      status: result.status,
+      plugin: details.plugin || "",
+      filename: details.filename || "",
+      version: details.version || "",
+      license: details.license || "",
+      sourceModule: details.sourceModule || "",
+      error: result.ok ? "" : (result.error || firstOutputLine(result.output)),
+    };
+  });
+}
+
+function parseGstInspect(output) {
+  const details = {};
+  for (const line of String(output || "").split(/\n/)) {
+    const trimmed = line.trim();
+    const match = /^(Name|Filename|Version|License|Source module)\s+(.+)$/.exec(trimmed);
+    if (!match) continue;
+    const key = {
+      Name: "plugin",
+      Filename: "filename",
+      Version: "version",
+      License: "license",
+      "Source module": "sourceModule",
+    }[match[1]];
+    if (key && !details[key]) details[key] = match[2].trim();
+  }
+  return details;
+}
+
 function runCommand(command, argsForCommand, timeoutMsValue) {
   if (!command) return { ok: false, status: "missing", output: "", error: "empty command" };
   const result = spawnSync(command, argsForCommand, {
@@ -159,7 +204,8 @@ function runCommand(command, argsForCommand, timeoutMsValue) {
   });
   const output = `${result.stdout || ""}${result.stderr || ""}`;
   if (result.error) {
-    return { ok: false, status: result.error.code === "ENOENT" ? "missing" : "error", output, error: result.error.message };
+    const status = result.error.code === "ENOENT" ? "missing" : result.error.code === "ETIMEDOUT" ? "timeout" : "error";
+    return { ok: false, status, output, error: result.error.message };
   }
   if (result.status !== 0) {
     return { ok: false, status: "error", output, error: `exit=${result.status}` };
@@ -193,6 +239,27 @@ function buildMarkdown(snapshot) {
       cell(formatAssets(dep.assets)),
       `${cell(formatAttention(dep))} |`,
     ].join(" | "));
+  }
+  if (snapshot.gstreamerElements) {
+    lines.push(
+      "",
+      "## GStreamer Element Snapshot",
+      "",
+      "| Element | Status | Plugin | Version | License | File | Usage | Risk |",
+      "| --- | --- | --- | --- | --- | --- | --- | --- |",
+    );
+    for (const item of snapshot.gstreamerElements) {
+      lines.push([
+        `| ${cell(item.name)}`,
+        cell(item.status),
+        cell(item.plugin || "-"),
+        cell(item.version || "-"),
+        cell(item.license || "-"),
+        cell(item.filename || "-"),
+        cell(item.usage || "-"),
+        `${cell(formatGStreamerRisk(item))} |`,
+      ].join(" | "));
+    }
   }
   if (snapshot.linkedLibraries) {
     lines.push(
@@ -242,6 +309,10 @@ function formatAttention(dep) {
     if (asset.status === "missing") messages.push(`${asset.label}: 필수 asset 없음`);
   }
   return messages.join("; ") || "-";
+}
+
+function formatGStreamerRisk(item) {
+  return [item.error, item.risk].filter(Boolean).join("; ") || "-";
 }
 
 function extractVersion(value, pattern) {
@@ -309,8 +380,8 @@ function parseArgs(argv) {
       parsed[toCamel(raw.slice(0, eq))] = raw.slice(eq + 1);
       continue;
     }
-    if (raw === "no-linked-libs") {
-      parsed.noLinkedLibs = true;
+    if (raw === "no-linked-libs" || raw === "no-gstreamer-elements" || raw === "stable") {
+      parsed[toCamel(raw)] = true;
       continue;
     }
     const next = argv[index + 1];

@@ -44,18 +44,3 @@ jobs:
         shell: bash
         run: |
           ./server.sh verify-docs-ui-assets
-
-      - name: Dependency notice
-        shell: bash
-        run: |
-          ./server.sh write-dependency-notice --check
-
-      - name: Dependency snapshot smoke
-        shell: bash
-        run: |
-          ./server.sh dependency-snapshot --output /tmp/media_server_dependency_snapshot.md --json-output /tmp/media_server_dependency_snapshot.json --no-linked-libs
-
-      - name: Bundle policy
-        shell: bash
-        run: |
-          ./server.sh verify-bundle-policy

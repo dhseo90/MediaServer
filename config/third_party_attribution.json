@@ -10,6 +10,33 @@
     "binary bundle, app bundle, container image, offline package를 만들 때는 verify-bundle-policy gate를 통과해야 합니다.",
     "GPL-risk runtime을 의도적으로 포함하는 배포는 별도 법무/라이선스 검토와 upstream license text/source offer/attribution을 준비해야 합니다."
   ],
+  "gstreamerElements": [
+    {
+      "name": "x264enc",
+      "usage": "RTSP/WebRTC H264 재인코딩",
+      "risk": "x264 external library는 GPL 의무를 만들 수 있어 binary bundle 포함 시 별도 검토가 필요합니다."
+    },
+    {
+      "name": "x265enc",
+      "usage": "RTSP H265 route 재인코딩",
+      "risk": "x265 external library는 GPL 의무를 만들 수 있어 binary bundle 포함 시 별도 검토가 필요합니다."
+    },
+    {
+      "name": "avdec_h264",
+      "usage": "WebRTC/VA raw frame 생성용 H264 decode",
+      "risk": "gst-libav/FFmpeg 경유 decoder일 수 있어 bundle 포함 시 FFmpeg build flag와 license를 확인합니다."
+    },
+    {
+      "name": "avdec_h265",
+      "usage": "WebRTC/VA raw frame 생성용 H265 decode",
+      "risk": "gst-libav/FFmpeg 경유 decoder일 수 있어 bundle 포함 시 FFmpeg build flag와 license를 확인합니다."
+    },
+    {
+      "name": "avenc_aac",
+      "usage": "RTSP AAC audio 재인코딩",
+      "risk": "gst-libav/FFmpeg 경유 encoder일 수 있어 bundle 포함 시 FFmpeg build flag와 license를 확인합니다."
+    }
+  ],
   "dependencies": [
     {
       "id": "gstreamer",

@@ -385,6 +385,8 @@ UI 사용 흐름은 [ui-guide.md](./ui-guide.md)에 별도로 유지합니다.
 ```
 
 변경 범위에 맞는 `verify-*`를 추가 실행하고, 문서나 backlog가 바뀌어야 하면 함께 정리합니다.
+FFmpeg/ffprobe CLI가 없는 공개/CI 환경에서는 `./server.sh test --basic --ffmpeg-free`로
+codec/RTSP decode 의존 검증을 분리합니다.
 
 문서만 수정한 경우에는 최소한 markdown diff와 링크를 확인합니다.
 

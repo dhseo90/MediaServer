@@ -1,0 +1,57 @@
+name: Licensing and Artifact Guardrails
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  guardrails:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency notice
+        shell: bash
+        run: |
+          ./server.sh write-dependency-notice --check
+
+      - name: Dependency snapshot smoke
+        shell: bash
+        run: |
+          ./server.sh dependency-snapshot \
+            --stable \
+            --output /tmp/media_server_dependency_snapshot.md \
+            --json-output /tmp/media_server_dependency_snapshot.json \
+            --no-linked-libs
+
+      - name: Bundle policy
+        shell: bash
+        run: |
+          ./server.sh verify-bundle-policy \
+            --output /tmp/media_server_bundle_policy.md \
+            --json-output /tmp/media_server_bundle_policy.json
+
+      - name: Source offer checklist
+        if: always()
+        shell: bash
+        run: |
+          ./server.sh source-offer-checklist \
+            --stable \
+            --bundle-policy-report /tmp/media_server_bundle_policy.json \
+            --output /tmp/media_server_source_offer_checklist.md
+
+      - name: Upload guardrail reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: media-server-licensing-artifact-guardrails
+          path: |
+            /tmp/media_server_dependency_snapshot.md
+            /tmp/media_server_dependency_snapshot.json
+            /tmp/media_server_bundle_policy.md
+            /tmp/media_server_bundle_policy.json
+            /tmp/media_server_source_offer_checklist.md
+          if-no-files-found: ignore

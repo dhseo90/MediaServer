@@ -18,6 +18,7 @@ THIRD_PARTY_NOTICES.md를 갱신합니다.
 `./server.sh dependency-snapshot` 명령으로 DEPENDENCY_SNAPSHOT.md에 기록합니다.
 기본 배포 bundle 정책은 config/bundle_distribution_policy.json에 관리하며
 `./server.sh verify-bundle-policy` 명령으로 검사합니다.
+배포 유형별 기준은 docs/distribution-policy.md에서 관리합니다.
 
 Core build/runtime dependency
 -----------------------------
@@ -78,3 +79,6 @@ bundle하는 배포의 의무를 별도로 검토해야 합니다.
 binary bundle, app bundle, container image, offline package를 만들 때는
 `./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir>`를 실행해
 FFmpeg/libav/x264/x265/GStreamer GPL-risk plugin 포함 여부를 확인해야 합니다.
+배포 유형별 기준은 docs/distribution-policy.md에서 관리합니다.
+LGPL/GPL runtime을 의도적으로 포함하는 배포는
+`./server.sh source-offer-checklist --bundle-policy-report <bundle_policy.json>` 결과를 release 기록에 첨부합니다.

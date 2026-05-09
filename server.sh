@@ -124,6 +124,10 @@ Usage:
                  현재 설치된 dependency 버전, 모델 hash, linked library snapshot을 생성합니다.
   verify-bundle-policy
                  배포 bundle 안의 FFmpeg/GStreamer GPL-risk runtime 포함 여부를 검사합니다.
+  verify-release-bundle-dry-run
+                 기본 release bundle을 임시 구성하고 bundle policy gate를 실행합니다.
+  source-offer-checklist
+                 LGPL/GPL runtime 포함 배포 전 source offer 준비 항목을 점검합니다.
   verify-tracker-stability
                  이동 영상에서 track ID 유지/분절 통계를 수집합니다.
   compare-close-object-tracker
@@ -437,6 +441,14 @@ case "${cmd}" in
   verify-bundle-policy)
     require_internal verify_bundle_distribution_policy.mjs
     exec "${INTERNAL_DIR}/verify_bundle_distribution_policy.mjs" "$@"
+    ;;
+  verify-release-bundle-dry-run)
+    require_internal verify_release_bundle_dry_run.mjs
+    exec "${INTERNAL_DIR}/verify_release_bundle_dry_run.mjs" "$@"
+    ;;
+  source-offer-checklist)
+    require_internal write_source_offer_checklist.mjs
+    exec "${INTERNAL_DIR}/write_source_offer_checklist.mjs" "$@"
     ;;
   verify-tracker-stability)
     require_internal verify_tracker_stability.sh
