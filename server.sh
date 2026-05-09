@@ -61,6 +61,8 @@ Usage:
                  채널/PublishedView/VA 룰/이벤트 템플릿/분석 프로파일 참조와 저장 validation을 검증합니다.
   verify-ops-scenario-presets
                  현장형 VA 시나리오 preset UI와 threshold round-trip을 검증합니다.
+  verify-ops-source-lifecycle
+                 WebRTC session active/cleanup 기준으로 공통 source lifecycle idle 복귀를 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -258,6 +260,10 @@ case "${cmd}" in
   verify-ops-scenario-presets)
     require_internal verify_ops_scenario_presets.mjs
     exec "${INTERNAL_DIR}/verify_ops_scenario_presets.mjs" "$@"
+    ;;
+  verify-ops-source-lifecycle)
+    require_internal verify_ops_source_lifecycle.mjs
+    exec "${INTERNAL_DIR}/verify_ops_source_lifecycle.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

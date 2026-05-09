@@ -134,6 +134,8 @@ HTTP UI는 같은 미디어/API 기능 위에 role별 shell을 얹는 구조입�
 
 각 attach는 logical refcount만 올리고, 마지막 detach에서만 SharedStream analysis subscriber와 detector worker를 해제합니다. Runtime status의 `analysisMatching.activeTaps[]`는 `reuseKey`, `refCount`, `reuseAttachCount`, `lastUsedAgeMs`를 노출하고, `reuseGroups[]`는 source/profile 기준 공유 상태를 요약합니다. Debug counter는 `analysisTapCreatedCount`, `analysisTapReusedCount`, `analysisTapRejectedCount`, `analysisTapRefCount`, `analysisTapReuseKey`를 추가로 제공합니다.
 
+`/lab/runtime/status`와 `/ops/api/runtime/status`는 `sourceLifecycle` 요약도 제공합니다. `idle=true`는 HTTP/WebRTC egress session, WHIP publish session/source, ResourceGuard session/stream, StreamRegistry stream, analysis tap, SSE/WS metadata client가 모두 0이라는 뜻입니다. 짧은 smoke는 WebRTC session 생성 후 `idle=false`, session DELETE 후 `idle=true` 복귀를 확인하고, RTSP/WHEP/WHIP 외부 네트워크 장기 안정성은 별도 longrun harness에서 다룹니다.
+
 동일 source에서 동시에 만들 수 있는 서로 다른 profile/tap 수는 `MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_PROFILES_PER_SOURCE`, `MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_TAPS_PER_SOURCE`로 제한할 수 있습니다. 기본값은 각각 `8`이며 `0`은 제한 비활성입니다. 여러 `vaRule`이 같은 source/profile tap을 공유하면 tap context의 rule id 목록에 병합되어 저장된 rule/scenario evaluation은 같은 분석 결과 위에서 fanout됩니다.
 
 ## 4. Source 종류
