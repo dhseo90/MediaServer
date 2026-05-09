@@ -4,6 +4,7 @@
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import fs from "node:fs";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { findChrome, openBrowserPage, parseWidthList } from "./ui_visual_smoke_lib.mjs";
@@ -48,6 +49,8 @@ if (!chromePath) {
   console.error("[fail] Chrome executable not found");
   process.exit(1);
 }
+
+assertSharedTableHelpers();
 
 let passCount = 0;
 let failCount = 0;
@@ -231,6 +234,33 @@ function layoutCheckExpression(check) {
       }
     })()
   `;
+}
+
+function assertSharedTableHelpers() {
+  const shared = fs.readFileSync("src/ingress/product_ui_js.cpp", "utf8");
+  const pages = fs.readFileSync("src/ingress/product_ui_page_scripts.cpp", "utf8");
+  const requiredShared = [
+    "opsRowActionsHtml",
+    "opsTableRowHtml",
+    "setOpsDetailPanelOpen",
+    "table-actions",
+    "ops-row-actions",
+    "ops-detail-panel",
+  ];
+  const requiredPages = [
+    "opsRowActionsHtml(",
+    "opsTableRowHtml([",
+    "setOpsDetailPanelOpen(",
+    "channel-row-actions",
+    "ops-rule-row-actions",
+    "user-row-actions",
+  ];
+  for (const snippet of requiredShared) {
+    if (!shared.includes(snippet)) throw new Error(`shared table helper missing: ${snippet}`);
+  }
+  for (const snippet of requiredPages) {
+    if (!pages.includes(snippet)) throw new Error(`page table helper usage missing: ${snippet}`);
+  }
 }
 
 async function waitForResult(browser, expression, predicate, description) {

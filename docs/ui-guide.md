@@ -50,11 +50,12 @@ client/viewer shell에는 내부 진단 응답, debug 정보, developer/source U
 - `ProductSharedUiScript()`:
   product route에서 공유하는 `escapeHtml`, `requestJson`, selector,
   form-data, feedback, badge 렌더링,
-  select/table DOM helper, role/scope visibility helper입니다.
+  select/table DOM helper, row/action/detail helper, role/scope visibility helper입니다.
 - 채널/룰/사용자 목록은 `ops-responsive-table`, `ops-row-actions`,
-  `ops-detail-panel` 공통 class를 사용합니다. 모바일에서는 같은 카드형
-  row 규칙으로 전환되며, 셀 내용과 action 버튼은 자기 칸 밖으로
-  밀려나지 않아야 합니다.
+  `ops-detail-panel` 공통 class와 `opsRowActionsHtml`,
+  `opsTableRowHtml`, `setOpsDetailPanelOpen` helper를 사용합니다.
+  모바일에서는 같은 카드형 row 규칙으로 전환되며, 셀 내용과 action
+  버튼은 자기 칸 밖으로 밀려나지 않아야 합니다.
 - `ClientShellCss()`: client shell 전용 CSS를 `ClientShellPageHtml()` 밖에서 관리합니다.
 - `AppendOpsShellStart/End`, `AppendAuthShellStart/End`: 운영 shell과 setup/login auth shell의 공통 document/header/footer를 렌더링합니다.
 - `AppendProductAccountMenu()`: theme toggle, user role, logout 영역을 Ops/Client에서 동일하게 렌더링합니다.
