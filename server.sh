@@ -63,6 +63,8 @@ Usage:
                  현장형 VA 시나리오 preset UI와 threshold round-trip을 검증합니다.
   verify-ops-source-lifecycle
                  WebRTC session active/cleanup 기준으로 공통 source lifecycle idle 복귀를 검증합니다.
+  verify-ops-event-records-scope
+                 EventRecord가 짧은 증거 기록 범위로 노출되고 /ops/events UI가 이를 표시하는지 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -264,6 +266,10 @@ case "${cmd}" in
   verify-ops-source-lifecycle)
     require_internal verify_ops_source_lifecycle.mjs
     exec "${INTERNAL_DIR}/verify_ops_source_lifecycle.mjs" "$@"
+    ;;
+  verify-ops-event-records-scope)
+    require_internal verify_ops_event_records_scope.mjs
+    exec "${INTERNAL_DIR}/verify_ops_event_records_scope.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

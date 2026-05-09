@@ -2573,6 +2573,11 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <div id="eventPostBadges" class="badge-row"><span class="chip">로딩 중</span></div>
           <p id="eventPostText">불러오는 중</p>
         </section>
+        <section class="section-card">
+          <h3>증거 정책</h3>
+          <div id="eventEvidencePolicyBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+          <p id="eventEvidencePolicyText">이벤트 기반 짧은 증거 범위를 확인합니다.</p>
+        </section>
       </div>
       <section class="section-card">
         <div class="toolbar">
@@ -2580,9 +2585,33 @@ void AppendOpsEventsPage(std::ostringstream& out) {
             <h3>최근 이벤트 기록</h3>
             <p id="eventRecordSummary">최근 25개 기록을 조회합니다.</p>
           </div>
+          <div class="actions event-record-controls">
+            <label>증거
+              <select id="eventRecordsEvidenceSelect">
+                <option value="">전체</option>
+                <option value="any">증거 있음</option>
+                <option value="both">snapshot + clip</option>
+                <option value="snapshot">snapshot</option>
+                <option value="clip">clip</option>
+                <option value="missing">증거 없음</option>
+              </select>
+            </label>
+            <label class="check-inline"><input id="eventRecordsIncludeArchives" type="checkbox" /> archive 포함</label>
+            <button id="eventRecordsPrev" class="button button-secondary" type="button">이전</button>
+            <button id="eventRecordsNext" class="button button-secondary" type="button">다음</button>
+          </div>
         </div>
         <div class="table-wrap">
-          <table>
+          <table class="ops-data-table event-record-table">
+            <colgroup>
+              <col class="event-record-col-event" />
+              <col class="event-record-col-status" />
+              <col class="event-record-col-stream" />
+              <col class="event-record-col-track" />
+              <col class="event-record-col-scenario" />
+              <col class="event-record-col-evidence" />
+              <col class="event-record-col-time" />
+            </colgroup>
             <thead>
               <tr>
                 <th>이벤트</th>
@@ -2590,10 +2619,11 @@ void AppendOpsEventsPage(std::ostringstream& out) {
                 <th>스트림</th>
                 <th>트랙</th>
                 <th>시나리오</th>
+                <th>증거</th>
                 <th>수정 시각</th>
               </tr>
             </thead>
-            <tbody id="eventRecordRows"><tr><td colspan="6">로딩 중</td></tr></tbody>
+            <tbody id="eventRecordRows"><tr><td colspan="7">로딩 중</td></tr></tbody>
           </table>
         </div>
       </section>
@@ -6560,6 +6590,16 @@ std::string AnalysisEventStorageStatusJson() {
         << "\"clipBufferMs\":" << snapshot.clip_buffer_ms << ","
         << "\"failedCount\":" << snapshot.clip_hook_failed_count << ","
         << "\"lastError\":\"" << JsonEscape(snapshot.last_clip_error) << "\""
+        << "},"
+        << "\"evidencePolicy\":{"
+        << "\"scope\":\"event-short-evidence\","
+        << "\"longRecording\":false,"
+        << "\"videoArchive\":false,"
+        << "\"snapshotEnabled\":" << (snapshot.snapshot_hook_enabled ? "true" : "false") << ","
+        << "\"clipBundleEnabled\":" << (snapshot.clip_hook_enabled ? "true" : "false") << ","
+        << "\"clipFormat\":\"frame-bundle\","
+        << "\"snapshotFormats\":[\"jpg\",\"ppm\",\"pgm\"],"
+        << "\"compactionDestructive\":false"
         << "},"
         << "\"lastError\":\"" << JsonEscape(snapshot.last_error) << "\""
         << "}";
