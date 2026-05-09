@@ -906,6 +906,15 @@ private:
             SetRegistryError(error_message, "vaRule analysis.classes must include at least one category");
             return std::nullopt;
         }
+        const std::string profile_id = Trim(ParseStringField(*analysis, "profileId").value_or(""));
+        if (profile_id.empty()) {
+            SetRegistryError(error_message, "vaRule analysis.profileId is required");
+            return std::nullopt;
+        }
+        if (!ProfileExistsLocked(profile_id)) {
+            SetRegistryError(error_message, "vaRule analysis.profileId does not exist");
+            return std::nullopt;
+        }
         const auto template_start = ExtractObjectField(body, "templateStart");
         const std::string template_rule_id =
             template_start.has_value() ? Trim(ParseStringField(*template_start, "ruleId").value_or(""))
@@ -950,6 +959,10 @@ private:
             }
         }
         return std::nullopt;
+    }
+
+    bool ProfileExistsLocked(const std::string& id) const {
+        return IsBuiltInAnalysisProfileId(id) || FindDocumentLocked(profiles_, id).has_value();
     }
 
     static bool RemoveDocumentLocked(std::vector<Document>& documents, const std::string& id) {
