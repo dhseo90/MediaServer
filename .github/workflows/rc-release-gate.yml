@@ -15,11 +15,29 @@ on:
         default: "false"
         type: choice
         options: ["false", "true"]
+      runner_label:
+        description: "Runner label. Use a prepared self-hosted macOS runner for real RC gates."
+        required: true
+        default: "macos-latest"
+        type: string
+      require_va_assets:
+        description: "Fail when sample/model/label assets are missing for 120m RC gates"
+        required: true
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+      artifact_retention_days:
+        description: "GitHub artifact retention days for RC gate reports"
+        required: true
+        default: "30"
+        type: string
 
 jobs:
   rc-release-gate:
-    runs-on: macos-latest
+    runs-on: ${{ inputs.runner_label }}
     timeout-minutes: 300
+    env:
+      RC_ARTIFACT_RETENTION_DAYS: ${{ inputs.artifact_retention_days }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,6 +54,46 @@ jobs:
           JSON
           printf '# predev\n\nNot run in this workflow invocation.\n' > artifacts/rc-gate/predev-report.md
           printf '# va runtime\n\nNot run in this workflow invocation.\n' > artifacts/rc-gate/runtime-report.md
+
+      - name: Check RC gate assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          required="${{ inputs.require_va_assets }}"
+          longrun="${{ inputs.run_predev_120 }}${{ inputs.run_va_runtime_120 }}"
+          model="${MEDIA_SERVER_ANALYSIS_MODEL:-models/yolo11n.onnx}"
+          labels="${MEDIA_SERVER_ANALYSIS_LABELS:-models/coco.names}"
+          samples=(video/sample_h264.mp4 video/va_four_scene_sample.mp4)
+          missing=0
+          {
+            echo '{'
+            echo '  "schema": "media-server.rc-gate-assets.v1",'
+            echo "  \"runnerLabel\": \"${{ inputs.runner_label }}\","
+            echo "  \"requireVaAssets\": \"${required}\","
+            echo "  \"artifactRetentionDays\": \"${{ inputs.artifact_retention_days }}\","
+            echo '  "samples": ['
+            first=1
+            for sample in "${samples[@]}"; do
+              if [[ ! -f "${sample}" ]]; then missing=$((missing + 1)); status=missing; else status=ok; fi
+              [[ "${first}" -eq 1 ]] || echo ','
+              first=0
+              printf '    {"path":"%s","status":"%s"}' "${sample}" "${status}"
+            done
+            echo
+            echo '  ],'
+            model_status=ok
+            labels_status=ok
+            [[ -f "${model}" ]] || { model_status=missing; missing=$((missing + 1)); }
+            [[ -f "${labels}" ]] || { labels_status=missing; missing=$((missing + 1)); }
+            printf '  "model": {"path":"%s","status":"%s"},\n' "${model}" "${model_status}"
+            printf '  "labels": {"path":"%s","status":"%s"}\n' "${labels}" "${labels_status}"
+            echo '}'
+          } > artifacts/rc-gate/asset-manifest.json
+          if [[ "${longrun}" == *"true"* && "${required}" == "true" && "${missing}" -gt 0 ]]; then
+            cat artifacts/rc-gate/asset-manifest.json
+            echo "RC gate assets are missing; prepare sample/model/labels on the runner." >&2
+            exit 1
+          fi
 
       - name: Run predev 120m soak
         if: ${{ inputs.run_predev_120 == 'true' }}
@@ -70,7 +128,10 @@ jobs:
             --runtime-report artifacts/rc-gate/runtime-report.md \
             --output artifacts/rc-gate/rc-release-checklist.md \
             --html-output artifacts/rc-gate/rc-release-checklist.html \
-            --artifact-name media-server-rc-gate
+            --artifact-name media-server-rc-gate \
+            --asset-manifest artifacts/rc-gate/asset-manifest.json \
+            --runner-label "${{ inputs.runner_label }}" \
+            --artifact-retention-days "${{ inputs.artifact_retention_days }}"
 
       - name: Upload RC gate artifact
         uses: actions/upload-artifact@v4
@@ -78,3 +139,4 @@ jobs:
           name: media-server-rc-gate
           path: artifacts/rc-gate/
           if-no-files-found: error
+          retention-days: ${{ inputs.artifact_retention_days }}

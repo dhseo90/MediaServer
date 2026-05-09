@@ -265,6 +265,16 @@ CI에서는 `.github/workflows/rc-release-gate.yml`을 수동 실행합니다.
 RC 판정 시 `run_predev_120=true`, `run_va_runtime_120=true`로 실행하면
 `artifacts/rc-gate/` 아래 summary/report/checklist Markdown/HTML을 모아
 `media-server-rc-gate` GitHub Actions artifact로 업로드합니다.
+실제 RC에서는 `runner_label`을 sample video, YOLO model, labels가 준비된
+self-hosted macOS runner로 지정하는 것을 권장합니다. Workflow는 실행 전에
+`video/sample_h264.mp4`, `video/va_four_scene_sample.mp4`,
+`MEDIA_SERVER_ANALYSIS_MODEL` 또는 `models/yolo11n.onnx`,
+`MEDIA_SERVER_ANALYSIS_LABELS` 또는 `models/coco.names`를
+`artifacts/rc-gate/asset-manifest.json`에 기록합니다.
+`require_va_assets=true`이고 120분 gate를 실행하는 경우 누락된 asset은
+RC gate 실패로 처리합니다. 결과 artifact 보존 기간은
+`artifact_retention_days` 입력값과 checklist의 `artifactRetentionDays`에
+같이 남깁니다.
 
 RC 전용 gate가 기본 smoke에 섞이지 않았는지는 다음 명령으로 확인합니다.
 

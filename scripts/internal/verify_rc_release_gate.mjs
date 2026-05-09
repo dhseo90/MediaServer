@@ -61,8 +61,17 @@ check("GitHub Actions workflow uploads RC gate artifacts", () => {
     "workflow_dispatch",
     "run_predev_120",
     "run_va_runtime_120",
+    "runner_label",
+    "require_va_assets",
+    "artifact_retention_days",
+    "Check RC gate assets",
+    "asset-manifest.json",
+    "retention-days: ${{ inputs.artifact_retention_days }}",
     "artifacts/rc-gate",
     "./server.sh rc-release-checklist",
+    "--asset-manifest artifacts/rc-gate/asset-manifest.json",
+    "--runner-label",
+    "--artifact-retention-days",
     "--artifact-name media-server-rc-gate",
     "actions/upload-artifact@v4",
     "media-server-rc-gate",
@@ -78,12 +87,21 @@ check("release checklist generator writes Markdown and HTML", () => {
   const runtimeSummary = path.join(workDir, "runtime-summary.json");
   const predevReport = path.join(workDir, "predev-report.md");
   const runtimeReport = path.join(workDir, "runtime-report.md");
+  const assetManifest = path.join(workDir, "asset-manifest.json");
   const output = path.join(workDir, "release-checklist.md");
   const htmlOutput = path.join(workDir, "release-checklist.html");
   fs.writeFileSync(predevSummary, JSON.stringify({ status: "pass", passCount: 69, failCount: 0 }), "utf8");
   fs.writeFileSync(runtimeSummary, JSON.stringify({ ok: true, passCount: 12, failCount: 0 }), "utf8");
   fs.writeFileSync(predevReport, "# predev\n", "utf8");
   fs.writeFileSync(runtimeReport, "# runtime\n", "utf8");
+  fs.writeFileSync(assetManifest, JSON.stringify({
+    schema: "media-server.rc-gate-assets.v1",
+    runnerLabel: "self-hosted-macos-va",
+    artifactRetentionDays: "45",
+    samples: [{ path: "video/sample_h264.mp4", status: "ok" }],
+    model: { path: "models/yolo11n.onnx", status: "ok" },
+    labels: { path: "models/coco.names", status: "ok" },
+  }), "utf8");
   execFileSync(process.execPath, [
     path.join(rootDir, "scripts/internal/write_rc_release_checklist.mjs"),
     "--predev-summary", predevSummary,
@@ -93,6 +111,9 @@ check("release checklist generator writes Markdown and HTML", () => {
     "--output", output,
     "--html-output", htmlOutput,
     "--artifact-name", "media-server-rc-gate",
+    "--asset-manifest", assetManifest,
+    "--runner-label", "self-hosted-macos-va",
+    "--artifact-retention-days", "45",
   ], {
     cwd: rootDir,
     stdio: "pipe",
@@ -112,6 +133,9 @@ check("release checklist generator writes Markdown and HTML", () => {
   assert(markdown.includes("Predev 120m soak"), "release checklist missing predev row");
   assert(markdown.includes("VA runtime console 120m longrun"), "release checklist missing runtime row");
   assert(markdown.includes("ciArtifact: media-server-rc-gate"), "release checklist missing CI artifact");
+  assert(markdown.includes("artifactRetentionDays: 45"), "release checklist missing artifact retention");
+  assert(markdown.includes("runner: self-hosted-macos-va"), "release checklist missing runner label");
+  assert(markdown.includes("assetStatus: PASS"), "release checklist missing asset status");
   assert(markdown.includes("https://github.com/example/mediaServer/actions/runs/12345"), "release checklist missing CI run URL");
   assert(html.includes("RC Release Checklist"), "release checklist HTML missing title");
 });
