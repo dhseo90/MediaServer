@@ -53,6 +53,8 @@ Usage:
                  /ops, /client, /lab 화면/API route 경계 계약을 검증합니다.
   verify-ops-click-e2e
                  /ops 채널/룰/사용자 주요 패널과 탭 이동을 실제 브라우저 클릭으로 검증합니다.
+  verify-ops-tables-layout
+                 /ops 채널/룰/사용자 데이터 테이블의 반응형 셀 침범과 리사이즈 안정성을 검증합니다.
   verify-ops-rules-roundtrip
                  /ops/rules 이벤트 템플릿 저장/조회 round-trip을 영상 재생 없이 검증합니다.
   verify-server-start-modes
@@ -236,6 +238,10 @@ case "${cmd}" in
   verify-ops-click-e2e)
     require_internal verify_ops_ui_click_e2e.mjs
     exec "${INTERNAL_DIR}/verify_ops_ui_click_e2e.mjs" "$@"
+    ;;
+  verify-ops-tables-layout)
+    require_internal verify_ops_tables_layout.mjs
+    exec "${INTERNAL_DIR}/verify_ops_tables_layout.mjs" "$@"
     ;;
   verify-ops-rules-roundtrip)
     require_internal verify_ops_rules_roundtrip.mjs
