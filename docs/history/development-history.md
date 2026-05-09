@@ -8,6 +8,28 @@
 - `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫혔습니다.
 - `/webrtc/test` 같은 초기 브라우저 테스트 화면은 제품 문서와 UI 진입점에서 제거합니다.
 
+## 12차 - 운영 제품화 안정화
+
+완료:
+
+- 운영 백업/복구 dry-run 리허설 명령 추가
+- Evidence retention cleanup job 추가
+- Audit trail 기간/사용자/대상 검색, CSV/JSON/Diff export, interactive/export limit 분리
+- RC release gate artifact 외부 directory archive와 checksum/index 생성
+- `/ops/dashboard` 문제 원인 패널의 다음 조치 버튼 추가
+- 채널/룰/사용자 table row/action/detail helper 공통화
+
+검증:
+
+- `./server.sh verify-ops-backup-restore-dry-run`
+- `./server.sh verify-ops-evidence-retention-cleanup`
+- `./server.sh verify-ops-audit-persistence`
+- `./server.sh verify-rc-release-gate`
+- `./server.sh verify-ops-root-cause-panel`
+- `./server.sh verify-ops-tables-layout`
+- `./server.sh verify-ops-client-ui`
+- `./server.sh verify-ops-click-e2e`
+
 ## 1차 - Rule/Profile 안정화
 
 완료:

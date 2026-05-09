@@ -22,6 +22,7 @@
 - 구현 완료: Auth / Role / Scope, account login/session API/route, Auth Bootstrap + 기본 로그인 강제, Password Policy + Lockout + Session Hardening, Admin User Management Console + CLI, Client Account Policy / Invite / Request, Root/Login/Ops/Client/Lab 접근 정책.
 - 구현 완료: SourceRegistry / PublishedView API/route, client scoped view API, Client scoped dashboard API/UI, Client Live Monitor grid/density/reconnect 상태.
 - 구현 완료: `/setup`, `/login`, `/ops`, `/client` 제품 UI shell 통합 1차. Ops primary nav는 홈/대시보드/채널/룰/사용자/클라이언트 미리보기로 정리했고, client primary nav는 라이브/대시보드만 유지합니다. `/ops/dashboard`와 `/ops/rules`는 Lab iframe 없이 Ops 전용 API와 제품 컴포넌트로 표시하며 내부 진단 JSON은 제품 화면에 직접 노출하지 않습니다. Ops shell overview 스크립트는 `product_ui_page_scripts.*`로 분리해 HTTP route/media/auth 모놀리스와 제품 브라우저 동작을 같은 함수에 두지 않습니다.
+- 구현 완료: 운영 백업/복구 dry-run 리허설, EventRecord evidence retention cleanup job, audit trail 기간/사용자/대상 검색과 CSV/JSON/Diff export, RC gate artifact 외부 directory archive, Ops 문제 원인 다음 조치 버튼, 채널/룰/사용자 공통 테이블 helper/리사이즈 검증입니다.
 - 기존 Scenario UI 로드맵 1~4번 완료: Runtime Dashboard trend/stale/cleanup warning 1차, Scenario rule payload -> runtime per-rule 설정 연결, ReEntry Scenario UI 템플릿, IntrusionAfterLineCrossing Scenario UI 템플릿.
 - ReEntry와 IntrusionAfterLineCrossing은 룰 편집 UI에서 선택 가능하며 저장/round-trip 검증 대상입니다.
 - 현재 우선순위: 운영/클라이언트 분리의 제품 진입점 정합성을 위해 Auth Bootstrap, password policy/lockout/session hardening, admin 계정 관리, client invite/request, role/scope 기반 root/route 접근 정책, Ops/Client shell 통합을 완료했고 문서 상태를 실제 구현 기준으로 닫았습니다.
@@ -35,7 +36,7 @@
 
 - `완료`로 표시된 항목은 각 항목의 “완료 범위”와 검증 명령에 한정된 1차 구현 상태입니다. 운영 배포 승격은 장기 soak, TURN/외부 네트워크, credential, 개인정보/보관 정책 검토를 별도 gate로 통과해야 합니다.
 - WebRTC source 관련 완료 범위는 WebRTC egress/WHEP output, 내부 `/whip/publish` sourceId 소비, 외부 WHEP playback endpoint를 `kind=whep`/`whepUrl`로 pull하는 SourceRegistry 경로입니다. 인증 토큰이 필요한 외부 WHEP endpoint credential 보관/주입은 별도 운영 정책 gate로 둡니다.
-- EventRecord 완료 범위는 JSON Lines 저장, active/archive 조회/search UI, rotation/retention/recovery 1차, 비파괴 compaction snapshot 생성/목록/다운로드/삭제, snapshot media/pre-post frame bundle recorder입니다. Archive cleanup policy와 MP4/VMS/NVR형 recorder는 후속입니다.
+- EventRecord 완료 범위는 JSON Lines 저장, active/archive 조회/search UI, rotation/retention/recovery 1차, 비파괴 compaction snapshot 생성/목록/다운로드/삭제, snapshot media/pre-post frame bundle recorder, signed evidence bundle export, 운영 retention cleanup job입니다. MP4/VMS/NVR형 recorder와 장기 보관 정책 UI는 후속입니다.
 - Loitering은 engine/replay와 전용 룰 편집 UI 템플릿, 현장 샘플 프리셋 기준 완료입니다. ZoneOccupancyScenario는 engine/replay/UI와 대기열/로비/승강장/출입구/승강기 홀 tuning preset 기준 완료입니다.
 - Re-ID/appearance, YouTube import/source, 외부 TURN relay/auth는
   실험/보류 범위이며 운영 기본 기능으로 표현하지 않습니다.
@@ -70,7 +71,7 @@
   기본 file/VA file/공개 RTSP/HLS seed,
   Live/VA URL의 RTSP/WHEP 복사 버튼,
   registry API 확인 흐름입니다.
-- 후속: source lifecycle 상태, bulk action, source health와 operator live monitor 연결은 다음 묶음에서 진행합니다.
+- 후속: bulk API 정식화, partial failure 재시도/rollback 서버 계약, source health와 operator live monitor 연결은 다음 묶음에서 진행합니다.
 - 우선순위 이유: source 원본 설정, 운영자 제어, 클라이언트 노출 범위를 한 모델로 섞지 않기 위한 선행 작업입니다.
 
 ### O2a. External WHEP URL source pull
@@ -695,14 +696,17 @@ git diff --check -- docs
 
 ### P6-3. Snapshot/clip retention과 실패 metric
 
-- 상태: 예정
+- 상태: 제한적 완료
 - 목적: 저장 실패 counter, retention/rotation, disk 사용량 상한을 config와 runtime status에 연결합니다.
 - 관련 파일: `src/analysis/event_storage.cpp`, `src/analysis/event_rule_engine.cpp`, `docs/config-reference.md`
+- 완료 범위: `./server.sh ops-evidence-cleanup` dry-run/apply job으로 snapshot, clip frame bundle, compaction snapshot 만료 정리를 수행하고, 적용 시 Ops audit `retention-cleanup` 기록 또는 `--audit-file` payload를 남깁니다. UI/API의 evidence 원본 DELETE 차단 정책은 유지합니다.
+- 남은 범위: disk 사용량 상한, runtime status failure metric, 운영 UI에서 cleanup dry-run/apply 실행, 장기 보존 정책 화면입니다.
 - 검증 명령:
 
 ```bash
 ./server.sh verify-analysis-state
 ./server.sh verify-ops-client-ui
+./server.sh verify-ops-evidence-retention-cleanup
 ```
 
 - 우선순위 이유: 파일 저장 기능은 디스크를 무제한 사용하지 않도록 운영 보호가 필요합니다.

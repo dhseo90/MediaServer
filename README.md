@@ -13,7 +13,7 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 - **권한과 계정**:
   `/setup`, `/login`, role/scope principal, admin 계정 관리, viewer invite/request 승인 흐름을 포함합니다.
 - **검증 구조**:
-  UI/Auth smoke, VA metadata replay, baseline fixture, runtime state 검증 명령을 함께 제공합니다.
+  UI/Auth smoke, VA metadata replay, baseline fixture, runtime state, 운영 백업/복구 리허설, RC gate artifact 검증 명령을 함께 제공합니다.
 
 ## 대표 UI 미리보기
 
@@ -191,9 +191,9 @@ RTSP raw stream과 SSE/WS metadata side-channel을 별도로 조합합니다.
   `/ops/api/events/status` 제품 API로 운영 카드와 룰 화면을 표시합니다.
   `/ops/events`, `/client/events`는 제품 primary tab에서 숨기고,
   이벤트 요약은 룰/대시보드 맥락에서 확인합니다.
-- 1차 완료: EventRecord archive 포함 조회와 비파괴 compaction snapshot 생성/목록/다운로드/삭제 API/UI, snapshot frame 저장과 pre/post frame bundle recorder manifest를 제공합니다.
-- 남은 후속 작업: archive cleanup policy, account lifecycle 정책,
-  장기 soak/부하 검증을 별도 묶음으로 관리합니다.
+- 1차 완료: EventRecord archive 포함 조회와 비파괴 compaction snapshot 생성/목록/다운로드/삭제 API/UI, snapshot frame 저장과 pre/post frame bundle recorder manifest, signed evidence bundle export, evidence retention cleanup job을 제공합니다.
+- 1차 완료: 운영 백업/복구 dry-run 리허설, audit trail 기간/사용자/대상 검색과 export, RC gate artifact 외부 보관 helper, Ops 문제 원인 다음 조치 버튼, 채널/룰/사용자 공통 테이블 helper를 제공합니다.
+- 남은 후속 작업: account lifecycle 정책, 외부 보관 credential/preset, 장기 soak/부하 검증을 별도 묶음으로 관리합니다.
 - 제한/미구현: MP4/VMS/NVR형 장기 녹화, Re-ID 기본 기능화,
   운영 TURN relay/auth, 외부 WHEP credential 정책은 별도 운영 범위입니다.
 
@@ -221,6 +221,8 @@ RTSP raw stream과 SSE/WS metadata side-channel을 별도로 조합합니다.
 git diff --check -- README.md docs scripts src include
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
+./server.sh verify-ops-click-e2e
+./server.sh verify-ops-tables-layout
 ./server.sh verify-rule-ui
 ./server.sh verify-ops-rules-roundtrip
 ./server.sh verify-analysis-state
@@ -228,7 +230,8 @@ git diff --check -- README.md docs scripts src include
 
 `verify-auth-routes`는 격리 서버를 직접 띄웁니다.
 `verify-ops-client-ui`, `verify-rule-ui`는 실행 중인 HTTP 서버에 붙는 UI smoke이고,
-`verify-ops-rules-roundtrip`은 같은 서버에 붙는 API round-trip smoke입니다.
+`verify-ops-click-e2e`, `verify-ops-tables-layout`, `verify-ops-rules-roundtrip`은
+같은 서버에 붙는 실제 클릭/반응형 테이블/API round-trip smoke입니다.
 
 UI만 확인할 때는 별도 터미널에서
 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`로 서버를 띄운 뒤
@@ -261,6 +264,9 @@ VA/Auth 주요 검증:
 ./server.sh verify-auth-bootstrap
 ./server.sh verify-auth-users
 ./server.sh verify-auth-routes
+./server.sh verify-ops-backup-restore-dry-run
+./server.sh verify-ops-evidence-retention-cleanup
+./server.sh verify-rc-release-gate
 ```
 
 로컬 QA, 수동 smoke, 자동 auth smoke의 표준 테스트 계정 비밀번호는 `qweasd0-`로 통일합니다. 이 값은 테스트 재현성을 위한 규칙이며, 제품 기본 admin 비밀번호를 의미하지 않습니다.

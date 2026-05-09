@@ -46,6 +46,8 @@ release candidate gate를 열 때만 명시적으로 실행합니다.
 git diff --check -- README.md docs scripts src include
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
+./server.sh verify-ops-click-e2e
+./server.sh verify-ops-tables-layout
 ./server.sh verify-rule-ui
 ./server.sh verify-ops-rules-roundtrip
 ./server.sh verify-analysis-state
@@ -60,6 +62,8 @@ git diff --check -- README.md docs scripts src include
 
 `verify-auth-routes`는 임시 users/source/view 파일과 격리 포트로 서버를 직접 띄웁니다.
 `verify-ops-client-ui`, `verify-rule-ui`는 실행 중인 HTTP 서버를 대상으로 하는 attached UI smoke입니다.
+`verify-ops-click-e2e`는 실제 포인터 클릭으로 대시보드 문제 원인 조치, 채널 추가/상세, 룰 패널 이동, 사용자 상세, client dashboard를 확인합니다.
+`verify-ops-tables-layout`은 채널/룰/사용자 table을 1180/900/560/390/760/1180px 순서로 리사이즈하며 cell/action overflow를 확인합니다.
 `verify-ops-rules-roundtrip`은 같은 서버의 이벤트 템플릿 API round-trip을 영상 재생 없이 확인합니다.
 UI 전용 검증에서는 별도 터미널에서
 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`를 실행하고,
@@ -87,6 +91,8 @@ UI 변경 검증에서는 기본 추가 RTSP/WebRTC source 영상이나 codec ma
 화면 selector/API 계약만 확인할 때는 서버를 띄운 뒤 아래 순서로 확인합니다.
 
 - `verify-ops-client-ui`
+- `verify-ops-click-e2e`
+- `verify-ops-tables-layout`
 - `verify-rule-ui`
 - `verify-ops-rules-roundtrip`
 
@@ -100,6 +106,8 @@ Ops/Client shell 변경 확인 포인트:
 - `/client/api/views`, 단일 view, dashboard, events, metadata 응답의 민감 key 비노출
 - `/client/live`와 `/ops/rules` 미리보기의 `raw/va-overlay/va-rule` payload
 - channel/rule URL 복사 버튼의 selector와 출력 URL 생성
+- `/ops/dashboard` 문제 원인 패널의 source lifecycle, stale, reconnect, auth/config 다음 조치 버튼
+- 채널/룰/사용자 공통 table helper 적용과 모바일 390px action/detail overflow 없음
 
 추가 참고:
 
@@ -149,6 +157,10 @@ fi
   `/ops/rules` detail panel은 `opsVaRuleForm`,
   `opsEventRuleForm`, `opsProfileForm` 네이티브 폼으로 열립니다.
   `/ops/rules`는 `rule/profile/source` 검색 입력과 `#q=` hash를 지원합니다.
+  `/ops/dashboard` 문제 원인 패널은 source lifecycle, stale tap,
+  reconnect/cleanup, auth/config 항목을 표시하고 다음 조치 버튼으로
+  source 재검증, registry diff, Event/evidence 진단, auth/config 확인,
+  log correlation 필터를 실행합니다.
   내부 진단 JSON은 제품 화면에 직접 노출하지 않고 API/검증 명령에서만 확인합니다.
 - `/ops/sources`는 숫자 채널 table을 먼저 보여줍니다.
   상단 안내 카드와 detail form에서
@@ -156,6 +168,9 @@ fi
   Live URL/VA URL 복사 버튼은 RTSP/WHEP 값을 실제 클립보드에 복사해야 합니다.
   rendered HTML에 `AppendTableHead(` 같은 템플릿 문자열이 새면 안 됩니다.
   source 원본 URL은 ops 화면에만 표시합니다.
+- 채널/룰/사용자 table은 `ops-responsive-table`, `ops-row-actions`,
+  `ops-detail-panel` 공통 class/helper를 사용하고, 모바일 390px과
+  desktop resize에서 cell/action 내용이 자기 칸을 침범하지 않아야 합니다.
 - `/ops/users`는 사용자 목록 table과 접근 요청 table을 보여주고, 사용자 추가/수정 editor는 접힘 영역으로 열립니다. Access request 승인 UI는 password setup invite token/setup URL을 승인 응답에서 한 번만 표시하며, 거절은 request 상태만 바꿉니다. `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`를 노출하지 않습니다.
 - `/client/live`, `/client/dashboard`는 client shell을 유지하고 source URL, Developer URL, BBox diagnostics, 내부 진단 JSON, rule/profile editor를 노출하지 않습니다. Client Events tab은 primary nav에서 제거합니다.
 - `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫고, 개발/검증 API는 `/lab/analysis/*`에서만 유지합니다.

@@ -58,6 +58,7 @@ Linux에서는 배포판 패키지 또는 프로젝트 운영 기준에 맞는 �
 
 ```bash
 ./server.sh verify-ops-client-ui
+./server.sh verify-ops-route-boundaries
 ```
 
 검증 기준:

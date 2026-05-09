@@ -33,7 +33,23 @@ audit JSON Lines, EventRecord active/archive, snapshot/clip evidence,
 sample/model/label asset, redacted env summary를 백업한 뒤 다른 runtime
 디렉터리에 복원합니다. `manifest.json`, `SHA256SUMS`,
 `restore-validation-plan.md`를 생성하고 checksum과 auth store `0600` 권한이
-유지되는지 확인합니다.
+유지되는지 확인합니다. 실제 운영 runtime을 수정하지 않는 리허설이며,
+실제 백업본 생성과 외부 보관을 대체하지는 않습니다.
+
+Evidence 보존 기간 정리는 백업과 별도 운영 job으로 처리합니다.
+기본은 dry-run이고 `--apply`를 붙여야 삭제됩니다.
+
+```bash
+./server.sh ops-evidence-cleanup \
+  --http-base http://127.0.0.1:8080 \
+  --max-age-days 30 \
+  --keep-compactions 10 \
+  --report-file /tmp/media_server_evidence_cleanup.json
+```
+
+적용 모드에서 `--http-base`를 지정하면 Ops audit에 `retention-cleanup`
+기록을 남깁니다. HTTP audit을 사용할 수 없는 환경에서는 `--audit-file`로
+동일 payload를 파일에 보존합니다.
 
 ## 백업 절차
 
@@ -93,6 +109,7 @@ backup-YYYYMMDD-HHMM/
 ./server.sh verify-ops-audit-persistence
 ./server.sh verify-ops-diagnostics-bundle
 ./server.sh verify-ops-backup-restore-dry-run
+./server.sh verify-ops-evidence-retention-cleanup
 ```
 
 EventRecord storage나 snapshot/clip hook을 운영에서 꺼 둔 환경은

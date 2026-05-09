@@ -250,9 +250,9 @@ gst-inspect-1.0 uridecodebin
 
 초기 WebRTC 브라우저 테스트 화면에 의존하던 `verify-multichannel`은 현재 제품 UI 기준에서 skip됩니다. 느린 RTSP/WebRTC 다채널 재생 검증은 별도 제품 UI harness가 준비될 때 장기 검증으로만 다룹니다.
 
-`verify-predev --quick`와 `./server.sh test*` 계열은 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하므로 느립니다. 문서/UI/Auth/권한만 바꾼 경우에는 이 묶음을 실행하지 않고 `build`, `git diff --check`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-analysis-state`로 확인합니다.
+`verify-predev --quick`와 `./server.sh test*` 계열은 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하므로 느립니다. 문서/UI/Auth/권한만 바꾼 경우에는 이 묶음을 실행하지 않고 `build`, `git diff --check`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-analysis-state`로 확인합니다. 테이블, 탭 이동, 직접 클릭 흐름을 건드린 경우에는 `verify-ops-click-e2e`와 `verify-ops-tables-layout`도 추가합니다.
 
-`verify-auth-routes`는 격리 서버를 자동으로 띄웁니다. `verify-ops-client-ui`, `verify-rule-ui`, `verify-ops-rules-roundtrip`은 이미 떠 있는 HTTP 서버를 검사하므로 UI/API smoke 전에는 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`로 서버를 띄우고, 포트가 다르면 각 명령에 `--http-base`를 지정합니다.
+`verify-auth-routes`는 격리 서버를 자동으로 띄웁니다. `verify-ops-client-ui`, `verify-rule-ui`, `verify-ops-click-e2e`, `verify-ops-tables-layout`, `verify-ops-rules-roundtrip`은 이미 떠 있는 HTTP 서버를 검사하므로 UI/API smoke 전에는 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`로 서버를 띄우고, 포트가 다르면 각 명령에 `--http-base`를 지정합니다.
 
 장시간 또는 다채널 검증 기준은 [stream-verification.md](./stream-verification.md)에 유지합니다.
 
@@ -311,6 +311,8 @@ Ops/영상 분석 UI를 수정한 뒤에는 최소한 아래 검증을 실행합
 ./server.sh verify-rule-ui
 ./server.sh verify-ops-rules-roundtrip
 ./server.sh verify-ops-client-ui
+./server.sh verify-ops-click-e2e
+./server.sh verify-ops-tables-layout
 ```
 
 이벤트 POST나 rule preview URL이 영향을 받으면:
@@ -325,7 +327,8 @@ Ops/영상 분석 UI를 수정한 뒤에는 최소한 아래 검증을 실행합
 - 이벤트 템플릿: 기본 이벤트와 시나리오를 구분해 추가/수정/삭제
 - 분석 프로파일: detector, fps, queue, 입력 해상도 저장과 채널 분석 설정의 선택 가능 여부
 - 운영 미리보기: `/client/live`의 실시간 스트리밍, VA 오버레이, VA 룰 URL 복사/보기 동작
-- Runtime Dashboard 탭: active analysis tap, metadata/backpressure, scenario/event/debug 상태, EventRecord 수동 검색
+- `/ops/dashboard`: source lifecycle, stale tap, reconnect/cleanup, auth/config 문제 원인과 다음 조치 버튼
+- 공통 테이블: 채널/룰/사용자 table row/action/detail 영역이 390px 모바일과 desktop resize에서 칸을 침범하지 않는지 확인
 
 UI 사용 흐름은 [ui-guide.md](./ui-guide.md)에 별도로 유지합니다.
 
