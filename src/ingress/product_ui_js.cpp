@@ -202,6 +202,22 @@ std::string ProductSharedUiScript() {
       const saveOpsAuditTrail = entries => {
         localStorage.setItem(auditStoreKey, JSON.stringify(entries.slice(0, 80)));
       };
+      async function persistOpsAuditTrail(entry) {
+        const payload = await requestJson('/ops/api/audit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry)
+        });
+        return payload.entry || entry;
+      }
+      async function fetchOpsAuditTrail(area = '', filters = {}) {
+        const params = new URLSearchParams({ limit: String(filters.limit || 20) });
+        if (area) params.set('area', area);
+        if (filters.actor) params.set('actor', filters.actor);
+        if (filters.q) params.set('q', filters.q);
+        const payload = await requestJson(`/ops/api/audit?${params.toString()}`);
+        return Array.isArray(payload.entries) ? payload.entries : [];
+      }
       async function recordOpsAudit({ area = 'ops', action = 'update', target = '', before = null, after = null } = {}) {
         const who = await currentPrincipal();
         const actor = who?.username || who?.displayName || who?.role || 'dev-admin';
@@ -220,17 +236,24 @@ std::string ProductSharedUiScript() {
         const entries = loadOpsAuditTrail();
         entries.unshift(entry);
         saveOpsAuditTrail(entries);
-        window.dispatchEvent(new CustomEvent('mediaServer.audit', { detail: entry }));
-        return entry;
+        let persisted = entry;
+        try {
+          persisted = await persistOpsAuditTrail(entry);
+          const current = loadOpsAuditTrail().filter(item => item.id !== entry.id && item.id !== persisted.id);
+          current.unshift(persisted);
+          saveOpsAuditTrail(current);
+        } catch (error) {
+          persisted = { ...entry, persistenceError: error.message || 'server audit unavailable' };
+        }
+        window.dispatchEvent(new CustomEvent('mediaServer.audit', { detail: persisted }));
+        return persisted;
       }
       function renderOpsAuditTrail(containerId, area = '') {
         const el = byId(containerId);
         if (!el) return;
-        const entries = loadOpsAuditTrail()
-          .filter(entry => !area || entry.area === area)
-          .slice(0, 10);
+        const renderEntries = (entries, sourceLabel = '') => {
         if (entries.length === 0) {
-          el.innerHTML = '<div class="empty">아직 이 화면에서 기록한 변경 이력이 없습니다.</div>';
+          el.innerHTML = '<div class="empty">아직 기록된 변경 이력이 없습니다.</div>';
           return;
         }
         const actionLabel = value => ({
@@ -239,6 +262,8 @@ std::string ProductSharedUiScript() {
           delete: '삭제',
           enable: '활성화',
           disable: '비활성화',
+          'bulk-clone': '대량 복제',
+          'bulk-disable': '대량 비활성화',
           approve: '승인',
           reject: '거절'
         })[String(value || '')] || display(value);
@@ -247,7 +272,7 @@ std::string ProductSharedUiScript() {
           rules: '룰',
           users: '사용자'
         })[String(value || '')] || display(value);
-        el.innerHTML = entries.map(entry => `
+        el.innerHTML = `${sourceLabel ? `<div class="audit-source-label">${escapeHtml(sourceLabel)}</div>` : ''}` + entries.map(entry => `
           <article class="audit-entry">
             <div class="audit-entry-head">
               <strong>${escapeHtml(areaLabel(entry.area))} ${escapeHtml(actionLabel(entry.action))}</strong>
@@ -267,6 +292,18 @@ std::string ProductSharedUiScript() {
             </details>
           </article>
         `).join('');
+        };
+        const localEntries = loadOpsAuditTrail()
+          .filter(entry => !area || entry.area === area)
+          .slice(0, 10);
+        renderEntries(localEntries, '브라우저 캐시');
+        fetchOpsAuditTrail(area, { limit: 10 })
+          .then(entries => renderEntries(entries, '서버 감사 로그'))
+          .catch(() => {
+            if (localEntries.length === 0) {
+              el.innerHTML = '<div class="empty">서버 감사 로그를 불러오지 못했습니다.</div>';
+            }
+          });
       }
       return {
         escapeHtml,
@@ -292,6 +329,7 @@ std::string ProductSharedUiScript() {
         renderRaw,
         requestJson,
         applyPrincipalVisibility,
+        fetchOpsAuditTrail,
         recordOpsAudit,
         renderOpsAuditTrail
       };

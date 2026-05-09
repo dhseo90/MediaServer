@@ -1017,6 +1017,11 @@ std::string ProductUiCss() {
       display: grid;
       gap: var(--space-3);
     }
+    .audit-source-label {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
     .audit-entry {
       display: grid;
       gap: var(--space-2);
