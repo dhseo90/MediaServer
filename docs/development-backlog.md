@@ -697,7 +697,10 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
   - storage status summary
   - corrupt/partial count 표시
   - snapshotPath/clipPath 표시
-- 후속 범위: clip frame gallery와 장기 recorder 연계입니다. 현재 UI는 snapshot inline preview와 clip manifest/frame link만 제공합니다.
+- 후속 UI polish는 clip frame gallery로 제한합니다.
+  장기 recorder 연계는 v1.1.0 범위가 아니며 별도 제품 phase와
+  보관/개인정보 정책 gate가 필요합니다. 현재 UI는 snapshot inline preview와
+  clip manifest/frame link만 제공합니다.
 - 검증 명령:
 
 ```bash

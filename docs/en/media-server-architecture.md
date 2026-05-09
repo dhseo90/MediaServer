@@ -4,7 +4,7 @@ Detailed Korean guide: [../media-server-architecture.md](../media-server-archite
 
 ## Product Boundary
 
-Media Server is an RTSP/WebRTC relay with optional video analytics. It is not a long-term recording system by default. Evidence is event-oriented and short-lived unless a later product policy extends retention.
+Media Server is an RTSP/WebRTC relay with optional video analytics. It is not a long-term recording system. Evidence is event-oriented and short-lived; extending retention is outside v1.1.0 scope and requires a separate product policy.
 
 ## Pipeline
 

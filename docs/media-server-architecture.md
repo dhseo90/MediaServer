@@ -622,7 +622,7 @@ GET /lab/analysis/event-storage/status
   - 상태: 짧은 frame evidence recorder
   - 목적: EventRecord와 snapshot media/pre-post frame bundle manifest path 연결
   - Evidence retention cleanup job은 운영 명령으로 분리
-  - 장기 녹화/MP4 recorder는 후속
+  - 장기 녹화/MP4 recorder는 v1.1.0 범위가 아니며 별도 제품 phase로만 검토
 - Ops audit/backup
   - 상태: 운영 변경 이력과 복구 리허설
   - 목적: `/ops/api/audit` 서버 저장/검색/export, `ops-bundle`,

@@ -729,7 +729,9 @@ Snapshot/clip hook:
 - Lab EventRecord detail은 안전한 preview route로
   snapshot inline preview와 clip manifest/frame link를 표시합니다.
 
-후속 범위는 richer clip gallery와 MP4/VMS/NVR형 recorder입니다.
+후속 UI polish는 richer clip gallery 정도로 제한합니다.
+MP4/VMS/NVR형 recorder는 v1.1.0 범위가 아니며 별도 제품 phase와
+보관/개인정보/배포 정책 gate가 필요합니다.
 
 ### Snapshot / clip hook
 
