@@ -93,6 +93,18 @@ std::string ProductSharedUiScript() {
         const classAttr = classText ? ` class="${escapeHtml(classText)}"` : '';
         return `<td data-label="${escapeHtml(label)}"${classAttr}>${html}</td>`;
       };
+      const opsClassNames = (...items) => items
+        .flatMap(item => Array.isArray(item) ? item : String(item || '').split(/\s+/))
+        .map(item => String(item || '').trim())
+        .filter(Boolean)
+        .join(' ');
+      const opsRowActionsHtml = (html, className = '') =>
+        `<div class="${escapeHtml(opsClassNames('table-actions', 'ops-row-actions', className))}">${html}</div>`;
+      const opsTableRowHtml = (cells = [], className = '') => {
+        const classText = opsClassNames(className);
+        const classAttr = classText ? ` class="${escapeHtml(classText)}"` : '';
+        return `<tr${classAttr}>${cells.join('')}</tr>`;
+      };
       const appendTableCell = (tr, label, html, className = '') => {
         const td = document.createElement('td');
         td.setAttribute('data-label', label);
@@ -100,6 +112,18 @@ std::string ProductSharedUiScript() {
         td.innerHTML = html;
         tr.appendChild(td);
         return td;
+      };
+      const setOpsDetailPanelOpen = (panel, open = true, options = {}) => {
+        if (!panel) return null;
+        panel.classList.add('ops-detail-panel');
+        panel.hidden = !open;
+        if (open && options.scroll) {
+          panel.scrollIntoView({
+            behavior: options.behavior || 'smooth',
+            block: options.block || 'start'
+          });
+        }
+        return panel;
       };
       const setSelectOptions = (select, items = [], selected = '') => {
         if (!select) return;
@@ -521,7 +545,10 @@ std::string ProductSharedUiScript() {
         splitList,
         setTableEmpty,
         tableCellHtml,
+        opsRowActionsHtml,
+        opsTableRowHtml,
         appendTableCell,
+        setOpsDetailPanelOpen,
         setSelectOptions,
         chip,
         renderBadges,

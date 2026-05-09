@@ -1294,6 +1294,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         showToast,
         setTableEmpty,
         tableCellHtml,
+        opsRowActionsHtml,
+        opsTableRowHtml,
+        setOpsDetailPanelOpen,
         chip: badge,
         renderBadges,
         renderRaw,
@@ -2005,10 +2008,10 @@ void AppendOpsShellScript(std::ostringstream& out,
         opsRulesDetailMode = detailMode;
         opsRulesDetailRecordId = String(recordId || '');
         if (!config || detailMode === 'closed') {
-          if (panel) panel.hidden = true;
+          setOpsDetailPanelOpen(panel, false);
           return;
         }
-        if (panel) panel.hidden = false;
+        setOpsDetailPanelOpen(panel, true);
         if (badge) badge.textContent = detailMode === 'view' ? '상세' : (detailMode === 'edit' ? '수정' : '추가');
         if (idBadge) {
           idBadge.hidden = !opsRulesDetailRecordId;
@@ -3811,7 +3814,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         return `<button type="button" class="${classes}" data-ops-rule-action="${escapeHtml(action)}" data-ops-rule-id="${escapeHtml(String(id || ''))}">${escapeHtml(label)}</button>`;
       }
       function opsRuleActionButtons(actions) {
-        return `<div class="table-actions ops-row-actions ops-rule-row-actions">${actions.join('')}</div>`;
+        return opsRowActionsHtml(actions.join(''), 'ops-rule-row-actions');
       }
       function opsRulesMsLabel(value) {
         const numeric = Number(value);
@@ -4209,11 +4212,11 @@ void AppendOpsShellScript(std::ostringstream& out,
         const channel = opsRulesFindChannelForVaRule(item);
         const ruleId = String(item?.id || '').trim();
         const viewId = String(channel?.view?.viewId || '').trim();
-        return `<div class="table-actions ops-row-actions ops-stream-actions channel-stream-actions">
+        return opsRowActionsHtml(`
           <button type="button" class="secondary" data-ops-rule-copy-kind="rtsp" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="이 채널 분석 설정의 RTSP URL 복사" aria-label="이 채널 분석 설정의 RTSP URL 복사">RTSP 복사</button>
           <button type="button" class="secondary" data-ops-rule-copy-kind="whep" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="이 채널 분석 설정의 WHEP URL 복사" aria-label="이 채널 분석 설정의 WHEP URL 복사">WHEP 복사</button>
           <button type="button" class="secondary" data-ops-rule-copy-kind="client" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="이 채널 분석 설정의 WebRTC 링크 복사" aria-label="이 채널 분석 설정의 WebRTC 링크 복사"${viewId ? '' : ' disabled'}>WebRTC 복사</button>
-        </div>`;
+        `, 'ops-stream-actions channel-stream-actions');
       }
       function opsRulesEventSummaryHtml(item = {}) {
         const type = item?.scenario?.type || item?.event?.type || item?.eventType || 'event';
@@ -4291,17 +4294,17 @@ void AppendOpsShellScript(std::ostringstream& out,
             opsRuleActionButton('상세', 'view-va', id),
             opsRuleActionButton('삭제', 'delete-va', id, 'danger')
           ]);
-          const statusCellHtml = `<div class="ops-rule-status-actions">${statusHtml}</div>`;
-          return `<tr>
-            ${tableCellHtml('ID', opsRulesIdentityBadgeHtml('id', itemId(item)))}
-            ${tableCellHtml('채널', opsRulesVaRuleChannelHtml(item))}
-            ${tableCellHtml('이벤트 템플릿', opsRulesVaRuleTemplateHtml(item))}
-            ${tableCellHtml('프로파일', opsRulesVaRuleProfileHtml(item))}
-            ${tableCellHtml('영역/라인', opsRulesGeometryHtml(item))}
-            ${tableCellHtml('출력', opsRulesVaOutputButtonsHtml(item))}
-            ${tableCellHtml('상태', statusCellHtml, 'table-cell-nowrap table-cell-status')}
-            ${tableCellHtml('작업', actionsHtml, 'table-cell-actions')}
-          </tr>`;
+          const statusCellHtml = opsRowActionsHtml(statusHtml, 'ops-rule-status-actions');
+          return opsTableRowHtml([
+            tableCellHtml('ID', opsRulesIdentityBadgeHtml('id', itemId(item))),
+            tableCellHtml('채널', opsRulesVaRuleChannelHtml(item)),
+            tableCellHtml('이벤트 템플릿', opsRulesVaRuleTemplateHtml(item)),
+            tableCellHtml('프로파일', opsRulesVaRuleProfileHtml(item)),
+            tableCellHtml('영역/라인', opsRulesGeometryHtml(item)),
+            tableCellHtml('출력', opsRulesVaOutputButtonsHtml(item)),
+            tableCellHtml('상태', statusCellHtml, 'table-cell-nowrap table-cell-status'),
+            tableCellHtml('작업', actionsHtml, 'table-cell-actions')
+          ]);
         }).join('');
       }
       function renderOpsEventRules(items) {
@@ -4316,14 +4319,14 @@ void AppendOpsShellScript(std::ostringstream& out,
             opsRuleActionButton('상세', 'view-event-template', id),
             opsRuleActionButton('삭제', 'delete-event-template', id, 'danger')
           ]);
-          return `<tr>
-            ${tableCellHtml('ID', opsRulesIdentityBadgeHtml('template', itemId(item)))}
-            ${tableCellHtml('구분', opsRulesEventModeHtml(item))}
-            ${tableCellHtml('종류', opsRulesEventSummaryHtml(item))}
-            ${tableCellHtml('대상', opsRulesTargetHtml(item?.analysis?.classes || item?.scenario?.targetClasses || []))}
-            ${tableCellHtml('조건', opsRulesConditionHtml(item))}
-            ${tableCellHtml('작업', actionsHtml, 'table-cell-actions')}
-          </tr>`;
+          return opsTableRowHtml([
+            tableCellHtml('ID', opsRulesIdentityBadgeHtml('template', itemId(item))),
+            tableCellHtml('구분', opsRulesEventModeHtml(item)),
+            tableCellHtml('종류', opsRulesEventSummaryHtml(item)),
+            tableCellHtml('대상', opsRulesTargetHtml(item?.analysis?.classes || item?.scenario?.targetClasses || [])),
+            tableCellHtml('조건', opsRulesConditionHtml(item)),
+            tableCellHtml('작업', actionsHtml, 'table-cell-actions')
+          ]);
         }).join('');
       }
       function opsProfileUsageSummary(profileId) {
@@ -4365,14 +4368,14 @@ void AppendOpsShellScript(std::ostringstream& out,
           const usageHtml = `<div class="ops-rule-value-stack">
             <strong>${escapeHtml(opsProfileUsageSummary(id))}</strong>
           </div>`;
-          return `<tr>
-            ${tableCellHtml('ID', opsRulesIdentityBadgeHtml('profile', itemId(item)))}
-            ${tableCellHtml('검출기', detectorHtml)}
-            ${tableCellHtml('FPS', fpsHtml)}
-            ${tableCellHtml('입력', inputHtml)}
-            ${tableCellHtml('사용처', usageHtml)}
-            ${tableCellHtml('작업', actionsHtml, 'table-cell-actions')}
-          </tr>`;
+          return opsTableRowHtml([
+            tableCellHtml('ID', opsRulesIdentityBadgeHtml('profile', itemId(item))),
+            tableCellHtml('검출기', detectorHtml),
+            tableCellHtml('FPS', fpsHtml),
+            tableCellHtml('입력', inputHtml),
+            tableCellHtml('사용처', usageHtml),
+            tableCellHtml('작업', actionsHtml, 'table-cell-actions')
+          ]);
         }).join('');
       }
       function findOpsVaRuleById(id) {
@@ -4874,14 +4877,28 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     let lastChannelBulkResult = null;
     let lastChannelBulkPreview = null;
     const selectedChannelIds = new Set();
-	    const { escapeHtml, requestJson, formDataObject, setFeedback, showToast, setTableEmpty, tableCellHtml, setSelectOptions, recordOpsAudit, renderOpsAuditTrail } = window.MediaServerUi;
-	    const hashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
-	    const setStatus = (message, failed = false) => {
-	      setFeedback(statusEl, message, failed, { collapseEmpty: true });
-	    };
-	    const setChannelValidation = message => {
-	      setFeedback(channelValidation, message, Boolean(message));
-	    };
+    const {
+      escapeHtml,
+      requestJson,
+      formDataObject,
+      setFeedback,
+      showToast,
+      setTableEmpty,
+      tableCellHtml,
+      opsRowActionsHtml,
+      opsTableRowHtml,
+      setOpsDetailPanelOpen,
+      setSelectOptions,
+      recordOpsAudit,
+      renderOpsAuditTrail
+    } = window.MediaServerUi;
+    const hashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
+    const setStatus = (message, failed = false) => {
+      setFeedback(statusEl, message, failed, { collapseEmpty: true });
+    };
+    const setChannelValidation = message => {
+      setFeedback(channelValidation, message, Boolean(message));
+    };
     const kindLabel = kind => ({
       file: '파일',
       rtsp: 'RTSP pull',
@@ -4961,12 +4978,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       const id = escapeHtml(source.sourceId || '');
       const label = mode === 'va' ? 'VA URL' : '라이브 URL';
       const copyMode = mode === 'va' ? 'va' : 'raw';
-      return `
-        <div class="table-actions ops-row-actions ops-stream-actions channel-stream-actions">
+      return opsRowActionsHtml(`
           <button type="button" class="secondary" data-copy-stream-type="rtsp" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${label} RTSP 복사" aria-label="${label} RTSP 복사">RTSP</button>
           <button type="button" class="secondary" data-copy-stream-type="whep" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${label} WHEP 복사" aria-label="${label} WHEP 복사">WHEP</button>
-        </div>
-      `;
+        `, 'ops-stream-actions channel-stream-actions');
     }
     async function copyTextToClipboard(value) {
       const text = String(value || '');
@@ -5310,12 +5325,12 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
 	        setTableEmpty(channelBody, 9, '등록된 채널이 없습니다. 채널 추가로 첫 카메라/소스를 등록하세요.');
           renderChannelBulkDiagnostics(false);
 	        return;
-	      }
+      }
         const validIds = new Set(rows.map(row => String(row.id || '')));
         for (const id of Array.from(selectedChannelIds)) {
           if (!validIds.has(id)) selectedChannelIds.delete(id);
         }
-	      channelBody.innerHTML = rows.map(row => {
+      channelBody.innerHTML = rows.map(row => {
         const source = row.source || {};
         const view = row.view || {};
         const enabled = source.enabled !== false && view.enabled !== false;
@@ -5331,38 +5346,36 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         const kindCellHtml = `<div class="channel-kind-cell">
           <strong>${escapeHtml(kindLabel(source.kind))}</strong>
         </div>`;
-        const statusCellHtml = `<div class="table-actions ops-row-actions ops-status-actions channel-status-actions">
+        const statusCellHtml = opsRowActionsHtml(`
           ${enabled ? chip('활성') : chip('비활성', 'warn')}
           <button type="button" class="secondary" data-toggle-channel="${escapeHtml(row.id || '')}">${enabled ? '비활성화' : '적용'}</button>
-        </div>`;
+        `, 'ops-status-actions channel-status-actions');
         const inputCellHtml = `<div class="channel-input-stack">
           <span class="token">${escapeHtml(inputText)}</span>
           ${source.sourceId ? '' : '<span class="channel-source-note">PublishedView 연결 전</span>'}
         </div>`;
-        const actionsCellHtml = `<div class="table-actions ops-row-actions channel-row-actions">
+        const actionsCellHtml = opsRowActionsHtml(`
           <button type="button" class="secondary" data-view-channel="${escapeHtml(row.id || '')}">상세</button>
           <button type="button" class="secondary" data-clone-channel="${escapeHtml(row.id || '')}">복제</button>
           <button type="button" class="secondary" data-open-client-live="${escapeHtml(row.id || '')}" ${view?.enabled === false ? 'disabled' : ''}>라이브 보기</button>
           <button type="button" class="danger" data-delete-channel="${escapeHtml(row.id || '')}">삭제</button>
-        </div>`;
-        return `
-        <tr>
-          ${tableCellHtml('선택', selectCellHtml, 'table-cell-status')}
-          ${tableCellHtml('ID', idCellHtml)}
-          ${tableCellHtml('이름', escapeHtml(channelName))}
-          ${tableCellHtml('종류', kindCellHtml)}
-          ${tableCellHtml('상태', statusCellHtml, 'table-cell-status')}
-          ${tableCellHtml('입력', inputCellHtml)}
-          ${tableCellHtml('라이브 URL', liveButtons)}
-          ${tableCellHtml('VA URL', vaButtons)}
-          ${tableCellHtml('작업', actionsCellHtml, 'table-cell-actions')}
-	        </tr>
-	      `;
-	      }).join('');
+        `, 'channel-row-actions');
+        return opsTableRowHtml([
+          tableCellHtml('선택', selectCellHtml, 'table-cell-status'),
+          tableCellHtml('ID', idCellHtml),
+          tableCellHtml('이름', escapeHtml(channelName)),
+          tableCellHtml('종류', kindCellHtml),
+          tableCellHtml('상태', statusCellHtml, 'table-cell-status'),
+          tableCellHtml('입력', inputCellHtml),
+          tableCellHtml('라이브 URL', liveButtons),
+          tableCellHtml('VA URL', vaButtons),
+          tableCellHtml('작업', actionsCellHtml, 'table-cell-actions')
+        ]);
+      }).join('');
         renderChannelBulkDiagnostics(false);
-	      bindChannelRowActions();
-	    }
-	    function bindChannelRowActions() {
+      bindChannelRowActions();
+    }
+    function bindChannelRowActions() {
         document.querySelectorAll('[data-select-channel]').forEach(input => {
           input.addEventListener('change', syncBulkSelectionFromDom);
         });
@@ -5443,9 +5456,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       setChannelValidation('');
       updateKindFields();
       loadFileOptions();
-      channelPanel.hidden = false;
+      setOpsDetailPanelOpen(channelPanel, true);
       syncEditorChrome(mode, '');
-      channelPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setOpsDetailPanelOpen(channelPanel, true, { scroll: true });
       channelForm.elements.channelId.focus();
     }
     function fillChannel(id, mode = 'view') {
@@ -5466,9 +5479,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       }
       updateKindFields();
       setChannelValidation('');
-      channelPanel.hidden = false;
+      setOpsDetailPanelOpen(channelPanel, true);
       syncEditorChrome(mode, isClone ? '' : id);
-      channelPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setOpsDetailPanelOpen(channelPanel, true, { scroll: true });
     }
     function openChannel(id, mode = 'view') {
       if (!id) return;
@@ -5739,14 +5752,14 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
           renderOpsAuditTrail('channel-audit-list', 'channels');
         }
         setStatus(failed.length ? `채널 삭제 일부 실패: ${failed[0].reason?.message || 'unknown'}` : '채널 삭제 완료', failed.length > 0);
-        if (currentChannelId === id) channelPanel.hidden = true;
+        if (currentChannelId === id) setOpsDetailPanelOpen(channelPanel, false);
       } catch (error) {
         setStatus(error.message, true);
       }
     }
     document.querySelector('#add-channel').addEventListener('click', () => resetChannelForm('new'));
     closeChannelButton.addEventListener('click', () => {
-      channelPanel.hidden = true;
+      setOpsDetailPanelOpen(channelPanel, false);
       document.querySelector('[data-ops-panel], .panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
     editSelectedButton.addEventListener('click', () => currentChannelId && fillChannel(currentChannelId, 'edit'));
@@ -5810,6 +5823,8 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       setHidden,
       setRequired,
       setTableEmpty,
+      opsRowActionsHtml,
+      setOpsDetailPanelOpen,
       appendTableCell,
       recordOpsAudit,
       renderOpsAuditTrail
@@ -5817,7 +5832,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     const setStatus = (message, failed = false) => setFeedback(statusEl, message, failed);
     const setRequestStatus = (message, failed = false) => setFeedback(requestStatusEl, message, failed);
     function hideUserEditor() {
-      userDetailPanel.hidden = true;
+      setOpsDetailPanelOpen(userDetailPanel, false);
       editorMode = 'view';
     }
     function setInviteOutput(text = '') {
@@ -5845,7 +5860,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     }
     function setEditorMode(mode, title, username = '') {
       editorMode = mode;
-      userDetailPanel.hidden = false;
+      setOpsDetailPanelOpen(userDetailPanel, true);
       userEditorTitle.textContent = title;
       userEditorMode.textContent = mode === 'new' ? '새 사용자' : (mode === 'view' ? '상세' : '수정 중');
       userEditorId.textContent = username ? `@${username}` : '@-';
@@ -6071,15 +6086,15 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         appendLabeledCell(tr, '계정명', `<div class="user-id-cell"><span class="table-identity-pill table-identity-user">${escapeHtml(displayValue(user.username))}</span></div>`);
         appendLabeledCell(tr, '이름', userValueHtml(user.displayName || '미제공'));
         appendLabeledCell(tr, '권한', userValueHtml(roleLabel(user.role)));
-        appendLabeledCell(tr, '상태', `<div class="table-actions ops-row-actions ops-status-actions user-status-actions">${chip(user.enabled ? '활성' : '비활성', user.enabled ? '' : 'warn')}</div>`, 'table-cell-status');
+        appendLabeledCell(tr, '상태', opsRowActionsHtml(chip(user.enabled ? '활성' : '비활성', user.enabled ? '' : 'warn'), 'ops-status-actions user-status-actions'), 'table-cell-status');
         appendLabeledCell(tr, '권한 범위', userScopeHtml(user.scopes), 'user-scope-cell');
         appendLabeledCell(tr, '마지막 로그인', userValueHtml(user.lastLoginAt || '미제공'));
         appendLabeledCell(tr, '잠금 만료', userValueHtml(user.lockedUntil || '없음'));
         appendLabeledCell(tr, '비밀번호 변경', userValueHtml(yesNo(user.mustChangePassword)));
-        const actionsHtml = `
-          <div class="table-actions ops-row-actions user-row-actions">
-            <button type="button" class="secondary" data-user-view="${escapeHtml(displayValue(user.username))}">상세</button>
-          </div>`;
+        const actionsHtml = opsRowActionsHtml(
+          `<button type="button" class="secondary" data-user-view="${escapeHtml(displayValue(user.username))}">상세</button>`,
+          'user-row-actions'
+        );
         appendLabeledCell(tr, '작업', actionsHtml, 'table-cell-actions');
         usersBody.appendChild(tr);
       }
@@ -6100,13 +6115,13 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         appendLabeledCell(tr, '연락처', userValueHtml(request.contact || '미제공'));
         appendLabeledCell(tr, '채널', userValueHtml(request.viewId || '미지정'));
         appendLabeledCell(tr, '사유', userValueHtml(request.reason || '미제공'));
-        appendLabeledCell(tr, '상태', `<div class="table-actions ops-row-actions ops-status-actions user-status-actions">${chip(requestStatusLabel(request.status), requestStatusTone(request.status))}</div>`, 'table-cell-status');
+        appendLabeledCell(tr, '상태', opsRowActionsHtml(chip(requestStatusLabel(request.status), requestStatusTone(request.status)), 'ops-status-actions user-status-actions'), 'table-cell-status');
         appendLabeledCell(tr, '요청/결정', userValueHtml(request.createdAt || '미제공', request.decidedAt || ''));
         const actionsHtml = request.status === 'pending'
-          ? `<div class="table-actions ops-row-actions user-row-actions">
+          ? opsRowActionsHtml(`
               <button type="button" class="primary" data-request-approve="${escapeHtml(displayValue(request.requestId))}">승인</button>
               <button type="button" class="danger" data-request-reject="${escapeHtml(displayValue(request.requestId))}">거절</button>
-            </div>`
+            `, 'user-row-actions')
           : chip('처리 완료');
         appendLabeledCell(tr, '작업', actionsHtml, 'table-cell-actions');
         requestsBody.appendChild(tr);
