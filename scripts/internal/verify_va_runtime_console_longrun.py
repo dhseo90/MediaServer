@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
-"""Long-run VA Metadata Runtime Console verification.
-
-This is an optional soak test. It starts a local test server, keeps WebRTC
-metadata, SSE side-channel, dashboard polling, and optional RTSP overlay
-consumers active for the requested duration, then verifies cleanup.
-"""
+# 파일 용도: VA Metadata Runtime Console을 장시간 구동하며 cleanup과 resource 안정성을 검증한다.
+"""선택형 soak test로 local server와 consumer를 지정 시간 유지한 뒤 정리 상태를 확인한다."""
 
 from __future__ import annotations
 
@@ -29,7 +25,7 @@ DEFAULT_IDLE_SAMPLE_INTERVAL_SECONDS = 30.0
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="VA Runtime Console long-run verification")
+    parser = argparse.ArgumentParser(description="VA Runtime Console 장시간 검증")
     parser.add_argument("--duration-minutes", type=float, default=float(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_MINUTES", "30")))
     parser.add_argument("--clients", type=int, default=int(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_CLIENTS", "1")))
     parser.add_argument("--include-rtsp", action="store_true", default=os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_INCLUDE_RTSP", "0") == "1")

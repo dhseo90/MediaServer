@@ -1,3 +1,4 @@
+// 파일 용도: UI visual smoke script들이 공유하는 Chrome 실행, 페이지 검사, screenshot helper를 제공한다.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";

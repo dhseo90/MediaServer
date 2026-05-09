@@ -1,6 +1,8 @@
 # Config Reference
 
-이 문서는 런타임 환경변수와 주요 build/script 설정을 모읍니다. 실제 기본값의 source of truth는 `include/stdafx.h`, `src/app_config.cpp`, `scripts/internal/*.sh`입니다.
+이 문서는 런타임 환경변수와 주요 build/script 설정을 모읍니다.
+실제 기본값의 source of truth는 `include/stdafx.h`, `src/app_config.cpp`,
+`scripts/internal/*.sh`입니다.
 
 ## 기본 규칙
 
@@ -26,7 +28,9 @@
 ./server.sh ops-bundle --http-base http://127.0.0.1:8080
 ```
 
-bundle에는 `/health`, runtime status, `check_server`, `diagnose`, log tail, registry/auth store 파일 metadata, redacted env 요약이 포함됩니다. Auth users file 내용과 plaintext secret은 포함하지 않습니다.
+bundle에는 `/health`, runtime status, `check_server`, `diagnose`,
+log tail, registry/auth store 파일 metadata, redacted env 요약이 포함됩니다.
+Auth users file 내용과 plaintext secret은 포함하지 않습니다.
 복구용 백업 대상과 복구 후 검증 절차는 [docs/ops-backup-recovery.md](ops-backup-recovery.md)에 둡니다.
 
 ## 서버 기본 env
@@ -69,15 +73,60 @@ bundle에는 `/health`, runtime status, `check_server`, `diagnose`, log tail, re
 
 ### HTTP auth
 
-`MEDIA_SERVER_AUTH_MODE=auto`가 기본값입니다. Auto mode는 users file이 없거나 admin user/passwordHash가 준비되지 않았으면 `/setup`으로 보내고, setup이 끝나면 `/login` session 인증을 요구합니다. `MEDIA_SERVER_AUTH_MODE=off`는 개발/테스트 호환을 위한 명시 모드이며 제품 기본값으로 사용하지 않습니다. Auth off에서 `/`는 `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/ops/home` 또는 `/client/live`로 이동합니다. `lab` 값은 화면 route를 열지 않고 `/ops/home`으로 fallback합니다. Auth on에서 `/`는 setup required면 `/setup`, 미인증이면 `/login`, admin/operator면 `/ops/home`, viewer면 `/client/live`로 이동합니다. `MEDIA_SERVER_AUTH_MODE=token`에서는 `/auth/whoami`가 `Authorization: Bearer <token>` 또는 개발용 `?token=<token>` query를 읽어 role/scope principal을 반환합니다. `MEDIA_SERVER_AUTH_MODE=session`은 auto의 setup 감지를 유지하면서 `/login` 계정 로그인과 HttpOnly session cookie 인증을 사용합니다. Query token은 브라우저 주소, proxy log, referrer에 남을 수 있으므로 운영 환경에서는 권장하지 않습니다.
+`MEDIA_SERVER_AUTH_MODE=auto`가 기본값입니다.
 
-Auth on에서 직접 generic media 생성 route인 `POST /webrtc/session`, `POST /whep`, `POST /whip/publish`는 admin/operator `ops:read` 또는 `lab:read` 권한이 필요합니다. 생성된 WebRTC/WHEP/WHIP session id는 난수 token을 포함하고, 후속 answer/ICE/delete route는 같은 생성 principal 또는 응답의 `sessionToken`/`X-Session-Capability`를 요구합니다. 직접 WebSocket metadata side-channel인 `/ws/va-metadata`는 Lab/custom-client 경로이므로 admin/operator 또는 `lab:read` 권한이 필요합니다. Auth off에서는 기존 개발/자동화 호환을 위해 계속 허용됩니다. Viewer/client 계정은 source locator를 직접 보내지 않고 `/client/api/views/{viewId}/webrtc/session` wrapper를 사용해야 하며, 후속 signaling도 client wrapper alias로만 호출합니다.
+Auth mode 기준:
 
-내장 HTTP server는 고정 hardening limit을 적용합니다. Header는 64KiB, request body는 2MiB까지 허용하며 malformed `Content-Length`, unsupported transfer encoding, socket read timeout, 동시 active connection 초과는 route handler에 도달하기 전에 오류 응답으로 닫습니다.
+- `auto`: users file이 없거나 admin user/passwordHash가 없으면 `/setup`으로 보냅니다.
+  setup 이후에는 `/login` session 인증을 요구합니다.
+- `off`: 개발/테스트 호환용 명시 모드입니다. 제품 기본값으로 사용하지 않습니다.
+- `token`: `/auth/whoami`가 Bearer token 또는 개발용 `?token=<token>` query를 읽어
+  role/scope principal을 반환합니다.
+- `session`: auto의 setup 감지를 유지하면서 `/login` 계정 로그인과
+  HttpOnly session cookie 인증을 사용합니다.
 
-CORS는 별도 env 없이 same-origin 고정 정책입니다. 일반 요청에 `Origin`이 없으면 `Access-Control-Allow-Origin`을 내지 않고, `Origin`이 있으면 요청 `Host`와 같은 `http://` 또는 `https://` origin만 반사합니다. 다른 origin의 실제 요청과 preflight는 `403`으로 거부하며, wildcard origin과 credential 허용 헤더는 사용하지 않습니다.
+Root redirect 기준:
 
-Session login은 `libsodium crypto_pwhash_str` password hash를 사용합니다. 안전한 password hashing dependency가 없는 build에서는 password login을 사용할 수 없으며 plaintext password나 단순 SHA 계열 저장을 지원하지 않습니다. Login 성공 시 새 session id를 발급하고, logout은 server-side session을 삭제하며 cookie를 만료시킵니다. Session은 TTL과 idle timeout 중 먼저 도달한 기준으로 만료됩니다.
+- Auth off: `MEDIA_SERVER_UI_DEFAULT_HOME`에 따라 `/ops/home` 또는 `/client/live`로 이동합니다.
+- `MEDIA_SERVER_UI_DEFAULT_HOME=lab`: 화면 route를 열지 않고 `/ops/home`으로 fallback합니다.
+- Auth on setup required: `/setup`
+- Auth on 미인증: `/login`
+- Auth on admin/operator: `/ops/home`
+- Auth on viewer: `/client/live`
+
+Query token은 브라우저 주소, proxy log, referrer에 남을 수 있으므로
+운영 환경에서는 권장하지 않습니다.
+
+Generic media 생성 route:
+
+- 대상 route: `POST /webrtc/session`, `POST /whep`, `POST /whip/publish`
+- Auth on 권한: admin/operator `ops:read` 또는 `lab:read`
+- 후속 answer/ICE/delete: 같은 생성 principal 또는
+  `sessionToken`/`X-Session-Capability` 필요
+- `/ws/va-metadata`: Lab/custom-client 경로이므로 admin/operator 또는 `lab:read` 필요
+- Auth off: 기존 개발/자동화 호환을 위해 허용
+- Viewer/client: source locator를 직접 보내지 않고
+  `/client/api/views/{viewId}/webrtc/session` wrapper를 사용
+
+내장 HTTP server hardening limit:
+
+- Header: 64KiB
+- Request body: 2MiB
+- malformed `Content-Length`, unsupported transfer encoding, socket read timeout,
+  동시 active connection 초과는 route handler 전에 오류 응답으로 닫음
+
+CORS는 별도 env 없이 same-origin 고정 정책입니다.
+
+- `Origin`이 없으면 `Access-Control-Allow-Origin`을 내지 않습니다.
+- `Origin`이 있으면 요청 `Host`와 같은 `http://` 또는 `https://` origin만 반사합니다.
+- 다른 origin의 실제 요청과 preflight는 `403`으로 거부합니다.
+- wildcard origin과 credential 허용 헤더는 사용하지 않습니다.
+
+Session login은 `libsodium crypto_pwhash_str` password hash를 사용합니다.
+안전한 password hashing dependency가 없는 build에서는 password login을 사용할 수 없습니다.
+plaintext password나 단순 SHA 계열 저장도 지원하지 않습니다.
+Login 성공 시 새 session id를 발급하고, logout은 server-side session을 삭제하며 cookie를 만료시킵니다.
+Session은 TTL과 idle timeout 중 먼저 도달한 기준으로 만료됩니다.
 
 최초 관리자 bootstrap:
 
@@ -86,24 +135,42 @@ Session login은 `libsodium crypto_pwhash_str` password hash를 사용합니다.
 - users file이 없거나 `admin.passwordHash`가 없거나 admin이 disabled이면 setup required 상태입니다.
 - setup required 상태에서 UI 요청은 `/setup`으로 이동합니다.
 - `/setup`은 setup required 상태에서만 접근할 수 있고, 완료 후에는 `/login`으로 이동합니다.
-- 기본 password policy는 `kr-privacy`입니다. 대문자/소문자/숫자/특수문자 중 3종류 이상이면 최소 8자, 2종류 조합이면 최소 10자를 요구합니다.
+- 기본 password policy는 `kr-privacy`입니다.
+  대문자/소문자/숫자/특수문자 중 3종류 이상이면 최소 8자,
+  2종류 조합이면 최소 10자를 요구합니다.
 - username 포함, 3회 이상 반복 문자, 4자리 이상 연속 숫자, 키보드 배열, 흔한 비밀번호, 최근 password history 재사용은 거부합니다.
 - 연속 로그인 실패가 `MEDIA_SERVER_AUTH_LOGIN_MAX_FAILURES`에 도달하면 계정별 `lockedUntil`까지 로그인 시도를 거부합니다.
-- 초기화된 계정은 `mustChangePassword=true`로 저장할 수 있으며, 로그인 후 `/password/change`에서 새 정책을 만족하는 비밀번호로 변경해야 합니다.
+- 초기화된 계정은 `mustChangePassword=true`로 저장할 수 있습니다.
+  로그인 후 `/password/change`에서 새 정책을 만족하는 비밀번호로 변경해야 합니다.
 - `/auth/whoami`는 `setupRequired`, `setupReason`, `authMode`, `authenticated`, `username`, `role`, `scopes`, `passwordChangeRequired`를 반환합니다.
 
-계정 관리는 admin 전용 `/ops/users` 또는 `./server.sh auth-user` CLI를 사용합니다. Users file 직접 편집은 복구나 bootstrap 문제 해결 때만 사용하고 운영 절차로 권장하지 않습니다. Self-signup 자동 승인은 제공하지 않으며 viewer/client 계정은 admin이 직접 생성하거나 pending access request를 승인해 password setup invite를 발급합니다.
+계정 관리는 admin 전용 `/ops/users` 또는 `./server.sh auth-user` CLI를 사용합니다.
+Users file 직접 편집은 복구나 bootstrap 문제 해결 때만 사용합니다.
+운영 절차로 권장하지 않습니다.
+Self-signup 자동 승인은 제공하지 않습니다.
+viewer/client 계정은 admin이 직접 생성하거나 pending access request를 승인해
+password setup invite를 발급합니다.
 
 현재 role/scope 모델:
 
 | 역할 | Scope |
 | --- | --- |
-| `admin` | 모든 scope. `view:read:*`, `source:read:*`, `rule:read:*`, `event:read:*`, `metadata:read:*`, `dashboard:read:*`, `debug:read`, `rule:write`, `source:write`, `ops:read`, `lab:read` |
+| `admin` | 모든 scope. `view/source/rule/event/metadata/dashboard` read, `debug:read`, `rule:write`, `source:write`, `ops:read`, `lab:read` |
 | `operator` | `ops:read`, `rule:write`, `source:write`, `dashboard:read:*`, `event:read:*` |
 | `viewer` | `view:read:{viewId}`, `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}` |
 | `integrator` | `metadata:read:{viewId}`, `event:read:{viewId}` |
 
-`*` scope는 wildcard 표현입니다. `/ops/users`와 CLI에서 viewId를 넣으면 viewer/integrator scope template은 `{viewId}` 단위로 생성됩니다. `/ops/api/sources`와 `/ops/api/views`의 변경 작업은 `source:write`, Lab rule/profile/vaRule 변경 작업은 `rule:write`를 추가로 요구합니다. Integrator는 client shell/live/dashboard UI에 진입하지 않고 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata` 같은 scoped API만 사용합니다.
+`*` scope는 wildcard 표현입니다.
+`/ops/users`와 CLI에서 viewId를 넣으면 viewer/integrator scope template은
+`{viewId}` 단위로 생성됩니다.
+
+변경 권한:
+
+- `/ops/api/sources`, `/ops/api/views`: `source:write`
+- Lab rule/profile/vaRule 변경: `rule:write`
+- Integrator: client shell/live/dashboard UI 대신
+  `/client/api/views/{viewId}/events`,
+  `/client/api/views/{viewId}/metadata` 같은 scoped API만 사용
 
 Users file 예시:
 
@@ -165,7 +232,39 @@ Users file 예시:
 }
 ```
 
-`passwordHash`와 `passwordHistory`는 libsodium `crypto_pwhash_str` 출력 문자열만 저장합니다. `tokenHash`도 같은 방식으로 저장할 수 있으며, plaintext password/token 저장은 금지합니다. Password hash 값은 `/ops/api/users`, `/ops/users`, CLI list 응답에 노출하지 않습니다. Auth users file은 owner read/write 전용 `0600`으로 생성/보정하며, 저장은 임시 파일 write/fsync 후 rename하고 parent directory도 fsync합니다. User-only 저장 경로는 기존 auth store 전체를 먼저 읽어 `invites`와 `accessRequests`를 보존하며, 읽기 실패 또는 invalid record가 있으면 덮어쓰지 않고 실패합니다. 제품 UI의 계정 생성은 `/ops/users`에서 admin이 초기 비밀번호를 입력하는 직접 생성 흐름과 pending access request 승인/거절 table을 함께 제공합니다. 승인 시 password setup invite token/setup URL은 응답에서 한 번만 표시되고, invite 비밀번호는 사용자가 `/invite/setup`에서 직접 입력합니다. Invite 생성과 access-request approve는 invite record만 추가하고 기존 user의 role/scope/enabled/session 상태를 수락 전 즉시 바꾸지 않습니다. Public access request는 4KiB body, displayName 96B, contact 160B, reason 500B, 숫자 viewId 64B 제한을 적용하고, 같은 peer의 5회/5분 초과 요청, 기존 user, 중복 pending username/contact, pending 100건 초과를 거부합니다. Invite/request 전용 env는 별도로 두지 않고 같은 users file에 저장하며, invite 만료 시간은 API 요청의 `ttlSeconds`로 지정하거나 서버 기본값을 사용합니다.
+Auth users file 저장 규칙:
+
+- `passwordHash`와 `passwordHistory`는 libsodium `crypto_pwhash_str` 출력 문자열만 저장합니다.
+- `tokenHash`도 같은 방식으로 저장할 수 있습니다.
+- plaintext password/token 저장은 금지합니다.
+- Password hash 값은 `/ops/api/users`, `/ops/users`, CLI list 응답에 노출하지 않습니다.
+- Auth users file은 owner read/write 전용 `0600`으로 생성/보정합니다.
+- 저장은 임시 파일 write/fsync 후 rename하고 parent directory도 fsync합니다.
+- User-only 저장 경로는 기존 auth store 전체를 먼저 읽어
+  `invites`와 `accessRequests`를 보존합니다.
+- 읽기 실패 또는 invalid record가 있으면 덮어쓰지 않고 실패합니다.
+
+제품 UI 계정 흐름:
+
+- `/ops/users`에서 admin이 초기 비밀번호를 입력해 계정을 직접 생성합니다.
+- pending access request 승인/거절 table을 같은 화면에서 제공합니다.
+- 승인 시 password setup invite token/setup URL은 응답에서 한 번만 표시합니다.
+- invite 비밀번호는 사용자가 `/invite/setup`에서 직접 입력합니다.
+- Invite 생성과 access-request approve는 invite record만 추가합니다.
+- 기존 user의 role/scope/enabled/session 상태는 invite 수락 전 즉시 바꾸지 않습니다.
+
+Public access request 제한:
+
+- body 4KiB
+- displayName 96B
+- contact 160B
+- reason 500B
+- 숫자 viewId 64B
+- 같은 peer의 5회/5분 초과 요청 거부
+- 기존 user, 중복 pending username/contact, pending 100건 초과 거부
+
+Invite/request 전용 env는 별도로 두지 않고 같은 users file에 저장합니다.
+Invite 만료 시간은 API 요청의 `ttlSeconds`로 지정하거나 서버 기본값을 사용합니다.
 
 Admin user management API:
 
@@ -179,7 +278,7 @@ Admin user management API:
 | `POST /ops/api/users/{username}/enable` | admin | 비활성 계정 재활성화 |
 | `POST /ops/api/invites` | admin | password setup invite 발급. token 원문은 응답에서 한 번만 표시하며 수락 전 user 권한은 변경하지 않음 |
 | `GET /ops/api/access-requests` | admin | pending/rejected/approved client access request 조회. `/ops/users` 접근 요청 table이 사용 |
-| `POST /ops/api/access-requests/{requestId}/approve` | admin | pending request를 승인하고 password setup invite 발급. `/ops/users`는 token/setup URL을 한 번 표시하며 user 생성/권한 반영은 invite setup 시점에 수행 |
+| `POST /ops/api/access-requests/{requestId}/approve` | admin | pending request 승인과 password setup invite 발급. token/setup URL은 한 번만 표시 |
 | `POST /ops/api/access-requests/{requestId}/reject` | admin | pending request 거절. `/ops/users`는 상태만 갱신하고 user/session/view scope는 생성하지 않음 |
 | `POST /client/api/access-requests` | public | client access request를 `pending` 상태로 저장 |
 
@@ -189,9 +288,18 @@ Ops audit trail:
 
 | 환경변수 | 기본값 | 설명 |
 | --- | --- | --- |
-| `MEDIA_SERVER_OPS_AUDIT_RETENTION_DAYS` | `180` | `.media_server.ops_audit.jsonl` 보존 기간. `0` 이하는 정리를 비활성화하며, 조회/저장 시 오래된 `receivedAtMs` 기록을 정리합니다. |
+| `MEDIA_SERVER_OPS_AUDIT_RETENTION_DAYS` | `180` | `.media_server.ops_audit.jsonl` 보존 기간. `0` 이하는 정리 비활성 |
 
-`GET /ops/api/audit`는 `area`, `actor`, `user`, `target`, `action`, `q`, `fromMs`, `toMs`, `offset`, `limit` 필터를 지원합니다. 기간 필터는 `receivedAtMs` 기준입니다. Interactive 조회 limit은 작게 제한하고, `format=json|csv|diff-json` 또는 `download=1` export 경로는 더 큰 `exportLimitMax` 범위를 허용합니다. CSV에는 `receivedAtMs`가 포함되며, Diff JSON export는 전/후 변경값 중심으로 내려줍니다.
+`GET /ops/api/audit` 지원 항목:
+
+- 필터: `area`, `actor`, `user`, `target`, `action`, `q`, `fromMs`, `toMs`
+- Paging: `offset`, `limit`
+- 기간 기준: `receivedAtMs`
+- Interactive 조회: 작은 limit cap 적용
+- Export: `format=json|csv|diff-json` 또는 `download=1`
+- Export limit: `exportLimitMax` 범위 허용
+- CSV: `receivedAtMs` 포함
+- Diff JSON: 전/후 변경값 중심
 
 ### 개발/script 보조값
 
@@ -226,7 +334,7 @@ Ops audit trail:
 | `MEDIA_SERVER_FORCE_RTSP_TCP` | `0` | RTSP source TCP-only 강제 |
 | `MEDIA_SERVER_GST_ATTACH_CONTEXT` | unset | GLib context attach mode |
 | `MEDIA_SERVER_SESSION_TRACE` | `0` | session/source lifecycle trace |
-| `MEDIA_SERVER_RUNTIME_DEBUG_COUNTER_TRACE` | `0` | Runtime debug counter lifecycle trace log. 기본은 counter만 누적하고, `1`이면 RTSP/GStreamer egress/session/tap/subscriber counter 변화 로그를 출력 |
+| `MEDIA_SERVER_RUNTIME_DEBUG_COUNTER_TRACE` | `0` | Runtime debug counter lifecycle trace log. `1`이면 egress/session/tap/subscriber counter 변화 로그 출력 |
 | `MEDIA_SERVER_WEBRTC_TRACE` | `0` | WebRTC 협상/상태 로그 |
 | `MEDIA_SERVER_WEBRTC_TRACE_VERBOSE` | `0` | sample/pad/caps/SDP 상세 로그 |
 | `MEDIA_SERVER_WEBRTC_STUN_SERVER` | Google STUN | WebRTC STUN URI |
@@ -238,7 +346,10 @@ Ops audit trail:
 | `MEDIA_SERVER_RTSP_TRACK_SETTLE_QUIET_PERIOD_MS` | code default | RTSP track settle quiet period |
 | `MEDIA_SERVER_RTSP_TRACK_SETTLE_MAX_MS` | code default | RTSP track settle max wait |
 
-`/webrtc/config`는 위 STUN/TURN/ICE policy를 browser `RTCPeerConnection` 옵션으로 직렬화합니다. Lab WebRTC 테스트와 Client Live는 이 endpoint의 `peerConnectionConfig`를 사용하므로 relay-only 운영 배포에서는 client portal도 같은 TURN 설정을 따릅니다. 외부 WHEP pull source의 `whepsrc` 설정도 사용 가능한 경우 같은 STUN/TURN/ICE policy 값을 전달합니다.
+`/webrtc/config`는 위 STUN/TURN/ICE policy를 browser `RTCPeerConnection` 옵션으로 직렬화합니다.
+Lab WebRTC 테스트와 Client Live는 이 endpoint의 `peerConnectionConfig`를 사용합니다.
+relay-only 운영 배포에서는 client portal도 같은 TURN 설정을 따릅니다.
+외부 WHEP pull source의 `whepsrc` 설정도 사용 가능한 경우 같은 STUN/TURN/ICE policy 값을 전달합니다.
 
 ### WebRTC egress video
 
@@ -253,7 +364,13 @@ Ops audit trail:
 
 ## Source env
 
-`file=` source의 root와 기본 파일은 `서버 기본 env`의 `MEDIA_SERVER_FILE_ROOT`, `MEDIA_SERVER_DEFAULT_FILE`을 사용합니다. HTTP/HLS URI source와 transcode 관련 값은 아래에서 관리합니다. 외부 WHEP playback URL source는 SourceRegistry의 `kind=whep`/`whepUrl` 또는 직접 query `source=whep&url=...`로 지정하며, WHEP credential 저장/주입은 아직 별도 운영 정책 대상입니다.
+`file=` source의 root와 기본 파일은 `서버 기본 env`의 값을 사용합니다.
+대상 env는 `MEDIA_SERVER_FILE_ROOT`, `MEDIA_SERVER_DEFAULT_FILE`입니다.
+HTTP/HLS URI source와 transcode 관련 값은 아래에서 관리합니다.
+
+외부 WHEP playback URL source는 SourceRegistry의 `kind=whep`/`whepUrl`로 지정합니다.
+직접 query를 쓸 때는 `source=whep&url=...`을 사용합니다.
+WHEP credential 저장/주입은 아직 별도 운영 정책 대상입니다.
 
 | 환경변수 | 기본값 | 설명 |
 | --- | --- | --- |
@@ -289,7 +406,48 @@ Ops audit trail:
 | `MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_PROFILES_PER_SOURCE` | `8` | source 하나에서 동시에 허용할 active analysis profile 수. `0`은 제한 비활성 |
 | `MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_TAPS_PER_SOURCE` | `8` | source 하나에서 동시에 허용할 active analysis tap 수. `0`은 제한 비활성 |
 
-SourceRegistry는 운영자 API `/ops/api/sources`에서 관리하며 `sourceId`, `displayName`, `kind`, `canonicalSourceKey`, source input, `enabled`, `tags`, `ownerGroup`을 저장합니다. 제품 UI에서는 이를 숫자 채널로 묶어 `/ops/sources`에 표시합니다. Registry가 비어 있으면 기본 file/VA file/공개 RTSP/HLS 채널을 seed합니다. Source/View registry 저장은 atomic write/fsync/rename으로 수행되며, 기존 파일에 malformed record, 중복 source/view id, 중복 canonical source, 깨진 PublishedView `sourceId` 참조가 있으면 조용히 누락하거나 seed로 덮지 않고 `500`으로 실패합니다. `kind=webrtc`의 `webrtcSourceId`는 외부 WebRTC/WHEP URL이 아니라 `/whip/publish`로 먼저 등록된 내부 sourceId입니다. 외부 WHEP playback endpoint는 `kind=whep`과 `whepUrl`로 등록하며, 직접 consume query에서는 `?source=whep&url={encodedEndpoint}`를 사용합니다. PublishedView는 `/ops/api/views`에서 관리하며 `viewId`, `sourceId`, `defaultRuleId`, `allowedRuleIds`, `allowedOverlayModes`, dashboard/event/metadata 노출 정책, `clientGroups`, `maxTiles`를 저장합니다. Client Live의 `maxTiles`는 UI 배정뿐 아니라 `/client/api/views/{viewId}/webrtc/session`에서 같은 principal+view 동시 session 상한으로 강제하며, 초과 시 `409`를 반환합니다. Client Live의 `va-rule` mode는 `allowedRuleIds`/`defaultRuleId`에 있는 rule이라도 rule source가 PublishedView source와 같을 때만 session 생성을 허용합니다. Client API `/client/api/views`는 `view:read:{viewId}` scope로 필터링한 공개 필드만 반환하고 원본 URL/file/sourceId/WHEP endpoint input은 숨깁니다. `/client/api/views/{viewId}/dashboard`, `/events`, `/metadata`는 각각 `dashboard:read:{viewId}`, `event:read:{viewId}`, `metadata:read:{viewId}`를 요구합니다.
+SourceRegistry:
+
+- 관리 API: `/ops/api/sources`
+- 저장 필드: `sourceId`, `displayName`, `kind`, `canonicalSourceKey`,
+  source input, `enabled`, `tags`, `ownerGroup`
+- 제품 UI: 숫자 채널로 묶어 `/ops/sources`에 표시
+- Seed 조건: registry가 비어 있으면 기본 file/VA file/공개 RTSP/HLS 채널 추가
+- 저장 방식: atomic write/fsync/rename
+
+Registry 오류 정책:
+
+- malformed record
+- 중복 source/view id
+- 중복 canonical source
+- 깨진 PublishedView `sourceId` 참조
+
+위 오류가 있으면 조용히 누락하거나 seed로 덮지 않고 `500`으로 실패합니다.
+
+Source kind:
+
+- `kind=webrtc`: `/whip/publish`로 먼저 등록된 내부 `webrtcSourceId`
+- `kind=whep`: 외부 WHEP playback endpoint. `whepUrl`로 등록
+- 직접 consume query: `?source=whep&url={encodedEndpoint}`
+
+PublishedView:
+
+- 관리 API: `/ops/api/views`
+- 저장 필드: `viewId`, `sourceId`, `defaultRuleId`, `allowedRuleIds`,
+  `allowedOverlayModes`, dashboard/event/metadata 노출 정책,
+  `clientGroups`, `maxTiles`
+- `maxTiles`: UI 배정과 `/client/api/views/{viewId}/webrtc/session`의
+  같은 principal+view 동시 session 상한에 모두 적용
+- 초과 응답: `409`
+- `va-rule` mode: rule source가 PublishedView source와 같을 때만 session 생성 허용
+
+Client API:
+
+- `/client/api/views`: `view:read:{viewId}` scope로 공개 필드만 반환
+- 숨김 필드: 원본 URL, file/sourceId, WHEP endpoint input
+- `/client/api/views/{viewId}/dashboard`: `dashboard:read:{viewId}`
+- `/client/api/views/{viewId}/events`: `event:read:{viewId}`
+- `/client/api/views/{viewId}/metadata`: `metadata:read:{viewId}`
 
 ### Adaptive inference
 
@@ -320,7 +478,7 @@ SourceRegistry는 운영자 API `/ops/api/sources`에서 관리하며 `sourceId`
 | `MEDIA_SERVER_ANALYSIS_TRACKING_CLASS_WEIGHT` | `0.05` | association class consistency weight |
 | `MEDIA_SERVER_ANALYSIS_TRACKING_MIN_ASSOCIATION_SCORE` | `0.10` | matching 최소 점수 |
 | `MEDIA_SERVER_ANALYSIS_TRACKING_SMOOTHING_ALPHA` | `0.20` | bbox smoothing 비율. 높을수록 흔들림은 줄지만 moving object overlay가 뒤따라감 |
-| `MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE` | `off` | close-object association guard 모드. `off`는 기존 동작, `diagnostic`은 후보 진단만 수집, `enforce`에서만 opt-in score 보정 skeleton 적용 |
+| `MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE` | `off` | close-object association guard 모드. `diagnostic`은 후보 진단, `enforce`는 opt-in score 보정 |
 | `MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_DISTANCE_RATIO` | `0.65` | 같은 class track/detection 근접 위험을 계산할 때 `max_center_distance`에 곱하는 비율 |
 | `MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_OVERLAP_THRESHOLD` | `0.20` | close-object overlap risk 계산 기준 |
 | `MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_LOW_MARGIN_THRESHOLD` | `0.08` | best/second association score margin이 낮다고 볼 기준 |
@@ -554,7 +712,24 @@ EventRecord storage 정책:
 - corrupt/partial line recovery scan에는 별도 env가 없습니다.
 - status/records read path에서 손상 행을 line-by-line으로 skip/count 처리합니다.
 
-EventRecord file storage, active/archive query/search UI와 rotation/retention/recovery 1차는 구현 완료 상태입니다. Compaction은 기존 파일을 rewrite/delete하지 않는 snapshot 생성 API로 제공하며 compacted snapshot 목록/다운로드/삭제와 `keepNewest` cleanup API도 제공합니다. Snapshot/clip hook은 분석 raw frame rolling buffer를 사용해 snapshot media file과 짧은 pre/post frame bundle manifest를 생성하고, Lab EventRecord detail은 안전한 preview route로 snapshot inline preview와 clip manifest/frame link를 표시합니다. 후속 범위는 richer clip gallery와 MP4/VMS/NVR형 recorder입니다.
+EventRecord 구현 범위:
+
+- file storage
+- active/archive query/search UI
+- rotation/retention/recovery 1차
+- 비파괴 compaction snapshot 생성 API
+- compacted snapshot 목록/다운로드/삭제
+- `keepNewest` cleanup API
+
+Snapshot/clip hook:
+
+- 분석 raw frame rolling buffer를 사용합니다.
+- snapshot media file을 생성합니다.
+- 짧은 pre/post frame bundle manifest를 생성합니다.
+- Lab EventRecord detail은 안전한 preview route로
+  snapshot inline preview와 clip manifest/frame link를 표시합니다.
+
+후속 범위는 richer clip gallery와 MP4/VMS/NVR형 recorder입니다.
 
 ### Snapshot / clip hook
 
@@ -570,7 +745,8 @@ EventRecord file storage, active/archive query/search UI와 rotation/retention/r
 
 Recorder 동작:
 
-- snapshot hook은 이벤트 시점과 가장 가까운 분석 frame을 JPEG로 저장하고, JPEG encoder를 사용할 수 없으면 RGB/BGR/Gray frame을 PPM/PGM evidence file로 저장합니다.
+- snapshot hook은 이벤트 시점과 가장 가까운 분석 frame을 JPEG로 저장합니다.
+  JPEG encoder를 사용할 수 없으면 RGB/BGR/Gray frame을 PPM/PGM evidence file로 저장합니다.
 - clip hook은 같은 stream/channel rolling buffer에서 `PRE_EVENT_MS`부터 `POST_EVENT_MS`까지의 frame을 짧은 bundle directory와 `manifest.json`으로 저장합니다.
 - frame buffer는 `CLIP_BUFFER_MS`와 내부 frame/stream 상한으로 제한됩니다. 장기 녹화, MP4 muxing, VMS/NVR retention은 이 hook의 범위가 아닙니다.
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// 파일 용도: RC 전용 release gate 명령, 문서, CI workflow, artifact 정책이 서로 맞는지 검증한다.
 
 import fs from "node:fs";
 import os from "node:os";

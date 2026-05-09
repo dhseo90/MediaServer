@@ -4,8 +4,22 @@
 import process from "node:process";
 
 import { nextNumericIds } from "./numeric_id_helpers.mjs";
+import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
-const args = parseArgs(process.argv.slice(2));
+const rawArgs = process.argv.slice(2);
+if (hasHelpFlag(rawArgs)) {
+  printUsageAndExit(`Ops rule relationship smoke
+
+Usage:
+  ./server.sh verify-ops-rule-relationships [options]
+
+Options:
+  --http-base <url>  실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
+  -h, --help         도움말 출력
+`);
+}
+assertKnownOptions(rawArgs, ["http-base", "h", "help"]);
+const args = parseArgs(rawArgs);
 const httpBase = String(args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 
 const initial = await loadGraph();

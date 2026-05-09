@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Connect/disconnect cycle verification for VA Runtime Console consumers."""
+# 파일 용도: VA Runtime Console consumer의 연결/해제 cycle을 반복 검증한다.
+"""active/idle 구간을 반복하면서 cleanup, metadata close, RSS 변화가 안정적인지 확인한다."""
 
 from __future__ import annotations
 
@@ -18,7 +19,7 @@ import verify_va_runtime_console_longrun as longrun
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="VA Runtime Console connect/disconnect cycle verification")
+    parser = argparse.ArgumentParser(description="VA Runtime Console 연결/해제 cycle 검증")
     parser.add_argument("--cycles", type=int, default=int(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_CYCLES", "10")))
     parser.add_argument("--active-minutes", type=float, default=float(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_CYCLE_ACTIVE_MINUTES", "5")))
     parser.add_argument("--idle-minutes", type=float, default=float(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_CYCLE_IDLE_MINUTES", "2")))

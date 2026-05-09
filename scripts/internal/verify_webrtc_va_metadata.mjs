@@ -9,7 +9,25 @@ import process from "node:process";
 import { spawn } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 
-const args = parseArgs(process.argv.slice(2));
+import { assertKnownOptions } from "./script_arg_utils.mjs";
+
+const rawArgs = process.argv.slice(2);
+assertKnownOptions(rawArgs, [
+  "http-base",
+  "file",
+  "timeout-ms",
+  "hold-ms",
+  "stall-after-ms",
+  "interval-ms",
+  "max-buffered-bytes",
+  "debug-port",
+  "chrome-path",
+  "summary-file",
+  "log-file",
+  "h",
+  "help",
+]);
+const args = parseArgs(rawArgs);
 const httpBase = (args.httpBase || process.env.MEDIA_SERVER_VERIFY_WEBRTC_VA_METADATA_HTTP_BASE || "http://127.0.0.1:8080").replace(/\/+$/, "");
 const fileToken = args.file || process.env.MEDIA_SERVER_VERIFY_WEBRTC_VA_METADATA_FILE || "sample_h264.mp4";
 const timeoutMs = Number(args.timeoutMs || process.env.MEDIA_SERVER_VERIFY_WEBRTC_VA_METADATA_TIMEOUT_MS || 45000);

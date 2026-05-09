@@ -1260,7 +1260,7 @@ private:
             return nullptr;
         }
 
-        // Pace URI/VOD sources like a stream so subscribers do not attach after the file was already consumed.
+        // 주요 동작: URI/VOD source를 stream처럼 pacing해 subscriber가 파일 소비 뒤에 붙는 상황을 막는다.
         g_object_set(branch->sink, "emit-signals", FALSE, "sync", TRUE, "max-buffers", 16, "drop", TRUE, nullptr);
         return branch;
     }

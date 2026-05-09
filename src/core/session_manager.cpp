@@ -140,7 +140,7 @@ SessionManager::CreateResult SessionManager::CreateSession(const media::IngressR
     if (acquired.created && !resource_guard_.AdmitStream()) {
         const bool removed = registry_.TryRemoveIfIdle(key);
         if (removed) {
-            // No-op here: this stream was never counted in active_streams_.
+            // 주요 동작: 이 stream은 active_streams_에 반영되지 않았으므로 추가 정리는 필요 없다.
         }
         resource_guard_.ReleaseSession();
         return {.ok = false, .message = "stream limit exceeded", .stream = nullptr};

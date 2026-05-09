@@ -52,7 +52,7 @@ OverlayLabelLanguage EffectiveLabelLanguage(OverlayLabelLanguage language) {
 #if MEDIA_SERVER_USE_PANGOCAIRO
     return language;
 #else
-    // ASCII fallback cannot render Korean glyphs, so keep streams readable.
+    // 주요 동작: ASCII fallback은 한글 glyph를 렌더링하지 못하므로 stream 가독성을 위해 영문 label을 사용한다.
     return OverlayLabelLanguage::English;
 #endif
 }

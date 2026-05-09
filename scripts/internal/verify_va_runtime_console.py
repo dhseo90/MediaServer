@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
-"""VA Runtime Console endpoint smoke test.
-
-The script exercises dashboard-facing endpoints only. It does not alter the
-media pipeline, event payload format, or rule storage schema.
-"""
+# 파일 용도: VA Runtime Console의 dashboard-facing endpoint를 빠르게 검증한다.
+"""media pipeline, event payload 형식, rule 저장 schema는 변경하지 않고 조회 endpoint만 확인한다."""
 
 from __future__ import annotations
 

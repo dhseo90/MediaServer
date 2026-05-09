@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// 파일 용도: README와 UI guide가 관리 대상 UI screenshot asset만 참조하는지 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";

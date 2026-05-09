@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
-"""Custom RTSP + VA metadata SSE client-side overlay example.
-
-This is an optional custom client example. VLC, ffplay, and IINA do not
-automatically consume the SSE side-channel or draw these overlays.
-"""
+# 파일 용도: RTSP 영상과 VA 메타데이터 SSE를 함께 사용해 client-side overlay를 그리는 예제다.
+"""일반 RTSP 플레이어가 처리하지 않는 SSE 메타데이터 overlay 동작을 custom client 형태로 보여준다."""
 
 from __future__ import annotations
 
@@ -25,42 +22,40 @@ Color = tuple[int, int, int]
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Custom RTSP + SSE metadata overlay renderer. This example opens an RTSP "
-            "raw stream, receives VA runtime metadata from a separate SSE side-channel, "
-            "and draws bbox/trackId/className client-side. General VLC/ffplay/IINA "
-            "clients do not automatically overlay this metadata."
+            "RTSP 원본 stream과 SSE 메타데이터를 함께 받아 bbox/trackId/className을 client-side에서 그립니다. "
+            "일반 VLC/ffplay/IINA client는 이 메타데이터를 자동 overlay하지 않습니다."
         )
     )
-    parser.add_argument("--rtsp-url", required=True, help="RTSP video URL.")
-    parser.add_argument("--metadata-url", required=True, help="VA runtime metadata SSE URL.")
-    parser.add_argument("--max-seconds", type=float, default=0.0, help="0 means run until stopped.")
+    parser.add_argument("--rtsp-url", required=True, help="RTSP 영상 URL입니다.")
+    parser.add_argument("--metadata-url", required=True, help="VA runtime 메타데이터 SSE URL입니다.")
+    parser.add_argument("--max-seconds", type=float, default=0.0, help="0이면 중지할 때까지 실행합니다.")
     parser.add_argument(
         "--headless",
         "--no-window",
         dest="headless",
         action="store_true",
-        help="Decode frames and apply overlays without opening an OpenCV window.",
+        help="OpenCV 창을 열지 않고 frame decode와 overlay 적용만 수행합니다.",
     )
-    parser.add_argument("--print-json", action="store_true", help="Print each accepted metadata payload.")
+    parser.add_argument("--print-json", action="store_true", help="수락된 메타데이터 payload를 매번 출력합니다.")
     parser.add_argument(
         "--stale-ms",
         type=int,
         default=2000,
-        help="Clear bbox overlay when latest metadata is older than this age.",
+        help="최신 메타데이터가 이 시간보다 오래되면 bbox overlay를 지웁니다.",
     )
     parser.add_argument(
         "--connect-timeout-seconds",
         type=float,
         default=10.0,
-        help="Timeout for SSE connect and initial RTSP open checks.",
+        help="SSE 연결과 최초 RTSP open 확인 timeout입니다.",
     )
     parser.add_argument(
         "--status-interval-seconds",
         type=float,
         default=2.0,
-        help="Periodic stats print interval. 0 disables periodic stats.",
+        help="주기적 통계 출력 간격입니다. 0이면 출력하지 않습니다.",
     )
-    parser.add_argument("--window-name", default="VA RTSP SSE Overlay", help="OpenCV window title.")
+    parser.add_argument("--window-name", default="VA RTSP SSE Overlay", help="OpenCV 창 제목입니다.")
     return parser.parse_args()
 
 
@@ -251,7 +246,7 @@ def normalized_bbox_to_pixels(
         return None
     if width <= 0.0 or height <= 0.0:
         return None
-    # The VA runtime metadata contract uses normalized-frame coordinates.
+    # 주요 동작: VA runtime metadata 계약은 정규화된 frame 좌표를 사용한다.
     if x > 1.0 or y > 1.0 or width > 1.5 or height > 1.5:
         return None
     x1 = clamp_int(round(x * frame_width), 0, max(frame_width - 1, 0))

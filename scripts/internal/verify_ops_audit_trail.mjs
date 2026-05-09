@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// 파일 용도: 운영자 화면의 audit trail UI, helper, mutation 기록 연결이 유지되는지 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";

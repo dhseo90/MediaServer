@@ -41,8 +41,8 @@ bool SetRtcpFeedbackRetentionWindow(GObject* object) {
         return false;
     }
 
-    // This relay does not implement RTX/NACK replay yet, so retaining browser
-    // RTCP feedback packets only adds noise and can hit GStreamer assertions.
+    // 주요 동작: 이 relay는 아직 RTX/NACK replay를 구현하지 않으므로 browser RTCP feedback 보관을 끈다.
+    // 보관하면 재전송은 못 하고 noise만 늘어 GStreamer assertion을 유발할 수 있다.
     g_object_set(object, "rtcp-feedback-retention-window", static_cast<guint64>(0), nullptr);
     return true;
 }

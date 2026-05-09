@@ -88,19 +88,19 @@ YOUTUBE_UPLOAD_ENCODED="https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Daqz-KE-bpKQ"
 YOUTUBE_LIVE_ENCODED="https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DiYmvCUonukw"
 
 cat <<EOF
-# MediaServer External Manual Test URLs
+# MediaServer 외부 수동 테스트 URL
 
-Detected host: ${HOST}
-Detected LAN IP candidates: ${DETECTED_IPS[*]:-(none)}
-RTSP base: rtsp://${HOST}:${RTSP_PORT}/${ROUTE}
-Ops page: http://${HOST}:${HTTP_PORT}/ops/home
-Client page: http://${HOST}:${HTTP_PORT}/client/live
+감지된 host: ${HOST}
+감지된 LAN IP 후보: ${DETECTED_IPS[*]:-(none)}
+RTSP 기본 주소: rtsp://${HOST}:${RTSP_PORT}/${ROUTE}
+운영자 화면: http://${HOST}:${HTTP_PORT}/ops/home
+클라이언트 화면: http://${HOST}:${HTTP_PORT}/client/live
 
-## MacBook server start command
+## MacBook server 시작 명령
 
 ./server.sh restart
 
-## Desktop first checks
+## Desktop 최초 확인
 
 http://${HOST}:${HTTP_PORT}/health
 http://${HOST}:${HTTP_PORT}/ops/home
@@ -135,26 +135,25 @@ fi
 
 cat <<EOF
 
-## Product UI manual cases
+## Product UI 수동 확인
 
-Open these pages from the desktop:
+Desktop에서 아래 화면을 엽니다.
 http://${HOST}:${HTTP_PORT}/ops/home
 http://${HOST}:${HTTP_PORT}/ops/sources
 http://${HOST}:${HTTP_PORT}/ops/rules
 http://${HOST}:${HTTP_PORT}/client/live
 
-Client Live should use the configured PublishedView list. Video screenshots and VA overlay checks use the 4-scene `VA Test File` channel.
+Client Live는 설정된 PublishedView 목록을 사용해야 합니다. 영상 screenshot과 VA overlay 확인은 4분할 `VA Test File` channel을 사용합니다.
 
-## WebRTC publish -> consume manual case
+## WebRTC publish -> consume 수동 확인
 
-The old browser test page is removed. Use `/whip/publish` for publisher ingest and `/ops/sources` to register the resulting Published WebRTC sourceId, then verify playback from `/client/live`.
+기존 browser test page는 제거되었습니다. publisher ingest에는 `/whip/publish`를 사용하고, 생성된 Published WebRTC sourceId는 `/ops/sources`에서 등록한 뒤 `/client/live`에서 재생을 확인합니다.
 
-## Notes
+## 참고
 
-- If /health does not open from the desktop, check macOS firewall, bind address, or router WiFi/LAN isolation first.
-- VLC/IINA RTSP tests should prefer RTSP over TCP.
-- YouTube import is not part of the product UI. Keep it disabled unless a
-  dedicated experimental import flow is being reviewed.
+- Desktop에서 /health가 열리지 않으면 macOS firewall, bind address, router WiFi/LAN isolation을 먼저 확인하세요.
+- VLC/IINA RTSP 테스트는 RTSP over TCP를 우선 사용하세요.
+- YouTube import는 제품 UI 범위가 아닙니다. 별도 experimental import flow를 검토할 때만 활성화하세요.
 EOF
 
 if [[ "${EXPERIMENTAL_YOUTUBE_ENABLED}" == "1" ]]; then

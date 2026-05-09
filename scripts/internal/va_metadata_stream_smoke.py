@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
-"""VA metadata SSE side-channel smoke test.
-
-The script validates the metadata stream only. RTSP playback is verified by
-ffplay/ffprobe/VLC separately because general RTSP players do not consume this
-side-channel.
-"""
+# 파일 용도: VA 메타데이터 SSE side-channel만 빠르게 검증하는 smoke test다.
+"""일반 RTSP player가 소비하지 않는 side-channel payload를 검증하고, 영상 재생 검증은 별도 명령에 맡긴다."""
 
 from __future__ import annotations
 
@@ -22,7 +18,7 @@ SCHEMA = "media-server.va.runtime-metadata.v1"
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="VA metadata SSE side-channel smoke")
+    parser = argparse.ArgumentParser(description="VA 메타데이터 SSE side-channel smoke")
     parser.add_argument("--http-base", default="http://127.0.0.1:8080")
     parser.add_argument("--file", default="sample_h264.mp4")
     parser.add_argument("--tap-id", default="")

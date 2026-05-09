@@ -8,15 +8,15 @@
 
 | 범위 | 기본 경로/env | 백업 기준 |
 | --- | --- | --- |
-| Auth store | `MEDIA_SERVER_AUTH_USERS_FILE`, `.media_server.users.json` | 계정, invite, access request, password hash/history를 포함합니다. 원본 권한은 `0600`을 유지합니다. |
+| Auth store | `MEDIA_SERVER_AUTH_USERS_FILE`, `.media_server.users.json` | 계정, invite, access request, password hash/history 포함. 원본 권한은 `0600` 유지 |
 | Source registry | `MEDIA_SERVER_SOURCE_REGISTRY`, `.media_server.sources.json` | 채널 source와 locator 설정입니다. |
 | PublishedView registry | `MEDIA_SERVER_PUBLISHED_VIEWS`, `.media_server.views.json` | client 노출 view와 scope 연결 기준입니다. |
 | Analysis registry | `MEDIA_SERVER_ANALYSIS_REGISTRY`, `.media_server.analysis_registry.json` | profile/rule/VA 설정입니다. |
 | Ops audit | `.media_server.ops_audit.jsonl`, `MEDIA_SERVER_OPS_AUDIT_RETENTION_DAYS` | 채널/룰/사용자/evidence export 변경 이력입니다. |
 | EventRecord | `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH`, `.media_server.va_events.jsonl*` | active JSON Lines와 rotated archive를 함께 보관합니다. |
 | Evidence media | `MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR`, `MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR` | snapshot 파일, clip manifest, frame bundle을 포함합니다. |
-| Sample/model assets | `MEDIA_SERVER_FILE_ROOT`, `MEDIA_SERVER_ANALYSIS_MODEL`, `MEDIA_SERVER_ANALYSIS_LABELS` | sample video, YOLO model, label 파일은 라이선스와 배포 권한을 확인한 뒤 보관합니다. |
-| Config preset/env | `config/presets/*.env.example`, 운영 env 파일 | plaintext token/secret은 별도 secret vault에 두고, 백업 bundle에는 redacted summary만 둡니다. |
+| Sample/model assets | `MEDIA_SERVER_FILE_ROOT`, `MEDIA_SERVER_ANALYSIS_MODEL`, `MEDIA_SERVER_ANALYSIS_LABELS` | sample video, YOLO model, label 파일 보관 |
+| Config preset/env | `config/presets/*.env.example`, 운영 env 파일 | token/secret은 secret vault에 보관. 백업 bundle에는 redacted summary만 포함 |
 
 `./server.sh ops-bundle --http-base http://127.0.0.1:8080`은 상태 공유용
 진단 bundle입니다. Auth users file 본문과 plaintext secret은 넣지 않으므로,
@@ -59,7 +59,7 @@ Evidence 보존 기간 정리는 백업과 별도 운영 job으로 처리합니�
 4. 위 표의 파일과 디렉터리를 같은 backup root 아래에 복사합니다. Auth store는 `0600`, registry와 EventRecord는 원본 owner/group을 유지합니다.
 5. `shasum -a 256` 또는 운영 표준 도구로 manifest를 만들고 backup root에 같이 저장합니다.
 6. 백업 manifest, ops bundle, redacted env summary를 같은 change ticket에 연결합니다.
-7. 외부 보관소로 이동할 때 model/sample/evidence 파일의 라이선스와 개인정보 보존 정책을 확인합니다.
+7. 외부 보관소로 이동할 때 model/sample/evidence 파일의 개인정보 보존 정책을 확인합니다.
 
 권장 backup root 예시:
 
