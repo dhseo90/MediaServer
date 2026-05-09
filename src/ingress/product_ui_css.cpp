@@ -1017,6 +1017,32 @@ std::string ProductUiCss() {
       display: grid;
       gap: var(--space-3);
     }
+    .audit-controls,
+    .audit-toolbar,
+    .audit-entry-actions {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      align-items: end;
+    }
+    .audit-filter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: var(--space-2);
+      flex: 1 1 520px;
+      min-width: 0;
+    }
+    .audit-filter-grid label {
+      display: grid;
+      gap: 4px;
+      color: var(--color-text-muted);
+      font-size: 12px;
+      font-weight: 850;
+      min-width: 0;
+    }
+    .audit-toolbar {
+      justify-content: flex-end;
+    }
     .audit-source-label {
       color: var(--color-text-muted);
       font-size: 12px;
@@ -1060,6 +1086,28 @@ std::string ProductUiCss() {
     .audit-diff-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       margin-top: var(--space-2);
+    }
+    .audit-detail-modal {
+      width: min(920px, calc(100vw - 32px));
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface);
+      color: var(--color-text);
+    }
+    .audit-detail-modal::backdrop {
+      background: rgba(15, 23, 42, 0.44);
+    }
+    .audit-detail-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-3);
+      align-items: start;
+      margin-bottom: var(--space-3);
+    }
+    .audit-detail-head p {
+      margin: 4px 0 0;
+      color: var(--color-text-muted);
+      overflow-wrap: anywhere;
     }
     .validation-list {
       display: grid;
@@ -1833,9 +1881,13 @@ std::string ProductUiCss() {
       .event-record-controls,
       .scope-template-actions,
       .ops-rule-row-actions,
+      .audit-controls,
+      .audit-filter-grid,
+      .audit-toolbar,
       .audit-entry-head,
       .audit-entry-meta,
       .audit-diff-grid,
+      .audit-detail-head,
       .validation-item,
       .event-evidence-actions,
       .root-cause-item,

@@ -210,13 +210,40 @@ std::string ProductSharedUiScript() {
         });
         return payload.entry || entry;
       }
-      async function fetchOpsAuditTrail(area = '', filters = {}) {
+      const opsAuditViewStates = new Map();
+      const auditFilterEntry = (entry, state = {}) => {
+        if (state.actor && !String(entry.actor || '').includes(state.actor)) return false;
+        if (state.action && String(entry.action || '') !== state.action) return false;
+        if (state.q) {
+          const haystack = JSON.stringify(entry).toLowerCase();
+          if (!haystack.includes(String(state.q).toLowerCase())) return false;
+        }
+        return true;
+      };
+      const auditQueryParams = (area = '', filters = {}) => {
         const params = new URLSearchParams({ limit: String(filters.limit || 20) });
         if (area) params.set('area', area);
         if (filters.actor) params.set('actor', filters.actor);
+        if (filters.action) params.set('action', filters.action);
         if (filters.q) params.set('q', filters.q);
+        if (filters.offset) params.set('offset', String(filters.offset));
+        return params;
+      };
+      async function fetchOpsAuditTrailPage(area = '', filters = {}) {
+        const params = auditQueryParams(area, filters);
         const payload = await requestJson(`/ops/api/audit?${params.toString()}`);
-        return Array.isArray(payload.entries) ? payload.entries : [];
+        return {
+          ...payload,
+          entries: Array.isArray(payload.entries) ? payload.entries : [],
+          offset: Number(payload.offset || 0),
+          limit: Number(payload.limit || filters.limit || 20),
+          total: Number(payload.total || 0),
+          hasMore: Boolean(payload.hasMore)
+        };
+      }
+      async function fetchOpsAuditTrail(area = '', filters = {}) {
+        const payload = await fetchOpsAuditTrailPage(area, filters);
+        return payload.entries;
       }
       async function recordOpsAudit({ area = 'ops', action = 'update', target = '', before = null, after = null } = {}) {
         const who = await currentPrincipal();
@@ -248,12 +275,55 @@ std::string ProductSharedUiScript() {
         window.dispatchEvent(new CustomEvent('mediaServer.audit', { detail: persisted }));
         return persisted;
       }
+      function ensureOpsAuditDetailModal() {
+        let dialog = byId('opsAuditDetailDialog');
+        if (dialog) return dialog;
+        dialog = document.createElement('dialog');
+        dialog.id = 'opsAuditDetailDialog';
+        dialog.className = 'audit-detail-modal';
+        dialog.innerHTML = `
+          <form method="dialog">
+            <div class="audit-detail-head">
+              <div>
+                <strong id="opsAuditDetailTitle">변경 상세</strong>
+                <p id="opsAuditDetailMeta"></p>
+              </div>
+              <button type="submit" class="btn small">닫기</button>
+            </div>
+            <div class="audit-diff-grid">
+              <pre id="opsAuditDetailBefore"></pre>
+              <pre id="opsAuditDetailAfter"></pre>
+            </div>
+          </form>`;
+        document.body.appendChild(dialog);
+        return dialog;
+      }
+      function openOpsAuditDetail(entry) {
+        const dialog = ensureOpsAuditDetailModal();
+        byId('opsAuditDetailTitle').textContent = `${display(entry.area)} ${display(entry.action)} · ${display(entry.target)}`;
+        byId('opsAuditDetailMeta').textContent = `${display(entry.actor)} · ${entry.at ? new Date(entry.at).toLocaleString() : '시각 미제공'} · ${display(entry.summary)}`;
+        byId('opsAuditDetailBefore').textContent = JSON.stringify(entry.before ?? null, null, 2);
+        byId('opsAuditDetailAfter').textContent = JSON.stringify(entry.after ?? null, null, 2);
+        if (typeof dialog.showModal === 'function') dialog.showModal();
+        else dialog.setAttribute('open', 'open');
+      }
+      function auditStateFor(containerId, area = '') {
+        if (!opsAuditViewStates.has(containerId)) {
+          opsAuditViewStates.set(containerId, { area, q: '', actor: '', action: '', limit: 10, offset: 0 });
+        }
+        const state = opsAuditViewStates.get(containerId);
+        state.area = area;
+        return state;
+      }
       function renderOpsAuditTrail(containerId, area = '') {
         const el = byId(containerId);
         if (!el) return;
-        const renderEntries = (entries, sourceLabel = '') => {
+        const state = auditStateFor(containerId, area);
+        const renderEntries = (entries, sourceLabel = '', page = {}) => {
+        const list = el.querySelector('[data-audit-list-body]');
+        if (!list) return;
         if (entries.length === 0) {
-          el.innerHTML = '<div class="empty">아직 기록된 변경 이력이 없습니다.</div>';
+          list.innerHTML = '<div class="empty">아직 기록된 변경 이력이 없습니다.</div>';
           return;
         }
         const actionLabel = value => ({
@@ -270,9 +340,10 @@ std::string ProductSharedUiScript() {
         const areaLabel = value => ({
           channels: '채널',
           rules: '룰',
-          users: '사용자'
+          users: '사용자',
+          events: '이벤트'
         })[String(value || '')] || display(value);
-        el.innerHTML = `${sourceLabel ? `<div class="audit-source-label">${escapeHtml(sourceLabel)}</div>` : ''}` + entries.map(entry => `
+        list.innerHTML = `${sourceLabel ? `<div class="audit-source-label">${escapeHtml(sourceLabel)}${Number.isFinite(page.total) ? ` · ${escapeHtml(display(page.offset + 1))}-${escapeHtml(display(page.offset + entries.length))} / ${escapeHtml(display(page.total))}` : ''}</div>` : ''}` + entries.map((entry, index) => `
           <article class="audit-entry">
             <div class="audit-entry-head">
               <strong>${escapeHtml(areaLabel(entry.area))} ${escapeHtml(actionLabel(entry.action))}</strong>
@@ -283,6 +354,9 @@ std::string ProductSharedUiScript() {
               <span>작업자 ${escapeHtml(display(entry.actor))}${entry.role ? ` · ${escapeHtml(entry.role)}` : ''}</span>
               <span>변경 ${escapeHtml(display(entry.summary))}</span>
             </div>
+            <div class="audit-entry-actions">
+              <button type="button" class="btn small" data-audit-detail="${index}">상세</button>
+            </div>
             <details>
               <summary>전/후 보기</summary>
               <div class="audit-diff-grid">
@@ -292,16 +366,98 @@ std::string ProductSharedUiScript() {
             </details>
           </article>
         `).join('');
+        list.querySelectorAll('[data-audit-detail]').forEach(button => {
+          button.addEventListener('click', () => {
+            const entry = entries[Number(button.dataset.auditDetail || 0)];
+            if (entry) openOpsAuditDetail(entry);
+          });
+        });
         };
+        el.innerHTML = `
+          <div class="audit-controls">
+            <div class="audit-filter-grid">
+              <label>검색
+                <input id="${containerId}-audit-q" value="${escapeHtml(state.q)}" placeholder="대상, 요약, diff 검색">
+              </label>
+              <label>작업자
+                <input id="${containerId}-audit-actor" value="${escapeHtml(state.actor)}" placeholder="username">
+              </label>
+              <label>동작
+                <select id="${containerId}-audit-action">
+                  <option value="">전체</option>
+                  <option value="create">생성</option>
+                  <option value="update">수정</option>
+                  <option value="delete">삭제</option>
+                  <option value="enable">활성화</option>
+                  <option value="disable">비활성화</option>
+                  <option value="bulk-clone">대량 복제</option>
+                  <option value="bulk-disable">대량 비활성화</option>
+                  <option value="approve">승인</option>
+                  <option value="reject">거절</option>
+                  <option value="export-bundle">증거 export</option>
+                </select>
+              </label>
+              <label>페이지 크기
+                <select id="${containerId}-audit-limit">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                </select>
+              </label>
+            </div>
+            <div class="audit-toolbar">
+              <button type="button" class="btn small" data-audit-apply>검색</button>
+              <button type="button" class="btn small" data-audit-prev>이전</button>
+              <button type="button" class="btn small" data-audit-next>다음</button>
+              <button type="button" class="btn small" data-audit-export="json">JSON</button>
+              <button type="button" class="btn small" data-audit-export="csv">CSV</button>
+            </div>
+          </div>
+          <div data-audit-list-body></div>`;
+        byId(`${containerId}-audit-action`).value = state.action;
+        byId(`${containerId}-audit-limit`).value = String(state.limit);
+        const syncState = resetOffset => {
+          state.q = byId(`${containerId}-audit-q`)?.value.trim() || '';
+          state.actor = byId(`${containerId}-audit-actor`)?.value.trim() || '';
+          state.action = byId(`${containerId}-audit-action`)?.value || '';
+          state.limit = Number(byId(`${containerId}-audit-limit`)?.value || 10);
+          if (resetOffset) state.offset = 0;
+        };
+        el.querySelector('[data-audit-apply]')?.addEventListener('click', () => {
+          syncState(true);
+          renderOpsAuditTrail(containerId, area);
+        });
+        el.querySelector('[data-audit-prev]')?.addEventListener('click', () => {
+          syncState(false);
+          state.offset = Math.max(0, state.offset - state.limit);
+          renderOpsAuditTrail(containerId, area);
+        });
+        el.querySelector('[data-audit-next]')?.addEventListener('click', () => {
+          syncState(false);
+          state.offset += state.limit;
+          renderOpsAuditTrail(containerId, area);
+        });
+        el.querySelectorAll('[data-audit-export]').forEach(button => {
+          button.addEventListener('click', () => {
+            syncState(false);
+            const format = button.dataset.auditExport || 'json';
+            const params = auditQueryParams(area, { ...state, limit: 200, offset: 0 });
+            params.set('format', format);
+            params.set('download', '1');
+            window.location.href = `/ops/api/audit?${params.toString()}`;
+          });
+        });
         const localEntries = loadOpsAuditTrail()
           .filter(entry => !area || entry.area === area)
-          .slice(0, 10);
+          .filter(entry => auditFilterEntry(entry, state))
+          .slice(state.offset, state.offset + state.limit);
         renderEntries(localEntries, '브라우저 캐시');
-        fetchOpsAuditTrail(area, { limit: 10 })
-          .then(entries => renderEntries(entries, '서버 감사 로그'))
+        fetchOpsAuditTrailPage(area, state)
+          .then(payload => renderEntries(payload.entries, '서버 감사 로그', payload))
           .catch(() => {
             if (localEntries.length === 0) {
-              el.innerHTML = '<div class="empty">서버 감사 로그를 불러오지 못했습니다.</div>';
+              const list = el.querySelector('[data-audit-list-body]');
+              if (list) list.innerHTML = '<div class="empty">서버 감사 로그를 불러오지 못했습니다.</div>';
             }
           });
       }
@@ -329,6 +485,7 @@ std::string ProductSharedUiScript() {
         renderRaw,
         requestJson,
         applyPrincipalVisibility,
+        fetchOpsAuditTrailPage,
         fetchOpsAuditTrail,
         recordOpsAudit,
         renderOpsAuditTrail
