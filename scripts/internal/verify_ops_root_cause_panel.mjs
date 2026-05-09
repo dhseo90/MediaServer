@@ -17,7 +17,7 @@ check("ops dashboard exposes root cause panel", () => {
     'id="dashRootCauseBadges"',
     'id="dashRootCauseText"',
     'id="dashRootCauseList"',
-    "source lifecycle, stale, reconnect, auth/config",
+    "source lifecycle, stale, reconnect, auth/config 상태와 다음 조치",
   ];
   for (const snippet of required) {
     assert(html.includes(snippet), `dashboard root cause panel is missing snippet: ${snippet}`);
@@ -33,6 +33,12 @@ check("ops dashboard script interprets runtime root causes", () => {
     "lastUsedAgeMs",
     "inactivePublishSources",
     "cleanupBacklog",
+    "recentEvents",
+    "EventRecord 저장",
+    "relayPolicyFallback",
+    "root-cause-next-action",
+    "root-cause-evidence",
+    "/ops/events",
     "ops:read",
     "whoami 응답을 확인하지 못했습니다.",
   ];
@@ -48,6 +54,8 @@ check("root cause list is responsive", () => {
     ".root-cause-item",
     ".root-cause-item.warn",
     ".root-cause-action",
+    ".root-cause-evidence",
+    ".root-cause-next-action",
     "@media (max-width: 560px)",
   ];
   for (const snippet of required) {

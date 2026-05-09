@@ -2261,7 +2261,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
         <div class="toolbar">
           <div>
             <h3>문제 원인</h3>
-            <p>source lifecycle, stale, reconnect, auth/config 상태를 함께 봅니다.</p>
+          <p>source lifecycle, stale, reconnect, auth/config 상태와 다음 조치를 함께 봅니다.</p>
           </div>
         </div>
         <div id="dashRootCauseBadges" class="badge-row"><span class="chip">로딩 중</span></div>
