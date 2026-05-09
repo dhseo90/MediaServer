@@ -1505,7 +1505,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           .filter(Boolean)
           .slice(0, 2);
         const evidenceHref = value => `/lab/analysis/events/evidence?path=${encodeURIComponent(value)}&download=1`;
-        const bundleHref = item => {
+        const bundlePayload = item => {
           const params = new URLSearchParams();
           const eventId = String(item?.eventId || '').trim();
           if (eventId) params.set('eventId', eventId);
@@ -1513,12 +1513,12 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (clipPath) params.set('clipPath', clipPath);
           params.set('expiresAtMs', String(Date.now() + 24 * 60 * 60 * 1000));
           params.set('download', '1');
-          return `/lab/analysis/events/evidence/bundle?${params.toString()}`;
+          return Object.fromEntries(params.entries());
         };
         const actions = [
           snapshotPath ? `<a class="button button-secondary button-compact" href="${escapeHtml(evidenceHref(snapshotPath))}">snapshot 다운로드</a>` : '',
           clipPath ? `<a class="button button-secondary button-compact" href="${escapeHtml(evidenceHref(clipPath))}">clip manifest</a>` : '',
-          (snapshotPath || clipPath) ? `<a class="button button-secondary button-compact" href="${escapeHtml(bundleHref(item))}">bundle zip</a>` : ''
+          (snapshotPath || clipPath) ? `<button type="button" class="button button-secondary button-compact" data-evidence-bundle="${escapeHtml(JSON.stringify(bundlePayload(item)))}">signed bundle zip</button>` : ''
         ].filter(Boolean).join('');
         return `<div class="event-evidence-cell">
           <div class="badge-row">${badges.join('')}</div>
@@ -1549,6 +1549,22 @@ void AppendOpsShellScript(std::ostringstream& out,
             ${tableCellHtml('수정 시각', escapeHtml(eventRecordTime(item?.updateTime || item?.startTime)), 'table-cell-nowrap')}
           </tr>`;
         }).join('');
+        bindEvidenceBundleActions();
+      }
+      function bindEvidenceBundleActions() {
+        document.querySelectorAll('[data-evidence-bundle]').forEach(button => {
+          button.addEventListener('click', async () => {
+            try {
+              const payload = JSON.parse(button.dataset.evidenceBundle || '{}');
+              const params = new URLSearchParams(payload);
+              const tokenPayload = await requestJson(`/lab/analysis/events/evidence/bundle-token?${params.toString()}`);
+              if (!tokenPayload.bundleUrl) throw new Error('bundle token URL missing');
+              window.location.href = tokenPayload.bundleUrl;
+            } catch (error) {
+              setText('eventRecordSummary', `bundle token 발급 실패: ${error.message}`);
+            }
+          });
+        });
       }
       function eventRecordQueryParams() {
         const eventParams = new URLSearchParams({
@@ -1599,12 +1615,13 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: exportPolicy.snapshotDownload ? 'snapshot 다운로드' : 'snapshot export off', tone: exportPolicy.snapshotDownload ? '' : 'warn' },
           { text: exportPolicy.clipManifestDownload ? 'clip manifest 다운로드' : 'clip export off', tone: exportPolicy.clipManifestDownload ? '' : 'warn' },
           { text: exportPolicy.bundleArchiveDownload ? 'bundle zip 다운로드' : 'bundle zip 없음', tone: exportPolicy.bundleArchiveDownload ? '' : 'info' },
+          { text: exportPolicy.bundleSignedToken ? 'signed token' : 'token 없음', tone: exportPolicy.bundleSignedToken ? 'info' : 'warn' },
           { text: exportPolicy.exportAudit ? 'export audit 기록' : 'export audit 없음', tone: exportPolicy.exportAudit ? '' : 'warn' },
           { text: exportPolicy.bundleMaxAgeMs ? `bundle 만료 ${Math.round(exportPolicy.bundleMaxAgeMs / 3600000)}h` : 'bundle 만료 미지정', tone: exportPolicy.bundleMaxAgeMs ? 'info' : 'warn' },
           { text: deletePolicy.compactionDelete ? 'compaction 삭제 가능' : '삭제 제한', tone: deletePolicy.compactionDelete ? 'info' : 'warn' }
         ]);
         setText('eventExportPolicyText',
-          `보존 ${retentionPolicy.archiveRetention || 'oldest-rotated-only'} · bundle ${retentionPolicy.bundleExpiry || 'download-link-expiresAtMs'} · audit ${exportPolicy.auditAction || 'export-bundle'} · evidence 파일 직접 삭제 ${deletePolicy.evidenceFileDelete ? '허용' : '불가'}`);
+          `보존 ${retentionPolicy.archiveRetention || 'oldest-rotated-only'} · bundle ${retentionPolicy.bundleExpiry || 'signed-token-expiresAtMs'} · audit ${exportPolicy.auditAction || 'export-bundle'} · evidence 파일 직접 삭제 ${deletePolicy.evidenceFileDelete ? '허용' : '불가'}`);
         const eventItems = Array.isArray(records.records) ? records.records : [];
         setText(
           'eventRecordSummary',

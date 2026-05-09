@@ -163,6 +163,9 @@ function assertEvidencePolicy(label, policy) {
       exportPolicy.bundleArchiveDownload !== true ||
       exportPolicy.bundleFormat !== "zip" ||
       exportPolicy.bundleMaxAgeMs !== 86400000 ||
+      exportPolicy.bundleSignedToken !== true ||
+      exportPolicy.bundleTokenParam !== "token" ||
+      exportPolicy.bundleTokenIssuer !== "/lab/analysis/events/evidence/bundle-token" ||
       exportPolicy.auditAction !== "export-bundle" ||
       exportPolicy.exportAudit !== true ||
       exportPolicy.longVideoExport !== false) {
@@ -171,7 +174,8 @@ function assertEvidencePolicy(label, policy) {
   const retentionPolicy = policy.retentionPolicy || {};
   if (retentionPolicy.activeFileProtected !== true ||
       retentionPolicy.archiveRetention !== "oldest-rotated-only" ||
-      retentionPolicy.bundleExpiry !== "download-link-expiresAtMs") {
+      retentionPolicy.bundleExpiry !== "signed-token-expiresAtMs" ||
+      retentionPolicy.expiredBundleCleanup !== "token-expiry-no-server-file") {
     throw new Error(`${label}: retentionPolicy mismatch ${JSON.stringify(retentionPolicy)}`);
   }
   const deletePolicy = policy.deletePolicy || {};
@@ -208,7 +212,11 @@ async function verifyEvidenceBundleDownload(storageStatus) {
       expiresAtMs: String(Date.now() + 60000),
       download: "1",
     });
-    const response = await fetch(`${httpBase}/lab/analysis/events/evidence/bundle?${params.toString()}`);
+    const tokenPayload = await requestJson(`/lab/analysis/events/evidence/bundle-token?${params.toString()}`);
+    if (!tokenPayload?.token || !String(tokenPayload?.bundleUrl || "").includes("token=")) {
+      throw new Error(`bundle token payload mismatch: ${JSON.stringify(tokenPayload).slice(0, 240)}`);
+    }
+    const response = await fetch(`${httpBase}${tokenPayload.bundleUrl}`);
     const body = Buffer.from(await response.arrayBuffer());
     const disposition = response.headers.get("content-disposition") || "";
     if (response.status !== 200 ||
@@ -235,6 +243,18 @@ async function verifyEvidenceBundleDownload(storageStatus) {
       `/lab/analysis/events/evidence/bundle?${expiredParams.toString()}`,
       400,
       "evidence bundle link has expired",
+    );
+    const tamperedParams = new URLSearchParams({
+      eventId,
+      snapshotPath,
+      expiresAtMs: String(Date.now() + 60000),
+      token: "bad-token",
+      download: "1",
+    });
+    await expectHttpError(
+      `/lab/analysis/events/evidence/bundle?${tamperedParams.toString()}`,
+      400,
+      "evidence bundle token is invalid",
     );
     await expectHttpError(
       `/lab/analysis/events/evidence?path=${encodeURIComponent(snapshotPath)}`,
