@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const docsAssetDir = path.join(rootDir, "docs/assets/ui");
+const docsAssetEnDir = path.join(docsAssetDir, "en");
 
 const readmeAssets = [
   "ops-home.png",
@@ -41,6 +42,20 @@ check("README uses only representative product UI screenshots", () => {
     assert(readmeAssets.includes(asset), `README.md references non-representative UI asset: ${asset}`);
   }
   assert(!/docs\/assets\/ui\/(?:analysis|lab|runtime|diagnostic|debug)-/i.test(readme), "README.md references diagnostic/lab assets");
+});
+
+check("English README uses English UI screenshots", () => {
+  const readme = readText("README.en.md");
+  for (const asset of readmeAssets) {
+    assert(
+      readme.includes(`docs/assets/ui/en/${asset}`),
+      `README.en.md is missing docs/assets/ui/en/${asset}`,
+    );
+  }
+  const referenced = findAssetReferences(readme);
+  for (const asset of referenced) {
+    assert(readmeAssets.map((item) => `en/${item}`).includes(asset), `README.en.md references non-English UI asset: ${asset}`);
+  }
 });
 
 check("UI guide keeps product screenshots in the shared asset set", () => {
@@ -103,6 +118,20 @@ check("docs/assets/ui contains only managed PNG files with valid dimensions", ()
     assert(dimensions.width >= 700, `${asset} width is too small: ${dimensions.width}`);
     assert(dimensions.height >= 400, `${asset} height is too small: ${dimensions.height}`);
   }
+  assert(fs.existsSync(docsAssetEnDir), "missing English UI screenshot asset directory: docs/assets/ui/en");
+  const englishEntries = fs.readdirSync(docsAssetEnDir).filter((entry) => entry.endsWith(".png"));
+  for (const entry of englishEntries) {
+    assert(readmeAssets.includes(entry), `unexpected unmanaged English UI PNG asset: ${entry}`);
+  }
+  for (const asset of readmeAssets) {
+    const filePath = path.join(docsAssetEnDir, asset);
+    assert(fs.existsSync(filePath), `missing English UI screenshot asset: ${asset}`);
+    const size = fs.statSync(filePath).size;
+    assert(size > 1024, `${asset} English screenshot is too small (${size} bytes)`);
+    const dimensions = readPngDimensions(filePath);
+    assert(dimensions.width >= 700, `${asset} English width is too small: ${dimensions.width}`);
+    assert(dimensions.height >= 400, `${asset} English height is too small: ${dimensions.height}`);
+  }
 });
 
 let failCount = 0;
@@ -143,8 +172,8 @@ function readText(relativePath) {
 function findAssetReferences(text) {
   const found = new Set();
   const patterns = [
-    /docs\/assets\/ui\/([A-Za-z0-9._-]+\.png)/g,
-    /assets\/ui\/([A-Za-z0-9._-]+\.png)/g,
+    /docs\/assets\/ui\/((?:en\/)?[A-Za-z0-9._-]+\.png)/g,
+    /assets\/ui\/((?:en\/)?[A-Za-z0-9._-]+\.png)/g,
   ];
   for (const pattern of patterns) {
     for (const match of text.matchAll(pattern)) {

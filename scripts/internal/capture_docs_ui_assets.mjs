@@ -11,9 +11,10 @@ import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 const args = parseArgs(process.argv.slice(2));
 const httpBase = String(args.httpBase || "http://127.0.0.1:8082").replace(/\/+$/, "");
 const chromePath = args.chromePath || findChrome();
+const language = normalizeLanguage(args.lang || args.language || "ko");
 const outputDir = args.outputDir
   ? path.resolve(args.outputDir)
-  : path.resolve("docs/assets/ui");
+  : path.resolve(language === "en" ? "docs/assets/ui/en" : "docs/assets/ui");
 const debugPortBase = Number(args.debugPortBase || 9950);
 const verbose = isTruthy(args.verbose);
 const onlyTokens = String(args.only || "")
@@ -90,7 +91,17 @@ const tasks = [
     file: "ops-users.png",
     pagePath: "/ops/users",
     viewport: { width: 1680, height: 1250 },
-    clip: { selectors: ['header', '[data-testid="ops-users-page"]'], fitMainWidth: true, margin: 18, maxHeight: 1080 },
+    clip: {
+      selectors: [
+        'header',
+        '[data-testid="ops-users-page"] > .toolbar',
+        '[data-testid="ops-users-page"] > .section-card:nth-of-type(1)',
+        '[data-testid="ops-users-page"] > .section-card:nth-of-type(2)'
+      ],
+      fitMainWidth: true,
+      margin: 18,
+      maxHeight: 1080
+    },
   },
   {
     name: "ops-dashboard",
@@ -159,6 +170,7 @@ for (let index = 0; index < filteredTasks.length; index += 1) {
 console.log("");
 console.log("== UI asset capture summary ==");
 console.log(`- output: ${outputDir}`);
+console.log(`- language: ${language}`);
 console.log(`- pass: ${passCount}`);
 console.log(`- fail: ${failCount}`);
 
@@ -186,6 +198,8 @@ async function captureTask(task, debugPort) {
     if (task.setup) {
       await task.setup(browser);
     }
+    await applyDarkTheme(browser);
+    await waitForLanguage(browser);
     await delay(500);
     const clip = await computeClip(browser, task.clip);
     await saveClip(browser, path.join(outputDir, task.file), clip);
@@ -197,9 +211,22 @@ async function captureTask(task, debugPort) {
 async function applyDarkTheme(browser) {
   await evaluate(browser, `(() => {
     localStorage.setItem('mediaServerTheme', 'dark');
+    localStorage.setItem('mediaServerLanguage', ${JSON.stringify(language)});
     document.documentElement.dataset.theme = 'dark';
+    document.documentElement.lang = ${JSON.stringify(language)};
+    document.documentElement.dataset.lang = ${JSON.stringify(language)};
+    window.MediaServerUi?.setLanguage?.(${JSON.stringify(language)}, { persist: true });
     return document.documentElement.dataset.theme;
   })()`);
+}
+
+async function waitForLanguage(browser) {
+  await waitFor(browser, `(() => {
+    const expected = ${JSON.stringify(language)};
+    window.MediaServerUi?.setLanguage?.(expected, { persist: true });
+    const select = document.querySelector('.language-select');
+    return document.documentElement.dataset.lang === expected && (!select || select.value === expected);
+  })()`, 5000);
 }
 
 async function setupClientLive(browser) {
@@ -215,18 +242,18 @@ async function setupClientLive(browser) {
   })()`);
   await delay(1800);
   await evaluate(browser, `(() => {
-    const selectByLabel = (select, label) => {
+    const selectByValue = (select, value) => {
       if (!select) return false;
-      const option = Array.from(select.options || []).find((item) => item.textContent.trim() === label);
+      const option = Array.from(select.options || []).find((item) => String(item.value) === String(value));
       if (!option) return false;
       select.value = option.value;
       select.dispatchEvent(new Event('change', { bubbles: true }));
       return true;
     };
     const grid = document.getElementById('liveGridSize');
-    selectByLabel(grid, '1개');
+    selectByValue(grid, '1');
     const density = document.getElementById('liveDensity');
-    selectByLabel(density, '표준');
+    selectByValue(density, 'comfortable');
     return true;
   })()`);
   await delay(700);
@@ -275,9 +302,8 @@ async function setupClientLive(browser) {
   await waitFor(browser, `(() => {
     const root = document.querySelector('[data-tile="0"]');
     const video = root?.querySelector('video');
-    const status = root?.querySelector('[data-role="status"]')?.textContent || '';
     const placeholder = root?.querySelector('[data-role="placeholder"]');
-    return Boolean(video && video.readyState >= 2 && status.includes('라이브') && placeholder?.hidden);
+    return Boolean(video && video.readyState >= 2 && placeholder?.hidden);
   })()`, 15000);
   await delay(3500);
 }
@@ -294,7 +320,7 @@ async function setupOpsRules(browser) {
   })()`);
   await waitFor(browser, `(() => {
     const panel = document.getElementById('opsRulesDetailPanel');
-    return Boolean(panel && !panel.hidden && panel.textContent.includes('채널 미리보기와 영역/라인 설정'));
+    return Boolean(panel && !panel.hidden && document.getElementById('opsVaRulePreviewStartBtn'));
   })()`, 8000);
   await evaluate(browser, `(() => {
     document.getElementById('opsRulesComposerEdit')?.click();
@@ -324,8 +350,7 @@ async function setupOpsRules(browser) {
   await waitFor(browser, `(() => {
     const video = document.getElementById('opsVaRulePreviewVideo');
     const placeholder = document.getElementById('opsVaRulePreviewPlaceholder');
-    const summary = document.getElementById('opsVaRulePreviewSummary')?.textContent || '';
-    return Boolean(video && video.readyState >= 2 && placeholder?.hidden && summary.includes('미리보기'));
+    return Boolean(video && video.readyState >= 2 && placeholder?.hidden);
   })()`, 18000);
   await delay(3500);
 }
@@ -451,4 +476,8 @@ function toCamel(value) {
 function isTruthy(value) {
   const text = String(value || "").toLowerCase();
   return text === "1" || text === "true" || text === "yes" || text === "on";
+}
+
+function normalizeLanguage(value) {
+  return String(value || "").toLowerCase().startsWith("en") ? "en" : "ko";
 }
