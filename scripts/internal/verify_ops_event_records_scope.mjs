@@ -20,6 +20,8 @@ const opsEventsHtml = await requestText("/ops/events");
 assertContains("ops-events-html", opsEventsHtml, [
   'data-testid="ops-events-page"',
   'id="eventEvidencePolicyBadges"',
+  'id="eventExportPolicyBadges"',
+  'id="eventExportPolicyText"',
   'id="eventRecordsEvidenceSelect"',
   'id="eventRecordsIncludeArchives"',
   'id="eventRecordsPrev"',
@@ -77,9 +79,11 @@ async function verifyBrowserUi() {
             }
             throw new Error(label + ' timeout');
           };
-          const selectors = [
+    const selectors = [
             '#eventEvidencePolicyBadges',
             '#eventEvidencePolicyText',
+            '#eventExportPolicyBadges',
+            '#eventExportPolicyText',
             '#eventRecordsEvidenceSelect',
             '#eventRecordsIncludeArchives',
             '#eventRecordsPrev',
@@ -149,6 +153,18 @@ function assertEvidencePolicy(label, policy) {
   }
   if (!Array.isArray(policy.snapshotFormats) || !policy.snapshotFormats.includes("jpg") || !policy.snapshotFormats.includes("ppm")) {
     throw new Error(`${label}: evidencePolicy.snapshotFormats missing jpg/ppm`);
+  }
+  const exportPolicy = policy.exportPolicy || {};
+  if (exportPolicy.snapshotDownload !== true || exportPolicy.clipManifestDownload !== true || exportPolicy.longVideoExport !== false) {
+    throw new Error(`${label}: exportPolicy mismatch ${JSON.stringify(exportPolicy)}`);
+  }
+  const retentionPolicy = policy.retentionPolicy || {};
+  if (retentionPolicy.activeFileProtected !== true || retentionPolicy.archiveRetention !== "oldest-rotated-only") {
+    throw new Error(`${label}: retentionPolicy mismatch ${JSON.stringify(retentionPolicy)}`);
+  }
+  const deletePolicy = policy.deletePolicy || {};
+  if (deletePolicy.compactionDelete !== true || deletePolicy.evidenceFileDelete !== false) {
+    throw new Error(`${label}: deletePolicy mismatch ${JSON.stringify(deletePolicy)}`);
   }
 }
 

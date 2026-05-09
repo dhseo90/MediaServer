@@ -1176,9 +1176,15 @@ void AppendOpsShellScript(std::ostringstream& out,
           .map(value => value.split(/[\\/]/).pop())
           .filter(Boolean)
           .slice(0, 2);
+        const evidenceHref = value => `/lab/analysis/events/evidence?path=${encodeURIComponent(value)}&download=1`;
+        const actions = [
+          snapshotPath ? `<a class="button button-secondary button-compact" href="${escapeHtml(evidenceHref(snapshotPath))}">snapshot 다운로드</a>` : '',
+          clipPath ? `<a class="button button-secondary button-compact" href="${escapeHtml(evidenceHref(clipPath))}">clip manifest</a>` : ''
+        ].filter(Boolean).join('');
         return `<div class="event-evidence-cell">
           <div class="badge-row">${badges.join('')}</div>
           ${names.length ? `<span class="ops-rule-note">${escapeHtml(names.join(' · '))}</span>` : ''}
+          ${actions ? `<div class="event-evidence-actions">${actions}</div>` : ''}
         </div>`;
       };
       function renderEventRows(items) {
@@ -1247,6 +1253,17 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: policy.compactionDestructive === false ? '비파괴 compaction' : 'compaction 확인 필요', tone: policy.compactionDestructive === false ? '' : 'warn' }
         ]);
         setText('eventEvidencePolicyText', `${policy.scope || 'event-short-evidence'} · ${policy.clipFormat || 'frame-bundle'} · MP4/VMS 장기 녹화 범위 아님`);
+        const exportPolicy = policy.exportPolicy || {};
+        const retentionPolicy = policy.retentionPolicy || {};
+        const deletePolicy = policy.deletePolicy || {};
+        renderBadges('eventExportPolicyBadges', [
+          { text: exportPolicy.snapshotDownload ? 'snapshot 다운로드' : 'snapshot export off', tone: exportPolicy.snapshotDownload ? '' : 'warn' },
+          { text: exportPolicy.clipManifestDownload ? 'clip manifest 다운로드' : 'clip export off', tone: exportPolicy.clipManifestDownload ? '' : 'warn' },
+          { text: exportPolicy.bundleArchiveDownload === false ? 'bundle zip 없음' : 'bundle zip 확인 필요', tone: exportPolicy.bundleArchiveDownload === false ? 'info' : 'warn' },
+          { text: deletePolicy.compactionDelete ? 'compaction 삭제 가능' : '삭제 제한', tone: deletePolicy.compactionDelete ? 'info' : 'warn' }
+        ]);
+        setText('eventExportPolicyText',
+          `보존 ${retentionPolicy.archiveRetention || 'oldest-rotated-only'} · active 보호 ${retentionPolicy.activeFileProtected === false ? 'off' : 'on'} · evidence 파일 직접 삭제 ${deletePolicy.evidenceFileDelete ? '허용' : '불가'}`);
         const eventItems = Array.isArray(records.records) ? records.records : [];
         setText(
           'eventRecordSummary',
