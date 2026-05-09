@@ -119,7 +119,7 @@ setup 완료 후 `/setup`은 `/login`으로 돌아가며,
 이후에는 `/login`에서 계정으로 로그인해
 role/scope snapshot을 담은 HttpOnly session cookie를 받습니다.
 
-로컬 QA와 수동 smoke에서는 테스트 계정을 만들거나 초기화할 때 비밀번호를 `qweasd0-`로 통일합니다. 이는 검증 중 계정 상태를 일관되게 맞추기 위한 테스트 규칙이며, 운영 배포나 제품 기본 비밀번호로 사용하지 않습니다.
+로컬 QA, 수동 smoke, 자동 auth smoke의 표준 테스트 계정 비밀번호는 `qweasd0-`로 통일합니다. 이는 검증 중 계정 상태를 일관되게 맞추기 위한 테스트 규칙이며, 운영 배포나 제품 기본 비밀번호로 사용하지 않습니다.
 
 Password policy 기본값은 `kr-privacy`입니다.
 `/setup`과 `/password/change`는 동일한 정책을 적용합니다.

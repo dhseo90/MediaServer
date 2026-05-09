@@ -53,7 +53,7 @@ Usage:
 
 테스트 모드:
   --basic     기본값입니다. 외부망/LAN 접근성 없이 로컬 hard gate만 실행합니다. 커밋 전 기본 확인용입니다.
-  --full      basic + Rule UI, VA event, image analysis, event POST, multichannel, redaction, report summary를 실행합니다.
+  --full      basic + Rule UI, VA event, image analysis, event POST, redaction, report summary를 실행합니다.
   --external  full + LAN IP 접근성, 외부 RTSP advisory, WebRTC ICE, 외부 URI longrun을 실행합니다.
   --stable    기존 stable 기준입니다. 안정화된 로컬 스트리밍 + LAN IP 접근성 + 외부 RTSP advisory를 실행합니다.
 
@@ -69,13 +69,14 @@ basic 기준:
   - YouTube source/import: 실험실 기능
   - LAN IP 외부 클라이언트 접근성, 제3자 RTSP upstream, WebRTC ICE, 외부 TURN relay
   - adaptive tuner 장시간 검증
-  - Rule/Profile UI, 룰/이벤트/POST, 정적 이미지 분석 API, 다채널 fan-out은 full 또는 선택 검증으로 실행
+  - Rule/Profile UI, 룰/이벤트/POST, 정적 이미지 분석 API는 full 또는 선택 검증으로 실행
+  - 다채널 fan-out은 초기 브라우저 harness 제거 후 별도 제품 UI harness 준비 전까지 skip
 
 Options:
   --quick             정적 검사, start, status, diagnose, LAN IP 외부 접근성까지만 실행
   --basic             기본값. 로컬 기본 테스트. 외부/LAN probe를 제외하고 report summary smoke 포함
   --stable            기존 stable 기준. 안정화된 로컬 스트리밍 + LAN IP 외부 접근성 + 외부 RTSP upstream advisory 실행
-  --full              로컬 풀 테스트. basic에 Rule/VA event/event POST/multichannel/redaction 검증 추가
+  --full              로컬 풀 테스트. basic에 Rule/VA event/event POST/redaction 검증 추가
   --external          외부 의존 테스트. full에 LAN/외부 RTSP/WebRTC ICE/외부 URI 검증 추가
   --include-rules     선택 검증: profile/rule registry API smoke test를 추가
   --include-rule-ui   선택 검증: /ops/rules 채널 분석/템플릿/Profile UI smoke test를 추가
@@ -88,7 +89,7 @@ Options:
                        선택 검증: HTTP/HLS URI source 장기 검증을 추가
   --include-event-post 선택 검증: event POST schema/recovery smoke test를 추가
   --include-multichannel
-                       선택 검증: 일반/VA WebRTC 다채널 fan-out smoke test를 추가
+                       현재 skip: 초기 브라우저 harness 제거 후 별도 제품 UI harness 필요
   --include-redaction 선택 검증: 사람 객체 자동 모자이크 image/live 검증을 추가
   --include-report-summary
                        선택 검증: /tmp summary Markdown/HTML 리포트 생성 smoke를 추가
@@ -211,7 +212,6 @@ if [[ "${MODE}" == "full" ]]; then
   INCLUDE_VA_EVENTS=1
   INCLUDE_IMAGE_ANALYSIS=1
   INCLUDE_EVENT_POST=1
-  INCLUDE_MULTICHANNEL=1
   INCLUDE_REDACTION=1
   INCLUDE_REPORT_SUMMARY=1
 fi
@@ -224,7 +224,6 @@ if [[ "${MODE}" == "external" ]]; then
   INCLUDE_WEBRTC_ICE=1
   INCLUDE_URI_LONGRUN=1
   INCLUDE_EVENT_POST=1
-  INCLUDE_MULTICHANNEL=1
   INCLUDE_REDACTION=1
   INCLUDE_REPORT_SUMMARY=1
   URI_LONGRUN_EXTERNAL=1
@@ -251,14 +250,14 @@ MediaServer 통합 테스트 시작
   3. basic/full 모드는 외부망/LAN probe를 제외하고 로컬 재현성을 우선함
   4. stable/external 모드는 LAN IP 외부 클라이언트 접근성과 제3자 RTSP upstream advisory를 확인함
   5. basic/stable/full/external 모드는 안정화된 로컬 source(file/RTSP/WebRTC publish/HTTP URI)를 RTSP/WebRTC 기본 경로로 소비해야 함
-  6. basic/stable/full/external 모드는 기본 설치 범위인 YOLO/VA overlay가 lab API, RTSP, WebRTC에서 동작해야 함
-  7. full/external 모드는 Rule UI, VA event, image analysis, event POST, multichannel, redaction까지 확인함
+  6. basic/stable/full/external 모드는 기본 설치 범위인 YOLO/VA overlay가 lab API와 RTSP에서 동작해야 함
+  7. full/external 모드는 Rule UI, VA event, image analysis, event POST, redaction까지 확인함
 - 제외:
   YouTube, adaptive tuner, 외부 TURN relay
   룰 registry는 --include-rules, Rule UI는 --include-rule-ui, 이동 이벤트는 --include-va-events,
   이미지 분석은 --include-image-analysis, WebRTC ICE는 --include-webrtc-ice,
   URI 장기 검증은 --include-uri-longrun, event POST는 --include-event-post,
-  다채널 fan-out은 --include-multichannel, 사람 모자이크는 --include-redaction으로 선택 실행 가능
+  다채널 fan-out은 현재 skip, 사람 모자이크는 --include-redaction으로 선택 실행 가능
 
 EOF_HEADER
 }
@@ -503,7 +502,7 @@ else
   run_step \
     "va-overlay" \
     "YOLO/VA overlay 검증" \
-    "VA overlay 검증 실패입니다. ONNX Runtime, YOLO 모델/라벨, detector 성능, WebRTC playback을 확인하세요." \
+    "VA overlay 검증 실패입니다. ONNX Runtime, YOLO 모델/라벨, detector 성능, RTSP overlay를 확인하세요." \
     "./server.sh verify-va" || true
 fi
 
@@ -522,17 +521,9 @@ else
 fi
 
 if [[ "${INCLUDE_MULTICHANNEL}" == "1" ]]; then
-  if [[ ${DEPENDENCY_FAILED} -ne 0 ]]; then
-    skip_step "다채널 WebRTC 선택 검증" "서버 readiness가 실패해 다채널 검증을 생략합니다."
-  else
-    run_step \
-      "multichannel" \
-      "선택 검증: 일반/VA WebRTC 다채널 fan-out" \
-      "다채널 WebRTC 검증 실패입니다. runtime session/stream/tap count, headless browser playback, cleanup 상태를 확인하세요." \
-      "./server.sh verify-multichannel --include-va --repeat 1 --single-clients 2 --clients-per-source 2 --hold-ms 5000" || true
-  fi
+  skip_step "다채널 WebRTC 선택 검증" "초기 /webrtc/test 브라우저 harness 제거 후 별도 제품 UI harness가 아직 없어 명시적으로 생략합니다."
 else
-  skip_step "다채널 WebRTC 선택 검증" "브라우저 다중 client 검증은 full/predev 기준입니다. 필요하면 --include-multichannel 또는 --full을 사용하세요."
+  skip_step "다채널 WebRTC 선택 검증" "초기 /webrtc/test 브라우저 harness 제거 후 별도 제품 UI harness가 아직 없습니다."
 fi
 
 if [[ "${INCLUDE_REDACTION}" == "1" ]]; then
@@ -544,7 +535,7 @@ if [[ "${INCLUDE_REDACTION}" == "1" ]]; then
     run_step \
       "redaction" \
       "선택 검증: 사람 객체 자동 모자이크 image/live" \
-      "redaction 검증 실패입니다. 정적 이미지 pixel diff, RTSP/WebRTC overlay query, 브라우저 VA 제어를 확인하세요." \
+      "redaction 검증 실패입니다. 정적 이미지 pixel diff, RTSP overlay query, VA 제어를 확인하세요." \
       "./server.sh verify-redaction --duration 10" || true
   fi
 else

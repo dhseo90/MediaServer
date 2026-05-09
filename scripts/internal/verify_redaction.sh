@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# 파일 용도: 사람 객체 자동 모자이크(redaction)의 정적 이미지, RTSP/WebRTC overlay, 장기 검증 진입점을 한 번에 검증한다.
-# 동작 요약: bbox 기반 pixel diff, live overlay decode/playback, 선택 다채널/event/tracker 호환 검증을 summary JSON으로 남긴다.
+# 파일 용도: 사람 객체 자동 모자이크(redaction)의 정적 이미지, RTSP overlay, 장기 검증 진입점을 한 번에 검증한다.
+# 동작 요약: bbox 기반 pixel diff, live overlay decode/playback, 선택 event/tracker 호환 검증을 summary JSON으로 남긴다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -67,13 +67,13 @@ Options:
   --redaction-classes <csv>  모자이크 대상 category/class. 기본 ${REDACTION_CLASSES}
   --block-size <n>           mosaic block size. 기본 ${REDACTION_BLOCK_SIZE}
   --margin-ratio <n>         bbox 확장 비율. 기본 ${REDACTION_MARGIN_RATIO}
-  --include-multichannel     VA 다채널 fan-out에 redaction을 적용해 검증
+  --include-multichannel     현재 skip: 초기 브라우저 harness 제거 후 별도 제품 UI harness 필요
   --include-events           VA event 검증을 함께 실행해 redaction과 event 동시 사용성을 확인
   --include-tracker          tracker 안정성 검증을 함께 실행
   --include-uri              URI/HLS source 장기 검증 준비 상태를 summary에 포함
   --skip-idle-precheck       시작 시 runtime 잔여 session/stream/tap 확인을 건너뜀
   --idle-precheck-timeout <s> runtime idle 대기 시간. 기본 ${IDLE_PRECHECK_TIMEOUT_S}
-  --long                     duration=30, repeat=2, multichannel/events/tracker 포함
+  --long                     duration=30, repeat=2, events/tracker 포함. multichannel은 현재 skip
   --static-only              정적 이미지 redaction만 검증
   --live-only                RTSP/WebRTC live redaction만 검증
   --summary-file <path>      summary JSON 출력 경로
@@ -438,7 +438,7 @@ PY
   return 1
 }
 
-# RTSP/WebRTC overlay 경로에서 같은 redaction query가 decode/playback까지 통과하는지 확인한다.
+# RTSP overlay 경로에서 같은 redaction query가 decode/playback까지 통과하는지 확인한다.
 run_live_redaction() {
   local query
   query="$(redaction_query)"
@@ -446,14 +446,13 @@ run_live_redaction() {
     "MEDIA_SERVER_VERIFY_VA_FILE='${FILE_TOKEN}' MEDIA_SERVER_VERIFY_VA_DURATION_S=${DURATION_S} MEDIA_SERVER_VERIFY_VA_WEBRTC_HOLD_MS=${HOLD_MS} MEDIA_SERVER_VERIFY_VA_EXTRA_QUERY='${query}' MEDIA_SERVER_VERIFY_VA_REDACTION=person-mosaic MEDIA_SERVER_VERIFY_VA_REDACTION_CLASSES='${REDACTION_CLASSES}' MEDIA_SERVER_VERIFY_VA_REDACTION_BLOCK_SIZE=${REDACTION_BLOCK_SIZE} MEDIA_SERVER_VERIFY_VA_REDACTION_MARGIN_RATIO=${REDACTION_MARGIN_RATIO} ./server.sh verify-va" || true
 }
 
-# VA 다채널 fan-out에서도 redaction UI/query가 각 client에 동일하게 적용되는지 확인한다.
+# 제거된 초기 브라우저 harness를 대체할 제품 UI harness가 생길 때까지 다채널 redaction은 skip한다.
 run_multichannel_redaction() {
   if [[ "${RUN_MULTICHANNEL}" != "1" ]]; then
     skip_step "multichannel-redaction" "--include-multichannel 미지정"
     return 0
   fi
-  run_step "multichannel-redaction" \
-    "MEDIA_SERVER_VERIFY_MULTICHANNEL_HOLD_MS=${HOLD_MS} ./server.sh verify-multichannel --include-va --va-only --repeat ${REPEAT_COUNT} --single-clients 2 --clients-per-source 1 --hold-ms ${HOLD_MS} --va-redaction person-mosaic --va-redaction-classes '${REDACTION_CLASSES}' --va-redaction-block-size ${REDACTION_BLOCK_SIZE} --va-redaction-margin-ratio ${REDACTION_MARGIN_RATIO}" || true
+  skip_step "multichannel-redaction" "초기 /webrtc/test 브라우저 harness 제거 후 별도 제품 UI harness가 아직 없어 명시적으로 생략합니다."
 }
 
 # redaction과 event rule을 함께 켰을 때 event 산출 경로가 깨지지 않는지 확인한다.

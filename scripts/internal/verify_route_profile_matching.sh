@@ -21,10 +21,11 @@ PASS_COUNT=0
 FAIL_COUNT=0
 SKIP_COUNT=0
 RUN_ID="route-profile-$(date +%s)-$$"
-PROFILE_RTSP="${RUN_ID}-rtsp-profile"
-PROFILE_WEBRTC="${RUN_ID}-webrtc-profile"
-RULE_RTSP="${RUN_ID}-rtsp-rule"
-RULE_WEBRTC="${RUN_ID}-webrtc-rule"
+BASE_ID=$(( (($(date +%s) % 1000000) * 1000) + ($$ % 1000) ))
+PROFILE_RTSP="$((BASE_ID + 11))"
+PROFILE_WEBRTC="$((BASE_ID + 12))"
+RULE_RTSP="$((BASE_ID + 21))"
+RULE_WEBRTC="$((BASE_ID + 22))"
 RTSP_FFMPEG_PID=""
 WEBRTC_NODE_PID=""
 RTSP_LOG="/tmp/media_server_${RUN_ID}_rtsp.log"
@@ -34,6 +35,7 @@ PROFILE_RTSP_READ_FILE="/tmp/media_server_${RUN_ID}_profile_rtsp.json"
 PROFILE_WEBRTC_READ_FILE="/tmp/media_server_${RUN_ID}_profile_webrtc.json"
 RULE_RTSP_READ_FILE="/tmp/media_server_${RUN_ID}_rule_rtsp.json"
 RULE_WEBRTC_READ_FILE="/tmp/media_server_${RUN_ID}_rule_webrtc.json"
+BROWSER_WEBRTC_HARNESS="${SCRIPT_DIR}/browser_webrtc_publish_consume_check.mjs"
 
 log_info() {
   echo "[info] $*"
@@ -59,6 +61,11 @@ require_cmd() {
     log_fail "필수 도구가 없습니다: $1"
     exit 1
   fi
+}
+
+browser_webrtc_harness_available() {
+  [[ -f "${BROWSER_WEBRTC_HARNESS}" ]] || return 1
+  ! grep -Fq "removed: 초기 WebRTC 테스트 페이지" "${BROWSER_WEBRTC_HARNESS}"
 }
 
 resolve_port() {
@@ -265,33 +272,37 @@ else
 fi
 RTSP_FFMPEG_PID=""
 
-node "${SCRIPT_DIR}/browser_webrtc_publish_consume_check.mjs" \
-  --http-base "${HTTP_BASE}" \
-  --mode simple \
-  --file "${FILE_TOKEN}" \
-  --va 1 \
-  --post-playback-hold-ms "${WEBRTC_HOLD_MS}" \
-  --consumer-playback-timeout-ms 45000 \
-  --timeout-ms 60000 \
-  --debug-port 9235 \
-  >"${WEBRTC_LOG}" 2>&1 &
-WEBRTC_NODE_PID=$!
+if browser_webrtc_harness_available; then
+  node "${BROWSER_WEBRTC_HARNESS}" \
+    --http-base "${HTTP_BASE}" \
+    --mode simple \
+    --file "${FILE_TOKEN}" \
+    --va 1 \
+    --post-playback-hold-ms "${WEBRTC_HOLD_MS}" \
+    --consumer-playback-timeout-ms 45000 \
+    --timeout-ms 60000 \
+    --debug-port 9235 \
+    >"${WEBRTC_LOG}" 2>&1 &
+  WEBRTC_NODE_PID=$!
 
-if wait_for_route_tap "webrtc" "${PROFILE_WEBRTC}" "${RULE_WEBRTC}" "6" "${WAIT_TIMEOUT_S}"; then
-  log_pass "WebRTC overlay route=webrtc profile/rule matching 확인"
-else
-  log_fail "WebRTC overlay route=webrtc profile/rule matching 실패"
-  sed -n '1,120p' "${WEBRTC_LOG}" | sed 's/^/[webrtc] /'
-fi
+  if wait_for_route_tap "webrtc" "${PROFILE_WEBRTC}" "${RULE_WEBRTC}" "6" "${WAIT_TIMEOUT_S}"; then
+    log_pass "WebRTC overlay route=webrtc profile/rule matching 확인"
+  else
+    log_fail "WebRTC overlay route=webrtc profile/rule matching 실패"
+    sed -n '1,120p' "${WEBRTC_LOG}" | sed 's/^/[webrtc] /'
+  fi
 
-if wait "${WEBRTC_NODE_PID}"; then
-  log_pass "WebRTC overlay playback ok"
-  sed -n '1,40p' "${WEBRTC_LOG}" | sed 's/^/[webrtc] /'
+  if wait "${WEBRTC_NODE_PID}"; then
+    log_pass "WebRTC overlay playback ok"
+    sed -n '1,40p' "${WEBRTC_LOG}" | sed 's/^/[webrtc] /'
+  else
+    log_fail "WebRTC overlay playback failed"
+    sed -n '1,120p' "${WEBRTC_LOG}" | sed 's/^/[webrtc] /'
+  fi
+  WEBRTC_NODE_PID=""
 else
-  log_fail "WebRTC overlay playback failed"
-  sed -n '1,120p' "${WEBRTC_LOG}" | sed 's/^/[webrtc] /'
+  log_skip "WebRTC route profile matching skipped: product WebRTC browser harness is not available"
 fi
-WEBRTC_NODE_PID=""
 
 echo
 echo "== route profile matching 검증 요약 =="
