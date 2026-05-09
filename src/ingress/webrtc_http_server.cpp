@@ -21,6 +21,7 @@
 #include <cstring>
 #include <fstream>
 #include <filesystem>
+#include <iomanip>
 #include <iostream>
 #include <initializer_list>
 #include <limits>
@@ -106,6 +107,19 @@ std::string UrlDecode(const std::string& value) {
         out.push_back(ch);
     }
     return out;
+}
+
+std::string UrlEncode(const std::string& value) {
+    std::ostringstream out;
+    out << std::uppercase << std::hex;
+    for (const unsigned char ch : value) {
+        if (std::isalnum(ch) != 0 || ch == '-' || ch == '_' || ch == '.' || ch == '~') {
+            out << static_cast<char>(ch);
+        } else {
+            out << '%' << std::setw(2) << std::setfill('0') << static_cast<int>(ch);
+        }
+    }
+    return out.str();
 }
 
 std::unordered_map<std::string, std::string> ParseQueryString(const std::string& raw) {
@@ -7644,6 +7658,9 @@ std::string AnalysisEventStorageStatusJson() {
         << "\"bundleFormat\":\"zip\","
         << "\"bundleMaxAgeMs\":86400000,"
         << "\"bundleExpiresVia\":\"expiresAtMs\","
+        << "\"bundleSignedToken\":true,"
+        << "\"bundleTokenParam\":\"token\","
+        << "\"bundleTokenIssuer\":\"/lab/analysis/events/evidence/bundle-token\","
         << "\"exportAudit\":true,"
         << "\"auditArea\":\"events\","
         << "\"auditAction\":\"export-bundle\","
@@ -7655,8 +7672,9 @@ std::string AnalysisEventStorageStatusJson() {
         << "\"activeFileProtected\":true,"
         << "\"archiveRetention\":\"oldest-rotated-only\","
         << "\"compactionCleanup\":\"keepNewest\","
+        << "\"expiredBundleCleanup\":\"token-expiry-no-server-file\","
         << "\"evidenceFileRetention\":\"event-record-retention\","
-        << "\"bundleExpiry\":\"download-link-expiresAtMs\","
+        << "\"bundleExpiry\":\"signed-token-expiresAtMs\","
         << "\"bundleMaxAgeMs\":86400000"
         << "},"
         << "\"deletePolicy\":{"
@@ -8267,6 +8285,170 @@ std::string EvidenceBundleEntryName(const std::filesystem::path& path, const std
     return prefix + "/" + file_name;
 }
 
+constexpr std::int64_t kEvidenceBundleMaxAgeMs = 24LL * 60LL * 60LL * 1000LL;
+
+bool ParseEvidenceBundleExpiresAtMs(const std::unordered_map<std::string, std::string>& query,
+                                    std::int64_t now_ms,
+                                    std::int64_t* expires_at_ms,
+                                    std::string* error_message) {
+    if (expires_at_ms == nullptr) {
+        return false;
+    }
+    *expires_at_ms = now_ms + kEvidenceBundleMaxAgeMs;
+    if (const auto it = query.find("expiresAtMs"); it != query.end() && !Trim(it->second).empty()) {
+        if (!ParseStrictInt64(Trim(it->second), expires_at_ms)) {
+            if (error_message != nullptr) {
+                *error_message = "expiresAtMs must be an integer unix ms";
+            }
+            return false;
+        }
+        if (*expires_at_ms < now_ms) {
+            if (error_message != nullptr) {
+                *error_message = "evidence bundle link has expired";
+            }
+            return false;
+        }
+        if (*expires_at_ms - now_ms > kEvidenceBundleMaxAgeMs) {
+            *expires_at_ms = now_ms + kEvidenceBundleMaxAgeMs;
+        }
+    }
+    return true;
+}
+
+std::string EvidenceBundleTokenSecret() {
+    const char* raw = std::getenv("MEDIA_SERVER_EVIDENCE_BUNDLE_TOKEN_SECRET");
+    if (raw != nullptr && !std::string(raw).empty()) {
+        return raw;
+    }
+    return "media-server-local-evidence-bundle-token";
+}
+
+std::uint64_t EvidenceBundleFnv1a64(const std::string& value) {
+    std::uint64_t hash = 1469598103934665603ull;
+    for (const unsigned char ch : value) {
+        hash ^= static_cast<std::uint64_t>(ch);
+        hash *= 1099511628211ull;
+    }
+    return hash;
+}
+
+std::string EvidenceBundleTokenPayload(const std::string& event_id,
+                                       const std::filesystem::path& snapshot_path,
+                                       const std::filesystem::path& clip_path,
+                                       std::int64_t expires_at_ms) {
+    std::ostringstream payload;
+    payload << "eventId=" << event_id << "\n"
+            << "snapshotPath=" << snapshot_path.string() << "\n"
+            << "clipPath=" << clip_path.string() << "\n"
+            << "expiresAtMs=" << expires_at_ms;
+    return payload.str();
+}
+
+std::string EvidenceBundleTokenFor(const std::string& event_id,
+                                   const std::filesystem::path& snapshot_path,
+                                   const std::filesystem::path& clip_path,
+                                   std::int64_t expires_at_ms) {
+    std::ostringstream out;
+    out << std::hex << std::setw(16) << std::setfill('0')
+        << EvidenceBundleFnv1a64(EvidenceBundleTokenPayload(event_id, snapshot_path, clip_path, expires_at_ms) +
+                                 "\nsecret=" + EvidenceBundleTokenSecret());
+    return out.str();
+}
+
+bool ExtractEvidenceBundleRequest(const std::unordered_map<std::string, std::string>& query,
+                                  std::int64_t now_ms,
+                                  std::string* event_id,
+                                  std::filesystem::path* snapshot_path,
+                                  std::filesystem::path* clip_path,
+                                  std::int64_t* expires_at_ms,
+                                  std::string* error_message) {
+    if (event_id == nullptr || snapshot_path == nullptr || clip_path == nullptr ||
+        expires_at_ms == nullptr) {
+        return false;
+    }
+    if (!ParseEvidenceBundleExpiresAtMs(query, now_ms, expires_at_ms, error_message)) {
+        return false;
+    }
+    *event_id = Trim(query.find("eventId") == query.end() ? "" : query.at("eventId"));
+    if (!AddOptionalEvidencePath(query, "snapshotPath", snapshot_path, error_message) ||
+        !AddOptionalEvidencePath(query, "clipPath", clip_path, error_message)) {
+        return false;
+    }
+    if (snapshot_path->empty() && clip_path->empty()) {
+        if (!AddOptionalEvidencePath(query, "path", snapshot_path, error_message)) {
+            return false;
+        }
+    }
+    if (snapshot_path->empty() && clip_path->empty()) {
+        if (error_message != nullptr) {
+            *error_message = "snapshotPath or clipPath is required";
+        }
+        return false;
+    }
+    return true;
+}
+
+bool ValidateEvidenceBundleToken(const std::unordered_map<std::string, std::string>& query,
+                                 const std::string& event_id,
+                                 const std::filesystem::path& snapshot_path,
+                                 const std::filesystem::path& clip_path,
+                                 std::int64_t expires_at_ms,
+                                 std::string* error_message) {
+    const std::string token = Trim(query.find("token") == query.end() ? "" : query.at("token"));
+    if (token.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "evidence bundle token is required";
+        }
+        return false;
+    }
+    const std::string expected = EvidenceBundleTokenFor(event_id, snapshot_path, clip_path, expires_at_ms);
+    if (token != expected) {
+        if (error_message != nullptr) {
+            *error_message = "evidence bundle token is invalid";
+        }
+        return false;
+    }
+    return true;
+}
+
+std::string EventEvidenceBundleTokenJson(const std::unordered_map<std::string, std::string>& query,
+                                         std::string* error_message) {
+    const std::int64_t now_ms = NowUnixMs();
+    std::int64_t expires_at_ms = now_ms + kEvidenceBundleMaxAgeMs;
+    std::string event_id;
+    std::filesystem::path snapshot_path;
+    std::filesystem::path clip_path;
+    if (!ExtractEvidenceBundleRequest(query,
+                                      now_ms,
+                                      &event_id,
+                                      &snapshot_path,
+                                      &clip_path,
+                                      &expires_at_ms,
+                                      error_message)) {
+        return {};
+    }
+    const std::string token = EvidenceBundleTokenFor(event_id, snapshot_path, clip_path, expires_at_ms);
+    std::ostringstream params;
+    params << "eventId=" << UrlEncode(event_id)
+           << "&expiresAtMs=" << expires_at_ms
+           << "&token=" << UrlEncode(token)
+           << "&download=1";
+    if (!snapshot_path.empty()) {
+        params << "&snapshotPath=" << UrlEncode(snapshot_path.string());
+    }
+    if (!clip_path.empty()) {
+        params << "&clipPath=" << UrlEncode(clip_path.string());
+    }
+    std::ostringstream out;
+    out << "{\"status\":\"event-evidence-bundle-token\","
+        << "\"token\":\"" << JsonEscape(token) << "\","
+        << "\"expiresAtMs\":" << expires_at_ms << ","
+        << "\"maxAgeMs\":" << kEvidenceBundleMaxAgeMs << ","
+        << "\"cleanupPolicy\":\"token-expiry-no-server-file\","
+        << "\"bundleUrl\":\"/lab/analysis/events/evidence/bundle?" << JsonEscape(params.str()) << "\"}";
+    return out.str();
+}
+
 bool BuildEventEvidenceBundleZip(const std::unordered_map<std::string, std::string>& query,
                                  std::string* zip_body,
                                  std::string* download_name,
@@ -8275,46 +8457,28 @@ bool BuildEventEvidenceBundleZip(const std::unordered_map<std::string, std::stri
         return false;
     }
     const std::int64_t now_ms = NowUnixMs();
-    constexpr std::int64_t kEvidenceBundleMaxAgeMs = 24LL * 60LL * 60LL * 1000LL;
     std::int64_t expires_at_ms = now_ms + kEvidenceBundleMaxAgeMs;
-    if (const auto it = query.find("expiresAtMs"); it != query.end() && !Trim(it->second).empty()) {
-        if (!ParseStrictInt64(Trim(it->second), &expires_at_ms)) {
-            if (error_message != nullptr) {
-                *error_message = "expiresAtMs must be an integer unix ms";
-            }
-            return false;
-        }
-        if (expires_at_ms < now_ms) {
-            if (error_message != nullptr) {
-                *error_message = "evidence bundle link has expired";
-            }
-            return false;
-        }
-        if (expires_at_ms - now_ms > kEvidenceBundleMaxAgeMs) {
-            expires_at_ms = now_ms + kEvidenceBundleMaxAgeMs;
-        }
-    }
+    std::string event_id;
     std::filesystem::path snapshot_path;
     std::filesystem::path clip_path;
-    if (!AddOptionalEvidencePath(query, "snapshotPath", &snapshot_path, error_message) ||
-        !AddOptionalEvidencePath(query, "clipPath", &clip_path, error_message)) {
-        return false;
-    }
-    if (snapshot_path.empty() && clip_path.empty()) {
-        if (!AddOptionalEvidencePath(query, "path", &snapshot_path, error_message)) {
-            return false;
-        }
-    }
-    if (snapshot_path.empty() && clip_path.empty()) {
-        if (error_message != nullptr) {
-            *error_message = "snapshotPath or clipPath is required";
-        }
+    if (!ExtractEvidenceBundleRequest(query,
+                                      now_ms,
+                                      &event_id,
+                                      &snapshot_path,
+                                      &clip_path,
+                                      &expires_at_ms,
+                                      error_message) ||
+        !ValidateEvidenceBundleToken(query,
+                                     event_id,
+                                     snapshot_path,
+                                     clip_path,
+                                     expires_at_ms,
+                                     error_message)) {
         return false;
     }
 
     std::string zip;
     std::vector<ZipCentralDirectoryEntry> entries;
-    const std::string event_id = Trim(query.find("eventId") == query.end() ? "" : query.at("eventId"));
     if (!event_id.empty()) {
         analysis::EventRecordQueryOptions options;
         options.event_id = event_id;
@@ -8391,7 +8555,9 @@ bool BuildEventEvidenceBundleZip(const std::unordered_map<std::string, std::stri
              << "\"longRecording\":false,"
              << "\"bundleFormat\":\"zip\","
              << "\"retentionPolicy\":{\"bundleMaxAgeMs\":" << kEvidenceBundleMaxAgeMs
-             << ",\"bundleExpiry\":\"download-link-expiresAtMs\"},"
+             << ",\"bundleExpiry\":\"signed-token-expiresAtMs\","
+             << "\"expiredBundleCleanup\":\"token-expiry-no-server-file\"},"
+             << "\"exportPolicy\":{\"bundleSignedToken\":true,\"tokenParam\":\"token\"},"
              << "\"deletePolicy\":{\"evidenceFileDelete\":false,\"evidenceFileDeletePermission\":\"blocked-for-all-roles\"},"
              << "\"snapshotPath\":\"" << JsonEscape(snapshot_path.string()) << "\","
              << "\"clipPath\":\"" << JsonEscape(clip_path.string()) << "\","
@@ -10423,6 +10589,19 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "{\"error\":\"" + JsonEscape(error_message) + "\"}");
                             }
                             return JsonResponse(200, "OK", response_body);
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/analysis/events/evidence/bundle-token") {
+                            std::string error_message;
+                            const std::string response_body = EventEvidenceBundleTokenJson(query, &error_message);
+                            if (response_body.empty()) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            }
+                            HttpResponse ok = JsonResponse(200, "OK", response_body);
+                            ok.headers["Cache-Control"] = "no-store";
+                            return ok;
                         }
 
                         if (request.method == "GET" && request.path == "/lab/analysis/events/evidence/bundle") {
