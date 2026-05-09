@@ -110,6 +110,8 @@ Usage:
                  120분 soak/VA runtime longrun이 RC 전용 기준으로 분리됐는지 검증합니다.
   rc-release-checklist
                  RC gate summary/report를 Markdown/HTML checklist와 history index로 묶습니다.
+  rc-artifact-archive
+                 RC gate artifact를 외부 마운트/S3/NAS 보관소로 checksum manifest와 함께 복사합니다.
   verify-tracker-stability
                  이동 영상에서 track ID 유지/분절 통계를 수집합니다.
   compare-close-object-tracker
@@ -395,6 +397,10 @@ case "${cmd}" in
   rc-release-checklist)
     require_internal write_rc_release_checklist.mjs
     exec "${INTERNAL_DIR}/write_rc_release_checklist.mjs" "$@"
+    ;;
+  rc-artifact-archive)
+    require_internal archive_rc_gate_artifact.mjs
+    exec "${INTERNAL_DIR}/archive_rc_gate_artifact.mjs" "$@"
     ;;
   verify-tracker-stability)
     require_internal verify_tracker_stability.sh
