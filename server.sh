@@ -82,6 +82,8 @@ Usage:
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-event-post-longrun
                  event POST schema/recovery/선택 queue 검증을 반복 실행합니다.
+  verify-longrun-separation
+                 기본 smoke와 장기 soak/longrun harness 분리 기준을 검증합니다.
   verify-tracker-stability
                  이동 영상에서 track ID 유지/분절 통계를 수집합니다.
   compare-close-object-tracker
@@ -311,6 +313,10 @@ case "${cmd}" in
   verify-event-post-longrun)
     require_internal verify_event_post_longrun.sh
     exec "${INTERNAL_DIR}/verify_event_post_longrun.sh" "$@"
+    ;;
+  verify-longrun-separation)
+    require_internal verify_longrun_separation.mjs
+    exec "${INTERNAL_DIR}/verify_longrun_separation.mjs" "$@"
     ;;
   verify-tracker-stability)
     require_internal verify_tracker_stability.sh

@@ -53,7 +53,7 @@ Usage:
 
 테스트 모드:
   --basic     기본값입니다. 외부망/LAN 접근성 없이 로컬 hard gate만 실행합니다. 커밋 전 기본 확인용입니다.
-  --full      basic + Rule UI, VA event, image analysis, event POST, redaction, report summary를 실행합니다.
+  --full      basic + Rule UI, VA event, image analysis, event POST smoke, redaction, report summary를 실행합니다.
   --external  full + LAN IP 접근성, 외부 RTSP advisory, WebRTC ICE, 외부 URI longrun을 실행합니다.
   --stable    기존 stable 기준입니다. 안정화된 로컬 스트리밍 + LAN IP 접근성 + 외부 RTSP advisory를 실행합니다.
 
@@ -69,7 +69,8 @@ basic 기준:
   - YouTube source/import: 실험실 기능
   - LAN IP 외부 클라이언트 접근성, 제3자 RTSP upstream, WebRTC ICE, 외부 TURN relay
   - adaptive tuner 장시간 검증
-  - Rule/Profile UI, 룰/이벤트/POST, 정적 이미지 분석 API는 full 또는 선택 검증으로 실행
+  - Rule/Profile UI, 룰/이벤트/POST smoke, 정적 이미지 분석 API는 full 또는 선택 검증으로 실행
+  - event POST longrun과 runtime longrun/cycle은 별도 verify-*longrun 명령으로만 실행
   - 다채널 fan-out은 초기 브라우저 harness 제거 후 별도 제품 UI harness 준비 전까지 skip
 
 Options:
@@ -251,12 +252,12 @@ MediaServer 통합 테스트 시작
   4. stable/external 모드는 LAN IP 외부 클라이언트 접근성과 제3자 RTSP upstream advisory를 확인함
   5. basic/stable/full/external 모드는 안정화된 로컬 source(file/RTSP/WebRTC publish/HTTP URI)를 RTSP/WebRTC 기본 경로로 소비해야 함
   6. basic/stable/full/external 모드는 기본 설치 범위인 YOLO/VA overlay가 lab API와 RTSP에서 동작해야 함
-  7. full/external 모드는 Rule UI, VA event, image analysis, event POST, redaction까지 확인함
+  7. full/external 모드는 Rule UI, VA event, image analysis, event POST smoke, redaction까지 확인함
 - 제외:
   YouTube, adaptive tuner, 외부 TURN relay
   룰 registry는 --include-rules, Rule UI는 --include-rule-ui, 이동 이벤트는 --include-va-events,
   이미지 분석은 --include-image-analysis, WebRTC ICE는 --include-webrtc-ice,
-  URI 장기 검증은 --include-uri-longrun, event POST는 --include-event-post,
+  URI 장기 검증은 --include-uri-longrun, event POST smoke는 --include-event-post,
   다채널 fan-out은 현재 skip, 사람 모자이크는 --include-redaction으로 선택 실행 가능
 
 EOF_HEADER
@@ -511,13 +512,18 @@ if [[ "${INCLUDE_EVENT_POST}" == "1" ]]; then
     skip_step "event POST 선택 검증" "서버 readiness가 실패해 event POST 검증을 생략합니다."
   else
     run_step \
-      "event-post-longrun" \
-      "선택 검증: event POST schema/recovery smoke" \
-      "event POST 검증 실패입니다. 서버가 MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1로 실행됐는지와 POST worker counter를 확인하세요." \
-      "./server.sh verify-event-post-longrun --iterations 1 --modes schema,recovery" || true
+      "event-post-schema" \
+      "선택 검증: event POST schema smoke" \
+      "event POST schema 검증 실패입니다. 서버가 MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1로 실행됐는지와 POST worker counter를 확인하세요." \
+      "./server.sh verify-event-post --mode schema" || true
+    run_step \
+      "event-post-recovery" \
+      "선택 검증: event POST recovery smoke" \
+      "event POST recovery 검증 실패입니다. 실패 endpoint 복구 counter와 POST worker 상태를 확인하세요." \
+      "./server.sh verify-event-post --mode recovery" || true
   fi
 else
-  skip_step "event POST 선택 검증" "event POST worker 검증은 full/predev 기준입니다. 필요하면 --include-event-post 또는 --full을 사용하세요."
+  skip_step "event POST 선택 검증" "event POST worker smoke는 full/predev 기준입니다. 장기 반복은 전용 longrun 명령으로 분리합니다."
 fi
 
 if [[ "${INCLUDE_MULTICHANNEL}" == "1" ]]; then

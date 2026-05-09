@@ -16,7 +16,7 @@
 | --- | --- |
 | `./server.sh test` | 기본 smoke. 로컬 file/RTSP/WebRTC/기본 API 중심 |
 | `./server.sh test --basic` | 기본 smoke를 명시적으로 실행 |
-| `./server.sh test --full` | Rule/Profile UI, VA event, image analysis, event POST, redaction 포함 |
+| `./server.sh test --full` | Rule/Profile UI, VA event, image analysis, event POST smoke, redaction 포함 |
 | `./server.sh test --external` | `--full` + LAN/external source, WebRTC ICE, 외부 HTTP/HLS URI 선택 검증. 외부 WHEP endpoint는 환경 의존 별도 검증 |
 | `./server.sh test --stable` | 기존 stable 호환 기준 |
 
@@ -52,6 +52,11 @@ git diff --check -- README.md docs scripts src include
 ```
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
+기본 smoke와 longrun gate가 섞이지 않았는지는 다음 명령으로 정적으로 확인합니다.
+
+```bash
+./server.sh verify-longrun-separation
+```
 
 `verify-auth-routes`는 임시 users/source/view 파일과 격리 포트로 서버를 직접 띄웁니다.
 `verify-ops-client-ui`, `verify-rule-ui`는 실행 중인 HTTP 서버를 대상으로 하는 attached UI smoke입니다.
@@ -233,6 +238,12 @@ curl -fsS -i -H 'Authorization: Bearer viewer-token' 'http://127.0.0.1:8080/ops'
 확인 기준은 auth off 기본 home에서 `/ -> /ops/home`, auth off + `client` home에서 `/ -> /client/live`, admin/operator token에서 `/ -> /ops/home`, viewer token에서 `/ -> /client/live`, 미인증 auth-on 요청에서 `/ -> /login`, viewer의 `/ops` 접근에서 `403`, `/lab` 화면 route에서 `404`입니다. `/ops`는 admin/operator role과 `ops:read` scope를 함께 요구하며, unauth 요청은 주요 `/ops/api/*` read route에서 `401`, viewer 요청은 `403`이어야 합니다. Readonly operator는 `/ops/api/sources`, `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status`를 읽을 수 있지만 `/ops/api/users`, invite, access request review, source/view 변경은 `403`이어야 합니다. `/ops/api/sources`와 `/ops/api/views` 변경은 `source:write`, `/lab/analysis/*` rule/profile/vaRule 변경은 `rule:write`를 추가로 요구합니다. `/client/api/views`는 viewer에게 할당된 PublishedView만 반환하고 다른 view의 dashboard/WebRTC wrapper는 `403`이어야 합니다. Integrator는 `/client` shell이 `403`이고 `/client/api/views` 목록에 live view가 노출되지 않지만 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata`는 각각 scope가 있으면 `200`이어야 합니다. `POST /client/api/access-requests`는 public route로 남아야 하지만 abuse guard를 통과해야 합니다. Auth on에서 `/webrtc/session`, `/whep`, `/whip/publish` 직접 생성 요청은 미인증 `401`, viewer `403`이어야 하며, `/ws/va-metadata`도 미인증 `401`, viewer `403`으로 막혀야 합니다. Auth off 개발 모드에서는 기존 검증 명령으로 계속 확인합니다.
 
 ## 장기 테스트 명령
+
+event POST 반복 안정성:
+
+```bash
+./server.sh verify-event-post-longrun --iterations 3 --modes schema,recovery
+```
 
 30분 이상 사전 안정성 검증:
 
