@@ -153,7 +153,7 @@ jobs:
             --retention-days "${{ inputs.artifact_retention_days }}"
 
       - name: Upload RC gate artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: media-server-rc-gate
           path: artifacts/rc-gate/
