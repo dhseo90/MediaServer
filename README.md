@@ -274,6 +274,7 @@ VA/Auth 주요 검증:
 | [docs/development-guide.md](docs/development-guide.md) | 빌드, 실행, 디버깅, 테스트 명령 |
 | [docs/ui-guide.md](docs/ui-guide.md) | Auth/Ops/Client UI 사용법과 현재 화면 기준 |
 | [docs/config-reference.md](docs/config-reference.md) | 환경변수와 주요 설정 reference |
+| [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) | 운영 백업/복구 대상과 복구 후 검증 절차 |
 | [docs/media-server-architecture.md](docs/media-server-architecture.md) | RTSP/WebRTC pipeline, stream/session, VA layer 배치 |
 | [docs/video-analysis.md](docs/video-analysis.md) | YOLO, tracking, TrackState, scenario, replay, EventRecord |
 | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) | Loitering/ZoneOccupancy 현장 시작 threshold |

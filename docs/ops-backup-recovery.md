@@ -1,0 +1,95 @@
+# Ops Backup / Recovery Guide
+
+이 문서는 운영자가 auth store, registry, sample/model 파일, audit/event 기록을
+백업하고 복구할 때 따르는 기준입니다. 장기 영상 녹화 백업 절차가 아니라,
+제품 설정과 EventRecord 기반 짧은 증거 기록을 보존하는 절차입니다.
+
+## 백업 대상
+
+| 범위 | 기본 경로/env | 백업 기준 |
+| --- | --- | --- |
+| Auth store | `MEDIA_SERVER_AUTH_USERS_FILE`, `.media_server.users.json` | 계정, invite, access request, password hash/history를 포함합니다. 원본 권한은 `0600`을 유지합니다. |
+| Source registry | `MEDIA_SERVER_SOURCE_REGISTRY`, `.media_server.sources.json` | 채널 source와 locator 설정입니다. |
+| PublishedView registry | `MEDIA_SERVER_PUBLISHED_VIEWS`, `.media_server.views.json` | client 노출 view와 scope 연결 기준입니다. |
+| Analysis registry | `MEDIA_SERVER_ANALYSIS_REGISTRY`, `.media_server.analysis_registry.json` | profile/rule/VA 설정입니다. |
+| Ops audit | `.media_server.ops_audit.jsonl`, `MEDIA_SERVER_OPS_AUDIT_RETENTION_DAYS` | 채널/룰/사용자/evidence export 변경 이력입니다. |
+| EventRecord | `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH`, `.media_server.va_events.jsonl*` | active JSON Lines와 rotated archive를 함께 보관합니다. |
+| Evidence media | `MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR`, `MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR` | snapshot 파일, clip manifest, frame bundle을 포함합니다. |
+| Sample/model assets | `MEDIA_SERVER_FILE_ROOT`, `MEDIA_SERVER_ANALYSIS_MODEL`, `MEDIA_SERVER_ANALYSIS_LABELS` | sample video, YOLO model, label 파일은 라이선스와 배포 권한을 확인한 뒤 보관합니다. |
+| Config preset/env | `config/presets/*.env.example`, 운영 env 파일 | plaintext token/secret은 별도 secret vault에 두고, 백업 bundle에는 redacted summary만 둡니다. |
+
+`./server.sh ops-bundle --http-base http://127.0.0.1:8080`은 상태 공유용
+진단 bundle입니다. Auth users file 본문과 plaintext secret은 넣지 않으므로,
+복구용 백업과 진단 bundle을 혼동하지 않습니다.
+
+## 백업 절차
+
+1. 유지보수 창을 잡고 운영 UI에서 대량 작업, 룰 저장, 사용자 변경을 멈춥니다.
+2. 가능하면 `./server.sh stop`으로 쓰기 중인 프로세스를 멈춥니다.
+3. `./server.sh ops-bundle --http-base http://127.0.0.1:8080`으로 복구 전 상태와 로그 요약을 남깁니다.
+4. 위 표의 파일과 디렉터리를 같은 backup root 아래에 복사합니다. Auth store는 `0600`, registry와 EventRecord는 원본 owner/group을 유지합니다.
+5. `shasum -a 256` 또는 운영 표준 도구로 manifest를 만들고 backup root에 같이 저장합니다.
+6. 백업 manifest, ops bundle, redacted env summary를 같은 change ticket에 연결합니다.
+7. 외부 보관소로 이동할 때 model/sample/evidence 파일의 라이선스와 개인정보 보존 정책을 확인합니다.
+
+권장 backup root 예시:
+
+```text
+backup-YYYYMMDD-HHMM/
+  config/
+  registry/
+  auth/
+  audit/
+  events/
+  evidence/
+  media-assets/
+  ops-bundle/
+  SHA256SUMS
+```
+
+## 복구 절차
+
+1. 대상 서버의 media server를 중지합니다.
+2. 새 runtime directory 또는 staging directory에 백업 파일을 먼저 복원합니다.
+3. Auth store 권한을 `0600`으로 맞추고, 운영 사용자만 읽을 수 있는지 확인합니다.
+4. 운영 env에서 다음 경로를 복원 위치로 지정합니다.
+   - `MEDIA_SERVER_AUTH_USERS_FILE`
+   - `MEDIA_SERVER_SOURCE_REGISTRY`
+   - `MEDIA_SERVER_PUBLISHED_VIEWS`
+   - `MEDIA_SERVER_ANALYSIS_REGISTRY`
+   - `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH`
+   - `MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR`
+   - `MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR`
+   - `MEDIA_SERVER_FILE_ROOT`
+   - `MEDIA_SERVER_ANALYSIS_MODEL`
+   - `MEDIA_SERVER_ANALYSIS_LABELS`
+5. `./server.sh build` 후 `./server.sh diagnose`로 경로, 권한, asset 접근성을 확인합니다.
+6. 계정은 직접 JSON을 수정하지 않고 `./server.sh auth-user list`로 읽기 검증부터 수행합니다.
+7. 서버를 staging 포트로 기동해 `/health`, `/auth/whoami`, `/ops/home`, `/client/live` 접근을 확인합니다.
+8. 복구 검증이 끝나기 전에는 외부 viewer와 integrator traffic을 붙이지 않습니다.
+
+복구 후 최소 검증:
+
+```bash
+./server.sh verify-auth-bootstrap
+./server.sh verify-auth-users
+./server.sh verify-auth-routes
+./server.sh verify-ops-route-boundaries
+./server.sh verify-ops-rule-relationships --http-base http://127.0.0.1:8080
+./server.sh verify-ops-event-records-scope --http-base http://127.0.0.1:8080
+./server.sh verify-ops-audit-persistence
+./server.sh verify-ops-diagnostics-bundle
+```
+
+EventRecord storage나 snapshot/clip hook을 운영에서 꺼 둔 환경은
+`verify-ops-event-records-scope` 대신 해당 env가 비활성인 것을 change ticket에
+기록합니다. UI까지 확인하는 복구 리허설에서는
+`verify-ops-client-ui`, `verify-ops-click-e2e`, `verify-ops-tables-layout`도 같이
+실행합니다.
+
+## 실패 시 롤백
+
+- JSON parse 오류, 중복 source/view id, 존재하지 않는 `sourceId` 참조가 나오면 복원 파일을 덮어쓰지 말고 백업본을 그대로 보존합니다.
+- Auth store가 읽히지 않으면 임시 admin을 만들기 전에 기존 store 사본, 권한, owner, hash format을 먼저 확인합니다.
+- model/label/sample 누락은 `/ops` 설정 문제가 아니라 asset 준비 문제로 분리하고, registry를 임의 수정하지 않습니다.
+- evidence bundle은 signed token 기반 임시 export입니다. 복구 대상은 원본 snapshot/clip/EventRecord이고, 만료된 bundle URL은 복구하지 않습니다.
