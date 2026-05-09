@@ -19,15 +19,25 @@ Detailed Korean backlog: [../development-backlog.md](../development-backlog.md)
 | Public repo readiness | Ready | Actions, branch rules, English docs, and asset policy are prepared; owner-only visibility change is excluded |
 | Runtime distribution policy | Done | Source-first policy and bundle guardrails are in place |
 | Ops UI stability | Done | Channels/Rules/Users responsive table checks exist |
+| v1.1.0 live operations | Next | ONVIF live onboarding, live source health, and live VA event quality |
+| v1.1.0-alpha.1 live-only boundary | In progress | Roadmap, README, backlog, and guardrail wording are being aligned |
 | Audit trail operations | In progress | Server persistence exists; search/export can improve |
-| Evidence retention | In progress | Cleanup policy exists; permission/search can improve |
+| Short event evidence | Supporting | EventRecord/snapshot/clip cleanup exists, but it is not the main v1.1.0 product direction |
 | RC gate operations | In progress | Longrun gate exists; artifact retention can improve |
 | Client dashboard field polish | Planned | Preset-driven priority and wording can improve |
+
+## v1.1.0 Boundary
+
+Detailed Korean roadmap: [../v1.1.0-roadmap.md](../v1.1.0-roadmap.md)
+
+- Focus: ONVIF-assisted live source onboarding, live source health, live VA events, and runtime metadata contracts.
+- Excluded: long-term recording, MP4 recorder, VMS/NVR archive, playback timeline, video search, and ONVIF Profile G recording/replay.
+- Supporting only: EventRecord, snapshot, clip frame bundles, and evidence cleanup are short event evidence or diagnostics helpers.
 
 ## Near-Term Follow-Ups
 
 - Close or suppress existing Dependabot major-update PR noise after the policy is documented.
 - Add richer English docs if the public audience grows.
 - Connect RC artifacts to release notes.
-- Add signed-token and cleanup checks for evidence bundles.
+- Keep signed-token and cleanup checks for evidence bundles scoped to short event evidence.
 - Add operator-facing “next action” buttons to root-cause diagnostics.

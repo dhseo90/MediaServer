@@ -4,7 +4,7 @@
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Latest Release](https://img.shields.io/github/v/release/dhseo90/MediaServer?label=release)](https://github.com/dhseo90/MediaServer/releases/latest)
 
-Media Server is a C++17 RTSP/WebRTC relay with optional YOLO/ONNX video analytics overlays, rule/scenario events, and short evidence artifacts.
+Media Server is a C++17 RTSP/WebRTC live stream relay with optional YOLO/ONNX video analytics overlays and rule/scenario live events. The v1.1.0 roadmap focuses on live source onboarding, live source health, and live VA event quality rather than long-term recording, VMS, or NVR scope.
 
 Korean documentation: [README.md](README.md)
 Latest source-only release: [v1.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.0.0)
@@ -12,7 +12,7 @@ Latest source-only release: [v1.0.0](https://github.com/dhseo90/MediaServer/rele
 ## At a Glance
 
 - **Streaming**: exposes file, RTSP pull, WHEP pull, WHIP publish, and HTTP/HLS sources through RTSP and WebRTC/WHEP outputs.
-- **Video analytics**: supports `va=1` overlays, saved rules through `vaRule=<id>`, Rule/Profile/Scenario models, Event POST, EventRecord, snapshot, and short clip evidence.
+- **Video analytics**: supports `va=1` overlays, saved rules through `vaRule=<id>`, Rule/Profile/Scenario models, live Event POST, and runtime metadata. EventRecord, snapshot, and clip hooks are short event evidence helpers, not the central v1.1.0 product message.
 - **Product UI**: the main URL routes users to Ops or Client views based on account permissions. `/lab` UI routes stay disabled; lab endpoints remain available for API and verification workflows.
 - **Auth and scopes**: supports first-admin setup, session login, role/scope, admin user management, and viewer invite/request approval.
 - **Verification**: `./server.sh` provides UI/Auth smoke tests, VA replay checks, runtime state checks, backup/restore rehearsal, and RC gate artifact checks.
@@ -93,7 +93,8 @@ See [docs/en/sample-fixture-provenance.md](docs/en/sample-fixture-provenance.md)
 | Setup, build, foreground/background execution | [docs/en/development-guide.md](docs/en/development-guide.md) |
 | Auth, Ops, Client UI flow | [docs/en/ui-guide.md](docs/en/ui-guide.md) |
 | RTSP/WebRTC pipeline, source/session, VA layer | [docs/en/media-server-architecture.md](docs/en/media-server-architecture.md) |
-| YOLO, tracking, scenarios, EventRecord, evidence | [docs/en/video-analysis.md](docs/en/video-analysis.md) |
+| YOLO, tracking, scenarios, live events, short evidence | [docs/en/video-analysis.md](docs/en/video-analysis.md) |
+| v1.1.0 live-only roadmap | [docs/en/v1.1.0-roadmap.md](docs/en/v1.1.0-roadmap.md) |
 | Verification commands and release checks | [docs/en/stream-verification.md](docs/en/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/en/distribution-policy.md](docs/en/distribution-policy.md) |
 | Release scope and tag strategy | [docs/en/release-policy.md](docs/en/release-policy.md) |
