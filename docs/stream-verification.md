@@ -257,7 +257,8 @@ SharedStream/VA metadata/dashboard/SSE/WS fanout 변경 후,
   --runtime-report /tmp/media_server_va_runtime_report.md \
   --output /tmp/media_server_rc_release_checklist.md \
   --html-output /tmp/media_server_rc_release_checklist.html \
-  --artifact-name media-server-rc-gate
+  --artifact-name media-server-rc-gate \
+  --history-dir /tmp/media_server_rc_gate_history
 ```
 
 CI에서는 `.github/workflows/rc-release-gate.yml`을 수동 실행합니다.
@@ -265,6 +266,10 @@ CI에서는 `.github/workflows/rc-release-gate.yml`을 수동 실행합니다.
 RC 판정 시 `run_predev_120=true`, `run_va_runtime_120=true`로 실행하면
 `artifacts/rc-gate/` 아래 summary/report/checklist Markdown/HTML을 모아
 `media-server-rc-gate` GitHub Actions artifact로 업로드합니다.
+Checklist 생성기는 `--history-dir artifacts/rc-gate/history`를 함께 사용해
+run별 `record.json`, summary/report/checklist 사본, `index.json`,
+`index.md`, `index.html`을 자동으로 갱신합니다. RC 리뷰에서는 root의
+`rc-release-checklist.md/html`과 history index를 같이 확인합니다.
 실제 RC에서는 `runner_label`을 sample video, YOLO model, labels가 준비된
 self-hosted macOS runner로 지정하는 것을 권장합니다. Workflow는 실행 전에
 `video/sample_h264.mp4`, `video/va_four_scene_sample.mp4`,
