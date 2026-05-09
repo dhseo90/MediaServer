@@ -1,0 +1,86 @@
+{
+  "schema": "media-server.bundle-distribution-policy.v1",
+  "defaultMode": "source-release-without-third-party-runtime-binaries",
+  "summary": [
+    "기본 공개/배포 단위는 Apache-2.0 원본 소스와 문서이며 FFmpeg, FFprobe, libav*, x264/x265, GStreamer GPL-risk plugin 바이너리를 포함하지 않습니다.",
+    "패키지 매니저로 설치되는 media runtime과 검증 도구는 사용자 환경 의존성으로 취급합니다.",
+    "binary bundle, app bundle, container image, offline package를 만들 때는 verify-bundle-policy로 포함 파일을 검사합니다.",
+    "GPL-risk runtime을 의도적으로 포함하는 배포는 별도 법무/라이선스 검토, upstream license text, source offer, attribution을 준비해야 합니다."
+  ],
+  "sourceTreeExcludes": [
+    ".git",
+    ".media_server.test",
+    "build",
+    "build-gst",
+    "build-gst-onnx",
+    "build-release-gst-onnx",
+    "third_party",
+    "models",
+    "video"
+  ],
+  "alwaysExcludeNames": [
+    ".DS_Store",
+    "__pycache__"
+  ],
+  "rules": [
+    {
+      "id": "ffmpeg-cli",
+      "severity": "block",
+      "title": "FFmpeg/ffprobe executable",
+      "reason": "현재 기본 배포 정책은 FFmpeg/ffprobe를 사용자 설치 도구로 취급하고 bundle에 포함하지 않습니다.",
+      "pathPatterns": [
+        "(^|/)ffmpeg(\\.exe)?$",
+        "(^|/)ffprobe(\\.exe)?$"
+      ],
+      "linkedPatterns": []
+    },
+    {
+      "id": "ffmpeg-libraries",
+      "severity": "block",
+      "title": "FFmpeg libav runtime library",
+      "reason": "libav*를 bundle하면 FFmpeg LGPL/GPL 의무와 build flag 확인이 필요합니다.",
+      "pathPatterns": [
+        "(^|/)libav(codec|format|util|device|filter)\\.(so|dylib|dll)(\\.|$)",
+        "(^|/)libsw(scale|resample)\\.(so|dylib|dll)(\\.|$)",
+        "(^|/)libpostproc\\.(so|dylib|dll)(\\.|$)",
+        "(^|/)av(codec|format|util|device|filter)-[0-9]+\\.dll$",
+        "(^|/)sw(scale|resample)-[0-9]+\\.dll$"
+      ],
+      "linkedPatterns": [
+        "libav(codec|format|util|device|filter)",
+        "libsw(scale|resample)",
+        "libpostproc"
+      ]
+    },
+    {
+      "id": "x264-x265-runtime",
+      "severity": "block",
+      "title": "x264/x265 runtime library",
+      "reason": "x264/x265는 FFmpeg/GStreamer 경유 시 GPL 의무를 만들 수 있어 기본 bundle에서 제외합니다.",
+      "pathPatterns": [
+        "(^|/)libx264\\.(so|dylib|dll)(\\.|$)",
+        "(^|/)libx265\\.(so|dylib|dll)(\\.|$)",
+        "(^|/)x264(\\.exe)?$",
+        "(^|/)x265(\\.exe)?$"
+      ],
+      "linkedPatterns": [
+        "libx264",
+        "libx265"
+      ]
+    },
+    {
+      "id": "gstreamer-gpl-risk-plugins",
+      "severity": "block",
+      "title": "GStreamer GPL-risk plugin bundle",
+      "reason": "gst-libav, x264/x265 plugin, gst-plugins-ugly 계열은 배포자가 license/patent/GPL 영향을 별도 확인해야 합니다.",
+      "pathPatterns": [
+        "(^|/)libgst(libav|x264|x265)\\.(so|dylib|dll)(\\.|$)",
+        "(^|/)gst-plugins-ugly($|/)",
+        "(^|/)gstreamer-1\\.0/(libgstlibav|libgstx264|libgstx265)\\.(so|dylib|dll)(\\.|$)"
+      ],
+      "linkedPatterns": [
+        "libgst(libav|x264|x265)"
+      ]
+    }
+  ]
+}

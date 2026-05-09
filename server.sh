@@ -122,6 +122,8 @@ Usage:
                  third-party attribution inventory에서 배포용 notice 문서를 생성하거나 검증합니다.
   dependency-snapshot
                  현재 설치된 dependency 버전, 모델 hash, linked library snapshot을 생성합니다.
+  verify-bundle-policy
+                 배포 bundle 안의 FFmpeg/GStreamer GPL-risk runtime 포함 여부를 검사합니다.
   verify-tracker-stability
                  이동 영상에서 track ID 유지/분절 통계를 수집합니다.
   compare-close-object-tracker
@@ -431,6 +433,10 @@ case "${cmd}" in
   dependency-snapshot)
     require_internal write_dependency_snapshot.mjs
     exec "${INTERNAL_DIR}/write_dependency_snapshot.mjs" "$@"
+    ;;
+  verify-bundle-policy)
+    require_internal verify_bundle_distribution_policy.mjs
+    exec "${INTERNAL_DIR}/verify_bundle_distribution_policy.mjs" "$@"
     ;;
   verify-tracker-stability)
     require_internal verify_tracker_stability.sh

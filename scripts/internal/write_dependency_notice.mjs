@@ -88,9 +88,20 @@ function buildMarkdown(inventory, inventoryLabel) {
   }
   lines.push(
     "",
+    "## Bundle Distribution Policy",
+    "",
+    `- policy: ${inventory.bundlePolicyFile || "config/bundle_distribution_policy.json"}`,
+    `- gate: \`${inventory.bundlePolicyCommand || "./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir>"}\``,
+  );
+  for (const item of inventory.bundlePolicySummary || []) {
+    lines.push(`- ${item}`);
+  }
+  lines.push(
+    "",
     "## Release Checklist",
     "",
     "- [ ] binary bundle 안의 동적 library와 plugin 목록을 확인했습니다.",
+    "- [ ] `./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir>` 검사를 통과했습니다.",
     "- [ ] model file과 sample media가 bundle에 포함되는지 확인했습니다.",
     "- [ ] `./server.sh dependency-snapshot`으로 실제 설치 버전과 모델 hash를 기록했습니다.",
     "- [ ] 포함되는 third-party license text와 attribution을 bundle에 함께 넣었습니다.",

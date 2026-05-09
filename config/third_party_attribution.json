@@ -2,6 +2,14 @@
   "schema": "media-server.third-party-attribution.v2",
   "generatedFile": "THIRD_PARTY_NOTICES.md",
   "generatedSnapshotFile": "DEPENDENCY_SNAPSHOT.md",
+  "bundlePolicyFile": "config/bundle_distribution_policy.json",
+  "bundlePolicyCommand": "./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir>",
+  "bundlePolicySummary": [
+    "기본 공개/배포 단위는 Apache-2.0 원본 소스와 문서이며 FFmpeg, FFprobe, libav*, x264/x265, GStreamer GPL-risk plugin 바이너리를 포함하지 않습니다.",
+    "FFmpeg/GStreamer runtime은 사용자 package manager 설치물로 취급하고, binary bundle에 복사하지 않는 것을 기본값으로 둡니다.",
+    "binary bundle, app bundle, container image, offline package를 만들 때는 verify-bundle-policy gate를 통과해야 합니다.",
+    "GPL-risk runtime을 의도적으로 포함하는 배포는 별도 법무/라이선스 검토와 upstream license text/source offer/attribution을 준비해야 합니다."
+  ],
   "dependencies": [
     {
       "id": "gstreamer",
@@ -12,7 +20,7 @@
       "distribution": "외부 runtime/development dependency이며 이 저장소에 vendoring하지 않음",
       "versionPolicy": "GStreamer 1.0 API 계열을 사용하며, 실제 설치 버전은 pkg-config 결과를 release snapshot에 기록합니다.",
       "minimumVersion": "미고정. CMake는 pkg-config에서 필요한 GStreamer 1.0 module 존재 여부를 확인합니다.",
-      "bundlePolicy": "binary bundle에 GStreamer library/plugin을 포함하면 upstream license text와 plugin notice를 함께 포함합니다.",
+      "bundlePolicy": "기본 bundle에는 GStreamer runtime/plugin 바이너리를 포함하지 않습니다. 포함 배포 시 plugin별 upstream license와 gst-libav/x264/x265/ugly 계열 영향을 별도 검토합니다.",
       "detectors": [
         { "label": "gstreamer-1.0", "command": "pkg-config", "args": ["--modversion", "gstreamer-1.0"], "versionPattern": "^(.+)$" },
         { "label": "gstreamer-rtsp-server-1.0", "command": "pkg-config", "args": ["--modversion", "gstreamer-rtsp-server-1.0"], "versionPattern": "^(.+)$" },
@@ -89,7 +97,7 @@
       "distribution": "외부 command-line dependency이며 이 저장소에 vendoring하지 않음",
       "versionPolicy": "패키지 관리자 설치 버전을 사용합니다. release snapshot은 ffmpeg/ffprobe version과 GPL build flag 포함 여부를 기록합니다.",
       "minimumVersion": "미고정. 검증 스크립트는 ffmpeg/ffprobe command 존재 여부와 실제 probe 성공 여부를 기준으로 판단합니다.",
-      "bundlePolicy": "FFmpeg는 Apache-2.0 적용 대상으로 보지 않습니다. 번들 FFmpeg build가 GPL component를 켰는지 확인합니다.",
+      "bundlePolicy": "기본 bundle에는 FFmpeg/ffprobe/libav* 바이너리를 포함하지 않습니다. 포함 배포 시 --enable-gpl/--enable-nonfree/build config와 license 의무를 별도 검토합니다.",
       "detectors": [
         { "label": "ffmpeg", "command": "ffmpeg", "args": ["-version"], "versionPattern": "^ffmpeg version\\s+([^\\s]+)" },
         { "label": "ffprobe", "command": "ffprobe", "args": ["-version"], "versionPattern": "^ffprobe version\\s+([^\\s]+)" }
@@ -182,7 +190,7 @@
       "distribution": "직접 소스 의존성은 아니지만 binary bundle에 복사되면 배포 의무가 생길 수 있음",
       "versionPolicy": "정확한 파일 경로와 current version은 `./server.sh dependency-snapshot`의 linked library section에 기록합니다.",
       "minimumVersion": "직접 고정하지 않음. 상위 media/runtime package와 OS SDK가 결정합니다.",
-      "bundlePolicy": "binary bundle에 dylib/so를 포함하면 snapshot의 linked library 목록을 기준으로 각 upstream license text와 attribution을 추가합니다."
+      "bundlePolicy": "기본 bundle에는 package manager runtime 전체를 복사하지 않습니다. 포함 배포 시 snapshot과 verify-bundle-policy 결과를 기준으로 license text와 attribution을 추가합니다."
     },
     {
       "id": "build-and-script-tools",
