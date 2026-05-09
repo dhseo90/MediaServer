@@ -1046,6 +1046,36 @@ std::string ProductUiCss() {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       margin-top: var(--space-2);
     }
+    .validation-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .validation-item {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: var(--space-3);
+      align-items: start;
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-raised);
+    }
+    .validation-item strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+    .validation-item p {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .validation-item.warn {
+      border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));
+    }
+    .validation-item.bad {
+      border-color: color-mix(in srgb, var(--color-danger) 56%, var(--color-border));
+    }
     .embedded-frame {
       width: 100%;
       min-height: min(1120px, calc(100vh - 220px));
@@ -1726,6 +1756,7 @@ std::string ProductUiCss() {
       .audit-entry-head,
       .audit-entry-meta,
       .audit-diff-grid,
+      .validation-item,
       .user-row-actions {
         display: grid;
         grid-template-columns: 1fr;
