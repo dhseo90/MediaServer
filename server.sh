@@ -68,6 +68,8 @@ Usage:
                  EventRecord가 짧은 증거 기록 범위로 노출되고 /ops/events UI가 이를 표시하는지 검증합니다.
   verify-ops-diagnostics-bundle
                  운영 diagnostics bundle 생성물과 config preset 기준을 검증합니다.
+  verify-docs-ui-assets
+                 README/UI guide screenshot 자산과 자동 캡처 기준을 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -281,6 +283,10 @@ case "${cmd}" in
   verify-ops-diagnostics-bundle)
     require_internal verify_ops_diagnostics_bundle.sh
     exec "${INTERNAL_DIR}/verify_ops_diagnostics_bundle.sh" "$@"
+    ;;
+  verify-docs-ui-assets)
+    require_internal verify_docs_ui_assets.mjs
+    exec "${INTERNAL_DIR}/verify_docs_ui_assets.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

@@ -4,6 +4,7 @@
 
 현재 대표 제품 이미지는 2026-05-09 기준으로 다시 캡처했습니다.
 재캡처는 `scripts/internal/capture_docs_ui_assets.mjs` 기준으로 관리합니다.
+기준 검증은 `./server.sh verify-docs-ui-assets`로 수행합니다.
 
 기본 기준:
 

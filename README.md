@@ -192,8 +192,8 @@ RTSP raw stream과 SSE/WS metadata side-channel을 별도로 조합합니다.
   `/ops/events`, `/client/events`는 제품 primary tab에서 숨기고,
   이벤트 요약은 룰/대시보드 맥락에서 확인합니다.
 - 1차 완료: EventRecord archive 포함 조회와 비파괴 compaction snapshot 생성/목록/다운로드/삭제 API/UI, snapshot frame 저장과 pre/post frame bundle recorder manifest를 제공합니다.
-- 남은 후속 작업: PublishedView 기반 scope picker,
-  archive cleanup policy 고도화를 별도 묶음으로 관리합니다.
+- 남은 후속 작업: archive cleanup policy, account lifecycle 정책,
+  장기 soak/부하 검증을 별도 묶음으로 관리합니다.
 - 제한/미구현: MP4/VMS/NVR형 장기 녹화, Re-ID 기본 기능화,
   운영 TURN relay/auth, 외부 WHEP credential 정책은 별도 운영 범위입니다.
 

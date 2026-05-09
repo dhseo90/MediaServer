@@ -26,7 +26,7 @@
 - ReEntry와 IntrusionAfterLineCrossing은 룰 편집 UI에서 선택 가능하며 저장/round-trip 검증 대상입니다.
 - 현재 우선순위: 운영/클라이언트 분리의 제품 진입점 정합성을 위해 Auth Bootstrap, password policy/lockout/session hardening, admin 계정 관리, client invite/request, role/scope 기반 root/route 접근 정책, Ops/Client shell 통합을 완료했고 문서 상태를 실제 구현 기준으로 닫았습니다.
 - 다음 작업: 현장 샘플 기반 scenario tuning과 operator 화면 고도화를 후속으로 둡니다.
-- 후속 Phase: 다음 운영/클라이언트 phase의 진입점은 SourceRegistry/PublishedView 기반 고도화입니다. PublishedView 기반 scope picker, Client scoped dashboard polish, Analysis tap reuse / source+profile 공유 정책 UI는 아래 운영/클라이언트 분리 phase에서 별도로 관리합니다.
+- 후속 Phase: 다음 운영/클라이언트 phase의 진입점은 SourceRegistry/PublishedView 기반 고도화입니다. Client scoped dashboard polish, Analysis tap reuse / source+profile 공유 정책 UI, 운영 배포용 account lifecycle 정책은 아래 운영/클라이언트 분리 phase에서 별도로 관리합니다.
 - 실험/제약: 실제 Re-ID extractor는 기본 비활성 실험 기능이며 모델/성능/개인정보 정책 확정이 필요합니다.
 - 실험/제약: snapshot/clip은 짧은 EventRecord evidence frame 저장용이며 MP4/VMS/NVR 장기 녹화 기능으로 표현하지 않습니다.
 - 남은 후속: 정밀 scenario timeline, Runtime Dashboard trend/stale/cleanup warning 고도화(sparkline/장기 baseline), metadata filter smoke 확장입니다.
@@ -51,7 +51,7 @@
 - 완료 범위: `MEDIA_SERVER_AUTH_MODE=auto|off|token|session`, role별 token env, users file, libsodium passwordHash 검증, 최초 `/setup` admin password bootstrap, auth users file owner-only `0600` 생성/보정과 fsync/rename 저장, user-only 저장의 invite/access request 보존과 invalid auth store fail-closed, `kr-privacy|strict|custom` password policy, password history hash 저장, login failure lockout, audit field, TTL/idle timeout 기반 HttpOnly session cookie, password change flow, Principal 구조, Bearer/query token 해석, `RequireRole`/`RequireScope` guard helper, `/login`, `/logout`, `/auth/whoami`, `/ops/users` 사용자 목록과 접근 요청 승인/거절 table, `./server.sh auth-user`, `/client/request-access`, `POST /client/api/access-requests` body/field/중복/rate-limit abuse guard, admin approve/reject, viewer password setup invite, role-aware `/` redirect, `/ops` `ops:read` guard와 `source:write` 변경 guard, `/client` shell guard와 integrator scoped API guard, `/lab` admin/operator/lab:read guard와 `rule:write` 변경 guard, auth-on generic media 생성 route(`/webrtc/session`, `/whep`, `/whip/publish`)의 privileged guard, WebRTC/WHEP/WHIP 후속 session route의 random id와 owner/capability guard, `/ws/va-metadata` Lab/custom-client guard, same-origin CORS 고정 정책과 wildcard origin 제거, 내장 HTTP parser header/body/timeout/active-connection hardening입니다.
 - 정책: client 계정은 admin 수동 생성이 기본입니다. Self-signup 자동 승인은 없고 pending request와 승인 invite는 `/invite/setup` 수락 전까지 user/password/session/view scope를 만들거나 기존 enabled user의 role/scope/session을 변경하지 않습니다. Invite token은 password setup 전용이며 token hash만 저장하고 원문은 발급 응답에서 한 번만 표시합니다.
 - 검증: `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`를 추가해 setup/login/session, admin user management/invite/request 보존과 access-request abuse guard, root/ops/client/lab route guard, unauth/viewer/readonly-operator/integrator scope matrix, PublishedView 할당/비할당 client API guard, public access request 유지, generic media/metadata route guard, same-origin CORS/preflight를 자동 smoke로 확인합니다.
-- 후속: PublishedView 기반 시각적 scope picker, account form microcopy/validation polish, 운영 배포용 account lifecycle 정책은 다음 묶음에서 진행합니다.
+- 후속: account form microcopy/validation polish, 운영 배포용 account lifecycle 정책은 다음 묶음에서 진행합니다.
 - 우선순위 이유: route, source/view 노출, dashboard/live monitor 접근 정책의 공통 전제가 됩니다.
 
 ### O2. SourceRegistry / PublishedView
@@ -70,7 +70,7 @@
   기본 file/VA file/공개 RTSP/HLS seed,
   Live/VA URL의 RTSP/WHEP 복사 버튼,
   registry API 확인 흐름입니다.
-- 후속: source lifecycle 상태, bulk action, PublishedView 기반 visual scope picker, source health와 operator live monitor 연결은 다음 묶음에서 진행합니다.
+- 후속: source lifecycle 상태, bulk action, source health와 operator live monitor 연결은 다음 묶음에서 진행합니다.
 - 우선순위 이유: source 원본 설정, 운영자 제어, 클라이언트 노출 범위를 한 모델로 섞지 않기 위한 선행 작업입니다.
 
 ### O2a. External WHEP URL source pull
@@ -148,6 +148,7 @@ git diff --check -- README.md docs
 
 ```bash
 ./server.sh verify-ops-client-ui
+./server.sh verify-docs-ui-assets
 ```
 
 - 우선순위 이유: UI 개편 후 문서의 첫인상과 실제 화면이 어긋나면 사용자 검수 비용이 커집니다.
