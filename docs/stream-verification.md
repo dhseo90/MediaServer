@@ -270,6 +270,21 @@ Checklist 생성기는 `--history-dir artifacts/rc-gate/history`를 함께 사�
 run별 `record.json`, summary/report/checklist 사본, `index.json`,
 `index.md`, `index.html`을 자동으로 갱신합니다. RC 리뷰에서는 root의
 `rc-release-checklist.md/html`과 history index를 같이 확인합니다.
+GitHub artifact 외부 보관이 필요한 환경은 S3/NAS를 runner에 마운트한 뒤
+workflow input `external_artifact_dir`를 지정합니다. 이 경우 workflow가
+다음 명령을 실행해 checksum manifest와 외부 index를 함께 남깁니다.
+
+```bash
+./server.sh rc-artifact-archive \
+  --source-dir artifacts/rc-gate \
+  --destination-dir /mnt/media-server-rc-gate \
+  --run-id "${GITHUB_RUN_ID:-local}" \
+  --retention-days 30
+```
+
+외부 보관 디렉터리에는 run별 `external-artifact-manifest.json`,
+`SHA256SUMS`, root `index.json`, `index.md`가 생성됩니다. `retention-days`가
+0보다 크면 같은 디렉터리의 오래된 run folder를 manifest 기준으로 정리합니다.
 실제 RC에서는 `runner_label`을 sample video, YOLO model, labels가 준비된
 self-hosted macOS runner로 지정하는 것을 권장합니다. Workflow는 실행 전에
 `video/sample_h264.mp4`, `video/va_four_scene_sample.mp4`,

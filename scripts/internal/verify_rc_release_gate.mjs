@@ -66,6 +66,7 @@ check("GitHub Actions workflow uploads RC gate artifacts", () => {
     "runner_label",
     "require_va_assets",
     "artifact_retention_days",
+    "external_artifact_dir",
     "Check RC gate assets",
     "asset-manifest.json",
     "retention-days: ${{ inputs.artifact_retention_days }}",
@@ -74,6 +75,12 @@ check("GitHub Actions workflow uploads RC gate artifacts", () => {
     "--asset-manifest artifacts/rc-gate/asset-manifest.json",
     "--runner-label",
     "--artifact-retention-days",
+    "--history-dir artifacts/rc-gate/history",
+    "Archive RC artifact to external storage",
+    "./server.sh rc-artifact-archive",
+    "--source-dir artifacts/rc-gate",
+    "--destination-dir",
+    "--retention-days",
     "--history-dir artifacts/rc-gate/history",
     "--artifact-name media-server-rc-gate",
     "actions/upload-artifact@v4",
@@ -152,6 +159,32 @@ check("release checklist generator writes Markdown and HTML", () => {
   assert(historyMarkdown.includes("Predev 120m soak: PASS"), "history index missing predev status");
   assert(historyMarkdown.includes("VA runtime console 120m longrun: PASS"), "history index missing runtime status");
   assert(historyHtml.includes("RC Soak Report History"), "history index HTML missing title");
+});
+
+check("external RC artifact archive writes checksums and index", () => {
+  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-rc-external-"));
+  const sourceDir = path.join(workDir, "source");
+  const destinationDir = path.join(workDir, "external");
+  fs.mkdirSync(path.join(sourceDir, "history"), { recursive: true });
+  fs.writeFileSync(path.join(sourceDir, "rc-release-checklist.md"), "# checklist\n", "utf8");
+  fs.writeFileSync(path.join(sourceDir, "history", "index.md"), "# history\n", "utf8");
+  execFileSync(process.execPath, [
+    path.join(rootDir, "scripts/internal/archive_rc_gate_artifact.mjs"),
+    "--source-dir", sourceDir,
+    "--destination-dir", destinationDir,
+    "--run-id", "12345",
+    "--retention-days", "30",
+  ], { cwd: rootDir, stdio: "pipe" });
+  const manifestPath = path.join(destinationDir, "12345", "external-artifact-manifest.json");
+  const checksumsPath = path.join(destinationDir, "12345", "SHA256SUMS");
+  const indexJsonPath = path.join(destinationDir, "index.json");
+  const indexMdPath = path.join(destinationDir, "index.md");
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  assert(manifest.schema === "media-server.rc-external-artifact.v1", "external artifact manifest schema mismatch");
+  assert(manifest.files.some(file => file.path === "rc-release-checklist.md"), "manifest missing checklist");
+  assert(fs.readFileSync(checksumsPath, "utf8").includes("rc-release-checklist.md"), "SHA256SUMS missing checklist");
+  assert(fs.readFileSync(indexJsonPath, "utf8").includes("media-server.rc-external-artifact-index.v1"), "external artifact index missing schema");
+  assert(fs.readFileSync(indexMdPath, "utf8").includes("RC External Artifact Index"), "external artifact index markdown missing title");
 });
 
 check("backlog keeps 120 minute soak as release-candidate or high-risk gate", () => {
