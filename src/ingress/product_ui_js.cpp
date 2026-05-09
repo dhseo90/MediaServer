@@ -220,6 +220,9 @@ std::string ProductSharedUiScript() {
         }
         if (state.target && !String(entry.target || '').toLowerCase().includes(String(state.target).toLowerCase())) return false;
         if (state.action && String(entry.action || '') !== state.action) return false;
+        const entryTime = Number(entry.receivedAtMs || (entry.at ? Date.parse(entry.at) : 0));
+        if (state.fromMs && (!Number.isFinite(entryTime) || entryTime < Number(state.fromMs))) return false;
+        if (state.toMs && (!Number.isFinite(entryTime) || entryTime > Number(state.toMs))) return false;
         if (state.q) {
           const haystack = JSON.stringify(entry).toLowerCase();
           if (!haystack.includes(String(state.q).toLowerCase())) return false;
@@ -234,8 +237,23 @@ std::string ProductSharedUiScript() {
         if (filters.target) params.set('target', filters.target);
         if (filters.action) params.set('action', filters.action);
         if (filters.q) params.set('q', filters.q);
+        if (filters.fromMs) params.set('fromMs', String(filters.fromMs));
+        if (filters.toMs) params.set('toMs', String(filters.toMs));
         if (filters.offset) params.set('offset', String(filters.offset));
         return params;
+      };
+      const auditLocalDateTime = value => {
+        const numeric = Number(value || 0);
+        if (!Number.isFinite(numeric) || numeric <= 0) return '';
+        const date = new Date(numeric);
+        const pad = number => String(number).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      };
+      const auditDateTimeMs = value => {
+        const raw = String(value || '').trim();
+        if (!raw) return '';
+        const parsed = Date.parse(raw);
+        return Number.isFinite(parsed) ? String(parsed) : '';
       };
       async function fetchOpsAuditTrailPage(area = '', filters = {}) {
         const params = auditQueryParams(area, filters);
@@ -317,7 +335,7 @@ std::string ProductSharedUiScript() {
       }
       function auditStateFor(containerId, area = '') {
         if (!opsAuditViewStates.has(containerId)) {
-          opsAuditViewStates.set(containerId, { area, q: '', actor: '', user: '', target: '', action: '', limit: 10, offset: 0 });
+          opsAuditViewStates.set(containerId, { area, q: '', actor: '', user: '', target: '', action: '', fromMs: '', toMs: '', limit: 10, offset: 0 });
         }
         const state = opsAuditViewStates.get(containerId);
         state.area = area;
@@ -411,6 +429,12 @@ std::string ProductSharedUiScript() {
                   <option value="export-bundle">증거 export</option>
                 </select>
               </label>
+              <label>시작
+                <input id="${containerId}-audit-from" type="datetime-local" value="${escapeHtml(auditLocalDateTime(state.fromMs))}">
+              </label>
+              <label>종료
+                <input id="${containerId}-audit-to" type="datetime-local" value="${escapeHtml(auditLocalDateTime(state.toMs))}">
+              </label>
               <label>페이지 크기
                 <select id="${containerId}-audit-limit">
                   <option value="10">10</option>
@@ -437,6 +461,8 @@ std::string ProductSharedUiScript() {
           state.user = byId(`${containerId}-audit-user`)?.value.trim() || '';
           state.target = byId(`${containerId}-audit-target`)?.value.trim() || '';
           state.action = byId(`${containerId}-audit-action`)?.value || '';
+          state.fromMs = auditDateTimeMs(byId(`${containerId}-audit-from`)?.value || '');
+          state.toMs = auditDateTimeMs(byId(`${containerId}-audit-to`)?.value || '');
           state.limit = Number(byId(`${containerId}-audit-limit`)?.value || 10);
           if (resetOffset) state.offset = 0;
         };
@@ -458,7 +484,7 @@ std::string ProductSharedUiScript() {
           button.addEventListener('click', () => {
             syncState(false);
             const format = button.dataset.auditExport || 'json';
-            const params = auditQueryParams(area, { ...state, limit: 200, offset: 0 });
+            const params = auditQueryParams(area, { ...state, limit: 1000, offset: 0 });
             params.set('format', format);
             params.set('download', '1');
             window.location.href = `/ops/api/audit?${params.toString()}`;
