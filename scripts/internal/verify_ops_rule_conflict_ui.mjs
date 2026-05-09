@@ -33,6 +33,10 @@ check("ops rules script detects conflict and missing references", () => {
     "missing-rule",
     "inactive-channel",
     "inactive-view",
+    "inactive-profile",
+    "inactive-template",
+    "unauthorized-view",
+    "priority-conflict",
     "view-mode-not-allowed",
     "view-rule-not-allowed",
     "template-profile-conflict",
@@ -53,6 +57,9 @@ check("server rejects va rule template class mismatch", () => {
     "AnalysisClassesFromDocument",
     "vaRule analysis.classes must include template analysis.classes",
     "vaRule profile classes must include template analysis.classes",
+    "vaRule analysis.profileId is inactive",
+    "vaRule templateStart.ruleId is inactive",
+    "vaRule priority conflicts with existing rule on same source",
   ];
   for (const snippet of required) {
     assert(server.includes(snippet), `server validation is missing snippet: ${snippet}`);

@@ -426,7 +426,7 @@ Hidden tab, route leave, tile stop 시 PeerConnection, DataChannel, server WebRT
 
 저장하지 않은 변경사항이 있더라도 탭 이동은 막지 않습니다. 채널/사용자 탭과 동일하게 편집 panel은 닫기 동작으로 정리되고, 저장/삭제 성공 또는 실패는 feedback으로 표시됩니다.
 
-저장 전 검증은 중복 ID, 누락된 이벤트 템플릿/Profile, source mismatch뿐 아니라 비활성 채널/PublishedView 연결, `va-rule` 모드가 허용되지 않은 PublishedView, 허용 룰 목록에 없는 기존 연결, 이벤트 템플릿과 룰/Profile 대상 클래스 충돌도 차단합니다. PublishedView가 raw/overlay 전용이면 채널 탭에서 보기 방식과 허용 룰 목록을 먼저 정리한 뒤 룰을 저장합니다.
+저장 전 검증은 중복 ID, 누락/비활성 이벤트 템플릿/Profile, source mismatch뿐 아니라 비활성 채널/PublishedView 연결, Client 노출 권한이 없는 PublishedView, `va-rule` 모드가 허용되지 않은 PublishedView, 허용 룰 목록에 없는 기존 연결, 같은 채널/priority의 룰 충돌, 이벤트 템플릿과 룰/Profile 대상 클래스 충돌도 차단합니다. PublishedView가 raw/overlay 전용이면 채널 탭에서 보기 방식과 허용 룰 목록을 먼저 정리한 뒤 룰을 저장합니다.
 
 ## 7. 분석 Profile
 
