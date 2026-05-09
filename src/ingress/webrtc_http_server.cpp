@@ -15,6 +15,7 @@
 #include <atomic>
 #include <cerrno>
 #include <chrono>
+#include <cstdlib>
 #include <cctype>
 #include <cstdint>
 #include <cstring>
@@ -6788,6 +6789,105 @@ std::filesystem::path OpsAuditStoragePath(const app::AppConfig& config) {
     return base / ".media_server.ops_audit.jsonl";
 }
 
+int OpsAuditRetentionDays() {
+    constexpr int kDefaultRetentionDays = 180;
+    const char* raw = std::getenv("MEDIA_SERVER_OPS_AUDIT_RETENTION_DAYS");
+    if (raw == nullptr || std::string(raw).empty()) {
+        return kDefaultRetentionDays;
+    }
+    char* end = nullptr;
+    const long parsed = std::strtol(raw, &end, 10);
+    if (end == raw || (end != nullptr && *end != '\0')) {
+        return kDefaultRetentionDays;
+    }
+    if (parsed <= 0) {
+        return 0;
+    }
+    return static_cast<int>(std::min<long>(parsed, 3650));
+}
+
+std::optional<std::int64_t> OpsAuditReceivedAtMs(const std::string& line) {
+    std::string raw = ExtractJsonValueField(line, "receivedAtMs").value_or("");
+    raw.erase(std::remove(raw.begin(), raw.end(), '"'), raw.end());
+    raw = Trim(std::move(raw));
+    if (raw.empty()) {
+        return std::nullopt;
+    }
+    try {
+        return std::stoll(raw);
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
+struct OpsAuditRetentionSummary {
+    int retention_days{OpsAuditRetentionDays()};
+    int retained{0};
+    int removed{0};
+    bool applied{false};
+};
+
+OpsAuditRetentionSummary EnforceOpsAuditRetentionLocked(const std::filesystem::path& path,
+                                                        std::int64_t now_ms,
+                                                        std::string* error_message) {
+    OpsAuditRetentionSummary summary;
+    if (summary.retention_days <= 0 || !std::filesystem::exists(path)) {
+        return summary;
+    }
+    const std::int64_t cutoff_ms =
+        now_ms - static_cast<std::int64_t>(summary.retention_days) * 24LL * 60LL * 60LL * 1000LL;
+    std::ifstream in(path);
+    if (!in) {
+        return summary;
+    }
+    std::vector<std::string> retained;
+    std::string line;
+    while (std::getline(in, line)) {
+        const std::string trimmed = Trim(line);
+        const std::optional<std::int64_t> received_at = OpsAuditReceivedAtMs(trimmed);
+        if (received_at.has_value() && *received_at < cutoff_ms) {
+            ++summary.removed;
+            continue;
+        }
+        if (!trimmed.empty()) {
+            retained.push_back(trimmed);
+        }
+    }
+    summary.retained = static_cast<int>(retained.size());
+    if (summary.removed == 0) {
+        return summary;
+    }
+    const std::filesystem::path tmp = path.string() + ".tmp";
+    std::ofstream out(tmp, std::ios::trunc);
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to rewrite audit retention file: " + tmp.string();
+        }
+        return summary;
+    }
+    for (const std::string& entry : retained) {
+        out << entry << "\n";
+    }
+    out.close();
+    std::error_code ec;
+    std::filesystem::rename(tmp, path, ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = "failed to apply audit retention: " + ec.message();
+        }
+        return summary;
+    }
+    summary.applied = true;
+    return summary;
+}
+
+OpsAuditRetentionSummary EnforceOpsAuditRetention(const app::AppConfig& config,
+                                                  std::string* error_message) {
+    const std::filesystem::path path = OpsAuditStoragePath(config);
+    std::lock_guard lock(g_ops_audit_mu);
+    return EnforceOpsAuditRetentionLocked(path, NowUnixMs(), error_message);
+}
+
 bool AuditSensitiveKey(const std::string& key) {
     std::string lowered;
     lowered.reserve(key.size());
@@ -6928,6 +7028,8 @@ bool AppendOpsAuditRecord(const app::AppConfig& config,
         }
         return false;
     }
+    std::string retention_error;
+    (void)EnforceOpsAuditRetention(config, &retention_error);
     std::lock_guard lock(g_ops_audit_mu);
     std::ofstream out(path, std::ios::app);
     if (!out) {
@@ -6951,17 +7053,31 @@ bool OpsAuditLineMatches(const std::string& line,
                          const std::string& area,
                          const std::string& actor,
                          const std::string& action,
+                         const std::string& target,
+                         const std::string& user,
                          const std::string& query_text) {
     if (!area.empty() && ParseStringField(line, "area").value_or("") != area) {
         return false;
     }
-    if (!actor.empty() && ParseStringField(line, "actor").value_or("").find(actor) == std::string::npos) {
+    const std::string actor_value = ParseStringField(line, "actor").value_or("");
+    const std::string target_value = ParseStringField(line, "target").value_or("");
+    if (!actor.empty() && LowerAscii(actor_value).find(LowerAscii(actor)) == std::string::npos) {
         return false;
     }
     if (!action.empty() && ParseStringField(line, "action").value_or("") != action) {
         return false;
     }
-    if (!query_text.empty() && line.find(query_text) == std::string::npos) {
+    if (!target.empty() && LowerAscii(target_value).find(LowerAscii(target)) == std::string::npos) {
+        return false;
+    }
+    if (!user.empty()) {
+        const std::string lowered_user = LowerAscii(user);
+        if (LowerAscii(actor_value).find(lowered_user) == std::string::npos &&
+            LowerAscii(target_value).find(lowered_user) == std::string::npos) {
+            return false;
+        }
+    }
+    if (!query_text.empty() && LowerAscii(line).find(LowerAscii(query_text)) == std::string::npos) {
         return false;
     }
     return true;
@@ -6974,6 +7090,7 @@ struct OpsAuditQueryResult {
     int limit{80};
     int total{0};
     bool has_more{false};
+    OpsAuditRetentionSummary retention;
 };
 
 OpsAuditQueryResult QueryOpsAuditEntries(const app::AppConfig& config,
@@ -6981,18 +7098,24 @@ OpsAuditQueryResult QueryOpsAuditEntries(const app::AppConfig& config,
     const std::string area = query.count("area") != 0 ? Trim(query.at("area")) : std::string();
     const std::string actor = query.count("actor") != 0 ? Trim(query.at("actor")) : std::string();
     const std::string action = query.count("action") != 0 ? Trim(query.at("action")) : std::string();
+    const std::string target = query.count("target") != 0 ? Trim(query.at("target")) : std::string();
+    const std::string user = query.count("user") != 0 ? Trim(query.at("user")) : std::string();
     const std::string query_text = query.count("q") != 0 ? Trim(query.at("q")) : std::string();
     const int limit = ParseClampedIntQuery(query, "limit", 80, 1, 200);
     const int offset = ParseClampedIntQuery(query, "offset", 0, 0, 1000000);
     const std::filesystem::path path = OpsAuditStoragePath(config);
     std::vector<std::string> lines;
+    OpsAuditRetentionSummary retention;
     {
         std::lock_guard lock(g_ops_audit_mu);
+        std::string retention_error;
+        retention = EnforceOpsAuditRetentionLocked(path, NowUnixMs(), &retention_error);
         std::ifstream in(path);
         std::string line;
         while (std::getline(in, line)) {
             line = Trim(line);
-            if (!line.empty() && line.front() == '{' && OpsAuditLineMatches(line, area, actor, action, query_text)) {
+            if (!line.empty() && line.front() == '{' &&
+                OpsAuditLineMatches(line, area, actor, action, target, user, query_text)) {
                 lines.push_back(line);
             }
         }
@@ -7002,6 +7125,7 @@ OpsAuditQueryResult QueryOpsAuditEntries(const app::AppConfig& config,
     result.offset = offset;
     result.limit = limit;
     result.total = static_cast<int>(lines.size());
+    result.retention = retention;
     int skipped = 0;
     for (auto it = lines.rbegin(); it != lines.rend() && static_cast<int>(result.entries.size()) < limit; ++it) {
         if (skipped < offset) {
@@ -7014,6 +7138,12 @@ OpsAuditQueryResult QueryOpsAuditEntries(const app::AppConfig& config,
     return result;
 }
 
+std::string OpsAuditSearchIndexJson() {
+    return "{\"caseInsensitive\":true,"
+           "\"filters\":[\"area\",\"actor\",\"user\",\"target\",\"action\",\"q\"],"
+           "\"fields\":[\"area\",\"actor\",\"role\",\"action\",\"target\",\"summary\",\"before\",\"after\"]}";
+}
+
 std::string OpsAuditEntriesJson(const app::AppConfig& config,
                                 const std::unordered_map<std::string, std::string>& query) {
     const OpsAuditQueryResult result = QueryOpsAuditEntries(config, query);
@@ -7023,12 +7153,46 @@ std::string OpsAuditEntriesJson(const app::AppConfig& config,
         << ",\"limit\":" << result.limit << ",\"total\":" << result.total
         << ",\"hasMore\":" << (result.has_more ? "true" : "false")
         << ",\"nextOffset\":" << (result.has_more ? result.offset + static_cast<int>(result.entries.size()) : result.offset)
+        << ",\"retention\":{\"days\":" << result.retention.retention_days
+        << ",\"removed\":" << result.retention.removed
+        << ",\"applied\":" << (result.retention.applied ? "true" : "false") << "}"
+        << ",\"searchIndex\":" << OpsAuditSearchIndexJson()
         << ",\"entries\":[";
     for (std::size_t i = 0; i < result.entries.size(); ++i) {
         if (i != 0) {
             out << ",";
         }
         out << result.entries[i];
+    }
+    out << "]}";
+    return out.str();
+}
+
+std::string OpsAuditEntriesDiffJson(const app::AppConfig& config,
+                                    const std::unordered_map<std::string, std::string>& query) {
+    const OpsAuditQueryResult result = QueryOpsAuditEntries(config, query);
+    std::ostringstream out;
+    out << "{\"status\":\"ops-audit-diff\",\"persistent\":true,\"storagePath\":\""
+        << JsonEscape(result.storage_path.string()) << "\",\"retention\":{\"days\":"
+        << result.retention.retention_days << ",\"removed\":" << result.retention.removed
+        << ",\"applied\":" << (result.retention.applied ? "true" : "false")
+        << "},\"searchIndex\":" << OpsAuditSearchIndexJson() << ",\"entries\":[";
+    for (std::size_t i = 0; i < result.entries.size(); ++i) {
+        const std::string& entry = result.entries[i];
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"id\":\"" << JsonEscape(ParseStringField(entry, "id").value_or("")) << "\","
+            << "\"at\":\"" << JsonEscape(ParseStringField(entry, "at").value_or("")) << "\","
+            << "\"actor\":\"" << JsonEscape(ParseStringField(entry, "actor").value_or("")) << "\","
+            << "\"area\":\"" << JsonEscape(ParseStringField(entry, "area").value_or("")) << "\","
+            << "\"action\":\"" << JsonEscape(ParseStringField(entry, "action").value_or("")) << "\","
+            << "\"target\":\"" << JsonEscape(ParseStringField(entry, "target").value_or("")) << "\","
+            << "\"summary\":\"" << JsonEscape(ParseStringField(entry, "summary").value_or("")) << "\","
+            << "\"before\":" << ExtractJsonValueField(entry, "before").value_or("null") << ","
+            << "\"after\":" << ExtractJsonValueField(entry, "after").value_or("null")
+            << "}";
     }
     out << "]}";
     return out.str();
@@ -9614,6 +9778,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                    ok.content_type = "text/csv; charset=utf-8";
 	                                    ok.headers["Content-Disposition"] =
 	                                        "attachment; filename=\"ops-audit.csv\"";
+	                                } else if (format == "diff-json") {
+	                                    ok = JsonResponse(200, "OK", OpsAuditEntriesDiffJson(config, query));
+	                                    ok.headers["Content-Disposition"] =
+	                                        "attachment; filename=\"ops-audit-diff.json\"";
 	                                } else {
 	                                    ok = JsonResponse(200, "OK", OpsAuditEntriesJson(config, query));
 	                                    if (format == "json" || ParseBoolQuery(query, "download", false)) {

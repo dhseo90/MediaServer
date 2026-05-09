@@ -213,6 +213,12 @@ std::string ProductSharedUiScript() {
       const opsAuditViewStates = new Map();
       const auditFilterEntry = (entry, state = {}) => {
         if (state.actor && !String(entry.actor || '').includes(state.actor)) return false;
+        if (state.user) {
+          const userNeedle = String(state.user).toLowerCase();
+          const userHaystack = `${entry.actor || ''} ${entry.target || ''}`.toLowerCase();
+          if (!userHaystack.includes(userNeedle)) return false;
+        }
+        if (state.target && !String(entry.target || '').toLowerCase().includes(String(state.target).toLowerCase())) return false;
         if (state.action && String(entry.action || '') !== state.action) return false;
         if (state.q) {
           const haystack = JSON.stringify(entry).toLowerCase();
@@ -224,6 +230,8 @@ std::string ProductSharedUiScript() {
         const params = new URLSearchParams({ limit: String(filters.limit || 20) });
         if (area) params.set('area', area);
         if (filters.actor) params.set('actor', filters.actor);
+        if (filters.user) params.set('user', filters.user);
+        if (filters.target) params.set('target', filters.target);
         if (filters.action) params.set('action', filters.action);
         if (filters.q) params.set('q', filters.q);
         if (filters.offset) params.set('offset', String(filters.offset));
@@ -309,7 +317,7 @@ std::string ProductSharedUiScript() {
       }
       function auditStateFor(containerId, area = '') {
         if (!opsAuditViewStates.has(containerId)) {
-          opsAuditViewStates.set(containerId, { area, q: '', actor: '', action: '', limit: 10, offset: 0 });
+          opsAuditViewStates.set(containerId, { area, q: '', actor: '', user: '', target: '', action: '', limit: 10, offset: 0 });
         }
         const state = opsAuditViewStates.get(containerId);
         state.area = area;
@@ -382,6 +390,12 @@ std::string ProductSharedUiScript() {
               <label>작업자
                 <input id="${containerId}-audit-actor" value="${escapeHtml(state.actor)}" placeholder="username">
               </label>
+              <label>사용자
+                <input id="${containerId}-audit-user" value="${escapeHtml(state.user)}" placeholder="actor 또는 user target">
+              </label>
+              <label>대상
+                <input id="${containerId}-audit-target" value="${escapeHtml(state.target)}" placeholder="channel:1, user:name">
+              </label>
               <label>동작
                 <select id="${containerId}-audit-action">
                   <option value="">전체</option>
@@ -411,6 +425,7 @@ std::string ProductSharedUiScript() {
               <button type="button" class="btn small" data-audit-next>다음</button>
               <button type="button" class="btn small" data-audit-export="json">JSON</button>
               <button type="button" class="btn small" data-audit-export="csv">CSV</button>
+              <button type="button" class="btn small" data-audit-export="diff-json">Diff JSON</button>
             </div>
           </div>
           <div data-audit-list-body></div>`;
@@ -419,6 +434,8 @@ std::string ProductSharedUiScript() {
         const syncState = resetOffset => {
           state.q = byId(`${containerId}-audit-q`)?.value.trim() || '';
           state.actor = byId(`${containerId}-audit-actor`)?.value.trim() || '';
+          state.user = byId(`${containerId}-audit-user`)?.value.trim() || '';
+          state.target = byId(`${containerId}-audit-target`)?.value.trim() || '';
           state.action = byId(`${containerId}-audit-action`)?.value || '';
           state.limit = Number(byId(`${containerId}-audit-limit`)?.value || 10);
           if (resetOffset) state.offset = 0;
