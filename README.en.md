@@ -108,27 +108,27 @@ See [docs/en/sample-fixture-provenance.md](docs/en/sample-fixture-provenance.md)
 
 **Ops Home**
 
-![Ops home](docs/assets/ui/ops-home.png)
+![Ops home](docs/assets/ui/en/ops-home.png)
 
 **Ops Channels**
 
-![Ops channels](docs/assets/ui/ops-channels.png)
+![Ops channels](docs/assets/ui/en/ops-channels.png)
 
 **Ops Rules**
 
-![Ops rules](docs/assets/ui/ops-rules.png)
+![Ops rules](docs/assets/ui/en/ops-rules.png)
 
 **Rule Preview Editor**
 
-![Rule preview editor](docs/assets/ui/ops-rules-preview.png)
+![Rule preview editor](docs/assets/ui/en/ops-rules-preview.png)
 
 **Ops Users**
 
-![Ops users](docs/assets/ui/ops-users.png)
+![Ops users](docs/assets/ui/en/ops-users.png)
 
 **Client Live**
 
-![Client live](docs/assets/ui/client-live.png)
+![Client live](docs/assets/ui/en/client-live.png)
 
 ## Account Views
 

@@ -271,9 +271,14 @@ VA/Auth 주요 검증:
 
 ## 라이선스
 
-이 저장소의 원본 코드와 문서는 [Apache License 2.0](LICENSE)을 따릅니다.
-third-party runtime, plugin, model, tool attribution은 [NOTICE](NOTICE)에 정리합니다.
-자동 생성되는 상세 목록은 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)를 확인합니다.
-현재 개발 환경에서 감지한 버전과 linked library snapshot은 [DEPENDENCY_SNAPSHOT.md](DEPENDENCY_SNAPSHOT.md)를 확인합니다.
-배포 bundle과 container image 정책은 [docs/distribution-policy.md](docs/distribution-policy.md)를 확인합니다.
-보안 제보와 기여 기준은 [SECURITY.md](SECURITY.md), [CONTRIBUTING.md](CONTRIBUTING.md)를 확인합니다.
+기본 기준:
+
+- 이 저장소의 원본 코드와 문서는 [Apache License 2.0](LICENSE)을 따릅니다.
+- Third-party runtime, plugin, model, tool attribution은 [NOTICE](NOTICE)에 정리합니다.
+- 자동 생성되는 상세 목록은 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)를 확인합니다.
+- 현재 개발 환경에서 감지한 버전과 linked library snapshot은 [DEPENDENCY_SNAPSHOT.md](DEPENDENCY_SNAPSHOT.md)를 확인합니다.
+
+배포 전 확인:
+
+- 배포 bundle과 container image 정책은 [docs/distribution-policy.md](docs/distribution-policy.md)를 확인합니다.
+- 보안 제보와 기여 기준은 [SECURITY.md](SECURITY.md), [CONTRIBUTING.md](CONTRIBUTING.md)를 확인합니다.

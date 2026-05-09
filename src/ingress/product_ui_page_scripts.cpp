@@ -1097,7 +1097,10 @@ void AppendClientShellScript(std::ostringstream& out) {
             })
           }).catch(() => {});
         };
-        const body = { overlayMode: mode };
+        const body = {
+          overlayMode: mode,
+          labelLang: window.MediaServerUi?.currentLanguage?.() || 'ko'
+        };
         const ruleId = tileRuleId(view);
         if (mode === 'va-rule' && ruleId) body.ruleId = ruleId;
         const response = await fetch(`/client/api/views/${encodeURIComponent(view.viewId)}/webrtc/session`, {
@@ -4076,7 +4079,8 @@ void AppendOpsShellScript(std::ostringstream& out,
             body: JSON.stringify({
               overlayMode: allowedOverlayModes(opsRulesCurrentVaOutputContext().channel?.view || {}).includes('va-overlay')
                 ? 'va-overlay'
-                : 'raw'
+                : 'raw',
+              labelLang: window.MediaServerUi?.currentLanguage?.() || 'ko'
             })
           });
           const payload = await response.json().catch(() => ({}));
