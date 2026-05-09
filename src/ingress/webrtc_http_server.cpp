@@ -3604,9 +3604,28 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <span id="status" class="status" aria-live="polite" hidden></span>
           </div>
         </div>
+        <div class="channel-bulk-panel" data-testid="channel-bulk-panel">
+          <div class="toolbar">
+            <div>
+              <h4>대량 작업 / 상태 진단</h4>
+              <p>선택한 채널을 복제하거나 비활성화하고, source/view 연결 문제를 확인합니다.</p>
+            </div>
+            <div class="actions">
+              <label class="check-inline"><input id="channel-bulk-select-all" type="checkbox" /> 전체 선택</label>
+              <button id="channel-bulk-validate" class="button-secondary" type="button">검증</button>
+              <button id="channel-bulk-clone" class="button-secondary" type="button">선택 복제</button>
+              <button id="channel-bulk-disable" class="button-secondary" type="button">선택 비활성화</button>
+            </div>
+          </div>
+          <div id="channelBulkSummary" class="badge-row"><span class="chip">로딩 중</span></div>
+          <div id="channelBulkDiagnostics" class="validation-list channel-bulk-diagnostics">
+            <div class="empty">채널 상태를 불러오는 중입니다.</div>
+          </div>
+        </div>
         <div class="table-wrap">
           <table class="ops-data-table channel-table">
             <colgroup>
+              <col class="channel-col-select" />
               <col class="channel-col-id" />
               <col class="channel-col-name" />
               <col class="channel-col-kind" />
@@ -3617,8 +3636,8 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
               <col class="channel-col-actions" />
             </colgroup>
 )OPS";
-    AppendTableHead(out, {"ID", "이름", "종류", "상태", "입력", "라이브 URL", "VA URL", "작업"});
-    out << R"OPS(            <tbody id="channels-body"><tr><td colspan="8">로딩 중</td></tr></tbody>
+    AppendTableHead(out, {"선택", "ID", "이름", "종류", "상태", "입력", "라이브 URL", "VA URL", "작업"});
+    out << R"OPS(            <tbody id="channels-body"><tr><td colspan="9">로딩 중</td></tr></tbody>
           </table>
         </div>
         <p class="hint" style="margin-top:12px;">RTSP/WHEP는 운영 확인용입니다. 브라우저 재생은 <code>/client/live</code>에서 확인합니다.</p>
