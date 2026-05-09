@@ -1,3 +1,4 @@
+// 파일 용도: 운영자/클라이언트 각 페이지에 삽입되는 화면별 JavaScript 생성 함수를 선언한다.
 #pragma once
 
 #include <iosfwd>

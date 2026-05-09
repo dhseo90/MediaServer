@@ -4,7 +4,24 @@
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 
-const args = parseArgs(process.argv.slice(2));
+import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+
+const rawArgs = process.argv.slice(2);
+if (hasHelpFlag(rawArgs)) {
+  printUsageAndExit(`Ops source lifecycle smoke
+
+Usage:
+  ./server.sh verify-ops-source-lifecycle [options]
+
+Options:
+  --http-base <url>       실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
+  --timeout-ms <ms>       idle/active 대기 시간입니다. 기본 12000.
+  --poll-interval-ms <ms> polling 간격입니다. 기본 250.
+  -h, --help              도움말 출력
+`);
+}
+assertKnownOptions(rawArgs, ["http-base", "timeout-ms", "poll-interval-ms", "h", "help"]);
+const args = parseArgs(rawArgs);
 const httpBase = String(args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const timeoutMs = Number(args.timeoutMs || 12000);
 const pollIntervalMs = Number(args.pollIntervalMs || 250);

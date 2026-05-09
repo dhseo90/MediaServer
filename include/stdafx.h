@@ -17,7 +17,7 @@
 #include <vector>
 
 namespace app_config {
-// Change this to customize the RTSP path prefix.
+// 주요 설정: 기본 RTSP path prefix를 바꿀 때 이 값을 조정한다.
 inline constexpr const char* kStreamRoute = "dhseo";
 inline constexpr std::size_t kSubscriberQueueSize = 256;
 inline constexpr std::size_t kMaxSessions = 2048;

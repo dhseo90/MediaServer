@@ -6,7 +6,48 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 
-const args = parseArgs(process.argv.slice(2));
+import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+
+const rawArgs = process.argv.slice(2);
+if (hasHelpFlag(rawArgs)) {
+  printUsageAndExit(`RC release checklist
+
+Usage:
+  ./server.sh rc-release-checklist [options]
+
+Options:
+  --run-id <id>                   checklist run id입니다.
+  --output <path>                 Markdown checklist 출력 경로입니다.
+  --html-output <path>            HTML checklist 출력 경로입니다.
+  --history-dir <path>            run별 summary/report/checklist history 디렉터리입니다.
+  --predev-summary <path>         verify-predev summary JSON입니다.
+  --predev-report <path>          verify-predev Markdown report입니다.
+  --runtime-summary <path>        VA runtime longrun summary JSON입니다.
+  --runtime-report <path>         VA runtime longrun Markdown report입니다.
+  --artifact-name <name>          CI artifact 이름입니다.
+  --artifact-retention-days <n>   CI artifact 보존 일수입니다.
+  --asset-manifest <path>         RC asset manifest JSON입니다.
+  --runner-label <label>          runner 표시명입니다.
+  -h, --help                      도움말 출력
+`);
+}
+assertKnownOptions(rawArgs, [
+  "run-id",
+  "output",
+  "html-output",
+  "history-dir",
+  "predev-summary",
+  "predev-report",
+  "runtime-summary",
+  "runtime-report",
+  "artifact-name",
+  "artifact-retention-days",
+  "asset-manifest",
+  "runner-label",
+  "h",
+  "help",
+]);
+const args = parseArgs(rawArgs);
 const runId = args.runId || `rc-${Date.now()}-${process.pid}`;
 const output = args.output || path.join(os.tmpdir(), `media_server_${runId}_release_checklist.md`);
 const htmlOutput = args.htmlOutput || output.replace(/\.md$/i, ".html");

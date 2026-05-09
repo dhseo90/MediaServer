@@ -6,7 +6,48 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 
-const args = parseArgs(process.argv.slice(2));
+import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+
+const rawArgs = process.argv.slice(2);
+if (hasHelpFlag(rawArgs)) {
+  printUsageAndExit(`Evidence retention cleanup
+
+Usage:
+  ./server.sh ops-evidence-cleanup [options]
+
+Options:
+  --apply                    실제 삭제를 수행합니다. 없으면 dry-run입니다.
+  --http-base <url>          compaction cleanup/audit API를 호출할 서버 HTTP base입니다.
+  --snapshot-dir <path>      snapshot evidence 디렉터리입니다.
+  --clip-dir <path>          clip evidence 디렉터리입니다.
+  --max-age-days <n>         만료 기준 일수입니다. 기본 30.
+  --keep-compactions <n>     보존할 compaction snapshot 수입니다. 기본 10.
+  --report-file <path>       JSON 리포트 출력 경로입니다.
+  --markdown-report-file <p> Markdown 리포트 출력 경로입니다.
+  --audit-file <path>        audit payload를 파일로 남깁니다.
+  --no-audit                 apply 모드의 서버 audit POST를 생략합니다.
+  --fixture                  임시 fixture를 생성해 dry-run/apply 검증에 사용합니다.
+  --fixture-root <path>      fixture root 디렉터리입니다.
+  -h, --help                 도움말 출력
+`);
+}
+assertKnownOptions(rawArgs, [
+  "apply",
+  "http-base",
+  "snapshot-dir",
+  "clip-dir",
+  "max-age-days",
+  "keep-compactions",
+  "report-file",
+  "markdown-report-file",
+  "audit-file",
+  "no-audit",
+  "fixture",
+  "fixture-root",
+  "h",
+  "help",
+]);
+const args = parseArgs(rawArgs);
 const apply = parseBool(args.apply, false);
 const maxAgeDays = Number(args.maxAgeDays ?? 30);
 const keepCompactions = Number(args.keepCompactions ?? 10);

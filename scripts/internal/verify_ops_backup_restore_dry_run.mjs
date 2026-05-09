@@ -7,7 +7,22 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 
-const args = parseArgs(process.argv.slice(2));
+import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+
+const rawArgs = process.argv.slice(2);
+if (hasHelpFlag(rawArgs)) {
+  printUsageAndExit(`Ops backup/restore dry-run
+
+Usage:
+  ./server.sh verify-ops-backup-restore-dry-run [options]
+
+Options:
+  --work-dir <path>  임시 리허설 root 디렉터리입니다. 없으면 /tmp에 생성합니다.
+  -h, --help         도움말 출력
+`);
+}
+assertKnownOptions(rawArgs, ["work-dir", "h", "help"]);
+const args = parseArgs(rawArgs);
 const workDir = args.workDir || fs.mkdtempSync(path.join(os.tmpdir(), "media-server-backup-restore-"));
 const sourceDir = path.join(workDir, "source-runtime");
 const backupDir = path.join(workDir, "backup-20260509-120000");

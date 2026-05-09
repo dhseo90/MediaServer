@@ -1,3 +1,4 @@
+// 파일 용도: 운영자와 클라이언트 페이지별 상호작용 스크립트를 C++ 문자열로 조립한다.
 #include "ingress/product_ui_page_scripts.h"
 
 #include <sstream>
@@ -7,6 +8,7 @@ namespace ingress {
 
 namespace {
 
+// 주요 동작: 서버 값이 inline JavaScript 문자열 안에서 안전하게 쓰이도록 escape한다.
 std::string JsStringLiteral(const std::string& value) {
     std::ostringstream out;
     out << "'";
@@ -38,6 +40,7 @@ std::string JsStringLiteral(const std::string& value) {
 
 }  // namespace
 
+// 주요 동작: 클라이언트 접근 요청 폼 제출을 API 호출과 화면 피드백으로 연결한다.
 void AppendClientAccessRequestScript(std::ostringstream& out) {
     out << R"REQUESTSCRIPT(  <script>
     const { requestJson, formDataObject, setFeedback } = window.MediaServerUi;

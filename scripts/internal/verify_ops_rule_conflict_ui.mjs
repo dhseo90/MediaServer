@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// 파일 용도: 운영자 룰 화면의 저장 전 validation panel과 충돌 차단 로직을 정적 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";

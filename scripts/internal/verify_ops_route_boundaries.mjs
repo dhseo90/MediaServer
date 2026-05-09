@@ -3,7 +3,23 @@
 
 import process from "node:process";
 
-const args = parseArgs(process.argv.slice(2));
+import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+
+const rawArgs = process.argv.slice(2);
+if (hasHelpFlag(rawArgs)) {
+  printUsageAndExit(`Ops/Client route boundary smoke
+
+Usage:
+  ./server.sh verify-ops-route-boundaries [options]
+
+Options:
+  --http-base <url>  실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
+  --timeout-ms <ms>  HTTP 대기 시간입니다. 기본 10000.
+  -h, --help         도움말 출력
+`);
+}
+assertKnownOptions(rawArgs, ["http-base", "timeout-ms", "h", "help"]);
+const args = parseArgs(rawArgs);
 const httpBase = (args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const timeoutMs = Number(args.timeoutMs || 10000);
 

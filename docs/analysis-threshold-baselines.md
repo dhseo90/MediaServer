@@ -1,8 +1,11 @@
 # Analysis Threshold Baselines
 
-이 문서는 Loitering과 ZoneOccupancy 현장 적용 전 기준값을 정리합니다. 값은 운영 시작점이며, 실제 현장 CCTV에서는 privacy/retention 정책과 오탐 허용치를 먼저 확정한 뒤 조정합니다.
+이 문서는 Loitering과 ZoneOccupancy 현장 적용 전 기준값을 정리합니다.
+값은 운영 시작점입니다.
+실제 현장 CCTV에서는 privacy/retention 정책과 오탐 허용치를 먼저 확정한 뒤 조정합니다.
 
-기본 추가 RTSP/WebRTC 느린 영상 검증은 이 문서의 필수 테스트에 포함하지 않습니다. 다음 검증은 rule payload, replay/mock, UI smoke 중심으로 수행합니다.
+기본 추가 RTSP/WebRTC 느린 영상 검증은 이 문서의 필수 테스트에 포함하지 않습니다.
+다음 검증은 rule payload, replay/mock, UI smoke 중심으로 수행합니다.
 
 ## Loitering
 
@@ -55,4 +58,5 @@ UI smoke:
 ./server.sh verify-rule-ui --http-base http://127.0.0.1:8081
 ```
 
-장기 안정화나 실제 영상 튜닝은 별도 현장 샘플 절차로 분리합니다. 기본 추가 RTSP/WebRTC 영상은 느리므로 이 빠른 검증 묶음에서는 사용하지 않습니다.
+장기 안정화나 실제 영상 튜닝은 별도 현장 샘플 절차로 분리합니다.
+기본 추가 RTSP/WebRTC 영상은 느리므로 이 빠른 검증 묶음에서는 사용하지 않습니다.

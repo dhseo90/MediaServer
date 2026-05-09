@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
-"""Minimal custom client for the VA metadata SSE side-channel.
-
-This example receives metadata only. Play the RTSP raw video separately with
-VLC or ffplay, then use the JSON payloads printed here to build a custom
-client-side overlay.
-"""
+# 파일 용도: VA 메타데이터 SSE side-channel을 직접 읽는 최소 custom client 예제다.
+"""RTSP 원본 영상은 별도로 재생하고, 여기서는 overlay 구성에 필요한 JSON 메타데이터만 수신한다."""
 
 from __future__ import annotations
 
@@ -27,7 +23,7 @@ DEFAULT_SSE_URL = (
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Receive VA runtime metadata from an SSE side-channel."
+        description="VA runtime 메타데이터를 SSE side-channel에서 수신한다."
     )
     parser.add_argument(
         "positional_url",
@@ -37,16 +33,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--url",
         default="",
-        help=f"SSE metadata URL. Default: {DEFAULT_SSE_URL}",
+        help=f"SSE 메타데이터 URL입니다. 기본값: {DEFAULT_SSE_URL}",
     )
-    parser.add_argument("--max-messages", type=int, default=5, help="0 means keep reading.")
+    parser.add_argument("--max-messages", type=int, default=5, help="0이면 계속 읽습니다.")
     parser.add_argument(
         "--timeout-seconds",
         type=float,
         default=15.0,
-        help="Maximum time to wait for metadata messages.",
+        help="메타데이터 메시지를 기다릴 최대 시간입니다.",
     )
-    parser.add_argument("--print-json", action="store_true", help="Print each metadata payload.")
+    parser.add_argument("--print-json", action="store_true", help="각 메타데이터 payload를 출력합니다.")
     args = parser.parse_args()
     args.url = args.url or args.positional_url or DEFAULT_SSE_URL
     return args

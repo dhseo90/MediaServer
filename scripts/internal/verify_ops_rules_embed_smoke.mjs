@@ -1,11 +1,38 @@
 #!/usr/bin/env node
+// 파일 용도: 운영자 룰 화면을 실제 브라우저로 열어 embed script와 탭 이동 안정성을 smoke 검증한다.
 
 import path from "node:path";
 import process from "node:process";
 
+import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 
-const args = parseArgs(process.argv.slice(2));
+const rawArgs = process.argv.slice(2);
+if (hasHelpFlag(rawArgs)) {
+  printUsageAndExit(`Ops rules native UI smoke
+
+Usage:
+  ./server.sh verify-rule-ui [options]
+
+Options:
+  --http-base <url>     실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
+  --timeout-ms <ms>     브라우저 대기 시간입니다. 기본 12000.
+  --chrome-path <path>  Chrome/Chromium 실행 파일 경로입니다.
+  --debug-port <port>   Chrome CDP port입니다. 기본 9899.
+  --output-dir <path>   screenshot/log 출력 디렉터리입니다.
+  -h, --help            도움말 출력
+`);
+}
+assertKnownOptions(rawArgs, [
+  "http-base",
+  "timeout-ms",
+  "chrome-path",
+  "debug-port",
+  "output-dir",
+  "h",
+  "help",
+]);
+const args = parseArgs(rawArgs);
 const httpBase = String(args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const timeoutMs = Number(args.timeoutMs || 12000);
 const chromePath = args.chromePath || findChrome();

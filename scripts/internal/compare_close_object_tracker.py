@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Compare close-object tracker guard modes with the same tracker-stability sample."""
+# 파일 용도: 동일한 tracker-stability sample로 close-object guard mode별 결과를 비교한다.
+"""off/diagnostic/enforce mode를 같은 입력으로 실행해 tracker 안정성 차이를 리포트한다."""
 
 from __future__ import annotations
 
@@ -21,22 +22,22 @@ VALID_MODES = {"off", "diagnostic", "enforce"}
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Compare close-object guard off/diagnostic/enforce tracker stability reports."
+        description="close-object guard off/diagnostic/enforce mode의 tracker 안정성 리포트를 비교합니다."
     )
-    parser.add_argument("--file", default=DEFAULT_FILE, help="video root relative sample file token")
-    parser.add_argument("--modes", default="off,diagnostic,enforce", help="comma-separated modes")
-    parser.add_argument("--output-dir", default="", help="report output directory")
-    parser.add_argument("--long", action="store_true", help="pass --long to verify-tracker-stability")
-    parser.add_argument("--overlap-focus", action="store_true", help="pass --overlap-focus")
-    parser.add_argument("--duration", default="", help="pass --duration seconds")
-    parser.add_argument("--repeat", default="", help="pass --repeat count")
-    parser.add_argument("--interval", default="", help="pass --interval seconds")
-    parser.add_argument("--poll-count", default="", help="pass --poll-count count")
-    parser.add_argument("--class-whitelist", default="", help="pass --class-whitelist csv")
-    parser.add_argument("--max-fragmentation", default="", help="pass --max-fragmentation")
-    parser.add_argument("--max-overlap-fragmentation", default="", help="pass --max-overlap-fragmentation")
-    parser.add_argument("--max-id-switch-risk", default="", help="pass --max-id-switch-risk")
-    parser.add_argument("--no-long-sample", action="store_true", help="pass --no-long-sample")
+    parser.add_argument("--file", default=DEFAULT_FILE, help="video root 기준 sample file token입니다.")
+    parser.add_argument("--modes", default="off,diagnostic,enforce", help="쉼표로 구분한 mode 목록입니다.")
+    parser.add_argument("--output-dir", default="", help="리포트 출력 디렉터리입니다.")
+    parser.add_argument("--long", action="store_true", help="verify-tracker-stability에 --long을 전달합니다.")
+    parser.add_argument("--overlap-focus", action="store_true", help="verify-tracker-stability에 --overlap-focus를 전달합니다.")
+    parser.add_argument("--duration", default="", help="verify-tracker-stability에 전달할 --duration 초입니다.")
+    parser.add_argument("--repeat", default="", help="verify-tracker-stability에 전달할 --repeat 횟수입니다.")
+    parser.add_argument("--interval", default="", help="verify-tracker-stability에 전달할 --interval 초입니다.")
+    parser.add_argument("--poll-count", default="", help="verify-tracker-stability에 전달할 --poll-count 횟수입니다.")
+    parser.add_argument("--class-whitelist", default="", help="verify-tracker-stability에 전달할 --class-whitelist CSV입니다.")
+    parser.add_argument("--max-fragmentation", default="", help="verify-tracker-stability에 전달할 --max-fragmentation입니다.")
+    parser.add_argument("--max-overlap-fragmentation", default="", help="verify-tracker-stability에 전달할 --max-overlap-fragmentation입니다.")
+    parser.add_argument("--max-id-switch-risk", default="", help="verify-tracker-stability에 전달할 --max-id-switch-risk입니다.")
+    parser.add_argument("--no-long-sample", action="store_true", help="verify-tracker-stability에 --no-long-sample을 전달합니다.")
     return parser.parse_args()
 
 

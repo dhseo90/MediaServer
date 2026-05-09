@@ -18,9 +18,8 @@ elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
   echo "[env] skipped local override: ${ENV_FILE}"
 fi
 
-# Basic/full regression suites exercise the Lab/WebRTC development
-# surfaces. Keep them explicitly in auth-off mode unless the caller is
-# intentionally testing another auth configuration.
+# Basic/full regression suite는 Lab/WebRTC 개발 화면을 검증한다.
+# 다른 auth 구성을 의도적으로 검증하는 경우가 아니면 명시적으로 auth-off mode를 유지한다.
 export MEDIA_SERVER_AUTH_MODE="${MEDIA_SERVER_AUTH_MODE:-off}"
 
 MODE="basic"

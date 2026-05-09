@@ -1,9 +1,11 @@
+// 파일 용도: 제품 UI 전역에서 쓰는 테마 초기화와 공통 DOM/API helper JavaScript를 C++ 문자열로 조립한다.
 #include "ingress/product_ui_js.h"
 
 #include <sstream>
 
 namespace ingress {
 
+// 주요 동작: 화면 렌더링 전에 저장된 테마 또는 시스템 테마를 document에 적용한다.
 std::string ProductThemeBootScript() {
     return R"THEME(  <script>
     (() => {
@@ -15,6 +17,7 @@ std::string ProductThemeBootScript() {
 )THEME";
 }
 
+// 주요 동작: 폼 직렬화, toast, API 호출, 테이블/감사 이력 helper를 전역 객체로 노출한다.
 std::string ProductSharedUiScript() {
     return R"SCRIPT(  <script>
     window.MediaServerUi = window.MediaServerUi || (() => {

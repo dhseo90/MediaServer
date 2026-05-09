@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// 파일 용도: 문서에 쓰는 대표 UI screenshot asset을 Chrome으로 자동 캡처한다.
 
 import fs from "node:fs";
 import path from "node:path";

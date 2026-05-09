@@ -202,7 +202,7 @@ PY
     return $?
   fi
 
-  # Fallback: probe at shell level when python3 unavailable.
+  # 주요 동작: python3가 없으면 shell 수준의 perl probe로 UDP bind 가능 여부를 확인한다.
   perl -e 'use IO::Socket::INET; my $s = IO::Socket::INET->new(LocalHost=>$ARGV[0], LocalPort=>$ARGV[1], Proto=>"udp") and exit 0; exit 1' \
     "${addr}" "${port}" 2>/dev/null
   return $?
@@ -232,7 +232,7 @@ PY
     return $?
   fi
 
-  # Fallback when python3 is unavailable.
+  # 주요 동작: python3가 없으면 shell 수준의 perl probe로 TCP bind 가능 여부를 확인한다.
   perl -e 'use IO::Socket::INET; my $s = IO::Socket::INET->new(LocalHost=>$ARGV[0], LocalPort=>$ARGV[1], Proto=>"tcp", Listen=>1, ReuseAddr=>1) and exit 0; exit 1' \
     "${addr}" "${port}" 2>/dev/null
   return $?

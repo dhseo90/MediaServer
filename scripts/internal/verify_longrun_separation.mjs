@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// 파일 용도: 기본 smoke와 장기 longrun 검증 명령이 문서와 스크립트에서 분리되어 있는지 확인한다.
 
 import fs from "node:fs";
 import path from "node:path";

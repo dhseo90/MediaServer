@@ -1,11 +1,14 @@
+// 파일 용도: 제품 UI가 사용하는 테마 전환 버튼, 네비게이션 아이콘, 계정 아바타 SVG를 문자열로 생성한다.
 #include "ingress/product_ui_assets.h"
 
 namespace ingress {
 
+// 주요 동작: 라이트/다크 모드 전환 버튼의 접근성 라벨과 두 상태 아이콘을 함께 제공한다.
 std::string ProductThemeToggleButtonHtml() {
     return R"(<button id="themeToggleBtn" class="theme-toggle" type="button" aria-label="다크 모드로 전환" title="다크 모드로 전환"><svg class="theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 14.5A7.8 7.8 0 0 1 9.5 3a8.8 8.8 0 1 0 11.5 11.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><svg class="theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.8v2.3M12 18.9v2.3M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.8 12h2.3M18.9 12h2.3M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>)";
 }
 
+// 주요 동작: 네비게이션 key에 맞는 inline SVG를 반환하고, 알 수 없는 key는 기본 아이콘으로 대체한다.
 std::string ProductNavIconSvg(const std::string& key) {
     if (key == "home") {
         return R"(<svg viewBox="0 0 48 48" role="img" aria-hidden="true" focusable="false"><path d="M8 23 24 10l16 13v16a3 3 0 0 1-3 3h-8V29H19v13h-8a3 3 0 0 1-3-3V23Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/></svg>)";
@@ -34,6 +37,7 @@ std::string ProductNavIconSvg(const std::string& key) {
     return R"(<svg viewBox="0 0 48 48" role="img" aria-hidden="true" focusable="false"><circle cx="24" cy="24" r="15" fill="none" stroke="currentColor" stroke-width="3"/><path d="M17 25h14M24 18v14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>)";
 }
 
+// 주요 동작: 계정 메뉴에서 재사용하는 원형 아바타 SVG를 반환한다.
 std::string ProductAccountAvatarSvg() {
     return R"(<svg class="account-avatar" viewBox="0 0 48 48" role="img" aria-label="Account"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="24" cy="19" r="7" fill="none" stroke="currentColor" stroke-width="3"/><path d="M12 38c3-8 8-12 12-12s9 4 12 12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>)";
 }

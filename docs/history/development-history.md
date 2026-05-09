@@ -1,6 +1,9 @@
 # Development History
 
-이 문서는 완료된 개발 이력을 보존합니다. 아래 항목은 당시 기준의 기록이며 현재 제품 진입점이 아닙니다. 현재 남은 작업은 [../development-backlog.md](../development-backlog.md), 현재 실행/검증 기준은 [../stream-verification.md](../stream-verification.md)를 봅니다.
+이 문서는 완료된 개발 이력을 보존합니다.
+아래 항목은 당시 기준의 기록이며 현재 제품 진입점이 아닙니다.
+현재 남은 작업은 [../development-backlog.md](../development-backlog.md)를 봅니다.
+현재 실행/검증 기준은 [../stream-verification.md](../stream-verification.md)를 봅니다.
 
 현재 기준:
 

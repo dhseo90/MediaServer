@@ -1,6 +1,8 @@
 # Stream Verification
 
-이 문서는 현재 기준의 스트리밍/VA 검증 명령을 관리합니다. 과거 날짜별 상세 검증 이력은 [history/verification-history.md](./history/verification-history.md)에 보관합니다.
+이 문서는 현재 기준의 스트리밍/VA 검증 명령을 관리합니다.
+과거 날짜별 상세 검증 이력은
+[history/verification-history.md](./history/verification-history.md)에 보관합니다.
 
 ## 목적
 
@@ -62,7 +64,13 @@ git diff --check -- README.md docs scripts src include
 
 `verify-auth-routes`는 임시 users/source/view 파일과 격리 포트로 서버를 직접 띄웁니다.
 `verify-ops-client-ui`, `verify-rule-ui`는 실행 중인 HTTP 서버를 대상으로 하는 attached UI smoke입니다.
-`verify-ops-click-e2e`는 실제 포인터 클릭으로 대시보드 문제 원인 조치, 채널 추가/상세, 룰 패널 이동, 사용자 상세, client dashboard를 확인합니다.
+`verify-ops-click-e2e`는 실제 포인터 클릭으로 다음 흐름을 확인합니다.
+
+- 대시보드 문제 원인 조치
+- 채널 추가/상세
+- 룰 패널 이동
+- 사용자 상세
+- client dashboard
 `verify-ops-tables-layout`은 채널/룰/사용자 table을 1180/900/560/390/760/1180px 순서로 리사이즈하며 cell/action overflow를 확인합니다.
 `verify-ops-rules-roundtrip`은 같은 서버의 이벤트 템플릿 API round-trip을 영상 재생 없이 확인합니다.
 UI 전용 검증에서는 별도 터미널에서
@@ -148,7 +156,9 @@ fi
   공통 Ops Console header/nav를 유지합니다.
   Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin),
   클라이언트 미리보기 순서입니다.
-- `/ops/events`는 primary nav에서 숨긴 직접/진단 route입니다. 독립 제품 탭으로 취급하지 않고, 이벤트 조건은 룰에서 설정하며 운영 요약은 대시보드에서 확인합니다.
+- `/ops/events`는 primary nav에서 숨긴 직접/진단 route입니다.
+  독립 제품 탭으로 취급하지 않습니다.
+  이벤트 조건은 룰에서 설정하고 운영 요약은 대시보드에서 확인합니다.
 - `/ops/dashboard`와 `/ops/rules`는 Lab iframe이나
   `/lab/rules?embed=1`을 포함하지 않습니다.
   대시보드는 `/ops/api/runtime/status`,
@@ -171,8 +181,16 @@ fi
 - 채널/룰/사용자 table은 `ops-responsive-table`, `ops-row-actions`,
   `ops-detail-panel` 공통 class/helper를 사용하고, 모바일 390px과
   desktop resize에서 cell/action 내용이 자기 칸을 침범하지 않아야 합니다.
-- `/ops/users`는 사용자 목록 table과 접근 요청 table을 보여주고, 사용자 추가/수정 editor는 접힘 영역으로 열립니다. Access request 승인 UI는 password setup invite token/setup URL을 승인 응답에서 한 번만 표시하며, 거절은 request 상태만 바꿉니다. `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`를 노출하지 않습니다.
-- `/client/live`, `/client/dashboard`는 client shell을 유지하고 source URL, Developer URL, BBox diagnostics, 내부 진단 JSON, rule/profile editor를 노출하지 않습니다. Client Events tab은 primary nav에서 제거합니다.
+- `/ops/users`는 사용자 목록 table과 접근 요청 table을 보여줍니다.
+  사용자 추가/수정 editor는 접힘 영역으로 열립니다.
+  Access request 승인 UI는 password setup invite token/setup URL을
+  승인 응답에서 한 번만 표시합니다.
+  거절은 request 상태만 바꿉니다.
+  `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`를 노출하지 않습니다.
+- `/client/live`, `/client/dashboard`는 client shell을 유지합니다.
+  source URL, Developer URL, BBox diagnostics, 내부 진단 JSON,
+  rule/profile editor를 노출하지 않습니다.
+  Client Events tab은 primary nav에서 제거합니다.
 - `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫고, 개발/검증 API는 `/lab/analysis/*`에서만 유지합니다.
 
 WebRTC/stream 변경:
@@ -194,7 +212,12 @@ Auth 변경:
 ./server.sh verify-auth-routes
 ```
 
-위 세 명령은 임시 users file과 격리 포트에서 auth 서버를 띄워 setup/login/session/user/route smoke를 자동으로 확인합니다. 자동 auth smoke, 로컬 QA, 수동 smoke의 표준 테스트 계정 비밀번호는 `qweasd0-`로 통일합니다. 이 규칙은 검증 재현성을 위한 것이며, 제품 기본 admin 비밀번호가 아닙니다. 수동으로 세부 상태를 확인할 때는 아래 curl 흐름을 사용합니다.
+위 세 명령은 임시 users file과 격리 포트에서 auth 서버를 띄워
+setup/login/session/user/route smoke를 자동으로 확인합니다.
+자동 auth smoke, 로컬 QA, 수동 smoke의 표준 테스트 계정 비밀번호는
+`qweasd0-`로 통일합니다.
+이 규칙은 검증 재현성을 위한 것이며, 제품 기본 admin 비밀번호가 아닙니다.
+수동으로 세부 상태를 확인할 때는 아래 curl 흐름을 사용합니다.
 
 ```bash
 MEDIA_SERVER_AUTH_MODE=auto \
@@ -228,7 +251,66 @@ MEDIA_SERVER_AUTH_USERS_FILE=/path/to/users.json \
   ./server.sh auth-user list
 ```
 
-확인 기준은 auto mode에서 users file이 없거나 admin passwordHash가 없으면 `/setup`으로 이동하고 `/auth/whoami`가 `setupRequired=true`를 반환하는 것입니다. Auth off에서는 dev admin principal이 반환되고, token mode에서 admin/operator/viewer/integrator token별 role과 scope가 반환되며, 누락/invalid token은 `401`을 반환합니다. Session/auto setup 완료 후에는 `/login` 렌더링, 로그인 성공 후 `/auth/whoami` principal 반환, logout 후 cookie principal 제거, 잘못된 로그인 `401` 또는 실패 메시지를 확인합니다. Password policy smoke는 약한 비밀번호/username 포함 비밀번호 거부, 3종류 8자 이상 허용, 2종류 조합 최소 10자 허용, password history 재사용 거부를 확인합니다. Lockout smoke는 실패 N회 후 lockout 메시지와 `lockedUntil` 저장, lockout 만료 후 정상 로그인, TTL/idle timeout 만료 후 `/auth/whoami` 401을 확인합니다. Admin user smoke는 admin만 `/ops/users`와 `/ops/api/users`에 접근 가능하고, viewer는 `403`, low-level CLI add/list/reset/disable 동작과 auth users file mode `600`을 확인합니다. Product UI smoke는 `/ops/users` 사용자 목록, 접근 요청 table, 접힘 editor selector, `/setup`, `/login`, `/password/change`, `/invite/setup`, `/client/request-access` auth shell selector를 확인합니다. Invite/request smoke는 invite token 원문이 생성 응답에서 한 번만 표시되고 hash만 저장되는지, pending invite와 approved request가 user-only 저장 후에도 users file에 남는지, 기존 enabled user invite가 수락 전 role/scope/session을 바꾸지 않는지, access request approve가 invite setup 전 user row를 만들지 않는지, access request reject가 rejected 상태로 남는지, invite 수락 후 이전 session이 폐기되는지 확인합니다. Public access request abuse smoke는 중복 pending `409`, unsafe viewId `400`, 4KiB 초과 body `413`, peer rate limit `429`를 함께 확인합니다. Route smoke는 별도 registry fixture로 unauth/viewer/readonly-operator/integrator/public access request matrix를 함께 확인합니다. `?token=` query는 개발 smoke용으로만 사용하고 운영 검증에서는 Bearer header를 우선합니다.
+확인 기준:
+
+- Auto mode: users file이 없거나 admin passwordHash가 없으면 `/setup`으로 이동합니다.
+- `/auth/whoami`: setup required 상태에서 `setupRequired=true`를 반환합니다.
+- Auth off: dev admin principal을 반환합니다.
+- Token mode: admin/operator/viewer/integrator token별 role과 scope를 반환합니다.
+- 누락/invalid token: `401`
+- Session/auto setup 완료 후:
+  `/login` 렌더링, 로그인 성공 후 `/auth/whoami` principal 반환,
+  logout 후 cookie principal 제거, 잘못된 로그인 `401` 또는 실패 메시지를 확인합니다.
+
+Password policy smoke:
+
+- 약한 비밀번호 거부
+- username 포함 비밀번호 거부
+- 3종류 8자 이상 허용
+- 2종류 조합 최소 10자 허용
+- password history 재사용 거부
+
+Lockout smoke:
+
+- 실패 N회 후 lockout 메시지와 `lockedUntil` 저장
+- lockout 만료 후 정상 로그인
+- TTL/idle timeout 만료 후 `/auth/whoami` 401
+
+Admin user smoke:
+
+- admin만 `/ops/users`와 `/ops/api/users` 접근 가능
+- viewer는 `403`
+- low-level CLI add/list/reset/disable 동작 확인
+- auth users file mode `600` 확인
+
+Product UI smoke:
+
+- `/ops/users` 사용자 목록
+- 접근 요청 table
+- 접힘 editor selector
+- `/setup`, `/login`, `/password/change`, `/invite/setup`,
+  `/client/request-access` auth shell selector
+
+Invite/request smoke:
+
+- invite token 원문은 생성 응답에서 한 번만 표시하고 hash만 저장
+- pending invite와 approved request가 user-only 저장 후에도 users file에 유지
+- 기존 enabled user invite가 수락 전 role/scope/session을 바꾸지 않음
+- access request approve가 invite setup 전 user row를 만들지 않음
+- access request reject가 rejected 상태로 유지
+- invite 수락 후 이전 session 폐기
+
+Public access request abuse smoke:
+
+- 중복 pending `409`
+- unsafe viewId `400`
+- 4KiB 초과 body `413`
+- peer rate limit `429`
+
+Route smoke는 별도 registry fixture로
+unauth/viewer/readonly-operator/integrator/public access request matrix를 확인합니다.
+`?token=` query는 개발 smoke용으로만 사용하고,
+운영 검증에서는 Bearer header를 우선합니다.
 
 Route smoke:
 
@@ -250,7 +332,42 @@ curl -fsS -D - -o /tmp/root-unauth.out 'http://127.0.0.1:8080/'
 curl -fsS -i -H 'Authorization: Bearer viewer-token' 'http://127.0.0.1:8080/ops'
 ```
 
-확인 기준은 auth off 기본 home에서 `/ -> /ops/home`, auth off + `client` home에서 `/ -> /client/live`, admin/operator token에서 `/ -> /ops/home`, viewer token에서 `/ -> /client/live`, 미인증 auth-on 요청에서 `/ -> /login`, viewer의 `/ops` 접근에서 `403`, `/lab` 화면 route에서 `404`입니다. `/ops`는 admin/operator role과 `ops:read` scope를 함께 요구하며, unauth 요청은 주요 `/ops/api/*` read route에서 `401`, viewer 요청은 `403`이어야 합니다. Readonly operator는 `/ops/api/sources`, `/ops/api/runtime/status`, `/ops/api/rules/catalog`, `/ops/api/events/status`를 읽을 수 있지만 `/ops/api/users`, invite, access request review, source/view 변경은 `403`이어야 합니다. `/ops/api/sources`와 `/ops/api/views` 변경은 `source:write`, `/lab/analysis/*` rule/profile/vaRule 변경은 `rule:write`를 추가로 요구합니다. `/client/api/views`는 viewer에게 할당된 PublishedView만 반환하고 다른 view의 dashboard/WebRTC wrapper는 `403`이어야 합니다. Integrator는 `/client` shell이 `403`이고 `/client/api/views` 목록에 live view가 노출되지 않지만 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata`는 각각 scope가 있으면 `200`이어야 합니다. `POST /client/api/access-requests`는 public route로 남아야 하지만 abuse guard를 통과해야 합니다. Auth on에서 `/webrtc/session`, `/whep`, `/whip/publish` 직접 생성 요청은 미인증 `401`, viewer `403`이어야 하며, `/ws/va-metadata`도 미인증 `401`, viewer `403`으로 막혀야 합니다. Auth off 개발 모드에서는 기존 검증 명령으로 계속 확인합니다.
+Root/route 확인 기준:
+
+- Auth off 기본 home: `/ -> /ops/home`
+- Auth off + `client` home: `/ -> /client/live`
+- Admin/operator token: `/ -> /ops/home`
+- Viewer token: `/ -> /client/live`
+- 미인증 auth-on 요청: `/ -> /login`
+- Viewer의 `/ops` 접근: `403`
+- `/lab` 화면 route: `404`
+
+Ops 권한 기준:
+
+- `/ops`: admin/operator role과 `ops:read` scope 모두 필요
+- 주요 `/ops/api/*` read route: unauth `401`, viewer `403`
+- Readonly operator 읽기 허용:
+  `/ops/api/sources`, `/ops/api/runtime/status`,
+  `/ops/api/rules/catalog`, `/ops/api/events/status`
+- Readonly operator 차단:
+  `/ops/api/users`, invite, access request review, source/view 변경
+- `/ops/api/sources`, `/ops/api/views` 변경: `source:write`
+- `/lab/analysis/*` rule/profile/vaRule 변경: `rule:write`
+
+Client/integrator 기준:
+
+- `/client/api/views`: viewer에게 할당된 PublishedView만 반환
+- 다른 view의 dashboard/WebRTC wrapper: `403`
+- Integrator `/client` shell: `403`
+- Integrator `/client/api/views`: live view 목록 노출 없음
+- Integrator events/metadata API: scope가 있으면 `200`
+- `POST /client/api/access-requests`: public route로 유지하되 abuse guard 적용
+
+Generic media route 기준:
+
+- Auth on 직접 `/webrtc/session`, `/whep`, `/whip/publish`: 미인증 `401`, viewer `403`
+- `/ws/va-metadata`: 미인증 `401`, viewer `403`
+- Auth off 개발 모드: 기존 검증 명령으로 계속 확인
 
 ## 장기 테스트 명령
 
@@ -329,7 +446,14 @@ event POST 반복 안정성:
 ./server.sh verify-predev --soak-minutes 30
 ```
 
-120분 predev는 상시 검증이 아니라 release candidate 또는 고위험 변경 gate입니다. release candidate 전, RTSP/GStreamer/WebRTC media path 변경 후, SharedStream/VA metadata/dashboard/SSE/WS fanout 변경 후, 또는 30분 predev에서 active RSS high-water가 이전 기준보다 커졌을 때 실행합니다.
+120분 predev는 상시 검증이 아니라 release candidate 또는 고위험 변경 gate입니다.
+
+실행 조건:
+
+- release candidate 전
+- RTSP/GStreamer/WebRTC media path 변경 후
+- SharedStream/VA metadata/dashboard/SSE/WS fanout 변경 후
+- 30분 predev에서 active RSS high-water가 이전 기준보다 커졌을 때
 
 ```bash
 ./server.sh verify-predev --soak-minutes 120
@@ -350,7 +474,9 @@ Close-object guard 검증은 mode별 목적을 분리합니다.
 | `diagnostic` | metadata/UI 진단 노출 | score와 tracking 결과 변경 없음 |
 | `enforce` | opt-in 보정 후보 비교 | ID continuity 지표만 비교 |
 
-기본 비교 리포트는 같은 sample을 `off`, `diagnostic`, `enforce` 순서로 실행하고 mode별 tracker summary JSON과 Markdown report를 `/tmp/media_server_close_object_tracker_*` 아래에 남깁니다.
+기본 비교 리포트는 같은 sample을 `off`, `diagnostic`, `enforce` 순서로 실행합니다.
+mode별 tracker summary JSON과 Markdown report는
+`/tmp/media_server_close_object_tracker_*` 아래에 남깁니다.
 
 ```bash
 ./server.sh compare-close-object-tracker \
@@ -401,7 +527,10 @@ MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verif
 MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verify-analysis-state
 ```
 
-수동 mode별 명령은 비교 리포트의 원인 분석이나 특정 mode 재현이 필요할 때 사용합니다. report judgement가 `hold`이면 event/scenario delta 또는 주요 회귀가 있다는 뜻이므로 default on 검토를 중단하고 fixture와 summary log를 먼저 확인합니다.
+수동 mode별 명령은 비교 리포트의 원인 분석이나
+특정 mode 재현이 필요할 때 사용합니다.
+report judgement가 `hold`이면 event/scenario delta 또는 주요 회귀가 있다는 뜻입니다.
+이 경우 default on 검토를 중단하고 fixture와 summary log를 먼저 확인합니다.
 
 반복 다채널 VA 브라우저 검증은 제거된 초기 harness가 아니라 별도 제품 UI
 harness가 준비된 뒤 장기 테스트로만 실행합니다.
@@ -462,7 +591,36 @@ curl -fsS -X POST \
   'http://127.0.0.1:8080/whep?file=sample_h264.mp4'
 ```
 
-위 직접 생성 요청은 auth off 개발 모드 또는 auth on의 admin/operator `ops:read`, `lab:read` 권한에서 확인합니다. Auth route smoke는 미인증과 viewer 요청이 이 generic media 생성 route에서 거부되는지, 생성된 session id가 난수 token 형태인지, 후속 ICE/delete가 생성 principal 또는 `X-Session-Capability` 없이는 거부되는지도 함께 확인합니다. Client WebRTC wrapper smoke는 내부 session id/token을 숨기는지, PublishedView `maxTiles`와 source override 금지를 강제하는지, generic session route가 client alias를 받지 않는지도 확인합니다. 같은 smoke는 raw HTTP 요청으로 malformed `Content-Length`가 `400`, body limit 초과 선언이 `413`으로 닫히고 이후 `/health`가 계속 `200`인지 확인합니다. CORS smoke는 Origin 없는 요청이 CORS 헤더를 내지 않는지, 다른 origin의 실제 요청/preflight가 `403`인지, same-origin preflight만 origin을 반사하는지도 확인합니다.
+직접 생성 요청은 다음 조건에서 확인합니다.
+
+- Auth off 개발 모드
+- Auth on admin/operator `ops:read`
+- Auth on admin/operator `lab:read`
+
+Auth route smoke:
+
+- 미인증과 viewer 요청이 generic media 생성 route에서 거부되는지 확인
+- 생성된 session id가 난수 token 형태인지 확인
+- 후속 ICE/delete가 생성 principal 또는 `X-Session-Capability` 없이는 거부되는지 확인
+
+Client WebRTC wrapper smoke:
+
+- 내부 session id/token 숨김
+- PublishedView `maxTiles` 강제
+- source override 금지
+- generic session route가 client alias를 받지 않음
+
+HTTP hardening smoke:
+
+- malformed `Content-Length`: `400`
+- body limit 초과 선언: `413`
+- 이후 `/health`: 계속 `200`
+
+CORS smoke:
+
+- Origin 없는 요청은 CORS 헤더를 내지 않음
+- 다른 origin의 실제 요청/preflight는 `403`
+- same-origin preflight만 origin 반사
 
 확인 기준:
 
@@ -480,7 +638,8 @@ WebRTC VA 메타데이터 수동 확인:
 3. 개발 검증은 `verify-webrtc-va-metadata --http-base ...`로 수행한다.
 4. WebRTC simple signaling query에 `vaMetadata=1`이 포함되는지 확인한다.
 5. DataChannel label이 기본값 `va-metadata`로 표시되는지 확인한다.
-6. 상태가 `연결 중`에서 `열림` 또는 `수신 중`으로 전환되고 message count, Track/이벤트/시나리오 count, latest JSON preview가 갱신되는지 확인한다.
+6. 상태가 `연결 중`에서 `열림` 또는 `수신 중`으로 전환되는지 확인한다.
+7. message count, Track/이벤트/시나리오 count, latest JSON preview가 갱신되는지 확인한다.
 7. DataChannel이 `지연` 또는 `오류`가 되어도 영상 재생 상태가 별도로 유지되는지 확인한다.
 
 WebRTC VA metadata overlay sync 수동 판단 기준:
@@ -489,7 +648,10 @@ WebRTC VA metadata overlay sync 수동 판단 기준:
 - `BBox 진단 갱신`에서 `det↔DC`, `track↔DC` IoU가 높고 center distance가 작지만 trackId만 흔들리면 tracker association / ID continuity 문제로 분리한다.
 - `detector raw` bbox부터 실제 객체와 어긋나면 detector 후처리, model box format, letterbox/coordinate transform 문제로 분리한다.
 - `frame matching failure`가 계속 증가하거나 `syncDeltaMs`가 1500~2000ms 이상으로 지속되면 WebRTC metadata selector와 PTS 보정을 다시 확인한다.
-- close-object guard mode가 `diagnostic`이면 `closeObjectRisk`, `scoreMargin`, `centerJump`, `guardDecision`만 보고 score 변경은 없다고 판단한다. `enforce`에서는 `closeObjectGuardApplied`, would-penalize/hold-reacquire, rejected 후보 수를 함께 보고 실제 보정 여부를 분리한다.
+- close-object guard mode가 `diagnostic`이면 score 변경은 없다고 판단한다.
+- 이때는 `closeObjectRisk`, `scoreMargin`, `centerJump`, `guardDecision`만 본다.
+- `enforce`에서는 `closeObjectGuardApplied`, would-penalize/hold-reacquire, rejected 후보 수를 함께 본다.
+- 실제 보정 여부는 diagnostic 결과와 분리해 판단한다.
 - det/DC/track bbox가 서로 잘 맞는데 ID만 흔들리면 WebRTC DataChannel schema나 canvas scale 문제가 아니라 tracker association 후보로 본다.
 
 WebRTC VA metadata 자동 검증:
@@ -505,7 +667,9 @@ WebRTC VA metadata 자동 검증:
 - ICE 상태가 `connected` 또는 `completed`로 전환되는지 확인
 - `va-metadata` DataChannel이 열리는지 확인
 - 최소 1개 metadata message를 수신하고 `media-server.webrtc.va-metadata.v1` schema, `tracks[]`, `events[]` 필드를 확인
-- sync 진단 필드(`videoFramePtsMs`, `analysisPtsMs`, `syncDeltaMs`, `syncStatus`, `syncToleranceMs`, `metadataSequence`, `sentAtMs`, `frameWidth`, `frameHeight`, `coordinateSpace`)가 포함되는지 확인
+- sync 진단 필드가 포함되는지 확인
+- 필수 필드: `videoFramePtsMs`, `analysisPtsMs`, `syncDeltaMs`, `syncStatus`, `syncToleranceMs`
+- 추가 필드: `metadataSequence`, `sentAtMs`, `frameWidth`, `frameHeight`, `coordinateSpace`
 - `syncStatus`가 `exact`, `near`, `fallback-latest`, `missing`, `stale` 중 하나인지 확인
 - Lab WebRTC client-side overlay는 기본적으로 `syncStatus=fallback-latest` metadata를 그리지 않는지 확인
 - fallback 표시가 필요할 때만 `clientOverlayFallback=1` 또는 `vaMetadataDrawFallback=1`을 사용하고, 이 경우 fallback metadata가 흐리게 표시되는지 확인
@@ -530,9 +694,14 @@ WebRTC VA metadata overlay sync 자동 검증:
 - `syncStatus=fallback-latest`가 수신되더라도 기본 정책에서 draw되지 않는지 확인
 - 브라우저 검증 hook으로 `requestVideoFrameCallback`을 일정 frame 이후 멈춰 video stalled 상태를 재현
 - video stalled 상태에서 stale overlay clear가 발생하고 draw count가 더 증가하지 않는지 확인
-- 실패 시 `videoPresentedFrameCount`, `metadataReceivedCount`, `metadataDrawnCount`, `metadataDroppedCount`, `fallbackHiddenCount`, `staleClearCount`, `maxMetadataBufferSize`, `maxSyncDeltaMs`, `averageSyncDeltaMs`를 summary JSON에 남김
+- 실패 시 summary JSON에 frame/metadata count를 남김
+- 남길 값: `videoPresentedFrameCount`, `metadataReceivedCount`, `metadataDrawnCount`, `metadataDroppedCount`
+- stale/buffer 값: `fallbackHiddenCount`, `staleClearCount`, `maxMetadataBufferSize`
+- sync 값: `maxSyncDeltaMs`, `averageSyncDeltaMs`
 
-이 검증은 선택 검증이며 기본 `./server.sh test`에는 포함하지 않는다. 브라우저/렌더링 타이밍에 따라 flaky할 수 있으므로 실패 시 summary JSON과 Chrome log를 함께 확인한다.
+이 검증은 선택 검증이며 기본 `./server.sh test`에는 포함하지 않는다.
+브라우저/렌더링 타이밍에 따라 flaky할 수 있다.
+실패 시 summary JSON과 Chrome log를 함께 확인한다.
 
 ## RTSP / WebRTC VA 표시 정책 검증
 
@@ -543,7 +712,9 @@ RTSP와 WebRTC는 metadata 표시 방식이 다릅니다.
 1. `/ops/rules`에서 채널 분석 설정의 출력 URL을 확인한다.
 2. `/client/live` 또는 custom client에서 WebRTC metadata URL을 확인한다.
 3. `WebRTC 메타데이터 뷰어` URL에는 `/webrtc/session`과 `vaMetadata=1`이 포함되는지 확인한다.
-4. Metadata subscription filter 입력값을 넣으면 WebRTC metadata viewer URL과 SSE/WS side-channel URL 모두에 `eventType`, `scenarioName`, `trackId`, `zoneId` query가 반영되는지 확인한다.
+4. Metadata subscription filter 입력값을 넣는다.
+5. WebRTC metadata viewer URL과 SSE/WS side-channel URL에 filter query가 반영되는지 확인한다.
+6. 확인할 query는 `eventType`, `scenarioName`, `trackId`, `zoneId`이다.
 5. `RTSP 서버 오버레이` URL에는 `rtsp://...`와 `va=1` 또는 `vaRule=<id>`가 포함되는지 확인한다.
 6. `RTSP 원본 스트림` URL에는 `va=1`, `vaRule=<id>`, `vaMetadata=1`이 포함되지 않는지 확인한다.
 7. `커스텀 메타데이터 사이드채널` URL이 `/metadata/stream` SSE endpoint를 가리키는지 확인한다.
@@ -640,7 +811,11 @@ OpenCV dependency 확인:
 python3 -c "import cv2; print(cv2.__version__)"
 ```
 
-macOS/Homebrew Python이 PEP 668 `externally-managed-environment`로 plain `pip install`을 막는 경우에는 project venv를 만들거나, 사용자 site-packages에만 설치합니다. 최근 재점검에서는 아래 명령으로 `cv2` import와 headless overlay smoke를 확인했습니다.
+macOS/Homebrew Python이 PEP 668 `externally-managed-environment`로
+plain `pip install`을 막는 경우에는 project venv를 만들거나,
+사용자 site-packages에만 설치합니다.
+최근 재점검에서는 아래 명령으로 `cv2` import와
+headless overlay smoke를 확인했습니다.
 
 ```bash
 python3 -m pip install --user --break-system-packages opencv-python
@@ -651,7 +826,11 @@ python3 scripts/examples/va_rtsp_sse_overlay_client.py \
   --headless
 ```
 
-기본 예시는 `8080/8554`를 사용하지만 local override나 이미 떠 있는 foreground 서버가 `8081/8555`를 쓰는 경우에는 HTTP/RTSP base만 맞춥니다. 기본 포트에 listener가 없어서 생기는 `Connection refused`나 RTSP decode 실패는 보정 포트 검증 결과와 분리해서 기록합니다.
+기본 예시는 `8080/8554`를 사용합니다.
+local override나 이미 떠 있는 foreground 서버가 `8081/8555`를 쓰는 경우에는
+HTTP/RTSP base만 맞춥니다.
+기본 포트에 listener가 없어서 생기는 `Connection refused`나 RTSP decode 실패는
+보정 포트 검증 결과와 분리해서 기록합니다.
 
 확인할 항목:
 
@@ -677,8 +856,13 @@ SSE metadata side-channel smoke:
 - `/lab/analysis/metadata/stream?file=...` 응답이 `text/event-stream`인지 확인
 - 첫 `event: metadata`의 JSON schema가 `media-server.va.runtime-metadata.v1`인지 확인
 - `tracks`, `events`, `scenarios`, `metrics` 필드가 포함되는지 확인
-- `eventType`, `scenarioName`, `trackId`, `zoneId` 같은 subscription filter가 metadata `events`/debug `tracks` 범위를 줄이고, `includeMetrics=0` 같은 include flag가 지정 필드를 생략하는지 확인
-- filter/include smoke는 metadata payload 본문을 직접 검사합니다. matching event가 없는 샘플에서는 count가 0일 수 있으나, 존재하는 `events`/`tracks` 항목은 요청 filter와 맞아야 하고 `--omit-metrics`에서는 `metrics` field가 없어야 합니다.
+- `eventType`, `scenarioName`, `trackId`, `zoneId` 같은 subscription filter가
+  metadata `events`/debug `tracks` 범위를 줄이는지 확인
+- `includeMetrics=0` 같은 include flag가 지정 필드를 생략하는지 확인
+- filter/include smoke는 metadata payload 본문을 직접 검사합니다.
+  matching event가 없는 샘플에서는 count가 0일 수 있습니다.
+  존재하는 `events`/`tracks` 항목은 요청 filter와 맞아야 합니다.
+  `--omit-metrics`에서는 `metrics` field가 없어야 합니다.
 - 임시 SSE analysis tap이 client disconnect 후 cleanup되는지 확인
 - `verify-va-metadata-sidechannel`은 같은 검증을 수행하면서 summary JSON을 출력하는 명시적 alias
 
@@ -694,7 +878,10 @@ WebSocket metadata side-channel smoke:
 - auth on의 미인증 요청은 `401`, viewer 요청은 `403`으로 거부되는지 확인
 - 첫 text frame의 JSON schema가 `media-server.va.runtime-metadata.v1`인지 확인
 - `tracks`, `events`, `scenarios`, `metrics` 필드가 포함되는지 확인
-- `{"type":"subscribe","eventType":"loitering","includeMetrics":false}` 같은 client text command 후 `media-server.va.metadata-control.v1` ack가 오고, 이어서 `unsubscribe`, `status`, `resume`, `reset` ack 순서와 subscribed/filter/include 상태가 기대값과 맞는지 확인
+- `{"type":"subscribe","eventType":"loitering","includeMetrics":false}` 같은
+  client text command 후 `media-server.va.metadata-control.v1` ack가 오는지 확인
+- 이어서 `unsubscribe`, `status`, `resume`, `reset` ack 순서와
+  subscribed/filter/include 상태가 기대값과 맞는지 확인
 - custom client metadata filter preset 저장/재적용 후에도 WebRTC metadata viewer, SSE, WS URL query가 같은 filter/include 값을 유지하는지 확인
 - 임시 WebSocket analysis tap이 client disconnect 후 cleanup되는지 확인
 - WebSocket 실패가 RTSP/WebRTC video/audio 흐름으로 전파되지 않는지 확인
@@ -713,11 +900,21 @@ VA Runtime Console 자동 검증:
 - Runtime Dashboard drill-down UI가 lab layout을 깨뜨리지 않는지 확인
 - state-dump 기반 Tracks/Scenarios/Tracking Issues 표시와 vaRule Runtime Debug가 기존 endpoint만 재사용하는지 확인
 - Runtime Dashboard의 Trend / Stale / Cleanup section이 최근 sample 수, delta/min/max, warning badge를 표시하는지 확인
-- Trend detail이 activeSessions/activeStreams/activeAnalysisTaps, SSE/WS clients, RTSP consumers, WebRTC metadata sent/drop/fail, metadata payload avg/max, DataChannel bufferedAmount, tracking issue/close-object risk, Event POST/EventRecord count를 기존 endpoint 값으로 표시하는지 확인
+- Trend detail이 기존 endpoint 값으로 다음 항목을 표시하는지 확인
+  - activeSessions/activeStreams/activeAnalysisTaps
+  - SSE/WS clients
+  - RTSP consumers
+  - WebRTC metadata sent/drop/fail
+  - metadata payload avg/max
+  - DataChannel bufferedAmount
+  - tracking issue/close-object risk
+  - Event POST/EventRecord count
 - 값이 없는 항목은 `미제공`으로 표시하고 새 대형 backend endpoint나 WebRTC/SSE/WS/Event POST payload schema 변경이 없는지 확인
 - dashboard tab을 벗어난 뒤 polling과 trend sample 증가가 멈추는지 확인
 - active tap이 있는데 `/metrics` progress가 3개 이상 sample 동안 정체되면 tap metrics stale warning이 표시되는지 확인
-- DataChannel open 상태에서 metadata 미수신 또는 3초 초과 stale, video frame/overlay draw age 3초 초과, SSE/WS client active 상태의 metadata build 정체가 warning badge로 보이는지 확인
+- DataChannel open 상태에서 metadata 미수신 또는 3초 초과 stale이 warning badge로 보이는지 확인
+- video frame/overlay draw age 3초 초과가 warning badge로 보이는지 확인
+- SSE/WS client active 상태의 metadata build 정체가 warning badge로 보이는지 확인
 - WebRTC metadata viewer 중지 후 activeSessions/activeStreams/activeAnalysisTaps/SSE/WS/RTSP 잔류가 있으면 cleanup warning으로 표시되는지 확인
 - cleanup warning은 보기 중지/dashboard 비활성 후 짧은 grace period 이후 판단하며 longrun report를 대체하지 않는 live observation 보조 지표로 해석
 - `/lab/analysis/taps/{tapId}/metrics`의 `tapState`, `trackState`, `metricsReport` 확인
@@ -814,25 +1011,51 @@ consumer connect/disconnect cycle 이후 idle baseline RSS 누적 증가를 확�
 - SSE metadata side-channel client가 장시간 연결 후 cleanup되는지 확인
 - `--include-rtsp` 지정 시 RTSP `va=1` server-side overlay consumer가 함께 유지되는지 확인
 - process RSS/CPU, active sessions/streams/taps, metadata side-channel client count를 주기적으로 기록
-- `--idle-after-cleanup-minutes` 지정 시 consumer와 dashboard tap cleanup 후 서버 process를 유지하면서 idle RSS/CPU와 active count 재상승 여부를 별도로 기록
-- `verify-va-runtime-console-cycles`는 서버를 유지한 채 WebRTC/SSE/dashboard/RTSP consumer를 반복 연결/해제하고 cycle별 active peak RSS와 idleEnd RSS baseline을 비교
+- `--idle-after-cleanup-minutes` 지정 시 cleanup 후 서버 process를 유지한다.
+- 이후 idle RSS/CPU와 active count 재상승 여부를 별도로 기록한다.
+- `verify-va-runtime-console-cycles`는 서버를 유지한 채 consumer를 반복 연결/해제한다.
+- cycle별 active peak RSS와 idleEnd RSS baseline을 비교한다.
 - WebRTC metadata sent/dropped/failure count는 longrun 서버 로그의 `[webrtc-metadata] close` 라인에서 집계
 - `/lab/runtime/status`의 `debugCounters` 블록으로 RTSP/GStreamer egress release와 fanout lifecycle counter를 확인
 - longrun/cycle summary JSON과 Markdown report의 `debugCounters` 또는 `Runtime Debug Counters` 섹션에서 counter 최종값을 확인
 - 종료 후 active sessions, active analysis taps, SSE/WS metadata clients가 0으로 정리되는지 확인
 - idle 관찰 중 active sessions/streams/taps, SSE/WS clients, RTSP egress consumer가 다시 증가하면 cleanup/RSS 해석보다 `idleJudgement`를 우선 확인
 - cycle 검증에서는 cycle별 cleanup count가 0이 아니면 `HOLD`, 최종 port cleanup 실패는 `FAIL`, idleEnd RSS가 cycle마다 계속 증가하면 `WARNING`으로 판단
-- active 구간 RSS slope와 idle-after-cleanup RSS slope는 분리해서 해석합니다. active 중 RSS가 증가해도 cleanup 후 모든 active count가 0이고 idle RSS가 유지/하락하면 lifecycle 잔여 증거보다 allocator high-water 또는 GStreamer/WebRTC buffer pool retention 후보로 봅니다.
+- active 구간 RSS slope와 idle-after-cleanup RSS slope는 분리해서 해석합니다.
+  active 중 RSS가 증가해도 cleanup 후 모든 active count가 0이고
+  idle RSS가 유지/하락하면 lifecycle 잔여 증거보다
+  allocator high-water 또는 GStreamer/WebRTC buffer pool retention 후보로 봅니다.
 - longrun summary JSON과 Markdown report는 `/tmp/media_server_va-runtime-longrun-*`, cycle summary/report는 `/tmp/media_server_va-runtime-cycles-*` 경로에 남김
 
 최근 RSS WARNING 해제 후보 검증 결과:
 
-- RTSP-only 5-cycle: `PASS`. `monotonicIdleRssIncrease=false`, RTSP lifecycle counter 균형, pending queue stop/destroy 잔여 `0`, `appsrcPushAfterStopCount=0`, flow return은 FLUSHING 중심입니다.
-- Full 20-cycle: `PASS`. `monotonicIdleRssIncrease=false`, cleanup/port cleanup 정상, RTSP lifecycle/probe/bus watch counter 균형, pending queue stop/destroy 잔여 `0`, flow return은 전부 FLUSHING입니다.
-- 120m full + 30m idle-after-cleanup: `PASS`. Summary는 `/tmp/media_server_va-runtime-longrun-1777648583-19035_summary.json`, report는 `/tmp/media_server_va-runtime-longrun-1777648583-19035_report.md`입니다.
-- 120m active 구간은 warmup baseline `679.80MiB`에서 last RSS `881.38MiB`까지 증가했고, last-30m slope는 `+51.77MiB`, `+1.726MiB/min`입니다. active plateau는 뚜렷하지 않으므로 high-water 관찰 메모는 유지합니다.
-- cleanup 후 30분 idle RSS는 `642.97MiB -> 642.67MiB`로 유지/하락했고, idle 중 activeSessions, activeStreams, activeAnalysisTaps, SSE/WS clients, RTSP consumers 재증가는 없었습니다.
-- `ERROR` / `NOT_LINKED` / `NOT_NEGOTIATED` / `OTHER` flow return은 관찰되지 않았고, port cleanup은 정상입니다. 이 조합이면 RSS WARNING 해제 가능 후보로 봅니다.
+- RTSP-only 5-cycle: `PASS`
+  - `monotonicIdleRssIncrease=false`
+  - RTSP lifecycle counter 균형
+  - pending queue stop/destroy 잔여 `0`
+  - `appsrcPushAfterStopCount=0`
+  - flow return은 FLUSHING 중심
+- Full 20-cycle: `PASS`
+  - `monotonicIdleRssIncrease=false`
+  - cleanup/port cleanup 정상
+  - RTSP lifecycle/probe/bus watch counter 균형
+  - pending queue stop/destroy 잔여 `0`
+  - flow return은 전부 FLUSHING
+- 120m full + 30m idle-after-cleanup: `PASS`
+  - Summary: `/tmp/media_server_va-runtime-longrun-1777648583-19035_summary.json`
+  - Report: `/tmp/media_server_va-runtime-longrun-1777648583-19035_report.md`
+- 120m active 구간:
+  - warmup baseline `679.80MiB`
+  - last RSS `881.38MiB`
+  - last-30m slope `+51.77MiB`, `+1.726MiB/min`
+  - active plateau는 뚜렷하지 않으므로 high-water 관찰 메모 유지
+- cleanup 후 30분 idle RSS:
+  - `642.97MiB -> 642.67MiB`
+  - activeSessions, activeStreams, activeAnalysisTaps,
+    SSE/WS clients, RTSP consumers 재증가 없음
+- `ERROR` / `NOT_LINKED` / `NOT_NEGOTIATED` / `OTHER` flow return은 관찰되지 않았습니다.
+  port cleanup도 정상입니다.
+  이 조합이면 RSS WARNING 해제 가능 후보로 봅니다.
 - 후속 30분 predev 회귀 검증도 `PASS`입니다.
 - Summary는 `/tmp/media_server_predev-1777679318-64004_summary.json`입니다.
 - Report는 `/tmp/media_server_predev-1777679318-64004_report.md`입니다.
@@ -850,7 +1073,9 @@ Runtime Console 검증 정책:
 | 집계 | DataChannel sent/drop/failure count를 로그에서 집계 |
 | 영구 설정 | `scripts/.media_server.env` 같은 파일은 수정하지 않음 |
 
-Runtime debug counter는 기존 Event POST/WebRTC/SSE metadata payload schema를 변경하지 않는 내부 진단 값입니다. 기본적으로 counter만 누적하며, lifecycle trace log가 필요할 때만 `MEDIA_SERVER_RUNTIME_DEBUG_COUNTER_TRACE=1`을 서버 실행 환경에 추가합니다.
+Runtime debug counter는 기존 Event POST/WebRTC/SSE metadata payload schema를 변경하지 않는 내부 진단 값입니다.
+기본적으로 counter만 누적합니다.
+lifecycle trace log가 필요할 때만 `MEDIA_SERVER_RUNTIME_DEBUG_COUNTER_TRACE=1`을 서버 실행 환경에 추가합니다.
 
 주요 counter:
 
@@ -866,7 +1091,9 @@ Runtime debug counter는 기존 Event POST/WebRTC/SSE metadata payload schema를
 
 Analysis tap reuse smoke 기준:
 
-- 같은 source와 같은 analysis profile을 여러 client/view에서 요청하면 `sessionManager.registryActiveStreams=1`, `analysisMatching.activeTapCount=1`, 해당 tap의 `refCount`가 client 수만큼 증가합니다.
+- 같은 source와 같은 analysis profile을 여러 client/view에서 요청하면 source와 tap이 재사용됩니다.
+- 이때 `sessionManager.registryActiveStreams=1`, `analysisMatching.activeTapCount=1`을 기대합니다.
+- 해당 tap의 `refCount`는 client 수만큼 증가합니다.
 - 같은 source라도 detector model, input size, FPS, tracking class, tracker config, preprocessing config가 다른 profile이면 별도 tap이 허용됩니다.
 - client별 overlay 표시 옵션만 다른 경우에는 `analysisTapReusedCount`가 증가하고 `analysisTapCreatedCount`는 추가로 증가하지 않아야 합니다.
 - 종료 후 cleanup 상태에서 `activeAnalysisTaps=0`, `analysisMatching.activeTapCount=0`으로 돌아와야 합니다.
@@ -890,7 +1117,9 @@ curl -fsS 'http://127.0.0.1:8080/client/api/views/{viewId}/metadata'
 - `showDashboard=false`인 view는 dashboard API가 403을 반환하고, `showEvents=false`인 view는 events API가 403을 반환합니다.
 - dashboard health는 live/offline, connection status, video frame status, metadata status, stale 여부, stale metadata age, last frame age를 반환합니다.
 - 값이 없으면 UI는 `미제공`을 표시합니다.
-- client dashboard 응답과 화면에 source 원본 URL, Developer URL, 내부 진단 JSON, `analysisTapId`, internal session id, rule/profile editor, Event POST 설정, SSE/WS 전체 endpoint가 노출되지 않아야 합니다.
+- client dashboard 응답과 화면에 운영 내부 값이 노출되지 않아야 합니다.
+- 숨길 값: source 원본 URL, Developer URL, 내부 진단 JSON, `analysisTapId`, internal session id
+- 숨길 설정: rule/profile editor, Event POST 설정, SSE/WS 전체 endpoint
 - Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema는 변경하지 않습니다.
 
 Client Live Monitor smoke 기준:
@@ -912,14 +1141,20 @@ curl -fsS -X POST \
 - `overlayMode`는 PublishedView의 `allowedOverlayModes` 안에서 `raw`, `va-overlay`, `va-rule`로 정규화됩니다.
 - `va-rule` mode는 PublishedView의 `allowedRuleIds`/`defaultRuleId` 안의 rule만 사용할 수 있습니다.
 - `va-rule` mode는 허용된 rule이라도 저장 source가 PublishedView source와 다르면 400으로 거부합니다.
-- `/client/live`의 browser `RTCPeerConnection`은 `/webrtc/config`의 `peerConnectionConfig`를 사용하며, 제품 smoke는 빈 `iceServers` 강제 코드가 남아 있지 않은지 확인합니다.
+- `/client/live`의 browser `RTCPeerConnection`은 `/webrtc/config`의 `peerConnectionConfig`를 사용합니다.
+- 제품 smoke는 빈 `iceServers` 강제 코드가 남아 있지 않은지 확인합니다.
 - client 생성 응답은 `client-live-<random>` alias만 반환하고 `sessionToken` 또는 내부 generic session id를 노출하지 않습니다.
-- client answer/ICE/delete는 `/client/api/views/{viewId}/webrtc/session/{clientSessionId}` wrapper를 사용하며, client alias는 generic `/webrtc/session/{id}` route에서 사용할 수 없어야 합니다.
+- client answer/ICE/delete는 client session wrapper를 사용합니다.
+- wrapper: `/client/api/views/{viewId}/webrtc/session/{clientSessionId}`
+- client alias는 generic `/webrtc/session/{id}` route에서 사용할 수 없어야 합니다.
 - tile stop은 PeerConnection/DataChannel을 닫고 client wrapper DELETE를 호출합니다.
 - all stop 또는 hidden tab/route leave 후 `activeSessions`가 감소하고 media stream track이 정리됩니다.
 - tile status는 live/offline, stale, track count, event count, connection status를 표시합니다.
 - client 화면에 source URL, Developer URL, BBox diagnostics, 내부 진단 JSON, 내부 session id/token, rule/profile 수정 UI가 노출되지 않아야 합니다.
-- 기존 `/webrtc/session?file=...` 개발용 경로와 WebRTC DataChannel schema, Event POST payload는 변경하지 않습니다. 단, auth on에서는 직접 generic media 생성 route가 admin/operator `ops:read` 또는 `lab:read` 권한을 요구하므로 viewer 제품 흐름은 client wrapper만 사용합니다.
+- 기존 `/webrtc/session?file=...` 개발용 경로는 변경하지 않습니다.
+- WebRTC DataChannel schema와 Event POST payload도 변경하지 않습니다.
+- auth on에서는 직접 generic media 생성 route가 admin/operator `ops:read` 또는 `lab:read` 권한을 요구합니다.
+- viewer 제품 흐름은 client wrapper만 사용합니다.
 
 ## VA overlay 검증
 
@@ -970,11 +1205,18 @@ ffprobe -rtsp_transport tcp \
 - 기존 rule payload 구조와 외부 이벤트 출력 형식 유지
 - ReEntry scenario를 룰 편집 UI에서 선택하고 `reEntryWindowMs`, `cooldownMs`, target zone, re-entry zone을 저장할 수 있음
 - 저장된 ReEntry rule은 `event.type=scenario.type=re-entry`와 `targetZoneIds`/`reEntryZoneIds`를 유지함
-- IntrusionAfterLineCrossing scenario를 룰 편집 UI에서 선택하고 trigger line, crossing direction, target zone, `maxDelayAfterCrossingMs`, `dwellTimeMs`, `cooldownMs`를 저장할 수 있음
+- IntrusionAfterLineCrossing scenario를 룰 편집 UI에서 선택할 수 있음
+- trigger line, crossing direction, target zone을 저장할 수 있음
+- `maxDelayAfterCrossingMs`, `dwellTimeMs`, `cooldownMs`를 저장할 수 있음
 - 저장된 IntrusionAfterLineCrossing rule은 기존 `line-crossing` 기본 이벤트와 분리된 `event.type=scenario.type=intrusion-after-line-crossing`을 유지함
-- Loitering scenario를 룰 편집 UI에서 선택하고 target zone, field preset(로비/매장 통로/승강장/주차장), `minDwellTimeMs`, `maxMovementRadius`, `minTrajectoryPoints`, `cooldownMs`를 저장할 수 있음
+- Loitering scenario를 룰 편집 UI에서 선택할 수 있음
+- target zone과 field preset을 저장할 수 있음
+- preset: 로비, 매장 통로, 승강장, 주차장
+- `minDwellTimeMs`, `maxMovementRadius`, `minTrajectoryPoints`, `cooldownMs`를 저장할 수 있음
 - 저장된 Loitering rule은 `event.type=scenario.type=loitering`과 `targetZoneIds`/movement radius/trajectory point를 유지함
-- ZoneOccupancyScenario를 룰 편집 UI에서 선택하고 field preset(대기열/로비/승강장/출입구/승강기 홀), `occupancyThreshold`, `minDwellTimeMs`, target zone, cooldown을 저장할 수 있음
+- ZoneOccupancyScenario를 룰 편집 UI에서 선택할 수 있음
+- field preset, `occupancyThreshold`, `minDwellTimeMs`, target zone, cooldown을 저장할 수 있음
+- preset: 대기열, 로비, 승강장, 출입구, 승강기 홀
 - IntrusionDwell/WrongDirection UI와 기존 Event POST payload, WebRTC/SSE/WS metadata schema는 변경되지 않음
 - 숫자 ID 범위와 자동 할당 정책이 UI에서 깨지지 않음
 
@@ -1001,7 +1243,9 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records?limit=5'
 
 서버가 `8081` 같은 다른 HTTP port로 떠 있으면 port만 맞춰 실행합니다.
 
-`verify-event-post`는 서버가 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1` 상태로 실행되어 있어야 합니다. 기본 서버가 Event POST disabled라서 `event POST dispatcher가 비활성화되어 있습니다`로 실패하면, 같은 build를 Event POST enabled 보정 서버로 띄워 schema/recovery를 재확인합니다.
+`verify-event-post`는 서버가 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1` 상태로 실행되어 있어야 합니다.
+기본 서버가 Event POST disabled라서 `event POST dispatcher가 비활성화되어 있습니다`로 실패할 수 있습니다.
+이 경우 같은 build를 Event POST enabled 보정 서버로 띄워 schema/recovery를 재확인합니다.
 
 ```bash
 MEDIA_SERVER_SKIP_LOCAL_ENV=1 \
@@ -1034,15 +1278,25 @@ MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 \
 - EventRecord file storage, active/archive query/search UI와 JSON Lines rotation/retention/recovery 1차는 구현 완료 상태입니다.
 - EventRecord 조회 API는 저장된 metadata와 recorder output path만 반환하며 영상 검색/재생을 수행하지 않음
 - snapshot/clip hook 활성화 시 analysis frame buffer에서 snapshot media와 pre/post frame bundle manifest를 생성함. MP4/VMS/NVR 장기 녹화는 검증 범위가 아님
-- records API와 Runtime Dashboard Event Records UI는 `evidence=snapshot|clip|any|both|missing` 조건으로 snapshot/clip-backed record를 검색하고, detail에서 snapshot path, clip manifest path, clip bundle directory를 분리해 표시함
-- records API는 `offset`/`limit` paging으로 active/archive 합산 결과를 넘기고, compaction snapshot cleanup API는 `keepNewest` 기준으로 compacted snapshot만 정리함
-- `/lab/analysis/events/evidence?path=...` preview route는 configured snapshot/clip 디렉터리 아래의 safe evidence만 열고, snapshot inline preview와 clip manifest/frame link의 backing route로 사용함. UI는 preview 상태 문구와 clip frame summary를 함께 표시해야 함
+- records API와 Runtime Dashboard Event Records UI는 evidence 조건으로 기록을 검색합니다.
+- evidence 조건: `snapshot`, `clip`, `any`, `both`, `missing`
+- detail은 snapshot path, clip manifest path, clip bundle directory를 분리해 표시합니다.
+- records API는 `offset`/`limit` paging으로 active/archive 합산 결과를 넘깁니다.
+- compaction snapshot cleanup API는 `keepNewest` 기준으로 compacted snapshot만 정리합니다.
+- evidence preview route는 configured snapshot/clip 디렉터리 아래의 safe evidence만 엽니다.
+- UI는 preview 상태 문구와 clip frame summary를 함께 표시해야 합니다.
 - `includeArchives=1`은 rotated archive를 조회에 포함하고, compaction snapshot API는 기존 파일을 수정하지 않음
 - compaction snapshot 목록/다운로드/삭제 API는 compacted file pattern만 허용하고 active/archive 파일을 삭제하지 않음
 - 손상되었거나 partial 상태인 EventRecord JSON Lines 행은 records API 전체 실패가 아니라 skip/count 처리됨
 - `/lab/analysis/event-storage/status`의 `skippedCorruptLines`, `partialLineCount`, `lastRecoveryStatus`로 recovery summary를 확인할 수 있음
-- `verify-event-post --mode recovery`는 EventStorage가 활성화되어 있고 안전한 `/tmp/media_server_*` path를 사용할 때 valid/corrupt/partial JSON Lines를 주입해 records API와 status recovery count를 확인함
-- Rotation/retention은 `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_FILE_BYTES`, `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_ARCHIVES`, `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_TOTAL_BYTES`를 켠 환경에서 status의 `activeFileSizeBytes`, `archivedFileCount`, `totalArchiveBytes`, `rotatedCount`, `retentionDeletedCount`로 smoke 확인함
+- `verify-event-post --mode recovery`는 EventStorage 활성 상태에서 실행합니다.
+- 안전한 `/tmp/media_server_*` path를 사용할 때 valid/corrupt/partial JSON Lines를 주입합니다.
+- 이후 records API와 status recovery count를 확인합니다.
+- Rotation/retention은 storage limit env를 켠 환경에서 smoke 확인합니다.
+- env: `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_FILE_BYTES`
+- env: `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_ARCHIVES`
+- env: `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_MAX_TOTAL_BYTES`
+- 확인 값: `activeFileSizeBytes`, `archivedFileCount`, `totalArchiveBytes`, `rotatedCount`, `retentionDeletedCount`
 
 ## Replay 검증
 

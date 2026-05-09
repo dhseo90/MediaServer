@@ -7,7 +7,32 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 
-const args = parseArgs(process.argv.slice(2));
+import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+
+const rawArgs = process.argv.slice(2);
+if (hasHelpFlag(rawArgs)) {
+  printUsageAndExit(`RC artifact archive
+
+Usage:
+  ./server.sh rc-artifact-archive --destination-dir <path> [options]
+
+Options:
+  --source-dir <path>        복사할 RC artifact 디렉터리입니다. 기본 artifacts/rc-gate.
+  --destination-dir <path>   외부 보관 디렉터리입니다. 필수.
+  --run-id <id>              보관 run id입니다. 기본 GITHUB_RUN_ID 또는 local timestamp.
+  --retention-days <n>       오래된 archive pruning 기준입니다. 0이면 pruning하지 않습니다.
+  -h, --help                 도움말 출력
+`);
+}
+assertKnownOptions(rawArgs, [
+  "source-dir",
+  "destination-dir",
+  "run-id",
+  "retention-days",
+  "h",
+  "help",
+]);
+const args = parseArgs(rawArgs);
 const sourceDir = path.resolve(args.sourceDir || "artifacts/rc-gate");
 const destinationDir = path.resolve(args.destinationDir || "");
 const runId = String(args.runId || process.env.GITHUB_RUN_ID || `local-${Date.now()}-${process.pid}`);
@@ -73,7 +98,7 @@ function pruneOldArchives(root, currentRunId, days) {
       try {
         generatedAt = Date.parse(JSON.parse(fs.readFileSync(manifestPath, "utf8")).generatedAt) || generatedAt;
       } catch {
-        // Keep filesystem mtime fallback.
+        // 주요 동작: manifest를 읽지 못하면 filesystem mtime 기준을 유지한다.
       }
     }
     if (generatedAt < cutoff) {
@@ -99,7 +124,7 @@ function writeIndex(root, latest) {
         totalBytes: payload.totalBytes || 0,
       });
     } catch {
-      // Ignore malformed archive records but leave directories untouched.
+      // 주요 동작: 깨진 archive record는 index에서 제외하고 원본 디렉터리는 그대로 둔다.
     }
   }
   records.sort((a, b) => String(b.generatedAt).localeCompare(String(a.generatedAt)));

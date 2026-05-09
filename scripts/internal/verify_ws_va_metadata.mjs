@@ -2,19 +2,26 @@
 // 파일 용도: VA metadata WebSocket side-channel의 handshake, control ack, metadata payload를 검증한다.
 // 동작 요약: 실행 중인 서버에 WebSocket으로 접속해 schema, 제어 ack, 임시 tap cleanup을 확인한다.
 
+import { assertKnownOptions } from "./script_arg_utils.mjs";
+
 const args = process.argv.slice(2);
+assertKnownOptions(args, ["http-base", "file", "timeout-ms", "h", "help"]);
 let httpBase = process.env.MEDIA_SERVER_VERIFY_WS_METADATA_HTTP_BASE || "http://127.0.0.1:8080";
 let fileToken = process.env.MEDIA_SERVER_VERIFY_WS_METADATA_FILE || "sample_h264.mp4";
 let timeoutMs = Number(process.env.MEDIA_SERVER_VERIFY_WS_METADATA_TIMEOUT_MS || 8000);
 
 for (let i = 0; i < args.length; i += 1) {
   const arg = args[i];
-  if (arg === "--http-base") {
-    httpBase = args[++i] || httpBase;
-  } else if (arg === "--file") {
-    fileToken = args[++i] || fileToken;
-  } else if (arg === "--timeout-ms") {
-    timeoutMs = Number(args[++i] || timeoutMs);
+  const eq = arg.startsWith("--") ? arg.indexOf("=") : -1;
+  const name = eq >= 0 ? arg.slice(0, eq) : arg;
+  const inlineValue = eq >= 0 ? arg.slice(eq + 1) : undefined;
+  const nextValue = () => inlineValue ?? args[++i];
+  if (name === "--http-base") {
+    httpBase = nextValue() || httpBase;
+  } else if (name === "--file") {
+    fileToken = nextValue() || fileToken;
+  } else if (name === "--timeout-ms") {
+    timeoutMs = Number(nextValue() || timeoutMs);
   } else if (arg === "-h" || arg === "--help") {
     console.log(`VA metadata WebSocket smoke
 

@@ -6,9 +6,39 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
+import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 
-const args = parseArgs(process.argv.slice(2));
+const rawArgs = process.argv.slice(2);
+if (hasHelpFlag(rawArgs)) {
+  printUsageAndExit(`Ops EventRecord scope smoke
+
+Usage:
+  ./server.sh verify-ops-event-records-scope [options]
+
+Options:
+  --http-base <url>     실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
+  --timeout-ms <ms>     브라우저 대기 시간입니다. 기본 10000.
+  --chrome-path <path>  Chrome/Chromium 실행 파일 경로입니다.
+  --visual-width <px>   viewport 폭입니다. 기본 390.
+  --visual-height <px>  viewport 높이입니다. 기본 900.
+  --debug-port <port>   Chrome CDP port입니다. 기본 9910.
+  --output-dir <path>   screenshot/log 출력 디렉터리입니다.
+  -h, --help            도움말 출력
+`);
+}
+assertKnownOptions(rawArgs, [
+  "http-base",
+  "timeout-ms",
+  "chrome-path",
+  "visual-width",
+  "visual-height",
+  "debug-port",
+  "output-dir",
+  "h",
+  "help",
+]);
+const args = parseArgs(rawArgs);
 const httpBase = String(args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const timeoutMs = Number(args.timeoutMs || 10000);
 const chromePath = args.chromePath || findChrome();

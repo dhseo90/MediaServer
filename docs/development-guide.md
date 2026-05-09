@@ -1,6 +1,9 @@
 # Development Guide
 
-이 문서는 개발자가 바로 따라 실행할 수 있는 명령 중심 가이드입니다. 환경변수 전체 reference는 [config-reference.md](./config-reference.md), 스트림 검증 기준은 [stream-verification.md](./stream-verification.md), UI 사용법은 [ui-guide.md](./ui-guide.md)를 봅니다.
+이 문서는 개발자가 바로 따라 실행할 수 있는 명령 중심 가이드입니다.
+환경변수 전체 reference는 [config-reference.md](./config-reference.md)를 봅니다.
+스트림 검증 기준은 [stream-verification.md](./stream-verification.md),
+UI 사용법은 [ui-guide.md](./ui-guide.md)를 봅니다.
 
 ## 요구 환경
 
@@ -134,7 +137,8 @@ curl -fsS -X POST \
   'http://127.0.0.1:8080/whep?file=sample_h264.mp4'
 ```
 
-외부 WHEP playback endpoint를 source로 pull할 때는 기존 `source=webrtc`가 아니라 `source=whep`을 사용합니다. `source=webrtc`는 `/whip/publish`로 등록된 내부 sourceId 소비 경로입니다.
+외부 WHEP playback endpoint를 source로 pull할 때는 `source=whep`을 사용합니다.
+`source=webrtc`는 `/whip/publish`로 등록된 내부 sourceId 소비 경로입니다.
 
 ```bash
 curl -fsS -X POST \
@@ -143,7 +147,17 @@ curl -fsS -X POST \
 
 위 URL은 placeholder입니다. 실제 WHEP endpoint와 네트워크/ICE/TURN 상태는 환경별로 별도 확인합니다.
 
-위 직접 WebRTC/WHEP 생성 요청은 `MEDIA_SERVER_AUTH_MODE=off` 개발 모드 또는 auth on의 admin/operator `ops:read`, `lab:read` 권한에서 사용합니다. Auth on에서 answer/ICE/delete 후속 요청은 같은 생성 principal 또는 응답의 `sessionToken`을 `X-Session-Capability`로 보내야 합니다. 인증 토큰이 필요한 외부 WHEP endpoint의 credential 저장/주입은 아직 별도 운영 정책 대상입니다. `/ws/va-metadata` 직접 WebSocket metadata side-channel도 auth on에서는 admin/operator 또는 `lab:read` 권한에서만 사용합니다. Viewer/client 제품 흐름은 `/client/api/views/{viewId}/webrtc/session` 생성 wrapper와 같은 prefix의 client session answer/ICE/delete wrapper를 사용합니다.
+위 직접 WebRTC/WHEP 생성 요청은 개발/운영자 권한에서만 사용합니다.
+허용 조건은 `MEDIA_SERVER_AUTH_MODE=off` 개발 모드 또는 auth on의 admin/operator `ops:read`, `lab:read` 권한입니다.
+
+Auth on에서 answer/ICE/delete 후속 요청은 같은 생성 principal로 보냅니다.
+또는 응답의 `sessionToken`을 `X-Session-Capability`로 보냅니다.
+인증 토큰이 필요한 외부 WHEP endpoint의 credential 저장/주입은 아직 별도 운영 정책 대상입니다.
+
+`/ws/va-metadata` 직접 WebSocket metadata side-channel도 auth on에서는 admin/operator 또는 `lab:read` 권한에서만 사용합니다.
+Viewer/client 제품 흐름은 client wrapper만 사용합니다.
+생성 wrapper는 `/client/api/views/{viewId}/webrtc/session`입니다.
+후속 answer/ICE/delete도 같은 prefix의 client session wrapper를 사용합니다.
 
 ## 중지/재시작/status/diagnose
 
@@ -248,11 +262,26 @@ gst-inspect-1.0 uridecodebin
 ./server.sh verify-predev --quick
 ```
 
-초기 WebRTC 브라우저 테스트 화면에 의존하던 `verify-multichannel`은 현재 제품 UI 기준에서 skip됩니다. 느린 RTSP/WebRTC 다채널 재생 검증은 별도 제품 UI harness가 준비될 때 장기 검증으로만 다룹니다.
+초기 WebRTC 브라우저 테스트 화면에 의존하던 `verify-multichannel`은 현재 제품 UI 기준에서 skip됩니다.
+느린 RTSP/WebRTC 다채널 재생 검증은 별도 제품 UI harness가 준비될 때 장기 검증으로만 다룹니다.
 
-`verify-predev --quick`와 `./server.sh test*` 계열은 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하므로 느립니다. 문서/UI/Auth/권한만 바꾼 경우에는 이 묶음을 실행하지 않고 `build`, `git diff --check`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-analysis-state`로 확인합니다. 테이블, 탭 이동, 직접 클릭 흐름을 건드린 경우에는 `verify-ops-click-e2e`와 `verify-ops-tables-layout`도 추가합니다.
+`verify-predev --quick`와 `./server.sh test*` 계열은 느립니다.
+기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하기 때문입니다.
 
-`verify-auth-routes`는 격리 서버를 자동으로 띄웁니다. `verify-ops-client-ui`, `verify-rule-ui`, `verify-ops-click-e2e`, `verify-ops-tables-layout`, `verify-ops-rules-roundtrip`은 이미 떠 있는 HTTP 서버를 검사하므로 UI/API smoke 전에는 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`로 서버를 띄우고, 포트가 다르면 각 명령에 `--http-base`를 지정합니다.
+문서/UI/Auth/권한만 바꾼 경우에는 이 묶음을 실행하지 않습니다.
+대신 `build`, `git diff --check`, `verify-script-inventory`, `verify-auth-routes`,
+`verify-ops-client-ui`, `verify-rule-ui`, `verify-ops-rules-roundtrip`,
+`verify-analysis-state`로 확인합니다.
+
+테이블, 탭 이동, 직접 클릭 흐름을 건드린 경우에는 `verify-ops-click-e2e`와
+`verify-ops-tables-layout`도 추가합니다.
+
+`verify-auth-routes`는 격리 서버를 자동으로 띄웁니다.
+`verify-ops-client-ui`, `verify-rule-ui`, `verify-ops-click-e2e`,
+`verify-ops-tables-layout`, `verify-ops-rules-roundtrip`은 이미 떠 있는 HTTP 서버를 검사합니다.
+
+UI/API smoke 전에는 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`로 서버를 띄웁니다.
+포트가 다르면 각 명령에 `--http-base`를 지정합니다.
 
 장시간 또는 다채널 검증 기준은 [stream-verification.md](./stream-verification.md)에 유지합니다.
 
@@ -292,10 +321,15 @@ MEDIA_SERVER_AUTH_USERS_FILE=/tmp/media-server-bootstrap-users.json \
 - 로그인 실패가 `MEDIA_SERVER_AUTH_LOGIN_MAX_FAILURES`에 도달하면 lockout 메시지가 표시되고 만료 전 정상 비밀번호도 거부
 - `/password/change`에서 이전 비밀번호 재사용은 거부되고, 성공 후 기존 session은 폐기
 - logout 후 `/ops`, `/client`, `/lab/analysis/*` 보호 route는 `/login` 요구
-- admin 로그인 후 `/ops/users`에서 viewer/operator/integrator 계정을 생성/수정/비활성화하고, pending 접근 요청을 승인해 password setup invite를 발급하거나 거절합니다. Integrator는 UI shell 대신 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata`를 scope 기반으로 사용합니다.
+- admin 로그인 후 `/ops/users`에서 viewer/operator/integrator 계정을 생성/수정/비활성화합니다.
+- pending 접근 요청은 승인해 password setup invite를 발급하거나 거절합니다.
+- Integrator는 UI shell 대신 client events/metadata API를 scope 기반으로 사용합니다.
+- 대상 API는 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata`입니다.
 - CLI는 `./server.sh auth-user list`, `add`, `reset-password`, `disable`, `enable`을 사용하고 비밀번호는 기본 prompt로 입력
 
-제품 UI 검증은 명시적으로 auth off 서버에서 실행합니다. `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫히므로 새 검증은 Ops 화면을 기준으로 합니다.
+제품 UI 검증은 명시적으로 auth off 서버에서 실행합니다.
+`/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫혀 있습니다.
+새 검증은 Ops 화면을 기준으로 합니다.
 
 ```bash
 MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground
@@ -346,6 +380,7 @@ UI 사용 흐름은 [ui-guide.md](./ui-guide.md)에 별도로 유지합니다.
 
 ```bash
 ./server.sh build
+./server.sh verify-script-inventory
 ./server.sh test
 ```
 
@@ -355,6 +390,7 @@ UI 사용 흐름은 [ui-guide.md](./ui-guide.md)에 별도로 유지합니다.
 
 ```bash
 git diff --check -- README.md docs
+./server.sh verify-script-inventory
 ```
 
 ## git/commit 주의
@@ -373,4 +409,6 @@ git diff --check
 git add README.md docs/development-guide.md docs/config-reference.md
 ```
 
-사용자가 명시적으로 승인하기 전에는 commit/push를 진행하지 않습니다. 이미 다른 사람이 수정한 파일은 되돌리지 말고, 필요한 경우 해당 변경 위에서 이어서 작업합니다.
+사용자가 명시적으로 승인하기 전에는 commit/push를 진행하지 않습니다.
+이미 다른 사람이 수정한 파일은 되돌리지 않습니다.
+필요한 경우 해당 변경 위에서 이어서 작업합니다.

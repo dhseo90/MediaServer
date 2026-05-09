@@ -1,9 +1,11 @@
+// 파일 용도: 제품 UI의 디자인 토큰, 운영자 화면, 클라이언트 화면 CSS를 C++ 문자열로 조립한다.
 #include "ingress/product_ui_css.h"
 
 #include <string>
 
 namespace ingress {
 
+// 주요 동작: 라이트/다크 테마와 overlay, table, form 계열에서 공유하는 CSS 변수를 제공한다.
 std::string ProductDesignTokensCss() {
     return R"CSS(
     :root {

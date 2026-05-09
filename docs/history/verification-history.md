@@ -27,7 +27,10 @@
 
 ## 2026-05-03 - 이전 analysis screenshot 갱신 이력
 
-이 당시에는 analysis 전용 화면 이미지를 문서 대표 컷으로 사용했습니다. 현재 제품 문서에서는 Ops/Client 대표 화면만 사용하며, 해당 이전 `analysis-*.png` 자산은 제거했습니다. 현재 이미지 기준은 `docs/assets/ui/README.md`와 [../ui-guide.md](../ui-guide.md)를 봅니다.
+이 당시에는 analysis 전용 화면 이미지를 문서 대표 컷으로 사용했습니다.
+현재 제품 문서에서는 Ops/Client 대표 화면만 사용합니다.
+해당 이전 `analysis-*.png` 자산은 제거했습니다.
+현재 이미지 기준은 `docs/assets/ui/README.md`와 [../ui-guide.md](../ui-guide.md)를 봅니다.
 
 ## 2026-05-03 - 실패 이슈 재점검
 
@@ -46,7 +49,17 @@
 - `./server.sh verify-event-post --mode recovery --http-base http://127.0.0.1:8082`: `11/0/1`, EventStorage disabled로 storage injection 세부 검증 skip
 - `./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8081`: `5/0`
 - `./server.sh verify-rtsp-va-overlay-policy --http-base http://127.0.0.1:8081 --rtsp-base rtsp://127.0.0.1:8555/dhseo`: `6/0/0`
-- `python3 scripts/examples/va_rtsp_sse_overlay_client.py --rtsp-url 'rtsp://127.0.0.1:8555/dhseo?file=sample_h264.mp4' --metadata-url 'http://127.0.0.1:8081/lab/analysis/metadata/stream?file=sample_h264.mp4&va=1&intervalMs=500&maxMessageBytes=65536' --max-seconds 2 --headless`: frames `79`, metadataMessages `6`, parse/schema error `0`
+- RTSP/SSE overlay client:
+
+```bash
+python3 scripts/examples/va_rtsp_sse_overlay_client.py \
+  --rtsp-url 'rtsp://127.0.0.1:8555/dhseo?file=sample_h264.mp4' \
+  --metadata-url 'http://127.0.0.1:8081/lab/analysis/metadata/stream?file=sample_h264.mp4&va=1&intervalMs=500&maxMessageBytes=65536' \
+  --max-seconds 2 \
+  --headless
+```
+
+결과: frames `79`, metadataMessages `6`, parse/schema error `0`
 - `git diff --check`
 
 환경 이슈로 분리:
@@ -58,7 +71,8 @@
 
 관찰/후속:
 
-- `./server.sh compare-close-object-tracker --file imports/va_tracking_event_1280x720_30fps_h264.mp4 --modes off,diagnostic,enforce`는 command success였지만 `judgement: warning`
+- `./server.sh compare-close-object-tracker --file imports/va_tracking_event_1280x720_30fps_h264.mp4 --modes off,diagnostic,enforce`
+- command success였지만 `judgement: warning`
 - warning reason: `enforceVsOff idSwitchRiskScore increased by 0.027`
 - event/scenario delta는 `False`; 제품 회귀로 보지는 않지만 close-object guard default-on 근거로 사용하지 않음
 
@@ -92,7 +106,15 @@
 통과:
 
 - Release build
-  - `cmake -S . -B build-release-gst-onnx -DCMAKE_BUILD_TYPE=Release -DMEDIA_SERVER_USE_GSTREAMER=ON -DMEDIA_SERVER_USE_ONNXRUNTIME=ON -DMEDIA_SERVER_ONNXRUNTIME_ROOT=/opt/homebrew/opt/onnxruntime`
+  - Release build command:
+
+```bash
+cmake -S . -B build-release-gst-onnx \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DMEDIA_SERVER_USE_GSTREAMER=ON \
+  -DMEDIA_SERVER_USE_ONNXRUNTIME=ON \
+  -DMEDIA_SERVER_ONNXRUNTIME_ROOT=/opt/homebrew/opt/onnxruntime
+```
   - `cmake --build build-release-gst-onnx`
 - `./server.sh verify-analysis-state`: `9/0`
 - `./server.sh verify-va-replay`: `10 cases`
