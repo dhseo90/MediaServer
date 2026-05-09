@@ -188,7 +188,7 @@ Route 역할:
 
   - `/ops/home`: 운영 overview
   - `/ops/dashboard`: `/ops/api/runtime/status` 기반 운영 카드/상태와 문제 원인 패널. source lifecycle, stale tap, reconnect/cleanup, auth/config를 한 화면에서 확인합니다.
-  - `/ops/sources`: 숫자 채널 목록, 상세 패널, 대량 복제/비활성화/상태 진단
+  - `/ops/sources`: 숫자 채널 목록, 상세 패널, `/ops/api/channels/bulk` 기반 대량 복제/비활성화/상태 진단
   - `/ops/rules`: 채널 분석 설정, 이벤트 템플릿, 분석 프로파일 목록
 
   룰 편집 미리보기는 선택한 PublishedView에 대해 `va-overlay` 우선으로 열고,

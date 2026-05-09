@@ -25,6 +25,7 @@
 #include <limits>
 #include <mutex>
 #include <optional>
+#include <set>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -6861,6 +6862,200 @@ std::string OpsAuditEntriesJson(const app::AppConfig& config,
     return out.str();
 }
 
+std::string JsonStringArrayOrDefault(const std::string& body,
+                                     const std::string& field,
+                                     const std::string& fallback) {
+    const auto value = ExtractArrayField(body, field);
+    return value.has_value() ? *value : fallback;
+}
+
+std::string SourceBulkPayload(const std::string& source_raw,
+                              const std::string& source_id,
+                              const std::string& display_name,
+                              bool enabled,
+                              bool allow_duplicate_source = false) {
+    const std::string kind = ParseStringField(source_raw, "kind").value_or("file");
+    std::ostringstream out;
+    out << "{"
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"displayName\":\"" << JsonEscape(display_name.empty() ? source_id : display_name) << "\","
+        << "\"kind\":\"" << JsonEscape(kind) << "\","
+        << "\"enabled\":" << (enabled ? "true" : "false") << ","
+        << "\"allowDuplicateSource\":" << (allow_duplicate_source ? "true" : "false") << ","
+        << "\"tags\":" << JsonStringArrayOrDefault(source_raw, "tags", "[]") << ","
+        << "\"ownerGroup\":\"" << JsonEscape(ParseStringField(source_raw, "ownerGroup").value_or("")) << "\"";
+    if (const auto value = ParseStringField(source_raw, "file"); value.has_value()) {
+        out << ",\"file\":\"" << JsonEscape(*value) << "\"";
+    }
+    if (const auto value = ParseStringField(source_raw, "rtspUrl"); value.has_value()) {
+        out << ",\"rtspUrl\":\"" << JsonEscape(*value) << "\"";
+    }
+    if (const auto value = ParseStringField(source_raw, "webrtcSourceId"); value.has_value()) {
+        out << ",\"webrtcSourceId\":\"" << JsonEscape(*value) << "\"";
+    }
+    if (const auto value = ParseStringField(source_raw, "whepUrl"); value.has_value()) {
+        out << ",\"whepUrl\":\"" << JsonEscape(*value) << "\"";
+    }
+    if (const auto value = ParseStringField(source_raw, "httpUrl"); value.has_value()) {
+        out << ",\"httpUrl\":\"" << JsonEscape(*value) << "\"";
+    }
+    out << "}";
+    return out.str();
+}
+
+std::string ViewBulkPayload(const std::string& view_raw,
+                            const std::string& source_raw,
+                            const std::string& view_id,
+                            const std::string& source_id,
+                            const std::string& display_name,
+                            bool enabled) {
+    std::ostringstream out;
+    out << "{"
+        << "\"viewId\":\"" << JsonEscape(view_id) << "\","
+        << "\"displayName\":\"" << JsonEscape(display_name.empty() ? view_id : display_name) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"defaultRuleId\":\"" << JsonEscape(ParseStringField(view_raw, "defaultRuleId").value_or("")) << "\","
+        << "\"allowedRuleIds\":" << JsonStringArrayOrDefault(view_raw, "allowedRuleIds", "[]") << ","
+        << "\"allowedOverlayModes\":"
+        << JsonStringArrayOrDefault(view_raw, "allowedOverlayModes", "[\"raw\",\"va-overlay\",\"va-rule\"]")
+        << ","
+        << "\"showDashboard\":"
+        << (ParseBoolField(view_raw, "showDashboard").value_or(true) ? "true" : "false") << ","
+        << "\"showEvents\":" << (ParseBoolField(view_raw, "showEvents").value_or(true) ? "true" : "false")
+        << ","
+        << "\"showMetadataSummary\":"
+        << (ParseBoolField(view_raw, "showMetadataSummary").value_or(true) ? "true" : "false") << ","
+        << "\"clientGroups\":" << JsonStringArrayOrDefault(view_raw, "clientGroups", "[]") << ","
+        << "\"maxTiles\":" << ParseIntField(view_raw, "maxTiles").value_or(1) << ","
+        << "\"enabled\":" << (enabled ? "true" : "false") << "}";
+    (void)source_raw;
+    return out.str();
+}
+
+bool SourceHasPlayableLocator(const std::string& source_raw) {
+    const std::string kind = ParseStringField(source_raw, "kind").value_or("file");
+    if (kind == "file") return !Trim(ParseStringField(source_raw, "file").value_or("")).empty();
+    if (kind == "rtsp") return !Trim(ParseStringField(source_raw, "rtspUrl").value_or("")).empty();
+    if (kind == "whep") return !Trim(ParseStringField(source_raw, "whepUrl").value_or("")).empty();
+    if (kind == "webrtc") return !Trim(ParseStringField(source_raw, "webrtcSourceId").value_or("")).empty();
+    if (kind == "http" || kind == "hls") return !Trim(ParseStringField(source_raw, "httpUrl").value_or("")).empty();
+    return !Trim(ParseStringField(source_raw, "url").value_or("")).empty();
+}
+
+std::string NextBulkChannelId(std::set<int>* used_ids) {
+    int candidate = 1;
+    while (used_ids->count(candidate) != 0) {
+        ++candidate;
+    }
+    used_ids->insert(candidate);
+    return std::to_string(candidate);
+}
+
+std::set<int> CurrentNumericSourceIds() {
+    std::set<int> ids;
+    const RegistryResult result = SourceViewRegistry::Instance().SourcesJson();
+    for (const auto& item : ExtractJsonObjectArray(result.body, "sources")) {
+        const std::string id = ParseStringField(item, "sourceId").value_or("");
+        if (!id.empty() && std::all_of(id.begin(), id.end(), [](char ch) {
+                return std::isdigit(static_cast<unsigned char>(ch)) != 0;
+            })) {
+            ids.insert(std::stoi(id));
+        }
+    }
+    return ids;
+}
+
+std::string OpsChannelBulkJson(const std::string& body) {
+    const std::string operation =
+        Trim(ParseStringField(body, "operation").value_or(ParseStringField(body, "action").value_or("validate")));
+    const bool dry_run = ParseBoolField(body, "dryRun").value_or(operation == "validate");
+    const auto items = ExtractJsonObjectArray(body, "items");
+    std::set<int> used_ids = CurrentNumericSourceIds();
+    int ok_count = 0;
+    int fail_count = 0;
+    std::ostringstream results;
+    results << "[";
+    for (std::size_t index = 0; index < items.size(); ++index) {
+        const std::string& item = items[index];
+        const std::string source_raw = ExtractObjectField(item, "source").value_or("{}");
+        const std::string view_raw = ExtractObjectField(item, "view").value_or("{}");
+        const std::string source_id =
+            Trim(ParseStringField(item, "sourceId").value_or(ParseStringField(source_raw, "sourceId").value_or("")));
+        std::string target_id = source_id;
+        std::string display_name =
+            ParseStringField(view_raw, "displayName").value_or(ParseStringField(source_raw, "displayName").value_or(source_id));
+        bool item_ok = true;
+        std::string message = "validated";
+        std::string result_source_id = source_id;
+        std::string result_view_id = ParseStringField(view_raw, "viewId").value_or(source_id);
+        if (source_id.empty()) {
+            item_ok = false;
+            message = "sourceId is required";
+        } else if (!SourceHasPlayableLocator(source_raw)) {
+            item_ok = false;
+            message = "source locator is missing";
+        } else if (operation == "clone") {
+            target_id = NextBulkChannelId(&used_ids);
+            display_name = display_name.empty() ? target_id : display_name + " 복제";
+            result_source_id = target_id;
+            result_view_id = target_id;
+        } else if (operation != "validate" && operation != "disable") {
+            item_ok = false;
+            message = "unsupported bulk operation";
+        }
+        if (item_ok && !dry_run && operation == "disable") {
+            const RegistryResult source_result =
+                SourceViewRegistry::Instance().UpsertSource(
+                    source_id, SourceBulkPayload(source_raw, source_id, display_name, false, true));
+            const RegistryResult view_result =
+                SourceViewRegistry::Instance().UpsertView(
+                    result_view_id, ViewBulkPayload(view_raw, source_raw, result_view_id, source_id, display_name, false));
+            item_ok = source_result.status >= 200 && source_result.status < 300 &&
+                      view_result.status >= 200 && view_result.status < 300;
+            message = item_ok ? "disabled" : "disable failed";
+        } else if (item_ok && !dry_run && operation == "clone") {
+            const RegistryResult source_result =
+                SourceViewRegistry::Instance().UpsertSource(
+                    target_id, SourceBulkPayload(source_raw, target_id, display_name, false, true));
+            const RegistryResult view_result =
+                SourceViewRegistry::Instance().UpsertView(
+                    target_id, ViewBulkPayload(view_raw, source_raw, target_id, target_id, display_name, false));
+            item_ok = source_result.status >= 200 && source_result.status < 300 &&
+                      view_result.status >= 200 && view_result.status < 300;
+            message = item_ok ? "cloned-disabled" : "clone failed";
+        }
+        if (item_ok) {
+            ++ok_count;
+        } else {
+            ++fail_count;
+        }
+        if (index != 0) {
+            results << ",";
+        }
+        results << "{"
+                << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+                << "\"resultSourceId\":\"" << JsonEscape(result_source_id) << "\","
+                << "\"resultViewId\":\"" << JsonEscape(result_view_id) << "\","
+                << "\"ok\":" << (item_ok ? "true" : "false") << ","
+                << "\"message\":\"" << JsonEscape(message) << "\""
+                << "}";
+    }
+    results << "]";
+    std::ostringstream out;
+    out << "{"
+        << "\"status\":\"ops-channel-bulk\","
+        << "\"operation\":\"" << JsonEscape(operation) << "\","
+        << "\"dryRun\":" << (dry_run ? "true" : "false") << ","
+        << "\"okCount\":" << ok_count << ","
+        << "\"failCount\":" << fail_count << ","
+        << "\"partialFailure\":" << (fail_count > 0 && ok_count > 0 ? "true" : "false") << ","
+        << "\"rollbackPolicy\":\"automatic rollback is not applied; successful item ids are returned for manual rollback\","
+        << "\"retryPolicy\":\"retry only failed sourceId items after fixing validation errors\","
+        << "\"results\":" << results.str()
+        << "}";
+    return out.str();
+}
+
 std::string WebRtcSyncStatusForMatch(std::int64_t video_frame_pts_ns, std::int64_t analysis_pts_ns) {
     return video_frame_pts_ns == analysis_pts_ns ? "exact" : "near";
 }
@@ -8900,6 +9095,24 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return RegistryHttpResponse(
                                     SourceViewRegistry::Instance().CreateSource(request.body));
                             }
+                        }
+
+                        if (request.path == "/ops/api/channels/bulk") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method != "POST") {
+                                return JsonResponse(405,
+                                                    "Method Not Allowed",
+                                                    "{\"error\":\"method not allowed\"}");
+                            }
+                            if (const auto auth_response = require_source_write_principal();
+                                auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            HttpResponse ok = JsonResponse(200, "OK", OpsChannelBulkJson(request.body));
+                            ok.headers["Cache-Control"] = "no-store";
+                            return ok;
                         }
 
                         if (request.path.rfind("/ops/api/sources/", 0) == 0) {

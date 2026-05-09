@@ -4572,12 +4572,6 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       while (used.has(String(next))) next += 1;
       return String(next);
     }
-    function nextChannelIdFromUsed(used) {
-      let next = 1;
-      while (used.has(String(next))) next += 1;
-      used.add(String(next));
-      return String(next);
-    }
     function channelRows(sources, views) {
       const rows = sources.map(source => ({
         id: source.sourceId,
@@ -5031,39 +5025,31 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         setStatus('비활성화할 채널을 선택하세요.', true);
         return;
       }
-      let changed = 0;
       try {
-        for (const row of rows) {
-          const source = row.source;
-          if (!source) continue;
-          const view = row.view || { viewId: row.id, sourceId: source.sourceId };
-          const before = { source, view };
-          await requestJson(`/ops/api/sources/${encodeURIComponent(source.sourceId)}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(sourcePayloadFromRecord(source, false))
-          });
-          await requestJson(`/ops/api/views/${encodeURIComponent(view.viewId || row.id)}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(viewPayloadFromRecord(view, source, false))
-          });
-          changed += 1;
-          await recordOpsAudit({
-            area: 'channels',
-            action: 'bulk-disable',
-            target: `channel:${row.id}`,
-            before,
-            after: {
-              source: sourcePayloadFromRecord(source, false),
-              view: viewPayloadFromRecord(view, source, false)
-            }
-          });
-        }
+        const result = await requestJson('/ops/api/channels/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            operation: 'disable',
+            dryRun: false,
+            items: rows.map(row => ({
+              sourceId: row.id,
+              source: sourcePayloadFromRecord(row.source || {}, row.source?.enabled !== false),
+              view: viewPayloadFromRecord(row.view || { viewId: row.id, sourceId: row.id }, row.source || {}, row.view?.enabled !== false)
+            }))
+          })
+        });
         selectedChannelIds.clear();
         await loadAll();
+        await recordOpsAudit({
+          area: 'channels',
+          action: 'bulk-disable',
+          target: rows.map(row => `channel:${row.id}`).join(', '),
+          before: rows.map(row => ({ source: row.source || null, view: row.view || null })),
+          after: result
+        });
         renderOpsAuditTrail('channel-audit-list', 'channels');
-        setStatus(`선택 채널 ${changed}개 비활성화 완료`);
+        setStatus(`선택 채널 비활성화 완료: 성공 ${result.okCount ?? 0}, 실패 ${result.failCount ?? 0}`, Number(result.failCount || 0) > 0);
       } catch (error) {
         setStatus(`선택 비활성화 실패: ${error.message}`, true);
       }
@@ -5074,45 +5060,32 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         setStatus('복제할 채널을 선택하세요.', true);
         return;
       }
-      const usedIds = new Set(channelRows(loadedSources, loadedViews).map(row => String(row.id || '')).filter(Boolean));
-      const created = [];
       try {
-        for (const row of rows) {
-          const source = row.source;
-          if (!source) continue;
-          const newId = nextChannelIdFromUsed(usedIds);
-          const displayName = `${row.view?.displayName || source.displayName || `채널 ${row.id}`} 복제`;
-          const sourcePayload = sourcePayloadFromRecord({ ...source, sourceId: newId, displayName }, false);
-          const viewPayload = {
-            ...viewPayloadFromRecord(row.view || {}, source, false),
-            viewId: newId,
-            sourceId: newId,
-            displayName,
-            enabled: false
-          };
-          await requestJson(`/ops/api/sources/${encodeURIComponent(newId)}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(sourcePayload)
-          });
-          await requestJson(`/ops/api/views/${encodeURIComponent(newId)}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(viewPayload)
-          });
-          created.push(newId);
-          await recordOpsAudit({
-            area: 'channels',
-            action: 'bulk-clone',
-            target: `channel:${newId}`,
-            before: { source, view: row.view || null },
-            after: { source: sourcePayload, view: viewPayload }
-          });
-        }
+        const result = await requestJson('/ops/api/channels/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            operation: 'clone',
+            dryRun: false,
+            items: rows.map(row => ({
+              sourceId: row.id,
+              source: sourcePayloadFromRecord(row.source || {}, row.source?.enabled !== false),
+              view: viewPayloadFromRecord(row.view || { viewId: row.id, sourceId: row.id }, row.source || {}, row.view?.enabled !== false)
+            }))
+          })
+        });
         selectedChannelIds.clear();
         await loadAll();
+        await recordOpsAudit({
+          area: 'channels',
+          action: 'bulk-clone',
+          target: (result.results || []).map(item => `channel:${item.resultSourceId || item.sourceId}`).join(', '),
+          before: rows.map(row => ({ source: row.source || null, view: row.view || null })),
+          after: result
+        });
         renderOpsAuditTrail('channel-audit-list', 'channels');
-        setStatus(`복제 채널 생성 완료: ${created.join(', ')}`);
+        const created = (result.results || []).filter(item => item.ok).map(item => item.resultSourceId).filter(Boolean);
+        setStatus(`복제 채널 생성 완료: ${created.join(', ') || '없음'} · 실패 ${result.failCount ?? 0}`, Number(result.failCount || 0) > 0);
       } catch (error) {
         setStatus(`선택 복제 실패: ${error.message}`, true);
       }

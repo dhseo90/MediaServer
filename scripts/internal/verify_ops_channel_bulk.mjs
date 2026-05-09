@@ -34,6 +34,7 @@ check("ops sources script wires clone disable validation diagnostics", () => {
     "renderChannelBulkDiagnostics",
     "bulkDisableSelectedChannels",
     "bulkCloneSelectedChannels",
+    "/ops/api/channels/bulk",
     "data-select-channel",
     "data-clone-channel",
     "bulk-disable",
@@ -41,6 +42,23 @@ check("ops sources script wires clone disable validation diagnostics", () => {
   ];
   for (const snippet of required) {
     assert(script.includes(snippet), `bulk channel script is missing snippet: ${snippet}`);
+  }
+});
+
+check("server exposes formal channel bulk API with partial failure policy", () => {
+  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const required = [
+    "/ops/api/channels/bulk",
+    "OpsChannelBulkJson",
+    "partialFailure",
+    "rollbackPolicy",
+    "retryPolicy",
+    "allowDuplicateSource",
+    "operation == \"clone\"",
+    "operation == \"disable\"",
+  ];
+  for (const snippet of required) {
+    assert(server.includes(snippet), `channel bulk API is missing snippet: ${snippet}`);
   }
 });
 
