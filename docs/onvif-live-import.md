@@ -80,6 +80,65 @@ SourceRegistry 저장 예상값:
 ONVIF origin metadata는 1단계에서 registry schema에 넣지 않습니다. 필요한 최소
 필드는 별도 SourceRegistry origin metadata 설계 단계에서 검토합니다.
 
+## ONVIF Origin Metadata Draft
+
+이 초안은 v1.1.0 구현 후보의 최소 필드 설계입니다. 현재 코드의
+SourceRegistry payload에는 아직 포함하지 않으며, 구현 단계에서 별도 schema
+review와 migration 판단을 거칩니다.
+
+목적:
+
+- ONVIF로 import된 source와 수동 RTSP source를 operator가 구분
+- stream URI 재조회, credential 재입력, source health 진단 시 원래 device
+  후보를 추적
+- client/viewer API에는 origin metadata를 노출하지 않고 sanitized 상태만 제공
+
+제안 필드:
+
+```json
+{
+  "origin": {
+    "type": "onvif",
+    "endpoint": "http://192.0.2.10/onvif/device_service",
+    "manufacturer": "ExampleCam",
+    "model": "EC-LiveT-200",
+    "profile": "T",
+    "mediaProfileToken": "profile-live-main",
+    "mediaApi": "Media2",
+    "streamUriImportedAt": "fixture-time",
+    "credentialRef": "operator-entered-secret",
+    "credentialInline": false
+  }
+}
+```
+
+최소 필드 의미:
+
+- `type`: `onvif`만 허용하는 origin discriminator
+- `endpoint`: device service endpoint. client API에는 반환하지 않음
+- `manufacturer`, `model`: 운영자 표시와 진단용 식별 정보
+- `profile`: `T`, `S`, `M-candidate` 같은 운영 추적용 profile 방향
+- `mediaProfileToken`: stream URI를 가져온 ONVIF media profile token
+- `mediaApi`: `Media` 또는 `Media2`
+- `streamUriImportedAt`: stream URI를 가져온 시점. 구현 시 ISO-8601 UTC 권장
+- `credentialRef`: 외부 secret store 또는 auth 정책이 정한 reference
+- `credentialInline`: 항상 `false`. 원문 credential 저장/응답 금지
+
+비포함 필드:
+
+- password, digest secret, token 원문
+- recording/replay/edge storage 설정
+- PTZ preset/control 상태
+- ONVIF raw SOAP 응답 전체
+- client scope 계산에 필요한 필드
+
+저장 위치 후보:
+
+- `SourceRecord.origin` optional object를 추가하는 방식이 가장 명확합니다.
+- 구현 전까지는 `tags=["onvif","live",...]`와 운영 문서만 사용합니다.
+- registry strict load 정책 때문에 필드 추가 시 backward/forward compatibility와
+  unknown field 처리 방식을 먼저 결정해야 합니다.
+
 ## Credential Policy Draft
 
 - Password, digest secret, bearer token 같은 원문 secret은 fixture, 문서 예시,

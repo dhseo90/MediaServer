@@ -65,6 +65,18 @@
       ],
       "ownerGroup": "ops"
     },
+    "proposedOriginMetadata": {
+      "type": "onvif",
+      "endpoint": "http://192.0.2.10/onvif/device_service",
+      "manufacturer": "ExampleCam",
+      "model": "EC-LiveT-200",
+      "profile": "T",
+      "mediaProfileToken": "profile-live-main",
+      "mediaApi": "Media2",
+      "streamUriImportedAt": "fixture-time",
+      "credentialRef": "operator-entered-secret",
+      "credentialInline": false
+    },
     "expectedPublishedViewDraft": {
       "viewId": "onvif-examplecam-main",
       "displayName": "ExampleCam Live Main",
