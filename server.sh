@@ -80,6 +80,8 @@ Usage:
                  운영 diagnostics bundle 생성물과 config preset 기준을 검증합니다.
   verify-ops-backup-recovery-guide
                  운영 백업/복구 가이드와 복구 후 검증 절차를 정적 검증합니다.
+  verify-ops-backup-restore-dry-run
+                 운영 백업/복구 절차를 임시 디렉터리에서 리허설합니다.
   verify-ops-root-cause-panel
                  /ops/dashboard 문제 원인 패널과 source/stale/reconnect/auth 해석 hook을 검증합니다.
   verify-client-dashboard-polish
@@ -329,6 +331,10 @@ case "${cmd}" in
   verify-ops-backup-recovery-guide)
     require_internal verify_ops_backup_recovery_guide.mjs
     exec "${INTERNAL_DIR}/verify_ops_backup_recovery_guide.mjs" "$@"
+    ;;
+  verify-ops-backup-restore-dry-run)
+    require_internal verify_ops_backup_restore_dry_run.mjs
+    exec "${INTERNAL_DIR}/verify_ops_backup_restore_dry_run.mjs" "$@"
     ;;
   verify-ops-root-cause-panel)
     require_internal verify_ops_root_cause_panel.mjs
