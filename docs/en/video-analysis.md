@@ -1,6 +1,6 @@
 # Video Analytics
 
-Korean detailed guide: [../video-analysis.md](../video-analysis.md)
+Detailed Korean guide: [../video-analysis.md](../video-analysis.md)
 
 ## Scope
 
@@ -22,13 +22,13 @@ YOLO Detection
   -> Overlay / Metadata / Event POST / EventRecord
 ```
 
-## Models And Assets
+## Models and Assets
 
 - YOLO ONNX models are local runtime assets, not public release assets.
-- Model names and hashes belong in [../../DEPENDENCY_SNAPSHOT.md](../../DEPENDENCY_SNAPSHOT.md).
-- Labels and small config files can be documented, but large model binaries stay ignored.
+- Model names and hashes are tracked in [../../DEPENDENCY_SNAPSHOT.md](../../DEPENDENCY_SNAPSHOT.md).
+- Labels and small config files can be documented, but large model binaries remain ignored by git.
 
-## Rule And Scenario Areas
+## Rule and Scenario Areas
 
 | Area | Purpose |
 | --- | --- |
@@ -39,7 +39,7 @@ YOLO Detection
 
 ## Field Presets
 
-Current field-oriented presets include Loitering, ZoneOccupancy, LineCrossing, and Intrusion. Starting thresholds are tracked in [analysis-threshold-baselines.md](./analysis-threshold-baselines.md).
+Current field presets include Loitering, ZoneOccupancy, LineCrossing, and Intrusion. Starting thresholds are tracked in [analysis-threshold-baselines.md](./analysis-threshold-baselines.md).
 
 ## Verification
 

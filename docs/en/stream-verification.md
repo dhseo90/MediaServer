@@ -1,6 +1,6 @@
 # Stream Verification
 
-Korean detailed guide: [../stream-verification.md](../stream-verification.md)
+Detailed Korean guide: [../stream-verification.md](../stream-verification.md)
 
 ## Fast Public/Docs Gate
 
@@ -21,7 +21,7 @@ git diff --check -- README.md README.en.md NOTICE THIRD_PARTY_NOTICES.md DEPENDE
 ./server.sh test --basic --ffmpeg-free
 ```
 
-Use this when the change is public-readiness, documentation, Actions, or release policy work and should avoid FFmpeg CLI dependency.
+Use this when the change is about public readiness, documentation, Actions, or release policy and should avoid depending on the FFmpeg CLI.
 
 ## Full Regression
 
@@ -49,9 +49,9 @@ Then run:
 ./server.sh verify-ops-rules-roundtrip
 ```
 
-## RC Longrun
+## RC Long Run
 
-RC-only longrun checks are separate from the default smoke path:
+RC-only long-running checks are separate from the default smoke path:
 
 ```bash
 ./server.sh verify-predev --soak-minutes 120

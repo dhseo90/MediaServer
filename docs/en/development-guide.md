@@ -1,6 +1,6 @@
 # Development Guide
 
-Korean detailed guide: [../development-guide.md](../development-guide.md)
+Detailed Korean guide: [../development-guide.md](../development-guide.md)
 
 ## Requirements
 
@@ -10,7 +10,7 @@ Korean detailed guide: [../development-guide.md](../development-guide.md)
 | Compiler/build | C++17, CMake 3.16+ |
 | Media runtime | GStreamer 1.0, gst-rtsp-server, WebRTC plugins |
 | Optional AI | ONNX Runtime, YOLO ONNX model, labels |
-| Tools | Node.js, Python 3, ffmpeg/ffprobe, curl |
+| Tools | Node.js, Python 3, FFmpeg/ffprobe, curl |
 
 ## Setup
 
@@ -19,9 +19,9 @@ Korean detailed guide: [../development-guide.md](../development-guide.md)
 ./server.sh build
 ```
 
-`install` prepares local dependencies, optional ONNX Runtime assets, YOLO labels/models, and local environment files. It is not a lightweight command.
+`install` prepares local dependencies, optional ONNX Runtime assets, YOLO labels/models, and local environment files. Expect it to take a little time.
 
-Build streaming-only mode without AI:
+Build streaming-only mode without AI assets:
 
 ```bash
 MEDIA_SERVER_ENABLE_AI=0 ./server.sh build

@@ -1,8 +1,8 @@
 # YouTube Import Experiment
 
-Korean detailed guide: [../youtube-import.md](../youtube-import.md)
+Detailed Korean guide: [../youtube-import.md](../youtube-import.md)
 
-This is an experiment path for source/import validation. It is not a core public product feature.
+This is an experimental path for source/import validation. It is not a core public product feature.
 
 ## Boundary
 
@@ -13,7 +13,7 @@ This is an experiment path for source/import validation. It is not a core public
 
 ## Recommended Use
 
-Use local imports to test pipeline behavior, then normalize the result into a generated fixture only if it can be safely shared.
+Use local imports to test pipeline behavior. Keep a derived fixture only when it can be safely shared.
 
 ## Public Check
 

@@ -1,8 +1,8 @@
 # UI Guide
 
-Korean detailed guide: [../ui-guide.md](../ui-guide.md)
+Detailed Korean guide: [../ui-guide.md](../ui-guide.md)
 
-## Main Rule
+## Main Entry Point
 
 Users open the same main URL:
 
@@ -16,12 +16,12 @@ The server routes them by account role and scope.
 
 | Role | View | Notes |
 | --- | --- | --- |
-| `admin` | Ops | Full channel, rule, user, dashboard, diagnostics access |
+| `admin` | Ops | Full access to channels, rules, users, dashboard, and diagnostics |
 | `operator` | Ops | Operational management without owner-only actions |
 | `viewer` | Client | Assigned channel/client views only |
 | `integrator` | Scoped API | API integration role, not a daily UI operator |
 
-`/lab` screen routes stay closed. Lab APIs can remain available for verification and integration checks.
+`/lab` UI routes stay disabled. Lab APIs can remain available for verification and integration checks.
 
 ## Ops Screens
 
