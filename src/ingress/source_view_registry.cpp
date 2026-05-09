@@ -1365,12 +1365,15 @@ RegistryResult SourceViewRegistry::CreateSource(const std::string& body) {
     if (FindSource(sources_, source->source_id).has_value()) {
         return ErrorResult(409, "Conflict", "sourceId already exists");
     }
-    if (const auto duplicate = FindDuplicateSourceId(sources_, source->canonical_source_key, "");
-        duplicate.has_value()) {
-        return JsonResult(409,
-                          "Conflict",
-                          "{\"ok\":false,\"error\":\"duplicate source\",\"duplicateSourceId\":\"" +
-                              JsonEscape(*duplicate) + "\"}");
+    const bool allow_duplicate_source = ParseBoolField(body, "allowDuplicateSource").value_or(false);
+    if (!allow_duplicate_source) {
+        if (const auto duplicate = FindDuplicateSourceId(sources_, source->canonical_source_key, "");
+            duplicate.has_value()) {
+            return JsonResult(409,
+                              "Conflict",
+                              "{\"ok\":false,\"error\":\"duplicate source\",\"duplicateSourceId\":\"" +
+                                  JsonEscape(*duplicate) + "\"}");
+        }
     }
     auto next_sources = sources_;
     next_sources.push_back(*source);
@@ -1394,13 +1397,16 @@ RegistryResult SourceViewRegistry::UpsertSource(const std::string& source_id, co
     if (!source.has_value()) {
         return ErrorResult(400, "Bad Request", error);
     }
-    if (const auto duplicate =
-            FindDuplicateSourceId(sources_, source->canonical_source_key, source->source_id);
-        duplicate.has_value()) {
-        return JsonResult(409,
-                          "Conflict",
-                          "{\"ok\":false,\"error\":\"duplicate source\",\"duplicateSourceId\":\"" +
-                              JsonEscape(*duplicate) + "\"}");
+    const bool allow_duplicate_source = ParseBoolField(body, "allowDuplicateSource").value_or(false);
+    if (!allow_duplicate_source) {
+        if (const auto duplicate =
+                FindDuplicateSourceId(sources_, source->canonical_source_key, source->source_id);
+            duplicate.has_value()) {
+            return JsonResult(409,
+                              "Conflict",
+                              "{\"ok\":false,\"error\":\"duplicate source\",\"duplicateSourceId\":\"" +
+                                  JsonEscape(*duplicate) + "\"}");
+        }
     }
     bool updated = false;
     auto next_sources = sources_;
