@@ -114,6 +114,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | ONVIF live source import 설계와 stub fixture | [docs/onvif-live-import.md](docs/onvif-live-import.md) |
 | Live source health 상태 모델과 `/ops/sources` 표시 초안 | [docs/live-source-health.md](docs/live-source-health.md) |
 | Live Event POST/WebRTC/SSE/WS metadata contract | [docs/live-event-metadata-contracts.md](docs/live-event-metadata-contracts.md) |
+| Scenario timeline/debug 필드 확장 설계 | [docs/scenario-timeline-debug.md](docs/scenario-timeline-debug.md) |
 | 현재 검증 기준과 실행 명령 | [docs/stream-verification.md](docs/stream-verification.md) |
 | 배포 bundle, container image, third-party runtime 포함 정책 | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | release asset 범위와 RC 기준 | [docs/release-policy.md](docs/release-policy.md) |

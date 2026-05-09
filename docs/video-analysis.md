@@ -1329,6 +1329,8 @@ event emit/cooldown 판단 자체는 ScenarioEngine과 EventManager의 기존 �
 state-dump/metrics에 이미 노출된 값만 사용합니다.
 phase entered time, cooldown remaining 같은 정밀 timeline 필드는
 후속 endpoint 또는 state-dump 확장 없이는 표시하지 않습니다.
+정밀 timeline/debug 필드 초안은
+[scenario-timeline-debug.md](./scenario-timeline-debug.md)에 분리해 관리합니다.
 
 ## 18. Replay 검증
 

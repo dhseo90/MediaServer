@@ -629,6 +629,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
   - zone 이동
   - 중복 억제 상태
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/analysis/event_rule_engine.cpp`, `docs/ui-guide.md`
+- 설계 문서: [scenario-timeline-debug.md](./scenario-timeline-debug.md)
 - 검증 명령:
 
 ```bash
@@ -654,6 +655,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
   phase timestamp/cooldown remaining,
   더 긴 scenario timeline입니다.
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/analysis/event_rule_engine.cpp`, `docs/ui-guide.md`
+- 설계 문서: [scenario-timeline-debug.md](./scenario-timeline-debug.md)
 - 검증 명령:
 
 ```bash
