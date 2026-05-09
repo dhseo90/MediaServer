@@ -1021,7 +1021,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderRaw,
         requestJson,
         applyPrincipalVisibility,
-        setSelectOptions
+        setSelectOptions,
+        recordOpsAudit,
+        renderOpsAuditTrail
       } = window.MediaServerUi;
       const opsHashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
       const opsViewRuleId = view =>
@@ -3020,6 +3022,14 @@ void AppendOpsShellScript(std::ostringstream& out,
             body: JSON.stringify(payload)
           });
           await opsRulesAttachVaRuleToSelectedChannel(payload.id, channel);
+          await recordOpsAudit({
+            area: 'rules',
+            action: current?.id ? 'update' : 'create',
+            target: `va-rule:${payload.id}`,
+            before: current?.id ? current : null,
+            after: payload
+          });
+          renderOpsAuditTrail('ops-rules-audit-list', 'rules');
           return String(response?.vaRule?.id || payload.id);
         }
         if (mode === 'event-rule') {
@@ -3036,6 +3046,14 @@ void AppendOpsShellScript(std::ostringstream& out,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
+          await recordOpsAudit({
+            area: 'rules',
+            action: current?.id ? 'update' : 'create',
+            target: `event-template:${payload.id}`,
+            before: current?.id ? current : null,
+            after: payload
+          });
+          renderOpsAuditTrail('ops-rules-audit-list', 'rules');
           return String(response?.rule?.id || payload.id);
         }
         if (mode === 'profile') {
@@ -3055,6 +3073,14 @@ void AppendOpsShellScript(std::ostringstream& out,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
+          await recordOpsAudit({
+            area: 'rules',
+            action: current?.id || current?.profileId ? 'update' : 'create',
+            target: `profile:${payload.id}`,
+            before: current?.id || current?.profileId ? current : null,
+            after: payload
+          });
+          renderOpsAuditTrail('ops-rules-audit-list', 'rules');
           return String(response?.profile?.id || payload.id);
         }
         throw new Error('저장할 룰 종류를 찾지 못했습니다.');
@@ -3778,6 +3804,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         const name = item?.name ? ` '${item.name}'` : '';
         if (!window.confirm(`채널 분석 설정 ${opsRulesIdText(id)}${name}을 삭제할까요?`)) return;
         await requestJson(`${opsLabVaRulesPath}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        await recordOpsAudit({ area: 'rules', action: 'delete', target: `va-rule:${id}`, before: item, after: null });
+        renderOpsAuditTrail('ops-rules-audit-list', 'rules');
         if (String(opsRulesDetailRecordId || '') === String(id)) {
           await closeOpsRulesEditor();
         }
@@ -3792,6 +3820,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         }
         if (!window.confirm(`이벤트 템플릿 '${id}'를 삭제할까요?`)) return;
         await requestJson(`${opsLabRulesPath}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        await recordOpsAudit({ area: 'rules', action: 'delete', target: `event-template:${id}`, before: item, after: null });
+        renderOpsAuditTrail('ops-rules-audit-list', 'rules');
         if (String(opsRulesDetailRecordId || '') === String(id)) {
           await closeOpsRulesEditor();
         }
@@ -3808,6 +3838,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         const usagePrompt = usage === '없음' ? '' : `\n현재 사용처: ${usage}`;
         if (!window.confirm(`분석 프로파일 '${id}'를 삭제할까요?${usagePrompt}`)) return;
         await requestJson(`${opsLabProfilesPath}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        await recordOpsAudit({ area: 'rules', action: 'delete', target: `profile:${id}`, before: item, after: null });
+        renderOpsAuditTrail('ops-rules-audit-list', 'rules');
         if (String(opsRulesDetailRecordId || '') === String(id)) {
           await closeOpsRulesEditor();
         }
@@ -3982,6 +4014,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           refreshEvents().catch(error => setText('eventRecordSummary', error.message));
         });
         document.getElementById('opsRulesRefresh')?.addEventListener('click', () => refreshRules().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsRulesAuditRefresh')?.addEventListener('click', () => renderOpsAuditTrail('ops-rules-audit-list', 'rules'));
         document.getElementById('opsDashboardPretty')?.addEventListener('change', () => refreshDashboard().catch(() => {}));
         document.getElementById('opsEventsPretty')?.addEventListener('change', () => refreshEvents().catch(() => {}));
       }
@@ -3994,6 +4027,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       } else if (activeOpsPage === 'events') {
         refreshEvents().catch(error => setText('eventRecordSummary', error.message));
       } else if (activeOpsPage === 'rules') {
+        renderOpsAuditTrail('ops-rules-audit-list', 'rules');
         refreshRules().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true }));
         setOpsRulesCatalogVisibility('va-rule');
         setOpsRulesEditorModeButtons('va-rule');
@@ -4035,7 +4069,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     let editorMode = 'view';
     let currentChannelEnabled = true;
     let initializedHashChannel = false;
-	    const { escapeHtml, requestJson, formDataObject, setFeedback, showToast, setTableEmpty, tableCellHtml, setSelectOptions } = window.MediaServerUi;
+	    const { escapeHtml, requestJson, formDataObject, setFeedback, showToast, setTableEmpty, tableCellHtml, setSelectOptions, recordOpsAudit, renderOpsAuditTrail } = window.MediaServerUi;
 	    const hashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
 	    const setStatus = (message, failed = false) => {
 	      setFeedback(statusEl, message, failed, { collapseEmpty: true });
@@ -4501,6 +4535,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       loadedSources = sources.sources || [];
       loadedViews = views.views || [];
       renderChannels(loadedSources, loadedViews);
+      renderOpsAuditTrail('channel-audit-list', 'channels');
       if (!initializedHashChannel) {
         initializedHashChannel = true;
         const channelId = String(hashParams().get('channel') || '').trim();
@@ -4518,6 +4553,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       setChannelValidation(validation);
       if (validation) return;
       const { channelId, sourcePayload, viewPayload } = channelPayloadsFromFormData(data);
+      const beforeSource = findSource(channelId);
+      const beforeView = findChannelView(channelId);
       try {
         await requestJson(`/ops/api/sources/${encodeURIComponent(channelId)}`, {
           method: 'PUT',
@@ -4530,6 +4567,14 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
           body: JSON.stringify(viewPayload)
         });
         await loadAll();
+        await recordOpsAudit({
+          area: 'channels',
+          action: beforeSource || beforeView ? 'update' : 'create',
+          target: `channel:${channelId}`,
+          before: beforeSource || beforeView ? { source: beforeSource || null, view: beforeView || null } : null,
+          after: { source: sourcePayload, view: viewPayload }
+        });
+        renderOpsAuditTrail('channel-audit-list', 'channels');
         setStatus('채널 저장 완료');
         fillChannel(channelId, 'view');
       } catch (error) {
@@ -4545,6 +4590,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       }
       const view = findChannelView(id) || { viewId: id, sourceId: source.sourceId };
       const enabled = !(source.enabled !== false && view.enabled !== false);
+      const before = { source, view };
       try {
         await requestJson(`/ops/api/sources/${encodeURIComponent(source.sourceId)}`, {
           method: 'PUT',
@@ -4557,6 +4603,17 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
           body: JSON.stringify(viewPayloadFromRecord(view, source, enabled))
         });
         await loadAll();
+        await recordOpsAudit({
+          area: 'channels',
+          action: enabled ? 'enable' : 'disable',
+          target: `channel:${id}`,
+          before,
+          after: {
+            source: sourcePayloadFromRecord(source, enabled),
+            view: viewPayloadFromRecord(view, source, enabled)
+          }
+        });
+        renderOpsAuditTrail('channel-audit-list', 'channels');
         currentChannelEnabled = enabled;
         setStatus(`채널 #${id} 상태 변경 완료: ${enabled ? '활성' : '비활성'}`);
       } catch (error) {
@@ -4567,6 +4624,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       if (!id) id = channelForm.elements.channelId.value.trim();
       if (!id) return;
       if (!window.confirm(`채널 #${id}을 삭제할까요? 현재 API는 source/view를 비활성화합니다.`)) return;
+      const before = { source: findSource(id) || null, view: findChannelView(id) || null };
       try {
         const results = await Promise.allSettled([
           requestJson(`/ops/api/views/${encodeURIComponent(id)}`, { method: 'DELETE' }),
@@ -4574,6 +4632,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         ]);
         const failed = results.filter(result => result.status === 'rejected');
         await loadAll();
+        if (failed.length === 0) {
+          await recordOpsAudit({ area: 'channels', action: 'delete', target: `channel:${id}`, before, after: null });
+          renderOpsAuditTrail('channel-audit-list', 'channels');
+        }
         setStatus(failed.length ? `채널 삭제 일부 실패: ${failed[0].reason?.message || 'unknown'}` : '채널 삭제 완료', failed.length > 0);
         if (currentChannelId === id) channelPanel.hidden = true;
       } catch (error) {
@@ -4588,6 +4650,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     editSelectedButton.addEventListener('click', () => currentChannelId && fillChannel(currentChannelId, 'edit'));
     channelForm.elements.kind.addEventListener('change', updateKindFields);
     document.querySelector('#refresh').addEventListener('click', () => loadAll().catch(error => setStatus(error.message, true)));
+    document.querySelector('#channel-audit-refresh')?.addEventListener('click', () => renderOpsAuditTrail('channel-audit-list', 'channels'));
+    renderOpsAuditTrail('channel-audit-list', 'channels');
     loadAll().catch(error => setStatus(error.message, true));
   </script>
 )OPSSOURCES";
@@ -4629,7 +4693,9 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       setHidden,
       setRequired,
       setTableEmpty,
-      appendTableCell
+      appendTableCell,
+      recordOpsAudit,
+      renderOpsAuditTrail
     } = window.MediaServerUi;
     const setStatus = (message, failed = false) => setFeedback(statusEl, message, failed);
     const setRequestStatus = (message, failed = false) => setFeedback(requestStatusEl, message, failed);
@@ -4739,6 +4805,9 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         enabled: form.elements.enabled.checked,
         mustChangePassword: form.elements.mustChangePassword.checked
       };
+    }
+    function findLoadedUser(username) {
+      return loadedUsers.find(user => String(user.username || '') === String(username || '')) || null;
     }
     function roleLabel(role) {
       return ({
@@ -4946,6 +5015,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       const json = await requestJson('/ops/api/users');
       loadedUsers = Array.isArray(json.users) ? json.users : [];
       renderUsers(loadedUsers);
+      renderOpsAuditTrail('user-audit-list', 'users');
     }
     async function loadAccessRequests() {
       const json = await requestJson('/ops/api/access-requests');
@@ -4961,11 +5031,20 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     }
     async function setEnabled(username, enabled) {
       try {
+        const before = findLoadedUser(username);
         if (!enabled && username === 'admin') {
           setStatus('마지막 활성 admin이면 서버가 비활성화를 거부합니다.', true);
         }
         await requestJson(`/ops/api/users/${encodeURIComponent(username)}/${enabled ? 'enable' : 'disable'}`, { method: 'POST' });
         await loadAll();
+        await recordOpsAudit({
+          area: 'users',
+          action: enabled ? 'enable' : 'disable',
+          target: `user:${username}`,
+          before,
+          after: { ...(before || { username }), enabled }
+        });
+        renderOpsAuditTrail('user-audit-list', 'users');
       } catch (error) {
         setStatus(error.message, true);
       }
@@ -4991,6 +5070,14 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         ].filter(Boolean).join('\n'));
         setRequestStatus('접근 요청 승인 완료');
         await loadAll({ clearMessages: false });
+        await recordOpsAudit({
+          area: 'users',
+          action: 'approve',
+          target: `request:${request.requestId}`,
+          before: request,
+          after: { ...request, status: 'approved', viewId: normalizedViewId || request.viewId || '' }
+        });
+        renderOpsAuditTrail('user-audit-list', 'users');
       } catch (error) {
         setRequestStatus(error.message, true);
       }
@@ -5002,6 +5089,14 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         setInviteOutput('');
         setRequestStatus('접근 요청 거절 완료');
         await loadAll({ clearMessages: false });
+        await recordOpsAudit({
+          area: 'users',
+          action: 'reject',
+          target: `request:${request.requestId}`,
+          before: request,
+          after: { ...request, status: 'rejected' }
+        });
+        renderOpsAuditTrail('user-audit-list', 'users');
       } catch (error) {
         setRequestStatus(error.message, true);
       }
@@ -5025,10 +5120,19 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
           hideUserEditor();
           updateAssignmentVisibility();
           await loadAll();
+          await recordOpsAudit({
+            area: 'users',
+            action: 'create',
+            target: `user:${payload.username}`,
+            before: null,
+            after: payload
+          });
+          renderOpsAuditTrail('user-audit-list', 'users');
           setStatus('사용자 추가 완료');
           return;
         }
         if (!payload.username) return;
+        const before = findLoadedUser(payload.username);
         delete payload.password;
         delete payload.confirmPassword;
         await requestJson(`/ops/api/users/${encodeURIComponent(payload.username)}`, {
@@ -5037,6 +5141,14 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
           body: JSON.stringify(payload)
         });
         await loadAll();
+        await recordOpsAudit({
+          area: 'users',
+          action: 'update',
+          target: `user:${payload.username}`,
+          before,
+          after: payload
+        });
+        renderOpsAuditTrail('user-audit-list', 'users');
         hideUserEditor();
         setStatus('사용자 저장 완료');
       } catch (error) {
@@ -5051,6 +5163,8 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     closeUserButton.onclick = () => {
       hideUserEditor();
     };
+    document.querySelector('#user-audit-refresh')?.addEventListener('click', () => renderOpsAuditTrail('user-audit-list', 'users'));
+    renderOpsAuditTrail('user-audit-list', 'users');
     document.addEventListener('click', event => {
       const viewButton = event.target.closest('[data-user-view]');
       if (viewButton) {

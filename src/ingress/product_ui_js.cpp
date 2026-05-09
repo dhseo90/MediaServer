@@ -156,6 +156,118 @@ std::string ProductSharedUiScript() {
         document.querySelectorAll('[data-lab-scope]').forEach(el => { el.hidden = !hasLab; });
         return who;
       }
+      let principalPromise = null;
+      async function currentPrincipal() {
+        if (!principalPromise) principalPromise = applyPrincipalVisibility().catch(() => null);
+        return principalPromise;
+      }
+      const auditStoreKey = 'mediaServerOpsAuditTrail.v1';
+      const auditKeyRedacted = key => /(password|token|hash|secret|capability)/i.test(String(key || ''));
+      const compactAuditValue = (value, depth = 0) => {
+        if (value === null || value === undefined) return value;
+        if (auditKeyRedacted('' + value) && typeof value === 'string' && value.length > 24) return '[redacted]';
+        if (typeof value === 'string') return value.length > 180 ? `${value.slice(0, 177)}...` : value;
+        if (typeof value === 'number' || typeof value === 'boolean') return value;
+        if (depth >= 3) return '[nested]';
+        if (Array.isArray(value)) return value.slice(0, 12).map(item => compactAuditValue(item, depth + 1));
+        if (typeof value === 'object') {
+          const out = {};
+          for (const [key, entry] of Object.entries(value)) {
+            out[key] = auditKeyRedacted(key) ? '[redacted]' : compactAuditValue(entry, depth + 1);
+          }
+          return out;
+        }
+        return display(value);
+      };
+      const stableAuditJson = value => JSON.stringify(compactAuditValue(value));
+      const summarizeAuditChange = (beforeValue, afterValue) => {
+        const before = beforeValue && typeof beforeValue === 'object' && !Array.isArray(beforeValue) ? beforeValue : {};
+        const after = afterValue && typeof afterValue === 'object' && !Array.isArray(afterValue) ? afterValue : {};
+        const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
+        const changed = [];
+        for (const key of keys) {
+          if (auditKeyRedacted(key)) continue;
+          if (stableAuditJson(before[key]) !== stableAuditJson(after[key])) changed.push(key);
+        }
+        return changed.slice(0, 6).join(', ') || '상태';
+      };
+      const loadOpsAuditTrail = () => {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(auditStoreKey) || '[]');
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      };
+      const saveOpsAuditTrail = entries => {
+        localStorage.setItem(auditStoreKey, JSON.stringify(entries.slice(0, 80)));
+      };
+      async function recordOpsAudit({ area = 'ops', action = 'update', target = '', before = null, after = null } = {}) {
+        const who = await currentPrincipal();
+        const actor = who?.username || who?.displayName || who?.role || 'dev-admin';
+        const entry = {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          at: new Date().toISOString(),
+          actor,
+          role: who?.role || '',
+          area,
+          action,
+          target: String(target || ''),
+          summary: summarizeAuditChange(before, after),
+          before: compactAuditValue(before),
+          after: compactAuditValue(after)
+        };
+        const entries = loadOpsAuditTrail();
+        entries.unshift(entry);
+        saveOpsAuditTrail(entries);
+        window.dispatchEvent(new CustomEvent('mediaServer.audit', { detail: entry }));
+        return entry;
+      }
+      function renderOpsAuditTrail(containerId, area = '') {
+        const el = byId(containerId);
+        if (!el) return;
+        const entries = loadOpsAuditTrail()
+          .filter(entry => !area || entry.area === area)
+          .slice(0, 10);
+        if (entries.length === 0) {
+          el.innerHTML = '<div class="empty">아직 이 화면에서 기록한 변경 이력이 없습니다.</div>';
+          return;
+        }
+        const actionLabel = value => ({
+          create: '생성',
+          update: '수정',
+          delete: '삭제',
+          enable: '활성화',
+          disable: '비활성화',
+          approve: '승인',
+          reject: '거절'
+        })[String(value || '')] || display(value);
+        const areaLabel = value => ({
+          channels: '채널',
+          rules: '룰',
+          users: '사용자'
+        })[String(value || '')] || display(value);
+        el.innerHTML = entries.map(entry => `
+          <article class="audit-entry">
+            <div class="audit-entry-head">
+              <strong>${escapeHtml(areaLabel(entry.area))} ${escapeHtml(actionLabel(entry.action))}</strong>
+              <span>${escapeHtml(new Date(entry.at).toLocaleString())}</span>
+            </div>
+            <div class="audit-entry-meta">
+              <span>대상 ${escapeHtml(display(entry.target))}</span>
+              <span>작업자 ${escapeHtml(display(entry.actor))}${entry.role ? ` · ${escapeHtml(entry.role)}` : ''}</span>
+              <span>변경 ${escapeHtml(display(entry.summary))}</span>
+            </div>
+            <details>
+              <summary>전/후 보기</summary>
+              <div class="audit-diff-grid">
+                <pre>${escapeHtml(JSON.stringify(entry.before ?? null, null, 2))}</pre>
+                <pre>${escapeHtml(JSON.stringify(entry.after ?? null, null, 2))}</pre>
+              </div>
+            </details>
+          </article>
+        `).join('');
+      }
       return {
         escapeHtml,
         display,
@@ -179,7 +291,9 @@ std::string ProductSharedUiScript() {
         renderBadges,
         renderRaw,
         requestJson,
-        applyPrincipalVisibility
+        applyPrincipalVisibility,
+        recordOpsAudit,
+        renderOpsAuditTrail
       };
     })();
   </script>

@@ -66,6 +66,8 @@ Usage:
                  WebRTC session active/cleanup 기준으로 공통 source lifecycle idle 복귀를 검증합니다.
   verify-ops-event-records-scope
                  EventRecord가 짧은 증거 기록 범위로 노출되고 /ops/events UI가 이를 표시하는지 검증합니다.
+  verify-ops-audit-trail
+                 /ops 채널/룰/사용자 UI 변경 이력 패널과 기록 hook을 검증합니다.
   verify-ops-diagnostics-bundle
                  운영 diagnostics bundle 생성물과 config preset 기준을 검증합니다.
   verify-docs-ui-assets
@@ -283,6 +285,10 @@ case "${cmd}" in
   verify-ops-event-records-scope)
     require_internal verify_ops_event_records_scope.mjs
     exec "${INTERNAL_DIR}/verify_ops_event_records_scope.mjs" "$@"
+    ;;
+  verify-ops-audit-trail)
+    require_internal verify_ops_audit_trail.mjs
+    exec "${INTERNAL_DIR}/verify_ops_audit_trail.mjs" "$@"
     ;;
   verify-ops-diagnostics-bundle)
     require_internal verify_ops_diagnostics_bundle.sh
