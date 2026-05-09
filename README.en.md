@@ -2,10 +2,12 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
+[![Latest Release](https://img.shields.io/github/v/release/dhseo90/MediaServer?label=release)](https://github.com/dhseo90/MediaServer/releases/latest)
 
 Media Server is a C++17 RTSP/WebRTC relay with optional YOLO/ONNX video analytics overlays, rule/scenario events, and short evidence artifacts.
 
 Korean documentation: [README.md](README.md)
+Latest source-only release: [v1.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.0.0)
 
 ## At a Glance
 
