@@ -31,11 +31,31 @@ check("ops rules script detects conflict and missing references", () => {
     "missing-profile",
     "missing-template",
     "missing-rule",
+    "inactive-channel",
+    "inactive-view",
+    "view-mode-not-allowed",
+    "view-rule-not-allowed",
+    "template-profile-conflict",
+    "opsRulesClassConflictMessages",
+    "opsRulesViewAllowsVaRuleMode",
     "duplicate",
     "저장 전 검증 실패",
   ];
   for (const snippet of required) {
     assert(script.includes(snippet), `rules script is missing conflict guard snippet: ${snippet}`);
+  }
+});
+
+check("server rejects va rule template class mismatch", () => {
+  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const required = [
+    "StringArrayFieldValues",
+    "AnalysisClassesFromDocument",
+    "vaRule analysis.classes must include template analysis.classes",
+    "vaRule profile classes must include template analysis.classes",
+  ];
+  for (const snippet of required) {
+    assert(server.includes(snippet), `server validation is missing snippet: ${snippet}`);
   }
 });
 
