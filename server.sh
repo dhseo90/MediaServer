@@ -55,6 +55,8 @@ Usage:
                  /ops 채널/룰/사용자 주요 패널과 탭 이동을 실제 브라우저 클릭으로 검증합니다.
   verify-ops-rules-roundtrip
                  /ops/rules 이벤트 템플릿 저장/조회 round-trip을 영상 재생 없이 검증합니다.
+  verify-server-start-modes
+                 foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
                  최초 setup, admin password policy, login/logout/session을 검증합니다.
   verify-auth-users
@@ -238,6 +240,10 @@ case "${cmd}" in
   verify-ops-rules-roundtrip)
     require_internal verify_ops_rules_roundtrip.mjs
     exec "${INTERNAL_DIR}/verify_ops_rules_roundtrip.mjs" "$@"
+    ;;
+  verify-server-start-modes)
+    require_internal verify_server_start_modes.sh
+    exec "${INTERNAL_DIR}/verify_server_start_modes.sh" "$@"
     ;;
   verify-auth-bootstrap)
     require_internal verify_auth_bootstrap.sh
