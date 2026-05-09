@@ -1966,7 +1966,7 @@ void AppendProductAccountMenu(std::ostringstream& out,
                              const std::string& secondary_action_label = std::string()) {
     out << R"(        <div class="account-menu" aria-label="현재 계정">
           <div class="account-menu-top">
-            )" << ProductThemeToggleButtonHtml() << R"(
+            )" << ProductThemeToggleButtonHtml() << ProductLanguageSelectHtml() << R"(
 )";
     if (!secondary_action_href.empty() && !secondary_action_label.empty()) {
         out << R"(            <a class="button button-secondary account-shortcut" href=")"
@@ -2068,7 +2068,7 @@ void AppendAuthShellStart(std::ostringstream& out,
 )" << ProductThemeBootScript() << ProductUiCss() << ProductSharedUiScript() << R"(
 </head>
 <body class="auth-shell">
-  <div class="auth-theme-control">)" << ProductThemeToggleButtonHtml() << R"(</div>
+  <div class="auth-theme-control">)" << ProductThemeToggleButtonHtml() << ProductLanguageSelectHtml() << R"(</div>
   <main class="auth-card)" << (card_extra_class.empty() ? "" : " " + HtmlEscape(card_extra_class)) << R"(">
     <div class="auth-actions">
       <p class="eyebrow">)" << HtmlEscape(eyebrow) << R"(</p>
@@ -2240,7 +2240,7 @@ std::string AuthLandingPageHtml(const auth::Principal& principal,
         <p>)" << HtmlEscape(body) << R"(</p>
       </div>
       <div class="header-utilities">
-        )" << ProductThemeToggleButtonHtml() << R"(
+        )" << ProductThemeToggleButtonHtml() << ProductLanguageSelectHtml() << R"(
         <form method="post" action="/logout"><button class="button-secondary" type="submit">로그아웃</button></form>
       </div>
       </div>
@@ -10291,6 +10291,17 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                                        "Bad Request",
 	                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
 	                                }
+                                    const std::string label_lang =
+                                        ParseStringField(request.body, "labelLang")
+                                            .value_or(query.count("labelLang") != 0 ? query.at("labelLang") : "");
+                                    const std::string normalized_label_lang = LowerAscii(Trim(label_lang));
+                                    if (normalized_label_lang == "en" ||
+                                        normalized_label_lang == "english") {
+                                        session_query["labelLang"] = "en";
+                                    } else if (normalized_label_lang == "ko" ||
+                                               normalized_label_lang == "korean") {
+                                        session_query["labelLang"] = "ko";
+                                    }
 	                                const int client_view_max_tiles = std::max(1, access.view.max_tiles);
 	                                const auto active_client_view_sessions_locked = [&]() {
 	                                    std::size_t count = 0;
