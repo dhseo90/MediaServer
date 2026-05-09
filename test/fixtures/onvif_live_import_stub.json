@@ -1,0 +1,94 @@
+{
+  "schema": "media-server.onvif-live-import-stub.v1",
+  "description": "Synthetic ONVIF import fixture for v1.1.0 live source onboarding design. It is not an API contract.",
+  "device": {
+    "endpoint": "http://192.0.2.10/onvif/device_service",
+    "manufacturer": "ExampleCam",
+    "model": "EC-LiveT-200",
+    "firmwareVersion": "1.2.3-test",
+    "serialNumber": "EXAMPLE-ONVIF-0001",
+    "profilesSupported": [
+      "T",
+      "S"
+    ]
+  },
+  "auth": {
+    "required": true,
+    "credentialRef": "operator-entered-secret",
+    "plaintextSecretIncluded": false
+  },
+  "capabilities": {
+    "media": true,
+    "media2": true,
+    "ptz": true,
+    "recording": false,
+    "replay": false
+  },
+  "profiles": [
+    {
+      "token": "profile-live-main",
+      "name": "Live Main H264",
+      "mediaApi": "Media2",
+      "encoding": "H264",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "transport": "RTSP",
+      "streamUri": "rtsp://192.0.2.10/live/main",
+      "selected": true
+    },
+    {
+      "token": "profile-live-sub",
+      "name": "Live Sub H264",
+      "mediaApi": "Media",
+      "encoding": "H264",
+      "width": 640,
+      "height": 360,
+      "fps": 15,
+      "transport": "RTSP",
+      "streamUri": "rtsp://192.0.2.10/live/sub",
+      "selected": false
+    }
+  ],
+  "importDecision": {
+    "selectedProfileToken": "profile-live-main",
+    "expectedSourceDraft": {
+      "sourceId": "onvif-examplecam-main",
+      "displayName": "ExampleCam Live Main",
+      "kind": "rtsp",
+      "rtspUrl": "rtsp://192.0.2.10/live/main",
+      "enabled": true,
+      "tags": [
+        "onvif",
+        "live",
+        "profile-t"
+      ],
+      "ownerGroup": "ops"
+    },
+    "expectedPublishedViewDraft": {
+      "viewId": "onvif-examplecam-main",
+      "displayName": "ExampleCam Live Main",
+      "sourceId": "onvif-examplecam-main",
+      "allowedOverlayModes": [
+        "raw",
+        "va-overlay",
+        "va-rule"
+      ],
+      "showDashboard": true,
+      "showEvents": true,
+      "showMetadataSummary": true,
+      "clientGroups": [
+        "default"
+      ],
+      "maxTiles": 1,
+      "enabled": true
+    }
+  },
+  "nonGoals": [
+    "ONVIF conformant server",
+    "ONVIF Profile G recording/replay",
+    "camera recording configuration",
+    "playback/search",
+    "plain text credential persistence"
+  ]
+}

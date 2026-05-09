@@ -15,6 +15,7 @@ The public repository keeps only generated verification fixtures. Operational me
 | `video/va_four_scene_sample.mp4` | Four-scene VA overlay docs and checks | Generated VA scene fixture | Allowed |
 | `video/va_sports_sample.mp4` | VA category/sample smoke | Generated sports-like fixture | Allowed |
 | `video/imports/va_tracking_event_1280x720_30fps_h264.mp4` | Tracking/event regression | Generated allowlisted import fixture | Allowed |
+| `test/fixtures/onvif_live_import_stub.json` | ONVIF live source import design | Synthetic JSON fixture without real devices or credentials | Allowed |
 
 ## Excluded
 

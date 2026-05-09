@@ -10,6 +10,7 @@ v1.1.0의 다음 개발 방향은 장기 녹화/VMS/NVR이 아니라 live source
 onboarding, live source health, live VA event 품질 고도화입니다.
 
 English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
+
 최신 source-only release: [v1.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.0.0)
 
 ## 한눈에 보기
@@ -110,6 +111,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | RTSP/WebRTC pipeline, source/session, VA layer 배치 | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenario, live event, short evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
 | v1.1.0 live-only 목표와 ONVIF/VA 로드맵 | [docs/v1.1.0-roadmap.md](docs/v1.1.0-roadmap.md) |
+| ONVIF live source import 설계와 stub fixture | [docs/onvif-live-import.md](docs/onvif-live-import.md) |
 | 현재 검증 기준과 실행 명령 | [docs/stream-verification.md](docs/stream-verification.md) |
 | 배포 bundle, container image, third-party runtime 포함 정책 | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | release asset 범위와 RC 기준 | [docs/release-policy.md](docs/release-policy.md) |
