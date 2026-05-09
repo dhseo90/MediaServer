@@ -2,6 +2,7 @@
 // 파일 용도: EventRecord가 장기 녹화가 아닌 짧은 증거 기록 범위로 노출되고, /ops/events UI가 그 계약을 표시하는지 검증한다.
 
 import os from "node:os";
+import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
@@ -33,6 +34,8 @@ console.log("[pass] ops-events evidence controls rendered");
 const storageStatus = await requestJson("/lab/analysis/event-storage/status");
 assertEvidencePolicy("lab-storage-status", storageStatus.evidencePolicy);
 console.log("[pass] lab event-storage evidence policy");
+await verifyEvidenceBundleDownload(storageStatus);
+console.log("[pass] lab event evidence zip bundle");
 
 const records = await requestJson("/lab/analysis/events/records?limit=5&evidence=missing&includeArchives=1");
 assertRecordList("lab-records-evidence-missing", records);
@@ -155,7 +158,12 @@ function assertEvidencePolicy(label, policy) {
     throw new Error(`${label}: evidencePolicy.snapshotFormats missing jpg/ppm`);
   }
   const exportPolicy = policy.exportPolicy || {};
-  if (exportPolicy.snapshotDownload !== true || exportPolicy.clipManifestDownload !== true || exportPolicy.longVideoExport !== false) {
+  if (exportPolicy.snapshotDownload !== true ||
+      exportPolicy.clipManifestDownload !== true ||
+      exportPolicy.bundleArchiveDownload !== true ||
+      exportPolicy.bundleFormat !== "zip" ||
+      exportPolicy.exportAudit !== true ||
+      exportPolicy.longVideoExport !== false) {
     throw new Error(`${label}: exportPolicy mismatch ${JSON.stringify(exportPolicy)}`);
   }
   const retentionPolicy = policy.retentionPolicy || {};
@@ -165,6 +173,54 @@ function assertEvidencePolicy(label, policy) {
   const deletePolicy = policy.deletePolicy || {};
   if (deletePolicy.compactionDelete !== true || deletePolicy.evidenceFileDelete !== false) {
     throw new Error(`${label}: deletePolicy mismatch ${JSON.stringify(deletePolicy)}`);
+  }
+}
+
+async function verifyEvidenceBundleDownload(storageStatus) {
+  const snapshotDir = path.resolve(String(storageStatus?.snapshotHook?.directory || ".media_server.va_snapshots"));
+  const clipDir = path.resolve(String(storageStatus?.clipHook?.directory || ".media_server.va_clips"));
+  fs.mkdirSync(snapshotDir, { recursive: true });
+  fs.mkdirSync(clipDir, { recursive: true });
+  const eventId = `verify-bundle-${Date.now()}-${process.pid}`;
+  const snapshotPath = path.join(snapshotDir, `${eventId}.ppm`);
+  const clipBundleDir = path.join(clipDir, `${eventId}.clip`);
+  fs.mkdirSync(clipBundleDir, { recursive: true });
+  const clipPath = path.join(clipBundleDir, "manifest.json");
+  const framePath = path.join(clipBundleDir, "frame-000001.ppm");
+  fs.writeFileSync(snapshotPath, "P3\n1 1\n255\n255 0 0\n", "utf8");
+  fs.writeFileSync(framePath, "P3\n1 1\n255\n0 255 0\n", "utf8");
+  fs.writeFileSync(clipPath, JSON.stringify({
+    schema: "media-server.va.event-clip-hook.v1",
+    eventId,
+    frames: [{ file: path.basename(framePath), relativeTimeMs: 0 }],
+  }), "utf8");
+  try {
+    const params = new URLSearchParams({
+      eventId,
+      snapshotPath,
+      clipPath,
+      download: "1",
+    });
+    const response = await fetch(`${httpBase}/lab/analysis/events/evidence/bundle?${params.toString()}`);
+    const body = Buffer.from(await response.arrayBuffer());
+    const disposition = response.headers.get("content-disposition") || "";
+    if (response.status !== 200 ||
+        !String(response.headers.get("content-type") || "").includes("application/zip") ||
+        !disposition.includes("event-evidence-") ||
+        body.subarray(0, 2).toString("utf8") !== "PK" ||
+        !body.includes(Buffer.from("manifest.json")) ||
+        !body.includes(Buffer.from(path.basename(snapshotPath))) ||
+        !body.includes(Buffer.from(path.basename(framePath)))) {
+      throw new Error(`bundle response mismatch status=${response.status} type=${response.headers.get("content-type")} disposition=${disposition} bytes=${body.length}`);
+    }
+    const audit = await requestJson("/ops/api/audit?area=events&limit=5");
+    const entries = Array.isArray(audit?.entries) ? audit.entries : [];
+    if (!entries.some(item => item?.action === "export-bundle" && String(item?.target || "").includes(eventId))) {
+      throw new Error(`missing export-bundle audit entry: ${JSON.stringify(entries).slice(0, 240)}`);
+    }
+  } finally {
+    fs.rmSync(snapshotPath, { force: true });
+    fs.rmSync(clipBundleDir, { recursive: true, force: true });
   }
 }
 
