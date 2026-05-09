@@ -29,6 +29,9 @@ check("ops dashboard script interprets runtime root causes", () => {
   const required = [
     "dashboardRootCauseItems",
     "renderDashboardRootCause",
+    "/ops/api/diagnostics/log-tail",
+    "diagnosticLog",
+    "logEvidence",
     "sourceLifecycle",
     "lastUsedAgeMs",
     "inactivePublishSources",
@@ -38,6 +41,7 @@ check("ops dashboard script interprets runtime root causes", () => {
     "relayPolicyFallback",
     "root-cause-next-action",
     "root-cause-evidence",
+    "root-cause-log",
     "/ops/events",
     "ops:read",
     "whoami 응답을 확인하지 못했습니다.",
@@ -55,6 +59,7 @@ check("root cause list is responsive", () => {
     ".root-cause-item.warn",
     ".root-cause-action",
     ".root-cause-evidence",
+    ".root-cause-log",
     ".root-cause-next-action",
     "@media (max-width: 560px)",
   ];
@@ -67,6 +72,9 @@ check("server entrypoint includes root cause verifier", () => {
   const server = readText("server.sh");
   assert(server.includes("verify-ops-root-cause-panel"), "server.sh is missing verify-ops-root-cause-panel");
   assert(server.includes("verify_ops_root_cause_panel.mjs"), "server.sh is missing verifier script reference");
+  const httpServer = readText("src/ingress/webrtc_http_server.cpp");
+  assert(httpServer.includes("/ops/api/diagnostics/log-tail"), "server is missing diagnostics log-tail API");
+  assert(httpServer.includes("OpsDiagnosticLogTailJson"), "server is missing diagnostics log-tail JSON builder");
 });
 
 let failCount = 0;
