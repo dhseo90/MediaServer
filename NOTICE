@@ -14,6 +14,8 @@ sample media, package의 라이선스를 이 저장소가 다시 부여하지 �
 자동 생성 가능한 상세 dependency inventory는 config/third_party_attribution.json에
 관리하며, `./server.sh write-dependency-notice` 명령으로
 THIRD_PARTY_NOTICES.md를 갱신합니다.
+현재 개발/배포 환경의 실제 설치 버전, 모델 hash, linked library 목록은
+`./server.sh dependency-snapshot` 명령으로 DEPENDENCY_SNAPSHOT.md에 기록합니다.
 
 Core build/runtime dependency
 -----------------------------
@@ -64,3 +66,5 @@ binary release 또는 bundle을 공개하기 전에는 bundle 안에 포함된 t
 library, plugin, model file을 정확히 확인해야 합니다. Package manager 설치물,
 local Homebrew/apt/dnf/pacman package, 다운로드 model file은 이 저장소의
 Apache-2.0과 별개 의무를 추가할 수 있습니다.
+FFmpeg snapshot에 GPL build flag가 감지되면 FFmpeg를 bundle하지 않는 배포와
+bundle하는 배포의 의무를 별도로 검토해야 합니다.

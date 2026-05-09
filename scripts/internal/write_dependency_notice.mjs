@@ -65,23 +65,24 @@ function buildMarkdown(inventory, inventoryLabel) {
     "",
     "<!-- 이 파일은 ./server.sh write-dependency-notice 명령으로 생성합니다. -->",
     "",
-    `- schema: ${inventory.schema || "media-server.third-party-attribution.v1"}`,
+    `- schema: ${inventory.schema || "media-server.third-party-attribution.v2"}`,
     `- source inventory: ${inventoryLabel}`,
     "- scope: binary bundle과 운영 배포 전에 확인해야 하는 third-party runtime/tool/model attribution",
     "",
     "이 문서는 이 저장소의 Apache-2.0 라이선스가 third-party 구성요소를 재라이선스하지 않는다는 점을 명확히 하기 위한 배포 점검용 문서입니다.",
     "실제 binary bundle에 포함되는 파일 목록은 배포 방식마다 달라질 수 있으므로, release 전에 포함 library/plugin/model/tool을 다시 확인해야 합니다.",
     "",
-    "| 구성요소 | 라이선스 | 용도 | 출처 | 배포 형태 | 번들 기준 |",
-    "| --- | --- | --- | --- | --- | --- |",
+    "| 구성요소 | 라이선스 | 버전 기준 | 감지 방법 | 용도 | 출처/배포 | 번들 기준 |",
+    "| --- | --- | --- | --- | --- | --- | --- |",
   ];
   for (const dep of inventory.dependencies) {
     lines.push([
       `| ${cell(dep.name || dep.id)}`,
       cell(dep.license),
+      cell(versionSummary(dep)),
+      cell(detectorSummary(dep)),
       cell(dep.usage),
-      cell(dep.source),
-      cell(dep.distribution),
+      cell(`${dep.source || "-"} / ${dep.distribution || "-"}`),
       `${cell(dep.bundlePolicy)} |`,
     ].join(" | "));
   }
@@ -91,12 +92,39 @@ function buildMarkdown(inventory, inventoryLabel) {
     "",
     "- [ ] binary bundle 안의 동적 library와 plugin 목록을 확인했습니다.",
     "- [ ] model file과 sample media가 bundle에 포함되는지 확인했습니다.",
+    "- [ ] `./server.sh dependency-snapshot`으로 실제 설치 버전과 모델 hash를 기록했습니다.",
     "- [ ] 포함되는 third-party license text와 attribution을 bundle에 함께 넣었습니다.",
     "- [ ] FFmpeg/GStreamer plugin build가 GPL component를 포함하는지 확인했습니다.",
     "- [ ] YOLO model asset 재배포/상업 사용 조건을 별도로 확인했습니다.",
     "",
   );
   return lines.join("\n");
+}
+
+function versionSummary(dep) {
+  return [
+    dep.minimumVersion ? `최소/기준: ${dep.minimumVersion}` : "",
+    dep.versionPolicy ? `정책: ${dep.versionPolicy}` : "",
+  ].filter(Boolean).join(" ");
+}
+
+function detectorSummary(dep) {
+  const commands = Array.isArray(dep.detectors)
+    ? dep.detectors.map((item) => `${item.label}: ${formatCommand(item)}`)
+    : [];
+  const assets = Array.isArray(dep.assets)
+    ? dep.assets.map((item) => `${item.label}: ${item.path}`)
+    : [];
+  return [...commands, ...assets].join("; ") || "-";
+}
+
+function formatCommand(item) {
+  return [item.command, ...(Array.isArray(item.args) ? item.args : [])].filter(Boolean).map(shellToken).join(" ");
+}
+
+function shellToken(value) {
+  const text = String(value);
+  return /^[A-Za-z0-9_./:=@+-]+$/.test(text) ? text : JSON.stringify(text);
 }
 
 function cell(value) {

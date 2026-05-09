@@ -45,12 +45,13 @@ release candidate gate를 열 때만 명시적으로 실행합니다.
 
 ```bash
 ./server.sh build
-git diff --check -- README.md NOTICE .github docs scripts src include
+git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.md .github config docs scripts src include
 ./server.sh verify-script-inventory
 ./server.sh verify-code-comments
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh write-dependency-notice --check
+./server.sh dependency-snapshot --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-click-e2e
