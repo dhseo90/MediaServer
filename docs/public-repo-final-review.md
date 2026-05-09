@@ -12,7 +12,9 @@ GitHub Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 �
 ./server.sh verify-code-comments
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
+./server.sh verify-actions-security
 ./server.sh write-dependency-notice --check
+./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --json-output /tmp/media_server_dependency_snapshot.json --no-linked-libs
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json --output /tmp/media_server_source_offer_checklist.md
@@ -26,9 +28,10 @@ media pipeline을 바꾸지 않은 공개 준비 변경은 FFmpeg CLI 의존을 
 
 ## 공개 대상
 
-- 기본 공개 대상은 Apache-2.0 소스, 문서, 설정 예시, 검증 스크립트입니다.
+- 기본 공개 대상은 Apache-2.0 소스, 문서, 설정 예시, 검증 스크립트, allowlist된 생성 sample fixture입니다.
 - 기본 공개 대상에 FFmpeg, FFprobe, libav*, x264/x265, GStreamer GPL-risk plugin 바이너리는 포함하지 않습니다.
-- YOLO model, sample video, 로컬 auth store, 운영 로그, evidence media는 공개 대상에 포함하지 않습니다.
+- YOLO model, 대형 import video, 로컬 auth store, 운영 로그, evidence media는 공개 대상에 포함하지 않습니다.
+- 현재 추적되는 `video/*.mp4`와 allowlist된 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4`는 재현용 생성 fixture로만 취급합니다.
 - binary bundle, app bundle, container image, offline package는 별도 release gate 통과 전까지 제공하지 않습니다.
 
 ## 수동 GitHub 설정
@@ -55,10 +58,18 @@ Repository metadata:
 - Topics는 실제 지원 범위만 넣습니다.
 - Visibility는 이 문서와 CI가 통과한 뒤 마지막에 수동으로 public 전환합니다.
 
+Public 전환 후 확인:
+
+- Rulesets 화면에서 `main` ruleset이 실제 enforced 상태인지 확인합니다.
+- Required status checks에 `static-gates`, `guardrails`가 유지되는지 확인합니다.
+- test branch에서 force push/delete가 차단되는지 확인합니다.
+- 이 확인은 GitHub UI/권한 동작이므로 자동 수정하지 않습니다.
+
 ## 공개 전 점검표
 
 - [ ] `git status --short`에 의도하지 않은 파일이 없습니다.
 - [ ] secret, token, password, auth store, 개인 local path가 문서/코드/history에 없습니다.
+- [ ] `verify-public-repo-readiness`가 통과했습니다.
 - [ ] README 첫 화면이 실행 환경, 접속 주소, 문서 로드맵을 명확히 보여줍니다.
 - [ ] LICENSE는 Apache-2.0이고 NOTICE/THIRD_PARTY_NOTICES가 최신입니다.
 - [ ] `DEPENDENCY_SNAPSHOT.md`가 현재 release 판단 기준과 맞습니다.

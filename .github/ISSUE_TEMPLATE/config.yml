@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security disclosure
+    url: https://github.com/dhseo90/MediaServer/security
+    about: 보안 취약점은 공개 issue에 세부 exploit을 쓰지 말고 SECURITY.md 기준으로 제보해주세요.

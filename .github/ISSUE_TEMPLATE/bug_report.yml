@@ -1,0 +1,46 @@
+name: Bug report
+description: 재현 가능한 버그를 보고합니다.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: 요약
+      description: 문제가 무엇인지 짧게 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 재현 방법
+      description: 실행한 command, 접속 URL, 클릭 흐름을 적어주세요. secret이나 운영 영상은 넣지 마세요.
+      placeholder: |
+        1. ./server.sh ...
+        2. http://127.0.0.1:8081/ 접속
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대 결과
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 실제 결과
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 환경
+      description: OS, GStreamer, browser, build mode 등 필요한 정보만 적어주세요.
+      placeholder: |
+        OS:
+        Browser:
+        ./server.sh status:
+    validations:
+      required: false

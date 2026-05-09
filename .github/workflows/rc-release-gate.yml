@@ -37,6 +37,9 @@ on:
         default: ""
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   rc-release-gate:
     runs-on: ${{ inputs.runner_label }}

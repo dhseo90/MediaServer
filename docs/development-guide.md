@@ -381,6 +381,7 @@ UI 사용 흐름은 [ui-guide.md](./ui-guide.md)에 별도로 유지합니다.
 ```bash
 ./server.sh build
 ./server.sh verify-script-inventory
+./server.sh verify-actions-security
 ./server.sh test
 ```
 
