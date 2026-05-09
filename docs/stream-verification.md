@@ -51,8 +51,9 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh write-dependency-notice --check
-./server.sh dependency-snapshot --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
-./server.sh verify-bundle-policy
+./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
+./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
+./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-click-e2e
@@ -67,6 +68,12 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 
 ```bash
 ./server.sh verify-longrun-separation
+```
+
+FFmpeg/ffprobe CLI가 없는 공개/CI 환경에서는 codec matrix와 RTSP decode 기반 VA overlay 검증을 분리합니다.
+
+```bash
+./server.sh test --basic --ffmpeg-free
 ```
 
 `verify-auth-routes`는 임시 users/source/view 파일과 격리 포트로 서버를 직접 띄웁니다.

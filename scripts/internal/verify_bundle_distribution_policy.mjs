@@ -22,6 +22,8 @@ Usage:
 Options:
   --bundle-dir <path>       검사할 bundle/root 디렉터리입니다. 기본은 현재 저장소입니다.
   --policy <path>           bundle distribution policy JSON입니다. 기본 config/bundle_distribution_policy.json.
+  --output <path>           Markdown 리포트를 저장합니다.
+  --json-output <path>      JSON 리포트를 저장합니다.
   --allow-risky-runtime     발견 항목을 실패가 아니라 경고로만 보고합니다.
   --scan-linked-libs        Mach-O/ELF/PE binary의 linked library도 검사합니다. 기본값입니다.
   --no-scan-linked-libs     linked library 검사를 건너뜁니다.
@@ -31,6 +33,8 @@ Options:
 assertKnownOptions(rawArgs, [
   "bundle-dir",
   "policy",
+  "output",
+  "json-output",
   "allow-risky-runtime",
   "scan-linked-libs",
   "no-scan-linked-libs",
@@ -44,6 +48,8 @@ const policy = readPolicy(policyPath);
 const bundleDir = path.resolve(rootDir, args.bundleDir || ".");
 const scanLinkedLibraries = args.noScanLinkedLibs !== true;
 const allowRiskyRuntime = args.allowRiskyRuntime === true;
+const outputPath = args.output ? path.resolve(rootDir, args.output) : "";
+const jsonOutputPath = args.jsonOutput ? path.resolve(rootDir, args.jsonOutput) : "";
 
 if (!fs.existsSync(bundleDir) || !fs.statSync(bundleDir).isDirectory()) {
   fail(`bundle directory not found: ${path.relative(rootDir, bundleDir)}`);
@@ -59,7 +65,7 @@ for (const file of files) {
   const normalized = normalizePath(relative);
   for (const rule of rules) {
     if (rule.pathPatterns.some((pattern) => pattern.test(normalized))) {
-      pathHits.push({ rule, file: relative, kind: "path" });
+        pathHits.push(hitPayload({ rule, file: relative, kind: "path" }));
     }
   }
   if (scanLinkedLibraries && looksLikeBinary(file)) {
@@ -68,40 +74,108 @@ for (const file of files) {
       const normalizedLine = normalizePath(line);
       for (const rule of rules) {
         if (rule.linkedPatterns.some((pattern) => pattern.test(normalizedLine))) {
-          linkedHits.push({ rule, file: relative, kind: "linked", line });
+          linkedHits.push(hitPayload({ rule, file: relative, kind: "linked", line }));
         }
       }
     }
   }
 }
 
-console.log("");
-console.log("== Bundle distribution policy summary ==");
-console.log(`- policy: ${path.relative(rootDir, policyPath)}`);
-console.log(`- bundleDir: ${path.relative(rootDir, bundleDir) || "."}`);
-console.log(`- files scanned: ${files.length}`);
-console.log(`- path hits: ${pathHits.length}`);
-console.log(`- linked hits: ${linkedHits.length}`);
-
 const allHits = [...pathHits, ...linkedHits];
-for (const hit of allHits) {
-  const prefix = allowRiskyRuntime ? "warn" : "fail";
-  const detail = hit.kind === "linked" ? `${hit.file} -> ${hit.line}` : hit.file;
-  console.log(`[${prefix}] ${hit.rule.id}: ${detail}`);
-  console.log(`       ${hit.rule.reason}`);
-}
+const status = allHits.length === 0 ? "pass" : allowRiskyRuntime ? "warn" : "fail";
+const report = buildReport({ policyPath, bundleDir, files, pathHits, linkedHits, allHits, status });
+writeReports(report);
+printReport(report);
 
 if (allHits.length > 0 && !allowRiskyRuntime) {
-  console.log("");
-  console.log("[결론] 기본 bundle 정책을 위반하는 runtime 후보가 있습니다.");
-  console.log("       의도적으로 포함하는 배포라면 --allow-risky-runtime과 별도 license 검토 기록을 사용하세요.");
   process.exit(1);
 }
 
-if (allHits.length > 0) {
-  console.log("[결론] risky runtime 후보가 있지만 allow 옵션으로 경고 처리했습니다.");
-} else {
-  console.log("[결론] 기본 bundle 정책 위반 항목이 없습니다.");
+function buildReport({ policyPath: reportPolicyPath, bundleDir: reportBundleDir, files: reportFiles, pathHits: reportPathHits, linkedHits: reportLinkedHits, allHits: reportAllHits, status: reportStatus }) {
+  return {
+    schema: "media-server.bundle-policy-report.v1",
+    generatedAt: new Date().toISOString(),
+    status: reportStatus,
+    allowRiskyRuntime,
+    scanLinkedLibraries,
+    policy: path.relative(rootDir, reportPolicyPath).replaceAll(path.sep, "/"),
+    bundleDir: path.relative(rootDir, reportBundleDir).replaceAll(path.sep, "/") || ".",
+    filesScanned: reportFiles.length,
+    pathHitCount: reportPathHits.length,
+    linkedHitCount: reportLinkedHits.length,
+    hits: reportAllHits,
+  };
+}
+
+function printReport(report) {
+  console.log("");
+  console.log("== Bundle distribution policy summary ==");
+  console.log(`- policy: ${report.policy}`);
+  console.log(`- bundleDir: ${report.bundleDir}`);
+  console.log(`- files scanned: ${report.filesScanned}`);
+  console.log(`- path hits: ${report.pathHitCount}`);
+  console.log(`- linked hits: ${report.linkedHitCount}`);
+  for (const hit of report.hits) {
+    const prefix = report.allowRiskyRuntime ? "warn" : "fail";
+    const detail = hit.kind === "linked" ? `${hit.file} -> ${hit.line}` : hit.file;
+    console.log(`[${prefix}] ${hit.ruleId}: ${detail}`);
+    console.log(`       ${hit.reason}`);
+  }
+  if (report.hits.length > 0 && !report.allowRiskyRuntime) {
+    console.log("");
+    console.log("[결론] 기본 bundle 정책을 위반하는 runtime 후보가 있습니다.");
+    console.log("       의도적으로 포함하는 배포라면 --allow-risky-runtime과 별도 license 검토 기록을 사용하세요.");
+  } else if (report.hits.length > 0) {
+    console.log("[결론] risky runtime 후보가 있지만 allow 옵션으로 경고 처리했습니다.");
+  } else {
+    console.log("[결론] 기본 bundle 정책 위반 항목이 없습니다.");
+  }
+}
+
+function writeReports(report) {
+  if (outputPath) writeText(outputPath, renderMarkdown(report));
+  if (jsonOutputPath) writeText(jsonOutputPath, `${JSON.stringify(report, null, 2)}\n`);
+}
+
+function renderMarkdown(report) {
+  const lines = [
+    "# Bundle Distribution Policy Report",
+    "",
+    `- schema: ${report.schema}`,
+    `- generatedAt: ${report.generatedAt}`,
+    `- status: ${report.status}`,
+    `- policy: ${report.policy}`,
+    `- bundleDir: ${report.bundleDir}`,
+    `- filesScanned: ${report.filesScanned}`,
+    `- pathHits: ${report.pathHitCount}`,
+    `- linkedHits: ${report.linkedHitCount}`,
+    `- allowRiskyRuntime: ${report.allowRiskyRuntime}`,
+    `- scanLinkedLibraries: ${report.scanLinkedLibraries}`,
+    "",
+    "| 결과 | Rule | 종류 | 파일 | 상세 | 사유 |",
+    "| --- | --- | --- | --- | --- | --- |",
+  ];
+  if (report.hits.length === 0) {
+    lines.push("| PASS | - | - | - | - | 기본 bundle 정책 위반 항목이 없습니다. |");
+  } else {
+    const verdict = report.allowRiskyRuntime ? "WARN" : "FAIL";
+    for (const hit of report.hits) {
+      lines.push(`| ${verdict} | ${cell(hit.ruleId)} | ${cell(hit.kind)} | ${cell(hit.file)} | ${cell(hit.line || "-")} | ${cell(hit.reason)} |`);
+    }
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+function hitPayload({ rule, file, kind, line = "" }) {
+  return {
+    ruleId: rule.id,
+    title: rule.title || rule.id,
+    severity: rule.severity || "block",
+    kind,
+    file,
+    line,
+    reason: rule.reason || "",
+  };
 }
 
 function readPolicy(filePath) {
@@ -229,6 +303,15 @@ function toBundleRelative(bundleRoot, filePath) {
 
 function normalizePath(value) {
   return String(value || "").replaceAll("\\", "/").toLowerCase();
+}
+
+function writeText(filePath, text) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, text, "utf8");
+}
+
+function cell(value) {
+  return String(value || "-").replaceAll("|", "\\|").replace(/\s+/g, " ").trim();
 }
 
 function toCamel(value) {

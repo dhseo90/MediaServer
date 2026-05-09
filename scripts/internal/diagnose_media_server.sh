@@ -303,6 +303,11 @@ probe_stream() {
   local probe_out="/tmp/media_server_probe_${codec}.txt"
   rm -f "${probe_rc}" "${probe_out}"
 
+  if [[ "${MEDIA_SERVER_FFMPEG_FREE:-0}" == "1" ]]; then
+    print_line "INFO" "MEDIA_SERVER_FFMPEG_FREE=1; skip ffprobe probe (${codec})"
+    return
+  fi
+
   if ! command -v ffprobe >/dev/null 2>&1; then
     print_line "WARN" "ffprobe not found; skip probe (${codec})"
     return

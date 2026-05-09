@@ -29,6 +29,7 @@ SKIP_CODECS=0
 SKIP_EXTERNAL_CLIENT=0
 SKIP_EXTERNAL_SOURCE=0
 SKIP_VA=0
+FFMPEG_FREE=0
 INCLUDE_RULES=0
 INCLUDE_RULE_UI=0
 INCLUDE_VA_EVENTS=0
@@ -102,6 +103,7 @@ Options:
   --skip-external     LAN IP 외부 클라이언트 접근성과 제3자 RTSP upstream 검증 생략. 격리된 개발 환경에서만 사용
   --skip-va           YOLO/VA overlay 검증 생략
   --skip-codecs       codec matrix 검증 생략
+  --ffmpeg-free       ffmpeg/ffprobe CLI 의존 검증을 생략하고 공개/CI 친화 smoke로 실행
   --no-start          서버 자동 시작 생략. 이미 실행 중인 서버만 검사
   --stop-after        테스트 후 서버 종료
   --fail-fast         첫 실패에서 중단
@@ -176,6 +178,9 @@ while [[ $# -gt 0 ]]; do
     --skip-va)
       SKIP_VA=1
       ;;
+    --ffmpeg-free)
+      FFMPEG_FREE=1
+      ;;
     --no-start)
       NO_START=1
       ;;
@@ -238,6 +243,22 @@ if [[ "${MODE}" == "external" ]]; then
   URI_LONGRUN_EXTERNAL=1
 fi
 
+CODEC_SKIP_REASON="--skip-codecs 또는 --quick 옵션으로 생략했습니다."
+VA_SKIP_REASON="--skip-va 또는 --quick 옵션으로 생략했습니다."
+
+if [[ "${FFMPEG_FREE}" == "1" ]]; then
+  # 공개/CI 환경에서는 FFmpeg/ffprobe CLI가 없어도 통과 가능한 gate와 GStreamer 서버 기본 동작만 확인한다.
+  export MEDIA_SERVER_FFMPEG_FREE=1
+  SKIP_CODECS=1
+  SKIP_VA=1
+  INCLUDE_VA_EVENTS=0
+  INCLUDE_WEBRTC_ICE=0
+  INCLUDE_URI_LONGRUN=0
+  INCLUDE_REDACTION=0
+  CODEC_SKIP_REASON="--ffmpeg-free 옵션으로 ffprobe 기반 codec matrix를 생략했습니다."
+  VA_SKIP_REASON="--ffmpeg-free 옵션으로 ffmpeg 기반 RTSP overlay decode 검증을 생략했습니다."
+fi
+
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 LOG_DIR="${ROOT_DIR}/.media_server.test/${TIMESTAMP}"
 mkdir -p "${LOG_DIR}"
@@ -253,6 +274,7 @@ print_header() {
   cat <<EOF_HEADER
 MediaServer 통합 테스트 시작
 - 모드: ${MODE}
+- FFmpeg-free: ${FFMPEG_FREE}
 - 로그: ${LOG_DIR}
 - 기준:
   1. 코드/스크립트 기본 구조가 깨지지 않아야 함
@@ -398,6 +420,7 @@ PY
 {
   "schema": "media-server.test-summary.v1",
   "mode": "${MODE}",
+  "ffmpegFree": $([[ "${FFMPEG_FREE}" == "1" ]] && echo true || echo false),
   "passCount": ${PASS_COUNT},
   "failCount": ${FAIL_COUNT},
   "skipCount": ${SKIP_COUNT},
@@ -523,7 +546,7 @@ else
 fi
 
 if [[ "${SKIP_CODECS}" == "1" ]]; then
-  skip_step "codec matrix 검증" "--skip-codecs 또는 --quick 옵션으로 생략했습니다."
+  skip_step "codec matrix 검증" "${CODEC_SKIP_REASON}"
 elif [[ ${DEPENDENCY_FAILED} -ne 0 ]]; then
   skip_step "codec matrix 검증" "서버 readiness가 실패해 codec 검증을 생략합니다."
 else
@@ -557,7 +580,7 @@ else
 fi
 
 if [[ "${SKIP_VA}" == "1" ]]; then
-  skip_step "YOLO/VA overlay 검증" "--skip-va 또는 --quick 옵션으로 생략했습니다."
+  skip_step "YOLO/VA overlay 검증" "${VA_SKIP_REASON}"
 elif [[ ${DEPENDENCY_FAILED} -ne 0 ]]; then
   skip_step "YOLO/VA overlay 검증" "서버 readiness가 실패해 VA 검증을 생략합니다."
 else

@@ -149,7 +149,9 @@ else
   echo "[file] default file missing: ${DEFAULT_FILE}"
 fi
 
-if command -v ffprobe >/dev/null 2>&1; then
+if [[ "${MEDIA_SERVER_FFMPEG_FREE:-0}" == "1" ]]; then
+  echo "[probe] MEDIA_SERVER_FFMPEG_FREE=1; ffprobe probe skipped"
+elif command -v ffprobe >/dev/null 2>&1; then
   echo
   echo "[probe] ffprobe test (h264)"
   if ffprobe -v error -rtsp_transport tcp -show_streams "${TEST_URL_H264}" >/tmp/media_server_ffprobe.txt 2>&1; then

@@ -26,6 +26,7 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
 release 또는 binary bundle 전에는 `./server.sh dependency-snapshot`으로 다시 생성합니다.
 기본 binary bundle에는 FFmpeg/libav/x264/x265/GStreamer GPL-risk plugin 바이너리를 포함하지 않습니다.
 배포 bundle은 `./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir>`로 검사합니다.
+CI나 공개 검증 환경에서 FFmpeg CLI 의존을 빼려면 `./server.sh test --basic --ffmpeg-free`를 사용합니다.
 
 권장 준비 명령:
 
@@ -88,6 +89,8 @@ http://127.0.0.1:8081/
 | RTSP/WebRTC pipeline, source/session, VA layer 배치 | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenario, EventRecord, evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
 | 현재 검증 기준과 실행 명령 | [docs/stream-verification.md](docs/stream-verification.md) |
+| 배포 bundle, container image, third-party runtime 포함 정책 | [docs/distribution-policy.md](docs/distribution-policy.md) |
+| public 전환 직전 최종 점검 | [docs/public-repo-final-review.md](docs/public-repo-final-review.md) |
 | 운영 백업/복구 대상과 복구 후 검증 | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
 | Loitering/ZoneOccupancy 현장 시작 threshold | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
 | 남은 작업과 후속 로드맵 | [docs/development-backlog.md](docs/development-backlog.md) |
@@ -182,8 +185,9 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh write-dependency-notice --check
-./server.sh dependency-snapshot --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
-./server.sh verify-bundle-policy
+./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
+./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
+./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-click-e2e
@@ -249,3 +253,4 @@ VA/Auth 주요 검증:
 third-party runtime, plugin, model, tool attribution은 [NOTICE](NOTICE)에 정리합니다.
 자동 생성되는 상세 목록은 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)를 확인합니다.
 현재 개발 환경에서 감지한 버전과 linked library snapshot은 [DEPENDENCY_SNAPSHOT.md](DEPENDENCY_SNAPSHOT.md)를 확인합니다.
+배포 bundle과 container image 정책은 [docs/distribution-policy.md](docs/distribution-policy.md)를 확인합니다.

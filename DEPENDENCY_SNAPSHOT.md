@@ -3,7 +3,7 @@
 <!-- 이 파일은 ./server.sh dependency-snapshot 명령으로 생성합니다. -->
 
 - schema: media-server.dependency-snapshot.v1
-- generatedAt: 2026-05-09T13:06:28.828Z
+- generatedAt: stable
 - inventory: config/third_party_attribution.json
 - platform: Darwin 25.4.0 arm64
 - binary: build-gst-onnx/media_server
@@ -26,6 +26,16 @@
 | Transitive linked libraries from media/runtime packages | 직접 고정하지 않음. 상위 media/runtime package와 OS SDK가 결정합니다. 정확한 파일 경로와 current version은 `./server.sh dependency-snapshot`의 linked library section에 기록합니다. | - | - | - |
 | CMake, pkg-config, Node.js, Python 3, curl | CMake 3.16+, C++17 compiler, Node.js/Python 3/curl/pkg-config command 필요 CMake 최소 요구 버전은 3.16입니다. 나머지 tool의 실제 버전은 snapshot에 기록합니다. | cmake: 4.2.3; pkg-config: 2.5.1; node: 24.13.0; python3: 3.14.4; curl: 8.7.1 | - | - |
 | yt-dlp and Deno | 제품 핵심 실행 필수 조건이 아닙니다. YouTube import/source 실험 기능을 켠 환경에서만 필요하며 snapshot에 버전을 기록합니다. | yt-dlp: 2026.03.17; deno: 2.7.13 | - | - |
+
+## GStreamer Element Snapshot
+
+| Element | Status | Plugin | Version | License | File | Usage | Risk |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| x264enc | timeout | - | - | - | - | RTSP/WebRTC H264 재인코딩 | spawnSync gst-inspect-1.0 ETIMEDOUT; x264 external library는 GPL 의무를 만들 수 있어 binary bundle 포함 시 별도 검토가 필요합니다. |
+| x265enc | timeout | - | - | - | - | RTSP H265 route 재인코딩 | spawnSync gst-inspect-1.0 ETIMEDOUT; x265 external library는 GPL 의무를 만들 수 있어 binary bundle 포함 시 별도 검토가 필요합니다. |
+| avdec_h264 | timeout | - | - | - | - | WebRTC/VA raw frame 생성용 H264 decode | spawnSync gst-inspect-1.0 ETIMEDOUT; gst-libav/FFmpeg 경유 decoder일 수 있어 bundle 포함 시 FFmpeg build flag와 license를 확인합니다. |
+| avdec_h265 | timeout | - | - | - | - | WebRTC/VA raw frame 생성용 H265 decode | spawnSync gst-inspect-1.0 ETIMEDOUT; gst-libav/FFmpeg 경유 decoder일 수 있어 bundle 포함 시 FFmpeg build flag와 license를 확인합니다. |
+| avenc_aac | timeout | - | - | - | - | RTSP AAC audio 재인코딩 | spawnSync gst-inspect-1.0 ETIMEDOUT; gst-libav/FFmpeg 경유 encoder일 수 있어 bundle 포함 시 FFmpeg build flag와 license를 확인합니다. |
 
 ## Linked Library Snapshot
 
