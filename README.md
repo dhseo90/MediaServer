@@ -105,6 +105,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | Auth/Ops/Client 화면 구조와 사용 흐름 | [docs/ui-guide.md](docs/ui-guide.md) |
 | RTSP/WebRTC pipeline, source/session, VA layer 배치 | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenario, EventRecord, evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
+| v1.1.0 live-only 목표와 ONVIF/VA 로드맵 | [docs/v1.1.0-roadmap.md](docs/v1.1.0-roadmap.md) |
 | 현재 검증 기준과 실행 명령 | [docs/stream-verification.md](docs/stream-verification.md) |
 | 배포 bundle, container image, third-party runtime 포함 정책 | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | release asset 범위와 RC 기준 | [docs/release-policy.md](docs/release-policy.md) |

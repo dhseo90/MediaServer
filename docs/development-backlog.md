@@ -30,11 +30,21 @@
 | `완료` | Auth/account | setup/login/session, role/scope, password policy/lockout, admin user console/CLI, invite/request, route guard |
 | `완료` | Ops/Client UI | SourceRegistry/PublishedView, `/ops` shell, `/client` shell, client dashboard/live monitor, Lab 화면 route 404 |
 | `완료` | 운영 안정화 | backup/restore dry-run, evidence cleanup job, audit search/export, RC artifact archive, root-cause action, table helper |
+| `다음 작업` | v1.1.0 live operations | ONVIF camera import, live source health, live VA event 품질 고도화 |
 | `다음 작업` | 현장 운영 | scenario tuning, operator 화면 고도화 |
 | `후속 Phase` | 제품화 | bulk/source health, client dashboard polish, analysis tap reuse UI, account lifecycle 정책 |
-| `실험` | 별도 gate | Re-ID, 장기 녹화 |
+| `실험` | 별도 gate | Re-ID |
+| `보류` | VMS/NVR 경계 | 장기 녹화, MP4 recorder, playback/search, ONVIF Profile G |
 | `보류` | 외부 의존성 | 외부 TURN/WHEP credential |
 | `조건부 Gate` | 장기 안정화 | 장기 soak/부하 검증 |
+
+### v1.1.0 live-only 기준
+
+v1.1.0의 상세 목표와 비범위는 [v1.1.0 Roadmap](./v1.1.0-roadmap.md)을 기준으로 관리합니다.
+이 backlog에서는 실행 상태만 추적합니다.
+요약하면 v1.1.0은 ONVIF live source onboarding, live source health,
+live VA event 품질을 다루고, 장기 녹화/VMS/NVR/playback/Profile G는 제외합니다.
+기존 EventRecord, snapshot, clip frame bundle hook은 v1.1.0의 중심 제품 메시지가 아닙니다.
 
 ### 현재 문서 기준 readiness boundary
 
@@ -55,7 +65,8 @@
   비파괴 compaction snapshot 생성/목록/다운로드/삭제,
   snapshot media/pre-post frame bundle recorder,
   signed evidence bundle export, 운영 retention cleanup job.
-  MP4/VMS/NVR형 recorder와 장기 보관 정책 UI는 후속입니다.
+  v1.1.0에서는 이 기능을 live event context 보조 기능으로만 취급합니다.
+  MP4/VMS/NVR형 recorder, playback/search, 장기 보관 정책 UI는 보류입니다.
 - Loitering은 engine/replay와 전용 룰 편집 UI 템플릿,
   현장 샘플 프리셋 기준 완료입니다.
   ZoneOccupancyScenario는 engine/replay/UI와
@@ -68,7 +79,7 @@
 이 섹션은 시나리오 확장 재개 묶음과 분리해 관리하는
 운영/클라이언트/권한 계열 phase입니다.
 현재 문서 기준의 다음 작업은 Client Live Monitor 현장형 상태 고도화와
-EventRecord archive 관리 고도화입니다.
+source health/operator workflow 고도화입니다.
 아래 항목은 별도 후속 Phase의 기반/고도화 목록으로 유지합니다.
 
 ### O1. Auth / Role / Scope / Bootstrap / Hardening / Client Account Policy
@@ -731,7 +742,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 ./server.sh verify-va-replay
 ```
 
-- **다음 작업**: Client Live Monitor 현장형 상태 고도화와 EventRecord archive 관리 고도화를 후속 묶음으로 재개합니다.
+- **다음 작업**: Client Live Monitor 현장형 상태 고도화와 source health/operator workflow 고도화를 후속 묶음으로 재개합니다.
 
 ### P4-2. ReEntry Scenario UI 템플릿
 
@@ -1011,7 +1022,7 @@ git diff --check -- docs
   - encoder 사용 불가 시 PPM/PGM fallback
   - frame/stream 상한
   - `CLIP_BUFFER_MS` 기반 buffer pruning
-  - MP4 muxing/장기 녹화는 별도 후속
+  - MP4 muxing/장기 녹화는 VMS/NVR 경계 항목으로 보류
 
 ### P6-3. Snapshot/clip retention과 실패 metric
 

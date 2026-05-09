@@ -5,8 +5,10 @@
 ## 현재 기준
 
 - 현재 기준 버전: `v1.0.0`
+- 다음 minor 개발 목표: `v1.1.0`
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 - `v1.0.0`은 source-only public baseline입니다.
+- `v1.1.0`의 상세 목표와 비범위는 [v1.1.0 Roadmap](./v1.1.0-roadmap.md)을 기준으로 합니다.
 
 ## `v1.0.0`에 포함되는 범위
 
@@ -23,6 +25,20 @@
 - 고객/현장 영상, 운영 evidence, auth store, log
 - 장기 운영 SLA, 외부 TURN credential 운영 보장, 장기 녹화/VMS/NVR 범위
 - binary/runtime 포함 release의 법무/배포 검토 완료 상태
+
+## `v1.1.0` 목표 범위
+
+- ONVIF camera import와 live source onboarding
+- live source health, reconnect, stale/offline 운영 요약
+- live VA event 품질, scenario timeline/debug, TrackHealth tuning
+- Event POST, WebRTC DataChannel, SSE, WebSocket metadata/event contract 정리
+
+## `v1.1.0`에 포함하지 않는 범위
+
+- 장기 녹화, MP4 recorder, NVR/VMS archive, playback timeline, 영상 검색
+- ONVIF Profile G recording/replay 기능
+- Re-ID default-on 또는 대형 tracker 교체
+- binary/runtime/model bundle release
 
 ## Semantic Versioning 기준
 
