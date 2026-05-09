@@ -3,13 +3,18 @@
 # 동작 요약: 로컬 임시 HTTP 수신 서버를 띄우고 /lab/analysis/taps/{id}/events?dispatch=1로 POST worker를 구동한다.
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+source "${SCRIPT_DIR}/numeric_id_helpers.sh"
 HTTP_BASE="${MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE:-http://127.0.0.1:8081}"
 FILE_TOKEN="${MEDIA_SERVER_VERIFY_EVENT_POST_FILE:-imports/va_tracking_event_1280x720_30fps_h264.mp4}"
 MODE="schema"
 RECEIVER_PORT="${MEDIA_SERVER_VERIFY_EVENT_POST_PORT:-19091}"
 RUN_ID="evtpost-$(date +%s)-$$"
-RULE_ID_BASE="${MEDIA_SERVER_VERIFY_EVENT_POST_RULE_ID_BASE:-$((9300 + ($$ % 50) * 8))}"
+RULE_ID_BASE="$(media_server_numeric_id_base \
+  "event POST rule id base" \
+  "${MEDIA_SERVER_VERIFY_EVENT_POST_RULE_ID_BASE:-}" \
+  "$((9300 + ($$ % 50) * 8))")"
 RULE_ID_COUNTER=0
 RECEIVED_FILE="/tmp/media_server_${RUN_ID}_received.ndjson"
 EVENTS_FILE="/tmp/media_server_${RUN_ID}_events.json"
@@ -163,7 +168,8 @@ create_rule() {
   local suffix="$1"
   local post_path="$2"
   RULE_ID_COUNTER=$((RULE_ID_COUNTER + 1))
-  local rule_id="$((RULE_ID_BASE + RULE_ID_COUNTER))"
+  local rule_id
+  rule_id="$(media_server_numeric_id_at "event POST rule id" "${RULE_ID_BASE}" "${RULE_ID_COUNTER}")"
   local url="http://127.0.0.1:${RECEIVER_PORT}${post_path}"
   RULE_IDS+=("${rule_id}")
   if [[ "${suffix}" == "success" ]]; then
