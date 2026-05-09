@@ -43,6 +43,7 @@ INCLUDE_REPORT_SUMMARY=0
 URI_LONGRUN_EXTERNAL=0
 FAIL_FAST=0
 REQUIRE_EXTERNAL_SOURCE=0
+FULL_TARGET_SECONDS="${MEDIA_SERVER_TEST_FULL_TARGET_SECONDS:-1800}"
 
 usage() {
   cat <<'EOF_USAGE'
@@ -240,6 +241,7 @@ fi
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 LOG_DIR="${ROOT_DIR}/.media_server.test/${TIMESTAMP}"
 mkdir -p "${LOG_DIR}"
+START_EPOCH="$(date +%s)"
 
 PASS_COUNT=0
 FAIL_COUNT=0
@@ -363,17 +365,49 @@ skip_step() {
 }
 
 print_summary() {
+  local end_epoch elapsed_seconds elapsed_minutes
+  end_epoch="$(date +%s)"
+  elapsed_seconds=$((end_epoch - START_EPOCH))
+  elapsed_minutes="$(python3 - "${elapsed_seconds}" <<'PY'
+import sys
+seconds = int(sys.argv[1])
+print(f"{seconds / 60.0:.1f}")
+PY
+)"
   echo
   echo "== 통합 테스트 요약 =="
   echo "- 통과: ${PASS_COUNT}"
   echo "- 실패: ${FAIL_COUNT}"
   echo "- 건너뜀: ${SKIP_COUNT}"
+  echo "- 소요 시간: ${elapsed_seconds}s (${elapsed_minutes}m)"
   echo "- 상세 로그: ${LOG_DIR}"
+  if [[ "${MODE}" == "full" && "${SKIP_CODECS}" == "0" && "${SKIP_VA}" == "0" ]]; then
+    echo "- release full target: ${FULL_TARGET_SECONDS}s"
+    if (( elapsed_seconds <= FULL_TARGET_SECONDS )); then
+      print_line "시간" "test --full release 기준 시간 안에 완료됐습니다."
+    else
+      print_line "시간" "test --full release 기준 시간을 초과했습니다. 장비 상태와 느린 step log를 확인하세요."
+    fi
+  fi
   if [[ ${FAIL_COUNT} -eq 0 ]]; then
     print_line "결론" "현재 ${MODE} 기준선은 통과했습니다."
   else
     print_line "결론" "실패 항목이 있습니다. 위 한글 원인과 개별 로그를 기준으로 수정하세요."
   fi
+  cat > "${LOG_DIR}/test-summary.json" <<EOF_SUMMARY
+{
+  "schema": "media-server.test-summary.v1",
+  "mode": "${MODE}",
+  "passCount": ${PASS_COUNT},
+  "failCount": ${FAIL_COUNT},
+  "skipCount": ${SKIP_COUNT},
+  "elapsedSeconds": ${elapsed_seconds},
+  "elapsedMinutes": ${elapsed_minutes},
+  "logDir": "${LOG_DIR}",
+  "fullTargetSeconds": ${FULL_TARGET_SECONDS},
+  "fullReleaseCandidate": $([[ "${MODE}" == "full" && "${SKIP_CODECS}" == "0" && "${SKIP_VA}" == "0" ]] && echo true || echo false)
+}
+EOF_SUMMARY
 }
 
 run_codec_filter() {

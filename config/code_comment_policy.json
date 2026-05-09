@@ -1,0 +1,48 @@
+{
+  "schema": "media-server.code-comment-policy.v1",
+  "headerPatterns": [
+    "파일\\s*용도",
+    "파일\\s*요약",
+    "동작\\s*요약"
+  ],
+  "excludePathPrefixes": [
+    ".git",
+    ".media_server.test",
+    "build",
+    "third_party",
+    "models",
+    "video"
+  ],
+  "codeExtensions": [
+    ".c",
+    ".cc",
+    ".cpp",
+    ".h",
+    ".hpp",
+    ".js",
+    ".mjs",
+    ".py",
+    ".sh"
+  ],
+  "extraCodeFiles": [
+    "server.sh",
+    "CMakeLists.txt"
+  ],
+  "hashCommentExtensions": [
+    ".sh",
+    ".py"
+  ],
+  "extraHashCommentFiles": [
+    "CMakeLists.txt"
+  ],
+  "blockCommentExtensions": [
+    ".c",
+    ".cc",
+    ".cpp",
+    ".h",
+    ".hpp",
+    ".js",
+    ".mjs"
+  ],
+  "allowedEnglishOnlyComments": []
+}

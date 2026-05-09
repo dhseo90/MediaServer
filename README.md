@@ -176,6 +176,7 @@ git diff --check -- README.md NOTICE .github docs scripts src include
 ./server.sh verify-code-comments
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
+./server.sh write-dependency-notice --check
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-click-e2e
@@ -239,3 +240,4 @@ VA/Auth 주요 검증:
 
 이 저장소의 원본 코드와 문서는 [Apache License 2.0](LICENSE)을 따릅니다.
 third-party runtime, plugin, model, tool attribution은 [NOTICE](NOTICE)에 정리합니다.
+자동 생성되는 상세 목록은 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)를 확인합니다.

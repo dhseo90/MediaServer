@@ -118,6 +118,8 @@ Usage:
                  RC gate summary/report를 Markdown/HTML checklist와 history index로 묶습니다.
   rc-artifact-archive
                  RC gate artifact를 외부 마운트/S3/NAS 보관소로 checksum manifest와 함께 복사합니다.
+  write-dependency-notice
+                 third-party attribution inventory에서 배포용 notice 문서를 생성하거나 검증합니다.
   verify-tracker-stability
                  이동 영상에서 track ID 유지/분절 통계를 수집합니다.
   compare-close-object-tracker
@@ -419,6 +421,10 @@ case "${cmd}" in
   rc-artifact-archive)
     require_internal archive_rc_gate_artifact.mjs
     exec "${INTERNAL_DIR}/archive_rc_gate_artifact.mjs" "$@"
+    ;;
+  write-dependency-notice)
+    require_internal write_dependency_notice.mjs
+    exec "${INTERNAL_DIR}/write_dependency_notice.mjs" "$@"
     ;;
   verify-tracker-stability)
     require_internal verify_tracker_stability.sh

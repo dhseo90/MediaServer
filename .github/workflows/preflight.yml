@@ -44,3 +44,8 @@ jobs:
         shell: bash
         run: |
           ./server.sh verify-docs-ui-assets
+
+      - name: Dependency notice
+        shell: bash
+        run: |
+          ./server.sh write-dependency-notice --check

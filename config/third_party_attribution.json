@@ -1,0 +1,87 @@
+{
+  "schema": "media-server.third-party-attribution.v1",
+  "generatedFile": "THIRD_PARTY_NOTICES.md",
+  "dependencies": [
+    {
+      "id": "gstreamer",
+      "name": "GStreamer, gst-rtsp-server, gst-plugins-base/good/bad",
+      "license": "LGPL-family and plugin-specific upstream terms",
+      "usage": "RTSP/RTP/WebRTC 파이프라인, 디코딩, 인코딩, appsrc/appsink, RTSP 서버 연동",
+      "source": "Homebrew, apt, dnf, pacman 같은 시스템 패키지 관리자",
+      "distribution": "외부 runtime/development dependency이며 이 저장소에 vendoring하지 않음",
+      "bundlePolicy": "binary bundle에 GStreamer library/plugin을 포함하면 upstream license text와 plugin notice를 함께 포함합니다."
+    },
+    {
+      "id": "libnice",
+      "name": "libnice and libnice GStreamer plugin",
+      "license": "LGPL-family upstream terms",
+      "usage": "GStreamer WebRTC의 ICE transport 지원",
+      "source": "시스템 패키지 관리자",
+      "distribution": "외부 runtime dependency이며 이 저장소에 vendoring하지 않음",
+      "bundlePolicy": "번들에 포함하면 libnice license text와 upstream attribution을 유지합니다."
+    },
+    {
+      "id": "cairo-pango",
+      "name": "Cairo and Pango",
+      "license": "LGPL/MPL-family upstream terms",
+      "usage": "선택 overlay text rendering과 glyph 지원",
+      "source": "시스템 패키지 관리자",
+      "distribution": "외부 runtime/development dependency이며 이 저장소에 vendoring하지 않음",
+      "bundlePolicy": "번들에 포함하면 Cairo, Pango, 전이 runtime library의 upstream license text를 함께 포함합니다."
+    },
+    {
+      "id": "onnxruntime",
+      "name": "ONNX Runtime",
+      "license": "MIT",
+      "usage": "선택 YOLO detector runtime과 실험적 Re-ID hook",
+      "source": "Microsoft ONNX Runtime release archive 또는 시스템 패키지 관리자",
+      "distribution": "Linux에서 ./server.sh install 실행 시 third_party/onnxruntime로 다운로드될 수 있음",
+      "bundlePolicy": "번들에 포함하면 ONNX Runtime MIT license와 다운로드한 release package 안의 notice 파일을 함께 포함합니다."
+    },
+    {
+      "id": "libsodium",
+      "name": "libsodium",
+      "license": "ISC",
+      "usage": "환경에 있을 때 선택 password hashing과 crypto 지원",
+      "source": "시스템 패키지 관리자",
+      "distribution": "외부 optional dependency이며 이 저장소에 vendoring하지 않음",
+      "bundlePolicy": "번들에 포함하면 libsodium ISC license text를 함께 포함합니다."
+    },
+    {
+      "id": "ffmpeg",
+      "name": "FFmpeg and ffprobe",
+      "license": "LGPL/GPL depending on the installed build configuration",
+      "usage": "검증 스크립트, sample probing, media diagnostics, 선택 helper workflow",
+      "source": "시스템 패키지 관리자",
+      "distribution": "외부 command-line dependency이며 이 저장소에 vendoring하지 않음",
+      "bundlePolicy": "FFmpeg는 Apache-2.0 적용 대상으로 보지 않습니다. 번들 FFmpeg build가 GPL component를 켰는지 확인합니다."
+    },
+    {
+      "id": "ultralytics-yolo-model",
+      "name": "Ultralytics YOLO model asset yolo11n.onnx",
+      "license": "Provider-specific model terms; not relicensed by this repository",
+      "usage": "./server.sh install이 다운로드하는 기본 선택 object detection model",
+      "source": "Ultralytics GitHub release assets",
+      "distribution": "다운로드 asset이며 이 저장소에 commit하지 않음",
+      "bundlePolicy": "재배포하거나 상업적으로 사용하기 전에 모델 제공자 license를 이 저장소 license와 별도로 확인합니다."
+    },
+    {
+      "id": "coco-labels",
+      "name": "COCO class labels",
+      "license": "Dataset/annotation source terms apply",
+      "usage": "object detection 표시 이름에 사용하는 models/coco.names label",
+      "source": "install script가 표준 COCO class name에서 생성",
+      "distribution": "생성되는 로컬 파일이며 dataset 자체에 Apache-2.0을 부여하는 것이 아님",
+      "bundlePolicy": "번들에 포함하면 dataset/label attribution을 유지하고 프로젝트 원본 콘텐츠처럼 표시하지 않습니다."
+    },
+    {
+      "id": "yt-dlp-deno",
+      "name": "yt-dlp and Deno",
+      "license": "Upstream project terms",
+      "usage": "선택 실험 기능인 YouTube import helper path",
+      "source": "시스템 패키지 관리자",
+      "distribution": "외부 optional tool이며 이 저장소에 vendoring하지 않음",
+      "bundlePolicy": "번들에 포함하면 각 tool의 upstream license를 포함하고 YouTube import는 실험 기능으로 유지합니다."
+    }
+  ]
+}
