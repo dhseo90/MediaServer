@@ -25,6 +25,11 @@ check("server exposes persistent ops audit API", () => {
     "searchIndex",
     "\"target\"",
     "\"user\"",
+    "\"fromMs\"",
+    "\"toMs\"",
+    "\\\"dateRangeFields\\\"",
+    "\\\"exportLimitMax\\\":2000",
+    "\\\"scanned\\\"",
     "ops-audit-diff.json",
     "\"offset\"",
     "\\\"hasMore\\\"",
@@ -49,6 +54,11 @@ check("shared UI writes audit records to server and falls back locally", () => {
     "data-audit-export=\"diff-json\"",
     "-audit-user",
     "-audit-target",
+    "-audit-from",
+    "-audit-to",
+    "datetime-local",
+    "auditDateTimeMs",
+    "auditLocalDateTime",
     "requestJson('/ops/api/audit'",
     "server audit unavailable",
     "서버 감사 로그",
@@ -73,6 +83,8 @@ check("docs describe persistent audit scope", () => {
   assert(docs.includes("서버 감사 로그"), "ui-guide is missing server audit log wording");
   assert(docs.includes("JSON/CSV export"), "ui-guide is missing audit export wording");
   assert(docs.includes("Diff JSON export"), "ui-guide is missing audit diff export wording");
+  assert(docs.includes("기간 필터"), "ui-guide is missing audit date range wording");
+  assert(docs.includes("exportLimitMax"), "ui-guide is missing audit export cap wording");
   assert(docs.includes("MEDIA_SERVER_OPS_AUDIT_RETENTION_DAYS"), "ui-guide is missing audit retention env wording");
 });
 

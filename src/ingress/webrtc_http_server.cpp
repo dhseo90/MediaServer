@@ -7069,9 +7069,23 @@ bool OpsAuditLineMatches(const std::string& line,
                          const std::string& action,
                          const std::string& target,
                          const std::string& user,
-                         const std::string& query_text) {
+                         const std::string& query_text,
+                         const std::optional<std::int64_t>& from_ms,
+                         const std::optional<std::int64_t>& to_ms) {
     if (!area.empty() && ParseStringField(line, "area").value_or("") != area) {
         return false;
+    }
+    if (from_ms.has_value() || to_ms.has_value()) {
+        const auto received_at = OpsAuditReceivedAtMs(line);
+        if (!received_at.has_value()) {
+            return false;
+        }
+        if (from_ms.has_value() && *received_at < *from_ms) {
+            return false;
+        }
+        if (to_ms.has_value() && *received_at > *to_ms) {
+            return false;
+        }
     }
     const std::string actor_value = ParseStringField(line, "actor").value_or("");
     const std::string target_value = ParseStringField(line, "target").value_or("");
@@ -7103,9 +7117,30 @@ struct OpsAuditQueryResult {
     int offset{0};
     int limit{80};
     int total{0};
+    int scanned{0};
+    std::optional<std::int64_t> from_ms;
+    std::optional<std::int64_t> to_ms;
     bool has_more{false};
     OpsAuditRetentionSummary retention;
 };
+
+std::optional<std::int64_t> ParseOpsAuditTimeQuery(
+    const std::unordered_map<std::string, std::string>& query,
+    const std::string& key) {
+    const auto it = query.find(key);
+    if (it == query.end()) {
+        return std::nullopt;
+    }
+    const std::string raw = Trim(it->second);
+    if (raw.empty()) {
+        return std::nullopt;
+    }
+    try {
+        return std::stoll(raw);
+    } catch (...) {
+        return std::nullopt;
+    }
+}
 
 OpsAuditQueryResult QueryOpsAuditEntries(const app::AppConfig& config,
                                          const std::unordered_map<std::string, std::string>& query) {
@@ -7115,11 +7150,15 @@ OpsAuditQueryResult QueryOpsAuditEntries(const app::AppConfig& config,
     const std::string target = query.count("target") != 0 ? Trim(query.at("target")) : std::string();
     const std::string user = query.count("user") != 0 ? Trim(query.at("user")) : std::string();
     const std::string query_text = query.count("q") != 0 ? Trim(query.at("q")) : std::string();
-    const int limit = ParseClampedIntQuery(query, "limit", 80, 1, 200);
+    const bool export_mode = query.count("download") != 0 || query.count("format") != 0;
+    const int limit = ParseClampedIntQuery(query, "limit", 80, 1, export_mode ? 2000 : 200);
     const int offset = ParseClampedIntQuery(query, "offset", 0, 0, 1000000);
+    const auto from_ms = ParseOpsAuditTimeQuery(query, "fromMs");
+    const auto to_ms = ParseOpsAuditTimeQuery(query, "toMs");
     const std::filesystem::path path = OpsAuditStoragePath(config);
     std::vector<std::string> lines;
     OpsAuditRetentionSummary retention;
+    int scanned = 0;
     {
         std::lock_guard lock(g_ops_audit_mu);
         std::string retention_error;
@@ -7128,8 +7167,9 @@ OpsAuditQueryResult QueryOpsAuditEntries(const app::AppConfig& config,
         std::string line;
         while (std::getline(in, line)) {
             line = Trim(line);
+            ++scanned;
             if (!line.empty() && line.front() == '{' &&
-                OpsAuditLineMatches(line, area, actor, action, target, user, query_text)) {
+                OpsAuditLineMatches(line, area, actor, action, target, user, query_text, from_ms, to_ms)) {
                 lines.push_back(line);
             }
         }
@@ -7139,6 +7179,9 @@ OpsAuditQueryResult QueryOpsAuditEntries(const app::AppConfig& config,
     result.offset = offset;
     result.limit = limit;
     result.total = static_cast<int>(lines.size());
+    result.scanned = scanned;
+    result.from_ms = from_ms;
+    result.to_ms = to_ms;
     result.retention = retention;
     int skipped = 0;
     for (auto it = lines.rbegin(); it != lines.rend() && static_cast<int>(result.entries.size()) < limit; ++it) {
@@ -7154,8 +7197,11 @@ OpsAuditQueryResult QueryOpsAuditEntries(const app::AppConfig& config,
 
 std::string OpsAuditSearchIndexJson() {
     return "{\"caseInsensitive\":true,"
-           "\"filters\":[\"area\",\"actor\",\"user\",\"target\",\"action\",\"q\"],"
-           "\"fields\":[\"area\",\"actor\",\"role\",\"action\",\"target\",\"summary\",\"before\",\"after\"]}";
+           "\"filters\":[\"area\",\"actor\",\"user\",\"target\",\"action\",\"q\",\"fromMs\",\"toMs\"],"
+           "\"fields\":[\"area\",\"actor\",\"role\",\"action\",\"target\",\"summary\",\"before\",\"after\",\"receivedAtMs\"],"
+           "\"dateRangeFields\":[\"receivedAtMs\"],"
+           "\"interactiveLimitMax\":200,"
+           "\"exportLimitMax\":2000}";
 }
 
 std::string OpsAuditEntriesJson(const app::AppConfig& config,
@@ -7165,8 +7211,13 @@ std::string OpsAuditEntriesJson(const app::AppConfig& config,
     out << "{\"status\":\"ops-audit\",\"persistent\":true,\"storagePath\":\""
         << JsonEscape(result.storage_path.string()) << "\",\"offset\":" << result.offset
         << ",\"limit\":" << result.limit << ",\"total\":" << result.total
+        << ",\"scanned\":" << result.scanned
         << ",\"hasMore\":" << (result.has_more ? "true" : "false")
         << ",\"nextOffset\":" << (result.has_more ? result.offset + static_cast<int>(result.entries.size()) : result.offset)
+        << ",\"query\":{\"fromMs\":"
+        << (result.from_ms.has_value() ? std::to_string(*result.from_ms) : "null")
+        << ",\"toMs\":" << (result.to_ms.has_value() ? std::to_string(*result.to_ms) : "null")
+        << "}"
         << ",\"retention\":{\"days\":" << result.retention.retention_days
         << ",\"removed\":" << result.retention.removed
         << ",\"applied\":" << (result.retention.applied ? "true" : "false") << "}"
@@ -7190,6 +7241,9 @@ std::string OpsAuditEntriesDiffJson(const app::AppConfig& config,
         << JsonEscape(result.storage_path.string()) << "\",\"retention\":{\"days\":"
         << result.retention.retention_days << ",\"removed\":" << result.retention.removed
         << ",\"applied\":" << (result.retention.applied ? "true" : "false")
+        << "},\"query\":{\"fromMs\":"
+        << (result.from_ms.has_value() ? std::to_string(*result.from_ms) : "null")
+        << ",\"toMs\":" << (result.to_ms.has_value() ? std::to_string(*result.to_ms) : "null")
         << "},\"searchIndex\":" << OpsAuditSearchIndexJson() << ",\"entries\":[";
     for (std::size_t i = 0; i < result.entries.size(); ++i) {
         const std::string& entry = result.entries[i];
