@@ -15,7 +15,8 @@ Detailed Korean backlog: [../development-backlog.md](../development-backlog.md)
 
 | Area | Status | Notes |
 | --- | --- | --- |
-| Public repo readiness | In progress | Actions, branch rules, English docs, asset policy |
+| v1.0.0 source baseline | Done | Source-only public baseline is defined; binary/runtime/model bundles are excluded |
+| Public repo readiness | Ready | Actions, branch rules, English docs, and asset policy are prepared; owner-only visibility change is excluded |
 | Runtime distribution policy | Done | Source-first policy and bundle guardrails are in place |
 | Ops UI stability | Done | Channels/Rules/Users responsive table checks exist |
 | Audit trail operations | In progress | Server persistence exists; search/export can improve |

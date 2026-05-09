@@ -14,6 +14,7 @@ This directory contains concise English guides for the public documentation set.
 | Verification | [stream-verification.md](./stream-verification.md) |
 | Distribution policy | [distribution-policy.md](./distribution-policy.md) |
 | Release policy | [release-policy.md](./release-policy.md) |
+| Versioning policy | [versioning-policy.md](./versioning-policy.md) |
 | Public repo checklist | [public-repo-final-review.md](./public-repo-final-review.md) |
 | Backup and restore | [ops-backup-recovery.md](./ops-backup-recovery.md) |
 | Scenario thresholds | [analysis-threshold-baselines.md](./analysis-threshold-baselines.md) |

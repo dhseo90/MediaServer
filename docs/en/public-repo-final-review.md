@@ -8,10 +8,10 @@ This checklist is used immediately before changing repository visibility from pr
 
 As of 2026-05-10:
 
-- Latest confirmed main readiness commit: `fce2142 Add English public docs and actions policy`
-- Main branch Actions status:
-  - `Preflight #9`: passed
-  - `Licensing and Artifact Guardrails #6`: passed
+- Latest confirmed main readiness commit: `main` HEAD immediately before public conversion
+- Main branch Actions status target:
+  - Latest `Preflight`: passed
+  - Latest `Licensing and Artifact Guardrails`: passed
 - Required status checks:
   - `static-gates`
   - `guardrails`
@@ -19,6 +19,7 @@ As of 2026-05-10:
   - `Restrict deletions`: enabled
   - `Block force pushes`: enabled
 - Visibility: still private. Changing visibility to public is manual.
+- First source-only tag candidate: `v1.0.0`
 
 `Restrict deletions` and `Block force pushes` are ruleset branch rules, not GitHub Actions checks. They do not need to appear as required status checks.
 
