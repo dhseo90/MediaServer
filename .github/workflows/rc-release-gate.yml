@@ -48,7 +48,7 @@ jobs:
       RC_ARTIFACT_RETENTION_DAYS: ${{ inputs.artifact_retention_days }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Prepare artifact paths
         shell: bash
