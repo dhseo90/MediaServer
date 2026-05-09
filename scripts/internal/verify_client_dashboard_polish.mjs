@@ -16,10 +16,19 @@ check("client dashboard script renders field summary and comparison", () => {
     "dashboardFieldState",
     "renderDashboardCompare",
     "loadClientDashboardCompare",
+    "clientDashboardCompareFilter",
+    "clientDashboardCompareSort",
+    "clientDashboardComparePriority",
+    "clientDashboardComparePreset",
     'data-testid="client-dashboard-field-summary"',
     'data-testid="client-dashboard-compare"',
+    'id="clientDashboardCompareFilter"',
+    'id="clientDashboardCompareSort"',
     "현장 요약",
     "채널 비교",
+    "경고 우선",
+    "이벤트 많은 순",
+    "기본 현장 모니터링",
     "정상 관제 중",
   ];
   for (const snippet of required) {
@@ -35,6 +44,7 @@ check("client dashboard has loading empty error wording", () => {
     "현장 대시보드를 보려면",
     "최근 이벤트 없음",
     "비교할 채널이 없습니다",
+    "필터에 맞는 채널이 없습니다",
   ];
   for (const snippet of required) {
     assert(script.includes(snippet), `client dashboard state wording is missing snippet: ${snippet}`);
@@ -45,8 +55,10 @@ check("client dashboard comparison is responsive", () => {
   const css = readText("src/ingress/product_ui_css.cpp");
   const required = [
     ".client-dashboard-compare",
+    ".client-compare-toolbar",
     ".client-compare-grid",
     ".client-compare-card",
+    ".client-compare-preset",
     ".client-compare-metrics",
     ".client-loading-state",
     "@media (max-width: 560px)",
