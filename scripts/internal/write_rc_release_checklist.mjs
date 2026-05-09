@@ -78,6 +78,10 @@ function buildCiContext(parsedArgs) {
     : "";
   return {
     artifactName: parsedArgs.artifactName || "",
+    artifactRetentionDays: parsedArgs.artifactRetentionDays || process.env.RC_ARTIFACT_RETENTION_DAYS || "",
+    assetManifest: parsedArgs.assetManifest || "",
+    assetSummary: summarizeAssets(parsedArgs.assetManifest || ""),
+    runnerLabel: parsedArgs.runnerLabel || process.env.RUNNER_NAME || "",
     runUrl,
     repository: process.env.GITHUB_REPOSITORY || "",
     refName: process.env.GITHUB_REF_NAME || "",
@@ -85,9 +89,36 @@ function buildCiContext(parsedArgs) {
   };
 }
 
+function summarizeAssets(filePath) {
+  if (!filePath) {
+    return { status: "missing", label: "asset manifest 미지정", detail: "" };
+  }
+  if (!fs.existsSync(filePath)) {
+    return { status: "missing", label: "asset manifest 없음", detail: filePath };
+  }
+  let payload = {};
+  try {
+    payload = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch (error) {
+    return { status: "fail", label: "asset manifest 파싱 실패", detail: error.message };
+  }
+  const sampleMissing = Array.isArray(payload.samples)
+    ? payload.samples.filter((item) => item?.status !== "ok").length
+    : 0;
+  const modelMissing = payload.model?.status === "ok" ? 0 : 1;
+  const labelsMissing = payload.labels?.status === "ok" ? 0 : 1;
+  const missing = sampleMissing + modelMissing + labelsMissing;
+  return {
+    status: missing === 0 ? "pass" : "check",
+    label: missing === 0 ? "PASS" : "CHECK",
+    detail: `missing=${missing} samples=${Array.isArray(payload.samples) ? payload.samples.length : 0} model=${payload.model?.status || "unknown"} labels=${payload.labels?.status || "unknown"}`,
+  };
+}
+
 function buildMarkdown(items, context = {}) {
   const generatedAt = new Date().toISOString();
-  const allPass = items.every((item) => item.result.status === "pass");
+  const assetPass = context.assetSummary.status === "pass" || context.assetSummary.status === "missing";
+  const allPass = items.every((item) => item.result.status === "pass") && assetPass;
   const lines = [
     "# RC Release Checklist",
     "",
@@ -95,6 +126,10 @@ function buildMarkdown(items, context = {}) {
     `- overall: ${allPass ? "PASS" : "CHECK"}`,
     "- scope: 120분 predev soak와 120분 VA runtime longrun 결과 연결",
     context.artifactName ? `- ciArtifact: ${context.artifactName}` : "- ciArtifact: (local)",
+    context.artifactRetentionDays ? `- artifactRetentionDays: ${context.artifactRetentionDays}` : "- artifactRetentionDays: (local)",
+    context.runnerLabel ? `- runner: ${context.runnerLabel}` : "- runner: (local)",
+    context.assetManifest ? `- assetManifest: ${context.assetManifest}` : "- assetManifest: (missing)",
+    `- assetStatus: ${context.assetSummary.label}${context.assetSummary.detail ? ` (${context.assetSummary.detail})` : ""}`,
     context.runUrl ? `- ciRun: ${context.runUrl}` : "- ciRun: (local)",
     context.repository ? `- repository: ${context.repository}` : "",
     context.refName ? `- ref: ${context.refName}` : "",
@@ -119,6 +154,8 @@ function buildMarkdown(items, context = {}) {
     "",
     "- 이 checklist는 장기 검증을 실행하지 않고, 이미 생성된 summary/report를 release 기준 문서로 연결합니다.",
     "- GitHub Actions에서는 `media-server-rc-gate` artifact에 summary, report, Markdown/HTML checklist를 함께 업로드합니다.",
+    "- 실제 RC gate는 sample video, YOLO model, labels가 준비된 self-hosted macOS runner에서 실행하는 것을 권장합니다.",
+    "- artifact retention은 workflow input과 checklist의 `artifactRetentionDays`로 같이 고정합니다.",
     "- 기본 smoke와 RC-only 120분 gate는 분리되어야 합니다.",
   );
   return `${lines.join("\n")}\n`;
