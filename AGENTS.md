@@ -1,4 +1,4 @@
-# AGENT.md
+# AGENTS.md
 
 이 문서는 MediaServer 프로젝트에서 자동화 개발 에이전트가 반드시 따라야 하는 작업 규칙입니다.
 대상 프로젝트는 macOS/Linux 기반 C++17 RTSP/WebRTC 미디어 서버이며, GStreamer 기반 스트리밍, YOLO/ONNX 영상 분석, `/lab/analysis/*` 개발 API, `/ops`, `/client`, Auth/Role/Scope, 채널/룰/런타임 대시보드 UI를 포함합니다.
