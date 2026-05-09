@@ -3972,6 +3972,23 @@ std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& 
     std::sort(reuse_groups.begin(), reuse_groups.end(), [](const auto& lhs, const auto& rhs) {
         return lhs.reuse_key < rhs.reuse_key;
     });
+    const std::size_t active_publish_sources =
+        static_cast<std::size_t>(std::count_if(publish_sources.begin(),
+                                               publish_sources.end(),
+                                               [](const auto& source) { return source.active; }));
+    const std::size_t active_metadata_clients =
+        static_cast<std::size_t>(std::max(0, active_sse_metadata_clients)) +
+        static_cast<std::size_t>(std::max(0, active_ws_metadata_clients));
+    const bool source_lifecycle_idle =
+        snapshot.active_sessions == 0 &&
+        snapshot.resource_active_sessions == 0 &&
+        snapshot.resource_active_streams == 0 &&
+        snapshot.registry_active_streams == 0 &&
+        snapshot.active_analysis_taps == 0 &&
+        http_egress_sessions == 0 &&
+        whip_publish_sessions == 0 &&
+        active_publish_sources == 0 &&
+        active_metadata_clients == 0;
     std::ostringstream out;
     out << "{"
         << "\"ok\":true,"
@@ -3981,6 +3998,18 @@ std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& 
         << "\"resourceActiveStreams\":" << snapshot.resource_active_streams << ","
         << "\"registryActiveStreams\":" << snapshot.registry_active_streams << ","
         << "\"activeAnalysisTaps\":" << snapshot.active_analysis_taps
+        << "},"
+        << "\"sourceLifecycle\":{"
+        << "\"idle\":" << (source_lifecycle_idle ? "true" : "false") << ","
+        << "\"activeSessions\":" << snapshot.active_sessions << ","
+        << "\"resourceActiveSessions\":" << snapshot.resource_active_sessions << ","
+        << "\"resourceActiveStreams\":" << snapshot.resource_active_streams << ","
+        << "\"registryActiveStreams\":" << snapshot.registry_active_streams << ","
+        << "\"activeAnalysisTaps\":" << snapshot.active_analysis_taps << ","
+        << "\"httpEgressSessions\":" << http_egress_sessions << ","
+        << "\"whipPublishSessions\":" << whip_publish_sessions << ","
+        << "\"activePublishSources\":" << active_publish_sources << ","
+        << "\"activeMetadataClients\":" << active_metadata_clients
         << "},"
         << "\"webrtcHttp\":{"
         << "\"egressSessions\":" << http_egress_sessions << ","
