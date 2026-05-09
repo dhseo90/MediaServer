@@ -11,6 +11,10 @@ Apache-2.0은 이 저장소의 원본 코드와 문서에 적용됩니다.
 사용자가 별도로 설치하거나 다운로드하는 runtime, tool, model file,
 sample media, package의 라이선스를 이 저장소가 다시 부여하지 않습니다.
 
+자동 생성 가능한 상세 dependency inventory는 config/third_party_attribution.json에
+관리하며, `./server.sh write-dependency-notice` 명령으로
+THIRD_PARTY_NOTICES.md를 갱신합니다.
+
 Core build/runtime dependency
 -----------------------------
 

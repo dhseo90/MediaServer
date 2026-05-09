@@ -21,20 +21,22 @@ Usage:
 Checks:
   - 코드/스크립트 파일 상단 8줄 안에 파일 용도 또는 동작 요약 주석이 있음
   - 설명 주석은 한글을 포함함
-  - build, .git, 테스트 산출물, __pycache__는 검사 대상에서 제외
+  - 정책 예외는 config/code_comment_policy.json에서 관리
 `);
 }
 assertKnownOptions(rawArgs, ["h", "help"]);
 
+const policy = readPolicy();
 const files = collectCodeFiles(rootDir);
 const missingHeaders = [];
 const englishOnlyComments = [];
+const headerPattern = new RegExp(policy.headerPatterns.join("|"));
 
 for (const file of files) {
   const relative = toRelative(file);
   const lines = fs.readFileSync(file, "utf8").split(/\n/);
   const header = lines.slice(0, 8).join("\n");
-  if (!/(파일\s*용도|파일\s*요약|동작\s*요약)/.test(header)) {
+  if (!headerPattern.test(header)) {
     missingHeaders.push(relative);
   }
   englishOnlyComments.push(...findEnglishOnlyComments(relative, lines));
@@ -80,21 +82,11 @@ function shouldSkipName(name) {
 }
 
 function shouldSkipPath(relative) {
-  return (
-    relative.startsWith("build") ||
-    relative.startsWith(".media_server.test") ||
-    relative.startsWith("third_party") ||
-    relative.startsWith("models") ||
-    relative.startsWith("video")
-  );
+  return policy.excludePathPrefixes.some((prefix) => relative === prefix || relative.startsWith(prefix));
 }
 
 function isCodeFile(relative) {
-  return (
-    relative === "server.sh" ||
-    relative === "CMakeLists.txt" ||
-    /\.(c|cc|cpp|h|hpp|js|mjs|py|sh)$/.test(relative)
-  );
+  return policy.extraCodeFiles.includes(relative) || policy.codeExtensions.includes(path.extname(relative));
 }
 
 function findEnglishOnlyComments(relative, lines) {
@@ -111,6 +103,7 @@ function findEnglishOnlyComments(relative, lines) {
       inBlockComment = false;
     }
     if (!comment) continue;
+    if (isAllowedEnglishOnlyComment(relative, index + 1, comment)) continue;
     if (/[가-힣]/.test(comment)) continue;
     if (/[A-Za-z]{3,}/.test(comment)) {
       hits.push(`${relative}:${index + 1}:${line}`);
@@ -130,11 +123,37 @@ function commentText(relative, trimmed, inBlockComment) {
 }
 
 function isHashCommentFile(relative) {
-  return relative === "CMakeLists.txt" || /\.(sh|py)$/.test(relative);
+  return policy.extraHashCommentFiles.includes(relative) || policy.hashCommentExtensions.includes(path.extname(relative));
 }
 
 function supportsBlockComments(relative) {
-  return /\.(c|cc|cpp|h|hpp|js|mjs)$/.test(relative);
+  return policy.blockCommentExtensions.includes(path.extname(relative));
+}
+
+function isAllowedEnglishOnlyComment(relative, line, comment) {
+  return policy.allowedEnglishOnlyComments.some((item) => {
+    if (item.path && item.path !== relative) return false;
+    if (Number.isInteger(item.line) && item.line !== line) return false;
+    if (item.pattern) return new RegExp(item.pattern).test(comment);
+    return false;
+  });
+}
+
+function readPolicy() {
+  const policyPath = path.join(rootDir, "config/code_comment_policy.json");
+  const defaults = {
+    headerPatterns: ["파일\\s*용도", "파일\\s*요약", "동작\\s*요약"],
+    excludePathPrefixes: [".git", ".media_server.test", "build", "third_party", "models", "video"],
+    codeExtensions: [".c", ".cc", ".cpp", ".h", ".hpp", ".js", ".mjs", ".py", ".sh"],
+    extraCodeFiles: ["server.sh", "CMakeLists.txt"],
+    hashCommentExtensions: [".sh", ".py"],
+    extraHashCommentFiles: ["CMakeLists.txt"],
+    blockCommentExtensions: [".c", ".cc", ".cpp", ".h", ".hpp", ".js", ".mjs"],
+    allowedEnglishOnlyComments: [],
+  };
+  if (!fs.existsSync(policyPath)) return defaults;
+  const loaded = JSON.parse(fs.readFileSync(policyPath, "utf8"));
+  return { ...defaults, ...loaded };
 }
 
 function toRelative(file) {

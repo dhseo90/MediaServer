@@ -59,6 +59,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "run_ops_evidence_retention_cleanup.mjs",
     "archive_rc_gate_artifact.mjs",
     "write_rc_release_checklist.mjs",
+    "write_dependency_notice.mjs",
     "verify_code_comments.mjs",
     "verify_docs_links.mjs",
     "verify_ops_client_ui_smoke.mjs",

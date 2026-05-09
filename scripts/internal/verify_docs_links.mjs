@@ -21,7 +21,8 @@ Usage:
 Checks:
   - README.md와 docs/**/*.md의 로컬 Markdown 링크가 존재하는 파일을 가리킴
   - 로컬 이미지 참조가 존재하고 확장자가 이미지 형식임
-  - 외부 URL, mailto, 같은 문서 anchor만 있는 링크는 파일 존재 검사에서 제외
+  - 로컬 Markdown anchor가 실제 heading anchor와 일치함
+  - 외부 URL, mailto 링크는 파일 존재 검사에서 제외
 `);
 }
 assertKnownOptions(rawArgs, ["h", "help"]);
@@ -30,6 +31,7 @@ const markdownFiles = collectMarkdownFiles();
 const failures = [];
 let linkCount = 0;
 let imageCount = 0;
+let anchorCount = 0;
 
 for (const file of markdownFiles) {
   const text = fs.readFileSync(file, "utf8");
@@ -48,6 +50,14 @@ for (const file of markdownFiles) {
     }
     if (ref.image && !/\.(png|jpg|jpeg|gif|webp|svg)$/i.test(resolved.filePath)) {
       failures.push(`${toRelative(file)}: 이미지 확장자가 아님: ${ref.target}`);
+    }
+    if (!ref.image && resolved.anchor && isMarkdownFile(resolved.filePath)) {
+      linkCount += 0;
+      anchorCount += 1;
+      const anchors = markdownAnchors(resolved.filePath);
+      if (!anchors.has(resolved.anchor)) {
+        failures.push(`${toRelative(file)}: 존재하지 않는 anchor: ${ref.target}`);
+      }
     }
   }
   for (const ref of findHtmlImageReferences(text)) {
@@ -70,6 +80,7 @@ console.log("== Docs link verification summary ==");
 console.log(`- markdown files: ${markdownFiles.length}`);
 console.log(`- local links: ${linkCount}`);
 console.log(`- local images: ${imageCount}`);
+console.log(`- local anchors: ${anchorCount}`);
 console.log(`- failures: ${failures.length}`);
 
 if (failures.length > 0) process.exit(1);
@@ -132,24 +143,70 @@ function normalizeMarkdownTarget(rawTarget) {
 function shouldIgnoreTarget(target) {
   return (
     !target ||
-    target.startsWith("#") ||
     /^[a-z][a-z0-9+.-]*:/i.test(target)
   );
 }
 
 function resolveLocalTarget(fromFile, target) {
-  const pathPart = target.split("#", 1)[0].split("?", 1)[0];
-  if (!pathPart) return null;
+  const withoutQuery = target.split("?", 1)[0];
+  const hashIndex = withoutQuery.indexOf("#");
+  const pathPart = hashIndex >= 0 ? withoutQuery.slice(0, hashIndex) : withoutQuery;
+  const anchorPart = hashIndex >= 0 ? withoutQuery.slice(hashIndex + 1) : "";
   let decoded = pathPart;
+  let anchor = anchorPart;
   try {
     decoded = decodeURIComponent(pathPart);
+    anchor = decodeURIComponent(anchorPart);
   } catch {
     return null;
   }
-  const filePath = decoded.startsWith("/")
+  const filePath = !decoded
+    ? fromFile
+    : decoded.startsWith("/")
     ? path.join(rootDir, decoded.replace(/^\/+/, ""))
     : path.resolve(path.dirname(fromFile), decoded);
-  return { filePath };
+  return { filePath, anchor: normalizeAnchor(anchor) };
+}
+
+function isMarkdownFile(filePath) {
+  return /\.md$/i.test(filePath);
+}
+
+const anchorCache = new Map();
+
+function markdownAnchors(filePath) {
+  if (anchorCache.has(filePath)) return anchorCache.get(filePath);
+  const anchors = new Set();
+  const counts = new Map();
+  const text = fs.existsSync(filePath) ? fs.readFileSync(filePath, "utf8") : "";
+  for (const line of text.split(/\n/)) {
+    const match = /^(#{1,6})\s+(.+?)\s*$/.exec(line);
+    if (!match) continue;
+    const raw = stripInlineMarkdown(match[2]);
+    const base = normalizeAnchor(raw);
+    if (!base) continue;
+    const count = counts.get(base) || 0;
+    counts.set(base, count + 1);
+    anchors.add(count === 0 ? base : `${base}-${count}`);
+  }
+  anchorCache.set(filePath, anchors);
+  return anchors;
+}
+
+function stripInlineMarkdown(value) {
+  return value
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[*_~]/g, "")
+    .trim();
+}
+
+function normalizeAnchor(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~]/g, "")
+    .replace(/\s+/g, "-");
 }
 
 function toRelative(file) {

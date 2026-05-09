@@ -50,6 +50,7 @@ git diff --check -- README.md NOTICE .github docs scripts src include
 ./server.sh verify-code-comments
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
+./server.sh write-dependency-notice --check
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-click-e2e
@@ -1372,6 +1373,10 @@ Redaction은 개인정보 보호/모자이크 경로의 선택 검증입니다.
 `verify-ops-client-ui`, `verify-ops-click-e2e`,
 `verify-ops-tables-layout`, `verify-ops-rules-roundtrip`,
 `verify-rule-ui`, event POST schema/recovery, redaction을 함께 실행합니다.
+무옵션 `test --full --stop-after`의 기본 목표 시간은 `1800s`입니다.
+실행 summary는 `.media_server.test/<timestamp>/test-summary.json`에 남기며,
+RC checklist에는 `--full-test-summary`로 연결할 수 있습니다.
+2026-05-09 로컬 기준선은 543초(9.1분), pass 30 / fail 0 / skip 6입니다.
 
 확인 기준:
 

@@ -27,6 +27,8 @@ Options:
   --artifact-name <name>          CI artifact 이름입니다.
   --artifact-retention-days <n>   CI artifact 보존 일수입니다.
   --asset-manifest <path>         RC asset manifest JSON입니다.
+  --full-test-summary <path>      test --full summary JSON입니다.
+  --full-test-target-seconds <n>  test --full release 기준 시간입니다. 기본 1800.
   --runner-label <label>          runner 표시명입니다.
   -h, --help                      도움말 출력
 `);
@@ -43,6 +45,8 @@ assertKnownOptions(rawArgs, [
   "artifact-name",
   "artifact-retention-days",
   "asset-manifest",
+  "full-test-summary",
+  "full-test-target-seconds",
   "runner-label",
   "h",
   "help",
@@ -137,11 +141,43 @@ function buildCiContext(parsedArgs) {
     artifactRetentionDays: parsedArgs.artifactRetentionDays || process.env.RC_ARTIFACT_RETENTION_DAYS || "",
     assetManifest: parsedArgs.assetManifest || "",
     assetSummary: summarizeAssets(parsedArgs.assetManifest || ""),
+    fullTestSummary: parsedArgs.fullTestSummary || "",
+    fullTestTargetSeconds: Number(parsedArgs.fullTestTargetSeconds || process.env.MEDIA_SERVER_TEST_FULL_TARGET_SECONDS || 1800),
+    fullTestStatus: summarizeFullTest(parsedArgs.fullTestSummary || "", Number(parsedArgs.fullTestTargetSeconds || process.env.MEDIA_SERVER_TEST_FULL_TARGET_SECONDS || 1800)),
     runnerLabel: parsedArgs.runnerLabel || process.env.RUNNER_NAME || "",
     runUrl,
     repository: process.env.GITHUB_REPOSITORY || "",
     refName: process.env.GITHUB_REF_NAME || "",
     sha: process.env.GITHUB_SHA || "",
+  };
+}
+
+function summarizeFullTest(filePath, targetSeconds) {
+  if (!filePath) {
+    return { status: "missing", label: "full test summary 미지정", detail: `target=${targetSeconds}s` };
+  }
+  if (!fs.existsSync(filePath)) {
+    return { status: "missing", label: "full test summary 없음", detail: filePath };
+  }
+  let payload = {};
+  try {
+    payload = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch (error) {
+    return { status: "fail", label: "full test summary 파싱 실패", detail: error.message };
+  }
+  const elapsed = Number(payload.elapsedSeconds || 0);
+  const failCount = Number(payload.failCount || 0);
+  const fullReleaseCandidate = payload.fullReleaseCandidate === true;
+  if (failCount > 0) {
+    return { status: "fail", label: "FAIL", detail: `fail=${failCount} elapsed=${elapsed}s target=${targetSeconds}s` };
+  }
+  if (!fullReleaseCandidate) {
+    return { status: "check", label: "CHECK", detail: `무옵션 full 기준 아님 elapsed=${elapsed}s target=${targetSeconds}s` };
+  }
+  return {
+    status: elapsed <= targetSeconds ? "pass" : "check",
+    label: elapsed <= targetSeconds ? "PASS" : "SLOW",
+    detail: `elapsed=${elapsed}s target=${targetSeconds}s`,
   };
 }
 
@@ -185,6 +221,8 @@ function buildMarkdown(items, context = {}) {
     context.runnerLabel ? `- runner: ${context.runnerLabel}` : "- runner: (local)",
     context.assetManifest ? `- assetManifest: ${context.assetManifest}` : "- assetManifest: (missing)",
     `- assetStatus: ${context.assetSummary.label}${context.assetSummary.detail ? ` (${context.assetSummary.detail})` : ""}`,
+    context.fullTestSummary ? `- localFullTestSummary: ${context.fullTestSummary}` : "- localFullTestSummary: (missing)",
+    `- localFullTestStatus: ${context.fullTestStatus.label}${context.fullTestStatus.detail ? ` (${context.fullTestStatus.detail})` : ""}`,
     context.historyIndex ? `- reportHistory: ${context.historyIndex}` : "- reportHistory: (disabled)",
     context.historyHtml ? `- reportHistoryHtml: ${context.historyHtml}` : "",
     context.runUrl ? `- ciRun: ${context.runUrl}` : "- ciRun: (local)",
@@ -210,6 +248,7 @@ function buildMarkdown(items, context = {}) {
     "## Notes",
     "",
     "- 이 checklist는 장기 검증을 실행하지 않고, 이미 생성된 summary/report를 release 기준 문서로 연결합니다.",
+    "- 로컬 release 전 기준은 `./server.sh test --full --stop-after`이며 기본 목표 시간은 1800초입니다.",
     "- GitHub Actions에서는 `media-server-rc-gate` artifact에 summary, report, Markdown/HTML checklist를 함께 업로드합니다.",
     "- 실제 RC gate는 sample video, YOLO model, labels가 준비된 self-hosted macOS runner에서 실행하는 것을 권장합니다.",
     "- artifact retention은 workflow input과 checklist의 `artifactRetentionDays`로 같이 고정합니다.",
