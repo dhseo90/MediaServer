@@ -1072,6 +1072,13 @@ private:
             SetRegistryError(error_message, "vaRule analysis.profileId does not exist");
             return std::nullopt;
         }
+        const auto profile_document = FindDocumentLocked(profiles_, profile_id);
+        if (profile_document.has_value() &&
+            ParseBoolField(*profile_document, "enabled").has_value() &&
+            !ParseBoolField(*profile_document, "enabled").value()) {
+            SetRegistryError(error_message, "vaRule analysis.profileId is inactive");
+            return std::nullopt;
+        }
         const auto template_start = ExtractObjectField(body, "templateStart");
         const std::string template_rule_id =
             template_start.has_value() ? Trim(ParseStringField(*template_start, "ruleId").value_or(""))
@@ -1085,19 +1092,50 @@ private:
             SetRegistryError(error_message, "vaRule templateStart.ruleId does not exist");
             return std::nullopt;
         }
+        if (ParseBoolField(*template_document, "enabled").has_value() &&
+            !ParseBoolField(*template_document, "enabled").value()) {
+            SetRegistryError(error_message, "vaRule templateStart.ruleId is inactive");
+            return std::nullopt;
+        }
         const std::vector<std::string> template_classes = AnalysisClassesFromDocument(*template_document);
         if (!template_classes.empty() && !StringArrayIncludesAll(va_rule_classes, template_classes)) {
             SetRegistryError(error_message,
                              "vaRule analysis.classes must include template analysis.classes");
             return std::nullopt;
         }
-        if (const auto profile_document = FindDocumentLocked(profiles_, profile_id);
-            profile_document.has_value()) {
+        if (profile_document.has_value()) {
             const std::vector<std::string> profile_classes = AnalysisClassesFromDocument(*profile_document);
             if (!profile_classes.empty() &&
                 !StringArrayIncludesAll(profile_classes, template_classes)) {
                 SetRegistryError(error_message,
                                  "vaRule profile classes must include template analysis.classes");
+                return std::nullopt;
+            }
+        }
+        const auto source_key_for = [](const std::string& source_json) {
+            const std::string kind = Trim(ParseStringField(source_json, "kind").value_or(""));
+            const std::string locator = kind == "file"
+                                            ? Trim(ParseStringField(source_json, "file").value_or(""))
+                                            : Trim(ParseStringField(source_json, "url").value_or(""));
+            return kind + ":" + locator;
+        };
+        const std::string requested_source_key = source_key_for(*source);
+        const int requested_priority = ParseIntField(body, "priority").value_or(0);
+        for (const auto& existing_rule : va_rules_) {
+            if (existing_rule.id == id) {
+                continue;
+            }
+            if (ParseBoolField(existing_rule.body, "enabled").has_value() &&
+                !ParseBoolField(existing_rule.body, "enabled").value()) {
+                continue;
+            }
+            const auto existing_source = ExtractObjectField(existing_rule.body, "source");
+            if (!existing_source.has_value() || source_key_for(*existing_source) != requested_source_key) {
+                continue;
+            }
+            const int existing_priority = ParseIntField(existing_rule.body, "priority").value_or(0);
+            if (existing_priority == requested_priority) {
+                SetRegistryError(error_message, "vaRule priority conflicts with existing rule on same source");
                 return std::nullopt;
             }
         }

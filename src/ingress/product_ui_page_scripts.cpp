@@ -1938,6 +1938,17 @@ void AppendOpsShellScript(std::ostringstream& out,
         ].filter(Boolean));
         return allowed.has(id);
       }
+      function opsRulesViewHasClientAccess(view = {}) {
+        return view?.enabled !== false
+          && (view?.showDashboard !== false || view?.showEvents !== false || view?.showMetadataSummary !== false);
+      }
+      function opsRulesDocumentInactive(item = {}) {
+        return item?.enabled === false || String(item?.status || '').toLowerCase() === 'inactive';
+      }
+      function opsRulesRulePriority(rule = {}) {
+        const value = Number(rule?.priority ?? rule?.match?.priority ?? 0);
+        return Number.isFinite(value) ? value : 0;
+      }
       function opsRulesClassConflictMessages(rule = {}, template = null, profile = null) {
         const messages = [];
         const ruleClasses = opsRulesTemplateClasses(rule);
@@ -4157,11 +4168,15 @@ void AppendOpsShellScript(std::ostringstream& out,
             issues.push(opsRulesIssue('missing-profile', `va-rule:${id}`, `채널 분석 설정 ${id}에 프로파일이 없습니다.`, '분석 프로파일을 선택해야 저장/운영할 수 있습니다.'));
           } else if (!profile) {
             issues.push(opsRulesIssue('missing-profile', `va-rule:${id}`, `채널 분석 설정 ${id}의 프로파일 ${profileId}을 찾을 수 없습니다.`, '삭제됐거나 아직 생성되지 않은 프로파일입니다.'));
+          } else if (opsRulesDocumentInactive(profile)) {
+            issues.push(opsRulesIssue('inactive-profile', `va-rule:${id}`, `채널 분석 설정 ${id}의 프로파일 ${profileId}이 비활성입니다.`, '활성 프로파일을 선택한 뒤 저장하세요.'));
           }
           if (!templateId) {
             issues.push(opsRulesIssue('missing-template', `va-rule:${id}`, `채널 분석 설정 ${id}에 이벤트 템플릿이 없습니다.`, '이벤트 템플릿을 먼저 선택하세요.'));
           } else if (!template) {
             issues.push(opsRulesIssue('missing-template', `va-rule:${id}`, `채널 분석 설정 ${id}의 템플릿 ${templateId}을 찾을 수 없습니다.`, '삭제됐거나 아직 생성되지 않은 템플릿입니다.'));
+          } else if (opsRulesDocumentInactive(template)) {
+            issues.push(opsRulesIssue('inactive-template', `va-rule:${id}`, `채널 분석 설정 ${id}의 템플릿 ${templateId}이 비활성입니다.`, '활성 이벤트 템플릿을 선택한 뒤 저장하세요.'));
           }
           if (!channel) {
             issues.push(opsRulesIssue('missing-source', `va-rule:${id}`, `채널 분석 설정 ${id}의 source가 채널 목록에 없습니다.`, '채널 탭에서 source와 PublishedView를 다시 저장하세요.'));
@@ -4176,6 +4191,9 @@ void AppendOpsShellScript(std::ostringstream& out,
           }
           if (channel?.view && !opsRulesViewAllowsVaRuleMode(channel.view)) {
             issues.push(opsRulesIssue('view-mode-not-allowed', `va-rule:${id}`, `PublishedView가 va-rule 모드를 허용하지 않습니다.`, '채널 탭에서 보기 방식에 va-rule을 추가해야 Client Live에서 사용할 수 있습니다.'));
+          }
+          if (channel?.view && !opsRulesViewHasClientAccess(channel.view)) {
+            issues.push(opsRulesIssue('unauthorized-view', `va-rule:${id}`, `PublishedView가 Client 노출 권한을 모두 닫고 있습니다.`, 'dashboard/events/metadata 중 최소 하나를 허용한 view에 룰을 연결하세요.'));
           }
           if (channel?.view && id !== '(미지정)' && !opsRulesViewAllowsRuleId(channel.view, id)) {
             issues.push(opsRulesIssue('view-rule-not-allowed', `va-rule:${id}`, `PublishedView 허용 룰 목록에 ${id}가 없습니다.`, '채널 탭에서 defaultRuleId/allowedRuleIds를 맞추거나 룰을 다시 연결하세요.'));
@@ -4198,6 +4216,22 @@ void AppendOpsShellScript(std::ostringstream& out,
           }
           if (ruleIds.size > 0 && !opsRulesViewAllowsVaRuleMode(view)) {
             issues.push(opsRulesIssue('view-mode-not-allowed', `view:${viewId}`, `PublishedView ${viewId}가 룰을 참조하지만 va-rule 모드를 허용하지 않습니다.`, '보기 방식과 허용 룰 목록을 함께 저장하세요.'));
+          }
+          if (ruleIds.size > 0 && !opsRulesViewHasClientAccess(view)) {
+            issues.push(opsRulesIssue('unauthorized-view', `view:${viewId}`, `PublishedView ${viewId}가 룰을 참조하지만 Client 노출 권한이 없습니다.`, 'dashboard/events/metadata 노출 중 최소 하나를 활성화하세요.'));
+          }
+          const priorityBuckets = new Map();
+          for (const ruleId of ruleIds) {
+            const rule = findOpsVaRuleById(ruleId);
+            if (!rule || rule.enabled === false) continue;
+            const priority = opsRulesRulePriority(rule);
+            if (!priorityBuckets.has(priority)) priorityBuckets.set(priority, []);
+            priorityBuckets.get(priority).push(ruleId);
+          }
+          for (const [priority, ids] of priorityBuckets.entries()) {
+            if (ids.length > 1) {
+              issues.push(opsRulesIssue('priority-conflict', `view:${viewId}`, `PublishedView ${viewId}의 룰 priority ${priority}가 중복됩니다.`, `중복 룰: ${ids.join(', ')}. 저장 전 우선순위를 분리하세요.`));
+            }
           }
         }
         return issues;
@@ -4238,11 +4272,16 @@ void AppendOpsShellScript(std::ostringstream& out,
           const template = templateId ? findOpsEventTemplateById(templateId) : null;
           if (!profileId || !profile) issues.push(`분석 프로파일 ${profileId || '(비어 있음)'}을 찾을 수 없습니다.`);
           if (!templateId || !template) issues.push(`이벤트 템플릿 ${templateId || '(비어 있음)'}을 찾을 수 없습니다.`);
+          if (profile && opsRulesDocumentInactive(profile)) issues.push(`분석 프로파일 ${profileId}이 비활성입니다.`);
+          if (template && opsRulesDocumentInactive(template)) issues.push(`이벤트 템플릿 ${templateId}이 비활성입니다.`);
           if (!channel?.view) issues.push('선택한 채널에 PublishedView가 없습니다.');
           if (channel?.source?.enabled === false) issues.push('비활성 채널에는 룰을 연결할 수 없습니다.');
           if (channel?.view?.enabled === false) issues.push('비활성 PublishedView에는 룰을 연결할 수 없습니다.');
           if (channel?.view && !opsRulesViewAllowsVaRuleMode(channel.view)) {
             issues.push('선택한 PublishedView가 va-rule 모드를 허용하지 않습니다.');
+          }
+          if (channel?.view && !opsRulesViewHasClientAccess(channel.view)) {
+            issues.push('선택한 PublishedView에 Client 노출 권한이 없습니다.');
           }
           if (channel?.view && currentId && !opsRulesViewAllowsRuleId(channel.view, id)) {
             issues.push(`선택한 PublishedView의 허용 룰 목록에 ${id}가 없습니다.`);
@@ -4250,6 +4289,15 @@ void AppendOpsShellScript(std::ostringstream& out,
           issues.push(...opsRulesClassConflictMessages(payload, template, profile));
           if (channel?.source && payload?.source && !opsRulesSourceMatches(channel.source, payload.source)) {
             issues.push('선택한 채널 source와 룰 source가 일치하지 않습니다.');
+          }
+          const priority = opsRulesRulePriority(payload);
+          const conflictingRule = opsCatalogVaRules.find(rule => {
+            const otherId = String(rule?.id || '').trim();
+            if (!otherId || otherId === id || rule?.enabled === false) return false;
+            return opsRulesRulePriority(rule) === priority && channel?.source && opsRulesSourceMatches(channel.source, rule.source || {});
+          });
+          if (conflictingRule) {
+            issues.push(`같은 채널에 priority ${priority}인 룰 ${conflictingRule.id}가 이미 있습니다.`);
           }
         } else if (mode === 'event-rule') {
           const existing = findOpsEventTemplateById(id);
