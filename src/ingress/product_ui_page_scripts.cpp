@@ -1462,6 +1462,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (eventId) params.set('eventId', eventId);
           if (snapshotPath) params.set('snapshotPath', snapshotPath);
           if (clipPath) params.set('clipPath', clipPath);
+          params.set('expiresAtMs', String(Date.now() + 24 * 60 * 60 * 1000));
           params.set('download', '1');
           return `/lab/analysis/events/evidence/bundle?${params.toString()}`;
         };
@@ -1550,10 +1551,11 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: exportPolicy.clipManifestDownload ? 'clip manifest 다운로드' : 'clip export off', tone: exportPolicy.clipManifestDownload ? '' : 'warn' },
           { text: exportPolicy.bundleArchiveDownload ? 'bundle zip 다운로드' : 'bundle zip 없음', tone: exportPolicy.bundleArchiveDownload ? '' : 'info' },
           { text: exportPolicy.exportAudit ? 'export audit 기록' : 'export audit 없음', tone: exportPolicy.exportAudit ? '' : 'warn' },
+          { text: exportPolicy.bundleMaxAgeMs ? `bundle 만료 ${Math.round(exportPolicy.bundleMaxAgeMs / 3600000)}h` : 'bundle 만료 미지정', tone: exportPolicy.bundleMaxAgeMs ? 'info' : 'warn' },
           { text: deletePolicy.compactionDelete ? 'compaction 삭제 가능' : '삭제 제한', tone: deletePolicy.compactionDelete ? 'info' : 'warn' }
         ]);
         setText('eventExportPolicyText',
-          `보존 ${retentionPolicy.archiveRetention || 'oldest-rotated-only'} · active 보호 ${retentionPolicy.activeFileProtected === false ? 'off' : 'on'} · evidence 파일 직접 삭제 ${deletePolicy.evidenceFileDelete ? '허용' : '불가'}`);
+          `보존 ${retentionPolicy.archiveRetention || 'oldest-rotated-only'} · bundle ${retentionPolicy.bundleExpiry || 'download-link-expiresAtMs'} · audit ${exportPolicy.auditAction || 'export-bundle'} · evidence 파일 직접 삭제 ${deletePolicy.evidenceFileDelete ? '허용' : '불가'}`);
         const eventItems = Array.isArray(records.records) ? records.records : [];
         setText(
           'eventRecordSummary',
