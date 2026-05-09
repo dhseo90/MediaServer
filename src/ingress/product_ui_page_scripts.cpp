@@ -4670,6 +4670,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     let currentChannelEnabled = true;
     let initializedHashChannel = false;
     let lastChannelBulkResult = null;
+    let lastChannelBulkPreview = null;
     const selectedChannelIds = new Set();
 	    const { escapeHtml, requestJson, formDataObject, setFeedback, showToast, setTableEmpty, tableCellHtml, setSelectOptions, recordOpsAudit, renderOpsAuditTrail } = window.MediaServerUi;
 	    const hashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
@@ -4926,6 +4927,54 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
           };
         });
     };
+    const channelBulkDiffPreview = (operation, rows, { rollback = false } = {}) => {
+      const items = rollback ? rows.map(row => row.result || row) : channelBulkItems(rows);
+      return items.map((item, index) => {
+        const row = rows[index] || {};
+        const sourceId = String(item.sourceId || row.id || row.sourceId || '');
+        const resultSourceId = String(item.resultSourceId || item.rollbackSourceId || sourceId || '(server-assigned)');
+        const rollbackMode = String(item.rollbackMode || 'restore');
+        const before = {
+          sourceId,
+          enabled: row.source?.enabled !== false && row.view?.enabled !== false,
+          name: row.view?.displayName || row.source?.displayName || sourceId
+        };
+        let after = before;
+        if (operation === 'clone') {
+          after = { sourceId: resultSourceId, enabled: false, name: `${before.name || sourceId} 복제` };
+        } else if (operation === 'disable') {
+          after = { ...before, enabled: false };
+        } else if (operation === 'rollback' && rollbackMode === 'disable-created') {
+          after = { sourceId: resultSourceId, enabled: false, name: before.name };
+        } else if (operation === 'rollback') {
+          after = {
+            sourceId,
+            enabled: item.source?.enabled !== false && item.view?.enabled !== false,
+            name: item.view?.displayName || item.source?.displayName || before.name
+          };
+        }
+        return {
+          sourceId,
+          target: `channel:${resultSourceId || sourceId}`,
+          operation,
+          rollbackMode,
+          before,
+          after
+        };
+      });
+    };
+    const renderChannelBulkPreview = preview => {
+      const items = Array.isArray(preview?.items) ? preview.items : [];
+      if (items.length === 0) return '';
+      return `<div class="validation-item info">
+          ${chip('diff preview', 'info')}
+          <div><strong>${escapeHtml(preview.title || '대량 작업 diff preview')}</strong>
+          <p>${escapeHtml(preview.note || '감사 로그 before/after에 같은 diff preview가 기록됩니다.')}</p>
+          <ul class="compact-list">
+            ${items.slice(0, 6).map(item => `<li><span class="token">${escapeHtml(item.target)}</span> ${escapeHtml(display(item.before?.enabled ? '활성' : '비활성'))} → ${escapeHtml(display(item.after?.enabled ? '활성' : '비활성'))} · ${escapeHtml(item.after?.name || item.before?.name || '')}</li>`).join('')}
+          </ul></div>
+        </div>`;
+    };
     const sourceLocatorKey = source => {
       if (!source || !source.kind) return '';
       if (source.kind === 'file') return `file:${source.file || ''}`;
@@ -4994,16 +5043,18 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         bulkSelectAll.indeterminate = selectedCount > 0 && selectedCount < rows.length;
       }
       if (!bulkDiagnostics) return;
+      const previewPanel = renderChannelBulkPreview(lastChannelBulkPreview);
       const resultPanel = lastChannelBulkResult?.result ? `<div class="validation-item ${lastChannelBulkResult.result.failCount ? 'warn' : 'info'}">
           ${chip(lastChannelBulkResult.dryRun ? 'dry-run' : 'bulk', lastChannelBulkResult.result.failCount ? 'warn' : 'info')}
           <div><strong>${escapeHtml(lastChannelBulkResult.operation)} 결과: 성공 ${escapeHtml(display(lastChannelBulkResult.result.okCount))}, 실패 ${escapeHtml(display(lastChannelBulkResult.result.failCount))}</strong>
-          <p>${escapeHtml(lastChannelBulkResult.result.retryPolicy || '실패 항목은 수정 후 재시도할 수 있습니다.')} · ${escapeHtml(lastChannelBulkResult.result.rollbackPolicy || '성공 항목은 필요 시 롤백 정책에 따라 되돌립니다.')}</p></div>
+          <p>감사 ${escapeHtml(lastChannelBulkResult.result.auditAction || 'bulk')} · ${escapeHtml(lastChannelBulkResult.result.retryPolicy || '실패 항목은 수정 후 재시도할 수 있습니다.')} · ${escapeHtml(lastChannelBulkResult.result.rollbackPolicy || '성공 항목은 필요 시 롤백 정책에 따라 되돌립니다.')}</p>
+          <a class="btn small" href="#channel-audit-list">감사 이력 보기</a></div>
         </div>` : '';
       if (issues.length === 0 && !forceOpen) {
-        bulkDiagnostics.innerHTML = resultPanel || '<div class="empty">source/view 연결, 중복 입력, 비활성 상태가 정상 범위입니다.</div>';
+        bulkDiagnostics.innerHTML = previewPanel + (resultPanel || '<div class="empty">source/view 연결, 중복 입력, 비활성 상태가 정상 범위입니다.</div>');
         return;
       }
-      bulkDiagnostics.innerHTML = resultPanel + (issues.length === 0
+      bulkDiagnostics.innerHTML = previewPanel + resultPanel + (issues.length === 0
         ? '<div class="empty">검증 결과: 대량 작업 전 차단할 문제가 없습니다.</div>'
         : issues.map(issue => `<div class="validation-item ${escapeHtml(issue.level)}">
             ${chip(issue.level === 'bad' ? '오류' : '확인', issue.level)}
@@ -5364,12 +5415,18 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         setStatus(`채널 상태 변경 실패: ${error.message}`, true);
       }
     }
-    async function runChannelBulkOperation(operation, rows, { dryRun = false, rollback = false } = {}) {
+    async function runChannelBulkOperation(operation, rows, { dryRun = false, rollback = false, previewTitle = '', previewNote = '' } = {}) {
       if (rows.length === 0) {
         setStatus('대량 작업을 수행할 채널을 선택하세요.', true);
         return;
       }
       const items = rollback ? rows.map(row => row.result || row) : channelBulkItems(rows);
+      const diffPreview = channelBulkDiffPreview(operation, rows, { rollback });
+      lastChannelBulkPreview = {
+        title: previewTitle || (rollback ? '롤백 실행 전 diff preview' : `${operation} 실행 diff preview`),
+        note: previewNote || '이 preview는 bulk 감사 로그 before에 함께 기록됩니다.',
+        items: diffPreview
+      };
       const result = await requestJson('/ops/api/channels/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -5377,7 +5434,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       });
       const failedSourceIds = new Set((result.results || []).filter(item => !item.ok && item.retryable !== false).map(item => String(item.sourceId || '')));
       const failedRows = rows.filter(row => failedSourceIds.has(String(row.id || row.sourceId || '')));
-      lastChannelBulkResult = { operation, rows, result, dryRun, failedRows };
+      lastChannelBulkResult = { operation, rows, result, dryRun, failedRows, diffPreview };
       if (!dryRun) {
         selectedChannelIds.clear();
         await loadAll();
@@ -5386,10 +5443,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       }
       await recordOpsAudit({
         area: 'channels',
-        action: dryRun ? 'bulk-dry-run' : (operation === 'rollback' ? 'bulk-rollback' : `bulk-${operation}`),
-        target: (result.results || []).map(item => `channel:${item.resultSourceId || item.sourceId}`).join(', '),
-        before: rows.map(row => ({ source: row.source || null, view: row.view || null })),
-        after: result
+        action: result.auditAction || (dryRun ? 'bulk-dry-run' : (operation === 'rollback' ? 'bulk-rollback' : `bulk-${operation}`)),
+        target: (Array.isArray(result.auditTargets) ? result.auditTargets : (result.results || []).map(item => `channel:${item.resultSourceId || item.sourceId}`)).join(', '),
+        before: { rows: rows.map(row => ({ source: row.source || null, view: row.view || null })), diffPreview },
+        after: { ...result, diffPreview }
       });
       renderOpsAuditTrail('channel-audit-list', 'channels');
       const failed = Number(result.failCount || 0);
@@ -5429,7 +5486,17 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         return;
       }
       try {
-        await runChannelBulkOperation(lastChannelBulkResult.operation, rows, { dryRun: false });
+        lastChannelBulkPreview = {
+          title: '실패 재시도 전 diff preview',
+          note: '실패 항목만 다시 실행하며, 이 preview가 감사 로그에 연결됩니다.',
+          items: channelBulkDiffPreview(lastChannelBulkResult.operation, rows)
+        };
+        renderChannelBulkDiagnostics(true);
+        await runChannelBulkOperation(lastChannelBulkResult.operation, rows, {
+          dryRun: false,
+          previewTitle: '실패 재시도 전 diff preview',
+          previewNote: '실패 항목만 다시 실행하며, 이 preview가 감사 로그에 연결됩니다.'
+        });
       } catch (error) {
         setStatus(`실패 항목 재시도 실패: ${error.message}`, true);
       }

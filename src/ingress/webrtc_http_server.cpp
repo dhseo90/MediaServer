@@ -7372,7 +7372,9 @@ std::string OpsChannelBulkJson(const std::string& body) {
     int ok_count = 0;
     int fail_count = 0;
     std::ostringstream results;
+    std::ostringstream audit_targets;
     results << "[";
+    audit_targets << "[";
     for (std::size_t index = 0; index < items.size(); ++index) {
         const std::string& item = items[index];
         const std::string source_raw = ExtractObjectField(item, "source").value_or("{}");
@@ -7467,7 +7469,10 @@ std::string OpsChannelBulkJson(const std::string& body) {
         }
         if (index != 0) {
             results << ",";
+            audit_targets << ",";
         }
+        const std::string audit_target_id = result_source_id.empty() ? source_id : result_source_id;
+        audit_targets << "\"channel:" << JsonEscape(audit_target_id) << "\"";
         results << "{"
                 << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
                 << "\"resultSourceId\":\"" << JsonEscape(result_source_id) << "\","
@@ -7476,10 +7481,14 @@ std::string OpsChannelBulkJson(const std::string& body) {
                 << "\"retryable\":" << (retryable ? "true" : "false") << ","
                 << "\"rollbackMode\":\"" << JsonEscape(rollback_mode) << "\","
                 << "\"rollbackSourceId\":\"" << JsonEscape(result_source_id) << "\","
+                << "\"auditTarget\":\"channel:" << JsonEscape(audit_target_id) << "\","
                 << "\"message\":\"" << JsonEscape(message) << "\""
                 << "}";
     }
     results << "]";
+    audit_targets << "]";
+    const std::string audit_action =
+        dry_run ? "bulk-dry-run" : (operation == "rollback" ? "bulk-rollback" : "bulk-" + operation);
     std::ostringstream out;
     out << "{"
         << "\"status\":\"ops-channel-bulk\","
@@ -7488,6 +7497,10 @@ std::string OpsChannelBulkJson(const std::string& body) {
         << "\"okCount\":" << ok_count << ","
         << "\"failCount\":" << fail_count << ","
         << "\"partialFailure\":" << (fail_count > 0 && ok_count > 0 ? "true" : "false") << ","
+        << "\"auditArea\":\"channels\","
+        << "\"auditAction\":\"" << JsonEscape(audit_action) << "\","
+        << "\"auditTargets\":" << audit_targets.str() << ","
+        << "\"diffPreviewPolicy\":\"UI records the before/after bulk diff preview in Ops audit before retry or rollback\","
         << "\"rollbackPolicy\":\"use operation=rollback with successful result ids; clone rollback disables created channels and disable rollback restores before snapshots\","
         << "\"retryPolicy\":\"retry only failed sourceId items after fixing validation errors; retryable flags identify safe retry targets\","
         << "\"results\":" << results.str()
