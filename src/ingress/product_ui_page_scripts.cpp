@@ -1312,6 +1312,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       let opsRulesViews = [];
       let opsRulesChannels = [];
       let opsRuleCategoryCatalog = [];
+      let opsRulesValidationIssues = [];
       let opsRulesActiveMode = 'va-rule';
       let opsRulesDetailMode = 'closed';
       let opsRulesDetailRecordId = '';
@@ -3016,6 +3017,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (geometryPoints.length < (isLine ? 2 : 3)) {
             throw new Error(isLine ? '라인 좌표는 2점 이상 필요합니다.' : '영역 좌표는 3점 이상 필요합니다.');
           }
+          const blockingIssues = opsRulesDraftBlockingIssues(mode, payload, current, channel);
+          if (blockingIssues.length) throw new Error(`저장 전 검증 실패: ${blockingIssues.join(' / ')}`);
           const response = await requestJson(`${opsLabVaRulesPath}/${encodeURIComponent(payload.id)}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -3041,6 +3044,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (!Array.isArray(payload.analysis?.classes) || payload.analysis.classes.length === 0) {
             throw new Error('분석 대상을 하나 이상 선택하세요.');
           }
+          const blockingIssues = opsRulesDraftBlockingIssues(mode, payload, current);
+          if (blockingIssues.length) throw new Error(`저장 전 검증 실패: ${blockingIssues.join(' / ')}`);
           const response = await requestJson(`${opsLabRulesPath}/${encodeURIComponent(payload.id)}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -3068,6 +3073,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (!Number.isFinite(payload.inputWidth) || !Number.isFinite(payload.inputHeight) || payload.inputWidth <= 0 || payload.inputHeight <= 0) {
             throw new Error('입력 해상도는 1 이상이어야 합니다.');
           }
+          const blockingIssues = opsRulesDraftBlockingIssues(mode, payload, current);
+          if (blockingIssues.length) throw new Error(`저장 전 검증 실패: ${blockingIssues.join(' / ')}`);
           const response = await requestJson(`${opsLabProfilesPath}/${encodeURIComponent(payload.id)}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -3771,6 +3778,115 @@ void AppendOpsShellScript(std::ostringstream& out,
         return [...opsCatalogBuiltInProfiles, ...opsCatalogProfiles]
           .find((item) => String(item?.id || item?.profileId || '') === String(id || ''));
       }
+      function opsRulesDuplicateIds(items, idGetter) {
+        const seen = new Set();
+        const duplicates = new Set();
+        for (const item of items || []) {
+          const id = String(idGetter(item) || '').trim();
+          if (!id) continue;
+          if (seen.has(id)) duplicates.add(id);
+          seen.add(id);
+        }
+        return Array.from(duplicates);
+      }
+      function opsRulesIssue(kind, target, title, detail, severity = 'bad') {
+        return { kind, target, title, detail, severity };
+      }
+      function opsRulesBuildValidationIssues() {
+        const issues = [];
+        for (const id of opsRulesDuplicateIds(opsCatalogVaRules, item => item?.id)) {
+          issues.push(opsRulesIssue('duplicate', `va-rule:${id}`, `중복 채널 분석 설정 ID ${id}`, '저장 전 고유 ID로 바꾸세요.'));
+        }
+        for (const id of opsRulesDuplicateIds(opsCatalogEventTemplates, item => item?.id)) {
+          issues.push(opsRulesIssue('duplicate', `event-template:${id}`, `중복 이벤트 템플릿 ID ${id}`, '템플릿 ID는 중복될 수 없습니다.'));
+        }
+        for (const id of opsRulesDuplicateIds(opsCatalogProfiles, item => item?.id || item?.profileId)) {
+          issues.push(opsRulesIssue('duplicate', `profile:${id}`, `중복 분석 프로파일 ID ${id}`, '프로파일 ID는 중복될 수 없습니다.'));
+        }
+        for (const rule of opsCatalogVaRules) {
+          const id = String(rule?.id || '').trim() || '(미지정)';
+          const profileId = String(rule?.analysis?.profileId || '').trim();
+          const templateId = String(rule?.templateStart?.ruleId || '').trim();
+          const channel = opsRulesFindChannelForVaRule(rule);
+          if (!profileId) {
+            issues.push(opsRulesIssue('missing-profile', `va-rule:${id}`, `채널 분석 설정 ${id}에 프로파일이 없습니다.`, '분석 프로파일을 선택해야 저장/운영할 수 있습니다.'));
+          } else if (!findOpsProfileById(profileId)) {
+            issues.push(opsRulesIssue('missing-profile', `va-rule:${id}`, `채널 분석 설정 ${id}의 프로파일 ${profileId}을 찾을 수 없습니다.`, '삭제됐거나 아직 생성되지 않은 프로파일입니다.'));
+          }
+          if (!templateId) {
+            issues.push(opsRulesIssue('missing-template', `va-rule:${id}`, `채널 분석 설정 ${id}에 이벤트 템플릿이 없습니다.`, '이벤트 템플릿을 먼저 선택하세요.'));
+          } else if (!findOpsEventTemplateById(templateId)) {
+            issues.push(opsRulesIssue('missing-template', `va-rule:${id}`, `채널 분석 설정 ${id}의 템플릿 ${templateId}을 찾을 수 없습니다.`, '삭제됐거나 아직 생성되지 않은 템플릿입니다.'));
+          }
+          if (!channel) {
+            issues.push(opsRulesIssue('missing-source', `va-rule:${id}`, `채널 분석 설정 ${id}의 source가 채널 목록에 없습니다.`, '채널 탭에서 source와 PublishedView를 다시 저장하세요.'));
+          } else if (channel.view && !opsRulesSourceMatches(channel.source, rule.source || {})) {
+            issues.push(opsRulesIssue('source-mismatch', `va-rule:${id}`, `채널 분석 설정 ${id}의 source가 PublishedView source와 다릅니다.`, `${channel.displayName || channel.id} 채널의 source와 룰 source를 맞추세요.`));
+          }
+        }
+        for (const view of opsRulesViews) {
+          const viewId = String(view?.viewId || '').trim();
+          const ruleIds = new Set([
+            String(view?.defaultRuleId || '').trim(),
+            ...(Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds.map(item => String(item || '').trim()) : [])
+          ].filter(Boolean));
+          for (const ruleId of ruleIds) {
+            const rule = findOpsVaRuleById(ruleId);
+            if (!rule) {
+              issues.push(opsRulesIssue('missing-rule', `view:${viewId}`, `PublishedView ${viewId}가 없는 룰 ${ruleId}을 참조합니다.`, '채널 탭에서 허용 룰 목록을 다시 저장하세요.'));
+            }
+          }
+        }
+        return issues;
+      }
+      function opsRulesRenderValidationIssues(issues) {
+        const summary = document.getElementById('opsRulesValidationSummary');
+        const list = document.getElementById('opsRulesValidationList');
+        if (!summary || !list) return;
+        list.textContent = '';
+        if (!issues.length) {
+          summary.textContent = '저장 전 차단 항목이 없습니다.';
+          list.innerHTML = '<div class="empty">source mismatch, 중복 ID, 누락된 프로파일/템플릿이 없습니다.</div>';
+          return;
+        }
+        summary.textContent = `저장 전 확인이 필요한 항목 ${issues.length}개`;
+        for (const issue of issues) {
+          const item = document.createElement('article');
+          item.className = `validation-item ${issue.severity === 'warn' ? 'warn' : 'bad'}`;
+          item.innerHTML = `
+            <span class="chip ${issue.severity === 'warn' ? 'warn' : 'bad'}">${escapeHtml(issue.kind)}</span>
+            <div>
+              <strong>${escapeHtml(issue.title)}</strong>
+              <p>${escapeHtml(issue.detail || '')}</p>
+            </div>`;
+          list.appendChild(item);
+        }
+      }
+      function opsRulesDraftBlockingIssues(mode, payload, current = {}, channel = null) {
+        const issues = [];
+        const id = String(payload?.id || payload?.profileId || '').trim();
+        const currentId = String(current?.id || current?.profileId || '').trim();
+        if (mode === 'va-rule') {
+          const existing = findOpsVaRuleById(id);
+          if (existing && id !== currentId) issues.push(`채널 분석 설정 ID ${id}는 이미 사용 중입니다.`);
+          const profileId = String(payload?.analysis?.profileId || '').trim();
+          const templateId = String(payload?.templateStart?.ruleId || '').trim();
+          if (!profileId || !findOpsProfileById(profileId)) issues.push(`분석 프로파일 ${profileId || '(비어 있음)'}을 찾을 수 없습니다.`);
+          if (!templateId || !findOpsEventTemplateById(templateId)) issues.push(`이벤트 템플릿 ${templateId || '(비어 있음)'}을 찾을 수 없습니다.`);
+          if (!channel?.view) issues.push('선택한 채널에 PublishedView가 없습니다.');
+          if (channel?.source && payload?.source && !opsRulesSourceMatches(channel.source, payload.source)) {
+            issues.push('선택한 채널 source와 룰 source가 일치하지 않습니다.');
+          }
+        } else if (mode === 'event-rule') {
+          const existing = findOpsEventTemplateById(id);
+          if (existing && id !== currentId) issues.push(`이벤트 템플릿 ID ${id}는 이미 사용 중입니다.`);
+        } else if (mode === 'profile') {
+          const existing = findOpsProfileById(id);
+          if (existing && id !== currentId) issues.push(`분석 프로파일 ID ${id}는 이미 사용 중입니다.`);
+          if (!String(payload?.detector || '').trim()) issues.push('분석 프로파일 detector가 비어 있습니다.');
+        }
+        return issues;
+      }
       async function openOpsVaRuleRecord(id, detailMode = 'view') {
         if (!findOpsVaRuleById(id)) {
           opsRulesEditorStatus('선택한 채널 분석 설정을 불러오지 못했습니다.', true);
@@ -3911,6 +4027,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         opsRulesViews = viewItems;
         opsRuleCategoryCatalog = Array.isArray(capabilities?.trackingCategories) ? capabilities.trackingCategories : [];
         opsRulesBuildChannels();
+        opsRulesValidationIssues = opsRulesBuildValidationIssues();
+        opsRulesRenderValidationIssues(opsRulesValidationIssues);
         opsRulesRefreshCategorySelectors();
         const boundRuleIds = new Set();
         for (const view of viewItems) {

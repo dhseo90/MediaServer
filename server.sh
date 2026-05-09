@@ -60,6 +60,8 @@ Usage:
                  /ops/rules 이벤트 템플릿 저장/조회 round-trip을 영상 재생 없이 검증합니다.
   verify-ops-rule-relationships
                  채널/PublishedView/VA 룰/이벤트 템플릿/분석 프로파일 참조와 저장 validation을 검증합니다.
+  verify-ops-rule-conflict-ui
+                 /ops/rules 저장 전 충돌/누락 표시와 차단 hook을 검증합니다.
   verify-ops-scenario-presets
                  현장형 VA 시나리오 preset UI와 threshold round-trip을 검증합니다.
   verify-ops-source-lifecycle
@@ -273,6 +275,10 @@ case "${cmd}" in
   verify-ops-rule-relationships)
     require_internal verify_ops_rule_relationships.mjs
     exec "${INTERNAL_DIR}/verify_ops_rule_relationships.mjs" "$@"
+    ;;
+  verify-ops-rule-conflict-ui)
+    require_internal verify_ops_rule_conflict_ui.mjs
+    exec "${INTERNAL_DIR}/verify_ops_rule_conflict_ui.mjs" "$@"
     ;;
   verify-ops-scenario-presets)
     require_internal verify_ops_scenario_presets.mjs

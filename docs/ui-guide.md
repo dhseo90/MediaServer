@@ -76,6 +76,7 @@ UI ownership은 다음 표를 기준으로 봅니다.
 | Smoke | `verify_ops_client_ui_smoke.mjs`, `verify_ops_rules_embed_smoke.mjs`, `verify_auth_ui_smoke.mjs`, `verify_auth_workflow.sh`, `verify_ops_rules_roundtrip.mjs` | selector, screenshot, auth UI, `/ops/rules` 회귀와 이벤트 템플릿 round-trip 확인 | visible text보다 stable selector와 금지 항목 중심으로 유지합니다. |
 
 `/ops/rules`는 채널 분석 설정, 이벤트 템플릿, 분석 프로파일을 제품 운영 화면에서 직접 관리합니다. `/lab/rules` iframe이나 이전 Lab 3탭을 embed하지 않습니다.
+룰 화면의 저장 전 검증 패널은 source mismatch, 중복 ID, 누락된 프로파일/이벤트 템플릿/PublishedView 룰 참조를 표시합니다. 저장 버튼도 같은 기준으로 draft payload를 확인해 잘못된 source 연결이나 빈 프로파일을 서버 요청 전에 차단합니다.
 
 대표 제품 화면:
 

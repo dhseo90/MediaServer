@@ -2120,6 +2120,15 @@ void AppendOpsRulesPage(std::ostringstream& out) {
         <div class="metric-card"><span>프로파일</span><strong id="rulesProfileCount">-</strong></div>
         <div class="metric-card"><span>채널 연결</span><strong id="rulesViewBindingCount">-</strong></div>
       </div>
+      <section class="section-card" data-testid="ops-rules-validation-panel">
+        <div class="toolbar">
+          <div>
+            <h3>저장 전 검증</h3>
+            <p id="opsRulesValidationSummary">룰 충돌과 누락을 확인합니다.</p>
+          </div>
+        </div>
+        <div id="opsRulesValidationList" class="validation-list"></div>
+      </section>
       <section class="section-card">
         <div class="toolbar">
           <div>
