@@ -64,6 +64,8 @@ namespace ingress {
 namespace {
 
 std::atomic<std::uint64_t> g_web_rtc_metadata_sequence{0};
+std::atomic<std::uint64_t> g_ops_audit_sequence{0};
+std::mutex g_ops_audit_mu;
 
 constexpr std::size_t kMaxHttpHeaderBytes = 64 * 1024;
 constexpr std::size_t kMaxHttpBodyBytes = 2 * 1024 * 1024;
@@ -399,6 +401,93 @@ std::optional<std::string> ExtractObjectField(const std::string& body, const std
 // JSON 문자열에서 array field 본문을 추출한다.
 std::optional<std::string> ExtractArrayField(const std::string& body, const std::string& field) {
     return ExtractDelimitedField(body, field, '[', ']');
+}
+
+std::optional<std::string> ExtractDelimitedValueAt(const std::string& body,
+                                                   std::size_t start,
+                                                   char open_ch,
+                                                   char close_ch) {
+    if (start >= body.size() || body[start] != open_ch) {
+        return std::nullopt;
+    }
+    bool in_string = false;
+    bool escaped = false;
+    int depth = 0;
+    for (std::size_t pos = start; pos < body.size(); ++pos) {
+        const char ch = body[pos];
+        if (escaped) {
+            escaped = false;
+            continue;
+        }
+        if (ch == '\\' && in_string) {
+            escaped = true;
+            continue;
+        }
+        if (ch == '"') {
+            in_string = !in_string;
+            continue;
+        }
+        if (in_string) {
+            continue;
+        }
+        if (ch == open_ch) {
+            ++depth;
+        } else if (ch == close_ch) {
+            --depth;
+            if (depth == 0) {
+                return body.substr(start, pos - start + 1);
+            }
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string> ExtractJsonValueField(const std::string& body, const std::string& field) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t pos = body.find(needle);
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    pos = body.find(':', pos + needle.size());
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    ++pos;
+    while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) {
+        ++pos;
+    }
+    if (pos >= body.size()) {
+        return std::nullopt;
+    }
+    if (body[pos] == '{') {
+        return ExtractDelimitedValueAt(body, pos, '{', '}');
+    }
+    if (body[pos] == '[') {
+        return ExtractDelimitedValueAt(body, pos, '[', ']');
+    }
+    if (body[pos] == '"') {
+        bool escaped = false;
+        for (std::size_t end = pos + 1; end < body.size(); ++end) {
+            const char ch = body[end];
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            if (ch == '\\') {
+                escaped = true;
+                continue;
+            }
+            if (ch == '"') {
+                return body.substr(pos, end - pos + 1);
+            }
+        }
+        return std::nullopt;
+    }
+    std::size_t end = pos;
+    while (end < body.size() && body[end] != ',' && body[end] != '}' && body[end] != ']') {
+        ++end;
+    }
+    return Trim(body.substr(pos, end - pos));
 }
 
 // string array에 공백이 아닌 실제 값이 하나 이상 있는지 확인한다.
@@ -6554,6 +6643,224 @@ std::int64_t NowUnixMs() {
         .count();
 }
 
+std::filesystem::path OpsAuditStoragePath(const app::AppConfig& config) {
+    std::filesystem::path base = config.source_registry_path.empty()
+                                     ? std::filesystem::path(".")
+                                     : std::filesystem::path(config.source_registry_path).parent_path();
+    if (base.empty()) {
+        base = ".";
+    }
+    return base / ".media_server.ops_audit.jsonl";
+}
+
+bool AuditSensitiveKey(const std::string& key) {
+    std::string lowered;
+    lowered.reserve(key.size());
+    for (const char ch : key) {
+        lowered.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(ch))));
+    }
+    return lowered.find("password") != std::string::npos ||
+           lowered.find("token") != std::string::npos ||
+           lowered.find("hash") != std::string::npos ||
+           lowered.find("secret") != std::string::npos ||
+           lowered.find("capability") != std::string::npos;
+}
+
+std::string RedactAuditJsonFragment(std::string json) {
+    for (std::size_t pos = 0; pos < json.size();) {
+        if (json[pos] != '"') {
+            ++pos;
+            continue;
+        }
+        std::size_t key_end = pos + 1;
+        bool escaped = false;
+        std::string key;
+        for (; key_end < json.size(); ++key_end) {
+            const char ch = json[key_end];
+            if (escaped) {
+                key.push_back(ch);
+                escaped = false;
+                continue;
+            }
+            if (ch == '\\') {
+                escaped = true;
+                continue;
+            }
+            if (ch == '"') {
+                break;
+            }
+            key.push_back(ch);
+        }
+        if (key_end >= json.size()) {
+            break;
+        }
+        std::size_t colon = key_end + 1;
+        while (colon < json.size() && std::isspace(static_cast<unsigned char>(json[colon])) != 0) {
+            ++colon;
+        }
+        if (colon >= json.size() || json[colon] != ':') {
+            pos = key_end + 1;
+            continue;
+        }
+        std::size_t value_start = colon + 1;
+        while (value_start < json.size() &&
+               std::isspace(static_cast<unsigned char>(json[value_start])) != 0) {
+            ++value_start;
+        }
+        if (!AuditSensitiveKey(key) || value_start >= json.size()) {
+            pos = value_start;
+            continue;
+        }
+        std::size_t value_end = value_start;
+        if (json[value_start] == '{') {
+            value_end = ExtractDelimitedValueAt(json, value_start, '{', '}').has_value()
+                            ? value_start + ExtractDelimitedValueAt(json, value_start, '{', '}')->size()
+                            : value_start + 1;
+        } else if (json[value_start] == '[') {
+            value_end = ExtractDelimitedValueAt(json, value_start, '[', ']').has_value()
+                            ? value_start + ExtractDelimitedValueAt(json, value_start, '[', ']')->size()
+                            : value_start + 1;
+        } else if (json[value_start] == '"') {
+            bool value_escaped = false;
+            value_end = value_start + 1;
+            for (; value_end < json.size(); ++value_end) {
+                const char ch = json[value_end];
+                if (value_escaped) {
+                    value_escaped = false;
+                    continue;
+                }
+                if (ch == '\\') {
+                    value_escaped = true;
+                    continue;
+                }
+                if (ch == '"') {
+                    ++value_end;
+                    break;
+                }
+            }
+        } else {
+            while (value_end < json.size() && json[value_end] != ',' &&
+                   json[value_end] != '}' && json[value_end] != ']') {
+                ++value_end;
+            }
+        }
+        json.replace(value_start, value_end - value_start, "\"[redacted]\"");
+        pos = value_start + 12;
+    }
+    return json;
+}
+
+std::string OpsAuditRecordJson(const std::string& body, const auth::Principal& principal) {
+    const std::int64_t now_ms = NowUnixMs();
+    const std::uint64_t seq = g_ops_audit_sequence.fetch_add(1, std::memory_order_relaxed) + 1;
+    const std::string area = Trim(ParseStringField(body, "area").value_or("ops"));
+    const std::string action = Trim(ParseStringField(body, "action").value_or("update"));
+    const std::string target = Trim(ParseStringField(body, "target").value_or(""));
+    const std::string summary = Trim(ParseStringField(body, "summary").value_or(""));
+    const std::string at = Trim(ParseStringField(body, "at").value_or(std::to_string(now_ms)));
+    std::string before = ExtractJsonValueField(body, "before").value_or("null");
+    std::string after = ExtractJsonValueField(body, "after").value_or("null");
+    before = RedactAuditJsonFragment(std::move(before));
+    after = RedactAuditJsonFragment(std::move(after));
+    std::ostringstream out;
+    out << "{"
+        << "\"id\":\"audit-" << now_ms << "-" << seq << "\","
+        << "\"at\":\"" << JsonEscape(at) << "\","
+        << "\"receivedAtMs\":" << now_ms << ","
+        << "\"actor\":\""
+        << JsonEscape(principal.username.empty() ? principal.display_name : principal.username) << "\","
+        << "\"role\":\"" << JsonEscape(principal.role) << "\","
+        << "\"authMode\":\"" << JsonEscape(principal.auth_mode) << "\","
+        << "\"area\":\"" << JsonEscape(area.empty() ? "ops" : area) << "\","
+        << "\"action\":\"" << JsonEscape(action.empty() ? "update" : action) << "\","
+        << "\"target\":\"" << JsonEscape(target) << "\","
+        << "\"summary\":\"" << JsonEscape(summary) << "\","
+        << "\"before\":" << before << ","
+        << "\"after\":" << after
+        << "}";
+    return out.str();
+}
+
+bool AppendOpsAuditRecord(const app::AppConfig& config,
+                          const std::string& record_json,
+                          std::string* error_message) {
+    const std::filesystem::path path = OpsAuditStoragePath(config);
+    std::error_code ec;
+    std::filesystem::create_directories(path.parent_path(), ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = "failed to create audit directory: " + ec.message();
+        }
+        return false;
+    }
+    std::lock_guard lock(g_ops_audit_mu);
+    std::ofstream out(path, std::ios::app);
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open audit log: " + path.string();
+        }
+        return false;
+    }
+    out << record_json << "\n";
+    out.flush();
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to write audit log: " + path.string();
+        }
+        return false;
+    }
+    return true;
+}
+
+bool OpsAuditLineMatches(const std::string& line,
+                         const std::string& area,
+                         const std::string& actor,
+                         const std::string& query_text) {
+    if (!area.empty() && ParseStringField(line, "area").value_or("") != area) {
+        return false;
+    }
+    if (!actor.empty() && ParseStringField(line, "actor").value_or("").find(actor) == std::string::npos) {
+        return false;
+    }
+    if (!query_text.empty() && line.find(query_text) == std::string::npos) {
+        return false;
+    }
+    return true;
+}
+
+std::string OpsAuditEntriesJson(const app::AppConfig& config,
+                                const std::unordered_map<std::string, std::string>& query) {
+    const std::string area = query.count("area") != 0 ? Trim(query.at("area")) : std::string();
+    const std::string actor = query.count("actor") != 0 ? Trim(query.at("actor")) : std::string();
+    const std::string query_text = query.count("q") != 0 ? Trim(query.at("q")) : std::string();
+    const int limit = ParseClampedIntQuery(query, "limit", 80, 1, 200);
+    const std::filesystem::path path = OpsAuditStoragePath(config);
+    std::vector<std::string> lines;
+    {
+        std::lock_guard lock(g_ops_audit_mu);
+        std::ifstream in(path);
+        std::string line;
+        while (std::getline(in, line)) {
+            line = Trim(line);
+            if (!line.empty() && line.front() == '{' && OpsAuditLineMatches(line, area, actor, query_text)) {
+                lines.push_back(line);
+            }
+        }
+    }
+    std::ostringstream out;
+    out << "{\"status\":\"ops-audit\",\"persistent\":true,\"storagePath\":\""
+        << JsonEscape(path.string()) << "\",\"entries\":[";
+    int emitted = 0;
+    for (auto it = lines.rbegin(); it != lines.rend() && emitted < limit; ++it, ++emitted) {
+        if (emitted != 0) {
+            out << ",";
+        }
+        out << *it;
+    }
+    out << "]}";
+    return out.str();
+}
+
 std::string WebRtcSyncStatusForMatch(std::int64_t video_frame_pts_ns, std::int64_t analysis_pts_ns) {
     return video_frame_pts_ns == analysis_pts_ns ? "exact" : "near";
 }
@@ -8460,6 +8767,44 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                    AnalysisEventRecordsJson(result) + "}");
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
+	                        }
+
+	                        if (request.path == "/ops/api/audit") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            if (request.method == "GET") {
+	                                HttpResponse ok = JsonResponse(200, "OK", OpsAuditEntriesJson(config, query));
+	                                ok.headers["Cache-Control"] = "no-store";
+	                                return ok;
+	                            }
+	                            if (request.method == "POST") {
+	                                constexpr std::size_t kOpsAuditMaxBodyBytes = 256 * 1024;
+	                                if (request.body.size() > kOpsAuditMaxBodyBytes) {
+	                                    return JsonResponse(
+	                                        413,
+	                                        "Payload Too Large",
+	                                        "{\"error\":\"audit entry body is too large\"}");
+	                                }
+	                                const std::string entry =
+	                                    OpsAuditRecordJson(request.body, principal_result.principal);
+	                                std::string audit_error;
+	                                if (!AppendOpsAuditRecord(config, entry, &audit_error)) {
+	                                    return JsonResponse(
+	                                        500,
+	                                        "Internal Server Error",
+	                                        "{\"error\":\"" + JsonEscape(audit_error) + "\"}");
+	                                }
+	                                HttpResponse ok = JsonResponse(
+	                                    201,
+	                                    "Created",
+	                                    "{\"status\":\"ops-audit\",\"persistent\":true,\"entry\":" + entry + "}");
+	                                ok.headers["Cache-Control"] = "no-store";
+	                                return ok;
+	                            }
+	                            return JsonResponse(405,
+	                                                "Method Not Allowed",
+	                                                "{\"error\":\"method not allowed\"}");
 	                        }
 
 	                        if (request.path == "/ops/api/invites") {

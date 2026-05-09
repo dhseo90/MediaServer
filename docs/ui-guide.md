@@ -254,7 +254,7 @@ UI/API 응답에 노출하지 않습니다.
 - viewer UX: `role=viewer` 또는 `integrator` 선택 시 view/scope assignment 영역을 보여주고, `채널 범위 적용`으로 PublishedView별 scope 묶음을 생성합니다. PublishedView가 아직 연결되지 않은 환경에서는 `viewId` 또는 `view:read:{viewId}` 같은 문자열 scope를 직접 입력할 수 있습니다. viewer에는 debug/lab/ops/source/rule 관리 scope를 부여하지 않습니다.
 - invite: admin API/CLI가 setup invite token을 발급하면 원문 token은 생성 응답에서 한 번만 표시됩니다. 저장소에는 `tokenHash`, 만료 시각, 사용 여부와 수락 시 적용할 role/scope snapshot만 남습니다. 기존 enabled user에 대한 invite도 수락 전에는 현재 role/scope/session을 바꾸지 않고, `/invite/setup`에서 비밀번호 설정이 끝나면 token hash와 이전 session을 폐기합니다.
 - request: `/client/request-access` 또는 `POST /client/api/access-requests`로 들어온 요청은 `pending`으로 저장됩니다. `/ops/users`의 접근 요청 table에서 admin이 승인하면 password setup invite를 발급하고, token/setup URL은 승인 응답에서 한 번만 표시합니다. user row는 invite 수락 시점에 만들거나 갱신합니다. 거절은 request 상태만 `rejected`로 바꾸며 user/session/view scope를 만들지 않습니다.
-- audit: `/ops/sources`, `/ops/rules`, `/ops/users`는 같은 브라우저에서 수행한 변경을 하단 변경 이력 패널에 남깁니다. 작업자 정보는 `/auth/whoami` 기준이며, 비밀번호/token/hash/capability 필드는 전/후 값에서 마스킹합니다. 서버 영속 감사 로그는 별도 운영 단계에서 확장합니다.
+- audit: `/ops/sources`, `/ops/rules`, `/ops/users`는 변경을 서버 감사 로그(`/ops/api/audit`, `.media_server.ops_audit.jsonl`)에 영속 저장하고 하단 변경 이력 패널에 표시합니다. 작업자 정보는 `/auth/whoami`/서버 principal 기준이며, 비밀번호/token/hash/capability 필드는 전/후 값에서 마스킹합니다. 서버 저장에 실패하면 브라우저 캐시 기록으로 후퇴합니다.
 
 Role별 scope template:
 

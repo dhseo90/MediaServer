@@ -72,6 +72,8 @@ Usage:
                  EventRecord가 짧은 증거 기록 범위로 노출되고 /ops/events UI가 이를 표시하는지 검증합니다.
   verify-ops-audit-trail
                  /ops 채널/룰/사용자 UI 변경 이력 패널과 기록 hook을 검증합니다.
+  verify-ops-audit-persistence
+                 /ops/api/audit 서버 영속 감사 로그와 UI fallback hook을 검증합니다.
   verify-ops-diagnostics-bundle
                  운영 diagnostics bundle 생성물과 config preset 기준을 검증합니다.
   verify-ops-root-cause-panel
@@ -305,6 +307,10 @@ case "${cmd}" in
   verify-ops-audit-trail)
     require_internal verify_ops_audit_trail.mjs
     exec "${INTERNAL_DIR}/verify_ops_audit_trail.mjs" "$@"
+    ;;
+  verify-ops-audit-persistence)
+    require_internal verify_ops_audit_persistence.mjs
+    exec "${INTERNAL_DIR}/verify_ops_audit_persistence.mjs" "$@"
     ;;
   verify-ops-diagnostics-bundle)
     require_internal verify_ops_diagnostics_bundle.sh
