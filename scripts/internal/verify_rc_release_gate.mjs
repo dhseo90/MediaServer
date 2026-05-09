@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -24,6 +26,7 @@ check("stream verification guide defines the RC-only release gate", () => {
     "--include-dashboard",
     "--include-rtsp",
     "--idle-after-cleanup-minutes 30",
+    "./server.sh rc-release-checklist",
   ];
   for (const snippet of requiredSnippets) {
     assert(docs.includes(snippet), `docs/stream-verification.md is missing RC gate snippet: ${snippet}`);
@@ -47,6 +50,38 @@ check("server exposes RC gate verification without running the longrun", () => {
   const server = readText("server.sh");
   assert(server.includes("verify-rc-release-gate"), "server.sh is missing verify-rc-release-gate command");
   assert(server.includes("verify_rc_release_gate.mjs"), "server.sh does not dispatch verify_rc_release_gate.mjs");
+  assert(server.includes("rc-release-checklist"), "server.sh is missing rc-release-checklist command");
+  assert(server.includes("write_rc_release_checklist.mjs"), "server.sh does not dispatch write_rc_release_checklist.mjs");
+});
+
+check("release checklist generator writes Markdown and HTML", () => {
+  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-rc-checklist-"));
+  const predevSummary = path.join(workDir, "predev-summary.json");
+  const runtimeSummary = path.join(workDir, "runtime-summary.json");
+  const predevReport = path.join(workDir, "predev-report.md");
+  const runtimeReport = path.join(workDir, "runtime-report.md");
+  const output = path.join(workDir, "release-checklist.md");
+  const htmlOutput = path.join(workDir, "release-checklist.html");
+  fs.writeFileSync(predevSummary, JSON.stringify({ status: "pass", passCount: 69, failCount: 0 }), "utf8");
+  fs.writeFileSync(runtimeSummary, JSON.stringify({ ok: true, passCount: 12, failCount: 0 }), "utf8");
+  fs.writeFileSync(predevReport, "# predev\n", "utf8");
+  fs.writeFileSync(runtimeReport, "# runtime\n", "utf8");
+  execFileSync(process.execPath, [
+    path.join(rootDir, "scripts/internal/write_rc_release_checklist.mjs"),
+    "--predev-summary", predevSummary,
+    "--predev-report", predevReport,
+    "--runtime-summary", runtimeSummary,
+    "--runtime-report", runtimeReport,
+    "--output", output,
+    "--html-output", htmlOutput,
+  ], { cwd: rootDir, stdio: "pipe" });
+  const markdown = fs.readFileSync(output, "utf8");
+  const html = fs.readFileSync(htmlOutput, "utf8");
+  assert(markdown.includes("# RC Release Checklist"), "release checklist missing title");
+  assert(markdown.includes("overall: PASS"), "release checklist missing PASS status");
+  assert(markdown.includes("Predev 120m soak"), "release checklist missing predev row");
+  assert(markdown.includes("VA runtime console 120m longrun"), "release checklist missing runtime row");
+  assert(html.includes("RC Release Checklist"), "release checklist HTML missing title");
 });
 
 check("backlog keeps 120 minute soak as release-candidate or high-risk gate", () => {

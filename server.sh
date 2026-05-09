@@ -98,6 +98,8 @@ Usage:
                  기본 smoke와 장기 soak/longrun harness 분리 기준을 검증합니다.
   verify-rc-release-gate
                  120분 soak/VA runtime longrun이 RC 전용 기준으로 분리됐는지 검증합니다.
+  rc-release-checklist
+                 RC gate summary/report를 Markdown/HTML release checklist로 묶습니다.
   verify-tracker-stability
                  이동 영상에서 track ID 유지/분절 통계를 수집합니다.
   compare-close-object-tracker
@@ -359,6 +361,10 @@ case "${cmd}" in
   verify-rc-release-gate)
     require_internal verify_rc_release_gate.mjs
     exec "${INTERNAL_DIR}/verify_rc_release_gate.mjs" "$@"
+    ;;
+  rc-release-checklist)
+    require_internal write_rc_release_checklist.mjs
+    exec "${INTERNAL_DIR}/write_rc_release_checklist.mjs" "$@"
     ;;
   verify-tracker-stability)
     require_internal verify_tracker_stability.sh
