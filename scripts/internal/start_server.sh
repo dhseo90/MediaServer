@@ -9,12 +9,14 @@ source "${SCRIPT_DIR}/env_common.sh"
 media_server_apply_homebrew_gst_env
 
 ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
-if [[ -f "${ENV_FILE}" ]]; then
+if [[ -f "${ENV_FILE}" && "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" != "1" ]]; then
   set -a
   # shellcheck disable=SC1090
   source "${ENV_FILE}"
   set +a
   echo "[1/3] loaded env override: ${ENV_FILE}"
+elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
+  echo "[1/3] skipped env override: ${ENV_FILE}"
 fi
 
 PID_FILE="${ROOT_DIR}/.media_server.pid"
@@ -89,7 +91,7 @@ find_media_server_listener_pids() {
   if [[ -z "${port}" || ! "${port}" =~ ^[0-9]+$ ]] || ! media_server_has_cmd lsof; then
     return 0
   fi
-  { lsof -nP -iTCP:"${port}" -sTCP:LISTEN -Fp -c media_server 2>/dev/null || true; } \
+  { lsof -nP -a -iTCP:"${port}" -sTCP:LISTEN -Fp -c media_server 2>/dev/null || true; } \
     | sed -n 's/^p//p' \
     | sort -u
 }

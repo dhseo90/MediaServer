@@ -86,7 +86,7 @@ find_media_server_listener_pids() {
   if [[ -z "${port}" || ! "${port}" =~ ^[0-9]+$ ]] || ! media_server_has_cmd lsof; then
     return 0
   fi
-  { lsof -nP -iTCP:"${port}" -sTCP:LISTEN -Fp -c media_server 2>/dev/null || true; } \
+  { lsof -nP -a -iTCP:"${port}" -sTCP:LISTEN -Fp -c media_server 2>/dev/null || true; } \
     | sed -n 's/^p//p' \
     | sort -u
 }
