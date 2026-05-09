@@ -1218,6 +1218,32 @@ std::string ProductUiCss() {
       justify-self: start;
       grid-column: 1 / -1;
     }
+    .root-cause-action-output {
+      display: grid;
+      gap: var(--space-2);
+      margin-top: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-raised);
+      min-width: 0;
+    }
+    .root-cause-action-output[hidden] {
+      display: none;
+    }
+    .root-cause-action-output ul {
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      padding-left: 18px;
+    }
+    .root-cause-action-output pre {
+      max-width: 100%;
+      margin: 0;
+      overflow: auto;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
     .embedded-frame {
       width: 100%;
       min-height: min(1120px, calc(100vh - 220px));

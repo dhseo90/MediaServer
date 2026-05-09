@@ -2322,6 +2322,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
         <div id="dashRootCauseList" class="root-cause-list">
           <div class="empty">런타임 상태를 불러오는 중입니다.</div>
         </div>
+        <div id="dashRootCauseActionOutput" class="root-cause-action-output" hidden></div>
       </section>
       <section class="section-card">
         <div class="toolbar">

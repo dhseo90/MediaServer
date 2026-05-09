@@ -191,7 +191,7 @@ Route 역할:
   클라이언트 미리보기 순서입니다.
 
   - `/ops/home`: 운영 overview
-  - `/ops/dashboard`: `/ops/api/runtime/status` 기반 운영 카드/상태와 문제 원인 패널. source lifecycle, stale tap, reconnect/cleanup, auth/config를 최근 EventRecord, POST/storage 오류, ICE 설정, `.media_server.log` tail, correlation id, 다음 조치 버튼과 함께 확인합니다.
+  - `/ops/dashboard`: `/ops/api/runtime/status` 기반 운영 카드/상태와 문제 원인 패널. source lifecycle, stale tap, reconnect/cleanup, auth/config를 최근 EventRecord, POST/storage 오류, ICE 설정, `.media_server.log` tail, correlation id와 함께 확인합니다. 다음 조치 버튼은 source 재검증, registry diff, Event/evidence 진단, auth/config 확인, log correlation 필터를 즉시 실행합니다.
   - `/ops/sources`: 숫자 채널 목록, 상세 패널, `/ops/api/channels/bulk` 기반 대량 복제/비활성화/상태 진단. 대량 작업은 dry-run, partial failure 리포트, 실패 항목 재시도, 성공 항목 롤백(복제본 비활성화 또는 비활성화 전 상태 복원)을 UI에서 처리합니다. Bulk 결과에는 audit action/target metadata와 diff preview policy가 포함되며, UI는 실패 항목 재실행 전 diff preview를 표시하고 같은 내용을 채널 감사 로그 before/after에 연결합니다.
   - `/ops/rules`: 채널 분석 설정, 이벤트 템플릿, 분석 프로파일 목록
 
