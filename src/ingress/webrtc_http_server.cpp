@@ -7428,7 +7428,12 @@ std::string AnalysisEventStorageStatusJson() {
         << "\"clipFrameDownload\":true,"
         << "\"bundleArchiveDownload\":true,"
         << "\"bundleFormat\":\"zip\","
+        << "\"bundleMaxAgeMs\":86400000,"
+        << "\"bundleExpiresVia\":\"expiresAtMs\","
         << "\"exportAudit\":true,"
+        << "\"auditArea\":\"events\","
+        << "\"auditAction\":\"export-bundle\","
+        << "\"auditSearchQuery\":\"export-bundle\","
         << "\"longVideoExport\":false,"
         << "\"allowedFormats\":[\"jpg\",\"jpeg\",\"ppm\",\"pgm\",\"json\",\"zip\"]"
         << "},"
@@ -7436,13 +7441,16 @@ std::string AnalysisEventStorageStatusJson() {
         << "\"activeFileProtected\":true,"
         << "\"archiveRetention\":\"oldest-rotated-only\","
         << "\"compactionCleanup\":\"keepNewest\","
-        << "\"evidenceFileRetention\":\"event-record-retention\""
+        << "\"evidenceFileRetention\":\"event-record-retention\","
+        << "\"bundleExpiry\":\"download-link-expiresAtMs\","
+        << "\"bundleMaxAgeMs\":86400000"
         << "},"
         << "\"deletePolicy\":{"
         << "\"activeRecordDelete\":false,"
         << "\"archiveDelete\":false,"
         << "\"compactionDelete\":true,"
         << "\"evidenceFileDelete\":false,"
+        << "\"evidenceFileDeletePermission\":\"blocked-for-all-roles\","
         << "\"requiresRuleWrite\":true"
         << "}"
         << "},"
@@ -8052,6 +8060,26 @@ bool BuildEventEvidenceBundleZip(const std::unordered_map<std::string, std::stri
     if (zip_body == nullptr || download_name == nullptr) {
         return false;
     }
+    const std::int64_t now_ms = NowUnixMs();
+    constexpr std::int64_t kEvidenceBundleMaxAgeMs = 24LL * 60LL * 60LL * 1000LL;
+    std::int64_t expires_at_ms = now_ms + kEvidenceBundleMaxAgeMs;
+    if (const auto it = query.find("expiresAtMs"); it != query.end() && !Trim(it->second).empty()) {
+        if (!ParseStrictInt64(Trim(it->second), &expires_at_ms)) {
+            if (error_message != nullptr) {
+                *error_message = "expiresAtMs must be an integer unix ms";
+            }
+            return false;
+        }
+        if (expires_at_ms < now_ms) {
+            if (error_message != nullptr) {
+                *error_message = "evidence bundle link has expired";
+            }
+            return false;
+        }
+        if (expires_at_ms - now_ms > kEvidenceBundleMaxAgeMs) {
+            expires_at_ms = now_ms + kEvidenceBundleMaxAgeMs;
+        }
+    }
     std::filesystem::path snapshot_path;
     std::filesystem::path clip_path;
     if (!AddOptionalEvidencePath(query, "snapshotPath", &snapshot_path, error_message) ||
@@ -8142,12 +8170,15 @@ bool BuildEventEvidenceBundleZip(const std::unordered_map<std::string, std::stri
     std::ostringstream manifest;
     manifest << "{"
              << "\"schema\":\"media-server.va.event-evidence-bundle.v1\","
-             << "\"createdAtMs\":" << NowUnixMs() << ","
+             << "\"createdAtMs\":" << now_ms << ","
+             << "\"expiresAtMs\":" << expires_at_ms << ","
              << "\"eventId\":\"" << JsonEscape(event_id) << "\","
              << "\"scope\":\"event-short-evidence\","
              << "\"longRecording\":false,"
              << "\"bundleFormat\":\"zip\","
-             << "\"deletePolicy\":{\"evidenceFileDelete\":false},"
+             << "\"retentionPolicy\":{\"bundleMaxAgeMs\":" << kEvidenceBundleMaxAgeMs
+             << ",\"bundleExpiry\":\"download-link-expiresAtMs\"},"
+             << "\"deletePolicy\":{\"evidenceFileDelete\":false,\"evidenceFileDeletePermission\":\"blocked-for-all-roles\"},"
              << "\"snapshotPath\":\"" << JsonEscape(snapshot_path.string()) << "\","
              << "\"clipPath\":\"" << JsonEscape(clip_path.string()) << "\","
              << "\"entries\":[";
@@ -10237,6 +10268,18 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             ok.body = body.str();
                             return ok;
+                        }
+                        if (request.method == "DELETE" && request.path == "/lab/analysis/events/evidence") {
+                            if (const auto auth_response = require_rule_write_principal();
+                                auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            return JsonResponse(
+                                403,
+                                "Forbidden",
+                                "{\"error\":\"evidence file deletion is disabled by policy\","
+                                "\"deletePolicy\":{\"evidenceFileDelete\":false,"
+                                "\"evidenceFileDeletePermission\":\"blocked-for-all-roles\"}}");
                         }
 
 	                        if (request.method == "GET" && request.path == "/lab/runtime/status") {

@@ -162,16 +162,22 @@ function assertEvidencePolicy(label, policy) {
       exportPolicy.clipManifestDownload !== true ||
       exportPolicy.bundleArchiveDownload !== true ||
       exportPolicy.bundleFormat !== "zip" ||
+      exportPolicy.bundleMaxAgeMs !== 86400000 ||
+      exportPolicy.auditAction !== "export-bundle" ||
       exportPolicy.exportAudit !== true ||
       exportPolicy.longVideoExport !== false) {
     throw new Error(`${label}: exportPolicy mismatch ${JSON.stringify(exportPolicy)}`);
   }
   const retentionPolicy = policy.retentionPolicy || {};
-  if (retentionPolicy.activeFileProtected !== true || retentionPolicy.archiveRetention !== "oldest-rotated-only") {
+  if (retentionPolicy.activeFileProtected !== true ||
+      retentionPolicy.archiveRetention !== "oldest-rotated-only" ||
+      retentionPolicy.bundleExpiry !== "download-link-expiresAtMs") {
     throw new Error(`${label}: retentionPolicy mismatch ${JSON.stringify(retentionPolicy)}`);
   }
   const deletePolicy = policy.deletePolicy || {};
-  if (deletePolicy.compactionDelete !== true || deletePolicy.evidenceFileDelete !== false) {
+  if (deletePolicy.compactionDelete !== true ||
+      deletePolicy.evidenceFileDelete !== false ||
+      deletePolicy.evidenceFileDeletePermission !== "blocked-for-all-roles") {
     throw new Error(`${label}: deletePolicy mismatch ${JSON.stringify(deletePolicy)}`);
   }
 }
@@ -199,6 +205,7 @@ async function verifyEvidenceBundleDownload(storageStatus) {
       eventId,
       snapshotPath,
       clipPath,
+      expiresAtMs: String(Date.now() + 60000),
       download: "1",
     });
     const response = await fetch(`${httpBase}/lab/analysis/events/evidence/bundle?${params.toString()}`);
@@ -218,6 +225,23 @@ async function verifyEvidenceBundleDownload(storageStatus) {
     if (!entries.some(item => item?.action === "export-bundle" && String(item?.target || "").includes(eventId))) {
       throw new Error(`missing export-bundle audit entry: ${JSON.stringify(entries).slice(0, 240)}`);
     }
+    const expiredParams = new URLSearchParams({
+      eventId,
+      snapshotPath,
+      expiresAtMs: "1",
+      download: "1",
+    });
+    await expectHttpError(
+      `/lab/analysis/events/evidence/bundle?${expiredParams.toString()}`,
+      400,
+      "evidence bundle link has expired",
+    );
+    await expectHttpError(
+      `/lab/analysis/events/evidence?path=${encodeURIComponent(snapshotPath)}`,
+      403,
+      "evidence file deletion is disabled by policy",
+      { method: "DELETE" },
+    );
   } finally {
     fs.rmSync(snapshotPath, { force: true });
     fs.rmSync(clipBundleDir, { recursive: true, force: true });
@@ -243,8 +267,8 @@ function assertContains(label, text, needles) {
   }
 }
 
-async function expectHttpError(pathname, status, messagePart) {
-  const response = await fetch(`${httpBase}${pathname}`);
+async function expectHttpError(pathname, status, messagePart, init = {}) {
+  const response = await fetch(`${httpBase}${pathname}`, init);
   const text = await response.text();
   if (response.status !== status || !text.includes(messagePart)) {
     throw new Error(`${pathname} expected HTTP ${status} with ${messagePart}, got ${response.status}: ${text.slice(0, 160)}`);
