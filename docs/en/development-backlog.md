@@ -1,6 +1,6 @@
 # Development Backlog
 
-Korean detailed backlog: [../development-backlog.md](../development-backlog.md)
+Detailed Korean backlog: [../development-backlog.md](../development-backlog.md)
 
 ## Status Labels
 
@@ -16,7 +16,7 @@ Korean detailed backlog: [../development-backlog.md](../development-backlog.md)
 | Area | Status | Notes |
 | --- | --- | --- |
 | Public repo readiness | In progress | Actions, branch rules, English docs, asset policy |
-| Runtime distribution policy | Done | Source-first policy and bundle guardrails exist |
+| Runtime distribution policy | Done | Source-first policy and bundle guardrails are in place |
 | Ops UI stability | Done | Channels/Rules/Users responsive table checks exist |
 | Audit trail operations | In progress | Server persistence exists; search/export can improve |
 | Evidence retention | In progress | Cleanup policy exists; permission/search can improve |
@@ -25,7 +25,7 @@ Korean detailed backlog: [../development-backlog.md](../development-backlog.md)
 
 ## Near-Term Follow-Ups
 
-- Close or suppress existing Dependabot major-update PR noise after policy is documented.
+- Close or suppress existing Dependabot major-update PR noise after the policy is documented.
 - Add richer English docs if the public audience grows.
 - Connect RC artifacts to release notes.
 - Add signed-token and cleanup checks for evidence bundles.

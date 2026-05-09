@@ -1,6 +1,6 @@
 # Public Repo Final Review
 
-Korean detailed checklist: [../public-repo-final-review.md](../public-repo-final-review.md)
+Detailed Korean checklist: [../public-repo-final-review.md](../public-repo-final-review.md)
 
 This checklist is used immediately before changing repository visibility from private to public. GitHub UI settings stay manual and owner-controlled.
 
@@ -8,17 +8,17 @@ This checklist is used immediately before changing repository visibility from pr
 
 As of 2026-05-10:
 
-- Latest confirmed main readiness commit: `204a5b1 Document public release follow-up setup`
+- Latest confirmed main readiness commit: `fce2142 Add English public docs and actions policy`
 - Main branch Actions status:
-  - `Preflight #6`: passed
-  - `Licensing and Artifact Guardrails #3`: passed
+  - `Preflight #9`: passed
+  - `Licensing and Artifact Guardrails #6`: passed
 - Required status checks:
   - `static-gates`
   - `guardrails`
 - Branch rules:
   - `Restrict deletions`: enabled
   - `Block force pushes`: enabled
-- Visibility: still private. Public conversion is manual.
+- Visibility: still private. Changing visibility to public is manual.
 
 `Restrict deletions` and `Block force pushes` are ruleset branch rules, not GitHub Actions checks. They do not need to appear as required status checks.
 

@@ -3,18 +3,18 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 
-Media Server is a C++17 RTSP/WebRTC relay with optional YOLO/ONNX video analytics overlays, rule events, scenario events, and short evidence artifacts.
+Media Server is a C++17 RTSP/WebRTC relay with optional YOLO/ONNX video analytics overlays, rule/scenario events, and short evidence artifacts.
 
 Korean documentation: [README.md](README.md)
 
-## At A Glance
+## At a Glance
 
 - **Streaming**: exposes file, RTSP pull, WHEP pull, WHIP publish, and HTTP/HLS sources through RTSP and WebRTC/WHEP outputs.
 - **Video analytics**: supports `va=1` overlays, saved rules through `vaRule=<id>`, Rule/Profile/Scenario models, Event POST, EventRecord, snapshot, and short clip evidence.
-- **Product UI**: one main URL routes users to Ops or Client views according to account permissions. `/lab` screen routes stay closed and remain API/verification-only.
-- **Auth and scopes**: uses first-admin setup, session login, role/scope, admin user management, and viewer invite/request approval.
+- **Product UI**: the main URL routes users to Ops or Client views based on account permissions. `/lab` UI routes stay disabled; lab endpoints remain available for API and verification workflows.
+- **Auth and scopes**: supports first-admin setup, session login, role/scope, admin user management, and viewer invite/request approval.
 - **Verification**: `./server.sh` provides UI/Auth smoke tests, VA replay checks, runtime state checks, backup/restore rehearsal, and RC gate artifact checks.
-- **Distribution boundary**: the default public unit is source and documentation. Binary/runtime/model bundles are excluded until separate guardrails pass.
+- **Distribution boundary**: the default public release contains source code and documentation. Binary, runtime, and model bundles are not published unless separate guardrails pass.
 
 ## Runtime Requirements
 
@@ -24,7 +24,7 @@ Korean documentation: [README.md](README.md)
 | Build | C++17, CMake 3.16+ |
 | Media runtime | GStreamer 1.0, gst-rtsp-server, WebRTC-related GStreamer plugins |
 | Optional AI | ONNX Runtime, YOLO ONNX model, label file |
-| Helper tools | Node.js, Python 3, ffmpeg/ffprobe, curl |
+| Helper tools | Node.js, Python 3, FFmpeg/ffprobe, curl |
 | Defaults | RTSP route `dhseo`, file root `video/` |
 
 Exact local versions and model hashes are recorded in [DEPENDENCY_SNAPSHOT.md](DEPENDENCY_SNAPSHOT.md). Regenerate it before a release or binary bundle with:
@@ -33,13 +33,13 @@ Exact local versions and model hashes are recorded in [DEPENDENCY_SNAPSHOT.md](D
 ./server.sh dependency-snapshot
 ```
 
-The default binary bundle does not include FFmpeg/libav/x264/x265/GStreamer GPL-risk plugin binaries. Check release bundles with:
+The default binary bundle does not include FFmpeg, libav, x264/x265, or GStreamer GPL-risk plugin binaries. Check release bundles with:
 
 ```bash
 ./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir>
 ```
 
-Use `./server.sh test --basic --ffmpeg-free` when CI or public verification should avoid FFmpeg CLI dependency.
+Use `./server.sh test --basic --ffmpeg-free` when CI or public verification should avoid depending on the FFmpeg CLI.
 
 ## Quick Start
 
@@ -75,9 +75,9 @@ If you only need the streaming path without AI:
 MEDIA_SERVER_ENABLE_AI=0 ./server.sh build
 ```
 
-The default auth mode is `MEDIA_SERVER_AUTH_MODE=auto`. If there is no users file or `admin.passwordHash`, the first browser visit redirects to `/setup`. There is no default production admin password.
+The default auth mode is `MEDIA_SERVER_AUTH_MODE=auto`. If no users file or `admin.passwordHash` exists, the first browser visit redirects to `/setup`. There is no default production admin password.
 
-## Sample And Asset Scope
+## Sample and Asset Scope
 
 Tracked `video/*.mp4` files and the allowlisted `video/imports/va_tracking_event_1280x720_30fps_h264.mp4` are generated verification fixtures. Customer media, operations evidence, YOLO model binaries, FFmpeg/GStreamer runtime binaries, logs, and auth stores are not public repository content.
 
@@ -132,7 +132,7 @@ See [docs/en/sample-fixture-provenance.md](docs/en/sample-fixture-provenance.md)
 - First run, or an empty account store, opens the admin password setup view.
 - `admin` and `operator` users see Ops screens for channels, rules, users, and diagnostics.
 - `viewer` users see only assigned Client screens. Raw source URLs, internal diagnostic JSON, and rule/profile editors are not exposed.
-- `integrator` is scoped for API integration rather than daily UI operation.
+- `integrator` is intended for scoped API integration rather than daily UI operation.
 
 ## Testing Summary
 
@@ -176,7 +176,7 @@ MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground
 File / RTSP Pull / WHEP Pull / WHIP Publish / HTTP-HLS URI
         -> Media Server
         -> RTSP Output / WebRTC Output
-        -> optional VA overlay / rule event / scenario event / runtime metadata
+        -> optional VA overlay / rule events / scenario events / runtime metadata
 ```
 
 VA flow:

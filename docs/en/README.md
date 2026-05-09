@@ -1,6 +1,6 @@
 # English Documentation
 
-This directory contains concise English guides for the public-facing documentation set. The Korean documents remain the detailed working reference, and each English page links back to its Korean counterpart when useful.
+This directory contains concise English guides for the public documentation set. The Korean documents remain the detailed working reference, and each English page links back to its Korean counterpart when useful.
 
 ## Start Here
 
@@ -23,9 +23,9 @@ This directory contains concise English guides for the public-facing documentati
 
 ## Public Repository Boundary
 
-- The default public unit is Apache-2.0 source code, documentation, configuration examples, scripts, and allowlisted generated fixtures.
+- The public repository includes Apache-2.0 source code, documentation, configuration examples, scripts, and allowlisted generated fixtures.
 - Runtime binaries, YOLO model binaries, customer media, operations evidence, local auth stores, and logs are excluded.
-- Repository visibility is changed manually by the owner only.
+- Only the repository owner should change repository visibility.
 
 ## Verification Entry Points
 

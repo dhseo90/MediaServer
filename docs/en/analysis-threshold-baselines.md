@@ -1,6 +1,6 @@
 # Analysis Threshold Baselines
 
-Korean detailed guide: [../analysis-threshold-baselines.md](../analysis-threshold-baselines.md)
+Detailed Korean guide: [../analysis-threshold-baselines.md](../analysis-threshold-baselines.md)
 
 These values are starting points for field tuning. They are not universal defaults.
 

@@ -1,6 +1,6 @@
 # Ops Backup And Recovery
 
-Korean detailed guide: [../ops-backup-recovery.md](../ops-backup-recovery.md)
+Detailed Korean guide: [../ops-backup-recovery.md](../ops-backup-recovery.md)
 
 ## Backup Targets
 

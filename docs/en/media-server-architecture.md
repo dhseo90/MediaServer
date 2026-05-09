@@ -1,6 +1,6 @@
 # Media Server Architecture
 
-Korean detailed guide: [../media-server-architecture.md](../media-server-architecture.md)
+Detailed Korean guide: [../media-server-architecture.md](../media-server-architecture.md)
 
 ## Product Boundary
 
@@ -29,7 +29,7 @@ File / RTSP Pull / WHEP Pull / WHIP Publish / HTTP-HLS URI
 ## Runtime Areas
 
 - Source lifecycle: registration, reconnect, stale detection, cleanup.
-- Session fanout: multiple viewers and outputs for a source.
+- Session fan-out: multiple viewers and outputs for a source.
 - VA layer: detection, tracking, scene context, rule/scenario evaluation.
 - Event layer: Event POST, EventRecord, short evidence artifacts.
 - Ops state: channels, rules, profiles, users, scopes, audit records.

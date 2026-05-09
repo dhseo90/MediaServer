@@ -1,10 +1,10 @@
 # Release Policy
 
-Korean detailed policy: [../release-policy.md](../release-policy.md)
+Detailed Korean policy: [../release-policy.md](../release-policy.md)
 
 ## Default Release Scope
 
-- Default release is source and documentation only.
+- The default release contains source code and documentation only.
 - GitHub-generated source archives are acceptable.
 - Do not upload binary/runtime/model bundles by default.
 - Do not include FFmpeg, FFprobe, libav*, x264/x265, GStreamer GPL-risk plugins, ONNX Runtime packages, or YOLO model binaries.
@@ -12,7 +12,7 @@ Korean detailed policy: [../release-policy.md](../release-policy.md)
 
 ## Tag Strategy
 
-- Use semantic version tags only after public-readiness checks are green.
+- Use semantic version tags only after public readiness checks pass.
 - Recommended first public tag: `v0.1.0`.
 - Keep `v0.x` while route boundaries, runtime packaging, and operator workflows are still stabilizing.
 - Source-only releases must not attach generated sample packs, model files, or runtime bundles.
@@ -29,7 +29,7 @@ Korean detailed policy: [../release-policy.md](../release-policy.md)
 
 The repository requires `Preflight / static-gates` and `Licensing and Artifact Guardrails / guardrails` on `main`.
 
-`verify-actions-security` currently allows only official `actions/*@v4`, SHA-pinned external actions, or local actions. A Dependabot PR that proposes a major Actions update can fail Preflight until the policy is reviewed.
+`verify-actions-security` currently allows only official `actions/*@v4`, SHA-pinned external actions, or local actions. A Dependabot PR that proposes a major Actions update is expected to fail Preflight until the policy is reviewed.
 
 ## Release Note Template
 
@@ -38,7 +38,7 @@ The repository requires `Preflight / static-gates` and `Licensing and Artifact G
 
 ## Scope
 
-- Source/doc release
+- Source and documentation release
 - Binary/runtime/model bundle: not included
 
 ## Verification
