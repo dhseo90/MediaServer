@@ -30,6 +30,19 @@ VA는 기존 RTSP/WebRTC relay path를 대체하지 않고, 같은 source stream
 
 외부 이벤트 JSON/API/POST 형식은 기존 호환성을 유지합니다. TrackState, Scenario, TrackHealth, EventRecord는 내부 상태와 선택 저장 구조를 확장하는 용도이며 기존 Intrusion/LineCrossing event type을 바꾸지 않습니다.
 
+### 현장형 Scenario Preset
+
+Ops 룰 UI의 이벤트 템플릿은 `default`, `road`, `park`, `indoor`, `lobby`, `platform`, `entrance`, `custom` preset을 저장할 수 있습니다. Preset은 `scenario.presetId`로 남기고, 실제 판단에는 저장된 threshold 숫자값을 사용합니다.
+
+| Preset | 주 대상 | 기본 튜닝 방향 |
+| --- | --- | --- |
+| `road` | 도로, 차로, 교차부 | line crossing과 wrong-direction은 짧은 지속 시간, occupancy/loitering은 높은 임계값 |
+| `park` | 공원, 외부 체류 공간 | loitering dwell을 길게 잡고 재알림 간격을 넓힘 |
+| `indoor` | 실내 구역 | 이동 반경과 dwell을 낮춰 짧은 동선을 빨리 판정 |
+| `lobby` | 로비, 공용 대기 공간 | occupancy와 re-entry 기준을 중간값으로 유지 |
+| `platform` | 승강장, 대기열 구간 | line-crossing 지연을 짧게, occupancy threshold를 높게 유지 |
+| `entrance` | 출입구 | intrusion dwell과 re-entry window를 짧게 유지 |
+
 ## 2. VA Pipeline
 
 ```text

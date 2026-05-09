@@ -1429,8 +1429,73 @@ void AppendOpsShellScript(std::ostringstream& out,
         'loitering',
         'zone-occupancy'
       ];
+      const opsScenarioPresetBaselines = {
+        default: {
+          all: { minConfidence: 0.25, minDurationMs: 0, cooldownMs: 5000 },
+          'intrusion-dwell': { candidateTimeMs: 2000, dwellTimeMs: 10000 },
+          're-entry': { reEntryWindowMs: 10000 },
+          'wrong-direction': { cooldownMs: 5000 },
+          'intrusion-after-line-crossing': { maxDelayAfterCrossingMs: 10000, dwellTimeMs: 3000 },
+          loitering: { minDwellTimeMs: 30000, maxMovementRadius: 0.08, minTrajectoryPoints: 4, cooldownMs: 10000 },
+          'zone-occupancy': { occupancyThreshold: 3, minDwellTimeMs: 5000, cooldownMs: 10000 }
+        },
+        road: {
+          all: { minConfidence: 0.35, cooldownMs: 10000 },
+          'line-crossing': { minDurationMs: 0 },
+          'wrong-direction': { cooldownMs: 8000 },
+          'intrusion-after-line-crossing': { maxDelayAfterCrossingMs: 6000, dwellTimeMs: 1500 },
+          loitering: { minDwellTimeMs: 45000, maxMovementRadius: 0.12, minTrajectoryPoints: 5, cooldownMs: 20000 },
+          'zone-occupancy': { occupancyThreshold: 8, minDwellTimeMs: 15000, cooldownMs: 20000 }
+        },
+        park: {
+          all: { minConfidence: 0.3, cooldownMs: 15000 },
+          'intrusion-dwell': { candidateTimeMs: 3000, dwellTimeMs: 15000 },
+          loitering: { minDwellTimeMs: 60000, maxMovementRadius: 0.1, minTrajectoryPoints: 5, cooldownMs: 30000 },
+          'zone-occupancy': { occupancyThreshold: 5, minDwellTimeMs: 10000, cooldownMs: 20000 }
+        },
+        indoor: {
+          all: { minConfidence: 0.3, cooldownMs: 8000 },
+          'intrusion-dwell': { candidateTimeMs: 1500, dwellTimeMs: 5000 },
+          loitering: { minDwellTimeMs: 30000, maxMovementRadius: 0.06, minTrajectoryPoints: 4, cooldownMs: 15000 },
+          'zone-occupancy': { occupancyThreshold: 4, minDwellTimeMs: 5000, cooldownMs: 10000 }
+        },
+        lobby: {
+          all: { minConfidence: 0.32, cooldownMs: 8000 },
+          'intrusion-dwell': { candidateTimeMs: 1000, dwellTimeMs: 4000 },
+          're-entry': { reEntryWindowMs: 12000 },
+          loitering: { minDwellTimeMs: 45000, maxMovementRadius: 0.07, minTrajectoryPoints: 4, cooldownMs: 20000 },
+          'zone-occupancy': { occupancyThreshold: 6, minDwellTimeMs: 7000, cooldownMs: 12000 }
+        },
+        platform: {
+          all: { minConfidence: 0.35, cooldownMs: 10000 },
+          'line-crossing': { minDurationMs: 0 },
+          'wrong-direction': { cooldownMs: 6000 },
+          'intrusion-after-line-crossing': { maxDelayAfterCrossingMs: 5000, dwellTimeMs: 1000 },
+          loitering: { minDwellTimeMs: 50000, maxMovementRadius: 0.08, minTrajectoryPoints: 5, cooldownMs: 20000 },
+          'zone-occupancy': { occupancyThreshold: 8, minDwellTimeMs: 8000, cooldownMs: 15000 }
+        },
+        entrance: {
+          all: { minConfidence: 0.32, cooldownMs: 6000 },
+          'line-crossing': { minDurationMs: 0 },
+          'intrusion-dwell': { candidateTimeMs: 1000, dwellTimeMs: 3000 },
+          're-entry': { reEntryWindowMs: 10000 },
+          'zone-occupancy': { occupancyThreshold: 3, minDwellTimeMs: 4000, cooldownMs: 10000 }
+        }
+      };
       function opsEventRuleModeForType(type) {
         return opsRulesIsScenarioType(type) ? 'scenario' : 'event';
+      }
+      function opsRulesScenarioBaseline(type, presetId = 'default') {
+        const normalizedType = String(type || '').trim();
+        const normalizedPreset = String(presetId || 'default').trim();
+        const defaults = opsScenarioPresetBaselines.default || {};
+        const preset = opsScenarioPresetBaselines[normalizedPreset] || {};
+        return {
+          ...(defaults.all || {}),
+          ...(defaults[normalizedType] || {}),
+          ...(preset.all || {}),
+          ...(preset[normalizedType] || {})
+        };
       }
       function opsRulesClone(value) {
         return JSON.parse(JSON.stringify(value ?? {}));
@@ -1605,10 +1670,11 @@ void AppendOpsShellScript(std::ostringstream& out,
           ...existingEvent,
           type,
           region,
-          minConfidence: Number(existingEvent.minConfidence ?? 0.25),
-          minDurationMs: Number(existingEvent.minDurationMs ?? 0)
+          minConfidence: Number(existingEvent.minConfidence ?? opsRulesScenarioBaseline(type).minConfidence ?? 0.25),
+          minDurationMs: Number(existingEvent.minDurationMs ?? opsRulesScenarioBaseline(type).minDurationMs ?? 0)
         };
         const scenario = existingEvent.scenario || {};
+        const baseline = opsRulesScenarioBaseline(type, scenario.presetId || 'default');
         if (type === 'intrusion-dwell') {
           return {
             ruleKind: 'scenario',
@@ -1616,10 +1682,11 @@ void AppendOpsShellScript(std::ostringstream& out,
             scenario: {
               ...scenario,
               type,
+              presetId: scenario.presetId || 'default',
               enabled: scenario.enabled !== false,
-              candidateTimeMs: Number(scenario.candidateTimeMs ?? 2000),
-              dwellTimeMs: Number(scenario.dwellTimeMs ?? 10000),
-              cooldownMs: Number(scenario.cooldownMs ?? 5000),
+              candidateTimeMs: Number(scenario.candidateTimeMs ?? baseline.candidateTimeMs ?? 2000),
+              dwellTimeMs: Number(scenario.dwellTimeMs ?? baseline.dwellTimeMs ?? 10000),
+              cooldownMs: Number(scenario.cooldownMs ?? baseline.cooldownMs ?? 5000),
               targetClasses: Array.isArray(scenario.targetClasses) && scenario.targetClasses.length > 0 ? scenario.targetClasses : classes,
               restrictedZoneIds: Array.isArray(scenario.restrictedZoneIds) ? scenario.restrictedZoneIds : []
             }
@@ -1632,9 +1699,10 @@ void AppendOpsShellScript(std::ostringstream& out,
             scenario: {
               ...scenario,
               type,
+              presetId: scenario.presetId || 'default',
               enabled: scenario.enabled !== false,
-              reEntryWindowMs: Number(scenario.reEntryWindowMs ?? 10000),
-              cooldownMs: Number(scenario.cooldownMs ?? 5000),
+              reEntryWindowMs: Number(scenario.reEntryWindowMs ?? baseline.reEntryWindowMs ?? 10000),
+              cooldownMs: Number(scenario.cooldownMs ?? baseline.cooldownMs ?? 5000),
               targetClasses: Array.isArray(scenario.targetClasses) && scenario.targetClasses.length > 0 ? scenario.targetClasses : classes,
               reEntryMode: scenario.reEntryMode || 'same-zone',
               reEntryZoneIds: Array.isArray(scenario.reEntryZoneIds) ? scenario.reEntryZoneIds : [],
@@ -1649,8 +1717,9 @@ void AppendOpsShellScript(std::ostringstream& out,
             scenario: {
               ...scenario,
               type,
+              presetId: scenario.presetId || 'default',
               enabled: scenario.enabled !== false,
-              cooldownMs: Number(scenario.cooldownMs ?? 5000),
+              cooldownMs: Number(scenario.cooldownMs ?? baseline.cooldownMs ?? 5000),
               targetClasses: Array.isArray(scenario.targetClasses) && scenario.targetClasses.length > 0 ? scenario.targetClasses : classes
             }
           };
@@ -1662,10 +1731,11 @@ void AppendOpsShellScript(std::ostringstream& out,
             scenario: {
               ...scenario,
               type,
+              presetId: scenario.presetId || 'default',
               enabled: scenario.enabled !== false,
-              maxDelayAfterCrossingMs: Number(scenario.maxDelayAfterCrossingMs ?? 10000),
-              dwellTimeMs: Number(scenario.dwellTimeMs ?? 3000),
-              cooldownMs: Number(scenario.cooldownMs ?? 5000),
+              maxDelayAfterCrossingMs: Number(scenario.maxDelayAfterCrossingMs ?? baseline.maxDelayAfterCrossingMs ?? 10000),
+              dwellTimeMs: Number(scenario.dwellTimeMs ?? baseline.dwellTimeMs ?? 3000),
+              cooldownMs: Number(scenario.cooldownMs ?? baseline.cooldownMs ?? 5000),
               targetZoneIds: Array.isArray(scenario.targetZoneIds) ? scenario.targetZoneIds : [],
               triggerLine: {
                 id: scenario.triggerLine?.id || 'line-1',
@@ -1684,11 +1754,12 @@ void AppendOpsShellScript(std::ostringstream& out,
             scenario: {
               ...scenario,
               type,
+              presetId: scenario.presetId || 'default',
               enabled: scenario.enabled !== false,
-              minDwellTimeMs: Number(scenario.minDwellTimeMs ?? scenario.dwellTimeMs ?? 30000),
-              maxMovementRadius: Number(scenario.maxMovementRadius ?? 0.08),
-              minTrajectoryPoints: Number(scenario.minTrajectoryPoints ?? 4),
-              cooldownMs: Number(scenario.cooldownMs ?? 10000),
+              minDwellTimeMs: Number(scenario.minDwellTimeMs ?? scenario.dwellTimeMs ?? baseline.minDwellTimeMs ?? 30000),
+              maxMovementRadius: Number(scenario.maxMovementRadius ?? baseline.maxMovementRadius ?? 0.08),
+              minTrajectoryPoints: Number(scenario.minTrajectoryPoints ?? baseline.minTrajectoryPoints ?? 4),
+              cooldownMs: Number(scenario.cooldownMs ?? baseline.cooldownMs ?? 10000),
               targetClasses: Array.isArray(scenario.targetClasses) && scenario.targetClasses.length > 0 ? scenario.targetClasses : classes,
               restrictedZoneIds: Array.isArray(scenario.restrictedZoneIds) ? scenario.restrictedZoneIds : []
             }
@@ -1701,10 +1772,11 @@ void AppendOpsShellScript(std::ostringstream& out,
             scenario: {
               ...scenario,
               type,
+              presetId: scenario.presetId || 'default',
               enabled: scenario.enabled !== false,
-              occupancyThreshold: Number(scenario.occupancyThreshold ?? 3),
-              minDwellTimeMs: Number(scenario.minDwellTimeMs ?? 5000),
-              cooldownMs: Number(scenario.cooldownMs ?? 10000),
+              occupancyThreshold: Number(scenario.occupancyThreshold ?? baseline.occupancyThreshold ?? 3),
+              minDwellTimeMs: Number(scenario.minDwellTimeMs ?? baseline.minDwellTimeMs ?? 5000),
+              cooldownMs: Number(scenario.cooldownMs ?? baseline.cooldownMs ?? 10000),
               targetClasses: Array.isArray(scenario.targetClasses) && scenario.targetClasses.length > 0 ? scenario.targetClasses : classes,
               restrictedZoneIds: Array.isArray(scenario.restrictedZoneIds) ? scenario.restrictedZoneIds : []
             }
@@ -1984,6 +2056,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             ? '여러 채널 분석 설정에서 다시 고를 수 있는 공통 시나리오 템플릿입니다.'
             : '여러 채널 분석 설정에서 다시 고를 수 있는 기본 이벤트 템플릿입니다.';
         }
+        opsEventRuleToggleField('opsEventRulePresetField', mode === 'scenario');
         opsEventRuleToggleField('opsEventRuleLineDirectionField', lineMode);
         opsEventRuleToggleField('opsEventRuleCandidateField', dwellMode);
         opsEventRuleToggleField('opsEventRuleDwellField', dwellMode || lineAfterMode || loiteringMode || zoneOccupancyMode);
@@ -1995,6 +2068,27 @@ void AppendOpsShellScript(std::ostringstream& out,
         opsEventRuleToggleField('opsEventRuleLoiteringPointsField', loiteringMode);
         opsEventRuleToggleField('opsEventRuleZoneThresholdField', zoneOccupancyMode);
         opsEventRuleToggleField('opsEventRuleZoneDwellField', zoneOccupancyMode);
+      }
+      function opsEventRuleApplyPresetToInputs(presetId = '') {
+        const type = String(document.getElementById('opsEventRuleTypeSelect')?.value || 'intrusion-dwell');
+        const selected = String(presetId || document.getElementById('opsEventRulePresetSelect')?.value || 'default');
+        if (selected === 'custom') return;
+        const baseline = opsRulesScenarioBaseline(type, selected);
+        const setNumber = (id, value) => {
+          const input = document.getElementById(id);
+          if (input && value !== undefined) input.value = String(value);
+        };
+        setNumber('opsEventRuleConfidenceInput', baseline.minConfidence);
+        setNumber('opsEventRuleMinDurationInput', baseline.minDurationMs);
+        setNumber('opsEventRuleCooldownInput', baseline.cooldownMs);
+        setNumber('opsEventRuleCandidateInput', baseline.candidateTimeMs);
+        setNumber('opsEventRuleDwellInput', baseline.dwellTimeMs ?? baseline.minDwellTimeMs);
+        setNumber('opsEventRuleReEntryWindowInput', baseline.reEntryWindowMs);
+        setNumber('opsEventRuleLineDelayInput', baseline.maxDelayAfterCrossingMs);
+        setNumber('opsEventRuleLoiteringRadiusInput', baseline.maxMovementRadius);
+        setNumber('opsEventRuleLoiteringPointsInput', baseline.minTrajectoryPoints);
+        setNumber('opsEventRuleZoneThresholdInput', baseline.occupancyThreshold);
+        setNumber('opsEventRuleZoneDwellInput', baseline.minDwellTimeMs);
       }
       function opsRulesCurrentForm(mode) {
         return ({
@@ -2619,23 +2713,29 @@ void AppendOpsShellScript(std::ostringstream& out,
           modeSelect.value = opsEventRuleModeForType(eventType);
         }
         opsEventRuleRefreshTypeOptions(eventType);
+        const presetId = String(scenario?.presetId || 'default');
+        const baseline = opsRulesScenarioBaseline(eventType, presetId);
+        const presetSelect = document.getElementById('opsEventRulePresetSelect');
+        if (presetSelect) {
+          presetSelect.value = opsScenarioPresetBaselines[presetId] ? presetId : 'custom';
+        }
         document.getElementById('opsEventRuleIdInput').value = String(item?.id || '');
         document.getElementById('opsEventRuleTypeSelect').value = eventType;
-        document.getElementById('opsEventRuleConfidenceInput').value = String(event?.minConfidence ?? 0.25);
-        document.getElementById('opsEventRuleMinDurationInput').value = String(event?.minDurationMs ?? 0);
+        document.getElementById('opsEventRuleConfidenceInput').value = String(event?.minConfidence ?? baseline.minConfidence ?? 0.25);
+        document.getElementById('opsEventRuleMinDurationInput').value = String(event?.minDurationMs ?? baseline.minDurationMs ?? 0);
         opsRulesRenderCategorySelector('opsEventRuleClasses', Array.isArray(analysis.classes) && analysis.classes.length > 0 ? analysis.classes : opsRuleDefaultCategories);
         document.getElementById('opsEventRuleLineDirectionSelect').value = String(event?.region?.direction || 'any');
-        document.getElementById('opsEventRuleCandidateInput').value = String(scenario?.candidateTimeMs ?? 2000);
-        document.getElementById('opsEventRuleDwellInput').value = String(scenario?.dwellTimeMs ?? scenario?.minDwellTimeMs ?? 10000);
-        document.getElementById('opsEventRuleReEntryWindowInput').value = String(scenario?.reEntryWindowMs ?? 10000);
+        document.getElementById('opsEventRuleCandidateInput').value = String(scenario?.candidateTimeMs ?? baseline.candidateTimeMs ?? 2000);
+        document.getElementById('opsEventRuleDwellInput').value = String(scenario?.dwellTimeMs ?? scenario?.minDwellTimeMs ?? baseline.dwellTimeMs ?? baseline.minDwellTimeMs ?? 10000);
+        document.getElementById('opsEventRuleReEntryWindowInput').value = String(scenario?.reEntryWindowMs ?? baseline.reEntryWindowMs ?? 10000);
         document.getElementById('opsEventRuleReEntryModeSelect').value = String(scenario?.reEntryMode || 'same-zone');
-        document.getElementById('opsEventRuleLineDelayInput').value = String(scenario?.maxDelayAfterCrossingMs ?? 10000);
+        document.getElementById('opsEventRuleLineDelayInput').value = String(scenario?.maxDelayAfterCrossingMs ?? baseline.maxDelayAfterCrossingMs ?? 10000);
         document.getElementById('opsEventRuleTriggerDirectionSelect').value = String(scenario?.triggerLine?.direction || 'any');
-        document.getElementById('opsEventRuleLoiteringRadiusInput').value = String(scenario?.maxMovementRadius ?? 0.08);
-        document.getElementById('opsEventRuleLoiteringPointsInput').value = String(scenario?.minTrajectoryPoints ?? 4);
-        document.getElementById('opsEventRuleZoneThresholdInput').value = String(scenario?.occupancyThreshold ?? 3);
-        document.getElementById('opsEventRuleZoneDwellInput').value = String(scenario?.minDwellTimeMs ?? 5000);
-        document.getElementById('opsEventRuleCooldownInput').value = String(scenario?.cooldownMs ?? 5000);
+        document.getElementById('opsEventRuleLoiteringRadiusInput').value = String(scenario?.maxMovementRadius ?? baseline.maxMovementRadius ?? 0.08);
+        document.getElementById('opsEventRuleLoiteringPointsInput').value = String(scenario?.minTrajectoryPoints ?? baseline.minTrajectoryPoints ?? 4);
+        document.getElementById('opsEventRuleZoneThresholdInput').value = String(scenario?.occupancyThreshold ?? baseline.occupancyThreshold ?? 3);
+        document.getElementById('opsEventRuleZoneDwellInput').value = String(scenario?.minDwellTimeMs ?? baseline.minDwellTimeMs ?? 5000);
+        document.getElementById('opsEventRuleCooldownInput').value = String(scenario?.cooldownMs ?? baseline.cooldownMs ?? 5000);
         opsRulesSetFormDisabled('event-rule', detailMode === 'view');
         opsEventRuleUpdateModeUi();
       }
@@ -2667,6 +2767,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       function opsRulesReadEventTemplateForm(baseRecord = {}, forcedId = '') {
         const classes = opsRulesSelectedCategories('opsEventRuleClassChecks');
         const type = String(document.getElementById('opsEventRuleTypeSelect')?.value || 'intrusion-dwell');
+        const presetId = String(document.getElementById('opsEventRulePresetSelect')?.value || 'default');
         const base = opsRulesClone(baseRecord);
         const defaults = opsRulesRuleBasePayload(type, base.event || {}, classes.length > 0 ? classes : ['person', 'vehicle']);
         const event = {
@@ -2685,6 +2786,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           ...defaults.scenario
         } : null;
         if (scenario) {
+          scenario.presetId = presetId;
           scenario.cooldownMs = Number(document.getElementById('opsEventRuleCooldownInput')?.value || scenario.cooldownMs || 5000);
           if (type === 'intrusion-dwell') {
             scenario.candidateTimeMs = Number(document.getElementById('opsEventRuleCandidateInput')?.value || scenario.candidateTimeMs || 2000);
@@ -3775,8 +3877,13 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsEventRuleModeSelect')?.addEventListener('change', () => {
           opsEventRuleRefreshTypeOptions('');
           opsEventRuleUpdateModeUi();
+          opsEventRuleApplyPresetToInputs();
         });
-        document.getElementById('opsEventRuleTypeSelect')?.addEventListener('change', () => opsEventRuleUpdateModeUi());
+        document.getElementById('opsEventRuleTypeSelect')?.addEventListener('change', () => {
+          opsEventRuleUpdateModeUi();
+          opsEventRuleApplyPresetToInputs();
+        });
+        document.getElementById('opsEventRulePresetSelect')?.addEventListener('change', () => opsEventRuleApplyPresetToInputs());
         document.getElementById('opsRulesComposerEdit')?.addEventListener('click', () => editCurrentOpsRulesRecord().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsRulesComposerClose')?.addEventListener('click', () => closeOpsRulesEditor().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsRulesComposerSave')?.addEventListener('click', () => triggerOpsRulesSave().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
