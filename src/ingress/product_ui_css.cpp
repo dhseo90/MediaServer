@@ -1133,6 +1133,15 @@ std::string ProductUiCss() {
     .root-cause-action {
       grid-column: 1 / -1;
     }
+    .root-cause-evidence {
+      grid-column: 1 / -1;
+      color: var(--color-text);
+      font-weight: 600;
+    }
+    .root-cause-next-action {
+      justify-self: start;
+      grid-column: 1 / -1;
+    }
     .embedded-frame {
       width: 100%;
       min-height: min(1120px, calc(100vh - 220px));
