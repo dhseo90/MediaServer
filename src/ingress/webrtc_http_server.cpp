@@ -7272,9 +7272,11 @@ std::string AnalysisEventStorageStatusJson() {
         << "\"snapshotDownload\":true,"
         << "\"clipManifestDownload\":true,"
         << "\"clipFrameDownload\":true,"
-        << "\"bundleArchiveDownload\":false,"
+        << "\"bundleArchiveDownload\":true,"
+        << "\"bundleFormat\":\"zip\","
+        << "\"exportAudit\":true,"
         << "\"longVideoExport\":false,"
-        << "\"allowedFormats\":[\"jpg\",\"jpeg\",\"ppm\",\"pgm\",\"json\"]"
+        << "\"allowedFormats\":[\"jpg\",\"jpeg\",\"ppm\",\"pgm\",\"json\",\"zip\"]"
         << "},"
         << "\"retentionPolicy\":{"
         << "\"activeFileProtected\":true,"
@@ -7690,6 +7692,326 @@ bool IsSafeEventEvidencePath(const std::filesystem::path& raw_path,
     if (content_type != nullptr) {
         *content_type = detected_content_type;
     }
+    return true;
+}
+
+void AppendZipLe16(std::string* out, std::uint16_t value) {
+    out->push_back(static_cast<char>(value & 0xff));
+    out->push_back(static_cast<char>((value >> 8) & 0xff));
+}
+
+void AppendZipLe32(std::string* out, std::uint32_t value) {
+    out->push_back(static_cast<char>(value & 0xff));
+    out->push_back(static_cast<char>((value >> 8) & 0xff));
+    out->push_back(static_cast<char>((value >> 16) & 0xff));
+    out->push_back(static_cast<char>((value >> 24) & 0xff));
+}
+
+std::uint32_t ZipCrc32(const std::string& data) {
+    std::uint32_t crc = 0xffffffffu;
+    for (const unsigned char byte : data) {
+        crc ^= byte;
+        for (int bit = 0; bit < 8; ++bit) {
+            crc = (crc >> 1) ^ (0xedb88320u & (0u - (crc & 1u)));
+        }
+    }
+    return crc ^ 0xffffffffu;
+}
+
+struct ZipCentralDirectoryEntry {
+    std::string name;
+    std::uint32_t crc{0};
+    std::uint32_t size{0};
+    std::uint32_t local_offset{0};
+};
+
+bool AppendZipEntry(std::string* zip,
+                    std::vector<ZipCentralDirectoryEntry>* entries,
+                    const std::string& name,
+                    const std::string& data,
+                    std::string* error_message) {
+    if (zip == nullptr || entries == nullptr || name.empty() || name.find("..") != std::string::npos ||
+        name.front() == '/') {
+        if (error_message != nullptr) {
+            *error_message = "invalid zip entry name";
+        }
+        return false;
+    }
+    if (data.size() > std::numeric_limits<std::uint32_t>::max() ||
+        zip->size() > std::numeric_limits<std::uint32_t>::max() ||
+        name.size() > std::numeric_limits<std::uint16_t>::max()) {
+        if (error_message != nullptr) {
+            *error_message = "zip entry is too large";
+        }
+        return false;
+    }
+    const std::uint32_t local_offset = static_cast<std::uint32_t>(zip->size());
+    const std::uint32_t size = static_cast<std::uint32_t>(data.size());
+    const std::uint32_t crc = ZipCrc32(data);
+    AppendZipLe32(zip, 0x04034b50u);
+    AppendZipLe16(zip, 20);
+    AppendZipLe16(zip, 0);
+    AppendZipLe16(zip, 0);
+    AppendZipLe16(zip, 0);
+    AppendZipLe16(zip, 0);
+    AppendZipLe32(zip, crc);
+    AppendZipLe32(zip, size);
+    AppendZipLe32(zip, size);
+    AppendZipLe16(zip, static_cast<std::uint16_t>(name.size()));
+    AppendZipLe16(zip, 0);
+    zip->append(name);
+    zip->append(data);
+    entries->push_back(ZipCentralDirectoryEntry{name, crc, size, local_offset});
+    return true;
+}
+
+bool ReadBinaryFile(const std::filesystem::path& path,
+                    std::string* body,
+                    std::string* error_message) {
+    if (body == nullptr) {
+        return false;
+    }
+    std::error_code ec;
+    const auto size = std::filesystem::file_size(path, ec);
+    constexpr std::uintmax_t kMaxEvidenceBundleFileBytes = 64ull * 1024ull * 1024ull;
+    if (ec || size > kMaxEvidenceBundleFileBytes) {
+        if (error_message != nullptr) {
+            *error_message = ec ? "failed to stat evidence file" : "evidence file is too large";
+        }
+        return false;
+    }
+    std::ifstream input(path, std::ios::in | std::ios::binary);
+    if (!input.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open evidence file";
+        }
+        return false;
+    }
+    std::ostringstream buffer;
+    buffer << input.rdbuf();
+    *body = buffer.str();
+    return true;
+}
+
+bool AppendEvidenceFileToZip(std::string* zip,
+                             std::vector<ZipCentralDirectoryEntry>* entries,
+                             const std::filesystem::path& resolved,
+                             const std::string& entry_name,
+                             std::string* error_message) {
+    std::string body;
+    if (!ReadBinaryFile(resolved, &body, error_message)) {
+        return false;
+    }
+    return AppendZipEntry(zip, entries, entry_name, body, error_message);
+}
+
+bool FinalizeZip(std::string* zip,
+                 const std::vector<ZipCentralDirectoryEntry>& entries,
+                 std::string* error_message) {
+    if (zip == nullptr || entries.size() > std::numeric_limits<std::uint16_t>::max()) {
+        if (error_message != nullptr) {
+            *error_message = "too many zip entries";
+        }
+        return false;
+    }
+    if (zip->size() > std::numeric_limits<std::uint32_t>::max()) {
+        if (error_message != nullptr) {
+            *error_message = "zip archive is too large";
+        }
+        return false;
+    }
+    const std::uint32_t central_offset = static_cast<std::uint32_t>(zip->size());
+    for (const auto& entry : entries) {
+        if (entry.name.size() > std::numeric_limits<std::uint16_t>::max()) {
+            if (error_message != nullptr) {
+                *error_message = "zip entry name is too long";
+            }
+            return false;
+        }
+        AppendZipLe32(zip, 0x02014b50u);
+        AppendZipLe16(zip, 20);
+        AppendZipLe16(zip, 20);
+        AppendZipLe16(zip, 0);
+        AppendZipLe16(zip, 0);
+        AppendZipLe16(zip, 0);
+        AppendZipLe16(zip, 0);
+        AppendZipLe32(zip, entry.crc);
+        AppendZipLe32(zip, entry.size);
+        AppendZipLe32(zip, entry.size);
+        AppendZipLe16(zip, static_cast<std::uint16_t>(entry.name.size()));
+        AppendZipLe16(zip, 0);
+        AppendZipLe16(zip, 0);
+        AppendZipLe16(zip, 0);
+        AppendZipLe16(zip, 0);
+        AppendZipLe32(zip, 0);
+        AppendZipLe32(zip, entry.local_offset);
+        zip->append(entry.name);
+    }
+    if (zip->size() > std::numeric_limits<std::uint32_t>::max()) {
+        if (error_message != nullptr) {
+            *error_message = "zip archive is too large";
+        }
+        return false;
+    }
+    const std::uint32_t central_size = static_cast<std::uint32_t>(zip->size() - central_offset);
+    AppendZipLe32(zip, 0x06054b50u);
+    AppendZipLe16(zip, 0);
+    AppendZipLe16(zip, 0);
+    AppendZipLe16(zip, static_cast<std::uint16_t>(entries.size()));
+    AppendZipLe16(zip, static_cast<std::uint16_t>(entries.size()));
+    AppendZipLe32(zip, central_size);
+    AppendZipLe32(zip, central_offset);
+    AppendZipLe16(zip, 0);
+    return true;
+}
+
+bool AddOptionalEvidencePath(const std::unordered_map<std::string, std::string>& query,
+                             const std::string& key,
+                             std::filesystem::path* resolved,
+                             std::string* error_message) {
+    const auto it = query.find(key);
+    if (it == query.end() || Trim(it->second).empty()) {
+        return true;
+    }
+    std::string content_type;
+    if (!IsSafeEventEvidencePath(std::filesystem::path(it->second), resolved, &content_type)) {
+        if (error_message != nullptr) {
+            *error_message = "invalid event evidence path: " + key;
+        }
+        return false;
+    }
+    return true;
+}
+
+std::string EvidenceBundleEntryName(const std::filesystem::path& path, const std::string& prefix) {
+    std::string file_name = path.filename().string();
+    if (file_name.empty()) {
+        file_name = "evidence.bin";
+    }
+    return prefix + "/" + file_name;
+}
+
+bool BuildEventEvidenceBundleZip(const std::unordered_map<std::string, std::string>& query,
+                                 std::string* zip_body,
+                                 std::string* download_name,
+                                 std::string* error_message) {
+    if (zip_body == nullptr || download_name == nullptr) {
+        return false;
+    }
+    std::filesystem::path snapshot_path;
+    std::filesystem::path clip_path;
+    if (!AddOptionalEvidencePath(query, "snapshotPath", &snapshot_path, error_message) ||
+        !AddOptionalEvidencePath(query, "clipPath", &clip_path, error_message)) {
+        return false;
+    }
+    if (snapshot_path.empty() && clip_path.empty()) {
+        if (!AddOptionalEvidencePath(query, "path", &snapshot_path, error_message)) {
+            return false;
+        }
+    }
+    if (snapshot_path.empty() && clip_path.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "snapshotPath or clipPath is required";
+        }
+        return false;
+    }
+
+    std::string zip;
+    std::vector<ZipCentralDirectoryEntry> entries;
+    const std::string event_id = Trim(query.find("eventId") == query.end() ? "" : query.at("eventId"));
+    if (!event_id.empty()) {
+        analysis::EventRecordQueryOptions options;
+        options.event_id = event_id;
+        options.limit = 1;
+        options.include_archives = true;
+        analysis::EventRecordQueryResult result;
+        std::string query_error;
+        if (analysis::QueryEventRecords(options, &result, &query_error) && !result.records_json.empty()) {
+            if (!AppendZipEntry(&zip, &entries, "event-record.json", result.records_json.front(), error_message)) {
+                return false;
+            }
+        }
+    }
+
+    if (!snapshot_path.empty() &&
+        !AppendEvidenceFileToZip(&zip,
+                                 &entries,
+                                 snapshot_path,
+                                 EvidenceBundleEntryName(snapshot_path, "evidence/snapshot"),
+                                 error_message)) {
+        return false;
+    }
+
+    if (!clip_path.empty()) {
+        const std::string clip_root = "evidence/clip/" + clip_path.parent_path().filename().string();
+        if (!AppendEvidenceFileToZip(&zip,
+                                     &entries,
+                                     clip_path,
+                                     clip_root + "/" + clip_path.filename().string(),
+                                     error_message)) {
+            return false;
+        }
+        if (std::filesystem::is_regular_file(clip_path)) {
+            std::error_code ec;
+            std::vector<std::filesystem::path> clip_files;
+            for (const auto& entry : std::filesystem::directory_iterator(clip_path.parent_path(), ec)) {
+                if (ec || !entry.is_regular_file()) {
+                    continue;
+                }
+                const auto candidate = entry.path();
+                if (candidate == clip_path) {
+                    continue;
+                }
+                std::filesystem::path resolved;
+                std::string content_type;
+                if (IsSafeEventEvidencePath(candidate, &resolved, &content_type)) {
+                    clip_files.push_back(resolved);
+                }
+            }
+            std::sort(clip_files.begin(), clip_files.end());
+            constexpr std::size_t kMaxClipFilesInBundle = 200;
+            if (clip_files.size() > kMaxClipFilesInBundle) {
+                clip_files.resize(kMaxClipFilesInBundle);
+            }
+            for (const auto& file : clip_files) {
+                if (!AppendEvidenceFileToZip(&zip,
+                                             &entries,
+                                             file,
+                                             clip_root + "/" + file.filename().string(),
+                                             error_message)) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    std::ostringstream manifest;
+    manifest << "{"
+             << "\"schema\":\"media-server.va.event-evidence-bundle.v1\","
+             << "\"createdAtMs\":" << NowUnixMs() << ","
+             << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+             << "\"scope\":\"event-short-evidence\","
+             << "\"longRecording\":false,"
+             << "\"bundleFormat\":\"zip\","
+             << "\"deletePolicy\":{\"evidenceFileDelete\":false},"
+             << "\"snapshotPath\":\"" << JsonEscape(snapshot_path.string()) << "\","
+             << "\"clipPath\":\"" << JsonEscape(clip_path.string()) << "\","
+             << "\"entries\":[";
+    for (std::size_t index = 0; index < entries.size(); ++index) {
+        if (index != 0) {
+            manifest << ",";
+        }
+        manifest << "\"" << JsonEscape(entries[index].name) << "\"";
+    }
+    manifest << "]}";
+    if (!AppendZipEntry(&zip, &entries, "manifest.json", manifest.str(), error_message) ||
+        !FinalizeZip(&zip, entries, error_message)) {
+        return false;
+    }
+
+    const std::string safe_id = event_id.empty() ? std::to_string(NowUnixMs()) : event_id;
+    *download_name = "event-evidence-" + safe_id + ".zip";
+    *zip_body = std::move(zip);
     return true;
 }
 
@@ -9675,6 +9997,40 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "{\"error\":\"" + JsonEscape(error_message) + "\"}");
                             }
                             return JsonResponse(200, "OK", response_body);
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/analysis/events/evidence/bundle") {
+                            std::string zip_body;
+                            std::string download_name;
+                            std::string error_message;
+                            if (!BuildEventEvidenceBundleZip(query,
+                                                             &zip_body,
+                                                             &download_name,
+                                                             &error_message)) {
+                                return JsonResponse(400,
+                                                    "Bad Request",
+                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            }
+                            const std::string event_id =
+                                Trim(query.find("eventId") == query.end() ? "" : query.at("eventId"));
+                            const std::string audit_body =
+                                "{\"area\":\"events\",\"action\":\"export-bundle\",\"target\":\"event:" +
+                                JsonEscape(event_id.empty() ? download_name : event_id) +
+                                "\",\"summary\":\"evidence zip bundle downloaded\",\"before\":null,\"after\":{\"file\":\"" +
+                                JsonEscape(download_name) + "\"}}";
+                            std::string audit_error;
+                            (void)AppendOpsAuditRecord(config,
+                                                       OpsAuditRecordJson(audit_body, principal_result.principal),
+                                                       &audit_error);
+                            HttpResponse ok;
+                            ok.status = 200;
+                            ok.status_text = "OK";
+                            ok.content_type = "application/zip";
+                            ok.headers["Cache-Control"] = "no-store";
+                            ok.headers["Content-Disposition"] =
+                                "attachment; filename=\"" + JsonEscape(download_name) + "\"";
+                            ok.body = std::move(zip_body);
+                            return ok;
                         }
 
                         if (request.method == "GET" && request.path == "/lab/analysis/events/evidence") {
