@@ -1015,6 +1015,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setFeedback,
         showToast,
         setTableEmpty,
+        tableCellHtml,
         chip: badge,
         renderBadges,
         renderRaw,
@@ -2993,7 +2994,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         return `<button type="button" class="${classes}" data-ops-rule-action="${escapeHtml(action)}" data-ops-rule-id="${escapeHtml(String(id || ''))}">${escapeHtml(label)}</button>`;
       }
       function opsRuleActionButtons(actions) {
-        return `<div class="ops-rule-row-actions">${actions.join('')}</div>`;
+        return `<div class="table-actions ops-rule-row-actions">${actions.join('')}</div>`;
       }
       function opsRulesMsLabel(value) {
         const numeric = Number(value);
@@ -3473,17 +3474,16 @@ void AppendOpsShellScript(std::ostringstream& out,
             opsRuleActionButton('상세', 'view-va', id),
             opsRuleActionButton('삭제', 'delete-va', id, 'danger')
           ]);
+          const statusCellHtml = `<div class="ops-rule-status-actions">${statusHtml}</div>`;
           return `<tr>
-            <td data-label="ID">${opsRulesIdentityBadgeHtml('id', itemId(item))}</td>
-            <td data-label="채널">${opsRulesVaRuleChannelHtml(item)}</td>
-            <td data-label="이벤트 템플릿">${opsRulesVaRuleTemplateHtml(item)}</td>
-            <td data-label="프로파일">${opsRulesVaRuleProfileHtml(item)}</td>
-            <td data-label="영역/라인">${opsRulesGeometryHtml(item)}</td>
-            <td data-label="출력">${opsRulesVaOutputButtonsHtml(item)}</td>
-            <td class="table-cell-nowrap table-cell-status" data-label="상태">
-              <div class="ops-rule-status-actions">${statusHtml}</div>
-            </td>
-            <td class="table-cell-actions" data-label="작업">${actionsHtml}</td>
+            ${tableCellHtml('ID', opsRulesIdentityBadgeHtml('id', itemId(item)))}
+            ${tableCellHtml('채널', opsRulesVaRuleChannelHtml(item))}
+            ${tableCellHtml('이벤트 템플릿', opsRulesVaRuleTemplateHtml(item))}
+            ${tableCellHtml('프로파일', opsRulesVaRuleProfileHtml(item))}
+            ${tableCellHtml('영역/라인', opsRulesGeometryHtml(item))}
+            ${tableCellHtml('출력', opsRulesVaOutputButtonsHtml(item))}
+            ${tableCellHtml('상태', statusCellHtml, 'table-cell-nowrap table-cell-status')}
+            ${tableCellHtml('작업', actionsHtml, 'table-cell-actions')}
           </tr>`;
         }).join('');
       }
@@ -3500,12 +3500,12 @@ void AppendOpsShellScript(std::ostringstream& out,
             opsRuleActionButton('삭제', 'delete-event-template', id, 'danger')
           ]);
           return `<tr>
-            <td data-label="ID">${opsRulesIdentityBadgeHtml('template', itemId(item))}</td>
-            <td data-label="구분">${opsRulesEventModeHtml(item)}</td>
-            <td data-label="종류">${opsRulesEventSummaryHtml(item)}</td>
-            <td data-label="대상">${opsRulesTargetHtml(item?.analysis?.classes || item?.scenario?.targetClasses || [])}</td>
-            <td data-label="조건">${opsRulesConditionHtml(item)}</td>
-            <td class="table-cell-actions" data-label="작업">${actionsHtml}</td>
+            ${tableCellHtml('ID', opsRulesIdentityBadgeHtml('template', itemId(item)))}
+            ${tableCellHtml('구분', opsRulesEventModeHtml(item))}
+            ${tableCellHtml('종류', opsRulesEventSummaryHtml(item))}
+            ${tableCellHtml('대상', opsRulesTargetHtml(item?.analysis?.classes || item?.scenario?.targetClasses || []))}
+            ${tableCellHtml('조건', opsRulesConditionHtml(item))}
+            ${tableCellHtml('작업', actionsHtml, 'table-cell-actions')}
           </tr>`;
         }).join('');
       }
@@ -3532,31 +3532,29 @@ void AppendOpsShellScript(std::ostringstream& out,
             opsRuleActionButton('상세', 'view-profile', id),
             builtIn ? '' : opsRuleActionButton('삭제', 'delete-profile', id, 'danger')
           ]);
+          const detectorHtml = `<div class="ops-rule-value-stack">
+            <strong>${escapeHtml(display(item.detector || item.runtime || '미제공'))}</strong>
+            ${builtIn ? '<span class="ops-rule-note">기본 프로파일</span>' : '<span class="ops-rule-note">저장 프로파일</span>'}
+          </div>`;
+          const fpsHtml = `<div class="ops-rule-value-stack">
+            <strong>${escapeHtml(display(item.fps || item.maxFps || '미제공'))}</strong>
+          </div>`;
+          const inputSize = `${display(item.inputWidth || 640)}x${display(item.inputHeight || 640)}`;
+          const inputNote = `queue ${display(item.maxQueue ?? 1)} · conf ${display(item.confidence ?? 0.25)} · nms ${display(item.nms ?? 0.45)}`;
+          const inputHtml = `<div class="ops-rule-value-stack">
+            <strong>${escapeHtml(inputSize)}</strong>
+            <span class="ops-rule-note">${escapeHtml(inputNote)}</span>
+          </div>`;
+          const usageHtml = `<div class="ops-rule-value-stack">
+            <strong>${escapeHtml(opsProfileUsageSummary(id))}</strong>
+          </div>`;
           return `<tr>
-            <td data-label="ID">${opsRulesIdentityBadgeHtml('profile', itemId(item))}</td>
-            <td data-label="검출기">
-              <div class="ops-rule-value-stack">
-                <strong>${escapeHtml(display(item.detector || item.runtime || '미제공'))}</strong>
-                ${builtIn ? '<span class="ops-rule-note">기본 프로파일</span>' : '<span class="ops-rule-note">저장 프로파일</span>'}
-              </div>
-            </td>
-            <td data-label="FPS">
-              <div class="ops-rule-value-stack">
-                <strong>${escapeHtml(display(item.fps || item.maxFps || '미제공'))}</strong>
-              </div>
-            </td>
-            <td data-label="입력">
-              <div class="ops-rule-value-stack">
-                <strong>${escapeHtml(`${display(item.inputWidth || 640)}x${display(item.inputHeight || 640)}`)}</strong>
-                <span class="ops-rule-note">${escapeHtml(`queue ${display(item.maxQueue ?? 1)} · conf ${display(item.confidence ?? 0.25)} · nms ${display(item.nms ?? 0.45)}`)}</span>
-              </div>
-            </td>
-            <td data-label="사용처">
-              <div class="ops-rule-value-stack">
-                <strong>${escapeHtml(opsProfileUsageSummary(id))}</strong>
-              </div>
-            </td>
-            <td class="table-cell-actions" data-label="작업">${actionsHtml}</td>
+            ${tableCellHtml('ID', opsRulesIdentityBadgeHtml('profile', itemId(item)))}
+            ${tableCellHtml('검출기', detectorHtml)}
+            ${tableCellHtml('FPS', fpsHtml)}
+            ${tableCellHtml('입력', inputHtml)}
+            ${tableCellHtml('사용처', usageHtml)}
+            ${tableCellHtml('작업', actionsHtml, 'table-cell-actions')}
           </tr>`;
         }).join('');
       }
@@ -3838,7 +3836,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     let editorMode = 'view';
     let currentChannelEnabled = true;
     let initializedHashChannel = false;
-	    const { escapeHtml, requestJson, formDataObject, setFeedback, showToast, setTableEmpty, setSelectOptions } = window.MediaServerUi;
+	    const { escapeHtml, requestJson, formDataObject, setFeedback, showToast, setTableEmpty, tableCellHtml, setSelectOptions } = window.MediaServerUi;
 	    const hashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
 	    const setStatus = (message, failed = false) => {
 	      setFeedback(statusEl, message, failed, { collapseEmpty: true });
@@ -3926,7 +3924,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       const label = mode === 'va' ? 'VA URL' : '라이브 URL';
       const copyMode = mode === 'va' ? 'va' : 'raw';
       return `
-        <div class="channel-stream-actions">
+        <div class="table-actions channel-stream-actions">
           <button type="button" class="secondary" data-copy-stream-type="rtsp" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${label} RTSP 복사" aria-label="${label} RTSP 복사">RTSP</button>
           <button type="button" class="secondary" data-copy-stream-type="whep" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${label} WHEP 복사" aria-label="${label} WHEP 복사">WHEP</button>
         </div>
@@ -4106,40 +4104,35 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         const vaButtons = source.sourceId ? streamButtonsForChannel(source, 'va') : '<span class="hint">소스 미등록</span>';
         const channelName = view.displayName || source.displayName || '';
         const inputText = source.sourceId ? locatorForSource(source) : '소스 미등록';
+        const idCellHtml = `<div class="channel-id-cell">
+          <span class="table-identity-pill table-identity-id">${escapeHtml(row.id || '-')}</span>
+        </div>`;
+        const kindCellHtml = `<div class="channel-kind-cell">
+          <strong>${escapeHtml(kindLabel(source.kind))}</strong>
+        </div>`;
+        const statusCellHtml = `<div class="table-actions channel-status-actions">
+          ${enabled ? chip('활성') : chip('비활성', 'warn')}
+          <button type="button" class="secondary" data-toggle-channel="${escapeHtml(row.id || '')}">${enabled ? '비활성화' : '적용'}</button>
+        </div>`;
+        const inputCellHtml = `<div class="channel-input-stack">
+          <span class="token">${escapeHtml(inputText)}</span>
+          ${source.sourceId ? '' : '<span class="channel-source-note">PublishedView 연결 전</span>'}
+        </div>`;
+        const actionsCellHtml = `<div class="table-actions channel-row-actions">
+          <button type="button" class="secondary" data-view-channel="${escapeHtml(row.id || '')}">상세</button>
+          <button type="button" class="secondary" data-open-client-live="${escapeHtml(row.id || '')}" ${view?.enabled === false ? 'disabled' : ''}>라이브 보기</button>
+          <button type="button" class="danger" data-delete-channel="${escapeHtml(row.id || '')}">삭제</button>
+        </div>`;
         return `
         <tr>
-          <td data-label="ID">
-            <div class="channel-id-cell">
-              <span class="table-identity-pill table-identity-id">${escapeHtml(row.id || '-')}</span>
-            </div>
-          </td>
-          <td data-label="이름">${escapeHtml(channelName)}</td>
-          <td data-label="종류">
-            <div class="channel-kind-cell">
-              <strong>${escapeHtml(kindLabel(source.kind))}</strong>
-            </div>
-          </td>
-          <td data-label="상태">
-            <div class="channel-status-actions">
-              ${enabled ? chip('활성') : chip('비활성', 'warn')}
-              <button type="button" class="secondary" data-toggle-channel="${escapeHtml(row.id || '')}">${enabled ? '비활성화' : '적용'}</button>
-            </div>
-          </td>
-          <td data-label="입력">
-            <div class="channel-input-stack">
-              <span class="token">${escapeHtml(inputText)}</span>
-              ${source.sourceId ? '' : '<span class="channel-source-note">PublishedView 연결 전</span>'}
-            </div>
-          </td>
-          <td data-label="라이브 URL">${liveButtons}</td>
-          <td data-label="VA URL">${vaButtons}</td>
-          <td data-label="작업">
-            <div class="channel-row-actions">
-              <button type="button" class="secondary" data-view-channel="${escapeHtml(row.id || '')}">상세</button>
-              <button type="button" class="secondary" data-open-client-live="${escapeHtml(row.id || '')}" ${view?.enabled === false ? 'disabled' : ''}>라이브 보기</button>
-              <button type="button" class="danger" data-delete-channel="${escapeHtml(row.id || '')}">삭제</button>
-            </div>
-          </td>
+          ${tableCellHtml('ID', idCellHtml)}
+          ${tableCellHtml('이름', escapeHtml(channelName))}
+          ${tableCellHtml('종류', kindCellHtml)}
+          ${tableCellHtml('상태', statusCellHtml, 'table-cell-status')}
+          ${tableCellHtml('입력', inputCellHtml)}
+          ${tableCellHtml('라이브 URL', liveButtons)}
+          ${tableCellHtml('VA URL', vaButtons)}
+          ${tableCellHtml('작업', actionsCellHtml, 'table-cell-actions')}
 	        </tr>
 	      `;
 	      }).join('');
@@ -4430,7 +4423,8 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       splitList,
       setHidden,
       setRequired,
-      setTableEmpty
+      setTableEmpty,
+      appendTableCell
     } = window.MediaServerUi;
     const setStatus = (message, failed = false) => setFeedback(statusEl, message, failed);
     const setRequestStatus = (message, failed = false) => setFeedback(requestStatusEl, message, failed);
@@ -4573,12 +4567,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         return td;
       }
       function appendLabeledCell(tr, label, html, className = '') {
-        const td = document.createElement('td');
-        td.setAttribute('data-label', label);
-        if (className) td.className = className;
-        td.innerHTML = html;
-        tr.appendChild(td);
-        return td;
+        return appendTableCell(tr, label, html, className);
       }
       function userValueHtml(primary, note = '') {
         return `<div class="user-value-stack"><strong>${escapeHtml(displayValue(primary))}</strong>${note ? `<span class="user-note">${escapeHtml(displayValue(note, ''))}</span>` : ''}</div>`;
@@ -4647,7 +4636,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         appendLabeledCell(tr, '잠금 만료', userValueHtml(user.lockedUntil || '없음'));
         appendLabeledCell(tr, '비밀번호 변경', userValueHtml(yesNo(user.mustChangePassword)));
         const actionsHtml = `
-          <div class="user-row-actions">
+          <div class="table-actions user-row-actions">
             <button type="button" class="secondary" data-user-view="${escapeHtml(displayValue(user.username))}">상세</button>
           </div>`;
         appendLabeledCell(tr, '작업', actionsHtml, 'table-cell-actions');
@@ -4673,7 +4662,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         appendLabeledCell(tr, '상태', `<div class="user-status-actions">${chip(requestStatusLabel(request.status), requestStatusTone(request.status))}</div>`, 'table-cell-status');
         appendLabeledCell(tr, '요청/결정', userValueHtml(request.createdAt || '미제공', request.decidedAt || ''));
         const actionsHtml = request.status === 'pending'
-          ? `<div class="user-row-actions">
+          ? `<div class="table-actions user-row-actions">
               <button type="button" class="primary" data-request-approve="${escapeHtml(displayValue(request.requestId))}">승인</button>
               <button type="button" class="danger" data-request-reject="${escapeHtml(displayValue(request.requestId))}">거절</button>
             </div>`

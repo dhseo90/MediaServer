@@ -2188,7 +2188,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </div>
         </div>
         <div class="table-wrap">
-          <table class="ops-rules-table ops-rules-va-table">
+          <table class="ops-data-table ops-rules-table ops-rules-va-table">
             <colgroup>
               <col class="ops-rules-col-id" />
               <col class="ops-rules-col-source" />
@@ -2226,7 +2226,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </div>
         </div>
         <div class="table-wrap">
-          <table class="ops-rules-table ops-rules-event-table">
+          <table class="ops-data-table ops-rules-table ops-rules-event-table">
             <colgroup>
               <col class="ops-event-col-id" />
               <col class="ops-event-col-mode" />
@@ -2260,7 +2260,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </div>
         </div>
         <div class="table-wrap">
-          <table class="ops-rules-table ops-rules-profile-table">
+          <table class="ops-data-table ops-rules-table ops-rules-profile-table">
             <colgroup>
               <col class="ops-profile-col-id" />
               <col class="ops-profile-col-detector" />
@@ -3513,7 +3513,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           </div>
         </div>
         <div class="table-wrap">
-          <table class="channel-table">
+          <table class="ops-data-table channel-table">
             <colgroup>
               <col class="channel-col-id" />
               <col class="channel-col-name" />
@@ -3605,7 +3605,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
       <section class="section-card">
         <h2>사용자 목록</h2>
         <div class="table-wrap">
-          <table class="user-table">
+          <table class="ops-data-table user-table">
             <colgroup>
               <col class="user-col-username" />
               <col class="user-col-name" />
@@ -3635,7 +3635,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         </div>
         <pre id="request-invite-output" hidden></pre>
         <div class="table-wrap">
-          <table class="user-table">
+          <table class="ops-data-table user-table">
             <colgroup>
               <col class="request-col-username" />
               <col class="request-col-name" />

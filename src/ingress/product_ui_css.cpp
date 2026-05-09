@@ -1124,6 +1124,7 @@ std::string ProductUiCss() {
       font-weight: 800;
       white-space: nowrap;
     }
+    .ops-data-table,
     .ops-rules-table,
     .user-table {
       width: 100%;
@@ -1169,6 +1170,8 @@ std::string ProductUiCss() {
     .request-col-status { width: 84px; }
     .request-col-decision { width: 132px; }
     .request-col-actions { width: 148px; }
+    .ops-data-table th,
+    .ops-data-table td,
     .user-table th,
     .user-table td,
     .ops-rules-table th,
@@ -1176,12 +1179,30 @@ std::string ProductUiCss() {
       white-space: normal;
       overflow-wrap: anywhere;
       word-break: break-word;
+      min-width: 0;
+      max-width: 100%;
+    }
+    .ops-data-table td > * {
+      max-width: 100%;
+      min-width: 0;
+    }
+    .ops-data-table .table-actions,
+    .ops-data-table .ops-rule-row-actions,
+    .ops-data-table .user-row-actions,
+    .ops-data-table .channel-status-actions,
+    .ops-data-table .channel-stream-actions,
+    .ops-data-table .channel-row-actions {
+      max-width: 100%;
+      min-width: 0;
+    }
+    .ops-data-table button {
+      max-width: 100%;
     }
     .ops-rules-va-table {
       min-width: 0;
     }
     .ops-rules-table .table-actions {
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       justify-content: flex-start;
     }
     .ops-va-template-assist {
@@ -1357,6 +1378,12 @@ std::string ProductUiCss() {
       padding: 6px 9px;
       font-size: 11px;
       white-space: nowrap;
+    }
+    .ops-rules-table .channel-stream-actions button {
+      white-space: normal;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+      line-height: 1.15;
     }
     .channel-input-stack .token,
     .channel-source-note {

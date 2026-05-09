@@ -88,6 +88,19 @@ std::string ProductSharedUiScript() {
         tr.appendChild(td);
         tbody.appendChild(tr);
       };
+      const tableCellHtml = (label, html, className = '') => {
+        const classText = String(className || '').trim();
+        const classAttr = classText ? ` class="${escapeHtml(classText)}"` : '';
+        return `<td data-label="${escapeHtml(label)}"${classAttr}>${html}</td>`;
+      };
+      const appendTableCell = (tr, label, html, className = '') => {
+        const td = document.createElement('td');
+        td.setAttribute('data-label', label);
+        if (className) td.className = String(className);
+        td.innerHTML = html;
+        tr.appendChild(td);
+        return td;
+      };
       const setSelectOptions = (select, items = [], selected = '') => {
         if (!select) return;
         select.textContent = '';
@@ -159,6 +172,8 @@ std::string ProductSharedUiScript() {
         formDataObject,
         splitList,
         setTableEmpty,
+        tableCellHtml,
+        appendTableCell,
         setSelectOptions,
         chip,
         renderBadges,
