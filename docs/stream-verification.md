@@ -250,6 +250,13 @@ SharedStream/VA metadata/dashboard/SSE/WS fanout 변경 후,
 ```bash
 ./server.sh verify-predev --soak-minutes 120
 ./server.sh verify-va-runtime-console-longrun --duration-minutes 120 --clients 1 --include-sidechannel --include-dashboard --include-rtsp --idle-after-cleanup-minutes 30
+./server.sh rc-release-checklist \
+  --predev-summary /tmp/media_server_predev_summary.json \
+  --predev-report /tmp/media_server_predev_report.md \
+  --runtime-summary /tmp/media_server_va_runtime_summary.json \
+  --runtime-report /tmp/media_server_va_runtime_report.md \
+  --output /tmp/media_server_rc_release_checklist.md \
+  --html-output /tmp/media_server_rc_release_checklist.html
 ```
 
 RC 전용 gate가 기본 smoke에 섞이지 않았는지는 다음 명령으로 확인합니다.
