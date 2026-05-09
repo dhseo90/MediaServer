@@ -1153,14 +1153,77 @@ void AppendOpsShellScript(std::ostringstream& out,
           `프로파일 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0} · 발행 ${counts.publish} · 송출 ${counts.egress}`);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
       }
-      async function refreshEvents() {
-        const eventParams = new URLSearchParams({ limit: '25' });
+      const OPS_EVENT_RECORD_LIMIT = 25;
+      let opsEventRecordsOffset = 0;
+      const eventRecordTime = value => {
+        if (value === null || value === undefined || value === '') return '미제공';
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) return '미제공';
+        if (numeric > 1000000000000) return new Date(numeric).toLocaleString();
+        return `${Math.round(numeric)}ms`;
+      };
+      const eventRecordEvidence = item => {
+        const snapshotPath = String(item?.snapshotPath || '').trim();
+        const clipPath = String(item?.clipPath || '').trim();
+        const badges = [];
+        if (snapshotPath) badges.push(badge('snapshot'));
+        if (clipPath) badges.push(badge('clip'));
+        if (badges.length === 0) badges.push(badge('없음', 'info'));
+        const names = [snapshotPath, clipPath]
+          .filter(Boolean)
+          .map(value => value.split(/[\\/]/).pop())
+          .filter(Boolean)
+          .slice(0, 2);
+        return `<div class="event-evidence-cell">
+          <div class="badge-row">${badges.join('')}</div>
+          ${names.length ? `<span class="ops-rule-note">${escapeHtml(names.join(' · '))}</span>` : ''}
+        </div>`;
+      };
+      function renderEventRows(items) {
+        const tbody = document.getElementById('eventRecordRows');
+        if (!tbody) return;
+        if (!Array.isArray(items) || items.length === 0) {
+          setTableEmpty(tbody, 7, '조회된 이벤트 기록이 없습니다.');
+          return;
+        }
+        tbody.innerHTML = items.map(item => {
+          const eventHtml = `<div class="ops-rule-value-stack">
+            <span class="table-identity-pill table-identity-id">${escapeHtml(display(item?.eventId || '-'))}</span>
+            <span class="ops-rule-note">${escapeHtml(display(item?.eventType || 'event'))}</span>
+          </div>`;
+          const scenarioParts = [item?.scenarioName, item?.scenarioPhase].filter(Boolean).map(display);
+          return `<tr>
+            ${tableCellHtml('이벤트', eventHtml)}
+            ${tableCellHtml('상태', badge(item?.status || '미제공', item?.status === 'ended' ? 'info' : ''), 'table-cell-status')}
+            ${tableCellHtml('스트림', escapeHtml(display(item?.streamId || item?.channelId || '-')))}
+            ${tableCellHtml('트랙', escapeHtml(display(item?.trackId ?? '-')))}
+            ${tableCellHtml('시나리오', escapeHtml(scenarioParts.join(' · ') || display(item?.className || '-')))}
+            ${tableCellHtml('증거', eventRecordEvidence(item))}
+            ${tableCellHtml('수정 시각', escapeHtml(eventRecordTime(item?.updateTime || item?.startTime)), 'table-cell-nowrap')}
+          </tr>`;
+        }).join('');
+      }
+      function eventRecordQueryParams() {
+        const eventParams = new URLSearchParams({
+          limit: String(OPS_EVENT_RECORD_LIMIT),
+          offset: String(Math.max(0, opsEventRecordsOffset))
+        });
         const channelFilter = String(opsHashParams().get('channel') || '').trim();
         if (channelFilter) eventParams.set('channelId', channelFilter);
+        const evidence = String(document.getElementById('eventRecordsEvidenceSelect')?.value || '').trim();
+        if (evidence) eventParams.set('evidence', evidence);
+        if (document.getElementById('eventRecordsIncludeArchives')?.checked) {
+          eventParams.set('includeArchives', '1');
+        }
+        return { eventParams, channelFilter, evidence };
+      }
+      async function refreshEvents() {
+        const { eventParams, channelFilter, evidence } = eventRecordQueryParams();
         const payload = await requestJson(`/ops/api/events/status?${eventParams.toString()}`);
         const storage = payload.storage || {};
         const post = payload.post || {};
         const records = payload.records || { records: [] };
+        const policy = storage.evidencePolicy || {};
         renderBadges('eventStorageBadges', [
           { text: storage.enabled ? '활성' : '비활성', tone: storage.enabled ? '' : 'warn' },
           { text: `저장 ${storage.storedCount ?? 0}` },
@@ -1175,14 +1238,26 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: `억제 ${post.suppressedCount ?? 0}` }
         ]);
         setText('eventPostText', post.lastError ? `마지막 오류: ${post.lastError}` : `큐 ${post.queueSize ?? 0}/${post.maxQueueSize ?? 0}`);
+        renderBadges('eventEvidencePolicyBadges', [
+          { text: policy.longRecording === false ? '장기 녹화 없음' : '장기 녹화 확인 필요', tone: policy.longRecording === false ? 'info' : 'warn' },
+          { text: policy.snapshotEnabled ? 'snapshot hook' : 'snapshot off', tone: policy.snapshotEnabled ? '' : 'info' },
+          { text: policy.clipBundleEnabled ? 'clip bundle hook' : 'clip off', tone: policy.clipBundleEnabled ? '' : 'info' },
+          { text: policy.compactionDestructive === false ? '비파괴 compaction' : 'compaction 확인 필요', tone: policy.compactionDestructive === false ? '' : 'warn' }
+        ]);
+        setText('eventEvidencePolicyText', `${policy.scope || 'event-short-evidence'} · ${policy.clipFormat || 'frame-bundle'} · MP4/VMS 장기 녹화 범위 아님`);
         const eventItems = Array.isArray(records.records) ? records.records : [];
         setText(
           'eventRecordSummary',
           records.error
             ? `조회 실패: ${records.error}`
-            : `records ${eventItems.length} · hasMore ${records.hasMore ? 'yes' : 'no'}${channelFilter ? ` · channel ${channelFilter}` : ''}`
+            : `records ${eventItems.length}/${records.matchedRecords ?? eventItems.length} · offset ${records.offset ?? opsEventRecordsOffset} · hasMore ${records.hasMore ? 'yes' : 'no'}${channelFilter ? ` · channel ${channelFilter}` : ''}${evidence ? ` · evidence ${evidence}` : ''}`
         );
         renderEventRows(eventItems);
+        const prevButton = document.getElementById('eventRecordsPrev');
+        const nextButton = document.getElementById('eventRecordsNext');
+        if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
+        if (nextButton) nextButton.disabled = !records.hasMore;
+        if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
         renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, records });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
@@ -3889,6 +3964,23 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsRulesComposerSave')?.addEventListener('click', () => triggerOpsRulesSave().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsDashboardRefresh')?.addEventListener('click', () => refreshDashboard().catch(error => setText('dashHealthText', error.message)));
         document.getElementById('opsEventsRefresh')?.addEventListener('click', () => refreshEvents().catch(error => setText('eventRecordSummary', error.message)));
+        document.getElementById('eventRecordsEvidenceSelect')?.addEventListener('change', () => {
+          opsEventRecordsOffset = 0;
+          refreshEvents().catch(error => setText('eventRecordSummary', error.message));
+        });
+        document.getElementById('eventRecordsIncludeArchives')?.addEventListener('change', () => {
+          opsEventRecordsOffset = 0;
+          refreshEvents().catch(error => setText('eventRecordSummary', error.message));
+        });
+        document.getElementById('eventRecordsPrev')?.addEventListener('click', () => {
+          opsEventRecordsOffset = Math.max(0, opsEventRecordsOffset - OPS_EVENT_RECORD_LIMIT);
+          refreshEvents().catch(error => setText('eventRecordSummary', error.message));
+        });
+        document.getElementById('eventRecordsNext')?.addEventListener('click', event => {
+          const next = Number(event.currentTarget?.getAttribute('data-next-offset') || opsEventRecordsOffset + OPS_EVENT_RECORD_LIMIT);
+          opsEventRecordsOffset = Number.isFinite(next) ? Math.max(0, next) : opsEventRecordsOffset + OPS_EVENT_RECORD_LIMIT;
+          refreshEvents().catch(error => setText('eventRecordSummary', error.message));
+        });
         document.getElementById('opsRulesRefresh')?.addEventListener('click', () => refreshRules().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsDashboardPretty')?.addEventListener('change', () => refreshDashboard().catch(() => {}));
         document.getElementById('opsEventsPretty')?.addEventListener('change', () => refreshEvents().catch(() => {}));

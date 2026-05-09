@@ -1153,6 +1153,13 @@ std::string ProductUiCss() {
     .ops-profile-col-input { width: auto; }
     .ops-profile-col-usage { width: 120px; }
     .ops-profile-col-actions { width: 148px; }
+    .event-record-col-event { width: 156px; }
+    .event-record-col-status { width: 92px; }
+    .event-record-col-stream { width: auto; }
+    .event-record-col-track { width: 76px; }
+    .event-record-col-scenario { width: 142px; }
+    .event-record-col-evidence { width: 156px; }
+    .event-record-col-time { width: 156px; }
     .user-col-username { width: 136px; }
     .user-col-name { width: 118px; }
     .user-col-role { width: 96px; }
@@ -1204,6 +1211,24 @@ std::string ProductUiCss() {
     .ops-rules-table .table-actions {
       flex-wrap: wrap;
       justify-content: flex-start;
+    }
+    .event-record-controls label {
+      min-width: 128px;
+    }
+    .event-record-controls .check-inline {
+      min-width: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 38px;
+    }
+    .event-record-controls .check-inline input {
+      width: auto;
+      min-height: auto;
+    }
+    .event-evidence-cell {
+      display: grid;
+      gap: 4px;
     }
     .ops-va-template-assist {
       display: grid;
@@ -1536,6 +1561,10 @@ std::string ProductUiCss() {
       .ops-rules-table tbody,
       .ops-rules-table tr,
       .ops-rules-table td,
+      .event-record-table,
+      .event-record-table tbody,
+      .event-record-table tr,
+      .event-record-table td,
       .user-table,
       .user-table tbody,
       .user-table tr,
@@ -1544,27 +1573,34 @@ std::string ProductUiCss() {
         width: 100%;
       }
       .ops-rules-table,
+      .event-record-table,
       .user-table {
         min-width: 0;
         table-layout: auto;
       }
       .ops-rules-table colgroup,
       .ops-rules-table thead,
+      .event-record-table colgroup,
+      .event-record-table thead,
       .user-table colgroup,
       .user-table thead {
         display: none;
       }
       .ops-rules-table tr,
+      .event-record-table tr,
       .user-table tr {
         padding: var(--space-2) 0;
         border-bottom: 1px solid var(--color-table-border);
       }
       .ops-rules-table tr:last-child,
+      .event-record-table tr:last-child,
       .user-table tr:last-child {
         border-bottom: 0;
       }
       .ops-rules-table th,
       .ops-rules-table td,
+      .event-record-table th,
+      .event-record-table td,
       .user-table th,
       .user-table td {
         width: 100% !important;
@@ -1572,6 +1608,7 @@ std::string ProductUiCss() {
         max-width: none !important;
       }
       .ops-rules-table td,
+      .event-record-table td,
       .user-table td {
         min-height: 42px;
         display: grid;
@@ -1583,6 +1620,7 @@ std::string ProductUiCss() {
         white-space: normal;
       }
       .ops-rules-table td::before,
+      .event-record-table td::before,
       .user-table td::before {
         content: attr(data-label);
         color: var(--color-text-muted);
@@ -1592,6 +1630,8 @@ std::string ProductUiCss() {
       }
       .ops-rules-table .table-cell-status,
       .ops-rules-table .table-cell-actions,
+      .event-record-table .table-cell-status,
+      .event-record-table .table-cell-actions,
       .user-table .table-cell-status,
       .user-table .table-cell-actions {
         min-width: 0;
@@ -1599,6 +1639,9 @@ std::string ProductUiCss() {
       }
       .ops-rules-table .table-actions {
         justify-content: flex-start;
+      }
+      .event-record-controls {
+        width: 100%;
       }
     }
     @media (max-width: 560px) {
@@ -1619,11 +1662,13 @@ std::string ProductUiCss() {
         grid-template-columns: 1fr;
       }
       .ops-rules-table td,
+      .event-record-table td,
       .user-table td {
         grid-template-columns: 1fr;
         gap: 4px;
       }
       .ops-rules-table .table-actions,
+      .event-record-controls,
       .ops-rule-row-actions,
       .user-row-actions {
         display: grid;
