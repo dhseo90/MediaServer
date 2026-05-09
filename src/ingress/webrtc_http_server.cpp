@@ -3431,10 +3431,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     AppendImageNavLink(out, "/client/dashboard", "dashboard", "대시보드", active == "dashboard");
     out << R"(        </nav>
 )";
-    AppendProductAccountMenu(out,
-                             principal,
-                             auth::IsAdmin(principal) ? "/ops/home" : std::string(),
-                             auth::IsAdmin(principal) ? "Ops" : std::string());
+    AppendProductAccountMenu(out, principal);
     out << R"(      </div>
     </header>
 )";
