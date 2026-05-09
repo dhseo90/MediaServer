@@ -57,6 +57,8 @@ Usage:
                  /ops 채널/룰/사용자 데이터 테이블의 반응형 셀 침범과 리사이즈 안정성을 검증합니다.
   verify-ops-rules-roundtrip
                  /ops/rules 이벤트 템플릿 저장/조회 round-trip을 영상 재생 없이 검증합니다.
+  verify-ops-rule-relationships
+                 채널/PublishedView/VA 룰/이벤트 템플릿/분석 프로파일 참조와 저장 validation을 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -246,6 +248,10 @@ case "${cmd}" in
   verify-ops-rules-roundtrip)
     require_internal verify_ops_rules_roundtrip.mjs
     exec "${INTERNAL_DIR}/verify_ops_rules_roundtrip.mjs" "$@"
+    ;;
+  verify-ops-rule-relationships)
+    require_internal verify_ops_rule_relationships.mjs
+    exec "${INTERNAL_DIR}/verify_ops_rule_relationships.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh
