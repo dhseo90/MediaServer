@@ -10,6 +10,24 @@
 - 잘못된 값은 서버가 안전한 기본값으로 보정하고 stderr에 경고를 남깁니다.
 - 표의 `code default`, `script default`, `resolver default`는 코드나 script 내부 기본값을 따른다는 뜻입니다.
 
+## Config Presets
+
+배포 전 기준점은 `config/presets/*.env.example`에 둡니다.
+
+| Preset | 용도 | 특징 |
+| --- | --- | --- |
+| `dev.env.example` | 로컬 개발/검증 | auth off, loopback bind, repo-local registry |
+| `staging.env.example` | 운영 전 검증 | auth auto, 외부 bind, staging 전용 registry, STUN |
+| `production.env.example` | 운영 배포 초안 | auth auto, secure cookie, `/var/lib/media-server` registry, TURN relay 정책 |
+
+운영 장애 공유용 자료는 다음 명령으로 수집합니다.
+
+```bash
+./server.sh ops-bundle --http-base http://127.0.0.1:8080
+```
+
+bundle에는 `/health`, runtime status, `check_server`, `diagnose`, log tail, registry/auth store 파일 metadata, redacted env 요약이 포함됩니다. Auth users file 내용과 plaintext secret은 포함하지 않습니다.
+
 ## 서버 기본 env
 
 ### 런타임 기본값

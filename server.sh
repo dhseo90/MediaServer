@@ -23,6 +23,7 @@ Usage:
   status         현재 프로세스, RTSP/HTTP 포트, 샘플 URL, 최근 로그를 확인합니다.
   check          status와 동일한 별칭입니다.
   diagnose       실행환경, 포트 바인딩, 파일/RTSP source 접근성 문제를 자세히 진단합니다.
+  ops-bundle     health/runtime/diagnose/log/config 요약을 운영 공유용 bundle로 생성합니다.
   urls           같은 LAN의 다른 PC/VLC/IINA/브라우저에서 복사해 쓸 테스트 URL을 출력합니다.
   auth-user      users file 계정을 list/add/disable/enable/reset-password로 관리합니다.
 
@@ -65,6 +66,8 @@ Usage:
                  WebRTC session active/cleanup 기준으로 공통 source lifecycle idle 복귀를 검증합니다.
   verify-ops-event-records-scope
                  EventRecord가 짧은 증거 기록 범위로 노출되고 /ops/events UI가 이를 표시하는지 검증합니다.
+  verify-ops-diagnostics-bundle
+                 운영 diagnostics bundle 생성물과 config preset 기준을 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -179,6 +182,10 @@ case "${cmd}" in
     require_internal diagnose_media_server.sh
     exec "${INTERNAL_DIR}/diagnose_media_server.sh" "$@"
     ;;
+  ops-bundle)
+    require_internal collect_ops_bundle.sh
+    exec "${INTERNAL_DIR}/collect_ops_bundle.sh" "$@"
+    ;;
   urls|external-urls)
     require_internal print_external_test_urls.sh
     exec "${INTERNAL_DIR}/print_external_test_urls.sh" "$@"
@@ -270,6 +277,10 @@ case "${cmd}" in
   verify-ops-event-records-scope)
     require_internal verify_ops_event_records_scope.mjs
     exec "${INTERNAL_DIR}/verify_ops_event_records_scope.mjs" "$@"
+    ;;
+  verify-ops-diagnostics-bundle)
+    require_internal verify_ops_diagnostics_bundle.sh
+    exec "${INTERNAL_DIR}/verify_ops_diagnostics_bundle.sh" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh
