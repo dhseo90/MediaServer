@@ -84,7 +84,7 @@ const pageChecks = [
     name: "client-dashboard",
     path: "/client/dashboard",
     visualSelector: '[data-testid="client-shell-page"]',
-    must: ['data-testid="client-shell-page"', 'data-client-active="dashboard"', 'id="views"', 'id="detail"'],
+    must: ['data-testid="client-shell-page"', 'data-client-active="dashboard"', 'id="views"', 'id="detail"', 'data-testid="client-dashboard-compare"', 'loadClientDashboardCompare'],
     shellMust: clientShellMust,
     mustNot: clientForbiddenText(),
   },

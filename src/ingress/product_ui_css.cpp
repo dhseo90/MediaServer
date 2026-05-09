@@ -1900,6 +1900,56 @@ std::string ClientShellCss() {
     .metric { min-height: 76px; display: grid; align-content: center; gap: 4px; border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--bg); }
     .metric span { color: var(--muted); font-size: 12px; font-weight: 800; }
     .metric strong { font-size: 20px; }
+    .client-field-summary .metric strong {
+      font-size: 17px;
+      overflow-wrap: anywhere;
+    }
+    .client-dashboard-compare {
+      min-width: 0;
+    }
+    .client-compare-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 10px;
+    }
+    .client-compare-card {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--bg);
+    }
+    .client-compare-card.warn { border-color: color-mix(in srgb, var(--warn) 52%, var(--line)); }
+    .client-compare-card.bad { border-color: color-mix(in srgb, var(--bad) 52%, var(--line)); }
+    .client-compare-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 8px;
+    }
+    .client-compare-head strong,
+    .client-compare-card p {
+      overflow-wrap: anywhere;
+    }
+    .client-compare-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .client-compare-metrics span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .client-loading-state {
+      min-height: 220px;
+      display: grid;
+      align-content: center;
+    }
     .events { display: grid; gap: 8px; }
     .event { display: grid; gap: 5px; border-top: 1px solid var(--line); padding-top: 10px; }
     .event:first-child { border-top: 0; padding-top: 0; }
@@ -1966,6 +2016,12 @@ std::string ClientShellCss() {
     }
     @media (max-width: 780px) { .workspace, .live-toolbar { grid-template-columns: 1fr; } }
     @media (max-width: 560px) { .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr; } }
+    @media (max-width: 560px) {
+      .client-compare-head,
+      .client-compare-metrics {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 )CSS";
 }

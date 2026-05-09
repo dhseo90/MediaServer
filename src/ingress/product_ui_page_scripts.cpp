@@ -226,7 +226,62 @@ void AppendClientShellScript(std::ostringstream& out) {
       const button = event.target.closest('.view');
       if (button) setActiveView(button.dataset.viewId);
     });
-	    function renderDashboard(payload) {
+    const dashboardFieldState = (health = {}, events = {}) => {
+      if (events.warning) return { text: '현장 확인 필요', tone: 'warn' };
+      if (['stale', 'offline', 'disconnected', 'warning'].includes(String(health.status || ''))) return { text: '영상 상태 확인', tone: 'warn' };
+      if (['stale', 'warning'].includes(String(health.metadataStatus || ''))) return { text: '메타데이터 지연', tone: 'warn' };
+      if (String(health.status || '') === 'unavailable') return { text: '신호 미제공', tone: 'bad' };
+      return { text: '정상 관제 중', tone: '' };
+    };
+    function renderDashboardCompare(items = []) {
+      if (!Array.isArray(items) || items.length === 0) {
+        return emptyState('비교할 채널이 없습니다', '대시보드 권한이 있는 채널이 추가되면 한 화면에서 상태를 비교할 수 있습니다.');
+      }
+      return `<div class="client-compare-grid">
+        ${items.map(item => {
+          if (!item.ok) {
+            return `<article class="client-compare-card warn">
+              <div class="client-compare-head">
+                <strong>${escapeHtml(item.view?.displayName || item.view?.viewId || '채널')}</strong>
+                <span class="chip warn">조회 실패</span>
+              </div>
+              <p>${escapeHtml(item.error || '상태를 불러오지 못했습니다.')}</p>
+            </article>`;
+          }
+          const payload = item.payload || {};
+          const view = payload.view || item.view || {};
+          const health = payload.health || {};
+          const analysis = payload.analysis || {};
+          const events = payload.events || {};
+          const fieldState = dashboardFieldState(health, events);
+          return `<article class="client-compare-card${fieldState.tone ? ` ${fieldState.tone}` : ''}">
+            <div class="client-compare-head">
+              <strong>${escapeHtml(view.displayName || view.viewId || item.view?.viewId || '채널')}</strong>
+              <span class="chip${fieldState.tone ? ` ${fieldState.tone}` : ''}">${escapeHtml(fieldState.text)}</span>
+            </div>
+            <div class="client-compare-metrics">
+              <span>연결 ${escapeHtml(display(health.connectionStatus || health.status))}</span>
+              <span>지연 ${escapeHtml(ms(health.metadataAgeMs))}</span>
+              <span>트랙 ${escapeHtml(display(analysis.trackCount))}</span>
+              <span>이벤트 ${escapeHtml(display(analysis.activeEventCount))}</span>
+            </div>
+          </article>`;
+        }).join('')}
+      </div>`;
+    }
+    async function loadClientDashboardCompare() {
+      const dashboardViews = views.filter(view => view.showDashboard !== false).slice(0, 6);
+      if (dashboardViews.length === 0) return [];
+      return Promise.all(dashboardViews.map(async view => {
+        try {
+          const payload = await requestJson(`/client/api/views/${encodeURIComponent(view.viewId)}/dashboard`);
+          return { ok: true, view, payload };
+        } catch (error) {
+          return { ok: false, view, error: error.message || '상태 조회 실패' };
+        }
+      }));
+    }
+	    function renderDashboard(payload, compareItems = []) {
 	      const view = payload.view || {};
 	      const health = payload.health || {};
 	      const analysis = payload.analysis || {};
@@ -236,6 +291,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      const dashboardModes = allowedOverlayModes(assignedView);
 	      const dashboardModeText = (dashboardModes.length ? dashboardModes : ['raw']).map(overlayLabel).join(', ');
 	      const dashboardRuleId = tileRuleId(assignedView);
+        const fieldState = dashboardFieldState(health, events);
 	      detail.innerHTML = `
 	        <div class="toolbar">
 	          <div>
@@ -243,11 +299,21 @@ void AppendClientShellScript(std::ostringstream& out) {
             <p>${escapeHtml(view.sourceDisplayName || '미제공')}</p>
           </div>
           <div class="meta">
+            <span class="chip${fieldState.tone ? ` ${fieldState.tone}` : ''}">${escapeHtml(fieldState.text)}</span>
             ${statusChip(health.status)}
             ${statusChip(health.metadataStatus)}
             ${events.warning ? '<span class="chip warn">경고</span>' : ''}
           </div>
         </div>
+        <section class="events client-field-summary" data-testid="client-dashboard-field-summary">
+          <h3>현장 요약</h3>
+          <div class="summary">
+            <div class="metric"><span>현장 상태</span><strong>${escapeHtml(fieldState.text)}</strong></div>
+            <div class="metric"><span>영상 신호</span><strong>${escapeHtml(display(health.videoFrameStatus || health.status))}</strong></div>
+            <div class="metric"><span>데이터 지연</span><strong>${escapeHtml(ms(health.metadataAgeMs))}</strong></div>
+            <div class="metric"><span>점검 권장</span><strong>${events.warning ? '이벤트 확인' : '정기 확인'}</strong></div>
+          </div>
+        </section>
         <div class="summary">
           <div class="metric"><span>연결 상태</span><strong>${escapeHtml(display(health.connectionStatus))}</strong></div>
           <div class="metric"><span>영상 프레임</span><strong>${escapeHtml(display(health.videoFrameStatus))}</strong></div>
@@ -269,6 +335,10 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            <div class="metric"><span>VA 룰</span><strong>${escapeHtml(dashboardRuleId ? `#${dashboardRuleId}` : '연결 없음')}</strong></div>
 	          </div>
 	        </section>
+        <section class="events client-dashboard-compare" data-testid="client-dashboard-compare">
+          <h3>채널 비교</h3>
+          ${renderDashboardCompare(compareItems)}
+        </section>
 	        <section class="events">
 	          <h3>이벤트 요약</h3>
           <div class="meta">
@@ -280,7 +350,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     }
     function renderEvents(items) {
       if (!Array.isArray(items) || items.length === 0) {
-        return emptyState('최근 이벤트가 없습니다', '선택한 채널에서 표시할 이벤트가 아직 없거나 이벤트 표시가 꺼져 있습니다.');
+        return emptyState('최근 이벤트 없음', '현재 현장 상태에서 표시할 이벤트가 없거나 이벤트 표시 권한이 꺼져 있습니다.');
       }
       return items.map(item => `
         <article class="event">
@@ -954,20 +1024,24 @@ void AppendClientShellScript(std::ostringstream& out) {
       if (!selectedViewId) {
         const title = activePage === 'events' ? '이벤트 채널이 없습니다' : '대시보드 채널이 없습니다';
         const message = activePage === 'events'
-          ? '이벤트를 보려면 이벤트 권한이 있는 채널이 필요합니다.'
-          : '대시보드를 보려면 대시보드 권한이 있는 채널이 필요합니다.';
+          ? '현장 이벤트를 보려면 이벤트 권한이 있는 채널이 필요합니다.'
+          : '현장 대시보드를 보려면 대시보드 권한이 있는 채널이 필요합니다.';
         detail.innerHTML = emptyState(title, message, isPreviewMode ? '/ops/sources' : '', isPreviewMode ? '채널 관리' : '');
         return;
       }
-      detail.innerHTML = emptyState('불러오는 중', '선택한 채널의 상태를 조회하고 있습니다.');
+      detail.innerHTML = `<div class="client-loading-state">${emptyState('현장 상태 불러오는 중', '선택한 채널의 영상, 메타데이터, 이벤트 상태를 조회하고 있습니다.')}</div>`;
       try {
         if (activePage === 'events') {
           renderEventPage(await requestJson(`/client/api/views/${encodeURIComponent(selectedViewId)}/events?limit=20`));
         } else {
-          renderDashboard(await requestJson(`/client/api/views/${encodeURIComponent(selectedViewId)}/dashboard`));
+          const [dashboardPayload, compareItems] = await Promise.all([
+            requestJson(`/client/api/views/${encodeURIComponent(selectedViewId)}/dashboard`),
+            loadClientDashboardCompare()
+          ]);
+          renderDashboard(dashboardPayload, compareItems);
         }
       } catch (error) {
-        detail.innerHTML = `<div class="empty"><p>${escapeHtml(error.message || '미제공')}</p></div>`;
+        detail.innerHTML = emptyState('상태를 불러오지 못했습니다', `네트워크, 권한, 채널 설정을 확인하세요. ${error.message || '미제공'}`);
       }
     }
     refresh.addEventListener('click', () => {

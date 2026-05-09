@@ -141,6 +141,20 @@ async function runOpsClickFlow(browser, context) {
   await clickSelector(browser, "#user-close", "사용자 상세 닫기");
   steps.push("users:add-detail");
 
+  await clickSelector(browser, 'a[href="/client/live"]', "클라이언트 라이브");
+  await waitForPath(browser, "/client/live");
+  await installErrorCollector(browser);
+  await assertReady(browser, "/client/live", '[data-testid="client-shell-page"]');
+  await clickSelector(browser, 'a[href="/client/dashboard"]', "클라이언트 대시보드");
+  await waitForPath(browser, "/client/dashboard");
+  await installErrorCollector(browser);
+  await assertReady(browser, "/client/dashboard", '[data-testid="client-shell-page"]');
+  await assertVisible(browser, '[data-testid="client-dashboard-compare"]', "클라이언트 채널 비교");
+  await clickSelector(browser, ".view", "클라이언트 대시보드 채널 선택");
+  await assertVisible(browser, '[data-testid="client-dashboard-field-summary"]', "클라이언트 현장 요약");
+  await assertNoOverflow(browser, `${context.label}:client-dashboard`);
+  steps.push("client:dashboard");
+
   await assertBrowserErrors(browser, context.label);
   return { steps };
 }
