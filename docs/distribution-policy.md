@@ -1,6 +1,7 @@
 # Distribution Policy
 
 이 문서는 public repo, binary bundle, container image 배포 기준을 구분합니다.
+Release asset 기준은 [release-policy.md](./release-policy.md)에서 함께 관리합니다.
 
 ## 기본 원칙
 

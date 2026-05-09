@@ -6,6 +6,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   static-gates:
     runs-on: ubuntu-latest
@@ -29,6 +32,11 @@ jobs:
         shell: bash
         run: |
           ./server.sh verify-script-inventory
+
+      - name: Actions security
+        shell: bash
+        run: |
+          ./server.sh verify-actions-security
 
       - name: Code comments
         shell: bash

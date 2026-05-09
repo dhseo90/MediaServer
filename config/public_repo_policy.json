@@ -1,0 +1,59 @@
+{
+  "schema": "media-server.public-repo-policy.v1",
+  "maxTrackedFileBytes": 26214400,
+  "deniedTrackedPathPatterns": [
+    "^models/",
+    "^third_party/",
+    "^\\.media_server",
+    "^scripts/\\.media_server\\.env$",
+    "^video/imports/(?!va_tracking_event_1280x720_30fps_h264\\.mp4$).+",
+    "^.*\\.DS_Store$"
+  ],
+  "allowedTrackedAssetPatterns": [
+    "^video/sample(_h264|_h265|_h264_video_only)?\\.mp4$",
+    "^video/va_four_scene_sample\\.mp4$",
+    "^video/va_sports_sample\\.mp4$",
+    "^video/imports/va_tracking_event_1280x720_30fps_h264\\.mp4$",
+    "^docs/assets/.+\\.(png|jpg|jpeg)$",
+    "^test/fixtures/.+\\.(json|csv)$"
+  ],
+  "requiredDocs": [
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "THIRD_PARTY_NOTICES.md",
+    "DEPENDENCY_SNAPSHOT.md",
+    "SECURITY.md",
+    "CONTRIBUTING.md",
+    "docs/distribution-policy.md",
+    "docs/release-policy.md",
+    "docs/public-repo-final-review.md"
+  ],
+  "secretPatterns": [
+    {
+      "id": "github-token",
+      "pattern": "gh[pousr]_[A-Za-z0-9_]{20,}"
+    },
+    {
+      "id": "aws-access-key",
+      "pattern": "AKIA[0-9A-Z]{16}"
+    },
+    {
+      "id": "google-api-key",
+      "pattern": "AIza[0-9A-Za-z_-]{30,}"
+    },
+    {
+      "id": "slack-token",
+      "pattern": "xox[baprs]-[A-Za-z0-9-]{20,}"
+    },
+    {
+      "id": "private-key",
+      "pattern": "-----BEGIN (RSA|DSA|EC|OPENSSH|PRIVATE) PRIVATE KEY-----"
+    }
+  ],
+  "assetPolicySummary": [
+    "Tracked video files are generated smoke fixtures, not production evidence or customer media.",
+    "YOLO model binaries and optional layout models stay ignored under models/ and are fetched or prepared locally.",
+    "Large imported media, local auth stores, logs, evidence media, third_party runtimes, and package-manager binaries are not public repo content."
+  ]
+}

@@ -6,6 +6,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   guardrails:
     runs-on: ubuntu-latest
@@ -17,6 +20,11 @@ jobs:
         shell: bash
         run: |
           ./server.sh write-dependency-notice --check
+
+      - name: Public repo readiness
+        shell: bash
+        run: |
+          ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 
       - name: Dependency snapshot smoke
         shell: bash
@@ -54,4 +62,5 @@ jobs:
             /tmp/media_server_bundle_policy.md
             /tmp/media_server_bundle_policy.json
             /tmp/media_server_source_offer_checklist.md
+            /tmp/media_server_public_repo_readiness.md
           if-no-files-found: ignore

@@ -50,7 +50,9 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-code-comments
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
+./server.sh verify-actions-security
 ./server.sh write-dependency-notice --check
+./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json

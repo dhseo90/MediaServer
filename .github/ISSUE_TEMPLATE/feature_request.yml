@@ -1,0 +1,40 @@
+name: Feature request
+description: 제품 범위에 맞는 개선 제안을 남깁니다.
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 해결하려는 문제
+      description: 운영자, viewer, integrator 중 누구의 어떤 문제인지 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 제안
+      description: 원하는 동작과 화면/API 범위를 적어주세요.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: 영역
+      options:
+        - Ops UI
+        - Client UI
+        - Streaming
+        - Video analytics
+        - Auth/Security
+        - Docs/Release
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: 제약/주의사항
+      description: 현장 환경, codec, network, privacy, license 관련 제약이 있으면 적어주세요.
+    validations:
+      required: false

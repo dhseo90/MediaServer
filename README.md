@@ -90,6 +90,7 @@ http://127.0.0.1:8081/
 | YOLO, tracking, scenario, EventRecord, evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
 | 현재 검증 기준과 실행 명령 | [docs/stream-verification.md](docs/stream-verification.md) |
 | 배포 bundle, container image, third-party runtime 포함 정책 | [docs/distribution-policy.md](docs/distribution-policy.md) |
+| release asset 범위와 RC 기준 | [docs/release-policy.md](docs/release-policy.md) |
 | public 전환 직전 최종 점검 | [docs/public-repo-final-review.md](docs/public-repo-final-review.md) |
 | 운영 백업/복구 대상과 복구 후 검증 | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
 | Loitering/ZoneOccupancy 현장 시작 threshold | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
@@ -184,7 +185,9 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-code-comments
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
+./server.sh verify-actions-security
 ./server.sh write-dependency-notice --check
+./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
@@ -254,3 +257,4 @@ third-party runtime, plugin, model, tool attribution은 [NOTICE](NOTICE)에 정�
 자동 생성되는 상세 목록은 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)를 확인합니다.
 현재 개발 환경에서 감지한 버전과 linked library snapshot은 [DEPENDENCY_SNAPSHOT.md](DEPENDENCY_SNAPSHOT.md)를 확인합니다.
 배포 bundle과 container image 정책은 [docs/distribution-policy.md](docs/distribution-policy.md)를 확인합니다.
+보안 제보와 기여 기준은 [SECURITY.md](SECURITY.md), [CONTRIBUTING.md](CONTRIBUTING.md)를 확인합니다.
