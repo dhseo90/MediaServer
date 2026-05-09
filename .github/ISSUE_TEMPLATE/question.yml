@@ -1,0 +1,33 @@
+name: Question
+description: 사용법, 설정, 공개/배포 범위 질문을 남깁니다.
+title: "[Question] "
+labels: ["question"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: 질문
+      description: 알고 싶은 내용을 짧게 적어주세요.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: 영역
+      options:
+        - Install/Build
+        - Streaming
+        - Video analytics
+        - Ops/Client UI
+        - Auth/Security
+        - Release/License
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: 참고 환경
+      description: OS, 실행 명령, 문서 링크 등 질문에 필요한 정보만 적어주세요. token/password/log 원문은 넣지 마세요.
+    validations:
+      required: false

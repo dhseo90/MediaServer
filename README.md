@@ -1,5 +1,8 @@
 # Media Server
 
+[![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
+[![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
+
 RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 분석 overlay와 Rule/Scenario 이벤트를 붙이는 C++17 미디어 서버입니다.
 
 ## 한눈에 보기
@@ -10,6 +13,7 @@ RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 �
   `/lab` 화면 route는 닫고 검증/연동 API만 유지합니다.
 - **계정/권한**: 최초 관리자 설정, session 로그인, role/scope, admin 사용자 관리, viewer invite/request 승인 흐름을 사용합니다.
 - **검증**: UI/Auth smoke, VA replay, runtime state, 백업/복구 리허설, RC gate artifact 검증 명령을 `./server.sh`에서 제공합니다.
+- **배포 경계**: source/doc 중심 공개가 기본이며, binary/runtime/model bundle은 별도 guardrail 통과 전까지 제공하지 않습니다.
 
 ## 실행 환경
 
@@ -38,6 +42,7 @@ CI나 공개 검증 환경에서 FFmpeg CLI 의존을 빼려면 `./server.sh tes
 `./server.sh install`은 로컬 의존성, ONNX Runtime, YOLO 모델/라벨,
 로컬 env 파일을 준비합니다. 패키지별 수동 설치 명령은
 [docs/development-guide.md](docs/development-guide.md)의 요구 환경을 봅니다.
+설치는 media runtime과 선택 AI asset을 준비하므로 가볍지 않습니다.
 AI 없이 스트리밍 경로만 빌드하려면 다음처럼 실행합니다.
 
 ```bash
@@ -79,6 +84,12 @@ http://127.0.0.1:8081/
 ```
 
 다른 포트로 실행한 경우에는 `./server.sh status`의 HTTP 주소를 사용합니다.
+
+## Sample/Asset 범위
+
+추적되는 `video/*.mp4`와 allowlist된 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4`는
+검증 재현을 위해 생성한 sample fixture입니다. 운영/고객 영상, evidence media, YOLO model binary,
+FFmpeg/GStreamer runtime binary는 public repo 또는 기본 release asset에 포함하지 않습니다.
 
 ## 문서 로드맵
 
