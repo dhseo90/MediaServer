@@ -76,6 +76,8 @@ Usage:
                  운영 diagnostics bundle 생성물과 config preset 기준을 검증합니다.
   verify-ops-root-cause-panel
                  /ops/dashboard 문제 원인 패널과 source/stale/reconnect/auth 해석 hook을 검증합니다.
+  verify-client-dashboard-polish
+                 /client/dashboard 다중 view 비교와 로딩/빈/오류 상태 문구를 검증합니다.
   verify-docs-ui-assets
                  README/UI guide screenshot 자산과 자동 캡처 기준을 검증합니다.
   verify-server-start-modes
@@ -311,6 +313,10 @@ case "${cmd}" in
   verify-ops-root-cause-panel)
     require_internal verify_ops_root_cause_panel.mjs
     exec "${INTERNAL_DIR}/verify_ops_root_cause_panel.mjs" "$@"
+    ;;
+  verify-client-dashboard-polish)
+    require_internal verify_client_dashboard_polish.mjs
+    exec "${INTERNAL_DIR}/verify_client_dashboard_polish.mjs" "$@"
     ;;
   verify-docs-ui-assets)
     require_internal verify_docs_ui_assets.mjs

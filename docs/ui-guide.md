@@ -315,8 +315,9 @@ VA test file, 검증된 공개 RTSP/HLS URL을 숫자 채널로 seed합니다.
 `/client/dashboard`는 viewer가 접근 가능한 PublishedView의 상태 요약만
 보여주는 client dashboard입니다.
 view 목록은 `/client/api/views`의 scoped 결과를 사용하고,
-선택된 view의 상세 상태는
-`/client/api/views/{viewId}/dashboard`에서 가져옵니다.
+선택된 view의 상세 상태와 접근 가능한 view들의 비교 요약은
+`/client/api/views/{viewId}/dashboard`에서 가져옵니다. 화면은 현장 상태,
+영상 신호, 데이터 지연, 이벤트 확인 필요 여부를 viewer 문구로 표시합니다.
 `/client/events`는 primary nav에서 제거했고,
 이벤트 요약은 dashboard 안에서 sanitized summary로만 표시합니다.
 Integrator 연동은
