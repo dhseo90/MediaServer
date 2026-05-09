@@ -4,7 +4,10 @@
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Latest Release](https://img.shields.io/github/v/release/dhseo90/MediaServer?label=release)](https://github.com/dhseo90/MediaServer/releases/latest)
 
-RTSP/WebRTC 스트림을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 분석 overlay와 Rule/Scenario 이벤트를 붙이는 C++17 미디어 서버입니다.
+RTSP/WebRTC live stream을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 분석
+overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
+v1.1.0의 다음 개발 방향은 장기 녹화/VMS/NVR이 아니라 live source
+onboarding, live source health, live VA event 품질 고도화입니다.
 
 English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 최신 source-only release: [v1.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.0.0)
@@ -12,7 +15,8 @@ English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en
 ## 한눈에 보기
 
 - **스트리밍**: file, RTSP pull, WHEP pull, WHIP publish, HTTP/HLS source를 RTSP와 WebRTC/WHEP로 내보냅니다.
-- **영상 분석**: `va=1` overlay, 저장 룰 `vaRule=<id>`, Rule/Profile/Scenario, Event POST, EventRecord와 짧은 snapshot/clip evidence를 제공합니다.
+- **영상 분석**: `va=1` overlay, 저장 룰 `vaRule=<id>`, Rule/Profile/Scenario, live Event POST와 runtime metadata를 제공합니다.
+  EventRecord와 snapshot/clip은 short event evidence 보조 기능이며 v1.1.0의 중심 제품 메시지는 아닙니다.
 - **제품 화면**: 같은 메인 주소에서 계정 권한에 따라 운영자 화면 또는 클라이언트 화면으로 이동합니다.
   `/lab` 화면 route는 닫고 검증/연동 API만 유지합니다.
 - **계정/권한**: 최초 관리자 설정, session 로그인, role/scope, admin 사용자 관리, viewer invite/request 승인 흐름을 사용합니다.
@@ -104,7 +108,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | 영어 문서 진입점 | [docs/en/README.md](docs/en/README.md) |
 | Auth/Ops/Client 화면 구조와 사용 흐름 | [docs/ui-guide.md](docs/ui-guide.md) |
 | RTSP/WebRTC pipeline, source/session, VA layer 배치 | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
-| YOLO, tracking, scenario, EventRecord, evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
+| YOLO, tracking, scenario, live event, short evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
 | v1.1.0 live-only 목표와 ONVIF/VA 로드맵 | [docs/v1.1.0-roadmap.md](docs/v1.1.0-roadmap.md) |
 | 현재 검증 기준과 실행 명령 | [docs/stream-verification.md](docs/stream-verification.md) |
 | 배포 bundle, container image, third-party runtime 포함 정책 | [docs/distribution-policy.md](docs/distribution-policy.md) |

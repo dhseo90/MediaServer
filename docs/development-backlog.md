@@ -46,6 +46,29 @@ v1.1.0의 상세 목표와 비범위는 [v1.1.0 Roadmap](./v1.1.0-roadmap.md)을
 live VA event 품질을 다루고, 장기 녹화/VMS/NVR/playback/Profile G는 제외합니다.
 기존 EventRecord, snapshot, clip frame bundle hook은 v1.1.0의 중심 제품 메시지가 아닙니다.
 
+### v1.1.0-alpha.1 Live-only 제품 경계 확정
+
+- **상태**: `진행` - roadmap 우선 기준 정리 후 README/backlog 문구 동기화 중
+- 목적:
+  v1.1.0의 첫 단계를 구현 기능 추가가 아니라 제품 경계 확정으로 닫습니다.
+  이후 ONVIF import나 source health 작업이 장기 녹화/VMS/NVR 방향으로
+  확장되지 않도록 문서 기준을 먼저 고정합니다.
+- 범위:
+  - v1.1.0 roadmap을 live-only 기준 문서로 고정
+  - README와 backlog의 제품 소개를 live source onboarding,
+    live source health, live VA event 품질 중심으로 정리
+  - EventRecord, snapshot, clip frame bundle은 short event evidence 또는
+    운영 진단 보조 기능으로만 설명
+  - 한국어/영어 문서의 포함/제외 범위 의미 동기화
+- 비범위:
+  - C++ 기능 로직, API schema, Event POST/WebRTC/SSE/WS metadata schema 변경
+  - SourceRegistry/PublishedView payload 변경
+  - ONVIF import 실제 구현
+  - 장기 녹화, playback/search, MP4 recorder, ONVIF Profile G
+- 검증:
+  `git diff --check`, `./server.sh verify-docs-links`,
+  가능하면 `./server.sh verify-docs-ui-assets`로 확인합니다.
+
 ### 현재 문서 기준 readiness boundary
 
 - 현재 버전 기준은 `v1.0.0` source-only public baseline입니다.
