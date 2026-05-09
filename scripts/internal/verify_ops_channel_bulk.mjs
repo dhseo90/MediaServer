@@ -36,8 +36,11 @@ check("ops sources script wires clone disable validation diagnostics", () => {
     "channelBulkIssues",
     "renderChannelBulkDiagnostics",
     "lastChannelBulkResult",
+    "lastChannelBulkPreview",
     "channelBulkItems",
     "channelBulkRollbackItems",
+    "channelBulkDiffPreview",
+    "renderChannelBulkPreview",
     "runChannelBulkOperation",
     "bulkDisableSelectedChannels",
     "bulkCloneSelectedChannels",
@@ -50,6 +53,8 @@ check("ops sources script wires clone disable validation diagnostics", () => {
     "bulk-rollback",
     "bulk-disable",
     "bulk-clone",
+    "실패 재시도 전 diff preview",
+    "감사 이력 보기",
   ];
   for (const snippet of required) {
     assert(script.includes(snippet), `bulk channel script is missing snippet: ${snippet}`);
@@ -67,6 +72,11 @@ check("server exposes formal channel bulk API with partial failure policy", () =
     "operation == \"rollback\"",
     "rollbackMode",
     "retryable",
+    "auditArea",
+    "auditAction",
+    "auditTargets",
+    "auditTarget",
+    "diffPreviewPolicy",
     "allowDuplicateSource",
     "operation == \"clone\"",
     "operation == \"disable\"",
@@ -81,6 +91,7 @@ check("bulk channel table remains responsive", () => {
   const required = [
     ".channel-bulk-panel",
     ".channel-bulk-diagnostics",
+    ".compact-list",
     ".channel-col-select",
     "@media (max-width: 860px)",
     "@media (max-width: 560px)",

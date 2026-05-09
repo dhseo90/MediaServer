@@ -1133,6 +1133,14 @@ std::string ProductUiCss() {
       font-size: 13px;
       line-height: 1.4;
     }
+    .validation-item .compact-list {
+      margin: var(--space-2) 0 0;
+      padding-left: 18px;
+      color: var(--color-text-muted);
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
     .validation-item.warn {
       border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));
     }
