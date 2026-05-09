@@ -621,6 +621,26 @@ curl -fsS -X DELETE 'http://127.0.0.1:8080/lab/analysis/events/records/compactio
 - preview route는 configured snapshot/clip 디렉터리 아래의 `.jpg/.jpeg/.ppm/.pgm/.json` evidence만 허용합니다. snapshot은 inline image preview, clip은 manifest JSON과 frame file link를 제공합니다.
 - 영상 검색/재생, 장기 녹화, MP4 muxing은 포함하지 않습니다. snapshot/clip hook은 EventRecord용 짧은 frame evidence만 저장합니다.
 
+Evidence retention cleanup job:
+
+```bash
+./server.sh ops-evidence-cleanup \
+  --http-base http://127.0.0.1:8080 \
+  --max-age-days 30 \
+  --keep-compactions 10 \
+  --report-file /tmp/media_server_evidence_cleanup.json
+```
+
+기본은 dry-run이며, 실제 삭제는 `--apply`를 붙인 경우에만 수행합니다.
+Job은 snapshot directory의 `.jpg/.jpeg/.ppm/.pgm`, clip directory의
+`manifest.json`을 가진 frame bundle directory, compaction snapshot cleanup을
+대상으로 합니다. UI/API의 evidence 원본 DELETE 차단 정책은 유지하고,
+운영 job만 만료 evidence를 정리합니다. `--apply`와 `--http-base`를 함께 쓰면
+Ops audit에 `retention-cleanup` action을 남기며, HTTP audit이 어려운 환경은
+`--audit-file`로 같은 payload를 파일에 저장합니다. Bundle export는 서버 파일을
+만들지 않는 signed token 방식이므로 만료 bundle cleanup은 계속
+`token-expiry-no-server-file` 정책입니다.
+
 ## 12. VA Runtime Metadata
 
 `VaRuntimeMetadataBuilder`는 WebRTC DataChannel, runtime dashboard, SSE/WebSocket side-channel이 공통으로 쓸 내부 frame 구조를 만듭니다.
