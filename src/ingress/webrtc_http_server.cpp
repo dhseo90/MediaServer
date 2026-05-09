@@ -2421,6 +2421,18 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             <label>종류
               <select id="opsEventRuleTypeSelect"></select>
             </label>
+            <label id="opsEventRulePresetField">현장 preset
+              <select id="opsEventRulePresetSelect">
+                <option value="default">기본</option>
+                <option value="road">도로</option>
+                <option value="park">공원</option>
+                <option value="indoor">실내</option>
+                <option value="lobby">로비</option>
+                <option value="platform">승강장</option>
+                <option value="entrance">출입구</option>
+                <option value="custom">직접 설정</option>
+              </select>
+            </label>
             <label>최소 신뢰도
               <input id="opsEventRuleConfidenceInput" type="number" min="0" max="1" step="0.01" placeholder="0.25" />
             </label>
