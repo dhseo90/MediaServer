@@ -235,6 +235,35 @@ void AppendClientShellScript(std::ostringstream& out) {
     };
     let clientDashboardCompareFilter = localStorage.getItem('mediaServerClientDashboardCompareFilter') || 'all';
     let clientDashboardCompareSort = localStorage.getItem('mediaServerClientDashboardCompareSort') || 'priority';
+    const clientDashboardPlacePreset = payload => {
+      const view = payload?.view || {};
+      const raw = [
+        ...(Array.isArray(view.sourceTags) ? view.sourceTags : []),
+        view.ownerGroup,
+        view.displayName,
+        view.sourceDisplayName
+      ].map(value => String(value || '').toLowerCase()).join(' ');
+      const presets = [
+        { key: 'road', label: '도로', weight: 80, terms: ['road', 'traffic', 'street', '도로', '차도'] },
+        { key: 'park', label: '공원', weight: 40, terms: ['park', 'plaza', '공원', '광장'] },
+        { key: 'indoor', label: '실내', weight: 30, terms: ['indoor', 'inside', 'room', '실내'] },
+        { key: 'lobby', label: '로비', weight: 45, terms: ['lobby', 'hall', '로비', '홀'] },
+        { key: 'platform', label: '승강장', weight: 70, terms: ['platform', 'station', '승강장', '역사'] },
+        { key: 'entrance', label: '출입구', weight: 75, terms: ['entrance', 'gate', 'door', '출입구', '게이트'] },
+        { key: 'parking', label: '주차장', weight: 55, terms: ['parking', 'garage', '주차'] }
+      ];
+      return presets.find(preset => preset.terms.some(term => raw.includes(term))) || { key: 'default', label: '기본 현장', weight: 0, terms: [] };
+    };
+    const clientDashboardEventPreset = eventType => {
+      const normalized = String(eventType || '').toLowerCase();
+      if (normalized.includes('line')) return { label: '라인 통과', weight: 90 };
+      if (normalized.includes('intrusion')) return { label: '침입', weight: 95 };
+      if (normalized.includes('loiter')) return { label: '배회', weight: 70 };
+      if (normalized.includes('occupancy')) return { label: '혼잡/점유', weight: 75 };
+      if (normalized.includes('enter') || normalized.includes('exit')) return { label: '출입', weight: 65 };
+      if (normalized.includes('presence')) return { label: '존재 감지', weight: 35 };
+      return { label: eventType ? String(eventType) : '이벤트', weight: 50 };
+    };
     const clientDashboardComparePriority = item => {
       if (!item?.ok) return 1000;
       const payload = item.payload || {};
@@ -242,7 +271,12 @@ void AppendClientShellScript(std::ostringstream& out) {
       const events = payload.events || {};
       const analysis = payload.analysis || {};
       const health = payload.health || {};
+      const topEvent = Array.isArray(events.countsByType) && events.countsByType[0]?.eventType
+        ? String(events.countsByType[0].eventType)
+        : '';
       let score = fieldState.tone === 'bad' ? 900 : (fieldState.tone === 'warn' ? 700 : 100);
+      score += clientDashboardPlacePreset(payload).weight;
+      score += topEvent ? clientDashboardEventPreset(topEvent).weight : 0;
       score += numberValue(analysis.activeEventCount) * 20;
       score += events.warning ? 120 : 0;
       score += ['stale', 'warning'].includes(String(health.metadataStatus || '')) ? 80 : 0;
@@ -256,11 +290,13 @@ void AppendClientShellScript(std::ostringstream& out) {
       const topEvent = Array.isArray(events.countsByType) && events.countsByType[0]?.eventType
         ? String(events.countsByType[0].eventType)
         : '';
+      const place = clientDashboardPlacePreset(payload);
+      const eventPreset = clientDashboardEventPreset(topEvent);
       if (events.warning || numberValue(analysis.activeEventCount) > 0) {
-        return topEvent ? `${topEvent} 우선 확인` : '활성 이벤트 우선 확인';
+        return topEvent ? `${place.label} · ${eventPreset.label} 우선 확인` : `${place.label} · 활성 이벤트 우선 확인`;
       }
-      if (numberValue(analysis.scenarioCount) > 0) return '시나리오 관제 중';
-      return '기본 현장 모니터링';
+      if (numberValue(analysis.scenarioCount) > 0) return `${place.label} · 시나리오 관제 중`;
+      return `${place.label} 모니터링`;
     };
     const clientDashboardCompareVisibleItems = (items = []) => {
       const filtered = items.filter(item => {
@@ -321,6 +357,7 @@ void AppendClientShellScript(std::ostringstream& out) {
             <p class="client-compare-preset">${escapeHtml(clientDashboardComparePreset(item))}</p>
             <div class="client-compare-metrics">
               <span>우선순위 ${escapeHtml(display(clientDashboardComparePriority(item)))}</span>
+              <span>현장 ${escapeHtml(clientDashboardPlacePreset(payload).label)}</span>
               <span>연결 ${escapeHtml(display(health.connectionStatus || health.status))}</span>
               <span>지연 ${escapeHtml(ms(health.metadataAgeMs))}</span>
               <span>트랙 ${escapeHtml(display(analysis.trackCount))}</span>
