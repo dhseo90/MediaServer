@@ -24,6 +24,8 @@ Usage:
   check          status와 동일한 별칭입니다.
   diagnose       실행환경, 포트 바인딩, 파일/RTSP source 접근성 문제를 자세히 진단합니다.
   ops-bundle     health/runtime/diagnose/log/config 요약을 운영 공유용 bundle로 생성합니다.
+  ops-evidence-cleanup
+                 EventRecord snapshot/clip evidence retention cleanup job을 실행합니다.
   urls           같은 LAN의 다른 PC/VLC/IINA/브라우저에서 복사해 쓸 테스트 URL을 출력합니다.
   auth-user      users file 계정을 list/add/disable/enable/reset-password로 관리합니다.
 
@@ -72,6 +74,8 @@ Usage:
                  /ops/sources 대량 채널 복제/비활성화/상태 진단 UI hook을 검증합니다.
   verify-ops-event-records-scope
                  EventRecord가 짧은 증거 기록 범위로 노출되고 /ops/events UI가 이를 표시하는지 검증합니다.
+  verify-ops-evidence-retention-cleanup
+                 Evidence retention cleanup job의 dry-run/apply/audit/report 계약을 검증합니다.
   verify-ops-audit-trail
                  /ops 채널/룰/사용자 UI 변경 이력 패널과 기록 hook을 검증합니다.
   verify-ops-audit-persistence
@@ -212,6 +216,10 @@ case "${cmd}" in
     require_internal collect_ops_bundle.sh
     exec "${INTERNAL_DIR}/collect_ops_bundle.sh" "$@"
     ;;
+  ops-evidence-cleanup)
+    require_internal run_ops_evidence_retention_cleanup.mjs
+    exec "${INTERNAL_DIR}/run_ops_evidence_retention_cleanup.mjs" "$@"
+    ;;
   urls|external-urls)
     require_internal print_external_test_urls.sh
     exec "${INTERNAL_DIR}/print_external_test_urls.sh" "$@"
@@ -315,6 +323,10 @@ case "${cmd}" in
   verify-ops-event-records-scope)
     require_internal verify_ops_event_records_scope.mjs
     exec "${INTERNAL_DIR}/verify_ops_event_records_scope.mjs" "$@"
+    ;;
+  verify-ops-evidence-retention-cleanup)
+    require_internal verify_ops_evidence_retention_cleanup.mjs
+    exec "${INTERNAL_DIR}/verify_ops_evidence_retention_cleanup.mjs" "$@"
     ;;
   verify-ops-audit-trail)
     require_internal verify_ops_audit_trail.mjs
