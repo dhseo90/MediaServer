@@ -235,6 +235,58 @@ void AppendClientShellScript(std::ostringstream& out) {
     };
     let clientDashboardCompareFilter = localStorage.getItem('mediaServerClientDashboardCompareFilter') || 'all';
     let clientDashboardCompareSort = localStorage.getItem('mediaServerClientDashboardCompareSort') || 'priority';
+    const clientDashboardPresetConfigKey = 'mediaServerClientDashboardPresetConfig.v1';
+    const clientDashboardDefaultPlacePresets = [
+      { key: 'road', label: '도로', weight: 80, terms: ['road', 'traffic', 'street', '도로', '차도'] },
+      { key: 'park', label: '공원', weight: 40, terms: ['park', 'plaza', '공원', '광장'] },
+      { key: 'indoor', label: '실내', weight: 30, terms: ['indoor', 'inside', 'room', '실내'] },
+      { key: 'lobby', label: '로비', weight: 45, terms: ['lobby', 'hall', '로비', '홀'] },
+      { key: 'platform', label: '승강장', weight: 70, terms: ['platform', 'station', '승강장', '역사'] },
+      { key: 'entrance', label: '출입구', weight: 75, terms: ['entrance', 'gate', 'door', '출입구', '게이트'] },
+      { key: 'parking', label: '주차장', weight: 55, terms: ['parking', 'garage', '주차'] }
+    ];
+    const clientDashboardDefaultEventPresets = [
+      { key: 'line', label: '라인 통과', weight: 90, terms: ['line'] },
+      { key: 'intrusion', label: '침입', weight: 95, terms: ['intrusion'] },
+      { key: 'loiter', label: '배회', weight: 70, terms: ['loiter'] },
+      { key: 'occupancy', label: '혼잡/점유', weight: 75, terms: ['occupancy'] },
+      { key: 'entry', label: '출입', weight: 65, terms: ['enter', 'exit'] },
+      { key: 'presence', label: '존재 감지', weight: 35, terms: ['presence'] }
+    ];
+    const normalizeClientDashboardPresetList = (items, defaults) => {
+      if (!Array.isArray(items)) return [];
+      return items.map(item => ({
+        key: String(item?.key || '').trim(),
+        label: String(item?.label || '').trim(),
+        weight: Number(item?.weight || 0),
+        terms: Array.isArray(item?.terms) ? item.terms.map(term => String(term || '').toLowerCase()).filter(Boolean) : []
+      })).filter(item => item.key && item.label && item.terms.length > 0 && Number.isFinite(item.weight))
+        .filter((item, index, list) => list.findIndex(candidate => candidate.key === item.key) === index);
+    };
+    const loadClientDashboardPresetConfig = () => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(clientDashboardPresetConfigKey) || '{}');
+        return {
+          placePresets: normalizeClientDashboardPresetList(parsed.placePresets, clientDashboardDefaultPlacePresets),
+          eventPresets: normalizeClientDashboardPresetList(parsed.eventPresets, clientDashboardDefaultEventPresets)
+        };
+      } catch {
+        return { placePresets: [], eventPresets: [] };
+      }
+    };
+    let clientDashboardPresetConfig = loadClientDashboardPresetConfig();
+    const clientDashboardPresetPolicy = () => ({
+      placePresets: [...clientDashboardPresetConfig.placePresets, ...clientDashboardDefaultPlacePresets],
+      eventPresets: [...clientDashboardPresetConfig.eventPresets, ...clientDashboardDefaultEventPresets]
+    });
+    const clientDashboardPresetConfigText = () => JSON.stringify(clientDashboardPresetConfig, null, 2);
+    const saveClientDashboardPresetConfig = config => {
+      clientDashboardPresetConfig = {
+        placePresets: normalizeClientDashboardPresetList(config.placePresets, clientDashboardDefaultPlacePresets),
+        eventPresets: normalizeClientDashboardPresetList(config.eventPresets, clientDashboardDefaultEventPresets)
+      };
+      localStorage.setItem(clientDashboardPresetConfigKey, JSON.stringify(clientDashboardPresetConfig));
+    };
     const clientDashboardPlacePreset = payload => {
       const view = payload?.view || {};
       const raw = [
@@ -243,25 +295,13 @@ void AppendClientShellScript(std::ostringstream& out) {
         view.displayName,
         view.sourceDisplayName
       ].map(value => String(value || '').toLowerCase()).join(' ');
-      const presets = [
-        { key: 'road', label: '도로', weight: 80, terms: ['road', 'traffic', 'street', '도로', '차도'] },
-        { key: 'park', label: '공원', weight: 40, terms: ['park', 'plaza', '공원', '광장'] },
-        { key: 'indoor', label: '실내', weight: 30, terms: ['indoor', 'inside', 'room', '실내'] },
-        { key: 'lobby', label: '로비', weight: 45, terms: ['lobby', 'hall', '로비', '홀'] },
-        { key: 'platform', label: '승강장', weight: 70, terms: ['platform', 'station', '승강장', '역사'] },
-        { key: 'entrance', label: '출입구', weight: 75, terms: ['entrance', 'gate', 'door', '출입구', '게이트'] },
-        { key: 'parking', label: '주차장', weight: 55, terms: ['parking', 'garage', '주차'] }
-      ];
+      const presets = clientDashboardPresetPolicy().placePresets;
       return presets.find(preset => preset.terms.some(term => raw.includes(term))) || { key: 'default', label: '기본 현장', weight: 0, terms: [] };
     };
     const clientDashboardEventPreset = eventType => {
       const normalized = String(eventType || '').toLowerCase();
-      if (normalized.includes('line')) return { label: '라인 통과', weight: 90 };
-      if (normalized.includes('intrusion')) return { label: '침입', weight: 95 };
-      if (normalized.includes('loiter')) return { label: '배회', weight: 70 };
-      if (normalized.includes('occupancy')) return { label: '혼잡/점유', weight: 75 };
-      if (normalized.includes('enter') || normalized.includes('exit')) return { label: '출입', weight: 65 };
-      if (normalized.includes('presence')) return { label: '존재 감지', weight: 35 };
+      const preset = clientDashboardPresetPolicy().eventPresets.find(item => item.terms.some(term => normalized.includes(term)));
+      if (preset) return { label: preset.label, weight: preset.weight };
       return { label: eventType ? String(eventType) : '이벤트', weight: 50 };
     };
     const clientDashboardComparePriority = item => {
@@ -452,6 +492,15 @@ void AppendClientShellScript(std::ostringstream& out) {
               </select>
             </label>
           </div>
+          <details class="client-preset-config" data-testid="client-dashboard-preset-config">
+            <summary>Preset 설정</summary>
+            <textarea id="clientDashboardPresetConfigInput" rows="6">${escapeHtml(clientDashboardPresetConfigText())}</textarea>
+            <div class="actions">
+              <button id="clientDashboardPresetApply" class="button button-secondary button-compact" type="button">적용</button>
+              <button id="clientDashboardPresetReset" class="button button-secondary button-compact" type="button">초기화</button>
+              <span id="clientDashboardPresetStatus" class="ops-rule-note"></span>
+            </div>
+          </details>
           ${renderDashboardCompare(compareItems)}
         </section>
 	        <section class="events">
@@ -480,6 +529,28 @@ void AppendClientShellScript(std::ostringstream& out) {
           renderDashboard(payload, compareItems);
         });
       }
+      const presetInput = document.getElementById('clientDashboardPresetConfigInput');
+      const presetStatus = document.getElementById('clientDashboardPresetStatus');
+      const setPresetStatus = message => {
+        const status = document.getElementById('clientDashboardPresetStatus');
+        if (status) status.textContent = message;
+      };
+      document.getElementById('clientDashboardPresetApply')?.addEventListener('click', () => {
+        try {
+          saveClientDashboardPresetConfig(JSON.parse(presetInput?.value || '{}'));
+          renderDashboard(payload, compareItems);
+          setPresetStatus('저장됨');
+        } catch (error) {
+          if (presetStatus) presetStatus.textContent = `오류: ${error.message}`;
+        }
+      });
+      document.getElementById('clientDashboardPresetReset')?.addEventListener('click', () => {
+        localStorage.removeItem(clientDashboardPresetConfigKey);
+        clientDashboardPresetConfig = { placePresets: [], eventPresets: [] };
+        if (presetInput) presetInput.value = clientDashboardPresetConfigText();
+        renderDashboard(payload, compareItems);
+        setPresetStatus('초기화됨');
+      });
     }
     function renderEvents(items) {
       if (!Array.isArray(items) || items.length === 0) {

@@ -322,6 +322,10 @@ view 목록은 `/client/api/views`의 scoped 결과를 사용하고,
 경고 우선/이벤트 많은 순/이름순 정렬을 제공하며,
 각 카드에 source tag, owner group, 채널명, 최근 event type에서 추론한
 현장 preset 문구와 우선순위 점수를 함께 표시합니다.
+Preset 설정에서는 운영자가 장소 타입, 이벤트 유형, 태그 매칭 term,
+우선순위 weight를 JSON으로 조정할 수 있고, 사용자 설정은 브라우저
+localStorage의 `mediaServerClientDashboardPresetConfig.v1`에 저장되어
+기본 preset보다 먼저 적용됩니다.
 `/client/events`는 primary nav에서 제거했고,
 이벤트 요약은 dashboard 안에서 sanitized summary로만 표시합니다.
 Integrator 연동은

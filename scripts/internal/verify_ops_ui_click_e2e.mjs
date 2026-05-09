@@ -152,10 +152,21 @@ async function runOpsClickFlow(browser, context) {
   await assertVisible(browser, '[data-testid="client-dashboard-compare"]', "클라이언트 채널 비교");
   await setSelectValue(browser, "#clientDashboardCompareFilter", "warnings", "클라이언트 비교 필터");
   await setSelectValue(browser, "#clientDashboardCompareSort", "events", "클라이언트 비교 정렬");
+  await clickSelector(browser, '[data-testid="client-dashboard-preset-config"] summary', "클라이언트 preset 설정");
+  await assertVisible(browser, "#clientDashboardPresetConfigInput", "클라이언트 preset 설정 입력");
+  await setTextValue(browser, "#clientDashboardPresetConfigInput", JSON.stringify({
+    placePresets: [{ key: "road", label: "도로 운영", weight: 88, terms: ["road", "도로"] }],
+    eventPresets: [{ key: "line", label: "라인 감시", weight: 92, terms: ["line"] }]
+  }, null, 2), "클라이언트 preset JSON");
+  await clickSelector(browser, "#clientDashboardPresetApply", "클라이언트 preset 적용");
+  await assertText(browser, "#clientDashboardPresetStatus", "저장됨", "클라이언트 preset 저장 상태");
+  await clickSelector(browser, '[data-testid="client-dashboard-preset-config"] summary', "클라이언트 preset 설정 다시 열기");
+  await clickSelector(browser, "#clientDashboardPresetReset", "클라이언트 preset 초기화");
+  await assertText(browser, "#clientDashboardPresetStatus", "초기화됨", "클라이언트 preset 초기화 상태");
   await clickSelector(browser, ".view", "클라이언트 대시보드 채널 선택");
   await assertVisible(browser, '[data-testid="client-dashboard-field-summary"]', "클라이언트 현장 요약");
   await assertNoOverflow(browser, `${context.label}:client-dashboard`);
-  steps.push("client:dashboard");
+  steps.push("client:dashboard", "client:preset-config");
 
   await assertBrowserErrors(browser, context.label);
   return { steps };
@@ -324,6 +335,22 @@ async function setSelectValue(browser, selector, value, description) {
   `, 3000);
   if (!result?.ok) {
     throw new Error(`${description} 선택 실패: ${JSON.stringify(result)}`);
+  }
+}
+
+async function setTextValue(browser, selector, value, description) {
+  const result = await browser.evaluate(`
+    (() => {
+      const node = document.querySelector(${JSON.stringify(selector)});
+      if (!node) return { ok: false, message: 'missing text input' };
+      node.value = ${JSON.stringify(value)};
+      node.dispatchEvent(new Event('input', { bubbles: true }));
+      node.dispatchEvent(new Event('change', { bubbles: true }));
+      return { ok: node.value === ${JSON.stringify(value)}, length: node.value.length };
+    })()
+  `, 3000);
+  if (!result?.ok) {
+    throw new Error(`${description} 입력 실패: ${JSON.stringify(result)}`);
   }
 }
 
