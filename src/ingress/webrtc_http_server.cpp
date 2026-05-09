@@ -2597,6 +2597,11 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <div id="eventEvidencePolicyBadges" class="badge-row"><span class="chip">로딩 중</span></div>
           <p id="eventEvidencePolicyText">이벤트 기반 짧은 증거 범위를 확인합니다.</p>
         </section>
+        <section class="section-card">
+          <h3>Export / 보존</h3>
+          <div id="eventExportPolicyBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+          <p id="eventExportPolicyText">증거 export와 삭제 권한을 확인합니다.</p>
+        </section>
       </div>
       <section class="section-card">
         <div class="toolbar">
@@ -6644,7 +6649,28 @@ std::string AnalysisEventStorageStatusJson() {
         << "\"clipBundleEnabled\":" << (snapshot.clip_hook_enabled ? "true" : "false") << ","
         << "\"clipFormat\":\"frame-bundle\","
         << "\"snapshotFormats\":[\"jpg\",\"ppm\",\"pgm\"],"
-        << "\"compactionDestructive\":false"
+        << "\"compactionDestructive\":false,"
+        << "\"exportPolicy\":{"
+        << "\"snapshotDownload\":true,"
+        << "\"clipManifestDownload\":true,"
+        << "\"clipFrameDownload\":true,"
+        << "\"bundleArchiveDownload\":false,"
+        << "\"longVideoExport\":false,"
+        << "\"allowedFormats\":[\"jpg\",\"jpeg\",\"ppm\",\"pgm\",\"json\"]"
+        << "},"
+        << "\"retentionPolicy\":{"
+        << "\"activeFileProtected\":true,"
+        << "\"archiveRetention\":\"oldest-rotated-only\","
+        << "\"compactionCleanup\":\"keepNewest\","
+        << "\"evidenceFileRetention\":\"event-record-retention\""
+        << "},"
+        << "\"deletePolicy\":{"
+        << "\"activeRecordDelete\":false,"
+        << "\"archiveDelete\":false,"
+        << "\"compactionDelete\":true,"
+        << "\"evidenceFileDelete\":false,"
+        << "\"requiresRuleWrite\":true"
+        << "}"
         << "},"
         << "\"lastError\":\"" << JsonEscape(snapshot.last_error) << "\""
         << "}";
@@ -9006,6 +9032,11 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             ok.status_text = "OK";
                             ok.content_type = content_type;
                             ok.headers["Cache-Control"] = "no-store";
+                            if (const auto download_it = query.find("download");
+                                download_it != query.end() && Trim(download_it->second) == "1") {
+                                ok.headers["Content-Disposition"] =
+                                    "attachment; filename=\"" + JsonEscape(resolved.filename().string()) + "\"";
+                            }
                             ok.body = body.str();
                             return ok;
                         }

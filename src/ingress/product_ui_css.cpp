@@ -1076,6 +1076,12 @@ std::string ProductUiCss() {
     .validation-item.bad {
       border-color: color-mix(in srgb, var(--color-danger) 56%, var(--color-border));
     }
+    .event-evidence-actions {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      margin-top: var(--space-2);
+    }
     .embedded-frame {
       width: 100%;
       min-height: min(1120px, calc(100vh - 220px));
@@ -1757,6 +1763,7 @@ std::string ProductUiCss() {
       .audit-entry-meta,
       .audit-diff-grid,
       .validation-item,
+      .event-evidence-actions,
       .user-row-actions {
         display: grid;
         grid-template-columns: 1fr;
