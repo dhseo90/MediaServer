@@ -100,6 +100,8 @@ v1.1.0-alpha.2의 첫 구현 단위는 실제 camera 연결이 아니라 ONVIF �
 출력 contract:
 
 - `expectedSourceDraft`는 기존 `/ops/api/sources` 저장 payload만 사용합니다.
+- `expectedSourceDraft.sourceId`는 현재 `/ops/sources` 숫자 채널 계약에 맞춰
+  숫자 문자열입니다.
 - `expectedSourceDraft.kind`는 `rtsp`입니다.
 - `expectedSourceDraft.rtspUrl`은 선택된 profile의 `streamUri`와 같습니다.
 - `expectedSourceDraft.tags`에는 최소 `onvif`, `live`가 포함됩니다.
@@ -107,6 +109,8 @@ v1.1.0-alpha.2의 첫 구현 단위는 실제 camera 연결이 아니라 ONVIF �
   `profiles`, raw SOAP 응답, password/token 원문을 넣지 않습니다.
 - `expectedPublishedViewDraft`는 기존 `/ops/api/views` 저장 payload만 사용합니다.
 - `expectedPublishedViewDraft.sourceId`는 `expectedSourceDraft.sourceId`와 같습니다.
+- `expectedPublishedViewDraft.viewId`는 현재 채널 UI 흐름에 맞춰
+  `expectedSourceDraft.sourceId`와 같은 숫자 문자열입니다.
 - `expectedPublishedViewDraft`에는 RTSP URL, ONVIF endpoint, credential reference,
   raw diagnostic JSON을 넣지 않습니다.
 
@@ -118,6 +122,32 @@ v1.1.0-alpha.2의 첫 구현 단위는 실제 camera 연결이 아니라 ONVIF �
   검증으로 분리합니다.
 - local virtual ONVIF device는 선택 검증으로 두고, 기본 smoke는 fixture 기반으로
   유지합니다.
+
+## Import Draft API
+
+초기 API는 실제 camera 연결 대신 fixture/stub payload를 변환하는 operator 전용
+draft endpoint입니다.
+
+```text
+POST /ops/api/onvif/import-draft
+```
+
+요청:
+
+- body는 `test/fixtures/onvif_live_import_stub.json`과 같은 import candidate
+  draft object입니다.
+- 저장 side effect는 없습니다.
+- endpoint 사용에는 `operator` role, `ops:read`, `source:write`가 필요합니다.
+
+응답:
+
+- `sourceDraft`: 기존 `/ops/api/sources`에 보낼 수 있는 `kind=rtsp` payload
+- `publishedViewDraft`: 기존 `/ops/api/views`에 보낼 수 있는 payload
+- `selectedProfile`: operator가 고른 Media/Media2 profile 요약
+- `auth`: 원문 secret 없이 인증 필요 여부와 credential reference 존재 여부만 표시
+
+응답은 operator API용 draft입니다. client/viewer API에는 이 endpoint, RTSP URL,
+ONVIF endpoint, credential reference, raw diagnostic JSON을 노출하지 않습니다.
 
 ## ONVIF Origin Metadata Draft
 
@@ -203,6 +233,7 @@ fixture는 합성 장비와 합성 private-network RTSP URI만 사용합니다. 
 
 ```bash
 ./server.sh verify-onvif-live-import-contract
+./server.sh verify-onvif-import-draft-api
 git diff --check -- docs test/fixtures scripts server.sh
 ./server.sh verify-docs-links
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md

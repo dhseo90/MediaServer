@@ -93,6 +93,7 @@ check("SourceRegistry draft uses only existing RTSP source payload fields", () =
   const source = objectAt(decision, "expectedSourceDraft");
   const selected = selectedProfile();
   assert(nonEmptyString(source.sourceId), "sourceId is required");
+  assert(/^[0-9]+$/.test(source.sourceId), "sourceId must match current numeric channel contract");
   assert(nonEmptyString(source.displayName), "displayName is required");
   assert(source.kind === "rtsp", "expectedSourceDraft.kind must be rtsp");
   assert(source.rtspUrl === selected.streamUri, "expectedSourceDraft.rtspUrl must match selected streamUri");
@@ -117,6 +118,7 @@ check("PublishedView draft keeps source locators and ONVIF details out", () => {
   const source = objectAt(decision, "expectedSourceDraft");
   const view = objectAt(decision, "expectedPublishedViewDraft");
   assert(view.viewId === source.sourceId, "viewId should match sourceId in the stub contract");
+  assert(/^[0-9]+$/.test(view.viewId), "viewId must match current numeric channel contract");
   assert(view.sourceId === source.sourceId, "PublishedView sourceId must reference source draft");
   const modes = arrayAt(view, "allowedOverlayModes");
   for (const mode of modes) {

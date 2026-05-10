@@ -53,7 +53,7 @@
   "importDecision": {
     "selectedProfileToken": "profile-live-main",
     "expectedSourceDraft": {
-      "sourceId": "onvif-examplecam-main",
+      "sourceId": "5",
       "displayName": "ExampleCam Live Main",
       "kind": "rtsp",
       "rtspUrl": "rtsp://192.0.2.10/live/main",
@@ -78,9 +78,9 @@
       "credentialInline": false
     },
     "expectedPublishedViewDraft": {
-      "viewId": "onvif-examplecam-main",
+      "viewId": "5",
       "displayName": "ExampleCam Live Main",
-      "sourceId": "onvif-examplecam-main",
+      "sourceId": "5",
       "allowedOverlayModes": [
         "raw",
         "va-overlay",
