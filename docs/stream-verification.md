@@ -108,6 +108,9 @@ UI 변경:
 ./server.sh verify-ops-rules-roundtrip
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-client-ui --screenshots
+./server.sh verify-ops-root-cause-panel
+./server.sh verify-client-dashboard-polish
+./server.sh verify-ops-source-lifecycle
 MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap
 ```
 
@@ -119,6 +122,9 @@ UI 변경 검증에서는 기본 추가 RTSP/WebRTC source 영상이나 codec ma
 - `verify-ops-tables-layout`
 - `verify-rule-ui`
 - `verify-ops-rules-roundtrip`
+- `verify-ops-root-cause-panel`
+- `verify-client-dashboard-polish`
+- `verify-ops-source-lifecycle`
 
 WebRTC/RTSP streaming 동작이 바뀐 경우에만
 별도 WebRTC/stream 변경 명령을 실행합니다.
@@ -187,10 +193,14 @@ fi
   reconnect/cleanup, auth/config 항목을 표시하고 다음 조치 버튼으로
   source 재검증, registry diff, Event/evidence 진단, auth/config 확인,
   log correlation 필터를 실행합니다.
+  Live Source Health 항목은 `/ops/api/source-health`를 사용하고
+  `/ops/sources#source-health`로 이동할 수 있어야 합니다.
   내부 진단 JSON은 제품 화면에 직접 노출하지 않고 API/검증 명령에서만 확인합니다.
 - `/ops/sources`는 숫자 채널 table을 먼저 보여줍니다.
   상단 안내 카드와 detail form에서
   `외부 WHEP pull`과 `Published WebRTC source` 차이를 설명해야 합니다.
+  Live Source Health panel/table/detail은 `live`, `connecting`, `stale`,
+  `offline`, `unknown` 상태와 next action을 표시합니다.
   Live URL/VA URL 복사 버튼은 RTSP/WHEP 값을 실제 클립보드에 복사해야 합니다.
   rendered HTML에 `AppendTableHead(` 같은 템플릿 문자열이 새면 안 됩니다.
   source 원본 URL은 ops 화면에만 표시합니다.
@@ -1131,7 +1141,9 @@ curl -fsS 'http://127.0.0.1:8080/client/api/views/{viewId}/metadata'
 - dashboard API는 `dashboard:read:{viewId}`, events API는 `event:read:{viewId}`, metadata summary API는 `metadata:read:{viewId}` scope가 필요합니다.
 - admin/operator는 client dashboard에서 전체 PublishedView 상태를 확인할 수 있습니다.
 - `showDashboard=false`인 view는 dashboard API가 403을 반환하고, `showEvents=false`인 view는 events API가 403을 반환합니다.
-- dashboard health는 live/offline, connection status, video frame status, metadata status, stale 여부, stale metadata age, last frame age를 반환합니다.
+- dashboard health는 `live`, `status`, `summary`, `warningLevel`,
+  connection status, video frame status, metadata status, stale 여부,
+  metadata age, last frame age를 반환합니다.
 - 값이 없으면 UI는 `미제공`을 표시합니다.
 - client dashboard 응답과 화면에 운영 내부 값이 노출되지 않아야 합니다.
 - 숨길 값: source 원본 URL, Developer URL, 내부 진단 JSON, `analysisTapId`, internal session id

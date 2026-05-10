@@ -136,8 +136,8 @@ Ops UI 구현, state-dump extension, smoke matrix 구현을 포함하지 않습�
 
 이 섹션은 시나리오 확장 재개 묶음과 분리해 관리하는
 운영/클라이언트/권한 계열 phase입니다.
-현재 문서 기준의 다음 작업은 Client Live Monitor 현장형 상태 고도화와
-source health/operator workflow 고도화입니다.
+현재 문서 기준으로 source health/operator workflow 1차 구현은 완료했고,
+남은 운영/클라이언트 작업은 같은 live-only 경계 안에서 별도 묶음으로 관리합니다.
 아래 항목은 별도 후속 Phase의 기반/고도화 목록으로 유지합니다.
 
 ### O1. Auth / Role / Scope / Bootstrap / Hardening / Client Account Policy
@@ -232,6 +232,30 @@ source health/operator workflow 고도화입니다.
   인증 토큰이 필요한 WHEP endpoint의 token 저장/주입 정책은
   아직 운영 보안 설계 대상입니다.
 - 주의: 기존 `webrtcSourceId` schema 의미를 조용히 바꾸지 않습니다.
+
+### O2b. Live Source Health / Operator Workflow
+
+- **상태**: `1차 구현 완료` - source health API + Ops/Client 표시 + smoke closure
+- 목적:
+  운영자가 live source의 `live`, `connecting`, `stale`, `offline` 상태를
+  `/ops/sources`와 `/ops/dashboard`에서 같은 의미로 확인하고,
+  client dashboard에는 sanitized summary만 노출합니다.
+- 완료 범위:
+  - `GET /ops/api/source-health`
+  - `media-server.ops.source-health.v1` 응답 schema
+  - passive analysis tap과 Published WebRTC source 기반 상태 판정
+  - `/ops/sources` Live Source Health panel, table badge, detail health panel
+  - `/ops/dashboard` 문제 원인 패널의 Live Source Health 항목과 다음 조치
+  - `/client/dashboard`, `/client/live` detail의 `summary`, `warningLevel`,
+    `connectionStatus`, frame/metadata status 정렬
+  - `verify-ops-root-cause-panel`, `verify-client-dashboard-polish`,
+    `verify-ops-source-lifecycle`, `verify-ops-client-ui --screenshots` 기준 반영
+- 제한:
+  reconnect count, last reconnect timestamp, codec profile/fps는 아직 실제
+  reconnect manager/codec probe와 연결하지 않았습니다.
+- 주의:
+  client/viewer 응답에는 source URL, ONVIF endpoint, credential reference,
+  raw diagnostic JSON을 노출하지 않습니다.
 
 ### O3. `/ops` / `/client` / 개발 API route 분리
 

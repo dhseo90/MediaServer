@@ -2,6 +2,38 @@
 
 이 문서는 과거 상세 검증 이력을 보존합니다. 현재 실행해야 할 검증 기준은 [../stream-verification.md](../stream-verification.md)를 봅니다.
 
+## 2026-05-10 - Live Source Health / Operator Workflow 1차 검증
+
+통과:
+
+- `./server.sh build`
+- `./server.sh verify-ops-root-cause-panel`
+- `./server.sh verify-client-dashboard-polish`
+- `./server.sh verify-ops-source-lifecycle`
+- `./server.sh verify-auth-bootstrap`: sandbox 포트 바인딩 실패 후 일반 권한 재실행 기준 통과
+- `./server.sh verify-auth-users`
+- `./server.sh verify-auth-routes`
+- `./server.sh verify-ops-client-ui`: auth off 테스트 서버 기준 통과
+- `./server.sh verify-ops-client-ui --screenshots`: route/API 12/0, screenshot 14/0
+- `./server.sh verify-rule-ui`
+- `./server.sh verify-codecs`: 67/0/3
+- `./server.sh verify-webrtc-ice`: 7/0/1
+- `./server.sh verify-multichannel`: 제거된 browser harness 기준 skip-only, exit 0
+- `./server.sh verify-webrtc-va-metadata`: 8/0
+- `git diff --check`
+
+확인:
+
+- `/ops/api/source-health`는 `media-server.ops.source-health.v1` schema와
+  `summary`, `sourceHealth[]`를 반환합니다.
+- `/ops/sources`는 Live Source Health panel/table/detail을 표시합니다.
+- `/ops/dashboard` 문제 원인 패널은 Live Source Health를 source 재검증
+  workflow로 연결합니다.
+- client dashboard/live detail은 source locator, ONVIF endpoint, raw diagnostic
+  JSON 없이 sanitized `summary`와 `warningLevel`만 표시합니다.
+- `verify-ops-source-lifecycle` cleanup 중 WebRTC session close 순서 crash를
+  재현했고, subscriber 제거 후 bridge stop 순서로 정리해 재검증했습니다.
+
 ## 2026-05-09 - 운영 제품화 안정화 순차 검증
 
 통과:

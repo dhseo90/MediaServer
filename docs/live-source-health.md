@@ -1,6 +1,6 @@
 # Live Source Health
 
-이 문서는 v1.1.0-beta.1의 live source health 요약 초안을 정의합니다.
+이 문서는 v1.1.0-beta.1의 live source health 1차 구현 기준을 정의합니다.
 목표는 `/ops/sources`, `/ops/dashboard`, client dashboard가 같은 상태 의미를
 공유하되 노출 범위를 다르게 유지하는 것입니다.
 
@@ -32,6 +32,23 @@
 - client/viewer에 source URL, ONVIF endpoint, raw diagnostic JSON 노출
 - RTSP/WebRTC media path 변경
 
+## 1차 구현 상태
+
+구현 완료:
+
+- `GET /ops/api/source-health`
+- `/ops/sources` Live Source Health 요약, row badge, detail health panel
+- `/ops/dashboard` 문제 원인 패널의 source health 요약과 Dashboard 이동 흐름
+- client dashboard/live detail의 sanitized health summary
+- `verify-ops-root-cause-panel`, `verify-client-dashboard-polish`,
+  `verify-ops-source-lifecycle`, `verify-ops-client-ui --screenshots` smoke 기준
+
+후속 예정:
+
+- reconnect count와 last reconnect timestamp의 실제 reconnect manager 연동
+- codec profile/fps 추출
+- bulk health check 서버 계약과 partial failure retry 정책
+
 ## 상태 모델
 
 운영자용 source health는 다음 상태 중 하나로 요약합니다.
@@ -50,26 +67,42 @@ codec mismatch, high reconnect, metadata delay 같은 조건은 `warnings[]`로 
 
 ## Ops Health Fields
 
-`/ops/sources`와 `/ops/dashboard`에서 공유할 draft field:
+`/ops/sources`와 `/ops/dashboard`에서 공유하는 1차 field:
 
 ```json
 {
-  "sourceId": "onvif-examplecam-main",
-  "status": "live",
-  "reason": "receiving",
-  "checkedAt": "fixture-time",
-  "lastFrameAgeMs": 320,
-  "lastMetadataAgeMs": 480,
-  "reconnectCount": 1,
-  "lastReconnectAt": "fixture-time",
-  "codec": {
-    "video": "H264",
-    "profile": "main",
-    "width": 1920,
-    "height": 1080,
-    "fps": 30
+  "ok": true,
+  "schema": "media-server.ops.source-health.v1",
+  "status": "source-health",
+  "generatedAt": "fixture-time",
+  "summary": {
+    "total": 3,
+    "live": 1,
+    "connecting": 0,
+    "stale": 0,
+    "offline": 2,
+    "unknown": 0
   },
-  "warnings": []
+  "sourceHealth": [
+    {
+      "sourceId": "sample-h264",
+      "status": "live",
+      "reason": "receiving",
+      "checkedAt": "fixture-time",
+      "lastFrameAgeMs": 320,
+      "lastMetadataAgeMs": 480,
+      "reconnectCount": 0,
+      "lastReconnectAt": null,
+      "codec": {
+        "video": null,
+        "profile": null,
+        "width": 1920,
+        "height": 1080,
+        "fps": null
+      },
+      "warnings": []
+    }
+  ]
 }
 ```
 
@@ -92,10 +125,13 @@ client dashboard/live monitor는 같은 상태 의미를 쓰되 원본 locator�
 - `viewId`
 - `status`
 - `summary`
+- `warningLevel`
+- `connectionStatus`
+- `videoFrameStatus`
+- `metadataStatus`
 - `stale`
 - `lastFrameAgeMs`
-- `lastEventAgeMs`
-- `warningLevel`
+- `metadataAgeMs`
 
 금지:
 

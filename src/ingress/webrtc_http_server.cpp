@@ -9861,12 +9861,14 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     }
                                 }
                             }
-                            entry.bridge->Stop();
+                            // Remove the stream subscriber before tearing down the bridge so packet callbacks
+                            // cannot write into a pipeline that is being stopped.
+                            impl_->session_manager.CloseSession(entry.ingress_client_id);
                             if (!entry.analysis_tap_id.empty()) {
                                 DetachAnalysisTapAndReleaseRuntimes(
                                     impl_->session_manager, entry.analysis_tap_id);
                             }
-                            impl_->session_manager.CloseSession(entry.ingress_client_id);
+                            entry.bridge->Stop();
                             return true;
                         };
                         auto create_webrtc_session_response =
