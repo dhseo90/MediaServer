@@ -55,8 +55,8 @@ Operator
 
 ## Draft Data Model
 
-이 단계의 fixture는 설계용입니다. 제품 API schema나 registry schema를 추가하지
-않습니다.
+이 단계의 fixture는 내부 import draft contract를 고정하기 위한 설계/검증용입니다.
+제품 API schema나 registry schema를 추가하지 않습니다.
 
 ONVIF candidate draft:
 
@@ -79,6 +79,45 @@ SourceRegistry 저장 예상값:
 
 ONVIF origin metadata는 1단계에서 registry schema에 넣지 않습니다. 필요한 최소
 필드는 별도 SourceRegistry origin metadata 설계 단계에서 검토합니다.
+
+## Import Draft Contract
+
+v1.1.0-alpha.2의 첫 구현 단위는 실제 camera 연결이 아니라 ONVIF 응답을 기존
+운영 source/view 저장 payload로 바꾸는 내부 계약을 고정하는 것입니다.
+
+입력 contract:
+
+- `device.endpoint`는 discovery 또는 수동 입력으로 얻은 ONVIF device service
+  endpoint입니다.
+- `device.manufacturer`, `model`, `firmwareVersion`, `serialNumber`는 operator
+  후보 표시와 진단용입니다.
+- `profiles[]`는 Media/Media2 profile 후보이며, `token`, `name`, `mediaApi`,
+  `encoding`, `width`, `height`, `fps`, `transport`, `streamUri`를 포함합니다.
+- `importDecision.selectedProfileToken`은 선택된 profile token입니다.
+- 인증 관련 입력은 `auth.required`와 `auth.credentialRef` 같은 reference만
+  남기며 원문 secret은 포함하지 않습니다.
+
+출력 contract:
+
+- `expectedSourceDraft`는 기존 `/ops/api/sources` 저장 payload만 사용합니다.
+- `expectedSourceDraft.kind`는 `rtsp`입니다.
+- `expectedSourceDraft.rtspUrl`은 선택된 profile의 `streamUri`와 같습니다.
+- `expectedSourceDraft.tags`에는 최소 `onvif`, `live`가 포함됩니다.
+- `expectedSourceDraft`에는 `origin`, `endpoint`, `credentialRef`, `auth`,
+  `profiles`, raw SOAP 응답, password/token 원문을 넣지 않습니다.
+- `expectedPublishedViewDraft`는 기존 `/ops/api/views` 저장 payload만 사용합니다.
+- `expectedPublishedViewDraft.sourceId`는 `expectedSourceDraft.sourceId`와 같습니다.
+- `expectedPublishedViewDraft`에는 RTSP URL, ONVIF endpoint, credential reference,
+  raw diagnostic JSON을 넣지 않습니다.
+
+검증 contract:
+
+- 카메라가 없어도 `test/fixtures/onvif_live_import_stub.json`으로 import draft
+  변환 계약을 검증합니다.
+- 공개 RTSP URL 검증은 ONVIF discovery/SOAP 검증이 아니라 import 이후 media path
+  검증으로 분리합니다.
+- local virtual ONVIF device는 선택 검증으로 두고, 기본 smoke는 fixture 기반으로
+  유지합니다.
 
 ## ONVIF Origin Metadata Draft
 
@@ -163,7 +202,8 @@ fixture는 합성 장비와 합성 private-network RTSP URI만 사용합니다. 
 현재 단계:
 
 ```bash
-git diff --check -- docs test/fixtures
+./server.sh verify-onvif-live-import-contract
+git diff --check -- docs test/fixtures scripts server.sh
 ./server.sh verify-docs-links
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ```

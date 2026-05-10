@@ -94,6 +94,8 @@ Usage:
                  README/UI guide screenshot 자산과 자동 캡처 기준을 검증합니다.
   verify-docs-links
                  README/docs Markdown 링크와 이미지 파일 참조를 검증합니다.
+  verify-onvif-live-import-contract
+                 카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-v1.1-boundary-keywords
                  v1.1.0 live-only 제품 경계 키워드가 비범위/보류 문맥인지 검증합니다.
   verify-code-comments
@@ -387,6 +389,10 @@ case "${cmd}" in
   verify-docs-links)
     require_internal verify_docs_links.mjs
     exec "${INTERNAL_DIR}/verify_docs_links.mjs" "$@"
+    ;;
+  verify-onvif-live-import-contract)
+    require_internal verify_onvif_live_import_contract.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_live_import_contract.mjs" "$@"
     ;;
   verify-v1.1-boundary-keywords)
     require_internal verify_v1_1_boundary_keywords.mjs
