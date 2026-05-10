@@ -95,6 +95,8 @@ See [docs/en/sample-fixture-provenance.md](docs/en/sample-fixture-provenance.md)
 | RTSP/WebRTC pipeline, source/session, VA layer | [docs/en/media-server-architecture.md](docs/en/media-server-architecture.md) |
 | YOLO, tracking, scenarios, live events, short evidence | [docs/en/video-analysis.md](docs/en/video-analysis.md) |
 | v1.1.0 live-only roadmap | [docs/en/v1.1.0-roadmap.md](docs/en/v1.1.0-roadmap.md) |
+| v1.1.0 alpha.1 live-only checklist | [docs/v1.1.0-alpha1-checklist.md](docs/v1.1.0-alpha1-checklist.md) |
+| v1.1.0 live-only glossary | [docs/v1.1.0-glossary.md](docs/v1.1.0-glossary.md) |
 | Verification commands and release checks | [docs/en/stream-verification.md](docs/en/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/en/distribution-policy.md](docs/en/distribution-policy.md) |
 | Release scope and tag strategy | [docs/en/release-policy.md](docs/en/release-policy.md) |

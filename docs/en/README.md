@@ -12,6 +12,8 @@ This directory contains concise English guides for the public documentation set.
 | Architecture | [media-server-architecture.md](./media-server-architecture.md) |
 | Video analytics | [video-analysis.md](./video-analysis.md) |
 | v1.1.0 live-only roadmap | [v1.1.0-roadmap.md](./v1.1.0-roadmap.md) |
+| v1.1.0 alpha.1 live-only checklist | [../v1.1.0-alpha1-checklist.md](../v1.1.0-alpha1-checklist.md) |
+| v1.1.0 live-only glossary | [../v1.1.0-glossary.md](../v1.1.0-glossary.md) |
 | Verification | [stream-verification.md](./stream-verification.md) |
 | Distribution policy | [distribution-policy.md](./distribution-policy.md) |
 | Release policy | [release-policy.md](./release-policy.md) |
