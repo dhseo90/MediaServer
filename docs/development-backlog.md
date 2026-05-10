@@ -70,6 +70,17 @@ live VA event 품질을 다루고, 장기 녹화/VMS/NVR/playback/Profile G는 �
   `git diff --check`, `./server.sh verify-docs-links`,
   가능하면 `./server.sh verify-docs-ui-assets`로 확인합니다.
 
+후속 phase 참고 문서:
+
+- [ONVIF live source import](./onvif-live-import.md)
+- [Live source health](./live-source-health.md)
+- [Live event and metadata contracts](./live-event-metadata-contracts.md)
+- [Scenario timeline debug fields](./scenario-timeline-debug.md)
+
+위 문서는 v1.1.0 live-only 방향 안의 구현/설계 후보를 정리한 참고 문서입니다.
+alpha.1 `Live-only 제품 경계 확정` 완료 범위에는 API skeleton, registry schema,
+Ops UI 구현, state-dump extension, smoke matrix 구현을 포함하지 않습니다.
+
 ### 현재 문서 기준 readiness boundary
 
 - 현재 버전 기준은 `v1.0.0` source-only public baseline입니다.

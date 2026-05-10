@@ -110,11 +110,11 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | Auth/Ops/Client 화면 구조와 사용 흐름 | [docs/ui-guide.md](docs/ui-guide.md) |
 | RTSP/WebRTC pipeline, source/session, VA layer 배치 | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenario, live event, short evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
-| v1.1.0 live-only 목표와 ONVIF/VA 로드맵 | [docs/v1.1.0-roadmap.md](docs/v1.1.0-roadmap.md) |
-| ONVIF live source import 설계와 stub fixture | [docs/onvif-live-import.md](docs/onvif-live-import.md) |
-| Live source health 상태 모델과 `/ops/sources` 표시 초안 | [docs/live-source-health.md](docs/live-source-health.md) |
-| Live Event POST/WebRTC/SSE/WS metadata contract | [docs/live-event-metadata-contracts.md](docs/live-event-metadata-contracts.md) |
-| Scenario timeline/debug 필드 확장 설계 | [docs/scenario-timeline-debug.md](docs/scenario-timeline-debug.md) |
+| v1.1.0 live-only 제품 경계와 phase 분류 | [docs/v1.1.0-roadmap.md](docs/v1.1.0-roadmap.md) |
+| v1.1.0 후속 Phase: ONVIF live source import 설계 | [docs/onvif-live-import.md](docs/onvif-live-import.md) |
+| v1.1.0 후속 Phase: Live source health 상태 모델 | [docs/live-source-health.md](docs/live-source-health.md) |
+| v1.1.0 후속 Phase: Event/WebRTC/SSE/WS metadata contract | [docs/live-event-metadata-contracts.md](docs/live-event-metadata-contracts.md) |
+| v1.1.0 후속 Phase: Scenario timeline/debug 필드 설계 | [docs/scenario-timeline-debug.md](docs/scenario-timeline-debug.md) |
 | 현재 검증 기준과 실행 명령 | [docs/stream-verification.md](docs/stream-verification.md) |
 | 배포 bundle, container image, third-party runtime 포함 정책 | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | release asset 범위와 RC 기준 | [docs/release-policy.md](docs/release-policy.md) |
