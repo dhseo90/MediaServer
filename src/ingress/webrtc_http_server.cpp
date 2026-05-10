@@ -19,6 +19,7 @@
 #include <cctype>
 #include <cstdint>
 #include <cstring>
+#include <ctime>
 #include <fstream>
 #include <filesystem>
 #include <iomanip>
@@ -6808,6 +6809,142 @@ std::int64_t NowUnixMs() {
         .count();
 }
 
+std::string FormatUnixMsUtc(std::int64_t unix_ms) {
+    const std::time_t seconds = static_cast<std::time_t>(unix_ms / 1000);
+    const int millis = static_cast<int>(std::max<std::int64_t>(0, unix_ms % 1000));
+    std::tm tm{};
+    gmtime_r(&seconds, &tm);
+    std::ostringstream out;
+    out << std::put_time(&tm, "%Y-%m-%dT%H:%M:%S") << "."
+        << std::setw(3) << std::setfill('0') << millis << "Z";
+    return out.str();
+}
+
+void AppendNullableJsonString(std::ostringstream& out, const std::string& value) {
+    if (value.empty()) {
+        out << "null";
+    } else {
+        out << "\"" << JsonEscape(value) << "\"";
+    }
+}
+
+struct OpsSourceHealthItem {
+    std::string source_id;
+    std::string status{"unknown"};
+    std::string reason{"not-checked"};
+    std::string checked_at;
+    std::optional<std::int64_t> last_frame_age_ms;
+    std::optional<std::int64_t> last_metadata_age_ms;
+    int reconnect_count{0};
+    std::string last_reconnect_at;
+    std::string codec_video;
+    std::string codec_profile;
+    std::optional<std::int64_t> codec_width;
+    std::optional<std::int64_t> codec_height;
+    std::optional<std::int64_t> codec_fps;
+    std::vector<std::string> warnings;
+};
+
+void AppendOpsSourceHealthItemJson(std::ostringstream& out, const OpsSourceHealthItem& item) {
+    out << "{"
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"status\":\"" << JsonEscape(item.status) << "\","
+        << "\"reason\":\"" << JsonEscape(item.reason) << "\","
+        << "\"checkedAt\":";
+    AppendNullableJsonString(out, item.checked_at);
+    out << ",\"lastFrameAgeMs\":";
+    AppendNullableInt64(out, item.last_frame_age_ms);
+    out << ",\"lastMetadataAgeMs\":";
+    AppendNullableInt64(out, item.last_metadata_age_ms);
+    out << ",\"reconnectCount\":" << item.reconnect_count
+        << ",\"lastReconnectAt\":";
+    AppendNullableJsonString(out, item.last_reconnect_at);
+    out << ",\"codec\":{"
+        << "\"video\":";
+    AppendNullableJsonString(out, item.codec_video);
+    out << ",\"profile\":";
+    AppendNullableJsonString(out, item.codec_profile);
+    out << ",\"width\":";
+    AppendNullableInt64(out, item.codec_width);
+    out << ",\"height\":";
+    AppendNullableInt64(out, item.codec_height);
+    out << ",\"fps\":";
+    AppendNullableInt64(out, item.codec_fps);
+    out << "},\"warnings\":[";
+    for (std::size_t i = 0; i < item.warnings.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(item.warnings[i]) << "\"";
+    }
+    out << "]}";
+}
+
+std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
+                                const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources) {
+    (void)analysis_taps;
+    (void)publish_sources;
+    std::vector<SourceViewRegistry::SourceRecord> sources;
+    std::string load_error;
+    if (!SourceViewRegistry::Instance().Snapshot(&sources, nullptr, &load_error)) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.source-health.v1\",\"error\":\"" +
+               JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
+    }
+
+    const std::string generated_at = FormatUnixMsUtc(NowUnixMs());
+    std::vector<OpsSourceHealthItem> items;
+    items.reserve(sources.size());
+    int live_count = 0;
+    int connecting_count = 0;
+    int stale_count = 0;
+    int offline_count = 0;
+    int unknown_count = 0;
+    for (const auto& source : sources) {
+        OpsSourceHealthItem item;
+        item.source_id = source.source_id;
+        if (!source.enabled) {
+            item.status = "offline";
+            item.reason = "disabled";
+            item.checked_at = generated_at;
+        }
+        if (item.status == "live") {
+            ++live_count;
+        } else if (item.status == "connecting") {
+            ++connecting_count;
+        } else if (item.status == "stale") {
+            ++stale_count;
+        } else if (item.status == "offline") {
+            ++offline_count;
+        } else {
+            ++unknown_count;
+        }
+        items.push_back(std::move(item));
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.source-health.v1\","
+        << "\"status\":\"source-health\","
+        << "\"generatedAt\":\"" << JsonEscape(generated_at) << "\","
+        << "\"summary\":{"
+        << "\"total\":" << items.size() << ","
+        << "\"live\":" << live_count << ","
+        << "\"connecting\":" << connecting_count << ","
+        << "\"stale\":" << stale_count << ","
+        << "\"offline\":" << offline_count << ","
+        << "\"unknown\":" << unknown_count
+        << "},\"sourceHealth\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendOpsSourceHealthItemJson(out, items[i]);
+    }
+    out << "]}";
+    return out.str();
+}
+
 std::filesystem::path OpsAuditStoragePath(const app::AppConfig& config) {
     std::filesystem::path base = config.source_registry_path.empty()
                                      ? std::filesystem::path(".")
@@ -10123,6 +10260,19 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                return *auth_response;
 	                            }
 	                            HttpResponse ok = JsonResponse(200, "OK", runtime_status_body());
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
+	                        }
+
+	                        if (request.method == "GET" && request.path == "/ops/api/source-health") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            HttpResponse ok = JsonResponse(
+	                                200,
+	                                "OK",
+	                                OpsSourceHealthJson(impl_->session_manager.AnalysisTapSnapshots(),
+	                                                    WebRtcSourceRegistry::Instance().Snapshots()));
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
 	                        }

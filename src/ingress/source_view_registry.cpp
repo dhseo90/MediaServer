@@ -1351,6 +1351,25 @@ RegistryResult SourceViewRegistry::ResolveClientViewAccess(const std::string& vi
                                      ClientPublishedViewJson(access->view, access->source) + "}");
 }
 
+bool SourceViewRegistry::Snapshot(std::vector<SourceRecord>* sources,
+                                  std::vector<PublishedViewRecord>* views,
+                                  std::string* error_message) {
+    std::lock_guard lock(mu_);
+    if (!EnsureLoadedLocked(error_message)) {
+        return false;
+    }
+    if (sources != nullptr) {
+        *sources = sources_;
+    }
+    if (views != nullptr) {
+        *views = views_;
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
 RegistryResult SourceViewRegistry::CreateSource(const std::string& body) {
     std::lock_guard lock(mu_);
     std::string load_error;
