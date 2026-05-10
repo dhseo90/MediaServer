@@ -41,12 +41,12 @@
 - `/ops/dashboard` 문제 원인 패널의 source health 요약과 Dashboard 이동 흐름
 - client dashboard/live detail의 sanitized health summary
 - `SessionManager` source restart 기반 `reconnectCount`, `lastReconnectAt` 연동
+- active stream descriptor와 WHIP published descriptor 기반 codec/profile/width/height/fps 연동
 - `verify-ops-root-cause-panel`, `verify-client-dashboard-polish`,
   `verify-ops-source-lifecycle`, `verify-ops-client-ui --screenshots` smoke 기준
 
 후속 예정:
 
-- codec profile/fps 추출
 - bulk health check 서버 계약과 partial failure retry 정책
 
 ## 상태 모델
@@ -94,11 +94,11 @@ codec mismatch, high reconnect, metadata delay 같은 조건은 `warnings[]`로 
       "reconnectCount": 0,
       "lastReconnectAt": null,
       "codec": {
-        "video": null,
-        "profile": null,
+        "video": "h264",
+        "profile": "high",
         "width": 1920,
         "height": 1080,
-        "fps": null
+        "fps": 30
       },
       "warnings": []
     }
@@ -113,7 +113,8 @@ codec mismatch, high reconnect, metadata delay 같은 조건은 `warnings[]`로 
 - `lastFrameAgeMs`와 `lastMetadataAgeMs`는 값이 없으면 `null`로 둡니다.
 - `reconnectCount`는 `SessionManager`의 프로세스 runtime source restart 기준이며
   registry 누적 값과 섞지 않습니다.
-- `codec`은 확인된 값만 넣고 추정값은 넣지 않습니다.
+- `codec`은 active `SharedStream` descriptor 또는 WHIP published descriptor에서
+  확인된 값만 넣고 추정값은 넣지 않습니다.
 - `warnings[]`는 operator action을 돕는 짧은 machine-readable token으로 둡니다.
 
 ## Client Sanitized Health

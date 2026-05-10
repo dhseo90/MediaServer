@@ -103,6 +103,8 @@ check("server entrypoint includes root cause verifier", () => {
   assert(httpServer.includes("OpsDiagnosticLogTailJson"), "server is missing diagnostics log-tail JSON builder");
   assert(httpServer.includes("SourceReconnectStatsSnapshot"), "source health API is missing reconnect stats snapshot");
   assert(httpServer.includes("OpsHealthReconnectStatsForSource"), "source health API is missing source reconnect matcher");
+  assert(httpServer.includes("SourceDescriptorSnapshots"), "source health API is missing descriptor snapshots");
+  assert(httpServer.includes("ApplyOpsSourceHealthCodec"), "source health API is missing descriptor codec mapping");
 });
 
 let failCount = 0;

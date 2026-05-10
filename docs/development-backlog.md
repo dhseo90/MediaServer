@@ -250,10 +250,12 @@ Ops UI 구현, state-dump extension, smoke matrix 구현을 포함하지 않습�
     `connectionStatus`, frame/metadata status 정렬
   - `SessionManager` source restart 통계 기반 `reconnectCount`,
     `lastReconnectAt` 연동
+  - active stream descriptor와 WHIP published descriptor 기반 codec/profile/fps 표시
   - `verify-ops-root-cause-panel`, `verify-client-dashboard-polish`,
     `verify-ops-source-lifecycle`, `verify-ops-client-ui --screenshots` 기준 반영
 - 제한:
-  codec profile/fps는 아직 실제 codec probe와 연결하지 않았습니다.
+  codec profile/fps는 active descriptor에서 확인되는 값만 표시하며,
+  descriptor에 없는 값은 추정하지 않고 `null`로 둡니다.
 - 주의:
   client/viewer 응답에는 source URL, ONVIF endpoint, credential reference,
   raw diagnostic JSON을 노출하지 않습니다.

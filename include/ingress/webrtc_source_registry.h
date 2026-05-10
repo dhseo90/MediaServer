@@ -28,6 +28,7 @@ public:
         bool has_video{false};
         bool has_audio{false};
         std::size_t subscriber_count{0};
+        std::optional<media::StreamDescriptor> descriptor;
     };
 
     explicit PublishedWebRtcSource(std::string source_id);

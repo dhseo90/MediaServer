@@ -7007,17 +7007,163 @@ const core::SessionManager::SourceReconnectStats* OpsHealthReconnectStatsForSour
     return it == reconnect_stats.end() ? nullptr : &*it;
 }
 
+const media::StreamDescriptor* OpsHealthDescriptorForSource(
+    const SourceViewRegistry::SourceRecord& source,
+    const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots) {
+    const auto candidates = ClientStreamKeyCandidates(source);
+    const auto it = std::find_if(descriptor_snapshots.begin(), descriptor_snapshots.end(), [&](const auto& snapshot) {
+        return std::find(candidates.begin(), candidates.end(), snapshot.stream_key) != candidates.end();
+    });
+    return it == descriptor_snapshots.end() ? nullptr : &it->descriptor;
+}
+
+std::optional<std::string> CapsFieldValue(const std::string& caps, const std::string& key) {
+    std::size_t start = 0;
+    while (start < caps.size()) {
+        const std::size_t end = caps.find(',', start);
+        std::string token = Trim(caps.substr(start, end == std::string::npos ? std::string::npos : end - start));
+        if (end == std::string::npos) {
+            start = caps.size();
+        } else {
+            start = end + 1;
+        }
+
+        const std::size_t equals = token.find('=');
+        if (equals == std::string::npos) {
+            continue;
+        }
+        if (Trim(token.substr(0, equals)) != key) {
+            continue;
+        }
+
+        std::string value = Trim(token.substr(equals + 1));
+        if (!value.empty() && value.front() == '(') {
+            const std::size_t type_end = value.find(')');
+            if (type_end != std::string::npos) {
+                value = Trim(value.substr(type_end + 1));
+            }
+        }
+        if (value.size() >= 2 &&
+            ((value.front() == '"' && value.back() == '"') ||
+             (value.front() == '\'' && value.back() == '\''))) {
+            value = value.substr(1, value.size() - 2);
+        }
+        value = Trim(std::move(value));
+        if (!value.empty()) {
+            return value;
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::int64_t> ParsePositiveInt64Text(const std::string& raw) {
+    const std::string value = Trim(raw);
+    if (value.empty()) {
+        return std::nullopt;
+    }
+    try {
+        std::size_t consumed = 0;
+        const std::int64_t parsed = std::stoll(value, &consumed, 10);
+        if (consumed != value.size() || parsed <= 0) {
+            return std::nullopt;
+        }
+        return parsed;
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
+std::optional<std::int64_t> CapsIntField(const std::string& caps, const std::string& key) {
+    const auto value = CapsFieldValue(caps, key);
+    if (!value.has_value()) {
+        return std::nullopt;
+    }
+    return ParsePositiveInt64Text(*value);
+}
+
+std::optional<std::int64_t> CapsFpsField(const std::string& caps) {
+    const auto value = CapsFieldValue(caps, "framerate");
+    if (!value.has_value()) {
+        return std::nullopt;
+    }
+    const std::string fps = Trim(*value);
+    const std::size_t slash = fps.find('/');
+    if (slash == std::string::npos) {
+        return ParsePositiveInt64Text(fps);
+    }
+
+    const auto numerator = ParsePositiveInt64Text(fps.substr(0, slash));
+    const auto denominator = ParsePositiveInt64Text(fps.substr(slash + 1));
+    if (!numerator.has_value() || !denominator.has_value() || *denominator <= 0) {
+        return std::nullopt;
+    }
+    const std::int64_t rounded = (*numerator + (*denominator / 2)) / *denominator;
+    return rounded > 0 ? std::optional<std::int64_t>(rounded) : std::nullopt;
+}
+
+const media::TrackInfo* OpsHealthVideoTrack(const media::StreamDescriptor& descriptor) {
+    const auto it = std::find_if(descriptor.tracks.begin(), descriptor.tracks.end(), [](const auto& track) {
+        return track.kind == media::MediaKind::Video;
+    });
+    return it == descriptor.tracks.end() ? nullptr : &*it;
+}
+
+std::string OpsHealthCodecVideoName(const media::TrackInfo& track) {
+    const std::string codec = media::ToString(track.codec);
+    if (!codec.empty() && codec != "unknown") {
+        return codec;
+    }
+    std::string name = LowerAscii(Trim(track.codec_name));
+    const std::string prefix = "video/x-";
+    if (name.rfind(prefix, 0) == 0) {
+        name = name.substr(prefix.size());
+    }
+    return name == "unknown" ? std::string{} : name;
+}
+
+void ApplyOpsSourceHealthCodec(OpsSourceHealthItem* item, const media::StreamDescriptor* descriptor) {
+    if (item == nullptr || descriptor == nullptr) {
+        return;
+    }
+    const auto* video_track = OpsHealthVideoTrack(*descriptor);
+    if (video_track == nullptr) {
+        return;
+    }
+
+    const std::string codec_name = OpsHealthCodecVideoName(*video_track);
+    if (!codec_name.empty()) {
+        item->codec_video = codec_name;
+    }
+
+    if (!video_track->caps_string.empty()) {
+        if (const auto profile = CapsFieldValue(video_track->caps_string, "profile"); profile.has_value()) {
+            item->codec_profile = *profile;
+        }
+        if (const auto width = CapsIntField(video_track->caps_string, "width"); width.has_value()) {
+            item->codec_width = *width;
+        }
+        if (const auto height = CapsIntField(video_track->caps_string, "height"); height.has_value()) {
+            item->codec_height = *height;
+        }
+        if (const auto fps = CapsFpsField(video_track->caps_string); fps.has_value()) {
+            item->codec_fps = *fps;
+        }
+    }
+}
+
 void ClassifyOpsSourceHealth(OpsSourceHealthItem* item,
                              const SourceViewRegistry::SourceRecord& source,
                              const SourceViewRegistry::PublishedViewRecord* view,
                              const analysis::AnalysisManager::TapSnapshot* tap,
                              const PublishedWebRtcSource::Snapshot* published_source,
+                             const media::StreamDescriptor* descriptor,
                              const core::SessionManager::SourceReconnectStats* reconnect_stats,
                              const std::string& checked_at) {
     if (item == nullptr) {
         return;
     }
     item->checked_at = checked_at;
+    ApplyOpsSourceHealthCodec(item, descriptor);
     if (reconnect_stats != nullptr) {
         item->reconnect_count = reconnect_stats->reconnect_count;
         if (reconnect_stats->last_reconnect_at_ms > 0) {
@@ -7100,6 +7246,7 @@ void ClassifyOpsSourceHealth(OpsSourceHealthItem* item,
 
 std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
                                 const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
+                                const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
                                 const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats) {
     std::vector<SourceViewRegistry::SourceRecord> sources;
     std::vector<SourceViewRegistry::PublishedViewRecord> views;
@@ -7123,8 +7270,12 @@ std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::Tap
         const auto* view = OpsHealthViewForSource(views, source.source_id);
         const auto* tap = OpsHealthTapForSource(source, analysis_taps);
         const auto* published_source = OpsHealthPublishedSourceFor(source, publish_sources);
+        const media::StreamDescriptor* descriptor = OpsHealthDescriptorForSource(source, descriptor_snapshots);
+        if (descriptor == nullptr && published_source != nullptr && published_source->descriptor.has_value()) {
+            descriptor = &*published_source->descriptor;
+        }
         const auto* stats = OpsHealthReconnectStatsForSource(source, reconnect_stats);
-        ClassifyOpsSourceHealth(&item, source, view, tap, published_source, stats, generated_at);
+        ClassifyOpsSourceHealth(&item, source, view, tap, published_source, descriptor, stats, generated_at);
         if (item.status == "live") {
             ++live_count;
         } else if (item.status == "connecting") {
@@ -10493,6 +10644,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                "OK",
 	                                OpsSourceHealthJson(impl_->session_manager.AnalysisTapSnapshots(),
 	                                                    WebRtcSourceRegistry::Instance().Snapshots(),
+	                                                    impl_->session_manager.SourceDescriptorSnapshots(),
 	                                                    impl_->session_manager.SourceReconnectStatsSnapshot()));
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;

@@ -56,6 +56,11 @@ public:
         std::int64_t last_reconnect_at_ms{0};
     };
 
+    struct SourceDescriptorSnapshot {
+        StreamKey stream_key;
+        media::StreamDescriptor descriptor;
+    };
+
     SessionManager(StreamRegistry& registry, ResourceGuard& resource_guard);
     ~SessionManager() = default;
 
@@ -65,6 +70,7 @@ public:
     // 다채널 검증에서 session 수와 dedup stream 수가 기대대로 움직이는지 확인한다.
     RuntimeStateSnapshot GetRuntimeStateSnapshot() const;
     std::vector<SourceReconnectStats> SourceReconnectStatsSnapshot() const;
+    std::vector<SourceDescriptorSnapshot> SourceDescriptorSnapshots() const;
     AnalysisTapResult AttachAnalysisTap(const media::IngressRequest& request, analysis::AnalysisProfile profile);
     AnalysisTapDetachResult DetachAnalysisTapRef(const std::string& tap_id);
     bool DetachAnalysisTap(const std::string& tap_id);
@@ -90,6 +96,7 @@ private:
 
     struct AnalysisTapEntry {
         StreamKey stream_key;
+        std::shared_ptr<SharedStream> stream;
         media::SourceSpec::Kind source_kind{media::SourceSpec::Kind::File};
         std::string reuse_key;
         std::size_t ref_count{0};

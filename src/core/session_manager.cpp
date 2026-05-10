@@ -260,6 +260,51 @@ std::vector<SessionManager::SourceReconnectStats> SessionManager::SourceReconnec
     return stats;
 }
 
+std::vector<SessionManager::SourceDescriptorSnapshot> SessionManager::SourceDescriptorSnapshots() const {
+    std::vector<std::pair<StreamKey, std::shared_ptr<SharedStream>>> streams;
+    {
+        std::lock_guard lock(mu_);
+        streams.reserve(sessions_.size() + analysis_taps_.size());
+        for (const auto& [_, entry] : sessions_) {
+            if (entry.stream != nullptr) {
+                streams.emplace_back(entry.stream_key, entry.stream);
+            }
+        }
+        for (const auto& [_, entry] : analysis_taps_) {
+            if (entry.stream != nullptr) {
+                streams.emplace_back(entry.stream_key, entry.stream);
+            }
+        }
+    }
+
+    std::sort(streams.begin(), streams.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.first < rhs.first;
+    });
+    streams.erase(std::unique(streams.begin(),
+                              streams.end(),
+                              [](const auto& lhs, const auto& rhs) {
+                                  return lhs.first == rhs.first;
+                              }),
+                  streams.end());
+
+    std::vector<SourceDescriptorSnapshot> snapshots;
+    snapshots.reserve(streams.size());
+    for (const auto& [stream_key, stream] : streams) {
+        if (stream == nullptr) {
+            continue;
+        }
+        const auto descriptor = stream->descriptor();
+        if (!descriptor.has_value()) {
+            continue;
+        }
+        snapshots.push_back(SourceDescriptorSnapshot{
+            .stream_key = stream_key,
+            .descriptor = *descriptor,
+        });
+    }
+    return snapshots;
+}
+
 SessionManager::AnalysisTapResult SessionManager::AttachAnalysisTap(const media::IngressRequest& request,
                                                                     analysis::AnalysisProfile profile) {
     std::string parse_error;
@@ -367,6 +412,7 @@ SessionManager::AnalysisTapResult SessionManager::AttachAnalysisTap(const media:
         std::lock_guard lock(mu_);
         auto& entry = analysis_taps_[attach_result.tap_id];
         entry.stream_key = key;
+        entry.stream = acquired.stream;
         entry.source_kind = source_spec->kind;
         entry.reuse_key = attach_result.reuse_key;
         entry.ref_count = entry.ref_count == 0 ? 1 : entry.ref_count + 1;

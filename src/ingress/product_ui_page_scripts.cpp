@@ -5227,12 +5227,13 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     };
     const sourceHealthCodecSummary = health => {
       const codec = health?.codec || {};
+      const video = codec.video ? String(codec.video).toUpperCase() : '코덱 미확인';
       const resolution = Number(codec.width || 0) > 0 && Number(codec.height || 0) > 0
         ? `${codec.width}x${codec.height}`
         : '해상도 미확인';
       const profile = codec.profile ? ` · ${codec.profile}` : '';
       const fps = codec.fps ? ` · ${codec.fps}fps` : '';
-      return `${resolution}${profile}${fps}`;
+      return `${video} · ${resolution}${profile}${fps}`;
     };
     const sourceHealthForChannel = id => loadedSourceHealth.find(item => String(item.sourceId || '') === String(id || '')) || null;
     const sourceHealthLastSeenText = health => {
