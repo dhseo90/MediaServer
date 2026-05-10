@@ -45,6 +45,7 @@
 - active stream descriptor와 WHIP published descriptor 기반 codec/profile/width/height/fps 연동
 - source health bulk check의 partial failure와 failed-only retry 계약
 - source health 상태 변화의 짧은 Ops audit trail 기록
+- `verify-ops-source-lifecycle` auto-start/settle/port cleanup 전제 자동화
 - `verify-ops-root-cause-panel`, `verify-client-dashboard-polish`,
   `verify-ops-source-lifecycle`, `verify-ops-source-health-bulk`,
   `verify-ops-audit-trail`,
@@ -223,6 +224,13 @@ git diff --check -- README.md docs
 ./server.sh verify-ops-source-health-bulk
 ./server.sh verify-ops-audit-trail
 ```
+
+`verify-ops-source-lifecycle`는 기본적으로 `http://127.0.0.1:8081` 서버가
+없으면 임시 auth-off 서버를 자동 시작합니다. 자동 시작 서버는
+`MEDIA_SERVER_SKIP_LOCAL_ENV=1`, 임시 source registry/users file,
+`MEDIA_SERVER_FORCE_RTSP_TCP=1`을 사용하고 검증이 끝나면 종료합니다.
+이미 실행 중인 서버를 지정하려면 `--http-base`를 사용하고,
+자동 시작을 끄려면 `--auto-start=0`을 사용합니다.
 
 구현 단계 후보:
 

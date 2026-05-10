@@ -253,6 +253,7 @@ Ops UI 구현, state-dump extension, smoke matrix 구현을 포함하지 않습�
   - active stream descriptor와 WHIP published descriptor 기반 codec/profile/fps 표시
   - `POST /ops/api/source-health/bulk` partial retry 계약
   - source health `status/reason` 변화의 짧은 Ops audit trail 기록
+  - `verify-ops-source-lifecycle` auto-start/settle/port cleanup 전제 자동화
   - `verify-ops-root-cause-panel`, `verify-client-dashboard-polish`,
     `verify-ops-source-lifecycle`, `verify-ops-source-health-bulk`,
     `verify-ops-audit-trail`, `verify-ops-client-ui --screenshots` 기준 반영
