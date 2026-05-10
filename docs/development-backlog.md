@@ -251,6 +251,7 @@ Ops UI 구현, state-dump extension, smoke matrix 구현을 포함하지 않습�
   - `SessionManager` source restart 통계 기반 `reconnectCount`,
     `lastReconnectAt` 연동
   - active stream descriptor와 WHIP published descriptor 기반 codec/profile/fps 표시
+  - Published WebRTC source의 active egress session 기반 `no-egress-session` 판정
   - `POST /ops/api/source-health/bulk` partial retry 계약
   - source health `status/reason` 변화의 짧은 Ops audit trail 기록
   - `verify-ops-source-lifecycle` auto-start/settle/port cleanup 전제 자동화

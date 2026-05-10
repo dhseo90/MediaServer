@@ -62,7 +62,7 @@
 | 상태 | 의미 | 대표 이유 |
 | --- | --- | --- |
 | `live` | 최근 frame 또는 metadata가 stale 기준 안에 있음 | `receiving` |
-| `connecting` | source/session 생성 또는 재연결 중 | `initializing`, `retrying` |
+| `connecting` | source/session 생성 또는 재연결 중 | `initializing`, `retrying`, `no-egress-session` |
 | `stale` | 마지막 frame age가 stale 기준을 넘음 | `last-frame-aged`, `metadata-aged` |
 | `offline` | source 도달 실패 또는 구성이 비활성 | `unreachable`, `disabled`, `no-subscriber` |
 | `unknown` | 아직 health check가 실행되지 않음 | `not-checked` |
@@ -122,6 +122,9 @@ codec mismatch, high reconnect, metadata delay 같은 조건은 `warnings[]`로 
 - `codec`은 active `SharedStream` descriptor 또는 WHIP published descriptor에서
   확인된 값만 넣고 추정값은 넣지 않습니다.
 - `warnings[]`는 operator action을 돕는 짧은 machine-readable token으로 둡니다.
+- Published WebRTC source가 video descriptor를 가진 채 active여도 실제 egress
+  session이 없으면 `connecting/no-egress-session`으로 판단하고
+  `published-source-ready`, `no-egress-session` warning을 표시합니다.
 
 ## Client Sanitized Health
 

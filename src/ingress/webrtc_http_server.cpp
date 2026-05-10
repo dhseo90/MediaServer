@@ -7021,6 +7021,16 @@ const core::SessionManager::SourceReconnectStats* OpsHealthReconnectStatsForSour
     return it == reconnect_stats.end() ? nullptr : &*it;
 }
 
+const core::SessionManager::SourceEgressStats* OpsHealthEgressStatsForSource(
+    const SourceViewRegistry::SourceRecord& source,
+    const std::vector<core::SessionManager::SourceEgressStats>& egress_stats) {
+    const auto candidates = ClientStreamKeyCandidates(source);
+    const auto it = std::find_if(egress_stats.begin(), egress_stats.end(), [&](const auto& stats) {
+        return std::find(candidates.begin(), candidates.end(), stats.stream_key) != candidates.end();
+    });
+    return it == egress_stats.end() ? nullptr : &*it;
+}
+
 const media::StreamDescriptor* OpsHealthDescriptorForSource(
     const SourceViewRegistry::SourceRecord& source,
     const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots) {
@@ -7172,6 +7182,7 @@ void ClassifyOpsSourceHealth(OpsSourceHealthItem* item,
                              const PublishedWebRtcSource::Snapshot* published_source,
                              const media::StreamDescriptor* descriptor,
                              const core::SessionManager::SourceReconnectStats* reconnect_stats,
+                             const core::SessionManager::SourceEgressStats* egress_stats,
                              const std::string& checked_at) {
     if (item == nullptr) {
         return;
@@ -7241,8 +7252,16 @@ void ClassifyOpsSourceHealth(OpsSourceHealthItem* item,
 
     if (published_source != nullptr) {
         if (published_source->active && published_source->has_video) {
-            item->status = "live";
-            item->reason = "receiving";
+            const bool has_egress_session = egress_stats != nullptr && egress_stats->session_count > 0;
+            if (has_egress_session) {
+                item->status = "live";
+                item->reason = "receiving";
+            } else {
+                item->status = "connecting";
+                item->reason = "no-egress-session";
+                AddOpsSourceHealthWarning(item, "published-source-ready");
+                AddOpsSourceHealthWarning(item, "no-egress-session");
+            }
         } else if (published_source->active) {
             item->status = "connecting";
             item->reason = "initializing";
@@ -7262,7 +7281,8 @@ OpsSourceHealthSnapshot BuildOpsSourceHealthSnapshot(
     const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
     const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
     const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
-    const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats) {
+    const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
+    const std::vector<core::SessionManager::SourceEgressStats>& egress_stats) {
     OpsSourceHealthSnapshot snapshot;
     std::vector<SourceViewRegistry::SourceRecord> sources;
     std::vector<SourceViewRegistry::PublishedViewRecord> views;
@@ -7286,7 +7306,16 @@ OpsSourceHealthSnapshot BuildOpsSourceHealthSnapshot(
             descriptor = &*published_source->descriptor;
         }
         const auto* stats = OpsHealthReconnectStatsForSource(source, reconnect_stats);
-        ClassifyOpsSourceHealth(&item, source, view, tap, published_source, descriptor, stats, snapshot.generated_at);
+        const auto* egress = OpsHealthEgressStatsForSource(source, egress_stats);
+        ClassifyOpsSourceHealth(&item,
+                                source,
+                                view,
+                                tap,
+                                published_source,
+                                descriptor,
+                                stats,
+                                egress,
+                                snapshot.generated_at);
         if (item.status == "live") {
             ++snapshot.live_count;
         } else if (item.status == "connecting") {
@@ -7322,10 +7351,11 @@ std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::Tap
                                 const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
                                 const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
                                 const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
+                                const std::vector<core::SessionManager::SourceEgressStats>& egress_stats,
                                 const app::AppConfig* audit_config,
                                 const auth::Principal* audit_principal) {
     const auto snapshot =
-        BuildOpsSourceHealthSnapshot(analysis_taps, publish_sources, descriptor_snapshots, reconnect_stats);
+        BuildOpsSourceHealthSnapshot(analysis_taps, publish_sources, descriptor_snapshots, reconnect_stats, egress_stats);
     if (!snapshot.ok) {
         return "{\"ok\":false,\"schema\":\"media-server.ops.source-health.v1\",\"error\":\"" +
                JsonEscape(snapshot.error) + "\"}";
@@ -7367,10 +7397,11 @@ std::string OpsSourceHealthBulkJson(
     const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
     const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
     const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
+    const std::vector<core::SessionManager::SourceEgressStats>& egress_stats,
     const app::AppConfig* audit_config,
     const auth::Principal* audit_principal) {
     const auto snapshot =
-        BuildOpsSourceHealthSnapshot(analysis_taps, publish_sources, descriptor_snapshots, reconnect_stats);
+        BuildOpsSourceHealthSnapshot(analysis_taps, publish_sources, descriptor_snapshots, reconnect_stats, egress_stats);
     if (!snapshot.ok) {
         return "{\"ok\":false,\"schema\":\"media-server.ops.source-health.bulk.v1\",\"error\":\"" +
                JsonEscape(snapshot.error) + "\"}";
@@ -10897,6 +10928,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                                    WebRtcSourceRegistry::Instance().Snapshots(),
 	                                                    impl_->session_manager.SourceDescriptorSnapshots(),
 	                                                    impl_->session_manager.SourceReconnectStatsSnapshot(),
+	                                                    impl_->session_manager.SourceEgressStatsSnapshot(),
 	                                                    &config,
 	                                                    &principal_result.principal));
 	                            ok.headers["Cache-Control"] = "no-store";
@@ -10915,6 +10947,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                                        WebRtcSourceRegistry::Instance().Snapshots(),
 	                                                        impl_->session_manager.SourceDescriptorSnapshots(),
 	                                                        impl_->session_manager.SourceReconnectStatsSnapshot(),
+	                                                        impl_->session_manager.SourceEgressStatsSnapshot(),
 	                                                        &config,
 	                                                        &principal_result.principal));
 	                            ok.headers["Cache-Control"] = "no-store";

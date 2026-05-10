@@ -61,6 +61,12 @@ public:
         media::StreamDescriptor descriptor;
     };
 
+    struct SourceEgressStats {
+        StreamKey stream_key;
+        std::size_t session_count{0};
+        std::size_t analysis_tap_count{0};
+    };
+
     SessionManager(StreamRegistry& registry, ResourceGuard& resource_guard);
     ~SessionManager() = default;
 
@@ -71,6 +77,7 @@ public:
     RuntimeStateSnapshot GetRuntimeStateSnapshot() const;
     std::vector<SourceReconnectStats> SourceReconnectStatsSnapshot() const;
     std::vector<SourceDescriptorSnapshot> SourceDescriptorSnapshots() const;
+    std::vector<SourceEgressStats> SourceEgressStatsSnapshot() const;
     AnalysisTapResult AttachAnalysisTap(const media::IngressRequest& request, analysis::AnalysisProfile profile);
     AnalysisTapDetachResult DetachAnalysisTapRef(const std::string& tap_id);
     bool DetachAnalysisTap(const std::string& tap_id);

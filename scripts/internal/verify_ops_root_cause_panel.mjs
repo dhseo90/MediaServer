@@ -104,6 +104,9 @@ check("server entrypoint includes root cause verifier", () => {
   assert(httpServer.includes("SourceReconnectStatsSnapshot"), "source health API is missing reconnect stats snapshot");
   assert(httpServer.includes("OpsHealthReconnectStatsForSource"), "source health API is missing source reconnect matcher");
   assert(httpServer.includes("SourceDescriptorSnapshots"), "source health API is missing descriptor snapshots");
+  assert(httpServer.includes("SourceEgressStatsSnapshot"), "source health API is missing egress stats snapshot");
+  assert(httpServer.includes("OpsHealthEgressStatsForSource"), "source health API is missing source egress matcher");
+  assert(httpServer.includes("no-egress-session"), "source health API is missing WebRTC egress session reason");
   assert(httpServer.includes("ApplyOpsSourceHealthCodec"), "source health API is missing descriptor codec mapping");
 });
 

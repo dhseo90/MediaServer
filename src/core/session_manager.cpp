@@ -305,6 +305,33 @@ std::vector<SessionManager::SourceDescriptorSnapshot> SessionManager::SourceDesc
     return snapshots;
 }
 
+std::vector<SessionManager::SourceEgressStats> SessionManager::SourceEgressStatsSnapshot() const {
+    std::unordered_map<StreamKey, SourceEgressStats> stats_by_stream;
+    {
+        std::lock_guard lock(mu_);
+        for (const auto& [_, entry] : sessions_) {
+            auto& stats = stats_by_stream[entry.stream_key];
+            stats.stream_key = entry.stream_key;
+            ++stats.session_count;
+        }
+        for (const auto& [_, entry] : analysis_taps_) {
+            auto& stats = stats_by_stream[entry.stream_key];
+            stats.stream_key = entry.stream_key;
+            ++stats.analysis_tap_count;
+        }
+    }
+
+    std::vector<SourceEgressStats> stats;
+    stats.reserve(stats_by_stream.size());
+    for (const auto& [_, item] : stats_by_stream) {
+        stats.push_back(item);
+    }
+    std::sort(stats.begin(), stats.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.stream_key < rhs.stream_key;
+    });
+    return stats;
+}
+
 SessionManager::AnalysisTapResult SessionManager::AttachAnalysisTap(const media::IngressRequest& request,
                                                                     analysis::AnalysisProfile profile) {
     std::string parse_error;

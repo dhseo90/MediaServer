@@ -1416,7 +1416,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         'metadata-aged': '메타데이터 지연',
         disabled: '비활성',
         unreachable: '연결 불가',
-        'no-subscriber': '구독 세션 없음'
+        'no-subscriber': '구독 세션 없음',
+        'no-egress-session': 'WebRTC egress 세션 없음'
       })[String(reason || '')] || String(reason || '근거 없음');
       const dashboardSourceHealthAge = value => value === null || value === undefined
         ? '미수신'
@@ -1466,7 +1467,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const staleLog = logEvidence('stale|metadata skipped|lastUsedAge|tapId');
         const reconnectLog = logEvidence('reconnect|cleanup|WHIP|publisher|failed to create|event post|event storage');
         const authLog = logEvidence('auth|login|session|scope|ICE|TURN|relay');
-        const sourceHealthLog = logEvidence('source health|last-frame-aged|metadata-aged|no-subscriber|unreachable|waiting-video');
+        const sourceHealthLog = logEvidence('source health|last-frame-aged|metadata-aged|no-subscriber|no-egress-session|unreachable|waiting-video');
         return [
           {
             level: degradedSources.length > 0 ? (healthCounts.offline > 0 ? 'bad' : 'warn') : 'info',
@@ -1487,7 +1488,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               : '/ops/sources#source-health',
             actionLabel: 'Source Health',
             actionKind: 'source-health',
-            actionPatterns: 'source health|last-frame-aged|metadata-aged|no-subscriber|unreachable|waiting-video'
+            actionPatterns: 'source health|last-frame-aged|metadata-aged|no-subscriber|no-egress-session|unreachable|waiting-video'
           },
           {
             level: stalledResources ? 'warn' : 'info',
@@ -5215,7 +5216,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       'metadata-aged': '메타데이터 지연',
       disabled: '비활성 채널',
       unreachable: 'publish source 비활성',
-      'no-subscriber': '구독 세션 없음'
+      'no-subscriber': '구독 세션 없음',
+      'no-egress-session': 'WebRTC egress 세션 없음'
     })[String(reason || '')] || String(reason || '상태 근거 없음');
     const formatHealthAge = value => {
       if (value === null || value === undefined || value === '') return '미수신';
