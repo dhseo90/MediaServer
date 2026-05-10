@@ -3420,7 +3420,44 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
                                          : std::nullopt;
     const bool frame_stale = last_frame_age.has_value() && *last_frame_age > kClientDashboardStaleMs;
     const bool metadata_stale = metadata_age.has_value() && *metadata_age > kClientDashboardStaleMs;
+    const bool frame_fresh = last_frame_age.has_value() && *last_frame_age <= kClientDashboardStaleMs;
+    const bool metadata_fresh = metadata_age.has_value() && *metadata_age <= kClientDashboardStaleMs;
     const bool stale = frame_stale || metadata_stale;
+    std::string health_status = "offline";
+    if (has_tap) {
+        if (frame_fresh || metadata_fresh) {
+            health_status = "live";
+        } else if (last_frame_age.has_value() || metadata_age.has_value()) {
+            health_status = "stale";
+        } else {
+            health_status = "connecting";
+        }
+    }
+    const std::string connection_status =
+        !has_tap ? "disconnected" : (health_status == "connecting" ? "connecting" : "connected");
+    const std::string video_frame_status =
+        !has_tap ? "unavailable" : (!has_frame ? "connecting" : (frame_stale ? "stale" : "receiving"));
+    const std::string metadata_status =
+        !metadata_allowed
+            ? "unavailable"
+            : (!has_tap ? "unavailable"
+                        : (!has_metadata ? "connecting" : (metadata_stale ? "stale" : "fresh")));
+    const std::string warning_level =
+        (!has_tap || health_status == "stale" || stale)
+            ? "warning"
+            : (health_status == "connecting" ? "info" : "normal");
+    std::string health_summary = "receiving";
+    if (!has_tap) {
+        health_summary = "offline";
+    } else if (health_status == "connecting") {
+        health_summary = "waiting-signal";
+    } else if (frame_stale && metadata_stale) {
+        health_summary = "video-and-metadata-delay";
+    } else if (frame_stale) {
+        health_summary = "video-delay";
+    } else if (metadata_stale) {
+        health_summary = "metadata-delay";
+    }
 
     std::optional<std::int64_t> track_count;
     std::optional<std::int64_t> active_event_count;
@@ -3455,18 +3492,13 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     out << "{\"ok\":true,\"view\":";
     AppendClientViewIdentityJson(out, access);
     out << ",\"health\":{"
-        << "\"live\":" << (has_tap && tap->ref_count > 0 ? "true" : "false") << ","
-        << "\"status\":\"" << (has_tap ? "live" : "offline") << "\","
-        << "\"connectionStatus\":\"" << (has_tap ? "connected" : "disconnected") << "\","
-        << "\"videoFrameStatus\":\""
-        << (!has_tap ? "unavailable" : (!has_frame ? "unavailable" : (frame_stale ? "stale" : "receiving")))
-        << "\","
-        << "\"metadataStatus\":\""
-        << (!metadata_allowed ? "unavailable"
-                              : (!has_tap ? "unavailable"
-                                          : (!has_metadata ? "unavailable"
-                                                           : (metadata_stale ? "stale" : "fresh"))))
-        << "\","
+        << "\"live\":" << (health_status == "live" ? "true" : "false") << ","
+        << "\"status\":\"" << JsonEscape(health_status) << "\","
+        << "\"connectionStatus\":\"" << JsonEscape(connection_status) << "\","
+        << "\"videoFrameStatus\":\"" << JsonEscape(video_frame_status) << "\","
+        << "\"metadataStatus\":\"" << JsonEscape(metadata_status) << "\","
+        << "\"warningLevel\":\"" << JsonEscape(warning_level) << "\","
+        << "\"summary\":\"" << JsonEscape(health_summary) << "\","
         << "\"stale\":" << (stale ? "true" : "false") << ","
         << "\"lastFrameAgeMs\":";
     AppendNullableInt64(out, last_frame_age);
@@ -3482,7 +3514,7 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     out << ",\"latestEventTime\":";
     AppendNullableInt64(out, latest_event_time);
     out << "},\"connection\":{"
-        << "\"webrtc\":\"" << (has_tap ? "connected" : "disconnected") << "\","
+        << "\"webrtc\":\"" << JsonEscape(connection_status) << "\","
         << "\"staleMetadataAgeMs\":";
     AppendNullableInt64(out, metadata_age);
     out << ",\"lastFrameAgeMs\":";

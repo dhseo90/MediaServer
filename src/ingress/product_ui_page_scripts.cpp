@@ -103,11 +103,14 @@ void AppendClientShellScript(std::ostringstream& out) {
       return `${Math.round(numeric)}ms`;
     };
     const statusChip = value => {
+      const normalized = String(value);
       const text = display(value);
-      const cls = ['stale', 'offline', 'disconnected', 'warning'].includes(String(value)) ? ' warn' :
-        ['unavailable'].includes(String(value)) ? ' bad' : '';
+      const cls = ['stale', 'offline', 'disconnected', 'warning'].includes(normalized) ? ' warn' :
+        ['unavailable', 'failed', 'error'].includes(normalized) ? ' bad' :
+        ['info', 'connecting'].includes(normalized) ? ' info' : '';
       const label = ({
         warning: '경고',
+        info: '확인 중',
         normal: '정상',
         stale: '지연',
         offline: '오프라인',
@@ -115,9 +118,11 @@ void AppendClientShellScript(std::ostringstream& out) {
         unavailable: '미제공',
         connected: '연결됨',
         connecting: '연결 중',
+        receiving: '수신 중',
+        fresh: '정상',
         live: '라이브',
         metadata: '메타데이터'
-      })[String(value)] || text;
+      })[normalized] || text;
       return `<span class="chip${cls}">${escapeHtml(label)}</span>`;
     };
     const clientStatusLabel = value => ({
@@ -132,7 +137,18 @@ void AppendClientShellScript(std::ostringstream& out) {
       error: '오류',
       closed: '닫힘',
       stale: '지연',
-      fresh: '정상'
+      fresh: '정상',
+      receiving: '수신 중',
+      normal: '정상',
+      warning: '경고'
+    })[String(value)] || display(value);
+    const clientHealthSummaryLabel = value => ({
+      offline: '신호 없음',
+      'waiting-signal': '신호 확인 중',
+      receiving: '영상 수신 중',
+      'video-delay': '영상 지연 확인',
+      'metadata-delay': '메타데이터 지연 확인',
+      'video-and-metadata-delay': '영상/메타데이터 지연 확인'
     })[String(value)] || display(value);
     const emptyState = (title, message, actionHref = '', actionLabel = '') => `
       <div class="empty">
@@ -230,10 +246,17 @@ void AppendClientShellScript(std::ostringstream& out) {
       if (button) setActiveView(button.dataset.viewId);
     });
     const dashboardFieldState = (health = {}, events = {}) => {
+      const status = String(health.status || '');
+      const metadataStatus = String(health.metadataStatus || '');
+      const warningLevel = String(health.warningLevel || '');
       if (events.warning) return { text: '현장 확인 필요', tone: 'warn' };
-      if (['stale', 'offline', 'disconnected', 'warning'].includes(String(health.status || ''))) return { text: '영상 상태 확인', tone: 'warn' };
-      if (['stale', 'warning'].includes(String(health.metadataStatus || ''))) return { text: '메타데이터 지연', tone: 'warn' };
-      if (String(health.status || '') === 'unavailable') return { text: '신호 미제공', tone: 'bad' };
+      if (warningLevel === 'warning' || ['stale', 'offline', 'disconnected', 'warning'].includes(status)) {
+        if (['stale', 'warning'].includes(metadataStatus) && status === 'live') return { text: '메타데이터 지연', tone: 'warn' };
+        return { text: '영상 상태 확인', tone: 'warn' };
+      }
+      if (warningLevel === 'info' || status === 'connecting') return { text: '신호 확인 중', tone: 'info' };
+      if (['stale', 'warning'].includes(metadataStatus)) return { text: '메타데이터 지연', tone: 'warn' };
+      if (status === 'unavailable') return { text: '신호 미제공', tone: 'bad' };
       return { text: '정상 관제 중', tone: '' };
     };
     let clientDashboardCompareFilter = localStorage.getItem('mediaServerClientDashboardCompareFilter') || 'all';
@@ -401,7 +424,8 @@ void AppendClientShellScript(std::ostringstream& out) {
             <div class="client-compare-metrics">
               <span>우선순위 ${escapeHtml(display(clientDashboardComparePriority(item)))}</span>
               <span>현장 ${escapeHtml(clientDashboardPlacePreset(payload).label)}</span>
-              <span>연결 ${escapeHtml(display(health.connectionStatus || health.status))}</span>
+              <span>요약 ${escapeHtml(clientHealthSummaryLabel(health.summary || health.status))}</span>
+              <span>연결 ${escapeHtml(clientStatusLabel(health.connectionStatus || health.status))}</span>
               <span>지연 ${escapeHtml(ms(health.metadataAgeMs))}</span>
               <span>트랙 ${escapeHtml(display(analysis.trackCount))}</span>
               <span>이벤트 ${escapeHtml(display(analysis.activeEventCount))}</span>
@@ -441,6 +465,7 @@ void AppendClientShellScript(std::ostringstream& out) {
           </div>
           <div class="meta">
             <span class="chip${fieldState.tone ? ` ${fieldState.tone}` : ''}">${escapeHtml(fieldState.text)}</span>
+            ${statusChip(health.warningLevel)}
             ${statusChip(health.status)}
             ${statusChip(health.metadataStatus)}
             ${events.warning ? '<span class="chip warn">경고</span>' : ''}
@@ -450,14 +475,14 @@ void AppendClientShellScript(std::ostringstream& out) {
           <h3>현장 요약</h3>
           <div class="summary">
             <div class="metric"><span>현장 상태</span><strong>${escapeHtml(fieldState.text)}</strong></div>
-            <div class="metric"><span>영상 신호</span><strong>${escapeHtml(display(health.videoFrameStatus || health.status))}</strong></div>
+            <div class="metric"><span>상태 요약</span><strong>${escapeHtml(clientHealthSummaryLabel(health.summary || health.status))}</strong></div>
+            <div class="metric"><span>영상 신호</span><strong>${escapeHtml(clientStatusLabel(health.videoFrameStatus || health.status))}</strong></div>
             <div class="metric"><span>데이터 지연</span><strong>${escapeHtml(ms(health.metadataAgeMs))}</strong></div>
-            <div class="metric"><span>점검 권장</span><strong>${events.warning ? '이벤트 확인' : '정기 확인'}</strong></div>
           </div>
         </section>
         <div class="summary">
-          <div class="metric"><span>연결 상태</span><strong>${escapeHtml(display(health.connectionStatus))}</strong></div>
-          <div class="metric"><span>영상 프레임</span><strong>${escapeHtml(display(health.videoFrameStatus))}</strong></div>
+          <div class="metric"><span>연결 상태</span><strong>${escapeHtml(clientStatusLabel(health.connectionStatus))}</strong></div>
+          <div class="metric"><span>영상 프레임</span><strong>${escapeHtml(clientStatusLabel(health.videoFrameStatus))}</strong></div>
           <div class="metric"><span>메타데이터 지연</span><strong>${escapeHtml(ms(health.metadataAgeMs))}</strong></div>
           <div class="metric"><span>마지막 프레임</span><strong>${escapeHtml(ms(connection.lastFrameAgeMs))}</strong></div>
           <div class="metric"><span>트랙</span><strong>${escapeHtml(display(analysis.trackCount))}</strong></div>
@@ -1210,6 +1235,7 @@ void AppendClientShellScript(std::ostringstream& out) {
             </div>
             <div class="meta">
               ${statusChip(tile.status)}
+              ${statusChip(health.warningLevel)}
               ${statusChip(health.metadataStatus)}
               <span class="chip${tileStatusClass(tile.stale ? 'stale' : 'fresh')}" data-selected-stale>${tile.stale ? '지연' : '정상'}</span>
             </div>
@@ -1217,6 +1243,7 @@ void AppendClientShellScript(std::ostringstream& out) {
           <div class="summary">
             <div class="metric"><span>연결</span><strong>${escapeHtml(clientStatusLabel(tile.connectionStatus))}</strong></div>
             <div class="metric"><span>라이브</span><strong>${escapeHtml(clientStatusLabel(health.status || tile.status))}</strong></div>
+            <div class="metric"><span>상태 요약</span><strong>${escapeHtml(clientHealthSummaryLabel(health.summary || health.status))}</strong></div>
             <div class="metric"><span>트랙</span><strong>${escapeHtml(display(tile.trackCount ?? analysis.trackCount))}</strong></div>
             <div class="metric"><span>이벤트</span><strong>${escapeHtml(display(tile.eventCount ?? analysis.activeEventCount))}</strong></div>
             <div class="metric"><span>메타데이터 지연</span><strong>${escapeHtml(ms(health.metadataAgeMs))}</strong></div>
