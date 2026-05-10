@@ -122,6 +122,16 @@ async function runOpsClickFlow(browser, context) {
 
   await clickSelector(browser, "#channel-close", "채널 패널 닫기");
   await assertHidden(browser, "#channel-detail-panel", "채널 패널 닫힘");
+  await clickSelector(browser, "#onvif-import-stub", "ONVIF stub 후보 가져오기");
+  await assertVisible(browser, "#channel-detail-panel", "ONVIF 채널 폼");
+  await assertText(browser, "#onvifImportSummary", "SourceRegistry 저장 없음", "ONVIF import 요약");
+  await assertFormValue(browser, '[name="kind"]', "rtsp", "ONVIF kind");
+  await assertFormValueContains(browser, '[name="rtspUrl"]', "rtsp://192.0.2.10/live/main-", "ONVIF RTSP URL");
+  await assertNoOverflow(browser, `${context.label}:sources-onvif-import`);
+  await clickSelector(browser, "#channel-close", "ONVIF 채널 폼 닫기");
+  await assertHidden(browser, "#channel-detail-panel", "ONVIF 채널 폼 닫힘");
+  steps.push("sources:onvif-import");
+
   await clickSelector(browser, "#channel-bulk-validate", "채널 대량 검증");
   await assertVisible(browser, "#channelBulkDiagnostics", "채널 대량 진단");
   await clickSelector(browser, "[data-select-channel]", "채널 대량 선택");
@@ -455,6 +465,38 @@ async function assertText(browser, selector, expected, description) {
         const node = document.querySelector(${JSON.stringify(selector)});
         const text = (node?.textContent || '').trim();
         return { ok: text.includes(${JSON.stringify(expected)}), text };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  return result;
+}
+
+async function assertFormValue(browser, selector, expected, description) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const node = document.querySelector(${JSON.stringify(selector)});
+        const value = String(node?.value || '');
+        return { ok: value === ${JSON.stringify(expected)}, value };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  return result;
+}
+
+async function assertFormValueContains(browser, selector, expected, description) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const node = document.querySelector(${JSON.stringify(selector)});
+        const value = String(node?.value || '');
+        return { ok: value.includes(${JSON.stringify(expected)}), value };
       })()
     `,
     item => item?.ok === true,

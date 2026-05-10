@@ -4873,6 +4873,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const bulkRollbackButton = document.querySelector('#channel-bulk-rollback');
     const bulkSummary = document.querySelector('#channelBulkSummary');
     const bulkDiagnostics = document.querySelector('#channelBulkDiagnostics');
+    const onvifImportButton = document.querySelector('#onvif-import-stub');
+    const onvifImportSummary = document.querySelector('#onvifImportSummary');
     const streamRoute = ")OPSSOURCES" << stream_route_json << R"OPSSOURCES(";
     const rtspPort = )OPSSOURCES" << rtsp_port << R"OPSSOURCES(;
     let loadedSources = [];
@@ -4883,6 +4885,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     let initializedHashChannel = false;
     let lastChannelBulkResult = null;
     let lastChannelBulkPreview = null;
+    let pendingOnvifSourceDraft = null;
+    let pendingOnvifViewDraft = null;
     const selectedChannelIds = new Set();
     const {
       escapeHtml,
@@ -5101,6 +5105,137 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       let next = 1;
       while (used.has(String(next))) next += 1;
       return String(next);
+    }
+    function clearPendingOnvifDraft() {
+      pendingOnvifSourceDraft = null;
+      pendingOnvifViewDraft = null;
+    }
+    function buildOnvifStubImportCandidate(channelId) {
+      const sourceId = String(channelId || nextChannelId()).trim();
+      const displayName = `ONVIF Stub Live ${sourceId}`;
+      const streamUri = `rtsp://192.0.2.10/live/main-${sourceId}`;
+      return {
+        device: {
+          manufacturer: 'ONVIF',
+          model: 'Stub Live Camera',
+          firmwareVersion: 'simulated',
+          serialNumber: `stub-${sourceId}`
+        },
+        auth: {
+          required: true,
+          plaintextSecretIncluded: false
+        },
+        profiles: [
+          {
+            token: 'profile-main',
+            name: 'Main stream',
+            mediaApi: 'Media2',
+            encoding: 'H264',
+            width: 1920,
+            height: 1080,
+            fps: 30,
+            transport: 'RTSP',
+            streamUri
+          }
+        ],
+        importDecision: {
+          selectedProfileToken: 'profile-main',
+          expectedSourceDraft: {
+            sourceId,
+            displayName,
+            kind: 'rtsp',
+            rtspUrl: streamUri,
+            enabled: true,
+            tags: ['onvif', 'live'],
+            ownerGroup: ''
+          },
+          expectedPublishedViewDraft: {
+            viewId: sourceId,
+            displayName,
+            sourceId,
+            allowedOverlayModes: ['raw', 'va-overlay', 'va-rule'],
+            showDashboard: true,
+            showEvents: true,
+            showMetadataSummary: true,
+            clientGroups: [],
+            maxTiles: 1,
+            enabled: true
+          }
+        }
+      };
+    }
+    function renderOnvifImportSummary(payload = null, errorMessage = '') {
+      if (!onvifImportSummary) return;
+      if (errorMessage) {
+        onvifImportSummary.innerHTML = `<div class="validation-item bad">
+          ${chip('실패', 'bad')}
+          <div><strong>ONVIF draft import 실패</strong><p>${escapeHtml(errorMessage)}</p></div>
+        </div>`;
+        return;
+      }
+      if (!payload?.sourceDraft) {
+        onvifImportSummary.innerHTML = '<div class="empty">카메라가 없어도 stub 후보로 import draft와 채널 폼 연결을 확인할 수 있습니다.</div>';
+        return;
+      }
+      const source = payload.sourceDraft || {};
+      const profile = payload.selectedProfile || {};
+      const candidate = payload.candidate || {};
+      const resolution = profile.width && profile.height ? `${profile.width}x${profile.height}` : '미제공';
+      const tags = Array.isArray(source.tags) ? source.tags : ['onvif', 'live'];
+      const fps = profile.fps ? String(profile.fps) : '미제공';
+      onvifImportSummary.innerHTML = `<div class="validation-item info">
+        ${chip('draft', 'info')}
+        <div><strong>${escapeHtml(source.displayName || source.sourceId || 'ONVIF draft')}</strong>
+        <p>채널 폼에 반영됨 · 저장 전 operator 확인 필요 · SourceRegistry 저장 없음</p>
+        <ul class="compact-list">
+          <li>장치: ${escapeHtml([candidate.manufacturer, candidate.model].filter(Boolean).join(' ') || 'ONVIF stub')}</li>
+          <li>프로파일: ${escapeHtml(profile.name || profile.token || 'main')} · ${escapeHtml(profile.encoding || 'H264')} · ${escapeHtml(resolution)} · ${escapeHtml(fps)}fps</li>
+          <li>채널 ID: ${escapeHtml(source.sourceId || '')} · 태그: ${escapeHtml(tags.join(', ') || 'onvif, live')}</li>
+        </ul></div>
+      </div>`;
+    }
+    function applyOnvifImportDraft(payload) {
+      const source = payload?.sourceDraft || {};
+      const view = payload?.publishedViewDraft || {};
+      const sourceId = String(source.sourceId || view.sourceId || nextChannelId()).trim();
+      pendingOnvifSourceDraft = source;
+      pendingOnvifViewDraft = view;
+      channelForm.reset();
+      channelForm.elements.channelId.value = sourceId;
+      channelForm.elements.displayName.value = view.displayName || source.displayName || `ONVIF ${sourceId}`;
+      channelForm.elements.kind.value = 'rtsp';
+      channelForm.elements.rtspUrl.value = source.rtspUrl || '';
+      channelForm.elements.webrtcSourceId.value = '';
+      channelForm.elements.whepUrl.value = '';
+      channelForm.elements.httpUrl.value = '';
+      currentChannelEnabled = source.enabled !== false && view.enabled !== false;
+      setChannelValidation('');
+      updateKindFields();
+      setOpsDetailPanelOpen(channelPanel, true);
+      syncEditorChrome('new', '');
+      setOpsDetailPanelOpen(channelPanel, true, { scroll: true });
+      channelForm.elements.displayName.focus();
+      renderOnvifImportSummary(payload);
+      setStatus('ONVIF draft를 채널 폼에 반영했습니다. 저장 전 내용을 확인하세요.');
+    }
+    async function importOnvifStubCandidate() {
+      if (!onvifImportButton) return;
+      onvifImportButton.disabled = true;
+      setStatus('ONVIF stub 후보를 draft로 가져오는 중입니다.');
+      try {
+        const sourceId = nextChannelId();
+        const payload = await requestJson('/ops/api/onvif/import-draft', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(buildOnvifStubImportCandidate(sourceId))
+        });
+        applyOnvifImportDraft(payload);
+      } catch (error) {
+        renderOnvifImportSummary(null, error.message || 'unknown error');
+        setStatus(`ONVIF draft import 실패: ${error.message}`, true);
+      } finally {
+        onvifImportButton.disabled = false;
+      }
     }
     function channelRows(sources, views) {
       const rows = sources.map(source => ({
@@ -5457,6 +5592,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       };
     }
     function resetChannelForm(mode = 'new') {
+      clearPendingOnvifDraft();
       channelForm.reset();
       channelForm.elements.channelId.value = nextChannelId();
       currentChannelEnabled = true;
@@ -5469,6 +5605,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       channelForm.elements.channelId.focus();
     }
     function fillChannel(id, mode = 'view') {
+      clearPendingOnvifDraft();
       const source = findSource(id) || {};
       const view = findChannelView(id) || {};
       const isClone = mode === 'clone';
@@ -5527,6 +5664,14 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       if (data.kind === 'webrtc') sourcePayload.webrtcSourceId = (data.webrtcSourceId || '').trim();
       if (data.kind === 'whep') sourcePayload.whepUrl = (data.whepUrl || '').trim();
       if (data.kind === 'http') sourcePayload.httpUrl = (data.httpUrl || '').trim();
+      const onvifSourceMatches = pendingOnvifSourceDraft &&
+        String(pendingOnvifSourceDraft.sourceId || '') === channelId &&
+        pendingOnvifSourceDraft.kind === sourcePayload.kind &&
+        String(pendingOnvifSourceDraft.rtspUrl || '') === String(sourcePayload.rtspUrl || '');
+      if (onvifSourceMatches) {
+        sourcePayload.tags = Array.isArray(pendingOnvifSourceDraft.tags) ? pendingOnvifSourceDraft.tags : ['onvif', 'live'];
+        sourcePayload.ownerGroup = pendingOnvifSourceDraft.ownerGroup || '';
+      }
       const viewPayload = {
         viewId: channelId,
         displayName: data.displayName,
@@ -5541,6 +5686,23 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         maxTiles: 1,
         enabled: currentChannelEnabled
       };
+      const onvifViewMatches = onvifSourceMatches &&
+        pendingOnvifViewDraft &&
+        String(pendingOnvifViewDraft.viewId || channelId) === channelId &&
+        String(pendingOnvifViewDraft.sourceId || channelId) === channelId;
+      if (onvifViewMatches) {
+        viewPayload.defaultRuleId = pendingOnvifViewDraft.defaultRuleId || '';
+        viewPayload.allowedRuleIds = Array.isArray(pendingOnvifViewDraft.allowedRuleIds) ? pendingOnvifViewDraft.allowedRuleIds : [];
+        viewPayload.allowedOverlayModes = Array.isArray(pendingOnvifViewDraft.allowedOverlayModes) && pendingOnvifViewDraft.allowedOverlayModes.length > 0
+          ? pendingOnvifViewDraft.allowedOverlayModes
+          : viewPayload.allowedOverlayModes;
+        viewPayload.showDashboard = pendingOnvifViewDraft.showDashboard !== false;
+        viewPayload.showEvents = pendingOnvifViewDraft.showEvents !== false;
+        viewPayload.showMetadataSummary = pendingOnvifViewDraft.showMetadataSummary !== false;
+        viewPayload.clientGroups = Array.isArray(pendingOnvifViewDraft.clientGroups) ? pendingOnvifViewDraft.clientGroups : [];
+        viewPayload.maxTiles = Math.max(1, Number(pendingOnvifViewDraft.maxTiles || 1));
+        viewPayload.enabled = currentChannelEnabled && pendingOnvifViewDraft.enabled !== false;
+      }
       return { channelId, sourcePayload, viewPayload };
     }
     async function loadAll() {
@@ -5787,6 +5949,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     bulkDisableButton?.addEventListener('click', () => bulkDisableSelectedChannels());
     bulkRetryFailedButton?.addEventListener('click', () => retryFailedChannelBulk());
     bulkRollbackButton?.addEventListener('click', () => rollbackSuccessfulChannelBulk());
+    onvifImportButton?.addEventListener('click', () => importOnvifStubCandidate());
     document.querySelector('#channel-audit-refresh')?.addEventListener('click', () => renderOpsAuditTrail('channel-audit-list', 'channels'));
     renderOpsAuditTrail('channel-audit-list', 'channels');
     loadAll().catch(error => setStatus(error.message, true));

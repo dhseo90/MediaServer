@@ -1625,6 +1625,7 @@ std::string ProductUiCss() {
     .channel-table {
       table-layout: fixed;
     }
+    .channel-onvif-panel,
     .channel-bulk-panel {
       display: grid;
       gap: var(--space-3);
@@ -1901,6 +1902,7 @@ std::string ProductUiCss() {
       .channel-table td {
         grid-template-columns: minmax(108px, 28%) minmax(0, 1fr);
       }
+      .channel-onvif-panel .toolbar,
       .channel-bulk-panel .toolbar,
       .channel-status-actions,
       .channel-stream-actions,

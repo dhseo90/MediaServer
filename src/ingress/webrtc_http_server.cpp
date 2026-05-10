@@ -3841,6 +3841,20 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <span id="status" class="status" aria-live="polite" hidden></span>
           </div>
         </div>
+        <div class="channel-onvif-panel" data-testid="onvif-import-panel">
+          <div class="toolbar">
+            <div>
+              <h4>ONVIF Live Source import</h4>
+              <p>ONVIF 후보를 저장 전 draft로 가져와 채널 폼에서 확인합니다.</p>
+            </div>
+            <div class="actions">
+              <button id="onvif-import-stub" class="button-secondary" type="button">Stub 후보 가져오기</button>
+            </div>
+          </div>
+          <div id="onvifImportSummary" class="validation-list">
+            <div class="empty">카메라가 없어도 stub 후보로 import draft와 채널 폼 연결을 확인할 수 있습니다.</div>
+          </div>
+        </div>
         <div class="channel-bulk-panel" data-testid="channel-bulk-panel">
           <div class="toolbar">
             <div>
