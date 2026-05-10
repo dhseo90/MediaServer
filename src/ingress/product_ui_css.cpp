@@ -1626,7 +1626,8 @@ std::string ProductUiCss() {
       table-layout: fixed;
     }
     .channel-onvif-panel,
-    .channel-bulk-panel {
+    .channel-bulk-panel,
+    .channel-health-panel {
       display: grid;
       gap: var(--space-3);
       margin-bottom: var(--space-4);
@@ -1635,7 +1636,8 @@ std::string ProductUiCss() {
       border-radius: var(--radius-md);
       background: var(--color-surface-raised);
     }
-    .channel-bulk-diagnostics {
+    .channel-bulk-diagnostics,
+    .channel-health-diagnostics {
       min-width: 0;
     }
     .channel-table th,
@@ -1649,6 +1651,7 @@ std::string ProductUiCss() {
     .channel-col-name { width: 16%; }
     .channel-col-kind { width: 118px; }
     .channel-col-status { width: 118px; }
+    .channel-col-health { width: 150px; }
     .channel-col-input { width: auto; }
     .channel-col-live-url,
     .channel-col-va-url { width: 104px; }
@@ -1660,6 +1663,58 @@ std::string ProductUiCss() {
       max-width: 100%;
       overflow-wrap: anywhere;
       word-break: break-word;
+    }
+    .channel-health-stack,
+    .channel-health-detail,
+    .channel-health-metrics {
+      min-width: 0;
+      max-width: 100%;
+    }
+    .channel-health-stack {
+      display: grid;
+      justify-items: start;
+      gap: 4px;
+    }
+    .channel-health-note {
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .channel-health-detail {
+      display: grid;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--color-surface-raised) 72%, transparent 28%);
+    }
+    .channel-health-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--space-2);
+    }
+    .channel-health-metrics span {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+      padding: 8px 10px;
+      border: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent 28%);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+    .channel-health-metrics strong {
+      color: var(--color-text);
+      font-size: 13px;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
     }
     .channel-status-actions {
       display: grid;
@@ -1904,10 +1959,14 @@ std::string ProductUiCss() {
       }
       .channel-onvif-panel .toolbar,
       .channel-bulk-panel .toolbar,
+      .channel-health-panel .toolbar,
       .channel-status-actions,
       .channel-stream-actions,
       .channel-row-actions {
         min-width: 0;
+      }
+      .channel-health-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
     @media (max-width: 1040px) {

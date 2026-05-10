@@ -3888,6 +3888,22 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <div class="empty">채널 상태를 불러오는 중입니다.</div>
           </div>
         </div>
+        <div class="channel-health-panel" data-testid="source-health-panel">
+          <div class="toolbar">
+            <div>
+              <h4>Live Source Health</h4>
+              <p>프레임/메타데이터 수신 상태와 운영 조치 대상을 확인합니다.</p>
+            </div>
+            <div class="actions">
+              <button id="channel-health-refresh" class="button-secondary" type="button">상태 재확인</button>
+              <a class="button-secondary" href="/ops/dashboard#source-health">Dashboard</a>
+            </div>
+          </div>
+          <div id="channelHealthSummary" class="badge-row"><span class="chip">로딩 중</span></div>
+          <div id="channelHealthDiagnostics" class="validation-list channel-health-diagnostics">
+            <div class="empty">source health를 불러오는 중입니다.</div>
+          </div>
+        </div>
         <div class="table-wrap">
           <table class="ops-data-table ops-responsive-table channel-table">
             <colgroup>
@@ -3896,14 +3912,15 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
               <col class="channel-col-name" />
               <col class="channel-col-kind" />
               <col class="channel-col-status" />
+              <col class="channel-col-health" />
               <col class="channel-col-input" />
               <col class="channel-col-live-url" />
               <col class="channel-col-va-url" />
               <col class="channel-col-actions" />
             </colgroup>
 )OPS";
-    AppendTableHead(out, {"선택", "ID", "이름", "종류", "상태", "입력", "라이브 URL", "VA URL", "작업"});
-    out << R"OPS(            <tbody id="channels-body"><tr><td colspan="9">로딩 중</td></tr></tbody>
+    AppendTableHead(out, {"선택", "ID", "이름", "종류", "상태", "Health", "입력", "라이브 URL", "VA URL", "작업"});
+    out << R"OPS(            <tbody id="channels-body"><tr><td colspan="10">로딩 중</td></tr></tbody>
           </table>
         </div>
         <p class="hint" style="margin-top:12px;">RTSP/WHEP는 운영 확인용입니다. 브라우저 재생은 <code>/client/live</code>에서 확인합니다.</p>
@@ -3921,6 +3938,9 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <button id="channel-save-selected" class="button-primary" type="submit" form="channel-form">저장</button>
             <button id="channel-close" class="button-secondary" type="button">닫기</button>
           </div>
+        </div>
+        <div id="channel-detail-health" class="channel-health-detail" data-testid="channel-health-detail">
+          <div class="empty">채널을 선택하면 Live Source Health가 표시됩니다.</div>
         </div>
           <form id="channel-form">
           <div class="channel-editor-intro">

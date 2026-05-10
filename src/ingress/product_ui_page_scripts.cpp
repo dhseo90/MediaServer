@@ -4873,12 +4873,18 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const bulkRollbackButton = document.querySelector('#channel-bulk-rollback');
     const bulkSummary = document.querySelector('#channelBulkSummary');
     const bulkDiagnostics = document.querySelector('#channelBulkDiagnostics');
+    const channelHealthRefresh = document.querySelector('#channel-health-refresh');
+    const channelHealthSummary = document.querySelector('#channelHealthSummary');
+    const channelHealthDiagnostics = document.querySelector('#channelHealthDiagnostics');
+    const channelDetailHealth = document.querySelector('#channel-detail-health');
     const onvifImportButton = document.querySelector('#onvif-import-stub');
     const onvifImportSummary = document.querySelector('#onvifImportSummary');
     const streamRoute = ")OPSSOURCES" << stream_route_json << R"OPSSOURCES(";
     const rtspPort = )OPSSOURCES" << rtsp_port << R"OPSSOURCES(;
     let loadedSources = [];
     let loadedViews = [];
+    let loadedSourceHealth = [];
+    let loadedSourceHealthSummary = null;
     let currentChannelId = '';
     let editorMode = 'view';
     let currentChannelEnabled = true;
@@ -5086,6 +5092,133 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       window.location.href = `/client/live#view=${encodeURIComponent(viewId)}`;
     }
     const chip = (text, tone = '') => `<span class="chip${tone ? ' ' + tone : ''}">${escapeHtml(text)}</span>`;
+    const sourceHealthStatusLabel = status => ({
+      live: '정상',
+      connecting: '연결 중',
+      stale: '지연',
+      offline: '오프라인',
+      unknown: '미확인'
+    })[String(status || 'unknown')] || String(status || '미확인');
+    const sourceHealthTone = status => ({
+      live: '',
+      connecting: 'info',
+      stale: 'warn',
+      offline: 'bad',
+      unknown: 'info'
+    })[String(status || 'unknown')] || 'info';
+    const sourceHealthReasonLabel = reason => ({
+      receiving: '프레임/메타데이터 수신',
+      initializing: '초기 수신 대기',
+      'last-frame-aged': '마지막 프레임 지연',
+      'metadata-aged': '메타데이터 지연',
+      disabled: '비활성 채널',
+      unreachable: 'publish source 비활성',
+      'no-subscriber': '구독 세션 없음'
+    })[String(reason || '')] || String(reason || '상태 근거 없음');
+    const formatHealthAge = value => {
+      if (value === null || value === undefined || value === '') return '미수신';
+      const age = Number(value);
+      if (!Number.isFinite(age) || age < 0) return '미수신';
+      if (age < 1000) return `${Math.round(age)}ms`;
+      if (age < 60000) return `${Math.round(age / 1000)}초`;
+      return `${Math.round(age / 60000)}분`;
+    };
+    const sourceHealthCodecSummary = health => {
+      const codec = health?.codec || {};
+      const resolution = Number(codec.width || 0) > 0 && Number(codec.height || 0) > 0
+        ? `${codec.width}x${codec.height}`
+        : '해상도 미확인';
+      const profile = codec.profile ? ` · ${codec.profile}` : '';
+      const fps = codec.fps ? ` · ${codec.fps}fps` : '';
+      return `${resolution}${profile}${fps}`;
+    };
+    const sourceHealthForChannel = id => loadedSourceHealth.find(item => String(item.sourceId || '') === String(id || '')) || null;
+    const sourceHealthLastSeenText = health => {
+      if (!health) return '상태 미조회';
+      const frame = formatHealthAge(health.lastFrameAgeMs);
+      const metadata = formatHealthAge(health.lastMetadataAgeMs);
+      return `프레임 ${frame} · 메타데이터 ${metadata}`;
+    };
+    const sourceHealthWarningsText = health => {
+      const warnings = Array.isArray(health?.warnings) ? health.warnings.filter(Boolean) : [];
+      return warnings.length ? warnings.join(', ') : '경고 없음';
+    };
+    function sourceHealthCellHtml(health) {
+      if (!health) {
+        return `<div class="channel-health-stack">
+          ${chip('미확인', 'info')}
+          <span class="channel-health-note">source health 미조회</span>
+        </div>`;
+      }
+      return `<div class="channel-health-stack">
+        ${chip(sourceHealthStatusLabel(health.status), sourceHealthTone(health.status))}
+        <span class="channel-health-note">${escapeHtml(sourceHealthReasonLabel(health.reason))}</span>
+        <span class="channel-health-note">${escapeHtml(sourceHealthLastSeenText(health))}</span>
+        <span class="channel-health-note">${escapeHtml(sourceHealthCodecSummary(health))}</span>
+      </div>`;
+    }
+    function renderSourceHealthSummary() {
+      const summary = loadedSourceHealthSummary || {};
+      const total = Number(summary.total ?? loadedSourceHealth.length ?? 0);
+      const live = Number(summary.live ?? loadedSourceHealth.filter(item => item.status === 'live').length);
+      const connecting = Number(summary.connecting ?? loadedSourceHealth.filter(item => item.status === 'connecting').length);
+      const stale = Number(summary.stale ?? loadedSourceHealth.filter(item => item.status === 'stale').length);
+      const offline = Number(summary.offline ?? loadedSourceHealth.filter(item => item.status === 'offline').length);
+      const unknown = Number(summary.unknown ?? loadedSourceHealth.filter(item => item.status === 'unknown').length);
+      if (channelHealthSummary) {
+        channelHealthSummary.innerHTML = [
+          chip(`전체 ${total}`),
+          chip(`정상 ${live}`, live > 0 ? '' : 'info'),
+          chip(`연결 중 ${connecting}`, connecting > 0 ? 'info' : 'info'),
+          chip(`지연 ${stale}`, stale > 0 ? 'warn' : 'info'),
+          chip(`오프라인 ${offline}`, offline > 0 ? 'bad' : 'info'),
+          unknown > 0 ? chip(`미확인 ${unknown}`, 'warn') : ''
+        ].filter(Boolean).join('');
+      }
+      if (!channelHealthDiagnostics) return;
+      const notable = loadedSourceHealth
+        .filter(item => item.status !== 'live' || (Array.isArray(item.warnings) && item.warnings.length > 0))
+        .slice(0, 6);
+      if (notable.length === 0) {
+        channelHealthDiagnostics.innerHTML = '<div class="empty">수신 중인 source health가 정상 범위입니다.</div>';
+        return;
+      }
+      channelHealthDiagnostics.innerHTML = notable.map(item => {
+        const tone = sourceHealthTone(item.status);
+        const level = tone === 'bad' ? 'bad' : (tone === 'warn' ? 'warn' : 'info');
+        return `<div class="validation-item ${level}">
+          ${chip(sourceHealthStatusLabel(item.status), tone)}
+          <div><strong>채널 #${escapeHtml(item.sourceId || '-')} · ${escapeHtml(sourceHealthReasonLabel(item.reason))}</strong>
+          <p>${escapeHtml(sourceHealthLastSeenText(item))} · ${escapeHtml(sourceHealthWarningsText(item))}</p></div>
+        </div>`;
+      }).join('');
+    }
+    function renderChannelDetailHealth(id) {
+      if (!channelDetailHealth) return;
+      const health = sourceHealthForChannel(id);
+      if (!id || !health) {
+        channelDetailHealth.innerHTML = '<div class="empty">Live Source Health가 아직 조회되지 않았습니다.</div>';
+        return;
+      }
+      channelDetailHealth.innerHTML = `<div class="toolbar">
+          <div>
+            <div class="badge-row">${chip(sourceHealthStatusLabel(health.status), sourceHealthTone(health.status))}${chip(sourceHealthReasonLabel(health.reason), 'info')}</div>
+            <h4>Live Source Health</h4>
+            <p>${escapeHtml(sourceHealthWarningsText(health))}</p>
+          </div>
+          <div class="actions">
+            <button type="button" class="button-secondary" data-refresh-source-health="${escapeHtml(id)}">상태 재확인</button>
+            <button type="button" class="button-secondary" data-open-source-health-dashboard="${escapeHtml(id)}">Dashboard</button>
+          </div>
+        </div>
+        <div class="channel-health-metrics">
+          <span>프레임<strong>${escapeHtml(formatHealthAge(health.lastFrameAgeMs))}</strong></span>
+          <span>메타데이터<strong>${escapeHtml(formatHealthAge(health.lastMetadataAgeMs))}</strong></span>
+          <span>재연결<strong>${escapeHtml(String(health.reconnects ?? 0))}회</strong></span>
+          <span>코덱<strong>${escapeHtml(sourceHealthCodecSummary(health))}</strong></span>
+        </div>`;
+      bindSourceHealthActions(channelDetailHealth);
+    }
     const findSource = id => loadedSources.find(source => source.sourceId === id) || null;
     function findView(id) {
       const exact = loadedViews.find(view => view.viewId === id) || null;
@@ -5213,6 +5346,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       updateKindFields();
       setOpsDetailPanelOpen(channelPanel, true);
       syncEditorChrome('new', '');
+      renderChannelDetailHealth('');
       setOpsDetailPanelOpen(channelPanel, true, { scroll: true });
       channelForm.elements.displayName.focus();
       renderOnvifImportSummary(payload);
@@ -5464,7 +5598,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
 	    function renderChannels(sources, views) {
 	      const rows = channelRows(sources, views);
 	      if (rows.length === 0) {
-	        setTableEmpty(channelBody, 9, '등록된 채널이 없습니다. 채널 추가로 첫 카메라/소스를 등록하세요.');
+	        setTableEmpty(channelBody, 10, '등록된 채널이 없습니다. 채널 추가로 첫 카메라/소스를 등록하세요.');
           renderChannelBulkDiagnostics(false);
 	        return;
       }
@@ -5479,6 +5613,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         const liveButtons = source.sourceId ? streamButtonsForChannel(source, 'raw') : '<span class="hint">소스 미등록</span>';
         const vaButtons = source.sourceId ? streamButtonsForChannel(source, 'va') : '<span class="hint">소스 미등록</span>';
         const channelName = view.displayName || source.displayName || '';
+        const health = sourceHealthForChannel(row.id);
         const inputText = source.sourceId ? locatorForSource(source) : '소스 미등록';
         const checked = selectedChannelIds.has(String(row.id || '')) ? ' checked' : '';
         const selectCellHtml = `<input type="checkbox" data-select-channel="${escapeHtml(row.id || '')}" aria-label="채널 ${escapeHtml(row.id || '')} 선택"${checked} />`;
@@ -5499,6 +5634,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         const actionsCellHtml = opsRowActionsHtml(`
           <button type="button" class="secondary" data-view-channel="${escapeHtml(row.id || '')}">상세</button>
           <button type="button" class="secondary" data-clone-channel="${escapeHtml(row.id || '')}">복제</button>
+          <button type="button" class="secondary" data-refresh-source-health="${escapeHtml(row.id || '')}">상태 재확인</button>
+          <button type="button" class="secondary" data-open-source-health-dashboard="${escapeHtml(row.id || '')}">Dashboard</button>
           <button type="button" class="secondary" data-open-client-live="${escapeHtml(row.id || '')}" ${view?.enabled === false ? 'disabled' : ''}>라이브 보기</button>
           <button type="button" class="danger" data-delete-channel="${escapeHtml(row.id || '')}">삭제</button>
         `, 'channel-row-actions');
@@ -5508,6 +5645,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
           tableCellHtml('이름', escapeHtml(channelName)),
           tableCellHtml('종류', kindCellHtml),
           tableCellHtml('상태', statusCellHtml, 'table-cell-status'),
+          tableCellHtml('Health', sourceHealthCellHtml(health), 'table-cell-status'),
           tableCellHtml('입력', inputCellHtml),
           tableCellHtml('라이브 URL', liveButtons),
           tableCellHtml('VA URL', vaButtons),
@@ -5541,10 +5679,24 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       document.querySelectorAll('[data-open-client-live]').forEach(button => {
         button.addEventListener('click', () => openClientLiveForChannel(button.dataset.openClientLive || ''));
       });
+      bindSourceHealthActions(channelBody);
 	      document.querySelectorAll('[data-delete-channel]').forEach(button => {
 	        button.addEventListener('click', () => deleteChannel(button.dataset.deleteChannel || ''));
 	      });
 	    }
+    function bindSourceHealthActions(root = document) {
+      root.querySelectorAll('[data-refresh-source-health]').forEach(button => {
+        button.addEventListener('click', () => refreshSourceHealth(button.dataset.refreshSourceHealth || ''));
+      });
+      root.querySelectorAll('[data-open-source-health-dashboard]').forEach(button => {
+        button.addEventListener('click', () => {
+          const id = String(button.dataset.openSourceHealthDashboard || '').trim();
+          window.location.href = id
+            ? `/ops/dashboard#source=${encodeURIComponent(id)}`
+            : '/ops/dashboard#source-health';
+        });
+      });
+    }
     async function loadFileOptions(selected = '') {
       const select = channelForm.elements.file;
       try {
@@ -5601,6 +5753,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       loadFileOptions();
       setOpsDetailPanelOpen(channelPanel, true);
       syncEditorChrome(mode, '');
+      renderChannelDetailHealth('');
       setOpsDetailPanelOpen(channelPanel, true, { scroll: true });
       channelForm.elements.channelId.focus();
     }
@@ -5625,6 +5778,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       setChannelValidation('');
       setOpsDetailPanelOpen(channelPanel, true);
       syncEditorChrome(mode, isClone ? '' : id);
+      renderChannelDetailHealth(isClone ? '' : id);
       setOpsDetailPanelOpen(channelPanel, true, { scroll: true });
     }
     function openChannel(id, mode = 'view') {
@@ -5702,15 +5856,22 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       return { channelId, sourcePayload, viewPayload };
     }
     async function loadAll() {
-      const [sources, views, clientViews] = await Promise.all([
+      const [sources, views, clientViews, sourceHealth] = await Promise.all([
         requestJson('/ops/api/sources'),
         requestJson('/ops/api/views'),
-        requestJson('/client/api/views')
+        requestJson('/client/api/views'),
+        requestJson('/ops/api/source-health')
       ]);
       loadedSources = sources.sources || [];
       loadedViews = views.views || [];
+      loadedSourceHealth = Array.isArray(sourceHealth.sourceHealth) ? sourceHealth.sourceHealth : [];
+      loadedSourceHealthSummary = sourceHealth.summary || null;
+      renderSourceHealthSummary();
       renderChannels(loadedSources, loadedViews);
       renderOpsAuditTrail('channel-audit-list', 'channels');
+      if (currentChannelId) {
+        renderChannelDetailHealth(currentChannelId);
+      }
       if (!initializedHashChannel) {
         initializedHashChannel = true;
         const channelId = String(hashParams().get('channel') || '').trim();
@@ -5719,6 +5880,19 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         }
       }
       setStatus('');
+    }
+    async function refreshSourceHealth(id = '') {
+      try {
+        const sourceHealth = await requestJson('/ops/api/source-health');
+        loadedSourceHealth = Array.isArray(sourceHealth.sourceHealth) ? sourceHealth.sourceHealth : [];
+        loadedSourceHealthSummary = sourceHealth.summary || null;
+        renderSourceHealthSummary();
+        renderChannels(loadedSources, loadedViews);
+        renderChannelDetailHealth(id || currentChannelId);
+        setStatus(id ? `채널 #${id} Live Source Health 재확인 완료` : 'Live Source Health 재확인 완료');
+      } catch (error) {
+        setStatus(`Live Source Health 조회 실패: ${error.message}`, true);
+      }
     }
     channelForm.addEventListener('submit', async event => {
       event.preventDefault();
@@ -5945,6 +6119,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     bulkDisableButton?.addEventListener('click', () => bulkDisableSelectedChannels());
     bulkRetryFailedButton?.addEventListener('click', () => retryFailedChannelBulk());
     bulkRollbackButton?.addEventListener('click', () => rollbackSuccessfulChannelBulk());
+    channelHealthRefresh?.addEventListener('click', () => refreshSourceHealth());
     onvifImportButton?.addEventListener('click', () => importOnvifStubCandidate());
     document.querySelector('#channel-audit-refresh')?.addEventListener('click', () => renderOpsAuditTrail('channel-audit-list', 'channels'));
     renderOpsAuditTrail('channel-audit-list', 'channels');
