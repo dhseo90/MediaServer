@@ -3050,6 +3050,17 @@ std::vector<std::string> ClientStreamKeyCandidates(const SourceViewRegistry::Sou
     const std::string locator = SourceLocatorForClientView(source);
     if (kind.has_value() && !locator.empty()) {
         AddUniqueString(&candidates, core::BuildStreamKey(media::SourceSpec{*kind, locator}));
+        if (*kind == media::SourceSpec::Kind::File) {
+            const std::filesystem::path raw_file(locator);
+            const std::filesystem::path rooted =
+                raw_file.is_absolute() ? raw_file : std::filesystem::path(app::GetAppConfig().file_root_path) / raw_file;
+            std::error_code ec;
+            const auto resolved = std::filesystem::weakly_canonical(rooted, ec);
+            if (!ec && !resolved.empty()) {
+                AddUniqueString(&candidates,
+                                core::BuildStreamKey(media::SourceSpec{*kind, resolved.string()}));
+            }
+        }
     }
     return candidates;
 }
@@ -6880,13 +6891,150 @@ void AppendOpsSourceHealthItemJson(std::ostringstream& out, const OpsSourceHealt
     out << "]}";
 }
 
+void AddOpsSourceHealthWarning(OpsSourceHealthItem* item, const std::string& warning) {
+    if (item == nullptr || warning.empty() ||
+        std::find(item->warnings.begin(), item->warnings.end(), warning) != item->warnings.end()) {
+        return;
+    }
+    item->warnings.push_back(warning);
+}
+
+const SourceViewRegistry::PublishedViewRecord* OpsHealthViewForSource(
+    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+    const std::string& source_id) {
+    const auto exact = std::find_if(views.begin(), views.end(), [&](const auto& view) {
+        return view.view_id == source_id && view.source_id == source_id;
+    });
+    if (exact != views.end()) {
+        return &*exact;
+    }
+    const auto by_source = std::find_if(views.begin(), views.end(), [&](const auto& view) {
+        return view.source_id == source_id;
+    });
+    return by_source == views.end() ? nullptr : &*by_source;
+}
+
+const analysis::AnalysisManager::TapSnapshot* OpsHealthTapForSource(
+    const SourceViewRegistry::SourceRecord& source,
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps) {
+    const auto candidates = ClientStreamKeyCandidates(source);
+    const analysis::AnalysisManager::TapSnapshot* fallback = nullptr;
+    for (const auto& tap : analysis_taps) {
+        if (!ClientTapMatchesSource(tap, candidates)) {
+            continue;
+        }
+        if (fallback == nullptr) {
+            fallback = &tap;
+        }
+        if (tap.has_latest_frame || tap.latest_result.has_value()) {
+            return &tap;
+        }
+    }
+    return fallback;
+}
+
+const PublishedWebRtcSource::Snapshot* OpsHealthPublishedSourceFor(
+    const SourceViewRegistry::SourceRecord& source,
+    const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources) {
+    if (source.kind != "webrtc" || source.webrtc_source_id.empty()) {
+        return nullptr;
+    }
+    const auto it = std::find_if(publish_sources.begin(), publish_sources.end(), [&](const auto& published) {
+        return published.source_id == source.webrtc_source_id;
+    });
+    return it == publish_sources.end() ? nullptr : &*it;
+}
+
+void ClassifyOpsSourceHealth(OpsSourceHealthItem* item,
+                             const SourceViewRegistry::SourceRecord& source,
+                             const SourceViewRegistry::PublishedViewRecord* view,
+                             const analysis::AnalysisManager::TapSnapshot* tap,
+                             const PublishedWebRtcSource::Snapshot* published_source,
+                             const std::string& checked_at) {
+    if (item == nullptr) {
+        return;
+    }
+    item->checked_at = checked_at;
+    if (!source.enabled) {
+        item->status = "offline";
+        item->reason = "disabled";
+        return;
+    }
+    if (view == nullptr) {
+        AddOpsSourceHealthWarning(item, "missing-published-view");
+    } else if (!view->enabled) {
+        AddOpsSourceHealthWarning(item, "view-disabled");
+    }
+
+    if (tap != nullptr) {
+        if (tap->has_latest_frame) {
+            item->last_frame_age_ms = tap->latest_frame_age_ms;
+            if (tap->latest_frame_width > 0) {
+                item->codec_width = tap->latest_frame_width;
+            }
+            if (tap->latest_frame_height > 0) {
+                item->codec_height = tap->latest_frame_height;
+            }
+        }
+        if (tap->latest_result.has_value()) {
+            item->last_metadata_age_ms = tap->latest_result_age_ms;
+        }
+
+        const bool frame_fresh = item->last_frame_age_ms.has_value() &&
+                                 *item->last_frame_age_ms <= kClientDashboardStaleMs;
+        const bool metadata_fresh = item->last_metadata_age_ms.has_value() &&
+                                    *item->last_metadata_age_ms <= kClientDashboardStaleMs;
+        if (frame_fresh || metadata_fresh) {
+            item->status = "live";
+            item->reason = "receiving";
+            if (item->last_frame_age_ms.has_value() && !frame_fresh) {
+                AddOpsSourceHealthWarning(item, "last-frame-aged");
+            }
+            if (item->last_metadata_age_ms.has_value() && !metadata_fresh) {
+                AddOpsSourceHealthWarning(item, "metadata-aged");
+            }
+            return;
+        }
+        if (item->last_frame_age_ms.has_value()) {
+            item->status = "stale";
+            item->reason = "last-frame-aged";
+            return;
+        }
+        if (item->last_metadata_age_ms.has_value()) {
+            item->status = "stale";
+            item->reason = "metadata-aged";
+            return;
+        }
+        item->status = "connecting";
+        item->reason = "initializing";
+        return;
+    }
+
+    if (published_source != nullptr) {
+        if (published_source->active && published_source->has_video) {
+            item->status = "live";
+            item->reason = "receiving";
+        } else if (published_source->active) {
+            item->status = "connecting";
+            item->reason = "initializing";
+            AddOpsSourceHealthWarning(item, "waiting-video");
+        } else {
+            item->status = "offline";
+            item->reason = "unreachable";
+        }
+        return;
+    }
+
+    item->status = "offline";
+    item->reason = "no-subscriber";
+}
+
 std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
                                 const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources) {
-    (void)analysis_taps;
-    (void)publish_sources;
     std::vector<SourceViewRegistry::SourceRecord> sources;
+    std::vector<SourceViewRegistry::PublishedViewRecord> views;
     std::string load_error;
-    if (!SourceViewRegistry::Instance().Snapshot(&sources, nullptr, &load_error)) {
+    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
         return "{\"ok\":false,\"schema\":\"media-server.ops.source-health.v1\",\"error\":\"" +
                JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
     }
@@ -6902,11 +7050,10 @@ std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::Tap
     for (const auto& source : sources) {
         OpsSourceHealthItem item;
         item.source_id = source.source_id;
-        if (!source.enabled) {
-            item.status = "offline";
-            item.reason = "disabled";
-            item.checked_at = generated_at;
-        }
+        const auto* view = OpsHealthViewForSource(views, source.source_id);
+        const auto* tap = OpsHealthTapForSource(source, analysis_taps);
+        const auto* published_source = OpsHealthPublishedSourceFor(source, publish_sources);
+        ClassifyOpsSourceHealth(&item, source, view, tap, published_source, generated_at);
         if (item.status == "live") {
             ++live_count;
         } else if (item.status == "connecting") {
