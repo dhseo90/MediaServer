@@ -1042,6 +1042,8 @@ MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verif
   JSON summary, Markdown report, mode별 비교 table,
   track별 issue table, event/scenario stable delta와
   observed counter delta를 남깁니다.
+  `--fixture-matrix`는 내장 fixture 목록을 순차 실행하고
+  상위 matrix summary/report를 생성합니다.
   리포트의 `Quality Gate` 섹션은 안정 event/scenario 상태 불변 여부,
   tracker association risk 증가 여부, default-on 후보 여부, 권고를 함께 요약합니다.
   `idSwitchRiskScore`, `maxOverlapRisk`, lost/reacquired, spike count,

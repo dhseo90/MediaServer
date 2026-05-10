@@ -543,6 +543,21 @@ mode별 tracker summary JSON과 Markdown report는
 이미 실행 중인 서버를 기준으로만 비교해야 하면 `--use-existing-server --http-base <url>`을 사용합니다.
 이 경우 리포트의 `mode effective`가 `yes`인지 확인해야 합니다.
 
+내장 fixture matrix는 명시적으로 실행합니다.
+
+```bash
+./server.sh compare-close-object-tracker --list-fixtures
+./server.sh compare-close-object-tracker \
+  --fixture-matrix \
+  --fixture-ids tracking-event,tracking-event-long \
+  --modes off,diagnostic,enforce
+```
+
+matrix 실행은 fixture별 `summary.json`/`report.md`와 상위
+`matrix-summary.json`/`matrix-report.md`를 함께 남깁니다.
+파일이 없는 fixture는 기본적으로 skipped이며, release gate처럼 누락을 실패로
+보고 싶으면 `--fail-on-missing-fixtures`를 사용합니다.
+
 비교 기준:
 
 | 범주 | 지표 |

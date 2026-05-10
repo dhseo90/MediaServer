@@ -21,7 +21,34 @@ from typing import Any
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parents[2]
 DEFAULT_FILE = "imports/va_tracking_event_1280x720_30fps_h264.mp4"
+DEFAULT_FILE_ROOT = "video"
 VALID_MODES = {"off", "diagnostic", "enforce"}
+FIXTURE_MATRIX = [
+    {
+        "id": "tracking-event",
+        "file": DEFAULT_FILE,
+        "description": "default close-object tracking event sample",
+        "classWhitelist": "person",
+    },
+    {
+        "id": "tracking-event-long",
+        "file": "imports/va_tracking_event_long_1280x720_30fps_h264.mp4",
+        "description": "longer close-object tracking event sample",
+        "classWhitelist": "person",
+    },
+    {
+        "id": "tracking-event-slow-long",
+        "file": "imports/va_tracking_event_slow_long_1280x720_30fps_h264.mp4",
+        "description": "slow long close-object tracking event sample",
+        "classWhitelist": "person",
+    },
+    {
+        "id": "four-scene-control",
+        "file": "va_four_scene_sample.mp4",
+        "description": "general VA control sample for non-close-object drift",
+        "classWhitelist": "person",
+    },
+]
 STABLE_EVENT_STATE_KEYS = {"activeEventStates"}
 STABLE_SCENARIO_STATE_KEYS = {"activeScenarios"}
 QUALITY_RISK_KEYS = {
@@ -64,6 +91,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--http-port-base", default="8181", help="mode별 격리 서버 HTTP port 탐색 시작값입니다.")
     parser.add_argument("--rtsp-port-base", default="8651", help="mode별 격리 서버 RTSP port 탐색 시작값입니다.")
     parser.add_argument("--startup-timeout", default="20", help="mode별 격리 서버 health 대기 시간(초)입니다.")
+    parser.add_argument("--fixture-matrix", action="store_true", help="내장 close-object fixture matrix를 순차 실행합니다.")
+    parser.add_argument("--fixture-ids", default="", help="--fixture-matrix에서 실행할 fixture id CSV입니다.")
+    parser.add_argument("--max-fixtures", default="", help="--fixture-matrix에서 실행할 최대 fixture 수입니다.")
+    parser.add_argument("--list-fixtures", action="store_true", help="내장 fixture matrix와 파일 존재 여부를 JSON으로 출력합니다.")
+    parser.add_argument("--fail-on-missing-fixtures", action="store_true", help="matrix fixture 파일 누락을 실패로 처리합니다.")
     return parser.parse_args()
 
 
@@ -75,6 +107,51 @@ def mode_list(raw: str) -> list[str]:
     if invalid:
         raise SystemExit(f"invalid mode(s): {', '.join(invalid)}")
     return modes
+
+
+def clone_args(args: argparse.Namespace, **updates: Any) -> argparse.Namespace:
+    payload = vars(args).copy()
+    payload.update(updates)
+    return argparse.Namespace(**payload)
+
+
+def video_root_path() -> pathlib.Path:
+    raw_root = os.environ.get("MEDIA_SERVER_FILE_ROOT") or DEFAULT_FILE_ROOT
+    root = pathlib.Path(raw_root)
+    return root if root.is_absolute() else ROOT_DIR / root
+
+
+def fixture_file_path(file_token: str) -> pathlib.Path:
+    path = pathlib.Path(file_token)
+    return path if path.is_absolute() else video_root_path() / path
+
+
+def fixture_rows() -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for fixture in FIXTURE_MATRIX:
+        path = fixture_file_path(str(fixture["file"]))
+        row = dict(fixture)
+        row["path"] = str(path)
+        row["exists"] = path.exists()
+        rows.append(row)
+    return rows
+
+
+def selected_fixtures(args: argparse.Namespace) -> list[dict[str, Any]]:
+    rows = fixture_rows()
+    if args.fixture_ids:
+        wanted = [item.strip() for item in args.fixture_ids.split(",") if item.strip()]
+        known = {str(item["id"]) for item in rows}
+        unknown = [item for item in wanted if item not in known]
+        if unknown:
+            raise SystemExit(f"unknown fixture id(s): {', '.join(unknown)}")
+        rows = [item for item in rows if str(item["id"]) in wanted]
+    if args.max_fixtures:
+        max_fixtures = int(args.max_fixtures)
+        if max_fixtures <= 0:
+            raise SystemExit("--max-fixtures must be positive")
+        rows = rows[:max_fixtures]
+    return rows
 
 
 def tracker_args(args: argparse.Namespace) -> list[str]:
@@ -688,14 +765,22 @@ def format_cell(value: Any) -> str:
     return str(value).replace("|", "\\|")
 
 
-def main() -> int:
-    args = parse_args()
-    modes = mode_list(args.modes)
-    output_dir = pathlib.Path(args.output_dir) if args.output_dir else pathlib.Path(
-        f"/tmp/media_server_close_object_tracker_{int(dt.datetime.now().timestamp())}_{os.getpid()}"
-    )
-    output_dir.mkdir(parents=True, exist_ok=True)
+def emit_summary(summary: dict[str, Any]) -> None:
+    gate = summary.get("qualityGate") or {}
+    print(f"[summary-json] {summary.get('summaryPath')}")
+    print(f"[report] {summary.get('reportPath')}")
+    print(f"[judgement] {summary.get('overallJudgement')}")
+    print(f"[default-on-candidate] {gate.get('defaultOnCandidate')}")
+    print(f"[recommendation] {gate.get('recommendation')}")
+    for reason in summary.get("reasons") or []:
+        print(f"[reason] {reason}")
 
+
+def run_comparison(args: argparse.Namespace,
+                   modes: list[str],
+                   output_dir: pathlib.Path,
+                   fixture_id: str = "") -> dict[str, Any]:
+    output_dir.mkdir(parents=True, exist_ok=True)
     mode_payloads = {mode: run_tracker(mode, args, output_dir, index)
                      for index, mode in enumerate(modes)}
     baseline_mode = "off" if "off" in mode_payloads else modes[0]
@@ -706,6 +791,7 @@ def main() -> int:
         "kind": "close-object-tracker-comparison",
         "ok": judgement != "fail",
         "sample": args.file,
+        "fixtureId": fixture_id,
         "baselineMode": baseline_mode,
         "modes": mode_payloads,
         "delta": deltas,
@@ -721,15 +807,116 @@ def main() -> int:
     summary["reportPath"] = str(report_path)
     write_report(summary, report_path)
     summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return summary
 
-    print(f"[summary-json] {summary_path}")
-    print(f"[report] {report_path}")
-    print(f"[judgement] {judgement}")
-    print(f"[default-on-candidate] {gate['defaultOnCandidate']}")
-    print(f"[recommendation] {gate['recommendation']}")
-    for reason in reasons:
-        print(f"[reason] {reason}")
-    return 0 if judgement != "fail" else 1
+
+def write_matrix_report(matrix: dict[str, Any], path: pathlib.Path) -> None:
+    lines = [
+        "# Close-object Tracker Fixture Matrix",
+        "",
+        f"- modes: `{', '.join(matrix.get('modes') or [])}`",
+        f"- ok: `{matrix.get('ok')}`",
+        f"- output: `{matrix.get('outputDir')}`",
+        "",
+        "| fixture | status | file | judgement | default-on candidate | recommendation | report |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
+    ]
+    for item in matrix.get("fixtures") or []:
+        lines.append(
+            "| {fixture} | {status} | `{file}` | {judgement} | {candidate} | {recommendation} | `{report}` |".format(
+                fixture=format_cell(item.get("id")),
+                status=format_cell(item.get("status")),
+                file=format_cell(item.get("file")),
+                judgement=format_cell(item.get("judgement")),
+                candidate=format_cell(item.get("defaultOnCandidate")),
+                recommendation=format_cell(item.get("recommendation")),
+                report=format_cell(item.get("reportPath")),
+            )
+        )
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: pathlib.Path) -> int:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    fixtures = selected_fixtures(args)
+    results: list[dict[str, Any]] = []
+    failed = False
+    for fixture in fixtures:
+        fixture_id = str(fixture["id"])
+        file_token = str(fixture["file"])
+        if not fixture.get("exists"):
+            status = "missing" if args.fail_on_missing_fixtures else "skipped"
+            failed = failed or args.fail_on_missing_fixtures
+            results.append({
+                "id": fixture_id,
+                "file": file_token,
+                "path": fixture.get("path"),
+                "status": status,
+                "reason": "fixture file missing",
+            })
+            print(f"[fixture] {fixture_id} {status}: {file_token}")
+            continue
+        fixture_args = clone_args(
+            args,
+            file=file_token,
+            class_whitelist=args.class_whitelist or fixture.get("classWhitelist", ""),
+        )
+        fixture_output_dir = output_dir / fixture_id
+        summary = run_comparison(fixture_args, modes, fixture_output_dir, fixture_id)
+        gate = summary.get("qualityGate") or {}
+        status = "fail" if summary.get("overallJudgement") == "fail" else "ok"
+        failed = failed or status == "fail"
+        results.append({
+            "id": fixture_id,
+            "file": file_token,
+            "path": fixture.get("path"),
+            "status": status,
+            "judgement": summary.get("overallJudgement"),
+            "defaultOnCandidate": gate.get("defaultOnCandidate"),
+            "recommendation": gate.get("recommendation"),
+            "summaryPath": summary.get("summaryPath"),
+            "reportPath": summary.get("reportPath"),
+        })
+        print(
+            f"[fixture] {fixture_id} {status}: judgement={summary.get('overallJudgement')} "
+            f"default-on-candidate={gate.get('defaultOnCandidate')}"
+        )
+    matrix = {
+        "kind": "close-object-tracker-fixture-matrix",
+        "ok": not failed,
+        "modes": modes,
+        "outputDir": str(output_dir),
+        "fixtures": results,
+        "createdAt": dt.datetime.now(dt.timezone.utc).isoformat(),
+    }
+    summary_path = output_dir / "matrix-summary.json"
+    report_path = output_dir / "matrix-report.md"
+    matrix["summaryPath"] = str(summary_path)
+    matrix["reportPath"] = str(report_path)
+    write_matrix_report(matrix, report_path)
+    summary_path.write_text(json.dumps(matrix, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"[matrix-summary-json] {summary_path}")
+    print(f"[matrix-report] {report_path}")
+    print(f"[matrix-ok] {matrix['ok']}")
+    return 0 if matrix["ok"] else 1
+
+
+def main() -> int:
+    args = parse_args()
+    if args.list_fixtures:
+        print(json.dumps({"fixtures": fixture_rows()}, ensure_ascii=False, indent=2))
+        return 0
+
+    modes = mode_list(args.modes)
+    output_dir = pathlib.Path(args.output_dir) if args.output_dir else pathlib.Path(
+        f"/tmp/media_server_close_object_tracker_{int(dt.datetime.now().timestamp())}_{os.getpid()}"
+    )
+    if args.fixture_matrix:
+        return run_fixture_matrix(args, modes, output_dir)
+
+    summary = run_comparison(args, modes, output_dir)
+    emit_summary(summary)
+    return 0 if summary.get("overallJudgement") != "fail" else 1
 
 
 if __name__ == "__main__":
