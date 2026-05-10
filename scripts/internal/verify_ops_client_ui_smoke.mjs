@@ -95,7 +95,7 @@ const pageChecks = [
     name: "ops-sources",
     path: "/ops/sources",
     visualSelector: '[data-testid="ops-sources-page"]',
-    must: ['data-testid="ops-sources-page"', 'data-testid="onvif-import-panel"', 'id="onvif-import-stub"', 'id="onvifImportSummary"', '/ops/api/onvif/import-draft', 'data-testid="channel-bulk-panel"', 'id="channel-bulk-select-all"', 'id="channelBulkDiagnostics"', 'data-testid="source-health-panel"', 'id="channelHealthSummary"', 'id="channelHealthDiagnostics"', 'id="channel-detail-health"', '/ops/api/source-health', 'id="channels-body"', 'id="channel-detail-panel"', 'name="whepUrl"', "ONVIF Live Source import", "Live Source Health", "외부 WHEP URL", "Published WebRTC", "Published sourceId"],
+    must: ['data-testid="ops-sources-page"', 'data-testid="onvif-import-panel"', 'id="onvif-import-stub"', 'id="onvifImportSummary"', '/ops/api/onvif/import-draft', 'data-testid="channel-bulk-panel"', 'id="channel-bulk-select-all"', 'id="channelBulkDiagnostics"', 'data-testid="source-health-panel"', 'id="channelHealthSummary"', 'id="channelHealthDiagnostics"', 'id="channel-health-bulk-check"', 'id="channel-health-bulk-retry"', 'id="channel-detail-health"', '/ops/api/source-health', '/ops/api/source-health/bulk', 'id="channels-body"', 'id="channel-detail-panel"', 'name="whepUrl"', "ONVIF Live Source import", "Live Source Health", "외부 WHEP URL", "Published WebRTC", "Published sourceId"],
     mustNot: ['AppendTableHead(', 'R"OPS(', 'WHIP Published Source ID', "Registry raw JSON", 'sources-json', 'views-json', 'client-views-json'],
   },
   {

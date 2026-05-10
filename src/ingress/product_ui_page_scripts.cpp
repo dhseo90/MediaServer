@@ -4977,6 +4977,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const bulkSummary = document.querySelector('#channelBulkSummary');
     const bulkDiagnostics = document.querySelector('#channelBulkDiagnostics');
     const channelHealthRefresh = document.querySelector('#channel-health-refresh');
+    const channelHealthBulkCheck = document.querySelector('#channel-health-bulk-check');
+    const channelHealthBulkRetry = document.querySelector('#channel-health-bulk-retry');
     const channelHealthSummary = document.querySelector('#channelHealthSummary');
     const channelHealthDiagnostics = document.querySelector('#channelHealthDiagnostics');
     const channelDetailHealth = document.querySelector('#channel-detail-health');
@@ -4994,6 +4996,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     let initializedHashChannel = false;
     let lastChannelBulkResult = null;
     let lastChannelBulkPreview = null;
+    let lastSourceHealthBulkResult = null;
     let pendingOnvifSourceDraft = null;
     let pendingOnvifViewDraft = null;
     const selectedChannelIds = new Set();
@@ -5281,14 +5284,23 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         ].filter(Boolean).join('');
       }
       if (!channelHealthDiagnostics) return;
+      const retryIds = Array.isArray(lastSourceHealthBulkResult?.retryBody?.sourceIds)
+        ? lastSourceHealthBulkResult.retryBody.sourceIds.map(id => String(id || '').trim()).filter(Boolean)
+        : [];
+      if (channelHealthBulkRetry) channelHealthBulkRetry.disabled = retryIds.length === 0;
+      const bulkResultPanel = lastSourceHealthBulkResult ? `<div class="validation-item ${Number(lastSourceHealthBulkResult.failCount || 0) > 0 || Number(lastSourceHealthBulkResult.unhealthyCount || 0) > 0 ? 'warn' : 'info'}">
+          ${chip(lastSourceHealthBulkResult.operation === 'retry' ? 'bulk retry' : 'bulk check', retryIds.length > 0 ? 'warn' : 'info')}
+          <div><strong>Bulk 결과: 정상 ${escapeHtml(display(lastSourceHealthBulkResult.okCount ?? 0))}, 실패 ${escapeHtml(display(lastSourceHealthBulkResult.failCount ?? 0))}, 재시도 ${escapeHtml(display(retryIds.length))}</strong>
+          <p>${escapeHtml(lastSourceHealthBulkResult.retryPolicy || 'retryBody.sourceIds 기준으로 실패/비정상 항목만 다시 확인합니다.')}</p></div>
+        </div>` : '';
       const notable = loadedSourceHealth
         .filter(item => item.status !== 'live' || (Array.isArray(item.warnings) && item.warnings.length > 0))
         .slice(0, 6);
       if (notable.length === 0) {
-        channelHealthDiagnostics.innerHTML = '<div class="empty">수신 중인 source health가 정상 범위입니다.</div>';
+        channelHealthDiagnostics.innerHTML = bulkResultPanel || '<div class="empty">수신 중인 source health가 정상 범위입니다.</div>';
         return;
       }
-      channelHealthDiagnostics.innerHTML = notable.map(item => {
+      channelHealthDiagnostics.innerHTML = bulkResultPanel + notable.map(item => {
         const tone = sourceHealthTone(item.status);
         const level = tone === 'bad' ? 'bad' : (tone === 'warn' ? 'warn' : 'info');
         return `<div class="validation-item ${level}">
@@ -5971,6 +5983,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       loadedViews = views.views || [];
       loadedSourceHealth = Array.isArray(sourceHealth.sourceHealth) ? sourceHealth.sourceHealth : [];
       loadedSourceHealthSummary = sourceHealth.summary || null;
+      lastSourceHealthBulkResult = null;
       renderSourceHealthSummary();
       renderChannels(loadedSources, loadedViews);
       renderOpsAuditTrail('channel-audit-list', 'channels');
@@ -5991,12 +6004,73 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         const sourceHealth = await requestJson('/ops/api/source-health');
         loadedSourceHealth = Array.isArray(sourceHealth.sourceHealth) ? sourceHealth.sourceHealth : [];
         loadedSourceHealthSummary = sourceHealth.summary || null;
+        lastSourceHealthBulkResult = null;
         renderSourceHealthSummary();
         renderChannels(loadedSources, loadedViews);
         renderChannelDetailHealth(id || currentChannelId);
         setStatus(id ? `채널 #${id} Live Source Health 재확인 완료` : 'Live Source Health 재확인 완료');
       } catch (error) {
         setStatus(`Live Source Health 조회 실패: ${error.message}`, true);
+      }
+    }
+    const selectedSourceHealthIds = () => {
+      const selected = Array.from(selectedChannelIds).map(id => String(id || '').trim()).filter(Boolean);
+      if (selected.length > 0) return selected;
+      return loadedSources.map(source => String(source.sourceId || '').trim()).filter(Boolean);
+    };
+    function mergeSourceHealthBulkResult(result) {
+      const resultHealth = Array.isArray(result?.results)
+        ? result.results.map(item => item.health).filter(Boolean)
+        : [];
+      if (resultHealth.length > 0) {
+        const byId = new Map(loadedSourceHealth.map(item => [String(item.sourceId || ''), item]));
+        for (const health of resultHealth) {
+          byId.set(String(health.sourceId || ''), health);
+        }
+        loadedSourceHealth = Array.from(byId.values());
+      }
+      loadedSourceHealthSummary = result?.summary || loadedSourceHealthSummary;
+      lastSourceHealthBulkResult = result;
+      renderSourceHealthSummary();
+      renderChannels(loadedSources, loadedViews);
+      renderChannelDetailHealth(currentChannelId);
+    }
+    async function runSourceHealthBulk(body, label) {
+      const result = await requestJson('/ops/api/source-health/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      mergeSourceHealthBulkResult(result);
+      const retryIds = Array.isArray(result.retryBody?.sourceIds) ? result.retryBody.sourceIds : [];
+      setStatus(`${label} 완료: 정상 ${result.okCount ?? 0}, 실패 ${result.failCount ?? 0}, 재시도 ${retryIds.length}`, Number(result.failCount || 0) > 0);
+      return result;
+    }
+    async function checkSourceHealthBulk() {
+      const sourceIds = selectedSourceHealthIds();
+      if (sourceIds.length === 0) {
+        setStatus('Bulk 체크할 source가 없습니다.', true);
+        return;
+      }
+      try {
+        await runSourceHealthBulk({ operation: 'check', sourceIds }, selectedChannelIds.size > 0 ? '선택 Source Health Bulk 체크' : '전체 Source Health Bulk 체크');
+      } catch (error) {
+        setStatus(`Source Health Bulk 체크 실패: ${error.message}`, true);
+      }
+    }
+    async function retrySourceHealthBulk() {
+      const retryBody = lastSourceHealthBulkResult?.retryBody || null;
+      const sourceIds = Array.isArray(retryBody?.sourceIds)
+        ? retryBody.sourceIds.map(id => String(id || '').trim()).filter(Boolean)
+        : [];
+      if (sourceIds.length === 0) {
+        setStatus('Bulk 재시도할 source가 없습니다.', true);
+        return;
+      }
+      try {
+        await runSourceHealthBulk({ operation: 'retry', sourceIds }, 'Source Health Bulk 재시도');
+      } catch (error) {
+        setStatus(`Source Health Bulk 재시도 실패: ${error.message}`, true);
       }
     }
     channelForm.addEventListener('submit', async event => {
@@ -6225,6 +6299,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     bulkRetryFailedButton?.addEventListener('click', () => retryFailedChannelBulk());
     bulkRollbackButton?.addEventListener('click', () => rollbackSuccessfulChannelBulk());
     channelHealthRefresh?.addEventListener('click', () => refreshSourceHealth());
+    channelHealthBulkCheck?.addEventListener('click', () => checkSourceHealthBulk());
+    channelHealthBulkRetry?.addEventListener('click', () => retrySourceHealthBulk());
     onvifImportButton?.addEventListener('click', () => importOnvifStubCandidate());
     document.querySelector('#channel-audit-refresh')?.addEventListener('click', () => renderOpsAuditTrail('channel-audit-list', 'channels'));
     renderOpsAuditTrail('channel-audit-list', 'channels');

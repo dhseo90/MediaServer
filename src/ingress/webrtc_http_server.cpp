@@ -3930,6 +3930,8 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             </div>
             <div class="actions">
               <button id="channel-health-refresh" class="button-secondary" type="button">상태 재확인</button>
+              <button id="channel-health-bulk-check" class="button-secondary" type="button">Bulk 체크</button>
+              <button id="channel-health-bulk-retry" class="button-secondary" type="button" disabled>Bulk 재시도</button>
               <a class="button-secondary" href="/ops/dashboard#source-health">Dashboard</a>
             </div>
           </div>

@@ -45,6 +45,7 @@
 - active stream descriptor와 WHIP published descriptor 기반 codec/profile/width/height/fps 연동
 - source health bulk check의 partial failure와 failed-only retry 계약
 - source health 상태 변화의 짧은 Ops audit trail 기록
+- `/ops/sources`의 source health bulk check와 `retryBody` 기반 재시도 버튼
 - `verify-ops-source-lifecycle` auto-start/settle/port cleanup 전제 자동화
 - `verify-ops-root-cause-panel`, `verify-client-dashboard-polish`,
   `verify-ops-source-lifecycle`, `verify-ops-source-health-bulk`,
@@ -53,7 +54,7 @@
 
 후속 예정:
 
-- operator UI에서 bulk result retryBody를 직접 실행하는 workflow polish
+- high reconnect/repeated stale warning threshold polish
 
 ## 상태 모델
 
@@ -197,6 +198,9 @@ Content-Type: application/json
 `operation`은 `check` 또는 `retry`이며 서버 동작은 dry-run health 재조회입니다.
 실패/비정상 항목은 `results[].retryable=true`로 표시되고,
 운영 UI는 `retryBody`의 sourceIds만 다시 보내 partial retry를 수행합니다.
+`/ops/sources`의 Live Source Health 패널은 선택된 채널이 있으면 선택
+source만, 선택이 없으면 전체 source를 bulk check하고, `retryBody.sourceIds`가
+있을 때만 Bulk 재시도 버튼을 활성화합니다.
 없는 sourceId는 `ok=false`, `reason=not-found`, `retryable=false`로 남겨
 구성 수정 대상과 단순 재시도 대상을 분리합니다.
 `partialFailure=true`는 일부 sourceId만 실패했음을 의미합니다.

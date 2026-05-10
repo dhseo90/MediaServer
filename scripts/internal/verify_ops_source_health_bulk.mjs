@@ -49,6 +49,30 @@ check("documentation describes bulk retry policy", () => {
   }
 });
 
+check("ops sources UI wires bulk retryBody execution", () => {
+  const html = readText("src/ingress/webrtc_http_server.cpp");
+  const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const requiredHtml = [
+    'id="channel-health-bulk-check"',
+    'id="channel-health-bulk-retry"',
+  ];
+  const requiredScript = [
+    "lastSourceHealthBulkResult",
+    "selectedSourceHealthIds",
+    "runSourceHealthBulk",
+    "retrySourceHealthBulk",
+    "/ops/api/source-health/bulk",
+    "retryBody?.sourceIds",
+    "channelHealthBulkRetry.disabled",
+  ];
+  for (const snippet of requiredHtml) {
+    assert(html.includes(snippet), `ops sources HTML is missing source health bulk snippet: ${snippet}`);
+  }
+  for (const snippet of requiredScript) {
+    assert(script.includes(snippet), `ops sources script is missing source health bulk snippet: ${snippet}`);
+  }
+});
+
 check("server entrypoint includes source health bulk verifier", () => {
   const serverSh = readText("server.sh");
   assert(serverSh.includes("verify-ops-source-health-bulk"), "server.sh is missing verify-ops-source-health-bulk");
