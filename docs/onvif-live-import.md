@@ -123,6 +123,33 @@ v1.1.0-alpha.2의 첫 구현 단위는 실제 camera 연결이 아니라 ONVIF �
 - local virtual ONVIF device는 선택 검증으로 두고, 기본 smoke는 fixture 기반으로
   유지합니다.
 
+## Public RTSP Downstream Smoke
+
+공개 RTSP 검증은 ONVIF endpoint 검증이 아닙니다. ONVIF에서 가져온
+`streamUri`가 기존 source/view/client redaction 경로를 통과하는지 확인하는
+downstream smoke입니다.
+
+기본 공개 RTSP URL:
+
+```text
+rtsp://9627b0bf2a7b.entrypoint.cloud.wowza.com:1935/app-p5260J38/66abe4b9_stream1
+```
+
+검증 범위:
+
+- fixture의 selected profile `streamUri`를 공개 RTSP URL로 교체
+- `POST /ops/api/onvif/import-draft`로 `kind=rtsp` source draft 생성
+- 기존 `/ops/api/sources/{id}`와 `/ops/api/views/{id}`로 저장 가능 여부 확인
+- `/client/api/views`와 `/client/api/views/{id}`가 RTSP URL, ONVIF endpoint,
+  credential reference, raw diagnostic JSON을 노출하지 않는지 확인
+
+기본 seed source에 같은 공개 RTSP URL이 있을 수 있으므로 smoke는 검증용 저장
+요청에 기존 source API의 `allowDuplicateSource` 제어 플래그를 사용합니다.
+이 플래그는 import draft contract에 포함하지 않습니다.
+
+실제 RTSP packet 수신, WebRTC session 생성, 외부 네트워크 장기 안정성은 이
+smoke의 범위가 아닙니다. 해당 검증은 별도 external/network gate에서 수행합니다.
+
 ## Import Draft API
 
 초기 API는 실제 camera 연결 대신 fixture/stub payload를 변환하는 operator 전용
@@ -234,6 +261,7 @@ fixture는 합성 장비와 합성 private-network RTSP URI만 사용합니다. 
 ```bash
 ./server.sh verify-onvif-live-import-contract
 ./server.sh verify-onvif-import-draft-api
+./server.sh verify-onvif-rtsp-downstream
 git diff --check -- docs test/fixtures scripts server.sh
 ./server.sh verify-docs-links
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
