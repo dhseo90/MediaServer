@@ -734,6 +734,13 @@ std::string ProductSharedUiScript() {
         if (filters.offset) params.set('offset', String(filters.offset));
         return params;
       };
+      const auditFilterPresetsFor = area => {
+        if (area !== 'channels') return [];
+        return [
+          { id: 'source-health-state-change', label: 'Source Health 변경', state: { q: '', actor: '', user: '', target: '', action: 'source-health-state-change', fromMs: '', toMs: '' } },
+          { id: 'all', label: '전체 이력', state: { q: '', actor: '', user: '', target: '', action: '', fromMs: '', toMs: '' } }
+        ];
+      };
       const auditLocalDateTime = value => {
         const numeric = Number(value || 0);
         if (!Number.isFinite(numeric) || numeric <= 0) return '';
@@ -852,6 +859,7 @@ std::string ProductSharedUiScript() {
           disable: '비활성화',
           'bulk-clone': '대량 복제',
           'bulk-disable': '대량 비활성화',
+          'source-health-state-change': 'Source Health 변경',
           approve: '승인',
           reject: '거절'
         })[String(value || '')] || display(value);
@@ -891,6 +899,7 @@ std::string ProductSharedUiScript() {
           });
         });
         };
+        const auditPresets = auditFilterPresetsFor(area);
         el.innerHTML = `
           <div class="audit-controls">
             <div class="audit-filter-grid">
@@ -916,6 +925,7 @@ std::string ProductSharedUiScript() {
                   <option value="disable">비활성화</option>
                   <option value="bulk-clone">대량 복제</option>
                   <option value="bulk-disable">대량 비활성화</option>
+                  <option value="source-health-state-change">Source Health 변경</option>
                   <option value="approve">승인</option>
                   <option value="reject">거절</option>
                   <option value="export-bundle">증거 export</option>
@@ -935,6 +945,7 @@ std::string ProductSharedUiScript() {
                 </select>
               </label>
             </div>
+            ${auditPresets.length ? `<div class="audit-presets" aria-label="Audit filter presets">${auditPresets.map(preset => `<button type="button" class="btn small" data-audit-preset="${escapeHtml(preset.id)}">${escapeHtml(preset.label)}</button>`).join('')}</div>` : ''}
             <div class="audit-toolbar">
               <button type="button" class="btn small" data-audit-apply>검색</button>
               <button type="button" class="btn small" data-audit-prev>이전</button>
@@ -961,6 +972,14 @@ std::string ProductSharedUiScript() {
         el.querySelector('[data-audit-apply]')?.addEventListener('click', () => {
           syncState(true);
           renderOpsAuditTrail(containerId, area);
+        });
+        el.querySelectorAll('[data-audit-preset]').forEach(button => {
+          button.addEventListener('click', () => {
+            const preset = auditPresets.find(item => item.id === button.dataset.auditPreset);
+            if (!preset) return;
+            Object.assign(state, preset.state, { offset: 0 });
+            renderOpsAuditTrail(containerId, area);
+          });
         });
         el.querySelector('[data-audit-prev]')?.addEventListener('click', () => {
           syncState(false);

@@ -1046,6 +1046,7 @@ std::string ProductUiCss() {
       gap: var(--space-3);
     }
     .audit-controls,
+    .audit-presets,
     .audit-toolbar,
     .audit-entry-actions {
       display: flex;
@@ -1070,6 +1071,9 @@ std::string ProductUiCss() {
     }
     .audit-toolbar {
       justify-content: flex-end;
+    }
+    .audit-presets {
+      justify-content: flex-start;
     }
     .audit-source-label {
       color: var(--color-text-muted);
@@ -2090,6 +2094,7 @@ std::string ProductUiCss() {
       .ops-rule-row-actions,
       .audit-controls,
       .audit-filter-grid,
+      .audit-presets,
       .audit-toolbar,
       .audit-entry-head,
       .audit-entry-meta,

@@ -19,6 +19,8 @@ check("shared product UI script provides local audit trail helpers", () => {
     "opsAuditViewStates",
     "fetchOpsAuditTrailPage",
     "openOpsAuditDetail",
+    "auditFilterPresetsFor",
+    'data-audit-preset="',
     "data-audit-export",
     "auditKeyRedacted",
     "password|token|hash|secret|capability",
@@ -83,6 +85,7 @@ check("audit layout has mobile-safe CSS", () => {
   const required = [
     ".audit-list",
     ".audit-controls",
+    ".audit-presets",
     ".audit-filter-grid",
     ".audit-entry",
     ".audit-detail-modal",

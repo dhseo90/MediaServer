@@ -212,6 +212,8 @@ Content-Type: application/json
 
 초기 관측값은 기준선으로만 저장하고 audit entry를 만들지 않습니다.
 따라서 audit trail은 noise를 줄이고 실제 상태 변화만 보여줍니다.
+`/ops/sources`의 채널 변경 이력 패널은 `Source Health 변경` 프리셋으로
+`source-health-state-change` action만 빠르게 필터링할 수 있습니다.
 client/viewer 응답에는 audit 세부를 노출하지 않습니다.
 
 ## Verification Plan
