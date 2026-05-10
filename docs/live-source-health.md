@@ -46,7 +46,7 @@
 - source health bulk check의 partial failure와 failed-only retry 계약
 - source health 상태 변화의 짧은 Ops audit trail 기록
 - `/ops/sources`의 source health bulk check와 `retryBody` 기반 재시도 버튼
-- `verify-ops-source-lifecycle` auto-start/settle/port cleanup 전제 자동화
+- `verify-ops-source-lifecycle` auto-start/settle/port cleanup/port randomization 전제 자동화
 - `verify-ops-root-cause-panel`, `verify-client-dashboard-polish`,
   `verify-ops-source-lifecycle`, `verify-ops-source-health-bulk`,
   `verify-ops-audit-trail`,
@@ -54,7 +54,7 @@
 
 후속 예정:
 
-- lifecycle smoke port randomization polish
+- 없음
 
 ## 상태 모델
 
@@ -244,6 +244,9 @@ git diff --check -- README.md docs
 `MEDIA_SERVER_FORCE_RTSP_TCP=1`을 사용하고 검증이 끝나면 종료합니다.
 이미 실행 중인 서버를 지정하려면 `--http-base`를 사용하고,
 자동 시작을 끄려면 `--auto-start=0`을 사용합니다.
+고정 포트 충돌을 피해야 하면 `--random-ports=1`을 함께 사용합니다.
+이 옵션은 `--http-base`나 `--rtsp-port`로 명시하지 않은 포트만 임시 free port로
+할당합니다.
 
 구현 단계 후보:
 

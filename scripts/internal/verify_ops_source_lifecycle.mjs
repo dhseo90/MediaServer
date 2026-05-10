@@ -2,6 +2,7 @@
 // 파일 용도: 공통 source/session lifecycle 상태가 active 후 idle로 정리되는지 검증한다.
 
 import { spawn } from "node:child_process";
+import net from "node:net";
 import path from "node:path";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
@@ -22,6 +23,7 @@ Options:
   --http-base <url>       실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
   --auto-start[=0|1]      서버가 없으면 임시 auth-off 서버를 자동 시작합니다. 기본 1.
   --rtsp-port <port>      자동 시작 서버 RTSP port입니다. 기본 8555.
+  --random-ports[=0|1]    자동 시작 서버 포트를 임시 free port로 잡습니다. 기본 0.
   --timeout-ms <ms>       idle/active 대기 시간입니다. 기본 12000.
   --poll-interval-ms <ms> polling 간격입니다. 기본 250.
   --settle-ms <ms>        active 확인 후 DELETE 전 안정화 대기입니다. 기본 500.
@@ -32,6 +34,7 @@ assertKnownOptions(rawArgs, [
   "http-base",
   "auto-start",
   "rtsp-port",
+  "random-ports",
   "timeout-ms",
   "poll-interval-ms",
   "settle-ms",
@@ -39,9 +42,12 @@ assertKnownOptions(rawArgs, [
   "help",
 ]);
 const args = parseArgs(rawArgs);
-const httpBase = String(args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
+const hasExplicitHttpBase = args.httpBase !== undefined && args.httpBase !== null && args.httpBase !== "";
+const hasExplicitRtspPort = args.rtspPort !== undefined && args.rtspPort !== null && args.rtspPort !== "";
+let httpBase = String(args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const autoStart = parseBool(args.autoStart, true);
-const rtspPort = Number(args.rtspPort || 8555);
+let rtspPort = Number(args.rtspPort || 8555);
+const randomPorts = parseBool(args.randomPorts, false);
 const timeoutMs = Number(args.timeoutMs || 12000);
 const pollIntervalMs = Number(args.pollIntervalMs || 250);
 const settleMs = Number(args.settleMs || 500);
@@ -113,9 +119,25 @@ async function ensureServerReady() {
     }
   }
 
+  await resolveManagedServerPorts();
   managedServer = startManagedServer();
   await waitForManagedServer();
   console.log(`[pass] source-lifecycle auto-started server ${httpBase}`);
+}
+
+async function resolveManagedServerPorts() {
+  if (!randomPorts) return;
+  if (!hasExplicitHttpBase) {
+    const httpPort = await findFreePort();
+    httpBase = `http://127.0.0.1:${httpPort}`;
+  }
+  if (!hasExplicitRtspPort) {
+    rtspPort = await findFreePort();
+    const httpPort = Number(new URL(httpBase).port || 0);
+    if (rtspPort === httpPort) {
+      rtspPort = await findFreePort();
+    }
+  }
 }
 
 function startManagedServer() {
@@ -142,6 +164,27 @@ function startManagedServer() {
   child.stdout.on("data", chunk => rememberManagedServerLog(chunk));
   child.stderr.on("data", chunk => rememberManagedServerLog(chunk));
   return child;
+}
+
+async function findFreePort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.unref();
+    server.on("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      const port = typeof address === "object" && address ? address.port : 0;
+      server.close(error => {
+        if (error) {
+          reject(error);
+        } else if (port > 0) {
+          resolve(port);
+        } else {
+          reject(new Error("failed to allocate random port"));
+        }
+      });
+    });
+  });
 }
 
 function rememberManagedServerLog(chunk) {
