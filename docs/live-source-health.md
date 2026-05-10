@@ -40,12 +40,12 @@
 - `/ops/sources` Live Source Health 요약, row badge, detail health panel
 - `/ops/dashboard` 문제 원인 패널의 source health 요약과 Dashboard 이동 흐름
 - client dashboard/live detail의 sanitized health summary
+- `SessionManager` source restart 기반 `reconnectCount`, `lastReconnectAt` 연동
 - `verify-ops-root-cause-panel`, `verify-client-dashboard-polish`,
   `verify-ops-source-lifecycle`, `verify-ops-client-ui --screenshots` smoke 기준
 
 후속 예정:
 
-- reconnect count와 last reconnect timestamp의 실제 reconnect manager 연동
 - codec profile/fps 추출
 - bulk health check 서버 계약과 partial failure retry 정책
 
@@ -111,7 +111,8 @@ codec mismatch, high reconnect, metadata delay 같은 조건은 `warnings[]`로 
 - `sourceId`는 operator용 상관관계 확인에 사용합니다.
 - `checkedAt`, `lastReconnectAt`은 구현 시 ISO-8601 UTC를 권장합니다.
 - `lastFrameAgeMs`와 `lastMetadataAgeMs`는 값이 없으면 `null`로 둡니다.
-- `reconnectCount`는 프로세스 runtime 기준과 registry 누적 기준을 섞지 않습니다.
+- `reconnectCount`는 `SessionManager`의 프로세스 runtime source restart 기준이며
+  registry 누적 값과 섞지 않습니다.
 - `codec`은 확인된 값만 넣고 추정값은 넣지 않습니다.
 - `warnings[]`는 operator action을 돕는 짧은 machine-readable token으로 둡니다.
 

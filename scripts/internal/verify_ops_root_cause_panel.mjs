@@ -101,6 +101,8 @@ check("server entrypoint includes root cause verifier", () => {
   const httpServer = readText("src/ingress/webrtc_http_server.cpp");
   assert(httpServer.includes("/ops/api/diagnostics/log-tail"), "server is missing diagnostics log-tail API");
   assert(httpServer.includes("OpsDiagnosticLogTailJson"), "server is missing diagnostics log-tail JSON builder");
+  assert(httpServer.includes("SourceReconnectStatsSnapshot"), "source health API is missing reconnect stats snapshot");
+  assert(httpServer.includes("OpsHealthReconnectStatsForSource"), "source health API is missing source reconnect matcher");
 });
 
 let failCount = 0;

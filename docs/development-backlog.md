@@ -248,11 +248,12 @@ Ops UI 구현, state-dump extension, smoke matrix 구현을 포함하지 않습�
   - `/ops/dashboard` 문제 원인 패널의 Live Source Health 항목과 다음 조치
   - `/client/dashboard`, `/client/live` detail의 `summary`, `warningLevel`,
     `connectionStatus`, frame/metadata status 정렬
+  - `SessionManager` source restart 통계 기반 `reconnectCount`,
+    `lastReconnectAt` 연동
   - `verify-ops-root-cause-panel`, `verify-client-dashboard-polish`,
     `verify-ops-source-lifecycle`, `verify-ops-client-ui --screenshots` 기준 반영
 - 제한:
-  reconnect count, last reconnect timestamp, codec profile/fps는 아직 실제
-  reconnect manager/codec probe와 연결하지 않았습니다.
+  codec profile/fps는 아직 실제 codec probe와 연결하지 않았습니다.
 - 주의:
   client/viewer 응답에는 source URL, ONVIF endpoint, credential reference,
   raw diagnostic JSON을 노출하지 않습니다.

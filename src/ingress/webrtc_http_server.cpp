@@ -6997,16 +6997,33 @@ const PublishedWebRtcSource::Snapshot* OpsHealthPublishedSourceFor(
     return it == publish_sources.end() ? nullptr : &*it;
 }
 
+const core::SessionManager::SourceReconnectStats* OpsHealthReconnectStatsForSource(
+    const SourceViewRegistry::SourceRecord& source,
+    const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats) {
+    const auto candidates = ClientStreamKeyCandidates(source);
+    const auto it = std::find_if(reconnect_stats.begin(), reconnect_stats.end(), [&](const auto& stats) {
+        return std::find(candidates.begin(), candidates.end(), stats.stream_key) != candidates.end();
+    });
+    return it == reconnect_stats.end() ? nullptr : &*it;
+}
+
 void ClassifyOpsSourceHealth(OpsSourceHealthItem* item,
                              const SourceViewRegistry::SourceRecord& source,
                              const SourceViewRegistry::PublishedViewRecord* view,
                              const analysis::AnalysisManager::TapSnapshot* tap,
                              const PublishedWebRtcSource::Snapshot* published_source,
+                             const core::SessionManager::SourceReconnectStats* reconnect_stats,
                              const std::string& checked_at) {
     if (item == nullptr) {
         return;
     }
     item->checked_at = checked_at;
+    if (reconnect_stats != nullptr) {
+        item->reconnect_count = reconnect_stats->reconnect_count;
+        if (reconnect_stats->last_reconnect_at_ms > 0) {
+            item->last_reconnect_at = FormatUnixMsUtc(reconnect_stats->last_reconnect_at_ms);
+        }
+    }
     if (!source.enabled) {
         item->status = "offline";
         item->reason = "disabled";
@@ -7082,7 +7099,8 @@ void ClassifyOpsSourceHealth(OpsSourceHealthItem* item,
 }
 
 std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
-                                const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources) {
+                                const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
+                                const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats) {
     std::vector<SourceViewRegistry::SourceRecord> sources;
     std::vector<SourceViewRegistry::PublishedViewRecord> views;
     std::string load_error;
@@ -7105,7 +7123,8 @@ std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::Tap
         const auto* view = OpsHealthViewForSource(views, source.source_id);
         const auto* tap = OpsHealthTapForSource(source, analysis_taps);
         const auto* published_source = OpsHealthPublishedSourceFor(source, publish_sources);
-        ClassifyOpsSourceHealth(&item, source, view, tap, published_source, generated_at);
+        const auto* stats = OpsHealthReconnectStatsForSource(source, reconnect_stats);
+        ClassifyOpsSourceHealth(&item, source, view, tap, published_source, stats, generated_at);
         if (item.status == "live") {
             ++live_count;
         } else if (item.status == "connecting") {
@@ -10473,7 +10492,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                200,
 	                                "OK",
 	                                OpsSourceHealthJson(impl_->session_manager.AnalysisTapSnapshots(),
-	                                                    WebRtcSourceRegistry::Instance().Snapshots()));
+	                                                    WebRtcSourceRegistry::Instance().Snapshots(),
+	                                                    impl_->session_manager.SourceReconnectStatsSnapshot()));
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
 	                        }
