@@ -111,6 +111,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | RTSP/WebRTC pipeline, source/session, VA layer 배치 | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenario, live event, short evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
 | v1.1.0 live-only 제품 경계와 phase 분류 | [docs/v1.1.0-roadmap.md](docs/v1.1.0-roadmap.md) |
+| v1.1.0-alpha.1 live-only 완료 checklist | [docs/v1.1.0-alpha1-checklist.md](docs/v1.1.0-alpha1-checklist.md) |
 | v1.1.0 한국어/영어 live-only 용어 | [docs/v1.1.0-glossary.md](docs/v1.1.0-glossary.md) |
 | v1.1.0 비범위 키워드 정적 점검 기준 | [docs/v1.1.0-boundary-checks.md](docs/v1.1.0-boundary-checks.md) |
 | v1.1.0 후속 Phase: ONVIF live source import 설계 | [docs/onvif-live-import.md](docs/onvif-live-import.md) |
