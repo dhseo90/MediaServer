@@ -530,7 +530,11 @@ Close-object guard의 기본값은 `off`입니다.
 `compare-close-object-tracker` 리포트는 같은 sample에서
 `off`, `diagnostic`, `enforce`를 비교합니다.
 목적은 threshold tuning과 default-on 검토 근거를 모으는 것입니다.
-event/scenario 결과가 달라지면 default on 전환 근거로 사용할 수 없습니다.
+기본 실행은 mode별 격리 서버를 사용해 guard mode가 실제 서버에 적용됐는지
+확인합니다.
+event/scenario stable 상태가 달라지면 default on 전환 근거로 사용할 수 없습니다.
+live polling 과정의 emit/dedupe/cleanup counter 차이는 observed delta로 남기되
+단독 default-on 차단 사유로 보지 않습니다.
 
 ## 8. Appearance / Re-ID Hook
 

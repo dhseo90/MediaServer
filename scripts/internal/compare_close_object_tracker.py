@@ -11,13 +11,26 @@ import json
 import os
 import pathlib
 import re
+import socket
 import subprocess
+import time
+import urllib.error
+import urllib.request
 from typing import Any
 
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parents[2]
 DEFAULT_FILE = "imports/va_tracking_event_1280x720_30fps_h264.mp4"
 VALID_MODES = {"off", "diagnostic", "enforce"}
+STABLE_EVENT_STATE_KEYS = {"activeEventStates"}
+STABLE_SCENARIO_STATE_KEYS = {"activeScenarios"}
+QUALITY_RISK_KEYS = {
+    "idSwitchRiskScore",
+    "fragmentationRatio",
+    "overlapFragmentationRatio",
+    "maxOverlapRisk",
+    "lostCount",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -38,6 +51,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-overlap-fragmentation", default="", help="verify-tracker-stability에 전달할 --max-overlap-fragmentation입니다.")
     parser.add_argument("--max-id-switch-risk", default="", help="verify-tracker-stability에 전달할 --max-id-switch-risk입니다.")
     parser.add_argument("--no-long-sample", action="store_true", help="verify-tracker-stability에 --no-long-sample을 전달합니다.")
+    parser.add_argument("--use-existing-server", action="store_true", help="이미 실행 중인 서버를 사용합니다. 기본은 mode별 격리 서버를 시작합니다.")
+    parser.add_argument("--http-base", default="", help="--use-existing-server에서 사용할 HTTP base입니다.")
+    parser.add_argument("--http-port-base", default="8181", help="mode별 격리 서버 HTTP port 탐색 시작값입니다.")
+    parser.add_argument("--rtsp-port-base", default="8651", help="mode별 격리 서버 RTSP port 탐색 시작값입니다.")
+    parser.add_argument("--startup-timeout", default="20", help="mode별 격리 서버 health 대기 시간(초)입니다.")
     return parser.parse_args()
 
 
@@ -75,41 +93,168 @@ def tracker_args(args: argparse.Namespace) -> list[str]:
     return out
 
 
-def run_tracker(mode: str, args: argparse.Namespace, output_dir: pathlib.Path) -> dict[str, Any]:
+def find_available_port(start_port: int) -> int:
+    for port in range(max(1, start_port), max(1, start_port) + 200):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            try:
+                sock.bind(("127.0.0.1", port))
+            except OSError:
+                continue
+            return port
+    raise RuntimeError(f"available localhost port not found from {start_port}")
+
+
+def wait_for_health(http_base: str, timeout_s: float) -> None:
+    deadline = time.monotonic() + max(1.0, timeout_s)
+    last_error = ""
+    while time.monotonic() < deadline:
+        try:
+            with urllib.request.urlopen(f"{http_base}/health", timeout=1.5) as response:
+                if 200 <= response.status < 500:
+                    return
+        except (OSError, urllib.error.URLError) as error:
+            last_error = str(error)
+        time.sleep(0.25)
+    raise RuntimeError(f"server health timeout: {http_base}/health ({last_error})")
+
+
+def stop_server(process: subprocess.Popen[str] | None) -> None:
+    if process is None or process.poll() is not None:
+        return
+    process.terminate()
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait(timeout=5)
+
+
+def start_mode_server(mode: str,
+                      args: argparse.Namespace,
+                      output_dir: pathlib.Path,
+                      index: int) -> tuple[subprocess.Popen[str], Any, str, str]:
+    http_base_port = int(args.http_port_base) + index * 10
+    rtsp_base_port = int(args.rtsp_port_base) + index * 10
+    http_port = find_available_port(http_base_port)
+    rtsp_port = find_available_port(rtsp_base_port)
+    http_base = f"http://127.0.0.1:{http_port}"
+    log_path = output_dir / f"server-{mode}.log"
+    log_handle = log_path.open("w", encoding="utf-8")
+    env = os.environ.copy()
+    env.update({
+        "MEDIA_SERVER_SKIP_LOCAL_ENV": "1",
+        "MEDIA_SERVER_SKIP_BUILD": "1",
+        "MEDIA_SERVER_AUTH_MODE": "off",
+        "MEDIA_SERVER_LISTEN_ADDRESS": "127.0.0.1",
+        "MEDIA_SERVER_HTTP_LISTEN_ADDRESS": "127.0.0.1",
+        "MEDIA_SERVER_LISTEN_PORT": str(rtsp_port),
+        "MEDIA_SERVER_HTTP_LISTEN_PORT": str(http_port),
+        "MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE": mode,
+    })
+    process = subprocess.Popen(
+        [str(ROOT_DIR / "server.sh"), "foreground"],
+        cwd=ROOT_DIR,
+        env=env,
+        text=True,
+        stdout=log_handle,
+        stderr=subprocess.STDOUT,
+    )
+    try:
+        wait_for_health(http_base, float(args.startup_timeout))
+    except Exception:
+        stop_server(process)
+        log_handle.close()
+        raise
+    return process, log_handle, http_base, str(log_path)
+
+
+def mode_effective(mode: str, payload: dict[str, Any]) -> bool:
+    if mode == "off":
+        return True
+    guard_counts = payload.get("guardDecisionCounts") or {}
+    if isinstance(guard_counts, dict) and guard_counts:
+        return True
+    return bool(payload.get("closeObjectGuardAppliedCount") or payload.get("rejectedByCloseObjectGuardCount"))
+
+
+def run_tracker(mode: str, args: argparse.Namespace, output_dir: pathlib.Path, index: int) -> dict[str, Any]:
     env = os.environ.copy()
     env["MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE"] = mode
+    server_process: subprocess.Popen[str] | None = None
+    server_log_handle = None
+    managed_server = not args.use_existing_server
+    server_log_path = ""
+    try:
+        if managed_server:
+            server_process, server_log_handle, http_base, server_log_path = start_mode_server(
+                mode, args, output_dir, index)
+            env["MEDIA_SERVER_VERIFY_TRACKER_HTTP_BASE"] = http_base
+        elif args.http_base:
+            env["MEDIA_SERVER_VERIFY_TRACKER_HTTP_BASE"] = args.http_base.rstrip("/")
+    except Exception as error:
+        aggregate = aggregate_iterations([])
+        aggregate.update({
+            "mode": mode,
+            "ok": False,
+            "exitCode": 1,
+            "command": "server startup",
+            "summaryPath": "",
+            "logPath": "",
+            "iterationCount": 0,
+            "managedServer": managed_server,
+            "serverLogPath": server_log_path,
+            "modeEffective": False,
+            "error": str(error),
+        })
+        mode_summary_path = output_dir / f"summary-{mode}.json"
+        mode_report_path = output_dir / f"report-{mode}.md"
+        aggregate["modeSummaryPath"] = str(mode_summary_path)
+        aggregate["modeReportPath"] = str(mode_report_path)
+        mode_summary_path.write_text(json.dumps(aggregate, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        write_mode_report(mode, aggregate, mode_report_path)
+        return aggregate
+
     command = [str(ROOT_DIR / "server.sh"), *tracker_args(args)]
     command_display = (
         f"MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE={mode} "
         + " ".join(command)
     )
-    completed = subprocess.run(
-        command,
-        cwd=ROOT_DIR,
-        env=env,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        check=False,
-    )
-    log_path = output_dir / f"tracker-stability-{mode}.log"
-    log_path.write_text(completed.stdout, encoding="utf-8")
-    summary_path = extract_summary_path(completed.stdout)
-    iterations = read_ndjson(summary_path) if summary_path else []
-    aggregate = aggregate_iterations(iterations)
-    aggregate.update(
-        {
-            "mode": mode,
-            "ok": completed.returncode == 0,
-            "exitCode": completed.returncode,
-            "command": command_display,
-            "summaryPath": str(summary_path) if summary_path else "",
-            "logPath": str(log_path),
-            "iterationCount": len(iterations),
-        }
-    )
-    if completed.returncode != 0:
-        aggregate["error"] = last_error_line(completed.stdout)
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=ROOT_DIR,
+            env=env,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
+        log_path = output_dir / f"tracker-stability-{mode}.log"
+        log_path.write_text(completed.stdout, encoding="utf-8")
+        summary_path = extract_summary_path(completed.stdout)
+        iterations = read_ndjson(summary_path) if summary_path else []
+        aggregate = aggregate_iterations(iterations)
+        aggregate.update(
+            {
+                "mode": mode,
+                "ok": completed.returncode == 0,
+                "exitCode": completed.returncode,
+                "command": command_display,
+                "summaryPath": str(summary_path) if summary_path else "",
+                "logPath": str(log_path),
+                "iterationCount": len(iterations),
+                "managedServer": managed_server,
+                "serverLogPath": server_log_path,
+            }
+        )
+        aggregate["modeEffective"] = mode_effective(mode, aggregate)
+        if completed.returncode != 0:
+            aggregate["error"] = last_error_line(completed.stdout)
+    finally:
+        stop_server(server_process)
+        if server_log_handle is not None:
+            server_log_handle.close()
     mode_summary_path = output_dir / f"summary-{mode}.json"
     mode_report_path = output_dir / f"report-{mode}.md"
     aggregate["modeSummaryPath"] = str(mode_summary_path)
@@ -205,6 +350,24 @@ def latest_signature(items: list[dict[str, Any]]) -> dict[str, Any]:
     return {"eventState": {}, "scenarioState": {}}
 
 
+def stable_event_scenario_signature(payload: dict[str, Any]) -> dict[str, Any]:
+    signature = payload.get("eventScenarioSignature") or {}
+    event_state = signature.get("eventState") or {}
+    scenario_state = signature.get("scenarioState") or {}
+    return {
+        "eventState": {
+            key: event_state.get(key)
+            for key in sorted(STABLE_EVENT_STATE_KEYS)
+            if key in event_state
+        },
+        "scenarioState": {
+            key: scenario_state.get(key)
+            for key in sorted(STABLE_SCENARIO_STATE_KEYS)
+            if key in scenario_state
+        },
+    }
+
+
 def last_error_line(text: str) -> str:
     for line in reversed(text.splitlines()):
         if "ERROR:" in line or "[fail]" in line:
@@ -236,7 +399,10 @@ def compute_deltas(modes: dict[str, dict[str, Any]], baseline_mode: str = "off")
             right = baseline.get(key)
             if isinstance(left, (int, float)) and isinstance(right, (int, float)):
                 delta[key] = round(float(left) - float(right), 6)
-        delta["eventScenarioDelta"] = payload.get("eventScenarioSignature") != baseline.get(
+        delta["eventScenarioDelta"] = stable_event_scenario_signature(payload) != stable_event_scenario_signature(
+            baseline
+        )
+        delta["eventScenarioObservedDelta"] = payload.get("eventScenarioSignature") != baseline.get(
             "eventScenarioSignature"
         )
         deltas[f"{mode}Vs{baseline_mode.capitalize()}"] = delta
@@ -248,6 +414,8 @@ def overall_judgement(mode_payloads: dict[str, dict[str, Any]], deltas: dict[str
     for mode, payload in mode_payloads.items():
         if not payload.get("ok"):
             reasons.append(f"{mode} tracker stability failed")
+        if not payload.get("modeEffective", mode == "off"):
+            reasons.append(f"{mode} close-object guard mode was not observed")
     if reasons:
         return "fail", reasons
 
@@ -255,7 +423,7 @@ def overall_judgement(mode_payloads: dict[str, dict[str, Any]], deltas: dict[str
     for name, delta in deltas.items():
         if delta.get("eventScenarioDelta"):
             reasons.append(f"{name} event/scenario signature changed")
-        for key in ["idSwitchRiskScore", "fragmentationRatio", "overlapFragmentationRatio"]:
+        for key in sorted(QUALITY_RISK_KEYS):
             value = delta.get(key)
             if isinstance(value, (int, float)) and value > 0.001:
                 warnings.append(f"{name} {key} increased by {value:.3f}")
@@ -268,12 +436,13 @@ def overall_judgement(mode_payloads: dict[str, dict[str, Any]], deltas: dict[str
 
 def quality_gate(judgement: str, deltas: dict[str, Any]) -> dict[str, Any]:
     event_delta = any(bool(delta.get("eventScenarioDelta")) for delta in deltas.values())
+    observed_event_delta = any(bool(delta.get("eventScenarioObservedDelta")) for delta in deltas.values())
     increased_risk: dict[str, dict[str, float]] = {}
     for name, delta in deltas.items():
         risk_delta = {
             key: value
             for key, value in delta.items()
-            if key != "eventScenarioDelta" and isinstance(value, (int, float)) and value > 0.001
+            if key in QUALITY_RISK_KEYS and isinstance(value, (int, float)) and value > 0.001
         }
         if risk_delta:
             increased_risk[name] = risk_delta
@@ -282,12 +451,19 @@ def quality_gate(judgement: str, deltas: dict[str, Any]) -> dict[str, Any]:
         recommendation = "hold: event/scenario output changed; keep guard opt-in"
     elif increased_risk:
         recommendation = "observe: risk metric increased; keep guard default off"
+    elif judgement == "pass" and observed_event_delta:
+        recommendation = (
+            "candidate: stable event/scenario state unchanged and risk keys did not increase; "
+            "observed counters varied, so keep collecting samples"
+        )
     elif judgement == "pass":
         recommendation = "candidate: no event delta or risk increase observed; still require more field samples"
     else:
         recommendation = "hold: comparison did not pass cleanly"
     return {
         "eventScenarioUnchanged": not event_delta,
+        "eventScenarioObservedUnchanged": not observed_event_delta,
+        "riskKeys": sorted(QUALITY_RISK_KEYS),
         "riskNonIncreasing": not increased_risk,
         "increasedRisk": increased_risk,
         "defaultOnCandidate": default_on_candidate,
@@ -300,7 +476,10 @@ def write_mode_report(mode: str, payload: dict[str, Any], path: pathlib.Path) ->
         f"# Close-object Tracker Mode: {mode}",
         "",
         f"- ok: `{payload.get('ok')}`",
+        f"- mode effective: `{payload.get('modeEffective')}`",
+        f"- managed server: `{payload.get('managedServer')}`",
         f"- command: `{payload.get('command')}`",
+        f"- server log: `{payload.get('serverLogPath') or '-'}`",
         f"- tracker summary: `{payload.get('summaryPath') or '-'}`",
         f"- tracker log: `{payload.get('logPath') or '-'}`",
         "",
@@ -366,14 +545,15 @@ def write_report(summary: dict[str, Any], path: pathlib.Path) -> None:
         "",
         "## Mode Summary",
         "",
-        "| mode | ok | idSwitchRisk | fragmentation | overlap fragmentation | min assoc | max overlap | max centerJump | lost/reacq | guard applied/rejected |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| mode | ok | mode effective | idSwitchRisk | fragmentation | overlap fragmentation | min assoc | max overlap | max centerJump | lost/reacq | guard applied/rejected |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for mode, payload in modes.items():
         lines.append(
-            "| {mode} | {ok} | {risk} | {frag} | {overlap_frag} | {assoc} | {overlap} | {jump} | {lost}/{reacq} | {applied}/{rejected} |".format(
+            "| {mode} | {ok} | {effective} | {risk} | {frag} | {overlap_frag} | {assoc} | {overlap} | {jump} | {lost}/{reacq} | {applied}/{rejected} |".format(
                 mode=mode,
                 ok="PASS" if payload.get("ok") else "FAIL",
+                effective="yes" if payload.get("modeEffective") else "no",
                 risk=format_cell(payload.get("idSwitchRiskScore")),
                 frag=format_cell(payload.get("fragmentationRatio")),
                 overlap_frag=format_cell(payload.get("overlapFragmentationRatio")),
@@ -396,20 +576,26 @@ def write_report(summary: dict[str, Any], path: pathlib.Path) -> None:
     lines.extend(["", "## Quality Gate", ""])
     lines.append("| check | value |")
     lines.append("| --- | --- |")
-    lines.append(f"| event/scenario unchanged | `{gate.get('eventScenarioUnchanged')}` |")
+    lines.append(f"| event/scenario stable unchanged | `{gate.get('eventScenarioUnchanged')}` |")
+    lines.append(f"| event/scenario observed unchanged | `{gate.get('eventScenarioObservedUnchanged')}` |")
     lines.append(f"| risk non-increasing | `{gate.get('riskNonIncreasing')}` |")
+    lines.append(f"| risk keys | `{json.dumps(gate.get('riskKeys') or [], ensure_ascii=False)}` |")
     lines.append(f"| default-on candidate | `{gate.get('defaultOnCandidate')}` |")
     lines.append(f"| recommendation | {gate.get('recommendation') or '-'} |")
     increased_risk = gate.get("increasedRisk") or {}
     if increased_risk:
         lines.append(f"| increased risk | `{json.dumps(increased_risk, ensure_ascii=False)}` |")
     lines.extend(["", "## Event / Scenario Delta", ""])
-    lines.append("| comparison | event/scenario delta | numeric delta |")
-    lines.append("| --- | --- | --- |")
+    lines.append("| comparison | stable delta | observed delta | numeric delta |")
+    lines.append("| --- | --- | --- | --- |")
     for name, delta in summary.get("delta", {}).items():
-        numeric = {key: value for key, value in delta.items() if key != "eventScenarioDelta"}
+        numeric = {
+            key: value
+            for key, value in delta.items()
+            if key not in {"eventScenarioDelta", "eventScenarioObservedDelta"}
+        }
         lines.append(
-            f"| {name} | `{delta.get('eventScenarioDelta')}` | `{json.dumps(numeric, ensure_ascii=False)}` |"
+            f"| {name} | `{delta.get('eventScenarioDelta')}` | `{delta.get('eventScenarioObservedDelta')}` | `{json.dumps(numeric, ensure_ascii=False)}` |"
         )
     lines.extend(["", "## Track Issue Rows", ""])
     lines.append("| mode | iteration | source | track | class | type | assoc | overlap | centerJump | applied | rejected |")
@@ -458,7 +644,8 @@ def main() -> int:
     )
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    mode_payloads = {mode: run_tracker(mode, args, output_dir) for mode in modes}
+    mode_payloads = {mode: run_tracker(mode, args, output_dir, index)
+                     for index, mode in enumerate(modes)}
     baseline_mode = "off" if "off" in mode_payloads else modes[0]
     deltas = compute_deltas(mode_payloads, baseline_mode)
     judgement, reasons = overall_judgement(mode_payloads, deltas)

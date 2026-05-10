@@ -1037,10 +1037,13 @@ MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verif
 - **완료**:
   `compare-close-object-tracker`가 같은 sample을
   `off`, `diagnostic`, `enforce` mode로 실행합니다.
+  기본 실행은 mode별 격리 서버를 시작해 guard mode가
+  실제 서버 프로세스에 적용됐는지 `mode effective`로 확인합니다.
   JSON summary, Markdown report, mode별 비교 table,
-  track별 issue table, event/scenario delta를 남깁니다.
-  리포트의 `Quality Gate` 섹션은 event/scenario 결과 불변 여부,
-  risk 증가 여부, default-on 후보 여부, 권고를 함께 요약합니다.
+  track별 issue table, event/scenario stable delta와
+  observed counter delta를 남깁니다.
+  리포트의 `Quality Gate` 섹션은 안정 event/scenario 상태 불변 여부,
+  핵심 risk 증가 여부, default-on 후보 여부, 권고를 함께 요약합니다.
 - 남은 작업:
   close-object fixture와 실제 현장 샘플을 추가합니다.
   threshold, center jump penalty, continuity boost 기준을 비교하고
