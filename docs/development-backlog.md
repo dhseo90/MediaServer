@@ -1046,6 +1046,8 @@ MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verif
   상위 matrix summary/report를 생성합니다.
   `verify-close-object-fixture-matrix`는 전체 fixture matrix를 정기/CI용
   hard gate로 실행하고 fixture 파일 누락을 실패로 처리합니다.
+  `--history-dir`를 지정하면 run별 matrix summary/report 사본과
+  `index.json`/`index.md` history index를 남겨 회차별 품질 추세를 비교할 수 있습니다.
   fixture별 `qualityPreset`을 matrix summary/report에 남기고,
   close-object sample은 `close-object-live`, control sample은 `control-live`
   기준으로 observed risk 허용치를 분리합니다.

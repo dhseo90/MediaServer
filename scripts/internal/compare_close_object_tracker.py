@@ -11,6 +11,7 @@ import json
 import os
 import pathlib
 import re
+import shutil
 import socket
 import statistics
 import subprocess
@@ -125,6 +126,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--file", default=DEFAULT_FILE, help="video root 기준 sample file token입니다.")
     parser.add_argument("--modes", default="off,diagnostic,enforce", help="쉼표로 구분한 mode 목록입니다.")
     parser.add_argument("--output-dir", default="", help="리포트 출력 디렉터리입니다.")
+    parser.add_argument("--history-dir", default="", help="matrix report history index를 갱신할 디렉터리입니다.")
     parser.add_argument("--long", action="store_true", help="verify-tracker-stability에 --long을 전달합니다.")
     parser.add_argument("--overlap-focus", action="store_true", help="verify-tracker-stability에 --overlap-focus를 전달합니다.")
     parser.add_argument("--duration", default="", help="verify-tracker-stability에 전달할 --duration 초입니다.")
@@ -1006,10 +1008,16 @@ def write_matrix_report(matrix: dict[str, Any], path: pathlib.Path) -> None:
         f"- modes: `{', '.join(matrix.get('modes') or [])}`",
         f"- ok: `{matrix.get('ok')}`",
         f"- output: `{matrix.get('outputDir')}`",
+    ]
+    history = matrix.get("history") or {}
+    if history:
+        lines.append(f"- history index: `{history.get('indexPath')}`")
+        lines.append(f"- history report: `{history.get('indexReportPath')}`")
+    lines.extend([
         "",
         "| fixture | status | preset | file | judgement | default-on candidate | recommendation | report |",
         "| --- | --- | --- | --- | --- | --- | --- | --- |",
-    ]
+    ])
     for item in matrix.get("fixtures") or []:
         lines.append(
             "| {fixture} | {status} | {preset} | `{file}` | {judgement} | {candidate} | {recommendation} | `{report}` |".format(
@@ -1024,6 +1032,104 @@ def write_matrix_report(matrix: dict[str, Any], path: pathlib.Path) -> None:
             )
         )
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def resolve_output_path(raw_path: str) -> pathlib.Path:
+    path = pathlib.Path(raw_path)
+    return path if path.is_absolute() else ROOT_DIR / path
+
+
+def history_run_id(created_at: str) -> str:
+    safe = re.sub(r"[^0-9A-Za-z._-]+", "-", created_at).strip("-")
+    return f"{safe}-{os.getpid()}"
+
+
+def prepare_matrix_history(matrix: dict[str, Any], raw_history_dir: str) -> dict[str, Any]:
+    root = resolve_output_path(raw_history_dir)
+    run_id = history_run_id(str(matrix.get("createdAt") or dt.datetime.now(dt.timezone.utc).isoformat()))
+    run_dir = root / run_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+    return {
+        "runId": run_id,
+        "historyDir": str(root),
+        "runDir": str(run_dir),
+        "summaryPath": str(run_dir / "matrix-summary.json"),
+        "reportPath": str(run_dir / "matrix-report.md"),
+        "indexPath": str(root / "index.json"),
+        "indexReportPath": str(root / "index.md"),
+    }
+
+
+def matrix_history_entry(matrix: dict[str, Any], history: dict[str, Any]) -> dict[str, Any]:
+    fixtures = matrix.get("fixtures") or []
+    return {
+        "runId": history.get("runId"),
+        "createdAt": matrix.get("createdAt"),
+        "ok": matrix.get("ok"),
+        "fixtureCount": len(fixtures),
+        "failedCount": sum(1 for item in fixtures if item.get("status") in {"fail", "missing"}),
+        "warningCount": sum(1 for item in fixtures if item.get("judgement") == "warning"),
+        "summaryPath": history.get("summaryPath"),
+        "reportPath": history.get("reportPath"),
+    }
+
+
+def write_history_index_report(index_payload: dict[str, Any], path: pathlib.Path) -> None:
+    lines = [
+        "# Close-object Tracker Fixture Matrix History",
+        "",
+        f"- updated: `{index_payload.get('updatedAt')}`",
+        f"- history dir: `{index_payload.get('historyDir')}`",
+        "",
+        "| run | created | ok | fixtures | failed | warnings | report |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
+    ]
+    for item in index_payload.get("runs") or []:
+        lines.append(
+            "| {run} | {created} | {ok} | {fixtures} | {failed} | {warnings} | `{report}` |".format(
+                run=format_cell(item.get("runId")),
+                created=format_cell(item.get("createdAt")),
+                ok=format_cell(item.get("ok")),
+                fixtures=format_cell(item.get("fixtureCount")),
+                failed=format_cell(item.get("failedCount")),
+                warnings=format_cell(item.get("warningCount")),
+                report=format_cell(item.get("reportPath")),
+            )
+        )
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def archive_matrix_history(matrix: dict[str, Any], summary_path: pathlib.Path, report_path: pathlib.Path) -> None:
+    history = matrix.get("history") or {}
+    if not history:
+        return
+    summary_copy = pathlib.Path(str(history["summaryPath"]))
+    report_copy = pathlib.Path(str(history["reportPath"]))
+    index_path = pathlib.Path(str(history["indexPath"]))
+    index_report_path = pathlib.Path(str(history["indexReportPath"]))
+    shutil.copy2(summary_path, summary_copy)
+    shutil.copy2(report_path, report_copy)
+
+    existing_runs: list[dict[str, Any]] = []
+    if index_path.exists():
+        try:
+            existing = json.loads(index_path.read_text(encoding="utf-8"))
+            if isinstance(existing.get("runs"), list):
+                existing_runs = [item for item in existing["runs"] if isinstance(item, dict)]
+        except json.JSONDecodeError:
+            existing_runs = []
+    entry = matrix_history_entry(matrix, history)
+    runs = [item for item in existing_runs if item.get("runId") != entry.get("runId")]
+    runs.append(entry)
+    runs.sort(key=lambda item: str(item.get("createdAt") or ""), reverse=True)
+    index_payload = {
+        "kind": "close-object-tracker-fixture-matrix-history",
+        "historyDir": history.get("historyDir"),
+        "updatedAt": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "runs": runs,
+    }
+    index_path.write_text(json.dumps(index_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    write_history_index_report(index_payload, index_report_path)
 
 
 def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: pathlib.Path) -> int:
@@ -1086,8 +1192,15 @@ def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: p
     report_path = output_dir / "matrix-report.md"
     matrix["summaryPath"] = str(summary_path)
     matrix["reportPath"] = str(report_path)
+    if args.history_dir:
+        matrix["history"] = prepare_matrix_history(matrix, args.history_dir)
     write_matrix_report(matrix, report_path)
     summary_path.write_text(json.dumps(matrix, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if matrix.get("history"):
+        archive_matrix_history(matrix, summary_path, report_path)
+        history = matrix["history"]
+        print(f"[matrix-history-index] {history.get('indexPath')}")
+        print(f"[matrix-history-report] {history.get('indexReportPath')}")
     print(f"[matrix-summary-json] {summary_path}")
     print(f"[matrix-report] {report_path}")
     print(f"[matrix-ok] {matrix['ok']}")

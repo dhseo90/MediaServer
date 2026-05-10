@@ -556,6 +556,9 @@ mode별 tracker summary JSON과 Markdown report는
 
 matrix 실행은 fixture별 `summary.json`/`report.md`와 상위
 `matrix-summary.json`/`matrix-report.md`를 함께 남깁니다.
+회차별 품질 추세를 남겨야 하면 `--history-dir <dir>`를 함께 지정합니다.
+이 경우 run별 `matrix-summary.json`/`matrix-report.md` 사본과 root
+`index.json`/`index.md`가 갱신됩니다.
 단일 비교의 quality preset 기본값은 `strict`입니다.
 내장 matrix fixture는 close-object sample과 control sample의 live polling
 특성이 달라 fixture별 `qualityPreset`을 사용합니다. close-object sample은
@@ -570,6 +573,8 @@ matrix 실행은 fixture별 `summary.json`/`report.md`와 상위
 
 ```bash
 ./server.sh verify-close-object-fixture-matrix
+./server.sh verify-close-object-fixture-matrix \
+  --history-dir /tmp/media_server_close_object_matrix_history
 ```
 
 이 명령은 모든 내장 fixture를 실행하고 fixture 파일 누락을 실패로 처리합니다.

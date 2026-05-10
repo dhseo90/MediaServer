@@ -543,6 +543,7 @@ close-object guard 비교에서는 tracker association risk와 observed risk를 
 fixture matrix는 sample 성격에 맞춰 `close-object-live` 또는 `control-live`
 quality preset을 적용합니다. preset은 observed risk 허용치를 분리하는 용도이며,
 event/scenario stable delta가 있으면 여전히 default-on 근거로 사용할 수 없습니다.
+matrix report에 `--history-dir`를 지정하면 회차별 index를 남겨 품질 추세를 비교할 수 있습니다.
 반복 실행에서는 `Repeat Metric Stats`의 mean/stdev/variance로 observed risk 변동성을 확인합니다.
 
 ## 8. Appearance / Re-ID Hook
