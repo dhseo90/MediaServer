@@ -1249,6 +1249,152 @@ const EventLifecycleStateSnapshot* FindEventLifecycleState(
     return fallback;
 }
 
+std::int64_t TimestampMsFromNs(std::int64_t timestamp_ns) {
+    if (timestamp_ns <= 0) {
+        return -1;
+    }
+    return timestamp_ns / 1000000LL;
+}
+
+std::int64_t ElapsedSinceMs(std::int64_t now_ms, std::int64_t since_ms) {
+    if (now_ms < 0 || since_ms < 0) {
+        return -1;
+    }
+    return std::max<std::int64_t>(0, now_ms - since_ms);
+}
+
+std::string ExtractRuleIdFromScenarioKey(const std::string& scenario_key) {
+    constexpr std::string_view token = ":rule:";
+    const std::size_t pos = scenario_key.find(token);
+    if (pos == std::string::npos) {
+        return {};
+    }
+    return scenario_key.substr(pos + token.size());
+}
+
+bool ScenarioKeyMatches(const std::string& event_scenario_id,
+                        const ScenarioInstance& instance) {
+    if (event_scenario_id.empty()) {
+        return false;
+    }
+    if (!instance.scenario_key.empty() && event_scenario_id == instance.scenario_key) {
+        return true;
+    }
+    if (event_scenario_id == instance.scenario_id) {
+        return true;
+    }
+    return !instance.scenario_id.empty() &&
+           event_scenario_id.rfind(instance.scenario_id + ":", 0) == 0;
+}
+
+const EventLifecycleStateSnapshot* FindEventLifecycleStateForScenario(
+    const std::vector<EventLifecycleStateSnapshot>& states,
+    const ScenarioInstance& instance) {
+    const EventLifecycleStateSnapshot* fallback = nullptr;
+    for (const auto& state : states) {
+        if (state.track_id != instance.track_id || !ScenarioKeyMatches(state.scenario_id, instance)) {
+            continue;
+        }
+        if (!instance.zone_id.empty() && !state.zone_id.empty() && state.zone_id != instance.zone_id) {
+            continue;
+        }
+        if (state.active) {
+            return &state;
+        }
+        if (fallback == nullptr) {
+            fallback = &state;
+        }
+    }
+    return fallback;
+}
+
+AnalysisDebugScenarioTimeline BuildScenarioTimelineItem(
+    const ScenarioInstance& instance,
+    const SceneContext& scene_context,
+    const std::vector<EventLifecycleStateSnapshot>& event_states,
+    std::int64_t now_ms) {
+    AnalysisDebugScenarioTimeline item;
+    item.stream_id = instance.stream_id;
+    item.channel_id = instance.channel_id;
+    item.scenario_key = instance.scenario_key;
+    item.scenario_name = instance.scenario_id;
+    item.rule_id = ExtractRuleIdFromScenarioKey(instance.scenario_key);
+    item.track_id = instance.track_id;
+    item.zone_id = instance.zone_id;
+    item.current_phase = ToString(instance.phase);
+    item.previous_phase = ToString(instance.previous_phase);
+    item.phase_entered_at_ms = TimestampMsFromNs(instance.phase_entered_ns);
+    item.phase_elapsed_ms = ElapsedSinceMs(now_ms, item.phase_entered_at_ms);
+    item.track_first_seen_at_ms = TimestampMsFromNs(instance.first_seen_ns);
+    item.track_last_seen_at_ms = TimestampMsFromNs(instance.last_seen_ns);
+    item.active = instance.phase == ScenarioPhase::LineCrossed ||
+                  instance.phase == ScenarioPhase::ZoneEntered ||
+                  instance.phase == ScenarioPhase::Candidate ||
+                  instance.phase == ScenarioPhase::Observing ||
+                  instance.phase == ScenarioPhase::Confirmed;
+
+    if (const auto* track_context = FindTrackSceneContext(scene_context, instance.track_id);
+        track_context != nullptr) {
+        item.class_id = track_context->class_id;
+        item.class_name = track_context->class_name;
+        if (item.zone_id.empty()) {
+            item.zone_id = track_context->zone_state.current_zone;
+        }
+        if (track_context->zone_state.entered_at_ms > 0) {
+            item.zone_entered_at_ms = track_context->zone_state.entered_at_ms;
+        }
+        if (!track_context->line_states.empty()) {
+            const auto& line = track_context->line_states.front();
+            item.line_id = line.line_id;
+            if (line.last_cross_time_ms > 0) {
+                item.line_crossed_at_ms = line.last_cross_time_ms;
+            }
+        }
+    }
+
+    if (const auto* event_state = FindEventLifecycleStateForScenario(event_states, instance);
+        event_state != nullptr) {
+        item.instance_key = event_state->object_key;
+        item.dedupe_key = event_state->key;
+        item.last_event_id = event_state->last_event_id;
+        item.last_event_status = event_state->last_event_status;
+        item.event_emitted_at_ms = event_state->last_emitted_ms > 0 ? event_state->last_emitted_ms : -1;
+        item.event_emitted_count = event_state->emitted_count;
+        item.dedupe_suppressed_count = event_state->suppressed_count;
+        if (event_state->cooldown_until_ms > 0) {
+            item.cooldown_ends_at_ms = event_state->cooldown_until_ms;
+        }
+        if (event_state->ended_at_ms > 0) {
+            item.cooldown_started_at_ms = event_state->ended_at_ms;
+        } else if (event_state->last_emitted_ms > 0 && item.cooldown_ends_at_ms > 0) {
+            item.cooldown_started_at_ms = event_state->last_emitted_ms;
+        }
+    }
+
+    const std::int64_t scenario_cooldown_ends = TimestampMsFromNs(instance.cooldown_until_ns);
+    if (scenario_cooldown_ends > item.cooldown_ends_at_ms) {
+        item.cooldown_ends_at_ms = scenario_cooldown_ends;
+    }
+    if (item.cooldown_started_at_ms < 0 && instance.confirmed_at_ns > 0 &&
+        item.cooldown_ends_at_ms >= 0) {
+        item.cooldown_started_at_ms = TimestampMsFromNs(instance.confirmed_at_ns);
+    }
+    if (item.cooldown_ends_at_ms >= 0) {
+        item.cooldown_remaining_ms = std::max<std::int64_t>(0, item.cooldown_ends_at_ms - now_ms);
+    }
+    if (item.instance_key.empty()) {
+        const std::string key_prefix = item.scenario_key.empty() ? item.scenario_name : item.scenario_key;
+        item.instance_key = key_prefix + ":track:" + std::to_string(item.track_id);
+    }
+    if (item.dedupe_key.empty()) {
+        item.dedupe_key = item.instance_key;
+    }
+    if (item.last_event_status.empty() && item.event_emitted_count > 0) {
+        item.last_event_status = item.current_phase;
+    }
+    return item;
+}
+
 AnalysisDebugState BuildDebugState(const AnalysisResult& result,
                                    const std::string& channel_id,
                                    const SceneContext& scene_context,
@@ -1270,8 +1416,22 @@ AnalysisDebugState BuildDebugState(const AnalysisResult& result,
     debug.active_event_state_count = event_metrics.active_states;
     debug.track_count = scene_context.tracks.size();
     debug.tracks.reserve(scene_context.tracks.size());
+    debug.scenario_timeline.reserve(scenario_instances.size());
     const bool include_ground_point =
         app::GetAppConfig().default_analysis_debug_ground_point_enabled;
+
+    for (const auto& instance : scenario_instances) {
+        debug.scenario_timeline.push_back(
+            BuildScenarioTimelineItem(instance, scene_context, event_states, debug.timestamp_ms));
+    }
+    std::sort(debug.scenario_timeline.begin(),
+              debug.scenario_timeline.end(),
+              [](const auto& lhs, const auto& rhs) {
+                  if (lhs.active != rhs.active) {
+                      return lhs.active && !rhs.active;
+                  }
+                  return lhs.phase_entered_at_ms > rhs.phase_entered_at_ms;
+              });
 
     for (const auto& track_context : scene_context.tracks) {
         AnalysisDebugTrackState track;

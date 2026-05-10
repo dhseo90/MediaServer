@@ -51,6 +51,21 @@ void Pass(const std::string& message) {
     std::cout << "[pass] " << message << "\n";
 }
 
+bool HasLifecycleCounters(const std::vector<EventLifecycleStateSnapshot>& states,
+                          const std::string& scenario_id,
+                          std::uint64_t track_id,
+                          std::uint64_t min_emitted,
+                          std::uint64_t min_suppressed) {
+    for (const auto& state : states) {
+        if (state.scenario_id == scenario_id && state.track_id == track_id &&
+            state.emitted_count >= min_emitted &&
+            state.suppressed_count >= min_suppressed) {
+            return true;
+        }
+    }
+    return false;
+}
+
 TrackedObjectMetadata MakeObject(std::uint64_t track_id,
                                  std::uint64_t frame_id,
                                  std::int64_t timestamp_ms,
@@ -800,6 +815,8 @@ void VerifyEventManager() {
     decision = manager.Update(MakeCandidate(1, 2000, true), options);
     Expect(!decision.emit && decision.suppressed && decision.stage == EventLifecycleStage::Cooldown,
            "EventManager must suppress reactivation during cooldown");
+    Expect(HasLifecycleCounters(manager.Snapshot(), "scenario-a", 1, 4, 3),
+           "EventManager snapshot must expose per-state emit/dedupe counts for timeline debug");
     decision = manager.Update(MakeCandidate(1, 3100, true), options);
     Expect(decision.emit && decision.stage == EventLifecycleStage::Start,
            "EventManager must allow reactivation after cooldown");
@@ -1139,6 +1156,8 @@ void VerifyLoiteringScenario() {
 
     events = engine.Evaluate(MakeSceneContext(4100, {confirmed}), &event_manager);
     Expect(events.empty(), "Loitering must not duplicate while the track remains in the zone");
+    Expect(HasLifecycleCounters(event_manager.Snapshot(), "loitering", 40, 1, 0),
+           "Loitering lifecycle state must retain emitted count for timeline debug");
 
     auto exited = MakeTrackContext(40, 4200, false, 0, "loiter-zone");
     events = engine.Evaluate(MakeSceneContext(4200, {exited}), &event_manager);
@@ -1218,6 +1237,8 @@ void VerifyZoneOccupancyScenario() {
     events = engine.Evaluate(MakeSceneContext(2100, {first_confirmed, second_confirmed}),
                              &event_manager);
     Expect(events.empty(), "ZoneOccupancy must suppress duplicates while occupancy remains above threshold");
+    Expect(HasLifecycleCounters(event_manager.Snapshot(), "zone-occupancy", 50, 1, 0),
+           "ZoneOccupancy lifecycle state must retain emitted count for timeline debug");
 
     auto third_short = MakeTrackContext(52, 2500, true, 200, "queue-zone");
     events = engine.Evaluate(MakeSceneContext(2500, {first_confirmed, third_short}), &event_manager);

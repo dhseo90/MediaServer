@@ -266,6 +266,35 @@ def overall_judgement(mode_payloads: dict[str, dict[str, Any]], deltas: dict[str
     return "pass", ["mode comparison completed; default-on remains deferred"]
 
 
+def quality_gate(judgement: str, deltas: dict[str, Any]) -> dict[str, Any]:
+    event_delta = any(bool(delta.get("eventScenarioDelta")) for delta in deltas.values())
+    increased_risk: dict[str, dict[str, float]] = {}
+    for name, delta in deltas.items():
+        risk_delta = {
+            key: value
+            for key, value in delta.items()
+            if key != "eventScenarioDelta" and isinstance(value, (int, float)) and value > 0.001
+        }
+        if risk_delta:
+            increased_risk[name] = risk_delta
+    default_on_candidate = judgement == "pass" and not event_delta and not increased_risk
+    if event_delta:
+        recommendation = "hold: event/scenario output changed; keep guard opt-in"
+    elif increased_risk:
+        recommendation = "observe: risk metric increased; keep guard default off"
+    elif judgement == "pass":
+        recommendation = "candidate: no event delta or risk increase observed; still require more field samples"
+    else:
+        recommendation = "hold: comparison did not pass cleanly"
+    return {
+        "eventScenarioUnchanged": not event_delta,
+        "riskNonIncreasing": not increased_risk,
+        "increasedRisk": increased_risk,
+        "defaultOnCandidate": default_on_candidate,
+        "recommendation": recommendation,
+    }
+
+
 def write_mode_report(mode: str, payload: dict[str, Any], path: pathlib.Path) -> None:
     lines = [
         f"# Close-object Tracker Mode: {mode}",
@@ -324,6 +353,7 @@ def write_mode_report(mode: str, payload: dict[str, Any], path: pathlib.Path) ->
 
 def write_report(summary: dict[str, Any], path: pathlib.Path) -> None:
     modes = summary["modes"]
+    gate = summary.get("qualityGate") or {}
     lines = [
         "# Close-object Tracker Guard Comparison",
         "",
@@ -331,6 +361,8 @@ def write_report(summary: dict[str, Any], path: pathlib.Path) -> None:
         f"- modes: `{', '.join(modes.keys())}`",
         f"- baseline: `{summary.get('baselineMode', 'off')}`",
         f"- judgement: `{summary['overallJudgement']}`",
+        f"- default-on candidate: `{gate.get('defaultOnCandidate')}`",
+        f"- recommendation: {gate.get('recommendation') or '-'}",
         "",
         "## Mode Summary",
         "",
@@ -361,6 +393,16 @@ def write_report(summary: dict[str, Any], path: pathlib.Path) -> None:
         lines.append(
             f"| {mode} | `{json.dumps(payload.get('guardDecisionCounts') or {}, ensure_ascii=False)}` | `{json.dumps(payload.get('trackingIssueCounts') or {}, ensure_ascii=False)}` |"
         )
+    lines.extend(["", "## Quality Gate", ""])
+    lines.append("| check | value |")
+    lines.append("| --- | --- |")
+    lines.append(f"| event/scenario unchanged | `{gate.get('eventScenarioUnchanged')}` |")
+    lines.append(f"| risk non-increasing | `{gate.get('riskNonIncreasing')}` |")
+    lines.append(f"| default-on candidate | `{gate.get('defaultOnCandidate')}` |")
+    lines.append(f"| recommendation | {gate.get('recommendation') or '-'} |")
+    increased_risk = gate.get("increasedRisk") or {}
+    if increased_risk:
+        lines.append(f"| increased risk | `{json.dumps(increased_risk, ensure_ascii=False)}` |")
     lines.extend(["", "## Event / Scenario Delta", ""])
     lines.append("| comparison | event/scenario delta | numeric delta |")
     lines.append("| --- | --- | --- |")
@@ -420,15 +462,18 @@ def main() -> int:
     baseline_mode = "off" if "off" in mode_payloads else modes[0]
     deltas = compute_deltas(mode_payloads, baseline_mode)
     judgement, reasons = overall_judgement(mode_payloads, deltas)
+    gate = quality_gate(judgement, deltas)
     summary = {
         "kind": "close-object-tracker-comparison",
-        "ok": judgement in {"pass", "warning"},
+        "ok": judgement != "fail",
         "sample": args.file,
         "baselineMode": baseline_mode,
         "modes": mode_payloads,
         "delta": deltas,
         "overallJudgement": judgement,
         "reasons": reasons,
+        "qualityGate": gate,
+        "defaultOnCandidate": gate["defaultOnCandidate"],
         "createdAt": dt.datetime.now(dt.timezone.utc).isoformat(),
     }
     summary_path = output_dir / "summary.json"
@@ -441,9 +486,11 @@ def main() -> int:
     print(f"[summary-json] {summary_path}")
     print(f"[report] {report_path}")
     print(f"[judgement] {judgement}")
+    print(f"[default-on-candidate] {gate['defaultOnCandidate']}")
+    print(f"[recommendation] {gate['recommendation']}")
     for reason in reasons:
         print(f"[reason] {reason}")
-    return 0 if judgement in {"pass", "warning"} else 1
+    return 0 if judgement != "fail" else 1
 
 
 if __name__ == "__main__":

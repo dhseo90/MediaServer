@@ -99,7 +99,19 @@ VA rule/scenario 변경:
 ./server.sh verify-analysis-state
 ./server.sh verify-va-replay
 ./server.sh verify-va-events
+./server.sh verify-ops-scenario-presets
 ```
+
+Live VA event quality 변경에서는 state-dump/runtime debug와 Ops 표시를
+함께 확인합니다.
+
+- `/lab/analysis/taps/{tapId}/state-dump`의
+  `analyticsState.debugState.scenarioTimeline[]`가 phase elapsed,
+  cooldown, event emit/dedupe marker를 읽기 전용으로 제공하는지 확인합니다.
+- `/ops/dashboard` Live VA Event Quality panel이 Scenario Timeline과
+  TrackHealth issue grouping을 표시하는지 확인합니다.
+- Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema,
+  RTSP/WebRTC media path는 변경하지 않습니다.
 
 UI 변경:
 
@@ -178,6 +190,11 @@ fi
   공통 Ops Console header/nav를 유지합니다.
   Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin),
   클라이언트 미리보기 순서입니다.
+- `/ops/dashboard`의 Live VA Event Quality panel은 active analysis tap이
+  있을 때 Scenario Timeline과 TrackHealth issue grouping을 표시하고,
+  없을 때는 empty 상태를 보여줍니다. 이 패널은 `/lab/analysis/*`
+  state-dump/metrics를 operator debug summary로 읽을 뿐 event schema나
+  media path를 바꾸지 않습니다.
 - `/ops/events`는 primary nav에서 숨긴 직접/진단 route입니다.
   독립 제품 탭으로 취급하지 않습니다.
   이벤트 조건은 룰에서 설정하고 운영 요약은 대시보드에서 확인합니다.
@@ -225,6 +242,16 @@ WebRTC/stream 변경:
 ./server.sh verify-codecs
 ./server.sh verify-webrtc-ice
 ```
+
+Close-object tracker diagnostic/enforce 비교는 기본 tracking 정책 변경 여부와
+event/scenario side effect를 함께 확인합니다.
+
+```bash
+./server.sh compare-close-object-tracker
+```
+
+리포트의 `Quality Gate` 섹션은 risk 증가, event/scenario 불변,
+default-on 후보 여부, 권고를 요약합니다.
 
 초기 `/webrtc/test` 화면에 의존하던 다채널 브라우저 harness는 제품 UI 정리 후
 실행하지 않습니다. 긴 RTSP/WebRTC 다채널 재생 검증은 별도 제품 UI harness가

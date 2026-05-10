@@ -96,6 +96,10 @@ struct EventLifecycleStateSnapshot {
     std::int64_t last_emitted_ms{0};
     std::int64_t cooldown_until_ms{0};
     std::int64_t ended_at_ms{0};
+    std::uint64_t emitted_count{0};
+    std::uint64_t suppressed_count{0};
+    std::string last_event_id;
+    std::string last_event_status;
 };
 
 class EventManager {
@@ -119,6 +123,10 @@ private:
         std::int64_t last_emitted_ns{0};
         std::int64_t cooldown_until_ns{0};
         std::int64_t ended_at_ns{0};
+        std::uint64_t emitted_count{0};
+        std::uint64_t suppressed_count{0};
+        std::string last_event_id;
+        std::string last_event_status;
     };
 
     static std::string BuildStateKey(const EventLifecycleKey& key);

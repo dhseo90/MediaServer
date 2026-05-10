@@ -1684,6 +1684,138 @@ void AppendOpsShellScript(std::ostringstream& out,
           });
         });
       };
+      const scenarioPhaseLabel = phase => ({
+        idle: 'Idle',
+        'line-crossed': 'LineCrossed',
+        'zone-entered': 'ZoneEntered',
+        candidate: 'Candidate',
+        observing: 'Observing',
+        confirmed: 'Confirmed',
+        cooldown: 'Cooldown',
+        ended: 'Ended'
+      })[String(phase || '').toLowerCase()] || display(phase || '미제공');
+      const scenarioPhaseTone = phase => {
+        const value = String(phase || '').toLowerCase();
+        if (value === 'confirmed') return '';
+        if (value === 'cooldown') return 'warn';
+        if (value === 'ended') return 'info';
+        if (['candidate', 'observing', 'line-crossed', 'zone-entered'].includes(value)) return 'info';
+        return 'info';
+      };
+      const dashboardPrimaryTap = runtime => {
+        const taps = Array.isArray(runtime?.analysisMatching?.activeTaps) ? runtime.analysisMatching.activeTaps : [];
+        const hashTap = String(opsHashParams().get('tap') || '').trim();
+        if (hashTap) {
+          const selected = taps.find(tap => String(tap?.tapId || '') === hashTap);
+          if (selected) return selected;
+        }
+        return taps.find(tap => String(tap?.selectedRuleId || '').trim()) || taps[0] || null;
+      };
+      const timelineTime = value => value === null || value === undefined ? '미제공' : ms(value);
+      const renderDashboardScenarioTimeline = items => {
+        const root = document.getElementById('dashScenarioTimeline');
+        if (!root) return;
+        const rows = Array.isArray(items) ? items : [];
+        if (rows.length === 0) {
+          root.innerHTML = '<div class="empty">활성 scenario instance가 없습니다.</div>';
+          return;
+        }
+        root.innerHTML = rows.slice(0, 8).map(item => {
+          const phase = item?.currentPhase || item?.scenarioPhase || '';
+          const cooldown = item?.cooldownRemainingMs;
+          const cooldownText = cooldown === null || cooldown === undefined ? 'cooldown 없음' : `cooldown ${timelineTime(cooldown)}`;
+          const dedupe = numberValue(item?.dedupeSuppressedCount);
+          const emitted = numberValue(item?.eventEmittedCount);
+          const context = [
+            item?.ruleId ? `rule ${item.ruleId}` : '',
+            item?.trackId ? `track ${item.trackId}` : '',
+            item?.zoneId ? `zone ${item.zoneId}` : '',
+            item?.lineId ? `line ${item.lineId}` : ''
+          ].filter(Boolean).join(' · ') || 'context 미제공';
+          return `<article class="root-cause-item ${item?.active === false ? 'info' : 'info'}">
+            <div>
+              <strong>${escapeHtml(display(item?.scenarioName || item?.scenarioKey || 'scenario'))}</strong>
+              <p>${escapeHtml(context)}</p>
+            </div>
+            ${badge(scenarioPhaseLabel(phase), scenarioPhaseTone(phase))}
+            <p class="root-cause-evidence">phase ${timelineTime(item?.phaseElapsedMs)} · ${escapeHtml(cooldownText)} · emitted ${emitted} · dedupe ${dedupe}</p>
+            <p class="root-cause-action">entered ${escapeHtml(timelineTime(item?.phaseEnteredAtMs))} · track ${escapeHtml(timelineTime(item?.trackFirstSeenAtMs))} → ${escapeHtml(timelineTime(item?.trackLastSeenAtMs))}</p>
+          </article>`;
+        }).join('');
+      };
+      const groupTrackingIssues = report => {
+        const groups = new Map();
+        const issues = Array.isArray(report?.issues) ? report.issues : [];
+        for (const issue of issues) {
+          const type = String(issue?.type || 'unknown');
+          if (!groups.has(type)) {
+            groups.set(type, { type, count: 0, tracks: new Set(), severity: String(issue?.severity || 'info') });
+          }
+          const group = groups.get(type);
+          group.count += 1;
+          if (issue?.trackId) group.tracks.add(String(issue.trackId));
+          if (String(issue?.severity || '') === 'warning') group.severity = 'warning';
+        }
+        return Array.from(groups.values()).sort((a, b) => b.count - a.count);
+      };
+      const renderDashboardTrackingIssues = report => {
+        const root = document.getElementById('dashTrackingIssueGroups');
+        if (!root) return;
+        const groups = groupTrackingIssues(report);
+        const totals = {
+          retained: numberValue(report?.retainedIssues),
+          total: numberValue(report?.totalIssues),
+          rateLimited: numberValue(report?.rateLimitedCount)
+        };
+        if (groups.length === 0) {
+          root.innerHTML = `<div class="empty">tracking issue 없음 · retained ${totals.retained}/${totals.total} · rate-limit ${totals.rateLimited}</div>`;
+          return;
+        }
+        root.innerHTML = groups.slice(0, 8).map(group => `<article class="root-cause-item ${group.severity === 'warning' ? 'warn' : 'info'}">
+          <div>
+            <strong>${escapeHtml(group.type)}</strong>
+            <p>tracks ${escapeHtml(Array.from(group.tracks).slice(0, 6).join(', ') || '미제공')}</p>
+          </div>
+          ${badge(`${group.count}건`, group.severity === 'warning' ? 'warn' : 'info')}
+          <p class="root-cause-evidence">retained ${totals.retained}/${totals.total} · rate-limit ${totals.rateLimited}</p>
+        </article>`).join('');
+      };
+      const renderDashboardVaQualityEmpty = message => {
+        renderBadges('dashVaQualityBadges', [{ text: 'analysis tap 대기', tone: 'info' }]);
+        setText('dashVaQualityText', message);
+        const timeline = document.getElementById('dashScenarioTimeline');
+        const issues = document.getElementById('dashTrackingIssueGroups');
+        if (timeline) timeline.innerHTML = '<div class="empty">활성 scenario instance가 없습니다.</div>';
+        if (issues) issues.innerHTML = '<div class="empty">tracking issue report가 없습니다.</div>';
+      };
+      const renderDashboardVaQualityError = error => {
+        renderBadges('dashVaQualityBadges', [{ text: 'debug 조회 실패', tone: 'warn' }]);
+        setText('dashVaQualityText', error?.message || 'VA runtime debug를 불러오지 못했습니다.');
+      };
+      async function refreshDashboardVaQuality(runtime) {
+        const tap = dashboardPrimaryTap(runtime);
+        if (!tap?.tapId) {
+          renderDashboardVaQualityEmpty('활성 analysis tap이 있으면 timeline과 tracking issue를 표시합니다.');
+          return;
+        }
+        const [stateDump, metricsDump] = await Promise.all([
+          requestJson(`/lab/analysis/taps/${encodeURIComponent(tap.tapId)}/state-dump`),
+          requestJson(`/lab/analysis/taps/${encodeURIComponent(tap.tapId)}/metrics`)
+        ]);
+        const debugState = stateDump?.analyticsState?.debugState || {};
+        const timeline = Array.isArray(debugState?.scenarioTimeline) ? debugState.scenarioTimeline : [];
+        const issueReport = metricsDump?.trackingIssueReport || {};
+        renderBadges('dashVaQualityBadges', [
+          { text: `tap ${tap.tapId}` },
+          { text: tap.selectedRuleId ? `rule ${tap.selectedRuleId}` : 'rule 미선택', tone: tap.selectedRuleId ? '' : 'info' },
+          { text: `timeline ${timeline.length}` },
+          { text: `issues ${numberValue(issueReport.retainedIssues)}`, tone: numberValue(issueReport.retainedIssues) > 0 ? 'warn' : 'info' }
+        ]);
+        setText('dashVaQualityText',
+          `${display(tap.streamKey)} · phase/cooldown/dedupe는 state-dump debug 계층에서만 표시합니다.`);
+        renderDashboardScenarioTimeline(timeline);
+        renderDashboardTrackingIssues(issueReport);
+      }
       async function refreshLive() {
         const [sources, views, catalog, runtime, events, users, diagnosticLog] = await Promise.all([
           requestJson('/ops/api/sources'),
@@ -1778,6 +1910,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('dashDetailText',
           `프로파일 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0} · 발행 ${counts.publish} · 송출 ${counts.egress}`);
         renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
+        await refreshDashboardVaQuality(runtime).catch(renderDashboardVaQualityError);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
       }
       const OPS_EVENT_RECORD_LIMIT = 25;
@@ -2186,50 +2319,72 @@ void AppendOpsShellScript(std::ostringstream& out,
           're-entry': { reEntryWindowMs: 10000 },
           'wrong-direction': { cooldownMs: 5000 },
           'intrusion-after-line-crossing': { maxDelayAfterCrossingMs: 10000, dwellTimeMs: 3000 },
-          loitering: { minDwellTimeMs: 30000, maxMovementRadius: 0.08, minTrajectoryPoints: 4, cooldownMs: 10000 },
-          'zone-occupancy': { occupancyThreshold: 3, minDwellTimeMs: 5000, cooldownMs: 10000 }
+          loitering: { minDwellTimeMs: 30000, maxMovementRadius: 0.08, minTrajectoryPoints: 4, cooldownMs: 12000 },
+          'zone-occupancy': { occupancyThreshold: 4, minDwellTimeMs: 7000, cooldownMs: 12000 }
         },
         road: {
           all: { minConfidence: 0.35, cooldownMs: 10000 },
           'line-crossing': { minDurationMs: 0 },
           'wrong-direction': { cooldownMs: 8000 },
           'intrusion-after-line-crossing': { maxDelayAfterCrossingMs: 6000, dwellTimeMs: 1500 },
-          loitering: { minDwellTimeMs: 45000, maxMovementRadius: 0.12, minTrajectoryPoints: 5, cooldownMs: 20000 },
-          'zone-occupancy': { occupancyThreshold: 8, minDwellTimeMs: 15000, cooldownMs: 20000 }
+          loitering: { minDwellTimeMs: 60000, maxMovementRadius: 0.12, minTrajectoryPoints: 5, cooldownMs: 20000 },
+          'zone-occupancy': { occupancyThreshold: 8, minDwellTimeMs: 5000, cooldownMs: 10000 }
+        },
+        retail: {
+          all: { minConfidence: 0.3, cooldownMs: 10000 },
+          loitering: { minDwellTimeMs: 20000, maxMovementRadius: 0.06, minTrajectoryPoints: 4, cooldownMs: 10000 },
+          'zone-occupancy': { occupancyThreshold: 4, minDwellTimeMs: 7000, cooldownMs: 12000 }
         },
         park: {
           all: { minConfidence: 0.3, cooldownMs: 15000 },
           'intrusion-dwell': { candidateTimeMs: 3000, dwellTimeMs: 15000 },
-          loitering: { minDwellTimeMs: 60000, maxMovementRadius: 0.1, minTrajectoryPoints: 5, cooldownMs: 30000 },
-          'zone-occupancy': { occupancyThreshold: 5, minDwellTimeMs: 10000, cooldownMs: 20000 }
+          loitering: { minDwellTimeMs: 60000, maxMovementRadius: 0.12, minTrajectoryPoints: 5, cooldownMs: 20000 },
+          'zone-occupancy': { occupancyThreshold: 6, minDwellTimeMs: 10000, cooldownMs: 15000 }
         },
         indoor: {
           all: { minConfidence: 0.3, cooldownMs: 8000 },
           'intrusion-dwell': { candidateTimeMs: 1500, dwellTimeMs: 5000 },
-          loitering: { minDwellTimeMs: 30000, maxMovementRadius: 0.06, minTrajectoryPoints: 4, cooldownMs: 15000 },
-          'zone-occupancy': { occupancyThreshold: 4, minDwellTimeMs: 5000, cooldownMs: 10000 }
+          loitering: { minDwellTimeMs: 20000, maxMovementRadius: 0.06, minTrajectoryPoints: 4, cooldownMs: 10000 },
+          'zone-occupancy': { occupancyThreshold: 4, minDwellTimeMs: 7000, cooldownMs: 12000 }
         },
         lobby: {
-          all: { minConfidence: 0.32, cooldownMs: 8000 },
+          all: { minConfidence: 0.32, cooldownMs: 12000 },
           'intrusion-dwell': { candidateTimeMs: 1000, dwellTimeMs: 4000 },
           're-entry': { reEntryWindowMs: 12000 },
-          loitering: { minDwellTimeMs: 45000, maxMovementRadius: 0.07, minTrajectoryPoints: 4, cooldownMs: 20000 },
-          'zone-occupancy': { occupancyThreshold: 6, minDwellTimeMs: 7000, cooldownMs: 12000 }
+          loitering: { minDwellTimeMs: 30000, maxMovementRadius: 0.08, minTrajectoryPoints: 4, cooldownMs: 12000 },
+          'zone-occupancy': { occupancyThreshold: 6, minDwellTimeMs: 10000, cooldownMs: 15000 }
         },
         platform: {
           all: { minConfidence: 0.35, cooldownMs: 10000 },
           'line-crossing': { minDurationMs: 0 },
           'wrong-direction': { cooldownMs: 6000 },
           'intrusion-after-line-crossing': { maxDelayAfterCrossingMs: 5000, dwellTimeMs: 1000 },
-          loitering: { minDwellTimeMs: 50000, maxMovementRadius: 0.08, minTrajectoryPoints: 5, cooldownMs: 20000 },
-          'zone-occupancy': { occupancyThreshold: 8, minDwellTimeMs: 8000, cooldownMs: 15000 }
+          loitering: { minDwellTimeMs: 45000, maxMovementRadius: 0.1, minTrajectoryPoints: 5, cooldownMs: 15000 },
+          'zone-occupancy': { occupancyThreshold: 8, minDwellTimeMs: 5000, cooldownMs: 10000 }
         },
         entrance: {
           all: { minConfidence: 0.32, cooldownMs: 6000 },
           'line-crossing': { minDurationMs: 0 },
           'intrusion-dwell': { candidateTimeMs: 1000, dwellTimeMs: 3000 },
           're-entry': { reEntryWindowMs: 10000 },
-          'zone-occupancy': { occupancyThreshold: 3, minDwellTimeMs: 4000, cooldownMs: 10000 }
+          loitering: { minDwellTimeMs: 15000, maxMovementRadius: 0.05, minTrajectoryPoints: 3, cooldownMs: 8000 },
+          'zone-occupancy': { occupancyThreshold: 3, minDwellTimeMs: 3000, cooldownMs: 8000 }
+        },
+        doorway: {
+          all: { minConfidence: 0.32, cooldownMs: 8000 },
+          'line-crossing': { minDurationMs: 0 },
+          loitering: { minDwellTimeMs: 15000, maxMovementRadius: 0.05, minTrajectoryPoints: 3, cooldownMs: 8000 },
+          'zone-occupancy': { occupancyThreshold: 3, minDwellTimeMs: 3000, cooldownMs: 8000 }
+        },
+        parking: {
+          all: { minConfidence: 0.35, cooldownMs: 20000 },
+          loitering: { minDwellTimeMs: 60000, maxMovementRadius: 0.12, minTrajectoryPoints: 5, cooldownMs: 20000 },
+          'zone-occupancy': { occupancyThreshold: 5, minDwellTimeMs: 10000, cooldownMs: 15000 }
+        },
+        elevator: {
+          all: { minConfidence: 0.32, cooldownMs: 12000 },
+          loitering: { minDwellTimeMs: 30000, maxMovementRadius: 0.08, minTrajectoryPoints: 4, cooldownMs: 12000 },
+          'zone-occupancy': { occupancyThreshold: 5, minDwellTimeMs: 8000, cooldownMs: 12000 }
         }
       };
       function opsEventRuleModeForType(type) {

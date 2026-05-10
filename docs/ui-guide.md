@@ -239,6 +239,10 @@ Route 역할:
     correlation id와 함께 확인합니다.
     다음 조치 버튼은 source 재검증, registry diff, Event/evidence 진단,
     auth/config 확인, log correlation 필터를 즉시 실행합니다.
+    Live VA Event Quality panel은 active analysis tap의 state-dump/metrics를
+    읽어 Scenario Timeline과 TrackHealth issue grouping을 표시합니다.
+    phase elapsed, cooldown, dedupe/emitted count는 운영자 debug summary로만
+    보여주며 Event POST/WebRTC/SSE/WS metadata schema를 바꾸지 않습니다.
   - `/ops/sources`:
     숫자 채널 목록, 상세 패널,
     `/ops/api/channels/bulk` 기반 대량 복제/비활성화/상태 진단을 제공합니다.
@@ -305,6 +309,27 @@ Ops/Client/Lab API guard를 확인합니다.
   `./server.sh verify-ops-tables-layout`로 확인합니다.
 - 화면 회귀까지 보려면
   `./server.sh verify-ops-client-ui --screenshots`를 사용합니다.
+
+### 2.1 Live VA Event Quality
+
+`/ops/dashboard`의 Live VA Event Quality panel은 v1.1.0 live-only 범위의
+운영자용 VA 품질 확인 영역입니다.
+
+표시 항목:
+
+- Scenario Timeline: scenario name, rule id, track id, phase,
+  phase elapsed, cooldown remaining, emitted/dedupe count
+- TrackHealth issue grouping: issue type별 retained/total 요약,
+  rate-limited count, 대표 track context
+- Empty/error state: active analysis tap이 없거나 state-dump/metrics를
+  읽지 못할 때 운영자가 원인을 구분할 수 있는 짧은 상태
+
+이 panel은 `/lab/analysis/taps/{tapId}/state-dump`,
+`/lab/analysis/taps/{tapId}/metrics`를 operator route에서만 읽습니다.
+client/viewer shell과 client API에는 source URL, raw JSON, debug counter,
+`analysisTapId`, Scenario Timeline debug object를 노출하지 않습니다.
+raw JSON이 필요한 경우에도 운영자 debug details 접힘 영역 또는
+개발/검증 API에서만 확인합니다.
 
 ## 3. Admin User Management
 

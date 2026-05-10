@@ -2348,6 +2348,30 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
         </div>
         <p id="dashDetailText">불러오는 중</p>
       </section>
+      <section class="section-card" data-testid="ops-va-quality-panel">
+        <div class="toolbar">
+          <div>
+            <h3>Live VA Event Quality</h3>
+            <p>Scenario timeline, TrackHealth issue, rule runtime 상태를 읽기 전용으로 봅니다.</p>
+          </div>
+        </div>
+        <div id="dashVaQualityBadges" class="badge-row"><span class="chip">분석 탭 대기</span></div>
+        <p id="dashVaQualityText">활성 analysis tap이 있으면 timeline과 tracking issue를 표시합니다.</p>
+        <div class="grid">
+          <div>
+            <h4>Scenario Timeline</h4>
+            <div id="dashScenarioTimeline" class="root-cause-list">
+              <div class="empty">활성 scenario instance가 없습니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Tracking Issues</h4>
+            <div id="dashTrackingIssueGroups" class="root-cause-list">
+              <div class="empty">tracking issue report가 없습니다.</div>
+            </div>
+          </div>
+        </div>
+      </section>
     </section>
 )";
 }
@@ -2682,11 +2706,15 @@ void AppendOpsRulesPage(std::ostringstream& out) {
               <select id="opsEventRulePresetSelect">
                 <option value="default">기본</option>
                 <option value="road">도로</option>
+                <option value="retail">매장 통로</option>
                 <option value="park">공원</option>
                 <option value="indoor">실내</option>
                 <option value="lobby">로비</option>
                 <option value="platform">승강장</option>
                 <option value="entrance">출입구</option>
+                <option value="doorway">문 앞 정체</option>
+                <option value="parking">주차장 가장자리</option>
+                <option value="elevator">승강기 홀</option>
                 <option value="custom">직접 설정</option>
               </select>
             </label>
@@ -4798,6 +4826,61 @@ std::string AnalysisDebugTrackStateJson(const analysis::AnalysisDebugTrackState&
     return out.str();
 }
 
+void AppendNullableInt64Json(std::ostringstream& out, std::int64_t value) {
+    if (value < 0) {
+        out << "null";
+    } else {
+        out << value;
+    }
+}
+
+std::string AnalysisDebugScenarioTimelineJson(
+    const analysis::AnalysisDebugScenarioTimeline& item) {
+    std::ostringstream out;
+    out << "{"
+        << "\"instanceKey\":\"" << JsonEscape(item.instance_key) << "\","
+        << "\"streamId\":\"" << JsonEscape(item.stream_id) << "\","
+        << "\"channelId\":\"" << JsonEscape(item.channel_id) << "\","
+        << "\"ruleId\":\"" << JsonEscape(item.rule_id) << "\","
+        << "\"scenarioKey\":\"" << JsonEscape(item.scenario_key) << "\","
+        << "\"scenarioName\":\"" << JsonEscape(item.scenario_name) << "\","
+        << "\"trackId\":" << item.track_id << ","
+        << "\"classId\":" << item.class_id << ","
+        << "\"className\":\"" << JsonEscape(item.class_name) << "\","
+        << "\"zoneId\":\"" << JsonEscape(item.zone_id) << "\","
+        << "\"lineId\":\"" << JsonEscape(item.line_id) << "\","
+        << "\"currentPhase\":\"" << JsonEscape(item.current_phase) << "\","
+        << "\"previousPhase\":\"" << JsonEscape(item.previous_phase) << "\","
+        << "\"phaseEnteredAtMs\":";
+    AppendNullableInt64Json(out, item.phase_entered_at_ms);
+    out << ",\"phaseElapsedMs\":";
+    AppendNullableInt64Json(out, item.phase_elapsed_ms);
+    out << ",\"trackFirstSeenAtMs\":";
+    AppendNullableInt64Json(out, item.track_first_seen_at_ms);
+    out << ",\"trackLastSeenAtMs\":";
+    AppendNullableInt64Json(out, item.track_last_seen_at_ms);
+    out << ",\"zoneEnteredAtMs\":";
+    AppendNullableInt64Json(out, item.zone_entered_at_ms);
+    out << ",\"lineCrossedAtMs\":";
+    AppendNullableInt64Json(out, item.line_crossed_at_ms);
+    out << ",\"eventEmittedAtMs\":";
+    AppendNullableInt64Json(out, item.event_emitted_at_ms);
+    out << ",\"cooldownStartedAtMs\":";
+    AppendNullableInt64Json(out, item.cooldown_started_at_ms);
+    out << ",\"cooldownEndsAtMs\":";
+    AppendNullableInt64Json(out, item.cooldown_ends_at_ms);
+    out << ",\"cooldownRemainingMs\":";
+    AppendNullableInt64Json(out, item.cooldown_remaining_ms);
+    out << ",\"lastEventId\":\"" << JsonEscape(item.last_event_id) << "\","
+        << "\"lastEventStatus\":\"" << JsonEscape(item.last_event_status) << "\","
+        << "\"dedupeKey\":\"" << JsonEscape(item.dedupe_key) << "\","
+        << "\"eventEmittedCount\":" << item.event_emitted_count << ","
+        << "\"dedupeSuppressedCount\":" << item.dedupe_suppressed_count << ","
+        << "\"active\":" << (item.active ? "true" : "false")
+        << "}";
+    return out.str();
+}
+
 std::string AnalysisDebugStateJson(const std::optional<analysis::AnalysisDebugState>& debug_state) {
     if (!debug_state.has_value()) {
         return "null";
@@ -4826,6 +4909,13 @@ std::string AnalysisDebugStateJson(const std::optional<analysis::AnalysisDebugSt
             out << ",";
         }
         out << AnalysisDebugTrackStateJson(debug.tracks[i]);
+    }
+    out << "],\"scenarioTimeline\":[";
+    for (std::size_t i = 0; i < debug.scenario_timeline.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << AnalysisDebugScenarioTimelineJson(debug.scenario_timeline[i]);
     }
     out << "]}";
     return out.str();

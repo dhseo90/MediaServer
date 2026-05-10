@@ -51,7 +51,8 @@ TrackState, Scenario, TrackHealth, EventRecord는 내부 상태와 선택 저장
 ### 현장형 Scenario Preset
 
 Ops 룰 UI의 이벤트 템플릿은 `default`, `road`, `park`, `indoor`,
-`lobby`, `platform`, `entrance`, `custom` preset을 저장할 수 있습니다.
+`retail`, `lobby`, `platform`, `entrance`, `doorway`, `parking`,
+`elevator`, `custom` preset을 저장할 수 있습니다.
 Preset은 `scenario.presetId`로 남기고,
 실제 판단에는 저장된 threshold 숫자값을 사용합니다.
 
@@ -60,9 +61,13 @@ Preset은 `scenario.presetId`로 남기고,
 | `road` | 도로, 차로, 교차부 | line crossing과 wrong-direction은 짧은 지속 시간, occupancy/loitering은 높은 임계값 |
 | `park` | 공원, 외부 체류 공간 | loitering dwell을 길게 잡고 재알림 간격을 넓힘 |
 | `indoor` | 실내 구역 | 이동 반경과 dwell을 낮춰 짧은 동선을 빨리 판정 |
+| `retail` | 매장 통로, 계산대 주변 | 짧은 체류와 대기열을 빠르게 잡는 시작값 |
 | `lobby` | 로비, 공용 대기 공간 | occupancy와 re-entry 기준을 중간값으로 유지 |
 | `platform` | 승강장, 대기열 구간 | line-crossing 지연을 짧게, occupancy threshold를 높게 유지 |
 | `entrance` | 출입구 | intrusion dwell과 re-entry window를 짧게 유지 |
+| `doorway` | 문 앞 정체 | 짧은 dwell과 낮은 occupancy threshold로 병목을 빨리 표시 |
+| `parking` | 주차장 가장자리 | 보행/차량 혼재 구간에서 loitering dwell과 반경을 보수적으로 유지 |
+| `elevator` | 승강기 홀 | 대기 오탐을 줄이기 위해 occupancy dwell을 중간값으로 유지 |
 
 ## 2. VA Pipeline
 
@@ -801,7 +806,11 @@ Ops audit에 `retention-cleanup` action을 남기며, HTTP audit이 어려운 �
 - 구현 완료: SSE metadata side-channel 수신 중심 custom client 예제
 - 구현 완료: OpenCV 기반 Custom RTSP + SSE metadata overlay renderer 예제
 - 구현 완료: WebSocket command/filter/subscribe-unsubscribe control
-- 예정: phase entered time/cooldown remaining을 포함한 정밀 scenario timeline, WS 기반 custom overlay renderer 확장
+- 구현 완료: state-dump/runtime debug 계층의 `scenarioTimeline[]`
+  phase entered/elapsed, cooldown remaining, event emitted/dedupe count 1차 표시
+- 구현 완료: `/ops/dashboard` Live VA Event Quality 패널의 Scenario Timeline과
+  TrackHealth issue grouping/focus summary
+- 예정: WS 기반 custom overlay renderer 확장
 
 내부 schema:
 
@@ -1326,9 +1335,10 @@ Scenario Timeline은 읽기 전용 debug UI입니다.
 event emit/cooldown 판단 자체는 ScenarioEngine과 EventManager의 기존 로직을 따릅니다.
 
 현재 vaRule Runtime Debug와 Scenarios/Scenario Timeline table은
-state-dump/metrics에 이미 노출된 값만 사용합니다.
-phase entered time, cooldown remaining 같은 정밀 timeline 필드는
-후속 endpoint 또는 state-dump 확장 없이는 표시하지 않습니다.
+state-dump/metrics에 이미 노출된 값과
+`analyticsState.debugState.scenarioTimeline[]`을 사용합니다.
+phase entered time, elapsed time, cooldown remaining, event emitted/dedupe count는
+debug/state-dump 계층에서만 표시합니다.
 정밀 timeline/debug 필드 초안은
 [scenario-timeline-debug.md](./scenario-timeline-debug.md)에 분리해 관리합니다.
 

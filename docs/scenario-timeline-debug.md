@@ -4,7 +4,7 @@
 필드 확장 초안을 정의합니다. 목적은 운영자가 situation event의 오탐/미탐
 원인을 읽기 전용으로 추적하게 하는 것입니다.
 
-이 문서는 설계 기준입니다. 현재 단계에서 scenario 판단 로직,
+이 문서는 state-dump/runtime debug 기준입니다. 현재 단계에서 scenario 판단 로직,
 Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema는
 변경하지 않습니다.
 
@@ -47,9 +47,27 @@ Scenario timeline은 새 판단 owner가 아닙니다. 기존 owner가 만든 �
 | `EventManager` | event emit, dedupe, cooldown, cleanup state |
 | `/events` buffer | recent event marker와 eventId/status 연결 |
 
-## Proposed Debug Fields
+## 구현 상태
 
-후보 state-dump 또는 runtime debug extension:
+1차 구현 완료:
+
+- `/lab/analysis/taps/{tapId}/state-dump`의 `analyticsState.debugState.scenarioTimeline[]`
+- scenario instance별 phase entered/elapsed time
+- EventManager lifecycle state 기반 event emitted/dedupe count
+- cooldown end/remaining 요약
+- `/ops/dashboard` Live VA Event Quality 패널의 Scenario Timeline 표시
+- TrackHealth issue report type grouping/focus summary
+
+유지:
+
+- Event POST payload 변경 없음
+- WebRTC DataChannel metadata schema 변경 없음
+- SSE/WS runtime metadata schema 변경 없음
+- ScenarioEngine 판단 로직 변경 없음
+
+## Debug Fields
+
+state-dump debug extension:
 
 ```json
 {
@@ -76,9 +94,10 @@ Scenario timeline은 새 판단 owner가 아닙니다. 기존 owner가 만든 �
       "cooldownStartedAtMs": 123500,
       "cooldownEndsAtMs": 153500,
       "cooldownRemainingMs": 27850,
-      "lastEventId": "evt_42",
+      "lastEventId": "",
       "lastEventStatus": "confirmed",
       "dedupeKey": "rule-1:intrusion-dwell:track-7:zone-restricted",
+      "eventEmittedCount": 1,
       "dedupeSuppressedCount": 0
     }
   ]
@@ -94,6 +113,7 @@ Scenario timeline은 새 판단 owner가 아닙니다. 기존 owner가 만든 �
 - `cooldownRemainingMs`는 음수가 되지 않게 `0`으로 clamp합니다.
 - `instanceKey`와 `dedupeKey`는 debug correlation용이며 외부 event contract가 아닙니다.
 - client/viewer API에는 이 debug object를 노출하지 않습니다.
+- `lastEventId`는 EventRecord/Event POST 식별자가 만들어지기 전이면 빈 문자열일 수 있습니다.
 
 ## UI Draft
 
@@ -106,6 +126,7 @@ Runtime Dashboard / vaRule Runtime Debug:
 - dedupe/cooldown으로 event가 억제된 경우 badge로 표시
 - track/zone/line context는 detail row에서 접어서 표시
 - raw JSON은 운영자 debug details 접힘 영역에서만 허용
+- TrackHealth issue는 issue type별로 묶어 focus summary로 표시
 
 Scenario Timeline table:
 
@@ -140,6 +161,7 @@ git diff --check -- README.md docs
 ./server.sh verify-analysis-state
 ./server.sh verify-va-replay
 ./server.sh verify-va-runtime-console
+./server.sh verify-ops-scenario-presets
 ```
 
 UI screenshot 확인이 필요한 경우:

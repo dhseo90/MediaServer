@@ -127,8 +127,16 @@ def run(args: argparse.Namespace, summary: dict[str, Any]) -> None:
         require_dict(state_dump, "state-dump")
         if "tap" not in state_dump and "state" not in state_dump and "analyticsState" not in state_dump:
             fail("state-dump endpoint did not expose tap/state/analyticsState")
+        debug_state = (state_dump.get("analyticsState") or {}).get("debugState")
+        if isinstance(debug_state, dict):
+            if "scenarioTimeline" not in debug_state:
+                fail("state-dump debugState missing scenarioTimeline")
+            scenario_timeline = debug_state.get("scenarioTimeline")
+            if not isinstance(scenario_timeline, list):
+                fail("state-dump debugState scenarioTimeline must be an array")
+            summary["scenarioTimelineCount"] = len(scenario_timeline)
         summary["stateDumpKeys"] = sorted(state_dump.keys())
-        log_pass("state-dump endpoint JSON 확인")
+        log_pass("state-dump endpoint JSON/timeline 확인")
 
         event_post = request_json(args.http_base, "GET", "/lab/analysis/event-post/status", timeout_s)
         require_dict(event_post, "event-post status")

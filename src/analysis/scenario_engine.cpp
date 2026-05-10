@@ -172,7 +172,7 @@ std::vector<AnalysisEvent> ScenarioEngine::Evaluate(const SceneContext& scene_co
             }
 
             ScenarioInstance& instance = instances[instance_key];
-            ApplyUpdate(&instance, scene_context, track_context, scenario_id, update);
+            ApplyUpdate(&instance, scene_context, track_context, scenario_id, scenario_key, update);
 
             if (update.event.has_value()) {
                 EventCandidate candidate;
@@ -293,6 +293,7 @@ void ScenarioEngine::ApplyUpdate(ScenarioInstance* instance,
                                  const SceneContext& scene_context,
                                  const TrackSceneContext& track_context,
                                  const std::string& scenario_id,
+                                 const std::string& scenario_key,
                                  const ScenarioUpdate& update) const {
     if (instance == nullptr) {
         return;
@@ -304,15 +305,18 @@ void ScenarioEngine::ApplyUpdate(ScenarioInstance* instance,
         instance->stream_id = scene_context.stream_id;
         instance->channel_id = ResolveChannelId(scene_context.stream_id, scene_context.channel_id);
         instance->scenario_id = scenario_id;
+        instance->scenario_key = scenario_key;
         instance->track_id = track_context.track_id;
         instance->first_seen_ns = scene_context.timestamp_ns;
         instance->phase_entered_ns = scene_context.timestamp_ns;
+        instance->previous_phase = ScenarioPhase::Idle;
         instance->confirmed_at_ns = 0;
         instance->cooldown_until_ns = 0;
         instance->ended_at_ns = 0;
     }
 
     if (instance->phase != update.phase) {
+        instance->previous_phase = instance->phase;
         instance->phase_entered_ns = scene_context.timestamp_ns;
     }
     instance->last_seen_ns = scene_context.timestamp_ns;

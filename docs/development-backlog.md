@@ -690,22 +690,30 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ### P3-1. Scenario timeline/debug UI
 
-- **상태**: `진행`
+- **상태**: `1차 구현 완료` - state-dump `scenarioTimeline[]`와 Ops Dashboard 표시 추가, 단기 smoke 검증 대상
 - 목적:
-  Runtime Dashboard의 Scenarios list와 vaRule Runtime Debug 1차는 구현했습니다.
-  남은 작업은 다음 상태를 timeline으로 표시하는 것입니다.
+  Runtime Dashboard의 Scenarios list와 vaRule Runtime Debug 1차 위에
+  다음 상태를 timeline으로 표시합니다.
   - track별 first seen
   - phase entered time
   - cooldown remaining
   - zone 이동
   - 중복 억제 상태
-- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/analysis/event_rule_engine.cpp`, `docs/ui-guide.md`
+- 구현 범위:
+  - `/lab/analysis/taps/{tapId}/state-dump`의
+    `analyticsState.debugState.scenarioTimeline[]`
+  - phase elapsed/cooldown remaining/event emit/dedupe count
+  - `/ops/dashboard` Live VA Event Quality panel의 읽기 전용 표시
+  - Event POST/WebRTC/SSE/WS metadata schema와 scenario 판단 로직 불변
+- 남은 작업: scenarioName/ruleId/trackId/phase별 table filter와 현장 샘플 기반 표시 우선순위 튜닝
+- 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp`, `src/analysis/event_rule_engine.cpp`, `src/analysis/scenario_engine.cpp`, `src/analysis/event_manager.cpp`, `docs/ui-guide.md`
 - 설계 문서: [scenario-timeline-debug.md](./scenario-timeline-debug.md)
 - 검증 명령:
 
 ```bash
 ./server.sh verify-rule-ui
 ./server.sh verify-ops-client-ui
+./server.sh verify-analysis-state
 ```
 
 - 우선순위 이유: 상황 기반 이벤트는 내부 상태가 보이지 않으면 오탐/미탐 원인 분석이 어렵습니다.
@@ -739,19 +747,23 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ### P3-3. Tracking issue report UI
 
-- **상태**: `진행`
+- **상태**: `1차 구현 완료` - Ops Dashboard issue grouping/focus summary 추가, 장기 threshold 튜닝은 후속
 - 목적:
   Runtime Dashboard table과 state dump에 다음 기록을 연결했습니다.
   - overlapRisk
   - missedFrame spike
   - directionChange spike
   - lost/reacquired
-  남은 작업은 issue grouping, focus filter, timeline 표시입니다.
-- 관련 파일: `src/analysis/track_state_manager.cpp`, `src/analysis/event_rule_engine.cpp`, `docs/ui-guide.md`
+  issue type별 grouping과 retained/total/rate-limited summary를
+  `/ops/dashboard` Live VA Event Quality panel에 표시합니다.
+- 남은 작업: 실제 현장 샘플에서 threshold와 filter priority를 보정하고,
+  close-object overlap 구간 fixture를 확장합니다.
+- 관련 파일: `src/analysis/track_state_manager.cpp`, `src/analysis/event_rule_engine.cpp`, `src/ingress/product_ui_page_scripts.cpp`, `docs/ui-guide.md`
 - 검증 명령:
 
 ```bash
-./server.sh verify-tracker-stability --long --overlap-focus
+./server.sh verify-ops-client-ui
+./server.sh verify-va-runtime-console
 ```
 
 - 우선순위 이유: direction-based tracking의 한계를 보완하기 전에 실제 실패 패턴을 볼 수 있어야 합니다.
@@ -786,7 +798,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ### P3-5. Runtime Dashboard 고도화
 
-- **상태**: `진행`
+- **상태**: `제한적 완료` - Live VA Event Quality panel 1차 추가, 장기 baseline 비교는 후속
 - 목적:
   1차 drill-down은 구현했습니다.
   - Overview
@@ -797,14 +809,16 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
   - Tracking Issues
   - vaRule Runtime Debug
   - client-side bounded Trend / Stale / Cleanup warning
+  - Live VA Event Quality panel
   남은 작업은 trend sparkline, 장기 baseline 비교,
-  phase entered time/cooldown remaining을 포함한 정밀 scenario timeline 고도화입니다.
+  scenario timeline filter/우선순위 polish입니다.
 - 구현 완료 범위:
   - 최근 60개 dashboard sample ring buffer
   - runtime/metadata/event counter delta/min/max
   - DataChannel bufferedAmount high badge
   - metadata/video/overlay/tap metrics stale badge
   - 보기 중지/dashboard 비활성 후 cleanup residual badge
+  - active analysis tap 기준 Scenario Timeline / TrackHealth grouping 표시
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/verify_va_runtime_console_longrun.py`, `docs/ui-guide.md`
 - 검증 명령:
 
@@ -910,9 +924,9 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 - 목적: Loitering 전용 UI 템플릿과 실제 CCTV 샘플 기반 dwell time, movement radius, trajectory point 기준 튜닝을 재개합니다.
 - 완료 범위:
   - Scenario template 목록에 Loitering 추가
-  - 로비/승강장/주차장 현장 샘플 시작 프리셋 추가
-  - retail/lobby/platform/doorway/parking 기준 threshold baseline 문서화
-  - doorway preset과 preset별 cooldown 시작값 반영
+  - retail/lobby/platform/doorway/parking/elevator 현장 샘플 시작 프리셋 추가
+  - retail/lobby/platform/doorway/parking/elevator 기준 threshold baseline 문서화
+  - doorway/parking/elevator preset과 preset별 cooldown 시작값 반영
   - target zone, `minDwellTimeMs`, `maxMovementRadius`, `minTrajectoryPoints`, `cooldownMs`, unstable track exclude 설정
   - optional `useGroundPlaneMovementRadius` 저장
   - Idle → InsideZone → TrajectoryStable → DwellSatisfied → Confirmed → Cooldown → Ended 상태 흐름 미리보기
@@ -944,7 +958,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
   - `ZoneOccupancyScenario`
   - env/per-rule 옵션
   - 룰 편집 UI 템플릿
-  - 대기열/로비/승강장/출입구/승강기 홀 tuning preset
+  - 매장/대기열/로비/승강장/출입구/주차장/승강기 홀 tuning preset
   - replay fixture
   - analysis-state smoke
   replay baseline에는 delayed-trigger boundary fixture를 포함합니다.
@@ -1025,6 +1039,8 @@ MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verif
   `off`, `diagnostic`, `enforce` mode로 실행합니다.
   JSON summary, Markdown report, mode별 비교 table,
   track별 issue table, event/scenario delta를 남깁니다.
+  리포트의 `Quality Gate` 섹션은 event/scenario 결과 불변 여부,
+  risk 증가 여부, default-on 후보 여부, 권고를 함께 요약합니다.
 - 남은 작업:
   close-object fixture와 실제 현장 샘플을 추가합니다.
   threshold, center jump penalty, continuity boost 기준을 비교하고
