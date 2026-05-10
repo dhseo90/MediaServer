@@ -5249,7 +5249,16 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     };
     const sourceHealthWarningsText = health => {
       const warnings = Array.isArray(health?.warnings) ? health.warnings.filter(Boolean) : [];
-      return warnings.length ? warnings.join(', ') : '경고 없음';
+      const labels = {
+        'high-reconnect': '재연결 잦음',
+        'repeated-stale': '지연 반복',
+        'published-source-ready': 'publish 준비됨',
+        'no-egress-session': 'egress 세션 없음',
+        'waiting-video': '비디오 대기',
+        'last-frame-aged': '프레임 지연',
+        'metadata-aged': '메타데이터 지연'
+      };
+      return warnings.length ? warnings.map(warning => labels[String(warning)] || String(warning)).join(', ') : '경고 없음';
     };
     function sourceHealthCellHtml(health) {
       if (!health) {

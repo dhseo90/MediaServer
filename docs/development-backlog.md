@@ -252,6 +252,7 @@ Ops UI 구현, state-dump extension, smoke matrix 구현을 포함하지 않습�
     `lastReconnectAt` 연동
   - active stream descriptor와 WHIP published descriptor 기반 codec/profile/fps 표시
   - Published WebRTC source의 active egress session 기반 `no-egress-session` 판정
+  - `high-reconnect`, `repeated-stale` warning threshold
   - `POST /ops/api/source-health/bulk` partial retry 계약
   - `/ops/sources` source health bulk check와 retryBody 실행 버튼
   - source health `status/reason` 변화의 짧은 Ops audit trail 기록

@@ -72,11 +72,15 @@ std::atomic<std::uint64_t> g_ops_audit_sequence{0};
 std::mutex g_ops_audit_mu;
 std::mutex g_source_health_audit_mu;
 std::unordered_map<std::string, std::string> g_source_health_audit_state;
+std::mutex g_source_health_warning_mu;
+std::unordered_map<std::string, std::pair<std::string, int>> g_source_health_warning_state;
 
 constexpr std::size_t kMaxHttpHeaderBytes = 64 * 1024;
 constexpr std::size_t kMaxHttpBodyBytes = 2 * 1024 * 1024;
 constexpr int kHttpSocketTimeoutSeconds = 5;
 constexpr int kMaxActiveHttpConnections = 128;
+constexpr int kOpsSourceHealthHighReconnectThreshold = 3;
+constexpr int kOpsSourceHealthRepeatedStaleThreshold = 3;
 
 std::string Trim(std::string value) {
     while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front())) != 0) {
@@ -7279,6 +7283,43 @@ void ClassifyOpsSourceHealth(OpsSourceHealthItem* item,
     item->reason = "no-subscriber";
 }
 
+bool OpsSourceHealthRepeatedStaleCandidate(const OpsSourceHealthItem& item) {
+    return item.status == "stale" &&
+           (item.reason == "last-frame-aged" || item.reason == "metadata-aged");
+}
+
+void ApplyOpsSourceHealthWarningThresholds(OpsSourceHealthSnapshot* snapshot) {
+    if (snapshot == nullptr) {
+        return;
+    }
+
+    std::lock_guard lock(g_source_health_warning_mu);
+    for (auto& item : snapshot->items) {
+        if (item.reconnect_count >= kOpsSourceHealthHighReconnectThreshold) {
+            AddOpsSourceHealthWarning(&item, "high-reconnect");
+        }
+        if (item.source_id.empty()) {
+            continue;
+        }
+
+        if (!OpsSourceHealthRepeatedStaleCandidate(item)) {
+            g_source_health_warning_state.erase(item.source_id);
+            continue;
+        }
+
+        const std::string state_key = item.status + "\n" + item.reason;
+        auto& state = g_source_health_warning_state[item.source_id];
+        if (state.first == state_key) {
+            ++state.second;
+        } else {
+            state = {state_key, 1};
+        }
+        if (state.second >= kOpsSourceHealthRepeatedStaleThreshold) {
+            AddOpsSourceHealthWarning(&item, "repeated-stale");
+        }
+    }
+}
+
 OpsSourceHealthSnapshot BuildOpsSourceHealthSnapshot(
     const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
     const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
@@ -7331,6 +7372,7 @@ OpsSourceHealthSnapshot BuildOpsSourceHealthSnapshot(
         }
         snapshot.items.push_back(std::move(item));
     }
+    ApplyOpsSourceHealthWarningThresholds(&snapshot);
     return snapshot;
 }
 

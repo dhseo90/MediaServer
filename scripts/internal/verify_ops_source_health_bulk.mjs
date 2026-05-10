@@ -33,6 +33,9 @@ check("server keeps existing source health schema intact", () => {
   assert(server.includes("media-server.ops.source-health.v1"), "source health v1 schema is missing");
   assert(server.includes("BuildOpsSourceHealthSnapshot"), "shared source health snapshot builder is missing");
   assert(server.includes("AppendOpsSourceHealthItemJson"), "source health item serializer is missing");
+  assert(server.includes("ApplyOpsSourceHealthWarningThresholds"), "source health warning threshold hook is missing");
+  assert(server.includes("high-reconnect"), "source health high reconnect warning is missing");
+  assert(server.includes("repeated-stale"), "source health repeated stale warning is missing");
 });
 
 check("documentation describes bulk retry policy", () => {

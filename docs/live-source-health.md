@@ -54,7 +54,7 @@
 
 후속 예정:
 
-- high reconnect/repeated stale warning threshold polish
+- lifecycle smoke port randomization polish
 
 ## 상태 모델
 
@@ -126,6 +126,10 @@ codec mismatch, high reconnect, metadata delay 같은 조건은 `warnings[]`로 
 - Published WebRTC source가 video descriptor를 가진 채 active여도 실제 egress
   session이 없으면 `connecting/no-egress-session`으로 판단하고
   `published-source-ready`, `no-egress-session` warning을 표시합니다.
+- `reconnectCount >= 3`이면 `high-reconnect` warning을 표시합니다.
+- 같은 source가 `stale/last-frame-aged` 또는 `stale/metadata-aged`로 3회 연속
+  관측되면 `repeated-stale` warning을 표시합니다. 이 기준은 프로세스
+  runtime 메모리 기준이며 서버 재시작 후 초기화됩니다.
 
 ## Client Sanitized Health
 
