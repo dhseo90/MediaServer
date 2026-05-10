@@ -57,6 +57,18 @@ major update를 적용하려면 workflow 권한, upstream changelog, pin 전략�
 - Source/doc release baseline
 - Binary/runtime/model bundle: not included
 
+## Live-only Scope
+
+- Live media relay and live VA event focus
+- ONVIF/source health/VA event/delivery contract work is phase-scoped
+- EventRecord/snapshot/clip: short event evidence helper, not the main product message
+
+## Non-goals
+
+- VMS/NVR/long-term recording/playback/search: not included
+- ONVIF Profile G recording/replay: not included
+- Recorded evidence API as primary integration contract: not included
+
 ## Verification
 
 - Preflight: pass
