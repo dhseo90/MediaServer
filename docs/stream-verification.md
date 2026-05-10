@@ -558,6 +558,14 @@ matrix 실행은 fixture별 `summary.json`/`report.md`와 상위
 파일이 없는 fixture는 기본적으로 skipped이며, release gate처럼 누락을 실패로
 보고 싶으면 `--fail-on-missing-fixtures`를 사용합니다.
 
+정기/CI용 전체 fixture gate는 전용 명령을 사용합니다.
+
+```bash
+./server.sh verify-close-object-fixture-matrix
+```
+
+이 명령은 모든 내장 fixture를 실행하고 fixture 파일 누락을 실패로 처리합니다.
+
 비교 기준:
 
 | 범주 | 지표 |

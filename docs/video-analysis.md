@@ -530,6 +530,7 @@ Close-object guard의 기본값은 `off`입니다.
 `compare-close-object-tracker` 리포트는 같은 sample에서
 `off`, `diagnostic`, `enforce`를 비교합니다.
 `--fixture-matrix`를 쓰면 내장 close-object/control sample 목록을 순차 비교합니다.
+정기/CI용 전체 matrix는 `verify-close-object-fixture-matrix`로 실행합니다.
 목적은 threshold tuning과 default-on 검토 근거를 모으는 것입니다.
 기본 실행은 mode별 격리 서버를 사용해 guard mode가 실제 서버에 적용됐는지
 확인합니다.

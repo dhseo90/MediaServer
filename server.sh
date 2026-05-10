@@ -148,6 +148,8 @@ Usage:
                  이동 영상에서 track ID 유지/분절 통계를 수집합니다.
   compare-close-object-tracker
                  close-object guard off/diagnostic/enforce tracker stability 비교 리포트를 생성합니다.
+  verify-close-object-fixture-matrix
+                 close-object guard 전체 fixture matrix를 정기 검증용 hard gate로 실행합니다.
   verify-yolo-layouts
                  YOLO 모델별 output layout/box/score 조합을 실제 모델로 검증합니다.
   verify-adaptive
@@ -505,6 +507,10 @@ case "${cmd}" in
   compare-close-object-tracker)
     require_internal compare_close_object_tracker.py
     exec "${INTERNAL_DIR}/compare_close_object_tracker.py" "$@"
+    ;;
+  verify-close-object-fixture-matrix)
+    require_internal compare_close_object_tracker.py
+    exec "${INTERNAL_DIR}/compare_close_object_tracker.py" --fixture-matrix --fail-on-missing-fixtures "$@"
     ;;
   verify-yolo-layouts)
     require_internal verify_yolo_layouts.sh
