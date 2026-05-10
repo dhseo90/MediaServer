@@ -94,6 +94,8 @@ Usage:
                  README/UI guide screenshot 자산과 자동 캡처 기준을 검증합니다.
   verify-docs-links
                  README/docs Markdown 링크와 이미지 파일 참조를 검증합니다.
+  verify-v1.1-boundary-keywords
+                 v1.1.0 live-only 제품 경계 키워드가 비범위/보류 문맥인지 검증합니다.
   verify-code-comments
                  코드/스크립트 상단 용도 주석과 한글 주석 정책을 검증합니다.
   verify-script-inventory
@@ -385,6 +387,10 @@ case "${cmd}" in
   verify-docs-links)
     require_internal verify_docs_links.mjs
     exec "${INTERNAL_DIR}/verify_docs_links.mjs" "$@"
+    ;;
+  verify-v1.1-boundary-keywords)
+    require_internal verify_v1_1_boundary_keywords.mjs
+    exec "${INTERNAL_DIR}/verify_v1_1_boundary_keywords.mjs" "$@"
     ;;
   verify-code-comments)
     require_internal verify_code_comments.mjs
