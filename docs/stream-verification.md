@@ -550,7 +550,8 @@ mode별 tracker summary JSON과 Markdown report는
 | association | associationConfidence 최저값, score margin |
 | overlap/이동 | overlapRisk 최대값, center jump 최대값 |
 | lifecycle | lost/reacquired, missed-frame-spike, direction-change-spike |
-| ID 안정성 | ID switch risk, fragmentation, overlap fragmentation |
+| ID 안정성 | tracker association risk, fragmentation, overlap fragmentation |
+| 관찰 지표 | idSwitchRiskScore, maxOverlapRisk, lost/reacquired, spike count, stale PTS/PTS regression |
 | guard 동작 | guardDecision count, closeObjectGuardApplied/rejected count |
 | 제품 영향 | event/scenario stable delta |
 | 관찰 참고 | event/scenario observed counter delta |
@@ -561,14 +562,16 @@ mode별 tracker summary JSON과 Markdown report는
 - `enforce`는 opt-in 보정 후보로만 봅니다.
 - event/scenario stable delta가 있으면 default on 전환 금지입니다.
 - `eventsEmitted`, `eventsDeduped`, cleanup count 같은 observed counter delta는 live polling 흔들림이 있어 참고값으로만 봅니다.
-- risk non-increasing 판정은 `idSwitchRiskScore`, `fragmentationRatio`, `overlapFragmentationRatio`, `maxOverlapRisk`, `lostCount` 기준입니다.
+- hard risk non-increasing 판정은 close-object guard의 structural association 결과인 `trackerAssociationRiskScore`, `fragmentationRatio`, `overlapFragmentationRatio` 기준입니다.
+- `idSwitchRiskScore`, `maxOverlapRisk`, `lost/reacquired`, spike count는 live polling 변동성이 있어 observed risk로 따로 해석합니다.
+- observed risk가 증가하면 default-on 후보로 쓰지 않고 반복/fixture 검증으로 넘깁니다.
 - replay/event 결과가 흔들려도 default on 전환 금지입니다.
 - default on은 여러 fixture와 현장 샘플에서 ID continuity 개선과 event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
 
 비교 리포트 해석:
 
 - command success라도 `judgement: warning`일 수 있습니다.
-- `event/scenario stable delta=False`여도 observed counter delta나 `enforceVsOff idSwitchRiskScore` 증가가 있을 수 있습니다.
+- `event/scenario stable delta=False`여도 observed counter delta나 observed risk 차이가 있을 수 있습니다.
 - 이 경우 default-on 근거로 사용하지 않습니다.
 - close-object guard는 계속 default off로 둡니다.
 - 후속은 threshold tuning 또는 추가 fixture 수집입니다.

@@ -25,11 +25,19 @@ VALID_MODES = {"off", "diagnostic", "enforce"}
 STABLE_EVENT_STATE_KEYS = {"activeEventStates"}
 STABLE_SCENARIO_STATE_KEYS = {"activeScenarios"}
 QUALITY_RISK_KEYS = {
-    "idSwitchRiskScore",
+    "trackerAssociationRiskScore",
     "fragmentationRatio",
     "overlapFragmentationRatio",
+}
+OBSERVED_RISK_KEYS = {
+    "idSwitchRiskScore",
+    "ptsRegressionCount",
+    "stalePtsRatio",
     "maxOverlapRisk",
     "lostCount",
+    "reacquiredCount",
+    "missedFrameSpikeCount",
+    "directionChangeSpikeCount",
 }
 
 
@@ -312,6 +320,13 @@ def aggregate_iterations(items: list[dict[str, Any]]) -> dict[str, Any]:
     guard_counts = counter_sum(items, "guardDecisionCounts")
     issue_counts = counter_sum(items, "trackingIssueCounts")
     event_signature = latest_signature(items)
+    fragmentation_ratio = max_value("fragmentationRatio")
+    overlap_fragmentation_ratio = max_value("overlapFragmentationRatio")
+    tracker_association_risk = round(
+        max(0.0, fragmentation_ratio - 1.0) +
+        max(0.0, overlap_fragmentation_ratio - 1.0),
+        6,
+    )
     track_rows: list[dict[str, Any]] = []
     for item in items:
         for row in item.get("trackIssueTable") or []:
@@ -324,8 +339,11 @@ def aggregate_iterations(items: list[dict[str, Any]]) -> dict[str, Any]:
 
     return {
         "idSwitchRiskScore": max_value("idSwitchRiskScore"),
-        "fragmentationRatio": max_value("fragmentationRatio"),
-        "overlapFragmentationRatio": max_value("overlapFragmentationRatio"),
+        "trackerAssociationRiskScore": tracker_association_risk,
+        "fragmentationRatio": fragmentation_ratio,
+        "overlapFragmentationRatio": overlap_fragmentation_ratio,
+        "ptsRegressionCount": int(max_value("ptsRegressionCount", 0)),
+        "stalePtsRatio": max_value("stalePtsRatio"),
         "minAssociationConfidence": min_value("minAssociationConfidence"),
         "maxOverlapRisk": max_value("maxOverlapRisk"),
         "maxCenterJump": max_value("maxCenterJump"),
@@ -384,8 +402,11 @@ def compute_deltas(modes: dict[str, dict[str, Any]], baseline_mode: str = "off")
         delta: dict[str, Any] = {}
         for key in [
             "idSwitchRiskScore",
+            "trackerAssociationRiskScore",
             "fragmentationRatio",
             "overlapFragmentationRatio",
+            "ptsRegressionCount",
+            "stalePtsRatio",
             "maxOverlapRisk",
             "maxCenterJump",
             "lostCount",
@@ -420,6 +441,7 @@ def overall_judgement(mode_payloads: dict[str, dict[str, Any]], deltas: dict[str
         return "fail", reasons
 
     warnings: list[str] = []
+    observed_warnings: list[str] = []
     for name, delta in deltas.items():
         if delta.get("eventScenarioDelta"):
             reasons.append(f"{name} event/scenario signature changed")
@@ -427,10 +449,16 @@ def overall_judgement(mode_payloads: dict[str, dict[str, Any]], deltas: dict[str
             value = delta.get(key)
             if isinstance(value, (int, float)) and value > 0.001:
                 warnings.append(f"{name} {key} increased by {value:.3f}")
+        for key in sorted(OBSERVED_RISK_KEYS):
+            value = delta.get(key)
+            if isinstance(value, (int, float)) and value > 0.001:
+                observed_warnings.append(f"{name} observed {key} changed by {value:.3f}")
     if reasons:
         return "hold", reasons
     if warnings:
         return "warning", warnings
+    if observed_warnings:
+        return "warning", observed_warnings
     return "pass", ["mode comparison completed; default-on remains deferred"]
 
 
@@ -438,6 +466,7 @@ def quality_gate(judgement: str, deltas: dict[str, Any]) -> dict[str, Any]:
     event_delta = any(bool(delta.get("eventScenarioDelta")) for delta in deltas.values())
     observed_event_delta = any(bool(delta.get("eventScenarioObservedDelta")) for delta in deltas.values())
     increased_risk: dict[str, dict[str, float]] = {}
+    observed_increased_risk: dict[str, dict[str, float]] = {}
     for name, delta in deltas.items():
         risk_delta = {
             key: value
@@ -446,11 +475,20 @@ def quality_gate(judgement: str, deltas: dict[str, Any]) -> dict[str, Any]:
         }
         if risk_delta:
             increased_risk[name] = risk_delta
+        observed_delta = {
+            key: value
+            for key, value in delta.items()
+            if key in OBSERVED_RISK_KEYS and isinstance(value, (int, float)) and value > 0.001
+        }
+        if observed_delta:
+            observed_increased_risk[name] = observed_delta
     default_on_candidate = judgement == "pass" and not event_delta and not increased_risk
     if event_delta:
         recommendation = "hold: event/scenario output changed; keep guard opt-in"
     elif increased_risk:
-        recommendation = "observe: risk metric increased; keep guard default off"
+        recommendation = "observe: association risk metric increased; keep guard default off"
+    elif observed_increased_risk:
+        recommendation = "observe: live tracking counters changed; repeat and keep guard default off"
     elif judgement == "pass" and observed_event_delta:
         recommendation = (
             "candidate: stable event/scenario state unchanged and risk keys did not increase; "
@@ -464,8 +502,11 @@ def quality_gate(judgement: str, deltas: dict[str, Any]) -> dict[str, Any]:
         "eventScenarioUnchanged": not event_delta,
         "eventScenarioObservedUnchanged": not observed_event_delta,
         "riskKeys": sorted(QUALITY_RISK_KEYS),
+        "observedRiskKeys": sorted(OBSERVED_RISK_KEYS),
         "riskNonIncreasing": not increased_risk,
+        "observedRiskNonIncreasing": not observed_increased_risk,
         "increasedRisk": increased_risk,
+        "observedIncreasedRisk": observed_increased_risk,
         "defaultOnCandidate": default_on_candidate,
         "recommendation": recommendation,
     }
@@ -490,8 +531,11 @@ def write_mode_report(mode: str, payload: dict[str, Any], path: pathlib.Path) ->
     ]
     for key in [
         "idSwitchRiskScore",
+        "trackerAssociationRiskScore",
         "fragmentationRatio",
         "overlapFragmentationRatio",
+        "ptsRegressionCount",
+        "stalePtsRatio",
         "minAssociationConfidence",
         "maxOverlapRisk",
         "maxCenterJump",
@@ -545,16 +589,19 @@ def write_report(summary: dict[str, Any], path: pathlib.Path) -> None:
         "",
         "## Mode Summary",
         "",
-        "| mode | ok | mode effective | idSwitchRisk | fragmentation | overlap fragmentation | min assoc | max overlap | max centerJump | lost/reacq | guard applied/rejected |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| mode | ok | mode effective | association risk | idSwitchRisk | pts regression/stale | fragmentation | overlap fragmentation | min assoc | max overlap | max centerJump | lost/reacq | guard applied/rejected |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for mode, payload in modes.items():
         lines.append(
-            "| {mode} | {ok} | {effective} | {risk} | {frag} | {overlap_frag} | {assoc} | {overlap} | {jump} | {lost}/{reacq} | {applied}/{rejected} |".format(
+            "| {mode} | {ok} | {effective} | {assoc_risk} | {risk} | {pts}/{stale} | {frag} | {overlap_frag} | {assoc} | {overlap} | {jump} | {lost}/{reacq} | {applied}/{rejected} |".format(
                 mode=mode,
                 ok="PASS" if payload.get("ok") else "FAIL",
                 effective="yes" if payload.get("modeEffective") else "no",
+                assoc_risk=format_cell(payload.get("trackerAssociationRiskScore")),
                 risk=format_cell(payload.get("idSwitchRiskScore")),
+                pts=format_cell(payload.get("ptsRegressionCount")),
+                stale=format_cell(payload.get("stalePtsRatio")),
                 frag=format_cell(payload.get("fragmentationRatio")),
                 overlap_frag=format_cell(payload.get("overlapFragmentationRatio")),
                 assoc=format_cell(payload.get("minAssociationConfidence")),
@@ -580,11 +627,16 @@ def write_report(summary: dict[str, Any], path: pathlib.Path) -> None:
     lines.append(f"| event/scenario observed unchanged | `{gate.get('eventScenarioObservedUnchanged')}` |")
     lines.append(f"| risk non-increasing | `{gate.get('riskNonIncreasing')}` |")
     lines.append(f"| risk keys | `{json.dumps(gate.get('riskKeys') or [], ensure_ascii=False)}` |")
+    lines.append(f"| observed risk non-increasing | `{gate.get('observedRiskNonIncreasing')}` |")
+    lines.append(f"| observed risk keys | `{json.dumps(gate.get('observedRiskKeys') or [], ensure_ascii=False)}` |")
     lines.append(f"| default-on candidate | `{gate.get('defaultOnCandidate')}` |")
     lines.append(f"| recommendation | {gate.get('recommendation') or '-'} |")
     increased_risk = gate.get("increasedRisk") or {}
     if increased_risk:
         lines.append(f"| increased risk | `{json.dumps(increased_risk, ensure_ascii=False)}` |")
+    observed_increased_risk = gate.get("observedIncreasedRisk") or {}
+    if observed_increased_risk:
+        lines.append(f"| observed increased risk | `{json.dumps(observed_increased_risk, ensure_ascii=False)}` |")
     lines.extend(["", "## Event / Scenario Delta", ""])
     lines.append("| comparison | stable delta | observed delta | numeric delta |")
     lines.append("| --- | --- | --- | --- |")

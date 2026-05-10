@@ -1043,7 +1043,9 @@ MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verif
   track별 issue table, event/scenario stable delta와
   observed counter delta를 남깁니다.
   리포트의 `Quality Gate` 섹션은 안정 event/scenario 상태 불변 여부,
-  핵심 risk 증가 여부, default-on 후보 여부, 권고를 함께 요약합니다.
+  tracker association risk 증가 여부, default-on 후보 여부, 권고를 함께 요약합니다.
+  `idSwitchRiskScore`, `maxOverlapRisk`, lost/reacquired, spike count,
+  stale PTS/PTS regression 성분은 live observed risk로 분리해 해석합니다.
 - 남은 작업:
   close-object fixture와 실제 현장 샘플을 추가합니다.
   threshold, center jump penalty, continuity boost 기준을 비교하고

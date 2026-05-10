@@ -535,6 +535,8 @@ Close-object guard의 기본값은 `off`입니다.
 event/scenario stable 상태가 달라지면 default on 전환 근거로 사용할 수 없습니다.
 live polling 과정의 emit/dedupe/cleanup counter 차이는 observed delta로 남기되
 단독 default-on 차단 사유로 보지 않습니다.
+`idSwitchRiskScore`는 stale PTS/PTS regression 성분을 포함하므로
+close-object guard 비교에서는 tracker association risk와 observed risk를 분리해 봅니다.
 
 ## 8. Appearance / Re-ID Hook
 
