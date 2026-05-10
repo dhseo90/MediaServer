@@ -70,6 +70,8 @@ Usage:
                  현장형 VA 시나리오 preset UI와 threshold round-trip을 검증합니다.
   verify-ops-source-lifecycle
                  WebRTC session active/cleanup 기준으로 공통 source lifecycle idle 복귀를 검증합니다.
+  verify-ops-source-health-bulk
+                 /ops/api/source-health/bulk partial retry 계약을 검증합니다.
   verify-ops-channel-bulk
                  /ops/sources 대량 채널 복제/비활성화/상태 진단 UI hook을 검증합니다.
   verify-ops-event-records-scope
@@ -347,6 +349,10 @@ case "${cmd}" in
   verify-ops-source-lifecycle)
     require_internal verify_ops_source_lifecycle.mjs
     exec "${INTERNAL_DIR}/verify_ops_source_lifecycle.mjs" "$@"
+    ;;
+  verify-ops-source-health-bulk)
+    require_internal verify_ops_source_health_bulk.mjs
+    exec "${INTERNAL_DIR}/verify_ops_source_health_bulk.mjs" "$@"
     ;;
   verify-ops-channel-bulk)
     require_internal verify_ops_channel_bulk.mjs

@@ -6908,6 +6908,18 @@ struct OpsSourceHealthItem {
     std::vector<std::string> warnings;
 };
 
+struct OpsSourceHealthSnapshot {
+    bool ok{true};
+    std::string error;
+    std::string generated_at;
+    std::vector<OpsSourceHealthItem> items;
+    int live_count{0};
+    int connecting_count{0};
+    int stale_count{0};
+    int offline_count{0};
+    int unknown_count{0};
+};
+
 void AppendOpsSourceHealthItemJson(std::ostringstream& out, const OpsSourceHealthItem& item) {
     out << "{"
         << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
@@ -7244,26 +7256,23 @@ void ClassifyOpsSourceHealth(OpsSourceHealthItem* item,
     item->reason = "no-subscriber";
 }
 
-std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
-                                const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
-                                const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
-                                const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats) {
+OpsSourceHealthSnapshot BuildOpsSourceHealthSnapshot(
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
+    const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
+    const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
+    const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats) {
+    OpsSourceHealthSnapshot snapshot;
     std::vector<SourceViewRegistry::SourceRecord> sources;
     std::vector<SourceViewRegistry::PublishedViewRecord> views;
     std::string load_error;
     if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
-        return "{\"ok\":false,\"schema\":\"media-server.ops.source-health.v1\",\"error\":\"" +
-               JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
+        snapshot.ok = false;
+        snapshot.error = load_error.empty() ? "source registry load failed" : load_error;
+        return snapshot;
     }
 
-    const std::string generated_at = FormatUnixMsUtc(NowUnixMs());
-    std::vector<OpsSourceHealthItem> items;
-    items.reserve(sources.size());
-    int live_count = 0;
-    int connecting_count = 0;
-    int stale_count = 0;
-    int offline_count = 0;
-    int unknown_count = 0;
+    snapshot.generated_at = FormatUnixMsUtc(NowUnixMs());
+    snapshot.items.reserve(sources.size());
     for (const auto& source : sources) {
         OpsSourceHealthItem item;
         item.source_id = source.source_id;
@@ -7275,19 +7284,43 @@ std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::Tap
             descriptor = &*published_source->descriptor;
         }
         const auto* stats = OpsHealthReconnectStatsForSource(source, reconnect_stats);
-        ClassifyOpsSourceHealth(&item, source, view, tap, published_source, descriptor, stats, generated_at);
+        ClassifyOpsSourceHealth(&item, source, view, tap, published_source, descriptor, stats, snapshot.generated_at);
         if (item.status == "live") {
-            ++live_count;
+            ++snapshot.live_count;
         } else if (item.status == "connecting") {
-            ++connecting_count;
+            ++snapshot.connecting_count;
         } else if (item.status == "stale") {
-            ++stale_count;
+            ++snapshot.stale_count;
         } else if (item.status == "offline") {
-            ++offline_count;
+            ++snapshot.offline_count;
         } else {
-            ++unknown_count;
+            ++snapshot.unknown_count;
         }
-        items.push_back(std::move(item));
+        snapshot.items.push_back(std::move(item));
+    }
+    return snapshot;
+}
+
+void AppendOpsSourceHealthSummaryJson(std::ostringstream& out, const OpsSourceHealthSnapshot& snapshot) {
+    out << "{"
+        << "\"total\":" << snapshot.items.size() << ","
+        << "\"live\":" << snapshot.live_count << ","
+        << "\"connecting\":" << snapshot.connecting_count << ","
+        << "\"stale\":" << snapshot.stale_count << ","
+        << "\"offline\":" << snapshot.offline_count << ","
+        << "\"unknown\":" << snapshot.unknown_count
+        << "}";
+}
+
+std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
+                                const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
+                                const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
+                                const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats) {
+    const auto snapshot =
+        BuildOpsSourceHealthSnapshot(analysis_taps, publish_sources, descriptor_snapshots, reconnect_stats);
+    if (!snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.source-health.v1\",\"error\":\"" +
+               JsonEscape(snapshot.error) + "\"}";
     }
 
     std::ostringstream out;
@@ -7295,22 +7328,152 @@ std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::Tap
         << "\"ok\":true,"
         << "\"schema\":\"media-server.ops.source-health.v1\","
         << "\"status\":\"source-health\","
-        << "\"generatedAt\":\"" << JsonEscape(generated_at) << "\","
-        << "\"summary\":{"
-        << "\"total\":" << items.size() << ","
-        << "\"live\":" << live_count << ","
-        << "\"connecting\":" << connecting_count << ","
-        << "\"stale\":" << stale_count << ","
-        << "\"offline\":" << offline_count << ","
-        << "\"unknown\":" << unknown_count
-        << "},\"sourceHealth\":[";
-    for (std::size_t i = 0; i < items.size(); ++i) {
+        << "\"generatedAt\":\"" << JsonEscape(snapshot.generated_at) << "\","
+        << "\"summary\":";
+    AppendOpsSourceHealthSummaryJson(out, snapshot);
+    out << ",\"sourceHealth\":[";
+    for (std::size_t i = 0; i < snapshot.items.size(); ++i) {
         if (i != 0) {
             out << ",";
         }
-        AppendOpsSourceHealthItemJson(out, items[i]);
+        AppendOpsSourceHealthItemJson(out, snapshot.items[i]);
     }
     out << "]}";
+    return out.str();
+}
+
+bool OpsSourceHealthBulkRetryable(const OpsSourceHealthItem& item) {
+    if (item.status == "live" || item.reason == "disabled") {
+        return false;
+    }
+    return item.status == "connecting" || item.status == "stale" || item.status == "offline" ||
+           !item.warnings.empty();
+}
+
+std::string OpsSourceHealthBulkJson(
+    const std::string& body,
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
+    const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
+    const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
+    const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats) {
+    const auto snapshot =
+        BuildOpsSourceHealthSnapshot(analysis_taps, publish_sources, descriptor_snapshots, reconnect_stats);
+    if (!snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.source-health.bulk.v1\",\"error\":\"" +
+               JsonEscape(snapshot.error) + "\"}";
+    }
+
+    const std::string operation = Trim(ParseStringField(body, "operation").value_or("check"));
+    if (operation != "check" && operation != "retry") {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.source-health.bulk.v1\",\"error\":\"unsupported operation\"}";
+    }
+
+    std::vector<std::string> requested_ids = StringArrayFieldValues(body, "sourceIds");
+    std::vector<std::string> target_ids;
+    std::set<std::string> seen_ids;
+    if (requested_ids.empty()) {
+        for (const auto& item : snapshot.items) {
+            if (seen_ids.insert(item.source_id).second) {
+                target_ids.push_back(item.source_id);
+            }
+        }
+    } else {
+        for (const auto& id : requested_ids) {
+            const std::string trimmed = Trim(id);
+            if (!trimmed.empty() && seen_ids.insert(trimmed).second) {
+                target_ids.push_back(trimmed);
+            }
+        }
+    }
+
+    int ok_count = 0;
+    int fail_count = 0;
+    int retryable_count = 0;
+    int unhealthy_count = 0;
+    std::vector<std::string> retry_source_ids;
+    std::ostringstream results;
+    results << "[";
+    for (std::size_t index = 0; index < target_ids.size(); ++index) {
+        const std::string& source_id = target_ids[index];
+        const auto it = std::find_if(snapshot.items.begin(), snapshot.items.end(), [&](const auto& item) {
+            return item.source_id == source_id;
+        });
+        if (index != 0) {
+            results << ",";
+        }
+        if (it == snapshot.items.end()) {
+            ++fail_count;
+            results << "{"
+                    << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+                    << "\"ok\":false,"
+                    << "\"healthy\":false,"
+                    << "\"retryable\":false,"
+                    << "\"status\":\"unknown\","
+                    << "\"reason\":\"not-found\","
+                    << "\"checkedAt\":null,"
+                    << "\"message\":\"source not found\""
+                    << "}";
+            continue;
+        }
+
+        const bool healthy = it->status == "live";
+        const bool retryable = OpsSourceHealthBulkRetryable(*it);
+        ++ok_count;
+        if (!healthy) {
+            ++unhealthy_count;
+        }
+        if (retryable) {
+            ++retryable_count;
+            retry_source_ids.push_back(it->source_id);
+        }
+
+        results << "{"
+                << "\"sourceId\":\"" << JsonEscape(it->source_id) << "\","
+                << "\"ok\":true,"
+                << "\"healthy\":" << (healthy ? "true" : "false") << ","
+                << "\"retryable\":" << (retryable ? "true" : "false") << ","
+                << "\"status\":\"" << JsonEscape(it->status) << "\","
+                << "\"reason\":\"" << JsonEscape(it->reason) << "\","
+                << "\"checkedAt\":";
+        AppendNullableJsonString(results, it->checked_at);
+        results << ",\"message\":\""
+                << JsonEscape(healthy ? "health check passed" : "health check returned " + it->status)
+                << "\",\"health\":";
+        AppendOpsSourceHealthItemJson(results, *it);
+        results << "}";
+    }
+    results << "]";
+
+    std::ostringstream retry_body;
+    retry_body << "{\"operation\":\"retry\",\"sourceIds\":[";
+    for (std::size_t i = 0; i < retry_source_ids.size(); ++i) {
+        if (i != 0) {
+            retry_body << ",";
+        }
+        retry_body << "\"" << JsonEscape(retry_source_ids[i]) << "\"";
+    }
+    retry_body << "]}";
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.source-health.bulk.v1\","
+        << "\"status\":\"source-health-bulk\","
+        << "\"operation\":\"" << JsonEscape(operation) << "\","
+        << "\"dryRun\":true,"
+        << "\"generatedAt\":\"" << JsonEscape(snapshot.generated_at) << "\","
+        << "\"requestedCount\":" << target_ids.size() << ","
+        << "\"okCount\":" << ok_count << ","
+        << "\"failCount\":" << fail_count << ","
+        << "\"unhealthyCount\":" << unhealthy_count << ","
+        << "\"retryableCount\":" << retryable_count << ","
+        << "\"partialFailure\":" << (fail_count > 0 && ok_count > 0 ? "true" : "false") << ","
+        << "\"summary\":";
+    AppendOpsSourceHealthSummaryJson(out, snapshot);
+    out << ",\"retryPolicy\":\"retry only rows with retryable=true; use retryBody.sourceIds after fixing disabled/missing source configuration\","
+        << "\"retryBody\":" << retry_body.str() << ","
+        << "\"results\":" << results.str()
+        << "}";
     return out.str();
 }
 
@@ -10646,6 +10809,22 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                                    WebRtcSourceRegistry::Instance().Snapshots(),
 	                                                    impl_->session_manager.SourceDescriptorSnapshots(),
 	                                                    impl_->session_manager.SourceReconnectStatsSnapshot()));
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
+	                        }
+
+	                        if (request.method == "POST" && request.path == "/ops/api/source-health/bulk") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            HttpResponse ok = JsonResponse(
+	                                200,
+	                                "OK",
+	                                OpsSourceHealthBulkJson(request.body,
+	                                                        impl_->session_manager.AnalysisTapSnapshots(),
+	                                                        WebRtcSourceRegistry::Instance().Snapshots(),
+	                                                        impl_->session_manager.SourceDescriptorSnapshots(),
+	                                                        impl_->session_manager.SourceReconnectStatsSnapshot()));
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
 	                        }

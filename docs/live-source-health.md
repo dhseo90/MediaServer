@@ -37,17 +37,20 @@
 구현 완료:
 
 - `GET /ops/api/source-health`
+- `POST /ops/api/source-health/bulk`
 - `/ops/sources` Live Source Health 요약, row badge, detail health panel
 - `/ops/dashboard` 문제 원인 패널의 source health 요약과 Dashboard 이동 흐름
 - client dashboard/live detail의 sanitized health summary
 - `SessionManager` source restart 기반 `reconnectCount`, `lastReconnectAt` 연동
 - active stream descriptor와 WHIP published descriptor 기반 codec/profile/width/height/fps 연동
+- source health bulk check의 partial failure와 failed-only retry 계약
 - `verify-ops-root-cause-panel`, `verify-client-dashboard-polish`,
-  `verify-ops-source-lifecycle`, `verify-ops-client-ui --screenshots` smoke 기준
+  `verify-ops-source-lifecycle`, `verify-ops-source-health-bulk`,
+  `verify-ops-client-ui --screenshots` smoke 기준
 
 후속 예정:
 
-- bulk health check 서버 계약과 partial failure retry 정책
+- operator UI에서 bulk result retryBody를 직접 실행하는 workflow polish
 
 ## 상태 모델
 
@@ -171,6 +174,27 @@ bulk check:
 - partial failure는 실패 source만 재시도 가능해야 함
 - viewer/client에는 bulk result를 노출하지 않음
 
+서버 계약:
+
+```http
+POST /ops/api/source-health/bulk
+Content-Type: application/json
+
+{
+  "operation": "check",
+  "sourceIds": ["sample-h264", "camera-01"]
+}
+```
+
+응답 schema는 `media-server.ops.source-health.bulk.v1`입니다.
+`sourceIds`를 생략하면 전체 source를 확인합니다.
+`operation`은 `check` 또는 `retry`이며 서버 동작은 dry-run health 재조회입니다.
+실패/비정상 항목은 `results[].retryable=true`로 표시되고,
+운영 UI는 `retryBody`의 sourceIds만 다시 보내 partial retry를 수행합니다.
+없는 sourceId는 `ok=false`, `reason=not-found`, `retryable=false`로 남겨
+구성 수정 대상과 단순 재시도 대상을 분리합니다.
+`partialFailure=true`는 일부 sourceId만 실패했음을 의미합니다.
+
 ## Verification Plan
 
 문서/초안 단계:
@@ -178,6 +202,7 @@ bulk check:
 ```bash
 git diff --check -- README.md docs
 ./server.sh verify-docs-links
+./server.sh verify-ops-source-health-bulk
 ```
 
 구현 단계 후보:
