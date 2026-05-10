@@ -262,6 +262,7 @@ fixture는 합성 장비와 합성 private-network RTSP URI만 사용합니다. 
 ./server.sh verify-onvif-live-import-contract
 ./server.sh verify-onvif-import-draft-api
 ./server.sh verify-onvif-rtsp-downstream
+./server.sh verify-onvif-ops-sources-ui
 git diff --check -- docs test/fixtures scripts server.sh
 ./server.sh verify-docs-links
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
@@ -273,6 +274,13 @@ ONVIF import 구현 단계 후보:
 ./server.sh build
 ./server.sh verify-ops-source-lifecycle
 ```
+
+`verify-onvif-ops-sources-ui`는 `/ops/sources`에서 ONVIF stub 후보를
+import draft로 가져온 뒤 operator가 channel ID를 조정해도 기존
+`/ops/api/sources/{id}`와 `/ops/api/views/{id}` 저장 경로로 이어지는지
+확인합니다. 이 smoke는 임시 registry에서 실행하는 것을 기본으로 하며,
+client API에 RTSP URL, ONVIF endpoint, credential reference, raw diagnostic
+JSON이 노출되지 않는지도 함께 확인합니다.
 
 구현 단계에서도 Event POST payload, WebRTC DataChannel schema,
 SSE/WS metadata schema, RTSP/WebRTC media path는 변경하지 않습니다.

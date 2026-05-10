@@ -100,6 +100,8 @@ Usage:
                  실행 중인 서버의 ONVIF import draft API가 fixture를 source/view draft로 변환하는지 검증합니다.
   verify-onvif-rtsp-downstream
                  ONVIF import draft의 공개 RTSP URL이 기존 source/view/client redaction 경로를 통과하는지 검증합니다.
+  verify-onvif-ops-sources-ui
+                 /ops/sources ONVIF import UI가 source/view 저장 round-trip까지 연결되는지 검증합니다.
   verify-v1.1-boundary-keywords
                  v1.1.0 live-only 제품 경계 키워드가 비범위/보류 문맥인지 검증합니다.
   verify-code-comments
@@ -405,6 +407,10 @@ case "${cmd}" in
   verify-onvif-rtsp-downstream)
     require_internal verify_onvif_rtsp_downstream.mjs
     exec "${INTERNAL_DIR}/verify_onvif_rtsp_downstream.mjs" "$@"
+    ;;
+  verify-onvif-ops-sources-ui)
+    require_internal verify_onvif_ops_sources_ui_roundtrip.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_ops_sources_ui_roundtrip.mjs" "$@"
     ;;
   verify-v1.1-boundary-keywords)
     require_internal verify_v1_1_boundary_keywords.mjs

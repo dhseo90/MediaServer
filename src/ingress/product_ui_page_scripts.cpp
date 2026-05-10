@@ -5665,7 +5665,6 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       if (data.kind === 'whep') sourcePayload.whepUrl = (data.whepUrl || '').trim();
       if (data.kind === 'http') sourcePayload.httpUrl = (data.httpUrl || '').trim();
       const onvifSourceMatches = pendingOnvifSourceDraft &&
-        String(pendingOnvifSourceDraft.sourceId || '') === channelId &&
         pendingOnvifSourceDraft.kind === sourcePayload.kind &&
         String(pendingOnvifSourceDraft.rtspUrl || '') === String(sourcePayload.rtspUrl || '');
       if (onvifSourceMatches) {
@@ -5686,10 +5685,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         maxTiles: 1,
         enabled: currentChannelEnabled
       };
-      const onvifViewMatches = onvifSourceMatches &&
-        pendingOnvifViewDraft &&
-        String(pendingOnvifViewDraft.viewId || channelId) === channelId &&
-        String(pendingOnvifViewDraft.sourceId || channelId) === channelId;
+      const onvifViewMatches = onvifSourceMatches && pendingOnvifViewDraft;
       if (onvifViewMatches) {
         viewPayload.defaultRuleId = pendingOnvifViewDraft.defaultRuleId || '';
         viewPayload.allowedRuleIds = Array.isArray(pendingOnvifViewDraft.allowedRuleIds) ? pendingOnvifViewDraft.allowedRuleIds : [];
