@@ -1368,12 +1368,46 @@ void AppendOpsShellScript(std::ostringstream& out,
         }
         return `ops-${String(fallbackKey).replace(/[^a-z0-9]+/gi, '-').slice(0, 18).toLowerCase()}-${(hash >>> 0).toString(36)}`;
       };
-      const dashboardRootCauseItems = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}) => {
+      const dashboardSourceHealthItems = sourceHealth => Array.isArray(sourceHealth?.sourceHealth) ? sourceHealth.sourceHealth : [];
+      const dashboardSourceHealthCounts = sourceHealth => {
+        const items = dashboardSourceHealthItems(sourceHealth);
+        const summary = sourceHealth?.summary || {};
+        const countByStatus = status => items.filter(item => item.status === status).length;
+        return {
+          total: numberValue(summary.total ?? items.length),
+          live: numberValue(summary.live ?? countByStatus('live')),
+          connecting: numberValue(summary.connecting ?? countByStatus('connecting')),
+          stale: numberValue(summary.stale ?? countByStatus('stale')),
+          offline: numberValue(summary.offline ?? countByStatus('offline')),
+          unknown: numberValue(summary.unknown ?? countByStatus('unknown'))
+        };
+      };
+      const dashboardSourceHealthReason = reason => ({
+        receiving: '수신 중',
+        initializing: '초기 수신 대기',
+        'last-frame-aged': '프레임 지연',
+        'metadata-aged': '메타데이터 지연',
+        disabled: '비활성',
+        unreachable: '연결 불가',
+        'no-subscriber': '구독 세션 없음'
+      })[String(reason || '')] || String(reason || '근거 없음');
+      const dashboardSourceHealthAge = value => value === null || value === undefined
+        ? '미수신'
+        : `${Math.max(0, Math.round(numberValue(value)))}ms`;
+      const dashboardSourceHealthStatusText = sourceHealth => {
+        const counts = dashboardSourceHealthCounts(sourceHealth);
+        return `live ${counts.live}/${counts.total} · connecting ${counts.connecting} · stale ${counts.stale} · offline ${counts.offline}`;
+      };
+      const dashboardRootCauseItems = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const counts = runtimeCounts(runtime);
         const lifecycle = runtime?.sourceLifecycle || {};
         const matching = runtime?.analysisMatching || {};
         const publishSources = Array.isArray(runtime?.webrtcHttp?.publishSources) ? runtime.webrtcHttp.publishSources : [];
         const activeTaps = Array.isArray(matching.activeTaps) ? matching.activeTaps : [];
+        const healthItems = dashboardSourceHealthItems(sourceHealth);
+        const healthCounts = dashboardSourceHealthCounts(sourceHealth);
+        const degradedSources = healthItems.filter(item => item.status !== 'live');
+        const firstDegradedSource = degradedSources[0] || null;
         const recentEvents = Array.isArray(eventsStatus?.records?.records) ? eventsStatus.records.records : [];
         const storage = eventsStatus?.storage || {};
         const post = eventsStatus?.post || {};
@@ -1405,7 +1439,29 @@ void AppendOpsShellScript(std::ostringstream& out,
         const staleLog = logEvidence('stale|metadata skipped|lastUsedAge|tapId');
         const reconnectLog = logEvidence('reconnect|cleanup|WHIP|publisher|failed to create|event post|event storage');
         const authLog = logEvidence('auth|login|session|scope|ICE|TURN|relay');
+        const sourceHealthLog = logEvidence('source health|last-frame-aged|metadata-aged|no-subscriber|unreachable|waiting-video');
         return [
+          {
+            level: degradedSources.length > 0 ? (healthCounts.offline > 0 ? 'bad' : 'warn') : 'info',
+            title: degradedSources.length > 0 ? 'Live Source Health 확인 필요' : 'Live Source Health',
+            detail: degradedSources.length > 0
+              ? degradedSources.slice(0, 3).map(item => `#${item.sourceId || '-'} ${item.status || 'unknown'}:${dashboardSourceHealthReason(item.reason)}`).join(' · ')
+              : dashboardSourceHealthStatusText(sourceHealth),
+            evidence: degradedSources.length > 0
+              ? degradedSources.slice(0, 2).map(item => `frame ${dashboardSourceHealthAge(item.lastFrameAgeMs)} / metadata ${dashboardSourceHealthAge(item.lastMetadataAgeMs)}`).join(' · ')
+              : 'source health가 정상 범위입니다.',
+            log: sourceHealthLog.line,
+            correlationId: firstDegradedSource?.sourceId ? `source-${firstDegradedSource.sourceId}` : sourceHealthLog.correlationId,
+            action: degradedSources.length > 0
+              ? '오프라인/지연 채널을 /ops/sources에서 재확인하고 입력, PublishedView, 구독 세션을 점검합니다.'
+              : 'live source health가 정상 범위입니다.',
+            actionHref: firstDegradedSource?.sourceId
+              ? `/ops/sources#channel=${encodeURIComponent(firstDegradedSource.sourceId)}`
+              : '/ops/sources#source-health',
+            actionLabel: 'Source Health',
+            actionKind: 'source-health',
+            actionPatterns: 'source health|last-frame-aged|metadata-aged|no-subscriber|unreachable|waiting-video'
+          },
           {
             level: stalledResources ? 'warn' : 'info',
             title: stalledResources ? 'Source lifecycle 정리 확인 필요' : 'Source lifecycle',
@@ -1488,16 +1544,30 @@ void AppendOpsShellScript(std::ostringstream& out,
           ${logs.length > 0 ? `<pre>${escapeHtml(logs.join('\n'))}</pre>` : '<p class="hint">일치하는 최근 로그가 없습니다.</p>'}`;
       };
       const runRootCauseAction = async item => {
-        const [logTail, sources, views, catalog, eventsStatus, principal, browserConfig] = await Promise.all([
+        const [logTail, sources, views, sourceHealth, catalog, eventsStatus, principal, browserConfig] = await Promise.all([
           requestJson('/ops/api/diagnostics/log-tail?limit=120').catch(error => ({ error: error.message, lines: [] })),
           requestJson('/ops/api/sources').catch(error => ({ error: error.message, sources: [] })),
           requestJson('/ops/api/views').catch(error => ({ error: error.message, views: [] })),
+          requestJson('/ops/api/source-health').catch(error => ({ error: error.message, sourceHealth: [], summary: {} })),
           requestJson('/ops/api/rules/catalog').catch(error => ({ error: error.message, rules: [], vaRules: [], profiles: [] })),
           requestJson('/ops/api/events/status?limit=8&includeArchives=1').catch(error => ({ error: error.message, records: { records: [] } })),
           applyPrincipalVisibility().catch(() => null),
           requestJson('/webrtc/config').catch(error => ({ error: error.message }))
         ]);
         const logs = rootCauseLogFilter(logTail.lines, item.correlationId, item.actionPatterns);
+        if (item.actionKind === 'source-health') {
+          const healthItems = dashboardSourceHealthItems(sourceHealth);
+          const counts = dashboardSourceHealthCounts(sourceHealth);
+          const degraded = healthItems.filter(health => health.status !== 'live');
+          renderRootCauseActionOutput('Live Source Health 재검증', [
+            dashboardSourceHealthStatusText(sourceHealth),
+            `확인 필요 ${degraded.length}개`,
+            degraded.slice(0, 3).map(health => `#${health.sourceId || '-'} ${health.status || 'unknown'} · ${dashboardSourceHealthReason(health.reason)} · frame ${dashboardSourceHealthAge(health.lastFrameAgeMs)}`).join(' / ') || '지연 또는 오프라인 채널 없음',
+            `요약 total=${counts.total} live=${counts.live} stale=${counts.stale} offline=${counts.offline}`,
+            '상세 조치는 /ops/sources의 Live Source Health 패널에서 수행합니다.'
+          ], logs);
+          return;
+        }
         if (item.actionKind === 'source-diagnostics') {
           const sourceItems = Array.isArray(sources.sources) ? sources.sources : [];
           const viewItems = Array.isArray(views.views) ? views.views : [];
@@ -1550,11 +1620,13 @@ void AppendOpsShellScript(std::ostringstream& out,
           '상세 조치는 /ops/users와 TURN/ICE 설정에서 수행합니다.'
         ], logs);
       };
-      const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}) => {
-        const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig, diagnosticLog);
+      const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
+        const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
         const warnCount = items.filter(item => item.level === 'warn' || item.level === 'bad').length;
+        const healthCounts = dashboardSourceHealthCounts(sourceHealth);
         renderBadges('dashRootCauseBadges', [
           { text: warnCount > 0 ? `${warnCount}개 확인 필요` : '즉시 조치 없음', tone: warnCount > 0 ? 'warn' : '' },
+          { text: `source live ${healthCounts.live}/${healthCounts.total}`, tone: healthCounts.offline > 0 ? 'bad' : (healthCounts.stale > 0 ? 'warn' : '') },
           { text: 'source lifecycle' },
           { text: 'stale' },
           { text: 'reconnect' },
@@ -1627,14 +1699,16 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderRaw('opsHomeRaw', 'opsHomePretty', { sources, views, catalog, runtime, events, users });
       }
       async function refreshDashboard() {
-        const [runtime, principal, eventsStatus, browserConfig, diagnosticLog] = await Promise.all([
+        const [runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth] = await Promise.all([
           requestJson('/ops/api/runtime/status'),
           applyPrincipalVisibility().catch(() => null),
           requestJson('/ops/api/events/status?limit=5&includeArchives=1').catch(error => ({ error: error.message, records: { records: [] } })),
           requestJson('/webrtc/config').catch(error => ({ error: error.message })),
-          requestJson('/ops/api/diagnostics/log-tail?limit=80').catch(error => ({ error: error.message, available: false, lines: [] }))
+          requestJson('/ops/api/diagnostics/log-tail?limit=80').catch(error => ({ error: error.message, available: false, lines: [] })),
+          requestJson('/ops/api/source-health').catch(error => ({ error: error.message, sourceHealth: [], summary: {} }))
         ]);
         const counts = runtimeCounts(runtime);
+        const sourceHealthCounts = dashboardSourceHealthCounts(sourceHealth);
         const metadata = runtime?.webrtcHttp?.metadataDataChannel || {};
         const sideChannel = runtime?.webrtcHttp?.metadataSideChannel || {};
         setText('dashActiveSessions', counts.sessions);
@@ -1644,9 +1718,10 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderBadges('dashHealthBadges', [
           { text: counts.streams > 0 ? '스트림 활성' : '스트림 대기', tone: counts.streams > 0 ? '' : 'info' },
           { text: counts.taps > 0 ? '분석 활성' : '분석 대기', tone: counts.taps > 0 ? '' : 'info' },
-          { text: counts.egress > 0 ? '송출 활성' : '송출 대기', tone: counts.egress > 0 ? '' : 'info' }
+          { text: counts.egress > 0 ? '송출 활성' : '송출 대기', tone: counts.egress > 0 ? '' : 'info' },
+          { text: `source live ${sourceHealthCounts.live}/${sourceHealthCounts.total}`, tone: sourceHealthCounts.offline > 0 ? 'bad' : (sourceHealthCounts.stale > 0 ? 'warn' : 'info') }
         ]);
-        setText('dashHealthText', `세션 ${counts.sessions} · 스트림 ${counts.streams} · 분석 ${counts.taps}`);
+        setText('dashHealthText', `세션 ${counts.sessions} · 스트림 ${counts.streams} · 분석 ${counts.taps} · ${dashboardSourceHealthStatusText(sourceHealth)}`);
         renderBadges('dashRuntimeRows', [
           { text: `송출 ${counts.egress}` },
           { text: `발행 ${counts.publish}` },
@@ -1674,7 +1749,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('dashWsClientCount', sideChannel.activeWebSocketClients ?? 0);
         setText('dashDetailText',
           `프로파일 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0} · 발행 ${counts.publish} · 송출 ${counts.egress}`);
-        renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig, diagnosticLog);
+        renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
       }
       const OPS_EVENT_RECORD_LIMIT = 25;

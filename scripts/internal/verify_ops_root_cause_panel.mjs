@@ -29,6 +29,9 @@ check("ops dashboard script interprets runtime root causes", () => {
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
   const required = [
     "dashboardRootCauseItems",
+    "dashboardSourceHealthItems",
+    "dashboardSourceHealthCounts",
+    "dashboardSourceHealthStatusText",
     "renderDashboardRootCause",
     "rootCauseCorrelationId",
     "correlationId",
@@ -36,6 +39,9 @@ check("ops dashboard script interprets runtime root causes", () => {
     "diagnosticLog",
     "logEvidence",
     "sourceLifecycle",
+    "/ops/api/source-health",
+    "Live Source Health",
+    "source-health",
     "lastUsedAgeMs",
     "inactivePublishSources",
     "cleanupBacklog",
@@ -47,6 +53,7 @@ check("ops dashboard script interprets runtime root causes", () => {
     "rootCauseLogFilter",
     "renderRootCauseActionOutput",
     "source-diagnostics",
+    "Live Source Health 재검증",
     "registry-diff",
     "event-diagnostics",
     "auth-config",
