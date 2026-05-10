@@ -44,8 +44,10 @@
 - `SessionManager` source restart 기반 `reconnectCount`, `lastReconnectAt` 연동
 - active stream descriptor와 WHIP published descriptor 기반 codec/profile/width/height/fps 연동
 - source health bulk check의 partial failure와 failed-only retry 계약
+- source health 상태 변화의 짧은 Ops audit trail 기록
 - `verify-ops-root-cause-panel`, `verify-client-dashboard-polish`,
   `verify-ops-source-lifecycle`, `verify-ops-source-health-bulk`,
+  `verify-ops-audit-trail`,
   `verify-ops-client-ui --screenshots` smoke 기준
 
 후속 예정:
@@ -195,6 +197,22 @@ Content-Type: application/json
 구성 수정 대상과 단순 재시도 대상을 분리합니다.
 `partialFailure=true`는 일부 sourceId만 실패했음을 의미합니다.
 
+## Source Health Audit
+
+`GET /ops/api/source-health`와 `POST /ops/api/source-health/bulk`는
+서버 프로세스 안에서 직전 source별 `status/reason`을 기억합니다.
+같은 source의 상태가 바뀌면 Ops audit에 다음 형태의 짧은 기록을 남깁니다.
+
+- `area`: `channels`
+- `action`: `source-health-state-change`
+- `target`: `source:<sourceId>`
+- `before`: 이전 `status`, `reason`
+- `after`: 현재 `status`, `reason`, `checkedAt`, `warnings`
+
+초기 관측값은 기준선으로만 저장하고 audit entry를 만들지 않습니다.
+따라서 audit trail은 noise를 줄이고 실제 상태 변화만 보여줍니다.
+client/viewer 응답에는 audit 세부를 노출하지 않습니다.
+
 ## Verification Plan
 
 문서/초안 단계:
@@ -203,6 +221,7 @@ Content-Type: application/json
 git diff --check -- README.md docs
 ./server.sh verify-docs-links
 ./server.sh verify-ops-source-health-bulk
+./server.sh verify-ops-audit-trail
 ```
 
 구현 단계 후보:

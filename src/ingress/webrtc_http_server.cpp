@@ -70,6 +70,8 @@ namespace {
 std::atomic<std::uint64_t> g_web_rtc_metadata_sequence{0};
 std::atomic<std::uint64_t> g_ops_audit_sequence{0};
 std::mutex g_ops_audit_mu;
+std::mutex g_source_health_audit_mu;
+std::unordered_map<std::string, std::string> g_source_health_audit_state;
 
 constexpr std::size_t kMaxHttpHeaderBytes = 64 * 1024;
 constexpr std::size_t kMaxHttpBodyBytes = 2 * 1024 * 1024;
@@ -7312,15 +7314,24 @@ void AppendOpsSourceHealthSummaryJson(std::ostringstream& out, const OpsSourceHe
         << "}";
 }
 
+void AppendOpsSourceHealthAuditChanges(const app::AppConfig& config,
+                                       const auth::Principal& principal,
+                                       const OpsSourceHealthSnapshot& snapshot);
+
 std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
                                 const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
                                 const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
-                                const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats) {
+                                const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
+                                const app::AppConfig* audit_config,
+                                const auth::Principal* audit_principal) {
     const auto snapshot =
         BuildOpsSourceHealthSnapshot(analysis_taps, publish_sources, descriptor_snapshots, reconnect_stats);
     if (!snapshot.ok) {
         return "{\"ok\":false,\"schema\":\"media-server.ops.source-health.v1\",\"error\":\"" +
                JsonEscape(snapshot.error) + "\"}";
+    }
+    if (audit_config != nullptr && audit_principal != nullptr) {
+        AppendOpsSourceHealthAuditChanges(*audit_config, *audit_principal, snapshot);
     }
 
     std::ostringstream out;
@@ -7355,12 +7366,17 @@ std::string OpsSourceHealthBulkJson(
     const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
     const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
     const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
-    const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats) {
+    const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
+    const app::AppConfig* audit_config,
+    const auth::Principal* audit_principal) {
     const auto snapshot =
         BuildOpsSourceHealthSnapshot(analysis_taps, publish_sources, descriptor_snapshots, reconnect_stats);
     if (!snapshot.ok) {
         return "{\"ok\":false,\"schema\":\"media-server.ops.source-health.bulk.v1\",\"error\":\"" +
                JsonEscape(snapshot.error) + "\"}";
+    }
+    if (audit_config != nullptr && audit_principal != nullptr) {
+        AppendOpsSourceHealthAuditChanges(*audit_config, *audit_principal, snapshot);
     }
 
     const std::string operation = Trim(ParseStringField(body, "operation").value_or("check"));
@@ -7745,6 +7761,78 @@ bool AppendOpsAuditRecord(const app::AppConfig& config,
         return false;
     }
     return true;
+}
+
+std::pair<std::string, std::string> SourceHealthAuditStateParts(const std::string& state) {
+    const std::size_t sep = state.find('\n');
+    if (sep == std::string::npos) {
+        return {state, ""};
+    }
+    return {state.substr(0, sep), state.substr(sep + 1)};
+}
+
+std::string SourceHealthAuditStateValue(const OpsSourceHealthItem& item) {
+    return item.status + "\n" + item.reason;
+}
+
+std::string SourceHealthAuditRecordBody(const OpsSourceHealthItem& item,
+                                        const std::string& before_status,
+                                        const std::string& before_reason) {
+    std::ostringstream out;
+    out << "{"
+        << "\"area\":\"channels\","
+        << "\"action\":\"source-health-state-change\","
+        << "\"target\":\"source:" << JsonEscape(item.source_id) << "\","
+        << "\"summary\":\"source " << JsonEscape(item.source_id) << " "
+        << JsonEscape(before_status.empty() ? "unknown" : before_status) << " -> "
+        << JsonEscape(item.status) << "\","
+        << "\"before\":{\"status\":\"" << JsonEscape(before_status) << "\","
+        << "\"reason\":\"" << JsonEscape(before_reason) << "\"},"
+        << "\"after\":{\"status\":\"" << JsonEscape(item.status) << "\","
+        << "\"reason\":\"" << JsonEscape(item.reason) << "\","
+        << "\"checkedAt\":";
+    AppendNullableJsonString(out, item.checked_at);
+    out << ",\"warnings\":[";
+    for (std::size_t i = 0; i < item.warnings.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(item.warnings[i]) << "\"";
+    }
+    out << "]}}";
+    return out.str();
+}
+
+void AppendOpsSourceHealthAuditChanges(const app::AppConfig& config,
+                                       const auth::Principal& principal,
+                                       const OpsSourceHealthSnapshot& snapshot) {
+    std::vector<std::pair<OpsSourceHealthItem, std::pair<std::string, std::string>>> changes;
+    {
+        std::lock_guard lock(g_source_health_audit_mu);
+        for (const auto& item : snapshot.items) {
+            if (item.source_id.empty()) {
+                continue;
+            }
+            const std::string next_state = SourceHealthAuditStateValue(item);
+            const auto [it, inserted] = g_source_health_audit_state.emplace(item.source_id, next_state);
+            if (inserted) {
+                continue;
+            }
+            if (it->second == next_state) {
+                continue;
+            }
+            changes.push_back({item, SourceHealthAuditStateParts(it->second)});
+            it->second = next_state;
+        }
+    }
+
+    for (const auto& [item, before] : changes) {
+        std::string audit_error;
+        (void)AppendOpsAuditRecord(
+            config,
+            OpsAuditRecordJson(SourceHealthAuditRecordBody(item, before.first, before.second), principal),
+            &audit_error);
+    }
 }
 
 bool OpsAuditLineMatches(const std::string& line,
@@ -10808,7 +10896,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                OpsSourceHealthJson(impl_->session_manager.AnalysisTapSnapshots(),
 	                                                    WebRtcSourceRegistry::Instance().Snapshots(),
 	                                                    impl_->session_manager.SourceDescriptorSnapshots(),
-	                                                    impl_->session_manager.SourceReconnectStatsSnapshot()));
+	                                                    impl_->session_manager.SourceReconnectStatsSnapshot(),
+	                                                    &config,
+	                                                    &principal_result.principal));
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
 	                        }
@@ -10824,7 +10914,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                                        impl_->session_manager.AnalysisTapSnapshots(),
 	                                                        WebRtcSourceRegistry::Instance().Snapshots(),
 	                                                        impl_->session_manager.SourceDescriptorSnapshots(),
-	                                                        impl_->session_manager.SourceReconnectStatsSnapshot()));
+	                                                        impl_->session_manager.SourceReconnectStatsSnapshot(),
+	                                                        &config,
+	                                                        &principal_result.principal));
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
 	                        }

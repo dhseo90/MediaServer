@@ -252,13 +252,16 @@ Ops UI 구현, state-dump extension, smoke matrix 구현을 포함하지 않습�
     `lastReconnectAt` 연동
   - active stream descriptor와 WHIP published descriptor 기반 codec/profile/fps 표시
   - `POST /ops/api/source-health/bulk` partial retry 계약
+  - source health `status/reason` 변화의 짧은 Ops audit trail 기록
   - `verify-ops-root-cause-panel`, `verify-client-dashboard-polish`,
     `verify-ops-source-lifecycle`, `verify-ops-source-health-bulk`,
-    `verify-ops-client-ui --screenshots` 기준 반영
+    `verify-ops-audit-trail`, `verify-ops-client-ui --screenshots` 기준 반영
 - 제한:
   codec profile/fps는 active descriptor에서 확인되는 값만 표시하며,
   descriptor에 없는 값은 추정하지 않고 `null`로 둡니다.
   bulk health check는 dry-run 상태 재조회 계약이며 source 재연결을 직접 수행하지 않습니다.
+  audit trail은 프로세스 runtime 기준 직전 상태와 비교하므로 서버 재시작 후 첫 관측은
+  기준선으로만 저장합니다.
 - 주의:
   client/viewer 응답에는 source URL, ONVIF endpoint, credential reference,
   raw diagnostic JSON을 노출하지 않습니다.

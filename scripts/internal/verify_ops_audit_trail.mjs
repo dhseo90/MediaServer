@@ -64,6 +64,20 @@ check("ops page scripts record channel/rule/user mutations", () => {
   }
 });
 
+check("source health state changes write channel audit records", () => {
+  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const required = [
+    "g_source_health_audit_state",
+    "AppendOpsSourceHealthAuditChanges",
+    "source-health-state-change",
+    "\\\"target\\\":\\\"source:",
+    "SourceHealthAuditRecordBody",
+  ];
+  for (const snippet of required) {
+    assert(server.includes(snippet), `source health audit hook is missing snippet: ${snippet}`);
+  }
+});
+
 check("audit layout has mobile-safe CSS", () => {
   const css = readText("src/ingress/product_ui_css.cpp");
   const required = [
