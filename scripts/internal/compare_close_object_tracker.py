@@ -30,24 +30,28 @@ FIXTURE_MATRIX = [
         "file": DEFAULT_FILE,
         "description": "default close-object tracking event sample",
         "classWhitelist": "person",
+        "qualityPreset": "close-object-live",
     },
     {
         "id": "tracking-event-long",
         "file": "imports/va_tracking_event_long_1280x720_30fps_h264.mp4",
         "description": "longer close-object tracking event sample",
         "classWhitelist": "person",
+        "qualityPreset": "close-object-live",
     },
     {
         "id": "tracking-event-slow-long",
         "file": "imports/va_tracking_event_slow_long_1280x720_30fps_h264.mp4",
         "description": "slow long close-object tracking event sample",
         "classWhitelist": "person",
+        "qualityPreset": "close-object-live",
     },
     {
         "id": "four-scene-control",
         "file": "va_four_scene_sample.mp4",
         "description": "general VA control sample for non-close-object drift",
         "classWhitelist": "person",
+        "qualityPreset": "control-live",
     },
 ]
 STABLE_EVENT_STATE_KEYS = {"activeEventStates"}
@@ -67,6 +71,7 @@ OBSERVED_RISK_KEYS = {
     "missedFrameSpikeCount",
     "directionChangeSpikeCount",
 }
+QUALITY_EPSILON = 0.001
 REPEAT_STAT_KEYS = sorted(
     QUALITY_RISK_KEYS |
     OBSERVED_RISK_KEYS |
@@ -76,6 +81,41 @@ REPEAT_STAT_KEYS = sorted(
         "rejectedByCloseObjectGuardCount",
     }
 )
+QUALITY_PRESETS = {
+    "strict": {
+        "description": "direct compare default; any positive hard/observed risk delta warns",
+        "riskTolerances": {},
+        "observedRiskTolerances": {},
+    },
+    "close-object-live": {
+        "description": "close-object live fixture tolerance for polling jitter",
+        "riskTolerances": {},
+        "observedRiskTolerances": {
+            "idSwitchRiskScore": 0.05,
+            "ptsRegressionCount": 1.0,
+            "stalePtsRatio": 0.05,
+            "maxOverlapRisk": 0.25,
+            "lostCount": 1.0,
+            "reacquiredCount": 1.0,
+            "missedFrameSpikeCount": 5.0,
+            "directionChangeSpikeCount": 60.0,
+        },
+    },
+    "control-live": {
+        "description": "control sample tolerance; close-object decisions should stay mostly observational",
+        "riskTolerances": {},
+        "observedRiskTolerances": {
+            "idSwitchRiskScore": 0.05,
+            "ptsRegressionCount": 1.0,
+            "stalePtsRatio": 0.05,
+            "maxOverlapRisk": 0.30,
+            "lostCount": 1.0,
+            "reacquiredCount": 1.0,
+            "missedFrameSpikeCount": 5.0,
+            "directionChangeSpikeCount": 80.0,
+        },
+    },
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -106,6 +146,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-fixtures", default="", help="--fixture-matrix에서 실행할 최대 fixture 수입니다.")
     parser.add_argument("--list-fixtures", action="store_true", help="내장 fixture matrix와 파일 존재 여부를 JSON으로 출력합니다.")
     parser.add_argument("--fail-on-missing-fixtures", action="store_true", help="matrix fixture 파일 누락을 실패로 처리합니다.")
+    parser.add_argument(
+        "--quality-preset",
+        default="strict",
+        choices=sorted(QUALITY_PRESETS),
+        help="quality gate threshold preset입니다. direct compare 기본값은 strict입니다.",
+    )
+    parser.add_argument("--list-quality-presets", action="store_true", help="quality gate preset 목록을 JSON으로 출력합니다.")
     return parser.parse_args()
 
 
@@ -145,6 +192,45 @@ def fixture_rows() -> list[dict[str, Any]]:
         row["exists"] = path.exists()
         rows.append(row)
     return rows
+
+
+def quality_preset_rows() -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for name, preset in QUALITY_PRESETS.items():
+        row = dict(preset)
+        row["id"] = name
+        rows.append(row)
+    return rows
+
+
+def quality_preset(name: str) -> dict[str, Any]:
+    preset = QUALITY_PRESETS.get(name)
+    if preset is None:
+        raise SystemExit(f"unknown quality preset: {name}")
+    return {
+        "id": name,
+        "description": preset.get("description", ""),
+        "riskTolerances": dict(preset.get("riskTolerances") or {}),
+        "observedRiskTolerances": dict(preset.get("observedRiskTolerances") or {}),
+    }
+
+
+def positive_delta_map(delta: dict[str, Any], keys: set[str], tolerances: dict[str, Any]) -> dict[str, float]:
+    out: dict[str, float] = {}
+    for key, value in delta.items():
+        if key not in keys or not isinstance(value, (int, float)):
+            continue
+        tolerance = float(tolerances.get(key, 0.0) or 0.0)
+        if value > tolerance + QUALITY_EPSILON:
+            out[key] = float(value)
+    return out
+
+
+def tolerance_note(key: str, tolerances: dict[str, Any]) -> str:
+    tolerance = float(tolerances.get(key, 0.0) or 0.0)
+    if tolerance <= 0:
+        return ""
+    return f" over tolerance {tolerance:.3f}"
 
 
 def selected_fixtures(args: argparse.Namespace) -> list[dict[str, Any]]:
@@ -552,7 +638,9 @@ def compute_deltas(modes: dict[str, dict[str, Any]], baseline_mode: str = "off")
     return deltas
 
 
-def overall_judgement(mode_payloads: dict[str, dict[str, Any]], deltas: dict[str, Any]) -> tuple[str, list[str]]:
+def overall_judgement(mode_payloads: dict[str, dict[str, Any]],
+                      deltas: dict[str, Any],
+                      preset: dict[str, Any]) -> tuple[str, list[str]]:
     reasons: list[str] = []
     for mode, payload in mode_payloads.items():
         if not payload.get("ok"):
@@ -564,17 +652,17 @@ def overall_judgement(mode_payloads: dict[str, dict[str, Any]], deltas: dict[str
 
     warnings: list[str] = []
     observed_warnings: list[str] = []
+    risk_tolerances = preset.get("riskTolerances") or {}
+    observed_risk_tolerances = preset.get("observedRiskTolerances") or {}
     for name, delta in deltas.items():
         if delta.get("eventScenarioDelta"):
             reasons.append(f"{name} event/scenario signature changed")
-        for key in sorted(QUALITY_RISK_KEYS):
-            value = delta.get(key)
-            if isinstance(value, (int, float)) and value > 0.001:
-                warnings.append(f"{name} {key} increased by {value:.3f}")
-        for key in sorted(OBSERVED_RISK_KEYS):
-            value = delta.get(key)
-            if isinstance(value, (int, float)) and value > 0.001:
-                observed_warnings.append(f"{name} observed {key} changed by {value:.3f}")
+        for key, value in sorted(positive_delta_map(delta, QUALITY_RISK_KEYS, risk_tolerances).items()):
+            warnings.append(f"{name} {key} increased by {value:.3f}{tolerance_note(key, risk_tolerances)}")
+        for key, value in sorted(positive_delta_map(delta, OBSERVED_RISK_KEYS, observed_risk_tolerances).items()):
+            observed_warnings.append(
+                f"{name} observed {key} changed by {value:.3f}{tolerance_note(key, observed_risk_tolerances)}"
+            )
     if reasons:
         return "hold", reasons
     if warnings:
@@ -584,24 +672,18 @@ def overall_judgement(mode_payloads: dict[str, dict[str, Any]], deltas: dict[str
     return "pass", ["mode comparison completed; default-on remains deferred"]
 
 
-def quality_gate(judgement: str, deltas: dict[str, Any]) -> dict[str, Any]:
+def quality_gate(judgement: str, deltas: dict[str, Any], preset: dict[str, Any]) -> dict[str, Any]:
     event_delta = any(bool(delta.get("eventScenarioDelta")) for delta in deltas.values())
     observed_event_delta = any(bool(delta.get("eventScenarioObservedDelta")) for delta in deltas.values())
+    risk_tolerances = preset.get("riskTolerances") or {}
+    observed_risk_tolerances = preset.get("observedRiskTolerances") or {}
     increased_risk: dict[str, dict[str, float]] = {}
     observed_increased_risk: dict[str, dict[str, float]] = {}
     for name, delta in deltas.items():
-        risk_delta = {
-            key: value
-            for key, value in delta.items()
-            if key in QUALITY_RISK_KEYS and isinstance(value, (int, float)) and value > 0.001
-        }
+        risk_delta = positive_delta_map(delta, QUALITY_RISK_KEYS, risk_tolerances)
         if risk_delta:
             increased_risk[name] = risk_delta
-        observed_delta = {
-            key: value
-            for key, value in delta.items()
-            if key in OBSERVED_RISK_KEYS and isinstance(value, (int, float)) and value > 0.001
-        }
+        observed_delta = positive_delta_map(delta, OBSERVED_RISK_KEYS, observed_risk_tolerances)
         if observed_delta:
             observed_increased_risk[name] = observed_delta
     default_on_candidate = judgement == "pass" and not event_delta and not increased_risk
@@ -621,10 +703,14 @@ def quality_gate(judgement: str, deltas: dict[str, Any]) -> dict[str, Any]:
     else:
         recommendation = "hold: comparison did not pass cleanly"
     return {
+        "qualityPreset": preset.get("id", "strict"),
+        "qualityPresetDescription": preset.get("description", ""),
         "eventScenarioUnchanged": not event_delta,
         "eventScenarioObservedUnchanged": not observed_event_delta,
         "riskKeys": sorted(QUALITY_RISK_KEYS),
         "observedRiskKeys": sorted(OBSERVED_RISK_KEYS),
+        "riskTolerances": risk_tolerances,
+        "observedRiskTolerances": observed_risk_tolerances,
         "riskNonIncreasing": not increased_risk,
         "observedRiskNonIncreasing": not observed_increased_risk,
         "increasedRisk": increased_risk,
@@ -729,6 +815,7 @@ def write_report(summary: dict[str, Any], path: pathlib.Path) -> None:
         f"- sample: `{summary['sample']}`",
         f"- modes: `{', '.join(modes.keys())}`",
         f"- baseline: `{summary.get('baselineMode', 'off')}`",
+        f"- quality preset: `{summary.get('qualityPreset', gate.get('qualityPreset', 'strict'))}`",
         f"- judgement: `{summary['overallJudgement']}`",
         f"- default-on candidate: `{gate.get('defaultOnCandidate')}`",
         f"- recommendation: {gate.get('recommendation') or '-'}",
@@ -796,12 +883,16 @@ def write_report(summary: dict[str, Any], path: pathlib.Path) -> None:
     lines.extend(["", "## Quality Gate", ""])
     lines.append("| check | value |")
     lines.append("| --- | --- |")
+    lines.append(f"| quality preset | `{gate.get('qualityPreset') or 'strict'}` |")
+    lines.append(f"| preset description | {gate.get('qualityPresetDescription') or '-'} |")
     lines.append(f"| event/scenario stable unchanged | `{gate.get('eventScenarioUnchanged')}` |")
     lines.append(f"| event/scenario observed unchanged | `{gate.get('eventScenarioObservedUnchanged')}` |")
     lines.append(f"| risk non-increasing | `{gate.get('riskNonIncreasing')}` |")
     lines.append(f"| risk keys | `{json.dumps(gate.get('riskKeys') or [], ensure_ascii=False)}` |")
+    lines.append(f"| risk tolerances | `{json.dumps(gate.get('riskTolerances') or {}, ensure_ascii=False)}` |")
     lines.append(f"| observed risk non-increasing | `{gate.get('observedRiskNonIncreasing')}` |")
     lines.append(f"| observed risk keys | `{json.dumps(gate.get('observedRiskKeys') or [], ensure_ascii=False)}` |")
+    lines.append(f"| observed risk tolerances | `{json.dumps(gate.get('observedRiskTolerances') or {}, ensure_ascii=False)}` |")
     lines.append(f"| default-on candidate | `{gate.get('defaultOnCandidate')}` |")
     lines.append(f"| recommendation | {gate.get('recommendation') or '-'} |")
     increased_risk = gate.get("increasedRisk") or {}
@@ -881,13 +972,15 @@ def run_comparison(args: argparse.Namespace,
                      for index, mode in enumerate(modes)}
     baseline_mode = "off" if "off" in mode_payloads else modes[0]
     deltas = compute_deltas(mode_payloads, baseline_mode)
-    judgement, reasons = overall_judgement(mode_payloads, deltas)
-    gate = quality_gate(judgement, deltas)
+    preset = quality_preset(args.quality_preset)
+    judgement, reasons = overall_judgement(mode_payloads, deltas, preset)
+    gate = quality_gate(judgement, deltas, preset)
     summary = {
         "kind": "close-object-tracker-comparison",
         "ok": judgement != "fail",
         "sample": args.file,
         "fixtureId": fixture_id,
+        "qualityPreset": preset["id"],
         "baselineMode": baseline_mode,
         "modes": mode_payloads,
         "delta": deltas,
@@ -914,14 +1007,15 @@ def write_matrix_report(matrix: dict[str, Any], path: pathlib.Path) -> None:
         f"- ok: `{matrix.get('ok')}`",
         f"- output: `{matrix.get('outputDir')}`",
         "",
-        "| fixture | status | file | judgement | default-on candidate | recommendation | report |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
+        "| fixture | status | preset | file | judgement | default-on candidate | recommendation | report |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for item in matrix.get("fixtures") or []:
         lines.append(
-            "| {fixture} | {status} | `{file}` | {judgement} | {candidate} | {recommendation} | `{report}` |".format(
+            "| {fixture} | {status} | {preset} | `{file}` | {judgement} | {candidate} | {recommendation} | `{report}` |".format(
                 fixture=format_cell(item.get("id")),
                 status=format_cell(item.get("status")),
+                preset=format_cell(item.get("qualityPreset")),
                 file=format_cell(item.get("file")),
                 judgement=format_cell(item.get("judgement")),
                 candidate=format_cell(item.get("defaultOnCandidate")),
@@ -947,6 +1041,7 @@ def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: p
                 "id": fixture_id,
                 "file": file_token,
                 "path": fixture.get("path"),
+                "qualityPreset": fixture.get("qualityPreset", args.quality_preset),
                 "status": status,
                 "reason": "fixture file missing",
             })
@@ -955,6 +1050,7 @@ def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: p
         fixture_args = clone_args(
             args,
             file=file_token,
+            quality_preset=fixture.get("qualityPreset", args.quality_preset),
             class_whitelist=args.class_whitelist or fixture.get("classWhitelist", ""),
         )
         fixture_output_dir = output_dir / fixture_id
@@ -966,6 +1062,7 @@ def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: p
             "id": fixture_id,
             "file": file_token,
             "path": fixture.get("path"),
+            "qualityPreset": summary.get("qualityPreset"),
             "status": status,
             "judgement": summary.get("overallJudgement"),
             "defaultOnCandidate": gate.get("defaultOnCandidate"),
@@ -999,6 +1096,9 @@ def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: p
 
 def main() -> int:
     args = parse_args()
+    if args.list_quality_presets:
+        print(json.dumps({"qualityPresets": quality_preset_rows()}, ensure_ascii=False, indent=2))
+        return 0
     if args.list_fixtures:
         print(json.dumps({"fixtures": fixture_rows()}, ensure_ascii=False, indent=2))
         return 0

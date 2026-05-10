@@ -546,6 +546,7 @@ mode별 tracker summary JSON과 Markdown report는
 내장 fixture matrix는 명시적으로 실행합니다.
 
 ```bash
+./server.sh compare-close-object-tracker --list-quality-presets
 ./server.sh compare-close-object-tracker --list-fixtures
 ./server.sh compare-close-object-tracker \
   --fixture-matrix \
@@ -555,6 +556,13 @@ mode별 tracker summary JSON과 Markdown report는
 
 matrix 실행은 fixture별 `summary.json`/`report.md`와 상위
 `matrix-summary.json`/`matrix-report.md`를 함께 남깁니다.
+단일 비교의 quality preset 기본값은 `strict`입니다.
+내장 matrix fixture는 close-object sample과 control sample의 live polling
+특성이 달라 fixture별 `qualityPreset`을 사용합니다. close-object sample은
+`close-object-live`, control sample은 `control-live` 기준으로 observed risk
+허용치를 분리해 판정합니다. 필요하면 단일 비교에서
+`--quality-preset strict|close-object-live|control-live`로 같은 기준을
+명시할 수 있습니다.
 파일이 없는 fixture는 기본적으로 skipped이며, release gate처럼 누락을 실패로
 보고 싶으면 `--fail-on-missing-fixtures`를 사용합니다.
 

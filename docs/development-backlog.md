@@ -1046,6 +1046,9 @@ MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verif
   상위 matrix summary/report를 생성합니다.
   `verify-close-object-fixture-matrix`는 전체 fixture matrix를 정기/CI용
   hard gate로 실행하고 fixture 파일 누락을 실패로 처리합니다.
+  fixture별 `qualityPreset`을 matrix summary/report에 남기고,
+  close-object sample은 `close-object-live`, control sample은 `control-live`
+  기준으로 observed risk 허용치를 분리합니다.
   리포트의 `Quality Gate` 섹션은 안정 event/scenario 상태 불변 여부,
   tracker association risk 증가 여부, default-on 후보 여부, 권고를 함께 요약합니다.
   `idSwitchRiskScore`, `maxOverlapRisk`, lost/reacquired, spike count,
