@@ -1050,6 +1050,8 @@ MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verif
   tracker association risk 증가 여부, default-on 후보 여부, 권고를 함께 요약합니다.
   `idSwitchRiskScore`, `maxOverlapRisk`, lost/reacquired, spike count,
   stale PTS/PTS regression 성분은 live observed risk로 분리해 해석합니다.
+  `--repeat 3` 같은 반복 실행에서는 `Repeat Metric Stats`가 mean/stdev/variance를
+  남겨 live polling 변동성을 한 번의 max 값과 분리합니다.
 - 남은 작업:
   close-object fixture와 실제 현장 샘플을 추가합니다.
   threshold, center jump penalty, continuity boost 기준을 비교하고

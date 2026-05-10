@@ -539,6 +539,7 @@ live polling 과정의 emit/dedupe/cleanup counter 차이는 observed delta로 �
 단독 default-on 차단 사유로 보지 않습니다.
 `idSwitchRiskScore`는 stale PTS/PTS regression 성분을 포함하므로
 close-object guard 비교에서는 tracker association risk와 observed risk를 분리해 봅니다.
+반복 실행에서는 `Repeat Metric Stats`의 mean/stdev/variance로 observed risk 변동성을 확인합니다.
 
 ## 8. Appearance / Re-ID Hook
 

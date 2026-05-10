@@ -565,6 +565,17 @@ matrix 실행은 fixture별 `summary.json`/`report.md`와 상위
 ```
 
 이 명령은 모든 내장 fixture를 실행하고 fixture 파일 누락을 실패로 처리합니다.
+live polling 변동성을 분리하려면 반복 실행 통계를 함께 봅니다.
+
+```bash
+./server.sh compare-close-object-tracker \
+  --file imports/va_tracking_event_1280x720_30fps_h264.mp4 \
+  --modes off,diagnostic,enforce \
+  --repeat 3
+```
+
+반복 실행 리포트의 `Repeat Metric Stats`는 observed risk key별
+count, mean, stdev, variance, min, max를 표시합니다.
 
 비교 기준:
 

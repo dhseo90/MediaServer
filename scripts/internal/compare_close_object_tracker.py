@@ -12,6 +12,7 @@ import os
 import pathlib
 import re
 import socket
+import statistics
 import subprocess
 import time
 import urllib.error
@@ -66,6 +67,15 @@ OBSERVED_RISK_KEYS = {
     "missedFrameSpikeCount",
     "directionChangeSpikeCount",
 }
+REPEAT_STAT_KEYS = sorted(
+    QUALITY_RISK_KEYS |
+    OBSERVED_RISK_KEYS |
+    {
+        "maxCenterJump",
+        "closeObjectGuardAppliedCount",
+        "rejectedByCloseObjectGuardCount",
+    }
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -368,10 +378,44 @@ def read_ndjson(path: pathlib.Path | None) -> list[dict[str, Any]]:
 def number_values(items: list[dict[str, Any]], key: str) -> list[float]:
     values: list[float] = []
     for item in items:
-        value = item.get(key)
+        value = metric_value(item, key)
         if isinstance(value, (int, float)):
             values.append(float(value))
     return values
+
+
+def metric_value(item: dict[str, Any], key: str) -> float | int | None:
+    if key == "trackerAssociationRiskScore":
+        fragmentation = item.get("fragmentationRatio")
+        overlap_fragmentation = item.get("overlapFragmentationRatio")
+        if isinstance(fragmentation, (int, float)) and isinstance(overlap_fragmentation, (int, float)):
+            return round(
+                max(0.0, float(fragmentation) - 1.0) +
+                max(0.0, float(overlap_fragmentation) - 1.0),
+                6,
+            )
+        return None
+    value = item.get(key)
+    return value if isinstance(value, (int, float)) else None
+
+
+def metric_stats(items: list[dict[str, Any]], keys: list[str]) -> dict[str, dict[str, float | int]]:
+    stats: dict[str, dict[str, float | int]] = {}
+    for key in keys:
+        values = number_values(items, key)
+        if not values:
+            continue
+        mean_value = statistics.mean(values)
+        variance = statistics.pvariance(values) if len(values) > 1 else 0.0
+        stats[key] = {
+            "count": len(values),
+            "min": round(min(values), 6),
+            "max": round(max(values), 6),
+            "mean": round(mean_value, 6),
+            "variance": round(variance, 6),
+            "stdev": round(variance ** 0.5, 6),
+        }
+    return stats
 
 
 def counter_sum(items: list[dict[str, Any]], key: str) -> dict[str, int]:
@@ -433,6 +477,7 @@ def aggregate_iterations(items: list[dict[str, Any]]) -> dict[str, Any]:
         "rejectedByCloseObjectGuardCount": sum(int(item.get("rejectedByCloseObjectGuardCount") or 0) for item in items),
         "trackingIssueCounts": issue_counts,
         "eventScenarioSignature": event_signature,
+        "metricStats": metric_stats(items, REPEAT_STAT_KEYS),
         "trackIssueTable": track_rows,
     }
 
@@ -624,6 +669,7 @@ def write_mode_report(mode: str, payload: dict[str, Any], path: pathlib.Path) ->
         "rejectedByCloseObjectGuardCount",
     ]:
         lines.append(f"| {key} | {format_cell(payload.get(key))} |")
+    append_metric_stats(lines, payload.get("metricStats") or {})
     lines.extend(["", "## Counters", ""])
     lines.append(f"- guard decisions: `{json.dumps(payload.get('guardDecisionCounts') or {}, ensure_ascii=False)}`")
     lines.append(f"- tracking issues: `{json.dumps(payload.get('trackingIssueCounts') or {}, ensure_ascii=False)}`")
@@ -649,6 +695,29 @@ def write_mode_report(mode: str, payload: dict[str, Any], path: pathlib.Path) ->
             )
         )
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def append_metric_stats(lines: list[str], stats: dict[str, Any]) -> None:
+    if not stats:
+        return
+    lines.extend(["", "## Repeat Metric Stats", ""])
+    lines.append("| metric | count | mean | stdev | variance | min | max |")
+    lines.append("| --- | --- | --- | --- | --- | --- | --- |")
+    for key in REPEAT_STAT_KEYS:
+        row = stats.get(key)
+        if not isinstance(row, dict):
+            continue
+        lines.append(
+            "| {metric} | {count} | {mean} | {stdev} | {variance} | {minv} | {maxv} |".format(
+                metric=key,
+                count=format_cell(row.get("count")),
+                mean=format_cell(row.get("mean")),
+                stdev=format_cell(row.get("stdev")),
+                variance=format_cell(row.get("variance")),
+                minv=format_cell(row.get("min")),
+                maxv=format_cell(row.get("max")),
+            )
+        )
 
 
 def write_report(summary: dict[str, Any], path: pathlib.Path) -> None:
@@ -697,6 +766,33 @@ def write_report(summary: dict[str, Any], path: pathlib.Path) -> None:
         lines.append(
             f"| {mode} | `{json.dumps(payload.get('guardDecisionCounts') or {}, ensure_ascii=False)}` | `{json.dumps(payload.get('trackingIssueCounts') or {}, ensure_ascii=False)}` |"
         )
+    lines.extend(["", "## Repeat Metric Stats", ""])
+    lines.append("| mode | metric | count | mean | stdev | variance | min | max |")
+    lines.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
+    has_stats = False
+    for mode, payload in modes.items():
+        stats = payload.get("metricStats") or {}
+        if not isinstance(stats, dict):
+            continue
+        for key in REPEAT_STAT_KEYS:
+            row = stats.get(key)
+            if not isinstance(row, dict):
+                continue
+            has_stats = True
+            lines.append(
+                "| {mode} | {metric} | {count} | {mean} | {stdev} | {variance} | {minv} | {maxv} |".format(
+                    mode=mode,
+                    metric=key,
+                    count=format_cell(row.get("count")),
+                    mean=format_cell(row.get("mean")),
+                    stdev=format_cell(row.get("stdev")),
+                    variance=format_cell(row.get("variance")),
+                    minv=format_cell(row.get("min")),
+                    maxv=format_cell(row.get("max")),
+                )
+            )
+    if not has_stats:
+        lines.append("| - | - | - | - | - | - | - | - |")
     lines.extend(["", "## Quality Gate", ""])
     lines.append("| check | value |")
     lines.append("| --- | --- |")
