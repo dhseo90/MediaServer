@@ -1,7 +1,8 @@
 # ONVIF Live Source Import
 
-이 문서는 v1.1.0-alpha.2의 ONVIF live source import 설계를 고정합니다.
-목표는 ONVIF camera를 찾아 live RTSP source로 등록하는 onboarding 흐름입니다.
+이 문서는 v1.1.0-alpha.2의 ONVIF live source import 1차 구현과 남은
+연동 범위를 고정합니다. 목표는 ONVIF camera를 찾아 live RTSP source로
+등록하는 onboarding 흐름입니다.
 ONVIF conformant server, recorder, replay, Profile G scope는 포함하지 않습니다.
 
 관련 기준:
@@ -12,7 +13,7 @@ ONVIF conformant server, recorder, replay, Profile G scope는 포함하지 않�
 
 ## 범위
 
-포함:
+제품 목표:
 
 - ONVIF discovery 후보 수집
 - device information과 capabilities 조회
@@ -22,6 +23,24 @@ ONVIF conformant server, recorder, replay, Profile G scope는 포함하지 않�
 - PublishedView와 `vaRule` 연결 흐름 유지
 - credential/plaintext secret 노출 금지
 
+v1.1.0-alpha.2 1차 구현 완료:
+
+- 합성 ONVIF fixture 기반 import draft contract 고정
+- `POST /ops/api/onvif/import-draft` operator/source-writer 전용 API
+- draft API의 SourceRegistry/PublishedView 저장 side effect 없음
+- `/ops/sources` ONVIF stub 후보 import UI
+- ONVIF draft를 기존 채널 폼에 반영하고 기존 source/view API로 저장
+- import된 RTSP source의 client/viewer redaction smoke
+- 공개 RTSP downstream stand-in smoke와 UI round-trip smoke
+
+후속 구현:
+
+- 실제 네트워크 ONVIF discovery/SOAP probe
+- 실제 camera의 device/capabilities/media profile 조회
+- credential persistence 또는 외부 secret store 연동
+- ONVIF origin metadata registry schema와 migration 판단
+- 실제 RTSP packet/WebRTC session 기반 외부 네트워크 gate
+
 비범위:
 
 - ONVIF server conformance
@@ -30,7 +49,7 @@ ONVIF conformant server, recorder, replay, Profile G scope는 포함하지 않�
 - edge storage 조회
 - playback/replay URL import
 - PTZ control 1차 구현
-- SourceRegistry/PublishedView 저장 payload 변경
+- v1.1.0-alpha.2 1차 구현에서의 SourceRegistry/PublishedView 저장 payload 변경
 
 ## Import Flow
 
@@ -77,13 +96,15 @@ SourceRegistry 저장 예상값:
 - `tags`: `onvif`, `live`, profile 방향 등 운영 추적용 tag
 - `ownerGroup`: 기존 source ownership 정책 사용
 
-ONVIF origin metadata는 1단계에서 registry schema에 넣지 않습니다. 필요한 최소
-필드는 별도 SourceRegistry origin metadata 설계 단계에서 검토합니다.
+ONVIF origin metadata는 v1.1.0-alpha.2 1차 구현에서 registry schema에 넣지
+않습니다. 필요한 최소 필드는 별도 SourceRegistry origin metadata 설계 단계에서
+검토합니다.
 
 ## Import Draft Contract
 
 v1.1.0-alpha.2의 첫 구현 단위는 실제 camera 연결이 아니라 ONVIF 응답을 기존
-운영 source/view 저장 payload로 바꾸는 내부 계약을 고정하는 것입니다.
+운영 source/view 저장 payload로 바꾸는 내부 계약을 고정하고, `/ops/sources`
+operator UI에서 그 draft를 저장 흐름으로 연결하는 것입니다.
 
 입력 contract:
 
@@ -259,21 +280,23 @@ fixture는 합성 장비와 합성 private-network RTSP URI만 사용합니다. 
 현재 단계:
 
 ```bash
+./server.sh build
 ./server.sh verify-onvif-live-import-contract
 ./server.sh verify-onvif-import-draft-api
 ./server.sh verify-onvif-rtsp-downstream
 ./server.sh verify-onvif-ops-sources-ui
+./server.sh verify-ops-client-ui
+./server.sh verify-ops-client-ui --screenshots
+./server.sh verify-rule-ui
+./server.sh verify-ops-click-e2e
+./server.sh verify-ops-source-lifecycle
 git diff --check -- docs test/fixtures scripts server.sh
 ./server.sh verify-docs-links
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ```
 
-ONVIF import 구현 단계 후보:
-
-```bash
-./server.sh build
-./server.sh verify-ops-source-lifecycle
-```
+후속 실제 camera 연동 단계에서는 virtual ONVIF device fixture, 같은 LAN의 실제
+camera discovery, 외부 네트워크 live stream gate를 별도 검증 명령으로 추가합니다.
 
 `verify-onvif-ops-sources-ui`는 `/ops/sources`에서 ONVIF stub 후보를
 import draft로 가져온 뒤 operator가 channel ID를 조정해도 기존

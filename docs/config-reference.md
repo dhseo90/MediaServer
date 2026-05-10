@@ -411,9 +411,10 @@ SourceRegistry:
 - 관리 API: `/ops/api/sources`
 - 저장 필드: `sourceId`, `displayName`, `kind`, `canonicalSourceKey`,
   source input, `enabled`, `tags`, `ownerGroup`
-- ONVIF origin metadata는 v1.1.0 설계 항목이며 현재 저장 필드가 아닙니다.
-  구현 전까지는 [ONVIF Live Source Import](./onvif-live-import.md)의
-  draft를 기준으로 별도 schema review를 거칩니다.
+- ONVIF origin metadata는 v1.1.0-alpha.2 후속 schema review 항목이며
+  현재 저장 필드가 아닙니다. 1차 구현은
+  [ONVIF Live Source Import](./onvif-live-import.md)의 draft와 `onvif`/`live`
+  tag를 기준으로 기존 source/view 저장 payload를 사용합니다.
 - 제품 UI: 숫자 채널로 묶어 `/ops/sources`에 표시
 - Seed 조건: registry가 비어 있으면 기본 file/VA file/공개 RTSP/HLS 채널 추가
 - 저장 방식: atomic write/fsync/rename

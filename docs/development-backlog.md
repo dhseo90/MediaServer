@@ -81,6 +81,29 @@ live VA event 품질을 다루고, 장기 녹화/VMS/NVR/playback/Profile G는 �
 alpha.1 `Live-only 제품 경계 확정` 완료 범위에는 API skeleton, registry schema,
 Ops UI 구현, state-dump extension, smoke matrix 구현을 포함하지 않습니다.
 
+### v1.1.0-alpha.2 ONVIF Live Source Import
+
+- **상태**: `1차 구현 완료` - synthetic ONVIF fixture, import draft API,
+  `/ops/sources` stub import UI, 기존 source/view 저장 round-trip smoke 완료
+- 구현됨:
+  - `POST /ops/api/onvif/import-draft`는 기존 `kind=rtsp` source draft와
+    PublishedView draft를 반환하며 저장 side effect를 만들지 않습니다.
+  - `/ops/sources`의 ONVIF stub import는 operator가 폼을 확인한 뒤 기존
+    `/ops/api/sources/{id}`, `/ops/api/views/{id}` 저장 경로로 이어집니다.
+  - client/viewer API에는 RTSP URL, ONVIF endpoint, credential reference,
+    raw diagnostic JSON을 노출하지 않습니다.
+- 후속:
+  - 실제 ONVIF discovery/SOAP probe와 Media/Media2 profile 조회
+  - credential persistence 또는 외부 secret reference 정책
+  - SourceRegistry ONVIF origin metadata schema/migration review
+- 비범위:
+  - ONVIF conformant server, Profile G recording/replay, recorder, playback/search
+- 검증:
+  `./server.sh verify-onvif-live-import-contract`,
+  `./server.sh verify-onvif-import-draft-api`,
+  `./server.sh verify-onvif-rtsp-downstream`,
+  `./server.sh verify-onvif-ops-sources-ui`
+
 ### 현재 문서 기준 readiness boundary
 
 - 현재 버전 기준은 `v1.0.0` source-only public baseline입니다.

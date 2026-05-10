@@ -114,7 +114,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | v1.1.0-alpha.1 live-only 완료 checklist | [docs/v1.1.0-alpha1-checklist.md](docs/v1.1.0-alpha1-checklist.md) |
 | v1.1.0 한국어/영어 live-only 용어 | [docs/v1.1.0-glossary.md](docs/v1.1.0-glossary.md) |
 | v1.1.0 비범위 키워드 정적 점검 기준 | [docs/v1.1.0-boundary-checks.md](docs/v1.1.0-boundary-checks.md) |
-| v1.1.0 후속 Phase: ONVIF live source import 설계 | [docs/onvif-live-import.md](docs/onvif-live-import.md) |
+| v1.1.0-alpha.2: ONVIF live source import 1차 구현/설계 | [docs/onvif-live-import.md](docs/onvif-live-import.md) |
 | v1.1.0 후속 Phase: Live source health 상태 모델 | [docs/live-source-health.md](docs/live-source-health.md) |
 | v1.1.0 후속 Phase: Event/WebRTC/SSE/WS metadata contract | [docs/live-event-metadata-contracts.md](docs/live-event-metadata-contracts.md) |
 | v1.1.0 후속 Phase: Scenario timeline/debug 필드 설계 | [docs/scenario-timeline-debug.md](docs/scenario-timeline-debug.md) |
