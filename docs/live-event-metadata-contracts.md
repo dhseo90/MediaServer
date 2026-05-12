@@ -4,6 +4,13 @@
 기존 Event POST payload, WebRTC DataChannel schema, SSE/WS runtime metadata
 schema를 변경하지 않고, 각 소비 경로의 역할과 검증 기준을 한곳에 모읍니다.
 
+상태:
+
+- `완료`: 2026-05-12 순차 close-out 기준으로 선수 로드맵 5/6을 닫았습니다.
+- RC 잔여 범위는 Event POST/WebRTC/SSE/WS smoke matrix가 유지되는지 확인하는 것입니다.
+- 별도 OpenAPI/JSON Schema artifact 생성은 RC blocker가 아니라 외부 integrator
+  배포 확장 후보입니다.
+
 관련 기준:
 
 - [v1.1.0 Roadmap](./v1.1.0-roadmap.md)

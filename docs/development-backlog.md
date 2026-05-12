@@ -34,6 +34,7 @@
 | `완료` | v1.1.0 선수 로드맵 2/6 | ONVIF Live Source Onboarding 1차 import draft/API/UI/redaction smoke 완료 |
 | `완료` | v1.1.0 선수 로드맵 3/6 | Live Source Health / Operator Workflow API/UI/sanitized client smoke 완료 |
 | `완료` | v1.1.0 선수 로드맵 4/6 | Live VA Event Quality timeline/debug, TrackHealth grouping, preset baseline smoke 완료 |
+| `완료` | v1.1.0 선수 로드맵 5/6 | Live Event Delivery Contract 문서/식별자/smoke matrix 정리 완료 |
 | `다음 작업` | v1.1.0 live operations | ONVIF camera import, live source health, live VA event 품질 고도화 |
 | `다음 작업` | 현장 운영 | scenario tuning, operator 화면 고도화 |
 | `후속 Phase` | 제품화 | bulk/source health, client dashboard polish, analysis tap reuse UI, account lifecycle 정책 |
@@ -1319,9 +1320,20 @@ python3 scripts/examples/va_rtsp_ws_overlay_client.py --help
 
 ### P7-5. Event JSON schema/OpenAPI 분리
 
-- **상태**: `예정`
-- 목적: 기존 외부 이벤트 JSON/API/POST 형식을 별도 schema 문서 또는 OpenAPI로 정리합니다.
-- 관련 파일: `docs/video-analysis.md`, `src/analysis/event_manager.cpp`, `src/analysis/event_post_dispatcher.cpp`
+- **상태**: `완료` - 선수 로드맵 5/6 기준 live event delivery contract 문서와 smoke matrix 정리 완료
+- 목적:
+  기존 외부 이벤트 JSON/API/POST 형식을 [Live Event and Metadata Contracts](./live-event-metadata-contracts.md)에
+  Event POST, WebRTC DataChannel, SSE, WebSocket 기준으로 분리했습니다.
+- 완료 범위:
+  - `media-server.va.event.v1`
+  - `media-server.webrtc.va-metadata.v1`
+  - `media-server.va.runtime-metadata.v1`
+  - `media-server.va.metadata-control.v1`
+  - Event POST/WebRTC/SSE/WS smoke matrix와 failure/skip 해석 기준
+- 현장 연동 확장 후보:
+  별도 OpenAPI/JSON Schema artifact 생성은 현재 RC 잔여 blocker가 아니라
+  외부 integrator 배포 단계에서 다룹니다.
+- 관련 파일: `docs/live-event-metadata-contracts.md`, `docs/video-analysis.md`, `src/analysis/event_manager.cpp`, `src/analysis/event_post_dispatcher.cpp`
 - 검증 명령:
 
 ```bash
