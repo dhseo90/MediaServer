@@ -1363,6 +1363,12 @@ Event POST recovery/queue:
 ./server.sh verify-event-post --mode recovery
 ```
 
+기본 disabled 상태 확인:
+
+```bash
+./server.sh verify-event-post --mode disabled
+```
+
 EventStorage status/records smoke:
 
 ```bash
@@ -1372,9 +1378,13 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records?limit=5'
 
 서버가 `8081` 같은 다른 HTTP port로 떠 있으면 port만 맞춰 실행합니다.
 
-`verify-event-post`는 서버가 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1` 상태로 실행되어 있어야 합니다.
-기본 서버가 Event POST disabled라서 `event POST dispatcher가 비활성화되어 있습니다`로 실패할 수 있습니다.
-이 경우 같은 build를 Event POST enabled 보정 서버로 띄워 schema/recovery를 재확인합니다.
+`verify-event-post --mode schema|recovery|queue`는 서버가
+`MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1` 상태로 실행되어 있어야 합니다.
+기본 서버의 Event POST disabled 상태는
+`verify-event-post --mode disabled`로 별도 확인합니다.
+schema/recovery/queue mode에서 disabled가 나오면 enabled smoke의 사전 조건 실패로
+보고하고, 같은 build를 Event POST enabled 보정 서버로 띄워 schema/recovery를
+재확인합니다.
 
 ```bash
 MEDIA_SERVER_SKIP_LOCAL_ENV=1 \

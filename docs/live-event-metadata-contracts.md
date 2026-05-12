@@ -251,7 +251,8 @@ runtime smoke를 실행하지 않았다면 live delivery 자체를 재검증했�
 | --- | --- | --- | --- |
 | 문서만 변경 | `git diff --check -- README.md README.en.md docs`, `./server.sh verify-docs-links` | trailing whitespace 없음, local link 실패 없음 | 명령 없음/실행 불가는 중단 후 보고 |
 | v1.1.0 live-only 문구 | `./server.sh verify-v1.1-boundary-keywords` | failure 후보 없음 | review 후보는 사람이 문맥 확인 후 기록 |
-| Event POST contract | `./server.sh verify-event-post --mode schema` | `media-server.va.event.v1` payload와 `payloadFormat` 유지 | 기본 서버 disabled 실패는 보정 서버로 재확인 |
+| Event POST disabled/default | `./server.sh verify-event-post --mode disabled` | 기본 서버의 dispatcher disabled 상태 분리 보고 | enabled 상태면 disabled smoke 실패 |
+| Event POST contract | `./server.sh verify-event-post --mode schema` | `media-server.va.event.v1` payload와 `payloadFormat` 유지 | disabled는 enabled smoke 사전 조건 실패이며 보정 서버로 재확인 |
 | Event POST recovery | `./server.sh verify-event-post --mode recovery` | dispatcher recovery와 storage recovery 결과가 분리 보고됨 | EventStorage disabled skip은 skip으로 기록 |
 | WebRTC DataChannel | `./server.sh verify-webrtc-va-metadata` | video track, ICE connected, `va-metadata` open, metadata 수신 | DataChannel failure가 media failure로 번지면 실패 |
 | SSE side-channel | `./server.sh verify-va-metadata-sidechannel` | `media-server.va.runtime-metadata.v1`, filter/include, cleanup 확인 | listener 없음은 환경 실패로 기록하고 보정 포트 확인 |

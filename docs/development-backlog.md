@@ -673,13 +673,17 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ### P2-4. Event POST 활성/비활성 smoke 분리
 
-- **상태**: `예정`
+- **상태**: `완료`
 - 목적: Event POST가 꺼진 기본 서버와 켜진 서버의 기대 결과를 test output에서 명확히 분리합니다.
 - 관련 파일: `scripts/internal/test_all.sh`, `scripts/internal/verify_event_post_dispatch.sh`, `src/analysis/event_post_dispatcher.cpp`
+- 구현 완료 범위:
+  - `./server.sh verify-event-post --mode disabled`로 기본 disabled 상태를 별도 smoke로 확인
+  - schema/queue/recovery mode는 enabled smoke 사전 조건 실패와 보정 서버 재실행 안내를 분리 출력
+  - `test_all.sh`의 event POST 선택 검증 label을 enabled smoke로 명시
 - 검증 명령:
 
 ```bash
-./server.sh test --full
+./server.sh verify-event-post --mode disabled
 ./server.sh verify-event-post --mode schema
 ./server.sh verify-event-post --mode recovery
 ```
