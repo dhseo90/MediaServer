@@ -1,8 +1,8 @@
 # ONVIF Live Source Import
 
-이 문서는 v1.1.0-alpha.2의 ONVIF live source import 1차 구현과 남은
-연동 범위를 고정합니다. 목표는 ONVIF camera를 찾아 live RTSP source로
-등록하는 onboarding 흐름입니다.
+이 문서는 v1.1.0-alpha.2의 ONVIF live source import 1차 구현과 현장
+연동 확장 후보를 고정합니다. 목표는 ONVIF camera 응답을 live RTSP
+source onboarding으로 연결하는 흐름입니다.
 ONVIF conformant server, recorder, replay, Profile G scope는 포함하지 않습니다.
 
 관련 기준:
@@ -23,7 +23,7 @@ ONVIF conformant server, recorder, replay, Profile G scope는 포함하지 않�
 - PublishedView와 `vaRule` 연결 흐름 유지
 - credential/plaintext secret 노출 금지
 
-v1.1.0-alpha.2 1차 구현 완료:
+v1.1.0-alpha.2 선수 로드맵 2/6 완료 범위:
 
 - 합성 ONVIF fixture 기반 import draft contract 고정
 - `POST /ops/api/onvif/import-draft` operator/source-writer 전용 API
@@ -33,13 +33,16 @@ v1.1.0-alpha.2 1차 구현 완료:
 - import된 RTSP source의 client/viewer redaction smoke
 - 공개 RTSP downstream stand-in smoke와 UI round-trip smoke
 
-후속 구현:
+현장 확장 후보:
 
 - 실제 네트워크 ONVIF discovery/SOAP probe
 - 실제 camera의 device/capabilities/media profile 조회
 - credential persistence 또는 외부 secret store 연동
 - ONVIF origin metadata registry schema와 migration 판단
 - 실제 RTSP packet/WebRTC session 기반 외부 네트워크 gate
+
+위 현장 확장 후보는 현재 v1.1.0 RC 잔여 blocker가 아닙니다. RC에서는
+fixture/import draft/API/UI/redaction smoke가 유지되는지 확인합니다.
 
 비범위:
 
@@ -295,8 +298,8 @@ git diff --check -- docs test/fixtures scripts server.sh
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ```
 
-후속 실제 camera 연동 단계에서는 virtual ONVIF device fixture, 같은 LAN의 실제
-camera discovery, 외부 네트워크 live stream gate를 별도 검증 명령으로 추가합니다.
+현장 확장 단계에서는 virtual ONVIF device fixture, 같은 LAN의 실제 camera
+discovery, 외부 네트워크 live stream gate를 별도 검증 명령으로 추가합니다.
 
 `verify-onvif-ops-sources-ui`는 `/ops/sources`에서 ONVIF stub 후보를
 import draft로 가져온 뒤 operator가 channel ID를 조정해도 기존
