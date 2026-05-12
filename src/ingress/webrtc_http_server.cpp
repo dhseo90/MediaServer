@@ -10450,8 +10450,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     }
                                 }
                             }
-                            // Remove the stream subscriber before tearing down the bridge so packet callbacks
-                            // cannot write into a pipeline that is being stopped.
+                            // bridge 정리 전에 stream subscriber를 먼저 제거해 packet callback이
+                            // 중지 중인 pipeline에 쓰지 못하게 한다.
                             impl_->session_manager.CloseSession(entry.ingress_client_id);
                             if (!entry.analysis_tap_id.empty()) {
                                 DetachAnalysisTapAndReleaseRuntimes(

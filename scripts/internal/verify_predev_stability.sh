@@ -19,6 +19,7 @@ MULTICHANNEL_CLIENTS_PER_SOURCE="${MEDIA_SERVER_VERIFY_PREDEV_CLIENTS_PER_SOURCE
 VA_EVENT_DURATION_S="${MEDIA_SERVER_VERIFY_PREDEV_VA_EVENT_DURATION_S:-30}"
 REDACTION_DURATION_S="${MEDIA_SERVER_VERIFY_PREDEV_REDACTION_DURATION_S:-12}"
 HEARTBEAT_INTERVAL_S="${MEDIA_SERVER_VERIFY_PREDEV_HEARTBEAT_INTERVAL_S:-30}"
+AUTH_MODE="${MEDIA_SERVER_VERIFY_PREDEV_AUTH_MODE:-off}"
 RUN_ID="predev-$(date +%s)-$$"
 WORK_DIR="/tmp/media_server_${RUN_ID}"
 STEPS_FILE="${WORK_DIR}/steps.ndjson"
@@ -69,6 +70,8 @@ Options:
 
 기준:
   - 통합 smoke, 다채널 WebRTC, VA event, redaction, event POST schema/recovery/queue를 확인합니다.
+  - predev 테스트 서버는 기본 `MEDIA_SERVER_AUTH_MODE=off`로 시작합니다.
+    다른 auth mode를 의도적으로 검증하려면 `MEDIA_SERVER_VERIFY_PREDEV_AUTH_MODE`를 지정합니다.
   - 종료 시 runtime session/stream/tap cleanup과 8080/8081/8554/8555 listener 정리를 hard check합니다.
   - LAN IP 외부 접근성은 bind/방화벽 영향이 커서 --include-external-client 지정 시에만 hard gate로 포함합니다.
   - 외부 TURN credential이 없는 환경에서는 외부 TURN hard gate를 기본 포함하지 않습니다.
@@ -299,7 +302,7 @@ start_server() {
     append_step "server-start" "fail" "port preflight" "${SERVER_LOG}" 0
     return 1
   fi
-  log_info "server 시작: rtsp=${RTSP_PORT} http=${HTTP_PORT} eventPostQueue=${queue_size}"
+  log_info "server 시작: rtsp=${RTSP_PORT} http=${HTTP_PORT} eventPostQueue=${queue_size} authMode=${AUTH_MODE}"
   (
     cd "${ROOT_DIR}"
     MEDIA_SERVER_BUILD_DIR="${BUILD_DIR}" \
@@ -309,6 +312,7 @@ start_server() {
     MEDIA_SERVER_LISTEN_ADDRESS="${RTSP_LISTEN_ADDRESS}" \
     MEDIA_SERVER_HTTP_LISTEN_ADDRESS="${HTTP_LISTEN_ADDRESS}" \
     MEDIA_SERVER_SKIP_LOCAL_ENV="${MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV:-1}" \
+    MEDIA_SERVER_AUTH_MODE="${AUTH_MODE}" \
     MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 \
     MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE="${queue_size}" \
       ./scripts/internal/run_server_foreground.sh
@@ -542,7 +546,7 @@ main() {
   start_server 256 || true
   if [[ -n "${SERVER_PID}" ]] && kill -0 "${SERVER_PID}" >/dev/null 2>&1; then
     run_step "integrated-smoke" \
-      "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_LISTEN_ADDRESS=${RTSP_LISTEN_ADDRESS} MEDIA_SERVER_HTTP_LISTEN_ADDRESS=${HTTP_LISTEN_ADDRESS} MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV:-1} ./server.sh test --no-start ${external_client_option} --include-rules --include-rule-ui --include-va-events --include-image-analysis $([[ "${INCLUDE_REDACTION}" == "1" ]] && printf -- '--include-redaction')" || true
+      "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_LISTEN_ADDRESS=${RTSP_LISTEN_ADDRESS} MEDIA_SERVER_HTTP_LISTEN_ADDRESS=${HTTP_LISTEN_ADDRESS} MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV:-1} MEDIA_SERVER_AUTH_MODE=${AUTH_MODE} ./server.sh test --no-start ${external_client_option} --include-rules --include-rule-ui --include-va-events --include-image-analysis $([[ "${INCLUDE_REDACTION}" == "1" ]] && printf -- '--include-redaction')" || true
     run_external_turn_gate || true
     run_soak_loop
     assert_runtime_idle "main-runtime-idle" || true
