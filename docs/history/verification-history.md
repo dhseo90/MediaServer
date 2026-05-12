@@ -2,6 +2,39 @@
 
 이 문서는 과거 상세 검증 이력을 보존합니다. 현재 실행해야 할 검증 기준은 [../stream-verification.md](../stream-verification.md)를 봅니다.
 
+## 2026-05-12 - Live Event Delivery Contract RC smoke
+
+통과:
+
+- `./server.sh build`
+- `./server.sh verify-event-post --mode disabled --http-base http://127.0.0.1:8084`: `2/0/0`
+- `./server.sh verify-event-post --mode schema --http-base http://127.0.0.1:8084`: `7/0/0`
+- `./server.sh verify-event-post --mode recovery --http-base http://127.0.0.1:8084`: `11/0/1`
+- `./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8084 --file imports/va_tracking_event_1280x720_30fps_h264.mp4 --timeout-ms 45000`: `8/0`
+- `./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8084`: `5/0`
+- `./server.sh verify-ws-metadata --http-base http://127.0.0.1:8084 --file sample_h264.mp4 --timeout-ms 12000`: `9/0`
+- `./server.sh verify-va-runtime-console --http-base http://127.0.0.1:8084`: `8/0`
+- `git diff --check -- README.md README.en.md docs scripts`
+
+확인:
+
+- Event POST disabled 기본 상태와 enabled schema/recovery smoke를 분리해 확인했습니다.
+- Event POST recovery의 EventStorage corrupt/partial injection 세부 검증은
+  EventStorage disabled 상태라 skip `1`로 기록했습니다.
+- WebRTC DataChannel은 video track, ICE connected, `va-metadata` DataChannel,
+  metadata schema/sync diagnostic 수신을 확인했습니다.
+- SSE side-channel은 `media-server.va.runtime-metadata.v1` payload와 임시 tap cleanup을 확인했습니다.
+- WebSocket side-channel은 runtime metadata payload, subscribe/unsubscribe/status/resume/reset
+  control ack, 임시 tap cleanup을 확인했습니다.
+- Runtime Console smoke는 metrics, state-dump, event POST/status, event storage/status,
+  runtime status와 tap cleanup을 확인했습니다.
+
+미실행:
+
+- `verify-predev --soak-minutes ...`: 사용자 명시 요청 없음
+- `verify-va-runtime-console-longrun ...`: 사용자 명시 요청 없음
+- `verify-event-post-longrun ...`: 사용자 명시 요청 없음
+
 ## 2026-05-10 - Live Source Health / Operator Workflow 1차 검증
 
 통과:
