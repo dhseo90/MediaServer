@@ -25,7 +25,7 @@ Detailed Korean backlog: [../development-backlog.md](../development-backlog.md)
 | v1.1.0 prerequisite roadmap 4/6 | Done | Live VA event quality timeline/debug, TrackHealth grouping, and preset baseline smoke are closed |
 | v1.1.0 prerequisite roadmap 5/6 | Done | Live event delivery contract identifiers and smoke matrix are closed |
 | v1.1.0 prerequisite roadmap 6/6 | Done | Multilingual UI/docs alignment and English mirror consolidation are closed |
-| v1.1.0 RC stabilization | Next | Do not rerun prerequisite roadmap 1-6; only RC gate and release checklist remain |
+| v1.1.0 RC stabilization | Done | RC gate/release checklist readiness and longrun separation are closed without rerunning prerequisite roadmap 1-6 |
 | v1.1.0-alpha.1 live-only boundary | Done | Roadmap, README, backlog, English docs, and recording/VMS/NVR guardrails are aligned |
 | Audit trail operations | In progress | Server persistence exists; search/export can improve |
 | Short event evidence | Supporting | EventRecord/snapshot/clip cleanup exists, but it is not the main v1.1.0 product direction |
@@ -44,7 +44,8 @@ Detailed Korean roadmap: [../v1.1.0-roadmap.md](../v1.1.0-roadmap.md)
 - Source health close-out rule: prerequisite step 3/6 is complete at the API/UI/sanitized-client smoke boundary. RC work should preserve that contract, not add new health states or expose raw diagnostics to clients.
 - Live VA quality close-out rule: prerequisite step 4/6 is complete at the timeline/debug, TrackHealth grouping, and preset baseline smoke boundary. Field-sample retuning is an operational extension, not an RC blocker.
 - Live delivery close-out rule: prerequisite step 5/6 is complete at the Event POST/WebRTC/SSE/WS contract and smoke-matrix boundary. OpenAPI or JSON Schema artifacts are integrator-distribution extensions, not RC blockers.
-- Multilingual close-out rule: prerequisite step 6/6 is complete after merging short English mirror pages into `docs/en/README.md`, `docs/en/v1.1.0-roadmap.md`, and this backlog. The remaining v1.1.0 issue is RC stabilization.
+- Multilingual close-out rule: prerequisite step 6/6 is complete after merging short English mirror pages into `docs/en/README.md`, `docs/en/v1.1.0-roadmap.md`, and this backlog.
+- RC close-out rule: v1.1.0 RC stabilization is complete at the RC gate/release checklist readiness boundary. 30m/120m longrun evidence is a conditional release gate that must be explicitly requested and run during an actual RC cut, not a remaining backlog issue.
 
 ## Near-Term Follow-Ups
 

@@ -36,8 +36,8 @@
 | `완료` | v1.1.0 선수 로드맵 4/6 | Live VA Event Quality timeline/debug, TrackHealth grouping, preset baseline smoke 완료 |
 | `완료` | v1.1.0 선수 로드맵 5/6 | Live Event Delivery Contract 문서/식별자/smoke matrix 정리 완료 |
 | `완료` | v1.1.0 선수 로드맵 6/6 | 다국어 UI/문서 정합성 점검과 영문 mirror 문서 병합/정리 완료 |
-| `다음 작업` | v1.1.0 RC 안정화 | 선수 로드맵은 다시 진행하지 않고 RC gate/release checklist만 남김 |
-| `다음 작업` | 현장 운영 | scenario tuning, operator 화면 고도화 |
+| `완료` | v1.1.0 RC 안정화 | 선수 로드맵 재수행 없이 RC gate/release checklist readiness와 longrun 분리 기준 정리 완료 |
+| `후속 Phase` | 현장 운영 | scenario tuning, operator 화면 고도화 |
 | `후속 Phase` | 제품화 | bulk/source health, client dashboard polish, analysis tap reuse UI, account lifecycle 정책 |
 | `실험` | 별도 gate | Re-ID |
 | `보류` | VMS/NVR 경계 | 장기 녹화, MP4 recorder, playback/search, ONVIF Profile G |
@@ -53,8 +53,32 @@ live VA event 품질을 다루고, 장기 녹화/VMS/NVR/playback/Profile G는 �
 기존 EventRecord, snapshot, clip frame bundle hook은 v1.1.0의 중심 제품 메시지가 아닙니다.
 
 2026-05-12 순차 close-out 기준으로 1~6번 선수 로드맵은 모두 완료했습니다.
-잔여 v1.1.0 작업은 `v1.1.0 RC 안정화` 하나로 관리하고,
-선수 로드맵은 RC에서 다시 진행하지 않습니다.
+잔여 v1.1.0 작업이던 `v1.1.0 RC 안정화`는 RC gate/release checklist readiness
+기준으로 닫았고, 선수 로드맵은 RC에서 다시 진행하지 않습니다.
+30분/120분 장시간 실측은 release candidate 또는 고위험 변경에서만
+명시적으로 실행하는 조건부 gate이며, 이 backlog의 남은 구현 이슈로 취급하지 않습니다.
+
+### v1.1.0-rc.1 RC 안정화
+
+- **상태**: `완료` - RC 전용 gate, release checklist/artifact path,
+  longrun separation 기준 정리 완료
+- 완료 기준:
+  - 선수 로드맵 1~6 재수행 없음
+  - `verify-rc-release-gate`로 문서, `server.sh` entrypoint, Actions workflow,
+    checklist/archive 생성 경로를 확인
+  - `verify-longrun-separation`으로 30분/120분 장시간 검증이 기본 smoke에
+    섞이지 않는지 확인
+  - `verify-docs-links`, `verify-docs-ui-assets`, `verify-v1.1-boundary-keywords`로
+    문서 링크, UI asset 참조, live-only 경계 표현을 확인
+- 비범위:
+  - C++ 기능 로직, API schema, Event POST/WebRTC/SSE/WS metadata schema 변경
+  - RTSP/WebRTC media path 변경
+  - `verify-predev`, `verify-va-runtime-console-longrun` 30분/120분 실측 실행
+  - release tag, GitHub Release, push
+- RC cut 운영:
+  실제 release candidate 판정 때는 [stream verification guide](./stream-verification.md)의
+  RC 전용 Release Gate에 따라 self-hosted runner에서 장시간 실측과
+  `rc-release-checklist` artifact 생성을 별도 실행합니다.
 
 ### v1.1.0-alpha.1 Live-only 제품 경계 확정
 
