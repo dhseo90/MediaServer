@@ -222,6 +222,26 @@ WS /ws/va-metadata?file=sample_h264.mp4
 - payload/schema 변경이 필요한 요구사항은 v1.1.0 live-only scope와 별도 schema
   review로 분리합니다.
 
+## Acceptance Criteria
+
+이 contract 정리 단계는 아래 조건을 만족하면 완료로 봅니다.
+
+- 기준 schema/label이 이 문서에 명시되어 있고 구현 파일과 검증 스크립트 위치가
+  함께 연결되어 있음
+- Event POST, WebRTC DataChannel, SSE, WebSocket의 역할과 소비자가 분리되어 있음
+- EventRecord/snapshot/clip은 short event evidence 보조 기능으로만 설명되고,
+  주요 integration contract로 승격되지 않음
+- filter/include/limit는 payload schema 변경이 아니라 전송 범위 축소로 설명됨
+- source locator, ONVIF endpoint, credential reference, raw debug JSON은
+  client/viewer contract에 포함하지 않는다고 명시됨
+- Event POST disabled, EventStorage disabled, listener 없음, 보정 포트 같은
+  환경/skip 조건이 smoke matrix에서 제품 회귀와 분리되어 있음
+- 문서 변경 검증과 v1.1.0 live-only boundary keyword 검증을 실행하고 결과를
+  통과/미실행/skip으로 구분해 보고함
+
+위 조건은 문서 contract 정리의 완료 기준입니다. 실제 Event POST/WebRTC/SSE/WS
+runtime smoke를 실행하지 않았다면 live delivery 자체를 재검증했다고 쓰지 않습니다.
+
 ## Verification Matrix
 
 아래 matrix는 변경 범위별 최소 smoke입니다. 명령을 실행하지 않은 경우에는
