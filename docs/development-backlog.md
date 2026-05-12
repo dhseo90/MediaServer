@@ -35,7 +35,8 @@
 | `완료` | v1.1.0 선수 로드맵 3/6 | Live Source Health / Operator Workflow API/UI/sanitized client smoke 완료 |
 | `완료` | v1.1.0 선수 로드맵 4/6 | Live VA Event Quality timeline/debug, TrackHealth grouping, preset baseline smoke 완료 |
 | `완료` | v1.1.0 선수 로드맵 5/6 | Live Event Delivery Contract 문서/식별자/smoke matrix 정리 완료 |
-| `다음 작업` | v1.1.0 live operations | ONVIF camera import, live source health, live VA event 품질 고도화 |
+| `완료` | v1.1.0 선수 로드맵 6/6 | 다국어 UI/문서 정합성 점검과 영문 mirror 문서 병합/정리 완료 |
+| `다음 작업` | v1.1.0 RC 안정화 | 선수 로드맵은 다시 진행하지 않고 RC gate/release checklist만 남김 |
 | `다음 작업` | 현장 운영 | scenario tuning, operator 화면 고도화 |
 | `후속 Phase` | 제품화 | bulk/source health, client dashboard polish, analysis tap reuse UI, account lifecycle 정책 |
 | `실험` | 별도 gate | Re-ID |
@@ -50,6 +51,10 @@ v1.1.0의 상세 목표와 비범위는 [v1.1.0 Roadmap](./v1.1.0-roadmap.md)을
 요약하면 v1.1.0은 ONVIF live source onboarding, live source health,
 live VA event 품질을 다루고, 장기 녹화/VMS/NVR/playback/Profile G는 제외합니다.
 기존 EventRecord, snapshot, clip frame bundle hook은 v1.1.0의 중심 제품 메시지가 아닙니다.
+
+2026-05-12 순차 close-out 기준으로 1~6번 선수 로드맵은 모두 완료했습니다.
+잔여 v1.1.0 작업은 `v1.1.0 RC 안정화` 하나로 관리하고,
+선수 로드맵은 RC에서 다시 진행하지 않습니다.
 
 ### v1.1.0-alpha.1 Live-only 제품 경계 확정
 

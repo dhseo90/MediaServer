@@ -1,29 +1,32 @@
 # English Documentation
 
-This directory contains concise English guides for the public documentation set. The Korean documents remain the detailed working reference, and each English page links back to its Korean counterpart when useful.
+This directory is the concise English entry point for the public documentation set.
+The detailed working reference is kept in the Korean documents under `docs/`.
+Short one-page English mirrors were merged into this index to reduce document
+sprawl; use the table below to jump to the detailed source-of-truth page.
 
 ## Start Here
 
-| Need | English document |
+| Need | Document |
 | --- | --- |
 | Project overview | [../../README.en.md](../../README.en.md) |
-| Setup and development | [development-guide.md](./development-guide.md) |
-| UI and account views | [ui-guide.md](./ui-guide.md) |
-| Architecture | [media-server-architecture.md](./media-server-architecture.md) |
-| Video analytics | [video-analysis.md](./video-analysis.md) |
+| Setup and development | [../development-guide.md](../development-guide.md) |
+| UI and account views | [../ui-guide.md](../ui-guide.md) |
+| Architecture | [../media-server-architecture.md](../media-server-architecture.md) |
+| Video analytics | [../video-analysis.md](../video-analysis.md) |
 | v1.1.0 live-only roadmap | [v1.1.0-roadmap.md](./v1.1.0-roadmap.md) |
 | v1.1.0 alpha.1 live-only checklist | [../v1.1.0-alpha1-checklist.md](../v1.1.0-alpha1-checklist.md) |
 | v1.1.0 live-only glossary | [../v1.1.0-glossary.md](../v1.1.0-glossary.md) |
-| Verification | [stream-verification.md](./stream-verification.md) |
-| Distribution policy | [distribution-policy.md](./distribution-policy.md) |
-| Release policy | [release-policy.md](./release-policy.md) |
-| Versioning policy | [versioning-policy.md](./versioning-policy.md) |
-| Public repo checklist | [public-repo-final-review.md](./public-repo-final-review.md) |
-| Backup and restore | [ops-backup-recovery.md](./ops-backup-recovery.md) |
-| Scenario thresholds | [analysis-threshold-baselines.md](./analysis-threshold-baselines.md) |
+| Verification | [../stream-verification.md](../stream-verification.md) |
+| Distribution policy | [../distribution-policy.md](../distribution-policy.md) |
+| Release policy | [../release-policy.md](../release-policy.md) |
+| Versioning policy | [../versioning-policy.md](../versioning-policy.md) |
+| Public repo checklist | [../public-repo-final-review.md](../public-repo-final-review.md) |
+| Backup and restore | [../ops-backup-recovery.md](../ops-backup-recovery.md) |
+| Scenario thresholds | [../analysis-threshold-baselines.md](../analysis-threshold-baselines.md) |
 | Backlog | [development-backlog.md](./development-backlog.md) |
-| Sample fixture provenance | [sample-fixture-provenance.md](./sample-fixture-provenance.md) |
-| YouTube import experiment | [youtube-import.md](./youtube-import.md) |
+| Sample fixture provenance | [../sample-fixture-provenance.md](../sample-fixture-provenance.md) |
+| YouTube import experiment | [../youtube-import.md](../youtube-import.md) |
 
 ## Public Repository Boundary
 
@@ -45,3 +48,9 @@ This directory contains concise English guides for the public documentation set.
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ```
+
+## Consolidation Policy
+
+- Keep detailed operational, architecture, verification, and policy content in the Korean `docs/*.md` files.
+- Keep only English entry points that materially reduce ambiguity: this index, the v1.1.0 roadmap mirror, and the close-out backlog.
+- Add a new English mirror only when the English page carries standalone decisions that cannot be expressed clearly in this index or `README.en.md`.
