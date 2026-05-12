@@ -1009,6 +1009,22 @@ WebSocket metadata side-channel smoke:
 - 임시 WebSocket analysis tap이 client disconnect 후 cleanup되는지 확인
 - WebSocket 실패가 RTSP/WebRTC video/audio 흐름으로 전파되지 않는지 확인
 
+Custom RTSP + WebSocket metadata overlay renderer smoke:
+
+```bash
+python3 -m py_compile scripts/examples/va_rtsp_ws_overlay_client.py
+python3 scripts/examples/va_rtsp_ws_overlay_client.py --help
+python3 scripts/examples/va_rtsp_ws_overlay_client.py \
+  --rtsp-url 'rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4' \
+  --metadata-url 'ws://127.0.0.1:8080/ws/va-metadata?file=sample_h264.mp4&va=1&intervalMs=500&maxMessageBytes=65536' \
+  --max-seconds 2 \
+  --headless
+```
+
+이 예제는 RTSP raw stream과 WebSocket runtime metadata를 custom client가 직접
+조합하는 reference입니다. 일반 VLC/ffplay/IINA viewer가 WebSocket metadata를
+자동 overlay한다는 의미가 아니며, 서버 core schema를 변경하지 않습니다.
+
 VA Runtime Console 자동 검증:
 
 ```bash

@@ -1088,8 +1088,8 @@ python3 -c "import cv2; print(cv2.__version__)"
 - 구현 완료: WebSocket metadata side-channel 최소 subscribe/stream endpoint
 - 구현 완료: SSE metadata side-channel 수신 중심 custom client 예제
 - 구현 완료: OpenCV 기반 Custom RTSP + SSE metadata overlay renderer 예제
+- 구현 완료: OpenCV 기반 Custom RTSP + WebSocket metadata overlay renderer 예제
 - 구현 완료: WebSocket command/filter/subscribe-unsubscribe 제어
-- 예정: WS 기반 custom overlay renderer 확장
 
 검증용 smoke:
 

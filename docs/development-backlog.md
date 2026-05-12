@@ -1261,27 +1261,31 @@ rg -n "media-server.webrtc.va-metadata.v1|vaMetadata|RTCPeerConnection|va-metada
 - 목적:
   - SSE metadata side-channel 수신 예제 `scripts/examples/va_metadata_sse_client.py` 구현
   - Python OpenCV 기반 Custom RTSP + SSE overlay 예제 `scripts/examples/va_rtsp_sse_overlay_client.py` 구현
+  - Python OpenCV 기반 Custom RTSP + WebSocket overlay 예제 `scripts/examples/va_rtsp_ws_overlay_client.py` 구현
   - RTSP raw stream과 SSE runtime metadata를 custom client가 직접 조합하는 예제 제공
   - 서버 core 기능, 일반 VLC/ffplay/IINA metadata UI 기능은 아님
 - 관련 파일:
   `scripts/examples/va_metadata_sse_client.py`,
   `scripts/examples/va_rtsp_sse_overlay_client.py`,
+  `scripts/examples/va_rtsp_ws_overlay_client.py`,
   `scripts/internal/va_metadata_stream_smoke.py`,
+  `scripts/internal/verify_ws_va_metadata.mjs`,
   `docs/video-analysis.md`,
   `docs/ui-guide.md`,
   `docs/stream-verification.md`
 - 검증 명령:
 
 ```bash
-python3 -m py_compile scripts/examples/va_metadata_sse_client.py scripts/examples/va_rtsp_sse_overlay_client.py
+python3 -m py_compile scripts/examples/va_metadata_sse_client.py scripts/examples/va_rtsp_sse_overlay_client.py scripts/examples/va_rtsp_ws_overlay_client.py
 python3 scripts/examples/va_metadata_sse_client.py --help
 python3 scripts/examples/va_rtsp_sse_overlay_client.py --help
+python3 scripts/examples/va_rtsp_ws_overlay_client.py --help
 ./server.sh verify-rtsp-va-overlay-policy
 ./server.sh verify-va-metadata-sidechannel
+./server.sh verify-ws-metadata
 ```
 
 - 후속 범위:
-  - WS 기반 custom overlay renderer 확장
   - 현장 sample별 색상/label/track 표시 옵션 개선
   - 배포용 dependency 안내 정리
   - `eventType`/`scenarioName`/`trackId`/`zoneId` filter와

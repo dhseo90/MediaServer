@@ -836,7 +836,7 @@ Ops audit에 `retention-cleanup` action을 남기며, HTTP audit이 어려운 �
   phase entered/elapsed, cooldown remaining, event emitted/dedupe count 1차 표시
 - 구현 완료: `/ops/dashboard` Live VA Event Quality 패널의 Scenario Timeline과
   TrackHealth issue grouping/focus summary/filter
-- 예정: WS 기반 custom overlay renderer 확장
+- 구현 완료: WebSocket 기반 Custom RTSP + WS metadata overlay renderer 예제
 
 내부 schema:
 
@@ -1263,6 +1263,26 @@ Smoke:
   --metadata-event-type loitering \
   --metadata-scenario-name loitering \
   --omit-metrics
+```
+
+Custom RTSP + WebSocket metadata overlay renderer는 optional client example입니다.
+
+| 항목 | 설명 |
+| --- | --- |
+| 파일 | `scripts/examples/va_rtsp_ws_overlay_client.py` |
+| 영상 입력 | RTSP raw stream |
+| metadata 입력 | WebSocket runtime metadata |
+| 표시 | bbox, trackId, className을 client-side로 그림 |
+| 제어 | `--subscribe-json`으로 WebSocket subscribe command 전송 가능 |
+| 범위 | 서버 core 기능 아님 |
+| 변경 없음 | RTSP server-side overlay 정책, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload |
+
+```bash
+python3 scripts/examples/va_rtsp_ws_overlay_client.py \
+  --rtsp-url 'rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4' \
+  --metadata-url 'ws://127.0.0.1:8080/ws/va-metadata?file=sample_h264.mp4&va=1&intervalMs=500&maxMessageBytes=65536' \
+  --max-seconds 15 \
+  --headless
 ```
 
 ## 16. Client-side Overlay / Server-side Overlay 정책
