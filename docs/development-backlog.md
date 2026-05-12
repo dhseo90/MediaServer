@@ -1057,6 +1057,8 @@ MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verif
   stale PTS/PTS regression 성분은 live observed risk로 분리해 해석합니다.
   `--repeat 3` 같은 반복 실행에서는 `Repeat Metric Stats`가 mean/stdev/variance를
   남겨 live polling 변동성을 한 번의 max 값과 분리합니다.
+  `verify-close-object-fixture-matrix` hard gate는 `judgement=hold`를 실패로
+  처리해 event/scenario delta나 주요 risk 증가를 성공처럼 넘기지 않습니다.
 - 상태 업데이트:
   `field-new-york-driving` fixture(차량 다발 현장 샘플)가 matrix에 반영되어
   실제 주행형 데이터에서 close-object 관련 관측값을 함께 추적하도록 추가되었습니다.

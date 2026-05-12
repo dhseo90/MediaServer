@@ -536,6 +536,11 @@ Close-object guard의 기본값은 `off`입니다.
 synthetic control 샘플 외부에서 실제 환경 흔들림 성격을 확인하기 위한 항목입니다.
 기본 실행은 mode별 격리 서버를 사용해 guard mode가 실제 서버에 적용됐는지
 확인합니다.
+`verify-close-object-fixture-matrix`는 fixture 누락뿐 아니라
+`judgement=hold`도 실패로 처리합니다. `hold`는 event/scenario stable delta나
+주요 association risk 증가가 있어 default-on 검토를 중단해야 하는 상태입니다.
+관찰 목적의 hold/warning report 수집은 `compare-close-object-tracker --fixture-matrix`로
+수행합니다.
 동일 테스트를 `--use-existing-server`로 돌릴 경우 `MEDIA_SERVER_AUTH_MODE`가
 `off`이거나 `/lab` API를 호출 가능한 인증 상태여야 하며, 인증이 걸려 있으면
 `/lab/analysis/taps` 응답이 비정상(리다이렉트/빈 본문)으로 와 파싱이 실패할 수 있습니다.

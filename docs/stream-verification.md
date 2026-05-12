@@ -583,6 +583,10 @@ matrix 실행은 fixture별 `summary.json`/`report.md`와 상위
 ```
 
 이 명령은 모든 내장 fixture를 실행하고 fixture 파일 누락을 실패로 처리합니다.
+또한 `judgement=hold`를 hard gate 실패로 처리합니다. `hold`는 event/scenario
+stable delta 또는 주요 association risk 증가가 있어 default-on 검토를 중단해야
+한다는 뜻입니다. 관찰용으로 `hold` report까지 모으려면
+`compare-close-object-tracker --fixture-matrix`를 사용합니다.
 live polling 변동성을 분리하려면 반복 실행 통계를 함께 봅니다.
 
 ```bash
@@ -625,6 +629,7 @@ count, mean, stdev, variance, min, max를 표시합니다.
 - command success라도 `judgement: warning`일 수 있습니다.
 - `event/scenario stable delta=False`여도 observed counter delta나 observed risk 차이가 있을 수 있습니다.
 - 이 경우 default-on 근거로 사용하지 않습니다.
+- `verify-close-object-fixture-matrix`에서 `judgement: hold`는 실패 exit로 처리합니다.
 - close-object guard는 계속 default off로 둡니다.
 - 후속은 threshold tuning 또는 추가 fixture 수집입니다.
 

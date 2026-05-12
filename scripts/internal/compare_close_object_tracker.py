@@ -156,6 +156,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-fixtures", default="", help="--fixture-matrix에서 실행할 최대 fixture 수입니다.")
     parser.add_argument("--list-fixtures", action="store_true", help="내장 fixture matrix와 파일 존재 여부를 JSON으로 출력합니다.")
     parser.add_argument("--fail-on-missing-fixtures", action="store_true", help="matrix fixture 파일 누락을 실패로 처리합니다.")
+    parser.add_argument("--fail-on-hold", action="store_true", help="matrix fixture judgement=hold를 실패로 처리합니다.")
     parser.add_argument(
         "--quality-preset",
         default="strict",
@@ -1088,6 +1089,7 @@ def matrix_history_entry(matrix: dict[str, Any], history: dict[str, Any]) -> dic
         "ok": matrix.get("ok"),
         "fixtureCount": len(fixtures),
         "failedCount": sum(1 for item in fixtures if item.get("status") in {"fail", "missing"}),
+        "holdCount": sum(1 for item in fixtures if item.get("judgement") == "hold"),
         "warningCount": sum(1 for item in fixtures if item.get("judgement") == "warning"),
         "summaryPath": history.get("summaryPath"),
         "reportPath": history.get("reportPath"),
@@ -1101,17 +1103,18 @@ def write_history_index_report(index_payload: dict[str, Any], path: pathlib.Path
         f"- updated: `{index_payload.get('updatedAt')}`",
         f"- history dir: `{index_payload.get('historyDir')}`",
         "",
-        "| run | created | ok | fixtures | failed | warnings | report |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
+        "| run | created | ok | fixtures | failed | hold | warnings | report |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for item in index_payload.get("runs") or []:
         lines.append(
-            "| {run} | {created} | {ok} | {fixtures} | {failed} | {warnings} | `{report}` |".format(
+            "| {run} | {created} | {ok} | {fixtures} | {failed} | {hold} | {warnings} | `{report}` |".format(
                 run=format_cell(item.get("runId")),
                 created=format_cell(item.get("createdAt")),
                 ok=format_cell(item.get("ok")),
                 fixtures=format_cell(item.get("fixtureCount")),
                 failed=format_cell(item.get("failedCount")),
+                hold=format_cell(item.get("holdCount")),
                 warnings=format_cell(item.get("warningCount")),
                 report=format_cell(item.get("reportPath")),
             )
@@ -1182,15 +1185,23 @@ def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: p
         fixture_output_dir = output_dir / fixture_id
         summary = run_comparison(fixture_args, modes, fixture_output_dir, fixture_id)
         gate = summary.get("qualityGate") or {}
-        status = "fail" if summary.get("overallJudgement") == "fail" else "ok"
-        failed = failed or status == "fail"
+        judgement = str(summary.get("overallJudgement") or "")
+        if judgement == "fail":
+            status = "fail"
+        elif judgement == "hold":
+            status = "hold"
+        elif judgement == "warning":
+            status = "warning"
+        else:
+            status = "ok"
+        failed = failed or status == "fail" or (args.fail_on_hold and status == "hold")
         results.append({
             "id": fixture_id,
             "file": file_token,
             "path": fixture.get("path"),
             "qualityPreset": summary.get("qualityPreset"),
             "status": status,
-            "judgement": summary.get("overallJudgement"),
+            "judgement": judgement,
             "defaultOnCandidate": gate.get("defaultOnCandidate"),
             "recommendation": gate.get("recommendation"),
             "summaryPath": summary.get("summaryPath"),

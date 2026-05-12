@@ -510,7 +510,7 @@ case "${cmd}" in
     ;;
   verify-close-object-fixture-matrix)
     require_internal compare_close_object_tracker.py
-    exec "${INTERNAL_DIR}/compare_close_object_tracker.py" --fixture-matrix --fail-on-missing-fixtures "$@"
+    exec "${INTERNAL_DIR}/compare_close_object_tracker.py" --fixture-matrix --fail-on-missing-fixtures --fail-on-hold "$@"
     ;;
   verify-yolo-layouts)
     require_internal verify_yolo_layouts.sh
