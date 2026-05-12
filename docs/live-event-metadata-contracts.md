@@ -261,6 +261,29 @@ runtime smoke를 실행하지 않았다면 live delivery 자체를 재검증했�
 | WebSocket side-channel | `./server.sh verify-ws-metadata` | runtime metadata frame과 control ack 수신 | auth on 미인증 401/viewer 403 기대값 유지 |
 | Runtime dashboard/metadata fanout | `./server.sh verify-va-runtime-console`, `./server.sh verify-va-metadata-sidechannel`, `./server.sh verify-ws-metadata` | dashboard polling과 side-channel fanout이 같은 schema 기준 유지 | cleanup 잔여, stale/drop/fail 증가를 별도 warning으로 기록 |
 
+## Smoke Matrix Maintenance Rules
+
+이 matrix는 v1.1.0 5번 이슈인 Live Event Delivery Contract 정리의 유지보수
+기준입니다. 다음 변경이 생기면 같은 commit에서 이 문서의 matrix를 함께 갱신합니다.
+
+- Event POST, WebRTC DataChannel, SSE, WebSocket의 schema 식별자나 label 변경
+- `verify-event-post`, `verify-webrtc-va-metadata`,
+  `verify-va-metadata-sidechannel`, `verify-ws-metadata`,
+  `verify-va-runtime-console` 명령명, 기본 옵션, summary 의미 변경
+- Event POST enabled/disabled, EventStorage disabled, listener 없음, auth denied,
+  cleanup 잔여 같은 실패/skip 해석 기준 변경
+- metadata filter/include/limit의 동작 범위 변경
+- DataChannel/SSE/WS/Event POST failure가 media path에 전파되는지에 대한 정책 변경
+
+Matrix 유지보수 commit의 보고 기준:
+
+- 어떤 row를 바꿨는지 명시합니다.
+- 실제 실행한 명령만 `통과`로 보고합니다.
+- runtime smoke를 실행하지 않았다면 `미실행`으로 보고하고,
+  live delivery 자체를 재검증했다고 쓰지 않습니다.
+- payload/schema field 변경이 필요하면 이 matrix 안에서 조용히 처리하지 않고
+  별도 schema review 이슈로 분리합니다.
+
 장시간 검증은 이 contract 정리 단계의 기본 조건이 아닙니다.
 `verify-predev --soak-minutes ...`, `verify-va-runtime-console-longrun ...`,
 `verify-event-post-longrun ...`은 사용자가 명시하거나 RC gate에서 요구할 때만 실행합니다.
