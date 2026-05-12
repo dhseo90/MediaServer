@@ -49,6 +49,25 @@ Contract 기준선에서 허용되는 변경은 문서, 검증 명령, 운영 �
 하는 범위입니다. payload field 추가/삭제, event type 이름 변경, source locator
 노출, credential reference 노출은 별도 schema review 없이는 진행하지 않습니다.
 
+### Implementation Map
+
+계약 문서는 아래 구현 지점과 함께 검토합니다. 이 표는 파일 소유권을 바꾸지
+않고, live event delivery contract와 실제 코드의 대응만 고정합니다.
+
+| 계약 영역 | 주요 구현 파일 | 검토 포인트 |
+| --- | --- | --- |
+| Event POST payload/queue/status | `src/analysis/event_post_dispatcher.cpp`, `include/analysis/event_post_dispatcher.h` | `media-server.va.event.v1`, bounded queue, failure/drop/suppression counter |
+| Event POST 호출 지점 | `src/ingress/webrtc_http_server.cpp`, `src/ingress/gstreamer_rtsp_server.cpp` | dispatch 실패가 RTSP/WebRTC media path로 전파되지 않는지 |
+| Runtime metadata frame | `include/analysis/va_runtime_metadata.h`, `src/analysis/va_runtime_metadata.cpp` | `media-server.va.runtime-metadata.v1` 내부 frame과 WebRTC projection 분리 |
+| Metadata filter | `include/analysis/metadata_subscription_filter.h`, `src/analysis/metadata_subscription_filter.cpp` | schema 변경 없이 `tracks[]`/`events[]` 범위만 축소 |
+| WebRTC DataChannel | `src/ingress/webrtc_egress_session.cpp`, `include/ingress/webrtc_egress_session.h` | `va-metadata` label, backpressure/drop/failure가 media failure로 번지지 않는지 |
+| SSE/WS side-channel | `src/ingress/webrtc_http_server.cpp` | SSE payload, WS text frame, `media-server.va.metadata-control.v1` ack |
+| Operator/client 표시 | `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/product_ui_css.cpp` | viewer에 source/debug/raw contract 정보가 노출되지 않는지 |
+| 검증 자동화 | `scripts/internal/verify_event_post_dispatch.sh`, `scripts/internal/verify_webrtc_va_metadata.mjs`, `scripts/internal/va_metadata_stream_smoke.py`, `scripts/internal/verify_ws_va_metadata.mjs` | schema, delivery, filter/include, cleanup smoke |
+
+구현 검토 중 위 파일에서 payload field를 바꾸는 변경이 필요해 보이면, 해당 변경은
+이 문서 단계에서 처리하지 않고 별도 schema review 이슈로 분리합니다.
+
 ## Event POST
 
 역할:
