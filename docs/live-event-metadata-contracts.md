@@ -224,11 +224,20 @@ WS /ws/va-metadata?file=sample_h264.mp4
 
 ## Verification Matrix
 
-| 변경 범위 | 최소 검증 |
-| --- | --- |
-| 문서만 변경 | `git diff --check -- README.md docs`, `./server.sh verify-docs-links` |
-| Event POST contract | `./server.sh verify-event-post --mode schema` |
-| WebRTC DataChannel | `./server.sh verify-webrtc-va-metadata` |
-| SSE side-channel | `./server.sh verify-va-metadata-sidechannel` |
-| WebSocket side-channel | `./server.sh verify-ws-metadata` |
-| Runtime dashboard/metadata fanout | `./server.sh verify-va-runtime-console`, `./server.sh verify-va-metadata-sidechannel`, `./server.sh verify-ws-metadata` |
+아래 matrix는 변경 범위별 최소 smoke입니다. 명령을 실행하지 않은 경우에는
+통과로 보고하지 않고 `미실행`으로 남깁니다.
+
+| 변경 범위 | 최소 검증 | 통과 기준 | 실패/skip 해석 |
+| --- | --- | --- | --- |
+| 문서만 변경 | `git diff --check -- README.md README.en.md docs`, `./server.sh verify-docs-links` | trailing whitespace 없음, local link 실패 없음 | 명령 없음/실행 불가는 중단 후 보고 |
+| v1.1.0 live-only 문구 | `./server.sh verify-v1.1-boundary-keywords` | failure 후보 없음 | review 후보는 사람이 문맥 확인 후 기록 |
+| Event POST contract | `./server.sh verify-event-post --mode schema` | `media-server.va.event.v1` payload와 `payloadFormat` 유지 | 기본 서버 disabled 실패는 보정 서버로 재확인 |
+| Event POST recovery | `./server.sh verify-event-post --mode recovery` | dispatcher recovery와 storage recovery 결과가 분리 보고됨 | EventStorage disabled skip은 skip으로 기록 |
+| WebRTC DataChannel | `./server.sh verify-webrtc-va-metadata` | video track, ICE connected, `va-metadata` open, metadata 수신 | DataChannel failure가 media failure로 번지면 실패 |
+| SSE side-channel | `./server.sh verify-va-metadata-sidechannel` | `media-server.va.runtime-metadata.v1`, filter/include, cleanup 확인 | listener 없음은 환경 실패로 기록하고 보정 포트 확인 |
+| WebSocket side-channel | `./server.sh verify-ws-metadata` | runtime metadata frame과 control ack 수신 | auth on 미인증 401/viewer 403 기대값 유지 |
+| Runtime dashboard/metadata fanout | `./server.sh verify-va-runtime-console`, `./server.sh verify-va-metadata-sidechannel`, `./server.sh verify-ws-metadata` | dashboard polling과 side-channel fanout이 같은 schema 기준 유지 | cleanup 잔여, stale/drop/fail 증가를 별도 warning으로 기록 |
+
+장시간 검증은 이 contract 정리 단계의 기본 조건이 아닙니다.
+`verify-predev --soak-minutes ...`, `verify-va-runtime-console-longrun ...`,
+`verify-event-post-longrun ...`은 사용자가 명시하거나 RC gate에서 요구할 때만 실행합니다.
