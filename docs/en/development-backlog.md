@@ -22,6 +22,7 @@ Detailed Korean backlog: [../development-backlog.md](../development-backlog.md)
 | v1.1.0 prerequisite roadmap 1/6 | Done | Live-only product boundary is closed and should not be rerun before RC |
 | v1.1.0 prerequisite roadmap 2/6 | Done | ONVIF live source onboarding import draft, API, UI, and redaction smoke are closed |
 | v1.1.0 prerequisite roadmap 3/6 | Done | Live source health API, operator workflow, and sanitized client state smoke are closed |
+| v1.1.0 prerequisite roadmap 4/6 | Done | Live VA event quality timeline/debug, TrackHealth grouping, and preset baseline smoke are closed |
 | v1.1.0 live operations | Next | ONVIF live onboarding, live source health, and live VA event quality |
 | v1.1.0-alpha.1 live-only boundary | Done | Roadmap, README, backlog, English docs, and recording/VMS/NVR guardrails are aligned |
 | Audit trail operations | In progress | Server persistence exists; search/export can improve |
@@ -39,6 +40,7 @@ Detailed Korean roadmap: [../v1.1.0-roadmap.md](../v1.1.0-roadmap.md)
 - Close-out rule: the live-only product boundary is complete as prerequisite step 1/6. RC work should not reopen VMS/NVR, playback/search, long-term recording, or Profile G scope.
 - ONVIF close-out rule: prerequisite step 2/6 is complete at the fixture/import-draft/UI smoke boundary. Real network discovery, SOAP probing, credential persistence, and origin metadata migration are field-integration extensions, not RC blockers.
 - Source health close-out rule: prerequisite step 3/6 is complete at the API/UI/sanitized-client smoke boundary. RC work should preserve that contract, not add new health states or expose raw diagnostics to clients.
+- Live VA quality close-out rule: prerequisite step 4/6 is complete at the timeline/debug, TrackHealth grouping, and preset baseline smoke boundary. Field-sample retuning is an operational extension, not an RC blocker.
 
 ## Near-Term Follow-Ups
 

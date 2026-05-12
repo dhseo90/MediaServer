@@ -1,7 +1,7 @@
 # Scenario Timeline Debug Fields
 
 이 문서는 v1.1.0 Live VA Event Quality 단계의 Scenario timeline/debug
-필드 확장 초안을 정의합니다. 목적은 운영자가 situation event의 오탐/미탐
+필드 확장 기준과 선수 로드맵 4/6 close-out 상태를 정의합니다. 목적은 운영자가 situation event의 오탐/미탐
 원인을 읽기 전용으로 추적하게 하는 것입니다.
 
 이 문서는 state-dump/runtime debug 기준입니다. 현재 단계에서 scenario 판단 로직,
@@ -48,6 +48,14 @@ Scenario timeline은 새 판단 owner가 아닙니다. 기존 owner가 만든 �
 | `/events` buffer | recent event marker와 eventId/status 연결 |
 
 ## 구현 상태
+
+상태:
+
+- `완료`: 2026-05-12 순차 close-out 기준으로 선수 로드맵 4/6을 닫았습니다.
+- RC 잔여 범위는 scenario timeline/debug, TrackHealth issue grouping, rule preset
+  smoke가 유지되는지 확인하는 것입니다.
+- 실제 현장 샘플 기반 표시 우선순위와 threshold 재튜닝은 RC blocker가 아니라
+  운영 데이터 기반 확장 후보입니다.
 
 1차 구현 완료:
 

@@ -33,6 +33,7 @@
 | `완료` | v1.1.0 선수 로드맵 1/6 | Live-only 제품 경계 확정. 이후 단계와 RC에서 다시 진행하지 않음 |
 | `완료` | v1.1.0 선수 로드맵 2/6 | ONVIF Live Source Onboarding 1차 import draft/API/UI/redaction smoke 완료 |
 | `완료` | v1.1.0 선수 로드맵 3/6 | Live Source Health / Operator Workflow API/UI/sanitized client smoke 완료 |
+| `완료` | v1.1.0 선수 로드맵 4/6 | Live VA Event Quality timeline/debug, TrackHealth grouping, preset baseline smoke 완료 |
 | `다음 작업` | v1.1.0 live operations | ONVIF camera import, live source health, live VA event 품질 고도화 |
 | `다음 작업` | 현장 운영 | scenario tuning, operator 화면 고도화 |
 | `후속 Phase` | 제품화 | bulk/source health, client dashboard polish, analysis tap reuse UI, account lifecycle 정책 |
@@ -711,7 +712,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ### P3-1. Scenario timeline/debug UI
 
-- **상태**: `1차 구현 완료` - state-dump `scenarioTimeline[]`와 Ops Dashboard 표시 추가, 단기 smoke 검증 대상
+- **상태**: `완료` - 선수 로드맵 4/6 기준 state-dump `scenarioTimeline[]`와 Ops Dashboard 표시, 단기 smoke 검증 완료
 - 목적:
   Runtime Dashboard의 Scenarios list와 vaRule Runtime Debug 1차 위에
   다음 상태를 timeline으로 표시합니다.
@@ -727,7 +728,9 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
   - `/ops/dashboard` Live VA Event Quality panel의 읽기 전용 표시와
     scenario/rule/track/phase filter
   - Event POST/WebRTC/SSE/WS metadata schema와 scenario 판단 로직 불변
-- 남은 작업: 실제 현장 샘플 기반 표시 우선순위 튜닝
+- 현장 확장 후보:
+  실제 현장 샘플 기반 표시 우선순위 튜닝은 RC 잔여 blocker가 아니라
+  운영 데이터가 쌓인 뒤 별도 phase에서 다룹니다.
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp`, `src/analysis/event_rule_engine.cpp`, `src/analysis/scenario_engine.cpp`, `src/analysis/event_manager.cpp`, `docs/ui-guide.md`
 - 설계 문서: [scenario-timeline-debug.md](./scenario-timeline-debug.md)
 - 검증 명령:
@@ -742,7 +745,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ### P3-2. `vaRule` runtime debug view
 
-- **상태**: `진행`
+- **상태**: `완료` - Runtime Dashboard 내부 vaRule Runtime Debug 1차 패널과 기존 metrics/state-dump/event buffer 재사용 기준 정리
 - 목적:
   Runtime Dashboard 내부 1차 패널은 다음 항목을 표시합니다.
   - 선택 rule
@@ -752,9 +755,8 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
   - region
   - event lifecycle
   - recent event
-  남은 작업은 rule별 상세 진입,
-  phase timestamp/cooldown remaining,
-  더 긴 scenario timeline입니다.
+  rule별 상세 진입과 더 긴 scenario timeline은 현재 RC blocker가 아니라
+  post-RC 운영 UX 확장 후보입니다.
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/analysis/event_rule_engine.cpp`, `docs/ui-guide.md`
 - 설계 문서: [scenario-timeline-debug.md](./scenario-timeline-debug.md)
 - 검증 명령:
@@ -769,7 +771,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ### P3-3. Tracking issue report UI
 
-- **상태**: `1차 구현 완료` - Ops Dashboard issue grouping/focus summary 추가, 장기 threshold 튜닝은 후속
+- **상태**: `완료` - Ops Dashboard issue grouping/focus summary 추가, 장기 threshold 튜닝은 현장 확장 후보
 - 목적:
   Runtime Dashboard table과 state dump에 다음 기록을 연결했습니다.
   - overlapRisk
@@ -778,8 +780,9 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
   - lost/reacquired
   issue type별 grouping과 retained/total/rate-limited summary를
   `/ops/dashboard` Live VA Event Quality panel에 표시합니다.
-- 남은 작업: 실제 현장 샘플에서 threshold와 표시 priority를 보정하고,
-  close-object overlap 구간 fixture를 확장합니다.
+- 현장 확장 후보:
+  실제 현장 샘플에서 threshold와 표시 priority를 보정하고,
+  close-object overlap 구간 fixture를 확장합니다. 현재 RC 잔여 blocker는 아닙니다.
 - 관련 파일: `src/analysis/track_state_manager.cpp`, `src/analysis/event_rule_engine.cpp`, `src/ingress/product_ui_page_scripts.cpp`, `docs/ui-guide.md`
 - 검증 명령:
 
@@ -820,7 +823,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
 
 ### P3-5. Runtime Dashboard 고도화
 
-- **상태**: `제한적 완료` - Live VA Event Quality panel 1차 추가, 장기 baseline 비교는 후속
+- **상태**: `완료` - 선수 로드맵 4/6 기준 Live VA Event Quality panel 1차 추가, 장기 baseline 비교는 현장 확장 후보
 - 목적:
   1차 drill-down은 구현했습니다.
   - Overview

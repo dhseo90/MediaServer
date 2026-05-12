@@ -4,6 +4,10 @@
 값은 운영 시작점입니다.
 실제 현장 CCTV에서는 privacy/retention 정책과 오탐 허용치를 먼저 확정한 뒤 조정합니다.
 
+2026-05-12 순차 close-out 기준으로 이 baseline은 선수 로드맵 4/6
+Live VA Event Quality 완료 범위에 포함됩니다. 실제 현장 영상 기반 재튜닝은
+RC 잔여 blocker가 아니라 운영 데이터 기반 확장 후보입니다.
+
 기본 추가 RTSP/WebRTC 느린 영상 검증은 이 문서의 필수 테스트에 포함하지 않습니다.
 다음 검증은 rule payload, replay/mock, UI smoke 중심으로 수행합니다.
 
