@@ -41,6 +41,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--work-dir", default=os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_WORK_DIR", ""))
     parser.add_argument("--summary-file", default=os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_SUMMARY", ""))
     parser.add_argument("--report-file", default=os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_REPORT", ""))
+    parser.add_argument("--auth-mode", default=os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_AUTH_MODE", "off"))
     parser.add_argument("--rss-warmup-minutes", type=float, default=float(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_RSS_WARMUP_MINUTES", str(DEFAULT_RSS_WARMUP_MINUTES))))
     parser.add_argument("--rss-large-drop-mb", type=float, default=float(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_RSS_LARGE_DROP_MB", str(DEFAULT_RSS_LARGE_DROP_MB))))
     parser.add_argument("--idle-after-cleanup-minutes", type=float, default=float(os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_IDLE_AFTER_CLEANUP_MINUTES", "0")))
@@ -1063,6 +1064,8 @@ def main() -> int:
                 "MEDIA_SERVER_HTTP_LISTEN_ADDRESS": "127.0.0.1",
                 "MEDIA_SERVER_LISTEN_PORT": str(args.rtsp_port),
                 "MEDIA_SERVER_HTTP_LISTEN_PORT": str(args.http_port),
+                "MEDIA_SERVER_SKIP_LOCAL_ENV": os.environ.get("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_SKIP_LOCAL_ENV", "1"),
+                "MEDIA_SERVER_AUTH_MODE": args.auth_mode,
                 "MEDIA_SERVER_FORCE_RTSP_TCP": "1",
                 "MEDIA_SERVER_WEBRTC_TRACE": "1",
             }
