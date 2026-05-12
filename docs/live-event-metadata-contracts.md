@@ -31,6 +31,24 @@ runtime metadata 소비를 기준으로 합니다.
 - OpenAPI 기반 VMS archive/playback API
 - WebRTC/SSE/WS/Event POST payload field 변경을 동반한 기능 확장
 
+### Canonical Contract Identifiers
+
+아래 식별자는 v1.1.0 live event delivery contract의 기준선입니다.
+이 단계는 contract를 문서화하고 검증 기준을 고정하는 작업이며, schema field를
+추가하거나 machine-readable enum을 바꾸는 작업이 아닙니다.
+
+| 경로 | 기준 schema/label | 소비자 | 변경 정책 |
+| --- | --- | --- | --- |
+| Event POST | `media-server.va.event.v1` | 외부 HTTP endpoint | field/type 호환 유지 |
+| WebRTC DataChannel | `media-server.webrtc.va-metadata.v1`, label `va-metadata` | WebRTC browser viewer | dashboard 내부 필드 추가 금지 |
+| SSE runtime metadata | `media-server.va.runtime-metadata.v1` | custom RTSP client, custom dashboard | query filter/include로 범위만 축소 |
+| WebSocket runtime metadata | `media-server.va.runtime-metadata.v1` | custom client | SSE와 같은 payload 유지 |
+| WebSocket control ack | `media-server.va.metadata-control.v1` | custom client | subscription 상태 확인 전용 |
+
+Contract 기준선에서 허용되는 변경은 문서, 검증 명령, 운영 지표 해석을 명확히
+하는 범위입니다. payload field 추가/삭제, event type 이름 변경, source locator
+노출, credential reference 노출은 별도 schema review 없이는 진행하지 않습니다.
+
 ## Event POST
 
 역할:
