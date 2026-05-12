@@ -32,6 +32,7 @@
 | `완료` | 운영 안정화 | backup/restore dry-run, evidence cleanup job, audit search/export, RC artifact archive, root-cause action, table helper |
 | `완료` | v1.1.0 선수 로드맵 1/6 | Live-only 제품 경계 확정. 이후 단계와 RC에서 다시 진행하지 않음 |
 | `완료` | v1.1.0 선수 로드맵 2/6 | ONVIF Live Source Onboarding 1차 import draft/API/UI/redaction smoke 완료 |
+| `완료` | v1.1.0 선수 로드맵 3/6 | Live Source Health / Operator Workflow API/UI/sanitized client smoke 완료 |
 | `다음 작업` | v1.1.0 live operations | ONVIF camera import, live source health, live VA event 품질 고도화 |
 | `다음 작업` | 현장 운영 | scenario tuning, operator 화면 고도화 |
 | `후속 Phase` | 제품화 | bulk/source health, client dashboard polish, analysis tap reuse UI, account lifecycle 정책 |
@@ -247,7 +248,11 @@ Ops UI 구현, state-dump extension, smoke matrix 구현을 포함하지 않습�
 
 ### O2b. Live Source Health / Operator Workflow
 
-- **상태**: `1차 구현 완료` - source health API + Ops/Client 표시 + smoke closure
+- **상태**: `완료` - 선수 로드맵 3/6 기준 source health API + Ops/Client 표시 + smoke closure
+- RC 기준:
+  Live Source Health / Operator Workflow는 RC 잔여 blocker 없이 닫았습니다.
+  RC에서는 source health API/UI/client sanitized state smoke가 유지되는지 확인하고,
+  새 health 상태 모델이나 media path 변경은 포함하지 않습니다.
 - 목적:
   운영자가 live source의 `live`, `connecting`, `stale`, `offline` 상태를
   `/ops/sources`와 `/ops/dashboard`에서 같은 의미로 확인하고,

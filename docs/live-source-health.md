@@ -1,6 +1,7 @@
 # Live Source Health
 
-이 문서는 v1.1.0-beta.1의 live source health 1차 구현 기준을 정의합니다.
+이 문서는 v1.1.0-beta.1의 live source health 1차 구현 기준과
+선수 로드맵 3/6 close-out 상태를 정의합니다.
 목표는 `/ops/sources`, `/ops/dashboard`, client dashboard가 같은 상태 의미를
 공유하되 노출 범위를 다르게 유지하는 것입니다.
 
@@ -33,6 +34,13 @@
 - RTSP/WebRTC media path 변경
 
 ## 1차 구현 상태
+
+상태:
+
+- `완료`: 2026-05-12 순차 close-out 기준으로 선수 로드맵 3/6을 닫았습니다.
+- RC 잔여 범위는 source health API/UI/client sanitized state smoke 유지 여부입니다.
+- 새 top-level health 상태 모델, client raw diagnostic 노출, RTSP/WebRTC media
+  path 변경은 RC 범위가 아닙니다.
 
 구현 완료:
 
