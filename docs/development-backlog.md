@@ -1057,9 +1057,10 @@ MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verif
   stale PTS/PTS regression 성분은 live observed risk로 분리해 해석합니다.
   `--repeat 3` 같은 반복 실행에서는 `Repeat Metric Stats`가 mean/stdev/variance를
   남겨 live polling 변동성을 한 번의 max 값과 분리합니다.
-- 남은 작업:
-  close-object fixture와 실제 현장 샘플을 추가합니다.
-  threshold, center jump penalty, continuity boost 기준을 비교하고
+- 상태 업데이트:
+  `field-new-york-driving` fixture(차량 다발 현장 샘플)가 matrix에 반영되어
+  실제 주행형 데이터에서 close-object 관련 관측값을 함께 추적하도록 추가되었습니다.
+  이후 단계에서 threshold, center jump penalty, continuity boost 기준을 반복 실행으로 비교해
   event/scenario 결과 무변화를 재확인합니다.
   Kalman/Re-ID/ByteTrack 계열은 별도 실험 항목으로 분리합니다.
 - 범위 제외: Kalman Filter, ByteTrack, BoT-SORT, Re-ID 모델 같은 대형 tracker 교체는 이 항목의 범위가 아닙니다.

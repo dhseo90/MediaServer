@@ -556,6 +556,9 @@ mode별 tracker summary JSON과 Markdown report는
 
 matrix 실행은 fixture별 `summary.json`/`report.md`와 상위
 `matrix-summary.json`/`matrix-report.md`를 함께 남깁니다.
+`--use-existing-server`를 쓰는 경우 `/lab/analysis/taps`가 JSON으로 응답하려면
+기존 서버의 `MEDIA_SERVER_AUTH_MODE`가 `off`이거나 해당 `/lab` API를
+호출 가능한 인증 상태여야 합니다.
 회차별 품질 추세를 남겨야 하면 `--history-dir <dir>`를 함께 지정합니다.
 이 경우 run별 `matrix-summary.json`/`matrix-report.md` 사본과 root
 `index.json`/`index.md`가 갱신됩니다.
@@ -563,7 +566,9 @@ matrix 실행은 fixture별 `summary.json`/`report.md`와 상위
 내장 matrix fixture는 close-object sample과 control sample의 live polling
 특성이 달라 fixture별 `qualityPreset`을 사용합니다. close-object sample은
 `close-object-live`, control sample은 `control-live` 기준으로 observed risk
-허용치를 분리해 판정합니다. 필요하면 단일 비교에서
+허용치를 분리해 판정합니다. 여기에는 실제 주행 데이터 특성을 반영한
+`field-new-york-driving`(vehicle-heavy control-like)도 포함됩니다.
+필요하면 단일 비교에서
 `--quality-preset strict|close-object-live|control-live`로 같은 기준을
 명시할 수 있습니다.
 파일이 없는 fixture는 기본적으로 skipped이며, release gate처럼 누락을 실패로

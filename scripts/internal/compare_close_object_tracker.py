@@ -10,6 +10,7 @@ import datetime as dt
 import json
 import os
 import pathlib
+import errno
 import re
 import shutil
 import socket
@@ -52,6 +53,13 @@ FIXTURE_MATRIX = [
         "file": "va_four_scene_sample.mp4",
         "description": "general VA control sample for non-close-object drift",
         "classWhitelist": "person",
+        "qualityPreset": "control-live",
+    },
+    {
+        "id": "field-new-york-driving",
+        "file": "imports/NewYorkDriving.mp4",
+        "description": "field-like driving sample for vehicle-heavy close-object drift",
+        "classWhitelist": "car,truck,bus,motorcycle",
         "qualityPreset": "control-live",
     },
 ]
@@ -277,15 +285,27 @@ def tracker_args(args: argparse.Namespace) -> list[str]:
 
 
 def find_available_port(start_port: int) -> int:
+    permission_denied_detected = False
+    last_error = ""
     for port in range(max(1, start_port), max(1, start_port) + 200):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             try:
                 sock.bind(("127.0.0.1", port))
-            except OSError:
+            except OSError as error:
+                last_error = str(error)
+                if error.errno in {errno.EACCES, errno.EPERM}:
+                    permission_denied_detected = True
                 continue
             return port
-    raise RuntimeError(f"available localhost port not found from {start_port}")
+    if permission_denied_detected:
+        raise RuntimeError(
+            f"local TCP bind is blocked (socket error: {last_error}); "
+            f"available localhost port not found from {start_port}. "
+            "If this environment forbids local bind (e.g. sandbox), run with --use-existing-server "
+            "and provide --http-base for a running server."
+        )
+    raise RuntimeError(f"available localhost port not found from {start_port} (all candidates in use)")
 
 
 def wait_for_health(http_base: str, timeout_s: float) -> None:

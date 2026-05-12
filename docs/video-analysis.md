@@ -532,8 +532,13 @@ Close-object guard의 기본값은 `off`입니다.
 `--fixture-matrix`를 쓰면 내장 close-object/control sample 목록을 순차 비교합니다.
 정기/CI용 전체 matrix는 `verify-close-object-fixture-matrix`로 실행합니다.
 목적은 threshold tuning과 default-on 검토 근거를 모으는 것입니다.
+`field-new-york-driving`은 실차량 주행 구간을 모사한 vehicle-heavy 샘플로,
+synthetic control 샘플 외부에서 실제 환경 흔들림 성격을 확인하기 위한 항목입니다.
 기본 실행은 mode별 격리 서버를 사용해 guard mode가 실제 서버에 적용됐는지
 확인합니다.
+동일 테스트를 `--use-existing-server`로 돌릴 경우 `MEDIA_SERVER_AUTH_MODE`가
+`off`이거나 `/lab` API를 호출 가능한 인증 상태여야 하며, 인증이 걸려 있으면
+`/lab/analysis/taps` 응답이 비정상(리다이렉트/빈 본문)으로 와 파싱이 실패할 수 있습니다.
 event/scenario stable 상태가 달라지면 default on 전환 근거로 사용할 수 없습니다.
 live polling 과정의 emit/dedupe/cleanup counter 차이는 observed delta로 남기되
 단독 default-on 차단 사유로 보지 않습니다.
