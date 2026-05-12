@@ -19,6 +19,7 @@ Detailed Korean backlog: [../development-backlog.md](../development-backlog.md)
 | Public repo readiness | Ready | Actions, branch rules, English docs, and asset policy are prepared; owner-only visibility change is excluded |
 | Runtime distribution policy | Done | Source-first policy and bundle guardrails are in place |
 | Ops UI stability | Done | Channels/Rules/Users responsive table checks exist |
+| v1.1.0 prerequisite roadmap 1/6 | Done | Live-only product boundary is closed and should not be rerun before RC |
 | v1.1.0 live operations | Next | ONVIF live onboarding, live source health, and live VA event quality |
 | v1.1.0-alpha.1 live-only boundary | Done | Roadmap, README, backlog, English docs, and recording/VMS/NVR guardrails are aligned |
 | Audit trail operations | In progress | Server persistence exists; search/export can improve |
@@ -33,6 +34,7 @@ Detailed Korean roadmap: [../v1.1.0-roadmap.md](../v1.1.0-roadmap.md)
 - Focus: ONVIF-assisted live source onboarding, live source health, live VA events, and runtime metadata contracts.
 - Excluded: long-term recording, MP4 recorder, VMS/NVR archive, playback timeline, video search, and ONVIF Profile G recording/replay.
 - Supporting only: EventRecord, snapshot, clip frame bundles, and evidence cleanup are short event evidence or diagnostics helpers.
+- Close-out rule: the live-only product boundary is complete as prerequisite step 1/6. RC work should not reopen VMS/NVR, playback/search, long-term recording, or Profile G scope.
 
 ## Near-Term Follow-Ups
 

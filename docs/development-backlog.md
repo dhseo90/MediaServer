@@ -30,6 +30,7 @@
 | `완료` | Auth/account | setup/login/session, role/scope, password policy/lockout, admin user console/CLI, invite/request, route guard |
 | `완료` | Ops/Client UI | SourceRegistry/PublishedView, `/ops` shell, `/client` shell, client dashboard/live monitor, Lab 화면 route 404 |
 | `완료` | 운영 안정화 | backup/restore dry-run, evidence cleanup job, audit search/export, RC artifact archive, root-cause action, table helper |
+| `완료` | v1.1.0 선수 로드맵 1/6 | Live-only 제품 경계 확정. 이후 단계와 RC에서 다시 진행하지 않음 |
 | `다음 작업` | v1.1.0 live operations | ONVIF camera import, live source health, live VA event 품질 고도화 |
 | `다음 작업` | 현장 운영 | scenario tuning, operator 화면 고도화 |
 | `후속 Phase` | 제품화 | bulk/source health, client dashboard polish, analysis tap reuse UI, account lifecycle 정책 |
@@ -50,6 +51,11 @@ live VA event 품질을 다루고, 장기 녹화/VMS/NVR/playback/Profile G는 �
 
 - **상태**: `완료` - roadmap 우선 기준, README/backlog, 영어 문서,
   recording/VMS/NVR 가드레일 정리 완료
+- 재진행 정책:
+  2026-05-12 순차 close-out 기준으로 이 단계는 선수 로드맵 1/6 완료 상태입니다.
+  후속 단계나 RC 안정화에서 live-only 경계 자체를 다시 열지 않고,
+  새 요구가 장기 녹화/VMS/NVR/playback/Profile G를 필요로 하면 별도 제품 phase로
+  분리합니다.
 - 목적:
   v1.1.0의 첫 단계를 구현 기능 추가가 아니라 제품 경계 확정으로 닫습니다.
   이후 ONVIF import나 source health 작업이 장기 녹화/VMS/NVR 방향으로
