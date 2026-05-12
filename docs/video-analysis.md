@@ -976,6 +976,8 @@ WebRTC metadata interval 튜닝 기준:
 ## 13. WebRTC VA Metadata DataChannel
 
 WebRTC VA metadata DataChannel은 기본 off입니다. `vaMetadata=1` query 또는 관련 env로 명시적으로 켭니다.
+custom browser client용 schema/example는
+[webrtc-metadata-client.md](./webrtc-metadata-client.md)에 분리했습니다.
 
 메시지 schema:
 

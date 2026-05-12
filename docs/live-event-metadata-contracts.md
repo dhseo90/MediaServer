@@ -117,6 +117,8 @@ schema/recovery를 재확인합니다. 비활성 상태 자체를 제품 회귀�
 
 - WebRTC browser viewer가 video/audio stream과 별도로 VA metadata를 받습니다.
 - Lab viewer의 client-side canvas overlay가 이 metadata를 사용할 수 있습니다.
+- custom browser client schema와 최소 예제는
+  [WebRTC VA Metadata Client](./webrtc-metadata-client.md)에 분리해 둡니다.
 
 계약:
 

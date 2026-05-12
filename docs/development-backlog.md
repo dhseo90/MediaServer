@@ -1203,16 +1203,23 @@ MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER='turn://user:pass@example.local:
 
 ### P7-2. WebRTC metadata client schema/example
 
-- **상태**: `진행`
+- **상태**: `완료`
 - 목적:
   DataChannel VA metadata JSON schema와 browser client 예제를 분리 문서화합니다.
-  Lab viewer와 검증 스크립트는 구현됐고,
-  독립 예제 문서/샘플은 후속입니다.
-- 관련 파일: `src/ingress/webrtc_egress_session.cpp`, `scripts/internal/verify_webrtc_va_metadata.mjs`, `docs/media-server-architecture.md`, `docs/video-analysis.md`
+  Lab viewer와 검증 스크립트에 더해 독립 schema 문서와 browser example을 제공합니다.
+- 관련 파일:
+  `src/ingress/webrtc_egress_session.cpp`,
+  `scripts/internal/verify_webrtc_va_metadata.mjs`,
+  `docs/webrtc-metadata-client.md`,
+  `scripts/examples/webrtc_va_metadata_client.html`,
+  `docs/media-server-architecture.md`,
+  `docs/video-analysis.md`
 - 검증 명령:
 
 ```bash
 ./server.sh verify-webrtc-va-metadata
+rg -n "media-server.webrtc.va-metadata.v1|vaMetadata|RTCPeerConnection|va-metadata" \
+  docs/webrtc-metadata-client.md scripts/examples/webrtc_va_metadata_client.html
 ```
 
 - 우선순위 이유: 영상과 별도 metadata를 UI에서 쓰려면 message contract가 명확해야 합니다.
