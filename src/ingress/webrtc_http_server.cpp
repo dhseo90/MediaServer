@@ -2354,6 +2354,9 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
             <h3>Live VA Event Quality</h3>
             <p>Scenario timeline, TrackHealth issue, rule runtime 상태를 읽기 전용으로 봅니다.</p>
           </div>
+          <div class="actions">
+            <input id="dashVaQualityFilterInput" type="search" placeholder="scenario, rule, track, phase, issue" aria-label="Live VA Event Quality 필터" />
+          </div>
         </div>
         <div id="dashVaQualityBadges" class="badge-row"><span class="chip">분석 탭 대기</span></div>
         <p id="dashVaQualityText">활성 analysis tap이 있으면 timeline과 tracking issue를 표시합니다.</p>

@@ -81,7 +81,7 @@ const pageChecks = [
     name: "ops-dashboard",
     path: "/ops/dashboard",
     visualSelector: '[data-testid="ops-dashboard-page"]',
-    must: ['data-testid="ops-dashboard-page"', 'data-testid="ops-root-cause-panel"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', 'id="dashRootCauseList"', '/ops/api/runtime/status', '/ops/api/source-health', 'Live Source Health'],
+    must: ['data-testid="ops-dashboard-page"', 'data-testid="ops-root-cause-panel"', 'data-testid="ops-va-quality-panel"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', 'id="dashRootCauseList"', 'id="dashVaQualityFilterInput"', 'id="dashScenarioTimeline"', 'id="dashTrackingIssueGroups"', '/ops/api/runtime/status', '/ops/api/source-health', 'Live Source Health', 'Live VA Event Quality'],
     mustNot: ['<iframe', 'opsDashboardFrame', '/lab/rules?embed=1', '/lab/runtime/status'],
   },
   {

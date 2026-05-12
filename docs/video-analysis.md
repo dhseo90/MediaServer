@@ -833,7 +833,7 @@ Ops audit에 `retention-cleanup` action을 남기며, HTTP audit이 어려운 �
 - 구현 완료: state-dump/runtime debug 계층의 `scenarioTimeline[]`
   phase entered/elapsed, cooldown remaining, event emitted/dedupe count 1차 표시
 - 구현 완료: `/ops/dashboard` Live VA Event Quality 패널의 Scenario Timeline과
-  TrackHealth issue grouping/focus summary
+  TrackHealth issue grouping/focus summary/filter
 - 예정: WS 기반 custom overlay renderer 확장
 
 내부 schema:
@@ -1353,6 +1353,7 @@ Scenario Timeline은 읽기 전용 debug UI입니다.
 | 보조 입력 | `/events` buffer |
 | 표시 | active scenario instance의 시간 흐름 |
 | phase chip | Candidate, Observing, Confirmed, Cooldown, Ended |
+| filter | scenario/rule/track/phase/issue 키워드 |
 | event 표시 | emitted/dedup, recent eventId/eventType/status |
 | 변경 없음 | scenario 판단 로직, event JSON/API/POST 형식 |
 

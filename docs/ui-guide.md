@@ -321,6 +321,8 @@ Ops/Client/Lab API guard를 확인합니다.
   phase elapsed, cooldown remaining, emitted/dedupe count
 - TrackHealth issue grouping: issue type별 retained/total 요약,
   rate-limited count, 대표 track context
+- Filter: scenario/rule/track/phase/issue 키워드로 timeline과
+  TrackHealth grouping을 같은 입력에서 좁혀 봅니다.
 - Empty/error state: active analysis tap이 없거나 state-dump/metrics를
   읽지 못할 때 운영자가 원인을 구분할 수 있는 짧은 상태
 

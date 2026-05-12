@@ -1712,12 +1712,67 @@ void AppendOpsShellScript(std::ostringstream& out,
         return taps.find(tap => String(tap?.selectedRuleId || '').trim()) || taps[0] || null;
       };
       const timelineTime = value => value === null || value === undefined ? '미제공' : ms(value);
+      let dashboardVaQualityLastTimeline = [];
+      let dashboardVaQualityLastIssueReport = {};
+      let dashboardVaQualityFilterBound = false;
+      const dashboardVaQualityFilterTerm = () =>
+        String(document.getElementById('dashVaQualityFilterInput')?.value || '').trim().toLowerCase();
+      const dashboardVaQualityMatches = (parts, term) => !term || parts
+        .filter(part => part !== null && part !== undefined && part !== '')
+        .map(part => String(part).toLowerCase())
+        .some(part => part.includes(term));
+      const scenarioPhaseRank = phase => {
+        const value = String(phase || '').toLowerCase();
+        if (value === 'confirmed') return 0;
+        if (['observing', 'candidate', 'line-crossed', 'zone-entered'].includes(value)) return 1;
+        if (value === 'cooldown') return 2;
+        if (value === 'idle') return 3;
+        if (value === 'ended') return 4;
+        return 5;
+      };
+      const scenarioTimelineSearchParts = item => [
+        item?.scenarioName,
+        item?.scenarioKey,
+        item?.currentPhase,
+        item?.scenarioPhase,
+        item?.ruleId,
+        item?.ruleId ? `rule ${item.ruleId}` : '',
+        item?.trackId,
+        item?.trackId ? `track ${item.trackId}` : '',
+        item?.zoneId,
+        item?.zoneId ? `zone ${item.zoneId}` : '',
+        item?.lineId,
+        item?.lineId ? `line ${item.lineId}` : '',
+        scenarioPhaseLabel(item?.currentPhase || item?.scenarioPhase)
+      ];
+      const scenarioTimelineSortValue = item =>
+        numberValue(item?.phaseEnteredAtMs ?? item?.trackLastSeenAtMs ?? item?.trackFirstSeenAtMs);
+      const bindDashboardVaQualityFilter = () => {
+        if (dashboardVaQualityFilterBound) return;
+        const input = document.getElementById('dashVaQualityFilterInput');
+        if (!input) return;
+        dashboardVaQualityFilterBound = true;
+        input.addEventListener('input', () => {
+          renderDashboardScenarioTimeline(dashboardVaQualityLastTimeline);
+          renderDashboardTrackingIssues(dashboardVaQualityLastIssueReport);
+        });
+      };
       const renderDashboardScenarioTimeline = items => {
         const root = document.getElementById('dashScenarioTimeline');
         if (!root) return;
-        const rows = Array.isArray(items) ? items : [];
+        const term = dashboardVaQualityFilterTerm();
+        const rows = (Array.isArray(items) ? items : [])
+          .filter(item => dashboardVaQualityMatches(scenarioTimelineSearchParts(item), term))
+          .sort((a, b) => {
+            const rank = scenarioPhaseRank(a?.currentPhase || a?.scenarioPhase) -
+              scenarioPhaseRank(b?.currentPhase || b?.scenarioPhase);
+            if (rank !== 0) return rank;
+            return scenarioTimelineSortValue(b) - scenarioTimelineSortValue(a);
+          });
         if (rows.length === 0) {
-          root.innerHTML = '<div class="empty">활성 scenario instance가 없습니다.</div>';
+          root.innerHTML = term
+            ? '<div class="empty">필터와 일치하는 scenario timeline이 없습니다.</div>'
+            : '<div class="empty">활성 scenario instance가 없습니다.</div>';
           return;
         }
         root.innerHTML = rows.slice(0, 8).map(item => {
@@ -1749,26 +1804,49 @@ void AppendOpsShellScript(std::ostringstream& out,
         for (const issue of issues) {
           const type = String(issue?.type || 'unknown');
           if (!groups.has(type)) {
-            groups.set(type, { type, count: 0, tracks: new Set(), severity: String(issue?.severity || 'info') });
+            groups.set(type, { type, count: 0, tracks: new Set(), severity: String(issue?.severity || 'info'), samples: [] });
           }
           const group = groups.get(type);
           group.count += 1;
           if (issue?.trackId) group.tracks.add(String(issue.trackId));
+          group.samples.push(issue);
           if (String(issue?.severity || '') === 'warning') group.severity = 'warning';
         }
-        return Array.from(groups.values()).sort((a, b) => b.count - a.count);
+        return Array.from(groups.values()).sort((a, b) => {
+          const severityRank = (b.severity === 'warning' ? 1 : 0) - (a.severity === 'warning' ? 1 : 0);
+          if (severityRank !== 0) return severityRank;
+          return b.count - a.count;
+        });
       };
+      const trackingIssueSearchParts = group => [
+        group?.type,
+        group?.severity,
+        ...Array.from(group?.tracks || []),
+        ...Array.from(group?.tracks || []).map(track => `track ${track}`),
+        ...(Array.isArray(group?.samples) ? group.samples.flatMap(issue => [
+          issue?.trackId,
+          issue?.trackId ? `track ${issue.trackId}` : '',
+          issue?.className,
+          issue?.reason,
+          issue?.state,
+          issue?.detail
+        ]) : [])
+      ];
       const renderDashboardTrackingIssues = report => {
         const root = document.getElementById('dashTrackingIssueGroups');
         if (!root) return;
-        const groups = groupTrackingIssues(report);
+        const term = dashboardVaQualityFilterTerm();
+        const groups = groupTrackingIssues(report)
+          .filter(group => dashboardVaQualityMatches(trackingIssueSearchParts(group), term));
         const totals = {
           retained: numberValue(report?.retainedIssues),
           total: numberValue(report?.totalIssues),
           rateLimited: numberValue(report?.rateLimitedCount)
         };
         if (groups.length === 0) {
-          root.innerHTML = `<div class="empty">tracking issue 없음 · retained ${totals.retained}/${totals.total} · rate-limit ${totals.rateLimited}</div>`;
+          root.innerHTML = term
+            ? `<div class="empty">필터와 일치하는 tracking issue가 없습니다. · retained ${totals.retained}/${totals.total} · rate-limit ${totals.rateLimited}</div>`
+            : `<div class="empty">tracking issue 없음 · retained ${totals.retained}/${totals.total} · rate-limit ${totals.rateLimited}</div>`;
           return;
         }
         root.innerHTML = groups.slice(0, 8).map(group => `<article class="root-cause-item ${group.severity === 'warning' ? 'warn' : 'info'}">
@@ -1781,18 +1859,21 @@ void AppendOpsShellScript(std::ostringstream& out,
         </article>`).join('');
       };
       const renderDashboardVaQualityEmpty = message => {
+        bindDashboardVaQualityFilter();
+        dashboardVaQualityLastTimeline = [];
+        dashboardVaQualityLastIssueReport = {};
         renderBadges('dashVaQualityBadges', [{ text: 'analysis tap 대기', tone: 'info' }]);
         setText('dashVaQualityText', message);
-        const timeline = document.getElementById('dashScenarioTimeline');
-        const issues = document.getElementById('dashTrackingIssueGroups');
-        if (timeline) timeline.innerHTML = '<div class="empty">활성 scenario instance가 없습니다.</div>';
-        if (issues) issues.innerHTML = '<div class="empty">tracking issue report가 없습니다.</div>';
+        renderDashboardScenarioTimeline([]);
+        renderDashboardTrackingIssues({});
       };
       const renderDashboardVaQualityError = error => {
+        bindDashboardVaQualityFilter();
         renderBadges('dashVaQualityBadges', [{ text: 'debug 조회 실패', tone: 'warn' }]);
         setText('dashVaQualityText', error?.message || 'VA runtime debug를 불러오지 못했습니다.');
       };
       async function refreshDashboardVaQuality(runtime) {
+        bindDashboardVaQualityFilter();
         const tap = dashboardPrimaryTap(runtime);
         if (!tap?.tapId) {
           renderDashboardVaQualityEmpty('활성 analysis tap이 있으면 timeline과 tracking issue를 표시합니다.');
@@ -1805,6 +1886,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         const debugState = stateDump?.analyticsState?.debugState || {};
         const timeline = Array.isArray(debugState?.scenarioTimeline) ? debugState.scenarioTimeline : [];
         const issueReport = metricsDump?.trackingIssueReport || {};
+        dashboardVaQualityLastTimeline = timeline;
+        dashboardVaQualityLastIssueReport = issueReport;
         renderBadges('dashVaQualityBadges', [
           { text: `tap ${tap.tapId}` },
           { text: tap.selectedRuleId ? `rule ${tap.selectedRuleId}` : 'rule 미선택', tone: tap.selectedRuleId ? '' : 'info' },

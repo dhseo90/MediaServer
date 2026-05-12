@@ -703,9 +703,10 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
   - `/lab/analysis/taps/{tapId}/state-dump`의
     `analyticsState.debugState.scenarioTimeline[]`
   - phase elapsed/cooldown remaining/event emit/dedupe count
-  - `/ops/dashboard` Live VA Event Quality panel의 읽기 전용 표시
+  - `/ops/dashboard` Live VA Event Quality panel의 읽기 전용 표시와
+    scenario/rule/track/phase filter
   - Event POST/WebRTC/SSE/WS metadata schema와 scenario 판단 로직 불변
-- 남은 작업: scenarioName/ruleId/trackId/phase별 table filter와 현장 샘플 기반 표시 우선순위 튜닝
+- 남은 작업: 실제 현장 샘플 기반 표시 우선순위 튜닝
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp`, `src/analysis/event_rule_engine.cpp`, `src/analysis/scenario_engine.cpp`, `src/analysis/event_manager.cpp`, `docs/ui-guide.md`
 - 설계 문서: [scenario-timeline-debug.md](./scenario-timeline-debug.md)
 - 검증 명령:
@@ -756,7 +757,7 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
   - lost/reacquired
   issue type별 grouping과 retained/total/rate-limited summary를
   `/ops/dashboard` Live VA Event Quality panel에 표시합니다.
-- 남은 작업: 실제 현장 샘플에서 threshold와 filter priority를 보정하고,
+- 남은 작업: 실제 현장 샘플에서 threshold와 표시 priority를 보정하고,
   close-object overlap 구간 fixture를 확장합니다.
 - 관련 파일: `src/analysis/track_state_manager.cpp`, `src/analysis/event_rule_engine.cpp`, `src/ingress/product_ui_page_scripts.cpp`, `docs/ui-guide.md`
 - 검증 명령:
@@ -811,14 +812,14 @@ git diff --check -- docs/video-analysis.md docs/config-reference.md docs/stream-
   - client-side bounded Trend / Stale / Cleanup warning
   - Live VA Event Quality panel
   남은 작업은 trend sparkline, 장기 baseline 비교,
-  scenario timeline filter/우선순위 polish입니다.
+  현장 샘플 기준 표시 우선순위 polish입니다.
 - 구현 완료 범위:
   - 최근 60개 dashboard sample ring buffer
   - runtime/metadata/event counter delta/min/max
   - DataChannel bufferedAmount high badge
   - metadata/video/overlay/tap metrics stale badge
   - 보기 중지/dashboard 비활성 후 cleanup residual badge
-  - active analysis tap 기준 Scenario Timeline / TrackHealth grouping 표시
+  - active analysis tap 기준 Scenario Timeline / TrackHealth grouping/filter 표시
 - 관련 파일: `src/ingress/webrtc_http_server.cpp`, `scripts/internal/verify_va_runtime_console_longrun.py`, `docs/ui-guide.md`
 - 검증 명령:
 

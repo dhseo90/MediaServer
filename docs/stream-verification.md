@@ -109,7 +109,8 @@ Live VA event quality 변경에서는 state-dump/runtime debug와 Ops 표시를
   `analyticsState.debugState.scenarioTimeline[]`가 phase elapsed,
   cooldown, event emit/dedupe marker를 읽기 전용으로 제공하는지 확인합니다.
 - `/ops/dashboard` Live VA Event Quality panel이 Scenario Timeline과
-  TrackHealth issue grouping을 표시하는지 확인합니다.
+  TrackHealth issue grouping을 표시하고, scenario/rule/track/phase/issue
+  filter 입력으로 같은 데이터를 좁혀 볼 수 있는지 확인합니다.
 - Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema,
   RTSP/WebRTC media path는 변경하지 않습니다.
 
@@ -191,7 +192,7 @@ fi
   Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin),
   클라이언트 미리보기 순서입니다.
 - `/ops/dashboard`의 Live VA Event Quality panel은 active analysis tap이
-  있을 때 Scenario Timeline과 TrackHealth issue grouping을 표시하고,
+  있을 때 Scenario Timeline과 TrackHealth issue grouping/filter를 표시하고,
   없을 때는 empty 상태를 보여줍니다. 이 패널은 `/lab/analysis/*`
   state-dump/metrics를 operator debug summary로 읽을 뿐 event schema나
   media path를 바꾸지 않습니다.
