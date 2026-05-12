@@ -1347,6 +1347,10 @@ ffprobe -rtsp_transport tcp \
 
 ## Event POST 검증
 
+Live event delivery contract의 기준 schema와 변경 금지 기준은
+[live-event-metadata-contracts.md](./live-event-metadata-contracts.md)를 먼저 봅니다.
+이 절은 실제 실행 명령, 보정 서버, 실패 해석 기준을 다룹니다.
+
 Event POST schema:
 
 ```bash

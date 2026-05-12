@@ -10,6 +10,24 @@ schema를 변경하지 않고, 각 소비 경로의 역할과 검증 기준을 �
 - [Video Analysis / VA Guide](./video-analysis.md)
 - [Stream Verification](./stream-verification.md)
 
+## Document Ownership
+
+이 문서는 Event POST, WebRTC DataChannel, SSE, WebSocket의 live delivery
+contract 기준 문서입니다. 다른 문서에 같은 schema 예시가 있어도 contract 변경
+판단은 이 문서의 boundary와 verification matrix를 먼저 봅니다.
+
+| 문서 | 역할 |
+| --- | --- |
+| `docs/live-event-metadata-contracts.md` | live event delivery contract, schema 식별자, 변경 금지 기준 |
+| `docs/video-analysis.md` | VA pipeline, event/scenario 상세, runtime metadata payload 예시 |
+| `docs/stream-verification.md` | 실제 smoke 명령, 보정 서버, 실패/skip 해석 기준 |
+| `docs/media-server-architecture.md` | pipeline 배치와 component boundary |
+| `docs/config-reference.md` | env/query/config default와 운영 튜닝 값 |
+
+문서가 충돌하면 live-only 제품 경계는 `docs/v1.1.0-roadmap.md`, contract 식별자는
+이 문서를 기준으로 정리합니다. 구현 완료 여부는 검증 명령을 실행한 결과로만
+보고합니다.
+
 ## Contract Boundary
 
 MediaServer의 v1.1.0 event/metadata contract는 저장 영상이 아니라 live event와
