@@ -2,6 +2,37 @@
 
 이 문서는 과거 상세 검증 이력을 보존합니다. 현재 실행해야 할 검증 기준은 [../stream-verification.md](../stream-verification.md)를 봅니다.
 
+## 2026-05-13 - v1.1.0 final local release gate
+
+통과:
+
+- `./server.sh verify-predev --soak-minutes 120`: `525/0/1`
+- `./server.sh verify-va-runtime-console-longrun --duration-minutes 120 ... --idle-after-cleanup-minutes 30`: `12/0/0`
+- `./server.sh rc-release-checklist ...`: checklist artifact 생성 통과
+- `./server.sh verify-longrun-separation`: `4/0`
+- `./server.sh verify-public-repo-readiness --report ...`: `6/0`
+- `./server.sh verify-bundle-policy --output ... --json-output ...`: 통과
+- `./server.sh test --full --stop-after`: `30/0/6`, 542초
+
+확인:
+
+- 2026-05-12에 닫은 v1.1.0 선수 로드맵 1~6은 재수행하지 않았습니다.
+- redaction RTSP ffmpeg hang은 live decode harness timeout 보강 후 targeted
+  redaction live 2회 재검증을 통과했습니다.
+- public repository policy는 병합된 `docs/en/README.md` 기준으로 정렬했고,
+  삭제한 영문 mirror 문서를 다시 만들지 않았습니다.
+- runtime longrun idle 판정은 RSS `316.05MiB -> 316.62MiB`로 `+0.58MiB`
+  warning이었지만 cleanup 관련 runtime counter는 모두 `0`이었습니다.
+- v1.1.0 구현 후속 이슈는 남기지 않았고, release tag/main merge/GitHub
+  Release/push는 수행하지 않았습니다.
+
+미실행:
+
+- release tag 생성
+- main merge
+- GitHub Release 생성
+- push
+
 ## 2026-05-12 - Live Event Delivery Contract RC smoke
 
 통과:

@@ -37,7 +37,11 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 - v1.1.0 targets live operations: ONVIF-assisted live source onboarding, live source health, and live VA event quality.
 - It does not expand Media Server into long-term recording, VMS/NVR, playback/search, or ONVIF Profile G recording/replay scope.
 - EventRecord, snapshot, and clip hooks remain short event evidence or diagnostics helpers unless a later phase changes the product boundary.
-- The 2026-05-12 close-out completed prerequisite roadmap steps 1-6 and RC stabilization. 30m/120m longrun evidence is a conditional release gate for an actual RC cut, not a remaining v1.1.0 backlog item.
+- The 2026-05-12 close-out completed prerequisite roadmap steps 1-6.
+- The 2026-05-13 final local release gate completed 120m predev soak,
+  120m runtime-console longrun with a 30m cleanup-idle observation, and
+  P1 public/bundle/full-smoke review.
+- Release tag, main merge, GitHub Release, and push remain manual release actions.
 
 ## Current Priority Snapshot
 
@@ -47,17 +51,17 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | Runtime distribution policy | Done | Source-first policy and bundle guardrails are in place |
 | Ops UI stability | Done | Channels/Rules/Users responsive table checks exist |
 | v1.1.0 prerequisite roadmap 1-6 | Done | Live-only boundary, ONVIF import, source health, VA quality, delivery contract, and multilingual alignment are closed |
-| v1.1.0 RC stabilization | Done | RC gate/release checklist readiness and longrun separation are closed without rerunning prerequisite roadmap 1-6 |
+| v1.1.0 RC stabilization | Done | Final local longrun/P1 release-gate evidence is closed without rerunning prerequisite roadmap 1-6 |
 | Audit trail operations | Follow-up phase | Server persistence exists; search/export can improve |
 | Short event evidence | Supporting | EventRecord/snapshot/clip cleanup exists, but it is not the main v1.1.0 product direction |
-| RC gate operations | Conditional gate | Longrun gate exists and should be run explicitly for an actual RC cut |
+| RC gate operations | Conditional gate | Repeat longrun only for a new release cut or high-risk media/VA fanout change |
 | Client dashboard field polish | Follow-up phase | Preset-driven priority and wording can improve |
 
 ## General Follow-Ups
 
 - Close or suppress existing Dependabot major-update PR noise after the policy is documented.
 - Add richer English docs only if the public audience grows beyond this consolidated index.
-- Connect RC artifacts to release notes when cutting an actual release candidate.
+- Attach the latest RC artifacts to release notes when cutting the actual tag or GitHub Release.
 - Keep signed-token and cleanup checks for evidence bundles scoped to short event evidence.
 - Add operator-facing next-action buttons to root-cause diagnostics in a later operator workflow phase.
 
