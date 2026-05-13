@@ -128,7 +128,7 @@ const tasks = [
       await applyDarkTheme(browser);
       await delay(500);
     },
-    clip: { selectors: [".auth-card"], margin: 30, minWidth: 760, minHeight: 460, maxHeight: 520 },
+    clip: { selectors: [".auth-card"], margin: 24, minWidth: 700, minHeight: 420, maxHeight: 460 },
     optional: true,
   }
 ];
