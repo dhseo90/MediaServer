@@ -482,8 +482,11 @@ git diff --check -- README.md docs
 
 ### P1-1. 30분 이상 다채널 soak 재실행
 
-- **상태**: `예정`
-- 목적: Step 32 이후 문서/UI/VA 변경 묶음 기준으로 memory/CPU/event/state count가 안정화되는지 확인합니다.
+- **상태**: `완료` - 2026-05-13 final local release gate에서 120분 predev와 30분 predev 회귀 검증 통과
+- 목적:
+  Step 32 이후 문서/UI/VA 변경 묶음 기준의 memory/CPU/event/state count
+  안정성 확인을 닫았습니다.
+  30분 재실행 요구는 더 긴 120분 predev와 30분 predev 회귀 결과로 대체했습니다.
 - 관련 파일: `scripts/internal/verify_predev_stability.sh`, `docs/stream-verification.md`
 - 검증 명령:
 
@@ -495,12 +498,14 @@ git diff --check -- README.md docs
 
 ### P1-2. VA Runtime Console 30분 이상 longrun
 
-- **상태**: `진행`
+- **상태**: `완료` - 2026-05-13 final local release gate에서 120분 full fanout + 30분 cleanup idle 관찰 통과
 - 목적:
   WebRTC metadata viewer, DataChannel 수신, dashboard polling,
   SSE side-channel, RTSP server-side overlay consumer가 함께 켜진 상태에서
   RSS/CPU/session/tap/client cleanup과 connect/disconnect cycle 후
-  idle baseline RSS를 확인합니다.
+  idle baseline RSS 확인을 닫았습니다.
+  active 구간 RSS high-water 관찰 메모는 유지하지만 cleanup 관련 runtime
+  counter는 모두 `0`이었습니다.
 - 관련 파일:
   `scripts/internal/verify_va_runtime_console_longrun.py`,
   `scripts/internal/verify_va_runtime_console_cycles.py`,
@@ -611,12 +616,13 @@ git diff --check -- README.md docs
 
 ### P1-4. 2시간 이상 장기 soak
 
-- **상태**: `조건부 Gate`
+- **상태**: `조건부 Gate` - v1.1.0 final local release gate에서는 실행 완료, 이후 새 RC나 고위험 변경에서만 반복
 - 목적:
   30분 테스트에서 보이지 않는 누적 memory, queue, event/state 증가를 확인합니다.
-  RSS WARNING은 해제 가능 후보로 전환됐지만,
-  release candidate 또는 고위험 streaming/VA fanout 변경 전에는
-  120분 predev로 한 번 더 확인합니다.
+  RSS WARNING은 해제 가능 후보로 전환됐고,
+  v1.1.0 final local release gate에서는 120분 predev와 120분 runtime
+  console longrun을 완료했습니다. 이후에는 새 release candidate 재판정
+  또는 고위험 streaming/VA fanout 변경에서만 반복합니다.
 - 관련 파일:
   `scripts/internal/verify_predev_stability.sh`,
   `scripts/internal/verify_va_runtime_console_longrun.py`,
@@ -639,8 +645,10 @@ git diff --check -- README.md docs
 
 ### P1-5. VA state cleanup 전용 검증 추가
 
-- **상태**: `예정`
-- 목적: mock metadata로 track/scenario/event retention, cap, active state 보호를 빠르게 검증하는 전용 테스트를 추가합니다.
+- **상태**: `완료` - `verify-analysis-state` 전용 smoke 추가 및 검증 이력 기록
+- 목적:
+  mock metadata로 track/scenario/event retention, cap, active state 보호를
+  빠르게 검증하는 전용 테스트를 추가했습니다.
 - 관련 파일:
   `scripts/internal/analysis_state_smoke.cpp`,
   `scripts/internal/verify_analysis_state_smoke.sh`,
