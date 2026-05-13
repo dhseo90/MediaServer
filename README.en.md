@@ -94,9 +94,7 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | Auth, Ops, Client UI flow | [docs/ui-guide.md](docs/ui-guide.md) |
 | RTSP/WebRTC pipeline, source/session, VA layer | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenarios, live events, short evidence | [docs/video-analysis.md](docs/video-analysis.md) |
-| v1.1.0 live-only roadmap | [docs/en/v1.1.0-roadmap.md](docs/en/v1.1.0-roadmap.md) |
-| v1.1.0 alpha.1 live-only checklist | [docs/v1.1.0-alpha1-checklist.md](docs/v1.1.0-alpha1-checklist.md) |
-| v1.1.0 live-only glossary | [docs/v1.1.0-glossary.md](docs/v1.1.0-glossary.md) |
+| v1.1.0 live-only roadmap, glossary, and boundary checks | [docs/v1.1.0-roadmap.md](docs/v1.1.0-roadmap.md) |
 | Verification commands and release checks | [docs/stream-verification.md](docs/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | Release scope and tag strategy | [docs/release-policy.md](docs/release-policy.md) |
@@ -104,7 +102,7 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | Final private-to-public checklist | [docs/public-repo-final-review.md](docs/public-repo-final-review.md) |
 | Backup and restore operations | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
 | Starting thresholds for field scenarios | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
-| Backlog and roadmap | [docs/en/development-backlog.md](docs/en/development-backlog.md) |
+| Backlog and roadmap summary | [docs/en/README.md](docs/en/README.md) |
 | YouTube import/source experiment | [docs/youtube-import.md](docs/youtube-import.md) |
 
 ## UI Preview

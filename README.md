@@ -110,10 +110,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | Auth/Ops/Client 화면 구조와 사용 흐름 | [docs/ui-guide.md](docs/ui-guide.md) |
 | RTSP/WebRTC pipeline, source/session, VA layer 배치 | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenario, live event, short evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
-| v1.1.0 live-only 제품 경계와 phase 분류 | [docs/v1.1.0-roadmap.md](docs/v1.1.0-roadmap.md) |
-| v1.1.0-alpha.1 live-only 완료 checklist | [docs/v1.1.0-alpha1-checklist.md](docs/v1.1.0-alpha1-checklist.md) |
-| v1.1.0 한국어/영어 live-only 용어 | [docs/v1.1.0-glossary.md](docs/v1.1.0-glossary.md) |
-| v1.1.0 비범위 키워드 정적 점검 기준 | [docs/v1.1.0-boundary-checks.md](docs/v1.1.0-boundary-checks.md) |
+| v1.1.0 live-only 제품 경계, 용어, 완료 checklist, 비범위 키워드 기준 | [docs/v1.1.0-roadmap.md](docs/v1.1.0-roadmap.md) |
 | v1.1.0-alpha.2: ONVIF live source import 1차 구현/설계 | [docs/onvif-live-import.md](docs/onvif-live-import.md) |
 | v1.1.0-beta.1: Live source health/operator workflow 1차 구현 기준 | [docs/live-source-health.md](docs/live-source-health.md) |
 | v1.1.0 후속 Phase: Event/WebRTC/SSE/WS metadata contract | [docs/live-event-metadata-contracts.md](docs/live-event-metadata-contracts.md) |
