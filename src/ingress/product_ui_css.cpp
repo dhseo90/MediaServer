@@ -1971,6 +1971,7 @@ std::string ProductUiCss() {
         border-bottom: 0;
       }
       .channel-table td {
+        display: grid;
         grid-template-columns: minmax(108px, 28%) minmax(0, 1fr);
       }
       .channel-status-actions,
@@ -2083,11 +2084,11 @@ std::string ProductUiCss() {
       }
       .channel-table td {
         grid-template-columns: 1fr;
-        gap: 4px;
+        gap: 8px;
       }
       .ops-responsive-table td {
         grid-template-columns: 1fr;
-        gap: 4px;
+        gap: 8px;
       }
       .channel-row-actions {
         grid-template-columns: 1fr;
@@ -2096,7 +2097,14 @@ std::string ProductUiCss() {
       .event-record-table td,
       .user-table td {
         grid-template-columns: 1fr;
-        gap: 4px;
+        gap: 8px;
+      }
+      .channel-table td::before,
+      .ops-responsive-table td::before,
+      .ops-rules-table td::before,
+      .event-record-table td::before,
+      .user-table td::before {
+        line-height: 1.35;
       }
       .ops-rules-table .table-actions,
       .event-record-controls,
@@ -2374,9 +2382,39 @@ std::string ClientShellCss() {
     :root[data-theme="dark"] a.nav.active { background: var(--color-primary); color: var(--color-on-primary); }
     @media (max-width: 900px) { .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 860px) {
-      header.app-chrome .app-header-top { grid-template-columns: 1fr; }
-      header.app-chrome .image-nav-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .client-image-nav-tabs { min-width: 0; }
+      body.client-shell header.app-chrome .app-header-top {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+      }
+      body.client-shell header.app-chrome .image-nav-tabs,
+      body.client-shell header.app-chrome .client-image-nav-tabs {
+        width: 100%;
+        min-width: 0;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      body.client-shell .account-menu {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+    @media (max-width: 430px) {
+      body.client-shell main {
+        padding: 20px 10px 36px;
+      }
+      body.client-shell .account-menu {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: stretch;
+      }
+      body.client-shell .account-menu-top {
+        min-width: 0;
+      }
+      body.client-shell .account-controls {
+        flex-wrap: wrap;
+      }
+      body.client-shell .account-menu > form {
+        align-self: center;
+      }
     }
     @media (max-width: 780px) { .workspace, .live-toolbar { grid-template-columns: 1fr; } }
     @media (max-width: 560px) { .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr; } }

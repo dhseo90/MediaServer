@@ -247,6 +247,8 @@ if (screenshotEnabled) {
     summaryTitle: "Ops/Client screenshot smoke 요약",
   });
   if (result.failCount > 0) process.exit(1);
+  const clientHeaderResult = await runClientHeaderResponsiveSmoke();
+  if (clientHeaderResult.failCount > 0) process.exit(1);
 }
 
 function clientForbiddenText() {
@@ -270,6 +272,117 @@ function clientForbiddenText() {
     "/webrtc/session?file",
     "sessionToken",
   ];
+}
+
+async function runClientHeaderResponsiveSmoke() {
+  let headerPassCount = 0;
+  let headerFailCount = 0;
+  const headerFailures = [];
+  const clientPaths = [
+    { name: "client-live-header", path: "/client/live" },
+    { name: "client-dashboard-header", path: "/client/dashboard" },
+  ];
+  let checkIndex = 0;
+  for (const check of clientPaths) {
+    for (const width of visualWidths) {
+      if (width > 560) continue;
+      const browser = await openBrowserPage({
+        httpBase,
+        pagePath: check.path,
+        timeoutMs,
+        chromePath,
+        debugPort: debugPortBase + 200 + checkIndex,
+        width,
+        height: visualHeight,
+        outputDir,
+      });
+      checkIndex += 1;
+      try {
+        const result = await browser.evaluate(clientHeaderResponsiveExpression(), 10000);
+        const label = `${check.name}-${width}`;
+        if (!result?.ok) {
+          const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
+          throw new Error(`${label}: ${details}`);
+        }
+        headerPassCount += 1;
+        console.log(`[pass] ${label}: navWidth=${Math.round(result.navWidth)}, accountTop=${Math.round(result.accountTop)}`);
+      } catch (error) {
+        headerFailCount += 1;
+        const message = error instanceof Error ? error.message : String(error);
+        headerFailures.push(`[${check.name}] ${message}`);
+        console.log(`[fail] ${check.name}: ${message}`);
+      } finally {
+        await browser.close();
+      }
+    }
+  }
+  console.log("");
+  console.log("== Client mobile header smoke 요약 ==");
+  console.log(`- 통과: ${headerPassCount}`);
+  console.log(`- 실패: ${headerFailCount}`);
+  if (headerFailures.length > 0) {
+    console.log("- 실패 상세:");
+    for (const failure of headerFailures) {
+      console.log(`  - ${failure}`);
+    }
+  }
+  return { passCount: headerPassCount, failCount: headerFailCount };
+}
+
+function clientHeaderResponsiveExpression() {
+  return `
+    (() => {
+      const issues = [];
+      const nav = document.querySelector('body.client-shell header.app-chrome .client-image-nav-tabs');
+      const account = document.querySelector('body.client-shell header.app-chrome .account-menu');
+      const headerTop = document.querySelector('body.client-shell header.app-chrome .app-header-top');
+      const navItems = Array.from(document.querySelectorAll('body.client-shell header.app-chrome .client-image-nav-tabs .image-nav'));
+      if (!nav) issues.push('client nav missing');
+      if (!account) issues.push('client account menu missing');
+      if (!headerTop) issues.push('client header grid missing');
+      if (navItems.length < 2) issues.push('client nav items missing');
+      if (!nav || !account || !headerTop || navItems.length < 2) {
+        return { ok: false, issues };
+      }
+      const navRect = nav.getBoundingClientRect();
+      const accountRect = account.getBoundingClientRect();
+      const headerRect = headerTop.getBoundingClientRect();
+      const intersects = navRect.left < accountRect.right &&
+        navRect.right > accountRect.left &&
+        navRect.top < accountRect.bottom &&
+        navRect.bottom > accountRect.top;
+      if (intersects) {
+        issues.push('client nav/account boxes overlap');
+      }
+      if (navRect.width < headerRect.width - 2) {
+        issues.push('client nav does not fill the mobile header row');
+      }
+      if (accountRect.top < navRect.bottom + 8) {
+        issues.push('client account menu is not stacked below nav');
+      }
+      for (const item of navItems) {
+        const rect = item.getBoundingClientRect();
+        if (rect.width < 120 || rect.height < 44) {
+          issues.push('client nav item too small: ' + Math.round(rect.width) + 'x' + Math.round(rect.height));
+        }
+      }
+      const doc = document.documentElement;
+      const body = document.body;
+      const overflowX = Math.max(0, Math.max(doc.scrollWidth, body.scrollWidth) - window.innerWidth);
+      if (overflowX > 2) {
+        issues.push('document horizontal overflow ' + overflowX + 'px');
+      }
+      return {
+        ok: issues.length === 0,
+        issues,
+        navWidth: navRect.width,
+        headerWidth: headerRect.width,
+        accountTop: accountRect.top,
+        navBottom: navRect.bottom,
+        overflowX,
+      };
+    })()
+  `;
 }
 
 function clientForbiddenJsonKeys() {
