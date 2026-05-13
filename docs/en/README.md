@@ -47,7 +47,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 
 | Area | Status | Notes |
 | --- | --- | --- |
-| v1.0.0 source baseline | Done | Source-only public baseline is defined; binary/runtime/model bundles are excluded |
+| v1.1.0 source release | Done | Live-only source release is defined; binary/runtime/model bundles are excluded |
 | Runtime distribution policy | Done | Source-first policy and bundle guardrails are in place |
 | Ops UI stability | Done | Channels/Rules/Users responsive table checks exist |
 | v1.1.0 prerequisite roadmap 1-6 | Done | Live-only boundary, ONVIF import, source health, VA quality, delivery contract, and multilingual alignment are closed |

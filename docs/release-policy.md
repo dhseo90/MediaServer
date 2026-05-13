@@ -34,9 +34,9 @@ runtime을 의도적으로 포함하면 upstream license text, attribution, sour
 
 ## Tag 전략
 
-- 첫 public source-only tag 후보는 `v1.0.0`입니다.
+- 현재 source-only tag 후보는 `v1.1.0`입니다.
 - public-readiness, bundle policy, Actions status check가 모두 통과한 커밋에만 tag를 붙입니다.
-- `v1.0.0`은 source-only public baseline이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
+- `v1.1.0`은 live-only source release 기준이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
 - route/API/config/schema migration이 필요한 변경은 `v2.0.0` 후보로 분리합니다.
 - tag release에는 generated sample pack, YOLO model, FFmpeg/GStreamer runtime bundle을 붙이지 않습니다.
 
@@ -50,17 +50,17 @@ major update를 적용하려면 workflow 권한, upstream changelog, pin 전략�
 ## Release Note Template
 
 ```markdown
-# Media Server v1.0.0
+# Media Server v1.1.0
 
 ## Scope
 
-- Source/doc release baseline
+- Live-only source/doc release baseline
 - Binary/runtime/model bundle: not included
 
 ## Live-only Scope
 
 - Live media relay and live VA event focus
-- ONVIF/source health/VA event/delivery contract work is phase-scoped
+- ONVIF-assisted live source onboarding, source health, VA event quality, and delivery contract work
 - EventRecord/snapshot/clip: short event evidence helper, not the main product message
 
 ## Non-goals

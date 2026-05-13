@@ -11,7 +11,7 @@ onboarding, live source health, live VA event 품질 고도화입니다.
 
 English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 
-최신 source-only release: [v1.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.0.0)
+최신 source-only release: [v1.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.1.0)
 
 ## 한눈에 보기
 

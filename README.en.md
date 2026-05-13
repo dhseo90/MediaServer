@@ -7,7 +7,7 @@
 Media Server is a C++17 RTSP/WebRTC live stream relay with optional YOLO/ONNX video analytics overlays and rule/scenario live events. The v1.1.0 roadmap focuses on live source onboarding, live source health, and live VA event quality rather than long-term recording, VMS, or NVR scope.
 
 Korean documentation: [README.md](README.md)
-Latest source-only release: [v1.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.0.0)
+Latest source-only release: [v1.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.1.0)
 
 ## At a Glance
 
