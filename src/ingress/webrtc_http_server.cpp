@@ -3922,76 +3922,21 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <span id="status" class="status" aria-live="polite" hidden></span>
           </div>
         </div>
-        <div class="channel-onvif-panel" data-testid="onvif-import-panel">
-          <div class="toolbar">
-            <div>
-              <h4>ONVIF Live Source import</h4>
-              <p>ONVIF 후보를 저장 전 draft로 가져와 채널 폼에서 확인합니다.</p>
-            </div>
-            <div class="actions">
-              <button id="onvif-import-stub" class="button-secondary" type="button">Stub 후보 가져오기</button>
-            </div>
-          </div>
-          <div id="onvifImportSummary" class="validation-list">
-            <div class="empty">카메라가 없어도 stub 후보로 import draft와 채널 폼 연결을 확인할 수 있습니다.</div>
-          </div>
-        </div>
-        <div class="channel-bulk-panel" data-testid="channel-bulk-panel">
-          <div class="toolbar">
-            <div>
-              <h4>대량 작업 / 상태 진단</h4>
-              <p>선택한 채널을 복제하거나 비활성화하고, source/view 연결 문제를 확인합니다.</p>
-            </div>
-            <div class="actions">
-              <label class="check-inline"><input id="channel-bulk-select-all" type="checkbox" /> 전체 선택</label>
-              <label class="check-inline"><input id="channel-bulk-dry-run" type="checkbox" checked /> dry-run</label>
-              <button id="channel-bulk-validate" class="button-secondary" type="button">검증</button>
-              <button id="channel-bulk-clone" class="button-secondary" type="button">선택 복제</button>
-              <button id="channel-bulk-disable" class="button-secondary" type="button">선택 비활성화</button>
-              <button id="channel-bulk-retry-failed" class="button-secondary" type="button" disabled>실패 재시도</button>
-              <button id="channel-bulk-rollback" class="button-secondary" type="button" disabled>성공 롤백</button>
-            </div>
-          </div>
-          <div id="channelBulkSummary" class="badge-row"><span class="chip">로딩 중</span></div>
-          <div id="channelBulkDiagnostics" class="validation-list channel-bulk-diagnostics">
-            <div class="empty">채널 상태를 불러오는 중입니다.</div>
-          </div>
-        </div>
-        <div class="channel-health-panel" data-testid="source-health-panel">
-          <div class="toolbar">
-            <div>
-              <h4>Live Source Health</h4>
-              <p>프레임/메타데이터 수신 상태와 운영 조치 대상을 확인합니다.</p>
-            </div>
-            <div class="actions">
-              <button id="channel-health-refresh" class="button-secondary" type="button">상태 재확인</button>
-              <button id="channel-health-bulk-check" class="button-secondary" type="button">Bulk 체크</button>
-              <button id="channel-health-bulk-retry" class="button-secondary" type="button" disabled>Bulk 재시도</button>
-              <a class="button-secondary" href="/ops/dashboard#source-health">Dashboard</a>
-            </div>
-          </div>
-          <div id="channelHealthSummary" class="badge-row"><span class="chip">로딩 중</span></div>
-          <div id="channelHealthDiagnostics" class="validation-list channel-health-diagnostics">
-            <div class="empty">source health를 불러오는 중입니다.</div>
-          </div>
-        </div>
         <div class="table-wrap">
           <table class="ops-data-table ops-responsive-table channel-table">
             <colgroup>
-              <col class="channel-col-select" />
               <col class="channel-col-id" />
               <col class="channel-col-name" />
               <col class="channel-col-kind" />
               <col class="channel-col-status" />
-              <col class="channel-col-health" />
               <col class="channel-col-input" />
               <col class="channel-col-live-url" />
               <col class="channel-col-va-url" />
               <col class="channel-col-actions" />
             </colgroup>
 )OPS";
-    AppendTableHead(out, {"선택", "ID", "이름", "종류", "상태", "Health", "입력", "라이브 URL", "VA URL", "작업"});
-    out << R"OPS(            <tbody id="channels-body"><tr><td colspan="10">로딩 중</td></tr></tbody>
+    AppendTableHead(out, {"ID", "이름", "종류", "상태", "입력", "라이브 URL", "VA URL", "작업"});
+    out << R"OPS(            <tbody id="channels-body"><tr><td colspan="8">로딩 중</td></tr></tbody>
           </table>
         </div>
         <p class="hint" style="margin-top:12px;">RTSP/WHEP는 운영 확인용입니다. 브라우저 재생은 <code>/client/live</code>에서 확인합니다.</p>
@@ -4010,12 +3955,9 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <button id="channel-close" class="button-secondary" type="button">닫기</button>
           </div>
         </div>
-        <div id="channel-detail-health" class="channel-health-detail" data-testid="channel-health-detail">
-          <div class="empty">채널을 선택하면 Live Source Health가 표시됩니다.</div>
-        </div>
           <form id="channel-form">
           <div class="channel-editor-intro">
-            <p><strong>외부 WHEP</strong>는 URL 입력, <strong>Published WebRTC</strong>는 저장된 <code>sourceId</code> 연결입니다.</p>
+            <p><strong>ONVIF camera</strong>는 카메라에서 확인한 RTSP live stream URI를 저장합니다. <strong>외부 WHEP</strong>는 URL 입력, <strong>Published WebRTC</strong>는 저장된 <code>sourceId</code> 연결입니다.</p>
           </div>
           <div class="row">
             <label>채널 ID<input name="channelId" type="number" min="1" step="1" inputmode="numeric" placeholder="1" required /></label>
@@ -4023,6 +3965,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <label>종류
               <select name="kind">
                 <option value="file">파일</option>
+                <option value="onvif">ONVIF camera</option>
                 <option value="rtsp">RTSP pull</option>
                 <option value="whep">외부 WHEP pull</option>
                 <option value="webrtc">Published WebRTC source</option>
@@ -4035,7 +3978,8 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
               <option value="sample_h264.mp4">sample_h264.mp4</option>
             </select>
           </label>
-          <label data-source-kind="rtsp">RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live" /></label>
+          <label data-source-kind="rtsp onvif">RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live" /></label>
+          <p data-source-kind="onvif" class="hint">ONVIF 장치의 live profile에서 얻은 RTSP stream URI를 입력합니다. 저장 후에는 다른 RTSP 채널과 같은 방식으로 재생/복사됩니다.</p>
           <label data-source-kind="whep">외부 WHEP URL<input name="whepUrl" placeholder="https://example.com/whep/stream" /></label>
           <p data-source-kind="whep" class="hint">외부 WebRTC playback endpoint를 서버가 WHEP pull source로 연결합니다. URL 자체가 입력값입니다.</p>
           <label data-source-kind="webrtc">Published sourceId<input name="webrtcSourceId" placeholder="published-source-id" /></label>

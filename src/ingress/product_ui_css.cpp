@@ -228,8 +228,8 @@ std::string ProductUiCss() {
     .app-header-top {
       width: 100%;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: start;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 220px);
+      align-items: stretch;
       gap: var(--space-4);
     }
     .shell-summary-row {
@@ -258,18 +258,24 @@ std::string ProductUiCss() {
       min-width: 0;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+      grid-auto-rows: minmax(52px, 1fr);
+      height: 100%;
       gap: var(--space-2);
       align-items: stretch;
     }
     .image-nav {
-      min-height: 84px;
-      display: grid;
+      min-height: 52px;
+      height: 100%;
+      display: inline-grid;
+      grid-template-columns: auto auto;
       align-content: center;
+      align-items: center;
+      justify-content: center;
       justify-items: center;
-      gap: 6px;
-      padding: 8px;
+      gap: 8px;
+      padding: 0 12px;
       border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-md);
       background: var(--color-bg-elevated);
       color: var(--color-text);
       text-align: center;
@@ -288,8 +294,8 @@ std::string ProductUiCss() {
       color: var(--color-on-primary);
     }
     .image-nav svg {
-      width: 34px;
-      height: 34px;
+      width: 20px;
+      height: 20px;
       display: block;
       color: currentColor;
     }
@@ -299,24 +305,34 @@ std::string ProductUiCss() {
     }
     .account-menu {
       flex: 0 0 auto;
-      min-height: 84px;
-      min-width: 210px;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
+      min-height: 52px;
+      height: 100%;
+      min-width: 0;
+      display: flex;
       align-items: center;
-      justify-items: stretch;
-      gap: var(--space-3);
-      padding: 8px 10px;
+      justify-content: flex-end;
+      gap: 6px;
+      padding: 6px;
       border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-md);
       background: var(--color-bg-elevated);
     }
     .account-menu-top {
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      gap: var(--space-3);
+      gap: 6px;
+      flex-wrap: nowrap;
       min-width: 0;
+    }
+    .account-menu .account-identity {
+      display: none;
+    }
+    .account-menu .language-control span {
+      display: none;
+    }
+    .account-menu .language-control {
+      min-width: 76px;
     }
     .account-shortcut {
       width: auto;
@@ -332,8 +348,8 @@ std::string ProductUiCss() {
       gap: var(--space-3);
     }
     .account-avatar {
-      width: 44px;
-      height: 44px;
+      width: 28px;
+      height: 28px;
       flex: 0 0 auto;
       color: var(--color-primary);
     }
@@ -345,19 +361,24 @@ std::string ProductUiCss() {
     .account-name {
       color: var(--color-text);
       font-weight: 900;
+      font-size: 12px;
       overflow-wrap: anywhere;
     }
     .account-meta {
       color: var(--color-text-muted);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 850;
     }
     .account-menu > form {
-      width: 100%;
+      width: auto;
       margin: 0;
     }
     .account-menu > form > button {
-      width: 100%;
+      width: auto;
+      min-width: 58px;
+      min-height: 34px;
+      padding: 5px 7px;
+      font-size: 12px;
     }
     h1, h2, h3 { margin: 0; letter-spacing: 0; }
     h1 { font-size: clamp(26px, 3vw, 36px); line-height: 1.08; }
@@ -443,10 +464,10 @@ std::string ProductUiCss() {
       box-shadow: none;
     }
     .theme-toggle {
-      width: 40px;
-      min-width: 40px;
-      min-height: 40px;
-      height: 40px;
+      width: 34px;
+      min-width: 34px;
+      min-height: 34px;
+      height: 34px;
       display: inline-grid;
       place-items: center;
       flex: 0 0 auto;
@@ -456,7 +477,7 @@ std::string ProductUiCss() {
     }
     .language-control {
       width: auto;
-      min-width: 112px;
+      min-width: 88px;
       flex: 0 0 auto;
       display: grid;
       gap: 3px;
@@ -470,8 +491,8 @@ std::string ProductUiCss() {
     }
     .language-select {
       width: 100%;
-      min-height: 36px;
-      height: 36px;
+      min-height: 34px;
+      height: 34px;
       padding: 5px 8px;
       border-radius: var(--radius-md);
       font-size: 12px;
@@ -1629,37 +1650,20 @@ std::string ProductUiCss() {
     .channel-table {
       table-layout: fixed;
     }
-    .channel-onvif-panel,
-    .channel-bulk-panel,
-    .channel-health-panel {
-      display: grid;
-      gap: var(--space-3);
-      margin-bottom: var(--space-4);
-      padding: var(--space-4);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
-      background: var(--color-surface-raised);
-    }
-    .channel-bulk-diagnostics,
-    .channel-health-diagnostics {
-      min-width: 0;
-    }
     .channel-table th,
     .channel-table td {
       white-space: normal;
       overflow-wrap: anywhere;
       word-break: break-word;
     }
-    .channel-col-select { width: 52px; }
     .channel-col-id { width: 58px; }
-    .channel-col-name { width: 16%; }
-    .channel-col-kind { width: 118px; }
-    .channel-col-status { width: 118px; }
-    .channel-col-health { width: 150px; }
+    .channel-col-name { width: 18%; }
+    .channel-col-kind { width: 130px; }
+    .channel-col-status { width: 112px; }
     .channel-col-input { width: auto; }
     .channel-col-live-url,
-    .channel-col-va-url { width: 104px; }
-    .channel-col-actions { width: 164px; }
+    .channel-col-va-url { width: 142px; }
+    .channel-col-actions { width: 150px; }
     .channel-id-cell,
     .channel-kind-cell,
     .channel-input-stack {
@@ -1668,58 +1672,6 @@ std::string ProductUiCss() {
       overflow-wrap: anywhere;
       word-break: break-word;
     }
-    .channel-health-stack,
-    .channel-health-detail,
-    .channel-health-metrics {
-      min-width: 0;
-      max-width: 100%;
-    }
-    .channel-health-stack {
-      display: grid;
-      justify-items: start;
-      gap: 4px;
-    }
-    .channel-health-note {
-      color: var(--color-text-muted);
-      font-size: 11px;
-      font-weight: 800;
-      line-height: 1.25;
-      overflow-wrap: anywhere;
-      word-break: break-word;
-    }
-    .channel-health-detail {
-      display: grid;
-      gap: var(--space-3);
-      margin-bottom: var(--space-4);
-      padding: var(--space-3);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-sm);
-      background: color-mix(in srgb, var(--color-surface-raised) 72%, transparent 28%);
-    }
-    .channel-health-metrics {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: var(--space-2);
-    }
-    .channel-health-metrics span {
-      display: grid;
-      gap: 3px;
-      min-width: 0;
-      padding: 8px 10px;
-      border: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent 28%);
-      border-radius: var(--radius-sm);
-      background: var(--color-surface);
-      color: var(--color-text-muted);
-      font-size: 11px;
-      font-weight: 800;
-      overflow-wrap: anywhere;
-    }
-    .channel-health-metrics strong {
-      color: var(--color-text);
-      font-size: 13px;
-      line-height: 1.2;
-      overflow-wrap: anywhere;
-    }
     .channel-status-actions {
       display: grid;
       justify-items: start;
@@ -1727,7 +1679,8 @@ std::string ProductUiCss() {
     }
     .channel-stream-actions {
       display: grid;
-      grid-template-columns: 1fr;
+      width: 100%;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: var(--space-2);
     }
     .channel-stream-rule {
@@ -1770,6 +1723,7 @@ std::string ProductUiCss() {
     .channel-stream-actions button,
     .channel-status-actions button,
     .channel-row-actions button {
+      width: 100%;
       min-height: 32px;
       padding: 6px 9px;
       font-size: 11px;
@@ -1833,54 +1787,67 @@ std::string ProductUiCss() {
     }
     @media (max-width: 1180px) and (min-width: 861px) {
       .app-header-top {
-        grid-template-columns: minmax(0, 1fr) minmax(252px, 296px);
+        grid-template-columns: minmax(0, 1fr) minmax(220px, 220px);
         align-items: stretch;
       }
       .app-header-top > .image-nav-tabs:not(.client-image-nav-tabs) {
-        grid-template-columns: repeat(3, minmax(92px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
       }
       .account-menu {
-        min-height: 176px;
-        grid-template-rows: minmax(0, 1fr) auto;
-        align-content: stretch;
-        gap: var(--space-4);
-        padding: 12px 14px;
+        min-height: 52px;
+        align-content: center;
+        gap: var(--space-2);
+        padding: 6px 8px;
       }
       .account-menu-top {
         height: 100%;
-        justify-content: flex-start;
+        justify-content: flex-end;
         align-items: center;
       }
       .account-identity {
         align-items: center;
       }
       body.client-shell .app-header-top {
-        grid-template-columns: minmax(0, 1fr) minmax(232px, 272px);
-        align-items: start;
+        grid-template-columns: minmax(0, 1fr) 176px;
+        align-items: stretch;
       }
       body.client-shell .account-menu {
-        min-height: 84px;
+        min-height: 52px;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: var(--space-3);
-        padding: 10px 12px;
+        justify-content: flex-end;
+        gap: 6px;
+        padding: 6px;
       }
       body.client-shell .account-menu-top {
-        flex: 1 1 auto;
         min-width: 0;
-        justify-content: flex-start;
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+        gap: 6px;
       }
       body.client-shell .account-identity {
-        min-width: 0;
+        display: none;
       }
       body.client-shell .account-menu > form {
         width: auto;
-        flex: 0 0 auto;
       }
       body.client-shell .account-menu > form > button {
         width: auto;
-        min-width: 96px;
+        min-width: 52px;
+        padding: 5px 7px;
+      }
+      body.client-shell .language-control {
+        min-width: 64px;
+      }
+      body.client-shell .language-select {
+        padding: 4px 5px;
+        font-size: 11px;
+      }
+      body.client-shell .theme-toggle {
+        width: 30px;
+        min-width: 30px;
+        min-height: 30px;
+        height: 30px;
       }
     }
     @media (max-width: 1040px) {
@@ -1961,16 +1928,10 @@ std::string ProductUiCss() {
       .channel-table td {
         grid-template-columns: minmax(108px, 28%) minmax(0, 1fr);
       }
-      .channel-onvif-panel .toolbar,
-      .channel-bulk-panel .toolbar,
-      .channel-health-panel .toolbar,
       .channel-status-actions,
       .channel-stream-actions,
       .channel-row-actions {
         min-width: 0;
-      }
-      .channel-health-metrics {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
     @media (max-width: 1040px) {
@@ -2144,9 +2105,9 @@ std::string ClientShellCss() {
     }
     header.app-chrome .app-header-top {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 220px);
       width: 100%;
-      align-items: start;
+      align-items: stretch;
       gap: var(--space-4);
     }
     header.app-chrome .image-nav-tabs {
@@ -2160,6 +2121,40 @@ std::string ClientShellCss() {
       flex: 1 1 320px;
       min-width: min(320px, 100%);
       grid-template-columns: repeat(2, minmax(92px, 1fr));
+    }
+    body.client-shell header.app-chrome .app-header-top {
+      grid-template-columns: minmax(0, 1fr) 176px;
+      align-items: stretch;
+    }
+    body.client-shell .account-menu {
+      min-height: 52px;
+      justify-content: flex-end;
+      gap: 6px;
+      padding: 6px;
+    }
+    body.client-shell .account-identity {
+      display: none;
+    }
+    body.client-shell .language-control {
+      min-width: 64px;
+    }
+    body.client-shell .account-menu-top {
+      flex-wrap: nowrap;
+      gap: 6px;
+    }
+    body.client-shell .account-menu > form > button {
+      min-width: 52px;
+      padding: 5px 7px;
+    }
+    body.client-shell .language-select {
+      padding: 4px 5px;
+      font-size: 11px;
+    }
+    body.client-shell .theme-toggle {
+      width: 30px;
+      min-width: 30px;
+      min-height: 30px;
+      height: 30px;
     }
     a.nav { min-height: 36px; display: inline-flex; align-items: center; border-radius: 6px; padding: 0 12px; background: var(--panel-soft); color: var(--text); text-decoration: none; font-weight: 900; }
     a.nav.active { background: var(--color-primary); color: var(--color-on-primary); }

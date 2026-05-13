@@ -52,14 +52,16 @@ check("documentation describes bulk retry policy", () => {
   }
 });
 
-check("ops sources UI wires bulk retryBody execution", () => {
+check("ops sources UI omits source health bulk controls", () => {
   const html = readText("src/ingress/webrtc_http_server.cpp");
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
-  const requiredHtml = [
+  const forbiddenHtml = [
     'id="channel-health-bulk-check"',
     'id="channel-health-bulk-retry"',
+    'data-testid="source-health-panel"',
+    'id="channelHealthDiagnostics"',
   ];
-  const requiredScript = [
+  const forbiddenScript = [
     "lastSourceHealthBulkResult",
     "selectedSourceHealthIds",
     "runSourceHealthBulk",
@@ -68,11 +70,11 @@ check("ops sources UI wires bulk retryBody execution", () => {
     "retryBody?.sourceIds",
     "channelHealthBulkRetry.disabled",
   ];
-  for (const snippet of requiredHtml) {
-    assert(html.includes(snippet), `ops sources HTML is missing source health bulk snippet: ${snippet}`);
+  for (const snippet of forbiddenHtml) {
+    assert(!html.includes(snippet), `ops sources HTML should not expose source health bulk snippet: ${snippet}`);
   }
-  for (const snippet of requiredScript) {
-    assert(script.includes(snippet), `ops sources script is missing source health bulk snippet: ${snippet}`);
+  for (const snippet of forbiddenScript) {
+    assert(!script.includes(snippet), `ops sources script should not expose source health bulk snippet: ${snippet}`);
   }
 });
 

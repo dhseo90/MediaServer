@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: /ops/sources 대량 채널 관리 UI와 bulk action hook을 정적 검증한다.
+// 파일 용도: /ops/sources에서 대량 작업 UI가 제거되고 bulk API 경계만 남아 있는지 정적 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -10,9 +10,9 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const checks = [];
 
-check("ops sources page exposes bulk management panel", () => {
+check("ops sources page omits bulk management panel", () => {
   const html = readText("src/ingress/webrtc_http_server.cpp");
-  const required = [
+  const forbidden = [
     'data-testid="channel-bulk-panel"',
     'id="channel-bulk-select-all"',
     'id="channel-bulk-dry-run"',
@@ -24,14 +24,14 @@ check("ops sources page exposes bulk management panel", () => {
     'id="channelBulkDiagnostics"',
     "대량 작업 / 상태 진단",
   ];
-  for (const snippet of required) {
-    assert(html.includes(snippet), `bulk channel panel is missing snippet: ${snippet}`);
+  for (const snippet of forbidden) {
+    assert(!html.includes(snippet), `bulk channel panel snippet should be absent: ${snippet}`);
   }
 });
 
-check("ops sources script wires clone disable validation diagnostics", () => {
+check("ops sources script omits bulk UI hooks", () => {
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
-  const required = [
+  const forbidden = [
     "selectedChannelIds",
     "channelBulkIssues",
     "renderChannelBulkDiagnostics",
@@ -48,7 +48,6 @@ check("ops sources script wires clone disable validation diagnostics", () => {
     "rollbackSuccessfulChannelBulk",
     "/ops/api/channels/bulk",
     "data-select-channel",
-    "data-clone-channel",
     "bulk-dry-run",
     "bulk-rollback",
     "bulk-disable",
@@ -56,8 +55,8 @@ check("ops sources script wires clone disable validation diagnostics", () => {
     "실패 재시도 전 diff preview",
     "감사 이력 보기",
   ];
-  for (const snippet of required) {
-    assert(script.includes(snippet), `bulk channel script is missing snippet: ${snippet}`);
+  for (const snippet of forbidden) {
+    assert(!script.includes(snippet), `bulk channel UI hook should be absent: ${snippet}`);
   }
 });
 
@@ -86,18 +85,20 @@ check("server exposes formal channel bulk API with partial failure policy", () =
   }
 });
 
-check("bulk channel table remains responsive", () => {
+check("channel table remains responsive without bulk selectors", () => {
   const css = readText("src/ingress/product_ui_css.cpp");
   const required = [
-    ".channel-bulk-panel",
-    ".channel-bulk-diagnostics",
-    ".compact-list",
-    ".channel-col-select",
+    ".channel-table",
+    ".channel-row-actions",
+    ".channel-stream-actions",
     "@media (max-width: 860px)",
     "@media (max-width: 560px)",
   ];
   for (const snippet of required) {
-    assert(css.includes(snippet), `bulk channel CSS is missing snippet: ${snippet}`);
+    assert(css.includes(snippet), `channel CSS is missing snippet: ${snippet}`);
+  }
+  for (const snippet of [".channel-bulk-panel", ".channel-bulk-diagnostics", ".channel-col-select"]) {
+    assert(!css.includes(snippet), `bulk channel CSS should be absent: ${snippet}`);
   }
 });
 

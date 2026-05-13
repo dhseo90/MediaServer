@@ -117,27 +117,14 @@ async function runOpsClickFlow(browser, context) {
   await clickSelector(browser, "#add-channel", "채널 추가");
   await assertVisible(browser, "#channel-detail-panel", "채널 추가 패널");
   await assertText(browser, "#channel-editor-title", "채널 추가", "채널 추가 제목");
+  await setSelectValue(browser, '[name="kind"]', "onvif", "ONVIF 채널 타입");
+  await assertFormValue(browser, '[name="kind"]', "onvif", "ONVIF kind");
+  await assertVisible(browser, '[data-source-kind="rtsp onvif"]', "ONVIF RTSP URL 입력");
   await assertNoOverflow(browser, `${context.label}:sources-add`);
-  steps.push("sources:add");
+  steps.push("sources:add-onvif-kind");
 
   await clickSelector(browser, "#channel-close", "채널 패널 닫기");
   await assertHidden(browser, "#channel-detail-panel", "채널 패널 닫힘");
-  await clickSelector(browser, "#onvif-import-stub", "ONVIF stub 후보 가져오기");
-  await assertVisible(browser, "#channel-detail-panel", "ONVIF 채널 폼");
-  await assertText(browser, "#onvifImportSummary", "SourceRegistry 저장 없음", "ONVIF import 요약");
-  await assertFormValue(browser, '[name="kind"]', "rtsp", "ONVIF kind");
-  await assertFormValueContains(browser, '[name="rtspUrl"]', "rtsp://192.0.2.10/live/main-", "ONVIF RTSP URL");
-  await assertNoOverflow(browser, `${context.label}:sources-onvif-import`);
-  await clickSelector(browser, "#channel-close", "ONVIF 채널 폼 닫기");
-  await assertHidden(browser, "#channel-detail-panel", "ONVIF 채널 폼 닫힘");
-  steps.push("sources:onvif-import");
-
-  await clickSelector(browser, "#channel-bulk-validate", "채널 대량 검증");
-  await assertVisible(browser, "#channelBulkDiagnostics", "채널 대량 진단");
-  await clickSelector(browser, "[data-select-channel]", "채널 대량 선택");
-  await assertEnabled(browser, "#channel-bulk-clone", "선택 복제 버튼");
-  await assertEnabled(browser, "#channel-bulk-disable", "선택 비활성화 버튼");
-  steps.push("sources:bulk");
 
   await clickSelector(browser, "[data-view-channel]", "채널 상세");
   await assertVisible(browser, "#channel-detail-panel", "채널 상세 패널");

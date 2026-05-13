@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: /ops/sources ONVIF import UI가 draft를 실제 source/view 저장 round-trip으로 연결하는지 검증한다.
+// 파일 용도: /ops/sources ONVIF camera 타입이 일반 채널 폼에서 source/view 저장 round-trip으로 연결되는지 검증한다.
 
 import fs from "node:fs";
 import os from "node:os";
@@ -33,8 +33,8 @@ Options:
   -h, --help                 도움말 출력
 
 Checks:
-  - /ops/sources ONVIF stub import 버튼이 draft API를 호출해 채널 폼을 채움
-  - operator가 channelId를 바꿔도 ONVIF tags/view draft 옵션이 저장 payload에 유지됨
+  - /ops/sources 채널 폼에서 ONVIF camera 타입을 선택하고 RTSP stream URI를 입력
+  - operator가 channelId를 바꿔도 ONVIF tags/view 옵션이 저장 payload에 유지됨
   - 기존 source/view API로 저장된 뒤 client API에 RTSP URL, ONVIF endpoint, credential이 노출되지 않음
   - smoke 종료 시 만든 source/view를 비활성화
 `);
@@ -93,29 +93,17 @@ try {
   });
   await installErrorCollector(browser);
   await assertVisible(browser, '[data-testid="ops-sources-page"]', "ops sources page");
-  await clickSelector(browser, "#onvif-import-stub", "ONVIF stub import");
+  await clickSelector(browser, "#add-channel", "add ONVIF channel");
   await assertVisible(browser, "#channel-detail-panel", "ONVIF channel form");
-  await assertText(browser, "#onvifImportSummary", "SourceRegistry 저장 없음", "ONVIF import summary");
-  const draftForm = await waitForResult(
-    browser,
-    `
-      (() => {
-        const kind = document.querySelector('[name="kind"]')?.value || '';
-        const rtspUrl = document.querySelector('[name="rtspUrl"]')?.value || '';
-        const panelVisible = !document.querySelector('#channel-detail-panel')?.hidden;
-        return { ok: panelVisible && kind === 'rtsp' && rtspUrl.startsWith('rtsp://'), kind, rtspUrl };
-      })()
-    `,
-    item => item?.ok === true,
-    "ONVIF draft form values",
-  );
-  savedRtspUrl = draftForm.rtspUrl;
+  await setSelectValue(browser, '[name="kind"]', "onvif", "ONVIF kind");
+  savedRtspUrl = `rtsp://192.0.2.10/live/main-${sourceId}`;
   await setInputValue(browser, '[name="channelId"]', sourceId, "channelId");
   await setInputValue(browser, '[name="displayName"]', displayName, "displayName");
+  await setInputValue(browser, '[name="rtspUrl"]', savedRtspUrl, "ONVIF RTSP URL");
   await clickSelector(browser, "#channel-save-selected", "ONVIF channel save");
   await assertText(browser, "#status", "채널 저장 완료", "channel save status");
   await assertBrowserErrors(browser);
-  console.log("[pass] ONVIF UI import saved through channel form");
+  console.log("[pass] ONVIF camera source saved through channel form");
 } finally {
   if (browser) await browser.close().catch(() => {});
 }
@@ -130,7 +118,7 @@ try {
   assert(Array.isArray(savedSource.tags), "saved source tags must be array");
   assert(savedSource.tags.includes("onvif"), "saved source tags missing onvif");
   assert(savedSource.tags.includes("live"), "saved source tags missing live");
-  console.log("[pass] ops sources API preserved ONVIF source draft fields");
+  console.log("[pass] ops sources API preserved ONVIF source fields");
 
   const viewsAfter = await requestJson("/ops/api/views");
   const savedView = findRecord(viewsAfter.views, "viewId", sourceId);
@@ -139,18 +127,18 @@ try {
   assert(savedView.sourceId === sourceId, "saved PublishedView sourceId mismatch");
   assert(Array.isArray(savedView.allowedOverlayModes), "allowedOverlayModes must be array");
   assert(savedView.allowedOverlayModes.includes("raw"), "PublishedView allowedOverlayModes missing raw");
-  console.log("[pass] ops views API preserved ONVIF PublishedView draft fields");
+  console.log("[pass] ops views API preserved ONVIF PublishedView fields");
 
   const clientListText = await requestText("/client/api/views");
   assertNoClientForbiddenText("client-api-views", clientListText, savedRtspUrl);
   const clientList = JSON.parse(clientListText);
-  assert(hasRecord(clientList.views, "viewId", sourceId), "client views list missing imported view");
+  assert(hasRecord(clientList.views, "viewId", sourceId), "client views list missing ONVIF view");
   const clientViewText = await requestText(`/client/api/views/${encodeURIComponent(sourceId)}`);
   assertNoClientForbiddenText(`client-api-view-${sourceId}`, clientViewText, savedRtspUrl);
   const clientView = JSON.parse(clientViewText).view;
-  assert(clientView?.viewId === sourceId, "client view detail missing imported view");
+  assert(clientView?.viewId === sourceId, "client view detail missing ONVIF view");
   assert(clientView.sourceKind === "rtsp", "client view sourceKind should be rtsp");
-  console.log("[pass] client API redacts ONVIF imported source locator");
+  console.log("[pass] client API redacts ONVIF source locator");
 } finally {
   if (sourceId) {
     await requestText(`/ops/api/views/${encodeURIComponent(sourceId)}`, {
@@ -221,6 +209,22 @@ async function setInputValue(browserInstance, selector, value, description) {
   `, 3000);
   if (!result?.ok) {
     throw new Error(`${description} 입력 실패: ${JSON.stringify(result)}`);
+  }
+}
+
+async function setSelectValue(browserInstance, selector, value, description) {
+  const result = await browserInstance.evaluate(`
+    (() => {
+      const node = document.querySelector(${JSON.stringify(selector)});
+      if (!node) return { ok: false, message: 'missing select' };
+      node.value = ${JSON.stringify(value)};
+      node.dispatchEvent(new Event('input', { bubbles: true }));
+      node.dispatchEvent(new Event('change', { bubbles: true }));
+      return { ok: node.value === ${JSON.stringify(value)}, value: node.value };
+    })()
+  `, 3000);
+  if (!result?.ok) {
+    throw new Error(`${description} 선택 실패: ${JSON.stringify(result)}`);
   }
 }
 
