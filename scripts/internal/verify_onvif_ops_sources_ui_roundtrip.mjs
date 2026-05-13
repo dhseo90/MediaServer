@@ -33,7 +33,7 @@ Options:
   -h, --help                 도움말 출력
 
 Checks:
-  - /ops/sources 채널 폼에서 ONVIF camera 타입을 선택하고 RTSP stream URI를 입력
+  - /ops/sources 채널 폼에서 ONVIF camera 타입을 선택하고 ONVIF stream URI를 입력
   - operator가 channelId를 바꿔도 ONVIF tags/view 옵션이 저장 payload에 유지됨
   - 기존 source/view API로 저장된 뒤 client API에 RTSP URL, ONVIF endpoint, credential이 노출되지 않음
   - smoke 종료 시 만든 source/view를 비활성화
@@ -99,7 +99,7 @@ try {
   savedRtspUrl = `rtsp://192.0.2.10/live/main-${sourceId}`;
   await setInputValue(browser, '[name="channelId"]', sourceId, "channelId");
   await setInputValue(browser, '[name="displayName"]', displayName, "displayName");
-  await setInputValue(browser, '[name="rtspUrl"]', savedRtspUrl, "ONVIF RTSP URL");
+  await setInputValue(browser, '[name="onvifStreamUrl"]', savedRtspUrl, "ONVIF Stream URI");
   await clickSelector(browser, "#channel-save-selected", "ONVIF channel save");
   await assertText(browser, "#status", "채널 저장 완료", "channel save status");
   await assertBrowserErrors(browser);
@@ -137,7 +137,8 @@ try {
   assertNoClientForbiddenText(`client-api-view-${sourceId}`, clientViewText, savedRtspUrl);
   const clientView = JSON.parse(clientViewText).view;
   assert(clientView?.viewId === sourceId, "client view detail missing ONVIF view");
-  assert(clientView.sourceKind === "rtsp", "client view sourceKind should be rtsp");
+  assert(clientView.sourceKind === "rtsp", "client view sourceKind should remain downstream rtsp");
+  assert(Array.isArray(clientView.sourceTags) && clientView.sourceTags.includes("onvif"), "client view should expose sanitized ONVIF tag");
   console.log("[pass] client API redacts ONVIF source locator");
 } finally {
   if (sourceId) {

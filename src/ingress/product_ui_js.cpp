@@ -99,9 +99,10 @@ std::string ProductSharedUiScript() {
         '대기 중인 접근 요청이 없습니다.': 'No pending access requests.',
         '검색': 'Search',
         '작업자': 'Actor',
-        '대상, 요약, diff 검색': 'Search target, summary, or diff',
-        'actor 또는 user target': 'actor or user target',
-        'channel:1, username': 'channel:1, username',
+        '대상, 요약, 변경값 검색': 'Search target, summary, or diff',
+        '작업자 계정': 'Actor account',
+        '사용자 계정': 'User account',
+        '채널/사용자 대상': 'Channel/user target',
         '연도. 월. 일. --:--': 'yyyy-mm-dd --:--',
         '동작': 'Action',
         '시작': 'Start',
@@ -133,8 +134,13 @@ std::string ProductSharedUiScript() {
         '연동': 'Integrator',
         '관리자': 'Admin',
         '접근 요청': 'Access Requests',
+        '시청 권한 요청': 'Client Access Request',
+        '승인 대기 요청': 'Pending Requests',
+        '요청 페이지': 'Request Page',
+        '요청이 승인 대기 상태로 저장되었습니다.': 'The request has been saved as pending.',
+        '요청은 승인 대기 상태로 저장되며 관리자 승인 전에는 로그인이나 채널 접근이 허용되지 않습니다.': 'Requests are stored as pending and cannot sign in or access channels until an admin approves them.',
         '요청/결정': 'Request / decision',
-        '요청을 검토하고 초대 링크를 발급합니다.': 'Review requests and issue invite links.',
+        '공개 회원가입이 아니라, 별도 요청 페이지로 들어온 계정을 관리자가 검토한 뒤 초대 링크를 발급합니다.': 'This is not open self-signup; admins review requests from the request page and issue invite links.',
         '사용자와 권한 범위를 관리합니다.': 'Manage users and scopes.',
         '이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인합니다.': 'Review actor, before/after values, and time for user changes from this browser.',
         '이 브라우저에서 수행한 채널 변경의 작업자, 전/후 값, 시각을 확인합니다.': 'Review actor, before/after values, and time for channel changes from this browser.',
@@ -771,7 +777,7 @@ std::string ProductSharedUiScript() {
       const auditFilterPresetsFor = area => {
         if (area !== 'channels') return [];
         return [
-          { id: 'source-health-state-change', label: 'Source Health 변경', state: { q: '', actor: '', user: '', target: '', action: 'source-health-state-change', fromMs: '', toMs: '' } },
+          { id: 'source-health-state-change', label: '소스 상태 변경', state: { q: '', actor: '', user: '', target: '', action: 'source-health-state-change', fromMs: '', toMs: '' } },
           { id: 'all', label: '전체 이력', state: { q: '', actor: '', user: '', target: '', action: '', fromMs: '', toMs: '' } }
         ];
       };
@@ -893,7 +899,7 @@ std::string ProductSharedUiScript() {
           disable: '비활성화',
           'bulk-clone': '대량 복제',
           'bulk-disable': '대량 비활성화',
-          'source-health-state-change': 'Source Health 변경',
+          'source-health-state-change': '소스 상태 변경',
           approve: '승인',
           reject: '거절'
         })[String(value || '')] || display(value);
@@ -938,16 +944,16 @@ std::string ProductSharedUiScript() {
           <div class="audit-controls">
             <div class="audit-filter-grid">
               <label>검색
-                <input id="${containerId}-audit-q" value="${escapeHtml(state.q)}" placeholder="대상, 요약, diff 검색">
+                <input id="${containerId}-audit-q" value="${escapeHtml(state.q)}" placeholder="대상, 요약, 변경값 검색">
               </label>
               <label>작업자
-                <input id="${containerId}-audit-actor" value="${escapeHtml(state.actor)}" placeholder="username">
+                <input id="${containerId}-audit-actor" value="${escapeHtml(state.actor)}" placeholder="작업자 계정">
               </label>
               <label>사용자
-                <input id="${containerId}-audit-user" value="${escapeHtml(state.user)}" placeholder="actor 또는 user target">
+                <input id="${containerId}-audit-user" value="${escapeHtml(state.user)}" placeholder="사용자 계정">
               </label>
               <label>대상
-                <input id="${containerId}-audit-target" value="${escapeHtml(state.target)}" placeholder="channel:1, user:name">
+                <input id="${containerId}-audit-target" value="${escapeHtml(state.target)}" placeholder="채널/사용자 대상">
               </label>
               <label>동작
                 <select id="${containerId}-audit-action">
@@ -959,7 +965,7 @@ std::string ProductSharedUiScript() {
                   <option value="disable">비활성화</option>
                   <option value="bulk-clone">대량 복제</option>
                   <option value="bulk-disable">대량 비활성화</option>
-                  <option value="source-health-state-change">Source Health 변경</option>
+                  <option value="source-health-state-change">소스 상태 변경</option>
                   <option value="approve">승인</option>
                   <option value="reject">거절</option>
                   <option value="export-bundle">증거 export</option>

@@ -122,7 +122,8 @@ try {
   assertNoClientForbiddenText(`client-api-view-${sourceId}`, clientViewText);
   const clientView = JSON.parse(clientViewText).view;
   assert(clientView?.viewId === sourceId, "client view detail missing imported view");
-  assert(clientView.sourceKind === "rtsp", "client view sourceKind should be rtsp");
+  assert(clientView.sourceKind === "rtsp", "client view sourceKind should remain downstream rtsp");
+  assert(Array.isArray(clientView.sourceTags) && clientView.sourceTags.includes("onvif"), "client view should expose sanitized ONVIF tag");
   assert(!("rtspUrl" in clientView), "client view must not include rtspUrl");
   console.log("[pass] client view detail redacts RTSP locator and ONVIF details");
 } finally {

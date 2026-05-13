@@ -374,7 +374,7 @@ run_users() {
   chmod 644 "${USERS_FILE}" || fail "failed to simulate permissive auth users file"
   login_admin
   expect_cookie_page_contains "ops users access request selectors" "${ADMIN_COOKIE}" "${BASE}/ops/users" \
-    'id="access-requests-body"' 'id="request-invite-output"' '/ops/api/access-requests' '접근 요청' \
+    'id="access-requests-body"' 'id="request-invite-output"' '/ops/api/access-requests' '승인 대기 요청' \
     'id="apply-view-scope-template"' 'id="scope-template-preview"' 'id="user-scopes-input"'
   auth_scope_picker_smoke
   expect_auth_store_owner_only "permissive auth users file re-hardened"

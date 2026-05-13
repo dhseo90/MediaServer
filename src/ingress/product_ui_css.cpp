@@ -190,7 +190,7 @@ std::string ProductUiCss() {
       margin: 0 auto;
       padding: var(--space-3) 0 56px;
       display: grid;
-      gap: var(--space-5);
+      gap: var(--space-6);
     }
     .app-header,
     .auth-card,
@@ -213,14 +213,14 @@ std::string ProductUiCss() {
       z-index: 20;
       display: grid;
       gap: var(--space-2);
-      padding: 0;
+      padding: 0 0 var(--space-2);
       background: var(--color-bg);
       border: 0;
       border-radius: 0;
       box-shadow:
         0 calc(-1 * var(--space-2)) 0 var(--space-2) var(--color-bg),
         0 0 0 100vmax var(--color-bg);
-      clip-path: inset(calc(-1 * var(--space-2)) -100vmax 0 -100vmax);
+      clip-path: inset(calc(-1 * var(--space-2)) -100vmax calc(-1 * var(--space-2)) -100vmax);
     }
     .route-header {
       gap: var(--space-2);
@@ -228,7 +228,7 @@ std::string ProductUiCss() {
     .app-header-top {
       width: 100%;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(220px, 220px);
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
       align-items: stretch;
       gap: var(--space-4);
     }
@@ -305,28 +305,28 @@ std::string ProductUiCss() {
     }
     .account-menu {
       flex: 0 0 auto;
-      min-height: 52px;
+      min-height: 64px;
       height: 100%;
       min-width: 0;
       display: flex;
-      align-items: center;
+      align-items: stretch;
       justify-content: flex-end;
-      gap: 6px;
-      padding: 6px;
+      gap: 8px;
+      padding: 6px 8px;
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
       background: var(--color-bg-elevated);
     }
     .account-menu-top {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 6px;
-      flex-wrap: nowrap;
+      flex: 1 1 auto;
+      display: grid;
+      align-content: center;
+      justify-content: stretch;
+      gap: 4px;
       min-width: 0;
     }
     .account-menu .account-identity {
-      display: none;
+      display: flex;
     }
     .account-menu .language-control span {
       display: none;
@@ -334,9 +334,20 @@ std::string ProductUiCss() {
     .account-menu .language-control {
       min-width: 76px;
     }
+    .account-controls {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
     .account-shortcut {
       width: auto;
-      min-width: 84px;
+      min-width: 52px;
+      min-height: 30px;
+      padding: 5px 8px;
+      font-size: 12px;
       white-space: nowrap;
       flex: 0 0 auto;
     }
@@ -372,6 +383,8 @@ std::string ProductUiCss() {
     .account-menu > form {
       width: auto;
       margin: 0;
+      display: flex;
+      align-items: center;
     }
     .account-menu > form > button {
       width: auto;
@@ -544,6 +557,14 @@ std::string ProductUiCss() {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: var(--space-4);
+    }
+    .ops-metric-grid,
+    .ops-dashboard-card-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .ops-dashboard-card-grid .section-card {
+      min-height: 156px;
+      align-content: start;
     }
     .split-grid {
       display: grid;
@@ -1077,7 +1098,7 @@ std::string ProductUiCss() {
     }
     .audit-filter-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      grid-template-columns: repeat(4, minmax(170px, 1fr));
       gap: var(--space-2);
       flex: 1 1 520px;
       min-width: 0;
@@ -1432,7 +1453,7 @@ std::string ProductUiCss() {
     .ops-rules-col-template { width: 140px; }
     .ops-rules-col-profile { width: 140px; }
     .ops-rules-col-geometry { width: 92px; }
-    .ops-rules-col-output { width: 96px; }
+    .ops-rules-col-output { width: 228px; }
     .ops-rules-col-target { width: 148px; }
     .ops-rules-col-status { width: 84px; }
     .ops-rules-col-actions { width: 148px; }
@@ -1662,7 +1683,7 @@ std::string ProductUiCss() {
     .channel-col-status { width: 112px; }
     .channel-col-input { width: auto; }
     .channel-col-live-url,
-    .channel-col-va-url { width: 142px; }
+    .channel-col-va-url { width: 172px; }
     .channel-col-actions { width: 150px; }
     .channel-id-cell,
     .channel-kind-cell,
@@ -1729,8 +1750,15 @@ std::string ProductUiCss() {
       font-size: 11px;
       white-space: nowrap;
     }
+    .channel-stream-actions button[data-copy-stream-channel][title^="ONVIF"],
+    .channel-stream-actions button[data-ops-rule-copy-kind][title^="ONVIF"] {
+      font-size: 10px;
+    }
+    .ops-rules-table .channel-stream-actions {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
     .ops-rules-table .channel-stream-actions button {
-      white-space: normal;
+      white-space: nowrap;
       word-break: keep-all;
       overflow-wrap: anywhere;
       line-height: 1.15;
@@ -1778,6 +1806,20 @@ std::string ProductUiCss() {
       .image-nav-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .nav-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .nav { width: 100%; }
+      .audit-controls {
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: stretch;
+      }
+      .audit-filter-grid {
+        width: 100%;
+        flex: 1 1 auto;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .audit-toolbar,
+      .audit-presets {
+        justify-content: flex-start;
+      }
       .grid.rules-metrics-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
@@ -1787,14 +1829,14 @@ std::string ProductUiCss() {
     }
     @media (max-width: 1180px) and (min-width: 861px) {
       .app-header-top {
-        grid-template-columns: minmax(0, 1fr) minmax(220px, 220px);
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
         align-items: stretch;
       }
       .app-header-top > .image-nav-tabs:not(.client-image-nav-tabs) {
         grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
       }
       .account-menu {
-        min-height: 52px;
+        min-height: 64px;
         align-content: center;
         gap: var(--space-2);
         padding: 6px 8px;
@@ -1808,25 +1850,24 @@ std::string ProductUiCss() {
         align-items: center;
       }
       body.client-shell .app-header-top {
-        grid-template-columns: minmax(0, 1fr) 176px;
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
         align-items: stretch;
       }
       body.client-shell .account-menu {
-        min-height: 52px;
+        min-height: 64px;
         display: flex;
-        align-items: center;
+        align-items: stretch;
         justify-content: flex-end;
         gap: 6px;
         padding: 6px;
       }
       body.client-shell .account-menu-top {
         min-width: 0;
-        justify-content: flex-end;
-        flex-wrap: nowrap;
+        justify-content: stretch;
         gap: 6px;
       }
       body.client-shell .account-identity {
-        display: none;
+        display: flex;
       }
       body.client-shell .account-menu > form {
         width: auto;
@@ -1851,6 +1892,10 @@ std::string ProductUiCss() {
       }
     }
     @media (max-width: 1040px) {
+      .ops-metric-grid,
+      .ops-dashboard-card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
       .ops-responsive-table,
       .ops-responsive-table tbody,
       .ops-responsive-table tr,
@@ -2026,6 +2071,10 @@ std::string ProductUiCss() {
       .grid.rules-metrics-grid {
         grid-template-columns: 1fr;
       }
+      .ops-metric-grid,
+      .ops-dashboard-card-grid {
+        grid-template-columns: 1fr;
+      }
       .ops-va-stage-grid {
         grid-template-columns: 1fr;
       }
@@ -2105,7 +2154,7 @@ std::string ClientShellCss() {
     }
     header.app-chrome .app-header-top {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(220px, 220px);
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
       width: 100%;
       align-items: stretch;
       gap: var(--space-4);
@@ -2123,23 +2172,23 @@ std::string ClientShellCss() {
       grid-template-columns: repeat(2, minmax(92px, 1fr));
     }
     body.client-shell header.app-chrome .app-header-top {
-      grid-template-columns: minmax(0, 1fr) 176px;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
       align-items: stretch;
     }
     body.client-shell .account-menu {
-      min-height: 52px;
+      min-height: 64px;
       justify-content: flex-end;
       gap: 6px;
       padding: 6px;
     }
     body.client-shell .account-identity {
-      display: none;
+      display: flex;
     }
     body.client-shell .language-control {
       min-width: 64px;
     }
     body.client-shell .account-menu-top {
-      flex-wrap: nowrap;
+      justify-content: stretch;
       gap: 6px;
     }
     body.client-shell .account-menu > form > button {

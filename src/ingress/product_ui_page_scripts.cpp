@@ -66,7 +66,7 @@ void AppendClientAccessRequestScript(std::ostringstream& out) {
           })
         });
         form.reset();
-        setMessage('요청이 pending 상태로 저장되었습니다.');
+        setMessage('요청이 승인 대기 상태로 저장되었습니다.');
       } catch (error) {
         setMessage(error.message, true);
       }
@@ -172,14 +172,18 @@ void AppendClientShellScript(std::ostringstream& out) {
       'va-overlay': 'VA 오버레이',
       'va-rule': 'VA 룰'
     })[mode] || mode || '미제공';
-    const sourceKindLabel = kind => ({
-      file: '파일',
-      rtsp: 'RTSP',
-      whep: '외부 WHEP',
-      http: 'HTTP/HLS',
-      hls: 'HTTP/HLS',
-      webrtc: 'Published WebRTC'
-    })[String(kind || '').toLowerCase()] || kind || '소스';
+    const viewHasSourceTag = (view, tag) => Array.isArray(view?.sourceTags) &&
+      view.sourceTags.map(item => String(item || '').toLowerCase()).includes(String(tag || '').toLowerCase());
+    const sourceKindLabel = (kind, view = null) => viewHasSourceTag(view, 'onvif')
+      ? 'ONVIF'
+      : ({
+        file: '파일',
+        rtsp: 'RTSP',
+        whep: '외부 WHEP',
+        http: 'HTTP/HLS',
+        hls: 'HTTP/HLS',
+        webrtc: 'Published WebRTC'
+      })[String(kind || '').toLowerCase()] || kind || '소스';
     const defaultTileRuleId = view => view?.defaultRuleId || (Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds[0] : '') || '';
     const requestedRuleIdForView = view =>
       (requestedClientRuleId && String(view?.viewId || '') === String(selectedViewId || ''))
@@ -223,7 +227,7 @@ void AppendClientShellScript(std::ostringstream& out) {
         <button class="view${view.viewId === selectedViewId ? ' active' : ''}" type="button" data-view-id="${escapeHtml(view.viewId)}">
           <h3>${escapeHtml(view.displayName || view.viewId)}</h3>
 	          <div class="meta">
-	            <span class="chip">${escapeHtml(sourceKindLabel(view.sourceKind))}</span>
+		            <span class="chip">${escapeHtml(sourceKindLabel(view.sourceKind, view))}</span>
 	            ${view.showDashboard ? '<span class="chip">대시보드</span>' : ''}
 	            <span class="chip">최대 ${viewMaxTiles(view)}개</span>
 	          </div>
@@ -493,7 +497,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        <section class="events">
 	          <h3>클라이언트 범위</h3>
 	          <div class="summary">
-	            <div class="metric"><span>소스 종류</span><strong>${escapeHtml(sourceKindLabel(view.sourceKind))}</strong></div>
+	            <div class="metric"><span>소스 종류</span><strong>${escapeHtml(sourceKindLabel(view.sourceKind, view))}</strong></div>
 	            <div class="metric"><span>대시보드 권한</span><strong>${view.showDashboard === false ? '꺼짐' : '사용'}</strong></div>
 	            <div class="metric"><span>이벤트 권한</span><strong>${view.showEvents === false ? '꺼짐' : '사용'}</strong></div>
 	            <div class="metric"><span>메타데이터</span><strong>${view.showMetadataSummary === false ? '꺼짐' : '사용'}</strong></div>
@@ -2633,6 +2637,13 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (kind === 'webrtc') return { kind: 'webrtc', url: source.webrtcSourceId || source.sourceId || source.url || '' };
         return { kind, url: source.url || '' };
       }
+      function opsRulesHasSourceTag(source, tag) {
+        return Array.isArray(source?.tags) &&
+          source.tags.map(item => String(item || '').toLowerCase()).includes(String(tag || '').toLowerCase());
+      }
+      function opsRulesDisplayKindForSource(source) {
+        return opsRulesHasSourceTag(source, 'onvif') ? 'ONVIF' : opsRulesSourceKindLabel(source?.kind);
+      }
       function opsRulesSourceMatches(left = {}, right = {}) {
         const leftPayload = opsRulesSourcePayload(left);
         const rightPayload = opsRulesSourcePayload(right);
@@ -2662,7 +2673,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         });
       }
       function opsRulesChannelOptionLabel(channel) {
-        const kind = channel?.source?.kind ? opsRulesSourceKindLabel(channel.source.kind) : '입력';
+        const kind = channel?.source ? opsRulesDisplayKindForSource(channel.source) : '입력';
         return `${display(channel.displayName)} · ${kind}`;
       }
       function opsRulesSourceDetailLabel(source) {
@@ -2671,7 +2682,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (source.kind === 'rtsp') return display(source.url || source.rtspUrl || '');
         if (source.kind === 'whep') return display(source.whepUrl || source.url || '');
         if (source.kind === 'webrtc') return display(source.webrtcSourceId || source.sourceId || '');
-        if (source.kind === 'http' || source.kind === 'hls') return display(source.url || '');
+        if (source.kind === 'http' || source.kind === 'hls') return display(source.httpUrl || source.url || '');
         return display(source.url || source.file || '');
       }
       function opsRulesFindChannelById(channelId) {
@@ -4174,6 +4185,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       function opsRulesSourceKindLabel(kind) {
         const value = String(kind || '').trim();
         if (value === '*' || !value) return '전체 입력';
+        if (value === 'onvif') return 'ONVIF';
         if (value === 'file') return '파일';
         if (value === 'rtsp') return 'RTSP';
         if (value === 'whep') return 'WHEP';
@@ -4481,6 +4493,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (source.kind === 'file') {
           return `<div class="ops-rule-value-stack"><strong>파일</strong><span class="ops-rule-note">${escapeHtml(display(source.file))}</span></div>`;
         }
+        if (opsRulesHasSourceTag(source, 'onvif')) {
+          return `<div class="ops-rule-value-stack"><strong>ONVIF</strong><span class="ops-rule-note">${escapeHtml(display(source.rtspUrl || source.httpUrl || source.url))}</span></div>`;
+        }
         if (source.kind === 'webrtc') {
           return `<div class="ops-rule-value-stack"><strong>Published WebRTC</strong><span class="ops-rule-note">${escapeHtml(display(source.webrtcSourceId || source.sourceId))}</span></div>`;
         }
@@ -4495,7 +4510,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       function opsRulesVaRuleChannelHtml(item) {
         const channel = opsRulesFindChannelForVaRule(item);
         if (channel) {
-          const kind = channel?.source?.kind ? opsRulesSourceKindLabel(channel.source.kind) : '입력';
+          const kind = channel?.source ? opsRulesDisplayKindForSource(channel.source) : '입력';
           const detail = opsRulesSourceDetailLabel(channel.source);
           return `<div class="ops-rule-value-stack">
             <strong>${escapeHtml(display(channel.displayName))}</strong>
@@ -4560,10 +4575,12 @@ void AppendOpsShellScript(std::ostringstream& out,
         const channel = opsRulesFindChannelForVaRule(item);
         const ruleId = String(item?.id || '').trim();
         const viewId = String(channel?.view?.viewId || '').trim();
+        const isOnvif = opsRulesHasSourceTag(channel?.source, 'onvif');
+        const prefix = isOnvif ? 'ONVIF ' : '';
         return opsRowActionsHtml(`
-          <button type="button" class="secondary" data-ops-rule-copy-kind="rtsp" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="이 채널 분석 설정의 RTSP URL 복사" aria-label="이 채널 분석 설정의 RTSP URL 복사">RTSP 복사</button>
-          <button type="button" class="secondary" data-ops-rule-copy-kind="whep" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="이 채널 분석 설정의 WHEP URL 복사" aria-label="이 채널 분석 설정의 WHEP URL 복사">WHEP 복사</button>
-          <button type="button" class="secondary" data-ops-rule-copy-kind="client" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="이 채널 분석 설정의 WebRTC 링크 복사" aria-label="이 채널 분석 설정의 WebRTC 링크 복사"${viewId ? '' : ' disabled'}>WebRTC 복사</button>
+          <button type="button" class="secondary" data-ops-rule-copy-kind="rtsp" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="${prefix}이 채널 분석 설정의 RTSP URL 복사" aria-label="${prefix}이 채널 분석 설정의 RTSP URL 복사">${isOnvif ? 'ONVIF RTSP' : 'RTSP'}</button>
+          <button type="button" class="secondary" data-ops-rule-copy-kind="whep" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="${prefix}이 채널 분석 설정의 WHEP URL 복사" aria-label="${prefix}이 채널 분석 설정의 WHEP URL 복사">${isOnvif ? 'ONVIF WHEP' : 'WHEP'}</button>
+          <button type="button" class="secondary" data-ops-rule-copy-kind="client" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="${prefix}이 채널 분석 설정의 WebRTC 링크 복사" aria-label="${prefix}이 채널 분석 설정의 WebRTC 링크 복사"${viewId ? '' : ' disabled'}>WebRTC</button>
         `, 'ops-stream-actions channel-stream-actions');
       }
       function opsRulesEventSummaryHtml(item = {}) {
@@ -5237,7 +5254,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     };
     const hasSourceTag = (source, tag) => Array.isArray(source?.tags) &&
       source.tags.map(item => String(item || '').toLowerCase()).includes(String(tag || '').toLowerCase());
-    const isOnvifSource = source => String(source?.kind || '') === 'rtsp' && hasSourceTag(source, 'onvif');
+    const isOnvifSource = source => hasSourceTag(source, 'onvif');
+    const onvifStreamUriForSource = source => source?.rtspUrl || source?.httpUrl || source?.whepUrl || source?.url || '';
     const kindLabel = (kind, source = null) => ({
       file: '파일',
       onvif: 'ONVIF camera',
@@ -5248,6 +5266,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     })[kind] || kind || '미제공';
     const locatorForSource = source => {
       if (source.webrtcSourceId) return `Published sourceId: ${source.webrtcSourceId}`;
+      if (isOnvifSource(source)) return `ONVIF Stream URI: ${onvifStreamUriForSource(source) || '미제공'}`;
       if (source.whepUrl) return `외부 WHEP URL: ${source.whepUrl}`;
       return source.file || source.rtspUrl || source.httpUrl || '미제공';
     };
@@ -5318,11 +5337,14 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       }
       const id = escapeHtml(source.sourceId || '');
       const label = mode === 'va' ? 'VA URL' : '라이브 URL';
-      const sourcePrefix = isOnvifSource(source) ? 'ONVIF ' : '';
+      const isOnvif = isOnvifSource(source);
+      const sourcePrefix = isOnvif ? 'ONVIF ' : '';
+      const rtspButtonText = isOnvif ? 'ONVIF RTSP' : 'RTSP';
+      const whepButtonText = isOnvif ? 'ONVIF WHEP' : 'WHEP';
       const copyMode = mode === 'va' ? 'va' : 'raw';
       return opsRowActionsHtml(`
-          <button type="button" class="secondary" data-copy-stream-type="rtsp" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${sourcePrefix}${label} RTSP 복사" aria-label="${sourcePrefix}${label} RTSP 복사">RTSP</button>
-          <button type="button" class="secondary" data-copy-stream-type="whep" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${sourcePrefix}${label} WHEP 복사" aria-label="${sourcePrefix}${label} WHEP 복사">WHEP</button>
+          <button type="button" class="secondary" data-copy-stream-type="rtsp" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${sourcePrefix}${label} RTSP 복사" aria-label="${sourcePrefix}${label} RTSP 복사">${rtspButtonText}</button>
+          <button type="button" class="secondary" data-copy-stream-type="whep" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${sourcePrefix}${label} WHEP 복사" aria-label="${sourcePrefix}${label} WHEP 복사">${whepButtonText}</button>
         `, 'ops-stream-actions channel-stream-actions');
     }
     async function copyTextToClipboard(value) {
@@ -5626,6 +5648,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       channelForm.elements.displayName.value = view.displayName || source.displayName || '';
       channelForm.elements.kind.value = isOnvifSource(source) ? 'onvif' : (source.kind || 'file');
       loadFileOptions(source.file || '');
+      channelForm.elements.onvifStreamUrl.value = onvifStreamUriForSource(source);
       channelForm.elements.rtspUrl.value = source.rtspUrl || '';
       channelForm.elements.webrtcSourceId.value = source.webrtcSourceId || '';
       channelForm.elements.whepUrl.value = source.whepUrl || '';
@@ -5650,7 +5673,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       const kind = data.kind || 'file';
       const locatorByKind = {
         file: data.file,
-        onvif: data.rtspUrl,
+        onvif: data.onvifStreamUrl,
         rtsp: data.rtspUrl,
         webrtc: data.webrtcSourceId,
         whep: data.whepUrl,
@@ -5661,12 +5684,27 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         if (kind === 'whep') return '외부 WHEP playback endpoint URL이 필요합니다.';
         return `${kindLabel(kind)} 입력값이 필요합니다.`;
       }
+      if (kind === 'onvif' && !onvifTransportFromUri(data.onvifStreamUrl)) {
+        return 'ONVIF Stream URI는 rtsp://, rtsps://, http://, https:// 중 하나로 시작해야 합니다.';
+      }
       return '';
+    }
+    function onvifTransportFromUri(value) {
+      const uri = String(value || '').trim();
+      const lower = uri.toLowerCase();
+      if (lower.startsWith('rtsp://') || lower.startsWith('rtsps://')) {
+        return { kind: 'rtsp', rtspUrl: uri };
+      }
+      if (lower.startsWith('http://') || lower.startsWith('https://')) {
+        return { kind: lower.includes('.m3u8') ? 'hls' : 'http', httpUrl: uri };
+      }
+      return null;
     }
     function channelPayloadsFromFormData(data) {
       const channelId = data.channelId.trim();
       const formKind = data.kind || 'file';
-      const storedKind = formKind === 'onvif' ? 'rtsp' : formKind;
+      const onvifTransport = formKind === 'onvif' ? onvifTransportFromUri(data.onvifStreamUrl) : null;
+      const storedKind = formKind === 'onvif' ? (onvifTransport?.kind || 'rtsp') : formKind;
       const sourcePayload = {
         sourceId: channelId,
         displayName: data.displayName,
@@ -5676,7 +5714,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         ownerGroup: ''
       };
       if (formKind === 'file') sourcePayload.file = (data.file || '').trim();
-      if (formKind === 'rtsp' || formKind === 'onvif') sourcePayload.rtspUrl = (data.rtspUrl || '').trim();
+      if (formKind === 'onvif' && onvifTransport?.rtspUrl) sourcePayload.rtspUrl = onvifTransport.rtspUrl;
+      if (formKind === 'onvif' && onvifTransport?.httpUrl) sourcePayload.httpUrl = onvifTransport.httpUrl;
+      if (formKind === 'rtsp') sourcePayload.rtspUrl = (data.rtspUrl || '').trim();
       if (formKind === 'webrtc') sourcePayload.webrtcSourceId = (data.webrtcSourceId || '').trim();
       if (formKind === 'whep') sourcePayload.whepUrl = (data.whepUrl || '').trim();
       if (formKind === 'http') sourcePayload.httpUrl = (data.httpUrl || '').trim();

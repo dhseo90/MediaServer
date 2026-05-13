@@ -1973,15 +1973,6 @@ void AppendProductAccountMenu(std::ostringstream& out,
                              const std::string& secondary_action_label = std::string()) {
     out << R"(        <div class="account-menu" aria-label="현재 계정">
           <div class="account-menu-top">
-            )" << ProductThemeToggleButtonHtml() << ProductLanguageSelectHtml() << R"(
-)";
-    if (!secondary_action_href.empty() && !secondary_action_label.empty()) {
-        out << R"(            <a class="button button-secondary account-shortcut" href=")"
-            << HtmlEscape(secondary_action_href) << R"(">)"
-            << HtmlEscape(secondary_action_label) << R"(</a>
-)";
-    }
-    out << R"(
             <div class="account-identity">
               )" << ProductAccountAvatarSvg() << R"(
               <div class="account-copy">
@@ -1989,6 +1980,16 @@ void AppendProductAccountMenu(std::ostringstream& out,
                 <div class="account-meta">권한: )" << HtmlEscape(principal.role) << R"(</div>
               </div>
             </div>
+            <div class="account-controls">
+              )" << ProductThemeToggleButtonHtml() << ProductLanguageSelectHtml() << R"(
+)";
+    if (!secondary_action_href.empty() && !secondary_action_label.empty()) {
+        out << R"(              <a class="button button-secondary account-shortcut" href=")"
+            << HtmlEscape(secondary_action_href) << R"(">)"
+            << HtmlEscape(secondary_action_label) << R"(</a>
+)";
+    }
+    out << R"(            </div>
           </div>
           <form method="post" action="/logout"><button class="button-secondary" type="submit">로그아웃</button></form>
         </div>
@@ -2178,10 +2179,10 @@ std::string InviteSetupPageHtml(const std::string& token,
 
 std::string ClientAccessRequestPageHtml() {
     std::ostringstream out;
-    AppendAuthShellStart(out, "접근 요청", "Client Access", "auth-card-wide");
+    AppendAuthShellStart(out, "시청 권한 요청", "Client Access", "auth-card-wide");
     out << R"(    <form id="request-form" class="auth-form">
-      <h1>접근 요청</h1>
-      <p>요청은 pending 상태로 저장되며 admin 승인 전에는 로그인이나 view 접근이 허용되지 않습니다.</p>
+      <h1>시청 권한 요청</h1>
+      <p>요청은 승인 대기 상태로 저장되며 관리자 승인 전에는 로그인이나 채널 접근이 허용되지 않습니다.</p>
       <div id="message" class="message" hidden></div>
       <label>계정명<input name="username" autocomplete="username" required /></label>
       <label>표시 이름<input name="displayName" /></label>
@@ -2289,13 +2290,13 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
         </div>
         )" << RefreshIconButtonHtml("opsDashboardRefresh", "button-secondary", "새로고침") << R"(
       </div>
-      <div class="grid">
+      <div class="grid ops-metric-grid">
         <div class="metric-card"><span>활성 세션</span><strong id="dashActiveSessions">-</strong></div>
         <div class="metric-card"><span>활성 스트림</span><strong id="dashActiveStreams">-</strong></div>
         <div class="metric-card"><span>분석 탭</span><strong id="dashActiveTaps">-</strong></div>
         <div class="metric-card"><span>WHIP 소스</span><strong id="dashPublishSources">-</strong></div>
       </div>
-      <div class="grid">
+      <div class="grid ops-dashboard-card-grid">
         <section class="section-card">
           <h3>상태 요약</h3>
           <div id="dashHealthBadges" class="badge-row"><span class="chip">로딩 중</span></div>
@@ -3841,7 +3842,10 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     AppendImageNavLink(out, "/client/dashboard", "dashboard", "대시보드", active == "dashboard");
     out << R"(        </nav>
 )";
-    AppendProductAccountMenu(out, principal);
+    AppendProductAccountMenu(out,
+                             principal,
+                             preview_mode ? "/ops/home" : std::string(),
+                             preview_mode ? "Ops" : std::string());
     out << R"(      </div>
     </header>
 )";
@@ -3957,7 +3961,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
         </div>
           <form id="channel-form">
           <div class="channel-editor-intro">
-            <p><strong>ONVIF camera</strong>는 카메라에서 확인한 RTSP live stream URI를 저장합니다. <strong>외부 WHEP</strong>는 URL 입력, <strong>Published WebRTC</strong>는 저장된 <code>sourceId</code> 연결입니다.</p>
+            <p><strong>ONVIF camera</strong>는 ONVIF 프로파일에서 선택한 live stream URI를 연결합니다. <strong>외부 WHEP</strong>는 URL 입력, <strong>Published WebRTC</strong>는 저장된 <code>sourceId</code> 연결입니다.</p>
           </div>
           <div class="row">
             <label>채널 ID<input name="channelId" type="number" min="1" step="1" inputmode="numeric" placeholder="1" required /></label>
@@ -3978,8 +3982,9 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
               <option value="sample_h264.mp4">sample_h264.mp4</option>
             </select>
           </label>
-          <label data-source-kind="rtsp onvif">RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live" /></label>
-          <p data-source-kind="onvif" class="hint">ONVIF 장치의 live profile에서 얻은 RTSP stream URI를 입력합니다. 저장 후에는 다른 RTSP 채널과 같은 방식으로 재생/복사됩니다.</p>
+          <label data-source-kind="onvif">ONVIF Stream URI<input name="onvifStreamUrl" placeholder="rtsp://camera/live 또는 https://camera/live.m3u8" /></label>
+          <p data-source-kind="onvif" class="hint">ONVIF 장치의 live profile에서 선택한 재생 URI를 입력합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.</p>
+          <label data-source-kind="rtsp">RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live" /></label>
           <label data-source-kind="whep">외부 WHEP URL<input name="whepUrl" placeholder="https://example.com/whep/stream" /></label>
           <p data-source-kind="whep" class="hint">외부 WebRTC playback endpoint를 서버가 WHEP pull source로 연결합니다. URL 자체가 입력값입니다.</p>
           <label data-source-kind="webrtc">Published sourceId<input name="webrtcSourceId" placeholder="published-source-id" /></label>
@@ -4050,9 +4055,10 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
       <section class="section-card">
         <div class="toolbar">
           <div>
-            <h2>접근 요청</h2>
-            <p>요청을 검토하고 초대 링크를 발급합니다.</p>
+            <h2>승인 대기 요청</h2>
+            <p>공개 회원가입이 아니라, 별도 요청 페이지로 들어온 계정을 관리자가 검토한 뒤 초대 링크를 발급합니다.</p>
           </div>
+          <a class="button button-secondary" href="/client/request-access">요청 페이지</a>
           <span id="request-status" class="status"></span>
         </div>
         <pre id="request-invite-output" hidden></pre>
@@ -4109,7 +4115,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
             </div>
             <div id="view-assignment">
               <label>채널 ID<input name="viewId" placeholder="1" /></label>
-              <p class="hint">시청자/연동 계정에는 선택한 채널 조회 권한만 부여합니다. debug/lab/ops/source/rule 관리 권한은 허용하지 않습니다.</p>
+              <p class="hint">시청자/연동 계정에는 선택한 채널의 라이브, 대시보드, 이벤트, 메타데이터 조회 권한만 부여합니다. 운영, 개발, 소스, 룰 관리 권한은 허용하지 않습니다.</p>
             </div>
             <div class="scope-template-actions">
               <button id="apply-view-scope-template" class="button-secondary" type="button">채널 범위 적용</button>

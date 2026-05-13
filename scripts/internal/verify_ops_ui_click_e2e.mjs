@@ -119,7 +119,7 @@ async function runOpsClickFlow(browser, context) {
   await assertText(browser, "#channel-editor-title", "채널 추가", "채널 추가 제목");
   await setSelectValue(browser, '[name="kind"]', "onvif", "ONVIF 채널 타입");
   await assertFormValue(browser, '[name="kind"]', "onvif", "ONVIF kind");
-  await assertVisible(browser, '[data-source-kind="rtsp onvif"]', "ONVIF RTSP URL 입력");
+  await assertVisible(browser, '[data-source-kind="onvif"]', "ONVIF Stream URI 입력");
   await assertNoOverflow(browser, `${context.label}:sources-add`);
   steps.push("sources:add-onvif-kind");
 

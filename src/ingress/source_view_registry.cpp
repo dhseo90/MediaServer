@@ -634,7 +634,16 @@ std::vector<SourceViewRegistry::SourceRecord> DefaultSourceRecords() {
     http_source.enabled = true;
     http_source.canonical_source_key = CanonicalSourceKey(http_source);
 
-    return {file_source, va_source, rtsp_source, http_source};
+    SourceViewRegistry::SourceRecord onvif_source;
+    onvif_source.source_id = "5";
+    onvif_source.display_name = "Public ONVIF Stream Sample";
+    onvif_source.kind = "rtsp";
+    onvif_source.rtsp_url = "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov";
+    onvif_source.enabled = true;
+    onvif_source.tags = {"onvif", "live", "public-stream"};
+    onvif_source.canonical_source_key = CanonicalSourceKey(onvif_source);
+
+    return {file_source, va_source, rtsp_source, http_source, onvif_source};
 }
 
 SourceViewRegistry::PublishedViewRecord DefaultPublishedViewRecord(
@@ -907,7 +916,9 @@ std::string ClientPublishedViewJson(const SourceViewRegistry::PublishedViewRecor
         << "\"sourceId\":\"" << JsonEscape(view.source_id) << "\","
         << "\"sourceDisplayName\":\"" << JsonEscape(source.display_name) << "\","
         << "\"sourceKind\":\"" << JsonEscape(source.kind) << "\","
-        << "\"defaultRuleId\":\"" << JsonEscape(view.default_rule_id) << "\","
+        << "\"sourceTags\":";
+    AppendStringArray(out, source.tags);
+    out << ",\"defaultRuleId\":\"" << JsonEscape(view.default_rule_id) << "\","
         << "\"allowedRuleIds\":";
     AppendStringArray(out, view.allowed_rule_ids);
     out << ",\"allowedOverlayModes\":";
