@@ -32,12 +32,7 @@
     "docs/versioning-policy.md",
     "docs/public-repo-final-review.md",
     "docs/sample-fixture-provenance.md",
-    "docs/en/README.md",
-    "docs/en/distribution-policy.md",
-    "docs/en/release-policy.md",
-    "docs/en/versioning-policy.md",
-    "docs/en/public-repo-final-review.md",
-    "docs/en/sample-fixture-provenance.md"
+    "docs/en/README.md"
   ],
   "secretPatterns": [
     {
