@@ -75,8 +75,8 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 
 ## v1.2.0 시작 전 체크리스트
 
-- [ ] v1.1.0 PR이 `main`에 merge됨
-- [ ] release tag/GitHub Release 여부 결정
+- [x] v1.1.0 PR이 `main`에 merge됨
+- [x] release tag/GitHub Release 여부 결정 (`v1.1.0` tag 생성, GitHub Release는 별도 보류)
 - [ ] `main` 기준 `./server.sh test` 또는 지정 release gate 결과 확인
 - [ ] v1.2.0 scope 이슈를 P0/P1/P2로 분리
 - [ ] schema/media path 변경 가능성이 있는 항목은 별도 migration/review 이슈로 분리
