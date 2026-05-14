@@ -90,7 +90,8 @@
 
 - `/ops/api/source-health`는 `media-server.ops.source-health.v1` schema와
   `summary`, `sourceHealth[]`를 반환합니다.
-- `/ops/sources`는 Live Source Health panel/table/detail을 표시합니다.
+- 당시 `/ops/sources`는 Live Source Health panel/table/detail을 표시했습니다.
+  현재 제품 UI에서는 source health 요약을 `/ops/dashboard`와 API 검증으로 다룹니다.
 - `/ops/dashboard` 문제 원인 패널은 Live Source Health를 source 재검증
   workflow로 연결합니다.
 - client dashboard/live detail은 source locator, ONVIF endpoint, raw diagnostic

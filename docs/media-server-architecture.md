@@ -213,9 +213,9 @@ Viewer
   -> PublishedView public fields only
 ```
 
-ONVIF import의 origin metadata는 v1.1.0 설계 항목입니다.
-현재 SourceRegistry 저장 payload에는 포함하지 않으며,
-[ONVIF Live Source Import](./onvif-live-import.md)의 draft를 기준으로
+ONVIF origin metadata는 v1.1.0 저장 schema에 포함하지 않습니다.
+[ONVIF Live Source Support](./onvif-live-source-support.md) 기준으로
+ONVIF는 다른 live source와 같은 SourceRegistry/PublishedView 저장 흐름을 쓰며,
 별도 schema review 후 optional source metadata로만 검토합니다.
 client/viewer API에는 ONVIF endpoint, stream URI, credential reference 같은
 원본 locator나 secret 추적 정보를 노출하지 않습니다.

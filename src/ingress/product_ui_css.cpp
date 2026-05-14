@@ -672,6 +672,8 @@ std::string ProductUiCss() {
     select,
     textarea {
       width: 100%;
+      min-width: 0;
+      max-width: 100%;
       min-height: 38px;
       border: 1px solid var(--color-input-border);
       border-radius: var(--radius-md);
@@ -681,6 +683,10 @@ std::string ProductUiCss() {
       font: inherit;
       -webkit-user-select: text;
       user-select: text;
+    }
+    .audit-date-input {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0;
     }
     textarea { min-height: 82px; resize: vertical; }
     input:focus,

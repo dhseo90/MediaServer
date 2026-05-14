@@ -212,13 +212,13 @@ fi
   source 재검증, registry diff, Event/evidence 진단, auth/config 확인,
   log correlation 필터를 실행합니다.
   Live Source Health 항목은 `/ops/api/source-health`를 사용하고
-  `/ops/sources#source-health`로 이동할 수 있어야 합니다.
+  운영자는 대시보드에서 상태 요약과 다음 조치를 확인합니다.
   내부 진단 JSON은 제품 화면에 직접 노출하지 않고 API/검증 명령에서만 확인합니다.
 - `/ops/sources`는 숫자 채널 table을 먼저 보여줍니다.
   상단 안내 카드와 detail form에서
-  `외부 WHEP pull`과 `Published WebRTC source` 차이를 설명해야 합니다.
-  Live Source Health panel/table/detail은 `live`, `connecting`, `stale`,
-  `offline`, `unknown` 상태와 next action을 표시합니다.
+  `외부 WHEP pull`과 `Published WebRTC 소스` 차이를 설명해야 합니다.
+  ONVIF 채널은 다른 source 유형과 같은 테이블 규칙으로 표시하고,
+  Live/VA URL copy 영역에 `ONVIF RTSP`, `ONVIF WHEP` 버튼을 표시합니다.
   Live URL/VA URL 복사 버튼은 RTSP/WHEP 값을 실제 클립보드에 복사해야 합니다.
   rendered HTML에 `AppendTableHead(` 같은 템플릿 문자열이 새면 안 됩니다.
   source 원본 URL은 ops 화면에만 표시합니다.

@@ -1341,9 +1341,12 @@ void AppendOpsShellScript(std::ostringstream& out,
         requestJson,
         applyPrincipalVisibility,
         setSelectOptions,
+        translateText,
         recordOpsAudit,
         renderOpsAuditTrail
       } = window.MediaServerUi;
+      const opsText = value => translateText ? translateText(value) : display(value);
+      const opsHtml = value => escapeHtml(opsText(value));
       const opsHashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
       const opsViewRuleId = view =>
         String(view?.defaultRuleId || (Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds[0] : '') || '').trim();
@@ -1497,7 +1500,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               : '라이브 소스 상태가 정상 범위입니다.',
             actionHref: firstDegradedSource?.sourceId
               ? `/ops/sources#channel=${encodeURIComponent(firstDegradedSource.sourceId)}`
-              : '/ops/sources#source-health',
+              : '/ops/dashboard',
             actionLabel: '소스 상태',
             actionKind: 'source-health',
             actionPatterns: 'source health|last-frame-aged|metadata-aged|no-subscriber|no-egress-session|unreachable|waiting-video'
@@ -1679,15 +1682,15 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (!list) return;
         list.innerHTML = items.map((item, index) => `<article class="root-cause-item ${escapeHtml(item.level)}">
           <div>
-            <strong>${escapeHtml(item.title)}</strong>
-            <p>${escapeHtml(item.detail)}</p>
+            <strong>${opsHtml(item.title)}</strong>
+            <p>${opsHtml(item.detail)}</p>
           </div>
-          <span class="chip${item.level === 'warn' ? ' warn' : (item.level === 'bad' ? ' bad' : '')}">${item.level === 'info' ? '정상' : '확인'}</span>
+          <span class="chip${item.level === 'warn' ? ' warn' : (item.level === 'bad' ? ' bad' : '')}">${opsHtml(item.level === 'info' ? '정상' : '확인')}</span>
           ${item.correlationId ? `<span class="root-cause-correlation">cid ${escapeHtml(item.correlationId)}</span>` : ''}
-          ${item.evidence ? `<p class="root-cause-evidence">${escapeHtml(item.evidence)}</p>` : ''}
-          ${item.log ? `<p class="root-cause-log">${escapeHtml(item.log)}</p>` : ''}
-          <p class="root-cause-action">${escapeHtml(item.action)}</p>
-          ${item.actionHref ? `<button type="button" class="button button-secondary button-compact root-cause-next-action" data-root-cause-index="${index}" data-root-cause-kind="${escapeHtml(item.actionKind || '')}" data-root-cause-action="${escapeHtml(item.title)}" data-correlation-id="${escapeHtml(item.correlationId || '')}">${escapeHtml(item.actionLabel || '다음 조치')}</button> <a class="btn small" href="${escapeHtml(item.actionHref)}">이동</a>` : ''}
+          ${item.evidence ? `<p class="root-cause-evidence">${opsHtml(item.evidence)}</p>` : ''}
+          ${item.log ? `<p class="root-cause-log">${opsHtml(item.log)}</p>` : ''}
+          <p class="root-cause-action">${opsHtml(item.action)}</p>
+          ${item.actionHref ? `<button type="button" class="button button-secondary button-compact root-cause-next-action" data-root-cause-index="${index}" data-root-cause-kind="${escapeHtml(item.actionKind || '')}" data-root-cause-action="${escapeHtml(item.title)}" data-correlation-id="${escapeHtml(item.correlationId || '')}">${opsHtml(item.actionLabel || '다음 조치')}</button> <a class="btn small" href="${escapeHtml(item.actionHref)}">${opsHtml('이동')}</a>` : ''}
         </article>`).join('');
         list.querySelectorAll('[data-root-cause-index]').forEach(button => {
           button.addEventListener('click', () => {
@@ -2007,6 +2010,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
         await refreshDashboardVaQuality(runtime).catch(renderDashboardVaQualityError);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
+        window.MediaServerUi?.translatePage?.();
       }
       const OPS_EVENT_RECORD_LIMIT = 25;
       let opsEventRecordsOffset = 0;

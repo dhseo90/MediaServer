@@ -178,9 +178,10 @@ if (failures.length) {
 }
 
 async function captureTask(task, debugPort) {
+  const pagePath = withLanguageParam(task.pagePath);
   const browser = await openBrowserPage({
     httpBase,
-    pagePath: task.pagePath,
+    pagePath,
     timeoutMs: 20000,
     chromePath,
     debugPort,
@@ -188,6 +189,7 @@ async function captureTask(task, debugPort) {
     height: task.viewport.height,
     outputDir,
     verbose,
+    locale: language === "en" ? "en-US" : "ko-KR",
   });
   try {
     await applyDarkTheme(browser);
@@ -203,6 +205,11 @@ async function captureTask(task, debugPort) {
   } finally {
     await browser.close();
   }
+}
+
+function withLanguageParam(pagePath) {
+  const separator = String(pagePath).includes("?") ? "&" : "?";
+  return `${pagePath}${separator}lang=${encodeURIComponent(language)}`;
 }
 
 async function applyDarkTheme(browser) {

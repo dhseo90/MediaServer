@@ -111,7 +111,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | RTSP/WebRTC pipeline, source/session, VA layer 배치 | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenario, live event, short evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
 | v1.1.0 live-only 제품 경계, 용어, 완료 checklist, 비범위 키워드 기준 | [docs/v1.1.0-roadmap.md](docs/v1.1.0-roadmap.md) |
-| v1.1.0-alpha.2: ONVIF live source import 1차 구현/설계 | [docs/onvif-live-import.md](docs/onvif-live-import.md) |
+| v1.1.0: ONVIF live source 지원과 URL copy parity | [docs/onvif-live-source-support.md](docs/onvif-live-source-support.md) |
 | v1.1.0-beta.1: Live source health/operator workflow 1차 구현 기준 | [docs/live-source-health.md](docs/live-source-health.md) |
 | v1.1.0 후속 Phase: Event/WebRTC/SSE/WS metadata contract | [docs/live-event-metadata-contracts.md](docs/live-event-metadata-contracts.md) |
 | v1.1.0 후속 Phase: Scenario timeline/debug 필드 설계 | [docs/scenario-timeline-debug.md](docs/scenario-timeline-debug.md) |
@@ -158,7 +158,7 @@ README에는 전체 흐름이 바로 읽히는 대표 제품 화면만 배치합
 채널 화면에서는 아래 두 입력을 분리해 설명합니다.
 
 - `외부 WHEP pull`: 외부 playback endpoint를 서버 pull source로 등록
-- `Published WebRTC source`: 외부 URL이 아니라 내부 `/whip/publish`로 먼저 등록된 `sourceId` 연결
+- `Published WebRTC 소스`: 외부 URL이 아니라 내부 `/whip/publish`로 먼저 등록된 `sourceId` 연결
 
 ## 전체 Pipeline
 

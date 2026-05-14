@@ -31,7 +31,7 @@
 | `완료` | Ops/Client UI | SourceRegistry/PublishedView, `/ops` shell, `/client` shell, client dashboard/live monitor, Lab 화면 route 404 |
 | `완료` | 운영 안정화 | backup/restore dry-run, evidence cleanup job, audit search/export, RC artifact archive, root-cause action, table helper |
 | `완료` | v1.1.0 선수 로드맵 1/6 | Live-only 제품 경계 확정. 이후 단계와 RC에서 다시 진행하지 않음 |
-| `완료` | v1.1.0 선수 로드맵 2/6 | ONVIF Live Source Onboarding 1차 import draft/API/UI/redaction smoke 완료 |
+| `완료` | v1.1.0 선수 로드맵 2/6 | ONVIF Live Source Support 1차 fixture draft/API/UI/redaction smoke 완료 |
 | `완료` | v1.1.0 선수 로드맵 3/6 | Live Source Health / Operator Workflow API/UI/sanitized client smoke 완료 |
 | `완료` | v1.1.0 선수 로드맵 4/6 | Live VA Event Quality timeline/debug, TrackHealth grouping, preset baseline smoke 완료 |
 | `완료` | v1.1.0 선수 로드맵 5/6 | Live Event Delivery Contract 문서/식별자/smoke matrix 정리 완료 |
@@ -99,7 +99,7 @@ cleanup idle 관찰, P1 public/bundle/full smoke 재검토를 완료했습니다
   분리합니다.
 - 목적:
   v1.1.0의 첫 단계를 구현 기능 추가가 아니라 제품 경계 확정으로 닫습니다.
-  이후 ONVIF import나 source health 작업이 장기 녹화/VMS/NVR 방향으로
+  이후 ONVIF live source 지원이나 source health 작업이 장기 녹화/VMS/NVR 방향으로
   확장되지 않도록 문서 기준을 먼저 고정합니다.
 - 범위:
   - v1.1.0 roadmap을 live-only 기준 문서로 고정
@@ -111,7 +111,7 @@ cleanup idle 관찰, P1 public/bundle/full smoke 재검토를 완료했습니다
 - 비범위:
   - C++ 기능 로직, API schema, Event POST/WebRTC/SSE/WS metadata schema 변경
   - SourceRegistry/PublishedView payload 변경
-  - ONVIF import 실제 구현
+  - ONVIF live source 지원 실제 구현
   - 장기 녹화, playback/search, MP4 recorder, ONVIF Profile G
 - 검증:
   `git diff --check`, `./server.sh verify-docs-links`,
@@ -119,7 +119,7 @@ cleanup idle 관찰, P1 public/bundle/full smoke 재검토를 완료했습니다
 
 후속 phase 참고 문서:
 
-- [ONVIF live source import](./onvif-live-import.md)
+- [ONVIF live source support](./onvif-live-source-support.md)
 - [Live source health](./live-source-health.md)
 - [Live event and metadata contracts](./live-event-metadata-contracts.md)
 - [Scenario timeline debug fields](./scenario-timeline-debug.md)
@@ -128,19 +128,19 @@ cleanup idle 관찰, P1 public/bundle/full smoke 재검토를 완료했습니다
 alpha.1 `Live-only 제품 경계 확정` 완료 범위에는 API skeleton, registry schema,
 Ops UI 구현, state-dump extension, smoke matrix 구현을 포함하지 않습니다.
 
-### v1.1.0-alpha.2 ONVIF Live Source Import
+### v1.1.0-alpha.2 ONVIF Live Source Support
 
-- **상태**: `완료` - 선수 로드맵 2/6 기준 synthetic ONVIF fixture, import draft API,
-  `/ops/sources` stub import UI, 기존 source/view 저장 round-trip smoke 완료
+- **상태**: `완료` - 선수 로드맵 2/6 기준 synthetic ONVIF fixture, draft API,
+  `/ops/sources` ONVIF source type, 기존 source/view 저장 round-trip smoke 완료
 - RC 기준:
-  현재 v1.1.0 RC 선수 범위는 ONVIF 응답을 기존 live RTSP source onboarding으로
+  현재 v1.1.0 RC 선수 범위는 ONVIF 응답을 기존 live source onboarding으로
   안전하게 연결하는 1차 contract와 UI smoke입니다. 실제 네트워크 discovery/SOAP
   probe, credential persistence, origin metadata registry migration은 RC 잔여
   blocker가 아니라 현장 연동 확장 후보로 분리합니다.
 - 구현됨:
   - `POST /ops/api/onvif/import-draft`는 기존 `kind=rtsp` source draft와
     PublishedView draft를 반환하며 저장 side effect를 만들지 않습니다.
-  - `/ops/sources`의 ONVIF stub import는 operator가 폼을 확인한 뒤 기존
+  - `/ops/sources`의 ONVIF source type은 operator가 폼을 확인한 뒤 기존
     `/ops/api/sources/{id}`, `/ops/api/views/{id}` 저장 경로로 이어집니다.
   - client/viewer API에는 RTSP URL, ONVIF endpoint, credential reference,
     raw diagnostic JSON을 노출하지 않습니다.
@@ -300,7 +300,7 @@ Ops UI 구현, state-dump extension, smoke matrix 구현을 포함하지 않습�
   - `GET /ops/api/source-health`
   - `media-server.ops.source-health.v1` 응답 schema
   - passive analysis tap과 Published WebRTC source 기반 상태 판정
-  - `/ops/sources` Live Source Health panel, table badge, detail health panel
+  - `/ops/dashboard` Live Source Health 요약과 운영 진단 출력
   - `/ops/dashboard` 문제 원인 패널의 Live Source Health 항목과 다음 조치
   - `/client/dashboard`, `/client/live` detail의 `summary`, `warningLevel`,
     `connectionStatus`, frame/metadata status 정렬
@@ -310,7 +310,7 @@ Ops UI 구현, state-dump extension, smoke matrix 구현을 포함하지 않습�
   - Published WebRTC source의 active egress session 기반 `no-egress-session` 판정
   - `high-reconnect`, `repeated-stale` warning threshold
   - `POST /ops/api/source-health/bulk` partial retry 계약
-  - `/ops/sources` source health bulk check와 retryBody 실행 버튼
+  - source health bulk API와 retryBody 계약
   - source health `status/reason` 변화의 짧은 Ops audit trail 기록
   - `verify-ops-source-lifecycle` auto-start/settle/port cleanup/port randomization 전제 자동화
   - `verify-ops-root-cause-panel`, `verify-client-dashboard-polish`,

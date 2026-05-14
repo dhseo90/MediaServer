@@ -2,7 +2,7 @@
 
 이 문서는 v1.1.0-beta.1의 live source health 1차 구현 기준과
 선수 로드맵 3/6 close-out 상태를 정의합니다.
-목표는 `/ops/sources`, `/ops/dashboard`, client dashboard가 같은 상태 의미를
+목표는 `/ops/dashboard`, source health API, client dashboard가 같은 상태 의미를
 공유하되 노출 범위를 다르게 유지하는 것입니다.
 
 관련 기준:
@@ -20,10 +20,9 @@
 - reconnect count
 - stale/offline reason
 - codec/profile summary
-- `/ops/sources` row/detail health 표시
 - `/ops/dashboard` source lifecycle 요약과 같은 상태 의미 사용
 - client dashboard sanitized health 표현
-- bulk health check 또는 source validation smoke 설계
+- source validation smoke와 bulk API 계약
 
 비범위:
 
@@ -46,14 +45,12 @@
 
 - `GET /ops/api/source-health`
 - `POST /ops/api/source-health/bulk`
-- `/ops/sources` Live Source Health 요약, row badge, detail health panel
 - `/ops/dashboard` 문제 원인 패널의 source health 요약과 Dashboard 이동 흐름
 - client dashboard/live detail의 sanitized health summary
 - `SessionManager` source restart 기반 `reconnectCount`, `lastReconnectAt` 연동
 - active stream descriptor와 WHIP published descriptor 기반 codec/profile/width/height/fps 연동
-- source health bulk check의 partial failure와 failed-only retry 계약
+- source health bulk API의 partial failure와 failed-only retry 계약
 - source health 상태 변화의 짧은 Ops audit trail 기록
-- `/ops/sources`의 source health bulk check와 `retryBody` 기반 재시도 버튼
 - `verify-ops-source-lifecycle` auto-start/settle/port cleanup/port randomization 전제 자동화
 - `verify-ops-root-cause-panel`, `verify-client-dashboard-polish`,
   `verify-ops-source-lifecycle`, `verify-ops-source-health-bulk`,
@@ -82,7 +79,7 @@ codec mismatch, high reconnect, metadata delay 같은 조건은 `warnings[]`로 
 
 ## Ops Health Fields
 
-`/ops/sources`와 `/ops/dashboard`에서 공유하는 1차 field:
+`/ops/api/source-health`와 `/ops/dashboard`에서 공유하는 1차 field:
 
 ```json
 {
@@ -164,29 +161,14 @@ client dashboard/live monitor는 같은 상태 의미를 쓰되 원본 locator�
 - raw source lifecycle JSON
 - reconnect target URL 또는 auth/debug 세부
 
-## `/ops/sources` UI Draft
+## Operator Diagnostics
 
-목록 row:
+`/ops/sources`는 채널 목록과 상세/URL copy/변경 이력 화면입니다.
+source health는 `/ops/dashboard`의 문제 원인/운영 요약과 아래 API로 확인합니다.
+채널 화면 안에 별도 Live Source Health panel/table/detail 또는 bulk 작업 패널을
+두지 않습니다.
 
-- source display name 옆에 `live`, `connecting`, `stale`, `offline`, `unknown` badge
-- last frame age와 reconnect count를 짧게 표시
-- codec summary는 `H264 1080p30`처럼 한 줄로 축약
-- raw JSON은 표시하지 않음
-
-detail panel:
-
-- 최근 check 시각
-- last frame/metadata age
-- stale/offline reason
-- reconnect count와 마지막 reconnect 시각
-- codec/profile summary
-- 다음 조치 버튼:
-  - source 재검증
-  - registry diff 확인
-  - dashboard 원인 패널로 이동
-  - log correlation filter
-
-bulk check:
+bulk API:
 
 - 선택 source 또는 전체 source를 대상으로 dry-run check 실행
 - source별 `status`, `reason`, `checkedAt`, `warnings[]`를 반환
@@ -209,10 +191,8 @@ Content-Type: application/json
 `sourceIds`를 생략하면 전체 source를 확인합니다.
 `operation`은 `check` 또는 `retry`이며 서버 동작은 dry-run health 재조회입니다.
 실패/비정상 항목은 `results[].retryable=true`로 표시되고,
-운영 UI는 `retryBody`의 sourceIds만 다시 보내 partial retry를 수행합니다.
-`/ops/sources`의 Live Source Health 패널은 선택된 채널이 있으면 선택
-source만, 선택이 없으면 전체 source를 bulk check하고, `retryBody.sourceIds`가
-있을 때만 Bulk 재시도 버튼을 활성화합니다.
+운영 진단 workflow는 `retryBody`의 sourceIds만 다시 보내 partial retry를 수행할
+수 있습니다.
 없는 sourceId는 `ok=false`, `reason=not-found`, `retryable=false`로 남겨
 구성 수정 대상과 단순 재시도 대상을 분리합니다.
 `partialFailure=true`는 일부 sourceId만 실패했음을 의미합니다.

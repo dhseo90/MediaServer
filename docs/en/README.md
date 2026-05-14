@@ -34,7 +34,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 
 ## v1.1.0 Product Boundary
 
-- v1.1.0 targets live operations: ONVIF-assisted live source onboarding, live source health, and live VA event quality.
+- v1.1.0 targets live operations: ONVIF live source support, live source health, and live VA event quality.
 - It does not expand Media Server into long-term recording, VMS/NVR, playback/search, or ONVIF Profile G recording/replay scope.
 - EventRecord, snapshot, and clip hooks remain short event evidence or diagnostics helpers unless a later phase changes the product boundary.
 - The 2026-05-12 close-out completed prerequisite roadmap steps 1-6.
@@ -50,7 +50,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | v1.1.0 source release | Done | Live-only source release is defined; binary/runtime/model bundles are excluded |
 | Runtime distribution policy | Done | Source-first policy and bundle guardrails are in place |
 | Ops UI stability | Done | Channels/Rules/Users responsive table checks exist |
-| v1.1.0 prerequisite roadmap 1-6 | Done | Live-only boundary, ONVIF import, source health, VA quality, delivery contract, and multilingual alignment are closed |
+| v1.1.0 prerequisite roadmap 1-6 | Done | Live-only boundary, ONVIF live source support, source health, VA quality, delivery contract, and multilingual alignment are closed |
 | v1.1.0 RC stabilization | Done | Final local longrun/P1 release-gate evidence is closed without rerunning prerequisite roadmap 1-6 |
 | Audit trail operations | Follow-up phase | Server persistence exists; search/export can improve |
 | Short event evidence | Supporting | EventRecord/snapshot/clip cleanup exists, but it is not the main v1.1.0 product direction |

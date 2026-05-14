@@ -249,6 +249,8 @@ if (screenshotEnabled) {
   if (result.failCount > 0) process.exit(1);
   const clientHeaderResult = await runClientHeaderResponsiveSmoke();
   if (clientHeaderResult.failCount > 0) process.exit(1);
+  const auditResponsiveResult = await runOpsAuditResponsiveSmoke();
+  if (auditResponsiveResult.failCount > 0) process.exit(1);
 }
 
 function clientForbiddenText() {
@@ -380,6 +382,114 @@ function clientHeaderResponsiveExpression() {
         accountTop: accountRect.top,
         navBottom: navRect.bottom,
         overflowX,
+      };
+    })()
+  `;
+}
+
+async function runOpsAuditResponsiveSmoke() {
+  let auditPassCount = 0;
+  let auditFailCount = 0;
+  const auditFailures = [];
+  const auditPaths = [
+    { name: "ops-sources-audit", path: "/ops/sources", selector: "#channel-audit-list" },
+    { name: "ops-users-audit", path: "/ops/users", selector: "#user-audit-list" },
+  ];
+  let checkIndex = 0;
+  for (const check of auditPaths) {
+    for (const width of visualWidths) {
+      if (width > 560) continue;
+      const label = `${check.name}-${width}`;
+      const browser = await openBrowserPage({
+        httpBase,
+        pagePath: check.path,
+        timeoutMs,
+        chromePath,
+        debugPort: debugPortBase + 320 + checkIndex,
+        width,
+        height: visualHeight,
+        outputDir,
+      });
+      checkIndex += 1;
+      try {
+        await browser.evaluate(`document.querySelector(${JSON.stringify(check.selector)})?.scrollIntoView({ block: 'center' }); true`, 10000);
+        await browser.screenshot(path.join(outputDir, `${label}.png`));
+        const result = await browser.evaluate(opsAuditResponsiveExpression(check.selector), 10000);
+        if (!result?.ok) {
+          const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
+          throw new Error(`${label}: ${details}`);
+        }
+        auditPassCount += 1;
+        console.log(`[pass] ${label}: overflow=${result.overflowX}, controls=${result.controlCount}`);
+      } catch (error) {
+        auditFailCount += 1;
+        const message = error instanceof Error ? error.message : String(error);
+        auditFailures.push(`[${check.name}] ${message}`);
+        console.log(`[fail] ${check.name}: ${message}`);
+      } finally {
+        await browser.close();
+      }
+    }
+  }
+  console.log("");
+  console.log("== Ops audit mobile smoke 요약 ==");
+  console.log(`- 통과: ${auditPassCount}`);
+  console.log(`- 실패: ${auditFailCount}`);
+  if (auditFailures.length > 0) {
+    console.log("- 실패 상세:");
+    for (const failure of auditFailures) {
+      console.log(`  - ${failure}`);
+    }
+  }
+  return { passCount: auditPassCount, failCount: auditFailCount };
+}
+
+function opsAuditResponsiveExpression(selector) {
+  return `
+    (() => {
+      const issues = [];
+      const section = document.querySelector(${JSON.stringify(selector)});
+      const doc = document.documentElement;
+      const body = document.body;
+      const overflowX = Math.max(0, Math.max(doc.scrollWidth, body.scrollWidth) - window.innerWidth);
+      if (!section) {
+        return { ok: false, issues: ['audit section missing'], overflowX, controlCount: 0 };
+      }
+      const controls = Array.from(section.querySelectorAll('.audit-date-input'));
+      if (controls.length !== 2) {
+        issues.push('expected two audit date inputs, got ' + controls.length);
+      }
+      for (const control of controls) {
+        const rect = control.getBoundingClientRect();
+        if (control.type !== 'text') {
+          issues.push('audit date input uses native type=' + control.type);
+        }
+        if (control.placeholder !== 'YYYY-MM-DD HH:mm') {
+          issues.push('audit date placeholder mismatch');
+        }
+        if (rect.left < -1 || rect.right > window.innerWidth + 1) {
+          issues.push('audit date input outside viewport: ' + Math.round(rect.left) + '..' + Math.round(rect.right));
+        }
+        if (rect.width < 120) {
+          issues.push('audit date input too narrow: ' + Math.round(rect.width));
+        }
+      }
+      const action = section.querySelector('select[id$="-audit-action"]');
+      const limit = section.querySelector('select[id$="-audit-limit"]');
+      for (const control of [action, limit].filter(Boolean)) {
+        const rect = control.getBoundingClientRect();
+        if (rect.left < -1 || rect.right > window.innerWidth + 1) {
+          issues.push('audit select outside viewport: ' + Math.round(rect.left) + '..' + Math.round(rect.right));
+        }
+      }
+      if (overflowX > 2) {
+        issues.push('document horizontal overflow ' + overflowX + 'px');
+      }
+      return {
+        ok: issues.length === 0,
+        issues,
+        overflowX,
+        controlCount: controls.length,
       };
     })()
   `;

@@ -244,19 +244,15 @@ Route 역할:
     phase elapsed, cooldown, dedupe/emitted count는 운영자 debug summary로만
     보여주며 Event POST/WebRTC/SSE/WS metadata schema를 바꾸지 않습니다.
   - `/ops/sources`:
-    숫자 채널 목록, 상세 패널,
-    `/ops/api/channels/bulk` 기반 대량 복제/비활성화/상태 진단을 제공합니다.
-    v1.1.0 live source health 초안은
-    [live-source-health.md](./live-source-health.md)를 기준으로 하며,
-    row/detail에서 live/connecting/stale/offline/unknown badge,
-    last frame age, reconnect count, codec summary를 operator용으로 표시합니다.
-    client/viewer에는 같은 상태 의미를 sanitized dashboard summary로만 노출하고
-    원본 source URL, ONVIF endpoint, raw diagnostic JSON은 숨깁니다.
-    대량 작업은 dry-run, partial failure 리포트, 실패 항목 재시도,
-    성공 항목 롤백을 UI에서 처리합니다.
-    Bulk 결과에는 audit action/target metadata와 diff preview policy가 포함됩니다.
-    UI는 실패 항목 재실행 전 diff preview를 표시하고,
-    같은 내용을 채널 감사 로그 before/after에 연결합니다.
+    숫자 채널 목록, 상세 패널, 채널 추가 폼, URL copy 영역,
+    채널 변경 이력을 제공합니다.
+    ONVIF는 별도 import 패널이 아니라 `ONVIF 카메라` source 유형으로 표시합니다.
+    Live URL/VA URL copy 버튼은 file/RTSP/HTTP/WHEP/Published WebRTC와 같은
+    테이블 규칙을 쓰며, ONVIF 채널은 `ONVIF RTSP`, `ONVIF WHEP` 버튼을 표시합니다.
+    live source health 초안은 [live-source-health.md](./live-source-health.md)를
+    기준으로 `/ops/dashboard`와 source health API에서 다루며, client/viewer에는
+    sanitized dashboard summary만 노출합니다.
+    원본 source URL, ONVIF endpoint, raw diagnostic JSON은 viewer/client에 숨깁니다.
   - `/ops/rules`: 채널 분석 설정, 이벤트 템플릿, 분석 프로파일 목록
 
   룰 편집 미리보기는 선택한 PublishedView에 대해 `va-overlay` 우선으로 열고,
