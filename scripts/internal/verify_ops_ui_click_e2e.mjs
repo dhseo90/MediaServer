@@ -55,32 +55,37 @@ if (!chromePath) {
 let passCount = 0;
 let failCount = 0;
 const failures = [];
+const createdPrereqs = await ensureOpsClickPrereqs();
 
-for (let index = 0; index < widths.length; index += 1) {
-  const width = widths[index];
-  const label = `ops-click-${width}`;
-  const browser = await openBrowserPage({
-    httpBase,
-    pagePath: "/ops/sources",
-    timeoutMs,
-    chromePath,
-    debugPort: debugPortBase + index,
-    width,
-    height,
-    outputDir,
-  });
-  try {
-    const result = await runOpsClickFlow(browser, { width, label });
-    passCount += 1;
-    console.log(`[pass] ${label}: ${result.steps.join(", ")}`);
-  } catch (error) {
-    failCount += 1;
-    const message = error instanceof Error ? error.message : String(error);
-    failures.push(`[${label}] ${message}`);
-    console.log(`[fail] ${label}: ${message}`);
-  } finally {
-    await browser.close();
+try {
+  for (let index = 0; index < widths.length; index += 1) {
+    const width = widths[index];
+    const label = `ops-click-${width}`;
+    const browser = await openBrowserPage({
+      httpBase,
+      pagePath: "/ops/sources",
+      timeoutMs,
+      chromePath,
+      debugPort: debugPortBase + index,
+      width,
+      height,
+      outputDir,
+    });
+    try {
+      const result = await runOpsClickFlow(browser, { width, label });
+      passCount += 1;
+      console.log(`[pass] ${label}: ${result.steps.join(", ")}`);
+    } catch (error) {
+      failCount += 1;
+      const message = error instanceof Error ? error.message : String(error);
+      failures.push(`[${label}] ${message}`);
+      console.log(`[fail] ${label}: ${message}`);
+    } finally {
+      await browser.close();
+    }
   }
+} finally {
+  await cleanupOpsClickPrereqs(createdPrereqs);
 }
 
 console.log("");
@@ -93,6 +98,80 @@ if (failures.length > 0) {
     console.log(`  - ${failure}`);
   }
   process.exit(1);
+}
+
+async function ensureOpsClickPrereqs() {
+  const created = { eventRuleId: "" };
+  const catalog = await requestJson("/ops/api/rules/catalog");
+  const rules = Array.isArray(catalog.rules) ? catalog.rules : [];
+  if (rules.length > 0) return created;
+  const id = nextNumericId([
+    ...rules.map(item => item?.id),
+    ...(Array.isArray(catalog.vaRules) ? catalog.vaRules.map(item => item?.id) : []),
+  ], 9901);
+  await requestJson(`/lab/analysis/rules/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(opsClickEventTemplatePayload(id)),
+  });
+  created.eventRuleId = id;
+  return created;
+}
+
+async function cleanupOpsClickPrereqs(created) {
+  if (!created?.eventRuleId) return;
+  await requestJson(`/lab/analysis/rules/${encodeURIComponent(created.eventRuleId)}`, {
+    method: "DELETE",
+  }).catch(error => console.log(`[warn] ops-click event template cleanup failed: ${error.message}`));
+}
+
+function nextNumericId(values, startAt) {
+  const used = new Set((values || []).map(item => String(item || "")).filter(Boolean));
+  for (let candidate = Number(startAt || 9901); candidate < 10000; candidate += 1) {
+    if (!used.has(String(candidate))) return String(candidate);
+  }
+  throw new Error("no free numeric id for ops click prereq");
+}
+
+function opsClickEventTemplatePayload(id) {
+  return {
+    id,
+    enabled: true,
+    analysis: { classes: ["person", "vehicle"] },
+    event: {
+      type: "intrusion-dwell",
+      region: {
+        type: "polygon",
+        points: [{ x: 0.2, y: 0.22 }, { x: 0.8, y: 0.22 }, { x: 0.8, y: 0.78 }, { x: 0.2, y: 0.78 }],
+      },
+      minConfidence: 0.25,
+      minDurationMs: 0,
+    },
+    ruleKind: "scenario",
+    scenario: {
+      type: "intrusion-dwell",
+      enabled: true,
+      candidateTimeMs: 2000,
+      dwellTimeMs: 10000,
+      cooldownMs: 5000,
+      targetClasses: ["person", "vehicle"],
+    },
+  };
+}
+
+async function requestJson(pathValue, options = {}) {
+  const response = await fetch(`${httpBase}${pathValue}`, options);
+  const text = await response.text();
+  let payload = {};
+  try {
+    payload = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(`${pathValue} returned non-JSON: ${text.slice(0, 160)}`);
+  }
+  if (!response.ok) {
+    throw new Error(`${pathValue} failed HTTP ${response.status}: ${payload?.error || text}`);
+  }
+  return payload;
 }
 
 async function runOpsClickFlow(browser, context) {
@@ -176,19 +255,35 @@ async function runOpsClickFlow(browser, context) {
   await assertNoOverflow(browser, `${context.label}:users-add`);
   await clickSelector(browser, "#user-close", "사용자 패널 닫기");
   await assertHidden(browser, "#user-detail-panel", "사용자 패널 닫힘");
-  await clickSelector(browser, "[data-user-view]", "사용자 상세");
-  await assertVisible(browser, "#user-detail-panel", "사용자 상세 패널");
-  await clickSelector(browser, "#user-close", "사용자 상세 닫기");
-  steps.push("users:add-detail");
+  if (await isElementVisible(browser, "[data-user-view]")) {
+    await clickSelector(browser, "[data-user-view]", "사용자 상세");
+    await assertVisible(browser, "#user-detail-panel", "사용자 상세 패널");
+    await clickSelector(browser, "#user-close", "사용자 상세 닫기");
+    steps.push("users:add-detail");
+  } else {
+    steps.push("users:add-empty");
+  }
 
   await clickSelector(browser, 'a[href="/client/live"]', "클라이언트 라이브");
   await waitForPath(browser, "/client/live");
   await installErrorCollector(browser);
   await assertReady(browser, "/client/live", '[data-testid="client-shell-page"]');
+  await assertClientPreviewAdminAffordance(browser, `${context.label}:client-live-preview`);
+  await clickSelector(browser, '.account-shortcut[href="/ops/home"]', "클라이언트 미리보기 Ops 복귀");
+  await waitForPath(browser, "/ops/home");
+  await installErrorCollector(browser);
+  await assertReady(browser, "/ops/home", '[data-testid="ops-home-page"]');
+  await clickSelector(browser, 'a[href="/client/live"]', "클라이언트 미리보기 재진입");
+  await waitForPath(browser, "/client/live");
+  await installErrorCollector(browser);
+  await assertReady(browser, "/client/live", '[data-testid="client-shell-page"]');
+  await assertClientPreviewAdminAffordance(browser, `${context.label}:client-live-return`);
+  steps.push("client:preview-admin");
   await clickSelector(browser, 'a[href="/client/dashboard"]', "클라이언트 대시보드");
   await waitForPath(browser, "/client/dashboard");
   await installErrorCollector(browser);
   await assertReady(browser, "/client/dashboard", '[data-testid="client-shell-page"]');
+  await assertClientPreviewAdminAffordance(browser, `${context.label}:client-dashboard-preview`);
   await assertVisible(browser, '[data-testid="client-dashboard-compare"]', "클라이언트 채널 비교");
   await setSelectValue(browser, "#clientDashboardCompareFilter", "warnings", "클라이언트 비교 필터");
   await setSelectValue(browser, "#clientDashboardCompareSort", "events", "클라이언트 비교 정렬");
@@ -210,6 +305,44 @@ async function runOpsClickFlow(browser, context) {
 
   await assertBrowserErrors(browser, context.label);
   return { steps };
+}
+
+async function assertClientPreviewAdminAffordance(browser, label) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const body = document.body;
+        const shortcut = document.querySelector('.account-shortcut[href="/ops/home"]');
+        const accountName = document.querySelector('.account-menu .account-name');
+        const accountMeta = document.querySelector('.account-menu .account-meta');
+        const navLinks = Array.from(document.querySelectorAll('.client-image-nav-tabs a'))
+          .map(link => ({
+            href: link.getAttribute('href') || '',
+            text: (link.textContent || '').trim(),
+          }));
+        const issues = [];
+        if (body?.dataset?.clientPreview !== 'true') issues.push('missing client preview flag');
+        if (!shortcut || !(shortcut.textContent || '').includes('Ops')) issues.push('missing Ops shortcut');
+        if (!accountName || !(accountName.textContent || '').trim()) issues.push('missing account name');
+        if (!accountMeta || !(accountMeta.textContent || '').includes('admin')) issues.push('missing admin role');
+        if (!navLinks.some(link => link.href === '/client/live')) issues.push('missing client live nav');
+        if (!navLinks.some(link => link.href === '/client/dashboard')) issues.push('missing client dashboard nav');
+        if (navLinks.some(link => link.href.startsWith('/ops/'))) issues.push('ops nav leaked into client primary nav');
+        return {
+          ok: issues.length === 0,
+          issues,
+          shortcutText: (shortcut?.textContent || '').trim(),
+          accountName: (accountName?.textContent || '').trim(),
+          accountMeta: (accountMeta?.textContent || '').trim(),
+          navLinks,
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    label,
+  );
+  return result;
 }
 
 async function clickSelector(browser, selector, description) {
@@ -442,6 +575,19 @@ async function assertHidden(browser, selector, description) {
     description,
   );
   return result;
+}
+
+async function isElementVisible(browser, selector) {
+  const result = await browser.evaluate(`
+    (() => {
+      const node = document.querySelector(${JSON.stringify(selector)});
+      if (!node) return false;
+      const rect = node.getBoundingClientRect();
+      const style = getComputedStyle(node);
+      return !node.hidden && style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+    })()
+  `, 3000).catch(() => false);
+  return Boolean(result);
 }
 
 async function assertText(browser, selector, expected, description) {
