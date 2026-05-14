@@ -88,17 +88,9 @@ const tasks = [
     name: "ops-users",
     file: "ops-users.png",
     pagePath: "/ops/users",
-    viewport: { width: 1680, height: 1250 },
-    clip: {
-      selectors: [
-        'header',
-        '[data-testid="ops-users-page"] > .toolbar',
-        '[data-testid="ops-users-page"] > .section-card:nth-of-type(1)',
-        '[data-testid="ops-users-page"] > .section-card:nth-of-type(2)'
-      ],
-      fitMainWidth: true,
-      margin: 18,
-    },
+    viewport: { width: 1680, height: 1500 },
+    setup: setupOpsUsers,
+    clip: { selectors: ['header', '[data-testid="ops-users-page"]'], fitMainWidth: true, margin: 18 },
   },
   {
     name: "ops-dashboard",
@@ -367,6 +359,20 @@ async function setupOpsRulesOverview(browser) {
   })()`, 12000);
 }
 
+async function setupOpsUsers(browser) {
+  await applyDarkTheme(browser);
+  await waitFor(browser, `(() => {
+    const bodyText = document.body?.textContent || '';
+    if (bodyText.includes('auth users file not found')) {
+      throw new Error('auth users file not found');
+    }
+    const usersBody = document.querySelector('#users-body');
+    const requestsBody = document.querySelector('#access-requests-body');
+    const userRow = usersBody?.querySelector('tr');
+    return Boolean(usersBody && requestsBody && userRow && !usersBody.textContent.includes('로딩 중'));
+  })()`, 12000);
+}
+
 async function setupClientDashboard(browser) {
   await applyDarkTheme(browser);
   await evaluate(browser, `(() => {
@@ -402,10 +408,11 @@ async function computeClip(browser, clipSpec) {
     const right = fitMainWidth && mainRect ? mainRect.right : Math.max(...rects.map((rect) => rect.right));
     const top = Math.min(...rects.map((rect) => rect.top));
     const bottom = Math.max(...rects.map((rect) => rect.bottom));
+    const rawWidth = Math.ceil((right - left) + margin * 2);
+    const rawHeight = Math.ceil((bottom - top) + margin * 2);
     let x = Math.max(0, Math.floor(window.scrollX + left - margin));
     let y = Math.max(0, Math.floor(window.scrollY + top - margin));
-    let width = Math.ceil((right - left) + margin * 2);
-    const rawHeight = Math.ceil((bottom - top) + margin * 2);
+    let width = rawWidth;
     let height = maxHeight ? Math.min(rawHeight, maxHeight) : rawHeight;
     if (minWidth && width < minWidth) {
       const delta = minWidth - width;
@@ -417,8 +424,22 @@ async function computeClip(browser, clipSpec) {
       y = Math.max(0, Math.floor(y - (delta / 2)));
       height = minHeight;
     }
-    return { x, y, width, height };
+    const cropped = height < rawHeight || width < rawWidth;
+    return {
+      x,
+      y,
+      width,
+      height,
+      rawWidth,
+      rawHeight,
+      cropped,
+      selectors,
+      documentHeight: Math.ceil(document.documentElement.scrollHeight || document.body.scrollHeight || 0),
+    };
   })()`, 8000);
+  if (result?.cropped && !clipSpec.allowCrop) {
+    throw new Error(`clip would crop selected content: selectors=${result.selectors.join(", ")} raw=${result.rawWidth}x${result.rawHeight} clip=${result.width}x${result.height}`);
+  }
   return result;
 }
 

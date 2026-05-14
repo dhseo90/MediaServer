@@ -93,6 +93,10 @@ check("capture script owns every documented UI asset", () => {
     "va_four_scene_sample",
     "VA Test File",
     "va-overlay",
+    "clip would crop selected content",
+    "allowCrop",
+    "setupOpsUsers",
+    "auth users file not found",
     "Page.captureScreenshot",
   ];
   for (const snippet of requiredSnippets) {
@@ -105,6 +109,10 @@ check("capture script owns every documented UI asset", () => {
 
 check("docs/assets/ui contains only managed PNG files with valid dimensions", () => {
   const allowed = new Set(uiGuideAssets);
+  const videoUiMinimums = new Map([
+    ["client-live.png", { width: 1000, height: 900 }],
+    ["ops-rules-preview.png", { width: 1000, height: 850 }],
+  ]);
   const entries = fs.readdirSync(docsAssetDir).filter((entry) => entry.endsWith(".png"));
   for (const entry of entries) {
     assert(allowed.has(entry), `unexpected unmanaged UI PNG asset: ${entry}`);
@@ -117,6 +125,11 @@ check("docs/assets/ui contains only managed PNG files with valid dimensions", ()
     const dimensions = readPngDimensions(filePath);
     assert(dimensions.width >= 700, `${asset} width is too small: ${dimensions.width}`);
     assert(dimensions.height >= 400, `${asset} height is too small: ${dimensions.height}`);
+    const minimum = videoUiMinimums.get(asset);
+    if (minimum) {
+      assert(dimensions.width >= minimum.width, `${asset} video capture width is too small: ${dimensions.width}`);
+      assert(dimensions.height >= minimum.height, `${asset} video capture height is too small; lower video/overlay area may be cropped: ${dimensions.height}`);
+    }
   }
   assert(fs.existsSync(docsAssetEnDir), "missing English UI screenshot asset directory: docs/assets/ui/en");
   const englishEntries = fs.readdirSync(docsAssetEnDir).filter((entry) => entry.endsWith(".png"));
@@ -131,7 +144,23 @@ check("docs/assets/ui contains only managed PNG files with valid dimensions", ()
     const dimensions = readPngDimensions(filePath);
     assert(dimensions.width >= 700, `${asset} English width is too small: ${dimensions.width}`);
     assert(dimensions.height >= 400, `${asset} English height is too small: ${dimensions.height}`);
+    const minimum = videoUiMinimums.get(asset);
+    if (minimum) {
+      assert(dimensions.width >= minimum.width, `${asset} English video capture width is too small: ${dimensions.width}`);
+      assert(dimensions.height >= minimum.height, `${asset} English video capture height is too small; lower video/overlay area may be cropped: ${dimensions.height}`);
+    }
   }
+});
+
+check("VA sample and overlay documentation images keep full video frame bounds", () => {
+  const sample = readPngDimensions(path.join(rootDir, "docs/assets/va-four-scene-sample.png"));
+  const overlay = readJpegDimensions(path.join(rootDir, "docs/assets/va-four-scene-overlay-ko.jpg"));
+  assert(sample.width >= 1280, `va-four-scene-sample.png width is too small: ${sample.width}`);
+  assert(sample.height >= 720, `va-four-scene-sample.png height is too small: ${sample.height}`);
+  assertVideoAspect(sample, "va-four-scene-sample.png");
+  assert(overlay.width === 1280, `va-four-scene-overlay-ko.jpg width must remain 1280, got ${overlay.width}`);
+  assert(overlay.height === 720, `va-four-scene-overlay-ko.jpg height must remain 720, got ${overlay.height}`);
+  assertVideoAspect(overlay, "va-four-scene-overlay-ko.jpg");
 });
 
 let failCount = 0;
@@ -193,4 +222,45 @@ function readPngDimensions(filePath) {
     width: buffer.readUInt32BE(16),
     height: buffer.readUInt32BE(20),
   };
+}
+
+function readJpegDimensions(filePath) {
+  const buffer = fs.readFileSync(filePath);
+  assert(buffer.length > 4, `${path.basename(filePath)} is too small for a JPEG`);
+  assert(buffer[0] === 0xff && buffer[1] === 0xd8, `${path.basename(filePath)} is not a JPEG`);
+  let offset = 2;
+  while (offset + 9 < buffer.length) {
+    if (buffer[offset] !== 0xff) {
+      offset += 1;
+      continue;
+    }
+    const marker = buffer[offset + 1];
+    offset += 2;
+    if (marker === 0xd9 || marker === 0xda) break;
+    const length = buffer.readUInt16BE(offset);
+    assert(length >= 2, `${path.basename(filePath)} has invalid JPEG segment length`);
+    if (isJpegStartOfFrame(marker)) {
+      return {
+        height: buffer.readUInt16BE(offset + 3),
+        width: buffer.readUInt16BE(offset + 5),
+      };
+    }
+    offset += length;
+  }
+  throw new Error(`${path.basename(filePath)} is missing a JPEG SOF dimension marker`);
+}
+
+function isJpegStartOfFrame(marker) {
+  return [
+    0xc0, 0xc1, 0xc2, 0xc3,
+    0xc5, 0xc6, 0xc7,
+    0xc9, 0xca, 0xcb,
+    0xcd, 0xce, 0xcf,
+  ].includes(marker);
+}
+
+function assertVideoAspect(dimensions, label) {
+  const ratio = dimensions.width / dimensions.height;
+  const target = 16 / 9;
+  assert(Math.abs(ratio - target) < 0.02, `${label} aspect ratio should stay near 16:9, got ${ratio.toFixed(3)}`);
 }
