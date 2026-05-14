@@ -34,9 +34,11 @@ Options:
 
 Checks:
   - /ops/sources 채널 폼에서 ONVIF camera 타입을 선택하고 ONVIF stream URI를 입력
+  - /ops/sources 채널 목록의 Live/VA URL 복사 버튼이 ONVIF RTSP/WHEP로 표시됨
+  - /ops/rules에서 ONVIF 소스에 연결된 채널 분석 설정 URL 복사 버튼이 ONVIF RTSP/WHEP로 표시됨
   - operator가 channelId를 바꿔도 ONVIF tags/view 옵션이 저장 payload에 유지됨
   - 기존 source/view API로 저장된 뒤 client API에 RTSP URL, ONVIF endpoint, credential이 노출되지 않음
-  - smoke 종료 시 만든 source/view를 비활성화
+  - smoke 종료 시 만든 vaRule/source/view를 삭제
 `);
 }
 
@@ -79,6 +81,8 @@ assert(!hasRecord(viewsBefore.views, "viewId", sourceId), `viewId ${sourceId} al
 
 const displayName = `ONVIF UI Roundtrip ${sourceId}`;
 let savedRtspUrl = "";
+let savedEventRuleId = "";
+let savedVaRuleId = "";
 let browser = null;
 
 try {
@@ -102,8 +106,10 @@ try {
   await setInputValue(browser, '[name="onvifStreamUrl"]', savedRtspUrl, "ONVIF Stream URI");
   await clickSelector(browser, "#channel-save-selected", "ONVIF channel save");
   await assertText(browser, "#status", "채널 저장 완료", "channel save status");
+  await assertOnvifChannelCopyButtons(browser, sourceId);
   await assertBrowserErrors(browser);
   console.log("[pass] ONVIF camera source saved through channel form");
+  console.log("[pass] ops sources UI renders ONVIF copy buttons");
 } finally {
   if (browser) await browser.close().catch(() => {});
 }
@@ -129,6 +135,64 @@ try {
   assert(savedView.allowedOverlayModes.includes("raw"), "PublishedView allowedOverlayModes missing raw");
   console.log("[pass] ops views API preserved ONVIF PublishedView fields");
 
+  const catalogBefore = await requestJson("/ops/api/rules/catalog");
+  savedVaRuleId = findFreeNumericAnalysisId(catalogBefore, sourceId);
+  savedEventRuleId = findFreeNumericAnalysisId({
+    rules: catalogBefore.rules,
+    vaRules: [...(Array.isArray(catalogBefore.vaRules) ? catalogBefore.vaRules : []), { id: savedVaRuleId }],
+  }, Number(savedVaRuleId) + 1);
+  const profileId = findFirstProfileId(catalogBefore) || "1";
+  await requestJson(`/lab/analysis/rules/${encodeURIComponent(savedEventRuleId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(onvifEventRulePayload(savedEventRuleId)),
+  });
+  await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(savedVaRuleId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(onvifVaRulePayload(savedVaRuleId, displayName, savedRtspUrl, savedEventRuleId, profileId)),
+  });
+  const allowedRuleIds = new Set((Array.isArray(savedView.allowedRuleIds) ? savedView.allowedRuleIds : []).map(String));
+  allowedRuleIds.add(savedVaRuleId);
+  const allowedOverlayModes = new Set((Array.isArray(savedView.allowedOverlayModes) ? savedView.allowedOverlayModes : ["raw", "va-overlay"]).map(String));
+  allowedOverlayModes.add("va-rule");
+  await requestJson(`/ops/api/views/${encodeURIComponent(sourceId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      viewId: savedView.viewId,
+      displayName: savedView.displayName,
+      sourceId: savedView.sourceId,
+      defaultRuleId: savedVaRuleId,
+      allowedRuleIds: [...allowedRuleIds],
+      allowedOverlayModes: [...allowedOverlayModes],
+      showDashboard: savedView.showDashboard !== false,
+      showEvents: savedView.showEvents !== false,
+      showMetadataSummary: savedView.showMetadataSummary !== false,
+      clientGroups: Array.isArray(savedView.clientGroups) ? savedView.clientGroups : [],
+      maxTiles: Number(savedView.maxTiles || 1),
+      enabled: savedView.enabled !== false,
+    }),
+  });
+  browser = await openBrowserPage({
+    httpBase,
+    pagePath: "/ops/rules",
+    timeoutMs,
+    chromePath,
+    debugPort: debugPort + 1,
+    width,
+    height,
+  });
+  await installErrorCollector(browser);
+  await assertVisible(browser, '[data-testid="ops-rules-page"]', "ops rules page");
+  await assertOnvifRuleCopyButtons(browser, savedVaRuleId);
+  await clickSelector(browser, `[data-ops-rule-copy-kind="rtsp"][data-ops-rule-copy-id="${cssStringEscape(savedVaRuleId)}"]`, "ONVIF rule RTSP copy");
+  await clickSelector(browser, `[data-ops-rule-copy-kind="whep"][data-ops-rule-copy-id="${cssStringEscape(savedVaRuleId)}"]`, "ONVIF rule WHEP copy");
+  await assertBrowserErrors(browser);
+  await browser.close();
+  browser = null;
+  console.log("[pass] ops rules UI renders ONVIF copy buttons");
+
   const clientListText = await requestText("/client/api/views");
   assertNoClientForbiddenText("client-api-views", clientListText, savedRtspUrl);
   const clientList = JSON.parse(clientListText);
@@ -141,6 +205,19 @@ try {
   assert(Array.isArray(clientView.sourceTags) && clientView.sourceTags.includes("onvif"), "client view should expose sanitized ONVIF tag");
   console.log("[pass] client API redacts ONVIF source locator");
 } finally {
+  if (browser) await browser.close().catch(() => {});
+  if (savedVaRuleId) {
+    await requestText(`/lab/analysis/va-rules/${encodeURIComponent(savedVaRuleId)}`, {
+      method: "DELETE",
+      expectedStatus: 200,
+    }).catch(error => console.log(`[warn] vaRule cleanup failed: ${error.message}`));
+  }
+  if (savedEventRuleId) {
+    await requestText(`/lab/analysis/rules/${encodeURIComponent(savedEventRuleId)}`, {
+      method: "DELETE",
+      expectedStatus: 200,
+    }).catch(error => console.log(`[warn] event rule cleanup failed: ${error.message}`));
+  }
   if (sourceId) {
     await requestText(`/ops/api/views/${encodeURIComponent(sourceId)}`, {
       method: "DELETE",
@@ -268,6 +345,54 @@ async function assertText(browserInstance, selector, expected, description) {
   );
 }
 
+async function assertOnvifChannelCopyButtons(browserInstance, sourceIdValue) {
+  const result = await browserInstance.evaluate(`
+    (() => {
+      const sourceId = ${JSON.stringify(sourceIdValue)};
+      const buttons = Array.from(document.querySelectorAll('[data-copy-stream-channel="' + CSS.escape(sourceId) + '"]'));
+      const labels = buttons.map(button => (button.textContent || '').trim()).filter(Boolean);
+      const titles = buttons.map(button => button.getAttribute('aria-label') || button.getAttribute('title') || '');
+      const requiredLabels = ['ONVIF RTSP', 'ONVIF WHEP'];
+      const missing = requiredLabels.filter(label => !labels.includes(label));
+      const missingTitle = ['ONVIF 라이브 URL RTSP 복사', 'ONVIF 라이브 URL WHEP 복사', 'ONVIF VA URL RTSP 복사', 'ONVIF VA URL WHEP 복사']
+        .filter(label => !titles.some(title => title.includes(label)));
+      return {
+        ok: buttons.length === 4 && missing.length === 0 && missingTitle.length === 0,
+        count: buttons.length,
+        labels,
+        titles,
+        missing,
+        missingTitle,
+      };
+    })()
+  `, 5000);
+  if (!result?.ok) {
+    throw new Error(`ONVIF channel copy button mismatch: ${JSON.stringify(result)}`);
+  }
+}
+
+async function assertOnvifRuleCopyButtons(browserInstance, vaRuleId) {
+  const result = await waitForResult(
+    browserInstance,
+    `
+      (() => {
+        const ruleId = ${JSON.stringify(vaRuleId)};
+        const buttons = Array.from(document.querySelectorAll('[data-ops-rule-copy-id="' + CSS.escape(ruleId) + '"]'));
+        const labels = buttons.map(button => (button.textContent || '').trim()).filter(Boolean);
+        const titles = buttons.map(button => button.getAttribute('aria-label') || button.getAttribute('title') || '');
+        const okLabels = labels.includes('ONVIF RTSP') && labels.includes('ONVIF WHEP') && labels.includes('WebRTC');
+        const okTitles = titles.some(title => title.includes('ONVIF 이 채널 분석 설정의 RTSP URL 복사')) &&
+          titles.some(title => title.includes('ONVIF 이 채널 분석 설정의 WHEP URL 복사')) &&
+          titles.some(title => title.includes('ONVIF 이 채널 분석 설정의 WebRTC 링크 복사'));
+        return { ok: buttons.length === 3 && okLabels && okTitles, count: buttons.length, labels, titles };
+      })()
+    `,
+    item => item?.ok === true,
+    "ONVIF rule copy buttons",
+  );
+  return result;
+}
+
 async function installErrorCollector(browserInstance) {
   await browserInstance.evaluate(`
     (() => {
@@ -357,6 +482,96 @@ function findFreeNumericId(sources, views, startAt) {
     if (!used.has(String(candidate))) return String(candidate);
   }
   throw new Error("no free numeric source id found");
+}
+
+function findFreeNumericAnalysisId(catalog, preferred) {
+  const used = new Set([
+    ...(Array.isArray(catalog?.rules) ? catalog.rules.map(item => String(item?.id || "")) : []),
+    ...(Array.isArray(catalog?.vaRules) ? catalog.vaRules.map(item => String(item?.id || "")) : []),
+  ].filter(Boolean));
+  const preferredValue = Number(preferred || 0);
+  if (Number.isFinite(preferredValue) && preferredValue > 0 && !used.has(String(preferredValue))) {
+    return String(preferredValue);
+  }
+  for (let candidate = Math.max(90, preferredValue + 1); candidate < 10000; candidate += 1) {
+    if (!used.has(String(candidate))) return String(candidate);
+  }
+  throw new Error("no free numeric analysis id found");
+}
+
+function findFirstRuleId(catalog) {
+  return (Array.isArray(catalog?.rules) ? catalog.rules : [])
+    .map(item => String(item?.id || "").trim())
+    .find(Boolean) || "";
+}
+
+function findFirstProfileId(catalog) {
+  return (Array.isArray(catalog?.profiles) ? catalog.profiles : [])
+    .map(item => String(item?.id || item?.profileId || "").trim())
+    .find(Boolean) || "";
+}
+
+function onvifEventRulePayload(id) {
+  return {
+    id,
+    enabled: true,
+    match: { sourceKind: "*", route: "*" },
+    analysis: { profileId: "1", classes: ["person"] },
+    event: {
+      type: "intrusion-dwell",
+      region: {
+        type: "polygon",
+        points: [{ x: 0.1, y: 0.1 }, { x: 0.9, y: 0.1 }, { x: 0.9, y: 0.9 }, { x: 0.1, y: 0.9 }],
+      },
+      minConfidence: 0.25,
+      minDurationMs: 0,
+    },
+    outputs: { overlay: true, metadata: true, events: true },
+    ruleKind: "scenario",
+    scenario: {
+      type: "intrusion-dwell",
+      enabled: true,
+      candidateTimeMs: 2000,
+      dwellTimeMs: 10000,
+      cooldownMs: 5000,
+      targetClasses: ["person"],
+    },
+  };
+}
+
+function onvifVaRulePayload(id, displayNameValue, rtspUrl, templateRuleId, profileId) {
+  return {
+    id,
+    name: `${displayNameValue} 분석 설정`,
+    enabled: true,
+    match: { sourceKind: "*", route: "*", vaRule: id },
+    source: { kind: "rtsp", url: rtspUrl },
+    analysis: { profileId, classes: ["person"] },
+    templateStart: { ruleId: templateRuleId },
+    event: {
+      type: "intrusion-dwell",
+      region: {
+        type: "polygon",
+        points: [{ x: 0.1, y: 0.1 }, { x: 0.9, y: 0.1 }, { x: 0.9, y: 0.9 }, { x: 0.1, y: 0.9 }],
+      },
+      minConfidence: 0.25,
+      minDurationMs: 0,
+    },
+    outputs: { overlay: true, metadata: true, events: true },
+    ruleKind: "scenario",
+    scenario: {
+      type: "intrusion-dwell",
+      enabled: true,
+      candidateTimeMs: 2000,
+      dwellTimeMs: 10000,
+      cooldownMs: 5000,
+      targetClasses: ["person"],
+    },
+  };
+}
+
+function cssStringEscape(value) {
+  return String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
 function hasRecord(records, idField, id) {
