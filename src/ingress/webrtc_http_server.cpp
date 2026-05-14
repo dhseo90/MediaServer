@@ -2322,7 +2322,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
         <div class="toolbar">
           <div>
             <h3>문제 원인</h3>
-          <p>source lifecycle, stale, reconnect, auth/config 상태와 다음 조치를 함께 봅니다.</p>
+          <p>소스 수명주기, 지연, 재연결, 권한/설정 상태와 다음 조치를 함께 봅니다.</p>
           </div>
         </div>
         <div id="dashRootCauseBadges" class="badge-row"><span class="chip">로딩 중</span></div>
@@ -2352,26 +2352,26 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
       <section class="section-card" data-testid="ops-va-quality-panel">
         <div class="toolbar">
           <div>
-            <h3>Live VA Event Quality</h3>
-            <p>Scenario timeline, TrackHealth issue, rule runtime 상태를 읽기 전용으로 봅니다.</p>
+            <h3>라이브 VA 이벤트 품질</h3>
+            <p>시나리오 타임라인, 트랙 상태 이슈, 룰 런타임 상태를 읽기 전용으로 봅니다.</p>
           </div>
           <div class="actions">
-            <input id="dashVaQualityFilterInput" type="search" placeholder="scenario, rule, track, phase, issue" aria-label="Live VA Event Quality 필터" />
+            <input id="dashVaQualityFilterInput" type="search" placeholder="시나리오, 룰, 트랙, 단계, 이슈" aria-label="라이브 VA 이벤트 품질 필터" />
           </div>
         </div>
         <div id="dashVaQualityBadges" class="badge-row"><span class="chip">분석 탭 대기</span></div>
-        <p id="dashVaQualityText">활성 analysis tap이 있으면 timeline과 tracking issue를 표시합니다.</p>
+        <p id="dashVaQualityText">활성 분석 탭이 있으면 타임라인과 트래킹 이슈를 표시합니다.</p>
         <div class="grid">
           <div>
-            <h4>Scenario Timeline</h4>
+            <h4>시나리오 타임라인</h4>
             <div id="dashScenarioTimeline" class="root-cause-list">
-              <div class="empty">활성 scenario instance가 없습니다.</div>
+              <div class="empty">활성 시나리오 인스턴스가 없습니다.</div>
             </div>
           </div>
           <div>
-            <h4>Tracking Issues</h4>
+            <h4>트래킹 이슈</h4>
             <div id="dashTrackingIssueGroups" class="root-cause-list">
-              <div class="empty">tracking issue report가 없습니다.</div>
+              <div class="empty">트래킹 이슈 리포트가 없습니다.</div>
             </div>
           </div>
         </div>
@@ -2430,7 +2430,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
               <span id="opsRulesPrereqProfilesState" class="chip">확인 중</span>
             </div>
             <strong id="opsRulesPrereqProfilesCount">0개</strong>
-            <p>검출기, FPS, confidence, adaptive 같은 분석 엔진 설정을 먼저 만듭니다.</p>
+            <p>검출기, FPS, 신뢰도, 적응형 설정 같은 분석 엔진 설정을 먼저 만듭니다.</p>
             <div class="actions">
               <button id="opsRulesPrereqProfilesAction" class="button-secondary" type="button">프로파일 추가</button>
             </div>
@@ -2829,9 +2829,9 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             <label>입력 높이<input id="opsProfileInputHeightInput" type="number" min="1" step="1" placeholder="640" /></label>
           </div>
           <div class="checks">
-            <label><input id="opsProfileAdaptiveToggle" type="checkbox" checked /> adaptive</label>
+            <label><input id="opsProfileAdaptiveToggle" type="checkbox" checked /> 적응형 튜닝</label>
           </div>
-          <p id="opsProfileSummaryText" class="form-note">검출기, FPS, confidence, 입력 크기 같은 분석 엔진 설정만 정의합니다.</p>
+          <p id="opsProfileSummaryText" class="form-note">검출기, FPS, 신뢰도, 입력 크기 같은 분석 엔진 설정만 정의합니다.</p>
         </form>
       </section>
       <section class="section-card ops-audit-panel">
@@ -3961,7 +3961,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
         </div>
           <form id="channel-form">
           <div class="channel-editor-intro">
-            <p><strong>ONVIF camera</strong>는 ONVIF 프로파일에서 선택한 live stream URI를 연결합니다. <strong>외부 WHEP</strong>는 URL 입력, <strong>Published WebRTC</strong>는 저장된 <code>sourceId</code> 연결입니다.</p>
+            <p><strong>ONVIF 카메라</strong>는 ONVIF 프로파일에서 선택한 라이브 스트림 URI를 연결합니다. <strong>외부 WHEP</strong>는 URL 입력, <strong>Published WebRTC 소스</strong>는 저장된 <code>sourceId</code> 연결입니다.</p>
           </div>
           <div class="row">
             <label>채널 ID<input name="channelId" type="number" min="1" step="1" inputmode="numeric" placeholder="1" required /></label>
@@ -3969,10 +3969,10 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <label>종류
               <select name="kind">
                 <option value="file">파일</option>
-                <option value="onvif">ONVIF camera</option>
+                <option value="onvif">ONVIF 카메라</option>
                 <option value="rtsp">RTSP pull</option>
                 <option value="whep">외부 WHEP pull</option>
-                <option value="webrtc">Published WebRTC source</option>
+                <option value="webrtc">Published WebRTC 소스</option>
                 <option value="http">HTTP/HLS pull</option>
               </select>
             </label>
@@ -3982,12 +3982,12 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
               <option value="sample_h264.mp4">sample_h264.mp4</option>
             </select>
           </label>
-          <label data-source-kind="onvif">ONVIF Stream URI<input name="onvifStreamUrl" placeholder="rtsp://camera/live 또는 https://camera/live.m3u8" /></label>
-          <p data-source-kind="onvif" class="hint">ONVIF 장치의 live profile에서 선택한 재생 URI를 입력합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.</p>
+          <label data-source-kind="onvif">ONVIF 스트림 URI<input name="onvifStreamUrl" placeholder="rtsp://camera/live 또는 https://camera/live.m3u8" /></label>
+          <p data-source-kind="onvif" class="hint">ONVIF 장치의 라이브 프로파일에서 선택한 재생 URI를 입력합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.</p>
           <label data-source-kind="rtsp">RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live" /></label>
           <label data-source-kind="whep">외부 WHEP URL<input name="whepUrl" placeholder="https://example.com/whep/stream" /></label>
           <p data-source-kind="whep" class="hint">외부 WebRTC playback endpoint를 서버가 WHEP pull source로 연결합니다. URL 자체가 입력값입니다.</p>
-          <label data-source-kind="webrtc">Published sourceId<input name="webrtcSourceId" placeholder="published-source-id" /></label>
+          <label data-source-kind="webrtc">발행 sourceId<input name="webrtcSourceId" placeholder="published-source-id" /></label>
           <p data-source-kind="webrtc" class="hint">외부 URL을 넣는 항목이 아닙니다. 이 서버의 WHIP publish endpoint로 이미 등록된 sourceId를 연결합니다.</p>
           <label data-source-kind="http">HTTP/HLS URL<input name="httpUrl" /></label>
           <p id="channel-validation" class="hint"></p>

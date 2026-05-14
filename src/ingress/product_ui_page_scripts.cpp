@@ -140,7 +140,8 @@ void AppendClientShellScript(std::ostringstream& out) {
       fresh: '정상',
       receiving: '수신 중',
       normal: '정상',
-      warning: '경고'
+      warning: '경고',
+      unavailable: '미제공'
     })[String(value)] || display(value);
     const clientHealthSummaryLabel = value => ({
       offline: '신호 없음',
@@ -182,7 +183,7 @@ void AppendClientShellScript(std::ostringstream& out) {
         whep: '외부 WHEP',
         http: 'HTTP/HLS',
         hls: 'HTTP/HLS',
-        webrtc: 'Published WebRTC'
+        webrtc: '발행 WebRTC'
       })[String(kind || '').toLowerCase()] || kind || '소스';
     const defaultTileRuleId = view => view?.defaultRuleId || (Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds[0] : '') || '';
     const requestedRuleIdForView = view =>
@@ -525,7 +526,7 @@ void AppendClientShellScript(std::ostringstream& out) {
             </label>
           </div>
           <details class="client-preset-config" data-testid="client-dashboard-preset-config">
-            <summary>Preset 설정</summary>
+            <summary>프리셋 설정</summary>
             <textarea id="clientDashboardPresetConfigInput" rows="6">${escapeHtml(clientDashboardPresetConfigText())}</textarea>
             <div class="actions">
               <button id="clientDashboardPresetApply" class="button button-secondary button-compact" type="button">적용</button>
@@ -1421,14 +1422,21 @@ void AppendOpsShellScript(std::ostringstream& out,
         disabled: '비활성',
         unreachable: '연결 불가',
         'no-subscriber': '구독 세션 없음',
-        'no-egress-session': 'WebRTC egress 세션 없음'
+        'no-egress-session': 'WebRTC 송출 세션 없음'
       })[String(reason || '')] || String(reason || '근거 없음');
+      const dashboardSourceHealthStatusLabel = status => ({
+        live: '수신',
+        connecting: '연결 중',
+        stale: '지연',
+        offline: '오프라인',
+        unknown: '미확인'
+      })[String(status || '')] || String(status || '미확인');
       const dashboardSourceHealthAge = value => value === null || value === undefined
         ? '미수신'
         : `${Math.max(0, Math.round(numberValue(value)))}ms`;
       const dashboardSourceHealthStatusText = sourceHealth => {
         const counts = dashboardSourceHealthCounts(sourceHealth);
-        return `live ${counts.live}/${counts.total} · connecting ${counts.connecting} · stale ${counts.stale} · offline ${counts.offline}`;
+        return `수신 ${counts.live}/${counts.total} · 연결 중 ${counts.connecting} · 지연 ${counts.stale} · 오프라인 ${counts.offline}`;
       };
       const dashboardRootCauseItems = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const counts = runtimeCounts(runtime);
@@ -1455,8 +1463,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         const scopes = Array.isArray(principal?.scopes) ? principal.scopes : [];
         const hasOpsRead = principal?.role === 'admin' || scopes.includes('*') || scopes.includes('ops:read');
         const sourceSummary = numberValue(lifecycle.idle ? 1 : 0) === 1
-          ? '모든 source lifecycle 리소스가 idle입니다.'
-          : `세션 ${numberValue(lifecycle.activeSessions)} · stream ${numberValue(lifecycle.resourceActiveStreams)}/${numberValue(lifecycle.registryActiveStreams)} · tap ${numberValue(lifecycle.activeAnalysisTaps)}`;
+          ? '모든 소스 수명주기 리소스가 대기 상태입니다.'
+          : `세션 ${numberValue(lifecycle.activeSessions)} · 스트림 ${numberValue(lifecycle.resourceActiveStreams)}/${numberValue(lifecycle.registryActiveStreams)} · 분석 탭 ${numberValue(lifecycle.activeAnalysisTaps)}`;
         const recentSummary = recentEvents.length > 0
           ? recentEvents.slice(0, 2).map(item => `${item.eventType || 'event'}:${item.status || 'status'}`).join(' · ')
           : '최근 EventRecord 없음';
@@ -1475,33 +1483,33 @@ void AppendOpsShellScript(std::ostringstream& out,
         return [
           {
             level: degradedSources.length > 0 ? (healthCounts.offline > 0 ? 'bad' : 'warn') : 'info',
-            title: degradedSources.length > 0 ? 'Live Source Health 확인 필요' : 'Live Source Health',
+            title: degradedSources.length > 0 ? '라이브 소스 상태 확인 필요' : '라이브 소스 상태',
             detail: degradedSources.length > 0
-              ? degradedSources.slice(0, 3).map(item => `#${item.sourceId || '-'} ${item.status || 'unknown'}:${dashboardSourceHealthReason(item.reason)}`).join(' · ')
+              ? degradedSources.slice(0, 3).map(item => `#${item.sourceId || '-'} ${dashboardSourceHealthStatusLabel(item.status)}:${dashboardSourceHealthReason(item.reason)}`).join(' · ')
               : dashboardSourceHealthStatusText(sourceHealth),
             evidence: degradedSources.length > 0
-              ? degradedSources.slice(0, 2).map(item => `frame ${dashboardSourceHealthAge(item.lastFrameAgeMs)} / metadata ${dashboardSourceHealthAge(item.lastMetadataAgeMs)}`).join(' · ')
-              : 'source health가 정상 범위입니다.',
+              ? degradedSources.slice(0, 2).map(item => `프레임 ${dashboardSourceHealthAge(item.lastFrameAgeMs)} / 메타데이터 ${dashboardSourceHealthAge(item.lastMetadataAgeMs)}`).join(' · ')
+              : '소스 상태가 정상 범위입니다.',
             log: sourceHealthLog.line,
             correlationId: firstDegradedSource?.sourceId ? `source-${firstDegradedSource.sourceId}` : sourceHealthLog.correlationId,
             action: degradedSources.length > 0
               ? '오프라인/지연 채널을 /ops/sources에서 재확인하고 입력, PublishedView, 구독 세션을 점검합니다.'
-              : 'live source health가 정상 범위입니다.',
+              : '라이브 소스 상태가 정상 범위입니다.',
             actionHref: firstDegradedSource?.sourceId
               ? `/ops/sources#channel=${encodeURIComponent(firstDegradedSource.sourceId)}`
               : '/ops/sources#source-health',
-            actionLabel: 'Source Health',
+            actionLabel: '소스 상태',
             actionKind: 'source-health',
             actionPatterns: 'source health|last-frame-aged|metadata-aged|no-subscriber|no-egress-session|unreachable|waiting-video'
           },
           {
             level: stalledResources ? 'warn' : 'info',
-            title: stalledResources ? 'Source lifecycle 정리 확인 필요' : 'Source lifecycle',
+            title: stalledResources ? '소스 수명주기 정리 확인 필요' : '소스 수명주기',
             detail: sourceSummary,
-            evidence: `cleanup ${cleanupCompleted}/${cleanupRequests} · ${recentSummary}`,
+            evidence: `정리 ${cleanupCompleted}/${cleanupRequests} · ${recentSummary}`,
             log: sourceLog.line,
             correlationId: sourceLog.correlationId,
-            action: stalledResources ? '종료된 세션 뒤에 resource stream/tap이 남았는지 cleanup 로그와 채널 상태를 확인합니다.' : 'idle 또는 활성 수치가 일치합니다.',
+            action: stalledResources ? '종료된 세션 뒤에 리소스 스트림/분석 탭이 남았는지 정리 로그와 채널 상태를 확인합니다.' : '대기 또는 활성 수치가 일치합니다.',
             actionHref: '/ops/sources',
             actionLabel: '채널 상태',
             actionKind: 'source-diagnostics',
@@ -1509,16 +1517,16 @@ void AppendOpsShellScript(std::ostringstream& out,
           },
           {
             level: staleTaps.length > 0 ? 'warn' : 'info',
-            title: staleTaps.length > 0 ? 'Stale 분석 탭 감지' : 'Stale detection',
+            title: staleTaps.length > 0 ? '지연 분석 탭 감지' : '지연 감지',
             detail: staleTaps.length > 0
-              ? staleTaps.slice(0, 3).map(tap => `${tap.tapId || 'tap'} ${Math.round(numberValue(tap.lastUsedAgeMs))}ms`).join(' · ')
+              ? staleTaps.slice(0, 3).map(tap => `${tap.tapId || '탭'} ${Math.round(numberValue(tap.lastUsedAgeMs))}ms`).join(' · ')
               : '5초 초과 미사용 분석 탭이 없습니다.',
             evidence: staleTaps.length > 0
-              ? staleTaps.slice(0, 2).map(tap => `${tap.streamKey || 'stream'} / ${tap.selectedRuleId || 'rule 없음'}`).join(' · ')
-              : `active tap ${activeTaps.length}`,
+              ? staleTaps.slice(0, 2).map(tap => `${tap.streamKey || '스트림'} / ${tap.selectedRuleId || '룰 없음'}`).join(' · ')
+              : `활성 분석 탭 ${activeTaps.length}`,
             log: staleLog.line,
             correlationId: staleLog.correlationId,
-            action: staleTaps.length > 0 ? 'viewer 종료, route 이동, 탭 재사용 해제 흐름을 점검합니다.' : '분석 탭 age가 정상 범위입니다.',
+            action: staleTaps.length > 0 ? '뷰어 종료, route 이동, 탭 재사용 해제 흐름을 점검합니다.' : '분석 탭 age가 정상 범위입니다.',
             actionHref: '/ops/rules',
             actionLabel: '룰 연결',
             actionKind: 'registry-diff',
@@ -1526,18 +1534,18 @@ void AppendOpsShellScript(std::ostringstream& out,
           },
           {
             level: inactivePublishSources.length > 0 || cleanupBacklog ? 'warn' : 'info',
-            title: inactivePublishSources.length > 0 || cleanupBacklog ? 'Reconnect / cleanup 확인 필요' : 'Reconnect / cleanup',
+            title: inactivePublishSources.length > 0 || cleanupBacklog ? '재연결/정리 확인 필요' : '재연결/정리',
             detail: inactivePublishSources.length > 0
-              ? inactivePublishSources.slice(0, 3).map(source => `${source.sourceId || 'source'} video=${source.hasVideo ? 'on' : 'off'}`).join(' · ')
-              : `publish ${counts.publish} · egress ${counts.egress} · cleanup ${cleanupCompleted}/${cleanupRequests}`,
+              ? inactivePublishSources.slice(0, 3).map(source => `${source.sourceId || '소스'} 비디오=${source.hasVideo ? 'on' : 'off'}`).join(' · ')
+              : `발행 ${counts.publish} · 송출 ${counts.egress} · 정리 ${cleanupCompleted}/${cleanupRequests}`,
             evidence: post.lastError || storage.lastError
               ? `최근 오류 ${post.lastError || storage.lastError}`
               : `EventRecord 저장 ${storage.storedCount ?? 0} · POST 전송 ${post.sentCount ?? 0}`,
             log: reconnectLog.line,
             correlationId: reconnectLog.correlationId,
             action: inactivePublishSources.length > 0
-              ? 'WHIP publisher 재접속과 video track 생성 여부를 확인합니다.'
-              : (cleanupBacklog ? 'cleanup completed가 requests를 따라가지 못하는지 로그를 확인합니다.' : 'reconnect/cleanup 지표가 정상 범위입니다.'),
+              ? 'WHIP 발행자 재접속과 video track 생성 여부를 확인합니다.'
+              : (cleanupBacklog ? '정리 완료 수가 요청 수를 따라가지 못하는지 로그를 확인합니다.' : '재연결/정리 지표가 정상 범위입니다.'),
             actionHref: '/ops/events',
             actionLabel: '이벤트 기록',
             actionKind: 'event-diagnostics',
@@ -1545,11 +1553,11 @@ void AppendOpsShellScript(std::ostringstream& out,
           },
           {
             level: principal && hasOpsRead && !relayFallback ? 'info' : 'warn',
-            title: principal && hasOpsRead && !relayFallback ? 'Auth / config' : 'Auth / config 확인 필요',
+            title: principal && hasOpsRead && !relayFallback ? '권한/설정' : '권한/설정 확인 필요',
             detail: principal
-              ? `role ${principal.role || '미제공'} · auth ${principal.authMode || '미제공'} · ops:read ${hasOpsRead ? '사용' : '없음'}`
+              ? `역할 ${principal.role || '미제공'} · 인증 ${principal.authMode || '미제공'} · ops:read ${hasOpsRead ? '사용' : '없음'}`
               : 'whoami 응답을 확인하지 못했습니다.',
-            evidence: relayFallback ? `${iceText} · relay fallback` : iceText,
+            evidence: relayFallback ? `${iceText} · relay 대체 사용` : iceText,
             log: authLog.line,
             correlationId: authLog.correlationId,
             action: principal && hasOpsRead && !relayFallback ? '운영 대시보드 접근 권한과 ICE 설정이 정상 범위입니다.' : '세션, role/scope, auth mode, TURN/ICE 설정을 확인합니다.',
@@ -1591,11 +1599,11 @@ void AppendOpsShellScript(std::ostringstream& out,
           const healthItems = dashboardSourceHealthItems(sourceHealth);
           const counts = dashboardSourceHealthCounts(sourceHealth);
           const degraded = healthItems.filter(health => health.status !== 'live');
-          renderRootCauseActionOutput('Live Source Health 재검증', [
+          renderRootCauseActionOutput('라이브 소스 상태 재검증', [
             dashboardSourceHealthStatusText(sourceHealth),
             `확인 필요 ${degraded.length}개`,
-            degraded.slice(0, 3).map(health => `#${health.sourceId || '-'} ${health.status || 'unknown'} · ${dashboardSourceHealthReason(health.reason)} · frame ${dashboardSourceHealthAge(health.lastFrameAgeMs)}`).join(' / ') || '지연 또는 오프라인 채널 없음',
-            `요약 total=${counts.total} live=${counts.live} stale=${counts.stale} offline=${counts.offline}`,
+            degraded.slice(0, 3).map(health => `#${health.sourceId || '-'} ${dashboardSourceHealthStatusLabel(health.status)} · ${dashboardSourceHealthReason(health.reason)} · 프레임 ${dashboardSourceHealthAge(health.lastFrameAgeMs)}`).join(' / ') || '지연 또는 오프라인 채널 없음',
+            `요약 전체=${counts.total} 수신=${counts.live} 지연=${counts.stale} 오프라인=${counts.offline}`,
             '상세 상태는 /ops/dashboard의 운영 요약에서 확인합니다.'
           ], logs);
           return;
@@ -1606,9 +1614,9 @@ void AppendOpsShellScript(std::ostringstream& out,
           const missingViews = sourceItems.filter(source => !viewItems.some(view => view.sourceId === source.sourceId));
           const disabled = sourceItems.filter(source => source.enabled === false);
           renderRootCauseActionOutput('채널 상태 재검증', [
-            `source ${sourceItems.length}개 · view ${viewItems.length}개`,
-            `view 누락 ${missingViews.length}개`,
-            `비활성 source ${disabled.length}개`,
+            `소스 ${sourceItems.length}개 · 뷰 ${viewItems.length}개`,
+            `뷰 누락 ${missingViews.length}개`,
+            `비활성 소스 ${disabled.length}개`,
             '상세 조치는 /ops/sources에서 수행합니다.'
           ], logs);
           return;
@@ -1626,9 +1634,9 @@ void AppendOpsShellScript(std::ostringstream& out,
               (profileId && !profiles.some(profile => String(profile.profileId || profile.id) === profileId)) ||
               (eventRuleId && !rules.some(eventRule => String(eventRule.ruleId || eventRule.id) === eventRuleId));
           });
-          renderRootCauseActionOutput('Registry diff 확인', [
-            `VA rule ${vaRules.length}개 · event template ${rules.length}개 · profile ${profiles.length}개`,
-            `참조 mismatch ${mismatches.length}개`,
+          renderRootCauseActionOutput('룰 연결 차이 확인', [
+            `VA 룰 ${vaRules.length}개 · 이벤트 템플릿 ${rules.length}개 · 프로파일 ${profiles.length}개`,
+            `참조 불일치 ${mismatches.length}개`,
             '상세 조치는 /ops/rules에서 수행합니다.'
           ], logs);
           return;
@@ -1637,18 +1645,18 @@ void AppendOpsShellScript(std::ostringstream& out,
           const records = Array.isArray(eventsStatus?.records?.records) ? eventsStatus.records.records : [];
           const storage = eventsStatus.storage || {};
           const post = eventsStatus.post || {};
-          renderRootCauseActionOutput('Event/evidence 상태 확인', [
+          renderRootCauseActionOutput('이벤트/증거 상태 확인', [
             `최근 EventRecord ${records.length}개`,
-            `storage stored=${storage.storedCount ?? 0} failed=${storage.failedCount ?? 0}`,
-            `event POST sent=${post.sentCount ?? 0} failed=${post.failedCount ?? 0}`,
+            `저장 성공=${storage.storedCount ?? 0} 실패=${storage.failedCount ?? 0}`,
+            `이벤트 POST 전송=${post.sentCount ?? 0} 실패=${post.failedCount ?? 0}`,
             '상세 조치는 /ops/events에서 수행합니다.'
           ], logs);
           return;
         }
-        renderRootCauseActionOutput('Auth/config 상태 확인', [
-          `role ${principal?.role || '미제공'} · auth ${principal?.authMode || '미제공'}`,
+        renderRootCauseActionOutput('권한/설정 상태 확인', [
+          `역할 ${principal?.role || '미제공'} · 인증 ${principal?.authMode || '미제공'}`,
           `ICE ${browserConfig?.iceTransportPolicy || '미제공'} · STUN ${browserConfig?.hasStun ? 'on' : 'off'} · TURN ${browserConfig?.hasTurn ? 'on' : 'off'}`,
-          `relay fallback ${browserConfig?.relayPolicyFallback ? 'on' : 'off'}`,
+          `relay 대체 ${browserConfig?.relayPolicyFallback ? 'on' : 'off'}`,
           '상세 조치는 /ops/users와 TURN/ICE 설정에서 수행합니다.'
         ], logs);
       };
@@ -1658,15 +1666,15 @@ void AppendOpsShellScript(std::ostringstream& out,
         const healthCounts = dashboardSourceHealthCounts(sourceHealth);
         renderBadges('dashRootCauseBadges', [
           { text: warnCount > 0 ? `${warnCount}개 확인 필요` : '즉시 조치 없음', tone: warnCount > 0 ? 'warn' : '' },
-          { text: `source live ${healthCounts.live}/${healthCounts.total}`, tone: healthCounts.offline > 0 ? 'bad' : (healthCounts.stale > 0 ? 'warn' : '') },
-          { text: 'source lifecycle' },
-          { text: 'stale' },
-          { text: 'reconnect' },
-          { text: 'auth/config' }
+          { text: `라이브 소스 ${healthCounts.live}/${healthCounts.total}`, tone: healthCounts.offline > 0 ? 'bad' : (healthCounts.stale > 0 ? 'warn' : '') },
+          { text: '소스 수명주기' },
+          { text: '지연' },
+          { text: '재연결' },
+          { text: '권한/설정' }
         ]);
         setText('dashRootCauseText', warnCount > 0
           ? '아래 항목을 기준으로 원인을 좁혀 확인합니다.'
-          : '운영자가 바로 확인할 source lifecycle, stale, reconnect, auth/config 문제가 없습니다.');
+          : '운영자가 바로 확인할 소스 수명주기, 지연, 재연결, 권한/설정 문제가 없습니다.');
         const list = document.getElementById('dashRootCauseList');
         if (!list) return;
         list.innerHTML = items.map((item, index) => `<article class="root-cause-item ${escapeHtml(item.level)}">
@@ -1775,14 +1783,14 @@ void AppendOpsShellScript(std::ostringstream& out,
           });
         if (rows.length === 0) {
           root.innerHTML = term
-            ? '<div class="empty">필터와 일치하는 scenario timeline이 없습니다.</div>'
-            : '<div class="empty">활성 scenario instance가 없습니다.</div>';
+            ? '<div class="empty">필터와 일치하는 시나리오 타임라인이 없습니다.</div>'
+            : '<div class="empty">활성 시나리오 인스턴스가 없습니다.</div>';
           return;
         }
         root.innerHTML = rows.slice(0, 8).map(item => {
           const phase = item?.currentPhase || item?.scenarioPhase || '';
           const cooldown = item?.cooldownRemainingMs;
-          const cooldownText = cooldown === null || cooldown === undefined ? 'cooldown 없음' : `cooldown ${timelineTime(cooldown)}`;
+          const cooldownText = cooldown === null || cooldown === undefined ? '쿨다운 없음' : `쿨다운 ${timelineTime(cooldown)}`;
           const dedupe = numberValue(item?.dedupeSuppressedCount);
           const emitted = numberValue(item?.eventEmittedCount);
           const context = [
@@ -1790,15 +1798,15 @@ void AppendOpsShellScript(std::ostringstream& out,
             item?.trackId ? `track ${item.trackId}` : '',
             item?.zoneId ? `zone ${item.zoneId}` : '',
             item?.lineId ? `line ${item.lineId}` : ''
-          ].filter(Boolean).join(' · ') || 'context 미제공';
+          ].filter(Boolean).join(' · ') || '컨텍스트 미제공';
           return `<article class="root-cause-item ${item?.active === false ? 'info' : 'info'}">
             <div>
               <strong>${escapeHtml(display(item?.scenarioName || item?.scenarioKey || 'scenario'))}</strong>
               <p>${escapeHtml(context)}</p>
             </div>
             ${badge(scenarioPhaseLabel(phase), scenarioPhaseTone(phase))}
-            <p class="root-cause-evidence">phase ${timelineTime(item?.phaseElapsedMs)} · ${escapeHtml(cooldownText)} · emitted ${emitted} · dedupe ${dedupe}</p>
-            <p class="root-cause-action">entered ${escapeHtml(timelineTime(item?.phaseEnteredAtMs))} · track ${escapeHtml(timelineTime(item?.trackFirstSeenAtMs))} → ${escapeHtml(timelineTime(item?.trackLastSeenAtMs))}</p>
+            <p class="root-cause-evidence">단계 ${timelineTime(item?.phaseElapsedMs)} · ${escapeHtml(cooldownText)} · 발행 ${emitted} · 중복제거 ${dedupe}</p>
+            <p class="root-cause-action">진입 ${escapeHtml(timelineTime(item?.phaseEnteredAtMs))} · 트랙 ${escapeHtml(timelineTime(item?.trackFirstSeenAtMs))} → ${escapeHtml(timelineTime(item?.trackLastSeenAtMs))}</p>
           </article>`;
         }).join('');
       };
@@ -1849,38 +1857,38 @@ void AppendOpsShellScript(std::ostringstream& out,
         };
         if (groups.length === 0) {
           root.innerHTML = term
-            ? `<div class="empty">필터와 일치하는 tracking issue가 없습니다. · retained ${totals.retained}/${totals.total} · rate-limit ${totals.rateLimited}</div>`
-            : `<div class="empty">tracking issue 없음 · retained ${totals.retained}/${totals.total} · rate-limit ${totals.rateLimited}</div>`;
+            ? `<div class="empty">필터와 일치하는 트래킹 이슈가 없습니다. · 유지 ${totals.retained}/${totals.total} · 제한 ${totals.rateLimited}</div>`
+            : `<div class="empty">트래킹 이슈 없음 · 유지 ${totals.retained}/${totals.total} · 제한 ${totals.rateLimited}</div>`;
           return;
         }
         root.innerHTML = groups.slice(0, 8).map(group => `<article class="root-cause-item ${group.severity === 'warning' ? 'warn' : 'info'}">
           <div>
             <strong>${escapeHtml(group.type)}</strong>
-            <p>tracks ${escapeHtml(Array.from(group.tracks).slice(0, 6).join(', ') || '미제공')}</p>
+            <p>트랙 ${escapeHtml(Array.from(group.tracks).slice(0, 6).join(', ') || '미제공')}</p>
           </div>
           ${badge(`${group.count}건`, group.severity === 'warning' ? 'warn' : 'info')}
-          <p class="root-cause-evidence">retained ${totals.retained}/${totals.total} · rate-limit ${totals.rateLimited}</p>
+          <p class="root-cause-evidence">유지 ${totals.retained}/${totals.total} · 제한 ${totals.rateLimited}</p>
         </article>`).join('');
       };
       const renderDashboardVaQualityEmpty = message => {
         bindDashboardVaQualityFilter();
         dashboardVaQualityLastTimeline = [];
         dashboardVaQualityLastIssueReport = {};
-        renderBadges('dashVaQualityBadges', [{ text: 'analysis tap 대기', tone: 'info' }]);
+        renderBadges('dashVaQualityBadges', [{ text: '분석 탭 대기', tone: 'info' }]);
         setText('dashVaQualityText', message);
         renderDashboardScenarioTimeline([]);
         renderDashboardTrackingIssues({});
       };
       const renderDashboardVaQualityError = error => {
         bindDashboardVaQualityFilter();
-        renderBadges('dashVaQualityBadges', [{ text: 'debug 조회 실패', tone: 'warn' }]);
-        setText('dashVaQualityText', error?.message || 'VA runtime debug를 불러오지 못했습니다.');
+        renderBadges('dashVaQualityBadges', [{ text: '디버그 조회 실패', tone: 'warn' }]);
+        setText('dashVaQualityText', error?.message || 'VA 런타임 디버그를 불러오지 못했습니다.');
       };
       async function refreshDashboardVaQuality(runtime) {
         bindDashboardVaQualityFilter();
         const tap = dashboardPrimaryTap(runtime);
         if (!tap?.tapId) {
-          renderDashboardVaQualityEmpty('활성 analysis tap이 있으면 timeline과 tracking issue를 표시합니다.');
+          renderDashboardVaQualityEmpty('활성 분석 탭이 있으면 타임라인과 트래킹 이슈를 표시합니다.');
           return;
         }
         const [stateDump, metricsDump] = await Promise.all([
@@ -1893,13 +1901,13 @@ void AppendOpsShellScript(std::ostringstream& out,
         dashboardVaQualityLastTimeline = timeline;
         dashboardVaQualityLastIssueReport = issueReport;
         renderBadges('dashVaQualityBadges', [
-          { text: `tap ${tap.tapId}` },
-          { text: tap.selectedRuleId ? `rule ${tap.selectedRuleId}` : 'rule 미선택', tone: tap.selectedRuleId ? '' : 'info' },
-          { text: `timeline ${timeline.length}` },
-          { text: `issues ${numberValue(issueReport.retainedIssues)}`, tone: numberValue(issueReport.retainedIssues) > 0 ? 'warn' : 'info' }
+          { text: `탭 ${tap.tapId}` },
+          { text: tap.selectedRuleId ? `룰 ${tap.selectedRuleId}` : '룰 미선택', tone: tap.selectedRuleId ? '' : 'info' },
+          { text: `타임라인 ${timeline.length}` },
+          { text: `이슈 ${numberValue(issueReport.retainedIssues)}`, tone: numberValue(issueReport.retainedIssues) > 0 ? 'warn' : 'info' }
         ]);
         setText('dashVaQualityText',
-          `${display(tap.streamKey)} · phase/cooldown/dedupe는 state-dump debug 계층에서만 표시합니다.`);
+          `${display(tap.streamKey)} · 단계/쿨다운/중복제거는 state-dump 디버그 계층에서만 표시합니다.`);
         renderDashboardScenarioTimeline(timeline);
         renderDashboardTrackingIssues(issueReport);
       }
@@ -1966,7 +1974,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: counts.streams > 0 ? '스트림 활성' : '스트림 대기', tone: counts.streams > 0 ? '' : 'info' },
           { text: counts.taps > 0 ? '분석 활성' : '분석 대기', tone: counts.taps > 0 ? '' : 'info' },
           { text: counts.egress > 0 ? '송출 활성' : '송출 대기', tone: counts.egress > 0 ? '' : 'info' },
-          { text: `source live ${sourceHealthCounts.live}/${sourceHealthCounts.total}`, tone: sourceHealthCounts.offline > 0 ? 'bad' : (sourceHealthCounts.stale > 0 ? 'warn' : 'info') }
+          { text: `라이브 소스 ${sourceHealthCounts.live}/${sourceHealthCounts.total}`, tone: sourceHealthCounts.offline > 0 ? 'bad' : (sourceHealthCounts.stale > 0 ? 'warn' : 'info') }
         ]);
         setText('dashHealthText', `세션 ${counts.sessions} · 스트림 ${counts.streams} · 분석 ${counts.taps} · ${dashboardSourceHealthStatusText(sourceHealth)}`);
         renderBadges('dashRuntimeRows', [
@@ -2274,13 +2282,13 @@ void AppendOpsShellScript(std::ostringstream& out,
         },
         profile: {
           label: '분석 프로파일',
-          summary: '검출기, FPS, confidence 같은 분석 엔진 설정을 모아 둡니다.',
+          summary: '검출기, FPS, 신뢰도 같은 분석 엔진 설정을 모아 둡니다.',
           composerTitle: '분석 프로파일',
           composerHint: '채널 설정이나 템플릿에서 선택합니다.',
           saveText: '저장',
           saveProxyId: 'saveProfileBtn',
           steps: [
-            { sectionId: 'profileSection', title: '프로파일 설정', hint: 'detector, FPS, confidence, 입력 크기만 설정합니다.' }
+            { sectionId: 'profileSection', title: '프로파일 설정', hint: '검출기, FPS, 신뢰도, 입력 크기만 설정합니다.' }
           ]
         }
       };
@@ -4725,7 +4733,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             <strong>${escapeHtml(display(item.fps || item.maxFps || '미제공'))}</strong>
           </div>`;
           const inputSize = `${display(item.inputWidth || 640)}x${display(item.inputHeight || 640)}`;
-          const inputNote = `queue ${display(item.maxQueue ?? 1)} · conf ${display(item.confidence ?? 0.25)} · nms ${display(item.nms ?? 0.45)}`;
+          const inputNote = `큐 ${display(item.maxQueue ?? 1)} · 신뢰도 ${display(item.confidence ?? 0.25)} · NMS ${display(item.nms ?? 0.45)}`;
           const inputHtml = `<div class="ops-rule-value-stack">
             <strong>${escapeHtml(inputSize)}</strong>
             <span class="ops-rule-note">${escapeHtml(inputNote)}</span>
@@ -4800,9 +4808,9 @@ void AppendOpsShellScript(std::ostringstream& out,
             issues.push(opsRulesIssue('inactive-template', `va-rule:${id}`, `채널 분석 설정 ${id}의 템플릿 ${templateId}이 비활성입니다.`, '활성 이벤트 템플릿을 선택한 뒤 저장하세요.'));
           }
           if (!channel) {
-            issues.push(opsRulesIssue('missing-source', `va-rule:${id}`, `채널 분석 설정 ${id}의 source가 채널 목록에 없습니다.`, '채널 탭에서 source와 PublishedView를 다시 저장하세요.'));
+            issues.push(opsRulesIssue('missing-source', `va-rule:${id}`, `채널 분석 설정 ${id}의 소스가 채널 목록에 없습니다.`, '채널 탭에서 소스와 PublishedView를 다시 저장하세요.'));
           } else if (channel.view && !opsRulesSourceMatches(channel.source, rule.source || {})) {
-            issues.push(opsRulesIssue('source-mismatch', `va-rule:${id}`, `채널 분석 설정 ${id}의 source가 PublishedView source와 다릅니다.`, `${channel.displayName || channel.id} 채널의 source와 룰 source를 맞추세요.`));
+            issues.push(opsRulesIssue('source-mismatch', `va-rule:${id}`, `채널 분석 설정 ${id}의 소스가 PublishedView 소스와 다릅니다.`, `${channel.displayName || channel.id} 채널의 소스와 룰 소스를 맞추세요.`));
           }
           if (channel?.source?.enabled === false) {
             issues.push(opsRulesIssue('inactive-channel', `va-rule:${id}`, `채널 분석 설정 ${id}가 비활성 채널에 연결되어 있습니다.`, `${channel.displayName || channel.id} 채널을 활성화하거나 다른 채널로 연결하세요.`));
@@ -4811,10 +4819,10 @@ void AppendOpsShellScript(std::ostringstream& out,
             issues.push(opsRulesIssue('inactive-view', `va-rule:${id}`, `채널 분석 설정 ${id}가 비활성 PublishedView에 연결되어 있습니다.`, '채널 탭에서 PublishedView를 활성화한 뒤 저장하세요.'));
           }
           if (channel?.view && !opsRulesViewAllowsVaRuleMode(channel.view)) {
-            issues.push(opsRulesIssue('view-mode-not-allowed', `va-rule:${id}`, `PublishedView가 va-rule 모드를 허용하지 않습니다.`, '채널 탭에서 보기 방식에 va-rule을 추가해야 Client Live에서 사용할 수 있습니다.'));
+            issues.push(opsRulesIssue('view-mode-not-allowed', `va-rule:${id}`, `PublishedView가 va-rule 모드를 허용하지 않습니다.`, '채널 탭에서 보기 방식에 va-rule을 추가해야 클라이언트 Live에서 사용할 수 있습니다.'));
           }
           if (channel?.view && !opsRulesViewHasClientAccess(channel.view)) {
-            issues.push(opsRulesIssue('unauthorized-view', `va-rule:${id}`, `PublishedView가 Client 노출 권한을 모두 닫고 있습니다.`, 'dashboard/events/metadata 중 최소 하나를 허용한 view에 룰을 연결하세요.'));
+            issues.push(opsRulesIssue('unauthorized-view', `va-rule:${id}`, `PublishedView가 클라이언트 노출 권한을 모두 닫고 있습니다.`, '대시보드/이벤트/메타데이터 중 최소 하나를 허용한 뷰에 룰을 연결하세요.'));
           }
           if (channel?.view && id !== '(미지정)' && !opsRulesViewAllowsRuleId(channel.view, id)) {
             issues.push(opsRulesIssue('view-rule-not-allowed', `va-rule:${id}`, `PublishedView 허용 룰 목록에 ${id}가 없습니다.`, '채널 탭에서 defaultRuleId/allowedRuleIds를 맞추거나 룰을 다시 연결하세요.'));
@@ -4839,7 +4847,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             issues.push(opsRulesIssue('view-mode-not-allowed', `view:${viewId}`, `PublishedView ${viewId}가 룰을 참조하지만 va-rule 모드를 허용하지 않습니다.`, '보기 방식과 허용 룰 목록을 함께 저장하세요.'));
           }
           if (ruleIds.size > 0 && !opsRulesViewHasClientAccess(view)) {
-            issues.push(opsRulesIssue('unauthorized-view', `view:${viewId}`, `PublishedView ${viewId}가 룰을 참조하지만 Client 노출 권한이 없습니다.`, 'dashboard/events/metadata 노출 중 최소 하나를 활성화하세요.'));
+            issues.push(opsRulesIssue('unauthorized-view', `view:${viewId}`, `PublishedView ${viewId}가 룰을 참조하지만 클라이언트 노출 권한이 없습니다.`, '대시보드/이벤트/메타데이터 노출 중 최소 하나를 활성화하세요.'));
           }
           const priorityBuckets = new Map();
           for (const ruleId of ruleIds) {
@@ -4864,7 +4872,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         list.textContent = '';
         if (!issues.length) {
           summary.textContent = '저장 전 차단 항목이 없습니다.';
-          list.innerHTML = '<div class="empty">source mismatch, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, view 권한 충돌이 없습니다.</div>';
+          list.innerHTML = '<div class="empty">소스 불일치, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, 뷰 권한 충돌이 없습니다.</div>';
           return;
         }
         summary.textContent = `저장 전 확인이 필요한 항목 ${issues.length}개`;
@@ -4902,7 +4910,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             issues.push('선택한 PublishedView가 va-rule 모드를 허용하지 않습니다.');
           }
           if (channel?.view && !opsRulesViewHasClientAccess(channel.view)) {
-            issues.push('선택한 PublishedView에 Client 노출 권한이 없습니다.');
+            issues.push('선택한 PublishedView에 클라이언트 노출 권한이 없습니다.');
           }
           if (channel?.view && currentId && !opsRulesViewAllowsRuleId(channel.view, id)) {
             issues.push(`선택한 PublishedView의 허용 룰 목록에 ${id}가 없습니다.`);
@@ -5258,15 +5266,15 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const onvifStreamUriForSource = source => source?.rtspUrl || source?.httpUrl || source?.whepUrl || source?.url || '';
     const kindLabel = (kind, source = null) => ({
       file: '파일',
-      onvif: 'ONVIF camera',
-      rtsp: isOnvifSource(source) ? 'ONVIF camera' : 'RTSP pull',
+      onvif: 'ONVIF 카메라',
+      rtsp: isOnvifSource(source) ? 'ONVIF 카메라' : 'RTSP pull',
       whep: '외부 WHEP pull',
-      webrtc: 'Published WebRTC',
+      webrtc: 'Published WebRTC 소스',
       http: 'HTTP/HLS pull'
     })[kind] || kind || '미제공';
     const locatorForSource = source => {
-      if (source.webrtcSourceId) return `Published sourceId: ${source.webrtcSourceId}`;
-      if (isOnvifSource(source)) return `ONVIF Stream URI: ${onvifStreamUriForSource(source) || '미제공'}`;
+      if (source.webrtcSourceId) return `발행 sourceId: ${source.webrtcSourceId}`;
+      if (isOnvifSource(source)) return `ONVIF 스트림 URI: ${onvifStreamUriForSource(source) || '미제공'}`;
       if (source.whepUrl) return `외부 WHEP URL: ${source.whepUrl}`;
       return source.file || source.rtspUrl || source.httpUrl || '미제공';
     };
@@ -5685,7 +5693,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         return `${kindLabel(kind)} 입력값이 필요합니다.`;
       }
       if (kind === 'onvif' && !onvifTransportFromUri(data.onvifStreamUrl)) {
-        return 'ONVIF Stream URI는 rtsp://, rtsps://, http://, https:// 중 하나로 시작해야 합니다.';
+        return 'ONVIF 스트림 URI는 rtsp://, rtsps://, http://, https:// 중 하나로 시작해야 합니다.';
       }
       return '';
     }
