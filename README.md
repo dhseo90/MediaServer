@@ -6,8 +6,8 @@
 
 RTSP/WebRTC live stream을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
-v1.1.0의 다음 개발 방향은 장기 녹화/VMS/NVR이 아니라 live source
-onboarding, live source health, live VA event 품질 고도화입니다.
+현재 main 기준 제품 경계는 장기 녹화/VMS/NVR이 아니라 live source onboarding,
+live source health, live VA event 품질입니다.
 
 English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 
@@ -17,7 +17,7 @@ English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en
 
 - **스트리밍**: file, RTSP pull, WHEP pull, WHIP publish, HTTP/HLS source를 RTSP와 WebRTC/WHEP로 내보냅니다.
 - **영상 분석**: `va=1` overlay, 저장 룰 `vaRule=<id>`, Rule/Profile/Scenario, live Event POST와 runtime metadata를 제공합니다.
-  EventRecord와 snapshot/clip은 short event evidence 보조 기능이며 v1.1.0의 중심 제품 메시지는 아닙니다.
+  EventRecord와 snapshot/clip은 short event evidence 보조 기능이며 현재 중심 제품 메시지는 아닙니다.
 - **제품 화면**: 같은 메인 주소에서 계정 권한에 따라 운영자 화면 또는 클라이언트 화면으로 이동합니다.
   `/lab` 화면 route는 닫고 검증/연동 API만 유지합니다.
 - **계정/권한**: 최초 관리자 설정, session 로그인, role/scope, admin 사용자 관리, viewer invite/request 승인 흐름을 사용합니다.
@@ -110,11 +110,10 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | Auth/Ops/Client 화면 구조와 사용 흐름 | [docs/ui-guide.md](docs/ui-guide.md) |
 | RTSP/WebRTC pipeline, source/session, VA layer 배치 | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenario, live event, short evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
-| v1.1.0 live-only 제품 경계, 용어, 완료 checklist, 비범위 키워드 기준 | [docs/v1.1.0-roadmap.md](docs/v1.1.0-roadmap.md) |
-| v1.1.0: ONVIF live source 지원과 URL copy parity | [docs/onvif-live-source-support.md](docs/onvif-live-source-support.md) |
-| v1.1.0-beta.1: Live source health/operator workflow 1차 구현 기준 | [docs/live-source-health.md](docs/live-source-health.md) |
-| v1.1.0 후속 Phase: Event/WebRTC/SSE/WS metadata contract | [docs/live-event-metadata-contracts.md](docs/live-event-metadata-contracts.md) |
-| v1.1.0 후속 Phase: Scenario timeline/debug 필드 설계 | [docs/scenario-timeline-debug.md](docs/scenario-timeline-debug.md) |
+| ONVIF live source 지원과 URL copy parity | [docs/onvif-live-source-support.md](docs/onvif-live-source-support.md) |
+| Live source health/operator workflow 기준 | [docs/live-source-health.md](docs/live-source-health.md) |
+| Event/WebRTC/SSE/WS metadata contract | [docs/live-event-metadata-contracts.md](docs/live-event-metadata-contracts.md) |
+| Scenario timeline/debug 필드 설계 | [docs/scenario-timeline-debug.md](docs/scenario-timeline-debug.md) |
 | 현재 검증 기준과 실행 명령 | [docs/stream-verification.md](docs/stream-verification.md) |
 | 배포 bundle, container image, third-party runtime 포함 정책 | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | release asset 범위와 RC 기준 | [docs/release-policy.md](docs/release-policy.md) |
@@ -123,7 +122,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | 운영 백업/복구 대상과 복구 후 검증 | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
 | Loitering/ZoneOccupancy 현장 시작 threshold | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
 | sample 영상/fixture 출처와 공개 기준 | [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) |
-| 남은 작업과 후속 로드맵 | [docs/development-backlog.md](docs/development-backlog.md) |
+| 현재 제품 경계와 v1.2.0 로드맵 후보 | [docs/development-backlog.md](docs/development-backlog.md) |
 | YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
 
 ## 대표 UI 미리보기

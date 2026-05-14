@@ -411,7 +411,7 @@ SourceRegistry:
 - 관리 API: `/ops/api/sources`
 - 저장 필드: `sourceId`, `displayName`, `kind`, `canonicalSourceKey`,
   source input, `enabled`, `tags`, `ownerGroup`
-- ONVIF origin metadata는 v1.1.0 후속 schema review 항목이며
+- ONVIF origin metadata는 후속 schema review 항목이며
   현재 저장 필드가 아닙니다. 구현은
   [ONVIF Live Source Support](./onvif-live-source-support.md)와 `onvif`/`live`
   tag를 기준으로 기존 source/view 저장 payload를 사용합니다.
@@ -734,7 +734,7 @@ Snapshot/clip hook:
   snapshot inline preview와 clip manifest/frame link를 표시합니다.
 
 후속 UI polish는 richer clip gallery 정도로 제한합니다.
-MP4/VMS/NVR형 recorder는 v1.1.0 범위가 아니며 별도 제품 phase와
+MP4/VMS/NVR형 recorder는 현재 범위가 아니며 별도 제품 phase와
 보관/개인정보/배포 정책 gate가 필요합니다.
 
 ### Snapshot / clip hook

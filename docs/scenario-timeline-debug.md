@@ -1,7 +1,7 @@
 # Scenario Timeline Debug Fields
 
-이 문서는 v1.1.0 Live VA Event Quality 단계의 Scenario timeline/debug
-필드 확장 기준과 선수 로드맵 4/6 close-out 상태를 정의합니다. 목적은 운영자가 situation event의 오탐/미탐
+이 문서는 현재 main 기준의 Scenario timeline/debug
+필드 확장 기준과 운영자 읽기 전용 표시 경계를 정의합니다. 목적은 운영자가 situation event의 오탐/미탐
 원인을 읽기 전용으로 추적하게 하는 것입니다.
 
 이 문서는 state-dump/runtime debug 기준입니다. 현재 단계에서 scenario 판단 로직,
@@ -10,7 +10,7 @@ Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema는
 
 관련 기준:
 
-- [v1.1.0 Roadmap](./v1.1.0-roadmap.md)
+- [Development Backlog](./development-backlog.md)
 - [Video Analysis / VA Guide](./video-analysis.md)
 - [Live Event and Metadata Contracts](./live-event-metadata-contracts.md)
 

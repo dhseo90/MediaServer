@@ -21,7 +21,7 @@ node scripts/internal/capture_docs_ui_assets.mjs --lang=en
 - English screenshots are stored in `docs/assets/ui/en/` with the same role-based
   filenames as the Korean captures. Do not keep a separate English README in
   that directory; these shared rules are the single screenshot policy.
-- Before updating English README screenshots, review visible text for v1.1.0
+- Before updating English README screenshots, review visible text for current
   live-only wording. Non-goal terms such as VMS, NVR, long-term recording,
   playback/search, and Profile G must appear only as explicit non-goals or
   short event evidence/debug context.

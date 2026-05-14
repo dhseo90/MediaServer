@@ -124,6 +124,7 @@ function scanCurrentSecrets() {
   const hits = [];
   for (const file of gitLsFiles()) {
     const full = path.join(rootDir, file);
+    if (!fs.existsSync(full)) continue;
     if (!looksText(full)) continue;
     const text = fs.readFileSync(full, "utf8");
     for (const item of regexes) {

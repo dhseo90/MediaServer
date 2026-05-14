@@ -1,6 +1,6 @@
 # Live Event and Metadata Contracts
 
-이 문서는 v1.1.0의 live event delivery contract를 분리해 정리합니다.
+이 문서는 현재 main 기준의 live event delivery contract를 정리합니다.
 기존 Event POST payload, WebRTC DataChannel schema, SSE/WS runtime metadata
 schema를 변경하지 않고, 각 소비 경로의 역할과 검증 기준을 한곳에 모읍니다.
 
@@ -13,7 +13,7 @@ schema를 변경하지 않고, 각 소비 경로의 역할과 검증 기준을 �
 
 관련 기준:
 
-- [v1.1.0 Roadmap](./v1.1.0-roadmap.md)
+- [Development Backlog](./development-backlog.md)
 - [Video Analysis / VA Guide](./video-analysis.md)
 - [Stream Verification](./stream-verification.md)
 
@@ -31,13 +31,13 @@ contract 기준 문서입니다. 다른 문서에 같은 schema 예시가 있어
 | `docs/media-server-architecture.md` | pipeline 배치와 component boundary |
 | `docs/config-reference.md` | env/query/config default와 운영 튜닝 값 |
 
-문서가 충돌하면 live-only 제품 경계는 `docs/v1.1.0-roadmap.md`, contract 식별자는
+문서가 충돌하면 live-only 제품 경계는 `docs/development-backlog.md`, contract 식별자는
 이 문서를 기준으로 정리합니다. 구현 완료 여부는 검증 명령을 실행한 결과로만
 보고합니다.
 
 ## Contract Boundary
 
-MediaServer의 v1.1.0 event/metadata contract는 저장 영상이 아니라 live event와
+MediaServer의 현재 event/metadata contract는 저장 영상이 아니라 live event와
 runtime metadata 소비를 기준으로 합니다.
 
 포함:
@@ -58,7 +58,7 @@ runtime metadata 소비를 기준으로 합니다.
 
 ### Canonical Contract Identifiers
 
-아래 식별자는 v1.1.0 live event delivery contract의 기준선입니다.
+아래 식별자는 현재 live event delivery contract의 기준선입니다.
 이 단계는 contract를 문서화하고 검증 기준을 고정하는 작업이며, schema field를
 추가하거나 machine-readable enum을 바꾸는 작업이 아닙니다.
 
@@ -228,7 +228,7 @@ WS /ws/va-metadata?file=sample_h264.mp4
   `scenarios[]`, metric/include 범위를 줄이는 방식으로만 적용합니다.
 - DataChannel/SSE/WS/Event POST failure는 metric/log로 남기고 media forwarding을
   계속 유지합니다.
-- payload/schema 변경이 필요한 요구사항은 v1.1.0 live-only scope와 별도 schema
+- payload/schema 변경이 필요한 요구사항은 현재 live-only scope와 별도 schema
   review로 분리합니다.
 
 ## Acceptance Criteria
@@ -245,7 +245,7 @@ WS /ws/va-metadata?file=sample_h264.mp4
   client/viewer contract에 포함하지 않는다고 명시됨
 - Event POST disabled, EventStorage disabled, listener 없음, 보정 포트 같은
   환경/skip 조건이 smoke matrix에서 제품 회귀와 분리되어 있음
-- 문서 변경 검증과 v1.1.0 live-only boundary keyword 검증을 실행하고 결과를
+- 문서 변경 검증과 live-only boundary keyword 검증을 실행하고 결과를
   통과/미실행/skip으로 구분해 보고함
 
 위 조건은 문서 contract 정리의 완료 기준입니다. 실제 Event POST/WebRTC/SSE/WS
@@ -259,7 +259,7 @@ runtime smoke를 실행하지 않았다면 live delivery 자체를 재검증했�
 | 변경 범위 | 최소 검증 | 통과 기준 | 실패/skip 해석 |
 | --- | --- | --- | --- |
 | 문서만 변경 | `git diff --check -- README.md README.en.md docs`, `./server.sh verify-docs-links` | trailing whitespace 없음, local link 실패 없음 | 명령 없음/실행 불가는 중단 후 보고 |
-| v1.1.0 live-only 문구 | `./server.sh verify-v1.1-boundary-keywords` | failure 후보 없음 | review 후보는 사람이 문맥 확인 후 기록 |
+| live-only 문구 | `./server.sh verify-v1.1-boundary-keywords` | failure 후보 없음 | review 후보는 사람이 문맥 확인 후 기록 |
 | Event POST disabled/default | `./server.sh verify-event-post --mode disabled` | 기본 서버의 dispatcher disabled 상태 분리 보고 | enabled 상태면 disabled smoke 실패 |
 | Event POST contract | `./server.sh verify-event-post --mode schema` | `media-server.va.event.v1` payload와 `payloadFormat` 유지 | disabled는 enabled smoke 사전 조건 실패이며 보정 서버로 재확인 |
 | Event POST recovery | `./server.sh verify-event-post --mode recovery` | dispatcher recovery와 storage recovery 결과가 분리 보고됨 | EventStorage disabled skip은 skip으로 기록 |
@@ -270,7 +270,7 @@ runtime smoke를 실행하지 않았다면 live delivery 자체를 재검증했�
 
 ## Smoke Matrix Maintenance Rules
 
-이 matrix는 v1.1.0 5번 이슈인 Live Event Delivery Contract 정리의 유지보수
+이 matrix는 Live Event Delivery Contract 정리의 유지보수
 기준입니다. 다음 변경이 생기면 같은 commit에서 이 문서의 matrix를 함께 갱신합니다.
 
 - Event POST, WebRTC DataChannel, SSE, WebSocket의 schema 식별자나 label 변경

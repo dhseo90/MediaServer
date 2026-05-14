@@ -315,7 +315,7 @@ Ops/Client/Lab API guard를 확인합니다.
 
 ### 2.1 Live VA Event Quality
 
-`/ops/dashboard`의 Live VA Event Quality panel은 v1.1.0 live-only 범위의
+`/ops/dashboard`의 Live VA Event Quality panel은 현재 live-only 범위의
 운영자용 VA 품질 확인 영역입니다.
 
 표시 항목:

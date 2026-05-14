@@ -11,6 +11,24 @@
 - `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫혔습니다.
 - `/webrtc/test` 같은 초기 브라우저 테스트 화면은 제품 문서와 UI 진입점에서 제거합니다.
 
+## 13차 - v1.1.0 문서 통합
+
+완료:
+
+- v1.1.0 전용 roadmap 문서를 제거하고 현재 기준은 `development-backlog.md`와
+  기능별 상세 문서로 통합했습니다.
+- README/English index의 문서 지도에서 v1.1.0 전용 roadmap 링크를 제거했습니다.
+- `development-backlog.md`를 현재 main baseline과 v1.2.0 roadmap 후보 중심으로
+  축소했습니다.
+- ONVIF, source health, live event/metadata, scenario timeline 문서는 버전별
+  분리 문서가 아니라 현재 기능 기준 문서로 정리했습니다.
+
+검증:
+
+- `./server.sh verify-docs-links`
+- `./server.sh verify-docs-ui-assets`
+- `git diff --check`
+
 ## 12차 - 운영 제품화 안정화
 
 완료:

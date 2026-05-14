@@ -1,13 +1,13 @@
 # Live Source Health
 
-이 문서는 v1.1.0-beta.1의 live source health 1차 구현 기준과
-선수 로드맵 3/6 close-out 상태를 정의합니다.
+이 문서는 현재 main 기준의 live source health 1차 구현 기준과
+운영자/client 노출 경계를 정의합니다.
 목표는 `/ops/dashboard`, source health API, client dashboard가 같은 상태 의미를
 공유하되 노출 범위를 다르게 유지하는 것입니다.
 
 관련 기준:
 
-- [v1.1.0 Roadmap](./v1.1.0-roadmap.md)
+- [Development Backlog](./development-backlog.md)
 - [Media Server Architecture](./media-server-architecture.md)
 - [UI Guide](./ui-guide.md)
 

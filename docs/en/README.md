@@ -14,7 +14,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | UI and account views | [../ui-guide.md](../ui-guide.md) |
 | Architecture | [../media-server-architecture.md](../media-server-architecture.md) |
 | Video analytics | [../video-analysis.md](../video-analysis.md) |
-| v1.1.0 live-only roadmap, glossary, and boundary checks | [../v1.1.0-roadmap.md](../v1.1.0-roadmap.md) |
+| Current product boundary and v1.2.0 roadmap candidates | [../development-backlog.md](../development-backlog.md) |
 | Verification | [../stream-verification.md](../stream-verification.md) |
 | Distribution policy | [../distribution-policy.md](../distribution-policy.md) |
 | Release policy | [../release-policy.md](../release-policy.md) |
@@ -22,7 +22,6 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | Public repo checklist | [../public-repo-final-review.md](../public-repo-final-review.md) |
 | Backup and restore | [../ops-backup-recovery.md](../ops-backup-recovery.md) |
 | Scenario thresholds | [../analysis-threshold-baselines.md](../analysis-threshold-baselines.md) |
-| Backlog | [../development-backlog.md](../development-backlog.md) |
 | Sample fixture provenance | [../sample-fixture-provenance.md](../sample-fixture-provenance.md) |
 | YouTube import experiment | [../youtube-import.md](../youtube-import.md) |
 
@@ -32,9 +31,9 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 - Runtime binaries, YOLO model binaries, customer media, operations evidence, local auth stores, and logs are excluded.
 - Only the repository owner should change repository visibility.
 
-## v1.1.0 Product Boundary
+## Current Product Boundary
 
-- v1.1.0 targets live operations: ONVIF live source support, live source health, and live VA event quality.
+- The current main baseline targets live operations: ONVIF live source support, live source health, and live VA event quality.
 - It does not expand Media Server into long-term recording, VMS/NVR, playback/search, or ONVIF Profile G recording/replay scope.
 - EventRecord, snapshot, and clip hooks remain short event evidence or diagnostics helpers unless a later phase changes the product boundary.
 - The 2026-05-12 close-out completed prerequisite roadmap steps 1-6.
@@ -53,19 +52,20 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | v1.1.0 prerequisite roadmap 1-6 | Done | Live-only boundary, ONVIF live source support, source health, VA quality, delivery contract, and multilingual alignment are closed |
 | v1.1.0 RC stabilization | Done | Final local longrun/P1 release-gate evidence is closed without rerunning prerequisite roadmap 1-6 |
 | Audit trail operations | Follow-up phase | Server persistence exists; search/export can improve |
-| Short event evidence | Supporting | EventRecord/snapshot/clip cleanup exists, but it is not the main v1.1.0 product direction |
+| Short event evidence | Supporting | EventRecord/snapshot/clip cleanup exists, but it is not the main product direction |
 | RC gate operations | Conditional gate | Repeat longrun only for a new release cut or high-risk media/VA fanout change |
 | Client dashboard field polish | Follow-up phase | Preset-driven priority and wording can improve |
 
 ## General Follow-Ups
 
+- Use [../development-backlog.md](../development-backlog.md) as the source of truth for v1.2.0 roadmap candidates.
 - Close or suppress existing Dependabot major-update PR noise after the policy is documented.
 - Add richer English docs only if the public audience grows beyond this consolidated index.
 - Attach the latest RC artifacts to release notes when cutting the actual tag or GitHub Release.
 - Keep signed-token and cleanup checks for evidence bundles scoped to short event evidence.
 - Add operator-facing next-action buttons to root-cause diagnostics in a later operator workflow phase.
 
-## v1.1.0 Close-Out Rules
+## Close-Out Rules
 
 - RC work should not reopen VMS/NVR, playback/search, long-term recording, or Profile G scope.
 - Real ONVIF network discovery, SOAP probing, credential persistence, and origin metadata migration are field-integration extensions, not RC blockers.

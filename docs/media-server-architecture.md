@@ -213,7 +213,7 @@ Viewer
   -> PublishedView public fields only
 ```
 
-ONVIF origin metadata는 v1.1.0 저장 schema에 포함하지 않습니다.
+ONVIF origin metadata는 현재 저장 schema에 포함하지 않습니다.
 [ONVIF Live Source Support](./onvif-live-source-support.md) 기준으로
 ONVIF는 다른 live source와 같은 SourceRegistry/PublishedView 저장 흐름을 쓰며,
 별도 schema review 후 optional source metadata로만 검토합니다.
@@ -335,7 +335,7 @@ Debug counter는 `analysisTapCreatedCount`, `analysisTapReusedCount`,
 session DELETE 후 `idle=true` 복귀를 확인합니다.
 RTSP/WHEP/WHIP 외부 네트워크 장기 안정성은 별도 longrun harness에서 다룹니다.
 
-v1.1.0의 live source health 표시는
+현재 live source health 표시는
 [Live Source Health](./live-source-health.md)의 상태 모델을 기준으로 설계합니다.
 `/ops/sources`와 `/ops/dashboard`는 source reachability, last frame age,
 reconnect, stale/offline reason을 operator용으로 표시하고,
@@ -638,7 +638,7 @@ GET /lab/analysis/event-storage/status
   - 상태: 짧은 frame evidence recorder
   - 목적: EventRecord와 snapshot media/pre-post frame bundle manifest path 연결
   - Evidence retention cleanup job은 운영 명령으로 분리
-  - 장기 녹화/MP4 recorder는 v1.1.0 범위가 아니며 별도 제품 phase로만 검토
+  - 장기 녹화/MP4 recorder는 현재 범위가 아니며 별도 제품 phase로만 검토
 - Ops audit/backup
   - 상태: 운영 변경 이력과 복구 리허설
   - 목적: `/ops/api/audit` 서버 저장/검색/export, `ops-bundle`,

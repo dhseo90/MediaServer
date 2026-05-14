@@ -8,7 +8,7 @@
 - 다음 minor 개발 목표: `v1.2.0`
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 - `v1.1.0`은 live-only source release 기준입니다.
-- `v1.1.0`의 상세 목표와 비범위는 [v1.1.0 Roadmap](./v1.1.0-roadmap.md)을 기준으로 합니다.
+- 현재 제품 경계와 다음 minor 후보는 [development-backlog.md](./development-backlog.md)를 기준으로 합니다.
 
 ## `v1.1.0`에 포함되는 범위
 
@@ -32,8 +32,10 @@
 
 ## `v1.2.0` 개발 준비 범위
 
-- `v1.1.0` release tag/main merge 이후 별도 backlog에서 확정합니다.
-- v1.1.0 live-only 경계를 깨지 않는 운영/현장 고도화와 제품화 후보를 우선 검토합니다.
+- `v1.1.0` release tag/main merge 이후 [development-backlog.md](./development-backlog.md)의
+  v1.2.0 후보를 이슈로 분리해 확정합니다.
+- v1.1.0 live-only 경계를 깨지 않는 운영/현장 고도화, ONVIF 현장 연동,
+  source health workflow, client dashboard polish, integrator contract artifact를 우선 검토합니다.
 
 ## 다음 minor에도 기본 제외되는 범위
 

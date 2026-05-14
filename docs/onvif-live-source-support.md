@@ -1,13 +1,13 @@
 # ONVIF Live Source Support
 
-이 문서는 v1.1.0의 ONVIF live source 지원 범위를 고정합니다.
+이 문서는 현재 main 기준의 ONVIF live source 지원 범위를 고정합니다.
 ONVIF는 file, RTSP pull, HTTP/HLS URI, WHEP pull, Published WebRTC와 같은
 채널 source 유형 중 하나로 취급합니다. 제품 UI에서 ONVIF만 별도 import
 화면이나 특별한 workflow로 분리하지 않습니다.
 
 관련 기준:
 
-- [v1.1.0 Roadmap](./v1.1.0-roadmap.md)
+- [Development Backlog](./development-backlog.md)
 - [Media Server Architecture](./media-server-architecture.md)
 - [Config Reference](./config-reference.md)
 
@@ -63,7 +63,7 @@ ONVIF source는 기존 SourceRegistry 저장 payload만 사용합니다.
 - `tags`: 최소 `onvif`, `live`
 - `ownerGroup`: 기존 source ownership 정책 사용
 
-ONVIF origin metadata는 v1.1.0 저장 schema에 포함하지 않습니다. 필요한 최소 필드는
+ONVIF origin metadata는 현재 저장 schema에 포함하지 않습니다. 필요한 최소 필드는
 별도 SourceRegistry origin metadata 설계 단계에서 검토합니다.
 
 ## Fixture Draft Contract
