@@ -35,7 +35,7 @@ const tasks = [
     file: "ops-home.png",
     pagePath: "/ops/home",
     viewport: { width: 1680, height: 1180 },
-    clip: { selectors: ['header', '[data-testid="ops-home-page"]'], fitMainWidth: true, margin: 18, maxHeight: 1020 },
+    clip: { selectors: ['header', '[data-testid="ops-home-page"]'], fitMainWidth: true, margin: 18 },
   },
   {
     name: "client-live",
@@ -51,7 +51,6 @@ const tasks = [
       ],
       fitMainWidth: true,
       margin: 18,
-      maxHeight: 1680
     },
   },
   {
@@ -59,7 +58,7 @@ const tasks = [
     file: "ops-channels.png",
     pagePath: "/ops/sources",
     viewport: { width: 1680, height: 1250 },
-    clip: { selectors: ['header', '[data-testid="ops-sources-page"]'], fitMainWidth: true, margin: 18, maxHeight: 1080 },
+    clip: { selectors: ['header', '[data-testid="ops-sources-page"]'], fitMainWidth: true, margin: 18 },
   },
   {
     name: "ops-rules",
@@ -75,7 +74,6 @@ const tasks = [
       ],
       fitMainWidth: true,
       margin: 18,
-      maxHeight: 1420
     },
   },
   {
@@ -90,25 +88,16 @@ const tasks = [
     name: "ops-users",
     file: "ops-users.png",
     pagePath: "/ops/users",
-    viewport: { width: 1680, height: 1250 },
-    clip: {
-      selectors: [
-        'header',
-        '[data-testid="ops-users-page"] > .toolbar',
-        '[data-testid="ops-users-page"] > .section-card:nth-of-type(1)',
-        '[data-testid="ops-users-page"] > .section-card:nth-of-type(2)'
-      ],
-      fitMainWidth: true,
-      margin: 18,
-      maxHeight: 1080
-    },
+    viewport: { width: 1680, height: 1500 },
+    setup: setupOpsUsers,
+    clip: { selectors: ['header', '[data-testid="ops-users-page"]'], fitMainWidth: true, margin: 18 },
   },
   {
     name: "ops-dashboard",
     file: "ops-dashboard.png",
     pagePath: "/ops/dashboard",
     viewport: { width: 1680, height: 1220 },
-    clip: { selectors: ['header', '[data-testid="ops-dashboard-page"]'], fitMainWidth: true, margin: 18, maxHeight: 1040 },
+    clip: { selectors: ['header', '[data-testid="ops-dashboard-page"]'], fitMainWidth: true, margin: 18 },
   },
   {
     name: "client-dashboard",
@@ -116,7 +105,7 @@ const tasks = [
     pagePath: "/client/dashboard",
     viewport: { width: 1680, height: 1180 },
     setup: setupClientDashboard,
-    clip: { selectors: ['header', '[data-testid="client-shell-page"]'], fitMainWidth: true, margin: 18, maxHeight: 1000 },
+    clip: { selectors: ['header', '[data-testid="client-shell-page"]'], fitMainWidth: true, margin: 18 },
     optional: true,
   },
   {
@@ -128,7 +117,7 @@ const tasks = [
       await applyDarkTheme(browser);
       await delay(500);
     },
-    clip: { selectors: [".auth-card"], margin: 30, minWidth: 760, minHeight: 460, maxHeight: 520 },
+    clip: { selectors: [".auth-card"], margin: 24, minWidth: 700, minHeight: 420 },
     optional: true,
   }
 ];
@@ -181,9 +170,10 @@ if (failures.length) {
 }
 
 async function captureTask(task, debugPort) {
+  const pagePath = withLanguageParam(task.pagePath);
   const browser = await openBrowserPage({
     httpBase,
-    pagePath: task.pagePath,
+    pagePath,
     timeoutMs: 20000,
     chromePath,
     debugPort,
@@ -191,6 +181,7 @@ async function captureTask(task, debugPort) {
     height: task.viewport.height,
     outputDir,
     verbose,
+    locale: language === "en" ? "en-US" : "ko-KR",
   });
   try {
     await applyDarkTheme(browser);
@@ -206,6 +197,11 @@ async function captureTask(task, debugPort) {
   } finally {
     await browser.close();
   }
+}
+
+function withLanguageParam(pagePath) {
+  const separator = String(pagePath).includes("?") ? "&" : "?";
+  return `${pagePath}${separator}lang=${encodeURIComponent(language)}`;
 }
 
 async function applyDarkTheme(browser) {
@@ -363,6 +359,20 @@ async function setupOpsRulesOverview(browser) {
   })()`, 12000);
 }
 
+async function setupOpsUsers(browser) {
+  await applyDarkTheme(browser);
+  await waitFor(browser, `(() => {
+    const bodyText = document.body?.textContent || '';
+    if (bodyText.includes('auth users file not found')) {
+      throw new Error('auth users file not found');
+    }
+    const usersBody = document.querySelector('#users-body');
+    const requestsBody = document.querySelector('#access-requests-body');
+    const userRow = usersBody?.querySelector('tr');
+    return Boolean(usersBody && requestsBody && userRow && !usersBody.textContent.includes('로딩 중'));
+  })()`, 12000);
+}
+
 async function setupClientDashboard(browser) {
   await applyDarkTheme(browser);
   await evaluate(browser, `(() => {
@@ -398,10 +408,11 @@ async function computeClip(browser, clipSpec) {
     const right = fitMainWidth && mainRect ? mainRect.right : Math.max(...rects.map((rect) => rect.right));
     const top = Math.min(...rects.map((rect) => rect.top));
     const bottom = Math.max(...rects.map((rect) => rect.bottom));
+    const rawWidth = Math.ceil((right - left) + margin * 2);
+    const rawHeight = Math.ceil((bottom - top) + margin * 2);
     let x = Math.max(0, Math.floor(window.scrollX + left - margin));
     let y = Math.max(0, Math.floor(window.scrollY + top - margin));
-    let width = Math.ceil((right - left) + margin * 2);
-    const rawHeight = Math.ceil((bottom - top) + margin * 2);
+    let width = rawWidth;
     let height = maxHeight ? Math.min(rawHeight, maxHeight) : rawHeight;
     if (minWidth && width < minWidth) {
       const delta = minWidth - width;
@@ -413,8 +424,22 @@ async function computeClip(browser, clipSpec) {
       y = Math.max(0, Math.floor(y - (delta / 2)));
       height = minHeight;
     }
-    return { x, y, width, height };
+    const cropped = height < rawHeight || width < rawWidth;
+    return {
+      x,
+      y,
+      width,
+      height,
+      rawWidth,
+      rawHeight,
+      cropped,
+      selectors,
+      documentHeight: Math.ceil(document.documentElement.scrollHeight || document.body.scrollHeight || 0),
+    };
   })()`, 8000);
+  if (result?.cropped && !clipSpec.allowCrop) {
+    throw new Error(`clip would crop selected content: selectors=${result.selectors.join(", ")} raw=${result.rawWidth}x${result.rawHeight} clip=${result.width}x${result.height}`);
+  }
   return result;
 }
 

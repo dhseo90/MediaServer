@@ -744,9 +744,9 @@ std::vector<ReplayFrame> ParseReplayInput(const ReplayOptions& options) {
 
 std::vector<std::string> DefaultRuleDocuments() {
     return {
-        R"({"id":"1","enabled":true,"match":{"sourceKind":"*","route":"*"},"analysis":{"classes":["person"]},"event":{"type":"presence","minConfidence":0.1,"minDurationMs":0,"region":{"type":"polygon","points":[{"x":0.1,"y":0.1},{"x":0.5,"y":0.1},{"x":0.5,"y":0.5},{"x":0.1,"y":0.5}]}}})",
-        R"({"id":"2","enabled":true,"match":{"sourceKind":"*","route":"*"},"analysis":{"classes":["person"]},"event":{"type":"line-crossing","minConfidence":0.1,"region":{"type":"line","direction":"any","points":[{"x":0.5,"y":0.0},{"x":0.5,"y":1.0}]}}})",
-        R"({"id":"3","enabled":true,"match":{"sourceKind":"*","route":"*"},"ruleKind":"scenario","analysis":{"classes":["person"]},"event":{"type":"intrusion-dwell","minConfidence":0.1,"region":{"type":"polygon","points":[{"x":0.1,"y":0.1},{"x":0.5,"y":0.1},{"x":0.5,"y":0.5},{"x":0.1,"y":0.5}]}}})",
+        R"({"id":"intrusion-zone","enabled":true,"match":{"sourceKind":"*","route":"*"},"analysis":{"classes":["person"]},"event":{"type":"presence","minConfidence":0.1,"minDurationMs":0,"region":{"type":"polygon","points":[{"x":0.1,"y":0.1},{"x":0.5,"y":0.1},{"x":0.5,"y":0.5},{"x":0.1,"y":0.5}]}}})",
+        R"({"id":"line-crossing","enabled":true,"match":{"sourceKind":"*","route":"*"},"analysis":{"classes":["person"]},"event":{"type":"line-crossing","minConfidence":0.1,"region":{"type":"line","direction":"any","points":[{"x":0.5,"y":0.0},{"x":0.5,"y":1.0}]}}})",
+        R"({"id":"intrusion-zone","enabled":true,"match":{"sourceKind":"*","route":"*"},"ruleKind":"scenario","analysis":{"classes":["person"]},"event":{"type":"intrusion-dwell","minConfidence":0.1,"region":{"type":"polygon","points":[{"x":0.1,"y":0.1},{"x":0.5,"y":0.1},{"x":0.5,"y":0.5},{"x":0.1,"y":0.5}]}}})",
     };
 }
 

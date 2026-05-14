@@ -19,6 +19,8 @@ check("shared product UI script provides local audit trail helpers", () => {
     "opsAuditViewStates",
     "fetchOpsAuditTrailPage",
     "openOpsAuditDetail",
+    "auditFilterPresetsFor",
+    'data-audit-preset="',
     "data-audit-export",
     "auditKeyRedacted",
     "password|token|hash|secret|capability",
@@ -64,11 +66,26 @@ check("ops page scripts record channel/rule/user mutations", () => {
   }
 });
 
+check("source health state changes write channel audit records", () => {
+  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const required = [
+    "g_source_health_audit_state",
+    "AppendOpsSourceHealthAuditChanges",
+    "source-health-state-change",
+    "\\\"target\\\":\\\"source:",
+    "SourceHealthAuditRecordBody",
+  ];
+  for (const snippet of required) {
+    assert(server.includes(snippet), `source health audit hook is missing snippet: ${snippet}`);
+  }
+});
+
 check("audit layout has mobile-safe CSS", () => {
   const css = readText("src/ingress/product_ui_css.cpp");
   const required = [
     ".audit-list",
     ".audit-controls",
+    ".audit-presets",
     ".audit-filter-grid",
     ".audit-entry",
     ".audit-detail-modal",

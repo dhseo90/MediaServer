@@ -26,11 +26,15 @@ const rulesHtml = await requestText("/ops/rules");
 for (const needle of [
   'id="opsEventRulePresetSelect"',
   '<option value="road">도로</option>',
+  '<option value="retail">매장 통로</option>',
   '<option value="park">공원</option>',
   '<option value="indoor">실내</option>',
   '<option value="lobby">로비</option>',
   '<option value="platform">승강장</option>',
   '<option value="entrance">출입구</option>',
+  '<option value="doorway">문 앞 정체</option>',
+  '<option value="parking">주차장 가장자리</option>',
+  '<option value="elevator">승강기 홀</option>',
 ]) {
   if (!rulesHtml.includes(needle)) {
     throw new Error(`scenario preset UI missing: ${needle}`);
@@ -44,7 +48,7 @@ const ids = nextNumericIds(usedIds, { count: 4, start: 9911, end: 9999, label: "
 const fixtures = [
   {
     id: ids[0],
-    name: "park loitering",
+    name: "parking loitering",
     payload: {
       id: ids[0],
       enabled: true,
@@ -58,21 +62,21 @@ const fixtures = [
       },
       scenario: {
         type: "loitering",
-        presetId: "park",
+        presetId: "parking",
         enabled: true,
         minDwellTimeMs: 60000,
-        maxMovementRadius: 0.1,
+        maxMovementRadius: 0.12,
         minTrajectoryPoints: 5,
-        cooldownMs: 30000,
+        cooldownMs: 20000,
         targetClasses: ["person"],
       },
     },
     checks: {
-      "scenario.presetId": "park",
+      "scenario.presetId": "parking",
       "scenario.minDwellTimeMs": 60000,
-      "scenario.maxMovementRadius": 0.1,
+      "scenario.maxMovementRadius": 0.12,
       "scenario.minTrajectoryPoints": 5,
-      "scenario.cooldownMs": 30000,
+      "scenario.cooldownMs": 20000,
     },
   },
   {
@@ -94,16 +98,16 @@ const fixtures = [
         presetId: "platform",
         enabled: true,
         occupancyThreshold: 8,
-        minDwellTimeMs: 8000,
-        cooldownMs: 15000,
+        minDwellTimeMs: 5000,
+        cooldownMs: 10000,
         targetClasses: ["person"],
       },
     },
     checks: {
       "scenario.presetId": "platform",
       "scenario.occupancyThreshold": 8,
-      "scenario.minDwellTimeMs": 8000,
-      "scenario.cooldownMs": 15000,
+      "scenario.minDwellTimeMs": 5000,
+      "scenario.cooldownMs": 10000,
     },
   },
   {

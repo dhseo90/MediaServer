@@ -19,6 +19,7 @@
 #include <cctype>
 #include <cstdint>
 #include <cstring>
+#include <ctime>
 #include <fstream>
 #include <filesystem>
 #include <iomanip>
@@ -69,11 +70,17 @@ namespace {
 std::atomic<std::uint64_t> g_web_rtc_metadata_sequence{0};
 std::atomic<std::uint64_t> g_ops_audit_sequence{0};
 std::mutex g_ops_audit_mu;
+std::mutex g_source_health_audit_mu;
+std::unordered_map<std::string, std::string> g_source_health_audit_state;
+std::mutex g_source_health_warning_mu;
+std::unordered_map<std::string, std::pair<std::string, int>> g_source_health_warning_state;
 
 constexpr std::size_t kMaxHttpHeaderBytes = 64 * 1024;
 constexpr std::size_t kMaxHttpBodyBytes = 2 * 1024 * 1024;
 constexpr int kHttpSocketTimeoutSeconds = 5;
 constexpr int kMaxActiveHttpConnections = 128;
+constexpr int kOpsSourceHealthHighReconnectThreshold = 3;
+constexpr int kOpsSourceHealthRepeatedStaleThreshold = 3;
 
 std::string Trim(std::string value) {
     while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front())) != 0) {
@@ -1966,15 +1973,6 @@ void AppendProductAccountMenu(std::ostringstream& out,
                              const std::string& secondary_action_label = std::string()) {
     out << R"(        <div class="account-menu" aria-label="현재 계정">
           <div class="account-menu-top">
-            )" << ProductThemeToggleButtonHtml() << ProductLanguageSelectHtml() << R"(
-)";
-    if (!secondary_action_href.empty() && !secondary_action_label.empty()) {
-        out << R"(            <a class="button button-secondary account-shortcut" href=")"
-            << HtmlEscape(secondary_action_href) << R"(">)"
-            << HtmlEscape(secondary_action_label) << R"(</a>
-)";
-    }
-    out << R"(
             <div class="account-identity">
               )" << ProductAccountAvatarSvg() << R"(
               <div class="account-copy">
@@ -1982,6 +1980,16 @@ void AppendProductAccountMenu(std::ostringstream& out,
                 <div class="account-meta">권한: )" << HtmlEscape(principal.role) << R"(</div>
               </div>
             </div>
+            <div class="account-controls">
+              )" << ProductThemeToggleButtonHtml() << ProductLanguageSelectHtml() << R"(
+)";
+    if (!secondary_action_href.empty() && !secondary_action_label.empty()) {
+        out << R"(              <a class="button button-secondary account-shortcut" href=")"
+            << HtmlEscape(secondary_action_href) << R"(">)"
+            << HtmlEscape(secondary_action_label) << R"(</a>
+)";
+    }
+    out << R"(            </div>
           </div>
           <form method="post" action="/logout"><button class="button-secondary" type="submit">로그아웃</button></form>
         </div>
@@ -2171,10 +2179,10 @@ std::string InviteSetupPageHtml(const std::string& token,
 
 std::string ClientAccessRequestPageHtml() {
     std::ostringstream out;
-    AppendAuthShellStart(out, "접근 요청", "Client Access", "auth-card-wide");
+    AppendAuthShellStart(out, "시청 권한 요청", "Client Access", "auth-card-wide");
     out << R"(    <form id="request-form" class="auth-form">
-      <h1>접근 요청</h1>
-      <p>요청은 pending 상태로 저장되며 admin 승인 전에는 로그인이나 view 접근이 허용되지 않습니다.</p>
+      <h1>시청 권한 요청</h1>
+      <p>요청은 승인 대기 상태로 저장되며 관리자 승인 전에는 로그인이나 채널 접근이 허용되지 않습니다.</p>
       <div id="message" class="message" hidden></div>
       <label>계정명<input name="username" autocomplete="username" required /></label>
       <label>표시 이름<input name="displayName" /></label>
@@ -2282,13 +2290,13 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
         </div>
         )" << RefreshIconButtonHtml("opsDashboardRefresh", "button-secondary", "새로고침") << R"(
       </div>
-      <div class="grid">
+      <div class="grid ops-metric-grid">
         <div class="metric-card"><span>활성 세션</span><strong id="dashActiveSessions">-</strong></div>
         <div class="metric-card"><span>활성 스트림</span><strong id="dashActiveStreams">-</strong></div>
         <div class="metric-card"><span>분석 탭</span><strong id="dashActiveTaps">-</strong></div>
         <div class="metric-card"><span>WHIP 소스</span><strong id="dashPublishSources">-</strong></div>
       </div>
-      <div class="grid">
+      <div class="grid ops-dashboard-card-grid">
         <section class="section-card">
           <h3>상태 요약</h3>
           <div id="dashHealthBadges" class="badge-row"><span class="chip">로딩 중</span></div>
@@ -2314,7 +2322,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
         <div class="toolbar">
           <div>
             <h3>문제 원인</h3>
-          <p>source lifecycle, stale, reconnect, auth/config 상태와 다음 조치를 함께 봅니다.</p>
+          <p>소스 수명주기, 지연, 재연결, 권한/설정 상태와 다음 조치를 함께 봅니다.</p>
           </div>
         </div>
         <div id="dashRootCauseBadges" class="badge-row"><span class="chip">로딩 중</span></div>
@@ -2340,6 +2348,33 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           <div class="status-stat"><span>WS</span><strong id="dashWsClientCount">-</strong></div>
         </div>
         <p id="dashDetailText">불러오는 중</p>
+      </section>
+      <section class="section-card" data-testid="ops-va-quality-panel">
+        <div class="toolbar">
+          <div>
+            <h3>라이브 VA 이벤트 품질</h3>
+            <p>시나리오 타임라인, 트랙 상태 이슈, 룰 런타임 상태를 읽기 전용으로 봅니다.</p>
+          </div>
+          <div class="actions">
+            <input id="dashVaQualityFilterInput" type="search" placeholder="시나리오, 룰, 트랙, 단계, 이슈" aria-label="라이브 VA 이벤트 품질 필터" />
+          </div>
+        </div>
+        <div id="dashVaQualityBadges" class="badge-row"><span class="chip">분석 탭 대기</span></div>
+        <p id="dashVaQualityText">활성 분석 탭이 있으면 타임라인과 트래킹 이슈를 표시합니다.</p>
+        <div class="grid">
+          <div>
+            <h4>시나리오 타임라인</h4>
+            <div id="dashScenarioTimeline" class="root-cause-list">
+              <div class="empty">활성 시나리오 인스턴스가 없습니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>트래킹 이슈</h4>
+            <div id="dashTrackingIssueGroups" class="root-cause-list">
+              <div class="empty">트래킹 이슈 리포트가 없습니다.</div>
+            </div>
+          </div>
+        </div>
       </section>
     </section>
 )";
@@ -2395,7 +2430,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
               <span id="opsRulesPrereqProfilesState" class="chip">확인 중</span>
             </div>
             <strong id="opsRulesPrereqProfilesCount">0개</strong>
-            <p>검출기, FPS, confidence, adaptive 같은 분석 엔진 설정을 먼저 만듭니다.</p>
+            <p>검출기, FPS, 신뢰도, 적응형 설정 같은 분석 엔진 설정을 먼저 만듭니다.</p>
             <div class="actions">
               <button id="opsRulesPrereqProfilesAction" class="button-secondary" type="button">프로파일 추가</button>
             </div>
@@ -2675,11 +2710,15 @@ void AppendOpsRulesPage(std::ostringstream& out) {
               <select id="opsEventRulePresetSelect">
                 <option value="default">기본</option>
                 <option value="road">도로</option>
+                <option value="retail">매장 통로</option>
                 <option value="park">공원</option>
                 <option value="indoor">실내</option>
                 <option value="lobby">로비</option>
                 <option value="platform">승강장</option>
                 <option value="entrance">출입구</option>
+                <option value="doorway">문 앞 정체</option>
+                <option value="parking">주차장 가장자리</option>
+                <option value="elevator">승강기 홀</option>
                 <option value="custom">직접 설정</option>
               </select>
             </label>
@@ -2790,9 +2829,9 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             <label>입력 높이<input id="opsProfileInputHeightInput" type="number" min="1" step="1" placeholder="640" /></label>
           </div>
           <div class="checks">
-            <label><input id="opsProfileAdaptiveToggle" type="checkbox" checked /> adaptive</label>
+            <label><input id="opsProfileAdaptiveToggle" type="checkbox" checked /> 적응형 튜닝</label>
           </div>
-          <p id="opsProfileSummaryText" class="form-note">검출기, FPS, confidence, 입력 크기 같은 분석 엔진 설정만 정의합니다.</p>
+          <p id="opsProfileSummaryText" class="form-note">검출기, FPS, 신뢰도, 입력 크기 같은 분석 엔진 설정만 정의합니다.</p>
         </form>
       </section>
       <section class="section-card ops-audit-panel">
@@ -3049,6 +3088,17 @@ std::vector<std::string> ClientStreamKeyCandidates(const SourceViewRegistry::Sou
     const std::string locator = SourceLocatorForClientView(source);
     if (kind.has_value() && !locator.empty()) {
         AddUniqueString(&candidates, core::BuildStreamKey(media::SourceSpec{*kind, locator}));
+        if (*kind == media::SourceSpec::Kind::File) {
+            const std::filesystem::path raw_file(locator);
+            const std::filesystem::path rooted =
+                raw_file.is_absolute() ? raw_file : std::filesystem::path(app::GetAppConfig().file_root_path) / raw_file;
+            std::error_code ec;
+            const auto resolved = std::filesystem::weakly_canonical(rooted, ec);
+            if (!ec && !resolved.empty()) {
+                AddUniqueString(&candidates,
+                                core::BuildStreamKey(media::SourceSpec{*kind, resolved.string()}));
+            }
+        }
     }
     return candidates;
 }
@@ -3408,7 +3458,44 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
                                          : std::nullopt;
     const bool frame_stale = last_frame_age.has_value() && *last_frame_age > kClientDashboardStaleMs;
     const bool metadata_stale = metadata_age.has_value() && *metadata_age > kClientDashboardStaleMs;
+    const bool frame_fresh = last_frame_age.has_value() && *last_frame_age <= kClientDashboardStaleMs;
+    const bool metadata_fresh = metadata_age.has_value() && *metadata_age <= kClientDashboardStaleMs;
     const bool stale = frame_stale || metadata_stale;
+    std::string health_status = "offline";
+    if (has_tap) {
+        if (frame_fresh || metadata_fresh) {
+            health_status = "live";
+        } else if (last_frame_age.has_value() || metadata_age.has_value()) {
+            health_status = "stale";
+        } else {
+            health_status = "connecting";
+        }
+    }
+    const std::string connection_status =
+        !has_tap ? "disconnected" : (health_status == "connecting" ? "connecting" : "connected");
+    const std::string video_frame_status =
+        !has_tap ? "unavailable" : (!has_frame ? "connecting" : (frame_stale ? "stale" : "receiving"));
+    const std::string metadata_status =
+        !metadata_allowed
+            ? "unavailable"
+            : (!has_tap ? "unavailable"
+                        : (!has_metadata ? "connecting" : (metadata_stale ? "stale" : "fresh")));
+    const std::string warning_level =
+        (!has_tap || health_status == "stale" || stale)
+            ? "warning"
+            : (health_status == "connecting" ? "info" : "normal");
+    std::string health_summary = "receiving";
+    if (!has_tap) {
+        health_summary = "offline";
+    } else if (health_status == "connecting") {
+        health_summary = "waiting-signal";
+    } else if (frame_stale && metadata_stale) {
+        health_summary = "video-and-metadata-delay";
+    } else if (frame_stale) {
+        health_summary = "video-delay";
+    } else if (metadata_stale) {
+        health_summary = "metadata-delay";
+    }
 
     std::optional<std::int64_t> track_count;
     std::optional<std::int64_t> active_event_count;
@@ -3443,18 +3530,13 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     out << "{\"ok\":true,\"view\":";
     AppendClientViewIdentityJson(out, access);
     out << ",\"health\":{"
-        << "\"live\":" << (has_tap && tap->ref_count > 0 ? "true" : "false") << ","
-        << "\"status\":\"" << (has_tap ? "live" : "offline") << "\","
-        << "\"connectionStatus\":\"" << (has_tap ? "connected" : "disconnected") << "\","
-        << "\"videoFrameStatus\":\""
-        << (!has_tap ? "unavailable" : (!has_frame ? "unavailable" : (frame_stale ? "stale" : "receiving")))
-        << "\","
-        << "\"metadataStatus\":\""
-        << (!metadata_allowed ? "unavailable"
-                              : (!has_tap ? "unavailable"
-                                          : (!has_metadata ? "unavailable"
-                                                           : (metadata_stale ? "stale" : "fresh"))))
-        << "\","
+        << "\"live\":" << (health_status == "live" ? "true" : "false") << ","
+        << "\"status\":\"" << JsonEscape(health_status) << "\","
+        << "\"connectionStatus\":\"" << JsonEscape(connection_status) << "\","
+        << "\"videoFrameStatus\":\"" << JsonEscape(video_frame_status) << "\","
+        << "\"metadataStatus\":\"" << JsonEscape(metadata_status) << "\","
+        << "\"warningLevel\":\"" << JsonEscape(warning_level) << "\","
+        << "\"summary\":\"" << JsonEscape(health_summary) << "\","
         << "\"stale\":" << (stale ? "true" : "false") << ","
         << "\"lastFrameAgeMs\":";
     AppendNullableInt64(out, last_frame_age);
@@ -3470,7 +3552,7 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     out << ",\"latestEventTime\":";
     AppendNullableInt64(out, latest_event_time);
     out << "},\"connection\":{"
-        << "\"webrtc\":\"" << (has_tap ? "connected" : "disconnected") << "\","
+        << "\"webrtc\":\"" << JsonEscape(connection_status) << "\","
         << "\"staleMetadataAgeMs\":";
     AppendNullableInt64(out, metadata_age);
     out << ",\"lastFrameAgeMs\":";
@@ -3760,7 +3842,10 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     AppendImageNavLink(out, "/client/dashboard", "dashboard", "대시보드", active == "dashboard");
     out << R"(        </nav>
 )";
-    AppendProductAccountMenu(out, principal);
+    AppendProductAccountMenu(out,
+                             principal,
+                             preview_mode ? "/ops/home" : std::string(),
+                             preview_mode ? "Ops" : std::string());
     out << R"(      </div>
     </header>
 )";
@@ -3841,31 +3926,9 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <span id="status" class="status" aria-live="polite" hidden></span>
           </div>
         </div>
-        <div class="channel-bulk-panel" data-testid="channel-bulk-panel">
-          <div class="toolbar">
-            <div>
-              <h4>대량 작업 / 상태 진단</h4>
-              <p>선택한 채널을 복제하거나 비활성화하고, source/view 연결 문제를 확인합니다.</p>
-            </div>
-            <div class="actions">
-              <label class="check-inline"><input id="channel-bulk-select-all" type="checkbox" /> 전체 선택</label>
-              <label class="check-inline"><input id="channel-bulk-dry-run" type="checkbox" checked /> dry-run</label>
-              <button id="channel-bulk-validate" class="button-secondary" type="button">검증</button>
-              <button id="channel-bulk-clone" class="button-secondary" type="button">선택 복제</button>
-              <button id="channel-bulk-disable" class="button-secondary" type="button">선택 비활성화</button>
-              <button id="channel-bulk-retry-failed" class="button-secondary" type="button" disabled>실패 재시도</button>
-              <button id="channel-bulk-rollback" class="button-secondary" type="button" disabled>성공 롤백</button>
-            </div>
-          </div>
-          <div id="channelBulkSummary" class="badge-row"><span class="chip">로딩 중</span></div>
-          <div id="channelBulkDiagnostics" class="validation-list channel-bulk-diagnostics">
-            <div class="empty">채널 상태를 불러오는 중입니다.</div>
-          </div>
-        </div>
         <div class="table-wrap">
           <table class="ops-data-table ops-responsive-table channel-table">
             <colgroup>
-              <col class="channel-col-select" />
               <col class="channel-col-id" />
               <col class="channel-col-name" />
               <col class="channel-col-kind" />
@@ -3876,8 +3939,8 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
               <col class="channel-col-actions" />
             </colgroup>
 )OPS";
-    AppendTableHead(out, {"선택", "ID", "이름", "종류", "상태", "입력", "라이브 URL", "VA URL", "작업"});
-    out << R"OPS(            <tbody id="channels-body"><tr><td colspan="9">로딩 중</td></tr></tbody>
+    AppendTableHead(out, {"ID", "이름", "종류", "상태", "입력", "라이브 URL", "VA URL", "작업"});
+    out << R"OPS(            <tbody id="channels-body"><tr><td colspan="8">로딩 중</td></tr></tbody>
           </table>
         </div>
         <p class="hint" style="margin-top:12px;">RTSP/WHEP는 운영 확인용입니다. 브라우저 재생은 <code>/client/live</code>에서 확인합니다.</p>
@@ -3898,7 +3961,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
         </div>
           <form id="channel-form">
           <div class="channel-editor-intro">
-            <p><strong>외부 WHEP</strong>는 URL 입력, <strong>Published WebRTC</strong>는 저장된 <code>sourceId</code> 연결입니다.</p>
+            <p><strong>ONVIF 카메라</strong>는 ONVIF 프로파일에서 선택한 라이브 스트림 URI를 연결합니다. <strong>외부 WHEP</strong>는 URL 입력, <strong>Published WebRTC 소스</strong>는 저장된 <code>sourceId</code> 연결입니다.</p>
           </div>
           <div class="row">
             <label>채널 ID<input name="channelId" type="number" min="1" step="1" inputmode="numeric" placeholder="1" required /></label>
@@ -3906,9 +3969,10 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <label>종류
               <select name="kind">
                 <option value="file">파일</option>
+                <option value="onvif">ONVIF 카메라</option>
                 <option value="rtsp">RTSP pull</option>
                 <option value="whep">외부 WHEP pull</option>
-                <option value="webrtc">Published WebRTC source</option>
+                <option value="webrtc">Published WebRTC 소스</option>
                 <option value="http">HTTP/HLS pull</option>
               </select>
             </label>
@@ -3918,10 +3982,12 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
               <option value="sample_h264.mp4">sample_h264.mp4</option>
             </select>
           </label>
+          <label data-source-kind="onvif">ONVIF 스트림 URI<input name="onvifStreamUrl" placeholder="rtsp://camera/live 또는 https://camera/live.m3u8" /></label>
+          <p data-source-kind="onvif" class="hint">ONVIF 장치의 라이브 프로파일에서 선택한 재생 URI를 입력합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.</p>
           <label data-source-kind="rtsp">RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live" /></label>
           <label data-source-kind="whep">외부 WHEP URL<input name="whepUrl" placeholder="https://example.com/whep/stream" /></label>
           <p data-source-kind="whep" class="hint">외부 WebRTC playback endpoint를 서버가 WHEP pull source로 연결합니다. URL 자체가 입력값입니다.</p>
-          <label data-source-kind="webrtc">Published sourceId<input name="webrtcSourceId" placeholder="published-source-id" /></label>
+          <label data-source-kind="webrtc">발행 sourceId<input name="webrtcSourceId" placeholder="published-source-id" /></label>
           <p data-source-kind="webrtc" class="hint">외부 URL을 넣는 항목이 아닙니다. 이 서버의 WHIP publish endpoint로 이미 등록된 sourceId를 연결합니다.</p>
           <label data-source-kind="http">HTTP/HLS URL<input name="httpUrl" /></label>
           <p id="channel-validation" class="hint"></p>
@@ -3989,9 +4055,10 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
       <section class="section-card">
         <div class="toolbar">
           <div>
-            <h2>접근 요청</h2>
-            <p>요청을 검토하고 초대 링크를 발급합니다.</p>
+            <h2>승인 대기 요청</h2>
+            <p>공개 회원가입이 아니라, 별도 요청 페이지로 들어온 계정을 관리자가 검토한 뒤 초대 링크를 발급합니다.</p>
           </div>
+          <a class="button button-secondary" href="/client/request-access">요청 페이지</a>
           <span id="request-status" class="status"></span>
         </div>
         <pre id="request-invite-output" hidden></pre>
@@ -4048,7 +4115,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
             </div>
             <div id="view-assignment">
               <label>채널 ID<input name="viewId" placeholder="1" /></label>
-              <p class="hint">시청자/연동 계정에는 선택한 채널 조회 권한만 부여합니다. debug/lab/ops/source/rule 관리 권한은 허용하지 않습니다.</p>
+              <p class="hint">시청자/연동 계정에는 선택한 채널의 라이브, 대시보드, 이벤트, 메타데이터 조회 권한만 부여합니다. 운영, 개발, 소스, 룰 관리 권한은 허용하지 않습니다.</p>
             </div>
             <div class="scope-template-actions">
               <button id="apply-view-scope-template" class="button-secondary" type="button">채널 범위 적용</button>
@@ -4712,6 +4779,61 @@ std::string AnalysisDebugTrackStateJson(const analysis::AnalysisDebugTrackState&
     return out.str();
 }
 
+void AppendNullableInt64Json(std::ostringstream& out, std::int64_t value) {
+    if (value < 0) {
+        out << "null";
+    } else {
+        out << value;
+    }
+}
+
+std::string AnalysisDebugScenarioTimelineJson(
+    const analysis::AnalysisDebugScenarioTimeline& item) {
+    std::ostringstream out;
+    out << "{"
+        << "\"instanceKey\":\"" << JsonEscape(item.instance_key) << "\","
+        << "\"streamId\":\"" << JsonEscape(item.stream_id) << "\","
+        << "\"channelId\":\"" << JsonEscape(item.channel_id) << "\","
+        << "\"ruleId\":\"" << JsonEscape(item.rule_id) << "\","
+        << "\"scenarioKey\":\"" << JsonEscape(item.scenario_key) << "\","
+        << "\"scenarioName\":\"" << JsonEscape(item.scenario_name) << "\","
+        << "\"trackId\":" << item.track_id << ","
+        << "\"classId\":" << item.class_id << ","
+        << "\"className\":\"" << JsonEscape(item.class_name) << "\","
+        << "\"zoneId\":\"" << JsonEscape(item.zone_id) << "\","
+        << "\"lineId\":\"" << JsonEscape(item.line_id) << "\","
+        << "\"currentPhase\":\"" << JsonEscape(item.current_phase) << "\","
+        << "\"previousPhase\":\"" << JsonEscape(item.previous_phase) << "\","
+        << "\"phaseEnteredAtMs\":";
+    AppendNullableInt64Json(out, item.phase_entered_at_ms);
+    out << ",\"phaseElapsedMs\":";
+    AppendNullableInt64Json(out, item.phase_elapsed_ms);
+    out << ",\"trackFirstSeenAtMs\":";
+    AppendNullableInt64Json(out, item.track_first_seen_at_ms);
+    out << ",\"trackLastSeenAtMs\":";
+    AppendNullableInt64Json(out, item.track_last_seen_at_ms);
+    out << ",\"zoneEnteredAtMs\":";
+    AppendNullableInt64Json(out, item.zone_entered_at_ms);
+    out << ",\"lineCrossedAtMs\":";
+    AppendNullableInt64Json(out, item.line_crossed_at_ms);
+    out << ",\"eventEmittedAtMs\":";
+    AppendNullableInt64Json(out, item.event_emitted_at_ms);
+    out << ",\"cooldownStartedAtMs\":";
+    AppendNullableInt64Json(out, item.cooldown_started_at_ms);
+    out << ",\"cooldownEndsAtMs\":";
+    AppendNullableInt64Json(out, item.cooldown_ends_at_ms);
+    out << ",\"cooldownRemainingMs\":";
+    AppendNullableInt64Json(out, item.cooldown_remaining_ms);
+    out << ",\"lastEventId\":\"" << JsonEscape(item.last_event_id) << "\","
+        << "\"lastEventStatus\":\"" << JsonEscape(item.last_event_status) << "\","
+        << "\"dedupeKey\":\"" << JsonEscape(item.dedupe_key) << "\","
+        << "\"eventEmittedCount\":" << item.event_emitted_count << ","
+        << "\"dedupeSuppressedCount\":" << item.dedupe_suppressed_count << ","
+        << "\"active\":" << (item.active ? "true" : "false")
+        << "}";
+    return out.str();
+}
+
 std::string AnalysisDebugStateJson(const std::optional<analysis::AnalysisDebugState>& debug_state) {
     if (!debug_state.has_value()) {
         return "null";
@@ -4740,6 +4862,13 @@ std::string AnalysisDebugStateJson(const std::optional<analysis::AnalysisDebugSt
             out << ",";
         }
         out << AnalysisDebugTrackStateJson(debug.tracks[i]);
+    }
+    out << "],\"scenarioTimeline\":[";
+    for (std::size_t i = 0; i < debug.scenario_timeline.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << AnalysisDebugScenarioTimelineJson(debug.scenario_timeline[i]);
     }
     out << "]}";
     return out.str();
@@ -6794,6 +6923,694 @@ std::int64_t NowUnixMs() {
         .count();
 }
 
+std::string FormatUnixMsUtc(std::int64_t unix_ms) {
+    const std::time_t seconds = static_cast<std::time_t>(unix_ms / 1000);
+    const int millis = static_cast<int>(std::max<std::int64_t>(0, unix_ms % 1000));
+    std::tm tm{};
+    gmtime_r(&seconds, &tm);
+    std::ostringstream out;
+    out << std::put_time(&tm, "%Y-%m-%dT%H:%M:%S") << "."
+        << std::setw(3) << std::setfill('0') << millis << "Z";
+    return out.str();
+}
+
+void AppendNullableJsonString(std::ostringstream& out, const std::string& value) {
+    if (value.empty()) {
+        out << "null";
+    } else {
+        out << "\"" << JsonEscape(value) << "\"";
+    }
+}
+
+struct OpsSourceHealthItem {
+    std::string source_id;
+    std::string status{"unknown"};
+    std::string reason{"not-checked"};
+    std::string checked_at;
+    std::optional<std::int64_t> last_frame_age_ms;
+    std::optional<std::int64_t> last_metadata_age_ms;
+    int reconnect_count{0};
+    std::string last_reconnect_at;
+    std::string codec_video;
+    std::string codec_profile;
+    std::optional<std::int64_t> codec_width;
+    std::optional<std::int64_t> codec_height;
+    std::optional<std::int64_t> codec_fps;
+    std::vector<std::string> warnings;
+};
+
+struct OpsSourceHealthSnapshot {
+    bool ok{true};
+    std::string error;
+    std::string generated_at;
+    std::vector<OpsSourceHealthItem> items;
+    int live_count{0};
+    int connecting_count{0};
+    int stale_count{0};
+    int offline_count{0};
+    int unknown_count{0};
+};
+
+void AppendOpsSourceHealthItemJson(std::ostringstream& out, const OpsSourceHealthItem& item) {
+    out << "{"
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"status\":\"" << JsonEscape(item.status) << "\","
+        << "\"reason\":\"" << JsonEscape(item.reason) << "\","
+        << "\"checkedAt\":";
+    AppendNullableJsonString(out, item.checked_at);
+    out << ",\"lastFrameAgeMs\":";
+    AppendNullableInt64(out, item.last_frame_age_ms);
+    out << ",\"lastMetadataAgeMs\":";
+    AppendNullableInt64(out, item.last_metadata_age_ms);
+    out << ",\"reconnectCount\":" << item.reconnect_count
+        << ",\"lastReconnectAt\":";
+    AppendNullableJsonString(out, item.last_reconnect_at);
+    out << ",\"codec\":{"
+        << "\"video\":";
+    AppendNullableJsonString(out, item.codec_video);
+    out << ",\"profile\":";
+    AppendNullableJsonString(out, item.codec_profile);
+    out << ",\"width\":";
+    AppendNullableInt64(out, item.codec_width);
+    out << ",\"height\":";
+    AppendNullableInt64(out, item.codec_height);
+    out << ",\"fps\":";
+    AppendNullableInt64(out, item.codec_fps);
+    out << "},\"warnings\":[";
+    for (std::size_t i = 0; i < item.warnings.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(item.warnings[i]) << "\"";
+    }
+    out << "]}";
+}
+
+void AddOpsSourceHealthWarning(OpsSourceHealthItem* item, const std::string& warning) {
+    if (item == nullptr || warning.empty() ||
+        std::find(item->warnings.begin(), item->warnings.end(), warning) != item->warnings.end()) {
+        return;
+    }
+    item->warnings.push_back(warning);
+}
+
+const SourceViewRegistry::PublishedViewRecord* OpsHealthViewForSource(
+    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+    const std::string& source_id) {
+    const auto exact = std::find_if(views.begin(), views.end(), [&](const auto& view) {
+        return view.view_id == source_id && view.source_id == source_id;
+    });
+    if (exact != views.end()) {
+        return &*exact;
+    }
+    const auto by_source = std::find_if(views.begin(), views.end(), [&](const auto& view) {
+        return view.source_id == source_id;
+    });
+    return by_source == views.end() ? nullptr : &*by_source;
+}
+
+const analysis::AnalysisManager::TapSnapshot* OpsHealthTapForSource(
+    const SourceViewRegistry::SourceRecord& source,
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps) {
+    const auto candidates = ClientStreamKeyCandidates(source);
+    const analysis::AnalysisManager::TapSnapshot* fallback = nullptr;
+    for (const auto& tap : analysis_taps) {
+        if (!ClientTapMatchesSource(tap, candidates)) {
+            continue;
+        }
+        if (fallback == nullptr) {
+            fallback = &tap;
+        }
+        if (tap.has_latest_frame || tap.latest_result.has_value()) {
+            return &tap;
+        }
+    }
+    return fallback;
+}
+
+const PublishedWebRtcSource::Snapshot* OpsHealthPublishedSourceFor(
+    const SourceViewRegistry::SourceRecord& source,
+    const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources) {
+    if (source.kind != "webrtc" || source.webrtc_source_id.empty()) {
+        return nullptr;
+    }
+    const auto it = std::find_if(publish_sources.begin(), publish_sources.end(), [&](const auto& published) {
+        return published.source_id == source.webrtc_source_id;
+    });
+    return it == publish_sources.end() ? nullptr : &*it;
+}
+
+const core::SessionManager::SourceReconnectStats* OpsHealthReconnectStatsForSource(
+    const SourceViewRegistry::SourceRecord& source,
+    const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats) {
+    const auto candidates = ClientStreamKeyCandidates(source);
+    const auto it = std::find_if(reconnect_stats.begin(), reconnect_stats.end(), [&](const auto& stats) {
+        return std::find(candidates.begin(), candidates.end(), stats.stream_key) != candidates.end();
+    });
+    return it == reconnect_stats.end() ? nullptr : &*it;
+}
+
+const core::SessionManager::SourceEgressStats* OpsHealthEgressStatsForSource(
+    const SourceViewRegistry::SourceRecord& source,
+    const std::vector<core::SessionManager::SourceEgressStats>& egress_stats) {
+    const auto candidates = ClientStreamKeyCandidates(source);
+    const auto it = std::find_if(egress_stats.begin(), egress_stats.end(), [&](const auto& stats) {
+        return std::find(candidates.begin(), candidates.end(), stats.stream_key) != candidates.end();
+    });
+    return it == egress_stats.end() ? nullptr : &*it;
+}
+
+const media::StreamDescriptor* OpsHealthDescriptorForSource(
+    const SourceViewRegistry::SourceRecord& source,
+    const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots) {
+    const auto candidates = ClientStreamKeyCandidates(source);
+    const auto it = std::find_if(descriptor_snapshots.begin(), descriptor_snapshots.end(), [&](const auto& snapshot) {
+        return std::find(candidates.begin(), candidates.end(), snapshot.stream_key) != candidates.end();
+    });
+    return it == descriptor_snapshots.end() ? nullptr : &it->descriptor;
+}
+
+std::optional<std::string> CapsFieldValue(const std::string& caps, const std::string& key) {
+    std::size_t start = 0;
+    while (start < caps.size()) {
+        const std::size_t end = caps.find(',', start);
+        std::string token = Trim(caps.substr(start, end == std::string::npos ? std::string::npos : end - start));
+        if (end == std::string::npos) {
+            start = caps.size();
+        } else {
+            start = end + 1;
+        }
+
+        const std::size_t equals = token.find('=');
+        if (equals == std::string::npos) {
+            continue;
+        }
+        if (Trim(token.substr(0, equals)) != key) {
+            continue;
+        }
+
+        std::string value = Trim(token.substr(equals + 1));
+        if (!value.empty() && value.front() == '(') {
+            const std::size_t type_end = value.find(')');
+            if (type_end != std::string::npos) {
+                value = Trim(value.substr(type_end + 1));
+            }
+        }
+        if (value.size() >= 2 &&
+            ((value.front() == '"' && value.back() == '"') ||
+             (value.front() == '\'' && value.back() == '\''))) {
+            value = value.substr(1, value.size() - 2);
+        }
+        value = Trim(std::move(value));
+        if (!value.empty()) {
+            return value;
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::int64_t> ParsePositiveInt64Text(const std::string& raw) {
+    const std::string value = Trim(raw);
+    if (value.empty()) {
+        return std::nullopt;
+    }
+    try {
+        std::size_t consumed = 0;
+        const std::int64_t parsed = std::stoll(value, &consumed, 10);
+        if (consumed != value.size() || parsed <= 0) {
+            return std::nullopt;
+        }
+        return parsed;
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
+std::optional<std::int64_t> CapsIntField(const std::string& caps, const std::string& key) {
+    const auto value = CapsFieldValue(caps, key);
+    if (!value.has_value()) {
+        return std::nullopt;
+    }
+    return ParsePositiveInt64Text(*value);
+}
+
+std::optional<std::int64_t> CapsFpsField(const std::string& caps) {
+    const auto value = CapsFieldValue(caps, "framerate");
+    if (!value.has_value()) {
+        return std::nullopt;
+    }
+    const std::string fps = Trim(*value);
+    const std::size_t slash = fps.find('/');
+    if (slash == std::string::npos) {
+        return ParsePositiveInt64Text(fps);
+    }
+
+    const auto numerator = ParsePositiveInt64Text(fps.substr(0, slash));
+    const auto denominator = ParsePositiveInt64Text(fps.substr(slash + 1));
+    if (!numerator.has_value() || !denominator.has_value() || *denominator <= 0) {
+        return std::nullopt;
+    }
+    const std::int64_t rounded = (*numerator + (*denominator / 2)) / *denominator;
+    return rounded > 0 ? std::optional<std::int64_t>(rounded) : std::nullopt;
+}
+
+const media::TrackInfo* OpsHealthVideoTrack(const media::StreamDescriptor& descriptor) {
+    const auto it = std::find_if(descriptor.tracks.begin(), descriptor.tracks.end(), [](const auto& track) {
+        return track.kind == media::MediaKind::Video;
+    });
+    return it == descriptor.tracks.end() ? nullptr : &*it;
+}
+
+std::string OpsHealthCodecVideoName(const media::TrackInfo& track) {
+    const std::string codec = media::ToString(track.codec);
+    if (!codec.empty() && codec != "unknown") {
+        return codec;
+    }
+    std::string name = LowerAscii(Trim(track.codec_name));
+    const std::string prefix = "video/x-";
+    if (name.rfind(prefix, 0) == 0) {
+        name = name.substr(prefix.size());
+    }
+    return name == "unknown" ? std::string{} : name;
+}
+
+void ApplyOpsSourceHealthCodec(OpsSourceHealthItem* item, const media::StreamDescriptor* descriptor) {
+    if (item == nullptr || descriptor == nullptr) {
+        return;
+    }
+    const auto* video_track = OpsHealthVideoTrack(*descriptor);
+    if (video_track == nullptr) {
+        return;
+    }
+
+    const std::string codec_name = OpsHealthCodecVideoName(*video_track);
+    if (!codec_name.empty()) {
+        item->codec_video = codec_name;
+    }
+
+    if (!video_track->caps_string.empty()) {
+        if (const auto profile = CapsFieldValue(video_track->caps_string, "profile"); profile.has_value()) {
+            item->codec_profile = *profile;
+        }
+        if (const auto width = CapsIntField(video_track->caps_string, "width"); width.has_value()) {
+            item->codec_width = *width;
+        }
+        if (const auto height = CapsIntField(video_track->caps_string, "height"); height.has_value()) {
+            item->codec_height = *height;
+        }
+        if (const auto fps = CapsFpsField(video_track->caps_string); fps.has_value()) {
+            item->codec_fps = *fps;
+        }
+    }
+}
+
+void ClassifyOpsSourceHealth(OpsSourceHealthItem* item,
+                             const SourceViewRegistry::SourceRecord& source,
+                             const SourceViewRegistry::PublishedViewRecord* view,
+                             const analysis::AnalysisManager::TapSnapshot* tap,
+                             const PublishedWebRtcSource::Snapshot* published_source,
+                             const media::StreamDescriptor* descriptor,
+                             const core::SessionManager::SourceReconnectStats* reconnect_stats,
+                             const core::SessionManager::SourceEgressStats* egress_stats,
+                             const std::string& checked_at) {
+    if (item == nullptr) {
+        return;
+    }
+    item->checked_at = checked_at;
+    ApplyOpsSourceHealthCodec(item, descriptor);
+    if (reconnect_stats != nullptr) {
+        item->reconnect_count = reconnect_stats->reconnect_count;
+        if (reconnect_stats->last_reconnect_at_ms > 0) {
+            item->last_reconnect_at = FormatUnixMsUtc(reconnect_stats->last_reconnect_at_ms);
+        }
+    }
+    if (!source.enabled) {
+        item->status = "offline";
+        item->reason = "disabled";
+        return;
+    }
+    if (view == nullptr) {
+        AddOpsSourceHealthWarning(item, "missing-published-view");
+    } else if (!view->enabled) {
+        AddOpsSourceHealthWarning(item, "view-disabled");
+    }
+
+    if (tap != nullptr) {
+        if (tap->has_latest_frame) {
+            item->last_frame_age_ms = tap->latest_frame_age_ms;
+            if (tap->latest_frame_width > 0) {
+                item->codec_width = tap->latest_frame_width;
+            }
+            if (tap->latest_frame_height > 0) {
+                item->codec_height = tap->latest_frame_height;
+            }
+        }
+        if (tap->latest_result.has_value()) {
+            item->last_metadata_age_ms = tap->latest_result_age_ms;
+        }
+
+        const bool frame_fresh = item->last_frame_age_ms.has_value() &&
+                                 *item->last_frame_age_ms <= kClientDashboardStaleMs;
+        const bool metadata_fresh = item->last_metadata_age_ms.has_value() &&
+                                    *item->last_metadata_age_ms <= kClientDashboardStaleMs;
+        if (frame_fresh || metadata_fresh) {
+            item->status = "live";
+            item->reason = "receiving";
+            if (item->last_frame_age_ms.has_value() && !frame_fresh) {
+                AddOpsSourceHealthWarning(item, "last-frame-aged");
+            }
+            if (item->last_metadata_age_ms.has_value() && !metadata_fresh) {
+                AddOpsSourceHealthWarning(item, "metadata-aged");
+            }
+            return;
+        }
+        if (item->last_frame_age_ms.has_value()) {
+            item->status = "stale";
+            item->reason = "last-frame-aged";
+            return;
+        }
+        if (item->last_metadata_age_ms.has_value()) {
+            item->status = "stale";
+            item->reason = "metadata-aged";
+            return;
+        }
+        item->status = "connecting";
+        item->reason = "initializing";
+        return;
+    }
+
+    if (published_source != nullptr) {
+        if (published_source->active && published_source->has_video) {
+            const bool has_egress_session = egress_stats != nullptr && egress_stats->session_count > 0;
+            if (has_egress_session) {
+                item->status = "live";
+                item->reason = "receiving";
+            } else {
+                item->status = "connecting";
+                item->reason = "no-egress-session";
+                AddOpsSourceHealthWarning(item, "published-source-ready");
+                AddOpsSourceHealthWarning(item, "no-egress-session");
+            }
+        } else if (published_source->active) {
+            item->status = "connecting";
+            item->reason = "initializing";
+            AddOpsSourceHealthWarning(item, "waiting-video");
+        } else {
+            item->status = "offline";
+            item->reason = "unreachable";
+        }
+        return;
+    }
+
+    item->status = "offline";
+    item->reason = "no-subscriber";
+}
+
+bool OpsSourceHealthRepeatedStaleCandidate(const OpsSourceHealthItem& item) {
+    return item.status == "stale" &&
+           (item.reason == "last-frame-aged" || item.reason == "metadata-aged");
+}
+
+void ApplyOpsSourceHealthWarningThresholds(OpsSourceHealthSnapshot* snapshot) {
+    if (snapshot == nullptr) {
+        return;
+    }
+
+    std::lock_guard lock(g_source_health_warning_mu);
+    for (auto& item : snapshot->items) {
+        if (item.reconnect_count >= kOpsSourceHealthHighReconnectThreshold) {
+            AddOpsSourceHealthWarning(&item, "high-reconnect");
+        }
+        if (item.source_id.empty()) {
+            continue;
+        }
+
+        if (!OpsSourceHealthRepeatedStaleCandidate(item)) {
+            g_source_health_warning_state.erase(item.source_id);
+            continue;
+        }
+
+        const std::string state_key = item.status + "\n" + item.reason;
+        auto& state = g_source_health_warning_state[item.source_id];
+        if (state.first == state_key) {
+            ++state.second;
+        } else {
+            state = {state_key, 1};
+        }
+        if (state.second >= kOpsSourceHealthRepeatedStaleThreshold) {
+            AddOpsSourceHealthWarning(&item, "repeated-stale");
+        }
+    }
+}
+
+OpsSourceHealthSnapshot BuildOpsSourceHealthSnapshot(
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
+    const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
+    const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
+    const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
+    const std::vector<core::SessionManager::SourceEgressStats>& egress_stats) {
+    OpsSourceHealthSnapshot snapshot;
+    std::vector<SourceViewRegistry::SourceRecord> sources;
+    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::string load_error;
+    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+        snapshot.ok = false;
+        snapshot.error = load_error.empty() ? "source registry load failed" : load_error;
+        return snapshot;
+    }
+
+    snapshot.generated_at = FormatUnixMsUtc(NowUnixMs());
+    snapshot.items.reserve(sources.size());
+    for (const auto& source : sources) {
+        OpsSourceHealthItem item;
+        item.source_id = source.source_id;
+        const auto* view = OpsHealthViewForSource(views, source.source_id);
+        const auto* tap = OpsHealthTapForSource(source, analysis_taps);
+        const auto* published_source = OpsHealthPublishedSourceFor(source, publish_sources);
+        const media::StreamDescriptor* descriptor = OpsHealthDescriptorForSource(source, descriptor_snapshots);
+        if (descriptor == nullptr && published_source != nullptr && published_source->descriptor.has_value()) {
+            descriptor = &*published_source->descriptor;
+        }
+        const auto* stats = OpsHealthReconnectStatsForSource(source, reconnect_stats);
+        const auto* egress = OpsHealthEgressStatsForSource(source, egress_stats);
+        ClassifyOpsSourceHealth(&item,
+                                source,
+                                view,
+                                tap,
+                                published_source,
+                                descriptor,
+                                stats,
+                                egress,
+                                snapshot.generated_at);
+        if (item.status == "live") {
+            ++snapshot.live_count;
+        } else if (item.status == "connecting") {
+            ++snapshot.connecting_count;
+        } else if (item.status == "stale") {
+            ++snapshot.stale_count;
+        } else if (item.status == "offline") {
+            ++snapshot.offline_count;
+        } else {
+            ++snapshot.unknown_count;
+        }
+        snapshot.items.push_back(std::move(item));
+    }
+    ApplyOpsSourceHealthWarningThresholds(&snapshot);
+    return snapshot;
+}
+
+void AppendOpsSourceHealthSummaryJson(std::ostringstream& out, const OpsSourceHealthSnapshot& snapshot) {
+    out << "{"
+        << "\"total\":" << snapshot.items.size() << ","
+        << "\"live\":" << snapshot.live_count << ","
+        << "\"connecting\":" << snapshot.connecting_count << ","
+        << "\"stale\":" << snapshot.stale_count << ","
+        << "\"offline\":" << snapshot.offline_count << ","
+        << "\"unknown\":" << snapshot.unknown_count
+        << "}";
+}
+
+void AppendOpsSourceHealthAuditChanges(const app::AppConfig& config,
+                                       const auth::Principal& principal,
+                                       const OpsSourceHealthSnapshot& snapshot);
+
+std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
+                                const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
+                                const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
+                                const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
+                                const std::vector<core::SessionManager::SourceEgressStats>& egress_stats,
+                                const app::AppConfig* audit_config,
+                                const auth::Principal* audit_principal) {
+    const auto snapshot =
+        BuildOpsSourceHealthSnapshot(analysis_taps, publish_sources, descriptor_snapshots, reconnect_stats, egress_stats);
+    if (!snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.source-health.v1\",\"error\":\"" +
+               JsonEscape(snapshot.error) + "\"}";
+    }
+    if (audit_config != nullptr && audit_principal != nullptr) {
+        AppendOpsSourceHealthAuditChanges(*audit_config, *audit_principal, snapshot);
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.source-health.v1\","
+        << "\"status\":\"source-health\","
+        << "\"generatedAt\":\"" << JsonEscape(snapshot.generated_at) << "\","
+        << "\"summary\":";
+    AppendOpsSourceHealthSummaryJson(out, snapshot);
+    out << ",\"sourceHealth\":[";
+    for (std::size_t i = 0; i < snapshot.items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendOpsSourceHealthItemJson(out, snapshot.items[i]);
+    }
+    out << "]}";
+    return out.str();
+}
+
+bool OpsSourceHealthBulkRetryable(const OpsSourceHealthItem& item) {
+    if (item.status == "live" || item.reason == "disabled") {
+        return false;
+    }
+    return item.status == "connecting" || item.status == "stale" || item.status == "offline" ||
+           !item.warnings.empty();
+}
+
+std::string OpsSourceHealthBulkJson(
+    const std::string& body,
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
+    const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
+    const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
+    const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
+    const std::vector<core::SessionManager::SourceEgressStats>& egress_stats,
+    const app::AppConfig* audit_config,
+    const auth::Principal* audit_principal) {
+    const auto snapshot =
+        BuildOpsSourceHealthSnapshot(analysis_taps, publish_sources, descriptor_snapshots, reconnect_stats, egress_stats);
+    if (!snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.source-health.bulk.v1\",\"error\":\"" +
+               JsonEscape(snapshot.error) + "\"}";
+    }
+    if (audit_config != nullptr && audit_principal != nullptr) {
+        AppendOpsSourceHealthAuditChanges(*audit_config, *audit_principal, snapshot);
+    }
+
+    const std::string operation = Trim(ParseStringField(body, "operation").value_or("check"));
+    if (operation != "check" && operation != "retry") {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.source-health.bulk.v1\",\"error\":\"unsupported operation\"}";
+    }
+
+    std::vector<std::string> requested_ids = StringArrayFieldValues(body, "sourceIds");
+    std::vector<std::string> target_ids;
+    std::set<std::string> seen_ids;
+    if (requested_ids.empty()) {
+        for (const auto& item : snapshot.items) {
+            if (seen_ids.insert(item.source_id).second) {
+                target_ids.push_back(item.source_id);
+            }
+        }
+    } else {
+        for (const auto& id : requested_ids) {
+            const std::string trimmed = Trim(id);
+            if (!trimmed.empty() && seen_ids.insert(trimmed).second) {
+                target_ids.push_back(trimmed);
+            }
+        }
+    }
+
+    int ok_count = 0;
+    int fail_count = 0;
+    int retryable_count = 0;
+    int unhealthy_count = 0;
+    std::vector<std::string> retry_source_ids;
+    std::ostringstream results;
+    results << "[";
+    for (std::size_t index = 0; index < target_ids.size(); ++index) {
+        const std::string& source_id = target_ids[index];
+        const auto it = std::find_if(snapshot.items.begin(), snapshot.items.end(), [&](const auto& item) {
+            return item.source_id == source_id;
+        });
+        if (index != 0) {
+            results << ",";
+        }
+        if (it == snapshot.items.end()) {
+            ++fail_count;
+            results << "{"
+                    << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+                    << "\"ok\":false,"
+                    << "\"healthy\":false,"
+                    << "\"retryable\":false,"
+                    << "\"status\":\"unknown\","
+                    << "\"reason\":\"not-found\","
+                    << "\"checkedAt\":null,"
+                    << "\"message\":\"source not found\""
+                    << "}";
+            continue;
+        }
+
+        const bool healthy = it->status == "live";
+        const bool retryable = OpsSourceHealthBulkRetryable(*it);
+        ++ok_count;
+        if (!healthy) {
+            ++unhealthy_count;
+        }
+        if (retryable) {
+            ++retryable_count;
+            retry_source_ids.push_back(it->source_id);
+        }
+
+        results << "{"
+                << "\"sourceId\":\"" << JsonEscape(it->source_id) << "\","
+                << "\"ok\":true,"
+                << "\"healthy\":" << (healthy ? "true" : "false") << ","
+                << "\"retryable\":" << (retryable ? "true" : "false") << ","
+                << "\"status\":\"" << JsonEscape(it->status) << "\","
+                << "\"reason\":\"" << JsonEscape(it->reason) << "\","
+                << "\"checkedAt\":";
+        AppendNullableJsonString(results, it->checked_at);
+        results << ",\"message\":\""
+                << JsonEscape(healthy ? "health check passed" : "health check returned " + it->status)
+                << "\",\"health\":";
+        AppendOpsSourceHealthItemJson(results, *it);
+        results << "}";
+    }
+    results << "]";
+
+    std::ostringstream retry_body;
+    retry_body << "{\"operation\":\"retry\",\"sourceIds\":[";
+    for (std::size_t i = 0; i < retry_source_ids.size(); ++i) {
+        if (i != 0) {
+            retry_body << ",";
+        }
+        retry_body << "\"" << JsonEscape(retry_source_ids[i]) << "\"";
+    }
+    retry_body << "]}";
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.source-health.bulk.v1\","
+        << "\"status\":\"source-health-bulk\","
+        << "\"operation\":\"" << JsonEscape(operation) << "\","
+        << "\"dryRun\":true,"
+        << "\"generatedAt\":\"" << JsonEscape(snapshot.generated_at) << "\","
+        << "\"requestedCount\":" << target_ids.size() << ","
+        << "\"okCount\":" << ok_count << ","
+        << "\"failCount\":" << fail_count << ","
+        << "\"unhealthyCount\":" << unhealthy_count << ","
+        << "\"retryableCount\":" << retryable_count << ","
+        << "\"partialFailure\":" << (fail_count > 0 && ok_count > 0 ? "true" : "false") << ","
+        << "\"summary\":";
+    AppendOpsSourceHealthSummaryJson(out, snapshot);
+    out << ",\"retryPolicy\":\"retry only rows with retryable=true; use retryBody.sourceIds after fixing disabled/missing source configuration\","
+        << "\"retryBody\":" << retry_body.str() << ","
+        << "\"results\":" << results.str()
+        << "}";
+    return out.str();
+}
+
 std::filesystem::path OpsAuditStoragePath(const app::AppConfig& config) {
     std::filesystem::path base = config.source_registry_path.empty()
                                      ? std::filesystem::path(".")
@@ -7062,6 +7879,78 @@ bool AppendOpsAuditRecord(const app::AppConfig& config,
         return false;
     }
     return true;
+}
+
+std::pair<std::string, std::string> SourceHealthAuditStateParts(const std::string& state) {
+    const std::size_t sep = state.find('\n');
+    if (sep == std::string::npos) {
+        return {state, ""};
+    }
+    return {state.substr(0, sep), state.substr(sep + 1)};
+}
+
+std::string SourceHealthAuditStateValue(const OpsSourceHealthItem& item) {
+    return item.status + "\n" + item.reason;
+}
+
+std::string SourceHealthAuditRecordBody(const OpsSourceHealthItem& item,
+                                        const std::string& before_status,
+                                        const std::string& before_reason) {
+    std::ostringstream out;
+    out << "{"
+        << "\"area\":\"channels\","
+        << "\"action\":\"source-health-state-change\","
+        << "\"target\":\"source:" << JsonEscape(item.source_id) << "\","
+        << "\"summary\":\"source " << JsonEscape(item.source_id) << " "
+        << JsonEscape(before_status.empty() ? "unknown" : before_status) << " -> "
+        << JsonEscape(item.status) << "\","
+        << "\"before\":{\"status\":\"" << JsonEscape(before_status) << "\","
+        << "\"reason\":\"" << JsonEscape(before_reason) << "\"},"
+        << "\"after\":{\"status\":\"" << JsonEscape(item.status) << "\","
+        << "\"reason\":\"" << JsonEscape(item.reason) << "\","
+        << "\"checkedAt\":";
+    AppendNullableJsonString(out, item.checked_at);
+    out << ",\"warnings\":[";
+    for (std::size_t i = 0; i < item.warnings.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(item.warnings[i]) << "\"";
+    }
+    out << "]}}";
+    return out.str();
+}
+
+void AppendOpsSourceHealthAuditChanges(const app::AppConfig& config,
+                                       const auth::Principal& principal,
+                                       const OpsSourceHealthSnapshot& snapshot) {
+    std::vector<std::pair<OpsSourceHealthItem, std::pair<std::string, std::string>>> changes;
+    {
+        std::lock_guard lock(g_source_health_audit_mu);
+        for (const auto& item : snapshot.items) {
+            if (item.source_id.empty()) {
+                continue;
+            }
+            const std::string next_state = SourceHealthAuditStateValue(item);
+            const auto [it, inserted] = g_source_health_audit_state.emplace(item.source_id, next_state);
+            if (inserted) {
+                continue;
+            }
+            if (it->second == next_state) {
+                continue;
+            }
+            changes.push_back({item, SourceHealthAuditStateParts(it->second)});
+            it->second = next_state;
+        }
+    }
+
+    for (const auto& [item, before] : changes) {
+        std::string audit_error;
+        (void)AppendOpsAuditRecord(
+            config,
+            OpsAuditRecordJson(SourceHealthAuditRecordBody(item, before.first, before.second), principal),
+            &audit_error);
+    }
 }
 
 bool OpsAuditLineMatches(const std::string& line,
@@ -7397,6 +8286,166 @@ std::string ViewBulkPayload(const std::string& view_raw,
         << "\"enabled\":" << (enabled ? "true" : "false") << "}";
     (void)source_raw;
     return out.str();
+}
+
+bool IsNumericRegistryDraftId(const std::string& value) {
+    return !value.empty() && std::all_of(value.begin(), value.end(), [](unsigned char ch) {
+        return std::isdigit(ch) != 0;
+    });
+}
+
+bool StringArrayContains(const std::vector<std::string>& values, const std::string& expected) {
+    return std::find(values.begin(), values.end(), expected) != values.end();
+}
+
+RegistryResult OpsOnvifImportDraftResult(const std::string& body) {
+    if (!LooksLikeJsonObject(body)) {
+        return RegistryResult{400, "Bad Request", "{\"error\":\"request body must be a JSON object\"}"};
+    }
+
+    const auto decision = ExtractObjectField(body, "importDecision");
+    if (!decision.has_value()) {
+        return RegistryResult{400, "Bad Request", "{\"error\":\"importDecision object is required\"}"};
+    }
+    const std::string selected_token = Trim(ParseStringField(*decision, "selectedProfileToken").value_or(""));
+    if (selected_token.empty()) {
+        return RegistryResult{400, "Bad Request", "{\"error\":\"selectedProfileToken is required\"}"};
+    }
+
+    std::optional<std::string> selected_profile;
+    for (const auto& profile : ExtractJsonObjectArray(body, "profiles")) {
+        if (Trim(ParseStringField(profile, "token").value_or("")) == selected_token) {
+            selected_profile = profile;
+            break;
+        }
+    }
+    if (!selected_profile.has_value()) {
+        return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile not found\"}"};
+    }
+
+    const std::string media_api = Trim(ParseStringField(*selected_profile, "mediaApi").value_or(""));
+    const std::string encoding = Trim(ParseStringField(*selected_profile, "encoding").value_or(""));
+    const std::string transport = Trim(ParseStringField(*selected_profile, "transport").value_or(""));
+    const std::string stream_uri = Trim(ParseStringField(*selected_profile, "streamUri").value_or(""));
+    if (media_api != "Media" && media_api != "Media2") {
+        return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile mediaApi must be Media or Media2\"}"};
+    }
+    if (encoding != "H264" && encoding != "H265") {
+        return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile encoding must be H264 or H265\"}"};
+    }
+    if (transport != "RTSP" || stream_uri.rfind("rtsp://", 0) != 0) {
+        return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile must provide an RTSP streamUri\"}"};
+    }
+
+    const auto source_raw = ExtractObjectField(*decision, "expectedSourceDraft");
+    const auto view_raw = ExtractObjectField(*decision, "expectedPublishedViewDraft");
+    if (!source_raw.has_value() || !view_raw.has_value()) {
+        return RegistryResult{
+            400,
+            "Bad Request",
+            "{\"error\":\"expectedSourceDraft and expectedPublishedViewDraft are required\"}"};
+    }
+
+    const std::string source_id = Trim(ParseStringField(*source_raw, "sourceId").value_or(""));
+    if (!IsNumericRegistryDraftId(source_id)) {
+        return RegistryResult{
+            400,
+            "Bad Request",
+            "{\"error\":\"expectedSourceDraft.sourceId must be numeric for current /ops/sources contract\"}"};
+    }
+    const std::string view_id = Trim(ParseStringField(*view_raw, "viewId").value_or(source_id));
+    const std::string view_source_id = Trim(ParseStringField(*view_raw, "sourceId").value_or(""));
+    if (view_id != source_id || view_source_id != source_id) {
+        return RegistryResult{
+            400,
+            "Bad Request",
+            "{\"error\":\"expectedPublishedViewDraft must use the same numeric sourceId/viewId\"}"};
+    }
+    if (Trim(ParseStringField(*source_raw, "kind").value_or("")) != "rtsp") {
+        return RegistryResult{400, "Bad Request", "{\"error\":\"expectedSourceDraft.kind must be rtsp\"}"};
+    }
+    if (Trim(ParseStringField(*source_raw, "rtspUrl").value_or("")) != stream_uri) {
+        return RegistryResult{
+            400,
+            "Bad Request",
+            "{\"error\":\"expectedSourceDraft.rtspUrl must match selected profile streamUri\"}"};
+    }
+    const std::vector<std::string> tags = StringArrayFieldValues(*source_raw, "tags");
+    if (!StringArrayContains(tags, "onvif") || !StringArrayContains(tags, "live")) {
+        return RegistryResult{
+            400,
+            "Bad Request",
+            "{\"error\":\"expectedSourceDraft.tags must include onvif and live\"}"};
+    }
+
+    const auto device = ExtractObjectField(body, "device").value_or("{}");
+    const auto auth = ExtractObjectField(body, "auth").value_or("{}");
+    const bool credential_ref_present = !Trim(ParseStringField(auth, "credentialRef").value_or("")).empty();
+    const bool plaintext_secret_included = ParseBoolField(auth, "plaintextSecretIncluded").value_or(false);
+    if (plaintext_secret_included) {
+        return RegistryResult{
+            400,
+            "Bad Request",
+            "{\"error\":\"plaintext credentials are not allowed in ONVIF import drafts\"}"};
+    }
+
+    const std::string display_name =
+        Trim(ParseStringField(*source_raw, "displayName").value_or(source_id));
+    const std::string overlay_modes =
+        JsonStringArrayOrDefault(*view_raw, "allowedOverlayModes", "[\"raw\",\"va-overlay\",\"va-rule\"]");
+    const std::string client_groups = JsonStringArrayOrDefault(*view_raw, "clientGroups", "[]");
+    const int max_tiles = std::max(1, ParseIntField(*view_raw, "maxTiles").value_or(1));
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"status\":\"onvifImportDraft\","
+        << "\"notSaved\":true,"
+        << "\"candidate\":{"
+        << "\"manufacturer\":\"" << JsonEscape(ParseStringField(device, "manufacturer").value_or("")) << "\","
+        << "\"model\":\"" << JsonEscape(ParseStringField(device, "model").value_or("")) << "\","
+        << "\"firmwareVersion\":\"" << JsonEscape(ParseStringField(device, "firmwareVersion").value_or("")) << "\","
+        << "\"serialNumber\":\"" << JsonEscape(ParseStringField(device, "serialNumber").value_or("")) << "\""
+        << "},"
+        << "\"selectedProfile\":{"
+        << "\"token\":\"" << JsonEscape(selected_token) << "\","
+        << "\"name\":\"" << JsonEscape(ParseStringField(*selected_profile, "name").value_or("")) << "\","
+        << "\"mediaApi\":\"" << JsonEscape(media_api) << "\","
+        << "\"encoding\":\"" << JsonEscape(encoding) << "\","
+        << "\"width\":" << ParseIntField(*selected_profile, "width").value_or(0) << ","
+        << "\"height\":" << ParseIntField(*selected_profile, "height").value_or(0) << ","
+        << "\"fps\":" << ParseIntField(*selected_profile, "fps").value_or(0) << ","
+        << "\"transport\":\"RTSP\""
+        << "},"
+        << "\"auth\":{"
+        << "\"required\":" << (ParseBoolField(auth, "required").value_or(false) ? "true" : "false") << ","
+        << "\"credentialRefPresent\":" << (credential_ref_present ? "true" : "false") << ","
+        << "\"plaintextSecretIncluded\":false"
+        << "},"
+        << "\"sourceDraft\":{"
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"displayName\":\"" << JsonEscape(display_name.empty() ? source_id : display_name) << "\","
+        << "\"kind\":\"rtsp\","
+        << "\"rtspUrl\":\"" << JsonEscape(stream_uri) << "\","
+        << "\"enabled\":" << (ParseBoolField(*source_raw, "enabled").value_or(true) ? "true" : "false") << ","
+        << "\"tags\":" << JsonStringArrayOrDefault(*source_raw, "tags", "[\"onvif\",\"live\"]") << ","
+        << "\"ownerGroup\":\"" << JsonEscape(ParseStringField(*source_raw, "ownerGroup").value_or("")) << "\""
+        << "},"
+        << "\"publishedViewDraft\":{"
+        << "\"viewId\":\"" << JsonEscape(view_id) << "\","
+        << "\"displayName\":\"" << JsonEscape(ParseStringField(*view_raw, "displayName").value_or(display_name)) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"allowedOverlayModes\":" << overlay_modes << ","
+        << "\"showDashboard\":" << (ParseBoolField(*view_raw, "showDashboard").value_or(true) ? "true" : "false") << ","
+        << "\"showEvents\":" << (ParseBoolField(*view_raw, "showEvents").value_or(true) ? "true" : "false") << ","
+        << "\"showMetadataSummary\":"
+        << (ParseBoolField(*view_raw, "showMetadataSummary").value_or(true) ? "true" : "false") << ","
+        << "\"clientGroups\":" << client_groups << ","
+        << "\"maxTiles\":" << max_tiles << ","
+        << "\"enabled\":" << (ParseBoolField(*view_raw, "enabled").value_or(true) ? "true" : "false")
+        << "}"
+        << "}";
+    return RegistryResult{200, "OK", out.str()};
 }
 
 bool SourceHasPlayableLocator(const std::string& source_raw) {
@@ -9351,12 +10400,14 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     }
                                 }
                             }
-                            entry.bridge->Stop();
+                            // bridge 정리 전에 stream subscriber를 먼저 제거해 packet callback이
+                            // 중지 중인 pipeline에 쓰지 못하게 한다.
+                            impl_->session_manager.CloseSession(entry.ingress_client_id);
                             if (!entry.analysis_tap_id.empty()) {
                                 DetachAnalysisTapAndReleaseRuntimes(
                                     impl_->session_manager, entry.analysis_tap_id);
                             }
-                            impl_->session_manager.CloseSession(entry.ingress_client_id);
+                            entry.bridge->Stop();
                             return true;
                         };
                         auto create_webrtc_session_response =
@@ -9953,6 +11004,43 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            return ok;
 	                        }
 
+	                        if (request.method == "GET" && request.path == "/ops/api/source-health") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            HttpResponse ok = JsonResponse(
+	                                200,
+	                                "OK",
+	                                OpsSourceHealthJson(impl_->session_manager.AnalysisTapSnapshots(),
+	                                                    WebRtcSourceRegistry::Instance().Snapshots(),
+	                                                    impl_->session_manager.SourceDescriptorSnapshots(),
+	                                                    impl_->session_manager.SourceReconnectStatsSnapshot(),
+	                                                    impl_->session_manager.SourceEgressStatsSnapshot(),
+	                                                    &config,
+	                                                    &principal_result.principal));
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
+	                        }
+
+	                        if (request.method == "POST" && request.path == "/ops/api/source-health/bulk") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            HttpResponse ok = JsonResponse(
+	                                200,
+	                                "OK",
+	                                OpsSourceHealthBulkJson(request.body,
+	                                                        impl_->session_manager.AnalysisTapSnapshots(),
+	                                                        WebRtcSourceRegistry::Instance().Snapshots(),
+	                                                        impl_->session_manager.SourceDescriptorSnapshots(),
+	                                                        impl_->session_manager.SourceReconnectStatsSnapshot(),
+	                                                        impl_->session_manager.SourceEgressStatsSnapshot(),
+	                                                        &config,
+	                                                        &principal_result.principal));
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
+	                        }
+
 	                        if (request.method == "GET" && request.path == "/ops/api/diagnostics/log-tail") {
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
 	                                return *auth_response;
@@ -10164,6 +11252,24 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return *auth_response;
                             }
                             HttpResponse ok = JsonResponse(200, "OK", OpsChannelBulkJson(request.body));
+                            ok.headers["Cache-Control"] = "no-store";
+                            return ok;
+                        }
+
+                        if (request.path == "/ops/api/onvif/import-draft") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method != "POST") {
+                                return JsonResponse(405,
+                                                    "Method Not Allowed",
+                                                    "{\"error\":\"method not allowed\"}");
+                            }
+                            if (const auto auth_response = require_source_write_principal();
+                                auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            HttpResponse ok = RegistryHttpResponse(OpsOnvifImportDraftResult(request.body));
                             ok.headers["Cache-Control"] = "no-store";
                             return ok;
                         }

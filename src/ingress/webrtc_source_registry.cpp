@@ -172,6 +172,7 @@ PublishedWebRtcSource::Snapshot PublishedWebRtcSource::GetSnapshot() const {
         if (descriptor_.has_value()) {
             snapshot.has_video = DescriptorHasKind(*descriptor_, media::MediaKind::Video);
             snapshot.has_audio = DescriptorHasKind(*descriptor_, media::MediaKind::Audio);
+            snapshot.descriptor = *descriptor_;
         }
     }
     {

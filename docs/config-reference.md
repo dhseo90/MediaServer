@@ -411,6 +411,10 @@ SourceRegistry:
 - 관리 API: `/ops/api/sources`
 - 저장 필드: `sourceId`, `displayName`, `kind`, `canonicalSourceKey`,
   source input, `enabled`, `tags`, `ownerGroup`
+- ONVIF origin metadata는 후속 schema review 항목이며
+  현재 저장 필드가 아닙니다. 구현은
+  [ONVIF Live Source Support](./onvif-live-source-support.md)와 `onvif`/`live`
+  tag를 기준으로 기존 source/view 저장 payload를 사용합니다.
 - 제품 UI: 숫자 채널로 묶어 `/ops/sources`에 표시
 - Seed 조건: registry가 비어 있으면 기본 file/VA file/공개 RTSP/HLS 채널 추가
 - 저장 방식: atomic write/fsync/rename
@@ -729,7 +733,9 @@ Snapshot/clip hook:
 - Lab EventRecord detail은 안전한 preview route로
   snapshot inline preview와 clip manifest/frame link를 표시합니다.
 
-후속 범위는 richer clip gallery와 MP4/VMS/NVR형 recorder입니다.
+후속 UI polish는 richer clip gallery 정도로 제한합니다.
+MP4/VMS/NVR형 recorder는 현재 범위가 아니며 별도 제품 phase와
+보관/개인정보/배포 정책 gate가 필요합니다.
 
 ### Snapshot / clip hook
 

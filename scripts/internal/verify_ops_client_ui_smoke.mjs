@@ -20,7 +20,7 @@ Options:
   --timeout-ms <ms>         HTTP/브라우저 대기 시간입니다. 기본 10000.
   --screenshots[=1]         대표 화면 screenshot smoke를 함께 수행합니다.
   --chrome-path <path>      Chrome/Chromium 실행 파일 경로입니다.
-  --visual-widths <csv>     screenshot 검증 viewport 폭 목록입니다. 기본 390,1180.
+  --visual-widths <csv>     screenshot 검증 viewport 폭 목록입니다. 기본 320,390,760,1180.
   --visual-height <px>      screenshot 검증 viewport 높이입니다. 기본 900.
   --debug-port-base <port>  Chrome CDP port 시작값입니다. 기본 9700.
   --output-dir <path>       screenshot/log 출력 디렉터리입니다.
@@ -44,7 +44,7 @@ const httpBase = (args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const timeoutMs = Number(args.timeoutMs || 10000);
 const screenshotEnabled = isTruthy(args.screenshots);
 const chromePath = args.chromePath || findChrome();
-const visualWidths = parseWidthList(args.visualWidths || "390,1180");
+const visualWidths = parseWidthList(args.visualWidths || "320,390,760,1180");
 const visualHeight = Number(args.visualHeight || 900);
 const debugPortBase = Number(args.debugPortBase || 9700);
 const runId = `ops-client-ui-${Date.now()}-${process.pid}`;
@@ -81,7 +81,7 @@ const pageChecks = [
     name: "ops-dashboard",
     path: "/ops/dashboard",
     visualSelector: '[data-testid="ops-dashboard-page"]',
-    must: ['data-testid="ops-dashboard-page"', 'data-testid="ops-root-cause-panel"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', 'id="dashRootCauseList"', '/ops/api/runtime/status'],
+    must: ['data-testid="ops-dashboard-page"', 'data-testid="ops-root-cause-panel"', 'data-testid="ops-va-quality-panel"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', 'id="dashRootCauseList"', 'id="dashVaQualityFilterInput"', 'id="dashScenarioTimeline"', 'id="dashTrackingIssueGroups"', '/ops/api/runtime/status', '/ops/api/source-health', '라이브 소스 상태', '라이브 VA 이벤트 품질'],
     mustNot: ['<iframe', 'opsDashboardFrame', '/lab/rules?embed=1', '/lab/runtime/status'],
   },
   {
@@ -95,8 +95,8 @@ const pageChecks = [
     name: "ops-sources",
     path: "/ops/sources",
     visualSelector: '[data-testid="ops-sources-page"]',
-    must: ['data-testid="ops-sources-page"', 'data-testid="channel-bulk-panel"', 'id="channel-bulk-select-all"', 'id="channelBulkDiagnostics"', 'id="channels-body"', 'id="channel-detail-panel"', 'name="whepUrl"', "외부 WHEP URL", "Published WebRTC", "Published sourceId"],
-    mustNot: ['AppendTableHead(', 'R"OPS(', 'WHIP Published Source ID', "Registry raw JSON", 'sources-json', 'views-json', 'client-views-json'],
+    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'name="onvifStreamUrl"', 'name="whepUrl"', "ONVIF 카메라", "ONVIF 스트림 URI", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
+    mustNot: ['AppendTableHead(', 'R"OPS(', 'WHIP Published Source ID', "Registry raw JSON", 'sources-json', 'views-json', 'client-views-json', 'data-testid="onvif-import-panel"', 'id="onvif-import-stub"', 'id="onvifImportSummary"', "ONVIF Live Source import", 'data-testid="channel-bulk-panel"', 'id="channel-bulk-select-all"', 'id="channelBulkDiagnostics"', 'data-testid="source-health-panel"', 'id="channelHealthSummary"', 'id="channelHealthDiagnostics"', 'id="channel-detail-health"'],
   },
   {
     name: "ops-users",
@@ -247,6 +247,10 @@ if (screenshotEnabled) {
     summaryTitle: "Ops/Client screenshot smoke 요약",
   });
   if (result.failCount > 0) process.exit(1);
+  const clientHeaderResult = await runClientHeaderResponsiveSmoke();
+  if (clientHeaderResult.failCount > 0) process.exit(1);
+  const auditResponsiveResult = await runOpsAuditResponsiveSmoke();
+  if (auditResponsiveResult.failCount > 0) process.exit(1);
 }
 
 function clientForbiddenText() {
@@ -270,6 +274,225 @@ function clientForbiddenText() {
     "/webrtc/session?file",
     "sessionToken",
   ];
+}
+
+async function runClientHeaderResponsiveSmoke() {
+  let headerPassCount = 0;
+  let headerFailCount = 0;
+  const headerFailures = [];
+  const clientPaths = [
+    { name: "client-live-header", path: "/client/live" },
+    { name: "client-dashboard-header", path: "/client/dashboard" },
+  ];
+  let checkIndex = 0;
+  for (const check of clientPaths) {
+    for (const width of visualWidths) {
+      if (width > 560) continue;
+      const browser = await openBrowserPage({
+        httpBase,
+        pagePath: check.path,
+        timeoutMs,
+        chromePath,
+        debugPort: debugPortBase + 200 + checkIndex,
+        width,
+        height: visualHeight,
+        outputDir,
+      });
+      checkIndex += 1;
+      try {
+        const result = await browser.evaluate(clientHeaderResponsiveExpression(), 10000);
+        const label = `${check.name}-${width}`;
+        if (!result?.ok) {
+          const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
+          throw new Error(`${label}: ${details}`);
+        }
+        headerPassCount += 1;
+        console.log(`[pass] ${label}: navWidth=${Math.round(result.navWidth)}, accountTop=${Math.round(result.accountTop)}`);
+      } catch (error) {
+        headerFailCount += 1;
+        const message = error instanceof Error ? error.message : String(error);
+        headerFailures.push(`[${check.name}] ${message}`);
+        console.log(`[fail] ${check.name}: ${message}`);
+      } finally {
+        await browser.close();
+      }
+    }
+  }
+  console.log("");
+  console.log("== Client mobile header smoke 요약 ==");
+  console.log(`- 통과: ${headerPassCount}`);
+  console.log(`- 실패: ${headerFailCount}`);
+  if (headerFailures.length > 0) {
+    console.log("- 실패 상세:");
+    for (const failure of headerFailures) {
+      console.log(`  - ${failure}`);
+    }
+  }
+  return { passCount: headerPassCount, failCount: headerFailCount };
+}
+
+function clientHeaderResponsiveExpression() {
+  return `
+    (() => {
+      const issues = [];
+      const nav = document.querySelector('body.client-shell header.app-chrome .client-image-nav-tabs');
+      const account = document.querySelector('body.client-shell header.app-chrome .account-menu');
+      const headerTop = document.querySelector('body.client-shell header.app-chrome .app-header-top');
+      const navItems = Array.from(document.querySelectorAll('body.client-shell header.app-chrome .client-image-nav-tabs .image-nav'));
+      if (!nav) issues.push('client nav missing');
+      if (!account) issues.push('client account menu missing');
+      if (!headerTop) issues.push('client header grid missing');
+      if (navItems.length < 2) issues.push('client nav items missing');
+      if (!nav || !account || !headerTop || navItems.length < 2) {
+        return { ok: false, issues };
+      }
+      const navRect = nav.getBoundingClientRect();
+      const accountRect = account.getBoundingClientRect();
+      const headerRect = headerTop.getBoundingClientRect();
+      const intersects = navRect.left < accountRect.right &&
+        navRect.right > accountRect.left &&
+        navRect.top < accountRect.bottom &&
+        navRect.bottom > accountRect.top;
+      if (intersects) {
+        issues.push('client nav/account boxes overlap');
+      }
+      if (navRect.width < headerRect.width - 2) {
+        issues.push('client nav does not fill the mobile header row');
+      }
+      if (accountRect.top < navRect.bottom + 8) {
+        issues.push('client account menu is not stacked below nav');
+      }
+      for (const item of navItems) {
+        const rect = item.getBoundingClientRect();
+        if (rect.width < 120 || rect.height < 44) {
+          issues.push('client nav item too small: ' + Math.round(rect.width) + 'x' + Math.round(rect.height));
+        }
+      }
+      const doc = document.documentElement;
+      const body = document.body;
+      const overflowX = Math.max(0, Math.max(doc.scrollWidth, body.scrollWidth) - window.innerWidth);
+      if (overflowX > 2) {
+        issues.push('document horizontal overflow ' + overflowX + 'px');
+      }
+      return {
+        ok: issues.length === 0,
+        issues,
+        navWidth: navRect.width,
+        headerWidth: headerRect.width,
+        accountTop: accountRect.top,
+        navBottom: navRect.bottom,
+        overflowX,
+      };
+    })()
+  `;
+}
+
+async function runOpsAuditResponsiveSmoke() {
+  let auditPassCount = 0;
+  let auditFailCount = 0;
+  const auditFailures = [];
+  const auditPaths = [
+    { name: "ops-sources-audit", path: "/ops/sources", selector: "#channel-audit-list" },
+    { name: "ops-users-audit", path: "/ops/users", selector: "#user-audit-list" },
+  ];
+  let checkIndex = 0;
+  for (const check of auditPaths) {
+    for (const width of visualWidths) {
+      if (width > 560) continue;
+      const label = `${check.name}-${width}`;
+      const browser = await openBrowserPage({
+        httpBase,
+        pagePath: check.path,
+        timeoutMs,
+        chromePath,
+        debugPort: debugPortBase + 320 + checkIndex,
+        width,
+        height: visualHeight,
+        outputDir,
+      });
+      checkIndex += 1;
+      try {
+        await browser.evaluate(`document.querySelector(${JSON.stringify(check.selector)})?.scrollIntoView({ block: 'center' }); true`, 10000);
+        await browser.screenshot(path.join(outputDir, `${label}.png`));
+        const result = await browser.evaluate(opsAuditResponsiveExpression(check.selector), 10000);
+        if (!result?.ok) {
+          const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
+          throw new Error(`${label}: ${details}`);
+        }
+        auditPassCount += 1;
+        console.log(`[pass] ${label}: overflow=${result.overflowX}, controls=${result.controlCount}`);
+      } catch (error) {
+        auditFailCount += 1;
+        const message = error instanceof Error ? error.message : String(error);
+        auditFailures.push(`[${check.name}] ${message}`);
+        console.log(`[fail] ${check.name}: ${message}`);
+      } finally {
+        await browser.close();
+      }
+    }
+  }
+  console.log("");
+  console.log("== Ops audit mobile smoke 요약 ==");
+  console.log(`- 통과: ${auditPassCount}`);
+  console.log(`- 실패: ${auditFailCount}`);
+  if (auditFailures.length > 0) {
+    console.log("- 실패 상세:");
+    for (const failure of auditFailures) {
+      console.log(`  - ${failure}`);
+    }
+  }
+  return { passCount: auditPassCount, failCount: auditFailCount };
+}
+
+function opsAuditResponsiveExpression(selector) {
+  return `
+    (() => {
+      const issues = [];
+      const section = document.querySelector(${JSON.stringify(selector)});
+      const doc = document.documentElement;
+      const body = document.body;
+      const overflowX = Math.max(0, Math.max(doc.scrollWidth, body.scrollWidth) - window.innerWidth);
+      if (!section) {
+        return { ok: false, issues: ['audit section missing'], overflowX, controlCount: 0 };
+      }
+      const controls = Array.from(section.querySelectorAll('.audit-date-input'));
+      if (controls.length !== 2) {
+        issues.push('expected two audit date inputs, got ' + controls.length);
+      }
+      for (const control of controls) {
+        const rect = control.getBoundingClientRect();
+        if (control.type !== 'text') {
+          issues.push('audit date input uses native type=' + control.type);
+        }
+        if (control.placeholder !== 'YYYY-MM-DD HH:mm') {
+          issues.push('audit date placeholder mismatch');
+        }
+        if (rect.left < -1 || rect.right > window.innerWidth + 1) {
+          issues.push('audit date input outside viewport: ' + Math.round(rect.left) + '..' + Math.round(rect.right));
+        }
+        if (rect.width < 120) {
+          issues.push('audit date input too narrow: ' + Math.round(rect.width));
+        }
+      }
+      const action = section.querySelector('select[id$="-audit-action"]');
+      const limit = section.querySelector('select[id$="-audit-limit"]');
+      for (const control of [action, limit].filter(Boolean)) {
+        const rect = control.getBoundingClientRect();
+        if (rect.left < -1 || rect.right > window.innerWidth + 1) {
+          issues.push('audit select outside viewport: ' + Math.round(rect.left) + '..' + Math.round(rect.right));
+        }
+      }
+      if (overflowX > 2) {
+        issues.push('document horizontal overflow ' + overflowX + 'px');
+      }
+      return {
+        ok: issues.length === 0,
+        issues,
+        overflowX,
+        controlCount: controls.length,
+      };
+    })()
+  `;
 }
 
 function clientForbiddenJsonKeys() {

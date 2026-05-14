@@ -257,6 +257,38 @@ struct AnalysisDebugTrackState {
     std::string track_health;
 };
 
+struct AnalysisDebugScenarioTimeline {
+    std::string instance_key;
+    std::string stream_id;
+    std::string channel_id;
+    std::string rule_id;
+    std::string scenario_key;
+    std::string scenario_name;
+    std::uint64_t track_id{0};
+    int class_id{-1};
+    std::string class_name;
+    std::string zone_id;
+    std::string line_id;
+    std::string current_phase;
+    std::string previous_phase;
+    std::int64_t phase_entered_at_ms{-1};
+    std::int64_t phase_elapsed_ms{-1};
+    std::int64_t track_first_seen_at_ms{-1};
+    std::int64_t track_last_seen_at_ms{-1};
+    std::int64_t zone_entered_at_ms{-1};
+    std::int64_t line_crossed_at_ms{-1};
+    std::int64_t event_emitted_at_ms{-1};
+    std::int64_t cooldown_started_at_ms{-1};
+    std::int64_t cooldown_ends_at_ms{-1};
+    std::int64_t cooldown_remaining_ms{-1};
+    std::string last_event_id;
+    std::string last_event_status;
+    std::string dedupe_key;
+    std::uint64_t event_emitted_count{0};
+    std::uint64_t dedupe_suppressed_count{0};
+    bool active{false};
+};
+
 struct AnalysisDebugState {
     bool enabled{false};
     std::string stream_id;
@@ -272,6 +304,7 @@ struct AnalysisDebugState {
     std::size_t event_state_count{0};
     std::size_t active_event_state_count{0};
     std::vector<AnalysisDebugTrackState> tracks;
+    std::vector<AnalysisDebugScenarioTimeline> scenario_timeline;
 };
 
 struct TrackHealthMetrics {

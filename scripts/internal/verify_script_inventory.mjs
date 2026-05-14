@@ -44,7 +44,7 @@ check("documented server.sh commands resolve to dispatch table", () => {
   const misses = [];
   for (const file of files) {
     const text = readText(file);
-    for (const match of text.matchAll(/\.\/server\.sh\s+([a-zA-Z0-9_-]+)/g)) {
+    for (const match of text.matchAll(/\.\/server\.sh\s+([a-zA-Z0-9_.-]+)/g)) {
       const command = match[1];
       if (!commands.has(command)) {
         misses.push(`${path.relative(rootDir, file)}: ${command}`);
@@ -66,6 +66,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_actions_security.mjs",
     "verify_release_bundle_dry_run.mjs",
     "verify_public_repo_readiness.mjs",
+    "verify_v1_1_boundary_keywords.mjs",
     "verify_code_comments.mjs",
     "verify_docs_links.mjs",
     "verify_ops_client_ui_smoke.mjs",
@@ -79,6 +80,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_ops_source_lifecycle.mjs",
     "verify_ops_backup_restore_dry_run.mjs",
     "verify_ops_scenario_presets.mjs",
+    "verify_onvif_ops_sources_ui_roundtrip.mjs",
     "verify_webrtc_va_metadata.mjs",
     "verify_ws_va_metadata.mjs",
   ];
@@ -123,7 +125,7 @@ function readText(filePath) {
 function parseServerDispatches() {
   const server = readText(path.join(rootDir, "server.sh"));
   const dispatches = [];
-  const regex = /^\s{2}([a-zA-Z0-9_|-]+)\)\n\s+require_internal [^\n]+\n\s+exec "\$\{INTERNAL_DIR\}\/([^"\n]+)"/gm;
+  const regex = /^\s{2}([a-zA-Z0-9_.|-]+)\)\n\s+require_internal [^\n]+\n\s+exec "\$\{INTERNAL_DIR\}\/([^"\n]+)"/gm;
   let match;
   while ((match = regex.exec(server)) !== null) {
     for (const command of match[1].split("|")) {

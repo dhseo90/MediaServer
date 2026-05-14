@@ -51,6 +51,29 @@ require_cmd() {
   fi
 }
 
+run_with_timeout() {
+  local timeout_s="$1"
+  shift
+  "$@" &
+  local child_pid=$!
+  local elapsed=0
+  while kill -0 "${child_pid}" >/dev/null 2>&1; do
+    if (( elapsed >= timeout_s )); then
+      echo "[fail] command timed out after ${timeout_s}s: $*"
+      kill "${child_pid}" >/dev/null 2>&1 || true
+      sleep 2
+      if kill -0 "${child_pid}" >/dev/null 2>&1; then
+        kill -9 "${child_pid}" >/dev/null 2>&1 || true
+      fi
+      wait "${child_pid}" >/dev/null 2>&1 || true
+      return 124
+    fi
+    sleep 1
+    elapsed=$((elapsed + 1))
+  done
+  wait "${child_pid}"
+}
+
 urlencode() {
   python3 - "$1" <<'PY'
 import sys
@@ -151,6 +174,7 @@ FILE_TOKEN="${MEDIA_SERVER_VERIFY_VA_FILE:-va_four_scene_sample.mp4}"
 MODEL_PATH="$(media_server_resolve_project_path "${ROOT_DIR}" "${MEDIA_SERVER_ANALYSIS_MODEL:-models/yolo11n.onnx}")"
 LABELS_PATH="$(media_server_resolve_project_path "${ROOT_DIR}" "${MEDIA_SERVER_ANALYSIS_LABELS:-models/coco.names}")"
 DURATION_S="${MEDIA_SERVER_VERIFY_VA_DURATION_S:-15}"
+FFMPEG_TIMEOUT_S="${MEDIA_SERVER_VERIFY_VA_FFMPEG_TIMEOUT_S:-}"
 POLL_INTERVAL_S="${MEDIA_SERVER_VERIFY_VA_POLL_INTERVAL_S:-2}"
 WEBRTC_HOLD_MS="${MEDIA_SERVER_VERIFY_VA_WEBRTC_HOLD_MS:-5000}"
 WEBRTC_TIMEOUT_MS="${MEDIA_SERVER_VERIFY_VA_WEBRTC_TIMEOUT_MS:-45000}"
@@ -171,6 +195,19 @@ log_info "http_base=${HTTP_BASE}"
 log_info "rtsp_base=${RTSP_BASE}"
 log_info "file=${FILE_TOKEN}"
 log_info "duration_s=${DURATION_S}"
+
+if ! [[ "${DURATION_S}" =~ ^[0-9]+$ ]] || (( DURATION_S <= 0 )); then
+  log_fail "invalid duration_s: ${DURATION_S}"
+  exit 1
+fi
+if [[ -z "${FFMPEG_TIMEOUT_S}" ]]; then
+  FFMPEG_TIMEOUT_S=$((DURATION_S + 60))
+fi
+if ! [[ "${FFMPEG_TIMEOUT_S}" =~ ^[0-9]+$ ]] || (( FFMPEG_TIMEOUT_S <= DURATION_S )); then
+  log_fail "invalid ffmpeg_timeout_s: ${FFMPEG_TIMEOUT_S}"
+  exit 1
+fi
+log_info "ffmpeg_timeout_s=${FFMPEG_TIMEOUT_S}"
 
 if [[ ! -f "${MODEL_PATH}" ]]; then
   log_fail "missing YOLO model: ${MODEL_PATH}"
@@ -322,7 +359,7 @@ run_rtsp_regression() {
   local rtsp_query="file=$(urlencode "${FILE_TOKEN}")&va=1$(append_extra_query "${EXTRA_QUERY}")"
   local rtsp_url="${MEDIA_SERVER_VERIFY_VA_RTSP_URL:-${RTSP_BASE}?${rtsp_query}}"
   log_info "rtsp_url=${rtsp_url}"
-  if ffmpeg -hide_banner -loglevel warning -rtsp_transport tcp -i "${rtsp_url}" -t "${DURATION_S}" -an -f null -; then
+  if run_with_timeout "${FFMPEG_TIMEOUT_S}" ffmpeg -hide_banner -loglevel warning -rtsp_transport tcp -i "${rtsp_url}" -t "${DURATION_S}" -an -f null -; then
     log_pass "RTSP VA overlay decode ok"
   else
     log_fail "RTSP VA overlay decode failed"

@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebRTC VA Metadata Client</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+      margin: 24px;
+      max-width: 1100px;
+    }
+    main {
+      display: grid;
+      gap: 16px;
+    }
+    form {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      align-items: end;
+    }
+    label {
+      display: grid;
+      gap: 4px;
+      font-size: 14px;
+    }
+    input, button {
+      font: inherit;
+      padding: 8px 10px;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+    video {
+      width: min(100%, 800px);
+      aspect-ratio: 16 / 9;
+      background: #111;
+    }
+    pre {
+      overflow: auto;
+      padding: 12px;
+      border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
+      max-height: 360px;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>WebRTC VA Metadata Client</h1>
+  <form id="controls">
+    <label>
+      HTTP base
+      <input id="base" value="http://127.0.0.1:8080" autocomplete="off">
+    </label>
+    <label>
+      File token
+      <input id="file" value="sample_h264.mp4" autocomplete="off">
+    </label>
+    <label>
+      Metadata interval ms
+      <input id="interval" type="number" min="100" value="500">
+    </label>
+    <label>
+      Max message bytes
+      <input id="maxBytes" type="number" min="256" value="65536">
+    </label>
+    <div class="actions">
+      <button id="start" type="submit">Start</button>
+      <button id="stop" type="button">Stop</button>
+    </div>
+  </form>
+  <video id="video" autoplay playsinline muted controls></video>
+  <pre id="status">idle</pre>
+  <pre id="payload">{}</pre>
+</main>
+
+<script type="module">
+const EXPECTED_SCHEMA = "media-server.webrtc.va-metadata.v1";
+const EXPECTED_LABEL = "va-metadata";
+
+const form = document.querySelector("#controls");
+const video = document.querySelector("#video");
+const statusBox = document.querySelector("#status");
+const payloadBox = document.querySelector("#payload");
+const stopButton = document.querySelector("#stop");
+
+let peer = null;
+let sessionId = "";
+let iceTimer = 0;
+let metadataCount = 0;
+
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+  start().catch((error) => setStatus({ error: String(error?.message || error) }));
+});
+stopButton.addEventListener("click", () => stop().catch(() => {}));
+
+async function start() {
+  await stop();
+  metadataCount = 0;
+
+  const base = normalizeBase(document.querySelector("#base").value);
+  const file = document.querySelector("#file").value.trim();
+  const intervalMs = document.querySelector("#interval").value.trim();
+  const maxBytes = document.querySelector("#maxBytes").value.trim();
+  const config = await fetchJson(base, "/webrtc/config").catch(() => ({ peerConnectionConfig: { iceServers: [] } }));
+
+  peer = new RTCPeerConnection(config.peerConnectionConfig || { iceServers: [] });
+  peer.ontrack = (event) => {
+    if (!video.srcObject) {
+      video.srcObject = event.streams[0] || new MediaStream([event.track]);
+    }
+    setStatus({ videoTrack: event.track.kind, ice: peer.iceConnectionState, connection: peer.connectionState });
+  };
+  peer.ondatachannel = (event) => {
+    const channel = event.channel;
+    setStatus({ dataChannelLabel: channel.label, dataChannelState: channel.readyState });
+    channel.onopen = () => setStatus({ dataChannelLabel: channel.label, dataChannelState: channel.readyState });
+    channel.onclose = () => setStatus({ dataChannelLabel: channel.label, dataChannelState: channel.readyState });
+    channel.onerror = () => setStatus({ dataChannelLabel: channel.label, dataChannelState: "error" });
+    channel.onmessage = (message) => handleMetadataMessage(channel, message.data);
+  };
+  peer.onicecandidate = async (event) => {
+    if (!sessionId || !event.candidate) return;
+    await fetch(endpoint(base, `/webrtc/session/${encodeURIComponent(sessionId)}/ice`), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sdpMLineIndex: event.candidate.sdpMLineIndex,
+        candidate: event.candidate.candidate,
+      }),
+    }).catch(() => {});
+  };
+
+  const params = new URLSearchParams();
+  params.set("file", file);
+  params.set("va", "1");
+  params.set("vaMetadata", "1");
+  params.set("vaMetadataIntervalMs", intervalMs || "500");
+  params.set("vaMetadataMaxMessageBytes", maxBytes || "65536");
+
+  const session = await fetchJson(base, `/webrtc/session?${params}`, { method: "POST" });
+  sessionId = session.sessionId || "";
+  if (!sessionId || !session.offer) throw new Error("session response missing sessionId/offer");
+
+  await peer.setRemoteDescription({ type: "offer", sdp: session.offer });
+  const answer = await peer.createAnswer();
+  await peer.setLocalDescription(answer);
+  await fetchJson(base, `/webrtc/session/${encodeURIComponent(sessionId)}/answer`, {
+    method: "POST",
+    headers: { "Content-Type": "application/sdp" },
+    body: answer.sdp,
+  });
+
+  iceTimer = window.setInterval(() => pollIce(base).catch(() => {}), 500);
+  setStatus({ sessionId, expectedChannel: EXPECTED_LABEL, expectedSchema: EXPECTED_SCHEMA });
+}
+
+async function pollIce(base) {
+  if (!peer || !sessionId) return;
+  const payload = await fetchJson(base, `/webrtc/session/${encodeURIComponent(sessionId)}/ice`);
+  for (const candidate of Array.isArray(payload.candidates) ? payload.candidates : []) {
+    await peer.addIceCandidate(candidate).catch(() => {});
+  }
+}
+
+function handleMetadataMessage(channel, raw) {
+  metadataCount += 1;
+  const payload = JSON.parse(String(raw || "{}"));
+  const errors = [];
+  if (channel.label !== EXPECTED_LABEL) errors.push(`label=${channel.label}`);
+  if (payload.schema !== EXPECTED_SCHEMA) errors.push(`schema=${payload.schema}`);
+  if (!Array.isArray(payload.tracks)) errors.push("tracks is not an array");
+  if (!Array.isArray(payload.events)) errors.push("events is not an array");
+  setStatus({
+    messages: metadataCount,
+    dataChannelLabel: channel.label,
+    schema: payload.schema,
+    tracks: Array.isArray(payload.tracks) ? payload.tracks.length : "invalid",
+    events: Array.isArray(payload.events) ? payload.events.length : "invalid",
+    syncStatus: payload.syncStatus || "",
+    syncDeltaMs: payload.syncDeltaMs ?? null,
+    metadataSequence: payload.metadataSequence ?? 0,
+    errors,
+  });
+  payloadBox.textContent = JSON.stringify(payload, null, 2);
+}
+
+async function stop() {
+  window.clearInterval(iceTimer);
+  iceTimer = 0;
+  const base = normalizeBase(document.querySelector("#base").value);
+  const id = sessionId;
+  sessionId = "";
+  if (peer) {
+    peer.close();
+    peer = null;
+  }
+  video.srcObject = null;
+  if (id) {
+    await fetch(endpoint(base, `/webrtc/session/${encodeURIComponent(id)}`), { method: "DELETE" }).catch(() => {});
+  }
+  setStatus({ stopped: true });
+}
+
+async function fetchJson(base, path, init = {}) {
+  const response = await fetch(endpoint(base, path), { cache: "no-store", ...init });
+  const text = await response.text();
+  if (!response.ok) throw new Error(`${path} HTTP ${response.status}: ${text}`);
+  return text ? JSON.parse(text) : {};
+}
+
+function normalizeBase(value) {
+  return String(value || window.location.origin || "http://127.0.0.1:8080").replace(/\/+$/, "");
+}
+
+function endpoint(base, path) {
+  return `${normalizeBase(base)}${path}`;
+}
+
+function setStatus(patch) {
+  const previous = JSON.parse(statusBox.dataset.state || "{}");
+  const next = { ...previous, ...patch };
+  statusBox.dataset.state = JSON.stringify(next);
+  statusBox.textContent = JSON.stringify(next, null, 2);
+}
+</script>
+</body>
+</html>

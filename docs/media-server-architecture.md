@@ -213,6 +213,13 @@ Viewer
   -> PublishedView public fields only
 ```
 
+ONVIF origin metadata는 현재 저장 schema에 포함하지 않습니다.
+[ONVIF Live Source Support](./onvif-live-source-support.md) 기준으로
+ONVIF는 다른 live source와 같은 SourceRegistry/PublishedView 저장 흐름을 쓰며,
+별도 schema review 후 optional source metadata로만 검토합니다.
+client/viewer API에는 ONVIF endpoint, stream URI, credential reference 같은
+원본 locator나 secret 추적 정보를 노출하지 않습니다.
+
 SourceRegistry 저장:
 
 - SourceRegistry 기본 저장소: `.media_server.sources.json`
@@ -327,6 +334,12 @@ Debug counter는 `analysisTapCreatedCount`, `analysisTapReusedCount`,
 짧은 smoke는 WebRTC session 생성 후 `idle=false`,
 session DELETE 후 `idle=true` 복귀를 확인합니다.
 RTSP/WHEP/WHIP 외부 네트워크 장기 안정성은 별도 longrun harness에서 다룹니다.
+
+현재 live source health 표시는
+[Live Source Health](./live-source-health.md)의 상태 모델을 기준으로 설계합니다.
+`/ops/sources`와 `/ops/dashboard`는 source reachability, last frame age,
+reconnect, stale/offline reason을 operator용으로 표시하고,
+client dashboard는 같은 상태 의미를 sanitized summary로만 노출합니다.
 
 동일 source에서 동시에 만들 수 있는 서로 다른 profile/tap 수는
 `MEDIA_SERVER_ANALYSIS_MAX_ACTIVE_PROFILES_PER_SOURCE`,
@@ -490,6 +503,9 @@ WebRTC DataChannel은 이 frame을 기존
 `media-server.webrtc.va-metadata.v1` schema로 투영해 외부 호환성을 유지합니다.
 dashboard와 SSE/WS side-channel은
 `media-server.va.runtime-metadata.v1` 내부 schema를 사용합니다.
+Event POST, WebRTC DataChannel, SSE, WebSocket의 live contract 경계는
+[Live Event and Metadata Contracts](./live-event-metadata-contracts.md)에
+분리해 관리합니다.
 
 Metadata 출력 정책:
 
@@ -622,7 +638,7 @@ GET /lab/analysis/event-storage/status
   - 상태: 짧은 frame evidence recorder
   - 목적: EventRecord와 snapshot media/pre-post frame bundle manifest path 연결
   - Evidence retention cleanup job은 운영 명령으로 분리
-  - 장기 녹화/MP4 recorder는 후속
+  - 장기 녹화/MP4 recorder는 현재 범위가 아니며 별도 제품 phase로만 검토
 - Ops audit/backup
   - 상태: 운영 변경 이력과 복구 리허설
   - 목적: `/ops/api/audit` 서버 저장/검색/export, `ops-bundle`,

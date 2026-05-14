@@ -5,6 +5,11 @@ API, event payload를 설명합니다.
 UI 화면 사용법은 [ui-guide.md](./ui-guide.md),
 환경변수 전체 목록은 [config-reference.md](./config-reference.md),
 검증 이력은 [history/verification-history.md](./history/verification-history.md)를 봅니다.
+Event POST, WebRTC DataChannel, SSE, WebSocket live metadata contract의
+기준 schema와 변경 금지 기준은
+[live-event-metadata-contracts.md](./live-event-metadata-contracts.md)에
+분리해 관리합니다. 이 문서는 VA pipeline과 payload 예시를 설명하되,
+contract 변경 판단의 기준 문서는 아닙니다.
 
 ## 1. VA 개요
 
@@ -48,7 +53,8 @@ TrackState, Scenario, TrackHealth, EventRecord는 내부 상태와 선택 저장
 ### 현장형 Scenario Preset
 
 Ops 룰 UI의 이벤트 템플릿은 `default`, `road`, `park`, `indoor`,
-`lobby`, `platform`, `entrance`, `custom` preset을 저장할 수 있습니다.
+`retail`, `lobby`, `platform`, `entrance`, `doorway`, `parking`,
+`elevator`, `custom` preset을 저장할 수 있습니다.
 Preset은 `scenario.presetId`로 남기고,
 실제 판단에는 저장된 threshold 숫자값을 사용합니다.
 
@@ -57,9 +63,13 @@ Preset은 `scenario.presetId`로 남기고,
 | `road` | 도로, 차로, 교차부 | line crossing과 wrong-direction은 짧은 지속 시간, occupancy/loitering은 높은 임계값 |
 | `park` | 공원, 외부 체류 공간 | loitering dwell을 길게 잡고 재알림 간격을 넓힘 |
 | `indoor` | 실내 구역 | 이동 반경과 dwell을 낮춰 짧은 동선을 빨리 판정 |
+| `retail` | 매장 통로, 계산대 주변 | 짧은 체류와 대기열을 빠르게 잡는 시작값 |
 | `lobby` | 로비, 공용 대기 공간 | occupancy와 re-entry 기준을 중간값으로 유지 |
 | `platform` | 승강장, 대기열 구간 | line-crossing 지연을 짧게, occupancy threshold를 높게 유지 |
 | `entrance` | 출입구 | intrusion dwell과 re-entry window를 짧게 유지 |
+| `doorway` | 문 앞 정체 | 짧은 dwell과 낮은 occupancy threshold로 병목을 빨리 표시 |
+| `parking` | 주차장 가장자리 | 보행/차량 혼재 구간에서 loitering dwell과 반경을 보수적으로 유지 |
+| `elevator` | 승강기 홀 | 대기 오탐을 줄이기 위해 occupancy dwell을 중간값으로 유지 |
 
 ## 2. VA Pipeline
 
@@ -521,8 +531,32 @@ Runtime Dashboard와 WebRTC BBox 진단에서 사람에게 필요한 수준으�
 Close-object guard의 기본값은 `off`입니다.
 `compare-close-object-tracker` 리포트는 같은 sample에서
 `off`, `diagnostic`, `enforce`를 비교합니다.
+`--fixture-matrix`를 쓰면 내장 close-object/control sample 목록을 순차 비교합니다.
+정기/CI용 전체 matrix는 `verify-close-object-fixture-matrix`로 실행합니다.
 목적은 threshold tuning과 default-on 검토 근거를 모으는 것입니다.
-event/scenario 결과가 달라지면 default on 전환 근거로 사용할 수 없습니다.
+`field-new-york-driving`은 실차량 주행 구간을 모사한 vehicle-heavy 샘플로,
+synthetic control 샘플 외부에서 실제 환경 흔들림 성격을 확인하기 위한 항목입니다.
+기본 실행은 mode별 격리 서버를 사용해 guard mode가 실제 서버에 적용됐는지
+확인합니다.
+`verify-close-object-fixture-matrix`는 fixture 누락뿐 아니라
+`judgement=hold`도 실패로 처리합니다. `hold`는 event/scenario stable delta나
+주요 association risk 증가가 있어 default-on 검토를 중단해야 하는 상태입니다.
+관찰 목적의 hold/warning report 수집은 `compare-close-object-tracker --fixture-matrix`로
+수행합니다.
+동일 테스트를 `--use-existing-server`로 돌릴 경우 `MEDIA_SERVER_AUTH_MODE`가
+`off`이거나 `/lab` API를 호출 가능한 인증 상태여야 하며, 인증이 걸려 있으면
+`/lab/analysis/taps` 응답이 비정상(리다이렉트/빈 본문)으로 와 파싱이 실패할 수 있습니다.
+event/scenario stable 상태가 달라지면 default on 전환 근거로 사용할 수 없습니다.
+live polling 과정의 emit/dedupe/cleanup counter 차이는 observed delta로 남기되
+단독 default-on 차단 사유로 보지 않습니다.
+`idSwitchRiskScore`는 stale PTS/PTS regression 성분을 포함하므로
+close-object guard 비교에서는 tracker association risk와 observed risk를 분리해 봅니다.
+단일 비교는 `strict` quality preset을 기본으로 사용하고,
+fixture matrix는 sample 성격에 맞춰 `close-object-live` 또는 `control-live`
+quality preset을 적용합니다. preset은 observed risk 허용치를 분리하는 용도이며,
+event/scenario stable delta가 있으면 여전히 default-on 근거로 사용할 수 없습니다.
+matrix report에 `--history-dir`를 지정하면 회차별 index를 남겨 품질 추세를 비교할 수 있습니다.
+반복 실행에서는 `Repeat Metric Stats`의 mean/stdev/variance로 observed risk 변동성을 확인합니다.
 
 ## 8. Appearance / Re-ID Hook
 
@@ -798,7 +832,11 @@ Ops audit에 `retention-cleanup` action을 남기며, HTTP audit이 어려운 �
 - 구현 완료: SSE metadata side-channel 수신 중심 custom client 예제
 - 구현 완료: OpenCV 기반 Custom RTSP + SSE metadata overlay renderer 예제
 - 구현 완료: WebSocket command/filter/subscribe-unsubscribe control
-- 예정: phase entered time/cooldown remaining을 포함한 정밀 scenario timeline, WS 기반 custom overlay renderer 확장
+- 구현 완료: state-dump/runtime debug 계층의 `scenarioTimeline[]`
+  phase entered/elapsed, cooldown remaining, event emitted/dedupe count 1차 표시
+- 구현 완료: `/ops/dashboard` Live VA Event Quality 패널의 Scenario Timeline과
+  TrackHealth issue grouping/focus summary/filter
+- 구현 완료: WebSocket 기반 Custom RTSP + WS metadata overlay renderer 예제
 
 내부 schema:
 
@@ -938,6 +976,8 @@ WebRTC metadata interval 튜닝 기준:
 ## 13. WebRTC VA Metadata DataChannel
 
 WebRTC VA metadata DataChannel은 기본 off입니다. `vaMetadata=1` query 또는 관련 env로 명시적으로 켭니다.
+custom browser client용 schema/example는
+[webrtc-metadata-client.md](./webrtc-metadata-client.md)에 분리했습니다.
 
 메시지 schema:
 
@@ -1225,6 +1265,26 @@ Smoke:
   --omit-metrics
 ```
 
+Custom RTSP + WebSocket metadata overlay renderer는 optional client example입니다.
+
+| 항목 | 설명 |
+| --- | --- |
+| 파일 | `scripts/examples/va_rtsp_ws_overlay_client.py` |
+| 영상 입력 | RTSP raw stream |
+| metadata 입력 | WebSocket runtime metadata |
+| 표시 | bbox, trackId, className을 client-side로 그림 |
+| 제어 | `--subscribe-json`으로 WebSocket subscribe command 전송 가능 |
+| 범위 | 서버 core 기능 아님 |
+| 변경 없음 | RTSP server-side overlay 정책, WebRTC DataChannel schema, SSE/WS metadata schema, Event POST payload |
+
+```bash
+python3 scripts/examples/va_rtsp_ws_overlay_client.py \
+  --rtsp-url 'rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4' \
+  --metadata-url 'ws://127.0.0.1:8080/ws/va-metadata?file=sample_h264.mp4&va=1&intervalMs=500&maxMessageBytes=65536' \
+  --max-seconds 15 \
+  --headless
+```
+
 ## 16. Client-side Overlay / Server-side Overlay 정책
 
 VA overlay는 출력 방식에 따라 역할이 다릅니다.
@@ -1317,15 +1377,19 @@ Scenario Timeline은 읽기 전용 debug UI입니다.
 | 보조 입력 | `/events` buffer |
 | 표시 | active scenario instance의 시간 흐름 |
 | phase chip | Candidate, Observing, Confirmed, Cooldown, Ended |
+| filter | scenario/rule/track/phase/issue 키워드 |
 | event 표시 | emitted/dedup, recent eventId/eventType/status |
 | 변경 없음 | scenario 판단 로직, event JSON/API/POST 형식 |
 
 event emit/cooldown 판단 자체는 ScenarioEngine과 EventManager의 기존 로직을 따릅니다.
 
 현재 vaRule Runtime Debug와 Scenarios/Scenario Timeline table은
-state-dump/metrics에 이미 노출된 값만 사용합니다.
-phase entered time, cooldown remaining 같은 정밀 timeline 필드는
-후속 endpoint 또는 state-dump 확장 없이는 표시하지 않습니다.
+state-dump/metrics에 이미 노출된 값과
+`analyticsState.debugState.scenarioTimeline[]`을 사용합니다.
+phase entered time, elapsed time, cooldown remaining, event emitted/dedupe count는
+debug/state-dump 계층에서만 표시합니다.
+정밀 timeline/debug 필드 초안은
+[scenario-timeline-debug.md](./scenario-timeline-debug.md)에 분리해 관리합니다.
 
 ## 18. Replay 검증
 

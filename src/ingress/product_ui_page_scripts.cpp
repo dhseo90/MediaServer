@@ -66,7 +66,7 @@ void AppendClientAccessRequestScript(std::ostringstream& out) {
           })
         });
         form.reset();
-        setMessage('요청이 pending 상태로 저장되었습니다.');
+        setMessage('요청이 승인 대기 상태로 저장되었습니다.');
       } catch (error) {
         setMessage(error.message, true);
       }
@@ -103,11 +103,14 @@ void AppendClientShellScript(std::ostringstream& out) {
       return `${Math.round(numeric)}ms`;
     };
     const statusChip = value => {
+      const normalized = String(value);
       const text = display(value);
-      const cls = ['stale', 'offline', 'disconnected', 'warning'].includes(String(value)) ? ' warn' :
-        ['unavailable'].includes(String(value)) ? ' bad' : '';
+      const cls = ['stale', 'offline', 'disconnected', 'warning'].includes(normalized) ? ' warn' :
+        ['unavailable', 'failed', 'error'].includes(normalized) ? ' bad' :
+        ['info', 'connecting'].includes(normalized) ? ' info' : '';
       const label = ({
         warning: '경고',
+        info: '확인 중',
         normal: '정상',
         stale: '지연',
         offline: '오프라인',
@@ -115,9 +118,11 @@ void AppendClientShellScript(std::ostringstream& out) {
         unavailable: '미제공',
         connected: '연결됨',
         connecting: '연결 중',
+        receiving: '수신 중',
+        fresh: '정상',
         live: '라이브',
         metadata: '메타데이터'
-      })[String(value)] || text;
+      })[normalized] || text;
       return `<span class="chip${cls}">${escapeHtml(label)}</span>`;
     };
     const clientStatusLabel = value => ({
@@ -132,7 +137,19 @@ void AppendClientShellScript(std::ostringstream& out) {
       error: '오류',
       closed: '닫힘',
       stale: '지연',
-      fresh: '정상'
+      fresh: '정상',
+      receiving: '수신 중',
+      normal: '정상',
+      warning: '경고',
+      unavailable: '미제공'
+    })[String(value)] || display(value);
+    const clientHealthSummaryLabel = value => ({
+      offline: '신호 없음',
+      'waiting-signal': '신호 확인 중',
+      receiving: '영상 수신 중',
+      'video-delay': '영상 지연 확인',
+      'metadata-delay': '메타데이터 지연 확인',
+      'video-and-metadata-delay': '영상/메타데이터 지연 확인'
     })[String(value)] || display(value);
     const emptyState = (title, message, actionHref = '', actionLabel = '') => `
       <div class="empty">
@@ -156,14 +173,18 @@ void AppendClientShellScript(std::ostringstream& out) {
       'va-overlay': 'VA 오버레이',
       'va-rule': 'VA 룰'
     })[mode] || mode || '미제공';
-    const sourceKindLabel = kind => ({
-      file: '파일',
-      rtsp: 'RTSP',
-      whep: '외부 WHEP',
-      http: 'HTTP/HLS',
-      hls: 'HTTP/HLS',
-      webrtc: 'Published WebRTC'
-    })[String(kind || '').toLowerCase()] || kind || '소스';
+    const viewHasSourceTag = (view, tag) => Array.isArray(view?.sourceTags) &&
+      view.sourceTags.map(item => String(item || '').toLowerCase()).includes(String(tag || '').toLowerCase());
+    const sourceKindLabel = (kind, view = null) => viewHasSourceTag(view, 'onvif')
+      ? 'ONVIF'
+      : ({
+        file: '파일',
+        rtsp: 'RTSP',
+        whep: '외부 WHEP',
+        http: 'HTTP/HLS',
+        hls: 'HTTP/HLS',
+        webrtc: '발행 WebRTC'
+      })[String(kind || '').toLowerCase()] || kind || '소스';
     const defaultTileRuleId = view => view?.defaultRuleId || (Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds[0] : '') || '';
     const requestedRuleIdForView = view =>
       (requestedClientRuleId && String(view?.viewId || '') === String(selectedViewId || ''))
@@ -207,7 +228,7 @@ void AppendClientShellScript(std::ostringstream& out) {
         <button class="view${view.viewId === selectedViewId ? ' active' : ''}" type="button" data-view-id="${escapeHtml(view.viewId)}">
           <h3>${escapeHtml(view.displayName || view.viewId)}</h3>
 	          <div class="meta">
-	            <span class="chip">${escapeHtml(sourceKindLabel(view.sourceKind))}</span>
+		            <span class="chip">${escapeHtml(sourceKindLabel(view.sourceKind, view))}</span>
 	            ${view.showDashboard ? '<span class="chip">대시보드</span>' : ''}
 	            <span class="chip">최대 ${viewMaxTiles(view)}개</span>
 	          </div>
@@ -230,10 +251,17 @@ void AppendClientShellScript(std::ostringstream& out) {
       if (button) setActiveView(button.dataset.viewId);
     });
     const dashboardFieldState = (health = {}, events = {}) => {
+      const status = String(health.status || '');
+      const metadataStatus = String(health.metadataStatus || '');
+      const warningLevel = String(health.warningLevel || '');
       if (events.warning) return { text: '현장 확인 필요', tone: 'warn' };
-      if (['stale', 'offline', 'disconnected', 'warning'].includes(String(health.status || ''))) return { text: '영상 상태 확인', tone: 'warn' };
-      if (['stale', 'warning'].includes(String(health.metadataStatus || ''))) return { text: '메타데이터 지연', tone: 'warn' };
-      if (String(health.status || '') === 'unavailable') return { text: '신호 미제공', tone: 'bad' };
+      if (warningLevel === 'warning' || ['stale', 'offline', 'disconnected', 'warning'].includes(status)) {
+        if (['stale', 'warning'].includes(metadataStatus) && status === 'live') return { text: '메타데이터 지연', tone: 'warn' };
+        return { text: '영상 상태 확인', tone: 'warn' };
+      }
+      if (warningLevel === 'info' || status === 'connecting') return { text: '신호 확인 중', tone: 'info' };
+      if (['stale', 'warning'].includes(metadataStatus)) return { text: '메타데이터 지연', tone: 'warn' };
+      if (status === 'unavailable') return { text: '신호 미제공', tone: 'bad' };
       return { text: '정상 관제 중', tone: '' };
     };
     let clientDashboardCompareFilter = localStorage.getItem('mediaServerClientDashboardCompareFilter') || 'all';
@@ -401,7 +429,8 @@ void AppendClientShellScript(std::ostringstream& out) {
             <div class="client-compare-metrics">
               <span>우선순위 ${escapeHtml(display(clientDashboardComparePriority(item)))}</span>
               <span>현장 ${escapeHtml(clientDashboardPlacePreset(payload).label)}</span>
-              <span>연결 ${escapeHtml(display(health.connectionStatus || health.status))}</span>
+              <span>요약 ${escapeHtml(clientHealthSummaryLabel(health.summary || health.status))}</span>
+              <span>연결 ${escapeHtml(clientStatusLabel(health.connectionStatus || health.status))}</span>
               <span>지연 ${escapeHtml(ms(health.metadataAgeMs))}</span>
               <span>트랙 ${escapeHtml(display(analysis.trackCount))}</span>
               <span>이벤트 ${escapeHtml(display(analysis.activeEventCount))}</span>
@@ -441,6 +470,7 @@ void AppendClientShellScript(std::ostringstream& out) {
           </div>
           <div class="meta">
             <span class="chip${fieldState.tone ? ` ${fieldState.tone}` : ''}">${escapeHtml(fieldState.text)}</span>
+            ${statusChip(health.warningLevel)}
             ${statusChip(health.status)}
             ${statusChip(health.metadataStatus)}
             ${events.warning ? '<span class="chip warn">경고</span>' : ''}
@@ -450,14 +480,14 @@ void AppendClientShellScript(std::ostringstream& out) {
           <h3>현장 요약</h3>
           <div class="summary">
             <div class="metric"><span>현장 상태</span><strong>${escapeHtml(fieldState.text)}</strong></div>
-            <div class="metric"><span>영상 신호</span><strong>${escapeHtml(display(health.videoFrameStatus || health.status))}</strong></div>
+            <div class="metric"><span>상태 요약</span><strong>${escapeHtml(clientHealthSummaryLabel(health.summary || health.status))}</strong></div>
+            <div class="metric"><span>영상 신호</span><strong>${escapeHtml(clientStatusLabel(health.videoFrameStatus || health.status))}</strong></div>
             <div class="metric"><span>데이터 지연</span><strong>${escapeHtml(ms(health.metadataAgeMs))}</strong></div>
-            <div class="metric"><span>점검 권장</span><strong>${events.warning ? '이벤트 확인' : '정기 확인'}</strong></div>
           </div>
         </section>
         <div class="summary">
-          <div class="metric"><span>연결 상태</span><strong>${escapeHtml(display(health.connectionStatus))}</strong></div>
-          <div class="metric"><span>영상 프레임</span><strong>${escapeHtml(display(health.videoFrameStatus))}</strong></div>
+          <div class="metric"><span>연결 상태</span><strong>${escapeHtml(clientStatusLabel(health.connectionStatus))}</strong></div>
+          <div class="metric"><span>영상 프레임</span><strong>${escapeHtml(clientStatusLabel(health.videoFrameStatus))}</strong></div>
           <div class="metric"><span>메타데이터 지연</span><strong>${escapeHtml(ms(health.metadataAgeMs))}</strong></div>
           <div class="metric"><span>마지막 프레임</span><strong>${escapeHtml(ms(connection.lastFrameAgeMs))}</strong></div>
           <div class="metric"><span>트랙</span><strong>${escapeHtml(display(analysis.trackCount))}</strong></div>
@@ -468,7 +498,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        <section class="events">
 	          <h3>클라이언트 범위</h3>
 	          <div class="summary">
-	            <div class="metric"><span>소스 종류</span><strong>${escapeHtml(sourceKindLabel(view.sourceKind))}</strong></div>
+	            <div class="metric"><span>소스 종류</span><strong>${escapeHtml(sourceKindLabel(view.sourceKind, view))}</strong></div>
 	            <div class="metric"><span>대시보드 권한</span><strong>${view.showDashboard === false ? '꺼짐' : '사용'}</strong></div>
 	            <div class="metric"><span>이벤트 권한</span><strong>${view.showEvents === false ? '꺼짐' : '사용'}</strong></div>
 	            <div class="metric"><span>메타데이터</span><strong>${view.showMetadataSummary === false ? '꺼짐' : '사용'}</strong></div>
@@ -496,7 +526,7 @@ void AppendClientShellScript(std::ostringstream& out) {
             </label>
           </div>
           <details class="client-preset-config" data-testid="client-dashboard-preset-config">
-            <summary>Preset 설정</summary>
+            <summary>프리셋 설정</summary>
             <textarea id="clientDashboardPresetConfigInput" rows="6">${escapeHtml(clientDashboardPresetConfigText())}</textarea>
             <div class="actions">
               <button id="clientDashboardPresetApply" class="button button-secondary button-compact" type="button">적용</button>
@@ -1210,6 +1240,7 @@ void AppendClientShellScript(std::ostringstream& out) {
             </div>
             <div class="meta">
               ${statusChip(tile.status)}
+              ${statusChip(health.warningLevel)}
               ${statusChip(health.metadataStatus)}
               <span class="chip${tileStatusClass(tile.stale ? 'stale' : 'fresh')}" data-selected-stale>${tile.stale ? '지연' : '정상'}</span>
             </div>
@@ -1217,6 +1248,7 @@ void AppendClientShellScript(std::ostringstream& out) {
           <div class="summary">
             <div class="metric"><span>연결</span><strong>${escapeHtml(clientStatusLabel(tile.connectionStatus))}</strong></div>
             <div class="metric"><span>라이브</span><strong>${escapeHtml(clientStatusLabel(health.status || tile.status))}</strong></div>
+            <div class="metric"><span>상태 요약</span><strong>${escapeHtml(clientHealthSummaryLabel(health.summary || health.status))}</strong></div>
             <div class="metric"><span>트랙</span><strong>${escapeHtml(display(tile.trackCount ?? analysis.trackCount))}</strong></div>
             <div class="metric"><span>이벤트</span><strong>${escapeHtml(display(tile.eventCount ?? analysis.activeEventCount))}</strong></div>
             <div class="metric"><span>메타데이터 지연</span><strong>${escapeHtml(ms(health.metadataAgeMs))}</strong></div>
@@ -1309,9 +1341,12 @@ void AppendOpsShellScript(std::ostringstream& out,
         requestJson,
         applyPrincipalVisibility,
         setSelectOptions,
+        translateText,
         recordOpsAudit,
         renderOpsAuditTrail
       } = window.MediaServerUi;
+      const opsText = value => translateText ? translateText(value) : display(value);
+      const opsHtml = value => escapeHtml(opsText(value));
       const opsHashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
       const opsViewRuleId = view =>
         String(view?.defaultRuleId || (Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds[0] : '') || '').trim();
@@ -1368,12 +1403,54 @@ void AppendOpsShellScript(std::ostringstream& out,
         }
         return `ops-${String(fallbackKey).replace(/[^a-z0-9]+/gi, '-').slice(0, 18).toLowerCase()}-${(hash >>> 0).toString(36)}`;
       };
-      const dashboardRootCauseItems = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}) => {
+      const dashboardSourceHealthItems = sourceHealth => Array.isArray(sourceHealth?.sourceHealth) ? sourceHealth.sourceHealth : [];
+      const dashboardSourceHealthCounts = sourceHealth => {
+        const items = dashboardSourceHealthItems(sourceHealth);
+        const summary = sourceHealth?.summary || {};
+        const countByStatus = status => items.filter(item => item.status === status).length;
+        return {
+          total: numberValue(summary.total ?? items.length),
+          live: numberValue(summary.live ?? countByStatus('live')),
+          connecting: numberValue(summary.connecting ?? countByStatus('connecting')),
+          stale: numberValue(summary.stale ?? countByStatus('stale')),
+          offline: numberValue(summary.offline ?? countByStatus('offline')),
+          unknown: numberValue(summary.unknown ?? countByStatus('unknown'))
+        };
+      };
+      const dashboardSourceHealthReason = reason => ({
+        receiving: '수신 중',
+        initializing: '초기 수신 대기',
+        'last-frame-aged': '프레임 지연',
+        'metadata-aged': '메타데이터 지연',
+        disabled: '비활성',
+        unreachable: '연결 불가',
+        'no-subscriber': '구독 세션 없음',
+        'no-egress-session': 'WebRTC 송출 세션 없음'
+      })[String(reason || '')] || String(reason || '근거 없음');
+      const dashboardSourceHealthStatusLabel = status => ({
+        live: '수신',
+        connecting: '연결 중',
+        stale: '지연',
+        offline: '오프라인',
+        unknown: '미확인'
+      })[String(status || '')] || String(status || '미확인');
+      const dashboardSourceHealthAge = value => value === null || value === undefined
+        ? '미수신'
+        : `${Math.max(0, Math.round(numberValue(value)))}ms`;
+      const dashboardSourceHealthStatusText = sourceHealth => {
+        const counts = dashboardSourceHealthCounts(sourceHealth);
+        return `수신 ${counts.live}/${counts.total} · 연결 중 ${counts.connecting} · 지연 ${counts.stale} · 오프라인 ${counts.offline}`;
+      };
+      const dashboardRootCauseItems = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const counts = runtimeCounts(runtime);
         const lifecycle = runtime?.sourceLifecycle || {};
         const matching = runtime?.analysisMatching || {};
         const publishSources = Array.isArray(runtime?.webrtcHttp?.publishSources) ? runtime.webrtcHttp.publishSources : [];
         const activeTaps = Array.isArray(matching.activeTaps) ? matching.activeTaps : [];
+        const healthItems = dashboardSourceHealthItems(sourceHealth);
+        const healthCounts = dashboardSourceHealthCounts(sourceHealth);
+        const degradedSources = healthItems.filter(item => item.status !== 'live');
+        const firstDegradedSource = degradedSources[0] || null;
         const recentEvents = Array.isArray(eventsStatus?.records?.records) ? eventsStatus.records.records : [];
         const storage = eventsStatus?.storage || {};
         const post = eventsStatus?.post || {};
@@ -1389,8 +1466,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         const scopes = Array.isArray(principal?.scopes) ? principal.scopes : [];
         const hasOpsRead = principal?.role === 'admin' || scopes.includes('*') || scopes.includes('ops:read');
         const sourceSummary = numberValue(lifecycle.idle ? 1 : 0) === 1
-          ? '모든 source lifecycle 리소스가 idle입니다.'
-          : `세션 ${numberValue(lifecycle.activeSessions)} · stream ${numberValue(lifecycle.resourceActiveStreams)}/${numberValue(lifecycle.registryActiveStreams)} · tap ${numberValue(lifecycle.activeAnalysisTaps)}`;
+          ? '모든 소스 수명주기 리소스가 대기 상태입니다.'
+          : `세션 ${numberValue(lifecycle.activeSessions)} · 스트림 ${numberValue(lifecycle.resourceActiveStreams)}/${numberValue(lifecycle.registryActiveStreams)} · 분석 탭 ${numberValue(lifecycle.activeAnalysisTaps)}`;
         const recentSummary = recentEvents.length > 0
           ? recentEvents.slice(0, 2).map(item => `${item.eventType || 'event'}:${item.status || 'status'}`).join(' · ')
           : '최근 EventRecord 없음';
@@ -1405,15 +1482,37 @@ void AppendOpsShellScript(std::ostringstream& out,
         const staleLog = logEvidence('stale|metadata skipped|lastUsedAge|tapId');
         const reconnectLog = logEvidence('reconnect|cleanup|WHIP|publisher|failed to create|event post|event storage');
         const authLog = logEvidence('auth|login|session|scope|ICE|TURN|relay');
+        const sourceHealthLog = logEvidence('source health|last-frame-aged|metadata-aged|no-subscriber|no-egress-session|unreachable|waiting-video');
         return [
           {
+            level: degradedSources.length > 0 ? (healthCounts.offline > 0 ? 'bad' : 'warn') : 'info',
+            title: degradedSources.length > 0 ? '라이브 소스 상태 확인 필요' : '라이브 소스 상태',
+            detail: degradedSources.length > 0
+              ? degradedSources.slice(0, 3).map(item => `#${item.sourceId || '-'} ${dashboardSourceHealthStatusLabel(item.status)}:${dashboardSourceHealthReason(item.reason)}`).join(' · ')
+              : dashboardSourceHealthStatusText(sourceHealth),
+            evidence: degradedSources.length > 0
+              ? degradedSources.slice(0, 2).map(item => `프레임 ${dashboardSourceHealthAge(item.lastFrameAgeMs)} / 메타데이터 ${dashboardSourceHealthAge(item.lastMetadataAgeMs)}`).join(' · ')
+              : '소스 상태가 정상 범위입니다.',
+            log: sourceHealthLog.line,
+            correlationId: firstDegradedSource?.sourceId ? `source-${firstDegradedSource.sourceId}` : sourceHealthLog.correlationId,
+            action: degradedSources.length > 0
+              ? '오프라인/지연 채널을 /ops/sources에서 재확인하고 입력, PublishedView, 구독 세션을 점검합니다.'
+              : '라이브 소스 상태가 정상 범위입니다.',
+            actionHref: firstDegradedSource?.sourceId
+              ? `/ops/sources#channel=${encodeURIComponent(firstDegradedSource.sourceId)}`
+              : '/ops/dashboard',
+            actionLabel: '소스 상태',
+            actionKind: 'source-health',
+            actionPatterns: 'source health|last-frame-aged|metadata-aged|no-subscriber|no-egress-session|unreachable|waiting-video'
+          },
+          {
             level: stalledResources ? 'warn' : 'info',
-            title: stalledResources ? 'Source lifecycle 정리 확인 필요' : 'Source lifecycle',
+            title: stalledResources ? '소스 수명주기 정리 확인 필요' : '소스 수명주기',
             detail: sourceSummary,
-            evidence: `cleanup ${cleanupCompleted}/${cleanupRequests} · ${recentSummary}`,
+            evidence: `정리 ${cleanupCompleted}/${cleanupRequests} · ${recentSummary}`,
             log: sourceLog.line,
             correlationId: sourceLog.correlationId,
-            action: stalledResources ? '종료된 세션 뒤에 resource stream/tap이 남았는지 cleanup 로그와 채널 상태를 확인합니다.' : 'idle 또는 활성 수치가 일치합니다.',
+            action: stalledResources ? '종료된 세션 뒤에 리소스 스트림/분석 탭이 남았는지 정리 로그와 채널 상태를 확인합니다.' : '대기 또는 활성 수치가 일치합니다.',
             actionHref: '/ops/sources',
             actionLabel: '채널 상태',
             actionKind: 'source-diagnostics',
@@ -1421,16 +1520,16 @@ void AppendOpsShellScript(std::ostringstream& out,
           },
           {
             level: staleTaps.length > 0 ? 'warn' : 'info',
-            title: staleTaps.length > 0 ? 'Stale 분석 탭 감지' : 'Stale detection',
+            title: staleTaps.length > 0 ? '지연 분석 탭 감지' : '지연 감지',
             detail: staleTaps.length > 0
-              ? staleTaps.slice(0, 3).map(tap => `${tap.tapId || 'tap'} ${Math.round(numberValue(tap.lastUsedAgeMs))}ms`).join(' · ')
+              ? staleTaps.slice(0, 3).map(tap => `${tap.tapId || '탭'} ${Math.round(numberValue(tap.lastUsedAgeMs))}ms`).join(' · ')
               : '5초 초과 미사용 분석 탭이 없습니다.',
             evidence: staleTaps.length > 0
-              ? staleTaps.slice(0, 2).map(tap => `${tap.streamKey || 'stream'} / ${tap.selectedRuleId || 'rule 없음'}`).join(' · ')
-              : `active tap ${activeTaps.length}`,
+              ? staleTaps.slice(0, 2).map(tap => `${tap.streamKey || '스트림'} / ${tap.selectedRuleId || '룰 없음'}`).join(' · ')
+              : `활성 분석 탭 ${activeTaps.length}`,
             log: staleLog.line,
             correlationId: staleLog.correlationId,
-            action: staleTaps.length > 0 ? 'viewer 종료, route 이동, 탭 재사용 해제 흐름을 점검합니다.' : '분석 탭 age가 정상 범위입니다.',
+            action: staleTaps.length > 0 ? '뷰어 종료, route 이동, 탭 재사용 해제 흐름을 점검합니다.' : '분석 탭 age가 정상 범위입니다.',
             actionHref: '/ops/rules',
             actionLabel: '룰 연결',
             actionKind: 'registry-diff',
@@ -1438,18 +1537,18 @@ void AppendOpsShellScript(std::ostringstream& out,
           },
           {
             level: inactivePublishSources.length > 0 || cleanupBacklog ? 'warn' : 'info',
-            title: inactivePublishSources.length > 0 || cleanupBacklog ? 'Reconnect / cleanup 확인 필요' : 'Reconnect / cleanup',
+            title: inactivePublishSources.length > 0 || cleanupBacklog ? '재연결/정리 확인 필요' : '재연결/정리',
             detail: inactivePublishSources.length > 0
-              ? inactivePublishSources.slice(0, 3).map(source => `${source.sourceId || 'source'} video=${source.hasVideo ? 'on' : 'off'}`).join(' · ')
-              : `publish ${counts.publish} · egress ${counts.egress} · cleanup ${cleanupCompleted}/${cleanupRequests}`,
+              ? inactivePublishSources.slice(0, 3).map(source => `${source.sourceId || '소스'} 비디오=${source.hasVideo ? 'on' : 'off'}`).join(' · ')
+              : `발행 ${counts.publish} · 송출 ${counts.egress} · 정리 ${cleanupCompleted}/${cleanupRequests}`,
             evidence: post.lastError || storage.lastError
               ? `최근 오류 ${post.lastError || storage.lastError}`
               : `EventRecord 저장 ${storage.storedCount ?? 0} · POST 전송 ${post.sentCount ?? 0}`,
             log: reconnectLog.line,
             correlationId: reconnectLog.correlationId,
             action: inactivePublishSources.length > 0
-              ? 'WHIP publisher 재접속과 video track 생성 여부를 확인합니다.'
-              : (cleanupBacklog ? 'cleanup completed가 requests를 따라가지 못하는지 로그를 확인합니다.' : 'reconnect/cleanup 지표가 정상 범위입니다.'),
+              ? 'WHIP 발행자 재접속과 video track 생성 여부를 확인합니다.'
+              : (cleanupBacklog ? '정리 완료 수가 요청 수를 따라가지 못하는지 로그를 확인합니다.' : '재연결/정리 지표가 정상 범위입니다.'),
             actionHref: '/ops/events',
             actionLabel: '이벤트 기록',
             actionKind: 'event-diagnostics',
@@ -1457,11 +1556,11 @@ void AppendOpsShellScript(std::ostringstream& out,
           },
           {
             level: principal && hasOpsRead && !relayFallback ? 'info' : 'warn',
-            title: principal && hasOpsRead && !relayFallback ? 'Auth / config' : 'Auth / config 확인 필요',
+            title: principal && hasOpsRead && !relayFallback ? '권한/설정' : '권한/설정 확인 필요',
             detail: principal
-              ? `role ${principal.role || '미제공'} · auth ${principal.authMode || '미제공'} · ops:read ${hasOpsRead ? '사용' : '없음'}`
+              ? `역할 ${principal.role || '미제공'} · 인증 ${principal.authMode || '미제공'} · ops:read ${hasOpsRead ? '사용' : '없음'}`
               : 'whoami 응답을 확인하지 못했습니다.',
-            evidence: relayFallback ? `${iceText} · relay fallback` : iceText,
+            evidence: relayFallback ? `${iceText} · relay 대체 사용` : iceText,
             log: authLog.line,
             correlationId: authLog.correlationId,
             action: principal && hasOpsRead && !relayFallback ? '운영 대시보드 접근 권한과 ICE 설정이 정상 범위입니다.' : '세션, role/scope, auth mode, TURN/ICE 설정을 확인합니다.',
@@ -1488,25 +1587,39 @@ void AppendOpsShellScript(std::ostringstream& out,
           ${logs.length > 0 ? `<pre>${escapeHtml(logs.join('\n'))}</pre>` : '<p class="hint">일치하는 최근 로그가 없습니다.</p>'}`;
       };
       const runRootCauseAction = async item => {
-        const [logTail, sources, views, catalog, eventsStatus, principal, browserConfig] = await Promise.all([
+        const [logTail, sources, views, sourceHealth, catalog, eventsStatus, principal, browserConfig] = await Promise.all([
           requestJson('/ops/api/diagnostics/log-tail?limit=120').catch(error => ({ error: error.message, lines: [] })),
           requestJson('/ops/api/sources').catch(error => ({ error: error.message, sources: [] })),
           requestJson('/ops/api/views').catch(error => ({ error: error.message, views: [] })),
+          requestJson('/ops/api/source-health').catch(error => ({ error: error.message, sourceHealth: [], summary: {} })),
           requestJson('/ops/api/rules/catalog').catch(error => ({ error: error.message, rules: [], vaRules: [], profiles: [] })),
           requestJson('/ops/api/events/status?limit=8&includeArchives=1').catch(error => ({ error: error.message, records: { records: [] } })),
           applyPrincipalVisibility().catch(() => null),
           requestJson('/webrtc/config').catch(error => ({ error: error.message }))
         ]);
         const logs = rootCauseLogFilter(logTail.lines, item.correlationId, item.actionPatterns);
+        if (item.actionKind === 'source-health') {
+          const healthItems = dashboardSourceHealthItems(sourceHealth);
+          const counts = dashboardSourceHealthCounts(sourceHealth);
+          const degraded = healthItems.filter(health => health.status !== 'live');
+          renderRootCauseActionOutput('라이브 소스 상태 재검증', [
+            dashboardSourceHealthStatusText(sourceHealth),
+            `확인 필요 ${degraded.length}개`,
+            degraded.slice(0, 3).map(health => `#${health.sourceId || '-'} ${dashboardSourceHealthStatusLabel(health.status)} · ${dashboardSourceHealthReason(health.reason)} · 프레임 ${dashboardSourceHealthAge(health.lastFrameAgeMs)}`).join(' / ') || '지연 또는 오프라인 채널 없음',
+            `요약 전체=${counts.total} 수신=${counts.live} 지연=${counts.stale} 오프라인=${counts.offline}`,
+            '상세 상태는 /ops/dashboard의 운영 요약에서 확인합니다.'
+          ], logs);
+          return;
+        }
         if (item.actionKind === 'source-diagnostics') {
           const sourceItems = Array.isArray(sources.sources) ? sources.sources : [];
           const viewItems = Array.isArray(views.views) ? views.views : [];
           const missingViews = sourceItems.filter(source => !viewItems.some(view => view.sourceId === source.sourceId));
           const disabled = sourceItems.filter(source => source.enabled === false);
           renderRootCauseActionOutput('채널 상태 재검증', [
-            `source ${sourceItems.length}개 · view ${viewItems.length}개`,
-            `view 누락 ${missingViews.length}개`,
-            `비활성 source ${disabled.length}개`,
+            `소스 ${sourceItems.length}개 · 뷰 ${viewItems.length}개`,
+            `뷰 누락 ${missingViews.length}개`,
+            `비활성 소스 ${disabled.length}개`,
             '상세 조치는 /ops/sources에서 수행합니다.'
           ], logs);
           return;
@@ -1524,9 +1637,9 @@ void AppendOpsShellScript(std::ostringstream& out,
               (profileId && !profiles.some(profile => String(profile.profileId || profile.id) === profileId)) ||
               (eventRuleId && !rules.some(eventRule => String(eventRule.ruleId || eventRule.id) === eventRuleId));
           });
-          renderRootCauseActionOutput('Registry diff 확인', [
-            `VA rule ${vaRules.length}개 · event template ${rules.length}개 · profile ${profiles.length}개`,
-            `참조 mismatch ${mismatches.length}개`,
+          renderRootCauseActionOutput('룰 연결 차이 확인', [
+            `VA 룰 ${vaRules.length}개 · 이벤트 템플릿 ${rules.length}개 · 프로파일 ${profiles.length}개`,
+            `참조 불일치 ${mismatches.length}개`,
             '상세 조치는 /ops/rules에서 수행합니다.'
           ], logs);
           return;
@@ -1535,47 +1648,49 @@ void AppendOpsShellScript(std::ostringstream& out,
           const records = Array.isArray(eventsStatus?.records?.records) ? eventsStatus.records.records : [];
           const storage = eventsStatus.storage || {};
           const post = eventsStatus.post || {};
-          renderRootCauseActionOutput('Event/evidence 상태 확인', [
+          renderRootCauseActionOutput('이벤트/증거 상태 확인', [
             `최근 EventRecord ${records.length}개`,
-            `storage stored=${storage.storedCount ?? 0} failed=${storage.failedCount ?? 0}`,
-            `event POST sent=${post.sentCount ?? 0} failed=${post.failedCount ?? 0}`,
+            `저장 성공=${storage.storedCount ?? 0} 실패=${storage.failedCount ?? 0}`,
+            `이벤트 POST 전송=${post.sentCount ?? 0} 실패=${post.failedCount ?? 0}`,
             '상세 조치는 /ops/events에서 수행합니다.'
           ], logs);
           return;
         }
-        renderRootCauseActionOutput('Auth/config 상태 확인', [
-          `role ${principal?.role || '미제공'} · auth ${principal?.authMode || '미제공'}`,
+        renderRootCauseActionOutput('권한/설정 상태 확인', [
+          `역할 ${principal?.role || '미제공'} · 인증 ${principal?.authMode || '미제공'}`,
           `ICE ${browserConfig?.iceTransportPolicy || '미제공'} · STUN ${browserConfig?.hasStun ? 'on' : 'off'} · TURN ${browserConfig?.hasTurn ? 'on' : 'off'}`,
-          `relay fallback ${browserConfig?.relayPolicyFallback ? 'on' : 'off'}`,
+          `relay 대체 ${browserConfig?.relayPolicyFallback ? 'on' : 'off'}`,
           '상세 조치는 /ops/users와 TURN/ICE 설정에서 수행합니다.'
         ], logs);
       };
-      const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}) => {
-        const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig, diagnosticLog);
+      const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
+        const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
         const warnCount = items.filter(item => item.level === 'warn' || item.level === 'bad').length;
+        const healthCounts = dashboardSourceHealthCounts(sourceHealth);
         renderBadges('dashRootCauseBadges', [
           { text: warnCount > 0 ? `${warnCount}개 확인 필요` : '즉시 조치 없음', tone: warnCount > 0 ? 'warn' : '' },
-          { text: 'source lifecycle' },
-          { text: 'stale' },
-          { text: 'reconnect' },
-          { text: 'auth/config' }
+          { text: `라이브 소스 ${healthCounts.live}/${healthCounts.total}`, tone: healthCounts.offline > 0 ? 'bad' : (healthCounts.stale > 0 ? 'warn' : '') },
+          { text: '소스 수명주기' },
+          { text: '지연' },
+          { text: '재연결' },
+          { text: '권한/설정' }
         ]);
         setText('dashRootCauseText', warnCount > 0
           ? '아래 항목을 기준으로 원인을 좁혀 확인합니다.'
-          : '운영자가 바로 확인할 source lifecycle, stale, reconnect, auth/config 문제가 없습니다.');
+          : '운영자가 바로 확인할 소스 수명주기, 지연, 재연결, 권한/설정 문제가 없습니다.');
         const list = document.getElementById('dashRootCauseList');
         if (!list) return;
         list.innerHTML = items.map((item, index) => `<article class="root-cause-item ${escapeHtml(item.level)}">
           <div>
-            <strong>${escapeHtml(item.title)}</strong>
-            <p>${escapeHtml(item.detail)}</p>
+            <strong>${opsHtml(item.title)}</strong>
+            <p>${opsHtml(item.detail)}</p>
           </div>
-          <span class="chip${item.level === 'warn' ? ' warn' : (item.level === 'bad' ? ' bad' : '')}">${item.level === 'info' ? '정상' : '확인'}</span>
+          <span class="chip${item.level === 'warn' ? ' warn' : (item.level === 'bad' ? ' bad' : '')}">${opsHtml(item.level === 'info' ? '정상' : '확인')}</span>
           ${item.correlationId ? `<span class="root-cause-correlation">cid ${escapeHtml(item.correlationId)}</span>` : ''}
-          ${item.evidence ? `<p class="root-cause-evidence">${escapeHtml(item.evidence)}</p>` : ''}
-          ${item.log ? `<p class="root-cause-log">${escapeHtml(item.log)}</p>` : ''}
-          <p class="root-cause-action">${escapeHtml(item.action)}</p>
-          ${item.actionHref ? `<button type="button" class="button button-secondary button-compact root-cause-next-action" data-root-cause-index="${index}" data-root-cause-kind="${escapeHtml(item.actionKind || '')}" data-root-cause-action="${escapeHtml(item.title)}" data-correlation-id="${escapeHtml(item.correlationId || '')}">${escapeHtml(item.actionLabel || '다음 조치')}</button> <a class="btn small" href="${escapeHtml(item.actionHref)}">이동</a>` : ''}
+          ${item.evidence ? `<p class="root-cause-evidence">${opsHtml(item.evidence)}</p>` : ''}
+          ${item.log ? `<p class="root-cause-log">${opsHtml(item.log)}</p>` : ''}
+          <p class="root-cause-action">${opsHtml(item.action)}</p>
+          ${item.actionHref ? `<button type="button" class="button button-secondary button-compact root-cause-next-action" data-root-cause-index="${index}" data-root-cause-kind="${escapeHtml(item.actionKind || '')}" data-root-cause-action="${escapeHtml(item.title)}" data-correlation-id="${escapeHtml(item.correlationId || '')}">${opsHtml(item.actionLabel || '다음 조치')}</button> <a class="btn small" href="${escapeHtml(item.actionHref)}">${opsHtml('이동')}</a>` : ''}
         </article>`).join('');
         list.querySelectorAll('[data-root-cause-index]').forEach(button => {
           button.addEventListener('click', () => {
@@ -1584,6 +1699,221 @@ void AppendOpsShellScript(std::ostringstream& out,
           });
         });
       };
+      const scenarioPhaseLabel = phase => ({
+        idle: 'Idle',
+        'line-crossed': 'LineCrossed',
+        'zone-entered': 'ZoneEntered',
+        candidate: 'Candidate',
+        observing: 'Observing',
+        confirmed: 'Confirmed',
+        cooldown: 'Cooldown',
+        ended: 'Ended'
+      })[String(phase || '').toLowerCase()] || display(phase || '미제공');
+      const scenarioPhaseTone = phase => {
+        const value = String(phase || '').toLowerCase();
+        if (value === 'confirmed') return '';
+        if (value === 'cooldown') return 'warn';
+        if (value === 'ended') return 'info';
+        if (['candidate', 'observing', 'line-crossed', 'zone-entered'].includes(value)) return 'info';
+        return 'info';
+      };
+      const dashboardPrimaryTap = runtime => {
+        const taps = Array.isArray(runtime?.analysisMatching?.activeTaps) ? runtime.analysisMatching.activeTaps : [];
+        const hashTap = String(opsHashParams().get('tap') || '').trim();
+        if (hashTap) {
+          const selected = taps.find(tap => String(tap?.tapId || '') === hashTap);
+          if (selected) return selected;
+        }
+        return taps.find(tap => String(tap?.selectedRuleId || '').trim()) || taps[0] || null;
+      };
+      const timelineTime = value => value === null || value === undefined ? '미제공' : ms(value);
+      let dashboardVaQualityLastTimeline = [];
+      let dashboardVaQualityLastIssueReport = {};
+      let dashboardVaQualityFilterBound = false;
+      const dashboardVaQualityFilterTerm = () =>
+        String(document.getElementById('dashVaQualityFilterInput')?.value || '').trim().toLowerCase();
+      const dashboardVaQualityMatches = (parts, term) => !term || parts
+        .filter(part => part !== null && part !== undefined && part !== '')
+        .map(part => String(part).toLowerCase())
+        .some(part => part.includes(term));
+      const scenarioPhaseRank = phase => {
+        const value = String(phase || '').toLowerCase();
+        if (value === 'confirmed') return 0;
+        if (['observing', 'candidate', 'line-crossed', 'zone-entered'].includes(value)) return 1;
+        if (value === 'cooldown') return 2;
+        if (value === 'idle') return 3;
+        if (value === 'ended') return 4;
+        return 5;
+      };
+      const scenarioTimelineSearchParts = item => [
+        item?.scenarioName,
+        item?.scenarioKey,
+        item?.currentPhase,
+        item?.scenarioPhase,
+        item?.ruleId,
+        item?.ruleId ? `rule ${item.ruleId}` : '',
+        item?.trackId,
+        item?.trackId ? `track ${item.trackId}` : '',
+        item?.zoneId,
+        item?.zoneId ? `zone ${item.zoneId}` : '',
+        item?.lineId,
+        item?.lineId ? `line ${item.lineId}` : '',
+        scenarioPhaseLabel(item?.currentPhase || item?.scenarioPhase)
+      ];
+      const scenarioTimelineSortValue = item =>
+        numberValue(item?.phaseEnteredAtMs ?? item?.trackLastSeenAtMs ?? item?.trackFirstSeenAtMs);
+      const bindDashboardVaQualityFilter = () => {
+        if (dashboardVaQualityFilterBound) return;
+        const input = document.getElementById('dashVaQualityFilterInput');
+        if (!input) return;
+        dashboardVaQualityFilterBound = true;
+        input.addEventListener('input', () => {
+          renderDashboardScenarioTimeline(dashboardVaQualityLastTimeline);
+          renderDashboardTrackingIssues(dashboardVaQualityLastIssueReport);
+        });
+      };
+      const renderDashboardScenarioTimeline = items => {
+        const root = document.getElementById('dashScenarioTimeline');
+        if (!root) return;
+        const term = dashboardVaQualityFilterTerm();
+        const rows = (Array.isArray(items) ? items : [])
+          .filter(item => dashboardVaQualityMatches(scenarioTimelineSearchParts(item), term))
+          .sort((a, b) => {
+            const rank = scenarioPhaseRank(a?.currentPhase || a?.scenarioPhase) -
+              scenarioPhaseRank(b?.currentPhase || b?.scenarioPhase);
+            if (rank !== 0) return rank;
+            return scenarioTimelineSortValue(b) - scenarioTimelineSortValue(a);
+          });
+        if (rows.length === 0) {
+          root.innerHTML = term
+            ? '<div class="empty">필터와 일치하는 시나리오 타임라인이 없습니다.</div>'
+            : '<div class="empty">활성 시나리오 인스턴스가 없습니다.</div>';
+          return;
+        }
+        root.innerHTML = rows.slice(0, 8).map(item => {
+          const phase = item?.currentPhase || item?.scenarioPhase || '';
+          const cooldown = item?.cooldownRemainingMs;
+          const cooldownText = cooldown === null || cooldown === undefined ? '쿨다운 없음' : `쿨다운 ${timelineTime(cooldown)}`;
+          const dedupe = numberValue(item?.dedupeSuppressedCount);
+          const emitted = numberValue(item?.eventEmittedCount);
+          const context = [
+            item?.ruleId ? `rule ${item.ruleId}` : '',
+            item?.trackId ? `track ${item.trackId}` : '',
+            item?.zoneId ? `zone ${item.zoneId}` : '',
+            item?.lineId ? `line ${item.lineId}` : ''
+          ].filter(Boolean).join(' · ') || '컨텍스트 미제공';
+          return `<article class="root-cause-item ${item?.active === false ? 'info' : 'info'}">
+            <div>
+              <strong>${escapeHtml(display(item?.scenarioName || item?.scenarioKey || 'scenario'))}</strong>
+              <p>${escapeHtml(context)}</p>
+            </div>
+            ${badge(scenarioPhaseLabel(phase), scenarioPhaseTone(phase))}
+            <p class="root-cause-evidence">단계 ${timelineTime(item?.phaseElapsedMs)} · ${escapeHtml(cooldownText)} · 발행 ${emitted} · 중복제거 ${dedupe}</p>
+            <p class="root-cause-action">진입 ${escapeHtml(timelineTime(item?.phaseEnteredAtMs))} · 트랙 ${escapeHtml(timelineTime(item?.trackFirstSeenAtMs))} → ${escapeHtml(timelineTime(item?.trackLastSeenAtMs))}</p>
+          </article>`;
+        }).join('');
+      };
+      const groupTrackingIssues = report => {
+        const groups = new Map();
+        const issues = Array.isArray(report?.issues) ? report.issues : [];
+        for (const issue of issues) {
+          const type = String(issue?.type || 'unknown');
+          if (!groups.has(type)) {
+            groups.set(type, { type, count: 0, tracks: new Set(), severity: String(issue?.severity || 'info'), samples: [] });
+          }
+          const group = groups.get(type);
+          group.count += 1;
+          if (issue?.trackId) group.tracks.add(String(issue.trackId));
+          group.samples.push(issue);
+          if (String(issue?.severity || '') === 'warning') group.severity = 'warning';
+        }
+        return Array.from(groups.values()).sort((a, b) => {
+          const severityRank = (b.severity === 'warning' ? 1 : 0) - (a.severity === 'warning' ? 1 : 0);
+          if (severityRank !== 0) return severityRank;
+          return b.count - a.count;
+        });
+      };
+      const trackingIssueSearchParts = group => [
+        group?.type,
+        group?.severity,
+        ...Array.from(group?.tracks || []),
+        ...Array.from(group?.tracks || []).map(track => `track ${track}`),
+        ...(Array.isArray(group?.samples) ? group.samples.flatMap(issue => [
+          issue?.trackId,
+          issue?.trackId ? `track ${issue.trackId}` : '',
+          issue?.className,
+          issue?.reason,
+          issue?.state,
+          issue?.detail
+        ]) : [])
+      ];
+      const renderDashboardTrackingIssues = report => {
+        const root = document.getElementById('dashTrackingIssueGroups');
+        if (!root) return;
+        const term = dashboardVaQualityFilterTerm();
+        const groups = groupTrackingIssues(report)
+          .filter(group => dashboardVaQualityMatches(trackingIssueSearchParts(group), term));
+        const totals = {
+          retained: numberValue(report?.retainedIssues),
+          total: numberValue(report?.totalIssues),
+          rateLimited: numberValue(report?.rateLimitedCount)
+        };
+        if (groups.length === 0) {
+          root.innerHTML = term
+            ? `<div class="empty">필터와 일치하는 트래킹 이슈가 없습니다. · 유지 ${totals.retained}/${totals.total} · 제한 ${totals.rateLimited}</div>`
+            : `<div class="empty">트래킹 이슈 없음 · 유지 ${totals.retained}/${totals.total} · 제한 ${totals.rateLimited}</div>`;
+          return;
+        }
+        root.innerHTML = groups.slice(0, 8).map(group => `<article class="root-cause-item ${group.severity === 'warning' ? 'warn' : 'info'}">
+          <div>
+            <strong>${escapeHtml(group.type)}</strong>
+            <p>트랙 ${escapeHtml(Array.from(group.tracks).slice(0, 6).join(', ') || '미제공')}</p>
+          </div>
+          ${badge(`${group.count}건`, group.severity === 'warning' ? 'warn' : 'info')}
+          <p class="root-cause-evidence">유지 ${totals.retained}/${totals.total} · 제한 ${totals.rateLimited}</p>
+        </article>`).join('');
+      };
+      const renderDashboardVaQualityEmpty = message => {
+        bindDashboardVaQualityFilter();
+        dashboardVaQualityLastTimeline = [];
+        dashboardVaQualityLastIssueReport = {};
+        renderBadges('dashVaQualityBadges', [{ text: '분석 탭 대기', tone: 'info' }]);
+        setText('dashVaQualityText', message);
+        renderDashboardScenarioTimeline([]);
+        renderDashboardTrackingIssues({});
+      };
+      const renderDashboardVaQualityError = error => {
+        bindDashboardVaQualityFilter();
+        renderBadges('dashVaQualityBadges', [{ text: '디버그 조회 실패', tone: 'warn' }]);
+        setText('dashVaQualityText', error?.message || 'VA 런타임 디버그를 불러오지 못했습니다.');
+      };
+      async function refreshDashboardVaQuality(runtime) {
+        bindDashboardVaQualityFilter();
+        const tap = dashboardPrimaryTap(runtime);
+        if (!tap?.tapId) {
+          renderDashboardVaQualityEmpty('활성 분석 탭이 있으면 타임라인과 트래킹 이슈를 표시합니다.');
+          return;
+        }
+        const [stateDump, metricsDump] = await Promise.all([
+          requestJson(`/lab/analysis/taps/${encodeURIComponent(tap.tapId)}/state-dump`),
+          requestJson(`/lab/analysis/taps/${encodeURIComponent(tap.tapId)}/metrics`)
+        ]);
+        const debugState = stateDump?.analyticsState?.debugState || {};
+        const timeline = Array.isArray(debugState?.scenarioTimeline) ? debugState.scenarioTimeline : [];
+        const issueReport = metricsDump?.trackingIssueReport || {};
+        dashboardVaQualityLastTimeline = timeline;
+        dashboardVaQualityLastIssueReport = issueReport;
+        renderBadges('dashVaQualityBadges', [
+          { text: `탭 ${tap.tapId}` },
+          { text: tap.selectedRuleId ? `룰 ${tap.selectedRuleId}` : '룰 미선택', tone: tap.selectedRuleId ? '' : 'info' },
+          { text: `타임라인 ${timeline.length}` },
+          { text: `이슈 ${numberValue(issueReport.retainedIssues)}`, tone: numberValue(issueReport.retainedIssues) > 0 ? 'warn' : 'info' }
+        ]);
+        setText('dashVaQualityText',
+          `${display(tap.streamKey)} · 단계/쿨다운/중복제거는 state-dump 디버그 계층에서만 표시합니다.`);
+        renderDashboardScenarioTimeline(timeline);
+        renderDashboardTrackingIssues(issueReport);
+      }
       async function refreshLive() {
         const [sources, views, catalog, runtime, events, users, diagnosticLog] = await Promise.all([
           requestJson('/ops/api/sources'),
@@ -1627,14 +1957,16 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderRaw('opsHomeRaw', 'opsHomePretty', { sources, views, catalog, runtime, events, users });
       }
       async function refreshDashboard() {
-        const [runtime, principal, eventsStatus, browserConfig, diagnosticLog] = await Promise.all([
+        const [runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth] = await Promise.all([
           requestJson('/ops/api/runtime/status'),
           applyPrincipalVisibility().catch(() => null),
           requestJson('/ops/api/events/status?limit=5&includeArchives=1').catch(error => ({ error: error.message, records: { records: [] } })),
           requestJson('/webrtc/config').catch(error => ({ error: error.message })),
-          requestJson('/ops/api/diagnostics/log-tail?limit=80').catch(error => ({ error: error.message, available: false, lines: [] }))
+          requestJson('/ops/api/diagnostics/log-tail?limit=80').catch(error => ({ error: error.message, available: false, lines: [] })),
+          requestJson('/ops/api/source-health').catch(error => ({ error: error.message, sourceHealth: [], summary: {} }))
         ]);
         const counts = runtimeCounts(runtime);
+        const sourceHealthCounts = dashboardSourceHealthCounts(sourceHealth);
         const metadata = runtime?.webrtcHttp?.metadataDataChannel || {};
         const sideChannel = runtime?.webrtcHttp?.metadataSideChannel || {};
         setText('dashActiveSessions', counts.sessions);
@@ -1644,9 +1976,10 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderBadges('dashHealthBadges', [
           { text: counts.streams > 0 ? '스트림 활성' : '스트림 대기', tone: counts.streams > 0 ? '' : 'info' },
           { text: counts.taps > 0 ? '분석 활성' : '분석 대기', tone: counts.taps > 0 ? '' : 'info' },
-          { text: counts.egress > 0 ? '송출 활성' : '송출 대기', tone: counts.egress > 0 ? '' : 'info' }
+          { text: counts.egress > 0 ? '송출 활성' : '송출 대기', tone: counts.egress > 0 ? '' : 'info' },
+          { text: `라이브 소스 ${sourceHealthCounts.live}/${sourceHealthCounts.total}`, tone: sourceHealthCounts.offline > 0 ? 'bad' : (sourceHealthCounts.stale > 0 ? 'warn' : 'info') }
         ]);
-        setText('dashHealthText', `세션 ${counts.sessions} · 스트림 ${counts.streams} · 분석 ${counts.taps}`);
+        setText('dashHealthText', `세션 ${counts.sessions} · 스트림 ${counts.streams} · 분석 ${counts.taps} · ${dashboardSourceHealthStatusText(sourceHealth)}`);
         renderBadges('dashRuntimeRows', [
           { text: `송출 ${counts.egress}` },
           { text: `발행 ${counts.publish}` },
@@ -1674,8 +2007,10 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('dashWsClientCount', sideChannel.activeWebSocketClients ?? 0);
         setText('dashDetailText',
           `프로파일 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0} · 발행 ${counts.publish} · 송출 ${counts.egress}`);
-        renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig, diagnosticLog);
+        renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
+        await refreshDashboardVaQuality(runtime).catch(renderDashboardVaQualityError);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
+        window.MediaServerUi?.translatePage?.();
       }
       const OPS_EVENT_RECORD_LIMIT = 25;
       let opsEventRecordsOffset = 0;
@@ -1951,13 +2286,13 @@ void AppendOpsShellScript(std::ostringstream& out,
         },
         profile: {
           label: '분석 프로파일',
-          summary: '검출기, FPS, confidence 같은 분석 엔진 설정을 모아 둡니다.',
+          summary: '검출기, FPS, 신뢰도 같은 분석 엔진 설정을 모아 둡니다.',
           composerTitle: '분석 프로파일',
           composerHint: '채널 설정이나 템플릿에서 선택합니다.',
           saveText: '저장',
           saveProxyId: 'saveProfileBtn',
           steps: [
-            { sectionId: 'profileSection', title: '프로파일 설정', hint: 'detector, FPS, confidence, 입력 크기만 설정합니다.' }
+            { sectionId: 'profileSection', title: '프로파일 설정', hint: '검출기, FPS, 신뢰도, 입력 크기만 설정합니다.' }
           ]
         }
       };
@@ -2083,50 +2418,72 @@ void AppendOpsShellScript(std::ostringstream& out,
           're-entry': { reEntryWindowMs: 10000 },
           'wrong-direction': { cooldownMs: 5000 },
           'intrusion-after-line-crossing': { maxDelayAfterCrossingMs: 10000, dwellTimeMs: 3000 },
-          loitering: { minDwellTimeMs: 30000, maxMovementRadius: 0.08, minTrajectoryPoints: 4, cooldownMs: 10000 },
-          'zone-occupancy': { occupancyThreshold: 3, minDwellTimeMs: 5000, cooldownMs: 10000 }
+          loitering: { minDwellTimeMs: 30000, maxMovementRadius: 0.08, minTrajectoryPoints: 4, cooldownMs: 12000 },
+          'zone-occupancy': { occupancyThreshold: 4, minDwellTimeMs: 7000, cooldownMs: 12000 }
         },
         road: {
           all: { minConfidence: 0.35, cooldownMs: 10000 },
           'line-crossing': { minDurationMs: 0 },
           'wrong-direction': { cooldownMs: 8000 },
           'intrusion-after-line-crossing': { maxDelayAfterCrossingMs: 6000, dwellTimeMs: 1500 },
-          loitering: { minDwellTimeMs: 45000, maxMovementRadius: 0.12, minTrajectoryPoints: 5, cooldownMs: 20000 },
-          'zone-occupancy': { occupancyThreshold: 8, minDwellTimeMs: 15000, cooldownMs: 20000 }
+          loitering: { minDwellTimeMs: 60000, maxMovementRadius: 0.12, minTrajectoryPoints: 5, cooldownMs: 20000 },
+          'zone-occupancy': { occupancyThreshold: 8, minDwellTimeMs: 5000, cooldownMs: 10000 }
+        },
+        retail: {
+          all: { minConfidence: 0.3, cooldownMs: 10000 },
+          loitering: { minDwellTimeMs: 20000, maxMovementRadius: 0.06, minTrajectoryPoints: 4, cooldownMs: 10000 },
+          'zone-occupancy': { occupancyThreshold: 4, minDwellTimeMs: 7000, cooldownMs: 12000 }
         },
         park: {
           all: { minConfidence: 0.3, cooldownMs: 15000 },
           'intrusion-dwell': { candidateTimeMs: 3000, dwellTimeMs: 15000 },
-          loitering: { minDwellTimeMs: 60000, maxMovementRadius: 0.1, minTrajectoryPoints: 5, cooldownMs: 30000 },
-          'zone-occupancy': { occupancyThreshold: 5, minDwellTimeMs: 10000, cooldownMs: 20000 }
+          loitering: { minDwellTimeMs: 60000, maxMovementRadius: 0.12, minTrajectoryPoints: 5, cooldownMs: 20000 },
+          'zone-occupancy': { occupancyThreshold: 6, minDwellTimeMs: 10000, cooldownMs: 15000 }
         },
         indoor: {
           all: { minConfidence: 0.3, cooldownMs: 8000 },
           'intrusion-dwell': { candidateTimeMs: 1500, dwellTimeMs: 5000 },
-          loitering: { minDwellTimeMs: 30000, maxMovementRadius: 0.06, minTrajectoryPoints: 4, cooldownMs: 15000 },
-          'zone-occupancy': { occupancyThreshold: 4, minDwellTimeMs: 5000, cooldownMs: 10000 }
+          loitering: { minDwellTimeMs: 20000, maxMovementRadius: 0.06, minTrajectoryPoints: 4, cooldownMs: 10000 },
+          'zone-occupancy': { occupancyThreshold: 4, minDwellTimeMs: 7000, cooldownMs: 12000 }
         },
         lobby: {
-          all: { minConfidence: 0.32, cooldownMs: 8000 },
+          all: { minConfidence: 0.32, cooldownMs: 12000 },
           'intrusion-dwell': { candidateTimeMs: 1000, dwellTimeMs: 4000 },
           're-entry': { reEntryWindowMs: 12000 },
-          loitering: { minDwellTimeMs: 45000, maxMovementRadius: 0.07, minTrajectoryPoints: 4, cooldownMs: 20000 },
-          'zone-occupancy': { occupancyThreshold: 6, minDwellTimeMs: 7000, cooldownMs: 12000 }
+          loitering: { minDwellTimeMs: 30000, maxMovementRadius: 0.08, minTrajectoryPoints: 4, cooldownMs: 12000 },
+          'zone-occupancy': { occupancyThreshold: 6, minDwellTimeMs: 10000, cooldownMs: 15000 }
         },
         platform: {
           all: { minConfidence: 0.35, cooldownMs: 10000 },
           'line-crossing': { minDurationMs: 0 },
           'wrong-direction': { cooldownMs: 6000 },
           'intrusion-after-line-crossing': { maxDelayAfterCrossingMs: 5000, dwellTimeMs: 1000 },
-          loitering: { minDwellTimeMs: 50000, maxMovementRadius: 0.08, minTrajectoryPoints: 5, cooldownMs: 20000 },
-          'zone-occupancy': { occupancyThreshold: 8, minDwellTimeMs: 8000, cooldownMs: 15000 }
+          loitering: { minDwellTimeMs: 45000, maxMovementRadius: 0.1, minTrajectoryPoints: 5, cooldownMs: 15000 },
+          'zone-occupancy': { occupancyThreshold: 8, minDwellTimeMs: 5000, cooldownMs: 10000 }
         },
         entrance: {
           all: { minConfidence: 0.32, cooldownMs: 6000 },
           'line-crossing': { minDurationMs: 0 },
           'intrusion-dwell': { candidateTimeMs: 1000, dwellTimeMs: 3000 },
           're-entry': { reEntryWindowMs: 10000 },
-          'zone-occupancy': { occupancyThreshold: 3, minDwellTimeMs: 4000, cooldownMs: 10000 }
+          loitering: { minDwellTimeMs: 15000, maxMovementRadius: 0.05, minTrajectoryPoints: 3, cooldownMs: 8000 },
+          'zone-occupancy': { occupancyThreshold: 3, minDwellTimeMs: 3000, cooldownMs: 8000 }
+        },
+        doorway: {
+          all: { minConfidence: 0.32, cooldownMs: 8000 },
+          'line-crossing': { minDurationMs: 0 },
+          loitering: { minDwellTimeMs: 15000, maxMovementRadius: 0.05, minTrajectoryPoints: 3, cooldownMs: 8000 },
+          'zone-occupancy': { occupancyThreshold: 3, minDwellTimeMs: 3000, cooldownMs: 8000 }
+        },
+        parking: {
+          all: { minConfidence: 0.35, cooldownMs: 20000 },
+          loitering: { minDwellTimeMs: 60000, maxMovementRadius: 0.12, minTrajectoryPoints: 5, cooldownMs: 20000 },
+          'zone-occupancy': { occupancyThreshold: 5, minDwellTimeMs: 10000, cooldownMs: 15000 }
+        },
+        elevator: {
+          all: { minConfidence: 0.32, cooldownMs: 12000 },
+          loitering: { minDwellTimeMs: 30000, maxMovementRadius: 0.08, minTrajectoryPoints: 4, cooldownMs: 12000 },
+          'zone-occupancy': { occupancyThreshold: 5, minDwellTimeMs: 8000, cooldownMs: 12000 }
         }
       };
       function opsEventRuleModeForType(type) {
@@ -2292,6 +2649,13 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (kind === 'webrtc') return { kind: 'webrtc', url: source.webrtcSourceId || source.sourceId || source.url || '' };
         return { kind, url: source.url || '' };
       }
+      function opsRulesHasSourceTag(source, tag) {
+        return Array.isArray(source?.tags) &&
+          source.tags.map(item => String(item || '').toLowerCase()).includes(String(tag || '').toLowerCase());
+      }
+      function opsRulesDisplayKindForSource(source) {
+        return opsRulesHasSourceTag(source, 'onvif') ? 'ONVIF' : opsRulesSourceKindLabel(source?.kind);
+      }
       function opsRulesSourceMatches(left = {}, right = {}) {
         const leftPayload = opsRulesSourcePayload(left);
         const rightPayload = opsRulesSourcePayload(right);
@@ -2321,7 +2685,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         });
       }
       function opsRulesChannelOptionLabel(channel) {
-        const kind = channel?.source?.kind ? opsRulesSourceKindLabel(channel.source.kind) : '입력';
+        const kind = channel?.source ? opsRulesDisplayKindForSource(channel.source) : '입력';
         return `${display(channel.displayName)} · ${kind}`;
       }
       function opsRulesSourceDetailLabel(source) {
@@ -2330,25 +2694,31 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (source.kind === 'rtsp') return display(source.url || source.rtspUrl || '');
         if (source.kind === 'whep') return display(source.whepUrl || source.url || '');
         if (source.kind === 'webrtc') return display(source.webrtcSourceId || source.sourceId || '');
-        if (source.kind === 'http' || source.kind === 'hls') return display(source.url || '');
+        if (source.kind === 'http' || source.kind === 'hls') return display(source.httpUrl || source.url || '');
         return display(source.url || source.file || '');
       }
       function opsRulesFindChannelById(channelId) {
         return opsRulesChannels.find((channel) => String(channel?.id || '') === String(channelId || '')) || null;
       }
       function opsRulesFindChannelForVaRule(item = {}) {
+        const source = item?.source || {};
+        const sourceMatched = opsRulesChannels.find(channel => opsRulesSourceMatches(channel?.source, source));
+        if (sourceMatched) return sourceMatched;
         const itemId = String(item?.id || '').trim();
         if (itemId) {
+          const ruleBoundChannels = [];
           for (const channel of opsRulesChannels) {
             const view = channel?.view;
             const allowed = Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds.map(String) : [];
             if (String(view?.defaultRuleId || '') === itemId || allowed.includes(itemId)) {
-              return channel;
+              ruleBoundChannels.push(channel);
             }
           }
+          return ruleBoundChannels.find(channel => channel?.source?.enabled !== false && channel?.view?.enabled !== false)
+            || ruleBoundChannels[0]
+            || null;
         }
-        const source = item?.source || {};
-        return opsRulesChannels.find(channel => opsRulesSourceMatches(channel?.source, source)) || null;
+        return null;
       }
       function opsRulesRuleBasePayload(type, existingEvent = {}, classes = ['person']) {
         const lineMode = opsRulesIsLineEventType(type);
@@ -3833,6 +4203,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       function opsRulesSourceKindLabel(kind) {
         const value = String(kind || '').trim();
         if (value === '*' || !value) return '전체 입력';
+        if (value === 'onvif') return 'ONVIF';
         if (value === 'file') return '파일';
         if (value === 'rtsp') return 'RTSP';
         if (value === 'whep') return 'WHEP';
@@ -4140,6 +4511,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (source.kind === 'file') {
           return `<div class="ops-rule-value-stack"><strong>파일</strong><span class="ops-rule-note">${escapeHtml(display(source.file))}</span></div>`;
         }
+        if (opsRulesHasSourceTag(source, 'onvif')) {
+          return `<div class="ops-rule-value-stack"><strong>ONVIF</strong><span class="ops-rule-note">${escapeHtml(display(source.rtspUrl || source.httpUrl || source.url))}</span></div>`;
+        }
         if (source.kind === 'webrtc') {
           return `<div class="ops-rule-value-stack"><strong>Published WebRTC</strong><span class="ops-rule-note">${escapeHtml(display(source.webrtcSourceId || source.sourceId))}</span></div>`;
         }
@@ -4154,7 +4528,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       function opsRulesVaRuleChannelHtml(item) {
         const channel = opsRulesFindChannelForVaRule(item);
         if (channel) {
-          const kind = channel?.source?.kind ? opsRulesSourceKindLabel(channel.source.kind) : '입력';
+          const kind = channel?.source ? opsRulesDisplayKindForSource(channel.source) : '입력';
           const detail = opsRulesSourceDetailLabel(channel.source);
           return `<div class="ops-rule-value-stack">
             <strong>${escapeHtml(display(channel.displayName))}</strong>
@@ -4219,10 +4593,12 @@ void AppendOpsShellScript(std::ostringstream& out,
         const channel = opsRulesFindChannelForVaRule(item);
         const ruleId = String(item?.id || '').trim();
         const viewId = String(channel?.view?.viewId || '').trim();
+        const isOnvif = opsRulesHasSourceTag(channel?.source, 'onvif');
+        const prefix = isOnvif ? 'ONVIF ' : '';
         return opsRowActionsHtml(`
-          <button type="button" class="secondary" data-ops-rule-copy-kind="rtsp" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="이 채널 분석 설정의 RTSP URL 복사" aria-label="이 채널 분석 설정의 RTSP URL 복사">RTSP 복사</button>
-          <button type="button" class="secondary" data-ops-rule-copy-kind="whep" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="이 채널 분석 설정의 WHEP URL 복사" aria-label="이 채널 분석 설정의 WHEP URL 복사">WHEP 복사</button>
-          <button type="button" class="secondary" data-ops-rule-copy-kind="client" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="이 채널 분석 설정의 WebRTC 링크 복사" aria-label="이 채널 분석 설정의 WebRTC 링크 복사"${viewId ? '' : ' disabled'}>WebRTC 복사</button>
+          <button type="button" class="secondary" data-ops-rule-copy-kind="rtsp" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="${prefix}이 채널 분석 설정의 RTSP URL 복사" aria-label="${prefix}이 채널 분석 설정의 RTSP URL 복사">${isOnvif ? 'ONVIF RTSP' : 'RTSP'}</button>
+          <button type="button" class="secondary" data-ops-rule-copy-kind="whep" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="${prefix}이 채널 분석 설정의 WHEP URL 복사" aria-label="${prefix}이 채널 분석 설정의 WHEP URL 복사">${isOnvif ? 'ONVIF WHEP' : 'WHEP'}</button>
+          <button type="button" class="secondary" data-ops-rule-copy-kind="client" data-ops-rule-copy-id="${escapeHtml(ruleId)}" data-ops-rule-copy-view="${escapeHtml(viewId)}" title="${prefix}이 채널 분석 설정의 WebRTC 링크 복사" aria-label="${prefix}이 채널 분석 설정의 WebRTC 링크 복사"${viewId ? '' : ' disabled'}>WebRTC</button>
         `, 'ops-stream-actions channel-stream-actions');
       }
       function opsRulesEventSummaryHtml(item = {}) {
@@ -4367,7 +4743,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             <strong>${escapeHtml(display(item.fps || item.maxFps || '미제공'))}</strong>
           </div>`;
           const inputSize = `${display(item.inputWidth || 640)}x${display(item.inputHeight || 640)}`;
-          const inputNote = `queue ${display(item.maxQueue ?? 1)} · conf ${display(item.confidence ?? 0.25)} · nms ${display(item.nms ?? 0.45)}`;
+          const inputNote = `큐 ${display(item.maxQueue ?? 1)} · 신뢰도 ${display(item.confidence ?? 0.25)} · NMS ${display(item.nms ?? 0.45)}`;
           const inputHtml = `<div class="ops-rule-value-stack">
             <strong>${escapeHtml(inputSize)}</strong>
             <span class="ops-rule-note">${escapeHtml(inputNote)}</span>
@@ -4442,9 +4818,9 @@ void AppendOpsShellScript(std::ostringstream& out,
             issues.push(opsRulesIssue('inactive-template', `va-rule:${id}`, `채널 분석 설정 ${id}의 템플릿 ${templateId}이 비활성입니다.`, '활성 이벤트 템플릿을 선택한 뒤 저장하세요.'));
           }
           if (!channel) {
-            issues.push(opsRulesIssue('missing-source', `va-rule:${id}`, `채널 분석 설정 ${id}의 source가 채널 목록에 없습니다.`, '채널 탭에서 source와 PublishedView를 다시 저장하세요.'));
+            issues.push(opsRulesIssue('missing-source', `va-rule:${id}`, `채널 분석 설정 ${id}의 소스가 채널 목록에 없습니다.`, '채널 탭에서 소스와 PublishedView를 다시 저장하세요.'));
           } else if (channel.view && !opsRulesSourceMatches(channel.source, rule.source || {})) {
-            issues.push(opsRulesIssue('source-mismatch', `va-rule:${id}`, `채널 분석 설정 ${id}의 source가 PublishedView source와 다릅니다.`, `${channel.displayName || channel.id} 채널의 source와 룰 source를 맞추세요.`));
+            issues.push(opsRulesIssue('source-mismatch', `va-rule:${id}`, `채널 분석 설정 ${id}의 소스가 PublishedView 소스와 다릅니다.`, `${channel.displayName || channel.id} 채널의 소스와 룰 소스를 맞추세요.`));
           }
           if (channel?.source?.enabled === false) {
             issues.push(opsRulesIssue('inactive-channel', `va-rule:${id}`, `채널 분석 설정 ${id}가 비활성 채널에 연결되어 있습니다.`, `${channel.displayName || channel.id} 채널을 활성화하거나 다른 채널로 연결하세요.`));
@@ -4453,10 +4829,10 @@ void AppendOpsShellScript(std::ostringstream& out,
             issues.push(opsRulesIssue('inactive-view', `va-rule:${id}`, `채널 분석 설정 ${id}가 비활성 PublishedView에 연결되어 있습니다.`, '채널 탭에서 PublishedView를 활성화한 뒤 저장하세요.'));
           }
           if (channel?.view && !opsRulesViewAllowsVaRuleMode(channel.view)) {
-            issues.push(opsRulesIssue('view-mode-not-allowed', `va-rule:${id}`, `PublishedView가 va-rule 모드를 허용하지 않습니다.`, '채널 탭에서 보기 방식에 va-rule을 추가해야 Client Live에서 사용할 수 있습니다.'));
+            issues.push(opsRulesIssue('view-mode-not-allowed', `va-rule:${id}`, `PublishedView가 va-rule 모드를 허용하지 않습니다.`, '채널 탭에서 보기 방식에 va-rule을 추가해야 클라이언트 Live에서 사용할 수 있습니다.'));
           }
           if (channel?.view && !opsRulesViewHasClientAccess(channel.view)) {
-            issues.push(opsRulesIssue('unauthorized-view', `va-rule:${id}`, `PublishedView가 Client 노출 권한을 모두 닫고 있습니다.`, 'dashboard/events/metadata 중 최소 하나를 허용한 view에 룰을 연결하세요.'));
+            issues.push(opsRulesIssue('unauthorized-view', `va-rule:${id}`, `PublishedView가 클라이언트 노출 권한을 모두 닫고 있습니다.`, '대시보드/이벤트/메타데이터 중 최소 하나를 허용한 뷰에 룰을 연결하세요.'));
           }
           if (channel?.view && id !== '(미지정)' && !opsRulesViewAllowsRuleId(channel.view, id)) {
             issues.push(opsRulesIssue('view-rule-not-allowed', `va-rule:${id}`, `PublishedView 허용 룰 목록에 ${id}가 없습니다.`, '채널 탭에서 defaultRuleId/allowedRuleIds를 맞추거나 룰을 다시 연결하세요.'));
@@ -4481,7 +4857,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             issues.push(opsRulesIssue('view-mode-not-allowed', `view:${viewId}`, `PublishedView ${viewId}가 룰을 참조하지만 va-rule 모드를 허용하지 않습니다.`, '보기 방식과 허용 룰 목록을 함께 저장하세요.'));
           }
           if (ruleIds.size > 0 && !opsRulesViewHasClientAccess(view)) {
-            issues.push(opsRulesIssue('unauthorized-view', `view:${viewId}`, `PublishedView ${viewId}가 룰을 참조하지만 Client 노출 권한이 없습니다.`, 'dashboard/events/metadata 노출 중 최소 하나를 활성화하세요.'));
+            issues.push(opsRulesIssue('unauthorized-view', `view:${viewId}`, `PublishedView ${viewId}가 룰을 참조하지만 클라이언트 노출 권한이 없습니다.`, '대시보드/이벤트/메타데이터 노출 중 최소 하나를 활성화하세요.'));
           }
           const priorityBuckets = new Map();
           for (const ruleId of ruleIds) {
@@ -4506,7 +4882,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         list.textContent = '';
         if (!issues.length) {
           summary.textContent = '저장 전 차단 항목이 없습니다.';
-          list.innerHTML = '<div class="empty">source mismatch, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, view 권한 충돌이 없습니다.</div>';
+          list.innerHTML = '<div class="empty">소스 불일치, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, 뷰 권한 충돌이 없습니다.</div>';
           return;
         }
         summary.textContent = `저장 전 확인이 필요한 항목 ${issues.length}개`;
@@ -4544,10 +4920,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             issues.push('선택한 PublishedView가 va-rule 모드를 허용하지 않습니다.');
           }
           if (channel?.view && !opsRulesViewHasClientAccess(channel.view)) {
-            issues.push('선택한 PublishedView에 Client 노출 권한이 없습니다.');
-          }
-          if (channel?.view && currentId && !opsRulesViewAllowsRuleId(channel.view, id)) {
-            issues.push(`선택한 PublishedView의 허용 룰 목록에 ${id}가 없습니다.`);
+            issues.push('선택한 PublishedView에 클라이언트 노출 권한이 없습니다.');
           }
           issues.push(...opsRulesClassConflictMessages(payload, template, profile));
           if (channel?.source && payload?.source && !opsRulesSourceMatches(channel.source, payload.source)) {
@@ -4864,15 +5237,6 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const saveButton = document.querySelector('#channel-save-selected');
     const editSelectedButton = document.querySelector('#channel-edit-selected');
     const closeChannelButton = document.querySelector('#channel-close');
-    const bulkSelectAll = document.querySelector('#channel-bulk-select-all');
-    const bulkDryRun = document.querySelector('#channel-bulk-dry-run');
-    const bulkValidateButton = document.querySelector('#channel-bulk-validate');
-    const bulkCloneButton = document.querySelector('#channel-bulk-clone');
-    const bulkDisableButton = document.querySelector('#channel-bulk-disable');
-    const bulkRetryFailedButton = document.querySelector('#channel-bulk-retry-failed');
-    const bulkRollbackButton = document.querySelector('#channel-bulk-rollback');
-    const bulkSummary = document.querySelector('#channelBulkSummary');
-    const bulkDiagnostics = document.querySelector('#channelBulkDiagnostics');
     const streamRoute = ")OPSSOURCES" << stream_route_json << R"OPSSOURCES(";
     const rtspPort = )OPSSOURCES" << rtsp_port << R"OPSSOURCES(;
     let loadedSources = [];
@@ -4881,9 +5245,6 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     let editorMode = 'view';
     let currentChannelEnabled = true;
     let initializedHashChannel = false;
-    let lastChannelBulkResult = null;
-    let lastChannelBulkPreview = null;
-    const selectedChannelIds = new Set();
     const {
       escapeHtml,
       requestJson,
@@ -4906,15 +5267,21 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const setChannelValidation = message => {
       setFeedback(channelValidation, message, Boolean(message));
     };
-    const kindLabel = kind => ({
+    const hasSourceTag = (source, tag) => Array.isArray(source?.tags) &&
+      source.tags.map(item => String(item || '').toLowerCase()).includes(String(tag || '').toLowerCase());
+    const isOnvifSource = source => hasSourceTag(source, 'onvif');
+    const onvifStreamUriForSource = source => source?.rtspUrl || source?.httpUrl || source?.whepUrl || source?.url || '';
+    const kindLabel = (kind, source = null) => ({
       file: '파일',
-      rtsp: 'RTSP pull',
+      onvif: 'ONVIF 카메라',
+      rtsp: isOnvifSource(source) ? 'ONVIF 카메라' : 'RTSP pull',
       whep: '외부 WHEP pull',
-      webrtc: 'Published WebRTC',
+      webrtc: 'Published WebRTC 소스',
       http: 'HTTP/HLS pull'
     })[kind] || kind || '미제공';
     const locatorForSource = source => {
-      if (source.webrtcSourceId) return `Published sourceId: ${source.webrtcSourceId}`;
+      if (source.webrtcSourceId) return `발행 sourceId: ${source.webrtcSourceId}`;
+      if (isOnvifSource(source)) return `ONVIF 스트림 URI: ${onvifStreamUriForSource(source) || '미제공'}`;
       if (source.whepUrl) return `외부 WHEP URL: ${source.whepUrl}`;
       return source.file || source.rtspUrl || source.httpUrl || '미제공';
     };
@@ -4923,7 +5290,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       whep: 'WHEP'
     })[type] || type;
     const streamModeLabel = mode => mode === 'va' ? 'VA' : '라이브';
-    const streamCopyLabel = (type, mode) => `${streamTransportLabel(type)} ${streamModeLabel(mode)}`;
+    const streamCopyLabel = (type, mode, source = null) =>
+      `${isOnvifSource(source) ? 'ONVIF ' : ''}${streamTransportLabel(type)} ${streamModeLabel(mode)}`;
     function sourceStreamParams(source) {
       if (!source || !source.sourceId) return null;
       const params = new URLSearchParams();
@@ -4984,10 +5352,14 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       }
       const id = escapeHtml(source.sourceId || '');
       const label = mode === 'va' ? 'VA URL' : '라이브 URL';
+      const isOnvif = isOnvifSource(source);
+      const sourcePrefix = isOnvif ? 'ONVIF ' : '';
+      const rtspButtonText = isOnvif ? 'ONVIF RTSP' : 'RTSP';
+      const whepButtonText = isOnvif ? 'ONVIF WHEP' : 'WHEP';
       const copyMode = mode === 'va' ? 'va' : 'raw';
       return opsRowActionsHtml(`
-          <button type="button" class="secondary" data-copy-stream-type="rtsp" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${label} RTSP 복사" aria-label="${label} RTSP 복사">RTSP</button>
-          <button type="button" class="secondary" data-copy-stream-type="whep" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${label} WHEP 복사" aria-label="${label} WHEP 복사">WHEP</button>
+          <button type="button" class="secondary" data-copy-stream-type="rtsp" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${sourcePrefix}${label} RTSP 복사" aria-label="${sourcePrefix}${label} RTSP 복사">${rtspButtonText}</button>
+          <button type="button" class="secondary" data-copy-stream-type="whep" data-copy-stream-mode="${copyMode}" data-copy-stream-channel="${id}" title="${sourcePrefix}${label} WHEP 복사" aria-label="${sourcePrefix}${label} WHEP 복사">${whepButtonText}</button>
         `, 'ops-stream-actions channel-stream-actions');
     }
     async function copyTextToClipboard(value) {
@@ -5059,15 +5431,16 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       throw clipboardError || new Error('clipboard copy failed');
     }
     async function copyChannelStreamUrl(channelId, type, mode, button) {
+      const source = findSource(channelId);
       const url = streamUrlForChannel(channelId, type, mode || 'raw');
       if (!url) {
-        setStatus(`채널 #${channelId}의 ${streamCopyLabel(type, mode)} URL을 만들 수 없습니다.`, true);
+        setStatus(`채널 #${channelId}의 ${streamCopyLabel(type, mode, source)} URL을 만들 수 없습니다.`, true);
         return;
       }
       try {
         await copyTextToClipboard(url);
         setStatus('');
-        showToast(`${streamCopyLabel(type, mode)} URL 복사 완료`);
+        showToast(`${streamCopyLabel(type, mode, source)} URL 복사 완료`);
       } catch (error) {
         setStatus('브라우저가 HTTP LAN 페이지의 자동 복사를 막았습니다. localhost 또는 HTTPS에서 복사하세요.', true);
       }
@@ -5118,181 +5491,6 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       });
       return rows;
     }
-    const selectedChannelRows = () => channelRows(loadedSources, loadedViews)
-      .filter(row => selectedChannelIds.has(String(row.id || '')));
-    const channelBulkItems = rows => rows.map(row => ({
-      sourceId: row.id,
-      source: sourcePayloadFromRecord(row.source || {}, row.source?.enabled !== false),
-      view: viewPayloadFromRecord(row.view || { viewId: row.id, sourceId: row.id }, row.source || {}, row.view?.enabled !== false)
-    }));
-    const channelBulkRollbackItems = bulk => {
-      const operation = bulk?.operation || '';
-      const rows = Array.isArray(bulk?.rows) ? bulk.rows : [];
-      const results = Array.isArray(bulk?.result?.results) ? bulk.result.results : [];
-      return results
-        .map((result, index) => ({ result, row: rows[index] }))
-        .filter(item => item.result?.ok && item.row)
-        .map(({ result, row }) => {
-          if (operation === 'clone') {
-            const resultId = String(result.resultSourceId || result.rollbackSourceId || '').trim();
-            return {
-              sourceId: resultId,
-              resultSourceId: resultId,
-              rollbackMode: 'disable-created',
-              source: sourcePayloadFromRecord(row.source || {}, false),
-              view: viewPayloadFromRecord(row.view || { viewId: resultId, sourceId: resultId }, row.source || {}, false)
-            };
-          }
-          return {
-            sourceId: row.id,
-            rollbackMode: 'restore',
-            source: sourcePayloadFromRecord(row.source || {}, row.source?.enabled !== false),
-            view: viewPayloadFromRecord(row.view || { viewId: row.id, sourceId: row.id }, row.source || {}, row.view?.enabled !== false)
-          };
-        });
-    };
-    const channelBulkDiffPreview = (operation, rows, { rollback = false } = {}) => {
-      const items = rollback ? rows.map(row => row.result || row) : channelBulkItems(rows);
-      return items.map((item, index) => {
-        const row = rows[index] || {};
-        const sourceId = String(item.sourceId || row.id || row.sourceId || '');
-        const resultSourceId = String(item.resultSourceId || item.rollbackSourceId || sourceId || '(server-assigned)');
-        const rollbackMode = String(item.rollbackMode || 'restore');
-        const before = {
-          sourceId,
-          enabled: row.source?.enabled !== false && row.view?.enabled !== false,
-          name: row.view?.displayName || row.source?.displayName || sourceId
-        };
-        let after = before;
-        if (operation === 'clone') {
-          after = { sourceId: resultSourceId, enabled: false, name: `${before.name || sourceId} 복제` };
-        } else if (operation === 'disable') {
-          after = { ...before, enabled: false };
-        } else if (operation === 'rollback' && rollbackMode === 'disable-created') {
-          after = { sourceId: resultSourceId, enabled: false, name: before.name };
-        } else if (operation === 'rollback') {
-          after = {
-            sourceId,
-            enabled: item.source?.enabled !== false && item.view?.enabled !== false,
-            name: item.view?.displayName || item.source?.displayName || before.name
-          };
-        }
-        return {
-          sourceId,
-          target: `channel:${resultSourceId || sourceId}`,
-          operation,
-          rollbackMode,
-          before,
-          after
-        };
-      });
-    };
-    const renderChannelBulkPreview = preview => {
-      const items = Array.isArray(preview?.items) ? preview.items : [];
-      if (items.length === 0) return '';
-      return `<div class="validation-item info">
-          ${chip('diff preview', 'info')}
-          <div><strong>${escapeHtml(preview.title || '대량 작업 diff preview')}</strong>
-          <p>${escapeHtml(preview.note || '감사 로그 before/after에 같은 diff preview가 기록됩니다.')}</p>
-          <ul class="compact-list">
-            ${items.slice(0, 6).map(item => `<li><span class="token">${escapeHtml(item.target)}</span> ${escapeHtml(display(item.before?.enabled ? '활성' : '비활성'))} → ${escapeHtml(display(item.after?.enabled ? '활성' : '비활성'))} · ${escapeHtml(item.after?.name || item.before?.name || '')}</li>`).join('')}
-          </ul></div>
-        </div>`;
-    };
-    const sourceLocatorKey = source => {
-      if (!source || !source.kind) return '';
-      if (source.kind === 'file') return `file:${source.file || ''}`;
-      if (source.kind === 'rtsp') return `rtsp:${source.rtspUrl || source.url || ''}`;
-      if (source.kind === 'whep') return `whep:${source.whepUrl || source.url || ''}`;
-      if (source.kind === 'webrtc') return `webrtc:${source.webrtcSourceId || source.sourceId || ''}`;
-      if (source.kind === 'http' || source.kind === 'hls') return `${source.kind}:${source.httpUrl || source.url || ''}`;
-      return `${source.kind}:${source.url || source.file || ''}`;
-    };
-    function channelBulkIssues(rows) {
-      const issues = [];
-      const locatorMap = new Map();
-      let disabledCount = 0;
-      let noViewCount = 0;
-      let noStreamUrlCount = 0;
-      for (const row of rows) {
-        const id = String(row.id || '');
-        const source = row.source || {};
-        const view = row.view || null;
-        if (!view) {
-          noViewCount += 1;
-          issues.push({ level: 'warn', title: `채널 #${id} PublishedView 없음`, detail: 'client/live와 dashboard 노출 전 view 연결이 필요합니다.' });
-        } else if (String(view.sourceId || '') !== id) {
-          issues.push({ level: 'warn', title: `채널 #${id} sourceId 불일치`, detail: `view.sourceId=${view.sourceId || '미제공'} · sourceId=${id}` });
-        }
-        if (source.enabled === false || view?.enabled === false) disabledCount += 1;
-        if (!sourceStreamParams(source)) {
-          noStreamUrlCount += 1;
-          issues.push({ level: 'bad', title: `채널 #${id} 입력 미완성`, detail: `${kindLabel(source.kind)} locator가 없어 RTSP/WHEP URL을 만들 수 없습니다.` });
-        }
-        const locatorKey = sourceLocatorKey(source);
-        if (locatorKey && !locatorKey.endsWith(':')) {
-          if (!locatorMap.has(locatorKey)) locatorMap.set(locatorKey, []);
-          locatorMap.get(locatorKey).push(id);
-        }
-      }
-      for (const [locator, ids] of locatorMap.entries()) {
-        if (ids.length > 1) {
-          issues.push({ level: 'warn', title: `중복 입력 ${ids.join(', ')}`, detail: locator });
-        }
-      }
-      return { issues, disabledCount, noViewCount, noStreamUrlCount };
-    }
-    function renderChannelBulkDiagnostics(forceOpen = false) {
-      const rows = channelRows(loadedSources, loadedViews);
-      const selectedCount = selectedChannelIds.size;
-      const { issues, disabledCount, noViewCount, noStreamUrlCount } = channelBulkIssues(rows);
-      if (bulkSummary) {
-        bulkSummary.innerHTML = [
-          chip(`전체 ${rows.length}`),
-          chip(`선택 ${selectedCount}`, selectedCount > 0 ? '' : 'info'),
-          chip(`비활성 ${disabledCount}`, disabledCount > 0 ? 'warn' : 'info'),
-          chip(`view 누락 ${noViewCount}`, noViewCount > 0 ? 'warn' : 'info'),
-          chip(`입력 미완성 ${noStreamUrlCount}`, noStreamUrlCount > 0 ? 'bad' : 'info')
-        ].join('');
-      }
-      if (bulkValidateButton) bulkValidateButton.disabled = rows.length === 0;
-      if (bulkCloneButton) bulkCloneButton.disabled = selectedCount === 0;
-      if (bulkDisableButton) bulkDisableButton.disabled = selectedCount === 0;
-      const failedRetryCount = Array.isArray(lastChannelBulkResult?.failedRows) ? lastChannelBulkResult.failedRows.length : 0;
-      const rollbackCount = channelBulkRollbackItems(lastChannelBulkResult).length;
-      if (bulkRetryFailedButton) bulkRetryFailedButton.disabled = failedRetryCount === 0;
-      if (bulkRollbackButton) bulkRollbackButton.disabled = rollbackCount === 0 || lastChannelBulkResult?.dryRun === true;
-      if (bulkSelectAll) {
-        bulkSelectAll.checked = rows.length > 0 && selectedCount === rows.length;
-        bulkSelectAll.indeterminate = selectedCount > 0 && selectedCount < rows.length;
-      }
-      if (!bulkDiagnostics) return;
-      const previewPanel = renderChannelBulkPreview(lastChannelBulkPreview);
-      const resultPanel = lastChannelBulkResult?.result ? `<div class="validation-item ${lastChannelBulkResult.result.failCount ? 'warn' : 'info'}">
-          ${chip(lastChannelBulkResult.dryRun ? 'dry-run' : 'bulk', lastChannelBulkResult.result.failCount ? 'warn' : 'info')}
-          <div><strong>${escapeHtml(lastChannelBulkResult.operation)} 결과: 성공 ${escapeHtml(display(lastChannelBulkResult.result.okCount))}, 실패 ${escapeHtml(display(lastChannelBulkResult.result.failCount))}</strong>
-          <p>감사 ${escapeHtml(lastChannelBulkResult.result.auditAction || 'bulk')} · ${escapeHtml(lastChannelBulkResult.result.retryPolicy || '실패 항목은 수정 후 재시도할 수 있습니다.')} · ${escapeHtml(lastChannelBulkResult.result.rollbackPolicy || '성공 항목은 필요 시 롤백 정책에 따라 되돌립니다.')}</p>
-          <a class="btn small" href="#channel-audit-list">감사 이력 보기</a></div>
-        </div>` : '';
-      if (issues.length === 0 && !forceOpen) {
-        bulkDiagnostics.innerHTML = previewPanel + (resultPanel || '<div class="empty">source/view 연결, 중복 입력, 비활성 상태가 정상 범위입니다.</div>');
-        return;
-      }
-      bulkDiagnostics.innerHTML = previewPanel + resultPanel + (issues.length === 0
-        ? '<div class="empty">검증 결과: 대량 작업 전 차단할 문제가 없습니다.</div>'
-        : issues.map(issue => `<div class="validation-item ${escapeHtml(issue.level)}">
-            ${chip(issue.level === 'bad' ? '오류' : '확인', issue.level)}
-            <div><strong>${escapeHtml(issue.title)}</strong><p>${escapeHtml(issue.detail)}</p></div>
-          </div>`).join(''));
-    }
-    function syncBulkSelectionFromDom() {
-      selectedChannelIds.clear();
-      document.querySelectorAll('[data-select-channel]:checked').forEach(input => {
-        const id = String(input.dataset.selectChannel || '').trim();
-        if (id) selectedChannelIds.add(id);
-      });
-      renderChannelBulkDiagnostics(false);
-    }
     function setFormDisabled(disabled) {
       for (const element of Array.from(channelForm.elements)) {
         element.disabled = disabled;
@@ -5303,7 +5501,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     function updateKindFields() {
       const kind = channelForm.elements.kind.value || 'file';
       document.querySelectorAll('[data-source-kind]').forEach(field => {
-        field.hidden = field.dataset.sourceKind !== kind;
+        const kinds = String(field.dataset.sourceKind || '').split(/\s+/).filter(Boolean);
+        field.hidden = !kinds.includes(kind);
       });
     }
     function syncEditorChrome(mode, id) {
@@ -5329,14 +5528,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
 	    function renderChannels(sources, views) {
 	      const rows = channelRows(sources, views);
 	      if (rows.length === 0) {
-	        setTableEmpty(channelBody, 9, '등록된 채널이 없습니다. 채널 추가로 첫 카메라/소스를 등록하세요.');
-          renderChannelBulkDiagnostics(false);
+        setTableEmpty(channelBody, 8, '등록된 채널이 없습니다. 채널 추가로 첫 카메라/소스를 등록하세요.');
 	        return;
       }
-        const validIds = new Set(rows.map(row => String(row.id || '')));
-        for (const id of Array.from(selectedChannelIds)) {
-          if (!validIds.has(id)) selectedChannelIds.delete(id);
-        }
       channelBody.innerHTML = rows.map(row => {
         const source = row.source || {};
         const view = row.view || {};
@@ -5345,13 +5539,11 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         const vaButtons = source.sourceId ? streamButtonsForChannel(source, 'va') : '<span class="hint">소스 미등록</span>';
         const channelName = view.displayName || source.displayName || '';
         const inputText = source.sourceId ? locatorForSource(source) : '소스 미등록';
-        const checked = selectedChannelIds.has(String(row.id || '')) ? ' checked' : '';
-        const selectCellHtml = `<input type="checkbox" data-select-channel="${escapeHtml(row.id || '')}" aria-label="채널 ${escapeHtml(row.id || '')} 선택"${checked} />`;
         const idCellHtml = `<div class="channel-id-cell">
           <span class="table-identity-pill table-identity-id">${escapeHtml(row.id || '-')}</span>
         </div>`;
         const kindCellHtml = `<div class="channel-kind-cell">
-          <strong>${escapeHtml(kindLabel(source.kind))}</strong>
+          <strong>${escapeHtml(kindLabel(source.kind, source))}</strong>
         </div>`;
         const statusCellHtml = opsRowActionsHtml(`
           ${enabled ? chip('활성') : chip('비활성', 'warn')}
@@ -5368,7 +5560,6 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
           <button type="button" class="danger" data-delete-channel="${escapeHtml(row.id || '')}">삭제</button>
         `, 'channel-row-actions');
         return opsTableRowHtml([
-          tableCellHtml('선택', selectCellHtml, 'table-cell-status'),
           tableCellHtml('ID', idCellHtml),
           tableCellHtml('이름', escapeHtml(channelName)),
           tableCellHtml('종류', kindCellHtml),
@@ -5379,13 +5570,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
           tableCellHtml('작업', actionsCellHtml, 'table-cell-actions')
         ]);
       }).join('');
-        renderChannelBulkDiagnostics(false);
       bindChannelRowActions();
     }
     function bindChannelRowActions() {
-        document.querySelectorAll('[data-select-channel]').forEach(input => {
-          input.addEventListener('change', syncBulkSelectionFromDom);
-        });
 	      document.querySelectorAll('[data-view-channel]').forEach(button => {
 	        button.addEventListener('click', () => openChannel(button.dataset.viewChannel || '', 'view'));
 	      });
@@ -5474,8 +5661,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       const isClone = mode === 'clone';
       channelForm.elements.channelId.value = isClone ? nextChannelId(id) : id;
       channelForm.elements.displayName.value = view.displayName || source.displayName || '';
-      channelForm.elements.kind.value = source.kind || 'file';
+      channelForm.elements.kind.value = isOnvifSource(source) ? 'onvif' : (source.kind || 'file');
       loadFileOptions(source.file || '');
+      channelForm.elements.onvifStreamUrl.value = onvifStreamUriForSource(source);
       channelForm.elements.rtspUrl.value = source.rtspUrl || '';
       channelForm.elements.webrtcSourceId.value = source.webrtcSourceId || '';
       channelForm.elements.whepUrl.value = source.whepUrl || '';
@@ -5500,6 +5688,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       const kind = data.kind || 'file';
       const locatorByKind = {
         file: data.file,
+        onvif: data.onvifStreamUrl,
         rtsp: data.rtspUrl,
         webrtc: data.webrtcSourceId,
         whep: data.whepUrl,
@@ -5510,23 +5699,42 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         if (kind === 'whep') return '외부 WHEP playback endpoint URL이 필요합니다.';
         return `${kindLabel(kind)} 입력값이 필요합니다.`;
       }
+      if (kind === 'onvif' && !onvifTransportFromUri(data.onvifStreamUrl)) {
+        return 'ONVIF 스트림 URI는 rtsp://, rtsps://, http://, https:// 중 하나로 시작해야 합니다.';
+      }
       return '';
+    }
+    function onvifTransportFromUri(value) {
+      const uri = String(value || '').trim();
+      const lower = uri.toLowerCase();
+      if (lower.startsWith('rtsp://') || lower.startsWith('rtsps://')) {
+        return { kind: 'rtsp', rtspUrl: uri };
+      }
+      if (lower.startsWith('http://') || lower.startsWith('https://')) {
+        return { kind: lower.includes('.m3u8') ? 'hls' : 'http', httpUrl: uri };
+      }
+      return null;
     }
     function channelPayloadsFromFormData(data) {
       const channelId = data.channelId.trim();
+      const formKind = data.kind || 'file';
+      const onvifTransport = formKind === 'onvif' ? onvifTransportFromUri(data.onvifStreamUrl) : null;
+      const storedKind = formKind === 'onvif' ? (onvifTransport?.kind || 'rtsp') : formKind;
       const sourcePayload = {
         sourceId: channelId,
         displayName: data.displayName,
-        kind: data.kind,
+        kind: storedKind,
         enabled: currentChannelEnabled,
-        tags: [],
+        tags: formKind === 'onvif' ? ['onvif', 'live'] : [],
         ownerGroup: ''
       };
-      if (data.kind === 'file') sourcePayload.file = (data.file || '').trim();
-      if (data.kind === 'rtsp') sourcePayload.rtspUrl = (data.rtspUrl || '').trim();
-      if (data.kind === 'webrtc') sourcePayload.webrtcSourceId = (data.webrtcSourceId || '').trim();
-      if (data.kind === 'whep') sourcePayload.whepUrl = (data.whepUrl || '').trim();
-      if (data.kind === 'http') sourcePayload.httpUrl = (data.httpUrl || '').trim();
+      if (formKind === 'file') sourcePayload.file = (data.file || '').trim();
+      if (formKind === 'onvif' && onvifTransport?.rtspUrl) sourcePayload.rtspUrl = onvifTransport.rtspUrl;
+      if (formKind === 'onvif' && onvifTransport?.httpUrl) sourcePayload.httpUrl = onvifTransport.httpUrl;
+      if (formKind === 'rtsp') sourcePayload.rtspUrl = (data.rtspUrl || '').trim();
+      if (formKind === 'webrtc') sourcePayload.webrtcSourceId = (data.webrtcSourceId || '').trim();
+      if (formKind === 'whep') sourcePayload.whepUrl = (data.whepUrl || '').trim();
+      if (formKind === 'http') sourcePayload.httpUrl = (data.httpUrl || '').trim();
       const viewPayload = {
         viewId: channelId,
         displayName: data.displayName,
@@ -5637,111 +5845,6 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         setStatus(`채널 상태 변경 실패: ${error.message}`, true);
       }
     }
-    async function runChannelBulkOperation(operation, rows, { dryRun = false, rollback = false, previewTitle = '', previewNote = '' } = {}) {
-      if (rows.length === 0) {
-        setStatus('대량 작업을 수행할 채널을 선택하세요.', true);
-        return;
-      }
-      const items = rollback ? rows.map(row => row.result || row) : channelBulkItems(rows);
-      const diffPreview = channelBulkDiffPreview(operation, rows, { rollback });
-      lastChannelBulkPreview = {
-        title: previewTitle || (rollback ? '롤백 실행 전 diff preview' : `${operation} 실행 diff preview`),
-        note: previewNote || '이 preview는 bulk 감사 로그 before에 함께 기록됩니다.',
-        items: diffPreview
-      };
-      const result = await requestJson('/ops/api/channels/bulk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ operation, dryRun, items })
-      });
-      const failedSourceIds = new Set((result.results || []).filter(item => !item.ok && item.retryable !== false).map(item => String(item.sourceId || '')));
-      const failedRows = rows.filter(row => failedSourceIds.has(String(row.id || row.sourceId || '')));
-      lastChannelBulkResult = { operation, rows, result, dryRun, failedRows, diffPreview };
-      if (!dryRun) {
-        selectedChannelIds.clear();
-        await loadAll();
-      } else {
-        renderChannelBulkDiagnostics(true);
-      }
-      await recordOpsAudit({
-        area: 'channels',
-        action: result.auditAction || (dryRun ? 'bulk-dry-run' : (operation === 'rollback' ? 'bulk-rollback' : `bulk-${operation}`)),
-        target: (Array.isArray(result.auditTargets) ? result.auditTargets : (result.results || []).map(item => `channel:${item.resultSourceId || item.sourceId}`)).join(', '),
-        before: { rows: rows.map(row => ({ source: row.source || null, view: row.view || null })), diffPreview },
-        after: { ...result, diffPreview }
-      });
-      renderOpsAuditTrail('channel-audit-list', 'channels');
-      const failed = Number(result.failCount || 0);
-      setStatus(`${operation} ${dryRun ? 'dry-run ' : ''}완료: 성공 ${result.okCount ?? 0}, 실패 ${failed}`, failed > 0);
-      return result;
-    }
-    async function bulkDisableSelectedChannels() {
-      const rows = selectedChannelRows();
-      if (rows.length === 0) {
-        setStatus('비활성화할 채널을 선택하세요.', true);
-        return;
-      }
-      try {
-        await runChannelBulkOperation('disable', rows, { dryRun: bulkDryRun?.checked === true });
-      } catch (error) {
-        setStatus(`선택 비활성화 실패: ${error.message}`, true);
-      }
-    }
-    async function bulkCloneSelectedChannels() {
-      const rows = selectedChannelRows();
-      if (rows.length === 0) {
-        setStatus('복제할 채널을 선택하세요.', true);
-        return;
-      }
-      try {
-        const result = await runChannelBulkOperation('clone', rows, { dryRun: bulkDryRun?.checked === true });
-        const created = (result.results || []).filter(item => item.ok).map(item => item.resultSourceId).filter(Boolean);
-        setStatus(`${bulkDryRun?.checked ? '복제 dry-run' : '복제 채널 생성'} 완료: ${created.join(', ') || '없음'} · 실패 ${result.failCount ?? 0}`, Number(result.failCount || 0) > 0);
-      } catch (error) {
-        setStatus(`선택 복제 실패: ${error.message}`, true);
-      }
-    }
-    async function retryFailedChannelBulk() {
-      const rows = Array.isArray(lastChannelBulkResult?.failedRows) ? lastChannelBulkResult.failedRows : [];
-      if (!lastChannelBulkResult || rows.length === 0) {
-        setStatus('재시도할 실패 항목이 없습니다.', true);
-        return;
-      }
-      try {
-        lastChannelBulkPreview = {
-          title: '실패 재시도 전 diff preview',
-          note: '실패 항목만 다시 실행하며, 이 preview가 감사 로그에 연결됩니다.',
-          items: channelBulkDiffPreview(lastChannelBulkResult.operation, rows)
-        };
-        renderChannelBulkDiagnostics(true);
-        await runChannelBulkOperation(lastChannelBulkResult.operation, rows, {
-          dryRun: false,
-          previewTitle: '실패 재시도 전 diff preview',
-          previewNote: '실패 항목만 다시 실행하며, 이 preview가 감사 로그에 연결됩니다.'
-        });
-      } catch (error) {
-        setStatus(`실패 항목 재시도 실패: ${error.message}`, true);
-      }
-    }
-    async function rollbackSuccessfulChannelBulk() {
-      const items = channelBulkRollbackItems(lastChannelBulkResult);
-      if (!lastChannelBulkResult || items.length === 0) {
-        setStatus('롤백할 성공 항목이 없습니다.', true);
-        return;
-      }
-      try {
-        const rows = items.map(item => ({
-          id: item.sourceId,
-          sourceId: item.sourceId,
-          source: item.source,
-          view: item.view,
-          result: item
-        }));
-        await runChannelBulkOperation('rollback', rows, { dryRun: false, rollback: true });
-      } catch (error) {
-        setStatus(`성공 항목 롤백 실패: ${error.message}`, true);
-      }
-    }
     async function deleteChannel(id) {
       if (!id) id = channelForm.elements.channelId.value.trim();
       if (!id) return;
@@ -5772,21 +5875,6 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     editSelectedButton.addEventListener('click', () => currentChannelId && fillChannel(currentChannelId, 'edit'));
     channelForm.elements.kind.addEventListener('change', updateKindFields);
     document.querySelector('#refresh').addEventListener('click', () => loadAll().catch(error => setStatus(error.message, true)));
-    bulkSelectAll?.addEventListener('change', () => {
-      const rows = channelRows(loadedSources, loadedViews);
-      selectedChannelIds.clear();
-      if (bulkSelectAll.checked) {
-        for (const row of rows) {
-          if (row.id) selectedChannelIds.add(String(row.id));
-        }
-      }
-      renderChannels(loadedSources, loadedViews);
-    });
-    bulkValidateButton?.addEventListener('click', () => renderChannelBulkDiagnostics(true));
-    bulkCloneButton?.addEventListener('click', () => bulkCloneSelectedChannels());
-    bulkDisableButton?.addEventListener('click', () => bulkDisableSelectedChannels());
-    bulkRetryFailedButton?.addEventListener('click', () => retryFailedChannelBulk());
-    bulkRollbackButton?.addEventListener('click', () => rollbackSuccessfulChannelBulk());
     document.querySelector('#channel-audit-refresh')?.addEventListener('click', () => renderOpsAuditTrail('channel-audit-list', 'channels'));
     renderOpsAuditTrail('channel-audit-list', 'channels');
     loadAll().catch(error => setStatus(error.message, true));

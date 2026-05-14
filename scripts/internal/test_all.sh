@@ -597,13 +597,13 @@ if [[ "${INCLUDE_EVENT_POST}" == "1" ]]; then
   else
     run_step \
       "event-post-schema" \
-      "선택 검증: event POST schema smoke" \
-      "event POST schema 검증 실패입니다. 서버가 MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1로 실행됐는지와 POST worker counter를 확인하세요." \
+      "선택 검증: event POST enabled schema smoke" \
+      "event POST enabled schema 검증 실패입니다. 서버가 MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1로 실행됐는지와 POST worker counter를 확인하세요." \
       "./server.sh verify-event-post --mode schema" || true
     run_step \
       "event-post-recovery" \
-      "선택 검증: event POST recovery smoke" \
-      "event POST recovery 검증 실패입니다. 실패 endpoint 복구 counter와 POST worker 상태를 확인하세요." \
+      "선택 검증: event POST enabled recovery smoke" \
+      "event POST enabled recovery 검증 실패입니다. 실패 endpoint 복구 counter와 POST worker 상태를 확인하세요." \
       "./server.sh verify-event-post --mode recovery" || true
   fi
 else

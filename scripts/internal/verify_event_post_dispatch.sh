@@ -31,14 +31,16 @@ SKIP_COUNT=0
 
 usage() {
   cat <<EOF_USAGE
-Usage: ./server.sh verify-event-post [--mode schema|queue|recovery] [--http-base URL] [--file FILE_TOKEN] [--receiver-port PORT] [--summary-file PATH]
+Usage: ./server.sh verify-event-post [--mode disabled|schema|queue|recovery] [--http-base URL] [--file FILE_TOKEN] [--receiver-port PORT] [--summary-file PATH]
 
 모드:
+  disabled 기본 서버에서 Event POST dispatcher가 비활성인 상태를 기대값으로 확인합니다.
   schema  POST payload schema, 성공/실패 카운터, cooldown suppressedCount를 검증합니다.
   queue   작은 MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE에서 slow endpoint로 droppedCount를 검증합니다.
   recovery 실패하던 endpoint가 같은 검증 중 복구됐을 때 failedCount와 sentCount가 함께 증가하는지 검증합니다.
 
-서버는 MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 상태로 실행되어 있어야 합니다.
+schema/queue/recovery 모드는 MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 상태의 서버가 필요합니다.
+disabled 모드는 기본 disabled 서버가 제품 회귀가 아님을 분리 보고하기 위한 상태 smoke입니다.
 queue 모드는 MEDIA_SERVER_ANALYSIS_EVENT_POST_MAX_QUEUE=1 또는 2로 서버를 시작하는 것을 권장합니다.
 EOF_USAGE
 }
@@ -545,7 +547,7 @@ pathlib.Path(sys.argv[1]).write_text(json.dumps(summary, ensure_ascii=False, ind
 PY
 }
 
-if [[ "${MODE}" != "schema" && "${MODE}" != "queue" && "${MODE}" != "recovery" ]]; then
+if [[ "${MODE}" != "disabled" && "${MODE}" != "schema" && "${MODE}" != "queue" && "${MODE}" != "recovery" ]]; then
   echo "지원하지 않는 mode입니다: ${MODE}"
   usage
   exit 1
@@ -555,11 +557,6 @@ log_info "http_base=${HTTP_BASE}"
 log_info "mode=${MODE}"
 log_info "file=${FILE_TOKEN}"
 
-if [[ ! -f "${LOCAL_FILE}" ]]; then
-  log_fail "테스트 영상이 없습니다: ${LOCAL_FILE}"
-  exit 1
-fi
-
 if ! curl -fsS --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
   log_fail "HTTP health check 실패: ${HTTP_BASE}/health"
   exit 1
@@ -568,11 +565,49 @@ log_pass "HTTP health ok"
 
 status_before="$(event_post_status)"
 printf '%s' "${status_before}" > "${STATUS_BEFORE_FILE}"
-if [[ "$(json_field "${status_before}" "enabled")" != "True" && "$(json_field "${status_before}" "enabled")" != "true" ]]; then
-  log_fail "event POST dispatcher가 비활성화되어 있습니다. MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1로 서버를 시작하세요."
+
+dispatcher_enabled="$(json_field "${status_before}" "enabled")"
+if [[ "${MODE}" == "disabled" ]]; then
+  printf '%s' "${status_before}" > "${STATUS_AFTER_FILE}"
+  if [[ "${dispatcher_enabled}" == "True" || "${dispatcher_enabled}" == "true" ]]; then
+    log_fail "event POST dispatcher가 활성 상태입니다. disabled smoke는 기본 비활성 서버에서 실행하세요."
+  else
+    log_pass "event POST dispatcher disabled 상태 확인"
+  fi
+  echo
+  echo "== Event POST dispatcher disabled smoke 요약 =="
+  echo "- 기대 상태: disabled"
+  echo "- 실제 상태: ${dispatcher_enabled}"
+  echo "- 통과: ${PASS_COUNT}"
+  echo "- 실패: ${FAIL_COUNT}"
+  echo "- 건너뜀: ${SKIP_COUNT}"
+  echo "- status: ${STATUS_BEFORE_FILE}"
+  write_summary
+  echo "- summary: ${SUMMARY_FILE}"
+  if [[ ${FAIL_COUNT} -gt 0 ]]; then
+    exit 1
+  fi
+  exit 0
+fi
+
+if [[ ! -f "${LOCAL_FILE}" ]]; then
+  log_fail "테스트 영상이 없습니다: ${LOCAL_FILE}"
   exit 1
 fi
-log_pass "event POST dispatcher enabled"
+
+if [[ "${dispatcher_enabled}" != "True" && "${dispatcher_enabled}" != "true" ]]; then
+  printf '%s' "${status_before}" > "${STATUS_AFTER_FILE}"
+  log_fail "event POST dispatcher가 비활성화되어 있습니다. schema/queue/recovery smoke는 MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 서버가 필요합니다. 기본 disabled 상태 확인은 --mode disabled로 분리 실행하세요."
+  echo
+  echo "== Event POST dispatcher enabled smoke 사전 조건 =="
+  echo "- 기대 상태: enabled"
+  echo "- 실제 상태: ${dispatcher_enabled}"
+  echo "- 보정: MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1 서버에서 같은 mode를 재실행"
+  write_summary
+  echo "- summary: ${SUMMARY_FILE}"
+  exit 1
+fi
+log_pass "event POST dispatcher enabled 상태 확인"
 
 start_receiver
 if [[ "${MODE}" == "schema" ]]; then

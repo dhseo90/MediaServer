@@ -29,6 +29,9 @@ check("ops dashboard script interprets runtime root causes", () => {
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
   const required = [
     "dashboardRootCauseItems",
+    "dashboardSourceHealthItems",
+    "dashboardSourceHealthCounts",
+    "dashboardSourceHealthStatusText",
     "renderDashboardRootCause",
     "rootCauseCorrelationId",
     "correlationId",
@@ -36,6 +39,9 @@ check("ops dashboard script interprets runtime root causes", () => {
     "diagnosticLog",
     "logEvidence",
     "sourceLifecycle",
+    "/ops/api/source-health",
+    "Live Source Health",
+    "source-health",
     "lastUsedAgeMs",
     "inactivePublishSources",
     "cleanupBacklog",
@@ -47,6 +53,7 @@ check("ops dashboard script interprets runtime root causes", () => {
     "rootCauseLogFilter",
     "renderRootCauseActionOutput",
     "source-diagnostics",
+    "Live Source Health 재검증",
     "registry-diff",
     "event-diagnostics",
     "auth-config",
@@ -94,6 +101,13 @@ check("server entrypoint includes root cause verifier", () => {
   const httpServer = readText("src/ingress/webrtc_http_server.cpp");
   assert(httpServer.includes("/ops/api/diagnostics/log-tail"), "server is missing diagnostics log-tail API");
   assert(httpServer.includes("OpsDiagnosticLogTailJson"), "server is missing diagnostics log-tail JSON builder");
+  assert(httpServer.includes("SourceReconnectStatsSnapshot"), "source health API is missing reconnect stats snapshot");
+  assert(httpServer.includes("OpsHealthReconnectStatsForSource"), "source health API is missing source reconnect matcher");
+  assert(httpServer.includes("SourceDescriptorSnapshots"), "source health API is missing descriptor snapshots");
+  assert(httpServer.includes("SourceEgressStatsSnapshot"), "source health API is missing egress stats snapshot");
+  assert(httpServer.includes("OpsHealthEgressStatsForSource"), "source health API is missing source egress matcher");
+  assert(httpServer.includes("no-egress-session"), "source health API is missing WebRTC egress session reason");
+  assert(httpServer.includes("ApplyOpsSourceHealthCodec"), "source health API is missing descriptor codec mapping");
 });
 
 let failCount = 0;

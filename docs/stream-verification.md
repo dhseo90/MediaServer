@@ -99,7 +99,20 @@ VA rule/scenario 변경:
 ./server.sh verify-analysis-state
 ./server.sh verify-va-replay
 ./server.sh verify-va-events
+./server.sh verify-ops-scenario-presets
 ```
+
+Live VA event quality 변경에서는 state-dump/runtime debug와 Ops 표시를
+함께 확인합니다.
+
+- `/lab/analysis/taps/{tapId}/state-dump`의
+  `analyticsState.debugState.scenarioTimeline[]`가 phase elapsed,
+  cooldown, event emit/dedupe marker를 읽기 전용으로 제공하는지 확인합니다.
+- `/ops/dashboard` Live VA Event Quality panel이 Scenario Timeline과
+  TrackHealth issue grouping을 표시하고, scenario/rule/track/phase/issue
+  filter 입력으로 같은 데이터를 좁혀 볼 수 있는지 확인합니다.
+- Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema,
+  RTSP/WebRTC media path는 변경하지 않습니다.
 
 UI 변경:
 
@@ -108,6 +121,9 @@ UI 변경:
 ./server.sh verify-ops-rules-roundtrip
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-client-ui --screenshots
+./server.sh verify-ops-root-cause-panel
+./server.sh verify-client-dashboard-polish
+./server.sh verify-ops-source-lifecycle
 MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap
 ```
 
@@ -119,6 +135,9 @@ UI 변경 검증에서는 기본 추가 RTSP/WebRTC source 영상이나 codec ma
 - `verify-ops-tables-layout`
 - `verify-rule-ui`
 - `verify-ops-rules-roundtrip`
+- `verify-ops-root-cause-panel`
+- `verify-client-dashboard-polish`
+- `verify-ops-source-lifecycle`
 
 WebRTC/RTSP streaming 동작이 바뀐 경우에만
 별도 WebRTC/stream 변경 명령을 실행합니다.
@@ -131,14 +150,27 @@ Ops/Client shell 변경 확인 포인트:
 - `/client/live`와 `/ops/rules` 미리보기의 `raw/va-overlay/va-rule` payload
 - channel/rule URL 복사 버튼의 selector와 출력 URL 생성
 - `/ops/dashboard` 문제 원인 패널의 source lifecycle, stale, reconnect, auth/config 다음 조치 버튼
-- 채널/룰/사용자 공통 table helper 적용과 모바일 390px action/detail overflow 없음
+- 채널/룰/사용자 공통 table helper 적용과 모바일 320/390/760px action/detail overflow 없음
 
 추가 참고:
 
 - Auth route smoke는 격리된 Source/View registry 파일을 사용합니다.
 - `--screenshots` 옵션은 `/ops/home`, `/ops/dashboard`, `/ops/rules`,
   `/ops/sources`, `/ops/users`, `/client/live`, `/client/dashboard`를
-  폭별로 열어 overflow와 screenshot을 남깁니다.
+  기본 320/390/760/1180px 폭으로 열어 overflow와 screenshot을 남깁니다.
+- 채널/사용자 변경 이력 필터는 table layout과 별도 계약으로 봅니다.
+  320/390px에서 검색/작업자/사용자/대상/동작/시작/종료/페이지 크기
+  control이 감사 로그 패널 폭 안에 있어야 하며, 시작/종료 date/time
+  input이 viewport 밖으로 밀리면 실패입니다.
+- 실제 Chrome DevTools 수동 리뷰는 자동 overflow 결과와 별개로 아래
+  체크리스트를 닫습니다.
+  - [ ] Device toolbar를 320px로 맞추고 Ops nav, 계정/로그아웃,
+    채널/룰/사용자 table action, client live/dashboard header가 좌우를 침범하지 않는지 확인
+  - [ ] Device toolbar를 390px로 맞추고 위 항목과 변경 이력 시작/종료 입력,
+    룰 URL copy 버튼 줄바꿈이 서로 겹치지 않는지 확인
+  - [ ] Device toolbar를 760px로 맞추고 nav/account 2열 배치,
+    dashboard 카드 폭, channel/rule URL copy 버튼 높이가 같은 규칙으로 보이는지 확인
+  - [ ] `verify-ops-client-ui --screenshots` 산출물 경로를 리뷰 기록에 남김
 - `webrtc_http_server.cpp`에서 `product_ui_page_scripts.*`로 UI 소유권을 옮기는
   구조 변경은 `./server.sh build`,
   `./server.sh verify-auth-routes`,
@@ -172,6 +204,11 @@ fi
   공통 Ops Console header/nav를 유지합니다.
   Primary nav는 홈, 대시보드, 채널, 룰, 사용자(admin),
   클라이언트 미리보기 순서입니다.
+- `/ops/dashboard`의 Live VA Event Quality panel은 active analysis tap이
+  있을 때 Scenario Timeline과 TrackHealth issue grouping/filter를 표시하고,
+  없을 때는 empty 상태를 보여줍니다. 이 패널은 `/lab/analysis/*`
+  state-dump/metrics를 operator debug summary로 읽을 뿐 event schema나
+  media path를 바꾸지 않습니다.
 - `/ops/events`는 primary nav에서 숨긴 직접/진단 route입니다.
   독립 제품 탭으로 취급하지 않습니다.
   이벤트 조건은 룰에서 설정하고 운영 요약은 대시보드에서 확인합니다.
@@ -187,10 +224,14 @@ fi
   reconnect/cleanup, auth/config 항목을 표시하고 다음 조치 버튼으로
   source 재검증, registry diff, Event/evidence 진단, auth/config 확인,
   log correlation 필터를 실행합니다.
+  Live Source Health 항목은 `/ops/api/source-health`를 사용하고
+  운영자는 대시보드에서 상태 요약과 다음 조치를 확인합니다.
   내부 진단 JSON은 제품 화면에 직접 노출하지 않고 API/검증 명령에서만 확인합니다.
 - `/ops/sources`는 숫자 채널 table을 먼저 보여줍니다.
   상단 안내 카드와 detail form에서
-  `외부 WHEP pull`과 `Published WebRTC source` 차이를 설명해야 합니다.
+  `외부 WHEP pull`과 `Published WebRTC 소스` 차이를 설명해야 합니다.
+  ONVIF 채널은 다른 source 유형과 같은 테이블 규칙으로 표시하고,
+  Live/VA URL copy 영역에 `ONVIF RTSP`, `ONVIF WHEP` 버튼을 표시합니다.
   Live URL/VA URL 복사 버튼은 RTSP/WHEP 값을 실제 클립보드에 복사해야 합니다.
   rendered HTML에 `AppendTableHead(` 같은 템플릿 문자열이 새면 안 됩니다.
   source 원본 URL은 ops 화면에만 표시합니다.
@@ -215,6 +256,16 @@ WebRTC/stream 변경:
 ./server.sh verify-codecs
 ./server.sh verify-webrtc-ice
 ```
+
+Close-object tracker diagnostic/enforce 비교는 기본 tracking 정책 변경 여부와
+event/scenario side effect를 함께 확인합니다.
+
+```bash
+./server.sh compare-close-object-tracker
+```
+
+리포트의 `Quality Gate` 섹션은 risk 증가, event/scenario 불변,
+default-on 후보 여부, 권고를 요약합니다.
 
 초기 `/webrtc/test` 화면에 의존하던 다채널 브라우저 harness는 제품 UI 정리 후
 실행하지 않습니다. 긴 RTSP/WebRTC 다채널 재생 검증은 별도 제품 UI harness가
@@ -491,6 +542,9 @@ Close-object guard 검증은 mode별 목적을 분리합니다.
 | `enforce` | opt-in 보정 후보 비교 | ID continuity 지표만 비교 |
 
 기본 비교 리포트는 같은 sample을 `off`, `diagnostic`, `enforce` 순서로 실행합니다.
+기본 실행은 mode별 격리 서버를 띄워
+`MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE`가 실제 서버 프로세스에
+적용됐는지 함께 확인합니다.
 mode별 tracker summary JSON과 Markdown report는
 `/tmp/media_server_close_object_tracker_*` 아래에 남깁니다.
 
@@ -500,6 +554,65 @@ mode별 tracker summary JSON과 Markdown report는
   --modes off,diagnostic,enforce
 ```
 
+이미 실행 중인 서버를 기준으로만 비교해야 하면 `--use-existing-server --http-base <url>`을 사용합니다.
+이 경우 리포트의 `mode effective`가 `yes`인지 확인해야 합니다.
+
+내장 fixture matrix는 명시적으로 실행합니다.
+
+```bash
+./server.sh compare-close-object-tracker --list-quality-presets
+./server.sh compare-close-object-tracker --list-fixtures
+./server.sh compare-close-object-tracker \
+  --fixture-matrix \
+  --fixture-ids tracking-event,tracking-event-long \
+  --modes off,diagnostic,enforce
+```
+
+matrix 실행은 fixture별 `summary.json`/`report.md`와 상위
+`matrix-summary.json`/`matrix-report.md`를 함께 남깁니다.
+`--use-existing-server`를 쓰는 경우 `/lab/analysis/taps`가 JSON으로 응답하려면
+기존 서버의 `MEDIA_SERVER_AUTH_MODE`가 `off`이거나 해당 `/lab` API를
+호출 가능한 인증 상태여야 합니다.
+회차별 품질 추세를 남겨야 하면 `--history-dir <dir>`를 함께 지정합니다.
+이 경우 run별 `matrix-summary.json`/`matrix-report.md` 사본과 root
+`index.json`/`index.md`가 갱신됩니다.
+단일 비교의 quality preset 기본값은 `strict`입니다.
+내장 matrix fixture는 close-object sample과 control sample의 live polling
+특성이 달라 fixture별 `qualityPreset`을 사용합니다. close-object sample은
+`close-object-live`, control sample은 `control-live` 기준으로 observed risk
+허용치를 분리해 판정합니다. 여기에는 실제 주행 데이터 특성을 반영한
+`field-new-york-driving`(vehicle-heavy control-like)도 포함됩니다.
+필요하면 단일 비교에서
+`--quality-preset strict|close-object-live|control-live`로 같은 기준을
+명시할 수 있습니다.
+파일이 없는 fixture는 기본적으로 skipped이며, release gate처럼 누락을 실패로
+보고 싶으면 `--fail-on-missing-fixtures`를 사용합니다.
+
+정기/CI용 전체 fixture gate는 전용 명령을 사용합니다.
+
+```bash
+./server.sh verify-close-object-fixture-matrix
+./server.sh verify-close-object-fixture-matrix \
+  --history-dir /tmp/media_server_close_object_matrix_history
+```
+
+이 명령은 모든 내장 fixture를 실행하고 fixture 파일 누락을 실패로 처리합니다.
+또한 `judgement=hold`를 hard gate 실패로 처리합니다. `hold`는 event/scenario
+stable delta 또는 주요 association risk 증가가 있어 default-on 검토를 중단해야
+한다는 뜻입니다. 관찰용으로 `hold` report까지 모으려면
+`compare-close-object-tracker --fixture-matrix`를 사용합니다.
+live polling 변동성을 분리하려면 반복 실행 통계를 함께 봅니다.
+
+```bash
+./server.sh compare-close-object-tracker \
+  --file imports/va_tracking_event_1280x720_30fps_h264.mp4 \
+  --modes off,diagnostic,enforce \
+  --repeat 3
+```
+
+반복 실행 리포트의 `Repeat Metric Stats`는 observed risk key별
+count, mean, stdev, variance, min, max를 표시합니다.
+
 비교 기준:
 
 | 범주 | 지표 |
@@ -507,23 +620,30 @@ mode별 tracker summary JSON과 Markdown report는
 | association | associationConfidence 최저값, score margin |
 | overlap/이동 | overlapRisk 최대값, center jump 최대값 |
 | lifecycle | lost/reacquired, missed-frame-spike, direction-change-spike |
-| ID 안정성 | ID switch risk, fragmentation, overlap fragmentation |
+| ID 안정성 | tracker association risk, fragmentation, overlap fragmentation |
+| 관찰 지표 | idSwitchRiskScore, maxOverlapRisk, lost/reacquired, spike count, stale PTS/PTS regression |
 | guard 동작 | guardDecision count, closeObjectGuardApplied/rejected count |
-| 제품 영향 | event/scenario signature delta |
+| 제품 영향 | event/scenario stable delta |
+| 관찰 참고 | event/scenario observed counter delta |
 
 판정 규칙:
 
 - `diagnostic`은 score 변경이 없어야 합니다.
 - `enforce`는 opt-in 보정 후보로만 봅니다.
-- event/scenario delta가 있으면 default on 전환 금지입니다.
+- event/scenario stable delta가 있으면 default on 전환 금지입니다.
+- `eventsEmitted`, `eventsDeduped`, cleanup count 같은 observed counter delta는 live polling 흔들림이 있어 참고값으로만 봅니다.
+- hard risk non-increasing 판정은 close-object guard의 structural association 결과인 `trackerAssociationRiskScore`, `fragmentationRatio`, `overlapFragmentationRatio` 기준입니다.
+- `idSwitchRiskScore`, `maxOverlapRisk`, `lost/reacquired`, spike count는 live polling 변동성이 있어 observed risk로 따로 해석합니다.
+- observed risk가 증가하면 default-on 후보로 쓰지 않고 반복/fixture 검증으로 넘깁니다.
 - replay/event 결과가 흔들려도 default on 전환 금지입니다.
 - default on은 여러 fixture와 현장 샘플에서 ID continuity 개선과 event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
 
 비교 리포트 해석:
 
 - command success라도 `judgement: warning`일 수 있습니다.
-- `event/scenario delta=False`여도 `enforceVsOff idSwitchRiskScore`가 증가할 수 있습니다.
+- `event/scenario stable delta=False`여도 observed counter delta나 observed risk 차이가 있을 수 있습니다.
 - 이 경우 default-on 근거로 사용하지 않습니다.
+- `verify-close-object-fixture-matrix`에서 `judgement: hold`는 실패 exit로 처리합니다.
 - close-object guard는 계속 default off로 둡니다.
 - 후속은 threshold tuning 또는 추가 fixture 수집입니다.
 
@@ -902,6 +1022,22 @@ WebSocket metadata side-channel smoke:
 - 임시 WebSocket analysis tap이 client disconnect 후 cleanup되는지 확인
 - WebSocket 실패가 RTSP/WebRTC video/audio 흐름으로 전파되지 않는지 확인
 
+Custom RTSP + WebSocket metadata overlay renderer smoke:
+
+```bash
+python3 -m py_compile scripts/examples/va_rtsp_ws_overlay_client.py
+python3 scripts/examples/va_rtsp_ws_overlay_client.py --help
+python3 scripts/examples/va_rtsp_ws_overlay_client.py \
+  --rtsp-url 'rtsp://127.0.0.1:8554/dhseo?file=sample_h264.mp4' \
+  --metadata-url 'ws://127.0.0.1:8080/ws/va-metadata?file=sample_h264.mp4&va=1&intervalMs=500&maxMessageBytes=65536' \
+  --max-seconds 2 \
+  --headless
+```
+
+이 예제는 RTSP raw stream과 WebSocket runtime metadata를 custom client가 직접
+조합하는 reference입니다. 일반 VLC/ffplay/IINA viewer가 WebSocket metadata를
+자동 overlay한다는 의미가 아니며, 서버 core schema를 변경하지 않습니다.
+
 VA Runtime Console 자동 검증:
 
 ```bash
@@ -1131,7 +1267,9 @@ curl -fsS 'http://127.0.0.1:8080/client/api/views/{viewId}/metadata'
 - dashboard API는 `dashboard:read:{viewId}`, events API는 `event:read:{viewId}`, metadata summary API는 `metadata:read:{viewId}` scope가 필요합니다.
 - admin/operator는 client dashboard에서 전체 PublishedView 상태를 확인할 수 있습니다.
 - `showDashboard=false`인 view는 dashboard API가 403을 반환하고, `showEvents=false`인 view는 events API가 403을 반환합니다.
-- dashboard health는 live/offline, connection status, video frame status, metadata status, stale 여부, stale metadata age, last frame age를 반환합니다.
+- dashboard health는 `live`, `status`, `summary`, `warningLevel`,
+  connection status, video frame status, metadata status, stale 여부,
+  metadata age, last frame age를 반환합니다.
 - 값이 없으면 UI는 `미제공`을 표시합니다.
 - client dashboard 응답과 화면에 운영 내부 값이 노출되지 않아야 합니다.
 - 숨길 값: source 원본 URL, Developer URL, 내부 진단 JSON, `analysisTapId`, internal session id
@@ -1238,6 +1376,10 @@ ffprobe -rtsp_transport tcp \
 
 ## Event POST 검증
 
+Live event delivery contract의 기준 schema와 변경 금지 기준은
+[live-event-metadata-contracts.md](./live-event-metadata-contracts.md)를 먼저 봅니다.
+이 절은 실제 실행 명령, 보정 서버, 실패 해석 기준을 다룹니다.
+
 Event POST schema:
 
 ```bash
@@ -1250,6 +1392,12 @@ Event POST recovery/queue:
 ./server.sh verify-event-post --mode recovery
 ```
 
+기본 disabled 상태 확인:
+
+```bash
+./server.sh verify-event-post --mode disabled
+```
+
 EventStorage status/records smoke:
 
 ```bash
@@ -1259,9 +1407,13 @@ curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records?limit=5'
 
 서버가 `8081` 같은 다른 HTTP port로 떠 있으면 port만 맞춰 실행합니다.
 
-`verify-event-post`는 서버가 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1` 상태로 실행되어 있어야 합니다.
-기본 서버가 Event POST disabled라서 `event POST dispatcher가 비활성화되어 있습니다`로 실패할 수 있습니다.
-이 경우 같은 build를 Event POST enabled 보정 서버로 띄워 schema/recovery를 재확인합니다.
+`verify-event-post --mode schema|recovery|queue`는 서버가
+`MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1` 상태로 실행되어 있어야 합니다.
+기본 서버의 Event POST disabled 상태는
+`verify-event-post --mode disabled`로 별도 확인합니다.
+schema/recovery/queue mode에서 disabled가 나오면 enabled smoke의 사전 조건 실패로
+보고하고, 같은 build를 Event POST enabled 보정 서버로 띄워 schema/recovery를
+재확인합니다.
 
 ```bash
 MEDIA_SERVER_SKIP_LOCAL_ENV=1 \

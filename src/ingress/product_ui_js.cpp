@@ -55,19 +55,26 @@ std::string ProductSharedUiScript() {
         '라이브': 'Live',
         '운영 메뉴': 'Ops menu',
         '클라이언트 메뉴': 'Client menu',
+        '로그인': 'Login',
         '로그아웃': 'Log out',
         '새로고침': 'Refresh',
         '로딩 중': 'Loading',
         '불러오는 중': 'Loading',
         '상태 없음': 'No status',
         '미제공': 'Not provided',
+        '미수신': 'Not received',
         '정상': 'Normal',
+        '확인': 'Check',
         '지연': 'Stale',
         '연결됨': 'Connected',
+        '연결 끊김': 'Disconnected',
         '대기': 'Waiting',
         '경고': 'Warning',
         '오류': 'Error',
         '실패': 'Failed',
+        '수신': 'Receiving',
+        '수신 중': 'Receiving',
+        '구독 세션 없음': 'No subscriber session',
         '닫힘': 'Closed',
         '상세': 'Detail',
         '보기': 'View',
@@ -99,9 +106,10 @@ std::string ProductSharedUiScript() {
         '대기 중인 접근 요청이 없습니다.': 'No pending access requests.',
         '검색': 'Search',
         '작업자': 'Actor',
-        '대상, 요약, diff 검색': 'Search target, summary, or diff',
-        'actor 또는 user target': 'actor or user target',
-        'channel:1, username': 'channel:1, username',
+        '대상, 요약, 변경값 검색': 'Search target, summary, or diff',
+        '작업자 계정': 'Actor account',
+        '사용자 계정': 'User account',
+        '채널/사용자 대상': 'Channel/user target',
         '연도. 월. 일. --:--': 'yyyy-mm-dd --:--',
         '동작': 'Action',
         '시작': 'Start',
@@ -117,6 +125,7 @@ std::string ProductSharedUiScript() {
         '사용자 추가': 'Add User',
         '사용자 상세': 'User Detail',
         '계정명': 'Username',
+        '비밀번호': 'Password',
         '표시 이름': 'Display name',
         '연락처': 'Contact',
         '사유': 'Reason',
@@ -124,7 +133,7 @@ std::string ProductSharedUiScript() {
         '권한 범위': 'Scopes',
         '마지막 로그인': 'Last login',
         '잠금 만료': 'Lock expires',
-        '비밀번호 변경': 'Password change',
+        '비밀번호 변경': 'Must change',
         '초기 비밀번호': 'Initial password',
         '비밀번호 확인': 'Confirm password',
         '다음 로그인 시 비밀번호 변경': 'Require password change at next login',
@@ -133,8 +142,13 @@ std::string ProductSharedUiScript() {
         '연동': 'Integrator',
         '관리자': 'Admin',
         '접근 요청': 'Access Requests',
+        '시청 권한 요청': 'Client Access Request',
+        '승인 대기 요청': 'Pending Requests',
+        '요청 페이지': 'Request Page',
+        '요청이 승인 대기 상태로 저장되었습니다.': 'The request has been saved as pending.',
+        '요청은 승인 대기 상태로 저장되며 관리자 승인 전에는 로그인이나 채널 접근이 허용되지 않습니다.': 'Requests are stored as pending and cannot sign in or access channels until an admin approves them.',
         '요청/결정': 'Request / decision',
-        '요청을 검토하고 초대 링크를 발급합니다.': 'Review requests and issue invite links.',
+        '공개 회원가입이 아니라, 별도 요청 페이지로 들어온 계정을 관리자가 검토한 뒤 초대 링크를 발급합니다.': 'This is not open self-signup; admins review requests from the request page and issue invite links.',
         '사용자와 권한 범위를 관리합니다.': 'Manage users and scopes.',
         '이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인합니다.': 'Review actor, before/after values, and time for user changes from this browser.',
         '이 브라우저에서 수행한 채널 변경의 작업자, 전/후 값, 시각을 확인합니다.': 'Review actor, before/after values, and time for channel changes from this browser.',
@@ -147,20 +161,22 @@ std::string ProductSharedUiScript() {
         '채널 ID': 'Channel ID',
         '채널과 PublishedView를 관리합니다.': 'Manage channels and PublishedViews.',
         '목록을 보고 상세/삭제를 진행합니다.': 'Review the list and open details or delete entries.',
-        '대량 작업 / 상태 진단': 'Bulk Actions / Diagnostics',
-        '선택한 채널을 복제하거나 비활성화하고, source/view 연결 문제를 확인합니다.': 'Clone or disable selected channels and check source/view binding issues.',
-        'source/view 연결, 중복 입력, 비활성 상태가 정상 범위입니다.': 'source/view bindings, duplicate inputs, and disabled states are within normal range.',
         '검증': 'Validate',
-        '선택 복제': 'Clone selected',
-        '선택 비활성화': 'Disable selected',
-        '실패 재시도': 'Retry failed',
-        '성공 롤백': 'Rollback successful',
-        '채널 상태를 불러오는 중입니다.': 'Loading channel status.',
         '라이브 URL': 'Live URL',
         'VA URL': 'VA URL',
         '외부 WHEP': 'External WHEP',
         '파일': 'File',
+        'ONVIF 카메라': 'ONVIF camera',
+        'Published WebRTC 소스': 'Published WebRTC source',
+        'ONVIF 스트림 URI': 'ONVIF Stream URI',
+        '발행 sourceId': 'Published sourceId',
+        'RTSP/WHEP는 운영 확인용입니다. 브라우저 재생은': 'RTSP/WHEP is for operations checks. Browser playback is available at',
+        '에서 확인합니다.': '.',
+        '소스 상태 변경': 'Source status changes',
+        '전체 이력': 'Full history',
         '외부 WHEP pull': 'External WHEP pull',
+        'ONVIF 카메라는 ONVIF 프로파일에서 선택한 라이브 스트림 URI를 연결합니다. 외부 WHEP는 URL 입력, Published WebRTC 소스는 저장된 sourceId 연결입니다.': 'ONVIF camera connects the live stream URI selected from an ONVIF profile. External WHEP takes a URL. Published WebRTC source connects a saved sourceId.',
+        'ONVIF 장치의 라이브 프로파일에서 선택한 재생 URI를 입력합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.': 'Enter the playback URI selected from the ONVIF device live profile. After saving, it is shown as an ONVIF channel and uses the same RTSP/WHEP output URL copy flow.',
         'RTSP/WHEP는 운영 확인용입니다. 브라우저 재생은 /client/live에서 확인합니다.': 'RTSP/WHEP is for operations checks. Use /client/live for browser playback.',
         '외부 WebRTC playback endpoint를 서버가 WHEP pull source로 연결합니다. URL 자체가 입력값입니다.': 'The server connects an external WebRTC playback endpoint as a WHEP pull source. The URL itself is the input.',
         '외부 URL을 넣는 항목이 아닙니다. 이 서버의 WHIP publish endpoint로 이미 등록된 sourceId를 연결합니다.': 'This is not an external URL field. Connect a sourceId already registered through this server WHIP publish endpoint.',
@@ -189,14 +205,102 @@ std::string ProductSharedUiScript() {
         '메타데이터 전송': 'Metadata Delivery',
         '정리 상태': 'Cleanup Status',
         '문제 원인': 'Root Cause',
-        'source lifecycle, stale, reconnect, auth/config 상태와 다음 조치를 함께 봅니다.': 'Review source lifecycle, stale, reconnect, auth/config status, and next actions together.',
+        '소스 수명주기, 지연, 재연결, 권한/설정 상태와 다음 조치를 함께 봅니다.': 'Review source lifecycle, stale, reconnect, auth/config status, and next actions together.',
         '런타임 상태를 불러오는 중입니다.': 'Loading runtime status.',
+        '스트림 대기': 'Streams waiting',
+        '스트림 활성': 'Streams active',
+        '분석 대기': 'Analysis waiting',
+        '분석 활성': 'Analysis active',
+        '송출 대기': 'Egress waiting',
+        '송출 활성': 'Egress active',
+        '라이브 소스 상태 확인 필요': 'Live source status needs attention',
+        '라이브 소스 상태': 'Live source status',
+        '소스 상태가 정상 범위입니다.': 'Source status is normal.',
+        '오프라인/지연 채널을 /ops/sources에서 재확인하고 입력, PublishedView, 구독 세션을 점검합니다.': 'Recheck offline or stale channels in /ops/sources and review inputs, PublishedViews, and subscriber sessions.',
+        '라이브 소스 상태가 정상 범위입니다.': 'Live source status is normal.',
+        '소스 상태': 'Source status',
+        '소스 수명주기 정리 확인 필요': 'Source lifecycle cleanup needs attention',
+        '소스 수명주기': 'Source lifecycle',
+        '모든 소스 수명주기 리소스가 대기 상태입니다.': 'All source lifecycle resources are idle.',
+        '종료된 세션 뒤에 리소스 스트림/분석 탭이 남았는지 정리 로그와 채널 상태를 확인합니다.': 'Check cleanup logs and channel status for resource streams or analysis taps left after closed sessions.',
+        '대기 또는 활성 수치가 일치합니다.': 'Idle and active counts are consistent.',
+        '채널 상태': 'Channel status',
+        '지연 분석 탭 감지': 'Stale analysis taps detected',
+        '지연 감지': 'Stale detection',
+        '뷰어 종료, route 이동, 탭 재사용 해제 흐름을 점검합니다.': 'Check viewer close, route navigation, and tap reuse release flows.',
+        '분석 탭 age가 정상 범위입니다.': 'Analysis tap age is within range.',
+        '툴 연결': 'Connect tap',
+        '룰 연결': 'Rule binding',
+        '재연결/정리 확인 필요': 'Reconnect/cleanup needs attention',
+        '재연결/정리': 'Reconnect / cleanup',
+        '정리 완료 수가 요청 수를 따라가지 못하는지 로그를 확인합니다.': 'Check logs to see whether completed cleanups are lagging behind requests.',
+        '재연결/정리 지표가 정상 범위입니다.': 'Reconnect/cleanup metrics are within range.',
+        '이벤트 기록': 'Event records',
+        '권한/설정 확인 필요': 'Auth/config needs attention',
+        '권한/설정': 'Auth / config',
+        '운영 대시보드 접근 권한과 ICE 설정이 정상 범위입니다.': 'Ops dashboard access and ICE settings are within range.',
+        '세션, role/scope, auth mode, TURN/ICE 설정을 확인합니다.': 'Check session, role/scope, auth mode, and TURN/ICE settings.',
+        '권한 확인': 'Check permissions',
+        '현장 요약': 'Site Summary',
+        '현장 상태': 'Site Status',
+        '영상 신호': 'Video Signal',
+        '데이터 지연': 'Data Delay',
+        '연결 상태': 'Connection Status',
+        '영상 프레임': 'Video Frame',
+        '마지막 프레임': 'Last Frame',
+        '활성 이벤트': 'Active Event',
+        '최근 이벤트': 'Recent Event',
+        '클라이언트 범위': 'Client Scope',
+        '소스 종류': 'Source Type',
+        '대시보드 권한': 'Dashboard Access',
+        '이벤트 권한': 'Event Access',
+        '꺼짐': 'Off',
+        '사용': 'Enabled',
+        '채널 비교': 'Channel Compare',
+        '필터': 'Filter',
+        '정렬': 'Sort',
+        '프리셋 설정': 'Preset Settings',
+        '기본 현장 모니터링': 'Default site monitoring',
+        '이벤트 요약': 'Event Summary',
+        '비교할 채널이 없습니다': 'No channels to compare',
+        '대시보드 권한이 있는 채널이 추가되면 한 화면에서 상태를 비교할 수 있습니다.': 'Channels with dashboard access appear together for comparison.',
+        '필터에 맞는 채널이 없습니다': 'No channels match this filter',
+        '다른 필터를 선택하면 접근 가능한 채널 상태를 다시 볼 수 있습니다.': 'Select another filter to review accessible channel status again.',
+        '조회 실패': 'Lookup failed',
+        '상태를 불러오지 못했습니다.': 'Could not load status.',
+        '최근 이벤트 없음': 'No recent events',
+        '현재 현장 상태에서 표시할 이벤트가 없거나 이벤트 표시 권한이 꺼져 있습니다.': 'No events are available for the current site state, or event display permission is off.',
+        '이벤트 없음': 'No events',
+        '라이브 소스 상태 재검증': 'Recheck live source status',
+        '채널 상태 재검증': 'Recheck channel status',
+        '권한/설정 상태 확인': 'Check auth/config status',
+        '아래 항목을 기준으로 원인을 좁혀 확인합니다.': 'Use these items to narrow the cause.',
+        '운영자가 바로 확인할 소스 수명주기, 지연, 재연결, 권한/설정 문제가 없습니다.': 'No source lifecycle, stale, reconnect, or auth/config issues need immediate operator action.',
+        '로그 미제공': 'Logs unavailable',
+        '최근 로그 없음': 'No recent logs',
+        '최근 EventRecord 없음': 'No recent EventRecords',
+        '지연 또는 오프라인 채널 없음': 'No stale or offline channels',
+        '상세 상태는 /ops/dashboard의 운영 요약에서 확인합니다.': 'Review details in the /ops/dashboard operations summary.',
+        'DataChannel/SSE/WS 상태입니다.': 'DataChannel/SSE/WS status.',
+        '정리 상태입니다.': 'Cleanup status.',
+        '정리 카운터 없음': 'No cleanup counters.',
+        '이동': 'Go',
         '운영 상세': 'Ops Detail',
         '핵심 수치를 바로 봅니다.': 'Review key metrics.',
         '송출': 'Egress',
         '발행': 'Publish',
         '재사용 그룹': 'Reuse groups',
         '메타데이터 채널': 'Metadata channels',
+        '라이브 VA 이벤트 품질': 'Live VA Event Quality',
+        '시나리오 타임라인, 트랙 상태 이슈, 룰 런타임 상태를 읽기 전용으로 봅니다.': 'Review scenario timeline, track health issues, and rule runtime status as read-only data.',
+        '시나리오, 룰, 트랙, 단계, 이슈': 'scenario, rule, track, phase, issue',
+        '활성 분석 탭이 있으면 타임라인과 트래킹 이슈를 표시합니다.': 'When an analysis tap is active, timeline and tracking issues are shown.',
+        '분석 탭 대기': 'Analysis tap waiting',
+        '시나리오 타임라인': 'Scenario Timeline',
+        '활성 시나리오 인스턴스가 없습니다.': 'No active scenario instances.',
+        '트래킹 이슈': 'Tracking Issues',
+        '트래킹 이슈 없음': 'No tracking issues',
+        '트래킹 이슈 리포트가 없습니다.': 'No tracking issue reports.',
         '룰 설정': 'Rule Settings',
         '종류를 고르고 목록을 관리합니다.': 'Choose a type and manage the list.',
         '채널 분석 설정': 'Channel Analysis Rules',
@@ -206,7 +310,7 @@ std::string ProductSharedUiScript() {
         '저장 전 검증': 'Pre-save Validation',
         '룰 충돌과 누락을 확인합니다.': 'Check rule conflicts and missing references.',
         '저장 전 차단 항목이 없습니다.': 'No save blockers.',
-        'source mismatch, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, view 권한 충돌이 없습니다.': 'No source mismatch, duplicate IDs, missing profiles/templates, inactive channels/views, or view permission conflicts.',
+        '소스 불일치, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, 뷰 권한 충돌이 없습니다.': 'No source mismatch, duplicate IDs, missing profiles/templates, inactive channels/views, or view permission conflicts.',
         '먼저 준비할 항목': 'Prerequisites',
         '채널 분석 설정은 채널, 프로파일, 이벤트 템플릿을 준비한 뒤 만듭니다.': 'Create channel analysis rules after preparing channels, profiles, and event templates.',
         '확인 중': 'Checking',
@@ -216,7 +320,7 @@ std::string ProductSharedUiScript() {
         '채널 탭에서 입력 소스와 PublishedView를 먼저 준비합니다.': 'Prepare input sources and PublishedViews in the Channels tab first.',
         '채널 열기': 'Open Channels',
         '분석 프로파일': 'Analysis Profiles',
-        '검출기, FPS, confidence, adaptive 같은 분석 엔진 설정을 먼저 만듭니다.': 'Create analysis engine settings such as detector, FPS, confidence, and adaptive behavior first.',
+        '검출기, FPS, 신뢰도, 적응형 설정 같은 분석 엔진 설정을 먼저 만듭니다.': 'Create analysis engine settings such as detector, FPS, confidence, and adaptive behavior first.',
         '프로파일 추가': 'Add Profile',
         '이벤트 방식, 시나리오, 대상 객체, 조건값을 템플릿으로 먼저 정리합니다.': 'Define event mode, scenario, target objects, and thresholds as a template first.',
         '템플릿 추가': 'Add Template',
@@ -259,9 +363,11 @@ std::string ProductSharedUiScript() {
         '라인': 'Line',
         '점 개수': 'Points',
         '저장 조건': 'Save condition',
+        '저장 가능': 'Ready to save',
         '방향': 'Direction',
         '영역 내부': 'Inside zone',
         '영역 미리보기': 'Zone preview',
+        '영상 위를 눌러 점을 추가합니다. 기존 점은 드래그해서 옮깁니다.': 'Click the video to add points. Drag existing points to move them.',
         '채널을 고른 뒤 재생하세요.': 'Choose a channel, then play.',
         '미리보기 영역을 눌러 점을 추가합니다. 라인은 2점, 영역은 3점 이상이 필요합니다.': 'Click the preview to add points. Lines need 2 points; zones need at least 3 points.',
         '기본 좌표': 'Default coordinates',
@@ -308,7 +414,7 @@ std::string ProductSharedUiScript() {
         '여러 채널 분석 설정에서 다시 고를 수 있는 공통 이벤트 템플릿입니다.': 'A reusable event template for multiple channel analysis rules.',
         '입력 폭': 'Input width',
         '입력 높이': 'Input height',
-        '검출기, FPS, confidence, 입력 크기 같은 분석 엔진 설정만 정의합니다.': 'Defines only analysis engine settings such as detector, FPS, confidence, and input size.',
+        '검출기, FPS, 신뢰도, 입력 크기 같은 분석 엔진 설정만 정의합니다.': 'Defines only analysis engine settings such as detector, FPS, confidence, and input size.',
         '할당 채널': 'Assigned Channels',
         '채널을 선택하세요': 'Select a channel',
         '허용된 채널을 선택하면 이 영역에 상태가 표시됩니다.': 'Select an allowed channel to show status here.',
@@ -349,6 +455,12 @@ std::string ProductSharedUiScript() {
         '영상 상태 확인': 'Check video status',
         '메타데이터 지연': 'Metadata delayed',
         '신호 미제공': 'Signal unavailable',
+        '신호 없음': 'No signal',
+        '신호 확인 중': 'Checking signal',
+        '영상 수신 중': 'Receiving video',
+        '영상 지연 확인': 'Checking video delay',
+        '메타데이터 지연 확인': 'Checking metadata delay',
+        '영상/메타데이터 지연 확인': 'Checking video/metadata delay',
         '상태 조회 실패': 'Status lookup failed',
         '기본 현장': 'Default site',
         '라인 통과': 'Line crossing',
@@ -359,8 +471,20 @@ std::string ProductSharedUiScript() {
         '존재 감지': 'Presence detection'
       }));
       const translatePattern = text => {
+        const translateLabel = value => String(value || '')
+          .split(' · ')
+          .map(part => koToEn.get(part.trim()) || part)
+          .join(' · ');
+        if (text.includes(' · ') && (/^#\d+\s/u.test(text) || /^(?:프레임|Frame)\s/u.test(text))) {
+          return text.split(' · ').map(part => koToEn.get(part.trim()) || translatePattern(part.trim())).join(' · ');
+        }
+        if (text.includes(', ') && /[가-힣]/u.test(text)) {
+          return text.split(', ').map(part => koToEn.get(part.trim()) || translatePattern(part.trim())).join(', ');
+        }
         const rules = [
           [/^권한:\s*(.+)$/u, (_match, role) => `Role: ${role}`],
+          [/^ONVIF 스트림 URI:\s*(.+)$/u, (_match, uri) => `ONVIF Stream URI: ${uri}`],
+          [/^발행 sourceId:\s*(.+)$/u, (_match, sourceId) => `Published sourceId: ${sourceId}`],
           [/^전체\s+(\d+)$/u, (_match, count) => `All ${count}`],
           [/^선택\s+(\d+)$/u, (_match, count) => `Selected ${count}`],
           [/^비활성\s+(\d+)$/u, (_match, count) => `Disabled ${count}`],
@@ -369,24 +493,76 @@ std::string ProductSharedUiScript() {
           [/^타일\s+(\d+)\s+·\s+(.+)$/u, (_match, count, mode) => `Tile ${count} · ${koToEn.get(mode) || mode}`],
           [/^(\d+)개 범위\s+([\s\S]+)$/u, (_match, count, detail) => `${count} scopes\n${koToEn.get(detail.trim()) || detail}`],
           [/^(\d+)개 범위$/u, (_match, count) => `${count} scopes`],
+          [/^(정상|연결 중|지연|오프라인|대기|경고|오류)\s+(\d+)$/u, (_match, label, count) => `${koToEn.get(label) || label} ${count}`],
           [/^총\s+(\d+)\/(\d+)개\s+·\s+연결\s+(\d+)개$/u, (_match, shown, total, bound) => `${shown}/${total} total · ${bound} bound`],
           [/^(\d+)점$/u, (_match, count) => `${count} points`],
           [/^최대\s+(\d+)개$/u, (_match, count) => `Up to ${count}`],
           [/^최소\s+(\d+)점$/u, (_match, count) => `At least ${count} points`],
+          [/^최소\s+(\d+)점 필요$/u, (_match, count) => `Needs at least ${count} points`],
+          [/^(영역|라인)\s+(\d+)\/(\d+)$/u, (_match, kind, count, max) => `${koToEn.get(kind) || kind} ${count}/${max}`],
+          [/^(영역|라인)\s+점\s+(\d+)\/(\d+)\s+·\s+저장 가능$/u, (_match, kind, count, max) => `${koToEn.get(kind) || kind} points ${count}/${max} · ready to save`],
+          [/^(영역|라인)\s+점\s+(\d+)\/(\d+)\s+·\s+최소\s+(\d+)점 필요$/u, (_match, kind, count, max, minimum) => `${koToEn.get(kind) || kind} points ${count}/${max} · needs at least ${minimum} points`],
+          [/^(라인)\s+점\s+(\d+)\/(\d+)\s+·\s+저장 가능\s+·\s+(.+)$/u, (_match, kind, count, max, direction) => `${koToEn.get(kind) || kind} points ${count}/${max} · ready to save · ${koToEn.get(direction) || direction}`],
+          [/^방향\s+(.+)$/u, (_match, direction) => `Direction ${koToEn.get(direction) || direction}`],
+          [/^(.+)\s+미리보기를 보고 있습니다\. 필요할 때 정지하거나 다시 연결할 수 있습니다\.$/u, (_match, name) => `${translateLabel(name)} preview is open. Stop or reconnect when needed.`],
+          [/^(.+)\s+영상을 재생해 영역\/라인 기준을 확인할 수 있습니다\.$/u, (_match, name) => `Playing ${translateLabel(name)} video to check zone/line criteria.`],
           [/^(\d+)개$/u, (_match, count) => `${count}`],
           [/^(\d+)\s*채널$/u, (_match, count) => `${count} channels`],
           [/^(\d+)\s*사용자$/u, (_match, count) => `${count} users`],
           [/^(\d+)\s*VA 룰$/u, (_match, count) => `${count} VA rules`],
           [/^(\d+)\s*이벤트 룰$/u, (_match, count) => `${count} event rules`],
-          [/^(.+)\s+·\s+최대\s+(\d+)개$/u, (_match, name, count) => `${name} · up to ${count}`],
-          [/^(.+)\s+모니터링$/u, (_match, name) => `${name} monitoring`],
-          [/^(.+)\s+·\s+활성 이벤트 우선 확인$/u, (_match, name) => `${name} · active events first`],
-          [/^(.+)\s+·\s+시나리오 관제 중$/u, (_match, name) => `${name} · scenario monitoring`],
-          [/^(.+)\s+·\s+(.+)\s+우선 확인$/u, (_match, place, event) => `${place} · ${event} priority`]
+          [/^라이브,\s*대시보드,\s*이벤트,\s*메타데이터\s*\/\s*채널\s+(.+)$/u, (_match, target) => `Live, Dashboard, Events, Metadata / Channel ${target}`],
+          [/^라이브,\s*대시보드,\s*이벤트,\s*메타데이터\s*\/\s*전체$/u, () => 'Live, Dashboard, Events, Metadata / All channels'],
+          [/^(라이브|대시보드|이벤트|메타데이터)\s*\/\s*채널\s+(.+)$/u, (_match, feature, target) => `${koToEn.get(feature) || feature} / Channel ${target}`],
+          [/^(라이브|대시보드|이벤트|메타데이터)\s*\/\s*전체$/u, (_match, feature) => `${koToEn.get(feature) || feature} / All channels`],
+          [/^메타데이터 채널\s+(\d+)$/u, (_match, count) => `Metadata channels ${count}`],
+          [/^세션\s+(\d+)$/u, (_match, count) => `Sessions ${count}`],
+          [/^스트림\s+(\d+)$/u, (_match, count) => `Streams ${count}`],
+          [/^분석\s+(\d+)$/u, (_match, count) => `Analysis ${count}`],
+          [/^수신\s+(\d+)\/(\d+)$/u, (_match, live, total) => `Receiving ${live}/${total}`],
+          [/^송출\s+(\d+)$/u, (_match, count) => `Egress ${count}`],
+          [/^발행\s+(\d+)$/u, (_match, count) => `Publish ${count}`],
+          [/^재사용 그룹\s+(\d+)$/u, (_match, count) => `Reuse groups ${count}`],
+          [/^진단 항목\s+(.+)$/u, (_match, count) => `Diagnostics ${koToEn.get(count) || count}`],
+          [/^정리 요청\s+(.+)$/u, (_match, count) => `Cleanup requests ${koToEn.get(count) || count}`],
+          [/^정리 완료\s+(.+)$/u, (_match, count) => `Cleanup completed ${koToEn.get(count) || count}`],
+          [/^라이브 소스\s+(\d+)\/(\d+)$/u, (_match, live, total) => `Live sources ${live}/${total}`],
+          [/^프로파일\s+(\d+)\s+·\s+룰\s+(\d+)$/u, (_match, profiles, rulesCount) => `Profiles ${profiles} · Rules ${rulesCount}`],
+          [/^프로파일\s+(\d+)\s+·\s+룰\s+(\d+)\s+·\s+발행\s+(\d+)\s+·\s+송출\s+(\d+)$/u, (_match, profiles, rulesCount, publish, egress) => `Profiles ${profiles} · Rules ${rulesCount} · Publish ${publish} · Egress ${egress}`],
+          [/^#(\d+)\s+(오프라인|지연|연결 중|수신|미확인):(.+)$/u, (_match, sourceId, status, reason) => `#${sourceId} ${koToEn.get(status) || status}: ${koToEn.get(String(reason).trim()) || String(reason).trim()}`],
+          [/^(?:프레임|Frame)\s+(.+)\s+\/\s+(?:메타데이터|metadata)\s+(.+)$/u, (_match, frame, metadata) => `Frame ${koToEn.get(String(frame).trim()) || String(frame).trim()} / metadata ${koToEn.get(String(metadata).trim()) || String(metadata).trim()}`],
+          [/^수신\s+(\d+)\/(\d+)\s+·\s+연결 중\s+(\d+)\s+·\s+지연\s+(\d+)\s+·\s+오프라인\s+(\d+)$/u, (_match, live, total, connecting, stale, offline) => `Receiving ${live}/${total} · Connecting ${connecting} · Stale ${stale} · Offline ${offline}`],
+          [/^확인 필요\s+(\d+)개$/u, (_match, count) => `${count} need attention`],
+          [/^(\d+)개 확인 필요$/u, (_match, count) => `${count} need attention`],
+          [/^요약 전체=(\d+) 수신=(\d+) 지연=(\d+) 오프라인=(\d+)$/u, (_match, total, receiving, stale, offline) => `Summary total=${total} receiving=${receiving} stale=${stale} offline=${offline}`],
+          [/^정리\s+(\d+)\/(\d+)\s+·\s+(.+)$/u, (_match, done, requested, summary) => `Cleanup ${done}/${requested} · ${koToEn.get(summary) || translatePattern(summary)}`],
+          [/^발행\s+(\d+)\s+·\s+송출\s+(\d+)\s+·\s+정리\s+(\d+)\/(\d+)$/u, (_match, publish, egress, done, requested) => `Publish ${publish} · Egress ${egress} · Cleanup ${done}/${requested}`],
+          [/^EventRecord 저장\s+(\d+)\s+·\s+POST 전송\s+(\d+)$/u, (_match, stored, posted) => `EventRecords stored ${stored} · POST sent ${posted}`],
+          [/^역할\s+(.+)\s+·\s+인증\s+(.+)\s+·\s+ops:read\s+사용$/u, (_match, role, auth) => `Role ${role} · Auth ${auth} · ops:read enabled`],
+          [/^활성 분석 탭\s+(\d+)$/u, (_match, count) => `Active analysis taps ${count}`],
+          [/^(\d+)초 초과 미사용 분석 탭이 없습니다\.$/u, (_match, seconds) => `No unused analysis taps older than ${seconds}s.`],
+          [/^트래킹 이슈 없음\s+·\s+유지\s+(\d+)\/(\d+)\s+·\s+제한\s+(\d+)$/u, (_match, retained, total, limited) => `No tracking issues · retained ${retained}/${total} · limited ${limited}`],
+          [/^VA 룰\s+(\d+)개\s+·\s+이벤트 템플릿\s+(\d+)개\s+·\s+프로파일\s+(\d+)개$/u, (_match, vaRules, templates, profiles) => `VA rules ${vaRules} · Event templates ${templates} · Profiles ${profiles}`],
+          [/^우선순위\s+(.+)$/u, (_match, value) => `Priority ${koToEn.get(String(value).trim()) || String(value).trim()}`],
+          [/^현장\s+(.+)$/u, (_match, value) => `Site ${koToEn.get(String(value).trim()) || translatePattern(String(value).trim())}`],
+          [/^요약\s+(.+)$/u, (_match, value) => `Summary ${koToEn.get(String(value).trim()) || translatePattern(String(value).trim())}`],
+          [/^연결\s+(.+)$/u, (_match, value) => `Connection ${koToEn.get(String(value).trim()) || translatePattern(String(value).trim())}`],
+          [/^지연\s+(.+)$/u, (_match, value) => `Delay ${koToEn.get(String(value).trim()) || translatePattern(String(value).trim())}`],
+          [/^트랙\s+(.+)$/u, (_match, value) => `Tracks ${koToEn.get(String(value).trim()) || String(value).trim()}`],
+          [/^이벤트\s+(.+)$/u, (_match, value) => `Events ${koToEn.get(String(value).trim()) || String(value).trim()}`],
+          [/^(.+)\s+·\s+최대\s+(\d+)개$/u, (_match, name, count) => `${koToEn.get(String(name).trim()) || translatePattern(String(name).trim())} · up to ${count}`],
+          [/^(.+)\s+모니터링$/u, (_match, name) => `${koToEn.get(String(name).trim()) || translatePattern(String(name).trim())} monitoring`],
+          [/^(.+)\s+monitoring$/u, (_match, name) => `${koToEn.get(String(name).trim()) || translatePattern(String(name).trim())} monitoring`],
+          [/^(.+)\s+·\s+활성 이벤트 우선 확인$/u, (_match, name) => `${koToEn.get(String(name).trim()) || translatePattern(String(name).trim())} · active events first`],
+          [/^(.+)\s+·\s+시나리오 관제 중$/u, (_match, name) => `${koToEn.get(String(name).trim()) || translatePattern(String(name).trim())} · scenario monitoring`],
+          [/^(.+)\s+·\s+(.+)\s+우선 확인$/u, (_match, place, event) => `${koToEn.get(String(place).trim()) || translatePattern(String(place).trim())} · ${koToEn.get(String(event).trim()) || translatePattern(String(event).trim())} priority`]
         ];
         for (const [pattern, mapper] of rules) {
           const match = text.match(pattern);
           if (match) return mapper(...match);
+        }
+        if (text.includes(' · ')) {
+          return text.split(' · ').map(part => koToEn.get(part.trim()) || translatePattern(part.trim())).join(' · ');
         }
         return text;
       };
@@ -496,6 +672,7 @@ std::string ProductSharedUiScript() {
       };
       const numberValue = value => Number.isFinite(Number(value)) ? Number(value) : 0;
       const byId = id => document.getElementById(id);
+      const uiText = value => translateText(display(value));
       const qs = (selector, root = document) => root.querySelector(selector);
       const qsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
       const on = (target, event, handler, options) => {
@@ -504,7 +681,7 @@ std::string ProductSharedUiScript() {
       };
       const setText = (id, value) => {
         const el = byId(id);
-        if (el) el.textContent = display(value);
+        if (el) el.textContent = uiText(value);
       };
       const setHidden = (el, hidden) => {
         if (el) el.hidden = Boolean(hidden);
@@ -516,12 +693,12 @@ std::string ProductSharedUiScript() {
       };
       const setFeedback = (el, message, failed = false, options = {}) => {
         if (!el) return;
-        el.textContent = message;
+        el.textContent = uiText(message);
         el.classList.toggle('error', failed);
         if (options.collapseEmpty) el.hidden = !message;
       };
       const showToast = (message, failed = false) => {
-        const text = display(message);
+        const text = uiText(message);
         if (!text || text === '미제공') return;
         let stack = document.querySelector('.toast-stack');
         if (!stack) {
@@ -552,7 +729,7 @@ std::string ProductSharedUiScript() {
         const tr = document.createElement('tr');
         const td = document.createElement('td');
         td.colSpan = Number(colspan) || 1;
-        td.textContent = message;
+        td.textContent = uiText(message);
         tr.appendChild(td);
         tbody.appendChild(tr);
       };
@@ -601,12 +778,12 @@ std::string ProductSharedUiScript() {
           const value = typeof item === 'object' && item !== null ? item.value : item;
           const label = typeof item === 'object' && item !== null ? item.label : item;
           option.value = String(value ?? '');
-          option.textContent = display(label);
+          option.textContent = uiText(label);
           select.appendChild(option);
         }
         if (selected !== '') select.value = selected;
       };
-      const chip = (text, tone = '') => `<span class="chip${tone ? ' ' + tone : ''}">${escapeHtml(display(text))}</span>`;
+      const chip = (text, tone = '') => `<span class="chip${tone ? ' ' + tone : ''}">${escapeHtml(uiText(text))}</span>`;
       const renderBadges = (id, items = []) => {
         const el = byId(id);
         if (!el) return;
@@ -615,7 +792,7 @@ std::string ProductSharedUiScript() {
         for (const item of badges) {
           const span = document.createElement('span');
           span.className = `chip${item.tone ? ' ' + item.tone : ''}`;
-          span.textContent = display(item.text);
+          span.textContent = uiText(item.text);
           el.appendChild(span);
         }
       };
@@ -734,16 +911,31 @@ std::string ProductSharedUiScript() {
         if (filters.offset) params.set('offset', String(filters.offset));
         return params;
       };
+      const auditFilterPresetsFor = area => {
+        if (area !== 'channels') return [];
+        return [
+          { id: 'source-health-state-change', label: '소스 상태 변경', state: { q: '', actor: '', user: '', target: '', action: 'source-health-state-change', fromMs: '', toMs: '' } },
+          { id: 'all', label: '전체 이력', state: { q: '', actor: '', user: '', target: '', action: '', fromMs: '', toMs: '' } }
+        ];
+      };
       const auditLocalDateTime = value => {
         const numeric = Number(value || 0);
         if (!Number.isFinite(numeric) || numeric <= 0) return '';
         const date = new Date(numeric);
         const pad = number => String(number).padStart(2, '0');
-        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
       };
       const auditDateTimeMs = value => {
         const raw = String(value || '').trim();
         if (!raw) return '';
+        const normalized = raw.replace('T', ' ');
+        const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2})(?:\s+(\d{2}):(\d{2}))?$/);
+        if (match) {
+          const [, year, month, day, hour = '00', minute = '00'] = match;
+          const local = new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute));
+          const parsedLocal = local.getTime();
+          return Number.isFinite(parsedLocal) ? String(parsedLocal) : '';
+        }
         const parsed = Date.parse(raw);
         return Number.isFinite(parsed) ? String(parsed) : '';
       };
@@ -852,6 +1044,7 @@ std::string ProductSharedUiScript() {
           disable: '비활성화',
           'bulk-clone': '대량 복제',
           'bulk-disable': '대량 비활성화',
+          'source-health-state-change': '소스 상태 변경',
           approve: '승인',
           reject: '거절'
         })[String(value || '')] || display(value);
@@ -891,20 +1084,21 @@ std::string ProductSharedUiScript() {
           });
         });
         };
+        const auditPresets = auditFilterPresetsFor(area);
         el.innerHTML = `
           <div class="audit-controls">
             <div class="audit-filter-grid">
               <label>검색
-                <input id="${containerId}-audit-q" value="${escapeHtml(state.q)}" placeholder="대상, 요약, diff 검색">
+                <input id="${containerId}-audit-q" value="${escapeHtml(state.q)}" placeholder="대상, 요약, 변경값 검색">
               </label>
               <label>작업자
-                <input id="${containerId}-audit-actor" value="${escapeHtml(state.actor)}" placeholder="username">
+                <input id="${containerId}-audit-actor" value="${escapeHtml(state.actor)}" placeholder="작업자 계정">
               </label>
               <label>사용자
-                <input id="${containerId}-audit-user" value="${escapeHtml(state.user)}" placeholder="actor 또는 user target">
+                <input id="${containerId}-audit-user" value="${escapeHtml(state.user)}" placeholder="사용자 계정">
               </label>
               <label>대상
-                <input id="${containerId}-audit-target" value="${escapeHtml(state.target)}" placeholder="channel:1, user:name">
+                <input id="${containerId}-audit-target" value="${escapeHtml(state.target)}" placeholder="채널/사용자 대상">
               </label>
               <label>동작
                 <select id="${containerId}-audit-action">
@@ -916,16 +1110,17 @@ std::string ProductSharedUiScript() {
                   <option value="disable">비활성화</option>
                   <option value="bulk-clone">대량 복제</option>
                   <option value="bulk-disable">대량 비활성화</option>
+                  <option value="source-health-state-change">소스 상태 변경</option>
                   <option value="approve">승인</option>
                   <option value="reject">거절</option>
                   <option value="export-bundle">증거 export</option>
                 </select>
               </label>
               <label>시작
-                <input id="${containerId}-audit-from" type="datetime-local" lang="${escapeHtml(currentLanguage())}" value="${escapeHtml(auditLocalDateTime(state.fromMs))}">
+                <input id="${containerId}-audit-from" class="audit-date-input" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD HH:mm" value="${escapeHtml(auditLocalDateTime(state.fromMs))}">
               </label>
               <label>종료
-                <input id="${containerId}-audit-to" type="datetime-local" lang="${escapeHtml(currentLanguage())}" value="${escapeHtml(auditLocalDateTime(state.toMs))}">
+                <input id="${containerId}-audit-to" class="audit-date-input" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD HH:mm" value="${escapeHtml(auditLocalDateTime(state.toMs))}">
               </label>
               <label>페이지 크기
                 <select id="${containerId}-audit-limit">
@@ -935,6 +1130,7 @@ std::string ProductSharedUiScript() {
                 </select>
               </label>
             </div>
+            ${auditPresets.length ? `<div class="audit-presets" aria-label="Audit filter presets">${auditPresets.map(preset => `<button type="button" class="btn small" data-audit-preset="${escapeHtml(preset.id)}">${escapeHtml(preset.label)}</button>`).join('')}</div>` : ''}
             <div class="audit-toolbar">
               <button type="button" class="btn small" data-audit-apply>검색</button>
               <button type="button" class="btn small" data-audit-prev>이전</button>
@@ -961,6 +1157,14 @@ std::string ProductSharedUiScript() {
         el.querySelector('[data-audit-apply]')?.addEventListener('click', () => {
           syncState(true);
           renderOpsAuditTrail(containerId, area);
+        });
+        el.querySelectorAll('[data-audit-preset]').forEach(button => {
+          button.addEventListener('click', () => {
+            const preset = auditPresets.find(item => item.id === button.dataset.auditPreset);
+            if (!preset) return;
+            Object.assign(state, preset.state, { offset: 0 });
+            renderOpsAuditTrail(containerId, area);
+          });
         });
         el.querySelector('[data-audit-prev]')?.addEventListener('click', () => {
           syncState(false);

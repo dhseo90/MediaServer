@@ -4,15 +4,15 @@
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Latest Release](https://img.shields.io/github/v/release/dhseo90/MediaServer?label=release)](https://github.com/dhseo90/MediaServer/releases/latest)
 
-Media Server is a C++17 RTSP/WebRTC relay with optional YOLO/ONNX video analytics overlays, rule/scenario events, and short evidence artifacts.
+Media Server is a C++17 RTSP/WebRTC live stream relay with optional YOLO/ONNX video analytics overlays and rule/scenario live events. The current main product boundary focuses on live source onboarding, live source health, and live VA event quality rather than long-term recording, VMS, or NVR scope.
 
 Korean documentation: [README.md](README.md)
-Latest source-only release: [v1.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.0.0)
+Latest source-only release: [v1.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.1.0)
 
 ## At a Glance
 
 - **Streaming**: exposes file, RTSP pull, WHEP pull, WHIP publish, and HTTP/HLS sources through RTSP and WebRTC/WHEP outputs.
-- **Video analytics**: supports `va=1` overlays, saved rules through `vaRule=<id>`, Rule/Profile/Scenario models, Event POST, EventRecord, snapshot, and short clip evidence.
+- **Video analytics**: supports `va=1` overlays, saved rules through `vaRule=<id>`, Rule/Profile/Scenario models, live Event POST, and runtime metadata. EventRecord, snapshot, and clip hooks are short event evidence helpers, not the central product message.
 - **Product UI**: the main URL routes users to Ops or Client views based on account permissions. `/lab` UI routes stay disabled; lab endpoints remain available for API and verification workflows.
 - **Auth and scopes**: supports first-admin setup, session login, role/scope, admin user management, and viewer invite/request approval.
 - **Verification**: `./server.sh` provides UI/Auth smoke tests, VA replay checks, runtime state checks, backup/restore rehearsal, and RC gate artifact checks.
@@ -83,26 +83,26 @@ The default auth mode is `MEDIA_SERVER_AUTH_MODE=auto`. If no users file or `adm
 
 Tracked `video/*.mp4` files and the allowlisted `video/imports/va_tracking_event_1280x720_30fps_h264.mp4` are generated verification fixtures. Customer media, operations evidence, YOLO model binaries, FFmpeg/GStreamer runtime binaries, logs, and auth stores are not public repository content.
 
-See [docs/en/sample-fixture-provenance.md](docs/en/sample-fixture-provenance.md) for fixture provenance and public-release decisions.
+See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for fixture provenance and public-release decisions. English readers should start from the consolidated [docs/en/README.md](docs/en/README.md).
 
 ## Documentation Map
 
 | Need | Document |
 | --- | --- |
 | English documentation index | [docs/en/README.md](docs/en/README.md) |
-| Setup, build, foreground/background execution | [docs/en/development-guide.md](docs/en/development-guide.md) |
-| Auth, Ops, Client UI flow | [docs/en/ui-guide.md](docs/en/ui-guide.md) |
-| RTSP/WebRTC pipeline, source/session, VA layer | [docs/en/media-server-architecture.md](docs/en/media-server-architecture.md) |
-| YOLO, tracking, scenarios, EventRecord, evidence | [docs/en/video-analysis.md](docs/en/video-analysis.md) |
-| Verification commands and release checks | [docs/en/stream-verification.md](docs/en/stream-verification.md) |
-| Bundle/container/runtime distribution policy | [docs/en/distribution-policy.md](docs/en/distribution-policy.md) |
-| Release scope and tag strategy | [docs/en/release-policy.md](docs/en/release-policy.md) |
-| Version meaning and tag rules | [docs/en/versioning-policy.md](docs/en/versioning-policy.md) |
-| Final private-to-public checklist | [docs/en/public-repo-final-review.md](docs/en/public-repo-final-review.md) |
-| Backup and restore operations | [docs/en/ops-backup-recovery.md](docs/en/ops-backup-recovery.md) |
-| Starting thresholds for field scenarios | [docs/en/analysis-threshold-baselines.md](docs/en/analysis-threshold-baselines.md) |
-| Backlog and roadmap | [docs/en/development-backlog.md](docs/en/development-backlog.md) |
-| YouTube import/source experiment | [docs/en/youtube-import.md](docs/en/youtube-import.md) |
+| Setup, build, foreground/background execution | [docs/development-guide.md](docs/development-guide.md) |
+| Auth, Ops, Client UI flow | [docs/ui-guide.md](docs/ui-guide.md) |
+| RTSP/WebRTC pipeline, source/session, VA layer | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
+| YOLO, tracking, scenarios, live events, short evidence | [docs/video-analysis.md](docs/video-analysis.md) |
+| Current product boundary and v1.2.0 roadmap candidates | [docs/development-backlog.md](docs/development-backlog.md) |
+| Verification commands and release checks | [docs/stream-verification.md](docs/stream-verification.md) |
+| Bundle/container/runtime distribution policy | [docs/distribution-policy.md](docs/distribution-policy.md) |
+| Release scope and tag strategy | [docs/release-policy.md](docs/release-policy.md) |
+| Version meaning and tag rules | [docs/versioning-policy.md](docs/versioning-policy.md) |
+| Final private-to-public checklist | [docs/public-repo-final-review.md](docs/public-repo-final-review.md) |
+| Backup and restore operations | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
+| Starting thresholds for field scenarios | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
+| YouTube import/source experiment | [docs/youtube-import.md](docs/youtube-import.md) |
 
 ## UI Preview
 

@@ -70,6 +70,8 @@ Usage:
                  현장형 VA 시나리오 preset UI와 threshold round-trip을 검증합니다.
   verify-ops-source-lifecycle
                  WebRTC session active/cleanup 기준으로 공통 source lifecycle idle 복귀를 검증합니다.
+  verify-ops-source-health-bulk
+                 /ops/api/source-health/bulk partial retry 계약을 검증합니다.
   verify-ops-channel-bulk
                  /ops/sources 대량 채널 복제/비활성화/상태 진단 UI hook을 검증합니다.
   verify-ops-event-records-scope
@@ -94,6 +96,16 @@ Usage:
                  README/UI guide screenshot 자산과 자동 캡처 기준을 검증합니다.
   verify-docs-links
                  README/docs Markdown 링크와 이미지 파일 참조를 검증합니다.
+  verify-onvif-live-import-contract
+                 카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
+  verify-onvif-import-draft-api
+                 실행 중인 서버의 ONVIF import draft API가 fixture를 source/view draft로 변환하는지 검증합니다.
+  verify-onvif-rtsp-downstream
+                 ONVIF import draft의 공개 RTSP URL이 기존 source/view/client redaction 경로를 통과하는지 검증합니다.
+  verify-onvif-ops-sources-ui
+                 /ops/sources ONVIF import UI가 source/view 저장 round-trip까지 연결되는지 검증합니다.
+  verify-v1.1-boundary-keywords
+                 v1.1.0 live-only 제품 경계 키워드가 비범위/보류 문맥인지 검증합니다.
   verify-code-comments
                  코드/스크립트 상단 용도 주석과 한글 주석 정책을 검증합니다.
   verify-script-inventory
@@ -136,6 +148,8 @@ Usage:
                  이동 영상에서 track ID 유지/분절 통계를 수집합니다.
   compare-close-object-tracker
                  close-object guard off/diagnostic/enforce tracker stability 비교 리포트를 생성합니다.
+  verify-close-object-fixture-matrix
+                 close-object guard 전체 fixture matrix를 정기 검증용 hard gate로 실행합니다.
   verify-yolo-layouts
                  YOLO 모델별 output layout/box/score 조합을 실제 모델로 검증합니다.
   verify-adaptive
@@ -338,6 +352,10 @@ case "${cmd}" in
     require_internal verify_ops_source_lifecycle.mjs
     exec "${INTERNAL_DIR}/verify_ops_source_lifecycle.mjs" "$@"
     ;;
+  verify-ops-source-health-bulk)
+    require_internal verify_ops_source_health_bulk.mjs
+    exec "${INTERNAL_DIR}/verify_ops_source_health_bulk.mjs" "$@"
+    ;;
   verify-ops-channel-bulk)
     require_internal verify_ops_channel_bulk.mjs
     exec "${INTERNAL_DIR}/verify_ops_channel_bulk.mjs" "$@"
@@ -385,6 +403,26 @@ case "${cmd}" in
   verify-docs-links)
     require_internal verify_docs_links.mjs
     exec "${INTERNAL_DIR}/verify_docs_links.mjs" "$@"
+    ;;
+  verify-onvif-live-import-contract)
+    require_internal verify_onvif_live_import_contract.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_live_import_contract.mjs" "$@"
+    ;;
+  verify-onvif-import-draft-api)
+    require_internal verify_onvif_import_draft_api.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_import_draft_api.mjs" "$@"
+    ;;
+  verify-onvif-rtsp-downstream)
+    require_internal verify_onvif_rtsp_downstream.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_rtsp_downstream.mjs" "$@"
+    ;;
+  verify-onvif-ops-sources-ui)
+    require_internal verify_onvif_ops_sources_ui_roundtrip.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_ops_sources_ui_roundtrip.mjs" "$@"
+    ;;
+  verify-v1.1-boundary-keywords)
+    require_internal verify_v1_1_boundary_keywords.mjs
+    exec "${INTERNAL_DIR}/verify_v1_1_boundary_keywords.mjs" "$@"
     ;;
   verify-code-comments)
     require_internal verify_code_comments.mjs
@@ -469,6 +507,10 @@ case "${cmd}" in
   compare-close-object-tracker)
     require_internal compare_close_object_tracker.py
     exec "${INTERNAL_DIR}/compare_close_object_tracker.py" "$@"
+    ;;
+  verify-close-object-fixture-matrix)
+    require_internal compare_close_object_tracker.py
+    exec "${INTERNAL_DIR}/compare_close_object_tracker.py" --fixture-matrix --fail-on-missing-fixtures --fail-on-hold "$@"
     ;;
   verify-yolo-layouts)
     require_internal verify_yolo_layouts.sh

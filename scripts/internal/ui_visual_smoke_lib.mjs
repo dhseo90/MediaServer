@@ -120,6 +120,7 @@ export async function openBrowserPage({
   outputDir = "",
   verbose = false,
   cookieHeader = "",
+  locale = "",
 }) {
   if (!chromePath) {
     throw new Error("Chrome executable not found");
@@ -133,6 +134,7 @@ export async function openBrowserPage({
     outputDir,
     verbose,
     cookieHeader,
+    locale,
   });
 }
 
@@ -187,6 +189,7 @@ async function launchBrowser(port, width, viewportHeight, targetUrl, options) {
       `--user-data-dir=${userDataDir}`,
       `--remote-debugging-port=${port}`,
       `--window-size=${width},${viewportHeight}`,
+      ...(options.locale ? [`--lang=${options.locale}`] : []),
       "--headless=new",
       "--hide-scrollbars=false",
       "--no-first-run",
@@ -236,6 +239,9 @@ async function launchBrowser(port, width, viewportHeight, targetUrl, options) {
       deviceScaleFactor: 1,
       mobile: width <= 560,
     });
+    if (options.locale) {
+      await cdp("Emulation.setLocaleOverride", { locale: options.locale });
+    }
     if (options.cookieHeader) {
       await cdp("Network.enable");
       await cdp("Network.setExtraHTTPHeaders", { headers: { Cookie: options.cookieHeader } });
@@ -245,6 +251,7 @@ async function launchBrowser(port, width, viewportHeight, targetUrl, options) {
     return {
       cdp,
       evaluate: (expression, evalTimeoutMs) => evaluateWithCdp(cdp, expression, evalTimeoutMs),
+      screenshot: (outputFile) => captureScreenshot(cdp, outputFile),
       close,
     };
   } catch (error) {

@@ -53,7 +53,7 @@ Evidence 보존 기간 정리는 백업과 별도 운영 job으로 처리합니�
 
 ## 백업 절차
 
-1. 유지보수 창을 잡고 운영 UI에서 대량 작업, 룰 저장, 사용자 변경을 멈춥니다.
+1. 유지보수 창을 잡고 운영 UI에서 채널 저장, 룰 저장, 사용자 변경을 멈춥니다.
 2. 가능하면 `./server.sh stop`으로 쓰기 중인 프로세스를 멈춥니다.
 3. `./server.sh ops-bundle --http-base http://127.0.0.1:8080`으로 복구 전 상태와 로그 요약을 남깁니다.
 4. 위 표의 파일과 디렉터리를 같은 backup root 아래에 복사합니다. Auth store는 `0600`, registry와 EventRecord는 원본 owner/group을 유지합니다.

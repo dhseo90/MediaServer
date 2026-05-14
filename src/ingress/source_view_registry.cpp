@@ -634,7 +634,16 @@ std::vector<SourceViewRegistry::SourceRecord> DefaultSourceRecords() {
     http_source.enabled = true;
     http_source.canonical_source_key = CanonicalSourceKey(http_source);
 
-    return {file_source, va_source, rtsp_source, http_source};
+    SourceViewRegistry::SourceRecord onvif_source;
+    onvif_source.source_id = "5";
+    onvif_source.display_name = "Public ONVIF Stream Sample";
+    onvif_source.kind = "rtsp";
+    onvif_source.rtsp_url = "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov";
+    onvif_source.enabled = true;
+    onvif_source.tags = {"onvif", "live", "public-stream"};
+    onvif_source.canonical_source_key = CanonicalSourceKey(onvif_source);
+
+    return {file_source, va_source, rtsp_source, http_source, onvif_source};
 }
 
 SourceViewRegistry::PublishedViewRecord DefaultPublishedViewRecord(
@@ -643,7 +652,7 @@ SourceViewRegistry::PublishedViewRecord DefaultPublishedViewRecord(
     view.view_id = source.source_id.empty() ? "1" : source.source_id;
     view.display_name = source.display_name.empty() ? "Default Channel" : source.display_name;
     view.source_id = source.source_id;
-    view.allowed_overlay_modes = {"raw", "va-overlay"};
+    view.allowed_overlay_modes = {"raw", "va-overlay", "va-rule"};
     view.show_dashboard = true;
     view.show_events = true;
     view.show_metadata_summary = true;
@@ -907,7 +916,9 @@ std::string ClientPublishedViewJson(const SourceViewRegistry::PublishedViewRecor
         << "\"sourceId\":\"" << JsonEscape(view.source_id) << "\","
         << "\"sourceDisplayName\":\"" << JsonEscape(source.display_name) << "\","
         << "\"sourceKind\":\"" << JsonEscape(source.kind) << "\","
-        << "\"defaultRuleId\":\"" << JsonEscape(view.default_rule_id) << "\","
+        << "\"sourceTags\":";
+    AppendStringArray(out, source.tags);
+    out << ",\"defaultRuleId\":\"" << JsonEscape(view.default_rule_id) << "\","
         << "\"allowedRuleIds\":";
     AppendStringArray(out, view.allowed_rule_ids);
     out << ",\"allowedOverlayModes\":";
@@ -1349,6 +1360,25 @@ RegistryResult SourceViewRegistry::ResolveClientViewAccess(const std::string& vi
     access->source = *source;
     return JsonResult(200, "OK", "{\"ok\":true,\"view\":" +
                                      ClientPublishedViewJson(access->view, access->source) + "}");
+}
+
+bool SourceViewRegistry::Snapshot(std::vector<SourceRecord>* sources,
+                                  std::vector<PublishedViewRecord>* views,
+                                  std::string* error_message) {
+    std::lock_guard lock(mu_);
+    if (!EnsureLoadedLocked(error_message)) {
+        return false;
+    }
+    if (sources != nullptr) {
+        *sources = sources_;
+    }
+    if (views != nullptr) {
+        *views = views_;
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
 }
 
 RegistryResult SourceViewRegistry::CreateSource(const std::string& body) {

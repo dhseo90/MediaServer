@@ -190,7 +190,7 @@ std::string ProductUiCss() {
       margin: 0 auto;
       padding: var(--space-3) 0 56px;
       display: grid;
-      gap: var(--space-5);
+      gap: var(--space-6);
     }
     .app-header,
     .auth-card,
@@ -213,14 +213,14 @@ std::string ProductUiCss() {
       z-index: 20;
       display: grid;
       gap: var(--space-2);
-      padding: 0;
+      padding: 0 0 var(--space-2);
       background: var(--color-bg);
       border: 0;
       border-radius: 0;
       box-shadow:
         0 calc(-1 * var(--space-2)) 0 var(--space-2) var(--color-bg),
         0 0 0 100vmax var(--color-bg);
-      clip-path: inset(calc(-1 * var(--space-2)) -100vmax 0 -100vmax);
+      clip-path: inset(calc(-1 * var(--space-2)) -100vmax calc(-1 * var(--space-2)) -100vmax);
     }
     .route-header {
       gap: var(--space-2);
@@ -228,8 +228,8 @@ std::string ProductUiCss() {
     .app-header-top {
       width: 100%;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: start;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
+      align-items: stretch;
       gap: var(--space-4);
     }
     .shell-summary-row {
@@ -258,18 +258,24 @@ std::string ProductUiCss() {
       min-width: 0;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+      grid-auto-rows: minmax(52px, 1fr);
+      height: 100%;
       gap: var(--space-2);
       align-items: stretch;
     }
     .image-nav {
-      min-height: 84px;
-      display: grid;
+      min-height: 52px;
+      height: 100%;
+      display: inline-grid;
+      grid-template-columns: auto auto;
       align-content: center;
+      align-items: center;
+      justify-content: center;
       justify-items: center;
-      gap: 6px;
-      padding: 8px;
+      gap: 8px;
+      padding: 0 12px;
       border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-md);
       background: var(--color-bg-elevated);
       color: var(--color-text);
       text-align: center;
@@ -288,8 +294,8 @@ std::string ProductUiCss() {
       color: var(--color-on-primary);
     }
     .image-nav svg {
-      width: 34px;
-      height: 34px;
+      width: 20px;
+      height: 20px;
       display: block;
       color: currentColor;
     }
@@ -299,28 +305,49 @@ std::string ProductUiCss() {
     }
     .account-menu {
       flex: 0 0 auto;
-      min-height: 84px;
-      min-width: 210px;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      align-items: center;
-      justify-items: stretch;
-      gap: var(--space-3);
-      padding: 8px 10px;
+      min-height: 64px;
+      height: 100%;
+      min-width: 0;
+      display: flex;
+      align-items: stretch;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 6px 8px;
       border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-md);
       background: var(--color-bg-elevated);
     }
     .account-menu-top {
+      flex: 1 1 auto;
+      display: grid;
+      align-content: center;
+      justify-content: stretch;
+      gap: 4px;
+      min-width: 0;
+    }
+    .account-menu .account-identity {
+      display: flex;
+    }
+    .account-menu .language-control span {
+      display: none;
+    }
+    .account-menu .language-control {
+      min-width: 76px;
+    }
+    .account-controls {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
-      gap: var(--space-3);
+      justify-content: flex-start;
+      gap: 6px;
+      flex-wrap: wrap;
       min-width: 0;
     }
     .account-shortcut {
       width: auto;
-      min-width: 84px;
+      min-width: 52px;
+      min-height: 30px;
+      padding: 5px 8px;
+      font-size: 12px;
       white-space: nowrap;
       flex: 0 0 auto;
     }
@@ -332,8 +359,8 @@ std::string ProductUiCss() {
       gap: var(--space-3);
     }
     .account-avatar {
-      width: 44px;
-      height: 44px;
+      width: 28px;
+      height: 28px;
       flex: 0 0 auto;
       color: var(--color-primary);
     }
@@ -345,19 +372,26 @@ std::string ProductUiCss() {
     .account-name {
       color: var(--color-text);
       font-weight: 900;
+      font-size: 12px;
       overflow-wrap: anywhere;
     }
     .account-meta {
       color: var(--color-text-muted);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 850;
     }
     .account-menu > form {
-      width: 100%;
+      width: auto;
       margin: 0;
+      display: flex;
+      align-items: center;
     }
     .account-menu > form > button {
-      width: 100%;
+      width: auto;
+      min-width: 58px;
+      min-height: 34px;
+      padding: 5px 7px;
+      font-size: 12px;
     }
     h1, h2, h3 { margin: 0; letter-spacing: 0; }
     h1 { font-size: clamp(26px, 3vw, 36px); line-height: 1.08; }
@@ -443,10 +477,10 @@ std::string ProductUiCss() {
       box-shadow: none;
     }
     .theme-toggle {
-      width: 40px;
-      min-width: 40px;
-      min-height: 40px;
-      height: 40px;
+      width: 34px;
+      min-width: 34px;
+      min-height: 34px;
+      height: 34px;
       display: inline-grid;
       place-items: center;
       flex: 0 0 auto;
@@ -456,7 +490,7 @@ std::string ProductUiCss() {
     }
     .language-control {
       width: auto;
-      min-width: 112px;
+      min-width: 88px;
       flex: 0 0 auto;
       display: grid;
       gap: 3px;
@@ -470,8 +504,8 @@ std::string ProductUiCss() {
     }
     .language-select {
       width: 100%;
-      min-height: 36px;
-      height: 36px;
+      min-height: 34px;
+      height: 34px;
       padding: 5px 8px;
       border-radius: var(--radius-md);
       font-size: 12px;
@@ -523,6 +557,14 @@ std::string ProductUiCss() {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: var(--space-4);
+    }
+    .ops-metric-grid,
+    .ops-dashboard-card-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .ops-dashboard-card-grid .section-card {
+      min-height: 156px;
+      align-content: start;
     }
     .split-grid {
       display: grid;
@@ -630,6 +672,8 @@ std::string ProductUiCss() {
     select,
     textarea {
       width: 100%;
+      min-width: 0;
+      max-width: 100%;
       min-height: 38px;
       border: 1px solid var(--color-input-border);
       border-radius: var(--radius-md);
@@ -639,6 +683,10 @@ std::string ProductUiCss() {
       font: inherit;
       -webkit-user-select: text;
       user-select: text;
+    }
+    .audit-date-input {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0;
     }
     textarea { min-height: 82px; resize: vertical; }
     input:focus,
@@ -1046,6 +1094,7 @@ std::string ProductUiCss() {
       gap: var(--space-3);
     }
     .audit-controls,
+    .audit-presets,
     .audit-toolbar,
     .audit-entry-actions {
       display: flex;
@@ -1055,7 +1104,7 @@ std::string ProductUiCss() {
     }
     .audit-filter-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      grid-template-columns: repeat(4, minmax(170px, 1fr));
       gap: var(--space-2);
       flex: 1 1 520px;
       min-width: 0;
@@ -1070,6 +1119,9 @@ std::string ProductUiCss() {
     }
     .audit-toolbar {
       justify-content: flex-end;
+    }
+    .audit-presets {
+      justify-content: flex-start;
     }
     .audit-source-label {
       color: var(--color-text-muted);
@@ -1407,7 +1459,7 @@ std::string ProductUiCss() {
     .ops-rules-col-template { width: 140px; }
     .ops-rules-col-profile { width: 140px; }
     .ops-rules-col-geometry { width: 92px; }
-    .ops-rules-col-output { width: 96px; }
+    .ops-rules-col-output { width: 228px; }
     .ops-rules-col-target { width: 148px; }
     .ops-rules-col-status { width: 84px; }
     .ops-rules-col-actions { width: 148px; }
@@ -1625,33 +1677,20 @@ std::string ProductUiCss() {
     .channel-table {
       table-layout: fixed;
     }
-    .channel-bulk-panel {
-      display: grid;
-      gap: var(--space-3);
-      margin-bottom: var(--space-4);
-      padding: var(--space-4);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
-      background: var(--color-surface-raised);
-    }
-    .channel-bulk-diagnostics {
-      min-width: 0;
-    }
     .channel-table th,
     .channel-table td {
       white-space: normal;
       overflow-wrap: anywhere;
       word-break: break-word;
     }
-    .channel-col-select { width: 52px; }
     .channel-col-id { width: 58px; }
-    .channel-col-name { width: 16%; }
-    .channel-col-kind { width: 118px; }
-    .channel-col-status { width: 118px; }
+    .channel-col-name { width: 18%; }
+    .channel-col-kind { width: 130px; }
+    .channel-col-status { width: 112px; }
     .channel-col-input { width: auto; }
     .channel-col-live-url,
-    .channel-col-va-url { width: 104px; }
-    .channel-col-actions { width: 164px; }
+    .channel-col-va-url { width: 172px; }
+    .channel-col-actions { width: 150px; }
     .channel-id-cell,
     .channel-kind-cell,
     .channel-input-stack {
@@ -1667,7 +1706,8 @@ std::string ProductUiCss() {
     }
     .channel-stream-actions {
       display: grid;
-      grid-template-columns: 1fr;
+      width: 100%;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: var(--space-2);
     }
     .channel-stream-rule {
@@ -1710,13 +1750,21 @@ std::string ProductUiCss() {
     .channel-stream-actions button,
     .channel-status-actions button,
     .channel-row-actions button {
+      width: 100%;
       min-height: 32px;
       padding: 6px 9px;
       font-size: 11px;
       white-space: nowrap;
     }
+    .channel-stream-actions button[data-copy-stream-channel][title^="ONVIF"],
+    .channel-stream-actions button[data-ops-rule-copy-kind][title^="ONVIF"] {
+      font-size: 10px;
+    }
+    .ops-rules-table .channel-stream-actions {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
     .ops-rules-table .channel-stream-actions button {
-      white-space: normal;
+      white-space: nowrap;
       word-break: keep-all;
       overflow-wrap: anywhere;
       line-height: 1.15;
@@ -1764,6 +1812,20 @@ std::string ProductUiCss() {
       .image-nav-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .nav-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .nav { width: 100%; }
+      .audit-controls {
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: stretch;
+      }
+      .audit-filter-grid {
+        width: 100%;
+        flex: 1 1 auto;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .audit-toolbar,
+      .audit-presets {
+        justify-content: flex-start;
+      }
       .grid.rules-metrics-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
@@ -1773,57 +1835,73 @@ std::string ProductUiCss() {
     }
     @media (max-width: 1180px) and (min-width: 861px) {
       .app-header-top {
-        grid-template-columns: minmax(0, 1fr) minmax(252px, 296px);
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
         align-items: stretch;
       }
       .app-header-top > .image-nav-tabs:not(.client-image-nav-tabs) {
-        grid-template-columns: repeat(3, minmax(92px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
       }
       .account-menu {
-        min-height: 176px;
-        grid-template-rows: minmax(0, 1fr) auto;
-        align-content: stretch;
-        gap: var(--space-4);
-        padding: 12px 14px;
+        min-height: 64px;
+        align-content: center;
+        gap: var(--space-2);
+        padding: 6px 8px;
       }
       .account-menu-top {
         height: 100%;
-        justify-content: flex-start;
+        justify-content: flex-end;
         align-items: center;
       }
       .account-identity {
         align-items: center;
       }
       body.client-shell .app-header-top {
-        grid-template-columns: minmax(0, 1fr) minmax(232px, 272px);
-        align-items: start;
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
+        align-items: stretch;
       }
       body.client-shell .account-menu {
-        min-height: 84px;
+        min-height: 64px;
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: var(--space-3);
-        padding: 10px 12px;
+        align-items: stretch;
+        justify-content: flex-end;
+        gap: 6px;
+        padding: 6px;
       }
       body.client-shell .account-menu-top {
-        flex: 1 1 auto;
         min-width: 0;
-        justify-content: flex-start;
+        justify-content: stretch;
+        gap: 6px;
       }
       body.client-shell .account-identity {
-        min-width: 0;
+        display: flex;
       }
       body.client-shell .account-menu > form {
         width: auto;
-        flex: 0 0 auto;
       }
       body.client-shell .account-menu > form > button {
         width: auto;
-        min-width: 96px;
+        min-width: 52px;
+        padding: 5px 7px;
+      }
+      body.client-shell .language-control {
+        min-width: 64px;
+      }
+      body.client-shell .language-select {
+        padding: 4px 5px;
+        font-size: 11px;
+      }
+      body.client-shell .theme-toggle {
+        width: 30px;
+        min-width: 30px;
+        min-height: 30px;
+        height: 30px;
       }
     }
     @media (max-width: 1040px) {
+      .ops-metric-grid,
+      .ops-dashboard-card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
       .ops-responsive-table,
       .ops-responsive-table tbody,
       .ops-responsive-table tr,
@@ -1899,9 +1977,9 @@ std::string ProductUiCss() {
         border-bottom: 0;
       }
       .channel-table td {
+        display: grid;
         grid-template-columns: minmax(108px, 28%) minmax(0, 1fr);
       }
-      .channel-bulk-panel .toolbar,
       .channel-status-actions,
       .channel-stream-actions,
       .channel-row-actions {
@@ -2000,6 +2078,10 @@ std::string ProductUiCss() {
       .grid.rules-metrics-grid {
         grid-template-columns: 1fr;
       }
+      .ops-metric-grid,
+      .ops-dashboard-card-grid {
+        grid-template-columns: 1fr;
+      }
       .ops-va-stage-grid {
         grid-template-columns: 1fr;
       }
@@ -2008,11 +2090,11 @@ std::string ProductUiCss() {
       }
       .channel-table td {
         grid-template-columns: 1fr;
-        gap: 4px;
+        gap: 8px;
       }
       .ops-responsive-table td {
         grid-template-columns: 1fr;
-        gap: 4px;
+        gap: 8px;
       }
       .channel-row-actions {
         grid-template-columns: 1fr;
@@ -2021,7 +2103,14 @@ std::string ProductUiCss() {
       .event-record-table td,
       .user-table td {
         grid-template-columns: 1fr;
-        gap: 4px;
+        gap: 8px;
+      }
+      .channel-table td::before,
+      .ops-responsive-table td::before,
+      .ops-rules-table td::before,
+      .event-record-table td::before,
+      .user-table td::before {
+        line-height: 1.35;
       }
       .ops-rules-table .table-actions,
       .event-record-controls,
@@ -2029,6 +2118,7 @@ std::string ProductUiCss() {
       .ops-rule-row-actions,
       .audit-controls,
       .audit-filter-grid,
+      .audit-presets,
       .audit-toolbar,
       .audit-entry-head,
       .audit-entry-meta,
@@ -2078,9 +2168,9 @@ std::string ClientShellCss() {
     }
     header.app-chrome .app-header-top {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
       width: 100%;
-      align-items: start;
+      align-items: stretch;
       gap: var(--space-4);
     }
     header.app-chrome .image-nav-tabs {
@@ -2094,6 +2184,40 @@ std::string ClientShellCss() {
       flex: 1 1 320px;
       min-width: min(320px, 100%);
       grid-template-columns: repeat(2, minmax(92px, 1fr));
+    }
+    body.client-shell header.app-chrome .app-header-top {
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
+      align-items: stretch;
+    }
+    body.client-shell .account-menu {
+      min-height: 64px;
+      justify-content: flex-end;
+      gap: 6px;
+      padding: 6px;
+    }
+    body.client-shell .account-identity {
+      display: flex;
+    }
+    body.client-shell .language-control {
+      min-width: 64px;
+    }
+    body.client-shell .account-menu-top {
+      justify-content: stretch;
+      gap: 6px;
+    }
+    body.client-shell .account-menu > form > button {
+      min-width: 52px;
+      padding: 5px 7px;
+    }
+    body.client-shell .language-select {
+      padding: 4px 5px;
+      font-size: 11px;
+    }
+    body.client-shell .theme-toggle {
+      width: 30px;
+      min-width: 30px;
+      min-height: 30px;
+      height: 30px;
     }
     a.nav { min-height: 36px; display: inline-flex; align-items: center; border-radius: 6px; padding: 0 12px; background: var(--panel-soft); color: var(--text); text-decoration: none; font-weight: 900; }
     a.nav.active { background: var(--color-primary); color: var(--color-on-primary); }
@@ -2264,9 +2388,39 @@ std::string ClientShellCss() {
     :root[data-theme="dark"] a.nav.active { background: var(--color-primary); color: var(--color-on-primary); }
     @media (max-width: 900px) { .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 860px) {
-      header.app-chrome .app-header-top { grid-template-columns: 1fr; }
-      header.app-chrome .image-nav-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .client-image-nav-tabs { min-width: 0; }
+      body.client-shell header.app-chrome .app-header-top {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+      }
+      body.client-shell header.app-chrome .image-nav-tabs,
+      body.client-shell header.app-chrome .client-image-nav-tabs {
+        width: 100%;
+        min-width: 0;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      body.client-shell .account-menu {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+    @media (max-width: 430px) {
+      body.client-shell main {
+        padding: 20px 10px 36px;
+      }
+      body.client-shell .account-menu {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: stretch;
+      }
+      body.client-shell .account-menu-top {
+        min-width: 0;
+      }
+      body.client-shell .account-controls {
+        flex-wrap: wrap;
+      }
+      body.client-shell .account-menu > form {
+        align-self: center;
+      }
     }
     @media (max-width: 780px) { .workspace, .live-toolbar { grid-template-columns: 1fr; } }
     @media (max-width: 560px) { .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr; } }

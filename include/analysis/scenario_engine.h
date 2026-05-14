@@ -45,9 +45,11 @@ struct ScenarioInstance {
     std::string stream_id;
     std::string channel_id;
     std::string scenario_id;
+    std::string scenario_key;
     std::string zone_id;
     std::uint64_t track_id{0};
     ScenarioPhase phase{ScenarioPhase::Idle};
+    ScenarioPhase previous_phase{ScenarioPhase::Idle};
     std::int64_t first_seen_ns{0};
     std::int64_t last_seen_ns{0};
     std::int64_t phase_entered_ns{0};
@@ -112,6 +114,7 @@ private:
                      const SceneContext& scene_context,
                      const TrackSceneContext& track_context,
                      const std::string& scenario_id,
+                     const std::string& scenario_key,
                      const ScenarioUpdate& update) const;
     void EnforceChannelLimit(InstanceMap* instances);
     bool ShouldRunCleanup(std::int64_t timestamp_ns) const;

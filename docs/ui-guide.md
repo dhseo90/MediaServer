@@ -61,6 +61,11 @@ client/viewer shell에는 내부 진단 응답, debug 정보, developer/source U
   `opsTableRowHtml`, `setOpsDetailPanelOpen` helper를 사용합니다.
   모바일에서는 같은 카드형 row 규칙으로 전환되며, 셀 내용과 action
   버튼은 자기 칸 밖으로 밀려나지 않아야 합니다.
+- `/ops/sources`와 `/ops/users`의 변경 이력 필터는 table 아래의
+  감사 로그 패널 안에 머물러야 합니다. 320/390px에서는 검색, 작업자,
+  사용자, 대상, 동작, 시작, 종료, 페이지 크기 control이 부모 폭 안에서
+  줄바꿈되고, native date/time input 자체가 화면 오른쪽 밖으로
+  튀어나가지 않아야 합니다.
 - `ClientShellCss()`: client shell 전용 CSS를 `ClientShellPageHtml()` 밖에서 관리합니다.
 - `AppendOpsShellStart/End`, `AppendAuthShellStart/End`: 운영 shell과 setup/login auth shell의 공통 document/header/footer를 렌더링합니다.
 - `AppendProductAccountMenu()`: theme toggle, user role, logout 영역을 Ops/Client에서 동일하게 렌더링합니다.
@@ -239,14 +244,20 @@ Route 역할:
     correlation id와 함께 확인합니다.
     다음 조치 버튼은 source 재검증, registry diff, Event/evidence 진단,
     auth/config 확인, log correlation 필터를 즉시 실행합니다.
+    Live VA Event Quality panel은 active analysis tap의 state-dump/metrics를
+    읽어 Scenario Timeline과 TrackHealth issue grouping을 표시합니다.
+    phase elapsed, cooldown, dedupe/emitted count는 운영자 debug summary로만
+    보여주며 Event POST/WebRTC/SSE/WS metadata schema를 바꾸지 않습니다.
   - `/ops/sources`:
-    숫자 채널 목록, 상세 패널,
-    `/ops/api/channels/bulk` 기반 대량 복제/비활성화/상태 진단을 제공합니다.
-    대량 작업은 dry-run, partial failure 리포트, 실패 항목 재시도,
-    성공 항목 롤백을 UI에서 처리합니다.
-    Bulk 결과에는 audit action/target metadata와 diff preview policy가 포함됩니다.
-    UI는 실패 항목 재실행 전 diff preview를 표시하고,
-    같은 내용을 채널 감사 로그 before/after에 연결합니다.
+    숫자 채널 목록, 상세 패널, 채널 추가 폼, URL copy 영역,
+    채널 변경 이력을 제공합니다.
+    ONVIF는 별도 import 패널이 아니라 `ONVIF 카메라` source 유형으로 표시합니다.
+    Live URL/VA URL copy 버튼은 file/RTSP/HTTP/WHEP/Published WebRTC와 같은
+    테이블 규칙을 쓰며, ONVIF 채널은 `ONVIF RTSP`, `ONVIF WHEP` 버튼을 표시합니다.
+    live source health 초안은 [live-source-health.md](./live-source-health.md)를
+    기준으로 `/ops/dashboard`와 source health API에서 다루며, client/viewer에는
+    sanitized dashboard summary만 노출합니다.
+    원본 source URL, ONVIF endpoint, raw diagnostic JSON은 viewer/client에 숨깁니다.
   - `/ops/rules`: 채널 분석 설정, 이벤트 템플릿, 분석 프로파일 목록
 
   룰 편집 미리보기는 선택한 PublishedView에 대해 `va-overlay` 우선으로 열고,
@@ -298,7 +309,32 @@ Ops/Client/Lab API guard를 확인합니다.
   `./server.sh verify-ops-click-e2e`,
   `./server.sh verify-ops-tables-layout`로 확인합니다.
 - 화면 회귀까지 보려면
-  `./server.sh verify-ops-client-ui --screenshots`를 사용합니다.
+  `./server.sh verify-ops-client-ui --screenshots`를 사용합니다. 기본 screenshot 폭은
+  320/390/760/1180px이며, Chrome DevTools 수동 리뷰 체크박스는
+  [stream-verification.md](./stream-verification.md)에 유지합니다.
+
+### 2.1 Live VA Event Quality
+
+`/ops/dashboard`의 Live VA Event Quality panel은 현재 live-only 범위의
+운영자용 VA 품질 확인 영역입니다.
+
+표시 항목:
+
+- Scenario Timeline: scenario name, rule id, track id, phase,
+  phase elapsed, cooldown remaining, emitted/dedupe count
+- TrackHealth issue grouping: issue type별 retained/total 요약,
+  rate-limited count, 대표 track context
+- Filter: scenario/rule/track/phase/issue 키워드로 timeline과
+  TrackHealth grouping을 같은 입력에서 좁혀 봅니다.
+- Empty/error state: active analysis tap이 없거나 state-dump/metrics를
+  읽지 못할 때 운영자가 원인을 구분할 수 있는 짧은 상태
+
+이 panel은 `/lab/analysis/taps/{tapId}/state-dump`,
+`/lab/analysis/taps/{tapId}/metrics`를 operator route에서만 읽습니다.
+client/viewer shell과 client API에는 source URL, raw JSON, debug counter,
+`analysisTapId`, Scenario Timeline debug object를 노출하지 않습니다.
+raw JSON이 필요한 경우에도 운영자 debug details 접힘 영역 또는
+개발/검증 API에서만 확인합니다.
 
 ## 3. Admin User Management
 
@@ -348,6 +384,11 @@ UI/API 응답에 노출하지 않습니다.
   변경 이력 패널은 검색, 작업자/사용자/대상/action/기간 필터,
   offset 기반 이전/다음 페이지, JSON/CSV export, Diff JSON export,
   전/후 diff 상세 모달을 공통으로 제공합니다.
+  채널/사용자 변경 이력 필터는 작은 화면에서 table/action 영역을
+  침범하지 않는 별도 responsive contract입니다. 320/390px 기준으로
+  시작/종료 input은 `min-width: 0` 흐름 안에서 한 줄 또는 다음 줄로
+  내려가야 하며, 필터 grid가 viewport보다 넓은 고정폭을 만들면
+  regression으로 봅니다.
   서버는 `MEDIA_SERVER_OPS_AUDIT_RETENTION_DAYS` 기준으로 오래된
   `.media_server.ops_audit.jsonl` 항목을 조회/저장 시 정리합니다.
   응답에는 case-insensitive search index metadata, `receivedAtMs` date range field,
@@ -1055,8 +1096,8 @@ python3 -c "import cv2; print(cv2.__version__)"
 - 구현 완료: WebSocket metadata side-channel 최소 subscribe/stream endpoint
 - 구현 완료: SSE metadata side-channel 수신 중심 custom client 예제
 - 구현 완료: OpenCV 기반 Custom RTSP + SSE metadata overlay renderer 예제
+- 구현 완료: OpenCV 기반 Custom RTSP + WebSocket metadata overlay renderer 예제
 - 구현 완료: WebSocket command/filter/subscribe-unsubscribe 제어
-- 예정: WS 기반 custom overlay renderer 확장
 
 검증용 smoke:
 

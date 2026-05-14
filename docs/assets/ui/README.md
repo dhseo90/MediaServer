@@ -2,7 +2,7 @@
 
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준 파일명으로 보관합니다.
 
-현재 대표 제품 이미지는 2026-05-09 기준으로 다시 캡처했습니다.
+현재 대표 제품 이미지는 2026-05-14 기준으로 다시 캡처했습니다.
 재캡처는 `scripts/internal/capture_docs_ui_assets.mjs` 기준으로 관리합니다.
 기준 검증은 `./server.sh verify-docs-ui-assets`로 수행합니다.
 
@@ -18,6 +18,15 @@ node scripts/internal/capture_docs_ui_assets.mjs --lang=en
 - 문서 대표 이미지는 dark mode로 캡처한다.
 - 한글 문서는 `docs/assets/ui/`, 영문 문서는 `docs/assets/ui/en/` 이미지를 사용한다.
 - 영문 이미지는 실제 제품 UI의 English 선택 상태에서 캡처한다. 이미지 편집으로 텍스트만 바꾸지 않는다.
+- English screenshots are stored in `docs/assets/ui/en/` with the same role-based
+  filenames as the Korean captures. Do not keep a separate English README in
+  that directory; these shared rules are the single screenshot policy.
+- Before updating English README screenshots, review visible text for current
+  live-only wording. Non-goal terms such as VMS, NVR, long-term recording,
+  playback/search, and Profile G must appear only as explicit non-goals or
+  short event evidence/debug context.
+- Do not use client screenshots where source URLs, ONVIF endpoints, raw
+  diagnostic JSON, or rule/profile editors are visible.
 - 영상이 보이는 화면은 `va_four_scene_sample.mp4` 4신 영상 기준으로 캡처한다.
 - VA overlay가 가능한 화면은 객체 bbox/label이 실제로 표출된 상태를 캡처한다.
 - 영상이 보이는 화면은 실제 출력 프레임이 보이고 하단이 잘리지 않는 상태로 캡처한다.

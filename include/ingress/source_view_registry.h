@@ -64,6 +64,9 @@ public:
                                            const auth::Principal& principal,
                                            const std::string& required_scope_prefix,
                                            ClientViewAccess* access);
+    bool Snapshot(std::vector<SourceRecord>* sources,
+                  std::vector<PublishedViewRecord>* views,
+                  std::string* error_message);
 
     RegistryResult CreateSource(const std::string& body);
     RegistryResult UpsertSource(const std::string& source_id, const std::string& body);

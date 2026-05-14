@@ -2,6 +2,103 @@
 
 이 문서는 과거 상세 검증 이력을 보존합니다. 현재 실행해야 할 검증 기준은 [../stream-verification.md](../stream-verification.md)를 봅니다.
 
+## 2026-05-13 - v1.1.0 final local release gate
+
+통과:
+
+- `./server.sh verify-predev --soak-minutes 120`: `525/0/1`
+- `./server.sh verify-va-runtime-console-longrun --duration-minutes 120 ... --idle-after-cleanup-minutes 30`: `12/0/0`
+- `./server.sh rc-release-checklist ...`: checklist artifact 생성 통과
+- `./server.sh verify-longrun-separation`: `4/0`
+- `./server.sh verify-public-repo-readiness --report ...`: `6/0`
+- `./server.sh verify-bundle-policy --output ... --json-output ...`: 통과
+- `./server.sh test --full --stop-after`: `30/0/6`, 542초
+
+확인:
+
+- 2026-05-12에 닫은 v1.1.0 선수 로드맵 1~6은 재수행하지 않았습니다.
+- redaction RTSP ffmpeg hang은 live decode harness timeout 보강 후 targeted
+  redaction live 2회 재검증을 통과했습니다.
+- public repository policy는 병합된 `docs/en/README.md` 기준으로 정렬했고,
+  삭제한 영문 mirror 문서를 다시 만들지 않았습니다.
+- runtime longrun idle 판정은 RSS `316.05MiB -> 316.62MiB`로 `+0.58MiB`
+  warning이었지만 cleanup 관련 runtime counter는 모두 `0`이었습니다.
+- v1.1.0 구현 후속 이슈는 남기지 않았고, release tag/main merge/GitHub
+  Release/push는 수행하지 않았습니다.
+
+미실행:
+
+- release tag 생성
+- main merge
+- GitHub Release 생성
+- push
+
+## 2026-05-12 - Live Event Delivery Contract RC smoke
+
+통과:
+
+- `./server.sh build`
+- `./server.sh verify-event-post --mode disabled --http-base http://127.0.0.1:8084`: `2/0/0`
+- `./server.sh verify-event-post --mode schema --http-base http://127.0.0.1:8084`: `7/0/0`
+- `./server.sh verify-event-post --mode recovery --http-base http://127.0.0.1:8084`: `11/0/1`
+- `./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8084 --file imports/va_tracking_event_1280x720_30fps_h264.mp4 --timeout-ms 45000`: `8/0`
+- `./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8084`: `5/0`
+- `./server.sh verify-ws-metadata --http-base http://127.0.0.1:8084 --file sample_h264.mp4 --timeout-ms 12000`: `9/0`
+- `./server.sh verify-va-runtime-console --http-base http://127.0.0.1:8084`: `8/0`
+- `git diff --check -- README.md README.en.md docs scripts`
+
+확인:
+
+- Event POST disabled 기본 상태와 enabled schema/recovery smoke를 분리해 확인했습니다.
+- Event POST recovery의 EventStorage corrupt/partial injection 세부 검증은
+  EventStorage disabled 상태라 skip `1`로 기록했습니다.
+- WebRTC DataChannel은 video track, ICE connected, `va-metadata` DataChannel,
+  metadata schema/sync diagnostic 수신을 확인했습니다.
+- SSE side-channel은 `media-server.va.runtime-metadata.v1` payload와 임시 tap cleanup을 확인했습니다.
+- WebSocket side-channel은 runtime metadata payload, subscribe/unsubscribe/status/resume/reset
+  control ack, 임시 tap cleanup을 확인했습니다.
+- Runtime Console smoke는 metrics, state-dump, event POST/status, event storage/status,
+  runtime status와 tap cleanup을 확인했습니다.
+
+미실행:
+
+- `verify-predev --soak-minutes ...`: 사용자 명시 요청 없음
+- `verify-va-runtime-console-longrun ...`: 사용자 명시 요청 없음
+- `verify-event-post-longrun ...`: 사용자 명시 요청 없음
+
+## 2026-05-10 - Live Source Health / Operator Workflow 1차 검증
+
+통과:
+
+- `./server.sh build`
+- `./server.sh verify-ops-root-cause-panel`
+- `./server.sh verify-client-dashboard-polish`
+- `./server.sh verify-ops-source-lifecycle`
+- `./server.sh verify-auth-bootstrap`: sandbox 포트 바인딩 실패 후 일반 권한 재실행 기준 통과
+- `./server.sh verify-auth-users`
+- `./server.sh verify-auth-routes`
+- `./server.sh verify-ops-client-ui`: auth off 테스트 서버 기준 통과
+- `./server.sh verify-ops-client-ui --screenshots`: route/API 12/0, screenshot 14/0
+- `./server.sh verify-rule-ui`
+- `./server.sh verify-codecs`: 67/0/3
+- `./server.sh verify-webrtc-ice`: 7/0/1
+- `./server.sh verify-multichannel`: 제거된 browser harness 기준 skip-only, exit 0
+- `./server.sh verify-webrtc-va-metadata`: 8/0
+- `git diff --check`
+
+확인:
+
+- `/ops/api/source-health`는 `media-server.ops.source-health.v1` schema와
+  `summary`, `sourceHealth[]`를 반환합니다.
+- 당시 `/ops/sources`는 Live Source Health panel/table/detail을 표시했습니다.
+  현재 제품 UI에서는 source health 요약을 `/ops/dashboard`와 API 검증으로 다룹니다.
+- `/ops/dashboard` 문제 원인 패널은 Live Source Health를 source 재검증
+  workflow로 연결합니다.
+- client dashboard/live detail은 source locator, ONVIF endpoint, raw diagnostic
+  JSON 없이 sanitized `summary`와 `warningLevel`만 표시합니다.
+- `verify-ops-source-lifecycle` cleanup 중 WebRTC session close 순서 crash를
+  재현했고, subscriber 제거 후 bridge stop 순서로 정리해 재검증했습니다.
+
 ## 2026-05-09 - 운영 제품화 안정화 순차 검증
 
 통과:

@@ -28,6 +28,12 @@ void TraceSessionEvent(const std::string& message) {
     }
 }
 
+std::int64_t NowUnixMs() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::system_clock::now().time_since_epoch())
+        .count();
+}
+
 analysis::AnalysisContext BuildAnalysisContext(const media::IngressRequest& request,
                                                const media::SourceSpec& source_spec) {
     analysis::AnalysisContext context;
@@ -177,6 +183,9 @@ SessionManager::CreateResult SessionManager::CreateSession(const media::IngressR
         }
         TraceSessionEvent(std::string(source_started ? "started" : "reused") + " source worker key=" + key +
                           " reason=" + start_reason);
+        if (!acquired.created && source_started) {
+            RecordSourceReconnect(key);
+        }
     }
 
     {
@@ -234,6 +243,93 @@ SessionManager::RuntimeStateSnapshot SessionManager::GetRuntimeStateSnapshot() c
     snapshot.registry_active_streams = registry_.ActiveStreamCount();
     snapshot.active_analysis_taps = analysis_manager_.ActiveTapCount();
     return snapshot;
+}
+
+std::vector<SessionManager::SourceReconnectStats> SessionManager::SourceReconnectStatsSnapshot() const {
+    std::vector<SourceReconnectStats> stats;
+    {
+        std::lock_guard lock(mu_);
+        stats.reserve(source_reconnect_stats_.size());
+        for (const auto& [_, item] : source_reconnect_stats_) {
+            stats.push_back(item);
+        }
+    }
+    std::sort(stats.begin(), stats.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.stream_key < rhs.stream_key;
+    });
+    return stats;
+}
+
+std::vector<SessionManager::SourceDescriptorSnapshot> SessionManager::SourceDescriptorSnapshots() const {
+    std::vector<std::pair<StreamKey, std::shared_ptr<SharedStream>>> streams;
+    {
+        std::lock_guard lock(mu_);
+        streams.reserve(sessions_.size() + analysis_taps_.size());
+        for (const auto& [_, entry] : sessions_) {
+            if (entry.stream != nullptr) {
+                streams.emplace_back(entry.stream_key, entry.stream);
+            }
+        }
+        for (const auto& [_, entry] : analysis_taps_) {
+            if (entry.stream != nullptr) {
+                streams.emplace_back(entry.stream_key, entry.stream);
+            }
+        }
+    }
+
+    std::sort(streams.begin(), streams.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.first < rhs.first;
+    });
+    streams.erase(std::unique(streams.begin(),
+                              streams.end(),
+                              [](const auto& lhs, const auto& rhs) {
+                                  return lhs.first == rhs.first;
+                              }),
+                  streams.end());
+
+    std::vector<SourceDescriptorSnapshot> snapshots;
+    snapshots.reserve(streams.size());
+    for (const auto& [stream_key, stream] : streams) {
+        if (stream == nullptr) {
+            continue;
+        }
+        const auto descriptor = stream->descriptor();
+        if (!descriptor.has_value()) {
+            continue;
+        }
+        snapshots.push_back(SourceDescriptorSnapshot{
+            .stream_key = stream_key,
+            .descriptor = *descriptor,
+        });
+    }
+    return snapshots;
+}
+
+std::vector<SessionManager::SourceEgressStats> SessionManager::SourceEgressStatsSnapshot() const {
+    std::unordered_map<StreamKey, SourceEgressStats> stats_by_stream;
+    {
+        std::lock_guard lock(mu_);
+        for (const auto& [_, entry] : sessions_) {
+            auto& stats = stats_by_stream[entry.stream_key];
+            stats.stream_key = entry.stream_key;
+            ++stats.session_count;
+        }
+        for (const auto& [_, entry] : analysis_taps_) {
+            auto& stats = stats_by_stream[entry.stream_key];
+            stats.stream_key = entry.stream_key;
+            ++stats.analysis_tap_count;
+        }
+    }
+
+    std::vector<SourceEgressStats> stats;
+    stats.reserve(stats_by_stream.size());
+    for (const auto& [_, item] : stats_by_stream) {
+        stats.push_back(item);
+    }
+    std::sort(stats.begin(), stats.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.stream_key < rhs.stream_key;
+    });
+    return stats;
 }
 
 SessionManager::AnalysisTapResult SessionManager::AttachAnalysisTap(const media::IngressRequest& request,
@@ -334,12 +430,16 @@ SessionManager::AnalysisTapResult SessionManager::AttachAnalysisTap(const media:
         }
         TraceSessionEvent(std::string(source_started ? "analysis started" : "analysis reused") +
                           " source worker key=" + key);
+        if (!acquired.created && source_started) {
+            RecordSourceReconnect(key);
+        }
     }
 
     {
         std::lock_guard lock(mu_);
         auto& entry = analysis_taps_[attach_result.tap_id];
         entry.stream_key = key;
+        entry.stream = acquired.stream;
         entry.source_kind = source_spec->kind;
         entry.reuse_key = attach_result.reuse_key;
         entry.ref_count = entry.ref_count == 0 ? 1 : entry.ref_count + 1;
@@ -477,6 +577,14 @@ void SessionManager::ScheduleIdleCleanup(StreamKey stream_key) const {
             resource_guard_.ReleaseStream();
         }
     }).detach();
+}
+
+void SessionManager::RecordSourceReconnect(const StreamKey& stream_key) {
+    std::lock_guard lock(mu_);
+    auto& stats = source_reconnect_stats_[stream_key];
+    stats.stream_key = stream_key;
+    ++stats.reconnect_count;
+    stats.last_reconnect_at_ms = NowUnixMs();
 }
 
 }  // namespace core

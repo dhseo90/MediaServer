@@ -77,17 +77,22 @@ EventLifecycleDecision EventManager::Update(const EventCandidate& candidate,
     const std::string key = BuildStateKey(candidate.key);
     EventLifecycleState& state = states_[key];
     state.key = candidate.key;
-    auto record_decision = [this, &candidate](const EventLifecycleDecision& item) {
+    auto record_decision = [this, &candidate, &state](const EventLifecycleDecision& item) {
         EventManagerChannelMetrics& channel = channel_metrics_[ChannelMetricKey(candidate.key)];
         channel.stream_id = candidate.key.stream_id;
         channel.channel_id = candidate.key.channel_id.empty() ? candidate.key.stream_id : candidate.key.channel_id;
         if (item.emit) {
             ++emitted_count_;
             ++channel.emitted_count;
+            ++state.emitted_count;
+            state.last_event_id = item.event.event_id;
+            state.last_event_status = ToString(item.stage);
         }
         if (item.suppressed) {
             ++suppressed_count_;
             ++channel.suppressed_count;
+            ++state.suppressed_count;
+            state.last_event_status = ToString(item.stage);
         }
     };
     auto apply_metadata = [&candidate, &state](EventLifecycleDecision* item) {
@@ -272,6 +277,12 @@ std::vector<EventLifecycleStateSnapshot> EventManager::Snapshot() const {
         item.last_emitted_ms = TimestampMs(state.last_emitted_ns);
         item.cooldown_until_ms = TimestampMs(state.cooldown_until_ns);
         item.ended_at_ms = TimestampMs(state.ended_at_ns);
+        item.emitted_count = state.emitted_count;
+        item.suppressed_count = state.suppressed_count;
+        item.last_event_id = state.last_event_id;
+        item.last_event_status = state.last_event_status.empty()
+                                     ? ToString(state.stage)
+                                     : state.last_event_status;
         snapshot.push_back(std::move(item));
     }
     return snapshot;

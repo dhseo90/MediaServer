@@ -14,6 +14,7 @@ check("client dashboard script renders field summary and comparison", () => {
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
   const required = [
     "dashboardFieldState",
+    "clientHealthSummaryLabel",
     "renderDashboardCompare",
     "loadClientDashboardCompare",
     "clientDashboardCompareFilter",
@@ -48,6 +49,8 @@ check("client dashboard script renders field summary and comparison", () => {
     "라인 통과",
     "출입구",
     "정상 관제 중",
+    "신호 확인 중",
+    "상태 요약",
   ];
   for (const snippet of required) {
     assert(script.includes(snippet), `client dashboard script is missing snippet: ${snippet}`);
@@ -92,6 +95,10 @@ check("client dashboard API exposes sanitized field preset inputs", () => {
   const required = [
     "\\\"sourceTags\\\"",
     "\\\"ownerGroup\\\"",
+    "\\\"warningLevel\\\"",
+    "\\\"summary\\\"",
+    "waiting-signal",
+    "metadata-delay",
     "AppendClientViewIdentityJson",
     "ClientViewDashboardJson",
   ];
