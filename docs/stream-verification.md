@@ -158,6 +158,10 @@ Ops/Client shell 변경 확인 포인트:
 - `--screenshots` 옵션은 `/ops/home`, `/ops/dashboard`, `/ops/rules`,
   `/ops/sources`, `/ops/users`, `/client/live`, `/client/dashboard`를
   기본 320/390/760/1180px 폭으로 열어 overflow와 screenshot을 남깁니다.
+- 채널/사용자 변경 이력 필터는 table layout과 별도 계약으로 봅니다.
+  320/390px에서 검색/작업자/사용자/대상/동작/시작/종료/페이지 크기
+  control이 감사 로그 패널 폭 안에 있어야 하며, 시작/종료 date/time
+  input이 viewport 밖으로 밀리면 실패입니다.
 - 실제 Chrome DevTools 수동 리뷰는 자동 overflow 결과와 별개로 아래
   체크리스트를 닫습니다.
   - [ ] Device toolbar를 320px로 맞추고 Ops nav, 계정/로그아웃,

@@ -61,6 +61,11 @@ client/viewer shell에는 내부 진단 응답, debug 정보, developer/source U
   `opsTableRowHtml`, `setOpsDetailPanelOpen` helper를 사용합니다.
   모바일에서는 같은 카드형 row 규칙으로 전환되며, 셀 내용과 action
   버튼은 자기 칸 밖으로 밀려나지 않아야 합니다.
+- `/ops/sources`와 `/ops/users`의 변경 이력 필터는 table 아래의
+  감사 로그 패널 안에 머물러야 합니다. 320/390px에서는 검색, 작업자,
+  사용자, 대상, 동작, 시작, 종료, 페이지 크기 control이 부모 폭 안에서
+  줄바꿈되고, native date/time input 자체가 화면 오른쪽 밖으로
+  튀어나가지 않아야 합니다.
 - `ClientShellCss()`: client shell 전용 CSS를 `ClientShellPageHtml()` 밖에서 관리합니다.
 - `AppendOpsShellStart/End`, `AppendAuthShellStart/End`: 운영 shell과 setup/login auth shell의 공통 document/header/footer를 렌더링합니다.
 - `AppendProductAccountMenu()`: theme toggle, user role, logout 영역을 Ops/Client에서 동일하게 렌더링합니다.
@@ -379,6 +384,11 @@ UI/API 응답에 노출하지 않습니다.
   변경 이력 패널은 검색, 작업자/사용자/대상/action/기간 필터,
   offset 기반 이전/다음 페이지, JSON/CSV export, Diff JSON export,
   전/후 diff 상세 모달을 공통으로 제공합니다.
+  채널/사용자 변경 이력 필터는 작은 화면에서 table/action 영역을
+  침범하지 않는 별도 responsive contract입니다. 320/390px 기준으로
+  시작/종료 input은 `min-width: 0` 흐름 안에서 한 줄 또는 다음 줄로
+  내려가야 하며, 필터 grid가 viewport보다 넓은 고정폭을 만들면
+  regression으로 봅니다.
   서버는 `MEDIA_SERVER_OPS_AUDIT_RETENTION_DAYS` 기준으로 오래된
   `.media_server.ops_audit.jsonl` 항목을 조회/저장 시 정리합니다.
   응답에는 case-insensitive search index metadata, `receivedAtMs` date range field,
