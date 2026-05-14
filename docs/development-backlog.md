@@ -73,13 +73,57 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 | P2 | Re-ID/advanced tracking experiment | Re-ID extractor hook과 association 보강을 default-off benchmark로만 비교 | `compare-close-object-tracker`, `verify-va-replay`, privacy review |
 | P2 | YouTube experiment decision | YouTube import/source 실험을 유지/축소/제거 중 하나로 결정 | `verify-youtube-import`, docs review |
 
+## v1.2.0 착수 게이트
+
+상태: `완료`
+
+2026-05-15 기준 0번 착수 게이트 결과:
+
+- 기준 브랜치: `v1.2.0`
+- release 기준 tag: local `v1.1.0`
+- baseline gate: `./server.sh test --basic --ffmpeg-free`
+  - sandbox 내부 실행은 local port bind 차단으로 실패
+  - 권한 밖 재실행 기준 통과
+  - 결과: 통과 9, 실패 0, 건너뜀 14
+  - 로그: `.media_server.test/20260515-074302`
+- 이 baseline은 short smoke 기준입니다. `--full`, RC longrun, UI screenshot review,
+  외부 camera smoke, TURN/WHEP credential 운영 검증을 대체하지 않습니다.
+
+0번에서 확정한 착수 규칙:
+
+- v1.2.0은 v1.1.0 live-only 경계를 유지합니다.
+- schema, Event POST payload, WebRTC DataChannel, SSE/WS runtime metadata,
+  RTSP/WebRTC media path 변경은 roadmap scope와 분리해 별도 review 이슈로만 다룹니다.
+- client/viewer에는 source URL, ONVIF endpoint, credential reference,
+  raw diagnostic JSON, 내부 session/debug 정보를 노출하지 않습니다.
+- 장기 녹화, VMS/NVR archive, playback/search, ONVIF Profile G recording/replay,
+  Re-ID default-on, binary/runtime/model bundle release는 v1.2.0 기본 scope에서 제외합니다.
+
+## v1.2.0 Scope Issue Split
+
+아래 항목은 GitHub issue 생성 전 문서상 분리 기준입니다.
+실제 이슈 번호와 milestone은 PR/issue 생성 시 연결합니다.
+
+| ID | 우선순위 | 영역 | 상태 | 1차 완료 조건 | 별도 review 필요 조건 |
+| --- | --- | --- | --- | --- | --- |
+| V120-P0-01 | P0 | ONVIF 현장 연동 | 예정 | discovery/SOAP probe, Media/Media2 profile 조회, credential reference 정책을 `/ops/sources` 등록 draft와 연결 | SourceRegistry/PublishedView 저장 schema 변경, client ONVIF endpoint 노출 |
+| V120-P0-02 | P0 | UI visual regression | 예정 | Ops/Client/Auth 주요 화면 320/390/760/1180 screenshot artifact와 수동 review 기준 고정 | 제품 nav 구조 변경, `/lab` 화면 route 재개방 |
+| V120-P0-03 | P0 | Source health operator workflow | 예정 | 상태 변화 이력, failed-only retry, next action, bulk partial failure/rollback 계약 정리 | top-level health 상태 모델 추가, client raw diagnostic 노출 |
+| V120-P1-01 | P1 | Client live/dashboard polish | 예정 | multi-view 비교, event/status copy, empty/error/loading 문구, mobile tile 조작 개선 | client wrapper API schema 변경, viewer source locator 노출 |
+| V120-P1-02 | P1 | Rule/Scenario field tuning | 예정 | 현장 샘플 기반 threshold preset, Loitering/ZoneOccupancy 기본값, scenario issue wording 정리 | ScenarioEngine 판단 로직, event type, payload schema 변경 |
+| V120-P1-03 | P1 | Integrator contract artifact | 예정 | Event POST/WebRTC/SSE/WS contract sample bundle 또는 schema artifact 제공 | payload field 추가/삭제, schema identifier 변경 |
+| V120-P1-04 | P1 | Account lifecycle policy | 예정 | invite expiry, password reset 문구, user audit export, disable/restore 절차 polish | auth store migration, password/session/token contract 변경 |
+| V120-P2-01 | P2 | Release packaging rehearsal | 조건부 Gate | source-only 기준 유지와 container/offline/binary 후보 dry-run 정책 gate 확인 | runtime/model binary를 실제 release asset에 포함 |
+| V120-P2-02 | P2 | Re-ID/advanced tracking experiment | 실험 | default-off benchmark와 privacy review 기준으로 close-object association 비교 | Re-ID default-on, 대형 tracker 교체, media pipeline blocking risk |
+| V120-P2-03 | P2 | YouTube experiment decision | 보류 | 유지/축소/제거 중 하나로 결정하고 docs/test 범위 정리 | 운영 기본 기능 승격, 장시간 import job 정책 도입 |
+
 ## v1.2.0 시작 전 체크리스트
 
 - [x] v1.1.0 PR이 `main`에 merge됨
 - [x] release tag/GitHub Release 여부 결정 (`v1.1.0` tag 생성, GitHub Release는 별도 보류)
-- [ ] `main` 기준 `./server.sh test` 또는 지정 release gate 결과 확인
-- [ ] v1.2.0 scope 이슈를 P0/P1/P2로 분리
-- [ ] schema/media path 변경 가능성이 있는 항목은 별도 migration/review 이슈로 분리
+- [x] `main` 기준 `./server.sh test` 또는 지정 release gate 결과 확인
+- [x] v1.2.0 scope 이슈를 P0/P1/P2로 분리
+- [x] schema/media path 변경 가능성이 있는 항목은 별도 migration/review 이슈로 분리
 
 ## 문서/검증 유지 규칙
 
