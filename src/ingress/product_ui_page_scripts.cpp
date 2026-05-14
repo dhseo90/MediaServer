@@ -2701,18 +2701,24 @@ void AppendOpsShellScript(std::ostringstream& out,
         return opsRulesChannels.find((channel) => String(channel?.id || '') === String(channelId || '')) || null;
       }
       function opsRulesFindChannelForVaRule(item = {}) {
+        const source = item?.source || {};
+        const sourceMatched = opsRulesChannels.find(channel => opsRulesSourceMatches(channel?.source, source));
+        if (sourceMatched) return sourceMatched;
         const itemId = String(item?.id || '').trim();
         if (itemId) {
+          const ruleBoundChannels = [];
           for (const channel of opsRulesChannels) {
             const view = channel?.view;
             const allowed = Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds.map(String) : [];
             if (String(view?.defaultRuleId || '') === itemId || allowed.includes(itemId)) {
-              return channel;
+              ruleBoundChannels.push(channel);
             }
           }
+          return ruleBoundChannels.find(channel => channel?.source?.enabled !== false && channel?.view?.enabled !== false)
+            || ruleBoundChannels[0]
+            || null;
         }
-        const source = item?.source || {};
-        return opsRulesChannels.find(channel => opsRulesSourceMatches(channel?.source, source)) || null;
+        return null;
       }
       function opsRulesRuleBasePayload(type, existingEvent = {}, classes = ['person']) {
         const lineMode = opsRulesIsLineEventType(type);
@@ -4915,9 +4921,6 @@ void AppendOpsShellScript(std::ostringstream& out,
           }
           if (channel?.view && !opsRulesViewHasClientAccess(channel.view)) {
             issues.push('선택한 PublishedView에 클라이언트 노출 권한이 없습니다.');
-          }
-          if (channel?.view && currentId && !opsRulesViewAllowsRuleId(channel.view, id)) {
-            issues.push(`선택한 PublishedView의 허용 룰 목록에 ${id}가 없습니다.`);
           }
           issues.push(...opsRulesClassConflictMessages(payload, template, profile));
           if (channel?.source && payload?.source && !opsRulesSourceMatches(channel.source, payload.source)) {

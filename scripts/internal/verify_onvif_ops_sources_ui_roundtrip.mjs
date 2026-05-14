@@ -107,9 +107,10 @@ try {
   await clickSelector(browser, "#channel-save-selected", "ONVIF channel save");
   await assertText(browser, "#status", "채널 저장 완료", "channel save status");
   await assertOnvifChannelCopyButtons(browser, sourceId);
+  await assertOnvifChannelCopyClipboard(browser, sourceId, savedRtspUrl);
   await assertBrowserErrors(browser);
   console.log("[pass] ONVIF camera source saved through channel form");
-  console.log("[pass] ops sources UI renders ONVIF copy buttons");
+  console.log("[pass] ops sources UI renders and copies ONVIF URLs");
 } finally {
   if (browser) await browser.close().catch(() => {});
 }
@@ -136,43 +137,15 @@ try {
   console.log("[pass] ops views API preserved ONVIF PublishedView fields");
 
   const catalogBefore = await requestJson("/ops/api/rules/catalog");
-  savedVaRuleId = findFreeNumericAnalysisId(catalogBefore, sourceId);
   savedEventRuleId = findFreeNumericAnalysisId({
     rules: catalogBefore.rules,
-    vaRules: [...(Array.isArray(catalogBefore.vaRules) ? catalogBefore.vaRules : []), { id: savedVaRuleId }],
-  }, Number(savedVaRuleId) + 1);
+    vaRules: Array.isArray(catalogBefore.vaRules) ? catalogBefore.vaRules : [],
+  }, Number(sourceId) + 1);
   const profileId = findFirstProfileId(catalogBefore) || "1";
   await requestJson(`/lab/analysis/rules/${encodeURIComponent(savedEventRuleId)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(onvifEventRulePayload(savedEventRuleId)),
-  });
-  await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(savedVaRuleId)}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(onvifVaRulePayload(savedVaRuleId, displayName, savedRtspUrl, savedEventRuleId, profileId)),
-  });
-  const allowedRuleIds = new Set((Array.isArray(savedView.allowedRuleIds) ? savedView.allowedRuleIds : []).map(String));
-  allowedRuleIds.add(savedVaRuleId);
-  const allowedOverlayModes = new Set((Array.isArray(savedView.allowedOverlayModes) ? savedView.allowedOverlayModes : ["raw", "va-overlay"]).map(String));
-  allowedOverlayModes.add("va-rule");
-  await requestJson(`/ops/api/views/${encodeURIComponent(sourceId)}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      viewId: savedView.viewId,
-      displayName: savedView.displayName,
-      sourceId: savedView.sourceId,
-      defaultRuleId: savedVaRuleId,
-      allowedRuleIds: [...allowedRuleIds],
-      allowedOverlayModes: [...allowedOverlayModes],
-      showDashboard: savedView.showDashboard !== false,
-      showEvents: savedView.showEvents !== false,
-      showMetadataSummary: savedView.showMetadataSummary !== false,
-      clientGroups: Array.isArray(savedView.clientGroups) ? savedView.clientGroups : [],
-      maxTiles: Number(savedView.maxTiles || 1),
-      enabled: savedView.enabled !== false,
-    }),
   });
   browser = await openBrowserPage({
     httpBase,
@@ -185,13 +158,35 @@ try {
   });
   await installErrorCollector(browser);
   await assertVisible(browser, '[data-testid="ops-rules-page"]', "ops rules page");
+  await clickSelector(browser, "#opsAddVaRuleBtn", "ONVIF VA rule tab");
+  await clickSelector(browser, "#opsCreateVaRuleBtn", "ONVIF VA rule create");
+  await assertVisible(browser, "#opsVaRuleForm", "ONVIF VA rule form");
+  savedVaRuleId = await readInputValue(browser, "#opsVaRuleIdInput", "ONVIF VA rule id");
+  assert(savedVaRuleId, "ONVIF VA rule id was not prefilled");
+  await setInputValue(browser, "#opsVaRuleNameInput", `${displayName} 분석 설정`, "ONVIF VA rule name");
+  await setSelectValue(browser, "#opsVaRuleChannelSelect", sourceId, "ONVIF VA rule channel");
+  await setSelectValue(browser, "#opsVaRuleTemplateSeedSelect", savedEventRuleId, "ONVIF VA rule event template");
+  await setSelectValue(browser, "#opsVaRuleProfileSelect", profileId, "ONVIF VA rule profile");
+  await clickSelector(browser, "#opsRulesComposerSave", "ONVIF VA rule save");
+  await waitForApiRecord("/ops/api/rules/catalog", payload => findRecord(payload.vaRules, "id", savedVaRuleId), "saved ONVIF VA rule");
+  const viewAfterVaSave = await waitForApiRecord(
+    "/ops/api/views",
+    payload => {
+      const view = findRecord(payload.views, "viewId", sourceId);
+      if (!view) return null;
+      const allowedRules = new Set((Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds : []).map(String));
+      const allowedModes = new Set((Array.isArray(view.allowedOverlayModes) ? view.allowedOverlayModes : []).map(String));
+      return allowedRules.has(savedVaRuleId) && allowedModes.has("va-rule") ? view : null;
+    },
+    "ONVIF PublishedView rule attachment",
+  );
+  assert(viewAfterVaSave?.defaultRuleId === savedVaRuleId || Array.isArray(viewAfterVaSave?.allowedRuleIds), "ONVIF PublishedView readback missing rule attachment");
   await assertOnvifRuleCopyButtons(browser, savedVaRuleId);
-  await clickSelector(browser, `[data-ops-rule-copy-kind="rtsp"][data-ops-rule-copy-id="${cssStringEscape(savedVaRuleId)}"]`, "ONVIF rule RTSP copy");
-  await clickSelector(browser, `[data-ops-rule-copy-kind="whep"][data-ops-rule-copy-id="${cssStringEscape(savedVaRuleId)}"]`, "ONVIF rule WHEP copy");
+  await assertOnvifRuleCopyClipboard(browser, savedVaRuleId, sourceId);
   await assertBrowserErrors(browser);
   await browser.close();
   browser = null;
-  console.log("[pass] ops rules UI renders ONVIF copy buttons");
+  console.log("[pass] ops rules UI renders and copies ONVIF URLs");
 
   const clientListText = await requestText("/client/api/views");
   assertNoClientForbiddenText("client-api-views", clientListText, savedRtspUrl);
@@ -219,6 +214,7 @@ try {
     }).catch(error => console.log(`[warn] event rule cleanup failed: ${error.message}`));
   }
   if (sourceId) {
+    await cleanupPublishedViewRuleRefs(sourceId, savedVaRuleId);
     await requestText(`/ops/api/views/${encodeURIComponent(sourceId)}`, {
       method: "DELETE",
       expectedStatus: 200,
@@ -345,6 +341,69 @@ async function assertText(browserInstance, selector, expected, description) {
   );
 }
 
+async function readInputValue(browserInstance, selector, description) {
+  const result = await waitForResult(
+    browserInstance,
+    `
+      (() => {
+        const node = document.querySelector(${JSON.stringify(selector)});
+        if (!node) return { ok: false, message: 'missing input' };
+        return { ok: true, value: String(node.value || '').trim() };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  return String(result.value || "").trim();
+}
+
+async function waitForApiRecord(pathValue, predicate, description) {
+  const startedAt = Date.now();
+  let last = null;
+  while (Date.now() - startedAt < timeoutMs) {
+    last = await requestJson(pathValue).catch(error => ({
+      ok: false,
+      error: error.message,
+    }));
+    const match = predicate(last);
+    if (match) return match;
+    await delay(180);
+  }
+  throw new Error(`${description} API timeout: ${JSON.stringify(last).slice(0, 500)}`);
+}
+
+async function cleanupPublishedViewRuleRefs(viewId, ruleId) {
+  if (!viewId || !ruleId) return;
+  try {
+    const payload = await requestJson("/ops/api/views");
+    const view = findRecord(payload.views, "viewId", viewId);
+    if (!view) return;
+    const allowedRuleIds = (Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds : [])
+      .map(String)
+      .filter(id => id && id !== String(ruleId));
+    await requestJson(`/ops/api/views/${encodeURIComponent(viewId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        viewId: view.viewId,
+        displayName: view.displayName || view.viewId,
+        sourceId: view.sourceId || view.viewId,
+        defaultRuleId: String(view.defaultRuleId || "") === String(ruleId) ? "" : String(view.defaultRuleId || ""),
+        allowedRuleIds,
+        allowedOverlayModes: Array.isArray(view.allowedOverlayModes) ? view.allowedOverlayModes : ["raw", "va-overlay", "va-rule"],
+        showDashboard: view.showDashboard !== false,
+        showEvents: view.showEvents !== false,
+        showMetadataSummary: view.showMetadataSummary !== false,
+        clientGroups: Array.isArray(view.clientGroups) ? view.clientGroups : [],
+        maxTiles: Number(view.maxTiles || 1),
+        enabled: view.enabled !== false,
+      }),
+    });
+  } catch (error) {
+    console.log(`[warn] PublishedView rule cleanup failed: ${error.message}`);
+  }
+}
+
 async function assertOnvifChannelCopyButtons(browserInstance, sourceIdValue) {
   const result = await browserInstance.evaluate(`
     (() => {
@@ -371,6 +430,38 @@ async function assertOnvifChannelCopyButtons(browserInstance, sourceIdValue) {
   }
 }
 
+async function assertOnvifChannelCopyClipboard(browserInstance, sourceIdValue, rtspUrl) {
+  const encodedRtsp = encodeURIComponent(rtspUrl);
+  const cases = [
+    {
+      selector: `[data-copy-stream-type="rtsp"][data-copy-stream-mode="raw"][data-copy-stream-channel="${cssStringEscape(sourceIdValue)}"]`,
+      description: "ONVIF channel live RTSP copy",
+      expect: value => value.startsWith("rtsp://") && value.includes("source=rtsp") && value.includes(encodedRtsp) && !value.includes("va=1"),
+    },
+    {
+      selector: `[data-copy-stream-type="whep"][data-copy-stream-mode="raw"][data-copy-stream-channel="${cssStringEscape(sourceIdValue)}"]`,
+      description: "ONVIF channel live WHEP copy",
+      expect: value => value.startsWith(`${httpBase}/whep?`) && value.includes("source=rtsp") && value.includes(encodedRtsp) && !value.includes("va=1"),
+    },
+    {
+      selector: `[data-copy-stream-type="rtsp"][data-copy-stream-mode="va"][data-copy-stream-channel="${cssStringEscape(sourceIdValue)}"]`,
+      description: "ONVIF channel VA RTSP copy",
+      expect: value => value.startsWith("rtsp://") && value.includes("source=rtsp") && value.includes(encodedRtsp) && value.includes("va=1"),
+    },
+    {
+      selector: `[data-copy-stream-type="whep"][data-copy-stream-mode="va"][data-copy-stream-channel="${cssStringEscape(sourceIdValue)}"]`,
+      description: "ONVIF channel VA WHEP copy",
+      expect: value => value.startsWith(`${httpBase}/whep?`) && value.includes("source=rtsp") && value.includes(encodedRtsp) && value.includes("va=1"),
+    },
+  ];
+  for (const item of cases) {
+    const copied = await clickAndReadCopiedText(browserInstance, item.selector, item.description);
+    if (!item.expect(copied)) {
+      throw new Error(`${item.description} copied unexpected URL: ${copied}`);
+    }
+  }
+}
+
 async function assertOnvifRuleCopyButtons(browserInstance, vaRuleId) {
   const result = await waitForResult(
     browserInstance,
@@ -391,6 +482,68 @@ async function assertOnvifRuleCopyButtons(browserInstance, vaRuleId) {
     "ONVIF rule copy buttons",
   );
   return result;
+}
+
+async function assertOnvifRuleCopyClipboard(browserInstance, vaRuleId, viewId) {
+  const cases = [
+    {
+      selector: `[data-ops-rule-copy-kind="rtsp"][data-ops-rule-copy-id="${cssStringEscape(vaRuleId)}"]`,
+      description: "ONVIF rule RTSP copy",
+      expect: value => value.startsWith("rtsp://") && value.includes(`vaRule=${encodeURIComponent(vaRuleId)}`),
+    },
+    {
+      selector: `[data-ops-rule-copy-kind="whep"][data-ops-rule-copy-id="${cssStringEscape(vaRuleId)}"]`,
+      description: "ONVIF rule WHEP copy",
+      expect: value => value === `${httpBase}/whep?vaRule=${encodeURIComponent(vaRuleId)}`,
+    },
+    {
+      selector: `[data-ops-rule-copy-kind="client"][data-ops-rule-copy-id="${cssStringEscape(vaRuleId)}"]`,
+      description: "ONVIF rule WebRTC copy",
+      expect: value => value === `${httpBase}/client/live#view=${encodeURIComponent(viewId)}&mode=va-rule&rule=${encodeURIComponent(vaRuleId)}`,
+    },
+  ];
+  for (const item of cases) {
+    const copied = await clickAndReadCopiedText(browserInstance, item.selector, item.description);
+    if (!item.expect(copied)) {
+      throw new Error(`${item.description} copied unexpected URL: ${copied}`);
+    }
+  }
+}
+
+async function clickAndReadCopiedText(browserInstance, selector, description) {
+  const clicked = await waitForResult(
+    browserInstance,
+    `
+      (() => {
+        window.__onvifLastCopy = '';
+        if (!window.__onvifCopyListenerInstalled) {
+          document.addEventListener('copy', event => {
+            window.__onvifLastCopy = event.clipboardData?.getData('text/plain') || '';
+          }, false);
+          window.__onvifCopyListenerInstalled = true;
+        }
+        const node = document.querySelector(${JSON.stringify(selector)});
+        if (!node) return { ok: false, message: 'missing element' };
+        if (node.hidden || node.disabled) return { ok: false, hidden: node.hidden, disabled: node.disabled };
+        node.click();
+        return { ok: true };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  if (!clicked?.ok) {
+    throw new Error(`${description} click failed: ${JSON.stringify(clicked)}`);
+  }
+  const copied = await waitForResult(
+    browserInstance,
+    `
+      (() => ({ ok: Boolean(window.__onvifLastCopy), value: String(window.__onvifLastCopy || '') }))()
+    `,
+    item => item?.ok === true,
+    `${description} clipboard`,
+  );
+  return String(copied.value || "");
 }
 
 async function installErrorCollector(browserInstance) {
@@ -517,37 +670,6 @@ function onvifEventRulePayload(id) {
     enabled: true,
     match: { sourceKind: "*", route: "*" },
     analysis: { profileId: "1", classes: ["person"] },
-    event: {
-      type: "intrusion-dwell",
-      region: {
-        type: "polygon",
-        points: [{ x: 0.1, y: 0.1 }, { x: 0.9, y: 0.1 }, { x: 0.9, y: 0.9 }, { x: 0.1, y: 0.9 }],
-      },
-      minConfidence: 0.25,
-      minDurationMs: 0,
-    },
-    outputs: { overlay: true, metadata: true, events: true },
-    ruleKind: "scenario",
-    scenario: {
-      type: "intrusion-dwell",
-      enabled: true,
-      candidateTimeMs: 2000,
-      dwellTimeMs: 10000,
-      cooldownMs: 5000,
-      targetClasses: ["person"],
-    },
-  };
-}
-
-function onvifVaRulePayload(id, displayNameValue, rtspUrl, templateRuleId, profileId) {
-  return {
-    id,
-    name: `${displayNameValue} 분석 설정`,
-    enabled: true,
-    match: { sourceKind: "*", route: "*", vaRule: id },
-    source: { kind: "rtsp", url: rtspUrl },
-    analysis: { profileId, classes: ["person"] },
-    templateStart: { ruleId: templateRuleId },
     event: {
       type: "intrusion-dwell",
       region: {

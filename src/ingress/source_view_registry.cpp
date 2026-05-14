@@ -652,7 +652,7 @@ SourceViewRegistry::PublishedViewRecord DefaultPublishedViewRecord(
     view.view_id = source.source_id.empty() ? "1" : source.source_id;
     view.display_name = source.display_name.empty() ? "Default Channel" : source.display_name;
     view.source_id = source.source_id;
-    view.allowed_overlay_modes = {"raw", "va-overlay"};
+    view.allowed_overlay_modes = {"raw", "va-overlay", "va-rule"};
     view.show_dashboard = true;
     view.show_events = true;
     view.show_metadata_summary = true;
