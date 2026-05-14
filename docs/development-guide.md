@@ -345,6 +345,7 @@ Ops/영상 분석 UI를 수정한 뒤에는 최소한 아래 검증을 실행합
 ./server.sh verify-rule-ui
 ./server.sh verify-ops-rules-roundtrip
 ./server.sh verify-ops-client-ui
+./server.sh verify-ops-client-ui --screenshots
 ./server.sh verify-ops-click-e2e
 ./server.sh verify-ops-tables-layout
 ```
@@ -362,7 +363,10 @@ Ops/영상 분석 UI를 수정한 뒤에는 최소한 아래 검증을 실행합
 - 분석 프로파일: detector, fps, queue, 입력 해상도 저장과 채널 분석 설정의 선택 가능 여부
 - 운영 미리보기: `/client/live`의 실시간 스트리밍, VA 오버레이, VA 룰 URL 복사/보기 동작
 - `/ops/dashboard`: source lifecycle, stale tap, reconnect/cleanup, auth/config 문제 원인과 다음 조치 버튼
-- 공통 테이블: 채널/룰/사용자 table row/action/detail 영역이 390px 모바일과 desktop resize에서 칸을 침범하지 않는지 확인
+- 공통 테이블: 채널/룰/사용자 table row/action/detail 영역이 320/390/760px Chrome DevTools와 desktop resize에서 칸을 침범하지 않는지 확인
+- 수동 시각 리뷰: Chrome DevTools device toolbar에서 320/390/760px을 차례로 열고
+  nav/account, URL copy, 변경 이력 시작/종료 입력, dashboard 카드가 서로 겹치지 않는지
+  [stream-verification.md](./stream-verification.md)의 체크박스로 기록합니다.
 
 UI 사용 흐름은 [ui-guide.md](./ui-guide.md)에 별도로 유지합니다.
 

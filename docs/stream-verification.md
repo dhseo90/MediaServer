@@ -150,14 +150,23 @@ Ops/Client shell 변경 확인 포인트:
 - `/client/live`와 `/ops/rules` 미리보기의 `raw/va-overlay/va-rule` payload
 - channel/rule URL 복사 버튼의 selector와 출력 URL 생성
 - `/ops/dashboard` 문제 원인 패널의 source lifecycle, stale, reconnect, auth/config 다음 조치 버튼
-- 채널/룰/사용자 공통 table helper 적용과 모바일 390px action/detail overflow 없음
+- 채널/룰/사용자 공통 table helper 적용과 모바일 320/390/760px action/detail overflow 없음
 
 추가 참고:
 
 - Auth route smoke는 격리된 Source/View registry 파일을 사용합니다.
 - `--screenshots` 옵션은 `/ops/home`, `/ops/dashboard`, `/ops/rules`,
   `/ops/sources`, `/ops/users`, `/client/live`, `/client/dashboard`를
-  폭별로 열어 overflow와 screenshot을 남깁니다.
+  기본 320/390/760/1180px 폭으로 열어 overflow와 screenshot을 남깁니다.
+- 실제 Chrome DevTools 수동 리뷰는 자동 overflow 결과와 별개로 아래
+  체크리스트를 닫습니다.
+  - [ ] Device toolbar를 320px로 맞추고 Ops nav, 계정/로그아웃,
+    채널/룰/사용자 table action, client live/dashboard header가 좌우를 침범하지 않는지 확인
+  - [ ] Device toolbar를 390px로 맞추고 위 항목과 변경 이력 시작/종료 입력,
+    룰 URL copy 버튼 줄바꿈이 서로 겹치지 않는지 확인
+  - [ ] Device toolbar를 760px로 맞추고 nav/account 2열 배치,
+    dashboard 카드 폭, channel/rule URL copy 버튼 높이가 같은 규칙으로 보이는지 확인
+  - [ ] `verify-ops-client-ui --screenshots` 산출물 경로를 리뷰 기록에 남김
 - `webrtc_http_server.cpp`에서 `product_ui_page_scripts.*`로 UI 소유권을 옮기는
   구조 변경은 `./server.sh build`,
   `./server.sh verify-auth-routes`,

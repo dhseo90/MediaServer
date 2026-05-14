@@ -20,7 +20,7 @@ Options:
   --timeout-ms <ms>         HTTP/브라우저 대기 시간입니다. 기본 10000.
   --screenshots[=1]         대표 화면 screenshot smoke를 함께 수행합니다.
   --chrome-path <path>      Chrome/Chromium 실행 파일 경로입니다.
-  --visual-widths <csv>     screenshot 검증 viewport 폭 목록입니다. 기본 390,1180.
+  --visual-widths <csv>     screenshot 검증 viewport 폭 목록입니다. 기본 320,390,760,1180.
   --visual-height <px>      screenshot 검증 viewport 높이입니다. 기본 900.
   --debug-port-base <port>  Chrome CDP port 시작값입니다. 기본 9700.
   --output-dir <path>       screenshot/log 출력 디렉터리입니다.
@@ -44,7 +44,7 @@ const httpBase = (args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const timeoutMs = Number(args.timeoutMs || 10000);
 const screenshotEnabled = isTruthy(args.screenshots);
 const chromePath = args.chromePath || findChrome();
-const visualWidths = parseWidthList(args.visualWidths || "390,1180");
+const visualWidths = parseWidthList(args.visualWidths || "320,390,760,1180");
 const visualHeight = Number(args.visualHeight || 900);
 const debugPortBase = Number(args.debugPortBase || 9700);
 const runId = `ops-client-ui-${Date.now()}-${process.pid}`;
