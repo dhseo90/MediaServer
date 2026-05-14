@@ -183,6 +183,10 @@ std::string ProductSharedUiScript() {
         'Published WebRTC 소스': 'Published WebRTC source',
         'ONVIF 스트림 URI': 'ONVIF Stream URI',
         '발행 sourceId': 'Published sourceId',
+        'RTSP/WHEP는 운영 확인용입니다. 브라우저 재생은': 'RTSP/WHEP is for operations checks. Browser playback is available at',
+        '에서 확인합니다.': '.',
+        '소스 상태 변경': 'Source status changes',
+        '전체 이력': 'Full history',
         '외부 WHEP pull': 'External WHEP pull',
         'ONVIF 카메라는 ONVIF 프로파일에서 선택한 라이브 스트림 URI를 연결합니다. 외부 WHEP는 URL 입력, Published WebRTC 소스는 저장된 sourceId 연결입니다.': 'ONVIF camera connects the live stream URI selected from an ONVIF profile. External WHEP takes a URL. Published WebRTC source connects a saved sourceId.',
         'ONVIF 장치의 라이브 프로파일에서 선택한 재생 URI를 입력합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.': 'Enter the playback URI selected from the ONVIF device live profile. After saving, it is shown as an ONVIF channel and uses the same RTSP/WHEP output URL copy flow.',
@@ -406,6 +410,8 @@ std::string ProductSharedUiScript() {
           .join(' · ');
         const rules = [
           [/^권한:\s*(.+)$/u, (_match, role) => `Role: ${role}`],
+          [/^ONVIF 스트림 URI:\s*(.+)$/u, (_match, uri) => `ONVIF Stream URI: ${uri}`],
+          [/^발행 sourceId:\s*(.+)$/u, (_match, sourceId) => `Published sourceId: ${sourceId}`],
           [/^전체\s+(\d+)$/u, (_match, count) => `All ${count}`],
           [/^선택\s+(\d+)$/u, (_match, count) => `Selected ${count}`],
           [/^비활성\s+(\d+)$/u, (_match, count) => `Disabled ${count}`],

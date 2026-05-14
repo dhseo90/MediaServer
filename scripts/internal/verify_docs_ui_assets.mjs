@@ -121,9 +121,9 @@ check("docs/assets/ui contains only managed PNG files with valid dimensions", ()
   assert(fs.existsSync(docsAssetEnDir), "missing English UI screenshot asset directory: docs/assets/ui/en");
   const englishEntries = fs.readdirSync(docsAssetEnDir).filter((entry) => entry.endsWith(".png"));
   for (const entry of englishEntries) {
-    assert(readmeAssets.includes(entry), `unexpected unmanaged English UI PNG asset: ${entry}`);
+    assert(uiGuideAssets.includes(entry), `unexpected unmanaged English UI PNG asset: ${entry}`);
   }
-  for (const asset of readmeAssets) {
+  for (const asset of uiGuideAssets) {
     const filePath = path.join(docsAssetEnDir, asset);
     assert(fs.existsSync(filePath), `missing English UI screenshot asset: ${asset}`);
     const size = fs.statSync(filePath).size;

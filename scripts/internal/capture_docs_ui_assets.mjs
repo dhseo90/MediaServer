@@ -35,7 +35,7 @@ const tasks = [
     file: "ops-home.png",
     pagePath: "/ops/home",
     viewport: { width: 1680, height: 1180 },
-    clip: { selectors: ['header', '[data-testid="ops-home-page"]'], fitMainWidth: true, margin: 18, maxHeight: 1020 },
+    clip: { selectors: ['header', '[data-testid="ops-home-page"]'], fitMainWidth: true, margin: 18 },
   },
   {
     name: "client-live",
@@ -51,7 +51,6 @@ const tasks = [
       ],
       fitMainWidth: true,
       margin: 18,
-      maxHeight: 1680
     },
   },
   {
@@ -59,7 +58,7 @@ const tasks = [
     file: "ops-channels.png",
     pagePath: "/ops/sources",
     viewport: { width: 1680, height: 1250 },
-    clip: { selectors: ['header', '[data-testid="ops-sources-page"]'], fitMainWidth: true, margin: 18, maxHeight: 1080 },
+    clip: { selectors: ['header', '[data-testid="ops-sources-page"]'], fitMainWidth: true, margin: 18 },
   },
   {
     name: "ops-rules",
@@ -75,7 +74,6 @@ const tasks = [
       ],
       fitMainWidth: true,
       margin: 18,
-      maxHeight: 1420
     },
   },
   {
@@ -100,7 +98,6 @@ const tasks = [
       ],
       fitMainWidth: true,
       margin: 18,
-      maxHeight: 1080
     },
   },
   {
@@ -108,7 +105,7 @@ const tasks = [
     file: "ops-dashboard.png",
     pagePath: "/ops/dashboard",
     viewport: { width: 1680, height: 1220 },
-    clip: { selectors: ['header', '[data-testid="ops-dashboard-page"]'], fitMainWidth: true, margin: 18, maxHeight: 1040 },
+    clip: { selectors: ['header', '[data-testid="ops-dashboard-page"]'], fitMainWidth: true, margin: 18 },
   },
   {
     name: "client-dashboard",
@@ -116,7 +113,7 @@ const tasks = [
     pagePath: "/client/dashboard",
     viewport: { width: 1680, height: 1180 },
     setup: setupClientDashboard,
-    clip: { selectors: ['header', '[data-testid="client-shell-page"]'], fitMainWidth: true, margin: 18, maxHeight: 1000 },
+    clip: { selectors: ['header', '[data-testid="client-shell-page"]'], fitMainWidth: true, margin: 18 },
     optional: true,
   },
   {
@@ -128,7 +125,7 @@ const tasks = [
       await applyDarkTheme(browser);
       await delay(500);
     },
-    clip: { selectors: [".auth-card"], margin: 24, minWidth: 700, minHeight: 420, maxHeight: 460 },
+    clip: { selectors: [".auth-card"], margin: 24, minWidth: 700, minHeight: 420 },
     optional: true,
   }
 ];
