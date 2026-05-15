@@ -210,7 +210,17 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - `capture_docs_ui_assets.mjs`는 `ops-rules-preview` 캡처 전에 같은 helper로 optional VA rule까지 준비하고 종료 시 cleanup합니다.
 - `verify_ops_rules_embed_smoke.mjs`는 같은 helper로 profile/event template prerequisite을 준비해 rule UI smoke와 문서 캡처 drift를 줄입니다.
 
-다음 진행 스텝은 `Design token/component inventory`입니다.
+### Design token/component inventory 후속 종료 판정
+
+2026-05-16 기준 v1.2.0 UI visual regression 후속에서
+design token, 공통 컴포넌트, Ops/Client 전용 surface, visual artifact gate의
+문서 inventory를 추가했습니다.
+
+확인됨:
+
+- `docs/ui-guide.md`에 `ProductDesignTokensCss()`, `ProductUiCss()`, Ops data surface, Client surface, visual artifact 계층별 source/계약/검증 guard를 정리했습니다.
+- 새 UI 색상, 버튼, badge, table, detail panel, mobile overflow, client debug 비노출, screenshot artifact 갱신 기준을 변경 체크리스트로 남겼습니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
 ## v1.2.0 시작 전 체크리스트
 
