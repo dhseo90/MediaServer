@@ -161,6 +161,40 @@
       ],
       "expectedSelectedProfileToken": "variant-media2-h265",
       "expectedSelectionReason": "H265 live RTSP profile remains within v1.2.0 live source scope"
+    },
+    {
+      "id": "media2-rtsps-live-rtsp",
+      "summary": "Media2 RTSPS profile is accepted for automatic draft selection as an existing rtsp source.",
+      "services": [
+        {
+          "name": "Device",
+          "available": true
+        },
+        {
+          "name": "Media2",
+          "available": true
+        },
+        {
+          "name": "Media",
+          "available": false
+        }
+      ],
+      "mediaProfiles": [
+        {
+          "token": "variant-media2-rtsps",
+          "name": "Variant Media2 RTSPS",
+          "mediaApi": "Media2",
+          "encoding": "H264",
+          "width": 1920,
+          "height": 1080,
+          "fps": 30,
+          "transport": "RTSP",
+          "streamUri": "rtsps://192.0.2.35/live/secure-main",
+          "selected": true
+        }
+      ],
+      "expectedSelectedProfileToken": "variant-media2-rtsps",
+      "expectedSelectionReason": "RTSPS live profile is stored as a kind=rtsp draft without changing media schema"
     }
   ],
   "nonGoals": [

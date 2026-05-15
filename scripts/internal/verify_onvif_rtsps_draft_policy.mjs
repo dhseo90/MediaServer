@@ -1,8 +1,10 @@
 #!/usr/bin/env node
-// 파일 용도: ONVIF rtsps:// probe candidate와 automatic draft 저장 계약 분리 기준을 검증한다.
-// 동작 요약: parser, draft API, 수동 Ops 등록의 rtsps 처리 범위가 문서와 구현에서 분리되어 있는지 확인한다.
+// 파일 용도: ONVIF rtsps:// probe candidate와 automatic draft 저장 계약 기준을 검증한다.
+// 동작 요약: parser, draft API, 수동 Ops 등록이 rtsps를 기존 rtsp source draft로 축약하는지 확인한다.
 
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -17,18 +19,27 @@ if (hasHelpFlag(rawArgs)) {
   printUsageAndExit(`ONVIF RTSPS draft policy verification
 
 Usage:
-  ./server.sh verify-onvif-rtsps-draft-policy
+  ./server.sh verify-onvif-rtsps-draft-policy [options]
+
+Options:
+  --build-dir <path>    임시 C++ smoke build directory입니다. 기본 /tmp/media_server_onvif_rtsps_draft-<pid>.
+  --cxx <path>          C++ compiler입니다. 기본 CXX env 또는 c++.
+  -h, --help            도움말 출력
 
 Checks:
-  - docs/onvif-rtsps-draft-policy.md가 parser candidate, automatic draft, manual URI 등록을 분리함
+  - docs/onvif-rtsps-draft-policy.md가 parser candidate, automatic draft, manual URI 등록 기준을 고정함
   - ONVIF parser는 rtsps:// GetStreamUri 후보를 live RTSP candidate로 인식함
-  - automatic import draft API는 현재 rtsp:// source draft만 통과시키는 정책을 유지함
+  - automatic import draft API는 rtsps://를 기존 kind=rtsp source draft로 축약함
   - Ops 수동 ONVIF stream URI 입력은 rtsps://를 기존 rtsp source로 저장함
 `);
 }
 
-assertKnownOptions(rawArgs, ["h", "help"]);
+assertKnownOptions(rawArgs, ["build-dir", "cxx", "h", "help"]);
 
+const args = parseArgs(rawArgs);
+const buildDir = path.resolve(args.buildDir || path.join(os.tmpdir(), `media_server_onvif_rtsps_draft-${process.pid}`));
+const cxxBin = args.cxx || process.env.CXX || "c++";
+const binaryPath = path.join(buildDir, "onvif_rtsps_import_draft_smoke");
 const policyDoc = readText("docs/onvif-rtsps-draft-policy.md");
 const matrixDoc = readText("docs/onvif-protocol-support-matrix.md");
 const liveSupportDoc = readText("docs/onvif-live-source-support.md");
@@ -43,10 +54,10 @@ check("RTSPS policy document separates candidate, draft, and manual registration
     "manual source registration",
     "parser/probe candidate",
     "Automatic import draft API fixture contract",
-    "보류",
+    "허용",
     "`/ops/sources` manual ONVIF stream URI registration",
-    "`rtsps://` source draft 자동 저장 성공을 완료로 보고하지 않습니다",
-    "no-device 환경에서는 둘 다 미확인",
+    "`rtsps://` source draft를 기존 `kind=rtsp` draft로 생성할 수 있습니다",
+    "실제 camera 재생 성공은 미확인",
   ]) {
     assertContains(policyDoc, term, `policy doc missing term: ${term}`);
   }
@@ -58,15 +69,47 @@ check("protocol and live support docs link RTSPS policy", () => {
   assertContains(liveSupportDoc, "verify-onvif-rtsps-draft-policy", "live support verification missing RTSPS policy command");
 });
 
-check("implementation keeps rtsps parser candidate but rtsp-only automatic draft", () => {
-  assertContains(onvifCode, "uri.rfind(\"rtsp://\", 0) == 0 || uri.rfind(\"rtsps://\", 0) == 0", "parser must keep rtsps candidate recognition");
-  assertContains(onvifCode, "transport != \"RTSP\" || stream_uri.rfind(\"rtsp://\", 0) != 0", "automatic draft must remain rtsp:// only");
+check("implementation keeps rtsps parser candidate and automatic draft support", () => {
+  assertContains(onvifCode, "bool IsRtspOrRtspsUri", "implementation must centralize rtsp/rtsps URL checks");
+  assertContains(onvifCode, "value.rfind(\"rtsp://\", 0) == 0 || value.rfind(\"rtsps://\", 0) == 0", "URL helper must accept rtsps");
+  assertContains(onvifCode, "profile->transport = IsRtspOrRtspsUri(uri) ? \"RTSP\" : \"\"", "parser must keep rtsps candidate recognition");
+  assertContains(onvifCode, "transport != \"RTSP\" || !IsRtspOrRtspsUri(stream_uri)", "automatic draft must accept rtsp and rtsps");
 });
 
 check("manual Ops ONVIF URI registration still accepts rtsps as rtsp source", () => {
   assertContains(uiCode, "lower.startsWith('rtsp://') || lower.startsWith('rtsps://')", "Ops manual URI parser must accept rtsps");
   assertContains(uiCode, "return { kind: 'rtsp', rtspUrl: uri }", "Ops manual rtsps registration must map to rtsp source");
   assertContains(uiCode, "ONVIF 스트림 URI는 rtsp://, rtsps://, http://, https://", "Ops validation must mention rtsps");
+});
+
+check("C++ smoke accepts rtsps automatic import draft as rtsp source", () => {
+  fs.mkdirSync(buildDir, { recursive: true });
+  const build = spawnSync(cxxBin, [
+    "-std=c++17",
+    `-I${path.join(rootDir, "include")}`,
+    path.join(scriptDir, "onvif_rtsps_import_draft_smoke.cpp"),
+    path.join(rootDir, "src/ingress/onvif_live_import.cpp"),
+    "-o",
+    binaryPath,
+  ], {
+    cwd: rootDir,
+    encoding: "utf8",
+  });
+  if (build.status !== 0) {
+    process.stdout.write(build.stdout || "");
+    process.stderr.write(build.stderr || "");
+    throw new Error(`C++ smoke build failed with exit ${build.status}`);
+  }
+  const run = spawnSync(binaryPath, [], {
+    cwd: rootDir,
+    encoding: "utf8",
+  });
+  if (run.status !== 0) {
+    process.stdout.write(run.stdout || "");
+    process.stderr.write(run.stderr || "");
+    throw new Error(`C++ smoke failed with exit ${run.status}`);
+  }
+  process.stdout.write(run.stdout || "");
 });
 
 let failures = 0;
@@ -102,4 +145,30 @@ function assertContains(text, needle, message) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function parseArgs(argv) {
+  const parsed = {};
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+    if (!token.startsWith("--")) continue;
+    const raw = token.slice(2);
+    const eq = raw.indexOf("=");
+    if (eq >= 0) {
+      parsed[toCamel(raw.slice(0, eq))] = raw.slice(eq + 1);
+      continue;
+    }
+    const next = argv[index + 1];
+    if (next && !next.startsWith("--")) {
+      parsed[toCamel(raw)] = next;
+      index += 1;
+    } else {
+      parsed[toCamel(raw)] = "1";
+    }
+  }
+  return parsed;
+}
+
+function toCamel(value) {
+  return value.replace(/-([a-z])/g, (_match, ch) => ch.toUpperCase());
 }

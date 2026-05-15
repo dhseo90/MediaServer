@@ -75,6 +75,10 @@ bool LooksLikeJsonObject(const std::string& body) {
     return trimmed.size() >= 2 && trimmed.front() == '{' && trimmed.back() == '}';
 }
 
+bool IsRtspOrRtspsUri(const std::string& value) {
+    return value.rfind("rtsp://", 0) == 0 || value.rfind("rtsps://", 0) == 0;
+}
+
 std::optional<std::string> ParseStringField(const std::string& body, const std::string& field) {
     const std::string needle = "\"" + field + "\"";
     std::size_t pos = body.find(needle);
@@ -899,7 +903,7 @@ bool AttachOnvifStreamUriSoap(const std::string& soap, OnvifMediaProfileSummary*
         return false;
     }
     profile->stream_uri = uri;
-    profile->transport = uri.rfind("rtsp://", 0) == 0 || uri.rfind("rtsps://", 0) == 0 ? "RTSP" : "";
+    profile->transport = IsRtspOrRtspsUri(uri) ? "RTSP" : "";
     return !profile->transport.empty();
 }
 
@@ -1080,8 +1084,11 @@ RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
     if (encoding != "H264" && encoding != "H265") {
         return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile encoding must be H264 or H265\"}"};
     }
-    if (transport != "RTSP" || stream_uri.rfind("rtsp://", 0) != 0) {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile must provide an RTSP streamUri\"}"};
+    if (transport != "RTSP" || !IsRtspOrRtspsUri(stream_uri)) {
+        return RegistryResult{
+            400,
+            "Bad Request",
+            "{\"error\":\"selected profile must provide an RTSP/RTSPS streamUri\"}"};
     }
 
     const auto source_raw = ExtractObjectField(*decision, "expectedSourceDraft");

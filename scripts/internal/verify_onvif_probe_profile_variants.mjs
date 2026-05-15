@@ -21,7 +21,7 @@ Usage:
 
 Checks:
   - test/fixtures/onvif_probe_profile_variants.json profile selection matrix를 검증
-  - Media2 우선, Media fallback, Media-only, H265 RTSP selection variant를 포함
+  - Media2 우선, Media fallback, Media-only, H265 RTSP, RTSPS selection variant를 포함
   - 선택 profile은 기존 SourceRegistry kind=rtsp draft로만 축약 가능
   - 실장비 endpoint 성공, raw SOAP, credential 원문, recording/replay scope를 포함하지 않음
 `);
@@ -45,6 +45,7 @@ check("variant fixture schema and required ids are pinned", () => {
     "media-fallback-when-media2-non-rtsp",
     "media-only-live-rtsp",
     "media2-h265-live-rtsp",
+    "media2-rtsps-live-rtsp",
   ]) {
     assert(ids.has(id), `missing variant: ${id}`);
   }
@@ -57,7 +58,7 @@ check("each variant has exactly one selected live RTSP profile", () => {
     assert(selected.length === 1, `${variant.id}: exactly one profile must be selected`);
     assert(variant.expectedSelectedProfileToken === selected[0].token, `${variant.id}: expectedSelectedProfileToken mismatch`);
     assert(selected[0].transport === "RTSP", `${variant.id}: selected profile must use RTSP transport`);
-    assert(isRtspUrl(selected[0].streamUri), `${variant.id}: selected streamUri must be rtsp://`);
+    assert(isRtspOrRtspsUrl(selected[0].streamUri), `${variant.id}: selected streamUri must be rtsp:// or rtsps://`);
     assert(isDocumentationEndpoint(selected[0].streamUri), `${variant.id}: selected streamUri must use documentation address space`);
     assert(["Media", "Media2"].includes(selected[0].mediaApi), `${variant.id}: mediaApi must be Media or Media2`);
     assert(["H264", "H265"].includes(selected[0].encoding), `${variant.id}: selected encoding must be H264 or H265`);
@@ -83,6 +84,9 @@ check("service availability matches expected profile fallback paths", () => {
 
   const h265 = byId["media2-h265-live-rtsp"];
   assert(selectedProfile(h265).encoding === "H265", "H265 variant must select H265");
+
+  const rtsps = byId["media2-rtsps-live-rtsp"];
+  assert(selectedProfile(rtsps).streamUri.startsWith("rtsps://"), "RTSPS variant must select an rtsps stream URI");
 });
 
 check("selected variants can map to existing SourceRegistry/PublishedView draft shape", () => {
@@ -198,8 +202,8 @@ function serviceAvailable(variant, name) {
   return service?.available === true;
 }
 
-function isRtspUrl(value) {
-  return /^rtsp:\/\//i.test(String(value || ""));
+function isRtspOrRtspsUrl(value) {
+  return /^rtsps?:\/\//i.test(String(value || ""));
 }
 
 function isDocumentationEndpoint(value) {

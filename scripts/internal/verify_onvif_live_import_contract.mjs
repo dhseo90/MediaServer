@@ -20,7 +20,7 @@ Usage:
 
 Checks:
   - test/fixtures/onvif_live_import_stub.json이 내부 import draft contract를 만족함
-  - 선택된 ONVIF profile의 RTSP streamUri가 기존 kind=rtsp SourceRegistry draft로 변환됨
+  - 선택된 ONVIF profile의 RTSP/RTSPS streamUri가 기존 kind=rtsp SourceRegistry draft로 변환됨
   - PublishedView draft가 source locator, ONVIF endpoint, credential reference를 포함하지 않음
   - credential plaintext, recording/replay/Profile G scope가 fixture contract에 들어오지 않음
 `);
@@ -85,7 +85,7 @@ check("selected media profile is a live RTSP profile", () => {
   assert(["Media", "Media2"].includes(profile.mediaApi), "selected profile mediaApi must be Media or Media2");
   assert(["H264", "H265"].includes(profile.encoding), "selected profile must use H264 or H265");
   assert(profile.transport === "RTSP", "selected profile transport must be RTSP");
-  assert(isRtspUrl(profile.streamUri), "selected profile streamUri must be RTSP");
+  assert(isRtspOrRtspsUrl(profile.streamUri), "selected profile streamUri must be RTSP/RTSPS");
 });
 
 check("SourceRegistry draft uses only existing RTSP source payload fields", () => {
@@ -205,8 +205,8 @@ function hasHttpUrl(value) {
   return /^https?:\/\//i.test(String(value || ""));
 }
 
-function isRtspUrl(value) {
-  return /^rtsp:\/\//i.test(String(value || ""));
+function isRtspOrRtspsUrl(value) {
+  return /^rtsps?:\/\//i.test(String(value || ""));
 }
 
 function isDocumentationEndpoint(value) {

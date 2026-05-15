@@ -49,6 +49,7 @@ check("protocol support matrix names supported ONVIF live-source scope", () => {
     "`Media.GetProfiles`",
     "`Media.GetStreamUri`",
     "`rtsp://` 또는 `rtsps://` GetStreamUri live 후보",
+    "`rtsp://`/`rtsps://` URI를 기존 `kind=rtsp` source draft로 축약",
     "./onvif-rtsps-draft-policy.md",
     "verify-onvif-rtsps-draft-policy",
     "./onvif-https-soap-transport-design.md",
@@ -93,7 +94,8 @@ check("implementation still matches documented probe transport and service scope
     "const std::vector<std::string> media_apis = {\"Media2\", \"Media\"}",
     "profiles_request.action = media_api + \".GetProfiles\"",
     "stream_request.action = media_api + \".GetStreamUri\"",
-    "uri.rfind(\"rtsp://\", 0) == 0 || uri.rfind(\"rtsps://\", 0) == 0",
+    "bool IsRtspOrRtspsUri",
+    "profile->transport = IsRtspOrRtspsUri(uri) ? \"RTSP\" : \"\"",
     "if (url->scheme != \"http\")",
     "only http transport is supported",
   ]) {

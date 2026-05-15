@@ -142,8 +142,8 @@ draft 매핑:
   넣지 않습니다.
 - HTTP/HLS URI는 운영자가 이미 검증한 수동 URI 입력에는 사용할 수 있지만,
   자동 probe profile 선택의 성공 조건으로 보지 않습니다.
-- `rtsps://` GetStreamUri 결과는 probe live 후보로는 인정하지만, 현재 automatic
-  import draft fixture contract는 `rtsp://` source draft만 통과시킵니다.
+- `rtsps://` GetStreamUri 결과는 probe live 후보와 automatic import draft
+  fixture contract에서 모두 기존 `kind=rtsp` source draft로 축약합니다.
   세부 기준은 [ONVIF RTSPS Draft Policy](./onvif-rtsps-draft-policy.md)를
   따릅니다.
 

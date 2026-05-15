@@ -20,7 +20,7 @@ Usage:
 
 Checks:
   - test/fixtures/onvif_probe_result_stub.json이 내부 probe-to-draft contract를 만족함
-  - Device/Media/Media2 service와 live RTSP Media/Media2 profile을 포함함
+  - Device/Media/Media2 service와 live RTSP/RTSPS Media/Media2 profile을 포함함
   - credential 원문, raw SOAP, recording/replay/Profile G scope가 fixture contract에 들어오지 않음
   - 선택 profile이 기존 SourceRegistry/PublishedView draft로만 축약됨
 `);
@@ -79,7 +79,7 @@ check("device identity remains synthetic and live-only profile families are decl
   assert(!profilesSupported.includes("G"), "Profile G must not be listed as supported import target");
 });
 
-check("selected Media/Media2 profile is live RTSP and points at documentation address space", () => {
+check("selected Media/Media2 profile is live RTSP/RTSPS and points at documentation address space", () => {
   const profiles = arrayAt(fixture, "mediaProfiles");
   assert(profiles.length > 0, "mediaProfiles must not be empty");
   assert(profiles.filter(profile => profile.selected === true).length === 1, "exactly one profile should be selected");
@@ -87,7 +87,7 @@ check("selected Media/Media2 profile is live RTSP and points at documentation ad
     assert(["Media", "Media2"].includes(profile.mediaApi), `profile ${profile.token} mediaApi must be Media or Media2`);
     assert(["H264", "H265"].includes(profile.encoding), `profile ${profile.token} encoding must be H264 or H265`);
     assert(profile.transport === "RTSP", `profile ${profile.token} transport must be RTSP`);
-    assert(isRtspUrl(profile.streamUri), `profile ${profile.token} streamUri must be RTSP`);
+    assert(isRtspOrRtspsUrl(profile.streamUri), `profile ${profile.token} streamUri must be RTSP/RTSPS`);
     assert(isDocumentationEndpoint(profile.streamUri), `profile ${profile.token} streamUri must use documentation address space`);
   }
 });
@@ -226,8 +226,8 @@ function hasHttpUrl(value) {
   return /^https?:\/\//i.test(String(value || ""));
 }
 
-function isRtspUrl(value) {
-  return /^rtsp:\/\//i.test(String(value || ""));
+function isRtspOrRtspsUrl(value) {
+  return /^rtsps?:\/\//i.test(String(value || ""));
 }
 
 function isDocumentationEndpoint(value) {
