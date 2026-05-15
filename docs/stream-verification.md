@@ -1221,6 +1221,9 @@ consumer connect/disconnect cycle 이후 idle baseline RSS 누적 증가를 확�
   idle RSS가 유지/하락하면 lifecycle 잔여 증거보다
   allocator high-water 또는 GStreamer/WebRTC buffer pool retention 후보로 봅니다.
 - longrun summary JSON과 Markdown report는 `/tmp/media_server_va-runtime-longrun-*`, cycle summary/report는 `/tmp/media_server_va-runtime-cycles-*` 경로에 남김
+- Runtime Dashboard 장시간 evidence record는
+  [runtime-dashboard-longrun-evidence-template.md](./runtime-dashboard-longrun-evidence-template.md)
+  형식을 사용합니다. 이 템플릿은 longrun 실행 증거가 아니며, 실제 실행하지 않은 경우 `미실행`으로 보고합니다.
 
 최근 RSS WARNING 해제 후보 검증 결과:
 

@@ -194,6 +194,8 @@ Usage:
                  event POST schema/recovery/선택 queue 검증을 반복 실행합니다.
   verify-longrun-separation
                  기본 smoke와 장기 soak/longrun harness 분리 기준을 검증합니다.
+  verify-runtime-dashboard-longrun-template
+                 Runtime Dashboard 장시간 evidence template과 실행 분리 기준을 검증합니다.
   verify-rc-release-gate
                  120분 soak/VA runtime longrun이 RC 전용 기준으로 분리됐는지 검증합니다.
   rc-release-checklist
@@ -665,6 +667,10 @@ case "${cmd}" in
   verify-longrun-separation)
     require_internal verify_longrun_separation.mjs
     exec "${INTERNAL_DIR}/verify_longrun_separation.mjs" "$@"
+    ;;
+  verify-runtime-dashboard-longrun-template)
+    require_internal verify_runtime_dashboard_longrun_template.mjs
+    exec "${INTERNAL_DIR}/verify_runtime_dashboard_longrun_template.mjs" "$@"
     ;;
   verify-rc-release-gate)
     require_internal verify_rc_release_gate.mjs

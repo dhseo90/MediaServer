@@ -291,6 +291,18 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - `/ops/events` route와 `/ops/api/events/status` API는 유지했으며, 이벤트 조건 설정은 `/ops/rules`, 운영 요약은 `/ops/dashboard` 기준으로 둡니다.
 - 제품 API schema, Event POST/WebRTC DataChannel/SSE/WS metadata schema는 변경하지 않았습니다.
 
+### Runtime Dashboard long-run evidence template 후속 종료 판정
+
+2026-05-16 기준 Runtime Dashboard 장시간 evidence는 템플릿/정적 검증 범위에서 종료합니다.
+
+확인됨:
+
+- `docs/runtime-dashboard-longrun-evidence-template.md`에 command, artifact, dashboard polling, metadata, cleanup, RSS/CPU, judgement 기록 필드를 추가했습니다.
+- PASS/WARNING/HOLD/FAIL 기준을 cleanup count, DataChannel failure, idle judgement, port cleanup 기준으로 분리했습니다.
+- `verify-runtime-dashboard-longrun-template`가 템플릿 문서, stream verification 연결, server entrypoint, script inventory를 검증합니다.
+- 장시간 `verify-va-runtime-console-longrun`, `verify-predev`는 실행하지 않았습니다.
+- 제품 API schema, Event POST/WebRTC DataChannel/SSE/WS metadata schema는 변경하지 않았습니다.
+
 ### Design token/component inventory 후속 종료 판정
 
 2026-05-16 기준 v1.2.0 UI visual regression 후속에서
