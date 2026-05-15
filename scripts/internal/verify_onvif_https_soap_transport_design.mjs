@@ -45,8 +45,10 @@ check("HTTPS SOAP design keeps current fail-closed status explicit", () => {
     "자동 downgrade 없이 fail-closed",
     "scheme preflight gate",
     "TLS client library를 추가하지 않습니다",
-    "실장비 또는 explicit TLS fixture가 없는 환경에서는 HTTPS 성공을 미확인",
-    "explicit TLS fixture harness는 현재 설계 전용",
+    "fixture-only HTTPS 성공",
+    "production HTTPS SOAP transport 구현 완료로 보지 않습니다",
+    "실장비 HTTPS endpoint 성공은 별도 field smoke 전까지 미확인",
+    "verify-onvif-https-tls-fixture",
     "## 구현 스파이크 결과",
   ]) {
     assertContains(designDoc, term, `design doc missing current status term: ${term}`);
@@ -70,11 +72,11 @@ check("HTTPS SOAP design documents future TLS requirements", () => {
   }
 });
 
-check("HTTPS TLS fixture harness design is documented as no-device future-only scope", () => {
+check("HTTPS TLS fixture harness design is documented as fixture-only no-device scope", () => {
   for (const term of [
     "# ONVIF HTTPS TLS Fixture Harness Design",
-    "v1.2.0 현재 상태는 설계 전용",
-    "TLS 성공 fixture harness를 실행하지 않습니다",
+    "v1.2.0 현재 상태는 fixture-only",
+    "trustedFixtureSuccess",
     "ephemeral CA",
     "server private key는 repository와 artifact에 저장하지 않습니다",
     "fixture CA bundle",
@@ -84,7 +86,7 @@ check("HTTPS TLS fixture harness design is documented as no-device future-only s
     "hostname mismatch failure",
     "certificate expired failure",
     "handshake failure",
-    "connection timeout/refused",
+    "connection refused",
     "HTTP downgrade fallback은 수행하지 않습니다",
     "media-server.onvif-https-tls-fixture-summary.v1",
     "realDeviceEndpointSuccess",

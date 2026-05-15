@@ -56,8 +56,9 @@ for (const term of [
   "raw SOAP",
   "verify-onvif-http-transport",
   "./onvif-https-tls-fixture-harness-design.md",
-  "TLS fixture harness 설계만 포함",
+  "fixture-only TLS harness",
   "trusted fixture success",
+  "production HTTPS transport는 fail-closed",
   "untrusted CA failure",
   "hostname mismatch failure",
   "certificate expired failure",
@@ -68,8 +69,8 @@ for (const term of [
 
 for (const term of [
   "# ONVIF HTTPS TLS Fixture Harness Design",
-  "v1.2.0 현재 상태는 설계 전용",
-  "TLS 성공 fixture harness를 실행하지 않습니다",
+  "v1.2.0 현재 상태는 fixture-only",
+  "trustedFixtureSuccess",
   "ephemeral CA",
   "fixture CA bundle",
   "hostname verification",

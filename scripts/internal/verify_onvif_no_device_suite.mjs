@@ -42,7 +42,7 @@ const suite = [
   ["verify-onvif-protocol-support-matrix"],
   ["verify-onvif-rtsps-draft-policy"],
   ["verify-onvif-https-soap-transport-design"],
-  ["verify-onvif-https-tls-fixture", "--expect-skip"],
+  ["verify-onvif-https-tls-fixture"],
   ["verify-onvif-auth-injection-design"],
   ["verify-onvif-ws-discovery-ux"],
   ["verify-onvif-unsupported-api-guard"],

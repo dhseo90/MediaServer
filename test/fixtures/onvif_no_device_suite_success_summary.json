@@ -33,7 +33,7 @@
     },
     {
       "index": 5,
-      "command": "./server.sh verify-onvif-https-tls-fixture --expect-skip",
+      "command": "./server.sh verify-onvif-https-tls-fixture",
       "ok": true,
       "status": 0
     },

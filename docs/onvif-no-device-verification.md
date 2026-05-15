@@ -58,7 +58,7 @@ simulator fixture smoke로만 보고합니다.
 ./server.sh verify-onvif-no-device-mode
 ./server.sh verify-onvif-no-device-completion
 ./server.sh verify-onvif-protocol-support-matrix
-./server.sh verify-onvif-https-tls-fixture --expect-skip
+./server.sh verify-onvif-https-tls-fixture
 ./server.sh verify-onvif-live-import-contract
 ./server.sh verify-onvif-probe-fixture-contract
 ./server.sh verify-onvif-probe-profile-variants
@@ -160,8 +160,9 @@ schema drift guard는 runner 상수, 성공 예시, 성공 fixture, 실패 fixtu
 }
 ```
 
-`verify-onvif-https-tls-fixture --expect-skip`은 fixture TLS server/client 실행 없음,
-trusted fixture success 미확인, 실장비 성공 미확인 상태를 고정합니다.
+`verify-onvif-https-tls-fixture`는 fixture TLS server/client 실행, trusted fixture
+success, TLS failure redaction을 고정합니다. 이 결과는 production HTTPS SOAP
+transport 구현 완료나 실장비 성공이 아니며, 실장비 성공은 계속 미확인입니다.
 
 성공 summary는 아래 항목을 유지해야 합니다.
 

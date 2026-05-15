@@ -78,7 +78,8 @@ check("no-device command list keeps endpoint-free and sanitized-failure probes",
   assertContains(noDeviceDoc, "./server.sh verify-onvif-no-device-mode", "missing self-check command");
   assertContains(noDeviceDoc, "verify-onvif-no-device-completion", "missing no-device completion command");
   assertContains(noDeviceDoc, "verify-onvif-protocol-support-matrix", "missing protocol support matrix command");
-  assertContains(noDeviceDoc, "verify-onvif-https-tls-fixture --expect-skip", "missing HTTPS TLS fixture skeleton command");
+  assertContains(noDeviceDoc, "verify-onvif-https-tls-fixture", "missing HTTPS TLS fixture command");
+  assertContains(noDeviceDoc, "trusted fixture success", "missing HTTPS TLS trusted fixture wording");
   assertContains(noDeviceDoc, "verify-onvif-probe-profile-variants", "missing profile variant command");
   assertContains(noDeviceDoc, "verify-onvif-local-simulator", "missing local simulator command");
   assertContains(noDeviceDoc, "verify-onvif-field-http-probe --allow-missing-endpoint", "missing missing-endpoint command");
@@ -100,7 +101,7 @@ check("live support document links no-device mode without claiming field success
   assertContains(liveSupportDoc, "verify-onvif-no-device-mode", "live support verification missing no-device command");
   assertContains(liveSupportDoc, "verify-onvif-no-device-completion", "live support verification missing no-device completion command");
   assertContains(liveSupportDoc, "verify-onvif-protocol-support-matrix", "live support verification missing protocol matrix command");
-  assertContains(liveSupportDoc, "verify-onvif-https-tls-fixture --expect-skip", "live support doc missing HTTPS TLS fixture skeleton command");
+  assertContains(liveSupportDoc, "verify-onvif-https-tls-fixture", "live support doc missing HTTPS TLS fixture command");
   assertContains(liveSupportDoc, "verify-onvif-probe-profile-variants", "live support verification missing profile variant command");
   assertContains(liveSupportDoc, "verify-onvif-local-simulator", "live support verification missing local simulator command");
   assertContains(liveSupportDoc, "Media fallback, Media-only, non-RTSP GetStreamUri 실패", "live support doc missing local simulator variant wording");
@@ -122,7 +123,6 @@ check("no-device suite runner can write summary JSON", () => {
     "verify-onvif-https-tls-fixture",
     "verify-onvif-local-simulator",
     "verify-onvif-no-device-completion",
-    "--expect-skip",
   ]) {
     assertContains(noDeviceSuiteScript, token, `no-device suite script missing ${token}`);
   }

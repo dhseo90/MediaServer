@@ -24,12 +24,10 @@ fail-closed가 정상 동작입니다.
 - 현재 빌드 의존성에는 TLS client library를 추가하지 않습니다.
 - fail-closed error summary는 endpoint, host, certificate body, credential,
   raw SOAP를 출력하지 않습니다.
-- 실장비 또는 explicit TLS fixture가 없는 환경에서는 HTTPS 성공을 미확인으로
-  남깁니다.
-- explicit TLS fixture harness는 현재 설계 전용이며, 실행 가능한 HTTPS 성공 smoke로
-  보지 않습니다.
-- `verify-onvif-https-tls-fixture --expect-skip`은 command skeleton의 design-only
-  skip을 검증하며 HTTPS 성공을 미확인으로 남깁니다.
+- `verify-onvif-https-tls-fixture`는 loopback fixture-only HTTPS 성공과 TLS failure
+  redaction을 검증합니다.
+- fixture-only HTTPS 성공은 production HTTPS SOAP transport 구현 완료로 보지 않습니다.
+- 실장비 HTTPS endpoint 성공은 별도 field smoke 전까지 미확인으로 남깁니다.
 
 ## 구현 스파이크 결과
 
@@ -57,7 +55,7 @@ HTTPS SOAP transport를 추가하려면 별도 단계에서 아래 조건을 모
    redaction matrix에 추가합니다.
 8. field smoke artifact에는 endpoint, host, certificate dump, raw SOAP를 넣지
    않습니다.
-9. 성공 smoke는 실장비 또는 explicit TLS fixture harness에서만 완료로 보고합니다.
+9. fixture-only 성공과 실장비 성공을 보고에서 분리합니다.
 10. no-device TLS fixture harness를 추가할 때는
     [ONVIF HTTPS TLS Fixture Harness Design](./onvif-https-tls-fixture-harness-design.md)의
     ephemeral CA, hostname verification, trusted fixture success, untrusted CA
@@ -79,7 +77,7 @@ HTTPS SOAP transport를 추가하려면 별도 단계에서 아래 조건을 모
 
 ```bash
 ./server.sh verify-onvif-https-soap-transport-design
-./server.sh verify-onvif-https-tls-fixture --expect-skip
+./server.sh verify-onvif-https-tls-fixture
 ./server.sh verify-onvif-tls-transport-policy
 ./server.sh verify-onvif-protocol-support-matrix
 ./server.sh verify-onvif-http-transport

@@ -1,8 +1,8 @@
 # ONVIF HTTPS TLS Fixture Harness Design
 
 이 문서는 ONVIF `https://` Device service SOAP transport를 향후 구현할 때 사용할
-no-device TLS fixture harness 기준을 고정합니다. v1.2.0 현재 상태는 설계 전용이며,
-TLS client library, HTTPS 성공 transport, TLS fixture 성공 실행은 구현 완료로 보지
+no-device TLS fixture harness 기준을 고정합니다. v1.2.0 현재 상태는 fixture-only
+검증이며, production TLS client library 또는 HTTPS SOAP transport 구현 완료로 보지
 않습니다.
 
 관련 기준:
@@ -14,28 +14,30 @@ TLS client library, HTTPS 성공 transport, TLS fixture 성공 실행은 구현 
 
 ## 현재 경계
 
-- 현재 v1.2.0 구현은 TLS 성공 fixture harness를 실행하지 않습니다.
+- 현재 v1.2.0 구현은 loopback fixture TLS server/client를 실행해
+  trustedFixtureSuccess와 TLS failure redaction을 검증합니다.
 - `https://` ONVIF Device service endpoint는 기존 scheme preflight gate에서
   fail-closed를 유지합니다.
-- harness 설계는 HTTPS 성공을 완료로 보고하기 위한 대체 증거가 아니며, 향후 구현
-  단계의 acceptance criteria입니다.
+- harness 결과는 fixture-only HTTPS 성공이며, production HTTPS SOAP transport 구현
+  완료나 실장비 HTTPS 성공의 대체 증거가 아닙니다.
 - 실장비가 없는 환경에서는 HTTPS real-device success를 계속 미확인으로 보고합니다.
 
-## Command Skeleton
+## Fixture Command
 
-현재 command skeleton:
+현재 fixture-only 명령:
 
 ```bash
-./server.sh verify-onvif-https-tls-fixture --expect-skip
+./server.sh verify-onvif-https-tls-fixture
 ```
 
-이 명령은 design-only skip을 검증합니다. fixture TLS server를 실행하지 않습니다.
-TLS client library를 추가하지 않습니다. `trustedFixtureSuccess`는 미확인,
-`realDeviceEndpointSuccess`는 미확인으로 보고합니다.
+이 명령은 ephemeral CA와 loopback HTTPS fixture server를 실행합니다.
+`trustedFixtureSuccess`는 true, `realDeviceEndpointSuccess`는 미확인으로 보고합니다.
+production `SendOnvifSoapHttp`에는 TLS client library를 추가하지 않고, `https://`
+endpoint는 계속 fail-closed입니다.
 
 ## Harness 구성
 
-향후 TLS transport 구현 단계에서 harness는 아래 구성만 허용합니다.
+fixture-only harness는 아래 구성만 허용합니다.
 
 1. loopback 전용 synthetic ONVIF SOAP fixture server를 띄웁니다.
 2. ephemeral CA와 server certificate를 테스트 실행 중 생성합니다.
@@ -46,10 +48,9 @@ TLS client library를 추가하지 않습니다. `trustedFixtureSuccess`는 미�
 7. endpoint URL userinfo, credential 원문, raw SOAP body는 입력/출력 artifact에 남기지
    않습니다.
 
-## 필수 Case
+## Fixture Case
 
-향후 `verify-onvif-https-tls-fixture` 같은 별도 명령을 추가한다면 최소 case는
-아래를 포함해야 합니다.
+현재 `verify-onvif-https-tls-fixture` 명령은 아래 case를 포함해야 합니다.
 
 | Case | 기대 결과 | Redaction 기준 |
 | --- | --- | --- |
@@ -58,7 +59,7 @@ TLS client library를 추가하지 않습니다. `trustedFixtureSuccess`는 미�
 | hostname mismatch failure | sanitized hostname verification failure | 실제 host/SAN 값을 쓰지 않음 |
 | certificate expired failure | sanitized certificate failure | certificate body를 쓰지 않음 |
 | handshake failure | sanitized handshake failure | TLS transcript, endpoint를 쓰지 않음 |
-| connection timeout/refused | sanitized network failure | endpoint, host를 쓰지 않음 |
+| connection refused | sanitized network failure | endpoint, host를 쓰지 않음 |
 
 ## Summary JSON
 
@@ -102,7 +103,6 @@ HTTPS TLS transport를 구현 완료로 보고하려면 별도 단계에서 아�
 
 - 현재 단계에서 HTTPS SOAP transport 구현
 - 현재 단계에서 TLS client library 추가
-- 현재 단계에서 fixture TLS server 실행
 - real device HTTPS 성공으로 간주
 - hostname verification opt-out
 - HTTP downgrade fallback

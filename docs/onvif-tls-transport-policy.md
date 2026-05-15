@@ -22,10 +22,11 @@ HTTP SOAP transport만 포함하며, TLS 연결 자체를 구현 완료로 보�
   제공하지 않습니다.
 - endpoint URL에는 username, password, token, cookie를 넣지 않습니다.
 - field smoke 산출물에는 TLS 실패도 sanitized summary로만 기록합니다.
-- 현재 v1.2.0은 TLS fixture harness 설계만 포함하며 trusted fixture success를
-  실행하지 않습니다.
-- `verify-onvif-https-tls-fixture --expect-skip`은 fixture TLS server/client 실행 없이
-  command skeleton이 design-only skip 상태인지 확인합니다.
+- 현재 v1.2.0은 fixture-only TLS harness를 포함하며 trusted fixture success를 실행합니다.
+- `verify-onvif-https-tls-fixture`은 fixture TLS server/client 실행으로 trusted success,
+  untrusted CA, hostname mismatch, certificate expired, handshake failure,
+  connection refused의 sanitized failure를 확인합니다.
+- production HTTPS transport는 fail-closed 상태를 유지합니다.
 
 ## 운영자 안내
 
@@ -55,7 +56,7 @@ TLS transport를 추가할 때는 아래 조건을 별도 단계로 만족해야
 
 ```bash
 ./server.sh verify-onvif-https-soap-transport-design
-./server.sh verify-onvif-https-tls-fixture --expect-skip
+./server.sh verify-onvif-https-tls-fixture
 ./server.sh verify-onvif-tls-transport-policy
 ./server.sh verify-onvif-http-transport
 ./server.sh verify-docs-links

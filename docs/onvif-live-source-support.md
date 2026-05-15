@@ -267,7 +267,7 @@ notes: <sanitized operational note>
 ./server.sh verify-onvif-no-device-suite --json-output /tmp/media_server_onvif_no_device_summary.json
 ./server.sh verify-onvif-no-device-mode
 ./server.sh verify-onvif-no-device-completion
-./server.sh verify-onvif-https-tls-fixture --expect-skip
+./server.sh verify-onvif-https-tls-fixture
 ./server.sh verify-onvif-field-smoke-redaction
 ./server.sh verify-onvif-field-smoke-sample-bundle
 ./server.sh verify-onvif-field-http-probe --allow-missing-endpoint
