@@ -2,9 +2,19 @@
 // 동작 요약: ONVIF 후보와 선택 profile을 검증하고 기존 source/view 저장 payload draft만 반환한다.
 #include "ingress/onvif_live_import.h"
 
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <poll.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <unistd.h>
+
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cstdlib>
+#include <cstring>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -14,6 +24,13 @@
 namespace ingress {
 
 namespace {
+
+struct ParsedHttpUrl {
+    std::string scheme;
+    std::string host;
+    std::string port;
+    std::string path;
+};
 
 std::string Trim(std::string value) {
     while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front())) != 0) {
@@ -348,6 +365,59 @@ bool HasHttpOrHttpsUrl(const std::string& value) {
     return trimmed.rfind("http://", 0) == 0 || trimmed.rfind("https://", 0) == 0;
 }
 
+std::optional<ParsedHttpUrl> ParseHttpUrl(const std::string& raw) {
+    const std::string value = Trim(raw);
+    const std::size_t scheme_pos = value.find("://");
+    if (scheme_pos == std::string::npos) {
+        return std::nullopt;
+    }
+    ParsedHttpUrl parsed;
+    parsed.scheme = value.substr(0, scheme_pos);
+    std::transform(parsed.scheme.begin(), parsed.scheme.end(), parsed.scheme.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    const std::size_t authority_start = scheme_pos + 3;
+    const std::size_t path_pos = value.find('/', authority_start);
+    std::string authority = path_pos == std::string::npos
+        ? value.substr(authority_start)
+        : value.substr(authority_start, path_pos - authority_start);
+    parsed.path = path_pos == std::string::npos ? "/" : value.substr(path_pos);
+    if (authority.empty()) {
+        return std::nullopt;
+    }
+    if (authority.front() == '[') {
+        const std::size_t close = authority.find(']');
+        if (close == std::string::npos) {
+            return std::nullopt;
+        }
+        parsed.host = authority.substr(1, close - 1);
+        if (close + 1 < authority.size()) {
+            if (authority[close + 1] != ':') {
+                return std::nullopt;
+            }
+            parsed.port = authority.substr(close + 2);
+        }
+    } else {
+        const std::size_t colon = authority.rfind(':');
+        if (colon != std::string::npos) {
+            parsed.host = authority.substr(0, colon);
+            parsed.port = authority.substr(colon + 1);
+        } else {
+            parsed.host = authority;
+        }
+    }
+    if (parsed.host.empty()) {
+        return std::nullopt;
+    }
+    if (parsed.port.empty()) {
+        parsed.port = parsed.scheme == "https" ? "443" : "80";
+    }
+    if (parsed.path.empty() || parsed.path.front() != '/') {
+        parsed.path = "/" + parsed.path;
+    }
+    return parsed;
+}
+
 bool HasAvailableService(const std::vector<OnvifServiceSummary>& services, const std::string& name) {
     return std::any_of(services.begin(), services.end(), [&](const auto& service) {
         return service.name == name && service.available;
@@ -657,6 +727,118 @@ OnvifProbeResult TransportError(const OnvifProbeRequest& request,
     return ProbeError(request, step, message);
 }
 
+OnvifSoapResponse SoapHttpError(const std::string& message, int status = 0) {
+    OnvifSoapResponse response;
+    response.ok = false;
+    response.status = status;
+    response.error = message;
+    return response;
+}
+
+bool SetSocketBlocking(int fd, bool blocking) {
+    const int flags = fcntl(fd, F_GETFL, 0);
+    if (flags < 0) {
+        return false;
+    }
+    const int next = blocking ? (flags & ~O_NONBLOCK) : (flags | O_NONBLOCK);
+    return fcntl(fd, F_SETFL, next) == 0;
+}
+
+int ConnectTcpWithTimeout(const ParsedHttpUrl& url, int timeout_ms, std::string* error) {
+    struct addrinfo hints {};
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_family = AF_UNSPEC;
+
+    struct addrinfo* raw_results = nullptr;
+    const int gai = getaddrinfo(url.host.c_str(), url.port.c_str(), &hints, &raw_results);
+    if (gai != 0) {
+        if (error != nullptr) {
+            *error = "resolve failed";
+        }
+        return -1;
+    }
+
+    int connected_fd = -1;
+    for (auto* item = raw_results; item != nullptr; item = item->ai_next) {
+        const int fd = socket(item->ai_family, item->ai_socktype, item->ai_protocol);
+        if (fd < 0) {
+            continue;
+        }
+        (void)SetSocketBlocking(fd, false);
+        const int rc = connect(fd, item->ai_addr, item->ai_addrlen);
+        if (rc == 0) {
+            connected_fd = fd;
+        } else if (errno == EINPROGRESS) {
+            struct pollfd pfd {};
+            pfd.fd = fd;
+            pfd.events = POLLOUT;
+            const int poll_rc = poll(&pfd, 1, std::max(1, timeout_ms));
+            if (poll_rc > 0 && (pfd.revents & POLLOUT) != 0) {
+                int socket_error = 0;
+                socklen_t socket_error_len = sizeof(socket_error);
+                if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &socket_error, &socket_error_len) == 0 &&
+                    socket_error == 0) {
+                    connected_fd = fd;
+                }
+            }
+        }
+        if (connected_fd >= 0) {
+            (void)SetSocketBlocking(connected_fd, true);
+            break;
+        }
+        close(fd);
+    }
+    freeaddrinfo(raw_results);
+
+    if (connected_fd < 0 && error != nullptr) {
+        *error = "connect failed";
+    }
+    return connected_fd;
+}
+
+bool SendAll(int fd, const std::string& payload) {
+    std::size_t offset = 0;
+    while (offset < payload.size()) {
+        const ssize_t sent = send(fd, payload.data() + offset, payload.size() - offset, 0);
+        if (sent <= 0) {
+            return false;
+        }
+        offset += static_cast<std::size_t>(sent);
+    }
+    return true;
+}
+
+std::optional<OnvifSoapResponse> ParseHttpResponseText(const std::string& response_text) {
+    const std::size_t header_end = response_text.find("\r\n\r\n");
+    if (header_end == std::string::npos) {
+        return std::nullopt;
+    }
+    const std::string header = response_text.substr(0, header_end);
+    const std::string body = response_text.substr(header_end + 4);
+    std::istringstream lines(header);
+    std::string status_line;
+    std::getline(lines, status_line);
+    if (!status_line.empty() && status_line.back() == '\r') {
+        status_line.pop_back();
+    }
+    std::istringstream status_stream(status_line);
+    std::string http_version;
+    int status = 0;
+    status_stream >> http_version >> status;
+    if (http_version.rfind("HTTP/", 0) != 0 || status <= 0) {
+        return std::nullopt;
+    }
+
+    OnvifSoapResponse response;
+    response.ok = status >= 200 && status < 300;
+    response.status = status;
+    response.body = body;
+    if (!response.ok) {
+        response.error = "HTTP " + std::to_string(status);
+    }
+    return response;
+}
+
 }  // namespace
 
 std::vector<OnvifServiceSummary> ParseOnvifServicesSoap(const std::string& soap) {
@@ -785,6 +967,74 @@ OnvifProbeResult RunOnvifProbeAdapter(const OnvifProbeRequest& request,
     result.media_profiles.front().selected = true;
     result.ok = true;
     return result;
+}
+
+OnvifSoapResponse SendOnvifSoapHttp(const OnvifSoapRequest& request) {
+    const auto url = ParseHttpUrl(request.endpoint);
+    if (!url.has_value()) {
+        return SoapHttpError("invalid endpoint URL");
+    }
+    if (url->scheme != "http") {
+        return SoapHttpError("only http transport is supported");
+    }
+    if (request.timeout_ms <= 0) {
+        return SoapHttpError("timeout must be positive");
+    }
+
+    std::string connect_error;
+    const int fd = ConnectTcpWithTimeout(*url, request.timeout_ms, &connect_error);
+    if (fd < 0) {
+        return SoapHttpError(connect_error.empty() ? "connect failed" : connect_error);
+    }
+
+    struct timeval timeout {};
+    timeout.tv_sec = request.timeout_ms / 1000;
+    timeout.tv_usec = (request.timeout_ms % 1000) * 1000;
+    (void)setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+    (void)setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+
+    const std::string soap_action = request.action.empty() ? "ONVIF" : request.action;
+    std::ostringstream http;
+    http << "POST " << url->path << " HTTP/1.1\r\n"
+         << "Host: " << url->host << "\r\n"
+         << "User-Agent: MediaServer-ONVIF-Probe\r\n"
+         << "Content-Type: application/soap+xml; charset=utf-8; action=\"" << JsonEscape(soap_action) << "\"\r\n"
+         << "SOAPAction: \"" << JsonEscape(soap_action) << "\"\r\n"
+         << "Connection: close\r\n"
+         << "Content-Length: " << request.body.size() << "\r\n"
+         << "\r\n"
+         << request.body;
+
+    if (!SendAll(fd, http.str())) {
+        close(fd);
+        return SoapHttpError("send failed");
+    }
+
+    std::string response_text;
+    std::array<char, 4096> buffer {};
+    while (true) {
+        const ssize_t received = recv(fd, buffer.data(), buffer.size(), 0);
+        if (received > 0) {
+            response_text.append(buffer.data(), static_cast<std::size_t>(received));
+            if (response_text.size() > 2 * 1024 * 1024) {
+                close(fd);
+                return SoapHttpError("response too large");
+            }
+            continue;
+        }
+        if (received == 0) {
+            break;
+        }
+        close(fd);
+        return SoapHttpError("receive failed");
+    }
+    close(fd);
+
+    const auto parsed = ParseHttpResponseText(response_text);
+    if (!parsed.has_value()) {
+        return SoapHttpError("malformed HTTP response");
+    }
+    return *parsed;
 }
 
 RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {

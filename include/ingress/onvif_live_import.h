@@ -67,5 +67,6 @@ std::vector<OnvifMediaProfileSummary> ParseOnvifMediaProfilesSoap(const std::str
 bool AttachOnvifStreamUriSoap(const std::string& soap, OnvifMediaProfileSummary* profile);
 OnvifProbeResult RunOnvifProbeAdapter(const OnvifProbeRequest& request,
                                       const OnvifSoapTransport& transport);
+OnvifSoapResponse SendOnvifSoapHttp(const OnvifSoapRequest& request);
 
 }  // namespace ingress
