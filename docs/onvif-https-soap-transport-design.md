@@ -28,7 +28,8 @@ no-device 검증 결과를 고정합니다. v1.2.0 현재 구현은 OpenSSL을 �
 - `verify-onvif-https-tls-fixture`는 loopback fixture-only HTTPS 성공과 TLS failure
   redaction을 검증합니다.
 - `verify-onvif-http-transport`는 production `SendOnvifSoapHttp`의 HTTPS fixture
-  성공과 URL userinfo redaction을 검증합니다.
+  성공과 untrusted CA failure, hostname mismatch failure, handshake failure,
+  connection refused, URL userinfo redaction을 검증합니다.
 - 실장비 HTTPS endpoint 성공은 별도 field smoke 전까지 미확인으로 남깁니다.
 
 ## 구현 결과
@@ -41,6 +42,8 @@ no-device 검증 결과를 고정합니다. v1.2.0 현재 구현은 OpenSSL을 �
 - TLS certificate verification과 hostname verification은 기본 활성화합니다.
 - URL userinfo가 포함된 `HTTPS://user:pass@...` endpoint는 sanitized wording으로
   실패하며, username/password/host/SOAP action을 error에 노출하지 않습니다.
+- production HTTPS transport failure matrix는 untrusted CA, hostname mismatch,
+  handshake failure, connection refused를 sanitized wording으로 고정합니다.
 - `https://`를 `http://`로 자동 downgrade하지 않습니다.
 - OpenSSL이 없는 빌드는 HTTPS를 명확히 미지원으로 닫고 HTTP transport는 유지합니다.
 
@@ -56,7 +59,7 @@ HTTPS SOAP transport는 아래 조건을 계속 만족해야 합니다.
 6. credential reference 정책과 결합하더라도 secret 원문은 header, log, artifact에
    남기지 않습니다.
 7. timeout, connection refused, handshake failure, certificate failure를
-   redaction matrix에 추가합니다.
+   redaction matrix에 유지합니다.
 8. field smoke artifact에는 endpoint, host, certificate dump, raw SOAP를 넣지
    않습니다.
 9. fixture-only 성공과 실장비 성공을 보고에서 분리합니다.

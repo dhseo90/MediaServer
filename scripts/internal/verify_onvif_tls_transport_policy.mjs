@@ -58,11 +58,13 @@ for (const term of [
   "./onvif-https-tls-fixture-harness-design.md",
   "fixture-only TLS harness",
   "trusted fixture success",
+  "production transport failure matrix",
   "production `SendOnvifSoapHttp`",
   "untrusted CA failure",
   "hostname mismatch failure",
   "certificate expired failure",
   "handshake failure",
+  "connection refused",
 ]) {
   assertContains(doc, term, `TLS policy doc missing required term: ${term}`);
 }
@@ -93,7 +95,12 @@ for (const forbidden of [
 
 assert(supportDoc.includes("./onvif-tls-transport-policy.md"), "ONVIF support doc must link TLS policy");
 assert(smoke.includes("RunHttpsTransportSmoke"), "HTTP transport smoke missing HTTPS fixture runner");
+assert(smoke.includes("RunHttpsTransportFailureMatrix"), "HTTP transport smoke missing HTTPS failure matrix runner");
 assert(smoke.includes("https://localhost:"), "HTTP transport smoke missing HTTPS fixture endpoint");
+assert(smoke.includes("HTTPS untrusted CA failure"), "HTTP transport smoke missing untrusted CA redaction case");
+assert(smoke.includes("HTTPS hostname mismatch failure"), "HTTP transport smoke missing hostname mismatch redaction case");
+assert(smoke.includes("HTTPS handshake failure"), "HTTP transport smoke missing handshake redaction case");
+assert(smoke.includes("HTTPS connection refused"), "HTTP transport smoke missing connection refused redaction case");
 assert(smoke.includes("HTTPS transport must reject URL userinfo"), "HTTP transport smoke missing URL userinfo redaction case");
 assert(smoke.includes("invalid endpoint URL"), "HTTP transport smoke missing URL userinfo rejection wording");
 assert(smoke.includes("transport error leaked URL password"), "HTTP transport smoke missing URL password redaction assertion");

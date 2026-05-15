@@ -36,13 +36,32 @@ if [[ "${#OPENSSL_LIBS[@]}" -gt 0 ]]; then
   SERVER_CSR="${BUILD_DIR}/server.csr"
   SERVER_CERT="${BUILD_DIR}/server.crt"
   SERVER_EXT="${BUILD_DIR}/server.ext"
+  UNTRUSTED_CA_KEY="${BUILD_DIR}/untrusted-ca.key"
+  UNTRUSTED_CA_CERT="${BUILD_DIR}/untrusted-ca.crt"
+  UNTRUSTED_SERVER_KEY="${BUILD_DIR}/untrusted-server.key"
+  UNTRUSTED_SERVER_CSR="${BUILD_DIR}/untrusted-server.csr"
+  UNTRUSTED_SERVER_CERT="${BUILD_DIR}/untrusted-server.crt"
+  MISMATCH_SERVER_KEY="${BUILD_DIR}/mismatch-server.key"
+  MISMATCH_SERVER_CSR="${BUILD_DIR}/mismatch-server.csr"
+  MISMATCH_SERVER_CERT="${BUILD_DIR}/mismatch-server.crt"
+  MISMATCH_SERVER_EXT="${BUILD_DIR}/mismatch-server.ext"
   printf "subjectAltName=DNS:localhost\nextendedKeyUsage=serverAuth\n" > "${SERVER_EXT}"
+  printf "subjectAltName=DNS:not-localhost\nextendedKeyUsage=serverAuth\n" > "${MISMATCH_SERVER_EXT}"
   openssl req -x509 -newkey rsa:2048 -nodes -keyout "${CA_KEY}" -out "${CA_CERT}" -days 2 -subj "/CN=MediaServer ONVIF Transport Fixture CA" >/dev/null 2>&1
   openssl req -newkey rsa:2048 -nodes -keyout "${SERVER_KEY}" -out "${SERVER_CSR}" -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost" >/dev/null 2>&1
   openssl x509 -req -in "${SERVER_CSR}" -CA "${CA_CERT}" -CAkey "${CA_KEY}" -CAcreateserial -out "${SERVER_CERT}" -days 2 -sha256 -extfile "${SERVER_EXT}" >/dev/null 2>&1
+  openssl req -x509 -newkey rsa:2048 -nodes -keyout "${UNTRUSTED_CA_KEY}" -out "${UNTRUSTED_CA_CERT}" -days 2 -subj "/CN=MediaServer ONVIF Untrusted Fixture CA" >/dev/null 2>&1
+  openssl req -newkey rsa:2048 -nodes -keyout "${UNTRUSTED_SERVER_KEY}" -out "${UNTRUSTED_SERVER_CSR}" -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost" >/dev/null 2>&1
+  openssl x509 -req -in "${UNTRUSTED_SERVER_CSR}" -CA "${UNTRUSTED_CA_CERT}" -CAkey "${UNTRUSTED_CA_KEY}" -CAcreateserial -out "${UNTRUSTED_SERVER_CERT}" -days 2 -sha256 -extfile "${SERVER_EXT}" >/dev/null 2>&1
+  openssl req -newkey rsa:2048 -nodes -keyout "${MISMATCH_SERVER_KEY}" -out "${MISMATCH_SERVER_CSR}" -subj "/CN=not-localhost" -addext "subjectAltName=DNS:not-localhost" >/dev/null 2>&1
+  openssl x509 -req -in "${MISMATCH_SERVER_CSR}" -CA "${CA_CERT}" -CAkey "${CA_KEY}" -CAcreateserial -out "${MISMATCH_SERVER_CERT}" -days 2 -sha256 -extfile "${MISMATCH_SERVER_EXT}" >/dev/null 2>&1
   MEDIA_SERVER_ONVIF_TLS_CA_FILE="${CA_CERT}" \
   MEDIA_SERVER_ONVIF_TLS_SERVER_CERT="${SERVER_CERT}" \
   MEDIA_SERVER_ONVIF_TLS_SERVER_KEY="${SERVER_KEY}" \
+  MEDIA_SERVER_ONVIF_TLS_UNTRUSTED_SERVER_CERT="${UNTRUSTED_SERVER_CERT}" \
+  MEDIA_SERVER_ONVIF_TLS_UNTRUSTED_SERVER_KEY="${UNTRUSTED_SERVER_KEY}" \
+  MEDIA_SERVER_ONVIF_TLS_MISMATCH_SERVER_CERT="${MISMATCH_SERVER_CERT}" \
+  MEDIA_SERVER_ONVIF_TLS_MISMATCH_SERVER_KEY="${MISMATCH_SERVER_KEY}" \
     "${BUILD_DIR}/onvif_http_transport_smoke"
   exit 0
 fi

@@ -209,6 +209,116 @@ void RunHttpsTransportSmoke(const std::string& request_body) {
     Assert(!Contains(https_userinfo_response.error, "localhost"), "transport error leaked HTTPS host");
     Assert(!Contains(https_userinfo_response.error, "GetServices"), "transport error leaked SOAP action");
 }
+
+void AssertSanitizedTlsError(const ingress::OnvifSoapResponse& response,
+                             const std::string& expected,
+                             const std::string& label) {
+    Assert(!response.ok, label + " should fail");
+    Assert(Contains(response.error, expected), label + " error mismatch: " + response.error);
+    Assert(!Contains(response.error, "localhost"), label + " error leaked host");
+    Assert(!Contains(response.error, "127.0.0.1"), label + " error leaked loopback address");
+    Assert(!Contains(response.error, "GetServices"), label + " error leaked SOAP action");
+    Assert(!Contains(response.error, "fixture-user"), label + " error leaked username");
+    Assert(!Contains(response.error, "fixture-password"), label + " error leaked password");
+}
+
+void RunHttpsTlsServerFailure(const std::string& label,
+                              const std::string& cert_path,
+                              const std::string& key_path,
+                              const std::string& expected_error,
+                              const std::string& request_body) {
+    Assert(!cert_path.empty(), label + " server certificate is not configured");
+    Assert(!key_path.empty(), label + " server key is not configured");
+
+    const int listen_fd = OpenLoopbackListener();
+    const int port = ListenerPort(listen_fd);
+    std::thread server_thread([&]() {
+        std::unique_ptr<SSL_CTX, SslContextDeleter> ctx(SSL_CTX_new(TLS_server_method()));
+        if (!ctx ||
+            SSL_CTX_use_certificate_file(ctx.get(), cert_path.c_str(), SSL_FILETYPE_PEM) != 1 ||
+            SSL_CTX_use_PrivateKey_file(ctx.get(), key_path.c_str(), SSL_FILETYPE_PEM) != 1) {
+            return;
+        }
+        const int client_fd = accept(listen_fd, nullptr, nullptr);
+        if (client_fd < 0) {
+            return;
+        }
+        std::unique_ptr<SSL, SslDeleter> ssl(SSL_new(ctx.get()));
+        if (ssl && SSL_set_fd(ssl.get(), client_fd) == 1 && SSL_accept(ssl.get()) == 1) {
+            const std::string response = BuildSoapHttpResponse();
+            (void)SSL_write(ssl.get(), response.data(), static_cast<int>(response.size()));
+            (void)SSL_shutdown(ssl.get());
+        }
+        close(client_fd);
+    });
+
+    ingress::OnvifSoapRequest request;
+    request.action = "GetServices";
+    request.endpoint = "https://localhost:" + std::to_string(port) + "/onvif/device_service";
+    request.body = request_body;
+    request.timeout_ms = 2000;
+    const auto response = ingress::SendOnvifSoapHttp(request);
+    server_thread.join();
+    close(listen_fd);
+    AssertSanitizedTlsError(response, expected_error, label);
+}
+
+void RunHttpsHandshakeFailure(const std::string& request_body) {
+    const int listen_fd = OpenLoopbackListener();
+    const int port = ListenerPort(listen_fd);
+    std::thread server_thread([&]() {
+        const int client_fd = accept(listen_fd, nullptr, nullptr);
+        if (client_fd < 0) {
+            return;
+        }
+        const std::string text = "not a tls server\r\n";
+        (void)send(client_fd, text.data(), text.size(), 0);
+        close(client_fd);
+    });
+
+    ingress::OnvifSoapRequest request;
+    request.action = "GetServices";
+    request.endpoint = "https://localhost:" + std::to_string(port) + "/onvif/device_service";
+    request.body = request_body;
+    request.timeout_ms = 2000;
+    const auto response = ingress::SendOnvifSoapHttp(request);
+    server_thread.join();
+    close(listen_fd);
+    AssertSanitizedTlsError(response, "TLS handshake failed", "HTTPS handshake failure");
+}
+
+void RunHttpsConnectionRefused(const std::string& request_body) {
+    const int listen_fd = OpenLoopbackListener();
+    const int port = ListenerPort(listen_fd);
+    close(listen_fd);
+
+    ingress::OnvifSoapRequest request;
+    request.action = "GetServices";
+    request.endpoint = "https://127.0.0.1:" + std::to_string(port) + "/onvif/device_service";
+    request.body = request_body;
+    request.timeout_ms = 500;
+    const auto response = ingress::SendOnvifSoapHttp(request);
+    AssertSanitizedTlsError(response, "connect failed", "HTTPS connection refused");
+}
+
+void RunHttpsTransportFailureMatrix(const std::string& request_body) {
+    const char* untrusted_cert = std::getenv("MEDIA_SERVER_ONVIF_TLS_UNTRUSTED_SERVER_CERT");
+    const char* untrusted_key = std::getenv("MEDIA_SERVER_ONVIF_TLS_UNTRUSTED_SERVER_KEY");
+    const char* mismatch_cert = std::getenv("MEDIA_SERVER_ONVIF_TLS_MISMATCH_SERVER_CERT");
+    const char* mismatch_key = std::getenv("MEDIA_SERVER_ONVIF_TLS_MISMATCH_SERVER_KEY");
+    RunHttpsTlsServerFailure("HTTPS untrusted CA failure",
+                             untrusted_cert == nullptr ? "" : untrusted_cert,
+                             untrusted_key == nullptr ? "" : untrusted_key,
+                             "TLS certificate verification failed",
+                             request_body);
+    RunHttpsTlsServerFailure("HTTPS hostname mismatch failure",
+                             mismatch_cert == nullptr ? "" : mismatch_cert,
+                             mismatch_key == nullptr ? "" : mismatch_key,
+                             "TLS certificate verification failed",
+                             request_body);
+    RunHttpsHandshakeFailure(request_body);
+    RunHttpsConnectionRefused(request_body);
+}
 #endif
 
 }  // namespace
@@ -249,6 +359,7 @@ int main() {
 
 #if MEDIA_SERVER_USE_OPENSSL
     RunHttpsTransportSmoke(request.body);
+    RunHttpsTransportFailureMatrix(request.body);
 #else
     ingress::OnvifSoapRequest https_request;
     https_request.action = "GetServices";
@@ -263,5 +374,8 @@ int main() {
 #endif
 
     std::cout << "[pass] ONVIF HTTP/HTTPS SOAP transport smoke\n";
+#if MEDIA_SERVER_USE_OPENSSL
+    std::cout << "[pass] ONVIF HTTPS transport failure matrix\n";
+#endif
     return 0;
 }

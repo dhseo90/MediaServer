@@ -22,13 +22,14 @@ HTTPS SOAP transport 기준은
   제공하지 않습니다.
 - endpoint URL에는 username, password, token, cookie를 넣지 않습니다.
 - field smoke 산출물에는 TLS 실패도 sanitized summary로만 기록합니다.
-- 현재 v1.2.0은 fixture-only TLS harness와 production transport fixture success를
-  실행합니다.
+- 현재 v1.2.0은 fixture-only TLS harness와 production transport fixture success 및
+  production transport failure matrix를 실행합니다.
 - `verify-onvif-https-tls-fixture`은 fixture TLS server/client 실행으로 trusted success,
   untrusted CA, hostname mismatch, certificate expired, handshake failure,
   connection refused의 sanitized failure를 확인합니다.
 - `verify-onvif-http-transport`는 production `SendOnvifSoapHttp`의 HTTPS fixture
-  success와 URL userinfo redaction을 확인합니다.
+  success, untrusted CA failure, hostname mismatch failure, handshake failure,
+  connection refused, URL userinfo redaction을 확인합니다.
 
 ## 운영자 안내
 
@@ -52,8 +53,11 @@ TLS transport는 아래 조건을 계속 만족해야 합니다.
 - explicit TLS fixture harness는 ephemeral CA, fixture CA bundle, hostname
   verification, trusted fixture success, untrusted CA failure, hostname mismatch
   failure, certificate expired failure, handshake failure를 검증해야 합니다.
-- `verify-onvif-http-transport`, `verify-onvif-probe-error-wording`,
-  `verify-onvif-field-smoke-redaction`에 TLS redaction case를 추가해야 합니다.
+- `verify-onvif-http-transport`는 production transport에서 untrusted CA,
+  hostname mismatch, handshake failure, connection refused redaction case를
+  유지해야 합니다.
+- `verify-onvif-probe-error-wording`, `verify-onvif-field-smoke-redaction`에도 TLS
+  redaction case를 유지해야 합니다.
 
 ## 검증
 
