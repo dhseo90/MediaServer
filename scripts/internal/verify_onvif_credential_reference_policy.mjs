@@ -175,7 +175,9 @@ for (const forbidden of [
 
 assert(supportDoc.includes("./onvif-credential-reference-policy.md"), "ONVIF support doc must link credential policy");
 assert(authDesign.includes("./onvif-credential-store-integration-design.md"), "auth design must link credential store design");
+assert(authDesign.includes("verify-onvif-auth-injection-loopback"), "auth design must mention auth injection loopback smoke");
 assert(matrixDoc.includes("./onvif-credential-store-integration-design.md"), "protocol matrix must link credential store design");
+assert(matrixDoc.includes("verify-onvif-auth-injection-loopback"), "protocol matrix must mention auth loopback smoke");
 assert(probeFixture.auth?.credentialRef === "operator-entered-secret", "probe fixture should keep synthetic credentialRef sentinel");
 assert(probeFixture.auth?.plaintextSecretIncluded === false, "probe fixture must mark plaintextSecretIncluded=false");
 assert(fixtureContract.includes("credentialRef is required instead of plaintext secret"), "fixture contract must check credential reference policy");

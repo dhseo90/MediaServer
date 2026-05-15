@@ -66,6 +66,7 @@ check("protocol support matrix names supported ONVIF live-source scope", () => {
     "./onvif-auth-injection-design.md",
     "./onvif-credential-store-integration-design.md",
     "verify-onvif-auth-injection-design",
+    "verify-onvif-auth-injection-loopback",
     "./onvif-unsupported-api-guard.md",
     "수동 ONVIF stream URI 등록",
     "`rtsp://`, `rtsps://`, `http://`, `https://` live URI",

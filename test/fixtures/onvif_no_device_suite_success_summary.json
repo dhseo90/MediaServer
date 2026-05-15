@@ -3,8 +3,8 @@
   "generatedAt": "2026-05-15T00:00:00.000Z",
   "mode": "실장비 제외",
   "realDeviceEndpointSuccess": "미확인",
-  "total": 24,
-  "completed": 24,
+  "total": 25,
+  "completed": 25,
   "failed": null,
   "results": [
     {
@@ -45,108 +45,114 @@
     },
     {
       "index": 7,
-      "command": "./server.sh verify-onvif-ws-discovery-ux",
+      "command": "./server.sh verify-onvif-auth-injection-loopback",
       "ok": true,
       "status": 0
     },
     {
       "index": 8,
-      "command": "./server.sh verify-onvif-unsupported-api-guard",
+      "command": "./server.sh verify-onvif-ws-discovery-ux",
       "ok": true,
       "status": 0
     },
     {
       "index": 9,
-      "command": "./server.sh verify-onvif-live-import-contract",
+      "command": "./server.sh verify-onvif-unsupported-api-guard",
       "ok": true,
       "status": 0
     },
     {
       "index": 10,
-      "command": "./server.sh verify-onvif-probe-fixture-contract",
+      "command": "./server.sh verify-onvif-live-import-contract",
       "ok": true,
       "status": 0
     },
     {
       "index": 11,
-      "command": "./server.sh verify-onvif-probe-profile-variants",
+      "command": "./server.sh verify-onvif-probe-fixture-contract",
       "ok": true,
       "status": 0
     },
     {
       "index": 12,
-      "command": "./server.sh verify-onvif-probe-parser",
+      "command": "./server.sh verify-onvif-probe-profile-variants",
       "ok": true,
       "status": 0
     },
     {
       "index": 13,
-      "command": "./server.sh verify-onvif-probe-adapter",
+      "command": "./server.sh verify-onvif-probe-parser",
       "ok": true,
       "status": 0
     },
     {
       "index": 14,
-      "command": "./server.sh verify-onvif-http-transport",
+      "command": "./server.sh verify-onvif-probe-adapter",
       "ok": true,
       "status": 0
     },
     {
       "index": 15,
-      "command": "./server.sh verify-onvif-local-simulator",
+      "command": "./server.sh verify-onvif-http-transport",
       "ok": true,
       "status": 0
     },
     {
       "index": 16,
-      "command": "./server.sh verify-onvif-probe-error-wording",
+      "command": "./server.sh verify-onvif-local-simulator",
       "ok": true,
       "status": 0
     },
     {
       "index": 17,
-      "command": "./server.sh verify-onvif-field-smoke-redaction",
+      "command": "./server.sh verify-onvif-probe-error-wording",
       "ok": true,
       "status": 0
     },
     {
       "index": 18,
-      "command": "./server.sh verify-onvif-field-smoke-sample-bundle",
+      "command": "./server.sh verify-onvif-field-smoke-redaction",
       "ok": true,
       "status": 0
     },
     {
       "index": 19,
-      "command": "./server.sh verify-onvif-field-http-probe --allow-missing-endpoint",
+      "command": "./server.sh verify-onvif-field-smoke-sample-bundle",
       "ok": true,
       "status": 0
     },
     {
       "index": 20,
-      "command": "./server.sh verify-onvif-closed-loopback-failure-matrix",
+      "command": "./server.sh verify-onvif-field-http-probe --allow-missing-endpoint",
       "ok": true,
       "status": 0
     },
     {
       "index": 21,
-      "command": "./server.sh verify-onvif-field-http-probe --endpoint http://127.0.0.1:9/onvif/device_service --expect-failure --credential-ref-present",
+      "command": "./server.sh verify-onvif-closed-loopback-failure-matrix",
       "ok": true,
       "status": 0
     },
     {
       "index": 22,
-      "command": "./server.sh verify-onvif-tls-transport-policy",
+      "command": "./server.sh verify-onvif-field-http-probe --endpoint http://127.0.0.1:9/onvif/device_service --expect-failure --credential-ref-present",
       "ok": true,
       "status": 0
     },
     {
       "index": 23,
-      "command": "./server.sh verify-onvif-credential-reference-policy",
+      "command": "./server.sh verify-onvif-tls-transport-policy",
       "ok": true,
       "status": 0
     },
     {
       "index": 24,
+      "command": "./server.sh verify-onvif-credential-reference-policy",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 25,
       "command": "./server.sh verify-onvif-no-device-completion",
       "ok": true,
       "status": 0

@@ -20,6 +20,10 @@
   summary만 남깁니다.
 - ONVIF SOAP request에는 `Authorization`, `Cookie`, WS-Security UsernameToken을
   주입하지 않습니다.
+- `verify-onvif-auth-injection-loopback`은 credential reference가 있는 probe가
+  401 challenge를 받아도 Authorization, Cookie, WS-Security UsernameToken,
+  PasswordDigest, Basic/Digest secret material을 요청에 주입하지 않는 경계를
+  loopback에서 고정합니다.
 - secret 저장소 또는 secret manager lookup도 현재 구현 완료가 아닙니다.
 - endpoint URL에 username, password, token을 넣는 방식은 금지합니다.
 - 인증이 필요한 장비의 HTTP 401/403은 sanitized probe failure로 기록합니다.
@@ -62,6 +66,7 @@
 
 ```bash
 ./server.sh verify-onvif-auth-injection-design
+./server.sh verify-onvif-auth-injection-loopback
 ./server.sh verify-onvif-credential-reference-policy
 ./server.sh verify-onvif-protocol-support-matrix
 git diff --check

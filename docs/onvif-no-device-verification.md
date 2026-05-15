@@ -59,6 +59,7 @@ simulator fixture smoke로만 보고합니다.
 ./server.sh verify-onvif-no-device-completion
 ./server.sh verify-onvif-protocol-support-matrix
 ./server.sh verify-onvif-https-tls-fixture
+./server.sh verify-onvif-auth-injection-loopback
 ./server.sh verify-onvif-live-import-contract
 ./server.sh verify-onvif-probe-fixture-contract
 ./server.sh verify-onvif-probe-profile-variants
@@ -155,7 +156,7 @@ schema drift guard는 runner 상수, 성공 예시, 성공 fixture, 실패 fixtu
   "schema": "media-server.onvif-no-device-suite-summary.v1",
   "mode": "실장비 제외",
   "realDeviceEndpointSuccess": "미확인",
-  "completed": 24,
+  "completed": 25,
   "failed": null
 }
 ```

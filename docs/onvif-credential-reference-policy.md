@@ -21,6 +21,9 @@ redaction 검증을 제공하는 범위입니다.
 - endpoint URL에 username, password, token을 넣는 방식은 금지합니다.
 - `verify-onvif-field-http-probe --credential-ref-present`는 reference 존재 여부만
   산출물에 남기며 인증 header나 secret을 주입하지 않습니다.
+- `verify-onvif-auth-injection-loopback`은 401 challenge가 있어도 reference-only
+  request에 Authorization/Cookie/WS-Security secret material이 주입되지 않는지
+  확인합니다.
 - credential이 필요한 실제 장비가 HTTP 401/403을 반환하면 현재 단계에서는
   sanitized probe failure로 기록합니다.
 
@@ -83,6 +86,7 @@ credential reference 저장/주입을 추가할 때는 별도 단계에서 아�
 
 ```bash
 ./server.sh verify-onvif-auth-injection-design
+./server.sh verify-onvif-auth-injection-loopback
 ./server.sh verify-onvif-credential-reference-policy
 ./server.sh verify-onvif-probe-fixture-contract
 ./server.sh verify-onvif-probe-draft-api

@@ -80,6 +80,7 @@ check("no-device command list keeps endpoint-free and sanitized-failure probes",
   assertContains(noDeviceDoc, "verify-onvif-protocol-support-matrix", "missing protocol support matrix command");
   assertContains(noDeviceDoc, "verify-onvif-https-tls-fixture", "missing HTTPS TLS fixture command");
   assertContains(noDeviceDoc, "trusted fixture success", "missing HTTPS TLS trusted fixture wording");
+  assertContains(noDeviceDoc, "verify-onvif-auth-injection-loopback", "missing auth injection loopback command");
   assertContains(noDeviceDoc, "verify-onvif-probe-profile-variants", "missing profile variant command");
   assertContains(noDeviceDoc, "verify-onvif-local-simulator", "missing local simulator command");
   assertContains(noDeviceDoc, "verify-onvif-field-http-probe --allow-missing-endpoint", "missing missing-endpoint command");
@@ -102,6 +103,7 @@ check("live support document links no-device mode without claiming field success
   assertContains(liveSupportDoc, "verify-onvif-no-device-completion", "live support verification missing no-device completion command");
   assertContains(liveSupportDoc, "verify-onvif-protocol-support-matrix", "live support verification missing protocol matrix command");
   assertContains(liveSupportDoc, "verify-onvif-https-tls-fixture", "live support doc missing HTTPS TLS fixture command");
+  assertContains(liveSupportDoc, "verify-onvif-auth-injection-loopback", "live support doc missing auth injection loopback command");
   assertContains(liveSupportDoc, "verify-onvif-probe-profile-variants", "live support verification missing profile variant command");
   assertContains(liveSupportDoc, "verify-onvif-local-simulator", "live support verification missing local simulator command");
   assertContains(liveSupportDoc, "Media fallback, Media-only, non-RTSP GetStreamUri 실패", "live support doc missing local simulator variant wording");
@@ -121,6 +123,7 @@ check("no-device suite runner can write summary JSON", () => {
     "writeJsonSummary",
     "results",
     "verify-onvif-https-tls-fixture",
+    "verify-onvif-auth-injection-loopback",
     "verify-onvif-local-simulator",
     "verify-onvif-no-device-completion",
   ]) {
@@ -160,6 +163,7 @@ check("no-device success summary fixture preserves completed command state", () 
     "./server.sh verify-onvif-no-device-mode",
     "./server.sh verify-onvif-probe-profile-variants",
     "./server.sh verify-onvif-local-simulator",
+    "./server.sh verify-onvif-auth-injection-loopback",
     "./server.sh verify-onvif-no-device-completion",
     "./server.sh verify-onvif-closed-loopback-failure-matrix",
     "./server.sh verify-onvif-field-http-probe --endpoint http://127.0.0.1:9/onvif/device_service --expect-failure --credential-ref-present",

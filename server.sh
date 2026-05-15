@@ -108,6 +108,8 @@ Usage:
                  ONVIF HTTPS TLS fixture harness command skeleton의 design-only skip 경계를 검증합니다.
   verify-onvif-auth-injection-design
                  ONVIF 인증 주입 향후 설계와 현재 credential reference-only 경계를 검증합니다.
+  verify-onvif-auth-injection-loopback
+                 ONVIF credential reference가 있어도 인증 material이 주입되지 않는 loopback 경계를 검증합니다.
   verify-onvif-ws-discovery-ux
                  ONVIF WS-Discovery 비지원 Ops UX 문구와 문서 경계를 검증합니다.
   verify-onvif-unsupported-api-guard
@@ -475,6 +477,10 @@ case "${cmd}" in
   verify-onvif-auth-injection-design)
     require_internal verify_onvif_auth_injection_design.mjs
     exec "${INTERNAL_DIR}/verify_onvif_auth_injection_design.mjs" "$@"
+    ;;
+  verify-onvif-auth-injection-loopback)
+    require_internal verify_onvif_auth_injection_loopback.sh
+    exec "${INTERNAL_DIR}/verify_onvif_auth_injection_loopback.sh" "$@"
     ;;
   verify-onvif-ws-discovery-ux)
     require_internal verify_onvif_ws_discovery_ux.mjs

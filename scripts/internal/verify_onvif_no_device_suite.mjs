@@ -44,6 +44,7 @@ const suite = [
   ["verify-onvif-https-soap-transport-design"],
   ["verify-onvif-https-tls-fixture"],
   ["verify-onvif-auth-injection-design"],
+  ["verify-onvif-auth-injection-loopback"],
   ["verify-onvif-ws-discovery-ux"],
   ["verify-onvif-unsupported-api-guard"],
   ["verify-onvif-live-import-contract"],

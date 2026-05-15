@@ -44,6 +44,8 @@ check("auth injection design keeps current reference-only status explicit", () =
     "Authorization",
     "Cookie",
     "UsernameToken",
+    "verify-onvif-auth-injection-loopback",
+    "401 challenge",
     "secret 저장소 또는 secret manager lookup도 현재 구현 완료가 아닙니다",
     "HTTP 401/403은 sanitized probe failure",
   ]) {
@@ -75,6 +77,7 @@ check("credential policy and protocol matrix link auth injection design", () => 
   assertContains(matrixDoc, "./onvif-auth-injection-design.md", "protocol matrix missing auth design link");
   assertContains(matrixDoc, "./onvif-credential-store-integration-design.md", "protocol matrix missing credential store design link");
   assertContains(matrixDoc, "verify-onvif-auth-injection-design", "protocol matrix missing auth design verification");
+  assertContains(matrixDoc, "verify-onvif-auth-injection-loopback", "protocol matrix missing auth loopback verification");
 });
 
 check("current ONVIF SOAP transport does not inject auth headers or UsernameToken", () => {
