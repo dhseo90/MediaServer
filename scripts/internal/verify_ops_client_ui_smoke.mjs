@@ -251,6 +251,8 @@ if (screenshotEnabled) {
   if (clientHeaderResult.failCount > 0) process.exit(1);
   const auditResponsiveResult = await runOpsAuditResponsiveSmoke();
   if (auditResponsiveResult.failCount > 0) process.exit(1);
+  const onvifUnsupportedHintResult = await runOpsSourcesOnvifUnsupportedHintSmoke();
+  if (onvifUnsupportedHintResult.failCount > 0) process.exit(1);
 }
 
 function clientForbiddenText() {
@@ -442,6 +444,140 @@ async function runOpsAuditResponsiveSmoke() {
     }
   }
   return { passCount: auditPassCount, failCount: auditFailCount };
+}
+
+async function runOpsSourcesOnvifUnsupportedHintSmoke() {
+  let hintPassCount = 0;
+  let hintFailCount = 0;
+  const hintFailures = [];
+  let checkIndex = 0;
+  for (const width of visualWidths) {
+    const label = `ops-sources-onvif-unsupported-hint-${width}`;
+    const browser = await openBrowserPage({
+      httpBase,
+      pagePath: "/ops/sources",
+      timeoutMs,
+      chromePath,
+      debugPort: debugPortBase + 440 + checkIndex,
+      width,
+      height: visualHeight,
+      outputDir,
+    });
+    checkIndex += 1;
+    try {
+      await browser.evaluate(prepareOnvifUnsupportedHintExpression(), 10000);
+      await browser.screenshot(path.join(outputDir, `${label}.png`));
+      const result = await browser.evaluate(onvifUnsupportedHintVisibleExpression(), 10000);
+      if (!result?.ok) {
+        const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
+        throw new Error(`${label}: ${details}`);
+      }
+      hintPassCount += 1;
+      console.log(`[pass] ${label}: hintHeight=${Math.round(result.hintHeight)}, overflow=${result.overflowX}`);
+    } catch (error) {
+      hintFailCount += 1;
+      const message = error instanceof Error ? error.message : String(error);
+      hintFailures.push(`[${label}] ${message}`);
+      console.log(`[fail] ${label}: ${message}`);
+    } finally {
+      await browser.close();
+    }
+  }
+  console.log("");
+  console.log("== Ops ONVIF unsupported hint screenshot smoke 요약 ==");
+  console.log(`- 통과: ${hintPassCount}`);
+  console.log(`- 실패: ${hintFailCount}`);
+  console.log(`- screenshots: ${outputDir}`);
+  if (hintFailures.length > 0) {
+    console.log("- 실패 상세:");
+    for (const failure of hintFailures) {
+      console.log(`  - ${failure}`);
+    }
+  }
+  return { passCount: hintPassCount, failCount: hintFailCount };
+}
+
+function prepareOnvifUnsupportedHintExpression() {
+  return `
+    (async () => {
+      const addButton = document.querySelector('#add-channel');
+      if (!addButton) throw new Error('add channel button missing');
+      addButton.click();
+      for (let attempt = 0; attempt < 30; attempt += 1) {
+        const panel = document.querySelector('#channel-detail-panel');
+        const kind = document.querySelector('#channel-form [name="kind"]');
+        if (panel && !panel.hidden && kind) {
+          kind.value = 'onvif';
+          kind.dispatchEvent(new Event('change', { bubbles: true }));
+          break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      const hint = document.querySelector('p[data-source-kind="onvif"].hint');
+      if (!hint) throw new Error('ONVIF unsupported hint missing');
+      hint.scrollIntoView({ block: 'center', inline: 'nearest' });
+      await new Promise(resolve => setTimeout(resolve, 120));
+      return true;
+    })()
+  `;
+}
+
+function onvifUnsupportedHintVisibleExpression() {
+  return `
+    (() => {
+      const issues = [];
+      const hint = document.querySelector('p[data-source-kind="onvif"].hint');
+      const input = document.querySelector('[name="onvifStreamUrl"]');
+      const tool = document.querySelector('[data-testid="onvif-probe-draft-tool"]');
+      const requiredText = [
+        'WS-Discovery 자동 검색',
+        'PTZ 제어',
+        'ONVIF Events/PullPoint',
+        'Profile G/Recording/Replay는 제공하지 않습니다',
+        '운영자가 확인한 live URI 또는 probe fixture를 사용합니다',
+      ];
+      if (!hint) issues.push('ONVIF unsupported hint missing');
+      if (!input) issues.push('ONVIF stream URI input missing');
+      if (!tool) issues.push('ONVIF probe draft tool missing');
+      if (!hint || !input || !tool) {
+        return { ok: false, issues, overflowX: 0, hintHeight: 0 };
+      }
+      for (const item of requiredText) {
+        if (!hint.textContent.includes(item)) {
+          issues.push('ONVIF unsupported hint text missing: ' + item);
+        }
+      }
+      for (const [name, element] of [['hint', hint], ['input', input], ['tool', tool]]) {
+        const rect = element.getBoundingClientRect();
+        const style = window.getComputedStyle(element);
+        if (element.hidden || style.display === 'none' || style.visibility === 'hidden') {
+          issues.push(name + ' is hidden');
+        }
+        if (rect.width <= 0 || rect.height <= 0) {
+          issues.push(name + ' has empty rect');
+        }
+        if (rect.left < -1 || rect.right > window.innerWidth + 1) {
+          issues.push(name + ' outside viewport horizontally: ' + Math.round(rect.left) + '..' + Math.round(rect.right));
+        }
+      }
+      const hintRect = hint.getBoundingClientRect();
+      if (hintRect.top < 0 || hintRect.bottom > window.innerHeight) {
+        issues.push('hint not fully visible in screenshot viewport: ' + Math.round(hintRect.top) + '..' + Math.round(hintRect.bottom));
+      }
+      const doc = document.documentElement;
+      const body = document.body;
+      const overflowX = Math.max(0, Math.max(doc.scrollWidth, body.scrollWidth) - window.innerWidth);
+      if (overflowX > 2) {
+        issues.push('document horizontal overflow ' + overflowX + 'px');
+      }
+      return {
+        ok: issues.length === 0,
+        issues,
+        overflowX,
+        hintHeight: hintRect.height,
+      };
+    })()
+  `;
 }
 
 function opsAuditResponsiveExpression(selector) {

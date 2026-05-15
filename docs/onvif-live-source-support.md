@@ -274,5 +274,9 @@ git diff --check
 ONVIF endpoint, credential reference, raw diagnostic JSON이 노출되지 않는지도
 함께 확인합니다.
 
+`verify-ops-client-ui --screenshots`는 `/ops/sources`에서 ONVIF kind를 선택한 뒤
+WS-Discovery/PTZ/Events/Profile G 비지원 hint가 실제 screenshot viewport에 보이는지
+추가로 확인합니다.
+
 구현 단계에서도 Event POST payload, WebRTC DataChannel schema,
 SSE/WS metadata schema, RTSP/WebRTC media path는 변경하지 않습니다.
