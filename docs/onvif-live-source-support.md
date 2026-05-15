@@ -99,6 +99,9 @@ test/fixtures/onvif_probe_result_stub.json
 - 저장 side effect는 없습니다.
 - `expectedSourceDraft.tags`에는 최소 `onvif`, `live`가 포함됩니다.
 - 응답에는 password, token 원문, ONVIF raw SOAP, credential 원문을 포함하지 않습니다.
+- credential reference 세부 기준은
+  [ONVIF Credential Reference Policy](./onvif-credential-reference-policy.md)를
+  따릅니다.
 
 ## Media/Media2 Profile Selection Policy
 
@@ -218,6 +221,7 @@ notes: <sanitized operational note>
 ./server.sh verify-onvif-field-smoke-redaction
 ./server.sh verify-onvif-field-http-probe --allow-missing-endpoint
 ./server.sh verify-onvif-tls-transport-policy
+./server.sh verify-onvif-credential-reference-policy
 ./server.sh verify-onvif-probe-draft-api
 ./server.sh verify-onvif-import-draft-api
 ./server.sh verify-onvif-rtsp-downstream
