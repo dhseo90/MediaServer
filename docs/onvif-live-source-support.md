@@ -127,6 +127,9 @@ test/fixtures/onvif_probe_result_stub.json
    ONVIF endpoint, credential reference, raw diagnostic JSON이 없는지 확인합니다.
 9. 채널 Live/VA URL copy와 `/ops/rules`의 ONVIF RTSP/WHEP/WebRTC copy 버튼을
    확인합니다.
+10. 공유 전 산출물은 [ONVIF Field Smoke Artifact Redaction Checklist](./onvif-field-smoke-artifact-redaction.md)
+    기준으로 endpoint, credential, raw SOAP, raw diagnostic JSON이 제거됐는지
+    확인합니다.
 
 기록 템플릿:
 
@@ -154,6 +157,8 @@ notes: <sanitized operational note>
 ./server.sh verify-onvif-probe-parser
 ./server.sh verify-onvif-probe-adapter
 ./server.sh verify-onvif-http-transport
+./server.sh verify-onvif-probe-error-wording
+./server.sh verify-onvif-field-smoke-redaction
 ./server.sh verify-onvif-probe-draft-api
 ./server.sh verify-onvif-import-draft-api
 ./server.sh verify-onvif-rtsp-downstream

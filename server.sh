@@ -106,6 +106,8 @@ Usage:
                  ONVIF probe action 순서와 실패 요약 redaction 단위 smoke를 검증합니다.
   verify-onvif-probe-error-wording
                  ONVIF probe 실패 문구 fixture matrix와 redaction을 검증합니다.
+  verify-onvif-field-smoke-redaction
+                 ONVIF 현장 smoke 산출물 redaction checklist를 검증합니다.
   verify-onvif-http-transport
                  ONVIF HTTP SOAP transport가 실제 POST/응답 수신을 수행하는지 검증합니다.
   verify-onvif-probe-draft-api
@@ -435,6 +437,10 @@ case "${cmd}" in
   verify-onvif-probe-error-wording)
     require_internal verify_onvif_probe_error_wording_matrix.mjs
     exec "${INTERNAL_DIR}/verify_onvif_probe_error_wording_matrix.mjs" "$@"
+    ;;
+  verify-onvif-field-smoke-redaction)
+    require_internal verify_onvif_field_smoke_redaction.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_field_smoke_redaction.mjs" "$@"
     ;;
   verify-onvif-http-transport)
     require_internal verify_onvif_http_transport.sh
