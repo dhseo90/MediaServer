@@ -89,7 +89,7 @@ const pageChecks = [
     name: "ops-dashboard",
     path: "/ops/dashboard",
     visualSelector: '[data-testid="ops-dashboard-page"]',
-    must: ['data-testid="ops-dashboard-page"', 'data-testid="ops-root-cause-panel"', 'data-testid="ops-va-quality-panel"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', 'id="dashRootCauseList"', 'id="dashVaQualityFilterInput"', 'id="dashScenarioTimeline"', 'id="dashTrackingIssueGroups"', '/ops/api/runtime/status', '/ops/api/source-health', '라이브 소스 상태', '라이브 VA 이벤트 품질'],
+    must: ['data-testid="ops-dashboard-page"', 'data-testid="ops-root-cause-panel"', 'data-testid="ops-incident-timeline-panel"', 'data-testid="ops-va-quality-panel"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', 'id="dashRootCauseList"', 'id="dashIncidentTimeline"', 'id="dashVaQualityFilterInput"', 'id="dashScenarioTimeline"', 'id="dashTrackingIssueGroups"', '/ops/api/runtime/status', '/ops/api/source-health', '라이브 소스 상태', '최근 인시던트 흐름', '라이브 VA 이벤트 품질'],
     mustNot: ['<iframe', 'opsDashboardFrame', '/lab/rules?embed=1', '/lab/runtime/status'],
   },
   {

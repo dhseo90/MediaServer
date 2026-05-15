@@ -14,11 +14,16 @@ check("ops dashboard exposes root cause panel", () => {
   const html = readText("src/ingress/webrtc_http_server.cpp");
   const required = [
     'data-testid="ops-root-cause-panel"',
+    'data-testid="ops-incident-timeline-panel"',
     'id="dashRootCauseBadges"',
     'id="dashRootCauseText"',
     'id="dashRootCauseList"',
     'id="dashRootCauseActionOutput"',
+    'id="dashIncidentTimelineBadges"',
+    'id="dashIncidentTimelineText"',
+    'id="dashIncidentTimeline"',
     "소스 수명주기, 지연, 재연결, 권한/설정 상태와 다음 조치",
+    "문제 원인, EventRecord, source health, 로그 단서",
   ];
   for (const snippet of required) {
     assert(html.includes(snippet), `dashboard root cause panel is missing snippet: ${snippet}`);
@@ -33,6 +38,14 @@ check("ops dashboard script interprets runtime root causes", () => {
     "dashboardSourceHealthCounts",
     "dashboardSourceHealthStatusText",
     "renderDashboardRootCause",
+    "dashboardIncidentTimelineItems",
+    "renderDashboardIncidentTimeline",
+    "dashboardIncidentEventRecords",
+    "dashIncidentTimelineBadges",
+    "dashIncidentTimelineText",
+    "dashIncidentTimeline",
+    "최근 인시던트 없음",
+    "관련 화면",
     "rootCauseCorrelationId",
     "correlationId",
     "/ops/api/diagnostics/log-tail",

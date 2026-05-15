@@ -1739,7 +1739,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           ? '아래 항목을 기준으로 원인을 좁혀 확인합니다.'
           : '운영자가 바로 확인할 소스 수명주기, 지연, 재연결, 권한/설정 문제가 없습니다.');
         const list = document.getElementById('dashRootCauseList');
-        if (!list) return;
+        if (!list) return items;
         list.innerHTML = items.map((item, index) => `<article class="root-cause-item ${escapeHtml(item.level)}">
           <div>
             <strong>${opsHtml(item.title)}</strong>
@@ -1758,6 +1758,131 @@ void AppendOpsShellScript(std::ostringstream& out,
             if (item) runRootCauseAction(item).catch(error => renderRootCauseActionOutput('다음 조치 실패', [error.message || String(error)], []));
           });
         });
+        return items;
+      };
+      const dashboardIncidentEventRecords = eventsStatus => Array.isArray(eventsStatus?.records?.records) ? eventsStatus.records.records : [];
+      const dashboardIncidentTimeLabel = item => {
+        const value = item?.updateTime ?? item?.startTime ?? item?.timestampMs ?? item?.timestamp ?? item?.createdAt;
+        if (value === null || value === undefined || value === '') return '시간 미제공';
+        const numeric = Number(value);
+        if (Number.isFinite(numeric)) {
+          return numeric > 1000000000000 ? new Date(numeric).toLocaleString() : `${Math.round(numeric)}ms`;
+        }
+        return display(value);
+      };
+      const dashboardIncidentSortValue = item => {
+        const value = item?.updateTime ?? item?.startTime ?? item?.timestampMs ?? item?.timestamp ?? 0;
+        const numeric = Number(value);
+        return Number.isFinite(numeric) ? numeric : 0;
+      };
+      const dashboardIncidentTimelineItems = (rootItems = [], eventsStatus = {}, diagnosticLog = {}, sourceHealth = {}) => {
+        const rootTimeline = (Array.isArray(rootItems) ? rootItems : [])
+          .filter(item => item && (item.level === 'warn' || item.level === 'bad'))
+          .slice(0, 3)
+          .map((item, index) => ({
+            level: item.level,
+            source: '문제 원인',
+            time: '현재',
+            sort: Number.MAX_SAFE_INTEGER - index,
+            title: item.title,
+            detail: item.detail,
+            evidence: item.evidence || item.log,
+            correlationId: item.correlationId,
+            actionHref: item.actionHref
+          }));
+        const eventTimeline = dashboardIncidentEventRecords(eventsStatus)
+          .slice(0, 4)
+          .map(item => {
+            const status = String(item?.status || '').toLowerCase();
+            const level = ['failed', 'failure', 'error'].includes(status) ? 'warn' : 'info';
+            const stream = item?.streamId || item?.channelId || '스트림 미제공';
+            const scenario = [item?.scenarioName, item?.scenarioPhase].filter(Boolean).map(display).join(' · ');
+            return {
+              level,
+              source: 'EventRecord',
+              time: dashboardIncidentTimeLabel(item),
+              sort: dashboardIncidentSortValue(item),
+              title: `${display(item?.eventType || 'event')} · ${display(item?.status || '상태 미제공')}`,
+              detail: `${display(stream)}${item?.trackId ? ` · track ${display(item.trackId)}` : ''}${scenario ? ` · ${scenario}` : ''}`,
+              evidence: item?.eventId ? `eventId ${display(item.eventId)}` : 'eventId 미제공',
+              correlationId: item?.eventId || item?.trackId || '',
+              actionHref: '/ops/events'
+            };
+          });
+        const sourceTimeline = dashboardSourceHealthItems(sourceHealth)
+          .filter(sourceHealthNeedsAction)
+          .slice(0, 3)
+          .map((item, index) => ({
+            level: item.status === 'offline' ? 'bad' : 'warn',
+            source: 'Source Health',
+            time: '현재',
+            sort: Number.MAX_SAFE_INTEGER - 100 - index,
+            title: `소스 #${display(item.sourceId || '-')} ${dashboardSourceHealthStatusLabel(item.status)}`,
+            detail: dashboardSourceHealthReason(item.reason),
+            evidence: `프레임 ${dashboardSourceHealthAge(item.lastFrameAgeMs)} / 메타데이터 ${dashboardSourceHealthAge(item.lastMetadataAgeMs)}`,
+            correlationId: item.sourceId ? `source-${item.sourceId}` : '',
+            actionHref: item.sourceId ? `/ops/sources#channel=${encodeURIComponent(item.sourceId)}` : '/ops/sources'
+          }));
+        const logLines = Array.isArray(diagnosticLog?.lines) ? diagnosticLog.lines : [];
+        const logTimeline = [...logLines]
+          .reverse()
+          .filter(line => /source health|cleanup|stale|event post|event storage|auth|ICE|TURN|relay|reconnect|WHIP/i.test(String(line || '')))
+          .slice(0, 3)
+          .map((line, index) => ({
+            level: 'info',
+            source: 'Log tail',
+            time: '최근 로그',
+            sort: Number.MAX_SAFE_INTEGER - 200 - index,
+            title: '로그 단서',
+            detail: String(line || '').slice(0, 160),
+            evidence: 'diagnostics log-tail',
+            correlationId: rootCauseCorrelationId(line, 'source health|cleanup|stale|event post|event storage|auth|ICE|TURN|relay|reconnect|WHIP'),
+            actionHref: '/ops/dashboard'
+          }));
+        const items = [...rootTimeline, ...sourceTimeline, ...eventTimeline, ...logTimeline]
+          .sort((a, b) => numberValue(b.sort) - numberValue(a.sort))
+          .slice(0, 8);
+        if (items.length > 0) return items;
+        return [{
+          level: 'info',
+          source: 'Summary',
+          time: '현재',
+          sort: 0,
+          title: '최근 인시던트 없음',
+          detail: '문제 원인, EventRecord, source health, 로그 tail에서 즉시 확인할 단서가 없습니다.',
+          evidence: dashboardSourceHealthStatusText(sourceHealth),
+          correlationId: '',
+          actionHref: '/ops/dashboard'
+        }];
+      };
+      const renderDashboardIncidentTimeline = (rootItems = [], eventsStatus = {}, diagnosticLog = {}, sourceHealth = {}) => {
+        const items = dashboardIncidentTimelineItems(rootItems, eventsStatus, diagnosticLog, sourceHealth);
+        const warnCount = items.filter(item => item.level === 'warn' || item.level === 'bad').length;
+        const eventCount = dashboardIncidentEventRecords(eventsStatus).length;
+        const sourceIssueCount = dashboardSourceHealthItems(sourceHealth).filter(sourceHealthNeedsAction).length;
+        renderBadges('dashIncidentTimelineBadges', [
+          { text: warnCount > 0 ? `${warnCount}개 확인 필요` : '즉시 인시던트 없음', tone: warnCount > 0 ? 'warn' : '' },
+          { text: `EventRecord ${eventCount}` },
+          { text: sourceIssueCount > 0 ? `source health ${sourceIssueCount}` : 'source health 정상', tone: sourceIssueCount > 0 ? 'warn' : '' },
+          { text: diagnosticLog?.available === false ? 'log tail 없음' : 'log tail' }
+        ]);
+        setText('dashIncidentTimelineText', warnCount > 0
+          ? '최근 단서를 시간순으로 묶었습니다. 확인 항목부터 관련 화면으로 이동합니다.'
+          : '최근 EventRecord와 source health 단서를 기준으로 즉시 대응할 인시던트가 없습니다.');
+        const list = document.getElementById('dashIncidentTimeline');
+        if (!list) return items;
+        list.innerHTML = items.map(item => `<article class="root-cause-item ${escapeHtml(item.level)}">
+          <div>
+            <strong>${opsHtml(item.title)}</strong>
+            <p>${opsHtml(item.detail)}</p>
+          </div>
+          <span class="chip${item.level === 'warn' ? ' warn' : (item.level === 'bad' ? ' bad' : '')}">${opsHtml(item.time || item.source)}</span>
+          ${item.correlationId ? `<span class="root-cause-correlation">cid ${escapeHtml(item.correlationId)}</span>` : ''}
+          ${item.evidence ? `<p class="root-cause-evidence">${opsHtml(item.evidence)}</p>` : ''}
+          <p class="root-cause-action">출처 ${opsHtml(item.source || '대시보드')}</p>
+          ${item.actionHref ? `<a class="btn small root-cause-next-action" href="${escapeHtml(item.actionHref)}">관련 화면</a>` : ''}
+        </article>`).join('');
+        return items;
       };
       const scenarioPhaseLabel = phase => ({
         idle: 'Idle',
@@ -2067,7 +2192,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('dashWsClientCount', sideChannel.activeWebSocketClients ?? 0);
         setText('dashDetailText',
           `프로파일 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0} · 발행 ${counts.publish} · 송출 ${counts.egress}`);
-        renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
+        const rootCauseItems = renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
+        renderDashboardIncidentTimeline(rootCauseItems, eventsStatus, diagnosticLog, sourceHealth);
         await refreshDashboardVaQuality(runtime).catch(renderDashboardVaQualityError);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
         window.MediaServerUi?.translatePage?.();

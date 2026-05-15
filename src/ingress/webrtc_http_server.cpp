@@ -2341,6 +2341,19 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
         </div>
         <div id="dashRootCauseActionOutput" class="root-cause-action-output" hidden></div>
       </section>
+      <section class="section-card" data-testid="ops-incident-timeline-panel">
+        <div class="toolbar">
+          <div>
+            <h3>최근 인시던트 흐름</h3>
+            <p>문제 원인, EventRecord, source health, 로그 단서를 시간순으로 묶어 봅니다.</p>
+          </div>
+        </div>
+        <div id="dashIncidentTimelineBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashIncidentTimelineText">불러오는 중</p>
+        <div id="dashIncidentTimeline" class="root-cause-list">
+          <div class="empty">최근 인시던트 단서를 불러오는 중입니다.</div>
+        </div>
+      </section>
       <section class="section-card">
         <div class="toolbar">
           <div>

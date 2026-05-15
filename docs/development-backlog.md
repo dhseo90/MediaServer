@@ -181,6 +181,23 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - RTSP/WebRTC media path 변경
 - Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
 
+### V120-P1-08 Ops Dashboard incident timeline 종료 판정
+
+2026-05-16 기준 Ops Dashboard incident timeline은 운영자 UI 표시 범위에서 종료합니다.
+
+확인됨:
+
+- `/ops/dashboard`에 `최근 인시던트 흐름` 패널을 추가해 문제 원인, EventRecord, source health, `.media_server.log` tail 단서를 한 목록으로 묶습니다.
+- 타임라인은 기존 `/ops/api/runtime/status`, `/ops/api/events/status`, `/ops/api/source-health`, `/ops/api/diagnostics/log-tail` 응답만 사용합니다.
+- 각 항목은 확인 필요 수, EventRecord 수, source health 이슈 수, 관련 화면 이동 링크를 제공합니다.
+
+범위 밖:
+
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- source health top-level 상태 모델 추가
+- client/viewer raw diagnostic 노출
+
 ### V120-P1-01 종료 판정
 
 2026-05-16 기준 V120-P1-01은 viewer/client shell polish 범위에서 종료합니다.
