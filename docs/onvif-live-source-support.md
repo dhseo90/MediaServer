@@ -277,7 +277,8 @@ ONVIF endpoint, credential reference, raw diagnostic JSON이 노출되지 않는
 
 `verify-ops-client-ui --screenshots`는 `/ops/sources`에서 ONVIF kind를 선택한 뒤
 WS-Discovery/PTZ/Events/Profile G 비지원 hint가 실제 screenshot viewport에 보이는지
-추가로 확인합니다.
+추가로 확인합니다. 이 ONVIF hint screenshot smoke는 `--visual-widths`를 좁혀도
+320px 폭을 항상 포함합니다.
 
 no-device suite 실패 summary fixture는
 `test/fixtures/onvif_no_device_suite_failure_summary.json`이며,

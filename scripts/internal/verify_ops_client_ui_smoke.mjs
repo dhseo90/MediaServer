@@ -450,8 +450,9 @@ async function runOpsSourcesOnvifUnsupportedHintSmoke() {
   let hintPassCount = 0;
   let hintFailCount = 0;
   const hintFailures = [];
+  const hintWidths = onvifUnsupportedHintWidths();
   let checkIndex = 0;
-  for (const width of visualWidths) {
+  for (const width of hintWidths) {
     const label = `ops-sources-onvif-unsupported-hint-${width}`;
     const browser = await openBrowserPage({
       httpBase,
@@ -495,6 +496,10 @@ async function runOpsSourcesOnvifUnsupportedHintSmoke() {
     }
   }
   return { passCount: hintPassCount, failCount: hintFailCount };
+}
+
+function onvifUnsupportedHintWidths() {
+  return [320, ...visualWidths.filter(width => width !== 320)];
 }
 
 function prepareOnvifUnsupportedHintExpression() {
