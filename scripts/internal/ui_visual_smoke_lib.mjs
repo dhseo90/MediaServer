@@ -70,6 +70,7 @@ export function writeVisualArtifactIndex({
   visualHeight = 0,
   checks = [],
   command = "",
+  retentionPolicy = defaultVisualArtifactRetentionPolicy(),
 } = {}) {
   if (!outputDir) {
     throw new Error("outputDir is required for visual artifact index");
@@ -87,6 +88,7 @@ export function writeVisualArtifactIndex({
       widths: visualWidths,
       height: visualHeight,
     },
+    retentionPolicy,
     screenshotCount: screenshots.length,
     screenshots,
   };
@@ -138,6 +140,8 @@ function buildVisualArtifactMarkdown(manifest) {
     `- httpBase: ${manifest.httpBase || "(unspecified)"}`,
     `- viewportWidths: ${(manifest.viewport?.widths || []).join(", ") || "(unspecified)"}`,
     `- viewportHeight: ${manifest.viewport?.height || "(unspecified)"}`,
+    `- retentionDefaultDays: ${manifest.retentionPolicy?.defaultDays ?? "(unspecified)"}`,
+    `- retentionReleaseBaselineDays: ${manifest.retentionPolicy?.releaseBaselineDays ?? "(unspecified)"}`,
     `- screenshots: ${manifest.screenshotCount}`,
     "",
     "| File | Label | Page | Width | Bytes |",
@@ -148,6 +152,24 @@ function buildVisualArtifactMarkdown(manifest) {
   }
   lines.push("");
   return `${lines.join("\n")}\n`;
+}
+
+function defaultVisualArtifactRetentionPolicy() {
+  return {
+    schema: "media-server.ui-visual-artifact-retention.v1",
+    defaultDays: retentionDaysFromEnv("MEDIA_SERVER_UI_VISUAL_ARTIFACT_RETENTION_DAYS", 14),
+    releaseBaselineDays: retentionDaysFromEnv("MEDIA_SERVER_UI_VISUAL_RELEASE_BASELINE_RETENTION_DAYS", 45),
+    localTempPolicy: "temporary-unless-output-dir-is-persisted",
+    privacyReview: "do-not-retain-client-source-url-developer-url-raw-json-debug-artifacts",
+  };
+}
+
+function retentionDaysFromEnv(name, fallback) {
+  const raw = process.env[name];
+  if (raw == null || raw === "") return fallback;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed < 0) return fallback;
+  return Math.round(parsed);
 }
 
 export function parseWidthList(value) {

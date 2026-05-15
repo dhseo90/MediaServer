@@ -73,6 +73,9 @@ check("manifest schema and screenshot rows", () => {
   assert(parsed.schema === "media-server.ui-visual-artifact-index.v1", "manifest schema mismatch");
   assert(parsed.screenshotCount === 5, `expected 5 screenshots, got ${parsed.screenshotCount}`);
   assert(Array.isArray(parsed.screenshots), "manifest screenshots must be an array");
+  assert(parsed.retentionPolicy?.schema === "media-server.ui-visual-artifact-retention.v1", "manifest retention policy schema missing");
+  assert(parsed.retentionPolicy?.defaultDays === 14, "manifest default retention days mismatch");
+  assert(parsed.retentionPolicy?.releaseBaselineDays === 45, "manifest release baseline retention days mismatch");
   assert(parsed.screenshots.some((item) => item.file === "ops-home-320.png" && item.page === "/ops/home"), "ops home page mapping missing");
   assert(parsed.screenshots.some((item) => item.file === "ops-sources-onvif-preview-tool-390.png" && item.page === ""), "extra artifact row should be retained without page mapping");
 });
@@ -89,6 +92,9 @@ check("docs mention visual artifact index outputs", () => {
     "visual-regression-manifest.json",
     "index.md",
     "media-server.ui-visual-artifact-index.v1",
+    "media-server.ui-visual-artifact-retention.v1",
+    "14 days",
+    "45 days",
   ]) {
     assert(docs.includes(snippet), `docs missing visual artifact index snippet: ${snippet}`);
   }
@@ -102,6 +108,8 @@ check("PR template requires visual review artifact evidence", () => {
     "./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>",
     "320px, 390px, 760px, and 1180px",
     "source URL, Developer URL, raw JSON",
+    "14 days",
+    "45 days",
   ]) {
     assert(template.includes(snippet), `PR template missing visual review checklist snippet: ${snippet}`);
   }

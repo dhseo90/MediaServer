@@ -29,6 +29,7 @@
 
 - Artifact directory:
 - [ ] `<artifact-dir>/visual-regression-manifest.json` exists and uses schema `media-server.ui-visual-artifact-index.v1`.
+- [ ] Manifest includes retention policy schema `media-server.ui-visual-artifact-retention.v1`; PR artifacts use 14 days, release baseline artifacts use 45 days.
 - [ ] `<artifact-dir>/index.md` links every screenshot artifact.
 - [ ] 320px, 390px, 760px, and 1180px screenshots were reviewed for nav/account/header/table/action overflow.
 - [ ] Client/viewer screenshots do not expose source URL, Developer URL, raw JSON, debug counters, BBox diagnostics, or rule/profile editor controls.

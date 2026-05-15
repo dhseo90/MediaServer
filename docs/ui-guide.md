@@ -57,7 +57,7 @@ v1.2.0 이후 UI 변경은 아래 inventory를 기준으로 합니다.
 | Product shell | `ProductUiCss()`, `AppendOpsShellStart/End`, `AppendAuthShellStart/End` | compact app chrome, image nav, account menu, `section-card`, `metric-card`, `button`, `status-badge`, form/grid, empty/table-empty 상태를 Auth/Ops/Client가 공유합니다. | `verify-auth-bootstrap`, `verify-ops-client-ui` |
 | Ops data surfaces | `ProductSharedUiScript()`, `AppendOpsShellScript()`, route별 page script | `ops-responsive-table`, `ops-row-actions`, `ops-detail-panel`, `ops-audit-panel`, `root-cause-*`를 표준 표/상세/감사/진단 surface로 유지합니다. | `verify-ops-client-ui`, `verify-ops-click-e2e`, `verify-rule-ui` |
 | Client surfaces | `ClientShellCss()`, `AppendClientShellScript()` | `client-compare-*`, `client-loading-state`, `live-monitor`, `live-toolbar`, `live-grid`, `tile-*`로 viewer live/dashboard를 구성합니다. source URL, raw JSON, debug counter, rule/profile editor는 노출하지 않습니다. | `verify-client-dashboard-polish`, `verify-ops-client-ui --screenshots` |
-| Visual artifacts | `ui_visual_smoke_lib.mjs`, `verify_ops_client_ui_smoke.mjs`, `capture_docs_ui_assets.mjs` | 320/390/760/1180 screenshot, `visual-regression-manifest.json`, `index.md`, 문서 대표 이미지를 같은 기준으로 관리합니다. | `verify-ui-visual-artifact-index`, `verify-docs-ui-assets` |
+| Visual artifacts | `ui_visual_smoke_lib.mjs`, `verify_ops_client_ui_smoke.mjs`, `capture_docs_ui_assets.mjs` | 320/390/760/1180 screenshot, `visual-regression-manifest.json`, `index.md`, retention policy, 문서 대표 이미지를 같은 기준으로 관리합니다. | `verify-ui-visual-artifact-index`, `verify-docs-ui-assets` |
 
 변경 체크리스트:
 
@@ -357,6 +357,11 @@ Ops/Client/Lab API guard를 확인합니다.
   `./server.sh compare-ui-visual-baseline --baseline-dir <baseline-artifact-dir> --candidate-dir <candidate-artifact-dir>`
   를 사용합니다. 결과는 `media-server.ui-visual-baseline-diff.v1` schema의
   `visual-baseline-diff.json`과 `visual-baseline-diff.md`로 남깁니다.
+- `visual-regression-manifest.json`에는
+  `media-server.ui-visual-artifact-retention.v1` retention policy를 함께
+  기록합니다. PR screenshot artifact 기본 보존은 14 days, release baseline
+  artifact 보존은 45 days이며, client/source/debug/raw JSON 노출 검토 전
+  외부 공유 보관소에 올리지 않습니다.
 
 ### 2.1 Live VA Event Quality
 

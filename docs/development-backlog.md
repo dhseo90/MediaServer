@@ -257,6 +257,18 @@ PR template과 정적 verifier를 연결했습니다.
 - diff report schema는 `media-server.ui-visual-baseline-diff.v1`입니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Screenshot artifact retention 정책 후속 종료 판정
+
+2026-05-16 기준 UI screenshot artifact의 보존 기간과 공유 전 검토 기준을 manifest/PR template/docs에 고정했습니다.
+
+확인됨:
+
+- `visual-regression-manifest.json`에 `media-server.ui-visual-artifact-retention.v1` retention policy를 함께 기록합니다.
+- PR screenshot artifact 기본 보존은 14 days, release baseline artifact 보존은 45 days로 문서화했습니다.
+- client/source/debug/raw JSON 비노출 검토 전에는 공유 보관소에 screenshot artifact를 올리지 않는 기준을 PR template과 문서에 추가했습니다.
+- `verify-ui-visual-artifact-index`가 manifest retention policy와 PR/docs 문구를 정적으로 확인합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ### Client debug/source leakage smoke 강화 후속 종료 판정
 
 2026-05-16 기준 client/viewer 화면과 scoped API의 debug/source 비노출 smoke를 강화했습니다.

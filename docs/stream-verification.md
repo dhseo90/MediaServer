@@ -108,6 +108,10 @@ UI 전용 검증에서는 별도 터미널에서
 
 비교 결과는 `media-server.ui-visual-baseline-diff.v1` schema의
 `visual-baseline-diff.json`과 `visual-baseline-diff.md`로 남습니다.
+Visual artifact retention은 `media-server.ui-visual-artifact-retention.v1`
+정책으로 manifest에 기록합니다. PR screenshot artifact는 기본 14 days,
+release baseline으로 채택한 artifact는 45 days 보존을 기준으로 하며,
+client/source/debug/raw JSON 비노출 검토 전에는 공유 보관소에 올리지 않습니다.
 
 VA rule/scenario 변경:
 
@@ -203,6 +207,8 @@ Ops/Client shell 변경 확인 포인트:
   - [ ] `verify-ops-client-ui --screenshots` 산출물 경로를 리뷰 기록에 남김
   - [ ] `visual-regression-manifest.json` schema가
     `media-server.ui-visual-artifact-index.v1`인지 확인
+  - [ ] manifest retention policy schema가 `media-server.ui-visual-artifact-retention.v1`이고
+    PR artifact 14 days, release baseline 45 days 보존 기준을 따르는지 확인
   - [ ] `index.md`가 모든 screenshot artifact를 링크하는지 확인
   - [ ] client/viewer screenshot에 source URL, Developer URL, raw JSON,
     debug counter, BBox diagnostics, rule/profile editor가 노출되지 않는지 확인
