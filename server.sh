@@ -100,6 +100,8 @@ Usage:
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
                  ONVIF protocol/service 지원/비지원 matrix와 구현 기준을 검증합니다.
+  verify-onvif-rtsps-draft-policy
+                 ONVIF rtsps:// 후보와 automatic draft 저장 계약 분리를 검증합니다.
   verify-onvif-probe-fixture-contract
                  ONVIF field probe fixture가 내부 probe-to-draft 계약을 지키는지 검증합니다.
   verify-onvif-probe-profile-variants
@@ -443,6 +445,10 @@ case "${cmd}" in
   verify-onvif-protocol-support-matrix)
     require_internal verify_onvif_protocol_support_matrix.mjs
     exec "${INTERNAL_DIR}/verify_onvif_protocol_support_matrix.mjs" "$@"
+    ;;
+  verify-onvif-rtsps-draft-policy)
+    require_internal verify_onvif_rtsps_draft_policy.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_rtsps_draft_policy.mjs" "$@"
     ;;
   verify-onvif-probe-fixture-contract)
     require_internal verify_onvif_probe_fixture_contract.mjs

@@ -10,6 +10,7 @@ verification을 위한 최소 범위이며, ONVIF conformant server 구현이 �
 - [ONVIF No-Device Verification](./onvif-no-device-verification.md)
 - [ONVIF TLS Transport Policy](./onvif-tls-transport-policy.md)
 - [ONVIF Credential Reference Policy](./onvif-credential-reference-policy.md)
+- [ONVIF RTSPS Draft Policy](./onvif-rtsps-draft-policy.md)
 
 ## 지원 Matrix
 
@@ -18,7 +19,7 @@ verification을 위한 최소 범위이며, ONVIF conformant server 구현이 �
 | ONVIF Device service SOAP | 1차 지원 | `http://` Device service endpoint에 SOAP POST, `GetServices` 조회 | `verify-onvif-http-transport`, `verify-onvif-field-http-probe` |
 | ONVIF Media2 service SOAP | 1차 지원 | `Media2.GetProfiles`, `Media2.GetStreamUri` 기반 live profile 후보 조회 | `verify-onvif-probe-parser`, `verify-onvif-probe-adapter`, `verify-onvif-probe-profile-variants` |
 | ONVIF Media service SOAP | 1차 지원 | Media2에서 live RTSP 후보가 없거나 Media2가 없을 때 `Media.GetProfiles`, `Media.GetStreamUri` fallback | `verify-onvif-probe-profile-variants` |
-| Live stream URI import | 1차 지원 | 자동 probe 성공 조건은 `rtsp://` 또는 `rtsps://` GetStreamUri live 후보입니다. 현재 fixture draft 저장 계약은 `rtsp://` source draft로 고정합니다. | `verify-onvif-probe-fixture-contract`, `verify-onvif-probe-draft-api` |
+| Live stream URI import | 1차 지원 | 자동 probe 성공 조건은 `rtsp://` 또는 `rtsps://` GetStreamUri live 후보입니다. 현재 fixture draft 저장 계약은 `rtsp://` source draft로 고정합니다. `rtsps://` draft 기준은 [ONVIF RTSPS Draft Policy](./onvif-rtsps-draft-policy.md)를 따릅니다. | `verify-onvif-probe-fixture-contract`, `verify-onvif-probe-draft-api`, `verify-onvif-rtsps-draft-policy` |
 | 수동 ONVIF stream URI 등록 | 구현 완료 | `/ops/sources`에서 `rtsp://`, `rtsps://`, `http://`, `https://` live URI를 기존 SourceRegistry source로 저장 | `verify-onvif-ops-sources-ui` |
 | MediaServer egress URL | 구현 완료 | ONVIF source를 기존 RTSP/WHEP/WebRTC 출력 URL copy 흐름에 연결합니다. 이는 ONVIF protocol이 아니라 MediaServer 출력입니다. | `verify-onvif-ops-sources-ui`, `verify-onvif-rtsp-downstream` |
 | HTTPS/TLS ONVIF SOAP endpoint | fail-closed | `https://` Device service endpoint를 자동 downgrade하지 않고 sanitized failure로 처리 | `verify-onvif-tls-transport-policy`, `verify-onvif-http-transport` |
