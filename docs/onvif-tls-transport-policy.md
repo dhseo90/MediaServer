@@ -10,7 +10,10 @@ HTTP SOAP transport만 포함하며, TLS 연결 자체를 구현 완료로 보�
 
 - `http://` ONVIF Device service endpoint는 `SendOnvifSoapHttp`가 SOAP POST를
   수행합니다.
-- `https://` endpoint는 현재 transport 계층에서 fail-closed 처리합니다.
+- `https://` endpoint는 현재 transport 계층의 scheme preflight gate에서
+  fail-closed 처리합니다.
+- 구현 스파이크는 TLS client library를 추가하지 않고, `https://` endpoint가 TCP
+  connect, TLS handshake, HTTP downgrade를 수행하지 않는 경계를 고정합니다.
 - fail-closed summary는 endpoint, host, credential, raw SOAP를 포함하지 않습니다.
 - `https://`를 자동으로 `http://`로 downgrade하지 않습니다.
 - 인증서 검증 우회, hostname 검증 비활성화, custom CA 무시, insecure TLS opt-in은

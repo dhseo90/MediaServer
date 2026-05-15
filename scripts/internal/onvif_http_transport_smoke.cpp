@@ -126,8 +126,22 @@ int main() {
     https_request.body = request.body;
     https_request.timeout_ms = 1000;
     const auto https_response = ingress::SendOnvifSoapHttp(https_request);
-    Assert(!https_response.ok, "HTTPS transport should fail closed in current HTTP-only transport");
+    Assert(!https_response.ok, "HTTPS transport should fail closed before TLS implementation");
     Assert(!Contains(https_response.error, "192.0.2.40"), "transport error leaked endpoint");
+
+    ingress::OnvifSoapRequest https_userinfo_request;
+    https_userinfo_request.action = "GetServices";
+    https_userinfo_request.endpoint = "HTTPS://user:pass@192.0.2.40/onvif/device_service";
+    https_userinfo_request.body = request.body;
+    https_userinfo_request.timeout_ms = 1000;
+    const auto https_userinfo_response = ingress::SendOnvifSoapHttp(https_userinfo_request);
+    Assert(!https_userinfo_response.ok, "HTTPS transport spike must fail closed for URL userinfo");
+    Assert(Contains(https_userinfo_response.error, "only http transport is supported"),
+           "HTTPS fail-closed wording mismatch");
+    Assert(!Contains(https_userinfo_response.error, "user"), "transport error leaked URL userinfo");
+    Assert(!Contains(https_userinfo_response.error, "pass"), "transport error leaked URL password");
+    Assert(!Contains(https_userinfo_response.error, "192.0.2.40"), "transport error leaked HTTPS host");
+    Assert(!Contains(https_userinfo_response.error, "GetServices"), "transport error leaked SOAP action");
 
     std::cout << "[pass] ONVIF HTTP SOAP transport smoke\n";
     return 0;

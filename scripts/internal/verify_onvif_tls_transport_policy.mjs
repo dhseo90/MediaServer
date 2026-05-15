@@ -44,6 +44,8 @@ for (const term of [
   "HTTP SOAP transport",
   "https://",
   "fail-closed",
+  "scheme preflight gate",
+  "TLS client library",
   "downgrade",
   "hostname verification",
   "custom CA",
@@ -66,8 +68,11 @@ for (const forbidden of [
 
 assert(supportDoc.includes("./onvif-tls-transport-policy.md"), "ONVIF support doc must link TLS policy");
 assert(smoke.includes("https://192.0.2.40/onvif/device_service"), "HTTP transport smoke missing HTTPS fixture endpoint");
-assert(smoke.includes("HTTPS transport should fail closed"), "HTTP transport smoke missing HTTPS fail-closed assertion");
+assert(smoke.includes("HTTPS transport should fail closed before TLS implementation"), "HTTP transport smoke missing HTTPS fail-closed assertion");
+assert(smoke.includes("HTTPS://user:pass@192.0.2.40/onvif/device_service"), "HTTP transport smoke missing URL userinfo redaction case");
 assert(smoke.includes("transport error leaked endpoint"), "HTTP transport smoke missing endpoint redaction assertion");
+assert(smoke.includes("transport error leaked URL password"), "HTTP transport smoke missing URL password redaction assertion");
+assert(implementation.includes("bool IsHttpSoapTransportScheme"), "transport implementation missing HTTPS preflight helper");
 assert(implementation.includes("only http transport is supported"), "transport implementation missing stable HTTPS fail-closed wording");
 
 console.log("[pass] ONVIF TLS transport policy document");

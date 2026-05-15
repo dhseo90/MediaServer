@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// 파일 용도: ONVIF HTTPS SOAP transport 향후 설계 기준과 현재 fail-closed 구현 경계를 검증한다.
-// 동작 요약: HTTPS 성공을 구현 완료로 말하지 않고 TLS trust/hostname/redaction 조건이 문서화됐는지 확인한다.
+// 파일 용도: ONVIF HTTPS SOAP transport 구현 스파이크와 fail-closed 설계 기준을 검증한다.
+// 동작 요약: HTTPS 성공을 구현 완료로 말하지 않고 preflight/redaction/TLS 향후 조건이 문서화됐는지 확인한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -20,10 +20,10 @@ Usage:
   ./server.sh verify-onvif-https-soap-transport-design
 
 Checks:
-  - docs/onvif-https-soap-transport-design.md가 현재 HTTPS fail-closed 상태를 명시함
+  - docs/onvif-https-soap-transport-design.md가 현재 HTTPS fail-closed 구현 스파이크를 명시함
   - 향후 TLS trust store, hostname verification, redaction, no downgrade 조건을 문서화함
   - TLS/protocol 문서가 HTTPS design 문서를 참조함
-  - 구현은 현재 https endpoint를 HTTP-only transport에서 fail-closed로 유지함
+  - 구현은 현재 https endpoint를 scheme preflight gate에서 fail-closed로 유지함
 `);
 }
 
@@ -41,7 +41,10 @@ check("HTTPS SOAP design keeps current fail-closed status explicit", () => {
     "HTTPS SOAP transport를 구현 완료로 보지",
     "`https://` ONVIF endpoint는 fail-closed",
     "자동 downgrade 없이 fail-closed",
-    "실장비가 없는 환경에서는 HTTPS 성공을 미확인",
+    "scheme preflight gate",
+    "TLS client library를 추가하지 않습니다",
+    "실장비 또는 explicit TLS fixture가 없는 환경에서는 HTTPS 성공을 미확인",
+    "## 구현 스파이크 결과",
   ]) {
     assertContains(designDoc, term, `design doc missing current status term: ${term}`);
   }
@@ -66,20 +69,26 @@ check("HTTPS SOAP design documents future TLS requirements", () => {
 
 check("TLS policy and protocol matrix link HTTPS SOAP design", () => {
   assertContains(tlsDoc, "./onvif-https-soap-transport-design.md", "TLS policy missing HTTPS design link");
+  assertContains(tlsDoc, "scheme preflight gate", "TLS policy missing preflight gate wording");
   assertContains(matrixDoc, "./onvif-https-soap-transport-design.md", "protocol matrix missing HTTPS design link");
+  assertContains(matrixDoc, "scheme preflight gate", "protocol matrix missing preflight gate wording");
   assertContains(matrixDoc, "verify-onvif-https-soap-transport-design", "protocol matrix missing HTTPS design verification");
 });
 
 check("implementation remains HTTP-only and fail-closed for https endpoint", () => {
   for (const term of [
-    "if (url->scheme != \"http\")",
+    "bool IsHttpSoapTransportScheme",
+    "if (!IsHttpSoapTransportScheme(url->scheme))",
     "return SoapHttpError(\"only http transport is supported\")",
   ]) {
     assertContains(onvifCode, term, `implementation missing HTTPS fail-closed term: ${term}`);
   }
   for (const term of [
     "https://192.0.2.40/onvif/device_service",
-    "HTTPS transport should fail closed",
+    "HTTPS transport should fail closed before TLS implementation",
+    "HTTPS://user:pass@192.0.2.40/onvif/device_service",
+    "transport error leaked URL userinfo",
+    "transport error leaked URL password",
   ]) {
     assertContains(httpTransportSmoke, term, `HTTP transport smoke missing HTTPS fail-closed term: ${term}`);
   }

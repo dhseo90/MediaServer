@@ -1,8 +1,9 @@
 # ONVIF HTTPS SOAP Transport Design
 
 이 문서는 향후 ONVIF `https://` Device service SOAP transport를 추가할 때 지켜야
-할 설계 기준입니다. v1.2.0 현재 구현은 HTTPS SOAP transport를 구현 완료로 보지
-않으며, `https://` ONVIF endpoint는 fail-closed가 정상 동작입니다.
+할 설계 기준과 이번 구현 스파이크 결과를 고정합니다. v1.2.0 현재 구현은 HTTPS
+SOAP transport를 구현 완료로 보지 않으며, `https://` ONVIF endpoint는
+fail-closed가 정상 동작입니다.
 
 관련 기준:
 
@@ -16,9 +17,25 @@
 - `http://` ONVIF Device service endpoint만 `SendOnvifSoapHttp` transport smoke
   대상으로 둡니다.
 - `https://` ONVIF Device service endpoint는 자동 downgrade 없이 fail-closed입니다.
+- 구현 스파이크는 `SendOnvifSoapHttp`의 scheme preflight gate를 명시해
+  `https://` endpoint가 TCP connect, TLS handshake, HTTP downgrade를 수행하지
+  않도록 고정합니다.
+- 현재 빌드 의존성에는 TLS client library를 추가하지 않습니다.
 - fail-closed error summary는 endpoint, host, certificate body, credential,
   raw SOAP를 출력하지 않습니다.
-- 실장비가 없는 환경에서는 HTTPS 성공을 미확인으로 남깁니다.
+- 실장비 또는 explicit TLS fixture가 없는 환경에서는 HTTPS 성공을 미확인으로
+  남깁니다.
+
+## 구현 스파이크 결과
+
+이번 단계의 결과:
+
+- `https://` SOAP endpoint는 `only http transport is supported`로 fail-closed합니다.
+- URL userinfo가 포함된 `HTTPS://user:pass@...` endpoint도 같은 sanitized wording으로
+  실패하며, username/password/host/SOAP action을 error에 노출하지 않습니다.
+- `https://`를 `http://`로 자동 downgrade하지 않습니다.
+- TLS 성공 path, CA bundle 선택, hostname verification runtime 연결은 구현하지
+  않았습니다.
 
 ## 향후 구현 조건
 
@@ -54,5 +71,6 @@ HTTPS SOAP transport를 추가하려면 별도 단계에서 아래 조건을 모
 ./server.sh verify-onvif-https-soap-transport-design
 ./server.sh verify-onvif-tls-transport-policy
 ./server.sh verify-onvif-protocol-support-matrix
+./server.sh verify-onvif-http-transport
 git diff --check
 ```

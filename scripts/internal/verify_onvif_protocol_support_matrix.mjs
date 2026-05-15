@@ -53,6 +53,7 @@ check("protocol support matrix names supported ONVIF live-source scope", () => {
     "./onvif-rtsps-draft-policy.md",
     "verify-onvif-rtsps-draft-policy",
     "./onvif-https-soap-transport-design.md",
+    "scheme preflight gate",
     "verify-onvif-https-soap-transport-design",
     "./onvif-auth-injection-design.md",
     "verify-onvif-auth-injection-design",
@@ -96,7 +97,8 @@ check("implementation still matches documented probe transport and service scope
     "stream_request.action = media_api + \".GetStreamUri\"",
     "bool IsRtspOrRtspsUri",
     "profile->transport = IsRtspOrRtspsUri(uri) ? \"RTSP\" : \"\"",
-    "if (url->scheme != \"http\")",
+    "bool IsHttpSoapTransportScheme",
+    "if (!IsHttpSoapTransportScheme(url->scheme))",
     "only http transport is supported",
   ]) {
     assertContains(onvifCode, term, `implementation missing protocol term: ${term}`);
@@ -105,7 +107,7 @@ check("implementation still matches documented probe transport and service scope
 
 check("TLS and credential policy docs keep unsupported auth/https scope explicit", () => {
   assertContains(tlsDoc, "HTTP SOAP transport만 포함", "TLS doc must state HTTP-only transport");
-  assertContains(tlsDoc, "`https://` endpoint는 현재 transport 계층에서 fail-closed", "TLS doc must state HTTPS fail-closed");
+  assertContains(tlsDoc, "`https://` endpoint는 현재 transport 계층의 scheme preflight gate에서 fail-closed", "TLS doc must state HTTPS fail-closed");
   assertContains(credentialDoc, "ONVIF WS-Security UsernameToken 생성", "credential doc must keep WS-Security unsupported");
   assertContains(credentialDoc, "HTTP Digest/Basic 인증 주입", "credential doc must keep HTTP auth injection unsupported");
 });

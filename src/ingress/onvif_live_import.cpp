@@ -369,6 +369,10 @@ bool HasHttpOrHttpsUrl(const std::string& value) {
     return trimmed.rfind("http://", 0) == 0 || trimmed.rfind("https://", 0) == 0;
 }
 
+bool IsHttpSoapTransportScheme(const std::string& scheme) {
+    return scheme == "http";
+}
+
 std::optional<ParsedHttpUrl> ParseHttpUrl(const std::string& raw) {
     const std::string value = Trim(raw);
     const std::size_t scheme_pos = value.find("://");
@@ -978,7 +982,7 @@ OnvifSoapResponse SendOnvifSoapHttp(const OnvifSoapRequest& request) {
     if (!url.has_value()) {
         return SoapHttpError("invalid endpoint URL");
     }
-    if (url->scheme != "http") {
+    if (!IsHttpSoapTransportScheme(url->scheme)) {
         return SoapHttpError("only http transport is supported");
     }
     if (request.timeout_ms <= 0) {
