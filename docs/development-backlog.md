@@ -222,6 +222,18 @@ design token, 공통 컴포넌트, Ops/Client 전용 surface, visual artifact ga
 - 새 UI 색상, 버튼, badge, table, detail panel, mobile overflow, client debug 비노출, screenshot artifact 갱신 기준을 변경 체크리스트로 남겼습니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### PR visual artifact review checklist 후속 종료 판정
+
+2026-05-16 기준 UI 변경 PR에서 visual artifact evidence를 남기도록
+PR template과 정적 verifier를 연결했습니다.
+
+확인됨:
+
+- `.github/PULL_REQUEST_TEMPLATE.md`에 `UI Visual Review` 섹션을 추가해 artifact directory, manifest schema, `index.md`, 320/390/760/1180px review, client debug/source 비노출 확인을 기록하게 했습니다.
+- `docs/stream-verification.md`의 수동 screenshot review 체크리스트가 PR template의 `UI Visual Review` 섹션과 같은 artifact evidence를 요구합니다.
+- `verify-ui-visual-artifact-index`가 PR template의 visual review checklist 핵심 문구를 정적 검증합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ## v1.2.0 시작 전 체크리스트
 
 - [x] v1.1.0 PR이 `main`에 merge됨

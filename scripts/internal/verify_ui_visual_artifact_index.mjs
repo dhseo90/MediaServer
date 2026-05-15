@@ -61,6 +61,7 @@ const markdown = fs.readFileSync(indexPath, "utf8");
 const docs = [
   fs.readFileSync(path.join(rootDir, "docs/stream-verification.md"), "utf8"),
   fs.readFileSync(path.join(rootDir, "docs/ui-guide.md"), "utf8"),
+  fs.readFileSync(path.join(rootDir, ".github/PULL_REQUEST_TEMPLATE.md"), "utf8"),
 ].join("\n");
 
 const checksRun = [];
@@ -86,6 +87,19 @@ check("docs mention visual artifact index outputs", () => {
     "media-server.ui-visual-artifact-index.v1",
   ]) {
     assert(docs.includes(snippet), `docs missing visual artifact index snippet: ${snippet}`);
+  }
+});
+
+check("PR template requires visual review artifact evidence", () => {
+  const template = fs.readFileSync(path.join(rootDir, ".github/PULL_REQUEST_TEMPLATE.md"), "utf8");
+  for (const snippet of [
+    "## UI Visual Review",
+    "Artifact directory:",
+    "./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>",
+    "320px, 390px, 760px, and 1180px",
+    "source URL, Developer URL, raw JSON",
+  ]) {
+    assert(template.includes(snippet), `PR template missing visual review checklist snippet: ${snippet}`);
   }
 });
 

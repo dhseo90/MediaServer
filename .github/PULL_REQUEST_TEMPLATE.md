@@ -20,7 +20,18 @@
 - [ ] `git diff --check`
 - [ ] `./server.sh verify-docs-links` when docs changed
 - [ ] `./server.sh verify-docs-ui-assets` when README/UI asset references changed
+- [ ] `./server.sh verify-ui-visual-artifact-index` when UI screenshot artifact behavior or docs changed
+- [ ] `./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>` when Auth/Ops/Client UI changed
 - [ ] Additional command(s):
+
+## UI Visual Review
+
+- Artifact directory:
+- [ ] `<artifact-dir>/visual-regression-manifest.json` exists and uses schema `media-server.ui-visual-artifact-index.v1`.
+- [ ] `<artifact-dir>/index.md` links every screenshot artifact.
+- [ ] 320px, 390px, 760px, and 1180px screenshots were reviewed for nav/account/header/table/action overflow.
+- [ ] Client/viewer screenshots do not expose source URL, Developer URL, raw JSON, debug counters, BBox diagnostics, or rule/profile editor controls.
+- [ ] If no UI changed, this section is marked not applicable in Summary or Not Run.
 
 ## Not Run
 

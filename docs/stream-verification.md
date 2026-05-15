@@ -174,6 +174,8 @@ Ops/Client shell 변경 확인 포인트:
   input이 viewport 밖으로 밀리면 실패입니다.
 - 실제 Chrome DevTools 수동 리뷰는 자동 overflow 결과와 별개로 아래
   체크리스트를 닫습니다.
+  PR을 여는 경우 같은 항목을 `.github/PULL_REQUEST_TEMPLATE.md`의
+  `UI Visual Review` 섹션에 artifact directory와 함께 남깁니다.
   - [ ] Device toolbar를 320px로 맞추고 Ops nav, 계정/로그아웃,
     채널/룰/사용자 table action, client live/dashboard header가 좌우를 침범하지 않는지 확인
   - [ ] Device toolbar를 390px로 맞추고 위 항목과 변경 이력 시작/종료 입력,
@@ -183,6 +185,11 @@ Ops/Client shell 변경 확인 포인트:
   - [ ] 1180px에서 product shell의 brand/nav/account가 한 줄 콘솔 header로 유지되고,
     nav label이 잘려 기능명을 잃지 않는지 확인
   - [ ] `verify-ops-client-ui --screenshots` 산출물 경로를 리뷰 기록에 남김
+  - [ ] `visual-regression-manifest.json` schema가
+    `media-server.ui-visual-artifact-index.v1`인지 확인
+  - [ ] `index.md`가 모든 screenshot artifact를 링크하는지 확인
+  - [ ] client/viewer screenshot에 source URL, Developer URL, raw JSON,
+    debug counter, BBox diagnostics, rule/profile editor가 노출되지 않는지 확인
 - `webrtc_http_server.cpp`에서 `product_ui_page_scripts.*`로 UI 소유권을 옮기는
   구조 변경은 `./server.sh build`,
   `./server.sh verify-auth-routes`,
