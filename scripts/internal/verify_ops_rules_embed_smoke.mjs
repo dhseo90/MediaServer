@@ -4,6 +4,10 @@
 import path from "node:path";
 import process from "node:process";
 
+import {
+  cleanupRulePreviewPrerequisites,
+  ensureRulePreviewPrerequisites,
+} from "./rule_preview_fixture_helpers.mjs";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 
@@ -44,7 +48,7 @@ if (!chromePath) {
   process.exit(1);
 }
 
-const seededPrereqs = await ensureRulesPrerequisites();
+const seededPrereqs = await ensureRulePreviewPrerequisites({ httpBase });
 const browser = await openBrowserPage({
   httpBase,
   pagePath: "/ops/rules",
@@ -81,7 +85,7 @@ try {
   console.log(JSON.stringify({ ...result, returned, usersNav, rulesNav, sourcesNav }, null, 2));
 } finally {
   await browser.close();
-  await cleanupRulesPrerequisites(seededPrereqs);
+  await cleanupRulePreviewPrerequisites({ httpBase, created: seededPrereqs });
 }
 
 function parseArgs(argv) {
@@ -230,129 +234,4 @@ function buildReturnedRulesExpression() {
       };
     })()
   `;
-}
-
-async function ensureRulesPrerequisites() {
-  const created = { profileId: "", ruleId: "" };
-  const catalog = await requestJson("/ops/api/rules/catalog");
-  const profiles = Array.isArray(catalog.profiles) ? catalog.profiles : [];
-  const rules = Array.isArray(catalog.rules) ? catalog.rules : [];
-  if (profiles.length === 0) {
-    created.profileId = findFreeNumericId([profiles, rules, catalog.vaRules], 9901);
-    await requestJson(`/lab/analysis/profiles/${encodeURIComponent(created.profileId)}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(ruleSmokeProfilePayload(created.profileId)),
-    });
-  }
-  if (rules.length === 0) {
-    const nextCatalog = created.profileId ? await requestJson("/ops/api/rules/catalog") : catalog;
-    created.ruleId = findFreeNumericId([nextCatalog.profiles, nextCatalog.rules, nextCatalog.vaRules], 9911);
-    await requestJson(`/lab/analysis/rules/${encodeURIComponent(created.ruleId)}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(ruleSmokeEventTemplatePayload(created.ruleId, created.profileId || findFirstProfileId(nextCatalog) || "1")),
-    });
-  }
-  return created;
-}
-
-async function cleanupRulesPrerequisites(created) {
-  if (!created) return;
-  if (created.ruleId) {
-    await requestText(`/lab/analysis/rules/${encodeURIComponent(created.ruleId)}`, {
-      method: "DELETE",
-      expectedStatus: 200,
-    }).catch((error) => console.log(`[warn] rule smoke event template cleanup failed: ${error.message}`));
-  }
-  if (created.profileId) {
-    await requestText(`/lab/analysis/profiles/${encodeURIComponent(created.profileId)}`, {
-      method: "DELETE",
-      expectedStatus: 200,
-    }).catch((error) => console.log(`[warn] rule smoke profile cleanup failed: ${error.message}`));
-  }
-}
-
-async function requestJson(urlPath, options = {}) {
-  const text = await requestText(urlPath, options);
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error(`${urlPath} returned non-JSON: ${text.slice(0, 180)}`);
-  }
-}
-
-async function requestText(urlPath, options = {}) {
-  const expectedStatus = Number(options.expectedStatus || 200);
-  const response = await fetch(`${httpBase}${urlPath}`, options);
-  const text = await response.text();
-  if (response.status !== expectedStatus) {
-    throw new Error(`${urlPath} expected HTTP ${expectedStatus}, got ${response.status}: ${text.slice(0, 220)}`);
-  }
-  return text;
-}
-
-function findFirstProfileId(catalog) {
-  return (Array.isArray(catalog?.profiles) ? catalog.profiles : [])
-    .map(item => String(item?.id || item?.profileId || "").trim())
-    .find(Boolean) || "";
-}
-
-function findFreeNumericId(groups, start) {
-  const used = new Set();
-  for (const group of groups) {
-    for (const item of Array.isArray(group) ? group : []) {
-      for (const key of ["id", "profileId", "ruleId"]) {
-        const value = String(item?.[key] || "").trim();
-        if (value) used.add(value);
-      }
-    }
-  }
-  for (let id = start; id < start + 200; id += 1) {
-    const candidate = String(id);
-    if (!used.has(candidate)) return candidate;
-  }
-  throw new Error(`failed to allocate temporary rule smoke id from ${start}`);
-}
-
-function ruleSmokeProfilePayload(id) {
-  return {
-    id,
-    detector: "yolo",
-    fps: 6,
-    maxQueue: 1,
-    confidence: 0.25,
-    nms: 0.45,
-    inputWidth: 640,
-    inputHeight: 640,
-    adaptive: true,
-  };
-}
-
-function ruleSmokeEventTemplatePayload(id, profileId) {
-  return {
-    id,
-    enabled: true,
-    match: { sourceKind: "*", route: "*" },
-    analysis: { profileId, classes: ["person"] },
-    event: {
-      type: "intrusion-dwell",
-      region: {
-        type: "polygon",
-        points: [{ x: 0.1, y: 0.1 }, { x: 0.9, y: 0.1 }, { x: 0.9, y: 0.9 }, { x: 0.1, y: 0.9 }],
-      },
-      minConfidence: 0.25,
-      minDurationMs: 0,
-    },
-    outputs: { overlay: true, metadata: true, events: true },
-    ruleKind: "scenario",
-    scenario: {
-      type: "intrusion-dwell",
-      enabled: true,
-      candidateTimeMs: 2000,
-      dwellTimeMs: 10000,
-      cooldownMs: 5000,
-      targetClasses: ["person"],
-    },
-  };
 }

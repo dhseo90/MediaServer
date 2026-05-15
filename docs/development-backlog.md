@@ -199,7 +199,18 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - WebRTC/DataChannel/SSE/WS metadata schema 변경
 - RTSP/WebRTC media path 변경
 
-다음 진행 스텝은 `Rule preview fixture parity`입니다.
+### Rule preview fixture parity 후속 종료 판정
+
+2026-05-16 기준 문서 screenshot의 `ops-rules-preview` 캡처와 `verify-rule-ui` smoke가
+같은 rule/profile fixture helper를 사용하도록 정리했습니다.
+
+확인됨:
+
+- `scripts/internal/rule_preview_fixture_helpers.mjs`가 profile, event template, optional VA rule prerequisite payload를 소유합니다.
+- `capture_docs_ui_assets.mjs`는 `ops-rules-preview` 캡처 전에 같은 helper로 optional VA rule까지 준비하고 종료 시 cleanup합니다.
+- `verify_ops_rules_embed_smoke.mjs`는 같은 helper로 profile/event template prerequisite을 준비해 rule UI smoke와 문서 캡처 drift를 줄입니다.
+
+다음 진행 스텝은 `Design token/component inventory`입니다.
 
 ## v1.2.0 시작 전 체크리스트
 

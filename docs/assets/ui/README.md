@@ -5,6 +5,9 @@
 현재 대표 제품 이미지는 2026-05-16 기준 v1.2.0 ERP-style product shell로 다시 캡처했습니다.
 재캡처는 `scripts/internal/capture_docs_ui_assets.mjs` 기준으로 관리합니다.
 기준 검증은 `./server.sh verify-docs-ui-assets`로 수행합니다.
+`ops-rules-preview` 캡처와 `verify-rule-ui` smoke는
+`scripts/internal/rule_preview_fixture_helpers.mjs`의 공통 profile/event/VA rule
+fixture를 사용해 preview prerequisite drift를 막습니다.
 
 재캡처 예시:
 

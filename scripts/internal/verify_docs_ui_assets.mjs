@@ -87,6 +87,8 @@ check("docs/assets/ui policy documents dark mode and VA overlay capture rules", 
 
 check("capture script owns every documented UI asset", () => {
   const script = readText("scripts/internal/capture_docs_ui_assets.mjs");
+  const ruleSmoke = readText("scripts/internal/verify_ops_rules_embed_smoke.mjs");
+  const sharedFixture = readText("scripts/internal/rule_preview_fixture_helpers.mjs");
   const requiredSnippets = [
     "function applyDarkTheme",
     "localStorage.setItem('mediaServerTheme', 'dark')",
@@ -98,10 +100,16 @@ check("capture script owns every documented UI asset", () => {
     "setupOpsUsers",
     "auth users file not found",
     "Page.captureScreenshot",
+    "ensureRulePreviewPrerequisites({ httpBase, includeVaRule: true })",
+    "cleanupRulePreviewPrerequisites({ httpBase, created: seededPrereqs })",
   ];
   for (const snippet of requiredSnippets) {
     assert(script.includes(snippet), `capture_docs_ui_assets.mjs is missing capture guard: ${snippet}`);
   }
+  assert(ruleSmoke.includes("ensureRulePreviewPrerequisites({ httpBase })"), "verify-rule-ui does not use shared rule preview fixture helper");
+  assert(sharedFixture.includes("rulePreviewProfilePayload"), "shared rule preview fixture helper is missing profile payload");
+  assert(sharedFixture.includes("rulePreviewEventTemplatePayload"), "shared rule preview fixture helper is missing event template payload");
+  assert(sharedFixture.includes("rulePreviewVaRulePayload"), "shared rule preview fixture helper is missing VA rule payload");
   for (const asset of uiGuideAssets) {
     assert(script.includes(`file: "${asset}"`), `capture_docs_ui_assets.mjs does not manage ${asset}`);
   }
