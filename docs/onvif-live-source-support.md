@@ -112,8 +112,8 @@ test/fixtures/onvif_closed_loopback_failure_matrix.json
   계층에서는 TLS endpoint를 fail-closed로 다룹니다. 세부 기준은
   [ONVIF TLS Transport Policy](./onvif-tls-transport-policy.md)를 따릅니다.
 - local simulator fixture smoke는 실제 장비 대신 loopback SOAP 서버를 사용해
-  `GetServices`, `Media2.GetProfiles`, `Media2.GetStreamUri` HTTP POST 성공 경로와
-  Media fallback 조회 경계를 검증합니다.
+  `GetServices`, `Media2.GetProfiles`, `Media2.GetStreamUri` HTTP POST 성공 경로,
+  Media fallback, Media-only, non-RTSP GetStreamUri 실패 경계를 검증합니다.
 - probe fixture의 `draftDecision`도 기존 import draft endpoint에서
   SourceRegistry/PublishedView draft로 변환합니다.
 - 응답은 기존 `/ops/api/sources`와 `/ops/api/views`에 보낼 수 있는 draft만

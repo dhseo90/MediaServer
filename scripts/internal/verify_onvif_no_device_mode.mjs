@@ -57,6 +57,8 @@ check("no-device document defines field-device exclusion boundary", () => {
   assertContains(noDeviceDoc, "실제 ONVIF 카메라를 사용한 field smoke를 수행하지 않았습니다", "missing explicit no real camera statement");
   assertContains(noDeviceDoc, "공개 인터넷에 노출된 임의 ONVIF endpoint", "missing public endpoint exclusion");
   assertContains(noDeviceDoc, "local simulator fixture smoke", "missing local simulator substitute scope");
+  assertContains(noDeviceDoc, "local simulator variant", "missing local simulator variant scope");
+  assertContains(noDeviceDoc, "non-RTSP GetStreamUri 실패", "missing local simulator non-RTSP failure scope");
   assertContains(noDeviceDoc, "synthetic fixture", "missing synthetic fixture scope");
   assertContains(noDeviceDoc, "synthetic profile variant", "missing synthetic profile variant scope");
   assertContains(noDeviceDoc, "Media/Media2 empty-profile", "missing empty profile failure scope");
@@ -99,6 +101,7 @@ check("live support document links no-device mode without claiming field success
   assertContains(liveSupportDoc, "verify-onvif-https-tls-fixture --expect-skip", "live support doc missing HTTPS TLS fixture skeleton command");
   assertContains(liveSupportDoc, "verify-onvif-probe-profile-variants", "live support verification missing profile variant command");
   assertContains(liveSupportDoc, "verify-onvif-local-simulator", "live support verification missing local simulator command");
+  assertContains(liveSupportDoc, "Media fallback, Media-only, non-RTSP GetStreamUri 실패", "live support doc missing local simulator variant wording");
   assertContains(liveSupportDoc, "verify-onvif-field-http-probe --allow-missing-endpoint", "live support doc missing missing-endpoint command");
   assertContains(liveSupportDoc, "--expect-failure", "live support doc missing sanitized loopback failure command");
   assertContains(liveSupportDoc, "verify-onvif-closed-loopback-failure-matrix", "live support doc missing closed loopback matrix command");

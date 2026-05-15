@@ -1,5 +1,5 @@
-// 파일 요약: 실장비 없이 로컬 ONVIF simulator fixture로 probe 성공 경로를 검증한다.
-// 동작 요약: loopback SOAP 서버가 GetServices/Media2 profile/stream URI 응답을 돌려 실제 HTTP transport와 adapter를 함께 확인한다.
+// 파일 요약: 실장비 없이 로컬 ONVIF simulator fixture로 probe 성공/실패 variant를 검증한다.
+// 동작 요약: loopback SOAP 서버가 Device/Media2/Media 응답 variant를 돌려 실제 HTTP transport와 adapter를 함께 확인한다.
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <poll.h>
@@ -12,13 +12,35 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "ingress/onvif_live_import.h"
 
 namespace {
 
-constexpr int kExpectedRequestCount = 4;
+struct SimulatedProfile {
+    std::string token;
+    std::string name;
+    std::string media_api;
+    std::string encoding;
+    int width{0};
+    int height{0};
+    int fps{0};
+    std::string stream_uri;
+};
+
+struct LocalSimulatorScenario {
+    std::string id;
+    bool media2_available{false};
+    bool media_available{false};
+    std::vector<SimulatedProfile> media2_profiles;
+    std::vector<SimulatedProfile> media_profiles;
+    std::vector<std::string> expected_actions;
+    bool expect_ok{false};
+    SimulatedProfile expected_profile;
+    std::string expected_error;
+};
 
 void Assert(bool condition, const std::string& message) {
     if (!condition) {
@@ -85,62 +107,66 @@ bool SendAll(int fd, const std::string& payload) {
     return true;
 }
 
-std::string ServicesSoap() {
-    return R"SOAP(
-<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
-  <s:Body>
-    <tds:GetServicesResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
-      <tds:Service><tds:Namespace>http://www.onvif.org/ver10/device/wsdl</tds:Namespace></tds:Service>
-      <tds:Service><tds:Namespace>http://www.onvif.org/ver20/media/wsdl</tds:Namespace></tds:Service>
-      <tds:Service><tds:Namespace>http://www.onvif.org/ver10/media/wsdl</tds:Namespace></tds:Service>
-    </tds:GetServicesResponse>
-  </s:Body>
-</s:Envelope>
-)SOAP";
+std::string MediaPrefix(const std::string& media_api) {
+    return media_api == "Media2" ? "tr2" : "trt";
 }
 
-std::string Media2ProfilesSoap() {
-    return R"SOAP(
-<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
-  <s:Body>
-    <tr2:GetProfilesResponse xmlns:tr2="http://www.onvif.org/ver20/media/wsdl"
-                             xmlns:tt="http://www.onvif.org/ver10/schema">
-      <tr2:Profiles token="sim-main-h264">
-        <tt:Name>Simulator Main H264</tt:Name>
-        <tt:VideoEncoderConfiguration>
-          <tt:Encoding>H264</tt:Encoding>
-          <tt:Resolution><tt:Width>1920</tt:Width><tt:Height>1080</tt:Height></tt:Resolution>
-          <tt:RateControl><tt:FrameRateLimit>30</tt:FrameRateLimit></tt:RateControl>
-        </tt:VideoEncoderConfiguration>
-      </tr2:Profiles>
-    </tr2:GetProfilesResponse>
-  </s:Body>
-</s:Envelope>
-)SOAP";
+std::string MediaNamespace(const std::string& media_api) {
+    return media_api == "Media2"
+        ? "http://www.onvif.org/ver20/media/wsdl"
+        : "http://www.onvif.org/ver10/media/wsdl";
 }
 
-std::string MediaProfilesEmptySoap() {
-    return R"SOAP(
-<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
-  <s:Body>
-    <trt:GetProfilesResponse xmlns:trt="http://www.onvif.org/ver10/media/wsdl"
-                             xmlns:tt="http://www.onvif.org/ver10/schema"/>
-  </s:Body>
-</s:Envelope>
-)SOAP";
+std::string ServicesSoap(const LocalSimulatorScenario& scenario) {
+    std::ostringstream out;
+    out << "<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">"
+        << "<s:Body>"
+        << "<tds:GetServicesResponse xmlns:tds=\"http://www.onvif.org/ver10/device/wsdl\">"
+        << "<tds:Service><tds:Namespace>http://www.onvif.org/ver10/device/wsdl</tds:Namespace></tds:Service>";
+    if (scenario.media2_available) {
+        out << "<tds:Service><tds:Namespace>http://www.onvif.org/ver20/media/wsdl</tds:Namespace></tds:Service>";
+    }
+    if (scenario.media_available) {
+        out << "<tds:Service><tds:Namespace>http://www.onvif.org/ver10/media/wsdl</tds:Namespace></tds:Service>";
+    }
+    out << "</tds:GetServicesResponse></s:Body></s:Envelope>";
+    return out.str();
 }
 
-std::string StreamUriSoap() {
-    return R"SOAP(
-<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
-  <s:Body>
-    <tr2:GetStreamUriResponse xmlns:tr2="http://www.onvif.org/ver20/media/wsdl"
-                              xmlns:tt="http://www.onvif.org/ver10/schema">
-      <tr2:MediaUri><tt:Uri>rtsps://192.0.2.60/live/sim-main</tt:Uri></tr2:MediaUri>
-    </tr2:GetStreamUriResponse>
-  </s:Body>
-</s:Envelope>
-)SOAP";
+std::string ProfilesSoap(const std::string& media_api, const std::vector<SimulatedProfile>& profiles) {
+    const std::string prefix = MediaPrefix(media_api);
+    std::ostringstream out;
+    out << "<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">"
+        << "<s:Body>"
+        << "<" << prefix << ":GetProfilesResponse xmlns:" << prefix << "=\""
+        << MediaNamespace(media_api) << "\" xmlns:tt=\"http://www.onvif.org/ver10/schema\">";
+    for (const auto& profile : profiles) {
+        out << "<" << prefix << ":Profiles token=\"" << profile.token << "\">"
+            << "<tt:Name>" << profile.name << "</tt:Name>"
+            << "<tt:VideoEncoderConfiguration>"
+            << "<tt:Encoding>" << profile.encoding << "</tt:Encoding>"
+            << "<tt:Resolution><tt:Width>" << profile.width << "</tt:Width><tt:Height>"
+            << profile.height << "</tt:Height></tt:Resolution>"
+            << "<tt:RateControl><tt:FrameRateLimit>" << profile.fps
+            << "</tt:FrameRateLimit></tt:RateControl>"
+            << "</tt:VideoEncoderConfiguration>"
+            << "</" << prefix << ":Profiles>";
+    }
+    out << "</" << prefix << ":GetProfilesResponse></s:Body></s:Envelope>";
+    return out.str();
+}
+
+std::string StreamUriSoap(const std::string& media_api, const std::string& uri) {
+    const std::string prefix = MediaPrefix(media_api);
+    std::ostringstream out;
+    out << "<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">"
+        << "<s:Body>"
+        << "<" << prefix << ":GetStreamUriResponse xmlns:" << prefix << "=\""
+        << MediaNamespace(media_api) << "\" xmlns:tt=\"http://www.onvif.org/ver10/schema\">"
+        << "<" << prefix << ":MediaUri><tt:Uri>" << uri << "</tt:Uri></" << prefix << ":MediaUri>"
+        << "</" << prefix << ":GetStreamUriResponse>"
+        << "</s:Body></s:Envelope>";
+    return out.str();
 }
 
 std::string FaultSoap(const std::string& detail) {
@@ -149,18 +175,38 @@ std::string FaultSoap(const std::string& detail) {
            "</s:Body></s:Envelope>";
 }
 
-std::pair<int, std::string> SimulatorResponse(const std::string& request) {
+const SimulatedProfile* FindProfile(const std::vector<SimulatedProfile>& profiles,
+                                    const std::string& request) {
+    for (const auto& profile : profiles) {
+        if (Contains(request, profile.token)) {
+            return &profile;
+        }
+    }
+    return profiles.empty() ? nullptr : &profiles.front();
+}
+
+std::pair<int, std::string> SimulatorResponse(const LocalSimulatorScenario& scenario,
+                                              const std::string& request) {
     if (Contains(request, "SOAPAction: \"GetServices\"") || Contains(request, "<tds:GetServices")) {
-        return {200, ServicesSoap()};
+        return {200, ServicesSoap(scenario)};
     }
     if (Contains(request, "SOAPAction: \"Media2.GetProfiles\"") || Contains(request, "<tr2:GetProfiles")) {
-        return {200, Media2ProfilesSoap()};
+        return {200, ProfilesSoap("Media2", scenario.media2_profiles)};
     }
     if (Contains(request, "SOAPAction: \"Media2.GetStreamUri\"") || Contains(request, "<tr2:GetStreamUri")) {
-        return {200, StreamUriSoap()};
+        const auto* profile = FindProfile(scenario.media2_profiles, request);
+        return profile == nullptr
+            ? std::make_pair(500, FaultSoap("missing Media2 simulator profile"))
+            : std::make_pair(200, StreamUriSoap("Media2", profile->stream_uri));
     }
     if (Contains(request, "SOAPAction: \"Media.GetProfiles\"") || Contains(request, "<trt:GetProfiles")) {
-        return {200, MediaProfilesEmptySoap()};
+        return {200, ProfilesSoap("Media", scenario.media_profiles)};
+    }
+    if (Contains(request, "SOAPAction: \"Media.GetStreamUri\"") || Contains(request, "<trt:GetStreamUri")) {
+        const auto* profile = FindProfile(scenario.media_profiles, request);
+        return profile == nullptr
+            ? std::make_pair(500, FaultSoap("missing Media simulator profile"))
+            : std::make_pair(200, StreamUriSoap("Media", profile->stream_uri));
     }
     return {500, FaultSoap("unsupported local simulator action")};
 }
@@ -183,9 +229,7 @@ bool ContainsCredentialMaterial(const std::string& request) {
            Contains(request, "token-secret");
 }
 
-}  // namespace
-
-int main() {
+int BindLoopbackSocket() {
     const int listen_fd = socket(AF_INET, SOCK_STREAM, 0);
     Assert(listen_fd >= 0, "socket create failed");
     int reuse = 1;
@@ -196,32 +240,58 @@ int main() {
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     addr.sin_port = 0;
     Assert(bind(listen_fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == 0, "loopback bind failed");
-    Assert(listen(listen_fd, kExpectedRequestCount) == 0, "listen failed");
+    return listen_fd;
+}
 
+int BoundPort(int listen_fd) {
+    sockaddr_in addr {};
     socklen_t addr_len = sizeof(addr);
     Assert(getsockname(listen_fd, reinterpret_cast<sockaddr*>(&addr), &addr_len) == 0, "getsockname failed");
-    const int port = ntohs(addr.sin_port);
+    return ntohs(addr.sin_port);
+}
+
+void ValidateSelectedProfile(const std::string& id,
+                             const ingress::OnvifProbeResult& result,
+                             const SimulatedProfile& expected) {
+    Assert(result.media_profiles.size() == 1, id + ": live media profile count mismatch");
+    const auto& profile = result.media_profiles.front();
+    Assert(profile.selected, id + ": simulator profile should be selected");
+    Assert(profile.token == expected.token, id + ": profile token mismatch");
+    Assert(profile.name == expected.name, id + ": profile name mismatch");
+    Assert(profile.media_api == expected.media_api, id + ": profile media API mismatch");
+    Assert(profile.encoding == expected.encoding, id + ": profile encoding mismatch");
+    Assert(profile.width == expected.width, id + ": profile width mismatch");
+    Assert(profile.height == expected.height, id + ": profile height mismatch");
+    Assert(profile.fps == expected.fps, id + ": profile fps mismatch");
+    Assert(profile.transport == "RTSP", id + ": profile transport mismatch");
+    Assert(profile.stream_uri == expected.stream_uri, id + ": profile stream URI mismatch");
+}
+
+void RunScenario(const LocalSimulatorScenario& scenario) {
+    const int listen_fd = BindLoopbackSocket();
+    Assert(listen(listen_fd, static_cast<int>(scenario.expected_actions.size())) == 0, "listen failed");
+    const int port = BoundPort(listen_fd);
 
     std::vector<std::string> captured_requests;
     std::string server_error;
     std::thread server_thread([&]() {
-        for (int handled = 0; handled < kExpectedRequestCount; ++handled) {
+        for (std::size_t handled = 0; handled < scenario.expected_actions.size(); ++handled) {
             pollfd pfd {};
             pfd.fd = listen_fd;
             pfd.events = POLLIN;
             const int poll_rc = poll(&pfd, 1, 3000);
             if (poll_rc <= 0) {
-                server_error = "local simulator timed out waiting for SOAP request";
+                server_error = scenario.id + ": local simulator timed out waiting for SOAP request";
                 return;
             }
             const int client_fd = accept(listen_fd, nullptr, nullptr);
             if (client_fd < 0) {
-                server_error = "local simulator accept failed";
+                server_error = scenario.id + ": local simulator accept failed";
                 return;
             }
             const std::string request = ReadHttpRequest(client_fd);
             captured_requests.push_back(request);
-            const auto response = SimulatorResponse(request);
+            const auto response = SimulatorResponse(scenario, request);
             SendHttpResponse(client_fd, response.first, response.second);
             close(client_fd);
         }
@@ -237,39 +307,143 @@ int main() {
     close(listen_fd);
 
     Assert(server_error.empty(), server_error);
-    Assert(result.ok, "local simulator probe did not return ok: " + result.error);
-    Assert(result.credential_ref_present, "credential reference summary was not preserved");
-    Assert(result.plaintext_secret_included == false, "plaintext credential flag must remain false");
-    Assert(HasService(result.services, "Device"), "Device service missing");
-    Assert(HasService(result.services, "Media2"), "Media2 service missing");
-    Assert(HasService(result.services, "Media"), "Media service missing");
-    Assert(result.media_profiles.size() == 1, "live media profile count mismatch");
+    Assert(captured_requests.size() == scenario.expected_actions.size(),
+           scenario.id + ": local simulator request count mismatch");
+    for (std::size_t index = 0; index < scenario.expected_actions.size(); ++index) {
+        Assert(Contains(captured_requests[index], "SOAPAction: \"" + scenario.expected_actions[index] + "\""),
+               scenario.id + ": SOAP action mismatch at request " + std::to_string(index + 1));
+        Assert(Contains(captured_requests[index], "POST /onvif/device_service HTTP/1.1"),
+               scenario.id + ": request line mismatch");
+        Assert(!ContainsCredentialMaterial(captured_requests[index]),
+               scenario.id + ": local simulator request leaked credential material");
+    }
 
-    const auto& profile = result.media_profiles.front();
-    Assert(profile.selected, "simulator profile should be selected");
-    Assert(profile.token == "sim-main-h264", "profile token mismatch");
-    Assert(profile.name == "Simulator Main H264", "profile name mismatch");
-    Assert(profile.media_api == "Media2", "profile media API mismatch");
-    Assert(profile.encoding == "H264", "profile encoding mismatch");
-    Assert(profile.width == 1920, "profile width mismatch");
-    Assert(profile.height == 1080, "profile height mismatch");
-    Assert(profile.fps == 30, "profile fps mismatch");
-    Assert(profile.transport == "RTSP", "profile transport mismatch");
-    Assert(profile.stream_uri == "rtsps://192.0.2.60/live/sim-main", "profile stream URI mismatch");
+    Assert(result.credential_ref_present, scenario.id + ": credential reference summary was not preserved");
+    Assert(result.plaintext_secret_included == false, scenario.id + ": plaintext credential flag must remain false");
 
-    Assert(captured_requests.size() == static_cast<std::size_t>(kExpectedRequestCount),
-           "local simulator request count mismatch");
-    Assert(Contains(captured_requests[0], "SOAPAction: \"GetServices\""), "GetServices request missing");
-    Assert(Contains(captured_requests[1], "SOAPAction: \"Media2.GetProfiles\""),
-           "Media2.GetProfiles request missing");
-    Assert(Contains(captured_requests[2], "SOAPAction: \"Media2.GetStreamUri\""),
-           "Media2.GetStreamUri request missing");
-    Assert(Contains(captured_requests[2], "sim-main-h264"), "stream URI request missing selected profile token");
-    Assert(Contains(captured_requests[3], "SOAPAction: \"Media.GetProfiles\""),
-           "Media fallback profile request missing");
-    for (const auto& captured : captured_requests) {
-        Assert(Contains(captured, "POST /onvif/device_service HTTP/1.1"), "request line mismatch");
-        Assert(!ContainsCredentialMaterial(captured), "local simulator request leaked credential material");
+    if (scenario.expect_ok) {
+        Assert(result.ok, scenario.id + ": local simulator probe did not return ok: " + result.error);
+        Assert(HasService(result.services, "Device"), scenario.id + ": Device service missing");
+        Assert(HasService(result.services, "Media2") == scenario.media2_available,
+               scenario.id + ": Media2 service availability mismatch");
+        Assert(HasService(result.services, "Media") == scenario.media_available,
+               scenario.id + ": Media service availability mismatch");
+        ValidateSelectedProfile(scenario.id, result, scenario.expected_profile);
+    } else {
+        Assert(!result.ok, scenario.id + ": local simulator failure variant unexpectedly returned ok");
+        Assert(result.error == scenario.expected_error,
+               scenario.id + ": failure wording mismatch: " + result.error);
+        Assert(result.media_profiles.empty(), scenario.id + ": failure variant should not preserve live profiles");
+    }
+
+    std::cout << "[pass] ONVIF local simulator fixture variant: " << scenario.id << "\n";
+}
+
+SimulatedProfile Profile(const std::string& token,
+                         const std::string& name,
+                         const std::string& media_api,
+                         const std::string& encoding,
+                         int width,
+                         int height,
+                         int fps,
+                         const std::string& stream_uri) {
+    SimulatedProfile profile;
+    profile.token = token;
+    profile.name = name;
+    profile.media_api = media_api;
+    profile.encoding = encoding;
+    profile.width = width;
+    profile.height = height;
+    profile.fps = fps;
+    profile.stream_uri = stream_uri;
+    return profile;
+}
+
+}  // namespace
+
+int main() {
+    const auto media2_primary = Profile(
+        "sim-main-h264",
+        "Simulator Main H264",
+        "Media2",
+        "H264",
+        1920,
+        1080,
+        30,
+        "rtsps://192.0.2.60/live/sim-main");
+    const auto media_fallback = Profile(
+        "sim-fallback-h265",
+        "Simulator Fallback H265",
+        "Media",
+        "H265",
+        1280,
+        720,
+        25,
+        "rtsp://192.0.2.61/live/fallback");
+    const auto media_only = Profile(
+        "sim-media-only-h264",
+        "Simulator Media Only H264",
+        "Media",
+        "H264",
+        640,
+        360,
+        15,
+        "rtsp://192.0.2.62/live/media-only");
+    const auto non_rtsp = Profile(
+        "sim-non-rtsp",
+        "Simulator Non RTSP",
+        "Media2",
+        "H264",
+        1920,
+        1080,
+        30,
+        "http://192.0.2.63/live/not-rtsp.m3u8");
+
+    const std::vector<LocalSimulatorScenario> scenarios = {
+        LocalSimulatorScenario{
+            "media2-primary-rtsps",
+            true,
+            true,
+            {media2_primary},
+            {},
+            {"GetServices", "Media2.GetProfiles", "Media2.GetStreamUri", "Media.GetProfiles"},
+            true,
+            media2_primary,
+            ""},
+        LocalSimulatorScenario{
+            "media-fallback-after-empty-media2",
+            true,
+            true,
+            {},
+            {media_fallback},
+            {"GetServices", "Media2.GetProfiles", "Media.GetProfiles", "Media.GetStreamUri"},
+            true,
+            media_fallback,
+            ""},
+        LocalSimulatorScenario{
+            "media-only",
+            false,
+            true,
+            {},
+            {media_only},
+            {"GetServices", "Media.GetProfiles", "Media.GetStreamUri"},
+            true,
+            media_only,
+            ""},
+        LocalSimulatorScenario{
+            "non-rtsp-stream-uri-failure",
+            true,
+            true,
+            {non_rtsp},
+            {},
+            {"GetServices", "Media2.GetProfiles", "Media2.GetStreamUri", "Media.GetProfiles"},
+            false,
+            SimulatedProfile{},
+            "ONVIF probe failed at GetStreamUri: no live RTSP profile discovered"},
+    };
+
+    for (const auto& scenario : scenarios) {
+        RunScenario(scenario);
     }
 
     std::cout << "[pass] ONVIF local simulator fixture smoke (no real device endpoint used)\n";
