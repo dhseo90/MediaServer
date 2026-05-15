@@ -352,7 +352,8 @@ run_bootstrap() {
     'class="auth-shell"' 'id="themeToggleBtn"' 'name="username"' 'name="password"' 'autocomplete="current-password"'
   auth_ui_smoke "login" "/login" "form.auth-form" "" 'autocomplete="current-password"'
   expect_page_contains "client access request auth shell selectors" "${BASE}/client/request-access" \
-    'class="auth-shell"' 'id="request-form"' 'name="username"' 'name="contact"' 'name="reason"' 'window.MediaServerUi'
+    'class="auth-shell"' 'id="request-form"' 'name="username"' 'name="contact"' 'name="reason"' \
+    '승인 전에는 로그인/채널 접근이 열리지 않습니다' 'window.MediaServerUi'
   auth_ui_smoke "client-request-access" "/client/request-access" "#request-form" "" 'name="reason"'
   login_admin
   local logout_code whoami_code
@@ -376,7 +377,8 @@ run_users() {
   expect_cookie_page_contains "ops users access request selectors" "${ADMIN_COOKIE}" "${BASE}/ops/users" \
     'id="access-requests-body"' 'id="request-invite-output"' '/ops/api/access-requests' '승인 대기 요청' \
     'id="apply-view-scope-template"' 'id="scope-template-preview"' 'id="user-scopes-input"' \
-    'id="user-lifecycle-summary"' 'data-user-set-enabled' '다음 로그인 시 비밀번호 변경 필요'
+    'id="user-lifecycle-summary"' 'data-user-set-enabled' '다음 로그인 시 비밀번호 변경 필요' \
+    '승인 전: 로그인/세션/채널 권한 없음' '초대 설정 완료 전까지는 로그인/세션/채널 권한이 열리지 않습니다'
   auth_scope_picker_smoke
   expect_auth_store_owner_only "permissive auth users file re-hardened"
 

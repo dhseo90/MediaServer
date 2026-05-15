@@ -281,6 +281,18 @@ PR template과 정적 verifier를 연결했습니다.
 - `verify-auth-users`와 `verify-ops-client-ui`가 lifecycle summary/action hook을 확인합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Client access approval flow polish 후속 종료 판정
+
+2026-05-16 기준 client 접근 요청 접수부터 Ops 승인/초대 설정 전까지의 상태 문구를 정리했습니다.
+
+확인됨:
+
+- `/client/request-access` 제출 성공 메시지가 request id를 표시하고, 승인 전에는 로그인/채널 접근이 열리지 않음을 명시합니다.
+- `/ops/users` 승인 대기 표가 pending/approved/rejected 상태별 lifecycle note를 함께 표시합니다.
+- 승인 후 출력되는 초대 링크 안내에 초대 설정 완료 전까지 세션/채널 권한이 열리지 않는다는 문구를 추가했습니다.
+- `verify-auth-users`와 `verify-ops-client-ui`가 접근 요청 lifecycle 문구를 확인합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ### Client debug/source leakage smoke 강화 후속 종료 판정
 
 2026-05-16 기준 client/viewer 화면과 scoped API의 debug/source 비노출 smoke를 강화했습니다.

@@ -54,7 +54,7 @@ void AppendClientAccessRequestScript(std::ostringstream& out) {
       event.preventDefault();
       const data = formDataObject(form);
       try {
-        await requestJson('/client/api/access-requests', {
+        const result = await requestJson('/client/api/access-requests', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -66,7 +66,9 @@ void AppendClientAccessRequestScript(std::ostringstream& out) {
           })
         });
         form.reset();
-        setMessage('요청이 승인 대기 상태로 저장되었습니다.');
+        const requestId = String(result?.requestId || '').trim();
+        const prefix = requestId ? `요청 ${requestId} 접수 완료. ` : '';
+        setMessage(`${prefix}승인 전에는 로그인/채널 접근이 열리지 않습니다. 관리자가 승인하면 초대 링크로 비밀번호를 설정하세요.`);
       } catch (error) {
         setMessage(error.message, true);
       }
@@ -6249,6 +6251,11 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     function requestStatusTone(status) {
       return status === 'pending' ? 'warn' : status === 'rejected' ? 'bad' : '';
     }
+    function accessRequestLifecycleText(request = {}) {
+      if (request.status === 'approved') return '승인됨: 초대 비밀번호 설정 후 로그인 가능';
+      if (request.status === 'rejected') return '거절됨: 새 요청 또는 관리자 재초대 필요';
+      return '승인 전: 로그인/세션/채널 권한 없음';
+    }
     function yesNo(value) {
       return value ? '예' : '아니오';
     }
@@ -6439,8 +6446,16 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         appendLabeledCell(tr, '연락처', userValueHtml(request.contact || '미제공'));
         appendLabeledCell(tr, '채널', userValueHtml(request.viewId || '미지정'));
         appendLabeledCell(tr, '사유', userValueHtml(request.reason || '미제공'));
-        appendLabeledCell(tr, '상태', opsRowActionsHtml(chip(requestStatusLabel(request.status), requestStatusTone(request.status)), 'ops-status-actions user-status-actions'), 'table-cell-status');
-        appendLabeledCell(tr, '요청/결정', userValueHtml(request.createdAt || '미제공', request.decidedAt || ''));
+        appendLabeledCell(
+          tr,
+          '상태',
+          opsRowActionsHtml(
+            `${chip(requestStatusLabel(request.status), requestStatusTone(request.status))}<span class="user-note">${escapeHtml(accessRequestLifecycleText(request))}</span>`,
+            'ops-status-actions user-status-actions'
+          ),
+          'table-cell-status'
+        );
+        appendLabeledCell(tr, '요청/결정', userValueHtml(request.createdAt || '미제공', request.decidedAt || accessRequestLifecycleText(request)));
         const actionsHtml = request.status === 'pending'
           ? opsRowActionsHtml(`
               <button type="button" class="primary" data-request-approve="${escapeHtml(displayValue(request.requestId))}">승인</button>
@@ -6523,7 +6538,8 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         setInviteOutput([
           `계정: ${request.username || ''}`,
           setupUrl ? `초대 링크: ${setupUrl}` : '',
-          invite.token ? `토큰: ${invite.token}` : ''
+          invite.token ? `토큰: ${invite.token}` : '',
+          '초대 설정 완료 전까지는 로그인/세션/채널 권한이 열리지 않습니다.'
         ].filter(Boolean).join('\n'));
         setRequestStatus('접근 요청 승인 완료');
         await loadAll({ clearMessages: false });

@@ -110,7 +110,7 @@ const pageChecks = [
     name: "ops-users",
     path: "/ops/users",
     visualSelector: '[data-testid="ops-users-page"]',
-    must: ['data-testid="ops-users-page"', 'id="users-body"', 'id="access-requests-body"', 'id="request-invite-output"', 'id="user-detail-panel"', 'id="user-edit-selected"', 'id="user-save-selected"', 'id="user-close"', 'id="view-assignment"', 'id="user-lifecycle-summary"', 'data-user-set-enabled', '/ops/api/access-requests'],
+    must: ['data-testid="ops-users-page"', 'id="users-body"', 'id="access-requests-body"', 'id="request-invite-output"', 'id="user-detail-panel"', 'id="user-edit-selected"', 'id="user-save-selected"', 'id="user-close"', 'id="view-assignment"', 'id="user-lifecycle-summary"', 'data-user-set-enabled', '승인 전: 로그인/세션/채널 권한 없음', '/ops/api/access-requests'],
   },
   {
     name: "client-live",
