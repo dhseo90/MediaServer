@@ -95,6 +95,50 @@ test/fixtures/onvif_probe_result_stub.json
 - `expectedSourceDraft.tags`에는 최소 `onvif`, `live`가 포함됩니다.
 - 응답에는 password, token 원문, ONVIF raw SOAP, credential 원문을 포함하지 않습니다.
 
+## 현장 수동 Smoke 절차
+
+실제 ONVIF 카메라로 확인할 때는 현장 endpoint와 credential을 문서나 로그에
+원문으로 남기지 않습니다. 결과 공유에는 아래처럼 redacted 값만 사용합니다.
+
+사전 조건:
+
+- 운영자가 접근 가능한 ONVIF Device service endpoint
+- 운영자가 별도 보관하는 credential 또는 credential reference
+- 서버가 접근 가능한 같은 네트워크 경로
+- 임시 SourceRegistry/PublishedView 경로 또는 되돌릴 수 있는 테스트 registry
+
+확인 순서:
+
+1. endpoint 접근 가능 여부와 인증 필요 여부를 운영자 환경에서 확인합니다.
+2. Device service에서 Media/Media2 service 존재 여부를 확인합니다.
+3. Media/Media2 profile 목록에서 live RTSP profile만 후보로 남깁니다.
+4. 선택 profile의 `GetStreamUri` 결과가 `rtsp://` 또는 `rtsps://`인지 확인합니다.
+5. probe 결과를 `test/fixtures/onvif_probe_result_stub.json`과 같은 구조로
+   redacted fixture에 옮기되 raw SOAP와 credential 원문은 제외합니다.
+6. `POST /ops/api/onvif/import-draft`에 redacted fixture를 넣어
+   `sourceDraft`와 `publishedViewDraft`만 생성되는지 확인합니다.
+7. `/ops/api/sources`와 `/ops/api/views`에 draft를 저장하고 `/ops/sources`
+   채널 목록에서 ONVIF source로 보이는지 확인합니다.
+8. `/client/api/views`와 `/client/api/views/{viewId}` 응답에 source locator,
+   ONVIF endpoint, credential reference, raw diagnostic JSON이 없는지 확인합니다.
+9. 채널 Live/VA URL copy와 `/ops/rules`의 ONVIF RTSP/WHEP/WebRTC copy 버튼을
+   확인합니다.
+
+기록 템플릿:
+
+```text
+camera: <vendor/model redacted>
+endpoint: <redacted host>/onvif/device_service
+auth: credentialRef present, plaintext omitted
+services: Device=<yes/no>, Media=<yes/no>, Media2=<yes/no>
+selectedProfile: token=<redacted>, api=<Media|Media2>, encoding=<H264|H265>,
+  size=<width>x<height>, fps=<n>, transport=RTSP
+draft: sourceId=<id>, viewId=<id>, tags=onvif/live
+clientRedaction: pass/fail
+opsCopyParity: pass/fail
+notes: <sanitized operational note>
+```
+
 ## Verification
 
 기본 검증:
