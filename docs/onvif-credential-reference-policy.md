@@ -54,8 +54,10 @@ API/UI/artifact에 노출하지 않습니다.
 code와 `secret_material_present=false`만 반환합니다. in-memory fixture store 또는
 명시적으로 연결한 provider가
 `credential_ready`와 `http_basic` material을 반환하면 probe adapter가 HTTP Basic
-header를 생성합니다. `CredentialBindingStore`, 지속 secret material payload,
-Digest/UsernameToken 생성은 계속 향후 범위입니다.
+header를 생성합니다. `test/fixtures/onvif_auth_method_design_matrix.json`은 이
+Basic provider 경계와 Digest/UsernameToken design-only 항목을 분리해 고정합니다.
+`CredentialBindingStore`, 지속 secret material payload, Digest/UsernameToken 생성은
+계속 향후 범위입니다.
 
 Probe adapter summary 연결 정책:
 

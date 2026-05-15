@@ -16,6 +16,7 @@
 | `video/imports/va_tracking_event_1280x720_30fps_h264.mp4` | tracking/event 회귀 | 검증용으로 생성한 allowlist import fixture | 공개 가능 |
 | `test/fixtures/onvif_live_import_stub.json` | ONVIF live source 지원 fixture draft 검증 | 실제 장비/credential 없는 합성 JSON fixture | 공개 가능 |
 | `test/fixtures/onvif_synthetic_vendor_fixture_pack.json` | ONVIF Profile S/T vendor-style 응답 차이 검증 | 실제 장비/credential 없는 합성 JSON fixture | 공개 가능 |
+| `test/fixtures/onvif_auth_method_design_matrix.json` | ONVIF Basic/Digest/WS-Security 인증 방식 설계 경계 검증 | secret/captured trace 없는 합성 JSON fixture | 공개 가능 |
 | `test/fixtures/onvif_field_smoke_artifact_sample/` | ONVIF 현장 smoke 산출물 redaction layout | 실제 장비/credential 없는 합성 sample bundle | 공개 가능 |
 
 ## 공개 제외 대상

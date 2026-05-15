@@ -21,6 +21,7 @@ Usage:
 
 Checks:
   - docs/onvif-auth-injection-design.md가 현재 provider 기반 HTTP Basic 경계를 명시함
+  - test/fixtures/onvif_auth_method_design_matrix.json이 Basic 구현/후속 Digest/WS-Security 경계를 고정함
   - WS-Security, Digest 인증 주입의 향후 조건과 금지선을 문서화함
   - credential policy/protocol matrix가 auth design 문서를 참조함
   - 현재 ONVIF SOAP transport는 provider material이 있을 때만 Authorization을 주입함
@@ -36,6 +37,9 @@ const matrixDoc = readText("docs/onvif-protocol-support-matrix.md");
 const onvifCode = readText("src/ingress/onvif_live_import.cpp");
 const providerHeader = readText("include/ingress/onvif_credential_provider.h");
 const authLoopbackSmoke = readText("scripts/internal/onvif_auth_injection_loopback_smoke.cpp");
+const authMatrixPath = path.join(rootDir, "test/fixtures/onvif_auth_method_design_matrix.json");
+const authMatrixText = fs.readFileSync(authMatrixPath, "utf8");
+const authMatrix = JSON.parse(authMatrixText);
 const checks = [];
 
 check("auth injection design keeps current provider Basic status explicit", () => {
@@ -57,6 +61,7 @@ check("auth injection design keeps current provider Basic status explicit", () =
     "in-memory fixture store provider 연결 시 HTTP Basic header",
     "제품 persistent secret 저장소 또는 외부 secret manager lookup은 현재 구현 완료가 아닙니다",
     "HTTP 401/403은 sanitized probe failure",
+    "test/fixtures/onvif_auth_method_design_matrix.json",
   ]) {
     assertContains(designDoc, term, `design doc missing current auth boundary: ${term}`);
   }
@@ -76,6 +81,93 @@ check("auth injection design documents future secret handling requirements", () 
     "plaintext credential 저장",
   ]) {
     assertContains(designDoc, term, `design doc missing future auth requirement: ${term}`);
+  }
+});
+
+check("auth method design fixture separates implemented Basic from Digest and WS-Security", () => {
+  assert(authMatrix.schema === "media-server.onvif-auth-method-design-matrix.v1", "unexpected auth method fixture schema");
+  assert(String(authMatrix.description || "").includes("not a secret store"), "auth method fixture must avoid secret-store wording");
+  assert(String(authMatrix.description || "").includes("not a product API contract"), "auth method fixture must avoid product API contract wording");
+  const scope = objectAt(authMatrix, "scope");
+  assert(scope.mode === "design-fixture", "auth method fixture scope mode mismatch");
+  assert(scope.realDeviceEndpointSuccess === "미확인", "auth method fixture must keep real device success unverified");
+  assert(scope.rawSoapIncluded === false, "auth method fixture must not include raw SOAP");
+  assert(scope.plaintextSecretIncluded === false, "auth method fixture must not include plaintext secrets");
+  assert(scope.persistentSecretStoreImplemented === false, "auth method fixture must not claim persistent secret storage");
+  assertArrayEquals(arrayAt(scope, "currentImplementedMethodIds"), ["http-basic-provider-material"], "implemented method ids mismatch");
+  for (const id of [
+    "http-digest-challenge-retry",
+    "ws-security-username-token-text",
+    "ws-security-password-digest",
+  ]) {
+    assert(arrayAt(scope, "designOnlyMethodIds").includes(id), `design-only method missing: ${id}`);
+  }
+
+  const methods = arrayAt(authMatrix, "methods");
+  const byId = new Map(methods.map(method => [method.id, method]));
+  for (const id of [...arrayAt(scope, "currentImplementedMethodIds"), ...arrayAt(scope, "designOnlyMethodIds")]) {
+    assert(byId.has(id), `method fixture missing: ${id}`);
+  }
+  for (const method of methods) {
+    assert(nonEmptyString(method.id), "method id is required");
+    assert(["http-header", "soap-security-header"].includes(method.layer), `${method.id}: unexpected layer`);
+    assert(["implemented-provider-boundary", "design-only"].includes(method.currentStatus), `${method.id}: unexpected status`);
+    assert(nonEmptyString(method.summary), `${method.id}: summary is required`);
+    assert(typeof method.requestMutationAllowed === "boolean", `${method.id}: requestMutationAllowed must be boolean`);
+    assert(typeof method.challengeRetrySupported === "boolean", `${method.id}: challengeRetrySupported must be boolean`);
+    assert(nonEmptyString(method.providerMaterial), `${method.id}: providerMaterial is required`);
+    assert(arrayAt(method, "verification").length > 0, `${method.id}: verification commands are required`);
+    assert(arrayAt(method, "beforeProductUse").length > 0, `${method.id}: beforeProductUse gates are required`);
+    const wireShape = objectAt(method, "wireShape");
+    assert(wireShape.rawSecretExampleIncluded === false, `${method.id}: raw secret example must stay absent`);
+    const redaction = objectAt(method, "redaction");
+    assert(arrayAt(redaction, "mustRedact").includes("credentialRef"), `${method.id}: credentialRef must be redacted`);
+    assert(arrayAt(redaction, "summaryAllowed").length > 0, `${method.id}: summaryAllowed is required`);
+    if (method.currentStatus === "implemented-provider-boundary") {
+      assert(method.id === "http-basic-provider-material", "only HTTP Basic provider boundary is currently implemented");
+      assert(method.requestMutationAllowed === true, "implemented Basic provider boundary should allow request mutation");
+      assert(method.providerMaterial === "http_basic", "implemented Basic provider material mismatch");
+    } else {
+      assert(method.requestMutationAllowed === false, `${method.id}: design-only method must not mutate requests`);
+      assert(method.challengeRetrySupported === false, `${method.id}: design-only method must not claim retry support`);
+    }
+  }
+  for (const nonGoal of [
+    "real device authentication success",
+    "captured Authorization header",
+    "captured SOAP security header",
+    "plaintext credential fixture",
+    "persistent credential storage",
+    "automatic Digest fallback",
+    "automatic WS-Security fallback",
+  ]) {
+    assert(arrayAt(authMatrix, "nonGoals").includes(nonGoal), `auth method fixture nonGoals missing: ${nonGoal}`);
+  }
+});
+
+check("auth method design fixture contains no raw secrets or captured auth material", () => {
+  for (const forbidden of [
+    "<s:Envelope",
+    "<SOAP-ENV",
+    "Basic Z",
+    "Digest username=",
+    "PasswordText",
+    "fixture-password",
+    "secret-camera-token",
+    "operator-entered-secret",
+  ]) {
+    assert(!authMatrixText.includes(forbidden), `auth method fixture leaked forbidden literal: ${forbidden}`);
+  }
+  for (const method of arrayAt(authMatrix, "methods")) {
+    const wireShape = objectAt(method, "wireShape");
+    const header = String(wireShape.header || "");
+    const soapHeader = String(wireShape.soapSecurityHeader || "");
+    if (header) {
+      assert(header.includes("<redacted>"), `${method.id}: header shape must be redacted`);
+    }
+    if (soapHeader) {
+      assert(soapHeader.includes("<redacted>"), `${method.id}: SOAP security shape must be redacted`);
+    }
   }
 });
 
@@ -126,6 +218,7 @@ for (const item of checks) {
 console.log("");
 console.log("== ONVIF auth injection design summary ==");
 console.log("- doc: docs/onvif-auth-injection-design.md");
+console.log(`- fixture: ${path.relative(rootDir, authMatrixPath)}`);
 console.log(`- failures: ${failures}`);
 if (failures > 0) process.exit(1);
 
@@ -141,6 +234,29 @@ function assertContains(text, needle, message) {
   const normalizedText = text.replace(/\s+/g, " ");
   const normalizedNeedle = needle.replace(/\s+/g, " ");
   assert(normalizedText.includes(normalizedNeedle), message);
+}
+
+function objectAt(parent, field) {
+  const value = parent?.[field];
+  assert(value && typeof value === "object" && !Array.isArray(value), `${field} must be an object`);
+  return value;
+}
+
+function arrayAt(parent, field) {
+  const value = parent?.[field];
+  assert(Array.isArray(value), `${field} must be an array`);
+  return value;
+}
+
+function assertArrayEquals(actual, expected, message) {
+  assert(actual.length === expected.length, `${message}: length ${actual.length} !== ${expected.length}`);
+  for (let index = 0; index < expected.length; index += 1) {
+    assert(actual[index] === expected[index], `${message}: ${actual[index]} !== ${expected[index]} at ${index}`);
+  }
+}
+
+function nonEmptyString(value) {
+  return typeof value === "string" && value.trim().length > 0;
 }
 
 function assert(condition, message) {

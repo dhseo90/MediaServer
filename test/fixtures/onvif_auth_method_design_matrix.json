@@ -1,0 +1,182 @@
+{
+  "schema": "media-server.onvif-auth-method-design-matrix.v1",
+  "description": "No-device ONVIF auth method design fixture. This is not a secret store, not a captured device trace, and not a product API contract.",
+  "scope": {
+    "mode": "design-fixture",
+    "realDeviceEndpointSuccess": "미확인",
+    "rawSoapIncluded": false,
+    "plaintextSecretIncluded": false,
+    "persistentSecretStoreImplemented": false,
+    "currentImplementedMethodIds": [
+      "http-basic-provider-material"
+    ],
+    "designOnlyMethodIds": [
+      "http-digest-challenge-retry",
+      "ws-security-username-token-text",
+      "ws-security-password-digest"
+    ]
+  },
+  "methods": [
+    {
+      "id": "http-basic-provider-material",
+      "layer": "http-header",
+      "currentStatus": "implemented-provider-boundary",
+      "summary": "Explicit provider returns http_basic material; SOAP request receives a redacted Basic Authorization header.",
+      "requestMutationAllowed": true,
+      "challengeRetrySupported": false,
+      "providerMaterial": "http_basic",
+      "wireShape": {
+        "header": "Authorization: Basic <redacted>",
+        "soapSecurityHeader": false,
+        "rawSecretExampleIncluded": false
+      },
+      "verification": [
+        "verify-onvif-auth-injection-loopback",
+        "verify-onvif-credential-reference-policy"
+      ],
+      "redaction": {
+        "mustRedact": [
+          "Authorization",
+          "credentialRef",
+          "username",
+          "password"
+        ],
+        "summaryAllowed": [
+          "credentialRefPresent",
+          "HTTP status",
+          "sanitized reason"
+        ]
+      },
+      "beforeProductUse": [
+        "persistent encrypted store or external secret manager",
+        "source:write credential binding guard",
+        "redacted field smoke artifact"
+      ]
+    },
+    {
+      "id": "http-digest-challenge-retry",
+      "layer": "http-header",
+      "currentStatus": "design-only",
+      "summary": "HTTP Digest challenge parsing, nonce handling, and retry are future work and must not be auto-enabled by credentialRef alone.",
+      "requestMutationAllowed": false,
+      "challengeRetrySupported": false,
+      "providerMaterial": "http_digest",
+      "wireShape": {
+        "header": "Authorization: Digest <redacted>",
+        "soapSecurityHeader": false,
+        "rawSecretExampleIncluded": false
+      },
+      "verification": [
+        "verify-onvif-auth-injection-design",
+        "verify-onvif-auth-injection-loopback"
+      ],
+      "redaction": {
+        "mustRedact": [
+          "Authorization",
+          "credentialRef",
+          "username",
+          "realm",
+          "nonce",
+          "opaque",
+          "responseDigest"
+        ],
+        "summaryAllowed": [
+          "auth method",
+          "HTTP status",
+          "sanitized reason"
+        ]
+      },
+      "beforeProductUse": [
+        "challenge parser with nonce/realm redaction",
+        "single retry policy with timeout budget",
+        "fallback ordering against Basic and WS-Security",
+        "field artifact redaction matrix"
+      ]
+    },
+    {
+      "id": "ws-security-username-token-text",
+      "layer": "soap-security-header",
+      "currentStatus": "design-only",
+      "summary": "WS-Security UsernameToken without PasswordDigest is future work and must not be inserted into current SOAP probes.",
+      "requestMutationAllowed": false,
+      "challengeRetrySupported": false,
+      "providerMaterial": "ws_security_username_token",
+      "wireShape": {
+        "header": false,
+        "soapSecurityHeader": "UsernameToken <redacted>",
+        "rawSecretExampleIncluded": false
+      },
+      "verification": [
+        "verify-onvif-auth-injection-design",
+        "verify-onvif-auth-injection-loopback"
+      ],
+      "redaction": {
+        "mustRedact": [
+          "credentialRef",
+          "UsernameToken",
+          "username",
+          "password"
+        ],
+        "summaryAllowed": [
+          "auth method",
+          "SOAP status",
+          "sanitized reason"
+        ]
+      },
+      "beforeProductUse": [
+        "SOAP security header builder",
+        "clock skew handling",
+        "field artifact redaction matrix",
+        "interop fallback ordering"
+      ]
+    },
+    {
+      "id": "ws-security-password-digest",
+      "layer": "soap-security-header",
+      "currentStatus": "design-only",
+      "summary": "WS-Security PasswordDigest generation is future work and requires nonce/created timestamp handling before any field enablement.",
+      "requestMutationAllowed": false,
+      "challengeRetrySupported": false,
+      "providerMaterial": "ws_security_password_digest",
+      "wireShape": {
+        "header": false,
+        "soapSecurityHeader": "PasswordDigest <redacted>",
+        "rawSecretExampleIncluded": false
+      },
+      "verification": [
+        "verify-onvif-auth-injection-design",
+        "verify-onvif-auth-injection-loopback"
+      ],
+      "redaction": {
+        "mustRedact": [
+          "credentialRef",
+          "UsernameToken",
+          "PasswordDigest",
+          "Nonce",
+          "Created",
+          "username"
+        ],
+        "summaryAllowed": [
+          "auth method",
+          "SOAP status",
+          "sanitized reason"
+        ]
+      },
+      "beforeProductUse": [
+        "nonce generator and clock skew policy",
+        "digest builder with secret lifetime bounds",
+        "field artifact redaction matrix",
+        "interop fallback ordering"
+      ]
+    }
+  ],
+  "nonGoals": [
+    "real device authentication success",
+    "captured Authorization header",
+    "captured SOAP security header",
+    "plaintext credential fixture",
+    "persistent credential storage",
+    "automatic Digest fallback",
+    "automatic WS-Security fallback"
+  ]
+}

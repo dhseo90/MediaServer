@@ -12,6 +12,10 @@ v1.2.0 현재 구현은 명시적으로 연결된 credential provider가 `HTTP B
 - [ONVIF HTTPS SOAP Transport Design](./onvif-https-soap-transport-design.md)
 - [ONVIF Protocol Support Matrix](./onvif-protocol-support-matrix.md)
 
+설계 fixture:
+
+- `test/fixtures/onvif_auth_method_design_matrix.json`
+
 ## 현재 상태
 
 - `credentialRef`는 secret 값이 아니라 운영자가 별도 보관하는 reference 존재
@@ -22,6 +26,10 @@ v1.2.0 현재 구현은 명시적으로 연결된 credential provider가 `HTTP B
   WS-Security UsernameToken을 주입하지 않습니다.
 - 명시적으로 연결된 provider가 `credential_ready`와 `http_basic` material을
   반환할 때만 `Authorization: Basic ...` header를 주입합니다.
+- `test/fixtures/onvif_auth_method_design_matrix.json`은 현재 구현된
+  `http-basic-provider-material`과 design-only `http-digest-challenge-retry`,
+  `ws-security-username-token-text`, `ws-security-password-digest`를 구분합니다.
+  이 fixture는 secret store, captured trace, product API contract가 아닙니다.
 - `InMemoryCredentialSecretProvider`는 no-device/loopback 검증용 fixture store로,
   제품 API/UI persistent credential 저장 기능을 열지 않고 provider lookup 경계를
   검증합니다.
