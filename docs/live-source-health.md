@@ -168,6 +168,20 @@ source health는 `/ops/dashboard`의 문제 원인/운영 요약과 아래 API�
 채널 화면 안에 별도 Live Source Health panel/table/detail 또는 bulk 작업 패널을
 두지 않습니다.
 
+운영자 next action:
+
+- `/ops/dashboard`의 `라이브 소스 상태` 다음 조치는 현재 source health snapshot을
+  다시 읽고, 비정상 sourceId만 `/ops/api/source-health/bulk` `check`로 dry-run
+  재검증합니다.
+- 응답의 `retryBody.sourceIds`는 `retryable=true` 행만 포함합니다. Dashboard의
+  재검증 버튼은 이 목록만 `operation=retry`로 다시 보내므로 정상 source와
+  재시도 불가 source를 건드리지 않습니다.
+- source health bulk는 SourceRegistry/PublishedView를 변경하지 않는 dry-run입니다.
+  따라서 rollback 대상은 없으며, bulk channel mutation의 partial rollback 계약과
+  분리합니다.
+- 상태 변화 이력은 `/ops/sources` 변경 이력의 `Source Health 변경` 프리셋으로
+  확인합니다.
+
 bulk API:
 
 - 선택 source 또는 전체 source를 대상으로 dry-run check 실행

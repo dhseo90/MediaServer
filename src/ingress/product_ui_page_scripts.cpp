@@ -1578,13 +1578,64 @@ void AppendOpsShellScript(std::ostringstream& out,
           .filter(line => (correlationId && line.includes(correlationId)) || (regex && regex.test(line)))
           .slice(-6);
       };
-      const renderRootCauseActionOutput = (title, rows = [], logs = []) => {
+      const renderRootCauseActionOutput = (title, rows = [], logs = [], actionsHtml = '') => {
         const output = document.getElementById('dashRootCauseActionOutput');
         if (!output) return;
         output.hidden = false;
         output.innerHTML = `<strong>${escapeHtml(title)}</strong>
           <ul>${rows.map(row => `<li>${escapeHtml(row)}</li>`).join('')}</ul>
+          ${actionsHtml ? `<div class="root-cause-action-buttons">${actionsHtml}</div>` : ''}
           ${logs.length > 0 ? `<pre>${escapeHtml(logs.join('\n'))}</pre>` : '<p class="hint">일치하는 최근 로그가 없습니다.</p>'}`;
+      };
+      const sourceHealthNeedsAction = item => item && String(item.status || '') !== 'live';
+      const sourceHealthTargetIds = sourceHealth => dashboardSourceHealthItems(sourceHealth)
+        .filter(sourceHealthNeedsAction)
+        .map(item => String(item.sourceId || '').trim())
+        .filter(Boolean);
+      const sourceHealthRetryIds = bulk => Array.isArray(bulk?.retryBody?.sourceIds)
+        ? bulk.retryBody.sourceIds.map(id => String(id || '').trim()).filter(Boolean)
+        : [];
+      const runSourceHealthBulk = (operation = 'check', sourceIds = []) => {
+        const body = { operation };
+        const ids = Array.isArray(sourceIds) ? sourceIds.filter(Boolean) : [];
+        if (ids.length > 0) body.sourceIds = ids;
+        return requestJson('/ops/api/source-health/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+      };
+      const sourceHealthBulkRows = (sourceHealth = {}, bulk = {}) => {
+        const counts = dashboardSourceHealthCounts(sourceHealth);
+        const retryIds = sourceHealthRetryIds(bulk);
+        const results = Array.isArray(bulk?.results) ? bulk.results : [];
+        const failed = results.filter(result => result?.ok === false);
+        const unhealthy = results.filter(result => result?.healthy === false);
+        return [
+          dashboardSourceHealthStatusText(sourceHealth),
+          `점검 대상 ${numberValue(bulk?.requestedCount ?? results.length)}개 · 비정상 ${numberValue(bulk?.unhealthyCount ?? unhealthy.length)}개 · 요청 실패 ${numberValue(bulk?.failCount ?? failed.length)}개`,
+          retryIds.length > 0 ? `재검증 대상 ${retryIds.length}개: ${retryIds.slice(0, 6).join(', ')}` : '재검증 대상 없음',
+          `partial failure ${bulk?.partialFailure ? '있음' : '없음'} · dry-run ${bulk?.dryRun === false ? 'off' : 'on'}`,
+          failed.length > 0
+            ? `구성 확인 필요: ${failed.slice(0, 3).map(result => `#${result.sourceId || '-'} ${result.reason || 'unknown'}`).join(' / ')}`
+            : `요약 전체=${counts.total} 수신=${counts.live} 지연=${counts.stale} 오프라인=${counts.offline}`,
+          'source health bulk는 registry를 변경하지 않아 rollback 대상이 없습니다.'
+        ];
+      };
+      const renderSourceHealthActionOutput = (title, sourceHealth, bulk, logs) => {
+        const retryIds = sourceHealthRetryIds(bulk);
+        const actions = retryIds.length > 0
+          ? '<button type="button" class="button button-secondary button-compact" data-source-health-retry>재검증 대상만 다시 확인</button>'
+          : '';
+        renderRootCauseActionOutput(title, sourceHealthBulkRows(sourceHealth, bulk), logs, actions);
+        const retryButton = document.querySelector('[data-source-health-retry]');
+        if (retryButton) {
+          retryButton.addEventListener('click', async () => {
+            retryButton.disabled = true;
+            const retried = await runSourceHealthBulk('retry', retryIds);
+            renderSourceHealthActionOutput('라이브 소스 재검증 결과', sourceHealth, retried, logs);
+          });
+        }
       };
       const runRootCauseAction = async item => {
         const [logTail, sources, views, sourceHealth, catalog, eventsStatus, principal, browserConfig] = await Promise.all([
@@ -1599,16 +1650,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         ]);
         const logs = rootCauseLogFilter(logTail.lines, item.correlationId, item.actionPatterns);
         if (item.actionKind === 'source-health') {
-          const healthItems = dashboardSourceHealthItems(sourceHealth);
-          const counts = dashboardSourceHealthCounts(sourceHealth);
-          const degraded = healthItems.filter(health => health.status !== 'live');
-          renderRootCauseActionOutput('라이브 소스 상태 재검증', [
-            dashboardSourceHealthStatusText(sourceHealth),
-            `확인 필요 ${degraded.length}개`,
-            degraded.slice(0, 3).map(health => `#${health.sourceId || '-'} ${dashboardSourceHealthStatusLabel(health.status)} · ${dashboardSourceHealthReason(health.reason)} · 프레임 ${dashboardSourceHealthAge(health.lastFrameAgeMs)}`).join(' / ') || '지연 또는 오프라인 채널 없음',
-            `요약 전체=${counts.total} 수신=${counts.live} 지연=${counts.stale} 오프라인=${counts.offline}`,
-            '상세 상태는 /ops/dashboard의 운영 요약에서 확인합니다.'
-          ], logs);
+          const targetIds = sourceHealthTargetIds(sourceHealth);
+          const checked = await runSourceHealthBulk('check', targetIds);
+          renderSourceHealthActionOutput('라이브 소스 상태 재검증', sourceHealth, checked, logs);
           return;
         }
         if (item.actionKind === 'source-diagnostics') {

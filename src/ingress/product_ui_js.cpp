@@ -770,7 +770,7 @@ std::string ProductSharedUiScript() {
         panel.hidden = !open;
         if (open && options.scroll) {
           panel.scrollIntoView({
-            behavior: options.behavior || 'smooth',
+            behavior: options.behavior || 'auto',
             block: options.block || 'start'
           });
         }

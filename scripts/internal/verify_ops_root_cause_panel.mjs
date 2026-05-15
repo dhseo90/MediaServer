@@ -18,7 +18,7 @@ check("ops dashboard exposes root cause panel", () => {
     'id="dashRootCauseText"',
     'id="dashRootCauseList"',
     'id="dashRootCauseActionOutput"',
-    "source lifecycle, stale, reconnect, auth/config 상태와 다음 조치",
+    "소스 수명주기, 지연, 재연결, 권한/설정 상태와 다음 조치",
   ];
   for (const snippet of required) {
     assert(html.includes(snippet), `dashboard root cause panel is missing snippet: ${snippet}`);
@@ -40,7 +40,7 @@ check("ops dashboard script interprets runtime root causes", () => {
     "logEvidence",
     "sourceLifecycle",
     "/ops/api/source-health",
-    "Live Source Health",
+    "라이브 소스 상태",
     "source-health",
     "lastUsedAgeMs",
     "inactivePublishSources",
@@ -52,8 +52,13 @@ check("ops dashboard script interprets runtime root causes", () => {
     "runRootCauseAction",
     "rootCauseLogFilter",
     "renderRootCauseActionOutput",
+    "runSourceHealthBulk",
+    "sourceHealthRetryIds",
+    "/ops/api/source-health/bulk",
+    "data-source-health-retry",
+    "재검증 대상만 다시 확인",
     "source-diagnostics",
-    "Live Source Health 재검증",
+    "라이브 소스 상태 재검증",
     "registry-diff",
     "event-diagnostics",
     "auth-config",
@@ -87,6 +92,7 @@ check("root cause list is responsive", () => {
     ".root-cause-log",
     ".root-cause-next-action",
     ".root-cause-action-output",
+    ".root-cause-action-buttons",
     "@media (max-width: 560px)",
   ];
   for (const snippet of required) {

@@ -64,7 +64,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 | --- | --- | --- | --- |
 | P0 | ONVIF Profile S/T live source 현장 연동 | Profile S/T 계열 카메라의 수동 입력 Device service endpoint 기준 HTTP SOAP probe, Media/Media2 profile 조회, live RTSP/RTSPS URI draft, credential reference/redaction 정책을 live source 등록 흐름과 연결. WS-Discovery 자동 검색과 Profile G/Recording/Replay는 후순위/비범위 | `verify-onvif-live-import-contract`, `verify-onvif-probe-fixture-contract`, `verify-onvif-no-device-suite`, 수동 camera smoke(실장비 확보 시 별도) |
 | P0 | UI visual regression + ERP-style visual refresh | Ops/Client/Auth 화면을 운영 콘솔형 밀도와 공통 design token으로 정리하고, 320/390/760/1180 기준 screenshot review를 release gate 산출물로 고정 | `verify-ops-client-ui --screenshots`, `verify-auth-bootstrap` visual smoke, 수동 artifact review |
-| P0 | Source health operator workflow | source health 변화 이력, failed-only retry, 운영자 next action, bulk 작업 partial rollback 계약 정리 | `verify-ops-source-health-bulk`, `verify-ops-audit-trail`, 수동 Ops click E2E |
+| P0 | Source health operator workflow | source health 변화 이력, retryable-only 재검증, 운영자 next action, source health bulk dry-run/partial failure/rollback 경계 정리 | `verify-ops-source-health-bulk`, `verify-ops-audit-trail`, 수동 Ops click E2E |
 | P1 | Client live/dashboard polish | viewer용 multi-view 비교, event/status copy, empty/error/loading 문구, mobile tile 조작 개선 | `verify-ops-click-e2e`, `verify-client-dashboard-polish`, screenshot review |
 | P1 | Rule/Scenario field tuning | 실제 현장 샘플 기반 threshold preset, Loitering/ZoneOccupancy 기본값, scenario issue wording 정리 | `verify-va-replay`, `verify-rule-ui`, field sample replay |
 | P1 | Integrator contract artifact | Event POST/WebRTC/SSE/WS contract를 OpenAPI/JSON Schema 또는 sample bundle로 배포하되 payload schema 변경은 별도 review로 제한 | `verify-event-post`, `verify-webrtc-va-metadata`, `verify-ws-metadata` |
@@ -108,7 +108,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 | --- | --- | --- | --- | --- | --- |
 | V120-P0-01 | P0 | ONVIF Profile S/T live source 현장 연동 | 완료(실장비 제외) | 수동 입력 Device service endpoint 기반 HTTP SOAP probe, Media/Media2 profile 조회, RTSP/RTSPS source draft, credential reference/redaction 정책을 `/ops/sources` 등록 draft와 연결. 2026-05-15 기준 no-device suite, local simulator, fixture/loopback/redaction, Ops UI draft/round-trip 검증으로 종료 | WS-Discovery 자동 검색, Profile G/Recording/Replay, SourceRegistry/PublishedView 저장 schema 변경, client ONVIF endpoint 노출, 실장비 camera smoke 성공 증적 |
 | V120-P0-02 | P0 | UI visual regression + ERP-style visual refresh | 완료 | Ops/Client/Auth 주요 화면 320/390/760/1180 screenshot artifact와 수동 review 기준 고정. 공통 product shell, nav/account header, metric/card/table/form/badge 밀도를 운영 콘솔형으로 정리 | 제품 nav 구조 변경, `/lab` 화면 route 재개방 |
-| V120-P0-03 | P0 | Source health operator workflow | 예정 | 상태 변화 이력, failed-only retry, next action, bulk partial failure/rollback 계약 정리 | top-level health 상태 모델 추가, client raw diagnostic 노출 |
+| V120-P0-03 | P0 | Source health operator workflow | 완료 | 상태 변화 이력, retryable-only 재검증, Dashboard next action, source health bulk dry-run/partial failure/rollback 경계 정리 | top-level health 상태 모델 추가, client raw diagnostic 노출 |
 | V120-P1-01 | P1 | Client live/dashboard polish | 예정 | multi-view 비교, event/status copy, empty/error/loading 문구, mobile tile 조작 개선 | client wrapper API schema 변경, viewer source locator 노출 |
 | V120-P1-02 | P1 | Rule/Scenario field tuning | 예정 | 현장 샘플 기반 threshold preset, Loitering/ZoneOccupancy 기본값, scenario issue wording 정리 | ScenarioEngine 판단 로직, event type, payload schema 변경 |
 | V120-P1-03 | P1 | Integrator contract artifact | 예정 | Event POST/WebRTC/SSE/WS contract sample bundle 또는 schema artifact 제공 | payload field 추가/삭제, schema identifier 변경 |
@@ -162,7 +162,25 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - RTSP/WebRTC media path 변경
 - viewer/client source URL, ONVIF endpoint, raw diagnostic JSON 노출
 
-다음 진행 스텝은 `V120-P0-03 Source health operator workflow`입니다.
+### V120-P0-03 종료 판정
+
+2026-05-16 기준 V120-P0-03은 source health 운영자 next action과 bulk retry 경계 고정 범위에서 종료합니다.
+
+확인됨:
+
+- `/ops/dashboard` 문제 원인 패널의 `라이브 소스 상태` 다음 조치가 `/ops/api/source-health/bulk` dry-run check를 호출합니다.
+- 재검증 버튼은 bulk 응답의 `retryBody.sourceIds`만 `operation=retry`로 다시 보내 retryable-only 흐름을 유지합니다.
+- source health bulk는 SourceRegistry/PublishedView를 변경하지 않는 dry-run으로 문서화했고, rollback 대상이 없음을 channel bulk mutation rollback 계약과 분리했습니다.
+- `/ops/sources`에는 source health bulk panel/table/detail을 추가하지 않고, 상태 변화 이력은 기존 `Source Health 변경` audit preset으로 확인합니다.
+
+범위 밖:
+
+- top-level health 상태 모델 추가
+- client/viewer raw diagnostic 또는 source locator 노출
+- RTSP/WebRTC media path 변경
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+
+다음 진행 스텝은 `V120-P1-01 Client live/dashboard polish`입니다.
 
 ## v1.2.0 시작 전 체크리스트
 

@@ -1370,6 +1370,11 @@ std::string ProductUiCss() {
       margin: 0;
       padding-left: 18px;
     }
+    .root-cause-action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
     .root-cause-action-output pre {
       max-width: 100%;
       margin: 0;
