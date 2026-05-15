@@ -52,6 +52,8 @@ check("protocol support matrix names supported ONVIF live-source scope", () => {
     "ONVIF Media service SOAP",
     "`Media.GetProfiles`",
     "`Media.GetStreamUri`",
+    "SOAP Fault / malformed response",
+    "verify-onvif-soap-fault-matrix",
     "`rtsp://` 또는 `rtsps://` GetStreamUri live 후보",
     "`rtsp://`/`rtsps://` URI를 기존 `kind=rtsp` source draft로 축약",
     "./onvif-rtsps-draft-policy.md",

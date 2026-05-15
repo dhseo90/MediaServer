@@ -124,6 +124,8 @@ Usage:
                  ONVIF probe action 순서와 실패 요약 redaction 단위 smoke를 검증합니다.
   verify-onvif-probe-error-wording
                  ONVIF probe 실패 문구 fixture matrix와 redaction을 검증합니다.
+  verify-onvif-soap-fault-matrix
+                 ONVIF SOAP Fault/malformed response matrix와 redaction을 검증합니다.
   verify-onvif-no-device-suite
                  ONVIF 실장비 제외 fixture/loopback/redaction 검증 묶음을 순차 실행합니다.
   verify-onvif-no-device-mode
@@ -509,6 +511,10 @@ case "${cmd}" in
   verify-onvif-probe-error-wording)
     require_internal verify_onvif_probe_error_wording_matrix.mjs
     exec "${INTERNAL_DIR}/verify_onvif_probe_error_wording_matrix.mjs" "$@"
+    ;;
+  verify-onvif-soap-fault-matrix)
+    require_internal verify_onvif_soap_fault_matrix.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_soap_fault_matrix.mjs" "$@"
     ;;
   verify-onvif-no-device-suite)
     require_internal verify_onvif_no_device_suite.mjs

@@ -68,6 +68,7 @@ simulator fixture smoke로만 보고합니다.
 ./server.sh verify-onvif-http-transport
 ./server.sh verify-onvif-local-simulator
 ./server.sh verify-onvif-probe-error-wording
+./server.sh verify-onvif-soap-fault-matrix
 ./server.sh verify-onvif-field-smoke-redaction
 ./server.sh verify-onvif-field-smoke-sample-bundle
 ./server.sh verify-onvif-field-http-probe --allow-missing-endpoint
@@ -101,6 +102,7 @@ simulator fixture smoke로만 보고합니다.
 - verify-onvif-no-device-completion
 - synthetic fixture/parser/adapter/transport/redaction 검증
 - local simulator fixture 기반 HTTP SOAP probe 성공/실패 variant
+- SOAP Fault/malformed response matrix 기반 fail-safe 실패 요약과 redaction
 - verify-onvif-field-http-probe --allow-missing-endpoint
 - closed loopback endpoint --expect-failure sanitized failure
 - verify-onvif-closed-loopback-failure-matrix
@@ -156,7 +158,7 @@ schema drift guard는 runner 상수, 성공 예시, 성공 fixture, 실패 fixtu
   "schema": "media-server.onvif-no-device-suite-summary.v1",
   "mode": "실장비 제외",
   "realDeviceEndpointSuccess": "미확인",
-  "completed": 25,
+  "completed": 26,
   "failed": null
 }
 ```

@@ -55,6 +55,7 @@ const suite = [
   ["verify-onvif-http-transport"],
   ["verify-onvif-local-simulator"],
   ["verify-onvif-probe-error-wording"],
+  ["verify-onvif-soap-fault-matrix"],
   ["verify-onvif-field-smoke-redaction"],
   ["verify-onvif-field-smoke-sample-bundle"],
   ["verify-onvif-field-http-probe", "--allow-missing-endpoint"],
