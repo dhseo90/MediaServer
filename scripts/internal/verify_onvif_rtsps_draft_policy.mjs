@@ -45,6 +45,7 @@ const matrixDoc = readText("docs/onvif-protocol-support-matrix.md");
 const liveSupportDoc = readText("docs/onvif-live-source-support.md");
 const onvifCode = readText("src/ingress/onvif_live_import.cpp");
 const uiCode = readText("src/ingress/product_ui_page_scripts.cpp");
+const probeDraftApiSmoke = readText("scripts/internal/verify_onvif_probe_draft_api.mjs");
 const rtspsProbeFixture = JSON.parse(readText("test/fixtures/onvif_probe_result_rtsps_stub.json"));
 const profileVariants = JSON.parse(readText("test/fixtures/onvif_probe_profile_variants.json"));
 const checks = [];
@@ -71,6 +72,8 @@ check("protocol and live support docs link RTSPS policy", () => {
   assertContains(liveSupportDoc, "verify-onvif-rtsps-draft-policy", "live support verification missing RTSPS policy command");
   assertContains(liveSupportDoc, "test/fixtures/onvif_probe_result_rtsps_stub.json", "live support doc missing RTSPS probe fixture");
   assertContains(liveSupportDoc, "verify-onvif-probe-draft-api --fixture test/fixtures/onvif_probe_result_rtsps_stub.json", "live support doc missing RTSPS API smoke command");
+  assertContains(liveSupportDoc, "verify-onvif-probe-draft-api --profile-variant media-rtsps-fallback-when-media2-non-rtsp", "live support doc missing RTSPS profile variant API smoke command");
+  assertContains(policyDoc, "verify-onvif-probe-draft-api --profile-variant media-rtsps-fallback-when-media2-non-rtsp", "policy doc missing RTSPS profile variant API smoke command");
 });
 
 check("RTSPS probe fixture maps to existing API draft contract", () => {
@@ -106,6 +109,13 @@ check("profile variant fixture includes direct and fallback RTSPS draft cases", 
   const fallback = byId["media-rtsps-fallback-when-media2-non-rtsp"];
   assert(selectedProfile(fallback).mediaApi === "Media", "RTSPS fallback variant must select Media");
   assert(arrayAt(fallback, "mediaProfiles").some(profile => profile.mediaApi === "Media2" && !/^rtsps?:\/\//i.test(String(profile.streamUri || ""))), "RTSPS fallback variant must keep a non-RTSP/RTSPS Media2 profile");
+});
+
+check("RTSPS profile variant can be routed through probe draft API smoke", () => {
+  assertContains(probeDraftApiSmoke, "profile-variant", "probe draft API smoke missing profile-variant option");
+  assertContains(probeDraftApiSmoke, "fixtureFromProfileVariant", "probe draft API smoke missing profile variant payload builder");
+  assertContains(probeDraftApiSmoke, "media-server.onvif-probe-result-stub.v1", "profile variant route payload must keep probe result schema");
+  assertContains(probeDraftApiSmoke, "\"probe-variant\"", "profile variant route payload must tag source draft");
 });
 
 check("implementation keeps rtsps parser candidate and automatic draft support", () => {

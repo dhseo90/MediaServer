@@ -34,6 +34,9 @@ schema가 아닙니다.
 Profile selection fixture에는 Media2 RTSPS direct case와 Media fallback RTSPS
 case를 모두 둡니다. 두 case 모두 `rtsps://` stream URI를 새 source kind가 아니라
 기존 `kind=rtsp` draft로 축약하는 no-device fixture입니다.
+`verify-onvif-probe-draft-api --profile-variant media-rtsps-fallback-when-media2-non-rtsp`는
+profile variant fixture에서 RTSPS fallback payload를 합성해 같은
+`POST /ops/api/onvif/import-draft` route를 검증합니다.
 
 ## TLS 구분
 
@@ -69,5 +72,6 @@ scheme입니다. 이것은 ONVIF Device service SOAP endpoint의 `https://` tran
 ./server.sh verify-onvif-protocol-support-matrix
 ./server.sh verify-onvif-probe-profile-variants
 ./server.sh verify-onvif-probe-draft-api --fixture test/fixtures/onvif_probe_result_rtsps_stub.json
+./server.sh verify-onvif-probe-draft-api --profile-variant media-rtsps-fallback-when-media2-non-rtsp
 git diff --check
 ```

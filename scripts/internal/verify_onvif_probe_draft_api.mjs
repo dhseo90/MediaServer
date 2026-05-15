@@ -21,6 +21,7 @@ Usage:
 Options:
   --http-base <url>       실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
   --fixture <path>        ONVIF probe fixture입니다. 기본 test/fixtures/onvif_probe_result_stub.json.
+  --profile-variant <id>  test/fixtures/onvif_probe_profile_variants.json의 success variant를 API smoke payload로 사용합니다.
   -h, --help              도움말 출력
 
 Checks:
@@ -29,13 +30,17 @@ Checks:
   - 응답이 credentialRef, ONVIF endpoint, raw SOAP, raw diagnostic JSON을 노출하지 않음
 `);
 }
-assertKnownOptions(rawArgs, ["http-base", "fixture", "h", "help"]);
+assertKnownOptions(rawArgs, ["http-base", "fixture", "profile-variant", "h", "help"]);
 
 const args = parseArgs(rawArgs);
 const httpBase = String(args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
-const fixturePath = path.resolve(rootDir, args.fixture || "test/fixtures/onvif_probe_result_stub.json");
-const fixtureText = fs.readFileSync(fixturePath, "utf8");
-const fixture = JSON.parse(fixtureText);
+const profileVariantId = String(args.profileVariant || "").trim();
+assert(!(profileVariantId && args.fixture), "--fixture and --profile-variant cannot be used together");
+const fixtureBundle = profileVariantId
+  ? fixtureFromProfileVariant(profileVariantId)
+  : fixtureFromPath(args.fixture || "test/fixtures/onvif_probe_result_stub.json");
+const fixtureText = fixtureBundle.text;
+const fixture = fixtureBundle.fixture;
 
 const before = await requestJson("/ops/api/sources");
 const responseText = await requestText("/ops/api/onvif/import-draft", {
@@ -75,7 +80,7 @@ console.log("[pass] onvif-probe-draft rejects nonnumeric sourceId");
 console.log("");
 console.log("== ONVIF probe draft API summary ==");
 console.log(`- http base: ${httpBase}`);
-console.log(`- fixture: ${path.relative(rootDir, fixturePath)}`);
+console.log(`- fixture: ${fixtureBundle.label}`);
 console.log("- failures: 0");
 
 async function requestJson(urlPath, options = {}) {
@@ -151,6 +156,108 @@ function assertNoForbiddenResponseText(text) {
   ]) {
     assert(!text.includes(forbidden), `response leaked forbidden text: ${forbidden}`);
   }
+}
+
+function fixtureFromPath(relativeOrAbsolutePath) {
+  const fixturePath = path.resolve(rootDir, relativeOrAbsolutePath);
+  const text = fs.readFileSync(fixturePath, "utf8");
+  return {
+    fixture: JSON.parse(text),
+    label: path.relative(rootDir, fixturePath),
+    text,
+  };
+}
+
+function fixtureFromProfileVariant(id) {
+  const variantsPath = path.join(rootDir, "test/fixtures/onvif_probe_profile_variants.json");
+  const variantsFixture = JSON.parse(fs.readFileSync(variantsPath, "utf8"));
+  const variants = arrayAt(variantsFixture, "variants");
+  const variantIndex = variants.findIndex((item) => item.id === id);
+  assert(variantIndex >= 0, `profile variant not found: ${id}`);
+  const variant = variants[variantIndex];
+  const selected = selectedProfile(variant);
+  const sourceId = String(80 + variantIndex);
+  const displayName = selected.name || selected.token || id;
+  const fixture = {
+    schema: "media-server.onvif-probe-result-stub.v1",
+    description: `Synthetic ONVIF profile variant route smoke payload for ${id}. This is not a product API contract.`,
+    probe: {
+      mode: "profile-variant-fixture",
+      endpoint: "http://192.0.2.250/onvif/device_service",
+      timeoutMs: 3000,
+      rawSoapIncluded: false,
+      capturedAt: "fixture-time",
+    },
+    auth: {
+      required: true,
+      credentialRef: "operator-entered-secret",
+      plaintextSecretIncluded: false,
+    },
+    device: {
+      manufacturer: "ProfileVariantFixture",
+      model: id,
+      firmwareVersion: "fixture",
+      serialNumber: "FIELD-ONVIF-PROFILE-VARIANT-0001",
+      profilesSupported: ["T", "S"],
+    },
+    services: arrayAt(variant, "services"),
+    mediaProfiles: arrayAt(variant, "mediaProfiles"),
+    draftDecision: {
+      selectedProfileToken: selected.token,
+      expectedSourceDraft: {
+        sourceId,
+        displayName,
+        kind: "rtsp",
+        rtspUrl: selected.streamUri,
+        enabled: true,
+        tags: ["onvif", "live", "probe-variant"],
+        ownerGroup: "ops",
+      },
+      expectedPublishedViewDraft: {
+        viewId: sourceId,
+        displayName,
+        sourceId,
+        allowedOverlayModes: ["raw", "va-overlay", "va-rule"],
+        showDashboard: true,
+        showEvents: true,
+        showMetadataSummary: true,
+        clientGroups: ["default"],
+        maxTiles: 1,
+        enabled: true,
+      },
+      proposedOriginMetadata: {
+        type: "onvif",
+        endpoint: "http://192.0.2.250/onvif/device_service",
+        mediaProfileToken: selected.token,
+        mediaApi: selected.mediaApi,
+        streamUriImportedAt: "fixture-time",
+        credentialRef: "operator-entered-secret",
+        credentialInline: false,
+      },
+    },
+    nonGoals: arrayAt(variantsFixture, "nonGoals"),
+  };
+  return {
+    fixture,
+    label: `test/fixtures/onvif_probe_profile_variants.json#${id}`,
+    text: `${JSON.stringify(fixture, null, 2)}\n`,
+  };
+}
+
+function arrayAt(parent, field) {
+  const value = parent?.[field];
+  assert(Array.isArray(value), `${field} must be an array`);
+  return value;
+}
+
+function selectedProfile(variant) {
+  const token = String(variant.expectedSelectedProfileToken || "");
+  const selected = arrayAt(variant, "mediaProfiles").filter((profile) => profile.token === token);
+  assert(selected.length === 1, `${variant.id}: expected selected profile must exist once`);
+  assert(selected[0].selected === true, `${variant.id}: expected selected profile must be marked selected`);
+  assert(selected[0].transport === "RTSP", `${variant.id}: selected transport must be RTSP`);
+  assert(/^rtsps?:\/\//i.test(String(selected[0].streamUri || "")), `${variant.id}: selected streamUri must be rtsp:// or rtsps://`);
+  return selected[0];
 }
 
 function assert(condition, message) {

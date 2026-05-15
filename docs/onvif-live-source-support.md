@@ -265,6 +265,7 @@ notes: <sanitized operational note>
 ./server.sh verify-onvif-credential-reference-policy
 ./server.sh verify-onvif-probe-draft-api
 ./server.sh verify-onvif-probe-draft-api --fixture test/fixtures/onvif_probe_result_rtsps_stub.json
+./server.sh verify-onvif-probe-draft-api --profile-variant media-rtsps-fallback-when-media2-non-rtsp
 ./server.sh verify-onvif-import-draft-api
 ./server.sh verify-onvif-rtsp-downstream
 ./server.sh verify-onvif-ops-sources-ui
