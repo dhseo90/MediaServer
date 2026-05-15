@@ -317,7 +317,9 @@ Ops/Client/Lab API guard를 확인합니다.
 - 화면 회귀까지 보려면
   `./server.sh verify-ops-client-ui --screenshots`를 사용합니다. 기본 screenshot 폭은
   320/390/760/1180px이며, Chrome DevTools 수동 리뷰 체크박스는
-  [stream-verification.md](./stream-verification.md)에 유지합니다.
+  [stream-verification.md](./stream-verification.md)에 유지합니다. `--output-dir`를
+  지정하면 같은 디렉터리에 `visual-regression-manifest.json`과 `index.md`가
+  생성되며, manifest schema는 `media-server.ui-visual-artifact-index.v1`입니다.
 
 ### 2.1 Live VA Event Quality
 
@@ -1307,9 +1309,10 @@ Screenshot 관리 정책:
 | 파일명 | 역할 기반 이름 사용 |
 | 기본 theme | dark mode 대표 화면 |
 | 링크 정책 | 새 이미지가 없으면 broken link 대신 “이미지 추가 예정” 문구 사용 |
-| 현재 대표 이미지 | 2026-05-09 dark mode 제품 UI 기준 재캡처 |
+| 현재 대표 이미지 | 2026-05-16 v1.2.0 ERP-style product shell 기준 재캡처 |
 | 재캡처 | `node scripts/internal/capture_docs_ui_assets.mjs --http-base http://127.0.0.1:8082` |
 | 기준 검증 | `./server.sh verify-docs-ui-assets` |
+| visual regression 산출물 | `verify-ops-client-ui --screenshots --output-dir <dir>` 실행 후 `<dir>/visual-regression-manifest.json`, `<dir>/index.md` |
 
 문서용 screenshot 촬영 기준:
 

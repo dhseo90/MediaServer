@@ -7,7 +7,14 @@ import path from "node:path";
 import process from "node:process";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
-import { findChrome, isTruthy, openBrowserPage, parseWidthList, runVisualSmoke } from "./ui_visual_smoke_lib.mjs";
+import {
+  findChrome,
+  isTruthy,
+  openBrowserPage,
+  parseWidthList,
+  runVisualSmoke,
+  writeVisualArtifactIndex,
+} from "./ui_visual_smoke_lib.mjs";
 
 const rawArgs = process.argv.slice(2);
 if (hasHelpFlag(rawArgs)) {
@@ -256,6 +263,15 @@ if (screenshotEnabled) {
   if (onvifUnsupportedHintResult.failCount > 0) process.exit(1);
   const onvifPreviewToolResult = await runOpsSourcesOnvifPreviewToolSmoke();
   if (onvifPreviewToolResult.failCount > 0) process.exit(1);
+  writeVisualArtifactIndex({
+    outputDir,
+    title: "Ops/Client Visual Regression Artifacts",
+    command: "./server.sh verify-ops-client-ui --screenshots",
+    httpBase,
+    visualWidths,
+    visualHeight,
+    checks: pageChecks.filter((check) => check.visualSelector),
+  });
 }
 
 function clientForbiddenText() {

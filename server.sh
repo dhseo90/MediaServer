@@ -52,6 +52,8 @@ Usage:
                  /ops/rules Rule/Profile 카테고리 버튼과 저장 payload를 검증합니다.
   verify-ops-client-ui
                  /ops와 /client shell selector 및 client debug/source 비노출을 검증합니다.
+  verify-ui-visual-artifact-index
+                 UI screenshot artifact index/manifest 생성을 검증합니다.
   verify-ops-route-boundaries
                  /ops, /client, /lab 화면/API route 경계 계약을 검증합니다.
   verify-ops-click-e2e
@@ -369,6 +371,10 @@ case "${cmd}" in
   verify-ops-client-ui)
     require_internal verify_ops_client_ui_smoke.mjs
     exec "${INTERNAL_DIR}/verify_ops_client_ui_smoke.mjs" "$@"
+    ;;
+  verify-ui-visual-artifact-index)
+    require_internal verify_ui_visual_artifact_index.mjs
+    exec "${INTERNAL_DIR}/verify_ui_visual_artifact_index.mjs" "$@"
     ;;
   verify-ops-route-boundaries)
     require_internal verify_ops_route_boundaries.mjs

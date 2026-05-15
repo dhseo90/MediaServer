@@ -164,6 +164,10 @@ Ops/Client shell 변경 확인 포인트:
   기본 320/390/760/1180px 폭으로 열어 overflow와 screenshot을 남깁니다.
   release gate나 단계 종료 보고에서는 `--output-dir`로 artifact 경로를 고정합니다.
   예: `--output-dir /tmp/media_server_v120_p0_02_screenshots`
+  통과 시 같은 디렉터리에 `visual-regression-manifest.json`과 `index.md`를
+  생성합니다. manifest schema는 `media-server.ui-visual-artifact-index.v1`이며
+  page/selector가 있는 기본 screenshot과 ONVIF hint/preview 같은 보조 screenshot을
+  같은 index에서 확인합니다.
 - 채널/사용자 변경 이력 필터는 table layout과 별도 계약으로 봅니다.
   320/390px에서 검색/작업자/사용자/대상/동작/시작/종료/페이지 크기
   control이 감사 로그 패널 폭 안에 있어야 하며, 시작/종료 date/time

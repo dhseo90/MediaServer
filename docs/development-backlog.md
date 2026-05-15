@@ -151,6 +151,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - metric card, section card, table, badge, form control, client tile의 기본 밀도를 운영 콘솔형으로 낮췄습니다.
 - README/UI guide 대표 screenshot asset은 현재 UI 기준 한국어/영어 모두 재캡처했습니다.
 - visual regression artifact 기준 경로는 `verify-ops-client-ui --screenshots --visual-widths 320,390,760,1180 --output-dir <artifact-dir>`입니다.
+- visual regression artifact는 `<artifact-dir>/visual-regression-manifest.json`과 `<artifact-dir>/index.md`로 screenshot 목록, viewport, page mapping을 함께 고정합니다.
 - 2026-05-16 로컬 검증에서 `/ops/home`, `/ops/dashboard`, `/ops/rules`, `/ops/sources`, `/ops/users`, `/client/live`, `/client/dashboard` screenshot smoke가 overflow 0으로 통과했습니다.
 - `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test` 화면 route는 계속 닫힌 상태로 검증했습니다.
 
