@@ -25,6 +25,12 @@ source registration이 `rtsps://`를 기존 `rtsp` source draft 범위 안에서
 그대로 축약합니다. no-device 검증은 이 draft 생성까지만 확인하며, 실제 camera
 재생 성공은 미확인으로 보고합니다.
 
+RTSPS API route smoke에는
+`test/fixtures/onvif_probe_result_rtsps_stub.json` fixture를 사용합니다. 이 fixture는
+`POST /ops/api/onvif/import-draft`가 `rtsps://` selected profile을 기존
+`kind=rtsp` source draft로 반환하는지 확인하기 위한 합성 데이터이며, 제품 API
+schema가 아닙니다.
+
 ## TLS 구분
 
 `rtsps://`는 ONVIF Media/Media2 `GetStreamUri`가 반환하는 media playback URI의
@@ -57,5 +63,6 @@ scheme입니다. 이것은 ONVIF Device service SOAP endpoint의 `https://` tran
 ```bash
 ./server.sh verify-onvif-rtsps-draft-policy
 ./server.sh verify-onvif-protocol-support-matrix
+./server.sh verify-onvif-probe-draft-api --fixture test/fixtures/onvif_probe_result_rtsps_stub.json
 git diff --check
 ```

@@ -1,0 +1,136 @@
+{
+  "schema": "media-server.onvif-probe-result-stub.v1",
+  "description": "Synthetic ONVIF field probe result fixture for v1.2.0 RTSPS import-draft API smoke. It fixes an internal probe-to-draft contract and is not a product API contract.",
+  "probe": {
+    "mode": "manual-endpoint",
+    "endpoint": "http://192.0.2.35/onvif/device_service",
+    "timeoutMs": 3000,
+    "rawSoapIncluded": false,
+    "capturedAt": "fixture-time"
+  },
+  "auth": {
+    "required": true,
+    "credentialRef": "operator-entered-secret",
+    "plaintextSecretIncluded": false
+  },
+  "device": {
+    "manufacturer": "FieldExample",
+    "model": "FE-RTSPS-2000",
+    "firmwareVersion": "2.4.6-test",
+    "serialNumber": "FIELD-ONVIF-RTSPS-0001",
+    "profilesSupported": [
+      "T",
+      "S"
+    ]
+  },
+  "services": [
+    {
+      "name": "Device",
+      "namespace": "http://www.onvif.org/ver10/device/wsdl",
+      "available": true
+    },
+    {
+      "name": "Media",
+      "namespace": "http://www.onvif.org/ver10/media/wsdl",
+      "available": true
+    },
+    {
+      "name": "Media2",
+      "namespace": "http://www.onvif.org/ver20/media/wsdl",
+      "available": true
+    },
+    {
+      "name": "Recording",
+      "namespace": "http://www.onvif.org/ver10/recording/wsdl",
+      "available": false
+    },
+    {
+      "name": "Replay",
+      "namespace": "http://www.onvif.org/ver10/replay/wsdl",
+      "available": false
+    }
+  ],
+  "mediaProfiles": [
+    {
+      "token": "field-rtsps-main-h264",
+      "name": "Field RTSPS Main H264",
+      "mediaApi": "Media2",
+      "encoding": "H264",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "transport": "RTSP",
+      "streamUri": "rtsps://192.0.2.35/live/secure-main",
+      "selected": true
+    },
+    {
+      "token": "field-rtsp-sub-h264",
+      "name": "Field RTSP Sub H264",
+      "mediaApi": "Media",
+      "encoding": "H264",
+      "width": 640,
+      "height": 360,
+      "fps": 15,
+      "transport": "RTSP",
+      "streamUri": "rtsp://192.0.2.35/live/sub",
+      "selected": false
+    }
+  ],
+  "draftDecision": {
+    "selectedProfileToken": "field-rtsps-main-h264",
+    "expectedSourceDraft": {
+      "sourceId": "53",
+      "displayName": "FieldExample RTSPS Main",
+      "kind": "rtsp",
+      "rtspUrl": "rtsps://192.0.2.35/live/secure-main",
+      "enabled": true,
+      "tags": [
+        "onvif",
+        "live",
+        "profile-t",
+        "probe-fixture",
+        "rtsps"
+      ],
+      "ownerGroup": "ops"
+    },
+    "expectedPublishedViewDraft": {
+      "viewId": "53",
+      "displayName": "FieldExample RTSPS Main",
+      "sourceId": "53",
+      "allowedOverlayModes": [
+        "raw",
+        "va-overlay",
+        "va-rule"
+      ],
+      "showDashboard": true,
+      "showEvents": true,
+      "showMetadataSummary": true,
+      "clientGroups": [
+        "default"
+      ],
+      "maxTiles": 1,
+      "enabled": true
+    },
+    "proposedOriginMetadata": {
+      "type": "onvif",
+      "endpoint": "http://192.0.2.35/onvif/device_service",
+      "manufacturer": "FieldExample",
+      "model": "FE-RTSPS-2000",
+      "profile": "T",
+      "mediaProfileToken": "field-rtsps-main-h264",
+      "mediaApi": "Media2",
+      "streamUriImportedAt": "fixture-time",
+      "credentialRef": "operator-entered-secret",
+      "credentialInline": false
+    }
+  },
+  "nonGoals": [
+    "ONVIF conformant server",
+    "ONVIF Profile G recording/replay",
+    "camera recording configuration",
+    "playback/search",
+    "raw SOAP persistence",
+    "plain text credential persistence",
+    "real device endpoint success"
+  ]
+}

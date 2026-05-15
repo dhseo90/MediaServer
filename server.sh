@@ -101,7 +101,7 @@ Usage:
   verify-onvif-protocol-support-matrix
                  ONVIF protocol/service 지원/비지원 matrix와 구현 기준을 검증합니다.
   verify-onvif-rtsps-draft-policy
-                 ONVIF rtsps:// 후보와 automatic draft 저장 계약 분리를 검증합니다.
+                 ONVIF rtsps:// 후보와 automatic draft 저장 계약을 검증합니다.
   verify-onvif-https-soap-transport-design
                  ONVIF HTTPS SOAP transport 향후 설계와 현재 fail-closed 경계를 검증합니다.
   verify-onvif-auth-injection-design

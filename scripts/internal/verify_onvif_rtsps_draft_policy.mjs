@@ -45,6 +45,7 @@ const matrixDoc = readText("docs/onvif-protocol-support-matrix.md");
 const liveSupportDoc = readText("docs/onvif-live-source-support.md");
 const onvifCode = readText("src/ingress/onvif_live_import.cpp");
 const uiCode = readText("src/ingress/product_ui_page_scripts.cpp");
+const rtspsProbeFixture = JSON.parse(readText("test/fixtures/onvif_probe_result_rtsps_stub.json"));
 const checks = [];
 
 check("RTSPS policy document separates candidate, draft, and manual registration", () => {
@@ -67,6 +68,25 @@ check("protocol and live support docs link RTSPS policy", () => {
   assertContains(matrixDoc, "./onvif-rtsps-draft-policy.md", "protocol matrix missing RTSPS policy link");
   assertContains(liveSupportDoc, "./onvif-rtsps-draft-policy.md", "live support doc missing RTSPS policy link");
   assertContains(liveSupportDoc, "verify-onvif-rtsps-draft-policy", "live support verification missing RTSPS policy command");
+  assertContains(liveSupportDoc, "test/fixtures/onvif_probe_result_rtsps_stub.json", "live support doc missing RTSPS probe fixture");
+  assertContains(liveSupportDoc, "verify-onvif-probe-draft-api --fixture test/fixtures/onvif_probe_result_rtsps_stub.json", "live support doc missing RTSPS API smoke command");
+});
+
+check("RTSPS probe fixture maps to existing API draft contract", () => {
+  assert(rtspsProbeFixture.schema === "media-server.onvif-probe-result-stub.v1", "unexpected RTSPS fixture schema");
+  assert(String(rtspsProbeFixture.description || "").includes("not a product API contract"), "RTSPS fixture must avoid product API contract wording");
+  const selectedToken = rtspsProbeFixture.draftDecision?.selectedProfileToken;
+  const selected = arrayAt(rtspsProbeFixture, "mediaProfiles").find(profile => profile.token === selectedToken);
+  assert(selected, "RTSPS fixture selected profile missing");
+  assert(selected.transport === "RTSP", "RTSPS selected profile transport must remain RTSP");
+  assert(String(selected.streamUri || "").startsWith("rtsps://"), "RTSPS selected profile streamUri must be rtsps://");
+  const source = rtspsProbeFixture.draftDecision?.expectedSourceDraft || {};
+  const view = rtspsProbeFixture.draftDecision?.expectedPublishedViewDraft || {};
+  assert(source.kind === "rtsp", "RTSPS source draft kind must remain rtsp");
+  assert(source.rtspUrl === selected.streamUri, "RTSPS source draft rtspUrl must match selected streamUri");
+  assert(view.sourceId === source.sourceId && view.viewId === source.sourceId, "RTSPS view draft must use same numeric sourceId/viewId");
+  assert(arrayAt(source, "tags").includes("rtsps"), "RTSPS source draft tags must include rtsps marker");
+  assert(rtspsProbeFixture.auth?.plaintextSecretIncluded === false, "RTSPS fixture must exclude plaintext credentials");
 });
 
 check("implementation keeps rtsps parser candidate and automatic draft support", () => {
@@ -145,6 +165,12 @@ function assertContains(text, needle, message) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function arrayAt(parent, field) {
+  const value = parent?.[field];
+  assert(Array.isArray(value), `${field} must be an array`);
+  return value;
 }
 
 function parseArgs(argv) {
