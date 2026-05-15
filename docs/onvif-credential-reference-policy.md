@@ -9,6 +9,8 @@ credential 주입 설계 기준은
 저장소/secret manager 연동 설계 기준은
 [ONVIF Credential Store Integration Design](./onvif-credential-store-integration-design.md)을
 따릅니다.
+v1.2.0 (2)에서 제품 persistent credential store를 후속 gate로 분리하는 결정은
+`test/fixtures/onvif_credential_store_policy_decision.json`에 고정합니다.
 
 ## 현재 정책
 

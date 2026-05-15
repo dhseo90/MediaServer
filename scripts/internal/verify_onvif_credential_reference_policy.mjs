@@ -54,6 +54,8 @@ const fixtureContract = fs.readFileSync(path.join(rootDir, "scripts/internal/ver
 const draftApiSmoke = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_onvif_probe_draft_api.mjs"), "utf8");
 const fieldProbeHarness = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_onvif_field_http_probe.mjs"), "utf8");
 const probeFixture = JSON.parse(fs.readFileSync(path.join(rootDir, "test/fixtures/onvif_probe_result_stub.json"), "utf8"));
+const storeDecisionPath = path.join(rootDir, "test/fixtures/onvif_credential_store_policy_decision.json");
+const storeDecision = JSON.parse(fs.readFileSync(storeDecisionPath, "utf8"));
 
 for (const term of [
   "# ONVIF Credential Reference Policy",
@@ -81,6 +83,7 @@ for (const term of [
   "plaintext_secret_included=false",
   "별도 schema version",
   "./onvif-credential-store-integration-design.md",
+  "test/fixtures/onvif_credential_store_policy_decision.json",
   "verify-onvif-probe-draft-api",
 ]) {
   assert(doc.includes(term), `credential policy doc missing required term: ${term}`);
@@ -115,9 +118,64 @@ for (const term of [
   "schema version 변경",
   "provider path를 포함하지",
   "제품 persistent secret 저장소 구현 완료 선언",
+  "v1.2.0 (2) 정책 결정",
+  "defer-product-persistent-store",
+  "이번 스텝 잔여로 보지 않는 항목",
+  "실장비 credential smoke redacted artifact",
 ]) {
   assert(storeDesign.includes(term), `credential store design missing required term: ${term}`);
 }
+
+assert(storeDecision.schema === "media-server.onvif-credential-store-policy-decision.v1",
+       "credential store policy decision schema mismatch");
+assert(storeDecision.decision === "defer-product-persistent-store",
+       "credential store policy decision must defer product persistent store");
+assert(storeDecision.realDeviceEndpointSuccess === "미확인",
+       "credential store policy decision must keep real device success unverified");
+const currentScope = storeDecision.currentScope || {};
+for (const enabled of [
+  "noneProvider",
+  "inMemoryFixtureProvider",
+  "httpBasicProviderBoundary",
+  "credentialRefPresentSummary",
+]) {
+  assert(currentScope[enabled] === true, `credential store decision must keep current scope enabled: ${enabled}`);
+}
+for (const disabled of [
+  "sourceRegistrySecretStorage",
+  "publishedViewSecretStorage",
+  "clientViewerCredentialExposure",
+  "productPersistentSecretStore",
+  "externalSecretManagerAdapter",
+  "credentialBindingStore",
+]) {
+  assert(currentScope[disabled] === false, `credential store decision must keep scope disabled: ${disabled}`);
+}
+for (const residual of [
+  "local encrypted credential store",
+  "external secret manager adapter",
+  "credential binding UI/API",
+  "credential rotation and expiry workflow",
+  "credential audit event payload",
+  "Digest or WS-Security automatic fallback",
+]) {
+  assert(storeDecision.notResidualForStep2?.includes(residual),
+         `credential store decision missing non-residual item: ${residual}`);
+}
+for (const gate of [
+  "schema review for provider status exposure",
+  "source:write guard for credential binding changes",
+  "encrypted local store or external secret manager selection",
+  "rotation expiry audit policy",
+  "redaction matrix for auth headers and SOAP security headers",
+  "real device credential smoke with redacted artifact",
+]) {
+  assert(storeDecision.requiredBeforeOpening?.includes(gate),
+         `credential store decision missing opening gate: ${gate}`);
+}
+assert(storeDecision.handoffIssue?.priority === "P1", "credential store handoff issue priority mismatch");
+assert(storeDecision.handoffIssue?.phase === "after v1.2.0 (2) no-device closure",
+       "credential store handoff phase mismatch");
 
 for (const term of [
   "class CredentialSecretProvider",
@@ -221,9 +279,11 @@ console.log("[pass] ONVIF credential reference policy document");
 console.log("[pass] ONVIF credential store integration design");
 console.log("[pass] ONVIF credential provider interface skeleton");
 console.log("[pass] ONVIF credential reference redaction coverage");
+console.log("[pass] ONVIF persistent credential store policy decision");
 console.log("");
 console.log("== ONVIF credential reference policy summary ==");
 console.log(`- doc: ${path.relative(rootDir, docPath)}`);
+console.log(`- policyDecision: ${path.relative(rootDir, storeDecisionPath)}`);
 console.log("- failures: 0");
 
 function assert(condition, message) {

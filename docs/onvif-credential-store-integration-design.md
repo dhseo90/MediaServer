@@ -11,6 +11,10 @@
 - [ONVIF Auth Injection Design](./onvif-auth-injection-design.md)
 - [ONVIF Protocol Support Matrix](./onvif-protocol-support-matrix.md)
 
+정책 결정 fixture:
+
+- `test/fixtures/onvif_credential_store_policy_decision.json`
+
 ## 현재 상태
 
 - 제품 API와 UI는 ONVIF credential 원문 입력, 저장, 조회를 제공하지 않습니다.
@@ -21,6 +25,22 @@
   credential, secret store key를 넣지 않습니다.
 - field smoke artifact와 draft API 응답은 `credentialRefPresent=true/false`만
   노출합니다.
+
+## v1.2.0 (2) 정책 결정
+
+이번 ONVIF 현장 연동 스텝에서는 제품 persistent credential store를 구현 완료로
+열지 않습니다. 결정값은
+`test/fixtures/onvif_credential_store_policy_decision.json`에 고정합니다.
+
+- 결정: `defer-product-persistent-store`
+- 현재 범위: none provider, no-device in-memory fixture provider, HTTP Basic provider
+  boundary, `credentialRefPresent` boolean summary
+- 이번 스텝 잔여로 보지 않는 항목: local encrypted credential store, external secret
+  manager adapter, credential binding UI/API, rotation/expiry/audit workflow,
+  Digest/WS-Security automatic fallback
+- 후속으로 열기 전 필수 gate: schema review, `source:write` guard, encrypted store 또는
+  external secret manager 선택, rotation/expiry/audit 정책, auth header/SOAP security
+  header redaction matrix, 실장비 credential smoke redacted artifact
 
 ## 저장소 경계
 

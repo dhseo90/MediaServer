@@ -116,6 +116,8 @@ path case를 no-device 범위에서만 다룹니다.
 - closed loopback endpoint --expect-failure sanitized failure
 - verify-onvif-closed-loopback-failure-matrix
 - SourceRegistry/PublishedView draft redaction 계약
+- persistent credential store는
+  `test/fixtures/onvif_credential_store_policy_decision.json` 기준 후속 gate로 분리
 
 미확인:
 - 실장비 endpoint 성공
