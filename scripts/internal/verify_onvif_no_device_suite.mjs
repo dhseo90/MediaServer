@@ -27,7 +27,7 @@ Options:
 Checks:
   - 실장비 없이 실행 가능한 ONVIF fixture/parser/adapter/transport smoke를 순차 실행
   - endpoint 미설정 skip과 closed loopback sanitized failure를 모두 확인
-  - redaction, TLS fail-closed, credential reference 정책 검증을 포함
+  - redaction, TLS fixture success/failure, credential reference 정책 검증을 포함
 `);
 }
 

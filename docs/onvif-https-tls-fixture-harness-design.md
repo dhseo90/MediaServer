@@ -1,9 +1,8 @@
 # ONVIF HTTPS TLS Fixture Harness Design
 
-이 문서는 ONVIF `https://` Device service SOAP transport를 향후 구현할 때 사용할
-no-device TLS fixture harness 기준을 고정합니다. v1.2.0 현재 상태는 fixture-only
-검증이며, production TLS client library 또는 HTTPS SOAP transport 구현 완료로 보지
-않습니다.
+이 문서는 ONVIF `https://` Device service SOAP transport의 no-device TLS fixture
+harness 기준을 고정합니다. v1.2.0 현재 상태는 fixture-only 검증이며, 실장비 HTTPS
+endpoint 성공으로 보지 않습니다.
 
 관련 기준:
 
@@ -16,10 +15,10 @@ no-device TLS fixture harness 기준을 고정합니다. v1.2.0 현재 상태는
 
 - 현재 v1.2.0 구현은 loopback fixture TLS server/client를 실행해
   trustedFixtureSuccess와 TLS failure redaction을 검증합니다.
-- `https://` ONVIF Device service endpoint는 기존 scheme preflight gate에서
-  fail-closed를 유지합니다.
-- harness 결과는 fixture-only HTTPS 성공이며, production HTTPS SOAP transport 구현
-  완료나 실장비 HTTPS 성공의 대체 증거가 아닙니다.
+- production `SendOnvifSoapHttp`의 HTTPS fixture success는
+  `verify-onvif-http-transport`에서 OpenSSL 빌드 기준으로 검증합니다.
+- harness 결과는 fixture-only HTTPS 성공이며, 실장비 HTTPS 성공의 대체 증거가
+  아닙니다.
 - 실장비가 없는 환경에서는 HTTPS real-device success를 계속 미확인으로 보고합니다.
 
 ## Fixture Command
@@ -32,8 +31,8 @@ no-device TLS fixture harness 기준을 고정합니다. v1.2.0 현재 상태는
 
 이 명령은 ephemeral CA와 loopback HTTPS fixture server를 실행합니다.
 `trustedFixtureSuccess`는 true, `realDeviceEndpointSuccess`는 미확인으로 보고합니다.
-production `SendOnvifSoapHttp`에는 TLS client library를 추가하지 않고, `https://`
-endpoint는 계속 fail-closed입니다.
+production `SendOnvifSoapHttp`의 HTTPS fixture success는
+`verify-onvif-http-transport`에서 별도로 확인합니다.
 
 ## Harness 구성
 
@@ -89,7 +88,7 @@ fixture harness가 JSON summary를 남기는 경우 schema는 별도 버전으�
 HTTPS TLS transport를 구현 완료로 보고하려면 별도 단계에서 아래를 모두 통과해야
 합니다.
 
-1. production HTTPS transport가 실제 TLS client library로 구현되어야 합니다.
+1. production HTTPS transport가 OpenSSL 빌드에서 계속 활성화되어야 합니다.
 2. fixture CA bundle 전달 경로와 hostname verification이 테스트로 고정되어야 합니다.
 3. trusted fixture success, untrusted CA failure, hostname mismatch failure,
    certificate expired failure, handshake failure, timeout/refused failure를 모두
@@ -102,7 +101,7 @@ HTTPS TLS transport를 구현 완료로 보고하려면 별도 단계에서 아�
 ## 비범위
 
 - 현재 단계에서 HTTPS SOAP transport 구현
-- 현재 단계에서 TLS client library 추가
+- hostname verification 비활성화
 - real device HTTPS 성공으로 간주
 - hostname verification opt-out
 - HTTP downgrade fallback

@@ -37,7 +37,7 @@ simulator fixture smoke로만 보고합니다.
   `--output JSON artifact redaction` 동작
 - 현장 smoke 산출물 redaction 기준
 - credential reference 원문 미저장 기준
-- TLS endpoint fail-closed 정책
+- HTTPS/TLS endpoint fixture success와 TLS failure redaction 정책
 - SourceRegistry/PublishedView draft 매핑과 client redaction 계약
 
 실장비 제외 모드에서 미확인으로 남기는 항목:
@@ -131,14 +131,13 @@ vendor-style synthetic fixture pack은
   Media fallback, Media-only, non-RTSP GetStreamUri 실패 경로를 확인합니다.
 - `verify-onvif-field-http-probe --allow-missing-endpoint`와 closed loopback failure
   검증은 실장비 endpoint 성공이 아니라 sanitized skip/failure로 보고됩니다.
-- protocol matrix는 HTTPS/TLS SOAP, ONVIF 인증 주입, WS-Discovery, Profile G를
-  현재 지원으로 올리지 않습니다.
+- protocol matrix는 HTTPS/TLS SOAP를 OpenSSL 빌드 제한 지원으로 구분하고,
+  ONVIF 인증 주입, WS-Discovery, Profile G를 현재 지원으로 올리지 않습니다.
 - 실장비 endpoint 성공은 계속 미확인으로 남깁니다.
 
 아래는 실장비 제외 조건의 잔여가 아니라 별도 후속 범위입니다.
 
 - 실장비 field smoke
-- HTTPS/TLS ONVIF SOAP transport 실제 구현
 - ONVIF 인증 주입
 - WS-Discovery 지원
 - Profile G / Recording / Replay

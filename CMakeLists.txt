@@ -112,6 +112,22 @@ else()
     target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_LIBSODIUM=0)
 endif()
 
+if(PkgConfig_FOUND)
+    pkg_check_modules(OPENSSL QUIET IMPORTED_TARGET openssl)
+endif()
+if(OPENSSL_FOUND)
+    target_link_libraries(media_server PRIVATE PkgConfig::OPENSSL)
+    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_OPENSSL=1)
+else()
+    find_package(OpenSSL QUIET)
+    if(OpenSSL_FOUND)
+        target_link_libraries(media_server PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+        target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_OPENSSL=1)
+    else()
+        target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_OPENSSL=0)
+    endif()
+endif()
+
 if(MEDIA_SERVER_USE_ONNXRUNTIME)
     find_path(ONNXRUNTIME_INCLUDE_DIR
         NAMES onnxruntime_cxx_api.h

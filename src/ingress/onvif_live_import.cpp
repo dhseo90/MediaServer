@@ -10,16 +10,27 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#if MEDIA_SERVER_USE_OPENSSL
+#include <openssl/err.h>
+#include <openssl/ssl.h>
+#include <openssl/x509v3.h>
+#endif
+
 #include <algorithm>
 #include <array>
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <optional>
 #include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
+
+#ifndef MEDIA_SERVER_USE_OPENSSL
+#define MEDIA_SERVER_USE_OPENSSL 0
+#endif
 
 namespace ingress {
 
@@ -370,7 +381,7 @@ bool HasHttpOrHttpsUrl(const std::string& value) {
 }
 
 bool IsHttpSoapTransportScheme(const std::string& scheme) {
-    return scheme == "http";
+    return scheme == "http" || scheme == "https";
 }
 
 std::optional<ParsedHttpUrl> ParseHttpUrl(const std::string& raw) {
@@ -389,6 +400,9 @@ std::optional<ParsedHttpUrl> ParseHttpUrl(const std::string& raw) {
     std::string authority = path_pos == std::string::npos
         ? value.substr(authority_start)
         : value.substr(authority_start, path_pos - authority_start);
+    if (authority.find('@') != std::string::npos) {
+        return std::nullopt;
+    }
     parsed.path = path_pos == std::string::npos ? "/" : value.substr(path_pos);
     if (authority.empty()) {
         return std::nullopt;
@@ -816,6 +830,170 @@ bool SendAll(int fd, const std::string& payload) {
     return true;
 }
 
+std::optional<OnvifSoapResponse> ParseHttpResponseText(const std::string& response_text);
+
+std::string BuildSoapHttpRequest(const ParsedHttpUrl& url, const OnvifSoapRequest& request) {
+    const std::string soap_action = request.action.empty() ? "ONVIF" : request.action;
+    std::ostringstream http;
+    http << "POST " << url.path << " HTTP/1.1\r\n"
+         << "Host: " << url.host << "\r\n"
+         << "User-Agent: MediaServer-ONVIF-Probe\r\n"
+         << "Content-Type: application/soap+xml; charset=utf-8; action=\"" << JsonEscape(soap_action) << "\"\r\n"
+         << "SOAPAction: \"" << JsonEscape(soap_action) << "\"\r\n"
+         << "Connection: close\r\n"
+         << "Content-Length: " << request.body.size() << "\r\n"
+         << "\r\n"
+         << request.body;
+    return http.str();
+}
+
+std::string ReceiveAllPlain(int fd) {
+    std::string response_text;
+    std::array<char, 4096> buffer {};
+    while (true) {
+        const ssize_t received = recv(fd, buffer.data(), buffer.size(), 0);
+        if (received > 0) {
+            response_text.append(buffer.data(), static_cast<std::size_t>(received));
+            if (response_text.size() > 2 * 1024 * 1024) {
+                return std::string();
+            }
+            continue;
+        }
+        if (received == 0) {
+            break;
+        }
+        return std::string();
+    }
+    return response_text;
+}
+
+#if MEDIA_SERVER_USE_OPENSSL
+struct SslContextDeleter {
+    void operator()(SSL_CTX* ctx) const {
+        SSL_CTX_free(ctx);
+    }
+};
+
+struct SslDeleter {
+    void operator()(SSL* ssl) const {
+        SSL_free(ssl);
+    }
+};
+
+bool SendAllTls(SSL* ssl, const std::string& payload) {
+    std::size_t offset = 0;
+    while (offset < payload.size()) {
+        const int written = SSL_write(ssl,
+                                      payload.data() + offset,
+                                      static_cast<int>(std::min<std::size_t>(payload.size() - offset, 16384)));
+        if (written <= 0) {
+            return false;
+        }
+        offset += static_cast<std::size_t>(written);
+    }
+    return true;
+}
+
+std::optional<std::string> ReceiveAllTls(SSL* ssl) {
+    std::string response_text;
+    std::array<char, 4096> buffer {};
+    while (true) {
+        const int received = SSL_read(ssl, buffer.data(), static_cast<int>(buffer.size()));
+        if (received > 0) {
+            response_text.append(buffer.data(), static_cast<std::size_t>(received));
+            if (response_text.size() > 2 * 1024 * 1024) {
+                return std::nullopt;
+            }
+            continue;
+        }
+        const int ssl_error = SSL_get_error(ssl, received);
+        if (ssl_error == SSL_ERROR_ZERO_RETURN) {
+            break;
+        }
+        if (ssl_error == SSL_ERROR_SYSCALL && received == 0) {
+            break;
+        }
+        return std::nullopt;
+    }
+    return response_text;
+}
+
+OnvifSoapResponse SendOnvifSoapHttps(const ParsedHttpUrl& url, const OnvifSoapRequest& request) {
+    std::string connect_error;
+    const int fd = ConnectTcpWithTimeout(url, request.timeout_ms, &connect_error);
+    if (fd < 0) {
+        return SoapHttpError(connect_error.empty() ? "connect failed" : connect_error);
+    }
+
+    struct timeval timeout {};
+    timeout.tv_sec = request.timeout_ms / 1000;
+    timeout.tv_usec = (request.timeout_ms % 1000) * 1000;
+    (void)setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+    (void)setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+
+    std::unique_ptr<SSL_CTX, SslContextDeleter> ctx(SSL_CTX_new(TLS_client_method()));
+    if (!ctx) {
+        close(fd);
+        return SoapHttpError("TLS context creation failed");
+    }
+    SSL_CTX_set_verify(ctx.get(), SSL_VERIFY_PEER, nullptr);
+    const char* ca_file = std::getenv("MEDIA_SERVER_ONVIF_TLS_CA_FILE");
+    const bool ca_loaded = ca_file != nullptr && ca_file[0] != '\0'
+        ? SSL_CTX_load_verify_locations(ctx.get(), ca_file, nullptr) == 1
+        : SSL_CTX_set_default_verify_paths(ctx.get()) == 1;
+    if (!ca_loaded) {
+        close(fd);
+        return SoapHttpError("TLS trust store load failed");
+    }
+
+    std::unique_ptr<SSL, SslDeleter> ssl(SSL_new(ctx.get()));
+    if (!ssl) {
+        close(fd);
+        return SoapHttpError("TLS session creation failed");
+    }
+    if (SSL_set_fd(ssl.get(), fd) != 1) {
+        close(fd);
+        return SoapHttpError("TLS session setup failed");
+    }
+    (void)SSL_set_tlsext_host_name(ssl.get(), url.host.c_str());
+    if (SSL_set1_host(ssl.get(), url.host.c_str()) != 1) {
+        close(fd);
+        return SoapHttpError("TLS hostname verification setup failed");
+    }
+
+    if (SSL_connect(ssl.get()) != 1) {
+        const long verify_result = SSL_get_verify_result(ssl.get());
+        close(fd);
+        if (verify_result != X509_V_OK) {
+            return SoapHttpError("TLS certificate verification failed");
+        }
+        return SoapHttpError("TLS handshake failed");
+    }
+    if (SSL_get_verify_result(ssl.get()) != X509_V_OK) {
+        close(fd);
+        return SoapHttpError("TLS certificate verification failed");
+    }
+
+    const std::string http = BuildSoapHttpRequest(url, request);
+    if (!SendAllTls(ssl.get(), http)) {
+        close(fd);
+        return SoapHttpError("send failed");
+    }
+
+    const auto response_text = ReceiveAllTls(ssl.get());
+    (void)SSL_shutdown(ssl.get());
+    close(fd);
+    if (!response_text.has_value()) {
+        return SoapHttpError("receive failed");
+    }
+    const auto parsed = ParseHttpResponseText(*response_text);
+    if (!parsed.has_value()) {
+        return SoapHttpError("malformed HTTP response");
+    }
+    return *parsed;
+}
+#endif
+
 std::optional<OnvifSoapResponse> ParseHttpResponseText(const std::string& response_text) {
     const std::size_t header_end = response_text.find("\r\n\r\n");
     if (header_end == std::string::npos) {
@@ -983,10 +1161,17 @@ OnvifSoapResponse SendOnvifSoapHttp(const OnvifSoapRequest& request) {
         return SoapHttpError("invalid endpoint URL");
     }
     if (!IsHttpSoapTransportScheme(url->scheme)) {
-        return SoapHttpError("only http transport is supported");
+        return SoapHttpError("only http/https transport is supported");
     }
     if (request.timeout_ms <= 0) {
         return SoapHttpError("timeout must be positive");
+    }
+    if (url->scheme == "https") {
+#if MEDIA_SERVER_USE_OPENSSL
+        return SendOnvifSoapHttps(*url, request);
+#else
+        return SoapHttpError("https transport requires OpenSSL support");
+#endif
     }
 
     std::string connect_error;
@@ -1001,38 +1186,15 @@ OnvifSoapResponse SendOnvifSoapHttp(const OnvifSoapRequest& request) {
     (void)setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
     (void)setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
 
-    const std::string soap_action = request.action.empty() ? "ONVIF" : request.action;
-    std::ostringstream http;
-    http << "POST " << url->path << " HTTP/1.1\r\n"
-         << "Host: " << url->host << "\r\n"
-         << "User-Agent: MediaServer-ONVIF-Probe\r\n"
-         << "Content-Type: application/soap+xml; charset=utf-8; action=\"" << JsonEscape(soap_action) << "\"\r\n"
-         << "SOAPAction: \"" << JsonEscape(soap_action) << "\"\r\n"
-         << "Connection: close\r\n"
-         << "Content-Length: " << request.body.size() << "\r\n"
-         << "\r\n"
-         << request.body;
+    const std::string http = BuildSoapHttpRequest(*url, request);
 
-    if (!SendAll(fd, http.str())) {
+    if (!SendAll(fd, http)) {
         close(fd);
         return SoapHttpError("send failed");
     }
 
-    std::string response_text;
-    std::array<char, 4096> buffer {};
-    while (true) {
-        const ssize_t received = recv(fd, buffer.data(), buffer.size(), 0);
-        if (received > 0) {
-            response_text.append(buffer.data(), static_cast<std::size_t>(received));
-            if (response_text.size() > 2 * 1024 * 1024) {
-                close(fd);
-                return SoapHttpError("response too large");
-            }
-            continue;
-        }
-        if (received == 0) {
-            break;
-        }
+    const std::string response_text = ReceiveAllPlain(fd);
+    if (response_text.empty()) {
         close(fd);
         return SoapHttpError("receive failed");
     }

@@ -26,7 +26,7 @@ Usage:
 Checks:
   - ephemeral CA와 loopback HTTPS fixture server로 trusted SOAP success를 검증
   - untrusted CA, hostname mismatch, expired certificate, handshake failure, connection refused를 sanitized failure로 검증
-  - production ONVIF SOAP transport는 https endpoint fail-closed 상태를 유지함
+  - production ONVIF SOAP transport의 HTTPS fixture success는 verify-onvif-http-transport에서 검증함
   - 실장비 HTTPS endpoint 성공은 계속 미확인으로 보고함
 `);
 }
@@ -58,15 +58,15 @@ for (const term of [
 for (const term of [
   "verify-onvif-https-tls-fixture",
   "fixture-only HTTPS 성공",
-  "production HTTPS SOAP transport 구현 완료로 보지 않습니다",
+  "production `SendOnvifSoapHttp`의 HTTPS fixture",
 ]) {
   assertContains(httpsDesignDoc, term, `HTTPS SOAP design doc missing fixture term: ${term}`);
 }
 
 for (const term of [
   "verify-onvif-https-tls-fixture",
-  "trusted fixture success를 실행합니다",
-  "production HTTPS transport는 fail-closed",
+  "trusted fixture success",
+  "production `SendOnvifSoapHttp`",
 ]) {
   assertContains(tlsPolicyDoc, term, `TLS policy doc missing fixture term: ${term}`);
 }
@@ -84,17 +84,11 @@ assertContains(noDeviceSuite, '["verify-onvif-https-tls-fixture"]', "no-device s
 for (const term of [
   "bool IsHttpSoapTransportScheme",
   "if (!IsHttpSoapTransportScheme(url->scheme))",
-  "only http transport is supported",
-]) {
-  assertContains(onvifCode, term, `ONVIF SOAP transport missing fail-closed term: ${term}`);
-}
-
-for (const forbidden of [
   "SSL_connect",
-  "TLS_client_method",
-  "mbedtls_ssl_handshake",
+  "SSL_set1_host",
+  "https transport requires OpenSSL support",
 ]) {
-  assert(!onvifCode.includes(forbidden), `current ONVIF transport unexpectedly includes TLS implementation term: ${forbidden}`);
+  assertContains(onvifCode, term, `ONVIF SOAP transport missing TLS implementation term: ${term}`);
 }
 
 const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "media_server_onvif_tls_fixture-"));
@@ -115,7 +109,7 @@ console.log("== ONVIF HTTPS TLS fixture summary ==");
 console.log("- mode: fixture-only");
 console.log("- trustedFixtureSuccess: true");
 console.log("- redactionVerified: true");
-console.log("- productionHttpsTransport: fail-closed");
+console.log("- productionHttpsTransport: verified by verify-onvif-http-transport");
 console.log("- realDeviceEndpointSuccess: 미확인");
 console.log("- failures: 0");
 

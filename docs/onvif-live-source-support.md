@@ -112,8 +112,8 @@ test/fixtures/onvif_closed_loopback_failure_matrix.json
   raw SOAP나 credential 원문을 응답 모델에 남기지 않습니다.
 - probe 실패 문구는 `test/fixtures/onvif_probe_error_wording_matrix.json` 기준으로
   request/transport/service/profile 실패별 요약과 redaction 금지어를 고정합니다.
-- HTTP SOAP transport는 `http://` ONVIF endpoint에 POST하고, 현재 transport
-  계층에서는 TLS endpoint를 fail-closed로 다룹니다. 세부 기준은
+- HTTP SOAP transport는 `http://` ONVIF endpoint에 POST하고, OpenSSL 빌드에서는
+  `https://` ONVIF endpoint도 TLS 검증 후 POST합니다. 세부 기준은
   [ONVIF TLS Transport Policy](./onvif-tls-transport-policy.md)를 따릅니다.
 - local simulator fixture smoke는 실제 장비 대신 loopback SOAP 서버를 사용해
   `GetServices`, `Media2.GetProfiles`, `Media2.GetStreamUri` HTTP POST 성공 경로,

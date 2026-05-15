@@ -44,8 +44,10 @@ profile variant fixture에서 RTSPS fallback payload를 합성해 같은
 scheme입니다. 이것은 ONVIF Device service SOAP endpoint의 `https://` transport와
 다릅니다.
 
-- ONVIF SOAP probe endpoint: 현재 `http://`만 transport smoke를 제공합니다.
-- ONVIF SOAP `https://` endpoint: fail-closed입니다.
+- ONVIF SOAP probe endpoint: `http://`와 OpenSSL 빌드의 `https://` transport smoke를
+  제공합니다.
+- ONVIF SOAP `https://` endpoint: no-device fixture success는 확인했고 실장비
+  endpoint 성공은 미확인입니다.
 - ONVIF media stream `rtsps://`: parser candidate, automatic import draft, manual
   URI registration에서 기존 `rtsp` source로만 다룹니다.
 

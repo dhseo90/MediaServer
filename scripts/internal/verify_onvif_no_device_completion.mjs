@@ -58,14 +58,13 @@ check("separate follow-up scope is not counted as no-device residual work", () =
   for (const term of [
     "별도 후속 범위",
     "실장비 field smoke",
-    "HTTPS/TLS ONVIF SOAP transport 실제 구현",
     "ONVIF 인증 주입",
     "WS-Discovery 지원",
     "Profile G",
   ]) {
     assertContains(noDeviceDoc, term, `no-device doc missing separate follow-up term: ${term}`);
   }
-  assertContains(matrixDoc, "HTTPS/TLS ONVIF SOAP endpoint | fail-closed", "matrix must keep HTTPS SOAP fail-closed");
+  assertContains(matrixDoc, "HTTPS/TLS ONVIF SOAP endpoint | OpenSSL 빌드 제한 지원", "matrix must keep HTTPS SOAP OpenSSL scope");
   assertContains(matrixDoc, "Credential reference | v1.2.0 reference/redaction 정책 지원", "matrix must keep credential reference scope");
   assertContains(matrixDoc, "ONVIF WS-Discovery | 비지원", "matrix must keep WS-Discovery unsupported");
   assertContains(matrixDoc, "ONVIF Profile G / Recording / Replay | 비지원", "matrix must keep Profile G unsupported");

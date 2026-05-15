@@ -5,9 +5,15 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#if MEDIA_SERVER_USE_OPENSSL
+#include <openssl/err.h>
+#include <openssl/ssl.h>
+#endif
+
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -63,9 +69,19 @@ std::string ServicesSoap() {
     return R"SOAP(<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Body><tds:GetServicesResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl"><tds:Service><tds:Namespace>http://www.onvif.org/ver20/media/wsdl</tds:Namespace></tds:Service></tds:GetServicesResponse></s:Body></s:Envelope>)SOAP";
 }
 
-}  // namespace
+std::string BuildSoapHttpResponse() {
+    const std::string body = ServicesSoap();
+    std::ostringstream response;
+    response << "HTTP/1.1 200 OK\r\n"
+             << "Content-Type: application/soap+xml\r\n"
+             << "Content-Length: " << body.size() << "\r\n"
+             << "Connection: close\r\n"
+             << "\r\n"
+             << body;
+    return response.str();
+}
 
-int main() {
+int OpenLoopbackListener() {
     const int listen_fd = socket(AF_INET, SOCK_STREAM, 0);
     Assert(listen_fd >= 0, "socket create failed");
     int reuse = 1;
@@ -77,10 +93,129 @@ int main() {
     addr.sin_port = 0;
     Assert(bind(listen_fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == 0, "loopback bind failed");
     Assert(listen(listen_fd, 1) == 0, "listen failed");
+    return listen_fd;
+}
 
+int ListenerPort(int listen_fd) {
+    sockaddr_in addr {};
     socklen_t addr_len = sizeof(addr);
     Assert(getsockname(listen_fd, reinterpret_cast<sockaddr*>(&addr), &addr_len) == 0, "getsockname failed");
-    const int port = ntohs(addr.sin_port);
+    return ntohs(addr.sin_port);
+}
+
+#if MEDIA_SERVER_USE_OPENSSL
+struct SslContextDeleter {
+    void operator()(SSL_CTX* ctx) const {
+        SSL_CTX_free(ctx);
+    }
+};
+
+struct SslDeleter {
+    void operator()(SSL* ssl) const {
+        SSL_free(ssl);
+    }
+};
+
+std::string ReadTlsHttpRequest(SSL* ssl) {
+    std::string request;
+    char buffer[1024];
+    while (request.find("\r\n\r\n") == std::string::npos) {
+        const int received = SSL_read(ssl, buffer, sizeof(buffer));
+        if (received <= 0) {
+            return request;
+        }
+        request.append(buffer, static_cast<std::size_t>(received));
+    }
+    const std::size_t header_end = request.find("\r\n\r\n");
+    const std::size_t length_header = request.find("Content-Length:");
+    if (length_header == std::string::npos) {
+        return request;
+    }
+    std::size_t value_start = length_header + std::string("Content-Length:").size();
+    while (value_start < request.size() && request[value_start] == ' ') {
+        ++value_start;
+    }
+    const std::size_t value_end = request.find("\r\n", value_start);
+    const std::size_t content_length = static_cast<std::size_t>(
+        std::strtoul(request.substr(value_start, value_end - value_start).c_str(), nullptr, 10));
+    while (request.size() < header_end + 4 + content_length) {
+        const int received = SSL_read(ssl, buffer, sizeof(buffer));
+        if (received <= 0) {
+            break;
+        }
+        request.append(buffer, static_cast<std::size_t>(received));
+    }
+    return request;
+}
+
+void RunHttpsTransportSmoke(const std::string& request_body) {
+    const char* cert = std::getenv("MEDIA_SERVER_ONVIF_TLS_SERVER_CERT");
+    const char* key = std::getenv("MEDIA_SERVER_ONVIF_TLS_SERVER_KEY");
+    const char* ca = std::getenv("MEDIA_SERVER_ONVIF_TLS_CA_FILE");
+    Assert(cert != nullptr && cert[0] != '\0', "HTTPS fixture server certificate is not configured");
+    Assert(key != nullptr && key[0] != '\0', "HTTPS fixture server key is not configured");
+    Assert(ca != nullptr && ca[0] != '\0', "HTTPS fixture CA file is not configured");
+
+    const int listen_fd = OpenLoopbackListener();
+    const int port = ListenerPort(listen_fd);
+    std::string captured_request;
+    std::thread server_thread([&]() {
+        std::unique_ptr<SSL_CTX, SslContextDeleter> ctx(SSL_CTX_new(TLS_server_method()));
+        Assert(static_cast<bool>(ctx), "TLS server context failed");
+        Assert(SSL_CTX_use_certificate_file(ctx.get(), cert, SSL_FILETYPE_PEM) == 1, "TLS server cert load failed");
+        Assert(SSL_CTX_use_PrivateKey_file(ctx.get(), key, SSL_FILETYPE_PEM) == 1, "TLS server key load failed");
+        const int client_fd = accept(listen_fd, nullptr, nullptr);
+        if (client_fd < 0) {
+            return;
+        }
+        std::unique_ptr<SSL, SslDeleter> ssl(SSL_new(ctx.get()));
+        Assert(static_cast<bool>(ssl), "TLS server session failed");
+        Assert(SSL_set_fd(ssl.get(), client_fd) == 1, "TLS server fd setup failed");
+        Assert(SSL_accept(ssl.get()) == 1, "TLS server accept failed");
+        captured_request = ReadTlsHttpRequest(ssl.get());
+        const std::string response = BuildSoapHttpResponse();
+        (void)SSL_write(ssl.get(), response.data(), static_cast<int>(response.size()));
+        (void)SSL_shutdown(ssl.get());
+        close(client_fd);
+    });
+
+    ingress::OnvifSoapRequest request;
+    request.action = "GetServices";
+    request.endpoint = "https://localhost:" + std::to_string(port) + "/onvif/device_service";
+    request.body = request_body;
+    request.timeout_ms = 2000;
+
+    const auto response = ingress::SendOnvifSoapHttp(request);
+    server_thread.join();
+    close(listen_fd);
+
+    Assert(response.ok, "HTTPS SOAP response was not ok: " + response.error);
+    Assert(response.status == 200, "HTTPS status mismatch");
+    Assert(Contains(response.body, "GetServicesResponse"), "HTTPS SOAP response body missing");
+    Assert(Contains(captured_request, "POST /onvif/device_service HTTP/1.1"), "HTTPS request line mismatch");
+    Assert(Contains(captured_request, "SOAPAction: \"GetServices\""), "HTTPS SOAPAction missing");
+    Assert(Contains(captured_request, request.body), "HTTPS SOAP request body missing");
+
+    ingress::OnvifSoapRequest https_userinfo_request;
+    https_userinfo_request.action = "GetServices";
+    https_userinfo_request.endpoint = "HTTPS://user:pass@localhost:" + std::to_string(port) + "/onvif/device_service";
+    https_userinfo_request.body = request_body;
+    https_userinfo_request.timeout_ms = 1000;
+    const auto https_userinfo_response = ingress::SendOnvifSoapHttp(https_userinfo_request);
+    Assert(!https_userinfo_response.ok, "HTTPS transport must reject URL userinfo");
+    Assert(Contains(https_userinfo_response.error, "invalid endpoint URL"), "HTTPS userinfo rejection wording mismatch");
+    Assert(!Contains(https_userinfo_response.error, "user"), "transport error leaked URL userinfo");
+    Assert(!Contains(https_userinfo_response.error, "pass"), "transport error leaked URL password");
+    Assert(!Contains(https_userinfo_response.error, "localhost"), "transport error leaked HTTPS host");
+    Assert(!Contains(https_userinfo_response.error, "GetServices"), "transport error leaked SOAP action");
+}
+#endif
+
+}  // namespace
+
+int main() {
+    const int listen_fd = OpenLoopbackListener();
+    const int port = ListenerPort(listen_fd);
 
     std::string captured_request;
     std::thread server_thread([&]() {
@@ -89,15 +224,7 @@ int main() {
             return;
         }
         captured_request = ReadHttpRequest(client_fd);
-        const std::string body = ServicesSoap();
-        std::ostringstream response;
-        response << "HTTP/1.1 200 OK\r\n"
-                 << "Content-Type: application/soap+xml\r\n"
-                 << "Content-Length: " << body.size() << "\r\n"
-                 << "Connection: close\r\n"
-                 << "\r\n"
-                 << body;
-        const std::string text = response.str();
+        const std::string text = BuildSoapHttpResponse();
         (void)send(client_fd, text.data(), text.size(), 0);
         close(client_fd);
     });
@@ -120,29 +247,21 @@ int main() {
     Assert(Contains(captured_request, "SOAPAction: \"GetServices\""), "SOAPAction missing");
     Assert(Contains(captured_request, request.body), "SOAP request body missing");
 
+#if MEDIA_SERVER_USE_OPENSSL
+    RunHttpsTransportSmoke(request.body);
+#else
     ingress::OnvifSoapRequest https_request;
     https_request.action = "GetServices";
     https_request.endpoint = "https://192.0.2.40/onvif/device_service";
     https_request.body = request.body;
     https_request.timeout_ms = 1000;
     const auto https_response = ingress::SendOnvifSoapHttp(https_request);
-    Assert(!https_response.ok, "HTTPS transport should fail closed before TLS implementation");
+    Assert(!https_response.ok, "HTTPS transport without OpenSSL should report unsupported");
+    Assert(Contains(https_response.error, "https transport requires OpenSSL support"),
+           "HTTPS unsupported wording mismatch");
     Assert(!Contains(https_response.error, "192.0.2.40"), "transport error leaked endpoint");
+#endif
 
-    ingress::OnvifSoapRequest https_userinfo_request;
-    https_userinfo_request.action = "GetServices";
-    https_userinfo_request.endpoint = "HTTPS://user:pass@192.0.2.40/onvif/device_service";
-    https_userinfo_request.body = request.body;
-    https_userinfo_request.timeout_ms = 1000;
-    const auto https_userinfo_response = ingress::SendOnvifSoapHttp(https_userinfo_request);
-    Assert(!https_userinfo_response.ok, "HTTPS transport spike must fail closed for URL userinfo");
-    Assert(Contains(https_userinfo_response.error, "only http transport is supported"),
-           "HTTPS fail-closed wording mismatch");
-    Assert(!Contains(https_userinfo_response.error, "user"), "transport error leaked URL userinfo");
-    Assert(!Contains(https_userinfo_response.error, "pass"), "transport error leaked URL password");
-    Assert(!Contains(https_userinfo_response.error, "192.0.2.40"), "transport error leaked HTTPS host");
-    Assert(!Contains(https_userinfo_response.error, "GetServices"), "transport error leaked SOAP action");
-
-    std::cout << "[pass] ONVIF HTTP SOAP transport smoke\n";
+    std::cout << "[pass] ONVIF HTTP/HTTPS SOAP transport smoke\n";
     return 0;
 }

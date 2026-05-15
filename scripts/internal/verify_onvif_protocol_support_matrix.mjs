@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // 파일 용도: ONVIF protocol 지원/비지원 matrix 문서와 구현 기준의 일치 여부를 정적으로 검증한다.
-// 동작 요약: 지원 범위를 HTTP SOAP Device/Media/Media2 live source draft로 제한하고 비지원 protocol을 명시했는지 확인한다.
+// 동작 요약: 지원 범위를 HTTP/HTTPS SOAP Device/Media/Media2 live source draft로 제한하고 비지원 protocol을 명시했는지 확인한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -22,7 +22,7 @@ Usage:
 Checks:
   - docs/onvif-protocol-support-matrix.md가 지원/비지원 protocol matrix를 포함함
   - live support/no-device 문서가 protocol matrix를 참조함
-  - 구현은 HTTP SOAP Device/Media/Media2/GetStreamUri와 HTTPS fail-closed 기준을 유지함
+  - 구현은 HTTP/HTTPS SOAP Device/Media/Media2/GetStreamUri 기준을 유지함
   - credential injection, WS-Discovery, PTZ, Events, Recording/Replay를 지원으로 표현하지 않음
 `);
 }
@@ -44,7 +44,7 @@ check("protocol support matrix names supported ONVIF live-source scope", () => {
     "Profile S/T 전체 conformance",
     "ONVIF Device service SOAP",
     "v1.2.0 Profile S/T live source 제한 지원",
-    "`http://` Device service endpoint",
+    "`http://` 또는 OpenSSL 빌드의 `https://` Device service endpoint",
     "`GetServices`",
     "ONVIF Media2 service SOAP",
     "`Media2.GetProfiles`",
@@ -62,7 +62,8 @@ check("protocol support matrix names supported ONVIF live-source scope", () => {
     "./onvif-https-soap-transport-design.md",
     "./onvif-https-tls-fixture-harness-design.md",
     "fixture-only harness",
-    "scheme preflight gate",
+    "OpenSSL 빌드 제한 지원",
+    "실장비 HTTPS endpoint 성공은 미확인",
     "verify-onvif-https-soap-transport-design",
     "verify-onvif-https-tls-fixture",
     "./onvif-auth-injection-design.md",
@@ -117,16 +118,19 @@ check("implementation still matches documented probe transport and service scope
     "profile->transport = IsRtspOrRtspsUri(uri) ? \"RTSP\" : \"\"",
     "bool IsHttpSoapTransportScheme",
     "if (!IsHttpSoapTransportScheme(url->scheme))",
-    "only http transport is supported",
+    "scheme == \"http\" || scheme == \"https\"",
+    "SSL_connect",
+    "SSL_set1_host",
+    "https transport requires OpenSSL support",
   ]) {
     assertContains(onvifCode, term, `implementation missing protocol term: ${term}`);
   }
 });
 
-check("TLS and credential policy docs keep unsupported auth/https scope explicit", () => {
-  assertContains(tlsDoc, "HTTP SOAP transport만 포함", "TLS doc must state HTTP-only transport");
-  assertContains(tlsDoc, "`https://` endpoint는 현재 transport 계층의 scheme preflight gate에서 fail-closed", "TLS doc must state HTTPS fail-closed");
-  assertContains(tlsDoc, "production HTTPS transport는 fail-closed", "TLS doc must keep production HTTPS fail-closed");
+check("TLS and credential policy docs keep HTTPS/auth scope explicit", () => {
+  assertContains(tlsDoc, "HTTP SOAP transport와 OpenSSL 기반 HTTPS SOAP fixture transport를 포함", "TLS doc must state HTTPS transport scope");
+  assertContains(tlsDoc, "`https://` endpoint는 OpenSSL 빌드에서 TCP connect", "TLS doc must state HTTPS OpenSSL transport");
+  assertContains(tlsDoc, "OpenSSL이 없는 빌드는 `https transport requires OpenSSL support`로 fail-closed", "TLS doc must keep OpenSSL fallback explicit");
   assertContains(credentialDoc, "ONVIF WS-Security UsernameToken 생성", "credential doc must keep WS-Security unsupported");
   assertContains(credentialDoc, "./onvif-credential-store-integration-design.md", "credential doc must link credential store design");
   assertContains(credentialDoc, "HTTP Digest/Basic 인증 주입", "credential doc must keep HTTP auth injection unsupported");

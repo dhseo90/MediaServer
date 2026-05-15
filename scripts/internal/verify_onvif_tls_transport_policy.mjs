@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// 파일 용도: ONVIF HTTPS/TLS transport 정책 문서와 fail-closed smoke가 일치하는지 검증한다.
-// 동작 요약: 정책 문구, 기존 HTTP transport smoke의 HTTPS fail-closed case, redaction 기준을 정적으로 확인한다.
+// 파일 용도: ONVIF HTTPS/TLS transport 정책 문서와 HTTPS fixture smoke가 일치하는지 검증한다.
+// 동작 요약: 정책 문구, production HTTPS fixture success, OpenSSL fallback, redaction 기준을 정적으로 확인한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -24,9 +24,9 @@ Options:
   -h, --help        도움말 출력
 
 Checks:
-  - HTTPS/TLS endpoint는 현재 fail-closed 정책으로 문서화되어 있음
-  - HTTPS TLS fixture harness 설계는 현재 future-only no-device scope로 문서화되어 있음
-  - HTTP transport smoke가 https endpoint redaction case를 포함함
+  - HTTPS/TLS endpoint는 OpenSSL 빌드 제한 지원 정책으로 문서화되어 있음
+  - HTTPS TLS fixture harness 설계는 no-device scope로 문서화되어 있음
+  - HTTP transport smoke가 production HTTPS fixture success와 redaction case를 포함함
   - downgrade/insecure TLS/credential-in-URL 금지 기준이 문서화되어 있음
 `);
 }
@@ -44,12 +44,12 @@ const implementation = fs.readFileSync(path.join(rootDir, "src/ingress/onvif_liv
 for (const term of [
   "# ONVIF TLS Transport Policy",
   "HTTP SOAP transport",
+  "OpenSSL 기반 HTTPS SOAP fixture transport",
   "https://",
-  "fail-closed",
-  "scheme preflight gate",
-  "TLS client library",
-  "downgrade",
+  "certificate verification",
   "hostname verification",
+  "https transport requires OpenSSL support",
+  "downgrade",
   "custom CA",
   "insecure TLS",
   "credential",
@@ -58,7 +58,7 @@ for (const term of [
   "./onvif-https-tls-fixture-harness-design.md",
   "fixture-only TLS harness",
   "trusted fixture success",
-  "production HTTPS transport는 fail-closed",
+  "production `SendOnvifSoapHttp`",
   "untrusted CA failure",
   "hostname mismatch failure",
   "certificate expired failure",
@@ -92,17 +92,19 @@ for (const forbidden of [
 }
 
 assert(supportDoc.includes("./onvif-tls-transport-policy.md"), "ONVIF support doc must link TLS policy");
-assert(smoke.includes("https://192.0.2.40/onvif/device_service"), "HTTP transport smoke missing HTTPS fixture endpoint");
-assert(smoke.includes("HTTPS transport should fail closed before TLS implementation"), "HTTP transport smoke missing HTTPS fail-closed assertion");
-assert(smoke.includes("HTTPS://user:pass@192.0.2.40/onvif/device_service"), "HTTP transport smoke missing URL userinfo redaction case");
-assert(smoke.includes("transport error leaked endpoint"), "HTTP transport smoke missing endpoint redaction assertion");
+assert(smoke.includes("RunHttpsTransportSmoke"), "HTTP transport smoke missing HTTPS fixture runner");
+assert(smoke.includes("https://localhost:"), "HTTP transport smoke missing HTTPS fixture endpoint");
+assert(smoke.includes("HTTPS transport must reject URL userinfo"), "HTTP transport smoke missing URL userinfo redaction case");
+assert(smoke.includes("invalid endpoint URL"), "HTTP transport smoke missing URL userinfo rejection wording");
 assert(smoke.includes("transport error leaked URL password"), "HTTP transport smoke missing URL password redaction assertion");
 assert(implementation.includes("bool IsHttpSoapTransportScheme"), "transport implementation missing HTTPS preflight helper");
-assert(implementation.includes("only http transport is supported"), "transport implementation missing stable HTTPS fail-closed wording");
+assert(implementation.includes("SSL_connect"), "transport implementation missing TLS connect");
+assert(implementation.includes("SSL_set1_host"), "transport implementation missing hostname verification");
+assert(implementation.includes("https transport requires OpenSSL support"), "transport implementation missing OpenSSL fallback wording");
 
 console.log("[pass] ONVIF TLS transport policy document");
 console.log("[pass] ONVIF TLS fixture harness design document");
-console.log("[pass] ONVIF TLS fail-closed smoke coverage");
+console.log("[pass] ONVIF TLS fixture smoke coverage");
 console.log("");
 console.log("== ONVIF TLS transport policy summary ==");
 console.log(`- doc: ${path.relative(rootDir, docPath)}`);
