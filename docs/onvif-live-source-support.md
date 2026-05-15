@@ -36,11 +36,12 @@ ONVIF protocol/service별 지원 범위는
 
 - ONVIF conformant server
 - WS-Discovery 자동 검색
+- ONVIF Events/PullPoint subscription
 - ONVIF Profile G recording/replay
 - camera recording configuration
 - edge storage 조회
 - playback/replay URL 지원
-- PTZ control 1차 구현
+- PTZ control
 - SourceRegistry/PublishedView 저장 payload schema 변경
 - client/viewer 화면의 source URL, ONVIF endpoint, credential reference,
   raw diagnostic JSON 노출

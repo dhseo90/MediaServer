@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// 파일 용도: ONVIF WS-Discovery 비지원 UX 문구와 문서 경계를 정적으로 검증한다.
-// 동작 요약: /ops/sources ONVIF 입력 영역과 문서가 자동 검색 비지원을 명확히 표시하는지 확인한다.
+// 파일 용도: ONVIF 비지원 protocol 안내 UX 문구와 문서 경계를 정적으로 검증한다.
+// 동작 요약: /ops/sources ONVIF 입력 영역과 문서가 자동 검색/PTZ/Events/Profile G 비지원을 명확히 표시하는지 확인한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -20,9 +20,9 @@ Usage:
   ./server.sh verify-onvif-ws-discovery-ux
 
 Checks:
-  - /ops/sources ONVIF 입력 영역이 WS-Discovery 자동 검색 비지원을 명시함
+  - /ops/sources ONVIF 입력 영역이 WS-Discovery/PTZ/Events/Profile G 비지원을 명시함
   - 영어 UI 번역에도 같은 경계 문구가 있음
-  - ONVIF 문서가 WS-Discovery를 비지원으로 고정함
+  - ONVIF 문서가 WS-Discovery/PTZ/Events/Profile G를 비지원으로 고정함
 `);
 }
 
@@ -35,18 +35,30 @@ const matrixDoc = readText("docs/onvif-protocol-support-matrix.md");
 const checks = [];
 
 check("ops sources UI contains WS-Discovery unsupported wording", () => {
-  assertContains(serverHtml, "WS-Discovery 자동 검색은 제공하지 않습니다.", "Ops ONVIF hint missing Korean WS-Discovery boundary");
+  assertContains(serverHtml, "WS-Discovery 자동 검색, PTZ 제어, ONVIF Events/PullPoint, Profile G/Recording/Replay는 제공하지 않습니다.", "Ops ONVIF hint missing Korean unsupported boundary");
+  assertContains(serverHtml, "PTZ 제어", "Ops ONVIF hint missing Korean PTZ boundary");
+  assertContains(serverHtml, "ONVIF Events/PullPoint", "Ops ONVIF hint missing Korean Events/PullPoint boundary");
+  assertContains(serverHtml, "Profile G/Recording/Replay", "Ops ONVIF hint missing Korean Profile G boundary");
   assertContains(serverHtml, "운영자가 확인한 live URI 또는 probe fixture를 사용합니다.", "Ops ONVIF hint missing manual source wording");
 });
 
 check("English UI translation contains WS-Discovery unsupported wording", () => {
-  assertContains(translations, "WS-Discovery auto discovery is not provided.", "translation missing WS-Discovery boundary");
+  assertContains(translations, "WS-Discovery auto discovery, PTZ control, ONVIF Events/PullPoint, and Profile G/Recording/Replay are not provided.", "translation missing unsupported boundary");
+  assertContains(translations, "PTZ control", "translation missing PTZ boundary");
+  assertContains(translations, "ONVIF Events/PullPoint", "translation missing Events/PullPoint boundary");
+  assertContains(translations, "Profile G/Recording/Replay are not provided.", "translation missing Profile G boundary");
   assertContains(translations, "Use an operator-verified live URI or probe fixture.", "translation missing manual source wording");
 });
 
 check("ONVIF docs keep WS-Discovery outside supported scope", () => {
   assertContains(liveSupportDoc, "WS-Discovery 자동 검색", "live support doc missing WS-Discovery non-scope");
+  assertContains(liveSupportDoc, "ONVIF Events/PullPoint subscription", "live support doc missing Events/PullPoint non-scope");
+  assertContains(liveSupportDoc, "PTZ control", "live support doc missing PTZ non-scope");
+  assertContains(liveSupportDoc, "ONVIF Profile G recording/replay", "live support doc missing Profile G non-scope");
   assertContains(matrixDoc, "ONVIF WS-Discovery", "protocol matrix missing WS-Discovery row");
+  assertContains(matrixDoc, "ONVIF PTZ", "protocol matrix missing PTZ row");
+  assertContains(matrixDoc, "ONVIF Events / PullPoint", "protocol matrix missing Events/PullPoint row");
+  assertContains(matrixDoc, "ONVIF Profile G / Recording / Replay", "protocol matrix missing Profile G row");
   assertContains(matrixDoc, "비지원", "protocol matrix must mark WS-Discovery unsupported");
 });
 

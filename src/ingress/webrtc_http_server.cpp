@@ -3984,7 +3984,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             </select>
           </label>
           <label data-source-kind="onvif">ONVIF 스트림 URI<input name="onvifStreamUrl" placeholder="rtsp://camera/live 또는 https://camera/live.m3u8" /></label>
-          <p data-source-kind="onvif" class="hint">ONVIF 장치의 라이브 프로파일에서 선택한 재생 URI를 입력합니다. WS-Discovery 자동 검색은 제공하지 않습니다. 운영자가 확인한 live URI 또는 probe fixture를 사용합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.</p>
+          <p data-source-kind="onvif" class="hint">ONVIF 장치의 라이브 프로파일에서 선택한 재생 URI를 입력합니다. WS-Discovery 자동 검색, PTZ 제어, ONVIF Events/PullPoint, Profile G/Recording/Replay는 제공하지 않습니다. 운영자가 확인한 live URI 또는 probe fixture를 사용합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.</p>
           <div data-source-kind="onvif" class="form-grid" data-testid="onvif-probe-draft-tool">
             <label>ONVIF probe fixture
               <textarea id="onvifProbeDraftInput" rows="5" spellcheck="false" autocomplete="off" placeholder="test/fixtures/onvif_probe_result_stub.json 내용을 붙여넣기"></textarea>
