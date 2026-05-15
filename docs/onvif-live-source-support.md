@@ -224,6 +224,7 @@ notes: <sanitized operational note>
 ./server.sh verify-onvif-probe-adapter
 ./server.sh verify-onvif-http-transport
 ./server.sh verify-onvif-probe-error-wording
+./server.sh verify-onvif-no-device-suite
 ./server.sh verify-onvif-no-device-mode
 ./server.sh verify-onvif-field-smoke-redaction
 ./server.sh verify-onvif-field-smoke-sample-bundle

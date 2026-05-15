@@ -50,6 +50,7 @@ check("no-device document defines field-device exclusion boundary", () => {
 });
 
 check("no-device command list keeps endpoint-free and sanitized-failure probes", () => {
+  assertContains(noDeviceDoc, "./server.sh verify-onvif-no-device-suite", "missing no-device suite command");
   assertContains(noDeviceDoc, "./server.sh verify-onvif-no-device-mode", "missing self-check command");
   assertContains(noDeviceDoc, "verify-onvif-field-http-probe --allow-missing-endpoint", "missing missing-endpoint command");
   assertContains(noDeviceDoc, "--expect-failure", "missing sanitized failure command");
@@ -61,6 +62,7 @@ check("no-device command list keeps endpoint-free and sanitized-failure probes",
 
 check("live support document links no-device mode without claiming field success", () => {
   assertContains(liveSupportDoc, "./onvif-no-device-verification.md", "live support doc does not link no-device doc");
+  assertContains(liveSupportDoc, "verify-onvif-no-device-suite", "live support verification missing no-device suite command");
   assertContains(liveSupportDoc, "verify-onvif-no-device-mode", "live support verification missing no-device command");
   assertContains(liveSupportDoc, "verify-onvif-field-http-probe --allow-missing-endpoint", "live support doc missing missing-endpoint command");
   assertContains(liveSupportDoc, "--expect-failure", "live support doc missing sanitized loopback failure command");

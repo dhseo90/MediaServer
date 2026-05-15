@@ -38,6 +38,7 @@
 실장비가 없으면 아래 검증만 사용합니다.
 
 ```bash
+./server.sh verify-onvif-no-device-suite
 ./server.sh verify-onvif-no-device-mode
 ./server.sh verify-onvif-live-import-contract
 ./server.sh verify-onvif-probe-fixture-contract
@@ -69,6 +70,7 @@
 
 ```text
 확인됨:
+- verify-onvif-no-device-suite
 - synthetic fixture/parser/adapter/transport/redaction 검증
 - verify-onvif-field-http-probe --allow-missing-endpoint
 - closed loopback endpoint --expect-failure sanitized failure

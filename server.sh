@@ -106,6 +106,8 @@ Usage:
                  ONVIF probe action 순서와 실패 요약 redaction 단위 smoke를 검증합니다.
   verify-onvif-probe-error-wording
                  ONVIF probe 실패 문구 fixture matrix와 redaction을 검증합니다.
+  verify-onvif-no-device-suite
+                 ONVIF 실장비 제외 fixture/loopback/redaction 검증 묶음을 순차 실행합니다.
   verify-onvif-no-device-mode
                  ONVIF 실장비 제외 검증 모드의 문서/명령/옵션 경계를 검증합니다.
   verify-onvif-field-smoke-redaction
@@ -447,6 +449,10 @@ case "${cmd}" in
   verify-onvif-probe-error-wording)
     require_internal verify_onvif_probe_error_wording_matrix.mjs
     exec "${INTERNAL_DIR}/verify_onvif_probe_error_wording_matrix.mjs" "$@"
+    ;;
+  verify-onvif-no-device-suite)
+    require_internal verify_onvif_no_device_suite.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_no_device_suite.mjs" "$@"
     ;;
   verify-onvif-no-device-mode)
     require_internal verify_onvif_no_device_mode.mjs
