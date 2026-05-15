@@ -41,7 +41,7 @@ check("client dashboard script renders field summary and comparison", () => {
     "clientDashboardPresetReset",
     "현장 요약",
     "채널 비교",
-    "Preset 설정",
+    "프리셋 설정",
     "경고 우선",
     "이벤트 많은 순",
     "기본 현장",
@@ -66,9 +66,26 @@ check("client dashboard has loading empty error wording", () => {
     "최근 이벤트 없음",
     "비교할 채널이 없습니다",
     "필터에 맞는 채널이 없습니다",
+    "/client/request-access",
+    "접근 요청",
   ];
   for (const snippet of required) {
     assert(script.includes(snippet), `client dashboard state wording is missing snippet: ${snippet}`);
+  }
+});
+
+check("client live empty state and bulk start controls are present", () => {
+  const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const required = [
+    'id="liveAllStart"',
+    "startAllLiveTiles",
+    "전체 시작",
+    "Live view가 없습니다",
+    "할당된 PublishedView가 없습니다",
+    "/client/request-access",
+  ];
+  for (const snippet of required) {
+    assert(script.includes(snippet), `client live polish is missing snippet: ${snippet}`);
   }
 });
 

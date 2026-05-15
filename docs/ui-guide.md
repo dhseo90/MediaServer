@@ -509,7 +509,9 @@ Event POST 설정, SSE/WS 전체 endpoint를 노출하지 않습니다.
 live monitor grid에 배치합니다.
 Tile은 viewer 기본 최대 4개, Ops preview 최대 9개이며,
 표준/고밀도 density와 live/connecting/stale/offline summary,
-타일별 재연결/전체 재연결 control을 제공합니다.
+타일별 시작/정지/재연결과 전체 시작/재연결/정지 control을 제공합니다.
+PublishedView가 없으면 viewer에게 `/client/request-access` 접근 요청 CTA를,
+admin preview에게 `/ops/sources` 채널 관리 CTA를 보여줍니다.
 
 각 PublishedView의 `maxTiles`는
 UI의 채널 배정/시작 버튼과
@@ -533,7 +535,7 @@ Tile별 기능:
 
 - assigned view 선택
 - PublishedView의 `allowedOverlayModes` 안에서 `raw`, `va-overlay`, `va-rule` 선택
-- tile start / tile stop / all stop
+- tile start / tile stop / tile restart / all start / all restart / all stop
 - PublishedView `maxTiles` 초과 시 tile 선택/시작을 막고 wrapper API는 `409`를 반환
 - live/offline, stale, track count, event count, connection status 표시
 - 선택된 tile만 dashboard/detail을 갱신

@@ -1301,6 +1301,7 @@ curl -fsS -X POST \
 확인 기준:
 
 - `/client/live`는 2x2 grid, 최대 4 tile만 표시하며 PublishedView별 `maxTiles`를 UI 채널 배정/시작과 client wrapper API에서 함께 강제합니다.
+- `/client/live`는 `전체 시작`, `전체 재연결`, `전체 정지`를 제공하고 빈 PublishedView 상태에서는 viewer에게 `/client/request-access` 접근 요청 CTA를 제공합니다.
 - viewer는 assigned PublishedView만 tile에 선택할 수 있습니다.
 - client WebRTC wrapper는 viewId만 허용하고 `file`, `url`, `source`, `rtspUrl`, `httpUrl`, `webrtcSourceId`, `whepUrl` override 요청을 400으로 거부합니다.
 - 같은 principal+view의 활성 client session이 `maxTiles`에 도달하면 추가 session 생성은 `409`로 거부됩니다.

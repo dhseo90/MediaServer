@@ -2400,7 +2400,7 @@ std::string ClientShellCss() {
     .live-monitor { display: grid; gap: 12px; }
     .live-toolbar {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto auto auto auto;
+      grid-template-columns: minmax(0, 1fr) auto auto auto auto auto;
       gap: 10px;
       align-items: end;
     }

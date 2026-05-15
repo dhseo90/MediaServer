@@ -219,8 +219,8 @@ void AppendClientShellScript(std::ostringstream& out) {
           isPreviewMode
             ? '미리보기에 표시할 채널이 없습니다. Ops에서 채널과 계정 권한을 확인하세요.'
             : '이 계정에 허용된 채널이 없습니다. 관리자에게 채널 접근 권한을 요청하세요.',
-          isPreviewMode ? '/ops/sources' : '',
-          isPreviewMode ? '채널 관리' : ''
+          isPreviewMode ? '/ops/sources' : '/client/request-access',
+          isPreviewMode ? '채널 관리' : '접근 요청'
         );
         return;
       }
@@ -881,6 +881,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	                <option value="compact"${liveDensity === 'compact' ? ' selected' : ''}>고밀도</option>
 	              </select>
 	            </label>
+	            <button id="liveAllStart" class="ghost" type="button">전체 시작</button>
 	            <button id="liveAllRestart" class="ghost" type="button">전체 재연결</button>
 	            <button id="liveAllStop" class="ghost" type="button">전체 정지</button>
 	          </div>
@@ -924,6 +925,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      updateTileDom(tile);
 	    }
 	    function bindLiveGridControls() {
+	      document.querySelector('#liveAllStart')?.addEventListener('click', () => startAllLiveTiles());
 	      document.querySelector('#liveAllStop')?.addEventListener('click', () => stopAllLiveTiles());
 	      document.querySelector('#liveAllRestart')?.addEventListener('click', () => restartAllLiveTiles());
 	      document.querySelector('#liveDensity')?.addEventListener('change', event => {
@@ -953,8 +955,8 @@ void AppendClientShellScript(std::ostringstream& out) {
           isPreviewMode
             ? '미리보기할 채널이 없습니다. Ops에서 채널을 만들고 계정 권한을 연결하세요.'
             : '라이브를 보려면 관리자에게 채널 접근 권한을 받아야 합니다.',
-          isPreviewMode ? '/ops/sources' : '',
-          isPreviewMode ? '채널 관리' : ''
+          isPreviewMode ? '/ops/sources' : '/client/request-access',
+          isPreviewMode ? '채널 관리' : '접근 요청'
 	        );
 	        return;
 	      }
@@ -1213,6 +1215,13 @@ void AppendClientShellScript(std::ostringstream& out) {
     async function stopAllLiveTiles() {
       await Promise.all(liveTiles.map(tile => stopLiveTile(tile.index)));
     }
+    async function startAllLiveTiles() {
+      for (const tile of visibleLiveTiles()) {
+        if (tile.viewId && !tile.sessionId) {
+          await startLiveTile(tile.index);
+        }
+      }
+    }
     async function restartAllLiveTiles() {
       await Promise.all(visibleLiveTiles().map(tile => restartLiveTile(tile.index)));
     }
@@ -1268,7 +1277,12 @@ void AppendClientShellScript(std::ostringstream& out) {
         const message = activePage === 'events'
           ? '현장 이벤트를 보려면 이벤트 권한이 있는 채널이 필요합니다.'
           : '현장 대시보드를 보려면 대시보드 권한이 있는 채널이 필요합니다.';
-        detail.innerHTML = emptyState(title, message, isPreviewMode ? '/ops/sources' : '', isPreviewMode ? '채널 관리' : '');
+        detail.innerHTML = emptyState(
+          title,
+          message,
+          isPreviewMode ? '/ops/sources' : '/client/request-access',
+          isPreviewMode ? '채널 관리' : '접근 요청'
+        );
         return;
       }
       detail.innerHTML = `<div class="client-loading-state">${emptyState('현장 상태 불러오는 중', '선택한 채널의 영상, 메타데이터, 이벤트 상태를 조회하고 있습니다.')}</div>`;
