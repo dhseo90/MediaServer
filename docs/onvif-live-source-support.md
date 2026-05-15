@@ -99,6 +99,45 @@ test/fixtures/onvif_probe_result_stub.json
 - `expectedSourceDraft.tags`에는 최소 `onvif`, `live`가 포함됩니다.
 - 응답에는 password, token 원문, ONVIF raw SOAP, credential 원문을 포함하지 않습니다.
 
+## Media/Media2 Profile Selection Policy
+
+현재 v1.2.0 ONVIF probe는 live source 등록 draft 생성을 위한 최소 profile
+선택만 수행합니다.
+
+선택 순서:
+
+1. `GetServices`로 Device service가 광고하는 `Media2`, `Media` 지원 여부를
+   확인합니다.
+2. `Media2`가 있으면 `Media2.GetProfiles`를 먼저 조회합니다.
+3. `Media`는 `Media2`에서 live RTSP profile을 찾지 못했거나 `Media2`가 없는
+   장비를 위한 보조 경로로 조회합니다.
+4. 각 profile은 `GetStreamUri` 결과가 `rtsp://` 또는 `rtsps://`인 경우에만
+   live source 후보로 남깁니다.
+5. deterministic smoke 기준으로는 서비스 우선순위와 장비 응답 순서에서 처음
+   발견한 live RTSP profile 하나만 `selected=true`로 둡니다.
+
+draft 매핑:
+
+- 선택 profile의 stream URI는 `sourceDraft.rtspUrl`로만 들어갑니다.
+- `sourceDraft.kind`는 `rtsp`이며, `tags`에는 최소 `onvif`, `live`가 들어갑니다.
+- `publishedViewDraft`에는 RTSP URI, ONVIF endpoint, credential reference를
+  넣지 않습니다.
+- HTTP/HLS URI는 운영자가 이미 검증한 수동 URI 입력에는 사용할 수 있지만,
+  자동 probe profile 선택의 성공 조건으로 보지 않습니다.
+
+실패 정책:
+
+- Media/Media2 service가 없으면 sanitized summary는
+  `ONVIF probe failed at GetServices: Media or Media2 service is required`입니다.
+- live RTSP profile을 찾지 못하면 sanitized summary는
+  `ONVIF probe failed at GetStreamUri: no live RTSP profile discovered`입니다.
+
+비범위:
+
+- ONVIF Profile G recording/replay, camera recording configuration,
+  playback/search, origin metadata 저장, credential persistence는 이 profile
+  selection policy에 포함하지 않습니다.
+
 ## 현장 수동 Smoke 절차
 
 실제 ONVIF 카메라로 확인할 때는 현장 endpoint와 credential을 문서나 로그에

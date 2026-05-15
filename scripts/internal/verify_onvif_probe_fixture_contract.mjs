@@ -28,8 +28,10 @@ Checks:
 assertKnownOptions(rawArgs, ["h", "help"]);
 
 const fixturePath = path.join(rootDir, "test/fixtures/onvif_probe_result_stub.json");
+const onvifSupportDocPath = path.join(rootDir, "docs/onvif-live-source-support.md");
 const fixtureText = fs.readFileSync(fixturePath, "utf8");
 const fixture = JSON.parse(fixtureText);
+const onvifSupportDoc = fs.readFileSync(onvifSupportDocPath, "utf8");
 const checks = [];
 
 check("fixture schema is pinned for v1.2.0 probe contract", () => {
@@ -157,6 +159,23 @@ check("raw SOAP, recording, replay, and Profile G remain outside the probe contr
   }
   for (const forbidden of ["<s:Envelope", "<SOAP-ENV", "GetProfilesResponse", "GetStreamUriResponse"]) {
     assert(!fixtureText.includes(forbidden), `fixture must not embed raw SOAP text: ${forbidden}`);
+  }
+});
+
+check("Media/Media2 profile selection policy is documented", () => {
+  for (const term of [
+    "## Media/Media2 Profile Selection Policy",
+    "Media2.GetProfiles",
+    "Media",
+    "GetStreamUri",
+    "rtsp://",
+    "rtsps://",
+    "selected=true",
+    "sourceDraft.rtspUrl",
+    "ONVIF probe failed at GetStreamUri: no live RTSP profile discovered",
+    "ONVIF Profile G recording/replay",
+  ]) {
+    assert(onvifSupportDoc.includes(term), `ONVIF support doc missing profile policy term: ${term}`);
   }
 });
 
