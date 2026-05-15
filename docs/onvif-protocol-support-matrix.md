@@ -1,8 +1,9 @@
 # ONVIF Protocol Support Matrix
 
-이 문서는 v1.2.0 ONVIF 현장 연동에서 어떤 ONVIF protocol/service/profile을
-지원하는지 한곳에 고정합니다. 이 범위는 live source 등록과 redacted field
-verification을 위한 최소 범위이며, ONVIF conformant server 구현이 아닙니다.
+이 문서는 v1.2.0 ONVIF Profile S/T live source 현장 연동에서 어떤
+ONVIF protocol/service/profile 범위를 지원하는지 한곳에 고정합니다. 이 범위는
+live source 등록과 redacted field verification을 위한 제한 지원이며, ONVIF
+Profile S/T 전체 conformance나 ONVIF conformant server 구현이 아닙니다.
 
 관련 기준:
 
@@ -21,14 +22,14 @@ verification을 위한 최소 범위이며, ONVIF conformant server 구현이 �
 
 | 항목 | 현재 상태 | 세부 범위 | 검증 |
 | --- | --- | --- | --- |
-| ONVIF Device service SOAP | 1차 지원 | `http://` Device service endpoint에 SOAP POST, `GetServices` 조회 | `verify-onvif-http-transport`, `verify-onvif-field-http-probe` |
-| ONVIF Media2 service SOAP | 1차 지원 | `Media2.GetProfiles`, `Media2.GetStreamUri` 기반 live profile 후보 조회 | `verify-onvif-probe-parser`, `verify-onvif-probe-adapter`, `verify-onvif-probe-profile-variants` |
-| ONVIF Media service SOAP | 1차 지원 | Media2에서 live RTSP 후보가 없거나 Media2가 없을 때 `Media.GetProfiles`, `Media.GetStreamUri` fallback | `verify-onvif-probe-profile-variants` |
-| Live stream URI import | 1차 지원 | 자동 probe 성공 조건은 `rtsp://` 또는 `rtsps://` GetStreamUri live 후보입니다. fixture draft 저장 계약은 `rtsp://`/`rtsps://` URI를 기존 `kind=rtsp` source draft로 축약합니다. `rtsps://` draft 기준은 [ONVIF RTSPS Draft Policy](./onvif-rtsps-draft-policy.md)를 따릅니다. | `verify-onvif-probe-fixture-contract`, `verify-onvif-probe-draft-api`, `verify-onvif-rtsps-draft-policy` |
+| ONVIF Device service SOAP | v1.2.0 Profile S/T live source 제한 지원 | `http://` Device service endpoint에 SOAP POST, `GetServices` 조회 | `verify-onvif-http-transport`, `verify-onvif-field-http-probe` |
+| ONVIF Media2 service SOAP | v1.2.0 Profile S/T live source 제한 지원 | `Media2.GetProfiles`, `Media2.GetStreamUri` 기반 live profile 후보 조회 | `verify-onvif-probe-parser`, `verify-onvif-probe-adapter`, `verify-onvif-probe-profile-variants` |
+| ONVIF Media service SOAP | v1.2.0 Profile S/T live source 제한 지원 | Media2에서 live RTSP 후보가 없거나 Media2가 없을 때 `Media.GetProfiles`, `Media.GetStreamUri` fallback | `verify-onvif-probe-profile-variants` |
+| Live stream URI import | v1.2.0 Profile S/T live source 제한 지원 | 자동 probe 성공 조건은 `rtsp://` 또는 `rtsps://` GetStreamUri live 후보입니다. fixture draft 저장 계약은 `rtsp://`/`rtsps://` URI를 기존 `kind=rtsp` source draft로 축약합니다. `rtsps://` draft 기준은 [ONVIF RTSPS Draft Policy](./onvif-rtsps-draft-policy.md)를 따릅니다. | `verify-onvif-probe-fixture-contract`, `verify-onvif-probe-draft-api`, `verify-onvif-rtsps-draft-policy` |
 | 수동 ONVIF stream URI 등록 | 구현 완료 | `/ops/sources`에서 `rtsp://`, `rtsps://`, `http://`, `https://` live URI를 기존 SourceRegistry source로 저장 | `verify-onvif-ops-sources-ui` |
 | MediaServer egress URL | 구현 완료 | ONVIF source를 기존 RTSP/WHEP/WebRTC 출력 URL copy 흐름에 연결합니다. 이는 ONVIF protocol이 아니라 MediaServer 출력입니다. | `verify-onvif-ops-sources-ui`, `verify-onvif-rtsp-downstream` |
 | HTTPS/TLS ONVIF SOAP endpoint | fail-closed | `https://` Device service endpoint를 scheme preflight gate에서 차단하고 자동 downgrade하지 않습니다. sanitized failure와 향후 구현 조건은 [ONVIF HTTPS SOAP Transport Design](./onvif-https-soap-transport-design.md)을 따릅니다. no-device 성공 검증은 현재 설계 전용인 [ONVIF HTTPS TLS Fixture Harness Design](./onvif-https-tls-fixture-harness-design.md)의 explicit TLS fixture harness 조건으로 분리합니다. | `verify-onvif-https-soap-transport-design`, `verify-onvif-tls-transport-policy`, `verify-onvif-http-transport` |
-| Credential reference | 1차 정책 지원 | credential 원문 저장/출력 없이 reference 존재 여부만 boolean summary로 유지. 저장소/secret manager 경계는 [ONVIF Credential Store Integration Design](./onvif-credential-store-integration-design.md)을 따르고, 향후 인증 주입 조건은 [ONVIF Auth Injection Design](./onvif-auth-injection-design.md)을 따릅니다. | `verify-onvif-auth-injection-design`, `verify-onvif-credential-reference-policy` |
+| Credential reference | v1.2.0 reference/redaction 정책 지원 | credential 원문 저장/출력 없이 reference 존재 여부만 boolean summary로 유지. 저장소/secret manager 경계는 [ONVIF Credential Store Integration Design](./onvif-credential-store-integration-design.md)을 따르고, 향후 인증 주입 조건은 [ONVIF Auth Injection Design](./onvif-auth-injection-design.md)을 따릅니다. | `verify-onvif-auth-injection-design`, `verify-onvif-credential-reference-policy` |
 
 ## 비지원 Matrix
 
@@ -59,6 +60,7 @@ verification을 위한 최소 범위이며, ONVIF conformant server 구현이 �
 
 - ONVIF 전체 protocol 지원
 - ONVIF conformant server
+- ONVIF Profile S/T 전체 conformance 지원
 - WS-Discovery 자동 검색
 - PTZ, Events/PullPoint, Recording/Replay/Profile G, camera-side Analytics
 - HTTPS/TLS SOAP transport 성공

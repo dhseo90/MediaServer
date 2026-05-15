@@ -34,7 +34,7 @@
 
 - `v1.1.0` release tag/main merge 이후 [development-backlog.md](./development-backlog.md)의
   v1.2.0 후보를 이슈로 분리해 확정합니다.
-- v1.1.0 live-only 경계를 깨지 않는 운영/현장 고도화, ONVIF 현장 연동,
+- v1.1.0 live-only 경계를 깨지 않는 운영/현장 고도화, ONVIF Profile S/T live source 현장 연동,
   source health workflow, client dashboard polish, integrator contract artifact를 우선 검토합니다.
 
 ## 다음 minor에도 기본 제외되는 범위

@@ -39,7 +39,11 @@ const checks = [];
 
 check("protocol support matrix names supported ONVIF live-source scope", () => {
   for (const term of [
+    "ONVIF Profile S/T live source 현장 연동",
+    "제한 지원",
+    "Profile S/T 전체 conformance",
     "ONVIF Device service SOAP",
+    "v1.2.0 Profile S/T live source 제한 지원",
     "`http://` Device service endpoint",
     "`GetServices`",
     "ONVIF Media2 service SOAP",
@@ -80,6 +84,7 @@ check("protocol support matrix names unsupported ONVIF protocols", () => {
     "ONVIF Device management",
     "WS-Security UsernameToken",
     "HTTP Digest/Basic auth 주입",
+    "ONVIF Profile S/T 전체 conformance 지원",
   ]) {
     assertContains(matrixDoc, term, `matrix missing unsupported scope term: ${term}`);
   }

@@ -1,9 +1,11 @@
 # ONVIF Live Source Support
 
-이 문서는 현재 main 기준의 ONVIF live source 지원 범위를 고정합니다.
+이 문서는 현재 main 기준의 ONVIF Profile S/T live source 지원 범위를 고정합니다.
 ONVIF는 file, RTSP pull, HTTP/HLS URI, WHEP pull, Published WebRTC와 같은
 채널 source 유형 중 하나로 취급합니다. 제품 UI에서 ONVIF만 별도 import
 화면이나 특별한 workflow로 분리하지 않습니다.
+이 범위는 Profile S/T 계열 카메라의 live stream URI 등록을 위한 제한 지원이며,
+ONVIF Profile S/T 전체 conformance를 의미하지 않습니다.
 ONVIF protocol/service별 지원 범위는
 [ONVIF Protocol Support Matrix](./onvif-protocol-support-matrix.md)를 기준으로
 보고합니다.
@@ -35,6 +37,7 @@ ONVIF protocol/service별 지원 범위는
 비범위:
 
 - ONVIF conformant server
+- ONVIF Profile S/T 전체 conformance
 - WS-Discovery 자동 검색
 - ONVIF Events/PullPoint subscription
 - ONVIF Profile G recording/replay

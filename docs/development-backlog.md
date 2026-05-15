@@ -62,7 +62,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 
 | 우선순위 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- |
-| P0 | ONVIF 현장 연동 | 실제 camera discovery/SOAP probe, Media/Media2 profile 조회, credential reference 정책을 live source 등록 흐름과 연결 | `verify-onvif-live-import-contract`, 신규 ONVIF probe fixture, 수동 camera smoke |
+| P0 | ONVIF Profile S/T live source 현장 연동 | Profile S/T 계열 카메라의 수동 입력 Device service endpoint 기준 HTTP SOAP probe, Media/Media2 profile 조회, live RTSP/RTSPS URI draft, credential reference/redaction 정책을 live source 등록 흐름과 연결. WS-Discovery 자동 검색과 Profile G/Recording/Replay는 후순위/비범위 | `verify-onvif-live-import-contract`, `verify-onvif-probe-fixture-contract`, `verify-onvif-no-device-suite`, 수동 camera smoke |
 | P0 | UI visual regression | Ops/Client 주요 화면 320/390/760/1180 기준 screenshot review를 release gate 산출물로 고정 | `verify-ops-client-ui --screenshots`, 수동 artifact review |
 | P0 | Source health operator workflow | source health 변화 이력, failed-only retry, 운영자 next action, bulk 작업 partial rollback 계약 정리 | `verify-ops-source-health-bulk`, `verify-ops-audit-trail`, 수동 Ops click E2E |
 | P1 | Client live/dashboard polish | viewer용 multi-view 비교, event/status copy, empty/error/loading 문구, mobile tile 조작 개선 | `verify-ops-click-e2e`, `verify-client-dashboard-polish`, screenshot review |
@@ -106,7 +106,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 
 | ID | 우선순위 | 영역 | 상태 | 1차 완료 조건 | 별도 review 필요 조건 |
 | --- | --- | --- | --- | --- | --- |
-| V120-P0-01 | P0 | ONVIF 현장 연동 | 예정 | discovery/SOAP probe, Media/Media2 profile 조회, credential reference 정책을 `/ops/sources` 등록 draft와 연결 | SourceRegistry/PublishedView 저장 schema 변경, client ONVIF endpoint 노출 |
+| V120-P0-01 | P0 | ONVIF Profile S/T live source 현장 연동 | 진행 | 수동 입력 Device service endpoint 기반 HTTP SOAP probe, Media/Media2 profile 조회, RTSP/RTSPS source draft, credential reference/redaction 정책을 `/ops/sources` 등록 draft와 연결 | WS-Discovery 자동 검색, Profile G/Recording/Replay, SourceRegistry/PublishedView 저장 schema 변경, client ONVIF endpoint 노출 |
 | V120-P0-02 | P0 | UI visual regression | 예정 | Ops/Client/Auth 주요 화면 320/390/760/1180 screenshot artifact와 수동 review 기준 고정 | 제품 nav 구조 변경, `/lab` 화면 route 재개방 |
 | V120-P0-03 | P0 | Source health operator workflow | 예정 | 상태 변화 이력, failed-only retry, next action, bulk partial failure/rollback 계약 정리 | top-level health 상태 모델 추가, client raw diagnostic 노출 |
 | V120-P1-01 | P1 | Client live/dashboard polish | 예정 | multi-view 비교, event/status copy, empty/error/loading 문구, mobile tile 조작 개선 | client wrapper API schema 변경, viewer source locator 노출 |
