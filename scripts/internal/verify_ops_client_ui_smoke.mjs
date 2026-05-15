@@ -95,7 +95,7 @@ const pageChecks = [
     name: "ops-sources",
     path: "/ops/sources",
     visualSelector: '[data-testid="ops-sources-page"]',
-    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'name="onvifStreamUrl"', 'name="whepUrl"', "ONVIF 카메라", "ONVIF 스트림 URI", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
+    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'data-testid="onvif-probe-draft-tool"', 'id="onvifProbeDraftInput"', 'id="onvifProbeDraftApply"', 'name="onvifStreamUrl"', 'name="whepUrl"', "ONVIF 카메라", "ONVIF 스트림 URI", "ONVIF probe fixture", "Probe draft 적용", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
     mustNot: ['AppendTableHead(', 'R"OPS(', 'WHIP Published Source ID', "Registry raw JSON", 'sources-json', 'views-json', 'client-views-json', 'data-testid="onvif-import-panel"', 'id="onvif-import-stub"', 'id="onvifImportSummary"', "ONVIF Live Source import", 'data-testid="channel-bulk-panel"', 'id="channel-bulk-select-all"', 'id="channelBulkDiagnostics"', 'data-testid="source-health-panel"', 'id="channelHealthSummary"', 'id="channelHealthDiagnostics"', 'id="channel-detail-health"'],
   },
   {

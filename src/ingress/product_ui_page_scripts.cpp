@@ -5237,6 +5237,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const saveButton = document.querySelector('#channel-save-selected');
     const editSelectedButton = document.querySelector('#channel-edit-selected');
     const closeChannelButton = document.querySelector('#channel-close');
+    const onvifProbeDraftInput = document.querySelector('#onvifProbeDraftInput');
+    const onvifProbeDraftApplyButton = document.querySelector('#onvifProbeDraftApply');
+    const onvifProbeDraftClearButton = document.querySelector('#onvifProbeDraftClear');
+    const onvifProbeDraftStatus = document.querySelector('#onvifProbeDraftStatus');
     const streamRoute = ")OPSSOURCES" << stream_route_json << R"OPSSOURCES(";
     const rtspPort = )OPSSOURCES" << rtsp_port << R"OPSSOURCES(;
     let loadedSources = [];
@@ -5266,6 +5270,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     };
     const setChannelValidation = message => {
       setFeedback(channelValidation, message, Boolean(message));
+    };
+    const setOnvifProbeDraftStatus = (message, failed = false) => {
+      setFeedback(onvifProbeDraftStatus, message, failed, { collapseEmpty: true });
     };
     const hasSourceTag = (source, tag) => Array.isArray(source?.tags) &&
       source.tags.map(item => String(item || '').toLowerCase()).includes(String(tag || '').toLowerCase());
@@ -5678,6 +5685,69 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       syncEditorChrome(mode, isClone ? '' : id);
       setOpsDetailPanelOpen(channelPanel, true, { scroll: true });
     }
+    function selectedProfileLabel(profile) {
+      if (!profile || typeof profile !== 'object') return '';
+      const parts = [
+        profile.mediaApi,
+        profile.encoding,
+        Number(profile.width || 0) > 0 && Number(profile.height || 0) > 0
+          ? `${profile.width}x${profile.height}`
+          : '',
+        Number(profile.fps || 0) > 0 ? `${profile.fps}fps` : ''
+      ].filter(Boolean);
+      return parts.join(' / ');
+    }
+    function applyOnvifDraftToChannelForm(payload) {
+      const sourceDraft = payload?.sourceDraft || {};
+      const viewDraft = payload?.publishedViewDraft || {};
+      const channelId = String(sourceDraft.sourceId || viewDraft.viewId || viewDraft.sourceId || '').trim();
+      const displayName = String(viewDraft.displayName || sourceDraft.displayName || channelId).trim();
+      const streamUri = String(sourceDraft.rtspUrl || sourceDraft.httpUrl || sourceDraft.whepUrl || '').trim();
+      if (!isNumericChannelId(channelId)) {
+        throw new Error('Probe draft의 sourceId는 현재 채널 ID 규칙에 맞는 숫자여야 합니다.');
+      }
+      if (!onvifTransportFromUri(streamUri)) {
+        throw new Error('Probe draft에서 저장 가능한 ONVIF 스트림 URI를 찾을 수 없습니다.');
+      }
+      channelForm.elements.channelId.value = channelId;
+      channelForm.elements.displayName.value = displayName;
+      channelForm.elements.kind.value = 'onvif';
+      channelForm.elements.onvifStreamUrl.value = streamUri;
+      currentChannelEnabled = sourceDraft.enabled !== false && viewDraft.enabled !== false;
+      updateKindFields();
+      setChannelValidation('');
+      syncEditorChrome(editorMode === 'view' ? 'edit' : editorMode, currentChannelId);
+      const profileText = selectedProfileLabel(payload?.selectedProfile);
+      setOnvifProbeDraftStatus(
+        `Probe draft 적용: 채널 #${channelId}${profileText ? ` (${profileText})` : ''}`
+      );
+      setStatus('');
+      showToast(`ONVIF probe draft 적용 완료: 채널 #${channelId}`);
+    }
+    async function applyOnvifProbeDraft() {
+      const fixtureText = String(onvifProbeDraftInput?.value || '').trim();
+      if (!fixtureText) {
+        setOnvifProbeDraftStatus('ONVIF probe fixture 입력이 필요합니다.', true);
+        return;
+      }
+      let fixture = null;
+      try {
+        fixture = JSON.parse(fixtureText);
+      } catch (error) {
+        setOnvifProbeDraftStatus('ONVIF probe fixture JSON을 파싱할 수 없습니다.', true);
+        return;
+      }
+      try {
+        const payload = await requestJson('/ops/api/onvif/import-draft', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(fixture)
+        });
+        applyOnvifDraftToChannelForm(payload);
+      } catch (error) {
+        setOnvifProbeDraftStatus(`Probe draft 적용 실패: ${error.message}`, true);
+      }
+    }
     function openChannel(id, mode = 'view') {
       if (!id) return;
       fillChannel(id, mode);
@@ -5874,6 +5944,11 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     });
     editSelectedButton.addEventListener('click', () => currentChannelId && fillChannel(currentChannelId, 'edit'));
     channelForm.elements.kind.addEventListener('change', updateKindFields);
+    onvifProbeDraftApplyButton?.addEventListener('click', applyOnvifProbeDraft);
+    onvifProbeDraftClearButton?.addEventListener('click', () => {
+      onvifProbeDraftInput.value = '';
+      setOnvifProbeDraftStatus('');
+    });
     document.querySelector('#refresh').addEventListener('click', () => loadAll().catch(error => setStatus(error.message, true)));
     document.querySelector('#channel-audit-refresh')?.addEventListener('click', () => renderOpsAuditTrail('channel-audit-list', 'channels'));
     renderOpsAuditTrail('channel-audit-list', 'channels');

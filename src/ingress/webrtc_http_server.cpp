@@ -3985,6 +3985,16 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           </label>
           <label data-source-kind="onvif">ONVIF 스트림 URI<input name="onvifStreamUrl" placeholder="rtsp://camera/live 또는 https://camera/live.m3u8" /></label>
           <p data-source-kind="onvif" class="hint">ONVIF 장치의 라이브 프로파일에서 선택한 재생 URI를 입력합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.</p>
+          <div data-source-kind="onvif" class="form-grid" data-testid="onvif-probe-draft-tool">
+            <label>ONVIF probe fixture
+              <textarea id="onvifProbeDraftInput" rows="5" spellcheck="false" autocomplete="off" placeholder="test/fixtures/onvif_probe_result_stub.json 내용을 붙여넣기"></textarea>
+            </label>
+            <div class="actions">
+              <button id="onvifProbeDraftApply" class="button-secondary" type="button">Probe draft 적용</button>
+              <button id="onvifProbeDraftClear" class="button-secondary" type="button">초기화</button>
+            </div>
+            <p id="onvifProbeDraftStatus" class="hint" aria-live="polite"></p>
+          </div>
           <label data-source-kind="rtsp">RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live" /></label>
           <label data-source-kind="whep">외부 WHEP URL<input name="whepUrl" placeholder="https://example.com/whep/stream" /></label>
           <p data-source-kind="whep" class="hint">외부 WebRTC playback endpoint를 서버가 WHEP pull source로 연결합니다. URL 자체가 입력값입니다.</p>
