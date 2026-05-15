@@ -1,0 +1,68 @@
+{
+  "schema": "media-server.onvif-closed-loopback-failure-matrix.v1",
+  "description": "Closed loopback ONVIF field probe failures for no-device verification. This is not a product API contract and does not prove real device endpoint success.",
+  "defaultExpectedError": "ONVIF probe failed at GetServices: transport error",
+  "defaultForbiddenTerms": [
+    "127.0.0.1",
+    "localhost",
+    "\"credentialRef\"",
+    "operator-entered-secret",
+    "password",
+    "Authorization:",
+    "Cookie:",
+    "rtsp://",
+    "rtsps://",
+    "raw SOAP"
+  ],
+  "scenarios": [
+    {
+      "id": "closed-loopback-device-service",
+      "endpoint": "http://127.0.0.1:9/onvif/device_service",
+      "timeoutMs": 500,
+      "credentialRefPresent": true,
+      "expectedStatus": "fail",
+      "expectedError": "ONVIF probe failed at GetServices: transport error",
+      "expectedConsoleTerms": [
+        "ONVIF field HTTP probe sanitized failure",
+        "endpoint: configured, redacted",
+        "credentialReferencePresent: true",
+        "result: fail"
+      ],
+      "forbiddenTerms": [
+        "/onvif/device_service"
+      ]
+    },
+    {
+      "id": "closed-loopback-root-path",
+      "endpoint": "http://127.0.0.1:9/",
+      "timeoutMs": 500,
+      "credentialRefPresent": false,
+      "expectedStatus": "fail",
+      "expectedError": "ONVIF probe failed at GetServices: transport error",
+      "expectedConsoleTerms": [
+        "ONVIF field HTTP probe sanitized failure",
+        "endpoint: configured, redacted",
+        "credentialReferencePresent: false",
+        "result: fail"
+      ],
+      "forbiddenTerms": []
+    },
+    {
+      "id": "closed-loopback-alt-path",
+      "endpoint": "http://127.0.0.1:9/onvif/probe",
+      "timeoutMs": 500,
+      "credentialRefPresent": true,
+      "expectedStatus": "fail",
+      "expectedError": "ONVIF probe failed at GetServices: transport error",
+      "expectedConsoleTerms": [
+        "ONVIF field HTTP probe sanitized failure",
+        "endpoint: configured, redacted",
+        "credentialReferencePresent: true",
+        "result: fail"
+      ],
+      "forbiddenTerms": [
+        "/onvif/probe"
+      ]
+    }
+  ]
+}

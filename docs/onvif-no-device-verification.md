@@ -22,6 +22,7 @@
 - loopback HTTP SOAP transport smoke
 - endpoint가 없는 환경의 명시 skip 동작
 - closed loopback endpoint의 sanitized failure 동작
+- closed loopback failure matrix의 endpoint/path/credential redaction 동작
 - 현장 smoke 산출물 redaction 기준
 - credential reference 원문 미저장 기준
 - TLS endpoint fail-closed 정책
@@ -53,6 +54,7 @@
 ./server.sh verify-onvif-field-smoke-sample-bundle
 ./server.sh verify-onvif-field-http-probe --allow-missing-endpoint
 ./server.sh verify-onvif-field-http-probe --endpoint http://127.0.0.1:9/onvif/device_service --expect-failure --credential-ref-present
+./server.sh verify-onvif-closed-loopback-failure-matrix
 ./server.sh verify-onvif-tls-transport-policy
 ./server.sh verify-onvif-credential-reference-policy
 ```
@@ -77,6 +79,7 @@
 - synthetic fixture/parser/adapter/transport/redaction 검증
 - verify-onvif-field-http-probe --allow-missing-endpoint
 - closed loopback endpoint --expect-failure sanitized failure
+- verify-onvif-closed-loopback-failure-matrix
 - SourceRegistry/PublishedView draft redaction 계약
 
 미확인:

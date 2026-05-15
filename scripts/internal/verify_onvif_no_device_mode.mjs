@@ -46,6 +46,7 @@ check("no-device document defines field-device exclusion boundary", () => {
   assertContains(noDeviceDoc, "synthetic fixture", "missing synthetic fixture scope");
   assertContains(noDeviceDoc, "synthetic profile variant", "missing synthetic profile variant scope");
   assertContains(noDeviceDoc, "loopback", "missing loopback scope");
+  assertContains(noDeviceDoc, "closed loopback failure matrix", "missing closed loopback matrix scope");
   assertContains(noDeviceDoc, "redaction", "missing redaction scope");
   assertContains(noDeviceDoc, "SourceRegistry/PublishedView", "missing draft contract scope");
 });
@@ -56,6 +57,7 @@ check("no-device command list keeps endpoint-free and sanitized-failure probes",
   assertContains(noDeviceDoc, "verify-onvif-probe-profile-variants", "missing profile variant command");
   assertContains(noDeviceDoc, "verify-onvif-field-http-probe --allow-missing-endpoint", "missing missing-endpoint command");
   assertContains(noDeviceDoc, "--expect-failure", "missing sanitized failure command");
+  assertContains(noDeviceDoc, "verify-onvif-closed-loopback-failure-matrix", "missing closed loopback failure matrix command");
   assertContains(noDeviceDoc, "http://127.0.0.1:9/onvif/device_service", "missing closed loopback endpoint");
   assertContains(noDeviceDoc, "--credential-ref-present", "missing credential reference flag");
   assertContains(noDeviceDoc, "verify-onvif-field-smoke-redaction", "missing redaction verification");
@@ -69,6 +71,7 @@ check("live support document links no-device mode without claiming field success
   assertContains(liveSupportDoc, "verify-onvif-probe-profile-variants", "live support verification missing profile variant command");
   assertContains(liveSupportDoc, "verify-onvif-field-http-probe --allow-missing-endpoint", "live support doc missing missing-endpoint command");
   assertContains(liveSupportDoc, "--expect-failure", "live support doc missing sanitized loopback failure command");
+  assertContains(liveSupportDoc, "verify-onvif-closed-loopback-failure-matrix", "live support doc missing closed loopback matrix command");
   assertContains(liveSupportDoc, "실장비 endpoint 성공은 미확인", "live support doc missing explicit unverified endpoint success wording");
 });
 

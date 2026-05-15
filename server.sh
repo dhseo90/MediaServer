@@ -116,6 +116,8 @@ Usage:
                  ONVIF 현장 smoke 산출물 redaction checklist를 검증합니다.
   verify-onvif-field-http-probe
                  실제 ONVIF HTTP endpoint probe harness와 sanitized 산출물을 검증합니다.
+  verify-onvif-closed-loopback-failure-matrix
+                 ONVIF 닫힌 loopback endpoint 실패 matrix와 redaction을 검증합니다.
   verify-onvif-tls-transport-policy
                  ONVIF HTTPS/TLS fail-closed transport 정책을 검증합니다.
   verify-onvif-credential-reference-policy
@@ -471,6 +473,10 @@ case "${cmd}" in
   verify-onvif-field-http-probe)
     require_internal verify_onvif_field_http_probe.mjs
     exec "${INTERNAL_DIR}/verify_onvif_field_http_probe.mjs" "$@"
+    ;;
+  verify-onvif-closed-loopback-failure-matrix)
+    require_internal verify_onvif_closed_loopback_failure_matrix.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_closed_loopback_failure_matrix.mjs" "$@"
     ;;
   verify-onvif-tls-transport-policy)
     require_internal verify_onvif_tls_transport_policy.mjs

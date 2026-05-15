@@ -83,6 +83,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_onvif_ops_sources_ui_roundtrip.mjs",
     "verify_onvif_field_smoke_redaction.mjs",
     "verify_onvif_field_http_probe.mjs",
+    "verify_onvif_closed_loopback_failure_matrix.mjs",
     "verify_onvif_probe_profile_variants.mjs",
     "verify_onvif_field_smoke_sample_bundle.mjs",
     "verify_onvif_tls_transport_policy.mjs",

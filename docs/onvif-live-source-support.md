@@ -78,6 +78,7 @@ POST /ops/api/onvif/import-draft
 test/fixtures/onvif_live_import_stub.json
 test/fixtures/onvif_probe_result_stub.json
 test/fixtures/onvif_probe_profile_variants.json
+test/fixtures/onvif_closed_loopback_failure_matrix.json
 ```
 
 계약:
@@ -87,6 +88,8 @@ test/fixtures/onvif_probe_profile_variants.json
   raw SOAP 없이 표현합니다.
 - profile variant fixture는 Media2 우선, Media fallback, Media-only, H265
   RTSP profile 선택을 실장비 없이 고정합니다.
+- closed loopback failure matrix는 endpoint 성공이 아니라 sanitized transport
+  failure와 redaction을 고정합니다.
 - SOAP parser는 Device/Media/Media2 service, Media/Media2 profile, GetStreamUri
   응답을 내부 live profile 모델로만 축약합니다.
 - probe adapter는 endpoint/timeout/action 순서와 sanitize된 실패 요약만 다루며
@@ -234,6 +237,7 @@ notes: <sanitized operational note>
 ./server.sh verify-onvif-field-smoke-sample-bundle
 ./server.sh verify-onvif-field-http-probe --allow-missing-endpoint
 ./server.sh verify-onvif-field-http-probe --endpoint http://127.0.0.1:9/onvif/device_service --expect-failure --credential-ref-present
+./server.sh verify-onvif-closed-loopback-failure-matrix
 ./server.sh verify-onvif-tls-transport-policy
 ./server.sh verify-onvif-credential-reference-policy
 ./server.sh verify-onvif-probe-draft-api

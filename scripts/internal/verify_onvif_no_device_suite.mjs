@@ -41,6 +41,7 @@ const suite = [
   ["verify-onvif-field-smoke-redaction"],
   ["verify-onvif-field-smoke-sample-bundle"],
   ["verify-onvif-field-http-probe", "--allow-missing-endpoint"],
+  ["verify-onvif-closed-loopback-failure-matrix"],
   [
     "verify-onvif-field-http-probe",
     "--endpoint",
