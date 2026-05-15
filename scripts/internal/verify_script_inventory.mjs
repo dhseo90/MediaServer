@@ -98,6 +98,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_onvif_probe_error_wording_matrix.mjs",
     "verify_onvif_no_device_suite.mjs",
     "verify_onvif_no_device_mode.mjs",
+    "verify_onvif_no_device_completion.mjs",
     "verify_webrtc_va_metadata.mjs",
     "verify_ws_va_metadata.mjs",
   ];

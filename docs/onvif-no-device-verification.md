@@ -56,6 +56,7 @@ simulator fixture smoke로만 보고합니다.
 ./server.sh verify-onvif-no-device-suite
 ./server.sh verify-onvif-no-device-suite --json-output /tmp/media_server_onvif_no_device_summary.json
 ./server.sh verify-onvif-no-device-mode
+./server.sh verify-onvif-no-device-completion
 ./server.sh verify-onvif-protocol-support-matrix
 ./server.sh verify-onvif-https-tls-fixture --expect-skip
 ./server.sh verify-onvif-live-import-contract
@@ -96,6 +97,7 @@ simulator fixture smoke로만 보고합니다.
 확인됨:
 - verify-onvif-no-device-suite
 - verify-onvif-no-device-suite --json-output /tmp/media_server_onvif_no_device_summary.json
+- verify-onvif-no-device-completion
 - synthetic fixture/parser/adapter/transport/redaction 검증
 - local simulator fixture 기반 HTTP SOAP probe 성공/실패 variant
 - verify-onvif-field-http-probe --allow-missing-endpoint
@@ -108,6 +110,29 @@ simulator fixture smoke로만 보고합니다.
 - 실제 camera 인증 및 Media/Media2 호환성
 - 실제 camera RTSP/RTSPS 재생 성공
 ```
+
+## 종료 판정
+
+실장비 제외 조건의 잔여 필수 이슈 없음으로 판정하려면 아래 기준을 모두 만족해야
+합니다.
+
+- `verify-onvif-no-device-suite`가 전체 통과하고 summary JSON의
+  `realDeviceEndpointSuccess`가 `미확인`으로 유지됩니다.
+- `verify-onvif-local-simulator`가 local simulator variant 기준으로 Media2 우선,
+  Media fallback, Media-only, non-RTSP GetStreamUri 실패 경로를 확인합니다.
+- `verify-onvif-field-http-probe --allow-missing-endpoint`와 closed loopback failure
+  검증은 실장비 endpoint 성공이 아니라 sanitized skip/failure로 보고됩니다.
+- protocol matrix는 HTTPS/TLS SOAP, ONVIF 인증 주입, WS-Discovery, Profile G를
+  현재 지원으로 올리지 않습니다.
+- 실장비 endpoint 성공은 계속 미확인으로 남깁니다.
+
+아래는 실장비 제외 조건의 잔여가 아니라 별도 후속 범위입니다.
+
+- 실장비 field smoke
+- HTTPS/TLS ONVIF SOAP transport 실제 구현
+- ONVIF 인증 주입
+- WS-Discovery 지원
+- Profile G / Recording / Replay
 
 실장비 endpoint가 제공되기 전까지는 현장 성공 smoke를 통과로 표시하지 않습니다.
 실장비가 준비되면 [ONVIF Live Source Support](./onvif-live-source-support.md)의
@@ -130,7 +155,7 @@ schema drift guard는 runner 상수, 성공 예시, 성공 fixture, 실패 fixtu
   "schema": "media-server.onvif-no-device-suite-summary.v1",
   "mode": "실장비 제외",
   "realDeviceEndpointSuccess": "미확인",
-  "completed": 23,
+  "completed": 24,
   "failed": null
 }
 ```

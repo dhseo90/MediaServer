@@ -76,6 +76,7 @@ check("no-device command list keeps endpoint-free and sanitized-failure probes",
   assertContains(noDeviceDoc, "test/fixtures/onvif_no_device_suite_success_summary.json", "missing success summary fixture path");
   assertContains(noDeviceDoc, "test/fixtures/onvif_no_device_suite_failure_summary.json", "missing failure summary fixture path");
   assertContains(noDeviceDoc, "./server.sh verify-onvif-no-device-mode", "missing self-check command");
+  assertContains(noDeviceDoc, "verify-onvif-no-device-completion", "missing no-device completion command");
   assertContains(noDeviceDoc, "verify-onvif-protocol-support-matrix", "missing protocol support matrix command");
   assertContains(noDeviceDoc, "verify-onvif-https-tls-fixture --expect-skip", "missing HTTPS TLS fixture skeleton command");
   assertContains(noDeviceDoc, "verify-onvif-probe-profile-variants", "missing profile variant command");
@@ -97,6 +98,7 @@ check("live support document links no-device mode without claiming field success
   assertContains(liveSupportDoc, "verify-onvif-no-device-suite --json-output", "live support verification missing no-device suite JSON command");
   assertContains(liveSupportDoc, "test/fixtures/onvif_no_device_suite_failure_summary.json", "live support doc missing failure summary fixture path");
   assertContains(liveSupportDoc, "verify-onvif-no-device-mode", "live support verification missing no-device command");
+  assertContains(liveSupportDoc, "verify-onvif-no-device-completion", "live support verification missing no-device completion command");
   assertContains(liveSupportDoc, "verify-onvif-protocol-support-matrix", "live support verification missing protocol matrix command");
   assertContains(liveSupportDoc, "verify-onvif-https-tls-fixture --expect-skip", "live support doc missing HTTPS TLS fixture skeleton command");
   assertContains(liveSupportDoc, "verify-onvif-probe-profile-variants", "live support verification missing profile variant command");
@@ -119,6 +121,7 @@ check("no-device suite runner can write summary JSON", () => {
     "results",
     "verify-onvif-https-tls-fixture",
     "verify-onvif-local-simulator",
+    "verify-onvif-no-device-completion",
     "--expect-skip",
   ]) {
     assertContains(noDeviceSuiteScript, token, `no-device suite script missing ${token}`);
@@ -157,6 +160,7 @@ check("no-device success summary fixture preserves completed command state", () 
     "./server.sh verify-onvif-no-device-mode",
     "./server.sh verify-onvif-probe-profile-variants",
     "./server.sh verify-onvif-local-simulator",
+    "./server.sh verify-onvif-no-device-completion",
     "./server.sh verify-onvif-closed-loopback-failure-matrix",
     "./server.sh verify-onvif-field-http-probe --endpoint http://127.0.0.1:9/onvif/device_service --expect-failure --credential-ref-present",
     "./server.sh verify-onvif-credential-reference-policy",

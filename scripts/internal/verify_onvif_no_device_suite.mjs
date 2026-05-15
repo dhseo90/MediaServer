@@ -67,6 +67,7 @@ const suite = [
   ],
   ["verify-onvif-tls-transport-policy"],
   ["verify-onvif-credential-reference-policy"],
+  ["verify-onvif-no-device-completion"],
 ];
 
 let completed = 0;

@@ -126,6 +126,8 @@ Usage:
                  ONVIF 실장비 제외 fixture/loopback/redaction 검증 묶음을 순차 실행합니다.
   verify-onvif-no-device-mode
                  ONVIF 실장비 제외 검증 모드의 문서/명령/옵션 경계를 검증합니다.
+  verify-onvif-no-device-completion
+                 ONVIF 실장비 제외 조건의 종료 판정과 별도 후속 범위 분리를 검증합니다.
   verify-onvif-field-smoke-redaction
                  ONVIF 현장 smoke 산출물 redaction checklist를 검증합니다.
   verify-onvif-field-http-probe
@@ -509,6 +511,10 @@ case "${cmd}" in
   verify-onvif-no-device-mode)
     require_internal verify_onvif_no_device_mode.mjs
     exec "${INTERNAL_DIR}/verify_onvif_no_device_mode.mjs" "$@"
+    ;;
+  verify-onvif-no-device-completion)
+    require_internal verify_onvif_no_device_completion.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_no_device_completion.mjs" "$@"
     ;;
   verify-onvif-field-smoke-redaction)
     require_internal verify_onvif_field_smoke_redaction.mjs

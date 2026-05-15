@@ -3,8 +3,8 @@
   "generatedAt": "2026-05-15T00:00:00.000Z",
   "mode": "실장비 제외",
   "realDeviceEndpointSuccess": "미확인",
-  "total": 23,
-  "completed": 23,
+  "total": 24,
+  "completed": 24,
   "failed": null,
   "results": [
     {
@@ -142,6 +142,12 @@
     {
       "index": 23,
       "command": "./server.sh verify-onvif-credential-reference-policy",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 24,
+      "command": "./server.sh verify-onvif-no-device-completion",
       "ok": true,
       "status": 0
     }
