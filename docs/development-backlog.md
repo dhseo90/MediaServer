@@ -268,6 +268,17 @@ PR template과 정적 verifier를 연결했습니다.
 - `verify-ui-visual-artifact-index`가 auth screenshot smoke의 artifact index 연결을 정적 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Ops Rules 저장 전 validation e2e 보강 후속 종료 판정
+
+2026-05-16 기준 `/ops/rules` 저장 전 validation을 실제 브라우저 저장 클릭 흐름에서 확인하도록 보강했습니다.
+
+확인됨:
+
+- `verify-rule-ui`가 채널 분석 설정 추가 화면에서 존재하지 않는 profile option을 주입하고 저장 버튼을 클릭합니다.
+- 잘못된 draft는 `/lab/analysis/va-rules/*` write request 없이 `저장 전 검증 실패` 상태 메시지로 차단되는지 확인합니다.
+- `verify-ops-rule-conflict-ui`가 해당 browser e2e guard snippet을 정적 검증합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ## v1.2.0 시작 전 체크리스트
 
 - [x] v1.1.0 PR이 `main`에 merge됨

@@ -150,6 +150,9 @@ UI ownership 기준:
 
 저장 버튼도 같은 기준으로 draft payload를 확인해
 잘못된 source 연결이나 빈 프로파일을 서버 요청 전에 차단합니다.
+`verify-rule-ui`는 실제 브라우저에서 존재하지 않는 profile option을 주입한 뒤
+저장을 눌러 `/lab/analysis/va-rules/*` write request 없이
+`저장 전 검증 실패`로 차단되는지 확인합니다.
 
 대표 제품 화면:
 

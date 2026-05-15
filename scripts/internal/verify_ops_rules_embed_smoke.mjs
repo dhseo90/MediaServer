@@ -184,6 +184,48 @@ function buildRulesOpenExpression() {
         return fail('channel options missing expected source', { optionTexts });
       }
 
+      const preSaveValidation = await (async () => {
+        const profileSelect = document.getElementById('opsVaRuleProfileSelect');
+        const saveButton = document.getElementById('opsRulesComposerSave');
+        if (!profileSelect || !saveButton) {
+          return { ok: false, message: 'missing profile select or save button' };
+        }
+        const invalidProfileId = '__missing_profile_e2e__';
+        const option = document.createElement('option');
+        option.value = invalidProfileId;
+        option.textContent = 'Missing profile E2E';
+        profileSelect.appendChild(option);
+        profileSelect.value = invalidProfileId;
+        profileSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        const attemptedWrites = [];
+        const originalFetch = window.fetch.bind(window);
+        window.fetch = (input, init = {}) => {
+          const url = String(typeof input === 'string' ? input : (input?.url || ''));
+          const method = String(init?.method || input?.method || 'GET').toUpperCase();
+          if (method !== 'GET' && url.includes('/lab/analysis/va-rules/')) {
+            attemptedWrites.push(method + ' ' + url);
+            return Promise.reject(new Error('blocked test va-rule write'));
+          }
+          return originalFetch(input, init);
+        };
+        try {
+          saveButton.click();
+          await wait(700);
+        } finally {
+          window.fetch = originalFetch;
+          option.remove();
+        }
+        const statusText = status?.textContent || '';
+        const ok = attemptedWrites.length === 0 &&
+          statusText.includes('저장 전 검증 실패') &&
+          statusText.includes('분석 프로파일') &&
+          statusText.includes('찾을 수 없습니다');
+        return { ok, attemptedWrites, statusText };
+      })();
+      if (!preSaveValidation.ok) {
+        return fail('pre-save validation did not block invalid profile', preSaveValidation);
+      }
+
       click('opsAddEventRuleBtn');
       await wait(400);
       if (!visible(eventSection) || visible(vaSection) || visible(detailPanel)) {
@@ -211,6 +253,7 @@ function buildRulesOpenExpression() {
       return {
         ok: true,
         optionTexts,
+        preSaveValidation,
         navHref: Array.from(document.querySelectorAll('a[href="/ops/users"]')).find(node => visible(node))?.getAttribute('href') || '',
         statusText: status?.textContent || ''
       };
