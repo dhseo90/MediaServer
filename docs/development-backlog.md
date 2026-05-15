@@ -171,6 +171,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 
 - `/ops/dashboard` 문제 원인 패널의 `라이브 소스 상태` 다음 조치가 `/ops/api/source-health/bulk` dry-run check를 호출합니다.
 - 재검증 버튼은 bulk 응답의 `retryBody.sourceIds`만 `operation=retry`로 다시 보내 retryable-only 흐름을 유지합니다.
+- check/retry 결과는 `/ops/sources` 변경 이력의 `소스 상태 변경` audit preset으로 바로 이동할 수 있습니다.
 - source health bulk는 SourceRegistry/PublishedView를 변경하지 않는 dry-run으로 문서화했고, rollback 대상이 없음을 channel bulk mutation rollback 계약과 분리했습니다.
 - `/ops/sources`에는 source health bulk panel/table/detail을 추가하지 않고, 상태 변화 이력은 기존 `Source Health 변경` audit preset으로 확인합니다.
 

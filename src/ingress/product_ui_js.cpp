@@ -924,6 +924,25 @@ std::string ProductSharedUiScript() {
           { id: 'all', label: '전체 이력', state: { q: '', actor: '', user: '', target: '', action: '', fromMs: '', toMs: '' } }
         ];
       };
+      const auditHashStateFor = area => {
+        const rawHash = String(window.location.hash || '').replace(/^#/, '');
+        if (!rawHash) return null;
+        const params = new URLSearchParams(rawHash);
+        const hashArea = String(params.get('auditArea') || area || '').trim();
+        if (hashArea && area && hashArea !== area) return null;
+        const preset = String(params.get('auditPreset') || '').trim();
+        const presetState = auditFilterPresetsFor(area).find(item => item.id === preset)?.state || {};
+        const state = { ...presetState };
+        const action = String(params.get('auditAction') || params.get('audit') || '').trim();
+        const target = String(params.get('auditTarget') || '').trim();
+        const query = String(params.get('auditQ') || '').trim();
+        if (action) state.action = action;
+        if (target) state.target = target;
+        if (query) state.q = query;
+        if (params.get('auditFromMs')) state.fromMs = params.get('auditFromMs');
+        if (params.get('auditToMs')) state.toMs = params.get('auditToMs');
+        return Object.keys(state).length > 0 ? state : null;
+      };
       const auditLocalDateTime = value => {
         const numeric = Number(value || 0);
         if (!Number.isFinite(numeric) || numeric <= 0) return '';
@@ -1025,7 +1044,8 @@ std::string ProductSharedUiScript() {
       }
       function auditStateFor(containerId, area = '') {
         if (!opsAuditViewStates.has(containerId)) {
-          opsAuditViewStates.set(containerId, { area, q: '', actor: '', user: '', target: '', action: '', fromMs: '', toMs: '', limit: 10, offset: 0 });
+          const hashState = auditHashStateFor(area);
+          opsAuditViewStates.set(containerId, { area, q: '', actor: '', user: '', target: '', action: '', fromMs: '', toMs: '', limit: 10, offset: 0, ...(hashState || {}) });
         }
         const state = opsAuditViewStates.get(containerId);
         state.area = area;

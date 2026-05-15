@@ -1611,6 +1611,30 @@ void AppendOpsShellScript(std::ostringstream& out,
       const sourceHealthRetryIds = bulk => Array.isArray(bulk?.retryBody?.sourceIds)
         ? bulk.retryBody.sourceIds.map(id => String(id || '').trim()).filter(Boolean)
         : [];
+      const sourceHealthBulkTargetIds = (sourceHealth = {}, bulk = {}) => {
+        const retryIds = sourceHealthRetryIds(bulk);
+        if (retryIds.length > 0) return retryIds;
+        const resultIds = Array.isArray(bulk?.results)
+          ? bulk.results.map(result => String(result?.sourceId || '').trim()).filter(Boolean)
+          : [];
+        if (resultIds.length > 0) return [...new Set(resultIds)];
+        return sourceHealthTargetIds(sourceHealth);
+      };
+      const sourceHealthAuditHref = (sourceHealth = {}, bulk = {}) => {
+        const ids = sourceHealthBulkTargetIds(sourceHealth, bulk);
+        const params = new URLSearchParams({
+          auditArea: 'channels',
+          auditPreset: 'source-health-state-change',
+          auditAction: 'source-health-state-change'
+        });
+        if (ids.length === 1) {
+          params.set('channel', ids[0]);
+          params.set('auditTarget', `source:${ids[0]}`);
+        } else if (ids.length > 1) {
+          params.set('auditQ', 'source-health-state-change');
+        }
+        return `/ops/sources#${params.toString()}`;
+      };
       const runSourceHealthBulk = (operation = 'check', sourceIds = []) => {
         const body = { operation };
         const ids = Array.isArray(sourceIds) ? sourceIds.filter(Boolean) : [];
@@ -1635,14 +1659,19 @@ void AppendOpsShellScript(std::ostringstream& out,
           failed.length > 0
             ? `구성 확인 필요: ${failed.slice(0, 3).map(result => `#${result.sourceId || '-'} ${result.reason || 'unknown'}`).join(' / ')}`
             : `요약 전체=${counts.total} 수신=${counts.live} 지연=${counts.stale} 오프라인=${counts.offline}`,
+          '상태 변화 audit은 /ops/sources 변경 이력의 소스 상태 변경 preset에서 확인합니다.',
           'source health bulk는 registry를 변경하지 않아 rollback 대상이 없습니다.'
         ];
       };
       const renderSourceHealthActionOutput = (title, sourceHealth, bulk, logs) => {
         const retryIds = sourceHealthRetryIds(bulk);
-        const actions = retryIds.length > 0
-          ? '<button type="button" class="button button-secondary button-compact" data-source-health-retry>재검증 대상만 다시 확인</button>'
-          : '';
+        const actionButtons = [
+          retryIds.length > 0
+            ? '<button type="button" class="button button-secondary button-compact" data-source-health-retry>재검증 대상만 다시 확인</button>'
+            : '',
+          `<a class="button button-secondary button-compact" href="${escapeHtml(sourceHealthAuditHref(sourceHealth, bulk))}">소스 상태 변경 이력</a>`
+        ].filter(Boolean);
+        const actions = actionButtons.join('');
         renderRootCauseActionOutput(title, sourceHealthBulkRows(sourceHealth, bulk), logs, actions);
         const retryButton = document.querySelector('[data-source-health-retry]');
         if (retryButton) {

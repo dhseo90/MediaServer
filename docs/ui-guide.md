@@ -431,6 +431,8 @@ UI/API 응답에 노출하지 않습니다.
   `/ops/sources`, `/ops/rules`, `/ops/users` 변경은 서버 감사 로그
   `/ops/api/audit`, `.media_server.ops_audit.jsonl`에 영속 저장합니다.
   하단 변경 이력 패널에도 표시합니다.
+  `/ops/sources#auditPreset=source-health-state-change`처럼 hash filter를
+  붙이면 채널 변경 이력의 source health 상태 변경 preset으로 바로 열립니다.
   작업자 정보는 `/auth/whoami`/서버 principal 기준입니다.
   비밀번호/token/hash/capability 필드는 전/후 값에서 마스킹합니다.
   서버 저장에 실패하면 브라우저 캐시 기록으로 후퇴합니다.
