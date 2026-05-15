@@ -5238,6 +5238,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const editSelectedButton = document.querySelector('#channel-edit-selected');
     const closeChannelButton = document.querySelector('#channel-close');
     const onvifProbeDraftInput = document.querySelector('#onvifProbeDraftInput');
+    const onvifProbeProfileSelect = document.querySelector('#onvifProbeProfileSelect');
     const onvifProbeDraftApplyButton = document.querySelector('#onvifProbeDraftApply');
     const onvifProbeDraftClearButton = document.querySelector('#onvifProbeDraftClear');
     const onvifProbeDraftStatus = document.querySelector('#onvifProbeDraftStatus');
@@ -5688,6 +5689,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     function selectedProfileLabel(profile) {
       if (!profile || typeof profile !== 'object') return '';
       const parts = [
+        profile.name,
         profile.mediaApi,
         profile.encoding,
         Number(profile.width || 0) > 0 && Number(profile.height || 0) > 0
@@ -5696,6 +5698,62 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         Number(profile.fps || 0) > 0 ? `${profile.fps}fps` : ''
       ].filter(Boolean);
       return parts.join(' / ');
+    }
+    function parseOnvifProbeFixtureInput() {
+      const fixtureText = String(onvifProbeDraftInput?.value || '').trim();
+      if (!fixtureText) return null;
+      try {
+        return JSON.parse(fixtureText);
+      } catch (_) {
+        return null;
+      }
+    }
+    function liveRtspProbeProfiles(fixture) {
+      return (Array.isArray(fixture?.mediaProfiles) ? fixture.mediaProfiles : [])
+        .filter(profile => profile && profile.token && onvifTransportFromUri(profile.streamUri)?.rtspUrl);
+    }
+    function preferredProbeProfileToken(fixture, profiles) {
+      const explicit = String(fixture?.draftDecision?.selectedProfileToken || '').trim();
+      if (explicit && profiles.some(profile => profile.token === explicit)) return explicit;
+      const selected = profiles.find(profile => profile.selected);
+      return selected?.token || profiles[0]?.token || '';
+    }
+    function renderOnvifProbeProfiles(fixture) {
+      if (!onvifProbeProfileSelect) return;
+      const profiles = liveRtspProbeProfiles(fixture);
+      const previous = String(onvifProbeProfileSelect.value || '').trim();
+      if (profiles.length === 0) {
+        onvifProbeProfileSelect.innerHTML = '<option value="">profile 후보 없음</option>';
+        onvifProbeProfileSelect.disabled = true;
+        return;
+      }
+      onvifProbeProfileSelect.innerHTML = profiles.map(profile =>
+        `<option value="${escapeHtml(profile.token)}">${escapeHtml(selectedProfileLabel(profile) || profile.token)}</option>`
+      ).join('');
+      onvifProbeProfileSelect.value = previous && profiles.some(profile => profile.token === previous)
+        ? previous
+        : preferredProbeProfileToken(fixture, profiles);
+      onvifProbeProfileSelect.disabled = false;
+    }
+    function fixtureWithSelectedProbeProfile(fixture) {
+      const profiles = liveRtspProbeProfiles(fixture);
+      if (profiles.length === 0) return fixture;
+      const token = String(onvifProbeProfileSelect?.value || preferredProbeProfileToken(fixture, profiles)).trim();
+      const profile = profiles.find(item => item.token === token) || profiles[0];
+      const next = JSON.parse(JSON.stringify(fixture));
+      next.draftDecision = next.draftDecision || {};
+      next.draftDecision.selectedProfileToken = profile.token;
+      next.draftDecision.expectedSourceDraft = next.draftDecision.expectedSourceDraft || {};
+      next.draftDecision.expectedSourceDraft.kind = 'rtsp';
+      next.draftDecision.expectedSourceDraft.rtspUrl = profile.streamUri;
+      next.draftDecision.expectedSourceDraft.displayName =
+        next.draftDecision.expectedSourceDraft.displayName || profile.name || profile.token;
+      next.draftDecision.expectedPublishedViewDraft =
+        next.draftDecision.expectedPublishedViewDraft || {};
+      next.draftDecision.expectedPublishedViewDraft.displayName =
+        next.draftDecision.expectedPublishedViewDraft.displayName ||
+        next.draftDecision.expectedSourceDraft.displayName;
+      return next;
     }
     function applyOnvifDraftToChannelForm(payload) {
       const sourceDraft = payload?.sourceDraft || {};
@@ -5737,11 +5795,12 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         setOnvifProbeDraftStatus('ONVIF probe fixture JSON을 파싱할 수 없습니다.', true);
         return;
       }
+      renderOnvifProbeProfiles(fixture);
       try {
         const payload = await requestJson('/ops/api/onvif/import-draft', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(fixture)
+          body: JSON.stringify(fixtureWithSelectedProbeProfile(fixture))
         });
         applyOnvifDraftToChannelForm(payload);
       } catch (error) {
@@ -5944,9 +6003,11 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     });
     editSelectedButton.addEventListener('click', () => currentChannelId && fillChannel(currentChannelId, 'edit'));
     channelForm.elements.kind.addEventListener('change', updateKindFields);
+    onvifProbeDraftInput?.addEventListener('input', () => renderOnvifProbeProfiles(parseOnvifProbeFixtureInput()));
     onvifProbeDraftApplyButton?.addEventListener('click', applyOnvifProbeDraft);
     onvifProbeDraftClearButton?.addEventListener('click', () => {
       onvifProbeDraftInput.value = '';
+      renderOnvifProbeProfiles(null);
       setOnvifProbeDraftStatus('');
     });
     document.querySelector('#refresh').addEventListener('click', () => loadAll().catch(error => setStatus(error.message, true)));

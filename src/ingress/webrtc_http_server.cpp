@@ -3989,6 +3989,11 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <label>ONVIF probe fixture
               <textarea id="onvifProbeDraftInput" rows="5" spellcheck="false" autocomplete="off" placeholder="test/fixtures/onvif_probe_result_stub.json 내용을 붙여넣기"></textarea>
             </label>
+            <label>ONVIF profile
+              <select id="onvifProbeProfileSelect" disabled>
+                <option value="">profile 후보 없음</option>
+              </select>
+            </label>
             <div class="actions">
               <button id="onvifProbeDraftApply" class="button-secondary" type="button">Probe draft 적용</button>
               <button id="onvifProbeDraftClear" class="button-secondary" type="button">초기화</button>

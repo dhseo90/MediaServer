@@ -170,6 +170,8 @@ std::string ProductSharedUiScript() {
         'Published WebRTC 소스': 'Published WebRTC source',
         'ONVIF 스트림 URI': 'ONVIF Stream URI',
         'ONVIF probe fixture': 'ONVIF probe fixture',
+        'ONVIF profile': 'ONVIF profile',
+        'profile 후보 없음': 'No profile candidates',
         'Probe draft 적용': 'Apply probe draft',
         '초기화': 'Clear',
         'test/fixtures/onvif_probe_result_stub.json 내용을 붙여넣기': 'Paste test/fixtures/onvif_probe_result_stub.json content',
