@@ -98,6 +98,8 @@ Usage:
                  README/docs Markdown 링크와 이미지 파일 참조를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
+  verify-onvif-protocol-support-matrix
+                 ONVIF protocol/service 지원/비지원 matrix와 구현 기준을 검증합니다.
   verify-onvif-probe-fixture-contract
                  ONVIF field probe fixture가 내부 probe-to-draft 계약을 지키는지 검증합니다.
   verify-onvif-probe-profile-variants
@@ -437,6 +439,10 @@ case "${cmd}" in
   verify-onvif-live-import-contract)
     require_internal verify_onvif_live_import_contract.mjs
     exec "${INTERNAL_DIR}/verify_onvif_live_import_contract.mjs" "$@"
+    ;;
+  verify-onvif-protocol-support-matrix)
+    require_internal verify_onvif_protocol_support_matrix.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_protocol_support_matrix.mjs" "$@"
     ;;
   verify-onvif-probe-fixture-contract)
     require_internal verify_onvif_probe_fixture_contract.mjs

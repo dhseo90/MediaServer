@@ -4,12 +4,16 @@
 ONVIF는 file, RTSP pull, HTTP/HLS URI, WHEP pull, Published WebRTC와 같은
 채널 source 유형 중 하나로 취급합니다. 제품 UI에서 ONVIF만 별도 import
 화면이나 특별한 workflow로 분리하지 않습니다.
+ONVIF protocol/service별 지원 범위는
+[ONVIF Protocol Support Matrix](./onvif-protocol-support-matrix.md)를 기준으로
+보고합니다.
 
 관련 기준:
 
 - [Development Backlog](./development-backlog.md)
 - [Media Server Architecture](./media-server-architecture.md)
 - [Config Reference](./config-reference.md)
+- [ONVIF Protocol Support Matrix](./onvif-protocol-support-matrix.md)
 - [ONVIF No-Device Verification](./onvif-no-device-verification.md)
 
 ## 범위
@@ -224,6 +228,7 @@ notes: <sanitized operational note>
 
 ```bash
 ./server.sh build
+./server.sh verify-onvif-protocol-support-matrix
 ./server.sh verify-onvif-live-import-contract
 ./server.sh verify-onvif-probe-fixture-contract
 ./server.sh verify-onvif-probe-profile-variants

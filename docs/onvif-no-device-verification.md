@@ -7,6 +7,7 @@
 관련 기준:
 
 - [ONVIF Live Source Support](./onvif-live-source-support.md)
+- [ONVIF Protocol Support Matrix](./onvif-protocol-support-matrix.md)
 - [ONVIF Field Smoke Artifact Redaction Checklist](./onvif-field-smoke-artifact-redaction.md)
 - [ONVIF TLS Transport Policy](./onvif-tls-transport-policy.md)
 - [ONVIF Credential Reference Policy](./onvif-credential-reference-policy.md)
@@ -43,6 +44,7 @@
 ```bash
 ./server.sh verify-onvif-no-device-suite
 ./server.sh verify-onvif-no-device-mode
+./server.sh verify-onvif-protocol-support-matrix
 ./server.sh verify-onvif-live-import-contract
 ./server.sh verify-onvif-probe-fixture-contract
 ./server.sh verify-onvif-probe-profile-variants
