@@ -256,6 +256,18 @@ PR template과 정적 verifier를 연결했습니다.
 - client scoped API는 기존처럼 raw source URL, storage path, token/hash/debug key를 노출하지 않는지 JSON key traversal로 확인합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Auth shell visual regression gate 후속 종료 판정
+
+2026-05-16 기준 auth shell screenshot smoke도 visual artifact index/manifest gate에 포함했습니다.
+
+확인됨:
+
+- `verify_auth_ui_smoke.mjs`가 screenshot 실행 시 `visual-regression-manifest.json`과 `index.md`를 생성합니다.
+- auth visual 기본 viewport 폭을 320/390/760/1180px로 맞춰 setup/login/request-access/password-change shell의 모바일/데스크톱 회귀를 같은 기준으로 봅니다.
+- PR template과 stream verification 문서에 auth shell 변경 시 `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap` 실행 기준을 추가했습니다.
+- `verify-ui-visual-artifact-index`가 auth screenshot smoke의 artifact index 연결을 정적 검증합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ## v1.2.0 시작 전 체크리스트
 
 - [x] v1.1.0 PR이 `main`에 merge됨

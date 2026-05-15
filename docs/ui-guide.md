@@ -332,7 +332,8 @@ Ops/Client/Lab API guard를 확인합니다.
 
 - auth shell screenshot이 필요하면
   `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`
-  을 붙입니다.
+  을 붙입니다. Auth screenshot smoke는 320/390/760/1180px 기준으로
+  `visual-regression-manifest.json`과 `index.md`를 함께 생성합니다.
 - Ops/Client selector와 client debug/source 비노출은
   `./server.sh verify-ops-client-ui`로 확인합니다.
   이 smoke는 client shell HTML, `/client/api/views*` scoped JSON,

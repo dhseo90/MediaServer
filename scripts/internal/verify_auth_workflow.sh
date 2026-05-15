@@ -274,7 +274,7 @@ auth_ui_smoke() {
     "${ROOT_DIR}/scripts/internal/verify_auth_ui_smoke.mjs"
     --http-base "${BASE}"
     --page "${page_spec}"
-    --visual-widths "${MEDIA_SERVER_VERIFY_AUTH_VISUAL_WIDTHS:-390,760}"
+    --visual-widths "${MEDIA_SERVER_VERIFY_AUTH_VISUAL_WIDTHS:-320,390,760,1180}"
     --debug-port-base "${MEDIA_SERVER_VERIFY_AUTH_DEBUG_PORT_BASE:-9820}"
   )
   if truthy "${MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS:-0}"; then

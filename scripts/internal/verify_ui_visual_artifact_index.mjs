@@ -63,6 +63,7 @@ const docs = [
   fs.readFileSync(path.join(rootDir, "docs/ui-guide.md"), "utf8"),
   fs.readFileSync(path.join(rootDir, ".github/PULL_REQUEST_TEMPLATE.md"), "utf8"),
 ].join("\n");
+const authSmoke = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_auth_ui_smoke.mjs"), "utf8");
 
 const checksRun = [];
 check("manifest schema and screenshot rows", () => {
@@ -100,6 +101,17 @@ check("PR template requires visual review artifact evidence", () => {
     "source URL, Developer URL, raw JSON",
   ]) {
     assert(template.includes(snippet), `PR template missing visual review checklist snippet: ${snippet}`);
+  }
+});
+
+check("auth screenshot smoke writes indexed visual artifacts", () => {
+  for (const snippet of [
+    "writeVisualArtifactIndex",
+    "Auth Visual Regression Artifacts",
+    "MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap",
+    "320,390,760,1180",
+  ]) {
+    assert(authSmoke.includes(snippet), `auth visual smoke missing artifact index snippet: ${snippet}`);
   }
 });
 

@@ -22,6 +22,7 @@
 - [ ] `./server.sh verify-docs-ui-assets` when README/UI asset references changed
 - [ ] `./server.sh verify-ui-visual-artifact-index` when UI screenshot artifact behavior or docs changed
 - [ ] `./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>` when Auth/Ops/Client UI changed
+- [ ] `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap` when auth shell UI changed
 - [ ] Additional command(s):
 
 ## UI Visual Review

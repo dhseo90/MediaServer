@@ -197,6 +197,8 @@ Ops/Client shell 변경 확인 포인트:
 - Auth shell 변경은 기존 auth workflow에
   `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1`,
   필요하면 `MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`을 붙여 확인합니다.
+  Auth screenshot smoke도 320/390/760/1180px 기준으로
+  `visual-regression-manifest.json`과 `index.md`를 생성합니다.
 
 ```bash
 BASE=http://127.0.0.1:8080
