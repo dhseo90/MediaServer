@@ -75,11 +75,14 @@ ONVIF를 별도 import UI나 특별한 제품 기능으로 노출하지 않습�
 ```text
 POST /ops/api/onvif/import-draft
 test/fixtures/onvif_live_import_stub.json
+test/fixtures/onvif_probe_result_stub.json
 ```
 
 계약:
 
 - 입력 fixture는 실제 camera 연결 대신 합성 ONVIF 응답을 표현합니다.
+- probe fixture는 Device/Media/Media2 service와 live RTSP profile 조회 결과를
+  raw SOAP 없이 표현합니다.
 - 응답은 기존 `/ops/api/sources`와 `/ops/api/views`에 보낼 수 있는 draft만
   반환합니다.
 - 저장 side effect는 없습니다.
@@ -93,6 +96,7 @@ test/fixtures/onvif_live_import_stub.json
 ```bash
 ./server.sh build
 ./server.sh verify-onvif-live-import-contract
+./server.sh verify-onvif-probe-fixture-contract
 ./server.sh verify-onvif-import-draft-api
 ./server.sh verify-onvif-rtsp-downstream
 ./server.sh verify-onvif-ops-sources-ui

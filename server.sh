@@ -98,6 +98,8 @@ Usage:
                  README/docs Markdown 링크와 이미지 파일 참조를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
+  verify-onvif-probe-fixture-contract
+                 ONVIF field probe fixture가 내부 probe-to-draft 계약을 지키는지 검증합니다.
   verify-onvif-import-draft-api
                  실행 중인 서버의 ONVIF import draft API가 fixture를 source/view draft로 변환하는지 검증합니다.
   verify-onvif-rtsp-downstream
@@ -407,6 +409,10 @@ case "${cmd}" in
   verify-onvif-live-import-contract)
     require_internal verify_onvif_live_import_contract.mjs
     exec "${INTERNAL_DIR}/verify_onvif_live_import_contract.mjs" "$@"
+    ;;
+  verify-onvif-probe-fixture-contract)
+    require_internal verify_onvif_probe_fixture_contract.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_probe_fixture_contract.mjs" "$@"
     ;;
   verify-onvif-import-draft-api)
     require_internal verify_onvif_import_draft_api.mjs
