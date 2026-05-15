@@ -31,6 +31,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const designDoc = readText("docs/onvif-auth-injection-design.md");
 const credentialDoc = readText("docs/onvif-credential-reference-policy.md");
+const storeDesign = readText("docs/onvif-credential-store-integration-design.md");
 const matrixDoc = readText("docs/onvif-protocol-support-matrix.md");
 const onvifCode = readText("src/ingress/onvif_live_import.cpp");
 const checks = [];
@@ -43,6 +44,7 @@ check("auth injection design keeps current reference-only status explicit", () =
     "Authorization",
     "Cookie",
     "UsernameToken",
+    "secret 저장소 또는 secret manager lookup도 현재 구현 완료가 아닙니다",
     "HTTP 401/403은 sanitized probe failure",
   ]) {
     assertContains(designDoc, term, `design doc missing current auth boundary: ${term}`);
@@ -68,7 +70,10 @@ check("auth injection design documents future secret handling requirements", () 
 
 check("credential policy and protocol matrix link auth injection design", () => {
   assertContains(credentialDoc, "./onvif-auth-injection-design.md", "credential policy missing auth design link");
+  assertContains(credentialDoc, "./onvif-credential-store-integration-design.md", "credential policy missing credential store design link");
+  assertContains(storeDesign, "./onvif-auth-injection-design.md", "credential store design missing auth design link");
   assertContains(matrixDoc, "./onvif-auth-injection-design.md", "protocol matrix missing auth design link");
+  assertContains(matrixDoc, "./onvif-credential-store-integration-design.md", "protocol matrix missing credential store design link");
   assertContains(matrixDoc, "verify-onvif-auth-injection-design", "protocol matrix missing auth design verification");
 });
 

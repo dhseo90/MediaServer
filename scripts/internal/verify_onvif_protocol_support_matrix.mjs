@@ -56,6 +56,7 @@ check("protocol support matrix names supported ONVIF live-source scope", () => {
     "scheme preflight gate",
     "verify-onvif-https-soap-transport-design",
     "./onvif-auth-injection-design.md",
+    "./onvif-credential-store-integration-design.md",
     "verify-onvif-auth-injection-design",
     "./onvif-unsupported-api-guard.md",
     "수동 ONVIF stream URI 등록",
@@ -109,6 +110,7 @@ check("TLS and credential policy docs keep unsupported auth/https scope explicit
   assertContains(tlsDoc, "HTTP SOAP transport만 포함", "TLS doc must state HTTP-only transport");
   assertContains(tlsDoc, "`https://` endpoint는 현재 transport 계층의 scheme preflight gate에서 fail-closed", "TLS doc must state HTTPS fail-closed");
   assertContains(credentialDoc, "ONVIF WS-Security UsernameToken 생성", "credential doc must keep WS-Security unsupported");
+  assertContains(credentialDoc, "./onvif-credential-store-integration-design.md", "credential doc must link credential store design");
   assertContains(credentialDoc, "HTTP Digest/Basic 인증 주입", "credential doc must keep HTTP auth injection unsupported");
 });
 

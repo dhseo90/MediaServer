@@ -8,6 +8,7 @@
 관련 기준:
 
 - [ONVIF Credential Reference Policy](./onvif-credential-reference-policy.md)
+- [ONVIF Credential Store Integration Design](./onvif-credential-store-integration-design.md)
 - [ONVIF HTTPS SOAP Transport Design](./onvif-https-soap-transport-design.md)
 - [ONVIF Protocol Support Matrix](./onvif-protocol-support-matrix.md)
 
@@ -19,6 +20,7 @@
   summary만 남깁니다.
 - ONVIF SOAP request에는 `Authorization`, `Cookie`, WS-Security UsernameToken을
   주입하지 않습니다.
+- secret 저장소 또는 secret manager lookup도 현재 구현 완료가 아닙니다.
 - endpoint URL에 username, password, token을 넣는 방식은 금지합니다.
 - 인증이 필요한 장비의 HTTP 401/403은 sanitized probe failure로 기록합니다.
 
@@ -29,7 +31,9 @@
 1. secret 원문은 SourceRegistry, PublishedView, client/viewer API, field artifact,
    log에 저장하거나 출력하지 않습니다.
 2. secret storage는 libsodium 등 동급 암호화 저장소 또는 외부 secret manager를
-   사용합니다.
+   사용하며, 저장소 경계는
+   [ONVIF Credential Store Integration Design](./onvif-credential-store-integration-design.md)을
+   따릅니다.
 3. `credentialRef`는 secret lookup key로만 쓰며 API/UI 응답에는 실제 reference
    값도 redacted 처리합니다.
 4. WS-Security UsernameToken, HTTP Digest, HTTP Basic 중 어떤 방식을 지원할지

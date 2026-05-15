@@ -5,6 +5,9 @@
 redaction 검증을 제공하는 범위입니다.
 향후 credential 주입 설계 기준은
 [ONVIF Auth Injection Design](./onvif-auth-injection-design.md)을 따릅니다.
+저장소/secret manager 연동 설계 기준은
+[ONVIF Credential Store Integration Design](./onvif-credential-store-integration-design.md)을
+따릅니다.
 
 ## 현재 정책
 
@@ -31,6 +34,17 @@ redaction 검증을 제공하는 범위입니다.
 - HTTP Digest/Basic 인증 주입
 - credential rotation, expiry, audit event
 - SourceRegistry origin metadata 안의 credential binding
+
+## 저장소 연동 설계
+
+현재 단계에서는 secret 저장소를 구현 완료로 보지 않습니다. 향후 저장소를 추가할 때는
+`CredentialSecretProvider`, `CredentialBindingStore`, probe runtime, audit event의
+경계를 분리하고, `credentialRef` 실제 값과 secret store key도 API/UI/artifact에
+노출하지 않습니다.
+
+세부 기준은
+[ONVIF Credential Store Integration Design](./onvif-credential-store-integration-design.md)에
+고정합니다.
 
 ## 향후 구현 조건
 
