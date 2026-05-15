@@ -95,7 +95,8 @@ test/fixtures/onvif_closed_loopback_failure_matrix.json
 - probe fixture는 Device/Media/Media2 service와 live RTSP profile 조회 결과를
   raw SOAP 없이 표현합니다.
 - profile variant fixture는 Media2 우선, Media fallback, Media-only, H265
-  RTSP, RTSPS direct/fallback profile 선택을 실장비 없이 고정합니다.
+  RTSP, RTSPS direct/fallback profile 선택과 Media/Media2 empty-profile 실패를
+  실장비 없이 고정합니다.
 - closed loopback failure matrix는 endpoint 성공이 아니라 sanitized transport
   failure와 redaction을 고정합니다.
 - SOAP parser는 Device/Media/Media2 service, Media/Media2 profile, GetStreamUri
@@ -154,6 +155,10 @@ draft 매핑:
   `ONVIF probe failed at GetServices: Media or Media2 service is required`입니다.
 - live RTSP profile을 찾지 못하면 sanitized summary는
   `ONVIF probe failed at GetStreamUri: no live RTSP profile discovered`입니다.
+  `test/fixtures/onvif_probe_profile_variants.json`의
+  `media2-and-media-empty-profiles` failure variant는 Media/Media2 service가
+  있지만 profile 목록이 비어 있는 경우에도 draft를 생성하지 않는 경계를
+  고정합니다.
 
 비범위:
 

@@ -243,6 +243,30 @@
       "expectedSelectionReason": "Media RTSPS fallback remains an existing kind=rtsp draft when Media2 has no live RTSP/RTSPS stream URI"
     }
   ],
+  "failureVariants": [
+    {
+      "id": "media2-and-media-empty-profiles",
+      "summary": "Media2 and Media services are available, but both return empty profile lists; no source/view draft is created.",
+      "services": [
+        {
+          "name": "Device",
+          "available": true
+        },
+        {
+          "name": "Media2",
+          "available": true
+        },
+        {
+          "name": "Media",
+          "available": true
+        }
+      ],
+      "mediaProfiles": [],
+      "expectedStatus": "fail",
+      "expectedError": "ONVIF probe failed at GetStreamUri: no live RTSP profile discovered",
+      "expectedDraftCreated": false
+    }
+  ],
   "nonGoals": [
     "ONVIF Profile G recording/replay",
     "camera recording configuration",

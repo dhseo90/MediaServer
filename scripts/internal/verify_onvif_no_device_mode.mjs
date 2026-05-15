@@ -54,6 +54,7 @@ check("no-device document defines field-device exclusion boundary", () => {
   assertContains(noDeviceDoc, "실장비 endpoint 성공", "missing real endpoint success caveat");
   assertContains(noDeviceDoc, "synthetic fixture", "missing synthetic fixture scope");
   assertContains(noDeviceDoc, "synthetic profile variant", "missing synthetic profile variant scope");
+  assertContains(noDeviceDoc, "Media/Media2 empty-profile", "missing empty profile failure scope");
   assertContains(noDeviceDoc, "loopback", "missing loopback scope");
   assertContains(noDeviceDoc, "closed loopback failure matrix", "missing closed loopback matrix scope");
   assertContains(noDeviceDoc, "redaction", "missing redaction scope");

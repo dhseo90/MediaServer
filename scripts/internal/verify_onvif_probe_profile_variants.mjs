@@ -22,6 +22,7 @@ Usage:
 Checks:
   - test/fixtures/onvif_probe_profile_variants.json profile selection matrix를 검증
   - Media2 우선, Media fallback, Media-only, H265 RTSP, RTSPS direct/fallback variant를 포함
+  - Media/Media2 empty-profile failure variant를 포함
   - 선택 profile은 기존 SourceRegistry kind=rtsp draft로만 축약 가능
   - 실장비 endpoint 성공, raw SOAP, credential 원문, recording/replay scope를 포함하지 않음
 `);
@@ -50,6 +51,22 @@ check("variant fixture schema and required ids are pinned", () => {
   ]) {
     assert(ids.has(id), `missing variant: ${id}`);
   }
+});
+
+check("failure variants pin empty Media/Media2 profile behavior", () => {
+  const failureVariants = arrayAt(fixture, "failureVariants");
+  const byId = Object.fromEntries(failureVariants.map(variant => [variant.id, variant]));
+  const emptyProfiles = byId["media2-and-media-empty-profiles"];
+  assert(emptyProfiles, "missing empty Media/Media2 profile failure variant");
+  assert(serviceAvailable(emptyProfiles, "Media2"), "empty profile variant must include Media2 service");
+  assert(serviceAvailable(emptyProfiles, "Media"), "empty profile variant must include Media service");
+  assert(arrayAt(emptyProfiles, "mediaProfiles").length === 0, "empty profile variant must have no mediaProfiles");
+  assert(emptyProfiles.expectedStatus === "fail", "empty profile variant must be a failure case");
+  assert(emptyProfiles.expectedError === "ONVIF probe failed at GetStreamUri: no live RTSP profile discovered", "empty profile variant expectedError mismatch");
+  assert(emptyProfiles.expectedDraftCreated === false, "empty profile variant must not create a draft");
+  assert(!Object.hasOwn(emptyProfiles, "expectedSelectedProfileToken"), "empty profile variant must not pin a selected token");
+  assert(!Object.hasOwn(emptyProfiles, "expectedSourceDraft"), "empty profile variant must not include a source draft");
+  assert(!Object.hasOwn(emptyProfiles, "expectedPublishedViewDraft"), "empty profile variant must not include a published view draft");
 });
 
 check("each variant has exactly one selected live RTSP profile", () => {
@@ -169,6 +186,7 @@ check("fixture remains synthetic and excludes non-goals", () => {
 check("ONVIF live support doc references profile variant verification", () => {
   assert(supportDoc.includes("test/fixtures/onvif_probe_profile_variants.json"), "support doc missing profile variant fixture path");
   assert(supportDoc.includes("verify-onvif-probe-profile-variants"), "support doc missing profile variant command");
+  assert(supportDoc.includes("media2-and-media-empty-profiles"), "support doc missing empty profile failure variant");
 });
 
 let failures = 0;
@@ -186,6 +204,7 @@ console.log("");
 console.log("== ONVIF probe profile variant summary ==");
 console.log(`- fixture: ${path.relative(rootDir, fixturePath)}`);
 console.log(`- variants: ${arrayAt(fixture, "variants").length}`);
+console.log(`- failureVariants: ${arrayAt(fixture, "failureVariants").length}`);
 console.log(`- failures: ${failures}`);
 if (failures > 0) process.exit(1);
 
