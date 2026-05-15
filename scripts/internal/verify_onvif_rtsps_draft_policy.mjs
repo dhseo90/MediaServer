@@ -46,6 +46,7 @@ const liveSupportDoc = readText("docs/onvif-live-source-support.md");
 const onvifCode = readText("src/ingress/onvif_live_import.cpp");
 const uiCode = readText("src/ingress/product_ui_page_scripts.cpp");
 const rtspsProbeFixture = JSON.parse(readText("test/fixtures/onvif_probe_result_rtsps_stub.json"));
+const profileVariants = JSON.parse(readText("test/fixtures/onvif_probe_profile_variants.json"));
 const checks = [];
 
 check("RTSPS policy document separates candidate, draft, and manual registration", () => {
@@ -87,6 +88,24 @@ check("RTSPS probe fixture maps to existing API draft contract", () => {
   assert(view.sourceId === source.sourceId && view.viewId === source.sourceId, "RTSPS view draft must use same numeric sourceId/viewId");
   assert(arrayAt(source, "tags").includes("rtsps"), "RTSPS source draft tags must include rtsps marker");
   assert(rtspsProbeFixture.auth?.plaintextSecretIncluded === false, "RTSPS fixture must exclude plaintext credentials");
+});
+
+check("profile variant fixture includes direct and fallback RTSPS draft cases", () => {
+  const byId = Object.fromEntries(arrayAt(profileVariants, "variants").map(variant => [variant.id, variant]));
+  for (const id of [
+    "media2-rtsps-live-rtsp",
+    "media-rtsps-fallback-when-media2-non-rtsp",
+  ]) {
+    const variant = byId[id];
+    assert(variant, `missing RTSPS profile variant: ${id}`);
+    const selected = selectedProfile(variant);
+    assert(String(selected.streamUri || "").startsWith("rtsps://"), `${id}: selected streamUri must be rtsps://`);
+    assert(selected.transport === "RTSP", `${id}: selected transport must remain RTSP`);
+    assert(String(variant.expectedSelectionReason || "").includes("kind=rtsp"), `${id}: expected reason must pin kind=rtsp mapping`);
+  }
+  const fallback = byId["media-rtsps-fallback-when-media2-non-rtsp"];
+  assert(selectedProfile(fallback).mediaApi === "Media", "RTSPS fallback variant must select Media");
+  assert(arrayAt(fallback, "mediaProfiles").some(profile => profile.mediaApi === "Media2" && !/^rtsps?:\/\//i.test(String(profile.streamUri || ""))), "RTSPS fallback variant must keep a non-RTSP/RTSPS Media2 profile");
 });
 
 check("implementation keeps rtsps parser candidate and automatic draft support", () => {
@@ -171,6 +190,13 @@ function arrayAt(parent, field) {
   const value = parent?.[field];
   assert(Array.isArray(value), `${field} must be an array`);
   return value;
+}
+
+function selectedProfile(variant) {
+  const selected = arrayAt(variant, "mediaProfiles").filter(profile => profile.token === variant.expectedSelectedProfileToken);
+  assert(selected.length === 1, `${variant.id}: expected selected profile must exist once`);
+  assert(selected[0].selected === true, `${variant.id}: expected selected profile must be marked selected`);
+  return selected[0];
 }
 
 function parseArgs(argv) {

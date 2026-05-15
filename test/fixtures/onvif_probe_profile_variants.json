@@ -195,6 +195,52 @@
       ],
       "expectedSelectedProfileToken": "variant-media2-rtsps",
       "expectedSelectionReason": "RTSPS live profile is stored as a kind=rtsp draft without changing media schema"
+    },
+    {
+      "id": "media-rtsps-fallback-when-media2-non-rtsp",
+      "summary": "Media2 profile exists but is not live RTSP/RTSPS; Media RTSPS profile is selected as an existing rtsp source.",
+      "services": [
+        {
+          "name": "Device",
+          "available": true
+        },
+        {
+          "name": "Media2",
+          "available": true
+        },
+        {
+          "name": "Media",
+          "available": true
+        }
+      ],
+      "mediaProfiles": [
+        {
+          "token": "variant-media2-http-rtsps-fallback",
+          "name": "Variant Media2 HTTP Preview Before RTSPS Fallback",
+          "mediaApi": "Media2",
+          "encoding": "H264",
+          "width": 640,
+          "height": 360,
+          "fps": 10,
+          "transport": "HTTP",
+          "streamUri": "http://192.0.2.36/live/preview",
+          "selected": false
+        },
+        {
+          "token": "variant-media-rtsps-fallback",
+          "name": "Variant Media RTSPS Fallback",
+          "mediaApi": "Media",
+          "encoding": "H264",
+          "width": 1280,
+          "height": 720,
+          "fps": 20,
+          "transport": "RTSP",
+          "streamUri": "rtsps://192.0.2.36/live/media-secure-fallback",
+          "selected": true
+        }
+      ],
+      "expectedSelectedProfileToken": "variant-media-rtsps-fallback",
+      "expectedSelectionReason": "Media RTSPS fallback remains an existing kind=rtsp draft when Media2 has no live RTSP/RTSPS stream URI"
     }
   ],
   "nonGoals": [

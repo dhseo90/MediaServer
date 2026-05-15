@@ -19,7 +19,7 @@
 - synthetic fixture 기반 ONVIF live import contract
 - synthetic fixture 기반 Device/Media/Media2 parser와 probe adapter 동작
 - synthetic profile variant 기반 Media2 우선, Media fallback, Media-only, H265
-  RTSP 선택 동작
+  RTSP, RTSPS direct/fallback 선택 동작
 - loopback HTTP SOAP transport smoke
 - endpoint가 없는 환경의 명시 skip 동작
 - closed loopback endpoint의 sanitized failure 동작

@@ -21,7 +21,7 @@ Usage:
 
 Checks:
   - test/fixtures/onvif_probe_profile_variants.json profile selection matrix를 검증
-  - Media2 우선, Media fallback, Media-only, H265 RTSP, RTSPS selection variant를 포함
+  - Media2 우선, Media fallback, Media-only, H265 RTSP, RTSPS direct/fallback variant를 포함
   - 선택 profile은 기존 SourceRegistry kind=rtsp draft로만 축약 가능
   - 실장비 endpoint 성공, raw SOAP, credential 원문, recording/replay scope를 포함하지 않음
 `);
@@ -46,6 +46,7 @@ check("variant fixture schema and required ids are pinned", () => {
     "media-only-live-rtsp",
     "media2-h265-live-rtsp",
     "media2-rtsps-live-rtsp",
+    "media-rtsps-fallback-when-media2-non-rtsp",
   ]) {
     assert(ids.has(id), `missing variant: ${id}`);
   }
@@ -87,6 +88,13 @@ check("service availability matches expected profile fallback paths", () => {
 
   const rtsps = byId["media2-rtsps-live-rtsp"];
   assert(selectedProfile(rtsps).streamUri.startsWith("rtsps://"), "RTSPS variant must select an rtsps stream URI");
+
+  const rtspsFallback = byId["media-rtsps-fallback-when-media2-non-rtsp"];
+  assert(serviceAvailable(rtspsFallback, "Media2"), "RTSPS fallback variant must include Media2");
+  assert(serviceAvailable(rtspsFallback, "Media"), "RTSPS fallback variant must include Media");
+  assert(arrayAt(rtspsFallback, "mediaProfiles").some(profile => profile.mediaApi === "Media2" && !isRtspOrRtspsUrl(profile.streamUri)), "RTSPS fallback variant must include a non-RTSP/RTSPS Media2 profile");
+  assert(selectedProfile(rtspsFallback).mediaApi === "Media", "RTSPS fallback variant must select Media");
+  assert(selectedProfile(rtspsFallback).streamUri.startsWith("rtsps://"), "RTSPS fallback variant must select an rtsps stream URI");
 });
 
 check("selected variants can map to existing SourceRegistry/PublishedView draft shape", () => {
@@ -118,6 +126,19 @@ check("selected variants can map to existing SourceRegistry/PublishedView draft 
     assert(!Object.hasOwn(publishedViewDraft, "rtspUrl"), `${variant.id}: view draft must not expose rtspUrl`);
     assert(!Object.hasOwn(publishedViewDraft, "endpoint"), `${variant.id}: view draft must not expose endpoint`);
     assert(!Object.hasOwn(publishedViewDraft, "credentialRef"), `${variant.id}: view draft must not expose credentialRef`);
+  }
+});
+
+check("rtsps variants remain existing kind=rtsp draft cases", () => {
+  const rtspsVariants = arrayAt(fixture, "variants").filter(variant => selectedProfile(variant).streamUri.startsWith("rtsps://"));
+  const ids = new Set(rtspsVariants.map(variant => variant.id));
+  assert(ids.has("media2-rtsps-live-rtsp"), "direct Media2 RTSPS variant missing");
+  assert(ids.has("media-rtsps-fallback-when-media2-non-rtsp"), "Media fallback RTSPS variant missing");
+  assert(rtspsVariants.length >= 2, "expected at least two RTSPS variants");
+  for (const variant of rtspsVariants) {
+    const selected = selectedProfile(variant);
+    assert(selected.transport === "RTSP", `${variant.id}: RTSPS variant transport must stay RTSP`);
+    assert(variant.expectedSelectionReason.includes("kind=rtsp"), `${variant.id}: selection reason must pin existing rtsp draft mapping`);
   }
 });
 
