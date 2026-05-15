@@ -22,9 +22,9 @@ Profile S/T 전체 conformance나 ONVIF conformant server 구현이 아닙니다
 
 | 항목 | 현재 상태 | 세부 범위 | 검증 |
 | --- | --- | --- | --- |
-| ONVIF Device service SOAP | v1.2.0 Profile S/T live source 제한 지원 | `http://` Device service endpoint에 SOAP POST, `GetServices` 조회 | `verify-onvif-http-transport`, `verify-onvif-field-http-probe` |
-| ONVIF Media2 service SOAP | v1.2.0 Profile S/T live source 제한 지원 | `Media2.GetProfiles`, `Media2.GetStreamUri` 기반 live profile 후보 조회 | `verify-onvif-probe-parser`, `verify-onvif-probe-adapter`, `verify-onvif-probe-profile-variants` |
-| ONVIF Media service SOAP | v1.2.0 Profile S/T live source 제한 지원 | Media2에서 live RTSP 후보가 없거나 Media2가 없을 때 `Media.GetProfiles`, `Media.GetStreamUri` fallback | `verify-onvif-probe-profile-variants` |
+| ONVIF Device service SOAP | v1.2.0 Profile S/T live source 제한 지원 | `http://` Device service endpoint에 SOAP POST, `GetServices` 조회 | `verify-onvif-http-transport`, `verify-onvif-local-simulator`, `verify-onvif-field-http-probe` |
+| ONVIF Media2 service SOAP | v1.2.0 Profile S/T live source 제한 지원 | `Media2.GetProfiles`, `Media2.GetStreamUri` 기반 live profile 후보 조회 | `verify-onvif-probe-parser`, `verify-onvif-probe-adapter`, `verify-onvif-probe-profile-variants`, `verify-onvif-local-simulator` |
+| ONVIF Media service SOAP | v1.2.0 Profile S/T live source 제한 지원 | Media2에서 live RTSP 후보가 없거나 Media2가 없을 때 `Media.GetProfiles`, `Media.GetStreamUri` fallback | `verify-onvif-probe-profile-variants`, `verify-onvif-local-simulator` |
 | Live stream URI import | v1.2.0 Profile S/T live source 제한 지원 | 자동 probe 성공 조건은 `rtsp://` 또는 `rtsps://` GetStreamUri live 후보입니다. fixture draft 저장 계약은 `rtsp://`/`rtsps://` URI를 기존 `kind=rtsp` source draft로 축약합니다. `rtsps://` draft 기준은 [ONVIF RTSPS Draft Policy](./onvif-rtsps-draft-policy.md)를 따릅니다. | `verify-onvif-probe-fixture-contract`, `verify-onvif-probe-draft-api`, `verify-onvif-rtsps-draft-policy` |
 | 수동 ONVIF stream URI 등록 | 구현 완료 | `/ops/sources`에서 `rtsp://`, `rtsps://`, `http://`, `https://` live URI를 기존 SourceRegistry source로 저장 | `verify-onvif-ops-sources-ui` |
 | MediaServer egress URL | 구현 완료 | ONVIF source를 기존 RTSP/WHEP/WebRTC 출력 URL copy 흐름에 연결합니다. 이는 ONVIF protocol이 아니라 MediaServer 출력입니다. | `verify-onvif-ops-sources-ui`, `verify-onvif-rtsp-downstream` |

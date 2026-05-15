@@ -140,6 +140,8 @@ Usage:
                  ONVIF 현장 smoke 산출물 sample bundle redaction을 검증합니다.
   verify-onvif-http-transport
                  ONVIF HTTP SOAP transport가 실제 POST/응답 수신을 수행하는지 검증합니다.
+  verify-onvif-local-simulator
+                 실장비 대신 로컬 ONVIF simulator fixture로 HTTP SOAP probe 성공 경로를 검증합니다.
   verify-onvif-probe-draft-api
                  실행 중인 서버가 ONVIF probe fixture를 source/view draft로 변환하는지 검증합니다.
   verify-onvif-import-draft-api
@@ -535,6 +537,10 @@ case "${cmd}" in
   verify-onvif-http-transport)
     require_internal verify_onvif_http_transport.sh
     exec "${INTERNAL_DIR}/verify_onvif_http_transport.sh" "$@"
+    ;;
+  verify-onvif-local-simulator)
+    require_internal verify_onvif_local_simulator.sh
+    exec "${INTERNAL_DIR}/verify_onvif_local_simulator.sh" "$@"
     ;;
   verify-onvif-probe-draft-api)
     require_internal verify_onvif_probe_draft_api.mjs

@@ -27,6 +27,7 @@ simulator fixture smoke로만 보고합니다.
 - synthetic profile variant 기반 Media2 우선, Media fallback, Media-only, H265
   RTSP, RTSPS direct/fallback 선택과 Media/Media2 empty-profile 실패 동작
 - loopback HTTP SOAP transport smoke
+- local ONVIF simulator fixture 기반 Device/Media2/Media SOAP probe 성공 경로
 - endpoint가 없는 환경의 명시 skip 동작
 - closed loopback endpoint의 sanitized failure 동작
 - closed loopback failure matrix의 endpoint/path/credential redaction 동작
@@ -61,6 +62,7 @@ simulator fixture smoke로만 보고합니다.
 ./server.sh verify-onvif-probe-parser
 ./server.sh verify-onvif-probe-adapter
 ./server.sh verify-onvif-http-transport
+./server.sh verify-onvif-local-simulator
 ./server.sh verify-onvif-probe-error-wording
 ./server.sh verify-onvif-field-smoke-redaction
 ./server.sh verify-onvif-field-smoke-sample-bundle
@@ -93,6 +95,7 @@ simulator fixture smoke로만 보고합니다.
 - verify-onvif-no-device-suite
 - verify-onvif-no-device-suite --json-output /tmp/media_server_onvif_no_device_summary.json
 - synthetic fixture/parser/adapter/transport/redaction 검증
+- local simulator fixture 기반 HTTP SOAP probe 성공 경로
 - verify-onvif-field-http-probe --allow-missing-endpoint
 - closed loopback endpoint --expect-failure sanitized failure
 - verify-onvif-closed-loopback-failure-matrix
