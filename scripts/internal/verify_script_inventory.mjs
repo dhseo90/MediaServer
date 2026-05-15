@@ -70,6 +70,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_code_comments.mjs",
     "verify_docs_links.mjs",
     "verify_ops_client_ui_smoke.mjs",
+    "verify_ui_copy_matrix.mjs",
     "verify_ops_ui_click_e2e.mjs",
     "verify_ops_tables_layout.mjs",
     "verify_ops_rules_embed_smoke.mjs",

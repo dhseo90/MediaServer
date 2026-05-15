@@ -248,6 +248,16 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - 반복되는 channel/mode select와 start/restart/stop button에는 타일 번호가 포함된 `aria-label`을 부여했습니다.
 - `verify-ops-client-ui --screenshots`는 390px/1180px에서 live tile focus 이동, selected 상태, control accessible name을 확인합니다.
 
+### Empty/loading/error copy matrix 종료 판정
+
+2026-05-16 기준 empty/loading/error copy matrix는 문서 계약과 정적 검증 범위에서 종료합니다.
+
+확인됨:
+
+- `docs/ui-empty-loading-error-copy-matrix.md`에 Client/Ops 주요 화면별 Empty, Loading, Error, CTA 문구를 정리했습니다.
+- `verify-ui-copy-matrix`가 matrix 문서와 구현 스니펫, server entrypoint, script inventory를 검증합니다.
+- viewer/client 화면의 source URL, raw JSON, debug counter, Developer URL 비노출 원칙을 matrix에 명시했습니다.
+
 ### Design token/component inventory 후속 종료 판정
 
 2026-05-16 기준 v1.2.0 UI visual regression 후속에서
