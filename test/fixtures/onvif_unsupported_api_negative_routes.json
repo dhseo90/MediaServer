@@ -1,0 +1,97 @@
+{
+  "schema": "media-server.onvif-unsupported-api-negative-routes.v1",
+  "description": "Negative ONVIF route matrix for v1.2.0 no-device verification. This is not a product API contract and does not enable unsupported ONVIF protocols.",
+  "routeExerciseMode": "auth-off local server only",
+  "allowedRoute": {
+    "method": "POST",
+    "path": "/ops/api/onvif/import-draft",
+    "purpose": "fixture or redacted probe result to SourceRegistry/PublishedView draft only"
+  },
+  "negativeRoutes": [
+    {
+      "id": "import-draft-get-method-not-allowed",
+      "method": "GET",
+      "path": "/ops/api/onvif/import-draft",
+      "expectedStatus": 405,
+      "expectedBodyTerm": "method not allowed"
+    },
+    {
+      "id": "import-draft-put-method-not-allowed",
+      "method": "PUT",
+      "path": "/ops/api/onvif/import-draft",
+      "expectedStatus": 405,
+      "expectedBodyTerm": "method not allowed"
+    },
+    {
+      "id": "ws-discovery-route-not-found",
+      "method": "POST",
+      "path": "/ops/api/onvif/discover",
+      "expectedStatus": 404,
+      "expectedBodyTerm": "not found"
+    },
+    {
+      "id": "ptz-route-not-found",
+      "method": "POST",
+      "path": "/ops/api/onvif/ptz",
+      "expectedStatus": 404,
+      "expectedBodyTerm": "not found"
+    },
+    {
+      "id": "events-route-not-found",
+      "method": "POST",
+      "path": "/ops/api/onvif/events",
+      "expectedStatus": 404,
+      "expectedBodyTerm": "not found"
+    },
+    {
+      "id": "pullpoint-route-not-found",
+      "method": "POST",
+      "path": "/ops/api/onvif/pullpoint",
+      "expectedStatus": 404,
+      "expectedBodyTerm": "not found"
+    },
+    {
+      "id": "recording-route-not-found",
+      "method": "POST",
+      "path": "/ops/api/onvif/recording",
+      "expectedStatus": 404,
+      "expectedBodyTerm": "not found"
+    },
+    {
+      "id": "replay-route-not-found",
+      "method": "POST",
+      "path": "/ops/api/onvif/replay",
+      "expectedStatus": 404,
+      "expectedBodyTerm": "not found"
+    },
+    {
+      "id": "analytics-route-not-found",
+      "method": "POST",
+      "path": "/ops/api/onvif/analytics",
+      "expectedStatus": 404,
+      "expectedBodyTerm": "not found"
+    },
+    {
+      "id": "imaging-route-not-found",
+      "method": "POST",
+      "path": "/ops/api/onvif/imaging",
+      "expectedStatus": 404,
+      "expectedBodyTerm": "not found"
+    },
+    {
+      "id": "device-management-route-not-found",
+      "method": "POST",
+      "path": "/ops/api/onvif/device-management",
+      "expectedStatus": 404,
+      "expectedBodyTerm": "not found"
+    }
+  ],
+  "forbiddenResponseTerms": [
+    "operator-entered-secret",
+    "credentialRef",
+    "raw SOAP",
+    "<s:Envelope",
+    "rtsp://",
+    "rtsps://"
+  ]
+}

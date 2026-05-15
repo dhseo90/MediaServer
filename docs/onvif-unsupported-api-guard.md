@@ -46,6 +46,18 @@ draft로 축약할 뿐, 장비 제어, 녹화, replay, 이벤트 구독을 수�
 - Imaging service
 - Device management
 
+## Negative Route Matrix
+
+비지원 route의 HTTP 상태는
+`test/fixtures/onvif_unsupported_api_negative_routes.json`에 고정합니다.
+
+- 허용 route인 `/ops/api/onvif/import-draft`는 `POST`만 허용합니다.
+- `/ops/api/onvif/import-draft`의 `GET`, `PUT`은 `405 method not allowed`입니다.
+- WS-Discovery, PTZ, Events, PullPoint, Recording, Replay, Analytics, Imaging,
+  Device management route는 열지 않으며 `POST` smoke 기준 `404 not found`입니다.
+- negative route 응답은 credential reference, stream URI, raw SOAP를 노출하지
+  않습니다.
+
 ## 향후 추가 조건
 
 범위 밖 API를 추가하려면 별도 단계에서 아래 조건을 만족해야 합니다.
@@ -63,6 +75,7 @@ draft로 축약할 뿐, 장비 제어, 녹화, replay, 이벤트 구독을 수�
 
 ```bash
 ./server.sh verify-onvif-unsupported-api-guard
+./server.sh verify-onvif-unsupported-api-guard --http-base http://127.0.0.1:8081 --exercise-routes
 ./server.sh verify-onvif-protocol-support-matrix
 git diff --check
 ```
