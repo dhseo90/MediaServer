@@ -182,7 +182,7 @@ std::string ProductSharedUiScript() {
         '전체 이력': 'Full history',
         '외부 WHEP pull': 'External WHEP pull',
         'ONVIF 카메라는 ONVIF 프로파일에서 선택한 라이브 스트림 URI를 연결합니다. 외부 WHEP는 URL 입력, Published WebRTC 소스는 저장된 sourceId 연결입니다.': 'ONVIF camera connects the live stream URI selected from an ONVIF profile. External WHEP takes a URL. Published WebRTC source connects a saved sourceId.',
-        'ONVIF 장치의 라이브 프로파일에서 선택한 재생 URI를 입력합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.': 'Enter the playback URI selected from the ONVIF device live profile. After saving, it is shown as an ONVIF channel and uses the same RTSP/WHEP output URL copy flow.',
+        'ONVIF 장치의 라이브 프로파일에서 선택한 재생 URI를 입력합니다. WS-Discovery 자동 검색은 제공하지 않습니다. 운영자가 확인한 live URI 또는 probe fixture를 사용합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.': 'Enter the playback URI selected from the ONVIF device live profile. WS-Discovery auto discovery is not provided. Use an operator-verified live URI or probe fixture. After saving, it is shown as an ONVIF channel and uses the same RTSP/WHEP output URL copy flow.',
         'RTSP/WHEP는 운영 확인용입니다. 브라우저 재생은 /client/live에서 확인합니다.': 'RTSP/WHEP is for operations checks. Use /client/live for browser playback.',
         '외부 WebRTC playback endpoint를 서버가 WHEP pull source로 연결합니다. URL 자체가 입력값입니다.': 'The server connects an external WebRTC playback endpoint as a WHEP pull source. The URL itself is the input.',
         '외부 URL을 넣는 항목이 아닙니다. 이 서버의 WHIP publish endpoint로 이미 등록된 sourceId를 연결합니다.': 'This is not an external URL field. Connect a sourceId already registered through this server WHIP publish endpoint.',

@@ -34,6 +34,7 @@ ONVIF protocol/service별 지원 범위는
 비범위:
 
 - ONVIF conformant server
+- WS-Discovery 자동 검색
 - ONVIF Profile G recording/replay
 - camera recording configuration
 - edge storage 조회
@@ -235,6 +236,7 @@ notes: <sanitized operational note>
 ./server.sh build
 ./server.sh verify-onvif-protocol-support-matrix
 ./server.sh verify-onvif-rtsps-draft-policy
+./server.sh verify-onvif-ws-discovery-ux
 ./server.sh verify-onvif-live-import-contract
 ./server.sh verify-onvif-probe-fixture-contract
 ./server.sh verify-onvif-probe-profile-variants

@@ -35,6 +35,7 @@ const suite = [
   ["verify-onvif-rtsps-draft-policy"],
   ["verify-onvif-https-soap-transport-design"],
   ["verify-onvif-auth-injection-design"],
+  ["verify-onvif-ws-discovery-ux"],
   ["verify-onvif-live-import-contract"],
   ["verify-onvif-probe-fixture-contract"],
   ["verify-onvif-probe-profile-variants"],
