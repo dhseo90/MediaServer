@@ -1,0 +1,143 @@
+{
+  "schema": "media-server.onvif-no-device-suite-summary.v1",
+  "generatedAt": "2026-05-15T00:00:00.000Z",
+  "mode": "실장비 제외",
+  "realDeviceEndpointSuccess": "미확인",
+  "total": 22,
+  "completed": 22,
+  "failed": null,
+  "results": [
+    {
+      "index": 1,
+      "command": "./server.sh verify-onvif-no-device-mode",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 2,
+      "command": "./server.sh verify-onvif-protocol-support-matrix",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 3,
+      "command": "./server.sh verify-onvif-rtsps-draft-policy",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 4,
+      "command": "./server.sh verify-onvif-https-soap-transport-design",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 5,
+      "command": "./server.sh verify-onvif-https-tls-fixture --expect-skip",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 6,
+      "command": "./server.sh verify-onvif-auth-injection-design",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 7,
+      "command": "./server.sh verify-onvif-ws-discovery-ux",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 8,
+      "command": "./server.sh verify-onvif-unsupported-api-guard",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 9,
+      "command": "./server.sh verify-onvif-live-import-contract",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 10,
+      "command": "./server.sh verify-onvif-probe-fixture-contract",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 11,
+      "command": "./server.sh verify-onvif-probe-profile-variants",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 12,
+      "command": "./server.sh verify-onvif-probe-parser",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 13,
+      "command": "./server.sh verify-onvif-probe-adapter",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 14,
+      "command": "./server.sh verify-onvif-http-transport",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 15,
+      "command": "./server.sh verify-onvif-probe-error-wording",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 16,
+      "command": "./server.sh verify-onvif-field-smoke-redaction",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 17,
+      "command": "./server.sh verify-onvif-field-smoke-sample-bundle",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 18,
+      "command": "./server.sh verify-onvif-field-http-probe --allow-missing-endpoint",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 19,
+      "command": "./server.sh verify-onvif-closed-loopback-failure-matrix",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 20,
+      "command": "./server.sh verify-onvif-field-http-probe --endpoint http://127.0.0.1:9/onvif/device_service --expect-failure --credential-ref-present",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 21,
+      "command": "./server.sh verify-onvif-tls-transport-policy",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 22,
+      "command": "./server.sh verify-onvif-credential-reference-policy",
+      "ok": true,
+      "status": 0
+    }
+  ]
+}

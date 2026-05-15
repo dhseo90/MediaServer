@@ -35,6 +35,7 @@ const noDeviceDocPath = path.join(rootDir, "docs/onvif-no-device-verification.md
 const liveSupportDocPath = path.join(rootDir, "docs/onvif-live-source-support.md");
 const fieldProbeScriptPath = path.join(rootDir, "scripts/internal/verify_onvif_field_http_probe.mjs");
 const noDeviceSuiteScriptPath = path.join(rootDir, "scripts/internal/verify_onvif_no_device_suite.mjs");
+const successSummaryFixturePath = path.join(rootDir, "test/fixtures/onvif_no_device_suite_success_summary.json");
 const failureSummaryFixturePath = path.join(rootDir, "test/fixtures/onvif_no_device_suite_failure_summary.json");
 const closedLoopbackMatrixPath = path.join(rootDir, "test/fixtures/onvif_closed_loopback_failure_matrix.json");
 
@@ -42,6 +43,7 @@ const noDeviceDoc = readText(noDeviceDocPath);
 const liveSupportDoc = readText(liveSupportDocPath);
 const fieldProbeScript = readText(fieldProbeScriptPath);
 const noDeviceSuiteScript = readText(noDeviceSuiteScriptPath);
+const successSummaryFixture = JSON.parse(readText(successSummaryFixturePath));
 const failureSummaryFixture = JSON.parse(readText(failureSummaryFixturePath));
 const closedLoopbackMatrix = JSON.parse(readText(closedLoopbackMatrixPath));
 const expectedSummarySchema = "media-server.onvif-no-device-suite-summary.v1";
@@ -66,6 +68,7 @@ check("no-device command list keeps endpoint-free and sanitized-failure probes",
   assertContains(noDeviceDoc, "verify-onvif-no-device-suite --json-output", "missing no-device suite JSON command");
   assertContains(noDeviceDoc, expectedSummarySchema, "missing no-device summary schema");
   assertContains(noDeviceDoc, "schema drift guard", "missing no-device schema drift guard wording");
+  assertContains(noDeviceDoc, "test/fixtures/onvif_no_device_suite_success_summary.json", "missing success summary fixture path");
   assertContains(noDeviceDoc, "test/fixtures/onvif_no_device_suite_failure_summary.json", "missing failure summary fixture path");
   assertContains(noDeviceDoc, "./server.sh verify-onvif-no-device-mode", "missing self-check command");
   assertContains(noDeviceDoc, "verify-onvif-protocol-support-matrix", "missing protocol support matrix command");
@@ -95,6 +98,7 @@ check("live support document links no-device mode without claiming field success
   assertContains(liveSupportDoc, "--expect-failure", "live support doc missing sanitized loopback failure command");
   assertContains(liveSupportDoc, "verify-onvif-closed-loopback-failure-matrix", "live support doc missing closed loopback matrix command");
   assertContains(liveSupportDoc, "실장비 endpoint 성공은 미확인", "live support doc missing explicit unverified endpoint success wording");
+  assertContains(liveSupportDoc, "test/fixtures/onvif_no_device_suite_success_summary.json", "live support doc missing success summary fixture path");
 });
 
 check("no-device suite runner can write summary JSON", () => {
@@ -115,11 +119,41 @@ check("no-device suite runner can write summary JSON", () => {
 check("no-device summary schema version drift guard is pinned", () => {
   const runnerSchema = extractConstString(noDeviceSuiteScript, "noDeviceSuiteSummarySchema");
   assert(runnerSchema === expectedSummarySchema, "runner summary schema constant mismatch");
+  assert(successSummaryFixture.schema === runnerSchema, "success summary fixture schema drifted from runner");
   assert(failureSummaryFixture.schema === runnerSchema, "failure summary fixture schema drifted from runner");
   assertContains(noDeviceDoc, `"schema": "${runnerSchema}"`, "no-device doc JSON example schema mismatch");
-  assertContains(noDeviceDoc, "runner 상수, 성공 예시, 실패 fixture", "no-device doc missing schema guard participants");
+  assertContains(noDeviceDoc, "runner 상수, 성공 예시, 성공 fixture, 실패 fixture", "no-device doc missing schema guard participants");
   assertContains(liveSupportDoc, "schema version drift guard", "live support doc missing schema drift guard wording");
   assertContains(liveSupportDoc, expectedSummarySchema, "live support doc missing summary schema");
+});
+
+check("no-device success summary fixture preserves completed command state", () => {
+  assert(successSummaryFixture.schema === expectedSummarySchema, "success summary schema mismatch");
+  assert(successSummaryFixture.mode === "실장비 제외", "success summary mode mismatch");
+  assert(successSummaryFixture.realDeviceEndpointSuccess === "미확인", "success summary real device status mismatch");
+  assert(Number.isInteger(successSummaryFixture.total) && successSummaryFixture.total > 0, "success summary total must be positive integer");
+  assert(successSummaryFixture.completed === successSummaryFixture.total, "success summary completed must equal total");
+  assert(successSummaryFixture.failed === null, "success summary failed must be null");
+  assert(Array.isArray(successSummaryFixture.results), "success summary results must be array");
+  assert(successSummaryFixture.results.length === successSummaryFixture.total, "success summary results length must equal total");
+  for (let index = 0; index < successSummaryFixture.results.length; index += 1) {
+    const result = successSummaryFixture.results[index];
+    assert(result.index === index + 1, `success summary result index mismatch at ${index}`);
+    assert(typeof result.command === "string" && result.command.startsWith("./server.sh "), `success summary result command mismatch at ${index}`);
+    assert(result.ok === true, `success summary result must be ok at ${index}`);
+    assert(result.status === 0, `success summary result status must be 0 at ${index}`);
+  }
+  const commands = successSummaryFixture.results.map(result => result.command).join("\n");
+  for (const required of [
+    "./server.sh verify-onvif-no-device-mode",
+    "./server.sh verify-onvif-probe-profile-variants",
+    "./server.sh verify-onvif-closed-loopback-failure-matrix",
+    "./server.sh verify-onvif-field-http-probe --endpoint http://127.0.0.1:9/onvif/device_service --expect-failure --credential-ref-present",
+    "./server.sh verify-onvif-credential-reference-policy",
+  ]) {
+    assert(commands.includes(required), `success summary missing command: ${required}`);
+  }
+  assertNoForbiddenSummary(JSON.stringify(successSummaryFixture), "success summary fixture");
 });
 
 check("no-device failure summary fixture preserves failed command state", () => {
@@ -146,16 +180,7 @@ check("no-device failure summary fixture preserves failed command state", () => 
       assert(result.command === failureSummaryFixture.failed, "failure summary failed command must match failed result");
     }
   }
-  const serialized = JSON.stringify(failureSummaryFixture);
-  for (const forbidden of [
-    "operator-entered-secret",
-    "password",
-    "Authorization",
-    "raw SOAP",
-    "certificate dump",
-  ]) {
-    assert(!serialized.includes(forbidden), `failure summary fixture leaked forbidden token: ${forbidden}`);
-  }
+  assertNoForbiddenSummary(JSON.stringify(failureSummaryFixture), "failure summary fixture");
 });
 
 check("closed loopback failure matrix pins summary artifact redaction sentinels", () => {
@@ -238,4 +263,16 @@ function extractConstString(text, name) {
   const match = text.match(pattern);
   assert(match, `missing const string: ${name}`);
   return match[1];
+}
+
+function assertNoForbiddenSummary(serialized, label) {
+  for (const forbidden of [
+    "operator-entered-secret",
+    "password",
+    "Authorization",
+    "raw SOAP",
+    "certificate dump",
+  ]) {
+    assert(!serialized.includes(forbidden), `${label} leaked forbidden token: ${forbidden}`);
+  }
 }

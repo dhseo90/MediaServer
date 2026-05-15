@@ -106,9 +106,10 @@
 
 `--json-output`을 지정하면 suite 종료 시 아래 schema의 summary JSON을 기록합니다.
 실패한 경우에도 이미 완료된 단계, 실패 명령, 실장비 성공 미확인 상태를 남깁니다.
-실패 path fixture는
+성공 path fixture는
+`test/fixtures/onvif_no_device_suite_success_summary.json`, 실패 path fixture는
 `test/fixtures/onvif_no_device_suite_failure_summary.json`에 고정합니다.
-schema drift guard는 runner 상수, 성공 예시, 실패 fixture가 모두 같은
+schema drift guard는 runner 상수, 성공 예시, 성공 fixture, 실패 fixture가 모두 같은
 `media-server.onvif-no-device-suite-summary.v1` 값을 쓰는지
 `verify-onvif-no-device-mode`에서 비교합니다.
 
@@ -124,6 +125,13 @@ schema drift guard는 runner 상수, 성공 예시, 실패 fixture가 모두 같
 
 `verify-onvif-https-tls-fixture --expect-skip`은 fixture TLS server/client 실행 없음,
 trusted fixture success 미확인, 실장비 성공 미확인 상태를 고정합니다.
+
+성공 summary는 아래 항목을 유지해야 합니다.
+
+- `completed`: `total`과 같은 값
+- `failed`: `null`
+- `results`: 모든 suite 단계의 `index`, `command`, `ok=true`, `status=0`
+- `realDeviceEndpointSuccess`: 실장비 제외 모드에서는 계속 `미확인`
 
 실패 summary는 아래 항목을 유지해야 합니다.
 

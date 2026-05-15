@@ -286,10 +286,11 @@ WS-Discovery/PTZ/Events/Profile G 비지원 hint가 실제 screenshot viewport�
 추가로 확인합니다. 이 ONVIF hint screenshot smoke는 `--visual-widths`를 좁혀도
 320px 폭을 항상 포함합니다.
 
-no-device suite 실패 summary fixture는
+no-device suite 성공 summary fixture는
+`test/fixtures/onvif_no_device_suite_success_summary.json`, 실패 summary fixture는
 `test/fixtures/onvif_no_device_suite_failure_summary.json`이며,
-`verify-onvif-no-device-mode`가 실패 전 완료 개수, 실패 명령, `realDeviceEndpointSuccess=미확인`
-보존을 정적으로 확인합니다.
+`verify-onvif-no-device-mode`가 성공 완료 개수, 실패 전 완료 개수, 실패 명령,
+`realDeviceEndpointSuccess=미확인` 보존을 정적으로 확인합니다.
 같은 검증에서 `media-server.onvif-no-device-suite-summary.v1` schema version drift guard도
 확인합니다.
 
