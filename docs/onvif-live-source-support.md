@@ -219,6 +219,7 @@ notes: <sanitized operational note>
 ./server.sh verify-onvif-http-transport
 ./server.sh verify-onvif-probe-error-wording
 ./server.sh verify-onvif-field-smoke-redaction
+./server.sh verify-onvif-field-smoke-sample-bundle
 ./server.sh verify-onvif-field-http-probe --allow-missing-endpoint
 ./server.sh verify-onvif-tls-transport-policy
 ./server.sh verify-onvif-credential-reference-policy

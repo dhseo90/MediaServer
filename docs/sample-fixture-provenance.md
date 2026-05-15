@@ -15,6 +15,7 @@
 | `video/va_sports_sample.mp4` | VA category/sample smoke | 검증용으로 생성한 sports-like fixture | 공개 가능 |
 | `video/imports/va_tracking_event_1280x720_30fps_h264.mp4` | tracking/event 회귀 | 검증용으로 생성한 allowlist import fixture | 공개 가능 |
 | `test/fixtures/onvif_live_import_stub.json` | ONVIF live source 지원 fixture draft 검증 | 실제 장비/credential 없는 합성 JSON fixture | 공개 가능 |
+| `test/fixtures/onvif_field_smoke_artifact_sample/` | ONVIF 현장 smoke 산출물 redaction layout | 실제 장비/credential 없는 합성 sample bundle | 공개 가능 |
 
 ## 공개 제외 대상
 

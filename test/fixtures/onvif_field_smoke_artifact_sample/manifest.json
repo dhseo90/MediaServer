@@ -1,0 +1,15 @@
+{
+  "schema": "media-server.onvif-field-smoke-artifact-sample-manifest.v1",
+  "description": "Redacted sample bundle layout for ONVIF field smoke artifacts. It is synthetic and contains no real camera endpoint or credential.",
+  "files": [
+    "README.md",
+    "redacted_probe_summary.json",
+    "redaction-checklist.md"
+  ],
+  "requiredVerification": [
+    "verify-onvif-field-smoke-redaction",
+    "verify-onvif-field-http-probe",
+    "verify-onvif-probe-draft-api",
+    "verify-onvif-ops-sources-ui"
+  ]
+}

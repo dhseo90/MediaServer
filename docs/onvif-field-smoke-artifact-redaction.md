@@ -76,8 +76,13 @@ notes: <sanitized operational note>
 
 ```bash
 ./server.sh verify-onvif-field-smoke-redaction
+./server.sh verify-onvif-field-smoke-sample-bundle
 ./server.sh verify-onvif-probe-fixture-contract
 ./server.sh verify-onvif-probe-error-wording
 ./server.sh verify-docs-links
 git diff --check
 ```
+
+샘플 bundle layout은
+`test/fixtures/onvif_field_smoke_artifact_sample/`에 둡니다. 실제 현장 산출물은
+해당 layout을 참고하되, 공유 전 이 문서의 checklist를 다시 적용합니다.

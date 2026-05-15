@@ -114,6 +114,8 @@ Usage:
                  ONVIF HTTPS/TLS fail-closed transport 정책을 검증합니다.
   verify-onvif-credential-reference-policy
                  ONVIF credential reference 원문 미저장 정책을 검증합니다.
+  verify-onvif-field-smoke-sample-bundle
+                 ONVIF 현장 smoke 산출물 sample bundle redaction을 검증합니다.
   verify-onvif-http-transport
                  ONVIF HTTP SOAP transport가 실제 POST/응답 수신을 수행하는지 검증합니다.
   verify-onvif-probe-draft-api
@@ -459,6 +461,10 @@ case "${cmd}" in
   verify-onvif-credential-reference-policy)
     require_internal verify_onvif_credential_reference_policy.mjs
     exec "${INTERNAL_DIR}/verify_onvif_credential_reference_policy.mjs" "$@"
+    ;;
+  verify-onvif-field-smoke-sample-bundle)
+    require_internal verify_onvif_field_smoke_sample_bundle.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_field_smoke_sample_bundle.mjs" "$@"
     ;;
   verify-onvif-http-transport)
     require_internal verify_onvif_http_transport.sh

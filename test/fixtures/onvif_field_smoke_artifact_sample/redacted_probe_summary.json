@@ -1,0 +1,37 @@
+{
+  "schema": "media-server.onvif-field-smoke-artifact-sample.v1",
+  "artifact": "onvif-field-smoke-<date>-<redacted-site>",
+  "camera": "<vendor/model redacted>",
+  "endpoint": "<redacted-host>/onvif/device_service",
+  "auth": {
+    "credentialReferencePresent": true,
+    "plaintextSecretIncluded": false
+  },
+  "services": {
+    "Device": true,
+    "Media": true,
+    "Media2": true
+  },
+  "selectedProfile": {
+    "token": "<redacted-token>",
+    "mediaApi": "Media2",
+    "encoding": "H264",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "transport": "RTSP",
+    "streamUriRedacted": true
+  },
+  "draft": {
+    "sourceId": "<redacted-source-id>",
+    "viewId": "<redacted-view-id>",
+    "tags": [
+      "onvif",
+      "live"
+    ]
+  },
+  "clientRedaction": "pass",
+  "opsCopyParity": "pass",
+  "probeErrorWording": "pass",
+  "notes": "<sanitized operational note>"
+}
