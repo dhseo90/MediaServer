@@ -52,6 +52,7 @@ const suite = [
   ["verify-onvif-probe-parser"],
   ["verify-onvif-probe-adapter"],
   ["verify-onvif-http-transport"],
+  ["verify-onvif-local-simulator"],
   ["verify-onvif-probe-error-wording"],
   ["verify-onvif-field-smoke-redaction"],
   ["verify-onvif-field-smoke-sample-bundle"],

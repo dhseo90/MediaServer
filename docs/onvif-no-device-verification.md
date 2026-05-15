@@ -128,7 +128,7 @@ schema drift guard는 runner 상수, 성공 예시, 성공 fixture, 실패 fixtu
   "schema": "media-server.onvif-no-device-suite-summary.v1",
   "mode": "실장비 제외",
   "realDeviceEndpointSuccess": "미확인",
-  "completed": 22,
+  "completed": 23,
   "failed": null
 }
 ```

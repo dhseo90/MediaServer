@@ -3,8 +3,8 @@
   "generatedAt": "2026-05-15T00:00:00.000Z",
   "mode": "실장비 제외",
   "realDeviceEndpointSuccess": "미확인",
-  "total": 22,
-  "completed": 22,
+  "total": 23,
+  "completed": 23,
   "failed": null,
   "results": [
     {
@@ -93,48 +93,54 @@
     },
     {
       "index": 15,
-      "command": "./server.sh verify-onvif-probe-error-wording",
+      "command": "./server.sh verify-onvif-local-simulator",
       "ok": true,
       "status": 0
     },
     {
       "index": 16,
-      "command": "./server.sh verify-onvif-field-smoke-redaction",
+      "command": "./server.sh verify-onvif-probe-error-wording",
       "ok": true,
       "status": 0
     },
     {
       "index": 17,
-      "command": "./server.sh verify-onvif-field-smoke-sample-bundle",
+      "command": "./server.sh verify-onvif-field-smoke-redaction",
       "ok": true,
       "status": 0
     },
     {
       "index": 18,
-      "command": "./server.sh verify-onvif-field-http-probe --allow-missing-endpoint",
+      "command": "./server.sh verify-onvif-field-smoke-sample-bundle",
       "ok": true,
       "status": 0
     },
     {
       "index": 19,
-      "command": "./server.sh verify-onvif-closed-loopback-failure-matrix",
+      "command": "./server.sh verify-onvif-field-http-probe --allow-missing-endpoint",
       "ok": true,
       "status": 0
     },
     {
       "index": 20,
-      "command": "./server.sh verify-onvif-field-http-probe --endpoint http://127.0.0.1:9/onvif/device_service --expect-failure --credential-ref-present",
+      "command": "./server.sh verify-onvif-closed-loopback-failure-matrix",
       "ok": true,
       "status": 0
     },
     {
       "index": 21,
-      "command": "./server.sh verify-onvif-tls-transport-policy",
+      "command": "./server.sh verify-onvif-field-http-probe --endpoint http://127.0.0.1:9/onvif/device_service --expect-failure --credential-ref-present",
       "ok": true,
       "status": 0
     },
     {
       "index": 22,
+      "command": "./server.sh verify-onvif-tls-transport-policy",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 23,
       "command": "./server.sh verify-onvif-credential-reference-policy",
       "ok": true,
       "status": 0

@@ -56,6 +56,7 @@ check("protocol support matrix names supported ONVIF live-source scope", () => {
     "`rtsp://`/`rtsps://` URI를 기존 `kind=rtsp` source draft로 축약",
     "./onvif-rtsps-draft-policy.md",
     "verify-onvif-rtsps-draft-policy",
+    "verify-onvif-local-simulator",
     "./onvif-https-soap-transport-design.md",
     "./onvif-https-tls-fixture-harness-design.md",
     "explicit TLS fixture harness",
