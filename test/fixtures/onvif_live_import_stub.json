@@ -17,6 +17,18 @@
     "credentialRef": "operator-entered-secret",
     "plaintextSecretIncluded": false
   },
+  "previewContract": {
+    "schema": "media-server.onvif-draft-preview.v1",
+    "scope": "ops-sources-before-save",
+    "requiresExplicitSave": true,
+    "storageAction": "none",
+    "sourceRegistryMutation": false,
+    "publishedViewMutation": false,
+    "rawSoapIncluded": false,
+    "credentialMaterialIncluded": false,
+    "endpointIncluded": false,
+    "diagnosticJsonIncluded": false
+  },
   "capabilities": {
     "media": true,
     "media2": true,

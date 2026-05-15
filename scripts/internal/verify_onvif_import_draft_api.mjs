@@ -52,6 +52,7 @@ const expectedSource = fixture.importDecision.expectedSourceDraft;
 const expectedView = fixture.importDecision.expectedPublishedViewDraft;
 assertDraftSource(payload.sourceDraft, expectedSource);
 assertDraftView(payload.publishedViewDraft, expectedView, expectedSource);
+assertPreviewContract(payload.previewContract, fixture.previewContract);
 assertSelectedProfile(payload.selectedProfile, fixture);
 assertAuth(payload.auth);
 assertNoForbiddenResponseText(responseText);
@@ -191,6 +192,24 @@ function assertNoForbiddenResponseText(text) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function assertPreviewContract(actual, expected) {
+  assert(actual && typeof actual === "object", "previewContract is required");
+  assert(expected && typeof expected === "object", "fixture previewContract is required");
+  for (const [key, value] of Object.entries(expected)) {
+    assert(actual[key] === value, `previewContract.${key} mismatch`);
+  }
+  assert(actual.schema === "media-server.onvif-draft-preview.v1", "previewContract.schema mismatch");
+  assert(actual.scope === "ops-sources-before-save", "previewContract.scope mismatch");
+  assert(actual.requiresExplicitSave === true, "previewContract.requiresExplicitSave must be true");
+  assert(actual.storageAction === "none", "previewContract.storageAction must be none");
+  assert(actual.sourceRegistryMutation === false, "previewContract.sourceRegistryMutation must be false");
+  assert(actual.publishedViewMutation === false, "previewContract.publishedViewMutation must be false");
+  assert(actual.rawSoapIncluded === false, "previewContract.rawSoapIncluded must be false");
+  assert(actual.credentialMaterialIncluded === false, "previewContract credential material must be excluded");
+  assert(actual.endpointIncluded === false, "previewContract endpoint must be excluded");
+  assert(actual.diagnosticJsonIncluded === false, "previewContract diagnostic JSON must be excluded");
 }
 
 function parseArgs(argv) {

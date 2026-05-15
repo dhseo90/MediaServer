@@ -77,6 +77,14 @@ int main() {
     const auto result = ingress::BuildOnvifLiveImportDraft(body);
     Assert(result.status == 200, "rtsps import draft should be accepted");
     Assert(Contains(result.body, "\"ok\":true"), "draft response must be ok");
+    Assert(Contains(result.body, "\"previewContract\""), "draft response must include preview contract");
+    Assert(Contains(result.body, "\"schema\":\"media-server.onvif-draft-preview.v1\""),
+           "preview contract schema mismatch");
+    Assert(Contains(result.body, "\"storageAction\":\"none\""), "preview contract must not save");
+    Assert(Contains(result.body, "\"sourceRegistryMutation\":false"),
+           "preview contract must pin source registry no-mutation");
+    Assert(Contains(result.body, "\"publishedViewMutation\":false"),
+           "preview contract must pin published view no-mutation");
     Assert(Contains(result.body, "\"kind\":\"rtsp\""), "source draft kind must remain rtsp");
     Assert(Contains(result.body, "\"rtspUrl\":\"rtsps://192.0.2.35/live/secure-main\""),
            "source draft must preserve rtsps URL in rtspUrl");

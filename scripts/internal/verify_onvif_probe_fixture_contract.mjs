@@ -59,6 +59,10 @@ check("credential policy keeps plaintext secrets out of the probe fixture", () =
   assert(secretFields.length === 0, `disallowed secret fields found: ${secretFields.join(", ")}`);
 });
 
+check("preview contract is explicit before source/view storage", () => {
+  assertPreviewContract(objectAt(fixture, "previewContract"));
+});
+
 check("Device, Media, and Media2 services are present without recording/replay enablement", () => {
   const services = arrayAt(fixture, "services");
   assert(serviceAvailable(services, "Device"), "Device service must be available");
@@ -179,6 +183,22 @@ check("Media/Media2 profile selection policy is documented", () => {
   }
 });
 
+check("probe preview contract is documented", () => {
+  for (const term of [
+    "previewContract",
+    "media-server.onvif-draft-preview.v1",
+    "scope=ops-sources-before-save",
+    "requiresExplicitSave=true",
+    "storageAction=none",
+    "sourceRegistryMutation=false",
+    "publishedViewMutation=false",
+    "endpoint, credential material, raw SOAP",
+    "raw diagnostic JSON",
+  ]) {
+    assert(onvifSupportDoc.includes(term), `ONVIF support doc missing preview contract term: ${term}`);
+  }
+});
+
 let failures = 0;
 for (const item of checks) {
   try {
@@ -274,4 +294,29 @@ function assertOnlyKeys(object, allowed, label) {
   const allowedSet = new Set(allowed);
   const extra = Object.keys(object).filter(key => !allowedSet.has(key));
   assert(extra.length === 0, `${label} has unexpected keys: ${extra.join(", ")}`);
+}
+
+function assertPreviewContract(actual) {
+  assert(actual.schema === "media-server.onvif-draft-preview.v1", "previewContract.schema mismatch");
+  assert(actual.scope === "ops-sources-before-save", "previewContract.scope mismatch");
+  assert(actual.requiresExplicitSave === true, "previewContract.requiresExplicitSave must be true");
+  assert(actual.storageAction === "none", "previewContract.storageAction must be none");
+  assert(actual.sourceRegistryMutation === false, "previewContract.sourceRegistryMutation must be false");
+  assert(actual.publishedViewMutation === false, "previewContract.publishedViewMutation must be false");
+  assert(actual.rawSoapIncluded === false, "previewContract.rawSoapIncluded must be false");
+  assert(actual.credentialMaterialIncluded === false, "previewContract credential material must be excluded");
+  assert(actual.endpointIncluded === false, "previewContract endpoint must be excluded");
+  assert(actual.diagnosticJsonIncluded === false, "previewContract diagnostic JSON must be excluded");
+  assertOnlyKeys(actual, [
+    "schema",
+    "scope",
+    "requiresExplicitSave",
+    "storageAction",
+    "sourceRegistryMutation",
+    "publishedViewMutation",
+    "rawSoapIncluded",
+    "credentialMaterialIncluded",
+    "endpointIncluded",
+    "diagnosticJsonIncluded",
+  ], "previewContract");
 }

@@ -365,6 +365,21 @@ std::string JsonStringArrayOrDefault(const std::string& body,
     return out.str();
 }
 
+std::string OnvifDraftPreviewContractJson() {
+    return "\"previewContract\":{"
+           "\"schema\":\"media-server.onvif-draft-preview.v1\","
+           "\"scope\":\"ops-sources-before-save\","
+           "\"requiresExplicitSave\":true,"
+           "\"storageAction\":\"none\","
+           "\"sourceRegistryMutation\":false,"
+           "\"publishedViewMutation\":false,"
+           "\"rawSoapIncluded\":false,"
+           "\"credentialMaterialIncluded\":false,"
+           "\"endpointIncluded\":false,"
+           "\"diagnosticJsonIncluded\":false"
+           "}";
+}
+
 bool IsNumericRegistryDraftId(const std::string& value) {
     return !value.empty() && std::all_of(value.begin(), value.end(), [](unsigned char ch) {
         return std::isdigit(ch) != 0;
@@ -1398,6 +1413,7 @@ RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
         << "\"ok\":true,"
         << "\"status\":\"onvifImportDraft\","
         << "\"notSaved\":true,"
+        << OnvifDraftPreviewContractJson() << ","
         << "\"candidate\":{"
         << "\"manufacturer\":\"" << JsonEscape(ParseStringField(device, "manufacturer").value_or("")) << "\","
         << "\"model\":\"" << JsonEscape(ParseStringField(device, "model").value_or("")) << "\","

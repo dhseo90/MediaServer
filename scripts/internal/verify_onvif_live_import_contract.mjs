@@ -56,6 +56,20 @@ check("credential policy keeps plaintext secrets out of the fixture", () => {
   assert(secretFields.length === 0, `disallowed secret fields found: ${secretFields.join(", ")}`);
 });
 
+check("preview contract is explicit before source/view storage", () => {
+  const preview = objectAt(fixture, "previewContract");
+  assert(preview.schema === "media-server.onvif-draft-preview.v1", "previewContract.schema mismatch");
+  assert(preview.scope === "ops-sources-before-save", "previewContract.scope mismatch");
+  assert(preview.requiresExplicitSave === true, "previewContract.requiresExplicitSave must be true");
+  assert(preview.storageAction === "none", "previewContract.storageAction must be none");
+  assert(preview.sourceRegistryMutation === false, "previewContract.sourceRegistryMutation must be false");
+  assert(preview.publishedViewMutation === false, "previewContract.publishedViewMutation must be false");
+  assert(preview.rawSoapIncluded === false, "previewContract.rawSoapIncluded must be false");
+  assert(preview.credentialMaterialIncluded === false, "previewContract credential material must be excluded");
+  assert(preview.endpointIncluded === false, "previewContract endpoint must be excluded");
+  assert(preview.diagnosticJsonIncluded === false, "previewContract diagnostic JSON must be excluded");
+});
+
 check("recording, replay, and Profile G remain outside the import contract", () => {
   const capabilities = objectAt(fixture, "capabilities");
   assert(capabilities.recording === false, "capabilities.recording must remain false");

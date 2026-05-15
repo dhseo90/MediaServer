@@ -120,9 +120,15 @@ test/fixtures/onvif_closed_loopback_failure_matrix.json
   Media fallback, Media-only, non-RTSP GetStreamUri 실패 경계를 검증합니다.
 - probe fixture의 `draftDecision`도 기존 import draft endpoint에서
   SourceRegistry/PublishedView draft로 변환합니다.
+- `previewContract`는 `media-server.onvif-draft-preview.v1`로 고정하며,
+  `scope=ops-sources-before-save`, `requiresExplicitSave=true`,
+  `storageAction=none`, `sourceRegistryMutation=false`,
+  `publishedViewMutation=false`를 명시합니다.
 - 응답은 기존 `/ops/api/sources`와 `/ops/api/views`에 보낼 수 있는 draft만
   반환합니다.
 - 저장 side effect는 없습니다.
+- preview contract와 route 응답은 endpoint, credential material, raw SOAP,
+  raw diagnostic JSON을 포함하지 않습니다.
 - import/probe draft API route smoke는 malformed body, decision 누락,
   selected profile 불일치, non-RTSP selected profile, plaintext credential
   입력을 모두 400으로 거부하고 SourceRegistry side effect가 없음을 확인합니다.
