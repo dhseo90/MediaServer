@@ -49,6 +49,18 @@ provider 후보:
   고정합니다.
 - `CredentialBindingStore`와 secret material payload는 아직 설계 전용입니다.
 
+Probe adapter summary 연결 정책:
+
+- 현재는 `NoneCredentialSecretProvider` 상태를 `RunOnvifProbeAdapter` summary에
+  연결하지 않습니다.
+- provider lookup 결과는 provider skeleton smoke 안에서만 검증하고, probe adapter는
+  기존 `credentialRefPresent` boolean summary만 유지합니다.
+- 향후 provider status를 연결할 때도 `credential_provider_unavailable` 같은 sanitized
+  status code만 허용하며, reference 값, provider path, secret material은
+  SourceRegistry/PublishedView/API/UI/artifact에 넣지 않습니다.
+- provider status를 노출하는 단계는 기존 probe/draft summary schema version 변경과
+  redaction matrix 확장을 동반해야 합니다.
+
 ## Reference 규칙
 
 - `credentialRef`는 lookup key일 뿐이며 secret 값으로 해석하지 않습니다.

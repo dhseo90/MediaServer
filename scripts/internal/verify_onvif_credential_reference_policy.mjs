@@ -48,6 +48,8 @@ const supportDoc = fs.readFileSync(path.join(rootDir, "docs/onvif-live-source-su
 const providerHeader = fs.readFileSync(path.join(rootDir, "include/ingress/onvif_credential_provider.h"), "utf8");
 const providerImpl = fs.readFileSync(path.join(rootDir, "src/ingress/onvif_credential_provider.cpp"), "utf8");
 const providerSmoke = fs.readFileSync(path.join(rootDir, "scripts/internal/onvif_credential_provider_smoke.cpp"), "utf8");
+const liveImportHeader = fs.readFileSync(path.join(rootDir, "include/ingress/onvif_live_import.h"), "utf8");
+const liveImportImpl = fs.readFileSync(path.join(rootDir, "src/ingress/onvif_live_import.cpp"), "utf8");
 const fixtureContract = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_onvif_probe_fixture_contract.mjs"), "utf8");
 const draftApiSmoke = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_onvif_probe_draft_api.mjs"), "utf8");
 const fieldProbeHarness = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_onvif_field_http_probe.mjs"), "utf8");
@@ -72,6 +74,10 @@ for (const term of [
   "NoneCredentialSecretProvider",
   "credential_provider_unavailable",
   "secret_material_present=false",
+  "RunOnvifProbeAdapter",
+  "credential_ref_present",
+  "plaintext_secret_included=false",
+  "별도 schema version",
   "./onvif-credential-store-integration-design.md",
   "verify-onvif-probe-draft-api",
 ]) {
@@ -98,6 +104,10 @@ for (const term of [
   "credential_provider_unavailable",
   "credential_material_rejected",
   "secret_material_present=false",
+  "Probe adapter summary 연결 정책",
+  "RunOnvifProbeAdapter",
+  "credentialRefPresent",
+  "schema version 변경",
   "provider path를 포함하지",
   "secret 저장소 구현 완료 선언",
 ]) {
@@ -133,6 +143,24 @@ for (const term of [
   "credential_material_rejected",
 ]) {
   assert(providerSmoke.includes(term), `credential provider smoke missing required term: ${term}`);
+}
+
+for (const term of [
+  "bool credential_ref_present",
+  "bool plaintext_secret_included",
+]) {
+  assert(liveImportHeader.includes(term), `ONVIF live import header missing credential summary term: ${term}`);
+}
+
+for (const forbidden of [
+  "onvif_credential_provider.h",
+  "NoneOnvifCredentialProvider",
+  "CredentialLookupStatus",
+  "CredentialLookupStatusCode",
+  "credential_provider_unavailable",
+]) {
+  assert(!liveImportHeader.includes(forbidden), `probe adapter header unexpectedly includes provider status term: ${forbidden}`);
+  assert(!liveImportImpl.includes(forbidden), `probe adapter implementation unexpectedly includes provider status term: ${forbidden}`);
 }
 
 for (const forbidden of [

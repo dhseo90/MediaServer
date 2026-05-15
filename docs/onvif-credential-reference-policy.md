@@ -49,6 +49,18 @@ redaction 검증을 제공하는 범위입니다.
 `secret_material_present=false`만 반환합니다. `CredentialBindingStore`, secret
 material payload, 인증 header 생성은 계속 향후 범위입니다.
 
+Probe adapter summary 연결 정책:
+
+- 현재 `RunOnvifProbeAdapter` summary에는 none provider status를 연결하지 않습니다.
+- `OnvifProbeResult`는 `credential_ref_present`와 `plaintext_secret_included=false`만
+  유지합니다.
+- `credential_provider_unavailable`는 provider skeleton smoke와 향후 저장소 설계의
+  status code이며, 현재 draft API/UI/artifact에 노출하지 않습니다.
+- provider status를 API/UI/artifact에 노출하려면 별도 schema version, redaction
+  matrix, failure wording 검증을 먼저 추가해야 합니다.
+- 현재 `SendOnvifSoapHttp`는 인증 header나 WS-Security UsernameToken을 생성하지
+  않습니다.
+
 세부 기준은
 [ONVIF Credential Store Integration Design](./onvif-credential-store-integration-design.md)에
 고정합니다.
