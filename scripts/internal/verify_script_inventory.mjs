@@ -81,6 +81,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_ops_backup_restore_dry_run.mjs",
     "verify_ops_scenario_presets.mjs",
     "verify_onvif_ops_sources_ui_roundtrip.mjs",
+    "verify_onvif_probe_error_wording_matrix.mjs",
     "verify_webrtc_va_metadata.mjs",
     "verify_ws_va_metadata.mjs",
   ];

@@ -87,6 +87,8 @@ test/fixtures/onvif_probe_result_stub.json
   응답을 내부 live profile 모델로만 축약합니다.
 - probe adapter는 endpoint/timeout/action 순서와 sanitize된 실패 요약만 다루며
   raw SOAP나 credential 원문을 응답 모델에 남기지 않습니다.
+- probe 실패 문구는 `test/fixtures/onvif_probe_error_wording_matrix.json` 기준으로
+  request/transport/service/profile 실패별 요약과 redaction 금지어를 고정합니다.
 - HTTP SOAP transport는 `http://` ONVIF endpoint에 POST하고, 현재 transport
   계층에서는 TLS endpoint를 fail-closed로 다룹니다.
 - probe fixture의 `draftDecision`도 기존 import draft endpoint에서
