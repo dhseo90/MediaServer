@@ -53,6 +53,7 @@
 #include "ingress/analysis_query.h"
 #include "ingress/analysis_rule_registry.h"
 #include "ingress/http_auth.h"
+#include "ingress/onvif_live_import.h"
 #include "ingress/request_parser.h"
 #include "ingress/product_ui_assets.h"
 #include "ingress/product_ui_css.h"
@@ -8288,166 +8289,6 @@ std::string ViewBulkPayload(const std::string& view_raw,
     return out.str();
 }
 
-bool IsNumericRegistryDraftId(const std::string& value) {
-    return !value.empty() && std::all_of(value.begin(), value.end(), [](unsigned char ch) {
-        return std::isdigit(ch) != 0;
-    });
-}
-
-bool StringArrayContains(const std::vector<std::string>& values, const std::string& expected) {
-    return std::find(values.begin(), values.end(), expected) != values.end();
-}
-
-RegistryResult OpsOnvifImportDraftResult(const std::string& body) {
-    if (!LooksLikeJsonObject(body)) {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"request body must be a JSON object\"}"};
-    }
-
-    const auto decision = ExtractObjectField(body, "importDecision");
-    if (!decision.has_value()) {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"importDecision object is required\"}"};
-    }
-    const std::string selected_token = Trim(ParseStringField(*decision, "selectedProfileToken").value_or(""));
-    if (selected_token.empty()) {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"selectedProfileToken is required\"}"};
-    }
-
-    std::optional<std::string> selected_profile;
-    for (const auto& profile : ExtractJsonObjectArray(body, "profiles")) {
-        if (Trim(ParseStringField(profile, "token").value_or("")) == selected_token) {
-            selected_profile = profile;
-            break;
-        }
-    }
-    if (!selected_profile.has_value()) {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile not found\"}"};
-    }
-
-    const std::string media_api = Trim(ParseStringField(*selected_profile, "mediaApi").value_or(""));
-    const std::string encoding = Trim(ParseStringField(*selected_profile, "encoding").value_or(""));
-    const std::string transport = Trim(ParseStringField(*selected_profile, "transport").value_or(""));
-    const std::string stream_uri = Trim(ParseStringField(*selected_profile, "streamUri").value_or(""));
-    if (media_api != "Media" && media_api != "Media2") {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile mediaApi must be Media or Media2\"}"};
-    }
-    if (encoding != "H264" && encoding != "H265") {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile encoding must be H264 or H265\"}"};
-    }
-    if (transport != "RTSP" || stream_uri.rfind("rtsp://", 0) != 0) {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile must provide an RTSP streamUri\"}"};
-    }
-
-    const auto source_raw = ExtractObjectField(*decision, "expectedSourceDraft");
-    const auto view_raw = ExtractObjectField(*decision, "expectedPublishedViewDraft");
-    if (!source_raw.has_value() || !view_raw.has_value()) {
-        return RegistryResult{
-            400,
-            "Bad Request",
-            "{\"error\":\"expectedSourceDraft and expectedPublishedViewDraft are required\"}"};
-    }
-
-    const std::string source_id = Trim(ParseStringField(*source_raw, "sourceId").value_or(""));
-    if (!IsNumericRegistryDraftId(source_id)) {
-        return RegistryResult{
-            400,
-            "Bad Request",
-            "{\"error\":\"expectedSourceDraft.sourceId must be numeric for current /ops/sources contract\"}"};
-    }
-    const std::string view_id = Trim(ParseStringField(*view_raw, "viewId").value_or(source_id));
-    const std::string view_source_id = Trim(ParseStringField(*view_raw, "sourceId").value_or(""));
-    if (view_id != source_id || view_source_id != source_id) {
-        return RegistryResult{
-            400,
-            "Bad Request",
-            "{\"error\":\"expectedPublishedViewDraft must use the same numeric sourceId/viewId\"}"};
-    }
-    if (Trim(ParseStringField(*source_raw, "kind").value_or("")) != "rtsp") {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"expectedSourceDraft.kind must be rtsp\"}"};
-    }
-    if (Trim(ParseStringField(*source_raw, "rtspUrl").value_or("")) != stream_uri) {
-        return RegistryResult{
-            400,
-            "Bad Request",
-            "{\"error\":\"expectedSourceDraft.rtspUrl must match selected profile streamUri\"}"};
-    }
-    const std::vector<std::string> tags = StringArrayFieldValues(*source_raw, "tags");
-    if (!StringArrayContains(tags, "onvif") || !StringArrayContains(tags, "live")) {
-        return RegistryResult{
-            400,
-            "Bad Request",
-            "{\"error\":\"expectedSourceDraft.tags must include onvif and live\"}"};
-    }
-
-    const auto device = ExtractObjectField(body, "device").value_or("{}");
-    const auto auth = ExtractObjectField(body, "auth").value_or("{}");
-    const bool credential_ref_present = !Trim(ParseStringField(auth, "credentialRef").value_or("")).empty();
-    const bool plaintext_secret_included = ParseBoolField(auth, "plaintextSecretIncluded").value_or(false);
-    if (plaintext_secret_included) {
-        return RegistryResult{
-            400,
-            "Bad Request",
-            "{\"error\":\"plaintext credentials are not allowed in ONVIF import drafts\"}"};
-    }
-
-    const std::string display_name =
-        Trim(ParseStringField(*source_raw, "displayName").value_or(source_id));
-    const std::string overlay_modes =
-        JsonStringArrayOrDefault(*view_raw, "allowedOverlayModes", "[\"raw\",\"va-overlay\",\"va-rule\"]");
-    const std::string client_groups = JsonStringArrayOrDefault(*view_raw, "clientGroups", "[]");
-    const int max_tiles = std::max(1, ParseIntField(*view_raw, "maxTiles").value_or(1));
-
-    std::ostringstream out;
-    out << "{"
-        << "\"ok\":true,"
-        << "\"status\":\"onvifImportDraft\","
-        << "\"notSaved\":true,"
-        << "\"candidate\":{"
-        << "\"manufacturer\":\"" << JsonEscape(ParseStringField(device, "manufacturer").value_or("")) << "\","
-        << "\"model\":\"" << JsonEscape(ParseStringField(device, "model").value_or("")) << "\","
-        << "\"firmwareVersion\":\"" << JsonEscape(ParseStringField(device, "firmwareVersion").value_or("")) << "\","
-        << "\"serialNumber\":\"" << JsonEscape(ParseStringField(device, "serialNumber").value_or("")) << "\""
-        << "},"
-        << "\"selectedProfile\":{"
-        << "\"token\":\"" << JsonEscape(selected_token) << "\","
-        << "\"name\":\"" << JsonEscape(ParseStringField(*selected_profile, "name").value_or("")) << "\","
-        << "\"mediaApi\":\"" << JsonEscape(media_api) << "\","
-        << "\"encoding\":\"" << JsonEscape(encoding) << "\","
-        << "\"width\":" << ParseIntField(*selected_profile, "width").value_or(0) << ","
-        << "\"height\":" << ParseIntField(*selected_profile, "height").value_or(0) << ","
-        << "\"fps\":" << ParseIntField(*selected_profile, "fps").value_or(0) << ","
-        << "\"transport\":\"RTSP\""
-        << "},"
-        << "\"auth\":{"
-        << "\"required\":" << (ParseBoolField(auth, "required").value_or(false) ? "true" : "false") << ","
-        << "\"credentialRefPresent\":" << (credential_ref_present ? "true" : "false") << ","
-        << "\"plaintextSecretIncluded\":false"
-        << "},"
-        << "\"sourceDraft\":{"
-        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
-        << "\"displayName\":\"" << JsonEscape(display_name.empty() ? source_id : display_name) << "\","
-        << "\"kind\":\"rtsp\","
-        << "\"rtspUrl\":\"" << JsonEscape(stream_uri) << "\","
-        << "\"enabled\":" << (ParseBoolField(*source_raw, "enabled").value_or(true) ? "true" : "false") << ","
-        << "\"tags\":" << JsonStringArrayOrDefault(*source_raw, "tags", "[\"onvif\",\"live\"]") << ","
-        << "\"ownerGroup\":\"" << JsonEscape(ParseStringField(*source_raw, "ownerGroup").value_or("")) << "\""
-        << "},"
-        << "\"publishedViewDraft\":{"
-        << "\"viewId\":\"" << JsonEscape(view_id) << "\","
-        << "\"displayName\":\"" << JsonEscape(ParseStringField(*view_raw, "displayName").value_or(display_name)) << "\","
-        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
-        << "\"allowedOverlayModes\":" << overlay_modes << ","
-        << "\"showDashboard\":" << (ParseBoolField(*view_raw, "showDashboard").value_or(true) ? "true" : "false") << ","
-        << "\"showEvents\":" << (ParseBoolField(*view_raw, "showEvents").value_or(true) ? "true" : "false") << ","
-        << "\"showMetadataSummary\":"
-        << (ParseBoolField(*view_raw, "showMetadataSummary").value_or(true) ? "true" : "false") << ","
-        << "\"clientGroups\":" << client_groups << ","
-        << "\"maxTiles\":" << max_tiles << ","
-        << "\"enabled\":" << (ParseBoolField(*view_raw, "enabled").value_or(true) ? "true" : "false")
-        << "}"
-        << "}";
-    return RegistryResult{200, "OK", out.str()};
-}
-
 bool SourceHasPlayableLocator(const std::string& source_raw) {
     const std::string kind = ParseStringField(source_raw, "kind").value_or("file");
     if (kind == "file") return !Trim(ParseStringField(source_raw, "file").value_or("")).empty();
@@ -11269,7 +11110,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 auth_response.has_value()) {
                                 return *auth_response;
                             }
-                            HttpResponse ok = RegistryHttpResponse(OpsOnvifImportDraftResult(request.body));
+                            HttpResponse ok = RegistryHttpResponse(BuildOnvifLiveImportDraft(request.body));
                             ok.headers["Cache-Control"] = "no-store";
                             return ok;
                         }
