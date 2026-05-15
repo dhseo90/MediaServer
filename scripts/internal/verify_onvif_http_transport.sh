@@ -25,6 +25,7 @@ echo "[verify] build ONVIF HTTP transport smoke: ${BUILD_DIR}"
   "${OPENSSL_CFLAGS[@]}" \
   "${SCRIPT_DIR}/onvif_http_transport_smoke.cpp" \
   "${ROOT_DIR}/src/ingress/onvif_live_import.cpp" \
+  "${ROOT_DIR}/src/ingress/onvif_credential_provider.cpp" \
   -o "${BUILD_DIR}/onvif_http_transport_smoke" \
   "${OPENSSL_LIBS[@]}"
 

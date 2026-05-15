@@ -830,6 +830,63 @@ bool SendAll(int fd, const std::string& payload) {
     return true;
 }
 
+bool IsSafeHttpHeaderName(const std::string& value) {
+    if (value.empty()) {
+        return false;
+    }
+    for (const char ch : value) {
+        const bool alpha = (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z');
+        const bool digit = ch >= '0' && ch <= '9';
+        const bool token = ch == '-' || ch == '_';
+        if (!alpha && !digit && !token) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool IsSafeHttpHeaderValue(const std::string& value) {
+    return value.find('\r') == std::string::npos && value.find('\n') == std::string::npos;
+}
+
+std::string Base64Encode(const std::string& value) {
+    static constexpr char alphabet[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    std::string out;
+    int value_bits = 0;
+    int bit_count = -6;
+    for (const unsigned char ch : value) {
+        value_bits = (value_bits << 8) + ch;
+        bit_count += 8;
+        while (bit_count >= 0) {
+            out.push_back(alphabet[(value_bits >> bit_count) & 0x3F]);
+            bit_count -= 6;
+        }
+    }
+    if (bit_count > -6) {
+        out.push_back(alphabet[((value_bits << 8) >> (bit_count + 8)) & 0x3F]);
+    }
+    while (out.size() % 4 != 0) {
+        out.push_back('=');
+    }
+    return out;
+}
+
+void ApplyCredentialMaterial(const CredentialLookupResult& lookup, OnvifSoapRequest* request) {
+    if (request == nullptr || lookup.status != CredentialLookupStatus::kReady ||
+        !lookup.secret_material_present) {
+        return;
+    }
+    if (lookup.material.scheme != CredentialAuthScheme::kHttpBasic ||
+        lookup.material.username.empty() || lookup.material.password.empty()) {
+        return;
+    }
+    request->headers.push_back({
+        "Authorization",
+        "Basic " + Base64Encode(lookup.material.username + ":" + lookup.material.password),
+    });
+}
+
 std::optional<OnvifSoapResponse> ParseHttpResponseText(const std::string& response_text);
 
 std::string BuildSoapHttpRequest(const ParsedHttpUrl& url, const OnvifSoapRequest& request) {
@@ -839,8 +896,14 @@ std::string BuildSoapHttpRequest(const ParsedHttpUrl& url, const OnvifSoapReques
          << "Host: " << url.host << "\r\n"
          << "User-Agent: MediaServer-ONVIF-Probe\r\n"
          << "Content-Type: application/soap+xml; charset=utf-8; action=\"" << JsonEscape(soap_action) << "\"\r\n"
-         << "SOAPAction: \"" << JsonEscape(soap_action) << "\"\r\n"
-         << "Connection: close\r\n"
+         << "SOAPAction: \"" << JsonEscape(soap_action) << "\"\r\n";
+    for (const auto& header : request.headers) {
+        if (!IsSafeHttpHeaderName(header.first) || !IsSafeHttpHeaderValue(header.second)) {
+            continue;
+        }
+        http << header.first << ": " << header.second << "\r\n";
+    }
+    http << "Connection: close\r\n"
          << "Content-Length: " << request.body.size() << "\r\n"
          << "\r\n"
          << request.body;
@@ -1091,6 +1154,12 @@ bool AttachOnvifStreamUriSoap(const std::string& soap, OnvifMediaProfileSummary*
 
 OnvifProbeResult RunOnvifProbeAdapter(const OnvifProbeRequest& request,
                                       const OnvifSoapTransport& transport) {
+    return RunOnvifProbeAdapter(request, transport, NoneOnvifCredentialProvider());
+}
+
+OnvifProbeResult RunOnvifProbeAdapter(const OnvifProbeRequest& request,
+                                      const OnvifSoapTransport& transport,
+                                      const CredentialSecretProvider& credential_provider) {
     if (!HasHttpOrHttpsUrl(request.endpoint)) {
         return ProbeError(request, "request", "endpoint must be http(s)");
     }
@@ -1105,11 +1174,17 @@ OnvifProbeResult RunOnvifProbeAdapter(const OnvifProbeRequest& request,
     result.credential_ref_present = request.credential_ref_present;
     result.plaintext_secret_included = false;
 
+    CredentialLookupRequest credential_request;
+    credential_request.credential_ref_present = request.credential_ref_present;
+    credential_request.credential_ref = request.credential_ref;
+    const CredentialLookupResult credential_lookup = credential_provider.Lookup(credential_request);
+
     OnvifSoapRequest services_request;
     services_request.action = "GetServices";
     services_request.endpoint = request.endpoint;
     services_request.body = OnvifGetServicesEnvelope();
     services_request.timeout_ms = request.timeout_ms;
+    ApplyCredentialMaterial(credential_lookup, &services_request);
     const auto services_response = transport(services_request);
     if (!services_response.ok) {
         return TransportError(request, "GetServices", services_response);
@@ -1129,6 +1204,7 @@ OnvifProbeResult RunOnvifProbeAdapter(const OnvifProbeRequest& request,
         profiles_request.endpoint = request.endpoint;
         profiles_request.body = OnvifGetProfilesEnvelope(media_api);
         profiles_request.timeout_ms = request.timeout_ms;
+        ApplyCredentialMaterial(credential_lookup, &profiles_request);
         const auto profiles_response = transport(profiles_request);
         if (!profiles_response.ok) {
             continue;
@@ -1140,6 +1216,7 @@ OnvifProbeResult RunOnvifProbeAdapter(const OnvifProbeRequest& request,
             stream_request.endpoint = request.endpoint;
             stream_request.body = OnvifGetStreamUriEnvelope(profile);
             stream_request.timeout_ms = request.timeout_ms;
+            ApplyCredentialMaterial(credential_lookup, &stream_request);
             const auto stream_response = transport(stream_request);
             if (stream_response.ok && AttachOnvifStreamUriSoap(stream_response.body, &profile)) {
                 result.media_profiles.push_back(std::move(profile));

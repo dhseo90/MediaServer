@@ -4,8 +4,10 @@
 
 #include <functional>
 #include <string>
+#include <utility>
 #include <vector>
 
+#include "ingress/onvif_credential_provider.h"
 #include "ingress/source_view_registry.h"
 
 namespace ingress {
@@ -33,6 +35,7 @@ struct OnvifProbeRequest {
     std::string endpoint;
     int timeout_ms{3000};
     bool credential_ref_present{false};
+    std::string credential_ref;
 };
 
 struct OnvifSoapRequest {
@@ -40,6 +43,7 @@ struct OnvifSoapRequest {
     std::string endpoint;
     std::string body;
     int timeout_ms{3000};
+    std::vector<std::pair<std::string, std::string>> headers;
 };
 
 struct OnvifSoapResponse {
@@ -67,6 +71,9 @@ std::vector<OnvifMediaProfileSummary> ParseOnvifMediaProfilesSoap(const std::str
 bool AttachOnvifStreamUriSoap(const std::string& soap, OnvifMediaProfileSummary* profile);
 OnvifProbeResult RunOnvifProbeAdapter(const OnvifProbeRequest& request,
                                       const OnvifSoapTransport& transport);
+OnvifProbeResult RunOnvifProbeAdapter(const OnvifProbeRequest& request,
+                                      const OnvifSoapTransport& transport,
+                                      const CredentialSecretProvider& credential_provider);
 OnvifSoapResponse SendOnvifSoapHttp(const OnvifSoapRequest& request);
 
 }  // namespace ingress

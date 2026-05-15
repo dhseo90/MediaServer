@@ -72,6 +72,8 @@ for (const term of [
   "secret manager",
   "include/ingress/onvif_credential_provider.h",
   "NoneCredentialSecretProvider",
+  "credential_ready",
+  "http_basic",
   "credential_provider_unavailable",
   "secret_material_present=false",
   "RunOnvifProbeAdapter",
@@ -119,16 +121,22 @@ for (const term of [
   "class NoneCredentialSecretProvider",
   "CredentialLookupRequest",
   "CredentialLookupResult",
+  "CredentialAuthScheme",
+  "CredentialSecretMaterial",
   "secret_material_present",
   "CredentialLookupStatusCode",
+  "CredentialAuthSchemeCode",
 ]) {
   assert(providerHeader.includes(term), `credential provider header missing required term: ${term}`);
 }
 
 for (const term of [
   "NoneCredentialSecretProvider::Lookup",
+  "CredentialLookupStatus::kReady",
   "CredentialLookupStatus::kProviderUnavailable",
   "CredentialLookupStatus::kMissing",
+  "\"credential_ready\"",
+  "\"http_basic\"",
   "\"credential_provider_unavailable\"",
   "\"credential_missing\"",
   "secret_material_present = false",
@@ -139,6 +147,8 @@ for (const term of [
 for (const term of [
   "NoneOnvifCredentialProvider",
   "secret_material_present",
+  "credential_ready",
+  "http_basic",
   "credential_provider_unavailable",
   "credential_material_rejected",
 ]) {
@@ -148,19 +158,21 @@ for (const term of [
 for (const term of [
   "bool credential_ref_present",
   "bool plaintext_secret_included",
+  "std::vector<std::pair<std::string, std::string>> headers",
+  "const CredentialSecretProvider& credential_provider",
 ]) {
   assert(liveImportHeader.includes(term), `ONVIF live import header missing credential summary term: ${term}`);
 }
 
-for (const forbidden of [
-  "onvif_credential_provider.h",
+for (const term of [
   "NoneOnvifCredentialProvider",
-  "CredentialLookupStatus",
-  "CredentialLookupStatusCode",
-  "credential_provider_unavailable",
+  "ApplyCredentialMaterial",
+  "CredentialLookupStatus::kReady",
+  "CredentialAuthScheme::kHttpBasic",
+  "Authorization",
+  "Base64Encode",
 ]) {
-  assert(!liveImportHeader.includes(forbidden), `probe adapter header unexpectedly includes provider status term: ${forbidden}`);
-  assert(!liveImportImpl.includes(forbidden), `probe adapter implementation unexpectedly includes provider status term: ${forbidden}`);
+  assert(liveImportImpl.includes(term), `probe adapter implementation missing provider auth term: ${term}`);
 }
 
 for (const forbidden of [

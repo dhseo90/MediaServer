@@ -62,6 +62,7 @@ function compileSmoke() {
     `-I${path.join(rootDir, "include")}`,
     path.join(scriptDir, "onvif_soap_fault_matrix_smoke.cpp"),
     path.join(rootDir, "src/ingress/onvif_live_import.cpp"),
+    path.join(rootDir, "src/ingress/onvif_credential_provider.cpp"),
     "-o",
     binaryPath,
   ], {

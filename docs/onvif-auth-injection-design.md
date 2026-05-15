@@ -1,9 +1,9 @@
 # ONVIF Auth Injection Design
 
-이 문서는 향후 ONVIF SOAP probe에 credential 주입을 추가할 때의 설계 기준을
-고정합니다. v1.2.0 현재 구현은 credential reference와 redaction policy만
-제공하며, WS-Security UsernameToken, HTTP Digest, HTTP Basic 인증 주입은
-구현 완료가 아닙니다.
+이 문서는 ONVIF SOAP probe에 credential을 주입할 때의 설계 기준을 고정합니다.
+v1.2.0 현재 구현은 명시적으로 연결된 credential provider가 `HTTP Basic` material을
+반환할 때만 `Authorization` header를 주입합니다. 기본 provider는 계속 secret 없이
+닫히며, WS-Security UsernameToken과 HTTP Digest 인증 주입은 구현 완료가 아닙니다.
 
 관련 기준:
 
@@ -18,19 +18,23 @@
   여부를 나타내는 합성 fixture 표현입니다.
 - field smoke와 draft API는 `credentialRefPresent=true/false` 같은 boolean
   summary만 남깁니다.
-- ONVIF SOAP request에는 `Authorization`, `Cookie`, WS-Security UsernameToken을
-  주입하지 않습니다.
+- 기본 none provider에서는 ONVIF SOAP request에 `Authorization`, `Cookie`,
+  WS-Security UsernameToken을 주입하지 않습니다.
+- 명시적으로 연결된 provider가 `credential_ready`와 `http_basic` material을
+  반환할 때만 `Authorization: Basic ...` header를 주입합니다.
 - `verify-onvif-auth-injection-loopback`은 credential reference가 있는 probe가
-  401 challenge를 받아도 Authorization, Cookie, WS-Security UsernameToken,
+  401 challenge를 받아도 기본 none provider에서는 Authorization, Cookie, WS-Security UsernameToken,
   PasswordDigest, Basic/Digest secret material을 요청에 주입하지 않는 경계를
-  loopback에서 고정합니다.
+  고정합니다. 같은 smoke에서 fixture provider 연결 시 HTTP Basic header가
+  주입되고 실패 summary에는 username/password/reference가 남지 않는지도 확인합니다.
 - secret 저장소 또는 secret manager lookup도 현재 구현 완료가 아닙니다.
 - endpoint URL에 username, password, token을 넣는 방식은 금지합니다.
 - 인증이 필요한 장비의 HTTP 401/403은 sanitized probe failure로 기록합니다.
 
 ## 향후 구현 조건
 
-인증 주입을 추가하려면 별도 단계에서 아래 조건을 모두 만족해야 합니다.
+Digest/UsernameToken, 저장소 lookup, rotation을 추가하려면 별도 단계에서 아래
+조건을 모두 만족해야 합니다.
 
 1. secret 원문은 SourceRegistry, PublishedView, client/viewer API, field artifact,
    log에 저장하거나 출력하지 않습니다.

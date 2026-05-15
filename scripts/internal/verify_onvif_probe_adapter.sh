@@ -14,6 +14,7 @@ echo "[verify] build ONVIF probe adapter smoke: ${BUILD_DIR}"
 "${CXX_BIN}" -std=c++17 -I"${ROOT_DIR}/include" \
   "${SCRIPT_DIR}/onvif_probe_adapter_smoke.cpp" \
   "${ROOT_DIR}/src/ingress/onvif_live_import.cpp" \
+  "${ROOT_DIR}/src/ingress/onvif_credential_provider.cpp" \
   -o "${BUILD_DIR}/onvif_probe_adapter_smoke"
 
 "${BUILD_DIR}/onvif_probe_adapter_smoke"

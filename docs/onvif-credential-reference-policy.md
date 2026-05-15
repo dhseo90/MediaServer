@@ -1,9 +1,9 @@
 # ONVIF Credential Reference Policy
 
 이 문서는 v1.2.0 ONVIF field integration에서 credential reference를 다루는 기준을
-고정합니다. 현재 구현은 credential 저장소가 아니라 live source 등록 draft와
-redaction 검증을 제공하는 범위입니다.
-향후 credential 주입 설계 기준은
+고정합니다. 현재 구현은 credential 저장소가 아니라 live source 등록 draft,
+provider 기반 HTTP Basic 주입 경계, redaction 검증을 제공하는 범위입니다.
+credential 주입 설계 기준은
 [ONVIF Auth Injection Design](./onvif-auth-injection-design.md)을 따릅니다.
 저장소/secret manager 연동 설계 기준은
 [ONVIF Credential Store Integration Design](./onvif-credential-store-integration-design.md)을
@@ -21,9 +21,10 @@ redaction 검증을 제공하는 범위입니다.
 - endpoint URL에 username, password, token을 넣는 방식은 금지합니다.
 - `verify-onvif-field-http-probe --credential-ref-present`는 reference 존재 여부만
   산출물에 남기며 인증 header나 secret을 주입하지 않습니다.
-- `verify-onvif-auth-injection-loopback`은 401 challenge가 있어도 reference-only
+- `verify-onvif-auth-injection-loopback`은 기본 none provider에서는 reference-only
   request에 Authorization/Cookie/WS-Security secret material이 주입되지 않는지
-  확인합니다.
+  확인하고, fixture provider 연결 시 HTTP Basic header가 요청에 들어가되 실패
+  summary에는 username/password/reference가 남지 않는지 확인합니다.
 - credential이 필요한 실제 장비가 HTTP 401/403을 반환하면 현재 단계에서는
   sanitized probe failure로 기록합니다.
 
@@ -34,7 +35,7 @@ redaction 검증을 제공하는 범위입니다.
 - secret manager 연동
 - credential 암호화 저장
 - ONVIF WS-Security UsernameToken 생성
-- HTTP Digest/Basic 인증 주입
+- HTTP Digest 인증 주입
 - credential rotation, expiry, audit event
 - SourceRegistry origin metadata 안의 credential binding
 
@@ -47,10 +48,12 @@ redaction 검증을 제공하는 범위입니다.
 
 코드 경계는 `include/ingress/onvif_credential_provider.h`의
 `CredentialSecretProvider` interface skeleton과 `NoneCredentialSecretProvider`로
-시작합니다. 현재 provider는 secret lookup을 수행하지 않고 `credential_missing` 또는
-`credential_provider_unavailable` 같은 sanitized status code와
-`secret_material_present=false`만 반환합니다. `CredentialBindingStore`, secret
-material payload, 인증 header 생성은 계속 향후 범위입니다.
+시작합니다. 기본 none provider는 secret lookup을 수행하지 않고
+`credential_missing` 또는 `credential_provider_unavailable` 같은 sanitized status
+code와 `secret_material_present=false`만 반환합니다. 명시적으로 연결한 provider가
+`credential_ready`와 `http_basic` material을 반환하면 probe adapter가 HTTP Basic
+header를 생성합니다. `CredentialBindingStore`, 지속 secret material payload,
+Digest/UsernameToken 생성은 계속 향후 범위입니다.
 
 Probe adapter summary 연결 정책:
 
@@ -61,8 +64,8 @@ Probe adapter summary 연결 정책:
   status code이며, 현재 draft API/UI/artifact에 노출하지 않습니다.
 - provider status를 API/UI/artifact에 노출하려면 별도 schema version, redaction
   matrix, failure wording 검증을 먼저 추가해야 합니다.
-- 현재 `SendOnvifSoapHttp`는 인증 header나 WS-Security UsernameToken을 생성하지
-  않습니다.
+- 현재 `SendOnvifSoapHttp`는 전달받은 sanitized header만 전송하며, secret lookup이나
+  WS-Security UsernameToken 생성은 수행하지 않습니다.
 
 세부 기준은
 [ONVIF Credential Store Integration Design](./onvif-credential-store-integration-design.md)에

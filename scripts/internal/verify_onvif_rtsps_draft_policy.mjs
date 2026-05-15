@@ -138,6 +138,7 @@ check("C++ smoke accepts rtsps automatic import draft as rtsp source", () => {
     `-I${path.join(rootDir, "include")}`,
     path.join(scriptDir, "onvif_rtsps_import_draft_smoke.cpp"),
     path.join(rootDir, "src/ingress/onvif_live_import.cpp"),
+    path.join(rootDir, "src/ingress/onvif_credential_provider.cpp"),
     "-o",
     binaryPath,
   ], {

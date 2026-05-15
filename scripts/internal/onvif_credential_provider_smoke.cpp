@@ -26,6 +26,7 @@ int main() {
     const auto missing = provider.Lookup(missing_request);
     Assert(missing.status == ingress::CredentialLookupStatus::kMissing, "missing status mismatch");
     Assert(!missing.secret_material_present, "missing lookup exposed secret material");
+    Assert(missing.material.scheme == ingress::CredentialAuthScheme::kNone, "missing auth scheme mismatch");
     Assert(std::string(ingress::CredentialLookupStatusCode(missing.status)) == "credential_missing",
            "missing status code mismatch");
 
@@ -35,9 +36,19 @@ int main() {
     Assert(referenced.status == ingress::CredentialLookupStatus::kProviderUnavailable,
            "referenced status mismatch");
     Assert(!referenced.secret_material_present, "referenced lookup exposed secret material");
+    Assert(referenced.material.scheme == ingress::CredentialAuthScheme::kNone, "referenced auth scheme mismatch");
     Assert(std::string(ingress::CredentialLookupStatusCode(referenced.status)) ==
                "credential_provider_unavailable",
            "referenced status code mismatch");
+
+    Assert(std::string(ingress::CredentialLookupStatusCode(ingress::CredentialLookupStatus::kReady)) ==
+               "credential_ready",
+           "ready status code mismatch");
+    Assert(std::string(ingress::CredentialAuthSchemeCode(ingress::CredentialAuthScheme::kNone)) == "none",
+           "none auth scheme code mismatch");
+    Assert(std::string(ingress::CredentialAuthSchemeCode(ingress::CredentialAuthScheme::kHttpBasic)) ==
+               "http_basic",
+           "basic auth scheme code mismatch");
 
     Assert(std::string(ingress::CredentialLookupStatusCode(ingress::CredentialLookupStatus::kDenied)) ==
                "credential_denied",

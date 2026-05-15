@@ -68,6 +68,9 @@ check("protocol support matrix names supported ONVIF live-source scope", () => {
     "verify-onvif-https-tls-fixture",
     "./onvif-auth-injection-design.md",
     "./onvif-credential-store-integration-design.md",
+    "Credential reference / HTTP Basic auth",
+    "`http_basic` material",
+    "Authorization header",
     "verify-onvif-auth-injection-design",
     "verify-onvif-auth-injection-loopback",
     "./onvif-unsupported-api-guard.md",
@@ -89,7 +92,7 @@ check("protocol support matrix names unsupported ONVIF protocols", () => {
     "ONVIF Imaging service",
     "ONVIF Device management",
     "WS-Security UsernameToken",
-    "HTTP Digest/Basic auth 주입",
+    "HTTP Digest auth 주입",
     "ONVIF Profile S/T 전체 conformance 지원",
   ]) {
     assertContains(matrixDoc, term, `matrix missing unsupported scope term: ${term}`);
@@ -133,7 +136,8 @@ check("TLS and credential policy docs keep HTTPS/auth scope explicit", () => {
   assertContains(tlsDoc, "OpenSSL이 없는 빌드는 `https transport requires OpenSSL support`로 fail-closed", "TLS doc must keep OpenSSL fallback explicit");
   assertContains(credentialDoc, "ONVIF WS-Security UsernameToken 생성", "credential doc must keep WS-Security unsupported");
   assertContains(credentialDoc, "./onvif-credential-store-integration-design.md", "credential doc must link credential store design");
-  assertContains(credentialDoc, "HTTP Digest/Basic 인증 주입", "credential doc must keep HTTP auth injection unsupported");
+  assertContains(credentialDoc, "HTTP Digest 인증 주입", "credential doc must keep Digest auth unsupported");
+  assertContains(credentialDoc, "`credential_ready`와 `http_basic` material", "credential doc must state Basic provider scope");
 });
 
 let failures = 0;

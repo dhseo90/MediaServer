@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// 파일 용도: ONVIF 인증 주입 향후 설계 기준과 현재 credential reference-only 경계를 검증한다.
-// 동작 요약: WS-Security/Digest/Basic 인증 주입을 구현 완료로 말하지 않고 secret redaction 조건을 확인한다.
+// 파일 용도: ONVIF 인증 주입 설계 기준과 현재 provider 기반 Basic 경계를 검증한다.
+// 동작 요약: 기본 none provider와 explicit HTTP Basic provider 경계, WS-Security/Digest 후속 조건, redaction 기준을 확인한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -20,10 +20,10 @@ Usage:
   ./server.sh verify-onvif-auth-injection-design
 
 Checks:
-  - docs/onvif-auth-injection-design.md가 현재 credential reference-only 상태를 명시함
-  - WS-Security, Digest, Basic 인증 주입의 향후 조건과 금지선을 문서화함
+  - docs/onvif-auth-injection-design.md가 현재 provider 기반 HTTP Basic 경계를 명시함
+  - WS-Security, Digest 인증 주입의 향후 조건과 금지선을 문서화함
   - credential policy/protocol matrix가 auth design 문서를 참조함
-  - 현재 ONVIF SOAP transport는 Authorization/Cookie/UsernameToken을 주입하지 않음
+  - 현재 ONVIF SOAP transport는 provider material이 있을 때만 Authorization을 주입함
 `);
 }
 
@@ -36,16 +36,22 @@ const matrixDoc = readText("docs/onvif-protocol-support-matrix.md");
 const onvifCode = readText("src/ingress/onvif_live_import.cpp");
 const checks = [];
 
-check("auth injection design keeps current reference-only status explicit", () => {
+check("auth injection design keeps current provider Basic status explicit", () => {
   for (const term of [
-    "credential reference와 redaction policy만",
-    "WS-Security UsernameToken, HTTP Digest, HTTP Basic 인증 주입은 구현 완료가 아닙니다",
+    "명시적으로 연결된 credential provider",
+    "`HTTP Basic` material",
+    "기본 provider는 계속 secret 없이",
+    "WS-Security UsernameToken과 HTTP Digest 인증 주입은 구현 완료가 아닙니다",
     "`credentialRefPresent=true/false`",
     "Authorization",
     "Cookie",
     "UsernameToken",
+    "credential_ready",
+    "http_basic",
+    "Authorization: Basic",
     "verify-onvif-auth-injection-loopback",
     "401 challenge",
+    "fixture provider 연결 시 HTTP Basic header",
     "secret 저장소 또는 secret manager lookup도 현재 구현 완료가 아닙니다",
     "HTTP 401/403은 sanitized probe failure",
   ]) {
@@ -80,16 +86,20 @@ check("credential policy and protocol matrix link auth injection design", () => 
   assertContains(matrixDoc, "verify-onvif-auth-injection-loopback", "protocol matrix missing auth loopback verification");
 });
 
-check("current ONVIF SOAP transport does not inject auth headers or UsernameToken", () => {
-  for (const forbidden of [
-    "Authorization:",
-    "Cookie:",
-    "UsernameToken",
-    "PasswordDigest",
+check("current ONVIF SOAP transport injects only provider-provided Basic auth", () => {
+  for (const term of [
+    "CredentialSecretProvider",
+    "ApplyCredentialMaterial",
+    "CredentialLookupStatus::kReady",
+    "CredentialAuthScheme::kHttpBasic",
+    "Authorization",
     "Basic ",
-    "Digest ",
+    "Base64Encode",
   ]) {
-    assert(!onvifCode.includes(forbidden), `current ONVIF transport unexpectedly includes auth injection term: ${forbidden}`);
+    assertContains(onvifCode, term, `current ONVIF transport missing auth injection term: ${term}`);
+  }
+  for (const forbidden of ["Cookie:", "UsernameToken", "PasswordDigest", "Digest "]) {
+    assert(!onvifCode.includes(forbidden), `current ONVIF transport unexpectedly includes unsupported auth term: ${forbidden}`);
   }
   assertContains(onvifCode, "SOAPAction:", "current transport should still include SOAPAction header smoke path");
   assertContains(onvifCode, "credentialRefPresent", "current draft response should expose boolean credential summary only");

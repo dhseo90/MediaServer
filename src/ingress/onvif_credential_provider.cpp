@@ -24,6 +24,8 @@ const CredentialSecretProvider& NoneOnvifCredentialProvider() {
 
 const char* CredentialLookupStatusCode(CredentialLookupStatus status) {
     switch (status) {
+        case CredentialLookupStatus::kReady:
+            return "credential_ready";
         case CredentialLookupStatus::kNotRequested:
             return "credential_not_requested";
         case CredentialLookupStatus::kMissing:
@@ -38,6 +40,16 @@ const char* CredentialLookupStatusCode(CredentialLookupStatus status) {
             return "credential_material_rejected";
     }
     return "credential_provider_unavailable";
+}
+
+const char* CredentialAuthSchemeCode(CredentialAuthScheme scheme) {
+    switch (scheme) {
+        case CredentialAuthScheme::kNone:
+            return "none";
+        case CredentialAuthScheme::kHttpBasic:
+            return "http_basic";
+    }
+    return "none";
 }
 
 }  // namespace ingress
