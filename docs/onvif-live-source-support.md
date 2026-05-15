@@ -10,6 +10,7 @@ ONVIF는 file, RTSP pull, HTTP/HLS URI, WHEP pull, Published WebRTC와 같은
 - [Development Backlog](./development-backlog.md)
 - [Media Server Architecture](./media-server-architecture.md)
 - [Config Reference](./config-reference.md)
+- [ONVIF No-Device Verification](./onvif-no-device-verification.md)
 
 ## 범위
 
@@ -144,6 +145,11 @@ draft 매핑:
 
 ## 현장 수동 Smoke 절차
 
+실장비가 없으면 현장 endpoint 성공 smoke는 실행하지 않습니다.
+[ONVIF No-Device Verification](./onvif-no-device-verification.md)에 따라
+synthetic fixture, loopback transport, redaction 검증만 수행하며, 실장비 endpoint
+성공은 미확인으로 보고합니다.
+
 실제 ONVIF 카메라로 확인할 때는 현장 endpoint와 credential을 문서나 로그에
 원문으로 남기지 않습니다. 결과 공유에는 아래처럼 redacted 값만 사용합니다.
 
@@ -218,9 +224,11 @@ notes: <sanitized operational note>
 ./server.sh verify-onvif-probe-adapter
 ./server.sh verify-onvif-http-transport
 ./server.sh verify-onvif-probe-error-wording
+./server.sh verify-onvif-no-device-mode
 ./server.sh verify-onvif-field-smoke-redaction
 ./server.sh verify-onvif-field-smoke-sample-bundle
 ./server.sh verify-onvif-field-http-probe --allow-missing-endpoint
+./server.sh verify-onvif-field-http-probe --endpoint http://127.0.0.1:9/onvif/device_service --expect-failure --credential-ref-present
 ./server.sh verify-onvif-tls-transport-policy
 ./server.sh verify-onvif-credential-reference-policy
 ./server.sh verify-onvif-probe-draft-api
