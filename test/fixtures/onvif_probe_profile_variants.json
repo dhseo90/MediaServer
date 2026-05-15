@@ -1,0 +1,174 @@
+{
+  "schema": "media-server.onvif-probe-profile-variants.v1",
+  "description": "Synthetic ONVIF Media/Media2 profile selection variants for no-device v1.2.0 verification. This is not a product API contract.",
+  "variants": [
+    {
+      "id": "media2-preferred-live-rtsp",
+      "summary": "Media2 and Media both expose live RTSP profiles; Media2 is selected first.",
+      "services": [
+        {
+          "name": "Device",
+          "available": true
+        },
+        {
+          "name": "Media2",
+          "available": true
+        },
+        {
+          "name": "Media",
+          "available": true
+        }
+      ],
+      "mediaProfiles": [
+        {
+          "token": "variant-media2-main-h264",
+          "name": "Variant Media2 Main H264",
+          "mediaApi": "Media2",
+          "encoding": "H264",
+          "width": 1920,
+          "height": 1080,
+          "fps": 30,
+          "transport": "RTSP",
+          "streamUri": "rtsp://192.0.2.31/live/media2-main",
+          "selected": true
+        },
+        {
+          "token": "variant-media-main-h264",
+          "name": "Variant Media Main H264",
+          "mediaApi": "Media",
+          "encoding": "H264",
+          "width": 1280,
+          "height": 720,
+          "fps": 15,
+          "transport": "RTSP",
+          "streamUri": "rtsp://192.0.2.31/live/media-main",
+          "selected": false
+        }
+      ],
+      "expectedSelectedProfileToken": "variant-media2-main-h264",
+      "expectedSelectionReason": "Media2 live RTSP profile is preferred over Media"
+    },
+    {
+      "id": "media-fallback-when-media2-non-rtsp",
+      "summary": "Media2 profile exists but is not live RTSP; Media RTSP profile is selected.",
+      "services": [
+        {
+          "name": "Device",
+          "available": true
+        },
+        {
+          "name": "Media2",
+          "available": true
+        },
+        {
+          "name": "Media",
+          "available": true
+        }
+      ],
+      "mediaProfiles": [
+        {
+          "token": "variant-media2-http-preview",
+          "name": "Variant Media2 HTTP Preview",
+          "mediaApi": "Media2",
+          "encoding": "H264",
+          "width": 640,
+          "height": 360,
+          "fps": 10,
+          "transport": "HTTP",
+          "streamUri": "http://192.0.2.32/live/preview",
+          "selected": false
+        },
+        {
+          "token": "variant-media-fallback-h264",
+          "name": "Variant Media Fallback H264",
+          "mediaApi": "Media",
+          "encoding": "H264",
+          "width": 1280,
+          "height": 720,
+          "fps": 20,
+          "transport": "RTSP",
+          "streamUri": "rtsp://192.0.2.32/live/media-fallback",
+          "selected": true
+        }
+      ],
+      "expectedSelectedProfileToken": "variant-media-fallback-h264",
+      "expectedSelectionReason": "Media is used when Media2 has no live RTSP stream URI"
+    },
+    {
+      "id": "media-only-live-rtsp",
+      "summary": "Only Media service is available; Media RTSP profile is selected.",
+      "services": [
+        {
+          "name": "Device",
+          "available": true
+        },
+        {
+          "name": "Media2",
+          "available": false
+        },
+        {
+          "name": "Media",
+          "available": true
+        }
+      ],
+      "mediaProfiles": [
+        {
+          "token": "variant-media-only-h264",
+          "name": "Variant Media Only H264",
+          "mediaApi": "Media",
+          "encoding": "H264",
+          "width": 1024,
+          "height": 576,
+          "fps": 12,
+          "transport": "RTSP",
+          "streamUri": "rtsp://192.0.2.33/live/media-only",
+          "selected": true
+        }
+      ],
+      "expectedSelectedProfileToken": "variant-media-only-h264",
+      "expectedSelectionReason": "Media-only cameras can still produce a live RTSP source draft"
+    },
+    {
+      "id": "media2-h265-live-rtsp",
+      "summary": "Media2 H265 RTSP profile is accepted for draft selection.",
+      "services": [
+        {
+          "name": "Device",
+          "available": true
+        },
+        {
+          "name": "Media2",
+          "available": true
+        },
+        {
+          "name": "Media",
+          "available": false
+        }
+      ],
+      "mediaProfiles": [
+        {
+          "token": "variant-media2-h265",
+          "name": "Variant Media2 H265",
+          "mediaApi": "Media2",
+          "encoding": "H265",
+          "width": 2560,
+          "height": 1440,
+          "fps": 25,
+          "transport": "RTSP",
+          "streamUri": "rtsp://192.0.2.34/live/h265-main",
+          "selected": true
+        }
+      ],
+      "expectedSelectedProfileToken": "variant-media2-h265",
+      "expectedSelectionReason": "H265 live RTSP profile remains within v1.2.0 live source scope"
+    }
+  ],
+  "nonGoals": [
+    "ONVIF Profile G recording/replay",
+    "camera recording configuration",
+    "playback/search",
+    "raw SOAP persistence",
+    "plain text credential persistence",
+    "real device endpoint success"
+  ]
+}

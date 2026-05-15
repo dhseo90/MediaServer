@@ -77,6 +77,7 @@ ONVIF를 별도 import UI나 특별한 제품 기능으로 노출하지 않습�
 POST /ops/api/onvif/import-draft
 test/fixtures/onvif_live_import_stub.json
 test/fixtures/onvif_probe_result_stub.json
+test/fixtures/onvif_probe_profile_variants.json
 ```
 
 계약:
@@ -84,6 +85,8 @@ test/fixtures/onvif_probe_result_stub.json
 - 입력 fixture는 실제 camera 연결 대신 합성 ONVIF 응답을 표현합니다.
 - probe fixture는 Device/Media/Media2 service와 live RTSP profile 조회 결과를
   raw SOAP 없이 표현합니다.
+- profile variant fixture는 Media2 우선, Media fallback, Media-only, H265
+  RTSP profile 선택을 실장비 없이 고정합니다.
 - SOAP parser는 Device/Media/Media2 service, Media/Media2 profile, GetStreamUri
   응답을 내부 live profile 모델로만 축약합니다.
 - probe adapter는 endpoint/timeout/action 순서와 sanitize된 실패 요약만 다루며
@@ -220,6 +223,7 @@ notes: <sanitized operational note>
 ./server.sh build
 ./server.sh verify-onvif-live-import-contract
 ./server.sh verify-onvif-probe-fixture-contract
+./server.sh verify-onvif-probe-profile-variants
 ./server.sh verify-onvif-probe-parser
 ./server.sh verify-onvif-probe-adapter
 ./server.sh verify-onvif-http-transport

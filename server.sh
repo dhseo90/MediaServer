@@ -100,6 +100,8 @@ Usage:
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-probe-fixture-contract
                  ONVIF field probe fixture가 내부 probe-to-draft 계약을 지키는지 검증합니다.
+  verify-onvif-probe-profile-variants
+                 ONVIF Media/Media2 profile selection fixture variant를 검증합니다.
   verify-onvif-probe-parser
                  ONVIF SOAP service/profile/stream URI parser 단위 smoke를 검증합니다.
   verify-onvif-probe-adapter
@@ -437,6 +439,10 @@ case "${cmd}" in
   verify-onvif-probe-fixture-contract)
     require_internal verify_onvif_probe_fixture_contract.mjs
     exec "${INTERNAL_DIR}/verify_onvif_probe_fixture_contract.mjs" "$@"
+    ;;
+  verify-onvif-probe-profile-variants)
+    require_internal verify_onvif_probe_profile_variants.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_probe_profile_variants.mjs" "$@"
     ;;
   verify-onvif-probe-parser)
     require_internal verify_onvif_probe_parser.sh
