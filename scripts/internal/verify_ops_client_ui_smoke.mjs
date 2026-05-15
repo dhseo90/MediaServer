@@ -93,6 +93,12 @@ const pageChecks = [
     mustNot: ['<iframe', 'opsDashboardFrame', '/lab/rules?embed=1', '/lab/runtime/status'],
   },
   {
+    name: "ops-events",
+    path: "/ops/events",
+    must: ['data-testid="ops-events-page"', 'data-route-scope="direct-diagnostic"', 'Primary nav에는 표시하지 않는 direct/diagnostic route', 'id="opsEventsRefresh"', '/ops/api/events/status'],
+    mustNot: ['<iframe', 'href="/lab', 'src="/lab', 'href="/webrtc/test"', 'href="/ops/events"'],
+  },
+  {
     name: "ops-rules",
     path: "/ops/rules",
     visualSelector: '[data-testid="ops-rules-page"]',
@@ -147,6 +153,9 @@ for (const check of pageChecks) {
     const shellMust = check.shellMust || opsShellMust;
     assertContains(check.name, html, [...productShellMust, ...shellMust, ...(check.must || [])]);
     assertOmits(check.name, html, check.mustNot || []);
+    if (check.path === "/ops" || check.path.startsWith("/ops/")) {
+      assertOpsPrimaryNavContract(check.name, html);
+    }
     passCount += 1;
     console.log(`[pass] ${check.name}: ${check.path}`);
   } catch (error) {
@@ -327,6 +336,22 @@ function clientForbiddenText() {
     "/webrtc/session?file",
     "sessionToken",
   ];
+}
+
+function assertOpsPrimaryNavContract(name, html) {
+  const match = html.match(/<nav class="image-nav-tabs"[^>]*aria-label="운영 메뉴"[\s\S]*?<\/nav>/);
+  if (!match) {
+    throw new Error(`${name}: ops primary nav block not found`);
+  }
+  const nav = match[0];
+  for (const href of ['href="/ops/home"', 'href="/ops/dashboard"', 'href="/ops/sources"', 'href="/ops/rules"', 'href="/client/live"']) {
+    if (!nav.includes(href)) {
+      throw new Error(`${name}: primary nav missing ${href}`);
+    }
+  }
+  if (nav.includes('href="/ops/events"')) {
+    throw new Error(`${name}: /ops/events must remain a direct route, not primary nav`);
+  }
 }
 
 async function runClientRenderedLeakSmoke() {

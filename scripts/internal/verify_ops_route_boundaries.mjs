@@ -53,8 +53,16 @@ const clientShellMust = [
 
 const clientShellMustNot = [
   'aria-label="운영 메뉴"',
-  'href="/ops/',
-  "/ops/api/",
+  "/ops/api/sources",
+  "/ops/api/views",
+  "/ops/api/rules",
+  "/ops/api/runtime/status",
+  "/ops/api/events/status",
+  "/ops/api/source-health",
+  "/ops/api/diagnostics",
+  "/ops/api/users",
+  "/ops/api/access-requests",
+  "/ops/api/invites",
   "/lab/analysis/",
   'href="/lab',
   'src="/lab',
@@ -97,6 +105,16 @@ const checks = [
       'data-testid="ops-dashboard-page"',
       'id="dashActiveSessions"',
       "/ops/api/runtime/status",
+    ], opsShellMustNot),
+  },
+  {
+    name: "ops-events-direct-route-shell",
+    run: async () => assertHtmlContract("/ops/events", opsShellMust, [
+      'data-testid="ops-events-page"',
+      'data-route-scope="direct-diagnostic"',
+      "Primary nav에는 표시하지 않는 direct/diagnostic route",
+      'id="opsEventsRefresh"',
+      "/ops/api/events/status",
     ], opsShellMustNot),
   },
   {
@@ -241,6 +259,9 @@ async function assertHtmlContract(path, shellNeedles, pageNeedles, forbiddenNeed
   assertContains(path, text, shellNeedles);
   assertContains(path, text, pageNeedles);
   assertOmits(path, text, forbiddenNeedles);
+  if (path === "/ops" || path.startsWith("/ops/")) {
+    assertOpsPrimaryNavContract(path, text);
+  }
 }
 
 async function assertJsonPath(path, requiredKeys) {
@@ -267,6 +288,29 @@ function assertOmits(name, text, needles) {
     if (text.includes(needle)) {
       throw new Error(`${name}: forbidden route/debug text leaked: ${needle}`);
     }
+  }
+}
+
+function assertOpsPrimaryNavContract(name, text) {
+  const match = text.match(/<nav class="image-nav-tabs"[^>]*aria-label="운영 메뉴"[\s\S]*?<\/nav>/);
+  if (!match) {
+    throw new Error(`${name}: ops primary nav block not found`);
+  }
+  const nav = match[0];
+  const requiredHrefs = [
+    'href="/ops/home"',
+    'href="/ops/dashboard"',
+    'href="/ops/sources"',
+    'href="/ops/rules"',
+    'href="/client/live"',
+  ];
+  for (const href of requiredHrefs) {
+    if (!nav.includes(href)) {
+      throw new Error(`${name}: primary nav missing ${href}`);
+    }
+  }
+  if (nav.includes('href="/ops/events"')) {
+    throw new Error(`${name}: /ops/events must remain a direct route, not primary nav`);
   }
 }
 

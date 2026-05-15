@@ -280,6 +280,17 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - `verify-product-shell-examples`가 예시 문서, UI guide 연결, server entrypoint, script inventory를 검증합니다.
 - 제품 API schema, Event POST/WebRTC DataChannel/SSE/WS metadata schema는 변경하지 않았습니다.
 
+### Ops Events direct route cleanup 후속 종료 판정
+
+2026-05-16 기준 `/ops/events`는 primary nav 밖 direct/diagnostic route로 유지하는 범위에서 종료합니다.
+
+확인됨:
+
+- `/ops/events` page에 `data-route-scope="direct-diagnostic"` 표식을 추가하고, route 설명 copy를 direct/diagnostic 기준으로 정리했습니다.
+- `verify-ops-route-boundaries`와 `verify-ops-client-ui`가 Ops primary nav 안에 `/ops/events` link가 들어오면 실패하도록 보강했습니다.
+- `/ops/events` route와 `/ops/api/events/status` API는 유지했으며, 이벤트 조건 설정은 `/ops/rules`, 운영 요약은 `/ops/dashboard` 기준으로 둡니다.
+- 제품 API schema, Event POST/WebRTC DataChannel/SSE/WS metadata schema는 변경하지 않았습니다.
+
 ### Design token/component inventory 후속 종료 판정
 
 2026-05-16 기준 v1.2.0 UI visual regression 후속에서

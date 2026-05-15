@@ -2871,11 +2871,11 @@ void AppendOpsRulesPage(std::ostringstream& out) {
 }
 
 void AppendOpsEventsPage(std::ostringstream& out) {
-    out << R"(    <section class="panel" data-ops-panel="events" data-testid="ops-events-page">
+    out << R"(    <section class="panel" data-ops-panel="events" data-testid="ops-events-page" data-route-scope="direct-diagnostic">
       <div class="toolbar">
         <div>
           <h2>이벤트 상태</h2>
-          <p>룰 실행 결과와 이벤트 전달 상태를 확인합니다.</p>
+          <p>Primary nav에는 표시하지 않는 direct/diagnostic route입니다. 이벤트 조건은 Rules에서, 운영 요약은 Dashboard에서 확인합니다.</p>
         </div>
         <div class="actions">
           <a class="button button-secondary" href="/ops/dashboard">대시보드</a>
