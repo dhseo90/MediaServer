@@ -150,6 +150,23 @@ draft 매핑:
 - 서버가 접근 가능한 같은 네트워크 경로
 - 임시 SourceRegistry/PublishedView 경로 또는 되돌릴 수 있는 테스트 registry
 
+실제 HTTP endpoint probe harness:
+
+```bash
+MEDIA_SERVER_ONVIF_FIELD_ENDPOINT='http://<redacted-host>/onvif/device_service' \
+  ./server.sh verify-onvif-field-http-probe \
+    --credential-ref-present \
+    --output /tmp/onvif-field-probe-redacted.json
+```
+
+- endpoint URL에는 username, password, token을 넣지 않습니다.
+- 현재 harness는 `http://` endpoint만 실제 SOAP transport로 probe합니다.
+- stdout과 `--output` 산출물은 endpoint, stream URI, credential 원문을 redacted
+  summary로만 남깁니다.
+- endpoint가 없는 CI/로컬 검증에서는
+  `./server.sh verify-onvif-field-http-probe --allow-missing-endpoint`로
+  실장비 미제공 skip을 명시합니다.
+
 확인 순서:
 
 1. endpoint 접근 가능 여부와 인증 필요 여부를 운영자 환경에서 확인합니다.
@@ -198,6 +215,7 @@ notes: <sanitized operational note>
 ./server.sh verify-onvif-http-transport
 ./server.sh verify-onvif-probe-error-wording
 ./server.sh verify-onvif-field-smoke-redaction
+./server.sh verify-onvif-field-http-probe --allow-missing-endpoint
 ./server.sh verify-onvif-probe-draft-api
 ./server.sh verify-onvif-import-draft-api
 ./server.sh verify-onvif-rtsp-downstream
