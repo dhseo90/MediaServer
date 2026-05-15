@@ -12,6 +12,7 @@ verification을 위한 최소 범위이며, ONVIF conformant server 구현이 �
 - [ONVIF Credential Reference Policy](./onvif-credential-reference-policy.md)
 - [ONVIF RTSPS Draft Policy](./onvif-rtsps-draft-policy.md)
 - [ONVIF HTTPS SOAP Transport Design](./onvif-https-soap-transport-design.md)
+- [ONVIF Auth Injection Design](./onvif-auth-injection-design.md)
 
 ## 지원 Matrix
 
@@ -24,7 +25,7 @@ verification을 위한 최소 범위이며, ONVIF conformant server 구현이 �
 | 수동 ONVIF stream URI 등록 | 구현 완료 | `/ops/sources`에서 `rtsp://`, `rtsps://`, `http://`, `https://` live URI를 기존 SourceRegistry source로 저장 | `verify-onvif-ops-sources-ui` |
 | MediaServer egress URL | 구현 완료 | ONVIF source를 기존 RTSP/WHEP/WebRTC 출력 URL copy 흐름에 연결합니다. 이는 ONVIF protocol이 아니라 MediaServer 출력입니다. | `verify-onvif-ops-sources-ui`, `verify-onvif-rtsp-downstream` |
 | HTTPS/TLS ONVIF SOAP endpoint | fail-closed | `https://` Device service endpoint를 자동 downgrade하지 않고 sanitized failure로 처리. 향후 구현 조건은 [ONVIF HTTPS SOAP Transport Design](./onvif-https-soap-transport-design.md)을 따릅니다. | `verify-onvif-https-soap-transport-design`, `verify-onvif-tls-transport-policy`, `verify-onvif-http-transport` |
-| Credential reference | 1차 정책 지원 | credential 원문 저장/출력 없이 reference 존재 여부만 boolean summary로 유지 | `verify-onvif-credential-reference-policy` |
+| Credential reference | 1차 정책 지원 | credential 원문 저장/출력 없이 reference 존재 여부만 boolean summary로 유지. 향후 인증 주입 조건은 [ONVIF Auth Injection Design](./onvif-auth-injection-design.md)을 따릅니다. | `verify-onvif-auth-injection-design`, `verify-onvif-credential-reference-policy` |
 
 ## 비지원 Matrix
 

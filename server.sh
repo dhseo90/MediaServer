@@ -104,6 +104,8 @@ Usage:
                  ONVIF rtsps:// 후보와 automatic draft 저장 계약 분리를 검증합니다.
   verify-onvif-https-soap-transport-design
                  ONVIF HTTPS SOAP transport 향후 설계와 현재 fail-closed 경계를 검증합니다.
+  verify-onvif-auth-injection-design
+                 ONVIF 인증 주입 향후 설계와 현재 credential reference-only 경계를 검증합니다.
   verify-onvif-probe-fixture-contract
                  ONVIF field probe fixture가 내부 probe-to-draft 계약을 지키는지 검증합니다.
   verify-onvif-probe-profile-variants
@@ -455,6 +457,10 @@ case "${cmd}" in
   verify-onvif-https-soap-transport-design)
     require_internal verify_onvif_https_soap_transport_design.mjs
     exec "${INTERNAL_DIR}/verify_onvif_https_soap_transport_design.mjs" "$@"
+    ;;
+  verify-onvif-auth-injection-design)
+    require_internal verify_onvif_auth_injection_design.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_auth_injection_design.mjs" "$@"
     ;;
   verify-onvif-probe-fixture-contract)
     require_internal verify_onvif_probe_fixture_contract.mjs

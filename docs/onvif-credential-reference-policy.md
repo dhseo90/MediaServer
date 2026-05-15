@@ -3,6 +3,8 @@
 이 문서는 v1.2.0 ONVIF field integration에서 credential reference를 다루는 기준을
 고정합니다. 현재 구현은 credential 저장소가 아니라 live source 등록 draft와
 redaction 검증을 제공하는 범위입니다.
+향후 credential 주입 설계 기준은
+[ONVIF Auth Injection Design](./onvif-auth-injection-design.md)을 따릅니다.
 
 ## 현재 정책
 
@@ -47,6 +49,7 @@ credential reference 저장/주입을 추가할 때는 별도 단계에서 아�
 ## 검증
 
 ```bash
+./server.sh verify-onvif-auth-injection-design
 ./server.sh verify-onvif-credential-reference-policy
 ./server.sh verify-onvif-probe-fixture-contract
 ./server.sh verify-onvif-probe-draft-api
