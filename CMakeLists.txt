@@ -54,6 +54,7 @@ add_executable(media_server
     src/ingress/analysis_overlay_probe.cpp
     src/ingress/analysis_query.cpp
     src/ingress/http_auth.cpp
+    src/ingress/onvif_credential_provider.cpp
     src/ingress/onvif_live_import.cpp
     src/ingress/rtsp_request_context.cpp
     src/ingress/request_parser.cpp

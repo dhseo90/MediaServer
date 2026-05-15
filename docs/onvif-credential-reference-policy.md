@@ -42,6 +42,13 @@ redaction 검증을 제공하는 범위입니다.
 경계를 분리하고, `credentialRef` 실제 값과 secret store key도 API/UI/artifact에
 노출하지 않습니다.
 
+코드 경계는 `include/ingress/onvif_credential_provider.h`의
+`CredentialSecretProvider` interface skeleton과 `NoneCredentialSecretProvider`로
+시작합니다. 현재 provider는 secret lookup을 수행하지 않고 `credential_missing` 또는
+`credential_provider_unavailable` 같은 sanitized status code와
+`secret_material_present=false`만 반환합니다. `CredentialBindingStore`, secret
+material payload, 인증 header 생성은 계속 향후 범위입니다.
+
 세부 기준은
 [ONVIF Credential Store Integration Design](./onvif-credential-store-integration-design.md)에
 고정합니다.

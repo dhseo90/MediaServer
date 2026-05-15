@@ -37,6 +37,18 @@ provider 후보:
 - `local-encrypted`: libsodium 등 동급 암호화 저장소를 쓰는 향후 옵션입니다.
 - `external-secret-manager`: 운영 환경의 secret manager adapter를 쓰는 향후 옵션입니다.
 
+현재 코드 skeleton:
+
+- `CredentialSecretProvider`: `include/ingress/onvif_credential_provider.h`에 선언한
+  provider interface입니다.
+- `NoneCredentialSecretProvider`: secret lookup을 수행하지 않는 현재 provider입니다.
+- `CredentialLookupStatusCode`: `credential_missing`,
+  `credential_provider_unavailable`, `credential_denied`, `credential_expired`,
+  `credential_material_rejected` 같은 sanitized status code만 반환합니다.
+- `secret_material_present=false`: 현재 단계에서 secret material payload가 없음을
+  고정합니다.
+- `CredentialBindingStore`와 secret material payload는 아직 설계 전용입니다.
+
 ## Reference 규칙
 
 - `credentialRef`는 lookup key일 뿐이며 secret 값으로 해석하지 않습니다.

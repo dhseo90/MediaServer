@@ -3,8 +3,10 @@
 // 동작 요약: 정책/저장소 설계 문서, fixture, draft API smoke, field probe harness의 credential 원문 미저장 기준을 정적으로 검증한다.
 
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -21,25 +23,31 @@ Usage:
 
 Options:
   --doc <path>      Credential reference policy 문서입니다. 기본 docs/onvif-credential-reference-policy.md.
+  --cxx <path>      C++ compiler입니다. 기본 CXX env 또는 c++.
   -h, --help        도움말 출력
 
 Checks:
   - credential 원문 저장/출력 금지와 reference-only 정책이 문서화되어 있음
   - credential store/secret manager 연동 설계가 secret provider와 binding store 경계를 분리함
+  - CredentialSecretProvider interface skeleton과 none provider smoke가 컴파일/실행됨
   - probe fixture와 draft API smoke가 credentialRef redaction을 검증함
   - field HTTP probe harness가 credential reference presence만 산출물에 남김
 `);
 }
 
-assertKnownOptions(rawArgs, ["doc", "h", "help"]);
+assertKnownOptions(rawArgs, ["doc", "cxx", "h", "help"]);
 
 const args = parseArgs(rawArgs);
 const docPath = path.resolve(rootDir, args.doc || "docs/onvif-credential-reference-policy.md");
+const cxxBin = args.cxx || process.env.CXX || "c++";
 const doc = fs.readFileSync(docPath, "utf8");
 const storeDesign = fs.readFileSync(path.join(rootDir, "docs/onvif-credential-store-integration-design.md"), "utf8");
 const authDesign = fs.readFileSync(path.join(rootDir, "docs/onvif-auth-injection-design.md"), "utf8");
 const matrixDoc = fs.readFileSync(path.join(rootDir, "docs/onvif-protocol-support-matrix.md"), "utf8");
 const supportDoc = fs.readFileSync(path.join(rootDir, "docs/onvif-live-source-support.md"), "utf8");
+const providerHeader = fs.readFileSync(path.join(rootDir, "include/ingress/onvif_credential_provider.h"), "utf8");
+const providerImpl = fs.readFileSync(path.join(rootDir, "src/ingress/onvif_credential_provider.cpp"), "utf8");
+const providerSmoke = fs.readFileSync(path.join(rootDir, "scripts/internal/onvif_credential_provider_smoke.cpp"), "utf8");
 const fixtureContract = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_onvif_probe_fixture_contract.mjs"), "utf8");
 const draftApiSmoke = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_onvif_probe_draft_api.mjs"), "utf8");
 const fieldProbeHarness = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_onvif_field_http_probe.mjs"), "utf8");
@@ -60,6 +68,10 @@ for (const term of [
   "token",
   "source:write",
   "secret manager",
+  "include/ingress/onvif_credential_provider.h",
+  "NoneCredentialSecretProvider",
+  "credential_provider_unavailable",
+  "secret_material_present=false",
   "./onvif-credential-store-integration-design.md",
   "verify-onvif-probe-draft-api",
 ]) {
@@ -71,6 +83,9 @@ for (const term of [
   "현재 v1.2.0 구현은 secret 저장소를 제공하지",
   "CredentialSecretProvider",
   "CredentialBindingStore",
+  "include/ingress/onvif_credential_provider.h",
+  "NoneCredentialSecretProvider",
+  "CredentialLookupStatusCode",
   "Probe runtime",
   "Audit event",
   "`none`",
@@ -81,10 +96,43 @@ for (const term of [
   "`source:write` scope",
   "credential_missing",
   "credential_provider_unavailable",
+  "credential_material_rejected",
+  "secret_material_present=false",
   "provider path를 포함하지",
   "secret 저장소 구현 완료 선언",
 ]) {
   assert(storeDesign.includes(term), `credential store design missing required term: ${term}`);
+}
+
+for (const term of [
+  "class CredentialSecretProvider",
+  "class NoneCredentialSecretProvider",
+  "CredentialLookupRequest",
+  "CredentialLookupResult",
+  "secret_material_present",
+  "CredentialLookupStatusCode",
+]) {
+  assert(providerHeader.includes(term), `credential provider header missing required term: ${term}`);
+}
+
+for (const term of [
+  "NoneCredentialSecretProvider::Lookup",
+  "CredentialLookupStatus::kProviderUnavailable",
+  "CredentialLookupStatus::kMissing",
+  "\"credential_provider_unavailable\"",
+  "\"credential_missing\"",
+  "secret_material_present = false",
+]) {
+  assert(providerImpl.includes(term), `credential provider implementation missing required term: ${term}`);
+}
+
+for (const term of [
+  "NoneOnvifCredentialProvider",
+  "secret_material_present",
+  "credential_provider_unavailable",
+  "credential_material_rejected",
+]) {
+  assert(providerSmoke.includes(term), `credential provider smoke missing required term: ${term}`);
 }
 
 for (const forbidden of [
@@ -107,9 +155,11 @@ assert(draftApiSmoke.includes("\"credentialRef\""), "draft API smoke must forbid
 assert(draftApiSmoke.includes("operator-entered-secret"), "draft API smoke must forbid synthetic credential value");
 assert(fieldProbeHarness.includes("credentialReferencePresent"), "field probe harness must expose boolean credential reference summary only");
 assert(fieldProbeHarness.includes("endpoint URL must not include credentials"), "field probe harness must reject credentials in endpoint URL");
+runCredentialProviderSmoke();
 
 console.log("[pass] ONVIF credential reference policy document");
 console.log("[pass] ONVIF credential store integration design");
+console.log("[pass] ONVIF credential provider interface skeleton");
 console.log("[pass] ONVIF credential reference redaction coverage");
 console.log("");
 console.log("== ONVIF credential reference policy summary ==");
@@ -118,6 +168,33 @@ console.log("- failures: 0");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function runCredentialProviderSmoke() {
+  const buildDir = fs.mkdtempSync(path.join(os.tmpdir(), "media_server_onvif_credential_provider-"));
+  const outputPath = path.join(buildDir, "onvif_credential_provider_smoke");
+  const compileArgs = [
+    "-std=c++17",
+    `-I${path.join(rootDir, "include")}`,
+    path.join(rootDir, "scripts/internal/onvif_credential_provider_smoke.cpp"),
+    path.join(rootDir, "src/ingress/onvif_credential_provider.cpp"),
+    "-o",
+    outputPath,
+  ];
+  console.log(`[verify] build ONVIF credential provider smoke: ${buildDir}`);
+  const compile = spawnSync(cxxBin, compileArgs, {
+    cwd: rootDir,
+    encoding: "utf8",
+  });
+  assert(compile.status === 0, `credential provider smoke build failed: ${compile.stderr || compile.stdout}`);
+
+  const run = spawnSync(outputPath, [], {
+    cwd: rootDir,
+    encoding: "utf8",
+  });
+  process.stdout.write(run.stdout || "");
+  process.stderr.write(run.stderr || "");
+  assert(run.status === 0, "credential provider smoke failed");
 }
 
 function parseArgs(argv) {
