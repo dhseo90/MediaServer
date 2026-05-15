@@ -53,6 +53,8 @@ check("protocol support matrix names supported ONVIF live-source scope", () => {
     "./onvif-rtsps-draft-policy.md",
     "verify-onvif-rtsps-draft-policy",
     "./onvif-https-soap-transport-design.md",
+    "./onvif-https-tls-fixture-harness-design.md",
+    "explicit TLS fixture harness",
     "scheme preflight gate",
     "verify-onvif-https-soap-transport-design",
     "./onvif-auth-injection-design.md",

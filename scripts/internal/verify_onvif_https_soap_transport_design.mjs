@@ -21,6 +21,7 @@ Usage:
 
 Checks:
   - docs/onvif-https-soap-transport-design.md가 현재 HTTPS fail-closed 구현 스파이크를 명시함
+  - docs/onvif-https-tls-fixture-harness-design.md가 no-device TLS fixture harness 설계를 명시함
   - 향후 TLS trust store, hostname verification, redaction, no downgrade 조건을 문서화함
   - TLS/protocol 문서가 HTTPS design 문서를 참조함
   - 구현은 현재 https endpoint를 scheme preflight gate에서 fail-closed로 유지함
@@ -30,6 +31,7 @@ Checks:
 assertKnownOptions(rawArgs, ["h", "help"]);
 
 const designDoc = readText("docs/onvif-https-soap-transport-design.md");
+const fixtureHarnessDoc = readText("docs/onvif-https-tls-fixture-harness-design.md");
 const tlsDoc = readText("docs/onvif-tls-transport-policy.md");
 const matrixDoc = readText("docs/onvif-protocol-support-matrix.md");
 const onvifCode = readText("src/ingress/onvif_live_import.cpp");
@@ -44,6 +46,7 @@ check("HTTPS SOAP design keeps current fail-closed status explicit", () => {
     "scheme preflight gate",
     "TLS client library를 추가하지 않습니다",
     "실장비 또는 explicit TLS fixture가 없는 환경에서는 HTTPS 성공을 미확인",
+    "explicit TLS fixture harness는 현재 설계 전용",
     "## 구현 스파이크 결과",
   ]) {
     assertContains(designDoc, term, `design doc missing current status term: ${term}`);
@@ -67,10 +70,35 @@ check("HTTPS SOAP design documents future TLS requirements", () => {
   }
 });
 
+check("HTTPS TLS fixture harness design is documented as no-device future-only scope", () => {
+  for (const term of [
+    "# ONVIF HTTPS TLS Fixture Harness Design",
+    "v1.2.0 현재 상태는 설계 전용",
+    "TLS 성공 fixture harness를 실행하지 않습니다",
+    "ephemeral CA",
+    "server private key는 repository와 artifact에 저장하지 않습니다",
+    "fixture CA bundle",
+    "hostname verification",
+    "trusted fixture success",
+    "untrusted CA failure",
+    "hostname mismatch failure",
+    "certificate expired failure",
+    "handshake failure",
+    "connection timeout/refused",
+    "HTTP downgrade fallback은 수행하지 않습니다",
+    "media-server.onvif-https-tls-fixture-summary.v1",
+    "realDeviceEndpointSuccess",
+  ]) {
+    assertContains(fixtureHarnessDoc, term, `TLS fixture harness doc missing term: ${term}`);
+  }
+});
+
 check("TLS policy and protocol matrix link HTTPS SOAP design", () => {
   assertContains(tlsDoc, "./onvif-https-soap-transport-design.md", "TLS policy missing HTTPS design link");
+  assertContains(tlsDoc, "./onvif-https-tls-fixture-harness-design.md", "TLS policy missing fixture harness link");
   assertContains(tlsDoc, "scheme preflight gate", "TLS policy missing preflight gate wording");
   assertContains(matrixDoc, "./onvif-https-soap-transport-design.md", "protocol matrix missing HTTPS design link");
+  assertContains(matrixDoc, "./onvif-https-tls-fixture-harness-design.md", "protocol matrix missing fixture harness link");
   assertContains(matrixDoc, "scheme preflight gate", "protocol matrix missing preflight gate wording");
   assertContains(matrixDoc, "verify-onvif-https-soap-transport-design", "protocol matrix missing HTTPS design verification");
 });
@@ -108,6 +136,7 @@ for (const item of checks) {
 console.log("");
 console.log("== ONVIF HTTPS SOAP transport design summary ==");
 console.log("- doc: docs/onvif-https-soap-transport-design.md");
+console.log("- fixtureHarnessDoc: docs/onvif-https-tls-fixture-harness-design.md");
 console.log(`- failures: ${failures}`);
 if (failures > 0) process.exit(1);
 

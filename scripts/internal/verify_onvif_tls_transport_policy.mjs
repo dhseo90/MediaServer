@@ -25,6 +25,7 @@ Options:
 
 Checks:
   - HTTPS/TLS endpoint는 현재 fail-closed 정책으로 문서화되어 있음
+  - HTTPS TLS fixture harness 설계는 현재 future-only no-device scope로 문서화되어 있음
   - HTTP transport smoke가 https endpoint redaction case를 포함함
   - downgrade/insecure TLS/credential-in-URL 금지 기준이 문서화되어 있음
 `);
@@ -36,6 +37,7 @@ const args = parseArgs(rawArgs);
 const docPath = path.resolve(rootDir, args.doc || "docs/onvif-tls-transport-policy.md");
 const doc = fs.readFileSync(docPath, "utf8");
 const supportDoc = fs.readFileSync(path.join(rootDir, "docs/onvif-live-source-support.md"), "utf8");
+const fixtureHarnessDoc = fs.readFileSync(path.join(rootDir, "docs/onvif-https-tls-fixture-harness-design.md"), "utf8");
 const smoke = fs.readFileSync(path.join(rootDir, "scripts/internal/onvif_http_transport_smoke.cpp"), "utf8");
 const implementation = fs.readFileSync(path.join(rootDir, "src/ingress/onvif_live_import.cpp"), "utf8");
 
@@ -53,8 +55,30 @@ for (const term of [
   "credential",
   "raw SOAP",
   "verify-onvif-http-transport",
+  "./onvif-https-tls-fixture-harness-design.md",
+  "TLS fixture harness 설계만 포함",
+  "trusted fixture success",
+  "untrusted CA failure",
+  "hostname mismatch failure",
+  "certificate expired failure",
+  "handshake failure",
 ]) {
-  assert(doc.includes(term), `TLS policy doc missing required term: ${term}`);
+  assertContains(doc, term, `TLS policy doc missing required term: ${term}`);
+}
+
+for (const term of [
+  "# ONVIF HTTPS TLS Fixture Harness Design",
+  "v1.2.0 현재 상태는 설계 전용",
+  "TLS 성공 fixture harness를 실행하지 않습니다",
+  "ephemeral CA",
+  "fixture CA bundle",
+  "hostname verification",
+  "media-server.onvif-https-tls-fixture-summary.v1",
+  "endpoint 원문",
+  "certificate dump",
+  "private key",
+]) {
+  assertContains(fixtureHarnessDoc, term, `TLS fixture harness doc missing required term: ${term}`);
 }
 
 for (const forbidden of [
@@ -76,6 +100,7 @@ assert(implementation.includes("bool IsHttpSoapTransportScheme"), "transport imp
 assert(implementation.includes("only http transport is supported"), "transport implementation missing stable HTTPS fail-closed wording");
 
 console.log("[pass] ONVIF TLS transport policy document");
+console.log("[pass] ONVIF TLS fixture harness design document");
 console.log("[pass] ONVIF TLS fail-closed smoke coverage");
 console.log("");
 console.log("== ONVIF TLS transport policy summary ==");
@@ -84,6 +109,12 @@ console.log("- failures: 0");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function assertContains(text, needle, message) {
+  const normalizedText = text.replace(/\s+/g, " ");
+  const normalizedNeedle = needle.replace(/\s+/g, " ");
+  assert(normalizedText.includes(normalizedNeedle), message);
 }
 
 function parseArgs(argv) {
