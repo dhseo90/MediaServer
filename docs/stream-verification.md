@@ -96,6 +96,18 @@ filter/preset control도 같은 폭에서 부모 패널과 viewport 밖으로 �
 UI 전용 검증에서는 별도 터미널에서
 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`를 실행하고,
 포트가 다르면 `--http-base`를 명시합니다.
+두 screenshot artifact를 비교할 때는 baseline/candidate의
+`visual-regression-manifest.json`을 기준으로 파일을 매칭합니다.
+
+```bash
+./server.sh compare-ui-visual-baseline \
+  --baseline-dir <baseline-artifact-dir> \
+  --candidate-dir <candidate-artifact-dir> \
+  --output-dir <diff-artifact-dir>
+```
+
+비교 결과는 `media-server.ui-visual-baseline-diff.v1` schema의
+`visual-baseline-diff.json`과 `visual-baseline-diff.md`로 남습니다.
 
 VA rule/scenario 변경:
 

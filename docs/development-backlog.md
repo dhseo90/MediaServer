@@ -245,6 +245,18 @@ PR template과 정적 verifier를 연결했습니다.
 - `./server.sh verify-product-ui-token-drift`가 `ProductDesignTokensCss()` 밖 raw hex/rgb 색상 추가를 실패로 처리하고, 관련 docs/command inventory 연결을 확인합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Visual baseline diff tooling 후속 종료 판정
+
+2026-05-16 기준 screenshot artifact baseline과 candidate를 비교하는 manifest 기반 diff CLI를 추가했습니다.
+
+확인됨:
+
+- `./server.sh compare-ui-visual-baseline --baseline-dir <baseline-artifact-dir> --candidate-dir <candidate-artifact-dir>` 명령을 추가했습니다.
+- baseline/candidate의 `visual-regression-manifest.json`을 읽어 screenshot 파일명을 매칭하고 누락/추가/차원 변경을 실패로 보고합니다.
+- 다른 PNG는 픽셀 단위 changed pixel 비율, max channel delta, sha256을 계산해 `visual-baseline-diff.json`과 `visual-baseline-diff.md`로 남깁니다.
+- diff report schema는 `media-server.ui-visual-baseline-diff.v1`입니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ### Client debug/source leakage smoke 강화 후속 종료 판정
 
 2026-05-16 기준 client/viewer 화면과 scoped API의 debug/source 비노출 smoke를 강화했습니다.

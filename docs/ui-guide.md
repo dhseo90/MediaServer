@@ -353,6 +353,10 @@ Ops/Client/Lab API guard를 확인합니다.
   [stream-verification.md](./stream-verification.md)에 유지합니다. `--output-dir`를
   지정하면 같은 디렉터리에 `visual-regression-manifest.json`과 `index.md`가
   생성되며, manifest schema는 `media-server.ui-visual-artifact-index.v1`입니다.
+- 두 artifact를 비교할 때는
+  `./server.sh compare-ui-visual-baseline --baseline-dir <baseline-artifact-dir> --candidate-dir <candidate-artifact-dir>`
+  를 사용합니다. 결과는 `media-server.ui-visual-baseline-diff.v1` schema의
+  `visual-baseline-diff.json`과 `visual-baseline-diff.md`로 남깁니다.
 
 ### 2.1 Live VA Event Quality
 

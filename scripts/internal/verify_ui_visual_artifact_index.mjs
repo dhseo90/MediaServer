@@ -8,6 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { compareVisualBaseline } from "./compare_ui_visual_baseline.mjs";
 import { writeVisualArtifactIndex } from "./ui_visual_smoke_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -64,6 +65,8 @@ const docs = [
   fs.readFileSync(path.join(rootDir, ".github/PULL_REQUEST_TEMPLATE.md"), "utf8"),
 ].join("\n");
 const authSmoke = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_auth_ui_smoke.mjs"), "utf8");
+const serverSh = fs.readFileSync(path.join(rootDir, "server.sh"), "utf8");
+const compareScript = fs.readFileSync(path.join(rootDir, "scripts/internal/compare_ui_visual_baseline.mjs"), "utf8");
 
 const checksRun = [];
 check("manifest schema and screenshot rows", () => {
@@ -113,6 +116,58 @@ check("auth screenshot smoke writes indexed visual artifacts", () => {
   ]) {
     assert(authSmoke.includes(snippet), `auth visual smoke missing artifact index snippet: ${snippet}`);
   }
+});
+
+check("visual baseline diff tooling is wired and documented", () => {
+  for (const snippet of [
+    "compare-ui-visual-baseline",
+    "compare_ui_visual_baseline.mjs",
+  ]) {
+    assert(serverSh.includes(snippet), `server.sh missing visual baseline diff snippet: ${snippet}`);
+  }
+  for (const snippet of [
+    "media-server.ui-visual-baseline-diff.v1",
+    "--baseline-dir <baseline-artifact-dir>",
+    "--candidate-dir <candidate-artifact-dir>",
+  ]) {
+    assert(docs.includes(snippet), `docs missing visual baseline diff snippet: ${snippet}`);
+  }
+  for (const snippet of [
+    "readPngAsRgba",
+    "visual-baseline-diff.json",
+    "media-server.ui-visual-baseline-diff.v1",
+  ]) {
+    assert(compareScript.includes(snippet), `compare script missing visual baseline diff snippet: ${snippet}`);
+  }
+});
+
+check("visual baseline diff report fixture", () => {
+  const baselineDir = path.join(outputDir, "baseline");
+  const candidateDir = path.join(outputDir, "candidate");
+  const diffDir = path.join(outputDir, "baseline-diff");
+  for (const dir of [baselineDir, candidateDir]) {
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "ops-home-320.png"), "fixture-identical-ops-home\n");
+    writeVisualArtifactIndex({
+      outputDir: dir,
+      title: "Fixture Visual Regression Artifacts",
+      command: "./server.sh verify-ops-client-ui --screenshots",
+      httpBase: "http://127.0.0.1:8081",
+      visualWidths: [320],
+      visualHeight: 900,
+      checks: [{ name: "ops-home", path: "/ops/home", visualSelector: '[data-testid="ops-home-page"]' }],
+    });
+  }
+  const report = compareVisualBaseline({
+    baselineDir,
+    candidateDir,
+    outputDir: diffDir,
+    maxDiffPct: 0,
+  });
+  assert(report.schema === "media-server.ui-visual-baseline-diff.v1", "baseline diff schema mismatch");
+  assert(report.summary.failed === 0, `baseline diff fixture failed: ${report.summary.failed}`);
+  assert(fs.existsSync(path.join(diffDir, "visual-baseline-diff.json")), "baseline diff JSON report missing");
+  assert(fs.existsSync(path.join(diffDir, "visual-baseline-diff.md")), "baseline diff Markdown report missing");
 });
 
 let failCount = 0;

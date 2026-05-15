@@ -54,6 +54,8 @@ Usage:
                  /ops와 /client shell selector 및 client debug/source 비노출을 검증합니다.
   verify-ui-visual-artifact-index
                  UI screenshot artifact index/manifest 생성을 검증합니다.
+  compare-ui-visual-baseline
+                 UI screenshot artifact baseline과 candidate의 manifest/pixel diff를 생성합니다.
   verify-product-ui-token-drift
                  제품 UI CSS가 design token 밖 raw color를 추가하지 않는지 검증합니다.
   verify-ops-route-boundaries
@@ -377,6 +379,10 @@ case "${cmd}" in
   verify-ui-visual-artifact-index)
     require_internal verify_ui_visual_artifact_index.mjs
     exec "${INTERNAL_DIR}/verify_ui_visual_artifact_index.mjs" "$@"
+    ;;
+  compare-ui-visual-baseline)
+    require_internal compare_ui_visual_baseline.mjs
+    exec "${INTERNAL_DIR}/compare_ui_visual_baseline.mjs" "$@"
     ;;
   verify-product-ui-token-drift)
     require_internal verify_product_ui_token_drift.mjs
