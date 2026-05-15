@@ -916,7 +916,7 @@ std::string ProductUiCss() {
     .ops-rule-preview-stage {
       position: relative;
       aspect-ratio: 16 / 9;
-      min-height: 260px;
+      min-height: clamp(180px, 44vw, 300px);
       overflow: hidden;
       border: 1px solid var(--color-border);
       border-radius: var(--radius-lg);
@@ -1015,6 +1015,11 @@ std::string ProductUiCss() {
     .ops-geometry-overlay .ops-geometry-point {
       filter: var(--overlay-point-shadow);
       cursor: grab;
+      pointer-events: auto;
+    }
+    .ops-geometry-overlay .ops-geometry-touch-target {
+      fill: transparent;
+      stroke: transparent;
       pointer-events: auto;
     }
     .ops-geometry-overlay .ops-geometry-point.is-active {
@@ -2152,7 +2157,26 @@ std::string ProductUiCss() {
         grid-template-columns: 1fr;
       }
       .ops-geometry-status-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .ops-geometry-status-card {
+        padding: 8px 9px;
+      }
+      .ops-geometry-status-card strong {
+        font-size: 13px;
+      }
+      .ops-rule-preview-stage {
+        min-height: 180px;
+        border-radius: var(--radius-md);
+      }
+      .ops-geometry-toolbar .actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+      }
+      .ops-geometry-toolbar .actions > button {
+        width: 100%;
+        min-width: 0;
       }
       .channel-table td {
         grid-template-columns: 1fr;

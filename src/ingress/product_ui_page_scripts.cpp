@@ -3689,6 +3689,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           const y = opsRulesGeometrySvgY(point);
           const activeClass = index === opsVaGeometryDragIndex ? ' is-active' : '';
           return `<g class="ops-geometry-point${activeClass}" data-index="${index}">
+            <circle class="ops-geometry-touch-target" cx="${x}" cy="${y}" r="3.5"></circle>
             <circle cx="${x}" cy="${y}" r="1.25"></circle>
             <text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central">${index + 1}</text>
           </g>`;

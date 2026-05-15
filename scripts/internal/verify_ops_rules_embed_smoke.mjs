@@ -65,6 +65,7 @@ try {
   if (!result?.ok) {
     throw new Error(JSON.stringify(result));
   }
+  const mobileGeometry = await assertMobileGeometryPreview(browser, timeoutMs);
   const usersNav = await clickNavAndWait(browser, "/ops/users");
   if (!usersNav?.ok) {
     throw new Error(JSON.stringify(usersNav));
@@ -82,7 +83,7 @@ try {
     throw new Error(JSON.stringify(sourcesNav));
   }
   console.log("[pass] ops-rules-native-smoke");
-  console.log(JSON.stringify({ ...result, returned, usersNav, rulesNav, sourcesNav }, null, 2));
+  console.log(JSON.stringify({ ...result, mobileGeometry, returned, usersNav, rulesNav, sourcesNav }, null, 2));
 } finally {
   await browser.close();
   await cleanupRulePreviewPrerequisites({ httpBase, created: seededPrereqs });
@@ -140,6 +141,24 @@ async function clickNavAndWait(browser, path) {
     await new Promise((resolve) => setTimeout(resolve, 150));
   }
   return { ok: false, message: "navigation timeout", path };
+}
+
+async function assertMobileGeometryPreview(browser, timeoutMs) {
+  await browser.cdp("Emulation.setDeviceMetricsOverride", {
+    width: 390,
+    height: 900,
+    deviceScaleFactor: 1,
+    mobile: true,
+  });
+  await browser.evaluate(
+    "new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))",
+    3000,
+  );
+  const result = await browser.evaluate(buildMobileGeometryExpression(), timeoutMs);
+  if (!result?.ok) {
+    throw new Error(JSON.stringify(result));
+  }
+  return result;
 }
 
 function buildRulesOpenExpression() {
@@ -256,6 +275,65 @@ function buildRulesOpenExpression() {
         preSaveValidation,
         navHref: Array.from(document.querySelectorAll('a[href="/ops/users"]')).find(node => visible(node))?.getAttribute('href') || '',
         statusText: status?.textContent || ''
+      };
+    })()
+  `;
+}
+
+function buildMobileGeometryExpression() {
+  return `
+    (async () => {
+      const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+      const issues = [];
+      const issue = (message) => { if (issues.length < 16) issues.push(message); };
+      const visible = (node) => Boolean(node) && !node.hidden && getComputedStyle(node).display !== 'none' && node.getBoundingClientRect().width > 0;
+      const overflowFor = (node) => node ? Math.max(0, node.scrollWidth - Math.ceil(node.clientWidth)) : 0;
+      document.getElementById('opsAddVaRuleBtn')?.click();
+      await wait(250);
+      if (!visible(document.getElementById('opsVaRuleForm'))) {
+        document.getElementById('opsCreateVaRuleBtn')?.click();
+        await wait(450);
+      }
+      const stage = document.querySelector('.ops-rule-preview-stage');
+      const overlay = document.getElementById('opsVaRuleGeometryPreview');
+      const toolbar = document.querySelector('.ops-geometry-toolbar');
+      const statusGrid = document.querySelector('.ops-geometry-status-grid');
+      const defaultBtn = document.getElementById('opsVaRuleGeometryDefaultBtn');
+      if (!visible(stage)) issue('geometry preview stage is not visible');
+      if (!visible(overlay)) issue('geometry overlay is not visible');
+      defaultBtn?.click();
+      await wait(250);
+      const docOverflow = Math.max(0, Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth);
+      if (docOverflow > 2) issue('document overflow ' + docOverflow + 'px');
+      const stageRect = stage?.getBoundingClientRect();
+      if (stageRect) {
+        if (stageRect.left < -1 || stageRect.right > window.innerWidth + 1) issue('stage outside viewport: ' + Math.round(stageRect.left) + '..' + Math.round(stageRect.right));
+        if (stageRect.height < 170) issue('stage too short for touch editing: ' + Math.round(stageRect.height));
+        if (stageRect.height > 260) issue('stage too tall on mobile: ' + Math.round(stageRect.height));
+      }
+      if (toolbar && overflowFor(toolbar) > 2) issue('geometry toolbar overflow ' + overflowFor(toolbar) + 'px');
+      const controls = Array.from(toolbar?.querySelectorAll('button') || []);
+      if (controls.length < 4) issue('geometry controls missing: ' + controls.length);
+      const toolbarRect = toolbar?.getBoundingClientRect();
+      for (const control of controls) {
+        const rect = control.getBoundingClientRect();
+        if (toolbarRect && (rect.left < toolbarRect.left - 2 || rect.right > toolbarRect.right + 2)) {
+          issue('geometry control outside toolbar: ' + (control.id || control.textContent || 'button'));
+        }
+        if (rect.width < 120) issue('geometry control too narrow: ' + (control.id || control.textContent || 'button') + ' ' + Math.round(rect.width));
+      }
+      const cards = Array.from(statusGrid?.querySelectorAll('.ops-geometry-status-card') || []);
+      if (cards.length !== 4) issue('geometry status cards mismatch: ' + cards.length);
+      if (statusGrid && overflowFor(statusGrid) > 2) issue('status grid overflow ' + overflowFor(statusGrid) + 'px');
+      const touchTargets = overlay ? overlay.querySelectorAll('.ops-geometry-touch-target').length : 0;
+      if (touchTargets < 3) issue('geometry touch targets missing after default points: ' + touchTargets);
+      return {
+        ok: issues.length === 0,
+        issues,
+        stage: stageRect ? { width: Math.round(stageRect.width), height: Math.round(stageRect.height) } : null,
+        controls: controls.length,
+        touchTargets,
+        viewport: { width: window.innerWidth, height: window.innerHeight }
       };
     })()
   `;

@@ -228,6 +228,16 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - `capture_docs_ui_assets.mjs`는 `ops-rules-preview` 캡처 전에 같은 helper로 optional VA rule까지 준비하고 종료 시 cleanup합니다.
 - `verify_ops_rules_embed_smoke.mjs`는 같은 helper로 profile/event template prerequisite을 준비해 rule UI smoke와 문서 캡처 drift를 줄입니다.
 
+### Rule preview geometry mobile polish 종료 판정
+
+2026-05-16 기준 `/ops/rules` VA rule geometry preview는 모바일 편집 안정화 범위에서 종료합니다.
+
+확인됨:
+
+- 390px viewport에서 preview stage 높이를 제한하고, geometry status card와 control toolbar가 viewport 안에 머무르는지 `verify-rule-ui`가 확인합니다.
+- SVG point에는 보이지 않는 touch target을 추가해 작은 화면에서 기존 점 선택/drag 여유를 넓혔습니다.
+- 변경은 `/ops/rules` UI/CSS와 smoke 검증에 한정했고 Rule/Profile 저장 payload 계약은 변경하지 않았습니다.
+
 ### Design token/component inventory 후속 종료 판정
 
 2026-05-16 기준 v1.2.0 UI visual regression 후속에서

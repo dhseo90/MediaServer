@@ -175,6 +175,9 @@ README에는 첫 인상용으로 가장 읽기 쉬운 overview 화면만 둡니�
 
 ![룰 영상/영역 편집](assets/ui/ops-rules-preview.png)
 
+  390px 모바일 폭에서도 preview stage, geometry status, control toolbar가
+  viewport를 넘지 않아야 하며, SVG point는 touch target을 포함합니다.
+
 - Ops Users
 
 ![운영 사용자 관리](assets/ui/ops-users.png)
