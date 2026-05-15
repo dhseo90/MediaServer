@@ -343,6 +343,17 @@ bool StringArrayContains(const std::vector<std::string>& values, const std::stri
     return std::find(values.begin(), values.end(), expected) != values.end();
 }
 
+bool HasHttpOrHttpsUrl(const std::string& value) {
+    const std::string trimmed = Trim(value);
+    return trimmed.rfind("http://", 0) == 0 || trimmed.rfind("https://", 0) == 0;
+}
+
+bool HasAvailableService(const std::vector<OnvifServiceSummary>& services, const std::string& name) {
+    return std::any_of(services.begin(), services.end(), [&](const auto& service) {
+        return service.name == name && service.available;
+    });
+}
+
 std::string XmlDecode(std::string value) {
     const std::vector<std::pair<std::string, std::string>> replacements = {
         {"&amp;", "&"},
@@ -359,6 +370,34 @@ std::string XmlDecode(std::string value) {
         }
     }
     return value;
+}
+
+std::string XmlEscape(const std::string& value) {
+    std::string out;
+    out.reserve(value.size() + 8);
+    for (const char ch : value) {
+        switch (ch) {
+            case '&':
+                out += "&amp;";
+                break;
+            case '"':
+                out += "&quot;";
+                break;
+            case '\'':
+                out += "&apos;";
+                break;
+            case '<':
+                out += "&lt;";
+                break;
+            case '>':
+                out += "&gt;";
+                break;
+            default:
+                out.push_back(ch);
+                break;
+        }
+    }
+    return out;
 }
 
 std::string XmlLocalName(const std::string& raw_name) {
@@ -551,6 +590,73 @@ std::string NormalizeOnvifEncoding(std::string encoding) {
     return encoding;
 }
 
+std::string OnvifGetServicesEnvelope() {
+    return R"SOAP(<?xml version="1.0" encoding="UTF-8"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"
+            xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
+  <s:Body>
+    <tds:GetServices>
+      <tds:IncludeCapability>false</tds:IncludeCapability>
+    </tds:GetServices>
+  </s:Body>
+</s:Envelope>)SOAP";
+}
+
+std::string OnvifGetProfilesEnvelope(const std::string& media_api) {
+    const std::string prefix = media_api == "Media2" ? "tr2" : "trt";
+    const std::string media_namespace = media_api == "Media2"
+        ? "http://www.onvif.org/ver20/media/wsdl"
+        : "http://www.onvif.org/ver10/media/wsdl";
+    std::ostringstream out;
+    out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+        << "<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\""
+        << " xmlns:" << prefix << "=\"" << media_namespace << "\">"
+        << "<s:Body><" << prefix << ":GetProfiles/></s:Body></s:Envelope>";
+    return out.str();
+}
+
+std::string OnvifGetStreamUriEnvelope(const OnvifMediaProfileSummary& profile) {
+    const std::string prefix = profile.media_api == "Media2" ? "tr2" : "trt";
+    const std::string media_namespace = profile.media_api == "Media2"
+        ? "http://www.onvif.org/ver20/media/wsdl"
+        : "http://www.onvif.org/ver10/media/wsdl";
+    std::ostringstream out;
+    out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+        << "<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\""
+        << " xmlns:" << prefix << "=\"" << media_namespace << "\""
+        << " xmlns:tt=\"http://www.onvif.org/ver10/schema\">"
+        << "<s:Body><" << prefix << ":GetStreamUri>"
+        << "<" << prefix << ":ProfileToken>" << XmlEscape(profile.token) << "</" << prefix << ":ProfileToken>"
+        << "</" << prefix << ":GetStreamUri></s:Body></s:Envelope>";
+    return out.str();
+}
+
+OnvifProbeResult ProbeError(const OnvifProbeRequest& request,
+                            const std::string& step,
+                            const std::string& message) {
+    OnvifProbeResult result;
+    result.ok = false;
+    result.credential_ref_present = request.credential_ref_present;
+    result.plaintext_secret_included = false;
+    result.error = "ONVIF probe failed at " + step;
+    if (!message.empty()) {
+        result.error += ": " + message;
+    }
+    return result;
+}
+
+OnvifProbeResult TransportError(const OnvifProbeRequest& request,
+                                const std::string& step,
+                                const OnvifSoapResponse& response) {
+    std::string message;
+    if (response.status > 0) {
+        message = "HTTP " + std::to_string(response.status);
+    } else {
+        message = "transport error";
+    }
+    return ProbeError(request, step, message);
+}
+
 }  // namespace
 
 std::vector<OnvifServiceSummary> ParseOnvifServicesSoap(const std::string& soap) {
@@ -613,6 +719,72 @@ bool AttachOnvifStreamUriSoap(const std::string& soap, OnvifMediaProfileSummary*
     profile->stream_uri = uri;
     profile->transport = uri.rfind("rtsp://", 0) == 0 || uri.rfind("rtsps://", 0) == 0 ? "RTSP" : "";
     return !profile->transport.empty();
+}
+
+OnvifProbeResult RunOnvifProbeAdapter(const OnvifProbeRequest& request,
+                                      const OnvifSoapTransport& transport) {
+    if (!HasHttpOrHttpsUrl(request.endpoint)) {
+        return ProbeError(request, "request", "endpoint must be http(s)");
+    }
+    if (request.timeout_ms <= 0) {
+        return ProbeError(request, "request", "timeout must be positive");
+    }
+    if (!transport) {
+        return ProbeError(request, "request", "transport is required");
+    }
+
+    OnvifProbeResult result;
+    result.credential_ref_present = request.credential_ref_present;
+    result.plaintext_secret_included = false;
+
+    OnvifSoapRequest services_request;
+    services_request.action = "GetServices";
+    services_request.endpoint = request.endpoint;
+    services_request.body = OnvifGetServicesEnvelope();
+    services_request.timeout_ms = request.timeout_ms;
+    const auto services_response = transport(services_request);
+    if (!services_response.ok) {
+        return TransportError(request, "GetServices", services_response);
+    }
+    result.services = ParseOnvifServicesSoap(services_response.body);
+    if (!HasAvailableService(result.services, "Media") && !HasAvailableService(result.services, "Media2")) {
+        return ProbeError(request, "GetServices", "Media or Media2 service is required");
+    }
+
+    const std::vector<std::string> media_apis = {"Media2", "Media"};
+    for (const auto& media_api : media_apis) {
+        if (!HasAvailableService(result.services, media_api)) {
+            continue;
+        }
+        OnvifSoapRequest profiles_request;
+        profiles_request.action = media_api + ".GetProfiles";
+        profiles_request.endpoint = request.endpoint;
+        profiles_request.body = OnvifGetProfilesEnvelope(media_api);
+        profiles_request.timeout_ms = request.timeout_ms;
+        const auto profiles_response = transport(profiles_request);
+        if (!profiles_response.ok) {
+            continue;
+        }
+        auto profiles = ParseOnvifMediaProfilesSoap(profiles_response.body, media_api);
+        for (auto& profile : profiles) {
+            OnvifSoapRequest stream_request;
+            stream_request.action = media_api + ".GetStreamUri";
+            stream_request.endpoint = request.endpoint;
+            stream_request.body = OnvifGetStreamUriEnvelope(profile);
+            stream_request.timeout_ms = request.timeout_ms;
+            const auto stream_response = transport(stream_request);
+            if (stream_response.ok && AttachOnvifStreamUriSoap(stream_response.body, &profile)) {
+                result.media_profiles.push_back(std::move(profile));
+            }
+        }
+    }
+
+    if (result.media_profiles.empty()) {
+        return ProbeError(request, "GetStreamUri", "no live RTSP profile discovered");
+    }
+    result.media_profiles.front().selected = true;
+    result.ok = true;
+    return result;
 }
 
 RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
