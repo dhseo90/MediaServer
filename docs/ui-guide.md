@@ -589,6 +589,8 @@ Tile별 기능:
 - PublishedView `maxTiles` 초과 시 tile 선택/시작을 막고 wrapper API는 `409`를 반환
 - live/offline, stale, track count, event count, connection status 표시
 - 선택된 tile만 dashboard/detail을 갱신
+- tile keyboard selection: Enter/Space로 현재 tile 선택, Arrow/Home/End로 tile 간 이동
+- 반복되는 select/button accessible name에는 tile 번호 포함
 
 Hidden tab, route leave, tile stop 시
 PeerConnection, DataChannel, server WebRTC session을 정리합니다.

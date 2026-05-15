@@ -83,6 +83,11 @@ check("client live empty state and bulk start controls are present", () => {
     "Live view가 없습니다",
     "할당된 PublishedView가 없습니다",
     "/client/request-access",
+    'tabindex="0"',
+    'role="group"',
+    "focusLiveTile",
+    "ArrowRight",
+    "타일 ${tile.index + 1} 시작",
   ];
   for (const snippet of required) {
     assert(script.includes(snippet), `client live polish is missing snippet: ${snippet}`);

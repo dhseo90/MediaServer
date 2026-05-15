@@ -116,7 +116,7 @@ const pageChecks = [
     name: "client-live",
     path: "/client/live",
     visualSelector: '[data-testid="client-shell-page"]',
-    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'id="liveAllStart"', 'startAllLiveTiles', 'data-action="restart"', 'restartLiveTile'],
+    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'id="liveAllStart"', 'startAllLiveTiles', 'data-action="restart"', 'restartLiveTile', 'tabindex="0"', 'focusLiveTile', 'ArrowRight', '타일 ${tile.index + 1} 시작'],
     shellMust: clientShellMust,
     mustNot: [...clientForbiddenText(), 'new RTCPeerConnection({ iceServers: [] })'],
   },
@@ -269,6 +269,8 @@ if (screenshotEnabled) {
   if (result.failCount > 0) process.exit(1);
   const clientHeaderResult = await runClientHeaderResponsiveSmoke();
   if (clientHeaderResult.failCount > 0) process.exit(1);
+  const clientLiveKeyboardResult = await runClientLiveTileKeyboardSmoke();
+  if (clientLiveKeyboardResult.failCount > 0) process.exit(1);
   const auditResponsiveResult = await runOpsAuditResponsiveSmoke();
   if (auditResponsiveResult.failCount > 0) process.exit(1);
   const onvifUnsupportedHintResult = await runOpsSourcesOnvifUnsupportedHintSmoke();
@@ -522,6 +524,103 @@ function clientHeaderResponsiveExpression() {
         headerWidth: headerRect.width,
         accountTop: accountRect.top,
         navBottom: navRect.bottom,
+        overflowX,
+      };
+    })()
+  `;
+}
+
+async function runClientLiveTileKeyboardSmoke() {
+  let keyboardPassCount = 0;
+  let keyboardFailCount = 0;
+  const keyboardFailures = [];
+  const widths = [...new Set([390, 1180].filter((width) => visualWidths.includes(width)))];
+  for (const width of widths.length ? widths : [390]) {
+    const label = `client-live-keyboard-${width}`;
+    const browser = await openBrowserPage({
+      httpBase,
+      pagePath: "/client/live",
+      timeoutMs,
+      chromePath,
+      debugPort: debugPortBase + 260 + keyboardPassCount + keyboardFailCount,
+      width,
+      height: visualHeight,
+      outputDir,
+    });
+    try {
+      const result = await browser.evaluate(clientLiveTileKeyboardExpression(), 10000);
+      if (!result?.ok) {
+        const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
+        throw new Error(`${label}: ${details}`);
+      }
+      keyboardPassCount += 1;
+      console.log(`[pass] ${label}: tiles=${result.tileCount}, selected=${result.selectedTile}, active=${result.activeTile}`);
+    } catch (error) {
+      keyboardFailCount += 1;
+      const message = error instanceof Error ? error.message : String(error);
+      keyboardFailures.push(`[${label}] ${message}`);
+      console.log(`[fail] ${label}: ${message}`);
+    } finally {
+      await browser.close();
+    }
+  }
+  console.log("");
+  console.log("== Client live tile keyboard smoke 요약 ==");
+  console.log(`- 통과: ${keyboardPassCount}`);
+  console.log(`- 실패: ${keyboardFailCount}`);
+  if (keyboardFailures.length > 0) {
+    console.log("- 실패 상세:");
+    for (const failure of keyboardFailures) {
+      console.log(`  - ${failure}`);
+    }
+  }
+  return { passCount: keyboardPassCount, failCount: keyboardFailCount };
+}
+
+function clientLiveTileKeyboardExpression() {
+  return `
+    (async () => {
+      const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+      const issues = [];
+      const issue = message => { if (issues.length < 16) issues.push(message); };
+      await wait(350);
+      const tiles = Array.from(document.querySelectorAll('.tile'));
+      if (tiles.length < 2) issue('expected at least two live tiles, got ' + tiles.length);
+      const first = tiles[0];
+      const second = tiles[1];
+      if (first) {
+        if (first.getAttribute('tabindex') !== '0') issue('first tile is not tabbable');
+        if (first.getAttribute('role') !== 'group') issue('first tile role is not group');
+        if (!String(first.getAttribute('aria-label') || '').includes('타일 1')) issue('first tile aria-label missing tile number');
+        const labels = Array.from(first.querySelectorAll('button, select')).map(node => node.getAttribute('aria-label') || '');
+        for (const expected of ['타일 1 시작', '타일 1 재연결', '타일 1 정지', '타일 1 채널']) {
+          if (!labels.some(label => label.includes(expected))) issue('missing control aria-label: ' + expected);
+        }
+        first.focus();
+        await wait(80);
+        if (document.activeElement !== first) issue('first tile did not receive focus');
+        first.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
+        await wait(160);
+        if (second && document.activeElement !== second) issue('ArrowRight did not move focus to second tile');
+        if (second && !second.classList.contains('selected')) issue('ArrowRight did not select second tile');
+        second?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true }));
+        await wait(160);
+        if (document.activeElement !== first) issue('Home did not move focus back to first tile');
+        first.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+        await wait(120);
+        if (!first.classList.contains('selected')) issue('Enter did not select focused tile');
+      }
+      const doc = document.documentElement;
+      const body = document.body;
+      const overflowX = Math.max(0, Math.max(doc.scrollWidth, body.scrollWidth) - window.innerWidth);
+      if (overflowX > 2) issue('document horizontal overflow ' + overflowX + 'px');
+      const selected = document.querySelector('.tile.selected');
+      return {
+        ok: issues.length === 0,
+        issues,
+        tileCount: tiles.length,
+        selectedTile: selected?.dataset?.tile || '',
+        activeTile: document.activeElement?.dataset?.tile || '',
         overflowX,
       };
     })()

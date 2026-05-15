@@ -723,12 +723,16 @@ void AppendClientShellScript(std::ostringstream& out) {
       const status = tile.status || 'offline';
       const stale = tile.lastMetadataAt && Date.now() - tile.lastMetadataAt > 5000;
       tile.stale = Boolean(stale);
-      root.querySelector('[data-role="status"]').textContent = stale ? '지연' : ({
+      const statusLabel = stale ? '지연' : ({
         offline: '오프라인',
         connecting: '연결 중',
         live: '라이브',
         error: '오류'
       })[String(status)] || status;
+      const viewLabel = view?.displayName || view?.viewId || '채널 미선택';
+      root.setAttribute('aria-label', `타일 ${tile.index + 1}: ${viewLabel} · ${statusLabel}`);
+      root.setAttribute('aria-current', selectedLiveTile === tile.index ? 'true' : 'false');
+      root.querySelector('[data-role="status"]').textContent = statusLabel;
       root.querySelector('[data-role="status"]').className = `chip${tileStatusClass(stale ? 'stale' : status)}`;
       root.querySelector('[data-role="connection"]').textContent = clientStatusLabel(tile.connectionStatus);
       root.querySelector('[data-role="tracks"]').textContent = display(tile.trackCount);
@@ -829,7 +833,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    }
 	    function liveTileHtml(tile) {
 	      return `
-	        <article class="tile${selectedLiveTile === tile.index ? ' selected' : ''}" data-tile="${tile.index}">
+	        <article class="tile${selectedLiveTile === tile.index ? ' selected' : ''}" data-tile="${tile.index}" tabindex="0" role="group" aria-label="타일 ${tile.index + 1}: 라이브" aria-current="${selectedLiveTile === tile.index ? 'true' : 'false'}">
 	          <div class="tile-head">
 	            <div class="tile-title">
 	              <h3>타일 ${tile.index + 1}</h3>
@@ -837,18 +841,18 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            </div>
 	            <div class="tile-controls">
 	              <label>채널
-		                <select data-role="view" aria-label="채널">
+		                <select data-role="view" aria-label="타일 ${tile.index + 1} 채널">
 		                  ${liveViewOptionsHtml(tile)}
 		                </select>
 	              </label>
 	              <label data-role="mode-wrap">보기 방식
-	                <select data-role="mode" aria-label="보기 방식"></select>
+	                <select data-role="mode" aria-label="타일 ${tile.index + 1} 보기 방식"></select>
 	              </label>
 	            </div>
 	            <div class="tile-actions">
-	              <button type="button" data-action="start">시작</button>
-	              <button type="button" data-action="restart" class="ghost">재연결</button>
-	              <button type="button" data-action="stop" class="ghost" disabled>정지</button>
+	              <button type="button" data-action="start" aria-label="타일 ${tile.index + 1} 시작">시작</button>
+	              <button type="button" data-action="restart" class="ghost" aria-label="타일 ${tile.index + 1} 재연결">재연결</button>
+	              <button type="button" data-action="stop" class="ghost" aria-label="타일 ${tile.index + 1} 정지" disabled>정지</button>
 	            </div>
 	          </div>
 	          <div class="tile-stage">
@@ -918,6 +922,33 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      root.querySelector('[data-action="start"]')?.addEventListener('click', () => startLiveTile(tile.index));
 	      root.querySelector('[data-action="restart"]')?.addEventListener('click', () => restartLiveTile(tile.index));
 	      root.querySelector('[data-action="stop"]')?.addEventListener('click', () => stopLiveTile(tile.index));
+	      root.addEventListener('keydown', event => {
+	        if (event.target !== root) return;
+	        if (event.key === 'Enter' || event.key === ' ') {
+	          event.preventDefault();
+	          selectLiveTile(tile.index);
+	          return;
+	        }
+	        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+	          event.preventDefault();
+	          focusLiveTile(tile.index + 1);
+	          return;
+	        }
+	        if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+	          event.preventDefault();
+	          focusLiveTile(tile.index - 1);
+	          return;
+	        }
+	        if (event.key === 'Home') {
+	          event.preventDefault();
+	          focusLiveTile(0);
+	          return;
+	        }
+	        if (event.key === 'End') {
+	          event.preventDefault();
+	          focusLiveTile(liveTileCount - 1);
+	        }
+	      });
 	      root.addEventListener('click', event => {
 	        if (!event.target.closest('button') && !event.target.closest('select')) {
 	          selectLiveTile(tile.index);
@@ -987,6 +1018,19 @@ void AppendClientShellScript(std::ostringstream& out) {
       });
       updateAllTileDom();
       refreshSelectedTileDetail();
+    }
+    function focusLiveTile(index) {
+      if (liveTileCount <= 0) return;
+      const nextIndex = Math.max(0, Math.min(liveTileCount - 1, index));
+      selectLiveTile(nextIndex);
+      const next = document.querySelector(`[data-tile="${nextIndex}"]`);
+      if (next && typeof next.focus === 'function') {
+        try {
+          next.focus({ preventScroll: true });
+        } catch {
+          next.focus();
+        }
+      }
     }
     function updateSelectedTileStatusText() {
       const tile = selectedLiveTile === null ? null : liveTiles[selectedLiveTile];

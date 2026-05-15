@@ -238,6 +238,16 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - SVG point에는 보이지 않는 touch target을 추가해 작은 화면에서 기존 점 선택/drag 여유를 넓혔습니다.
 - 변경은 `/ops/rules` UI/CSS와 smoke 검증에 한정했고 Rule/Profile 저장 payload 계약은 변경하지 않았습니다.
 
+### Client live tile keyboard/accessibility 종료 판정
+
+2026-05-16 기준 `/client/live` 타일 keyboard/accessibility pass는 viewer UI 범위에서 종료합니다.
+
+확인됨:
+
+- 각 live tile은 keyboard focus 대상이며 Enter/Space 선택, Arrow/Home/End 타일 이동을 지원합니다.
+- 반복되는 channel/mode select와 start/restart/stop button에는 타일 번호가 포함된 `aria-label`을 부여했습니다.
+- `verify-ops-client-ui --screenshots`는 390px/1180px에서 live tile focus 이동, selected 상태, control accessible name을 확인합니다.
+
 ### Design token/component inventory 후속 종료 판정
 
 2026-05-16 기준 v1.2.0 UI visual regression 후속에서

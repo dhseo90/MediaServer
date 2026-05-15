@@ -2445,6 +2445,7 @@ std::string ClientShellCss() {
     .tile { min-height: 280px; display: grid; grid-template-rows: auto minmax(140px, 1fr) auto; gap: 10px; border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--bg); }
     .live-grid[data-density="compact"] .tile { min-height: 224px; grid-template-rows: auto minmax(108px, 1fr) auto; gap: 8px; padding: 8px; }
     .tile.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--color-selection-ring); }
+    .tile:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; border-color: var(--accent); }
     .tile-head { display: grid; gap: 8px; }
     .tile-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .tile-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, 150px); gap: 8px; }
