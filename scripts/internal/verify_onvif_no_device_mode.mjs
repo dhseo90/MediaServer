@@ -21,6 +21,7 @@ Usage:
 
 Checks:
   - ONVIF no-device 문서가 실장비 제외/미확인 경계를 명시함
+  - no-device suite summary JSON 옵션을 문서와 runner가 함께 제공함
   - no-device 검증 명령이 allow-missing-endpoint와 expect-failure를 포함함
   - live support 문서가 no-device 기준 문서와 검증 명령을 참조함
   - field HTTP probe harness가 no-device 옵션을 유지함
@@ -32,10 +33,12 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const noDeviceDocPath = path.join(rootDir, "docs/onvif-no-device-verification.md");
 const liveSupportDocPath = path.join(rootDir, "docs/onvif-live-source-support.md");
 const fieldProbeScriptPath = path.join(rootDir, "scripts/internal/verify_onvif_field_http_probe.mjs");
+const noDeviceSuiteScriptPath = path.join(rootDir, "scripts/internal/verify_onvif_no_device_suite.mjs");
 
 const noDeviceDoc = readText(noDeviceDocPath);
 const liveSupportDoc = readText(liveSupportDocPath);
 const fieldProbeScript = readText(fieldProbeScriptPath);
+const noDeviceSuiteScript = readText(noDeviceSuiteScriptPath);
 
 const checks = [];
 
@@ -53,6 +56,8 @@ check("no-device document defines field-device exclusion boundary", () => {
 
 check("no-device command list keeps endpoint-free and sanitized-failure probes", () => {
   assertContains(noDeviceDoc, "./server.sh verify-onvif-no-device-suite", "missing no-device suite command");
+  assertContains(noDeviceDoc, "verify-onvif-no-device-suite --json-output", "missing no-device suite JSON command");
+  assertContains(noDeviceDoc, "media-server.onvif-no-device-suite-summary.v1", "missing no-device summary schema");
   assertContains(noDeviceDoc, "./server.sh verify-onvif-no-device-mode", "missing self-check command");
   assertContains(noDeviceDoc, "verify-onvif-protocol-support-matrix", "missing protocol support matrix command");
   assertContains(noDeviceDoc, "verify-onvif-probe-profile-variants", "missing profile variant command");
@@ -68,6 +73,7 @@ check("no-device command list keeps endpoint-free and sanitized-failure probes",
 check("live support document links no-device mode without claiming field success", () => {
   assertContains(liveSupportDoc, "./onvif-no-device-verification.md", "live support doc does not link no-device doc");
   assertContains(liveSupportDoc, "verify-onvif-no-device-suite", "live support verification missing no-device suite command");
+  assertContains(liveSupportDoc, "verify-onvif-no-device-suite --json-output", "live support verification missing no-device suite JSON command");
   assertContains(liveSupportDoc, "verify-onvif-no-device-mode", "live support verification missing no-device command");
   assertContains(liveSupportDoc, "verify-onvif-protocol-support-matrix", "live support verification missing protocol matrix command");
   assertContains(liveSupportDoc, "verify-onvif-probe-profile-variants", "live support verification missing profile variant command");
@@ -75,6 +81,18 @@ check("live support document links no-device mode without claiming field success
   assertContains(liveSupportDoc, "--expect-failure", "live support doc missing sanitized loopback failure command");
   assertContains(liveSupportDoc, "verify-onvif-closed-loopback-failure-matrix", "live support doc missing closed loopback matrix command");
   assertContains(liveSupportDoc, "실장비 endpoint 성공은 미확인", "live support doc missing explicit unverified endpoint success wording");
+});
+
+check("no-device suite runner can write summary JSON", () => {
+  for (const token of [
+    "json-output",
+    "media-server.onvif-no-device-suite-summary.v1",
+    "realDeviceEndpointSuccess",
+    "writeJsonSummary",
+    "results",
+  ]) {
+    assertContains(noDeviceSuiteScript, token, `no-device suite script missing ${token}`);
+  }
 });
 
 check("field HTTP probe harness retains no-device options and credential redaction", () => {

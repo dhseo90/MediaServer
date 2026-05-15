@@ -43,6 +43,7 @@
 
 ```bash
 ./server.sh verify-onvif-no-device-suite
+./server.sh verify-onvif-no-device-suite --json-output /tmp/media_server_onvif_no_device_summary.json
 ./server.sh verify-onvif-no-device-mode
 ./server.sh verify-onvif-protocol-support-matrix
 ./server.sh verify-onvif-live-import-contract
@@ -78,6 +79,7 @@
 ```text
 확인됨:
 - verify-onvif-no-device-suite
+- verify-onvif-no-device-suite --json-output /tmp/media_server_onvif_no_device_summary.json
 - synthetic fixture/parser/adapter/transport/redaction 검증
 - verify-onvif-field-http-probe --allow-missing-endpoint
 - closed loopback endpoint --expect-failure sanitized failure
@@ -94,3 +96,18 @@
 실장비가 준비되면 [ONVIF Live Source Support](./onvif-live-source-support.md)의
 현장 수동 Smoke 절차로 별도 진행하고, endpoint/credential/raw SOAP는 공유
 산출물에서 제거합니다.
+
+## Summary JSON
+
+`--json-output`을 지정하면 suite 종료 시 아래 schema의 summary JSON을 기록합니다.
+실패한 경우에도 이미 완료된 단계, 실패 명령, 실장비 성공 미확인 상태를 남깁니다.
+
+```json
+{
+  "schema": "media-server.onvif-no-device-suite-summary.v1",
+  "mode": "실장비 제외",
+  "realDeviceEndpointSuccess": "미확인",
+  "completed": 21,
+  "failed": null
+}
+```

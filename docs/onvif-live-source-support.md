@@ -248,6 +248,7 @@ notes: <sanitized operational note>
 ./server.sh verify-onvif-http-transport
 ./server.sh verify-onvif-probe-error-wording
 ./server.sh verify-onvif-no-device-suite
+./server.sh verify-onvif-no-device-suite --json-output /tmp/media_server_onvif_no_device_summary.json
 ./server.sh verify-onvif-no-device-mode
 ./server.sh verify-onvif-field-smoke-redaction
 ./server.sh verify-onvif-field-smoke-sample-bundle
