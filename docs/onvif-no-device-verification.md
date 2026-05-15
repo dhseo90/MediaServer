@@ -102,6 +102,8 @@
 
 `--json-output`을 지정하면 suite 종료 시 아래 schema의 summary JSON을 기록합니다.
 실패한 경우에도 이미 완료된 단계, 실패 명령, 실장비 성공 미확인 상태를 남깁니다.
+실패 path fixture는
+`test/fixtures/onvif_no_device_suite_failure_summary.json`에 고정합니다.
 
 ```json
 {
@@ -112,3 +114,10 @@
   "failed": null
 }
 ```
+
+실패 summary는 아래 항목을 유지해야 합니다.
+
+- `completed`: 실패 전 완료한 단계 수
+- `failed`: 실패한 `server.sh` 명령 문자열
+- `results`: 완료된 단계와 실패 단계의 `index`, `command`, `ok`, `status`
+- `realDeviceEndpointSuccess`: 실장비 제외 모드에서는 계속 `미확인`

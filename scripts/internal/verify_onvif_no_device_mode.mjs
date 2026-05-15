@@ -22,6 +22,7 @@ Usage:
 Checks:
   - ONVIF no-device 문서가 실장비 제외/미확인 경계를 명시함
   - no-device suite summary JSON 옵션을 문서와 runner가 함께 제공함
+  - no-device suite 실패 summary fixture가 completed/failed/results를 보존함
   - no-device 검증 명령이 allow-missing-endpoint와 expect-failure를 포함함
   - live support 문서가 no-device 기준 문서와 검증 명령을 참조함
   - field HTTP probe harness가 no-device 옵션을 유지함
@@ -34,11 +35,13 @@ const noDeviceDocPath = path.join(rootDir, "docs/onvif-no-device-verification.md
 const liveSupportDocPath = path.join(rootDir, "docs/onvif-live-source-support.md");
 const fieldProbeScriptPath = path.join(rootDir, "scripts/internal/verify_onvif_field_http_probe.mjs");
 const noDeviceSuiteScriptPath = path.join(rootDir, "scripts/internal/verify_onvif_no_device_suite.mjs");
+const failureSummaryFixturePath = path.join(rootDir, "test/fixtures/onvif_no_device_suite_failure_summary.json");
 
 const noDeviceDoc = readText(noDeviceDocPath);
 const liveSupportDoc = readText(liveSupportDocPath);
 const fieldProbeScript = readText(fieldProbeScriptPath);
 const noDeviceSuiteScript = readText(noDeviceSuiteScriptPath);
+const failureSummaryFixture = JSON.parse(readText(failureSummaryFixturePath));
 
 const checks = [];
 
@@ -58,6 +61,7 @@ check("no-device command list keeps endpoint-free and sanitized-failure probes",
   assertContains(noDeviceDoc, "./server.sh verify-onvif-no-device-suite", "missing no-device suite command");
   assertContains(noDeviceDoc, "verify-onvif-no-device-suite --json-output", "missing no-device suite JSON command");
   assertContains(noDeviceDoc, "media-server.onvif-no-device-suite-summary.v1", "missing no-device summary schema");
+  assertContains(noDeviceDoc, "test/fixtures/onvif_no_device_suite_failure_summary.json", "missing failure summary fixture path");
   assertContains(noDeviceDoc, "./server.sh verify-onvif-no-device-mode", "missing self-check command");
   assertContains(noDeviceDoc, "verify-onvif-protocol-support-matrix", "missing protocol support matrix command");
   assertContains(noDeviceDoc, "verify-onvif-probe-profile-variants", "missing profile variant command");
@@ -74,6 +78,7 @@ check("live support document links no-device mode without claiming field success
   assertContains(liveSupportDoc, "./onvif-no-device-verification.md", "live support doc does not link no-device doc");
   assertContains(liveSupportDoc, "verify-onvif-no-device-suite", "live support verification missing no-device suite command");
   assertContains(liveSupportDoc, "verify-onvif-no-device-suite --json-output", "live support verification missing no-device suite JSON command");
+  assertContains(liveSupportDoc, "test/fixtures/onvif_no_device_suite_failure_summary.json", "live support doc missing failure summary fixture path");
   assertContains(liveSupportDoc, "verify-onvif-no-device-mode", "live support verification missing no-device command");
   assertContains(liveSupportDoc, "verify-onvif-protocol-support-matrix", "live support verification missing protocol matrix command");
   assertContains(liveSupportDoc, "verify-onvif-probe-profile-variants", "live support verification missing profile variant command");
@@ -92,6 +97,42 @@ check("no-device suite runner can write summary JSON", () => {
     "results",
   ]) {
     assertContains(noDeviceSuiteScript, token, `no-device suite script missing ${token}`);
+  }
+});
+
+check("no-device failure summary fixture preserves failed command state", () => {
+  assert(failureSummaryFixture.schema === "media-server.onvif-no-device-suite-summary.v1", "failure summary schema mismatch");
+  assert(failureSummaryFixture.mode === "실장비 제외", "failure summary mode mismatch");
+  assert(failureSummaryFixture.realDeviceEndpointSuccess === "미확인", "failure summary real device status mismatch");
+  assert(Number.isInteger(failureSummaryFixture.total) && failureSummaryFixture.total > 0, "failure summary total must be positive integer");
+  assert(Number.isInteger(failureSummaryFixture.completed), "failure summary completed must be integer");
+  assert(failureSummaryFixture.completed >= 0 && failureSummaryFixture.completed < failureSummaryFixture.total, "failure summary completed must stop before total");
+  assert(typeof failureSummaryFixture.failed === "string" && failureSummaryFixture.failed.startsWith("./server.sh "), "failure summary failed command missing");
+  assert(Array.isArray(failureSummaryFixture.results), "failure summary results must be array");
+  assert(failureSummaryFixture.results.length === failureSummaryFixture.completed + 1, "failure summary must include completed results and failed result");
+  for (let index = 0; index < failureSummaryFixture.results.length; index += 1) {
+    const result = failureSummaryFixture.results[index];
+    assert(result.index === index + 1, `failure summary result index mismatch at ${index}`);
+    assert(typeof result.command === "string" && result.command.startsWith("./server.sh "), `failure summary result command mismatch at ${index}`);
+    assert(Number.isInteger(result.status), `failure summary result status missing at ${index}`);
+    if (index < failureSummaryFixture.completed) {
+      assert(result.ok === true, `failure summary completed result must be ok at ${index}`);
+      assert(result.status === 0, `failure summary completed result status must be 0 at ${index}`);
+    } else {
+      assert(result.ok === false, "failure summary failed result must be ok=false");
+      assert(result.status !== 0, "failure summary failed result status must be non-zero");
+      assert(result.command === failureSummaryFixture.failed, "failure summary failed command must match failed result");
+    }
+  }
+  const serialized = JSON.stringify(failureSummaryFixture);
+  for (const forbidden of [
+    "operator-entered-secret",
+    "password",
+    "Authorization",
+    "raw SOAP",
+    "certificate dump",
+  ]) {
+    assert(!serialized.includes(forbidden), `failure summary fixture leaked forbidden token: ${forbidden}`);
   }
 });
 

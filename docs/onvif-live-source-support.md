@@ -278,5 +278,10 @@ ONVIF endpoint, credential reference, raw diagnostic JSON이 노출되지 않는
 WS-Discovery/PTZ/Events/Profile G 비지원 hint가 실제 screenshot viewport에 보이는지
 추가로 확인합니다.
 
+no-device suite 실패 summary fixture는
+`test/fixtures/onvif_no_device_suite_failure_summary.json`이며,
+`verify-onvif-no-device-mode`가 실패 전 완료 개수, 실패 명령, `realDeviceEndpointSuccess=미확인`
+보존을 정적으로 확인합니다.
+
 구현 단계에서도 Event POST payload, WebRTC DataChannel schema,
 SSE/WS metadata schema, RTSP/WebRTC media path는 변경하지 않습니다.

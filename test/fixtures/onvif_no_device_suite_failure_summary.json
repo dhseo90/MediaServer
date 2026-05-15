@@ -1,0 +1,35 @@
+{
+  "schema": "media-server.onvif-no-device-suite-summary.v1",
+  "generatedAt": "2026-05-15T00:00:00.000Z",
+  "mode": "실장비 제외",
+  "realDeviceEndpointSuccess": "미확인",
+  "total": 21,
+  "completed": 3,
+  "failed": "./server.sh verify-onvif-https-soap-transport-design",
+  "results": [
+    {
+      "index": 1,
+      "command": "./server.sh verify-onvif-no-device-mode",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 2,
+      "command": "./server.sh verify-onvif-protocol-support-matrix",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 3,
+      "command": "./server.sh verify-onvif-rtsps-draft-policy",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 4,
+      "command": "./server.sh verify-onvif-https-soap-transport-design",
+      "ok": false,
+      "status": 1
+    }
+  ]
+}
