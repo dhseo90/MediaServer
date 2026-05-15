@@ -2,7 +2,7 @@
 
 이 문서는 ONVIF `https://` Device service SOAP transport를 향후 구현할 때 사용할
 no-device TLS fixture harness 기준을 고정합니다. v1.2.0 현재 상태는 설계 전용이며,
-TLS client library, HTTPS 성공 transport, TLS fixture 실행 명령은 구현 완료로 보지
+TLS client library, HTTPS 성공 transport, TLS fixture 성공 실행은 구현 완료로 보지
 않습니다.
 
 관련 기준:
@@ -20,6 +20,18 @@ TLS client library, HTTPS 성공 transport, TLS fixture 실행 명령은 구현 
 - harness 설계는 HTTPS 성공을 완료로 보고하기 위한 대체 증거가 아니며, 향후 구현
   단계의 acceptance criteria입니다.
 - 실장비가 없는 환경에서는 HTTPS real-device success를 계속 미확인으로 보고합니다.
+
+## Command Skeleton
+
+현재 command skeleton:
+
+```bash
+./server.sh verify-onvif-https-tls-fixture --expect-skip
+```
+
+이 명령은 design-only skip을 검증합니다. fixture TLS server를 실행하지 않습니다.
+TLS client library를 추가하지 않습니다. `trustedFixtureSuccess`는 미확인,
+`realDeviceEndpointSuccess`는 미확인으로 보고합니다.
 
 ## Harness 구성
 

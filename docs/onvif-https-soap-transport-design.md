@@ -28,6 +28,8 @@ fail-closed가 정상 동작입니다.
   남깁니다.
 - explicit TLS fixture harness는 현재 설계 전용이며, 실행 가능한 HTTPS 성공 smoke로
   보지 않습니다.
+- `verify-onvif-https-tls-fixture --expect-skip`은 command skeleton의 design-only
+  skip을 검증하며 HTTPS 성공을 미확인으로 남깁니다.
 
 ## 구현 스파이크 결과
 
@@ -77,6 +79,7 @@ HTTPS SOAP transport를 추가하려면 별도 단계에서 아래 조건을 모
 
 ```bash
 ./server.sh verify-onvif-https-soap-transport-design
+./server.sh verify-onvif-https-tls-fixture --expect-skip
 ./server.sh verify-onvif-tls-transport-policy
 ./server.sh verify-onvif-protocol-support-matrix
 ./server.sh verify-onvif-http-transport

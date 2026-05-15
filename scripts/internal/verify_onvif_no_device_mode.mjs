@@ -66,6 +66,7 @@ check("no-device command list keeps endpoint-free and sanitized-failure probes",
   assertContains(noDeviceDoc, "test/fixtures/onvif_no_device_suite_failure_summary.json", "missing failure summary fixture path");
   assertContains(noDeviceDoc, "./server.sh verify-onvif-no-device-mode", "missing self-check command");
   assertContains(noDeviceDoc, "verify-onvif-protocol-support-matrix", "missing protocol support matrix command");
+  assertContains(noDeviceDoc, "verify-onvif-https-tls-fixture --expect-skip", "missing HTTPS TLS fixture skeleton command");
   assertContains(noDeviceDoc, "verify-onvif-probe-profile-variants", "missing profile variant command");
   assertContains(noDeviceDoc, "verify-onvif-field-http-probe --allow-missing-endpoint", "missing missing-endpoint command");
   assertContains(noDeviceDoc, "--expect-failure", "missing sanitized failure command");
@@ -83,6 +84,7 @@ check("live support document links no-device mode without claiming field success
   assertContains(liveSupportDoc, "test/fixtures/onvif_no_device_suite_failure_summary.json", "live support doc missing failure summary fixture path");
   assertContains(liveSupportDoc, "verify-onvif-no-device-mode", "live support verification missing no-device command");
   assertContains(liveSupportDoc, "verify-onvif-protocol-support-matrix", "live support verification missing protocol matrix command");
+  assertContains(liveSupportDoc, "verify-onvif-https-tls-fixture --expect-skip", "live support doc missing HTTPS TLS fixture skeleton command");
   assertContains(liveSupportDoc, "verify-onvif-probe-profile-variants", "live support verification missing profile variant command");
   assertContains(liveSupportDoc, "verify-onvif-field-http-probe --allow-missing-endpoint", "live support doc missing missing-endpoint command");
   assertContains(liveSupportDoc, "--expect-failure", "live support doc missing sanitized loopback failure command");
@@ -98,6 +100,8 @@ check("no-device suite runner can write summary JSON", () => {
     "realDeviceEndpointSuccess",
     "writeJsonSummary",
     "results",
+    "verify-onvif-https-tls-fixture",
+    "--expect-skip",
   ]) {
     assertContains(noDeviceSuiteScript, token, `no-device suite script missing ${token}`);
   }

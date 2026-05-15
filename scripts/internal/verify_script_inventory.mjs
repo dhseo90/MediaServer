@@ -84,6 +84,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_onvif_protocol_support_matrix.mjs",
     "verify_onvif_rtsps_draft_policy.mjs",
     "verify_onvif_https_soap_transport_design.mjs",
+    "verify_onvif_https_tls_fixture.mjs",
     "verify_onvif_auth_injection_design.mjs",
     "verify_onvif_ws_discovery_ux.mjs",
     "verify_onvif_unsupported_api_guard.mjs",

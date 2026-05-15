@@ -46,6 +46,7 @@
 ./server.sh verify-onvif-no-device-suite --json-output /tmp/media_server_onvif_no_device_summary.json
 ./server.sh verify-onvif-no-device-mode
 ./server.sh verify-onvif-protocol-support-matrix
+./server.sh verify-onvif-https-tls-fixture --expect-skip
 ./server.sh verify-onvif-live-import-contract
 ./server.sh verify-onvif-probe-fixture-contract
 ./server.sh verify-onvif-probe-profile-variants
@@ -113,10 +114,13 @@ schema drift guard는 runner 상수, 성공 예시, 실패 fixture가 모두 같
   "schema": "media-server.onvif-no-device-suite-summary.v1",
   "mode": "실장비 제외",
   "realDeviceEndpointSuccess": "미확인",
-  "completed": 21,
+  "completed": 22,
   "failed": null
 }
 ```
+
+`verify-onvif-https-tls-fixture --expect-skip`은 fixture TLS server/client 실행 없음,
+trusted fixture success 미확인, 실장비 성공 미확인 상태를 고정합니다.
 
 실패 summary는 아래 항목을 유지해야 합니다.
 
