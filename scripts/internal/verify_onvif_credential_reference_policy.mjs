@@ -88,11 +88,13 @@ for (const term of [
 
 for (const term of [
   "# ONVIF Credential Store Integration Design",
-  "현재 v1.2.0 구현은 secret 저장소를 제공하지",
+  "제품 API/UI에 persistent secret",
+  "in-memory credential store",
   "CredentialSecretProvider",
   "CredentialBindingStore",
   "include/ingress/onvif_credential_provider.h",
   "NoneCredentialSecretProvider",
+  "InMemoryCredentialSecretProvider",
   "CredentialLookupStatusCode",
   "Probe runtime",
   "Audit event",
@@ -106,12 +108,13 @@ for (const term of [
   "credential_provider_unavailable",
   "credential_material_rejected",
   "secret_material_present=false",
+  "secret_material_present=true",
   "Probe adapter summary 연결 정책",
   "RunOnvifProbeAdapter",
   "credentialRefPresent",
   "schema version 변경",
   "provider path를 포함하지",
-  "secret 저장소 구현 완료 선언",
+  "제품 persistent secret 저장소 구현 완료 선언",
 ]) {
   assert(storeDesign.includes(term), `credential store design missing required term: ${term}`);
 }
@@ -123,6 +126,10 @@ for (const term of [
   "CredentialLookupResult",
   "CredentialAuthScheme",
   "CredentialSecretMaterial",
+  "class InMemoryCredentialSecretProvider",
+  "UpsertHttpBasic",
+  "MarkStatus",
+  "Erase",
   "secret_material_present",
   "CredentialLookupStatusCode",
   "CredentialAuthSchemeCode",
@@ -140,12 +147,20 @@ for (const term of [
   "\"credential_provider_unavailable\"",
   "\"credential_missing\"",
   "secret_material_present = false",
+  "InMemoryCredentialSecretProvider::Lookup",
+  "InMemoryCredentialSecretProvider::UpsertHttpBasic",
+  "CredentialLookupStatus::kDenied",
+  "CredentialLookupStatus::kExpired",
 ]) {
   assert(providerImpl.includes(term), `credential provider implementation missing required term: ${term}`);
 }
 
 for (const term of [
   "NoneOnvifCredentialProvider",
+  "InMemoryCredentialSecretProvider",
+  "UpsertHttpBasic",
+  "MarkStatus",
+  "Erase",
   "secret_material_present",
   "credential_ready",
   "http_basic",
@@ -188,6 +203,9 @@ for (const forbidden of [
 assert(supportDoc.includes("./onvif-credential-reference-policy.md"), "ONVIF support doc must link credential policy");
 assert(authDesign.includes("./onvif-credential-store-integration-design.md"), "auth design must link credential store design");
 assert(authDesign.includes("verify-onvif-auth-injection-loopback"), "auth design must mention auth injection loopback smoke");
+assert(authDesign.includes("InMemoryCredentialSecretProvider"), "auth design must mention in-memory fixture store provider");
+assert(storeDesign.includes("InMemoryCredentialSecretProvider"), "credential store design must mention in-memory provider");
+assert(storeDesign.includes("fixture store"), "credential store design must limit in-memory provider to fixture store");
 assert(matrixDoc.includes("./onvif-credential-store-integration-design.md"), "protocol matrix must link credential store design");
 assert(matrixDoc.includes("verify-onvif-auth-injection-loopback"), "protocol matrix must mention auth loopback smoke");
 assert(probeFixture.auth?.credentialRef === "operator-entered-secret", "probe fixture should keep synthetic credentialRef sentinel");

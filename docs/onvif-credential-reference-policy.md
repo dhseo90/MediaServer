@@ -1,8 +1,9 @@
 # ONVIF Credential Reference Policy
 
 이 문서는 v1.2.0 ONVIF field integration에서 credential reference를 다루는 기준을
-고정합니다. 현재 구현은 credential 저장소가 아니라 live source 등록 draft,
-provider 기반 HTTP Basic 주입 경계, redaction 검증을 제공하는 범위입니다.
+고정합니다. 현재 구현은 제품 persistent credential 저장소가 아니라 live source 등록
+draft, provider 기반 HTTP Basic 주입 경계, fixture-grade in-memory store, redaction
+검증을 제공하는 범위입니다.
 credential 주입 설계 기준은
 [ONVIF Auth Injection Design](./onvif-auth-injection-design.md)을 따릅니다.
 저장소/secret manager 연동 설계 기준은
@@ -23,8 +24,8 @@ credential 주입 설계 기준은
   산출물에 남기며 인증 header나 secret을 주입하지 않습니다.
 - `verify-onvif-auth-injection-loopback`은 기본 none provider에서는 reference-only
   request에 Authorization/Cookie/WS-Security secret material이 주입되지 않는지
-  확인하고, fixture provider 연결 시 HTTP Basic header가 요청에 들어가되 실패
-  summary에는 username/password/reference가 남지 않는지 확인합니다.
+  확인하고, in-memory fixture store provider 연결 시 HTTP Basic header가 요청에
+  들어가되 실패 summary에는 username/password/reference가 남지 않는지 확인합니다.
 - credential이 필요한 실제 장비가 HTTP 401/403을 반환하면 현재 단계에서는
   sanitized probe failure로 기록합니다.
 
@@ -32,8 +33,8 @@ credential 주입 설계 기준은
 
 아래 항목은 현재 v1.2.0 ONVIF live source draft 범위에 포함하지 않습니다.
 
-- secret manager 연동
-- credential 암호화 저장
+- 제품 persistent secret manager 연동
+- 제품 credential 암호화 저장
 - ONVIF WS-Security UsernameToken 생성
 - HTTP Digest 인증 주입
 - credential rotation, expiry, audit event
@@ -41,16 +42,17 @@ credential 주입 설계 기준은
 
 ## 저장소 연동 설계
 
-현재 단계에서는 secret 저장소를 구현 완료로 보지 않습니다. 향후 저장소를 추가할 때는
-`CredentialSecretProvider`, `CredentialBindingStore`, probe runtime, audit event의
-경계를 분리하고, `credentialRef` 실제 값과 secret store key도 API/UI/artifact에
-노출하지 않습니다.
+현재 단계에서는 제품 persistent secret 저장소를 구현 완료로 보지 않습니다. 향후
+저장소를 추가할 때는 `CredentialSecretProvider`, `CredentialBindingStore`, probe
+runtime, audit event의 경계를 분리하고, `credentialRef` 실제 값과 secret store key도
+API/UI/artifact에 노출하지 않습니다.
 
 코드 경계는 `include/ingress/onvif_credential_provider.h`의
-`CredentialSecretProvider` interface skeleton과 `NoneCredentialSecretProvider`로
-시작합니다. 기본 none provider는 secret lookup을 수행하지 않고
+`CredentialSecretProvider` interface, `NoneCredentialSecretProvider`,
+`InMemoryCredentialSecretProvider`로 시작합니다. 기본 none provider는 secret lookup을 수행하지 않고
 `credential_missing` 또는 `credential_provider_unavailable` 같은 sanitized status
-code와 `secret_material_present=false`만 반환합니다. 명시적으로 연결한 provider가
+code와 `secret_material_present=false`만 반환합니다. in-memory fixture store 또는
+명시적으로 연결한 provider가
 `credential_ready`와 `http_basic` material을 반환하면 probe adapter가 HTTP Basic
 header를 생성합니다. `CredentialBindingStore`, 지속 secret material payload,
 Digest/UsernameToken 생성은 계속 향후 범위입니다.

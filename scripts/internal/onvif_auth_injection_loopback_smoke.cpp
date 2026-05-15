@@ -1,5 +1,5 @@
-// 파일 요약: ONVIF credential reference가 있어도 인증 material이 HTTP/SOAP 요청에 주입되지 않는지 검증한다.
-// 동작 요약: loopback 401 SOAP 서버가 캡처한 요청 header/body와 adapter 실패 요약의 redaction 경계를 확인한다.
+// 파일 요약: ONVIF credential reference와 fixture store auth material의 주입 경계를 검증한다.
+// 동작 요약: none provider는 닫히고, in-memory store provider만 Basic header를 주입하는지 확인한다.
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -78,27 +78,6 @@ bool ContainsAuthMaterial(const std::string& request) {
            Contains(request, "secret-camera-token") ||
            Contains(request, "password=");
 }
-
-class BasicFixtureProvider final : public ingress::CredentialSecretProvider {
-  public:
-    const char* ProviderId() const override {
-        return "basic-fixture";
-    }
-
-    ingress::CredentialLookupResult Lookup(const ingress::CredentialLookupRequest& request) const override {
-        ingress::CredentialLookupResult result;
-        if (!request.credential_ref_present) {
-            result.status = ingress::CredentialLookupStatus::kMissing;
-            return result;
-        }
-        result.status = ingress::CredentialLookupStatus::kReady;
-        result.secret_material_present = true;
-        result.material.scheme = ingress::CredentialAuthScheme::kHttpBasic;
-        result.material.username = "fixture-user";
-        result.material.password = "fixture-password";
-        return result;
-    }
-};
 
 }  // namespace
 
@@ -203,7 +182,9 @@ int main() {
     auth_request.credential_ref_present = true;
     auth_request.credential_ref = "redacted-reference";
 
-    const BasicFixtureProvider basic_provider;
+    ingress::InMemoryCredentialSecretProvider basic_provider("auth-loopback-store");
+    Assert(basic_provider.UpsertHttpBasic("redacted-reference", "fixture-user", "fixture-password"),
+           "auth fixture store upsert failed");
     const auto auth_result = ingress::RunOnvifProbeAdapter(
         auth_request,
         ingress::SendOnvifSoapHttp,

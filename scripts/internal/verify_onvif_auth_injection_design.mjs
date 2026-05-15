@@ -34,6 +34,8 @@ const credentialDoc = readText("docs/onvif-credential-reference-policy.md");
 const storeDesign = readText("docs/onvif-credential-store-integration-design.md");
 const matrixDoc = readText("docs/onvif-protocol-support-matrix.md");
 const onvifCode = readText("src/ingress/onvif_live_import.cpp");
+const providerHeader = readText("include/ingress/onvif_credential_provider.h");
+const authLoopbackSmoke = readText("scripts/internal/onvif_auth_injection_loopback_smoke.cpp");
 const checks = [];
 
 check("auth injection design keeps current provider Basic status explicit", () => {
@@ -51,8 +53,9 @@ check("auth injection design keeps current provider Basic status explicit", () =
     "Authorization: Basic",
     "verify-onvif-auth-injection-loopback",
     "401 challenge",
-    "fixture provider 연결 시 HTTP Basic header",
-    "secret 저장소 또는 secret manager lookup도 현재 구현 완료가 아닙니다",
+    "InMemoryCredentialSecretProvider",
+    "in-memory fixture store provider 연결 시 HTTP Basic header",
+    "제품 persistent secret 저장소 또는 외부 secret manager lookup은 현재 구현 완료가 아닙니다",
     "HTTP 401/403은 sanitized probe failure",
   ]) {
     assertContains(designDoc, term, `design doc missing current auth boundary: ${term}`);
@@ -84,6 +87,7 @@ check("credential policy and protocol matrix link auth injection design", () => 
   assertContains(matrixDoc, "./onvif-credential-store-integration-design.md", "protocol matrix missing credential store design link");
   assertContains(matrixDoc, "verify-onvif-auth-injection-design", "protocol matrix missing auth design verification");
   assertContains(matrixDoc, "verify-onvif-auth-injection-loopback", "protocol matrix missing auth loopback verification");
+  assertContains(storeDesign, "InMemoryCredentialSecretProvider", "credential store design missing in-memory provider");
 });
 
 check("current ONVIF SOAP transport injects only provider-provided Basic auth", () => {
@@ -103,6 +107,9 @@ check("current ONVIF SOAP transport injects only provider-provided Basic auth", 
   }
   assertContains(onvifCode, "SOAPAction:", "current transport should still include SOAPAction header smoke path");
   assertContains(onvifCode, "credentialRefPresent", "current draft response should expose boolean credential summary only");
+  assertContains(providerHeader, "InMemoryCredentialSecretProvider", "provider header missing in-memory fixture store");
+  assertContains(authLoopbackSmoke, "InMemoryCredentialSecretProvider", "auth loopback smoke missing in-memory store provider");
+  assertContains(authLoopbackSmoke, "UpsertHttpBasic", "auth loopback smoke missing store-backed Basic credential");
 });
 
 let failures = 0;

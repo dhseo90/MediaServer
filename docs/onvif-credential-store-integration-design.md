@@ -1,8 +1,9 @@
 # ONVIF Credential Store Integration Design
 
-이 문서는 향후 ONVIF credential reference를 실제 저장소 또는 외부 secret manager와
-연동할 때의 설계 기준을 고정합니다. 현재 v1.2.0 구현은 secret 저장소를 제공하지
-않으며, `credentialRefPresent` boolean summary와 redaction 검증만 제공합니다.
+이 문서는 ONVIF credential reference를 저장소 또는 외부 secret manager와 연동할
+때의 설계 기준을 고정합니다. 현재 v1.2.0 구현은 제품 API/UI에 persistent secret
+저장소를 열지 않지만, provider 경계 검증용 in-memory credential store를 통해
+`credentialRef` lookup, HTTP Basic material 반환, redaction 검증을 수행합니다.
 
 관련 기준:
 
@@ -14,6 +15,8 @@
 
 - 제품 API와 UI는 ONVIF credential 원문 입력, 저장, 조회를 제공하지 않습니다.
 - `credentialRef`는 fixture 안에서 reference 존재 여부를 표현하는 합성 값입니다.
+- `InMemoryCredentialSecretProvider`는 no-device/loopback 검증용 fixture store입니다.
+  제품 persistent store나 외부 secret manager 구현 완료를 의미하지 않습니다.
 - SourceRegistry와 PublishedView에는 secret 원문, token, password hash, reversible
   credential, secret store key를 넣지 않습니다.
 - field smoke artifact와 draft API 응답은 `credentialRefPresent=true/false`만
@@ -42,19 +45,24 @@ provider 후보:
 - `CredentialSecretProvider`: `include/ingress/onvif_credential_provider.h`에 선언한
   provider interface입니다.
 - `NoneCredentialSecretProvider`: secret lookup을 수행하지 않는 현재 provider입니다.
+- `InMemoryCredentialSecretProvider`: fixture scope에서 `credentialRef`와 HTTP Basic
+  material을 저장하고 `credential_ready`, `credential_missing`, `credential_denied`,
+  `credential_expired` 같은 sanitized status를 반환하는 store-backed provider입니다.
 - `CredentialLookupStatusCode`: `credential_missing`,
   `credential_provider_unavailable`, `credential_denied`, `credential_expired`,
   `credential_material_rejected` 같은 sanitized status code만 반환합니다.
-- `secret_material_present=false`: 현재 단계에서 secret material payload가 없음을
-  고정합니다.
+- `secret_material_present=false`: none/missing/denied/expired/rejected lookup에서는
+  probe runtime에도 secret material을 반환하지 않습니다.
+- `secret_material_present=true`: 명시 저장된 `http_basic` material이 있을 때 probe
+  runtime에만 반환하며 API/UI/artifact에는 출력하지 않습니다.
 - `CredentialBindingStore`와 secret material payload는 아직 설계 전용입니다.
 
 Probe adapter summary 연결 정책:
 
 - 현재는 `NoneCredentialSecretProvider` 상태를 `RunOnvifProbeAdapter` summary에
   연결하지 않습니다.
-- provider lookup 결과는 provider skeleton smoke 안에서만 검증하고, probe adapter는
-  기존 `credentialRefPresent` boolean summary만 유지합니다.
+- provider lookup 결과는 provider smoke와 auth injection loopback smoke에서 검증하고,
+  probe adapter는 기존 `credentialRefPresent` boolean summary만 유지합니다.
 - 향후 provider status를 연결할 때도 `credential_provider_unavailable` 같은 sanitized
   status code만 허용하며, reference 값, provider path, secret material은
   SourceRegistry/PublishedView/API/UI/artifact에 넣지 않습니다.
@@ -87,7 +95,7 @@ security header, provider path를 포함하지 않아야 합니다.
 
 ## 비범위
 
-- 현재 단계에서 secret 저장소 구현 완료 선언
+- 현재 단계에서 제품 persistent secret 저장소 구현 완료 선언
 - client/viewer API에 credential reference 노출
 - SourceRegistry/PublishedView에 secret store key 저장
 - URL credential import
@@ -99,6 +107,7 @@ security header, provider path를 포함하지 않아야 합니다.
 ```bash
 ./server.sh verify-onvif-credential-reference-policy
 ./server.sh verify-onvif-auth-injection-design
+./server.sh verify-onvif-auth-injection-loopback
 ./server.sh verify-onvif-protocol-support-matrix
 git diff --check
 ```
