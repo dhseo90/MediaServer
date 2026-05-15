@@ -44,6 +44,8 @@ std::string ProductDesignTokensCss() {
       --color-input-border: #cbd5e1;
       --color-input-focus: #14b8a6;
       --color-focus-ring: rgba(20, 184, 166, 0.28);
+      --color-selection-ring: rgba(15, 118, 110, 0.16);
+      --color-modal-backdrop: rgba(15, 23, 42, 0.44);
       --color-input-disabled-bg: #eef2f6;
       --color-placeholder: #94a3b8;
       --color-table-header-bg: #edf2f5;
@@ -80,6 +82,9 @@ std::string ProductDesignTokensCss() {
       --overlay-line: #facc15;
       --overlay-point-fill: #facc15;
       --overlay-point-text: #12120d;
+      --overlay-stage-gloss-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 -36px 72px rgba(0, 0, 0, 0.24);
+      --overlay-point-shadow: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+      --overlay-badge-stroke: rgba(255, 255, 255, 0.18);
       --radius-sm: 4px;
       --radius-md: 6px;
       --radius-lg: 8px;
@@ -146,6 +151,8 @@ std::string ProductDesignTokensCss() {
       --color-input-border: #4a555e;
       --color-input-focus: #5eead4;
       --color-focus-ring: rgba(94, 234, 212, 0.28);
+      --color-selection-ring: rgba(45, 212, 191, 0.20);
+      --color-modal-backdrop: rgba(2, 6, 23, 0.62);
       --color-input-disabled-bg: #262c31;
       --color-placeholder: #7f8fa3;
       --color-table-header-bg: #2a3034;
@@ -510,7 +517,7 @@ std::string ProductUiCss() {
     button.danger {
       background: var(--color-danger);
       border-color: var(--color-danger);
-      color: #ffffff;
+      color: var(--color-on-danger);
     }
     .button-secondary,
     button.secondary,
@@ -922,7 +929,7 @@ std::string ProductUiCss() {
       position: absolute;
       inset: 0;
       pointer-events: none;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 -36px 72px rgba(0, 0, 0, 0.24);
+      box-shadow: var(--overlay-stage-gloss-shadow);
       z-index: 1;
     }
     .ops-rule-preview-stage video {
@@ -1006,7 +1013,7 @@ std::string ProductUiCss() {
       pointer-events: none;
     }
     .ops-geometry-overlay .ops-geometry-point {
-      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+      filter: var(--overlay-point-shadow);
       cursor: grab;
       pointer-events: auto;
     }
@@ -1031,7 +1038,7 @@ std::string ProductUiCss() {
     }
     .ops-geometry-overlay .ops-geometry-badge rect {
       fill: var(--overlay-label-bg);
-      stroke: rgba(255, 255, 255, 0.18);
+      stroke: var(--overlay-badge-stroke);
       stroke-width: 0.25;
       vector-effect: non-scaling-stroke;
       pointer-events: none;
@@ -1228,7 +1235,7 @@ std::string ProductUiCss() {
       color: var(--color-text);
     }
     .audit-detail-modal::backdrop {
-      background: rgba(15, 23, 42, 0.44);
+      background: var(--color-modal-backdrop);
     }
     .audit-detail-head {
       display: grid;
@@ -2286,9 +2293,9 @@ std::string ClientShellCss() {
     .panel { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
     .views { display: grid; gap: 10px; }
     .view { width: 100%; text-align: left; display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--bg); color: var(--text); cursor: pointer; }
-    .view.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.16); }
+    .view.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--color-selection-ring); }
     .meta { display: flex; gap: 6px; flex-wrap: wrap; }
-    .chip { padding: 5px 8px; border-radius: 999px; background: var(--accent-soft); color: #115e59; font-size: 12px; font-weight: 900; }
+    .chip { padding: 5px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--color-primary-weak-text); font-size: 12px; font-weight: 900; }
     .chip.warn { background: var(--warn-soft); color: var(--warn); }
     .chip.bad { background: var(--bad-soft); color: var(--bad); }
     .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
@@ -2413,16 +2420,16 @@ std::string ClientShellCss() {
     .live-grid[data-density="compact"] { gap: 8px; }
     .tile { min-height: 280px; display: grid; grid-template-rows: auto minmax(140px, 1fr) auto; gap: 10px; border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--bg); }
     .live-grid[data-density="compact"] .tile { min-height: 224px; grid-template-rows: auto minmax(108px, 1fr) auto; gap: 8px; padding: 8px; }
-    .tile.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.16); }
+    .tile.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--color-selection-ring); }
     .tile-head { display: grid; gap: 8px; }
     .tile-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .tile-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, 150px); gap: 8px; }
     .tile-controls label { display: grid; gap: 4px; color: var(--muted); font-size: 12px; font-weight: 800; }
     .tile-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .tile-stage { position: relative; min-height: 150px; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: #111827; display: grid; place-items: center; color: #cbd5e1; }
+    .tile-stage { position: relative; min-height: 150px; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: var(--color-media-bg); display: grid; place-items: center; color: var(--color-code-text); }
     .live-grid[data-density="compact"] .tile-stage { min-height: 108px; }
-    .tile-stage video { width: 100%; height: 100%; object-fit: contain; background: #000; }
-    .tile-stage span { position: absolute; inset: auto 10px 10px 10px; font-size: 12px; font-weight: 800; color: #cbd5e1; }
+    .tile-stage video { width: 100%; height: 100%; object-fit: contain; background: var(--color-media-bg); }
+    .tile-stage span { position: absolute; inset: auto 10px 10px 10px; font-size: 12px; font-weight: 800; color: var(--color-code-text); }
     .tile-status { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
     .live-grid[data-density="compact"] .tile-status { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .tile-status .metric { min-height: 54px; padding: 8px; }
@@ -2441,9 +2448,9 @@ std::string ClientShellCss() {
       --warn-soft: var(--color-warning-bg);
       --bad-soft: var(--color-danger-bg);
     }
-    :root[data-theme="dark"] .chip { color: #99f6e4; }
-    :root[data-theme="dark"] .chip.warn { color: #fcd34d; }
-    :root[data-theme="dark"] .chip.bad { color: #fca5a5; }
+    :root[data-theme="dark"] .chip { color: var(--color-primary-weak-text); }
+    :root[data-theme="dark"] .chip.warn { color: var(--color-warning); }
+    :root[data-theme="dark"] .chip.bad { color: var(--color-danger); }
     :root[data-theme="dark"] a.nav.active { background: var(--color-primary); color: var(--color-on-primary); }
     @media (max-width: 900px) { .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 860px) {

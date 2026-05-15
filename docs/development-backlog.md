@@ -234,6 +234,17 @@ PR template과 정적 verifier를 연결했습니다.
 - `verify-ui-visual-artifact-index`가 PR template의 visual review checklist 핵심 문구를 정적 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### CSS token drift 검사 후속 종료 판정
+
+2026-05-16 기준 product UI CSS의 색상 drift를 막는 정적 검증을 추가했습니다.
+
+확인됨:
+
+- `ProductDesignTokensCss()`에 client selection ring, modal backdrop, rule preview gloss/shadow/badge stroke token을 추가했습니다.
+- `ProductUiCss()`와 `ClientShellCss()` 본문에서 기존 raw hex/rgb 색상을 semantic/overlay token 참조로 교체했습니다.
+- `./server.sh verify-product-ui-token-drift`가 `ProductDesignTokensCss()` 밖 raw hex/rgb 색상 추가를 실패로 처리하고, 관련 docs/command inventory 연결을 확인합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ## v1.2.0 시작 전 체크리스트
 
 - [x] v1.1.0 PR이 `main`에 merge됨

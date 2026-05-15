@@ -53,7 +53,7 @@ v1.2.0 이후 UI 변경은 아래 inventory를 기준으로 합니다.
 
 | 계층 | 소스 | 현재 계약 | 회귀 guard |
 | --- | --- | --- | --- |
-| Design tokens | `ProductDesignTokensCss()` | `--color-*`, `--space-*`, `--radius-*`, `--shadow-*`, overlay token, legacy alias(`--bg`, `--panel`, `--ink`)를 light/dark 양쪽에서 정의합니다. page-specific hex color는 media/canvas처럼 고정 배경이 필요한 경우로 제한합니다. | `verify-ops-client-ui --screenshots`, `verify-docs-ui-assets` |
+| Design tokens | `ProductDesignTokensCss()` | `--color-*`, `--space-*`, `--radius-*`, `--shadow-*`, overlay token, legacy alias(`--bg`, `--panel`, `--ink`)를 light/dark 양쪽에서 정의합니다. page-specific hex/rgb color는 `ProductDesignTokensCss()` 밖에 추가하지 않습니다. | `verify-product-ui-token-drift`, `verify-ops-client-ui --screenshots`, `verify-docs-ui-assets` |
 | Product shell | `ProductUiCss()`, `AppendOpsShellStart/End`, `AppendAuthShellStart/End` | compact app chrome, image nav, account menu, `section-card`, `metric-card`, `button`, `status-badge`, form/grid, empty/table-empty 상태를 Auth/Ops/Client가 공유합니다. | `verify-auth-bootstrap`, `verify-ops-client-ui` |
 | Ops data surfaces | `ProductSharedUiScript()`, `AppendOpsShellScript()`, route별 page script | `ops-responsive-table`, `ops-row-actions`, `ops-detail-panel`, `ops-audit-panel`, `root-cause-*`를 표준 표/상세/감사/진단 surface로 유지합니다. | `verify-ops-client-ui`, `verify-ops-click-e2e`, `verify-rule-ui` |
 | Client surfaces | `ClientShellCss()`, `AppendClientShellScript()` | `client-compare-*`, `client-loading-state`, `live-monitor`, `live-toolbar`, `live-grid`, `tile-*`로 viewer live/dashboard를 구성합니다. source URL, raw JSON, debug counter, rule/profile editor는 노출하지 않습니다. | `verify-client-dashboard-polish`, `verify-ops-client-ui --screenshots` |
@@ -62,6 +62,8 @@ v1.2.0 이후 UI 변경은 아래 inventory를 기준으로 합니다.
 변경 체크리스트:
 
 - 새 UI 색상은 semantic token에 먼저 매핑하고 light/dark 값을 같이 정합니다.
+- `src/ingress/product_ui_css.cpp` 본문에는 raw hex/rgb 색상을 추가하지 않고
+  `./server.sh verify-product-ui-token-drift`로 확인합니다.
 - 버튼, badge, table, detail panel은 기존 class/helper를 우선 사용합니다.
 - 320/390px에서 form control, row action, button text가 부모 폭을 넘지 않아야 합니다.
 - client/viewer shell에는 source locator, Developer URL, raw JSON, 내부 debug summary를 추가하지 않습니다.
