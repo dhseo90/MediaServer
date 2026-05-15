@@ -622,8 +622,12 @@ run_routes() {
   expect_eq "$(http_code "${BASE}/ops/api/events/status?limit=1")" "401" "unauth ops events API denied"
   local onvif_fixture_payload
   onvif_fixture_payload="$(tr -d '\n' < "${ROOT_DIR}/test/fixtures/onvif_live_import_stub.json")"
+  local onvif_probe_fixture_payload
+  onvif_probe_fixture_payload="$(tr -d '\n' < "${ROOT_DIR}/test/fixtures/onvif_probe_result_stub.json")"
   expect_eq "$(http_code -H 'Content-Type: application/json' \
     -X POST --data "${onvif_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")" "401" "unauth ops ONVIF import draft API denied"
+  expect_eq "$(http_code -H 'Content-Type: application/json' \
+    -X POST --data "${onvif_probe_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")" "401" "unauth ops ONVIF probe draft API denied"
   expect_eq "$(http_code "${BASE}/ops/api/users")" "401" "unauth ops users API denied"
   expect_eq "$(http_code "${BASE}/ops/api/access-requests")" "401" "unauth ops access requests API denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/sources")" "403" "viewer ops sources API denied"
@@ -631,6 +635,8 @@ run_routes() {
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/runtime/status")" "403" "viewer ops runtime API denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data "${onvif_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")" "403" "viewer ops ONVIF import draft API denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data "${onvif_probe_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")" "403" "viewer ops ONVIF probe draft API denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/users")" "403" "viewer ops users API denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/access-requests")" "403" "viewer ops access requests API denied"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/sources")" "200" "readonly operator ops read allowed"
@@ -645,6 +651,8 @@ run_routes() {
     -X POST --data '{"viewId":"99"}' "${BASE}/ops/api/views")" "403" "source write scope required for view create"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data "${onvif_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")" "403" "source write scope required for ONVIF import draft"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data "${onvif_probe_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")" "403" "source write scope required for ONVIF probe draft"
   local readonly_view_update_payload readonly_source_update_payload readonly_va_rule_payload
   readonly_view_update_payload="{\"viewId\":\"1\",\"sourceId\":\"${source_id}\",\"displayName\":\"Denied\"}"
   readonly_source_update_payload="{\"sourceId\":\"${source_id}\",\"displayName\":\"Denied\",\"kind\":\"file\",\"file\":\"sample_h264.mp4\"}"
@@ -669,6 +677,17 @@ run_routes() {
   case "${onvif_draft_json}" in
     *'"credentialRef"'*|*'operator-entered-secret'*|*'/onvif/device_service'*) fail "ONVIF import draft leaked credential or endpoint: ${onvif_draft_json}" ;;
     *) pass "ONVIF import draft redacts credential reference and endpoint" ;;
+  esac
+  local onvif_probe_draft_json
+  onvif_probe_draft_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data "${onvif_probe_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")"
+  case "${onvif_probe_draft_json}" in
+    *'"status":"onvifImportDraft"'*'"notSaved":true'*'"sourceDraft"'*'"publishedViewDraft"'*) pass "ONVIF probe draft API allowed for source writer" ;;
+    *) fail "ONVIF probe draft response missing expected fields: ${onvif_probe_draft_json}" ;;
+  esac
+  case "${onvif_probe_draft_json}" in
+    *'"credentialRef"'*|*'operator-entered-secret'*|*'/onvif/device_service'*) fail "ONVIF probe draft leaked credential or endpoint: ${onvif_probe_draft_json}" ;;
+    *) pass "ONVIF probe draft redacts credential reference and endpoint" ;;
   esac
   local whep_source_json whep_sources_json
   whep_source_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
