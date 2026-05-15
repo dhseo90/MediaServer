@@ -63,6 +63,7 @@ simulator fixture smoke로만 보고합니다.
 ./server.sh verify-onvif-live-import-contract
 ./server.sh verify-onvif-probe-fixture-contract
 ./server.sh verify-onvif-probe-profile-variants
+./server.sh verify-onvif-synthetic-vendor-fixtures
 ./server.sh verify-onvif-probe-parser
 ./server.sh verify-onvif-probe-adapter
 ./server.sh verify-onvif-http-transport
@@ -80,6 +81,10 @@ simulator fixture smoke로만 보고합니다.
 
 서버를 별도로 실행한 로컬 smoke에서는 아래 항목을 추가할 수 있습니다. 이 항목도
 실장비 성공 검증이 아니라 fixture와 임시 registry 기반의 no-device 확인입니다.
+
+vendor-style synthetic fixture pack은
+`test/fixtures/onvif_synthetic_vendor_fixture_pack.json`에 고정하며, 실제 제조사
+호환 인증이나 실장비 endpoint 성공으로 해석하지 않습니다.
 
 ```bash
 ./server.sh verify-onvif-probe-draft-api
@@ -101,6 +106,7 @@ simulator fixture smoke로만 보고합니다.
 - verify-onvif-no-device-suite --json-output /tmp/media_server_onvif_no_device_summary.json
 - verify-onvif-no-device-completion
 - synthetic fixture/parser/adapter/transport/redaction 검증
+- vendor-style synthetic fixture pack 기반 Profile S/T 응답 차이 검증
 - local simulator fixture 기반 HTTP SOAP probe 성공/실패 variant
 - SOAP Fault/malformed response matrix 기반 fail-safe 실패 요약과 redaction
 - verify-onvif-field-http-probe --allow-missing-endpoint
@@ -158,7 +164,7 @@ schema drift guard는 runner 상수, 성공 예시, 성공 fixture, 실패 fixtu
   "schema": "media-server.onvif-no-device-suite-summary.v1",
   "mode": "실장비 제외",
   "realDeviceEndpointSuccess": "미확인",
-  "completed": 26,
+  "completed": 27,
   "failed": null
 }
 ```

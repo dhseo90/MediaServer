@@ -3,7 +3,7 @@
   "generatedAt": "2026-05-15T00:00:00.000Z",
   "mode": "실장비 제외",
   "realDeviceEndpointSuccess": "미확인",
-  "total": 26,
+  "total": 27,
   "completed": 3,
   "failed": "./server.sh verify-onvif-https-soap-transport-design",
   "results": [

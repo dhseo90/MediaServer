@@ -118,6 +118,8 @@ Usage:
                  ONVIF field probe fixture가 내부 probe-to-draft 계약을 지키는지 검증합니다.
   verify-onvif-probe-profile-variants
                  ONVIF Media/Media2 profile selection fixture variant를 검증합니다.
+  verify-onvif-synthetic-vendor-fixtures
+                 ONVIF vendor-style 합성 fixture pack을 실장비 없이 검증합니다.
   verify-onvif-probe-parser
                  ONVIF SOAP service/profile/stream URI parser 단위 smoke를 검증합니다.
   verify-onvif-probe-adapter
@@ -499,6 +501,10 @@ case "${cmd}" in
   verify-onvif-probe-profile-variants)
     require_internal verify_onvif_probe_profile_variants.mjs
     exec "${INTERNAL_DIR}/verify_onvif_probe_profile_variants.mjs" "$@"
+    ;;
+  verify-onvif-synthetic-vendor-fixtures)
+    require_internal verify_onvif_synthetic_vendor_fixture_pack.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_synthetic_vendor_fixture_pack.mjs" "$@"
     ;;
   verify-onvif-probe-parser)
     require_internal verify_onvif_probe_parser.sh

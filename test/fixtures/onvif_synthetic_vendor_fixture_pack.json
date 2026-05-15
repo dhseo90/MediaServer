@@ -1,0 +1,613 @@
+{
+  "schema": "media-server.onvif-synthetic-vendor-fixture-pack.v1",
+  "description": "Synthetic vendor-style ONVIF probe fixtures for no-device v1.2.0 verification. This pack uses documentation-only endpoint ranges and is not a product API contract.",
+  "packScope": {
+    "mode": "synthetic-vendor-style",
+    "realDeviceEndpointSuccess": "미확인",
+    "rawSoapIncluded": false,
+    "credentialPlaintextIncluded": false,
+    "profileGSupported": false
+  },
+  "fixtures": [
+    {
+      "id": "vendor-a-media2-main-sub-profile-t",
+      "vendorStyle": "vendor-a",
+      "summary": "Media2 and Media are both available; Media2 main H264 is selected over a Media substream.",
+      "probe": {
+        "mode": "manual-endpoint",
+        "endpoint": "http://192.0.2.70/onvif/device_service",
+        "timeoutMs": 3000,
+        "rawSoapIncluded": false,
+        "capturedAt": "fixture-time"
+      },
+      "auth": {
+        "required": true,
+        "credentialRef": "operator-entered-secret",
+        "plaintextSecretIncluded": false
+      },
+      "device": {
+        "manufacturer": "SyntheticVendorA",
+        "model": "SVA-T200",
+        "firmwareVersion": "fixture-2.0",
+        "serialNumber": "SYNTH-ONVIF-A-0001",
+        "profilesSupported": [
+          "T",
+          "S"
+        ]
+      },
+      "services": [
+        {
+          "name": "Device",
+          "available": true
+        },
+        {
+          "name": "Media2",
+          "available": true
+        },
+        {
+          "name": "Media",
+          "available": true
+        },
+        {
+          "name": "Recording",
+          "available": false
+        },
+        {
+          "name": "Replay",
+          "available": false
+        }
+      ],
+      "mediaProfiles": [
+        {
+          "token": "vendor-a-media2-main-h264",
+          "name": "Vendor A Media2 Main H264",
+          "mediaApi": "Media2",
+          "encoding": "H264",
+          "width": 1920,
+          "height": 1080,
+          "fps": 30,
+          "transport": "RTSP",
+          "streamUri": "rtsp://192.0.2.70/live/media2-main",
+          "selected": true
+        },
+        {
+          "token": "vendor-a-media-sub-h264",
+          "name": "Vendor A Media Sub H264",
+          "mediaApi": "Media",
+          "encoding": "H264",
+          "width": 640,
+          "height": 360,
+          "fps": 15,
+          "transport": "RTSP",
+          "streamUri": "rtsp://192.0.2.70/live/media-sub",
+          "selected": false
+        }
+      ],
+      "expectedDraft": {
+        "selectedProfileToken": "vendor-a-media2-main-h264",
+        "expectedSourceDraft": {
+          "sourceId": "70",
+          "displayName": "Synthetic Vendor A Main",
+          "kind": "rtsp",
+          "rtspUrl": "rtsp://192.0.2.70/live/media2-main",
+          "enabled": true,
+          "tags": [
+            "onvif",
+            "live",
+            "profile-t",
+            "synthetic-vendor"
+          ],
+          "ownerGroup": "ops"
+        },
+        "expectedPublishedViewDraft": {
+          "viewId": "70",
+          "displayName": "Synthetic Vendor A Main",
+          "sourceId": "70",
+          "allowedOverlayModes": [
+            "raw",
+            "va-overlay",
+            "va-rule"
+          ],
+          "showDashboard": true,
+          "showEvents": true,
+          "showMetadataSummary": true,
+          "clientGroups": [
+            "default"
+          ],
+          "maxTiles": 1,
+          "enabled": true
+        },
+        "proposedOriginMetadata": {
+          "type": "onvif",
+          "endpoint": "http://192.0.2.70/onvif/device_service",
+          "vendorStyle": "vendor-a",
+          "profile": "T",
+          "mediaProfileToken": "vendor-a-media2-main-h264",
+          "mediaApi": "Media2",
+          "credentialRef": "operator-entered-secret",
+          "credentialInline": false
+        }
+      },
+      "quirks": [
+        "media2-main-substreams",
+        "media2-preferred"
+      ]
+    },
+    {
+      "id": "vendor-b-media-only-profile-s",
+      "vendorStyle": "vendor-b",
+      "summary": "Only Media service is available; Profile S H264 is still imported as a live RTSP draft.",
+      "probe": {
+        "mode": "manual-endpoint",
+        "endpoint": "http://198.51.100.70/onvif/device_service",
+        "timeoutMs": 3000,
+        "rawSoapIncluded": false,
+        "capturedAt": "fixture-time"
+      },
+      "auth": {
+        "required": true,
+        "credentialRef": "operator-entered-secret",
+        "plaintextSecretIncluded": false
+      },
+      "device": {
+        "manufacturer": "SyntheticVendorB",
+        "model": "SVB-S100",
+        "firmwareVersion": "fixture-1.8",
+        "serialNumber": "SYNTH-ONVIF-B-0001",
+        "profilesSupported": [
+          "S"
+        ]
+      },
+      "services": [
+        {
+          "name": "Device",
+          "available": true
+        },
+        {
+          "name": "Media2",
+          "available": false
+        },
+        {
+          "name": "Media",
+          "available": true
+        },
+        {
+          "name": "Recording",
+          "available": false
+        },
+        {
+          "name": "Replay",
+          "available": false
+        }
+      ],
+      "mediaProfiles": [
+        {
+          "token": "vendor-b-media-main-h264",
+          "name": "Vendor B Media Main H264",
+          "mediaApi": "Media",
+          "encoding": "H264",
+          "width": 1280,
+          "height": 720,
+          "fps": 20,
+          "transport": "RTSP",
+          "streamUri": "rtsp://198.51.100.70/live/main",
+          "selected": true
+        }
+      ],
+      "expectedDraft": {
+        "selectedProfileToken": "vendor-b-media-main-h264",
+        "expectedSourceDraft": {
+          "sourceId": "71",
+          "displayName": "Synthetic Vendor B Main",
+          "kind": "rtsp",
+          "rtspUrl": "rtsp://198.51.100.70/live/main",
+          "enabled": true,
+          "tags": [
+            "onvif",
+            "live",
+            "profile-s",
+            "synthetic-vendor"
+          ],
+          "ownerGroup": "ops"
+        },
+        "expectedPublishedViewDraft": {
+          "viewId": "71",
+          "displayName": "Synthetic Vendor B Main",
+          "sourceId": "71",
+          "allowedOverlayModes": [
+            "raw",
+            "va-overlay",
+            "va-rule"
+          ],
+          "showDashboard": true,
+          "showEvents": true,
+          "showMetadataSummary": true,
+          "clientGroups": [
+            "default"
+          ],
+          "maxTiles": 1,
+          "enabled": true
+        },
+        "proposedOriginMetadata": {
+          "type": "onvif",
+          "endpoint": "http://198.51.100.70/onvif/device_service",
+          "vendorStyle": "vendor-b",
+          "profile": "S",
+          "mediaProfileToken": "vendor-b-media-main-h264",
+          "mediaApi": "Media",
+          "credentialRef": "operator-entered-secret",
+          "credentialInline": false
+        }
+      },
+      "quirks": [
+        "media-only-profile-s"
+      ]
+    },
+    {
+      "id": "vendor-c-media2-h265-rtsps-profile-t",
+      "vendorStyle": "vendor-c",
+      "summary": "Media2 H265 stream is returned as RTSPS and remains an existing kind=rtsp source draft.",
+      "probe": {
+        "mode": "manual-endpoint",
+        "endpoint": "http://203.0.113.70/onvif/device_service",
+        "timeoutMs": 3000,
+        "rawSoapIncluded": false,
+        "capturedAt": "fixture-time"
+      },
+      "auth": {
+        "required": true,
+        "credentialRef": "operator-entered-secret",
+        "plaintextSecretIncluded": false
+      },
+      "device": {
+        "manufacturer": "SyntheticVendorC",
+        "model": "SVC-T265",
+        "firmwareVersion": "fixture-3.1",
+        "serialNumber": "SYNTH-ONVIF-C-0001",
+        "profilesSupported": [
+          "T"
+        ]
+      },
+      "services": [
+        {
+          "name": "Device",
+          "available": true
+        },
+        {
+          "name": "Media2",
+          "available": true
+        },
+        {
+          "name": "Media",
+          "available": false
+        },
+        {
+          "name": "Recording",
+          "available": false
+        },
+        {
+          "name": "Replay",
+          "available": false
+        }
+      ],
+      "mediaProfiles": [
+        {
+          "token": "vendor-c-media2-h265-rtsps",
+          "name": "Vendor C Media2 H265 RTSPS",
+          "mediaApi": "Media2",
+          "encoding": "H265",
+          "width": 2560,
+          "height": 1440,
+          "fps": 25,
+          "transport": "RTSP",
+          "streamUri": "rtsps://203.0.113.70/secure/h265-main",
+          "selected": true
+        }
+      ],
+      "expectedDraft": {
+        "selectedProfileToken": "vendor-c-media2-h265-rtsps",
+        "expectedSourceDraft": {
+          "sourceId": "72",
+          "displayName": "Synthetic Vendor C H265",
+          "kind": "rtsp",
+          "rtspUrl": "rtsps://203.0.113.70/secure/h265-main",
+          "enabled": true,
+          "tags": [
+            "onvif",
+            "live",
+            "profile-t",
+            "synthetic-vendor"
+          ],
+          "ownerGroup": "ops"
+        },
+        "expectedPublishedViewDraft": {
+          "viewId": "72",
+          "displayName": "Synthetic Vendor C H265",
+          "sourceId": "72",
+          "allowedOverlayModes": [
+            "raw",
+            "va-overlay",
+            "va-rule"
+          ],
+          "showDashboard": true,
+          "showEvents": true,
+          "showMetadataSummary": true,
+          "clientGroups": [
+            "default"
+          ],
+          "maxTiles": 1,
+          "enabled": true
+        },
+        "proposedOriginMetadata": {
+          "type": "onvif",
+          "endpoint": "http://203.0.113.70/onvif/device_service",
+          "vendorStyle": "vendor-c",
+          "profile": "T",
+          "mediaProfileToken": "vendor-c-media2-h265-rtsps",
+          "mediaApi": "Media2",
+          "credentialRef": "operator-entered-secret",
+          "credentialInline": false
+        }
+      },
+      "quirks": [
+        "rtsps-h265",
+        "kind-rtsp-for-rtsps"
+      ]
+    },
+    {
+      "id": "vendor-d-media2-http-preview-media-fallback",
+      "vendorStyle": "vendor-d",
+      "summary": "Media2 exposes only an HTTP preview; Media RTSP is selected as the live source.",
+      "probe": {
+        "mode": "manual-endpoint",
+        "endpoint": "http://192.0.2.71/onvif/device_service",
+        "timeoutMs": 3000,
+        "rawSoapIncluded": false,
+        "capturedAt": "fixture-time"
+      },
+      "auth": {
+        "required": true,
+        "credentialRef": "operator-entered-secret",
+        "plaintextSecretIncluded": false
+      },
+      "device": {
+        "manufacturer": "SyntheticVendorD",
+        "model": "SVD-F120",
+        "firmwareVersion": "fixture-4.0",
+        "serialNumber": "SYNTH-ONVIF-D-0001",
+        "profilesSupported": [
+          "T",
+          "S"
+        ]
+      },
+      "services": [
+        {
+          "name": "Device",
+          "available": true
+        },
+        {
+          "name": "Media2",
+          "available": true
+        },
+        {
+          "name": "Media",
+          "available": true
+        },
+        {
+          "name": "Recording",
+          "available": false
+        },
+        {
+          "name": "Replay",
+          "available": false
+        }
+      ],
+      "mediaProfiles": [
+        {
+          "token": "vendor-d-media2-http-preview",
+          "name": "Vendor D Media2 HTTP Preview",
+          "mediaApi": "Media2",
+          "encoding": "H264",
+          "width": 640,
+          "height": 360,
+          "fps": 10,
+          "transport": "HTTP",
+          "streamUri": "http://192.0.2.71/live/preview",
+          "selected": false
+        },
+        {
+          "token": "vendor-d-media-fallback-h264",
+          "name": "Vendor D Media Fallback H264",
+          "mediaApi": "Media",
+          "encoding": "H264",
+          "width": 1280,
+          "height": 720,
+          "fps": 20,
+          "transport": "RTSP",
+          "streamUri": "rtsp://192.0.2.71/live/media-fallback",
+          "selected": true
+        }
+      ],
+      "expectedDraft": {
+        "selectedProfileToken": "vendor-d-media-fallback-h264",
+        "expectedSourceDraft": {
+          "sourceId": "73",
+          "displayName": "Synthetic Vendor D Fallback",
+          "kind": "rtsp",
+          "rtspUrl": "rtsp://192.0.2.71/live/media-fallback",
+          "enabled": true,
+          "tags": [
+            "onvif",
+            "live",
+            "profile-s",
+            "synthetic-vendor"
+          ],
+          "ownerGroup": "ops"
+        },
+        "expectedPublishedViewDraft": {
+          "viewId": "73",
+          "displayName": "Synthetic Vendor D Fallback",
+          "sourceId": "73",
+          "allowedOverlayModes": [
+            "raw",
+            "va-overlay",
+            "va-rule"
+          ],
+          "showDashboard": true,
+          "showEvents": true,
+          "showMetadataSummary": true,
+          "clientGroups": [
+            "default"
+          ],
+          "maxTiles": 1,
+          "enabled": true
+        },
+        "proposedOriginMetadata": {
+          "type": "onvif",
+          "endpoint": "http://192.0.2.71/onvif/device_service",
+          "vendorStyle": "vendor-d",
+          "profile": "S",
+          "mediaProfileToken": "vendor-d-media-fallback-h264",
+          "mediaApi": "Media",
+          "credentialRef": "operator-entered-secret",
+          "credentialInline": false
+        }
+      },
+      "quirks": [
+        "media-fallback-after-http-preview"
+      ]
+    },
+    {
+      "id": "vendor-e-low-fps-substream-profile-s",
+      "vendorStyle": "vendor-e",
+      "summary": "Media-only Profile S camera with a low-fps secondary stream; the higher resolution RTSP profile is selected.",
+      "probe": {
+        "mode": "manual-endpoint",
+        "endpoint": "http://198.51.100.71/onvif/device_service",
+        "timeoutMs": 3000,
+        "rawSoapIncluded": false,
+        "capturedAt": "fixture-time"
+      },
+      "auth": {
+        "required": true,
+        "credentialRef": "operator-entered-secret",
+        "plaintextSecretIncluded": false
+      },
+      "device": {
+        "manufacturer": "SyntheticVendorE",
+        "model": "SVE-S080",
+        "firmwareVersion": "fixture-1.2",
+        "serialNumber": "SYNTH-ONVIF-E-0001",
+        "profilesSupported": [
+          "S"
+        ]
+      },
+      "services": [
+        {
+          "name": "Device",
+          "available": true
+        },
+        {
+          "name": "Media2",
+          "available": false
+        },
+        {
+          "name": "Media",
+          "available": true
+        },
+        {
+          "name": "Recording",
+          "available": false
+        },
+        {
+          "name": "Replay",
+          "available": false
+        }
+      ],
+      "mediaProfiles": [
+        {
+          "token": "vendor-e-media-main-h264",
+          "name": "Vendor E Media Main H264",
+          "mediaApi": "Media",
+          "encoding": "H264",
+          "width": 1280,
+          "height": 720,
+          "fps": 15,
+          "transport": "RTSP",
+          "streamUri": "rtsp://198.51.100.71/live/main",
+          "selected": true
+        },
+        {
+          "token": "vendor-e-media-sub-lowfps",
+          "name": "Vendor E Media Sub Low FPS",
+          "mediaApi": "Media",
+          "encoding": "H264",
+          "width": 704,
+          "height": 480,
+          "fps": 5,
+          "transport": "RTSP",
+          "streamUri": "rtsp://198.51.100.71/live/sub-lowfps",
+          "selected": false
+        }
+      ],
+      "expectedDraft": {
+        "selectedProfileToken": "vendor-e-media-main-h264",
+        "expectedSourceDraft": {
+          "sourceId": "74",
+          "displayName": "Synthetic Vendor E Main",
+          "kind": "rtsp",
+          "rtspUrl": "rtsp://198.51.100.71/live/main",
+          "enabled": true,
+          "tags": [
+            "onvif",
+            "live",
+            "profile-s",
+            "synthetic-vendor"
+          ],
+          "ownerGroup": "ops"
+        },
+        "expectedPublishedViewDraft": {
+          "viewId": "74",
+          "displayName": "Synthetic Vendor E Main",
+          "sourceId": "74",
+          "allowedOverlayModes": [
+            "raw",
+            "va-overlay",
+            "va-rule"
+          ],
+          "showDashboard": true,
+          "showEvents": true,
+          "showMetadataSummary": true,
+          "clientGroups": [
+            "default"
+          ],
+          "maxTiles": 1,
+          "enabled": true
+        },
+        "proposedOriginMetadata": {
+          "type": "onvif",
+          "endpoint": "http://198.51.100.71/onvif/device_service",
+          "vendorStyle": "vendor-e",
+          "profile": "S",
+          "mediaProfileToken": "vendor-e-media-main-h264",
+          "mediaApi": "Media",
+          "credentialRef": "operator-entered-secret",
+          "credentialInline": false
+        }
+      },
+      "quirks": [
+        "low-fps-secondary",
+        "media-only-profile-s"
+      ]
+    }
+  ],
+  "nonGoals": [
+    "real vendor compatibility certification",
+    "real device endpoint success",
+    "ONVIF Profile G recording/replay",
+    "camera recording configuration",
+    "playback/search",
+    "raw SOAP persistence",
+    "plain text credential persistence"
+  ]
+}

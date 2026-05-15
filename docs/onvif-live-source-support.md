@@ -89,6 +89,7 @@ POST /ops/api/onvif/import-draft
 test/fixtures/onvif_live_import_stub.json
 test/fixtures/onvif_probe_result_stub.json
 test/fixtures/onvif_probe_profile_variants.json
+test/fixtures/onvif_synthetic_vendor_fixture_pack.json
 test/fixtures/onvif_closed_loopback_failure_matrix.json
 ```
 
@@ -100,6 +101,9 @@ test/fixtures/onvif_closed_loopback_failure_matrix.json
 - profile variant fixture는 Media2 우선, Media fallback, Media-only, H265
   RTSP, RTSPS direct/fallback profile 선택과 Media/Media2 empty-profile 실패를
   실장비 없이 고정합니다.
+- vendor-style synthetic fixture pack은 실제 제조사 이름/실장비 endpoint 없이
+  Profile S/T, Media2 main/substream, Media-only, RTSPS H265, Media fallback,
+  low-fps substream case를 기존 draft 계약으로 축약 가능한지 고정합니다.
 - closed loopback failure matrix는 endpoint 성공이 아니라 sanitized transport
   failure와 redaction을 고정합니다.
 - SOAP parser는 Device/Media/Media2 service, Media/Media2 profile, GetStreamUri
@@ -261,6 +265,7 @@ notes: <sanitized operational note>
 ./server.sh verify-onvif-live-import-contract
 ./server.sh verify-onvif-probe-fixture-contract
 ./server.sh verify-onvif-probe-profile-variants
+./server.sh verify-onvif-synthetic-vendor-fixtures
 ./server.sh verify-onvif-probe-parser
 ./server.sh verify-onvif-probe-adapter
 ./server.sh verify-onvif-http-transport
