@@ -83,6 +83,8 @@ test/fixtures/onvif_probe_result_stub.json
 - 입력 fixture는 실제 camera 연결 대신 합성 ONVIF 응답을 표현합니다.
 - probe fixture는 Device/Media/Media2 service와 live RTSP profile 조회 결과를
   raw SOAP 없이 표현합니다.
+- SOAP parser는 Device/Media/Media2 service, Media/Media2 profile, GetStreamUri
+  응답을 내부 live profile 모델로만 축약합니다.
 - 응답은 기존 `/ops/api/sources`와 `/ops/api/views`에 보낼 수 있는 draft만
   반환합니다.
 - 저장 side effect는 없습니다.
@@ -97,6 +99,7 @@ test/fixtures/onvif_probe_result_stub.json
 ./server.sh build
 ./server.sh verify-onvif-live-import-contract
 ./server.sh verify-onvif-probe-fixture-contract
+./server.sh verify-onvif-probe-parser
 ./server.sh verify-onvif-import-draft-api
 ./server.sh verify-onvif-rtsp-downstream
 ./server.sh verify-onvif-ops-sources-ui

@@ -4,9 +4,11 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdlib>
 #include <optional>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace ingress {
@@ -341,7 +343,277 @@ bool StringArrayContains(const std::vector<std::string>& values, const std::stri
     return std::find(values.begin(), values.end(), expected) != values.end();
 }
 
+std::string XmlDecode(std::string value) {
+    const std::vector<std::pair<std::string, std::string>> replacements = {
+        {"&amp;", "&"},
+        {"&quot;", "\""},
+        {"&apos;", "'"},
+        {"&lt;", "<"},
+        {"&gt;", ">"},
+    };
+    for (const auto& replacement : replacements) {
+        std::size_t pos = 0;
+        while ((pos = value.find(replacement.first, pos)) != std::string::npos) {
+            value.replace(pos, replacement.first.size(), replacement.second);
+            pos += replacement.second.size();
+        }
+    }
+    return value;
+}
+
+std::string XmlLocalName(const std::string& raw_name) {
+    const std::size_t colon = raw_name.find(':');
+    return colon == std::string::npos ? raw_name : raw_name.substr(colon + 1);
+}
+
+std::optional<std::string> XmlOpeningTag(const std::string& xml, std::size_t tag_start) {
+    if (tag_start >= xml.size() || xml[tag_start] != '<') {
+        return std::nullopt;
+    }
+    bool in_quote = false;
+    char quote_ch = '\0';
+    for (std::size_t pos = tag_start + 1; pos < xml.size(); ++pos) {
+        const char ch = xml[pos];
+        if (in_quote) {
+            if (ch == quote_ch) {
+                in_quote = false;
+            }
+            continue;
+        }
+        if (ch == '"' || ch == '\'') {
+            in_quote = true;
+            quote_ch = ch;
+            continue;
+        }
+        if (ch == '>') {
+            return xml.substr(tag_start, pos - tag_start + 1);
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string> XmlTagNameFromOpening(const std::string& opening_tag) {
+    if (opening_tag.size() < 3 || opening_tag.front() != '<') {
+        return std::nullopt;
+    }
+    std::size_t pos = 1;
+    if (pos < opening_tag.size() && (opening_tag[pos] == '/' || opening_tag[pos] == '?' ||
+                                     opening_tag[pos] == '!')) {
+        return std::nullopt;
+    }
+    const std::size_t start = pos;
+    while (pos < opening_tag.size() &&
+           std::isspace(static_cast<unsigned char>(opening_tag[pos])) == 0 &&
+           opening_tag[pos] != '/' &&
+           opening_tag[pos] != '>') {
+        ++pos;
+    }
+    if (pos == start) {
+        return std::nullopt;
+    }
+    return opening_tag.substr(start, pos - start);
+}
+
+std::vector<std::string> XmlElementBlocks(const std::string& xml, const std::string& local_name) {
+    std::vector<std::string> blocks;
+    std::size_t search = 0;
+    while (search < xml.size()) {
+        const std::size_t start = xml.find('<', search);
+        if (start == std::string::npos) {
+            break;
+        }
+        const auto opening = XmlOpeningTag(xml, start);
+        if (!opening.has_value()) {
+            break;
+        }
+        const auto raw_name = XmlTagNameFromOpening(*opening);
+        if (!raw_name.has_value() || XmlLocalName(*raw_name) != local_name) {
+            search = start + 1;
+            continue;
+        }
+        const std::size_t opening_end = start + opening->size();
+        if (opening->size() >= 2 && (*opening)[opening->size() - 2] == '/') {
+            blocks.push_back(*opening);
+            search = opening_end;
+            continue;
+        }
+        const std::string close_tag = "</" + *raw_name + ">";
+        const std::size_t close_start = xml.find(close_tag, opening_end);
+        if (close_start == std::string::npos) {
+            search = opening_end;
+            continue;
+        }
+        blocks.push_back(xml.substr(start, close_start + close_tag.size() - start));
+        search = close_start + close_tag.size();
+    }
+    return blocks;
+}
+
+std::optional<std::string> XmlElementText(const std::string& xml, const std::string& local_name) {
+    const auto blocks = XmlElementBlocks(xml, local_name);
+    if (blocks.empty()) {
+        return std::nullopt;
+    }
+    const std::string& block = blocks.front();
+    const auto opening = XmlOpeningTag(block, 0);
+    if (!opening.has_value()) {
+        return std::nullopt;
+    }
+    const auto raw_name = XmlTagNameFromOpening(*opening);
+    if (!raw_name.has_value()) {
+        return std::nullopt;
+    }
+    const std::string close_tag = "</" + *raw_name + ">";
+    const std::size_t close_start = block.rfind(close_tag);
+    if (close_start == std::string::npos || close_start < opening->size()) {
+        return std::nullopt;
+    }
+    return XmlDecode(Trim(block.substr(opening->size(), close_start - opening->size())));
+}
+
+std::optional<std::string> XmlAttributeValue(const std::string& opening_tag, const std::string& name) {
+    std::size_t pos = opening_tag.find(name);
+    while (pos != std::string::npos) {
+        const bool starts_on_boundary =
+            pos == 0 || std::isspace(static_cast<unsigned char>(opening_tag[pos - 1])) != 0 ||
+            opening_tag[pos - 1] == '<';
+        std::size_t after = pos + name.size();
+        while (after < opening_tag.size() &&
+               std::isspace(static_cast<unsigned char>(opening_tag[after])) != 0) {
+            ++after;
+        }
+        if (starts_on_boundary && after < opening_tag.size() && opening_tag[after] == '=') {
+            ++after;
+            while (after < opening_tag.size() &&
+                   std::isspace(static_cast<unsigned char>(opening_tag[after])) != 0) {
+                ++after;
+            }
+            if (after >= opening_tag.size() || (opening_tag[after] != '"' && opening_tag[after] != '\'')) {
+                return std::nullopt;
+            }
+            const char quote = opening_tag[after];
+            const std::size_t value_start = after + 1;
+            const std::size_t value_end = opening_tag.find(quote, value_start);
+            if (value_end == std::string::npos) {
+                return std::nullopt;
+            }
+            return XmlDecode(opening_tag.substr(value_start, value_end - value_start));
+        }
+        pos = opening_tag.find(name, pos + name.size());
+    }
+    return std::nullopt;
+}
+
+int ParseXmlInt(const std::optional<std::string>& value) {
+    if (!value.has_value()) {
+        return 0;
+    }
+    try {
+        return std::stoi(Trim(*value));
+    } catch (...) {
+        return 0;
+    }
+}
+
+std::string OnvifServiceNameFromNamespace(const std::string& namespace_uri) {
+    if (namespace_uri.find("/device/wsdl") != std::string::npos) {
+        return "Device";
+    }
+    if (namespace_uri.find("/ver20/media/wsdl") != std::string::npos ||
+        namespace_uri.find("/media2/wsdl") != std::string::npos) {
+        return "Media2";
+    }
+    if (namespace_uri.find("/media/wsdl") != std::string::npos) {
+        return "Media";
+    }
+    if (namespace_uri.find("/recording/wsdl") != std::string::npos) {
+        return "Recording";
+    }
+    if (namespace_uri.find("/replay/wsdl") != std::string::npos) {
+        return "Replay";
+    }
+    if (namespace_uri.find("/ptz/wsdl") != std::string::npos) {
+        return "PTZ";
+    }
+    return std::string();
+}
+
+std::string NormalizeOnvifEncoding(std::string encoding) {
+    std::transform(encoding.begin(), encoding.end(), encoding.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::toupper(ch));
+    });
+    if (encoding == "H.264" || encoding == "H264") {
+        return "H264";
+    }
+    if (encoding == "H.265" || encoding == "H265" || encoding == "HEVC") {
+        return "H265";
+    }
+    return encoding;
+}
+
 }  // namespace
+
+std::vector<OnvifServiceSummary> ParseOnvifServicesSoap(const std::string& soap) {
+    std::vector<OnvifServiceSummary> services;
+    for (const auto& block : XmlElementBlocks(soap, "Service")) {
+        const std::string namespace_uri = XmlElementText(block, "Namespace").value_or("");
+        const std::string name = OnvifServiceNameFromNamespace(namespace_uri);
+        if (name.empty()) {
+            continue;
+        }
+        const auto existing = std::find_if(services.begin(), services.end(), [&](const auto& service) {
+            return service.name == name;
+        });
+        if (existing != services.end()) {
+            existing->available = true;
+            existing->namespace_uri = namespace_uri;
+            continue;
+        }
+        OnvifServiceSummary service;
+        service.name = name;
+        service.namespace_uri = namespace_uri;
+        service.available = true;
+        services.push_back(std::move(service));
+    }
+    return services;
+}
+
+std::vector<OnvifMediaProfileSummary> ParseOnvifMediaProfilesSoap(const std::string& soap,
+                                                                  const std::string& media_api) {
+    std::vector<OnvifMediaProfileSummary> profiles;
+    for (const auto& block : XmlElementBlocks(soap, "Profiles")) {
+        const auto opening = XmlOpeningTag(block, 0);
+        if (!opening.has_value()) {
+            continue;
+        }
+        OnvifMediaProfileSummary profile;
+        profile.token = XmlAttributeValue(*opening, "token").value_or("");
+        profile.name = XmlElementText(block, "Name").value_or(profile.token);
+        profile.media_api = media_api;
+        profile.encoding = NormalizeOnvifEncoding(XmlElementText(block, "Encoding").value_or(""));
+        profile.width = ParseXmlInt(XmlElementText(block, "Width"));
+        profile.height = ParseXmlInt(XmlElementText(block, "Height"));
+        profile.fps = ParseXmlInt(XmlElementText(block, "FrameRateLimit"));
+        if (profile.token.empty() || profile.encoding.empty()) {
+            continue;
+        }
+        profiles.push_back(std::move(profile));
+    }
+    return profiles;
+}
+
+bool AttachOnvifStreamUriSoap(const std::string& soap, OnvifMediaProfileSummary* profile) {
+    if (profile == nullptr) {
+        return false;
+    }
+    const std::string uri = XmlElementText(soap, "Uri").value_or("");
+    if (uri.empty()) {
+        return false;
+    }
+    profile->stream_uri = uri;
+    profile->transport = uri.rfind("rtsp://", 0) == 0 || uri.rfind("rtsps://", 0) == 0 ? "RTSP" : "";
+    return !profile->transport.empty();
+}
 
 RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
     if (!LooksLikeJsonObject(body)) {
