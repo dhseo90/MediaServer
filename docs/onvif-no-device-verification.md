@@ -84,7 +84,10 @@ simulator fixture smoke로만 보고합니다.
 
 vendor-style synthetic fixture pack은
 `test/fixtures/onvif_synthetic_vendor_fixture_pack.json`에 고정하며, 실제 제조사
-호환 인증이나 실장비 endpoint 성공으로 해석하지 않습니다.
+호환 인증이나 실장비 endpoint 성공으로 해석하지 않습니다. 이 fixture pack은
+Profile S/T, Media2 main/substream, Media-only, RTSPS H265, Media fallback,
+low-fps substream, Media2 empty profile fallback, non-default Device service
+path case를 no-device 범위에서만 다룹니다.
 
 ```bash
 ./server.sh verify-onvif-probe-draft-api

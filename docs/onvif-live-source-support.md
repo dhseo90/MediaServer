@@ -103,7 +103,8 @@ test/fixtures/onvif_closed_loopback_failure_matrix.json
   실장비 없이 고정합니다.
 - vendor-style synthetic fixture pack은 실제 제조사 이름/실장비 endpoint 없이
   Profile S/T, Media2 main/substream, Media-only, RTSPS H265, Media fallback,
-  low-fps substream case를 기존 draft 계약으로 축약 가능한지 고정합니다.
+  low-fps substream, Media2 empty profile fallback, non-default Device service
+  path case를 기존 draft 계약으로 축약 가능한지 고정합니다.
 - closed loopback failure matrix는 endpoint 성공이 아니라 sanitized transport
   failure와 redaction을 고정합니다.
 - SOAP parser는 Device/Media/Media2 service, Media/Media2 profile, GetStreamUri

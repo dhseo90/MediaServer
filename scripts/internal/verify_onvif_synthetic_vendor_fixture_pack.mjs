@@ -21,7 +21,7 @@ Usage:
 
 Checks:
   - test/fixtures/onvif_synthetic_vendor_fixture_pack.json의 synthetic vendor-style pack을 검증
-  - Profile S/T, Media2 우선, Media-only, RTSPS H265, Media fallback, low-fps substream case를 포함
+  - Profile S/T, Media2 우선, Media-only, RTSPS H265, Media fallback, low-fps substream, empty Media2 fallback case를 포함
   - 선택 profile은 기존 SourceRegistry kind=rtsp / PublishedView draft로만 축약 가능
   - 실장비 endpoint 성공, raw SOAP, credential 원문, Profile G/Recording/Replay scope를 포함하지 않음
 `);
@@ -59,6 +59,7 @@ check("required vendor-style cases are present", () => {
     "vendor-c-media2-h265-rtsps-profile-t",
     "vendor-d-media2-http-preview-media-fallback",
     "vendor-e-low-fps-substream-profile-s",
+    "vendor-f-empty-media2-fallback-alt-xaddr",
   ]) {
     assert(ids.has(id), `missing fixture: ${id}`);
   }
@@ -70,6 +71,9 @@ check("required vendor-style cases are present", () => {
     "kind-rtsp-for-rtsps",
     "media-fallback-after-http-preview",
     "low-fps-secondary",
+    "non-default-device-service-path",
+    "media2-empty-profile-list",
+    "media-fallback-after-empty-media2",
   ]) {
     assert(quirks.has(quirk), `missing vendor-style quirk: ${quirk}`);
   }
@@ -115,6 +119,27 @@ check("service matrix stays live-source only", () => {
     assert(serviceAvailable(item, "Recording") === false, `${item.id}: Recording must remain unavailable`);
     assert(serviceAvailable(item, "Replay") === false, `${item.id}: Replay must remain unavailable`);
     assert(services.every(service => nonEmptyString(service.name)), `${item.id}: every service needs a name`);
+  }
+});
+
+check("optional service quirks stay descriptive and inside live fallback scope", () => {
+  for (const item of fixtures()) {
+    const serviceQuirks = Array.isArray(item.serviceQuirks) ? item.serviceQuirks : [];
+    for (const quirk of serviceQuirks) {
+      assert(["Device", "Media", "Media2"].includes(quirk.service), `${item.id}: serviceQuirk service must stay live-source related`);
+      assert(nonEmptyString(quirk.issue), `${item.id}: serviceQuirk issue is required`);
+      assert(!Object.hasOwn(quirk, "credential"), `${item.id}: serviceQuirk must not include credentials`);
+      assert(!Object.hasOwn(quirk, "rawSoap"), `${item.id}: serviceQuirk must not include raw SOAP`);
+      if (quirk.service === "Media2" && quirk.issue === "empty-profile-list") {
+        assert(quirk.fallbackService === "Media", `${item.id}: empty Media2 quirk must fall back to Media`);
+        assert(serviceAvailable(item, "Media"), `${item.id}: Media fallback service must be available`);
+        assert(selectedProfile(item).mediaApi === "Media", `${item.id}: empty Media2 fallback must select a Media profile`);
+      }
+      if (quirk.service === "Device" && quirk.issue === "non-default-service-path") {
+        assert(nonEmptyString(quirk.path) && quirk.path.startsWith("/onvif/"), `${item.id}: non-default service path must stay under /onvif/`);
+        assert(String(objectAt(item, "probe").endpoint).endsWith(quirk.path), `${item.id}: probe endpoint must reflect service path quirk`);
+      }
+    }
   }
 });
 
