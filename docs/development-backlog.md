@@ -303,6 +303,17 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - 장시간 `verify-va-runtime-console-longrun`, `verify-predev`는 실행하지 않았습니다.
 - 제품 API schema, Event POST/WebRTC DataChannel/SSE/WS metadata schema는 변경하지 않았습니다.
 
+### Visual QA issue template 후속 종료 판정
+
+2026-05-16 기준 visual regression 보고용 GitHub issue template을 추가했습니다.
+
+확인됨:
+
+- `.github/ISSUE_TEMPLATE/ui_visual_qa.yml`에 화면, viewport, artifact directory, manifest/index, baseline diff, 실제/기대 결과, 실행/미실행 검증 필드를 추가했습니다.
+- Client/viewer screenshot의 source URL, Developer URL, raw JSON/debug counter, BBox diagnostics, rule/profile editor 비노출 확인을 issue template에 포함했습니다.
+- `verify-ui-visual-artifact-index`가 PR visual review checklist와 UI visual QA issue template의 artifact evidence 문구를 함께 검증합니다.
+- 제품 API schema, Event POST/WebRTC DataChannel/SSE/WS metadata schema는 변경하지 않았습니다.
+
 ### Design token/component inventory 후속 종료 판정
 
 2026-05-16 기준 v1.2.0 UI visual regression 후속에서

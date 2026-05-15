@@ -63,6 +63,7 @@ const docs = [
   fs.readFileSync(path.join(rootDir, "docs/stream-verification.md"), "utf8"),
   fs.readFileSync(path.join(rootDir, "docs/ui-guide.md"), "utf8"),
   fs.readFileSync(path.join(rootDir, ".github/PULL_REQUEST_TEMPLATE.md"), "utf8"),
+  fs.readFileSync(path.join(rootDir, ".github/ISSUE_TEMPLATE/ui_visual_qa.yml"), "utf8"),
 ].join("\n");
 const authSmoke = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_auth_ui_smoke.mjs"), "utf8");
 const serverSh = fs.readFileSync(path.join(rootDir, "server.sh"), "utf8");
@@ -112,6 +113,30 @@ check("PR template requires visual review artifact evidence", () => {
     "45 days",
   ]) {
     assert(template.includes(snippet), `PR template missing visual review checklist snippet: ${snippet}`);
+  }
+});
+
+check("visual QA issue template captures artifact evidence", () => {
+  const template = fs.readFileSync(path.join(rootDir, ".github/ISSUE_TEMPLATE/ui_visual_qa.yml"), "utf8");
+  for (const snippet of [
+    "UI visual QA",
+    "visual-regression",
+    "Artifact directory:",
+    "visual-regression-manifest.json:",
+    "index.md:",
+    "visual-baseline-diff.json:",
+    "./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>",
+    "./server.sh compare-ui-visual-baseline --baseline-dir <baseline-artifact-dir> --candidate-dir <candidate-artifact-dir>",
+    "MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap",
+    "./server.sh verify-ui-visual-artifact-index",
+    "source URL",
+    "Developer URL",
+    "raw JSON/debug counter",
+    "BBox diagnostics",
+    "rule/profile editor",
+    "미실행/미확인",
+  ]) {
+    assert(template.includes(snippet), `UI visual QA issue template missing snippet: ${snippet}`);
   }
 });
 

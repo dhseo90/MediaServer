@@ -112,6 +112,9 @@ Visual artifact retention은 `media-server.ui-visual-artifact-retention.v1`
 정책으로 manifest에 기록합니다. PR screenshot artifact는 기본 14 days,
 release baseline으로 채택한 artifact는 45 days 보존을 기준으로 하며,
 client/source/debug/raw JSON 비노출 검토 전에는 공유 보관소에 올리지 않습니다.
+UI visual regression issue는 `.github/ISSUE_TEMPLATE/ui_visual_qa.yml`
+템플릿을 사용해 artifact directory, manifest/index, viewport, client/viewer
+debug/source 비노출 확인, 미실행 검증을 함께 남깁니다.
 
 VA rule/scenario 변경:
 
