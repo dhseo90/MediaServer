@@ -119,6 +119,9 @@ test/fixtures/onvif_closed_loopback_failure_matrix.json
 - 응답은 기존 `/ops/api/sources`와 `/ops/api/views`에 보낼 수 있는 draft만
   반환합니다.
 - 저장 side effect는 없습니다.
+- import/probe draft API route smoke는 malformed body, decision 누락,
+  selected profile 불일치, non-RTSP selected profile, plaintext credential
+  입력을 모두 400으로 거부하고 SourceRegistry side effect가 없음을 확인합니다.
 - `expectedSourceDraft.tags`에는 최소 `onvif`, `live`가 포함됩니다.
 - 응답에는 password, token 원문, ONVIF raw SOAP, credential 원문을 포함하지 않습니다.
 - credential reference 세부 기준은

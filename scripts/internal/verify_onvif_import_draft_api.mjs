@@ -72,6 +72,27 @@ const bad = await requestText("/ops/api/onvif/import-draft", {
 assert(bad.includes("sourceId must be numeric"), "bad sourceId should be rejected");
 console.log("[pass] onvif-import-draft rejects nonnumeric sourceId");
 
+await expectBadDraft("malformed body", "not-json", "request body must be a JSON object");
+await expectBadDraft("missing importDecision", mutateFixture((next) => {
+  delete next.importDecision;
+}), "importDecision or draftDecision object is required");
+await expectBadDraft("selected profile not found", mutateFixture((next) => {
+  next.importDecision.selectedProfileToken = "missing-profile-token";
+}), "selected profile not found");
+await expectBadDraft("non-RTSP selected profile", mutateFixture((next) => {
+  const selected = next.profiles.find((profile) => profile.token === next.importDecision.selectedProfileToken);
+  selected.transport = "HTTP";
+  selected.streamUri = "https://192.0.2.10/live/main.m3u8";
+}), "selected profile must provide an RTSP/RTSPS streamUri");
+await expectBadDraft("plaintext credential rejected", mutateFixture((next) => {
+  next.auth.plaintextSecretIncluded = true;
+}), "plaintext credentials are not allowed");
+console.log("[pass] onvif-import-draft rejects malformed and unsafe route payloads");
+
+const final = await requestJson("/ops/api/sources");
+assert(JSON.stringify(before.sources || []) === JSON.stringify(final.sources || []), "negative draft API cases must not mutate sources");
+console.log("[pass] onvif-import-draft negative cases have no SourceRegistry side effect");
+
 console.log("");
 console.log("== ONVIF import draft API summary ==");
 console.log(`- http base: ${httpBase}`);
@@ -95,6 +116,22 @@ async function requestText(urlPath, options = {}) {
     throw new Error(`${urlPath} expected HTTP ${expectedStatus}, got ${response.status}: ${text.slice(0, 220)}`);
   }
   return text;
+}
+
+async function expectBadDraft(label, body, expectedText) {
+  const text = await requestText("/ops/api/onvif/import-draft", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    expectedStatus: 400,
+  });
+  assert(text.includes(expectedText), `${label} should include: ${expectedText}`);
+}
+
+function mutateFixture(mutator) {
+  const next = JSON.parse(fixtureText);
+  mutator(next);
+  return JSON.stringify(next);
 }
 
 function assertDraftSource(actual, expected) {
