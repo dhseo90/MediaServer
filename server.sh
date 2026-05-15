@@ -108,6 +108,8 @@ Usage:
                  ONVIF 인증 주입 향후 설계와 현재 credential reference-only 경계를 검증합니다.
   verify-onvif-ws-discovery-ux
                  ONVIF WS-Discovery 비지원 Ops UX 문구와 문서 경계를 검증합니다.
+  verify-onvif-unsupported-api-guard
+                 ONVIF PTZ/Events/Profile G 등 비지원 API route 경계를 검증합니다.
   verify-onvif-probe-fixture-contract
                  ONVIF field probe fixture가 내부 probe-to-draft 계약을 지키는지 검증합니다.
   verify-onvif-probe-profile-variants
@@ -467,6 +469,10 @@ case "${cmd}" in
   verify-onvif-ws-discovery-ux)
     require_internal verify_onvif_ws_discovery_ux.mjs
     exec "${INTERNAL_DIR}/verify_onvif_ws_discovery_ux.mjs" "$@"
+    ;;
+  verify-onvif-unsupported-api-guard)
+    require_internal verify_onvif_unsupported_api_guard.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_unsupported_api_guard.mjs" "$@"
     ;;
   verify-onvif-probe-fixture-contract)
     require_internal verify_onvif_probe_fixture_contract.mjs

@@ -13,6 +13,7 @@ verification을 위한 최소 범위이며, ONVIF conformant server 구현이 �
 - [ONVIF RTSPS Draft Policy](./onvif-rtsps-draft-policy.md)
 - [ONVIF HTTPS SOAP Transport Design](./onvif-https-soap-transport-design.md)
 - [ONVIF Auth Injection Design](./onvif-auth-injection-design.md)
+- [ONVIF Unsupported API Guard](./onvif-unsupported-api-guard.md)
 
 ## 지원 Matrix
 
@@ -60,6 +61,7 @@ verification을 위한 최소 범위이며, ONVIF conformant server 구현이 �
 - PTZ, Events/PullPoint, Recording/Replay/Profile G, camera-side Analytics
 - HTTPS/TLS SOAP transport 성공
 - credential 원문 저장 또는 인증 header 주입
+- PTZ/Events/Profile G 같은 비지원 route/API 노출
 
 실장비가 없는 환경에서는 [ONVIF No-Device Verification](./onvif-no-device-verification.md)
 기준에 따라 실장비 endpoint 성공을 미확인으로 남깁니다.

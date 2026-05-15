@@ -16,6 +16,7 @@ ONVIF protocol/service별 지원 범위는
 - [ONVIF Protocol Support Matrix](./onvif-protocol-support-matrix.md)
 - [ONVIF No-Device Verification](./onvif-no-device-verification.md)
 - [ONVIF RTSPS Draft Policy](./onvif-rtsps-draft-policy.md)
+- [ONVIF Unsupported API Guard](./onvif-unsupported-api-guard.md)
 
 ## 범위
 
@@ -237,6 +238,7 @@ notes: <sanitized operational note>
 ./server.sh verify-onvif-protocol-support-matrix
 ./server.sh verify-onvif-rtsps-draft-policy
 ./server.sh verify-onvif-ws-discovery-ux
+./server.sh verify-onvif-unsupported-api-guard
 ./server.sh verify-onvif-live-import-contract
 ./server.sh verify-onvif-probe-fixture-contract
 ./server.sh verify-onvif-probe-profile-variants
