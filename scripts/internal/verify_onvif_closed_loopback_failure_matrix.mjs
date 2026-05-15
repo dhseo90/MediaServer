@@ -4,6 +4,7 @@
 
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -37,10 +38,12 @@ const args = parseArgs(rawArgs);
 const fixturePath = path.resolve(rootDir, args.fixture || "test/fixtures/onvif_closed_loopback_failure_matrix.json");
 const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
 const server = path.join(rootDir, "server.sh");
+const artifactDir = fs.mkdtempSync(path.join(os.tmpdir(), `media_server_onvif_closed_loopback_failure_matrix-${process.pid}-`));
 
 validateFixture(fixture);
 
 for (const scenario of fixture.scenarios) {
+  const outputPath = path.join(artifactDir, `${scenario.id}.json`);
   const commandArgs = [
     "verify-onvif-field-http-probe",
     "--endpoint",
@@ -48,6 +51,8 @@ for (const scenario of fixture.scenarios) {
     "--timeout-ms",
     String(scenario.timeoutMs),
     "--expect-failure",
+    "--output",
+    outputPath,
   ];
   if (scenario.credentialRefPresent === true) {
     commandArgs.push("--credential-ref-present");
@@ -58,7 +63,9 @@ for (const scenario of fixture.scenarios) {
   });
   const output = `${result.stdout || ""}${result.stderr || ""}`;
   assert(result.status === 0, `${scenario.id}: probe command failed with exit ${result.status}`);
-  assertOutput(scenario, output);
+  assertConsoleOutput(scenario, output);
+  const artifactText = fs.readFileSync(outputPath, "utf8");
+  assertArtifactOutput(scenario, artifactText);
   console.log(`[pass] ${scenario.id}`);
 }
 
@@ -77,7 +84,10 @@ function validateFixture(matrix) {
   assert(Array.isArray(matrix.defaultForbiddenTerms), "defaultForbiddenTerms must be an array");
   assert(matrix.defaultForbiddenTerms.includes("127.0.0.1"), "default forbidden terms must include loopback host");
   assert(matrix.defaultForbiddenTerms.includes("operator-entered-secret"), "default forbidden terms must include credential fixture");
-  assert(Array.isArray(matrix.scenarios) && matrix.scenarios.length >= 3, "matrix must include at least three scenarios");
+  assert(matrix.defaultForbiddenTerms.includes("credentialRef="), "default forbidden terms must include credentialRef query sentinel");
+  assert(matrix.defaultForbiddenTerms.includes("token="), "default forbidden terms must include token query sentinel");
+  assert(matrix.defaultForbiddenTerms.includes("secret-camera-token"), "default forbidden terms must include secret token sentinel");
+  assert(Array.isArray(matrix.scenarios) && matrix.scenarios.length >= 4, "matrix must include at least four scenarios");
   const ids = new Set();
   for (const scenario of matrix.scenarios) {
     assert(nonEmptyString(scenario.id), "scenario.id is required");
@@ -89,15 +99,28 @@ function validateFixture(matrix) {
     assert(scenario.expectedStatus === "fail", `${scenario.id}: expectedStatus must be fail`);
     assert(scenario.expectedError === matrix.defaultExpectedError, `${scenario.id}: expectedError mismatch`);
     assert(Array.isArray(scenario.expectedConsoleTerms) && scenario.expectedConsoleTerms.length > 0, `${scenario.id}: expectedConsoleTerms missing`);
+    assert(Array.isArray(scenario.expectedArtifactTerms) && scenario.expectedArtifactTerms.length > 0, `${scenario.id}: expectedArtifactTerms missing`);
     assert(Array.isArray(scenario.forbiddenTerms), `${scenario.id}: forbiddenTerms must be an array`);
   }
 }
 
-function assertOutput(scenario, output) {
+function assertConsoleOutput(scenario, output) {
   for (const term of scenario.expectedConsoleTerms) {
     assert(output.includes(term), `${scenario.id}: output missing expected term ${term}`);
   }
   assert(output.includes(scenario.expectedError), `${scenario.id}: output missing expected sanitized error`);
+  assertNoForbiddenTerms(scenario, output, "console output");
+}
+
+function assertArtifactOutput(scenario, output) {
+  for (const term of scenario.expectedArtifactTerms) {
+    assert(output.includes(term), `${scenario.id}: artifact missing expected term ${term}`);
+  }
+  assert(output.includes(scenario.expectedError), `${scenario.id}: artifact missing expected sanitized error`);
+  assertNoForbiddenTerms(scenario, output, "artifact");
+}
+
+function assertNoForbiddenTerms(scenario, output, label) {
   const url = new URL(scenario.endpoint);
   const forbidden = [
     ...fixture.defaultForbiddenTerms,
@@ -108,7 +131,7 @@ function assertOutput(scenario, output) {
     ...scenario.forbiddenTerms,
   ].map(String).filter(Boolean);
   for (const term of forbidden) {
-    assert(!output.includes(term), `${scenario.id}: output leaked forbidden term ${term}`);
+    assert(!output.includes(term), `${scenario.id}: ${label} leaked forbidden term ${term}`);
   }
 }
 

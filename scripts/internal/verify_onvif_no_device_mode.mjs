@@ -36,12 +36,14 @@ const liveSupportDocPath = path.join(rootDir, "docs/onvif-live-source-support.md
 const fieldProbeScriptPath = path.join(rootDir, "scripts/internal/verify_onvif_field_http_probe.mjs");
 const noDeviceSuiteScriptPath = path.join(rootDir, "scripts/internal/verify_onvif_no_device_suite.mjs");
 const failureSummaryFixturePath = path.join(rootDir, "test/fixtures/onvif_no_device_suite_failure_summary.json");
+const closedLoopbackMatrixPath = path.join(rootDir, "test/fixtures/onvif_closed_loopback_failure_matrix.json");
 
 const noDeviceDoc = readText(noDeviceDocPath);
 const liveSupportDoc = readText(liveSupportDocPath);
 const fieldProbeScript = readText(fieldProbeScriptPath);
 const noDeviceSuiteScript = readText(noDeviceSuiteScriptPath);
 const failureSummaryFixture = JSON.parse(readText(failureSummaryFixturePath));
+const closedLoopbackMatrix = JSON.parse(readText(closedLoopbackMatrixPath));
 const expectedSummarySchema = "media-server.onvif-no-device-suite-summary.v1";
 
 const checks = [];
@@ -75,6 +77,8 @@ check("no-device command list keeps endpoint-free and sanitized-failure probes",
   assertContains(noDeviceDoc, "--credential-ref-present", "missing credential reference flag");
   assertContains(noDeviceDoc, "verify-onvif-field-smoke-redaction", "missing redaction verification");
   assertContains(noDeviceDoc, "verify-onvif-field-smoke-sample-bundle", "missing sample bundle verification");
+  assertContains(noDeviceDoc, "query string credential/token sentinel", "missing query sentinel redaction scope");
+  assertContains(noDeviceDoc, "--output JSON artifact redaction", "missing output artifact redaction scope");
 });
 
 check("live support document links no-device mode without claiming field success", () => {
@@ -150,6 +154,29 @@ check("no-device failure summary fixture preserves failed command state", () => 
     "certificate dump",
   ]) {
     assert(!serialized.includes(forbidden), `failure summary fixture leaked forbidden token: ${forbidden}`);
+  }
+});
+
+check("closed loopback failure matrix pins summary artifact redaction sentinels", () => {
+  assert(closedLoopbackMatrix.schema === "media-server.onvif-closed-loopback-failure-matrix.v1", "closed loopback matrix schema mismatch");
+  assert(Array.isArray(closedLoopbackMatrix.defaultForbiddenTerms), "closed loopback defaultForbiddenTerms missing");
+  for (const term of [
+    "credentialRef=",
+    "token=",
+    "secret-camera-token",
+  ]) {
+    assert(closedLoopbackMatrix.defaultForbiddenTerms.includes(term), `closed loopback matrix missing forbidden term ${term}`);
+  }
+  const scenarios = closedLoopbackMatrix.scenarios || [];
+  const sentinel = scenarios.find(scenario => scenario.id === "closed-loopback-query-credential-sentinel");
+  assert(sentinel, "closed loopback matrix missing query credential sentinel scenario");
+  assert(String(sentinel.endpoint || "").includes("credentialRef=operator-entered-secret"), "query sentinel endpoint missing credentialRef sentinel");
+  assert(String(sentinel.endpoint || "").includes("secret-camera-token"), "query sentinel endpoint missing token sentinel");
+  for (const scenario of scenarios) {
+    assert(Array.isArray(scenario.expectedArtifactTerms) && scenario.expectedArtifactTerms.length > 0, `${scenario.id}: expectedArtifactTerms missing`);
+    assert(scenario.expectedArtifactTerms.includes("\"endpointRedacted\": true"), `${scenario.id}: endpointRedacted artifact assertion missing`);
+    assert(scenario.expectedArtifactTerms.includes("\"streamUriRedacted\": true"), `${scenario.id}: streamUriRedacted artifact assertion missing`);
+    assert(scenario.expectedArtifactTerms.includes("\"rawSoapIncluded\": false"), `${scenario.id}: rawSoapIncluded artifact assertion missing`);
   }
 });
 

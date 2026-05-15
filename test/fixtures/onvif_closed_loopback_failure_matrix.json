@@ -7,6 +7,9 @@
     "localhost",
     "\"credentialRef\"",
     "operator-entered-secret",
+    "credentialRef=",
+    "token=",
+    "secret-camera-token",
     "password",
     "Authorization:",
     "Cookie:",
@@ -28,6 +31,14 @@
         "credentialReferencePresent: true",
         "result: fail"
       ],
+      "expectedArtifactTerms": [
+        "\"schema\": \"media-server.onvif-field-http-probe-result.v1\"",
+        "\"status\": \"fail\"",
+        "\"credentialReferencePresent\": true",
+        "\"endpointRedacted\": true",
+        "\"streamUriRedacted\": true",
+        "\"rawSoapIncluded\": false"
+      ],
       "forbiddenTerms": [
         "/onvif/device_service"
       ]
@@ -45,6 +56,14 @@
         "credentialReferencePresent: false",
         "result: fail"
       ],
+      "expectedArtifactTerms": [
+        "\"schema\": \"media-server.onvif-field-http-probe-result.v1\"",
+        "\"status\": \"fail\"",
+        "\"credentialReferencePresent\": false",
+        "\"endpointRedacted\": true",
+        "\"streamUriRedacted\": true",
+        "\"rawSoapIncluded\": false"
+      ],
       "forbiddenTerms": []
     },
     {
@@ -60,8 +79,43 @@
         "credentialReferencePresent: true",
         "result: fail"
       ],
+      "expectedArtifactTerms": [
+        "\"schema\": \"media-server.onvif-field-http-probe-result.v1\"",
+        "\"status\": \"fail\"",
+        "\"credentialReferencePresent\": true",
+        "\"endpointRedacted\": true",
+        "\"streamUriRedacted\": true",
+        "\"rawSoapIncluded\": false"
+      ],
       "forbiddenTerms": [
         "/onvif/probe"
+      ]
+    },
+    {
+      "id": "closed-loopback-query-credential-sentinel",
+      "endpoint": "http://127.0.0.1:9/onvif/device_service?profile=main&token=secret-camera-token&credentialRef=operator-entered-secret",
+      "timeoutMs": 500,
+      "credentialRefPresent": true,
+      "expectedStatus": "fail",
+      "expectedError": "ONVIF probe failed at GetServices: transport error",
+      "expectedConsoleTerms": [
+        "ONVIF field HTTP probe sanitized failure",
+        "endpoint: configured, redacted",
+        "credentialReferencePresent: true",
+        "result: fail"
+      ],
+      "expectedArtifactTerms": [
+        "\"schema\": \"media-server.onvif-field-http-probe-result.v1\"",
+        "\"status\": \"fail\"",
+        "\"credentialReferencePresent\": true",
+        "\"endpointRedacted\": true",
+        "\"streamUriRedacted\": true",
+        "\"rawSoapIncluded\": false"
+      ],
+      "forbiddenTerms": [
+        "/onvif/device_service",
+        "profile=main",
+        "credentialRef=operator-entered-secret"
       ]
     }
   ]

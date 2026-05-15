@@ -24,6 +24,8 @@
 - endpoint가 없는 환경의 명시 skip 동작
 - closed loopback endpoint의 sanitized failure 동작
 - closed loopback failure matrix의 endpoint/path/credential redaction 동작
+- closed loopback failure matrix의 query string credential/token sentinel과
+  `--output JSON artifact redaction` 동작
 - 현장 smoke 산출물 redaction 기준
 - credential reference 원문 미저장 기준
 - TLS endpoint fail-closed 정책
