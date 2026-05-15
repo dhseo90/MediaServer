@@ -32,6 +32,12 @@ card, button, form, table, badge는 같은 semantic color 규칙을 공유합니
 제품 shell에 직접 노출하지 않고 API와 검증 명령에서 확인합니다.
 client/viewer shell에는 내부 진단 응답, debug 정보, developer/source URL을 노출하지 않습니다.
 
+v1.2.0 기준 product shell은 ERP/운영 콘솔형 밀도를 따릅니다.
+상단에는 compact brand/nav/account header를 두고,
+본문은 metric card, dense table, form section, right/detail panel을 같은
+8px 이하 radius와 semantic token으로 맞춥니다. 장식용 hero, 큰 카드 나열,
+단일 slate 계열만 지배하는 palette는 제품 UI 기준으로 보지 않습니다.
+
 액션 계층은 다음 기준을 따릅니다.
 
 - 저장, 검색, 보기 시작 같은 primary action은 fill 버튼으로 표시합니다.

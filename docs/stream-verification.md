@@ -128,6 +128,10 @@ MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./serve
 ```
 
 UI 변경 검증에서는 기본 추가 RTSP/WebRTC source 영상이나 codec matrix를 쓰지 않습니다.
+v1.2.0 UI visual regression gate는 ERP/운영 콘솔형 visual refresh 기준을 함께 봅니다.
+즉, 기능 selector만 통과하면 끝이 아니라 compact product shell, nav/account header,
+metric/card/table/form/badge 밀도, client source/debug 비노출, 모바일 overflow를 같은
+artifact에서 확인합니다.
 화면 selector/API 계약만 확인할 때는 서버를 띄운 뒤 아래 순서로 확인합니다.
 
 - `verify-ops-client-ui`
@@ -158,6 +162,8 @@ Ops/Client shell 변경 확인 포인트:
 - `--screenshots` 옵션은 `/ops/home`, `/ops/dashboard`, `/ops/rules`,
   `/ops/sources`, `/ops/users`, `/client/live`, `/client/dashboard`를
   기본 320/390/760/1180px 폭으로 열어 overflow와 screenshot을 남깁니다.
+  release gate나 단계 종료 보고에서는 `--output-dir`로 artifact 경로를 고정합니다.
+  예: `--output-dir /tmp/media_server_v120_p0_02_screenshots`
 - 채널/사용자 변경 이력 필터는 table layout과 별도 계약으로 봅니다.
   320/390px에서 검색/작업자/사용자/대상/동작/시작/종료/페이지 크기
   control이 감사 로그 패널 폭 안에 있어야 하며, 시작/종료 date/time
@@ -170,6 +176,8 @@ Ops/Client shell 변경 확인 포인트:
     룰 URL copy 버튼 줄바꿈이 서로 겹치지 않는지 확인
   - [ ] Device toolbar를 760px로 맞추고 nav/account 2열 배치,
     dashboard 카드 폭, channel/rule URL copy 버튼 높이가 같은 규칙으로 보이는지 확인
+  - [ ] 1180px에서 product shell의 brand/nav/account가 한 줄 콘솔 header로 유지되고,
+    nav label이 잘려 기능명을 잃지 않는지 확인
   - [ ] `verify-ops-client-ui --screenshots` 산출물 경로를 리뷰 기록에 남김
 - `webrtc_http_server.cpp`에서 `product_ui_page_scripts.*`로 UI 소유권을 옮기는
   구조 변경은 `./server.sh build`,

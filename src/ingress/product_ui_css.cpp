@@ -9,18 +9,18 @@ namespace ingress {
 std::string ProductDesignTokensCss() {
     return R"CSS(
     :root {
-      --color-bg: #f6f8fb;
+      --color-bg: #f3f6f8;
       --color-bg-elevated: #ffffff;
       --color-surface: #ffffff;
       --color-surface-raised: #ffffff;
-      --color-surface-muted: #f1f5f9;
-      --color-surface-subtle: #f8fafc;
-      --color-surface-hover: #e8f3f2;
-      --color-border: #d8e0e8;
-      --color-border-strong: #b7c4d1;
-      --color-text: #172026;
-      --color-text-muted: #5f6f7a;
-      --color-text-subtle: #84919c;
+      --color-surface-muted: #eef3f5;
+      --color-surface-subtle: #f8fafb;
+      --color-surface-hover: #e5f2ef;
+      --color-border: #d7dee5;
+      --color-border-strong: #aebbc6;
+      --color-text: #171c1f;
+      --color-text-muted: #5c6972;
+      --color-text-subtle: #87939c;
       --color-link: #0f766e;
       --color-primary: #0f766e;
       --color-primary-hover: #0b5f59;
@@ -46,10 +46,10 @@ std::string ProductDesignTokensCss() {
       --color-focus-ring: rgba(20, 184, 166, 0.28);
       --color-input-disabled-bg: #eef2f6;
       --color-placeholder: #94a3b8;
-      --color-table-header-bg: #f1f5f9;
-      --color-table-row-hover: #edf7f6;
+      --color-table-header-bg: #edf2f5;
+      --color-table-row-hover: #f4fbf9;
       --color-table-row-selected: #d9f0ed;
-      --color-table-border: #e2e8f0;
+      --color-table-border: #dfe6ec;
       --color-code-bg: #111827;
       --color-code-text: #e5edf5;
       --color-debug-bg: #f8fafc;
@@ -83,8 +83,8 @@ std::string ProductDesignTokensCss() {
       --radius-sm: 4px;
       --radius-md: 6px;
       --radius-lg: 8px;
-      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
-      --shadow-md: 0 8px 18px rgba(15, 23, 42, 0.10);
+      --shadow-sm: 0 1px 2px rgba(23, 28, 31, 0.06);
+      --shadow-md: 0 12px 28px rgba(23, 28, 31, 0.11);
       --space-1: 4px;
       --space-2: 8px;
       --space-3: 12px;
@@ -111,18 +111,18 @@ std::string ProductDesignTokensCss() {
       --shadow: var(--shadow-md);
     }
     :root[data-theme="dark"] {
-      --color-bg: #111827;
-      --color-bg-elevated: #17212f;
-      --color-surface: #1f2937;
-      --color-surface-raised: #243042;
-      --color-surface-muted: #263241;
-      --color-surface-subtle: #151f2e;
-      --color-surface-hover: #203f3d;
-      --color-border: #405163;
-      --color-border-strong: #64748b;
-      --color-text: #f8fafc;
-      --color-text-muted: #cbd5e1;
-      --color-text-subtle: #94a3b8;
+      --color-bg: #151719;
+      --color-bg-elevated: #1d2023;
+      --color-surface: #202427;
+      --color-surface-raised: #242a2e;
+      --color-surface-muted: #2a3034;
+      --color-surface-subtle: #191c1f;
+      --color-surface-hover: #1f3d39;
+      --color-border: #3c454c;
+      --color-border-strong: #65717a;
+      --color-text: #f5f7f8;
+      --color-text-muted: #c6cdd2;
+      --color-text-subtle: #969fa7;
       --color-link: #5eead4;
       --color-primary: #2dd4bf;
       --color-primary-hover: #5eead4;
@@ -142,20 +142,20 @@ std::string ProductDesignTokensCss() {
       --color-danger-bg: rgba(239, 68, 68, 0.16);
       --color-info-bg: rgba(59, 130, 246, 0.20);
       --color-neutral-bg: rgba(148, 163, 184, 0.18);
-      --color-input-bg: #111827;
-      --color-input-border: #4b5f73;
+      --color-input-bg: #171a1d;
+      --color-input-border: #4a555e;
       --color-input-focus: #5eead4;
       --color-focus-ring: rgba(94, 234, 212, 0.28);
-      --color-input-disabled-bg: #202938;
+      --color-input-disabled-bg: #262c31;
       --color-placeholder: #7f8fa3;
-      --color-table-header-bg: #263241;
-      --color-table-row-hover: #1f3938;
-      --color-table-row-selected: #24504c;
-      --color-table-border: #53677a;
+      --color-table-header-bg: #2a3034;
+      --color-table-row-hover: #213530;
+      --color-table-row-selected: #214c45;
+      --color-table-border: #3e4850;
       --color-code-bg: #0b1120;
       --color-code-text: #e5edf5;
-      --color-debug-bg: #151f2e;
-      --color-debug-border: #4b5f73;
+      --color-debug-bg: #171a1d;
+      --color-debug-border: #4a555e;
       --color-media-bg: #020617;
       --overlay-label-bg: rgba(2, 6, 23, 0.86);
       --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.22);
@@ -186,11 +186,11 @@ std::string ProductUiCss() {
     a { color: var(--color-link); text-decoration: none; font-weight: 800; }
     a:hover { text-decoration: underline; }
     .product-page {
-      width: min(1280px, calc(100% - 32px));
+      width: min(1440px, calc(100% - 28px));
       margin: 0 auto;
-      padding: var(--space-3) 0 56px;
+      padding: 14px 0 48px;
       display: grid;
-      gap: var(--space-6);
+      gap: var(--space-4);
     }
     .app-header,
     .auth-card,
@@ -209,18 +209,16 @@ std::string ProductUiCss() {
     }
     .app-chrome {
       position: sticky;
-      top: var(--space-2);
+      top: 10px;
       z-index: 20;
       display: grid;
-      gap: var(--space-2);
-      padding: 0 0 var(--space-2);
-      background: var(--color-bg);
-      border: 0;
-      border-radius: 0;
-      box-shadow:
-        0 calc(-1 * var(--space-2)) 0 var(--space-2) var(--color-bg),
-        0 0 0 100vmax var(--color-bg);
-      clip-path: inset(calc(-1 * var(--space-2)) -100vmax calc(-1 * var(--space-2)) -100vmax);
+      gap: var(--space-3);
+      padding: 10px;
+      background: color-mix(in srgb, var(--color-surface-raised) 94%, transparent);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(16px);
     }
     .route-header {
       gap: var(--space-2);
@@ -230,7 +228,61 @@ std::string ProductUiCss() {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
       align-items: stretch;
-      gap: var(--space-4);
+      gap: var(--space-3);
+    }
+    .app-nav-cluster {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: minmax(180px, 185px) minmax(0, 1fr);
+      align-items: stretch;
+      gap: var(--space-3);
+    }
+    .app-brand {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-subtle);
+    }
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--color-primary);
+      color: var(--color-on-primary);
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: 0;
+    }
+    .brand-copy {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+    .brand-copy strong {
+      min-width: 0;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 950;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+    }
+    .brand-copy span {
+      min-width: 0;
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 750;
+      line-height: 1.25;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
     }
     .shell-summary-row {
       display: flex;
@@ -257,14 +309,14 @@ std::string ProductUiCss() {
       width: 100%;
       min-width: 0;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
-      grid-auto-rows: minmax(52px, 1fr);
-      height: 100%;
-      gap: var(--space-2);
+      grid-template-columns: repeat(auto-fit, minmax(98px, 1fr));
+      grid-auto-rows: minmax(44px, 1fr);
+      height: auto;
+      gap: 6px;
       align-items: stretch;
     }
     .image-nav {
-      min-height: 52px;
+      min-height: 44px;
       height: 100%;
       display: inline-grid;
       grid-template-columns: auto auto;
@@ -272,11 +324,11 @@ std::string ProductUiCss() {
       align-items: center;
       justify-content: center;
       justify-items: center;
-      gap: 8px;
-      padding: 0 12px;
+      gap: 7px;
+      padding: 0 10px;
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
-      background: var(--color-bg-elevated);
+      background: var(--color-surface-subtle);
       color: var(--color-text);
       text-align: center;
       text-decoration: none;
@@ -294,8 +346,8 @@ std::string ProductUiCss() {
       color: var(--color-on-primary);
     }
     .image-nav svg {
-      width: 20px;
-      height: 20px;
+      width: 17px;
+      height: 17px;
       display: block;
       color: currentColor;
     }
@@ -305,17 +357,17 @@ std::string ProductUiCss() {
     }
     .account-menu {
       flex: 0 0 auto;
-      min-height: 64px;
+      min-height: 58px;
       height: 100%;
       min-width: 0;
       display: flex;
       align-items: stretch;
       justify-content: flex-end;
       gap: 8px;
-      padding: 6px 8px;
+      padding: 7px 8px;
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
-      background: var(--color-bg-elevated);
+      background: var(--color-surface-subtle);
     }
     .account-menu-top {
       flex: 1 1 auto;
@@ -394,9 +446,9 @@ std::string ProductUiCss() {
       font-size: 12px;
     }
     h1, h2, h3 { margin: 0; letter-spacing: 0; }
-    h1 { font-size: clamp(26px, 3vw, 36px); line-height: 1.08; }
-    h2 { font-size: 20px; }
-    h3 { font-size: 16px; }
+    h1 { font-size: clamp(24px, 2.2vw, 32px); line-height: 1.08; }
+    h2 { font-size: 19px; }
+    h3 { font-size: 15px; }
     p { margin: 0; color: var(--color-text-muted); line-height: 1.55; }
     .eyebrow {
       margin: 0;
@@ -424,14 +476,14 @@ std::string ProductUiCss() {
     .nav,
     .button,
     button {
-      min-height: 38px;
+      min-height: 36px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: var(--space-2);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
-      padding: 9px 13px;
+      padding: 8px 12px;
       background: var(--color-bg-elevated);
       color: var(--color-text);
       font: inherit;
@@ -551,7 +603,7 @@ std::string ProductUiCss() {
     .card {
       display: grid;
       gap: var(--space-4);
-      padding: var(--space-5);
+      padding: 18px;
     }
     .grid {
       display: grid;
@@ -563,7 +615,7 @@ std::string ProductUiCss() {
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
     .ops-dashboard-card-grid .section-card {
-      min-height: 156px;
+      min-height: 142px;
       align-content: start;
     }
     .split-grid {
@@ -573,14 +625,14 @@ std::string ProductUiCss() {
       align-items: start;
     }
     .metric-card {
-      min-height: 94px;
+      min-height: 82px;
       display: grid;
       align-content: center;
       gap: var(--space-1);
-      padding: var(--space-4);
+      padding: 13px 14px;
       border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      background: var(--color-surface-muted);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-subtle);
     }
     .metric-card span {
       color: var(--color-text-muted);
@@ -589,7 +641,7 @@ std::string ProductUiCss() {
     }
     .metric-card strong {
       color: var(--color-text);
-      font-size: 24px;
+      font-size: 25px;
       font-variant-numeric: tabular-nums;
     }
     .compact-card {
@@ -602,14 +654,14 @@ std::string ProductUiCss() {
       gap: var(--space-3);
     }
     .status-stat {
-      min-height: 62px;
+      min-height: 58px;
       display: grid;
       align-content: center;
       gap: 3px;
       padding: var(--space-3);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
-      background: var(--color-surface-muted);
+      background: var(--color-surface-subtle);
     }
     .status-stat span {
       color: var(--color-text-muted);
@@ -642,12 +694,12 @@ std::string ProductUiCss() {
     .pill {
       display: inline-flex;
       align-items: center;
-      min-height: 26px;
-      padding: 4px 8px;
+      min-height: 24px;
+      padding: 3px 8px;
       border-radius: 999px;
       background: var(--color-primary-weak-bg);
       color: var(--color-primary-weak-text);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 900;
     }
     .chip.warn,
@@ -1044,20 +1096,21 @@ std::string ProductUiCss() {
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 13px;
+      font-size: 12px;
     }
     th,
     td {
       border-bottom: 1px solid var(--color-table-border);
-      padding: 9px 8px;
+      padding: 8px 9px;
       text-align: left;
       vertical-align: top;
     }
     th {
       background: var(--color-table-header-bg);
       color: var(--color-text-muted);
-      font-size: 12px;
+      font-size: 11px;
       text-transform: uppercase;
+      letter-spacing: 0;
     }
     tr:hover td { background: var(--color-table-row-hover); }
     .table-wrap {
@@ -1806,6 +1859,7 @@ std::string ProductUiCss() {
       .split-grid { grid-template-columns: 1fr; }
       .shell-summary-row { align-items: stretch; }
       .app-header-top { grid-template-columns: 1fr; }
+      .app-nav-cluster { grid-template-columns: 1fr; }
       .header-utilities { justify-content: flex-start; }
       .account-menu { width: 100%; }
       .account-menu-top { justify-content: flex-start; }
@@ -1838,8 +1892,8 @@ std::string ProductUiCss() {
         grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
         align-items: stretch;
       }
-      .app-header-top > .image-nav-tabs:not(.client-image-nav-tabs) {
-        grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+      .app-header-top .image-nav-tabs:not(.client-image-nav-tabs) {
+        grid-template-columns: repeat(auto-fit, minmax(98px, 1fr));
       }
       .account-menu {
         min-height: 64px;
@@ -2155,7 +2209,7 @@ std::string ClientShellCss() {
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     body { margin: 0; background: var(--bg); color: var(--text); }
-    main { max-width: 1180px; margin: 0 auto; padding: 28px 18px 40px; display: grid; gap: 18px; }
+    main { max-width: 1440px; margin: 0 auto; padding: 18px 14px 40px; display: grid; gap: 16px; }
     h1, h2, h3 { margin: 0; }
     h1 { font-size: 28px; }
     h2 { font-size: 18px; }
@@ -2171,19 +2225,19 @@ std::string ClientShellCss() {
       grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
       width: 100%;
       align-items: stretch;
-      gap: var(--space-4);
+      gap: var(--space-3);
     }
     header.app-chrome .image-nav-tabs {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(98px, 1fr));
       width: 100%;
       min-width: 0;
-      gap: var(--space-2);
+      gap: 6px;
     }
     .client-image-nav-tabs {
       flex: 1 1 320px;
       min-width: min(320px, 100%);
-      grid-template-columns: repeat(2, minmax(92px, 1fr));
+      grid-template-columns: repeat(2, minmax(104px, 1fr));
     }
     body.client-shell header.app-chrome .app-header-top {
       grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);

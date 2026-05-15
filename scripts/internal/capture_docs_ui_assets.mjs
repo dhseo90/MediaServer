@@ -170,6 +170,9 @@ if (failures.length) {
 }
 
 async function captureTask(task, debugPort) {
+  const seededPrereqs = task.name === "ops-rules-preview"
+    ? await ensureRulesPreviewPrerequisites()
+    : null;
   const pagePath = withLanguageParam(task.pagePath);
   const browser = await openBrowserPage({
     httpBase,
@@ -196,6 +199,7 @@ async function captureTask(task, debugPort) {
     await saveClip(browser, path.join(outputDir, task.file), clip);
   } finally {
     await browser.close();
+    await cleanupRulesPreviewPrerequisites(seededPrereqs);
   }
 }
 
@@ -310,13 +314,18 @@ async function setupOpsRules(browser) {
     const action = Array.from(document.querySelectorAll('[data-ops-rule-action="view-va"]'))
       .find((button) => button.closest('tr')?.textContent.includes('VA Test File')) ||
       document.querySelector('[data-ops-rule-action="view-va"]');
-    if (!action) return false;
-    action.click();
+    const fallback = document.getElementById('opsCreateVaRuleBtn');
+    const target = action || fallback;
+    if (!target) return false;
+    target.click();
     return true;
   })()`);
   await waitFor(browser, `(() => {
+    const visible = (node) => Boolean(node) && !node.hidden && getComputedStyle(node).display !== 'none';
     const panel = document.getElementById('opsRulesDetailPanel');
-    return Boolean(panel && !panel.hidden && document.getElementById('opsVaRulePreviewStartBtn'));
+    const form = document.getElementById('opsVaRuleForm');
+    const stage = document.querySelector('.ops-va-stage-settings');
+    return visible(panel) && visible(form) && visible(stage) && Boolean(document.getElementById('opsVaRulePreviewStartBtn'));
   })()`, 8000);
   await evaluate(browser, `(() => {
     document.getElementById('opsRulesComposerEdit')?.click();
@@ -324,7 +333,8 @@ async function setupOpsRules(browser) {
   })()`);
   await waitFor(browser, `(() => {
     const channel = document.getElementById('opsVaRuleChannelSelect');
-    return Boolean(channel && !channel.disabled);
+    const stage = document.querySelector('.ops-va-stage-settings');
+    return Boolean(channel && !channel.disabled && stage && stage.getBoundingClientRect().height > 120);
   })()`, 8000);
   await evaluate(browser, `(() => {
     const selectByText = (select, matcher) => {
@@ -357,6 +367,159 @@ async function setupOpsRulesOverview(browser) {
     const row = document.querySelector('#opsVaRuleRows tr');
     return Boolean(row && !row.textContent.includes('로딩 중'));
   })()`, 12000);
+}
+
+async function ensureRulesPreviewPrerequisites() {
+  const created = { profileId: "", ruleId: "", vaRuleId: "" };
+  const catalog = await requestJson("/ops/api/rules/catalog");
+  const profiles = Array.isArray(catalog.profiles) ? catalog.profiles : [];
+  const rules = Array.isArray(catalog.rules) ? catalog.rules : [];
+  const vaRules = Array.isArray(catalog.vaRules) ? catalog.vaRules : [];
+  if (profiles.length === 0) {
+    created.profileId = findFreeNumericId([profiles, rules, vaRules], 9901);
+    await requestJson(`/lab/analysis/profiles/${encodeURIComponent(created.profileId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rulePreviewProfilePayload(created.profileId)),
+    });
+  }
+  if (rules.length === 0) {
+    const nextCatalog = created.profileId ? await requestJson("/ops/api/rules/catalog") : catalog;
+    created.ruleId = findFreeNumericId([nextCatalog.profiles, nextCatalog.rules, nextCatalog.vaRules], 9911);
+    await requestJson(`/lab/analysis/rules/${encodeURIComponent(created.ruleId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rulePreviewEventTemplatePayload(created.ruleId, created.profileId || findFirstProfileId(nextCatalog) || "1")),
+    });
+  }
+  if (vaRules.length === 0) {
+    const nextCatalog = created.ruleId || created.profileId ? await requestJson("/ops/api/rules/catalog") : catalog;
+    const profileId = created.profileId || findFirstProfileId(nextCatalog) || "1";
+    const ruleId = created.ruleId || findFirstRuleId(nextCatalog) || "1";
+    created.vaRuleId = findFreeNumericId([nextCatalog.profiles, nextCatalog.rules, nextCatalog.vaRules], 9921);
+    await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(created.vaRuleId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rulePreviewVaRulePayload(created.vaRuleId, profileId, ruleId)),
+    });
+  }
+  return created.profileId || created.ruleId || created.vaRuleId ? created : null;
+}
+
+async function cleanupRulesPreviewPrerequisites(created) {
+  if (!created) return;
+  if (created.vaRuleId) {
+    await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(created.vaRuleId)}`, { method: "DELETE" }).catch(() => {});
+  }
+  if (created.ruleId) {
+    await requestJson(`/lab/analysis/rules/${encodeURIComponent(created.ruleId)}`, { method: "DELETE" }).catch(() => {});
+  }
+  if (created.profileId) {
+    await requestJson(`/lab/analysis/profiles/${encodeURIComponent(created.profileId)}`, { method: "DELETE" }).catch(() => {});
+  }
+}
+
+async function requestJson(urlPath, options = {}) {
+  const response = await fetch(`${httpBase}${urlPath}`, options);
+  const text = await response.text();
+  let payload = {};
+  try {
+    payload = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(`${urlPath} returned non-JSON: ${text.slice(0, 180)}`);
+  }
+  if (!response.ok) {
+    throw new Error(`${urlPath} failed HTTP ${response.status}: ${payload?.error || text.slice(0, 180)}`);
+  }
+  return payload;
+}
+
+function findFirstProfileId(catalog) {
+  return (Array.isArray(catalog?.profiles) ? catalog.profiles : [])
+    .map(item => String(item?.id || item?.profileId || "").trim())
+    .find(Boolean) || "";
+}
+
+function findFirstRuleId(catalog) {
+  return (Array.isArray(catalog?.rules) ? catalog.rules : [])
+    .map(item => String(item?.id || item?.ruleId || "").trim())
+    .find(Boolean) || "";
+}
+
+function findFreeNumericId(groups, start) {
+  const used = new Set();
+  for (const group of groups) {
+    for (const item of Array.isArray(group) ? group : []) {
+      for (const key of ["id", "profileId", "ruleId"]) {
+        const value = String(item?.[key] || "").trim();
+        if (value) used.add(value);
+      }
+    }
+  }
+  for (let id = start; id < start + 200; id += 1) {
+    const candidate = String(id);
+    if (!used.has(candidate)) return candidate;
+  }
+  throw new Error(`failed to allocate temporary docs rule id from ${start}`);
+}
+
+function rulePreviewProfilePayload(id) {
+  return {
+    id,
+    detector: "yolo",
+    fps: 6,
+    maxQueue: 1,
+    confidence: 0.25,
+    nms: 0.45,
+    inputWidth: 640,
+    inputHeight: 640,
+    adaptive: true,
+  };
+}
+
+function rulePreviewEventTemplatePayload(id, profileId) {
+  return {
+    id,
+    enabled: true,
+    match: { sourceKind: "*", route: "*" },
+    analysis: { profileId, classes: ["person"] },
+    event: {
+      type: "intrusion-dwell",
+      region: {
+        type: "polygon",
+        points: [{ x: 0.1, y: 0.1 }, { x: 0.9, y: 0.1 }, { x: 0.9, y: 0.9 }, { x: 0.1, y: 0.9 }],
+      },
+      minConfidence: 0.25,
+      minDurationMs: 0,
+    },
+    outputs: { overlay: true, metadata: true, events: true },
+    ruleKind: "scenario",
+    scenario: {
+      type: "intrusion-dwell",
+      enabled: true,
+      candidateTimeMs: 2000,
+      dwellTimeMs: 10000,
+      cooldownMs: 5000,
+      targetClasses: ["person"],
+    },
+  };
+}
+
+function rulePreviewVaRulePayload(id, profileId, ruleId) {
+  return {
+    id,
+    name: "VA Test File preview",
+    enabled: true,
+    source: { kind: "file", file: "va_four_scene_sample.mp4" },
+    analysis: { profileId, classes: ["person"] },
+    templateStart: { ruleId },
+    priority: 0,
+    outputs: { overlay: true, metadata: true, events: true },
+    geometry: {
+      type: "polygon",
+      points: [{ x: 0.18, y: 0.2 }, { x: 0.82, y: 0.2 }, { x: 0.82, y: 0.78 }, { x: 0.18, y: 0.78 }],
+    },
+  };
 }
 
 async function setupOpsUsers(browser) {

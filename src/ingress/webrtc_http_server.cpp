@@ -2027,7 +2027,6 @@ void AppendOpsShellStart(std::ostringstream& out,
                          const auth::Principal& principal,
                          const std::string& active,
                          const std::string& subtitle) {
-    (void)subtitle;
     out << R"(<!doctype html>
 <html lang="ko">
 <head>
@@ -2039,7 +2038,15 @@ void AppendOpsShellStart(std::ostringstream& out,
   <main class="product-page">
     <header class="app-chrome">
       <div class="app-header-top">
-        <nav class="image-nav-tabs" aria-label="운영 메뉴">
+        <div class="app-nav-cluster">
+          <div class="app-brand">
+            <span class="brand-mark" aria-hidden="true">MS</span>
+            <div class="brand-copy">
+              <strong>MediaServer Ops</strong>
+              <span>)" << HtmlEscape(subtitle) << R"(</span>
+            </div>
+          </div>
+          <nav class="image-nav-tabs" aria-label="운영 메뉴">
 )";
     AppendImageNavLink(out, "/ops/home", "home", "홈", active == "home");
     AppendImageNavLink(out, "/ops/dashboard", "dashboard", "대시보드", active == "dashboard");
@@ -2049,7 +2056,8 @@ void AppendOpsShellStart(std::ostringstream& out,
         AppendImageNavLink(out, "/ops/users", "users", "사용자", active == "users", "data-admin-only");
     }
     AppendImageNavLink(out, "/client/live", "client", "클라이언트", false);
-    out << R"(        </nav>
+    out << R"(          </nav>
+        </div>
 )";
     AppendProductAccountMenu(out, principal);
     out << R"(      </div>
@@ -3837,11 +3845,20 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
   <main class="product-page">
     <header class="app-chrome">
       <div class="app-header-top">
-        <nav class="image-nav-tabs client-image-nav-tabs" aria-label="클라이언트 메뉴">
+        <div class="app-nav-cluster">
+          <div class="app-brand">
+            <span class="brand-mark" aria-hidden="true">MS</span>
+            <div class="brand-copy">
+              <strong>Client Portal</strong>
+              <span>할당된 live view와 상태만 봅니다.</span>
+            </div>
+          </div>
+          <nav class="image-nav-tabs client-image-nav-tabs" aria-label="클라이언트 메뉴">
 )";
     AppendImageNavLink(out, "/client/live", "live", "라이브", active == "live");
     AppendImageNavLink(out, "/client/dashboard", "dashboard", "대시보드", active == "dashboard");
-    out << R"(        </nav>
+    out << R"(          </nav>
+        </div>
 )";
     AppendProductAccountMenu(out,
                              principal,
