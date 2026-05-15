@@ -33,6 +33,7 @@ const suite = [
   ["verify-onvif-no-device-mode"],
   ["verify-onvif-protocol-support-matrix"],
   ["verify-onvif-rtsps-draft-policy"],
+  ["verify-onvif-https-soap-transport-design"],
   ["verify-onvif-live-import-contract"],
   ["verify-onvif-probe-fixture-contract"],
   ["verify-onvif-probe-profile-variants"],

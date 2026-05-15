@@ -2,6 +2,9 @@
 
 이 문서는 v1.2.0 ONVIF probe의 HTTPS/TLS 처리 기준을 고정합니다. 현재 구현은
 HTTP SOAP transport만 포함하며, TLS 연결 자체를 구현 완료로 보지 않습니다.
+향후 HTTPS SOAP transport 설계 기준은
+[ONVIF HTTPS SOAP Transport Design](./onvif-https-soap-transport-design.md)을
+따릅니다.
 
 ## 현재 정책
 
@@ -39,6 +42,7 @@ TLS transport를 추가할 때는 아래 조건을 별도 단계로 만족해야
 ## 검증
 
 ```bash
+./server.sh verify-onvif-https-soap-transport-design
 ./server.sh verify-onvif-tls-transport-policy
 ./server.sh verify-onvif-http-transport
 ./server.sh verify-docs-links

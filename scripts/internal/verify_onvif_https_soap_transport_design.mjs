@@ -1,0 +1,121 @@
+#!/usr/bin/env node
+// 파일 용도: ONVIF HTTPS SOAP transport 향후 설계 기준과 현재 fail-closed 구현 경계를 검증한다.
+// 동작 요약: HTTPS 성공을 구현 완료로 말하지 않고 TLS trust/hostname/redaction 조건이 문서화됐는지 확인한다.
+
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+
+import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.resolve(scriptDir, "../..");
+const rawArgs = process.argv.slice(2);
+
+if (hasHelpFlag(rawArgs)) {
+  printUsageAndExit(`ONVIF HTTPS SOAP transport design verification
+
+Usage:
+  ./server.sh verify-onvif-https-soap-transport-design
+
+Checks:
+  - docs/onvif-https-soap-transport-design.md가 현재 HTTPS fail-closed 상태를 명시함
+  - 향후 TLS trust store, hostname verification, redaction, no downgrade 조건을 문서화함
+  - TLS/protocol 문서가 HTTPS design 문서를 참조함
+  - 구현은 현재 https endpoint를 HTTP-only transport에서 fail-closed로 유지함
+`);
+}
+
+assertKnownOptions(rawArgs, ["h", "help"]);
+
+const designDoc = readText("docs/onvif-https-soap-transport-design.md");
+const tlsDoc = readText("docs/onvif-tls-transport-policy.md");
+const matrixDoc = readText("docs/onvif-protocol-support-matrix.md");
+const onvifCode = readText("src/ingress/onvif_live_import.cpp");
+const httpTransportSmoke = readText("scripts/internal/onvif_http_transport_smoke.cpp");
+const checks = [];
+
+check("HTTPS SOAP design keeps current fail-closed status explicit", () => {
+  for (const term of [
+    "HTTPS SOAP transport를 구현 완료로 보지",
+    "`https://` ONVIF endpoint는 fail-closed",
+    "자동 downgrade 없이 fail-closed",
+    "실장비가 없는 환경에서는 HTTPS 성공을 미확인",
+  ]) {
+    assertContains(designDoc, term, `design doc missing current status term: ${term}`);
+  }
+});
+
+check("HTTPS SOAP design documents future TLS requirements", () => {
+  for (const term of [
+    "TLS trust store 선택 기준",
+    "hostname verification은 기본 활성화",
+    "certificate verification failure",
+    "HTTP downgrade fallback을 자동 수행하지 않습니다",
+    "endpoint URL username/password/token은 계속 금지",
+    "secret 원문은 header, log, artifact",
+    "handshake failure",
+    "certificate failure",
+    "insecure TLS opt-in",
+    "self-signed certificate 무조건 허용",
+  ]) {
+    assertContains(designDoc, term, `design doc missing TLS requirement: ${term}`);
+  }
+});
+
+check("TLS policy and protocol matrix link HTTPS SOAP design", () => {
+  assertContains(tlsDoc, "./onvif-https-soap-transport-design.md", "TLS policy missing HTTPS design link");
+  assertContains(matrixDoc, "./onvif-https-soap-transport-design.md", "protocol matrix missing HTTPS design link");
+  assertContains(matrixDoc, "verify-onvif-https-soap-transport-design", "protocol matrix missing HTTPS design verification");
+});
+
+check("implementation remains HTTP-only and fail-closed for https endpoint", () => {
+  for (const term of [
+    "if (url->scheme != \"http\")",
+    "return SoapHttpError(\"only http transport is supported\")",
+  ]) {
+    assertContains(onvifCode, term, `implementation missing HTTPS fail-closed term: ${term}`);
+  }
+  for (const term of [
+    "https://192.0.2.40/onvif/device_service",
+    "HTTPS transport should fail closed",
+  ]) {
+    assertContains(httpTransportSmoke, term, `HTTP transport smoke missing HTTPS fail-closed term: ${term}`);
+  }
+});
+
+let failures = 0;
+for (const item of checks) {
+  try {
+    item.fn();
+    console.log(`[pass] ${item.name}`);
+  } catch (error) {
+    failures += 1;
+    console.log(`[fail] ${item.name}: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+console.log("");
+console.log("== ONVIF HTTPS SOAP transport design summary ==");
+console.log("- doc: docs/onvif-https-soap-transport-design.md");
+console.log(`- failures: ${failures}`);
+if (failures > 0) process.exit(1);
+
+function check(name, fn) {
+  checks.push({ name, fn });
+}
+
+function readText(relativePath) {
+  return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function assertContains(text, needle, message) {
+  const normalizedText = text.replace(/\s+/g, " ");
+  const normalizedNeedle = needle.replace(/\s+/g, " ");
+  assert(normalizedText.includes(normalizedNeedle), message);
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}

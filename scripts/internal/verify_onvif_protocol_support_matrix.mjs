@@ -51,6 +51,8 @@ check("protocol support matrix names supported ONVIF live-source scope", () => {
     "`rtsp://` 또는 `rtsps://` GetStreamUri live 후보",
     "./onvif-rtsps-draft-policy.md",
     "verify-onvif-rtsps-draft-policy",
+    "./onvif-https-soap-transport-design.md",
+    "verify-onvif-https-soap-transport-design",
     "수동 ONVIF stream URI 등록",
     "`rtsp://`, `rtsps://`, `http://`, `https://` live URI",
     "MediaServer RTSP/WHEP/WebRTC 출력",
