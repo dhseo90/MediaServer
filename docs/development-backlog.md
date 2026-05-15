@@ -245,6 +245,17 @@ PR template과 정적 verifier를 연결했습니다.
 - `./server.sh verify-product-ui-token-drift`가 `ProductDesignTokensCss()` 밖 raw hex/rgb 색상 추가를 실패로 처리하고, 관련 docs/command inventory 연결을 확인합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Client debug/source leakage smoke 강화 후속 종료 판정
+
+2026-05-16 기준 client/viewer 화면과 scoped API의 debug/source 비노출 smoke를 강화했습니다.
+
+확인됨:
+
+- `verify-ops-client-ui`의 client forbidden text/key matrix에 source URL 계열, raw diagnostic, Developer URL, BBox diagnostics, `analysisTapId`, rule/profile editor selector, Ops source/view API 경로를 추가했습니다.
+- Chrome이 있는 환경에서는 `/client/live`, `/client/dashboard`, `/client/events`를 렌더링한 뒤 visible text, JSON script, DOM selector에서 금지 항목을 다시 검사합니다.
+- client scoped API는 기존처럼 raw source URL, storage path, token/hash/debug key를 노출하지 않는지 JSON key traversal로 확인합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ## v1.2.0 시작 전 체크리스트
 
 - [x] v1.1.0 PR이 `main`에 merge됨

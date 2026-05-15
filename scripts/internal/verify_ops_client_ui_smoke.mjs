@@ -206,6 +206,18 @@ try {
 }
 
 try {
+  const renderedLeakResult = await runClientRenderedLeakSmoke();
+  passCount += renderedLeakResult.passCount;
+  failCount += renderedLeakResult.failCount;
+  failures.push(...renderedLeakResult.failures);
+} catch (error) {
+  failCount += 1;
+  const message = error instanceof Error ? error.message : String(error);
+  failures.push(`[client-rendered-leak] ${message}`);
+  console.log(`[fail] client-rendered-leak: ${message}`);
+}
+
+try {
   await assertHttpStatus("removed-lab-home", "/lab", 404);
   await assertHttpStatus("removed-lab-rules", "/lab/rules", 404);
   await assertHttpStatus("removed-lab-import", "/lab/import", 404);
@@ -277,24 +289,132 @@ if (screenshotEnabled) {
 function clientForbiddenText() {
   return [
     "Registry raw JSON",
+    "raw JSON",
+    "raw diagnostic",
     "debugCounters",
+    "debugSummary",
     "Developer URL",
     "BBox diagnostics",
+    "bboxDiagnostics",
+    "analysisTapId",
     "developer-url-details",
     "opsEventsRaw",
     "sources-json",
     "views-json",
     "client-views-json",
+    "sourceUrl",
+    "sourceUri",
+    "rtspUrl",
+    "httpUrl",
+    "whepUrl",
+    "storagePath",
     "rtsp://",
+    "rtsps://",
+    "file://",
     "WHIP sourceId",
     "Event POST",
     "/lab/runtime/status",
     "/lab/analysis/event-post",
     "/lab/analysis/taps",
+    "/ops/api/sources",
+    "/ops/api/views",
+    "opsVaRuleForm",
+    "opsEventRuleForm",
+    "opsProfileForm",
     'href="/webrtc/session',
     "/webrtc/session?file",
     "sessionToken",
   ];
+}
+
+async function runClientRenderedLeakSmoke() {
+  const result = { passCount: 0, failCount: 0, failures: [] };
+  if (!chromePath) {
+    console.log("[skip] client-rendered-leak: Chrome executable not found");
+    return result;
+  }
+  const clientPaths = [
+    { name: "client-live-rendered-leak", path: "/client/live" },
+    { name: "client-dashboard-rendered-leak", path: "/client/dashboard" },
+    { name: "client-events-rendered-leak", path: "/client/events" },
+  ];
+  let checkIndex = 0;
+  for (const check of clientPaths) {
+    const browser = await openBrowserPage({
+      httpBase,
+      pagePath: check.path,
+      timeoutMs,
+      chromePath,
+      debugPort: debugPortBase + 120 + checkIndex,
+      width: 390,
+      height: visualHeight,
+      outputDir,
+    });
+    checkIndex += 1;
+    try {
+      const leakResult = await browser.evaluate(clientRenderedLeakExpression(), 10000);
+      if (!leakResult?.ok) {
+        const details = Array.isArray(leakResult?.issues) ? leakResult.issues.join("; ") : JSON.stringify(leakResult);
+        throw new Error(`${check.name}: ${details}`);
+      }
+      result.passCount += 1;
+      console.log(`[pass] ${check.name}: forbidden=0, textLength=${leakResult.textLength}`);
+    } catch (error) {
+      result.failCount += 1;
+      const message = error instanceof Error ? error.message : String(error);
+      result.failures.push(`[${check.name}] ${message}`);
+      console.log(`[fail] ${check.name}: ${message}`);
+    } finally {
+      await browser.close();
+    }
+  }
+  return result;
+}
+
+function clientRenderedLeakExpression() {
+  return `
+    (() => {
+      const forbidden = ${JSON.stringify(clientForbiddenText())};
+      const forbiddenSelectors = [
+        '#opsRulesDetailPanel',
+        '#opsVaRuleForm',
+        '#opsEventRuleForm',
+        '#opsProfileForm',
+        '[data-testid="ops-rules-page"]',
+        '[data-testid="ops-sources-page"]',
+        '[data-testid="source-health-panel"]',
+        '.debug-drawer',
+        '[data-debug-counter]',
+        '[data-source-url]',
+      ];
+      const issues = [];
+      const visibleText = document.body ? document.body.innerText || '' : '';
+      const html = document.documentElement ? document.documentElement.outerHTML || '' : '';
+      const dataScripts = Array.from(document.querySelectorAll('script[type="application/json"]'))
+        .map((node) => node.textContent || '')
+        .join('\\n');
+      for (const needle of forbidden) {
+        if (!needle) continue;
+        if (visibleText.includes(needle)) {
+          issues.push('visible forbidden text: ' + needle);
+        } else if (dataScripts.includes(needle)) {
+          issues.push('JSON script forbidden text: ' + needle);
+        } else if (html.includes(needle) && !needle.startsWith('/ops/api/')) {
+          issues.push('DOM forbidden text: ' + needle);
+        }
+      }
+      for (const selector of forbiddenSelectors) {
+        if (document.querySelector(selector)) {
+          issues.push('forbidden selector present: ' + selector);
+        }
+      }
+      return {
+        ok: issues.length === 0,
+        issues,
+        textLength: visibleText.length,
+      };
+    })()
+  `;
 }
 
 async function runClientHeaderResponsiveSmoke() {
