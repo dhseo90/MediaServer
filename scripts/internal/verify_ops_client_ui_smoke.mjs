@@ -110,7 +110,7 @@ const pageChecks = [
     name: "ops-users",
     path: "/ops/users",
     visualSelector: '[data-testid="ops-users-page"]',
-    must: ['data-testid="ops-users-page"', 'id="users-body"', 'id="access-requests-body"', 'id="request-invite-output"', 'id="user-detail-panel"', 'id="user-edit-selected"', 'id="user-save-selected"', 'id="user-close"', 'id="view-assignment"', '/ops/api/access-requests'],
+    must: ['data-testid="ops-users-page"', 'id="users-body"', 'id="access-requests-body"', 'id="request-invite-output"', 'id="user-detail-panel"', 'id="user-edit-selected"', 'id="user-save-selected"', 'id="user-close"', 'id="view-assignment"', 'id="user-lifecycle-summary"', 'data-user-set-enabled', '/ops/api/access-requests'],
   },
   {
     name: "client-live",
@@ -718,6 +718,10 @@ function prepareOnvifUnsupportedHintExpression() {
       const hint = document.querySelector('p[data-source-kind="onvif"].hint');
       if (!hint) throw new Error('ONVIF unsupported hint missing');
       hint.scrollIntoView({ block: 'center', inline: 'nearest' });
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const rect = hint.getBoundingClientRect();
+      const targetTop = Math.max(24, Math.round((window.innerHeight - rect.height) / 2));
+      window.scrollBy({ top: rect.top - targetTop, left: 0, behavior: 'instant' });
       await new Promise(resolve => setTimeout(resolve, 120));
       return true;
     })()

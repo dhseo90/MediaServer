@@ -6095,6 +6095,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     const assignment = document.querySelector('#view-assignment');
     const passwordFields = document.querySelector('#password-fields');
     const scopePreview = document.querySelector('#scope-template-preview');
+    const lifecycleSummary = document.querySelector('#user-lifecycle-summary');
     const scopeTemplateButtons = [
       document.querySelector('#apply-view-scope-template'),
       document.querySelector('#apply-role-default-scope-template'),
@@ -6254,6 +6255,27 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     function displayValue(value, fallback = '미제공') {
       return value === null || value === undefined || value === '' ? fallback : String(value);
     }
+    function userLifecycleText(user = {}) {
+      const notes = [];
+      if (user.enabled === false) {
+        notes.push(user.disabledAt ? `비활성 상태: ${user.disabledAt} 이후 로그인 차단` : '비활성 상태: 로그인 차단');
+      } else {
+        notes.push('활성 상태: 권한 범위 안에서 로그인 가능');
+      }
+      if (user.lockedUntil) notes.push(`로그인 잠금 해제 예정: ${user.lockedUntil}`);
+      notes.push(user.mustChangePassword ? '다음 로그인 시 비밀번호 변경 필요' : '다음 로그인 비밀번호 변경 요구 없음');
+      return notes.join(' · ');
+    }
+    function updateLifecycleSummary(user = null) {
+      if (!lifecycleSummary) return;
+      const candidate = user || {
+        enabled: form.elements.enabled.checked,
+        mustChangePassword: form.elements.mustChangePassword.checked,
+        lockedUntil: '',
+        disabledAt: ''
+      };
+      lifecycleSummary.textContent = userLifecycleText(candidate);
+    }
     function fillForm(user) {
       form.elements.username.value = user.username;
       form.elements.displayName.value = user.displayName || '';
@@ -6265,6 +6287,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       form.elements.enabled.checked = Boolean(user.enabled);
       form.elements.mustChangePassword.checked = Boolean(user.mustChangePassword);
       setEditorMode('view', `사용자 @${user.username}`, user.username);
+      updateLifecycleSummary(user);
       userDetailPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     function resetUserForm() {
@@ -6273,6 +6296,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       form.elements.enabled.checked = true;
       form.elements.mustChangePassword.checked = true;
       setEditorMode('new', '사용자 추가');
+      updateLifecycleSummary();
       form.elements.username.focus();
     }
     function userRowCells(user) {
@@ -6375,15 +6399,26 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         appendLabeledCell(tr, '계정명', `<div class="user-id-cell"><span class="table-identity-pill table-identity-user">${escapeHtml(displayValue(user.username))}</span></div>`);
         appendLabeledCell(tr, '이름', userValueHtml(user.displayName || '미제공'));
         appendLabeledCell(tr, '권한', userValueHtml(roleLabel(user.role)));
-        appendLabeledCell(tr, '상태', opsRowActionsHtml(chip(user.enabled ? '활성' : '비활성', user.enabled ? '' : 'warn'), 'ops-status-actions user-status-actions'), 'table-cell-status');
+        appendLabeledCell(
+          tr,
+          '상태',
+          opsRowActionsHtml(
+            `${chip(user.enabled ? '활성' : '비활성', user.enabled ? '' : 'warn')}<span class="user-note">${escapeHtml(userLifecycleText(user))}</span>`,
+            'ops-status-actions user-status-actions'
+          ),
+          'table-cell-status'
+        );
         appendLabeledCell(tr, '권한 범위', userScopeHtml(user.scopes), 'user-scope-cell');
         appendLabeledCell(tr, '마지막 로그인', userValueHtml(user.lastLoginAt || '미제공'));
         appendLabeledCell(tr, '잠금 만료', userValueHtml(user.lockedUntil || '없음'));
         appendLabeledCell(tr, '비밀번호 변경', userValueHtml(yesNo(user.mustChangePassword)));
-        const actionsHtml = opsRowActionsHtml(
-          `<button type="button" class="secondary" data-user-view="${escapeHtml(displayValue(user.username))}">상세</button>`,
-          'user-row-actions'
-        );
+        const nextEnabled = user.enabled ? 'false' : 'true';
+        const lifecycleAction = user.enabled ? '비활성화' : '복구';
+        const lifecycleClass = user.enabled ? 'danger' : 'secondary';
+        const actionsHtml = opsRowActionsHtml(`
+          <button type="button" class="secondary" data-user-view="${escapeHtml(displayValue(user.username))}">상세</button>
+          <button type="button" class="${lifecycleClass}" data-user-set-enabled="${nextEnabled}" data-user-action-username="${escapeHtml(displayValue(user.username))}">${lifecycleAction}</button>
+        `, 'user-row-actions');
         appendLabeledCell(tr, '작업', actionsHtml, 'table-cell-actions');
         usersBody.appendChild(tr);
       }
@@ -6466,6 +6501,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
           after: { ...(before || { username }), enabled }
         });
         renderOpsAuditTrail('user-audit-list', 'users');
+        setStatus(`사용자 @${username} ${enabled ? '복구' : '비활성화'} 완료`);
       } catch (error) {
         setStatus(error.message, true);
       }
@@ -6580,6 +6616,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       const username = String(form.elements.username.value || '').trim();
       if (!username) return;
       setEditorMode('edit', `사용자 @${username}`, username);
+      updateLifecycleSummary();
     };
     closeUserButton.onclick = () => {
       hideUserEditor();
@@ -6599,6 +6636,15 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         if (request) approveAccessRequest(request);
         return;
       }
+      const lifecycleButton = event.target.closest('[data-user-set-enabled]');
+      if (lifecycleButton) {
+        const username = String(lifecycleButton.dataset.userActionUsername || '').trim();
+        const enabled = lifecycleButton.dataset.userSetEnabled === 'true';
+        if (!username) return;
+        if (!enabled && !window.confirm(`사용자 @${username} 로그인을 비활성화할까요?`)) return;
+        setEnabled(username, enabled);
+        return;
+      }
       const rejectButton = event.target.closest('[data-request-reject]');
       if (rejectButton) {
         const request = (loadedRequests || []).find(item => String(item.requestId || '') === String(rejectButton.dataset.requestReject || ''));
@@ -6609,6 +6655,8 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     form.elements.role.addEventListener('change', updateAssignmentVisibility);
     form.elements.viewId.addEventListener('input', updateScopeTemplatePreview);
     form.elements.scopes.addEventListener('input', updateScopeTemplatePreview);
+    form.elements.enabled.addEventListener('change', () => updateLifecycleSummary());
+    form.elements.mustChangePassword.addEventListener('change', () => updateLifecycleSummary());
     document.querySelector('#apply-view-scope-template').onclick = () => applyScopeTemplate(false);
     document.querySelector('#apply-role-default-scope-template').onclick = () => applyScopeTemplate(true);
     document.querySelector('#clear-custom-scopes').onclick = () => {

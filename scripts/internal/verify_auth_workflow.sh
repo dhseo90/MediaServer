@@ -375,7 +375,8 @@ run_users() {
   login_admin
   expect_cookie_page_contains "ops users access request selectors" "${ADMIN_COOKIE}" "${BASE}/ops/users" \
     'id="access-requests-body"' 'id="request-invite-output"' '/ops/api/access-requests' '승인 대기 요청' \
-    'id="apply-view-scope-template"' 'id="scope-template-preview"' 'id="user-scopes-input"'
+    'id="apply-view-scope-template"' 'id="scope-template-preview"' 'id="user-scopes-input"' \
+    'id="user-lifecycle-summary"' 'data-user-set-enabled' '다음 로그인 시 비밀번호 변경 필요'
   auth_scope_picker_smoke
   expect_auth_store_owner_only "permissive auth users file re-hardened"
 

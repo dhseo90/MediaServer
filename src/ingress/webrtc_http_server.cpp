@@ -4161,6 +4161,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
               <label><input name="enabled" type="checkbox" checked /> 활성화</label>
               <label><input name="mustChangePassword" type="checkbox" checked /> 다음 로그인 시 비밀번호 변경</label>
             </div>
+            <p id="user-lifecycle-summary" class="hint">활성 상태와 다음 로그인 비밀번호 변경 여부를 확인합니다.</p>
         </form>
       </section>
       <section class="section-card ops-audit-panel">

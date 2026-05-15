@@ -269,6 +269,18 @@ PR template과 정적 verifier를 연결했습니다.
 - `verify-ui-visual-artifact-index`가 manifest retention policy와 PR/docs 문구를 정적으로 확인합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Account lifecycle UX polish 후속 종료 판정
+
+2026-05-16 기준 `/ops/users` 계정 라이프사이클 조작을 목록과 상세에서 더 명확하게 보이도록 다듬었습니다.
+
+확인됨:
+
+- 사용자 목록 행에 `비활성화`/`복구` quick action을 연결해 기존 enable/disable API를 화면에서 바로 사용할 수 있습니다.
+- 사용자 상태 셀과 상세 panel에 활성/비활성, 잠금 만료, 다음 로그인 비밀번호 변경 요구 상태를 lifecycle summary로 표시합니다.
+- 비활성화는 확인 dialog를 거치며, 마지막 admin 방지와 세션 회수는 기존 서버 auth 계약을 그대로 사용합니다.
+- `verify-auth-users`와 `verify-ops-client-ui`가 lifecycle summary/action hook을 확인합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ### Client debug/source leakage smoke 강화 후속 종료 판정
 
 2026-05-16 기준 client/viewer 화면과 scoped API의 debug/source 비노출 smoke를 강화했습니다.
