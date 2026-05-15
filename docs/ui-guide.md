@@ -345,6 +345,8 @@ Ops/Client/Lab API guard를 확인합니다.
 - 실제 클릭 흐름과 채널/룰/사용자 테이블 반응형 침범 검증은
   `./server.sh verify-ops-click-e2e`,
   `./server.sh verify-ops-tables-layout`로 확인합니다.
+  table smoke는 320px까지 리사이즈하며 row action, detail panel toolbar,
+  audit filter/preset control overflow를 함께 검사합니다.
 - 화면 회귀까지 보려면
   `./server.sh verify-ops-client-ui --screenshots`를 사용합니다. 기본 screenshot 폭은
   320/390/760/1180px이며, Chrome DevTools 수동 리뷰 체크박스는

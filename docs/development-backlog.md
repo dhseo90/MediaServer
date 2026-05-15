@@ -279,6 +279,18 @@ PR template과 정적 verifier를 연결했습니다.
 - `verify-ops-rule-conflict-ui`가 해당 browser e2e guard snippet을 정적 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Ops table responsive coverage 확대 후속 종료 판정
+
+2026-05-16 기준 Ops 채널/룰/사용자 table layout smoke의 반응형 검증 범위를 넓혔습니다.
+
+확인됨:
+
+- `verify-ops-tables-layout` 기본 viewport 폭에 320px을 추가했습니다.
+- 룰 화면은 shared rule preview fixture helper로 VA rule row를 보장해 실제 row action/detail panel 상태를 확인합니다.
+- 채널/룰/사용자 각 화면에서 첫 상세 panel을 열고 toolbar/action/form control이 panel과 viewport 밖으로 밀리지 않는지 검사합니다.
+- audit filter, preset, toolbar control이 모바일 폭에서 audit panel과 viewport 안에 머무르는지 함께 검사합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ## v1.2.0 시작 전 체크리스트
 
 - [x] v1.1.0 PR이 `main`에 merge됨

@@ -1519,7 +1519,7 @@ std::string ProductUiCss() {
       border-collapse: collapse;
       min-width: 0;
     }
-    .ops-rules-col-id { width: 58px; }
+    .ops-rules-col-id { width: 64px; }
     .ops-rules-col-source { width: auto; }
     .ops-rules-col-template { width: 140px; }
     .ops-rules-col-profile { width: 140px; }

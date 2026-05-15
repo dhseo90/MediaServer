@@ -87,7 +87,11 @@ FFmpeg/ffprobe CLI가 없는 공개/CI 환경에서는 codec matrix와 RTSP deco
 - 룰 패널 이동
 - 사용자 상세
 - client dashboard
-`verify-ops-tables-layout`은 채널/룰/사용자 table을 1180/900/560/390/760/1180px 순서로 리사이즈하며 cell/action overflow를 확인합니다.
+`verify-ops-tables-layout`은 채널/룰/사용자 table을
+1180/900/760/560/390/320/760/1180px 순서로 리사이즈하며
+cell/action overflow를 확인합니다. 각 화면의 첫 상세 panel과 audit
+filter/preset control도 같은 폭에서 부모 패널과 viewport 밖으로 밀리지 않는지
+함께 확인합니다.
 `verify-ops-rules-roundtrip`은 같은 서버의 이벤트 템플릿 API round-trip을 영상 재생 없이 확인합니다.
 UI 전용 검증에서는 별도 터미널에서
 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`를 실행하고,
