@@ -87,6 +87,8 @@ test/fixtures/onvif_probe_result_stub.json
   응답을 내부 live profile 모델로만 축약합니다.
 - probe adapter는 endpoint/timeout/action 순서와 sanitize된 실패 요약만 다루며
   raw SOAP나 credential 원문을 응답 모델에 남기지 않습니다.
+- probe fixture의 `draftDecision`도 기존 import draft endpoint에서
+  SourceRegistry/PublishedView draft로 변환합니다.
 - 응답은 기존 `/ops/api/sources`와 `/ops/api/views`에 보낼 수 있는 draft만
   반환합니다.
 - 저장 side effect는 없습니다.
@@ -103,6 +105,7 @@ test/fixtures/onvif_probe_result_stub.json
 ./server.sh verify-onvif-probe-fixture-contract
 ./server.sh verify-onvif-probe-parser
 ./server.sh verify-onvif-probe-adapter
+./server.sh verify-onvif-probe-draft-api
 ./server.sh verify-onvif-import-draft-api
 ./server.sh verify-onvif-rtsp-downstream
 ./server.sh verify-onvif-ops-sources-ui

@@ -792,9 +792,17 @@ RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
         return RegistryResult{400, "Bad Request", "{\"error\":\"request body must be a JSON object\"}"};
     }
 
-    const auto decision = ExtractObjectField(body, "importDecision");
+    auto decision = ExtractObjectField(body, "importDecision");
+    std::string profile_array_field = "profiles";
     if (!decision.has_value()) {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"importDecision object is required\"}"};
+        decision = ExtractObjectField(body, "draftDecision");
+        profile_array_field = "mediaProfiles";
+    }
+    if (!decision.has_value()) {
+        return RegistryResult{
+            400,
+            "Bad Request",
+            "{\"error\":\"importDecision or draftDecision object is required\"}"};
     }
     const std::string selected_token = Trim(ParseStringField(*decision, "selectedProfileToken").value_or(""));
     if (selected_token.empty()) {
@@ -802,7 +810,7 @@ RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
     }
 
     std::optional<std::string> selected_profile;
-    for (const auto& profile : ExtractJsonObjectArray(body, "profiles")) {
+    for (const auto& profile : ExtractJsonObjectArray(body, profile_array_field)) {
         if (Trim(ParseStringField(profile, "token").value_or("")) == selected_token) {
             selected_profile = profile;
             break;

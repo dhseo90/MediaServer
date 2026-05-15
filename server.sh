@@ -104,6 +104,8 @@ Usage:
                  ONVIF SOAP service/profile/stream URI parser 단위 smoke를 검증합니다.
   verify-onvif-probe-adapter
                  ONVIF probe action 순서와 실패 요약 redaction 단위 smoke를 검증합니다.
+  verify-onvif-probe-draft-api
+                 실행 중인 서버가 ONVIF probe fixture를 source/view draft로 변환하는지 검증합니다.
   verify-onvif-import-draft-api
                  실행 중인 서버의 ONVIF import draft API가 fixture를 source/view draft로 변환하는지 검증합니다.
   verify-onvif-rtsp-downstream
@@ -425,6 +427,10 @@ case "${cmd}" in
   verify-onvif-probe-adapter)
     require_internal verify_onvif_probe_adapter.sh
     exec "${INTERNAL_DIR}/verify_onvif_probe_adapter.sh" "$@"
+    ;;
+  verify-onvif-probe-draft-api)
+    require_internal verify_onvif_probe_draft_api.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_probe_draft_api.mjs" "$@"
     ;;
   verify-onvif-import-draft-api)
     require_internal verify_onvif_import_draft_api.mjs
