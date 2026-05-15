@@ -69,6 +69,10 @@ v1.2.0 이후 UI 변경은 아래 inventory를 기준으로 합니다.
 - client/viewer shell에는 source locator, Developer URL, raw JSON, 내부 debug summary를 추가하지 않습니다.
 - screenshot 산출물을 갱신하면 manifest와 `docs/assets/ui/README.md`의 캡처 기준도 함께 확인합니다.
 
+구체적인 product shell/card/table/detail/client tile 작성 예시는
+[product-shell-component-examples.md](./product-shell-component-examples.md)를 봅니다.
+예시 문서는 `./server.sh verify-product-shell-examples`로 정적 검증합니다.
+
 내장 HTTP UI는 아직 C++ 문자열 렌더링 기반이지만, 제품 shell 쪽은 다음 공통 helper를 기준으로 유지합니다.
 
 - `include/ingress/product_ui_assets.h`, `src/ingress/product_ui_assets.cpp`:

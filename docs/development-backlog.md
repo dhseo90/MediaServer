@@ -268,6 +268,18 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - `verify-ui-copy-i18n-parity`가 translation map, 반복 tile aria-label pattern, matrix 문서, server entrypoint를 검증합니다.
 - 제품 API schema, Event POST/WebRTC DataChannel/SSE/WS metadata schema는 변경하지 않았습니다.
 
+### Product shell component examples 후속 종료 판정
+
+2026-05-16 기준 product shell component examples는 문서 예시와 정적 검증 범위에서 종료합니다.
+
+확인됨:
+
+- `docs/product-shell-component-examples.md`에 product shell, metric/section card, dense table, detail/audit panel, client live tile 예시를 추가했습니다.
+- 예시는 기존 `ProductUiCss()`, `ProductSharedUiScript()`, `ClientShellCss()` class/helper 사용을 우선하도록 정리했습니다.
+- `/ops/events`는 primary nav가 아니라 direct/diagnostic route로 취급하고, client/viewer shell debug/source/raw 정보 비노출 원칙을 다시 고정했습니다.
+- `verify-product-shell-examples`가 예시 문서, UI guide 연결, server entrypoint, script inventory를 검증합니다.
+- 제품 API schema, Event POST/WebRTC DataChannel/SSE/WS metadata schema는 변경하지 않았습니다.
+
 ### Design token/component inventory 후속 종료 판정
 
 2026-05-16 기준 v1.2.0 UI visual regression 후속에서

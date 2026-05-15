@@ -58,6 +58,8 @@ Usage:
                  UI screenshot artifact baseline과 candidate의 manifest/pixel diff를 생성합니다.
   verify-product-ui-token-drift
                  제품 UI CSS가 design token 밖 raw color를 추가하지 않는지 검증합니다.
+  verify-product-shell-examples
+                 제품 shell/component 예시 문서와 UI guide 연결을 검증합니다.
   verify-ops-route-boundaries
                  /ops, /client, /lab 화면/API route 경계 계약을 검증합니다.
   verify-ops-click-e2e
@@ -391,6 +393,10 @@ case "${cmd}" in
   verify-product-ui-token-drift)
     require_internal verify_product_ui_token_drift.mjs
     exec "${INTERNAL_DIR}/verify_product_ui_token_drift.mjs" "$@"
+    ;;
+  verify-product-shell-examples)
+    require_internal verify_product_shell_examples.mjs
+    exec "${INTERNAL_DIR}/verify_product_shell_examples.mjs" "$@"
     ;;
   verify-ops-route-boundaries)
     require_internal verify_ops_route_boundaries.mjs
