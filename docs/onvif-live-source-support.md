@@ -175,6 +175,10 @@ draft 매핑:
 [ONVIF No-Device Verification](./onvif-no-device-verification.md)에 따라
 synthetic fixture, loopback transport, redaction 검증만 수행하며, 실장비 endpoint
 성공은 미확인으로 보고합니다.
+이번 v1.2.0 ONVIF 현장 연동 개발 과정에서는 실제 ONVIF 카메라 smoke를 수행하지
+않았고, 공개 인터넷의 임의 ONVIF endpoint도 실장비 대체로 사용하지 않았습니다.
+실장비 없는 성공 경로 대체 검증은 local simulator fixture smoke로만 구분해
+보고합니다.
 
 실제 ONVIF 카메라로 확인할 때는 현장 endpoint와 credential을 문서나 로그에
 원문으로 남기지 않습니다. 결과 공유에는 아래처럼 redacted 값만 사용합니다.

@@ -54,6 +54,9 @@ check("no-device document defines field-device exclusion boundary", () => {
   assertContains(noDeviceDoc, "실장비 제외", "missing explicit 실장비 제외 wording");
   assertContains(noDeviceDoc, "미확인", "missing 미확인 reporting wording");
   assertContains(noDeviceDoc, "실장비 endpoint 성공", "missing real endpoint success caveat");
+  assertContains(noDeviceDoc, "실제 ONVIF 카메라를 사용한 field smoke를 수행하지 않았습니다", "missing explicit no real camera statement");
+  assertContains(noDeviceDoc, "공개 인터넷에 노출된 임의 ONVIF endpoint", "missing public endpoint exclusion");
+  assertContains(noDeviceDoc, "local simulator fixture smoke", "missing local simulator substitute scope");
   assertContains(noDeviceDoc, "synthetic fixture", "missing synthetic fixture scope");
   assertContains(noDeviceDoc, "synthetic profile variant", "missing synthetic profile variant scope");
   assertContains(noDeviceDoc, "Media/Media2 empty-profile", "missing empty profile failure scope");

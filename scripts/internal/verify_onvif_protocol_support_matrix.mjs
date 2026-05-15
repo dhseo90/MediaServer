@@ -95,6 +95,11 @@ check("related ONVIF docs link the protocol support matrix", () => {
   assertContains(noDeviceDoc, "./onvif-protocol-support-matrix.md", "no-device doc missing matrix link");
   assertContains(liveSupportDoc, "verify-onvif-protocol-support-matrix", "live support verification missing matrix command");
   assertContains(noDeviceDoc, "verify-onvif-protocol-support-matrix", "no-device verification missing matrix command");
+  assertContains(matrixDoc, "실제 ONVIF 카메라로 검증하지 않았고", "matrix doc missing no real camera statement");
+  assertContains(matrixDoc, "공개 인터넷의 임의 ONVIF endpoint도 사용하지 않았습니다", "matrix doc missing public endpoint exclusion");
+  assertContains(matrixDoc, "local simulator fixture 성공", "matrix doc missing simulator/real-device distinction");
+  assertContains(liveSupportDoc, "실제 ONVIF 카메라 smoke를 수행하지 않았고", "live support doc missing no real camera statement");
+  assertContains(noDeviceDoc, "실제 ONVIF 카메라를 사용한 field smoke를 수행하지 않았습니다", "no-device doc missing no real camera statement");
 });
 
 check("implementation still matches documented probe transport and service scope", () => {
