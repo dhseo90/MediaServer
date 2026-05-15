@@ -282,6 +282,8 @@ no-device suite 실패 summary fixture는
 `test/fixtures/onvif_no_device_suite_failure_summary.json`이며,
 `verify-onvif-no-device-mode`가 실패 전 완료 개수, 실패 명령, `realDeviceEndpointSuccess=미확인`
 보존을 정적으로 확인합니다.
+같은 검증에서 `media-server.onvif-no-device-suite-summary.v1` schema version drift guard도
+확인합니다.
 
 구현 단계에서도 Event POST payload, WebRTC DataChannel schema,
 SSE/WS metadata schema, RTSP/WebRTC media path는 변경하지 않습니다.

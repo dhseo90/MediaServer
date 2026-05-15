@@ -104,6 +104,9 @@
 실패한 경우에도 이미 완료된 단계, 실패 명령, 실장비 성공 미확인 상태를 남깁니다.
 실패 path fixture는
 `test/fixtures/onvif_no_device_suite_failure_summary.json`에 고정합니다.
+schema drift guard는 runner 상수, 성공 예시, 실패 fixture가 모두 같은
+`media-server.onvif-no-device-suite-summary.v1` 값을 쓰는지
+`verify-onvif-no-device-mode`에서 비교합니다.
 
 ```json
 {

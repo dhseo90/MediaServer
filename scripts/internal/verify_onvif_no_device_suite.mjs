@@ -36,6 +36,7 @@ assertKnownOptions(rawArgs, ["json-output", "h", "help"]);
 const args = parseArgs(rawArgs);
 const jsonOutput = args.jsonOutput ? path.resolve(rootDir, args.jsonOutput) : "";
 const server = path.join(rootDir, "server.sh");
+const noDeviceSuiteSummarySchema = "media-server.onvif-no-device-suite-summary.v1";
 const suite = [
   ["verify-onvif-no-device-mode"],
   ["verify-onvif-protocol-support-matrix"],
@@ -110,7 +111,7 @@ function writeJsonSummary(failedCommand) {
   if (!jsonOutput) return;
   fs.mkdirSync(path.dirname(jsonOutput), { recursive: true });
   const summary = {
-    schema: "media-server.onvif-no-device-suite-summary.v1",
+    schema: noDeviceSuiteSummarySchema,
     generatedAt: new Date().toISOString(),
     mode: "실장비 제외",
     realDeviceEndpointSuccess: "미확인",
