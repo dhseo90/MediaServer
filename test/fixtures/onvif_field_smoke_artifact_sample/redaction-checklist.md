@@ -8,5 +8,9 @@
 - [x] Client API redaction result is summarized as `clientRedaction=pass`.
 - [x] Ops copy parity result is summarized as `opsCopyParity=pass`.
 - [x] Probe error wording result is summarized as `probeErrorWording=pass`.
+- [x] Real device status is explicit as `realDeviceEndpointSuccess=unverified`
+  when no ONVIF camera was used.
+- [x] Each required verification command has an explicit status or skip reason.
+- [x] Evidence index paths point only to redacted files in this bundle.
 - [x] Screenshot filenames and directory names use redacted site placeholders.
 - [x] Verification commands are listed in `manifest.json`.

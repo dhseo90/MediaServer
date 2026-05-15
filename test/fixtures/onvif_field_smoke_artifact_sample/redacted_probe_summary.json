@@ -1,6 +1,9 @@
 {
   "schema": "media-server.onvif-field-smoke-artifact-sample.v1",
   "artifact": "onvif-field-smoke-<date>-<redacted-site>",
+  "mode": "field-smoke-template",
+  "realDeviceTestPerformed": false,
+  "realDeviceEndpointSuccess": "unverified",
   "camera": "<vendor/model redacted>",
   "endpoint": "<redacted-host>/onvif/device_service",
   "auth": {
@@ -33,5 +36,38 @@
   "clientRedaction": "pass",
   "opsCopyParity": "pass",
   "probeErrorWording": "pass",
+  "verificationStatus": [
+    {
+      "command": "verify-onvif-field-smoke-redaction",
+      "status": "pass"
+    },
+    {
+      "command": "verify-onvif-field-http-probe",
+      "status": "skipped",
+      "skipReason": "sample bundle has no real ONVIF endpoint"
+    },
+    {
+      "command": "verify-onvif-probe-draft-api",
+      "status": "pass"
+    },
+    {
+      "command": "verify-onvif-ops-sources-ui",
+      "status": "pass"
+    }
+  ],
+  "evidenceIndex": [
+    {
+      "type": "summary",
+      "path": "redacted_probe_summary.json"
+    },
+    {
+      "type": "checklist",
+      "path": "redaction-checklist.md"
+    },
+    {
+      "type": "reportTemplate",
+      "path": "field-smoke-report-template.md"
+    }
+  ],
   "notes": "<sanitized operational note>"
 }

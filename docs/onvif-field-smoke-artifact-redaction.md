@@ -11,6 +11,9 @@
   따르되 실제 장비 host, credential, raw SOAP는 제외합니다.
 - Draft API 결과 요약: `sourceDraft`, `publishedViewDraft`, `selectedProfile`,
   `auth.credentialRefPresent`, `auth.plaintextSecretIncluded=false`만 남깁니다.
+- Field smoke report template: `realDeviceTestPerformed`,
+  `realDeviceEndpointSuccess`, required verification status, evidence index만
+  redacted placeholder로 남깁니다.
 - Ops 확인 요약: `/ops/sources` 채널 표시, Live/VA URL copy parity,
   `/ops/rules` ONVIF RTSP/WHEP/WebRTC copy parity 결과.
 - Client redaction 증거: `/client/api/views`, `/client/api/views/{viewId}`에서
@@ -50,6 +53,12 @@
   JSON이 보이지 않는 화면만 포함했다.
 - [ ] 실패 문구는 `verify-onvif-probe-error-wording` matrix의 sanitized summary
   형태로만 남겼다.
+- [ ] 실장비가 없거나 실행하지 않은 경우 `realDeviceEndpointSuccess=unverified`,
+  `realDeviceTestPerformed=false`, skip reason을 명시했다.
+- [ ] `verificationStatus`에는 각 필수 검증 명령의 pass/fail/skipped 상태를
+  누락 없이 기록했다.
+- [ ] `evidenceIndex`는 redacted summary, checklist, screenshot 같은 공유 가능
+  파일만 가리킨다.
 - [ ] 산출물 파일명과 directory 이름에도 실제 장비 host, site, 계정명을 쓰지 않았다.
 - [ ] 공유 전 `verify-onvif-probe-fixture-contract`,
   `verify-onvif-probe-error-wording`, `verify-onvif-probe-draft-api`,
@@ -69,6 +78,10 @@ draft: sourceId=<redacted-source-id>, viewId=<redacted-view-id>, tags=onvif/live
 clientRedaction: pass/fail
 opsCopyParity: pass/fail
 probeErrorWording: pass/fail
+realDeviceTestPerformed: true/false
+realDeviceEndpointSuccess: pass/fail/unverified
+verificationStatus: <command>=<pass/fail/skipped>
+evidenceIndex: <redacted file list>
 notes: <sanitized operational note>
 ```
 
@@ -83,6 +96,6 @@ notes: <sanitized operational note>
 git diff --check
 ```
 
-샘플 bundle layout은
+샘플 bundle layout과 report template은
 `test/fixtures/onvif_field_smoke_artifact_sample/`에 둡니다. 실제 현장 산출물은
 해당 layout을 참고하되, 공유 전 이 문서의 checklist를 다시 적용합니다.

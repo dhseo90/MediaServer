@@ -4,12 +4,37 @@
   "files": [
     "README.md",
     "redacted_probe_summary.json",
-    "redaction-checklist.md"
+    "redaction-checklist.md",
+    "field-smoke-report-template.md"
   ],
+  "fieldDevice": {
+    "realDeviceTestPerformed": false,
+    "realDeviceEndpointSuccess": "unverified",
+    "reason": "sample bundle does not include a real ONVIF device"
+  },
   "requiredVerification": [
     "verify-onvif-field-smoke-redaction",
     "verify-onvif-field-http-probe",
     "verify-onvif-probe-draft-api",
     "verify-onvif-ops-sources-ui"
+  ],
+  "verificationStatusTemplate": [
+    {
+      "command": "verify-onvif-field-smoke-redaction",
+      "status": "<pass|fail>"
+    },
+    {
+      "command": "verify-onvif-field-http-probe",
+      "status": "<pass|fail|skipped>",
+      "skipReason": "<required when skipped>"
+    },
+    {
+      "command": "verify-onvif-probe-draft-api",
+      "status": "<pass|fail>"
+    },
+    {
+      "command": "verify-onvif-ops-sources-ui",
+      "status": "<pass|fail>"
+    }
   ]
 }

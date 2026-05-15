@@ -38,8 +38,9 @@ const manifestPath = path.join(bundleDir, "manifest.json");
 const summaryPath = path.join(bundleDir, "redacted_probe_summary.json");
 const checklistPath = path.join(bundleDir, "redaction-checklist.md");
 const readmePath = path.join(bundleDir, "README.md");
+const reportTemplatePath = path.join(bundleDir, "field-smoke-report-template.md");
 
-for (const file of [manifestPath, summaryPath, checklistPath, readmePath]) {
+for (const file of [manifestPath, summaryPath, checklistPath, readmePath, reportTemplatePath]) {
   assert(fs.existsSync(file), `missing sample bundle file: ${path.relative(rootDir, file)}`);
 }
 
@@ -47,10 +48,17 @@ const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
 const checklist = fs.readFileSync(checklistPath, "utf8");
 const readme = fs.readFileSync(readmePath, "utf8");
-const combined = [JSON.stringify(manifest), JSON.stringify(summary), checklist, readme].join("\n");
+const reportTemplate = fs.readFileSync(reportTemplatePath, "utf8");
+const combined = [JSON.stringify(manifest), JSON.stringify(summary), checklist, readme, reportTemplate].join("\n");
 
 assert(manifest.schema === "media-server.onvif-field-smoke-artifact-sample-manifest.v1", "manifest schema mismatch");
 assert(summary.schema === "media-server.onvif-field-smoke-artifact-sample.v1", "summary schema mismatch");
+assert(manifest.files?.includes("field-smoke-report-template.md"), "manifest missing report template file");
+assert(manifest.fieldDevice?.realDeviceTestPerformed === false, "manifest realDeviceTestPerformed must be false for sample");
+assert(manifest.fieldDevice?.realDeviceEndpointSuccess === "unverified", "manifest realDeviceEndpointSuccess must be unverified");
+assert(summary.mode === "field-smoke-template", "summary mode mismatch");
+assert(summary.realDeviceTestPerformed === false, "summary realDeviceTestPerformed must be false for sample");
+assert(summary.realDeviceEndpointSuccess === "unverified", "summary realDeviceEndpointSuccess must be unverified");
 assert(summary.endpoint === "<redacted-host>/onvif/device_service", "summary endpoint must be redacted placeholder");
 assert(summary.auth?.credentialReferencePresent === true, "summary credentialReferencePresent must be true");
 assert(summary.auth?.plaintextSecretIncluded === false, "summary plaintextSecretIncluded must be false");
@@ -58,6 +66,10 @@ assert(summary.selectedProfile?.streamUriRedacted === true, "summary streamUriRe
 assert(summary.clientRedaction === "pass", "clientRedaction must be pass");
 assert(summary.opsCopyParity === "pass", "opsCopyParity must be pass");
 assert(summary.probeErrorWording === "pass", "probeErrorWording must be pass");
+assert(Array.isArray(summary.verificationStatus), "summary verificationStatus must be array");
+assert(summary.verificationStatus.length >= manifest.requiredVerification.length, "summary verificationStatus is incomplete");
+assert(Array.isArray(summary.evidenceIndex), "summary evidenceIndex must be array");
+assert(summary.evidenceIndex.some(item => item?.path === "field-smoke-report-template.md"), "evidenceIndex missing report template");
 
 for (const command of [
   "verify-onvif-field-smoke-redaction",
@@ -66,6 +78,7 @@ for (const command of [
   "verify-onvif-ops-sources-ui",
 ]) {
   assert(manifest.requiredVerification?.includes(command), `manifest missing required verification command: ${command}`);
+  assert(summary.verificationStatus.some(item => item?.command === command), `summary missing verification status: ${command}`);
 }
 
 for (const term of [
@@ -73,6 +86,10 @@ for (const term of [
   "opsCopyParity",
   "probeErrorWording",
   "streamUriRedacted=true",
+  "realDeviceEndpointSuccess=unverified",
+  "realDeviceTestPerformed=false",
+  "field-smoke-report-template.md",
+  "Evidence Index",
 ]) {
   assert(combined.includes(term), `sample bundle missing required term: ${term}`);
 }
