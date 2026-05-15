@@ -90,7 +90,8 @@ test/fixtures/onvif_probe_result_stub.json
 - probe 실패 문구는 `test/fixtures/onvif_probe_error_wording_matrix.json` 기준으로
   request/transport/service/profile 실패별 요약과 redaction 금지어를 고정합니다.
 - HTTP SOAP transport는 `http://` ONVIF endpoint에 POST하고, 현재 transport
-  계층에서는 TLS endpoint를 fail-closed로 다룹니다.
+  계층에서는 TLS endpoint를 fail-closed로 다룹니다. 세부 기준은
+  [ONVIF TLS Transport Policy](./onvif-tls-transport-policy.md)를 따릅니다.
 - probe fixture의 `draftDecision`도 기존 import draft endpoint에서
   SourceRegistry/PublishedView draft로 변환합니다.
 - 응답은 기존 `/ops/api/sources`와 `/ops/api/views`에 보낼 수 있는 draft만
@@ -216,6 +217,7 @@ notes: <sanitized operational note>
 ./server.sh verify-onvif-probe-error-wording
 ./server.sh verify-onvif-field-smoke-redaction
 ./server.sh verify-onvif-field-http-probe --allow-missing-endpoint
+./server.sh verify-onvif-tls-transport-policy
 ./server.sh verify-onvif-probe-draft-api
 ./server.sh verify-onvif-import-draft-api
 ./server.sh verify-onvif-rtsp-downstream
