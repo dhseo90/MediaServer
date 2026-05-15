@@ -100,6 +100,8 @@ Usage:
                  /client/dashboard 다중 view 비교와 로딩/빈/오류 상태 문구를 검증합니다.
   verify-ui-copy-matrix
                  제품 UI empty/loading/error copy matrix와 구현 스니펫을 검증합니다.
+  verify-ui-copy-i18n-parity
+                 제품 UI 한국어/영어 문구 parity와 반복 UI translation pattern을 검증합니다.
   verify-docs-ui-assets
                  README/UI guide screenshot 자산과 자동 캡처 기준을 검증합니다.
   verify-docs-links
@@ -473,6 +475,10 @@ case "${cmd}" in
   verify-ui-copy-matrix)
     require_internal verify_ui_copy_matrix.mjs
     exec "${INTERNAL_DIR}/verify_ui_copy_matrix.mjs" "$@"
+    ;;
+  verify-ui-copy-i18n-parity)
+    require_internal verify_ui_copy_i18n_parity.mjs
+    exec "${INTERNAL_DIR}/verify_ui_copy_i18n_parity.mjs" "$@"
     ;;
   verify-docs-ui-assets)
     require_internal verify_docs_ui_assets.mjs

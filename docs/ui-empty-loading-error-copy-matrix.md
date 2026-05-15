@@ -28,7 +28,7 @@ updated: 2026-05-16
 ## 검증
 
 - 정적 검증: `./server.sh verify-ui-copy-matrix`
+- 언어 parity: `./server.sh verify-ui-copy-i18n-parity`
 - UI smoke: `./server.sh verify-ops-client-ui`
 - 시각 회귀: `./server.sh verify-ops-client-ui --screenshots`
 - 문서 링크: `./server.sh verify-docs-links`
-

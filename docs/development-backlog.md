@@ -258,6 +258,16 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - `verify-ui-copy-matrix`가 matrix 문서와 구현 스니펫, server entrypoint, script inventory를 검증합니다.
 - viewer/client 화면의 source URL, raw JSON, debug counter, Developer URL 비노출 원칙을 matrix에 명시했습니다.
 
+### UI copy Korean/English parity 종료 판정
+
+2026-05-16 기준 UI copy Korean/English parity는 translation map/pattern 검증 범위에서 종료합니다.
+
+확인됨:
+
+- 최근 추가한 incident timeline, source health audit link, client live tile keyboard aria-label 문구의 English map을 보강했습니다.
+- `verify-ui-copy-i18n-parity`가 translation map, 반복 tile aria-label pattern, matrix 문서, server entrypoint를 검증합니다.
+- 제품 API schema, Event POST/WebRTC DataChannel/SSE/WS metadata schema는 변경하지 않았습니다.
+
 ### Design token/component inventory 후속 종료 판정
 
 2026-05-16 기준 v1.2.0 UI visual regression 후속에서
