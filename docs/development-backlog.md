@@ -225,8 +225,11 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
   포함하지 않는 정책으로 고정했습니다.
 - `docs/integrator-contract-artifact.md`에서 artifact layout, sample data policy,
   runtime smoke와 artifact 검증의 차이를 분리했습니다.
+- artifact bundle 안에 README, changelog, field index, schema review checklist를
+  추가해 범주 내 배포/검토 gap을 닫았습니다.
 - `./server.sh verify-integrator-contract-artifact`가 manifest/schema/sample 일치,
-  금지 노출 후보, 문서/entrypoint 연결을 정적 검증합니다.
+  field index, schema review checklist, 금지 노출 후보, 문서/entrypoint 연결을
+  정적 검증합니다.
 
 범위 밖:
 
@@ -239,6 +242,10 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 Runtime delivery smoke는 artifact 자체 검증과 분리합니다. Event POST, WebRTC,
 SSE, WebSocket 전송 재검증 여부는 각 verification matrix 명령 실행 결과로만
 보고합니다.
+
+V120-P1-03 범주 안의 잔여 이슈는 남기지 않습니다. OpenAPI 기반 archive/playback,
+release packaging, 계정 lifecycle, integrator auth scope 고도화는 이 항목의
+잔여가 아니라 별도 로드맵 범주입니다.
 
 ### V120-P1-08 Ops Dashboard incident timeline 종료 판정
 

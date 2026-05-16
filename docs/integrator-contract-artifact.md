@@ -14,6 +14,10 @@
 
 ```text
 test/fixtures/integrator_contract_artifact/
+  README.md
+  CHANGELOG.md
+  field-index.json
+  schema-review-checklist.md
   manifest.json
   schemas/
     event-post.schema.json
@@ -30,6 +34,9 @@ test/fixtures/integrator_contract_artifact/
 
 `manifest.json`의 schema는 `media-server.integrator-contract-artifact.v1`입니다.
 각 payload sample은 실제 serializer의 현재 schema identifier를 그대로 사용합니다.
+`field-index.json`은 top-level field와 integrator-visible payload에서 제외해야 할
+field를 고정합니다. `schema-review-checklist.md`는 payload mutation 요청이
+나왔을 때만 사용하는 review gate입니다.
 
 | 영역 | Identifier | Sample | Runtime 검증 |
 | --- | --- | --- | --- |
@@ -84,6 +91,8 @@ artifact 자체 검증:
 - artifact가 live contract 문서와 server entrypoint에 연결됨
 - sample에 URL userinfo, LAN IP, password/token hash, RTSP/RTSPS URL 같은 금지
   노출 후보가 없음
+- `field-index.json`, `CHANGELOG.md`, `schema-review-checklist.md`가 bundle에
+  포함되고 manifest와 일치함
 
 Runtime delivery smoke는 별도입니다. 위 artifact 검증만 실행했다면 Event POST,
 WebRTC, SSE, WebSocket delivery가 실제로 재검증됐다고 보고하지 않습니다.

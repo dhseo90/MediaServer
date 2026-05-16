@@ -3,11 +3,49 @@
   "artifactVersion": "v1.2.0-integrator-contract-artifact.1",
   "generatedAt": "2026-05-16T00:00:00Z",
   "scope": "Event POST, WebRTC DataChannel, SSE runtime metadata, and WebSocket runtime metadata sample bundle for external integrators.",
+  "files": [
+    "README.md",
+    "CHANGELOG.md",
+    "field-index.json",
+    "schema-review-checklist.md",
+    "manifest.json",
+    "schemas/common.json",
+    "schemas/event-post.schema.json",
+    "schemas/webrtc-va-metadata.schema.json",
+    "schemas/runtime-metadata.schema.json",
+    "schemas/metadata-control.schema.json",
+    "samples/event-post.json",
+    "samples/webrtc-va-metadata.json",
+    "samples/runtime-metadata-sse.json",
+    "samples/runtime-metadata-ws.json",
+    "samples/metadata-control-subscribe-ack.json"
+  ],
   "boundary": {
     "payloadMutation": "forbidden-without-schema-review",
     "recordedEvidenceApi": "out-of-scope",
     "clientViewerDebugExposure": "forbidden",
     "sampleData": "synthetic-only"
+  },
+  "schemaReviewPolicy": {
+    "requiredFor": [
+      "payload field add/delete/rename",
+      "schema identifier change",
+      "WebRTC DataChannel label change",
+      "Event POST event type rename",
+      "source locator or credential exposure"
+    ],
+    "notSatisfiedBy": [
+      "editing sample files only",
+      "updating docs without runtime smoke",
+      "passing artifact verifier while skipping delivery smoke"
+    ],
+    "artifactOnlyVerification": "./server.sh verify-integrator-contract-artifact",
+    "runtimeVerification": [
+      "./server.sh verify-event-post --mode schema",
+      "./server.sh verify-webrtc-va-metadata",
+      "./server.sh verify-va-metadata-sidechannel",
+      "./server.sh verify-ws-metadata"
+    ]
   },
   "contracts": [
     {
