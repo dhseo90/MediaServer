@@ -378,7 +378,10 @@ run_users() {
     'id="access-requests-body"' 'id="request-invite-output"' '/ops/api/access-requests' '승인 대기 요청' \
     'id="apply-view-scope-template"' 'id="scope-template-preview"' 'id="user-scopes-input"' \
     'id="user-lifecycle-summary"' 'data-user-set-enabled' '다음 로그인 시 비밀번호 변경 필요' \
-    '승인 전: 로그인/세션/채널 권한 없음' '초대 설정 완료 전까지는 로그인/세션/채널 권한이 열리지 않습니다'
+    'data-testid="user-lifecycle-policy"' '초대 링크는 기본 24시간 동안만 유효' \
+    'id="user-reset-password-panel"' 'id="user-reset-password-button"' 'data-user-reset-password' \
+    '사용자 감사 JSON/CSV/Diff JSON export' '승인 전: 로그인/세션/채널 권한 없음' \
+    '초대 설정 완료 전까지는 로그인/세션/채널 권한이 열리지 않습니다'
   auth_scope_picker_smoke
   expect_auth_store_owner_only "permissive auth users file re-hardened"
 
@@ -413,6 +416,12 @@ run_users() {
   reset_code="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data "{\"password\":\"${TEST_PASSWORD}\"}" "${BASE}/ops/api/users/viewer-smoke/reset-password")"
   expect_eq "${reset_code}" "200" "admin reset password"
+  local reset_users_json
+  reset_users_json="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/api/users")"
+  case "${reset_users_json}" in
+    *'"username":"viewer-smoke"'*'"mustChangePassword":true'*) pass "admin reset forces next-login password change" ;;
+    *) fail "admin reset did not expose mustChangePassword lifecycle state: ${reset_users_json}" ;;
+  esac
   landing="$(curl -sS -c "${VIEWER_COOKIE}" -o /dev/null -D - \
     -X POST -d "username=viewer-smoke&password=${TEST_PASSWORD}" "${BASE}/login" |
     tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
@@ -444,6 +453,10 @@ run_users() {
   invite_token="$(printf '%s' "${invite_json}" | json_string_field token)"
   [[ -n "${invite_token}" ]] || fail "invite token missing: ${invite_json}"
   pass "invite token issued once"
+  case "${invite_json}" in
+    *"\"expiresAt\":\"20"*"\"setupUrl\":\"/invite/setup"*) pass "invite expiry and setup URL visible once" ;;
+    *) fail "invite expiry/setup URL missing: ${invite_json}" ;;
+  esac
   preserve_reset="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data "{\"password\":\"${PREVIOUS_PASSWORD}\"}" "${BASE}/ops/api/users/lockout-smoke/reset-password")"
   expect_eq "${preserve_reset}" "200" "users-only save after pending invite"
@@ -529,6 +542,10 @@ run_users() {
   approve_invite_id="$(printf '%s' "${approve_json}" | json_string_field inviteId)"
   approve_token="$(printf '%s' "${approve_json}" | json_string_field token)"
   [[ -n "${approve_token}" ]] || fail "approve invite token missing: ${approve_json}"
+  case "${approve_json}" in
+    *"\"expiresAt\":\"20"*"\"setupUrl\":\"/invite/setup"*) pass "approved request invite expiry visible once" ;;
+    *) fail "approved request invite expiry/setup URL missing: ${approve_json}" ;;
+  esac
   request_user_list="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/api/users")"
   case "${request_user_list}" in
     *'"username":"request-smoke"'*) fail "approved request created user before invite setup: ${request_user_list}" ;;

@@ -252,6 +252,13 @@ Auth users file 저장 규칙:
 - invite 비밀번호는 사용자가 `/invite/setup`에서 직접 입력합니다.
 - Invite 생성과 access-request approve는 invite record만 추가합니다.
 - 기존 user의 role/scope/enabled/session 상태는 invite 수락 전 즉시 바꾸지 않습니다.
+- 초대 링크는 기본 24시간 동안 유효하며 `expiresAt`과 setup URL은 생성/승인 응답에서
+  한 번만 운영자에게 표시합니다. 만료 후에는 새 초대를 발급합니다.
+- `/ops/users` 상세 패널에서 비밀번호 초기화를 수행하면 기존 세션을 회수하고
+  `mustChangePassword=true`로 저장합니다. 원문 비밀번호는 users file, API 응답,
+  Ops audit export에 남기지 않습니다.
+- disable은 hard delete가 아니며 로그인과 기존 세션을 차단합니다. enable/restore는
+  실패 횟수와 lockout 상태를 초기화합니다.
 
 Public access request 제한:
 
@@ -273,7 +280,7 @@ Admin user management API:
 | `GET /ops/api/users` | admin | hash/token을 제외한 user list |
 | `POST /ops/api/users` | admin | 계정 생성 API. 제품 UI는 admin이 초기 비밀번호를 입력하는 직접 생성 흐름을 사용 |
 | `PUT /ops/api/users/{username}` | admin | displayName/role/scopes/enabled/mustChangePassword 수정 |
-| `POST /ops/api/users/{username}/reset-password` | admin | password 재설정 API. 제품 UI 기본 화면은 사용자 생성/수정/활성화 관리에 집중 |
+| `POST /ops/api/users/{username}/reset-password` | admin | password 재설정 API. `/ops/users` 상세 패널에서 임시 비밀번호를 설정하면 다음 로그인 변경이 필요하고 기존 세션은 회수 |
 | `POST /ops/api/users/{username}/disable` | admin | hard delete 대신 비활성화 |
 | `POST /ops/api/users/{username}/enable` | admin | 비활성 계정 재활성화 |
 | `POST /ops/api/invites` | admin | password setup invite 발급. token 원문은 응답에서 한 번만 표시하며 수락 전 user 권한은 변경하지 않음 |

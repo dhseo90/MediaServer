@@ -1560,7 +1560,7 @@ std::string ProductUiCss() {
     .user-col-last-login { width: 132px; }
     .user-col-locked-until { width: 108px; }
     .user-col-password { width: 84px; }
-    .user-col-actions { width: 148px; }
+    .user-col-actions { width: 166px; }
     .request-col-username { width: 136px; }
     .request-col-name { width: 124px; }
     .request-col-contact { width: 136px; }
@@ -1664,6 +1664,26 @@ std::string ProductUiCss() {
     }
     .scope-template-actions button {
       max-width: 100%;
+    }
+    .user-lifecycle-policy .status-stat strong {
+      font-size: 16px;
+      line-height: 1.35;
+    }
+    .user-reset-password-panel {
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-subtle);
+    }
+    .user-reset-password-panel > div:first-child {
+      display: grid;
+      gap: 4px;
+    }
+    .user-reset-password-panel strong {
+      color: var(--color-text);
+      font-size: 14px;
     }
     .ops-va-template-assist {
       display: grid;

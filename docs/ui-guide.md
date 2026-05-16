@@ -450,6 +450,9 @@ raw JSON이 필요한 경우에도 운영자 debug details 접힘 영역 또는
 `/ops/users`는 admin 전용 계정 관리 화면입니다.
 공통 Ops shell 안에서 사용자 목록 table과 접근 요청 table을 먼저 보여주고,
 필요한 계정을 상세 패널로 열어 확인하거나 수정합니다.
+상단의 계정 라이프사이클 정책 영역은 초대 기본 만료 24시간,
+비밀번호 초기화 후 다음 로그인 변경, disable/restore 절차,
+사용자 감사 JSON/CSV/Diff JSON export를 같은 운영 절차로 묶어 보여줍니다.
 `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`는
 UI/API 응답에 노출하지 않습니다.
 
@@ -461,8 +464,12 @@ UI/API 응답에 노출하지 않습니다.
   권한 템플릿 버튼으로 role/viewId 기준 scope를 적용할 수 있습니다.
   새 계정은 기본 활성화 상태이며 `mustChangePassword`를 켤 수 있습니다.
 - 계정 수정: displayName, role, scopes, enabled, mustChangePassword를 변경합니다.
-- 비밀번호 초기화: API/CLI smoke 경로에서 reset-password를 지원합니다. Ops UI 기본 화면은 사용자 생성/수정/활성화 관리에 집중합니다.
-- enable/disable: hard delete 대신 disable을 사용합니다. 마지막 활성 admin 계정은 비활성화하거나 다른 role로 변경할 수 없습니다.
+- 비밀번호 초기화: 상세 패널의 비밀번호 초기화 영역에서 임시 비밀번호를 설정합니다.
+  성공 시 기존 세션은 회수되고 `mustChangePassword=true`로 저장되어 다음 로그인에서
+  비밀번호 변경이 필요합니다. 원문 비밀번호는 감사 로그에 남기지 않습니다.
+- enable/disable: hard delete 대신 disable을 사용합니다. 비활성화는 확인 dialog를 거치며
+  기존 세션을 회수합니다. restore는 로그인 실패 횟수와 lockout 상태를 초기화합니다.
+  마지막 활성 admin 계정은 비활성화하거나 다른 role로 변경할 수 없습니다.
 - viewer UX:
   `role=viewer` 또는 `integrator` 선택 시 view/scope assignment 영역을 보여줍니다.
   `채널 범위 적용`은 PublishedView별 scope 묶음을 생성합니다.
@@ -474,6 +481,7 @@ UI/API 응답에 노출하지 않습니다.
   생성 응답에서 한 번만 표시됩니다.
   저장소에는 `tokenHash`, 만료 시각, 사용 여부,
   수락 시 적용할 role/scope snapshot만 남습니다.
+  초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다.
   기존 enabled user invite는 수락 전 현재 role/scope/session을 바꾸지 않습니다.
   `/invite/setup`에서 비밀번호 설정이 끝나면 token hash와 이전 session을 폐기합니다.
 - request:

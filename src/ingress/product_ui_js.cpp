@@ -126,6 +126,18 @@ std::string ProductSharedUiScript() {
         '아직 기록된 변경 이력이 없습니다.': 'No change history has been recorded yet.',
         '활성화': 'Enable',
         '비활성화': 'Disable',
+        '복구': 'Restore',
+        '계정 라이프사이클 정책': 'Account Lifecycle Policy',
+        '초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다.': 'Review invite expiry, password reset, disable/restore, and user audit export in one operator workflow.',
+        'auth/session 계약 변경 없음': 'No auth/session contract changes',
+        '초대': 'Invite',
+        '기본 만료 24시간': 'Default expiry 24 hours',
+        '초기화 후 다음 로그인 변경': 'Change required after reset',
+        '비활성화 시 로그인/세션 차단': 'Disable blocks login/session',
+        '로그인/세션 차단': 'Login/session blocked',
+        '감사': 'Audit',
+        'JSON/CSV/Diff JSON export': 'JSON/CSV/Diff JSON export',
+        '초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다.': 'Invite links are valid for 24 hours by default; issue a new invite after expiry. Password reset sets a temporary password and revokes existing sessions. Restore clears login lockout and failed attempts.',
         '사용자 관리': 'User Management',
         '사용자 목록': 'Users',
         '사용자 추가': 'Add User',
@@ -140,8 +152,12 @@ std::string ProductSharedUiScript() {
         '마지막 로그인': 'Last login',
         '잠금 만료': 'Lock expires',
         '비밀번호 변경': 'Must change',
+        '비밀번호 초기화': 'Reset password',
         '초기 비밀번호': 'Initial password',
         '비밀번호 확인': 'Confirm password',
+        '새 임시 비밀번호': 'New temporary password',
+        '새 임시 비밀번호 확인': 'Confirm temporary password',
+        '임시 비밀번호를 설정하면 기존 세션을 회수하고 다음 로그인에서 비밀번호 변경을 요구합니다. 비밀번호 원문은 감사 로그에 남기지 않습니다.': 'Setting a temporary password revokes existing sessions and requires a change on next login. Plaintext passwords are not written to audit logs.',
         '다음 로그인 시 비밀번호 변경': 'Require password change at next login',
         '시청자': 'Viewer',
         '운영자': 'Operator',
@@ -157,6 +173,7 @@ std::string ProductSharedUiScript() {
         '공개 회원가입이 아니라, 별도 요청 페이지로 들어온 계정을 관리자가 검토한 뒤 초대 링크를 발급합니다.': 'This is not open self-signup; admins review requests from the request page and issue invite links.',
         '사용자와 권한 범위를 관리합니다.': 'Manage users and scopes.',
         '이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인합니다.': 'Review actor, before/after values, and time for user changes from this browser.',
+        '이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인하고 사용자 감사 JSON/CSV/Diff JSON export를 내려받습니다.': 'Review actor, before/after values, and time for user changes from this browser, and download user audit JSON/CSV/Diff JSON exports.',
         '이 브라우저에서 수행한 채널 변경의 작업자, 전/후 값, 시각을 확인합니다.': 'Review actor, before/after values, and time for channel changes from this browser.',
         '이 브라우저에서 수행한 룰 변경의 작업자, 전/후 값, 시각을 확인합니다.': 'Review actor, before/after values, and time for rule changes from this browser.',
         '변경 이력': 'Change History',
@@ -1107,6 +1124,7 @@ std::string ProductSharedUiScript() {
           delete: '삭제',
           enable: '활성화',
           disable: '비활성화',
+          'reset-password': '비밀번호 초기화',
           'bulk-clone': '대량 복제',
           'bulk-disable': '대량 비활성화',
           'source-health-state-change': '소스 상태 변경',
@@ -1173,6 +1191,7 @@ std::string ProductSharedUiScript() {
                   <option value="delete">삭제</option>
                   <option value="enable">활성화</option>
                   <option value="disable">비활성화</option>
+                  <option value="reset-password">비밀번호 초기화</option>
                   <option value="bulk-clone">대량 복제</option>
                   <option value="bulk-disable">대량 비활성화</option>
                   <option value="source-health-state-change">소스 상태 변경</option>

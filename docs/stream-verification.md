@@ -441,6 +441,8 @@ Admin user smoke:
 Product UI smoke:
 
 - `/ops/users` 사용자 목록
+- 계정 라이프사이클 정책 영역
+- 비밀번호 초기화 상세 패널
 - 접근 요청 table
 - 접힘 editor selector
 - `/setup`, `/login`, `/password/change`, `/invite/setup`,
@@ -449,11 +451,14 @@ Product UI smoke:
 Invite/request smoke:
 
 - invite token 원문은 생성 응답에서 한 번만 표시하고 hash만 저장
+- invite `expiresAt`과 setup URL은 운영자 응답에만 표시
 - pending invite와 approved request가 user-only 저장 후에도 users file에 유지
 - 기존 enabled user invite가 수락 전 role/scope/session을 바꾸지 않음
 - access request approve가 invite setup 전 user row를 만들지 않음
 - access request reject가 rejected 상태로 유지
 - invite 수락 후 이전 session 폐기
+- password reset 후 `mustChangePassword=true`와 기존 session 회수
+- disable은 login/session 차단, restore는 lockout/실패 횟수 초기화
 
 Public access request abuse smoke:
 

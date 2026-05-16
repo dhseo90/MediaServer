@@ -6531,6 +6531,11 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     const passwordFields = document.querySelector('#password-fields');
     const scopePreview = document.querySelector('#scope-template-preview');
     const lifecycleSummary = document.querySelector('#user-lifecycle-summary');
+    const resetPasswordPanel = document.querySelector('#user-reset-password-panel');
+    const resetPasswordInput = document.querySelector('#user-reset-password');
+    const resetPasswordConfirmInput = document.querySelector('#user-reset-password-confirm');
+    const resetPasswordButton = document.querySelector('#user-reset-password-button');
+    const resetPasswordStatus = document.querySelector('#user-reset-password-status');
     const scopeTemplateButtons = [
       document.querySelector('#apply-view-scope-template'),
       document.querySelector('#apply-role-default-scope-template'),
@@ -6556,9 +6561,11 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     } = window.MediaServerUi;
     const setStatus = (message, failed = false) => setFeedback(statusEl, message, failed);
     const setRequestStatus = (message, failed = false) => setFeedback(requestStatusEl, message, failed);
+    const setResetPasswordStatus = (message, failed = false) => setFeedback(resetPasswordStatus, message, failed);
     function hideUserEditor() {
       setOpsDetailPanelOpen(userDetailPanel, false);
       editorMode = 'view';
+      setResetPasswordStatus('');
     }
     function setInviteOutput(text = '') {
       inviteOutput.textContent = text;
@@ -6596,6 +6603,10 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       closeUserButton.textContent = '닫기';
       setFormDisabled(mode === 'view');
       setUsernameLocked(mode !== 'new');
+      if (resetPasswordPanel) resetPasswordPanel.hidden = mode === 'new';
+      setResetPasswordStatus('');
+      if (resetPasswordInput) resetPasswordInput.value = '';
+      if (resetPasswordConfirmInput) resetPasswordConfirmInput.value = '';
       updateAssignmentVisibility();
     }
     function updateAssignmentVisibility() {
@@ -6685,7 +6696,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       return status === 'pending' ? 'warn' : status === 'rejected' ? 'bad' : '';
     }
     function accessRequestLifecycleText(request = {}) {
-      if (request.status === 'approved') return '승인됨: 초대 비밀번호 설정 후 로그인 가능';
+      if (request.status === 'approved') return '승인됨: 초대 링크 만료 전 비밀번호 설정 후 로그인 가능';
       if (request.status === 'rejected') return '거절됨: 새 요청 또는 관리자 재초대 필요';
       return '승인 전: 로그인/세션/채널 권한 없음';
     }
@@ -6698,7 +6709,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     function userLifecycleText(user = {}) {
       const notes = [];
       if (user.enabled === false) {
-        notes.push(user.disabledAt ? `비활성 상태: ${user.disabledAt} 이후 로그인 차단` : '비활성 상태: 로그인 차단');
+        notes.push(user.disabledAt ? `비활성 상태: ${user.disabledAt} 이후 로그인/세션 차단` : '비활성 상태: 로그인/세션 차단');
       } else {
         notes.push('활성 상태: 권한 범위 안에서 로그인 가능');
       }
@@ -6857,6 +6868,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         const lifecycleClass = user.enabled ? 'danger' : 'secondary';
         const actionsHtml = opsRowActionsHtml(`
           <button type="button" class="secondary" data-user-view="${escapeHtml(displayValue(user.username))}">상세</button>
+          <button type="button" class="secondary" data-user-reset-password="${escapeHtml(displayValue(user.username))}">초기화</button>
           <button type="button" class="${lifecycleClass}" data-user-set-enabled="${nextEnabled}" data-user-action-username="${escapeHtml(displayValue(user.username))}">${lifecycleAction}</button>
         `, 'user-row-actions');
         appendLabeledCell(tr, '작업', actionsHtml, 'table-cell-actions');
@@ -6941,17 +6953,57 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         }
         await requestJson(`/ops/api/users/${encodeURIComponent(username)}/${enabled ? 'enable' : 'disable'}`, { method: 'POST' });
         await loadAll();
+        const afterUser = findLoadedUser(username) || { ...(before || { username }), enabled };
         await recordOpsAudit({
           area: 'users',
           action: enabled ? 'enable' : 'disable',
           target: `user:${username}`,
           before,
-          after: { ...(before || { username }), enabled }
+          after: afterUser
         });
         renderOpsAuditTrail('user-audit-list', 'users');
-        setStatus(`사용자 @${username} ${enabled ? '복구' : '비활성화'} 완료`);
+        setStatus(enabled
+          ? `사용자 @${username} 복구 완료. 로그인 잠금과 실패 횟수가 초기화되었습니다.`
+          : `사용자 @${username} 비활성화 완료. 기존 세션은 회수됩니다.`);
       } catch (error) {
         setStatus(error.message, true);
+      }
+    }
+    async function resetUserPassword(username) {
+      const password = String(resetPasswordInput?.value || '');
+      const confirm = String(resetPasswordConfirmInput?.value || '');
+      if (!username) return;
+      if (!password) {
+        setResetPasswordStatus('새 임시 비밀번호를 입력하세요.', true);
+        return;
+      }
+      if (password !== confirm) {
+        setResetPasswordStatus('새 임시 비밀번호 확인이 일치하지 않습니다.', true);
+        return;
+      }
+      try {
+        const before = findLoadedUser(username);
+        await requestJson(`/ops/api/users/${encodeURIComponent(username)}/reset-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+        if (resetPasswordInput) resetPasswordInput.value = '';
+        if (resetPasswordConfirmInput) resetPasswordConfirmInput.value = '';
+        await loadAll();
+        const afterUser = findLoadedUser(username) || { ...(before || { username }), mustChangePassword: true };
+        await recordOpsAudit({
+          area: 'users',
+          action: 'reset-password',
+          target: `user:${username}`,
+          before,
+          after: { ...afterUser, passwordReset: true }
+        });
+        renderOpsAuditTrail('user-audit-list', 'users');
+        setResetPasswordStatus('비밀번호 초기화 완료. 다음 로그인에서 변경이 필요합니다.');
+        setStatus(`사용자 @${username} 비밀번호 초기화 완료. 기존 세션은 회수됩니다.`);
+      } catch (error) {
+        setResetPasswordStatus(error.message, true);
       }
     }
     async function approveAccessRequest(request) {
@@ -6971,6 +7023,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         setInviteOutput([
           `계정: ${request.username || ''}`,
           setupUrl ? `초대 링크: ${setupUrl}` : '',
+          invite.expiresAt ? `초대 링크 만료: ${invite.expiresAt}` : '',
           invite.token ? `토큰: ${invite.token}` : '',
           '초대 설정 완료 전까지는 로그인/세션/채널 권한이 열리지 않습니다.'
         ].filter(Boolean).join('\n'));
@@ -7070,6 +7123,10 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     closeUserButton.onclick = () => {
       hideUserEditor();
     };
+    resetPasswordButton?.addEventListener('click', () => {
+      const username = String(form.elements.username.value || '').trim();
+      resetUserPassword(username);
+    });
     document.querySelector('#user-audit-refresh')?.addEventListener('click', () => renderOpsAuditTrail('user-audit-list', 'users'));
     renderOpsAuditTrail('user-audit-list', 'users');
     document.addEventListener('click', event => {
@@ -7077,6 +7134,16 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       if (viewButton) {
         const user = (loadedUsers || []).find(item => String(item.username || '') === String(viewButton.dataset.userView || ''));
         if (user) fillForm(user);
+        return;
+      }
+      const resetButton = event.target.closest('[data-user-reset-password]');
+      if (resetButton) {
+        const user = (loadedUsers || []).find(item => String(item.username || '') === String(resetButton.dataset.userResetPassword || ''));
+        if (user) {
+          fillForm(user);
+          resetPasswordInput?.focus();
+          setResetPasswordStatus('임시 비밀번호를 입력해 초기화합니다.');
+        }
         return;
       }
       const approveButton = event.target.closest('[data-request-approve]');
@@ -7090,7 +7157,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         const username = String(lifecycleButton.dataset.userActionUsername || '').trim();
         const enabled = lifecycleButton.dataset.userSetEnabled === 'true';
         if (!username) return;
-        if (!enabled && !window.confirm(`사용자 @${username} 로그인을 비활성화할까요?`)) return;
+        if (!enabled && !window.confirm(`사용자 @${username} 로그인을 비활성화하고 기존 세션을 회수할까요?`)) return;
         setEnabled(username, enabled);
         return;
       }

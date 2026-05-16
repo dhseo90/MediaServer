@@ -321,8 +321,11 @@ MEDIA_SERVER_AUTH_USERS_FILE=/tmp/media-server-bootstrap-users.json \
 - 로그인 실패가 `MEDIA_SERVER_AUTH_LOGIN_MAX_FAILURES`에 도달하면 lockout 메시지가 표시되고 만료 전 정상 비밀번호도 거부
 - `/password/change`에서 이전 비밀번호 재사용은 거부되고, 성공 후 기존 session은 폐기
 - logout 후 `/ops`, `/client`, `/lab/analysis/*` 보호 route는 `/login` 요구
-- admin 로그인 후 `/ops/users`에서 viewer/operator/integrator 계정을 생성/수정/비활성화합니다.
+- admin 로그인 후 `/ops/users`에서 viewer/operator/integrator 계정을 생성/수정/비활성화/복구하고,
+  상세 패널에서 임시 비밀번호 초기화를 수행합니다.
 - pending 접근 요청은 승인해 password setup invite를 발급하거나 거절합니다.
+- invite는 기본 24시간 후 만료되며 만료 후에는 새 초대를 발급합니다.
+- 사용자 변경 이력은 `/ops/users` 하단 audit 패널에서 JSON/CSV/Diff JSON으로 export할 수 있습니다.
 - Integrator는 UI shell 대신 client events/metadata API를 scope 기반으로 사용합니다.
 - 대상 API는 `/client/api/views/{viewId}/events`와 `/client/api/views/{viewId}/metadata`입니다.
 - CLI는 `./server.sh auth-user list`, `add`, `reset-password`, `disable`, `enable`을 사용하고 비밀번호는 기본 prompt로 입력

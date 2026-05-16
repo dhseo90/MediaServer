@@ -4090,6 +4090,34 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
           <span id="status" class="status"></span>
         </div>
       </div>
+      <section class="section-card user-lifecycle-policy" data-testid="user-lifecycle-policy">
+        <div class="toolbar">
+          <div>
+            <h2>계정 라이프사이클 정책</h2>
+            <p>초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다.</p>
+          </div>
+          <span class="chip info">auth/session 계약 변경 없음</span>
+        </div>
+        <div class="status-stat-grid">
+          <div class="status-stat">
+            <span>초대</span>
+            <strong>기본 만료 24시간</strong>
+          </div>
+          <div class="status-stat">
+            <span>비밀번호</span>
+            <strong>초기화 후 다음 로그인 변경</strong>
+          </div>
+          <div class="status-stat">
+            <span>비활성화</span>
+            <strong>로그인/세션 차단</strong>
+          </div>
+          <div class="status-stat">
+            <span>감사</span>
+            <strong>JSON/CSV/Diff JSON export</strong>
+          </div>
+        </div>
+        <p class="hint">초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다.</p>
+      </section>
       <section class="section-card">
         <h2>사용자 목록</h2>
         <div class="table-wrap">
@@ -4191,12 +4219,26 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
             </div>
             <p id="user-lifecycle-summary" class="hint">활성 상태와 다음 로그인 비밀번호 변경 여부를 확인합니다.</p>
         </form>
+        <div id="user-reset-password-panel" class="user-reset-password-panel" hidden>
+          <div>
+            <strong>비밀번호 초기화</strong>
+            <p class="hint">임시 비밀번호를 설정하면 기존 세션을 회수하고 다음 로그인에서 비밀번호 변경을 요구합니다. 비밀번호 원문은 감사 로그에 남기지 않습니다.</p>
+          </div>
+          <div class="row">
+            <label>새 임시 비밀번호<input id="user-reset-password" type="password" autocomplete="new-password" /></label>
+            <label>새 임시 비밀번호 확인<input id="user-reset-password-confirm" type="password" autocomplete="new-password" /></label>
+          </div>
+          <div class="actions">
+            <button id="user-reset-password-button" class="button-secondary" type="button">비밀번호 초기화</button>
+            <span id="user-reset-password-status" class="status"></span>
+          </div>
+        </div>
       </section>
       <section class="section-card ops-audit-panel">
         <div class="toolbar">
           <div>
             <h2>변경 이력</h2>
-            <p>이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인합니다.</p>
+            <p>이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인하고 사용자 감사 JSON/CSV/Diff JSON export를 내려받습니다.</p>
           </div>
           <button id="user-audit-refresh" class="button-secondary" type="button">새로고침</button>
         </div>

@@ -112,7 +112,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 | V120-P1-01 | P1 | Client live/dashboard polish | 완료 | multi-view 비교, event/status copy, empty/error/loading 문구, mobile tile 조작 개선 | client wrapper API schema 변경, viewer source locator 노출 |
 | V120-P1-02 | P1 | Rule/Scenario field tuning | 완료 | 현장 샘플 기반 threshold preset, Loitering/ZoneOccupancy 기본값, scenario issue wording 정리 | ScenarioEngine 판단 로직, event type, payload schema 변경 |
 | V120-P1-03 | P1 | Integrator contract artifact | 완료 | Event POST/WebRTC/SSE/WS contract JSON Schema와 synthetic sample bundle 제공. 2026-05-16 기준 artifact manifest/schema/sample 정적 검증과 문서 연결로 종료 | payload field 추가/삭제, schema identifier 변경 |
-| V120-P1-04 | P1 | Account lifecycle policy | 예정 | invite expiry, password reset 문구, user audit export, disable/restore 절차 polish | auth store migration, password/session/token contract 변경 |
+| V120-P1-04 | P1 | Account lifecycle policy | 완료 | `/ops/users` 계정 라이프사이클 정책 영역, password reset UI/문구, invite expiry 표시, user audit export 안내, disable/restore 절차 polish를 기존 auth/session 계약 안에서 종료 | auth store migration, password/session/token contract 변경 |
 | V120-P2-01 | P2 | Release packaging rehearsal | 조건부 Gate | source-only 기준 유지와 container/offline/binary 후보 dry-run 정책 gate 확인 | runtime/model binary를 실제 release asset에 포함 |
 | V120-P2-02 | P2 | Re-ID/advanced tracking experiment | 실험 | default-off benchmark와 privacy review 기준으로 close-object association 비교 | Re-ID default-on, 대형 tracker 교체, media pipeline blocking risk |
 | V120-P2-03 | P2 | YouTube experiment decision | 보류 | 유지/축소/제거 중 하나로 결정하고 docs/test 범위 정리 | 운영 기본 기능 승격, 장시간 import job 정책 도입 |
@@ -245,6 +245,39 @@ SSE, WebSocket 전송 재검증 여부는 각 verification matrix 명령 실행 
 
 V120-P1-03 범주 안의 잔여 이슈는 남기지 않습니다. OpenAPI 기반 archive/playback,
 release packaging, 계정 lifecycle, integrator auth scope 고도화는 이 항목의
+잔여가 아니라 별도 로드맵 범주입니다.
+
+### V120-P1-04 종료 판정
+
+2026-05-16 기준 V120-P1-04는 Account lifecycle policy 범위에서 종료합니다.
+
+확인됨:
+
+- `/ops/users` 상단에 계정 라이프사이클 정책 영역을 추가해 초대 기본 만료 24시간,
+  비밀번호 초기화 후 다음 로그인 변경, disable/restore, 사용자 감사 export를
+  한 화면에서 확인합니다.
+- 사용자 상세 패널에서 기존 `reset-password` API를 호출하는 비밀번호 초기화
+  UI를 추가했습니다. 성공 시 기존 세션 회수와 `mustChangePassword=true`
+  흐름은 기존 서버 계약을 그대로 사용하며, 원문 비밀번호는 audit 전/후 값에
+  남기지 않습니다.
+- 접근 요청 승인 출력에 invite `expiresAt`을 함께 표시해 초대 링크 만료 전
+  설정해야 함을 운영자에게 노출합니다.
+- 사용자 행의 disable/restore 문구와 상태 안내를 세션 차단, lockout/실패 횟수
+  초기화 절차 기준으로 정리했습니다.
+- `/ops/users` 변경 이력 안내가 사용자 감사 JSON/CSV/Diff JSON export를 명시합니다.
+- `verify-auth-users`, `verify-ops-client-ui`, `verify-ops-audit-trail`,
+  `verify-ui-copy-i18n-parity`가 lifecycle policy selector/copy, reset-password
+  audit action, invite expiry 표시, audit export 문구를 검증합니다.
+
+범위 밖:
+
+- auth store migration
+- password/session/token contract 변경
+- self-signup 자동 승인
+- 새 role/scope 모델 또는 integrator scope 고도화
+- P2 release packaging, Re-ID/advanced tracking, YouTube experiment
+
+V120-P1-04 범주 안의 잔여 이슈는 남기지 않습니다. 위 범위 밖 항목은 이 항목의
 잔여가 아니라 별도 로드맵 범주입니다.
 
 ### V120-P1-08 Ops Dashboard incident timeline 종료 판정
