@@ -66,9 +66,9 @@ export function manageUiVisualArtifacts({
       continue;
     }
     if (resolvedArchiveDir) {
-      const archivePath = uniqueArchivePath(resolvedArchiveDir, path.basename(dir));
-      detail.archivePath = archivePath;
-      if (apply) copyDir(dir, archivePath);
+      const archiveTarget = uniqueArchiveTarget(resolvedArchiveDir, path.basename(dir));
+      Object.assign(detail, archiveTarget);
+      if (apply) copyDir(dir, archiveTarget.archivePath);
       actions.push(actionFor(dir, "archive", true, apply ? "archived expired artifact" : "dry-run archive expired artifact", detail));
     }
     if (apply) fs.rmSync(dir, { recursive: true, force: true });
@@ -199,7 +199,7 @@ function summarize(actions) {
   };
 }
 
-function uniqueArchivePath(archiveRoot, name) {
+function uniqueArchiveTarget(archiveRoot, name) {
   fs.mkdirSync(archiveRoot, { recursive: true });
   let candidate = path.join(archiveRoot, name);
   let suffix = 1;
@@ -207,7 +207,13 @@ function uniqueArchivePath(archiveRoot, name) {
     suffix += 1;
     candidate = path.join(archiveRoot, `${name}-${suffix}`);
   }
-  return candidate;
+  return {
+    archivePath: candidate,
+    archiveName: path.basename(candidate),
+    archiveBaseName: name,
+    archiveSequence: suffix,
+    duplicateOf: suffix > 1 ? name : "",
+  };
 }
 
 function copyDir(source, target) {
@@ -225,6 +231,8 @@ function copyDir(source, target) {
 
 function writeArchiveIndex(report) {
   if (!report.apply || !report.archiveDir) return null;
+  const previousIndex = readArchiveIndex(report.archiveDir);
+  const previousEntriesByDir = new Map((previousIndex?.entries || []).map((entry) => [entry.archiveDir, entry]));
   const archiveDirs = findArtifactDirs(report.archiveDir, Math.max(1, Number(report.maxDepth) || 4));
   const entries = [];
   for (const dir of archiveDirs) {
@@ -233,11 +241,17 @@ function writeArchiveIndex(report) {
     if (manifest.schema !== ARTIFACT_SCHEMA) continue;
     const generatedAt = parseDate(manifest.generatedAt || fs.statSync(manifestPath).mtime.toISOString(), `${manifestPath} generatedAt`);
     const sourceAction = (report.actions || []).find((item) => item.archivePath === dir);
+    const previousEntry = previousEntriesByDir.get(dir) || {};
     entries.push({
       archiveDir: dir,
       name: path.basename(dir),
+      archiveBaseName: sourceAction?.archiveBaseName || previousEntry.archiveBaseName || path.basename(dir),
+      archiveSequence: sourceAction?.archiveSequence || previousEntry.archiveSequence || 1,
+      duplicateOf: sourceAction?.duplicateOf || previousEntry.duplicateOf || "",
       manifestPath,
-      sourceArtifactDir: sourceAction?.artifactDir || "",
+      sourceArtifactDir: sourceAction?.artifactDir || previousEntry.sourceArtifactDir || "",
+      firstArchivedAt: previousEntry.firstArchivedAt || (sourceAction ? report.generatedAt : previousIndex?.generatedAt || report.generatedAt),
+      lastIndexedAt: report.generatedAt,
       generatedAt: generatedAt.toISOString(),
       ageDays: round((parseDate(report.now, "report.now").getTime() - generatedAt.getTime()) / DAY_MS),
       screenshotCount: manifest.screenshotCount ?? 0,
@@ -250,6 +264,20 @@ function writeArchiveIndex(report) {
     generatedAt: new Date().toISOString(),
     maintenanceReportGeneratedAt: report.generatedAt,
     archiveDir: report.archiveDir,
+    duplicatePolicy: "append numeric suffix to preserve existing archives",
+    history: [
+      ...(Array.isArray(previousIndex?.history) ? previousIndex.history : []),
+      {
+        maintenanceReportGeneratedAt: report.generatedAt,
+        artifactRoot: report.artifactRoot,
+        archiveActions: report.summary.archive,
+        cleanupActions: report.summary.cleanup,
+        expiredArtifacts: report.summary.expiredArtifacts,
+        archiveNames: (report.actions || [])
+          .filter((item) => item.action === "archive" && item.archivePath)
+          .map((item) => path.basename(item.archivePath)),
+      },
+    ],
     entries: entries.sort((a, b) => a.name.localeCompare(b.name)),
   };
   const jsonPath = path.join(report.archiveDir, "ui-visual-artifact-archive-index.json");
@@ -264,6 +292,17 @@ function writeArchiveIndex(report) {
   };
 }
 
+function readArchiveIndex(archiveDir) {
+  const indexPath = path.join(archiveDir, "ui-visual-artifact-archive-index.json");
+  if (!fs.existsSync(indexPath)) return null;
+  try {
+    const parsed = JSON.parse(fs.readFileSync(indexPath, "utf8"));
+    return parsed.schema === ARCHIVE_INDEX_SCHEMA ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 function buildArchiveIndexMarkdown(index) {
   const lines = [
     "# UI Visual Artifact Archive Index",
@@ -271,13 +310,23 @@ function buildArchiveIndexMarkdown(index) {
     `- schema: ${index.schema}`,
     `- generatedAt: ${index.generatedAt}`,
     `- archiveDir: ${index.archiveDir}`,
+    `- duplicatePolicy: ${index.duplicatePolicy}`,
     `- entries: ${index.entries.length}`,
+    `- history: ${index.history.length}`,
     "",
-    "| Archive | Generated At | Age Days | Screenshots | Source Artifact |",
-    "| --- | --- | --- | --- | --- |",
+    "| Archive | Base Name | Sequence | Duplicate Of | Generated At | Age Days | Screenshots | Source Artifact |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- |",
   ];
   for (const item of index.entries) {
-    lines.push(`| ${sanitizeMarkdownCell(item.name)} | ${sanitizeMarkdownCell(item.generatedAt)} | ${item.ageDays} | ${item.screenshotCount} | ${sanitizeMarkdownCell(path.basename(item.sourceArtifactDir || ""))} |`);
+    lines.push(`| ${sanitizeMarkdownCell(item.name)} | ${sanitizeMarkdownCell(item.archiveBaseName || "")} | ${item.archiveSequence || 1} | ${sanitizeMarkdownCell(item.duplicateOf || "")} | ${sanitizeMarkdownCell(item.generatedAt)} | ${item.ageDays} | ${item.screenshotCount} | ${sanitizeMarkdownCell(path.basename(item.sourceArtifactDir || ""))} |`);
+  }
+  lines.push("");
+  lines.push("## History");
+  lines.push("");
+  lines.push("| Maintenance Report | Archive Actions | Cleanup Actions | Expired Artifacts | Archive Names |");
+  lines.push("| --- | --- | --- | --- | --- |");
+  for (const item of index.history || []) {
+    lines.push(`| ${sanitizeMarkdownCell(item.maintenanceReportGeneratedAt || "")} | ${item.archiveActions ?? 0} | ${item.cleanupActions ?? 0} | ${item.expiredArtifacts ?? 0} | ${sanitizeMarkdownCell((item.archiveNames || []).join(", "))} |`);
   }
   lines.push("");
   return `${lines.join("\n")}\n`;

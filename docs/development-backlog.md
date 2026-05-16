@@ -547,6 +547,7 @@ PR template과 정적 verifier를 연결했습니다.
 - JSON/Markdown report schema는 `media-server.ui-visual-artifact-maintenance.v1`입니다.
 - Markdown report에는 PR 본문에 붙일 `PR Summary` 섹션을 포함해 decision, mode, expired artifact 수, archive/cleanup 예정 수를 요약합니다.
 - `--apply` archive 생성 시 `media-server.ui-visual-artifact-archive-index.v1` schema의 `ui-visual-artifact-archive-index.json`과 Markdown index를 archive directory에 남깁니다.
+- archive index는 apply 실행 `history`를 누적하고, 중복 archive directory 이름은 숫자 suffix와 `archiveSequence`, `duplicateOf`로 기록합니다.
 - `verify-ui-visual-artifact-index`가 dry-run/apply fixture를 임시 디렉터리에서 검증합니다.
 - preflight CI가 `--apply` 없이 dry-run report를 만들고 `media-server-ui-visual-maintenance-dry-run` artifact로 업로드합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
@@ -574,6 +575,18 @@ PR template과 정적 verifier를 연결했습니다.
 - index entry는 archive dir, manifest path, 원본 artifact dir, generatedAt, ageDays, screenshot count, retention policy를 포함합니다.
 - maintenance report Markdown도 생성된 archive index 경로를 표시합니다.
 - `verify-ui-visual-artifact-index`가 apply fixture에서 archive index JSON/Markdown을 검증합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
+### UI artifact archive index 누적/중복 정책 후속 종료 판정
+
+2026-05-16 기준 archive index가 apply 실행 이력과 중복 archive name 처리 내역을 함께 남깁니다.
+
+확인됨:
+
+- archive index JSON/Markdown에 apply 실행 `history`를 누적합니다.
+- 같은 artifact directory 이름이 이미 archive에 있으면 기존 archive를 덮어쓰지 않고 숫자 suffix를 붙입니다.
+- index entry는 `archiveBaseName`, `archiveSequence`, `duplicateOf`, `firstArchivedAt`, `lastIndexedAt`을 포함합니다.
+- `verify-ui-visual-artifact-index`가 `expired-artifact`와 `expired-artifact-2` fixture로 중복 정책을 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
 ### Visual baseline PR comment generator 후속 종료 판정

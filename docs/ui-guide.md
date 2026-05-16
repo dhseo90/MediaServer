@@ -398,6 +398,9 @@ Ops/Client/Lab API guard를 확인합니다.
   `--apply`로 archive가 생성되면 archive directory에
   `media-server.ui-visual-artifact-archive-index.v1` schema의
   `ui-visual-artifact-archive-index.json`과 Markdown index도 함께 남깁니다.
+  index는 apply 실행 `history`를 누적하고, 같은 artifact directory 이름이 이미
+  archive에 있으면 숫자 suffix를 붙인 뒤 `duplicatePolicy`, `archiveSequence`,
+  `duplicateOf`로 중복 처리 내역을 남깁니다.
   CI preflight는 `media-server-ui-visual-maintenance-dry-run` artifact로 dry-run
   JSON/Markdown report를 업로드하며 삭제를 수행하지 않습니다.
 - `visual-regression-manifest.json`에는

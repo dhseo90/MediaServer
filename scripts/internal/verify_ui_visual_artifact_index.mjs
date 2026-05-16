@@ -332,6 +332,9 @@ check("visual artifact maintenance command is wired and documented", () => {
     "media-server.ui-visual-artifact-maintenance.v1",
     "media-server.ui-visual-artifact-archive-index.v1",
     "ui-visual-artifact-archive-index.json",
+    "duplicatePolicy",
+    "archiveSequence",
+    "history",
     "PR Summary",
   ]) {
     assert(docs.includes(snippet), `docs missing visual artifact maintenance snippet: ${snippet}`);
@@ -346,6 +349,10 @@ check("visual artifact maintenance command is wired and documented", () => {
     "media-server.ui-visual-artifact-archive-index.v1",
     "ui-visual-artifact-archive-index.json",
     "buildArchiveIndexMarkdown",
+    "uniqueArchiveTarget",
+    "duplicatePolicy",
+    "archiveSequence",
+    "duplicateOf",
   ]) {
     assert(maintenanceScript.includes(snippet), `maintenance script missing snippet: ${snippet}`);
   }
@@ -524,16 +531,55 @@ check("visual artifact maintenance fixture", () => {
   assert(fs.existsSync(archiveIndexMarkdownPath), "maintenance archive index Markdown missing");
   const archiveIndex = JSON.parse(fs.readFileSync(archiveIndexPath, "utf8"));
   assert(archiveIndex.schema === "media-server.ui-visual-artifact-archive-index.v1", "maintenance archive index schema mismatch");
+  assert(archiveIndex.duplicatePolicy === "append numeric suffix to preserve existing archives", "maintenance archive index duplicate policy mismatch");
+  assert(Array.isArray(archiveIndex.history) && archiveIndex.history.length === 1, "maintenance archive index history mismatch");
   assert(Array.isArray(archiveIndex.entries) && archiveIndex.entries.length === 1, "maintenance archive index entries mismatch");
   assert(archiveIndex.entries[0].name === "expired-artifact", `maintenance archive index entry mismatch: ${archiveIndex.entries[0]?.name}`);
+  assert(archiveIndex.entries[0].archiveSequence === 1, `maintenance archive index sequence mismatch: ${archiveIndex.entries[0]?.archiveSequence}`);
+  assert(archiveIndex.entries[0].duplicateOf === "", `maintenance archive index duplicate mismatch: ${archiveIndex.entries[0]?.duplicateOf}`);
   const archiveIndexMarkdown = fs.readFileSync(archiveIndexMarkdownPath, "utf8");
   assert(archiveIndexMarkdown.includes("UI Visual Artifact Archive Index"), "maintenance archive index Markdown title missing");
+  assert(archiveIndexMarkdown.includes("duplicatePolicy"), "maintenance archive index Markdown duplicate policy missing");
+  assert(archiveIndexMarkdown.includes("## History"), "maintenance archive index Markdown history missing");
   assert(archiveIndexMarkdown.includes("expired-artifact"), "maintenance archive index Markdown entry missing");
   assert(fs.existsSync(reportPath), "maintenance JSON report missing");
   assert(fs.existsSync(markdownPath), "maintenance Markdown report missing");
   const appliedMarkdown = fs.readFileSync(markdownPath, "utf8");
   assert(appliedMarkdown.includes("Decision: APPLIED"), "maintenance apply Markdown decision missing");
   assert(appliedMarkdown.includes("ui-visual-artifact-archive-index.json"), "maintenance apply Markdown archive index missing");
+
+  fs.mkdirSync(expiredDir, { recursive: true });
+  fs.writeFileSync(path.join(expiredDir, "ops-home-320.png"), "expired-again\n");
+  writeVisualArtifactIndex({
+    outputDir: expiredDir,
+    title: "Maintenance Fixture Duplicate",
+    command: "./server.sh verify-ops-client-ui --screenshots",
+    httpBase: "http://127.0.0.1:8081",
+    visualWidths: [320],
+    visualHeight: 900,
+    checks: [{ name: "ops-home", path: "/ops/home", visualSelector: '[data-testid="ops-home-page"]' }],
+  });
+  setManifestGeneratedAt(path.join(expiredDir, "visual-regression-manifest.json"), "2026-04-02T00:00:00Z");
+  const duplicateApplied = manageUiVisualArtifacts({
+    artifactRoot,
+    archiveDir,
+    report: path.join(outputDir, "maintenance-duplicate-report.json"),
+    markdownReport: path.join(outputDir, "maintenance-duplicate-report.md"),
+    apply: true,
+    now: "2026-05-16T00:00:00Z",
+  });
+  assert(duplicateApplied.archiveIndex?.entries === 2, `maintenance duplicate archive index count mismatch: ${duplicateApplied.archiveIndex?.entries}`);
+  assert(fs.existsSync(path.join(archiveDir, "expired-artifact-2", "visual-regression-manifest.json")), "maintenance duplicate archive copy missing manifest");
+  const duplicateIndex = JSON.parse(fs.readFileSync(archiveIndexPath, "utf8"));
+  assert(Array.isArray(duplicateIndex.history) && duplicateIndex.history.length === 2, "maintenance duplicate archive history mismatch");
+  const duplicateEntry = duplicateIndex.entries.find((entry) => entry.name === "expired-artifact-2");
+  assert(duplicateEntry, "maintenance duplicate archive index entry missing");
+  assert(duplicateEntry.archiveBaseName === "expired-artifact", `maintenance duplicate base name mismatch: ${duplicateEntry.archiveBaseName}`);
+  assert(duplicateEntry.archiveSequence === 2, `maintenance duplicate sequence mismatch: ${duplicateEntry.archiveSequence}`);
+  assert(duplicateEntry.duplicateOf === "expired-artifact", `maintenance duplicate marker mismatch: ${duplicateEntry.duplicateOf}`);
+  const duplicateMarkdown = fs.readFileSync(archiveIndexMarkdownPath, "utf8");
+  assert(duplicateMarkdown.includes("expired-artifact-2"), "maintenance duplicate archive Markdown entry missing");
+  assert(duplicateMarkdown.includes("| expired-artifact-2 | expired-artifact | 2 | expired-artifact |"), "maintenance duplicate archive Markdown policy row missing");
 });
 
 let failCount = 0;
