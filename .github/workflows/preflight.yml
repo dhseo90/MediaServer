@@ -57,6 +57,12 @@ jobs:
         shell: bash
         run: |
           ./server.sh verify-ui-visual-artifact-index --output-dir artifacts/ui-visual-maintenance-fixture/fresh
+          mkdir -p artifacts/ui-visual-baseline-diff
+          cp artifacts/ui-visual-maintenance-fixture/fresh/baseline-diff/visual-baseline-diff.json artifacts/ui-visual-baseline-diff/visual-baseline-diff.json
+          cp artifacts/ui-visual-maintenance-fixture/fresh/baseline-diff/visual-baseline-diff.md artifacts/ui-visual-baseline-diff/visual-baseline-diff.md
+          ./server.sh write-ui-visual-baseline-comment \
+            --diff-report artifacts/ui-visual-baseline-diff/visual-baseline-diff.json \
+            --output artifacts/ui-visual-baseline-diff/visual-baseline-comment.md
           ./server.sh ui-visual-artifact-maintenance \
             --artifact-root artifacts/ui-visual-maintenance-fixture \
             --archive-dir artifacts/ui-visual-maintenance-archive \
@@ -72,4 +78,15 @@ jobs:
           path: |
             artifacts/ui-visual-maintenance-report.json
             artifacts/ui-visual-maintenance-report.md
+          if-no-files-found: ignore
+
+      - name: Upload UI visual baseline diff preflight artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: media-server-ui-visual-baseline-diff
+          path: |
+            artifacts/ui-visual-baseline-diff/visual-baseline-diff.json
+            artifacts/ui-visual-baseline-diff/visual-baseline-diff.md
+            artifacts/ui-visual-baseline-diff/visual-baseline-comment.md
           if-no-files-found: ignore

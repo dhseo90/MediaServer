@@ -537,6 +537,19 @@ PR template과 정적 verifier를 연결했습니다.
 - `verify-ui-visual-artifact-index`가 review-required fixture에서 comment helper 출력을 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Visual baseline diff preflight artifact 후속 종료 판정
+
+2026-05-16 기준 preflight CI가 visual baseline diff/comment 산출물을 PR artifact로 업로드합니다.
+
+확인됨:
+
+- preflight는 `verify-ui-visual-artifact-index` fixture가 만든 `baseline-diff` 결과를 `artifacts/ui-visual-baseline-diff`에 복사합니다.
+- `write-ui-visual-baseline-comment`로 `visual-baseline-comment.md`를 생성합니다.
+- Actions artifact 이름은 `media-server-ui-visual-baseline-diff`이며 `visual-baseline-diff.json`, `visual-baseline-diff.md`, `visual-baseline-comment.md`를 포함합니다.
+- 이 preflight artifact는 helper 출력 형식 검증용이며, 실제 화면 candidate 비교는 별도 `compare-ui-visual-baseline` 산출물로 남깁니다.
+- `verify-ui-visual-artifact-index`와 `verify-actions-security`가 workflow 연결을 정적으로 검증합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ### Release baseline artifact role 후속 종료 판정
 
 2026-05-16 기준 release baseline artifact의 역할을 release/visual review 문서와 PR template에 명시했습니다.

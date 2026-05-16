@@ -380,6 +380,10 @@ Ops/Client/Lab API guard를 확인합니다.
 - PR comment 본문이 필요하면
   `./server.sh write-ui-visual-baseline-comment --diff-report <visual-baseline-diff.json> --output <comment.md>`
   로 `UI Visual Baseline Diff` 제목의 decision, failed/review count, attention item table을 생성합니다.
+- CI preflight는 정적 fixture 기준 `media-server-ui-visual-baseline-diff`
+  artifact로 `visual-baseline-diff.json`, `visual-baseline-diff.md`,
+  `visual-baseline-comment.md`를 업로드해 PR에서 baseline diff/comment 출력 형식을
+  바로 확인하게 합니다.
 - 오래된 UI artifact 보관/정리는
   `./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>`
   로 먼저 dry-run합니다. 실제 복사/삭제는 `--apply`를 명시한 경우에만 수행하며,

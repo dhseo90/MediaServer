@@ -284,6 +284,29 @@ check("visual baseline comment helper is wired and documented", () => {
   }
 });
 
+check("visual baseline diff preflight artifact is wired", () => {
+  const preflight = fs.readFileSync(path.join(rootDir, ".github/workflows/preflight.yml"), "utf8");
+  for (const snippet of [
+    "artifacts/ui-visual-baseline-diff",
+    "write-ui-visual-baseline-comment",
+    "visual-baseline-comment.md",
+    "Upload UI visual baseline diff preflight artifact",
+    "media-server-ui-visual-baseline-diff",
+    "visual-baseline-diff.json",
+    "visual-baseline-diff.md",
+    "actions/upload-artifact@v4",
+  ]) {
+    assert(preflight.includes(snippet), `preflight missing visual baseline diff artifact snippet: ${snippet}`);
+  }
+  for (const snippet of [
+    "media-server-ui-visual-baseline-diff",
+    "visual-baseline-comment.md",
+    "preflight CI",
+  ]) {
+    assert(docs.includes(snippet), `docs missing visual baseline diff preflight snippet: ${snippet}`);
+  }
+});
+
 check("visual artifact maintenance command is wired and documented", () => {
   const inventory = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_script_inventory.mjs"), "utf8");
   const preflight = fs.readFileSync(path.join(rootDir, ".github/workflows/preflight.yml"), "utf8");
