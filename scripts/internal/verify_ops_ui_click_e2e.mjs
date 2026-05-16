@@ -186,11 +186,23 @@ async function runOpsClickFlow(browser, context) {
   await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
   await assertVisible(browser, "#dashIncidentTimelineSearch", "인시던트 검색 입력");
   await setTextValue(browser, "#dashIncidentTimelineSearch", "__no_match__", "인시던트 검색 no-match");
+  await assertHashParam(browser, "incidentQ", "__no_match__", "인시던트 검색 hash 저장");
   await assertText(browser, "#dashIncidentTimelineText", "필터에 맞는", "인시던트 필터 no-match 문구");
   await setTextValue(browser, "#dashIncidentTimelineSearch", "", "인시던트 검색 초기화");
+  await assertHashParamAbsent(browser, "incidentQ", "인시던트 검색 hash 초기화");
   await setSelectValue(browser, "#dashIncidentTimelineSource", "event-record", "인시던트 출처 필터");
+  await assertHashParam(browser, "incidentSource", "event-record", "인시던트 출처 hash 저장");
   await assertText(browser, "#dashIncidentTimelineBadges", "필터 결과", "인시던트 출처 필터 badge");
+  await navigatePath(browser, "/ops/dashboard#incidentQ=event&incidentSource=event-record");
+  await installErrorCollector(browser);
+  await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
+  await assertFormValue(browser, "#dashIncidentTimelineSearch", "event", "인시던트 검색 deeplink");
+  await assertFormValue(browser, "#dashIncidentTimelineSource", "event-record", "인시던트 출처 deeplink");
+  await assertText(browser, "#dashIncidentTimelineBadges", "필터 결과", "인시던트 deeplink 필터 badge");
+  await setTextValue(browser, "#dashIncidentTimelineSearch", "", "인시던트 deeplink 검색 초기화");
   await setSelectValue(browser, "#dashIncidentTimelineSource", "", "인시던트 출처 필터 초기화");
+  await assertHashParamAbsent(browser, "incidentQ", "인시던트 deeplink 검색 hash 초기화");
+  await assertHashParamAbsent(browser, "incidentSource", "인시던트 deeplink 출처 hash 초기화");
   await assertNoOverflow(browser, `${context.label}:dashboard-incident-filter`);
   await clickSelector(browser, "[data-root-cause-kind]", "문제 원인 다음 조치");
   await assertVisible(browser, "#dashRootCauseActionOutput", "문제 원인 조치 결과");
@@ -474,6 +486,12 @@ async function assertReady(browser, path, selector) {
   await assertVisible(browser, selector, `${path} root`);
 }
 
+async function navigatePath(browser, pathValue) {
+  const url = new URL(pathValue, `${httpBase}/`).toString();
+  await browser.cdp("Page.navigate", { url });
+  await waitForPath(browser, new URL(url).pathname);
+}
+
 async function assertEnabled(browser, selector, description) {
   await waitForResult(
     browser,
@@ -638,6 +656,37 @@ async function assertFormValueContains(browser, selector, expected, description)
         const node = document.querySelector(${JSON.stringify(selector)});
         const value = String(node?.value || '');
         return { ok: value.includes(${JSON.stringify(expected)}), value };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  return result;
+}
+
+async function assertHashParam(browser, key, expected, description) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const params = new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
+        const value = String(params.get(${JSON.stringify(key)}) || '');
+        return { ok: value === ${JSON.stringify(expected)}, value, hash: window.location.hash };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  return result;
+}
+
+async function assertHashParamAbsent(browser, key, description) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const params = new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
+        return { ok: !params.has(${JSON.stringify(key)}), hash: window.location.hash };
       })()
     `,
     item => item?.ok === true,

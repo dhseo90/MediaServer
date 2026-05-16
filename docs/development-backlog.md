@@ -208,6 +208,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - `/ops/dashboard`의 `최근 인시던트 흐름` 패널에 검색 input과 출처 필터를 추가했습니다.
 - 필터 대상은 문제 원인, EventRecord, Source Health, Log tail 단서이며 API schema와 payload는 변경하지 않았습니다.
 - 필터 결과 badge와 no-match empty copy를 추가했고, 390px/1180px click E2E에서 검색/출처 필터 조작을 확인했습니다.
+- 검색/출처 필터는 `incidentQ`, `incidentSource` hash parameter로 저장되어 새로고침과 직접 링크에서 같은 필터 상태를 복원합니다.
 - `verify-ops-root-cause-panel`, `verify-ops-client-ui`, `verify-ops-client-ui --screenshots`, `verify-ops-click-e2e`가 필터 selector와 overflow를 검증합니다.
 
 범위 밖:

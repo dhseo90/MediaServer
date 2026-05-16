@@ -1866,10 +1866,56 @@ void AppendOpsShellScript(std::ostringstream& out,
         return Number.isFinite(numeric) ? numeric : 0;
       };
       let dashboardIncidentTimelineCache = { rootItems: [], eventsStatus: {}, diagnosticLog: {}, sourceHealth: {} };
+      const dashboardIncidentHashKeys = { query: 'incidentQ', source: 'incidentSource' };
+      const dashboardIncidentHashState = () => {
+        const params = opsHashParams();
+        const hasQuery = params.has(dashboardIncidentHashKeys.query);
+        const hasSource = params.has(dashboardIncidentHashKeys.source);
+        return {
+          query: hasQuery ? String(params.get(dashboardIncidentHashKeys.query) || '').trim() : null,
+          source: hasSource ? String(params.get(dashboardIncidentHashKeys.source) || '').trim() : null,
+          hasIncidentFilter: hasQuery || hasSource
+        };
+      };
+      const syncDashboardIncidentFilterFromHash = (options = {}) => {
+        const hashState = dashboardIncidentHashState();
+        if (!hashState.hasIncidentFilter && options.force !== true) return false;
+        let changed = false;
+        const search = document.getElementById('dashIncidentTimelineSearch');
+        const source = document.getElementById('dashIncidentTimelineSource');
+        if (search && (hashState.query !== null || options.force === true)) {
+          const nextQuery = hashState.query || '';
+          if (String(search.value || '') !== nextQuery) {
+            search.value = nextQuery;
+            changed = true;
+          }
+        }
+        if (source && (hashState.source !== null || options.force === true)) {
+          const nextSource = hashState.source || '';
+          if (String(source.value || '') !== nextSource) {
+            source.value = nextSource;
+            changed = true;
+          }
+        }
+        return changed;
+      };
       const dashboardIncidentFilterState = () => ({
         query: String(document.getElementById('dashIncidentTimelineSearch')?.value || '').trim().toLowerCase(),
         source: String(document.getElementById('dashIncidentTimelineSource')?.value || '').trim()
       });
+      const writeDashboardIncidentFilterHash = () => {
+        const filter = dashboardIncidentFilterState();
+        const params = opsHashParams();
+        if (filter.query) params.set(dashboardIncidentHashKeys.query, filter.query);
+        else params.delete(dashboardIncidentHashKeys.query);
+        if (filter.source) params.set(dashboardIncidentHashKeys.source, filter.source);
+        else params.delete(dashboardIncidentHashKeys.source);
+        const nextHash = params.toString();
+        const baseUrl = `${window.location.pathname}${window.location.search || ''}`;
+        const nextUrl = nextHash ? `${baseUrl}#${nextHash}` : baseUrl;
+        const currentUrl = `${window.location.pathname}${window.location.search || ''}${window.location.hash || ''}`;
+        if (currentUrl !== nextUrl) window.history.replaceState(null, '', nextUrl);
+      };
       const dashboardIncidentSourceKey = item => {
         const source = String(item?.source || '').toLowerCase();
         if (source.includes('eventrecord')) return 'event-record';
@@ -1896,6 +1942,15 @@ void AppendOpsShellScript(std::ostringstream& out,
       const rerenderDashboardIncidentTimelineFromCache = () => {
         const cache = dashboardIncidentTimelineCache || {};
         renderDashboardIncidentTimeline(cache.rootItems, cache.eventsStatus, cache.diagnosticLog, cache.sourceHealth, { preserveCache: true });
+      };
+      const handleDashboardIncidentFilterChange = () => {
+        writeDashboardIncidentFilterHash();
+        rerenderDashboardIncidentTimelineFromCache();
+      };
+      const handleDashboardIncidentHashChange = () => {
+        if (syncDashboardIncidentFilterFromHash({ force: true })) {
+          rerenderDashboardIncidentTimelineFromCache();
+        }
       };
       const dashboardIncidentTimelineItems = (rootItems = [], eventsStatus = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const rootTimeline = (Array.isArray(rootItems) ? rootItems : [])
@@ -1981,6 +2036,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (!options.preserveCache) {
           dashboardIncidentTimelineCache = { rootItems, eventsStatus, diagnosticLog, sourceHealth };
         }
+        syncDashboardIncidentFilterFromHash();
         const allItems = dashboardIncidentTimelineItems(rootItems, eventsStatus, diagnosticLog, sourceHealth);
         const filter = dashboardIncidentFilterState();
         const items = allItems.filter(item => dashboardIncidentMatchesFilter(item, filter));
@@ -5495,8 +5551,10 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsRulesComposerClose')?.addEventListener('click', () => closeOpsRulesEditor().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsRulesComposerSave')?.addEventListener('click', () => triggerOpsRulesSave().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsDashboardRefresh')?.addEventListener('click', () => refreshDashboard().catch(error => setText('dashHealthText', error.message)));
-        document.getElementById('dashIncidentTimelineSearch')?.addEventListener('input', () => rerenderDashboardIncidentTimelineFromCache());
-        document.getElementById('dashIncidentTimelineSource')?.addEventListener('change', () => rerenderDashboardIncidentTimelineFromCache());
+        syncDashboardIncidentFilterFromHash();
+        document.getElementById('dashIncidentTimelineSearch')?.addEventListener('input', () => handleDashboardIncidentFilterChange());
+        document.getElementById('dashIncidentTimelineSource')?.addEventListener('change', () => handleDashboardIncidentFilterChange());
+        window.addEventListener('hashchange', () => handleDashboardIncidentHashChange());
         document.getElementById('opsEventsRefresh')?.addEventListener('click', () => refreshEvents().catch(error => setText('eventRecordSummary', error.message)));
         document.getElementById('eventRecordsEvidenceSelect')?.addEventListener('change', () => {
           opsEventRecordsOffset = 0;

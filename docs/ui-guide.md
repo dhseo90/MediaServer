@@ -285,6 +285,8 @@ Route 역할:
     correlation id와 함께 확인합니다.
     최근 인시던트 흐름은 기존 runtime/events/source-health/log-tail 응답을
     시간순 운영 단서로 묶고 관련 화면 이동 링크를 제공합니다.
+    검색과 출처 필터는 `incidentQ`, `incidentSource` hash parameter로
+    저장되어 새로고침과 직접 링크에서도 같은 필터 상태를 복원합니다.
     다음 조치 버튼은 source 재검증, registry diff, Event/evidence 진단,
     auth/config 확인, log correlation 필터를 즉시 실행합니다.
     Live VA Event Quality panel은 active analysis tap의 state-dump/metrics를
