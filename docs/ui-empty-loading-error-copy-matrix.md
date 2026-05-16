@@ -29,6 +29,7 @@ updated: 2026-05-16
 
 - 정적 검증: `./server.sh verify-ui-copy-matrix`
 - 언어 parity: `./server.sh verify-ui-copy-i18n-parity`
+- Client Live tile 숨김 접근성 문구 snapshot: `test/fixtures/client_live_tile_a11y_i18n_snapshot.json`
 - UI smoke: `./server.sh verify-ops-client-ui`
 - 시각 회귀: `./server.sh verify-ops-client-ui --screenshots`
 - 문서 링크: `./server.sh verify-docs-links`

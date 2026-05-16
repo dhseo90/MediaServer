@@ -296,6 +296,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 
 - 최근 추가한 incident timeline, source health audit link, client live tile keyboard aria-label 문구의 English map을 보강했습니다.
 - `verify-ui-copy-i18n-parity`가 translation map, 반복 tile aria-label pattern, matrix 문서, server entrypoint를 검증합니다.
+- `test/fixtures/client_live_tile_a11y_i18n_snapshot.json`으로 Client Live tile 숨김 접근성 문구의 한국어/영어 기대값을 고정합니다.
 - 제품 API schema, Event POST/WebRTC DataChannel/SSE/WS metadata schema는 변경하지 않았습니다.
 
 ### Product shell component examples 후속 종료 판정
@@ -584,6 +585,17 @@ PR template과 정적 verifier를 연결했습니다.
 - `verify-ops-client-ui --screenshots`의 client live keyboard smoke가 `aria-describedby` 연결을 확인합니다.
 - 숨김 상태 요약의 `data-role="a11y-status"`, `aria-live="polite"`, `aria-atomic="true"`, `sr-only` 스타일을 검사합니다.
 - 상태 요약에 타일 번호, 상태, 연결, 트랙, 이벤트, metadata, 재시도 문구가 포함되는지 확인합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
+### Client Live 접근성 문구 다국어 snapshot 후속 종료 판정
+
+2026-05-16 기준 Client Live tile 숨김 접근성 상태 문구의 한국어/영어 기대값을 snapshot fixture로 고정했습니다.
+
+확인됨:
+
+- `test/fixtures/client_live_tile_a11y_i18n_snapshot.json`에 기본 타일 상태 요약의 Korean/English copy를 기록했습니다.
+- `채널 미선택`, 상태, 연결, 트랙, 이벤트, 메타데이터, 재시도 문구가 English translation map/pattern으로 유지되는지 `verify-ui-copy-i18n-parity`가 확인합니다.
+- `docs/ui-empty-loading-error-copy-matrix.md`가 해당 snapshot fixture와 검증 명령을 연결합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
 ## v1.2.0 시작 전 체크리스트

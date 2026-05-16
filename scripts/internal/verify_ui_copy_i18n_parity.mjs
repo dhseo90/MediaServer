@@ -41,6 +41,7 @@ check("product translation map includes recent UI copy", () => {
     "'재연결': 'Reconnect'",
     "'정지': 'Stop'",
     "'보기 방식': 'View mode'",
+    "'채널 미선택': 'No channel selected'",
   ];
   for (const snippet of required) {
     assert(js.includes(snippet), `translation map missing snippet: ${snippet}`);
@@ -63,10 +64,44 @@ check("product translation patterns include repeated live tile labels", () => {
   }
 });
 
+check("client live tile a11y i18n snapshot is pinned", () => {
+  const js = readText("src/ingress/product_ui_js.cpp");
+  const clientScript = readText("src/ingress/product_ui_page_scripts.cpp");
+  const fixture = JSON.parse(readText("test/fixtures/client_live_tile_a11y_i18n_snapshot.json"));
+  assert(fixture.schema === "media-server.client-live-tile-a11y-i18n-snapshot.v1", "snapshot schema mismatch");
+  assert(clientScript.includes("liveTileA11yStatus"), "client live script missing liveTileA11yStatus");
+  for (const value of fixture.requiredKoreanParts || []) {
+    assert(fixture.korean.includes(value), `snapshot Korean text missing part: ${value}`);
+  }
+  for (const value of fixture.requiredEnglishParts || []) {
+    assert(fixture.english.includes(value), `snapshot English text missing part: ${value}`);
+  }
+  for (const snippet of [
+    "'채널 미선택': 'No channel selected'",
+    "'오프라인': 'Offline'",
+    "'연결 끊김': 'Disconnected'",
+    "'트랙': 'Tracks'",
+    "'이벤트': 'Events'",
+    "'메타데이터': 'Metadata'",
+    "'미제공': 'Not provided'",
+    "'재시도': 'Retry'",
+    "^타일\\s+(\\d+):\\s+(.+)$",
+    "^상태\\s+(.+)$",
+    "^연결\\s+(.+)$",
+    "^트랙\\s+(.+)$",
+    "^이벤트\\s+(.+)$",
+    "^메타데이터\\s+(.+)$",
+    "^재시도\\s+(\\d+)$",
+  ]) {
+    assert(js.includes(snippet), `snapshot translation support missing snippet: ${snippet}`);
+  }
+});
+
 check("copy matrix references i18n parity verifier", () => {
   const doc = readText("docs/ui-empty-loading-error-copy-matrix.md");
   const backlog = readText("docs/development-backlog.md");
   assert(doc.includes("./server.sh verify-ui-copy-i18n-parity"), "copy matrix doc missing i18n verifier");
+  assert(doc.includes("client_live_tile_a11y_i18n_snapshot.json"), "copy matrix doc missing client live a11y i18n snapshot");
   assert(backlog.includes("UI copy Korean/English parity"), "backlog missing i18n parity closure");
 });
 
