@@ -86,6 +86,16 @@ major update를 적용하려면 workflow 권한, upstream changelog, pin 전략�
 - verify-bundle-policy: pass
 - verify-release-bundle-dry-run: pass
 
+## Not Run / Unverified
+
+- GitHub Actions status check:
+- Longrun / soak:
+- Real ONVIF device field smoke:
+- YouTube real URL relay:
+- External TURN/WHEP credential operations:
+
+Do not list an item as pass unless it was actually executed for this release cut.
+
 ## Notes
 
 - FFmpeg/GStreamer runtime은 사용자 설치 의존성입니다.

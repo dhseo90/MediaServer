@@ -76,7 +76,7 @@ RTSP/WebRTC media path, auth/session contract 변경은 별도 review 없이는 
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- |
 | V121-P0-01 | P0 | Release metadata consistency guard | `VERSION`, `CMakeLists.txt`, README, release/versioning/backlog 문서가 같은 release 기준을 말하는지 자동 점검합니다. v1.2.0에서 발견된 문서 drift를 patch gate로 막습니다. | `git diff --check`, `verify-release-metadata`, `verify-docs-links` |
-| V121-P0-02 | P0 | Post-release smoke reconciliation | GitHub Actions 결과, 로컬 close-out 검증, 미실행 장시간/실장비 항목을 verification history에 분리 기록합니다. 통과하지 않은 항목을 release PASS처럼 쓰지 않는 보고 형식을 고정합니다. | `verify-public-repo-readiness`, `verify-docs-links`, verification history review |
+| V121-P0-02 | P0 | Post-release smoke reconciliation | GitHub Actions 결과, 로컬 close-out 검증, 미실행 장시간/실장비 항목을 verification history에 분리 기록합니다. 통과하지 않은 항목을 release PASS처럼 쓰지 않는 보고 형식을 고정합니다. | `verify-public-repo-readiness`, `verify-docs-links`, `verify-post-release-reconciliation`, verification history review |
 | V121-P0-03 | P0 | Manual UI full-test evidence | `/setup`, `/login`, `/ops/*`, `/client/*` 주요 흐름을 스크립트 결과가 아니라 수동 조작 기록으로 남기는 release checklist를 채웁니다. 발견된 작은 UI 문제만 patch 범위로 다룹니다. | `docs/manual-ui-checklist.md`, `docs/manual-ui-result-template.md`, 수동 브라우저 검수 |
 | V121-P1-01 | P1 | Flaky verifier stabilization | Access approval, rule preview save, clipboard fallback, fixture cleanup, browser route smoke의 재현성 문제를 좁은 test/guard 보강으로 정리합니다. | `verify-ops-click-e2e`, `verify-rule-ui`, `verify-fixture-cleanup-contracts` |
 | V121-P1-02 | P1 | Re-ID WARNING guard hardening | `matrix-ok=True`와 제품 default-on 안정 판정을 혼동하지 않도록 docs/script 출력과 fixture candidate 문구를 더 강하게 고정합니다. | `compare-close-object-tracker`, `verify-reid-advanced-tracking`, docs review |
