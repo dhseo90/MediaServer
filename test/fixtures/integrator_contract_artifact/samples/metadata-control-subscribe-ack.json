@@ -1,0 +1,24 @@
+{
+  "schema": "media-server.va.metadata-control.v1",
+  "action": "subscribe",
+  "subscribed": true,
+  "intervalMs": 1000,
+  "staleAfterMs": 1000,
+  "maxMessages": 2,
+  "streamMaxDurationMs": 7000,
+  "maxMessageBytes": 65536,
+  "maxTracks": 128,
+  "maxEvents": 3,
+  "includeSource": true,
+  "includeScenarios": true,
+  "includeMetrics": false,
+  "includeTrackingIssueReport": true,
+  "filter": {
+    "eventTypes": [
+      "loitering"
+    ],
+    "scenarioNames": [],
+    "trackIds": [],
+    "zoneIds": []
+  }
+}

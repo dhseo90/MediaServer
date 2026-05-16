@@ -94,6 +94,7 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | Auth, Ops, Client UI flow | [docs/ui-guide.md](docs/ui-guide.md) |
 | RTSP/WebRTC pipeline, source/session, VA layer | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenarios, live events, short evidence | [docs/video-analysis.md](docs/video-analysis.md) |
+| Integrator Event/WebRTC/SSE/WS sample bundle | [docs/integrator-contract-artifact.md](docs/integrator-contract-artifact.md) |
 | Current product boundary and v1.2.0 roadmap candidates | [docs/development-backlog.md](docs/development-backlog.md) |
 | Verification commands and release checks | [docs/stream-verification.md](docs/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/distribution-policy.md](docs/distribution-policy.md) |

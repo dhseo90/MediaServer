@@ -111,7 +111,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 | V120-P0-03 | P0 | Source health operator workflow | 완료 | 상태 변화 이력, retryable-only 재검증, Dashboard next action, source health bulk dry-run/partial failure/rollback 경계 정리 | top-level health 상태 모델 추가, client raw diagnostic 노출 |
 | V120-P1-01 | P1 | Client live/dashboard polish | 완료 | multi-view 비교, event/status copy, empty/error/loading 문구, mobile tile 조작 개선 | client wrapper API schema 변경, viewer source locator 노출 |
 | V120-P1-02 | P1 | Rule/Scenario field tuning | 완료 | 현장 샘플 기반 threshold preset, Loitering/ZoneOccupancy 기본값, scenario issue wording 정리 | ScenarioEngine 판단 로직, event type, payload schema 변경 |
-| V120-P1-03 | P1 | Integrator contract artifact | 예정 | Event POST/WebRTC/SSE/WS contract sample bundle 또는 schema artifact 제공 | payload field 추가/삭제, schema identifier 변경 |
+| V120-P1-03 | P1 | Integrator contract artifact | 완료 | Event POST/WebRTC/SSE/WS contract JSON Schema와 synthetic sample bundle 제공. 2026-05-16 기준 artifact manifest/schema/sample 정적 검증과 문서 연결로 종료 | payload field 추가/삭제, schema identifier 변경 |
 | V120-P1-04 | P1 | Account lifecycle policy | 예정 | invite expiry, password reset 문구, user audit export, disable/restore 절차 polish | auth store migration, password/session/token contract 변경 |
 | V120-P2-01 | P2 | Release packaging rehearsal | 조건부 Gate | source-only 기준 유지와 container/offline/binary 후보 dry-run 정책 gate 확인 | runtime/model binary를 실제 release asset에 포함 |
 | V120-P2-02 | P2 | Re-ID/advanced tracking experiment | 실험 | default-off benchmark와 privacy review 기준으로 close-object association 비교 | Re-ID default-on, 대형 tracker 교체, media pipeline blocking risk |
@@ -208,6 +208,37 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 
 실제 현장별 추가 재튜닝은 운영 데이터 확보 후 preset 숫자 조정으로 다루며,
 현재 V120-P1-02의 잔여 이슈로 보지 않습니다.
+
+### V120-P1-03 종료 판정
+
+2026-05-16 기준 V120-P1-03은 Integrator contract artifact 1차 배포 범위에서
+종료합니다.
+
+확인됨:
+
+- `test/fixtures/integrator_contract_artifact/manifest.json`에
+  `media-server.integrator-contract-artifact.v1` artifact manifest를 추가했습니다.
+- Event POST, WebRTC DataChannel, SSE runtime metadata, WebSocket runtime
+  metadata, WebSocket control ack sample과 JSON Schema를 같은 bundle에 묶었습니다.
+- sample은 `sample_h264.mp4`, `demo-client`, `fixture` 같은 합성 값만 사용하고,
+  고객/운영 source URL, LAN IP, credential 원문, token/hash, RTSP/RTSPS URL을
+  포함하지 않는 정책으로 고정했습니다.
+- `docs/integrator-contract-artifact.md`에서 artifact layout, sample data policy,
+  runtime smoke와 artifact 검증의 차이를 분리했습니다.
+- `./server.sh verify-integrator-contract-artifact`가 manifest/schema/sample 일치,
+  금지 노출 후보, 문서/entrypoint 연결을 정적 검증합니다.
+
+범위 밖:
+
+- Event POST/WebRTC DataChannel/SSE/WS metadata payload field 추가/삭제
+- schema identifier 또는 DataChannel label 변경
+- EventRecord/snapshot/clip/evidence bundle을 주요 integration contract로 승격
+- client/viewer source locator, raw JSON, debug counter 노출
+- OpenAPI 기반 VMS/NVR archive/playback/search API
+
+Runtime delivery smoke는 artifact 자체 검증과 분리합니다. Event POST, WebRTC,
+SSE, WebSocket 전송 재검증 여부는 각 verification matrix 명령 실행 결과로만
+보고합니다.
 
 ### V120-P1-08 Ops Dashboard incident timeline 종료 판정
 

@@ -198,6 +198,8 @@ Usage:
                  root/login/ops/client/lab role 기반 route 정책을 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
+  verify-integrator-contract-artifact
+                 integrator 배포용 Event/WebRTC/SSE/WS contract sample bundle을 정적 검증합니다.
   verify-event-post-longrun
                  event POST schema/recovery/선택 queue 검증을 반복 실행합니다.
   verify-longrun-separation
@@ -683,6 +685,10 @@ case "${cmd}" in
   verify-event-post)
     require_internal verify_event_post_dispatch.sh
     exec "${INTERNAL_DIR}/verify_event_post_dispatch.sh" "$@"
+    ;;
+  verify-integrator-contract-artifact)
+    require_internal verify_integrator_contract_artifact.mjs
+    exec "${INTERNAL_DIR}/verify_integrator_contract_artifact.mjs" "$@"
     ;;
   verify-event-post-longrun)
     require_internal verify_event_post_longrun.sh

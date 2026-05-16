@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "media-server.va.event.v1",
+  "title": "MediaServer VA Event POST Payload",
+  "type": "object",
+  "required": [
+    "schema",
+    "eventId",
+    "timestamp",
+    "timestampMs",
+    "source",
+    "rule",
+    "object",
+    "action"
+  ],
+  "properties": {
+    "schema": {
+      "const": "media-server.va.event.v1"
+    },
+    "eventId": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "timestampMs": {
+      "type": "integer"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "key",
+        "profileKey",
+        "sourceKind",
+        "route",
+        "clientId",
+        "pts"
+      ],
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "profileKey": {
+          "type": "string"
+        },
+        "sourceKind": {
+          "type": "string"
+        },
+        "route": {
+          "type": "string"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "pts": {
+          "type": "integer"
+        }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "required": [
+        "id",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
+    "object": {
+      "type": "object",
+      "required": [
+        "trackId",
+        "classId",
+        "class",
+        "confidence",
+        "bbox"
+      ],
+      "properties": {
+        "trackId": {
+          "type": "integer"
+        },
+        "classId": {
+          "type": "integer"
+        },
+        "class": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number"
+        },
+        "bbox": {
+          "$ref": "common.json#/$defs/normalizedBox"
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "required": [
+        "highlight",
+        "post"
+      ],
+      "properties": {
+        "highlight": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "mode",
+            "color",
+            "durationMs"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "mode": {
+              "type": "string"
+            },
+            "color": {
+              "type": "string"
+            },
+            "durationMs": {
+              "type": "integer"
+            }
+          }
+        },
+        "post": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "method",
+            "payloadFormat"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "method": {
+              "const": "POST"
+            },
+            "payloadFormat": {
+              "const": "media-server.va.event.v1"
+            }
+          }
+        }
+      }
+    }
+  }
+}

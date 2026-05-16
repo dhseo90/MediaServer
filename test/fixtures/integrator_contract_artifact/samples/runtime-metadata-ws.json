@@ -1,0 +1,53 @@
+{
+  "schema": "media-server.va.runtime-metadata.v1",
+  "streamId": "sample_h264.mp4",
+  "channelId": "demo-client",
+  "profileKey": "default",
+  "frameId": 43,
+  "pts": 3400000000,
+  "timestampMs": 3400,
+  "videoFramePtsMs": 3400,
+  "analysisPtsMs": 3400,
+  "syncDeltaMs": 0,
+  "syncStatus": "exact",
+  "syncToleranceMs": 120,
+  "metadataSequence": 8,
+  "sentAtMs": 1778911200223,
+  "frameWidth": 1280,
+  "frameHeight": 720,
+  "coordinateSpace": "normalized-frame",
+  "source": {
+    "key": "sample_h264.mp4",
+    "sourceKind": "file",
+    "route": "fixture",
+    "clientId": "demo-client",
+    "vaRuleId": "9301",
+    "profileKey": "default"
+  },
+  "tracks": [],
+  "events": [],
+  "scenarios": [],
+  "metrics": {
+    "enabled": true,
+    "timestampMs": 1778911200223,
+    "channelCount": 1,
+    "totalTrackCount": 0,
+    "activeTrackCount": 0,
+    "lostTrackCount": 0,
+    "reacquiredTrackCount": 0,
+    "terminatedTrackCount": 0,
+    "activeScenarioCount": 0,
+    "activeEventStateCount": 0,
+    "eventEmittedCount": 1,
+    "eventDedupCount": 0,
+    "trackHealth": {
+      "unstableTrackCount": 0,
+      "overlapRiskTrackCount": 0,
+      "missedFrameTotal": 0,
+      "missedFrameMax": 0,
+      "directionChangeTotal": 0,
+      "directionChangeMax": 0
+    }
+  },
+  "trackingIssueReport": null
+}

@@ -14,6 +14,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | UI and account views | [../ui-guide.md](../ui-guide.md) |
 | Architecture | [../media-server-architecture.md](../media-server-architecture.md) |
 | Video analytics | [../video-analysis.md](../video-analysis.md) |
+| Integrator contract artifact | [../integrator-contract-artifact.md](../integrator-contract-artifact.md) |
 | Current product boundary and v1.2.0 roadmap candidates | [../development-backlog.md](../development-backlog.md) |
 | Verification | [../stream-verification.md](../stream-verification.md) |
 | Distribution policy | [../distribution-policy.md](../distribution-policy.md) |
@@ -51,6 +52,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | Ops UI stability | Done | Channels/Rules/Users responsive table checks exist |
 | v1.1.0 prerequisite roadmap 1-6 | Done | Live-only boundary, ONVIF live source support, source health, VA quality, delivery contract, and multilingual alignment are closed |
 | v1.1.0 RC stabilization | Done | Final local longrun/P1 release-gate evidence is closed without rerunning prerequisite roadmap 1-6 |
+| v1.2.0 integrator contract artifact | Done | JSON Schema and synthetic samples are available under `test/fixtures/integrator_contract_artifact/` |
 | Audit trail operations | Follow-up phase | Server persistence exists; search/export can improve |
 | Short event evidence | Supporting | EventRecord/snapshot/clip cleanup exists, but it is not the main product direction |
 | RC gate operations | Conditional gate | Repeat longrun only for a new release cut or high-risk media/VA fanout change |
@@ -71,13 +73,14 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 - Real ONVIF network discovery, SOAP probing, credential persistence, and origin metadata migration are field-integration extensions, not RC blockers.
 - Source health is closed at the API/UI/sanitized-client smoke boundary; clients must not receive raw diagnostics.
 - Live VA quality is closed at the timeline/debug, TrackHealth grouping, and preset baseline smoke boundary; field-sample retuning is an operational extension.
-- Live delivery is closed at the Event POST/WebRTC/SSE/WS contract and smoke-matrix boundary; OpenAPI or JSON Schema artifacts are integrator-distribution extensions.
+- Live delivery is closed at the Event POST/WebRTC/SSE/WS contract and smoke-matrix boundary; the v1.2.0 JSON Schema/sample bundle is an integrator-distribution artifact, not a payload mutation.
 - Multilingual alignment is represented in this English index plus the Korean source-of-truth documents, not separate short mirror pages.
 
 ## Verification Entry Points
 
 ```bash
 ./server.sh verify-docs-links
+./server.sh verify-integrator-contract-artifact
 ./server.sh verify-actions-security
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json

@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "media-server.webrtc.va-metadata.v1",
+  "title": "MediaServer WebRTC VA Metadata DataChannel Payload",
+  "type": "object",
+  "required": [
+    "schema",
+    "streamId",
+    "channelId",
+    "profileKey",
+    "frameId",
+    "pts",
+    "timestampMs",
+    "tracks",
+    "events"
+  ],
+  "properties": {
+    "schema": {
+      "const": "media-server.webrtc.va-metadata.v1"
+    },
+    "streamId": {
+      "type": "string"
+    },
+    "channelId": {
+      "type": "string"
+    },
+    "profileKey": {
+      "type": "string"
+    },
+    "frameId": {
+      "type": "integer"
+    },
+    "pts": {
+      "type": "integer"
+    },
+    "timestampMs": {
+      "type": "integer"
+    },
+    "videoFramePtsMs": {
+      "type": "integer"
+    },
+    "analysisPtsMs": {
+      "type": "integer"
+    },
+    "syncDeltaMs": {
+      "type": "integer"
+    },
+    "syncStatus": {
+      "type": "string"
+    },
+    "syncToleranceMs": {
+      "type": "integer"
+    },
+    "metadataSequence": {
+      "type": "integer"
+    },
+    "sentAtMs": {
+      "type": "integer"
+    },
+    "frameWidth": {
+      "type": "integer"
+    },
+    "frameHeight": {
+      "type": "integer"
+    },
+    "coordinateSpace": {
+      "const": "normalized-frame"
+    },
+    "tracks": {
+      "type": "array",
+      "items": {
+        "$ref": "common.json#/$defs/runtimeTrack"
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "common.json#/$defs/runtimeEvent"
+      }
+    }
+  }
+}

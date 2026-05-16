@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Verify that product UI CSS changes stay behind shared design tokens.
+// 파일 용도: product UI CSS 변경이 공통 design token 경계를 벗어나지 않는지 검증한다.
+// 동작 요약: CSS raw color와 문서/서버 command 연결을 정적 검사한다.
 
 import fs from "node:fs";
 import path from "node:path";

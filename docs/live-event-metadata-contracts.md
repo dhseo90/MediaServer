@@ -15,6 +15,7 @@ schema를 변경하지 않고, 각 소비 경로의 역할과 검증 기준을 �
 
 - [Development Backlog](./development-backlog.md)
 - [Video Analysis / VA Guide](./video-analysis.md)
+- [Integrator Contract Artifact](./integrator-contract-artifact.md)
 - [Stream Verification](./stream-verification.md)
 
 ## Document Ownership
@@ -26,6 +27,7 @@ contract 기준 문서입니다. 다른 문서에 같은 schema 예시가 있어
 | 문서 | 역할 |
 | --- | --- |
 | `docs/live-event-metadata-contracts.md` | live event delivery contract, schema 식별자, 변경 금지 기준 |
+| `docs/integrator-contract-artifact.md` | 외부 integrator 배포용 JSON Schema/sample bundle 위치와 artifact 검증 기준 |
 | `docs/video-analysis.md` | VA pipeline, event/scenario 상세, runtime metadata payload 예시 |
 | `docs/stream-verification.md` | 실제 smoke 명령, 보정 서버, 실패/skip 해석 기준 |
 | `docs/media-server-architecture.md` | pipeline 배치와 component boundary |
@@ -73,6 +75,21 @@ runtime metadata 소비를 기준으로 합니다.
 Contract 기준선에서 허용되는 변경은 문서, 검증 명령, 운영 지표 해석을 명확히
 하는 범위입니다. payload field 추가/삭제, event type 이름 변경, source locator
 노출, credential reference 노출은 별도 schema review 없이는 진행하지 않습니다.
+
+### Integrator Distribution Artifact
+
+v1.2.0 integrator 배포용 sample bundle은
+`test/fixtures/integrator_contract_artifact/`에 둡니다. bundle은 JSON Schema와
+synthetic sample payload만 포함하며, 기준 serializer나 runtime payload를 바꾸지
+않습니다. artifact 자체 검증은 아래 명령으로 분리합니다.
+
+```bash
+./server.sh verify-integrator-contract-artifact
+```
+
+이 명령만 실행한 경우에는 Event POST/WebRTC/SSE/WS delivery runtime smoke를
+재검증했다고 보고하지 않습니다. runtime delivery는 verification matrix의 각
+명령을 별도로 실행한 결과로만 판단합니다.
 
 ### Implementation Map
 
@@ -259,6 +276,7 @@ runtime smoke를 실행하지 않았다면 live delivery 자체를 재검증했�
 | 변경 범위 | 최소 검증 | 통과 기준 | 실패/skip 해석 |
 | --- | --- | --- | --- |
 | 문서만 변경 | `git diff --check -- README.md README.en.md docs`, `./server.sh verify-docs-links` | trailing whitespace 없음, local link 실패 없음 | 명령 없음/실행 불가는 중단 후 보고 |
+| Integrator contract artifact | `./server.sh verify-integrator-contract-artifact`, `./server.sh verify-docs-links` | manifest/schema/sample 일치, 금지 노출 후보 없음, 문서/entrypoint 연결 유지 | runtime smoke 미실행이면 delivery 재검증으로 보고하지 않음 |
 | live-only 문구 | `./server.sh verify-v1.1-boundary-keywords` | failure 후보 없음 | review 후보는 사람이 문맥 확인 후 기록 |
 | Event POST disabled/default | `./server.sh verify-event-post --mode disabled` | 기본 서버의 dispatcher disabled 상태 분리 보고 | enabled 상태면 disabled smoke 실패 |
 | Event POST contract | `./server.sh verify-event-post --mode schema` | `media-server.va.event.v1` payload와 `payloadFormat` 유지 | disabled는 enabled smoke 사전 조건 실패이며 보정 서버로 재확인 |

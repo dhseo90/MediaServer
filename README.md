@@ -113,6 +113,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | ONVIF live source 지원과 URL copy parity | [docs/onvif-live-source-support.md](docs/onvif-live-source-support.md) |
 | Live source health/operator workflow 기준 | [docs/live-source-health.md](docs/live-source-health.md) |
 | Event/WebRTC/SSE/WS metadata contract | [docs/live-event-metadata-contracts.md](docs/live-event-metadata-contracts.md) |
+| Integrator contract artifact sample bundle | [docs/integrator-contract-artifact.md](docs/integrator-contract-artifact.md) |
 | Scenario timeline/debug 필드 설계 | [docs/scenario-timeline-debug.md](docs/scenario-timeline-debug.md) |
 | 현재 검증 기준과 실행 명령 | [docs/stream-verification.md](docs/stream-verification.md) |
 | 배포 bundle, container image, third-party runtime 포함 정책 | [docs/distribution-policy.md](docs/distribution-policy.md) |
@@ -216,6 +217,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-script-inventory
 ./server.sh verify-code-comments
 ./server.sh verify-docs-links
+./server.sh verify-integrator-contract-artifact
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-actions-security
 ./server.sh write-dependency-notice --check

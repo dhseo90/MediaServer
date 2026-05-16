@@ -1,4 +1,5 @@
-// Keep /ops/rules preview and docs screenshots on the same rule/profile fixtures.
+// 파일 용도: /ops/rules preview와 문서 screenshot 검증이 같은 rule/profile fixture를 쓰도록 돕는다.
+// 동작 요약: 필요한 profile/rule/VA rule fixture를 생성하고 검증 후 정리할 helper를 제공한다.
 
 export async function ensureRulePreviewPrerequisites({
   httpBase,

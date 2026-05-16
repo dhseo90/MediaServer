@@ -1,0 +1,43 @@
+{
+  "schema": "media-server.va.event.v1",
+  "eventId": "evt_1778911200000_1",
+  "timestamp": "2026-05-16T00:00:00Z",
+  "timestampMs": 1778911200000,
+  "source": {
+    "key": "sample_h264.mp4",
+    "profileKey": "default",
+    "sourceKind": "file",
+    "route": "fixture",
+    "clientId": "demo-client",
+    "pts": 3300000000
+  },
+  "rule": {
+    "id": "9301",
+    "type": "presence"
+  },
+  "object": {
+    "trackId": 1,
+    "classId": 0,
+    "class": "person",
+    "confidence": 0.93,
+    "bbox": {
+      "x": 0.31,
+      "y": 0.18,
+      "width": 0.22,
+      "height": 0.54
+    }
+  },
+  "action": {
+    "highlight": {
+      "enabled": true,
+      "mode": "blink",
+      "color": "#ff0000",
+      "durationMs": 100
+    },
+    "post": {
+      "enabled": true,
+      "method": "POST",
+      "payloadFormat": "media-server.va.event.v1"
+    }
+  }
+}

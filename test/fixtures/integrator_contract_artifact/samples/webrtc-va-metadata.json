@@ -1,0 +1,69 @@
+{
+  "schema": "media-server.webrtc.va-metadata.v1",
+  "streamId": "sample_h264.mp4",
+  "channelId": "demo-client",
+  "profileKey": "default",
+  "frameId": 42,
+  "pts": 3300000000,
+  "timestampMs": 3300,
+  "videoFramePtsMs": 3300,
+  "analysisPtsMs": 3300,
+  "syncDeltaMs": 0,
+  "syncStatus": "exact",
+  "syncToleranceMs": 120,
+  "metadataSequence": 7,
+  "sentAtMs": 1778911200123,
+  "frameWidth": 1280,
+  "frameHeight": 720,
+  "coordinateSpace": "normalized-frame",
+  "tracks": [
+    {
+      "trackId": 1,
+      "bbox": {
+        "x": 0.31,
+        "y": 0.18,
+        "width": 0.22,
+        "height": 0.54
+      },
+      "classId": 0,
+      "className": "person",
+      "confidence": 0.93,
+      "lifecycleState": "Active",
+      "currentZone": "entrance",
+      "previousZone": "",
+      "dwellTimeMs": 1200,
+      "insideRestrictedZone": false,
+      "scenarioName": "loitering",
+      "scenarioPhase": "Watching",
+      "lineState": {
+        "lineId": "line-a",
+        "side": 1,
+        "direction": "none"
+      },
+      "trackHealth": {
+        "status": "stable",
+        "stable": true,
+        "associationConfidence": 0.99,
+        "missedFrameCount": 0,
+        "overlapRisk": 0,
+        "directionChangeCount": 0
+      }
+    }
+  ],
+  "events": [
+    {
+      "eventId": "evt_1778911200000_1",
+      "eventType": "presence",
+      "status": "emitted",
+      "ruleId": "9301",
+      "trackId": 1,
+      "classId": 0,
+      "className": "person",
+      "confidence": 0.93,
+      "zoneId": "entrance",
+      "lineId": "line-a",
+      "scenarioName": "loitering",
+      "scenarioPhase": "Watching"
+    }
+  ]
+}
