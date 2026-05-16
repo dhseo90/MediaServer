@@ -771,6 +771,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       pc: null,
       dataChannel: null,
       iceTimer: null,
+      startNonce: 0,
       status: 'offline',
       connectionStatus: 'offline',
       trackCount: null,
@@ -783,6 +784,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     let selectedLiveTile = views.length > 0 ? 0 : null;
     let liveStatusTimer = null;
     let liveDashboardTimer = null;
+    let liveBulkNonce = 0;
 	    function tileView(tile) {
 	      return viewById(tile?.viewId || '');
 	    }
@@ -1258,6 +1260,15 @@ void AppendClientShellScript(std::ostringstream& out) {
         return new RTCPeerConnection();
       }
     }
+    function isLiveTileStartCurrent(tile, startNonce, pc) {
+      return Boolean(tile) && tile.startNonce === startNonce && (!pc || tile.pc === pc);
+    }
+    async function cleanupClientLiveSession(viewId, sessionId) {
+      if (!viewId || !sessionId) return;
+      await fetch(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session/${encodeURIComponent(sessionId)}`, {
+        method: 'DELETE'
+      }).catch(() => {});
+    }
     async function startLiveTile(index) {
 	      const tile = liveTiles[index];
 	      const view = tileView(tile);
@@ -1277,6 +1288,8 @@ void AppendClientShellScript(std::ostringstream& out) {
         return;
       }
       selectLiveTile(index);
+      const startNonce = (tile.startNonce || 0) + 1;
+      tile.startNonce = startNonce;
       tile.status = 'connecting';
       tile.connectionStatus = 'connecting';
       tile.trackCount = null;
@@ -1284,10 +1297,17 @@ void AppendClientShellScript(std::ostringstream& out) {
       tile.lastMetadataAt = 0;
       tile.lastError = '';
       updateTileDom(tile);
+      let pc = null;
+      let createdSessionId = '';
       try {
-        const pc = await createClientPeerConnection();
+        pc = await createClientPeerConnection();
+        if (!isLiveTileStartCurrent(tile, startNonce)) {
+          try { pc.close(); } catch {}
+          return;
+        }
         tile.pc = pc;
         pc.onconnectionstatechange = () => {
+          if (!isLiveTileStartCurrent(tile, startNonce, pc)) return;
           tile.connectionStatus = pc.connectionState || 'connecting';
           if (['connected', 'completed'].includes(tile.connectionStatus)) tile.status = 'live';
           if (['failed', 'disconnected', 'closed'].includes(tile.connectionStatus)) {
@@ -1297,11 +1317,15 @@ void AppendClientShellScript(std::ostringstream& out) {
           updateTileDom(tile);
         };
         pc.oniceconnectionstatechange = () => {
+          if (!isLiveTileStartCurrent(tile, startNonce, pc)) return;
           tile.connectionStatus = pc.iceConnectionState || tile.connectionStatus;
           updateTileDom(tile);
         };
-        pc.ondatachannel = event => attachTileDataChannel(tile, event.channel);
+        pc.ondatachannel = event => {
+          if (isLiveTileStartCurrent(tile, startNonce, pc)) attachTileDataChannel(tile, event.channel);
+        };
         pc.ontrack = event => {
+          if (!isLiveTileStartCurrent(tile, startNonce, pc)) return;
           const root = document.querySelector(`[data-tile="${tile.index}"]`);
           const video = root?.querySelector('video');
           if (!video) return;
@@ -1313,6 +1337,7 @@ void AppendClientShellScript(std::ostringstream& out) {
           updateTileDom(tile);
         };
         pc.onicecandidate = event => {
+          if (!isLiveTileStartCurrent(tile, startNonce, pc)) return;
           if (!tile.sessionId || !event.candidate) return;
           fetch(clientSessionUrl(tile, '/ice'), {
             method: 'POST',
@@ -1337,20 +1362,42 @@ void AppendClientShellScript(std::ostringstream& out) {
         });
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
-        tile.sessionId = payload.sessionId || '';
-        if (!tile.sessionId || !payload.offer) throw new Error('session offer missing');
+        createdSessionId = payload.sessionId || '';
+        if (!createdSessionId || !payload.offer) throw new Error('session offer missing');
+        if (!isLiveTileStartCurrent(tile, startNonce, pc)) {
+          try { pc.close(); } catch {}
+          await cleanupClientLiveSession(view.viewId, createdSessionId);
+          return;
+        }
+        tile.sessionId = createdSessionId;
         await pc.setRemoteDescription({ type: 'offer', sdp: payload.offer });
+        if (!isLiveTileStartCurrent(tile, startNonce, pc)) {
+          await cleanupClientLiveSession(view.viewId, createdSessionId);
+          return;
+        }
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
+        if (!isLiveTileStartCurrent(tile, startNonce, pc)) {
+          await cleanupClientLiveSession(view.viewId, createdSessionId);
+          return;
+        }
         await fetch(clientSessionUrl(tile, '/answer'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/sdp' },
           body: answer.sdp
         });
+        if (!isLiveTileStartCurrent(tile, startNonce, pc)) {
+          await cleanupClientLiveSession(view.viewId, createdSessionId);
+          return;
+        }
         tile.iceTimer = setInterval(() => pollTileIce(tile).catch(() => {}), 1000);
         updateTileDom(tile);
         refreshSelectedTileDetail();
       } catch (error) {
+        if (!isLiveTileStartCurrent(tile, startNonce, pc)) {
+          await cleanupClientLiveSession(view.viewId, createdSessionId);
+          return;
+        }
         tile.status = 'error';
         tile.connectionStatus = error.message || 'error';
         tile.lastError = error.message || 'error';
@@ -1372,6 +1419,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     async function stopLiveTile(index, options = {}) {
       const tile = liveTiles[index];
       if (!tile) return;
+      tile.startNonce = (tile.startNonce || 0) + 1;
       if (tile.iceTimer) {
         clearInterval(tile.iceTimer);
         tile.iceTimer = null;
@@ -1393,7 +1441,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       const sessionId = tile.sessionId;
       tile.sessionId = '';
       if (sessionId) {
-        await fetch(`/client/api/views/${encodeURIComponent(tile.viewId || '')}/webrtc/session/${encodeURIComponent(sessionId)}`, { method: 'DELETE' }).catch(() => {});
+        await cleanupClientLiveSession(tile.viewId || '', sessionId);
       }
       if (!options.keepError) {
         tile.status = 'offline';
@@ -1407,17 +1455,36 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      refreshSelectedTileDetail();
 	    }
     async function stopAllLiveTiles() {
+      liveBulkNonce += 1;
       await Promise.all(liveTiles.map(tile => stopLiveTile(tile.index)));
     }
     async function startAllLiveTiles() {
+      const bulkNonce = liveBulkNonce + 1;
+      liveBulkNonce = bulkNonce;
       for (const tile of visibleLiveTiles()) {
+        if (bulkNonce !== liveBulkNonce) break;
         if (tile.viewId && !tile.sessionId) {
           await startLiveTile(tile.index);
         }
+        if (bulkNonce !== liveBulkNonce) break;
       }
     }
     async function restartAllLiveTiles() {
-      await Promise.all(visibleLiveTiles().map(tile => restartLiveTile(tile.index)));
+      const bulkNonce = liveBulkNonce + 1;
+      liveBulkNonce = bulkNonce;
+      await Promise.all(visibleLiveTiles().map(tile => stopLiveTile(tile.index, { keepError: true })));
+      if (bulkNonce !== liveBulkNonce) return;
+      for (const tile of visibleLiveTiles()) {
+        if (bulkNonce !== liveBulkNonce) break;
+        if (tile.viewId) {
+          tile.restartCount = (tile.restartCount || 0) + 1;
+          tile.status = 'connecting';
+          tile.connectionStatus = 'reconnecting';
+          tile.lastError = '';
+          updateTileDom(tile);
+          await startLiveTile(tile.index);
+        }
+      }
     }
     async function refreshSelectedTileDetail() {
       if (activePage !== 'live') return;
