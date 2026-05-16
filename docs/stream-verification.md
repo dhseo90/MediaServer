@@ -1561,9 +1561,14 @@ EventStorage status/records smoke:
 ```bash
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-storage/status'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records?limit=5'
+./server.sh verify-ops-event-records-scope --http-base http://127.0.0.1:8080
 ```
 
 서버가 `8081` 같은 다른 HTTP port로 떠 있으면 port만 맞춰 실행합니다.
+`verify-ops-event-records-scope`는 EventStorage 활성 서버에서 synthetic populated
+EventRecord fixture를 active file에 잠시 주입하고 복원하며,
+`ops-events-populated-<width>.png` screenshot으로 `/ops/events` table의
+snapshot/clip/signed bundle action 표시를 확인합니다.
 
 `verify-event-post --mode schema|recovery|queue`는 서버가
 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1` 상태로 실행되어 있어야 합니다.

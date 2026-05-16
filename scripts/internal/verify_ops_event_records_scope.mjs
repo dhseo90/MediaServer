@@ -46,6 +46,7 @@ const visualWidth = Number(args.visualWidth || 390);
 const visualHeight = Number(args.visualHeight || 900);
 const debugPort = Number(args.debugPort || 9910);
 const outputDir = args.outputDir || path.join(os.tmpdir(), `media_server_event_records_${Date.now()}_${process.pid}`);
+fs.mkdirSync(outputDir, { recursive: true });
 
 const opsEventsHtml = await requestText("/ops/events");
 assertContains("ops-events-html", opsEventsHtml, [
@@ -63,33 +64,49 @@ console.log("[pass] ops-events evidence controls rendered");
 
 const storageStatus = await requestJson("/lab/analysis/event-storage/status");
 assertEvidencePolicy("lab-storage-status", storageStatus.evidencePolicy);
-console.log("[pass] lab event-storage evidence policy");
-await verifyEvidenceBundleDownload(storageStatus);
-console.log("[pass] lab event evidence zip bundle");
-
-const records = await requestJson("/lab/analysis/events/records?limit=5&evidence=missing&includeArchives=1");
-assertRecordList("lab-records-evidence-missing", records);
-console.log("[pass] lab event-records evidence filter");
-
-const opsStatus = await requestJson("/ops/api/events/status?limit=5&evidence=any&includeArchives=1");
-if (opsStatus?.status !== "ops-events") {
-  throw new Error(`ops events status mismatch: ${JSON.stringify(opsStatus).slice(0, 160)}`);
+if (storageStatus.enabled !== true) {
+  throw new Error("event storage must be enabled for populated ops-events fixture smoke");
 }
-assertEvidencePolicy("ops-events-status", opsStatus?.storage?.evidencePolicy);
-assertRecordList("ops-events-records", opsStatus?.records);
-console.log("[pass] ops events API includes evidence policy");
+console.log("[pass] lab event-storage evidence policy");
+const auditSnapshot = snapshotFile(path.resolve(".media_server.ops_audit.jsonl"));
+const fixture = seedPopulatedEventRecordFixture(storageStatus);
+try {
+  await verifyEvidenceBundleDownload(storageStatus);
+  console.log("[pass] lab event evidence zip bundle");
 
-await expectHttpError(
-  "/lab/analysis/events/records?evidence=video",
-  400,
-  "evidence must be snapshot, clip, any, both, or missing",
-);
-console.log("[pass] invalid evidence query rejected");
+  const populatedRecords = await requestJson("/lab/analysis/events/records?limit=5&evidence=any&includeArchives=1");
+  assertRecordList("lab-records-evidence-any", populatedRecords);
+  assertRecordListContains("lab-records-evidence-any", populatedRecords, fixture.eventId);
+  console.log("[pass] lab event-records populated fixture");
 
-await verifyBrowserUi();
-console.log("[pass] ops-event-records-scope");
+  const records = await requestJson("/lab/analysis/events/records?limit=5&evidence=missing&includeArchives=1");
+  assertRecordList("lab-records-evidence-missing", records);
+  console.log("[pass] lab event-records evidence filter");
 
-async function verifyBrowserUi() {
+  const opsStatus = await requestJson("/ops/api/events/status?limit=5&evidence=any&includeArchives=1");
+  if (opsStatus?.status !== "ops-events") {
+    throw new Error(`ops events status mismatch: ${JSON.stringify(opsStatus).slice(0, 160)}`);
+  }
+  assertEvidencePolicy("ops-events-status", opsStatus?.storage?.evidencePolicy);
+  assertRecordList("ops-events-records", opsStatus?.records);
+  assertRecordListContains("ops-events-records", opsStatus?.records, fixture.eventId);
+  console.log("[pass] ops events API includes populated record and evidence policy");
+
+  await expectHttpError(
+    "/lab/analysis/events/records?evidence=video",
+    400,
+    "evidence must be snapshot, clip, any, both, or missing",
+  );
+  console.log("[pass] invalid evidence query rejected");
+
+  await verifyBrowserUi(fixture);
+  console.log("[pass] ops-event-records-scope");
+} finally {
+  cleanupPopulatedEventRecordFixture(fixture);
+  restoreFileSnapshot(auditSnapshot);
+}
+
+async function verifyBrowserUi(fixture) {
   const browser = await openBrowserPage({
     httpBase,
     pagePath: "/ops/events",
@@ -101,7 +118,7 @@ async function verifyBrowserUi() {
     outputDir,
   });
   try {
-    const result = await browser.evaluate(
+    const initial = await browser.evaluate(
       `
         (async () => {
           const waitFor = async (predicate, label) => {
@@ -129,6 +146,48 @@ async function verifyBrowserUi() {
             const text = document.querySelector('#eventEvidencePolicyText')?.textContent || '';
             return text.includes('event-short-evidence') || text.includes('frame-bundle');
           }, 'evidence policy text');
+          await waitFor(() => {
+            const text = document.querySelector('#eventRecordRows')?.textContent || '';
+            return text.includes(${JSON.stringify(fixture.eventId)});
+          }, 'populated event record row');
+          const rowText = document.querySelector('#eventRecordRows')?.textContent || '';
+          const doc = document.documentElement;
+          const body = document.body;
+          const overflowX = Math.max(0, Math.max(doc.scrollWidth, body.scrollWidth) - window.innerWidth);
+          return {
+            ok: missing.length === 0 &&
+              overflowX <= 2 &&
+              rowText.includes(${JSON.stringify(fixture.eventId)}) &&
+              rowText.includes('snapshot') &&
+              rowText.includes('clip') &&
+              rowText.includes('signed bundle zip'),
+            missing,
+            overflowX,
+            rowText: rowText.slice(0, 600),
+            viewport: { width: window.innerWidth, height: window.innerHeight },
+          };
+        })()
+      `,
+      timeoutMs + 5000,
+    );
+    if (!initial?.ok) {
+      throw new Error(`browser populated UI check failed: ${JSON.stringify(initial)}`);
+    }
+    const screenshotPath = path.join(outputDir, `ops-events-populated-${visualWidth}.png`);
+    await browser.screenshot(screenshotPath);
+    console.log(`[pass] browser ops-events populated screenshot: ${screenshotPath}`);
+
+    const result = await browser.evaluate(
+      `
+        (async () => {
+          const waitFor = async (predicate, label) => {
+            const startedAt = Date.now();
+            while (Date.now() - startedAt < ${JSON.stringify(timeoutMs)}) {
+              if (predicate()) return true;
+              await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            throw new Error(label + ' timeout');
+          };
           const select = document.querySelector('#eventRecordsEvidenceSelect');
           select.click();
           select.value = 'missing';
@@ -146,8 +205,7 @@ async function verifyBrowserUi() {
           const overflowX = Math.max(0, Math.max(doc.scrollWidth, body.scrollWidth) - window.innerWidth);
           const rows = document.querySelector('#eventRecordRows')?.children.length || 0;
           return {
-            ok: missing.length === 0 && overflowX <= 2 && rows > 0 && select.value === 'missing',
-            missing,
+            ok: overflowX <= 2 && rows > 0 && select.value === 'missing',
             overflowX,
             rows,
             evidence: select.value,
@@ -166,6 +224,98 @@ async function verifyBrowserUi() {
   } finally {
     await browser.close();
   }
+}
+
+function seedPopulatedEventRecordFixture(storageStatus) {
+  const activePath = path.resolve(String(storageStatus?.activePath || storageStatus?.path || ".media_server.va_events.jsonl"));
+  const snapshotDir = path.resolve(String(storageStatus?.snapshotHook?.directory || ".media_server.va_snapshots"));
+  const clipDir = path.resolve(String(storageStatus?.clipHook?.directory || ".media_server.va_clips"));
+  const eventId = `ops-events-populated-${Date.now()}-${process.pid}`;
+  const eventSnapshot = snapshotFile(activePath);
+  fs.mkdirSync(path.dirname(activePath), { recursive: true });
+  fs.mkdirSync(snapshotDir, { recursive: true });
+  fs.mkdirSync(clipDir, { recursive: true });
+  const snapshotPath = path.join(snapshotDir, `${eventId}.ppm`);
+  const clipBundleDir = path.join(clipDir, `${eventId}.clip`);
+  fs.mkdirSync(clipBundleDir, { recursive: true });
+  const clipPath = path.join(clipBundleDir, "manifest.json");
+  const framePath = path.join(clipBundleDir, "frame-000001.ppm");
+  fs.writeFileSync(snapshotPath, "P3\n2 1\n255\n255 0 0 0 0 255\n", "utf8");
+  fs.writeFileSync(framePath, "P3\n2 1\n255\n0 255 0 255 255 0\n", "utf8");
+  fs.writeFileSync(clipPath, JSON.stringify({
+    schema: "media-server.va.event-clip-hook.v1",
+    eventId,
+    frames: [{ file: path.basename(framePath), relativeTimeMs: 0 }],
+  }, null, 2), "utf8");
+  const now = Date.now();
+  const record = {
+    schema: "media-server.va.event-record.v1",
+    eventId,
+    eventType: "intrusion-dwell",
+    streamId: "ops-events-fixture-stream",
+    channelId: "ops-events-fixture-channel",
+    trackId: 42,
+    classId: 0,
+    className: "person",
+    startTime: now - 3000,
+    updateTime: now,
+    endTime: 0,
+    status: "active",
+    zoneId: "zone-a",
+    lineId: "",
+    scenarioName: "침입 후 체류",
+    scenarioPhase: "dwell",
+    confidence: 0.92,
+    snapshotPath,
+    clipPath,
+    preEventMs: 200,
+    postEventMs: 0,
+    metadata: {
+      schema: "media-server.va.event-record.metadata.v1",
+      fixture: "ops-events-populated-screenshot",
+    },
+  };
+  const line = `${JSON.stringify(record)}\n`;
+  const previous = eventSnapshot.existed ? eventSnapshot.content : Buffer.alloc(0);
+  fs.writeFileSync(activePath, Buffer.concat([Buffer.from(line, "utf8"), previous]));
+  fs.chmodSync(activePath, eventSnapshot.existed ? eventSnapshot.mode : 0o600);
+  return {
+    eventId,
+    activePath,
+    snapshotPath,
+    clipBundleDir,
+    eventSnapshot,
+  };
+}
+
+function cleanupPopulatedEventRecordFixture(fixture) {
+  if (!fixture) return;
+  restoreFileSnapshot(fixture.eventSnapshot);
+  fs.rmSync(fixture.snapshotPath, { force: true });
+  fs.rmSync(fixture.clipBundleDir, { recursive: true, force: true });
+}
+
+function snapshotFile(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return { filePath, existed: false, content: Buffer.alloc(0), mode: 0o600 };
+  }
+  const stat = fs.statSync(filePath);
+  return {
+    filePath,
+    existed: true,
+    content: fs.readFileSync(filePath),
+    mode: stat.mode & 0o777,
+  };
+}
+
+function restoreFileSnapshot(snapshot) {
+  if (!snapshot?.filePath) return;
+  if (snapshot.existed) {
+    fs.writeFileSync(snapshot.filePath, snapshot.content);
+    fs.chmodSync(snapshot.filePath, snapshot.mode || 0o600);
+    return;
+  }
+  fs.rmSync(snapshot.filePath, { force: true });
 }
 
 function assertEvidencePolicy(label, policy) {
@@ -307,6 +457,13 @@ function assertRecordList(label, payload) {
   }
   if (!payload.storage || typeof payload.storage !== "object") {
     throw new Error(`${label}: missing storage summary`);
+  }
+}
+
+function assertRecordListContains(label, payload, eventId) {
+  const records = Array.isArray(payload?.records) ? payload.records : [];
+  if (!records.some(record => String(record?.eventId || "") === eventId)) {
+    throw new Error(`${label}: missing populated fixture eventId=${eventId}`);
   }
 }
 
