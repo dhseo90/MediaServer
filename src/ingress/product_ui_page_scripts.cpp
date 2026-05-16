@@ -94,7 +94,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     const clientHashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
     let selectedViewId = clientHashParams().get('view') || views[0]?.viewId || '';
     const isPreviewMode = document.body.dataset.clientPreview === 'true';
-    const { escapeHtml, display, numberValue, requestJson, applyPrincipalVisibility, setSelectOptions } = window.MediaServerUi;
+    const { escapeHtml, display, numberValue, requestJson, applyPrincipalVisibility, setSelectOptions, showToast } = window.MediaServerUi;
     let clientWebRtcConfigPromise = null;
     const ms = value => value === null || value === undefined ? '미제공' : `${Math.max(0, Math.round(Number(value)))}ms`;
     const formatTime = value => {
@@ -160,6 +160,85 @@ void AppendClientShellScript(std::ostringstream& out) {
         ${actionHref ? `<div class="actions"><a class="button button-secondary" href="${escapeHtml(actionHref)}">${escapeHtml(actionLabel)}</a></div>` : ''}
       </div>
     `;
+    async function copyClientText(text) {
+      const value = String(text || '').trim();
+      if (!value) throw new Error('복사할 상태가 없습니다.');
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(value);
+        return;
+      }
+      const area = document.createElement('textarea');
+      area.value = value;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.left = '-1000px';
+      area.style.top = '0';
+      document.body.appendChild(area);
+      area.focus();
+      area.select();
+      try {
+        if (!document.execCommand('copy')) throw new Error('copy command rejected');
+      } finally {
+        area.remove();
+      }
+    }
+    const clientEventSummaryText = (events = {}) => {
+      const lines = ['이벤트 요약'];
+      const counts = Array.isArray(events.countsByType) ? events.countsByType : [];
+      if (counts.length > 0) {
+        lines.push(`유형: ${counts.map(item => `${item.eventType || 'event'} ${display(item.count)}`).join(', ')}`);
+      } else {
+        lines.push('유형: 최근 이벤트 없음');
+      }
+      lines.push(`경고: ${events.warning ? '있음' : '없음'}`);
+      const recent = Array.isArray(events.recent) ? events.recent.slice(0, 3) : [];
+      if (recent.length > 0) {
+        for (const item of recent) {
+          const name = item.scenarioName || item.className || item.eventType || '이벤트';
+          lines.push(`최근: ${name} / ${item.eventType || 'event'} / ${item.status || '미제공'} / ${formatTime(item.updateTime || item.startTime)}`);
+        }
+      } else {
+        lines.push('최근: 없음');
+      }
+      return lines.join('\n');
+    };
+    const clientStatusSummaryText = (payload = {}) => {
+      const view = payload.view || {};
+      const health = payload.health || {};
+      const analysis = payload.analysis || {};
+      const connection = payload.connection || {};
+      const events = payload.events || {};
+      const fieldState = dashboardFieldState(health, events);
+      return [
+        `채널: ${view.displayName || view.viewId || '미제공'}`,
+        `현장 상태: ${fieldState.text}`,
+        `상태 요약: ${clientHealthSummaryLabel(health.summary || health.status)}`,
+        `연결: ${clientStatusLabel(health.connectionStatus || health.status)}`,
+        `영상: ${clientStatusLabel(health.videoFrameStatus || health.status)}`,
+        `메타데이터: ${clientStatusLabel(health.metadataStatus)}`,
+        `메타데이터 지연: ${ms(health.metadataAgeMs)}`,
+        `마지막 프레임: ${ms(connection.lastFrameAgeMs ?? health.lastFrameAgeMs)}`,
+        `트랙: ${display(analysis.trackCount)}`,
+        `활성 이벤트: ${display(analysis.activeEventCount)}`,
+        `시나리오: ${display(analysis.scenarioCount)}`
+      ].join('\n');
+    };
+    function bindClientCopyButtons(payload, root = detail) {
+      root?.querySelectorAll('[data-client-copy]').forEach(button => {
+        button.addEventListener('click', async () => {
+          const mode = String(button.dataset.clientCopy || '');
+          button.disabled = true;
+          try {
+            await copyClientText(mode === 'events' ? clientEventSummaryText(payload.events || {}) : clientStatusSummaryText(payload));
+            showToast(mode === 'events' ? '이벤트 요약 복사 완료' : '상태 요약 복사 완료');
+          } catch (error) {
+            showToast(error.message === '복사할 상태가 없습니다.' ? error.message : '클립보드 복사 실패', true);
+          } finally {
+            button.disabled = false;
+          }
+        });
+      });
+    }
     applyPrincipalVisibility().catch(() => {});
     const normalizeOverlayMode = mode => {
       const raw = String(mode || '').trim().toLowerCase();
@@ -466,7 +545,7 @@ void AppendClientShellScript(std::ostringstream& out) {
         const fieldState = dashboardFieldState(health, events);
 	      detail.innerHTML = `
 	        <div class="toolbar">
-	          <div>
+          <div>
             <h2>${escapeHtml(view.displayName || view.viewId || '대시보드')}</h2>
             <p>${escapeHtml(view.sourceDisplayName || '미제공')}</p>
           </div>
@@ -476,6 +555,10 @@ void AppendClientShellScript(std::ostringstream& out) {
             ${statusChip(health.status)}
             ${statusChip(health.metadataStatus)}
             ${events.warning ? '<span class="chip warn">경고</span>' : ''}
+          </div>
+          <div class="client-copy-actions">
+            <button type="button" class="ghost" data-client-copy="status">상태 복사</button>
+            <button type="button" class="ghost" data-client-copy="events">이벤트 복사</button>
           </div>
         </div>
         <section class="events client-field-summary" data-testid="client-dashboard-field-summary">
@@ -586,6 +669,7 @@ void AppendClientShellScript(std::ostringstream& out) {
         renderDashboard(payload, compareItems);
         setPresetStatus('초기화됨');
       });
+      bindClientCopyButtons(payload);
     }
     function renderEvents(items) {
       if (!Array.isArray(items) || items.length === 0) {
@@ -612,12 +696,16 @@ void AppendClientShellScript(std::ostringstream& out) {
             <p>${events.provided ? '최근 이벤트' : '이 채널은 이벤트 표시가 꺼져 있거나 이벤트 권한이 없습니다.'}</p>
           </div>
           <div class="meta">${events.warning ? '<span class="chip warn">경고</span>' : statusChip(events.warningBadge)}</div>
+          <div class="client-copy-actions">
+            <button type="button" class="ghost" data-client-copy="events">이벤트 복사</button>
+          </div>
         </div>
         <div class="meta">
           ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
         </div>
         <section class="events">${renderEvents(events.recent || [])}</section>
       `;
+      bindClientCopyButtons({ view, events });
     }
 	    function defaultLiveViewIds() {
 	      const ids = [];
@@ -1316,6 +1404,10 @@ void AppendClientShellScript(std::ostringstream& out) {
               ${statusChip(health.metadataStatus)}
               <span class="chip${tileStatusClass(tile.stale ? 'stale' : 'fresh')}" data-selected-stale>${tile.stale ? '지연' : '정상'}</span>
             </div>
+            <div class="client-copy-actions">
+              <button type="button" class="ghost" data-client-copy="status">상태 복사</button>
+              <button type="button" class="ghost" data-client-copy="events">이벤트 복사</button>
+            </div>
           </div>
           <div class="summary">
             <div class="metric"><span>연결</span><strong>${escapeHtml(clientStatusLabel(tile.connectionStatus))}</strong></div>
@@ -1329,6 +1421,7 @@ void AppendClientShellScript(std::ostringstream& out) {
             <div class="metric"><span>경고</span><strong>${events.warning ? '경고' : '정상'}</strong></div>
           </div>
         `;
+        bindClientCopyButtons(payload, container);
         updateTileDom(tile);
       } catch (error) {
         container.innerHTML = `<div class="empty"><p>${escapeHtml(error.message || '미제공')}</p></div>`;

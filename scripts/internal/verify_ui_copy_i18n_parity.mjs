@@ -42,6 +42,12 @@ check("product translation map includes recent UI copy", () => {
     "'정지': 'Stop'",
     "'보기 방식': 'View mode'",
     "'채널 미선택': 'No channel selected'",
+    "'상태 복사': 'Copy status'",
+    "'상태 요약 복사 완료': 'Status summary copied'",
+    "'복사할 상태가 없습니다.': 'No status is available to copy.'",
+    "'이벤트 복사': 'Copy events'",
+    "'이벤트 요약 복사 완료': 'Event summary copied'",
+    "'클립보드 복사 실패': 'Clipboard copy failed'",
     "'클립보드 복사 실패. 주소창의 필터 링크를 직접 복사하세요.': 'Clipboard copy failed. Copy the filter link from the address bar.'",
   ];
   for (const snippet of required) {

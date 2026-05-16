@@ -51,6 +51,15 @@ check("client dashboard script renders field summary and comparison", () => {
     "정상 관제 중",
     "신호 확인 중",
     "상태 요약",
+    "copyClientText",
+    "clientStatusSummaryText",
+    "clientEventSummaryText",
+    'data-client-copy="status"',
+    'data-client-copy="events"',
+    "상태 복사",
+    "이벤트 복사",
+    "상태 요약 복사 완료",
+    "이벤트 요약 복사 완료",
   ];
   for (const snippet of required) {
     assert(script.includes(snippet), `client dashboard script is missing snippet: ${snippet}`);

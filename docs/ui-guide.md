@@ -584,6 +584,9 @@ localStorage의 `mediaServerClientDashboardPresetConfig.v1`에 저장되어
 기본 preset보다 먼저 적용됩니다.
 `/client/events`는 primary nav에서 제거했고,
 이벤트 요약은 dashboard 안에서 sanitized summary로만 표시합니다.
+`상태 복사`와 `이벤트 복사`는 viewer에게 허용된 상태/이벤트 요약만
+clipboard에 복사하며 source locator, Developer URL, raw diagnostic JSON,
+internal session id는 포함하지 않습니다.
 Integrator 연동은
 `/client/api/views/{viewId}/events?limit=...`,
 `/client/api/views/{viewId}/metadata`를 사용하며
@@ -641,6 +644,7 @@ Tile별 기능:
 - tile start / tile stop / tile restart / all start / all restart / all stop
 - PublishedView `maxTiles` 초과 시 tile 선택/시작을 막고 wrapper API는 `409`를 반환
 - live/offline, stale, track count, event count, connection status 표시
+- 선택 tile의 sanitized 상태/이벤트 요약 복사
 - 선택된 tile만 dashboard/detail을 갱신
 - tile keyboard selection: Enter/Space로 현재 tile 선택, Arrow/Home/End로 tile 간 이동
 - 반복되는 select/button accessible name에는 tile 번호 포함

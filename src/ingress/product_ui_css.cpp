@@ -2454,6 +2454,8 @@ std::string ClientShellCss() {
     .empty { min-height: 80px; display: grid; align-content: center; gap: 8px; }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     .toolbar { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+    .client-copy-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .client-copy-actions button { min-height: 32px; padding: 0 10px; font-size: 12px; }
     .live-monitor { display: grid; gap: 12px; }
     .live-toolbar {
       display: grid;

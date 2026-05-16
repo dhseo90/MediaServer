@@ -350,7 +350,9 @@ async function runOpsClickFlow(browser, context) {
   await installErrorCollector(browser);
   await assertReady(browser, "/client/live", '[data-testid="client-shell-page"]');
   await assertClientPreviewAdminAffordance(browser, `${context.label}:client-live-return`);
-  steps.push("client:preview-admin");
+  await assertClientCopyPayload(browser, '[data-client-copy="status"]', ["채널:", "상태 요약:", "연결:"], "클라이언트 라이브 상태 복사");
+  await assertClientCopyPayload(browser, '[data-client-copy="events"]', ["이벤트 요약", "경고:"], "클라이언트 라이브 이벤트 복사");
+  steps.push("client:preview-admin", "client:live-copy");
   await clickSelector(browser, 'a[href="/client/dashboard"]', "클라이언트 대시보드");
   await waitForPath(browser, "/client/dashboard");
   await installErrorCollector(browser);
@@ -372,8 +374,10 @@ async function runOpsClickFlow(browser, context) {
   await assertText(browser, "#clientDashboardPresetStatus", "초기화됨", "클라이언트 preset 초기화 상태");
   await clickSelector(browser, ".view", "클라이언트 대시보드 채널 선택");
   await assertVisible(browser, '[data-testid="client-dashboard-field-summary"]', "클라이언트 현장 요약");
+  await assertClientCopyPayload(browser, '[data-client-copy="status"]', ["채널:", "현장 상태:", "상태 요약:"], "클라이언트 대시보드 상태 복사");
+  await assertClientCopyPayload(browser, '[data-client-copy="events"]', ["이벤트 요약", "경고:"], "클라이언트 대시보드 이벤트 복사");
   await assertNoOverflow(browser, `${context.label}:client-dashboard`);
-  steps.push("client:dashboard", "client:preset-config");
+  steps.push("client:dashboard", "client:preset-config", "client:dashboard-copy");
 
   await assertBrowserErrors(browser, context.label);
   return { steps };
@@ -788,6 +792,101 @@ async function restoreClipboardFailureStub(browser) {
       return true;
     })()
   `, 3000).catch(() => null);
+}
+
+async function installClipboardCaptureStub(browser) {
+  await browser.evaluate(`
+    (() => {
+      window.__opsClickClipboardCaptured = '';
+      window.__opsClickClipboardCaptureOriginalExecCommand = document.execCommand;
+      document.execCommand = function(command) {
+        if (String(command || '').toLowerCase() === 'copy') {
+          const node = document.activeElement;
+          window.__opsClickClipboardCaptured = String(node?.value || window.getSelection()?.toString() || '');
+          return true;
+        }
+        if (typeof window.__opsClickClipboardCaptureOriginalExecCommand === 'function') {
+          return window.__opsClickClipboardCaptureOriginalExecCommand.apply(document, arguments);
+        }
+        return false;
+      };
+      try {
+        window.__opsClickClipboardCaptureOriginal = navigator.clipboard;
+        Object.defineProperty(navigator, 'clipboard', {
+          configurable: true,
+          value: {
+            writeText: value => {
+              window.__opsClickClipboardCaptured = String(value || '');
+              return Promise.resolve();
+            },
+          },
+        });
+      } catch (_) {}
+      return true;
+    })()
+  `, 3000);
+}
+
+async function restoreClipboardCaptureStub(browser) {
+  await browser.evaluate(`
+    (() => {
+      if (window.__opsClickClipboardCaptureOriginalExecCommand) {
+        document.execCommand = window.__opsClickClipboardCaptureOriginalExecCommand;
+      }
+      try {
+        Object.defineProperty(navigator, 'clipboard', {
+          configurable: true,
+          value: window.__opsClickClipboardCaptureOriginal,
+        });
+      } catch (_) {}
+      window.__opsClickClipboardCaptured = '';
+      return true;
+    })()
+  `, 3000).catch(() => null);
+}
+
+async function assertClientCopyPayload(browser, selector, expectedSnippets, description) {
+  const forbiddenSnippets = [
+    "rtsp://",
+    "http://",
+    "https://",
+    "/webrtc/session",
+    "/lab/analysis",
+    "/ws/va-metadata",
+    "sessionToken",
+    "client-live-internal",
+    "analysisTapId",
+    "sourceUrl",
+    "Developer URL",
+    "raw diagnostic",
+    "BBox",
+  ];
+  await installClipboardCaptureStub(browser);
+  try {
+    await clickSelector(browser, selector, description);
+    return await waitForResult(
+      browser,
+      `
+        (() => {
+          const value = String(window.__opsClickClipboardCaptured || '');
+          const expected = ${JSON.stringify(expectedSnippets)};
+          const forbidden = ${JSON.stringify(forbiddenSnippets)};
+          const missing = expected.filter(item => !value.includes(item));
+          const leaked = forbidden.filter(item => value.includes(item));
+          return {
+            ok: value.length > 0 && missing.length === 0 && leaked.length === 0,
+            missing,
+            leaked,
+            value: value.slice(0, 500),
+          };
+        })()
+      `,
+      item => item?.ok === true,
+      `${description} clipboard payload`,
+    );
+  } finally {
+    await restoreClipboardCaptureStub(browser);
+  }
 }
 
 async function assertToastContains(browser, expected, description) {

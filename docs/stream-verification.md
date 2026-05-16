@@ -1364,6 +1364,8 @@ curl -fsS 'http://127.0.0.1:8080/client/api/views/{viewId}/metadata'
   connection status, video frame status, metadata status, stale 여부,
   metadata age, last frame age를 반환합니다.
 - 값이 없으면 UI는 `미제공`을 표시합니다.
+- `/client/dashboard`의 `상태 복사`, `이벤트 복사`는 viewer에게 허용된
+  sanitized 상태/이벤트 요약만 복사합니다.
 - client dashboard 응답과 화면에 운영 내부 값이 노출되지 않아야 합니다.
 - 숨길 값: source 원본 URL, Developer URL, 내부 진단 JSON, `analysisTapId`, internal session id
 - 숨길 설정: rule/profile editor, Event POST 설정, SSE/WS 전체 endpoint
@@ -1398,6 +1400,8 @@ curl -fsS -X POST \
 - tile stop은 PeerConnection/DataChannel을 닫고 client wrapper DELETE를 호출합니다.
 - all stop 또는 hidden tab/route leave 후 `activeSessions`가 감소하고 media stream track이 정리됩니다.
 - tile status는 live/offline, stale, track count, event count, connection status를 표시합니다.
+- 선택 tile detail의 `상태 복사`, `이벤트 복사`는 source URL이나 내부 진단
+  정보 없이 sanitized 요약만 복사합니다.
 - client 화면에 source URL, Developer URL, BBox diagnostics, 내부 진단 JSON, 내부 session id/token, rule/profile 수정 UI가 노출되지 않아야 합니다.
 - 기존 `/webrtc/session?file=...` 개발용 경로는 변경하지 않습니다.
 - WebRTC DataChannel schema와 Event POST payload도 변경하지 않습니다.

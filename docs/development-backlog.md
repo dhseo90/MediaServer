@@ -261,6 +261,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - `/client/dashboard`는 현장 요약, 채널 비교, 필터/정렬, 프리셋 설정, loading/empty/error 문구를 유지합니다.
 - `/client/live`는 빈 PublishedView 상태에서 viewer가 `/client/request-access`로 이동할 수 있고, admin preview는 `/ops/sources`로 이동합니다.
 - live monitor에는 `전체 시작`을 추가해 표시 중인 타일을 순차 시작할 수 있습니다.
+- `/client/dashboard`와 `/client/live` 선택 tile detail은 source locator 없이 sanitized 상태/이벤트 요약을 복사할 수 있습니다.
 - client shell/API에는 source URL, ONVIF endpoint, raw diagnostic JSON, rule/profile editor를 노출하지 않습니다.
 
 범위 밖:
