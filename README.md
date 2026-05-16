@@ -200,6 +200,10 @@ YOLO Detection
 `./server.sh test`, `./server.sh test --basic`,
 `./server.sh test --full`, `./server.sh verify-predev --quick`는
 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하므로 느립니다.
+기본 테스트 환경에는 ONVIF/RTSP/WebRTC 원본 영상을 제공할 실물 장비가 없으므로,
+장비 의존 검증은 공개 URL, 로컬 fixture/simulator, loopback publisher, no-device
+suite 같은 대체 테스트로 수행하고 실장비 field smoke는 별도 후속으로 기록합니다.
+개인 LAN IP, credential, 고객/운영 영상 URL은 문서와 artifact에 남기지 않습니다.
 
 문서/UI/Auth/권한처럼 media pipeline 자체를 바꾸지 않은 변경에서는
 위 명령을 기본으로 돌리지 않고, 아래 전용 smoke를 사용합니다.

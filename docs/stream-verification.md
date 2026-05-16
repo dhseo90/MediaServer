@@ -11,6 +11,7 @@
 - TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, cleanup 정책이 다채널 환경에서 무한 증가하지 않는지 확인합니다.
 - 신규 VA 기능이 media pipeline을 blocking하지 않는지 확인합니다.
 - 검증 명령은 로컬 재현성을 우선하고, 외부 source/TURN/장시간 테스트는 별도 gate로 분리합니다.
+- 현재 기본 테스트 환경에는 ONVIF camera, 외부 RTSP upstream, 외부 WHEP/WebRTC publisher처럼 원본 영상을 제공할 실물 장비가 없습니다. 장비가 필요한 항목은 검증 가능한 공개 URL, 로컬 fixture/simulator, loopback publisher, no-device suite 같은 대체 테스트로 실행하고, 실장비 검증은 미수행/후속 field smoke로 분리합니다.
 
 ## 테스트 모드 요약
 
@@ -22,7 +23,7 @@
 | `./server.sh test --external` | `--full` + LAN/external source, WebRTC ICE, 외부 HTTP/HLS URI 선택 검증. 외부 WHEP endpoint는 환경 의존 별도 검증 |
 | `./server.sh test --stable` | 기존 stable 호환 기준 |
 
-외부 RTSP/HLS/HTTP/WHEP source, 운영 TURN relay/auth, YouTube import/source는 외부 환경 영향을 받으므로 기본 hard gate가 아닙니다.
+외부 RTSP/HLS/HTTP/WHEP source, 운영 TURN relay/auth, YouTube import/source는 외부 환경 영향을 받으므로 기본 hard gate가 아닙니다. 공개 URL을 사용할 때는 재현 가능한 예시 URL 또는 환경 변수로만 주입하고, 개인 LAN IP, credential, 고객/운영 영상 URL은 문서와 artifact에 남기지 않습니다.
 
 문서/UI/Auth/권한/계정처럼 media pipeline 자체를 바꾸지 않은 변경에서는
 `./server.sh test`, `./server.sh test --basic`, `./server.sh test --full`,
