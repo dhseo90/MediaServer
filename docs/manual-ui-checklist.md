@@ -15,6 +15,8 @@ v1.2.0 제품 UI 체크리스트입니다. 자동 검증 결과를 대체하지 
   `./server.sh verify-ops-client-ui --screenshots`를 별도로 실행합니다.
 - destructive action은 운영 데이터가 아닌 throwaway fixture 계정과 요청만 사용합니다.
 - 실행하지 않은 화면, 건너뛴 destructive action, 실패한 테스트는 완료로 표시하지 않습니다.
+- Browser Use clipboard 오류는 [browser-use-clipboard-diagnostics.md](./browser-use-clipboard-diagnostics.md)
+  기준으로 제품 회귀와 환경 문제를 분리합니다.
 
 ## 2. Auth Shell
 

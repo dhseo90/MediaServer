@@ -285,9 +285,9 @@ gst-inspect-1.0 uridecodebin
 UI/API smoke 전에는 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`로 서버를 띄웁니다.
 포트가 다르면 각 명령에 `--http-base`를 지정합니다.
 Codex 인앱 Browser Use 환경에서 `Browser Use virtual clipboard is not installed`가
-나오면 제품 clipboard 회귀로 단정하지 않습니다. 입력은 실제 key press나
-Computer Use 클릭으로 우회하고, 제품 clipboard fallback은
-`verify-ops-click-e2e`의 강제 실패 주입과 수동 `링크 복사` toast 확인으로 따로 봅니다.
+나오면 제품 clipboard 회귀로 단정하지 않습니다. 세부 진단과 보고 기준은
+[browser-use-clipboard-diagnostics.md](./browser-use-clipboard-diagnostics.md)를
+따릅니다.
 
 장시간 또는 다채널 검증 기준은 [stream-verification.md](./stream-verification.md)에 유지합니다.
 
