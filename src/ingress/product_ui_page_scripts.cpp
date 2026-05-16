@@ -6669,14 +6669,20 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       form.elements.scopes.value = scopes.join('\n');
       updateScopeTemplatePreview();
     }
+    function formValue(data, name) {
+      if (Object.prototype.hasOwnProperty.call(data, name)) {
+        return data[name] || '';
+      }
+      return form.elements[name]?.value || '';
+    }
     function formPayload() {
       const data = formDataObject(form);
       return {
-        username: data.username.trim(),
-        displayName: data.displayName.trim(),
-        role: data.role,
-        viewId: data.viewId.trim(),
-        scopes: splitList(data.scopes || ''),
+        username: formValue(data, 'username').trim(),
+        displayName: formValue(data, 'displayName').trim(),
+        role: formValue(data, 'role'),
+        viewId: formValue(data, 'viewId').trim(),
+        scopes: splitList(formValue(data, 'scopes')),
         password: data.password || '',
         confirmPassword: data.confirmPassword || '',
         enabled: form.elements.enabled.checked,
