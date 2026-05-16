@@ -34,7 +34,7 @@
 - [ ] `<artifact-dir>/visual-regression-manifest.json` exists and uses schema `media-server.ui-visual-artifact-index.v1`.
 - [ ] Manifest includes retention policy schema `media-server.ui-visual-artifact-retention.v1`; PR artifacts use 14 days, release baseline artifacts use 45 days.
 - [ ] `<artifact-dir>/index.md` links every screenshot artifact.
-- [ ] If this PR creates or replaces a release baseline artifact, Summary links the accepted baseline run, explains the replacement reason, and treats the baseline as an approved comparator, not a public release asset or candidate pass proof.
+- [ ] If this PR creates or replaces a release baseline artifact, Summary links the accepted baseline run, explains the replacement reason, uses `docs/ui-visual-release-baseline-approval-template.md`, and treats the baseline as an approved comparator, not a public release asset or candidate pass proof.
 - [ ] 320px, 390px, 760px, and 1180px screenshots were reviewed for nav/account/header/table/action overflow.
 - [ ] Client/viewer screenshots do not expose source URL, Developer URL, raw JSON, debug counters, BBox diagnostics, or rule/profile editor controls.
 - [ ] If no UI changed, this section is marked not applicable in Summary or Not Run.

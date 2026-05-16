@@ -124,6 +124,10 @@ candidate artifact와 비교하는 approved comparator입니다. 이 artifact는
 public release asset 또는 candidate 통과 증빙이 아니며, baseline 교체 시에는
 accepted baseline run, 교체 이유, 수동 비노출 검토 결과를 PR/릴리스 기록에
 연결합니다.
+baseline을 새로 채택하거나 교체할 때는
+[UI Visual Release Baseline Approval Log](./ui-visual-release-baseline-approval-template.md)
+템플릿에 manifest/index, diff report, 320/390/760/1180px 수동 검토,
+client/viewer source/debug/raw 비노출 확인, 미실행 field smoke를 함께 남깁니다.
 UI visual regression issue는 `.github/ISSUE_TEMPLATE/ui_visual_qa.yml`
 템플릿을 사용해 artifact directory, manifest/index, viewport, client/viewer
 debug/source 비노출 확인, 미실행 검증을 함께 남깁니다.

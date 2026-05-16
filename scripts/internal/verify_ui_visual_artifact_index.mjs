@@ -75,6 +75,7 @@ const compareScript = fs.readFileSync(path.join(rootDir, "scripts/internal/compa
 const commentScript = fs.readFileSync(path.join(rootDir, "scripts/internal/write_ui_visual_baseline_comment.mjs"), "utf8");
 const issueLinkScript = fs.readFileSync(path.join(rootDir, "scripts/internal/write_ui_visual_qa_issue_links.mjs"), "utf8");
 const maintenanceScript = fs.readFileSync(path.join(rootDir, "scripts/internal/manage_ui_visual_artifacts.mjs"), "utf8");
+const releaseBaselineTemplate = fs.readFileSync(path.join(rootDir, "docs/ui-visual-release-baseline-approval-template.md"), "utf8");
 
 const checksRun = [];
 check("manifest schema and screenshot rows", () => {
@@ -107,6 +108,7 @@ check("docs mention visual artifact index outputs", () => {
     "approved comparator",
     "not a public release asset",
     "accepted baseline run",
+    "ui-visual-release-baseline-approval-template.md",
   ]) {
     assert(docs.includes(snippet), `docs missing visual artifact index snippet: ${snippet}`);
   }
@@ -126,9 +128,28 @@ check("PR template requires visual review artifact evidence", () => {
     "release baseline artifact",
     "approved comparator",
     "not a public release asset or candidate pass proof",
+    "docs/ui-visual-release-baseline-approval-template.md",
     "./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>",
   ]) {
     assert(template.includes(snippet), `PR template missing visual review checklist snippet: ${snippet}`);
+  }
+});
+
+check("release baseline approval template captures acceptance evidence", () => {
+  for (const snippet of [
+    "UI Visual Release Baseline Approval Log",
+    "approved comparator",
+    "public release asset",
+    "candidate pass proof",
+    "Baseline Identity",
+    "Replacement Reason",
+    "Comparison Evidence",
+    "Manual Review",
+    "accepted baseline run",
+    "실물 ONVIF/RTSP/WebRTC 원본 장비 field smoke",
+    "verify-predev",
+  ]) {
+    assert(releaseBaselineTemplate.includes(snippet), `release baseline approval template missing snippet: ${snippet}`);
   }
 });
 

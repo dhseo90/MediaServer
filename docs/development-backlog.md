@@ -546,6 +546,7 @@ PR template과 정적 verifier를 연결했습니다.
 - release baseline artifact는 승인된 release/RC 화면 상태를 다음 candidate와 비교하는 approved comparator로 정의했습니다.
 - release baseline artifact는 public release asset 또는 candidate 통과 증빙이 아니며, baseline 교체 시 accepted baseline run, 교체 이유, 수동 비노출 검토 결과를 연결하도록 정리했습니다.
 - PR template의 `UI Visual Review` 섹션에 release baseline 생성/교체 체크 항목을 추가했습니다.
+- `docs/ui-visual-release-baseline-approval-template.md`에 baseline identity, replacement reason, comparison evidence, manual review, approval, not-run/limitations 기록 필드를 추가했습니다.
 - `verify-ui-visual-artifact-index`가 release baseline artifact role 문구를 정적으로 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 

@@ -396,6 +396,10 @@ Ops/Client/Lab API guard를 확인합니다.
   public release asset 또는 candidate 통과 증빙이 아니며, baseline 교체 시에는
   accepted baseline run, 교체 이유, 수동 비노출 검토 결과를 PR/릴리스 기록에
   연결합니다.
+- baseline을 채택/교체할 때는
+  [UI Visual Release Baseline Approval Log](./ui-visual-release-baseline-approval-template.md)
+  템플릿에 manifest/index, baseline diff, 수동 비노출 검토, 미실행 field smoke를
+  남깁니다.
 
 ### 2.1 Live VA Event Quality
 
