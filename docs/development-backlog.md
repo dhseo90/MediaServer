@@ -629,9 +629,20 @@ PR template과 정적 verifier를 연결했습니다.
 
 확인됨:
 
-- `test/fixtures/client_live_tile_a11y_i18n_snapshot.json`에 기본 타일 상태 요약의 Korean/English copy를 기록했습니다.
+- `test/fixtures/client_live_tile_a11y_i18n_snapshot.json`에 기본 offline 타일과 live normal, stale reconnecting, error failed 상태 요약의 Korean/English copy를 기록했습니다.
 - `채널 미선택`, 상태, 연결, 트랙, 이벤트, 메타데이터, 재시도 문구가 English translation map/pattern으로 유지되는지 `verify-ui-copy-i18n-parity`가 확인합니다.
 - `docs/ui-empty-loading-error-copy-matrix.md`가 해당 snapshot fixture와 검증 명령을 연결합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
+### Client Live 접근성 문구 다국어 snapshot 확장 후속 종료 판정
+
+2026-05-16 기준 Client Live tile 숨김 접근성 상태 문구 snapshot을 주요 상태 변형까지 확장했습니다.
+
+확인됨:
+
+- snapshot fixture에 `offline-empty`, `live-normal`, `stale-reconnecting`, `error-failed` scenario를 추가했습니다.
+- 각 scenario는 타일 번호, 상태, 연결, 트랙, 이벤트, 메타데이터, 재시도 문구의 Korean/English 기대값을 포함합니다.
+- `verify-ui-copy-i18n-parity`가 scenario 수, 필수 Korean/English field, Live/Connected/Normal/Stale/Connecting/Failed/Error 상태 번역을 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
 ## v1.2.0 시작 전 체크리스트

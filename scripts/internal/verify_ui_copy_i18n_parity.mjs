@@ -70,16 +70,44 @@ check("client live tile a11y i18n snapshot is pinned", () => {
   const fixture = JSON.parse(readText("test/fixtures/client_live_tile_a11y_i18n_snapshot.json"));
   assert(fixture.schema === "media-server.client-live-tile-a11y-i18n-snapshot.v1", "snapshot schema mismatch");
   assert(clientScript.includes("liveTileA11yStatus"), "client live script missing liveTileA11yStatus");
+  assert(Array.isArray(fixture.scenarios) && fixture.scenarios.length >= 4, "snapshot scenarios must cover at least 4 tile states");
   for (const value of fixture.requiredKoreanParts || []) {
     assert(fixture.korean.includes(value), `snapshot Korean text missing part: ${value}`);
   }
   for (const value of fixture.requiredEnglishParts || []) {
     assert(fixture.english.includes(value), `snapshot English text missing part: ${value}`);
   }
+  for (const scenario of fixture.scenarios || []) {
+    assert(scenario.id && scenario.korean && scenario.english, `snapshot scenario is incomplete: ${JSON.stringify(scenario)}`);
+    for (const snippet of ["타일", "상태", "연결", "트랙", "이벤트", "메타데이터", "재시도"]) {
+      assert(scenario.korean.includes(snippet), `snapshot scenario ${scenario.id} missing Korean snippet: ${snippet}`);
+    }
+    for (const snippet of ["Tile", "Status", "Connection", "Tracks", "Events", "Metadata", "Retry"]) {
+      assert(scenario.english.includes(snippet), `snapshot scenario ${scenario.id} missing English snippet: ${snippet}`);
+    }
+  }
   for (const snippet of [
+    "Status Live",
+    "Connection Connected",
+    "Metadata Normal",
+    "Status Stale",
+    "Connection Connecting",
+    "Connection Failed",
+    "Status Error",
+  ]) {
+    assert(fixture.scenarios.some((scenario) => String(scenario.english || "").includes(snippet)), `snapshot scenarios missing English state: ${snippet}`);
+  }
+  for (const snippet of [
+    "'라이브': 'Live'",
     "'채널 미선택': 'No channel selected'",
     "'오프라인': 'Offline'",
+    "'연결됨': 'Connected'",
+    "'연결 중': 'Connecting'",
     "'연결 끊김': 'Disconnected'",
+    "'실패': 'Failed'",
+    "'정상': 'Normal'",
+    "'지연': 'Stale'",
+    "'오류': 'Error'",
     "'트랙': 'Tracks'",
     "'이벤트': 'Events'",
     "'메타데이터': 'Metadata'",

@@ -3,6 +3,28 @@
   "description": "Client Live tile hidden accessibility status copy snapshot for Korean/English parity.",
   "korean": "타일 1: 채널 미선택 · 상태 오프라인 · 연결 연결 끊김 · 트랙 0 · 이벤트 0 · 메타데이터 미제공 · 재시도 0",
   "english": "Tile 1: No channel selected · Status Offline · Connection Disconnected · Tracks 0 · Events 0 · Metadata Not provided · Retry 0",
+  "scenarios": [
+    {
+      "id": "offline-empty",
+      "korean": "타일 1: 채널 미선택 · 상태 오프라인 · 연결 연결 끊김 · 트랙 0 · 이벤트 0 · 메타데이터 미제공 · 재시도 0",
+      "english": "Tile 1: No channel selected · Status Offline · Connection Disconnected · Tracks 0 · Events 0 · Metadata Not provided · Retry 0"
+    },
+    {
+      "id": "live-normal",
+      "korean": "타일 2: Public RTSP Test · 상태 라이브 · 연결 연결됨 · 트랙 2 · 이벤트 3 · 메타데이터 정상 · 재시도 1",
+      "english": "Tile 2: Public RTSP Test · Status Live · Connection Connected · Tracks 2 · Events 3 · Metadata Normal · Retry 1"
+    },
+    {
+      "id": "stale-reconnecting",
+      "korean": "타일 3: VA Test File · 상태 지연 · 연결 연결 중 · 트랙 1 · 이벤트 0 · 메타데이터 지연 · 재시도 2",
+      "english": "Tile 3: VA Test File · Status Stale · Connection Connecting · Tracks 1 · Events 0 · Metadata Stale · Retry 2"
+    },
+    {
+      "id": "error-failed",
+      "korean": "타일 4: Sample H264 · 상태 오류 · 연결 실패 · 트랙 미제공 · 이벤트 1 · 메타데이터 미제공 · 재시도 3",
+      "english": "Tile 4: Sample H264 · Status Error · Connection Failed · Tracks Not provided · Events 1 · Metadata Not provided · Retry 3"
+    }
+  ],
   "requiredKoreanParts": [
     "타일 1:",
     "채널 미선택",
