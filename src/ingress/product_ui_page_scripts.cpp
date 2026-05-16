@@ -1848,6 +1848,38 @@ void AppendOpsShellScript(std::ostringstream& out,
         const numeric = Number(value);
         return Number.isFinite(numeric) ? numeric : 0;
       };
+      let dashboardIncidentTimelineCache = { rootItems: [], eventsStatus: {}, diagnosticLog: {}, sourceHealth: {} };
+      const dashboardIncidentFilterState = () => ({
+        query: String(document.getElementById('dashIncidentTimelineSearch')?.value || '').trim().toLowerCase(),
+        source: String(document.getElementById('dashIncidentTimelineSource')?.value || '').trim()
+      });
+      const dashboardIncidentSourceKey = item => {
+        const source = String(item?.source || '').toLowerCase();
+        if (source.includes('eventrecord')) return 'event-record';
+        if (source.includes('source health')) return 'source-health';
+        if (source.includes('log tail')) return 'log-tail';
+        if (source.includes('문제 원인')) return 'root-cause';
+        return source ? source.replace(/[^a-z0-9가-힣]+/g, '-') : 'summary';
+      };
+      const dashboardIncidentSearchText = item => [
+        item?.source,
+        item?.time,
+        item?.title,
+        item?.detail,
+        item?.evidence,
+        item?.correlationId,
+        item?.actionHref
+      ].map(value => String(value || '').toLowerCase()).join(' ');
+      const dashboardIncidentMatchesFilter = (item, filter) => {
+        if (filter.source && dashboardIncidentSourceKey(item) !== filter.source) return false;
+        if (filter.query && !dashboardIncidentSearchText(item).includes(filter.query)) return false;
+        return true;
+      };
+      const dashboardIncidentFiltersActive = filter => Boolean(filter.query || filter.source);
+      const rerenderDashboardIncidentTimelineFromCache = () => {
+        const cache = dashboardIncidentTimelineCache || {};
+        renderDashboardIncidentTimeline(cache.rootItems, cache.eventsStatus, cache.diagnosticLog, cache.sourceHealth, { preserveCache: true });
+      };
       const dashboardIncidentTimelineItems = (rootItems = [], eventsStatus = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const rootTimeline = (Array.isArray(rootItems) ? rootItems : [])
           .filter(item => item && (item.level === 'warn' || item.level === 'bad'))
@@ -1928,22 +1960,36 @@ void AppendOpsShellScript(std::ostringstream& out,
           actionHref: '/ops/dashboard'
         }];
       };
-      const renderDashboardIncidentTimeline = (rootItems = [], eventsStatus = {}, diagnosticLog = {}, sourceHealth = {}) => {
-        const items = dashboardIncidentTimelineItems(rootItems, eventsStatus, diagnosticLog, sourceHealth);
+      const renderDashboardIncidentTimeline = (rootItems = [], eventsStatus = {}, diagnosticLog = {}, sourceHealth = {}, options = {}) => {
+        if (!options.preserveCache) {
+          dashboardIncidentTimelineCache = { rootItems, eventsStatus, diagnosticLog, sourceHealth };
+        }
+        const allItems = dashboardIncidentTimelineItems(rootItems, eventsStatus, diagnosticLog, sourceHealth);
+        const filter = dashboardIncidentFilterState();
+        const items = allItems.filter(item => dashboardIncidentMatchesFilter(item, filter));
+        const filtersActive = dashboardIncidentFiltersActive(filter);
         const warnCount = items.filter(item => item.level === 'warn' || item.level === 'bad').length;
         const eventCount = dashboardIncidentEventRecords(eventsStatus).length;
         const sourceIssueCount = dashboardSourceHealthItems(sourceHealth).filter(sourceHealthNeedsAction).length;
         renderBadges('dashIncidentTimelineBadges', [
           { text: warnCount > 0 ? `${warnCount}개 확인 필요` : '즉시 인시던트 없음', tone: warnCount > 0 ? 'warn' : '' },
+          { text: filtersActive ? `필터 결과 ${items.length}/${allItems.length}` : `전체 ${allItems.length}` },
           { text: `EventRecord ${eventCount}` },
           { text: sourceIssueCount > 0 ? `source health ${sourceIssueCount}` : 'source health 정상', tone: sourceIssueCount > 0 ? 'warn' : '' },
           { text: diagnosticLog?.available === false ? 'log tail 없음' : 'log tail' }
         ]);
-        setText('dashIncidentTimelineText', warnCount > 0
-          ? '최근 단서를 시간순으로 묶었습니다. 확인 항목부터 관련 화면으로 이동합니다.'
-          : '최근 EventRecord와 source health 단서를 기준으로 즉시 대응할 인시던트가 없습니다.');
+        setText('dashIncidentTimelineText', filtersActive && items.length === 0
+          ? '필터에 맞는 인시던트 단서가 없습니다.'
+          : (warnCount > 0
+            ? '최근 단서를 시간순으로 묶었습니다. 확인 항목부터 관련 화면으로 이동합니다.'
+            : '최근 EventRecord와 source health 단서를 기준으로 즉시 대응할 인시던트가 없습니다.'));
         const list = document.getElementById('dashIncidentTimeline');
         if (!list) return items;
+        if (items.length === 0) {
+          list.innerHTML = '<div class="empty">필터에 맞는 인시던트 단서가 없습니다.<br />다른 검색어 또는 출처 필터를 선택하세요.</div>';
+          window.MediaServerUi?.translatePage?.();
+          return items;
+        }
         list.innerHTML = items.map(item => `<article class="root-cause-item ${escapeHtml(item.level)}">
           <div>
             <strong>${opsHtml(item.title)}</strong>
@@ -1955,6 +2001,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           <p class="root-cause-action">출처 ${opsHtml(item.source || '대시보드')}</p>
           ${item.actionHref ? `<a class="btn small root-cause-next-action" href="${escapeHtml(item.actionHref)}">관련 화면</a>` : ''}
         </article>`).join('');
+        window.MediaServerUi?.translatePage?.();
         return items;
       };
       const scenarioPhaseLabel = phase => ({
@@ -5431,6 +5478,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsRulesComposerClose')?.addEventListener('click', () => closeOpsRulesEditor().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsRulesComposerSave')?.addEventListener('click', () => triggerOpsRulesSave().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsDashboardRefresh')?.addEventListener('click', () => refreshDashboard().catch(error => setText('dashHealthText', error.message)));
+        document.getElementById('dashIncidentTimelineSearch')?.addEventListener('input', () => rerenderDashboardIncidentTimelineFromCache());
+        document.getElementById('dashIncidentTimelineSource')?.addEventListener('change', () => rerenderDashboardIncidentTimelineFromCache());
         document.getElementById('opsEventsRefresh')?.addEventListener('click', () => refreshEvents().catch(error => setText('eventRecordSummary', error.message)));
         document.getElementById('eventRecordsEvidenceSelect')?.addEventListener('change', () => {
           opsEventRecordsOffset = 0;

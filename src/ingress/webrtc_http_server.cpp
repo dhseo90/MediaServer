@@ -2347,6 +2347,20 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
             <h3>최근 인시던트 흐름</h3>
             <p>문제 원인, EventRecord, source health, 로그 단서를 시간순으로 묶어 봅니다.</p>
           </div>
+          <div class="actions incident-timeline-controls">
+            <label>인시던트 검색
+              <input id="dashIncidentTimelineSearch" placeholder="제목, 출처, cid 검색" />
+            </label>
+            <label>출처
+              <select id="dashIncidentTimelineSource">
+                <option value="">전체 출처</option>
+                <option value="root-cause">문제 원인</option>
+                <option value="event-record">EventRecord</option>
+                <option value="source-health">Source Health</option>
+                <option value="log-tail">Log tail</option>
+              </select>
+            </label>
+          </div>
         </div>
         <div id="dashIncidentTimelineBadges" class="badge-row"><span class="chip">로딩 중</span></div>
         <p id="dashIncidentTimelineText">불러오는 중</p>

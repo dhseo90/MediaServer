@@ -184,6 +184,14 @@ async function runOpsClickFlow(browser, context) {
   await waitForPath(browser, "/ops/dashboard");
   await installErrorCollector(browser);
   await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
+  await assertVisible(browser, "#dashIncidentTimelineSearch", "인시던트 검색 입력");
+  await setTextValue(browser, "#dashIncidentTimelineSearch", "__no_match__", "인시던트 검색 no-match");
+  await assertText(browser, "#dashIncidentTimelineText", "필터에 맞는", "인시던트 필터 no-match 문구");
+  await setTextValue(browser, "#dashIncidentTimelineSearch", "", "인시던트 검색 초기화");
+  await setSelectValue(browser, "#dashIncidentTimelineSource", "event-record", "인시던트 출처 필터");
+  await assertText(browser, "#dashIncidentTimelineBadges", "필터 결과", "인시던트 출처 필터 badge");
+  await setSelectValue(browser, "#dashIncidentTimelineSource", "", "인시던트 출처 필터 초기화");
+  await assertNoOverflow(browser, `${context.label}:dashboard-incident-filter`);
   await clickSelector(browser, "[data-root-cause-kind]", "문제 원인 다음 조치");
   await assertVisible(browser, "#dashRootCauseActionOutput", "문제 원인 조치 결과");
   await assertNoOverflow(browser, `${context.label}:dashboard-root-cause-action`);
@@ -191,7 +199,7 @@ async function runOpsClickFlow(browser, context) {
   await waitForPath(browser, "/ops/sources");
   await installErrorCollector(browser);
   await assertReady(browser, "/ops/sources", '[data-testid="ops-sources-page"]');
-  steps.push("dashboard:root-cause-action");
+  steps.push("dashboard:incident-filter", "dashboard:root-cause-action");
 
   await clickSelector(browser, "#add-channel", "채널 추가");
   await assertVisible(browser, "#channel-detail-panel", "채널 추가 패널");

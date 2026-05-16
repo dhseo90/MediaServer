@@ -1626,6 +1626,17 @@ std::string ProductUiCss() {
     .event-record-controls label {
       min-width: 128px;
     }
+    .incident-timeline-controls {
+      align-items: end;
+    }
+    .incident-timeline-controls label {
+      min-width: 150px;
+      display: grid;
+      gap: 4px;
+      color: var(--color-text-muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
     .event-record-controls .check-inline {
       min-width: auto;
       display: inline-flex;
@@ -2143,6 +2154,13 @@ std::string ProductUiCss() {
       }
       .event-record-controls {
         width: 100%;
+      }
+      .incident-timeline-controls {
+        width: 100%;
+      }
+      .incident-timeline-controls label {
+        min-width: min(100%, 150px);
+        flex: 1 1 150px;
       }
     }
     @media (max-width: 560px) {
