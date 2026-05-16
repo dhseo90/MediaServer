@@ -366,6 +366,13 @@ V120-P2-02 범주 안의 잔여 이슈는 남기지 않습니다. 실제 모델/
 default-on 결정, 대형 tracker 교체, runtime/model bundle 포함은 이 항목의
 잔여가 아니라 별도 review가 필요한 제품/배포 결정입니다.
 
+별도 Phase 후보로 기록:
+
+- Re-ID default-on
+- 실제 Re-ID 모델 번들/배포
+- ByteTrack/BoT-SORT/Kalman 같은 대형 tracker 교체
+- 추가 field/model review 기반 제품 결정
+
 ### V120-P1-08 Ops Dashboard incident timeline 종료 판정
 
 2026-05-16 기준 Ops Dashboard incident timeline은 운영자 UI 표시 범위에서 종료합니다.
