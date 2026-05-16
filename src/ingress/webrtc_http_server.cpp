@@ -2832,10 +2832,10 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             </div>
             <div class="row">
               <label id="opsEventRuleZoneThresholdField" hidden>점유 임계값
-                <input id="opsEventRuleZoneThresholdInput" type="number" min="1" step="1" placeholder="3" />
+                <input id="opsEventRuleZoneThresholdInput" type="number" min="1" step="1" placeholder="4" />
               </label>
               <label id="opsEventRuleZoneDwellField" hidden>최소 점유 체류(ms)
-                <input id="opsEventRuleZoneDwellInput" type="number" min="0" step="1000" placeholder="5000" />
+                <input id="opsEventRuleZoneDwellInput" type="number" min="0" step="1000" placeholder="7000" />
               </label>
               <label id="opsEventRuleCooldownField">재알림 대기(ms)
                 <input id="opsEventRuleCooldownInput" type="number" min="0" step="1000" placeholder="5000" />

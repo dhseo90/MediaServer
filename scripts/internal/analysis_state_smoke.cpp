@@ -252,6 +252,19 @@ bool HasTrackingIssue(const TrackingIssueReport& report,
     return false;
 }
 
+bool TrackingIssueMessageContains(const TrackingIssueReport& report,
+                                  const std::string& issue_type,
+                                  std::uint64_t track_id,
+                                  const std::string& needle) {
+    for (const auto& issue : report.issues) {
+        if (issue.issue_type == issue_type && issue.track_id == track_id &&
+            issue.message.find(needle) != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
+}
+
 class RecordingAppearanceExtractor final : public IAppearanceExtractor {
 public:
     bool Enabled() const override {
@@ -522,6 +535,8 @@ void VerifyTrackStateManagerAndHealth() {
     Expect(HasTrackingIssue(issue_report, "missed-frame-spike", 1) &&
                HasTrackingIssue(issue_report, "lost", 1),
            "Tracking issue report must record missed-frame and lost issues");
+    Expect(TrackingIssueMessageContains(issue_report, "lost", 1, "scenario dwell or occupancy counts may reset"),
+           "Tracking issue report must explain lost-track scenario impact");
 
     manager.Update("stream-a", "1", {}, Ms(3300));
     channel_a = manager.Snapshot("1");
@@ -561,6 +576,8 @@ void VerifyTrackStateManagerAndHealth() {
     issue_report = health_manager.TrackingIssueSnapshot("1");
     Expect(HasTrackingIssue(issue_report, "overlap-risk", 20),
            "Tracking issue report must record high overlap risk");
+    Expect(TrackingIssueMessageContains(issue_report, "overlap-risk", 20, "close-object separation"),
+           "Tracking issue report must explain overlap-risk operator action");
 
     health_manager.Update("stream-a", "1", {MakeObject(20, 2, 1100, 0.9F, 0.9F, "left")}, Ms(1100));
     health_manager.Update("stream-a", "1", {MakeObject(20, 3, 1200, 0.2F, 0.2F, "right")}, Ms(1200));
@@ -574,6 +591,9 @@ void VerifyTrackStateManagerAndHealth() {
     Expect(HasTrackingIssue(issue_report, "direction-change-spike", 20) ||
                HasTrackingIssue(issue_report, "low-association-confidence", 20),
            "Tracking issue report must record direction or association instability");
+    Expect(TrackingIssueMessageContains(issue_report, "direction-change-spike", 20, "scenario timing") ||
+               TrackingIssueMessageContains(issue_report, "low-association-confidence", 20, "lower quality"),
+           "Tracking issue report must explain scenario quality impact");
 
     health_manager.Update("stream-a", "1", {}, Ms(2300));
     health_manager.Update("stream-a", "1", {MakeObject(20, 4, 2400, 0.21F, 0.2F, "right")}, Ms(2400));
@@ -587,9 +607,13 @@ void VerifyTrackStateManagerAndHealth() {
     issue_report = health_manager.TrackingIssueSnapshot("1");
     Expect(HasTrackingIssue(issue_report, "reacquired", 20),
            "Tracking issue report must record lost to reacquired transitions");
+    Expect(TrackingIssueMessageContains(issue_report, "reacquired", 20, "reacquired after a short loss"),
+           "Tracking issue report must explain reacquired-track review action");
     const std::string issue_json = TrackingIssueReportToJson(issue_report);
     Expect(issue_json.find("\"schema\":\"media-server.va.tracking-issue-report.v1\"") != std::string::npos,
            "Tracking issue report must support JSON output");
+    Expect(issue_json.find("association=") == std::string::npos,
+           "Tracking issue report messages must avoid raw counter-only wording");
 
     TrackStateManager appearance_manager([&] {
         TrackStateManagerOptions appearance_options = options;
@@ -1106,6 +1130,12 @@ void VerifyIntrusionAfterLineCrossingScenario() {
 }
 
 void VerifyLoiteringScenario() {
+    Expect(app_config::kDefaultAnalysisLoiteringMinDwellTimeMs == 30000 &&
+               app_config::kDefaultAnalysisLoiteringMaxMovementRadius == 0.08F &&
+               app_config::kDefaultAnalysisLoiteringMinTrajectoryPoints == 4 &&
+               app_config::kDefaultAnalysisLoiteringCooldownMs == 12000,
+           "Loitering defaults must match field tuning baseline");
+
     ScenarioEngineOptions engine_options;
     engine_options.enabled = true;
     engine_options.default_cooldown_ms = 1000;
@@ -1201,6 +1231,11 @@ void VerifyLoiteringScenario() {
 }
 
 void VerifyZoneOccupancyScenario() {
+    Expect(app_config::kDefaultAnalysisZoneOccupancyThreshold == 4 &&
+               app_config::kDefaultAnalysisZoneOccupancyMinDwellTimeMs == 7000 &&
+               app_config::kDefaultAnalysisZoneOccupancyCooldownMs == 12000,
+           "ZoneOccupancy defaults must match field tuning baseline");
+
     ScenarioEngineOptions engine_options;
     engine_options.enabled = true;
     engine_options.default_cooldown_ms = 1000;

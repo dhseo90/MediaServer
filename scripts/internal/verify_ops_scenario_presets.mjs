@@ -35,6 +35,8 @@ for (const needle of [
   '<option value="doorway">문 앞 정체</option>',
   '<option value="parking">주차장 가장자리</option>',
   '<option value="elevator">승강기 홀</option>',
+  'id="opsEventRuleZoneThresholdInput" type="number" min="1" step="1" placeholder="4"',
+  'id="opsEventRuleZoneDwellInput" type="number" min="0" step="1000" placeholder="7000"',
 ]) {
   if (!rulesHtml.includes(needle)) {
     throw new Error(`scenario preset UI missing: ${needle}`);
@@ -44,13 +46,77 @@ console.log("[pass] scenario-preset-ui");
 
 const catalog = await requestJson("/ops/api/rules/catalog");
 const usedIds = new Set((Array.isArray(catalog.rules) ? catalog.rules : []).map(item => String(item?.id || "")));
-const ids = nextNumericIds(usedIds, { count: 4, start: 9911, end: 9999, label: "scenario preset id" });
+const ids = nextNumericIds(usedIds, { count: 6, start: 9911, end: 9999, label: "scenario preset id" });
 const fixtures = [
   {
     id: ids[0],
-    name: "parking loitering",
+    name: "default loitering",
     payload: {
       id: ids[0],
+      enabled: true,
+      ruleKind: "scenario",
+      analysis: { classes: ["person"] },
+      event: {
+        type: "loitering",
+        region: polygonRegion(),
+        minConfidence: 0.25,
+        minDurationMs: 0,
+      },
+      scenario: {
+        type: "loitering",
+        presetId: "default",
+        enabled: true,
+        minDwellTimeMs: 30000,
+        maxMovementRadius: 0.08,
+        minTrajectoryPoints: 4,
+        cooldownMs: 12000,
+        targetClasses: ["person"],
+      },
+    },
+    checks: {
+      "scenario.presetId": "default",
+      "scenario.minDwellTimeMs": 30000,
+      "scenario.maxMovementRadius": 0.08,
+      "scenario.minTrajectoryPoints": 4,
+      "scenario.cooldownMs": 12000,
+    },
+  },
+  {
+    id: ids[1],
+    name: "default occupancy",
+    payload: {
+      id: ids[1],
+      enabled: true,
+      ruleKind: "scenario",
+      analysis: { classes: ["person"] },
+      event: {
+        type: "zone-occupancy",
+        region: polygonRegion(),
+        minConfidence: 0.25,
+        minDurationMs: 0,
+      },
+      scenario: {
+        type: "zone-occupancy",
+        presetId: "default",
+        enabled: true,
+        occupancyThreshold: 4,
+        minDwellTimeMs: 7000,
+        cooldownMs: 12000,
+        targetClasses: ["person"],
+      },
+    },
+    checks: {
+      "scenario.presetId": "default",
+      "scenario.occupancyThreshold": 4,
+      "scenario.minDwellTimeMs": 7000,
+      "scenario.cooldownMs": 12000,
+    },
+  },
+  {
+    id: ids[2],
+    name: "parking loitering",
+    payload: {
+      id: ids[2],
       enabled: true,
       ruleKind: "scenario",
       analysis: { classes: ["person"] },
@@ -80,10 +146,10 @@ const fixtures = [
     },
   },
   {
-    id: ids[1],
+    id: ids[3],
     name: "platform occupancy",
     payload: {
-      id: ids[1],
+      id: ids[3],
       enabled: true,
       ruleKind: "scenario",
       analysis: { classes: ["person"] },
@@ -111,10 +177,10 @@ const fixtures = [
     },
   },
   {
-    id: ids[2],
+    id: ids[4],
     name: "road line crossing",
     payload: {
-      id: ids[2],
+      id: ids[4],
       enabled: true,
       ruleKind: "basic",
       analysis: { classes: ["person", "vehicle"] },
@@ -137,10 +203,10 @@ const fixtures = [
     },
   },
   {
-    id: ids[3],
+    id: ids[5],
     name: "platform intrusion after line",
     payload: {
-      id: ids[3],
+      id: ids[5],
       enabled: true,
       ruleKind: "scenario",
       analysis: { classes: ["person"] },

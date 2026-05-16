@@ -454,7 +454,7 @@ per-track ScenarioEngine 구조 위에서 같은 zone의 대표 track만 event�
 룰 편집 UI는 대기열, 로비 혼잡, 승강장 혼잡,
 출입구 정체, 승강기 홀 preset을 제공합니다.
 Preset은 `occupancyThreshold`, `minDwellTimeMs`, `cooldownMs` 시작값만 채웁니다.
-저장 payload에는 preset 이름 대신 숫자 조건만 남습니다.
+저장 payload에는 `scenario.presetId`와 실제 숫자 조건이 함께 남습니다.
 현장별 시작값과 조정 순서는
 [Analysis Threshold Baselines](analysis-threshold-baselines.md)를 기준으로 삼습니다.
 
@@ -502,6 +502,8 @@ TrackingIssueReport는 stream/channel별로 다음 issue를 제한 수집합니�
 - `reacquired`
 
 이 기능은 진단용이며 tracking id 생성 결과를 변경하지 않습니다.
+issue `message`는 raw counter 나열이 아니라 운영자가 다음 확인 지점을 고를 수 있는
+문장과 핵심 metric 요약을 함께 제공합니다.
 
 Close-object association 문제를 볼 때 함께 보는 값:
 

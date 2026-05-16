@@ -110,7 +110,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 | V120-P0-02 | P0 | UI visual regression + ERP-style visual refresh | 완료 | Ops/Client/Auth 주요 화면 320/390/760/1180 screenshot artifact와 수동 review 기준 고정. 공통 product shell, nav/account header, metric/card/table/form/badge 밀도를 운영 콘솔형으로 정리 | 제품 nav 구조 변경, `/lab` 화면 route 재개방 |
 | V120-P0-03 | P0 | Source health operator workflow | 완료 | 상태 변화 이력, retryable-only 재검증, Dashboard next action, source health bulk dry-run/partial failure/rollback 경계 정리 | top-level health 상태 모델 추가, client raw diagnostic 노출 |
 | V120-P1-01 | P1 | Client live/dashboard polish | 완료 | multi-view 비교, event/status copy, empty/error/loading 문구, mobile tile 조작 개선 | client wrapper API schema 변경, viewer source locator 노출 |
-| V120-P1-02 | P1 | Rule/Scenario field tuning | 예정 | 현장 샘플 기반 threshold preset, Loitering/ZoneOccupancy 기본값, scenario issue wording 정리 | ScenarioEngine 판단 로직, event type, payload schema 변경 |
+| V120-P1-02 | P1 | Rule/Scenario field tuning | 완료 | 현장 샘플 기반 threshold preset, Loitering/ZoneOccupancy 기본값, scenario issue wording 정리 | ScenarioEngine 판단 로직, event type, payload schema 변경 |
 | V120-P1-03 | P1 | Integrator contract artifact | 예정 | Event POST/WebRTC/SSE/WS contract sample bundle 또는 schema artifact 제공 | payload field 추가/삭제, schema identifier 변경 |
 | V120-P1-04 | P1 | Account lifecycle policy | 예정 | invite expiry, password reset 문구, user audit export, disable/restore 절차 polish | auth store migration, password/session/token contract 변경 |
 | V120-P2-01 | P2 | Release packaging rehearsal | 조건부 Gate | source-only 기준 유지와 container/offline/binary 후보 dry-run 정책 gate 확인 | runtime/model binary를 실제 release asset에 포함 |
@@ -181,6 +181,33 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - client/viewer raw diagnostic 또는 source locator 노출
 - RTSP/WebRTC media path 변경
 - Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+
+### V120-P1-02 종료 판정
+
+2026-05-16 기준 V120-P1-02는 Rule/Scenario field tuning 범위에서 종료합니다.
+
+확인됨:
+
+- Loitering runtime 기본값을 field baseline 기본 preset과 맞췄습니다:
+  dwell 30000ms, movement radius 0.08, trajectory points 4, cooldown 12000ms.
+- ZoneOccupancy runtime 기본값을 field baseline 기본 preset과 맞췄습니다:
+  threshold 4, minimum dwell 7000ms, cooldown 12000ms.
+- `/ops/rules` scenario preset smoke는 default/parking/platform 계열 payload round-trip을 검증합니다.
+- TrackHealth issue message는 raw counter 나열 대신 운영자 확인 지점과 핵심 metric 요약을 함께 제공합니다.
+- `verify-analysis-state`, `verify-va-replay`, `verify-va-events`,
+  `verify-rule-ui`, `verify-ops-rules-roundtrip`,
+  `verify-ops-scenario-presets`를 완료 기준으로 고정했습니다.
+
+범위 밖:
+
+- ScenarioEngine 판단 로직 변경
+- event type 추가/변경
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- 실제 고객/운영 카메라 영상 artifact 저장
+
+실제 현장별 추가 재튜닝은 운영 데이터 확보 후 preset 숫자 조정으로 다루며,
+현재 V120-P1-02의 잔여 이슈로 보지 않습니다.
 
 ### V120-P1-08 Ops Dashboard incident timeline 종료 판정
 

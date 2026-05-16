@@ -3310,7 +3310,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               minDwellTimeMs: Number(scenario.minDwellTimeMs ?? scenario.dwellTimeMs ?? baseline.minDwellTimeMs ?? 30000),
               maxMovementRadius: Number(scenario.maxMovementRadius ?? baseline.maxMovementRadius ?? 0.08),
               minTrajectoryPoints: Number(scenario.minTrajectoryPoints ?? baseline.minTrajectoryPoints ?? 4),
-              cooldownMs: Number(scenario.cooldownMs ?? baseline.cooldownMs ?? 10000),
+              cooldownMs: Number(scenario.cooldownMs ?? baseline.cooldownMs ?? 12000),
               targetClasses: Array.isArray(scenario.targetClasses) && scenario.targetClasses.length > 0 ? scenario.targetClasses : classes,
               restrictedZoneIds: Array.isArray(scenario.restrictedZoneIds) ? scenario.restrictedZoneIds : []
             }
@@ -3325,9 +3325,9 @@ void AppendOpsShellScript(std::ostringstream& out,
               type,
               presetId: scenario.presetId || 'default',
               enabled: scenario.enabled !== false,
-              occupancyThreshold: Number(scenario.occupancyThreshold ?? baseline.occupancyThreshold ?? 3),
-              minDwellTimeMs: Number(scenario.minDwellTimeMs ?? baseline.minDwellTimeMs ?? 5000),
-              cooldownMs: Number(scenario.cooldownMs ?? baseline.cooldownMs ?? 10000),
+              occupancyThreshold: Number(scenario.occupancyThreshold ?? baseline.occupancyThreshold ?? 4),
+              minDwellTimeMs: Number(scenario.minDwellTimeMs ?? baseline.minDwellTimeMs ?? 7000),
+              cooldownMs: Number(scenario.cooldownMs ?? baseline.cooldownMs ?? 12000),
               targetClasses: Array.isArray(scenario.targetClasses) && scenario.targetClasses.length > 0 ? scenario.targetClasses : classes,
               restrictedZoneIds: Array.isArray(scenario.restrictedZoneIds) ? scenario.restrictedZoneIds : []
             }
@@ -4285,8 +4285,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsEventRuleTriggerDirectionSelect').value = String(scenario?.triggerLine?.direction || 'any');
         document.getElementById('opsEventRuleLoiteringRadiusInput').value = String(scenario?.maxMovementRadius ?? baseline.maxMovementRadius ?? 0.08);
         document.getElementById('opsEventRuleLoiteringPointsInput').value = String(scenario?.minTrajectoryPoints ?? baseline.minTrajectoryPoints ?? 4);
-        document.getElementById('opsEventRuleZoneThresholdInput').value = String(scenario?.occupancyThreshold ?? baseline.occupancyThreshold ?? 3);
-        document.getElementById('opsEventRuleZoneDwellInput').value = String(scenario?.minDwellTimeMs ?? baseline.minDwellTimeMs ?? 5000);
+        document.getElementById('opsEventRuleZoneThresholdInput').value = String(scenario?.occupancyThreshold ?? baseline.occupancyThreshold ?? 4);
+        document.getElementById('opsEventRuleZoneDwellInput').value = String(scenario?.minDwellTimeMs ?? baseline.minDwellTimeMs ?? 7000);
         document.getElementById('opsEventRuleCooldownInput').value = String(scenario?.cooldownMs ?? baseline.cooldownMs ?? 5000);
         opsRulesSetFormDisabled('event-rule', detailMode === 'view');
         opsEventRuleUpdateModeUi();
@@ -4358,8 +4358,8 @@ void AppendOpsShellScript(std::ostringstream& out,
             scenario.maxMovementRadius = Number(document.getElementById('opsEventRuleLoiteringRadiusInput')?.value || scenario.maxMovementRadius || 0.08);
             scenario.minTrajectoryPoints = Number(document.getElementById('opsEventRuleLoiteringPointsInput')?.value || scenario.minTrajectoryPoints || 4);
           } else if (type === 'zone-occupancy') {
-            scenario.occupancyThreshold = Number(document.getElementById('opsEventRuleZoneThresholdInput')?.value || scenario.occupancyThreshold || 3);
-            scenario.minDwellTimeMs = Number(document.getElementById('opsEventRuleZoneDwellInput')?.value || scenario.minDwellTimeMs || 5000);
+            scenario.occupancyThreshold = Number(document.getElementById('opsEventRuleZoneThresholdInput')?.value || scenario.occupancyThreshold || 4);
+            scenario.minDwellTimeMs = Number(document.getElementById('opsEventRuleZoneDwellInput')?.value || scenario.minDwellTimeMs || 7000);
           }
         }
         const payload = {
