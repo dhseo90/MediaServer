@@ -194,17 +194,18 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   const holdAnalysis = readText("docs/reid-tracking-event-hold-analysis.md");
   const fixtureCandidates = readText("docs/reid-fixture-default-on-candidates.md");
   for (const snippet of [
-    "V120-P2-02 HOLD 판정",
+    "V120-P2-02 WARNING 판정",
     "verify-reid-advanced-tracking",
     "잔여 이슈를 남깁니다",
-    "tracking-event=hold",
+    "tracking-event=pass",
+    "field-new-york-driving=warning",
     "reid-tracking-event-hold-analysis.md",
     "reid-fixture-default-on-candidates.md",
     "verify-close-object-fixture-matrix",
   ]) {
     assert(backlog.includes(snippet), `backlog missing Re-ID closure snippet: ${snippet}`);
   }
-  assert(backlog.includes("종료하지 않고 HOLD(실험 유지)"), "backlog must keep V120-P2-02 in a held state");
+  assert(backlog.includes("종료하지 않고 WARNING(실험 유지)"), "backlog must keep V120-P2-02 in a warning/default-off state");
   assert(!backlog.includes("V120-P2-02 범주 안의 잔여 이슈는 남기지 않습니다"), "backlog must not claim V120-P2-02 has no residual issues");
   for (const snippet of [
     "privacy/default-off gate",
@@ -241,6 +242,10 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   for (const snippet of [
     "Re-ID Tracking Event Hold Analysis",
     "tracking-event",
+    "2026-05-17 KST 재검증",
+    "matrix-ok=True",
+    "fixture judgement: `pass`",
+    "field-new-york-driving=warning",
     "matrix-ok=False",
     "diagnosticVsOff event/scenario signature changed",
     "eventScenarioDelta=true",
@@ -255,13 +260,13 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   }
   for (const snippet of [
     "Re-ID Fixture Default-on Candidates",
-    "matrix-ok=False",
+    "matrix-ok=True",
     "tracking-event-slow-long",
     "`pass`",
     "`True`",
     "이 fixture 단독 후보. 제품 default-on 완료 근거 아님",
     "tracking-event-long",
-    "`warning`",
+    "단독 fixture 후보",
     "field-new-york-driving",
     "association risk metric increased",
     "field-driving-live",

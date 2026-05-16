@@ -114,7 +114,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 | V120-P1-03 | P1 | Integrator contract artifact | 완료 | Event POST/WebRTC/SSE/WS contract JSON Schema와 synthetic sample bundle 제공. 2026-05-16 기준 artifact manifest/schema/sample 정적 검증과 문서 연결로 종료 | payload field 추가/삭제, schema identifier 변경 |
 | V120-P1-04 | P1 | Account lifecycle policy | 완료 | `/ops/users` 계정 라이프사이클 정책 영역, password reset UI/문구, invite expiry 표시, user audit export 안내, disable/restore 절차 polish를 기존 auth/session 계약 안에서 종료 | auth store migration, password/session/token contract 변경 |
 | V120-P2-01 | P2 | Release packaging rehearsal | 완료 | source-only 기준 유지와 container/offline/binary 후보 dry-run 정책 gate 확인 | runtime/model binary를 실제 release asset에 포함 |
-| V120-P2-02 | P2 | Re-ID/advanced tracking experiment | HOLD(실험 유지) | default-off/privacy/static guard는 유지. close-object fixture matrix는 hold/warning이 남아 완료 gate로 닫지 않음 | Re-ID default-on, 대형 tracker 교체, media pipeline blocking risk |
+| V120-P2-02 | P2 | Re-ID/advanced tracking experiment | WARNING(실험 유지) | default-off/privacy/static guard는 유지. 2026-05-17 KST 재검증에서 close-object fixture matrix는 `matrix-ok=True`이나 `field-new-york-driving=warning/defaultOnCandidate=false`가 남아 제품 default-on 근거로 닫지 않음 | Re-ID default-on, 대형 tracker 교체, media pipeline blocking risk |
 | V120-P2-03 | P2 | YouTube experiment decision | 완료(현상 유지) | YouTube import/source는 lab-only 실험 기능으로 현상 유지하되 기본 빌드에서는 제외. v1.2.0에서는 추가 개발, `verify-youtube-import` 신설, 실제 YouTube URL 다운로드/relay 성공 검증을 진행하지 않음. 제품 경계 검증은 `/lab/import` 404, 제품 UI 미노출, 기본 빌드 비활성 상태 확인으로 제한 | 운영 기본 기능 승격, 실제 YouTube URL 성공 gate, 장시간 import job 정책 도입 |
 
 ### V120-P2-03 종료 판정
@@ -341,10 +341,13 @@ V120-P2-01 범주 안의 잔여 이슈는 남기지 않습니다. runtime/model 
 registry publish, installer 제작은 이 항목의 잔여가 아니라 별도 review가 필요한
 배포 결정입니다.
 
-### V120-P2-02 HOLD 판정
+### V120-P2-02 WARNING 판정
 
-2026-05-16 재검토 기준 V120-P2-02는 Re-ID/advanced tracking experiment 범위에서
-종료하지 않고 HOLD(실험 유지)로 둡니다.
+2026-05-17 KST 재검증 기준 V120-P2-02는 Re-ID/advanced tracking experiment 범위에서
+종료하지 않고 WARNING(실험 유지)로 둡니다. 2026-05-16의 `tracking-event`
+HOLD는 현재 fixture matrix에서 재현되지 않았지만, vehicle-heavy field fixture의
+association risk warning이 남아 close-object guard default-on 또는 제품 안정 완료
+근거로 사용하지 않습니다.
 
 확인됨:
 
@@ -372,12 +375,16 @@ registry publish, installer 제작은 이 항목의 잔여가 아니라 별도 r
 
 검증 판정:
 
-- `verify-close-object-fixture-matrix`는 clean pass가 나올 때까지 완료 gate로
-  사용하지 않고 HOLD 추적 gate로 남깁니다.
-- 2026-05-16 재검토에서 `verify-close-object-fixture-matrix`는 `matrix-ok=False`
-  로 끝났습니다. `tracking-event=hold`, `tracking-event-long=warning`,
-  `four-scene-control=warning`, `field-new-york-driving=warning`이며,
-  `tracking-event-slow-long`만 `pass/default-on candidate=True`였습니다.
+- `verify-close-object-fixture-matrix`는 hold 없이 `matrix-ok=True`로 끝났지만,
+  warning fixture가 있으면 제품 default-on 또는 안정 완료 gate로 사용하지 않습니다.
+- 2026-05-17 KST 재검증에서 `verify-close-object-fixture-matrix --history-dir
+  /private/tmp/media_server_reid_full_matrix_20260517`는 `matrix-ok=True`로 끝났습니다.
+  `tracking-event=pass`, `tracking-event-long=pass`, `tracking-event-slow-long=pass`,
+  `four-scene-control=pass`, `field-new-york-driving=warning`입니다.
+- `field-new-york-driving` warning은 event/scenario delta가 아니라
+  `diagnosticVsOff` hard association risk 증가입니다:
+  `trackerAssociationRiskScore +0.486`, `fragmentationRatio +0.243`,
+  `overlapFragmentationRatio +0.243`.
 - `hold`는 event/scenario output delta 또는 주요 association risk 증가가 있어
   default-on 검토를 중단해야 하는 상태입니다.
 - `warning`은 live polling observed risk 변동 또는 반복 검증 필요를 뜻하며,
@@ -392,14 +399,15 @@ registry publish, installer 제작은 이 항목의 잔여가 아니라 별도 r
 - RTSP/WebRTC media path 변경
 - client/viewer 화면에 source URL, raw JSON, debug/identity material 노출
 
-V120-P2-02 범주 안에는 잔여 이슈를 남깁니다. `tracking-event` hold 원인은
+V120-P2-02 범주 안에는 잔여 이슈를 남깁니다. `tracking-event` historical hold와
+2026-05-17 KST 해소 재검증은
 [`reid-tracking-event-hold-analysis.md`](./reid-tracking-event-hold-analysis.md)에
-별도 기록합니다. matrix warning/gate 기준은
+별도 기록합니다. 현재 남은 `field-new-york-driving` warning과 matrix gate 기준은
 [`stream-verification.md`](./stream-verification.md)와
 [`video-analysis.md`](./video-analysis.md)에 정의해 warning을 안정 판정으로
 닫지 않도록 고정했습니다. fixture별 default-on 후보 판정은
 [`reid-fixture-default-on-candidates.md`](./reid-fixture-default-on-candidates.md)에
-분리해 `tracking-event-slow-long` 단독 후보가 제품 default-on 완료 근거로
+분리해 개별 fixture 후보가 제품 default-on 완료 근거로
 해석되지 않도록 고정했습니다. 실제 모델/현장 샘플 기반 default-on 결정, 대형
 tracker 교체, runtime/model bundle 포함은 여전히 별도 review가 필요한
 제품/배포 결정입니다.

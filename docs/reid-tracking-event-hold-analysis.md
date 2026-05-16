@@ -5,7 +5,7 @@
 
 확인 기준:
 
-- 기준일: 2026-05-16
+- historical 기준일: 2026-05-16
 - fixture: `tracking-event`
 - 입력 파일: `imports/va_tracking_event_1280x720_30fps_h264.mp4`
 - quality preset: `close-object-live`
@@ -15,7 +15,33 @@
 ./server.sh compare-close-object-tracker --fixture-matrix --fixture-ids tracking-event --fail-on-missing-fixtures --fail-on-hold
 ```
 
-재현 결과:
+## 2026-05-17 KST 재검증
+
+현재 단일 fixture 재검증에서는 historical HOLD가 재현되지 않았습니다.
+
+실행 명령:
+
+```bash
+./server.sh compare-close-object-tracker --fixture-matrix --fixture-ids tracking-event --fail-on-missing-fixtures --history-dir /private/tmp/media_server_reid_hold_history_20260517
+```
+
+결과:
+
+- matrix result: `matrix-ok=True`
+- fixture judgement: `pass`
+- default-on candidate: `True`
+- recommendation: `candidate: no event delta or risk increase observed; still require more field samples`
+- summary: `/tmp/media_server_close_object_tracker_1778946903_98407/matrix-summary.json`
+- report: `/tmp/media_server_close_object_tracker_1778946903_98407/matrix-report.md`
+
+해석:
+
+- `tracking-event` historical HOLD는 이번 재검증에서 해소됐습니다.
+- 하지만 전체 V120-P2-02는 `field-new-york-driving=warning`이 남아 있어
+  close-object guard default-on 또는 제품 안정 완료 근거로 쓰지 않습니다.
+- 이 문서는 historical HOLD 원인과 해소 재검증을 함께 보관하는 산출물입니다.
+
+## 2026-05-16 historical HOLD 재현 결과
 
 - matrix result: `matrix-ok=False`
 - fixture judgement: `hold`
@@ -41,8 +67,10 @@
 
 후속 확인:
 
-- `tracking-event` HOLD는 threshold tuning만으로 완료 처리하지 않습니다.
-- 같은 fixture의 반복 샘플, long fixture, slow-long fixture 결과를 분리해서
-  비교합니다.
+- `tracking-event` 단일 pass는 close-object guard default-on 완료 근거가 아닙니다.
+- 같은 fixture의 반복 샘플, long fixture, slow-long fixture, field-like fixture 결과를
+  분리해서 비교합니다.
+- `field-new-york-driving` warning은 별도 field/model review 전까지 안정 판정으로
+  닫지 않습니다.
 - Event POST/WebRTC DataChannel/SSE/WS metadata schema와 RTSP/WebRTC media
   path는 이 분석 범위에서 변경하지 않습니다.
