@@ -90,3 +90,22 @@ jobs:
             artifacts/ui-visual-baseline-diff/visual-baseline-diff.md
             artifacts/ui-visual-baseline-diff/visual-baseline-comment.md
           if-no-files-found: ignore
+
+      - name: Publish UI visual baseline PR summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -z "${GITHUB_STEP_SUMMARY:-}" ]; then
+            exit 0
+          fi
+          {
+            echo "## UI Visual Baseline Diff"
+            echo
+            if [ -f artifacts/ui-visual-baseline-diff/visual-baseline-comment.md ]; then
+              cat artifacts/ui-visual-baseline-diff/visual-baseline-comment.md
+            else
+              echo "visual-baseline-comment.md was not generated."
+            fi
+            echo
+            echo "Artifact: media-server-ui-visual-baseline-diff"
+          } >> "$GITHUB_STEP_SUMMARY"

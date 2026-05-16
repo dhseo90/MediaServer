@@ -292,6 +292,8 @@ check("visual baseline diff preflight artifact is wired", () => {
     "visual-baseline-comment.md",
     "Upload UI visual baseline diff preflight artifact",
     "media-server-ui-visual-baseline-diff",
+    "Publish UI visual baseline PR summary",
+    "GITHUB_STEP_SUMMARY",
     "visual-baseline-diff.json",
     "visual-baseline-diff.md",
     "actions/upload-artifact@v4",
@@ -301,6 +303,7 @@ check("visual baseline diff preflight artifact is wired", () => {
   for (const snippet of [
     "media-server-ui-visual-baseline-diff",
     "visual-baseline-comment.md",
+    "GITHUB_STEP_SUMMARY",
     "preflight CI",
   ]) {
     assert(docs.includes(snippet), `docs missing visual baseline diff preflight snippet: ${snippet}`);

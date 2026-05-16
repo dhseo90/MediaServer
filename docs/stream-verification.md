@@ -138,6 +138,7 @@ debug/source 비노출 확인, 미실행 검증을 함께 남깁니다.
 preflight CI는 정적 fixture 기준 `media-server-ui-visual-baseline-diff` artifact에
 `visual-baseline-diff.json`, `visual-baseline-diff.md`,
 `visual-baseline-comment.md`를 함께 업로드해 PR에서 helper 출력 형식을 바로 확인하게 합니다.
+같은 comment 본문은 `GITHUB_STEP_SUMMARY`에도 자동 게시되어 PR check summary에서 확인합니다.
 보존 기간이 지난 artifact는 먼저
 `./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>`
 로 dry-run report를 생성합니다. 실제 archive/cleanup은 `--apply`가 있을 때만 수행하며,
