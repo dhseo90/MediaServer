@@ -231,9 +231,17 @@ async function runOpsClickFlow(browser, context) {
   await setSelectValue(browser, "#dashIncidentTimelineSource", "event-record", "인시던트 출처 필터");
   await assertHashParam(browser, "incidentSource", "event-record", "인시던트 출처 hash 저장");
   await assertText(browser, "#dashIncidentTimelineBadges", "필터 결과", "인시던트 출처 필터 badge");
+  await setTextValue(browser, "#dashIncidentTimelineSearch", "event", "인시던트 공유 검색");
+  await assertHashParam(browser, "incidentQ", "event", "인시던트 공유 검색 hash 저장");
   await clickSelector(browser, "#dashIncidentTimelineShare", "인시던트 필터 링크 복사");
-  await assertAttributeContains(browser, "#dashIncidentTimelineShare", "data-incident-share-url", "/ops/dashboard#incidentSource=event-record", "인시던트 필터 링크 data");
-  await navigatePath(browser, "/ops/dashboard#incidentQ=event&incidentSource=event-record");
+  const shareUrl = await incidentShareUrl(browser, "인시던트 필터 링크 data");
+  assertUrlContains(shareUrl, "/ops/dashboard", "인시던트 공유 링크 path");
+  assertUrlContains(shareUrl, "incidentQ=event", "인시던트 공유 링크 검색");
+  assertUrlContains(shareUrl, "incidentSource=event-record", "인시던트 공유 링크 출처");
+  await navigatePath(browser, "/ops/dashboard");
+  await installErrorCollector(browser);
+  await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
+  await navigatePath(browser, shareUrl);
   await installErrorCollector(browser);
   await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
   await assertFormValue(browser, "#dashIncidentTimelineSearch", "event", "인시던트 검색 deeplink");
@@ -718,6 +726,28 @@ async function assertAttributeContains(browser, selector, attribute, expected, d
     description,
   );
   return result;
+}
+
+async function incidentShareUrl(browser, description) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const node = document.querySelector('#dashIncidentTimelineShare');
+        const value = String(node?.getAttribute('data-incident-share-url') || '');
+        return { ok: value.includes('/ops/dashboard#') && value.includes('incidentSource=event-record'), value };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  return result.value;
+}
+
+function assertUrlContains(value, expected, description) {
+  if (!String(value || "").includes(expected)) {
+    throw new Error(`${description}: ${JSON.stringify(value)} does not include ${JSON.stringify(expected)}`);
+  }
 }
 
 async function assertHashParam(browser, key, expected, description) {

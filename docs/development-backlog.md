@@ -226,7 +226,18 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - `/ops/dashboard`의 `최근 인시던트 흐름` 필터 영역에 `링크 복사` 버튼을 추가했습니다.
 - 버튼은 현재 검색/출처 필터를 `incidentQ`, `incidentSource` hash parameter로 먼저 반영한 뒤 현재 dashboard URL을 복사합니다.
 - `verify-ops-root-cause-panel`이 버튼, hash share helper, responsive CSS를 정적으로 확인합니다.
-- `verify-ops-click-e2e`가 필터 선택 후 share URL data를 확인합니다.
+- `verify-ops-click-e2e`가 검색/출처 필터를 포함한 share URL data와 해당 URL 재진입 후 필터 복원을 확인합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
+### Ops incident filter 공유 링크 복원 E2E 후속 종료 판정
+
+2026-05-16 기준 incident timeline 공유 링크를 실제 재진입 URL로 사용해 필터 복원까지 E2E에서 고정했습니다.
+
+확인됨:
+
+- `verify-ops-click-e2e`가 `incidentQ=event`, `incidentSource=event-record`를 포함한 share URL을 생성합니다.
+- 생성된 URL로 `/ops/dashboard`에 다시 진입한 뒤 검색 input과 출처 select 값이 복원되는지 검증합니다.
+- hash parameter 제거 흐름도 기존처럼 확인합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
 ### V120-P1-01 종료 판정
