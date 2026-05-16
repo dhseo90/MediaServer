@@ -128,6 +128,8 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - `/lab/import` 화면 route는 제품 UI에서 닫힌 상태를 유지합니다.
 - v1.2.0에서는 YouTube 실험 기능의 추가 개발, 별도 `verify-youtube-import`
   신설, 실제 YouTube URL 다운로드/relay 성공 검증을 진행하지 않습니다.
+- 운영 기능 승격, 실제 URL 검증, resolver 운영, import job 정책은
+  [`youtube-import.md`](./youtube-import.md)의 승인 gate가 열릴 때만 다룹니다.
 
 미확인:
 

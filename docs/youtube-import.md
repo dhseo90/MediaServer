@@ -93,6 +93,20 @@ gate도 신설하지 않습니다.
 
 ## 운영 전환 전 조건
 
+v1.2.0 현상 유지 결정을 바꾸려면 아래 승인 gate를 별도 이슈로 먼저 열어야 합니다.
+이 gate가 열리기 전에는 YouTube import/source를 운영 기본 기능, core media
+안정성 gate, release blocking 검증으로 취급하지 않습니다.
+
+| gate | 필요 조건 | v1.2.0 상태 |
+| --- | --- | --- |
+| 제품 승인 | lab-only에서 운영 기능으로 승격할지 결정 | 미승인 |
+| 정책/권리 검토 | YouTube 또는 권리자 정책, 테스트 URL 사용 범위, artifact 보관 범위 확정 | 미승인 |
+| 실제 URL 검증 승인 | 공개/내부 테스트 URL 목록과 네트워크 실패 해석 기준 확정 | 미승인 |
+| build/runtime 배포 승인 | `MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE` 기본값 변경 여부와 runtime env 노출 정책 확정 | 미승인 |
+| resolver 운영 승인 | `yt-dlp`/`deno` 설치 방식, 버전 고정, 업데이트/차단 대응 전략 확정 | 미승인 |
+| import job 정책 | timeout, cancel, retry, cleanup, `video/imports` 보존/삭제/용량 제한 확정 | 미승인 |
+| 보안/노출 검토 | source URL, signed media URL, resolver stderr, raw diagnostic 노출 금지 확인 | 미승인 |
+
 - 기능을 운영 기본 기능으로 승격할지 다시 판단하는 별도 정책/설계 결정
 - 사용 가능한 테스트 URL과 사용 범위에 대한 내부 정책 확정
 - resolver 설치 방식과 버전 고정 전략 확정
