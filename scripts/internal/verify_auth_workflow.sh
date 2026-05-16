@@ -274,7 +274,7 @@ auth_ui_smoke() {
     "${ROOT_DIR}/scripts/internal/verify_auth_ui_smoke.mjs"
     --http-base "${BASE}"
     --page "${page_spec}"
-    --visual-widths "${MEDIA_SERVER_VERIFY_AUTH_VISUAL_WIDTHS:-390,760}"
+    --visual-widths "${MEDIA_SERVER_VERIFY_AUTH_VISUAL_WIDTHS:-320,390,760,1180}"
     --debug-port-base "${MEDIA_SERVER_VERIFY_AUTH_DEBUG_PORT_BASE:-9820}"
   )
   if truthy "${MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS:-0}"; then
@@ -352,7 +352,8 @@ run_bootstrap() {
     'class="auth-shell"' 'id="themeToggleBtn"' 'name="username"' 'name="password"' 'autocomplete="current-password"'
   auth_ui_smoke "login" "/login" "form.auth-form" "" 'autocomplete="current-password"'
   expect_page_contains "client access request auth shell selectors" "${BASE}/client/request-access" \
-    'class="auth-shell"' 'id="request-form"' 'name="username"' 'name="contact"' 'name="reason"' 'window.MediaServerUi'
+    'class="auth-shell"' 'id="request-form"' 'name="username"' 'name="contact"' 'name="reason"' \
+    '승인 전에는 로그인/채널 접근이 열리지 않습니다' 'window.MediaServerUi'
   auth_ui_smoke "client-request-access" "/client/request-access" "#request-form" "" 'name="reason"'
   login_admin
   local logout_code whoami_code
@@ -375,7 +376,12 @@ run_users() {
   login_admin
   expect_cookie_page_contains "ops users access request selectors" "${ADMIN_COOKIE}" "${BASE}/ops/users" \
     'id="access-requests-body"' 'id="request-invite-output"' '/ops/api/access-requests' '승인 대기 요청' \
-    'id="apply-view-scope-template"' 'id="scope-template-preview"' 'id="user-scopes-input"'
+    'id="apply-view-scope-template"' 'id="scope-template-preview"' 'id="user-scopes-input"' \
+    'id="user-lifecycle-summary"' 'data-user-set-enabled' '다음 로그인 시 비밀번호 변경 필요' \
+    'data-testid="user-lifecycle-policy"' '초대 링크는 기본 24시간 동안만 유효' \
+    'id="user-reset-password-panel"' 'id="user-reset-password-button"' 'data-user-reset-password' \
+    '사용자 감사 JSON/CSV/Diff JSON export' '승인 전: 로그인/세션/채널 권한 없음' \
+    '초대 설정 완료 전까지는 로그인/세션/채널 권한이 열리지 않습니다'
   auth_scope_picker_smoke
   expect_auth_store_owner_only "permissive auth users file re-hardened"
 
@@ -410,6 +416,12 @@ run_users() {
   reset_code="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data "{\"password\":\"${TEST_PASSWORD}\"}" "${BASE}/ops/api/users/viewer-smoke/reset-password")"
   expect_eq "${reset_code}" "200" "admin reset password"
+  local reset_users_json
+  reset_users_json="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/api/users")"
+  case "${reset_users_json}" in
+    *'"username":"viewer-smoke"'*'"mustChangePassword":true'*) pass "admin reset forces next-login password change" ;;
+    *) fail "admin reset did not expose mustChangePassword lifecycle state: ${reset_users_json}" ;;
+  esac
   landing="$(curl -sS -c "${VIEWER_COOKIE}" -o /dev/null -D - \
     -X POST -d "username=viewer-smoke&password=${TEST_PASSWORD}" "${BASE}/login" |
     tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
@@ -441,6 +453,10 @@ run_users() {
   invite_token="$(printf '%s' "${invite_json}" | json_string_field token)"
   [[ -n "${invite_token}" ]] || fail "invite token missing: ${invite_json}"
   pass "invite token issued once"
+  case "${invite_json}" in
+    *"\"expiresAt\":\"20"*"\"setupUrl\":\"/invite/setup"*) pass "invite expiry and setup URL visible once" ;;
+    *) fail "invite expiry/setup URL missing: ${invite_json}" ;;
+  esac
   preserve_reset="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data "{\"password\":\"${PREVIOUS_PASSWORD}\"}" "${BASE}/ops/api/users/lockout-smoke/reset-password")"
   expect_eq "${preserve_reset}" "200" "users-only save after pending invite"
@@ -526,6 +542,10 @@ run_users() {
   approve_invite_id="$(printf '%s' "${approve_json}" | json_string_field inviteId)"
   approve_token="$(printf '%s' "${approve_json}" | json_string_field token)"
   [[ -n "${approve_token}" ]] || fail "approve invite token missing: ${approve_json}"
+  case "${approve_json}" in
+    *"\"expiresAt\":\"20"*"\"setupUrl\":\"/invite/setup"*) pass "approved request invite expiry visible once" ;;
+    *) fail "approved request invite expiry/setup URL missing: ${approve_json}" ;;
+  esac
   request_user_list="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/api/users")"
   case "${request_user_list}" in
     *'"username":"request-smoke"'*) fail "approved request created user before invite setup: ${request_user_list}" ;;
@@ -622,8 +642,12 @@ run_routes() {
   expect_eq "$(http_code "${BASE}/ops/api/events/status?limit=1")" "401" "unauth ops events API denied"
   local onvif_fixture_payload
   onvif_fixture_payload="$(tr -d '\n' < "${ROOT_DIR}/test/fixtures/onvif_live_import_stub.json")"
+  local onvif_probe_fixture_payload
+  onvif_probe_fixture_payload="$(tr -d '\n' < "${ROOT_DIR}/test/fixtures/onvif_probe_result_stub.json")"
   expect_eq "$(http_code -H 'Content-Type: application/json' \
     -X POST --data "${onvif_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")" "401" "unauth ops ONVIF import draft API denied"
+  expect_eq "$(http_code -H 'Content-Type: application/json' \
+    -X POST --data "${onvif_probe_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")" "401" "unauth ops ONVIF probe draft API denied"
   expect_eq "$(http_code "${BASE}/ops/api/users")" "401" "unauth ops users API denied"
   expect_eq "$(http_code "${BASE}/ops/api/access-requests")" "401" "unauth ops access requests API denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/sources")" "403" "viewer ops sources API denied"
@@ -631,6 +655,8 @@ run_routes() {
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/runtime/status")" "403" "viewer ops runtime API denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data "${onvif_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")" "403" "viewer ops ONVIF import draft API denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data "${onvif_probe_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")" "403" "viewer ops ONVIF probe draft API denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/users")" "403" "viewer ops users API denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/access-requests")" "403" "viewer ops access requests API denied"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/sources")" "200" "readonly operator ops read allowed"
@@ -645,6 +671,8 @@ run_routes() {
     -X POST --data '{"viewId":"99"}' "${BASE}/ops/api/views")" "403" "source write scope required for view create"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data "${onvif_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")" "403" "source write scope required for ONVIF import draft"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data "${onvif_probe_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")" "403" "source write scope required for ONVIF probe draft"
   local readonly_view_update_payload readonly_source_update_payload readonly_va_rule_payload
   readonly_view_update_payload="{\"viewId\":\"1\",\"sourceId\":\"${source_id}\",\"displayName\":\"Denied\"}"
   readonly_source_update_payload="{\"sourceId\":\"${source_id}\",\"displayName\":\"Denied\",\"kind\":\"file\",\"file\":\"sample_h264.mp4\"}"
@@ -669,6 +697,17 @@ run_routes() {
   case "${onvif_draft_json}" in
     *'"credentialRef"'*|*'operator-entered-secret'*|*'/onvif/device_service'*) fail "ONVIF import draft leaked credential or endpoint: ${onvif_draft_json}" ;;
     *) pass "ONVIF import draft redacts credential reference and endpoint" ;;
+  esac
+  local onvif_probe_draft_json
+  onvif_probe_draft_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data "${onvif_probe_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")"
+  case "${onvif_probe_draft_json}" in
+    *'"status":"onvifImportDraft"'*'"notSaved":true'*'"sourceDraft"'*'"publishedViewDraft"'*) pass "ONVIF probe draft API allowed for source writer" ;;
+    *) fail "ONVIF probe draft response missing expected fields: ${onvif_probe_draft_json}" ;;
+  esac
+  case "${onvif_probe_draft_json}" in
+    *'"credentialRef"'*|*'operator-entered-secret'*|*'/onvif/device_service'*) fail "ONVIF probe draft leaked credential or endpoint: ${onvif_probe_draft_json}" ;;
+    *) pass "ONVIF probe draft redacts credential reference and endpoint" ;;
   esac
   local whep_source_json whep_sources_json
   whep_source_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \

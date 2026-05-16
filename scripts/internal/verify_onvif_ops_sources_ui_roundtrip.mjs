@@ -63,6 +63,7 @@ const debugPort = Number(args.debugPort || 9765);
 const width = Number(args.width || 1180);
 const height = Number(args.height || 900);
 const allowNonTempRegistry = Boolean(args.allowNonTempRegistry);
+const probeFixtureText = fs.readFileSync(path.join(rootDir, "test/fixtures/onvif_probe_result_stub.json"), "utf8");
 
 if (!chromePath) {
   console.error("[fail] Chrome executable not found");
@@ -100,6 +101,14 @@ try {
   await clickSelector(browser, "#add-channel", "add ONVIF channel");
   await assertVisible(browser, "#channel-detail-panel", "ONVIF channel form");
   await setSelectValue(browser, '[name="kind"]', "onvif", "ONVIF kind");
+  await assertVisible(browser, '[data-testid="onvif-probe-draft-tool"]', "ONVIF probe draft tool");
+  await setInputValue(browser, "#onvifProbeDraftInput", probeFixtureText, "ONVIF probe fixture");
+  await assertVisible(browser, "#onvifProbeProfileSelect", "ONVIF probe profile select");
+  await setSelectValue(browser, "#onvifProbeProfileSelect", "field-sub-h264", "ONVIF sub profile candidate");
+  await clickSelector(browser, "#onvifProbeDraftApply", "ONVIF probe draft apply");
+  await assertText(browser, "#onvifProbeDraftStatus", "Probe draft 적용", "ONVIF probe draft status");
+  const draftedRtspUrl = await readInputValue(browser, '[name="onvifStreamUrl"]', "drafted ONVIF stream URI");
+  assert(draftedRtspUrl === "rtsp://192.0.2.20/live/sub", `drafted ONVIF stream URI mismatch: ${draftedRtspUrl}`);
   savedRtspUrl = `rtsp://192.0.2.10/live/main-${sourceId}`;
   await setInputValue(browser, '[name="channelId"]', sourceId, "channelId");
   await setInputValue(browser, '[name="displayName"]', displayName, "displayName");

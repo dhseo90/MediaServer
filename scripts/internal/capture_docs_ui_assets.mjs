@@ -6,6 +6,10 @@ import path from "node:path";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 
+import {
+  cleanupRulePreviewPrerequisites,
+  ensureRulePreviewPrerequisites,
+} from "./rule_preview_fixture_helpers.mjs";
 import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 
 const args = parseArgs(process.argv.slice(2));
@@ -170,6 +174,9 @@ if (failures.length) {
 }
 
 async function captureTask(task, debugPort) {
+  const seededPrereqs = task.name === "ops-rules-preview"
+    ? await ensureRulePreviewPrerequisites({ httpBase, includeVaRule: true })
+    : null;
   const pagePath = withLanguageParam(task.pagePath);
   const browser = await openBrowserPage({
     httpBase,
@@ -196,6 +203,7 @@ async function captureTask(task, debugPort) {
     await saveClip(browser, path.join(outputDir, task.file), clip);
   } finally {
     await browser.close();
+    await cleanupRulePreviewPrerequisites({ httpBase, created: seededPrereqs });
   }
 }
 
@@ -310,13 +318,18 @@ async function setupOpsRules(browser) {
     const action = Array.from(document.querySelectorAll('[data-ops-rule-action="view-va"]'))
       .find((button) => button.closest('tr')?.textContent.includes('VA Test File')) ||
       document.querySelector('[data-ops-rule-action="view-va"]');
-    if (!action) return false;
-    action.click();
+    const fallback = document.getElementById('opsCreateVaRuleBtn');
+    const target = action || fallback;
+    if (!target) return false;
+    target.click();
     return true;
   })()`);
   await waitFor(browser, `(() => {
+    const visible = (node) => Boolean(node) && !node.hidden && getComputedStyle(node).display !== 'none';
     const panel = document.getElementById('opsRulesDetailPanel');
-    return Boolean(panel && !panel.hidden && document.getElementById('opsVaRulePreviewStartBtn'));
+    const form = document.getElementById('opsVaRuleForm');
+    const stage = document.querySelector('.ops-va-stage-settings');
+    return visible(panel) && visible(form) && visible(stage) && Boolean(document.getElementById('opsVaRulePreviewStartBtn'));
   })()`, 8000);
   await evaluate(browser, `(() => {
     document.getElementById('opsRulesComposerEdit')?.click();
@@ -324,7 +337,8 @@ async function setupOpsRules(browser) {
   })()`);
   await waitFor(browser, `(() => {
     const channel = document.getElementById('opsVaRuleChannelSelect');
-    return Boolean(channel && !channel.disabled);
+    const stage = document.querySelector('.ops-va-stage-settings');
+    return Boolean(channel && !channel.disabled && stage && stage.getBoundingClientRect().height > 120);
   })()`, 8000);
   await evaluate(browser, `(() => {
     const selectByText = (select, matcher) => {

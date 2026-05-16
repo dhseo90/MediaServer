@@ -21,6 +21,7 @@ fi
 
 STD_AFX="${ROOT_DIR}/include/stdafx.h"
 MEDIA_SERVER_ENABLE_AI="${MEDIA_SERVER_ENABLE_AI:-1}"
+MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE="${MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE:-0}"
 if [[ "${MEDIA_SERVER_ENABLE_AI}" == "1" ]]; then
   BUILD_DIR="${MEDIA_SERVER_BUILD_DIR:-${ROOT_DIR}/build-gst-onnx}"
 else
@@ -33,7 +34,7 @@ if [[ "${MEDIA_SERVER_SKIP_ENV_CHECK:-0}" != "1" ]]; then
 fi
 
 if [[ "${MEDIA_SERVER_SKIP_BUILD:-0}" != "1" ]]; then
-  CMAKE_ARGS=(-DMEDIA_SERVER_USE_GSTREAMER=ON)
+  CMAKE_ARGS=(-DMEDIA_SERVER_USE_GSTREAMER=ON -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE="${MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE}")
   if [[ "${MEDIA_SERVER_ENABLE_AI}" == "1" ]]; then
     ONNXRUNTIME_ROOT="${MEDIA_SERVER_ONNXRUNTIME_ROOT:-}"
     if [[ -z "${ONNXRUNTIME_ROOT}" ]]; then
@@ -53,7 +54,7 @@ if [[ "${MEDIA_SERVER_SKIP_BUILD:-0}" != "1" ]]; then
     CMAKE_ARGS+=(-DMEDIA_SERVER_USE_ONNXRUNTIME=OFF)
   fi
 
-  echo "[1/2] configure (GStreamer ON, AI ${MEDIA_SERVER_ENABLE_AI})"
+  echo "[1/2] configure (GStreamer ON, AI ${MEDIA_SERVER_ENABLE_AI}, YouTube ${MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE})"
   if ! cmake -S "${ROOT_DIR}" -B "${BUILD_DIR}" "${CMAKE_ARGS[@]}"; then
     if [[ -f "${BUILD_DIR}/CMakeCache.txt" ]]; then
       echo "[configure] stale CMake cache detected. resetting ${BUILD_DIR}"

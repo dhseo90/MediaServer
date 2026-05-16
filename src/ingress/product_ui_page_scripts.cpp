@@ -54,7 +54,7 @@ void AppendClientAccessRequestScript(std::ostringstream& out) {
       event.preventDefault();
       const data = formDataObject(form);
       try {
-        await requestJson('/client/api/access-requests', {
+        const result = await requestJson('/client/api/access-requests', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -66,7 +66,9 @@ void AppendClientAccessRequestScript(std::ostringstream& out) {
           })
         });
         form.reset();
-        setMessage('요청이 승인 대기 상태로 저장되었습니다.');
+        const requestId = String(result?.requestId || '').trim();
+        const prefix = requestId ? `요청 ${requestId} 접수 완료. ` : '';
+        setMessage(`${prefix}승인 전에는 로그인/채널 접근이 열리지 않습니다. 관리자가 승인하면 초대 링크로 비밀번호를 설정하세요.`);
       } catch (error) {
         setMessage(error.message, true);
       }
@@ -92,7 +94,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     const clientHashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
     let selectedViewId = clientHashParams().get('view') || views[0]?.viewId || '';
     const isPreviewMode = document.body.dataset.clientPreview === 'true';
-    const { escapeHtml, display, numberValue, requestJson, applyPrincipalVisibility, setSelectOptions } = window.MediaServerUi;
+    const { escapeHtml, display, numberValue, requestJson, applyPrincipalVisibility, setSelectOptions, showToast, currentLanguage } = window.MediaServerUi;
     let clientWebRtcConfigPromise = null;
     const ms = value => value === null || value === undefined ? '미제공' : `${Math.max(0, Math.round(Number(value)))}ms`;
     const formatTime = value => {
@@ -158,6 +160,128 @@ void AppendClientShellScript(std::ostringstream& out) {
         ${actionHref ? `<div class="actions"><a class="button button-secondary" href="${escapeHtml(actionHref)}">${escapeHtml(actionLabel)}</a></div>` : ''}
       </div>
     `;
+    async function copyClientText(text) {
+      const value = String(text || '').trim();
+      if (!value) throw new Error('복사할 상태가 없습니다.');
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(value);
+        return;
+      }
+      const area = document.createElement('textarea');
+      area.value = value;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.left = '-1000px';
+      area.style.top = '0';
+      document.body.appendChild(area);
+      area.focus();
+      area.select();
+      try {
+        if (!document.execCommand('copy')) throw new Error('copy command rejected');
+      } finally {
+        area.remove();
+      }
+    }
+    const clientUiText = (ko, en) => {
+      try {
+        return currentLanguage && currentLanguage() === 'en' ? en : ko;
+      } catch (_) {
+        return ko;
+      }
+    };
+    function clearClientClipboardFallback(root = detail) {
+      root?.querySelector('[data-client-copy-fallback]')?.remove();
+    }
+    function showClientClipboardFallback(text, root = detail) {
+      const value = String(text || '').trim();
+      if (!root || !value) return;
+      clearClientClipboardFallback(root);
+      const box = document.createElement('div');
+      box.className = 'clipboard-fallback';
+      box.dataset.clientCopyFallback = 'true';
+      box.innerHTML = `
+        <div>
+          <strong>${escapeHtml(clientUiText('클립보드 복사 실패', 'Clipboard copy failed'))}</strong>
+          <p>${escapeHtml(clientUiText('아래 텍스트를 선택해 직접 복사하세요.', 'Select the text below and copy it manually.'))}</p>
+        </div>
+        <textarea readonly aria-label="${escapeHtml(clientUiText('수동 복사용 텍스트', 'Manual copy text'))}"></textarea>
+        <button type="button" class="ghost" data-clipboard-fallback-close>${escapeHtml(clientUiText('닫기', 'Close'))}</button>
+      `;
+      const area = box.querySelector('textarea');
+      area.value = value;
+      box.querySelector('[data-clipboard-fallback-close]')?.addEventListener('click', () => box.remove());
+      root.appendChild(box);
+      try {
+        area.focus({ preventScroll: false });
+      } catch (_) {
+        area.focus();
+      }
+      area.select();
+    }
+    const clientEventSummaryText = (events = {}) => {
+      const lines = ['이벤트 요약'];
+      const counts = Array.isArray(events.countsByType) ? events.countsByType : [];
+      if (counts.length > 0) {
+        lines.push(`유형: ${counts.map(item => `${item.eventType || 'event'} ${display(item.count)}`).join(', ')}`);
+      } else {
+        lines.push('유형: 최근 이벤트 없음');
+      }
+      lines.push(`경고: ${events.warning ? '있음' : '없음'}`);
+      const recent = Array.isArray(events.recent) ? events.recent.slice(0, 3) : [];
+      if (recent.length > 0) {
+        for (const item of recent) {
+          const name = item.scenarioName || item.className || item.eventType || '이벤트';
+          lines.push(`최근: ${name} / ${item.eventType || 'event'} / ${item.status || '미제공'} / ${formatTime(item.updateTime || item.startTime)}`);
+        }
+      } else {
+        lines.push('최근: 없음');
+      }
+      return lines.join('\n');
+    };
+    const clientStatusSummaryText = (payload = {}) => {
+      const view = payload.view || {};
+      const health = payload.health || {};
+      const analysis = payload.analysis || {};
+      const connection = payload.connection || {};
+      const events = payload.events || {};
+      const fieldState = dashboardFieldState(health, events);
+      return [
+        `채널: ${view.displayName || view.viewId || '미제공'}`,
+        `현장 상태: ${fieldState.text}`,
+        `상태 요약: ${clientHealthSummaryLabel(health.summary || health.status)}`,
+        `연결: ${clientStatusLabel(health.connectionStatus || health.status)}`,
+        `영상: ${clientStatusLabel(health.videoFrameStatus || health.status)}`,
+        `메타데이터: ${clientStatusLabel(health.metadataStatus)}`,
+        `메타데이터 지연: ${ms(health.metadataAgeMs)}`,
+        `마지막 프레임: ${ms(connection.lastFrameAgeMs ?? health.lastFrameAgeMs)}`,
+        `트랙: ${display(analysis.trackCount)}`,
+        `활성 이벤트: ${display(analysis.activeEventCount)}`,
+        `시나리오: ${display(analysis.scenarioCount)}`
+      ].join('\n');
+    };
+    function bindClientCopyButtons(payload, root = detail) {
+      root?.querySelectorAll('[data-client-copy]').forEach(button => {
+        button.addEventListener('click', async () => {
+          const mode = String(button.dataset.clientCopy || '');
+          const copyText = mode === 'events' ? clientEventSummaryText(payload.events || {}) : clientStatusSummaryText(payload);
+          button.disabled = true;
+          try {
+            await copyClientText(copyText);
+            clearClientClipboardFallback(root);
+            showToast(mode === 'events' ? '이벤트 요약 복사 완료' : '상태 요약 복사 완료');
+          } catch (error) {
+            if (error.message === '복사할 상태가 없습니다.') {
+              showToast(error.message, true);
+            } else {
+              showClientClipboardFallback(copyText, root);
+              showToast('클립보드 복사 실패. 아래 내용을 선택해 직접 복사하세요.', true);
+            }
+          } finally {
+            button.disabled = false;
+          }
+        });
+      });
+    }
     applyPrincipalVisibility().catch(() => {});
     const normalizeOverlayMode = mode => {
       const raw = String(mode || '').trim().toLowerCase();
@@ -219,8 +343,8 @@ void AppendClientShellScript(std::ostringstream& out) {
           isPreviewMode
             ? '미리보기에 표시할 채널이 없습니다. Ops에서 채널과 계정 권한을 확인하세요.'
             : '이 계정에 허용된 채널이 없습니다. 관리자에게 채널 접근 권한을 요청하세요.',
-          isPreviewMode ? '/ops/sources' : '',
-          isPreviewMode ? '채널 관리' : ''
+          isPreviewMode ? '/ops/sources' : '/client/request-access',
+          isPreviewMode ? '채널 관리' : '접근 요청'
         );
         return;
       }
@@ -464,7 +588,7 @@ void AppendClientShellScript(std::ostringstream& out) {
         const fieldState = dashboardFieldState(health, events);
 	      detail.innerHTML = `
 	        <div class="toolbar">
-	          <div>
+          <div>
             <h2>${escapeHtml(view.displayName || view.viewId || '대시보드')}</h2>
             <p>${escapeHtml(view.sourceDisplayName || '미제공')}</p>
           </div>
@@ -474,6 +598,10 @@ void AppendClientShellScript(std::ostringstream& out) {
             ${statusChip(health.status)}
             ${statusChip(health.metadataStatus)}
             ${events.warning ? '<span class="chip warn">경고</span>' : ''}
+          </div>
+          <div class="client-copy-actions">
+            <button type="button" class="ghost" data-client-copy="status">상태 복사</button>
+            <button type="button" class="ghost" data-client-copy="events">이벤트 복사</button>
           </div>
         </div>
         <section class="events client-field-summary" data-testid="client-dashboard-field-summary">
@@ -584,6 +712,7 @@ void AppendClientShellScript(std::ostringstream& out) {
         renderDashboard(payload, compareItems);
         setPresetStatus('초기화됨');
       });
+      bindClientCopyButtons(payload);
     }
     function renderEvents(items) {
       if (!Array.isArray(items) || items.length === 0) {
@@ -610,12 +739,16 @@ void AppendClientShellScript(std::ostringstream& out) {
             <p>${events.provided ? '최근 이벤트' : '이 채널은 이벤트 표시가 꺼져 있거나 이벤트 권한이 없습니다.'}</p>
           </div>
           <div class="meta">${events.warning ? '<span class="chip warn">경고</span>' : statusChip(events.warningBadge)}</div>
+          <div class="client-copy-actions">
+            <button type="button" class="ghost" data-client-copy="events">이벤트 복사</button>
+          </div>
         </div>
         <div class="meta">
           ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
         </div>
         <section class="events">${renderEvents(events.recent || [])}</section>
       `;
+      bindClientCopyButtons({ view, events });
     }
 	    function defaultLiveViewIds() {
 	      const ids = [];
@@ -638,6 +771,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       pc: null,
       dataChannel: null,
       iceTimer: null,
+      startNonce: 0,
       status: 'offline',
       connectionStatus: 'offline',
       trackCount: null,
@@ -650,6 +784,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     let selectedLiveTile = views.length > 0 ? 0 : null;
     let liveStatusTimer = null;
     let liveDashboardTimer = null;
+    let liveBulkNonce = 0;
 	    function tileView(tile) {
 	      return viewById(tile?.viewId || '');
 	    }
@@ -713,6 +848,18 @@ void AppendClientShellScript(std::ostringstream& out) {
       if (['unavailable', '미제공'].includes(String(value))) return ' bad';
       return '';
     }
+    function liveTileA11yStatus(tile, view, statusLabel, metadataLabel) {
+      const viewLabel = view?.displayName || view?.viewId || '채널 미선택';
+      return [
+        `타일 ${tile.index + 1}: ${viewLabel}`,
+        `상태 ${statusLabel}`,
+        `연결 ${clientStatusLabel(tile.connectionStatus)}`,
+        `트랙 ${display(tile.trackCount)}`,
+        `이벤트 ${display(tile.eventCount)}`,
+        `메타데이터 ${metadataLabel}`,
+        `재시도 ${tile.restartCount || 0}`
+      ].join(' · ');
+    }
     function updateTileDom(tile) {
       const root = document.querySelector(`[data-tile="${tile.index}"]`);
       if (!root) return;
@@ -721,19 +868,27 @@ void AppendClientShellScript(std::ostringstream& out) {
       const status = tile.status || 'offline';
       const stale = tile.lastMetadataAt && Date.now() - tile.lastMetadataAt > 5000;
       tile.stale = Boolean(stale);
-      root.querySelector('[data-role="status"]').textContent = stale ? '지연' : ({
+      const statusLabel = stale ? '지연' : ({
         offline: '오프라인',
         connecting: '연결 중',
         live: '라이브',
         error: '오류'
       })[String(status)] || status;
+      const viewLabel = view?.displayName || view?.viewId || '채널 미선택';
+      const metadataLabel = stale ? '지연' : (tile.sessionId ? '정상' : '미제공');
+      const a11yStatus = liveTileA11yStatus(tile, view, statusLabel, metadataLabel);
+      root.setAttribute('aria-label', `타일 ${tile.index + 1}: ${viewLabel} · ${statusLabel}`);
+      root.setAttribute('aria-current', selectedLiveTile === tile.index ? 'true' : 'false');
+      root.querySelector('[data-role="status"]').textContent = statusLabel;
       root.querySelector('[data-role="status"]').className = `chip${tileStatusClass(stale ? 'stale' : status)}`;
       root.querySelector('[data-role="connection"]').textContent = clientStatusLabel(tile.connectionStatus);
       root.querySelector('[data-role="tracks"]').textContent = display(tile.trackCount);
       root.querySelector('[data-role="events"]').textContent = display(tile.eventCount);
-      root.querySelector('[data-role="stale"]').textContent = stale ? '지연' : (tile.sessionId ? '정상' : '미제공');
+      root.querySelector('[data-role="stale"]').textContent = metadataLabel;
       const restarts = root.querySelector('[data-role="restarts"]');
       if (restarts) restarts.textContent = String(tile.restartCount || 0);
+      const a11y = root.querySelector('[data-role="a11y-status"]');
+      if (a11y) a11y.textContent = a11yStatus;
       const placeholder = root.querySelector('[data-role="placeholder"]');
       if (placeholder) placeholder.textContent = tile.lastError || clientStatusLabel(tile.connectionStatus || status);
 	      root.querySelector('[data-role="placeholder"]').hidden = Boolean(tile.sessionId);
@@ -827,7 +982,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    }
 	    function liveTileHtml(tile) {
 	      return `
-	        <article class="tile${selectedLiveTile === tile.index ? ' selected' : ''}" data-tile="${tile.index}">
+	        <article class="tile${selectedLiveTile === tile.index ? ' selected' : ''}" data-tile="${tile.index}" tabindex="0" role="group" aria-label="타일 ${tile.index + 1}: 라이브" aria-describedby="liveTileStatus${tile.index}" aria-current="${selectedLiveTile === tile.index ? 'true' : 'false'}">
 	          <div class="tile-head">
 	            <div class="tile-title">
 	              <h3>타일 ${tile.index + 1}</h3>
@@ -835,18 +990,18 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            </div>
 	            <div class="tile-controls">
 	              <label>채널
-		                <select data-role="view" aria-label="채널">
+		                <select data-role="view" aria-label="타일 ${tile.index + 1} 채널">
 		                  ${liveViewOptionsHtml(tile)}
 		                </select>
 	              </label>
 	              <label data-role="mode-wrap">보기 방식
-	                <select data-role="mode" aria-label="보기 방식"></select>
+	                <select data-role="mode" aria-label="타일 ${tile.index + 1} 보기 방식"></select>
 	              </label>
 	            </div>
 	            <div class="tile-actions">
-	              <button type="button" data-action="start">시작</button>
-	              <button type="button" data-action="restart" class="ghost">재연결</button>
-	              <button type="button" data-action="stop" class="ghost" disabled>정지</button>
+	              <button type="button" data-action="start" aria-label="타일 ${tile.index + 1} 시작">시작</button>
+	              <button type="button" data-action="restart" class="ghost" aria-label="타일 ${tile.index + 1} 재연결">재연결</button>
+	              <button type="button" data-action="stop" class="ghost" aria-label="타일 ${tile.index + 1} 정지" disabled>정지</button>
 	            </div>
 	          </div>
 	          <div class="tile-stage">
@@ -860,6 +1015,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            <div class="metric"><span>상태</span><strong data-role="stale">미제공</strong></div>
 	            <div class="metric"><span>재시도</span><strong data-role="restarts">0</strong></div>
 	          </div>
+	          <p id="liveTileStatus${tile.index}" class="sr-only" data-role="a11y-status" aria-live="polite" aria-atomic="true">타일 ${tile.index + 1}: 라이브</p>
 	        </article>
 	      `;
 	    }
@@ -881,6 +1037,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	                <option value="compact"${liveDensity === 'compact' ? ' selected' : ''}>고밀도</option>
 	              </select>
 	            </label>
+	            <button id="liveAllStart" class="ghost" type="button">전체 시작</button>
 	            <button id="liveAllRestart" class="ghost" type="button">전체 재연결</button>
 	            <button id="liveAllStop" class="ghost" type="button">전체 정지</button>
 	          </div>
@@ -915,6 +1072,33 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      root.querySelector('[data-action="start"]')?.addEventListener('click', () => startLiveTile(tile.index));
 	      root.querySelector('[data-action="restart"]')?.addEventListener('click', () => restartLiveTile(tile.index));
 	      root.querySelector('[data-action="stop"]')?.addEventListener('click', () => stopLiveTile(tile.index));
+	      root.addEventListener('keydown', event => {
+	        if (event.target !== root) return;
+	        if (event.key === 'Enter' || event.key === ' ') {
+	          event.preventDefault();
+	          selectLiveTile(tile.index);
+	          return;
+	        }
+	        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+	          event.preventDefault();
+	          focusLiveTile(tile.index + 1);
+	          return;
+	        }
+	        if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+	          event.preventDefault();
+	          focusLiveTile(tile.index - 1);
+	          return;
+	        }
+	        if (event.key === 'Home') {
+	          event.preventDefault();
+	          focusLiveTile(0);
+	          return;
+	        }
+	        if (event.key === 'End') {
+	          event.preventDefault();
+	          focusLiveTile(liveTileCount - 1);
+	        }
+	      });
 	      root.addEventListener('click', event => {
 	        if (!event.target.closest('button') && !event.target.closest('select')) {
 	          selectLiveTile(tile.index);
@@ -924,6 +1108,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      updateTileDom(tile);
 	    }
 	    function bindLiveGridControls() {
+	      document.querySelector('#liveAllStart')?.addEventListener('click', () => startAllLiveTiles());
 	      document.querySelector('#liveAllStop')?.addEventListener('click', () => stopAllLiveTiles());
 	      document.querySelector('#liveAllRestart')?.addEventListener('click', () => restartAllLiveTiles());
 	      document.querySelector('#liveDensity')?.addEventListener('change', event => {
@@ -953,8 +1138,8 @@ void AppendClientShellScript(std::ostringstream& out) {
           isPreviewMode
             ? '미리보기할 채널이 없습니다. Ops에서 채널을 만들고 계정 권한을 연결하세요.'
             : '라이브를 보려면 관리자에게 채널 접근 권한을 받아야 합니다.',
-          isPreviewMode ? '/ops/sources' : '',
-          isPreviewMode ? '채널 관리' : ''
+          isPreviewMode ? '/ops/sources' : '/client/request-access',
+          isPreviewMode ? '채널 관리' : '접근 요청'
 	        );
 	        return;
 	      }
@@ -983,6 +1168,19 @@ void AppendClientShellScript(std::ostringstream& out) {
       });
       updateAllTileDom();
       refreshSelectedTileDetail();
+    }
+    function focusLiveTile(index) {
+      if (liveTileCount <= 0) return;
+      const nextIndex = Math.max(0, Math.min(liveTileCount - 1, index));
+      selectLiveTile(nextIndex);
+      const next = document.querySelector(`[data-tile="${nextIndex}"]`);
+      if (next && typeof next.focus === 'function') {
+        try {
+          next.focus({ preventScroll: true });
+        } catch {
+          next.focus();
+        }
+      }
     }
     function updateSelectedTileStatusText() {
       const tile = selectedLiveTile === null ? null : liveTiles[selectedLiveTile];
@@ -1062,6 +1260,15 @@ void AppendClientShellScript(std::ostringstream& out) {
         return new RTCPeerConnection();
       }
     }
+    function isLiveTileStartCurrent(tile, startNonce, pc) {
+      return Boolean(tile) && tile.startNonce === startNonce && (!pc || tile.pc === pc);
+    }
+    async function cleanupClientLiveSession(viewId, sessionId) {
+      if (!viewId || !sessionId) return;
+      await fetch(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session/${encodeURIComponent(sessionId)}`, {
+        method: 'DELETE'
+      }).catch(() => {});
+    }
     async function startLiveTile(index) {
 	      const tile = liveTiles[index];
 	      const view = tileView(tile);
@@ -1081,6 +1288,8 @@ void AppendClientShellScript(std::ostringstream& out) {
         return;
       }
       selectLiveTile(index);
+      const startNonce = (tile.startNonce || 0) + 1;
+      tile.startNonce = startNonce;
       tile.status = 'connecting';
       tile.connectionStatus = 'connecting';
       tile.trackCount = null;
@@ -1088,10 +1297,17 @@ void AppendClientShellScript(std::ostringstream& out) {
       tile.lastMetadataAt = 0;
       tile.lastError = '';
       updateTileDom(tile);
+      let pc = null;
+      let createdSessionId = '';
       try {
-        const pc = await createClientPeerConnection();
+        pc = await createClientPeerConnection();
+        if (!isLiveTileStartCurrent(tile, startNonce)) {
+          try { pc.close(); } catch {}
+          return;
+        }
         tile.pc = pc;
         pc.onconnectionstatechange = () => {
+          if (!isLiveTileStartCurrent(tile, startNonce, pc)) return;
           tile.connectionStatus = pc.connectionState || 'connecting';
           if (['connected', 'completed'].includes(tile.connectionStatus)) tile.status = 'live';
           if (['failed', 'disconnected', 'closed'].includes(tile.connectionStatus)) {
@@ -1101,11 +1317,15 @@ void AppendClientShellScript(std::ostringstream& out) {
           updateTileDom(tile);
         };
         pc.oniceconnectionstatechange = () => {
+          if (!isLiveTileStartCurrent(tile, startNonce, pc)) return;
           tile.connectionStatus = pc.iceConnectionState || tile.connectionStatus;
           updateTileDom(tile);
         };
-        pc.ondatachannel = event => attachTileDataChannel(tile, event.channel);
+        pc.ondatachannel = event => {
+          if (isLiveTileStartCurrent(tile, startNonce, pc)) attachTileDataChannel(tile, event.channel);
+        };
         pc.ontrack = event => {
+          if (!isLiveTileStartCurrent(tile, startNonce, pc)) return;
           const root = document.querySelector(`[data-tile="${tile.index}"]`);
           const video = root?.querySelector('video');
           if (!video) return;
@@ -1117,6 +1337,7 @@ void AppendClientShellScript(std::ostringstream& out) {
           updateTileDom(tile);
         };
         pc.onicecandidate = event => {
+          if (!isLiveTileStartCurrent(tile, startNonce, pc)) return;
           if (!tile.sessionId || !event.candidate) return;
           fetch(clientSessionUrl(tile, '/ice'), {
             method: 'POST',
@@ -1141,20 +1362,42 @@ void AppendClientShellScript(std::ostringstream& out) {
         });
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
-        tile.sessionId = payload.sessionId || '';
-        if (!tile.sessionId || !payload.offer) throw new Error('session offer missing');
+        createdSessionId = payload.sessionId || '';
+        if (!createdSessionId || !payload.offer) throw new Error('session offer missing');
+        if (!isLiveTileStartCurrent(tile, startNonce, pc)) {
+          try { pc.close(); } catch {}
+          await cleanupClientLiveSession(view.viewId, createdSessionId);
+          return;
+        }
+        tile.sessionId = createdSessionId;
         await pc.setRemoteDescription({ type: 'offer', sdp: payload.offer });
+        if (!isLiveTileStartCurrent(tile, startNonce, pc)) {
+          await cleanupClientLiveSession(view.viewId, createdSessionId);
+          return;
+        }
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
+        if (!isLiveTileStartCurrent(tile, startNonce, pc)) {
+          await cleanupClientLiveSession(view.viewId, createdSessionId);
+          return;
+        }
         await fetch(clientSessionUrl(tile, '/answer'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/sdp' },
           body: answer.sdp
         });
+        if (!isLiveTileStartCurrent(tile, startNonce, pc)) {
+          await cleanupClientLiveSession(view.viewId, createdSessionId);
+          return;
+        }
         tile.iceTimer = setInterval(() => pollTileIce(tile).catch(() => {}), 1000);
         updateTileDom(tile);
         refreshSelectedTileDetail();
       } catch (error) {
+        if (!isLiveTileStartCurrent(tile, startNonce, pc)) {
+          await cleanupClientLiveSession(view.viewId, createdSessionId);
+          return;
+        }
         tile.status = 'error';
         tile.connectionStatus = error.message || 'error';
         tile.lastError = error.message || 'error';
@@ -1176,6 +1419,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     async function stopLiveTile(index, options = {}) {
       const tile = liveTiles[index];
       if (!tile) return;
+      tile.startNonce = (tile.startNonce || 0) + 1;
       if (tile.iceTimer) {
         clearInterval(tile.iceTimer);
         tile.iceTimer = null;
@@ -1197,7 +1441,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       const sessionId = tile.sessionId;
       tile.sessionId = '';
       if (sessionId) {
-        await fetch(`/client/api/views/${encodeURIComponent(tile.viewId || '')}/webrtc/session/${encodeURIComponent(sessionId)}`, { method: 'DELETE' }).catch(() => {});
+        await cleanupClientLiveSession(tile.viewId || '', sessionId);
       }
       if (!options.keepError) {
         tile.status = 'offline';
@@ -1211,10 +1455,36 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      refreshSelectedTileDetail();
 	    }
     async function stopAllLiveTiles() {
+      liveBulkNonce += 1;
       await Promise.all(liveTiles.map(tile => stopLiveTile(tile.index)));
     }
+    async function startAllLiveTiles() {
+      const bulkNonce = liveBulkNonce + 1;
+      liveBulkNonce = bulkNonce;
+      for (const tile of visibleLiveTiles()) {
+        if (bulkNonce !== liveBulkNonce) break;
+        if (tile.viewId && !tile.sessionId) {
+          await startLiveTile(tile.index);
+        }
+        if (bulkNonce !== liveBulkNonce) break;
+      }
+    }
     async function restartAllLiveTiles() {
-      await Promise.all(visibleLiveTiles().map(tile => restartLiveTile(tile.index)));
+      const bulkNonce = liveBulkNonce + 1;
+      liveBulkNonce = bulkNonce;
+      await Promise.all(visibleLiveTiles().map(tile => stopLiveTile(tile.index, { keepError: true })));
+      if (bulkNonce !== liveBulkNonce) return;
+      for (const tile of visibleLiveTiles()) {
+        if (bulkNonce !== liveBulkNonce) break;
+        if (tile.viewId) {
+          tile.restartCount = (tile.restartCount || 0) + 1;
+          tile.status = 'connecting';
+          tile.connectionStatus = 'reconnecting';
+          tile.lastError = '';
+          updateTileDom(tile);
+          await startLiveTile(tile.index);
+        }
+      }
     }
     async function refreshSelectedTileDetail() {
       if (activePage !== 'live') return;
@@ -1244,6 +1514,10 @@ void AppendClientShellScript(std::ostringstream& out) {
               ${statusChip(health.metadataStatus)}
               <span class="chip${tileStatusClass(tile.stale ? 'stale' : 'fresh')}" data-selected-stale>${tile.stale ? '지연' : '정상'}</span>
             </div>
+            <div class="client-copy-actions">
+              <button type="button" class="ghost" data-client-copy="status">상태 복사</button>
+              <button type="button" class="ghost" data-client-copy="events">이벤트 복사</button>
+            </div>
           </div>
           <div class="summary">
             <div class="metric"><span>연결</span><strong>${escapeHtml(clientStatusLabel(tile.connectionStatus))}</strong></div>
@@ -1257,6 +1531,7 @@ void AppendClientShellScript(std::ostringstream& out) {
             <div class="metric"><span>경고</span><strong>${events.warning ? '경고' : '정상'}</strong></div>
           </div>
         `;
+        bindClientCopyButtons(payload, container);
         updateTileDom(tile);
       } catch (error) {
         container.innerHTML = `<div class="empty"><p>${escapeHtml(error.message || '미제공')}</p></div>`;
@@ -1268,7 +1543,12 @@ void AppendClientShellScript(std::ostringstream& out) {
         const message = activePage === 'events'
           ? '현장 이벤트를 보려면 이벤트 권한이 있는 채널이 필요합니다.'
           : '현장 대시보드를 보려면 대시보드 권한이 있는 채널이 필요합니다.';
-        detail.innerHTML = emptyState(title, message, isPreviewMode ? '/ops/sources' : '', isPreviewMode ? '채널 관리' : '');
+        detail.innerHTML = emptyState(
+          title,
+          message,
+          isPreviewMode ? '/ops/sources' : '/client/request-access',
+          isPreviewMode ? '채널 관리' : '접근 요청'
+        );
         return;
       }
       detail.innerHTML = `<div class="client-loading-state">${emptyState('현장 상태 불러오는 중', '선택한 채널의 영상, 메타데이터, 이벤트 상태를 조회하고 있습니다.')}</div>`;
@@ -1578,13 +1858,93 @@ void AppendOpsShellScript(std::ostringstream& out,
           .filter(line => (correlationId && line.includes(correlationId)) || (regex && regex.test(line)))
           .slice(-6);
       };
-      const renderRootCauseActionOutput = (title, rows = [], logs = []) => {
+      const renderRootCauseActionOutput = (title, rows = [], logs = [], actionsHtml = '') => {
         const output = document.getElementById('dashRootCauseActionOutput');
         if (!output) return;
         output.hidden = false;
         output.innerHTML = `<strong>${escapeHtml(title)}</strong>
           <ul>${rows.map(row => `<li>${escapeHtml(row)}</li>`).join('')}</ul>
+          ${actionsHtml ? `<div class="root-cause-action-buttons">${actionsHtml}</div>` : ''}
           ${logs.length > 0 ? `<pre>${escapeHtml(logs.join('\n'))}</pre>` : '<p class="hint">일치하는 최근 로그가 없습니다.</p>'}`;
+      };
+      const sourceHealthNeedsAction = item => item && String(item.status || '') !== 'live';
+      const sourceHealthTargetIds = sourceHealth => dashboardSourceHealthItems(sourceHealth)
+        .filter(sourceHealthNeedsAction)
+        .map(item => String(item.sourceId || '').trim())
+        .filter(Boolean);
+      const sourceHealthRetryIds = bulk => Array.isArray(bulk?.retryBody?.sourceIds)
+        ? bulk.retryBody.sourceIds.map(id => String(id || '').trim()).filter(Boolean)
+        : [];
+      const sourceHealthBulkTargetIds = (sourceHealth = {}, bulk = {}) => {
+        const retryIds = sourceHealthRetryIds(bulk);
+        if (retryIds.length > 0) return retryIds;
+        const resultIds = Array.isArray(bulk?.results)
+          ? bulk.results.map(result => String(result?.sourceId || '').trim()).filter(Boolean)
+          : [];
+        if (resultIds.length > 0) return [...new Set(resultIds)];
+        return sourceHealthTargetIds(sourceHealth);
+      };
+      const sourceHealthAuditHref = (sourceHealth = {}, bulk = {}) => {
+        const ids = sourceHealthBulkTargetIds(sourceHealth, bulk);
+        const params = new URLSearchParams({
+          auditArea: 'channels',
+          auditPreset: 'source-health-state-change',
+          auditAction: 'source-health-state-change'
+        });
+        if (ids.length === 1) {
+          params.set('channel', ids[0]);
+          params.set('auditTarget', `source:${ids[0]}`);
+        } else if (ids.length > 1) {
+          params.set('auditQ', 'source-health-state-change');
+        }
+        return `/ops/sources#${params.toString()}`;
+      };
+      const runSourceHealthBulk = (operation = 'check', sourceIds = []) => {
+        const body = { operation };
+        const ids = Array.isArray(sourceIds) ? sourceIds.filter(Boolean) : [];
+        if (ids.length > 0) body.sourceIds = ids;
+        return requestJson('/ops/api/source-health/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+      };
+      const sourceHealthBulkRows = (sourceHealth = {}, bulk = {}) => {
+        const counts = dashboardSourceHealthCounts(sourceHealth);
+        const retryIds = sourceHealthRetryIds(bulk);
+        const results = Array.isArray(bulk?.results) ? bulk.results : [];
+        const failed = results.filter(result => result?.ok === false);
+        const unhealthy = results.filter(result => result?.healthy === false);
+        return [
+          dashboardSourceHealthStatusText(sourceHealth),
+          `점검 대상 ${numberValue(bulk?.requestedCount ?? results.length)}개 · 비정상 ${numberValue(bulk?.unhealthyCount ?? unhealthy.length)}개 · 요청 실패 ${numberValue(bulk?.failCount ?? failed.length)}개`,
+          retryIds.length > 0 ? `재검증 대상 ${retryIds.length}개: ${retryIds.slice(0, 6).join(', ')}` : '재검증 대상 없음',
+          `partial failure ${bulk?.partialFailure ? '있음' : '없음'} · dry-run ${bulk?.dryRun === false ? 'off' : 'on'}`,
+          failed.length > 0
+            ? `구성 확인 필요: ${failed.slice(0, 3).map(result => `#${result.sourceId || '-'} ${result.reason || 'unknown'}`).join(' / ')}`
+            : `요약 전체=${counts.total} 수신=${counts.live} 지연=${counts.stale} 오프라인=${counts.offline}`,
+          '상태 변화 audit은 /ops/sources 변경 이력의 소스 상태 변경 preset에서 확인합니다.',
+          'source health bulk는 registry를 변경하지 않아 rollback 대상이 없습니다.'
+        ];
+      };
+      const renderSourceHealthActionOutput = (title, sourceHealth, bulk, logs) => {
+        const retryIds = sourceHealthRetryIds(bulk);
+        const actionButtons = [
+          retryIds.length > 0
+            ? '<button type="button" class="button button-secondary button-compact" data-source-health-retry>재검증 대상만 다시 확인</button>'
+            : '',
+          `<a class="button button-secondary button-compact" href="${escapeHtml(sourceHealthAuditHref(sourceHealth, bulk))}">소스 상태 변경 이력</a>`
+        ].filter(Boolean);
+        const actions = actionButtons.join('');
+        renderRootCauseActionOutput(title, sourceHealthBulkRows(sourceHealth, bulk), logs, actions);
+        const retryButton = document.querySelector('[data-source-health-retry]');
+        if (retryButton) {
+          retryButton.addEventListener('click', async () => {
+            retryButton.disabled = true;
+            const retried = await runSourceHealthBulk('retry', retryIds);
+            renderSourceHealthActionOutput('라이브 소스 재검증 결과', sourceHealth, retried, logs);
+          });
+        }
       };
       const runRootCauseAction = async item => {
         const [logTail, sources, views, sourceHealth, catalog, eventsStatus, principal, browserConfig] = await Promise.all([
@@ -1599,16 +1959,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         ]);
         const logs = rootCauseLogFilter(logTail.lines, item.correlationId, item.actionPatterns);
         if (item.actionKind === 'source-health') {
-          const healthItems = dashboardSourceHealthItems(sourceHealth);
-          const counts = dashboardSourceHealthCounts(sourceHealth);
-          const degraded = healthItems.filter(health => health.status !== 'live');
-          renderRootCauseActionOutput('라이브 소스 상태 재검증', [
-            dashboardSourceHealthStatusText(sourceHealth),
-            `확인 필요 ${degraded.length}개`,
-            degraded.slice(0, 3).map(health => `#${health.sourceId || '-'} ${dashboardSourceHealthStatusLabel(health.status)} · ${dashboardSourceHealthReason(health.reason)} · 프레임 ${dashboardSourceHealthAge(health.lastFrameAgeMs)}`).join(' / ') || '지연 또는 오프라인 채널 없음',
-            `요약 전체=${counts.total} 수신=${counts.live} 지연=${counts.stale} 오프라인=${counts.offline}`,
-            '상세 상태는 /ops/dashboard의 운영 요약에서 확인합니다.'
-          ], logs);
+          const targetIds = sourceHealthTargetIds(sourceHealth);
+          const checked = await runSourceHealthBulk('check', targetIds);
+          renderSourceHealthActionOutput('라이브 소스 상태 재검증', sourceHealth, checked, logs);
           return;
         }
         if (item.actionKind === 'source-diagnostics') {
@@ -1679,7 +2032,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           ? '아래 항목을 기준으로 원인을 좁혀 확인합니다.'
           : '운영자가 바로 확인할 소스 수명주기, 지연, 재연결, 권한/설정 문제가 없습니다.');
         const list = document.getElementById('dashRootCauseList');
-        if (!list) return;
+        if (!list) return items;
         list.innerHTML = items.map((item, index) => `<article class="root-cause-item ${escapeHtml(item.level)}">
           <div>
             <strong>${opsHtml(item.title)}</strong>
@@ -1698,6 +2051,249 @@ void AppendOpsShellScript(std::ostringstream& out,
             if (item) runRootCauseAction(item).catch(error => renderRootCauseActionOutput('다음 조치 실패', [error.message || String(error)], []));
           });
         });
+        return items;
+      };
+      const dashboardIncidentEventRecords = eventsStatus => Array.isArray(eventsStatus?.records?.records) ? eventsStatus.records.records : [];
+      const dashboardIncidentTimeLabel = item => {
+        const value = item?.updateTime ?? item?.startTime ?? item?.timestampMs ?? item?.timestamp ?? item?.createdAt;
+        if (value === null || value === undefined || value === '') return '시간 미제공';
+        const numeric = Number(value);
+        if (Number.isFinite(numeric)) {
+          return numeric > 1000000000000 ? new Date(numeric).toLocaleString() : `${Math.round(numeric)}ms`;
+        }
+        return display(value);
+      };
+      const dashboardIncidentSortValue = item => {
+        const value = item?.updateTime ?? item?.startTime ?? item?.timestampMs ?? item?.timestamp ?? 0;
+        const numeric = Number(value);
+        return Number.isFinite(numeric) ? numeric : 0;
+      };
+      let dashboardIncidentTimelineCache = { rootItems: [], eventsStatus: {}, diagnosticLog: {}, sourceHealth: {} };
+      const dashboardIncidentHashKeys = { query: 'incidentQ', source: 'incidentSource' };
+      const dashboardIncidentHashState = () => {
+        const params = opsHashParams();
+        const hasQuery = params.has(dashboardIncidentHashKeys.query);
+        const hasSource = params.has(dashboardIncidentHashKeys.source);
+        return {
+          query: hasQuery ? String(params.get(dashboardIncidentHashKeys.query) || '').trim() : null,
+          source: hasSource ? String(params.get(dashboardIncidentHashKeys.source) || '').trim() : null,
+          hasIncidentFilter: hasQuery || hasSource
+        };
+      };
+      const syncDashboardIncidentFilterFromHash = (options = {}) => {
+        const hashState = dashboardIncidentHashState();
+        if (!hashState.hasIncidentFilter && options.force !== true) return false;
+        let changed = false;
+        const search = document.getElementById('dashIncidentTimelineSearch');
+        const source = document.getElementById('dashIncidentTimelineSource');
+        if (search && (hashState.query !== null || options.force === true)) {
+          const nextQuery = hashState.query || '';
+          if (String(search.value || '') !== nextQuery) {
+            search.value = nextQuery;
+            changed = true;
+          }
+        }
+        if (source && (hashState.source !== null || options.force === true)) {
+          const nextSource = hashState.source || '';
+          if (String(source.value || '') !== nextSource) {
+            source.value = nextSource;
+            changed = true;
+          }
+        }
+        return changed;
+      };
+      const dashboardIncidentFilterState = () => ({
+        query: String(document.getElementById('dashIncidentTimelineSearch')?.value || '').trim().toLowerCase(),
+        source: String(document.getElementById('dashIncidentTimelineSource')?.value || '').trim()
+      });
+      const writeDashboardIncidentFilterHash = () => {
+        const filter = dashboardIncidentFilterState();
+        const params = opsHashParams();
+        if (filter.query) params.set(dashboardIncidentHashKeys.query, filter.query);
+        else params.delete(dashboardIncidentHashKeys.query);
+        if (filter.source) params.set(dashboardIncidentHashKeys.source, filter.source);
+        else params.delete(dashboardIncidentHashKeys.source);
+        const nextHash = params.toString();
+        const baseUrl = `${window.location.pathname}${window.location.search || ''}`;
+        const nextUrl = nextHash ? `${baseUrl}#${nextHash}` : baseUrl;
+        const currentUrl = `${window.location.pathname}${window.location.search || ''}${window.location.hash || ''}`;
+        if (currentUrl !== nextUrl) window.history.replaceState(null, '', nextUrl);
+      };
+      const dashboardIncidentSourceKey = item => {
+        const source = String(item?.source || '').toLowerCase();
+        if (source.includes('eventrecord')) return 'event-record';
+        if (source.includes('source health')) return 'source-health';
+        if (source.includes('log tail')) return 'log-tail';
+        if (source.includes('문제 원인')) return 'root-cause';
+        return source ? source.replace(/[^a-z0-9가-힣]+/g, '-') : 'summary';
+      };
+      const dashboardIncidentSearchText = item => [
+        item?.source,
+        item?.time,
+        item?.title,
+        item?.detail,
+        item?.evidence,
+        item?.correlationId,
+        item?.actionHref
+      ].map(value => String(value || '').toLowerCase()).join(' ');
+      const dashboardIncidentMatchesFilter = (item, filter) => {
+        if (filter.source && dashboardIncidentSourceKey(item) !== filter.source) return false;
+        if (filter.query && !dashboardIncidentSearchText(item).includes(filter.query)) return false;
+        return true;
+      };
+      const dashboardIncidentFiltersActive = filter => Boolean(filter.query || filter.source);
+      const rerenderDashboardIncidentTimelineFromCache = () => {
+        const cache = dashboardIncidentTimelineCache || {};
+        renderDashboardIncidentTimeline(cache.rootItems, cache.eventsStatus, cache.diagnosticLog, cache.sourceHealth, { preserveCache: true });
+      };
+      const handleDashboardIncidentFilterChange = () => {
+        writeDashboardIncidentFilterHash();
+        rerenderDashboardIncidentTimelineFromCache();
+      };
+      const handleDashboardIncidentHashChange = () => {
+        if (syncDashboardIncidentFilterFromHash({ force: true })) {
+          rerenderDashboardIncidentTimelineFromCache();
+        }
+      };
+      const dashboardIncidentShareUrl = () => {
+        writeDashboardIncidentFilterHash();
+        return `${window.location.origin}${window.location.pathname}${window.location.search || ''}${window.location.hash || ''}`;
+      };
+      const copyDashboardIncidentFilterLink = async () => {
+        const button = document.getElementById('dashIncidentTimelineShare');
+        const url = dashboardIncidentShareUrl();
+        if (button) button.dataset.incidentShareUrl = url;
+        try {
+          await opsRulesCopyText(url);
+          showToast('인시던트 필터 링크 복사 완료');
+        } catch (_) {
+          showToast('클립보드 복사 실패. 주소창의 필터 링크를 직접 복사하세요.', true);
+        }
+      };
+      const dashboardIncidentTimelineItems = (rootItems = [], eventsStatus = {}, diagnosticLog = {}, sourceHealth = {}) => {
+        const rootTimeline = (Array.isArray(rootItems) ? rootItems : [])
+          .filter(item => item && (item.level === 'warn' || item.level === 'bad'))
+          .slice(0, 3)
+          .map((item, index) => ({
+            level: item.level,
+            source: '문제 원인',
+            time: '현재',
+            sort: Number.MAX_SAFE_INTEGER - index,
+            title: item.title,
+            detail: item.detail,
+            evidence: item.evidence || item.log,
+            correlationId: item.correlationId,
+            actionHref: item.actionHref
+          }));
+        const eventTimeline = dashboardIncidentEventRecords(eventsStatus)
+          .slice(0, 4)
+          .map(item => {
+            const status = String(item?.status || '').toLowerCase();
+            const level = ['failed', 'failure', 'error'].includes(status) ? 'warn' : 'info';
+            const stream = item?.streamId || item?.channelId || '스트림 미제공';
+            const scenario = [item?.scenarioName, item?.scenarioPhase].filter(Boolean).map(display).join(' · ');
+            return {
+              level,
+              source: 'EventRecord',
+              time: dashboardIncidentTimeLabel(item),
+              sort: dashboardIncidentSortValue(item),
+              title: `${display(item?.eventType || 'event')} · ${display(item?.status || '상태 미제공')}`,
+              detail: `${display(stream)}${item?.trackId ? ` · track ${display(item.trackId)}` : ''}${scenario ? ` · ${scenario}` : ''}`,
+              evidence: item?.eventId ? `eventId ${display(item.eventId)}` : 'eventId 미제공',
+              correlationId: item?.eventId || item?.trackId || '',
+              actionHref: '/ops/events'
+            };
+          });
+        const sourceTimeline = dashboardSourceHealthItems(sourceHealth)
+          .filter(sourceHealthNeedsAction)
+          .slice(0, 3)
+          .map((item, index) => ({
+            level: item.status === 'offline' ? 'bad' : 'warn',
+            source: 'Source Health',
+            time: '현재',
+            sort: Number.MAX_SAFE_INTEGER - 100 - index,
+            title: `소스 #${display(item.sourceId || '-')} ${dashboardSourceHealthStatusLabel(item.status)}`,
+            detail: dashboardSourceHealthReason(item.reason),
+            evidence: `프레임 ${dashboardSourceHealthAge(item.lastFrameAgeMs)} / 메타데이터 ${dashboardSourceHealthAge(item.lastMetadataAgeMs)}`,
+            correlationId: item.sourceId ? `source-${item.sourceId}` : '',
+            actionHref: item.sourceId ? `/ops/sources#channel=${encodeURIComponent(item.sourceId)}` : '/ops/sources'
+          }));
+        const logLines = Array.isArray(diagnosticLog?.lines) ? diagnosticLog.lines : [];
+        const logTimeline = [...logLines]
+          .reverse()
+          .filter(line => /source health|cleanup|stale|event post|event storage|auth|ICE|TURN|relay|reconnect|WHIP/i.test(String(line || '')))
+          .slice(0, 3)
+          .map((line, index) => ({
+            level: 'info',
+            source: 'Log tail',
+            time: '최근 로그',
+            sort: Number.MAX_SAFE_INTEGER - 200 - index,
+            title: '로그 단서',
+            detail: String(line || '').slice(0, 160),
+            evidence: 'diagnostics log-tail',
+            correlationId: rootCauseCorrelationId(line, 'source health|cleanup|stale|event post|event storage|auth|ICE|TURN|relay|reconnect|WHIP'),
+            actionHref: '/ops/dashboard'
+          }));
+        const items = [...rootTimeline, ...sourceTimeline, ...eventTimeline, ...logTimeline]
+          .sort((a, b) => numberValue(b.sort) - numberValue(a.sort))
+          .slice(0, 8);
+        if (items.length > 0) return items;
+        return [{
+          level: 'info',
+          source: 'Summary',
+          time: '현재',
+          sort: 0,
+          title: '최근 인시던트 없음',
+          detail: '문제 원인, EventRecord, source health, 로그 tail에서 즉시 확인할 단서가 없습니다.',
+          evidence: dashboardSourceHealthStatusText(sourceHealth),
+          correlationId: '',
+          actionHref: '/ops/dashboard'
+        }];
+      };
+      const renderDashboardIncidentTimeline = (rootItems = [], eventsStatus = {}, diagnosticLog = {}, sourceHealth = {}, options = {}) => {
+        if (!options.preserveCache) {
+          dashboardIncidentTimelineCache = { rootItems, eventsStatus, diagnosticLog, sourceHealth };
+        }
+        syncDashboardIncidentFilterFromHash();
+        const allItems = dashboardIncidentTimelineItems(rootItems, eventsStatus, diagnosticLog, sourceHealth);
+        const filter = dashboardIncidentFilterState();
+        const items = allItems.filter(item => dashboardIncidentMatchesFilter(item, filter));
+        const filtersActive = dashboardIncidentFiltersActive(filter);
+        const warnCount = items.filter(item => item.level === 'warn' || item.level === 'bad').length;
+        const eventCount = dashboardIncidentEventRecords(eventsStatus).length;
+        const sourceIssueCount = dashboardSourceHealthItems(sourceHealth).filter(sourceHealthNeedsAction).length;
+        renderBadges('dashIncidentTimelineBadges', [
+          { text: warnCount > 0 ? `${warnCount}개 확인 필요` : '즉시 인시던트 없음', tone: warnCount > 0 ? 'warn' : '' },
+          { text: filtersActive ? `필터 결과 ${items.length}/${allItems.length}` : `전체 ${allItems.length}` },
+          { text: `EventRecord ${eventCount}` },
+          { text: sourceIssueCount > 0 ? `source health ${sourceIssueCount}` : 'source health 정상', tone: sourceIssueCount > 0 ? 'warn' : '' },
+          { text: diagnosticLog?.available === false ? 'log tail 없음' : 'log tail' }
+        ]);
+        setText('dashIncidentTimelineText', filtersActive && items.length === 0
+          ? '필터에 맞는 인시던트 단서가 없습니다.'
+          : (warnCount > 0
+            ? '최근 단서를 시간순으로 묶었습니다. 확인 항목부터 관련 화면으로 이동합니다.'
+            : '최근 EventRecord와 source health 단서를 기준으로 즉시 대응할 인시던트가 없습니다.'));
+        const list = document.getElementById('dashIncidentTimeline');
+        if (!list) return items;
+        if (items.length === 0) {
+          list.innerHTML = '<div class="empty">필터에 맞는 인시던트 단서가 없습니다.<br />다른 검색어 또는 출처 필터를 선택하세요.</div>';
+          window.MediaServerUi?.translatePage?.();
+          return items;
+        }
+        list.innerHTML = items.map(item => `<article class="root-cause-item ${escapeHtml(item.level)}">
+          <div>
+            <strong>${opsHtml(item.title)}</strong>
+            <p>${opsHtml(item.detail)}</p>
+          </div>
+          <span class="chip${item.level === 'warn' ? ' warn' : (item.level === 'bad' ? ' bad' : '')}">${opsHtml(item.time || item.source)}</span>
+          ${item.correlationId ? `<span class="root-cause-correlation">cid ${escapeHtml(item.correlationId)}</span>` : ''}
+          ${item.evidence ? `<p class="root-cause-evidence">${opsHtml(item.evidence)}</p>` : ''}
+          <p class="root-cause-action">출처 ${opsHtml(item.source || '대시보드')}</p>
+          ${item.actionHref ? `<a class="btn small root-cause-next-action" href="${escapeHtml(item.actionHref)}">관련 화면</a>` : ''}
+        </article>`).join('');
+        window.MediaServerUi?.translatePage?.();
+        return items;
       };
       const scenarioPhaseLabel = phase => ({
         idle: 'Idle',
@@ -2007,7 +2603,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('dashWsClientCount', sideChannel.activeWebSocketClients ?? 0);
         setText('dashDetailText',
           `프로파일 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0} · 발행 ${counts.publish} · 송출 ${counts.egress}`);
-        renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
+        const rootCauseItems = renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
+        renderDashboardIncidentTimeline(rootCauseItems, eventsStatus, diagnosticLog, sourceHealth);
         await refreshDashboardVaQuality(runtime).catch(renderDashboardVaQualityError);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
         window.MediaServerUi?.translatePage?.();
@@ -2229,7 +2826,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         iceTimer: null,
         status: 'idle',
         connectionStatus: 'idle',
-        lastError: ''
+        lastError: '',
+        operationInFlight: false
       };
       let opsVaGeometryDragIndex = -1;
       let opsVaGeometryDragPointerId = null;
@@ -2823,7 +3421,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               minDwellTimeMs: Number(scenario.minDwellTimeMs ?? scenario.dwellTimeMs ?? baseline.minDwellTimeMs ?? 30000),
               maxMovementRadius: Number(scenario.maxMovementRadius ?? baseline.maxMovementRadius ?? 0.08),
               minTrajectoryPoints: Number(scenario.minTrajectoryPoints ?? baseline.minTrajectoryPoints ?? 4),
-              cooldownMs: Number(scenario.cooldownMs ?? baseline.cooldownMs ?? 10000),
+              cooldownMs: Number(scenario.cooldownMs ?? baseline.cooldownMs ?? 12000),
               targetClasses: Array.isArray(scenario.targetClasses) && scenario.targetClasses.length > 0 ? scenario.targetClasses : classes,
               restrictedZoneIds: Array.isArray(scenario.restrictedZoneIds) ? scenario.restrictedZoneIds : []
             }
@@ -2838,9 +3436,9 @@ void AppendOpsShellScript(std::ostringstream& out,
               type,
               presetId: scenario.presetId || 'default',
               enabled: scenario.enabled !== false,
-              occupancyThreshold: Number(scenario.occupancyThreshold ?? baseline.occupancyThreshold ?? 3),
-              minDwellTimeMs: Number(scenario.minDwellTimeMs ?? baseline.minDwellTimeMs ?? 5000),
-              cooldownMs: Number(scenario.cooldownMs ?? baseline.cooldownMs ?? 10000),
+              occupancyThreshold: Number(scenario.occupancyThreshold ?? baseline.occupancyThreshold ?? 4),
+              minDwellTimeMs: Number(scenario.minDwellTimeMs ?? baseline.minDwellTimeMs ?? 7000),
+              cooldownMs: Number(scenario.cooldownMs ?? baseline.cooldownMs ?? 12000),
               targetClasses: Array.isArray(scenario.targetClasses) && scenario.targetClasses.length > 0 ? scenario.targetClasses : classes,
               restrictedZoneIds: Array.isArray(scenario.restrictedZoneIds) ? scenario.restrictedZoneIds : []
             }
@@ -3474,6 +4072,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           const y = opsRulesGeometrySvgY(point);
           const activeClass = index === opsVaGeometryDragIndex ? ' is-active' : '';
           return `<g class="ops-geometry-point${activeClass}" data-index="${index}">
+            <circle class="ops-geometry-touch-target" cx="${x}" cy="${y}" r="3.5"></circle>
             <circle cx="${x}" cy="${y}" r="1.25"></circle>
             <text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central">${index + 1}</text>
           </g>`;
@@ -3797,8 +4396,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsEventRuleTriggerDirectionSelect').value = String(scenario?.triggerLine?.direction || 'any');
         document.getElementById('opsEventRuleLoiteringRadiusInput').value = String(scenario?.maxMovementRadius ?? baseline.maxMovementRadius ?? 0.08);
         document.getElementById('opsEventRuleLoiteringPointsInput').value = String(scenario?.minTrajectoryPoints ?? baseline.minTrajectoryPoints ?? 4);
-        document.getElementById('opsEventRuleZoneThresholdInput').value = String(scenario?.occupancyThreshold ?? baseline.occupancyThreshold ?? 3);
-        document.getElementById('opsEventRuleZoneDwellInput').value = String(scenario?.minDwellTimeMs ?? baseline.minDwellTimeMs ?? 5000);
+        document.getElementById('opsEventRuleZoneThresholdInput').value = String(scenario?.occupancyThreshold ?? baseline.occupancyThreshold ?? 4);
+        document.getElementById('opsEventRuleZoneDwellInput').value = String(scenario?.minDwellTimeMs ?? baseline.minDwellTimeMs ?? 7000);
         document.getElementById('opsEventRuleCooldownInput').value = String(scenario?.cooldownMs ?? baseline.cooldownMs ?? 5000);
         opsRulesSetFormDisabled('event-rule', detailMode === 'view');
         opsEventRuleUpdateModeUi();
@@ -3870,8 +4469,8 @@ void AppendOpsShellScript(std::ostringstream& out,
             scenario.maxMovementRadius = Number(document.getElementById('opsEventRuleLoiteringRadiusInput')?.value || scenario.maxMovementRadius || 0.08);
             scenario.minTrajectoryPoints = Number(document.getElementById('opsEventRuleLoiteringPointsInput')?.value || scenario.minTrajectoryPoints || 4);
           } else if (type === 'zone-occupancy') {
-            scenario.occupancyThreshold = Number(document.getElementById('opsEventRuleZoneThresholdInput')?.value || scenario.occupancyThreshold || 3);
-            scenario.minDwellTimeMs = Number(document.getElementById('opsEventRuleZoneDwellInput')?.value || scenario.minDwellTimeMs || 5000);
+            scenario.occupancyThreshold = Number(document.getElementById('opsEventRuleZoneThresholdInput')?.value || scenario.occupancyThreshold || 4);
+            scenario.minDwellTimeMs = Number(document.getElementById('opsEventRuleZoneDwellInput')?.value || scenario.minDwellTimeMs || 7000);
           }
         }
         const payload = {
@@ -4306,9 +4905,12 @@ void AppendOpsShellScript(std::ostringstream& out,
         const currentChannel = opsRulesCurrentVaOutputContext().channel;
         const channelLabel = currentChannel ? opsRulesChannelOptionLabel(currentChannel) : '';
         const hasSession = Boolean(opsVaRulePreviewState.sessionId);
+        const operationInFlight = Boolean(opsVaRulePreviewState.operationInFlight);
         if (summary) {
           if (!viewId) {
             summary.textContent = 'PublishedView가 있는 채널을 골라야 미리보기를 열 수 있습니다.';
+          } else if (operationInFlight) {
+            summary.textContent = `${channelLabel || viewId} 미리보기 연결을 처리하고 있습니다.`;
           } else if (hasSession) {
             summary.textContent = `${channelLabel || viewId} 미리보기를 보고 있습니다. 필요할 때 정지하거나 다시 연결할 수 있습니다.`;
           } else {
@@ -4316,12 +4918,12 @@ void AppendOpsShellScript(std::ostringstream& out,
           }
         }
         if (placeholder) {
-          placeholder.hidden = hasSession;
+          placeholder.hidden = hasSession && !operationInFlight;
           placeholder.textContent = opsVaRulePreviewState.lastError || (viewId ? '재생 버튼으로 채널 영상을 확인하세요.' : '채널을 먼저 고르세요.');
         }
-        if (startBtn) startBtn.disabled = !viewId || hasSession;
-        if (restartBtn) restartBtn.disabled = !viewId;
-        if (stopBtn) stopBtn.disabled = !hasSession;
+        if (startBtn) startBtn.disabled = !viewId || hasSession || operationInFlight;
+        if (restartBtn) restartBtn.disabled = !viewId || operationInFlight;
+        if (stopBtn) stopBtn.disabled = !hasSession || operationInFlight;
       }
       async function stopOpsVaRulePreview(options = {}) {
         if (opsVaRulePreviewState.iceTimer) {
@@ -4395,22 +4997,27 @@ void AppendOpsShellScript(std::ostringstream& out,
         }
       }
       async function startOpsVaRulePreview(options = {}) {
+        if (opsVaRulePreviewState.operationInFlight) {
+          updateOpsVaRulePreviewUi();
+          return;
+        }
         const viewId = opsRulesCurrentVaPreviewViewId();
         if (!viewId) {
           updateOpsVaRulePreviewUi();
           return;
         }
-        if (opsVaRulePreviewState.sessionId && opsVaRulePreviewState.viewId !== viewId) {
-          await stopOpsVaRulePreview({ preserveView: false });
-        } else if (opsVaRulePreviewState.sessionId) {
-          await stopOpsVaRulePreview({ preserveView: true });
-        }
-        opsVaRulePreviewState.viewId = viewId;
-        opsVaRulePreviewState.lastError = '';
-        opsVaRulePreviewState.status = options.restart ? 'reconnecting' : 'connecting';
-        opsVaRulePreviewState.connectionStatus = 'connecting';
-        updateOpsVaRulePreviewUi();
+        opsVaRulePreviewState.operationInFlight = true;
         try {
+          if (opsVaRulePreviewState.sessionId && opsVaRulePreviewState.viewId !== viewId) {
+            await stopOpsVaRulePreview({ preserveView: false });
+          } else if (opsVaRulePreviewState.sessionId) {
+            await stopOpsVaRulePreview({ preserveView: true });
+          }
+          opsVaRulePreviewState.viewId = viewId;
+          opsVaRulePreviewState.lastError = '';
+          opsVaRulePreviewState.status = options.restart ? 'reconnecting' : 'connecting';
+          opsVaRulePreviewState.connectionStatus = 'connecting';
+          updateOpsVaRulePreviewUi();
           const pc = await createOpsVaRulePeerConnection();
           opsVaRulePreviewState.pc = pc;
           pc.onconnectionstatechange = () => {
@@ -4471,6 +5078,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         } catch (error) {
           opsVaRulePreviewState.lastError = error.message || 'preview start failed';
           await stopOpsVaRulePreview({ keepError: true, preserveView: true });
+        } finally {
+          opsVaRulePreviewState.operationInFlight = false;
+          updateOpsVaRulePreviewUi();
         }
       }
       function opsRulesVaOutputUrl(kind, ruleId = '', viewId = '') {
@@ -4916,9 +5526,6 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (!channel?.view) issues.push('선택한 채널에 PublishedView가 없습니다.');
           if (channel?.source?.enabled === false) issues.push('비활성 채널에는 룰을 연결할 수 없습니다.');
           if (channel?.view?.enabled === false) issues.push('비활성 PublishedView에는 룰을 연결할 수 없습니다.');
-          if (channel?.view && !opsRulesViewAllowsVaRuleMode(channel.view)) {
-            issues.push('선택한 PublishedView가 va-rule 모드를 허용하지 않습니다.');
-          }
           if (channel?.view && !opsRulesViewHasClientAccess(channel.view)) {
             issues.push('선택한 PublishedView에 클라이언트 노출 권한이 없습니다.');
           }
@@ -5171,6 +5778,11 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsRulesComposerClose')?.addEventListener('click', () => closeOpsRulesEditor().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsRulesComposerSave')?.addEventListener('click', () => triggerOpsRulesSave().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsDashboardRefresh')?.addEventListener('click', () => refreshDashboard().catch(error => setText('dashHealthText', error.message)));
+        syncDashboardIncidentFilterFromHash();
+        document.getElementById('dashIncidentTimelineSearch')?.addEventListener('input', () => handleDashboardIncidentFilterChange());
+        document.getElementById('dashIncidentTimelineSource')?.addEventListener('change', () => handleDashboardIncidentFilterChange());
+        document.getElementById('dashIncidentTimelineShare')?.addEventListener('click', () => copyDashboardIncidentFilterLink().catch(error => showToast(error.message || '인시던트 필터 링크 복사 실패', true)));
+        window.addEventListener('hashchange', () => handleDashboardIncidentHashChange());
         document.getElementById('opsEventsRefresh')?.addEventListener('click', () => refreshEvents().catch(error => setText('eventRecordSummary', error.message)));
         document.getElementById('eventRecordsEvidenceSelect')?.addEventListener('change', () => {
           opsEventRecordsOffset = 0;
@@ -5237,6 +5849,11 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const saveButton = document.querySelector('#channel-save-selected');
     const editSelectedButton = document.querySelector('#channel-edit-selected');
     const closeChannelButton = document.querySelector('#channel-close');
+    const onvifProbeDraftInput = document.querySelector('#onvifProbeDraftInput');
+    const onvifProbeProfileSelect = document.querySelector('#onvifProbeProfileSelect');
+    const onvifProbeDraftApplyButton = document.querySelector('#onvifProbeDraftApply');
+    const onvifProbeDraftClearButton = document.querySelector('#onvifProbeDraftClear');
+    const onvifProbeDraftStatus = document.querySelector('#onvifProbeDraftStatus');
     const streamRoute = ")OPSSOURCES" << stream_route_json << R"OPSSOURCES(";
     const rtspPort = )OPSSOURCES" << rtsp_port << R"OPSSOURCES(;
     let loadedSources = [];
@@ -5266,6 +5883,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     };
     const setChannelValidation = message => {
       setFeedback(channelValidation, message, Boolean(message));
+    };
+    const setOnvifProbeDraftStatus = (message, failed = false) => {
+      setFeedback(onvifProbeDraftStatus, message, failed, { collapseEmpty: true });
     };
     const hasSourceTag = (source, tag) => Array.isArray(source?.tags) &&
       source.tags.map(item => String(item || '').toLowerCase()).includes(String(tag || '').toLowerCase());
@@ -5678,6 +6298,127 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       syncEditorChrome(mode, isClone ? '' : id);
       setOpsDetailPanelOpen(channelPanel, true, { scroll: true });
     }
+    function selectedProfileLabel(profile) {
+      if (!profile || typeof profile !== 'object') return '';
+      const parts = [
+        profile.name,
+        profile.mediaApi,
+        profile.encoding,
+        Number(profile.width || 0) > 0 && Number(profile.height || 0) > 0
+          ? `${profile.width}x${profile.height}`
+          : '',
+        Number(profile.fps || 0) > 0 ? `${profile.fps}fps` : ''
+      ].filter(Boolean);
+      return parts.join(' / ');
+    }
+    function parseOnvifProbeFixtureInput() {
+      const fixtureText = String(onvifProbeDraftInput?.value || '').trim();
+      if (!fixtureText) return null;
+      try {
+        return JSON.parse(fixtureText);
+      } catch (_) {
+        return null;
+      }
+    }
+    function liveRtspProbeProfiles(fixture) {
+      return (Array.isArray(fixture?.mediaProfiles) ? fixture.mediaProfiles : [])
+        .filter(profile => profile && profile.token && onvifTransportFromUri(profile.streamUri)?.rtspUrl);
+    }
+    function preferredProbeProfileToken(fixture, profiles) {
+      const explicit = String(fixture?.draftDecision?.selectedProfileToken || '').trim();
+      if (explicit && profiles.some(profile => profile.token === explicit)) return explicit;
+      const selected = profiles.find(profile => profile.selected);
+      return selected?.token || profiles[0]?.token || '';
+    }
+    function renderOnvifProbeProfiles(fixture) {
+      if (!onvifProbeProfileSelect) return;
+      const profiles = liveRtspProbeProfiles(fixture);
+      const previous = String(onvifProbeProfileSelect.value || '').trim();
+      if (profiles.length === 0) {
+        onvifProbeProfileSelect.innerHTML = '<option value="">profile 후보 없음</option>';
+        onvifProbeProfileSelect.disabled = true;
+        return;
+      }
+      onvifProbeProfileSelect.innerHTML = profiles.map(profile =>
+        `<option value="${escapeHtml(profile.token)}">${escapeHtml(selectedProfileLabel(profile) || profile.token)}</option>`
+      ).join('');
+      onvifProbeProfileSelect.value = previous && profiles.some(profile => profile.token === previous)
+        ? previous
+        : preferredProbeProfileToken(fixture, profiles);
+      onvifProbeProfileSelect.disabled = false;
+    }
+    function fixtureWithSelectedProbeProfile(fixture) {
+      const profiles = liveRtspProbeProfiles(fixture);
+      if (profiles.length === 0) return fixture;
+      const token = String(onvifProbeProfileSelect?.value || preferredProbeProfileToken(fixture, profiles)).trim();
+      const profile = profiles.find(item => item.token === token) || profiles[0];
+      const next = JSON.parse(JSON.stringify(fixture));
+      next.draftDecision = next.draftDecision || {};
+      next.draftDecision.selectedProfileToken = profile.token;
+      next.draftDecision.expectedSourceDraft = next.draftDecision.expectedSourceDraft || {};
+      next.draftDecision.expectedSourceDraft.kind = 'rtsp';
+      next.draftDecision.expectedSourceDraft.rtspUrl = profile.streamUri;
+      next.draftDecision.expectedSourceDraft.displayName =
+        next.draftDecision.expectedSourceDraft.displayName || profile.name || profile.token;
+      next.draftDecision.expectedPublishedViewDraft =
+        next.draftDecision.expectedPublishedViewDraft || {};
+      next.draftDecision.expectedPublishedViewDraft.displayName =
+        next.draftDecision.expectedPublishedViewDraft.displayName ||
+        next.draftDecision.expectedSourceDraft.displayName;
+      return next;
+    }
+    function applyOnvifDraftToChannelForm(payload) {
+      const sourceDraft = payload?.sourceDraft || {};
+      const viewDraft = payload?.publishedViewDraft || {};
+      const channelId = String(sourceDraft.sourceId || viewDraft.viewId || viewDraft.sourceId || '').trim();
+      const displayName = String(viewDraft.displayName || sourceDraft.displayName || channelId).trim();
+      const streamUri = String(sourceDraft.rtspUrl || sourceDraft.httpUrl || sourceDraft.whepUrl || '').trim();
+      if (!isNumericChannelId(channelId)) {
+        throw new Error('Probe draft의 sourceId는 현재 채널 ID 규칙에 맞는 숫자여야 합니다.');
+      }
+      if (!onvifTransportFromUri(streamUri)) {
+        throw new Error('Probe draft에서 저장 가능한 ONVIF 스트림 URI를 찾을 수 없습니다.');
+      }
+      channelForm.elements.channelId.value = channelId;
+      channelForm.elements.displayName.value = displayName;
+      channelForm.elements.kind.value = 'onvif';
+      channelForm.elements.onvifStreamUrl.value = streamUri;
+      currentChannelEnabled = sourceDraft.enabled !== false && viewDraft.enabled !== false;
+      updateKindFields();
+      setChannelValidation('');
+      syncEditorChrome(editorMode === 'view' ? 'edit' : editorMode, currentChannelId);
+      const profileText = selectedProfileLabel(payload?.selectedProfile);
+      setOnvifProbeDraftStatus(
+        `Probe draft 적용: 채널 #${channelId}${profileText ? ` (${profileText})` : ''}`
+      );
+      setStatus('');
+      showToast(`ONVIF probe draft 적용 완료: 채널 #${channelId}`);
+    }
+    async function applyOnvifProbeDraft() {
+      const fixtureText = String(onvifProbeDraftInput?.value || '').trim();
+      if (!fixtureText) {
+        setOnvifProbeDraftStatus('ONVIF probe fixture 입력이 필요합니다.', true);
+        return;
+      }
+      let fixture = null;
+      try {
+        fixture = JSON.parse(fixtureText);
+      } catch (error) {
+        setOnvifProbeDraftStatus('ONVIF probe fixture JSON을 파싱할 수 없습니다.', true);
+        return;
+      }
+      renderOnvifProbeProfiles(fixture);
+      try {
+        const payload = await requestJson('/ops/api/onvif/import-draft', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(fixtureWithSelectedProbeProfile(fixture))
+        });
+        applyOnvifDraftToChannelForm(payload);
+      } catch (error) {
+        setOnvifProbeDraftStatus(`Probe draft 적용 실패: ${error.message}`, true);
+      }
+    }
     function openChannel(id, mode = 'view') {
       if (!id) return;
       fillChannel(id, mode);
@@ -5874,6 +6615,13 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     });
     editSelectedButton.addEventListener('click', () => currentChannelId && fillChannel(currentChannelId, 'edit'));
     channelForm.elements.kind.addEventListener('change', updateKindFields);
+    onvifProbeDraftInput?.addEventListener('input', () => renderOnvifProbeProfiles(parseOnvifProbeFixtureInput()));
+    onvifProbeDraftApplyButton?.addEventListener('click', applyOnvifProbeDraft);
+    onvifProbeDraftClearButton?.addEventListener('click', () => {
+      onvifProbeDraftInput.value = '';
+      renderOnvifProbeProfiles(null);
+      setOnvifProbeDraftStatus('');
+    });
     document.querySelector('#refresh').addEventListener('click', () => loadAll().catch(error => setStatus(error.message, true)));
     document.querySelector('#channel-audit-refresh')?.addEventListener('click', () => renderOpsAuditTrail('channel-audit-list', 'channels'));
     renderOpsAuditTrail('channel-audit-list', 'channels');
@@ -5901,6 +6649,12 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     const assignment = document.querySelector('#view-assignment');
     const passwordFields = document.querySelector('#password-fields');
     const scopePreview = document.querySelector('#scope-template-preview');
+    const lifecycleSummary = document.querySelector('#user-lifecycle-summary');
+    const resetPasswordPanel = document.querySelector('#user-reset-password-panel');
+    const resetPasswordInput = document.querySelector('#user-reset-password');
+    const resetPasswordConfirmInput = document.querySelector('#user-reset-password-confirm');
+    const resetPasswordButton = document.querySelector('#user-reset-password-button');
+    const resetPasswordStatus = document.querySelector('#user-reset-password-status');
     const scopeTemplateButtons = [
       document.querySelector('#apply-view-scope-template'),
       document.querySelector('#apply-role-default-scope-template'),
@@ -5926,9 +6680,11 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     } = window.MediaServerUi;
     const setStatus = (message, failed = false) => setFeedback(statusEl, message, failed);
     const setRequestStatus = (message, failed = false) => setFeedback(requestStatusEl, message, failed);
+    const setResetPasswordStatus = (message, failed = false) => setFeedback(resetPasswordStatus, message, failed);
     function hideUserEditor() {
       setOpsDetailPanelOpen(userDetailPanel, false);
       editorMode = 'view';
+      setResetPasswordStatus('');
     }
     function setInviteOutput(text = '') {
       inviteOutput.textContent = text;
@@ -5966,6 +6722,10 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       closeUserButton.textContent = '닫기';
       setFormDisabled(mode === 'view');
       setUsernameLocked(mode !== 'new');
+      if (resetPasswordPanel) resetPasswordPanel.hidden = mode === 'new';
+      setResetPasswordStatus('');
+      if (resetPasswordInput) resetPasswordInput.value = '';
+      if (resetPasswordConfirmInput) resetPasswordConfirmInput.value = '';
       updateAssignmentVisibility();
     }
     function updateAssignmentVisibility() {
@@ -6019,14 +6779,20 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       form.elements.scopes.value = scopes.join('\n');
       updateScopeTemplatePreview();
     }
+    function formValue(data, name) {
+      if (Object.prototype.hasOwnProperty.call(data, name)) {
+        return data[name] || '';
+      }
+      return form.elements[name]?.value || '';
+    }
     function formPayload() {
       const data = formDataObject(form);
       return {
-        username: data.username.trim(),
-        displayName: data.displayName.trim(),
-        role: data.role,
-        viewId: data.viewId.trim(),
-        scopes: splitList(data.scopes || ''),
+        username: formValue(data, 'username').trim(),
+        displayName: formValue(data, 'displayName').trim(),
+        role: formValue(data, 'role'),
+        viewId: formValue(data, 'viewId').trim(),
+        scopes: splitList(formValue(data, 'scopes')),
         password: data.password || '',
         confirmPassword: data.confirmPassword || '',
         enabled: form.elements.enabled.checked,
@@ -6054,11 +6820,37 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     function requestStatusTone(status) {
       return status === 'pending' ? 'warn' : status === 'rejected' ? 'bad' : '';
     }
+    function accessRequestLifecycleText(request = {}) {
+      if (request.status === 'approved') return '승인됨: 초대 링크 만료 전 비밀번호 설정 후 로그인 가능';
+      if (request.status === 'rejected') return '거절됨: 새 요청 또는 관리자 재초대 필요';
+      return '승인 전: 로그인/세션/채널 권한 없음';
+    }
     function yesNo(value) {
       return value ? '예' : '아니오';
     }
     function displayValue(value, fallback = '미제공') {
       return value === null || value === undefined || value === '' ? fallback : String(value);
+    }
+    function userLifecycleText(user = {}) {
+      const notes = [];
+      if (user.enabled === false) {
+        notes.push(user.disabledAt ? `비활성 상태: ${user.disabledAt} 이후 로그인/세션 차단` : '비활성 상태: 로그인/세션 차단');
+      } else {
+        notes.push('활성 상태: 권한 범위 안에서 로그인 가능');
+      }
+      if (user.lockedUntil) notes.push(`로그인 잠금 해제 예정: ${user.lockedUntil}`);
+      notes.push(user.mustChangePassword ? '다음 로그인 시 비밀번호 변경 필요' : '다음 로그인 비밀번호 변경 요구 없음');
+      return notes.join(' · ');
+    }
+    function updateLifecycleSummary(user = null) {
+      if (!lifecycleSummary) return;
+      const candidate = user || {
+        enabled: form.elements.enabled.checked,
+        mustChangePassword: form.elements.mustChangePassword.checked,
+        lockedUntil: '',
+        disabledAt: ''
+      };
+      lifecycleSummary.textContent = userLifecycleText(candidate);
     }
     function fillForm(user) {
       form.elements.username.value = user.username;
@@ -6071,6 +6863,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       form.elements.enabled.checked = Boolean(user.enabled);
       form.elements.mustChangePassword.checked = Boolean(user.mustChangePassword);
       setEditorMode('view', `사용자 @${user.username}`, user.username);
+      updateLifecycleSummary(user);
       userDetailPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     function resetUserForm() {
@@ -6079,6 +6872,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       form.elements.enabled.checked = true;
       form.elements.mustChangePassword.checked = true;
       setEditorMode('new', '사용자 추가');
+      updateLifecycleSummary();
       form.elements.username.focus();
     }
     function userRowCells(user) {
@@ -6181,15 +6975,27 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         appendLabeledCell(tr, '계정명', `<div class="user-id-cell"><span class="table-identity-pill table-identity-user">${escapeHtml(displayValue(user.username))}</span></div>`);
         appendLabeledCell(tr, '이름', userValueHtml(user.displayName || '미제공'));
         appendLabeledCell(tr, '권한', userValueHtml(roleLabel(user.role)));
-        appendLabeledCell(tr, '상태', opsRowActionsHtml(chip(user.enabled ? '활성' : '비활성', user.enabled ? '' : 'warn'), 'ops-status-actions user-status-actions'), 'table-cell-status');
+        appendLabeledCell(
+          tr,
+          '상태',
+          opsRowActionsHtml(
+            `${chip(user.enabled ? '활성' : '비활성', user.enabled ? '' : 'warn')}<span class="user-note">${escapeHtml(userLifecycleText(user))}</span>`,
+            'ops-status-actions user-status-actions'
+          ),
+          'table-cell-status'
+        );
         appendLabeledCell(tr, '권한 범위', userScopeHtml(user.scopes), 'user-scope-cell');
         appendLabeledCell(tr, '마지막 로그인', userValueHtml(user.lastLoginAt || '미제공'));
         appendLabeledCell(tr, '잠금 만료', userValueHtml(user.lockedUntil || '없음'));
         appendLabeledCell(tr, '비밀번호 변경', userValueHtml(yesNo(user.mustChangePassword)));
-        const actionsHtml = opsRowActionsHtml(
-          `<button type="button" class="secondary" data-user-view="${escapeHtml(displayValue(user.username))}">상세</button>`,
-          'user-row-actions'
-        );
+        const nextEnabled = user.enabled ? 'false' : 'true';
+        const lifecycleAction = user.enabled ? '비활성화' : '복구';
+        const lifecycleClass = user.enabled ? 'danger' : 'secondary';
+        const actionsHtml = opsRowActionsHtml(`
+          <button type="button" class="secondary" data-user-view="${escapeHtml(displayValue(user.username))}">상세</button>
+          <button type="button" class="secondary" data-user-reset-password="${escapeHtml(displayValue(user.username))}">초기화</button>
+          <button type="button" class="${lifecycleClass}" data-user-set-enabled="${nextEnabled}" data-user-action-username="${escapeHtml(displayValue(user.username))}">${lifecycleAction}</button>
+        `, 'user-row-actions');
         appendLabeledCell(tr, '작업', actionsHtml, 'table-cell-actions');
         usersBody.appendChild(tr);
       }
@@ -6210,10 +7016,22 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         appendLabeledCell(tr, '연락처', userValueHtml(request.contact || '미제공'));
         appendLabeledCell(tr, '채널', userValueHtml(request.viewId || '미지정'));
         appendLabeledCell(tr, '사유', userValueHtml(request.reason || '미제공'));
-        appendLabeledCell(tr, '상태', opsRowActionsHtml(chip(requestStatusLabel(request.status), requestStatusTone(request.status)), 'ops-status-actions user-status-actions'), 'table-cell-status');
-        appendLabeledCell(tr, '요청/결정', userValueHtml(request.createdAt || '미제공', request.decidedAt || ''));
+        appendLabeledCell(
+          tr,
+          '상태',
+          opsRowActionsHtml(
+            `${chip(requestStatusLabel(request.status), requestStatusTone(request.status))}<span class="user-note">${escapeHtml(accessRequestLifecycleText(request))}</span>`,
+            'ops-status-actions user-status-actions'
+          ),
+          'table-cell-status'
+        );
+        appendLabeledCell(tr, '요청/결정', userValueHtml(request.createdAt || '미제공', request.decidedAt || accessRequestLifecycleText(request)));
         const actionsHtml = request.status === 'pending'
           ? opsRowActionsHtml(`
+              <label class="request-approve-view">
+                <span>승인 채널 ID</span>
+                <input data-request-approve-view="${escapeHtml(displayValue(request.requestId))}" value="${escapeHtml(displayValue(request.viewId || ''))}" placeholder="채널 ID" />
+              </label>
               <button type="button" class="primary" data-request-approve="${escapeHtml(displayValue(request.requestId))}">승인</button>
               <button type="button" class="danger" data-request-reject="${escapeHtml(displayValue(request.requestId))}">거절</button>
             `, 'user-row-actions')
@@ -6264,24 +7082,73 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         }
         await requestJson(`/ops/api/users/${encodeURIComponent(username)}/${enabled ? 'enable' : 'disable'}`, { method: 'POST' });
         await loadAll();
+        const afterUser = findLoadedUser(username) || { ...(before || { username }), enabled };
         await recordOpsAudit({
           area: 'users',
           action: enabled ? 'enable' : 'disable',
           target: `user:${username}`,
           before,
-          after: { ...(before || { username }), enabled }
+          after: afterUser
         });
         renderOpsAuditTrail('user-audit-list', 'users');
+        setStatus(enabled
+          ? `사용자 @${username} 복구 완료. 로그인 잠금과 실패 횟수가 초기화되었습니다.`
+          : `사용자 @${username} 비활성화 완료. 기존 세션은 회수됩니다.`);
       } catch (error) {
         setStatus(error.message, true);
       }
     }
+    async function resetUserPassword(username) {
+      const password = String(resetPasswordInput?.value || '');
+      const confirm = String(resetPasswordConfirmInput?.value || '');
+      if (!username) return;
+      if (!password) {
+        setResetPasswordStatus('새 임시 비밀번호를 입력하세요.', true);
+        return;
+      }
+      if (password !== confirm) {
+        setResetPasswordStatus('새 임시 비밀번호 확인이 일치하지 않습니다.', true);
+        return;
+      }
+      try {
+        const before = findLoadedUser(username);
+        await requestJson(`/ops/api/users/${encodeURIComponent(username)}/reset-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+        if (resetPasswordInput) resetPasswordInput.value = '';
+        if (resetPasswordConfirmInput) resetPasswordConfirmInput.value = '';
+        await loadAll();
+        const afterUser = findLoadedUser(username) || { ...(before || { username }), mustChangePassword: true };
+        await recordOpsAudit({
+          area: 'users',
+          action: 'reset-password',
+          target: `user:${username}`,
+          before,
+          after: { ...afterUser, passwordReset: true }
+        });
+        renderOpsAuditTrail('user-audit-list', 'users');
+        setResetPasswordStatus('비밀번호 초기화 완료. 다음 로그인에서 변경이 필요합니다.');
+        setStatus(`사용자 @${username} 비밀번호 초기화 완료. 기존 세션은 회수됩니다.`);
+      } catch (error) {
+        setResetPasswordStatus(error.message, true);
+      }
+    }
+    function approveViewIdFor(request) {
+      const requestId = String(request?.requestId || '');
+      const input = [...(requestsBody?.querySelectorAll('[data-request-approve-view]') || [])]
+        .find(element => String(element.dataset.requestApproveView || '') === requestId);
+      return String(input?.value ?? request?.viewId ?? '').trim();
+    }
     async function approveAccessRequest(request) {
-      const viewId = window.prompt('승인할 채널 ID', request.viewId || '');
-      if (viewId === null) return;
       try {
         const payload = {};
-        const normalizedViewId = viewId.trim();
+        const normalizedViewId = approveViewIdFor(request);
+        if (!normalizedViewId) {
+          setRequestStatus('승인할 채널 ID를 입력하세요.', true);
+          return;
+        }
         if (normalizedViewId) payload.viewId = normalizedViewId;
         const result = await requestJson(`/ops/api/access-requests/${encodeURIComponent(request.requestId)}/approve`, {
           method: 'POST',
@@ -6293,7 +7160,9 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         setInviteOutput([
           `계정: ${request.username || ''}`,
           setupUrl ? `초대 링크: ${setupUrl}` : '',
-          invite.token ? `토큰: ${invite.token}` : ''
+          invite.expiresAt ? `초대 링크 만료: ${invite.expiresAt}` : '',
+          invite.token ? `토큰: ${invite.token}` : '',
+          '초대 설정 완료 전까지는 로그인/세션/채널 권한이 열리지 않습니다.'
         ].filter(Boolean).join('\n'));
         setRequestStatus('접근 요청 승인 완료');
         await loadAll({ clearMessages: false });
@@ -6386,10 +7255,15 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       const username = String(form.elements.username.value || '').trim();
       if (!username) return;
       setEditorMode('edit', `사용자 @${username}`, username);
+      updateLifecycleSummary();
     };
     closeUserButton.onclick = () => {
       hideUserEditor();
     };
+    resetPasswordButton?.addEventListener('click', () => {
+      const username = String(form.elements.username.value || '').trim();
+      resetUserPassword(username);
+    });
     document.querySelector('#user-audit-refresh')?.addEventListener('click', () => renderOpsAuditTrail('user-audit-list', 'users'));
     renderOpsAuditTrail('user-audit-list', 'users');
     document.addEventListener('click', event => {
@@ -6399,10 +7273,29 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         if (user) fillForm(user);
         return;
       }
+      const resetButton = event.target.closest('[data-user-reset-password]');
+      if (resetButton) {
+        const user = (loadedUsers || []).find(item => String(item.username || '') === String(resetButton.dataset.userResetPassword || ''));
+        if (user) {
+          fillForm(user);
+          resetPasswordInput?.focus();
+          setResetPasswordStatus('임시 비밀번호를 입력해 초기화합니다.');
+        }
+        return;
+      }
       const approveButton = event.target.closest('[data-request-approve]');
       if (approveButton) {
         const request = (loadedRequests || []).find(item => String(item.requestId || '') === String(approveButton.dataset.requestApprove || ''));
         if (request) approveAccessRequest(request);
+        return;
+      }
+      const lifecycleButton = event.target.closest('[data-user-set-enabled]');
+      if (lifecycleButton) {
+        const username = String(lifecycleButton.dataset.userActionUsername || '').trim();
+        const enabled = lifecycleButton.dataset.userSetEnabled === 'true';
+        if (!username) return;
+        if (!enabled && !window.confirm(`사용자 @${username} 로그인을 비활성화하고 기존 세션을 회수할까요?`)) return;
+        setEnabled(username, enabled);
         return;
       }
       const rejectButton = event.target.closest('[data-request-reject]');
@@ -6415,6 +7308,8 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     form.elements.role.addEventListener('change', updateAssignmentVisibility);
     form.elements.viewId.addEventListener('input', updateScopeTemplatePreview);
     form.elements.scopes.addEventListener('input', updateScopeTemplatePreview);
+    form.elements.enabled.addEventListener('change', () => updateLifecycleSummary());
+    form.elements.mustChangePassword.addEventListener('change', () => updateLifecycleSummary());
     document.querySelector('#apply-view-scope-template').onclick = () => applyScopeTemplate(false);
     document.querySelector('#apply-role-default-scope-template').onclick = () => applyScopeTemplate(true);
     document.querySelector('#clear-custom-scopes').onclick = () => {

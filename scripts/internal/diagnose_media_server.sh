@@ -280,7 +280,9 @@ collect_file_state() {
     OVERALL=1
   fi
 
-  if [[ "${MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE:-0}" == "1" || "${MEDIA_SERVER_ENABLE_LAB_YOUTUBE_IMPORT:-1}" == "1" ]]; then
+  if [[ "${MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE:-0}" == "1" &&
+        ( "${MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE:-0}" == "1" ||
+          "${MEDIA_SERVER_ENABLE_LAB_YOUTUBE_IMPORT:-0}" == "1" ) ]]; then
     if command -v yt-dlp >/dev/null 2>&1; then
       print_line "PASS" "yt-dlp available for YouTube source/import features"
     else
@@ -292,7 +294,7 @@ collect_file_state() {
       print_line "INFO" "deno not found; some YouTube JS challenges may fail even when yt-dlp is installed"
     fi
   else
-    print_line "INFO" "experimental source=youtube and lab YouTube import are disabled"
+    print_line "INFO" "experimental source=youtube and lab YouTube import are disabled or excluded from this build"
   fi
 }
 

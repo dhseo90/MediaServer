@@ -2,11 +2,19 @@
 // 파일 용도: /ops와 /client 제품 shell의 안정 selector와 client 노출 금지 항목을 빠르게 검증한다.
 
 import os from "node:os";
+import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
-import { findChrome, isTruthy, openBrowserPage, parseWidthList, runVisualSmoke } from "./ui_visual_smoke_lib.mjs";
+import {
+  findChrome,
+  isTruthy,
+  openBrowserPage,
+  parseWidthList,
+  runVisualSmoke,
+  writeVisualArtifactIndex,
+} from "./ui_visual_smoke_lib.mjs";
 
 const rawArgs = process.argv.slice(2);
 if (hasHelpFlag(rawArgs)) {
@@ -49,6 +57,7 @@ const visualHeight = Number(args.visualHeight || 900);
 const debugPortBase = Number(args.debugPortBase || 9700);
 const runId = `ops-client-ui-${Date.now()}-${process.pid}`;
 const outputDir = args.outputDir || path.join(os.tmpdir(), `media_server_${runId}`);
+const clientLiveA11ySnapshot = JSON.parse(fs.readFileSync(path.join(process.cwd(), "test/fixtures/client_live_tile_a11y_i18n_snapshot.json"), "utf8"));
 
 const productShellMust = [
   'class="product-shell',
@@ -81,8 +90,14 @@ const pageChecks = [
     name: "ops-dashboard",
     path: "/ops/dashboard",
     visualSelector: '[data-testid="ops-dashboard-page"]',
-    must: ['data-testid="ops-dashboard-page"', 'data-testid="ops-root-cause-panel"', 'data-testid="ops-va-quality-panel"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', 'id="dashRootCauseList"', 'id="dashVaQualityFilterInput"', 'id="dashScenarioTimeline"', 'id="dashTrackingIssueGroups"', '/ops/api/runtime/status', '/ops/api/source-health', '라이브 소스 상태', '라이브 VA 이벤트 품질'],
+    must: ['data-testid="ops-dashboard-page"', 'data-testid="ops-root-cause-panel"', 'data-testid="ops-incident-timeline-panel"', 'data-testid="ops-va-quality-panel"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', 'id="dashRootCauseList"', 'id="dashIncidentTimelineSearch"', 'id="dashIncidentTimelineSource"', 'id="dashIncidentTimeline"', 'id="dashVaQualityFilterInput"', 'id="dashScenarioTimeline"', 'id="dashTrackingIssueGroups"', '/ops/api/runtime/status', '/ops/api/source-health', '라이브 소스 상태', '최근 인시던트 흐름', '라이브 VA 이벤트 품질'],
     mustNot: ['<iframe', 'opsDashboardFrame', '/lab/rules?embed=1', '/lab/runtime/status'],
+  },
+  {
+    name: "ops-events",
+    path: "/ops/events",
+    must: ['data-testid="ops-events-page"', 'data-route-scope="direct-diagnostic"', 'Primary nav에는 표시하지 않는 direct/diagnostic route', 'id="opsEventsRefresh"', '/ops/api/events/status'],
+    mustNot: ['<iframe', 'href="/lab', 'src="/lab', 'href="/webrtc/test"', 'href="/ops/events"'],
   },
   {
     name: "ops-rules",
@@ -95,20 +110,20 @@ const pageChecks = [
     name: "ops-sources",
     path: "/ops/sources",
     visualSelector: '[data-testid="ops-sources-page"]',
-    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'name="onvifStreamUrl"', 'name="whepUrl"', "ONVIF 카메라", "ONVIF 스트림 URI", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
+    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'data-testid="onvif-probe-draft-tool"', 'id="onvifProbeDraftInput"', 'id="onvifProbeProfileSelect"', 'id="onvifProbeDraftApply"', 'name="onvifStreamUrl"', 'name="whepUrl"', "ONVIF 카메라", "ONVIF 스트림 URI", "ONVIF probe fixture", "ONVIF profile", "Probe draft 적용", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
     mustNot: ['AppendTableHead(', 'R"OPS(', 'WHIP Published Source ID', "Registry raw JSON", 'sources-json', 'views-json', 'client-views-json', 'data-testid="onvif-import-panel"', 'id="onvif-import-stub"', 'id="onvifImportSummary"', "ONVIF Live Source import", 'data-testid="channel-bulk-panel"', 'id="channel-bulk-select-all"', 'id="channelBulkDiagnostics"', 'data-testid="source-health-panel"', 'id="channelHealthSummary"', 'id="channelHealthDiagnostics"', 'id="channel-detail-health"'],
   },
   {
     name: "ops-users",
     path: "/ops/users",
     visualSelector: '[data-testid="ops-users-page"]',
-    must: ['data-testid="ops-users-page"', 'id="users-body"', 'id="access-requests-body"', 'id="request-invite-output"', 'id="user-detail-panel"', 'id="user-edit-selected"', 'id="user-save-selected"', 'id="user-close"', 'id="view-assignment"', '/ops/api/access-requests'],
+    must: ['data-testid="ops-users-page"', 'data-testid="user-lifecycle-policy"', 'id="users-body"', 'id="access-requests-body"', 'id="request-invite-output"', 'id="user-detail-panel"', 'id="user-edit-selected"', 'id="user-save-selected"', 'id="user-close"', 'id="view-assignment"', 'id="user-lifecycle-summary"', 'id="user-reset-password-panel"', 'id="user-reset-password-button"', 'data-user-reset-password', 'data-user-set-enabled', '초대 링크는 기본 24시간 동안만 유효', '사용자 감사 JSON/CSV/Diff JSON export', '승인 전: 로그인/세션/채널 권한 없음', '초대 링크 만료', '/ops/api/access-requests'],
   },
   {
     name: "client-live",
     path: "/client/live",
     visualSelector: '[data-testid="client-shell-page"]',
-    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'data-action="restart"', 'restartLiveTile'],
+    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'id="liveAllStart"', 'startAllLiveTiles', 'data-action="restart"', 'restartLiveTile', 'tabindex="0"', 'focusLiveTile', 'ArrowRight', 'aria-describedby="liveTileStatus${tile.index}"', 'data-role="a11y-status"', 'aria-live="polite"', 'aria-atomic="true"', 'liveTileA11yStatus', 'data-client-copy="status"', 'data-client-copy="events"', '타일 ${tile.index + 1} 시작'],
     shellMust: clientShellMust,
     mustNot: [...clientForbiddenText(), 'new RTCPeerConnection({ iceServers: [] })'],
   },
@@ -116,7 +131,7 @@ const pageChecks = [
     name: "client-dashboard",
     path: "/client/dashboard",
     visualSelector: '[data-testid="client-shell-page"]',
-    must: ['data-testid="client-shell-page"', 'data-client-active="dashboard"', 'id="views"', 'id="detail"', 'data-testid="client-dashboard-compare"', 'loadClientDashboardCompare'],
+    must: ['data-testid="client-shell-page"', 'data-client-active="dashboard"', 'id="views"', 'id="detail"', 'data-testid="client-dashboard-compare"', 'loadClientDashboardCompare', 'data-client-copy="status"', 'data-client-copy="events"'],
     shellMust: clientShellMust,
     mustNot: clientForbiddenText(),
   },
@@ -139,6 +154,9 @@ for (const check of pageChecks) {
     const shellMust = check.shellMust || opsShellMust;
     assertContains(check.name, html, [...productShellMust, ...shellMust, ...(check.must || [])]);
     assertOmits(check.name, html, check.mustNot || []);
+    if (check.path === "/ops" || check.path.startsWith("/ops/")) {
+      assertOpsPrimaryNavContract(check.name, html);
+    }
     passCount += 1;
     console.log(`[pass] ${check.name}: ${check.path}`);
   } catch (error) {
@@ -198,6 +216,18 @@ try {
 }
 
 try {
+  const renderedLeakResult = await runClientRenderedLeakSmoke();
+  passCount += renderedLeakResult.passCount;
+  failCount += renderedLeakResult.failCount;
+  failures.push(...renderedLeakResult.failures);
+} catch (error) {
+  failCount += 1;
+  const message = error instanceof Error ? error.message : String(error);
+  failures.push(`[client-rendered-leak] ${message}`);
+  console.log(`[fail] client-rendered-leak: ${message}`);
+}
+
+try {
   await assertHttpStatus("removed-lab-home", "/lab", 404);
   await assertHttpStatus("removed-lab-rules", "/lab/rules", 404);
   await assertHttpStatus("removed-lab-import", "/lab/import", 404);
@@ -249,31 +279,170 @@ if (screenshotEnabled) {
   if (result.failCount > 0) process.exit(1);
   const clientHeaderResult = await runClientHeaderResponsiveSmoke();
   if (clientHeaderResult.failCount > 0) process.exit(1);
+  const clientLiveKeyboardResult = await runClientLiveTileKeyboardSmoke();
+  if (clientLiveKeyboardResult.failCount > 0) process.exit(1);
   const auditResponsiveResult = await runOpsAuditResponsiveSmoke();
   if (auditResponsiveResult.failCount > 0) process.exit(1);
+  const onvifUnsupportedHintResult = await runOpsSourcesOnvifUnsupportedHintSmoke();
+  if (onvifUnsupportedHintResult.failCount > 0) process.exit(1);
+  const onvifPreviewToolResult = await runOpsSourcesOnvifPreviewToolSmoke();
+  if (onvifPreviewToolResult.failCount > 0) process.exit(1);
+  writeVisualArtifactIndex({
+    outputDir,
+    title: "Ops/Client Visual Regression Artifacts",
+    command: "./server.sh verify-ops-client-ui --screenshots",
+    httpBase,
+    visualWidths,
+    visualHeight,
+    checks: pageChecks.filter((check) => check.visualSelector),
+  });
 }
 
 function clientForbiddenText() {
   return [
     "Registry raw JSON",
+    "raw JSON",
+    "raw diagnostic",
     "debugCounters",
+    "debugSummary",
     "Developer URL",
     "BBox diagnostics",
+    "bboxDiagnostics",
+    "analysisTapId",
     "developer-url-details",
     "opsEventsRaw",
     "sources-json",
     "views-json",
     "client-views-json",
+    "sourceUrl",
+    "sourceUri",
+    "rtspUrl",
+    "httpUrl",
+    "whepUrl",
+    "storagePath",
     "rtsp://",
+    "rtsps://",
+    "file://",
     "WHIP sourceId",
     "Event POST",
     "/lab/runtime/status",
     "/lab/analysis/event-post",
     "/lab/analysis/taps",
+    "/ops/api/sources",
+    "/ops/api/views",
+    "opsVaRuleForm",
+    "opsEventRuleForm",
+    "opsProfileForm",
     'href="/webrtc/session',
     "/webrtc/session?file",
     "sessionToken",
   ];
+}
+
+function assertOpsPrimaryNavContract(name, html) {
+  const match = html.match(/<nav class="image-nav-tabs"[^>]*aria-label="운영 메뉴"[\s\S]*?<\/nav>/);
+  if (!match) {
+    throw new Error(`${name}: ops primary nav block not found`);
+  }
+  const nav = match[0];
+  for (const href of ['href="/ops/home"', 'href="/ops/dashboard"', 'href="/ops/sources"', 'href="/ops/rules"', 'href="/client/live"']) {
+    if (!nav.includes(href)) {
+      throw new Error(`${name}: primary nav missing ${href}`);
+    }
+  }
+  if (nav.includes('href="/ops/events"')) {
+    throw new Error(`${name}: /ops/events must remain a direct route, not primary nav`);
+  }
+}
+
+async function runClientRenderedLeakSmoke() {
+  const result = { passCount: 0, failCount: 0, failures: [] };
+  if (!chromePath) {
+    console.log("[skip] client-rendered-leak: Chrome executable not found");
+    return result;
+  }
+  const clientPaths = [
+    { name: "client-live-rendered-leak", path: "/client/live" },
+    { name: "client-dashboard-rendered-leak", path: "/client/dashboard" },
+    { name: "client-events-rendered-leak", path: "/client/events" },
+  ];
+  let checkIndex = 0;
+  for (const check of clientPaths) {
+    const browser = await openBrowserPage({
+      httpBase,
+      pagePath: check.path,
+      timeoutMs,
+      chromePath,
+      debugPort: debugPortBase + 120 + checkIndex,
+      width: 390,
+      height: visualHeight,
+      outputDir,
+    });
+    checkIndex += 1;
+    try {
+      const leakResult = await browser.evaluate(clientRenderedLeakExpression(), 10000);
+      if (!leakResult?.ok) {
+        const details = Array.isArray(leakResult?.issues) ? leakResult.issues.join("; ") : JSON.stringify(leakResult);
+        throw new Error(`${check.name}: ${details}`);
+      }
+      result.passCount += 1;
+      console.log(`[pass] ${check.name}: forbidden=0, textLength=${leakResult.textLength}`);
+    } catch (error) {
+      result.failCount += 1;
+      const message = error instanceof Error ? error.message : String(error);
+      result.failures.push(`[${check.name}] ${message}`);
+      console.log(`[fail] ${check.name}: ${message}`);
+    } finally {
+      await browser.close();
+    }
+  }
+  return result;
+}
+
+function clientRenderedLeakExpression() {
+  return `
+    (() => {
+      const forbidden = ${JSON.stringify(clientForbiddenText())};
+      const forbiddenSelectors = [
+        '#opsRulesDetailPanel',
+        '#opsVaRuleForm',
+        '#opsEventRuleForm',
+        '#opsProfileForm',
+        '[data-testid="ops-rules-page"]',
+        '[data-testid="ops-sources-page"]',
+        '[data-testid="source-health-panel"]',
+        '.debug-drawer',
+        '[data-debug-counter]',
+        '[data-source-url]',
+      ];
+      const issues = [];
+      const visibleText = document.body ? document.body.innerText || '' : '';
+      const html = document.documentElement ? document.documentElement.outerHTML || '' : '';
+      const dataScripts = Array.from(document.querySelectorAll('script[type="application/json"]'))
+        .map((node) => node.textContent || '')
+        .join('\\n');
+      for (const needle of forbidden) {
+        if (!needle) continue;
+        if (visibleText.includes(needle)) {
+          issues.push('visible forbidden text: ' + needle);
+        } else if (dataScripts.includes(needle)) {
+          issues.push('JSON script forbidden text: ' + needle);
+        } else if (html.includes(needle) && !needle.startsWith('/ops/api/')) {
+          issues.push('DOM forbidden text: ' + needle);
+        }
+      }
+      for (const selector of forbiddenSelectors) {
+        if (document.querySelector(selector)) {
+          issues.push('forbidden selector present: ' + selector);
+        }
+      }
+      return {
+        ok: issues.length === 0,
+        issues,
+        textLength: visibleText.length,
+      };
+    })()
+  `;
 }
 
 async function runClientHeaderResponsiveSmoke() {
@@ -387,6 +556,126 @@ function clientHeaderResponsiveExpression() {
   `;
 }
 
+async function runClientLiveTileKeyboardSmoke() {
+  let keyboardPassCount = 0;
+  let keyboardFailCount = 0;
+  const keyboardFailures = [];
+  const widths = [...new Set([390, 1180].filter((width) => visualWidths.includes(width)))];
+  for (const width of widths.length ? widths : [390]) {
+    const label = `client-live-keyboard-${width}`;
+    const browser = await openBrowserPage({
+      httpBase,
+      pagePath: "/client/live",
+      timeoutMs,
+      chromePath,
+      debugPort: debugPortBase + 260 + keyboardPassCount + keyboardFailCount,
+      width,
+      height: visualHeight,
+      outputDir,
+    });
+    try {
+      const result = await browser.evaluate(clientLiveTileKeyboardExpression(clientLiveA11ySnapshot), 10000);
+      if (!result?.ok) {
+        const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
+        throw new Error(`${label}: ${details}`);
+      }
+      keyboardPassCount += 1;
+      console.log(`[pass] ${label}: tiles=${result.tileCount}, selected=${result.selectedTile}, active=${result.activeTile}`);
+    } catch (error) {
+      keyboardFailCount += 1;
+      const message = error instanceof Error ? error.message : String(error);
+      keyboardFailures.push(`[${label}] ${message}`);
+      console.log(`[fail] ${label}: ${message}`);
+    } finally {
+      await browser.close();
+    }
+  }
+  console.log("");
+  console.log("== Client live tile keyboard smoke 요약 ==");
+  console.log(`- 통과: ${keyboardPassCount}`);
+  console.log(`- 실패: ${keyboardFailCount}`);
+  if (keyboardFailures.length > 0) {
+    console.log("- 실패 상세:");
+    for (const failure of keyboardFailures) {
+      console.log(`  - ${failure}`);
+    }
+  }
+  return { passCount: keyboardPassCount, failCount: keyboardFailCount };
+}
+
+function clientLiveTileKeyboardExpression(a11ySnapshot) {
+  return `
+    (async () => {
+      const a11ySnapshot = ${JSON.stringify(a11ySnapshot)};
+      const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+      const issues = [];
+      const issue = message => { if (issues.length < 16) issues.push(message); };
+      const domExtraction = a11ySnapshot.domExtraction || {};
+      const requiredStatusParts = Array.isArray(domExtraction.requiredKoreanParts) && domExtraction.requiredKoreanParts.length
+        ? domExtraction.requiredKoreanParts
+        : ['타일 1:', '상태', '연결', '트랙', '이벤트', '메타데이터', '재시도'];
+      await wait(350);
+      const tiles = Array.from(document.querySelectorAll('.tile'));
+      if (tiles.length < 2) issue('expected at least two live tiles, got ' + tiles.length);
+      const first = tiles[0];
+      const second = tiles[1];
+      if (first) {
+        if (first.getAttribute('tabindex') !== '0') issue('first tile is not tabbable');
+        if (first.getAttribute('role') !== 'group') issue('first tile role is not group');
+        if (!String(first.getAttribute('aria-label') || '').includes('타일 1')) issue('first tile aria-label missing tile number');
+        const describedBy = String(first.getAttribute('aria-describedby') || '');
+        if (!describedBy) issue('first tile aria-describedby missing');
+        const describedNode = describedBy ? document.getElementById(describedBy) : null;
+        if (!describedNode) issue('first tile described status node missing');
+        if (describedNode) {
+          const statusText = String(describedNode.textContent || '');
+          if (describedNode.dataset.role !== 'a11y-status') issue('first tile described node role mismatch');
+          if (describedNode.getAttribute('aria-live') !== 'polite') issue('first tile status aria-live missing');
+          if (describedNode.getAttribute('aria-atomic') !== 'true') issue('first tile status aria-atomic missing');
+          if (!describedNode.classList.contains('sr-only')) issue('first tile status is not visually hidden');
+          for (const expected of requiredStatusParts) {
+            if (!statusText.includes(expected)) issue('first tile a11y status missing text: ' + expected);
+          }
+          const style = window.getComputedStyle(describedNode);
+          if (style.position !== 'absolute' || Number.parseFloat(style.width || '0') > 2 || Number.parseFloat(style.height || '0') > 2) {
+            issue('first tile sr-only style is not constrained');
+          }
+        }
+        const labels = Array.from(first.querySelectorAll('button, select')).map(node => node.getAttribute('aria-label') || '');
+        for (const expected of ['타일 1 시작', '타일 1 재연결', '타일 1 정지', '타일 1 채널']) {
+          if (!labels.some(label => label.includes(expected))) issue('missing control aria-label: ' + expected);
+        }
+        first.focus();
+        await wait(80);
+        if (document.activeElement !== first) issue('first tile did not receive focus');
+        first.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
+        await wait(160);
+        if (second && document.activeElement !== second) issue('ArrowRight did not move focus to second tile');
+        if (second && !second.classList.contains('selected')) issue('ArrowRight did not select second tile');
+        second?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true }));
+        await wait(160);
+        if (document.activeElement !== first) issue('Home did not move focus back to first tile');
+        first.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+        await wait(120);
+        if (!first.classList.contains('selected')) issue('Enter did not select focused tile');
+      }
+      const doc = document.documentElement;
+      const body = document.body;
+      const overflowX = Math.max(0, Math.max(doc.scrollWidth, body.scrollWidth) - window.innerWidth);
+      if (overflowX > 2) issue('document horizontal overflow ' + overflowX + 'px');
+      const selected = document.querySelector('.tile.selected');
+      return {
+        ok: issues.length === 0,
+        issues,
+        tileCount: tiles.length,
+        selectedTile: selected?.dataset?.tile || '',
+        activeTile: document.activeElement?.dataset?.tile || '',
+        overflowX,
+      };
+    })()
+  `;
+}
+
 async function runOpsAuditResponsiveSmoke() {
   let auditPassCount = 0;
   let auditFailCount = 0;
@@ -442,6 +731,328 @@ async function runOpsAuditResponsiveSmoke() {
     }
   }
   return { passCount: auditPassCount, failCount: auditFailCount };
+}
+
+async function runOpsSourcesOnvifUnsupportedHintSmoke() {
+  let hintPassCount = 0;
+  let hintFailCount = 0;
+  const hintFailures = [];
+  const hintWidths = onvifUnsupportedHintWidths();
+  let checkIndex = 0;
+  for (const width of hintWidths) {
+    const label = `ops-sources-onvif-unsupported-hint-${width}`;
+    const browser = await openBrowserPage({
+      httpBase,
+      pagePath: "/ops/sources",
+      timeoutMs,
+      chromePath,
+      debugPort: debugPortBase + 440 + checkIndex,
+      width,
+      height: visualHeight,
+      outputDir,
+    });
+    checkIndex += 1;
+    try {
+      await browser.evaluate(prepareOnvifUnsupportedHintExpression(), 10000);
+      await browser.screenshot(path.join(outputDir, `${label}.png`));
+      const result = await browser.evaluate(onvifUnsupportedHintVisibleExpression(), 10000);
+      if (!result?.ok) {
+        const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
+        throw new Error(`${label}: ${details}`);
+      }
+      hintPassCount += 1;
+      console.log(`[pass] ${label}: hintHeight=${Math.round(result.hintHeight)}, overflow=${result.overflowX}`);
+    } catch (error) {
+      hintFailCount += 1;
+      const message = error instanceof Error ? error.message : String(error);
+      hintFailures.push(`[${label}] ${message}`);
+      console.log(`[fail] ${label}: ${message}`);
+    } finally {
+      await browser.close();
+    }
+  }
+  console.log("");
+  console.log("== Ops ONVIF unsupported hint screenshot smoke 요약 ==");
+  console.log(`- 통과: ${hintPassCount}`);
+  console.log(`- 실패: ${hintFailCount}`);
+  console.log(`- screenshots: ${outputDir}`);
+  if (hintFailures.length > 0) {
+    console.log("- 실패 상세:");
+    for (const failure of hintFailures) {
+      console.log(`  - ${failure}`);
+    }
+  }
+  return { passCount: hintPassCount, failCount: hintFailCount };
+}
+
+async function runOpsSourcesOnvifPreviewToolSmoke() {
+  let previewPassCount = 0;
+  let previewFailCount = 0;
+  const previewFailures = [];
+  const previewWidths = onvifPreviewToolWidths();
+  const fixtureText = fs.readFileSync(path.resolve("test/fixtures/onvif_probe_result_stub.json"), "utf8");
+  let checkIndex = 0;
+  for (const width of previewWidths) {
+    const label = `ops-sources-onvif-preview-tool-${width}`;
+    const browser = await openBrowserPage({
+      httpBase,
+      pagePath: "/ops/sources",
+      timeoutMs,
+      chromePath,
+      debugPort: debugPortBase + 520 + checkIndex,
+      width,
+      height: visualHeight,
+      outputDir,
+    });
+    checkIndex += 1;
+    try {
+      await browser.evaluate(prepareOnvifPreviewToolExpression(fixtureText), 10000);
+      await browser.screenshot(path.join(outputDir, `${label}.png`));
+      const result = await browser.evaluate(onvifPreviewToolVisibleExpression(), 10000);
+      if (!result?.ok) {
+        const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
+        throw new Error(`${label}: ${details}`);
+      }
+      previewPassCount += 1;
+      console.log(`[pass] ${label}: toolHeight=${Math.round(result.toolHeight)}, overflow=${result.overflowX}`);
+    } catch (error) {
+      previewFailCount += 1;
+      const message = error instanceof Error ? error.message : String(error);
+      previewFailures.push(`[${label}] ${message}`);
+      console.log(`[fail] ${label}: ${message}`);
+    } finally {
+      await browser.close();
+    }
+  }
+  console.log("");
+  console.log("== Ops ONVIF preview tool screenshot smoke 요약 ==");
+  console.log(`- 통과: ${previewPassCount}`);
+  console.log(`- 실패: ${previewFailCount}`);
+  console.log(`- screenshots: ${outputDir}`);
+  if (previewFailures.length > 0) {
+    console.log("- 실패 상세:");
+    for (const failure of previewFailures) {
+      console.log(`  - ${failure}`);
+    }
+  }
+  return { passCount: previewPassCount, failCount: previewFailCount };
+}
+
+function onvifUnsupportedHintWidths() {
+  return [320, ...visualWidths.filter(width => width !== 320)];
+}
+
+function onvifPreviewToolWidths() {
+  const widths = [390, 1180].filter(width => visualWidths.includes(width));
+  return widths.length > 0 ? widths : [visualWidths[0]];
+}
+
+function prepareOnvifUnsupportedHintExpression() {
+  return `
+    (async () => {
+      const addButton = document.querySelector('#add-channel');
+      if (!addButton) throw new Error('add channel button missing');
+      addButton.click();
+      for (let attempt = 0; attempt < 30; attempt += 1) {
+        const panel = document.querySelector('#channel-detail-panel');
+        const kind = document.querySelector('#channel-form [name="kind"]');
+        if (panel && !panel.hidden && kind) {
+          kind.value = 'onvif';
+          kind.dispatchEvent(new Event('change', { bubbles: true }));
+          break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      const hint = document.querySelector('p[data-source-kind="onvif"].hint');
+      if (!hint) throw new Error('ONVIF unsupported hint missing');
+      hint.scrollIntoView({ block: 'center', inline: 'nearest' });
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const rect = hint.getBoundingClientRect();
+      const targetTop = Math.max(24, Math.round((window.innerHeight - rect.height) / 2));
+      window.scrollBy({ top: rect.top - targetTop, left: 0, behavior: 'instant' });
+      await new Promise(resolve => setTimeout(resolve, 120));
+      return true;
+    })()
+  `;
+}
+
+function prepareOnvifPreviewToolExpression(fixtureText) {
+  return `
+    (async () => {
+      const addButton = document.querySelector('#add-channel');
+      if (!addButton) throw new Error('add channel button missing');
+      addButton.click();
+      let kind = null;
+      for (let attempt = 0; attempt < 30; attempt += 1) {
+        const panel = document.querySelector('#channel-detail-panel');
+        kind = document.querySelector('#channel-form [name="kind"]');
+        if (panel && !panel.hidden && kind) break;
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      if (!kind) throw new Error('channel kind select missing');
+      kind.value = 'onvif';
+      kind.dispatchEvent(new Event('input', { bubbles: true }));
+      kind.dispatchEvent(new Event('change', { bubbles: true }));
+      const input = document.querySelector('#onvifProbeDraftInput');
+      if (!input) throw new Error('ONVIF probe fixture input missing');
+      input.value = ${JSON.stringify(fixtureText)};
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      const select = document.querySelector('#onvifProbeProfileSelect');
+      for (let attempt = 0; attempt < 30; attempt += 1) {
+        if (select && !select.disabled && select.options.length > 1) break;
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      if (!select || select.disabled) throw new Error('ONVIF profile select did not enable');
+      select.value = 'field-sub-h264';
+      select.dispatchEvent(new Event('input', { bubbles: true }));
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      const apply = document.querySelector('#onvifProbeDraftApply');
+      if (!apply) throw new Error('ONVIF probe draft apply missing');
+      apply.click();
+      const status = document.querySelector('#onvifProbeDraftStatus');
+      for (let attempt = 0; attempt < 50; attempt += 1) {
+        if ((status?.textContent || '').includes('Probe draft 적용')) break;
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      const tool = document.querySelector('[data-testid="onvif-probe-draft-tool"]');
+      if (!tool) throw new Error('ONVIF probe draft tool missing');
+      tool.scrollIntoView({ block: 'center', inline: 'nearest' });
+      await new Promise(resolve => setTimeout(resolve, 160));
+      return true;
+    })()
+  `;
+}
+
+function onvifUnsupportedHintVisibleExpression() {
+  return `
+    (() => {
+      const issues = [];
+      const hint = document.querySelector('p[data-source-kind="onvif"].hint');
+      const input = document.querySelector('[name="onvifStreamUrl"]');
+      const tool = document.querySelector('[data-testid="onvif-probe-draft-tool"]');
+      const requiredText = [
+        'WS-Discovery 자동 검색',
+        'PTZ 제어',
+        'ONVIF Events/PullPoint',
+        'Profile G/Recording/Replay는 제공하지 않습니다',
+        '운영자가 확인한 live URI 또는 probe fixture를 사용합니다',
+      ];
+      if (!hint) issues.push('ONVIF unsupported hint missing');
+      if (!input) issues.push('ONVIF stream URI input missing');
+      if (!tool) issues.push('ONVIF probe draft tool missing');
+      if (!hint || !input || !tool) {
+        return { ok: false, issues, overflowX: 0, hintHeight: 0 };
+      }
+      for (const item of requiredText) {
+        if (!hint.textContent.includes(item)) {
+          issues.push('ONVIF unsupported hint text missing: ' + item);
+        }
+      }
+      for (const [name, element] of [['hint', hint], ['input', input], ['tool', tool]]) {
+        const rect = element.getBoundingClientRect();
+        const style = window.getComputedStyle(element);
+        if (element.hidden || style.display === 'none' || style.visibility === 'hidden') {
+          issues.push(name + ' is hidden');
+        }
+        if (rect.width <= 0 || rect.height <= 0) {
+          issues.push(name + ' has empty rect');
+        }
+        if (rect.left < -1 || rect.right > window.innerWidth + 1) {
+          issues.push(name + ' outside viewport horizontally: ' + Math.round(rect.left) + '..' + Math.round(rect.right));
+        }
+      }
+      const hintRect = hint.getBoundingClientRect();
+      if (hintRect.top < 0 || hintRect.bottom > window.innerHeight) {
+        issues.push('hint not fully visible in screenshot viewport: ' + Math.round(hintRect.top) + '..' + Math.round(hintRect.bottom));
+      }
+      const doc = document.documentElement;
+      const body = document.body;
+      const overflowX = Math.max(0, Math.max(doc.scrollWidth, body.scrollWidth) - window.innerWidth);
+      if (overflowX > 2) {
+        issues.push('document horizontal overflow ' + overflowX + 'px');
+      }
+      return {
+        ok: issues.length === 0,
+        issues,
+        overflowX,
+        hintHeight: hintRect.height,
+      };
+    })()
+  `;
+}
+
+function onvifPreviewToolVisibleExpression() {
+  return `
+    (() => {
+      const issues = [];
+      const tool = document.querySelector('[data-testid="onvif-probe-draft-tool"]');
+      const fixtureInput = document.querySelector('#onvifProbeDraftInput');
+      const profileSelect = document.querySelector('#onvifProbeProfileSelect');
+      const applyButton = document.querySelector('#onvifProbeDraftApply');
+      const clearButton = document.querySelector('#onvifProbeDraftClear');
+      const status = document.querySelector('#onvifProbeDraftStatus');
+      const streamInput = document.querySelector('[name="onvifStreamUrl"]');
+      if (!tool) issues.push('ONVIF preview tool missing');
+      if (!fixtureInput) issues.push('fixture textarea missing');
+      if (!profileSelect) issues.push('profile select missing');
+      if (!applyButton) issues.push('apply button missing');
+      if (!clearButton) issues.push('clear button missing');
+      if (!status) issues.push('status node missing');
+      if (!streamInput) issues.push('ONVIF stream URI input missing');
+      if (!tool || !fixtureInput || !profileSelect || !applyButton || !clearButton || !status || !streamInput) {
+        return { ok: false, issues, overflowX: 0, toolHeight: 0 };
+      }
+      if (profileSelect.disabled) issues.push('profile select is disabled after fixture input');
+      if (profileSelect.value !== 'field-sub-h264') issues.push('selected profile mismatch: ' + profileSelect.value);
+      if (!status.textContent.includes('Probe draft 적용')) issues.push('draft apply status missing');
+      if (String(streamInput.value || '').trim() !== 'rtsp://192.0.2.20/live/sub') {
+        issues.push('drafted ONVIF stream URI mismatch: ' + streamInput.value);
+      }
+      const expectedOptions = ['field-main-h264', 'field-sub-h264'];
+      const optionValues = Array.from(profileSelect.options).map(option => option.value);
+      for (const option of expectedOptions) {
+        if (!optionValues.includes(option)) issues.push('profile option missing: ' + option);
+      }
+      for (const [name, element] of [
+        ['tool', tool],
+        ['fixtureInput', fixtureInput],
+        ['profileSelect', profileSelect],
+        ['applyButton', applyButton],
+        ['clearButton', clearButton],
+        ['status', status],
+        ['streamInput', streamInput],
+      ]) {
+        const rect = element.getBoundingClientRect();
+        const style = window.getComputedStyle(element);
+        if (element.hidden || style.display === 'none' || style.visibility === 'hidden') {
+          issues.push(name + ' is hidden');
+        }
+        if (rect.width <= 0 || rect.height <= 0) {
+          issues.push(name + ' has empty rect');
+        }
+        if (rect.left < -1 || rect.right > window.innerWidth + 1) {
+          issues.push(name + ' outside viewport horizontally: ' + Math.round(rect.left) + '..' + Math.round(rect.right));
+        }
+      }
+      const toolRect = tool.getBoundingClientRect();
+      if (toolRect.top < 0 || toolRect.bottom > window.innerHeight) {
+        issues.push('preview tool not fully visible in screenshot viewport: ' + Math.round(toolRect.top) + '..' + Math.round(toolRect.bottom));
+      }
+      const doc = document.documentElement;
+      const body = document.body;
+      const overflowX = Math.max(0, Math.max(doc.scrollWidth, body.scrollWidth) - window.innerWidth);
+      if (overflowX > 2) {
+        issues.push('document horizontal overflow ' + overflowX + 'px');
+      }
+      return {
+        ok: issues.length === 0,
+        issues,
+        overflowX,
+        toolHeight: toolRect.height,
+      };
+    })()
+  `;
 }
 
 function opsAuditResponsiveExpression(selector) {

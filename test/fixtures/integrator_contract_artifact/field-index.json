@@ -1,0 +1,135 @@
+{
+  "schema": "media-server.integrator-contract-field-index.v1",
+  "artifactVersion": "v1.2.0-integrator-contract-artifact.1",
+  "contracts": [
+    {
+      "id": "event-post",
+      "identifier": "media-server.va.event.v1",
+      "requiredTopLevelFields": [
+        "schema",
+        "eventId",
+        "timestamp",
+        "timestampMs",
+        "source",
+        "rule",
+        "object",
+        "action"
+      ],
+      "explicitlyExcludedFields": [
+        "passwordHash",
+        "tokenHash",
+        "credential",
+        "rawJson",
+        "debugCounters",
+        "recordingUrl"
+      ]
+    },
+    {
+      "id": "webrtc-va-metadata",
+      "identifier": "media-server.webrtc.va-metadata.v1",
+      "channelLabel": "va-metadata",
+      "requiredTopLevelFields": [
+        "schema",
+        "streamId",
+        "channelId",
+        "profileKey",
+        "frameId",
+        "pts",
+        "timestampMs",
+        "tracks",
+        "events"
+      ],
+      "optionalTopLevelFields": [
+        "videoFramePtsMs",
+        "analysisPtsMs",
+        "syncDeltaMs",
+        "syncStatus",
+        "syncToleranceMs",
+        "metadataSequence",
+        "sentAtMs",
+        "frameWidth",
+        "frameHeight",
+        "coordinateSpace"
+      ],
+      "explicitlyExcludedFields": [
+        "source",
+        "sourceUrl",
+        "rtspUrl",
+        "credential",
+        "rawJson",
+        "debugCounters"
+      ]
+    },
+    {
+      "id": "runtime-metadata",
+      "identifier": "media-server.va.runtime-metadata.v1",
+      "transports": [
+        "sse-runtime-metadata",
+        "ws-runtime-metadata"
+      ],
+      "requiredTopLevelFields": [
+        "schema",
+        "streamId",
+        "channelId",
+        "profileKey",
+        "frameId",
+        "pts",
+        "timestampMs",
+        "tracks",
+        "events"
+      ],
+      "optionalTopLevelFields": [
+        "source",
+        "scenarios",
+        "metrics",
+        "trackingIssueReport",
+        "videoFramePtsMs",
+        "analysisPtsMs",
+        "syncDeltaMs",
+        "syncStatus",
+        "syncToleranceMs",
+        "metadataSequence",
+        "sentAtMs",
+        "frameWidth",
+        "frameHeight",
+        "coordinateSpace"
+      ],
+      "explicitlyExcludedFields": [
+        "passwordHash",
+        "tokenHash",
+        "credential",
+        "rawJson",
+        "debugCounters",
+        "recordingUrl"
+      ]
+    },
+    {
+      "id": "ws-control-ack",
+      "identifier": "media-server.va.metadata-control.v1",
+      "requiredTopLevelFields": [
+        "schema",
+        "action",
+        "subscribed",
+        "intervalMs",
+        "staleAfterMs",
+        "maxMessages",
+        "streamMaxDurationMs",
+        "maxMessageBytes",
+        "maxTracks",
+        "maxEvents",
+        "includeSource",
+        "includeScenarios",
+        "includeMetrics",
+        "includeTrackingIssueReport",
+        "filter"
+      ],
+      "explicitlyExcludedFields": [
+        "passwordHash",
+        "tokenHash",
+        "credential",
+        "rawJson",
+        "debugCounters"
+      ]
+    }
+  ]
+}

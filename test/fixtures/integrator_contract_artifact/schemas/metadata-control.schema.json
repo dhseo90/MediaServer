@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "media-server.va.metadata-control.v1",
+  "title": "MediaServer VA Metadata WebSocket Control Acknowledgement",
+  "type": "object",
+  "required": [
+    "schema",
+    "action",
+    "subscribed",
+    "intervalMs",
+    "staleAfterMs",
+    "maxMessages",
+    "streamMaxDurationMs",
+    "maxMessageBytes",
+    "maxTracks",
+    "maxEvents",
+    "includeSource",
+    "includeScenarios",
+    "includeMetrics",
+    "includeTrackingIssueReport",
+    "filter"
+  ],
+  "properties": {
+    "schema": {
+      "const": "media-server.va.metadata-control.v1"
+    },
+    "action": {
+      "type": "string"
+    },
+    "subscribed": {
+      "type": "boolean"
+    },
+    "intervalMs": {
+      "type": "integer"
+    },
+    "staleAfterMs": {
+      "type": "integer"
+    },
+    "maxMessages": {
+      "type": "integer"
+    },
+    "streamMaxDurationMs": {
+      "type": "integer"
+    },
+    "maxMessageBytes": {
+      "type": "integer"
+    },
+    "maxTracks": {
+      "type": "integer"
+    },
+    "maxEvents": {
+      "type": "integer"
+    },
+    "includeSource": {
+      "type": "boolean"
+    },
+    "includeScenarios": {
+      "type": "boolean"
+    },
+    "includeMetrics": {
+      "type": "boolean"
+    },
+    "includeTrackingIssueReport": {
+      "type": "boolean"
+    },
+    "filter": {
+      "type": "object",
+      "required": [
+        "eventTypes",
+        "scenarioNames",
+        "trackIds",
+        "zoneIds"
+      ],
+      "properties": {
+        "eventTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scenarioNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "trackIds": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "zoneIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "error": {
+      "type": "string"
+    }
+  }
+}

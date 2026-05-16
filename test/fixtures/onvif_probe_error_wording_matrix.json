@@ -1,0 +1,128 @@
+{
+  "schema": "media-server.onvif-probe-error-wording-matrix.v1",
+  "description": "Synthetic ONVIF probe failure wording matrix. It fixes sanitized operator-facing summaries and is not a product API contract.",
+  "defaultForbiddenTerms": [
+    "operator-entered-secret",
+    "http://192.0.2.20",
+    "192.0.2.20",
+    "/onvif/device_service",
+    "credentialRef",
+    "password",
+    "token=",
+    "raw SOAP"
+  ],
+  "scenarios": [
+    {
+      "id": "request-invalid-endpoint",
+      "category": "request-validation",
+      "inputSummary": "Probe request uses a non-http endpoint.",
+      "expected": {
+        "ok": false,
+        "credentialRefPresent": true,
+        "error": "ONVIF probe failed at request: endpoint must be http(s)",
+        "requiredTerms": [
+          "ONVIF probe failed",
+          "request",
+          "endpoint must be http(s)"
+        ],
+        "forbiddenTerms": []
+      }
+    },
+    {
+      "id": "request-invalid-timeout",
+      "category": "request-validation",
+      "inputSummary": "Probe request has a non-positive timeout.",
+      "expected": {
+        "ok": false,
+        "credentialRefPresent": true,
+        "error": "ONVIF probe failed at request: timeout must be positive",
+        "requiredTerms": [
+          "ONVIF probe failed",
+          "request",
+          "timeout must be positive"
+        ],
+        "forbiddenTerms": []
+      }
+    },
+    {
+      "id": "request-missing-transport",
+      "category": "request-validation",
+      "inputSummary": "Probe adapter is called without a SOAP transport.",
+      "expected": {
+        "ok": false,
+        "credentialRefPresent": true,
+        "error": "ONVIF probe failed at request: transport is required",
+        "requiredTerms": [
+          "ONVIF probe failed",
+          "request",
+          "transport is required"
+        ],
+        "forbiddenTerms": []
+      }
+    },
+    {
+      "id": "get-services-http-401",
+      "category": "transport",
+      "inputSummary": "GetServices transport returns HTTP 401 with sensitive diagnostic text.",
+      "expected": {
+        "ok": false,
+        "credentialRefPresent": true,
+        "error": "ONVIF probe failed at GetServices: HTTP 401",
+        "requiredTerms": [
+          "ONVIF probe failed",
+          "GetServices",
+          "HTTP 401"
+        ],
+        "forbiddenTerms": []
+      }
+    },
+    {
+      "id": "get-services-transport-error",
+      "category": "transport",
+      "inputSummary": "GetServices transport fails without HTTP status and includes sensitive diagnostic text.",
+      "expected": {
+        "ok": false,
+        "credentialRefPresent": true,
+        "error": "ONVIF probe failed at GetServices: transport error",
+        "requiredTerms": [
+          "ONVIF probe failed",
+          "GetServices",
+          "transport error"
+        ],
+        "forbiddenTerms": []
+      }
+    },
+    {
+      "id": "get-services-missing-media",
+      "category": "service-discovery",
+      "inputSummary": "GetServices succeeds but does not advertise Media or Media2.",
+      "expected": {
+        "ok": false,
+        "credentialRefPresent": true,
+        "error": "ONVIF probe failed at GetServices: Media or Media2 service is required",
+        "requiredTerms": [
+          "ONVIF probe failed",
+          "GetServices",
+          "Media or Media2 service is required"
+        ],
+        "forbiddenTerms": []
+      }
+    },
+    {
+      "id": "get-stream-uri-no-live-rtsp",
+      "category": "profile-selection",
+      "inputSummary": "Media2 profile is discovered but no RTSP stream URI is accepted.",
+      "expected": {
+        "ok": false,
+        "credentialRefPresent": true,
+        "error": "ONVIF probe failed at GetStreamUri: no live RTSP profile discovered",
+        "requiredTerms": [
+          "ONVIF probe failed",
+          "GetStreamUri",
+          "no live RTSP profile discovered"
+        ],
+        "forbiddenTerms": []
+      }
+    }
+  ]
+}

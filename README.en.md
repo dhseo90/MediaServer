@@ -7,7 +7,7 @@
 Media Server is a C++17 RTSP/WebRTC live stream relay with optional YOLO/ONNX video analytics overlays and rule/scenario live events. The current main product boundary focuses on live source onboarding, live source health, and live VA event quality rather than long-term recording, VMS, or NVR scope.
 
 Korean documentation: [README.md](README.md)
-Latest source-only release: [v1.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.1.0)
+Latest source-only release: [v1.2.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.2.0)
 
 ## At a Glance
 
@@ -94,7 +94,8 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | Auth, Ops, Client UI flow | [docs/ui-guide.md](docs/ui-guide.md) |
 | RTSP/WebRTC pipeline, source/session, VA layer | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenarios, live events, short evidence | [docs/video-analysis.md](docs/video-analysis.md) |
-| Current product boundary and v1.2.0 roadmap candidates | [docs/development-backlog.md](docs/development-backlog.md) |
+| Integrator Event/WebRTC/SSE/WS sample bundle | [docs/integrator-contract-artifact.md](docs/integrator-contract-artifact.md) |
+| Current product boundary and v1.2.0 close-out | [docs/development-backlog.md](docs/development-backlog.md) |
 | Verification commands and release checks | [docs/stream-verification.md](docs/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | Release scope and tag strategy | [docs/release-policy.md](docs/release-policy.md) |

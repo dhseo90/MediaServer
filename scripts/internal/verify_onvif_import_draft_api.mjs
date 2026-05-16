@@ -52,6 +52,7 @@ const expectedSource = fixture.importDecision.expectedSourceDraft;
 const expectedView = fixture.importDecision.expectedPublishedViewDraft;
 assertDraftSource(payload.sourceDraft, expectedSource);
 assertDraftView(payload.publishedViewDraft, expectedView, expectedSource);
+assertPreviewContract(payload.previewContract, fixture.previewContract);
 assertSelectedProfile(payload.selectedProfile, fixture);
 assertAuth(payload.auth);
 assertNoForbiddenResponseText(responseText);
@@ -71,6 +72,27 @@ const bad = await requestText("/ops/api/onvif/import-draft", {
 });
 assert(bad.includes("sourceId must be numeric"), "bad sourceId should be rejected");
 console.log("[pass] onvif-import-draft rejects nonnumeric sourceId");
+
+await expectBadDraft("malformed body", "not-json", "request body must be a JSON object");
+await expectBadDraft("missing importDecision", mutateFixture((next) => {
+  delete next.importDecision;
+}), "importDecision or draftDecision object is required");
+await expectBadDraft("selected profile not found", mutateFixture((next) => {
+  next.importDecision.selectedProfileToken = "missing-profile-token";
+}), "selected profile not found");
+await expectBadDraft("non-RTSP selected profile", mutateFixture((next) => {
+  const selected = next.profiles.find((profile) => profile.token === next.importDecision.selectedProfileToken);
+  selected.transport = "HTTP";
+  selected.streamUri = "https://192.0.2.10/live/main.m3u8";
+}), "selected profile must provide an RTSP/RTSPS streamUri");
+await expectBadDraft("plaintext credential rejected", mutateFixture((next) => {
+  next.auth.plaintextSecretIncluded = true;
+}), "plaintext credentials are not allowed");
+console.log("[pass] onvif-import-draft rejects malformed and unsafe route payloads");
+
+const final = await requestJson("/ops/api/sources");
+assert(JSON.stringify(before.sources || []) === JSON.stringify(final.sources || []), "negative draft API cases must not mutate sources");
+console.log("[pass] onvif-import-draft negative cases have no SourceRegistry side effect");
 
 console.log("");
 console.log("== ONVIF import draft API summary ==");
@@ -95,6 +117,22 @@ async function requestText(urlPath, options = {}) {
     throw new Error(`${urlPath} expected HTTP ${expectedStatus}, got ${response.status}: ${text.slice(0, 220)}`);
   }
   return text;
+}
+
+async function expectBadDraft(label, body, expectedText) {
+  const text = await requestText("/ops/api/onvif/import-draft", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    expectedStatus: 400,
+  });
+  assert(text.includes(expectedText), `${label} should include: ${expectedText}`);
+}
+
+function mutateFixture(mutator) {
+  const next = JSON.parse(fixtureText);
+  mutator(next);
+  return JSON.stringify(next);
 }
 
 function assertDraftSource(actual, expected) {
@@ -154,6 +192,24 @@ function assertNoForbiddenResponseText(text) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function assertPreviewContract(actual, expected) {
+  assert(actual && typeof actual === "object", "previewContract is required");
+  assert(expected && typeof expected === "object", "fixture previewContract is required");
+  for (const [key, value] of Object.entries(expected)) {
+    assert(actual[key] === value, `previewContract.${key} mismatch`);
+  }
+  assert(actual.schema === "media-server.onvif-draft-preview.v1", "previewContract.schema mismatch");
+  assert(actual.scope === "ops-sources-before-save", "previewContract.scope mismatch");
+  assert(actual.requiresExplicitSave === true, "previewContract.requiresExplicitSave must be true");
+  assert(actual.storageAction === "none", "previewContract.storageAction must be none");
+  assert(actual.sourceRegistryMutation === false, "previewContract.sourceRegistryMutation must be false");
+  assert(actual.publishedViewMutation === false, "previewContract.publishedViewMutation must be false");
+  assert(actual.rawSoapIncluded === false, "previewContract.rawSoapIncluded must be false");
+  assert(actual.credentialMaterialIncluded === false, "previewContract credential material must be excluded");
+  assert(actual.endpointIncluded === false, "previewContract endpoint must be excluded");
+  assert(actual.diagnosticJsonIncluded === false, "previewContract diagnostic JSON must be excluded");
 }
 
 function parseArgs(argv) {

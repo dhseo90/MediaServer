@@ -2,6 +2,8 @@
 
 이 문서는 Auth, Ops, Client 제품 UI의 현재 화면 구조와 운영 기준을 설명합니다.
 서버 실행/검증 명령은 [development-guide.md](./development-guide.md),
+브라우저 수동 검수 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md),
+수동 검수 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md),
 VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다.
 `/lab` 화면 route는 제품 UI에서 제거했고 개발/검증 API만 유지합니다.
 
@@ -32,12 +34,46 @@ card, button, form, table, badge는 같은 semantic color 규칙을 공유합니
 제품 shell에 직접 노출하지 않고 API와 검증 명령에서 확인합니다.
 client/viewer shell에는 내부 진단 응답, debug 정보, developer/source URL을 노출하지 않습니다.
 
+v1.2.0 기준 product shell은 ERP/운영 콘솔형 밀도를 따릅니다.
+상단에는 compact brand/nav/account header를 두고,
+본문은 metric card, dense table, form section, right/detail panel을 같은
+8px 이하 radius와 semantic token으로 맞춥니다. 장식용 hero, 큰 카드 나열,
+단일 slate 계열만 지배하는 palette는 제품 UI 기준으로 보지 않습니다.
+
 액션 계층은 다음 기준을 따릅니다.
 
 - 저장, 검색, 보기 시작 같은 primary action은 fill 버튼으로 표시합니다.
 - 목록으로, 재시작, 좌표 초기화, 복사 같은 보조 작업은 weak/ghost 버튼으로 표시합니다.
 - 삭제, 중단처럼 되돌리기 어렵거나 위험한 작업에만 danger 버튼을 사용합니다.
 - status badge는 `success`, `warning`, `danger`, `info`, `neutral` 의미를 구분하고 한 줄에 과도하게 늘어놓지 않습니다.
+
+### 1.1 Design token/component inventory
+
+v1.2.0 이후 UI 변경은 아래 inventory를 기준으로 합니다.
+새 색상, radius, spacing, shadow, table row, detail panel, client tile을 추가하기 전에
+먼저 같은 계층의 기존 token/class/helper로 표현할 수 있는지 확인합니다.
+
+| 계층 | 소스 | 현재 계약 | 회귀 guard |
+| --- | --- | --- | --- |
+| Design tokens | `ProductDesignTokensCss()` | `--color-*`, `--space-*`, `--radius-*`, `--shadow-*`, overlay token, legacy alias(`--bg`, `--panel`, `--ink`)를 light/dark 양쪽에서 정의합니다. page-specific hex/rgb color는 `ProductDesignTokensCss()` 밖에 추가하지 않습니다. | `verify-product-ui-token-drift`, `verify-ops-client-ui --screenshots`, `verify-docs-ui-assets` |
+| Product shell | `ProductUiCss()`, `AppendOpsShellStart/End`, `AppendAuthShellStart/End` | compact app chrome, image nav, account menu, `section-card`, `metric-card`, `button`, `status-badge`, form/grid, empty/table-empty 상태를 Auth/Ops/Client가 공유합니다. | `verify-auth-bootstrap`, `verify-ops-client-ui` |
+| Ops data surfaces | `ProductSharedUiScript()`, `AppendOpsShellScript()`, route별 page script | `ops-responsive-table`, `ops-row-actions`, `ops-detail-panel`, `ops-audit-panel`, `root-cause-*`를 표준 표/상세/감사/진단 surface로 유지합니다. | `verify-ops-client-ui`, `verify-ops-click-e2e`, `verify-rule-ui` |
+| Client surfaces | `ClientShellCss()`, `AppendClientShellScript()` | `client-compare-*`, `client-loading-state`, `live-monitor`, `live-toolbar`, `live-grid`, `tile-*`로 viewer live/dashboard를 구성합니다. source URL, raw JSON, debug counter, rule/profile editor는 노출하지 않습니다. | `verify-client-dashboard-polish`, `verify-ops-client-ui --screenshots` |
+| Visual artifacts | `ui_visual_smoke_lib.mjs`, `verify_ops_client_ui_smoke.mjs`, `capture_docs_ui_assets.mjs` | 320/390/760/1180 screenshot, `visual-regression-manifest.json`, `index.md`, retention policy, 문서 대표 이미지를 같은 기준으로 관리합니다. | `verify-ui-visual-artifact-index`, `verify-docs-ui-assets` |
+
+변경 체크리스트:
+
+- 새 UI 색상은 semantic token에 먼저 매핑하고 light/dark 값을 같이 정합니다.
+- `src/ingress/product_ui_css.cpp` 본문에는 raw hex/rgb 색상을 추가하지 않고
+  `./server.sh verify-product-ui-token-drift`로 확인합니다.
+- 버튼, badge, table, detail panel은 기존 class/helper를 우선 사용합니다.
+- 320/390px에서 form control, row action, button text가 부모 폭을 넘지 않아야 합니다.
+- client/viewer shell에는 source locator, Developer URL, raw JSON, 내부 debug summary를 추가하지 않습니다.
+- screenshot 산출물을 갱신하면 manifest와 `docs/assets/ui/README.md`의 캡처 기준도 함께 확인합니다.
+
+구체적인 product shell/card/table/detail/client tile 작성 예시는
+[product-shell-component-examples.md](./product-shell-component-examples.md)를 봅니다.
+예시 문서는 `./server.sh verify-product-shell-examples`로 정적 검증합니다.
 
 내장 HTTP UI는 아직 C++ 문자열 렌더링 기반이지만, 제품 shell 쪽은 다음 공통 helper를 기준으로 유지합니다.
 
@@ -120,6 +156,9 @@ UI ownership 기준:
 
 저장 버튼도 같은 기준으로 draft payload를 확인해
 잘못된 source 연결이나 빈 프로파일을 서버 요청 전에 차단합니다.
+`verify-rule-ui`는 실제 브라우저에서 존재하지 않는 profile option을 주입한 뒤
+저장을 눌러 `/lab/analysis/va-rules/*` write request 없이
+`저장 전 검증 실패`로 차단되는지 확인합니다.
 
 대표 제품 화면:
 
@@ -141,6 +180,9 @@ README에는 첫 인상용으로 가장 읽기 쉬운 overview 화면만 둡니�
 - Ops Rules Preview
 
 ![룰 영상/영역 편집](assets/ui/ops-rules-preview.png)
+
+  390px 모바일 폭에서도 preview stage, geometry status, control toolbar가
+  viewport를 넘지 않아야 하며, SVG point는 touch target을 포함합니다.
 
 - Ops Users
 
@@ -238,10 +280,18 @@ Route 역할:
 
   - `/ops/home`: 운영 overview
   - `/ops/dashboard`:
-    `/ops/api/runtime/status` 기반 운영 카드와 문제 원인 패널입니다.
+    `/ops/api/runtime/status` 기반 운영 카드, 문제 원인 패널,
+    최근 인시던트 흐름 패널입니다.
     source lifecycle, stale tap, reconnect/cleanup, auth/config를
     최근 EventRecord, POST/storage 오류, ICE 설정, `.media_server.log` tail,
     correlation id와 함께 확인합니다.
+    최근 인시던트 흐름은 기존 runtime/events/source-health/log-tail 응답을
+    시간순 운영 단서로 묶고 관련 화면 이동 링크를 제공합니다.
+    검색과 출처 필터는 `incidentQ`, `incidentSource` hash parameter로
+    저장되어 새로고침과 직접 링크에서도 같은 필터 상태를 복원합니다.
+    `링크 복사` 버튼은 현재 필터 hash를 포함한 dashboard URL을 공유용으로
+    복사합니다. Clipboard API가 막히면 주소창의 필터 링크를 직접 복사하라는
+    fallback toast를 표시합니다.
     다음 조치 버튼은 source 재검증, registry diff, Event/evidence 진단,
     auth/config 확인, log correlation 필터를 즉시 실행합니다.
     Live VA Event Quality panel은 active analysis tap의 state-dump/metrics를
@@ -302,16 +352,77 @@ Ops/Client/Lab API guard를 확인합니다.
 
 - auth shell screenshot이 필요하면
   `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`
-  을 붙입니다.
+  을 붙입니다. Auth screenshot smoke는 320/390/760/1180px 기준으로
+  `visual-regression-manifest.json`과 `index.md`를 함께 생성합니다.
 - Ops/Client selector와 client debug/source 비노출은
   `./server.sh verify-ops-client-ui`로 확인합니다.
+  이 smoke는 client shell HTML, `/client/api/views*` scoped JSON,
+  Chrome 렌더링 후 DOM에서 source URL, Developer URL, raw JSON,
+  debug counter, BBox diagnostics, rule/profile editor 노출을 함께 검사합니다.
 - 실제 클릭 흐름과 채널/룰/사용자 테이블 반응형 침범 검증은
   `./server.sh verify-ops-click-e2e`,
   `./server.sh verify-ops-tables-layout`로 확인합니다.
+  table smoke는 320px까지 리사이즈하며 row action, detail panel toolbar,
+  audit filter/preset control overflow를 함께 검사합니다.
 - 화면 회귀까지 보려면
   `./server.sh verify-ops-client-ui --screenshots`를 사용합니다. 기본 screenshot 폭은
   320/390/760/1180px이며, Chrome DevTools 수동 리뷰 체크박스는
-  [stream-verification.md](./stream-verification.md)에 유지합니다.
+  [stream-verification.md](./stream-verification.md)에 유지합니다. `--output-dir`를
+  지정하면 같은 디렉터리에 `visual-regression-manifest.json`과 `index.md`가
+  생성되며, manifest schema는 `media-server.ui-visual-artifact-index.v1`입니다.
+- 두 artifact를 비교할 때는
+  `./server.sh compare-ui-visual-baseline --baseline-dir <baseline-artifact-dir> --candidate-dir <candidate-artifact-dir>`
+  를 사용합니다. 결과는 `media-server.ui-visual-baseline-diff.v1` schema의
+  `visual-baseline-diff.json`과 `visual-baseline-diff.md`로 남깁니다.
+  report에는 `media-server.ui-visual-baseline-candidate-policy.v1` 정책,
+  `decision=pass|review|fail`, `reviewRequired`, `extraAllowed`가 기록됩니다.
+  candidate에만 있는 screenshot은 기본 실패이며, 의도한 신규 화면은
+  `--allow-extra`로 review 상태까지 허용합니다. review도 CI 실패로 다루려면
+  `--fail-on-review`를 붙입니다.
+- visual QA issue에 artifact 링크를 붙일 때는
+  `./server.sh write-ui-visual-qa-issue-links --artifact-dir <artifact-dir> --output <artifact-dir>/ui-visual-qa-issue-links.md`
+  로 manifest/index/baseline diff/screenshot 링크 블록을 생성합니다.
+- PR comment 본문이 필요하면
+  `./server.sh write-ui-visual-baseline-comment --diff-report <visual-baseline-diff.json> --output <comment.md>`
+  로 `UI Visual Baseline Diff` 제목의 decision, failed/review count, attention item table을 생성합니다.
+- CI preflight는 정적 fixture 기준 `media-server-ui-visual-baseline-diff`
+  artifact로 `visual-baseline-diff.json`, `visual-baseline-diff.md`,
+  `visual-baseline-comment.md`를 업로드해 PR에서 baseline diff/comment 출력 형식을
+  바로 확인하게 합니다. 같은 comment 본문은 `GITHUB_STEP_SUMMARY`에도 자동으로
+  게시되어 PR check summary에서 확인할 수 있으며, summary에는 Actions artifact
+  download 링크도 함께 표시합니다.
+- 오래된 UI artifact 보관/정리는
+  `./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>`
+  로 먼저 dry-run합니다. 실제 복사/삭제는 `--apply`를 명시한 경우에만 수행하며,
+  report schema는 `media-server.ui-visual-artifact-maintenance.v1`입니다.
+  Markdown report는 PR 본문에 붙일 수 있는 `PR Summary` 섹션을 포함하며
+  decision, dry-run/apply mode, expired artifact 수, archive/cleanup 예정 수를
+  요약합니다.
+  `--apply`로 archive가 생성되면 archive directory에
+  `media-server.ui-visual-artifact-archive-index.v1` schema의
+  `ui-visual-artifact-archive-index.json`과 Markdown index도 함께 남깁니다.
+  index는 apply 실행 `history`를 누적하고, 같은 artifact directory 이름이 이미
+  archive에 있으면 숫자 suffix를 붙인 뒤 `duplicatePolicy`, `archiveSequence`,
+  `duplicateOf`로 중복 처리 내역을 남깁니다.
+  CI preflight는 `media-server-ui-visual-maintenance-dry-run` artifact로 dry-run
+  JSON/Markdown report를 업로드하며 삭제를 수행하지 않습니다.
+- `visual-regression-manifest.json`에는
+  `media-server.ui-visual-artifact-retention.v1` retention policy를 함께
+  기록합니다. PR screenshot artifact 기본 보존은 14 days, release baseline
+  artifact 보존은 45 days이며, client/source/debug/raw JSON 노출 검토 전
+  외부 공유 보관소에 올리지 않습니다.
+- release baseline artifact role은 승인된 release/RC 화면 상태를 다음
+  candidate artifact와 비교하는 approved comparator입니다. 이 artifact는
+  public release asset 또는 candidate 통과 증빙이 아니며, baseline 교체 시에는
+  accepted baseline run, 교체 이유, 수동 비노출 검토 결과를 PR/릴리스 기록에
+  연결합니다.
+- baseline을 채택/교체할 때는
+  [UI Visual Release Baseline Approval Log](./ui-visual-release-baseline-approval-template.md)
+  템플릿에 manifest/index, baseline diff, 수동 비노출 검토, 미실행 field smoke를
+  남깁니다. template presence와 CI 연결은
+  `./server.sh verify-ui-release-baseline-approval-log`로 확인합니다. 작성 형식 예시는
+  `test/fixtures/ui_visual_release_baseline_approval_log_sample.md`에 sample-only
+  fixture로 고정합니다.
 
 ### 2.1 Live VA Event Quality
 
@@ -341,6 +452,9 @@ raw JSON이 필요한 경우에도 운영자 debug details 접힘 영역 또는
 `/ops/users`는 admin 전용 계정 관리 화면입니다.
 공통 Ops shell 안에서 사용자 목록 table과 접근 요청 table을 먼저 보여주고,
 필요한 계정을 상세 패널로 열어 확인하거나 수정합니다.
+상단의 계정 라이프사이클 정책 영역은 초대 기본 만료 24시간,
+비밀번호 초기화 후 다음 로그인 변경, disable/restore 절차,
+사용자 감사 JSON/CSV/Diff JSON export를 같은 운영 절차로 묶어 보여줍니다.
 `passwordHash`, `passwordHistory`, `tokenHash`, invite `tokenHash`는
 UI/API 응답에 노출하지 않습니다.
 
@@ -352,8 +466,12 @@ UI/API 응답에 노출하지 않습니다.
   권한 템플릿 버튼으로 role/viewId 기준 scope를 적용할 수 있습니다.
   새 계정은 기본 활성화 상태이며 `mustChangePassword`를 켤 수 있습니다.
 - 계정 수정: displayName, role, scopes, enabled, mustChangePassword를 변경합니다.
-- 비밀번호 초기화: API/CLI smoke 경로에서 reset-password를 지원합니다. Ops UI 기본 화면은 사용자 생성/수정/활성화 관리에 집중합니다.
-- enable/disable: hard delete 대신 disable을 사용합니다. 마지막 활성 admin 계정은 비활성화하거나 다른 role로 변경할 수 없습니다.
+- 비밀번호 초기화: 상세 패널의 비밀번호 초기화 영역에서 임시 비밀번호를 설정합니다.
+  성공 시 기존 세션은 회수되고 `mustChangePassword=true`로 저장되어 다음 로그인에서
+  비밀번호 변경이 필요합니다. 원문 비밀번호는 감사 로그에 남기지 않습니다.
+- enable/disable: hard delete 대신 disable을 사용합니다. 비활성화는 확인 dialog를 거치며
+  기존 세션을 회수합니다. restore는 로그인 실패 횟수와 lockout 상태를 초기화합니다.
+  마지막 활성 admin 계정은 비활성화하거나 다른 role로 변경할 수 없습니다.
 - viewer UX:
   `role=viewer` 또는 `integrator` 선택 시 view/scope assignment 영역을 보여줍니다.
   `채널 범위 적용`은 PublishedView별 scope 묶음을 생성합니다.
@@ -365,6 +483,7 @@ UI/API 응답에 노출하지 않습니다.
   생성 응답에서 한 번만 표시됩니다.
   저장소에는 `tokenHash`, 만료 시각, 사용 여부,
   수락 시 적용할 role/scope snapshot만 남습니다.
+  초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다.
   기존 enabled user invite는 수락 전 현재 role/scope/session을 바꾸지 않습니다.
   `/invite/setup`에서 비밀번호 설정이 끝나면 token hash와 이전 session을 폐기합니다.
 - request:
@@ -378,6 +497,8 @@ UI/API 응답에 노출하지 않습니다.
   `/ops/sources`, `/ops/rules`, `/ops/users` 변경은 서버 감사 로그
   `/ops/api/audit`, `.media_server.ops_audit.jsonl`에 영속 저장합니다.
   하단 변경 이력 패널에도 표시합니다.
+  `/ops/sources#auditPreset=source-health-state-change`처럼 hash filter를
+  붙이면 채널 변경 이력의 source health 상태 변경 preset으로 바로 열립니다.
   작업자 정보는 `/auth/whoami`/서버 principal 기준입니다.
   비밀번호/token/hash/capability 필드는 전/후 값에서 마스킹합니다.
   서버 저장에 실패하면 브라우저 캐시 기록으로 후퇴합니다.
@@ -473,6 +594,9 @@ localStorage의 `mediaServerClientDashboardPresetConfig.v1`에 저장되어
 기본 preset보다 먼저 적용됩니다.
 `/client/events`는 primary nav에서 제거했고,
 이벤트 요약은 dashboard 안에서 sanitized summary로만 표시합니다.
+`상태 복사`와 `이벤트 복사`는 viewer에게 허용된 상태/이벤트 요약만
+clipboard에 복사하며 source locator, Developer URL, raw diagnostic JSON,
+internal session id는 포함하지 않습니다.
 Integrator 연동은
 `/client/api/views/{viewId}/events?limit=...`,
 `/client/api/views/{viewId}/metadata`를 사용하며
@@ -501,7 +625,9 @@ Event POST 설정, SSE/WS 전체 endpoint를 노출하지 않습니다.
 live monitor grid에 배치합니다.
 Tile은 viewer 기본 최대 4개, Ops preview 최대 9개이며,
 표준/고밀도 density와 live/connecting/stale/offline summary,
-타일별 재연결/전체 재연결 control을 제공합니다.
+타일별 시작/정지/재연결과 전체 시작/재연결/정지 control을 제공합니다.
+PublishedView가 없으면 viewer에게 `/client/request-access` 접근 요청 CTA를,
+admin preview에게 `/ops/sources` 채널 관리 CTA를 보여줍니다.
 
 각 PublishedView의 `maxTiles`는
 UI의 채널 배정/시작 버튼과
@@ -525,10 +651,13 @@ Tile별 기능:
 
 - assigned view 선택
 - PublishedView의 `allowedOverlayModes` 안에서 `raw`, `va-overlay`, `va-rule` 선택
-- tile start / tile stop / all stop
+- tile start / tile stop / tile restart / all start / all restart / all stop
 - PublishedView `maxTiles` 초과 시 tile 선택/시작을 막고 wrapper API는 `409`를 반환
 - live/offline, stale, track count, event count, connection status 표시
+- 선택 tile의 sanitized 상태/이벤트 요약 복사
 - 선택된 tile만 dashboard/detail을 갱신
+- tile keyboard selection: Enter/Space로 현재 tile 선택, Arrow/Home/End로 tile 간 이동
+- 반복되는 select/button accessible name에는 tile 번호 포함
 
 Hidden tab, route leave, tile stop 시
 PeerConnection, DataChannel, server WebRTC session을 정리합니다.
@@ -1301,9 +1430,10 @@ Screenshot 관리 정책:
 | 파일명 | 역할 기반 이름 사용 |
 | 기본 theme | dark mode 대표 화면 |
 | 링크 정책 | 새 이미지가 없으면 broken link 대신 “이미지 추가 예정” 문구 사용 |
-| 현재 대표 이미지 | 2026-05-09 dark mode 제품 UI 기준 재캡처 |
+| 현재 대표 이미지 | 2026-05-16 v1.2.0 ERP-style product shell 기준 재캡처 |
 | 재캡처 | `node scripts/internal/capture_docs_ui_assets.mjs --http-base http://127.0.0.1:8082` |
 | 기준 검증 | `./server.sh verify-docs-ui-assets` |
+| visual regression 산출물 | `verify-ops-client-ui --screenshots --output-dir <dir>` 실행 후 `<dir>/visual-regression-manifest.json`, `<dir>/index.md` |
 
 문서용 screenshot 촬영 기준:
 

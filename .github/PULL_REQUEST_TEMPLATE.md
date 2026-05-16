@@ -20,7 +20,25 @@
 - [ ] `git diff --check`
 - [ ] `./server.sh verify-docs-links` when docs changed
 - [ ] `./server.sh verify-docs-ui-assets` when README/UI asset references changed
+- [ ] `./server.sh verify-ui-visual-artifact-index` when UI screenshot artifact behavior or docs changed
+- [ ] `./server.sh verify-ui-release-baseline-approval-log` when release baseline artifact approval docs or workflow gates changed
+- [ ] `./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>` when Auth/Ops/Client UI changed
+- [ ] `./server.sh write-ui-visual-baseline-comment --diff-report <visual-baseline-diff.json> --output <comment.md>` when adding visual baseline diff results to review
+- [ ] `./server.sh write-ui-visual-qa-issue-links --artifact-dir <artifact-dir> --output <artifact-dir>/ui-visual-qa-issue-links.md` when opening a visual QA issue from artifacts
+- [ ] `./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>` before applying visual artifact cleanup
+- [ ] `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap` when auth shell UI changed
 - [ ] Additional command(s):
+
+## UI Visual Review
+
+- Artifact directory:
+- [ ] `<artifact-dir>/visual-regression-manifest.json` exists and uses schema `media-server.ui-visual-artifact-index.v1`.
+- [ ] Manifest includes retention policy schema `media-server.ui-visual-artifact-retention.v1`; PR artifacts use 14 days, release baseline artifacts use 45 days.
+- [ ] `<artifact-dir>/index.md` links every screenshot artifact.
+- [ ] If this PR creates or replaces a release baseline artifact, Summary links the accepted baseline run, explains the replacement reason, uses `docs/ui-visual-release-baseline-approval-template.md`, and treats the baseline as an approved comparator, not a public release asset or candidate pass proof.
+- [ ] 320px, 390px, 760px, and 1180px screenshots were reviewed for nav/account/header/table/action overflow.
+- [ ] Client/viewer screenshots do not expose source URL, Developer URL, raw JSON, debug counters, BBox diagnostics, or rule/profile editor controls.
+- [ ] If no UI changed, this section is marked not applicable in Summary or Not Run.
 
 ## Not Run
 

@@ -454,7 +454,7 @@ per-track ScenarioEngine 구조 위에서 같은 zone의 대표 track만 event�
 룰 편집 UI는 대기열, 로비 혼잡, 승강장 혼잡,
 출입구 정체, 승강기 홀 preset을 제공합니다.
 Preset은 `occupancyThreshold`, `minDwellTimeMs`, `cooldownMs` 시작값만 채웁니다.
-저장 payload에는 preset 이름 대신 숫자 조건만 남습니다.
+저장 payload에는 `scenario.presetId`와 실제 숫자 조건이 함께 남습니다.
 현장별 시작값과 조정 순서는
 [Analysis Threshold Baselines](analysis-threshold-baselines.md)를 기준으로 삼습니다.
 
@@ -502,6 +502,8 @@ TrackingIssueReport는 stream/channel별로 다음 issue를 제한 수집합니�
 - `reacquired`
 
 이 기능은 진단용이며 tracking id 생성 결과를 변경하지 않습니다.
+issue `message`는 raw counter 나열이 아니라 운영자가 다음 확인 지점을 고를 수 있는
+문장과 핵심 metric 요약을 함께 제공합니다.
 
 Close-object association 문제를 볼 때 함께 보는 값:
 
@@ -533,9 +535,16 @@ Close-object guard의 기본값은 `off`입니다.
 `off`, `diagnostic`, `enforce`를 비교합니다.
 `--fixture-matrix`를 쓰면 내장 close-object/control sample 목록을 순차 비교합니다.
 정기/CI용 전체 matrix는 `verify-close-object-fixture-matrix`로 실행합니다.
+이 gate는 default-off와 diagnostic 관찰 경계를 확인하기 위해 `off,diagnostic`
+mode만 비교합니다. `enforce` mode는 opt-in 실험 비교로만 다루며, default-on
+또는 안정 완료 근거로 사용하지 않습니다.
 목적은 threshold tuning과 default-on 검토 근거를 모으는 것입니다.
 `field-new-york-driving`은 실차량 주행 구간을 모사한 vehicle-heavy 샘플로,
 synthetic control 샘플 외부에서 실제 환경 흔들림 성격을 확인하기 위한 항목입니다.
+이 fixture는 baseline 자체의 높은 fragmentation/id-switch risk를 허용하는
+fixture 전용 tracker-stability 상한을 사용합니다. 이 상한은 mode 실행
+성공 여부를 분리하기 위한 것이며, close-object guard의 default-on 후보 판정은
+hard risk tolerance와 event/scenario stable delta 기준을 따릅니다.
 기본 실행은 mode별 격리 서버를 사용해 guard mode가 실제 서버에 적용됐는지
 확인합니다.
 `verify-close-object-fixture-matrix`는 fixture 누락뿐 아니라
@@ -543,6 +552,19 @@ synthetic control 샘플 외부에서 실제 환경 흔들림 성격을 확인�
 주요 association risk 증가가 있어 default-on 검토를 중단해야 하는 상태입니다.
 관찰 목적의 hold/warning report 수집은 `compare-close-object-tracker --fixture-matrix`로
 수행합니다.
+Matrix gate는 다음처럼 해석합니다.
+
+| 상태 | 의미 |
+| --- | --- |
+| `fail` | mode 실행이나 fixture 준비가 실패했으므로 제품 판단 중단 |
+| `hold` | event/scenario stable delta 또는 hard risk 증가로 default-on 검토 중단 |
+| `warning` | observed risk/counter 변동 또는 반복 검증 필요. 안정 판정이 아니며 default-on 근거로 사용 금지 |
+| `pass` + `defaultOnCandidate=false` | hard gate는 통과했지만 해당 fixture는 후보 근거 부족 |
+| `pass` + `defaultOnCandidate=true` | 해당 fixture 단독 후보일 뿐 제품 default-on 완료 아님 |
+
+Fixture별 후보 표는 [Re-ID Fixture Default-on Candidates](reid-fixture-default-on-candidates.md)에
+분리합니다.
+
 동일 테스트를 `--use-existing-server`로 돌릴 경우 `MEDIA_SERVER_AUTH_MODE`가
 `off`이거나 `/lab` API를 호출 가능한 인증 상태여야 하며, 인증이 걸려 있으면
 `/lab/analysis/taps` 응답이 비정상(리다이렉트/빈 본문)으로 와 파싱이 실패할 수 있습니다.
@@ -552,9 +574,19 @@ live polling 과정의 emit/dedupe/cleanup counter 차이는 observed delta로 �
 `idSwitchRiskScore`는 stale PTS/PTS regression 성분을 포함하므로
 close-object guard 비교에서는 tracker association risk와 observed risk를 분리해 봅니다.
 단일 비교는 `strict` quality preset을 기본으로 사용하고,
-fixture matrix는 sample 성격에 맞춰 `close-object-live` 또는 `control-live`
-quality preset을 적용합니다. preset은 observed risk 허용치를 분리하는 용도이며,
-event/scenario stable delta가 있으면 여전히 default-on 근거로 사용할 수 없습니다.
+fixture matrix는 sample 성격에 맞춰 `close-object-live`, `control-live`, 또는
+`field-driving-live` quality preset을 적용합니다. `field-driving-live`는
+vehicle-heavy field-like sample의 높은 baseline counter 흔들림을 분리하기 위한
+observed risk 허용치와 작은 hard risk jitter 허용치이며, event/scenario stable
+delta 기준은 완화하지 않습니다. preset은 live polling 흔들림을 분리하는
+용도이며, event/scenario stable delta가 있으면 여전히 default-on 근거로
+사용할 수 없습니다.
+fixture `classWhitelist`는 fragmentation 계산과 observed issue/diagnostic
+counter 집계에 모두 적용합니다. `trackingIssueCounts`는 polling 반복 관측
+합계가 아니라 `type/class/trackId` 기준 고유 이슈 수이며, raw 반복 관측 수는
+`trackingIssueObservationCounts`로 분리합니다.
+`warning` fixture가 남아 있으면 안정적이라고 닫지 않고 반복 실행 또는
+field/model review 대상으로 남깁니다.
 matrix report에 `--history-dir`를 지정하면 회차별 index를 남겨 품질 추세를 비교할 수 있습니다.
 반복 실행에서는 `Repeat Metric Stats`의 mean/stdev/variance로 observed risk 변동성을 확인합니다.
 
@@ -570,6 +602,8 @@ AppearanceProfile과 IAppearanceExtractor는 향후 Re-ID/attribute 분석을 �
 - 모델 파일이 없거나 ONNX Runtime 빌드가 아니면 NoOp으로 fallback
 - everyNSeconds, onTrackLost, onReacquireCandidate, onLowConfidenceAssociation 같은 policy trigger에서만 실행 후보 생성
 - async queue, per-stream rate limit, global queue 상한, stale job drop으로 media pipeline blocking 방지
+- embedding/crop/model path 같은 Re-ID identity material은 WebRTC/SSE/WS/Event/debug 외부 metadata payload에 직렬화하지 않습니다.
+- `./server.sh verify-reid-advanced-tracking`은 default-off, privacy review, close-object benchmark command boundary를 정적 검증합니다.
 
 Re-ID/attribute 분석은 매 frame 실행 구조가 아닙니다.
 
@@ -1463,7 +1497,7 @@ baseline 비교 기준:
 - Tracker는 여전히 direction-based/lightweight tracker입니다. Kalman Filter, BoT-SORT, ByteTrack은 도입하지 않았습니다.
 - 실제 Re-ID/attribute 분석은 기본 비활성입니다.
   실험용 ONNX Re-ID extractor hook은 있지만,
-  운영 feature로 보려면 모델, 성능, 개인정보 정책 검증이 필요합니다.
+  운영 feature/default-on으로 보려면 모델, 성능, 개인정보 정책 재검토가 별도 review로 필요합니다.
 - EventRecord 저장은 기본 비활성입니다.
 - snapshot/clip hook은 짧은 EventRecord evidence frame 저장용입니다. 장기 녹화, MP4 muxing, VMS/NVR 기능은 포함하지 않습니다.
 - Homography는 optional입니다. 설정이 없거나 실패하면 image 좌표 fallback을 사용합니다.

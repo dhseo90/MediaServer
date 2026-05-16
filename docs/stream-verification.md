@@ -11,6 +11,7 @@
 - TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, cleanup 정책이 다채널 환경에서 무한 증가하지 않는지 확인합니다.
 - 신규 VA 기능이 media pipeline을 blocking하지 않는지 확인합니다.
 - 검증 명령은 로컬 재현성을 우선하고, 외부 source/TURN/장시간 테스트는 별도 gate로 분리합니다.
+- 현재 기본 테스트 환경에는 ONVIF camera, 외부 RTSP upstream, 외부 WHEP/WebRTC publisher처럼 원본 영상을 제공할 실물 장비가 없습니다. 장비가 필요한 항목은 검증 가능한 공개 URL, 로컬 fixture/simulator, loopback publisher, no-device suite 같은 대체 테스트로 실행하고, 실장비 검증은 미수행/후속 field smoke로 분리합니다.
 
 ## 테스트 모드 요약
 
@@ -22,7 +23,7 @@
 | `./server.sh test --external` | `--full` + LAN/external source, WebRTC ICE, 외부 HTTP/HLS URI 선택 검증. 외부 WHEP endpoint는 환경 의존 별도 검증 |
 | `./server.sh test --stable` | 기존 stable 호환 기준 |
 
-외부 RTSP/HLS/HTTP/WHEP source, 운영 TURN relay/auth, YouTube import/source는 외부 환경 영향을 받으므로 기본 hard gate가 아닙니다.
+외부 RTSP/HLS/HTTP/WHEP source, 운영 TURN relay/auth는 외부 환경 영향을 받으므로 기본 hard gate가 아닙니다. YouTube import/source는 기본 빌드에서 제외한 lab-only 실험 기능이며, v1.2.0 기본 검증에서는 실제 YouTube URL 성공을 확인하지 않습니다. 공개 URL을 사용할 때는 재현 가능한 예시 URL 또는 환경 변수로만 주입하고, 개인 LAN IP, credential, 고객/운영 영상 URL은 문서와 artifact에 남기지 않습니다.
 
 문서/UI/Auth/권한/계정처럼 media pipeline 자체를 바꾸지 않은 변경에서는
 `./server.sh test`, `./server.sh test --basic`, `./server.sh test --full`,
@@ -55,6 +56,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
+./server.sh verify-release-bundle-dry-run
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
@@ -86,12 +88,82 @@ FFmpeg/ffprobe CLI가 없는 공개/CI 환경에서는 codec matrix와 RTSP deco
 - 채널 추가/상세
 - 룰 패널 이동
 - 사용자 상세
+- 접근 요청 승인 채널 ID 입력과 invite 출력
 - client dashboard
-`verify-ops-tables-layout`은 채널/룰/사용자 table을 1180/900/560/390/760/1180px 순서로 리사이즈하며 cell/action overflow를 확인합니다.
+
+서버를 `MEDIA_SERVER_AUTH_USERS_FILE` override로 띄운 경우에는
+`verify-ops-click-e2e --auth-users-file <path>`에도 같은 경로를 넘겨
+접근 요청 fixture cleanup을 같은 users file에 적용합니다.
+
+`verify-ops-tables-layout`은 채널/룰/사용자 table을
+1180/900/760/560/390/320/760/1180px 순서로 리사이즈하며
+cell/action overflow를 확인합니다. 각 화면의 첫 상세 panel과 audit
+filter/preset control도 같은 폭에서 부모 패널과 viewport 밖으로 밀리지 않는지
+함께 확인합니다.
 `verify-ops-rules-roundtrip`은 같은 서버의 이벤트 템플릿 API round-trip을 영상 재생 없이 확인합니다.
 UI 전용 검증에서는 별도 터미널에서
 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`를 실행하고,
 포트가 다르면 `--http-base`를 명시합니다.
+두 screenshot artifact를 비교할 때는 baseline/candidate의
+`visual-regression-manifest.json`을 기준으로 파일을 매칭합니다.
+
+```bash
+./server.sh compare-ui-visual-baseline \
+  --baseline-dir <baseline-artifact-dir> \
+  --candidate-dir <candidate-artifact-dir> \
+  --output-dir <diff-artifact-dir>
+```
+
+비교 결과는 `media-server.ui-visual-baseline-diff.v1` schema의
+`visual-baseline-diff.json`과 `visual-baseline-diff.md`로 남습니다.
+candidate 비교 정책은 `media-server.ui-visual-baseline-candidate-policy.v1`
+schema로 report에 포함됩니다. 기본 정책은 missing, decode-error,
+dimension-mismatch, threshold 초과 diff, candidate-only screenshot을 실패로
+봅니다. 의도한 신규 screenshot은 `--allow-extra`로 허용하되
+`decision=review`와 `reviewRequired=true`로 남기며, review도 gate 실패로
+취급하려면 `--fail-on-review`를 사용합니다.
+Visual artifact retention은 `media-server.ui-visual-artifact-retention.v1`
+정책으로 manifest에 기록합니다. PR screenshot artifact는 기본 14 days,
+release baseline으로 채택한 artifact는 45 days 보존을 기준으로 하며,
+client/source/debug/raw JSON 비노출 검토 전에는 공유 보관소에 올리지 않습니다.
+release baseline artifact role은 승인된 release/RC 화면 상태를 다음
+candidate artifact와 비교하는 approved comparator입니다. 이 artifact는
+public release asset 또는 candidate 통과 증빙이 아니며, baseline 교체 시에는
+accepted baseline run, 교체 이유, 수동 비노출 검토 결과를 PR/릴리스 기록에
+연결합니다.
+baseline을 새로 채택하거나 교체할 때는
+[UI Visual Release Baseline Approval Log](./ui-visual-release-baseline-approval-template.md)
+템플릿에 manifest/index, diff report, 320/390/760/1180px 수동 검토,
+client/viewer source/debug/raw 비노출 확인, 미실행 field smoke를 함께 남깁니다.
+template presence와 CI 연결은 `./server.sh verify-ui-release-baseline-approval-log`로 확인합니다.
+작성 형식 예시는 `test/fixtures/ui_visual_release_baseline_approval_log_sample.md`에
+sample-only fixture로 고정하며, 실제 approval/pass evidence로 사용하지 않습니다.
+UI visual regression issue는 `.github/ISSUE_TEMPLATE/ui_visual_qa.yml`
+템플릿을 사용해 artifact directory, manifest/index, viewport, client/viewer
+debug/source 비노출 확인, 미실행 검증을 함께 남깁니다.
+`./server.sh write-ui-visual-qa-issue-links --artifact-dir <artifact-dir> --output <artifact-dir>/ui-visual-qa-issue-links.md`
+를 실행하면 issue template의 artifact 영역에 붙일 manifest/index/baseline diff/screenshot 링크를 자동으로 생성합니다.
+`./server.sh write-ui-visual-baseline-comment --diff-report <visual-baseline-diff.json> --output <comment.md>`
+는 PR/issue comment에 붙일 decision, summary, attention item Markdown을 생성합니다.
+preflight CI는 정적 fixture 기준 `media-server-ui-visual-baseline-diff` artifact에
+`visual-baseline-diff.json`, `visual-baseline-diff.md`,
+`visual-baseline-comment.md`를 함께 업로드해 PR에서 helper 출력 형식을 바로 확인하게 합니다.
+같은 comment 본문은 `GITHUB_STEP_SUMMARY`에도 자동 게시되어 PR check summary에서 확인하며,
+summary에는 Actions artifact download 링크도 함께 표시합니다.
+보존 기간이 지난 artifact는 먼저
+`./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>`
+로 dry-run report를 생성합니다. 실제 archive/cleanup은 `--apply`가 있을 때만 수행하며,
+report schema는 `media-server.ui-visual-artifact-maintenance.v1`입니다.
+Markdown report에는 PR 본문에 붙일 `PR Summary` 섹션이 포함되며 decision,
+dry-run/apply mode, expired artifact 수, archive/cleanup 예정 수를 짧게 요약합니다.
+`--apply`로 archive가 생성되면 archive directory에
+`media-server.ui-visual-artifact-archive-index.v1` schema의
+`ui-visual-artifact-archive-index.json`과 Markdown index도 함께 남깁니다.
+index는 apply 실행 `history`를 누적하고, 같은 artifact directory 이름이 이미
+archive에 있으면 숫자 suffix를 붙인 뒤 `duplicatePolicy`, `archiveSequence`,
+`duplicateOf`로 중복 처리 내역을 남깁니다.
+preflight CI는 같은 명령을 `--apply` 없이 실행하고
+`media-server-ui-visual-maintenance-dry-run` artifact에 JSON/Markdown report를 업로드합니다.
 
 VA rule/scenario 변경:
 
@@ -128,6 +200,10 @@ MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./serve
 ```
 
 UI 변경 검증에서는 기본 추가 RTSP/WebRTC source 영상이나 codec matrix를 쓰지 않습니다.
+v1.2.0 UI visual regression gate는 ERP/운영 콘솔형 visual refresh 기준을 함께 봅니다.
+즉, 기능 selector만 통과하면 끝이 아니라 compact product shell, nav/account header,
+metric/card/table/form/badge 밀도, client source/debug 비노출, 모바일 overflow를 같은
+artifact에서 확인합니다.
 화면 selector/API 계약만 확인할 때는 서버를 띄운 뒤 아래 순서로 확인합니다.
 
 - `verify-ops-client-ui`
@@ -158,19 +234,36 @@ Ops/Client shell 변경 확인 포인트:
 - `--screenshots` 옵션은 `/ops/home`, `/ops/dashboard`, `/ops/rules`,
   `/ops/sources`, `/ops/users`, `/client/live`, `/client/dashboard`를
   기본 320/390/760/1180px 폭으로 열어 overflow와 screenshot을 남깁니다.
+  release gate나 단계 종료 보고에서는 `--output-dir`로 artifact 경로를 고정합니다.
+  예: `--output-dir /tmp/media_server_v120_p0_02_screenshots`
+  통과 시 같은 디렉터리에 `visual-regression-manifest.json`과 `index.md`를
+  생성합니다. manifest schema는 `media-server.ui-visual-artifact-index.v1`이며
+  page/selector가 있는 기본 screenshot과 ONVIF hint/preview 같은 보조 screenshot을
+  같은 index에서 확인합니다.
 - 채널/사용자 변경 이력 필터는 table layout과 별도 계약으로 봅니다.
   320/390px에서 검색/작업자/사용자/대상/동작/시작/종료/페이지 크기
   control이 감사 로그 패널 폭 안에 있어야 하며, 시작/종료 date/time
   input이 viewport 밖으로 밀리면 실패입니다.
 - 실제 Chrome DevTools 수동 리뷰는 자동 overflow 결과와 별개로 아래
   체크리스트를 닫습니다.
+  PR을 여는 경우 같은 항목을 `.github/PULL_REQUEST_TEMPLATE.md`의
+  `UI Visual Review` 섹션에 artifact directory와 함께 남깁니다.
   - [ ] Device toolbar를 320px로 맞추고 Ops nav, 계정/로그아웃,
     채널/룰/사용자 table action, client live/dashboard header가 좌우를 침범하지 않는지 확인
   - [ ] Device toolbar를 390px로 맞추고 위 항목과 변경 이력 시작/종료 입력,
     룰 URL copy 버튼 줄바꿈이 서로 겹치지 않는지 확인
   - [ ] Device toolbar를 760px로 맞추고 nav/account 2열 배치,
     dashboard 카드 폭, channel/rule URL copy 버튼 높이가 같은 규칙으로 보이는지 확인
+  - [ ] 1180px에서 product shell의 brand/nav/account가 한 줄 콘솔 header로 유지되고,
+    nav label이 잘려 기능명을 잃지 않는지 확인
   - [ ] `verify-ops-client-ui --screenshots` 산출물 경로를 리뷰 기록에 남김
+  - [ ] `visual-regression-manifest.json` schema가
+    `media-server.ui-visual-artifact-index.v1`인지 확인
+  - [ ] manifest retention policy schema가 `media-server.ui-visual-artifact-retention.v1`이고
+    PR artifact 14 days, release baseline 45 days 보존 기준을 따르는지 확인
+  - [ ] `index.md`가 모든 screenshot artifact를 링크하는지 확인
+  - [ ] client/viewer screenshot에 source URL, Developer URL, raw JSON,
+    debug counter, BBox diagnostics, rule/profile editor가 노출되지 않는지 확인
 - `webrtc_http_server.cpp`에서 `product_ui_page_scripts.*`로 UI 소유권을 옮기는
   구조 변경은 `./server.sh build`,
   `./server.sh verify-auth-routes`,
@@ -178,6 +271,8 @@ Ops/Client shell 변경 확인 포인트:
 - Auth shell 변경은 기존 auth workflow에
   `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1`,
   필요하면 `MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1`을 붙여 확인합니다.
+  Auth screenshot smoke도 320/390/760/1180px 기준으로
+  `visual-regression-manifest.json`과 `index.md`를 생성합니다.
 
 ```bash
 BASE=http://127.0.0.1:8080
@@ -353,6 +448,8 @@ Admin user smoke:
 Product UI smoke:
 
 - `/ops/users` 사용자 목록
+- 계정 라이프사이클 정책 영역
+- 비밀번호 초기화 상세 패널
 - 접근 요청 table
 - 접힘 editor selector
 - `/setup`, `/login`, `/password/change`, `/invite/setup`,
@@ -361,11 +458,14 @@ Product UI smoke:
 Invite/request smoke:
 
 - invite token 원문은 생성 응답에서 한 번만 표시하고 hash만 저장
+- invite `expiresAt`과 setup URL은 운영자 응답에만 표시
 - pending invite와 approved request가 user-only 저장 후에도 users file에 유지
 - 기존 enabled user invite가 수락 전 role/scope/session을 바꾸지 않음
 - access request approve가 invite setup 전 user row를 만들지 않음
 - access request reject가 rejected 상태로 유지
 - invite 수락 후 이전 session 폐기
+- password reset 후 `mustChangePassword=true`와 기존 session 회수
+- disable은 login/session 차단, restore는 lockout/실패 횟수 초기화
 
 Public access request abuse smoke:
 
@@ -579,11 +679,21 @@ matrix 실행은 fixture별 `summary.json`/`report.md`와 상위
 단일 비교의 quality preset 기본값은 `strict`입니다.
 내장 matrix fixture는 close-object sample과 control sample의 live polling
 특성이 달라 fixture별 `qualityPreset`을 사용합니다. close-object sample은
-`close-object-live`, control sample은 `control-live` 기준으로 observed risk
-허용치를 분리해 판정합니다. 여기에는 실제 주행 데이터 특성을 반영한
+`close-object-live`, synthetic control sample은 `control-live`, vehicle-heavy
+field-like sample은 `field-driving-live` 기준으로 observed risk 허용치를
+분리해 판정합니다. 여기에는 실제 주행 데이터 특성을 반영한
 `field-new-york-driving`(vehicle-heavy control-like)도 포함됩니다.
+이 fixture는 baseline 자체의 vehicle-heavy fragmentation 난이도와 guard mode
+delta를 분리하기 위해 fixture 전용 tracker-stability 상한을 전달합니다.
+`classWhitelist`는 fragmentation 계산뿐 아니라 observed issue counter와
+close-object diagnostic 집계에도 적용합니다. `trackingIssueCounts`는
+polling snapshot 반복 관측 합계가 아니라 `type/class/trackId` 기준 고유 이슈
+수이며, 반복 관측 raw count는 `trackingIssueObservationCounts`에 따로 남깁니다.
+이 상한은 `verify-tracker-stability` 명령 통과 기준일 뿐이며, matrix의
+event/scenario stable 판정은 완화하지 않습니다. hard risk는 fixture별
+`riskTolerances`에 명시한 작은 live polling jitter 안에서만 통과시킵니다.
 필요하면 단일 비교에서
-`--quality-preset strict|close-object-live|control-live`로 같은 기준을
+`--quality-preset strict|close-object-live|control-live|field-driving-live`로 같은 기준을
 명시할 수 있습니다.
 파일이 없는 fixture는 기본적으로 skipped이며, release gate처럼 누락을 실패로
 보고 싶으면 `--fail-on-missing-fixtures`를 사용합니다.
@@ -597,11 +707,42 @@ matrix 실행은 fixture별 `summary.json`/`report.md`와 상위
 ```
 
 이 명령은 모든 내장 fixture를 실행하고 fixture 파일 누락을 실패로 처리합니다.
+정기 gate는 default-off와 diagnostic 관찰 경계 확인을 위해 `off,diagnostic`
+mode만 비교합니다. `enforce` mode는 opt-in 실험 비교이며 clean gate에 섞지
+않습니다.
 또한 `judgement=hold`를 hard gate 실패로 처리합니다. `hold`는 event/scenario
 stable delta 또는 주요 association risk 증가가 있어 default-on 검토를 중단해야
 한다는 뜻입니다. 관찰용으로 `hold` report까지 모으려면
 `compare-close-object-tracker --fixture-matrix`를 사용합니다.
 live polling 변동성을 분리하려면 반복 실행 통계를 함께 봅니다.
+
+Matrix gate 상태 정의:
+
+| 상태 | gate 의미 | default-on 해석 |
+| --- | --- | --- |
+| `fail` | mode 실행 실패, mode 미적용, fixture 누락 같은 검증 자체 실패 | 제품 판단 중단 |
+| `hold` | event/scenario stable delta 또는 hard risk 증가 | default-on 검토 중단, guard opt-in 유지 |
+| `warning` | observed risk/counter 변동 또는 반복 검증 필요 | 안정 판정 아님, default-on 근거로 사용 금지 |
+| `pass` + `defaultOnCandidate=false` | hard gate는 통과했지만 후보 조건 부족 | default-off 유지, 추가 sample 필요 |
+| `pass` + `defaultOnCandidate=true` | 해당 fixture 단독으로 후보 조건 충족 | 제품 default-on 완료 아님, fixture별 후보로만 기록 |
+
+`verify-close-object-fixture-matrix`의 성공은 clean gate 확인용입니다.
+`compare-close-object-tracker --fixture-matrix`의 성공은 관찰 리포트 생성 성공일 수
+있으므로 `matrix-ok`, fixture `judgement`, `defaultOnCandidate`를 따로 읽어야 합니다.
+`warning`은 안정적이라는 뜻이 아니며, close-object guard default-on이나 Re-ID
+제품 완료 근거로 쓰지 않습니다.
+`enforce` mode까지 비교하려면 다음처럼 명시적으로 실행하고, 결과는 제품
+default-on gate가 아니라 opt-in risk report로 해석합니다.
+
+```bash
+./server.sh compare-close-object-tracker \
+  --fixture-matrix \
+  --modes off,diagnostic,enforce
+```
+
+2026-05-16 재검토의 fixture별 후보 표는
+[`reid-fixture-default-on-candidates.md`](./reid-fixture-default-on-candidates.md)에
+분리합니다.
 
 ```bash
 ./server.sh compare-close-object-tracker \
@@ -632,22 +773,29 @@ count, mean, stdev, variance, min, max를 표시합니다.
 - `enforce`는 opt-in 보정 후보로만 봅니다.
 - event/scenario stable delta가 있으면 default on 전환 금지입니다.
 - `eventsEmitted`, `eventsDeduped`, cleanup count 같은 observed counter delta는 live polling 흔들림이 있어 참고값으로만 봅니다.
-- hard risk non-increasing 판정은 close-object guard의 structural association 결과인 `trackerAssociationRiskScore`, `fragmentationRatio`, `overlapFragmentationRatio` 기준입니다.
+- hard risk non-increasing 판정은 close-object guard의 structural association 결과인 `trackerAssociationRiskScore`, `fragmentationRatio`, `overlapFragmentationRatio` 기준이며, fixture preset의 `riskTolerances`를 적용합니다.
 - `idSwitchRiskScore`, `maxOverlapRisk`, `lost/reacquired`, spike count는 live polling 변동성이 있어 observed risk로 따로 해석합니다.
 - observed risk가 증가하면 default-on 후보로 쓰지 않고 반복/fixture 검증으로 넘깁니다.
 - replay/event 결과가 흔들려도 default on 전환 금지입니다.
 - default on은 여러 fixture와 현장 샘플에서 ID continuity 개선과 event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
+- privacy/default-off gate는 `verify-reid-advanced-tracking`으로 별도 확인합니다.
 
 비교 리포트 해석:
 
 - command success라도 `judgement: warning`일 수 있습니다.
 - `event/scenario stable delta=False`여도 observed counter delta나 observed risk 차이가 있을 수 있습니다.
 - 이 경우 default-on 근거로 사용하지 않습니다.
+- `warning` fixture가 남아 있으면 안정 판정으로 닫지 않고 반복 실행 또는
+  field/model review 대상으로 남깁니다.
+- `matrix-ok=True`와 `default-on candidate=False`는 함께 나올 수 있습니다.
+  이는 default-off experiment gate는 통과했지만 제품 default-on 근거는 아직
+  부족하다는 뜻입니다.
 - `verify-close-object-fixture-matrix`에서 `judgement: hold`는 실패 exit로 처리합니다.
 - close-object guard는 계속 default off로 둡니다.
-- 후속은 threshold tuning 또는 추가 fixture 수집입니다.
+- threshold tuning 또는 추가 fixture 수집은 새 field/model review가 열릴 때 별도 review로 다룹니다.
 
 ```bash
+./server.sh verify-reid-advanced-tracking
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-replay
 ./server.sh verify-analysis-state
@@ -1178,6 +1326,11 @@ consumer connect/disconnect cycle 이후 idle baseline RSS 누적 증가를 확�
   idle RSS가 유지/하락하면 lifecycle 잔여 증거보다
   allocator high-water 또는 GStreamer/WebRTC buffer pool retention 후보로 봅니다.
 - longrun summary JSON과 Markdown report는 `/tmp/media_server_va-runtime-longrun-*`, cycle summary/report는 `/tmp/media_server_va-runtime-cycles-*` 경로에 남김
+- Runtime Dashboard 장시간 evidence record는
+  [runtime-dashboard-longrun-evidence-template.md](./runtime-dashboard-longrun-evidence-template.md)
+  형식을 사용합니다. 이 템플릿은 longrun 실행 증거가 아니며, 실제 실행하지 않은 경우 `미실행`으로 보고합니다.
+- `test/fixtures/runtime_dashboard_longrun_evidence_sample/`는 evidence field shape를 고정하는 sample-only fixture입니다.
+  `longrunExecuted=false`이므로 RC/릴리스 PASS 증거로 쓰지 않습니다.
 
 최근 RSS WARNING 해제 후보 검증 결과:
 
@@ -1271,6 +1424,8 @@ curl -fsS 'http://127.0.0.1:8080/client/api/views/{viewId}/metadata'
   connection status, video frame status, metadata status, stale 여부,
   metadata age, last frame age를 반환합니다.
 - 값이 없으면 UI는 `미제공`을 표시합니다.
+- `/client/dashboard`의 `상태 복사`, `이벤트 복사`는 viewer에게 허용된
+  sanitized 상태/이벤트 요약만 복사합니다.
 - client dashboard 응답과 화면에 운영 내부 값이 노출되지 않아야 합니다.
 - 숨길 값: source 원본 URL, Developer URL, 내부 진단 JSON, `analysisTapId`, internal session id
 - 숨길 설정: rule/profile editor, Event POST 설정, SSE/WS 전체 endpoint
@@ -1289,6 +1444,7 @@ curl -fsS -X POST \
 확인 기준:
 
 - `/client/live`는 2x2 grid, 최대 4 tile만 표시하며 PublishedView별 `maxTiles`를 UI 채널 배정/시작과 client wrapper API에서 함께 강제합니다.
+- `/client/live`는 `전체 시작`, `전체 재연결`, `전체 정지`를 제공하고 빈 PublishedView 상태에서는 viewer에게 `/client/request-access` 접근 요청 CTA를 제공합니다.
 - viewer는 assigned PublishedView만 tile에 선택할 수 있습니다.
 - client WebRTC wrapper는 viewId만 허용하고 `file`, `url`, `source`, `rtspUrl`, `httpUrl`, `webrtcSourceId`, `whepUrl` override 요청을 400으로 거부합니다.
 - 같은 principal+view의 활성 client session이 `maxTiles`에 도달하면 추가 session 생성은 `409`로 거부됩니다.
@@ -1304,6 +1460,8 @@ curl -fsS -X POST \
 - tile stop은 PeerConnection/DataChannel을 닫고 client wrapper DELETE를 호출합니다.
 - all stop 또는 hidden tab/route leave 후 `activeSessions`가 감소하고 media stream track이 정리됩니다.
 - tile status는 live/offline, stale, track count, event count, connection status를 표시합니다.
+- 선택 tile detail의 `상태 복사`, `이벤트 복사`는 source URL이나 내부 진단
+  정보 없이 sanitized 요약만 복사합니다.
 - client 화면에 source URL, Developer URL, BBox diagnostics, 내부 진단 JSON, 내부 session id/token, rule/profile 수정 UI가 노출되지 않아야 합니다.
 - 기존 `/webrtc/session?file=...` 개발용 경로는 변경하지 않습니다.
 - WebRTC DataChannel schema와 Event POST payload도 변경하지 않습니다.
@@ -1403,9 +1561,14 @@ EventStorage status/records smoke:
 ```bash
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/event-storage/status'
 curl -fsS 'http://127.0.0.1:8080/lab/analysis/events/records?limit=5'
+./server.sh verify-ops-event-records-scope --http-base http://127.0.0.1:8080
 ```
 
 서버가 `8081` 같은 다른 HTTP port로 떠 있으면 port만 맞춰 실행합니다.
+`verify-ops-event-records-scope`는 EventStorage 활성 서버에서 synthetic populated
+EventRecord fixture를 active file에 잠시 주입하고 복원하며,
+`ops-events-populated-<width>.png` screenshot으로 `/ops/events` table의
+snapshot/clip/signed bundle action 표시를 확인합니다.
 
 `verify-event-post --mode schema|recovery|queue`는 서버가
 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1` 상태로 실행되어 있어야 합니다.

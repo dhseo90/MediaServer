@@ -1,0 +1,108 @@
+name: UI visual QA
+description: UI visual regression, layout overflow, screenshot artifact 문제를 보고합니다.
+title: "[UI Visual QA] "
+labels: ["ui", "visual-regression"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: 요약
+      description: 어떤 화면에서 어떤 시각 회귀가 보였는지 짧게 적어주세요.
+      placeholder: "예: 390px /ops/rules geometry toolbar가 preview 영역 밖으로 밀림"
+    validations:
+      required: true
+  - type: dropdown
+    id: screen
+    attributes:
+      label: 화면
+      multiple: true
+      options:
+        - Auth / setup / login
+        - Ops Home
+        - Ops Dashboard
+        - Ops Channels
+        - Ops Rules
+        - Ops Users
+        - Client Live
+        - Client Dashboard
+        - Visual artifact index / manifest
+        - Other
+    validations:
+      required: true
+  - type: checkboxes
+    id: viewport
+    attributes:
+      label: 확인한 viewport
+      options:
+        - label: 320px
+        - label: 390px
+        - label: 760px
+        - label: 1180px
+        - label: 기타 viewport는 본문에 별도 기재
+  - type: textarea
+    id: artifacts
+    attributes:
+      label: Screenshot artifact
+      description: artifact directory와 manifest/index 경로를 적어주세요. secret, 운영 영상, source URL은 넣지 마세요.
+      placeholder: |
+        Artifact directory:
+        visual-regression-manifest.json:
+        index.md:
+        visual-baseline-diff.json:
+        visual-baseline-diff.md:
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: 실제 결과
+      description: overflow, overlap, contrast, copy clipping, nav/account/header/table/action 문제를 화면별로 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대 결과
+      description: 기존 baseline 또는 원하는 제품 UI 상태를 적어주세요.
+    validations:
+      required: true
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: 실행한 검증
+      options:
+        - label: "`./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>`"
+        - label: "`./server.sh compare-ui-visual-baseline --baseline-dir <baseline-artifact-dir> --candidate-dir <candidate-artifact-dir>`"
+        - label: "`./server.sh write-ui-visual-baseline-comment --diff-report <visual-baseline-diff.json> --output <comment.md>`"
+        - label: "`./server.sh write-ui-visual-qa-issue-links --artifact-dir <artifact-dir> --output <artifact-dir>/ui-visual-qa-issue-links.md`"
+        - label: "`./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>`"
+        - label: "`MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap`"
+        - label: "`./server.sh verify-ui-visual-artifact-index`"
+        - label: "`git diff --check`"
+  - type: checkboxes
+    id: leak_guard
+    attributes:
+      label: Client/viewer 노출 금지 확인
+      options:
+        - label: Client/viewer screenshot에 source URL이 보이지 않음
+        - label: Client/viewer screenshot에 Developer URL이 보이지 않음
+        - label: Client/viewer screenshot에 raw JSON/debug counter가 보이지 않음
+        - label: Client/viewer screenshot에 BBox diagnostics가 보이지 않음
+        - label: Client/viewer screenshot에 rule/profile editor가 보이지 않음
+  - type: textarea
+    id: not_run
+    attributes:
+      label: 미실행/미확인
+      description: 실행하지 않은 검증과 이유를 적어주세요. 실행하지 않은 장시간 테스트를 통과처럼 쓰지 마세요.
+      placeholder: |
+        미실행:
+        이유:
+    validations:
+      required: false
+  - type: textarea
+    id: notes
+    attributes:
+      label: 추가 메모
+      description: API schema, Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path 변경이 필요한 이슈라면 별도 설계가 필요합니다.
+    validations:
+      required: false

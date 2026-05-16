@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -235,14 +236,33 @@ int AppearanceReasonPriority(AppearanceUpdateReason reason) {
 }
 
 std::string IssueMessage(const std::string& issue_type, const TrackHealth& health) {
+    std::string summary;
+    if (issue_type == "unstable-track") {
+        summary = "Track is unstable; review association, overlap, missed-frame, and direction-change signals.";
+    } else if (issue_type == "overlap-risk") {
+        summary = "Track overlap risk is high; check close-object separation, camera angle, or zone geometry.";
+    } else if (issue_type == "missed-frame-spike") {
+        summary = "Track missed-frame count jumped; verify source frame continuity and tracker sampling.";
+    } else if (issue_type == "direction-change-spike") {
+        summary = "Track direction changed repeatedly; verify association stability before trusting scenario timing.";
+    } else if (issue_type == "low-association-confidence") {
+        summary = "Track association confidence dropped; treat this scenario candidate as lower quality.";
+    } else if (issue_type == "reacquired") {
+        summary = "Track was reacquired after a short loss; confirm the same object remained in view.";
+    } else if (issue_type == "lost") {
+        summary = "Track was lost; scenario dwell or occupancy counts may reset until it is observed again.";
+    } else {
+        summary = "Track health issue requires review.";
+    }
     std::ostringstream out;
-    out << issue_type
-        << " association=" << health.association_confidence
-        << " missed=" << health.missed_frame_count
-        << " overlap=" << health.overlap_risk
-        << " directionChanges=" << health.direction_change_count
-        << " lost=" << health.lost_count
-        << " reacquired=" << health.reacquired_count;
+    out << summary
+        << " Metrics: association " << std::fixed << std::setprecision(2)
+        << health.association_confidence
+        << ", missed frames " << health.missed_frame_count
+        << ", overlap risk " << health.overlap_risk
+        << ", direction changes " << health.direction_change_count
+        << ", lost " << health.lost_count
+        << ", reacquired " << health.reacquired_count << ".";
     return out.str();
 }
 

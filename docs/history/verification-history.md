@@ -2,6 +2,30 @@
 
 이 문서는 과거 상세 검증 이력을 보존합니다. 현재 실행해야 할 검증 기준은 [../stream-verification.md](../stream-verification.md)를 봅니다.
 
+## 2026-05-16 - v1.2.0 Visual QA artifact sample
+
+통과:
+
+- `./server.sh build`
+- `./server.sh verify-ops-client-ui --screenshots --http-base http://127.0.0.1:8081 --output-dir /private/tmp/media_server_v120_visual_qa_sample_20260516/artifact`: route/API/client leak smoke `16/0`, screenshot overflow `28/0`, client mobile header `4/0`, client live keyboard `2/0`, Ops audit mobile `4/0`, ONVIF hint `4/0`, ONVIF preview tool `2/0`
+- `./server.sh compare-ui-visual-baseline --baseline-dir /private/tmp/media_server_v120_visual_qa_sample_20260516/artifact --candidate-dir /private/tmp/media_server_v120_visual_qa_sample_20260516/artifact --output-dir /private/tmp/media_server_v120_visual_qa_sample_20260516/diff`: compared `38`, passed `38`, failed `0`, changed `0`, missing `0`, extra `0`
+
+확인:
+
+- Visual artifact manifest: `/private/tmp/media_server_v120_visual_qa_sample_20260516/artifact/visual-regression-manifest.json`
+- Visual artifact index: `/private/tmp/media_server_v120_visual_qa_sample_20260516/artifact/index.md`
+- Baseline diff JSON: `/private/tmp/media_server_v120_visual_qa_sample_20260516/diff/visual-baseline-diff.json`
+- Baseline diff Markdown: `/private/tmp/media_server_v120_visual_qa_sample_20260516/diff/visual-baseline-diff.md`
+- Manifest schema는 `media-server.ui-visual-artifact-index.v1`, screenshot count는 `38`입니다.
+- Retention policy schema는 `media-server.ui-visual-artifact-retention.v1`, PR artifact `14 days`, release baseline `45 days` 기준입니다.
+- Self-compare sanity 확인이며 실제 변경 전/후 candidate 비교는 아닙니다.
+
+미실행:
+
+- `verify-predev`: 사용자 명시 요청 없음
+- `verify-va-runtime-console-longrun`: 사용자 명시 요청 없음
+- 외부 공유 저장소 업로드: 수행하지 않음
+
 ## 2026-05-13 - v1.1.0 final local release gate
 
 통과:

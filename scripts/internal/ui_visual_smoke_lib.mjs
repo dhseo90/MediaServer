@@ -62,6 +62,116 @@ export async function runVisualSmoke({
   return { passCount, failCount, failures, outputDir };
 }
 
+export function writeVisualArtifactIndex({
+  outputDir,
+  title = "UI Visual Regression Artifacts",
+  httpBase = "",
+  visualWidths = [],
+  visualHeight = 0,
+  checks = [],
+  command = "",
+  retentionPolicy = defaultVisualArtifactRetentionPolicy(),
+} = {}) {
+  if (!outputDir) {
+    throw new Error("outputDir is required for visual artifact index");
+  }
+  fs.mkdirSync(outputDir, { recursive: true });
+  const generatedAt = new Date().toISOString();
+  const screenshots = collectVisualScreenshots(outputDir, checks, visualHeight);
+  const manifest = {
+    schema: "media-server.ui-visual-artifact-index.v1",
+    generatedAt,
+    title,
+    command,
+    httpBase,
+    viewport: {
+      widths: visualWidths,
+      height: visualHeight,
+    },
+    retentionPolicy,
+    screenshotCount: screenshots.length,
+    screenshots,
+  };
+  const manifestPath = path.join(outputDir, "visual-regression-manifest.json");
+  const indexPath = path.join(outputDir, "index.md");
+  fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  fs.writeFileSync(indexPath, buildVisualArtifactMarkdown(manifest));
+  console.log(`[pass] visual artifact manifest: ${manifestPath}`);
+  console.log(`[pass] visual artifact index: ${indexPath}`);
+  return manifest;
+}
+
+function collectVisualScreenshots(outputDir, checks = [], visualHeight = 0) {
+  const checkByName = new Map((Array.isArray(checks) ? checks : []).map((check) => [check.name, check]));
+  if (!fs.existsSync(outputDir)) return [];
+  return fs.readdirSync(outputDir)
+    .filter((name) => name.endsWith(".png"))
+    .sort((a, b) => a.localeCompare(b))
+    .map((file) => {
+      const fullPath = path.join(outputDir, file);
+      const stat = fs.statSync(fullPath);
+      const base = file.replace(/\.png$/i, "");
+      const widthMatch = base.match(/-(\d+)$/);
+      const width = widthMatch ? Number(widthMatch[1]) : null;
+      const label = widthMatch ? base.slice(0, -widthMatch[0].length) : base;
+      const check = checkByName.get(label);
+      return {
+        file,
+        label,
+        page: check?.path || "",
+        selector: check?.visualSelector || "",
+        viewport: {
+          width,
+          height: visualHeight || null,
+        },
+        bytes: stat.size,
+        mtimeMs: Math.round(stat.mtimeMs),
+      };
+    });
+}
+
+function buildVisualArtifactMarkdown(manifest) {
+  const lines = [
+    "# UI Visual Regression Artifact Index",
+    "",
+    `- schema: ${manifest.schema}`,
+    `- generatedAt: ${manifest.generatedAt}`,
+    `- command: ${manifest.command || "(unspecified)"}`,
+    `- httpBase: ${manifest.httpBase || "(unspecified)"}`,
+    `- viewportWidths: ${(manifest.viewport?.widths || []).join(", ") || "(unspecified)"}`,
+    `- viewportHeight: ${manifest.viewport?.height || "(unspecified)"}`,
+    `- retentionDefaultDays: ${manifest.retentionPolicy?.defaultDays ?? "(unspecified)"}`,
+    `- retentionReleaseBaselineDays: ${manifest.retentionPolicy?.releaseBaselineDays ?? "(unspecified)"}`,
+    `- screenshots: ${manifest.screenshotCount}`,
+    "",
+    "| File | Label | Page | Width | Bytes |",
+    "| --- | --- | --- | --- | --- |",
+  ];
+  for (const item of manifest.screenshots || []) {
+    lines.push(`| [${item.file}](./${item.file}) | ${item.label || ""} | ${item.page || ""} | ${item.viewport?.width ?? ""} | ${item.bytes ?? 0} |`);
+  }
+  lines.push("");
+  return `${lines.join("\n")}\n`;
+}
+
+function defaultVisualArtifactRetentionPolicy() {
+  return {
+    schema: "media-server.ui-visual-artifact-retention.v1",
+    defaultDays: retentionDaysFromEnv("MEDIA_SERVER_UI_VISUAL_ARTIFACT_RETENTION_DAYS", 14),
+    releaseBaselineDays: retentionDaysFromEnv("MEDIA_SERVER_UI_VISUAL_RELEASE_BASELINE_RETENTION_DAYS", 45),
+    localTempPolicy: "temporary-unless-output-dir-is-persisted",
+    privacyReview: "do-not-retain-client-source-url-developer-url-raw-json-debug-artifacts",
+  };
+}
+
+function retentionDaysFromEnv(name, fallback) {
+  const raw = process.env[name];
+  if (raw == null || raw === "") return fallback;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed < 0) return fallback;
+  return Math.round(parsed);
+}
+
 export function parseWidthList(value) {
   const parsed = String(value)
     .split(",")

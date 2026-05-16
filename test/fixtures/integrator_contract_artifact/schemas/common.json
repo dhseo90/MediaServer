@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "media-server.integrator-contract.common.v1",
+  "$defs": {
+    "normalizedBox": {
+      "type": "object",
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ],
+      "properties": {
+        "x": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "width": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "height": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "lineState": {
+      "type": "object",
+      "required": [
+        "lineId",
+        "side",
+        "direction"
+      ],
+      "properties": {
+        "lineId": {
+          "type": "string"
+        },
+        "side": {
+          "type": "integer"
+        },
+        "direction": {
+          "type": "string"
+        }
+      }
+    },
+    "trackHealth": {
+      "type": "object",
+      "required": [
+        "status",
+        "stable",
+        "associationConfidence",
+        "missedFrameCount",
+        "overlapRisk",
+        "directionChangeCount"
+      ],
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "stable": {
+          "type": "boolean"
+        },
+        "associationConfidence": {
+          "type": "number"
+        },
+        "missedFrameCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "overlapRisk": {
+          "type": "number",
+          "minimum": 0
+        },
+        "directionChangeCount": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "runtimeTrack": {
+      "type": "object",
+      "required": [
+        "trackId",
+        "bbox",
+        "classId",
+        "className",
+        "confidence",
+        "lifecycleState",
+        "currentZone",
+        "previousZone",
+        "dwellTimeMs",
+        "insideRestrictedZone",
+        "scenarioName",
+        "scenarioPhase",
+        "lineState",
+        "trackHealth"
+      ],
+      "properties": {
+        "trackId": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "bbox": {
+          "$ref": "#/$defs/normalizedBox"
+        },
+        "classId": {
+          "type": "integer"
+        },
+        "className": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number"
+        },
+        "lifecycleState": {
+          "type": "string"
+        },
+        "speed": {
+          "type": "object"
+        },
+        "currentZone": {
+          "type": "string"
+        },
+        "previousZone": {
+          "type": "string"
+        },
+        "dwellTimeMs": {
+          "type": "integer"
+        },
+        "insideRestrictedZone": {
+          "type": "boolean"
+        },
+        "scenarioName": {
+          "type": "string"
+        },
+        "scenarioPhase": {
+          "type": "string"
+        },
+        "lineState": {
+          "$ref": "#/$defs/lineState"
+        },
+        "footPoint": {
+          "type": "object"
+        },
+        "groundPoint": {
+          "type": "object"
+        },
+        "trackHealth": {
+          "$ref": "#/$defs/trackHealth"
+        },
+        "source": {
+          "type": "string"
+        }
+      }
+    },
+    "runtimeEvent": {
+      "type": "object",
+      "required": [
+        "eventId",
+        "eventType",
+        "status",
+        "ruleId",
+        "trackId",
+        "classId",
+        "className",
+        "confidence",
+        "zoneId",
+        "lineId",
+        "scenarioName",
+        "scenarioPhase"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string"
+        },
+        "eventType": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "ruleId": {
+          "type": "string"
+        },
+        "trackId": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "classId": {
+          "type": "integer"
+        },
+        "className": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number"
+        },
+        "zoneId": {
+          "type": "string"
+        },
+        "lineId": {
+          "type": "string"
+        },
+        "scenarioName": {
+          "type": "string"
+        },
+        "scenarioPhase": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # 파일 용도: CMake 빌드 옵션과 GStreamer 연동 타깃을 정의한다.
 cmake_minimum_required(VERSION 3.16)
-project(media_server VERSION 1.1.0 LANGUAGES CXX)
+project(media_server VERSION 1.2.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,6 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(MEDIA_SERVER_USE_GSTREAMER "Enable GStreamer RTSP server integration" OFF)
 option(MEDIA_SERVER_USE_ONNXRUNTIME "Enable ONNX Runtime YOLO detector" OFF)
+option(MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE "Enable lab-only experimental YouTube source resolver" OFF)
 set(MEDIA_SERVER_ONNXRUNTIME_ROOT "" CACHE PATH "ONNX Runtime installation root")
 
 find_package(PkgConfig QUIET)
@@ -47,13 +48,14 @@ add_executable(media_server
     src/core/source_factory.cpp
     src/core/stream_registry.cpp
     src/core/stream_key.cpp
-    src/core/youtube_resolver.cpp
     src/core/resource_guard.cpp
     src/core/session_manager.cpp
     src/ingress/gst_pipeline_builder.cpp
     src/ingress/analysis_overlay_probe.cpp
     src/ingress/analysis_query.cpp
     src/ingress/http_auth.cpp
+    src/ingress/onvif_credential_provider.cpp
+    src/ingress/onvif_live_import.cpp
     src/ingress/rtsp_request_context.cpp
     src/ingress/request_parser.cpp
     src/ingress/product_ui_assets.cpp
@@ -72,6 +74,13 @@ add_executable(media_server
 )
 
 target_include_directories(media_server PRIVATE include)
+
+if(MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE)
+    target_sources(media_server PRIVATE src/core/youtube_resolver.cpp)
+    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=1)
+else()
+    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0)
+endif()
 
 if(MEDIA_SERVER_USE_GSTREAMER)
     if(NOT PkgConfig_FOUND)
@@ -108,6 +117,22 @@ if(LIBSODIUM_FOUND)
     target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_LIBSODIUM=1)
 else()
     target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_LIBSODIUM=0)
+endif()
+
+if(PkgConfig_FOUND)
+    pkg_check_modules(OPENSSL QUIET IMPORTED_TARGET openssl)
+endif()
+if(OPENSSL_FOUND)
+    target_link_libraries(media_server PRIVATE PkgConfig::OPENSSL)
+    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_OPENSSL=1)
+else()
+    find_package(OpenSSL QUIET)
+    if(OpenSSL_FOUND)
+        target_link_libraries(media_server PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+        target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_OPENSSL=1)
+    else()
+        target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_OPENSSL=0)
+    endif()
 endif()
 
 if(MEDIA_SERVER_USE_ONNXRUNTIME)

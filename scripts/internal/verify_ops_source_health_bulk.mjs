@@ -55,6 +55,7 @@ check("documentation describes bulk retry policy", () => {
 check("ops sources UI omits source health bulk controls", () => {
   const html = readText("src/ingress/webrtc_http_server.cpp");
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const opsSourcesScript = extractRange(script, "void AppendOpsSourcesPageScript", "void AppendOpsUsersPageScript");
   const forbiddenHtml = [
     'id="channel-health-bulk-check"',
     'id="channel-health-bulk-retry"',
@@ -74,7 +75,22 @@ check("ops sources UI omits source health bulk controls", () => {
     assert(!html.includes(snippet), `ops sources HTML should not expose source health bulk snippet: ${snippet}`);
   }
   for (const snippet of forbiddenScript) {
-    assert(!script.includes(snippet), `ops sources script should not expose source health bulk snippet: ${snippet}`);
+    assert(!opsSourcesScript.includes(snippet), `ops sources script should not expose source health bulk snippet: ${snippet}`);
+  }
+});
+
+check("ops dashboard exposes source health next-action workflow", () => {
+  const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const required = [
+    "runSourceHealthBulk",
+    "/ops/api/source-health/bulk",
+    "sourceHealthRetryIds",
+    "data-source-health-retry",
+    "재검증 대상만 다시 확인",
+    "source health bulk는 registry를 변경하지 않아 rollback 대상이 없습니다.",
+  ];
+  for (const snippet of required) {
+    assert(script.includes(snippet), `dashboard source health workflow is missing snippet: ${snippet}`);
   }
 });
 
@@ -113,4 +129,12 @@ function assert(condition, message) {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function extractRange(text, startNeedle, endNeedle) {
+  const start = text.indexOf(startNeedle);
+  assert(start >= 0, `missing range start: ${startNeedle}`);
+  const end = text.indexOf(endNeedle, start + startNeedle.length);
+  assert(end > start, `missing range end: ${endNeedle}`);
+  return text.slice(start, end);
 }

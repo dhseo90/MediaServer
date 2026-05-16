@@ -25,7 +25,7 @@
 | OpenCV Python | 미고정. 예제 client가 import 실패 시 설치 안내를 출력합니다. 예제 client를 실행하는 환경에서 cv2 import version을 snapshot에 기록합니다. | cv2: 4.13.0 | - | - |
 | Transitive linked libraries from media/runtime packages | 직접 고정하지 않음. 상위 media/runtime package와 OS SDK가 결정합니다. 정확한 파일 경로와 current version은 `./server.sh dependency-snapshot`의 linked library section에 기록합니다. | - | - | - |
 | CMake, pkg-config, Node.js, Python 3, curl | CMake 3.16+, C++17 compiler, Node.js/Python 3/curl/pkg-config command 필요 CMake 최소 요구 버전은 3.16입니다. 나머지 tool의 실제 버전은 snapshot에 기록합니다. | cmake: 4.2.3; pkg-config: 2.5.1; node: 24.13.0; python3: 3.14.4; curl: 8.7.1 | - | - |
-| yt-dlp and Deno | 제품 핵심 실행 필수 조건이 아닙니다. YouTube import/source 실험 기능을 켠 환경에서만 필요하며 snapshot에 버전을 기록합니다. | yt-dlp: 2026.03.17; deno: 2.7.13 | - | - |
+| yt-dlp and Deno | 제품 핵심 실행 필수 조건이 아닙니다. YouTube import/source opt-in lab build에서만 필요하며 snapshot에 버전을 기록합니다. | yt-dlp: 2026.03.17; deno: 2.7.13 | - | - |
 
 ## GStreamer Element Snapshot
 
@@ -65,4 +65,3 @@
 /usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 2100.43.0)
 /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)
 ```
-

@@ -11,7 +11,7 @@ live source health, live VA event 품질입니다.
 
 English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 
-최신 source-only release: [v1.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.1.0)
+최신 source-only release: [v1.2.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.2.0)
 
 ## 한눈에 보기
 
@@ -113,6 +113,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | ONVIF live source 지원과 URL copy parity | [docs/onvif-live-source-support.md](docs/onvif-live-source-support.md) |
 | Live source health/operator workflow 기준 | [docs/live-source-health.md](docs/live-source-health.md) |
 | Event/WebRTC/SSE/WS metadata contract | [docs/live-event-metadata-contracts.md](docs/live-event-metadata-contracts.md) |
+| Integrator contract artifact sample bundle | [docs/integrator-contract-artifact.md](docs/integrator-contract-artifact.md) |
 | Scenario timeline/debug 필드 설계 | [docs/scenario-timeline-debug.md](docs/scenario-timeline-debug.md) |
 | 현재 검증 기준과 실행 명령 | [docs/stream-verification.md](docs/stream-verification.md) |
 | 배포 bundle, container image, third-party runtime 포함 정책 | [docs/distribution-policy.md](docs/distribution-policy.md) |
@@ -122,7 +123,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | 운영 백업/복구 대상과 복구 후 검증 | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
 | Loitering/ZoneOccupancy 현장 시작 threshold | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
 | sample 영상/fixture 출처와 공개 기준 | [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) |
-| 현재 제품 경계와 v1.2.0 로드맵 후보 | [docs/development-backlog.md](docs/development-backlog.md) |
+| 현재 제품 경계와 v1.2.0 종료 판정 | [docs/development-backlog.md](docs/development-backlog.md) |
 | YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
 
 ## 대표 UI 미리보기
@@ -200,6 +201,10 @@ YOLO Detection
 `./server.sh test`, `./server.sh test --basic`,
 `./server.sh test --full`, `./server.sh verify-predev --quick`는
 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하므로 느립니다.
+기본 테스트 환경에는 ONVIF/RTSP/WebRTC 원본 영상을 제공할 실물 장비가 없으므로,
+장비 의존 검증은 공개 URL, 로컬 fixture/simulator, loopback publisher, no-device
+suite 같은 대체 테스트로 수행하고 실장비 field smoke는 별도 후속으로 기록합니다.
+개인 LAN IP, credential, 고객/운영 영상 URL은 문서와 artifact에 남기지 않습니다.
 
 문서/UI/Auth/권한처럼 media pipeline 자체를 바꾸지 않은 변경에서는
 위 명령을 기본으로 돌리지 않고, 아래 전용 smoke를 사용합니다.
@@ -212,6 +217,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-script-inventory
 ./server.sh verify-code-comments
 ./server.sh verify-docs-links
+./server.sh verify-integrator-contract-artifact
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-actions-security
 ./server.sh write-dependency-notice --check

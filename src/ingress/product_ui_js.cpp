@@ -84,6 +84,12 @@ std::string ProductSharedUiScript() {
         '삭제': 'Delete',
         '작업': 'Actions',
         '상태': 'Status',
+        '상태 복사': 'Copy status',
+        '상태 요약 복사 완료': 'Status summary copied',
+        '복사할 상태가 없습니다.': 'No status is available to copy.',
+        '클립보드 복사 실패. 아래 내용을 선택해 직접 복사하세요.': 'Clipboard copy failed. Select the text below and copy it manually.',
+        '아래 텍스트를 선택해 직접 복사하세요.': 'Select the text below and copy it manually.',
+        '수동 복사용 텍스트': 'Manual copy text',
         '이름': 'Name',
         '종류': 'Type',
         '입력': 'Input',
@@ -113,6 +119,9 @@ std::string ProductSharedUiScript() {
         '연도. 월. 일. --:--': 'yyyy-mm-dd --:--',
         '동작': 'Action',
         '시작': 'Start',
+        '재연결': 'Reconnect',
+        '정지': 'Stop',
+        '보기 방식': 'View mode',
         '종료': 'End',
         '페이지 크기': 'Page size',
         '이전': 'Previous',
@@ -120,6 +129,18 @@ std::string ProductSharedUiScript() {
         '아직 기록된 변경 이력이 없습니다.': 'No change history has been recorded yet.',
         '활성화': 'Enable',
         '비활성화': 'Disable',
+        '복구': 'Restore',
+        '계정 라이프사이클 정책': 'Account Lifecycle Policy',
+        '초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다.': 'Review invite expiry, password reset, disable/restore, and user audit export in one operator workflow.',
+        'auth/session 계약 변경 없음': 'No auth/session contract changes',
+        '초대': 'Invite',
+        '기본 만료 24시간': 'Default expiry 24 hours',
+        '초기화 후 다음 로그인 변경': 'Change required after reset',
+        '비활성화 시 로그인/세션 차단': 'Disable blocks login/session',
+        '로그인/세션 차단': 'Login/session blocked',
+        '감사': 'Audit',
+        'JSON/CSV/Diff JSON export': 'JSON/CSV/Diff JSON export',
+        '초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다.': 'Invite links are valid for 24 hours by default; issue a new invite after expiry. Password reset sets a temporary password and revokes existing sessions. Restore clears login lockout and failed attempts.',
         '사용자 관리': 'User Management',
         '사용자 목록': 'Users',
         '사용자 추가': 'Add User',
@@ -134,8 +155,12 @@ std::string ProductSharedUiScript() {
         '마지막 로그인': 'Last login',
         '잠금 만료': 'Lock expires',
         '비밀번호 변경': 'Must change',
+        '비밀번호 초기화': 'Reset password',
         '초기 비밀번호': 'Initial password',
         '비밀번호 확인': 'Confirm password',
+        '새 임시 비밀번호': 'New temporary password',
+        '새 임시 비밀번호 확인': 'Confirm temporary password',
+        '임시 비밀번호를 설정하면 기존 세션을 회수하고 다음 로그인에서 비밀번호 변경을 요구합니다. 비밀번호 원문은 감사 로그에 남기지 않습니다.': 'Setting a temporary password revokes existing sessions and requires a change on next login. Plaintext passwords are not written to audit logs.',
         '다음 로그인 시 비밀번호 변경': 'Require password change at next login',
         '시청자': 'Viewer',
         '운영자': 'Operator',
@@ -151,6 +176,7 @@ std::string ProductSharedUiScript() {
         '공개 회원가입이 아니라, 별도 요청 페이지로 들어온 계정을 관리자가 검토한 뒤 초대 링크를 발급합니다.': 'This is not open self-signup; admins review requests from the request page and issue invite links.',
         '사용자와 권한 범위를 관리합니다.': 'Manage users and scopes.',
         '이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인합니다.': 'Review actor, before/after values, and time for user changes from this browser.',
+        '이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인하고 사용자 감사 JSON/CSV/Diff JSON export를 내려받습니다.': 'Review actor, before/after values, and time for user changes from this browser, and download user audit JSON/CSV/Diff JSON exports.',
         '이 브라우저에서 수행한 채널 변경의 작업자, 전/후 값, 시각을 확인합니다.': 'Review actor, before/after values, and time for channel changes from this browser.',
         '이 브라우저에서 수행한 룰 변경의 작업자, 전/후 값, 시각을 확인합니다.': 'Review actor, before/after values, and time for rule changes from this browser.',
         '변경 이력': 'Change History',
@@ -169,6 +195,12 @@ std::string ProductSharedUiScript() {
         'ONVIF 카메라': 'ONVIF camera',
         'Published WebRTC 소스': 'Published WebRTC source',
         'ONVIF 스트림 URI': 'ONVIF Stream URI',
+        'ONVIF probe fixture': 'ONVIF probe fixture',
+        'ONVIF profile': 'ONVIF profile',
+        'profile 후보 없음': 'No profile candidates',
+        'Probe draft 적용': 'Apply probe draft',
+        '초기화': 'Clear',
+        'test/fixtures/onvif_probe_result_stub.json 내용을 붙여넣기': 'Paste test/fixtures/onvif_probe_result_stub.json content',
         '발행 sourceId': 'Published sourceId',
         'RTSP/WHEP는 운영 확인용입니다. 브라우저 재생은': 'RTSP/WHEP is for operations checks. Browser playback is available at',
         '에서 확인합니다.': '.',
@@ -176,7 +208,7 @@ std::string ProductSharedUiScript() {
         '전체 이력': 'Full history',
         '외부 WHEP pull': 'External WHEP pull',
         'ONVIF 카메라는 ONVIF 프로파일에서 선택한 라이브 스트림 URI를 연결합니다. 외부 WHEP는 URL 입력, Published WebRTC 소스는 저장된 sourceId 연결입니다.': 'ONVIF camera connects the live stream URI selected from an ONVIF profile. External WHEP takes a URL. Published WebRTC source connects a saved sourceId.',
-        'ONVIF 장치의 라이브 프로파일에서 선택한 재생 URI를 입력합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.': 'Enter the playback URI selected from the ONVIF device live profile. After saving, it is shown as an ONVIF channel and uses the same RTSP/WHEP output URL copy flow.',
+        'ONVIF 장치의 라이브 프로파일에서 선택한 재생 URI를 입력합니다. WS-Discovery 자동 검색, PTZ 제어, ONVIF Events/PullPoint, Profile G/Recording/Replay는 제공하지 않습니다. 운영자가 확인한 live URI 또는 probe fixture를 사용합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.': 'Enter the playback URI selected from the ONVIF device live profile. WS-Discovery auto discovery, PTZ control, ONVIF Events/PullPoint, and Profile G/Recording/Replay are not provided. Use an operator-verified live URI or probe fixture. After saving, it is shown as an ONVIF channel and uses the same RTSP/WHEP output URL copy flow.',
         'RTSP/WHEP는 운영 확인용입니다. 브라우저 재생은 /client/live에서 확인합니다.': 'RTSP/WHEP is for operations checks. Use /client/live for browser playback.',
         '외부 WebRTC playback endpoint를 서버가 WHEP pull source로 연결합니다. URL 자체가 입력값입니다.': 'The server connects an external WebRTC playback endpoint as a WHEP pull source. The URL itself is the input.',
         '외부 URL을 넣는 항목이 아닙니다. 이 서버의 WHIP publish endpoint로 이미 등록된 sourceId를 연결합니다.': 'This is not an external URL field. Connect a sourceId already registered through this server WHIP publish endpoint.',
@@ -207,6 +239,28 @@ std::string ProductSharedUiScript() {
         '문제 원인': 'Root Cause',
         '소스 수명주기, 지연, 재연결, 권한/설정 상태와 다음 조치를 함께 봅니다.': 'Review source lifecycle, stale, reconnect, auth/config status, and next actions together.',
         '런타임 상태를 불러오는 중입니다.': 'Loading runtime status.',
+        '최근 인시던트 흐름': 'Recent Incident Timeline',
+        '문제 원인, EventRecord, source health, 로그 단서를 시간순으로 묶어 봅니다.': 'Review root-cause, EventRecord, source health, and log clues as a timeline.',
+        '인시던트 검색': 'Search incidents',
+        '제목, 출처, cid 검색': 'Search title, source, or cid',
+        '전체 출처': 'All sources',
+        '최근 인시던트 단서를 불러오는 중입니다.': 'Loading recent incident clues.',
+        '최근 인시던트 없음': 'No recent incidents',
+        '즉시 인시던트 없음': 'No immediate incidents',
+        '필터 결과': 'Filtered results',
+        '필터에 맞는 인시던트 단서가 없습니다.': 'No incident clues match this filter.',
+        '다른 검색어 또는 출처 필터를 선택하세요.': 'Choose another search term or source filter.',
+        '최근 단서를 시간순으로 묶었습니다. 확인 항목부터 관련 화면으로 이동합니다.': 'Recent clues are grouped by time. Start with items needing attention and open the related screen.',
+        '최근 EventRecord와 source health 단서를 기준으로 즉시 대응할 인시던트가 없습니다.': 'No incidents need immediate action based on recent EventRecord and source health clues.',
+        '문제 원인, EventRecord, source health, 로그 tail에서 즉시 확인할 단서가 없습니다.': 'No immediate clues were found in root-cause, EventRecord, source health, or log tail data.',
+        '관련 화면': 'Related screen',
+        '출처': 'Source',
+        'Log tail': 'Log tail',
+        'log tail': 'log tail',
+        'log tail 없음': 'No log tail',
+        'source health 정상': 'source health normal',
+        '소스 상태 변경 이력': 'Source status change history',
+        '상태 변화 audit은 /ops/sources 변경 이력의 소스 상태 변경 preset에서 확인합니다.': 'Review state-change audits from the source status change preset in /ops/sources change history.',
         '스트림 대기': 'Streams waiting',
         '스트림 활성': 'Streams active',
         '분석 대기': 'Analysis waiting',
@@ -339,6 +393,7 @@ std::string ProductSharedUiScript() {
         '이벤트 템플릿 추가': 'Add Event Template',
         '영역/라인': 'Zone / Line',
         'URL 복사': 'Copy URL',
+        '클립보드 복사 실패. 주소창의 필터 링크를 직접 복사하세요.': 'Clipboard copy failed. Copy the filter link from the address bar.',
         '구분': 'Mode',
         '대상': 'Target',
         '조건': 'Condition',
@@ -427,6 +482,7 @@ std::string ProductSharedUiScript() {
         '소스': 'Source',
         '대시보드': 'Dashboard',
         '채널 선택': 'Select channel',
+        '채널 미선택': 'No channel selected',
         '표준': 'Standard',
         '고밀도': 'Compact',
         '그리드': 'Grid',
@@ -443,6 +499,7 @@ std::string ProductSharedUiScript() {
         '보기 방식': 'View mode',
         '오프라인': 'Offline',
         '메타데이터': 'Metadata',
+        '이벤트': 'Events',
         '재시도': 'Retry',
         '확인 필요': 'Needs attention',
         '이벤트 있음': 'Has events',
@@ -464,6 +521,9 @@ std::string ProductSharedUiScript() {
         '상태 조회 실패': 'Status lookup failed',
         '기본 현장': 'Default site',
         '라인 통과': 'Line crossing',
+        '이벤트 복사': 'Copy events',
+        '이벤트 요약 복사 완료': 'Event summary copied',
+        '클립보드 복사 실패': 'Clipboard copy failed',
         '침입': 'Intrusion',
         '배회': 'Loitering',
         '혼잡/점유': 'Crowding / occupancy',
@@ -490,6 +550,8 @@ std::string ProductSharedUiScript() {
           [/^비활성\s+(\d+)$/u, (_match, count) => `Disabled ${count}`],
           [/^view 누락\s+(\d+)$/u, (_match, count) => `Missing views ${count}`],
           [/^입력 미완성\s+(\d+)$/u, (_match, count) => `Incomplete inputs ${count}`],
+          [/^타일\s+(\d+):\s+(.+)$/u, (_match, count, detail) => `Tile ${count}: ${koToEn.get(detail.trim()) || translatePattern(detail.trim())}`],
+          [/^타일\s+(\d+)\s+(시작|재연결|정지|채널|보기 방식)$/u, (_match, count, action) => `Tile ${count} ${koToEn.get(action) || action}`],
           [/^타일\s+(\d+)\s+·\s+(.+)$/u, (_match, count, mode) => `Tile ${count} · ${koToEn.get(mode) || mode}`],
           [/^(\d+)개 범위\s+([\s\S]+)$/u, (_match, count, detail) => `${count} scopes\n${koToEn.get(detail.trim()) || detail}`],
           [/^(\d+)개 범위$/u, (_match, count) => `${count} scopes`],
@@ -550,6 +612,9 @@ std::string ProductSharedUiScript() {
           [/^지연\s+(.+)$/u, (_match, value) => `Delay ${koToEn.get(String(value).trim()) || translatePattern(String(value).trim())}`],
           [/^트랙\s+(.+)$/u, (_match, value) => `Tracks ${koToEn.get(String(value).trim()) || String(value).trim()}`],
           [/^이벤트\s+(.+)$/u, (_match, value) => `Events ${koToEn.get(String(value).trim()) || String(value).trim()}`],
+          [/^상태\s+(.+)$/u, (_match, value) => `Status ${koToEn.get(String(value).trim()) || translatePattern(String(value).trim())}`],
+          [/^메타데이터\s+(.+)$/u, (_match, value) => `Metadata ${koToEn.get(String(value).trim()) || translatePattern(String(value).trim())}`],
+          [/^재시도\s+(\d+)$/u, (_match, count) => `Retry ${count}`],
           [/^(.+)\s+·\s+최대\s+(\d+)개$/u, (_match, name, count) => `${koToEn.get(String(name).trim()) || translatePattern(String(name).trim())} · up to ${count}`],
           [/^(.+)\s+모니터링$/u, (_match, name) => `${koToEn.get(String(name).trim()) || translatePattern(String(name).trim())} monitoring`],
           [/^(.+)\s+monitoring$/u, (_match, name) => `${koToEn.get(String(name).trim()) || translatePattern(String(name).trim())} monitoring`],
@@ -764,7 +829,7 @@ std::string ProductSharedUiScript() {
         panel.hidden = !open;
         if (open && options.scroll) {
           panel.scrollIntoView({
-            behavior: options.behavior || 'smooth',
+            behavior: options.behavior || 'auto',
             block: options.block || 'start'
           });
         }
@@ -918,6 +983,25 @@ std::string ProductSharedUiScript() {
           { id: 'all', label: '전체 이력', state: { q: '', actor: '', user: '', target: '', action: '', fromMs: '', toMs: '' } }
         ];
       };
+      const auditHashStateFor = area => {
+        const rawHash = String(window.location.hash || '').replace(/^#/, '');
+        if (!rawHash) return null;
+        const params = new URLSearchParams(rawHash);
+        const hashArea = String(params.get('auditArea') || area || '').trim();
+        if (hashArea && area && hashArea !== area) return null;
+        const preset = String(params.get('auditPreset') || '').trim();
+        const presetState = auditFilterPresetsFor(area).find(item => item.id === preset)?.state || {};
+        const state = { ...presetState };
+        const action = String(params.get('auditAction') || params.get('audit') || '').trim();
+        const target = String(params.get('auditTarget') || '').trim();
+        const query = String(params.get('auditQ') || '').trim();
+        if (action) state.action = action;
+        if (target) state.target = target;
+        if (query) state.q = query;
+        if (params.get('auditFromMs')) state.fromMs = params.get('auditFromMs');
+        if (params.get('auditToMs')) state.toMs = params.get('auditToMs');
+        return Object.keys(state).length > 0 ? state : null;
+      };
       const auditLocalDateTime = value => {
         const numeric = Number(value || 0);
         if (!Number.isFinite(numeric) || numeric <= 0) return '';
@@ -1019,7 +1103,8 @@ std::string ProductSharedUiScript() {
       }
       function auditStateFor(containerId, area = '') {
         if (!opsAuditViewStates.has(containerId)) {
-          opsAuditViewStates.set(containerId, { area, q: '', actor: '', user: '', target: '', action: '', fromMs: '', toMs: '', limit: 10, offset: 0 });
+          const hashState = auditHashStateFor(area);
+          opsAuditViewStates.set(containerId, { area, q: '', actor: '', user: '', target: '', action: '', fromMs: '', toMs: '', limit: 10, offset: 0, ...(hashState || {}) });
         }
         const state = opsAuditViewStates.get(containerId);
         state.area = area;
@@ -1042,6 +1127,7 @@ std::string ProductSharedUiScript() {
           delete: '삭제',
           enable: '활성화',
           disable: '비활성화',
+          'reset-password': '비밀번호 초기화',
           'bulk-clone': '대량 복제',
           'bulk-disable': '대량 비활성화',
           'source-health-state-change': '소스 상태 변경',
@@ -1108,6 +1194,7 @@ std::string ProductSharedUiScript() {
                   <option value="delete">삭제</option>
                   <option value="enable">활성화</option>
                   <option value="disable">비활성화</option>
+                  <option value="reset-password">비밀번호 초기화</option>
                   <option value="bulk-clone">대량 복제</option>
                   <option value="bulk-disable">대량 비활성화</option>
                   <option value="source-health-state-change">소스 상태 변경</option>

@@ -241,12 +241,12 @@
       "id": "yt-dlp-deno",
       "name": "yt-dlp and Deno",
       "license": "Upstream project terms",
-      "usage": "선택 실험 기능인 YouTube import helper path",
+      "usage": "opt-in lab-only YouTube import/source helper path",
       "source": "시스템 패키지 관리자",
       "distribution": "외부 optional tool이며 이 저장소에 vendoring하지 않음",
-      "versionPolicy": "YouTube import/source 실험 기능을 켠 환경에서만 필요하며 snapshot에 버전을 기록합니다.",
+      "versionPolicy": "YouTube import/source opt-in lab build에서만 필요하며 snapshot에 버전을 기록합니다.",
       "minimumVersion": "제품 핵심 실행 필수 조건이 아닙니다.",
-      "bundlePolicy": "번들에 포함하면 각 tool의 upstream license를 포함하고 YouTube import는 실험 기능으로 유지합니다.",
+      "bundlePolicy": "번들에 포함하면 각 tool의 upstream license를 포함하고 YouTube import/source는 lab-only 실험 기능으로 유지합니다.",
       "detectors": [
         { "label": "yt-dlp", "command": "yt-dlp", "args": ["--version"], "versionPattern": "^(.+)$" },
         { "label": "deno", "command": "deno", "args": ["--version"], "versionPattern": "^deno\\s+([^\\s]+)" }

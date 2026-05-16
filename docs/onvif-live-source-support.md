@@ -1,15 +1,24 @@
 # ONVIF Live Source Support
 
-이 문서는 현재 main 기준의 ONVIF live source 지원 범위를 고정합니다.
+이 문서는 현재 main 기준의 ONVIF Profile S/T live source 지원 범위를 고정합니다.
 ONVIF는 file, RTSP pull, HTTP/HLS URI, WHEP pull, Published WebRTC와 같은
 채널 source 유형 중 하나로 취급합니다. 제품 UI에서 ONVIF만 별도 import
 화면이나 특별한 workflow로 분리하지 않습니다.
+이 범위는 Profile S/T 계열 카메라의 live stream URI 등록을 위한 제한 지원이며,
+ONVIF Profile S/T 전체 conformance를 의미하지 않습니다.
+ONVIF protocol/service별 지원 범위는
+[ONVIF Protocol Support Matrix](./onvif-protocol-support-matrix.md)를 기준으로
+보고합니다.
 
 관련 기준:
 
 - [Development Backlog](./development-backlog.md)
 - [Media Server Architecture](./media-server-architecture.md)
 - [Config Reference](./config-reference.md)
+- [ONVIF Protocol Support Matrix](./onvif-protocol-support-matrix.md)
+- [ONVIF No-Device Verification](./onvif-no-device-verification.md)
+- [ONVIF RTSPS Draft Policy](./onvif-rtsps-draft-policy.md)
+- [ONVIF Unsupported API Guard](./onvif-unsupported-api-guard.md)
 
 ## 범위
 
@@ -28,11 +37,14 @@ ONVIF는 file, RTSP pull, HTTP/HLS URI, WHEP pull, Published WebRTC와 같은
 비범위:
 
 - ONVIF conformant server
+- ONVIF Profile S/T 전체 conformance
+- WS-Discovery 자동 검색
+- ONVIF Events/PullPoint subscription
 - ONVIF Profile G recording/replay
 - camera recording configuration
 - edge storage 조회
 - playback/replay URL 지원
-- PTZ control 1차 구현
+- PTZ control
 - SourceRegistry/PublishedView 저장 payload schema 변경
 - client/viewer 화면의 source URL, ONVIF endpoint, credential reference,
   raw diagnostic JSON 노출
@@ -75,16 +87,177 @@ ONVIF를 별도 import UI나 특별한 제품 기능으로 노출하지 않습�
 ```text
 POST /ops/api/onvif/import-draft
 test/fixtures/onvif_live_import_stub.json
+test/fixtures/onvif_probe_result_stub.json
+test/fixtures/onvif_probe_profile_variants.json
+test/fixtures/onvif_synthetic_vendor_fixture_pack.json
+test/fixtures/onvif_closed_loopback_failure_matrix.json
 ```
 
 계약:
 
 - 입력 fixture는 실제 camera 연결 대신 합성 ONVIF 응답을 표현합니다.
+- probe fixture는 Device/Media/Media2 service와 live RTSP profile 조회 결과를
+  raw SOAP 없이 표현합니다.
+- profile variant fixture는 Media2 우선, Media fallback, Media-only, H265
+  RTSP, RTSPS direct/fallback profile 선택과 Media/Media2 empty-profile 실패를
+  실장비 없이 고정합니다.
+- vendor-style synthetic fixture pack은 실제 제조사 이름/실장비 endpoint 없이
+  Profile S/T, Media2 main/substream, Media-only, RTSPS H265, Media fallback,
+  low-fps substream, Media2 empty profile fallback, non-default Device service
+  path case를 기존 draft 계약으로 축약 가능한지 고정합니다.
+- closed loopback failure matrix는 endpoint 성공이 아니라 sanitized transport
+  failure와 redaction을 고정합니다.
+- SOAP parser는 Device/Media/Media2 service, Media/Media2 profile, GetStreamUri
+  응답을 내부 live profile 모델로만 축약합니다.
+- probe adapter는 endpoint/timeout/action 순서와 sanitize된 실패 요약만 다루며
+  raw SOAP나 credential 원문을 응답 모델에 남기지 않습니다.
+- probe 실패 문구는 `test/fixtures/onvif_probe_error_wording_matrix.json` 기준으로
+  request/transport/service/profile 실패별 요약과 redaction 금지어를 고정합니다.
+- HTTP SOAP transport는 `http://` ONVIF endpoint에 POST하고, OpenSSL 빌드에서는
+  `https://` ONVIF endpoint도 TLS 검증 후 POST합니다. 세부 기준은
+  [ONVIF TLS Transport Policy](./onvif-tls-transport-policy.md)를 따릅니다.
+- local simulator fixture smoke는 실제 장비 대신 loopback SOAP 서버를 사용해
+  `GetServices`, `Media2.GetProfiles`, `Media2.GetStreamUri` HTTP POST 성공 경로,
+  Media fallback, Media-only, non-RTSP GetStreamUri 실패 경계를 검증합니다.
+- probe fixture의 `draftDecision`도 기존 import draft endpoint에서
+  SourceRegistry/PublishedView draft로 변환합니다.
+- `previewContract`는 `media-server.onvif-draft-preview.v1`로 고정하며,
+  `scope=ops-sources-before-save`, `requiresExplicitSave=true`,
+  `storageAction=none`, `sourceRegistryMutation=false`,
+  `publishedViewMutation=false`를 명시합니다.
 - 응답은 기존 `/ops/api/sources`와 `/ops/api/views`에 보낼 수 있는 draft만
   반환합니다.
 - 저장 side effect는 없습니다.
+- preview contract와 route 응답은 endpoint, credential material, raw SOAP,
+  raw diagnostic JSON을 포함하지 않습니다.
+- import/probe draft API route smoke는 malformed body, decision 누락,
+  selected profile 불일치, non-RTSP selected profile, plaintext credential
+  입력을 모두 400으로 거부하고 SourceRegistry side effect가 없음을 확인합니다.
 - `expectedSourceDraft.tags`에는 최소 `onvif`, `live`가 포함됩니다.
 - 응답에는 password, token 원문, ONVIF raw SOAP, credential 원문을 포함하지 않습니다.
+- credential reference 세부 기준은
+  [ONVIF Credential Reference Policy](./onvif-credential-reference-policy.md)를
+  따릅니다.
+
+## Media/Media2 Profile Selection Policy
+
+현재 v1.2.0 ONVIF probe는 live source 등록 draft 생성을 위한 최소 profile
+선택만 수행합니다.
+
+선택 순서:
+
+1. `GetServices`로 Device service가 광고하는 `Media2`, `Media` 지원 여부를
+   확인합니다.
+2. `Media2`가 있으면 `Media2.GetProfiles`를 먼저 조회합니다.
+3. `Media`는 `Media2`에서 live RTSP profile을 찾지 못했거나 `Media2`가 없는
+   장비를 위한 보조 경로로 조회합니다.
+4. 각 profile은 `GetStreamUri` 결과가 `rtsp://` 또는 `rtsps://`인 경우에만
+   live source 후보로 남깁니다.
+5. deterministic smoke 기준으로는 서비스 우선순위와 장비 응답 순서에서 처음
+   발견한 live RTSP profile 하나만 `selected=true`로 둡니다.
+
+draft 매핑:
+
+- 선택 profile의 stream URI는 `sourceDraft.rtspUrl`로만 들어갑니다.
+- `sourceDraft.kind`는 `rtsp`이며, `tags`에는 최소 `onvif`, `live`가 들어갑니다.
+- `publishedViewDraft`에는 RTSP URI, ONVIF endpoint, credential reference를
+  넣지 않습니다.
+- HTTP/HLS URI는 운영자가 이미 검증한 수동 URI 입력에는 사용할 수 있지만,
+  자동 probe profile 선택의 성공 조건으로 보지 않습니다.
+- `rtsps://` GetStreamUri 결과는 probe live 후보와 automatic import draft
+  fixture contract에서 모두 기존 `kind=rtsp` source draft로 축약합니다.
+  세부 기준은 [ONVIF RTSPS Draft Policy](./onvif-rtsps-draft-policy.md)를
+  따릅니다.
+
+실패 정책:
+
+- Media/Media2 service가 없으면 sanitized summary는
+  `ONVIF probe failed at GetServices: Media or Media2 service is required`입니다.
+- live RTSP profile을 찾지 못하면 sanitized summary는
+  `ONVIF probe failed at GetStreamUri: no live RTSP profile discovered`입니다.
+  `test/fixtures/onvif_probe_profile_variants.json`의
+  `media2-and-media-empty-profiles` failure variant는 Media/Media2 service가
+  있지만 profile 목록이 비어 있는 경우에도 draft를 생성하지 않는 경계를
+  고정합니다.
+
+비범위:
+
+- ONVIF Profile G recording/replay, camera recording configuration,
+  playback/search, origin metadata 저장, credential persistence는 이 profile
+  selection policy에 포함하지 않습니다.
+
+## 현장 수동 Smoke 절차
+
+실장비가 없으면 현장 endpoint 성공 smoke는 실행하지 않습니다.
+[ONVIF No-Device Verification](./onvif-no-device-verification.md)에 따라
+synthetic fixture, loopback transport, redaction 검증만 수행하며, 실장비 endpoint
+성공은 미확인으로 보고합니다.
+이번 v1.2.0 ONVIF 현장 연동 개발 과정에서는 실제 ONVIF 카메라 smoke를 수행하지
+않았고, 공개 인터넷의 임의 ONVIF endpoint도 실장비 대체로 사용하지 않았습니다.
+실장비 없는 성공 경로 대체 검증은 local simulator fixture smoke로만 구분해
+보고합니다.
+
+실제 ONVIF 카메라로 확인할 때는 현장 endpoint와 credential을 문서나 로그에
+원문으로 남기지 않습니다. 결과 공유에는 아래처럼 redacted 값만 사용합니다.
+
+사전 조건:
+
+- 운영자가 접근 가능한 ONVIF Device service endpoint
+- 운영자가 별도 보관하는 credential 또는 credential reference
+- 서버가 접근 가능한 같은 네트워크 경로
+- 임시 SourceRegistry/PublishedView 경로 또는 되돌릴 수 있는 테스트 registry
+
+실제 HTTP endpoint probe harness:
+
+```bash
+MEDIA_SERVER_ONVIF_FIELD_ENDPOINT='http://<redacted-host>/onvif/device_service' \
+  ./server.sh verify-onvif-field-http-probe \
+    --credential-ref-present \
+    --output /tmp/onvif-field-probe-redacted.json
+```
+
+- endpoint URL에는 username, password, token을 넣지 않습니다.
+- 현재 harness는 `http://` endpoint만 실제 SOAP transport로 probe합니다.
+- stdout과 `--output` 산출물은 endpoint, stream URI, credential 원문을 redacted
+  summary로만 남깁니다.
+- endpoint가 없는 CI/로컬 검증에서는
+  `./server.sh verify-onvif-field-http-probe --allow-missing-endpoint`로
+  실장비 미제공 skip을 명시합니다.
+
+확인 순서:
+
+1. endpoint 접근 가능 여부와 인증 필요 여부를 운영자 환경에서 확인합니다.
+2. Device service에서 Media/Media2 service 존재 여부를 확인합니다.
+3. Media/Media2 profile 목록에서 live RTSP profile만 후보로 남깁니다.
+4. 선택 profile의 `GetStreamUri` 결과가 `rtsp://` 또는 `rtsps://`인지 확인합니다.
+5. probe 결과를 `test/fixtures/onvif_probe_result_stub.json`과 같은 구조로
+   redacted fixture에 옮기되 raw SOAP와 credential 원문은 제외합니다.
+6. `POST /ops/api/onvif/import-draft`에 redacted fixture를 넣어
+   `sourceDraft`와 `publishedViewDraft`만 생성되는지 확인합니다.
+7. `/ops/api/sources`와 `/ops/api/views`에 draft를 저장하고 `/ops/sources`
+   채널 목록에서 ONVIF source로 보이는지 확인합니다.
+8. `/client/api/views`와 `/client/api/views/{viewId}` 응답에 source locator,
+   ONVIF endpoint, credential reference, raw diagnostic JSON이 없는지 확인합니다.
+9. 채널 Live/VA URL copy와 `/ops/rules`의 ONVIF RTSP/WHEP/WebRTC copy 버튼을
+   확인합니다.
+10. 공유 전 산출물은 [ONVIF Field Smoke Artifact Redaction Checklist](./onvif-field-smoke-artifact-redaction.md)
+    기준으로 endpoint, credential, raw SOAP, raw diagnostic JSON이 제거됐는지
+    확인합니다.
+
+기록 템플릿:
+
+```text
+camera: <vendor/model redacted>
+endpoint: <redacted host>/onvif/device_service
+auth: credentialRef present, plaintext omitted
+services: Device=<yes/no>, Media=<yes/no>, Media2=<yes/no>
+selectedProfile: token=<redacted>, api=<Media|Media2>, encoding=<H264|H265>,
+  size=<width>x<height>, fps=<n>, transport=RTSP
+draft: sourceId=<id>, viewId=<id>, tags=onvif/live
+clientRedaction: pass/fail
+opsCopyParity: pass/fail
+notes: <sanitized operational note>
+```
 
 ## Verification
 
@@ -92,7 +265,36 @@ test/fixtures/onvif_live_import_stub.json
 
 ```bash
 ./server.sh build
+./server.sh verify-onvif-protocol-support-matrix
+./server.sh verify-onvif-rtsps-draft-policy
+./server.sh verify-onvif-ws-discovery-ux
+./server.sh verify-onvif-unsupported-api-guard
 ./server.sh verify-onvif-live-import-contract
+./server.sh verify-onvif-probe-fixture-contract
+./server.sh verify-onvif-probe-profile-variants
+./server.sh verify-onvif-synthetic-vendor-fixtures
+./server.sh verify-onvif-probe-parser
+./server.sh verify-onvif-probe-adapter
+./server.sh verify-onvif-http-transport
+./server.sh verify-onvif-local-simulator
+./server.sh verify-onvif-probe-error-wording
+./server.sh verify-onvif-soap-fault-matrix
+./server.sh verify-onvif-no-device-suite
+./server.sh verify-onvif-no-device-suite --json-output /tmp/media_server_onvif_no_device_summary.json
+./server.sh verify-onvif-no-device-mode
+./server.sh verify-onvif-no-device-completion
+./server.sh verify-onvif-https-tls-fixture
+./server.sh verify-onvif-auth-injection-loopback
+./server.sh verify-onvif-field-smoke-redaction
+./server.sh verify-onvif-field-smoke-sample-bundle
+./server.sh verify-onvif-field-http-probe --allow-missing-endpoint
+./server.sh verify-onvif-field-http-probe --endpoint http://127.0.0.1:9/onvif/device_service --expect-failure --credential-ref-present
+./server.sh verify-onvif-closed-loopback-failure-matrix
+./server.sh verify-onvif-tls-transport-policy
+./server.sh verify-onvif-credential-reference-policy
+./server.sh verify-onvif-probe-draft-api
+./server.sh verify-onvif-probe-draft-api --fixture test/fixtures/onvif_probe_result_rtsps_stub.json
+./server.sh verify-onvif-probe-draft-api --profile-variant media-rtsps-fallback-when-media2-non-rtsp
 ./server.sh verify-onvif-import-draft-api
 ./server.sh verify-onvif-rtsp-downstream
 ./server.sh verify-onvif-ops-sources-ui
@@ -107,6 +309,19 @@ git diff --check
 채널/룰 URL copy parity를 임시 registry에서 확인합니다. client API에 RTSP URL,
 ONVIF endpoint, credential reference, raw diagnostic JSON이 노출되지 않는지도
 함께 확인합니다.
+
+`verify-ops-client-ui --screenshots`는 `/ops/sources`에서 ONVIF kind를 선택한 뒤
+WS-Discovery/PTZ/Events/Profile G 비지원 hint가 실제 screenshot viewport에 보이는지
+추가로 확인합니다. 이 ONVIF hint screenshot smoke는 `--visual-widths`를 좁혀도
+320px 폭을 항상 포함합니다.
+
+no-device suite 성공 summary fixture는
+`test/fixtures/onvif_no_device_suite_success_summary.json`, 실패 summary fixture는
+`test/fixtures/onvif_no_device_suite_failure_summary.json`이며,
+`verify-onvif-no-device-mode`가 성공 완료 개수, 실패 전 완료 개수, 실패 명령,
+`realDeviceEndpointSuccess=미확인` 보존을 정적으로 확인합니다.
+같은 검증에서 `media-server.onvif-no-device-suite-summary.v1` schema version drift guard도
+확인합니다.
 
 구현 단계에서도 Event POST payload, WebRTC DataChannel schema,
 SSE/WS metadata schema, RTSP/WebRTC media path는 변경하지 않습니다.

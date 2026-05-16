@@ -24,7 +24,9 @@
 
 #include "app_config.h"
 #include "core/shared_stream.h"
+#if MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE
 #include "core/youtube_resolver.h"
+#endif
 #include "ingress/webrtc_source_registry.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -987,7 +989,8 @@ public:
                 g_object_set(source_, "protocols", GST_RTSP_LOWER_TRANS_TCP, nullptr);
             }
         }
-        g_signal_connect(source_, "pad-added", G_CALLBACK(&RtspSourceWorker::OnPadAdded), this);
+        pad_added_handler_id_ =
+            g_signal_connect(source_, "pad-added", G_CALLBACK(&RtspSourceWorker::OnPadAdded), this);
 
         running_.store(true);
         bus_thread_ = std::thread([this] { BusLoop(); });
@@ -1064,6 +1067,13 @@ public:
             cv_.notify_all();
         }
 
+        std::lock_guard lifecycle_lock(lifecycle_mu_);
+
+        if (source_ != nullptr && pad_added_handler_id_ != 0) {
+            g_signal_handler_disconnect(source_, pad_added_handler_id_);
+            pad_added_handler_id_ = 0;
+        }
+
         if (pipeline_ != nullptr) {
             gst_element_set_state(pipeline_, GST_STATE_NULL);
         }
@@ -1111,6 +1121,11 @@ private:
     }
 
     void HandlePadAdded(GstPad* pad) {
+        std::lock_guard lifecycle_lock(lifecycle_mu_);
+        if (!running_.load() || pipeline_ == nullptr || pad == nullptr) {
+            return;
+        }
+
         // rtspsrc의 동적 RTP pad마다 depay/parser/appsink branch를 만들어 내부 패킷으로 변환한다.
         GstCaps* caps = gst_pad_get_current_caps(pad);
         if (caps == nullptr) {
@@ -1195,10 +1210,15 @@ private:
         }
         gst_element_sync_state_with_parent(branch->sink);
 
-        branch->sample_thread = std::thread([this, branch_ptr = branch.get()] { SampleLoop(branch_ptr); });
+        SinkBranch* branch_ptr = branch.get();
 
         {
             std::lock_guard lock(mu_);
+            if (!running_.load()) {
+                RemoveBranchElements(branch.get());
+                gst_caps_unref(caps);
+                return;
+            }
             descriptor_.tracks.push_back(branch->track);
             last_discovery_at_ = std::chrono::steady_clock::now();
             auto stream = weak_stream_.lock();
@@ -1210,10 +1230,29 @@ private:
                       << " caps=" << branch->track.caps_string << "\n";
             ++descriptor_version_;
             branches_.push_back(std::move(branch));
-            cv_.notify_all();
         }
+        branch_ptr->sample_thread = std::thread([this, branch_ptr] { SampleLoop(branch_ptr); });
+        cv_.notify_all();
 
         gst_caps_unref(caps);
+    }
+
+    void RemoveBranchElements(SinkBranch* branch) {
+        if (branch == nullptr || pipeline_ == nullptr) {
+            return;
+        }
+        if (branch->sink != nullptr) {
+            gst_bin_remove(GST_BIN(pipeline_), branch->sink);
+        }
+        if (branch->parser != nullptr) {
+            gst_bin_remove(GST_BIN(pipeline_), branch->parser);
+        }
+        if (branch->depay != nullptr) {
+            gst_bin_remove(GST_BIN(pipeline_), branch->depay);
+        }
+        if (branch->queue != nullptr) {
+            gst_bin_remove(GST_BIN(pipeline_), branch->queue);
+        }
     }
 
     std::unique_ptr<SinkBranch> CreateBranch(const TrackInfo& track) {
@@ -1374,7 +1413,9 @@ private:
     StreamDescriptor descriptor_;
     GstElement* pipeline_{nullptr};
     GstElement* source_{nullptr};
+    gulong pad_added_handler_id_{0};
     std::thread bus_thread_;
+    std::mutex lifecycle_mu_;
     std::mutex mu_;
     std::condition_variable cv_;
     std::size_t descriptor_version_{0};
@@ -1425,7 +1466,8 @@ public:
         // HTTP/HLS playable URI는 uridecodebin으로 raw pad를 얻고, 내부 표준 H264/AAC 패킷으로 재인코딩한다.
         gst_bin_add(GST_BIN(pipeline_), source_);
         g_object_set(source_, "uri", source_spec_.uri.c_str(), nullptr);
-        g_signal_connect(source_, "pad-added", G_CALLBACK(&UriSourceWorker::OnPadAdded), this);
+        pad_added_handler_id_ =
+            g_signal_connect(source_, "pad-added", G_CALLBACK(&UriSourceWorker::OnPadAdded), this);
 
         running_.store(true);
         bus_thread_ = std::thread([this] { BusLoop(); });
@@ -1503,6 +1545,13 @@ public:
         {
             std::lock_guard lock(mu_);
             cv_.notify_all();
+        }
+
+        std::lock_guard lifecycle_lock(lifecycle_mu_);
+
+        if (source_ != nullptr && pad_added_handler_id_ != 0) {
+            g_signal_handler_disconnect(source_, pad_added_handler_id_);
+            pad_added_handler_id_ = 0;
         }
 
         if (pipeline_ != nullptr) {
@@ -1612,6 +1661,11 @@ private:
     }
 
     void HandlePadAdded(GstPad* pad) {
+        std::lock_guard lifecycle_lock(lifecycle_mu_);
+        if (!running_.load() || pipeline_ == nullptr || pad == nullptr) {
+            return;
+        }
+
         // decodebin이 내는 raw audio/video pad를 종류별로 하나씩만 내부 표준 branch에 연결한다.
         GstCaps* caps = gst_pad_get_current_caps(pad);
         if (caps == nullptr) {
@@ -1741,10 +1795,15 @@ private:
         }
         gst_element_sync_state_with_parent(branch->sink);
 
-        branch->sample_thread = std::thread([this, branch_ptr = branch.get()] { SampleLoop(branch_ptr); });
+        EncodeBranch* branch_ptr = branch.get();
 
         {
             std::lock_guard lock(mu_);
+            if (!running_.load()) {
+                RemoveBranchElements(branch.get());
+                gst_caps_unref(caps);
+                return;
+            }
             descriptor_.tracks.push_back(branch->track);
             last_discovery_at_ = std::chrono::steady_clock::now();
             auto stream = weak_stream_.lock();
@@ -1753,8 +1812,9 @@ private:
             }
             ++descriptor_version_;
             branches_.push_back(std::move(branch));
-            cv_.notify_all();
         }
+        branch_ptr->sample_thread = std::thread([this, branch_ptr] { SampleLoop(branch_ptr); });
+        cv_.notify_all();
 
         gst_caps_unref(caps);
     }
@@ -1987,7 +2047,9 @@ private:
     StreamDescriptor descriptor_;
     GstElement* pipeline_{nullptr};
     GstElement* source_{nullptr};
+    gulong pad_added_handler_id_{0};
     std::thread bus_thread_;
+    std::mutex lifecycle_mu_;
     std::mutex mu_;
     std::condition_variable cv_;
     std::size_t descriptor_version_{0};
@@ -1999,6 +2061,7 @@ private:
 #endif
 };
 
+#if MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE
 class YouTubeSourceWorker final : public BasicSourceWorker {
 public:
     explicit YouTubeSourceWorker(SourceSpec source_spec) : BasicSourceWorker(std::move(source_spec)) {}
@@ -2140,6 +2203,21 @@ private:
     std::condition_variable stop_cv_;
     std::thread monitor_thread_;
 };
+#else
+class DisabledYouTubeSourceWorker final : public BasicSourceWorker {
+public:
+    explicit DisabledYouTubeSourceWorker(SourceSpec source_spec) : BasicSourceWorker(std::move(source_spec)) {}
+
+    bool Start(const std::shared_ptr<core::SharedStream>&, std::string* error_message) override {
+        if (error_message != nullptr) {
+            *error_message =
+                "source=youtube is not available in this build; rebuild with MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=ON";
+        }
+        running_ = false;
+        return false;
+    }
+};
+#endif
 
 class WebRtcSourceWorker final : public BasicSourceWorker {
 public:
@@ -2225,7 +2303,11 @@ std::unique_ptr<SourceWorker> CreateSourceWorker(const media::SourceSpec& source
         case media::SourceSpec::Kind::Http:
             return std::make_unique<UriSourceWorker>(source_spec);
         case media::SourceSpec::Kind::Youtube:
+#if MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE
             return std::make_unique<YouTubeSourceWorker>(source_spec);
+#else
+            return std::make_unique<DisabledYouTubeSourceWorker>(source_spec);
+#endif
     }
     return nullptr;
 }

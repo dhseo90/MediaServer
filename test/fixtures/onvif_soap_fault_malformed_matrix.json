@@ -1,0 +1,111 @@
+{
+  "schema": "media-server.onvif-soap-fault-malformed-matrix.v1",
+  "description": "Synthetic ONVIF SOAP Fault and malformed response matrix. It fixes fail-safe adapter wording and is not a product API contract.",
+  "defaultForbiddenTerms": [
+    "operator-entered-secret",
+    "secret-camera-token",
+    "http://192.0.2.20",
+    "192.0.2.20",
+    "/onvif/device_service",
+    "raw SOAP",
+    "<s:Fault",
+    "Receiver",
+    "InvalidArgVal"
+  ],
+  "scenarios": [
+    {
+      "id": "get-services-soap-fault",
+      "category": "soap-fault",
+      "inputSummary": "GetServices returns HTTP 200 with SOAP Fault body.",
+      "expected": {
+        "ok": false,
+        "credentialRefPresent": true,
+        "error": "ONVIF probe failed at GetServices: Media or Media2 service is required",
+        "requiredTerms": [
+          "GetServices",
+          "Media or Media2 service is required"
+        ],
+        "forbiddenTerms": []
+      }
+    },
+    {
+      "id": "get-services-malformed-xml",
+      "category": "malformed-soap",
+      "inputSummary": "GetServices returns malformed XML without service entries.",
+      "expected": {
+        "ok": false,
+        "credentialRefPresent": true,
+        "error": "ONVIF probe failed at GetServices: Media or Media2 service is required",
+        "requiredTerms": [
+          "GetServices",
+          "Media or Media2 service is required"
+        ],
+        "forbiddenTerms": []
+      }
+    },
+    {
+      "id": "get-services-http-500-soap-fault",
+      "category": "transport",
+      "inputSummary": "GetServices returns HTTP 500 with SOAP Fault body.",
+      "expected": {
+        "ok": false,
+        "credentialRefPresent": true,
+        "error": "ONVIF probe failed at GetServices: HTTP 500",
+        "requiredTerms": [
+          "GetServices",
+          "HTTP 500"
+        ],
+        "forbiddenTerms": []
+      }
+    },
+    {
+      "id": "get-profiles-soap-fault",
+      "category": "soap-fault",
+      "inputSummary": "Media2.GetProfiles returns HTTP 200 with SOAP Fault body.",
+      "expected": {
+        "ok": false,
+        "credentialRefPresent": true,
+        "error": "ONVIF probe failed at GetStreamUri: no live RTSP profile discovered",
+        "requiredTerms": [
+          "GetStreamUri",
+          "no live RTSP profile discovered"
+        ],
+        "forbiddenTerms": []
+      }
+    },
+    {
+      "id": "get-stream-uri-malformed-xml",
+      "category": "malformed-soap",
+      "inputSummary": "Media2.GetStreamUri returns malformed XML without URI.",
+      "expected": {
+        "ok": false,
+        "credentialRefPresent": true,
+        "error": "ONVIF probe failed at GetStreamUri: no live RTSP profile discovered",
+        "requiredTerms": [
+          "GetStreamUri",
+          "no live RTSP profile discovered"
+        ],
+        "forbiddenTerms": []
+      }
+    },
+    {
+      "id": "get-stream-uri-soap-fault-sensitive-detail",
+      "category": "soap-fault-redaction",
+      "inputSummary": "Media2.GetStreamUri returns SOAP Fault body containing sensitive diagnostic text.",
+      "expected": {
+        "ok": false,
+        "credentialRefPresent": true,
+        "error": "ONVIF probe failed at GetStreamUri: no live RTSP profile discovered",
+        "requiredTerms": [
+          "GetStreamUri",
+          "no live RTSP profile discovered"
+        ],
+        "forbiddenTerms": [
+          "AuthFailed",
+          "nonce",
+          "realm"
+        ]
+      }
+    }
+  ]
+}

@@ -711,6 +711,8 @@ lost_count_values = []
 reacquired_count_values = []
 guard_decision_counts = collections.Counter()
 issue_counts = collections.Counter()
+issue_observation_counts = collections.Counter()
+issue_keys_by_type = collections.defaultdict(set)
 event_counts = collections.Counter()
 scenario_counts = collections.Counter()
 close_object_guard_applied_count = 0
@@ -725,6 +727,9 @@ for sample in effective_samples:
     reacquired_count_values.append(int(track_state.get("reacquiredTracks") or 0))
 
     for track in ((latest.get("debugState") or {}).get("tracks") or []):
+        label = track.get("label") or track.get("className") or ""
+        if not class_allowed(label):
+            continue
         health = track.get("trackHealth") or {}
         assoc = health.get("associationConfidence")
         overlap = health.get("overlapRisk")
@@ -734,6 +739,8 @@ for sample in effective_samples:
             overlap_risk_values.append(float(overlap))
 
     for diagnostic in metrics.get("closeObjectDiagnostics") or []:
+        if not class_allowed(diagnostic.get("className")):
+            continue
         decision = str(diagnostic.get("guardDecision") or "unknown")
         guard_decision_counts[decision] += 1
         if diagnostic.get("closeObjectGuardApplied") is True:
@@ -758,8 +765,16 @@ for sample in effective_samples:
 
     issue_report = metrics.get("trackingIssueReport") or {}
     for issue in issue_report.get("issues") or []:
+        if not class_allowed(issue.get("className")):
+            continue
         issue_type = str(issue.get("type") or issue.get("issueType") or "unknown")
-        issue_counts[issue_type] += 1
+        issue_observation_counts[issue_type] += 1
+        issue_key = "{typ}:{class_name}:{track_id}".format(
+            typ=issue_type,
+            class_name=str(issue.get("className") or ""),
+            track_id=str(issue.get("trackId") or ""),
+        )
+        issue_keys_by_type[issue_type].add(issue_key)
         health = issue.get("trackHealth") or {}
         assoc = health.get("associationConfidence")
         overlap = health.get("overlapRisk")
@@ -786,6 +801,10 @@ for sample in effective_samples:
     for key, value in (metrics_report.get("scenarioState") or {}).items():
         if isinstance(value, (int, float)):
             scenario_counts[key] = max(scenario_counts[key], int(value))
+issue_counts = collections.Counter({
+    issue_type: len(keys)
+    for issue_type, keys in issue_keys_by_type.items()
+})
 summary = {
     "iteration": iteration,
     "rawSamples": len(raw_samples),
@@ -825,6 +844,7 @@ summary = {
     "missedFrameSpikeCount": int(issue_counts.get("missed-frame-spike", 0)),
     "directionChangeSpikeCount": int(issue_counts.get("direction-change-spike", 0)),
     "trackingIssueCounts": dict(sorted(issue_counts.items())),
+    "trackingIssueObservationCounts": dict(sorted(issue_observation_counts.items())),
     "guardDecisionCounts": dict(sorted(guard_decision_counts.items())),
     "closeObjectGuardAppliedCount": close_object_guard_applied_count,
     "rejectedByCloseObjectGuardCount": rejected_by_close_object_guard_count,

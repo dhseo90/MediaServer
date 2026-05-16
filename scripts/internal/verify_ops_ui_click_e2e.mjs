@@ -2,9 +2,11 @@
 // 파일 용도: Ops 제품 UI의 주요 탭/패널 흐름을 실제 브라우저 포인터 클릭으로 검증한다.
 
 import os from "node:os";
+import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
+import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { findChrome, openBrowserPage, parseWidthList } from "./ui_visual_smoke_lib.mjs";
@@ -24,6 +26,8 @@ Options:
   --height <px>             viewport 높이입니다. 기본 900.
   --debug-port-base <port>  Chrome CDP port 시작값입니다. 기본 9750.
   --output-dir <path>       screenshot/log 출력 디렉터리입니다.
+  --auth-users-file <path>  접근 요청 승인 fixture 복원 대상 users file입니다.
+                            기본 MEDIA_SERVER_AUTH_USERS_FILE 또는 repo .media_server.users.json.
   -h, --help                도움말 출력
 `);
 }
@@ -35,6 +39,7 @@ assertKnownOptions(rawArgs, [
   "height",
   "debug-port-base",
   "output-dir",
+  "auth-users-file",
   "h",
   "help",
 ]);
@@ -46,6 +51,9 @@ const widths = parseWidthList(args.widths || "390,1180");
 const height = Number(args.height || 900);
 const debugPortBase = Number(args.debugPortBase || 9750);
 const outputDir = args.outputDir || path.join(os.tmpdir(), `media_server_ops_click_e2e_${Date.now()}_${process.pid}`);
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.resolve(scriptDir, "../..");
+const authUsersFile = args.authUsersFile || process.env.MEDIA_SERVER_AUTH_USERS_FILE || ".media_server.users.json";
 
 if (!chromePath) {
   console.error("[fail] Chrome executable not found");
@@ -101,13 +109,30 @@ if (failures.length > 0) {
 }
 
 async function ensureOpsClickPrereqs() {
-  const created = { eventRuleId: "" };
+  const created = { eventRuleId: "", profileId: "" };
   const catalog = await requestJson("/ops/api/rules/catalog");
+  const profiles = Array.isArray(catalog.profiles) ? catalog.profiles : [];
   const rules = Array.isArray(catalog.rules) ? catalog.rules : [];
+  const vaRules = Array.isArray(catalog.vaRules) ? catalog.vaRules : [];
+  if (profiles.length === 0) {
+    const profileId = nextNumericId([
+      ...profiles.map(item => item?.id || item?.profileId),
+      ...rules.map(item => item?.id),
+      ...vaRules.map(item => item?.id),
+    ], 9891);
+    await requestJson(`/lab/analysis/profiles/${encodeURIComponent(profileId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(opsClickProfilePayload(profileId)),
+    });
+    created.profileId = profileId;
+  }
   if (rules.length > 0) return created;
   const id = nextNumericId([
     ...rules.map(item => item?.id),
-    ...(Array.isArray(catalog.vaRules) ? catalog.vaRules.map(item => item?.id) : []),
+    ...profiles.map(item => item?.id || item?.profileId),
+    ...vaRules.map(item => item?.id),
+    created.profileId,
   ], 9901);
   await requestJson(`/lab/analysis/rules/${encodeURIComponent(id)}`, {
     method: "PUT",
@@ -119,10 +144,16 @@ async function ensureOpsClickPrereqs() {
 }
 
 async function cleanupOpsClickPrereqs(created) {
-  if (!created?.eventRuleId) return;
-  await requestJson(`/lab/analysis/rules/${encodeURIComponent(created.eventRuleId)}`, {
-    method: "DELETE",
-  }).catch(error => console.log(`[warn] ops-click event template cleanup failed: ${error.message}`));
+  if (created?.eventRuleId) {
+    await requestJson(`/lab/analysis/rules/${encodeURIComponent(created.eventRuleId)}`, {
+      method: "DELETE",
+    }).catch(error => console.log(`[warn] ops-click event template cleanup failed: ${error.message}`));
+  }
+  if (created?.profileId) {
+    await requestJson(`/lab/analysis/profiles/${encodeURIComponent(created.profileId)}`, {
+      method: "DELETE",
+    }).catch(error => console.log(`[warn] ops-click profile cleanup failed: ${error.message}`));
+  }
 }
 
 function nextNumericId(values, startAt) {
@@ -131,6 +162,20 @@ function nextNumericId(values, startAt) {
     if (!used.has(String(candidate))) return String(candidate);
   }
   throw new Error("no free numeric id for ops click prereq");
+}
+
+function opsClickProfilePayload(id) {
+  return {
+    id,
+    detector: "yolo",
+    fps: 6,
+    maxQueue: 1,
+    confidence: 0.25,
+    nms: 0.45,
+    inputWidth: 640,
+    inputHeight: 640,
+    adaptive: true,
+  };
 }
 
 function opsClickEventTemplatePayload(id) {
@@ -184,6 +229,41 @@ async function runOpsClickFlow(browser, context) {
   await waitForPath(browser, "/ops/dashboard");
   await installErrorCollector(browser);
   await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
+  await assertVisible(browser, "#dashIncidentTimelineSearch", "인시던트 검색 입력");
+  await assertVisible(browser, "#dashIncidentTimelineShare", "인시던트 필터 링크 복사");
+  await setTextValue(browser, "#dashIncidentTimelineSearch", "__no_match__", "인시던트 검색 no-match");
+  await assertHashParam(browser, "incidentQ", "__no_match__", "인시던트 검색 hash 저장");
+  await assertText(browser, "#dashIncidentTimelineText", "필터에 맞는", "인시던트 필터 no-match 문구");
+  await setTextValue(browser, "#dashIncidentTimelineSearch", "", "인시던트 검색 초기화");
+  await assertHashParamAbsent(browser, "incidentQ", "인시던트 검색 hash 초기화");
+  await setSelectValue(browser, "#dashIncidentTimelineSource", "event-record", "인시던트 출처 필터");
+  await assertHashParam(browser, "incidentSource", "event-record", "인시던트 출처 hash 저장");
+  await assertText(browser, "#dashIncidentTimelineBadges", "필터 결과", "인시던트 출처 필터 badge");
+  await setTextValue(browser, "#dashIncidentTimelineSearch", "event", "인시던트 공유 검색");
+  await assertHashParam(browser, "incidentQ", "event", "인시던트 공유 검색 hash 저장");
+  await clickSelector(browser, "#dashIncidentTimelineShare", "인시던트 필터 링크 복사");
+  const shareUrl = await incidentShareUrl(browser, "인시던트 필터 링크 data");
+  assertUrlContains(shareUrl, "/ops/dashboard", "인시던트 공유 링크 path");
+  assertUrlContains(shareUrl, "incidentQ=event", "인시던트 공유 링크 검색");
+  assertUrlContains(shareUrl, "incidentSource=event-record", "인시던트 공유 링크 출처");
+  await installClipboardFailureStub(browser);
+  await clickSelector(browser, "#dashIncidentTimelineShare", "인시던트 필터 링크 복사 fallback");
+  await assertToastContains(browser, "주소창의 필터 링크", "인시던트 필터 링크 clipboard fallback");
+  await restoreClipboardFailureStub(browser);
+  await navigatePath(browser, "/ops/dashboard");
+  await installErrorCollector(browser);
+  await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
+  await navigatePath(browser, shareUrl);
+  await installErrorCollector(browser);
+  await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
+  await assertFormValue(browser, "#dashIncidentTimelineSearch", "event", "인시던트 검색 deeplink");
+  await assertFormValue(browser, "#dashIncidentTimelineSource", "event-record", "인시던트 출처 deeplink");
+  await assertText(browser, "#dashIncidentTimelineBadges", "필터 결과", "인시던트 deeplink 필터 badge");
+  await setTextValue(browser, "#dashIncidentTimelineSearch", "", "인시던트 deeplink 검색 초기화");
+  await setSelectValue(browser, "#dashIncidentTimelineSource", "", "인시던트 출처 필터 초기화");
+  await assertHashParamAbsent(browser, "incidentQ", "인시던트 deeplink 검색 hash 초기화");
+  await assertHashParamAbsent(browser, "incidentSource", "인시던트 deeplink 출처 hash 초기화");
+  await assertNoOverflow(browser, `${context.label}:dashboard-incident-filter`);
   await clickSelector(browser, "[data-root-cause-kind]", "문제 원인 다음 조치");
   await assertVisible(browser, "#dashRootCauseActionOutput", "문제 원인 조치 결과");
   await assertNoOverflow(browser, `${context.label}:dashboard-root-cause-action`);
@@ -191,7 +271,7 @@ async function runOpsClickFlow(browser, context) {
   await waitForPath(browser, "/ops/sources");
   await installErrorCollector(browser);
   await assertReady(browser, "/ops/sources", '[data-testid="ops-sources-page"]');
-  steps.push("dashboard:root-cause-action");
+  steps.push("dashboard:incident-filter", "dashboard:root-cause-action");
 
   await clickSelector(browser, "#add-channel", "채널 추가");
   await assertVisible(browser, "#channel-detail-panel", "채널 추가 패널");
@@ -263,6 +343,8 @@ async function runOpsClickFlow(browser, context) {
   } else {
     steps.push("users:add-empty");
   }
+  await assertAccessRequestApprovalFlow(browser, context);
+  steps.push("users:access-request-approve");
 
   await clickSelector(browser, 'a[href="/client/live"]', "클라이언트 라이브");
   await waitForPath(browser, "/client/live");
@@ -278,7 +360,10 @@ async function runOpsClickFlow(browser, context) {
   await installErrorCollector(browser);
   await assertReady(browser, "/client/live", '[data-testid="client-shell-page"]');
   await assertClientPreviewAdminAffordance(browser, `${context.label}:client-live-return`);
-  steps.push("client:preview-admin");
+  await assertClientCopyPayload(browser, '[data-client-copy="status"]', ["채널:", "상태 요약:", "연결:"], "클라이언트 라이브 상태 복사");
+  await assertClientCopyFallback(browser, '[data-client-copy="status"]', ["채널:", "상태 요약:", "연결:"], "클라이언트 라이브 상태 복사 fallback");
+  await assertClientCopyPayload(browser, '[data-client-copy="events"]', ["이벤트 요약", "경고:"], "클라이언트 라이브 이벤트 복사");
+  steps.push("client:preview-admin", "client:live-copy");
   await clickSelector(browser, 'a[href="/client/dashboard"]', "클라이언트 대시보드");
   await waitForPath(browser, "/client/dashboard");
   await installErrorCollector(browser);
@@ -300,8 +385,11 @@ async function runOpsClickFlow(browser, context) {
   await assertText(browser, "#clientDashboardPresetStatus", "초기화됨", "클라이언트 preset 초기화 상태");
   await clickSelector(browser, ".view", "클라이언트 대시보드 채널 선택");
   await assertVisible(browser, '[data-testid="client-dashboard-field-summary"]', "클라이언트 현장 요약");
+  await assertClientCopyPayload(browser, '[data-client-copy="status"]', ["채널:", "현장 상태:", "상태 요약:"], "클라이언트 대시보드 상태 복사");
+  await assertClientCopyFallback(browser, '[data-client-copy="status"]', ["채널:", "현장 상태:", "상태 요약:"], "클라이언트 대시보드 상태 복사 fallback");
+  await assertClientCopyPayload(browser, '[data-client-copy="events"]', ["이벤트 요약", "경고:"], "클라이언트 대시보드 이벤트 복사");
   await assertNoOverflow(browser, `${context.label}:client-dashboard`);
-  steps.push("client:dashboard", "client:preset-config");
+  steps.push("client:dashboard", "client:preset-config", "client:dashboard-copy");
 
   await assertBrowserErrors(browser, context.label);
   return { steps };
@@ -314,6 +402,7 @@ async function assertClientPreviewAdminAffordance(browser, label) {
       (() => {
         const body = document.body;
         const shortcut = document.querySelector('.account-shortcut[href="/ops/home"]');
+        const previewCopy = document.querySelector('.brand-copy span');
         const accountName = document.querySelector('.account-menu .account-name');
         const accountMeta = document.querySelector('.account-menu .account-meta');
         const navLinks = Array.from(document.querySelectorAll('.client-image-nav-tabs a'))
@@ -323,6 +412,7 @@ async function assertClientPreviewAdminAffordance(browser, label) {
           }));
         const issues = [];
         if (body?.dataset?.clientPreview !== 'true') issues.push('missing client preview flag');
+        if (!previewCopy || !(previewCopy.textContent || '').includes('Client Preview as admin')) issues.push('missing admin preview copy');
         if (!shortcut || !(shortcut.textContent || '').includes('Ops')) issues.push('missing Ops shortcut');
         if (!accountName || !(accountName.textContent || '').trim()) issues.push('missing account name');
         if (!accountMeta || !(accountMeta.textContent || '').includes('admin')) issues.push('missing admin role');
@@ -332,6 +422,7 @@ async function assertClientPreviewAdminAffordance(browser, label) {
         return {
           ok: issues.length === 0,
           issues,
+          previewCopy: (previewCopy?.textContent || '').trim(),
           shortcutText: (shortcut?.textContent || '').trim(),
           accountName: (accountName?.textContent || '').trim(),
           accountMeta: (accountMeta?.textContent || '').trim(),
@@ -343,6 +434,218 @@ async function assertClientPreviewAdminAffordance(browser, label) {
     label,
   );
   return result;
+}
+
+async function assertAccessRequestApprovalFlow(browser, context) {
+  const fixture = await createAccessRequestFixture(context);
+  try {
+    await navigatePath(browser, "/ops/users");
+    await installErrorCollector(browser);
+    await assertReady(browser, "/ops/users", '[data-testid="ops-users-page"]');
+    await installAccessRequestApprovalSpy(browser, fixture.requestId);
+    const viewSelector = attrEqualsSelector("data-request-approve-view", fixture.requestId);
+    const approveSelector = attrEqualsSelector("data-request-approve", fixture.requestId);
+    await assertVisible(browser, viewSelector, "접근 요청 승인 채널 ID 입력");
+    await assertFormValue(browser, viewSelector, fixture.initialViewId, "접근 요청 승인 채널 ID 기본값");
+    await setTextValue(browser, viewSelector, fixture.approvalViewId, "접근 요청 승인 채널 ID 변경");
+    await assertAccessRequestRow(browser, fixture.username, "대기", "접근 요청 pending row");
+    await clickSelector(browser, approveSelector, "접근 요청 승인");
+    await assertText(browser, "#request-status", "접근 요청 승인 완료", "접근 요청 승인 상태");
+    await assertText(browser, "#request-invite-output", `계정: ${fixture.username}`, "접근 요청 승인 계정 출력");
+    await assertText(browser, "#request-invite-output", "초대 링크:", "접근 요청 승인 invite 링크 출력");
+    await assertText(browser, "#request-invite-output", "초대 링크 만료:", "접근 요청 승인 invite 만료 출력");
+    await assertText(browser, "#request-invite-output", "초대 설정 완료 전까지는 로그인/세션/채널 권한이 열리지 않습니다.", "접근 요청 승인 전 권한 안내");
+    await assertApproveRequestPayload(browser, fixture.requestId, fixture.approvalViewId);
+    await assertAccessRequestRow(browser, fixture.username, "승인됨", "접근 요청 approved row");
+    await assertNoOverflow(browser, `${context.label}:users-access-request-approve`);
+  } finally {
+    await restoreAccessRequestApprovalSpy(browser);
+    await restoreAuthStoreSnapshot(fixture.snapshot);
+    await assertAccessRequestFixtureCleaned(fixture);
+  }
+}
+
+async function createAccessRequestFixture(context) {
+  const snapshot = snapshotAuthStore();
+  const suffix = `${process.pid}-${String(context?.width || "w")}-${Date.now()}`;
+  const username = `click-request-${suffix}`.slice(0, 64);
+  const payload = {
+    username,
+    displayName: "Click Request",
+    contact: `${username}@example.test`,
+    viewId: "1",
+    reason: "ops click e2e approval fixture",
+  };
+  try {
+    const result = await requestJson("/client/api/access-requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const requestId = String(result?.accessRequest?.requestId || "");
+    if (!requestId) {
+      throw new Error(`access request fixture missing requestId: ${JSON.stringify(result)}`);
+    }
+    return {
+      snapshot,
+      username,
+      requestId,
+      initialViewId: payload.viewId,
+      approvalViewId: "2",
+    };
+  } catch (error) {
+    await restoreAuthStoreSnapshot(snapshot);
+    throw error;
+  }
+}
+
+function snapshotAuthStore() {
+  const filePath = resolveAuthStorePath();
+  if (!fs.existsSync(filePath)) {
+    return { filePath, existed: false, content: "", mode: 0o600 };
+  }
+  const stat = fs.statSync(filePath);
+  return {
+    filePath,
+    existed: true,
+    content: fs.readFileSync(filePath),
+    mode: stat.mode & 0o777,
+  };
+}
+
+async function restoreAuthStoreSnapshot(snapshot) {
+  if (!snapshot?.filePath) return;
+  if (snapshot.existed) {
+    fs.writeFileSync(snapshot.filePath, snapshot.content);
+    fs.chmodSync(snapshot.filePath, snapshot.mode || 0o600);
+    return;
+  }
+  if (fs.existsSync(snapshot.filePath)) {
+    fs.unlinkSync(snapshot.filePath);
+  }
+}
+
+function resolveAuthStorePath() {
+  const raw = authUsersFile;
+  return path.isAbsolute(raw) ? path.normalize(raw) : path.resolve(rootDir, raw);
+}
+
+async function assertAccessRequestFixtureCleaned(fixture) {
+  const result = await requestJson("/ops/api/access-requests");
+  const requests = Array.isArray(result.accessRequests) ? result.accessRequests : [];
+  const leaked = requests.find(request =>
+    String(request?.requestId || "") === fixture.requestId ||
+    String(request?.username || "") === fixture.username
+  );
+  if (leaked) {
+    throw new Error(`access request fixture cleanup failed: ${JSON.stringify({
+      authUsersFile: resolveAuthStorePath(),
+      requestId: fixture.requestId,
+      username: fixture.username,
+      status: leaked.status || "",
+    })}`);
+  }
+}
+
+async function installAccessRequestApprovalSpy(browser, requestId) {
+  await browser.evaluate(`
+    (() => {
+      const requestId = ${JSON.stringify(requestId)};
+      if (!window.__opsClickOriginalFetch) {
+        window.__opsClickOriginalFetch = window.fetch.bind(window);
+      }
+      window.__opsClickApprovalBody = null;
+      window.__opsClickApprovalResponse = null;
+      window.__opsClickAuditPosts = [];
+      window.fetch = async (input, init = {}) => {
+        const url = String(typeof input === 'string' ? input : input?.url || '');
+        const method = String(init?.method || input?.method || 'GET').toUpperCase();
+        if (method === 'POST' && url.includes('/ops/api/audit')) {
+          window.__opsClickAuditPosts.push(String(init?.body || ''));
+          return new Response(JSON.stringify({ status: 'ops-audit', persistent: false, entry: {} }), {
+            status: 201,
+            statusText: 'Created',
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+        const response = await window.__opsClickOriginalFetch(input, init);
+        if (method === 'POST' && url.includes('/ops/api/access-requests/' + encodeURIComponent(requestId) + '/approve')) {
+          window.__opsClickApprovalBody = String(init?.body || '');
+          response.clone().json()
+            .then(payload => { window.__opsClickApprovalResponse = payload; })
+            .catch(error => { window.__opsClickApprovalResponse = { error: String(error?.message || error) }; });
+        }
+        return response;
+      };
+      return true;
+    })()
+  `, 3000);
+}
+
+async function restoreAccessRequestApprovalSpy(browser) {
+  await browser.evaluate(`
+    (() => {
+      if (window.__opsClickOriginalFetch) {
+        window.fetch = window.__opsClickOriginalFetch;
+        window.__opsClickOriginalFetch = null;
+      }
+      return true;
+    })()
+  `, 3000).catch(() => null);
+}
+
+async function assertApproveRequestPayload(browser, requestId, expectedViewId) {
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        let body = {};
+        try {
+          body = JSON.parse(String(window.__opsClickApprovalBody || '{}'));
+        } catch (error) {
+          return { ok: false, reason: 'invalid body', error: String(error?.message || error), raw: window.__opsClickApprovalBody || '' };
+        }
+        const response = window.__opsClickApprovalResponse || {};
+        return {
+          ok: body.viewId === ${JSON.stringify(expectedViewId)} &&
+            response.status === 'approved' &&
+            response.invite &&
+            String(response.invite.setupUrl || '').includes('/invite/setup'),
+          requestId: ${JSON.stringify(requestId)},
+          body,
+          responseStatus: response.status || '',
+          setupUrl: response.invite?.setupUrl || '',
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    "접근 요청 승인 POST payload",
+  );
+}
+
+async function assertAccessRequestRow(browser, username, expectedStatus, description) {
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const username = ${JSON.stringify(username)};
+        const expectedStatus = ${JSON.stringify(expectedStatus)};
+        const row = Array.from(document.querySelectorAll('#access-requests-body tr'))
+          .find(candidate => String(candidate.textContent || '').includes(username));
+        const text = String(row?.textContent || '').replace(/\\s+/g, ' ').trim();
+        return {
+          ok: Boolean(row) && text.includes(expectedStatus),
+          text,
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+}
+
+function attrEqualsSelector(attribute, value) {
+  return `[${attribute}="${String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"]`;
 }
 
 async function clickSelector(browser, selector, description) {
@@ -464,6 +767,12 @@ async function waitForScrollIdle(browser) {
 async function assertReady(browser, path, selector) {
   await waitForPath(browser, path);
   await assertVisible(browser, selector, `${path} root`);
+}
+
+async function navigatePath(browser, pathValue) {
+  const url = new URL(pathValue, `${httpBase}/`).toString();
+  await browser.cdp("Page.navigate", { url });
+  await waitForPath(browser, new URL(url).pathname);
 }
 
 async function assertEnabled(browser, selector, description) {
@@ -630,6 +939,273 @@ async function assertFormValueContains(browser, selector, expected, description)
         const node = document.querySelector(${JSON.stringify(selector)});
         const value = String(node?.value || '');
         return { ok: value.includes(${JSON.stringify(expected)}), value };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  return result;
+}
+
+async function assertAttributeContains(browser, selector, attribute, expected, description) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const node = document.querySelector(${JSON.stringify(selector)});
+        const value = String(node?.getAttribute(${JSON.stringify(attribute)}) || '');
+        return { ok: value.includes(${JSON.stringify(expected)}), value };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  return result;
+}
+
+async function incidentShareUrl(browser, description) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const node = document.querySelector('#dashIncidentTimelineShare');
+        const value = String(node?.getAttribute('data-incident-share-url') || '');
+        return { ok: value.includes('/ops/dashboard#') && value.includes('incidentSource=event-record'), value };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  return result.value;
+}
+
+function assertUrlContains(value, expected, description) {
+  if (!String(value || "").includes(expected)) {
+    throw new Error(`${description}: ${JSON.stringify(value)} does not include ${JSON.stringify(expected)}`);
+  }
+}
+
+async function installClipboardFailureStub(browser) {
+  await browser.evaluate(`
+    (() => {
+      window.__opsClickClipboardOriginalExecCommand = document.execCommand;
+      document.execCommand = () => false;
+      try {
+        window.__opsClickClipboardOriginal = navigator.clipboard;
+        Object.defineProperty(navigator, 'clipboard', {
+          configurable: true,
+          value: { writeText: () => Promise.reject(new Error('forced clipboard failure')) },
+        });
+      } catch (_) {}
+      return true;
+    })()
+  `, 3000);
+}
+
+async function restoreClipboardFailureStub(browser) {
+  await browser.evaluate(`
+    (() => {
+      if (window.__opsClickClipboardOriginalExecCommand) {
+        document.execCommand = window.__opsClickClipboardOriginalExecCommand;
+      }
+      try {
+        if (window.__opsClickClipboardOriginal !== undefined) {
+          Object.defineProperty(navigator, 'clipboard', {
+            configurable: true,
+            value: window.__opsClickClipboardOriginal,
+          });
+        }
+      } catch (_) {}
+      return true;
+    })()
+  `, 3000).catch(() => null);
+}
+
+async function installClipboardCaptureStub(browser) {
+  await browser.evaluate(`
+    (() => {
+      window.__opsClickClipboardCaptured = '';
+      window.__opsClickClipboardCaptureOriginalExecCommand = document.execCommand;
+      document.execCommand = function(command) {
+        if (String(command || '').toLowerCase() === 'copy') {
+          const node = document.activeElement;
+          window.__opsClickClipboardCaptured = String(node?.value || window.getSelection()?.toString() || '');
+          return true;
+        }
+        if (typeof window.__opsClickClipboardCaptureOriginalExecCommand === 'function') {
+          return window.__opsClickClipboardCaptureOriginalExecCommand.apply(document, arguments);
+        }
+        return false;
+      };
+      try {
+        window.__opsClickClipboardCaptureOriginal = navigator.clipboard;
+        Object.defineProperty(navigator, 'clipboard', {
+          configurable: true,
+          value: {
+            writeText: value => {
+              window.__opsClickClipboardCaptured = String(value || '');
+              return Promise.resolve();
+            },
+          },
+        });
+      } catch (_) {}
+      return true;
+    })()
+  `, 3000);
+}
+
+async function restoreClipboardCaptureStub(browser) {
+  await browser.evaluate(`
+    (() => {
+      if (window.__opsClickClipboardCaptureOriginalExecCommand) {
+        document.execCommand = window.__opsClickClipboardCaptureOriginalExecCommand;
+      }
+      try {
+        Object.defineProperty(navigator, 'clipboard', {
+          configurable: true,
+          value: window.__opsClickClipboardCaptureOriginal,
+        });
+      } catch (_) {}
+      window.__opsClickClipboardCaptured = '';
+      return true;
+    })()
+  `, 3000).catch(() => null);
+}
+
+async function assertClientCopyPayload(browser, selector, expectedSnippets, description) {
+  const forbiddenSnippets = [
+    "rtsp://",
+    "http://",
+    "https://",
+    "/webrtc/session",
+    "/lab/analysis",
+    "/ws/va-metadata",
+    "sessionToken",
+    "client-live-internal",
+    "analysisTapId",
+    "sourceUrl",
+    "Developer URL",
+    "raw diagnostic",
+    "BBox",
+  ];
+  await installClipboardCaptureStub(browser);
+  try {
+    await clickSelector(browser, selector, description);
+    return await waitForResult(
+      browser,
+      `
+        (() => {
+          const value = String(window.__opsClickClipboardCaptured || '');
+          const expected = ${JSON.stringify(expectedSnippets)};
+          const forbidden = ${JSON.stringify(forbiddenSnippets)};
+          const missing = expected.filter(item => !value.includes(item));
+          const leaked = forbidden.filter(item => value.includes(item));
+          return {
+            ok: value.length > 0 && missing.length === 0 && leaked.length === 0,
+            missing,
+            leaked,
+            value: value.slice(0, 500),
+          };
+        })()
+      `,
+      item => item?.ok === true,
+      `${description} clipboard payload`,
+    );
+  } finally {
+    await restoreClipboardCaptureStub(browser);
+  }
+}
+
+async function assertClientCopyFallback(browser, selector, expectedSnippets, description) {
+  const forbiddenSnippets = [
+    "rtsp://",
+    "http://",
+    "https://",
+    "/webrtc/session",
+    "/lab/analysis",
+    "/ws/va-metadata",
+    "sessionToken",
+    "analysisTapId",
+    "sourceUrl",
+    "Developer URL",
+    "raw diagnostic",
+    "BBox",
+  ];
+  await installClipboardFailureStub(browser);
+  try {
+    await clickSelector(browser, selector, description);
+    await assertToastContains(browser, "아래 내용을 선택", `${description} toast`);
+    await waitForResult(
+      browser,
+      `
+        (() => {
+          const box = document.querySelector('[data-client-copy-fallback]');
+          const value = String(box?.querySelector('textarea')?.value || '');
+          const expected = ${JSON.stringify(expectedSnippets)};
+          const forbidden = ${JSON.stringify(forbiddenSnippets)};
+          const missing = expected.filter(item => !value.includes(item));
+          const leaked = forbidden.filter(item => value.includes(item));
+          return {
+            ok: Boolean(box) && value.length > 0 && missing.length === 0 && leaked.length === 0,
+            missing,
+            leaked,
+            value: value.slice(0, 500),
+          };
+        })()
+      `,
+      item => item?.ok === true,
+      `${description} fallback content`,
+    );
+    await browser.evaluate(`
+      (() => {
+        document.querySelector('[data-client-copy-fallback] [data-clipboard-fallback-close]')?.click();
+        return true;
+      })()
+    `, 3000);
+  } finally {
+    await restoreClipboardFailureStub(browser);
+  }
+}
+
+async function assertToastContains(browser, expected, description) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const toasts = Array.from(document.querySelectorAll('.toast.error, .toast'));
+        const text = toasts.map(node => String(node.textContent || '')).join('\\n');
+        return { ok: text.includes(${JSON.stringify(expected)}), text };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  return result;
+}
+
+async function assertHashParam(browser, key, expected, description) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const params = new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
+        const value = String(params.get(${JSON.stringify(key)}) || '');
+        return { ok: value === ${JSON.stringify(expected)}, value, hash: window.location.hash };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  return result;
+}
+
+async function assertHashParamAbsent(browser, key, description) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const params = new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
+        return { ok: !params.has(${JSON.stringify(key)}), hash: window.location.hash };
       })()
     `,
     item => item?.ok === true,

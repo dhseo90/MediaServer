@@ -7,6 +7,10 @@ import process from "node:process";
 import fs from "node:fs";
 import { setTimeout as delay } from "node:timers/promises";
 
+import {
+  cleanupRulePreviewPrerequisites,
+  ensureRulePreviewPrerequisites,
+} from "./rule_preview_fixture_helpers.mjs";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { findChrome, openBrowserPage, parseWidthList } from "./ui_visual_smoke_lib.mjs";
 
@@ -43,7 +47,7 @@ const args = parseArgs(rawArgs);
 const httpBase = String(args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const timeoutMs = Number(args.timeoutMs || 15000);
 const chromePath = args.chromePath || findChrome();
-const widths = parseWidthList(args.widths || "1180,900,560,390,760,1180");
+const widths = parseWidthList(args.widths || "1180,900,760,560,390,320,760,1180");
 const height = Number(args.height || 900);
 const debugPortBase = Number(args.debugPortBase || 9790);
 const outputDir = args.outputDir || path.join(os.tmpdir(), `media_server_ops_tables_layout_${Date.now()}_${process.pid}`);
@@ -56,6 +60,8 @@ const checks = [
     readySelectors: ["#channels-body"],
     tableSelectors: [".channel-table.ops-responsive-table"],
     detailSelectors: ["#channel-detail-panel.ops-detail-panel"],
+    detailOpenSelector: "[data-view-channel]",
+    auditSelector: "#channel-audit-list",
   },
   {
     name: "rules",
@@ -64,6 +70,8 @@ const checks = [
     readySelectors: ["#opsVaRuleRows", "#opsEventRuleRows", "#opsProfileRows"],
     tableSelectors: [".ops-rules-table.ops-responsive-table"],
     detailSelectors: ["#opsRulesDetailPanel.ops-detail-panel"],
+    detailOpenSelector: '[data-ops-rule-action="view-va"]',
+    auditSelector: "#ops-rules-audit-list",
   },
   {
     name: "users",
@@ -72,6 +80,8 @@ const checks = [
     readySelectors: ["#users-body", "#access-requests-body"],
     tableSelectors: [".user-table.ops-responsive-table"],
     detailSelectors: ["#user-detail-panel.ops-detail-panel"],
+    detailOpenSelector: "[data-user-view]",
+    auditSelector: "#user-audit-list",
   },
 ];
 
@@ -85,6 +95,7 @@ assertSharedTableHelpers();
 let passCount = 0;
 let failCount = 0;
 const failures = [];
+const seededRulePrereqs = await ensureRulePreviewPrerequisites({ httpBase, includeVaRule: true });
 
 for (let index = 0; index < checks.length; index += 1) {
   const check = checks[index];
@@ -111,6 +122,13 @@ for (let index = 0; index < checks.length; index += 1) {
       }
       passCount += 1;
       console.log(`[pass] ${label}: tables=${result.tableCount}, overflow=${result.overflowX}`);
+      const detailResult = await browser.evaluate(detailAndAuditCheckExpression(check), 10000);
+      if (!detailResult?.ok) {
+        const details = Array.isArray(detailResult?.issues) ? detailResult.issues.join("; ") : JSON.stringify(detailResult);
+        throw new Error(`${label}-detail-audit: ${details}`);
+      }
+      passCount += 1;
+      console.log(`[pass] ${label}-detail-audit: detail=${detailResult.detailChecked ? 1 : 0}, controls=${detailResult.auditControlCount}`);
     }
   } catch (error) {
     failCount += 1;
@@ -121,6 +139,8 @@ for (let index = 0; index < checks.length; index += 1) {
     await browser.close();
   }
 }
+
+await cleanupRulePreviewPrerequisites({ httpBase, created: seededRulePrereqs });
 
 console.log("");
 console.log("== Ops 데이터 테이블 레이아웃 요약 ==");
@@ -262,6 +282,110 @@ function layoutCheckExpression(check) {
         if (table.classList.contains('user-table')) return 'user-table';
         return table.className || table.tagName;
       }
+    })()
+  `;
+}
+
+function detailAndAuditCheckExpression(check) {
+  return `
+    (async () => {
+      const issues = [];
+      const issue = message => {
+        if (issues.length < 16) issues.push(message);
+      };
+      const isVisible = node => {
+        if (!node) return false;
+        const style = getComputedStyle(node);
+        const rect = node.getBoundingClientRect();
+        return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+      };
+      const overflowFor = node => node ? Math.max(0, node.scrollWidth - Math.ceil(node.clientWidth)) : 0;
+      const doc = document.documentElement;
+      const body = document.body;
+      const overflowX = Math.max(0, Math.max(doc.scrollWidth, body.scrollWidth) - window.innerWidth);
+      if (overflowX > 2) issue('document horizontal overflow before detail ' + overflowX + 'px');
+
+      let detailChecked = false;
+      const openSelector = ${JSON.stringify(check.detailOpenSelector || "")};
+      const detailSelectors = ${JSON.stringify(check.detailSelectors || [])};
+      if (openSelector) {
+        const opener = Array.from(document.querySelectorAll(openSelector)).find(isVisible);
+        if (opener) {
+          opener.click();
+          await new Promise(resolve => setTimeout(resolve, 350));
+          for (const selector of detailSelectors) {
+            const panel = document.querySelector(selector);
+            if (!isVisible(panel)) {
+              issue('detail panel did not open: ' + selector);
+              continue;
+            }
+            detailChecked = true;
+            const panelRect = panel.getBoundingClientRect();
+            if (panelRect.left < -1 || panelRect.right > window.innerWidth + 1) {
+              issue('detail panel outside viewport: ' + Math.round(panelRect.left) + '..' + Math.round(panelRect.right));
+            }
+            const toolbar = panel.querySelector('.toolbar');
+            if (toolbar && overflowFor(toolbar) > 2) {
+              issue('detail toolbar overflow ' + overflowFor(toolbar) + 'px');
+            }
+            for (const actionGroup of Array.from(panel.querySelectorAll('.actions, .table-actions, .ops-row-actions'))) {
+              if (!isVisible(actionGroup)) continue;
+              const overflow = overflowFor(actionGroup);
+              if (overflow > 2) issue('detail action group overflow ' + overflow + 'px');
+            }
+            for (const field of Array.from(panel.querySelectorAll('input, select, textarea, button'))) {
+              if (!isVisible(field)) continue;
+              const rect = field.getBoundingClientRect();
+              if (rect.left < panelRect.left - 2 || rect.right > panelRect.right + 2) {
+                issue('detail control outside panel bounds: ' + (field.id || field.name || field.tagName));
+              }
+            }
+          }
+        } else {
+          issue('missing visible detail opener: ' + openSelector);
+        }
+      }
+
+      const auditSelector = ${JSON.stringify(check.auditSelector || "")};
+      let auditControlCount = 0;
+      if (auditSelector) {
+        const audit = document.querySelector(auditSelector);
+        if (!audit) {
+          issue('missing audit selector ' + auditSelector);
+        } else {
+          audit.scrollIntoView({ block: 'center' });
+          await new Promise(resolve => setTimeout(resolve, 120));
+          const auditRect = audit.getBoundingClientRect();
+          const controls = Array.from(audit.querySelectorAll('input, select, button'));
+          auditControlCount = controls.length;
+          if (controls.length < 8) issue('audit controls missing or not rendered: ' + controls.length);
+          for (const control of controls) {
+            if (!isVisible(control)) continue;
+            const rect = control.getBoundingClientRect();
+            if (rect.left < auditRect.left - 2 || rect.right > auditRect.right + 2) {
+              issue('audit control outside audit panel: ' + (control.id || control.dataset.auditPreset || control.textContent || control.tagName));
+            }
+            if (rect.left < -1 || rect.right > window.innerWidth + 1) {
+              issue('audit control outside viewport: ' + Math.round(rect.left) + '..' + Math.round(rect.right));
+            }
+          }
+          const presets = audit.querySelector('.audit-presets');
+          if (presets && overflowFor(presets) > 2) {
+            issue('audit presets overflow ' + overflowFor(presets) + 'px');
+          }
+        }
+      }
+
+      const finalOverflowX = Math.max(0, Math.max(doc.scrollWidth, body.scrollWidth) - window.innerWidth);
+      if (finalOverflowX > 2) issue('document horizontal overflow after detail/audit ' + finalOverflowX + 'px');
+      return {
+        ok: issues.length === 0,
+        issues,
+        detailChecked,
+        auditControlCount,
+        overflowX: finalOverflowX,
+        viewport: { width: window.innerWidth, height: window.innerHeight }
+      };
     })()
   `;
 }

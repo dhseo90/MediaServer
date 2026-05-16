@@ -52,3 +52,72 @@ jobs:
         shell: bash
         run: |
           ./server.sh verify-docs-ui-assets
+
+      - name: UI release baseline approval log presence
+        shell: bash
+        run: |
+          ./server.sh verify-ui-release-baseline-approval-log
+
+      - name: UI visual artifact maintenance dry-run
+        shell: bash
+        run: |
+          ./server.sh verify-ui-visual-artifact-index --output-dir artifacts/ui-visual-maintenance-fixture/fresh
+          mkdir -p artifacts/ui-visual-baseline-diff
+          cp artifacts/ui-visual-maintenance-fixture/fresh/baseline-diff/visual-baseline-diff.json artifacts/ui-visual-baseline-diff/visual-baseline-diff.json
+          cp artifacts/ui-visual-maintenance-fixture/fresh/baseline-diff/visual-baseline-diff.md artifacts/ui-visual-baseline-diff/visual-baseline-diff.md
+          ./server.sh write-ui-visual-baseline-comment \
+            --diff-report artifacts/ui-visual-baseline-diff/visual-baseline-diff.json \
+            --output artifacts/ui-visual-baseline-diff/visual-baseline-comment.md
+          ./server.sh ui-visual-artifact-maintenance \
+            --artifact-root artifacts/ui-visual-maintenance-fixture \
+            --archive-dir artifacts/ui-visual-maintenance-archive \
+            --report artifacts/ui-visual-maintenance-report.json \
+            --markdown-report artifacts/ui-visual-maintenance-report.md \
+            --max-age-days 0
+
+      - name: Upload UI visual maintenance dry-run report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: media-server-ui-visual-maintenance-dry-run
+          path: |
+            artifacts/ui-visual-maintenance-report.json
+            artifacts/ui-visual-maintenance-report.md
+          if-no-files-found: ignore
+
+      - name: Upload UI visual baseline diff preflight artifact
+        id: upload-ui-visual-baseline-diff
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: media-server-ui-visual-baseline-diff
+          path: |
+            artifacts/ui-visual-baseline-diff/visual-baseline-diff.json
+            artifacts/ui-visual-baseline-diff/visual-baseline-diff.md
+            artifacts/ui-visual-baseline-diff/visual-baseline-comment.md
+          if-no-files-found: ignore
+
+      - name: Publish UI visual baseline PR summary
+        if: always()
+        shell: bash
+        run: |
+          artifact_name="media-server-ui-visual-baseline-diff"
+          artifact_url="${{ steps.upload-ui-visual-baseline-diff.outputs.artifact-url }}"
+          if [ -z "${GITHUB_STEP_SUMMARY:-}" ]; then
+            exit 0
+          fi
+          {
+            echo "## UI Visual Baseline Diff"
+            echo
+            if [ -f artifacts/ui-visual-baseline-diff/visual-baseline-comment.md ]; then
+              cat artifacts/ui-visual-baseline-diff/visual-baseline-comment.md
+            else
+              echo "visual-baseline-comment.md was not generated."
+            fi
+            echo
+            if [ -n "${artifact_url}" ]; then
+              echo "Artifact download: [${artifact_name}](${artifact_url})"
+            else
+              echo "Artifact download: ${artifact_name} (not uploaded)"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

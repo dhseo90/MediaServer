@@ -53,6 +53,7 @@
 #include "ingress/analysis_query.h"
 #include "ingress/analysis_rule_registry.h"
 #include "ingress/http_auth.h"
+#include "ingress/onvif_live_import.h"
 #include "ingress/request_parser.h"
 #include "ingress/product_ui_assets.h"
 #include "ingress/product_ui_css.h"
@@ -2026,7 +2027,6 @@ void AppendOpsShellStart(std::ostringstream& out,
                          const auth::Principal& principal,
                          const std::string& active,
                          const std::string& subtitle) {
-    (void)subtitle;
     out << R"(<!doctype html>
 <html lang="ko">
 <head>
@@ -2038,7 +2038,15 @@ void AppendOpsShellStart(std::ostringstream& out,
   <main class="product-page">
     <header class="app-chrome">
       <div class="app-header-top">
-        <nav class="image-nav-tabs" aria-label="운영 메뉴">
+        <div class="app-nav-cluster">
+          <div class="app-brand">
+            <span class="brand-mark" aria-hidden="true">MS</span>
+            <div class="brand-copy">
+              <strong>MediaServer Ops</strong>
+              <span>)" << HtmlEscape(subtitle) << R"(</span>
+            </div>
+          </div>
+          <nav class="image-nav-tabs" aria-label="운영 메뉴">
 )";
     AppendImageNavLink(out, "/ops/home", "home", "홈", active == "home");
     AppendImageNavLink(out, "/ops/dashboard", "dashboard", "대시보드", active == "dashboard");
@@ -2048,7 +2056,8 @@ void AppendOpsShellStart(std::ostringstream& out,
         AppendImageNavLink(out, "/ops/users", "users", "사용자", active == "users", "data-admin-only");
     }
     AppendImageNavLink(out, "/client/live", "client", "클라이언트", false);
-    out << R"(        </nav>
+    out << R"(          </nav>
+        </div>
 )";
     AppendProductAccountMenu(out, principal);
     out << R"(      </div>
@@ -2331,6 +2340,34 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           <div class="empty">런타임 상태를 불러오는 중입니다.</div>
         </div>
         <div id="dashRootCauseActionOutput" class="root-cause-action-output" hidden></div>
+      </section>
+      <section class="section-card" data-testid="ops-incident-timeline-panel">
+        <div class="toolbar">
+          <div>
+            <h3>최근 인시던트 흐름</h3>
+            <p>문제 원인, EventRecord, source health, 로그 단서를 시간순으로 묶어 봅니다.</p>
+          </div>
+          <div class="actions incident-timeline-controls">
+            <label>인시던트 검색
+              <input id="dashIncidentTimelineSearch" placeholder="제목, 출처, cid 검색" />
+            </label>
+            <label>출처
+              <select id="dashIncidentTimelineSource">
+                <option value="">전체 출처</option>
+                <option value="root-cause">문제 원인</option>
+                <option value="event-record">EventRecord</option>
+                <option value="source-health">Source Health</option>
+                <option value="log-tail">Log tail</option>
+              </select>
+            </label>
+            <button type="button" class="secondary button-compact" id="dashIncidentTimelineShare" title="현재 인시던트 필터 링크 복사" aria-label="현재 인시던트 필터 링크 복사">링크 복사</button>
+          </div>
+        </div>
+        <div id="dashIncidentTimelineBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashIncidentTimelineText">불러오는 중</p>
+        <div id="dashIncidentTimeline" class="root-cause-list">
+          <div class="empty">최근 인시던트 단서를 불러오는 중입니다.</div>
+        </div>
       </section>
       <section class="section-card">
         <div class="toolbar">
@@ -2795,10 +2832,10 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             </div>
             <div class="row">
               <label id="opsEventRuleZoneThresholdField" hidden>점유 임계값
-                <input id="opsEventRuleZoneThresholdInput" type="number" min="1" step="1" placeholder="3" />
+                <input id="opsEventRuleZoneThresholdInput" type="number" min="1" step="1" placeholder="4" />
               </label>
               <label id="opsEventRuleZoneDwellField" hidden>최소 점유 체류(ms)
-                <input id="opsEventRuleZoneDwellInput" type="number" min="0" step="1000" placeholder="5000" />
+                <input id="opsEventRuleZoneDwellInput" type="number" min="0" step="1000" placeholder="7000" />
               </label>
               <label id="opsEventRuleCooldownField">재알림 대기(ms)
                 <input id="opsEventRuleCooldownInput" type="number" min="0" step="1000" placeholder="5000" />
@@ -2849,11 +2886,11 @@ void AppendOpsRulesPage(std::ostringstream& out) {
 }
 
 void AppendOpsEventsPage(std::ostringstream& out) {
-    out << R"(    <section class="panel" data-ops-panel="events" data-testid="ops-events-page">
+    out << R"(    <section class="panel" data-ops-panel="events" data-testid="ops-events-page" data-route-scope="direct-diagnostic">
       <div class="toolbar">
         <div>
           <h2>이벤트 상태</h2>
-          <p>룰 실행 결과와 이벤트 전달 상태를 확인합니다.</p>
+          <p>Primary nav에는 표시하지 않는 direct/diagnostic route입니다. 이벤트 조건은 Rules에서, 운영 요약은 Dashboard에서 확인합니다.</p>
         </div>
         <div class="actions">
           <a class="button button-secondary" href="/ops/dashboard">대시보드</a>
@@ -3045,6 +3082,9 @@ std::optional<media::SourceSpec::Kind> SourceKindForClientView(
         return media::SourceSpec::Kind::Hls;
     }
     if (source.kind == "youtube") {
+        if (!app::kYouTubeSourceBuildEnabled) {
+            return std::nullopt;
+        }
         return media::SourceSpec::Kind::Youtube;
     }
     if (source.kind == "http") {
@@ -3823,6 +3863,8 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     const bool preview_mode =
         (auth::IsAdmin(principal) || auth::IsOperator(principal)) &&
         auth::RequireScope(principal, "ops:read");
+    const std::string client_subtitle =
+        preview_mode ? "Client Preview as admin" : "할당된 live view와 상태만 봅니다.";
     std::ostringstream out;
     out << R"(<!doctype html>
 <html lang="ko">
@@ -3836,11 +3878,20 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
   <main class="product-page">
     <header class="app-chrome">
       <div class="app-header-top">
-        <nav class="image-nav-tabs client-image-nav-tabs" aria-label="클라이언트 메뉴">
+        <div class="app-nav-cluster">
+          <div class="app-brand">
+            <span class="brand-mark" aria-hidden="true">MS</span>
+            <div class="brand-copy">
+              <strong>Client Portal</strong>
+              <span>)" << HtmlEscape(client_subtitle) << R"(</span>
+            </div>
+          </div>
+          <nav class="image-nav-tabs client-image-nav-tabs" aria-label="클라이언트 메뉴">
 )";
     AppendImageNavLink(out, "/client/live", "live", "라이브", active == "live");
     AppendImageNavLink(out, "/client/dashboard", "dashboard", "대시보드", active == "dashboard");
-    out << R"(        </nav>
+    out << R"(          </nav>
+        </div>
 )";
     AppendProductAccountMenu(out,
                              principal,
@@ -3983,7 +4034,22 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             </select>
           </label>
           <label data-source-kind="onvif">ONVIF 스트림 URI<input name="onvifStreamUrl" placeholder="rtsp://camera/live 또는 https://camera/live.m3u8" /></label>
-          <p data-source-kind="onvif" class="hint">ONVIF 장치의 라이브 프로파일에서 선택한 재생 URI를 입력합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.</p>
+          <p data-source-kind="onvif" class="hint">ONVIF 장치의 라이브 프로파일에서 선택한 재생 URI를 입력합니다. WS-Discovery 자동 검색, PTZ 제어, ONVIF Events/PullPoint, Profile G/Recording/Replay는 제공하지 않습니다. 운영자가 확인한 live URI 또는 probe fixture를 사용합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.</p>
+          <div data-source-kind="onvif" class="form-grid" data-testid="onvif-probe-draft-tool">
+            <label>ONVIF probe fixture
+              <textarea id="onvifProbeDraftInput" rows="5" spellcheck="false" autocomplete="off" placeholder="test/fixtures/onvif_probe_result_stub.json 내용을 붙여넣기"></textarea>
+            </label>
+            <label>ONVIF profile
+              <select id="onvifProbeProfileSelect" disabled>
+                <option value="">profile 후보 없음</option>
+              </select>
+            </label>
+            <div class="actions">
+              <button id="onvifProbeDraftApply" class="button-secondary" type="button">Probe draft 적용</button>
+              <button id="onvifProbeDraftClear" class="button-secondary" type="button">초기화</button>
+            </div>
+            <p id="onvifProbeDraftStatus" class="hint" aria-live="polite"></p>
+          </div>
           <label data-source-kind="rtsp">RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live" /></label>
           <label data-source-kind="whep">외부 WHEP URL<input name="whepUrl" placeholder="https://example.com/whep/stream" /></label>
           <p data-source-kind="whep" class="hint">외부 WebRTC playback endpoint를 서버가 WHEP pull source로 연결합니다. URL 자체가 입력값입니다.</p>
@@ -4029,6 +4095,34 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
           <span id="status" class="status"></span>
         </div>
       </div>
+      <section class="section-card user-lifecycle-policy" data-testid="user-lifecycle-policy">
+        <div class="toolbar">
+          <div>
+            <h2>계정 라이프사이클 정책</h2>
+            <p>초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다.</p>
+          </div>
+          <span class="chip info">auth/session 계약 변경 없음</span>
+        </div>
+        <div class="status-stat-grid">
+          <div class="status-stat">
+            <span>초대</span>
+            <strong>기본 만료 24시간</strong>
+          </div>
+          <div class="status-stat">
+            <span>비밀번호</span>
+            <strong>초기화 후 다음 로그인 변경</strong>
+          </div>
+          <div class="status-stat">
+            <span>비활성화</span>
+            <strong>로그인/세션 차단</strong>
+          </div>
+          <div class="status-stat">
+            <span>감사</span>
+            <strong>JSON/CSV/Diff JSON export</strong>
+          </div>
+        </div>
+        <p class="hint">초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다.</p>
+      </section>
       <section class="section-card">
         <h2>사용자 목록</h2>
         <div class="table-wrap">
@@ -4128,13 +4222,28 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
               <label><input name="enabled" type="checkbox" checked /> 활성화</label>
               <label><input name="mustChangePassword" type="checkbox" checked /> 다음 로그인 시 비밀번호 변경</label>
             </div>
+            <p id="user-lifecycle-summary" class="hint">활성 상태와 다음 로그인 비밀번호 변경 여부를 확인합니다.</p>
         </form>
+        <div id="user-reset-password-panel" class="user-reset-password-panel" hidden>
+          <div>
+            <strong>비밀번호 초기화</strong>
+            <p class="hint">임시 비밀번호를 설정하면 기존 세션을 회수하고 다음 로그인에서 비밀번호 변경을 요구합니다. 비밀번호 원문은 감사 로그에 남기지 않습니다.</p>
+          </div>
+          <div class="row">
+            <label>새 임시 비밀번호<input id="user-reset-password" type="password" autocomplete="new-password" /></label>
+            <label>새 임시 비밀번호 확인<input id="user-reset-password-confirm" type="password" autocomplete="new-password" /></label>
+          </div>
+          <div class="actions">
+            <button id="user-reset-password-button" class="button-secondary" type="button">비밀번호 초기화</button>
+            <span id="user-reset-password-status" class="status"></span>
+          </div>
+        </div>
       </section>
       <section class="section-card ops-audit-panel">
         <div class="toolbar">
           <div>
             <h2>변경 이력</h2>
-            <p>이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인합니다.</p>
+            <p>이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인하고 사용자 감사 JSON/CSV/Diff JSON export를 내려받습니다.</p>
           </div>
           <button id="user-audit-refresh" class="button-secondary" type="button">새로고침</button>
         </div>
@@ -8288,166 +8397,6 @@ std::string ViewBulkPayload(const std::string& view_raw,
     return out.str();
 }
 
-bool IsNumericRegistryDraftId(const std::string& value) {
-    return !value.empty() && std::all_of(value.begin(), value.end(), [](unsigned char ch) {
-        return std::isdigit(ch) != 0;
-    });
-}
-
-bool StringArrayContains(const std::vector<std::string>& values, const std::string& expected) {
-    return std::find(values.begin(), values.end(), expected) != values.end();
-}
-
-RegistryResult OpsOnvifImportDraftResult(const std::string& body) {
-    if (!LooksLikeJsonObject(body)) {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"request body must be a JSON object\"}"};
-    }
-
-    const auto decision = ExtractObjectField(body, "importDecision");
-    if (!decision.has_value()) {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"importDecision object is required\"}"};
-    }
-    const std::string selected_token = Trim(ParseStringField(*decision, "selectedProfileToken").value_or(""));
-    if (selected_token.empty()) {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"selectedProfileToken is required\"}"};
-    }
-
-    std::optional<std::string> selected_profile;
-    for (const auto& profile : ExtractJsonObjectArray(body, "profiles")) {
-        if (Trim(ParseStringField(profile, "token").value_or("")) == selected_token) {
-            selected_profile = profile;
-            break;
-        }
-    }
-    if (!selected_profile.has_value()) {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile not found\"}"};
-    }
-
-    const std::string media_api = Trim(ParseStringField(*selected_profile, "mediaApi").value_or(""));
-    const std::string encoding = Trim(ParseStringField(*selected_profile, "encoding").value_or(""));
-    const std::string transport = Trim(ParseStringField(*selected_profile, "transport").value_or(""));
-    const std::string stream_uri = Trim(ParseStringField(*selected_profile, "streamUri").value_or(""));
-    if (media_api != "Media" && media_api != "Media2") {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile mediaApi must be Media or Media2\"}"};
-    }
-    if (encoding != "H264" && encoding != "H265") {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile encoding must be H264 or H265\"}"};
-    }
-    if (transport != "RTSP" || stream_uri.rfind("rtsp://", 0) != 0) {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile must provide an RTSP streamUri\"}"};
-    }
-
-    const auto source_raw = ExtractObjectField(*decision, "expectedSourceDraft");
-    const auto view_raw = ExtractObjectField(*decision, "expectedPublishedViewDraft");
-    if (!source_raw.has_value() || !view_raw.has_value()) {
-        return RegistryResult{
-            400,
-            "Bad Request",
-            "{\"error\":\"expectedSourceDraft and expectedPublishedViewDraft are required\"}"};
-    }
-
-    const std::string source_id = Trim(ParseStringField(*source_raw, "sourceId").value_or(""));
-    if (!IsNumericRegistryDraftId(source_id)) {
-        return RegistryResult{
-            400,
-            "Bad Request",
-            "{\"error\":\"expectedSourceDraft.sourceId must be numeric for current /ops/sources contract\"}"};
-    }
-    const std::string view_id = Trim(ParseStringField(*view_raw, "viewId").value_or(source_id));
-    const std::string view_source_id = Trim(ParseStringField(*view_raw, "sourceId").value_or(""));
-    if (view_id != source_id || view_source_id != source_id) {
-        return RegistryResult{
-            400,
-            "Bad Request",
-            "{\"error\":\"expectedPublishedViewDraft must use the same numeric sourceId/viewId\"}"};
-    }
-    if (Trim(ParseStringField(*source_raw, "kind").value_or("")) != "rtsp") {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"expectedSourceDraft.kind must be rtsp\"}"};
-    }
-    if (Trim(ParseStringField(*source_raw, "rtspUrl").value_or("")) != stream_uri) {
-        return RegistryResult{
-            400,
-            "Bad Request",
-            "{\"error\":\"expectedSourceDraft.rtspUrl must match selected profile streamUri\"}"};
-    }
-    const std::vector<std::string> tags = StringArrayFieldValues(*source_raw, "tags");
-    if (!StringArrayContains(tags, "onvif") || !StringArrayContains(tags, "live")) {
-        return RegistryResult{
-            400,
-            "Bad Request",
-            "{\"error\":\"expectedSourceDraft.tags must include onvif and live\"}"};
-    }
-
-    const auto device = ExtractObjectField(body, "device").value_or("{}");
-    const auto auth = ExtractObjectField(body, "auth").value_or("{}");
-    const bool credential_ref_present = !Trim(ParseStringField(auth, "credentialRef").value_or("")).empty();
-    const bool plaintext_secret_included = ParseBoolField(auth, "plaintextSecretIncluded").value_or(false);
-    if (plaintext_secret_included) {
-        return RegistryResult{
-            400,
-            "Bad Request",
-            "{\"error\":\"plaintext credentials are not allowed in ONVIF import drafts\"}"};
-    }
-
-    const std::string display_name =
-        Trim(ParseStringField(*source_raw, "displayName").value_or(source_id));
-    const std::string overlay_modes =
-        JsonStringArrayOrDefault(*view_raw, "allowedOverlayModes", "[\"raw\",\"va-overlay\",\"va-rule\"]");
-    const std::string client_groups = JsonStringArrayOrDefault(*view_raw, "clientGroups", "[]");
-    const int max_tiles = std::max(1, ParseIntField(*view_raw, "maxTiles").value_or(1));
-
-    std::ostringstream out;
-    out << "{"
-        << "\"ok\":true,"
-        << "\"status\":\"onvifImportDraft\","
-        << "\"notSaved\":true,"
-        << "\"candidate\":{"
-        << "\"manufacturer\":\"" << JsonEscape(ParseStringField(device, "manufacturer").value_or("")) << "\","
-        << "\"model\":\"" << JsonEscape(ParseStringField(device, "model").value_or("")) << "\","
-        << "\"firmwareVersion\":\"" << JsonEscape(ParseStringField(device, "firmwareVersion").value_or("")) << "\","
-        << "\"serialNumber\":\"" << JsonEscape(ParseStringField(device, "serialNumber").value_or("")) << "\""
-        << "},"
-        << "\"selectedProfile\":{"
-        << "\"token\":\"" << JsonEscape(selected_token) << "\","
-        << "\"name\":\"" << JsonEscape(ParseStringField(*selected_profile, "name").value_or("")) << "\","
-        << "\"mediaApi\":\"" << JsonEscape(media_api) << "\","
-        << "\"encoding\":\"" << JsonEscape(encoding) << "\","
-        << "\"width\":" << ParseIntField(*selected_profile, "width").value_or(0) << ","
-        << "\"height\":" << ParseIntField(*selected_profile, "height").value_or(0) << ","
-        << "\"fps\":" << ParseIntField(*selected_profile, "fps").value_or(0) << ","
-        << "\"transport\":\"RTSP\""
-        << "},"
-        << "\"auth\":{"
-        << "\"required\":" << (ParseBoolField(auth, "required").value_or(false) ? "true" : "false") << ","
-        << "\"credentialRefPresent\":" << (credential_ref_present ? "true" : "false") << ","
-        << "\"plaintextSecretIncluded\":false"
-        << "},"
-        << "\"sourceDraft\":{"
-        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
-        << "\"displayName\":\"" << JsonEscape(display_name.empty() ? source_id : display_name) << "\","
-        << "\"kind\":\"rtsp\","
-        << "\"rtspUrl\":\"" << JsonEscape(stream_uri) << "\","
-        << "\"enabled\":" << (ParseBoolField(*source_raw, "enabled").value_or(true) ? "true" : "false") << ","
-        << "\"tags\":" << JsonStringArrayOrDefault(*source_raw, "tags", "[\"onvif\",\"live\"]") << ","
-        << "\"ownerGroup\":\"" << JsonEscape(ParseStringField(*source_raw, "ownerGroup").value_or("")) << "\""
-        << "},"
-        << "\"publishedViewDraft\":{"
-        << "\"viewId\":\"" << JsonEscape(view_id) << "\","
-        << "\"displayName\":\"" << JsonEscape(ParseStringField(*view_raw, "displayName").value_or(display_name)) << "\","
-        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
-        << "\"allowedOverlayModes\":" << overlay_modes << ","
-        << "\"showDashboard\":" << (ParseBoolField(*view_raw, "showDashboard").value_or(true) ? "true" : "false") << ","
-        << "\"showEvents\":" << (ParseBoolField(*view_raw, "showEvents").value_or(true) ? "true" : "false") << ","
-        << "\"showMetadataSummary\":"
-        << (ParseBoolField(*view_raw, "showMetadataSummary").value_or(true) ? "true" : "false") << ","
-        << "\"clientGroups\":" << client_groups << ","
-        << "\"maxTiles\":" << max_tiles << ","
-        << "\"enabled\":" << (ParseBoolField(*view_raw, "enabled").value_or(true) ? "true" : "false")
-        << "}"
-        << "}";
-    return RegistryResult{200, "OK", out.str()};
-}
-
 bool SourceHasPlayableLocator(const std::string& source_raw) {
     const std::string kind = ParseStringField(source_raw, "kind").value_or("file");
     if (kind == "file") return !Trim(ParseStringField(source_raw, "file").value_or("")).empty();
@@ -11269,7 +11218,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 auth_response.has_value()) {
                                 return *auth_response;
                             }
-                            HttpResponse ok = RegistryHttpResponse(OpsOnvifImportDraftResult(request.body));
+                            HttpResponse ok = RegistryHttpResponse(BuildOnvifLiveImportDraft(request.body));
                             ok.headers["Cache-Control"] = "no-store";
                             return ok;
                         }

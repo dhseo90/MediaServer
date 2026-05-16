@@ -358,7 +358,7 @@ tap context의 rule id 목록에 병합됩니다.
 | WHEP pull | `?source=whep&url={encodedWhepEndpoint}` | 외부 WHEP playback endpoint를 서버가 pull해 SharedStream으로 fan-out |
 | WebRTC publish source | `?source=webrtc&url={sourceId}` | `/whip/publish`로 등록된 내부 sourceId 소비 |
 | HTTP/HLS URI | `?source=http&url={encodedUrl}` | 로컬 HTTP MP4 기본 검증, HLS/외부 URI는 선택 검증 |
-| YouTube experimental | `source=youtube` | 실험 기능. 상세는 [youtube-import.md](./youtube-import.md) |
+| YouTube experimental | `source=youtube` | lab-only 실험 기능. 기본 빌드에서는 제외되며 상세는 [youtube-import.md](./youtube-import.md) |
 
 `file` token은 기본적으로 `video` root 아래에서 해석합니다.
 외부 URL과 시스템 경로 사용 정책은 [config-reference.md](./config-reference.md)를 봅니다.

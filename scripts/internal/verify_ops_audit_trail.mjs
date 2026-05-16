@@ -20,8 +20,14 @@ check("shared product UI script provides local audit trail helpers", () => {
     "fetchOpsAuditTrailPage",
     "openOpsAuditDetail",
     "auditFilterPresetsFor",
+    "auditHashStateFor",
+    "auditPreset",
+    "auditAction",
+    "auditTarget",
+    "auditQ",
     'data-audit-preset="',
     "data-audit-export",
+    "<option value=\"reset-password\">비밀번호 초기화</option>",
     "auditKeyRedacted",
     "password|token|hash|secret|capability",
     "before",
@@ -59,6 +65,7 @@ check("ops page scripts record channel/rule/user mutations", () => {
     "target: `profile:${payload.id}`",
     "area: 'users'",
     "target: `user:${payload.username}`",
+    "action: 'reset-password'",
     "target: `request:${request.requestId}`",
   ];
   for (const snippet of required) {

@@ -11,6 +11,7 @@ import {
   isTruthy,
   parseWidthList,
   runVisualSmoke,
+  writeVisualArtifactIndex,
 } from "./ui_visual_smoke_lib.mjs";
 
 const args = parseArgs(process.argv.slice(2));
@@ -18,7 +19,7 @@ const httpBase = (args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const timeoutMs = Number(args.timeoutMs || 10000);
 const screenshotEnabled = isTruthy(args.screenshots);
 const chromePath = args.chromePath || findChrome();
-const visualWidths = parseWidthList(args.visualWidths || "390,760");
+const visualWidths = parseWidthList(args.visualWidths || "320,390,760,1180");
 const visualHeight = Number(args.visualHeight || 820);
 const debugPortBase = Number(args.debugPortBase || 9820);
 const runId = `auth-ui-${Date.now()}-${process.pid}`;
@@ -89,6 +90,15 @@ if (screenshotEnabled) {
     labelPrefix: "auth-visual",
   });
   if (result.failCount > 0) process.exit(1);
+  writeVisualArtifactIndex({
+    outputDir,
+    title: "Auth Visual Regression Artifacts",
+    command: "MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap",
+    httpBase,
+    visualWidths,
+    visualHeight,
+    checks: visualChecks,
+  });
 }
 
 function parsePageSpec(spec) {

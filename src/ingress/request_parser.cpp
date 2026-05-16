@@ -147,6 +147,12 @@ std::optional<media::SourceSpec> ParseSourceSpec(const media::IngressRequest& re
         } else if (source_it->second == "http") {
             kind = media::SourceSpec::Kind::Http;
         } else if (source_it->second == "youtube") {
+            if (!app::kYouTubeSourceBuildEnabled) {
+                SetError(error_message,
+                         "source=youtube is not available in this build; rebuild with "
+                         "MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=ON to enable the lab-only experimental path");
+                return std::nullopt;
+            }
             if (!app::GetAppConfig().enable_experimental_youtube_source) {
                 SetError(error_message,
                          "source=youtube is disabled by default; set "
