@@ -536,6 +536,17 @@ PR template과 정적 verifier를 연결했습니다.
 - `verify-ui-visual-artifact-index`가 review-required fixture에서 comment helper 출력을 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Client Live 접근성 e2e 확대 후속 종료 판정
+
+2026-05-16 기준 Client Live keyboard smoke가 타일 접근성 상태 요약까지 확인하도록 보강했습니다.
+
+확인됨:
+
+- `verify-ops-client-ui --screenshots`의 client live keyboard smoke가 `aria-describedby` 연결을 확인합니다.
+- 숨김 상태 요약의 `data-role="a11y-status"`, `aria-live="polite"`, `aria-atomic="true"`, `sr-only` 스타일을 검사합니다.
+- 상태 요약에 타일 번호, 상태, 연결, 트랙, 이벤트, metadata, 재시도 문구가 포함되는지 확인합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ## v1.2.0 시작 전 체크리스트
 
 - [x] v1.1.0 PR이 `main`에 merge됨

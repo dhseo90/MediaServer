@@ -617,6 +617,24 @@ function clientLiveTileKeyboardExpression() {
         if (first.getAttribute('tabindex') !== '0') issue('first tile is not tabbable');
         if (first.getAttribute('role') !== 'group') issue('first tile role is not group');
         if (!String(first.getAttribute('aria-label') || '').includes('타일 1')) issue('first tile aria-label missing tile number');
+        const describedBy = String(first.getAttribute('aria-describedby') || '');
+        if (!describedBy) issue('first tile aria-describedby missing');
+        const describedNode = describedBy ? document.getElementById(describedBy) : null;
+        if (!describedNode) issue('first tile described status node missing');
+        if (describedNode) {
+          const statusText = String(describedNode.textContent || '');
+          if (describedNode.dataset.role !== 'a11y-status') issue('first tile described node role mismatch');
+          if (describedNode.getAttribute('aria-live') !== 'polite') issue('first tile status aria-live missing');
+          if (describedNode.getAttribute('aria-atomic') !== 'true') issue('first tile status aria-atomic missing');
+          if (!describedNode.classList.contains('sr-only')) issue('first tile status is not visually hidden');
+          for (const expected of ['타일 1:', '상태', '연결', '트랙', '이벤트', '메타데이터', '재시도']) {
+            if (!statusText.includes(expected)) issue('first tile a11y status missing text: ' + expected);
+          }
+          const style = window.getComputedStyle(describedNode);
+          if (style.position !== 'absolute' || Number.parseFloat(style.width || '0') > 2 || Number.parseFloat(style.height || '0') > 2) {
+            issue('first tile sr-only style is not constrained');
+          }
+        }
         const labels = Array.from(first.querySelectorAll('button, select')).map(node => node.getAttribute('aria-label') || '');
         for (const expected of ['타일 1 시작', '타일 1 재연결', '타일 1 정지', '타일 1 채널']) {
           if (!labels.some(label => label.includes(expected))) issue('missing control aria-label: ' + expected);
