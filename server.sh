@@ -92,6 +92,8 @@ Usage:
                  /ops/sources 대량 채널 복제/비활성화/상태 진단 UI hook을 검증합니다.
   verify-ops-event-records-scope
                  EventRecord가 짧은 증거 기록 범위로 노출되고 /ops/events UI가 이를 표시하는지 검증합니다.
+  verify-fixture-cleanup-contracts
+                 UI/Event 검증 fixture가 실행 후 복원/삭제 계약을 유지하는지 정적 검증합니다.
   verify-ops-evidence-retention-cleanup
                  Evidence retention cleanup job의 dry-run/apply/audit/report 계약을 검증합니다.
   verify-ops-audit-trail
@@ -476,6 +478,10 @@ case "${cmd}" in
   verify-ops-event-records-scope)
     require_internal verify_ops_event_records_scope.mjs
     exec "${INTERNAL_DIR}/verify_ops_event_records_scope.mjs" "$@"
+    ;;
+  verify-fixture-cleanup-contracts)
+    require_internal verify_fixture_cleanup_contracts.mjs
+    exec "${INTERNAL_DIR}/verify_fixture_cleanup_contracts.mjs" "$@"
     ;;
   verify-ops-evidence-retention-cleanup)
     require_internal verify_ops_evidence_retention_cleanup.mjs

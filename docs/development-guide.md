@@ -281,6 +281,8 @@ gst-inspect-1.0 uridecodebin
 `verify-auth-routes`는 격리 서버를 자동으로 띄웁니다.
 `verify-ops-client-ui`, `verify-rule-ui`, `verify-ops-click-e2e`,
 `verify-ops-tables-layout`, `verify-ops-rules-roundtrip`은 이미 떠 있는 HTTP 서버를 검사합니다.
+검증 fixture가 auth store, EventStorage, evidence, audit 파일을 남기지 않는지
+보는 정적 계약은 `./server.sh verify-fixture-cleanup-contracts`로 확인합니다.
 
 UI/API smoke 전에는 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`로 서버를 띄웁니다.
 포트가 다르면 각 명령에 `--http-base`를 지정합니다.
