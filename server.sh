@@ -184,6 +184,8 @@ Usage:
                  v1.1.0 live-only 제품 경계 키워드가 비범위/보류 문맥인지 검증합니다.
   verify-code-comments
                  코드/스크립트 상단 용도 주석과 한글 주석 정책을 검증합니다.
+  verify-release-metadata
+                 VERSION, CMake, README, release/versioning/backlog 문서의 release 기준 drift를 검증합니다.
   verify-script-inventory
                  server.sh 명령, 문서 명령 참조, JS 옵션 검증 적용 범위를 점검합니다.
   verify-actions-security
@@ -662,6 +664,10 @@ case "${cmd}" in
   verify-code-comments)
     require_internal verify_code_comments.mjs
     exec "${INTERNAL_DIR}/verify_code_comments.mjs" "$@"
+    ;;
+  verify-release-metadata)
+    require_internal verify_release_metadata_consistency.mjs
+    exec "${INTERNAL_DIR}/verify_release_metadata_consistency.mjs" "$@"
     ;;
   verify-script-inventory)
     require_internal verify_script_inventory.mjs
