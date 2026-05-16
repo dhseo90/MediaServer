@@ -172,6 +172,9 @@ check("visual baseline diff tooling is wired and documented", () => {
     "readPngAsRgba",
     "visual-baseline-diff.json",
     "media-server.ui-visual-baseline-diff.v1",
+    "media-server.ui-visual-baseline-candidate-policy.v1",
+    "--fail-on-review",
+    "reviewRequired",
   ]) {
     assert(compareScript.includes(snippet), `compare script missing visual baseline diff snippet: ${snippet}`);
   }
@@ -243,8 +246,59 @@ check("visual baseline diff report fixture", () => {
   });
   assert(report.schema === "media-server.ui-visual-baseline-diff.v1", "baseline diff schema mismatch");
   assert(report.summary.failed === 0, `baseline diff fixture failed: ${report.summary.failed}`);
+  assert(report.summary.decision === "pass", `baseline diff fixture decision mismatch: ${report.summary.decision}`);
   assert(fs.existsSync(path.join(diffDir, "visual-baseline-diff.json")), "baseline diff JSON report missing");
   assert(fs.existsSync(path.join(diffDir, "visual-baseline-diff.md")), "baseline diff Markdown report missing");
+});
+
+check("visual baseline candidate policy fixture", () => {
+  const baselineDir = path.join(outputDir, "policy-baseline");
+  const candidateDir = path.join(outputDir, "policy-candidate");
+  const reviewDir = path.join(outputDir, "policy-review-diff");
+  const failDir = path.join(outputDir, "policy-fail-diff");
+  fs.mkdirSync(baselineDir, { recursive: true });
+  fs.mkdirSync(candidateDir, { recursive: true });
+  fs.writeFileSync(path.join(baselineDir, "ops-home-320.png"), "fixture-identical-ops-home\n");
+  fs.writeFileSync(path.join(candidateDir, "ops-home-320.png"), "fixture-identical-ops-home\n");
+  fs.writeFileSync(path.join(candidateDir, "client-live-320.png"), "fixture-extra-client-live\n");
+  writeVisualArtifactIndex({
+    outputDir: baselineDir,
+    title: "Policy Baseline",
+    command: "./server.sh verify-ops-client-ui --screenshots",
+    httpBase: "http://127.0.0.1:8081",
+    visualWidths: [320],
+    visualHeight: 900,
+    checks: [{ name: "ops-home", path: "/ops/home", visualSelector: '[data-testid="ops-home-page"]' }],
+  });
+  writeVisualArtifactIndex({
+    outputDir: candidateDir,
+    title: "Policy Candidate",
+    command: "./server.sh verify-ops-client-ui --screenshots",
+    httpBase: "http://127.0.0.1:8081",
+    visualWidths: [320],
+    visualHeight: 900,
+    checks: [
+      { name: "ops-home", path: "/ops/home", visualSelector: '[data-testid="ops-home-page"]' },
+      { name: "client-live", path: "/client/live", visualSelector: '[data-testid="client-shell-page"]' },
+    ],
+  });
+  const reviewReport = compareVisualBaseline({
+    baselineDir,
+    candidateDir,
+    outputDir: reviewDir,
+    allowExtra: true,
+  });
+  assert(reviewReport.summary.failed === 0, `allow-extra policy should not fail: ${reviewReport.summary.failed}`);
+  assert(reviewReport.summary.decision === "review", `allow-extra policy decision mismatch: ${reviewReport.summary.decision}`);
+  assert(reviewReport.summary.reviewRequired === true, "allow-extra policy should require visual review");
+  assert(reviewReport.summary.extraAllowed === 1, `allow-extra policy extraAllowed mismatch: ${reviewReport.summary.extraAllowed}`);
+  const failReport = compareVisualBaseline({
+    baselineDir,
+    candidateDir,
+    outputDir: failDir,
+  });
+  assert(failReport.summary.failed === 1, `strict policy should fail on extra screenshot: ${failReport.summary.failed}`);
+  assert(failReport.summary.decision === "fail", `strict policy decision mismatch: ${failReport.summary.decision}`);
 });
 
 let failCount = 0;

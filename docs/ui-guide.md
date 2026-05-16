@@ -367,6 +367,11 @@ Ops/Client/Lab API guard를 확인합니다.
   `./server.sh compare-ui-visual-baseline --baseline-dir <baseline-artifact-dir> --candidate-dir <candidate-artifact-dir>`
   를 사용합니다. 결과는 `media-server.ui-visual-baseline-diff.v1` schema의
   `visual-baseline-diff.json`과 `visual-baseline-diff.md`로 남깁니다.
+  report에는 `media-server.ui-visual-baseline-candidate-policy.v1` 정책,
+  `decision=pass|review|fail`, `reviewRequired`, `extraAllowed`가 기록됩니다.
+  candidate에만 있는 screenshot은 기본 실패이며, 의도한 신규 화면은
+  `--allow-extra`로 review 상태까지 허용합니다. review도 CI 실패로 다루려면
+  `--fail-on-review`를 붙입니다.
 - visual QA issue에 artifact 링크를 붙일 때는
   `./server.sh write-ui-visual-qa-issue-links --artifact-dir <artifact-dir> --output <artifact-dir>/ui-visual-qa-issue-links.md`
   로 manifest/index/baseline diff/screenshot 링크 블록을 생성합니다.

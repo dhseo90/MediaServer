@@ -28,6 +28,7 @@ export function compareVisualBaseline({
   maxDiffPct = 0,
   pixelThreshold = 0,
   allowExtra = false,
+  failOnReview = false,
 } = {}) {
   if (!baselineDir) throw new Error("--baseline-dir is required");
   if (!candidateDir) throw new Error("--candidate-dir is required");
@@ -51,9 +52,11 @@ export function compareVisualBaseline({
         file,
         status: allowExtra ? "extra-allowed" : "extra",
         ok: Boolean(allowExtra),
+        requiresReview: Boolean(allowExtra),
         page: candidateItem?.page || "",
         viewport: candidateItem?.viewport || {},
         reason: "candidate artifact has no matching baseline screenshot",
+        reviewReason: allowExtra ? "candidate-only screenshot allowed by policy; visual review required" : "",
       });
       continue;
     }
@@ -90,7 +93,9 @@ export function compareVisualBaseline({
       maxDiffPct,
       pixelThreshold,
       allowExtra,
+      failOnReview,
     },
+    policy: buildCandidatePolicy({ maxDiffPct, pixelThreshold, allowExtra, failOnReview }),
     baselineManifest: summarizeManifest(baselineManifest),
     candidateManifest: summarizeManifest(candidateManifest),
     summary,
@@ -118,6 +123,7 @@ Options:
   --max-diff-pct <number>   허용 변경 pixel 비율(%)입니다. 기본 0.
   --pixel-threshold <n>     변경 pixel로 볼 채널 delta 임계값입니다. 기본 0.
   --allow-extra[=1]         candidate에만 있는 screenshot을 실패로 보지 않습니다.
+  --fail-on-review[=1]      diff가 threshold 안이어도 review 필요 항목이 있으면 실패 종료합니다.
   -h, --help                도움말 출력
 `);
   }
@@ -128,6 +134,7 @@ Options:
     "max-diff-pct",
     "pixel-threshold",
     "allow-extra",
+    "fail-on-review",
     "h",
     "help",
   ]);
@@ -139,6 +146,7 @@ Options:
     maxDiffPct: numberOption(args.maxDiffPct, 0, "--max-diff-pct"),
     pixelThreshold: numberOption(args.pixelThreshold, 0, "--pixel-threshold"),
     allowExtra: isTruthy(args.allowExtra),
+    failOnReview: isTruthy(args.failOnReview),
   });
   console.log(`[pass] visual baseline diff report: ${report.jsonPath}`);
   console.log(`[pass] visual baseline diff index: ${report.markdownPath}`);
@@ -148,12 +156,21 @@ Options:
   console.log(`- passed: ${report.summary.passed}`);
   console.log(`- failed: ${report.summary.failed}`);
   console.log(`- changed: ${report.summary.changed}`);
+  console.log(`- review: ${report.summary.review}`);
+  console.log(`- decision: ${report.summary.decision}`);
   console.log(`- missing: ${report.summary.missing}`);
   console.log(`- extra: ${report.summary.extra}`);
   if (report.summary.failed > 0) {
     console.log("- failed files:");
     for (const item of report.results.filter((result) => !result.ok)) {
       console.log(`  - ${item.file}: ${item.status}${item.reason ? ` (${item.reason})` : ""}`);
+    }
+    process.exit(1);
+  }
+  if (report.thresholds.failOnReview && report.summary.reviewRequired) {
+    console.log("- review-required files:");
+    for (const item of report.results.filter((result) => result.requiresReview)) {
+      console.log(`  - ${item.file}: ${item.reviewReason || item.status}`);
     }
     process.exit(1);
   }
@@ -195,6 +212,8 @@ function compareScreenshotPair({
       changedPct: 0,
       maxChannelDelta: 0,
       avgChannelDelta: 0,
+      requiresReview: false,
+      reviewReason: "",
     };
   }
 
@@ -223,6 +242,7 @@ function compareScreenshotPair({
   }
   const diff = diffRgbaPixels(baselinePng.rgba, candidatePng.rgba, pixelThreshold);
   const ok = diff.changedPct <= maxDiffPct;
+  const requiresReview = ok && diff.changedPixels > 0;
   return {
     file,
     status: ok ? "pass" : "diff",
@@ -238,11 +258,13 @@ function compareScreenshotPair({
       candidate: { width: candidatePng.width, height: candidatePng.height },
     },
     ...diff,
+    requiresReview,
     threshold: {
       maxDiffPct,
       pixelThreshold,
     },
     reason: ok ? "" : `changed pixel pct ${formatPct(diff.changedPct)} > ${formatPct(maxDiffPct)}`,
+    reviewReason: requiresReview ? `changed pixel pct ${formatPct(diff.changedPct)} is within threshold; visual review required` : "",
   };
 }
 
@@ -294,13 +316,39 @@ function summarizeManifest(manifest) {
 }
 
 function buildSummary(results) {
+  const failed = results.filter((item) => !item.ok).length;
+  const review = results.filter((item) => item.requiresReview).length;
   return {
     compared: results.filter((item) => item.status !== "extra" && item.status !== "extra-allowed").length,
     passed: results.filter((item) => item.ok).length,
-    failed: results.filter((item) => !item.ok).length,
+    failed,
     changed: results.filter((item) => item.status === "diff" || Number(item.changedPixels || 0) > 0).length,
+    identical: results.filter((item) => item.ok && !item.requiresReview && Number(item.changedPixels || 0) === 0 && item.status !== "extra-allowed").length,
+    review,
+    reviewRequired: review > 0,
+    decision: failed > 0 ? "fail" : (review > 0 ? "review" : "pass"),
+    changedWithinThreshold: results.filter((item) => item.status === "pass" && item.requiresReview && Number(item.changedPixels || 0) > 0).length,
+    changedOverThreshold: results.filter((item) => item.status === "diff" && !item.ok).length,
     missing: results.filter((item) => item.status === "missing" || item.status === "missing-candidate-file").length,
     extra: results.filter((item) => item.status === "extra" || item.status === "extra-allowed").length,
+    extraAllowed: results.filter((item) => item.status === "extra-allowed").length,
+    extraFailed: results.filter((item) => item.status === "extra").length,
+    decodeErrors: results.filter((item) => item.status === "decode-error").length,
+    dimensionMismatches: results.filter((item) => item.status === "dimension-mismatch").length,
+  };
+}
+
+function buildCandidatePolicy({ maxDiffPct, pixelThreshold, allowExtra, failOnReview }) {
+  return {
+    schema: "media-server.ui-visual-baseline-candidate-policy.v1",
+    decision: "fail on missing, decode-error, dimension-mismatch, extra unless --allow-extra, or changedPct above maxDiffPct",
+    review: "review when changed pixels are within threshold or candidate-only screenshots are allowed",
+    missingCandidate: "fail",
+    missingBaseline: allowExtra ? "review" : "fail",
+    dimensionMismatch: "fail",
+    decodeError: "fail",
+    pixelDiff: `fail when changedPct > ${formatPct(maxDiffPct)} with pixelThreshold=${pixelThreshold}`,
+    failOnReview,
   };
 }
 
@@ -312,25 +360,32 @@ function buildMarkdownReport(report) {
     `- generatedAt: ${report.generatedAt}`,
     `- baselineDir: ${report.baselineDir}`,
     `- candidateDir: ${report.candidateDir}`,
+    `- policySchema: ${report.policy?.schema || ""}`,
     `- maxDiffPct: ${formatPct(report.thresholds.maxDiffPct)}`,
     `- pixelThreshold: ${report.thresholds.pixelThreshold}`,
+    `- allowExtra: ${report.thresholds.allowExtra}`,
+    `- failOnReview: ${report.thresholds.failOnReview}`,
+    `- decision: ${report.summary.decision}`,
+    `- reviewRequired: ${report.summary.reviewRequired}`,
     `- compared: ${report.summary.compared}`,
     `- passed: ${report.summary.passed}`,
     `- failed: ${report.summary.failed}`,
+    `- review: ${report.summary.review}`,
     "",
-    "| File | Status | Page | Width | Changed Pixels | Changed % | Max Delta | Reason |",
-    "| --- | --- | --- | --- | --- | --- | --- | --- |",
+    "| File | Status | Review | Page | Width | Changed Pixels | Changed % | Max Delta | Reason |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
   ];
   for (const item of report.results || []) {
     lines.push([
       `| ${item.file || ""}`,
       item.status || "",
+      item.requiresReview ? "yes" : "",
       item.page || "",
       item.viewport?.width ?? item.dimensions?.baseline?.width ?? "",
       item.changedPixels ?? "",
       item.changedPct == null ? "" : formatPct(item.changedPct),
       item.maxChannelDelta ?? "",
-      sanitizeMarkdownCell(item.reason || ""),
+      sanitizeMarkdownCell(item.reason || item.reviewReason || ""),
     ].join(" | ") + " |");
   }
   lines.push("");

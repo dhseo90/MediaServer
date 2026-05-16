@@ -108,6 +108,12 @@ UI 전용 검증에서는 별도 터미널에서
 
 비교 결과는 `media-server.ui-visual-baseline-diff.v1` schema의
 `visual-baseline-diff.json`과 `visual-baseline-diff.md`로 남습니다.
+candidate 비교 정책은 `media-server.ui-visual-baseline-candidate-policy.v1`
+schema로 report에 포함됩니다. 기본 정책은 missing, decode-error,
+dimension-mismatch, threshold 초과 diff, candidate-only screenshot을 실패로
+봅니다. 의도한 신규 screenshot은 `--allow-extra`로 허용하되
+`decision=review`와 `reviewRequired=true`로 남기며, review도 gate 실패로
+취급하려면 `--fail-on-review`를 사용합니다.
 Visual artifact retention은 `media-server.ui-visual-artifact-retention.v1`
 정책으로 manifest에 기록합니다. PR screenshot artifact는 기본 14 days,
 release baseline으로 채택한 artifact는 45 days 보존을 기준으로 하며,

@@ -497,6 +497,19 @@ PR template과 정적 verifier를 연결했습니다.
 - 장시간 `verify-va-runtime-console-longrun`, `verify-predev`는 실행하지 않았습니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Visual baseline candidate 비교 정책 후속 종료 판정
+
+2026-05-16 기준 visual baseline diff report가 candidate 판정을 pass/fail만이 아니라 review 상태까지 구분합니다.
+
+확인됨:
+
+- `compare-ui-visual-baseline` report에 `media-server.ui-visual-baseline-candidate-policy.v1` 정책 블록을 추가했습니다.
+- summary는 `decision=pass|review|fail`, `reviewRequired`, `extraAllowed`, `changedWithinThreshold`, `dimensionMismatches`를 분리합니다.
+- candidate-only screenshot은 기본 실패이며, `--allow-extra`를 쓰면 실패가 아니라 review-required로 남습니다.
+- `--fail-on-review` 옵션으로 review-required candidate도 gate 실패로 다룰 수 있습니다.
+- `verify-ui-visual-artifact-index`가 strict/allow-extra policy fixture를 검증합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ## v1.2.0 시작 전 체크리스트
 
 - [x] v1.1.0 PR이 `main`에 merge됨
