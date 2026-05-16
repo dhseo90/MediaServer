@@ -391,6 +391,11 @@ Ops/Client/Lab API guard를 확인합니다.
   기록합니다. PR screenshot artifact 기본 보존은 14 days, release baseline
   artifact 보존은 45 days이며, client/source/debug/raw JSON 노출 검토 전
   외부 공유 보관소에 올리지 않습니다.
+- release baseline artifact role은 승인된 release/RC 화면 상태를 다음
+  candidate artifact와 비교하는 approved comparator입니다. 이 artifact는
+  public release asset 또는 candidate 통과 증빙이 아니며, baseline 교체 시에는
+  accepted baseline run, 교체 이유, 수동 비노출 검토 결과를 PR/릴리스 기록에
+  연결합니다.
 
 ### 2.1 Live VA Event Quality
 

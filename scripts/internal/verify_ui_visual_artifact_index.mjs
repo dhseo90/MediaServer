@@ -65,6 +65,7 @@ const markdown = fs.readFileSync(indexPath, "utf8");
 const docs = [
   fs.readFileSync(path.join(rootDir, "docs/stream-verification.md"), "utf8"),
   fs.readFileSync(path.join(rootDir, "docs/ui-guide.md"), "utf8"),
+  fs.readFileSync(path.join(rootDir, "docs/release-policy.md"), "utf8"),
   fs.readFileSync(path.join(rootDir, ".github/PULL_REQUEST_TEMPLATE.md"), "utf8"),
   fs.readFileSync(path.join(rootDir, ".github/ISSUE_TEMPLATE/ui_visual_qa.yml"), "utf8"),
 ].join("\n");
@@ -102,6 +103,10 @@ check("docs mention visual artifact index outputs", () => {
     "media-server.ui-visual-artifact-retention.v1",
     "14 days",
     "45 days",
+    "release baseline artifact role",
+    "approved comparator",
+    "not a public release asset",
+    "accepted baseline run",
   ]) {
     assert(docs.includes(snippet), `docs missing visual artifact index snippet: ${snippet}`);
   }
@@ -118,6 +123,9 @@ check("PR template requires visual review artifact evidence", () => {
     "source URL, Developer URL, raw JSON",
     "14 days",
     "45 days",
+    "release baseline artifact",
+    "approved comparator",
+    "not a public release asset or candidate pass proof",
     "./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>",
   ]) {
     assert(template.includes(snippet), `PR template missing visual review checklist snippet: ${snippet}`);
