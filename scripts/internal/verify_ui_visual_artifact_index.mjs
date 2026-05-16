@@ -323,6 +323,7 @@ check("visual artifact maintenance command is wired and documented", () => {
     "media-server-ui-visual-maintenance-dry-run",
     "dry-run",
     "media-server.ui-visual-artifact-maintenance.v1",
+    "PR Summary",
   ]) {
     assert(docs.includes(snippet), `docs missing visual artifact maintenance snippet: ${snippet}`);
   }
@@ -331,6 +332,8 @@ check("visual artifact maintenance command is wired and documented", () => {
     "--apply",
     "retentionPolicy",
     "visual-regression-manifest.json",
+    "## PR Summary",
+    "expiredArtifacts",
   ]) {
     assert(maintenanceScript.includes(snippet), `maintenance script missing snippet: ${snippet}`);
   }
@@ -464,13 +467,26 @@ check("visual artifact maintenance fixture", () => {
   const dryRun = manageUiVisualArtifacts({
     artifactRoot,
     archiveDir,
+    markdownReport: path.join(outputDir, "maintenance-dry-run-report.md"),
     apply: false,
     now: "2026-05-16T00:00:00Z",
   });
   assert(dryRun.summary.keep === 1, `maintenance dry-run keep mismatch: ${dryRun.summary.keep}`);
   assert(dryRun.summary.archive === 1, `maintenance dry-run archive mismatch: ${dryRun.summary.archive}`);
   assert(dryRun.summary.cleanup === 1, `maintenance dry-run cleanup mismatch: ${dryRun.summary.cleanup}`);
+  assert(dryRun.summary.expiredArtifacts === 1, `maintenance dry-run expired artifacts mismatch: ${dryRun.summary.expiredArtifacts}`);
   assert(fs.existsSync(expiredDir), "dry-run must not remove expired artifact");
+  const dryRunMarkdown = fs.readFileSync(dryRun.markdownReportPath, "utf8");
+  for (const snippet of [
+    "## PR Summary",
+    "Decision: REVIEW",
+    "Mode: dry-run",
+    "Expired artifacts: 1",
+    "Planned cleanup actions: 1",
+    "Review archive/cleanup candidates before rerunning with --apply.",
+  ]) {
+    assert(dryRunMarkdown.includes(snippet), `maintenance dry-run Markdown missing snippet: ${snippet}`);
+  }
   const reportPath = path.join(outputDir, "maintenance-report.json");
   const markdownPath = path.join(outputDir, "maintenance-report.md");
   const applied = manageUiVisualArtifacts({
@@ -485,11 +501,14 @@ check("visual artifact maintenance fixture", () => {
   assert(applied.summary.keep === 1, `maintenance apply keep mismatch: ${applied.summary.keep}`);
   assert(applied.summary.archive === 1, `maintenance apply archive mismatch: ${applied.summary.archive}`);
   assert(applied.summary.cleanup === 1, `maintenance apply cleanup mismatch: ${applied.summary.cleanup}`);
+  assert(applied.summary.expiredArtifacts === 1, `maintenance apply expired artifacts mismatch: ${applied.summary.expiredArtifacts}`);
   assert(fs.existsSync(freshDir), "maintenance apply removed fresh artifact");
   assert(!fs.existsSync(expiredDir), "maintenance apply did not remove expired artifact");
   assert(fs.existsSync(path.join(archiveDir, "expired-artifact", "visual-regression-manifest.json")), "maintenance archive copy missing manifest");
   assert(fs.existsSync(reportPath), "maintenance JSON report missing");
   assert(fs.existsSync(markdownPath), "maintenance Markdown report missing");
+  const appliedMarkdown = fs.readFileSync(markdownPath, "utf8");
+  assert(appliedMarkdown.includes("Decision: APPLIED"), "maintenance apply Markdown decision missing");
 });
 
 let failCount = 0;

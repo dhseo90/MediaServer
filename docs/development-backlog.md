@@ -534,8 +534,21 @@ PR template과 정적 verifier를 연결했습니다.
 - 기본은 dry-run이며, 실제 archive/copy와 cleanup 삭제는 `--apply`가 있을 때만 수행합니다.
 - `visual-regression-manifest.json`의 retention policy와 generatedAt을 읽어 만료 여부를 계산합니다.
 - JSON/Markdown report schema는 `media-server.ui-visual-artifact-maintenance.v1`입니다.
+- Markdown report에는 PR 본문에 붙일 `PR Summary` 섹션을 포함해 decision, mode, expired artifact 수, archive/cleanup 예정 수를 요약합니다.
 - `verify-ui-visual-artifact-index`가 dry-run/apply fixture를 임시 디렉터리에서 검증합니다.
 - preflight CI가 `--apply` 없이 dry-run report를 만들고 `media-server-ui-visual-maintenance-dry-run` artifact로 업로드합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
+### UI artifact maintenance PR summary 후속 종료 판정
+
+2026-05-16 기준 UI visual artifact maintenance Markdown report에 PR 본문용 요약 섹션을 추가했습니다.
+
+확인됨:
+
+- `maintenance-report.md` 상단에 `PR Summary` 섹션을 추가했습니다.
+- summary는 `Decision`, dry-run/apply mode, expired artifact 수, archive/cleanup 예정 수, 다음 조치를 포함합니다.
+- JSON summary에는 중복 action 수와 분리된 `expiredArtifacts` 값을 추가했습니다.
+- `verify-ui-visual-artifact-index`가 dry-run/apply fixture Markdown의 PR summary 출력을 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
 ### Visual baseline PR comment generator 후속 종료 판정

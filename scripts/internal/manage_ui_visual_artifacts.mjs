@@ -184,6 +184,7 @@ function actionFor(dir, action, expired, reason, detail = {}) {
 }
 
 function summarize(actions) {
+  const expiredArtifactDirs = new Set(actions.filter((item) => item.expired).map((item) => item.artifactDir));
   return {
     total: actions.length,
     keep: actions.filter((item) => item.action === "keep").length,
@@ -191,6 +192,7 @@ function summarize(actions) {
     cleanup: actions.filter((item) => item.action === "cleanup").length,
     skip: actions.filter((item) => item.action === "skip").length,
     expired: actions.filter((item) => item.expired).length,
+    expiredArtifacts: expiredArtifactDirs.size,
   };
 }
 
@@ -222,6 +224,18 @@ function buildMarkdown(report) {
   const lines = [
     "# UI Visual Artifact Maintenance",
     "",
+    "## PR Summary",
+    "",
+    `- Decision: ${maintenanceDecision(report)}`,
+    `- Mode: ${report.apply ? "apply" : "dry-run"}`,
+    `- Expired artifacts: ${report.summary.expiredArtifacts ?? 0}`,
+    `- Planned archive actions: ${report.summary.archive}`,
+    `- Planned cleanup actions: ${report.summary.cleanup}`,
+    `- Artifact root: ${report.artifactRoot}`,
+    `- Next action: ${maintenanceNextAction(report)}`,
+    "",
+    "## Report Details",
+    "",
     `- schema: ${report.schema}`,
     `- generatedAt: ${report.generatedAt}`,
     `- artifactRoot: ${report.artifactRoot}`,
@@ -240,6 +254,19 @@ function buildMarkdown(report) {
   }
   lines.push("");
   return `${lines.join("\n")}\n`;
+}
+
+function maintenanceDecision(report) {
+  const expiredArtifacts = report.summary.expiredArtifacts ?? 0;
+  if (report.apply) return expiredArtifacts > 0 ? "APPLIED" : "NOOP";
+  return expiredArtifacts > 0 ? "REVIEW" : "NOOP";
+}
+
+function maintenanceNextAction(report) {
+  const expiredArtifacts = report.summary.expiredArtifacts ?? 0;
+  if (!expiredArtifacts) return "No retention action needed.";
+  if (report.apply) return "Confirm archive copy and cleanup result before closing the PR.";
+  return "Review archive/cleanup candidates before rerunning with --apply.";
 }
 
 function parseDate(value, label) {

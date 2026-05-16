@@ -142,6 +142,8 @@ preflight CI는 정적 fixture 기준 `media-server-ui-visual-baseline-diff` art
 `./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>`
 로 dry-run report를 생성합니다. 실제 archive/cleanup은 `--apply`가 있을 때만 수행하며,
 report schema는 `media-server.ui-visual-artifact-maintenance.v1`입니다.
+Markdown report에는 PR 본문에 붙일 `PR Summary` 섹션이 포함되며 decision,
+dry-run/apply mode, expired artifact 수, archive/cleanup 예정 수를 짧게 요약합니다.
 preflight CI는 같은 명령을 `--apply` 없이 실행하고
 `media-server-ui-visual-maintenance-dry-run` artifact에 JSON/Markdown report를 업로드합니다.
 
