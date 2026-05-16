@@ -114,7 +114,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 | V120-P1-03 | P1 | Integrator contract artifact | 완료 | Event POST/WebRTC/SSE/WS contract JSON Schema와 synthetic sample bundle 제공. 2026-05-16 기준 artifact manifest/schema/sample 정적 검증과 문서 연결로 종료 | payload field 추가/삭제, schema identifier 변경 |
 | V120-P1-04 | P1 | Account lifecycle policy | 완료 | `/ops/users` 계정 라이프사이클 정책 영역, password reset UI/문구, invite expiry 표시, user audit export 안내, disable/restore 절차 polish를 기존 auth/session 계약 안에서 종료 | auth store migration, password/session/token contract 변경 |
 | V120-P2-01 | P2 | Release packaging rehearsal | 완료 | source-only 기준 유지와 container/offline/binary 후보 dry-run 정책 gate 확인 | runtime/model binary를 실제 release asset에 포함 |
-| V120-P2-02 | P2 | Re-ID/advanced tracking experiment | 실험 | default-off benchmark와 privacy review 기준으로 close-object association 비교 | Re-ID default-on, 대형 tracker 교체, media pipeline blocking risk |
+| V120-P2-02 | P2 | Re-ID/advanced tracking experiment | HOLD(실험 유지) | default-off/privacy/static guard는 유지. close-object fixture matrix는 hold/warning이 남아 완료 gate로 닫지 않음 | Re-ID default-on, 대형 tracker 교체, media pipeline blocking risk |
 | V120-P2-03 | P2 | YouTube experiment decision | 완료(현상 유지) | YouTube import/source는 lab-only 실험 기능으로 현상 유지하되 기본 빌드에서는 제외. v1.2.0에서는 추가 개발, `verify-youtube-import` 신설, 실제 YouTube URL 다운로드/relay 성공 검증을 진행하지 않음. 제품 경계 검증은 `/lab/import` 404, 제품 UI 미노출, 기본 빌드 비활성 상태 확인으로 제한 | 운영 기본 기능 승격, 실제 YouTube URL 성공 gate, 장시간 import job 정책 도입 |
 
 ### V120-P2-03 종료 판정
@@ -339,10 +339,10 @@ V120-P2-01 범주 안의 잔여 이슈는 남기지 않습니다. runtime/model 
 registry publish, installer 제작은 이 항목의 잔여가 아니라 별도 review가 필요한
 배포 결정입니다.
 
-### V120-P2-02 종료 판정
+### V120-P2-02 HOLD 판정
 
-2026-05-16 기준 V120-P2-02는 Re-ID/advanced tracking experiment 범위에서
-종료합니다.
+2026-05-16 재검토 기준 V120-P2-02는 Re-ID/advanced tracking experiment 범위에서
+종료하지 않고 HOLD(실험 유지)로 둡니다.
 
 확인됨:
 
@@ -369,13 +369,16 @@ registry publish, installer 제작은 이 항목의 잔여가 아니라 별도 r
 
 검증 판정:
 
-- `verify-close-object-fixture-matrix`는 fixture별 hard fail 없이 끝나는 것을
-  V120-P2-02 gate로 사용합니다.
-- `tracking-event`, `tracking-event-long`, `field-new-york-driving` 같은
-  warning fixture는 default-on candidate `False`로 남깁니다.
+- `verify-close-object-fixture-matrix`는 clean pass가 나올 때까지 완료 gate로
+  사용하지 않고 HOLD 추적 gate로 남깁니다.
+- 2026-05-16 재검토에서 `verify-close-object-fixture-matrix`는 `matrix-ok=False`
+  로 끝났습니다. `tracking-event=hold`, `tracking-event-long=warning`,
+  `four-scene-control=warning`, `field-new-york-driving=warning`이며,
+  `tracking-event-slow-long`만 `pass/default-on candidate=True`였습니다.
+- `hold`는 event/scenario output delta 또는 주요 association risk 증가가 있어
+  default-on 검토를 중단해야 하는 상태입니다.
 - `warning`은 live polling observed risk 변동 또는 반복 검증 필요를 뜻하며,
-  V120-P2-02의 default-off 실험 종료를 막지는 않지만 default-on 근거로
-  사용하지 않습니다.
+  default-on 근거로 사용하지 않습니다.
 
 범위 밖:
 
@@ -386,9 +389,10 @@ registry publish, installer 제작은 이 항목의 잔여가 아니라 별도 r
 - RTSP/WebRTC media path 변경
 - client/viewer 화면에 source URL, raw JSON, debug/identity material 노출
 
-V120-P2-02 범주 안의 잔여 이슈는 남기지 않습니다. 실제 모델/현장 샘플 기반
-default-on 결정, 대형 tracker 교체, runtime/model bundle 포함은 이 항목의
-잔여가 아니라 별도 review가 필요한 제품/배포 결정입니다.
+V120-P2-02 범주 안에는 잔여 이슈를 남깁니다. `tracking-event` hold 원인,
+warning fixture 반복 기준, fixture별 default-on 후보 판정 문구는 후속으로
+추적합니다. 실제 모델/현장 샘플 기반 default-on 결정, 대형 tracker 교체,
+runtime/model bundle 포함은 여전히 별도 review가 필요한 제품/배포 결정입니다.
 
 별도 Phase 후보로 기록:
 

@@ -169,14 +169,16 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   const stream = readText("docs/stream-verification.md");
   const video = readText("docs/video-analysis.md");
   for (const snippet of [
-    "V120-P2-02 종료 판정",
+    "V120-P2-02 HOLD 판정",
     "verify-reid-advanced-tracking",
-    "잔여 이슈는 남기지 않습니다",
+    "잔여 이슈를 남깁니다",
+    "tracking-event=hold",
     "verify-close-object-fixture-matrix",
   ]) {
     assert(backlog.includes(snippet), `backlog missing Re-ID closure snippet: ${snippet}`);
   }
-  assert(!backlog.includes("V120-P2-02는 종료하지 않았습니다"), "backlog must not leave V120-P2-02 in a held-open state");
+  assert(backlog.includes("종료하지 않고 HOLD(실험 유지)"), "backlog must keep V120-P2-02 in a held state");
+  assert(!backlog.includes("V120-P2-02 범주 안의 잔여 이슈는 남기지 않습니다"), "backlog must not claim V120-P2-02 has no residual issues");
   for (const snippet of [
     "privacy/default-off gate",
     "verify-reid-advanced-tracking",
