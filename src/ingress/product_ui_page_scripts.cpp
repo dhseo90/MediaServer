@@ -6961,6 +6961,10 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         appendLabeledCell(tr, '요청/결정', userValueHtml(request.createdAt || '미제공', request.decidedAt || accessRequestLifecycleText(request)));
         const actionsHtml = request.status === 'pending'
           ? opsRowActionsHtml(`
+              <label class="request-approve-view">
+                <span>승인 채널 ID</span>
+                <input data-request-approve-view="${escapeHtml(displayValue(request.requestId))}" value="${escapeHtml(displayValue(request.viewId || ''))}" placeholder="채널 ID" />
+              </label>
               <button type="button" class="primary" data-request-approve="${escapeHtml(displayValue(request.requestId))}">승인</button>
               <button type="button" class="danger" data-request-reject="${escapeHtml(displayValue(request.requestId))}">거절</button>
             `, 'user-row-actions')
@@ -7064,12 +7068,20 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         setResetPasswordStatus(error.message, true);
       }
     }
+    function approveViewIdFor(request) {
+      const requestId = String(request?.requestId || '');
+      const input = [...(requestsBody?.querySelectorAll('[data-request-approve-view]') || [])]
+        .find(element => String(element.dataset.requestApproveView || '') === requestId);
+      return String(input?.value ?? request?.viewId ?? '').trim();
+    }
     async function approveAccessRequest(request) {
-      const viewId = window.prompt('승인할 채널 ID', request.viewId || '');
-      if (viewId === null) return;
       try {
         const payload = {};
-        const normalizedViewId = viewId.trim();
+        const normalizedViewId = approveViewIdFor(request);
+        if (!normalizedViewId) {
+          setRequestStatus('승인할 채널 ID를 입력하세요.', true);
+          return;
+        }
         if (normalizedViewId) payload.viewId = normalizedViewId;
         const result = await requestJson(`/ops/api/access-requests/${encodeURIComponent(request.requestId)}/approve`, {
           method: 'POST',

@@ -1863,6 +1863,19 @@ std::string ProductUiCss() {
       gap: var(--space-2);
       min-width: 0;
     }
+    .request-approve-view {
+      display: grid;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .request-approve-view input {
+      width: 100%;
+      min-width: 0;
+      min-height: 32px;
+      padding: 6px 9px;
+      font-size: 12px;
+    }
     .user-scope-cell {
       max-width: none;
       white-space: normal;
