@@ -168,11 +168,13 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   const backlog = readText("docs/development-backlog.md");
   const stream = readText("docs/stream-verification.md");
   const video = readText("docs/video-analysis.md");
+  const holdAnalysis = readText("docs/reid-tracking-event-hold-analysis.md");
   for (const snippet of [
     "V120-P2-02 HOLD 판정",
     "verify-reid-advanced-tracking",
     "잔여 이슈를 남깁니다",
     "tracking-event=hold",
+    "reid-tracking-event-hold-analysis.md",
     "verify-close-object-fixture-matrix",
   ]) {
     assert(backlog.includes(snippet), `backlog missing Re-ID closure snippet: ${snippet}`);
@@ -195,8 +197,28 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   ]) {
     assert(video.includes(snippet), `video analysis missing privacy snippet: ${snippet}`);
   }
+  for (const snippet of [
+    "Re-ID Tracking Event Hold Analysis",
+    "tracking-event",
+    "matrix-ok=False",
+    "diagnosticVsOff event/scenario signature changed",
+    "eventScenarioDelta=true",
+    "missedFrameSpikeCount +38",
+    "directionChangeSpikeCount +93",
+    "enforceVsOff",
+    "closeObjectGuardAppliedCount +46",
+    "default-on candidate: `False`",
+    "keep guard opt-in",
+  ]) {
+    assert(holdAnalysis.includes(snippet), `hold analysis missing snippet: ${snippet}`);
+  }
   return {
-    docs: ["docs/development-backlog.md", "docs/stream-verification.md", "docs/video-analysis.md"],
+    docs: [
+      "docs/development-backlog.md",
+      "docs/stream-verification.md",
+      "docs/video-analysis.md",
+      "docs/reid-tracking-event-hold-analysis.md",
+    ],
   };
 });
 
