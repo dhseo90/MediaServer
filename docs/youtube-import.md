@@ -16,21 +16,31 @@
 - 2026-05-16 v1.2.0 결정: YouTube import/source는 lab-only 실험 기능으로 현상 유지합니다.
 - v1.2.0에서는 이 기능의 추가 개발, 별도 `verify-youtube-import` 신설,
   실제 YouTube URL 다운로드/relay 성공 검증을 진행하지 않습니다.
+- 기본 빌드는 YouTube resolver/source worker를 포함하지 않습니다.
 - `/lab/import` 화면은 제품 UI에서 제거했습니다. route는 404로 닫고 `/ops/sources`에서 채널을 관리합니다.
 - YouTube import/source는 현재 운영 기본 기능이 아니며 자동 smoke gate에도 포함하지 않습니다.
 - `source=youtube` 직접 표출 실험은 기본 비활성입니다.
-- 로컬 실험으로 직접 표출 경로를 확인할 때만 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1` 같은 명시 opt-in이 필요합니다.
+- 로컬 실험으로 직접 표출 경로를 확인할 때만 opt-in 빌드와 runtime env를 함께 사용합니다.
 - 제품 기능으로 다시 다룰 경우 별도 정책/설계 검토가 필요합니다.
 - import/source 모두 core RTSP/WebRTC relay 안정성 기준과 분리해서 봅니다.
 - 접근 제한, 공개 범위 제한, 서비스 정책, rate limit, 서명 URL 만료, 네트워크 장애는 정상적인 실패 조건으로 처리합니다.
 
 ## 활성화 방법
 
-직접 source 표출 실험을 명시적으로 켜고 실행:
+직접 source 표출 실험을 명시적으로 켜려면 기본 빌드 대신 opt-in 빌드가 먼저 필요합니다.
+
+```bash
+MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=1 ./server.sh build
+```
+
+그 다음 runtime에서도 명시적으로 켭니다.
 
 ```bash
 MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1 ./server.sh foreground
 ```
+
+기본 빌드에서는 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1`을 설정해도
+`source=youtube`가 동작하지 않습니다.
 
 resolver binary나 format 등 세부 환경변수는 [config-reference.md](./config-reference.md)의 `YouTube experimental env`를 봅니다.
 
@@ -75,6 +85,7 @@ Linux에서는 배포판 패키지 또는 프로젝트 운영 기준에 맞는 �
 - `/lab/import`는 404로 닫히고 `/ops/sources`에서 채널을 관리함
 - import job UI/API가 제품 화면에 노출되지 않음
 - 실험 기능이 꺼져 있을 때 core `/ops`, `/client`, RTSP/WebRTC 경로에 영향이 없음
+- 기본 빌드에서 `source=youtube`는 runtime env를 켜도 거부됨
 
 v1.2.0에서는 실제 YouTube URL 다운로드/relay 성공 검증을 수행하지 않습니다.
 공개 외부 URL 성공은 문서나 자동 테스트에서 보장하지 않으며, 별도 `verify-youtube-import`

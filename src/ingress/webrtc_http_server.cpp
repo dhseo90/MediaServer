@@ -3082,6 +3082,9 @@ std::optional<media::SourceSpec::Kind> SourceKindForClientView(
         return media::SourceSpec::Kind::Hls;
     }
     if (source.kind == "youtube") {
+        if (!app::kYouTubeSourceBuildEnabled) {
+            return std::nullopt;
+        }
         return media::SourceSpec::Kind::Youtube;
     }
     if (source.kind == "http") {

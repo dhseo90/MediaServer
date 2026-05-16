@@ -24,7 +24,9 @@
 
 #include "app_config.h"
 #include "core/shared_stream.h"
+#if MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE
 #include "core/youtube_resolver.h"
+#endif
 #include "ingress/webrtc_source_registry.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -1999,6 +2001,7 @@ private:
 #endif
 };
 
+#if MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE
 class YouTubeSourceWorker final : public BasicSourceWorker {
 public:
     explicit YouTubeSourceWorker(SourceSpec source_spec) : BasicSourceWorker(std::move(source_spec)) {}
@@ -2140,6 +2143,21 @@ private:
     std::condition_variable stop_cv_;
     std::thread monitor_thread_;
 };
+#else
+class DisabledYouTubeSourceWorker final : public BasicSourceWorker {
+public:
+    explicit DisabledYouTubeSourceWorker(SourceSpec source_spec) : BasicSourceWorker(std::move(source_spec)) {}
+
+    bool Start(const std::shared_ptr<core::SharedStream>&, std::string* error_message) override {
+        if (error_message != nullptr) {
+            *error_message =
+                "source=youtube is not available in this build; rebuild with MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=ON";
+        }
+        running_ = false;
+        return false;
+    }
+};
+#endif
 
 class WebRtcSourceWorker final : public BasicSourceWorker {
 public:
@@ -2225,7 +2243,11 @@ std::unique_ptr<SourceWorker> CreateSourceWorker(const media::SourceSpec& source
         case media::SourceSpec::Kind::Http:
             return std::make_unique<UriSourceWorker>(source_spec);
         case media::SourceSpec::Kind::Youtube:
+#if MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE
             return std::make_unique<YouTubeSourceWorker>(source_spec);
+#else
+            return std::make_unique<DisabledYouTubeSourceWorker>(source_spec);
+#endif
     }
     return nullptr;
 }

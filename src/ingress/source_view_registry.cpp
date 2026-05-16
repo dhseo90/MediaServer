@@ -545,8 +545,11 @@ std::string InferSourceKind(const std::string& kind,
 }
 
 bool IsSupportedSourceKind(const std::string& kind) {
+    if (kind == "youtube") {
+        return app::kYouTubeSourceBuildEnabled;
+    }
     return kind == "file" || kind == "rtsp" || kind == "webrtc" || kind == "whep" ||
-           kind == "http" || kind == "hls" || kind == "youtube";
+           kind == "http" || kind == "hls";
 }
 
 bool HasHttpOrHttpsScheme(const std::string& value) {

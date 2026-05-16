@@ -65,8 +65,8 @@ Optional tool/asset
   license 조건을 유지합니다.
 
 - yt-dlp and Deno:
-  실험용 YouTube import path의 선택 helper tool입니다. 외부 설치 항목이며 각
-  upstream license를 그대로 따릅니다.
+  opt-in lab-only YouTube import/source path의 선택 helper tool입니다. 외부 설치
+  항목이며 각 upstream license를 그대로 따릅니다.
 
 배포 참고
 

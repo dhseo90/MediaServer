@@ -8,7 +8,7 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
 
 WITH_AI=1
-WITH_YOUTUBE=1
+WITH_YOUTUBE=0
 ONNXRUNTIME_VERSION="${MEDIA_SERVER_ONNXRUNTIME_VERSION:-1.20.1}"
 YOLO_MODEL_URL="${MEDIA_SERVER_YOLO_MODEL_URL:-https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo11n.onnx}"
 
@@ -17,7 +17,7 @@ usage() {
 MediaServer 설치 명령 사용법
 
 Usage:
-  ./server.sh install [--basic] [--no-youtube]
+  ./server.sh install [--basic] [--with-youtube]
 
 기본 동작:
   - GStreamer, RTSP, WebRTC 실행/개발 의존성을 설치합니다.
@@ -27,12 +27,13 @@ Usage:
 
 옵션:
   --basic       미디어 스트리밍 의존성만 설치합니다. AI 빌드는 비활성화합니다.
-  --no-youtube  yt-dlp/deno 같은 YouTube 실험실 보조 도구 설치를 건너뜁니다.
+  --with-youtube  lab-only YouTube 실험 보조 도구인 yt-dlp/deno를 설치합니다.
+  --no-youtube    호환용 옵션입니다. 기본값이며 yt-dlp/deno 설치를 건너뜁니다.
 
 예시:
   ./server.sh install
   ./server.sh install --basic
-  ./server.sh install --no-youtube
+  ./server.sh install --with-youtube
 EOF
 }
 
@@ -40,6 +41,9 @@ for arg in "$@"; do
   case "${arg}" in
     --basic)
       WITH_AI=0
+      ;;
+    --with-youtube)
+      WITH_YOUTUBE=1
       ;;
     --no-youtube)
       WITH_YOUTUBE=0
@@ -58,6 +62,7 @@ done
 
 echo "project: ${ROOT_DIR}"
 echo "profile: $([[ "${WITH_AI}" == "1" ]] && echo "ai" || echo "basic")"
+echo "youtube tools: $([[ "${WITH_YOUTUBE}" == "1" ]] && echo "install" || echo "skip")"
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1

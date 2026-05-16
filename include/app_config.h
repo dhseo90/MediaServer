@@ -8,7 +8,13 @@
 
 #include "stdafx.h"
 
+#ifndef MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE
+#define MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE 0
+#endif
+
 namespace app {
+
+inline constexpr bool kYouTubeSourceBuildEnabled = MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE != 0;
 
 enum class AuthMode {
     Auto,
@@ -278,7 +284,7 @@ struct AppConfig {
     int webrtc_video_keyframe_interval{30};
     std::string webrtc_x264_speed_preset{"superfast"};
     bool enable_experimental_youtube_source{false};
-    bool enable_lab_youtube_import{true};
+    bool enable_lab_youtube_import{kYouTubeSourceBuildEnabled};
     std::string youtube_resolver_bin{"yt-dlp"};
     std::string youtube_format{
         "best[protocol=https][height<=720][fps<=30][acodec!=none][vcodec!=none]/"

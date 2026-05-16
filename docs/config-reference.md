@@ -804,8 +804,9 @@ Recorder 동작:
 
 | 환경변수 | 기본값 | 설명 |
 | --- | --- | --- |
-| `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE` | `0` | `source=youtube` 직접 표출 노출 |
-| `MEDIA_SERVER_ENABLE_LAB_YOUTUBE_IMPORT` | `1` | 이전 import API opt-in. 제품 화면은 `/ops/sources`에서 관리 |
+| CMake `MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE` | `OFF` | lab-only YouTube resolver/source worker 빌드 포함 여부. 기본 빌드에서는 YouTube 기능이 제외되며 runtime env를 켜도 동작하지 않음 |
+| `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE` | `0` | opt-in 빌드에서만 `source=youtube` 직접 표출 노출 |
+| `MEDIA_SERVER_ENABLE_LAB_YOUTUBE_IMPORT` | build option 기준 | 이전 import API opt-in. 기본 빌드에서는 무시되며 제품 화면은 `/ops/sources`에서 관리 |
 | `MEDIA_SERVER_YOUTUBE_RESOLVER_BIN` | `yt-dlp` | resolver binary |
 | `MEDIA_SERVER_YOUTUBE_FORMAT` | resolver default | yt-dlp format |
 | `MEDIA_SERVER_YOUTUBE_RESOLVE_TIMEOUT_MS` | code default | resolve timeout |

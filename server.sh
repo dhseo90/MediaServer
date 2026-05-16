@@ -264,7 +264,8 @@ Usage:
 
 install 옵션:
   --basic        AI/ONNX 없이 미디어 스트리밍 의존성만 설치하고 기본 빌드를 build-gst로 설정합니다.
-  --no-youtube   yt-dlp/deno 같은 YouTube 실험실 보조 도구 설치를 건너뜁니다.
+  --with-youtube lab-only YouTube 실험 보조 도구인 yt-dlp/deno를 설치합니다.
+  --no-youtube   호환용 옵션입니다. 기본값이며 yt-dlp/deno 설치를 건너뜁니다.
 
 예시:
   ./server.sh install

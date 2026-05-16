@@ -18,6 +18,7 @@ if [[ -f "${ENV_FILE}" ]]; then
 fi
 
 MEDIA_SERVER_ENABLE_AI="${MEDIA_SERVER_ENABLE_AI:-1}"
+MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE="${MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE:-0}"
 
 usage() {
   cat <<'EOF_USAGE'
@@ -29,6 +30,8 @@ Usage:
 Options:
   --ai       ONNX Runtime + YOLO 포함 빌드. 기본값
   --basic    ONNX Runtime 없이 GStreamer 스트리밍만 빌드
+  YouTube source resolver는 기본 빌드에서 제외됩니다.
+  lab-only 실험 빌드가 필요할 때만 MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=1을 설정하세요.
   -h, --help 도움말 출력
 EOF_USAGE
 }
@@ -85,13 +88,22 @@ if [[ "${MEDIA_SERVER_ENABLE_AI}" == "1" ]]; then
     echo "[build] or set MEDIA_SERVER_ONNXRUNTIME_ROOT in scripts/.media_server.env"
     exit 1
   fi
-  CMAKE_ARGS=(-DMEDIA_SERVER_USE_GSTREAMER=ON -DMEDIA_SERVER_USE_ONNXRUNTIME=ON -DMEDIA_SERVER_ONNXRUNTIME_ROOT="${ONNXRUNTIME_ROOT}")
+  CMAKE_ARGS=(
+    -DMEDIA_SERVER_USE_GSTREAMER=ON
+    -DMEDIA_SERVER_USE_ONNXRUNTIME=ON
+    -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE="${MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE}"
+    -DMEDIA_SERVER_ONNXRUNTIME_ROOT="${ONNXRUNTIME_ROOT}"
+  )
 else
   BUILD_DIR="${MEDIA_SERVER_BUILD_DIR:-${ROOT_DIR}/build-gst}"
-  CMAKE_ARGS=(-DMEDIA_SERVER_USE_GSTREAMER=ON -DMEDIA_SERVER_USE_ONNXRUNTIME=OFF)
+  CMAKE_ARGS=(
+    -DMEDIA_SERVER_USE_GSTREAMER=ON
+    -DMEDIA_SERVER_USE_ONNXRUNTIME=OFF
+    -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE="${MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE}"
+  )
 fi
 
-echo "[1/2] configure: ${BUILD_DIR} (ai=${MEDIA_SERVER_ENABLE_AI})"
+echo "[1/2] configure: ${BUILD_DIR} (ai=${MEDIA_SERVER_ENABLE_AI}, youtube=${MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE})"
 if ! cmake -S "${ROOT_DIR}" -B "${BUILD_DIR}" "${CMAKE_ARGS[@]}"; then
   if [[ -f "${BUILD_DIR}/CMakeCache.txt" ]]; then
     echo "[configure] stale CMake cache detected. resetting ${BUILD_DIR}"

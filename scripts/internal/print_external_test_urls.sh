@@ -82,6 +82,7 @@ if [[ -z "${HOST}" && ${#DETECTED_IPS[@]} -gt 0 ]]; then
   HOST="${DETECTED_IPS[0]}"
 fi
 HOST="${HOST:-<MACBOOK_LAN_IP>}"
+EXPERIMENTAL_YOUTUBE_BUILD_ENABLED="${MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE:-0}"
 EXPERIMENTAL_YOUTUBE_ENABLED="${MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE:-0}"
 
 YOUTUBE_UPLOAD_ENCODED="https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Daqz-KE-bpKQ"
@@ -123,7 +124,7 @@ print_rtsp_routes "RTSP VA sample va_four_scene_sample.mp4" \
   "file=va_four_scene_sample.mp4&va=1" \
   "/" "/h264" "/h265"
 
-if [[ "${EXPERIMENTAL_YOUTUBE_ENABLED}" == "1" ]]; then
+if [[ "${EXPERIMENTAL_YOUTUBE_BUILD_ENABLED}" == "1" && "${EXPERIMENTAL_YOUTUBE_ENABLED}" == "1" ]]; then
   print_rtsp_routes "RTSP YouTube uploaded/VOD (experimental)" \
     "source=youtube&url=${YOUTUBE_UPLOAD_ENCODED}" \
     "/" "/h264" "/h265" "/opus"
@@ -166,11 +167,12 @@ url=https://www.youtube.com/watch?v=aqz-KE-bpKQ
 sourceType=youtube
 url=https://www.youtube.com/watch?v=iYmvCUonukw
 
-- Experimental YouTube tests require yt-dlp on the MacBook and public/non-login URLs.
+- Experimental YouTube tests require an opt-in YouTube build, yt-dlp on the MacBook, and public/non-login URLs.
 EOF
 else
   cat <<EOF
-- Experimental YouTube tests are hidden. Start the server with
-  MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1 if you explicitly want to expose them.
+- Experimental YouTube tests are hidden. Build and start with both
+  MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=1 and MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1
+  if you explicitly want to expose this lab-only path.
 EOF
 fi

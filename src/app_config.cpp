@@ -1031,6 +1031,14 @@ app::AppConfig LoadAppConfig() {
         ReadBoolEnv(kEnvEnableExperimentalYoutubeSource, config.enable_experimental_youtube_source);
     config.enable_lab_youtube_import =
         ReadBoolEnv(kEnvEnableLabYoutubeImport, config.enable_lab_youtube_import);
+#if !MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE
+    if (config.enable_experimental_youtube_source || config.enable_lab_youtube_import) {
+        std::cerr << "[env] YouTube source/import env is ignored because this build excludes "
+                     "MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE\n";
+    }
+    config.enable_experimental_youtube_source = false;
+    config.enable_lab_youtube_import = false;
+#endif
     config.youtube_resolver_bin = ReadStringEnv(kEnvYoutubeResolverBin, config.youtube_resolver_bin);
     config.youtube_format = ReadStringEnv(kEnvYoutubeFormat, config.youtube_format);
     config.youtube_resolve_timeout_ms =
@@ -1635,6 +1643,7 @@ app::AppConfig LoadAppConfig() {
         std::cerr << "[env] WebRTC ICE relay policy requires MEDIA_SERVER_WEBRTC_TURN_SERVER, fallback all\n";
         config.webrtc_ice_transport_policy = "all";
     }
+#if MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE
     if (config.youtube_resolver_bin.empty()) {
         std::cerr << "[env] YouTube resolver binary cannot be empty, fallback yt-dlp\n";
         config.youtube_resolver_bin = "yt-dlp";
@@ -1651,6 +1660,7 @@ app::AppConfig LoadAppConfig() {
         std::cerr << "[env] YouTube reconnect delay must be positive, fallback 2000\n";
         config.youtube_reconnect_delay_ms = 2000;
     }
+#endif
     if (config.auth_session_ttl_seconds <= 0) {
         std::cerr << "[env] auth session TTL must be positive, fallback 86400\n";
         config.auth_session_ttl_seconds = 86400;

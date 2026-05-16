@@ -22,7 +22,9 @@ brew install cmake pkg-config ffmpeg node python \
   gst-rtsp-server libnice libnice-gstreamer onnxruntime
 ```
 
-YouTube import 실험 기능을 다룰 때만 선택 도구를 추가로 설치합니다. 자세한 상태와 제약은 [youtube-import.md](./youtube-import.md)를 봅니다.
+YouTube import/source 실험 기능은 기본 빌드와 기본 설치에서 제외합니다.
+정책 검토가 끝난 lab-only 실험 빌드가 필요할 때만 선택 도구를 추가로 설치합니다.
+자세한 상태와 제약은 [youtube-import.md](./youtube-import.md)를 봅니다.
 
 ```bash
 brew install yt-dlp deno
